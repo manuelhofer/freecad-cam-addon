@@ -74,6 +74,9 @@ t3 = wz.Werkzeug(
     durchmesser=6.0,
     schneiden=2,
     schneidenlaenge=12.0,
+    # Reale Länge statt der geschätzten 24 mm: damit liegt die Kuppel im Z-Weg
+    # der Tisch/Tisch-Maschine; ihre tatsächlichen Anschläge bleiben unverändert.
+    gesamtlaenge=50.0,
     schneidstoff=wz.VHM,
 )
 t3.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.3, ap=0.3, vc=150.0, fz=0.05)]

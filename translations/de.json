@@ -2595,5 +2595,6 @@
     "sb.fehler.trennung": "Der Schnittzug hat keine vollständig bekannten An- und Rückzugspunkte; er bleibt unbearbeitet.",
     "sb.fehler.verbindung": "Die neue Verbindung ist nicht frei von Rohteil-, Werkzeug-, Halter- oder Maschinenkollisionen; der Teilbereich bleibt unbearbeitet.",
     "sb.fehler.tcpm": "Teilbereiche sind nur ohne TCPM geprüft; Ausgabe mit der geprüften Maschinenabbildung ohne TCPM.",
-    "sb.hinweis.ausgelassen": "Schnittzug {zug}: unbearbeitet – ausgelassen: {grund}"
+    "sb.hinweis.ausgelassen": "Schnittzug {zug}: unbearbeitet – ausgelassen: {grund}",
+    "rm3.fehler.bahn_budget": "Die räumliche NC-Folge überschreitet das Rechenbudget; der ursprüngliche Materialstand bleibt erhalten."
 }

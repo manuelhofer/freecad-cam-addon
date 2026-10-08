@@ -53,6 +53,7 @@ class Material:
         self.z_von, self.z_bis = box.ZMin, box.ZMax
         self.schritt = max(self.dx, self.dy)
         self.ausgelassen = ()  # Unveränderliche Angaben; auch Materialkopien teilen keine Liste.
+        self.bewegungsfehler = 0.0  # Einseitige zusätzliche Schranke des Simultansweeps.
         self.grenzen = np.full((nx, ny, 1, 2), np.nan)
         for start in range(0, nx * ny, BLOCK):
             if fortschritt is not None and not fortschritt(start / (nx * ny)):
@@ -287,12 +288,44 @@ def _jobs_vor(job):
     return [grund, *ebenen[: ebenen.index(job)]]
 
 
-def kennung(job, schritt=0.5):
+def _simultane_vorbereiten(job):
+    """Wirkliche NC und Kinematik der Simultanvorgänger, einmal pro Materialanfrage."""
+    from . import maschinenzugang as mz
+    from . import materialstand as ms
+    from . import simultan_operation as so
+    from . import simultan_planung as sp
+    from . import werkzeuge as wz
+
+    result = {}
+    bib = None
+    for davor in _jobs_vor(job):
+        for op in ms.operationen_vor(davor):
+            if not so.ist_simultan(op):
+                continue
+            m = mz._maschine(davor, op)
+            key = (davor.Name, op.Name)
+            if m is None or m is False:
+                result[key] = m
+                continue
+            if bib is None:
+                bib = wz.Bibliothek.laden()
+            try:
+                programm = so.programm(op, m)
+            except ValueError:
+                result[key] = False
+                continue
+            result[key] = (m, programm, bib, sp._sicherheitszustand(m.pruefung, bib))
+    return result
+
+
+def kennung(job, schritt=0.5, simultane=None):
     """Rohteil, Richtungen, Werkzeugkörper und vollständige aktive Vorgängerpfade."""
     from . import maschinenzugang as mz
     from . import materialstand as ms
     from . import schwenken as sw
 
+    if simultane is None:
+        simultane = _simultane_vorbereiten(job)
     daten = [job.Grundjob.Stock.Shape.exportBrepToString(), schritt]
     for davor in _jobs_vor(job):
         lage = sw.ebene_von(davor)
@@ -310,6 +343,18 @@ def kennung(job, schritt=0.5):
                     mz.operation_erreichbar(davor, op),
                 )
             )
+            vorbereitet = simultane.get((davor.Name, op.Name))
+            if vorbereitet is not None and vorbereitet is not False:
+                m, programm, _bib, sicherheit = vorbereitet
+                daten.append(
+                    (
+                        tuple(c.toGCode() for c in programm.befehle),
+                        programm.materialdaten,
+                        tuple(m.nullpunkt),
+                        repr(m.laenge),
+                        sicherheit,
+                    )
+                )
     return hashlib.sha256(repr(daten).encode()).hexdigest()
 
 
@@ -326,7 +371,8 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
     from . import simultan_operation as so
     from . import vierachs_schlichten as vs
 
-    key = kennung(job, schritt)
+    simultane = _simultane_vorbereiten(job)
+    key = kennung(job, schritt, simultane)
     if key in _GEMERKT:
         _GEMERKT.move_to_end(key)
         return _GEMERKT[key]
@@ -343,7 +389,44 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
                 material.ausgelassen += ((op.Label, davor.Label),)
                 continue  # Nicht gefahrener Schnitt darf keinen freien Raum vortäuschen.
             if so.ist_simultan(op):
-                return None
+                vorbereitet = simultane.get((davor.Name, op.Name))
+                if vorbereitet is None:
+                    return None  # Ohne tatsächliche Kinematik kein räumlich gedachter Schnitt.
+                if vorbereitet is False:
+                    material.ausgelassen += ((op.Label, davor.Label),)
+                    continue
+                m, programm, bib, _sicherheit = vorbereitet
+                from . import abfahren as ab
+                from . import raum_bahn as rb
+                from .simultan_bereiche import _Ansicht
+
+                # Ausschließlich diese tatsächliche NC: keine anderen Ebenen oder
+                # noch einmal die ungekippte Quellbahn in die Materialfolge einführen.
+                view = _Ansicht(
+                    op,
+                    _pruefprogramm=(so.pruefschluessel(m), programm.befehle),
+                    _pruefmaterial=programm.materialdaten,
+                )
+                j = _Ansicht(davor, Operations=_Ansicht(davor.Operations, Group=[view]))
+                fahrt = ab.abfahrt(m.pruefung, j, m.nullpunkt, bib)
+                tc = op.ToolController
+                form = vs.form_des_controllers(tc)
+                laenge = float(getattr(tc.Tool, "CuttingEdgeHeight", 0))
+                if form is None or not fahrt.stationen:
+                    return None
+                try:
+                    if not rb.abtragen(
+                        material, fahrt, programm.materialdaten, form, laenge, fortschritt
+                    ):
+                        return None
+                except ValueError as fehler:
+                    if str(fehler) == tr("s5p.fehler.unvollstaendig"):
+                        raise
+                    return None  # Unbekannte Geometrie/Budget: keinen halben Rest veröffentlichen.
+                material.ausgelassen += tuple(
+                    (f"{op.Label} – {n}: {grund}", davor.Label) for n, grund in programm.ausgelassen
+                )
+                continue
             tc = op.ToolController
             form = vs.form_des_controllers(tc)
             laenge = float(getattr(tc.Tool, "CuttingEdgeHeight", 0))

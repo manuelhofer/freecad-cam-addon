@@ -1,0 +1,18 @@
+{
+  "maschinen": {
+    "drehmaschine": 46,
+    "fraese3": 2,
+    "tisch_tisch": 91,
+    "kopf_kopf": 91,
+    "kopf_tisch": 91,
+    "grob_g550": 91
+  },
+  "sekunden": 49.941066444999706,
+  "python_mib": 231.715407371521,
+  "stuecke": 91,
+  "bewegungsfehler_mm": 0.03337021116781913,
+  "rest_mm3": 10721.318695897997,
+  "urspruengliche_intervalle": 2,
+  "rest_intervalle": 4,
+  "grenzen_sha256": "bc94ec4b42a5379f90b1d628ccea6cd0d19764e9eed8b457704df703bbab7709"
+}

@@ -3680,3 +3680,81 @@ ausgelassener Rest und Zurückspulen. Zunächst 0,05 mm Rest unter der vorhanden
 grünen Vorschaugrenze; die abschließende Gegenprobe mit 1,2 mm Rest macht ihn sichtbar.
 Die Materialfarben selbst wurden nicht verändert. Prüfbelege:
 `../../ergebnisse/teilbereiche-2026-10-08/`; Manuels Verständlichkeitsprüfung steht aus.
+
+### 16.19 Räumlicher Rest nach Simultanbewegungen (P-2026-10-08-12)
+
+Heute fällt der gemeinsame räumliche Materialstand bei jedem Simultanvorgänger
+auf das ursprüngliche Rohteil zurück. Auch tatsächlich ausgegebene und erreichbare
+Schnitte fehlen dann als Vorbearbeitung der nächsten Ebene. Künftig werden ihre
+wirklichen NC-Achsstellungen in den gemeinsamen Grundjob zurückgerechnet, einschließlich
+Zwischenstellungen. Kugel und endliche zylindrische Schneide bleiben räumliche Körper.
+Kurze Schwenksegmente verwenden einen nach innen verkleinerten Sweep mit berechneter
+Bewegungsschranke; unbekannte Daten, Eilgangabtrag und überschrittene Ressourcenbudgets
+dürfen weiterhin keine Freigabe eines vermeintlich leeren Raums erzeugen.
+Ausgelassene Züge erzeugen keinen Abtrag. Der Cache berücksichtigt das tatsächliche
+ausgegebene Teilprogramm und die wirksame Maschinenkinematik. Das XY-Strahlraster
+bleibt eine Näherung; der Replay ersetzt keine genaue BRep-Zulassung der Fertigbahn.
+
+```text
+Vorbereitung der nächsten Ebene
+Materialstand: tatsächliche vorherige NC-Bahnen
+[Schneidenkörper während der Werkzeugschwenkung]
+Unbearbeitete Züge: [bleiben im Rohteil]
+Unbekannte / unsichere Bewegung: [ursprüngliches Rohteil verwenden]
+```
+
+Duplicate-Check: Der bisherige Raumkern hat feste gerichtete Sweeps, aber verwirft
+Simultanoperationen. Native CAM-Simulatoren rechnen eigene XYZ-/Werkzeugpfade;
+der vorhandene Addon-Kinematikbaum bleibt die Quelle für die Maschinenbewegung.
+Keine FreeCAD-Dateien oder persönlichen Werkzeugdaten werden geändert.
+
+**Akzeptanzkriterium:** Nach einer Simultanvorbearbeitung eine weitere 3+2-Ebene
+anlegen → der Materialstand übernimmt ausschließlich die wirklich gefahrenen
+räumlichen Schnitte samt endlicher Schneide, lässt ausgelassene Bereiche stehen
+und täuscht bei unsicherer Bewegung keinen freien Raum vor.
+
+
+**Gebaut und geprüft:** Räumlicher Replay der wirklich ausgegebenen NC mit den
+beiden gelesenen Maschinenzweigen, Werkzeugaufnahme, Einspannung und Jobnullpunkt.
+Originaler Eilgang bleibt auch nach G93-Verdichtung erkennbar. Eine berechnete
+Bewegungsschranke erodiert Vorschubsweeps und erweitert Eilganghüllen; unsichere
+Geometrie, unbekannte Achsstellungen, Abbruch oder Ressourcenlimit veröffentlichen
+keinen halben Materialstand. Cache berücksichtigt tatsächliche NC, Herkunft und
+Kinematikzustand. Die Grenzen werden nicht aufgeweicht und es gibt keine
+G550-Sonderformel.
+
+Native Gegenprobe mit altem Raumkern: keine Übernahme eines Simultanvorgängers.
+Jetzt behalten zwei erreichbare Kugelschnittzüge ihren Abtrag, der mittlere
+unerreichbare Zug bleibt mit 1,2 mm Rest stehen; geänderte Richtungen ändern den
+Cache. Wirklich bewegte endliche D12-Schneide am Hohlraum erhält fernes Dach und
+Boden. Unabhängige FK/Randkörperprobe über Zwischenstellungen und native
+BRep-Gegenprobe: innere Sweeps enthalten, äußere Hüllen umfassen den Körper.
+Dieselbe Bewegungsschranke an allen sechs gelesenen Bauarten, auch fester Spindel
+und Drehmaschine. Native Flankenoperation als Vorgänger der nächsten Ebene
+integriert. Identische Schneidenfahrt als Eilgang gesperrt; Abbruch/Budget geprüft.
+
+Neue feste Referenz: 91 Sweeps, zusätzliche Bewegungsschranke höchstens
+0,033371 mm, Rest 10721,318696 mm³ mit vier statt zwei Strahlintervallen; SHA
+`bc94ec4b42a5379f90b1d628ccea6cd0d19764e9eed8b457704df703bbab7709`.
+Rechnung zuletzt 44,515 s / 231,632 MiB Python gegenüber 49,941 s / 231,715 MiB Referenz;
+Zeit-/Speichergrenzen bestanden. Bestehende feste Materialreferenz unverändert.
+GUI auf DP-1, tatsächlicher Fensterrahmen 0/56/1280/996: ursprünglicher Hohlraum
+und Material nach bewegter Schneide. Zunächst verdeckte die ungeschnittene Vorderseite
+den Abtrag; der abschließende Schnitt durch die Vorschau zeigt Kanal, Dach und Boden.
+
+Die alte Anstellprobe lag mit nur geschätzten 24 mm Werkzeuglänge außerhalb Z1;
+auch unverändertes 0.202.0 verwirft sie. Probe mit festgelegter 50-mm-Gesamtlänge
+besteht, tatsächliche Maschinenanschläge unverändert. Im ersten Rest-Entwurf löschte
+das Anlegen der Ebene durch Nachrechnen die gespeicherte Testbahn; die Gegenprobe
+bewahrt jetzt ihre Quelle ausdrücklich. Prüfbelege:
+`../../ergebnisse/bewegter-rest-2026-10-08/`. Die Vorschau ist weiterhin ein
+XY-Strahlraster; weitere Schneidenformen, qualifizierte Einfahrten innerhalb eines
+Zugs und automatische Aufspannungen bleiben offen.
+
+Goldene gemeinsame Schrupp-/Schlichtfolge unverändert: 46,470163 s Bearbeitung,
+5948 Punkte, 6181 NC-Bewegungen, bisheriger NC-SHA identisch; Rechnung
+231,462 s / 240,434 MiB Python gegenüber 210,395 s / 240,434 MiB Referenz innerhalb
+der festen Zeit-/Speichergrenzen. Feine Zulassung, tatsächlicher Export,
+Übernahme/Undo/Abbruch und G550-Kaltexport bestanden. Keine vorhandene Referenz
+neu geschrieben. Eigene Profile und Speicherdeckel; persönlicher Werkzeugbestand
+seit Manuels Änderung unverändert. Kein Push, Manuels Klickprüfung steht aus.

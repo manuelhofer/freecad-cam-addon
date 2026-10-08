@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-12 bewegter-raeumlicher-rest
+
+### EINGELESEN
+- Manuel: allgemeine Strategien weiterbauen; G550 ausdrücklich nur weitere
+  Beispielmaschine. Projektregeln/Snapshot/Strategien 16.19 mit Vorbeschreibung,
+  ASCII und Duplicate-/FreeCAD-Check; vorhandene Kinematik und gerichtete Raumsweeps.
+
+### DATEIEN
+- Neuer `raum_bahn`-Kern, räumliche Materialfolge und NC-Herkunft in den
+  Simultanadaptern; native Gegenprobe/Referenz/GUI, tatsächliche Werkzeuglänge
+  in alter Anstellprobe; DE/EN-Schwenkhilfe/Sprachdateien, Spezifikation/Snapshot/Verlauf;
+  `package.xml` 0.203.0, 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Nach einer Simultanvorbearbeitung eine weitere 3+2-Ebene anlegen → ihr Materialstand
+übernimmt ausschließlich wirklich gefahrene räumliche Schnitte samt endlicher Schneide,
+lässt ausgelassene Bereiche stehen und täuscht bei unsicherer Bewegung keinen freien Raum vor.
+
+### DONE
+- Wirkliche NC-Achsstellungen über beide gelesenen Kinematikzweige in den Grundjob
+  zurückrechnen; Werkzeugaufnahme, Länge/Halterrichtung, Jobnullpunkt und Zwischenstellungen.
+- Berechnete Bewegungsschranke für erodierte Vorschub- und erweiterte Eilgangsweeps;
+  Kugel und endliche zylindrische Schneide. Originaler Eilgang trotz G93-Verdichtung erhalten.
+- Unsichere Bewegung, unbekannte Form/Achsstellung oder Ressourcenlimit gibt keinen
+  teilweise berechneten Rest frei; Abbruch bleibt wirksam. Tatsächliche NC/Herkunft und
+  Maschinenzustand im Materialcache. Unveränderliche Herkunftsdaten werden nicht beschrieben. Auch ein einzelner großer
+  NC-Schwenk prüft den Abbruch während seiner Teilstücke, mit monotonem Fortschritt.
+- Ausgelassene Züge bleiben im Material und Restbericht stehen. Kein Maschinenersatz,
+  keine G550-Sonderformel. XY-Strahlraster bleibt Vorschau; kein Ersatz der BRep-Zulassung.
+
+### TEST
+- Alter Raumkern verwirft Simultanvorgänger; neuer erhält erreichbare Kugelschnitte
+  und lässt den mittleren mit 1,2 mm Rest stehen, Quellen unverändert/Cachewechsel geprüft.
+- Wirklich bewegte D12-Schneide am Hohlraum, Dach/Boden erhalten; unabhängige FK- und
+  Randkörperprobe über Zwischenstellungen sowie native BRep-Gegenprobe. Sechs gelesene
+  Kinematiken, echte Flankenoperation vor nächster Ebene, Eilgangabtrag/Abbruch/Budget gesperrt;
+  Abbruch auch mitten innerhalb einer großen NC-Bewegung statt erst am nächsten Satz.
+- Neue Geometriereferenz: 91 Sweeps, Bewegungsschranke 0,033370211 mm, Rest
+  10721,318696 mm³, vier Strahlintervalle, SHA
+  bc94ec4b42a5379f90b1d628ccea6cd0d19764e9eed8b457704df703bbab7709.
+  Zeit-/Speicherreferenz 49,941 s / 231,715 MiB Python; letzter Lauf einschließlich
+  Abbruch im NC-Schwenk und unveränderlicher Herkunft: 44,515 s / 231,632 MiB.
+- Bestehende feste Materialreferenz, Teilbereiche, sechs Maschinen, Anstellen,
+  Sprache und kalter NC-Export grün. Alte Anstellprobe schon mit 0.202.0 außerhalb Z1:
+  geschätzte 24-mm-Länge durch festgelegte 50-mm-Gesamtlänge ersetzt; Anschläge unverändert.
+- Goldene Gesamtfolge identisch: 46,470163 s, 5948 Punkte, 6181 NC-Bewegungen und
+  bestehender NC-SHA; 231,462 s / 240,434 MiB Python innerhalb bestehender Referenzgrenzen.
+  Feine Materialprüfung, realer Export, Übernahme/Undo/Abbruch bestanden; keine alte Referenz ersetzt.
+- GUI auf Bildschirm DP-1 mit tatsächlichem Rahmen 0/56/1280/996; Schnittansicht zeigt
+  ursprünglichen Hohlraum und Abtrag mit erhaltenem Dach/Boden. Erster Ausschnitt verdeckte
+  den Kanal durch die ungeschnittene Vorderseite; abschließender Ausschnitt korrigiert.
+  Im ersten Entwurf löschte das Ebenenrecompute die gespeicherte Testbahn; Quelle jetzt bewahrt.
+- Black/Ruff/diff sauber. Eigene Profile/16-GiB-Deckel, persönliche Bibliothek seit
+  Manuels Änderung unverändert. Belege `../../ergebnisse/bewegter-rest-2026-10-08/`;
+  Manuels Klickprüfung steht aus. Kein Push.
+
+### NEXT
+- Sichere Ein-/Ausfahrten innerhalb eines zusammenhängenden Schnittzugs, weitere
+  Schneidenformen und automatische Aufspannungswahl; allgemeine Gesamtplanung fortsetzen.
+
 ## P-2026-10-08-11 simultan-schnittzuege-auslassen
 
 ### EINGELESEN

@@ -2595,5 +2595,6 @@
     "sb.fehler.trennung": "The cutting stroke has no fully known approach and retract points; it remains unmachined.",
     "sb.fehler.verbindung": "The new connection is not clear of stock, tool, holder or machine collisions; the region remains unmachined.",
     "sb.fehler.tcpm": "Partial regions are qualified only without TCPM; output uses the qualified machine mapping without TCPM.",
-    "sb.hinweis.ausgelassen": "Cutting stroke {zug}: unmachined – omitted: {grund}"
+    "sb.hinweis.ausgelassen": "Cutting stroke {zug}: unmachined – omitted: {grund}",
+    "rm3.fehler.bahn_budget": "The spatial NC sequence exceeds the computation budget; the original stock state is retained."
 }

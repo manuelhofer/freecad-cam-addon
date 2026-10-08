@@ -312,4 +312,10 @@ def befehle(op, maschine, rohteil=None, tcpm=False, bei_null=False):
         return si.befehle_mit_tcpm(
             maschine, punkte(alle, achsen_je_satz), rohteil, bezug, bei_null=bei_null
         )
-    return si.befehle_auf_maschine(maschine, punkte(alle, achsen_je_satz), rohteil, bezug)
+    return si.befehle_auf_maschine(
+        maschine,
+        punkte(alle, achsen_je_satz),
+        rohteil,
+        bezug,
+        materialdaten=getattr(op, "_pruefmaterial", None),
+    )

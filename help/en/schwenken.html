@@ -64,6 +64,13 @@ as it is clamped.</li>
 planes before it (higher in the tree) – like every operation with material state. If the base
 job changes, the plane's operations recompute.</p>
 
+<p>A preceding simultaneous operation also contributes its actual output axis motions.
+The selected machine determines the spatial movement of the ball mill or finite
+cylindrical cutting section during swivelling. Omitted cutting strokes leave their
+material in place. Unknown cutter shapes, uncertain motion or excessive computation
+fall back conservatively to the original stock. This material state is a raster
+preview; precise finished-part and collision checks remain necessary.</p>
+
 <h3>Simultaneous</h3>
 <p>A swivelled plane stays fixed while milling. Where the tool axis should change from point to
 point – the ball mill tilted, tilting away in a cavity, the flank on an inclined wall –, use the

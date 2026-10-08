@@ -378,4 +378,6 @@ def befehle(op, maschine, rohteil=None, tcpm=False, bei_null=False):
     punkte = fl.punkte(alle, achsen_je_satz)
     if tcpm:
         return si.befehle_mit_tcpm(maschine, punkte, rohteil, 0.0, bei_null=bei_null)
-    return si.befehle_auf_maschine(maschine, punkte, rohteil, 0.0)
+    return si.befehle_auf_maschine(
+        maschine, punkte, rohteil, 0.0, materialdaten=getattr(op, "_pruefmaterial", None)
+    )

@@ -21,6 +21,7 @@ class Programm:
 
     befehle: list
     ausgelassen: tuple = ()
+    materialdaten: tuple = ()  # Ursprünglicher Eilgang und Schnittvorschub je wirklichem NC-Satz.
 
     @property
     def hinweis(self):
@@ -75,7 +76,9 @@ def programm(op, maschine, tcpm=False, bei_null=False):
         tcpm = False  # Keine Rundbewegung: die feste Abbildung liefert bereits echte XYZ.
     cache = getattr(op, "_pruefprogramm", None)
     if cache is not None and cache[0] == pruefschluessel(maschine, tcpm, bei_null):
-        return Programm(list(cache[1]))
+        return Programm(
+            list(cache[1]), materialdaten=tuple(getattr(op, "_pruefmaterial", ()) or ())
+        )
 
     adapter = an if an.ist_angestellt(op) else e3op if e3op.ist_entgraten3d(op) else fl
     if tcpm:
@@ -87,14 +90,23 @@ def programm(op, maschine, tcpm=False, bei_null=False):
             raise ValueError(tr("sb.fehler.tcpm"))
         return Programm(adapter.befehle(op, maschine, tcpm=True, bei_null=bei_null))
     try:
-        nc = adapter.befehle(op, maschine)
+        daten = []
+        view = sb._Ansicht(op, _pruefmaterial=daten)
+        nc = adapter.befehle(view, maschine, rohteil=an.rohteil_von(op))
+        if isinstance(getattr(op, "_pruefmaterial", None), list):
+            op._pruefmaterial[:] = daten
         grund = mz.bahn_grund(maschine, nc, op.Label)
         if grund:
             raise ValueError(grund)
-        return Programm(nc)
+        return Programm(nc, materialdaten=tuple(daten))
     except ValueError as fehler:
-        nc, rest = sb.teilen(op, maschine, str(fehler))
-        return Programm(nc, rest)
+        # Dieselbe Herkunftsliste auch nach dem Auslassen und Verdichten erzeugen.
+        daten = []
+        view = sb._Ansicht(op, _pruefmaterial=daten)
+        nc, rest = sb.teilen(view, maschine, str(fehler))
+        if isinstance(getattr(op, "_pruefmaterial", None), list):
+            op._pruefmaterial[:] = daten
+        return Programm(nc, rest, tuple(daten))
 
 
 def pruefschluessel(maschine, tcpm=False, bei_null=False):
