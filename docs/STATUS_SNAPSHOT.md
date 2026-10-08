@@ -14,9 +14,13 @@ Er wählt innerhalb eines angegebenen Zwischenlagenbereichs und der eingerichtet
 Schlichtwerkzeuge/-bahnen; tatsächlicher Export, gemeinsame Übernahme, Rücknahme und
 Referenz-/Zeit-/Speicherprüfungen sowie Bildschirm 2 geprüft. Manuels Sichtprüfung steht aus.
 Allgemeiner räumlicher Materialstand, Hinterschnitte und automatische Aufspannungen fehlen
-weiterhin. Kein Push. Der große G550-Vergleich liefert einen neuen zugelassenen Kandidaten
-mit 3,5-mm-Zwischenlagen; Beispieldatei und Referenzen werden erst nach seinen weiteren
-Prüfungen aktualisiert. Dauerhafte Prüfdaten: `../../ergebnisse/gesamtplanung-2026-10-08/`.
+weiterhin. Kein Push. **G550-Freiformbeispiel 0.199.1:** gemeinsame Folge mit
+3,5-mm-Zwischenlagen, 316,63 statt 357,52 s; 60 Schlichtkombinationen, beide freien
+Richtungsfolgen, feines Raster einschließlich Vorbearbeitung und geschriebene NC-Geometrie
+geprüft. Beispiel und vier Referenzen aktualisiert; frischer Export ohne Schreibflag exakt,
+1066,58 s instrumentierte Qualitätsprüfung und 401,22 MiB Python-Spitze. Einzelheiten in
+Strategien 16.11 und Beispiel-README; vorherige Referenzen im lokalen Prüfarchiv.
+Dauerhafte Prüfdaten: `../../ergebnisse/gesamtplanung-2026-10-08/`.
 
 **5-Achs-Materialansicht:** Gleicher farbiger Rohteil-/Sollteil-Vergleich wie bei 4 Achsen;
 Kugelmitte aus tatsächlicher Kinematik, senkrechte Vorbearbeitung, Teil/Bahn und Zurückspulen.
@@ -42,7 +46,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.199.0 (P-2026-10-08-03). Alles, was hier als gebaut steht,
+Stand 0.199.1 (P-2026-10-08-04). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

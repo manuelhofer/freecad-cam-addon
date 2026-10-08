@@ -2,7 +2,7 @@
 
 Der Job beginnt mit einem Quader 50 × 40 × 30 mm. Sein Sollteil hat eine
 B-Spline-Fläche mit Mulde, Sattel und Erhebung. Der Standardfräser Ø 12 schruppt
-mit ap 25 mm, ae 1,5 mm, 3-mm-Zwischenlagen und 0,3 mm Aufmaß. Eine angestellte
+mit ap 25 mm, ae 1,5 mm, 3,5-mm-Zwischenlagen und 0,3 mm Aufmaß. Eine angestellte
 Kugel Ø 4 schlichtet anschließend die Fläche samt Randgang auf 0,02 mm Grathöhe.
 
 ## Öffnen
@@ -37,38 +37,42 @@ Am Ende erscheint derselbe farbige Rohteil-/Sollteil-Vergleich wie bei 4 Achsen.
 her. Die Vorschau hat 0,5 mm Raster; für die genaue Grenze gelten die folgenden
 feineren Material-, Flächen- und NC-Prüfungen.
 
-## Korrektur nach Manuels Bahnkritik, P-2026-10-08-01
+## Gemeinsame Gesamtplanung, P-2026-10-08-04
 
 Die frühere Folge mit ap 5 mm und 1-mm-Zwischenlagen war trotz Referenzprüfung
 zu aufwendig: 82 getrennte Schnittzüge, 8,28 min Schruppen und rund 31 % Luft im
-normalen Vorschub. Jetzt wird die Variantenzeit nach Rampen und freien Verbindungen
-verglichen. Bereits geräumte Stellen brauchen keine zusätzliche Minirampe.
+normalen Vorschub. P-2026-10-08-01 verglich die gefahrenen Schruppbahnen einschließlich
+Rampen und freier Verbindungen; 3-mm-Zwischenlagen verkürzten den Job auf 5 min 57,5 s.
 
-1/2/3/4-mm-Zwischenlagen wurden mit dem Standardfräser untersucht. 3 mm hält die
-Last beider Fräser; 4 mm überlastet sie. Die Schlichtanfahrten wurden für den größeren
-Rest neu berechnet. Vollständige Ringe und der Adaptiv-Versuch wurden verworfen,
-weil sie langsamer waren bzw. im Freivorschub Material abtrugen.
+Der neue gemeinsame Vergleich (P-2026-10-08-03) rechnet Schruppen und Schlichten
+für jeden angebotenen Materialzweig zusammen. 2,5/3/3,5/4 mm wurden mit dem
+Standardfräser und beiden freien Anstellungen entlang der Fläche verglichen.
+**3,5 mm gewinnt mit 5 min 16,6 s.** Das Schlichten übernimmt rund 837 mm³ mehr
+Restmaterial, hält aber seine Lastgrenze. 2,5 mm kostet 6 min 20,8 s; 4 mm wird
+wegen Schrupplast 46,72 statt höchstens 37,5 mm² abgewiesen.
 
 | Gemessener Modellwert | Neuer Stand |
 | --- | --- |
-| Gesamter Job | 357,52 s – 5 min 57,5 s statt 11 min 23 s |
-| Schruppen | 2,86 statt 8,28 min; 28 statt 82 Schnittzüge |
-| Luft im normalen Schruppvorschub | 15,38 % im 0,1-mm-Prüfraster |
-| Schrupp-/Schlichtlast | 31,15 / 4,57 mm² bei Grenzen 37,5 / 7,5 mm² |
+| Gesamter Job | 316,63 s – 5 min 16,6 s statt zuletzt 5 min 57,5 s; ursprünglich 11 min 23 s |
+| Schruppen | 2,16 statt zuletzt 2,86 min; ursprünglich 8,28 min |
+| Luft im normalen Schruppvorschub | 14,82 % im 0,1-mm-Prüfraster |
+| Schrupp-/Schlichtlast | 37,43 / 6,82 mm² bei Grenzen 37,5 / 7,5 mm² |
+| Schrupplast im feineren 0,05-mm-Raster | 37,3222 mm² unter 37,5 mm² |
 | Restgrenze einschließlich Vernetzungsunsicherheit | 0,01694 mm bei erlaubten 0,02 mm |
 | Geschriebene NC-Bahn samt Rundungs-/Glättungsreserve | 0,01705 mm bei erlaubten 0,02 mm |
 | Abgedeckte Flächenzellen | 550.457, keine offene Zelle |
 | Modellkollision, Verfahrgrenzen, Eintritt und schneller Abtrag | ohne Befund |
-| NC-Bewegungen | 46.599, exakter frischer Export gegen Referenz geprüft |
-| Vorausschauende Planung mit Speicherinstrumentierung | 1111,21 s; 401,26 MiB Python-Spitze |
+| NC-Bewegungen | 45.682, exakter frischer Export gegen Referenz geprüft |
+| Vorausschauende Qualitätsprüfung mit Speicherinstrumentierung | 1066,58 s; 401,22 MiB Python-Spitze |
 
-Alle 60 aktuellen Kombinationen aus drei Kugelfräsern, fünf Bahnrichtungen und
-vier Anstellungen wurden am neuen Materialstand verglichen. Die schnellste zugelassene
-Variante bleibt **Ø 4, entlang der Fläche, Frei – ganze Bahn**; sie ist 0,55 s
-schneller als die ebenfalls vollständig qualifizierte örtliche Folge. Größere Kugeln
-scheitern am Flächenrand; andere Richtungen u. a. an Rest, Kontaktwinkel oder Last.
-Der vollständige Vergleich dauerte 1060,40 s. Der frühere Bericht mit 45 Kombinationen
-gehört zur alten Schruppfolge und liegt im lokalen Prüfarchiv.
+Alle 60 Kombinationen aus drei Kugelfräsern, fünf Bahnrichtungen und vier
+Anstellungen wurden am neuen 3,5-mm-Materialstand verglichen. Die schnellste
+zugelassene Variante bleibt **Ø 4, entlang der Fläche, Frei – ganze Bahn**; sie ist
+0,54 s schneller als die ebenfalls vollständig qualifizierte örtliche Folge.
+Größere Kugeln scheitern am Flächenrand; andere Richtungen u. a. an Rest,
+Kontaktwinkel oder Last. Der vollständige Vergleich dauerte 982,09 s, der gemeinsame
+Vergleich der vier Materialzweige 1477,59 s. Die vorherigen Berichte und Referenzen
+liegen im lokalen Prüfarchiv.
 
 ## Was geprüft wurde
 
@@ -78,7 +82,7 @@ ganze Flächenzellen, Kontaktwinkel, BRep-Abstand und Maschinenkollision. Das Ma
 0,1 mm wurde zusätzlich mit 0,05 mm geprüft. Die Vernetzungsunsicherheit verbraucht
 Qualitätsbudget. Der NC-Test liest die geschriebenen Achswerte mit ACP/ACN zurück;
 sechs Koordinatenstellen und `CTOL=0.000100` halten die reservierte Grenze ein.
-Die BRep-Untergrenze ist 0,00038208 mm bei reservierten 0,00036 mm.
+Die BRep-Untergrenze ist 0,00038270 mm bei reservierten 0,00036 mm.
 
 Die frühere NC-Abweichung war ein Fehler des Prüfaufbaus: Seine Variantenansicht
 hatte noch keinen zugeordneten Rohteil und ließ drei sichere An-/Rückzugsbewegungen
@@ -86,10 +90,13 @@ weg. Jetzt sind geprüfter und tatsächlicher Export identisch; beide Richtungsf
 wurden aus einem frischen Prozess ohne Schreibflag gegen ihre NC-Referenz verglichen.
 
 `tests/test_schruppen3d_anlauf.py` schützt den Anlaufvergleich und die Schruppbestmarke.
-`test_simultan_planung.py` prüft Punkte, Achsen, Befehle, Zeit und Qualitätsbudget;
+`test_simultan_planung.py` prüft Punkte, Achsen, Befehle, Zeit und Qualitätsbudget
+einschließlich der Vorbearbeitung im feineren Raster;
 `test_simultan_nc.py` prüft die geschriebene Geometrie und den echten Export.
 `test_simultan_export_referenz.py` wiederholt nur den frischen exakten Exportvergleich.
-Goldene Referenzen sichern Wiederholbarkeit; sie beweisen keine allgemeine optimale Strategie.
+`test_simultan_folge.py` schützt die gemeinsame Auswahl, Eingabeschutz, Abbruch,
+Rollback und ein Undo für beide Operationen. Goldene Referenzen sichern Wiederholbarkeit;
+sie beweisen keine allgemeine optimale Strategie.
 
 Unterstützt sind von oben erreichbare Flächen im Quader mit senkrechter Vorbearbeitung.
 Hinterschnitte, automatische weitere Aufspannungen und globale Optimalität beliebiger

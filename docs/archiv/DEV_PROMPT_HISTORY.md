@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-04 freiform-gesamtfolge-mit-3-5-mm
+
+### EINGELESEN
+- Manuels Auftrag zur Gesamtoptimierung; neue gemeinsame Planung P-2026-10-08-03,
+  Snapshot-Vorbeschreibung und Strategien 16.11 vor der Beispieländerung.
+- Vier Zwischenlagenwerte mit beiden freien Anstellungen entlang der Fläche am
+  bestehenden großen G550-Job unverändernd verglichen. Bisherige Referenzen archiviert.
+
+### DATEIEN
+- Freiform-Erzeuger, Beispiel-/NC-/Berichtsdateien und README; vier Bahn-/NC-Referenzen,
+  `test_schruppen3d_anlauf.py`, feine Vorbearbeitungsprüfung in `test_simultan_planung.py`,
+  Spezifikation, Snapshot, dieser Verlauf; `package.xml` 0.199.1, Datum 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Freiformbeispiel neu berechnen und abfahren → der gemeinsame Schrupp-/Schlichtjob mit
+3,5-mm-Zwischenlagen erreicht die kürzere geprüfte Gesamtzeit, bei unveränderten
+Werkzeug-, Qualitäts- und Lastgrenzen und identischer geprüfter NC-Bahn.
+
+### DONE
+- Gemeinsamer Vergleich: 3,5 mm gewinnt mit 316,63 statt 357,52 s; 2,5 mm kostet
+  380,85 s, 4 mm wird wegen Schrupplast 46,72 statt höchstens 37,5 mm² abgewiesen.
+- Schruppzeit 2,16 statt 2,86 min; Schrupplast 37,4277 mm², 14,82 % Luft im Vorschub.
+  Mehr Rest wird bewusst dem Schlichten überlassen: 4751,28 statt 3914,45 mm³;
+  Schlichtlast 6,8192 mm² unter 7,5, kein schneller Abtrag oder unzulässiger Eintritt.
+  Alle 550.457 Flächenzellen zugelassen, Rest einschließlich Vernetzungsunsicherheit
+  0,01694 mm. Gemeinsame Übernahme und tatsächlicher Export gegen geplante Folge identisch.
+- Eigene alte Prüfannahme korrigiert: mindestens 15.000 mm³ Schruppabtrag war die
+  Bestmarke der 3-mm-Folge und verbot die bewusst größere Schlichtarbeit. Für 3,5 mm
+  mindestens 14.000 mm³; die vollständige Endteilprüfung bleibt unverändert maßgebend.
+- Eigene Prüflücke geschlossen: das feinere Raster prüfte bisher nur das Schlichten
+  ausdrücklich auf Befunde. Jetzt werden auch sämtliche Voroperationen geprüft;
+  die bei 3,5 mm knapp unter der Grenze liegende Schrupplast bleibt auch dort zulässig.
+- Die gespeicherte Maschinenstellung/-ansicht und FCBak unverändert.
+  Keine allgemeine globale Optimalität: angebotene Material-/Werkzeug-/Bahnfamilie.
+
+### TEST
+- Gemeinsamer Großvergleich vollständig OK, 1477,59 s; Werkzeugradius, Materialstand,
+  ganze Flächenzellen, Kontaktwinkel, BRep, tatsächliche Kinematik, Grenzen und Modellkollision.
+- Beide Richtungsfolgen samt Raster 0,05 mm, Übernahme, identischer Neuberechnung
+  und Undo vollständig OK. Örtlich 670,18 s, ganze Folge instrumentiert 1066,58 s
+  und 401,22 MiB Python-Spitze, innerhalb bisheriger Budgets.
+- Eigene Laufkonfiguration korrigiert: zunächst falsch benanntes NC-Schreibflag,
+  gestarteten eigenen Lauf vor Abschluss beendet und korrekt wiederholt.
+- Feinere Vorbearbeitung separat am gespeicherten neuen Job geprüft: 0,05 mm Raster,
+  Last 37,32217898 mm² unter 37,5; keine Befunde. Kein vollständiger Prüflauf wiederholt.
+- Beide gespeicherten NC-Folgen unabhängig geometrisch zugelassen: 45.170 örtliche bzw.
+  45.682 ganze Bewegungen, keine offene der 550.457 Zellen, kein schneller Abtrag,
+  BRep-Untergrenze 0,0003827028 mm über der Reserve 0,00036 mm. Die neue erste
+  Anstellung −0,249804° wird als ACN(359,750196) gegen die tatsächliche Quelle geprüft.
+  Tatsächlicher vollständiger Export und geprüftes Programm identisch.
+- Frischer Prozess ohne Schreibflag bestätigt beide neuen NC-Referenzen exakt;
+  globaler SHA-256 `36b3599008fdd6e1b879ced5dcd056f66e21ea875b721ce26ebe6f2ad88c474d`.
+  Vollvergleich aller 60 Kombinationen vollständig OK in 982,09 s, gleicher Sieger.
+- Eigene vorhandene Testprofile, FreeCAD 1.1.4, 16-GiB-Deckel ohne Swap; persönliche
+  Bibliothek mit unverändertem SHA-256. Formate, Ruff und Diffprüfung ohne Befund;
+  kein neuer voller Versionslauf, keine neue FreeCAD-Schnittstelle, kein Push.
+
+### NEXT
+Räumlicher Materialstand, Zugänglichkeit und automatische Aufspannungen bleiben offen.
+
 ## P-2026-10-08-03 schruppen-und-schlichten-gemeinsam-planen
 
 ### EINGELESEN

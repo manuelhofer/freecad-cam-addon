@@ -3295,3 +3295,34 @@ für beide Schritte bestanden. Frische Referenz ohne Schreibflag: 211,24 s und 2
 Python-Spitze. Dialog auf DP-1 geprüft, kompakte Bereichsfelder und beide Knöpfe erreichbar.
 Der große Freiformvergleich wird separat archiviert; diese Zahlen sind kein neues Optimum
 für beliebige Teile oder Aufspannungen.
+
+### 16.11 Ergebnis der gemeinsamen Freiformplanung übernehmen (P-2026-10-08-04)
+
+Die gemeinsame Planung findet für den großen G550-Job einen weiteren zulässigen
+Materialzweig: 3,5-mm-Zwischenlagen statt 3 mm, vollständige Folge 316,63 statt 357,52 s.
+Das Schlichten verarbeitet mehr Rest, hält aber mit 6,82 mm² die Grenze von 7,5 mm².
+2,5 mm kostet 380,85 s, 4 mm überschreitet beim Schruppen 46,72 statt erlaubten
+37,5 mm². Dieselben 550.457 Flächenzellen sind abgedeckt; kein schneller Abtrag,
+kein unzulässiger Eintritt und keine Modellkollision. Dies ist zunächst der gemeinsame
+Vergleich von vier Zwischenlagen mit beiden freien Anstellungen entlang der Fläche.
+
+Vor Aktualisierung der Beispieldateien mussten beide Richtungsfolgen erneut ihre
+Material-/Modell-, feineres-Raster-, Übernahme-/Undo-, NC- und exakten Referenzprüfungen
+bestehen. Diese Prüfungen sind abgeschlossen. Der zusätzliche Vergleich aller 60
+Schlichtkombinationen am 3,5-mm-Materialstand bestätigt den Sieger in 982,09 s;
+örtliche Folge 317,17 s, ganze Richtungsfolge 316,63 s. Schruppen 2,16 statt 2,86 min;
+die Last im zusätzlichen 0,05-mm-Raster beträgt 37,3222 mm² unter 37,5 mm².
+Die feine Vorbearbeitung ist jetzt ausdrücklich Teil der Qualitätsprüfung.
+
+Die gespeicherten NC-Exporte haben 45.170 bzw. 45.682 Bewegungen, keine offene
+Flächenzelle und keinen schnellen Abtrag; BRep-Untergrenze 0,00038270 mm bei reservierten
+0,00036 mm. Beide frisch geladenen tatsächlichen Exporte sind ohne Schreibflag exakt
+gegen die neuen Referenzen geprüft. Instrumentierte Qualitätsprüfung der ganzen Folge:
+1066,58 s und 401,22 MiB Python-Spitze. Die vorherigen Bestmarken bleiben im lokalen
+Archiv nachvollziehbar. Maschinenansicht/-stellung und persönliche Bibliothek unverändert.
+Das Ergebnis gilt für die untersuchten Zweige; räumlicher Materialstand, Hinterschnitte
+und zusätzliche Aufspannungen sind damit weiterhin nicht gelöst.
+
+**Akzeptanzkriterium:** Freiformbeispiel neu berechnen und abfahren → der gemeinsame
+Schrupp-/Schlichtjob mit 3,5-mm-Zwischenlagen erreicht die kürzere geprüfte Gesamtzeit,
+bei unveränderten Werkzeug-, Qualitäts- und Lastgrenzen und identischer geprüfter NC-Bahn.

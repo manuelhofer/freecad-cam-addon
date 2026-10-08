@@ -181,6 +181,7 @@ def pruefung():
         assert rechenzeit < 2400, "Erster Qualitätslauf überschreitet 40 Minuten"
     # Feinere Materialauflösung muss die Qualitätsgrenze ebenfalls halten.
     q = sa.Pruefstand(doc.Job, op, bib, raster=0.05)
+    assert not any(m.gruende for _name, m in q.vorher), q.vorher
     m = q.messen(
         sa._pfad(op),
         vs.form_des_controllers(op.ToolController),
