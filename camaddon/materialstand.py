@@ -23,6 +23,11 @@ gerechnet hat; ändert sich davor etwas, sieht man es an der Kennung (gui_materi
 sie dann neu). Die letzten Stände bleiben gemerkt: Rechnet die nächste Operation des Jobs, fährt
 es nur ihren Vorgänger dazu.
 
+Geschwenkte Ebenen verwenden für ihre Vorgänger den räumlichen Rest aus
+raum_material: mehrere getrennte Abschnitte, endliche Schneidenlänge und jede feste
+Werkzeugrichtung. Nur die aktuelle, von oben bearbeitete Ebene wird wieder als
+Höhenfeld angeboten; unbekannte Vorgänger lassen das ursprüngliche Rohteil stehen.
+
 Läuft ohne Oberfläche; numpy gehört zu FreeCAD.
 """
 
@@ -334,11 +339,13 @@ def _rohteil_kennung(job):
     kennung = f"{art} " + " ".join(f"{w:.4f}" for w in werte)
     davor = _ebene_davor(job)
     if davor:
+        from . import raum_material as raum
         from . import schwenken as sw
 
         teile = [kennung, _placement_text(sw.ebene_von(job))]
         teile += [f"{_placement_text(e)} {s.kennung if s else None}" for e, s in davor]
         kennung += " ebene " + hashlib.sha1(" | ".join(map(str, teile)).encode()).hexdigest()
+        kennung += " raum " + raum.kennung(job, SCHRITT)
     return kennung
 
 
@@ -391,22 +398,27 @@ def _rohteil(job, kennung):
         quader.h = hf.hoehen(netz, quader.x, quader.y)
     davor = _ebene_davor(job)
     if davor:
+        from . import raum_material as raum
         from . import schwenken as sw
 
-        quader.h = _von_oben_in_der_ebene(quader, sw.ebene_von(job), davor)
+        stand = raum.fuer_ebene(job, SCHRITT)
+        if stand is not None:
+            quader.h = _von_oben_in_der_ebene(quader, sw.ebene_von(job), davor, stand)
     return Materialstand(quader, quader.h.copy(), kennung=(kennung,))
 
 
 EBENE_SCHRITT = 0.25  # mm – so fein sucht es in einer Ebene von oben das Material
 
 
-def _von_oben_in_der_ebene(quader, ebene, davor):
-    """Das Höhenfeld einer geschwenkten Ebene (3+2, W-014 F6): je Säule von ihrer Oberkante
-    (quader.h – das gedrehte Rohteil) hinab der erste Punkt, an dem nach dem Grundjob und den
-    Ebenen davor (`davor`, _ebene_davor) noch Material steht – in deren Höhenfeldern unter der
-    Höhe dort und im Kasten des Rohteils. Eine Stufe EBENE_SCHRITT höher als gefunden: lieber
-    Material sehen, wo keins ist. Ohne Stand davor (eine Rundachse drehte): das Rohteil."""
-    if any(stand is None for _lage, stand in davor):
+def _von_oben_in_der_ebene(quader, ebene, davor, raeumlich=None):
+    """Die Oberkante in einer 3+2-Ebene aus dem gemeinsamen räumlichen Rest.
+
+    Von der Rohteiloberkante hinab bis zum ersten Materialabschnitt, einschließlich
+    konservativer XY-Nachbarschaft und einer Stufe EBENE_SCHRITT Reserve. `davor`
+    bleibt für ältere isolierte Aufrufe ohne räumlichen Stand lesbar; reale Jobs
+    erhalten bei unbekannter Vorbearbeitung den ursprünglichen Rohteilkörper.
+    """
+    if raeumlich is None and any(stand is None for _lage, stand in davor):
         return quader.h
     h0 = quader.h
     drin = np.isfinite(h0)
@@ -443,10 +455,13 @@ def _von_oben_in_der_ebene(quader, ebene, davor):
             continue
         p_ebene = np.stack([xs[pruefen], ys[pruefen], np.full(pruefen.sum(), z)], axis=1)
         p_grund = p_ebene @ r.T + b
-        material = np.ones(len(p_grund), dtype=bool)
-        for ri, bi, stand in in_stand:
-            p = p_grund @ ri.T + bi
-            material &= _im_stand(stand, p)
+        if raeumlich is not None:
+            material = raeumlich.belegt(p_grund)
+        else:
+            material = np.ones(len(p_grund), dtype=bool)
+            for ri, bi, stand in in_stand:
+                p = p_grund @ ri.T + bi
+                material &= _im_stand(stand, p)
         treffer = np.flatnonzero(pruefen)[material]
         ergebnis[treffer] = np.minimum(z + EBENE_SCHRITT, oben[treffer])
         offen[treffer] = False

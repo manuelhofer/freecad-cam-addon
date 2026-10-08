@@ -2578,5 +2578,7 @@
     "s5f.fehler.bereich": "Für den Zwischenlagenbereich positive Werte eingeben; der Endwert muss mindestens so groß wie der Anfangswert sein.",
     "s5f.fehler.anzahl": "Mehr als 101 Schritte: einen größeren Schritt oder einen kleineren Bereich wählen.",
     "s5f.fehler.schruppen": "Direkt vor dem Schlichten muss eine aktive 3D-Schruppoperation stehen.",
-    "s5f.uebernehmen": "Geprüfte Folge übernehmen"
+    "s5f.uebernehmen": "Geprüfte Folge übernehmen",
+    "rm3.fehler.geometrie": "Der räumliche Materialstand braucht einen gültigen Rohteilkörper und eindeutige Werkzeugmaße.",
+    "rm3.fehler.raster": "Das räumliche Materialraster ist zu groß. Eine gröbere Auflösung wählen."
 }

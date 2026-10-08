@@ -3326,3 +3326,58 @@ und zusätzliche Aufspannungen sind damit weiterhin nicht gelöst.
 **Akzeptanzkriterium:** Freiformbeispiel neu berechnen und abfahren → der gemeinsame
 Schrupp-/Schlichtjob mit 3,5-mm-Zwischenlagen erreicht die kürzere geprüfte Gesamtzeit,
 bei unveränderten Werkzeug-, Qualitäts- und Lastgrenzen und identischer geprüfter NC-Bahn.
+
+
+### 16.12 Räumlicher Materialstand zwischen 3+2-Richtungen (P-2026-10-08-05)
+
+Manuel verlangt Weiterarbeit bis zur allgemeinen Gesamtplanung. Die bisherige
+Materialübernahme zwischen geschwenkten Ebenen schneidet Höhenfelder ineinander:
+Eine Säule kennt nur Boden und Oberkante. Ein seitlicher Schnitt unter einem
+Überhang darf aber Material oberhalb und unterhalb stehen lassen. Solche Hohlräume
+müssen für die nächste Richtung erhalten bleiben.
+
+Der neue Kern speichert mehrere getrennte Z-Abschnitte je XY-Strahl. Die Abschnitte
+des tatsächlichen Rohteilkörpers stammen blockweise aus FreeCADs öffentlicher
+BRep-Schnitt-API, ohne Ersatz des Körpers durch seinen Begrenzungsquader.
+Kugelbewegungen und endliche Schaftfräser mit fester, beliebiger Richtung schneiden
+kontinuierliche Intervalle; eine neue 3+2-Ebene liest den gemeinsamen Rest in ihrem
+Koordinatensystem. Schneidenlänge, Rohteilgeometrie, Ebene und tatsächliche Pfade gehören
+zur Kennung. Nicht unterstützte Werkzeugformen oder wechselnde Achsen erhalten
+konservativ das ursprüngliche Rohteil statt erfundener Freiräume.
+
+Duplicate-/FreeCAD-Check: kein mehrschichtiger räumlicher Materialstand im Projekt;
+`materialstand._von_oben_in_der_ebene` verwendet bisher Höhenfelder. FreeCADs native
+`Shape.common` mit senkrechten Strahlen liefert die getrennten BRep-Abschnitte; sein
+vorhandener Simulator stellt die Fräser im Python-Ablauf mit fester Z-Richtung.
+Vorprobe: 320 Strahlen durch einen Körper mit Seitenhöhlung liefern 480 Abschnitte,
+bei x/y 0,5 getrennt Z 0…5 und 11…18.
+
+Das XY-Raster bleibt ein Materialmodell mit ausgewiesener Auflösung. Die vorhandene
+feine Simultan-/NC-Qualitätszulassung wird dadurch nicht ersetzt. Kontinuierliches
+Umorientieren des Schaftfräsers und automatische Aufspannungswahl sind weitere Schritte.
+
+**Akzeptanzkriterium:** Nach einer seitlichen 3+2-Bearbeitung eine weitere geschwenkte
+Ebene anlegen → der Materialstand erkennt den geräumten Hohlraum und erhält das Dach
+und den Boden darüber bzw. darunter, auch nach Ändern der Schneidenlänge und Neuberechnen.
+
+
+**Gebaut und geprüft:** BRep-Abschnitte blockweise ohne Vernetzung des Rohteils,
+kontinuierliche gerichtete Zylinder- und Kugelschnitte, endliche Schneidenlänge und
+atomare unabhängige Materialzweige. Beide Sweeps gegen native BRep-Boolean-Sweeps
+und der Zylinder zusätzlich gegen dichte unabhängige Zeitstellungen geprüft.
+Im echten 3+2-Job liegt die nächste Wand bei X 40 mm: vorher falsch X 20,75,
+jetzt konservativ X 39,5 bei 0,5-mm-XY-Raster und 0,25-mm-Höhenschritt.
+Dach und Boden bleiben erhalten. Schneidenlänge, aktive Vorgänger und veränderte
+Rohteilgeometrie invalidieren den Stand. Frische Referenz ohne Schreibflag:
+46,46 s und 218,32 MiB Python-Spitze, innerhalb 120 s / 250 MiB.
+Vorhandene 3+2- und Sprachprüfung bestanden; der ursprüngliche G550-NC-Export
+bleibt exakt. Diese Materialübernahme ist keine neue Grathöhenzulassung für beliebige
+Simultanflächen; dafür bleiben die bestehenden feineren Modell-/NC-Prüfungen maßgebend.
+
+
+**Maschinenweite Vorgabe von Manuel (2026-10-08):** Alle Strategien müssen die
+gewählte eingelesene Maschine verwenden, einschließlich ihrer Achsanordnung,
+Verfahrwege und tatsächlichen Schwenkbereiche. Erreichbare Richtungen werden daraus
+abgeleitet; unerreichbare Bereiche werden mit Grund ausgelassen und ausdrücklich
+als unbearbeitet ausgewiesen. Sie zählen niemals als abgetragen oder als fertiges
+Teil. Die folgende Zugänglichkeits-/Gesamtplanung darf keine G550-Vorgaben festlegen.

@@ -8,13 +8,22 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-**WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).** Der gemeinsame
+**WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
+Maschinenweite Vorgabe: Richtungen und Grenzen aus der tatsächlich gewählten
+Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennzeichnen.
+
+**Räumlicher Rest zwischen 3+2-Ebenen (0.200.0):** Mehrere BRep-Abschnitte je Strahl
+und endliche Fräser mit beliebiger fester Richtung; native Gegenprobe am Hohlraum,
+Referenz-/Zeit-/Speicher- und vorhandene 3+2-Prüfungen bestanden. Sichtprüfung auf DP-1.
+Kontinuierliches Umorientieren und maschinenbezogene Zugänglichkeits-/Aufspannungswahl
+sind die nächsten Schritte (Strategien 16.12).
+ Der gemeinsame
 Schrupp-/Schlichtvergleich ist gebaut und qualifiziert (P-2026-10-08-03, Strategien 16.10).
 Er wählt innerhalb eines angegebenen Zwischenlagenbereichs und der eingerichteten
 Schlichtwerkzeuge/-bahnen; tatsächlicher Export, gemeinsame Übernahme, Rücknahme und
 Referenz-/Zeit-/Speicherprüfungen sowie Bildschirm 2 geprüft. Manuels Sichtprüfung steht aus.
-Allgemeiner räumlicher Materialstand, Hinterschnitte und automatische Aufspannungen fehlen
-weiterhin. Kein Push. **G550-Freiformbeispiel 0.199.1:** gemeinsame Folge mit
+Der räumliche Rest ist für 3+2-Übergänge gebaut; für kontinuierliche Simultanbewegungen
+und automatische Aufspannungen fehlt die allgemeine Zulassung weiterhin. Kein Push. **G550-Freiformbeispiel 0.199.1:** gemeinsame Folge mit
 3,5-mm-Zwischenlagen, 316,63 statt 357,52 s; 60 Schlichtkombinationen, beide freien
 Richtungsfolgen, feines Raster einschließlich Vorbearbeitung und geschriebene NC-Geometrie
 geprüft. Beispiel und vier Referenzen aktualisiert; frischer Export ohne Schreibflag exakt,
@@ -46,7 +55,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.199.1 (P-2026-10-08-04). Alles, was hier als gebaut steht,
+Stand 0.200.0 (P-2026-10-08-05). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

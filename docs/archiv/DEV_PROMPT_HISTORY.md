@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-05 raeumliches-material-zwischen-ebenen
+
+### EINGELESEN
+- Manuel: „Aber mach doch weiter wenn du noch nicht fertig bist“; CHATSTART,
+  Arbeitsregeln, Snapshot, Aufbau, Strategien 16; bestehende Höhenquader,
+  3+2-Materialübernahme und öffentliche BRep-/Simulator-API von FreeCAD.
+- Duplicate-Check und Vorbeschreibung 16.12 vor dem Produktcode. Kein räumlicher
+  Mehrschichtstand vorhanden; FreeCAD `Shape.common` liefert die Materialabschnitte.
+
+### DATEIEN
+- `camaddon/raum_material.py` neu, Integration in `materialstand.py`, DE/EN-Meldungen;
+  neue Materialprüfung, Referenz und sichtbares Szenario; Aufbau, Strategien,
+  Snapshot, dieser Verlauf; `package.xml` 0.200.0, Datum 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Nach einer seitlichen 3+2-Bearbeitung eine weitere geschwenkte Ebene anlegen → der
+Materialstand erkennt den geräumten Hohlraum und erhält das Dach und den Boden darüber
+bzw. darunter, auch nach Ändern der Schneidenlänge und Neuberechnen.
+
+### DONE
+- Mehrere getrennte BRep-Abschnitte je Strahl statt einer einzigen Oberkante;
+  blockweise native Schnittbildung, explizite Raster-/Speichergrenzen, kopierbare Zweige.
+- Kugelsweep und endlicher Zylindersweep mit beliebiger fester Werkzeugrichtung über
+  die vollständige Gerade. Der Zylinder löst die Grenzen des konvexen (z,t)-Gebiets;
+  keine bloßen Endstellungen und keine unendliche Schneide.
+- Gemeinsamer Rest in Grundjobkoordinaten für die folgende 3+2-Ebene; tatsächliche
+  Schneidenlänge, Richtungen, Rohteilgeometrie und vollständige Vorgängerpfade im Cache.
+  Unbekannte Formen, kontinuierliches Umorientieren oder Abtrag im Eilgang erlauben
+  keine erfundenen Freiräume; die Ebene behält dann ihren ursprünglichen Rohteilkörper.
+- Native Gegenprobe: echte nächste Wand X 40, alter Stand X 20,75, neuer Stand X 39,5
+  einschließlich konservativer Rasterreserve. Dach und Boden unverändert erhalten.
+- Die Beispielgerade ist eine geometrische Gegenprobe mit Manuels D12, kein
+  lastqualifizierter Bearbeitungsvorschlag. Keine universelle Optimalitätsbehauptung;
+  feinere Simultan-/NC-Zulassung bleibt beim vorhandenen Prüfer.
+
+### TEST
+- Neue Prüfung: native BRep-Sweeps und unabhängige dichte Zeitstellungen, freie und
+  mehrere Materialschichten, Wiederholung ohne Doppelabtrag, unabhängige Kopien,
+  tatsächliche native Jobs, Cacheänderung bei Schneidenlänge/Rohteil/Vorgängeraktivität,
+  Abbruch und Rastergrenzen. Frischer Lauf ohne Schreibflag exakt gegen Referenz,
+  46,46 s und 218,32 MiB Python-Spitze, unter 120 s / 250 MiB.
+- Vorhandene `test_schwenken.py` und `test_sprache.py` vollständig OK; tatsächlicher
+  frischer G550-Export exakt gegen seine NC-Referenz. Kein voller Versionslauf wiederholt.
+- Alte `_von_oben_in_der_ebene` isoliert aus fc8ba21 ausgeführt; sie scheitert am
+  Hohlraum. Keine FreeCAD-Funktionen überschrieben oder Dateien verändert.
+- Eigene Prüfannahmen korrigiert: ap 25 ist nicht Schneidenlänge 26; eine axiale Fahrt
+  prüft die endliche Länge nicht, daher seitliche Gegenprobe. Die Rasterreserve enthält
+  auch die konservativen XY-Nachbarn, nicht nur den Höhenschritt.
+- Eigener numerischer Randfall: bei leerem Schnitt trat inf×0 auf. Explizite Behandlung
+  endlicher Kandidaten und Gegenprobe mit NumPy-Ausnahmen; finaler Lauf ohne Warnung.
+- Sichtprüfung des Rohteils neben dem räumlichen Rest auf DP-1. Erste Kameradarstellung
+  und Mesh-Ausrichtung im Szenario korrigiert; öffentliche Kamera-API umfasst den
+  vollständigen Vergleich. Rohteil und Rest als direkte native Strahlabschnitt-Meshes
+  nebeneinander gesehen; Dach, Boden und größere Seitenöffnung sichtbar.
+- Beim eigenständigen GUI-Datenaufbau tauschte runpy mit `__main__` den
+  Konsolenkontext aus; native CAM-Kommandos verloren `Gui`. Eigener Modulname
+  erhält die normalen Konsolenaliase; eigenständiger Lauf anschließend ohne Ausnahme.
+- Eigene vor dem Start angelegte Profile, 16-GiB-Deckel ohne Swap; persönliche Bibliothek
+  unverändert. Formate/Ruff/Diffprüfung ohne Befund. Kein Push.
+
+### NEXT
+Kontinuierliches Umorientieren, allgemeine Zugänglichkeit und automatische Aufspannungswahl.
+
 ## P-2026-10-08-04 freiform-gesamtfolge-mit-3-5-mm
 
 ### EINGELESEN

@@ -2578,5 +2578,7 @@
     "s5f.fehler.bereich": "Enter positive intermediate layer values; the end must be at least the start.",
     "s5f.fehler.anzahl": "More than 101 steps: choose a larger step or a smaller range.",
     "s5f.fehler.schruppen": "An active 3D roughing operation must directly precede finishing.",
-    "s5f.uebernehmen": "Apply checked sequence"
+    "s5f.uebernehmen": "Apply checked sequence",
+    "rm3.fehler.geometrie": "The spatial material model needs a valid stock solid and unambiguous tool dimensions.",
+    "rm3.fehler.raster": "The spatial material grid is too large. Choose a coarser resolution."
 }
