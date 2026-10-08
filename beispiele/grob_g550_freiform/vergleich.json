@@ -1,4 +1,6 @@
 {
+  "stand": "P-2026-10-08-01",
+  "auswahl": "Alle 60 aktuellen Kombinationen am neuen Materialstand: drei Kugelfräser × fünf Richtungen × vier Anstellungen. Schnellste zugelassene Variante: Ø 4, entlang der Fläche, ganze Richtungsfolge. Der frühere 45-Varianten-Bericht liegt im lokalen Prüfarchiv.",
   "varianten": [
     {
       "werkzeug": 2,
@@ -35,6 +37,17 @@
     },
     {
       "werkzeug": 2,
+      "richtung": "x",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 2,
       "richtung": "y",
       "anstellung": "X",
       "sekunden": null,
@@ -68,6 +81,17 @@
     },
     {
       "werkzeug": 2,
+      "richtung": "y",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 2,
       "richtung": "spirale",
       "anstellung": "X",
       "sekunden": null,
@@ -92,6 +116,17 @@
       "werkzeug": 2,
       "richtung": "spirale",
       "anstellung": "frei",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "spirale",
+      "anstellung": "frei_gesamt",
       "sekunden": null,
       "rest_mm": null,
       "kontaktwinkel_grad": 0.0,
@@ -134,6 +169,17 @@
     },
     {
       "werkzeug": 2,
+      "richtung": "flaeche",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 2,
       "richtung": "aequidistant",
       "anstellung": "X",
       "sekunden": null,
@@ -166,6 +212,17 @@
       "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
     },
     {
+      "werkzeug": 2,
+      "richtung": "aequidistant",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
       "werkzeug": 3,
       "richtung": "x",
       "anstellung": "X",
@@ -191,6 +248,17 @@
       "werkzeug": 3,
       "richtung": "x",
       "anstellung": "frei",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "x",
+      "anstellung": "frei_gesamt",
       "sekunden": null,
       "rest_mm": null,
       "kontaktwinkel_grad": 0.0,
@@ -233,6 +301,17 @@
     },
     {
       "werkzeug": 3,
+      "richtung": "y",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 3,
       "richtung": "spirale",
       "anstellung": "X",
       "sekunden": null,
@@ -257,6 +336,17 @@
       "werkzeug": 3,
       "richtung": "spirale",
       "anstellung": "frei",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "spirale",
+      "anstellung": "frei_gesamt",
       "sekunden": null,
       "rest_mm": null,
       "kontaktwinkel_grad": 0.0,
@@ -299,6 +389,17 @@
     },
     {
       "werkzeug": 3,
+      "richtung": "flaeche",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
+      "werkzeug": 3,
       "richtung": "aequidistant",
       "anstellung": "X",
       "sekunden": null,
@@ -331,6 +432,17 @@
       "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
     },
     {
+      "werkzeug": 3,
+      "richtung": "aequidistant",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche."
+    },
+    {
       "werkzeug": 4,
       "richtung": "x",
       "anstellung": "X",
@@ -339,7 +451,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "41 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "53 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -350,7 +462,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "41 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "53 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -361,7 +473,18 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "41 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "53 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "x",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "53 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -372,7 +495,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0469 mm Restgrenze.; Schneidet 0.0081 mm ins fertige Teil.; 25038 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Grathöhe nicht eingehalten: 0.0469 mm Restgrenze.; Schneidet 0.0081 mm ins fertige Teil.; 25389 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -383,7 +506,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0469 mm Restgrenze.; Schneidet 0.0081 mm ins fertige Teil.; 25038 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Grathöhe nicht eingehalten: 0.0469 mm Restgrenze.; Schneidet 0.0081 mm ins fertige Teil.; 25389 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -394,7 +517,18 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0469 mm Restgrenze.; Schneidet 0.0081 mm ins fertige Teil.; 25038 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Grathöhe nicht eingehalten: 0.0469 mm Restgrenze.; Schneidet 0.0081 mm ins fertige Teil.; 25389 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "y",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Grathöhe nicht eingehalten: 0.0469 mm Restgrenze.; Schneidet 0.0081 mm ins fertige Teil.; 25389 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -405,7 +539,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0457 mm Restgrenze.; 27923 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Grathöhe nicht eingehalten: 0.0457 mm Restgrenze.; 28272 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -416,7 +550,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0457 mm Restgrenze.; 27923 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Grathöhe nicht eingehalten: 0.0457 mm Restgrenze.; 28272 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -427,7 +561,18 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0457 mm Restgrenze.; 27923 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Grathöhe nicht eingehalten: 0.0457 mm Restgrenze.; 28272 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "spirale",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Grathöhe nicht eingehalten: 0.0457 mm Restgrenze.; 28272 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -455,9 +600,20 @@
       "werkzeug": 4,
       "richtung": "flaeche",
       "anstellung": "frei",
-      "sekunden": 682.8439119356303,
-      "rest_mm": 0.016939439286035196,
-      "kontaktwinkel_grad": 16.81556370743959,
+      "sekunden": 358.06692843889755,
+      "rest_mm": 0.01693944458979263,
+      "kontaktwinkel_grad": 16.832784734372453,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": ""
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "flaeche",
+      "anstellung": "frei_gesamt",
+      "sekunden": 357.5176792309081,
+      "rest_mm": 0.01693943883406962,
+      "kontaktwinkel_grad": 15.369309162932378,
       "material_geprueft": true,
       "kollision_geprueft": true,
       "grund": ""
@@ -471,7 +627,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0431 mm Restgrenze.; 30313 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Last 10.459 mm² überschreitet ae × ap = 7.500 mm².; Grathöhe nicht eingehalten: 0.0431 mm Restgrenze.; 30769 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -482,7 +638,7 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0431 mm Restgrenze.; 30313 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Last 10.459 mm² überschreitet ae × ap = 7.500 mm².; Grathöhe nicht eingehalten: 0.0431 mm Restgrenze.; 30769 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     },
     {
       "werkzeug": 4,
@@ -493,31 +649,37 @@
       "kontaktwinkel_grad": 0.0,
       "material_geprueft": false,
       "kollision_geprueft": false,
-      "grund": "Grathöhe nicht eingehalten: 0.0431 mm Restgrenze.; 30313 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+      "grund": "Last 10.459 mm² überschreitet ae × ap = 7.500 mm².; Grathöhe nicht eingehalten: 0.0431 mm Restgrenze.; 30769 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "aequidistant",
+      "anstellung": "frei_gesamt",
+      "sekunden": null,
+      "rest_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "material_geprueft": false,
+      "kollision_geprueft": false,
+      "grund": "Last 10.459 mm² überschreitet ae × ap = 7.500 mm².; Grathöhe nicht eingehalten: 0.0431 mm Restgrenze.; 30769 Flächenzellen innerhalb der verlangten Grathöhe nicht vollständig abgedeckt."
     }
   ],
   "werkzeug": 4,
   "richtung": "flaeche",
-  "anstellung": "frei",
-  "sekunden": 682.8439119356303,
-  "rest_mm": 0.016939439286035196,
-  "kontaktwinkel_grad": 16.81556370743959,
+  "anstellung": "frei_gesamt",
+  "sekunden": 357.5176792309081,
+  "rest_mm": 0.01693943883406962,
   "flaechenzellen": 550457,
   "ungedeckte_zellen": 0,
-  "luftanteil": 0.007943696764036404,
-  "last_max_mm2": 2.7558694157402277,
-  "nc_saetze": 54082,
-  "laufzeit_s": 1214.624258635995,
   "material": {
-    "rest": 0.016439439286035196,
-    "einschnitt": 0.0013655791794562333,
+    "rest": 0.01643943883406962,
+    "einschnitt": 0.001365474143000256,
     "eilgang_abtrag": 0.0,
     "schnell_abtrag": 0.0,
-    "schnellweg": 4.000000000001137,
-    "luftweg": 64.1416149355284,
-    "vorschubweg": 8074.529635360393,
-    "volumen": 2344.062861020086,
-    "last_max": 2.7558694157402277,
+    "schnellweg": 4.000000000000682,
+    "luftweg": 72.79987069249931,
+    "vorschubweg": 8101.840250067657,
+    "volumen": 3914.447116651206,
+    "last_max": 4.573266569859435,
     "eintauchungen": 0,
     "luftzuege": 0,
     "rampenwinkel_max": 0.0,
@@ -529,19 +691,36 @@
     "ungedeckt": 0,
     "gruende": []
   },
-  "nc_pruefung": {
-    "sha256": "8e9aa0d0b77179fca412d2335b296b5f12663c47180ad53ef81569f91c6c9a37",
-    "nc_saetze": 54082,
+  "laufzeit_s": 1060.3994532720008,
+  "schruppen": {
+    "vorher_min": 8.284839606,
+    "nachher_min": 2.861072983447598,
+    "schnittzuege_vorher": 82,
+    "schnittzuege_nachher": 28,
+    "zustellung_mm": 25,
+    "zwischenlagen_mm": 3,
+    "zeilenabstand_mm": 1.5,
+    "aufmass_mm": 0.3,
+    "luftanteil": 0.15375979279154195,
+    "last_max_mm2": 31.148768922627657,
+    "last_grenze_mm2": 37.5,
+    "abstand_4_abgewiesen": "Schrupp- und Schlichtlast überschritten"
+  },
+  "nc": {
+    "sha256": "0cc7771861e19ec5ea620d4f8aca039789cce96e35650404a5b7a587200d4f2b",
+    "nc_saetze": 46599,
+    "geladene_punkte_sha256": "9b5d2d213752a46b7ea2bd9919bccc59cf0111b36ef238947c860225f109db82",
+    "geladene_befehle_sha256": "9ed3ae9760cbebf044b6e8c04139b96f0fe80ace1fb049e3c83c7d475d129285",
     "material": {
-      "rest": 0.016439893039059683,
-      "einschnitt": 0.0013650952627024537,
+      "rest": 0.016439447931251294,
+      "einschnitt": 0.001365565139277436,
       "eilgang_abtrag": 0.0,
       "schnell_abtrag": 0.0,
-      "schnellweg": 4.000000382552617,
-      "luftweg": 63.52094408941872,
-      "vorschubweg": 8074.529619404651,
-      "volumen": 2344.0628190842076,
-      "last_max": 2.755869897139198,
+      "schnellweg": 3.9999993695791005,
+      "luftweg": 68.41327728215475,
+      "vorschubweg": 8101.840251196957,
+      "volumen": 3914.4473057262067,
+      "last_max": 4.573265467633055,
       "eintauchungen": 0,
       "luftzuege": 0,
       "rampenwinkel_max": 0.0,
@@ -553,17 +732,14 @@
       "ungedeckt": 0,
       "gruende": []
     },
-    "brep_abstand_mm": 0.00038270313357313766,
-    "nc_reserve_mm": 0.00011,
-    "restgrenze_mm": 0.017049893039059683,
-    "textreferenz_vergleich": "bestanden ohne Schreibflag"
+    "brep_abstand_mm": 0.00038207980029303455
   },
-  "referenzpruefung": {
-    "bahnen_vergleich": "bestanden ohne Schreibflag",
-    "rechenzeit_instrumentiert_s": 1242.7842463190027,
-    "python_spitzenspeicher_mib": 401.88375759124756,
-    "rechenzeit_mit_nc_reserve_s": 754.8136926750012,
-    "rechenzeit_budget_s": 2441.7901576599834,
-    "python_spitzenspeicher_budget_mib": 803.7742156982422
+  "kontaktwinkel_grad": 15.369309162932378,
+  "luftanteil": 0.00898559690705965,
+  "last_max_mm2": 4.573266569859435,
+  "nc_saetze": 46599,
+  "qualitaetspruefung": {
+    "laufzeit_s": 1111.2139791020004,
+    "spitzenspeicher_python_mb": 401.2586965560913
   }
 }

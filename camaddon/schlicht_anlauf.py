@@ -33,6 +33,7 @@ def ergaenzen(bahn, job, operation, radius, vorschub, eintauchen):
     q = rm.Quader(box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax, schritt=0.1)
     if stand is not None:
         q.h[:] = np.maximum(box.ZMin, stand.hoehen_an(q.x, q.y))
+    anfang = q.h.copy() if getattr(operation, "Rampenanlauf", False) else None
     stand = ms.Materialstand(q, q.h.copy())
     toolform = ff.kugel(radius)
     werkzeug = js.werkzeug_von(operation.ToolController, wz.Bibliothek.laden())
@@ -89,7 +90,12 @@ def ergaenzen(bahn, job, operation, radius, vorschub, eintauchen):
         drin = rho2 < radius**2 - 1e-10
         profil = radius - np.sqrt(np.maximum(0, radius**2 - rho2)) if toolform.nur_kugel else 0
         fehlt = np.where(drin, q.h[ausschnitt] - erster.z - profil, -np.inf)
-        hoch = max(0.0, float(np.max(fehlt)) + 0.1) if fehlt.size else 0.0
+        abtrag = float(np.max(fehlt)) if fehlt.size else 0.0
+        # Ein bereits geräumter Boden braucht keine zusätzliche 0,1-mm-Rampe mit
+        # Rückkehr und erneutem Abfahren desselben Anfangsstücks.
+        hoch = max(0.0, abtrag + 0.1) if fehlt.size else 0.0
+        if anfang is not None and abtrag <= 1e-7:
+            hoch = 0.0
         schon_geschnitten = -1
         if hoch > 0 and len(zug) > 1:
             start = bn.Punkt(
@@ -160,6 +166,14 @@ def ergaenzen(bahn, job, operation, radius, vorschub, eintauchen):
                 a = ergebnis[-1]
                 ergebnis[-1] = bn.Punkt(True, a.x, a.y, max(stock_oben + 3, a.z))
         i = ende
+    if anfang is not None:
+        # Auch mit Rampenanlauf gelten die gemeinsamen freien Verbindungen und der
+        # Freivorschub. Dafür vom Material vor der Operation ausgehen, nicht vom
+        # bereits vollständig abgefahrenen Quader.
+        q.h[:] = anfang
+        ergebnis, _schnell = fw.schneller(
+            ergebnis, toolform, q, vorschub, fw.freivorschub_fuer(job)
+        )
     bahn.punkte = ergebnis
     bahn.laenge = sum(
         bn.weg(a, b) for a, b in zip(ergebnis, ergebnis[1:], strict=False) if not b.eilgang

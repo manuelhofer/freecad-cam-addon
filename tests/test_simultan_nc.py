@@ -49,6 +49,10 @@ def pruefung():
     p = rw.Pruefung(md.Assembly, md.Maschine)
     op = doc.Schlichten3D
     virtuell = sp._Ansicht(op, _pruefmaterial=[])
+    # Die Variantenansicht muss vor der Bahnerzeugung im Job stehen: sonst findet
+    # angestellt.rohteil_von() ihren Quader nicht und lässt drei sichere
+    # An-/Rückzugsbewegungen weg, die der echte Export enthält.
+    sp._job_mit(doc.Job, op, virtuell)
 
     def maschine(operation):
         tc = operation.ToolController
@@ -76,7 +80,11 @@ def pruefung():
         bisher = json.loads((ROOT / "tests/golden/freiform_simultan.json").read_text())
         assert referenz["zeit_s"] <= bisher["zeit_s"] * 1.005
         assert referenz["rechenzeit_s"] <= bisher["rechenzeit_s"] * 2
-        assert referenz["spitzenspeicher_python_mb"] <= bisher["spitzenspeicher_python_mb"] * 2
+        if (
+            referenz["spitzenspeicher_python_mb"] is not None
+            and bisher["spitzenspeicher_python_mb"] is not None
+        ):
+            assert referenz["spitzenspeicher_python_mb"] <= bisher["spitzenspeicher_python_mb"] * 2
     virtuell._pruefprogramm = (so.pruefschluessel(mas), tuple(quelle))
     # Erst nur diese Operation schreiben, ohne Wechselpunkt: jeder Fahrsatz kommt
     # aus der Quelle. Die gelesenen Wörter, nicht die originalen Doublewerte, nachfahren.
@@ -171,18 +179,36 @@ def pruefung():
     abstand = sa.einschnitt(stand_material.form, bahn, 2, grenze=reserve)
     print("NC_BREP", abstand, flush=True)
     assert abstand >= reserve, abstand
-    # Ganzen Job mit denselben gelesenen Achswerten schreiben und nachlesen.
-    if str(op.Kippachse) == "frei_gesamt":
-        # Den tatsächlichen Export referenzieren, nicht einen zweiten Export bereits
-        # gelesener Wörter; dessen Geometrie wurde direkt darüber unabhängig geprüft.
-        virtuell._pruefprogramm = (so.pruefschluessel(mas), tuple(quelle))
+    # Ganzen tatsächlichen Job schreiben und nachlesen.
+    # Den tatsächlichen Export referenzieren, nicht einen zweiten Export bereits
+    # gelesener Wörter; dessen Geometrie wurde direkt darüber unabhängig geprüft.
+    virtuell._pruefprogramm = (so.pruefschluessel(mas), tuple(quelle))
     programm = pp.programm(
         pp.abschnitte(job, maschine), steuerung, pp.maschineninfo_dokument(md), "G550_FREIFORM"
     )
+    wirklich = pp.programm(
+        pp.abschnitte(doc.Job, maschine), steuerung, pp.maschineninfo_dokument(md), "G550_FREIFORM"
+    )
+    if wirklich.text != programm.text:
+        (profil / "nc_geprueft.mpf").write_text(programm.text)
+        (profil / "nc_tatsaechlich.mpf").write_text(wirklich.text)
+        raise AssertionError("Tatsächlicher Export unterscheidet sich vom geprüften Programm")
     if str(op.Kippachse) == "frei_gesamt":
-        assert (
-            "B1=ACN(320.869207)" in programm.text
-        ), "Erste Anstellung von Home in falscher Drehrichtung"
+        # Der erste Winkel ändert sich mit dem neu gerechneten Rampenanlauf.
+        # Richtung und absolute Phase gegen die tatsächliche Quelle prüfen,
+        # nicht gegen den Winkel der früheren Schrupp-/Schlichtfolge.
+        erster = next(
+            float(c.Parameters["B"])
+            for c in quelle
+            if "B" in c.Parameters and abs(float(c.Parameters["B"])) > 1e-7
+        )
+        if "B" in info.umgekehrt:
+            erster = -erster
+        woerter = re.findall(r"B1=AC([PN])\(([-+]?\d+\.\d+)\)", programm.text)
+        richtung, phase = next((r, float(z)) for r, z in woerter if abs(float(z)) > 1e-7)
+        gelesen_erster = phase if richtung == "P" else phase - 360
+        assert abs(gelesen_erster - erster) < 1e-6, "Erste Anstellung von Home verändert"
+        print("NC_ERSTE_ANSTELLUNG", erster, richtung, phase, flush=True)
     befunde, saetze = pp.nachlesen(programm, steuerung, pp.maschineninfo_dokument(md))
     assert not befunde, befunde
     ist = {"sha256": hashlib.sha256(programm.text.encode()).hexdigest(), "nc_saetze": saetze}

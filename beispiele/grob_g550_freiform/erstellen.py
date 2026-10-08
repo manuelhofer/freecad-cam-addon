@@ -99,7 +99,10 @@ def erstellen(ordner):
         for k in kugeln
     ]
     t2 = controller[0]
-    grob = r3.lege_an(job, t1, 5, 1.5, aufmass=0.3, flaechen=faces)
+    # Ganze Folge geprüft: 1/2/3/4 mm Zwischenlagen bei Manuels vollem ap.
+    # 3 mm hält Schrupp- und Schlichtlast; 4 mm überlastet beide Fräser.
+    # Die Schlichtanfahrten müssen aus diesem Materialstand neu entstehen.
+    grob = r3.lege_an(job, t1, 25, 1.5, aufmass=0.3, zwischen=3, flaechen=faces)
     grob.Rampenanlauf = True
     grob.Eintauchwinkel = 2.5
     s3.lege_an(job, t2, 0.02, flaechen=faces)

@@ -8,51 +8,52 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-**PAUSIERT für Manuels Reboot (2026-10-07).** Zwischenstand sichern, nicht veröffentlichen.
-Manuel lehnt die gezeigte Bahn als praktisch unsinnvoll ab; sein Screenshot zeigt
-„3D-Schruppen T1“, Satz 833/12644, 0:28,9 min, viele kreuzende Leerwege/Rampen.
-Nächster Schritt: Schruppfolge und Gesamtjob am realen Bedienbild analysieren und sinnvoll
-planen; bestandene Raster-/Kollisionsprüfungen sind keine Bestätigung der besten Strategie.
-Die neue freie Richtungsfolge ist ein Zwischenstand. Letzte exakte Wiederholung des
-**tatsächlichen** vollständigen NC-Exports weicht weiterhin von der neuen Textreferenz ab,
-auch mit eingefrorener Maschine; Ursache noch offen. Keine Freigabe des neuen Standes.
-Details und dauerhafte Prüfdaten: `../../ergebnisse/zwischenstand-2026-10-07/`.
-Die gespeicherte Maschinenansicht/-stellung samt FCBak bleibt erhalten.
+**Neue Schruppfolge vollständig qualifiziert (2026-10-08).** Auftrag: nach Manuels
+Bahnkritik und Reboot weiterarbeiten; kein Push. Material-, Modell-, NC-, Referenz-,
+Zeit- und Speicherprüfungen bestanden. Der abgeschlossene Vergleich aller 60 aktuellen
+Kombinationen bestätigt die Auswahl mit 357,52 s; 1060,40 s Vergleichszeit.
+Die separate Operationsansicht ist vorbereitet und sichtbar geprüft. Globale Optimalität
+beliebiger Teile, Hinterschnitte und automatische Aufspannungen bleiben ungelöst.
 
+**P-2026-10-08-01 – Freiform-Schruppfolge:** D12 mit ap 25 mm und 3-mm-Zwischenlagen,
+2,86 statt 8,28 min Schruppen, 28 statt 82 Schnittzüge, 15,38 % Luft im Vorschub.
+4-mm-Zwischenlagen überlasten beide Fräser. Auswahl nach Rampen/Freiwegen statt davor;
+keine zusätzliche Minirampe auf bereits geräumtem Boden. Der Schlichtanlauf wird aus dem
+neuen Rest berechnet. Volle Ringe und Adaptiv wurden ohne Verbesserung verworfen.
+Akzeptanzkriterium: Freiformbeispiel öffnen, „3D-Schruppen T1“ neu berechnen und abfahren →
+die geprüfte Bahn bearbeitet dasselbe Rohteil mit weniger Leerwegen und kürzerer Gesamtzeit,
+ohne Einschnitt, Abtrag im Eil-/Freivorschub oder unzulässigen Eintritt und Werkzeuglast.
 
-**Unfertige weitergehende 5-Achs-Planung:** Zusätzlich wird „Frei, ganze Bahn“ über die ganze
-Richtungsfolge geplant und mit vollständiger Maschinenzeit sowie denselben Zulassungsprüfungen
-bewertet (P-2026-10-07-05). Die Voraussicht minimiert Winkelaufwand in einem endlichen
-Richtungsgraphen; die globale Maschinenzeit beliebiger Teile ist damit weiterhin nicht gelöst.
-Automatische Aufspannungen und dreidimensionaler Materialstand für Hinterschnitte bleiben offen.
+**Nachgewiesene neue Material-/Modellzulassung:** Örtlich frei 358,07 s, ganze
+Richtungsfolge 357,52 s. Restgrenze 0,01694 mm bei 0,02 mm; alle 550.457 Flächenzellen
+abgedeckt. Materialraster 0,1 und 0,05 mm, tatsächliche Kinematik, Kontaktwinkel,
+BRep-Abstand und Modellkollision ohne Befund. Ganze Richtungsfolge instrumentiert
+1111,21 s und 401,26 MiB Python-Spitze. Kein Beweis einer global kleinsten Maschinenzeit.
 
-**5-Achs-Materialansicht:** Beim fein geplanten Kugelschlichten im Quader verwendet das
-Prüffenster jetzt den gleichen farbigen Rohteil-/Sollteil-Vergleich wie bei 4 Achsen;
-Kugelmitte aus tatsächlicher Kinematik, senkrechte Vorbearbeitung, Teil/Bahn und
-Zurückspulen. Vorschau mit 0,5-mm-Raster; die genaue Qualitätszulassung bleibt im
-Simultanvergleich (P-2026-10-07-04).
+**NC-Abweichung aufgeklärt:** Die Prüfansicht stand vor der Bahnerzeugung noch nicht
+im Job und fand ihr Rohteil nicht; drei sichere An-/Rückzüge fehlten gegenüber dem echten
+Export. Jetzt stimmen beide überein. Der erste Modulo-Winkel wird gegen die tatsächliche
+neue Quelle geprüft. Beide geschriebenen Programme samt Rundungs-/Glättungsreserve sind
+zugelassen und aus einem frischen Prozess ohne Schreibflag referenzgleich;
+46.599 Bewegungen für die ganze Folge, Restgrenze 0,01705 mm, BRep-Untergrenze
+0,00038208 mm bei reservierten 0,00036 mm. Gespeicherte Maschinenansicht/-stellung und
+FCBak bleiben erhalten. Dauerhafte Prüfdaten: `../../ergebnisse/schruppfolge-2026-10-07/`.
 
-**Komplexes 5-Achs-Schlichten mit Materialprüfung:** „3D-Schlichten“ auswählen → CAM-Addon →
-„5-Achs-Schlichten vergleichen …“: eingerichtete Kugelfräser, fünf Bahnrichtungen und
-Anstellung um X/Y, örtlich frei oder frei über die ganze Bahn gemeinsam prüfen. Der Materialstand nach der Vorbearbeitung,
-ganze Flächenzellen innerhalb der Grathöhe, Einschnitt, Eintritt, Last, Luftfahrten und
-Kontaktwinkel sind Zulassungsbedingungen; gesamte Maschinenzeit und genaue Kollision
-entscheiden. Vergleich ohne Änderung, Übernahme mit Rückgängig und Schutz auch bei
-geänderter Maschine/Halterbibliothek (P-2026-10-07-03).
-Beispiel `beispiele/grob_g550_freiform/`: Quader → Mulde/Sattel/Erhebung, 45 Varianten,
-Kugel Ø 4/entlang der Fläche/frei, rechnerisch 11 min 23 s, Restgrenze 0,01694 mm bei
-verlangten 0,02 mm; NC-Bahn einschließlich Rundungs-/Glättungsreserve 0,01705 mm,
-550.457 abgedeckte Flächenzellen, Modellprüfung ohne Befund.
-Materialprüfung für Quader, senkrechte Vorbearbeitung und letzte aktive Schlichtoperation;
-goldene Punkte/Achsen/NC-Sätze und vollständiger Siemens-Programmtext, Zeitbestmarke sowie
-Rechenzeit- und Python-Speicherbudgets erfolgreich gegen die Referenzen geprüft.
-Zusätzliche ganze Richtungsfolge am selben Freiformteil: 682,55 s statt 682,84 s,
-Restgrenze 0,01694 mm, separate goldene Bahnreferenz; 1288,57 s instrumentierte Prüfzeit,
-401,89 MiB Python-Spitzenspeicher. Das gespeicherte Beispiel bleibt der ursprüngliche
-45-Varianten-Maßstab; der aktuelle Dialog bietet zusätzlich die ganze Richtungsfolge.
-Auch gespeicherte Achswerte und tatsächlicher NC-Text sind separat referenziert und
-vollständig nachgelesen: 53.916 Bewegungen, Restgrenze mit allen Reserven 0,01704942 mm.
-Noch keine allgemeine Lösung für Hinterschnitte, weitere Aufspannungen oder globale Optimalität.
+**P-2026-10-08-02, separat abzuschließen – laufende Operationsbahn:** Vorbeschreibung:
+Im Abspieler lagen sämtliche Operationen übereinander, obwohl die Auswahl „3D-Schruppen T1“
+zeigte. Skizze: `[3D-Schruppen T1 ▼] [☑ Bahn]` → nur Schruppbahn; Wechsel auf
+`[3D-Schlichten T4 ▼]` → nur Schlichtbahn; am Ende Materialfarben ohne Bahn.
+Die Lupe umfasst Werkstück und Werkzeug ohne Home-/Wechselwege; am Ende nur das Werkstück.
+Akzeptanzkriterium: Im Abspieler zwischen Schruppen und Schlichten wechseln → jeweils
+nur die Bahn der angezeigten Operation sehen, mit funktionierendem Bahn-Haken und Endvergleich.
+Sichtbar auf DP-1 geprüft, Fenster (0, 56, 1280, 996); Wechsel, Haken und 8.549 Materialfarben
+bestanden. Dasselbe Oberflächenszenario im frischen Profil ebenfalls OK; mangels Xvfb
+sichtbar ausgeführt. Qt kann die primäre Anzeige abweichend melden; der Start berücksichtigt
+die tatsächliche Anzeigeauswahl. Manuels Rückmeldung zur neuen Bahn steht aus.
+
+**5-Achs-Materialansicht:** Gleicher farbiger Rohteil-/Sollteil-Vergleich wie bei 4 Achsen;
+Kugelmitte aus tatsächlicher Kinematik, senkrechte Vorbearbeitung, Teil/Bahn und Zurückspulen.
+Vorschau mit 0,5-mm-Raster; genaue Qualitätszulassung im Simultanvergleich (P-2026-10-07-04).
 
 **G550-Simultanbeispiel:** fertiger Flanken-Schlichtjob mit D12 auf Winkelaufnahme unter
 `beispiele/grob_g550_simultan/`; 252 Vorschubbewegungen ändern X/Y/Z/A/B gemeinsam,
@@ -74,7 +75,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.198.0 (P-2026-10-07-03). Alles, was hier als gebaut steht,
+Stand 0.198.2 (P-2026-10-08-01). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

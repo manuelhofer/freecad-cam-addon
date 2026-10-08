@@ -12,6 +12,81 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-01 freiform-schruppfolge-verbessern
+
+### EINGELESEN
+- Manuel: „diese Strategie macht ja so gar keinen Sinn“, Zwischenstand vor Reboot,
+  anschließend „weiter“. Screenshot: Schruppen T1, 833/12644, kreuzende Bahnen.
+- CHATSTART, Arbeitsregeln, Snapshot, Aufbau, Strategien 0/7/9/16;
+  vorhandene Schrupp-, Anlauf-, Freiweg-, Material-, Maschinenzeit- und NC-Prüfer.
+- Vorbeschreibung und ein Akzeptanzsatz im Snapshot vor dem Produktcode.
+  Duplicate-/FreeCAD-Check: vorhandene Adaptiv-/Freiwegkerne verwenden; kein
+  vorhandener Vergleich der tatsächlichen 3D-Rampenbahn. Eigene Profile vorab angelegt.
+
+### DATEIEN
+- `camaddon/schlicht_anlauf.py`, `schruppen3d.py`, `schruppen3d_bahn.py`;
+  Freiform-Erzeuger, Vergleichsskript und geprüfte Beispiel-/NC-/Berichtsdateien;
+  `tests/test_schruppen3d_anlauf.py`, `test_simultan_export_referenz.py` (neu),
+  NC-Prüfung, beide Bahn-/NC-Referenzpaare; Aufbau, Strategien, Snapshot,
+  `package.xml` 0.198.2 und dieser Verlauf.
+
+### AKZEPTANZKRITERIUM
+Freiformbeispiel öffnen, „3D-Schruppen T1“ neu berechnen und abfahren → die geprüfte
+Bahn bearbeitet dasselbe Rohteil mit weniger Leerwegen und kürzerer Gesamtzeit,
+ohne Einschnitt, Abtrag im Eil-/Freivorschub oder unzulässigen Eintritt und Werkzeuglast.
+
+### DONE
+- Gemessener Ausgangsbefund: 82 Schnittzüge, 8,28 min Schruppen und im unabhängigen
+  0,25-mm-Raster 30,69 % Luft im normalen Vorschub. Goldene Summen bestätigen
+  Wiederholbarkeit, keine sinnvolle Strategie.
+- Varianten erst nach Anlauf/Freiwegen vergleichen; `zeiten` enthält die tatsächlich
+  gefahrenen Varianten. Der Anlauf berücksichtigt gemeinsame freie Verbindungen
+  vom Material vor der Operation. Kein zusätzlicher 0,1-mm-Anlauf auf geräumtem Boden.
+- Beispiel mit Manuels ap 25, ae 1,5 und 3-mm-Zwischenlagen: 28 Schnittzüge,
+  2,86 min Schruppen, 15,38 % Luft. 1/2/3/4 mm untersucht; 4 mm überlastet
+  Schrupp- und Schlichtfräser, verworfen. Neu gerechneter Schlichtanlauf verarbeitet
+  den größeren Rest; die alte Schlichtanfahrt wäre bei 3 mm ins Material getaucht.
+- Vollständige Ringe verworfen (mehr Luft/längere Zeit), Adaptiv verworfen
+  (kein Zeitgewinn, bei einer Variante 0,182 mm³ Freivorschubabtrag).
+- Ganze Folge 357,52 statt 682,84 s, örtlich frei 358,07 s. Alle 550.457
+  Flächenzellen abgedeckt, Restgrenze 0,01694 bei 0,02 mm; Last 31,15/4,57 mm²
+  unter 37,5/7,5 mm². Keine allgemeine optimale Strategie, keine Hinterschnitte/
+  Aufspannungsplanung. Das sind Modellzeiten, keine Messung an einer echten G550.
+- Der offene NC-Hashfehler war im Testaufbau: Variantenansicht vor Bahnerzeugung
+  noch nicht im Job, dadurch kein Rohteil und drei fehlende sichere An-/Rückzüge.
+  Frühe Zuordnung und direkter Vergleich mit dem echten Export schützen das.
+  Der festgeschriebene alte Anfangswinkel wurde durch eine Prüfung von Richtung
+  und absoluter Phase gegen die tatsächliche neue Quelle ersetzt (jetzt +0,00572°).
+- Neue NC-Bahn mit 46.599 Bewegungen, Restgrenze inklusive aller Reserven 0,01705 mm;
+  BRep-Untergrenze 0,00038208 bei reservierten 0,00036 mm. Frisch geladener
+  tatsächlicher Export beider Richtungsfolgen ohne Schreibflag referenzgleich.
+- Gespeicherte Maschinenansicht/FCBak erhalten. Keine persönliche Werkzeugdatei
+  ersetzt: Hash vor/nach diesem Lauf d04d7820… unverändert; T-008 bleibt offen.
+
+### TEST
+- FreeCAD 1.1.4, vorher existierende isolierte Profile; Läufe mit 16-GiB-Deckel,
+  ohne Swap und mit einem BLAS-Thread. Ruff ganz, Black betroffene Dateien ohne Befund.
+- `test_schruppen3d_anlauf.py` OK; Gegenprobe mit drei alten Modulen scheitert
+  ausdrücklich an „Vergleich enthält nicht die gefahrene Zeit“; bestehende
+  Kuppel-/Schalenprüfung `test_schruppen3d.py` OK.
+- Beide freien Richtungsfolgen vollständig material-/modellgeprüft, übernommen,
+  exakt neu berechnet und rückgängig gemacht; Materialraster zusätzlich 0,05 mm.
+  Örtlich 680,76 s Prüfzeit; ganze Folge mit Instrumentierung 1111,21 s und
+  401,26 MiB Python-Spitze, innerhalb der bestehenden Budgets.
+- Beide `test_simultan_nc.py` OK nach Korrektur des Aufbaus/alten Winkelwerts;
+  `test_simultan_export_referenz.py` je aus frischem Prozess ohne Schreibflag OK.
+- Vollvergleich aller 60 aktuellen Kombinationen im eigenen Profil OK: Ø 4, entlang
+  der Fläche, ganze Richtungsfolge bleibt mit 357,52 s Sieger; 1060,40 s Vergleichszeit.
+  Bericht dauerhaft gesichert. Keine volle Testsuite erneut gestartet, keine neue
+  FreeCAD-Version, kein Push.
+- Eigene Testfehler offen korrigiert: Bildausschnitt im Testmakro zunächst falscher
+  Methodenaufruf; Qt lieferte abweichende Primäranzeige. Hilfsabfrage öffnete unerwartet
+  ein FreeCAD-Fenster ohne Testprofil und wurde beendet; Werkzeugdatei-Hash unverändert.
+  Native 3D-Aufnahme separat geprüft, da der Fenstergrab das OpenGL-Bild nicht enthält.
+
+### NEXT
+Separater Darstellungsschritt P-2026-10-08-02; Manuels neue Sichtprüfung.
+
 ## P-2026-10-07-05 zwischenstand-5achs-vor-neustart
 
 ### EINGELESEN

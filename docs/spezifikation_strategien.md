@@ -3110,7 +3110,7 @@ mit dem tatsächlichen Werkzeug-Eintauchwinkel und Freivorschub nur im nachgewie
 Alte Schruppjobs behalten ohne diesen Haken ihre bisherige Bahn. Der Simultanvergleich
 rechnet feiner und mit eigenem Qualitätsbudget; alte ungeprüfte Schlichtjobs bleiben erhalten.
 
-**Beleg am komplexen Beispiel:** 45 Varianten, Kugel Ø 4/entlang der Fläche/frei; ganzer Job
+**Historischer Beleg vor P-2026-10-08-01; aktuelle Werte in 16.9:** 45 Varianten, Kugel Ø 4/entlang der Fläche/frei; ganzer Job
 682,84 s. Restgrenze mit Vernetzungsreserve 0,01694 mm bei verlangten 0,02 mm, 550.457
 vollständig abgedeckte Flächenzellen, mindestens 16,82° Kontaktwinkel, Last beim Schlichten
 2,756 mm² unter ae × ap = 7,5 mm². Achsgrenzen, Modellkollision und 1 mm Warnabstand ohne
@@ -3119,7 +3119,7 @@ erreicht mit Vernetzungs-, Rundungs- und Glättungsreserve 0,01705 mm Restgrenze
 konservative BRep-Abstandsuntergrenze von 0,000383 mm, ohne offene Zelle.
 Der frühere Sieger „Zeilen X“ fällt an der vollständigen Flächenprüfung durch.
 
-**Referenz und Leistung:** `tests/golden/freiform_simultan.json` hält 41.135 Punkte mit
+**Historische Referenz und Leistung vor P-2026-10-08-01:** `tests/golden/freiform_simultan.json` hält 41.135 Punkte mit
 Werkzeugachsen/Eilgang und 41.463 Maschinenbefehle mit sechs Nachkommastellen, dazu eine Zeitbestmarke
 682,84 s (+0,5 %), gemessene Vergleichszeit 1.220,90 s und Python-Spitzenspeicher 401,89 MiB
 (je ×2 Budget). Der Referenztest prüft zusätzlich Materialraster 0,05 mm, Übernahme,
@@ -3165,7 +3165,7 @@ mit „Teil“/„Bahn“ umschalten und zum Anfang zurückgehen können.
 Das ist ein Bild, keine zusätzliche Qualitätszulassung oder Erweiterung der allgemeinen
 Kollisionsprüfung. Die feinere Material-/NC-Prüfung aus 16.6 bleibt maßgebend.
 
-### 16.8 Anstellung über die ganze Bahn voraussehen (Zwischenstand, P-2026-10-07-05)
+### 16.8 Anstellung über die ganze Bahn voraussehen (P-2026-10-07-05, qualifiziert mit P-2026-10-08-01)
 
 Manuel fordert eine globale optimale Bearbeitung beliebiger Teile. Physische Erreichbarkeit,
 Werkzeuge, Aufspannung und Qualitätsgrenze müssen das Problem begrenzen; geschlossene
@@ -3199,6 +3199,7 @@ Kugel …  | entlang …    | Frei, ganze Bahn  | …       | …
 vergleichen, die schnellste zugelassene Variante rückgängig machbar übernehmen und ihre
 geplante Anfahrt im NC erhalten können.
 
+**Messung vor der verbesserten Schruppfolge; aktuelle Werte in 16.9:**
 Gegen vollständiges Auszählen des Richtungsgraphen geprüft; eine örtliche Sackgasse mit
 wechselnder Flächenneigung kostet 68° statt der vorausschauenden 34°. Am komplexen
 Freiformbeispiel reduziert die zusätzliche Variante die Maschinenzeit nur von 682,84391 s
@@ -3209,3 +3210,34 @@ und 401,89 MiB Python-Spitzenspeicher, innerhalb der bisherigen Budgets.
 Die gespeicherten Achswerte und der tatsächliche Siemens-Export erhalten zusätzlich eine
 eigene Referenz; 53.916 Bewegungen, ausgeschriebene Restgrenze mit allen Reserven
 0,01704942 mm und BRep-Mindestabstand 0,00038221 mm bei reservierten 0,00036 mm.
+
+### 16.9 Schruppfolge des Freiformbeispiels verbessern (P-2026-10-08-01)
+
+Manuel lehnt die gespeicherte Bahn ausdrücklich ab: im Abspieler „3D-Schruppen T1“,
+viele kreuzende Leerwege und Anläufe. Die alte Folge hat 82 getrennte Schnittzüge,
+8,28 min Schruppzeit und im 0,25-mm-Prüfraster 30,69 % Luft im normalen Vorschub.
+Eine goldene Prüfsumme bestätigt ihre Wiederholbarkeit, keine gute Strategie.
+
+Die Auswahl erfolgt nun nach Rampen und freien Verbindungen. Bereits geräumte Stellen
+bekommen keine zusätzliche 0,1-mm-Rampe; auch beim Rampenanlauf gelten die vorhandenen
+materialgeprüften Freiwege. Das Beispiel nutzt Manuels ap 25 mm und 3-mm-Zwischenlagen.
+1/2/3/4 mm wurden gemeinsam mit dem Schlichtrest untersucht: 3 mm hält die Last beider
+Fräser, 4 mm überlastet beide. Mit neu gerechneten Schlichtanfahrten bestehen Eintritt,
+Freivorschub und Last auch im halbierten 0,05-mm-Prüfraster. Die vollständige Flächen-,
+Modell-/Kollisions- und ausgeschriebene NC-Zulassung beider freien Richtungsfolgen ist
+bestanden: 357,52 s Gesamtzeit, 0,01694 mm Restgrenze, alle 550.457 Zellen abgedeckt;
+auch im 0,05-mm-Raster, exakter frischer NC-Export und konservative BRep-Untergrenze
+0,00038208 mm bei reservierten 0,00036 mm. Alle 60 aktuellen Kombinationen wurden
+am neuen Materialstand verglichen: Ø 4/entlang der Fläche/ganze Richtungsfolge bleibt
+der schnellste zugelassene Kandidat; Vergleichszeit 1060,40 s. Die separate
+instrumentierte Qualitätsprüfung benötigt 1111,21 s und 401,26 MiB Python-Spitze.
+
+Vollständige Ringe und ein Adaptiv-Versuch wurden verworfen: längere Zeit bzw. ein
+Freivorschubabtrag. Die Änderung ist eine geprüfte Verbesserung dieses Beispiels und
+des Anlaufvergleichs; allgemeine Hinterschnitte, Aufspannungswahl und globale
+Optimalität beliebiger Teile bleiben ungelöst.
+
+**Akzeptanzkriterium:** Freiformbeispiel öffnen, „3D-Schruppen T1“ neu berechnen und
+abfahren → die geprüfte Bahn bearbeitet dasselbe Rohteil mit weniger Leerwegen und
+kürzerer Gesamtzeit, ohne Einschnitt, Abtrag im Eil-/Freivorschub oder unzulässigen
+Eintritt und Werkzeuglast.

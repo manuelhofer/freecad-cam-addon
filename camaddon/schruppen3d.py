@@ -143,6 +143,13 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     stand = mst.fuer(job, vor=obj)
     if "Materialstand" in obj.PropertiesList:
         obj.Materialstand = mst.kennung_vor(job, obj)
+    nachbereiten = None
+    if getattr(obj, "Rampenanlauf", False):
+        from . import schlicht_anlauf
+
+        def nachbereiten(bahn):
+            schlicht_anlauf.ergaenzen(bahn, job, obj, form.radius, vorschub, eintauchen)
+
     bahn = bahn_fuer(
         job,
         modell,
@@ -162,11 +169,8 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchen=eintauchen,
         davor=form_davor(obj),
         stand=stand,
+        nachbereiten=nachbereiten,
     )
-    if getattr(obj, "Rampenanlauf", False):
-        from . import schlicht_anlauf
-
-        schlicht_anlauf.ergaenzen(bahn, job, obj, form.radius, vorschub, eintauchen)
     return bahn
 
 
@@ -201,6 +205,7 @@ def bahn_fuer(
     eintauchen=0.0,
     davor=None,
     stand=None,
+    nachbereiten=None,
 ):
     """Die Bahn „3D-Schruppen“ über den Freiformflächen `flaechen` für Modell und Rohteil des
     Jobs – mit `davor` (Form des größeren Fräsers davor) nur der Rest; mit `stand` (der
@@ -227,7 +232,9 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
-    return sr.planen(form_teil, list(flaechen), werte, zwischen, toleranz, schritt, davor, stand)
+    return sr.planen(
+        form_teil, list(flaechen), werte, zwischen, toleranz, schritt, davor, stand, nachbereiten
+    )
 
 
 def vorschau(job, modell, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter):

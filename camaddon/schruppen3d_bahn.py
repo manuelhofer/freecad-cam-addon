@@ -403,6 +403,7 @@ def planen(
     schritt=SCHRITT,
     davor=None,
     stand=None,
+    nachbereiten=None,
 ):
     """Die Bahn „3D-Schruppen“ (Schruppbahn) über den Freiformflächen `namen` von `form_teil`
     mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten) – mit
@@ -440,7 +441,26 @@ def planen(
         if st.ringe == 0:
             continue
         zeit = bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-        ergebnisse[variante] = (st, zeit, haupt, zwischenlagen)
+        bahn = Schruppbahn(
+            st.punkte,
+            haupt,
+            zwischenlagen,
+            st.ringe,
+            st.laeufe,
+            st.z_min if math.isfinite(st.z_min) else 0.0,
+            st.laenge,
+            zeit,
+            variante,
+            rampen=st.rampen,
+            noch=st.noch,
+            weg=st.weg,
+            davor=st.davor,
+        )
+        if nachbereiten is not None:
+            # Rampen und freie Verbindungen gehören zur gefahrenen Zeit: erst
+            # danach vergleichen, statt den Sieger der Rohbahn zu verändern.
+            nachbereiten(bahn)
+        ergebnisse[variante] = bahn
     if not ergebnisse and wer_davor:
         from . import materialstand as mst  # erst hier: es bringt den Job mit
 
@@ -449,21 +469,6 @@ def planen(
         raise ValueError(tr("r3.fehler.kein_rest"))
     if not ergebnisse:
         raise ValueError(tr("r3.fehler.nichts"))
-    variante = min(ergebnisse, key=lambda v: ergebnisse[v][1])
-    st, zeit, haupt, zwischenlagen = ergebnisse[variante]
-    return Schruppbahn(
-        st.punkte,
-        haupt,
-        zwischenlagen,
-        st.ringe,
-        st.laeufe,
-        st.z_min if math.isfinite(st.z_min) else 0.0,
-        st.laenge,
-        zeit,
-        variante,
-        {v: e[1] for v, e in ergebnisse.items()},
-        st.rampen,
-        st.noch,
-        st.weg,
-        st.davor,
-    )
+    bahn = min(ergebnisse.values(), key=lambda b: b.zeit)
+    bahn.zeiten = {v: b.zeit for v, b in ergebnisse.items()}
+    return bahn

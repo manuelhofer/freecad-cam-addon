@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT))
 
 
 def pruefen():
-    """45 Varianten, Gewinner, Maschinenprogramm und reproduzierbare Beispieldateien."""
+    """Alle aktuellen Varianten, Gewinner, Maschinenprogramm und Beispieldateien."""
     import FreeCAD as App
 
     from camaddon import postprozessor as pp
@@ -38,8 +38,18 @@ def pruefen():
     op = doc.Schlichten3D
     rw.merke_maschine(doc.Job, md.FileName)
     start = time.monotonic()
+    letztes = start
+
+    def fortschritt(anteil):
+        nonlocal letztes
+        jetzt = time.monotonic()
+        if jetzt - letztes >= 30:
+            print("PRUEFSCHRITT", f"{anteil * 100:.0f} %", flush=True)
+            letztes = jetzt
+        return True
+
     plan = None
-    for aktueller_plan, variante in sp.vergleichen(op, p, bib):
+    for aktueller_plan, variante in sp.vergleichen(op, p, bib, fortschritt=fortschritt):
         plan = aktueller_plan
         print(
             "VARIANTE",
@@ -53,7 +63,7 @@ def pruefen():
         plan is not None and plan.beste is not None
     ), "Keine material- und kollisionsgeprüfte Bahn"
     beste = plan.beste
-    assert len(plan.varianten) == 45
+    assert len(plan.varianten) == 3 * len(sp.RICHTUNGEN) * len(sp.ANSTELLUNGEN)
     assert beste.sekunden == min(
         v.sekunden for v in plan.varianten if not v.grund and math.isfinite(v.sekunden)
     )
