@@ -55,12 +55,6 @@ def pruefen():
     tc = js.controller_ohne_transaktion(doc, job, kugel, einsatz)
     doc.recompute()
     # Synthetische Richtungsgegenprobe; keine Qualifikation eines Zerspanungsfalls.
-    cmds = [
-        Path.Command("G0", {"X": 5, "Y": 5, "Z": 30}),
-        Path.Command("G1", {"X": 6, "Y": 5, "Z": 25, "F": float(tc.HorizFeed)}),
-        Path.Command("G1", {"X": 7, "Y": 5, "Z": 25, "F": float(tc.HorizFeed)}),
-        Path.Command("G0", {"X": 7, "Y": 5, "Z": 30}),
-    ]
     start = time.perf_counter()
     tracemalloc.start()
     ergebnisse = {}
@@ -76,6 +70,29 @@ def pruefen():
         m = sw.Maschine(p, auf, ein, App.Vector())
         kin = Kinematik(p, auf, ein, App.Vector())
         lang = Kinematik(p, auf, rw.Einspannung(ein.laenge + 1, ein.lage), App.Vector())
+        # Die Richtungsprobe darf keinen unabhängigen Linearanschlag verletzen:
+        # aus wirklichen mittleren Achsstellungen in den Job zurückrechnen.
+        # Das alte feste XYZ lag mit dem 45°-Drehwerkzeug außerhalb von X1.
+        mitte = {
+            a: (
+                (a.minimum + a.maximum) / 2
+                if a.minimum is not None and a.maximum is not None
+                else 0.0
+            )
+            for a in m.linear
+        }
+        tip = App.Vector(*kin.am_werkstueck(mitte))
+        raw = (
+            tip
+            + m.richtung({}) * an.radius_von(SimpleNamespace(ToolController=tc))
+            - App.Vector(0, 0, 6)
+        )
+        cmds = []
+        for name, dx, dz in (("G0", 0, 5), ("G1", 1, 0), ("G1", 2, 0), ("G0", 2, 5)):
+            vals = {"X": raw.x + dx, "Y": raw.y, "Z": raw.z + dz}
+            if name == "G1":
+                vals["F"] = float(tc.HorizFeed)
+            cmds.append(Path.Command(name, vals))
         rund = [{a.buchstabe: t for a in m.rundachsen} for t in (0, 3, 6, 6)]
         achsen = [m.richtung(r) for r in rund]
         op = SimpleNamespace(

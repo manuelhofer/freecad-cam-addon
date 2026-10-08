@@ -12,8 +12,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 **Verbindliche Maschinenwahl (0.200.1):** Schwenkdialog behält die Jobmaschine auch
 mit 0/1 Rundachsen, zeigt reale Anschläge und liest sie vor OK erneut. Alle sechs
 Beispielmaschinen, neuer/bisheriger Dialog auf DP-1 und NC ohne fiktive Achsen geprüft
-(Strategien 16.13). Als Nächstes: Zugang je tatsächlichem Werkzeug und Halter,
-Bereiche auslassen mit ausdrücklich unbearbeitetem Restbericht.
+(Strategien 16.13).
 **Werkzeugzugang (0.201.0):** Schwenkdialog wählt das tatsächliche Jobwerkzeug;
 T-Nummer, Länge und Halterachse gehen in die Kinematik ein, vor OK frisch gelesen
 (Strategien 16.14). Simultanausgabe (0.201.1) nutzt auch feste/einzelne reale Achsen und lässt
@@ -23,9 +22,13 @@ im gemeinsamen Export ausgelassen und im räumlichen Rest erhalten (Strategien 1
 **Gemeinsamer Maschinenzugang (0.201.3):** Alle Bahnachsen aus der tatsächlichen
 Maschine für Export, Abspieler und Materialstand; sechs Maschinen, Kreisextrema,
 absolute/relative Rundbewegung, Materialnachrechnen und goldene Gesamtfolge samt
-Zeit/Speicher geprüft (Strategien 16.17). Granularität: ganze Operation/Ebene.
-Nächster Schritt: sicher getrennte Teilbereiche innerhalb einer Simultanoperation
-und allgemeiner Materialstand für kontinuierliche Umorientierung.
+Zeit/Speicher geprüft (Strategien 16.17). **Simultanteilbereiche (0.202.0):**
+erreichbare vollständige Schnittzüge zwischen vorhandenen Rückzügen bleiben erhalten;
+neue Verbindungen gegen Rohteil/Werkzeug/Halter/Spannung/Maschinenmodell geprüft,
+ausgelassene Züge mit Grund und unverändertem Materialrest (Strategien 16.18).
+Sechs Maschinen und DP-1 geprüft; goldene Gesamtfolge unverändert.
+Nächster Schritt: allgemeiner Materialstand für kontinuierliche Umorientierung
+und qualifizierte Ein-/Ausfahrten innerhalb eines zusammenhängenden Schnittzugs.
 Maschinenweite Vorgabe: Richtungen und Grenzen aus der tatsächlich gewählten
 Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennzeichnen.
 
@@ -72,7 +75,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.200.1 (P-2026-10-08-06). Alles, was hier als gebaut steht,
+Stand 0.202.0 (P-2026-10-08-11). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

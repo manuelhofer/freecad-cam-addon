@@ -1002,7 +1002,18 @@ class Pruefung:
         vorhanden = {self.programmbuchstabe(a) for a in drehachsen} - {None}
         fremd = set()  # Rundachsen, um die das Programm dreht, die Maschine aber nicht hat
         try:
-            befehle = self.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
+            from . import schwenken as sw
+            from . import simultan_operation as so
+
+            if ebene is None and so.ist_simultan(op):
+                programm = so.programm(
+                    op, sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
+                )
+                befehle = programm.befehle
+                if programm.hinweis:
+                    sammler.hinweis(f"{op.Label}: {programm.hinweis}")
+            else:
+                befehle = self.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
         except ValueError as grund:
             sammler.hinweis(f"{op.Label}: {grund}")
             sammler.ende_operation()

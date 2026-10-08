@@ -10,7 +10,22 @@ auch mit einer Rundachse oder einer festen Spindel. Es gibt keine senkrechte Ers
 Läuft ohne Oberfläche.
 """
 
+from dataclasses import dataclass
+
 from .sprache import tr
+
+
+@dataclass
+class Programm:
+    """Tatsächlich gefahrene Sätze und ausdrücklich unbearbeitete vollständige Schnittzüge."""
+
+    befehle: list
+    ausgelassen: tuple = ()
+
+    @property
+    def hinweis(self):
+        """Auslassungsgründe für Programm und Abspieler, leer bei vollständiger Bahn."""
+        return "; ".join(tr("sb.hinweis.ausgelassen", zug=n, grund=g) for n, g in self.ausgelassen)
 
 
 def ist_simultan(op):
@@ -43,9 +58,16 @@ def befehle(op, maschine, tcpm=False, bei_null=False):
     Eine nicht erreichbare Richtung oder ein Anschlag erzeugt ValueError, keine
     ersatzweise senkrechte Bearbeitung. `tcpm`: die Steuerung führt die Spitze.
     """
+    return programm(op, maschine, tcpm, bei_null).befehle
+
+
+def programm(op, maschine, tcpm=False, bei_null=False):
+    """NC und Restbericht; bei Fehlern nur sicher getrennte vollständige Schnittzüge behalten."""
     from . import angestellt as an
     from . import entgraten3d as e3op
     from . import flanke as fl
+    from . import maschinenzugang as mz
+    from . import simultan_bereiche as sb
 
     if maschine is None:
         raise ValueError(tr("si.fehler.maschine"))
@@ -53,13 +75,26 @@ def befehle(op, maschine, tcpm=False, bei_null=False):
         tcpm = False  # Keine Rundbewegung: die feste Abbildung liefert bereits echte XYZ.
     cache = getattr(op, "_pruefprogramm", None)
     if cache is not None and cache[0] == pruefschluessel(maschine, tcpm, bei_null):
-        return list(cache[1])
+        return Programm(list(cache[1]))
 
-    if an.ist_angestellt(op):
-        return an.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
-    if e3op.ist_entgraten3d(op):
-        return e3op.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
-    return fl.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
+    adapter = an if an.ist_angestellt(op) else e3op if e3op.ist_entgraten3d(op) else fl
+    if tcpm:
+        # Dieselbe tatsächliche Erreichbarkeit/Teilbereichswahl wie ohne TCPM.
+        # Sonst könnte ein im Grundprogramm ausgelassener Linearanschlag unter
+        # TCPM wieder als vollständige unbearbeitbare Bahn auftauchen.
+        kontrolliert = programm(op, maschine)
+        if kontrolliert.ausgelassen:
+            raise ValueError(tr("sb.fehler.tcpm"))
+        return Programm(adapter.befehle(op, maschine, tcpm=True, bei_null=bei_null))
+    try:
+        nc = adapter.befehle(op, maschine)
+        grund = mz.bahn_grund(maschine, nc, op.Label)
+        if grund:
+            raise ValueError(grund)
+        return Programm(nc)
+    except ValueError as fehler:
+        nc, rest = sb.teilen(op, maschine, str(fehler))
+        return Programm(nc, rest)
 
 
 def pruefschluessel(maschine, tcpm=False, bei_null=False):

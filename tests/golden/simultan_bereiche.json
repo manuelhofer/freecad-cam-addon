@@ -1,0 +1,20 @@
+{
+  "nc_saetze": 8,
+  "sha256": "972d7fdb8bc5bafccdceeb7b1e51048f2078ccbbaed13b93cfc22b9fc00442c4",
+  "resthoehen": [
+    10.0,
+    11.2,
+    9.999999999999915
+  ],
+  "sekunden": 13.455361562009784,
+  "python_mib": 44.44729709625244,
+  "bearbeitung_s": 10.716574488493288,
+  "maschinen": {
+    "drehmaschine": 15,
+    "fraese3": 10,
+    "tisch_tisch": 78,
+    "kopf_kopf": 78,
+    "kopf_tisch": 78,
+    "grob_g550": 142
+  }
+}

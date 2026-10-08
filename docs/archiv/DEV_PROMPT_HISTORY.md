@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-11 simultan-schnittzuege-auslassen
+
+### EINGELESEN
+- Manuel: nach gemeinsamem Maschinenzugang sicher getrennte Teilbereiche bauen;
+  nach Reboot weiterarbeiten. Projektregeln/Snapshot/Strategien 16.18 mit Vorbeschreibung,
+  ASCII-Skizze und Duplicate-/FreeCAD-Check; bestehende Kinematik und BRep-Kollision.
+
+### DATEIEN
+- Simultanteilbereichskern, NC-Adapter und Herkunft neuer Verbindungen, gemeinsame
+  Programm-/Reichweiten-/Abspieler-Verbraucher, vollständiger Optimierer;
+  native Gegenprobe/Referenz/GUI und bestehende Richtungsprobe; DE/EN/Programmhilfe,
+  Doku/Snapshot/Verlauf; `package.xml` 0.202.0, 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Eine Simultanoperation mit getrennten Schnittzügen an begrenzter Maschine exportieren
+und abfahren → erreichbare Züge bleiben, unerreichbare sind mit Grund unbearbeitet,
+neue Verbindungen bestehen die Sicherheitsprüfung und der fehlende Abtrag bleibt sichtbar.
+
+### DONE
+- Vollständige Schnittzüge nur zwischen vorhandenen Rückzügen unterteilen; reale
+  Achs-/Richtungsprüfung, keine Begrenzung auf Anschläge und keine neue Einfahrt im Schnitt.
+- Neue Verbindungen anhand der wirklich ausgegebenen verdichteten NC gegen das ganze
+  ursprüngliche Rohteil, Werkzeug/Halter, Spannung und Maschinenmodell prüfen;
+  drehende G93-Eilfahrten zählen dabei vollständig als Eilgang.
+- Fehlende oder kollidierende Verbindung sperrt das Teilprogramm. Quellen unverändert;
+  modaler Vorschub aus ausgelassenen Zügen bleibt bei behaltenen Zügen erhalten.
+- Gemeinsamer Restbericht im Export, Abspieler und Reichweitenfenster; Materialbild
+  spielt nur tatsächliche NC. Vollständiger Optimierer lässt Teilbahnen nicht gewinnen.
+- Teilprogramme sind ohne TCPM qualifiziert; TCPM darf die ursprüngliche unvollständig
+  erreichbare Gesamtbahn nicht wieder ausgeben. Allgemeine Einfahrten innerhalb eines
+  zusammenhängenden Zuges und räumliche kontinuierliche Materialfolge bleiben offen.
+
+### TEST
+- Native Gegenprobe verwirft vorher alle drei Züge; jetzt nur mittlerer ausgelassen.
+  Acht NC-Bewegungen nachgelesen, 10,716574 s; SHA
+  972d7fdb8bc5bafccdceeb7b1e51048f2078ccbbaed13b93cfc22b9fc00442c4.
+  Resthöhen 10 / 11,2 / 10 mm, Zurückspulen, unabhängiges 0,05-mm-Materialraster,
+  keine Verletzung/Überlast/Eil- oder Schnellabtrag, vollständige Modellkollision.
+- Sechs tatsächliche Maschinen, drehende Verbindungen, Herkunft bei Verdichtung,
+  Hindernis im neuen Zwischenweg, nicht trennbare Bahn und Vorschubwechsel.
+  Teilbahnreferenz samt Zeit/Speicher bestanden: etwa 13,5 s / 44,45 MiB Python.
+- G550 flach auf neuem Weg tatsächlich Z-Schlitten/Rundtisch-Berührung (auch mit
+  größerer Höhe), konservativ gesperrt; vorhandene Winkelaufnahme besteht (B-015).
+  Kopf/Tisch-Probe benutzt tatsächliche Kippachse statt wirkungsloser Polachse.
+- Neue gemeinsame Bereichsprüfung deckte unpassende feste XYZ der älteren 45°-
+  Drehwerkzeugprobe auf: X1 außerhalb Verfahrweg. Probe jetzt aus nativen mittleren
+  Stellungen; Achsgrenzen unverändert. Bestehende Maschinen-/Bahn-/Sprachprüfungen grün.
+- Goldene Gesamtfolge unverändert: 46,470163 s, 5948 Punkte, 6181 NC-Bewegungen,
+  212,256 s / 240,438 MiB Python; feine Qualifikation, Übernahme/Undo/Abbruch bestanden.
+  G550-Kaltexport 45682 Bewegungen, bestehender SHA unverändert. Keine alte Referenz ersetzt.
+- GUI sichtbar DP-1: tatsächliche Züge, Restbericht, Materialvergleich/Zurückspulen.
+  Erster Screenshot mit 0,05-mm-Rest lag unter vorhandener grüner Vorschaugrenze;
+  abschließende 1,2-mm-Gegenprobe zeigt Rest eindeutig. Farben selbst unverändert.
+- Eigene Profile/16-GiB-Deckel, persönlicher Werkzeugbestand unverändert. Prüfbelege
+  `../../ergebnisse/teilbereiche-2026-10-08/`; Manuels Sichtprüfung steht aus. Kein Push.
+
+### NEXT
+- Allgemeiner räumlicher Materialstand bei kontinuierlicher Umorientierung und
+  qualifizierte Ein-/Ausfahrten innerhalb zusammenhängender Schnittzüge.
+
 ## P-2026-10-08-10 bahnachsen-gemeinsam-pruefen
 
 ### EINGELESEN

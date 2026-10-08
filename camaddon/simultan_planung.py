@@ -414,7 +414,12 @@ def vergleichen(
                             tr("s5p.fehler.winkel", winkel=f"{variante.schnittwinkel:.2f}")
                         )
                     # Explizit rechnen: abfahrt übergeht eine Operation, die nicht erreichbar ist.
-                    programm = so.befehle(virtuell, maschine)
+                    teilprogramm = so.programm(virtuell, maschine)
+                    if teilprogramm.ausgelassen:
+                        # Dieser Vergleich verspricht vollständige Fertigbearbeitung.
+                        # Eine kürzere Teilbahn darf kein vollständiger Gewinner werden.
+                        raise ValueError(teilprogramm.hinweis)
+                    programm = teilprogramm.befehle
                     virtuell._pruefprogramm = (so.pruefschluessel(maschine), tuple(programm))
                     grenzen = pruefung.pruefe_job(variante.job, nullpunkt, bibliothek)
                     if grenzen.ueberschreitungen:

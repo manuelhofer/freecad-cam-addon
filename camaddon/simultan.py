@@ -50,6 +50,7 @@ class Punkt:
     achse: tuple
     eilgang: bool = False
     vorschub: float = 0.0
+    verbindung: bool = False  # Neu durch ausgelassene Schnittzüge; auch Zwischenpunkte zählen.
 
 
 def rundachsen_entlang(maschine, achsen):
@@ -223,6 +224,7 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=F
             (n.x, n.y, n.z),
             eilgang=nach.eilgang,
             vorschub=nach.vorschub,
+            verbindung=nach.verbindung,
         )
         halbieren(von, mitte, r_von, r_mitte, tiefe + 1)
         halbieren(mitte, nach, r_mitte, r_nach, tiefe + 1)
@@ -282,7 +284,14 @@ def eilganggeschwindigkeit(maschine):
 
 
 def programm_ohne_tcpm(
-    maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False, materialdaten=None
+    maschine,
+    punkte,
+    g93=False,
+    toleranz=TOLERANZ,
+    bezug=0.0,
+    eilgaenge=False,
+    materialdaten=None,
+    verbindungen=None,
 ):
     """[Path.Command] – die Bahn (Punkt …) mit den Rundachsen je Punkt und X, Y, Z, wie eine
     Steuerung ohne TCPM sie liest. Zwischen zwei Punkten fährt die Maschine jede Achse linear –
@@ -304,6 +313,8 @@ def programm_ohne_tcpm(
     befehle = [Path.Command("G93")] if g93 else []
     if materialdaten is not None:
         materialdaten[:] = [(True, 0.0)] if g93 else []
+    if verbindungen is not None:
+        verbindungen[:] = [False] if g93 else []
     vorschub, davor = 0.0, None
     drehen = drehgeschwindigkeiten(maschine) if g93 else {}
     # Ein Eilgang, in dem sich eine Rundachse dreht (verdichtet: viele kurze Sätze), als G1 im G93
@@ -349,16 +360,26 @@ def programm_ohne_tcpm(
         befehle.append(Path.Command("G0" if punkt.eilgang and not drehend else "G1", werte))
         if materialdaten is not None:
             materialdaten.append((punkt.eilgang, vorschub))
+        if verbindungen is not None:
+            verbindungen.append(punkt.verbindung)
         davor = (bezugspunkt(punkt, bezug), stellung)
     if g93:
         befehle.append(Path.Command("G94"))
         if materialdaten is not None:
             materialdaten.append((True, 0.0))
+        if verbindungen is not None:
+            verbindungen.append(False)
     return befehle
 
 
 def befehle_auf_maschine(
-    maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERANZ, materialdaten=None
+    maschine,
+    punkte,
+    rohteil=None,
+    bezug=0.0,
+    toleranz=TOLERANZ,
+    materialdaten=None,
+    verbindungen=None,
 ):
     """Die Sätze einer Bahn mit Achse (Punkt …), wie `maschine` sie fährt: ohne TCPM, die
     Rundachsen je Punkt, der Vorschub in G93, auch Eilgänge mit drehender Achse verdichtet
@@ -378,6 +399,7 @@ def befehle_auf_maschine(
         bezug=bezug,
         eilgaenge=True,
         materialdaten=materialdaten,
+        verbindungen=verbindungen,
     )
     if not maschine.rundachsen:
         return saetze  # Feste Werkzeugachse: kein zusätzlicher Schwenkweg in globalem Z.
@@ -409,6 +431,8 @@ def befehle_auf_maschine(
     )
     if materialdaten is not None:
         materialdaten[:] = [(True, 0.0)] * len(davor) + materialdaten + [(True, 0.0)] * len(danach)
+    if verbindungen is not None:
+        verbindungen[:] = [False] * len(davor) + verbindungen + [False] * len(danach)
     return davor + saetze + danach
 
 

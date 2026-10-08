@@ -8,8 +8,12 @@ milling machines; on a lathe with C axis and driven tools several things were mi
 linear/rotary travel limits for every strategy. An invalid operation is reported as
 <b>unmachined – omitted</b> with its reason; other reachable operations remain.
 Its cut is neither played nor assumed to have removed preceding stock. Omission
-currently applies to complete operations or planes; a cutting path is not clipped
-at a limit and connected directly across the gap. The affected area remains
+applies to complete operations or planes for ordinary paths. Simultaneous paths may
+retain complete reachable cutting strokes between existing retract points. Omitted
+strokes remain unmachined, with their number and reason. Every new connection is
+checked against the entire stock, tool, holder, clamping and machine model; without
+a safe connection the partial program is withheld. No new entry is created inside
+a cut. These partial programs are qualified only without TCPM. The affected area remains
 explicitly unfinished. Circular arcs also check interior axis extrema.</p>
 
 <h3>How to</h3>

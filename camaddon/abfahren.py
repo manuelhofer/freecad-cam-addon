@@ -249,6 +249,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     """
     from . import maschinenzugang as mz
     from . import schwenken as sw
+    from . import simultan_operation as so
 
     if nullpunkt_des_jobs is None:
         nullpunkt_des_jobs = rw.nullpunkt(job)
@@ -268,8 +269,14 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         eingespannt = rw.einspannung(tc, bibliothek)
         try:
             # In einer geschwenkten Ebene die Sätze ohne Schwenkzyklus (3+2, schwenken).
-            befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
             m_bahn = sw.Maschine(pruefung, aufnahme, eingespannt, nullpunkt_des_jobs)
+            if ebene is None and so.ist_simultan(op):
+                programm = so.programm(op, m_bahn)
+                befehle = programm.befehle
+                if programm.hinweis:
+                    ergebnis.hinweise.append(f"{op.Label}: {programm.hinweis}")
+            else:
+                befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
             grund = mz.bahn_grund(m_bahn, befehle, op.Label)
             if grund:
                 ergebnis.hinweise.append(

@@ -1653,7 +1653,8 @@ def _simultan(op, maschine):
     if fuer_op is None:
         return [], tr("pp.hinweis.simultan_ohne_maschine")
     try:
-        return so.befehle(op, fuer_op), ""
+        programm = so.programm(op, fuer_op)
+        return programm.befehle, programm.hinweis
     except ValueError as grund:
         return [], tr("pp.hinweis.simultan_ausgelassen", grund=str(grund))
 

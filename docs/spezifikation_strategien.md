@@ -3618,3 +3618,65 @@ Gemeinsame Schrupp-/Schlichtfolge einschließlich goldenem NC, feiner Zulassung,
 213,721 s / 240,444 MiB Python, Referenz 210,395 s / 240,434 MiB. Keine neue
 Referenz geschrieben. Granularität bleibt ganze Operation/Ebene; automatische
 sichere Teilbahnunterteilung und allgemeine kontinuierliche Materialfolge offen.
+
+### 16.18 Getrennte Simultanschnittzüge (P-2026-10-08-11)
+
+Manuel beauftragt das Weiterbauen der Teilbereiche. Heute verwirft bereits ein
+unerreichbarer Schnittzug alle anderen Schnittzüge derselben Operation. Künftig
+bleiben vollständig erreichbare Züge zwischen vorhandenen Eilgängen erhalten.
+Ein Zug mit einer unerreichbaren Stelle bleibt vollständig unbearbeitet; es wird
+keine neue Einfahrt mitten im Material erfunden. Neu entstehende Verbindungen
+zwischen den vorhandenen Rückzugspunkten müssen reale Achsgrenzen und die bestehende
+kontinuierliche BRep-Kollisionsprüfung gegen das ganze ursprüngliche Rohteil,
+Werkzeug, Halter, Spannung und Maschinenmodell bestehen. Fehlt eine sichere
+Verbindung, gibt es weiterhin keine Teilbahnfreigabe. Der Materialvergleich spielt
+die tatsächlich ausgegebene Bahn ab; fehlende Schnitte bleiben stehen. Ein
+Teilprogramm gilt weiterhin nicht als vollständig qualifizierte Fertigbearbeitung.
+
+```text
+Programm / Abfahren
+3D-Schlichten: 2 von 3 Schnittzügen erreichbar
+Unbearbeitet: Schnittzug 2 – A außerhalb des eingelesenen Bereichs
+Rohteil / Fertigteil: ausgelassenes Material bleibt farbig sichtbar
+```
+
+Duplicate-Check: `git log -S 'Teilbereiche' -- camaddon` enthält keine fertige
+Unterteilung; vorhandene Simultanadapter werfen beim ersten Richtungsfehler ab.
+Native FreeCAD Surface/Waterline liefern Bahn und Höhen, aber keine maschinenbezogene
+Teilbereichsfreigabe. Verwendet werden die vorhandenen Kinematik-, Bereichs- und
+Kollisionskerne; keine FreeCAD-Datei wird verändert.
+
+**Akzeptanzkriterium:** Eine Simultanoperation mit mehreren getrennten Schnittzügen
+an einer Maschine mit begrenztem Schwenkbereich exportieren und abfahren → erreichbare
+Züge bleiben enthalten, unerreichbare Züge sind mit Grund ausdrücklich unbearbeitet,
+jede neue Verbindung ist geprüft und ihr fehlender Abtrag bleibt im Materialbild stehen.
+
+**Gebaut und geprüft:** Drei getrennte native Kugelschnittzüge: erster und dritter
+bleiben, der mittlere ist ausdrücklich unbearbeitet; tatsächliche NC nachgelesen,
+Quelle unverändert, Materialrest 11,2 statt 10 mm im mittleren Zug. Unabhängiges
+0,05-mm-Materialraster: kein Eil-/Schnellvorschubabtrag, keine Überlast oder Verletzung
+des Fertigteils; BRep-Kollision bestanden. Ein Hindernis nur im neuen Zwischenweg
+sperrt das Teilprogramm. Modaler Vorschub aus ausgelassenem Zug bleibt wirksam.
+Alle sechs gelesenen Maschinen, bei den zweirundachsigen auch eine wirklich drehende
+Verbindung; TCPM darf keine ausgelassenen Schnitte wieder einführen. Der vorhandene
+vollständige Optimierer lehnt Teilprogramme ab, statt sie als schnellere Fertigbahn
+zu bewerten. Ganze nicht trennbare Züge bleiben konservativ aus; allgemeine Einfahrten
+mitten im Material und kontinuierlicher räumlicher Materialstand bleiben offen.
+
+G550-Gegenprobe: Die flache Aufspannung berührt auf der neuen Verbindung Z-Schlitten
+und Rundtisch; auch zusätzliche Höhe reicht nicht. Mit der vorhandenen qualifizierten
+Winkelaufnahme besteht dieselbe Prüfung. Die Sperre wurde nicht abgeschwächt (B-015).
+Die ältere Richtungsprobe lag mit 45°-Drehwerkzeug außerhalb X1; jetzt stammen ihre
+Punkte aus wirklichen mittleren Linearstellungen statt außerhalb des Verfahrwegs.
+
+Teilbahnreferenz: acht NC-Bewegungen, SHA
+`972d7fdb8bc5bafccdceeb7b1e51048f2078ccbbaed13b93cfc22b9fc00442c4`,
+10,717 s Bearbeitung; Rechnung etwa 13,5 s / 44,45 MiB Python, mit Zeit-/Speichergrenzen.
+Goldene gemeinsame Folge exakt unverändert: 6181 NC-Bewegungen, 46,470163 s;
+212,256 s / 240,438 MiB Python gegenüber 210,395 s / 240,434 MiB Referenz.
+Feine Zulassung, Übernahme/Undo/Abbruch und G550-Kaltexport bestanden, keine bestehende
+Referenz neu geschrieben. GUI DP-1: Programmgrund, beide tatsächlichen Schnittzüge,
+ausgelassener Rest und Zurückspulen. Zunächst 0,05 mm Rest unter der vorhandenen
+grünen Vorschaugrenze; die abschließende Gegenprobe mit 1,2 mm Rest macht ihn sichtbar.
+Die Materialfarben selbst wurden nicht verändert. Prüfbelege:
+`../../ergebnisse/teilbereiche-2026-10-08/`; Manuels Verständlichkeitsprüfung steht aus.
