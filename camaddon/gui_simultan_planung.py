@@ -11,6 +11,7 @@ from . import abfahren as ab
 from . import einheiten, symbol
 from . import reichweite as rw
 from . import schlichten3d as s3
+from . import simultan_folge as sf
 from . import simultan_planung as sp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
@@ -92,10 +93,38 @@ class SimultanPanel:
         text = QtGui.QLabel(tr("s5p.text", operation=op.Label, maschine=pruefung.maschine.Label))
         text.setWordWrap(True)
         layout.addWidget(text)
+        grob = sf.schruppen_vor(op)
+        self.mit_schruppen = QtGui.QCheckBox(tr("s5f.mit_schruppen"))
+        self.mit_schruppen.setToolTip(tr("s5f.tooltip"))
+        self.mit_schruppen.setEnabled(grob is not None)
+        self.mit_schruppen.setChecked(grob is not None)
+        layout.addWidget(self.mit_schruppen)
+        self.lagenbereich = QtGui.QWidget()
+        zeile = QtGui.QGridLayout(self.lagenbereich)
+        zeile.setContentsMargins(0, 0, 0, 0)
+        self.von, self.bis, self.lagenschritt = (QtGui.QDoubleSpinBox() for _ in range(3))
+        grenze = max(float(grob.Zustellung), float(grob.Zwischenlagen)) if grob else 25
+        for feld, beschriftung, wert, reihe, spalte in (
+            (self.von, tr("s5f.von"), min(1, grenze), 0, 0),
+            (self.bis, tr("s5f.bis"), min(4, grenze), 0, 2),
+            (self.lagenschritt, tr("s5f.schritt"), min(0.5, grenze), 1, 0),
+        ):
+            zeile.addWidget(QtGui.QLabel(beschriftung), reihe, spalte)
+            feld.setDecimals(2)
+            feld.setRange(0.01, grenze)
+            feld.setSingleStep(0.5)
+            feld.setSuffix(" mm")
+            feld.setValue(wert)
+            feld.setMaximumWidth(110)
+            zeile.addWidget(feld, reihe, spalte + 1)
+        self.lagenbereich.setEnabled(grob is not None)
+        self.mit_schruppen.toggled.connect(self.lagenbereich.setEnabled)
+        layout.addWidget(self.lagenbereich)
         self.tabelle = QtGui.QTreeWidget()
-        self.tabelle.setColumnCount(6)
+        self.tabelle.setColumnCount(7)
         self.tabelle.setHeaderLabels(
             [
+                tr("s5f.zwischenlage"),
                 tr("s5p.werkzeug"),
                 tr("s5p.bahn"),
                 tr("s5p.anstellung"),
@@ -105,7 +134,7 @@ class SimultanPanel:
             ]
         )
         self.tabelle.setRootIsDecorated(False)
-        self.tabelle.setMinimumHeight(260)
+        self.tabelle.setMinimumHeight(180)
         layout.addWidget(self.tabelle)
         self.status = QtGui.QLabel(tr("s5p.bereit"))
         self.status.setWordWrap(True)
@@ -113,11 +142,42 @@ class SimultanPanel:
         self.start = QtGui.QPushButton(tr("s5p.vergleichen"))
         self.start.clicked.connect(self.vergleichen)
         layout.addWidget(self.start)
-        self.uebernehmen = QtGui.QPushButton(tr("s5p.uebernehmen"))
+        self.uebernehmen = QtGui.QPushButton(
+            tr("s5f.uebernehmen") if self.mit_schruppen.isChecked() else tr("s5p.uebernehmen")
+        )
+        self.mit_schruppen.toggled.connect(
+            lambda an: self.uebernehmen.setText(
+                tr("s5f.uebernehmen") if an else tr("s5p.uebernehmen")
+            )
+        )
         self.uebernehmen.setEnabled(False)
         self.uebernehmen.clicked.connect(self.accept)
         layout.addWidget(self.uebernehmen)
+        self.mit_schruppen.toggled.connect(self.bereich_pruefen)
+        for feld in (self.von, self.bis, self.lagenschritt):
+            feld.valueChanged.connect(self.bereich_pruefen)
         SimultanPanel.offen = self
+
+    def bereich_pruefen(self, *_werte):
+        """Ungültige Bereiche sofort erklären; geänderte Suchwahl erneut rechnen."""
+        if self.laeufer is not None:
+            return
+        self.plan = None
+        self.uebernehmen.setEnabled(False)
+        try:
+            if self.mit_schruppen.isChecked():
+                sf.zwischenlagen(
+                    self.von.value(),
+                    self.bis.value(),
+                    self.lagenschritt.value(),
+                    float(sf.schruppen_vor(self.op).Zwischenlagen),
+                )
+        except (ValueError, AttributeError) as fehler:
+            self.start.setEnabled(False)
+            self.status.setText(str(fehler))
+        else:
+            self.start.setEnabled(True)
+            self.status.setText(tr("s5p.bereit"))
 
     def getStandardButtons(self):
         return getattr(QtGui.QDialogButtonBox.Cancel, "value", QtGui.QDialogButtonBox.Cancel)
@@ -129,9 +189,27 @@ class SimultanPanel:
         self._zeilen.clear()
         self.plan = None
         self.abbruch = False
-        self.laeufer = sp.vergleichen(
-            self.op, self.pruefung, self.bibliothek, fortschritt=self.fortschritt
-        )
+        try:
+            if self.mit_schruppen.isChecked():
+                lagen = sf.zwischenlagen(
+                    self.von.value(),
+                    self.bis.value(),
+                    self.lagenschritt.value(),
+                    float(sf.schruppen_vor(self.op).Zwischenlagen),
+                )
+                self.laeufer = sf.vergleichen(
+                    self.op, self.pruefung, self.bibliothek, lagen, fortschritt=self.fortschritt
+                )
+            else:
+                self.laeufer = sp.vergleichen(
+                    self.op, self.pruefung, self.bibliothek, fortschritt=self.fortschritt
+                )
+        except (ValueError, AttributeError) as fehler:
+            self.start.setEnabled(True)
+            self.status.setText(str(fehler))
+            return
+        self.mit_schruppen.setEnabled(False)
+        self.lagenbereich.setEnabled(False)
         self.status.setText(tr("s5p.rechnet"))
         QtCore.QTimer.singleShot(0, self.schritt)
 
@@ -149,31 +227,45 @@ class SimultanPanel:
         except StopIteration:
             self.laeufer = None
             self.start.setEnabled(True)
+            self.mit_schruppen.setEnabled(sf.schruppen_vor(self.op) is not None)
+            self.lagenbereich.setEnabled(self.mit_schruppen.isChecked())
             beste = self.plan.beste if self.plan else None
             if beste is None:
                 self.status.setText(tr("s5p.fehler.keine"))
             else:
                 self.uebernehmen.setEnabled(True)
+                werte = {
+                    "werkzeug": beste.werkzeug.Label,
+                    "bahn": richtung_text(beste.richtung),
+                    "anstellung": anstellung_text(beste.anstellung),
+                    "zeit": ab.dauer_text(beste.sekunden),
+                    "lage": f"{beste.zwischenlagen:g}".replace(
+                        ".", einheiten.gewaehltes_dezimalzeichen() or "."
+                    ),
+                }
                 self.status.setText(
-                    tr(
-                        "s5p.beste",
-                        werkzeug=beste.werkzeug.Label,
-                        bahn=richtung_text(beste.richtung),
-                        anstellung=anstellung_text(beste.anstellung),
-                        zeit=ab.dauer_text(beste.sekunden),
-                    )
+                    tr("s5f.beste", **werte)
+                    if self.plan.schruppen is not None
+                    else tr("s5p.beste", **werte)
                 )
             return
         except Exception as fehler:
             self.laeufer = None
             self.start.setEnabled(True)
+            self.mit_schruppen.setEnabled(sf.schruppen_vor(self.op) is not None)
+            self.lagenbereich.setEnabled(self.mit_schruppen.isChecked())
             self.status.setText(str(fehler))
             FreeCAD.Console.PrintError(f"{tr('s5p.titel')}: {fehler}\n")
             return
         QtCore.QTimer.singleShot(0, self.schritt)
 
     def zeige(self, variante):
-        key = (variante.werkzeug.Name, variante.richtung, variante.anstellung)
+        key = (
+            variante.zwischenlagen,
+            variante.werkzeug.Name,
+            variante.richtung,
+            variante.anstellung,
+        )
         if key not in self._zeilen:
             self._zeilen[key] = QtGui.QTreeWidgetItem(self.tabelle)
         zeile = self._zeilen[key]
@@ -186,9 +278,10 @@ class SimultanPanel:
         )
         geprueft = tr("s5p.geprueft") if variante.kollision_geprueft else tr("s5p.kollision_offen")
         werte = [
+            f"{variante.zwischenlagen:g}" if variante.zwischenlagen else "–",
             variante.werkzeug.Label,
-            richtung_text(variante.richtung),
-            anstellung_text(variante.anstellung),
+            richtung_text(variante.richtung) if variante.richtung else tr("s5f.schruppen"),
+            anstellung_text(variante.anstellung) if variante.anstellung else "–",
             ab.dauer_text(variante.sekunden) if math.isfinite(variante.sekunden) else "–",
             rest,
             variante.grund or geprueft,
@@ -196,7 +289,7 @@ class SimultanPanel:
         for i, wert in enumerate(werte):
             zeile.setText(i, wert)
             zeile.setToolTip(i, wert)
-        for i in range(5):
+        for i in range(6):
             self.tabelle.resizeColumnToContents(i)
         self.status.setText(tr("s5p.rechnet"))
 

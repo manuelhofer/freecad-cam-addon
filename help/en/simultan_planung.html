@@ -3,6 +3,19 @@
 to your job. Select a <b>3D finishing operation</b>, then choose <b>Compare 5-axis finishing …</b>
 in the CAM-Addon menu. The machine needs two rotary axes. Set the faces, scallop height and
 allowance in the operation first.</p>
+<h3>Choose roughing and finishing together</h3>
+<p>If <b>3D roughing</b> directly precedes finishing, <b>Compare roughing as well</b> is enabled
+by default. Set the intermediate layer range and step in mm. The current setting is also
+included. Your roughing cutter, axial depth, stepover and allowance remain fixed. Each
+finishing comparison starts from its roughing branch's actual stock; its new entry must also
+meet the load limits. The fastest fully qualified whole sequence wins. Machine runs already
+known to be slower need no further exact collision check. <b>Apply checked sequence</b>
+changes both operations; <b>Ctrl+Z</b> restores both in one step. Clear the checkbox to keep
+roughing fixed.</p>
+<p>The first table column shows the roughing intermediate layer. A <b>Roughing check</b> row
+with a finding rejects that whole stock branch. The search covers the specified range and
+configured finishing cutters/paths. It does not yet automatically plan new setups, other
+roughing cutters or spatial stock shapes.</p>
 <h3>Tools and paths</h3>
 <p>All ball mills already configured as tool controllers in the job are considered. Add
 appropriate smaller tools there if a large cutter cannot reach a tight area. The comparison

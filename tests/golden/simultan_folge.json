@@ -1,0 +1,11 @@
+{
+  "zwischenlagen_mm": 2.0,
+  "richtung": "x",
+  "anstellung": "frei",
+  "sekunden": 46.47016348782406,
+  "punkte": 5948,
+  "nc_sha256": "83a7f0968c79a088a898befb0c6425db21c7808f0bf112742529e8b92cb489a5",
+  "nc_saetze": 6181,
+  "laufzeit_s": 210.39499032699678,
+  "spitzenspeicher_python_mb": 240.43420505523682
+}

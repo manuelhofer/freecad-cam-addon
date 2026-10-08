@@ -69,6 +69,8 @@ class Variante:
     operation: object = field(default=None, repr=False)
     job: object = field(default=None, repr=False)
     fahrt: object = field(default=None, repr=False)
+    zwischenlagen: float = 0.0
+    schruppoperation: object = field(default=None, repr=False)
 
 
 @dataclass
@@ -81,6 +83,8 @@ class Planung:
     zustand: str = ""
     pruefung: object = field(default=None, repr=False)
     sicherheitszustand: str = ""
+    schruppen: object = field(default=None, repr=False)
+    vollstaendig: bool = True
 
 
 def _zustand(op):
@@ -138,7 +142,28 @@ def _zustand(op):
             )
         )
     pfade = [
-        (o.Name, bool(o.Active), [c.toGCode() for c in o.Path.Commands])
+        (
+            o.Name,
+            bool(o.Active),
+            [c.toGCode() for c in o.Path.Commands],
+            tuple(
+                (n, str(getattr(o, n, "")))
+                for n in (
+                    "Zustellung",
+                    "Zeilenabstand",
+                    "Zwischenlagen",
+                    "Aufmass",
+                    "Flaechen",
+                    "Gleichlauf",
+                    "Rampenanlauf",
+                    "Eintauchwinkel",
+                    "Sicherheitsabstand",
+                    "SafeHeight",
+                    "ClearanceHeight",
+                    "ToolController",
+                )
+            ),
+        )
         for o in job.Operations.Group
         if o != op and hasattr(o, "Path")
     ]
@@ -254,6 +279,7 @@ def vergleichen(
     anstellungen=ANSTELLUNGEN,
     fortschritt=None,
     controller=None,
+    zeitgrenze=math.inf,
 ):
     """Planung erzeugen; Generator liefert (Planung, aktuelle Variante) für eine lebendige UI.
 
@@ -405,6 +431,11 @@ def vergleichen(
                     variante.grund = str(fehler)
                 yield plan, variante
     for variante in sorted((v for v in plan.varianten if not v.grund), key=lambda v: v.sekunden):
+        # Eine bereits zugelassene Gesamtfolge bildet die obere Schranke. Die
+        # feste Maschinenfahrt dieses Kandidaten ist schon vollständig gerechnet;
+        # eine weitere Zulassungsprüfung kann sie nicht schneller machen.
+        if variante.sekunden >= zeitgrenze:
+            break
         # Der kontinuierliche Kugelschnitt darf auch zwischen Rasterstrahlen nicht ins Teil.
         dicht = sa._pfad(variante.operation)
         radius = an.radius_von(variante.operation)
@@ -493,7 +524,13 @@ def vergleichen(
 def uebernehmen(op, plan):
     """Die gewinnende Einstellung speichern; keine unvollständig geprüfte Bahn übernehmen."""
     beste = plan.beste if plan is not None else None
-    if beste is None or beste.grund or not beste.kollision_geprueft or not beste.material_geprueft:
+    if (
+        beste is None
+        or beste.grund
+        or not beste.kollision_geprueft
+        or not beste.material_geprueft
+        or not plan.vollstaendig
+    ):
         raise ValueError(tr("s5p.fehler.keine"))
     if plan.quelle != op or plan.zustand != _zustand(op):
         raise ValueError(tr("s5p.fehler.veraltet"))
@@ -502,8 +539,14 @@ def uebernehmen(op, plan):
     if plan.sicherheitszustand != _sicherheitszustand(plan.pruefung, wz.Bibliothek.laden()):
         raise ValueError(tr("s5p.fehler.veraltet"))
     doc = op.Document
-    doc.openTransaction(tr("s5p.uebernehmen"))
+    doc.openTransaction(
+        tr("s5f.uebernehmen") if plan.schruppen is not None else tr("s5p.uebernehmen")
+    )
     try:
+        if plan.schruppen is not None:
+            plan.schruppen.Zwischenlagen = beste.zwischenlagen
+            plan.schruppen.Rampenanlauf = True
+            plan.schruppen.touch()
         automatisch = op.Label == s3._name(op.ToolController, float(op.DurchmesserDavor))
         op.ToolController = beste.werkzeug
         op.OpToolDiameter = beste.werkzeug.Tool.Diameter
@@ -519,6 +562,11 @@ def uebernehmen(op, plan):
         op.BahnGrathoehe = beste.bahngrathoehe
         op.touch()
         doc.recompute()
+        if plan.schruppen is not None:
+            wirklich = [c.toGCode() for c in plan.schruppen.Path.Commands]
+            erwartet = [c.toGCode() for c in beste.schruppoperation.Path.Commands]
+            if wirklich != erwartet:
+                raise ValueError(tr("s5p.fehler.bahnveraendert"))
         if not op.Path.Commands or not op.Werkzeugachsen:
             raise ValueError(tr("s5p.fehler.leer"))
         radius = an.radius_von(op)

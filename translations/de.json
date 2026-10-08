@@ -2566,5 +2566,17 @@
     "s5p.fehler.luftzug": "Ein ganzer Schnittzug fährt ohne Abtrag in der Luft.",
     "rm.simultan_vorschau": "Die Farben zeigen die Materialvorschau; die genaue Grathöhe prüft „5-Achs-Schlichten vergleichen“.",
     "s5p.um.frei_gesamt": "Frei, ganze Bahn",
-    "s5p.fehler.richtungsfolge": "Keine durchgehende Werkzeugrichtung innerhalb der Kontaktwinkel gefunden."
+    "s5p.fehler.richtungsfolge": "Keine durchgehende Werkzeugrichtung innerhalb der Kontaktwinkel gefunden.",
+    "s5f.mit_schruppen": "Schruppen mit vergleichen",
+    "s5f.tooltip": "Zwischenlagen des vorherigen 3D-Schruppens mit dem tatsächlichen Schlichtrest gemeinsam vergleichen. Fräser, ap, ae und Aufmaß bleiben deine Vorgaben. Jede Zwischenlage startet einen eigenen Schlichtvergleich.",
+    "s5f.von": "Zwischenlagen von",
+    "s5f.bis": "bis",
+    "s5f.schritt": "Schritt",
+    "s5f.zwischenlage": "Zwischenlage (mm)",
+    "s5f.schruppen": "Schruppprüfung",
+    "s5f.beste": "Schnellste geprüfte Folge: Schrupp-Zwischenlagen {lage} mm, {werkzeug}, {bahn}, {anstellung}, {zeit}. Übernehmen ändert beide Operationen gemeinsam.",
+    "s5f.fehler.bereich": "Für den Zwischenlagenbereich positive Werte eingeben; der Endwert muss mindestens so groß wie der Anfangswert sein.",
+    "s5f.fehler.anzahl": "Mehr als 101 Schritte: einen größeren Schritt oder einen kleineren Bereich wählen.",
+    "s5f.fehler.schruppen": "Direkt vor dem Schlichten muss eine aktive 3D-Schruppoperation stehen.",
+    "s5f.uebernehmen": "Geprüfte Folge übernehmen"
 }

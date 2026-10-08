@@ -12,6 +12,75 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-03 schruppen-und-schlichten-gemeinsam-planen
+
+### EINGELESEN
+- Manuel: „Warum? Dann mach das doch mal“, zur weiterhin fehlenden allgemeinen
+  globalen Bearbeitungsoptimierung. CHATSTART, Arbeitsregeln, Snapshot, Aufbau,
+  Strategien 16; vorhandene Material-, Schrupp-, Schlicht-, Maschinen-/NC-Prüfer.
+- Vorbeschreibung, Skizze und Akzeptanzsatz in 16.10 vor dem Produktcode;
+  Duplicate-Check in Projekt/Git, FreeCAD-Check am öffentlichen ObjectOp-/Surface-Code.
+  Keine vorhandene gemeinsame Optimierung beider Schritte; vorhandene Kerne verwenden.
+
+### DATEIEN
+- `camaddon/simultan_folge.py` (neu), `simultan_planung.py`, `schlicht_anlauf.py`,
+  `gui_simultan_planung.py`; Hilfe und Übersetzungen DE/EN, Beispiel-README,
+  `tests/test_simultan_folge.py` und zugehörige NC-/Zeit-/Speicherreferenz (neu),
+  vorhandenes Oberflächenszenario; Aufbau, Strategien, Snapshot, dieser Verlauf;
+  `package.xml` 0.199.0, Datum 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Schlichtoperation wählen → „5-Achs-Schlichten vergleichen“ → „Schruppen mit vergleichen“
+und den Zwischenlagenbereich wählen → die schnellste vollständig geprüfte Gesamtfolge
+aus diesem Bereich gemeinsam übernehmen und mit Strg+Z beide Operationen auf ihren
+vorherigen Stand zurücksetzen können.
+
+### DONE
+- Sichtbarer Zwischenlagenbereich einschließlich aktueller Einstellung; Fräser, ap,
+  ae und Aufmaß bleiben Vorgaben. Jeder Zweig erzeugt seinen eigenen tatsächlichen
+  Materialstand, Rampen und vollständigen Schlicht-/Maschinenvergleich.
+- Die vollständig gerechnete Maschinenzeit entscheidet über die gesamte Folge.
+  Bereits durch einen zugelassenen Sieger unterbotene Fahrten brauchen keine weitere
+  genaue Kollision. Nur der Sieger behält seine umfangreichen virtuellen Bahndaten;
+  die Tabelle behält Messwerte/Befunde der anderen Zweige.
+- Vergleich unverändernd; erst die abgeschlossene Suche lässt sich übernehmen.
+  Beide Operationen in einer Transaktion, neu berechnete Schrupp-/Schlichtbahnen gegen
+  die geprüften vergleichen, im Fehlerfall alles zurückrollen; einmal Strg+Z für beide.
+- Eingabeschutz erfasst Schruppparameter auch vor einer Neuberechnung. Der bisherige
+  Pfad allein übersah solche Änderungen. Anlauf findet bei verschachtelten
+  Objektansichten die tatsächlich im Variantenjob enthaltene Operation.
+- Gefundene eigene Entwurfsfehler: native Label-/Kommentarrahmung im ersten
+  Schrupp-Virtualpfad fehlte; vor Abschluss abgebrochen, öffentlichen ObjectOp-Vertrag
+  gelesen und korrigiert. Neue horizontale Bereichswahl machte das Aufgabenfenster
+  zu breit; zwei kompakte Reihen und kleinere Tabelle, alle Bedienelemente auf DP-1.
+- Der endliche Suchraum wird angegeben. Allgemeiner räumlicher Materialstand,
+  Hinterschnitte, automatische Aufspannungen, weitere Schruppfräser/Strategien und ein
+  globales Optimum über beliebige kontinuierliche Bahnen sind damit nicht gelöst.
+
+### TEST
+- FreeCAD 1.1.4, vorher angelegte eigene Profile, 16-GiB-Deckel, kein Swap, ein BLAS-Thread.
+- Kuppel mit Manuels D12/ap 25/ae 1,5 und separater Kugel 4: Gesamtzeit 58,61 →
+  46,47 s, Zwischenlagen 2 statt 1 mm. Wirklicher NC-Export identisch zur geprüften Folge;
+  Materialraster zusätzlich 0,05 mm ohne Befund. Unvollständige Suche und geänderte
+  Schruppwerte abgewiesen, absichtlich falsche erwartete Bahn rollt beide Änderungen
+  zurück; gemeinsames Undo und Abbruch OK.
+- Neue Referenz erst nach diesen Prüfungen geschrieben, anschließend frischer Prozess
+  ohne Schreibflag OK: 5948 Punkte, 6181 NC-Bewegungen, exakt gleicher NC-Hash und Zeit,
+  211,24 s Prüfzeit und 240,43 MiB Python-Spitze innerhalb der Budgets.
+- Gegenprobe: alte `_zustand`-Funktion unverändert aus Git erkennt die unrecomputete
+  Schruppänderung nicht, aktuelle Funktion erkennt sie. Nur eigene Testobjekte geändert.
+- Oberflächenszenario sichtbar DP-1: fünf Richtungen/vier Anstellungen je gültigem
+  Schruppzweig, Bereichsprüfung, Übernahme und Undo OK. Nach Layoutkorrektur eigener
+  kurzer Sichtlauf: Felder und beide Knöpfe vollständig im Fenster/Bildschirm,
+  native Widget-Aufnahme gesehen; Fenster (0, 56, 1280, 996).
+- Sprachprüfung und frischer tatsächlicher Export des bisherigen großen Jobs OK;
+  dessen NC-/Bahnreferenzen unverändert. Black, Ruff ganz und Diff-Prüfung ohne Befund.
+- Gemeinsamer Vergleich des großen G550-Beispiels separat: Bericht wird nach Abschluss
+  ergänzt. Keine volle Testsuite erneut gestartet, kein Push.
+
+### NEXT
+Räumlicher Materialstand/Zugänglichkeit für die allgemeine Forderung; Manuels Sichtprüfung.
+
 ## P-2026-10-08-02 laufende-operationsbahn-zeigen
 
 ### EINGELESEN

@@ -35,10 +35,15 @@ def schritte(h):
     # Bei sichtbarem Lauf den zweiten Bildschirm tatsächlich prüfen und benutzen.
     screens = QtGui.QApplication.screens()
     if len(screens) > 1:
-        screen = next(s for s in screens if s != QtGui.QApplication.primaryScreen())
+        screen = next(
+            (s for s in screens if s.name() == os.environ.get("CAMADDON_GROB_BILDSCHIRM")),
+            next(s for s in screens if s != QtGui.QApplication.primaryScreen()),
+        )
         g = screen.availableGeometry()
         mw = Gui.getMainWindow()
-        mw.setGeometry(g.x() + 20, g.y() + 12, min(1200, g.width() - 40), min(928, g.height() - 30))
+        mw.windowHandle().setScreen(screen)
+        mw.setGeometry(g)
+        mw.showMaximized()
         yield 500
         h.pruefe(g.contains(mw.frameGeometry().center()), "Fenster nicht auf zweitem Bildschirm")
 
@@ -85,7 +90,7 @@ def schritte(h):
     ]
     t1 = js.controller_ohne_transaktion(doc, job, w, w.schnittwerte[wz.ALLE][1])
     t4 = js.controller_ohne_transaktion(doc, job, kugel, kugel.schnittwerte[wz.ALLE][2])
-    grob = r3.lege_an(job, t1, 5, 1.5, aufmass=0.3, flaechen=faces)
+    grob = r3.lege_an(job, t1, 25, 1.5, aufmass=0.3, flaechen=faces, zwischen=1)
     grob.Rampenanlauf = True
     grob.Eintauchwinkel = 2.5
     op = s3.lege_an(job, t4, 0.02, flaechen=faces)
@@ -128,12 +133,23 @@ def schritte(h):
     doc.recompute()
     from camaddon import simultan_planung as sp
 
+    h.pruefe(panel.mit_schruppen.isChecked(), "Gemeinsamer Vergleich nicht vorbelegt")
+    panel.mit_schruppen.setChecked(False)
+    h.pruefe(not panel.lagenbereich.isEnabled(), "Feste Vorbearbeitung lässt Bereich aktiv")
+    panel.mit_schruppen.setChecked(True)
+    panel.von.setValue(4)
+    panel.bis.setValue(3)
+    h.pruefe(not panel.start.isEnabled(), "Ungültiger Bereich lässt Rechnen zu")
+    panel.von.setValue(2)
+    h.pruefe(panel.start.isEnabled(), "Gültiger Bereich bleibt gesperrt")
+    panel.lagenschritt.setValue(1)
     panel.start.click()
-    yield from h.warte_auf(lambda: panel.laeufer is None and panel.start.isEnabled(), 170000)
+    yield from h.warte_auf(lambda: panel.laeufer is None and panel.start.isEnabled(), 600000)
     import json
 
     daten = [
         {
+            "zwischenlagen": v.zwischenlagen,
             "richtung": v.richtung,
             "anstellung": v.anstellung,
             "grund": v.grund,
@@ -150,9 +166,14 @@ def schritte(h):
         panel.reject()
         return
     h.pruefe(
-        panel.tabelle.topLevelItemCount() == 20,
-        "Nicht alle fünf Richtungen und vier Anstellungen angezeigt",
+        panel.tabelle.topLevelItemCount() == len(panel.plan.varianten),
+        "Nicht alle gemeinsamen Varianten angezeigt",
     )
+    h.pruefe(
+        {v.zwischenlagen for v in panel.plan.varianten} == {1, 2, 3},
+        "Aktuelle Schruppwahl oder Suchbereich fehlt",
+    )
+    h.pruefe(panel.plan.vollstaendig, "Unvollständige Suche freigegeben")
     h.pruefe(panel.uebernehmen.isEnabled(), "Geprüfte Übernahme gesperrt")
     h.bild("2_geprueft")
     h.pruefe(sp._zustand(op) == panel.plan.zustand, "Prüfung verändert den Job")
@@ -163,11 +184,18 @@ def schritte(h):
     panel.uebernehmen.click()
     yield 500
     h.pruefe(op.Anstellen and op.Randgang and float(op.BahnGrathoehe) > 0, "Übernahme fehlt")
+    h.pruefe(
+        abs(float(grob.Zwischenlagen) - panel.plan.beste.zwischenlagen) < 1e-9,
+        "Schruppen nicht gemeinsam übernommen",
+    )
     h.bild("3_uebernommen")
     doc.undo()
     doc.recompute()
     h.pruefe(
-        not op.Anstellen and not op.Randgang and float(op.BahnGrathoehe) == 0,
+        not op.Anstellen
+        and not op.Randgang
+        and float(op.BahnGrathoehe) == 0
+        and float(grob.Zwischenlagen) == 1,
         "Rückgängig unvollständig",
     )
     h.bild("4_rueckgaengig")

@@ -24,6 +24,14 @@ schließen, **3D-Schlichten T4** auswählen und **CAM-Addon → 5-Achs-Schlichte
 vergleichen …** öffnen. **Übernehmen** übernimmt die geprüfte Auswahl, Strg+Z
 stellt die vorherige Einstellung wieder her.
 
+Im Vergleich lässt sich jetzt **Schruppen mit vergleichen** wählen. Bereich und Schritt
+legen die Schrupp-Zwischenlagen fest; die aktuelle Einstellung kommt zusätzlich dazu.
+Jeder Zweig rechnet das anschließende Schlichten aus seinem tatsächlichen Restmaterial.
+Die Jobzeit entscheidet über beide Operationen. **Geprüfte Folge übernehmen** setzt
+beide gemeinsam; Strg+Z nimmt beide zurück. Für eine feste Vorbearbeitung den Haken lösen.
+Die Auswahl bleibt auf den angegebenen Bereich und die eingerichteten Werkzeuge/Bahnen
+begrenzt; zusätzliche Aufspannungen sind weiterhin offen.
+
 Am Ende erscheint derselbe farbige Rohteil-/Sollteil-Vergleich wie bei 4 Achsen.
 **Teil** blendet das graue Sollteil aus; Zurückspulen stellt das Rohteil wieder
 her. Die Vorschau hat 0,5 mm Raster; für die genaue Grenze gelten die folgenden

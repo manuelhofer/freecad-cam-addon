@@ -24,7 +24,15 @@ from .sprache import tr
 
 def ergaenzen(bahn, job, operation, radius, vorschub, eintauchen):
     """Jeden Schnittbeginn über dem tatsächlichen Materialstand vorbereiten."""
-    stand = ms.fuer(job, getattr(operation, "_quelle", operation))
+    # Die nächste Ansicht kann bereits selbst im Variantenjob stehen. Erst dann
+    # zur Quelle gehen, wenn sie dort fehlt; sonst würden die eigene alte Bahn
+    # oder sogar das Schlichten schon als Vorbearbeitung gezählt.
+    vor = operation
+    while vor is not None and not any(vor is o for o in job.Operations.Group):
+        vor = getattr(vor, "_quelle", None)
+    if vor is None:
+        raise ValueError(tr("s5p.fehler.operation"))
+    stand = ms.fuer(job, vor)
     # Eigener Materialstand innerhalb dieser Operation; eine Rückkehr darf nicht wieder
     # mit dem ursprünglichen Rohteil gerechnet werden.
     from . import restmaterial as rm

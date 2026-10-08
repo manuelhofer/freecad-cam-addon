@@ -3241,3 +3241,57 @@ Optimalität beliebiger Teile bleiben ungelöst.
 abfahren → die geprüfte Bahn bearbeitet dasselbe Rohteil mit weniger Leerwegen und
 kürzerer Gesamtzeit, ohne Einschnitt, Abtrag im Eil-/Freivorschub oder unzulässigen
 Eintritt und Werkzeuglast.
+
+### 16.10 Schruppen und Schlichten gemeinsam planen (P-2026-10-08-03)
+
+Manuel fordert die globale Bearbeitungsoptimierung erneut. Bislang ist nur das
+Schlichten variabel; der feste Materialstand nach dem Schruppen kann den Sieger
+bestimmen. Ein kleinerer Schruppaufwand kann den Schlichtanlauf und seine Last
+vergrößern. Daher werden beide gemeinsam verglichen, statt die Schruppzeit zuerst
+allein zu minimieren.
+
+Der bestehende Dialog erhält eine Wahl für die direkt vorhergehende 3D-Schruppoperation.
+Ihr eingerichteter Fräser, ap, ae und Aufmaß bleiben Vorgaben; innerhalb eines sichtbaren
+Zwischenlagenbereichs werden alle festgelegten Werte einschließlich der aktuellen
+Einstellung mit allen bisherigen Schlichtwerkzeugen/-richtungen/-anstellungen geprüft.
+Der Schlichtanlauf beginnt jeweils beim tatsächlichen Material dieser Vorbearbeitung.
+Unzulässiges Schruppen weist den gesamten Zweig ab. Die vollständige Maschinenfahrt
+samt Werkzeugwechseln entscheidet über die schnellste zugelassene Folge.
+
+```text
+[ ] Schruppen mit vergleichen
+Zwischenlagen: von [1,0 mm] bis [4,0 mm]
+Schritt [0,5 mm]
+Zwischenlage | Schlichtwerkzeug | Bahn | Anstellung | Jobzeit | Restgrenze | Prüfung
+[Varianten berechnen und prüfen]             [Geprüfte Folge übernehmen]
+```
+
+Alle Zweige verwenden Objektansichten; der Vergleich ändert weder Dokument noch
+Bibliothek. Übernehmen aktualisiert beide Operationen in einer Transaktion und
+vergleicht die neu berechneten Bahnen mit der geprüften Folge. Änderungen an Eingaben,
+Maschine oder Werkzeugdaten sperren veraltete Ergebnisse. Abbrechen darf niemals eine
+unvollständige Auswahl freigeben.
+
+Duplicate-/FreeCAD-Check: kein gemeinsamer Schrupp-/Schlichtvergleich im Projekt oder
+Git-Verlauf. FreeCADs Surface-/Adaptive-Operationen erzeugen einzelne Bahnen; die
+vorhandenen Addon-Material-/Maschinen-/Kollisionsprüfer werden weiterverwendet.
+Der Suchraum ist endlich und angegeben. Das Ergebnis ist dessen schnellste zugelassene
+Folge, kein Nachweis über unbekannte Werkzeuge, andere Aufspannungen oder beliebige
+kontinuierliche Bahnen. Räumlicher Materialstand, Zugänglichkeit und Aufspannungsplanung
+bleiben weitere erforderliche Teile der allgemeinen Forderung.
+
+**Akzeptanzkriterium:** Schlichtoperation wählen → „5-Achs-Schlichten vergleichen“ →
+„Schruppen mit vergleichen“ und den Zwischenlagenbereich wählen → die schnellste
+vollständig geprüfte Gesamtfolge aus diesem Bereich gemeinsam übernehmen und mit
+Strg+Z beide Operationen auf ihren vorherigen Stand zurücksetzen können.
+
+**Gebaut und geprüft:** Unverändernde verschachtelte Jobansichten, aktueller Wert zusätzlich
+zum Bereich, Gesamtzeitvergleich, früh begrenzte Zulassung nach der Bestzeit und gemeinsame
+atomare Übernahme. Eingabeschutz erkennt auch noch nicht neu berechnete Schruppänderungen;
+der alte reine Pfadvergleich übersah sie. Die neu berechneten Pfade und der tatsächliche
+NC-Export stimmen mit dem geprüften Kandidaten überein. Am Standardfräser-Test mit Kuppel
+58,61 → 46,47 s, Zwischenlagen 2 statt 1 mm; Raster 0,05 mm, Fehler-Rollback und ein Undo
+für beide Schritte bestanden. Frische Referenz ohne Schreibflag: 211,24 s und 240,43 MiB
+Python-Spitze. Dialog auf DP-1 geprüft, kompakte Bereichsfelder und beide Knöpfe erreichbar.
+Der große Freiformvergleich wird separat archiviert; diese Zahlen sind kein neues Optimum
+für beliebige Teile oder Aufspannungen.

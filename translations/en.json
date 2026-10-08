@@ -2566,5 +2566,17 @@
     "s5p.fehler.luftzug": "An entire cutting pass runs through air without removing material.",
     "rm.simultan_vorschau": "The colours show the material preview; “Compare 5-axis finishing” checks the precise scallop height.",
     "s5p.um.frei_gesamt": "Free, whole path",
-    "s5p.fehler.richtungsfolge": "No continuous tool direction within the contact angle limits was found."
+    "s5p.fehler.richtungsfolge": "No continuous tool direction within the contact angle limits was found.",
+    "s5f.mit_schruppen": "Compare roughing as well",
+    "s5f.tooltip": "Compare the preceding 3D roughing intermediate layers together with the resulting finishing stock. Your cutter, axial depth, stepover and allowance remain fixed. Each intermediate layer starts a separate finishing comparison.",
+    "s5f.von": "Intermediate layers from",
+    "s5f.bis": "to",
+    "s5f.schritt": "Step",
+    "s5f.zwischenlage": "Intermediate layer (mm)",
+    "s5f.schruppen": "Roughing check",
+    "s5f.beste": "Fastest checked sequence: roughing intermediate layers {lage} mm, {werkzeug}, {bahn}, {anstellung}, {zeit}. Apply changes both operations together.",
+    "s5f.fehler.bereich": "Enter positive intermediate layer values; the end must be at least the start.",
+    "s5f.fehler.anzahl": "More than 101 steps: choose a larger step or a smaller range.",
+    "s5f.fehler.schruppen": "An active 3D roughing operation must directly precede finishing.",
+    "s5f.uebernehmen": "Apply checked sequence"
 }
