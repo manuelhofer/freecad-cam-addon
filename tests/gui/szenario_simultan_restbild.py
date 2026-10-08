@@ -23,7 +23,10 @@ def schritte(h):
     fenster = Gui.getMainWindow()
     screens = QtGui.QApplication.screens()
     if len(screens) > 1:
-        secondary = next(s for s in screens if s is not QtGui.QApplication.primaryScreen())
+        secondary = next(
+            (s for s in screens if s.name() == os.environ.get("CAMADDON_GROB_BILDSCHIRM")),
+            next(s for s in screens if s is not QtGui.QApplication.primaryScreen()),
+        )
         rect = secondary.availableGeometry()
         fenster.showNormal()
         fenster.windowHandle().setScreen(secondary)
@@ -53,9 +56,42 @@ def schritte(h):
     assert panel is not None
     yield from h.warte_auf(lambda: panel.abfahrt is not None and panel.bild is not None, 120000)
     assert isinstance(panel.bild.abtrag, sb.SimultanRestbild)
+    bild = panel.bild
+    h.pruefe(
+        bild._bahn_operation.getNumChildren() == len(panel.abfahrt.operationen),
+        "Keine getrennten Bahnen je Operation",
+    )
+    for nummer in range(len(panel.abfahrt.operationen)):
+        station = next(
+            i for i, s in enumerate(panel.abfahrt.stationen) if s.operation == nummer and s.satz
+        )
+        panel.abspieler.springe_zu_station(station)
+        h.pruefe(bild._bahn_operation.whichChild.getValue() == nummer, "Falsche Operationsbahn")
+        vorher = bild.bahn_schalter.whichChild.getValue()
+        bild.hinsehen()
+        h.pruefe(
+            bild.bahn_schalter.whichChild.getValue() == vorher,
+            "Nahblick lässt die Operationsbahn ausgeblendet",
+        )
+        linien = bild._bahn_operation.getChild(nummer)
+        for k in range(linien.getNumChildren()):
+            knoten = linien.getChild(k)
+            if knoten.getTypeId().getName() == "SoIndexedLineSet":
+                stellen = knoten.coordIndex.getValues()
+                for i in range(1, len(stellen), 3):
+                    h.pruefe(
+                        panel.abfahrt.stationen[stellen[i]].operation == nummer,
+                        "Bahn enthält eine andere Operation",
+                    )
     panel.abspieler.springe_zu_station(len(panel.abfahrt.stationen) - 1)
     yield 500
     bild = panel.bild
+    bild.hinsehen()
+    kamera = bild.ansicht.getCameraNode()
+    h.pruefe(
+        not hasattr(kamera, "height") or kamera.height.getValue() < 200,
+        "Home-Werkzeug vergrößert den Materialvergleich",
+    )
     h.pruefe(bild._am_ende, "Kein Materialvergleich am Ende")
     h.pruefe(bild.bahn_schalter.whichChild.getValue() == -1, "Bahn verdeckt die Materialfarben")
     h.pruefe(bild._rest_material.diffuseColor.getNum() > 100, "Keine Materialfarben")
@@ -105,7 +141,10 @@ def schritte(h):
         wahl.whichChild = 0
     screens = QtGui.QApplication.screens()
     if len(screens) > 1:
-        secondary = next(s for s in screens if s is not QtGui.QApplication.primaryScreen())
+        secondary = next(
+            (s for s in screens if s.name() == os.environ.get("CAMADDON_GROB_BILDSCHIRM")),
+            next(s for s in screens if s is not QtGui.QApplication.primaryScreen()),
+        )
         h.pruefe(
             secondary.geometry().contains(fenster.frameGeometry().center()), "Falscher Bildschirm"
         )

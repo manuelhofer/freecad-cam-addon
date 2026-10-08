@@ -19,7 +19,10 @@ fenster = Gui.getMainWindow()
 fenster.showNormal()
 screens = QtGui.QApplication.screens()
 primary = QtGui.QApplication.primaryScreen()
-secondary = next((s for s in screens if s is not primary), primary)
+secondary = next(
+    (s for s in screens if s.name() == os.environ.get("CAMADDON_GROB_BILDSCHIRM")),
+    next((s for s in screens if s is not primary), primary),
+)
 rect = secondary.availableGeometry()
 if fenster.windowHandle() is not None:
     fenster.windowHandle().setScreen(secondary)

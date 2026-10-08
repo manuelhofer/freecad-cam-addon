@@ -8,11 +8,12 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-**Neue Schruppfolge vollständig qualifiziert (2026-10-08).** Auftrag: nach Manuels
+**Neue Schruppfolge und Operationsansicht abgeschlossen (2026-10-08).** Auftrag: nach Manuels
 Bahnkritik und Reboot weiterarbeiten; kein Push. Material-, Modell-, NC-, Referenz-,
 Zeit- und Speicherprüfungen bestanden. Der abgeschlossene Vergleich aller 60 aktuellen
 Kombinationen bestätigt die Auswahl mit 357,52 s; 1060,40 s Vergleichszeit.
-Die separate Operationsansicht ist vorbereitet und sichtbar geprüft. Globale Optimalität
+Der Abspieler zeigt nur die laufende Operationsbahn; Nahblick und Materialvergleich
+sind sichtbar auf Bildschirm 2 geprüft. Manuels Sichtprüfung steht aus. Globale Optimalität
 beliebiger Teile, Hinterschnitte und automatische Aufspannungen bleiben ungelöst.
 
 **P-2026-10-08-01 – Freiform-Schruppfolge:** D12 mit ap 25 mm und 3-mm-Zwischenlagen,
@@ -39,7 +40,7 @@ zugelassen und aus einem frischen Prozess ohne Schreibflag referenzgleich;
 0,00038208 mm bei reservierten 0,00036 mm. Gespeicherte Maschinenansicht/-stellung und
 FCBak bleiben erhalten. Dauerhafte Prüfdaten: `../../ergebnisse/schruppfolge-2026-10-07/`.
 
-**P-2026-10-08-02, separat abzuschließen – laufende Operationsbahn:** Vorbeschreibung:
+**P-2026-10-08-02 – laufende Operationsbahn:**
 Im Abspieler lagen sämtliche Operationen übereinander, obwohl die Auswahl „3D-Schruppen T1“
 zeigte. Skizze: `[3D-Schruppen T1 ▼] [☑ Bahn]` → nur Schruppbahn; Wechsel auf
 `[3D-Schlichten T4 ▼]` → nur Schlichtbahn; am Ende Materialfarben ohne Bahn.
@@ -75,7 +76,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.198.2 (P-2026-10-08-01). Alles, was hier als gebaut steht,
+Stand 0.198.3 (P-2026-10-08-02). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

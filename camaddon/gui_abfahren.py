@@ -328,6 +328,7 @@ class Bild:
         zwei, ihres."""
         if nummer != self.operation and 0 <= nummer < len(self.aufnahmen):
             self.operation = nummer
+            self._bahn_operation.whichChild = nummer
             k, kind = self._op_platz[nummer]
             self._plaetze[k][3].whichChild = kind
 
@@ -389,9 +390,16 @@ class Bild:
         zeigen woandershin."""
         blick = self._coin.SoGroup()
         blick.addChild(self._werkstueck)
-        if 0 <= self.operation < len(self._op_platz):
+        if not self._am_ende and 0 <= self.operation < len(self._op_platz):
             blick.addChild(self._plaetze[self._op_platz[self.operation][0]][1])
-        self.ansicht.getCameraNode().viewAll(blick, ausschnitt(self.ansicht), HINSEHEN_RAND)
+        # Home-/Wechselwege gehören zur Bahn, nicht zum Bildausschnitt von Teil
+        # und Werkzeug. Sie können sonst den gewünschten Nahblick weit aufziehen.
+        vorher = self.bahn_schalter.whichChild.getValue()
+        self.bahn_schalter.whichChild = -1
+        try:
+            self.ansicht.getCameraNode().viewAll(blick, ausschnitt(self.ansicht), HINSEHEN_RAND)
+        finally:
+            self.bahn_schalter.whichChild = vorher
 
     def weg(self):
         """Nimmt die Körper aus der Ansicht."""
@@ -430,17 +438,26 @@ class Bild:
         koordinaten = coin.SoCoordinate3()
         koordinaten.point.setValues(0, len(punkte), punkte)
         teil.addChild(koordinaten)
-        for eilgang, farbe in ((False, VORSCHUB_LINIE), (True, EILGANG_LINIE)):
-            index = []
-            for i in range(1, len(punkte)):
-                if abfahrt.stationen[i].eilgang == eilgang:
-                    index += [i - 1, i, -1]
-            if not index:
-                continue
-            linien = coin.SoIndexedLineSet()
-            linien.coordIndex.setValues(0, len(index), index)
-            teil.addChild(self._material(farbe))
-            teil.addChild(linien)
+        # Derselbe Arbeitsschritt wie Werkzeug und Auswahl im Abspieler: spätere
+        # Schlicht-/Bohrbahnen dürfen die laufende Schruppbahn nicht überdecken.
+        self._bahn_operation = coin.SoSwitch()
+        index = [[[], []] for _op in abfahrt.operationen]
+        for i in range(1, len(punkte)):
+            s = abfahrt.stationen[i]
+            if 0 <= s.operation < len(index):
+                index[s.operation][int(s.eilgang)] += [i - 1, i, -1]
+        for saetze in index:
+            operation = coin.SoSeparator()
+            for stellen, farbe in zip(saetze, (VORSCHUB_LINIE, EILGANG_LINIE), strict=True):
+                if not stellen:
+                    continue
+                linien = coin.SoIndexedLineSet()
+                linien.coordIndex.setValues(0, len(stellen), stellen)
+                operation.addChild(self._material(farbe))
+                operation.addChild(linien)
+            self._bahn_operation.addChild(operation)
+        self._bahn_operation.whichChild = 0
+        teil.addChild(self._bahn_operation)
         return teil
 
 

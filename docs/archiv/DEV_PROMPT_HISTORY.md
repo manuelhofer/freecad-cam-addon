@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-02 laufende-operationsbahn-zeigen
+
+### EINGELESEN
+- Manuels Bahnkritik und Bildschirmwunsch; Snapshot-Vorbeschreibung mit Skizze
+  `[Schruppen ▼] [Bahn]` → nur Schruppen, Wechsel → nur Schlichten, Ende → Materialfarben.
+- Arbeitsregeln, Aufbau, Simulation, vorhandener Coin-Abspieler, Endvergleich und
+  Oberflächenszenario. Der bisherige Linienknoten enthielt sämtliche Operationen.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`, DE/EN-Hilfe, `szenario_simultan_restbild.py`;
+  Freiform-Startskript/-Makro, Beispiel-README, Aufbau, Snapshot, dieser Verlauf;
+  `package.xml` 0.198.3.
+
+### AKZEPTANZKRITERIUM
+Im Abspieler zwischen Schruppen und Schlichten wechseln → jeweils nur die Bahn der
+angezeigten Operation sehen, mit funktionierendem Bahn-Haken und Endvergleich.
+
+### DONE
+- Linien nach Zieloperation getrennt; der innere Coin-Schalter folgt automatisch
+  derselben Operation wie Werkzeug und Auswahl. Koordinaten weiter gemeinsam,
+  kein Neuberechnen der Werkzeugwege. Ende und Bahn-Haken behalten ihre Funktion.
+- Lupe berechnet den Ausschnitt ohne Home-/Wechselwege; am Endvergleich nur für
+  das Werkstück, da das Werkzeug bereits weit entfernt bei Home steht.
+- Qt meldete hier DP-1 als primär, obwohl DP-3 tatsächlich primär ist. Das
+  Linux-Startskript berücksichtigt `xrandr --listmonitors`; ausdrückliche Auswahl
+  `CAMADDON_GROB_BILDSCHIRM` geht vor. Kein fest kodierter Monitorname im Produktcode.
+- Start öffnet eigene Dokument-/Assetkopien im Testprofil, damit Ansicht und
+  gefahrene Stellung nicht die gespeicherten Referenzdateien überschreiben.
+  Bearbeitete Beispiele mit „Speichern unter“ außerhalb des temporären Profils sichern.
+
+### TEST
+- Native FreeCAD-Ansicht gesehen: neue Schruppbahn mit passenden Werkzeug-/Stockkörpern;
+  sichtbares Fenster DP-1, (0, 56, 1280, 996), nur eigene Dokumentkopien.
+- Vollständiger Operationswechseltest: beide Coin-Liniengruppen enthalten
+  ausschließlich ihre Zieloperation, Haken und Endvergleich mit 8.549 Materialfarben OK.
+- Vorhandenes Szenario im frischen Profil OK, einschließlich Zurückspulen, Teil-Haken,
+  Endkamera < 200 mm und zurückgekehrter Bahn nach Lupe. Xvfb fehlt in der
+  Neustartumgebung; dasselbe Szenario sichtbar auf DP-1 ausgeführt, keine Installation.
+- Native `View3DInventor.saveImage` zusätzlich zum Fenstergrab verwendet: der
+  native OpenGL-Inhalt fehlt im Fenstergrab dieser Sitzung. Keine Bildbearbeitung.
+- Black/Ruff betroffene Dateien, Ruff ganz, Shell-Syntax und `git diff --check` ohne Befund.
+  Maschinen-/Werkzeugdateien der persönlichen Sitzung nicht ersetzt, kein Push.
+
+### NEXT
+Manuels Sichtprüfung der neuen Folge; allgemeine Bearbeitungsoptimierung bleibt offen.
+
 ## P-2026-10-08-01 freiform-schruppfolge-verbessern
 
 ### EINGELESEN

@@ -9,10 +9,17 @@ Kugel Ø 4 schlichtet anschließend die Fläche samt Randgang auf 0,02 mm Grath�
 
 Unter Linux im Beispielordner `./starten.sh` starten. Das öffnet Maschine und
 Job im eigenen, vorher angelegten FreeCAD-Profil auf dem zweiten Bildschirm.
-Die Beispielbibliothek wird ausschließlich dort gespeichert. Die ursprüngliche
-Maschinenstellung bleibt in der Beispieldatei erhalten.
+Die Beispielbibliothek wird ausschließlich dort gespeichert. Geöffnet werden eigene
+Kopien von Maschine, Job und Assets; die gespeicherte Maschinenstellung bleibt erhalten.
+Das temporäre Profil wird beim Schließen gelöscht. Eigene Jobänderungen daher mit
+**Speichern unter …** außerhalb dieses Profils sichern. Falls nötig wählt
+`CAMADDON_GROB_BILDSCHIRM=DP-1 ./starten.sh` eine Anzeige ausdrücklich; unter Linux
+wird sonst die tatsächliche zweite Anzeige ermittelt.
 
-Im Prüffenster abspielen oder den Schieber bewegen. Zum Vergleichen das Fenster
+Im Prüffenster abspielen oder den Schieber bewegen. **Bahn** zeigt die ausgewählte
+bzw. gerade laufende Operation; beim Werkzeug-/Operationswechsel folgt die Bahn.
+Die Lupe umfasst Werkstück und Werkzeug ohne entfernte Home-/Wechselwege; am Ende
+den farbigen Werkstückvergleich. Zum Vergleichen das Fenster
 schließen, **3D-Schlichten T4** auswählen und **CAM-Addon → 5-Achs-Schlichten
 vergleichen …** öffnen. **Übernehmen** übernimmt die geprüfte Auswahl, Strg+Z
 stellt die vorherige Einstellung wieder her.
