@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-14 github-veroeffentlichung
+
+### EINGELESEN
+- Manuel: „Bitte Pusch das alles dann man auf GitHub.“ CHATSTART/CLAUDE,
+  bestehende Arbeitsregeln und aktueller Snapshot; saubere Arbeitskopie,
+  GitHub-Ziel und Version 0.203.1. Duplicate-Check: kein entsprechender Veröffentlichungseintrag.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`; nur Veröffentlichungsstand.
+
+### AKZEPTANZKRITERIUM
+GitHub `manuelhofer/freecad-cam-addon` auf `main` öffnen → alle lokal gespeicherten
+Addon-Änderungen bis 0.203.1 sind enthalten und der Projektstand nennt die Veröffentlichung.
+
+### DONE
+- Alle 22 zuvor lokalen Commits von P-2026-10-06-02 bis P-2026-10-08-13
+  als gewöhnlicher Fast-forward von 2c435fc nach 9a4d316 auf GitHub gepusht.
+- Projektstand enthält die Veröffentlichung; historische „kein Push“-Angaben
+  in früheren Patch-Einträgen beschreiben weiterhin deren damaligen Stand.
+- Dokumentiert die Veröffentlichung, keine weitere Code- oder Versionsänderung.
+
+### TEST
+- `git push origin main` erfolgreich; danach `git ls-remote` mit direkter
+  GitHub-HTTPS-Adresse: refs/heads/main exakt
+  9a4d316fbc94c44d4490bfbf8ba9fb1ddaa89c8c.
+- Bestehende Patch-Prüfungen unverändert gültig; reine Doku braucht keinen FreeCAD-Lauf.
+  Abschließend auch diesen Veröffentlichungseintrag pushen und HEAD direkt bei GitHub abgleichen.
+
+### NEXT
+- Allgemeine Gesamtplanung und Manuels Rückmeldungen weiter bearbeiten; veröffentlichte
+  Funktionen sind weiterhin von den im Snapshot ausdrücklich offenen Punkten zu unterscheiden.
+
 ## P-2026-10-08-13 programmfenster-theme
 
 ### EINGELESEN

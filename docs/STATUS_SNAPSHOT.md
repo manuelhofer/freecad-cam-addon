@@ -9,6 +9,9 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 ## Projektstatus
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
+**Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
+22 zuvor lokalen Addon-Patches; Veröffentlichung auf Manuels ausdrücklichen Wunsch
+am 2026-10-08 direkt bei GitHub bestätigt (P-2026-10-08-14).
 **Programmfenster (0.203.1):** Einstellungsbereich übernimmt den aktiven Dialoghintergrund
 auch bei dunkler Systempalette; helles/dunkles FreeCAD-Theme und Steuerungswechsel
 auf Bildschirm 2 geprüft (Steuerung 13).
@@ -53,7 +56,7 @@ Schlichtwerkzeuge/-bahnen; tatsächlicher Export, gemeinsame Übernahme, Rückna
 Referenz-/Zeit-/Speicherprüfungen sowie Bildschirm 2 geprüft. Manuels Sichtprüfung steht aus.
 Der räumliche Rest ist für 3+2-Übergänge und tatsächliche Simultanbewegungen mit
 Kugel/endlichem Zylinder gebaut; weitere Schneidenformen und automatische
-Aufspannungen fehlen weiterhin. Kein Push. Die G550 ist ausschließlich ein zusätzlicher
+Aufspannungen fehlen weiterhin. Die G550 ist ausschließlich ein zusätzlicher
 Beispiel- und Gegenprüffall; Strategien verwenden die tatsächlich gewählte Maschine.
 
 **G550-Freiformbeispiel 0.199.1:** gemeinsame Folge mit
