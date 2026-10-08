@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-13 programmfenster-theme
+
+### EINGELESEN
+- Manuel meldet per Screenshot den dunklen Einstellungsbereich mit unlesbarer Schrift
+  im hellen Theme. CHATSTART/Arbeitsregeln/Snapshot, Steuerung 13 mit Vorbeschreibung,
+  ASCII und Duplicate-Check; installiertes FreeCAD.qss und native Qt-Rollfläche.
+
+### DATEIEN
+- `camaddon/gui_programm.py`, neues GUI-Themeszenario,
+  Steuerungsspezifikation/Snapshot/Verlauf und `package.xml` 0.203.1.
+
+### AKZEPTANZKRITERIUM
+Job öffnen und „Programm schreiben“ im hellen sowie dunklen FreeCAD-Theme anzeigen
+und die Steuerung wechseln → der gesamte Einstellungsbereich folgt dem Dialoghintergrund
+und Manuel kann Beschriftungen und Erklärungen ohne zusätzliche Erklärung lesen.
+
+### DONE
+- Rollbereich lässt den Hintergrund des Dialogs durch; automatische Füllung des
+  Inhalts nach jedem `setWidget` wieder abschalten, auch nach Steuerungswechsel.
+- Normale Erklärungstexte verwenden die Theme-Schriftfarbe statt festem Grau;
+  bei dunkler Sichtprüfung aufgefallenen zu niedrigen Textkontrast ebenfalls behoben.
+- Kein festes helles Theme vorgegeben. FreeCADs aktives Theme und Eingabefelder gelten
+  weiter; Postprozessor, NC und Einstellungen unverändert. Keine neuen Oberflächentexte.
+
+### TEST
+- Native Gegenprobe FreeCAD Light auf DP-1: Dialog #fafafa, alter Inhalt #202326;
+  bei LinuxCNC/Fanuc/Siemens jeweils falscher Hintergrund. Korrektur übernimmt #fafafa
+  und schwarze Erklärungstexte.
+- Tatsächliches FreeCAD Dark ebenfalls geprüft, einschließlich aller drei Neuaufbauten;
+  nativer D12-Controller und vorhandene NC-Vorschau. Weiße Erklärungstexte,
+  Kontrast 13,77 statt blassem festen Grau; Kontrast mindestens 4,5 geprüft. Screenshots automatisch geprüft
+  und vom Assistenten angesehen. Manuels Lesbarkeitsprüfung steht aus.
+- Eigene Profile/16-GiB-Deckel; Bildschirmaufteilung vor Start gelesen, Fenster auf DP-1.
+  Anfangs fehlte der Toolbit im frischen Testprofil, dann korrekt in diesem angelegt.
+  Theme zunächst am falschen General-Parameter gesetzt; richtige Vorgabe MainWindow.
+  Einzelnes `QWidget.grab` füllt einen transparenten Hintergrund beim Rendern trotzdem:
+  Messung daher am vollständig zusammengesetzten Dialog, keine falsche Fehlermeldung.
+- Black/Ruff/diff sauber; keine Bahnänderung, kein erneuter goldener CAM-Lauf nötig.
+  Belege `../../ergebnisse/programm-theme-2026-10-08/`; lokal gespeichert, kein Push.
+
+### NEXT
+- Allgemeine Gesamtplanung weiterführen (Strategien 16.19); Manuels Rückmeldungen
+  zu Bedienung und Lesbarkeit aufnehmen.
+
 ## P-2026-10-08-12 bewegter-raeumlicher-rest
 
 ### EINGELESEN

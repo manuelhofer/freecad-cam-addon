@@ -578,3 +578,40 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   MAX FMAX` und Zyklus 7 auf 0. Die Vorzeichen setzt `klartext.uebersetzen`. Nicht an einer
   Heidenhain-Steuerung ausprobiert – vor dem ersten Lauf in ihrer Simulation ansehen.
 
+
+## 13. Theme im Programmfenster (P-2026-10-08-13)
+
+Manuel meldet im hellen FreeCAD-Theme einen dunklen linken Einstellungsbereich
+mit schwarzer und grauer, kaum lesbarer Schrift. Qt füllt den in QScrollArea
+eingesetzten QWidget selbstständig aus der Systempalette; FreeCAD färbt den
+Dialog über sein eigenes Stylesheet. Der Rollinhalt soll den Dialoghintergrund
+durchscheinen lassen, einschließlich leerer Ränder und nach Steuerungswechsel.
+Das aktuelle FreeCAD-Theme bleibt maßgeblich, auch im dunklen Theme.
+Die bisher fest grauen Erklärungstexte sind dort zu kontrastarm und übernehmen
+ebenfalls die normale Theme-Schriftfarbe; Herstellerhinweise behalten ihre Kennzeichnung.
+
+```text
+Programm schreiben – aktives FreeCAD-Theme
++ Einstellungen (gleicher Hintergrund) + Vorschau +
+| Kommentare / Erläuterungen lesbar    | NC      |
+| Steuerung wechseln: weiterhin lesbar|         |
++-------------------------------------+---------+
+```
+
+Duplicate-Check: Im Git-Verlauf des Programmfensters gibt es keine entsprechende
+Hintergrundkorrektur. FreeCADs installiertes FreeCAD.qss färbt QDialog, aber
+absichtlich nicht jeden QWidget; ein Themewechsel allein behebt die zusätzliche
+Qt-Hintergrundfüllung nicht. Verwendet werden die öffentlichen Qt-Eigenschaften
+der Rollfläche und ihres Inhalts, keine FreeCAD-Datei oder Themevorgabe geändert.
+
+**Akzeptanzkriterium:** Job öffnen und „Programm schreiben“ im hellen sowie dunklen
+FreeCAD-Theme anzeigen und die Steuerung wechseln → der gesamte Einstellungsbereich
+folgt dem Dialoghintergrund und Manuel kann Beschriftungen und Erklärungen ohne
+zusätzliche Erklärung lesen.
+
+**Gebaut und geprüft:** FreeCAD 1.1.4 mit echten FreeCAD-Light-/Dark-Themes auf DP-1.
+LinuxCNC, Fanuc und Siemens jeweils neu aufgebaut: der alte Inhalt #202326 sticht
+im hellen Dialog #fafafa dunkel heraus; jetzt derselbe gerenderte Hintergrund.
+Im dunklen Dialog #2d2d2d ebenfalls identisch. Normale Erklärungen übernehmen
+Schwarz bzw. Weiß; kontrastarme feste Grauschrift entfernt. Native NC-Vorschau
+und D12-Controller erhalten. Screenshots angesehen, Manuels Sichtprüfung steht aus.

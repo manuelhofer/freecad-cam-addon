@@ -9,6 +9,9 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 ## Projektstatus
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
+**Programmfenster (0.203.1):** Einstellungsbereich übernimmt den aktiven Dialoghintergrund
+auch bei dunkler Systempalette; helles/dunkles FreeCAD-Theme und Steuerungswechsel
+auf Bildschirm 2 geprüft (Steuerung 13).
 **Verbindliche Maschinenwahl (0.200.1):** Schwenkdialog behält die Jobmaschine auch
 mit 0/1 Rundachsen, zeigt reale Anschläge und liest sie vor OK erneut. Alle sechs
 Beispielmaschinen, neuer/bisheriger Dialog auf DP-1 und NC ohne fiktive Achsen geprüft
@@ -85,7 +88,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.203.0 (P-2026-10-08-12). Alles, was hier als gebaut steht,
+Stand 0.203.1 (P-2026-10-08-13). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

@@ -26,7 +26,7 @@ from . import maschinenspeicher as msp
 from . import postprozessor as pp
 from . import reichweite as rw
 from .gui_hilfe import kopfzeile
-from .gui_teile import GRAU, knopf, ruhiges_mausrad
+from .gui_teile import knopf, ruhiges_mausrad
 from .gui_zahlen import zahlenformat
 from .sprache import tr
 
@@ -194,11 +194,11 @@ def gruppen_titel(gruppe):
 
 
 def _erklaerung(text, einruecken=False, farbe=None):
-    """Ein Satz Erklärung unter einer Einstellung – grau (oder `farbe`), umbrochen."""
+    """Erklärung mit lesbarer Theme-Schriftfarbe (oder Kennzeichnungsfarbe), umbrochen."""
     zeile = QtGui.QLabel(text)
     zeile.setWordWrap(True)
     zeile.setStyleSheet(
-        f"color: {farbe or GRAU.name()};" + (" margin-left: 22px;" if einruecken else "")
+        (f"color: {farbe};" if farbe else "") + (" margin-left: 22px;" if einruecken else "")
     )
     return zeile
 
@@ -504,6 +504,9 @@ class ProgrammDialog(QtGui.QDialog):
         links_aufbau = QtGui.QVBoxLayout(links)
         links_aufbau.setContentsMargins(0, 0, 0, 0)
         self.einstellungen = QtGui.QScrollArea()
+        # FreeCAD färbt den Dialog per Theme, während die Systempalette dunkel
+        # bleiben kann. Der Rollbereich soll diesen Dialoghintergrund durchlassen.
+        self.einstellungen.setStyleSheet("QScrollArea { background: transparent; }")
         self.einstellungen.setWidgetResizable(True)
         self.einstellungen.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         links_aufbau.addWidget(self.einstellungen, 1)
@@ -775,6 +778,8 @@ class ProgrammDialog(QtGui.QDialog):
         aufbau.addWidget(_erklaerung(tr("pp.befehle.hinweis")))
         aufbau.addStretch(1)
         self.einstellungen.setWidget(inhalt)
+        # setWidget schaltet die Qt-Hintergrundfüllung wieder ein; deshalb danach.
+        inhalt.setAutoFillBackground(False)
         ruhiges_mausrad(inhalt)
         self._abhaengige_schalten()
 
