@@ -800,7 +800,9 @@ die Fläche steiler ist, bleibt er senkrecht. Die Kugel bleibt dabei, wo sie ist
 kippt um ihre Mitte, die Bahn ist dieselbe. Den Haken gibt es an einer <b>5-Achs-Maschine</b>
 (oben gewählt); frei ist er mit einem <b>Kugelfräser</b>, sonst steht dahinter, was fehlt. „Auf der Maschine
 prüfen“, die Kollision und „Programm schreiben“ rechnen die Rundachsen je Punkt (Vorschub in
-G93); ohne Maschine mit zwei Rundachsen schreibt das Programm die Bahn senkrecht und sagt es.
+G93). Die tatsächlichen Achsen und Anschläge entscheiden – auch eine einzelne Rundachse
+oder eine feste passende Werkzeugrichtung. Eine nicht erreichbare Operation bleibt
+<b>unbearbeitet</b> und wird mit Grund ausgelassen; ohne lesbare Maschine ebenso.
 An einer Kuppel etwa 5 % länger. Die Eigenschaften der Operation: „Anstellwinkel“ (15°),
 „Kippachse“ (X oder Y – aus der Maschine).</li>
 <li><b>Wegkippen (5 Achsen simultan)</b>: In einer tiefen Kavität muss ein senkrechter Fräser so
@@ -826,8 +828,9 @@ bekommt den Haken (an einer Tasche mit 10° Formschräge: ein Umlauf, etwa 1 min
 Höhenlinien in 5 min). Am Fuß fräst er bis in die Ecke zum Boden; an scharfen Innenecken bleibt
 der Radius des Fräsers stehen. Ist die Wand länger als die Schneide, fährt er mehrere Lagen.
 „Auf der Maschine prüfen“, die Kollision und „Programm schreiben“ rechnen die Rundachsen je Punkt
-(an der Tisch/Tisch-Maschine: A steht, C dreht einmal herum). Ohne Maschine mit zwei Rundachsen
-schreibt das Programm die Flanke nicht – senkrecht gefahren schnitte der Fräser falsch. Die
+(an der Tisch/Tisch-Maschine: A steht, C dreht einmal herum). Die tatsächliche Kinematik
+muss alle Richtungen erreichen; andernfalls wird die Operation ausdrücklich unbearbeitet
+ausgelassen. Eine senkrechte Ersatzbahn gibt es nicht. Die
 Operation heißt „Flanke T5“.</li>
 </ul>
 

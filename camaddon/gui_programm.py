@@ -393,7 +393,7 @@ def _abschnitte_und_kette(job, gewaehlt):
 def _maschine_je_operation(job, dok):
     """Eine Funktion Operation → schwenken.Maschine (je Werkzeugnummer einmal) für die erste
     Maschine im Dokument – None, wenn es keine gibt; die Funktion gibt None, wenn die Maschine
-    für das Werkzeug keine Aufnahme oder keine zwei Rundachsen hat."""
+    für das Werkzeug keine Aufnahme hat; feste und einzelne Rundachsen bleiben erhalten."""
     from . import maschine as m
     from . import schwenken as sw
     from .gui_reichweite import _bibliothek
@@ -426,8 +426,6 @@ def _maschine_je_operation(job, dok):
             if aufnahme is not None:
                 laenge = rw.einspannung(tc, bibliothek)
                 maschine = sw.Maschine(pruefung, aufnahme, laenge, nullpunkt)
-                if len(maschine.rundachsen) < 2:
-                    maschine = None
             je_nummer[nummer] = maschine
         return je_nummer[nummer]
 

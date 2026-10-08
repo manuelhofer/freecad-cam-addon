@@ -1879,8 +1879,6 @@
     "an.nur_kugel": "{operation}: Anstellen geht nur mit einem Kugelfräser – die Bahn bleibt senkrecht.",
     "an.fehler.kugel": "„{operation}“ ist angestellt, hat aber keinen Kugelfräser mehr – bitte neu berechnen.",
     "an.fehler.veraltet": "„{operation}“: Die Werkzeugachsen passen nicht mehr zur Bahn – bitte neu berechnen.",
-    "pp.hinweis.angestellt_senkrecht": "der Kugelfräser steht senkrecht – angestellt schreibt das Programm mit einer Maschine mit zwei Rundachsen (oben wählen). Die Kugel fährt dieselbe Bahn, nur schneidet sie auf flachen Stellen mit der Spitze.",
-    "pp.hinweis.angestellt_fehler": "senkrecht geschrieben – angestellt geht es auf dieser Maschine nicht: {grund}",
     "ba.s3.anstellen": "Anstellen (5 Achsen simultan)",
     "ba.s3.anstellen.tooltip": "Der Kugelfräser kippt nur so weit wie nötig um die Mitte der Kugel – mindestens 15° zwischen Achse und Fläche, mit einer Rundachse –, damit er auf flachen Stellen nicht mit der Spitze schneidet (dort ist die Schnittgeschwindigkeit 0). Die Bahn bleibt dieselbe; „Auf der Maschine prüfen“ und „Programm schreiben“ rechnen die Rundachsen je Punkt. Etwa 5 % länger.",
     "ba.s3.anstellen.ohne_maschine": "an einer 5-Achs-Maschine (oben wählen)",
@@ -1889,9 +1887,6 @@
     "fl.fehler.fraeser": "Für die Flanke braucht es einen Schaftfräser mit Radius und Schneidenlänge.",
     "fl.fehler.keine": "Keine der Flächen ist eine schräge Wand aus Geraden (Ebene, Kegel, Regelfläche), 0,5° bis 45° aus der Senkrechten und nach oben offen.",
     "fl.fehler.nichts": "An keiner Stelle der Wände passt der Fräser hin, ohne ins Teil zu schneiden.",
-    "pp.hinweis.flanke_ohne_maschine": "nicht geschrieben – die Flanke braucht eine Maschine mit zwei Rundachsen (oben wählen); senkrecht gefahren schnitte der Fräser falsch.",
-    "pp.hinweis.flanke_fehler": "nicht geschrieben – auf dieser Maschine geht die Flanke nicht: {grund}",
-    "fl.fehler.maschine": "„{operation}“ ist eine Flanke (5 Achsen simultan) – sie braucht eine Maschine mit zwei Rundachsen.",
     "fl.eigenschaft.flaechen": "Die schrägen Wände (Ebene, Kegel, Regelfläche), die der Mantel fräst.",
     "fl.eigenschaft.aufmass": "So viel bleibt an den Wänden stehen.",
     "fl.eigenschaft.umlaeufe": "So viele Umläufe hat die Bahn (gerechnet).",
@@ -2509,7 +2504,6 @@
     "s5p.fehler.operation": "Eine 3D-Schlichtoperation im Grundjob auswählen.",
     "s5p.fehler.kugel": "Der Vergleich benötigt einen Kugelfräser.",
     "s5p.fehler.aufnahme": "Für dieses Werkzeug ist keine Werkzeugaufnahme eingerichtet.",
-    "s5p.fehler.maschine": "Der Vergleich benötigt eine Maschine mit zwei Rundachsen.",
     "s5p.fehler.rest": "Grathöhe nicht eingehalten: {rest} mm Restgrenze.",
     "s5p.fehler.winkel": "Kontaktwinkel zu klein: {winkel}°.",
     "s5p.fehler.grenzen": "Mindestens eine Achse überschreitet ihren Verfahrbereich.",
@@ -2589,5 +2583,8 @@
     "sw.panel.grenzachse_offen": "{achse}: keine Grenzen eingetragen",
     "sw.panel.werkzeug": "Werkzeug im Job",
     "sw.panel.werkzeug.tooltip": "Aufnahme, Länge und Halterlage dieses Werkzeugs bestimmen die tatsächliche Werkzeugrichtung.",
-    "sw.panel.werkzeug_fehlt": "Ein Werkzeug im Job einrichten und auswählen. Ohne seine Aufnahme und Halterlage wird keine Richtung freigegeben."
+    "sw.panel.werkzeug_fehlt": "Ein Werkzeug im Job einrichten und auswählen. Ohne seine Aufnahme und Halterlage wird keine Richtung freigegeben.",
+    "si.fehler.maschine": "Für diese Werkzeugrichtungen fehlt eine lesbare Maschine.",
+    "pp.hinweis.simultan_ohne_maschine": "unbearbeitet – ausgelassen: Für die gespeicherten Werkzeugrichtungen fehlt eine lesbare Maschine.",
+    "pp.hinweis.simultan_ausgelassen": "unbearbeitet – ausgelassen: {grund}"
 }

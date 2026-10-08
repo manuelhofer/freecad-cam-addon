@@ -16,8 +16,10 @@ Beispielmaschinen, neuer/bisheriger Dialog auf DP-1 und NC ohne fiktive Achsen g
 Bereiche auslassen mit ausdrücklich unbearbeitetem Restbericht.
 **Werkzeugzugang (0.201.0):** Schwenkdialog wählt das tatsächliche Jobwerkzeug;
 T-Nummer, Länge und Halterachse gehen in die Kinematik ein, vor OK frisch gelesen
-(Strategien 16.14). Nächster Schritt: keine senkrechte Ersatzbahn bei unerreichbarer
-Simultanrichtung; Bereiche ausdrücklich unbearbeitet ausweisen.
+(Strategien 16.14). Simultanausgabe (0.201.1) nutzt auch feste/einzelne reale Achsen und lässt
+unerreichbare Operationen ausdrücklich unbearbeitet aus; keine senkrechte Ersatzbahn
+(Strategien 16.15). Nächster Schritt: Auslassung von Bereichen in Export und Restmaterial
+gemeinsam berücksichtigen, damit kein nicht gefahrener Schnitt als entfernt gilt.
 Maschinenweite Vorgabe: Richtungen und Grenzen aus der tatsächlich gewählten
 Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennzeichnen.
 

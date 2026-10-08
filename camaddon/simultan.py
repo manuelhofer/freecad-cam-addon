@@ -104,6 +104,8 @@ def _nachfuehren(maschine, n, werte):
         d = richtung(werte)
         if 1.0 - float(d @ ziel) <= GENAU:
             return werte
+        if not rundachsen:
+            return None  # Eine feste Achse kann nicht in die nächste Richtung kippen.
         spalten = []
         for i in range(len(werte)):
             versuch = list(werte)
@@ -377,6 +379,8 @@ def befehle_auf_maschine(
         eilgaenge=True,
         materialdaten=materialdaten,
     )
+    if not maschine.rundachsen:
+        return saetze  # Feste Werkzeugachse: kein zusätzlicher Schwenkweg in globalem Z.
     bewegt = [b for b in saetze if b.Name in ("G0", "G1")]
     erster, letzter = bewegt[0].Parameters, bewegt[-1].Parameters
     rundachsen = [a.buchstabe for a in maschine.rundachsen]

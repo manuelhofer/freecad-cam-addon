@@ -182,8 +182,9 @@ ohne = pp.abschnitte(job)
 pruefe(
     len(ohne) == 1
     and ohne[0].hinweis
-    and [b.toGCode() for b in ohne[0].befehle] == [b.toGCode() for b in op.Path.Commands],
-    "ohne Maschine nicht senkrecht mit Satz",
+    and not ohne[0].befehle
+    and "unbearbeitet" in ohne[0].hinweis,
+    "ohne Maschine nicht ausdrücklich ausgelassen",
 )
 zeilen = pp.programm(mit, pp.steuerung("siemens"), pp.Maschineninfo(), "Kuppel").zeilen
 pruefe(

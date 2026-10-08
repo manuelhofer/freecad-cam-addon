@@ -316,8 +316,6 @@ def vergleichen(
         if aufnahme is None:
             raise ValueError(tr("s5p.fehler.aufnahme"))
         maschine = sw.Maschine(pruefung, aufnahme, rw.einspannung(tc, bibliothek), nullpunkt)
-        if len(maschine.rundachsen) != 2:
-            raise ValueError(tr("s5p.fehler.maschine"))
         from . import schlicht_rand
 
         try:

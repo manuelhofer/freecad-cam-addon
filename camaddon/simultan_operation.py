@@ -4,8 +4,8 @@ angestellt (angestellt.py) und die Flanke (flanke.py). Für „Auf der Maschine 
 Kollision und „Programm schreiben“ an einer Stelle: ob eine Operation so eine ist und ihre Sätze
 für eine Maschine.
 
-Ohne Maschine mit zwei Rundachsen fährt der angestellte Kugelfräser senkrecht (dieselbe Bahn der
-Kugel) – die Flanke geht dann nicht: Senkrecht gefahren schnitte ihr Fräser falsch.
+Die gelesene Kinematik entscheidet, ob die gespeicherten Richtungen erreichbar sind –
+auch mit einer Rundachse oder einer festen Spindel. Es gibt keine senkrechte Ersatzbahn.
 
 Läuft ohne Oberfläche.
 """
@@ -38,21 +38,23 @@ def senkrecht_moeglich(op):
 
 
 def befehle(op, maschine, tcpm=False, bei_null=False):
-    """Die Sätze der Operation für `maschine` (schwenken.Maschine): mit zwei Rundachsen je Punkt
-    gerechnet (`tcpm`: für eine Steuerung, die die Spitze führt – simultan.befehle_mit_tcpm); mit
-    weniger der angestellte Kugelfräser senkrecht, die Flanke ein ValueError."""
+    """Die gespeicherten Richtungen mit den tatsächlichen Achsen der Maschine rechnen.
+
+    Eine nicht erreichbare Richtung oder ein Anschlag erzeugt ValueError, keine
+    ersatzweise senkrechte Bearbeitung. `tcpm`: die Steuerung führt die Spitze.
+    """
     from . import angestellt as an
     from . import entgraten3d as e3op
     from . import flanke as fl
 
+    if maschine is None:
+        raise ValueError(tr("si.fehler.maschine"))
+    if not maschine.rundachsen:
+        tcpm = False  # Keine Rundbewegung: die feste Abbildung liefert bereits echte XYZ.
     cache = getattr(op, "_pruefprogramm", None)
     if cache is not None and cache[0] == pruefschluessel(maschine, tcpm, bei_null):
         return list(cache[1])
 
-    if len(getattr(maschine, "rundachsen", ())) < 2:
-        if senkrecht_moeglich(op):
-            return list(op.Path.Commands)
-        raise ValueError(tr("fl.fehler.maschine", operation=op.Label))
     if an.ist_angestellt(op):
         return an.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
     if e3op.ist_entgraten3d(op):

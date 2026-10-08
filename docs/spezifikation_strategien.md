@@ -3477,3 +3477,48 @@ fiktive Rundachse, Job-Undo, getrennte Revolverplätze 1/8 und fehlendes Werkzeu
 Beim Job-Undo bleibt ein unbenutzter nativer Rohteilklon übrig; der Ebenenjob selbst
 wird entfernt, diese Ressourcenbereinigung ist gesondert offen. Sprachprüfung und
 frischer G550-Export referenzgleich, persönliche Werkzeugbibliothek unverändert.
+
+### 16.15 Simultan mit tatsächlichen Maschinenachsen (P-2026-10-08-08)
+
+Native Gegenprobe: Ein Job mit 30°-Werkzeugrichtung an der festen 3-Achs-Fräse
+schreibt dieselbe senkrechte Bahn ohne Hinweis. Im Kern wurden Maschinen mit
+weniger als zwei Rundachsen pauschal auf senkrecht zurückgesetzt; nach einem
+Richtungs-/Grenzfehler machte der Postprozessor dieselbe Ersatzbewegung.
+Das widerspricht Manuels Vorgabe, nicht erreichbare Bearbeitung auszulassen.
+
+Die tatsächliche Richtungsauflösung entscheidet auch mit null oder einer
+Rundachse. Eine feste Werkzeugrichtung wird in ihre echten XYZ-Punkte umgerechnet,
+ohne erfundenen Schwenkanlauf. Ein Rundkreis mit einer realen Rundachse ist möglich,
+wenn jede Richtung und deren Anschläge passen. Nicht erreichbare Operationen
+werden ausdrücklich als unbearbeitet ausgelassen, niemals senkrecht ersetzt.
+Der Gesamtvergleich nimmt ebenfalls keine bestimmte Rundachsenzahl an; nur
+vollständig zugelassene Varianten sind weiterhin übernehmbar. Das Auslassen
+sicher getrennt fahrbarer Teilbereiche folgt als eigener Schritt.
+
+```text
+Programm / Maschinenprüfung
+[Operation]: [erreichbar mit tatsächlichen Achsen]
+[Operation]: unbearbeitet – ausgelassen: [Richtung / eingelesener Anschlag]
+```
+
+Duplicate-Check: Das senkrechte Ausweichen stammt aus dem bestehenden Simultan-
+Adapter, ist kein vorhandenes maschinenbezogenes Auslassen. FreeCAD stellt die
+Kinematik bereit; ihr gelesener Achsbaum und die vorhandene Richtungsauflösung
+werden verwendet, keine pauschalen Maschinenmodelle.
+
+**Akzeptanzkriterium:** Dieselbe Operation an einer festen, einer einrundachsigen
+und einer zweirundachsigen Maschine prüfen und exportieren → jede erreichbare
+Werkzeugrichtung wird mit deren echten Achsen gefahren, eine unerreichbare
+Operation bleibt ausdrücklich unbearbeitet und erzeugt keine senkrechte Ersatzbahn.
+
+
+**Gebaut und geprüft:** Alle sechs Maschinen mit tatsächlichen 0/1/2 Rundachsen
+und Kugelmitte gegen unabhängige Vorwärtskinematik; einzelne C-Achse mit gewinkelter
+Einspannung fährt tatsächlich, gelesener ±2°-Anschlag sperrt die angeforderte 30°-Lage.
+Keine fiktiven Achsen, keine senkrechte Ersatzbahn, Quelldaten unverändert.
+2,11 s / 33,80 MiB Python für die kleine Richtungsgegenprobe; kein Zerspanungsbenchmark.
+Bestehender Simultankern und native Anstellbahn bestanden, G550-Kaltexport exakt
+referenzgleich. GUI auf DP-1 mit echter Freiformoperation: unbearbeitet sichtbar,
+null Bewegungssätze bei ausgelassener Operation; 3-/4-Achs-Zuordnung bleibt erhalten.
+Die erste GUI-Probe hatte eine ebene statt einer Freiformfläche und damit keine
+Schnittbahn; der abschließende Lauf verwendet eine echte gewölbte Fläche.

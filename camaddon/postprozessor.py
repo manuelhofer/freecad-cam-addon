@@ -1612,29 +1612,21 @@ def _einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt):
 
 
 def _simultan(op, maschine):
-    """(Befehle, Hinweis) einer Operation mit Werkzeugachse je Satz (5 Achsen simultan): mit
-    einer Maschine mit zwei Rundachsen die Rundachsen je Punkt (simultan_operation.befehle).
-    Ohne sie der angestellte Kugelfräser senkrecht, mit einem Satz (die Kugel fährt dieselbe
-    Bahn, nur mit der Spitze) – die Flanke gar nicht, mit einem Satz."""
+    """(Befehle, Hinweis): echte Richtungen oder ausdrücklich unbearbeitet ausgelassen."""
     fuer_op = maschine(op) if callable(maschine) else maschine
-    senkrecht = so.senkrecht_moeglich(op)
     if fuer_op is None:
-        if senkrecht:
-            return list(op.Path.Commands), tr("pp.hinweis.angestellt_senkrecht")
-        return [], tr("pp.hinweis.flanke_ohne_maschine")
+        return [], tr("pp.hinweis.simultan_ohne_maschine")
     try:
         return so.befehle(op, fuer_op), ""
     except ValueError as grund:
-        if senkrecht:
-            return list(op.Path.Commands), tr("pp.hinweis.angestellt_fehler", grund=str(grund))
-        return [], tr("pp.hinweis.flanke_fehler", grund=str(grund))
+        return [], tr("pp.hinweis.simultan_ausgelassen", grund=str(grund))
 
 
 def _simultan_tcpm(op, maschine):
     """Eine Funktion ohne Argumente, die die Sätze der Operation für eine Steuerung mit TCPM gibt
     (simultan_operation.befehle mit tcpm) – None ohne Maschine mit zwei Rundachsen."""
     fuer_op = maschine(op) if callable(maschine) else maschine
-    if fuer_op is None or len(getattr(fuer_op, "rundachsen", ())) < 2:
+    if fuer_op is None or not getattr(fuer_op, "rundachsen", ()):
         return None
     return lambda bei_null=False: so.befehle(op, fuer_op, tcpm=True, bei_null=bei_null)
 

@@ -776,8 +776,9 @@ the table/table machine A, C stays); where the surface is steeper it stays verti
 stays where it is – only the axis tilts about its centre, the path is the same. The tick is there
 on a <b>5-axis machine</b> (chosen above); it is free with a <b>ball end mill</b>, otherwise it says
 what is missing. “Check on the machine”, the collision check and “Write program” compute the rotary axes
-per point (feed in G93); without a machine with two rotary axes the program writes the path
-vertical and says so. On a dome about 5 % longer. Properties of the operation: “Anstellwinkel”
+per point (feed in G93). The actual axes and stops decide – including one rotary axis
+or a matching fixed tool direction. An unreachable operation remains <b>unmachined</b>
+and is omitted with its reason; the same applies without a readable machine. On a dome about 5 % longer. Properties of the operation: “Anstellwinkel”
 (15°), “Kippachse” (X or Y – from the machine).</li>
 <li><b>Tilt away (5-axis simultaneous)</b>: in a deep cavity a vertical cutter must stick out so
 far that the holder clears the rim – at 30 mm depth a good 30 mm, however slim the holder. With
@@ -801,8 +802,8 @@ about 1 min instead of 36 contours in 5 min). At the foot it cuts right into the
 floor; at sharp inside corners the radius of the cutter remains. If the wall is longer than the
 cutting length, it runs several levels. “Check on the machine”, the collision check and “Write
 program” compute the rotary axes per point (on the table/table machine: A stays, C turns once
-around). Without a machine with two rotary axes the program does not write the flank – run
-vertical the cutter would cut wrongly. The operation is called “Flank T5”.</li>
+around). The actual kinematics must reach all directions; otherwise the operation is
+explicitly omitted as unmachined. There is no vertical substitute path. The operation is called “Flank T5”.</li>
 </ul>
 
 <h3>16. 3D roughing</h3>

@@ -1879,8 +1879,6 @@
     "an.nur_kugel": "{operation}: tilting only works with a ball end mill – the path stays vertical.",
     "an.fehler.kugel": "“{operation}” is tilted but no longer has a ball end mill – please recompute.",
     "an.fehler.veraltet": "“{operation}”: the tool axes no longer match the path – please recompute.",
-    "pp.hinweis.angestellt_senkrecht": "the ball end mill stands vertical – the program is tilted with a machine with two rotary axes (choose it above). The ball runs the same path, only it cuts with its tip on flat spots.",
-    "pp.hinweis.angestellt_fehler": "written vertical – tilted it does not work on this machine: {grund}",
     "ba.s3.anstellen": "Tilt (5-axis simultaneous)",
     "ba.s3.anstellen.tooltip": "The ball end mill tilts only as far as needed about the centre of the ball – at least 15° between axis and surface, with one rotary axis – so that it does not cut with its tip on flat spots (the cutting speed is 0 there). The path stays the same; “Check on the machine” and “Write program” compute the rotary axes per point. About 5 % longer.",
     "ba.s3.anstellen.ohne_maschine": "on a 5-axis machine (choose it above)",
@@ -1889,9 +1887,6 @@
     "fl.fehler.fraeser": "The flank needs an end mill with radius and cutting length.",
     "fl.fehler.keine": "None of the faces is a sloped wall made of straight lines (plane, cone, ruled surface), 0.5° to 45° off vertical and open to the top.",
     "fl.fehler.nichts": "At no spot of the walls does the cutter fit without cutting into the part.",
-    "pp.hinweis.flanke_ohne_maschine": "not written – the flank needs a machine with two rotary axes (choose it above); run vertical the cutter would cut wrongly.",
-    "pp.hinweis.flanke_fehler": "not written – the flank does not work on this machine: {grund}",
-    "fl.fehler.maschine": "“{operation}” is a flank (5-axis simultaneous) – it needs a machine with two rotary axes.",
     "fl.eigenschaft.flaechen": "The sloped walls (plane, cone, ruled surface) the flank of the cutter mills.",
     "fl.eigenschaft.aufmass": "This much stays on the walls.",
     "fl.eigenschaft.umlaeufe": "So many loops the path has (computed).",
@@ -2509,7 +2504,6 @@
     "s5p.fehler.operation": "Select a 3D finishing operation in the base job.",
     "s5p.fehler.kugel": "The comparison requires a ball end mill.",
     "s5p.fehler.aufnahme": "No tool mount is configured for this tool.",
-    "s5p.fehler.maschine": "The comparison requires a machine with two rotary axes.",
     "s5p.fehler.rest": "Scallop height exceeded: residual bound {rest} mm.",
     "s5p.fehler.winkel": "Contact angle too small: {winkel}°.",
     "s5p.fehler.grenzen": "At least one axis exceeds its travel range.",
@@ -2589,5 +2583,8 @@
     "sw.panel.grenzachse_offen": "{achse}: no limits specified",
     "sw.panel.werkzeug": "Tool in the job",
     "sw.panel.werkzeug.tooltip": "This tool’s mount, length and holder placement determine its actual tool direction.",
-    "sw.panel.werkzeug_fehlt": "Set up and select a tool in the job. No direction is enabled without its mount and holder placement."
+    "sw.panel.werkzeug_fehlt": "Set up and select a tool in the job. No direction is enabled without its mount and holder placement.",
+    "si.fehler.maschine": "A readable machine is required for these tool directions.",
+    "pp.hinweis.simultan_ohne_maschine": "unmachined – omitted: A readable machine is required for the stored tool directions.",
+    "pp.hinweis.simultan_ausgelassen": "unmachined – omitted: {grund}"
 }

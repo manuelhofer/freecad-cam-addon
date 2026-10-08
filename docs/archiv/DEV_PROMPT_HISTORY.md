@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-08 tatsaechliche-achsen-ohne-ersatzbahn
+
+### EINGELESEN
+- Manuel: alle Strategien für alle Maschinen, gelesene Schwenkgrenzen, unmögliche
+  Bearbeitung auslassen. Native Gegenprobe: feste Fräse gibt eine 30°-Bahn ohne
+  Hinweis senkrecht aus. Vorbeschreibung und UI-Skizze in Strategien 16.15.
+
+### DATEIEN
+- Simultanadapter/-kern, Postprozessor, Programmhelper, Gesamtvergleich;
+  Richtungsprüfung/GUI und alte Anstellprüfung mit neuer fachlicher Erwartung;
+  DE/EN-Texte und Hilfe; Doku/Verlauf/Snapshot, `package.xml` 0.201.1.
+
+### AKZEPTANZKRITERIUM
+Dieselbe Operation an einer festen, einrundachsigen und zweirundachsigen Maschine
+prüfen und exportieren → echte erreichbare Richtungen werden gefahren, eine
+unerreichbare Operation wird ausdrücklich unbearbeitet ausgelassen und niemals
+senkrecht ersetzt.
+
+### DONE
+- Die tatsächliche Kinematik entscheidet auch bei null/einer Rundachse; Programm-
+  helper behält diese Maschinen, Gesamtvergleich verlangt keine feste Rundachsenzahl.
+- Feste Einspannung schreibt ihre tatsächlichen XYZ ohne zusätzlichen Z-Schwenkweg.
+- Fehlende oder unpassende Maschine/Richtung/Anschläge: ausdrücklich unbearbeitet,
+  keine Ersatzbewegung; nur vollständig zugelassene Varianten sind übernehmbar.
+
+### TEST
+- Alle sechs Arten, unabhängige Vorwärtskinematik/Kugelmitte, reale C-Bewegung mit
+  gewinkelter Einspannung; geänderte ±2°-Anschläge sperren 30°; keine falschen Achsen.
+- Kleine Richtungsgegenprobe 2,11 s / 33,80 MiB Python; keine Zerspanungsqualifikation.
+- Bestehender Simultankern und reale Anstellbahn inklusive Steuerungen/TCPM OK.
+  Der alte Kernlauf meldet eine native Sketcher-Kreiswarnung; keine Python-Ausnahme,
+  Richtungs- und Bahnprüfungen bestanden. Abschließende eigene Gegenprobe ohne Warnung.
+- Sprache OK, gespeicherter G550-Export exakt referenzgleich. GUI DP-1 mit echter
+  Freiformbahn: sichtbare Auslassung/null Bewegungssätze, echte 0/1-Achs-Zuordnung.
+  Erste GUI-Fläche war ungeeignet (eben), durch echte Freiform ersetzt und neu geprüft.
+- Belege `../ergebnisse/simultan-maschinen-2026-10-08/`, Black/Ruff/Diff geprüft.
+
+### NEXT
+- Ausgelassene Bereiche in Export und Materialfolge gemeinsam berücksichtigen;
+  unterbrochene Schnittbahnen erst mit qualifizierten An-/Rückzügen. Kein Push.
+
 ## P-2026-10-08-07 werkzeugachse-und-aufnahme-pruefen
 
 ### EINGELESEN
