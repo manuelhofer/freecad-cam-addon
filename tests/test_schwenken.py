@@ -427,7 +427,29 @@ print(f"Räumen auf der Schräge: {bahn.zeit:.2f} min, {bahn.variante} – {ps.z
 # --- F3: das Programm ----------------------------------------------------------------------------
 from camaddon import postprozessor as pp  # noqa: E402
 
-teile = pp.abschnitte(grundjob)
+ohne_maschine = pp.abschnitte(grundjob)
+pruefe(
+    len(ohne_maschine) == 1
+    and not ohne_maschine[0].befehle
+    and "unbearbeitet" in ohne_maschine[0].hinweis,
+    "Ebene ohne tatsächliche Maschine nicht ausgelassen",
+)
+nc_asm, nc_ma = beispielmaschine.fuenfachs_tisch_tisch()
+nc_pruefung = rw.Pruefung(nc_asm, nc_ma)
+FreeCAD.setActiveDocument(doc.Name)
+
+
+def nc_je_op(operation):
+    controller = operation.ToolController
+    return sw.Maschine(
+        nc_pruefung,
+        nc_pruefung.werkzeugaufnahme(controller.ToolNumber),
+        rw.einspannung(controller, None),
+        rw.nullpunkt(grundjob),
+    )
+
+
+teile = pp.abschnitte(grundjob, nc_je_op)
 pruefe(
     len(teile) == 1 and teile[0].schwenkung is not None and teile[0].name == op.Label,
     f"Abschnitte des Grundjobs: {[(a.name, a.schwenkung) for a in teile]}",
@@ -439,7 +461,9 @@ info = pp.Maschineninfo("5-Achs")
 # Koordinaten der Ebene, wie die Operation sie hat; am Ende zurück.
 siemens = pp.programm(teile, pp.steuerung("siemens"), info, "Block").zeilen
 x0, y0, z0 = (f"{v:.3f}" for v in e.Base)
-zyklus = f'CYCLE800(1,"",0,27,{x0},{y0},{z0},0.000,0.000,30.000,0,0,0,-1,0,1)'
+# Die echte Bezugsachse A wird in DIN umgekehrt ausgegeben: ihre kleinere
+# Modellstellung ist die größere NC-Stellung, deshalb _DIR +1 statt generischem −1.
+zyklus = f'CYCLE800(1,"",0,27,{x0},{y0},{z0},0.000,0.000,30.000,0,0,0,1,0,1)'
 pruefe(zyklus in siemens, f"kein {zyklus}: {[z for z in siemens if 'CYCLE' in z]}")
 pruefe(
     siemens.index(zyklus) < next(i for i, z in enumerate(siemens) if z.startswith("M3")),
@@ -452,7 +476,7 @@ teile_plus = [
     dataclasses.replace(t, schwenkung=dataclasses.replace(t.schwenkung, richtung=1)) for t in teile
 ]
 mit_tc = pp.programm(teile_plus, pp.steuerung("siemens"), info_tc, "Block").zeilen
-zyklus_tc = f'CYCLE800(1,"TC1",0,27,{x0},{y0},{z0},0.000,0.000,30.000,0,0,0,1,0,1)'
+zyklus_tc = f'CYCLE800(1,"TC1",0,27,{x0},{y0},{z0},0.000,0.000,30.000,0,0,0,-1,0,1)'
 pruefe(zyklus_tc in mit_tc, f"kein {zyklus_tc}: {[z for z in mit_tc if 'CYCLE' in z]}")
 # Nach DIN 66217 (+A: das Werkzeug dreht gegenüber dem Werkstück rechtsherum um +X): die Schräge
 # (Normale Rx(30°)·Z = (0, −0,5, 0,866)) heißt A+30 – das Modell dreht das Werkstück mit A−30.
@@ -700,7 +724,7 @@ if bohrungen:
         and zyklen[0].Parameters["Z"] < -15.0,
         f"Bohren in der Ebene: {[c.toGCode() for c in zyklen]}",
     )
-    teile = pp.abschnitte(grundjob)
+    teile = pp.abschnitte(grundjob, nc_je_op)
     lcnc = pp.programm(teile, pp.steuerung("linuxcnc"), pp.Maschineninfo("5-Achs"), "B").zeilen
     soll = teile[0].schwenkung.gesamt().punkt((ORT.x, ORT.y, float(zyklen[0].Parameters["Z"])))
     pruefe(

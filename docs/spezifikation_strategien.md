@@ -3522,3 +3522,52 @@ referenzgleich. GUI auf DP-1 mit echter Freiformoperation: unbearbeitet sichtbar
 null Bewegungssätze bei ausgelassener Operation; 3-/4-Achs-Zuordnung bleibt erhalten.
 Die erste GUI-Probe hatte eine ebene statt einer Freiformfläche und damit keine
 Schnittbahn; der abschließende Lauf verwendet eine echte gewölbte Fläche.
+
+### 16.16 Ausgelassene Ebenen bleiben im Material (P-2026-10-08-09)
+
+Native Gegenprobe: Eine gespeicherte 30°-Stellung gilt im gemeinsamen Ebenenhelper
+weiterhin als passend, obwohl die gelesene A-Grenze inzwischen nur ±10° beträgt.
+Der Postprozessor darf diese Fläche nicht bearbeiten. Auch der Materialstand darf
+ihre nicht gefahrenen Schnitte nicht als Abtrag der Vorbearbeitung übernehmen.
+
+Jede gespeicherte und neu gelöste Rundstellung muss die aktuellen Anschläge
+bestehen. Die gemeinsame Ausgabe lässt einen nicht mehr erreichbaren Ebenenbereich
+mit allen darin verwendeten Strategien ausdrücklich unbearbeitet aus; andere
+Ebenen bleiben im Programm. Der räumliche Rest prüft dieselbe tatsächliche
+Jobmaschine und Einspannung, lässt diesen Bereich stehen und invalidiert seinen
+Cache bei geänderter Erreichbarkeit. Ohne zugewiesene Maschine bleibt der bisherige
+rein geometrische Materialentwurf bestehen; eine nicht lesbare tatsächliche
+Zuordnung erlaubt keinen angenommenen Abtrag.
+
+```text
+Programm / Bereich
+Ebene 1: [erreichbare Operationen]
+Ebene 2: unbearbeitet – ausgelassen: [eingelesene Schwenkgrenzen]
+Ebene 3: [erreichbare Operationen]
+Restmaterial: Ebene 2 bleibt stehen
+```
+
+Duplicate-Check: Der Ebenenhelper existiert, prüft bei gespeicherter passender
+Richtung aber keine Grenzen; der räumliche Replay kennt bisher keine Maschinen-
+zuordnung. FreeCAD liefert die tatsächliche Gelenkkinematik; diese wird benutzt.
+
+**Akzeptanzkriterium:** Mehrere Ebenen mit beliebigen Strategien anlegen, dann einen
+Schwenkbereich so begrenzen, dass eine Ebene nicht mehr erreichbar ist → das Programm
+lässt nur diesen Ebenenbereich ausdrücklich unbearbeitet aus, erreichbare Ebenen
+bleiben fahrbar und der Vergleich zum Fertigteil zeigt sein Material weiterhin.
+
+
+**Gebaut und geprüft:** Native Gegenprobe bestätigt die zuvor wiederverwendete
+30°-Stellung trotz ±10°-Anschlag. Jetzt gespeicherte und neu gelöste Stellung
+innerhalb echter Grenzen; unerreichbare Ebene ohne Schwenk-/Schnittsätze, andere
+Ebene weiterhin im Siemens-/LinuxCNC-Programm und nachgelesen. Räumlicher Rest
+behält 4318,352 mm³ ausgelassenes Material, Dach/Boden bleiben; aktueller Anschlag
+invalidiert den Cache, erweiterter Anschlag stellt den geometrischen Abtrag wieder
+her, fehlende tatsächliche Maschinendatei rechnet keinen Abtrag. 48,95 s / 230,58 MiB
+Python kalt (Gegenprobe des Materialkerns, kein Zerspanungsvorschlag). Bestehender
+Raumkern referenzgleich; bestehende Ebenenprüfung mit echter Maschine und ihrer
+DIN-Vorzugsausgabe bestanden. GUI DP-1: beide nativen Materialmodelle, wirklich
+ausgelassenes Material separat rot und expliziter Programmhinweis bei weiter
+enthaltener anderer Ebene. Erste Aufnahme zeigte die alte aktive Ansicht; jetzt
+die eigene 3D-View erfasst und das MDI-Vergleichsfenster sichtbar ausgewählt.
+Sprachprüfung und G550-Kaltexport referenzgleich.

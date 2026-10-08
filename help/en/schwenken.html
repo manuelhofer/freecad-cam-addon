@@ -41,7 +41,9 @@ also read from the actual machine. Unreachable directions remain disabled; OK is
 only for a permissible direction. A matching horizontal face uses the base job. A different
 CAM frame without rotary axes writes only transformed XYZ motions, with no imaginary
 swivel cycle. Changes to stops, the job machine, tool or holder are checked again before OK.
-Without a job tool, OK remains disabled. Subsequent machining selects its tools as usual;
+If stops change after creating the jobs, planes that are no longer reachable are explicitly
+omitted as unmachined from the program. Their unperformed cuts remain in spatial stock;
+reachable planes remain in the program. Without a job tool, OK remains disabled. Subsequent machining selects its tools as usual;
 each operation is checked with its own tool setup.</p>
 
 <h3>How it is computed</h3>

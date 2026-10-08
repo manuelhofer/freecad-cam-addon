@@ -18,8 +18,10 @@ Bereiche auslassen mit ausdrücklich unbearbeitetem Restbericht.
 T-Nummer, Länge und Halterachse gehen in die Kinematik ein, vor OK frisch gelesen
 (Strategien 16.14). Simultanausgabe (0.201.1) nutzt auch feste/einzelne reale Achsen und lässt
 unerreichbare Operationen ausdrücklich unbearbeitet aus; keine senkrechte Ersatzbahn
-(Strategien 16.15). Nächster Schritt: Auslassung von Bereichen in Export und Restmaterial
-gemeinsam berücksichtigen, damit kein nicht gefahrener Schnitt als entfernt gilt.
+(Strategien 16.15). Ebenenbereiche (0.201.2) werden auch nach geänderten Anschlägen
+im gemeinsamen Export ausgelassen und im räumlichen Rest erhalten (Strategien 16.16).
+Nächster Schritt: dieselbe Prüfung für alle in den Bahnen verwendeten Maschinenachsen
+und feinere, sicher getrennte Teilbereiche innerhalb einer Simultanoperation.
 Maschinenweite Vorgabe: Richtungen und Grenzen aus der tatsächlich gewählten
 Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennzeichnen.
 

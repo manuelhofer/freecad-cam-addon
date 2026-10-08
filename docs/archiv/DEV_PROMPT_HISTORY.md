@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-09 ausgelassene-ebenen-im-material-erhalten
+
+### EINGELESEN
+- Manuel: tatsächliche Schwenkbereiche, unmögliche Bereiche auslassen. Native
+  Gegenprobe zeigt gespeicherte 30°-Stellung trotz ±10°-Anschlag im gemeinsamen
+  Helper weiter gültig. Vorbeschreibung/Skizze in Strategien 16.16.
+
+### DATEIEN
+- Schwenkhelper, gemeinsame Abschnittsausgabe, räumlicher Materialstand,
+  neuer oberflächenunabhängiger Maschinenzugang; native Gegenprobe/GUI;
+  bestehende Ebenenprüfung mit tatsächlicher NC-Maschine; DE/EN/Hilfe/Doku;
+  `package.xml` 0.201.2, Datum 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Mehrere Ebenen mit beliebigen Strategien anlegen, einen Schwenkbereich einschränken →
+nur die nicht mehr erreichbare Ebene bleibt ausdrücklich unbearbeitet, andere Ebenen
+bleiben im Programm und ihr nicht gefahrener Bereich bleibt im Restmaterial stehen.
+
+### DONE
+- Gespeicherte und neu gelöste Rundstellungen gegen tatsächliche Anschläge prüfen.
+- Gemeinsame Ausgabe lässt unerreichbare Ebenen samt ihren Strategien aus, andere
+  Ebenen bleiben; fehlende tatsächliche Kinematik erzeugt keinen gedachten Schwenkweg.
+- Räumlicher Replay prüft tatsächliche Zuordnung, T-Aufnahme und Einspannung;
+  ausgelassene Schnitte erzeugen keinen freien Raum, Änderung invalidiert den Cache.
+- Ohne Maschinenzuordnung bleibt der rein geometrische Entwurf erhalten; eine
+  nicht lesbare tatsächliche Zuordnung ist kein angenommener Abtrag.
+
+### TEST
+- Native Seitenschnitt-Gegenprobe mit Standardfräser: 4318,352 mm³ bleiben bei
+  ±10° stehen, andere Ebene weiterhin in Siemens/LinuxCNC und nachgelesen;
+  Anschlag wieder erweitern / Zuordnung fehlt / Quelldaten unverändert geprüft.
+- Kalt 48,95 s / 230,58 MiB Python, unter 120 s / 250 MiB; geometrische Gegenprobe,
+  kein lastgeprüfter Bearbeitungsvorschlag. Bestehender Raumkern referenzgleich.
+- Bestehende Ebenenprüfung benötigt jetzt echte Maschine statt generischer
+  A/C-Ausgabe; ihr DIN-umgekehrter Vorzugszweig schreibt korrekt _DIR +1.
+  Angepasste Prüfung vollständig OK; keine Produkt-Vorzeichenänderung.
+- GUI DP-1: native Materialintervalle, separat rote Differenz/erhaltener Rest;
+  Programmhinweis plus weiter fahrbare Ebene. Eigene Vergleichs-View und sichtbares
+  MDI-Fenster nach vorher falscher aktiver Ansicht ausdrücklich gewählt.
+- Sprache und G550-Kaltexport exakt referenzgleich; Black/Ruff/Diff grün,
+  persönliche Werkzeugbibliothek unverändert. Belege `../ergebnisse/ebenen-auslassen-2026-10-08/`.
+
+### NEXT
+- Alle tatsächlich verwendeten Bahnachsen prüfen; sicher getrennte Teilbereiche
+  innerhalb von Simultanoperationen statt nur ganzer Ebenen/Operationen. Kein Push.
+
 ## P-2026-10-08-08 tatsaechliche-achsen-ohne-ersatzbahn
 
 ### EINGELESEN

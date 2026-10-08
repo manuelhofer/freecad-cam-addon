@@ -43,7 +43,10 @@ bleibt gesperrt; OK ist nur für eine zulässige Richtung frei. Eine passende wa
 Fläche verwendet den Grundjob. Ein anders ausgerichteter Bezug ohne Rundachsen schreibt
 nur die umgerechneten XYZ-Bewegungen, keinen erfundenen Schwenkzyklus. Bei geänderten
 Anschlägen, einer anderen Jobmaschine oder geänderten Werkzeug-/Halterwerten wird die Freigabe
-vor OK neu geprüft. Ohne Werkzeug im Job bleibt OK gesperrt. Die spätere Bearbeitung wählt
+vor OK neu geprüft. Ändern sich Anschläge nach dem Anlegen, werden nicht mehr erreichbare
+Ebenen beim Programm ausdrücklich unbearbeitet ausgelassen. Ihre nicht gefahrenen Schnitte
+bleiben im räumlichen Restmaterial stehen; erreichbare Ebenen bleiben im Programm.
+Ohne Werkzeug im Job bleibt OK gesperrt. Die spätere Bearbeitung wählt
 ihre Werkzeuge wie gewohnt; jede Operation wird mit ihrer eigenen Einspannung geprüft.</p>
 
 <h3>Wie gerechnet wird</h3>

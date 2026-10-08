@@ -755,10 +755,17 @@ def passende_rundachsen(maschine, lage, rund):
     die beste Stellung; None, wenn keine die Normale trifft."""
     normale = normale_der(lage)
     buchstaben = {a.buchstabe for a in maschine.rundachsen}
-    if set(rund) == buchstaben and maschine.richtung(rund).dot(normale) >= 1.0 - 1e-6:
+    if (
+        set(rund) == buchstaben
+        and all(a.erlaubt(rund[a.buchstabe]) for a in maschine.rundachsen)
+        and maschine.richtung(rund).dot(normale) >= 1.0 - 1e-6
+    ):
         return rund
     loesungen = maschine.loese(normale)
-    return loesungen[0] if loesungen else None
+    return next(
+        (r for r in loesungen if all(a.erlaubt(r[a.buchstabe]) for a in maschine.rundachsen)),
+        None,
+    )
 
 
 def schwenkung_fuer(job, maschine=None):

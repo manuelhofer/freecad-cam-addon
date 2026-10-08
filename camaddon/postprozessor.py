@@ -1506,6 +1506,10 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 gerechnet[id(fuer_op)] = (fuer_op, sw.schwenkung_fuer(job, fuer_op))
             schwenkung = gerechnet[id(fuer_op)][1]
         befehle, hinweis = list(op.Path.Commands), ""
+        if geschwenkt and (fuer_op is None or schwenkung is None or schwenkung.abbildung is None):
+            befehle = []
+            hinweis = tr("pp.hinweis.ebene_ausgelassen", ebene=job.Flaeche or job.Label)
+            schwenkung = None
         if geschwenkt and fuer_op is not None and schwenkung is not None and not schwenkung.rund:
             # Eine feste Spindel hat nur einen anders gerechneten CAM-Bezug, keinen
             # Schwenkzyklus. Alle örtlichen An-/Rückzüge in die echten XYZ-Koordinaten

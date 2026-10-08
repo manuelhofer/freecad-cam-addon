@@ -1963,7 +1963,7 @@
     "pp.feld.schwenken.tooltip": "Vor den Operationen einer geschwenkten Ebene. {x0} {y0} {z0}: der Ursprung der Ebene im Grundjob; {a} {b} {c}: ihre Winkel achsweise in der Reihenfolge Z, Y, X – {a} um Z, {b} um Y, {c} um X. Siemens: CYCLE800 im Modus 27 mit Freifahren Z, dem Schwenkdatensatz zwischen den Anführungszeichen (leer: der einzige) und Richtung −1.",
     "pp.feld.schwenken_aus": "Ebene zurück",
     "pp.feld.schwenken_aus.tooltip": "Nach der letzten Operation einer geschwenkten Ebene und am Programmende.",
-    "pp.hinweis.ebene_ohne_kette": "Die Ebenen (3+2) stehen ohne Schwenkzyklus im Programm, aber die gewählte Maschine hat keine zwei Rundachsen – gerechnet ist wie ein Tisch A (um X) mit Rundtisch C, der Drehpunkt im Nullpunkt. Wähl die 5-Achs-Maschine oder den Schwenkzyklus.",
+    "pp.hinweis.ebene_ohne_kette": "Für die Ebenen fehlt eine lesbare tatsächliche Maschine; diese Bereiche bleiben unbearbeitet. Wähle die dem Job zugeordnete Maschine.",
     "pp.ebene": "Ebene geschwenkt: {rundachsen}",
     "sw.fehler.ohne_maschine": "Ohne Schwenkzyklus braucht das Programm für die Rundachsen {rundachsen} die Maschine – ohne sie geht es nur für einen Tisch A, C mit dem Drehpunkt im Nullpunkt.",
     "sw.fehler.keine_stellung": "Für {flaeche} gibt es keine Stellung der Rundachsen – das Werkzeug kommt nicht senkrecht auf die Fläche.",
@@ -2586,5 +2586,6 @@
     "sw.panel.werkzeug_fehlt": "Ein Werkzeug im Job einrichten und auswählen. Ohne seine Aufnahme und Halterlage wird keine Richtung freigegeben.",
     "si.fehler.maschine": "Für diese Werkzeugrichtungen fehlt eine lesbare Maschine.",
     "pp.hinweis.simultan_ohne_maschine": "unbearbeitet – ausgelassen: Für die gespeicherten Werkzeugrichtungen fehlt eine lesbare Maschine.",
-    "pp.hinweis.simultan_ausgelassen": "unbearbeitet – ausgelassen: {grund}"
+    "pp.hinweis.simultan_ausgelassen": "unbearbeitet – ausgelassen: {grund}",
+    "pp.hinweis.ebene_ausgelassen": "unbearbeitet – Ebene {ebene} ausgelassen: Mit der gewählten Maschine, Einspannung und den aktuellen Schwenkgrenzen nicht erreichbar."
 }

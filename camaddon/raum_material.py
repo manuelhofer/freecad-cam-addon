@@ -52,6 +52,7 @@ class Material:
         self.y = box.YMin + (np.arange(ny) + 0.5) * self.dy
         self.z_von, self.z_bis = box.ZMin, box.ZMax
         self.schritt = max(self.dx, self.dy)
+        self.ausgelassen = ()  # Unveränderliche Angaben; auch Materialkopien teilen keine Liste.
         self.grenzen = np.full((nx, ny, 1, 2), np.nan)
         for start in range(0, nx * ny, BLOCK):
             if fortschritt is not None and not fortschritt(start / (nx * ny)):
@@ -288,6 +289,7 @@ def _jobs_vor(job):
 
 def kennung(job, schritt=0.5):
     """Rohteil, Richtungen, Werkzeugkörper und vollständige aktive Vorgängerpfade."""
+    from . import maschinenzugang as mz
     from . import materialstand as ms
     from . import schwenken as sw
 
@@ -305,6 +307,7 @@ def kennung(job, schritt=0.5):
                     tuple(tuple(a) for a in getattr(op, "Werkzeugachsen", ())),
                     bool(getattr(op, "Anstellen", False)),
                     bool(getattr(op, "Wegkippen", False)),
+                    mz.ebene_erreichbar(davor, op),
                 )
             )
     return hashlib.sha256(repr(daten).encode()).hexdigest()
@@ -316,6 +319,7 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
     Die Ausgabe ist nur zum Lesen. Ein unbekannter Schnitt darf niemals freie Räume
     vortäuschen. Daher bleiben solche Ebenen beim vollständigen ursprünglichen Rohteil.
     """
+    from . import maschinenzugang as mz
     from . import materialstand as ms
     from . import reichweite as rw
     from . import schwenken as sw
@@ -335,6 +339,9 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
             return np.array(tuple(lage.multVec(Vector(*p)))) if lage else np.asarray(p)
 
         for op in ms.operationen_vor(davor):
+            if mz.ebene_erreichbar(davor, op) is False:
+                material.ausgelassen += ((op.Label, davor.Label),)
+                continue  # Nicht gefahrener Schnitt darf keinen freien Raum vortäuschen.
             if so.ist_simultan(op):
                 return None
             tc = op.ToolController
