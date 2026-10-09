@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-13 freiform-referenzen-neu
+
+### EINGELESEN
+- Der Handlauf `SIMULTAN_TEST_FORM=freiform tests/test_simultan_planung.py` nach P-2026-10-09-12:
+  „Gespeicherte Referenzbahn verändert“ – derselbe Gewinner (Ø 4, entlang der Fläche, frei),
+  dieselben Abweisungen (Ø 12 und Ø 6 am Flächenrand), aber 41 491 statt 41 495 Punkte.
+  `tests/golden/freiform_simultan*.json`, `hoehenfeld.py`, `vierachs_huelle.py`.
+
+### DATEIEN
+- `tests/golden/freiform_simultan.json`, `freiform_simultan_gesamt.json`,
+  `freiform_simultan_gesamt_nc.json` (neu geschrieben), `docs/spezifikation_strategien.md`
+  (16.5: Rechenzeit am Beispiel jetzt), `docs/STATUS_SNAPSHOT.md`.
+
+### AKZEPTANZKRITERIUM
+`SIMULTAN_TEST_FORM=freiform` für `test_simultan_planung.py` und `test_simultan_gesamt.py` ist aus
+einem frischen Prozess ohne Schreibflag grün, in je gut fünf Minuten statt 30 und 70.
+
+### DONE
+- Ursache gesucht, nicht geraten: Die Form überlebt den Transport als BREP-Text zu den
+  Nebenrechnern ohne jede Abweichung (`distToShape` an 300 Spitzen: Abstand und Berührpunkt
+  gleich), die Normalen aus dem Pool sind an 1 500 Spitzen identisch mit denen im eigenen Prozess.
+  Die Hüllfläche des Rest-Netzes (19 266 Dreiecke) dagegen unterscheidet sich an 51 von 238 000
+  Zellen um 4·10⁻¹⁴ mm: Die alte Rechnung trug dort aus der Kantenformel ein Rundungsrauschen
+  über den wahren Wert; die beschnittene (P-2026-10-09-11) lässt den Beitrag weg, weil das
+  Dreieck darunter schon den exakten Wert liefert – dort steht jetzt genau 0. Das große Netz
+  (314 968 Dreiecke) ist in allen Zellen gleich, seriell wie parallel. Dieses Rauschen hat eine
+  Punktzusammenlegung weiter hinten anders entschieden: 4 Punkte und 12 Sätze weniger,
+  Maschinenzeit 317,1683 → 317,1674 s, Rest 0,016939 → 0,016943 mm, NC 45 682 → 45 670 Sätze.
+  Die neue Bahn ist die exakter gerechnete; die Referenzen folgen ihr.
+- Nicht neu geschrieben: die Beispieldateien `beispiele/grob_g550_freiform/freiform_5achs.FCStd`,
+  `.mpf`, `vergleich.json` – sie zeigen die alte Bahn, die ebenso gültig ist; `test_simultan_nc.py`
+  allein (am gespeicherten Beispiel) und `test_simultan_export_referenz.py` bleiben grün. Wer das
+  Beispiel neu rechnen will: `pruefen.py` von Hand.
+- Rechenzeit am Beispiel jetzt (Manuels Rechner, 24 Kerne): eine Variante 670 → 211 s Planung,
+  1 067 → 209 s ganze Bahn; mit allen Prüfschritten 324 s bzw. 372 s mit NC.
+
+### TESTS
+- 1.1.4 (Manuels Rechner), alles mit `SIMULTAN_TEST_FORM=freiform`: `test_simultan_planung.py`
+  schreibend OK (324 s), `test_simultan_gesamt.py` schreibend OK (372 s, mit `test_simultan_nc.py`),
+  `test_simultan_planung.py` ohne Schreibflag aus einem frischen Prozess OK (315 s) – die neue
+  Referenz reproduziert.
+
 ## P-2026-10-09-12 normalen-kugelschnitt-und-deckung-in-stuecken
 
 ### EINGELESEN

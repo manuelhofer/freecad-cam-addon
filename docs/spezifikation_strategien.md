@@ -3136,7 +3136,9 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
 
 Stand nach P-2026-10-09-07 bis -12 (Kuppel, eine Variante Ø 12 Zeilen X frei, 24 Kerne):
 131 s → 23 s, bitgleiche Bahn. Was bleibt, ist in einem Prozess: `fahren` (Materialstand),
-Maschinenbahn, das Programm – und die Kosten je Stelle der Kollision (Hebel 2).
+Maschinenbahn, das Programm – und die Kosten je Stelle der Kollision (Hebel 2). Am
+Freiformbeispiel (Ø 4, entlang der Fläche, frei): eine Variante 670 → 211 s, die ganze Bahn
+1 067 → 209 s (P-2026-10-09-13) – aus den 30 Minuten sind dreieinhalb geworden.
 
 
 ### 16.6 Qualitätsprüfung des Simultanvergleichs (gebaut, P-2026-10-07-03)

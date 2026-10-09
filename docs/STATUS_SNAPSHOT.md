@@ -614,7 +614,8 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   `test_simultan_gesamt` an der Kuppel in je unter drei Minuten (vorher 30 und 70 min). **Hüllfläche in Blöcken und auf allen Kernen
   (P-2026-10-09-11):** der Kuppelvergleich (eine Variante) 131 → 44 s. **Normalen, Kugelschnitt und
   Deckung in Stücken (P-2026-10-09-12):** der Kuppelvergleich 44 → 23 s, `test_simultan_planung`
-  36 s. Als Nächstes: Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
+  36 s. Am Freiformbeispiel eine Variante 670 → 211 s (P-2026-10-09-13:
+  Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). Als Nächstes: Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
   Kombinationen“ parallel (Hebel 3), `fahren` (Materialstand) in Stücken.
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
