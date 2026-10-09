@@ -611,10 +611,14 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   Hintergrund (P-2026-10-09-09):** je Bearbeitung ein Auftrag, das Fenster bleibt bedienbar
   (Manuel, 2026-10-09: der „Lag“ beim Ändern der seitlichen Zustellung) – ob es sich so anfühlt,
   prüft Manuel. **Prüfungen eingedampft (P-2026-10-09-10):** `test_simultan_planung` und
-  `test_simultan_gesamt` an der Kuppel in je unter drei Minuten (vorher 30 und 70 min). Als
-  Nächstes: der Materialstand nach dem Schruppen im Prüfstand (gut 90 s an der Kuppel, ein Kern),
-  Normalen, Kugelschnitt und Material des Simultanvergleichs in Stücken, Halter/Spindel mit
-  numpy (Hebel 2).
+  `test_simultan_gesamt` an der Kuppel in je unter drei Minuten (vorher 30 und 70 min). **Hüllfläche in Blöcken und auf allen Kernen
+  (P-2026-10-09-11):** der Kuppelvergleich (eine Variante) 131 → 44 s. Als Nächstes: `deckung`
+  (Material, 19 s an der Kuppel), Normalen und Kugelschnitt in Stücken, Halter/Spindel mit numpy
+  (Hebel 2).
+- **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
+  Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
+  neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit
+  `GOLDENE_BAHNEN_SCHREIBEN=1` neu schreiben (Befund nebenbei, P-2026-10-09-11).
 - **T-007 Werkzeugkiste: Import** nach `docs/werkzeugkiste_json.md` (Format steht, P-2026-10-04-46):
   Ordner `CamAddon/werkzeugkiste/`, „Aus Datei einlesen …“ mit Prüfung, „Vorlage speichern …“.
   Danach weitere Hersteller-Reihen (Manuel: „zum Schluss“).

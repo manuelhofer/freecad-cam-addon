@@ -295,6 +295,49 @@ def _stelle(a0, schritt, index):
     return a0[index] if schritt is None else a0 + schritt * index
 
 
+# So viele Paare (Element, Stelle) rechnet ein Block auf einmal (P-2026-10-09-11): Ein Block
+# bleibt mit allen Zwischenergebnissen im Cache des Kerns. Alle Paare auf einmal (zig Millionen
+# je Zeile bei einer großen Kugel) wanderten je Rechenschritt durch den Speicher – und rechnen
+# mehrere Kerne zugleich, teilen sie sich dessen Bandbreite: 24 Nebenrechner waren so nur
+# 1,8-mal so schnell wie einer. Gemessen an der Kuppel (378 Zeilen, Kugel Ø 12, 65 000
+# Dreiecke): allein 60 s → 24 s mit Blöcken von 32 768; auf 24 Arbeitern 6,1 s mit 32 768,
+# 2,6 s mit 8192 (zwei Arbeiter teilen sich den Cache eines Kerns). Allein sind 8192 ein
+# Fünftel langsamer als 32 768 – die Arbeiter sind der Regelfall.
+BLOCK = 1 << 13
+
+
+def _ausbreiten_bloecke(von, bis, a0, schritt, anzahl, block=None):
+    """Wie _ausbreiten, aber in Blöcken von etwa `block` Paaren (BLOCK): liefert je Block
+    (welches, index) – `welches` als Nummern in `von`/`bis`. Die Elemente kommen in ihrer
+    Reihenfolge, so dass jeder Block aufeinanderfolgende Elemente ganz enthält."""
+    if block is None:
+        block = BLOCK
+    if schritt is None:
+        i_von = np.searchsorted(a0, von - 1e-9, side="left").astype(np.int64)
+        i_bis = (np.searchsorted(a0, bis + 1e-9, side="right") - 1).astype(np.int64)
+    else:
+        i_von = np.maximum(np.ceil((von - a0) / schritt - 1e-9), 0).astype(np.int64)
+        i_bis = np.minimum(np.floor((bis - a0) / schritt + 1e-9), anzahl - 1).astype(np.int64)
+    je = np.maximum(i_bis - i_von + 1, 0)
+    gesamt = int(je.sum())
+    if gesamt == 0:
+        return
+    summe = np.cumsum(je)
+    grenzen = np.searchsorted(summe, np.arange(block, gesamt, block), side="left") + 1
+    anfang = 0
+    for ende in [*grenzen.tolist(), len(je)]:
+        if ende <= anfang:
+            continue
+        je_block = je[anfang:ende]
+        n = int(je_block.sum())
+        if n:
+            beginn = np.cumsum(je_block) - je_block
+            welches = np.repeat(np.arange(anfang, ende), je_block)
+            index = np.repeat(i_von[anfang:ende] - beginn, je_block) + np.arange(n)
+            yield welches, index
+        anfang = ende
+
+
 def _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):
     """Die höchste Stelle jeder Kante unter der Scheibe – an ihrem Ende oder wo sie den
     Kreis schneidet –, für alle Stellen a zugleich; in `spalte` eingetragen.
@@ -485,8 +528,10 @@ def _form_treffen(spalte, a, x, y, kanten, dreiecke, form, a0, schritt, versatz=
         _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt, versatz)
         _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, versatz=versatz)
         return
-    _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz)
+    # Zuerst die Dreiecke (billig, und sie legen die Fläche unter der Spitze fest), dann Ecken
+    # und Kanten nur, wo sie höher kommen können als das, was schon steht (P-2026-10-09-11).
     _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form, versatz)
+    _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz)
     if form.nur_kugel:
         _kanten_kugel(spalte, a, x, y, kanten, form.kugel, a0, schritt, versatz)
         return
@@ -510,17 +555,21 @@ def _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz=None):
         halb = np.sqrt(np.maximum(radius * radius - y_p * y_p, 0.0))
     else:  # quer je Stelle anders: längs so weit wie der Fräser, gesiebt nach dem Abstand
         halb = np.full(len(y_p), radius)
-    welches, index = _ausbreiten(a_p - halb, a_p + halb, a0, schritt, len(spalte))
-    if not len(index):
-        return
-    abstand = np.hypot(
-        a_p[welches] - _stelle(a0, schritt, index), y_p[welches] - _quer(versatz, index)
-    )
-    if versatz is not None:
-        unter = abstand <= radius
-        welches, index, abstand = welches[unter], index[unter], abstand[unter]
-    wert = x_p[welches] - form.hoehe(np.minimum(abstand, form.radius))
-    np.maximum.at(spalte, index, wert)
+    for welches, index in _ausbreiten_bloecke(a_p - halb, a_p + halb, a0, schritt, len(spalte)):
+        # Höher als der Punkt selbst kommt die Spitze an ihm nicht: Stellen, die schon höher
+        # stehen, brauchen ihn nicht.
+        offen = x_p[welches] > spalte[index]
+        welches, index = welches[offen], index[offen]
+        if not len(index):
+            continue
+        abstand = np.hypot(
+            a_p[welches] - _stelle(a0, schritt, index), y_p[welches] - _quer(versatz, index)
+        )
+        if versatz is not None:
+            unter = abstand <= radius
+            welches, index, abstand = welches[unter], index[unter], abstand[unter]
+        wert = x_p[welches] - form.hoehe(np.minimum(abstand, form.radius))
+        np.maximum.at(spalte, index, wert)
 
 
 def _kanten_im_streifen(a, x, y, kanten, radius, versatz=None):
@@ -552,24 +601,32 @@ def _kanten_kugel(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):
     )
     a_p = a[p]
     a_q = a_p + e_a * laenge
-    welches, index = _ausbreiten(
+    x_p, y_p = x[p], y[p]
+    # Die Spitze kommt an einer Kante nie höher als deren höheres Ende (die Mitte der Kugel
+    # höchstens radius darüber): Stellen, die schon höher stehen, brauchen sie nicht – an einer
+    # glatten Fläche sind das nach den Dreiecken die meisten (P-2026-10-09-11). Block für
+    # Block: Was ein Block eingetragen hat, spart dem nächsten Paare.
+    hoechstens = np.maximum(x_p, x_p + e_x * laenge)
+    for welches, index in _ausbreiten_bloecke(
         np.minimum(a_p, a_q) - radius, np.maximum(a_p, a_q) + radius, a0, schritt, len(spalte)
-    )
-    if not len(index):
-        return
-    w_a = _stelle(a0, schritt, index) - a_p[welches]
-    w_y = _quer(versatz, index) - y[p][welches]
-    e_a, e_y, e_x = e_a[welches], e_y[welches], e_x[welches]
-    quadrat, laenge = quadrat[welches], laenge[welches]
-    laengs = w_a * e_a + w_y * e_y
-    b = -2.0 * laengs * e_x
-    c = w_a * w_a + w_y * w_y - laengs * laengs - radius * radius
-    diskriminante = b * b - 4.0 * quadrat * c
-    w_x = (-b + np.sqrt(np.maximum(diskriminante, 0.0))) / (2.0 * quadrat)
-    fuss = (laengs + w_x * e_x) / laenge
-    trifft = (diskriminante >= 0.0) & (fuss >= 0.0) & (fuss <= 1.0)
-    wert = x[p][welches] + w_x - radius
-    np.maximum.at(spalte, index[trifft], wert[trifft])
+    ):
+        offen = hoechstens[welches] > spalte[index]
+        welches, index = welches[offen], index[offen]
+        if not len(index):
+            continue
+        w_a = _stelle(a0, schritt, index) - a_p[welches]
+        w_y = _quer(versatz, index) - y_p[welches]
+        b_a, b_y, b_x = e_a[welches], e_y[welches], e_x[welches]
+        b_quadrat, b_laenge = quadrat[welches], laenge[welches]
+        laengs = w_a * b_a + w_y * b_y
+        b = -2.0 * laengs * b_x
+        c = w_a * w_a + w_y * w_y - laengs * laengs - radius * radius
+        diskriminante = b * b - 4.0 * b_quadrat * c
+        w_x = (-b + np.sqrt(np.maximum(diskriminante, 0.0))) / (2.0 * b_quadrat)
+        fuss = (laengs + w_x * b_x) / b_laenge
+        trifft = (diskriminante >= 0.0) & (fuss >= 0.0) & (fuss <= 1.0)
+        wert = x_p[welches] + w_x - radius
+        np.maximum.at(spalte, index[trifft], wert[trifft])
 
 
 def _kanten_paare(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):

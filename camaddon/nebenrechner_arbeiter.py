@@ -129,6 +129,9 @@ def hauptschleife():
         if art == "daten":
             gemeinsam[nachricht[1]] = _aufloesen(nachricht[2], gemeinsam, dokumente, None)
             continue
+        if art == "vergiss":
+            gemeinsam.pop(nachricht[1], None)
+            continue
         if art != "auftrag":
             continue
         _, nummer, modul, funktion, args, kwargs = nachricht

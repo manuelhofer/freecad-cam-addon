@@ -3125,7 +3125,11 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
 4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich
    erreichen (heute Kante × alle Stellen ihres Intervalls), `np.maximum.at` durch sortiertes
-   `reduceat` ersetzen.
+   `reduceat` ersetzen. **Gebaut anders (P-2026-10-09-11):** `np.maximum.at` kostete
+   nichts (0,5 s); teuer war der Gang durch den Speicher – alle Paare einer Zeile auf einmal.
+   Jetzt in Blöcken von 8192 Paaren (Cache), Dreiecke zuerst, Ecken und Kanten nur, wo sie höher
+   kommen können, und die Zeilen auf den Nebenrechnern: an der Kuppel 60 → 2,6 s für die
+   Hüllfläche, der Vergleich einer Variante 131 → 44 s.
 5. **`deckung` vektorisieren** (6 s reines Python an der Kuppel).
 
 

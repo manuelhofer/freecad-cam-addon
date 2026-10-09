@@ -47,6 +47,7 @@ import sys
 import tempfile
 import threading
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from multiprocessing import connection
 
@@ -64,6 +65,7 @@ TAKT = 0.02  # s: so oft sieht warten() nach den Arbeitern
 UHR_MS = 30  # mit Oberfläche: so oft fragt der Pool die Arbeiter ab, solange etwas läuft
 AUFRAEUMEN_MS = 60000  # mit Oberfläche: so oft beendet er Arbeiter im Leerlauf
 KOPIEN_JE_DOKUMENT = 3  # so viele Kopien eines Dokuments bleiben liegen
+GEMEINSAM_JE_ARBEITER = 16  # so viele gemeinsame Daten behält ein Arbeiter, die ältesten gehen
 EINSTELLUNGEN_DATEI = "einstellungen.FCParam"  # die Einstellungen des Addons für die Arbeiter
 HALLO = "hallo"  # die erste Meldung eines Arbeiters: (HALLO, Nummer, PID)
 
@@ -187,7 +189,7 @@ class _Arbeiter:
         self.protokoll = protokoll  # die offene Datei mit seiner Ausgabe
         self.verbindung = None  # bis er sich gemeldet hat
         self.auftrag = None  # woran er gerade rechnet
-        self.gemeinsam = set()  # die Schlüssel der gemeinsamen Daten, die er schon hat
+        self.gemeinsam = OrderedDict()  # Schlüssel der gemeinsamen Daten, die er hat, nach Alter
         self.gestartet = time.monotonic()
         self.zuletzt = self.gestartet  # wann er zuletzt einen Auftrag bekam oder abgab
 
@@ -213,12 +215,15 @@ class _Arbeiter:
 
 
 def anzahl_kerne():
-    """So viele Kerne hat der Rechner (mindestens 1)."""
+    """So viele Kerne hat der Rechner (mindestens 1) – alle Threads: Gemessen an der Hüllfläche
+    der Kuppel (hoehenfeld, Blöcke von 8192 Paaren) sind 24 Arbeiter schneller als 12 (2,6 s
+    gegen 3,1 s), bei OpenCascade (Kollision) gleich schnell."""
     return os.cpu_count() or 1
 
 
 def gewuenschte_anzahl():
-    """So viele Arbeiter darf der Pool haben: die Einstellung, sonst so viele wie Kerne."""
+    """So viele Arbeiter darf der Pool haben: die Einstellung (EINSTELLUNG_ANZAHL im
+    Parameter-System, 0 = selbst wählen), sonst so viele wie Kerne."""
     anzahl = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(EINSTELLUNG_ANZAHL, 0)
     return anzahl if anzahl > 0 else anzahl_kerne()
 
@@ -278,7 +283,10 @@ class Nebenrechner:
 
     def verfuegbar(self):
         """Gibt es Nebenrechner? Ohne FreeCADCmd nicht; auch nicht, wenn die Arbeiter nicht
-        starten (dann rechnet der Aufrufer selbst)."""
+        starten (dann rechnet der Aufrufer selbst) – und nie in einem Arbeiter selbst: Ein
+        Auftrag ist schon ein Stück, er verteilt nicht weiter."""
+        if os.environ.get("CAMADDON_ARBEITER") == "1":
+            return False
         return self._freecadcmd is not None and not self._fehlgeschlagen
 
     def auftrag(self, modul, funktion, *args, **kwargs):
@@ -294,17 +302,21 @@ class Nebenrechner:
         return auftrag
 
     def gemeinsam(self, schluessel, wert):
-        """Legt gemeinsame Daten ab; Aufträge verweisen mit Gemeinsam(schluessel) darauf. Ein
-        neuer Wert unter einem alten Schlüssel ist ein Fehler – der Schlüssel benennt den Wert."""
-        if schluessel in self._gemeinsam:
-            raise ValueError(f"gemeinsame Daten „{schluessel}“ gibt es schon")
-        self._gemeinsam[schluessel] = wert
+        """Legt gemeinsame Daten ab; Aufträge verweisen mit Gemeinsam(schluessel) darauf. Der
+        Schlüssel benennt den Wert (etwa ein Fingerabdruck des Inhalts): Gibt es ihn schon,
+        bleibt der alte Wert, und die Arbeiter, die ihn haben, bekommen ihn nicht noch einmal."""
+        if schluessel not in self._gemeinsam:
+            self._gemeinsam[schluessel] = wert
         return Gemeinsam(schluessel)
 
     def vergessen(self, schluessel):
-        """Gibt gemeinsame Daten frei (im eigenen Prozess; die Arbeiter behalten sie, bis sie
-        enden)."""
+        """Gibt gemeinsame Daten frei – hier und in den Arbeitern."""
         self._gemeinsam.pop(schluessel, None)
+        for arbeiter in self._arbeiter:
+            if schluessel in arbeiter.gemeinsam and arbeiter.verbindung is not None:
+                del arbeiter.gemeinsam[schluessel]
+                with contextlib.suppress(OSError, EOFError):
+                    arbeiter.verbindung.send(("vergiss", schluessel))
 
     def kopie(self, dokument):
         """Speichert eine Kopie des Dokuments für die Arbeiter; gibt Dokument(pfad) zurück. Je
@@ -538,11 +550,15 @@ class Nebenrechner:
         try:
             for schluessel in _gemeinsame_schluessel((auftrag.args, auftrag.kwargs)):
                 if schluessel in arbeiter.gemeinsam:
+                    arbeiter.gemeinsam.move_to_end(schluessel)
                     continue
                 if schluessel not in self._gemeinsam:
                     raise KeyError(f"gemeinsame Daten „{schluessel}“ fehlen")
                 arbeiter.verbindung.send(("daten", schluessel, self._gemeinsam[schluessel]))
-                arbeiter.gemeinsam.add(schluessel)
+                arbeiter.gemeinsam[schluessel] = True
+                while len(arbeiter.gemeinsam) > GEMEINSAM_JE_ARBEITER:
+                    alt, _ = arbeiter.gemeinsam.popitem(last=False)
+                    arbeiter.verbindung.send(("vergiss", alt))
             arbeiter.verbindung.send(
                 (
                     "auftrag",
@@ -758,3 +774,8 @@ def _probe_summe(zahlen, faktor):
 
 def _probe_fehler():
     raise ValueError("absichtlich")
+
+
+def _probe_verfuegbar():
+    """Ob es im Arbeiter selbst Nebenrechner gibt (es gibt keine)."""
+    return pool().verfuegbar()

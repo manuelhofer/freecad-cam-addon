@@ -75,12 +75,15 @@ auftraege = [pool.auftrag("nebenrechner", "_probe_summe", zahlen, faktor=k) for 
 assert pool.warten(auftraege) == [499500, 999000, 1498500]
 auftraege = [pool.auftrag("nebenrechner", "_probe_summe", [nr.Gemeinsam("zahlen")][0], 1)]
 assert pool.warten(auftraege) == [499500]
-try:
-    pool.gemeinsam("zahlen", [])
-except ValueError:
-    pass
-else:
-    raise AssertionError("gemeinsame Daten doppelt angelegt")
+# Derselbe Schlüssel noch einmal: der alte Wert bleibt, nichts geht noch einmal hin.
+assert pool.gemeinsam("zahlen", []) == nr.Gemeinsam("zahlen")
+assert pool.warten([pool.auftrag("nebenrechner", "_probe_summe", zahlen, 1)]) == [499500]
+# Vergessen: die Arbeiter geben die Daten frei, ein Auftrag damit bekommt sie wieder.
+pool.vergessen("zahlen")
+zahlen = pool.gemeinsam("zahlen", list(range(10)))
+assert pool.warten([pool.auftrag("nebenrechner", "_probe_summe", zahlen, 1)]) == [45]
+# In einem Arbeiter gibt es keine Nebenrechner (keine verschachtelten Pools).
+assert pool.warten([pool.auftrag("nebenrechner", "_probe_verfuegbar")]) == [False]
 
 # Ein Fehler im Arbeiter kommt als Traceback – der Arbeiter lebt weiter.
 try:

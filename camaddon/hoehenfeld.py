@@ -21,6 +21,7 @@ import hashlib
 from collections import OrderedDict
 from dataclasses import dataclass
 
+import FreeCAD
 import numpy as np
 
 from . import vierachs_huelle as vh
@@ -215,8 +216,81 @@ def je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x=True):
     return ergebnis
 
 
+# Nebenrechner (P-2026-10-09-11): ab so vielen Zeilen und Dreiecken gehen die Zeilen in Stücken an
+# sie – eine Zeile am Rand ist billig, eine in der Mitte teuer, deshalb viele kleine Stücke.
+PARALLEL_AB_ZEILEN = 24
+PARALLEL_AB_DREIECKE = 2000
+STUECKE_JE_ARBEITER = 6
+
+
 def _je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
-    """je_zeile() ohne Zwischenspeicher."""
+    """je_zeile() ohne Zwischenspeicher – auf den Nebenrechnern, wenn es sich lohnt."""
+    if len(v_werte) >= PARALLEL_AB_ZEILEN and len(netz.dreiecke) >= PARALLEL_AB_DREIECKE:
+        ergebnis = _je_zeile_verteilt(netz, form, v_werte, u0, schritt, anzahl, laengs_x)
+        if ergebnis is not None:
+            return ergebnis
+    return zeilen_stueck(netz, form, v_werte, u0, schritt, anzahl, laengs_x)
+
+
+def _je_zeile_verteilt(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
+    """Die Zeilen in Stücken auf den Nebenrechnern; None ohne sie (dann rechnet der Aufrufer
+    selbst). Das Netz geht einmal je Arbeiter hin (Gemeinsam, nach seinem Fingerabdruck)."""
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    netz_gemeinsam = pool.gemeinsam("netz-" + _kennung(netz).hex(), netz)
+    zeilen = len(v_werte)
+    stuecke = max(1, min(pool.anzahl * STUECKE_JE_ARBEITER, zeilen // 2))
+    grenzen = [round(k * zeilen / stuecke) for k in range(stuecke + 1)]
+    bereiche = [(a, b) for a, b in zip(grenzen, grenzen[1:], strict=False) if b > a]
+    auftraege = [
+        pool.auftrag(
+            "hoehenfeld",
+            "zeilen_stueck",
+            netz_gemeinsam,
+            form,
+            v_werte[a:b],
+            u0,
+            schritt,
+            anzahl,
+            laengs_x,
+        )
+        for a, b in bereiche
+    ]
+    try:
+        teile = pool.warten(auftraege, zwischendurch=_ereignisse)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Hüllfläche auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    ergebnis = np.full((anzahl, zeilen), KEIN_TREFFER)
+    for (a, b), teil in zip(bereiche, teile, strict=True):
+        ergebnis[:, a:b] = teil
+    return ergebnis
+
+
+def _ereignisse():
+    """Beim Warten auf die Nebenrechner: das Fenster verarbeitet seine Ereignisse – ohne
+    Oberfläche nichts."""
+    try:
+        from PySide import QtGui
+    except ImportError:
+        return True
+    if QtGui.QApplication.instance() is not None:
+        QtGui.QApplication.processEvents()
+    return True
+
+
+# (Netz, seine Kanten) – je Netz einmal: Ein Arbeiter rechnet viele Stücke desselben Netzes.
+_kanten_gemerkt = (None, None)
+
+
+def zeilen_stueck(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
+    """Die Hüllfläche für diese Zeilen (wie je_zeile, ein Stück) – im Nebenrechner oder hier."""
+    global _kanten_gemerkt
     punkte = netz.punkte
     a = punkte[:, 0] if laengs_x else punkte[:, 1]
     quer = punkte[:, 1] if laengs_x else punkte[:, 0]
@@ -225,7 +299,9 @@ def _je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
     # heben, dass alles über 0 liegt, und das Ergebnis wieder senken.
     hub = _UEBER_NULL - float(z.min()) if len(z) and z.min() <= 0.0 else 0.0
     x = z + hub
-    kanten = vh._kanten(netz.dreiecke)
+    if _kanten_gemerkt[0] is not netz:
+        _kanten_gemerkt = (netz, vh._kanten(netz.dreiecke))
+    kanten = _kanten_gemerkt[1]
     r = np.full((anzahl, len(v_werte)), KEIN_TREFFER)
     for j, v in enumerate(v_werte):
         spalte = np.full(anzahl, KEIN_TREFFER)

@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-11 huellflaeche-in-bloecken-und-auf-allen-kernen
+
+### EINGELESEN
+- Manuel, 2026-10-09: „SCHNELL ein perfektes ergebniss errechnet … da will man ja nicht 38
+  minuten vorm pc sitzen“. Profil des Kuppelvergleichs nach P-2026-10-09-08 (eine Variante
+  Ø 12, 98 s): `vierachs_huelle._kanten_kugel` 47 s eigene Zeit (912 Aufrufe), `deckung` 7 s,
+  Kollision 6 s. Spezifikation Strategien 16.5, Hebel 4 (Höhenfeld).
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py` (`BLOCK`, `_ausbreiten_bloecke`; `_form_treffen`: Dreiecke zuerst;
+  `_ecken_treffen` und `_kanten_kugel` in Blöcken und nur, wo sie höher kommen können),
+  `camaddon/hoehenfeld.py` (`_je_zeile` → `_je_zeile_verteilt` auf den Nebenrechnern,
+  `zeilen_stueck`, Kanten je Netz gemerkt), `camaddon/nebenrechner.py` (`gemeinsam()` mit
+  bekanntem Schlüssel gibt den Platzhalter zurück, `vergessen()` auch in den Arbeitern, je Arbeiter
+  höchstens GEMEINSAM_JE_ARBEITER gemeinsame Daten, `verfuegbar()` in einem Arbeiter False),
+  `camaddon/nebenrechner_arbeiter.py` („vergiss“), `tests/test_nebenrechner.py`,
+  `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`, `docs/spezifikation_strategien.md` (16.5),
+  `package.xml` (0.204.1).
+
+### AKZEPTANZKRITERIUM
+„5-Achs-Schlichten vergleichen …“ an der Kuppel (eine Variante Zeilen X frei, Ø 12) ist nach 44 s
+fertig statt nach 131 s, mit derselben Bahn (98,2 s Maschinenzeit, Rest 0,0094 mm), und alle Kerne
+rechnen dabei.
+
+### DONE
+- Warum Blöcke: `_kanten_kugel` rechnete je Zeile alle Paare (Kante, Rasterstelle) auf einmal –
+  bei Kugel Ø 12 und 65 000 Dreiecken zig Millionen, jeder Rechenschritt ein Gang durch den
+  Speicher. In Blöcken (BLOCK = 8192 Paare) bleibt alles im Cache des Kerns: allein 60 → 24 s für
+  die 378 Zeilen (mit 32 768 je Block); und erst so lohnen sich viele Arbeiter – auf 24 waren es
+  vorher 33 s (1,8-mal so schnell wie allein: die Bandbreite des Speichers), jetzt 2,6 s. 24 Arbeiter
+  schlagen 12 (3,1 s) nur mit kleinen Blöcken; mit 32 768 teilen sich zwei Arbeiter den Cache eines
+  Kerns (6,1 s). Allein sind 8192 ein Fünftel langsamer als 32 768 – die Arbeiter sind der Regelfall.
+- Dazu Beschneiden, exakt: Die Dreiecke kommen zuerst (sie legen die Fläche unter der Spitze fest),
+  danach zählen Ecken nur, wo der Punkt höher liegt als das, was schon steht, und Kanten nur, wo ihr
+  höheres Ende höher liegt – die Spitze kommt an einer Kante nie höher als das (die Kugelmitte
+  höchstens einen Radius darüber). Gleiche Ergebnisse, bitgenau (an 40 mittleren Zeilen der Kuppel
+  und an `test_vierachs_huelle`, `test_schlichten3d`, `test_vierachs_bahn`); `_ausbreiten_bloecke`
+  gegen `_ausbreiten` an 400 Zufallsfällen gleich.
+- Die Zeilen der Hüllfläche gehen in Stücken (sechs je Arbeiter, die Mitte ist teuer, der Rand
+  billig) an die Nebenrechner; das Netz einmal je Arbeiter, nach seinem Fingerabdruck. Ab 24 Zeilen
+  und 2000 Dreiecken; in einem Arbeiter selbst (die Vorschau des 4-Achs-Assistenten) nie – ein
+  Auftrag verteilt nicht weiter.
+- Nebenrechner: gemeinsame Daten sind nach ihrem Schlüssel einmalig (derselbe Schlüssel noch einmal:
+  nichts geht noch einmal hin), ein Arbeiter behält höchstens 16, die ältesten gibt er frei –
+  sonst wüchse er mit jedem Netz.
+- Befund nebenbei: `tests/test_goldene_bahnen.py` ist schon auf dem Stand davor rot
+  („welle_schruppen: 5584 → 508 Punkte“) – seit P-2026-10-09-02 (lange Sätze statt 1° je Satz)
+  fehlt die neue Referenz; nicht Teil dieses Patches, im Snapshot als B-015. Und `test_pruefstand`
+  war einmal rot („platte/raeumen oben+tasche: 35,62 min, die Bestmarke ist 34,58“) und danach
+  zweimal grün, allein und mit Nebenrechnern – FreeCADs Adaptiv-Kern (Snapshot: ±1,5 %).
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_nebenrechner.py` OK, `tests/test_vierachs_huelle.py` OK,
+  `tests/test_schlichten3d.py` OK (36 s), `tests/test_pruefstand.py` OK (zweimal, s. o.),
+  `tests/test_vierachs_bahn.py` OK; Messungen an der Kuppel (Skripte im Scratch-Ordner).
+
 ## P-2026-10-09-10 simultan-pruefungen-eingedampft
 
 ### EINGELESEN
