@@ -3102,6 +3102,11 @@ ausgelasteten Rechner):
 | Normalen | 15 s, 8 % | ein `distToShape` je Bahnpunkt (`angestellt.normalen`) |
 | Kugelschnitt, Maschinenbahn, Winkel, Programm | 15 s, 8 % | – |
 
+Am Freiformbeispiel selbst (eine Ø-4-Variante, 1 707 s auf einem Kern, aus den
+Fortschrittsmeldungen des Referenztests alle 30 s): Kollision 12 min (42 %), Material
+(`deckung` und `fahren`) 5 min (18 %), Bahn etwa 5 min (17 %), Normalen 4 min (14 %),
+Kugelschnitt 2 min (7 %), Maschinenbahn unter einer Minute; Spitzenspeicher 4,6 GB.
+
 Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
 
 1. **Kollision auf mehrere Prozesse verteilen** – T-006 im Snapshot (Manuel, 2026-10-04: „es

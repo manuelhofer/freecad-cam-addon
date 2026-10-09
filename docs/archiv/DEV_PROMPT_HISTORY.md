@@ -112,9 +112,15 @@ denselben Gewinner wie der volle Vergleich; mit Haken alle Kombinationen wie bis
   Die goldenen Referenzen bleiben gleich (derselbe Gewinner).
 
 ### TESTS
-- 1.1.3: `tests/test_simultan_runden.py` (neu, OK), `tests/test_sprache.py` (OK);
-  `szenario_simultan_planung` und `tests/test_simultan_planung.py`: siehe Nachtrag unten.
-  black und ruff sauber.
+- 1.1.3: `tests/test_simultan_runden.py` (neu, OK), `tests/test_sprache.py` (OK),
+  `szenario_simultan_planung` (OK, 14 min: je Lage 10 statt 20 Varianten, zugelassen dieselben
+  wie im vollen Vergleich – Zeilen X/Y und Äquidistant frei; Übernahme und Rückgängig geprüft,
+  Haken im Screenshot), `tests/test_simultan_planung.py` (OK, 35 min auf 4 Kernen, Spitze
+  4,6 GB: Ø 12 und Ø 6 am Flächenrand abgewiesen, Ø 4 gerechnet und zugelassen, Referenzen
+  unverändert; diesmal bis zum Ende – die früheren stillen Abbrüche nach der Messung fielen
+  mit parallelen Läufen zusammen). black und ruff sauber. Beide Läufe liegen über dem
+  Richtwert aus P-2026-10-09-05; das Szenario rechnet an der Kuppel die zweite Stufe, der
+  Referenztest das ganze Beispiel – beide eindampfen ist der nächste Schritt an ihnen.
 
 ## P-2026-10-09-03 simultan-pruefung-geeicht
 
