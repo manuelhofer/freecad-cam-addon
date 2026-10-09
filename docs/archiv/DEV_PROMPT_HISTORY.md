@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-06 rechenzeit-simultanvergleich-befund
+
+### EINGELESEN
+- Manuel, 2026-10-09: „Wir müssen auch noch schauen dass die Rechenzeit im Betrieb weniger
+  wird... Oder eben mehr CPUs zum Rechnen verwendet werden.“
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (16.5 „Rechenzeit“: Messung und Hebel),
+  `docs/STATUS_SNAPSHOT.md` (T-006 um den 5-Achs-Befund ergänzt).
+
+### AKZEPTANZKRITERIUM
+Die Zeit einer Vergleichsvariante ist nach Phasen gemessen, und die Hebel stehen mit Reihenfolge
+und Schätzung in der Spezifikation.
+
+### DONE
+- cProfile an der Kuppel des Szenarios, eine Variante (Zeilen X frei, 181 s): Kollision 51 %
+  (12 394 genaue OpenCascade-Abstände, 40 563 `distToShape`-Aufrufe), Höhenfeld 21 %
+  (`_kanten_kugel`), Material 11 % (`deckung`), Normalen 8 %. Das Addon rechnet auf einem Kern;
+  im ganzen Code kein Prozess und kein Thread.
+- Hebel: Kollision auf Prozesse (T-006, von Manuel am 2026-10-04 schon gewünscht), Halter und
+  Spindel gegen das vernetzte Teil mit numpy, Varianten und Lagen parallel, Höhenfeld enger
+  ausbreiten, `deckung` vektorisieren. Die Verteilung am Freiformbeispiel selbst folgt aus dem
+  laufenden Referenztest (Nachtrag zu P-2026-10-09-04).
+
+### TESTS
+- Messung mit `freecadcmd` und cProfile (Skript im Scratch-Ordner, keine Prüfung); reine
+  Doku-Änderung, kein Testlauf.
+
 ## P-2026-10-09-05 pruefungen-schlank-regel
 
 ### EINGELESEN

@@ -91,7 +91,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.203.5 (P-2026-10-09-05). Alles, was hier als gebaut steht,
+Stand 0.203.5 (P-2026-10-09-06). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -598,6 +598,11 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   Stücke teilen (mit Vorlauf an jeder Grenze) und parallel prüfen – entweder abgezweigt (fork,
   nur Linux, schnell gebaut, mit Zeitgrenze und Rückfall auf einen Kern) oder in eigenen
   FreeCAD-Prozessen (überall, aufwendiger); danach die Vorschau des 4-Achs-Assistenten messen.
+  **5-Achs-Vergleich (2026-10-09, Manuel: „Rechenzeit im Betrieb weniger … oder mehr CPUs“):**
+  dieselbe Stelle – an der Kuppel des Szenarios ist die Kollision 51 % einer Variante (12 394
+  genaue OpenCascade-Abstände), Höhenfeld 21 %, Material 11 %; eine Ø-4-Variante am
+  Freiformbeispiel 30 min auf einem Kern. Hebel und Reihenfolge: Spezifikation Strategien 16.5,
+  „Rechenzeit“.
 - **T-007 Werkzeugkiste: Import** nach `docs/werkzeugkiste_json.md` (Format steht, P-2026-10-04-46):
   Ordner `CamAddon/werkzeugkiste/`, „Aus Datei einlesen …“ mit Prüfung, „Vorlage speichern …“.
   Danach weitere Hersteller-Reihen (Manuel: „zum Schluss“).

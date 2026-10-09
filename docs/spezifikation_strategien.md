@@ -3086,6 +3086,38 @@ in `simultan_planung.vergleichen` und `simultan_folge.vergleichen`). Die Tabelle
 gerechneten Varianten; am Beispiel zwei Abweisungen am Flächenrand und zwei Ø-4-Varianten mit
 demselben Gewinner, die goldenen Referenzen bleiben gleich.
 
+**Rechenzeit (Befund 2026-10-09):** Manuel: „Wir müssen auch noch schauen, dass die Rechenzeit im
+Betrieb weniger wird … oder eben mehr CPUs zum Rechnen verwendet werden.“ Das Addon rechnet auf
+einem Kern – im ganzen Code gibt es keinen zweiten Prozess und keinen Thread; Codex' 24 Kerne haben
+dem Vergleich nichts gebracht, und eine einzige Ø-4-Variante am Freiformbeispiel (50 × 40 mm,
+0,02 mm Grat, 550 000 Flächenzellen) braucht hier 30 min. Gemessen mit cProfile an der Kuppel des
+Szenarios (20 × 16 mm, Kugel Ø 4, 0,018 mm, eine Variante Zeilen X frei, 181 s auf einem
+ausgelasteten Rechner):
+
+| Phase | Zeit | Was darin teuer ist |
+| --- | --- | --- |
+| Kollision (Zulassung) | 93 s, 51 % | 18 836 Stellen, 12 394 davon genau mit OpenCascade `distToShape` (40 563 Aufrufe, 2,2 ms je Aufruf) – Halter und Spindel nah am Teil, wie bei 5 Achsen immer |
+| Bahn (Höhenfeld) | 39 s, 21 % | `_kanten_kugel` 24 s: jede Kante auf alle Rasterstellen ausgebreitet, die sie erreichen kann |
+| Materialprüfung | 19 s, 11 % | `deckung` 15 s (Flächenzellen in der Kapsel) |
+| Normalen | 15 s, 8 % | ein `distToShape` je Bahnpunkt (`angestellt.normalen`) |
+| Kugelschnitt, Maschinenbahn, Winkel, Programm | 15 s, 8 % | – |
+
+Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
+
+1. **Kollision auf mehrere Prozesse verteilen** – T-006 im Snapshot (Manuel, 2026-10-04: „es
+   rechnen nur maximal 5 von meinen 24 Kernen“): die Stationen in Stücke mit Vorlauf an jeder
+   Grenze, jeder Prozess lädt die Maschine einmal. Skaliert mit den Kernen: am Beispiel etwa
+   30 → 12 min auf vier Kernen, unter 5 min auf 24.
+2. **Halter und Spindel gegen das vernetzte Teil mit numpy** statt OpenCascade – so, wie der
+   Materialprüfstand den Kugelschnitt rechnet; die genauen OpenCascade-Aufrufe bleiben nur für
+   die Stellen, die die Schätzung nicht entscheidet. Trifft die 51 % direkt.
+3. **Varianten und Zwischenlagen parallel** – sie sind unabhängig: mit dem Haken „Alle
+   Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
+4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich
+   erreichen (heute Kante × alle Stellen ihres Intervalls), `np.maximum.at` durch sortiertes
+   `reduceat` ersetzen.
+5. **`deckung` vektorisieren** (6 s reines Python an der Kuppel).
+
 
 ### 16.6 Qualitätsprüfung des Simultanvergleichs (gebaut, P-2026-10-07-03)
 
