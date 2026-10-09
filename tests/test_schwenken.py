@@ -347,6 +347,7 @@ from camaddon import vierachs_rohteil as vr  # noqa: E402
 from camaddon import werkzeuge as wz  # noqa: E402
 
 fraeser = wz.standardwerkzeug()
+fraeser.gesamtlaenge, fraeser.schaft = 85.0, 12.0
 ue.uebergeben(wz.Bibliothek([fraeser]))
 einsatz = next(e for e in fraeser.schnittwerte[wz.ALLE] if e.art == wz.SCHRUPPEN)
 doc = FreeCAD.newDocument("Schraege")
@@ -590,8 +591,41 @@ for bauplan, schwenkachse in (
         schwenk and nahe(max(abs(schwenk[0].von), abs(schwenk[0].bis)), NEIGUNG, 1e-4),
         f"{name}: {[(b.name, b.von, b.bis) for b in ergebnis.bereiche]}",
     )
+    if name == "fuenfachs_kopf_kopf":
+        # Die frühere geschätzte D12-Länge 48 mm verlangt hier Z1 −277,36 mm
+        # statt der erlaubten −250 mm. Diese echte negative Gegenprobe bleibt
+        # erhalten; die positive Ebenenfahrt nutzt die bekannte Länge 85 mm.
+        laenge = float(tc.Tool.Length)
+        try:
+            tc.Tool.Length = 48.0
+            kurz_grenzen = p.pruefe_job(planjob, null)
+            kurz_fahrt = ab.abfahrt(p, grundjob, null)
+            pruefe(
+                [u.name for u in kurz_grenzen.ueberschreitungen] == ["Z1"]
+                and nahe(kurz_grenzen.ueberschreitungen[0].grenze, -250.0)
+                and kurz_grenzen.ueberschreitungen[0].stellung < -250.0,
+                f"Kopf/Kopf mit 48 mm: {[u.text() for u in kurz_grenzen.ueberschreitungen]}",
+            )
+            pruefe(
+                not kurz_fahrt.stationen and not kurz_fahrt.operationen,
+                "Kopf/Kopf mit 48 mm: unzulässige Ebene als Stationen freigegeben",
+            )
+            pruefe(
+                any(
+                    op.Label in h and "unbearbeitet" in h and "Z1" in h for h in kurz_fahrt.hinweise
+                ),
+                f"Kopf/Kopf mit 48 mm, Auslassungsgrund: {kurz_fahrt.hinweise}",
+            )
+        finally:
+            tc.Tool.Length = laenge
     fahrt = ab.abfahrt(p, grundjob, null)
-    nummer = next(i for i, o in enumerate(fahrt.operationen) if o.name == op.Label)
+    nummer = next((i for i, o in enumerate(fahrt.operationen) if o.name == op.Label), None)
+    if nummer is None:
+        raise AssertionError(
+            f"{name}: Ebene fehlt in der Abfahrt; "
+            f"Grenzen: {[u.text() for u in ergebnis.ueberschreitungen]}; "
+            f"Auslassungsgrund: {fahrt.hinweise}"
+        )
     punkte = fahrt.am_werkstueck()
     zurueck_in_ebene = e.inverse()
     tiefste = math.inf

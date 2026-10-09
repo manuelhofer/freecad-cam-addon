@@ -1,0 +1,3610 @@
+[
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Assembly",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Joints",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Bett",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Staender",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Sattel",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Tischplatte",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XY_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XZ_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "YZ_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Tisch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XY_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XZ_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "YZ_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spannplatz",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_links_Eisen",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_links_Schraube",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_links_Mutter",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X_Axis003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y_Axis003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z_Axis003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XY_Plane003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XZ_Plane003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "YZ_Plane003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_links",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_rechts_Eisen",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_rechts_Schraube",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_rechts_Mutter",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X_Axis004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y_Axis004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z_Axis004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XY_Plane004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XZ_Plane004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "YZ_Plane004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_rechts",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Fraeskopf",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spindelkoerper",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X_Axis005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y_Axis005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z_Axis005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XY_Plane005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XZ_Plane005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "YZ_Plane005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spindel",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X_Axis006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y_Axis006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z_Axis006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XY_Plane006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "XZ_Plane006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "YZ_Plane006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Origin011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spindelnase",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Fixiert_Bett",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Staender_fest",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Y",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "X",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_links_fest",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spanneisen_rechts_fest",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Z",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Spindelachse",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Maschine",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Betriebsart",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Betriebsart001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Betriebsart002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Betriebsart003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Aufnahme",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine",
+    "objekt": "Aufnahme001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Teil",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Job",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Operations",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "SetupSheet",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Model",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Clone",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Tools",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "TC__5mm_Endmill",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "Body",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "Sketch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "Revolution",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "PropertyBag",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprmgj8_2q",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Endmill",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "Body",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "Sketch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "Revolution",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "PropertyBag",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpk0vtr0h4",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "PropertyBag",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Sketch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Revolution",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Body",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Stock",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "Body",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "Sketch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "Revolution",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "PropertyBag",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpb2dhk0j9",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "VHM_12",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "Body",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "Sketch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "Revolution",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "PropertyBag",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpwv2__4ir",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "PropertyBag001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XZ_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Sketch001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Revolution001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "X_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Y_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Z_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XY_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "YZ_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Body001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "T1_VHM_12___Schruppen",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "Body",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "Sketch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "Revolution",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "PropertyBag",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmprih59bkt",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "VHM_12_gewinkelt",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "Body",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "Sketch",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "Revolution",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "PropertyBag",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpenmkof69",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "PropertyBag002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XZ_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Sketch002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Revolution002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "X_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Y_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Z_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XY_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "YZ_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Body002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "T8_VHM_12_gewinkelt___Schruppen",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "open",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Ebene schwenken (3+2)",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Job001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Operations001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "SetupSheet001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Model001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Clone001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Tools001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "TC__5mm_Endmill001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "Body",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "Origin",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "X_Axis",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "Y_Axis",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "Z_Axis",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "XY_Plane",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "XZ_Plane",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "YZ_Plane",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "Sketch",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "Revolution",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "PropertyBag",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpfp4m2i84",
+    "objekt": "Origin001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Endmill001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Body",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Origin",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "X_Axis",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Y_Axis",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Z_Axis",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "XY_Plane",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "XZ_Plane",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "YZ_Plane",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Sketch",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Revolution",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "PropertyBag",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Origin001",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": []
+  },
+  {
+    "art": "open",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "Ebene schwenken (3+2)",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "PropertyBag003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XZ_Plane003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Sketch003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Revolution003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "X_Axis003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Y_Axis003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Z_Axis003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XY_Plane003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "YZ_Plane003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin006",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin007",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Body003",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "commit",
+    "dokument": "tmpzx56bgg7",
+    "objekt": "",
+    "transaktion": [
+      "Ebene schwenken (3+2)",
+      1
+    ],
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "commit",
+    "dokument": "Werkzeugzugang",
+    "objekt": "",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Stock001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "create",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Clone002",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Stock001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Job001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Operations001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "SetupSheet001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Model001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Clone001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Tools001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "TC__5mm_Endmill001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Endmill001",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "PropertyBag003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XZ_Plane003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Sketch003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Revolution003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "X_Axis003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Y_Axis003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Z_Axis003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "XY_Plane003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "YZ_Plane003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin006",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Origin007",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "delete",
+    "dokument": "Werkzeugzugang",
+    "objekt": "Body003",
+    "transaktion": null,
+    "undo": [
+      "Ebene schwenken (3+2)",
+      "Ebene schwenken (3+2)"
+    ]
+  },
+  {
+    "art": "undo",
+    "dokument": "Werkzeugzugang",
+    "objekt": "",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Assembly",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Joints",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Maschinenfuss",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Rueckwand",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Fixiert_Maschinenfuss",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Rueckwand_fest",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Bett",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Spindelkasten",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Spindelnase",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Futter",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Spindel",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Spannflaeche",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "ZSchlitten",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XSchlitten",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YSchlitten",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Revolverscheibe",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme01",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme02",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme03",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme04",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme05",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme06",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme07",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme08",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme09",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme10",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme11",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme12",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Revolver",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Antriebsmotor",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Antrieb",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Bett_fest",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Spindelkasten_fest",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Hauptspindel",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Revolverachse",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Werkzeugantrieb",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Maschine",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Betriebsart007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_001",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin012",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_002",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin013",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_003",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin014",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_004",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin015",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_005",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis012",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis012",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis012",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane012",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane012",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane012",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin016",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_006",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis013",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis013",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis013",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane013",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane013",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane013",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin017",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_007",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis014",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis014",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis014",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane014",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane014",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane014",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin018",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_008",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis015",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis015",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis015",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane015",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane015",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane015",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin019",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_009",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme011",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "X_Axis016",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Y_Axis016",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Z_Axis016",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XY_Plane016",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "XZ_Plane016",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "YZ_Plane016",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Origin020",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Platz_010",
+    "transaktion": null,
+    "undo": []
+  },
+  {
+    "art": "create",
+    "dokument": "Beispielmaschine1",
+    "objekt": "Aufnahme012",
+    "transaktion": null,
+    "undo": []
+  }
+]

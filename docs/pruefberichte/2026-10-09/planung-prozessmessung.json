@@ -1,0 +1,19 @@
+{
+  "sekunden": 1314.7046358360021,
+  "maxrss_mib": 5111.86328125,
+  "cpu_user_s": 1828.738398,
+  "cpu_system_s": 13.331973,
+  "exit": 0,
+  "methode": "Linux RUSAGE_CHILDREN, maximale RSS eines Prozesses, kein Python-only-Wert",
+  "kommando": [
+    "timeout",
+    "--kill-after=15",
+    "2400",
+    "/usr/bin/freecadcmd",
+    "-u",
+    "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/native-test_simultan_planung/user.cfg",
+    "-s",
+    "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/native-test_simultan_planung/system.cfg",
+    "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/nativeEntry.py"
+  ]
+}

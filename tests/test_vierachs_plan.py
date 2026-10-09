@@ -755,7 +755,12 @@ doc.recompute()
 pruefe("ebener Stirn" in op.Path.Commands[1].Name, f"Kugelfräser: {op.Path.Commands[1].Name}")
 vplan.aendere(op, tc1, zustellung=2.0, zeilenabstand=4.0, aufmass=0.0, flaechen=[stirn_im_job])
 doc.recompute()
-pruefe("keine ebene" in op.Path.Commands[1].Name, f"nur die Stirn: {op.Path.Commands[1].Name}")
+pruefe(
+    vo._ascii(sprache.tr("vp.fehler.keine_ebene")) in op.Path.Commands[1].Name
+    and (op.Ebenen, op.Lagen, op.Zeilen, op.Huebe) == (0, 0, 0, 0)
+    and not any(c.Name in ("G0", "G1", "G2", "G3") for c in op.Path.Commands),
+    f"nur die Stirn: {op.Path.Commands[1].Name}",
+)
 vplan.aendere(op, tc1, zustellung=2.0, zeilenabstand=4.0, aufmass=0.0, flaechen=[flach_im_job])
 doc.recompute()
 pruefe(op.Lagen == 2, "zurück: Lagen")

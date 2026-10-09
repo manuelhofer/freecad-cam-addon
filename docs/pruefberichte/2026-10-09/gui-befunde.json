@@ -1,0 +1,108 @@
+[
+  {
+    "art": "gui",
+    "name": "szenario_abfahren",
+    "status": "FEHLER",
+    "exit": "0",
+    "sekunden": "13.966",
+    "maxrss_mib": "699.246",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_abfahren/freecad.log",
+    "originalergebnis": "Zweite Operation: '„Bohren“ · zum Werkzeugwechsel · 0:18,2 von 0:25,0'\nX1 steht nicht am Anschlag\nAchswerte: 'X1 0,00 mm · Y1 0,00 mm · Z1 250,00 mm'\nSpitze am Anschlag: 'Spitze im Programm: X 50, Y 30, Z 279'",
+    "zusatzpruefung": null
+  },
+  {
+    "art": "gui",
+    "name": "szenario_werkzeugzugang",
+    "status": "FEHLER",
+    "exit": "0",
+    "sekunden": "9.459",
+    "maxrss_mib": "707.332",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_werkzeugzugang/freecad.log",
+    "originalergebnis": "OK",
+    "zusatzpruefung": {
+      "kriterium": "Ein Undo stellt den vollständigen ursprünglichen Objektbestand her",
+      "bestanden": false,
+      "uebrig": [
+        "Clone002"
+      ],
+      "fehlend": []
+    }
+  },
+  {
+    "art": "gui",
+    "name": "szenario_simultan_schnittbereiche",
+    "status": "FEHLER",
+    "exit": "0",
+    "sekunden": "8.127",
+    "maxrss_mib": "705.875",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_simultan_schnittbereiche/freecad.log",
+    "originalergebnis": "Traceback (most recent call last):\n  File \"/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/gui-szenario_simultan_schnittbereiche/Mod/_camaddon_abgabe_lauf/abgabe_gui.py\", line 251, in weiter\n    warten = next(ablauf)\n  File \"/home/manuel/freecad_cam/freecad-cam-addon/tests/gui/szenario_simultan_schnittbereiche.py\", line 124, in schritte\n    dlg.windowHandle().setScreen(screen)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^\nRuntimeError: libshiboken: Internal C++ object (PySide6.QtGui.QScreen) already deleted.\n",
+    "zusatzpruefung": null
+  },
+  {
+    "art": "gui",
+    "name": "szenario_simultan_planung",
+    "status": "FEHLER",
+    "exit": "124",
+    "sekunden": "180.135",
+    "maxrss_mib": "1726.809",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_simultan_planung/freecad.log",
+    "originalergebnis": "Kein Ergebnis vor dem äußeren Zeitlimit",
+    "zusatzpruefung": null
+  },
+  {
+    "art": "gui",
+    "name": "szenario_simultan_bereiche",
+    "status": "FEHLER",
+    "exit": "0",
+    "sekunden": "7.618",
+    "maxrss_mib": "696.465",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_simultan_bereiche/freecad.log",
+    "originalergebnis": "Traceback (most recent call last):\n  File \"/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/gui-szenario_simultan_bereiche/Mod/_camaddon_abgabe_lauf/abgabe_gui.py\", line 251, in weiter\n    warten = next(ablauf)\n  File \"/home/manuel/freecad_cam/freecad-cam-addon/tests/gui/szenario_simultan_bereiche.py\", line 112, in schritte\n    dlg.move(screen.availableGeometry().topLeft())\n             ~~~~~~~~~~~~~~~~~~~~~~~~^^\nRuntimeError: libshiboken: Internal C++ object (PySide6.QtGui.QScreen) already deleted.\n",
+    "zusatzpruefung": null
+  },
+  {
+    "art": "gui",
+    "name": "szenario_maschine_bearbeiten",
+    "status": "FEHLER",
+    "exit": "1",
+    "sekunden": "15.934",
+    "maxrss_mib": "659.785",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_maschine_bearbeiten/freecad.log",
+    "originalergebnis": "Kein Ergebnis vor dem äußeren Zeitlimit",
+    "zusatzpruefung": null
+  },
+  {
+    "art": "gui",
+    "name": "szenario_mausrad",
+    "status": "FEHLER",
+    "exit": "0",
+    "sekunden": "14.099",
+    "maxrss_mib": "664.172",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_mausrad/freecad.log",
+    "originalergebnis": "Nummer mit Fokus: 1",
+    "zusatzpruefung": null
+  },
+  {
+    "art": "gui",
+    "name": "szenario_nut",
+    "status": "FEHLER",
+    "exit": "0",
+    "sekunden": "23.891",
+    "maxrss_mib": "774.055",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_nut/freecad.log",
+    "originalergebnis": "Räumen am Grund: '→ 1 Lage, 4 Ringe, etwa 1 min · 0,30 × Ziel – an 45 Sätzen langsamer (bis 30 % Vorschub): Dort hielte der Fräser die Last sonst nicht – auf dem Grund der Nut schnitte es zuerst in voller Breite (mehr als ae) und tritt deshalb nicht an; die Nut fräst „Nut“ in Bögen'",
+    "zusatzpruefung": null
+  },
+  {
+    "art": "gui",
+    "name": "szenario_nut_durch",
+    "status": "FEHLER",
+    "exit": "0",
+    "sekunden": "21.456",
+    "maxrss_mib": "763.617",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/gui/szenario_nut_durch/freecad.log",
+    "originalergebnis": "kein Rückweg mit 3 × F: [15.033, 45.1, 166.667]",
+    "zusatzpruefung": null
+  }
+]

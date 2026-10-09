@@ -3873,3 +3873,47 @@ Die später sichtbare doppelte Dateiausführung war beim direkten Lauf Folge ein
 FreeCAD-Skriptfehlers: die eigentliche Ursache waren die alten Erwartungen, nicht
 ein erneut aufgebautes Modell durch den erfolgreichen Prüffall. Drei native Nachläufe
 mit genau einem Profilmarker grün; Black/Ruff/diff ohne Befund. Gesamtnachweis folgt.
+
+
+### 16.22 Gesamtnachweis mit gültigen Gegenproben
+
+Der native Gesamtlauf umfasst alle 106 vorhandenen Prüfdateien. Vier Befunde
+betreffen die Prüfeingaben bzw. veraltete Erwartungen: Der geschätzte kurze D12
+verlangt bei Kopf/Kopf Z1 außerhalb des unveränderten Anschlags, die Ablehnung
+einer nicht geeigneten Rundum-Stirnfläche hat einen aktuellen Hinweistext, eine
+unbekannte CAM-Werkzeugform muss eine gültige Datei sein und die ältere
+Freiformreferenz enthält für Speicher ausdrücklich `null`. Die Gegenproben werden
+so berichtigt, dass diese Fälle ihre tatsächliche Bedeutung prüfen; kein
+Produktcode, kein Maschinenanschlag und keine vorhandene goldene Referenz ändern
+sich. Der positive D12-Ebenenfall verwendet bekannte Gesamt-/Schaftmaße, der alte
+kurze Fall bleibt als ausdrückliche negative Reichweiten-/Auslassungsprüfung.
+Eine fehlende Speichermessung erhält den bestehenden Faktor 2 der qualifizierten
+Freiform-Gesamtreferenz als zusätzliche feste Obergrenze, statt `null` zu
+multiplizieren. Die Erststartprüfung zählt die bereits vorhandenen zwölf
+Arbeitsbefehle und sechzehn Menüeinträge, einschließlich 3+2 und simultan.
+
+Duplicate-/FreeCAD-Check: Die Produktfunktionen sind bereits gebaut und die
+native Maschinenprüfung verweigert den kurzen Werkzeugfall korrekt; die
+berichteten Fehler erfordern keine weitere Produktfunktion. Diese Ergänzung
+dokumentiert die Aufarbeitung der Gegenproben im Abgabegesamtlauf.
+
+**Akzeptanzkriterium:** Den vorhandenen Bahnstand im installierten FreeCAD öffnen
+und die vollständigen nativen Prüfungen sowie Oberflächenszenarien ausführen →
+alle verfügbaren Fälle bestehen mit gültigen Testdaten, unveränderten Anschlägen
+und Bestmarken, ausdrücklich geprüftem Auslassen unmöglicher Bewegungen sowie
+nachvollziehbaren Zeit-, Speicher-, Profil- und Bildschirmbelegen.
+
+Der vollständige GUI-Lauf musste wegen eines Prüfläuferfehlers wiederholt werden:
+FreeCAD erneuert während des Starts das Qt-Bildschirmobjekt; der externe Läufer
+behielt die alte, inzwischen gelöschte Instanz. Er liest jetzt den aktuellen
+Bildschirm anhand seines Namens erneut. Das verändert nur die Platzierung und
+die Belegsicherung im externen Prüfmodul, keine fachlichen Assertions. Erfolgreiche
+unveränderte native Tests werden nur übernommen, wenn Produktdateien und jeweilige
+Testdatei bytegleich sind und der ursprüngliche Beleg frei von Ausnahmen ist.
+Die vier korrigierten Prüfungen und alle 126 GUI-Szenarien werden erneut ausgeführt.
+Native Runde vollständig bestanden: 105 OK, eine nicht verfügbare native CAM-
+Schnittstelle. Der Freiformvergleich hält die unveränderten Bahn-/NC-/Zeitreferenzen,
+401,21 MiB Python-Spitze unter 802,43 MiB sowie die feine 0,05-mm-Materialprobe und
+Übernahme/Undo. GUI-Gesamtrunde noch offen; B-016 und Prüfskript-/Zeitlimitbefunde
+verhindern die Gesamtfreigabe. Zwischenstand und nächste Schritte im Prüfbericht
+`pruefberichte/2026-10-09/stand.md`.

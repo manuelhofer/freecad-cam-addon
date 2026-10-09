@@ -7,12 +7,14 @@
 import json
 import os
 import pathlib
+import shutil
 import sys
-import tempfile
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
+import FreeCAD
+from Path import Preferences
 from Path.Tool.camassets import user_asset_store
 
 from camaddon import uebergabe_werkzeuge as ue
@@ -28,7 +30,11 @@ def pruefe(bedingung, text):
 
 
 # Ein leerer Speicher bekommt, wie in CAM, zuerst FreeCADs Bibliothek „Default“.
-user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
+profil = pathlib.Path(os.environ["FREECAD_USER_HOME"]).resolve()
+assert profil.is_dir() and pathlib.Path(FreeCAD.getUserAppDataDir()).resolve() == profil
+asset_ordner = profil / "cam_import_assets"
+asset_ordner.mkdir(exist_ok=True)
+user_asset_store.set_dir(asset_ordner)
 bibliotheken = aus_cam.bibliotheken()
 namen = [name for _adresse, name, _anzahl in bibliotheken]
 pruefe(namen == ["Default"], f"Bibliotheken: {namen}")
@@ -160,6 +166,18 @@ pruefe(len(bericht.neu) == 12 and len(leer.werkzeuge) == 12, f"trotzdem: {berich
 # Fremde Werkzeuge: Gewindebohrer links (CAM dreht ihn rückwärts) und in Zoll,
 # ein Konikfräser (Kegelwinkel je Seite = halber TaperAngle) – und eine eigene
 # Form, die die Werkzeugverwaltung nicht kennt.
+# Die unbekannte Form muss für CAM trotzdem gültige Geometrie haben. Eine
+# fehlende Datei prüfte nur CAMs Abhängigkeitsfehler und erzeugte native Tracebacks.
+eigene_form = asset_ordner / "meine_form.fcstd"
+shutil.copy2(Preferences.getBuiltinShapePath() / "endmill.fcstd", eigene_form)
+form_doc = FreeCAD.openDocument(str(eigene_form))
+try:
+    body = next(o for o in form_doc.Objects if o.TypeId == "PartDesign::Body")
+    body.Label = "Eigene Form"
+    form_doc.save()
+finally:
+    FreeCAD.closeDocument(form_doc.Name)
+cam_assets.add_raw("toolbitshape", "meine_form", eigene_form.read_bytes())
 fremde = {
     "fremd_links": {
         "name": "M8 links",
@@ -212,8 +230,8 @@ adresse = next(a for a, name, _n in aus_cam.bibliotheken() if name == "Fremd")
 leer = wz.Bibliothek()
 bericht = aus_cam.uebernehmen(leer, adresse)
 neu = {w.name: w for w in bericht.neu}
-# Eine Form, die FreeCAD nicht findet, lädt es als „Missing Tool (…)“ – ohne Art.
-pruefe(len(bericht.andere_form) == 1, f"eigene Form: {bericht.andere_form}")
+# CAM lädt die eigene Geometrie; das Addon weist ihre unbekannte Werkzeugart aus.
+pruefe(bericht.andere_form == ["Eigene Form"], f"eigene Form: {bericht.andere_form}")
 pruefe_werte(
     "M8 links",
     wz.GEWINDEBOHRER_LINKS,

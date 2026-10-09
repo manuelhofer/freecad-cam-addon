@@ -19,12 +19,21 @@ Goldene Gesamtfolge bytegleich, einschließlich Zeit/Speicher, feiner Materialab
 Export, Übernahme/Undo/Abbruch. Bestehende Referenzen unverändert.
 Prüfarchiv `../../ergebnisse/abgabe-2026-10-09/`; neuer neutraler Starter
 `../../testen/0.204.0/Addon-starten.sh`, Teilbereichs- und Freiformbeispiel im eigenen Profil.
-Nächster Schritt für die Abgabe: Gesamtlauf aller vorhandenen Prüfdateien und Szenarien
-im eingefrorenen Stand mit dem installierten FreeCAD 1.1.4, tatsächliche Starter-Ladepfade
-und Bildschirmplatzierung prüfen, Befunde beheben und abschließenden Bericht erstellen.
-Ältere Abfahr-/Flanken-/Kollisionsgegenproben erwarten nun korrekt das seit 16.17
-verbindliche Auslassen statt fiktiver Stationen außerhalb der Anschläge; ihre positiven
-Zeit-/Geometrie-/Kollisionskriterien bleiben erhalten und sind nativ grün (P-2026-10-09-03).
+**Gesicherter Zwischenstand auf Manuels Wunsch vom 2026-10-09 nach 10 Uhr:**
+105 native Prüfungen bestanden, eine native CAM-Schnittstelle nicht verfügbar;
+GUI-Gesamtrunde läuft mit offenen Befunden weiter, noch keine Gesamtfreigabe.
+Der große Freiformvergleich besteht auch mit 0,05-mm-Materialprüfung,
+Übernahme/Undo und fester Speichergrenze; bestehende Bestmarken unverändert.
+Prüfkorrekturen für kurze Kopf/Kopf-Länge, Rundum-Hinweis, gültige fremde CAM-Form,
+ungemessene alte Speicherreferenz und aktuelle Befehlszahl nativ/statisch geprüft.
+B-016 nun durch Observer belegt: Standardwerkzeugimport schließt die Jobtransaktion;
+Korrekturkandidat ohne diesen Import außerhalb des Produktcodes vorbereitet.
+Offen: vollständige GUI-Runde, Gegenproben-Abfahren/Schwenkteil, frische QScreen-
+Auflösung in Simultanszenarien, GUI-Zeitlimits diagnostizieren und reale Starter prüfen.
+Vollständiger Übergabestand samt Belegen und ungeprüften Entwürfen:
+[Prüfbericht 09.10.2026](pruefberichte/2026-10-09/stand.md).
+Nächster Schritt: laufenden V4b-Lauf abschließen, Undo-/GUI-Befunde gezielt beheben,
+Starter prüfen und final qualifizieren; `main` vorerst ohne neues Addon-Update.
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller

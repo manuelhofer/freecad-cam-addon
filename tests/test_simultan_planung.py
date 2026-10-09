@@ -32,6 +32,11 @@ from camaddon import simultan_planung as sp
 from camaddon import sprache
 from camaddon import vierachs_schlichten as vs
 
+# Qualifizierte Freiformmessung vom 2026-10-08: 401,2169723510742 MiB,
+# Referenz freiform_simultan_gesamt.json; derselbe bisherige Faktor 2 gilt als
+# absoluter Deckel auch für die ältere örtliche Referenz ohne Speichermessung.
+SPEICHERBUDGET_MIB = 2 * 401.2169723510742
+
 
 def pruefung():
     profil = pathlib.Path(os.environ["FREECAD_USER_HOME"]).resolve()
@@ -174,9 +179,16 @@ def pruefung():
         assert ist["zeit_s"] <= soll["zeit_s"] * 1.005, "Zeitbestmarke überschritten"
         assert rechenzeit <= soll["rechenzeit_s"] * 2, "Laufbudget überschritten"
         if speicher_messen:
-            assert (
-                spitze_mb <= soll["spitzenspeicher_python_mb"] * 2
-            ), "Speicherbudget überschritten"
+            assert spitze_mb <= SPEICHERBUDGET_MIB, "Absolutes Speicherbudget überschritten"
+            referenzspeicher = soll["spitzenspeicher_python_mb"]
+            if referenzspeicher is None:
+                print(
+                    f"SPEICHERREFERENZ nicht gemessen; {spitze_mb:.3f} MiB "
+                    f"gegen absolutes Budget {SPEICHERBUDGET_MIB:.3f} MiB geprüft",
+                    flush=True,
+                )
+            else:
+                assert spitze_mb <= referenzspeicher * 2, "Speicherbudget überschritten"
     else:
         assert rechenzeit < 2400, "Erster Qualitätslauf überschreitet 40 Minuten"
     # Feinere Materialauflösung muss die Qualitätsgrenze ebenfalls halten.

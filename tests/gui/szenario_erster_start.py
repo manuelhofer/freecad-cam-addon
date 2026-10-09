@@ -5,7 +5,7 @@
 # (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
 # user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
 # Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich – mit den
-# zehn Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle vierzehn: oben „So geht’s“
+# zwölf Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle sechzehn: oben „So geht’s“
 # (D-54), gleich darunter „Maschinen …“ (seit P-2026-10-02-58), unten „Nach
 # Updates suchen“ und „Über“ (D-13). „So geht’s“ öffnet
 # die Hilfeseite mit den sechs Schritten. Die Einstellungsseite ändert
@@ -101,7 +101,7 @@ def schritte(h):
     )
     h.bild("4_cam_werkzeugleiste")
 
-    # Die Werkzeugleiste: die zehn Arbeitsbefehle, mit „Bestückung“ (W-002 Stufe G),
+    # Die Werkzeugleiste enthält auch die inzwischen gebauten 3+2- und Simultanknöpfe.
     # „Bearbeitung (Fräsen)“ (W-006 S3c) und „Programm schreiben“ (W-005). Das Menü „CAM-Addon“:
     # alle (D-13).
     leiste = next(
@@ -111,7 +111,11 @@ def schritte(h):
     )
     knoepfe = [a.text() for a in leiste.actions() if not a.isSeparator()]
     h.pruefe(
-        len(knoepfe) == 10 and "Bestückung" in knoepfe and knoepfe[-1] == "Programm schreiben …",
+        len(knoepfe) == 12
+        and "Bestückung" in knoepfe
+        and "Ebene schwenken (3+2) …" in knoepfe
+        and "5-Achs-Schlichten vergleichen …" in knoepfe
+        and knoepfe[-1] == "Programm schreiben …",
         f"Werkzeugleiste: {knoepfe}",
     )
     h.pruefe("Nach Updates suchen" not in knoepfe, "„Nach Updates suchen“ in der Leiste")
@@ -123,7 +127,7 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 14
+            len(eintraege) == 16
             and eintraege[:2] == ["So geht’s", "Maschinen …"]
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege,

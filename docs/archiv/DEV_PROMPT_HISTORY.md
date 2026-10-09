@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-04 abgabe-zwischenstand-sichern
+
+### EINGELESEN
+- Manuel: alle bestehenden Bahnfunktionen stabil, Qualität vor 10-Uhr-Termin;
+  anschließend ausdrücklich aktuellen Stand aufschreiben und pushen.
+- CHATSTART, Regeln, Snapshot, Strategien 16.21/16.22, native/GUI-Gegenproben;
+  vorhandene Produktfunktionen unverändert, kein nativer Ersatz für Prüfbelege.
+
+### DATEIEN
+- Vier native Gegenproben und GUI-Erststart; Strategien, Snapshot, Verlauf;
+  `docs/pruefberichte/2026-10-09/` mit Momentaufnahme, Messdaten, Hashnachweisen,
+  sichtbarem Beispiel und ausdrücklich noch nicht angewandten Entwürfen.
+- Keine Produktänderung oder Versionserhöhung in diesem Patch; Stand bleibt 0.204.0.
+
+### AKZEPTANZKRITERIUM
+Den gesicherten Zwischenstand und Prüfbericht öffnen → bestandene native Prüfungen,
+noch offene GUI-/Undo-Befunde und nächste Schritte sind nachvollziehbar, ohne den
+noch unvollständig qualifizierten Stand als fertiges Addon-Update freizugeben.
+
+### DONE
+- Kopf/Kopf mit bekannten 85-mm-D12-Maßen positiv prüfen; alte kurze 48-mm-
+  Konstellation mit realem Z-Anschlag und ausdrücklich leerer Abfahrt negativ erhalten.
+- Rundum-Ablehnung erwartet aktuellen Hinweis und null Bewegung/Ergebnis;
+  unbekannte CAM-Form als gültige Datei statt absichtlich fehlender Abhängigkeit prüfen.
+- Ungemessene Speicherreferenz `null` nicht multiplizieren; zusätzlicher fester
+  Deckel aus qualifizierter Freiform-Gesamtreferenz, vorhandene numerische Limits erhalten.
+- Erststart prüft zwölf aktuelle Arbeitsbefehle/sechzehn Menüpunkte einschließlich 3+2/Simultan.
+- Zwischenstand ausdrücklich auf eigenem GitHub-Branch vorgesehen; main bleibt 0.203.1.
+
+### TEST
+- V3/V4b zusammen: alle 106 nativen Dateien, 105 bestanden, eine native CAM-
+  Maschinendefinition in 1.1.4 nicht verfügbar; vier korrigierte Tests erneut nativ grün.
+- Freiform: 1116,07 s Vergleich, 401,21 MiB Python-Spitze; Zeit-/NC-/Bahnreferenzen,
+  fester Speicherdeckel, feines Material, Übernahme/Undo bestanden. Prozess 1314,70 s,
+  RSS 5111,86 MiB. Gemeinsame goldene Gesamtfolge unverändert, keine Referenz neu geschrieben.
+- Black/Ruff/diff grün vor Belegsicherung; sichtbare GUI-Runde auf DP-1 noch laufend.
+- Echte B-016-Gegenprobe belegt übrig gebliebenen Clone002 und vorzeitigen Commit beim
+  nativen Standardwerkzeugimport. Abfahren-/QScreen-/äußere GUI-Zeitlimits ebenfalls offen.
+- Keine Gesamtfreigabe, kein Wochen-Build-/anderer-OS-Nachweis. Rohbelege lokal;
+  kleine Hash-/Ergebnisbelege und ungeprüfte Reparaturentwürfe mitgesichert.
+
+### NEXT
+- V4b zu Ende, Befunde behandeln, Undo-/Redo-/Restore-Kandidat qualifizieren,
+  betroffene Szenarien und reale Starter prüfen; erst danach vollständige Abnahme/main-Update.
+
 ## P-2026-10-09-03 gegenproben-maschinenzugang
 
 ### EINGELESEN

@@ -1,0 +1,1684 @@
+[
+  {
+    "art": "native",
+    "name": "test_abfahren.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.773",
+    "maxrss_mib": "456.281",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_abfahren.log",
+    "log_sha256": "bc6144b60ed7d0375ea27269f5ea259ffe001fbb2e7384930036a79940d9a873",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_abfahren"
+    ],
+    "ergebnismarker": [
+      "OK test_abfahren.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_aktualisierung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.721",
+    "maxrss_mib": "53.316",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_aktualisierung.log",
+    "log_sha256": "4d923b41b53de5c1b84cebc08dcc0dc5d8f33a9445a67cfe85887f4580fddbe1",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_aktualisierung"
+    ],
+    "ergebnismarker": [
+      "OK test_aktualisierung.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_angestellt.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "38.941",
+    "maxrss_mib": "637.992",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_angestellt.log",
+    "log_sha256": "bb088713d64c87a29a734fc9e4b9d2421d66005ad1e49d45c5f9814237e97822",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_angestellt"
+    ],
+    "ergebnismarker": [
+      "OK test_angestellt.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_anstellung_gesamt.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.284",
+    "maxrss_mib": "85.461",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_anstellung_gesamt.log",
+    "log_sha256": "0e67665ae455875ae58ba4e5c876fbb097febdd7dcf5aaab98e7a1d48476e11a",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_anstellung_gesamt"
+    ],
+    "ergebnismarker": [
+      "OK test_anstellung_gesamt.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_bahnzugang.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.670",
+    "maxrss_mib": "430.969",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_bahnzugang.log",
+    "log_sha256": "7b5f112acfa628bc0057a5f702a852ac5b9efdcc3c3952fa42691fc84f142ef0",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_bahnzugang"
+    ],
+    "ergebnismarker": [
+      "OK test_bahnzugang.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_beispielmaschine.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.392",
+    "maxrss_mib": "197.938",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_beispielmaschine.log",
+    "log_sha256": "e801d846a582ed8bb8a662221b546182ee2b3b200a302d8d49fb48d216bc7242",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_beispielmaschine"
+    ],
+    "ergebnismarker": [
+      "OK test_beispielmaschine.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_bestueckung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.223",
+    "maxrss_mib": "378.770",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_bestueckung.log",
+    "log_sha256": "4655e713d3347cfc38d0b68c975be6617c3f20e0b14ca77fa8685769baf431cf",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_bestueckung"
+    ],
+    "ergebnismarker": [
+      "OK test_bestueckung.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_bleistift.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "7.618",
+    "maxrss_mib": "440.887",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_bleistift.log",
+    "log_sha256": "d00c3dc8ce6e626b84c9bb7aec9a4e4fd7bd365dbb06434ea9dd2433ad931268",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_bleistift"
+    ],
+    "ergebnismarker": [
+      "OK test_bleistift.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_bohren.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.308",
+    "maxrss_mib": "405.348",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_bohren.log",
+    "log_sha256": "3ddc72988e9018f932f13763a12b568cee1ede7814028df31852545bd606df52",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_bohren"
+    ],
+    "ergebnismarker": [
+      "OK test_bohren.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_bohrung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.893",
+    "maxrss_mib": "419.457",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_bohrung.log",
+    "log_sha256": "96359c9522ed19dce5b58235259a388182bc4810ca1b6adcf75e381a961dd08f",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_bohrung"
+    ],
+    "ergebnismarker": [
+      "OK test_bohrung.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_cam_formen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "4.460",
+    "maxrss_mib": "164.938",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_cam_formen.log",
+    "log_sha256": "c1b70781ecb846f83488160448384f3ded08a73927bce07732693ea3dcc974cd",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_cam_formen"
+    ],
+    "ergebnismarker": [
+      "OK test_cam_formen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_ebenen_auslassen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "57.804",
+    "maxrss_mib": "776.789",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_ebenen_auslassen.log",
+    "log_sha256": "b5757cf3c88a0ab3588108afe52849239ed67b6be35a6913c4321ab6f0d38704",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_ebenen_auslassen"
+    ],
+    "ergebnismarker": [
+      "OK test_ebenen_auslassen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_einheiten.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.138",
+    "maxrss_mib": "48.070",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_einheiten.log",
+    "log_sha256": "d424982b972efd6f11ffce970fed436681797e7f8b82f4f5b0f1a2fd27702c22",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_einheiten"
+    ],
+    "ergebnismarker": [
+      "OK test_einheiten.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_entgraten.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.465",
+    "maxrss_mib": "418.004",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_entgraten.log",
+    "log_sha256": "60b28c7727893762640a8d23659456959ac89e02f6926bf771401c602793543b",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_entgraten"
+    ],
+    "ergebnismarker": [
+      "OK test_entgraten.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_entgraten3d.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "35.148",
+    "maxrss_mib": "518.285",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_entgraten3d.log",
+    "log_sha256": "e86109608604d74f0e763294919e100d16d783fa235de4f13f3c634202716550",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_entgraten3d"
+    ],
+    "ergebnismarker": [
+      "OK test_entgraten3d.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_export.py",
+    "status": "NICHT_VERFUEGBAR",
+    "exit": "0",
+    "sekunden": "0.183",
+    "maxrss_mib": "48.695",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_export.log",
+    "log_sha256": "d32bce017da8550187126db98d57958ba3a9afb230f7507cb96097a5541ea8ef",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_export"
+    ],
+    "ergebnismarker": [
+      "UEBERSPRUNGEN test_export.py: keine CAM-Maschinendefinition in dieser FreeCAD-Version"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_fahrzeit.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.180",
+    "maxrss_mib": "47.855",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_fahrzeit.log",
+    "log_sha256": "c7f80ca675184fa7f906e900d73e6722c90345e5d51ca3fd3a830be73113ae8d",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_fahrzeit"
+    ],
+    "ergebnismarker": [
+      "OK test_fahrzeit.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_fase.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "2.477",
+    "maxrss_mib": "423.680",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_fase.log",
+    "log_sha256": "7a5c6a96fbc62631a30e3be76ca73e07f300239af02adce4374712de0b15f8ec",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_fase"
+    ],
+    "ergebnismarker": [
+      "OK test_fase.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_flanke.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "16.728",
+    "maxrss_mib": "449.867",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_flanke.log",
+    "log_sha256": "b44deb94c9c7c181893d0df048f00e9d6a4e80975d69e21ce60df15139956dc4",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_flanke"
+    ],
+    "ergebnismarker": [
+      "OK test_flanke.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_fraeserform.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.694",
+    "maxrss_mib": "130.812",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_fraeserform.log",
+    "log_sha256": "acf1a3dd4552adb963b0601bd3cd4444a4038209909b66b1c6adfa430d8a952e",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_fraeserform"
+    ],
+    "ergebnismarker": [
+      "OK test_fraeserform.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_freiwege.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.743",
+    "maxrss_mib": "110.777",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_freiwege.log",
+    "log_sha256": "71e20e4f6160feeb71e43796cc3eabebdb98207db293a3c4c832cb308f1fd636",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_freiwege"
+    ],
+    "ergebnismarker": [
+      "OK test_freiwege.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_gewinde.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.259",
+    "maxrss_mib": "404.910",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_gewinde.log",
+    "log_sha256": "3040daa7d385fe873c41eee2828755ef5dc0819f494e400c461e421a87f54d29",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_gewinde"
+    ],
+    "ergebnismarker": [
+      "OK test_gewinde.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_gewindefraesen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.477",
+    "maxrss_mib": "408.578",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_gewindefraesen.log",
+    "log_sha256": "543557bca474e68112d663196310d980a021807e30552d5e6e8c7107c93eb10e",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_gewindefraesen"
+    ],
+    "ergebnismarker": [
+      "OK test_gewindefraesen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_goldene_bahnen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "6.085",
+    "maxrss_mib": "210.555",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_goldene_bahnen.log",
+    "log_sha256": "bfd87c2ce7abb197aa5fa1148e2a4e1a94cab381d608cce349c7b2dee1282d85",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_goldene_bahnen"
+    ],
+    "ergebnismarker": [
+      "OK test_goldene_bahnen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_halter.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.245",
+    "maxrss_mib": "82.996",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_halter.log",
+    "log_sha256": "36f809732ef59e06e976f99becaa015991a592280612ed25c96d320d8ee5b6f6",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_halter"
+    ],
+    "ergebnismarker": [
+      "OK test_halter.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_hilfe.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.208",
+    "maxrss_mib": "48.664",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_hilfe.log",
+    "log_sha256": "928f6276ae963e7f815e12486fc82f973781a44b791659e250d36b055cb16048",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_hilfe"
+    ],
+    "ergebnismarker": [
+      "OK test_hilfe.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_installieren.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.885",
+    "maxrss_mib": "99.379",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_installieren.log",
+    "log_sha256": "b7db47ecf7206e6ef75376def1fe39c428c0de47f4969b3e6534cc6667178d24",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_installieren"
+    ],
+    "ergebnismarker": [
+      "OK test_installieren.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_job_schnittwerte.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.527",
+    "maxrss_mib": "399.523",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_job_schnittwerte.log",
+    "log_sha256": "61972c04cc856a6cbbf4711beae63c77a11ff7bb8e4c38c216ce169202b22315",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_job_schnittwerte"
+    ],
+    "ergebnismarker": [
+      "OK test_job_schnittwerte.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_kette.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.024",
+    "maxrss_mib": "172.727",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_kette.log",
+    "log_sha256": "5a182a2faaf49c186c603129da861e5ae411da9cf9db37035412c1f4b493483f",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_kette"
+    ],
+    "ergebnismarker": [
+      "OK test_kette.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_kinematik.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.666",
+    "maxrss_mib": "192.824",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_kinematik.log",
+    "log_sha256": "306c453b98d03768805f151bddc98eb940c288a5ef952191b34d4a54ae622394",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_kinematik"
+    ],
+    "ergebnismarker": [
+      "OK test_kinematik.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_kollision.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "4.618",
+    "maxrss_mib": "455.637",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_kollision.log",
+    "log_sha256": "9526a98e031e2193fe7a8ee838d74d8c77c83f05a79098d9eb63a4bff46166f2",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_kollision"
+    ],
+    "ergebnismarker": [
+      "OK test_kollision.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_kontur.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "6.625",
+    "maxrss_mib": "423.457",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_kontur.log",
+    "log_sha256": "b32c6c4faf18e23fdc93fca1ebaa807cc24290ee9587122933000461fc584787",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_kontur"
+    ],
+    "ergebnismarker": [
+      "OK test_kontur.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_magazin.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.191",
+    "maxrss_mib": "49.008",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_magazin.log",
+    "log_sha256": "1f9aed8b22d6bc90ea2646e8053a046a52a6bb9c374fc812a6893eeaeab3d06f",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_magazin"
+    ],
+    "ergebnismarker": [
+      "OK test_magazin.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_maschine.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.584",
+    "maxrss_mib": "174.711",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_maschine.log",
+    "log_sha256": "8040be681e4ff8662d901d0efd30ba7346ee847b379ae81b5712ea23f7566ba7",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_maschine"
+    ],
+    "ergebnismarker": [
+      "OK test_maschine.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_maschinenspeicher.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.823",
+    "maxrss_mib": "193.512",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_maschinenspeicher.log",
+    "log_sha256": "3ebcb98c537d102d7b862c9ec06329025d50de5b74b7bb74f13841fc8eef67a9",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_maschinenspeicher"
+    ],
+    "ergebnismarker": [
+      "OK test_maschinenspeicher.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_materialstand.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "32.560",
+    "maxrss_mib": "541.523",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_materialstand.log",
+    "log_sha256": "77485fde7744636babd1420649c1aadd2ff191d6da67e955563cd798fa93eb87",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_materialstand"
+    ],
+    "ergebnismarker": [
+      "OK test_materialstand.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_nut.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "3.042",
+    "maxrss_mib": "417.082",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_nut.log",
+    "log_sha256": "ffffdc783023c7a29ad562a8fdf77a321cd121791a13b3ed6087729205771e0a",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_nut"
+    ],
+    "ergebnismarker": [
+      "OK test_nut.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_nut_offen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "6.845",
+    "maxrss_mib": "198.391",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_nut_offen.log",
+    "log_sha256": "6fc253c50fefe32c6055650a7410aca79ed93d26d4b76623b8d8e3cf9025caf5",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_nut_offen"
+    ],
+    "ergebnismarker": [
+      "OK test_nut_offen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_planfraesen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "3.694",
+    "maxrss_mib": "412.512",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_planfraesen.log",
+    "log_sha256": "c0a5e57f98ade575190c6c00baa1684e1c7b65e8a219bfd5523a9c86187d3ebf",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_planfraesen"
+    ],
+    "ergebnismarker": [
+      "OK test_planfraesen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_postprozessor.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "2.045",
+    "maxrss_mib": "465.859",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_postprozessor.log",
+    "log_sha256": "e9b4950bdb46135e00619e1fa62402669adeafc210d57104f5ab9c3a42676d00",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_postprozessor"
+    ],
+    "ergebnismarker": [
+      "OK test_postprozessor.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_programm_pruefen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.358",
+    "maxrss_mib": "100.605",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_programm_pruefen.log",
+    "log_sha256": "b3dfd086e99929aeead3f2c232a732d74e7dae24a68d72b9224d0bd75f521b10",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_programm_pruefen"
+    ],
+    "ergebnismarker": [
+      "OK test_programm_pruefen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_programmkopf.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.265",
+    "maxrss_mib": "414.273",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_programmkopf.log",
+    "log_sha256": "72c98464744d457b669af9566534069f0eaeae8a76e280fb001b0575e2696eed",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_programmkopf"
+    ],
+    "ergebnismarker": [
+      "OK test_programmkopf.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_pruefstand.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "39.651",
+    "maxrss_mib": "304.934",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_pruefstand.log",
+    "log_sha256": "23189fe3b6028504290c47f994fb4a5909e1baad0ea525eb173a6b1a3994c4ad",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_pruefstand"
+    ],
+    "ergebnismarker": [
+      "OK test_pruefstand.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_quader.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.641",
+    "maxrss_mib": "462.379",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_quader.log",
+    "log_sha256": "86d80929fe5af31d86af121bd9f0921ebf70fa1849f4a6f314f3d158497a2c8b",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_quader"
+    ],
+    "ergebnismarker": [
+      "OK test_quader.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_raeumen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "46.824",
+    "maxrss_mib": "502.723",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_raeumen.log",
+    "log_sha256": "e4f81386b2b7ba77886eaadd3726a50c8f2dedc7d510eb044865ed9f3f7ccc70",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_raeumen"
+    ],
+    "ergebnismarker": [
+      "OK test_raeumen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_raum_bahn.py",
+    "status": "VORGEPRUEFT",
+    "exit": "0",
+    "sekunden": "0.062",
+    "maxrss_mib": "",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_raum_bahn.log",
+    "log_sha256": "32857393fd2db83d8a751c8e45293e6f1d7f31c10b86fc2c4cab945a052da7a4",
+    "profilmarker": [],
+    "ergebnismarker": [
+      "OK test_raum_bahn.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_raum_material.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "54.721",
+    "maxrss_mib": "627.250",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_raum_material.log",
+    "log_sha256": "faae63210f4696ee07b570db5c845b501ccaa7145e8c0d28aa4395ace3db4be7",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_raum_material"
+    ],
+    "ergebnismarker": [
+      "OK test_raum_material.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_reiben.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.253",
+    "maxrss_mib": "404.824",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_reiben.log",
+    "log_sha256": "e31261f4d05cc31a5027800503d21f6156d0e4b7c817bffee400a0a25d9e10e1",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_reiben"
+    ],
+    "ergebnismarker": [
+      "OK test_reiben.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_reichweite.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.960",
+    "maxrss_mib": "456.879",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_reichweite.log",
+    "log_sha256": "49d8d394e29fab59c83393179f00132b9decb7412d427a43f9ac649f4899bba9",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_reichweite"
+    ],
+    "ergebnismarker": [
+      "OK test_reichweite.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_rest.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.898",
+    "maxrss_mib": "403.953",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_rest.log",
+    "log_sha256": "a017db7ad8f86ca9f89d931662bfce0e1f1ee7b178ea7055cf35b1b1013527d6",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_rest"
+    ],
+    "ergebnismarker": [
+      "OK test_rest.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_restmaterial.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "6.415",
+    "maxrss_mib": "553.336",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_restmaterial.log",
+    "log_sha256": "4faeb85d4393c421a8b6cb5038f0a659bf15af66218031a16185e9e743f73491",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_restmaterial"
+    ],
+    "ergebnismarker": [
+      "OK test_restmaterial.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_restschlichten.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "22.473",
+    "maxrss_mib": "495.473",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_restschlichten.log",
+    "log_sha256": "0905323a899b52074a3d5684b9418bde05aa623b83bfc288821c6e9dc2830271",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_restschlichten"
+    ],
+    "ergebnismarker": [
+      "OK test_restschlichten.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_restschruppen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "7.893",
+    "maxrss_mib": "524.582",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_restschruppen.log",
+    "log_sha256": "f9ad180add6b9543bb1795dc2da837b7df49f6a9622bae884d47743b5ec1df21",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_restschruppen"
+    ],
+    "ergebnismarker": [
+      "OK test_restschruppen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_rundachsen_din.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.577",
+    "maxrss_mib": "205.852",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_rundachsen_din.log",
+    "log_sha256": "9e6cb7260324c9ab7828eccc6f11054f0c4a92cf79fce9ec51b47479eb1d1d5f",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_rundachsen_din"
+    ],
+    "ergebnismarker": [
+      "OK test_rundachsen_din.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_rundung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "3.896",
+    "maxrss_mib": "436.969",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_rundung.log",
+    "log_sha256": "f614c8af79618386c47466b38cd9d906324cccfb4cd887609d0bd04583824b40",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_rundung"
+    ],
+    "ergebnismarker": [
+      "OK test_rundung.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schlichten3d.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "47.716",
+    "maxrss_mib": "542.020",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_schlichten3d.log",
+    "log_sha256": "41943290a70b7da6d39ea5385d04830cc23bba5b4a587e4bf18b5995f5cfafd0",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_schlichten3d"
+    ],
+    "ergebnismarker": [
+      "OK test_schlichten3d.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schnittdaten.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.171",
+    "maxrss_mib": "47.301",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_schnittdaten.log",
+    "log_sha256": "88ef05625e21e2f397d5850febdec60662ac476827d48168ca21bc9c1cb76b09",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_schnittdaten"
+    ],
+    "ergebnismarker": [
+      "OK test_schnittdaten.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schraege_achse.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.945",
+    "maxrss_mib": "177.582",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_schraege_achse.log",
+    "log_sha256": "b8464a6a0457506a424c0cdd6f5a4731e30e8241d2dd8e8c7acefc489e238408",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_schraege_achse"
+    ],
+    "ergebnismarker": [
+      "OK test_schraege_achse.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schruppen3d.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "18.971",
+    "maxrss_mib": "578.363",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_schruppen3d.log",
+    "log_sha256": "bac468b7a26201025459b0d6fe94c8233b84ad114c6a8ae9db068cbe20c6d3a1",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_schruppen3d"
+    ],
+    "ergebnismarker": [
+      "OK test_schruppen3d.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schruppen3d_anlauf.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "8.563",
+    "maxrss_mib": "477.348",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_schruppen3d_anlauf.log",
+    "log_sha256": "7531478e687f4e1fd9995d1ca74c4c0e53c4d6bd5f71d3c78c418cede7a5adba",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_schruppen3d_anlauf"
+    ],
+    "ergebnismarker": [
+      "OK test_schruppen3d_anlauf.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schruppwerte.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.522",
+    "maxrss_mib": "171.180",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_schruppwerte.log",
+    "log_sha256": "252b99701a70c67a03e0ca48fe40f0045fbdd1573344fe2e533e441ede08045c",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_schruppwerte"
+    ],
+    "ergebnismarker": [
+      "OK test_schruppwerte.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schwenken_maschinen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "3.054",
+    "maxrss_mib": "466.695",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_schwenken_maschinen.log",
+    "log_sha256": "0122b3f127e26006f1114468ddae4b2abd6c82e9bf028d6c746c253f5f091ff3",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_schwenken_maschinen"
+    ],
+    "ergebnismarker": [
+      "OK test_schwenken_maschinen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_senken.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.327",
+    "maxrss_mib": "405.117",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_senken.log",
+    "log_sha256": "b0482d644c4a4ea6b6aea28b7c99006455d588fed0703ddfcb6cf813ea2bdb12",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_senken"
+    ],
+    "ergebnismarker": [
+      "OK test_senken.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "4.021",
+    "maxrss_mib": "447.602",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan.log",
+    "log_sha256": "689506c7d3d6e710d7b652f916f43bd73079201c2cae2f4a3698704f52fd3048",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_simultan"
+    ],
+    "ergebnismarker": [
+      "OK test_simultan.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_abtrag.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "2.713",
+    "maxrss_mib": "185.688",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_abtrag.log",
+    "log_sha256": "2979273a6825567b5f7142c0d172e1109c71480b4422282b3726c39ece668102",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_simultan_abtrag"
+    ],
+    "ergebnismarker": [
+      "OK test_simultan_abtrag.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_bereiche.py",
+    "status": "VORGEPRUEFT",
+    "exit": "0",
+    "sekunden": "0.087",
+    "maxrss_mib": "",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_bereiche.log",
+    "log_sha256": "d065d943e8c680de6cf5e5ddfd6bf361d95a6de5531b2f288e486b0567a919d1",
+    "profilmarker": [],
+    "ergebnismarker": [
+      "OK test_simultan_bereiche.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_export_referenz.py",
+    "status": "VORGEPRUEFT",
+    "exit": "0",
+    "sekunden": "0.080",
+    "maxrss_mib": "",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_export_referenz.log",
+    "log_sha256": "b07ecb51b248bcfc34ad38b1f5aeb8f3743f6b21c6ea4cb15873176400313172",
+    "profilmarker": [],
+    "ergebnismarker": [
+      "OK test_simultan_export_referenz.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_folge.py",
+    "status": "VORGEPRUEFT",
+    "exit": "0",
+    "sekunden": "0.064",
+    "maxrss_mib": "",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_folge.log",
+    "log_sha256": "a157b5df75a25c6b04ff5a3a3ddd17d1f2edba558a4f64925c9706c8938ebbc8",
+    "profilmarker": [],
+    "ergebnismarker": [
+      "OK test_simultan_folge.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_gesamt.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1580.464",
+    "maxrss_mib": "7043.773",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_gesamt.log",
+    "log_sha256": "84022c30220e998d8d1bed060cbf819d6817f6769f1ec49e65baf121c3f5ed74",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_simultan_gesamt"
+    ],
+    "ergebnismarker": [
+      "OK test_simultan_gesamt.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_maschinen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "4.045",
+    "maxrss_mib": "458.746",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_maschinen.log",
+    "log_sha256": "c92457da9ca698aeb6ee3ccbacfd5faa529ead847bc559a499648f67c43ec452",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_simultan_maschinen"
+    ],
+    "ergebnismarker": [
+      "OK test_simultan_maschinen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_nc.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "198.634",
+    "maxrss_mib": "5030.809",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_nc.log",
+    "log_sha256": "9ce5a32aede245b9b721121aa3db77508deafee655d5e6dde1316981a80b1ad1",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_simultan_nc"
+    ],
+    "ergebnismarker": [
+      "OK test_simultan_nc.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_restbild.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "9.955",
+    "maxrss_mib": "566.043",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_restbild.log",
+    "log_sha256": "e7f5ca398515e481a19a5f74ef37ff63a7e6ef4aaf86d9b7a8283a6203b896da",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_simultan_restbild"
+    ],
+    "ergebnismarker": [
+      "OK test_simultan_restbild.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_schnittbereiche.py",
+    "status": "VORGEPRUEFT",
+    "exit": "0",
+    "sekunden": "0.079",
+    "maxrss_mib": "",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_schnittbereiche.log",
+    "log_sha256": "4d347cca74ccec23add8764f50d58c9bb47a6ea3d468ac00bbd2c39a429dc535",
+    "profilmarker": [],
+    "ergebnismarker": [
+      "OK test_simultan_schnittbereiche.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_schnittbereiche_lang.py",
+    "status": "VORGEPRUEFT",
+    "exit": "0",
+    "sekunden": "0.072",
+    "maxrss_mib": "",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_simultan_schnittbereiche_lang.log",
+    "log_sha256": "8baac28a08d8fcafdc24648266c73e2f21e821bd3b6204d0e1099b950770778e",
+    "profilmarker": [],
+    "ergebnismarker": [
+      "OK test_simultan_schnittbereiche_lang.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_spannung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.474",
+    "maxrss_mib": "431.152",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_spannung.log",
+    "log_sha256": "15ff800e52cd29d51204e65244d1261c5471aeb08212dfbbc44ac0456350484f",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_spannung"
+    ],
+    "ergebnismarker": [
+      "OK test_spannung.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_sprache.py",
+    "status": "VORGEPRUEFT",
+    "exit": "0",
+    "sekunden": "0.062",
+    "maxrss_mib": "",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_sprache.log",
+    "log_sha256": "2de58e95c72a2e56d035fc9e8cd4637c00c85dc117a097bdab72c65ea63b8d1a",
+    "profilmarker": [],
+    "ergebnismarker": [
+      "OK test_sprache.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_stirnseite.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.703",
+    "maxrss_mib": "462.973",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_stirnseite.log",
+    "log_sha256": "f2f79128e66175a55fd5821c4ee2aa284da88f4a5e5f740da35931ad0daf367e",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_stirnseite"
+    ],
+    "ergebnismarker": [
+      "OK test_stirnseite.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_testteil.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "59.719",
+    "maxrss_mib": "334.168",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_testteil.log",
+    "log_sha256": "a3390d35c24d93d34ff125a6d9c082de82f28377dcb3c56bdd3b0ea5bdec355e",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_testteil"
+    ],
+    "ergebnismarker": [
+      "OK test_testteil.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_uebergabe_werkzeuge.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.636",
+    "maxrss_mib": "156.031",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_uebergabe_werkzeuge.log",
+    "log_sha256": "a1696e6f9a5123960033c54696e6874bb80343d07e039a7216b30b03482072d7",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_uebergabe_werkzeuge"
+    ],
+    "ergebnismarker": [
+      "OK test_uebergabe_werkzeuge.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_umgebung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.573",
+    "maxrss_mib": "145.652",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_umgebung.log",
+    "log_sha256": "a30cf288cf852281a6893d48457cf67c09862e6ebb17b87b8f0dd6e971f80588",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_umgebung"
+    ],
+    "ergebnismarker": [
+      "OK test_umgebung.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_verfahren.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.545",
+    "maxrss_mib": "171.051",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_verfahren.log",
+    "log_sha256": "275715a069ce1a9c838bfc557fc17e2afcfb46d124d011e2d8240cf11f66769b",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_verfahren"
+    ],
+    "ergebnismarker": [
+      "OK test_verfahren.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_version.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.182",
+    "maxrss_mib": "46.922",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_version.log",
+    "log_sha256": "21cab3f0675f302f8391161a5f0a4b0ab5f6c8f30913d49411f29c3b5172bfdf",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_version"
+    ],
+    "ergebnismarker": [
+      "OK test_version.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_achsen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.670",
+    "maxrss_mib": "179.113",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_achsen.log",
+    "log_sha256": "ebc2b6dd793f903d6e3a32c4dbc9be07f5ca90559a9813d0ae2e1aaaa1f3635a",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_achsen"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_achsen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_bahn.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "9.489",
+    "maxrss_mib": "262.707",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_bahn.log",
+    "log_sha256": "f5365e703931ae3a4a1c0883b607448a67393595c38c99aeb6e2dc92695e5355",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_bahn"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_bahn.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_entgraten.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "2.301",
+    "maxrss_mib": "415.074",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_entgraten.log",
+    "log_sha256": "1907115af11a51c127ba77a81b1c016e3789afe004825b78dbf7a5a8f308cde5",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_entgraten"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_entgraten.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_flaechen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.449",
+    "maxrss_mib": "136.383",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_flaechen.log",
+    "log_sha256": "4231212444b5255d6f82a35be1a5d78367a07241e0a1f53c1dc25b6f3098736d",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_flaechen"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_flaechen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_frei.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "19.818",
+    "maxrss_mib": "575.062",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_frei.log",
+    "log_sha256": "fd511fce30622744f747e10dd645a425be81f3708af08ddc34fbcdcd8e1b1a9b",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_frei"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_frei.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_huelle.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.852",
+    "maxrss_mib": "116.926",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_huelle.log",
+    "log_sha256": "4ac87839506a4cddd97239256340a03108d001eaf5c309689d9eee7ed907c98e",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_huelle"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_huelle.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_operation.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "3.314",
+    "maxrss_mib": "401.383",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_operation.log",
+    "log_sha256": "ef464012b2ae4890667000892675744f9a3b9dde7426b13bdfee26bd946ada54",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_operation"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_operation.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_pruefen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "7.642",
+    "maxrss_mib": "460.348",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_pruefen.log",
+    "log_sha256": "db10f080e002e53dfc8b675617dd90225b17fad0dff476441aa54e46d7524e3a",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_pruefen"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_pruefen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_rohteil.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.241",
+    "maxrss_mib": "407.219",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_rohteil.log",
+    "log_sha256": "ab0bbcc042439af94f2472cb0f4e0615e4218720cfcca07139b2286a2bdc59bd",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_rohteil"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_rohteil.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_schlichten.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "89.009",
+    "maxrss_mib": "553.336",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_schlichten.log",
+    "log_sha256": "b2601fa74e20decf67064dbcdff1da21c5725c3ec0ae2d83102dcf1acdecf404",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_schlichten"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_schlichten.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_schlichten_op.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "15.531",
+    "maxrss_mib": "708.297",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vierachs_schlichten_op.log",
+    "log_sha256": "b5e03ab1cdf40f656bd677b69205833a94d29d19760242c96e8193356cc79bb6",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vierachs_schlichten_op"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_schlichten_op.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_viewer.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.636",
+    "maxrss_mib": "73.234",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_viewer.log",
+    "log_sha256": "215602054fefd2cd1796d6b5638cbb6eb2fbe9c5e3d23cacb6eee64c433858d8",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_viewer"
+    ],
+    "ergebnismarker": [
+      "OK test_viewer.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vorschau_merk.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1.047",
+    "maxrss_mib": "423.301",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_vorschau_merk.log",
+    "log_sha256": "0e27164078814963a7f1c9918bd982fa933b33f1d2457a29642ed2852fa184b9",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_vorschau_merk"
+    ],
+    "ergebnismarker": [
+      "OK test_vorschau_merk.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_wegkippen.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "126.646",
+    "maxrss_mib": "544.039",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_wegkippen.log",
+    "log_sha256": "eeaac171a46f892fbd04f3e6b4049a93c741594c6d1ec53cfb77abce5c2488e8",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_wegkippen"
+    ],
+    "ergebnismarker": [
+      "OK test_wegkippen.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_werkstoffe.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.145",
+    "maxrss_mib": "48.168",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_werkstoffe.log",
+    "log_sha256": "f4a6b823a6aeee98ecedaaa2fa22977e8071c9747e4f13650334eeb9d1d46285",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_werkstoffe"
+    ],
+    "ergebnismarker": [
+      "OK test_werkstoffe.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_werkzeuge.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.222",
+    "maxrss_mib": "75.336",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_werkzeuge.log",
+    "log_sha256": "1f7e3952ef01450076c987cd308685ca89aadcdc0b558f9f9a6670ed752ecfd2",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_werkzeuge"
+    ],
+    "ergebnismarker": [
+      "OK test_werkzeuge.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_werkzeugform.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.144",
+    "maxrss_mib": "47.887",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_werkzeugform.log",
+    "log_sha256": "e7663af6ccfd57b7d2ee5095d1de68db9b2f8af889ac0cbbfb8e56742388326d",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_werkzeugform"
+    ],
+    "ergebnismarker": [
+      "OK test_werkzeugform.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_werkzeugkiste.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.563",
+    "maxrss_mib": "52.316",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_werkzeugkiste.log",
+    "log_sha256": "de6c9043fa7d1e6c6b323a0490783ad89123241edd4542839b5394925ec4195a",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_werkzeugkiste"
+    ],
+    "ergebnismarker": [
+      "OK test_werkzeugkiste.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_werkzeugrichtung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.628",
+    "maxrss_mib": "194.426",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_werkzeugrichtung.log",
+    "log_sha256": "8030a28c8a362fa8b877074540611cfcdbbc60f5a67f3ba4bf17d274c4431782",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_werkzeugrichtung"
+    ],
+    "ergebnismarker": [
+      "OK test_werkzeugrichtung.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_zielzeit.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.575",
+    "maxrss_mib": "122.602",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/native/test_zielzeit.log",
+    "log_sha256": "8edd22acbb4ebbccdac290191fd9856b49ff37851c23e6fc7497324ecfbd53b7",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v3/profile/native-test_zielzeit"
+    ],
+    "ergebnismarker": [
+      "OK test_zielzeit.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_schwenken.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "51.533",
+    "maxrss_mib": "584.301",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/native/test_schwenken.log",
+    "log_sha256": "a20a707be7ee431224c8b1668762ea3316618b466f50636df0c25dd7723e5695",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/native-test_schwenken"
+    ],
+    "ergebnismarker": [
+      "OK test_schwenken.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_vierachs_plan.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "4.756",
+    "maxrss_mib": "471.496",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/native/test_vierachs_plan.log",
+    "log_sha256": "41bfe4001548bf885046c7eceb32bde154981402e83ca3ecc7a92536d55a7ec2",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/native-test_vierachs_plan"
+    ],
+    "ergebnismarker": [
+      "OK test_vierachs_plan.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_werkzeuge_aus_cam.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "0.918",
+    "maxrss_mib": "177.602",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/native/test_werkzeuge_aus_cam.log",
+    "log_sha256": "392dd728a2b36549765c2beef2230948e0b23b233721be066cbf66932cacaebc",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/native-test_werkzeuge_aus_cam"
+    ],
+    "ergebnismarker": [
+      "OK test_werkzeuge_aus_cam.py"
+    ]
+  },
+  {
+    "art": "native",
+    "name": "test_simultan_planung.py",
+    "status": "OK",
+    "exit": "0",
+    "sekunden": "1314.806",
+    "maxrss_mib": "5111.863",
+    "beleg": "/home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/native/test_simultan_planung.log",
+    "log_sha256": "e6d535c1951c7c2f8aa14531f96dd41bd4a6d946a17ee2561de481f55b667025",
+    "profilmarker": [
+      "PROFIL_GEPRUEFT /home/manuel/freecad_cam/ergebnisse/abgabe-2026-10-09/gesamtstand-v4b/profile/native-test_simultan_planung"
+    ],
+    "ergebnismarker": [
+      "\t\t\t\t\t\t(76 OK test_simultan_planung.py"
+    ]
+  }
+]
