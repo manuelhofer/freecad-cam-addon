@@ -53,12 +53,25 @@ die des Jobs auf ihrem Platz (ihre Nummer), dazu, was laut Magazin der Maschine 
 Maschine wie das Werkzeug, das gerade arbeitet – auch die Schneide im Vorschub: Sie schneidet
 nicht. Ohne Durchmesser (Drehwerkzeuge aus dem Magazin) fehlt ihre Form – sie fehlen dann.
 
+Auf allen Kernen (T-006, P-2026-10-09-08): `kollision_parallel` teilt die Stationen in Stücke und
+gibt sie den Nebenrechnern (nebenrechner.py). Die Maschine bekommen sie als Dokumentkopie in ihrer
+Grundstellung, alles andere als Daten ohne FreeCAD-Objekte: die Stationen (`Fahrtdaten`), das Teil
+als BREP, die Werkzeuge als Maße und Halter (`Daten`, `vorbereiten`). Jedes Stück beginnt mit einem
+Vorlauf durch die Stationen seiner Operation davor, damit es die geraden Vorschubwege kennt
+(`_vorlauf`); die Schranken fangen neu an (das kostet nur Rechnungen, keine Befunde). Die Stücke
+kommen als Befunde je Paar zurück und werden wie in einem Lauf zusammengeführt (die schlimmste
+Stelle, bei Gleichstand die erste). Ohne Nebenrechner – oder bei wenigen Stationen – rechnet
+`kollision_parallel` wie `kollision` im eigenen Prozess.
+
 Läuft ohne Oberfläche.
 """
 
 import math
+import os
 import time
-from dataclasses import dataclass, field
+import uuid
+from dataclasses import dataclass, field, replace
+from types import SimpleNamespace
 
 import FreeCAD
 
@@ -103,6 +116,11 @@ SCHRAUBSTOCK = "schraubstock"  # die Backen, wenn der Job „von unten gespannt�
 QUADER_NAH = 20.0  # mm – so nah (Quader in Weltachsen) wird mit den gedrehten Quadern nachgesehen
 VORSCHUBWEGE = 200  # so viele gerade Vorschubwege merkt sich die Prüfung je Operation
 WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
+# Nebenrechner: ab so vielen Stationen lohnen sie sich, so viele Stücke bekommt jeder, und so
+# lang ist ein Stück mindestens (die Stationen sind verschieden teuer – viele Stücke gleichen das aus).
+PARALLEL_AB = 60
+STUECKE_JE_ARBEITER = 48  # gemessen am Freiformbeispiel, 24 Kerne: 4 → 83 s, 16 → 60 s, 48 → 54 s
+STUECK_MINDESTENS = 20
 
 
 # --- Die Körper -----------------------------------------------------------------------------
@@ -359,6 +377,170 @@ class Ergebnis:
         return [b for b in self.befunde if b.beruehrung]
 
 
+# --- Die Daten (ohne FreeCAD-Objekte, für die Nebenrechner) ---------------------------------
+
+
+@dataclass
+class Werkzeugdaten:
+    """Das Werkzeug einer Operation: Nummer, Maße und Halter – woraus werkzeugkoerper() baut."""
+
+    tc_name: str
+    nummer: int
+    masse: object  # reichweite.Werkzeugmasse
+    halter: object  # halter.Halter oder None
+
+
+@dataclass
+class Daten:
+    """Alles außer der Maschine und den Stationen, was die Prüfung braucht – `vorbereiten()`.
+    `teil` und `schraubstock` sind Formen (Part.Shape), zum Senden BREP (`zum_senden`)."""
+
+    kennung: str
+    nullpunkt: tuple
+    teil: object = None
+    schraubstock: object = None
+    werkzeuge: list = field(default_factory=list)  # je Operation ein Werkzeugdaten
+    beladen: list = field(default_factory=list)  # [(Platznummer, Maße, Länge, Halter)]
+
+    def zum_senden(self):
+        from . import nebenrechner as nr
+
+        return replace(
+            self,
+            teil=nr.Form.von(self.teil) if self.teil is not None else None,
+            schraubstock=(
+                nr.Form.von(self.schraubstock) if self.schraubstock is not None else None
+            ),
+        )
+
+    def formen_lesen(self):
+        """Die Formen aus den BREP-Texten (im Nebenrechner)."""
+        from . import nebenrechner as nr
+
+        return replace(
+            self,
+            teil=self.teil.form() if isinstance(self.teil, nr.Form) else self.teil,
+            schraubstock=(
+                self.schraubstock.form()
+                if isinstance(self.schraubstock, nr.Form)
+                else self.schraubstock
+            ),
+        )
+
+
+@dataclass
+class Fahrtdaten:
+    """Die Stationen einer Abfahrt ohne FreeCAD-Objekte: Achsen als Nummern in der Kette,
+    Operationen als Namen und Zahlen – `fahrtdaten()`, zurück mit `_fahrt_aus()`."""
+
+    kennung: str
+    stationen: list
+    wirksam: list
+    achsen: list  # Nummern in pruefung.kette.achsen
+    nullpunkt: tuple
+    operationen: (
+        list  # [(Name, Controller-Name, Werkzeugnummer, Aufnahme-Name, Länge, erste, Sätze, Art)]
+    )
+
+
+@dataclass(frozen=True)
+class Maschinendaten:
+    """Die Maschine für einen Nebenrechner: die Namen von Assembly, Maschinenobjekt und
+    Werkstückaufnahme in der Dokumentkopie (die kommt als nebenrechner.Dokument daneben)."""
+
+    assembly: str
+    maschine: str
+    aufnahme: str
+
+
+def vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt=None):
+    """Die Daten für die Prüfung aus Job und Werkzeugverwaltung; Hinweise (kein Teil, ohne
+    Halter geprüft) kommen in `ergebnis.hinweise`."""
+    from . import spannung
+
+    if nullpunkt is None:
+        nullpunkt = abfahrt.nullpunkt
+    teil = _teil_form(job)
+    if teil is None:
+        ergebnis.hinweise.append(tr("kb.kein_teil"))
+    werkzeuge = []
+    ohne_halter = set()
+    for op in abfahrt.operationen:
+        nummer = getattr(op.tc, "ToolNumber", 0)
+        halter = rw.werkzeughalter(op.tc, bibliothek)
+        werkzeuge.append(
+            Werkzeugdaten(
+                op.tc.Name, nummer, rw.werkzeugmasse(op.tc, bibliothek, op.laenge), halter
+            )
+        )
+        if (halter is None or hl.ist_vorschlag(halter)) and nummer not in ohne_halter:
+            ohne_halter.add(nummer)
+            if halter is None:
+                satz = tr("kb.ohne_halter", werkzeug=f"T{nummer}")
+            else:
+                satz = tr("kb.halter_vorschlag", werkzeug=f"T{nummer}", halter=hl.text(halter))
+            ergebnis.hinweise.append(rw.Hinweis(satz, nummer))
+    return Daten(
+        uuid.uuid4().hex,
+        tuple(nullpunkt),
+        teil,
+        spannung.schraubstock(job),
+        werkzeuge,
+        _beladen_daten(abfahrt.pruefung, job, bibliothek),
+    )
+
+
+def fahrtdaten(abfahrt):
+    """Die Abfahrt ohne FreeCAD-Objekte (Fahrtdaten)."""
+    achsen = list(abfahrt.pruefung.kette.achsen)
+    return Fahrtdaten(
+        uuid.uuid4().hex,
+        list(abfahrt.stationen),
+        [abfahrt.wirksam(i) for i in range(len(abfahrt.stationen))],
+        [achsen.index(a) for a in abfahrt.achsen],
+        tuple(abfahrt.nullpunkt),
+        [
+            (
+                op.name,
+                op.tc.Name,
+                getattr(op.tc, "ToolNumber", 0),
+                op.aufnahme.Name,
+                op.laenge,
+                op.erste,
+                op.saetze,
+                op.art,
+            )
+            for op in abfahrt.operationen
+        ],
+    )
+
+
+def _fahrt_aus(fahrt, pruefung):
+    """Die Abfahrt aus Fahrtdaten, mit der Maschine `pruefung` (im Nebenrechner)."""
+    dokument = pruefung.maschine.Document
+    kette = pruefung.kette.achsen
+    operationen = [
+        ab.OperationAbfahrt(
+            name,
+            SimpleNamespace(Name=tc_name, ToolNumber=nummer),
+            dokument.getObject(aufnahme),
+            laenge,
+            erste,
+            saetze,
+            art,
+        )
+        for name, tc_name, nummer, aufnahme, laenge, erste, saetze, art in fahrt.operationen
+    ]
+    return ab.Abfahrt(
+        pruefung,
+        [kette[i] for i in fahrt.achsen],
+        list(fahrt.stationen),
+        operationen,
+        nullpunkt=FreeCAD.Vector(*fahrt.nullpunkt),
+        _wirksam=list(fahrt.wirksam),
+    )
+
+
 # --- Die Prüfung ----------------------------------------------------------------------------
 
 
@@ -383,7 +565,8 @@ def kollision(
     pruefung = abfahrt.pruefung
     if not abfahrt.stationen or pruefung.werkstueckaufnahme is None:
         return ergebnis
-    welt = _Welt(abfahrt, job, nullpunkt_des_jobs, bibliothek, ergebnis, fortschritt)
+    daten = vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt_des_jobs)
+    welt = _Welt(abfahrt, daten, ergebnis, fortschritt)
     try:
         for i in range(len(abfahrt.stationen)):
             welt.station = i
@@ -395,14 +578,221 @@ def kollision(
     except _Abbruch:
         ergebnis.abgebrochen = True
         ergebnis.hinweise.append(tr("kb.abgebrochen", **_bis_hier(abfahrt, welt.station)))
-    befunde = list(welt.schlimmste.values())
+    _abschliessen(ergebnis, list(welt.schlimmste.values()), abfahrt, job, rohteil, fortschritt)
+    return ergebnis
+
+
+def _abschliessen(ergebnis, befunde, abfahrt, job, rohteil, fortschritt):
+    """Die Eilgänge ins Rohteil dazu, sortieren, den Fortschritt auf 1."""
     if rohteil and not ergebnis.abgebrochen:
         befunde += _eilgaenge_ins_rohteil(abfahrt, job)
     # Berührungen zuerst, dann was nur näher kommt – je nach der Zeit.
     ergebnis.befunde = sorted(befunde, key=lambda b: (not b.beruehrung, b.zeit, b.a, b.b))
     if fortschritt is not None and not ergebnis.abgebrochen:
         fortschritt(1.0)
+
+
+def kollision_parallel(
+    abfahrt,
+    job,
+    nullpunkt_des_jobs,
+    bibliothek=None,
+    warnabstand=WARNABSTAND,
+    fortschritt=None,
+    rohteil=False,
+    nebenrechner=None,
+):
+    """Wie kollision(), auf allen Kernen (T-006): die Stationen in Stücken auf den Nebenrechnern.
+    Ohne Nebenrechner, bei wenigen Stationen oder wenn die Nebenrechner scheitern (Warnung im
+    Report-Fenster), rechnet es wie kollision() hier. `fortschritt` wie dort – es wird gerufen,
+    solange die Stücke laufen; False bricht ab."""
+    from . import nebenrechner as nr
+
+    pool = nebenrechner if nebenrechner is not None else nr.pool()
+    stationen = len(abfahrt.stationen)
+    if not pool.verfuegbar() or pool.anzahl < 2 or stationen < PARALLEL_AB:
+        return kollision(
+            abfahrt, job, nullpunkt_des_jobs, bibliothek, warnabstand, fortschritt, rohteil
+        )
+    try:
+        return _verteilt(
+            pool, abfahrt, job, nullpunkt_des_jobs, bibliothek, warnabstand, fortschritt, rohteil
+        )
+    except nr.Abgebrochen:
+        ergebnis = Ergebnis(warnabstand)
+        ergebnis.abgebrochen = True
+        ergebnis.hinweise.append(tr("kb.abgebrochen", **_bis_hier(abfahrt, 0)))
+        return ergebnis
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Kollision auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return kollision(
+            abfahrt, job, nullpunkt_des_jobs, bibliothek, warnabstand, fortschritt, rohteil
+        )
+
+
+def _verteilt(pool, abfahrt, job, nullpunkt, bibliothek, warnabstand, fortschritt, rohteil):
+    from . import nebenrechner as nr
+
+    ergebnis = Ergebnis(warnabstand)
+    pruefung = abfahrt.pruefung
+    if not abfahrt.stationen or pruefung.werkstueckaufnahme is None:
+        return ergebnis
+    daten = vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt)
+    kopie, maschine = _maschinendaten(pool, pruefung)
+    fahrt = fahrtdaten(abfahrt)
+    schluessel = (f"kollision-fahrt-{fahrt.kennung}", f"kollision-daten-{daten.kennung}")
+    g_fahrt = pool.gemeinsam(schluessel[0], fahrt)
+    g_daten = pool.gemeinsam(schluessel[1], daten.zum_senden())
+    bereiche = _bereiche(len(abfahrt.stationen), pool.anzahl)
+    auftraege = []
+    for bereich in bereiche:
+        auftrag = pool.auftrag(
+            "kollision",
+            "stueck",
+            kopie,
+            maschine,
+            g_fahrt,
+            g_daten,
+            warnabstand,
+            bereich,
+            fortschritt=nr.Fortschritt(),
+        )
+        auftrag.gewicht = bereich[1] - bereich[0]
+        auftraege.append(auftrag)
+
+    def zwischendurch():
+        if fortschritt is None:
+            return True
+        return fortschritt(nr.fortschritt_von(auftraege) * 0.999) is not False
+
+    try:
+        # Die Eilgänge ins Rohteil rechnet dieser Prozess, während die Stücke laufen.
+        rohteil_befunde = _eilgaenge_ins_rohteil(abfahrt, job) if rohteil else []
+        stuecke = pool.warten(auftraege, zwischendurch)
+    finally:
+        for s in schluessel:
+            pool.vergessen(s)
+    schlimmste = {}
+    zu_viele = None
+    for stueck in stuecke:
+        for k, befund in stueck["schlimmste"].items():
+            if befund.stelle is not None:
+                befund.stelle = FreeCAD.Vector(*befund.stelle)
+            bisher = schlimmste.get(k)
+            if bisher is None or bisher.abstand > befund.abstand + 1e-9:
+                schlimmste[k] = befund
+        ergebnis.stellen += stueck["stellen"]
+        for text, nummer in stueck["hinweise"]:
+            hinweis = rw.Hinweis(text, nummer) if nummer is not None else text
+            if hinweis not in ergebnis.hinweise:
+                ergebnis.hinweise.append(hinweis)
+        if stueck["zu_viele"] and zu_viele is None:
+            zu_viele = stueck["bis"]
+    if zu_viele is not None:
+        ergebnis.hinweise.append(
+            tr("kb.zu_viele", anzahl=HOECHSTENS, **_bis_hier(abfahrt, zu_viele))
+        )
+    befunde = list(schlimmste.values())
+    if rohteil:
+        befunde += rohteil_befunde
+    _abschliessen(ergebnis, befunde, abfahrt, job, False, fortschritt)
     return ergebnis
+
+
+def _bereiche(stationen, arbeiter):
+    """[(von, bis)] – die Stationen in Stücke: je Arbeiter STUECKE_JE_ARBEITER, keins kürzer als
+    STUECK_MINDESTENS."""
+    anzahl = max(1, min(arbeiter * STUECKE_JE_ARBEITER, stationen // STUECK_MINDESTENS))
+    grenzen = [round(k * stationen / anzahl) for k in range(anzahl + 1)]
+    return [(a, b) for a, b in zip(grenzen, grenzen[1:], strict=False) if b > a]
+
+
+def _maschinendaten(pool, pruefung):
+    """(Dokumentkopie, Maschinendaten) für die Nebenrechner – die Kopie in der Grundstellung
+    der Prüfung: Das Fenster hat die Maschine vielleicht verfahren, gerechnet wird ab der
+    Stellung beim Anlegen."""
+    verfahren = pruefung.verfahren
+    assembly = verfahren.assembly
+    if pruefung.maschine.Document is not assembly.Document:
+        raise NichtTeilbar("Maschine und Assembly in verschiedenen Dokumenten")
+    weg = dict(verfahren.weg)
+    bewegt = any(abs(w) > 1e-12 for w in weg.values())
+    if bewegt:
+        verfahren.grundstellung()
+    try:
+        kopie = pool.kopie(assembly.Document)
+    finally:
+        if bewegt:
+            verfahren.setze_alle({a: verfahren.stellung_bei(a, w) for a, w in weg.items()})
+    return kopie, Maschinendaten(
+        assembly.Name, pruefung.maschine.Name, pruefung.werkstueckaufnahme.Name
+    )
+
+
+class NichtTeilbar(Exception):
+    """Die Prüfung lässt sich nicht auf Nebenrechner verteilen."""
+
+
+# --- Im Nebenrechner ------------------------------------------------------------------------
+
+_pruefung_im_arbeiter = None  # (Kennung, Prüfung) – die Maschine, je Kopie einmal gelesen
+_welt_im_arbeiter = None  # (Kennung, Welt) – Körper und Paare, je Fahrt und Daten einmal
+
+
+def _pruefung_fuer(dokument, maschine):
+    """Die Prüfung (reichweite.Pruefung) aus der Dokumentkopie – gemerkt, bis eine andere
+    Kopie kommt."""
+    global _pruefung_im_arbeiter
+    stat = os.stat(dokument.FileName) if dokument.FileName else None
+    kennung = (
+        dokument.Name,
+        stat.st_size if stat else 0,
+        stat.st_mtime_ns if stat else 0,
+        maschine,
+    )
+    if _pruefung_im_arbeiter is None or _pruefung_im_arbeiter[0] != kennung:
+        pruefung = rw.Pruefung(
+            dokument.getObject(maschine.assembly),
+            dokument.getObject(maschine.maschine),
+            dokument.getObject(maschine.aufnahme),
+        )
+        _pruefung_im_arbeiter = (kennung, pruefung)
+    return _pruefung_im_arbeiter[1]
+
+
+def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=None):
+    """Prüft die Stationen `bereich` (von, bis) – im Nebenrechner. Gibt die Befunde je Paar,
+    die Zahl der Stellen und die Hinweise zurück, als Daten ohne FreeCAD-Objekte."""
+    global _welt_im_arbeiter
+    pruefung = _pruefung_fuer(dokument, maschine)
+    kennung = (fahrt.kennung, daten.kennung, warnabstand, id(pruefung))
+    ergebnis = Ergebnis(warnabstand)
+    if _welt_im_arbeiter is None or _welt_im_arbeiter[0] != kennung:
+        abfahrt = _fahrt_aus(fahrt, pruefung)
+        welt = _Welt(abfahrt, daten.formen_lesen(), ergebnis, fortschritt, bereich)
+        _welt_im_arbeiter = (kennung, welt)
+    else:
+        welt = _welt_im_arbeiter[1]
+        welt.neu(ergebnis, fortschritt, bereich)
+    zu_viele = None
+    welt.vorlauf(bereich[0])
+    for i in range(*bereich):
+        welt.station = i
+        if not welt.abschnitt(i):
+            zu_viele = i
+            break
+    return {
+        "schlimmste": {
+            k: replace(b, stelle=tuple(b.stelle) if b.stelle is not None else None)
+            for k, b in welt.schlimmste.items()
+        },
+        "stellen": ergebnis.stellen,
+        "hinweise": [(str(h), getattr(h, "werkzeug", None)) for h in ergebnis.hinweise],
+        "zu_viele": zu_viele is not None,
+        "bis": zu_viele if zu_viele is not None else bereich[1] - 1,
+    }
 
 
 def _eilgaenge_ins_rohteil(abfahrt, job):
@@ -461,20 +851,19 @@ def _bis_hier(abfahrt, index):
 
 
 class _Welt:
-    """Alle Körper, die Paare je Operation und das Abtasten der Bahn."""
+    """Alle Körper, die Paare je Operation und das Abtasten der Bahn – aus der Abfahrt (mit der
+    Maschine) und den Daten (vorbereiten). `bereich` (von, bis): nur diese Stationen, für den
+    Fortschritt; `neu()` setzt für ein weiteres Stück zurück, was zum Lauf gehört."""
 
-    def __init__(self, abfahrt, job, nullpunkt, bibliothek, ergebnis, fortschritt=None):
+    def __init__(self, abfahrt, daten, ergebnis, fortschritt=None, bereich=None):
         self.abfahrt = abfahrt
-        self.station = 0  # die Station, von der aus es gerade prüft
-        self._fortschritt = fortschritt
-        self._gemeldet = -math.inf  # wann zuletzt
         self.pruefung = abfahrt.pruefung
         self.verfahren = self.pruefung.verfahren
         self.warn = ergebnis.warnabstand
-        self.ergebnis = ergebnis
-        self.schlimmste = {}  # (Operation, Name a, Name b) -> Befund
         self._fehler = set()  # Paare, deren Abstand FreeCAD nicht rechnen konnte
+        self.neu(ergebnis, fortschritt, bereich)
         p = self.pruefung
+        nullpunkt = daten.nullpunkt
 
         self.maschine = []
         for glied in p.kette.glieder:
@@ -486,57 +875,41 @@ class _Welt:
                         Koerper(f"„{bauteil.Label}“", MASCHINE, form, glied, basis)
                     )
         self.werkstueck_glied = p._glied(p.werkstueckaufnahme)
-        form = _teil_form(job)
+        am_nullpunkt = p._lage(p.werkstueckaufnahme).multiply(
+            FreeCAD.Placement(FreeCAD.Vector(*nullpunkt), FreeCAD.Rotation())
+        )
         self.teil = None
-        if form is None:
-            ergebnis.hinweise.append(tr("kb.kein_teil"))
-        else:
-            basis = p._lage(p.werkstueckaufnahme).multiply(
-                FreeCAD.Placement(FreeCAD.Vector(nullpunkt), FreeCAD.Rotation())
+        if daten.teil is not None:
+            self.teil = Koerper(
+                tr("kb.teil"), TEIL, daten.teil, self.werkstueck_glied, am_nullpunkt
             )
-            self.teil = Koerper(tr("kb.teil"), TEIL, form, self.werkstueck_glied, basis)
         # Von unten gespannt (S3h): die Backen stehen am Rohteil wie das Teil – jedes Werkzeugteil
         # zählt gegen sie, auch die Schneide im Vorschub.
-        from . import spannung
-
-        backen = spannung.schraubstock(job)
         self.schraubstock = None
-        if backen is not None:
-            basis = p._lage(p.werkstueckaufnahme).multiply(
-                FreeCAD.Placement(FreeCAD.Vector(nullpunkt), FreeCAD.Rotation())
-            )
+        if daten.schraubstock is not None:
             self.schraubstock = Koerper(
-                tr("kb.schraubstock"), SCHRAUBSTOCK, backen, self.werkstueck_glied, basis
+                tr("kb.schraubstock"),
+                SCHRAUBSTOCK,
+                daten.schraubstock,
+                self.werkstueck_glied,
+                am_nullpunkt,
             )
 
         # Je Operation ihr Werkzeug; gleiche Werkzeuge nur einmal gebaut.
         self.werkzeuge = []
         gebaut = {}
-        ohne_halter = set()
-        for op in abfahrt.operationen:
-            nummer = getattr(op.tc, "ToolNumber", 0)
-            schluessel = (op.tc.Name, op.aufnahme.Name, round(op.laenge, 6))
+        for op, w in zip(abfahrt.operationen, daten.werkzeuge, strict=True):
+            schluessel = (w.tc_name, op.aufnahme.Name, round(op.laenge, 6))
             if schluessel not in gebaut:
-                halter = rw.werkzeughalter(op.tc, bibliothek)
-                masse = rw.werkzeugmasse(op.tc, bibliothek, op.laenge)
                 glied = p._glied(op.aufnahme)
                 basis = p._lage(op.aufnahme)
                 gebaut[schluessel] = [
-                    Koerper(_werkzeug_name(art, nummer, halter), art, form, glied, basis)
-                    for art, form in werkzeugkoerper(masse, op.laenge, halter, mit_kern=True)
+                    Koerper(_werkzeug_name(art, w.nummer, w.halter), art, form, glied, basis)
+                    for art, form in werkzeugkoerper(w.masse, op.laenge, w.halter, mit_kern=True)
                 ]
-                if (halter is None or hl.ist_vorschlag(halter)) and nummer not in ohne_halter:
-                    ohne_halter.add(nummer)
-                    if halter is None:
-                        satz = tr("kb.ohne_halter", werkzeug=f"T{nummer}")
-                    else:
-                        satz = tr(
-                            "kb.halter_vorschlag", werkzeug=f"T{nummer}", halter=hl.text(halter)
-                        )
-                    ergebnis.hinweise.append(rw.Hinweis(satz, nummer))
             self.werkzeuge.append(gebaut[schluessel])
         # Die übrigen Werkzeuge im Revolver (W-002 Stufe H4): Platz-Aufnahme → [Körper].
-        self.beladen = _beladen(p, job, bibliothek)
+        self.beladen = _beladen_koerper(p, daten.beladen)
 
         self._paare = {}  # Glied der Werkzeugaufnahme -> Paare ohne Werkzeug
         self._schon_gemessen = {}  # (a, b) -> berühren sich in der Grundstellung?
@@ -544,6 +917,16 @@ class _Welt:
         self._fahren = {}  # Glied -> die Achsen, die es fahren
         self._paarfaktor = {}  # (a, b) -> je Achse: mm je mm bzw. Grad gegeneinander
         self._drehfaktoren_je_koerper = {}  # (Körper, Drehachse) -> mm je Grad
+
+    def neu(self, ergebnis, fortschritt=None, bereich=None):
+        """Für einen (weiteren) Lauf über `bereich`: Ergebnis, Fortschritt und alles, was
+        entlang der Bahn mitläuft, zurück auf den Anfang – die Körper und Paare bleiben."""
+        self.ergebnis = ergebnis
+        self._fortschritt = fortschritt
+        self._gemeldet = -math.inf  # wann zuletzt gemeldet
+        self.bereich = bereich if bereich is not None else (0, len(self.abfahrt.stationen))
+        self.station = self.bereich[0]  # die Station, von der aus es gerade prüft
+        self.schlimmste = {}  # (Operation, Name a, Name b, nur Vorschub) -> Befund
         # (a, b) -> (so weit sind sie an der Stelle, an der es gerade ist, mindestens
         # auseinander: zuletzt genau gerechnet, minus dem Weg seither; genau hier gerechnet?)
         self._schranken = {}
@@ -552,6 +935,31 @@ class _Welt:
         # gleich) – ein Eilgang darauf fährt die Schneide, wo sie schon im Vorschub war.
         self._vorschubwege = []
         self._eigener_zuletzt = False  # lag der Abschnitt davor auf einem eigenen Weg?
+
+    def vorlauf(self, bis):
+        """Vor einem Stück, das bei Station `bis` beginnt: die geraden Vorschubwege der
+        Operation davor einsammeln (ab ihrer ersten Station), ohne Abstände zu rechnen – damit
+        ein Eilgang im Stück weiß, ob er fährt, wo die Schneide schon im Vorschub war."""
+        stationen = self.abfahrt.stationen
+        if bis <= 0 or bis >= len(stationen):
+            return
+        operation = stationen[bis].operation
+        anfang = max(0, self.abfahrt.operationen[operation].erste - 1)
+        # Gemerkt werden nur die letzten VORSCHUBWEGE Vorschubwege: weiter zurück muss es nicht.
+        vorschuebe, zurueck = 0, bis - 1
+        while zurueck > anfang:
+            if not stationen[zurueck + 1].eilgang:
+                vorschuebe += 1
+                if vorschuebe >= VORSCHUBWEGE:
+                    break
+            zurueck -= 1
+        for i in range(max(anfang, zurueck), bis):
+            ziel = stationen[i + 1]
+            if ziel.operation != self._operation:
+                self._vorschubwege = []
+            self._operation = ziel.operation
+            if not ziel.eilgang or i == bis - 1:
+                self._eigener_weg(stationen[i], ziel, True)
 
     # --- Paare --------------------------------------------------------------------------
 
@@ -761,7 +1169,8 @@ class _Welt:
         if jetzt - self._gemeldet < MELDEN_ALLE:
             return
         self._gemeldet = jetzt
-        if self._fortschritt(self.station / len(self.abfahrt.stationen)) is False:
+        von, bis = self.bereich
+        if self._fortschritt((self.station - von) / max(bis - von, 1)) is False:
             raise _Abbruch
 
     def _eigener_weg(self, station, ziel, bewegt):
@@ -1090,28 +1499,21 @@ def _teil_form(job):
     return Part.makeCompound(formen) if formen else None
 
 
-def _beladen(pruefung, job, bibliothek):
-    """{Platz-Aufnahme: [Körper]} – was außer dem arbeitenden Werkzeug im Revolver steckt (W-002
-    Stufe H4): die Werkzeuge des Jobs auf dem Platz ihrer Nummer und, wo der Job keins hat, die
-    laut Magazin der Maschine dort beladenen. Leer ohne Revolver."""
+def _beladen_daten(pruefung, job, bibliothek):
+    """[(Platznummer, Maße, Länge, Halter)] – was außer dem arbeitenden Werkzeug im Revolver
+    steckt (W-002 Stufe H4): die Werkzeuge des Jobs auf dem Platz ihrer Nummer und, wo der Job
+    keins hat, die laut Magazin der Maschine dort beladenen; `_beladen_koerper` baut daraus die
+    Körper. Leer ohne Revolver."""
     from . import bestueckung as bs
     from . import magazin as mg
 
     if not pruefung.mit_revolver():
-        return {}
-    plaetze = {nummer: pruefung.werkzeugaufnahme(nummer) for nummer in pruefung.platznummern()}
-    ergebnis = {}
+        return []
+    ergebnis = []
     im_job = set()
 
     def stecke(nummer, masse, laenge, halter):
-        aufnahme = plaetze.get(nummer)
-        if aufnahme is None or aufnahme in ergebnis or masse is None or laenge <= 0:
-            return
-        glied, basis = pruefung._glied(aufnahme), pruefung._lage(aufnahme)
-        ergebnis[aufnahme] = [
-            Koerper(_beladen_name(art, nummer, halter), art, form, glied, basis)
-            for art, form in werkzeugkoerper(masse, laenge, halter)
-        ]
+        ergebnis.append((nummer, masse, laenge, halter))
 
     for eintrag in bs.eintraege(job, bibliothek) if job is not None else []:
         if eintrag.werkzeug is not None:
@@ -1135,6 +1537,25 @@ def _beladen(pruefung, job, bibliothek):
         laenge = rw.laenge_des_werkzeugs(werkzeug, bibliothek)[0]
         halter = bibliothek.halter_fuer_pruefung(werkzeug)
         stecke(eintrag.platz, rw.masse_des_werkzeugs(werkzeug), laenge, halter)
+    return ergebnis
+
+
+def _beladen_koerper(pruefung, eintraege):
+    """{Platz-Aufnahme: [Körper]} aus den Einträgen von _beladen_daten – der erste Eintrag je
+    Platz zählt, einer ohne Maße oder Länge nicht."""
+    if not eintraege or not pruefung.mit_revolver():
+        return {}
+    plaetze = {nummer: pruefung.werkzeugaufnahme(nummer) for nummer in pruefung.platznummern()}
+    ergebnis = {}
+    for nummer, masse, laenge, halter in eintraege:
+        aufnahme = plaetze.get(nummer)
+        if aufnahme is None or aufnahme in ergebnis or masse is None or laenge <= 0:
+            continue
+        glied, basis = pruefung._glied(aufnahme), pruefung._lage(aufnahme)
+        ergebnis[aufnahme] = [
+            Koerper(_beladen_name(art, nummer, halter), art, form, glied, basis)
+            for art, form in werkzeugkoerper(masse, laenge, halter)
+        ]
     return ergebnis
 
 

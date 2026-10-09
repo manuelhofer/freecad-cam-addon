@@ -604,10 +604,13 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   Freiformbeispiel 30 min auf einem Kern. Hebel und Reihenfolge: Spezifikation Strategien 16.5,
   „Rechenzeit“.
   **Nebenrechner gebaut (P-2026-10-09-07):** `nebenrechner.py` – ein Pool eigener
-  FreeCADCmd-Prozesse, je Kern einer, mit Dokumentkopien und gemeinsamen Daten. Als Nächstes
-  darauf: die Kollision in Stücken (Prüffenster und 5-Achs-Zulassung), die Vorschau des
+  FreeCADCmd-Prozesse, je Kern einer, mit Dokumentkopien und gemeinsamen Daten.
+  **Kollision in Stücken (P-2026-10-09-08):** Prüffenster und 5-Achs-Zulassung; am
+  Freiformbeispiel 307 → 54 s (24 Kerne; 12 Arbeiter genauso schnell – SMT bringt nichts, die
+  letzten 10 % der Stationen ein Viertel der Zeit). Als Nächstes: die Vorschau des
   4-Achs-Assistenten im Hintergrund (Manuel, 2026-10-09: der „Lag“ beim Ändern der seitlichen
-  Zustellung), dann Normalen, Kugelschnitt und Material des Simultanvergleichs in Stücken.
+  Zustellung), dann Normalen, Kugelschnitt und Material des Simultanvergleichs in Stücken und
+  Halter/Spindel mit numpy (Hebel 2).
 - **T-007 Werkzeugkiste: Import** nach `docs/werkzeugkiste_json.md` (Format steht, P-2026-10-04-46):
   Ordner `CamAddon/werkzeugkiste/`, „Aus Datei einlesen …“ mit Prüfung, „Vorlage speichern …“.
   Danach weitere Hersteller-Reihen (Manuel: „zum Schluss“).

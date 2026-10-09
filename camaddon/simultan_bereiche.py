@@ -115,7 +115,7 @@ def _verbindung_pruefen(op, job, maschine, cmds, bibliothek):
     # auch die Schneide muss das ganze ursprüngliche Rohteil freihalten.
     for s in fahrt.stationen:
         s.eilgang = True
-    k = kb.kollision(fahrt, j, maschine.nullpunkt, bibliothek)
+    k = kb.kollision_parallel(fahrt, j, maschine.nullpunkt, bibliothek)
     if k.abgebrochen or k.hinweise or k.befunde:
         grund = (
             str(k.hinweise[0])

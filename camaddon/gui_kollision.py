@@ -148,7 +148,7 @@ class KollisionsBereich(QtGui.QWidget):
         self._sperren(True)
         self._melde()
         try:
-            ergebnis = kb.kollision(
+            ergebnis = kb.kollision_parallel(
                 abfahrt, job, nullpunkt, bibliothek, warnabstand, self._fortschritt, rohteil=True
             )
         finally:

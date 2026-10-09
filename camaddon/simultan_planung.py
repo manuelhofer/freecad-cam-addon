@@ -543,7 +543,7 @@ def vergleichen(
             variante.material = messung
             variante.rest = messung.rest + messung.unsicherheit
             variante.material_geprueft = True
-            ergebnis = kb.kollision(
+            ergebnis = kb.kollision_parallel(
                 variante.fahrt,
                 variante.job,
                 nullpunkt,

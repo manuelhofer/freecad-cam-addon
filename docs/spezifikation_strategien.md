@@ -3111,8 +3111,13 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
 
 1. **Kollision auf mehrere Prozesse verteilen** – T-006 im Snapshot (Manuel, 2026-10-04: „es
    rechnen nur maximal 5 von meinen 24 Kernen“): die Stationen in Stücke mit Vorlauf an jeder
-   Grenze, jeder Prozess lädt die Maschine einmal. Skaliert mit den Kernen: am Beispiel etwa
-   30 → 12 min auf vier Kernen, unter 5 min auf 24.
+   Grenze, jeder Prozess lädt die Maschine einmal. **Gebaut (P-2026-10-09-07/-08):**
+   `nebenrechner.py` (ein Pool eigener FreeCADCmd-Prozesse) und `kollision.kollision_parallel`.
+   Gemessen am Freiformbeispiel auf Manuels Rechner (24 Kerne, 12 physische): die Kollision
+   des ganzen Jobs (45 683 Stationen) 306,6 s in einem Prozess → 53,8 s mit 24 Arbeitern,
+   55,6 s mit 12 – SMT bringt nichts, und die letzten 10 % der Stationen (das Ende des
+   Schlichtens) brauchen ein Viertel der Zeit. Mehr geht nur noch über die Kosten je Stelle
+   (Hebel 2).
 2. **Halter und Spindel gegen das vernetzte Teil mit numpy** statt OpenCascade – so, wie der
    Materialprüfstand den Kugelschnitt rechnet; die genauen OpenCascade-Aufrufe bleiben nur für
    die Stellen, die die Schätzung nicht entscheidet. Trifft die 51 % direkt.

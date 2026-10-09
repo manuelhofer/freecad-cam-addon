@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-08 kollision-in-stuecken-auf-allen-kernen
+
+### EINGELESEN
+- T-006 im Snapshot (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen“;
+  2026-10-09: „so viele resourcen wie möglich nutzen … SEHR wichtig“), Spezifikation Strategien
+  16.5 „Rechenzeit“ (Kollision 51 % einer Variante, 12 min am Freiformbeispiel), `kollision.py`
+  (Zustand entlang der Bahn: Schranken, gerade Vorschubwege je Operation, Anfang eines Eilgangs),
+  `nebenrechner.py` (P-2026-10-09-07).
+
+### DATEIEN
+- `camaddon/kollision.py` (Daten-Schicht `vorbereiten` → `Daten`, `fahrtdaten` → `Fahrtdaten`,
+  `Maschinendaten`; `_Welt` aus Daten statt aus Job und Bibliothek, `neu()`, `vorlauf()`,
+  Fortschritt je Bereich; `kollision_parallel`, `_verteilt`, `_bereiche`, `_maschinendaten`;
+  im Nebenrechner `stueck`, `_pruefung_fuer`; `_beladen` in `_beladen_daten` und
+  `_beladen_koerper` geteilt), `camaddon/gui_kollision.py`, `camaddon/simultan_planung.py`,
+  `camaddon/simultan_bereiche.py` (rufen `kollision_parallel`),
+  `tests/test_kollision_verteilt.py` (neu), `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/spezifikation_strategien.md` (16.5).
+
+### AKZEPTANZKRITERIUM
+„Auf der Maschine prüfen“ → „Kollision prüfen“ am Freiformbeispiel (45 683 Stationen, G550)
+liefert dieselben Befunde wie bisher und braucht auf Manuels Rechner 54 s statt 307 s; die
+Auslastung zeigt alle Kerne.
+
+### DONE
+- Die Prüfung läuft in Stücken von Stationen auf den Nebenrechnern. Jeder bekommt die Maschine
+  als Dokumentkopie (in der Grundstellung der Prüfung – das Fenster hat sie vielleicht verfahren,
+  danach steht sie wieder, wo sie stand) und einmal die Daten: Stationen und wirksame Stellungen,
+  Achsen als Nummern in der Kette, Operationen als Namen und Zahlen, das Teil und die Backen als
+  BREP, Werkzeuge als Maße und Halter, die Bestückung des Revolvers als Einträge. So braucht kein
+  Nebenrechner den Job – auch die virtuellen Jobs des Simultanvergleichs gehen so.
+- Jedes Stück beginnt mit einem Vorlauf: die geraden Vorschubwege seiner Operation davor (nur die
+  letzten VORSCHUBWEGE, von hinten gezählt), ohne Abstände zu rechnen – ein Eilgang auf dem
+  eigenen Vorschubweg bleibt auch dann kein Befund, wenn das Stück mitten darin beginnt. Die
+  Schranken fangen je Stück neu an: mehr Rechnungen (113 509 Stellen in beiden Läufen – kein
+  Unterschied am Beispiel), nie andere Befunde. Zusammengeführt wird wie in einem Lauf: je
+  Operation und Paar die kleinste Entfernung, bei Gleichstand die frühere; Hinweise einmal.
+- Die Stücke sind klein (48 je Arbeiter, mindestens 20 Stationen), weil die Stationen sehr
+  verschieden teuer sind: 4 je Arbeiter 83 s, 16 → 60 s, 48 → 54 s. Körper, Paare und
+  Drehfaktoren bleiben je Arbeiter stehen (`_welt_im_arbeiter`), ein Stück kostet nur seine
+  Stationen. Unter PARALLEL_AB Stationen, ohne Nebenrechner oder wenn sie scheitern (Warnung im
+  Report-Fenster) rechnet `kollision_parallel` wie bisher im eigenen Prozess.
+- Gemessen (Freiformbeispiel, 24 Kerne/12 physische): ein Prozess 306,6 s, Nebenrechner 53,8 s
+  (24 Arbeiter) bzw. 55,6 s (12 Arbeiter) – SMT bringt hier nichts; die letzten 10 % der
+  Stationen (das Ende des Schlichtens, dicht am Teil) brauchen ein Viertel der Zeit. Der Aufbau je
+  Arbeiter (Maschine öffnen, Prüfung, Welt) liegt unter 0,1 s. Die Eilgänge ins Rohteil (0,7 s)
+  rechnet der eigene Prozess, während die Stücke laufen.
+- Nicht gemacht: Halter und Spindel mit numpy statt OpenCascade (Hebel 2 in 16.5) – das senkt die
+  Kosten je Stelle, kommt als eigener Patch.
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_kollision.py` OK (4 s, unverändert – der Umbau der Welt
+  ändert nichts in einem Lauf), `tests/test_kollision_verteilt.py` OK (3 s: gleiche Befunde in
+  Stücken, auch mit Stücken von drei Stationen, mit verfahrener Maschine, Abbrechen, Rückfall),
+  Messung am Freiformbeispiel (Skript im Scratch-Ordner, keine Prüfung).
+
 ## P-2026-10-09-07 nebenrechner-pool
 
 ### EINGELESEN
