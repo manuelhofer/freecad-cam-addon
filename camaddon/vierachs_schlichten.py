@@ -32,6 +32,7 @@ import numpy as np
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import fraeserform as ff
 from . import freiwege as fw
 from . import namen
@@ -87,6 +88,7 @@ class RundumSchlichten(PathOp.ObjectOp):
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück. Das Muster (seit
         0.34) bekommen ältere Operationen als Spirale – ihre Bahn bleibt."""
+        au.eigenschaft_rundum(obj, vo.GRUPPE)  # die Auflösung rundum (Grad je Punkt), T-009
         neu = vo.eigenschaften_anlegen(
             obj,
             vo.achs_eigenschaften()
@@ -202,6 +204,7 @@ def rechne(obj, job, modell):
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         querachse=bool(getattr(obj, "Querachse", False)),
         anstellen=bool(getattr(obj, "Anstellen", True)),
+        schritt_phi=au.wert_rundum(obj, vb.SCHRITT_PHI_SCHLICHTEN),
     )
 
 
@@ -239,6 +242,7 @@ def bahn_fuer(
     nur_gleichlauf=False,
     querachse=False,
     anstellen=True,
+    schritt_phi=vb.SCHRITT_PHI_SCHLICHTEN,
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
@@ -267,7 +271,7 @@ def bahn_fuer(
         anstellen=vb.ANSTELLEN_QUER if anstellen else 0.0,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
-    return vb.schlichten(teil, laengs, radial, werte)
+    return vb.schlichten(teil, laengs, radial, werte, schritt_phi)
 
 
 def vorschau(

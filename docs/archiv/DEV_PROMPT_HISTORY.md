@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-18 aufloesung-im-vierachs-assistenten
+
+### EINGELESEN
+- T-009, Teil 3 (Manuel, 2026-10-09: „die Auflösung bei jeder Strategie einstellbar … in mm,
+  immer mit verständlicher Erklärung“). `vierachs_bahn.schruppen(…, schritt_a, schritt_phi)` und
+  `vierachs_bahn.schlichten(…, schritt_phi)` hatten die Schritte als Parameter, `vierachs_operation`
+  und `vierachs_schlichten` reichten sie nicht durch; der 4-Achs-Assistent baut seine Felder mit
+  `zahlenfeld` (mm) und liest sie mit `_wert`.
+
+### DATEIEN
+- `camaddon/aufloesung.py` (`RasterRundum` in Grad: `eigenschaft_rundum`, `wert_rundum`,
+  `setze_rundum`), `camaddon/vierachs_operation.py` (Eigenschaften `Raster` und `RasterRundum`,
+  `bahn_fuer(…, schritt_a, schritt_phi)`, `rechne` damit), `camaddon/vierachs_schlichten.py`
+  (`RasterRundum`, `bahn_fuer(…, schritt_phi)`), `camaddon/gui_vierachs.py` (Felder „Auflösung
+  längs“ (mm) und „Auflösung rundum“ (°) beim Schruppen, „Auflösung rundum“ beim Schlichten;
+  `_aufloesung`, `_aufloesung_setzen`, beim Anlegen, Ändern und Laden), `translations/de.json`,
+  `translations/en.json` (`va.aufloesung*`, `au.eigenschaft.raster_rundum`), `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.207.0).
+
+### AKZEPTANZKRITERIUM
+Assistent „Bearbeitung rundum“, Schritt 2: Unter „Rundum schruppen“ stehen „Auflösung längs“
+(grau 0,25 mm) und „Auflösung rundum“ (grau 1°), unter „Rundum schlichten“ „Auflösung rundum“
+(grau 0,5°), je mit Tooltip; ein Eintrag landet als `Raster`/`RasterRundum` an der Operation und
+ändert ihre Bahn, leer bleibt alles wie bisher.
+
+### DONE
+- Rundum ist die Auflösung zweiteilig – längs der Stange in Millimetern, rundum in Grad je
+  Punkt –, darum zwei Eigenschaften und zwei Felder; das Gradfeld über `zahlenfeld(…, "°")`.
+- Die Vorschau im Assistenten bleibt grob wie bisher (`VORSCHAU_SCHRITT_PHI`); der Tooltip sagt es.
+- Plan indexiert und Rundum entgraten: ohne Feld – ihre Schritte sitzen tief in der Bahn, wie
+  bei Entgraten 3D und Flanke (offen im Snapshot).
+- Damit ist T-009 gebaut: Bahnfeinheit im 5-Achs-Vergleich (P-14/-15), „Auflösung“ in
+  „Bearbeitung“ (P-17) und im 4-Achs-Assistenten (P-18).
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_sprache.py` OK, `tests/test_aufloesung.py` OK,
+  `tests/test_vierachs_bahn.py` OK, `tests/test_vierachs_schlichten.py` OK (94 s),
+  `tests/test_vierachs_operation.py` OK – die Vorgaben ändern keine Bahn;
+  `szenario_vierachs_schruppen` OK (35 s) und `szenario_vierachs_schlichten` OK (61 s, gamescope
+  ohne Fenster; die Bilder zeigen die Felder mit grauem Vorschlag). Ob die Erklärung trägt,
+  prüft Manuel.
+
 ## P-2026-10-09-17 aufloesung-je-strategie
 
 ### EINGELESEN

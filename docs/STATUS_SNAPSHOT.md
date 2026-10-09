@@ -623,8 +623,10 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   verfeinert von selbst (75, 50, 25, 12,5 %; die Kuppel besteht bei 75 %: 98 → 74 s, die
   Freiform bei 25 %). Gebaut (P-2026-10-09-17): Feld „Auflösung“ je
   Strategie-Block in „Bearbeitung“ (Planfräsen, Räumen, Kontur, Entgraten, Bleistift, 3D-Schruppen,
-  3D-Schlichten), Eigenschaft `Raster` an der Operation. Offen: (3) dasselbe im 4-Achs-Assistenten
-  (0,5 mm längs, 1° rundum); Entgraten 3D und Flanke (Schritt ohne Parameter nach außen).
+  3D-Schlichten), Eigenschaft `Raster` an der Operation. Gebaut (P-2026-10-09-18): im 4-Achs-Assistenten „Auflösung längs“ (mm)
+  und „Auflösung rundum“ (°) beim Schruppen, „Auflösung rundum“ beim Schlichten. Offen: Plan
+  indexiert, Rundum entgraten, Entgraten 3D und Flanke (ihr Schritt sitzt ohne Parameter in der
+  Bahn) – nur, wenn Manuel es dort braucht.
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit

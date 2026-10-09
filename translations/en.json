@@ -1470,6 +1470,10 @@
     "va.steigung.tooltip": "How far the spiral advances along the bar per revolution (ae) – at most the cutter diameter. Empty uses the grey suggestion from the use case.",
     "va.aufmass": "Finishing allowance",
     "va.aufmass.tooltip": "This much stays all round – for finishing.",
+    "va.aufloesung": "Resolution along",
+    "va.aufloesung.tooltip": "The grid along the bar in mm the path is computed on: finer is more exact and takes longer, coarser is faster. Empty: {vorschlag} mm. The preview here stays coarse; the value applies to the operation.",
+    "va.aufloesung_rundum": "Resolution around",
+    "va.aufloesung_rundum.tooltip": "The grid around the bar in degrees per point: finer is more exact and takes longer, coarser is faster. Empty: {vorschlag}°. The preview here stays coarse; the value applies to the operation.",
     "va.ueberlauf": "Overrun",
     "va.ueberlauf.tooltip": "This far the centre of the cutter runs behind the part, continuing the profile of the part's end straight: the rear edge gets finished, and when parting off the blade meets a straight piece instead of a slope it would wander on. Behind that the material stays – it holds the part. Suggestion: parting width + 0.5 mm.",
     "va.abstand_futter": "Chuck distance",
@@ -2607,5 +2611,6 @@
     "sb.fehler.tcpm": "Partial regions are qualified only without TCPM; output uses the qualified machine mapping without TCPM.",
     "sb.hinweis.ausgelassen": "Cutting stroke {zug}: unmachined – omitted: {grund}",
     "rm3.fehler.bahn_budget": "The spatial NC sequence exceeds the computation budget; the original stock state is retained.",
-    "au.eigenschaft.raster": "The grid in mm the operation computes its path on – finer is more exact and takes longer; 0: the strategy's proposal."
+    "au.eigenschaft.raster": "The grid in mm the operation computes its path on – finer is more exact and takes longer; 0: the strategy's proposal.",
+    "au.eigenschaft.raster_rundum": "The grid around the bar in degrees the operation computes its path on – finer is more exact and takes longer; 0: the strategy's proposal."
 }

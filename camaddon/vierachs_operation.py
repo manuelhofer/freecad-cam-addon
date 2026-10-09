@@ -24,6 +24,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import fraeserform as ff
 from . import freiwege as fw
 from . import namen
@@ -78,6 +79,8 @@ class RundumSchruppen(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)  # die Auflösung längs (mm) und rundum (Grad), T-009
+        au.eigenschaft_rundum(obj, GRUPPE)
         return eigenschaften_anlegen(
             obj,
             achs_eigenschaften()
@@ -216,6 +219,8 @@ def rechne(obj, job, modell, fraeser_radius):
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         form=form_des_controllers(obj.ToolController),
         querachse=bool(getattr(obj, "Querachse", False)),
+        schritt_a=au.wert(obj, vh.SCHRITT_A),
+        schritt_phi=au.wert_rundum(obj, vh.SCHRITT_PHI),
     )
 
 
@@ -239,6 +244,8 @@ def bahn_fuer(
     form=None,
     r_tiefste=-math.inf,
     querachse=False,
+    schritt_a=vh.SCHRITT_A,
+    schritt_phi=vh.SCHRITT_PHI,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -278,7 +285,7 @@ def bahn_fuer(
         r_tiefste=r_tiefste,
         querachse=querachse,
     )
-    return vb.schruppen(vh.vernetze(teil), laengs, radial, werte)
+    return vb.schruppen(vh.vernetze(teil), laengs, radial, werte, schritt_a, schritt_phi)
 
 
 def stange(job, laengs):

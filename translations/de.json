@@ -1470,6 +1470,10 @@
     "va.steigung.tooltip": "So weit rückt die Spirale je Umdrehung längs vor (ae) – höchstens der Fräserdurchmesser. Leer gilt der graue Vorschlag aus dem Einsatz.",
     "va.aufmass": "Schlichtaufmaß",
     "va.aufmass.tooltip": "So viel bleibt rundum stehen – fürs Schlichten.",
+    "va.aufloesung": "Auflösung längs",
+    "va.aufloesung.tooltip": "Das Raster längs der Stange in mm, in dem die Bahn gerechnet wird: feiner ist genauer und dauert länger, gröber schneller. Leer: {vorschlag} mm. Die Vorschau hier bleibt grob; der Wert gilt für die Operation.",
+    "va.aufloesung_rundum": "Auflösung rundum",
+    "va.aufloesung_rundum.tooltip": "Das Raster rundum in Grad je Punkt: feiner ist genauer und dauert länger, gröber schneller. Leer: {vorschlag}°. Die Vorschau hier bleibt grob; der Wert gilt für die Operation.",
     "va.ueberlauf": "Überlauf",
     "va.ueberlauf.tooltip": "So weit fährt die Mitte des Fräsers hinter das Teil und fräst dabei das Profil des Teilendes gerade weiter: Die Kante hinten wird fertig, und das Stechschwert trifft beim Abstechen auf ein gerades Stück statt auf eine Schräge, an der es verläuft. Dahinter bleibt das Material – es hält das Teil. Vorschlag: Abstechbreite + 0,5 mm.",
     "va.abstand_futter": "Abstand zum Futter",
@@ -2607,5 +2611,6 @@
     "sb.fehler.tcpm": "Teilbereiche sind nur ohne TCPM geprüft; Ausgabe mit der geprüften Maschinenabbildung ohne TCPM.",
     "sb.hinweis.ausgelassen": "Schnittzug {zug}: unbearbeitet – ausgelassen: {grund}",
     "rm3.fehler.bahn_budget": "Die räumliche NC-Folge überschreitet das Rechenbudget; der ursprüngliche Materialstand bleibt erhalten.",
-    "au.eigenschaft.raster": "Das Raster in mm, in dem die Operation ihre Bahn rechnet – feiner ist genauer und dauert länger; 0: der Vorschlag der Strategie."
+    "au.eigenschaft.raster": "Das Raster in mm, in dem die Operation ihre Bahn rechnet – feiner ist genauer und dauert länger; 0: der Vorschlag der Strategie.",
+    "au.eigenschaft.raster_rundum": "Das Raster rundum in Grad, in dem die Operation ihre Bahn rechnet – feiner ist genauer und dauert länger; 0: der Vorschlag der Strategie."
 }

@@ -49,6 +49,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
+from . import aufloesung as au
 from . import bestueckung as bs
 from . import fraeserform as ff
 from . import halter as hl
@@ -61,6 +62,7 @@ from . import vierachs_bahn as vb
 from . import vierachs_entgratbahn as ve
 from . import vierachs_entgraten as vent
 from . import vierachs_flaechen as vf
+from . import vierachs_huelle as vh
 from . import vierachs_operation as vo
 from . import vierachs_plan as vplan
 from . import vierachs_planbahn as vp
@@ -788,6 +790,17 @@ class VierachsPanel:
                 self.schruppen_querachse.isEnabled() and bool(getattr(op, "Querachse", False))
             )
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
+        # Die Auflösung: nur ein gesetzter Wert (0 ist der Vorschlag und bleibt grau).
+        if self._art == SCHLICHTEN:
+            grad = au.wert_rundum(op, 0.0)
+            if grad > 0:
+                self._feld("aufloesung_schlichten").setText(zahl_zeigen(grad))
+        elif self._art == SCHRUPPEN:
+            laengs, grad = au.wert(op, 0.0), au.wert_rundum(op, 0.0)
+            if laengs > 0:
+                self._feld("aufloesung").setText(groesse_zeigen(laengs, einheiten.LAENGE))
+            if grad > 0:
+                self._feld("aufloesung_rundum").setText(zahl_zeigen(grad))
         self.gewaehlte = list(vo.flaechen(op))
         self._flaechen_zeigen()
         for feld, wert in paare:
@@ -1081,12 +1094,37 @@ class VierachsPanel:
         aufbau = QtGui.QVBoxLayout(seite)
         aufbau.setContentsMargins(0, 0, 0, 0)
 
-        def zahlenfeld(felder, name, text, tooltip, reihen):
+        def zahlenfeld(felder, name, text, tooltip, reihen, einheit=None):
             eingabe = QtGui.QLineEdit()
             eingabe.setValidator(Zahlenpruefer(eingabe))
             eingabe.textChanged.connect(lambda _text: self._vorschau_starten())
             felder[name] = eingabe
-            reihen.reihe(text, tooltip, mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)))
+            reihen.reihe(
+                text, tooltip, mit_einheit(eingabe, einheit or einheiten.einheit(einheiten.LAENGE))
+            )
+
+        def aufloesungsfelder(felder, reihen, laengs, rundum):
+            """Die Auflösung (T-009): längs in mm (`laengs`, None: keins) und rundum in Grad
+            (`rundum`) – leer gilt der Vorschlag, der grau im Feld steht."""
+            if laengs is not None:
+                zahlenfeld(
+                    felder,
+                    "aufloesung",
+                    tr("va.aufloesung"),
+                    tr("va.aufloesung.tooltip", vorschlag=groesse_zeigen(laengs, einheiten.LAENGE)),
+                    reihen,
+                )
+                felder["aufloesung"].setPlaceholderText(groesse_zeigen(laengs, einheiten.LAENGE))
+            name = "aufloesung_rundum" if laengs is not None else "aufloesung_schlichten"
+            zahlenfeld(
+                felder,
+                name,
+                tr("va.aufloesung_rundum"),
+                tr("va.aufloesung_rundum.tooltip", vorschlag=zahl_zeigen(rundum)),
+                reihen,
+                "°",
+            )
+            felder[name].setPlaceholderText(zahl_zeigen(rundum))
 
         def haken(text, tooltip, umgeschaltet, an=False):
             kasten = QtGui.QCheckBox(text)
@@ -1200,6 +1238,7 @@ class VierachsPanel:
             ("aufmass", tr("va.aufmass"), tr("va.aufmass.tooltip")),
         ):
             zahlenfeld(self.felder_schruppen, feld, text, tooltip, schruppen)
+        aufloesungsfelder(self.felder_schruppen, schruppen, vh.SCHRITT_A, vh.SCHRITT_PHI)
         # Mit gewählten Flächen die Zeilen nur im Gleichlauf (P-2026-10-02-26).
         self.schruppen_nur_gleichlauf = QtGui.QCheckBox(tr("ba.nur_gleichlauf"))
         self.schruppen_nur_gleichlauf.setToolTip(tr("va.schruppen.nur_gleichlauf.tooltip"))
@@ -1254,6 +1293,7 @@ class VierachsPanel:
         self.kammhoehe = self._grau()
         self.kammhoehe.hide()  # erst, wenn es eine Kammhöhe gibt
         schlichten.ganz(self.kammhoehe)
+        aufloesungsfelder(self.felder_schlichten, schlichten, None, vb.SCHRITT_PHI_SCHLICHTEN)
         zahlenfeld(
             self.felder_schlichten,
             "aufmass_schlichten",
@@ -3078,6 +3118,12 @@ class VierachsPanel:
             return vs.AUFMASS
         if feld == "aufmass":
             return vo.AUFMASS
+        if feld == "aufloesung":
+            return vh.SCHRITT_A
+        if feld == "aufloesung_rundum":
+            return vh.SCHRITT_PHI
+        if feld == "aufloesung_schlichten":
+            return vb.SCHRITT_PHI_SCHLICHTEN
         if feld in ("ueberlauf", "abstand_futter", "sicherheit"):
             radius = self.fraeser().durchmesser / 2 if self.fraeser() is not None else 0.0
             ueberlauf, abstand, sicherheit = vo.vorgeschlagene_abstaende(radius, self.job)
@@ -3099,6 +3145,27 @@ class VierachsPanel:
             or self.felder_plan.get(feld)
             or self.felder_entgraten[feld]
         )
+
+    def _aufloesung(self, feld):
+        """Die eingetragene Auflösung des Felds (mm bzw. Grad) – 0, wenn leer oder ungültig:
+        dann gilt der Vorschlag der Operation (aufloesung.py)."""
+        text = self._feld(feld).text()
+        if not text.strip():
+            return 0.0
+        try:
+            if feld == "aufloesung":
+                return max(0.0, groesse_lesen(text, einheiten.LAENGE))
+            return max(0.0, zahl_lesen(text))
+        except ValueError:
+            return 0.0
+
+    def _aufloesung_setzen(self, op, schlichten=False):
+        """Trägt die eingetragene Auflösung an die Operation (0 = Vorschlag)."""
+        if schlichten:
+            au.setze_rundum(op, self._aufloesung("aufloesung_schlichten"))
+        else:
+            au.setze(op, self._aufloesung("aufloesung"))
+            au.setze_rundum(op, self._aufloesung("aufloesung_rundum"))
 
     def _wert(self, feld):
         """Wert eines Felds in Schritt 2 (mm); leer oder ungültig gilt der Vorschlag."""
@@ -3831,21 +3898,21 @@ class VierachsPanel:
                         self.werkstoff(),
                         self._programmnummer(self.fraeser()),
                     )
-                    angelegt.append(
-                        vo.lege_an(
-                            self.job,
-                            tc,
-                            achse,
-                            *werte,
-                            quer_auf_null=achse.quer,
-                            abstaende=(ueberlauf, abstand, sicherheit),
-                            halter=self._halter_fuer(self.fraeser()),
-                            flaechen_=flaechen,
-                            eintauchwinkel=self._eintauchwinkel(),
-                            nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
-                            querachse=self.querachse_schruppen(),
-                        )
+                    neu_schruppen = vo.lege_an(
+                        self.job,
+                        tc,
+                        achse,
+                        *werte,
+                        quer_auf_null=achse.quer,
+                        abstaende=(ueberlauf, abstand, sicherheit),
+                        halter=self._halter_fuer(self.fraeser()),
+                        flaechen_=flaechen,
+                        eintauchwinkel=self._eintauchwinkel(),
+                        nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
+                        querachse=self.querachse_schruppen(),
                     )
+                    self._aufloesung_setzen(neu_schruppen)
+                    angelegt.append(neu_schruppen)
                 if schlichten:
                     tc = js.controller_ohne_transaktion(
                         self.doc,
@@ -3855,23 +3922,23 @@ class VierachsPanel:
                         self.werkstoff(),
                         self._programmnummer(self.schlichtfraeser()),
                     )
-                    angelegt.append(
-                        vs.lege_an(
-                            self.job,
-                            tc,
-                            achse,
-                            self._wert("schrittweite"),
-                            self._wert("aufmass_schlichten"),
-                            quer_auf_null=achse.quer,
-                            abstaende=schlicht_abstaende,
-                            halter=self._halter_fuer(self.schlichtfraeser()),
-                            flaechen=schlicht_flaechen,
-                            muster=muster,
-                            nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
-                            querachse=self.querachse(),
-                            anstellen=self.anstellen(),
-                        )
+                    neu_schlichten = vs.lege_an(
+                        self.job,
+                        tc,
+                        achse,
+                        self._wert("schrittweite"),
+                        self._wert("aufmass_schlichten"),
+                        quer_auf_null=achse.quer,
+                        abstaende=schlicht_abstaende,
+                        halter=self._halter_fuer(self.schlichtfraeser()),
+                        flaechen=schlicht_flaechen,
+                        muster=muster,
+                        nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
+                        querachse=self.querachse(),
+                        anstellen=self.anstellen(),
                     )
+                    self._aufloesung_setzen(neu_schlichten, schlichten=True)
+                    angelegt.append(neu_schlichten)
                 if plan:
                     plan_flaechen, loecher = self._plan_flaechen()
                     tc = js.controller_ohne_transaktion(
@@ -3996,6 +4063,7 @@ class VierachsPanel:
                         querachse=self.querachse(),
                         anstellen=self.anstellen(),
                     )
+                    self._aufloesung_setzen(op, schlichten=True)
                 elif self._art == PLAN:
                     tc = js.controller_fuer(
                         self.doc,
@@ -4059,6 +4127,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                         querachse=self.querachse_schruppen(),
                     )
+                    self._aufloesung_setzen(op)
                 if schlichten_dazu:
                     tc_neu = js.controller_ohne_transaktion(
                         self.doc,
@@ -4068,20 +4137,23 @@ class VierachsPanel:
                         self.werkstoff(),
                         self._programmnummer(self.schlichtfraeser()),
                     )
-                    vs.lege_an(
-                        self.job,
-                        tc_neu,
-                        self.achse(),
-                        self._wert("schrittweite"),
-                        self._wert("aufmass_schlichten"),
-                        quer_auf_null=op.QuerAufNull,
-                        abstaende=schlicht_abstaende,
-                        halter=self._halter_fuer(self.schlichtfraeser()),
-                        flaechen=schlicht_flaechen,
-                        muster=muster,
-                        nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
-                        querachse=self.querachse(),
-                        anstellen=self.anstellen(),
+                    self._aufloesung_setzen(
+                        vs.lege_an(
+                            self.job,
+                            tc_neu,
+                            self.achse(),
+                            self._wert("schrittweite"),
+                            self._wert("aufmass_schlichten"),
+                            quer_auf_null=op.QuerAufNull,
+                            abstaende=schlicht_abstaende,
+                            halter=self._halter_fuer(self.schlichtfraeser()),
+                            flaechen=schlicht_flaechen,
+                            muster=muster,
+                            nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
+                            querachse=self.querachse(),
+                            anstellen=self.anstellen(),
+                        ),
+                        schlichten=True,
                     )
                 if plan_dazu:
                     plan_flaechen, loecher = self._plan_flaechen()

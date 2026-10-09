@@ -238,6 +238,7 @@ Y axis).</li>
 <p>The values sit on the operation in the group “4-Achs” and can be changed
 there; the path is then recalculated.</p>
 
+<p><b>Resolution along</b> and <b>Resolution around</b> – the grid the path is computed on: along the bar in millimetres (proposal 0.25), around it in degrees per point (proposal 1). Finer is more exact and takes longer to compute, coarser is faster; empty means the proposal. The values are stored on the operation as <b>Raster</b> and <b>RasterRundum</b>. The coarse preview in the wizard is computed independently.</p>
 <h3>Step 2: all-round finishing</h3>
 <p>After roughing, one spiral runs on the part: the tip follows the surface
 plus allowance – calculated with the cutter's real shape, meshed to 0.005 mm
@@ -292,6 +293,7 @@ one pass. How much that is at most shows at the operation (“RestHoechstens”)
 is more than allowance + 1 mm, the report view says so – the roughing cutter did
 not get there.</p>
 
+<p><b>Resolution around</b> – the degrees between two points of the finishing spiral (proposal 0.5): finer is more exact and takes longer to compute, coarser is faster; empty means the proposal. The value is stored on the operation as <b>RasterRundum</b>.</p>
 <h3>Step 2: indexed facing</h3>
 <p>For a <b>flat face along the bar</b> – a flat, a wrench flat, the floor of a
 slot: the rotary axis turns the face towards the cutter, and a cutter with a
