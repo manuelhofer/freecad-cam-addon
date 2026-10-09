@@ -40,6 +40,7 @@ Schritt Rückgängig, eine geänderte Stange als einen zweiten davor. Beim
 Schruppen lässt sich dabei ein Schlichten dazunehmen.
 """
 
+import contextlib
 import html
 import math
 
@@ -65,6 +66,7 @@ from . import vierachs_plan as vplan
 from . import vierachs_planbahn as vp
 from . import vierachs_rohteil as vr
 from . import vierachs_schlichten as vs
+from . import vierachs_vorschau as vv
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_maschine import _EnterBleibtImDialog
@@ -553,6 +555,12 @@ class VierachsPanel:
         self._vorschau_uhr.setSingleShot(True)
         self._vorschau_uhr.setInterval(VORSCHAU_MS)
         self._vorschau_uhr.timeout.connect(self._vorschau_rechnen)
+        # Die Vorschau rechnen die Nebenrechner (P-2026-10-09-09): je Bearbeitung ein Auftrag,
+        # die Nummer sagt, ob eine Antwort noch zur letzten Eingabe gehört.
+        self._vorschau_nummer = 0
+        self._vorschau_auftraege = {}  # Name („schruppen“, „planbohren“ …) -> Auftrag
+        self._vorschau_ergebnisse = {}
+        self._vorschau_gruende = {}
         self.form = self._baue()
         self._beobachter = None
         if operation is not None:
@@ -916,6 +924,7 @@ class VierachsPanel:
         job_merken(self.job)  # Prüfen, Bestückung und Programm nehmen ihn ohne Auswahl
         self._uhr.stop()
         self._vorschau_uhr.stop()
+        self._vorschau_abbrechen()
         if self.einfahren:
             self.einfahren.stopp()
         self._farben_zurueck()
@@ -2279,9 +2288,10 @@ class VierachsPanel:
             return True
         return self.job is not None and any(vo.ist_schruppen(o) for o in js.operationen(self.job))
 
-    def _schlicht_vorschau(self):
-        """Die grobe Schlichtbahn (vierachs_schlichten.vorschau) für Umdrehungen und Zeit – die
-        Kammhöhe steht danach im Fenster. ValueError mit einem Satz, wenn es nicht geht."""
+    def _schlicht_argumente(self):
+        """Die Argumente für die grobe Schlichtbahn (vierachs_vorschau.schlichten, nach Dokument
+        und Job) für Umdrehungen und Zeit – die Kammhöhe steht danach im Fenster. ValueError mit
+        einem Satz, wenn es nicht geht."""
         werkzeug = self.schlichtfraeser()
         if not self._schruppen_da():
             raise ValueError(tr("vs.fehler.ohne_schruppen"))
@@ -2292,11 +2302,9 @@ class VierachsPanel:
             self.kammhoehe.setText(tr("va.kammhoehe", hoehe=hoehe))
             self.kammhoehe.show()
         achse = self.achse()
-        return vs.vorschau(
-            self.job,
-            self.job.Model.Group,
-            achse.laengs,
-            va.radial(achse),
+        return (
+            tuple(achse.laengs),
+            tuple(va.radial(achse)),
             form,
             schrittweite,
             self._wert("aufmass_schlichten"),
@@ -2308,10 +2316,11 @@ class VierachsPanel:
             self._halter_fuer(werkzeug),
             self._schlicht_flaechen(),
             self.muster(),
-            nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
-            querachse=self.querachse(),
-            anstellen=self.anstellen(),
-        )
+        ), {
+            "nur_gleichlauf": self.linien_nur_gleichlauf.isChecked(),
+            "querachse": self.querachse(),
+            "anstellen": self.anstellen(),
+        }
 
     def _schlicht_text(self, bahn):
         """„→ 290 Umdrehungen, etwa 56 min“ (bei Linien längs „→ 126 Linien längs, …“) – und
@@ -2709,25 +2718,25 @@ class VierachsPanel:
         if self.plan_an() != war:
             self._umgeschaltet()
 
-    def _plan_vorschau(self):
-        """Die grobe Bahn „Plan indexiert“ (vierachs_plan.vorschau) für Lagen, Zeilen und Zeit.
-        ValueError mit einem Satz, wenn es nicht geht."""
+    def _plan_argumente(self):
+        """{"plan": Argumente, "planbohren": Argumente} für die grobe Bahn „Plan indexiert“
+        (vierachs_vorschau.plan) für Lagen, Zeilen und Zeit – „planbohren“ nur mit dem Bohrer
+        für die Querbohrungen daneben."""
         werkzeug = self.planfraeser()
         flaechen, loecher = self._plan_flaechen()
-        self.vorschau_planbohren = (
-            self._vorschau_mit(self.bohrer_dazu(), loecher) if loecher else None
-        )
-        return self._vorschau_mit(werkzeug, flaechen)
+        argumente = {"plan": self._plan_argumente_mit(werkzeug, flaechen)}
+        if loecher:
+            argumente["planbohren"] = self._plan_argumente_mit(self.bohrer_dazu(), loecher)
+        return argumente
 
-    def _vorschau_mit(self, werkzeug, flaechen):
-        """vierachs_plan.vorschau mit `werkzeug` (Fräser oder Bohrer) über `flaechen`."""
+    def _plan_argumente_mit(self, werkzeug, flaechen):
+        """Die Argumente für vierachs_vorschau.plan mit `werkzeug` (Fräser oder Bohrer) über
+        `flaechen`."""
         achse = self.achse()
         bohrer = vplan.bohrer_von(werkzeug)
-        return vplan.vorschau(
-            self.job,
-            self.job.Model.Group,
-            achse.laengs,
-            va.radial(achse),
+        return (
+            tuple(achse.laengs),
+            tuple(va.radial(achse)),
             vplan.form_des_bohrers(bohrer) if bohrer else ff.von_werkzeug(werkzeug),
             self._wert("zustellung_plan"),
             self._wert("zeilenabstand"),
@@ -2741,8 +2750,7 @@ class VierachsPanel:
             flaechen,
             self._eintauchwinkel_fuer(werkzeug),
             bohrer,
-            nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
-        )
+        ), {"nur_gleichlauf": self.plan_nur_gleichlauf.isChecked()}
 
     def _plan_text(self, bahn):
         """„→ 2 Lagen, 6 Zeilen, etwa 1 min“ – bei mehreren Flächen mit ihrer Zahl, und was
@@ -2990,16 +2998,14 @@ class VierachsPanel:
         if self.entgraten_an() != war:
             self._umgeschaltet()
 
-    def _entgrat_vorschau(self):
-        """Die grobe Bahn „Rundum entgraten“ (vierachs_entgraten.vorschau) für Kanten und Zeit.
-        ValueError mit einem Satz, wenn es nicht geht."""
+    def _entgrat_argumente(self):
+        """Die Argumente für die grobe Bahn „Rundum entgraten“ (vierachs_vorschau.entgraten)
+        für Kanten und Zeit."""
         werkzeug = self.entgratfraeser()
         achse = self.achse()
-        return vent.vorschau(
-            self.job,
-            self.job.Model.Group,
-            achse.laengs,
-            va.radial(achse),
+        return (
+            tuple(achse.laengs),
+            tuple(va.radial(achse)),
             ff.von_werkzeug(werkzeug),
             self._wert("breite"),
             (
@@ -3009,7 +3015,7 @@ class VierachsPanel:
             ),
             self._halter_fuer(werkzeug),
             self.flaechen(),
-        )
+        ), {}
 
     def _entgrat_text(self, bahn):
         """„→ 4 Kanten, etwa 1 min“ – mit den Kanten, die der Fräser nicht erreicht, und was
@@ -3145,6 +3151,7 @@ class VierachsPanel:
         self.vorschau_plan = None
         self.vorschau_planbohren = None
         self.vorschau_entgraten = None
+        self._vorschau_abbrechen()  # was noch zur Eingabe davor rechnet, ist veraltet
         self._vorschau_uhr.start()  # erst nach einer kurzen Pause rechnen
         self._knoepfe_beschriften()
 
@@ -3194,55 +3201,175 @@ class VierachsPanel:
         if self.vermessung is not None and not _gleiche_stange(self.stange(), self._stange_jetzt):
             self._anwenden()  # die Stange ragt so weit heraus, wie die Fräser hinten brauchen
         self.ausspannen.setText(self._ausspannen_text())
-        gruende = []
-        if schruppen:
-            werkzeug = self.fraeser()
-            self.hinweis_rund.setText(self._rund_text(werkzeug))
-            achse = self.achse()
+        # Je Bearbeitung die Argumente (vierachs_vorschau: Funktion nach Dokument und Job) – ein
+        # ValueError dabei ist schon ein Grund, ohne zu rechnen.
+        self._vorschau_ergebnisse, self._vorschau_gruende = {}, {}
+        auftraege = {}
+        for name, an, argumente in (
+            (SCHRUPPEN, schruppen, self._schrupp_argumente),
+            (SCHLICHTEN, schlichten, self._schlicht_argumente),
+            (PLAN, plan, self._plan_argumente),
+            (ENTGRATEN, entgraten, self._entgrat_argumente),
+        ):
+            if not an:
+                continue
             try:
-                self.vorschau = vo.bahn_fuer(
-                    self.job,
-                    self.job.Model.Group,
-                    achse.laengs,
-                    va.radial(achse),
-                    werkzeug.durchmesser / 2,
-                    self._wert("zustellung"),
-                    self._wert("steigung"),
-                    self._wert("aufmass"),
-                    *self._abstaende(),
-                    self._halter_fuer(werkzeug),
-                    self.flaechen(),
-                    self._eintauchwinkel(),
-                    nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
-                    form=ff.von_werkzeug(werkzeug),
+                werte = argumente()
+            except ValueError as fehler:
+                self._vorschau_gruende[name] = str(fehler)
+                continue
+            if name == PLAN:
+                auftraege.update(werte)
+            else:
+                auftraege[name] = werte
+        if not self._vorschau_im_hintergrund(auftraege):
+            for name, (args, kwargs) in auftraege.items():
+                try:
+                    self._vorschau_ergebnisse[name] = self._vorschau_selbst(name, args, kwargs)
+                except ValueError as fehler:
+                    self._vorschau_gruende[name] = str(fehler)
+            self._vorschau_abschliessen()
+
+    def _schrupp_argumente(self):
+        """Die Argumente für die Schruppbahn (vierachs_vorschau.schruppen) – genau, für
+        „→ 5 Lagen (Ø 80 → Ø 60,6)“."""
+        werkzeug = self.fraeser()
+        self.hinweis_rund.setText(self._rund_text(werkzeug))
+        achse = self.achse()
+        return (
+            tuple(achse.laengs),
+            tuple(va.radial(achse)),
+            werkzeug.durchmesser / 2,
+            self._wert("zustellung"),
+            self._wert("steigung"),
+            self._wert("aufmass"),
+            *self._abstaende(),
+            self._halter_fuer(werkzeug),
+            self.flaechen(),
+            self._eintauchwinkel(),
+        ), {
+            "nur_gleichlauf": self.schruppen_nur_gleichlauf.isChecked(),
+            "form": ff.von_werkzeug(werkzeug),
+        }
+
+    @staticmethod
+    def _vorschau_funktion(name):
+        """Die Funktion in vierachs_vorschau zum Namen des Auftrags."""
+        return "plan" if name == "planbohren" else name
+
+    def _vorschau_selbst(self, name, args, kwargs):
+        """Eine Vorschau im eigenen Prozess – ohne Nebenrechner, oder wenn einer scheitert."""
+        return getattr(vv, self._vorschau_funktion(name))(self.doc, self.job.Name, *args, **kwargs)
+
+    def _vorschau_im_hintergrund(self, auftraege):
+        """Gibt die Vorschauen {Name: (args, kwargs)} den Nebenrechnern (P-2026-10-09-09): Das
+        Fenster bleibt bedienbar, die Ergebnisse kommen über _vorschau_angekommen. False ohne
+        Nebenrechner – dann rechnet der Aufrufer selbst."""
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        if not auftraege or not pool.verfuegbar():
+            return False
+        self._vorschau_abbrechen()
+        self._vorschau_nummer += 1
+        nummer = self._vorschau_nummer
+        try:
+            kopie = pool.kopie(self.doc)
+            for name, (args, kwargs) in auftraege.items():
+                auftrag = pool.auftrag(
+                    "vierachs_vorschau",
+                    self._vorschau_funktion(name),
+                    kopie,
+                    self.job.Name,
+                    *args,
+                    **kwargs,
+                )
+                auftrag.bei_fertig = lambda a, name=name: self._vorschau_angekommen(nummer, name, a)
+                self._vorschau_auftraege[name] = auftrag
+        except nr.NichtVerfuegbar:
+            self._vorschau_abbrechen()
+            return False
+        for name, etikett in self._vorschau_etiketten().items():
+            if name in auftraege:
+                etikett.setText(tr("va.vorschau.rechnet"))
+        return True
+
+    def _vorschau_etiketten(self):
+        return {
+            SCHRUPPEN: self.ergebnis,
+            SCHLICHTEN: self.ergebnis_schlichten,
+            PLAN: self.ergebnis_plan,
+            ENTGRATEN: self.ergebnis_entgraten,
+        }
+
+    def _vorschau_angekommen(self, nummer, name, auftrag):
+        """Ein Nebenrechner ist mit einer Vorschau fertig: Ergebnis oder Grund merken; sind alle
+        da, zeigen. Antworten auf eine ältere Eingabe (andere Nummer) zählen nicht."""
+        if nummer != self._vorschau_nummer or self.geschlossen:
+            return
+        if auftrag.fehler is None:
+            self._vorschau_ergebnisse[name] = auftrag.ergebnis
+        elif auftrag.fehlerart == "ValueError":
+            self._vorschau_gruende[name] = auftrag.fehlersatz
+        elif not auftrag.abgebrochen:
+            FreeCAD.Console.PrintWarning(
+                f"CAM-Addon: Vorschau „{name}“ auf dem Nebenrechner gescheitert, rechne hier: "
+                f"{auftrag.fehler}\n"
+            )
+            try:
+                self._vorschau_ergebnisse[name] = self._vorschau_selbst(
+                    name, auftrag.args[2:], auftrag.kwargs
                 )
             except ValueError as fehler:
-                gruende.append(str(fehler))
-            else:
-                self.ergebnis.setText(self._lagen_text(self.vorschau))
-        if schlichten:
-            try:
-                self.vorschau_schlichten = self._schlicht_vorschau()
-            except ValueError as fehler:
-                gruende.append(str(fehler))
-            else:
-                self.ergebnis_schlichten.setText(self._schlicht_text(self.vorschau_schlichten))
-        if plan:
-            try:
-                self.vorschau_plan = self._plan_vorschau()
-            except ValueError as fehler:
-                gruende.append(str(fehler))
-            else:
-                self.ergebnis_plan.setText(self._plan_text(self.vorschau_plan))
-        if entgraten:
-            try:
-                self.vorschau_entgraten = self._entgrat_vorschau()
-            except ValueError as fehler:
-                gruende.append(str(fehler))
-            else:
-                self.ergebnis_entgraten.setText(self._entgrat_text(self.vorschau_entgraten))
-        self.hinweis_bearbeitung.setText(" ".join(gruende))
+                self._vorschau_gruende[name] = str(fehler)
+        if all(a.erledigt for a in self._vorschau_auftraege.values()):
+            self._vorschau_auftraege = {}
+            self._vorschau_abschliessen()
+
+    def _vorschau_abschliessen(self):
+        """Die Ergebnisse und Gründe ins Fenster – wie die Operationen sie rechnen."""
+        e, gruende = self._vorschau_ergebnisse, self._vorschau_gruende
+        self.vorschau = e.get(SCHRUPPEN)
+        self.vorschau_schlichten = e.get(SCHLICHTEN)
+        self.vorschau_plan = e.get(PLAN)
+        self.vorschau_planbohren = e.get("planbohren")
+        self.vorschau_entgraten = e.get(ENTGRATEN)
+        for name, etikett, text in (
+            (SCHRUPPEN, self.ergebnis, self._lagen_text),
+            (SCHLICHTEN, self.ergebnis_schlichten, self._schlicht_text),
+            (PLAN, self.ergebnis_plan, self._plan_text),
+            (ENTGRATEN, self.ergebnis_entgraten, self._entgrat_text),
+        ):
+            etikett.setText(text(e[name]) if e.get(name) is not None else "")
+        self.hinweis_bearbeitung.setText(
+            " ".join(
+                gruende[name]
+                for name in (SCHRUPPEN, SCHLICHTEN, PLAN, "planbohren", ENTGRATEN)
+                if name in gruende
+            )
+        )
         self._knoepfe_beschriften()
+
+    def _vorschau_abwarten(self):
+        """Wartet, bis die Nebenrechner mit der laufenden Vorschau fertig sind – das Fenster
+        verarbeitet dabei seine Ereignisse. Für „Anlegen“, wenn die Vorschau noch fehlt."""
+        from . import nebenrechner as nr
+
+        auftraege = [a for a in self._vorschau_auftraege.values() if not a.erledigt]
+        if not auftraege:
+            return
+        # Was scheiterte, hat _vorschau_angekommen schon behandelt.
+        with contextlib.suppress(nr.Fehler):
+            nr.pool().warten(
+                auftraege, zwischendurch=lambda: QtGui.QApplication.processEvents() or True
+            )
+
+    def _vorschau_abbrechen(self):
+        """Nimmt die Aufträge einer laufenden Vorschau zurück (ihre Nebenrechner enden)."""
+        for auftrag in self._vorschau_auftraege.values():
+            if not auftrag.erledigt:
+                auftrag.abbrechen()
+        self._vorschau_auftraege = {}
 
     def _lage_zeigen(self):
         """Unter jedem angehakten Fräser ein gelber Satz, wenn er auf der gewählten Maschine
@@ -3634,6 +3761,7 @@ class VierachsPanel:
             or (entgraten and self.vorschau_entgraten is None)
         ):
             self._vorschau_rechnen()
+            self._vorschau_abwarten()
         if schruppen and (
             self.fraeser() is None or self.einsatz() is None or self.vorschau is None
         ):

@@ -1516,6 +1516,7 @@
     "va.muster.vorschlag.spirale": "Suggestion: spiral – it goes all round.",
     "va.muster.vorschlag.linien": "Suggestion: lines along the axis – the selected faces do not go all round.",
     "va.kammhoehe": "→ scallop height {hoehe} {e_laenge}",
+    "va.vorschau.rechnet": "… computing",
     "va.schlichten.ergebnis": "→ {umdrehungen} revolutions, about {zeit}",
     "va.schlichten.ergebnis_linien": "→ {linien} lines along the axis, about {zeit}",
     "va.zeit.min": "{min} min",

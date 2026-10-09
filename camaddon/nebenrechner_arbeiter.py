@@ -139,9 +139,11 @@ def hauptschleife():
             kwargs = _aufloesen(kwargs, gemeinsam, dokumente, fortschritt)
             ergebnis = f(*args, **kwargs)
             verbindung.send(("fertig", nummer, ergebnis))
-        except BaseException:  # noqa: BLE001 – jeder Fehler gehört als Text zum Hauptprozess
+        except BaseException as fehler:  # noqa: BLE001 – jeder Fehler gehört zum Hauptprozess
             try:
-                verbindung.send(("fehler", nummer, traceback.format_exc()))
+                verbindung.send(
+                    ("fehler", nummer, traceback.format_exc(), type(fehler).__name__, str(fehler))
+                )
             except (OSError, EOFError):
                 return
 

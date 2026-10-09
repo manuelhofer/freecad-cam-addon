@@ -1516,6 +1516,7 @@
     "va.muster.vorschlag.spirale": "Vorschlag: Spirale – es geht rundum.",
     "va.muster.vorschlag.linien": "Vorschlag: Linien längs – die gewählten Flächen gehen nicht rundum.",
     "va.kammhoehe": "→ Kammhöhe {hoehe} {e_laenge}",
+    "va.vorschau.rechnet": "… rechnet",
     "va.schlichten.ergebnis": "→ {umdrehungen} Umdrehungen, etwa {zeit}",
     "va.schlichten.ergebnis_linien": "→ {linien} Linien längs, etwa {zeit}",
     "va.zeit.min": "{min} min",

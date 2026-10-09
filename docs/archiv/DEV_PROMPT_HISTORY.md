@@ -12,6 +12,58 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-09 vierachs-vorschau-im-hintergrund
+
+### EINGELESEN
+- Manuel, 2026-10-09: „wenn ich in der 4 achs abfrage die seitliche zustellung vom schlichten
+  ändere .. und er die kammhöhe berechnen will ... kommt ein ‚lag‘ zustande wo ich nichts
+  klicken oder machen kann .. sowas muss unbedingt vermieden werden .. lass das im hintergrund
+  rechnen aber so das ich eben die oberfläche weiter bedienen kann“. `gui_vierachs.py`
+  (`_vorschau_rechnen`: nach 400 ms Pause die vier groben Bahnen im Prozess der Oberfläche),
+  `nebenrechner.py`.
+
+### DATEIEN
+- `camaddon/vierachs_vorschau.py` (neu: `schruppen`, `schlichten`, `plan`, `entgraten` nach
+  Dokument und Jobname – die Aufträge), `camaddon/gui_vierachs.py` (`_schrupp_argumente`,
+  `_schlicht_argumente`, `_plan_argumente`, `_entgrat_argumente` statt der rechnenden
+  `_…_vorschau`; `_vorschau_im_hintergrund`, `_vorschau_angekommen`, `_vorschau_abschliessen`,
+  `_vorschau_abbrechen`, `_vorschau_abwarten`, `_vorschau_selbst`), `camaddon/nebenrechner.py`
+  und `camaddon/nebenrechner_arbeiter.py` (ein Fehler kommt mit Art und Satz: `Fehler.art`,
+  `Fehler.satz`, `Auftrag.fehlerart`, `Auftrag.fehlersatz`), `tests/test_nebenrechner.py`,
+  `translations/de.json`, `translations/en.json` (`va.vorschau.rechnet`), `docs/aufbau.md`,
+  `docs/STATUS_SNAPSHOT.md`.
+
+### AKZEPTANZKRITERIUM
+Im Assistenten „Bearbeitung rundum“ bei „Rundum schlichten“ die Schrittweite ändern → die
+Kammhöhe steht sofort da, unter dem Block steht „… rechnet“, Felder und Haken lassen sich
+währenddessen bedienen, und nach der Rechnung steht „→ 221 Umdrehungen, etwa 58 min“ wie bisher.
+
+### DONE
+- Je angehakter Bearbeitung ein Auftrag an die Nebenrechner (Schruppen, Schlichten, Plan – mit
+  einem zweiten für den Bohrer daneben –, Entgraten), alle zugleich: Das Dokument geht als Kopie
+  hin, die Argumente wie bisher, nur die Richtungen als Tupel. Die Ergebnisse (Bahn, Schlichtbahn,
+  Planbahn, Entgratbahn) sind reine Daten und kommen über `bei_fertig` – der QTimer des Pools
+  fragt die Arbeiter ab, nichts blockiert. Sind alle da, schreibt `_vorschau_abschliessen` die
+  Texte und gibt „Anlegen“ frei – genau wie der bisherige Code am Ende von `_vorschau_rechnen`.
+- Jede neue Eingabe bricht ab, was noch zur vorigen rechnet (die Arbeiter enden, neue kommen beim
+  nächsten Auftrag); eine Antwort, die trotzdem noch eintrifft, trägt eine ältere Nummer und zählt
+  nicht. Schließen bricht ebenso ab. „Anlegen“ ohne fertige Vorschau (`_bearbeitung_pruefen`)
+  wartet mit `processEvents`, bis sie da ist.
+- Ein ValueError im Arbeiter (die Bahn geht nicht: kein Schruppen im Job, Werte passen nicht) ist
+  der Grund unter den Feldern wie bisher – dafür bringt der Pool jetzt Art und Satz des Fehlers
+  mit. Jeder andere Fehler im Arbeiter: Warnung im Report-Fenster, die Vorschau rechnet hier.
+  Ohne Nebenrechner rechnet alles wie bisher im eigenen Prozess, über dieselben Funktionen
+  (`vierachs_vorschau` mit dem Dokument selbst) – nur ein Weg für die Argumente.
+- Die Kammhöhe rechnet weiter die Oberfläche selbst (eine Formel, sofort); das Warten galt der
+  groben Schlichtbahn dahinter.
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_nebenrechner.py` OK (3 s), `tests/test_sprache.py` OK,
+  `szenario_vierachs_schlichten` OK (58 s, gamescope ohne Fenster: Schrittweite 0,5 →
+  „Kammhöhe 0,010 mm“ und „221 Umdrehungen, etwa 58 min“ – Bild 3). Ob das Fenster beim Rechnen
+  wirklich bedienbar bleibt, sieht nur Manuel in seinem FreeCAD: Schrittweite ändern und sofort
+  einen Haken klicken.
+
 ## P-2026-10-09-08 kollision-in-stuecken-auf-allen-kernen
 
 ### EINGELESEN

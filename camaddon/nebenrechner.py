@@ -69,7 +69,14 @@ HALLO = "hallo"  # die erste Meldung eines Arbeiters: (HALLO, Nummer, PID)
 
 
 class Fehler(Exception):
-    """Ein Auftrag ist im Arbeiter gescheitert; der Text ist dessen Traceback."""
+    """Ein Auftrag ist im Arbeiter gescheitert; der Text ist dessen Traceback. `art` ist der
+    Name der Ausnahme dort („ValueError“), `satz` ihr Text – für Fehler, die zum Fachlichen
+    gehören (eine Vorschau, die nicht geht), ohne den Traceback zu lesen."""
+
+    def __init__(self, text, art="", satz=""):
+        super().__init__(text)
+        self.art = art
+        self.satz = satz
 
 
 class NichtVerfuegbar(Fehler):
@@ -139,7 +146,9 @@ class Auftrag:
         self.modul, self.funktion, self.args, self.kwargs = modul, funktion, args, kwargs
         self.fertig = False
         self.ergebnis = None
-        self.fehler = None
+        self.fehler = None  # der Traceback aus dem Arbeiter
+        self.fehlerart = ""  # der Name der Ausnahme dort
+        self.fehlersatz = ""  # ihr Text
         self.abgebrochen = False
         self.fortschritt = 0.0
         self.gewicht = 1.0
@@ -352,7 +361,7 @@ class Nebenrechner:
             if a.abgebrochen:
                 raise Abgebrochen(repr(a))
             if a.fehler is not None:
-                raise Fehler(a.fehler)
+                raise Fehler(a.fehler, a.fehlerart, a.fehlersatz)
         return [a.ergebnis for a in auftraege]
 
     def abbrechen(self, auftrag):
@@ -594,6 +603,7 @@ class Nebenrechner:
             auftrag.fertig = True
         elif art == "fehler":
             auftrag.fehler = nachricht[2]
+            auftrag.fehlerart, auftrag.fehlersatz = nachricht[3], nachricht[4]
         else:
             auftrag.fehler = f"unbekannte Meldung {art!r}"
         del self._laufend[nummer]

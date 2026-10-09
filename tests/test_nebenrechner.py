@@ -87,6 +87,7 @@ try:
     pool.warten([pool.auftrag("nebenrechner", "_probe_fehler")])
 except nr.Fehler as fehler:
     assert "ValueError: absichtlich" in str(fehler), str(fehler)
+    assert (fehler.art, fehler.satz) == ("ValueError", "absichtlich"), (fehler.art, fehler.satz)
 else:
     raise AssertionError("Fehler im Arbeiter nicht gemeldet")
 assert pool.warten([pool.auftrag("nebenrechner", "_probe", 2)]) == [4]
