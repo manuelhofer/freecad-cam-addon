@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-03 simultan-pruefung-geeicht
+
+### EINGELESEN
+- Manuel, 2026-10-09: „Aber du kannst doch die generierten Bahnen gegen unsere Ansprüche
+  prüfen?? Und mir sagen, wenn was doof ist“ – Befund 1 aus der Durchsicht von Codex' Freiform-
+  Beispiel: Der Vergleich rechnet jede Variante mit Grathöhe ÷ 4, weil seine Prüfung die
+  verlangte Grathöhe sonst nicht annimmt. Zuerst eichen, dann umstellen.
+
+### DATEIEN
+- `camaddon/simultan_abtrag.py` (`bahn_grathoehe`), `tests/test_simultan_eichung.py` (neu),
+  `docs/spezifikation_strategien.md` (16.6 Eichung), `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.203.4).
+
+### AKZEPTANZKRITERIUM
+Ebene Fläche, Kugel Ø 4, Zeilen im genauen Abstand für 0,02 mm: `fahren()` misst 0,02 (±0,002),
+`deckung()` nimmt die geeichte Feinheit bei Dreiecken bis 2 mm an und lehnt 10 % zu weite Zeilen ab.
+
+### DONE
+- `fahren()` (Materialraster) ist richtig: 0,0195 mm Kamm bei Zeilen 0,564 mm, 0,0049 bei
+  halbem Abstand – im 0,1- wie im 0,05-mm-Raster.
+- `deckung()` (ganze Flächenzellen in einer Kapsel) ist um ihre Reserven strenger: Prüfkugel
+  0,002 mm kleiner (NETZ + SEHNENFEHLER), dazu höchstens sieben Unterteilungen. Gemessen mit
+  Zeilen über den Rand hinaus: bis 0,52 mm angenommen (Dreiecke ≤ 1 mm), bis 0,50 (2 mm), ab
+  0,54 abgelehnt; Dreiecke ab 5 mm Kantenlänge immer abgelehnt. Ein erster Messlauf mit Zeilen
+  nur bis zum Rand zeigte scheinbar sprunghaftes Verhalten (0,52 ja, 0,505 nein, 0,45 ja) –
+  das war der ungedeckte Rand, nicht die Prüfung.
+- `bahn_grathoehe(grathoehe) = 0,75 · grathoehe` (Zeilen 0,49 mm bei 0,02) als geeichte
+  Feinheit. Noch nicht eingeschaltet: Der Vergleich rechnet weiter mit ÷ 4, bis die goldenen
+  Referenzen neu erzeugt sind – `test_simultan_planung` endet hier zweimal nach der Messung ohne
+  OK und ohne Fehlertext, im Gesamtlauf vom Kernel bei 7,5 GB abgeschossen; `_gesamt` lief
+  allein in 70 min durch. Umstellen und Referenzen neu: ein eigener Patch, auf einem Rechner mit
+  genug Speicher (Manuels 1.1.4) oder hier, sobald `_planung` durchläuft.
+- Offen für Codex' Prüfung: große ebene Dreiecke (≥ 5 mm) fallen immer durch – tiefer
+  unterteilen oder vorab auf 1 mm teilen.
+
+### TESTS
+- 1.1.3: `tests/test_simultan_eichung.py` (OK, 10 s). black und ruff sauber.
+
 ## P-2026-10-09-02 rundum-schruppen-lange-saetze
 
 ### EINGELESEN

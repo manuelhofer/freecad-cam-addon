@@ -352,6 +352,18 @@ def an_mitte(punkt, radius):
     return Vector(punkt.x, punkt.y, punkt.z + radius)
 
 
+def bahn_grathoehe(grathoehe):
+    """So fein rechnet der Simultanvergleich die Bahn (BahnGrathoehe), damit deckung() sie
+    annimmt: drei Viertel der verlangten Grathöhe. Geeicht an der ebenen Fläche mit der Kugel Ø 4
+    (test_simultan_eichung): bei 0,02 mm misst fahren() den Kamm richtig (0,0195); deckung()
+    nimmt mit ihren Reserven (NETZ, SEHNENFEHLER: 0,002 mm an der Prüfkugel, dazu die Unterteilung
+    der Zellen) Zeilen bis 0,52 mm an, wenn die Dreiecke höchstens 1 mm groß sind, bis 0,50 bei
+    2 mm, und lehnt Dreiecke ab 5 mm Kantenlänge immer ab. 0,75 · 0,02 = 0,015 ergibt Zeilen von
+    0,49 mm. Vorher rechnete der Vergleich fest ein Viertel (0,005 mm, Zeilen 0,28 mm: am
+    Freiformbeispiel 153 statt rund 88 Zeilen, das Schlichten 1,7-mal so lang; P-2026-10-09-03)."""
+    return grathoehe * 0.75
+
+
 def deckung(dreiecke, punkte, radius, hoehe, unsicherheit=NETZ, fortschritt=None):
     """Zählt Flächenzellen, deren Toleranzfläche nicht vollständig im Kugelschnitt liegt.
 
