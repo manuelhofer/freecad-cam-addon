@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-15 simultanvergleich-verfeinert-von-selbst
+
+### EINGELESEN
+- P-2026-10-09-14 (Befund: die richtige Bahnfeinheit hängt am Teil – Kuppel 75 %, Freiform
+  25 %), Manuel, 2026-10-09: „die Auflösung bei jeder Strategie einstellbar … geht ja um jeden
+  [Fall]“; Spezifikation Strategien 16.6 (Eichung), `simultan_planung.py` (Runden).
+
+### DATEIEN
+- `camaddon/simultan_planung.py` (`STUFEN`, `bahnfeinheit()` → (Wert, fest), `Variante.
+  material_abgelehnt`, `werkzeug(…, feinheit)`, Verfeinern nach jeder Runde),
+  `camaddon/gui_simultan_planung.py` (der gefundene Wert steht nach dem Lauf im Feld; je Stufe
+  eine Tabellenzeile, die Feinheit in Klammern hinter der Bahn),
+  `translations/de.json`, `translations/en.json` (`s5p.feinheit.tooltip`, `.hinweis`),
+  `help/de/simultan_planung.html`, `help/en/simultan_planung.html`,
+  `tests/test_simultan_planung.py` (Erwartungen Kuppel und Freiform),
+  `tests/golden/kuppel_simultan.json`, `kuppel_simultan_gesamt.json`,
+  `kuppel_simultan_gesamt_nc.json` (neu: erste Stufe), `docs/STATUS_SNAPSHOT.md`,
+  `docs/spezifikation_strategien.md` (16.6), `package.xml` (0.205.1).
+
+### AKZEPTANZKRITERIUM
+„5-Achs-Schlichten vergleichen …“ mit leerem Feld „Bahn gerechnet für“: an der Kuppel gewinnt
+Ø 12 bei 75 % (Maschinenzeit 74 s statt 98), an der Freiform zeigt die Tabelle die Ø 4 bei 75 %
+und 50 % mit ihrem Materialgrund und bei 25 % zugelassen – dieselbe Bahn wie bisher; der
+gefundene Wert steht danach im Feld.
+
+### DONE
+- Ohne Eingabe beginnt jede Variante bei 75 % der Grathöhe. Lehnt die Prüfung sie nur wegen
+  Rest oder Deckung ab (`material_abgelehnt` – nicht am Flächenrand, nicht an Winkel, Grenzen
+  oder Kollision), rechnet der Vergleich dieselbe Variante (Werkzeug, Richtung, Anstellung) mit
+  der nächsten Stufe (50, 25, 12,5 %) und lässt sie wieder zu – innerhalb derselben Runde, vor
+  der nächsten kleineren Kugel. Ein eingetragener Wert oder eine `BahnGrathoehe` an der
+  Operation gilt fest, ohne Stufen.
+- Gemessen: Kuppel 75 % angenommen, 98,2 → 73,6 s Maschinenzeit, Rest 0,0177 mm; Freiform
+  75 % Rest 0,026 mm, 50 % 1 074 Zellen ungedeckt, 25 % zugelassen (Referenz unverändert) –
+  Rechenzeit der Prüfung 201 → 287 s wegen der zwei Anläufe. Die Kuppel-Referenzen neu, die
+  Freiform-Referenzen gleich.
+- Die Stufen kosten nur, wo sie nötig sind: Der abgelehnte Anlauf endet an der Materialprüfung,
+  vor Maschinenbahn und Kollision.
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_sprache.py` OK, `tests/test_simultan_runden.py` OK,
+  `tests/test_simultan_planung.py` Kuppel OK (schreibend 32 s, Nachlauf 36 s),
+  `tests/test_simultan_gesamt.py` Kuppel OK (38 s), `tests/test_simultan_planung.py` Freiform OK
+  (287 s, Referenz unverändert); `szenario_simultan_planung` OK (427 s, gamescope ohne Fenster –
+  der erste Lauf scheiterte an „Nicht alle gemeinsamen Varianten angezeigt“: Die Tabelle
+  schlüsselte Zeilen ohne die Feinheit, zwei Stufen überschrieben sich; jetzt je Stufe eine
+  Zeile mit dem Wert in Klammern). Ob das Fenster verständlich ist, prüft Manuel.
+
 ## P-2026-10-09-14 bahnfeinheit-sichtbar-und-einstellbar
 
 ### EINGELESEN

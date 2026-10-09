@@ -3215,10 +3215,13 @@ nimmt Zeilen bis 0,52 mm an, wenn die Dreiecke höchstens 1 mm groß sind, bis 0
 Dreiecke ab 5 mm Kantenlänge nie (auch nicht bei halbem Abstand). Der Vergleich rechnet darum
 jede Variante fester mit Grathöhe ÷ 4 (`simultan_planung.py`, `feinheit`): Zeilen 0,28 statt
 0,56 mm, am Freiformbeispiel 153 statt 77 Zeilen, das Schlichten 3,0 statt rund 1,7 min.
-`simultan_abtrag.bahn_grathoehe` (0,75 · Grathöhe, Zeilen 0,49 mm) ist die geeichte Feinheit, die
-`deckung()` sicher annimmt; der Vergleich schaltet darauf um, sobald die goldenen Referenzen
-(`tests/golden`, `beispiele/grob_g550_freiform`) neu erzeugt werden können – das braucht
-`test_simultan_planung` mit mehr als 8 GB Arbeitsspeicher. Offen: `deckung()` für große ebene
+`simultan_abtrag.bahn_grathoehe` (0,75 · Grathöhe, Zeilen 0,49 mm) ist die an der ebenen
+Fläche geeichte Feinheit. **Sie gilt nicht für jedes Teil (P-2026-10-09-14/-15):** Die Kuppel
+nimmt 75 % an (Ø 12, 98 → 74 s), die Freiform mit ihrer gewölbten Erhebung lässt bei 75 % 0,026 mm
+stehen, bei 50 % bleiben 1 074 Zellen ungedeckt, erst 25 % besteht. Darum rechnet der Vergleich
+ohne Angabe in Stufen (`STUFEN`: 75, 50, 25, 12,5 % – dieselbe Variante feiner, wenn nur die
+Materialprüfung ablehnt), und das Feld „Bahn gerechnet für“ im Dialog (sichtbar auch als
+`BahnGrathoehe` an der Operation) legt die Feinheit fest, wer sie kennt. Offen: `deckung()` für große ebene
 Dreiecke (tiefer unterteilen oder die Zellen vor der Prüfung auf 1 mm teilen).
 
 ### 16.7 Rohteil/Fertigteil beim Simultanschlichten (gebaut, P-2026-10-07-04)

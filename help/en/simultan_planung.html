@@ -31,10 +31,12 @@ all the time: reachability and time decide. A precise boundary pass completes op
 <h3>How finely the path is computed</h3>
 <p><b>Path computed for</b> is the scallop height the comparison lays its rows for. It is finer
 than the operation's scallop height because the check keeps reserves: it uses a test sphere
-0.002 mm smaller and requires every surface cell to lie entirely within one cut. Empty means a
-quarter of the scallop height – with 0.02 mm that is 0.005 mm, rows of 0.28 mm with the Ø 4
-ball. The check accepts that even on curved surfaces; a dome accepts 75 % (0.015 mm, rows of
-0.49 mm), the freeform with its bump does not. Smaller: closer rows, longer
+0.002 mm smaller and requires every surface cell to lie entirely within one cut. Empty means: the
+comparison starts at 75 % of the scallop height – with 0.02 mm that is 0.015 mm, rows of 0.49 mm
+with the Ø 4 ball – and recomputes the same variant finer (50, 25, 12.5 %) whenever the check
+rejects it for leftover material or coverage. A dome passes at 75 %; the freeform with its curved
+bump only at 25 % (0.005 mm, rows of 0.28 mm). The value found is shown in the field afterwards
+and counts as fixed on the next run. Smaller: closer rows, longer
 machining, finer surface. Larger, up to the scallop height: fewer rows and shorter machining,
 but the check may reject the path. After applying, the value is stored on the operation
 (<b>BahnGrathoehe</b>) and can be changed there as well as here; 0 means the scallop height.</p>

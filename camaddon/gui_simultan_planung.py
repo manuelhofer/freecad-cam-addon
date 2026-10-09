@@ -295,6 +295,9 @@ class SimultanPanel:
                 self.status.setText(tr("s5p.fehler.keine"))
             else:
                 self.uebernehmen.setEnabled(True)
+                if not self.feinheit.text().strip() and beste.bahngrathoehe > 0:
+                    # Der Wert, mit dem die Bahn bestand – sichtbar, und fest für den nächsten Lauf.
+                    self.feinheit.setText(groesse_zeigen(beste.bahngrathoehe, einheiten.LAENGE, 4))
                 werte = {
                     "werkzeug": beste.werkzeug.Label,
                     "bahn": richtung_text(beste.richtung),
@@ -322,11 +325,14 @@ class SimultanPanel:
         QtCore.QTimer.singleShot(0, self.schritt)
 
     def zeige(self, variante):
+        # Je Stufe der Bahnfeinheit eine eigene Zeile (P-2026-10-09-15): So sieht man, warum
+        # 75 % abgelehnt wurden und wo es bestand.
         key = (
             variante.zwischenlagen,
             variante.werkzeug.Name,
             variante.richtung,
             variante.anstellung,
+            round(variante.bahngrathoehe, 6),
         )
         if key not in self._zeilen:
             self._zeilen[key] = QtGui.QTreeWidgetItem(self.tabelle)
@@ -342,7 +348,16 @@ class SimultanPanel:
         werte = [
             f"{variante.zwischenlagen:g}" if variante.zwischenlagen else "–",
             variante.werkzeug.Label,
-            richtung_text(variante.richtung) if variante.richtung else tr("s5f.schruppen"),
+            (
+                richtung_text(variante.richtung)
+                + (
+                    f" ({groesse_fest(variante.bahngrathoehe, einheiten.LAENGE, 4)} mm)"
+                    if variante.bahngrathoehe > 0
+                    else ""
+                )
+                if variante.richtung
+                else tr("s5f.schruppen")
+            ),
             anstellung_text(variante.anstellung) if variante.anstellung else "–",
             ab.dauer_text(variante.sekunden) if math.isfinite(variante.sekunden) else "–",
             rest,

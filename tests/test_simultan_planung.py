@@ -98,13 +98,24 @@ def pruefung():
         # Runden (P-2026-10-09-04): die größte Kugel zuerst. Ø 12 und Ø 6 scheitern am
         # Flächenrand, erst die Ø 4 wird gerechnet und zugelassen – drei Einträge, nicht jede
         # Kombination.
-        assert gerechnet == [(2, True), (3, True), (4, False)], gerechnet
-        assert all("Flächenrand" in v.grund for v in plan.varianten if v.grund)
+        # Stufen (P-2026-10-09-15): Ø 4 bei 75 % (Rest 0,026 mm) und 50 % (Zellen ungedeckt) vom
+        # Material abgelehnt, bei 25 % zugelassen – wie die bisherige Referenz.
+        assert gerechnet == [(2, True), (3, True), (4, True), (4, True), (4, False)], gerechnet
+        assert all(
+            "Flächenrand" in v.grund
+            for v in plan.varianten
+            if v.grund and v.werkzeug.ToolNumber != 4
+        )
+        assert all(
+            v.material_abgelehnt for v in plan.varianten if v.grund and v.werkzeug.ToolNumber == 4
+        )
+        assert abs(plan.beste.bahngrathoehe - 0.25 * float(op.Grathoehe)) < 1e-9
     else:
         # Die Kappe ist überall erreichbar: Die größte Kugel kommt zuerst dran und gewinnt – der
         # Vergleich hört nach der ersten zugelassenen Variante auf, eine Zeile.
         assert plan.beste.werkzeug.ToolNumber == 2, plan.beste.werkzeug.ToolNumber
         assert gerechnet == [(2, False)], gerechnet
+        assert abs(plan.beste.bahngrathoehe - 0.75 * float(op.Grathoehe)) < 1e-9  # erste Stufe
     assert plan.beste.kollision_geprueft and not plan.beste.befunde
     assert plan.beste.rest <= float(op.Grathoehe)
     assert plan.beste.material_geprueft and not plan.beste.material.gruende

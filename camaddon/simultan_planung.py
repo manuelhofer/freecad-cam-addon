@@ -44,7 +44,12 @@ ANSTELLUNGEN = ("X", "Y", "frei", "frei_gesamt")
 # (Manuel, 2026-10-09: „Ja, mach das so“); an der Kuppel des Szenarios schneidet „entlang der
 # Fläche“ ins Teil, die zweite Stufe findet Zeilen X frei.
 SINNVOLL_RICHTUNG = "flaeche"
-VORGABE_FEINHEIT = 0.25  # Anteil der Grathöhe, für den die Bahn ohne Angabe gerechnet wird
+# Ohne Angabe rechnet der Vergleich die Bahn für diese Anteile der Grathöhe, der Reihe nach: die
+# erste Stufe für jede Variante; lehnt die Prüfung sie nur wegen Rest oder Deckung ab, dieselbe
+# Variante mit der nächsten (P-2026-10-09-15). Die Kuppel nimmt 75 % an, die Freiform mit ihrer
+# gewölbten Erhebung erst 25 % (Rest 0,026 mm bei 75 %, 1 074 Zellen ungedeckt bei 50 %).
+STUFEN = (0.75, 0.5, 0.25, 0.125)
+VORGABE_FEINHEIT = STUFEN[0]
 SINNVOLL_ANSTELLUNGEN = ("frei", "frei_gesamt")
 
 
@@ -80,6 +85,7 @@ class Variante:
     fahrt: object = field(default=None, repr=False)
     zwischenlagen: float = 0.0
     schruppoperation: object = field(default=None, repr=False)
+    material_abgelehnt: bool = False  # nur die Materialprüfung (Rest, Deckung) lehnte ab
 
 
 @dataclass
@@ -352,11 +358,12 @@ def vergleichen(
         pruefung=pruefung,
         sicherheitszustand=_sicherheitszustand(pruefung, bibliothek),
     )
-    feinheit = bahnfeinheit(op, feinheit)
+    feinheit, fest = bahnfeinheit(op, feinheit)
     normalen_cache = {}
 
-    def werkzeug(tc, richtungen, anstellungen):
-        """Die Varianten eines Werkzeugs: gerechnet, am Material und an der Maschine geprüft."""
+    def werkzeug(tc, richtungen, anstellungen, feinheit):
+        """Die Varianten eines Werkzeugs: gerechnet (die Bahn für die Grathöhe `feinheit`), am
+        Material und an der Maschine geprüft."""
         radius = an.radius_von(_Ansicht(op, ToolController=tc))
         aufnahme = pruefung.werkzeugaufnahme(tc.ToolNumber)
         if aufnahme is None:
@@ -409,11 +416,22 @@ def vergleichen(
                     float(op.Aufmass),
                 )
                 rest = messung.rest + messung.unsicherheit
-                if messung.gruende:
-                    raise ValueError("; ".join(messung.gruende))
             except (ValueError, RuntimeError) as fehler:
                 for um in anstellungen:
                     variante = Variante(richtung, um, grund=str(fehler), werkzeug=tc)
+                    plan.varianten.append(variante)
+                    yield plan, variante
+                continue
+            if messung.gruende:
+                for um in anstellungen:
+                    variante = Variante(
+                        richtung,
+                        um,
+                        grund="; ".join(messung.gruende),
+                        werkzeug=tc,
+                        bahngrathoehe=feinheit,
+                        material_abgelehnt=True,
+                    )
                     plan.varianten.append(variante)
                     yield plan, variante
                 continue
@@ -424,6 +442,7 @@ def vergleichen(
                 plan.varianten.append(variante)
                 try:
                     if rest > float(op.Grathoehe) + float(op.Aufmass):
+                        variante.material_abgelehnt = True
                         raise ValueError(tr("s5p.fehler.rest", rest=f"{rest:.3f}"))
                     achsen = an.achsen(
                         befehle,
@@ -544,6 +563,7 @@ def vergleichen(
             )
             if messung.gruende:
                 variante.grund = "; ".join(messung.gruende)
+                variante.material_abgelehnt = True
                 yield plan, variante
                 continue
             variante.material = messung
@@ -588,27 +608,49 @@ def vergleichen(
         davor = len(plan.varianten)
         for tc in werkzeuge:
             if tc.Name not in rand_versagt:
-                yield from werkzeug(tc, r_liste, a_liste)
+                yield from werkzeug(tc, r_liste, a_liste, feinheit)
         yield from zulassen(plan.varianten[davor:])
+        # Feiner (P-2026-10-09-15): Was nur die Materialprüfung ablehnte, noch einmal mit der
+        # nächsten Stufe – bis es besteht oder die Stufen aus sind; nicht bei festem Wert.
+        stufen = (
+            []
+            if fest
+            else [
+                s * float(op.Grathoehe)
+                for s in STUFEN
+                if s * float(op.Grathoehe) < feinheit - 1e-12
+            ]
+        )
+        while plan.beste is None and stufen:
+            stufe = stufen.pop(0)
+            nochmal = []
+            for v in plan.varianten[davor:]:
+                schluessel = (v.werkzeug.Name, v.richtung, v.anstellung)
+                if v.material_abgelehnt and schluessel not in nochmal:
+                    nochmal.append(schluessel)
+            if not nochmal:
+                break
+            davor = len(plan.varianten)
+            for name, richtung, um in nochmal:
+                tc = next(t for t in controller if t.Name == name)
+                yield from werkzeug(tc, (richtung,), (um,), stufe)
+            yield from zulassen(plan.varianten[davor:])
         if plan.beste is not None:
             break
 
 
 def bahnfeinheit(op, feinheit=None):
-    """Die Grathöhe (mm), für die der Vergleich die Bahn rechnet: `feinheit`, wenn angegeben
-    (> 0); sonst die BahnGrathoehe der Operation (> 0); sonst VORGABE_FEINHEIT der verlangten
-    Grathöhe. Nie mehr als die verlangte Grathöhe."""
+    """(Grathöhe in mm, für die der Vergleich die Bahn zuerst rechnet; fest?): `feinheit`, wenn
+    angegeben (> 0), sonst die BahnGrathoehe der Operation (> 0) – beides fest, ohne weitere
+    Stufen; sonst die erste Stufe (STUFEN) der verlangten Grathöhe, und bei Ablehnung die
+    nächsten. Nie mehr als die verlangte Grathöhe."""
     grathoehe = float(op.Grathoehe)
     wert = float(feinheit or 0.0)
     if wert <= 0:
         wert = float(getattr(op, "BahnGrathoehe", 0.0) or 0.0)
-    if wert <= 0:
-        # Vorgabe ein Viertel, nicht die geeichten 75 % (bahn_grathoehe): Die Eichung galt der
-        # ebenen Fläche; die Kuppel nimmt 75 % an, die Freiform mit ihrer gewölbten Erhebung
-        # erst 25 bis 40 % (P-2026-10-09-14: Rest 0,026 mm bei 0,015). Bis der Vergleich von
-        # selbst verfeinert, bleibt die sichere Vorgabe.
-        wert = grathoehe * VORGABE_FEINHEIT
-    return min(wert, grathoehe)
+    if wert > 0:
+        return min(wert, grathoehe), True
+    return grathoehe * STUFEN[0], False
 
 
 def uebernehmen(op, plan):
