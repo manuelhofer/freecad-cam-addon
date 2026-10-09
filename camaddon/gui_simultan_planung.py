@@ -99,6 +99,9 @@ class SimultanPanel:
         self.mit_schruppen.setEnabled(grob is not None)
         self.mit_schruppen.setChecked(grob is not None)
         layout.addWidget(self.mit_schruppen)
+        self.alle = QtGui.QCheckBox(tr("s5p.alle"))
+        self.alle.setToolTip(tr("s5p.alle.tooltip"))
+        layout.addWidget(self.alle)
         self.lagenbereich = QtGui.QWidget()
         zeile = QtGui.QGridLayout(self.lagenbereich)
         zeile.setContentsMargins(0, 0, 0, 0)
@@ -198,11 +201,20 @@ class SimultanPanel:
                     float(sf.schruppen_vor(self.op).Zwischenlagen),
                 )
                 self.laeufer = sf.vergleichen(
-                    self.op, self.pruefung, self.bibliothek, lagen, fortschritt=self.fortschritt
+                    self.op,
+                    self.pruefung,
+                    self.bibliothek,
+                    lagen,
+                    fortschritt=self.fortschritt,
+                    alle=self.alle.isChecked(),
                 )
             else:
                 self.laeufer = sp.vergleichen(
-                    self.op, self.pruefung, self.bibliothek, fortschritt=self.fortschritt
+                    self.op,
+                    self.pruefung,
+                    self.bibliothek,
+                    fortschritt=self.fortschritt,
+                    alle=self.alle.isChecked(),
                 )
         except (ValueError, AttributeError) as fehler:
             self.start.setEnabled(True)
@@ -210,6 +222,7 @@ class SimultanPanel:
             return
         self.mit_schruppen.setEnabled(False)
         self.lagenbereich.setEnabled(False)
+        self.alle.setEnabled(False)
         self.status.setText(tr("s5p.rechnet"))
         QtCore.QTimer.singleShot(0, self.schritt)
 
@@ -227,6 +240,7 @@ class SimultanPanel:
         except StopIteration:
             self.laeufer = None
             self.start.setEnabled(True)
+            self.alle.setEnabled(True)
             self.mit_schruppen.setEnabled(sf.schruppen_vor(self.op) is not None)
             self.lagenbereich.setEnabled(self.mit_schruppen.isChecked())
             beste = self.plan.beste if self.plan else None
@@ -252,6 +266,7 @@ class SimultanPanel:
         except Exception as fehler:
             self.laeufer = None
             self.start.setEnabled(True)
+            self.alle.setEnabled(True)
             self.mit_schruppen.setEnabled(sf.schruppen_vor(self.op) is not None)
             self.lagenbereich.setEnabled(self.mit_schruppen.isChecked())
             self.status.setText(str(fehler))

@@ -74,6 +74,14 @@ Kontaktwinkel oder Last. Der vollständige Vergleich dauerte 982,09 s, der gemei
 Vergleich der vier Materialzweige 1477,59 s. Die vorherigen Berichte und Referenzen
 liegen im lokalen Prüfarchiv.
 
+Seit 0.203.5 (P-2026-10-09-04) rechnet das Addon ohne den Haken „Alle Kombinationen
+vergleichen“ nur die sinnvollen Varianten: die größte Kugel zuerst, entlang der Fläche,
+Frei und Frei – ganze Bahn; wird nichts zugelassen, die übrigen Richtungen, dann die festen
+Anstellungen, dann die nächste kleinere Kugel.
+Am Beispiel sind das zwei Abweisungen am Flächenrand (Ø 12, Ø 6) und zwei gerechnete
+Ø-4-Varianten mit demselben Gewinner. `pruefen.py` rechnet mit `ALLE_KOMBINATIONEN=1`
+weiterhin alle 60.
+
 ## Was geprüft wurde
 
 Der Prüfer fährt vom Quader über das Schruppen bis zum fertigen Teil. Er prüft
@@ -110,5 +118,6 @@ wurde an keiner echten G550 ausgeführt.
 - `vergleich.json`: aktuelle Auswahl und Material-/Zeitbefunde.
 - `freiform_5achs.mpf`, `nc_pruefung.json`: tatsächlicher Export und sein Prüfbericht.
 - `beispiel_werkzeuge.json`, `assets/`: Werkzeug- und Halterdaten.
-- `erstellen.py`, `pruefen.py`: nachbauen bzw. alle aktuellen Varianten vergleichen.
+- `erstellen.py`, `pruefen.py`: nachbauen bzw. die sinnvollen Varianten vergleichen
+  (`ALLE_KOMBINATIONEN=1`: alle 60).
 - `starten.sh`, `anzeigen.FCMacro`: im eigenen Profil öffnen.

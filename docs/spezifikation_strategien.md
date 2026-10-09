@@ -3069,6 +3069,23 @@ Modellprüfung ohne Befund. [Beispiel und vollständiger Bericht](../beispiele/g
 Übernahme, identische gespeicherte Bahn, Rückgängig und Schutz vor veralteten Eingaben
 in FreeCAD 1.1.4 geprüft. Der Mittelpunkt der Kugel bleibt beim Anstellen erhalten.
 
+**Sinnvolle Varianten (P-2026-10-09-04, 0.203.5):** Manuel, 2026-10-09: „Die Durchmesser 4
+Variante warum müssen wir die Prüfen??“ → „Ja, mach das so.“ Der Vergleich rechnete jede
+Kombination voll durch – am Beispiel 60, davon 58 abgewiesen, 16 min auf 24 Kernen (Befund 4 der
+Durchsicht von Codex' Beispiel). Jetzt in Runden (`_runden`): je Kugel, die größte zuerst – mit
+den weitesten Zeilen die schnellste, wenn sie überall hinkommt –, drei Stufen: entlang der Fläche
+mit den Anstellungen Frei und Frei – ganze Bahn, dann die übrigen Richtungen frei, dann alle
+Richtungen mit den festen Anstellungen um X/Y. Die Zulassung (Kugelschnitt am Teil, Maschinenbahn,
+Kontaktwinkel, Material, Kollision) läuft nach jeder Runde; die erste zugelassene Variante beendet
+den Vergleich, eine Kugel, die den Flächenrand nicht erreicht, wird nicht weiter versucht, und erst
+ohne Zulassung kommt die nächste kleinere Kugel. An der Kuppel des Szenarios schneidet „entlang der
+Fläche“ 0,036 mm ins Teil – die zweite Stufe findet Zeilen X/Y und Äquidistant frei wie der volle
+Vergleich. Der Haken
+„Alle Kombinationen vergleichen“ im Dialog rechnet wie bisher alles in einer Runde (`alle=True`
+in `simultan_planung.vergleichen` und `simultan_folge.vergleichen`). Die Tabelle zeigt nur die
+gerechneten Varianten; am Beispiel zwei Abweisungen am Flächenrand und zwei Ø-4-Varianten mit
+demselben Gewinner, die goldenen Referenzen bleiben gleich.
+
 
 ### 16.6 Qualitätsprüfung des Simultanvergleichs (gebaut, P-2026-10-07-03)
 

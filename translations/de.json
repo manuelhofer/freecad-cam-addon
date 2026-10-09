@@ -2525,6 +2525,8 @@
     "s5p.bereit": "Der Vergleich ändert den Job nicht. Materialstand, ganze Flächenzellen, Grathöhe, Last und Kollision werden geprüft.",
     "s5p.vergleichen": "Varianten berechnen und prüfen",
     "s5p.rechnet": "Varianten werden gerechnet. Mit Abbrechen bleibt der Job unverändert.",
+    "s5p.alle": "Alle Kombinationen vergleichen",
+    "s5p.alle.tooltip": "Jede Kugel des Jobs mit jeder Bahnrichtung und jeder Anstellung – am Freiformbeispiel 60 Varianten, 16 Minuten auf 24 Kernen. Ohne den Haken: die größte Kugel zuerst, entlang der Fläche mit beiden freien Anstellungen (zwei Varianten); wird nichts zugelassen, die übrigen Richtungen, dann die festen Anstellungen, dann die nächste kleinere Kugel.",
     "s5p.kollision": "Prüfung des aktuellen Schritts: {prozent} %",
     "s5p.beste": "Schnellste geprüfte Variante: {werkzeug}, {bahn}, {anstellung}, {zeit}. Langsamere Varianten können sie nicht unterbieten.",
     "s5p.geprueft": "Material und Modellkollision geprüft",

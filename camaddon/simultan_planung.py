@@ -37,6 +37,14 @@ from .sprache import tr
 
 RICHTUNGEN = ("x", "y", "spirale", "flaeche", "aequidistant")
 ANSTELLUNGEN = ("X", "Y", "frei", "frei_gesamt")
+# Ohne „Alle Kombinationen“ (P-2026-10-09-04): Runden je Kugel – die größte zuerst, sie ist mit
+# den weitesten Zeilen die schnellste, wenn sie überall hinkommt –, erst entlang der Fläche mit
+# den beiden freien Anstellungen, dann die übrigen Richtungen frei, dann die festen Anstellungen;
+# die nächste Kugel erst, wenn nichts zugelassen wird. Am Freiformbeispiel 2 statt 60 Varianten
+# (Manuel, 2026-10-09: „Ja, mach das so“); an der Kuppel des Szenarios schneidet „entlang der
+# Fläche“ ins Teil, die zweite Stufe findet Zeilen X frei.
+SINNVOLL_RICHTUNG = "flaeche"
+SINNVOLL_ANSTELLUNGEN = ("frei", "frei_gesamt")
 
 
 class _Ansicht:
@@ -271,6 +279,31 @@ def kontaktwinkel(form, punkte, radius, aufmass, cache=None, fortschritt=None):
     return min(winkel) if winkel else 0.0
 
 
+def _runden(controller, radius_von, richtungen, anstellungen, alle):
+    """Die Runden des Vergleichs: je Runde (Werkzeuge, Richtungen, Anstellungen). Mit `alle`
+    eine Runde mit allem. Sonst je Kugel, die größte zuerst, drei Stufen: SINNVOLL_RICHTUNG
+    (fehlt sie unter `richtungen`, die erste) mit den SINNVOLL_ANSTELLUNGEN unter `anstellungen`
+    (keine dabei: alle gegebenen), dann die übrigen Richtungen damit, dann alle Richtungen mit den
+    übrigen Anstellungen; vergleichen() hört nach der ersten Runde mit einer zugelassenen Variante
+    auf und überspringt eine Kugel, die den Flächenrand nicht erreicht."""
+    richtungen, anstellungen = tuple(richtungen), tuple(anstellungen)
+    if alle:
+        yield list(controller), richtungen, anstellungen
+        return
+    erste = (SINNVOLL_RICHTUNG,) if SINNVOLL_RICHTUNG in richtungen else richtungen[:1]
+    frei = tuple(a for a in anstellungen if a in SINNVOLL_ANSTELLUNGEN) or anstellungen
+    stufen = [(erste, frei)]
+    uebrige = tuple(r for r in richtungen if r not in erste)
+    if uebrige:
+        stufen.append((uebrige, frei))
+    fest = tuple(a for a in anstellungen if a not in frei)
+    if fest:
+        stufen.append((richtungen, fest))
+    for tc in sorted(controller, key=lambda t: -float(radius_von(t))):
+        for r_liste, a_liste in stufen:
+            yield [tc], r_liste, a_liste
+
+
 def vergleichen(
     op,
     pruefung,
@@ -280,11 +313,15 @@ def vergleichen(
     fortschritt=None,
     controller=None,
     zeitgrenze=math.inf,
+    alle=False,
 ):
     """Planung erzeugen; Generator liefert (Planung, aktuelle Variante) für eine lebendige UI.
 
     Keine globale Optimalitätsbehauptung: die schnellste zugelassene Kombination
     unter diesen Varianten, für diesen Job, diese Maschine und dieses Werkzeug.
+    `alle`: jede Kugel mit jeder Richtung und Anstellung in einer Runde; sonst die Runden aus
+    _runden (die größte Kugel zuerst, entlang der Fläche frei, dann die übrigen Richtungen, dann
+    die festen Anstellungen – bis eine Variante zugelassen ist).
     """
     job = job_von(op)
     if job is None or not s3.ist_schlichten3d(op) or sw.ist_ebene(job):
@@ -310,7 +347,9 @@ def vergleichen(
         sicherheitszustand=_sicherheitszustand(pruefung, bibliothek),
     )
     normalen_cache = {}
-    for tc in controller:
+
+    def werkzeug(tc, richtungen, anstellungen):
+        """Die Varianten eines Werkzeugs: gerechnet, am Material und an der Maschine geprüft."""
         radius = an.radius_von(_Ansicht(op, ToolController=tc))
         aufnahme = pruefung.werkzeugaufnahme(tc.ToolNumber)
         if aufnahme is None:
@@ -332,12 +371,13 @@ def vergleichen(
                 float(tc.VertFeed) * 60,
             )
         except ValueError as fehler:
+            rand_versagt.add(tc.Name)
             for richtung in richtungen:
                 for um in anstellungen:
                     variante = Variante(richtung, um, grund=str(fehler), werkzeug=tc)
                     plan.varianten.append(variante)
                     yield plan, variante
-            continue
+            return
         for richtung in richtungen:
             feinheit = float(op.Grathoehe) / 4
             quelle = _Ansicht(
@@ -433,93 +473,117 @@ def vergleichen(
                 except (ValueError, RuntimeError) as fehler:
                     variante.grund = str(fehler)
                 yield plan, variante
-    for variante in sorted((v for v in plan.varianten if not v.grund), key=lambda v: v.sekunden):
-        # Eine bereits zugelassene Gesamtfolge bildet die obere Schranke. Die
-        # feste Maschinenfahrt dieses Kandidaten ist schon vollständig gerechnet;
-        # eine weitere Zulassungsprüfung kann sie nicht schneller machen.
-        if variante.sekunden >= zeitgrenze:
-            break
-        # Der kontinuierliche Kugelschnitt darf auch zwischen Rasterstrahlen nicht ins Teil.
-        dicht = sa._pfad(variante.operation)
-        radius = an.radius_von(variante.operation)
-        abstand_reserve = 0.00025 + sa.NC_RESERVE
-        tiefste = sa.einschnitt(
-            form, dicht, radius, grenze=abstand_reserve, fortschritt=fortschritt
-        )
-        if tiefste < abstand_reserve:
-            variante.grund = tr("s5p.fehler.brep", abstand=f"{tiefste:.5f}")
-            yield plan, variante
-            continue
-        operation_index = next(
-            i for i, o in enumerate(rw._operationen(variante.job)) if o is variante.operation
-        )
-        wirklich, werkzeugachsen = sa.maschinenbahn(
-            variante.fahrt,
-            operation_index,
-            radius,
-            mit_achsen=True,
-            fortschritt=fortschritt,
-            materialdaten=variante.operation._pruefmaterial,
-        )
-        kontakt = [(p, a) for p, a in zip(wirklich, werkzeugachsen, strict=True) if not p.eilgang]
-        normalen = an.normalen(
-            form,
-            [(p.x, p.y, p.z) for p, _a in kontakt],
-            radius,
-            float(op.Aufmass),
-            cache=normalen_cache,
-            fortschritt=fortschritt,
-        )
-        winkel = [
-            math.degrees(math.acos(float(np.clip(np.dot(n, a), -1, 1))))
-            for n, (_p, a) in zip(normalen, kontakt, strict=True)
-            if n is not None
-        ]
-        if not winkel or min(winkel) < float(op.Anstellwinkel) - 1e-6 or max(winkel) > 85:
-            variante.grund = tr("s5p.fehler.winkel", winkel=f"{min(winkel) if winkel else 0:.2f}")
-            yield plan, variante
-            continue
-        variante.schnittwinkel = min(winkel)
-        einsatz = sa.einsatz_von(variante.werkzeug, bibliothek)
-        messung = material.messen(
-            wirklich,
-            vs.form_des_controllers(variante.werkzeug),
-            einsatz,
-            float(op.Grathoehe) - sa.NC_RESERVE,
-            float(op.Aufmass),
-        )
-        if messung.gruende:
-            variante.grund = "; ".join(messung.gruende)
-            yield plan, variante
-            continue
-        variante.material = messung
-        variante.rest = messung.rest + messung.unsicherheit
-        variante.material_geprueft = True
-        ergebnis = kb.kollision(
-            variante.fahrt,
-            variante.job,
-            nullpunkt,
-            bibliothek,
-            fortschritt=fortschritt,
-            rohteil=True,
-        )
-        if ergebnis.abgebrochen or ergebnis.hinweise:
-            variante.grund = tr("s5p.fehler.unvollstaendig")
-        elif ergebnis.befunde:
-            variante.befunde = ergebnis.befunde
-            erster = ergebnis.befunde[0]
-            variante.grund = (
-                tr("s5p.fehler.kollision")
-                + " "
-                + erster.a
-                + " / "
-                + erster.b
-                + f" ({erster.abstand:.3f} mm)"
+
+    def zulassen(kandidaten):
+        """Die Zulassung der schnellsten Kandidaten: Kugelschnitt am Teil, Maschinenbahn,
+        Kontaktwinkel, Material und Kollision – bis die erste ganz besteht (plan.beste)."""
+        for variante in sorted((v for v in kandidaten if not v.grund), key=lambda v: v.sekunden):
+            # Eine bereits zugelassene Gesamtfolge bildet die obere Schranke. Die
+            # feste Maschinenfahrt dieses Kandidaten ist schon vollständig gerechnet;
+            # eine weitere Zulassungsprüfung kann sie nicht schneller machen.
+            if variante.sekunden >= zeitgrenze:
+                break
+            # Der kontinuierliche Kugelschnitt darf auch zwischen Rasterstrahlen nicht ins Teil.
+            dicht = sa._pfad(variante.operation)
+            radius = an.radius_von(variante.operation)
+            abstand_reserve = 0.00025 + sa.NC_RESERVE
+            tiefste = sa.einschnitt(
+                form, dicht, radius, grenze=abstand_reserve, fortschritt=fortschritt
             )
-        else:
-            variante.kollision_geprueft = True
-            plan.beste = variante
-        yield plan, variante
+            if tiefste < abstand_reserve:
+                variante.grund = tr("s5p.fehler.brep", abstand=f"{tiefste:.5f}")
+                yield plan, variante
+                continue
+            operation_index = next(
+                i for i, o in enumerate(rw._operationen(variante.job)) if o is variante.operation
+            )
+            wirklich, werkzeugachsen = sa.maschinenbahn(
+                variante.fahrt,
+                operation_index,
+                radius,
+                mit_achsen=True,
+                fortschritt=fortschritt,
+                materialdaten=variante.operation._pruefmaterial,
+            )
+            kontakt = [
+                (p, a) for p, a in zip(wirklich, werkzeugachsen, strict=True) if not p.eilgang
+            ]
+            normalen = an.normalen(
+                form,
+                [(p.x, p.y, p.z) for p, _a in kontakt],
+                radius,
+                float(op.Aufmass),
+                cache=normalen_cache,
+                fortschritt=fortschritt,
+            )
+            winkel = [
+                math.degrees(math.acos(float(np.clip(np.dot(n, a), -1, 1))))
+                for n, (_p, a) in zip(normalen, kontakt, strict=True)
+                if n is not None
+            ]
+            if not winkel or min(winkel) < float(op.Anstellwinkel) - 1e-6 or max(winkel) > 85:
+                variante.grund = tr(
+                    "s5p.fehler.winkel", winkel=f"{min(winkel) if winkel else 0:.2f}"
+                )
+                yield plan, variante
+                continue
+            variante.schnittwinkel = min(winkel)
+            einsatz = sa.einsatz_von(variante.werkzeug, bibliothek)
+            messung = material.messen(
+                wirklich,
+                vs.form_des_controllers(variante.werkzeug),
+                einsatz,
+                float(op.Grathoehe) - sa.NC_RESERVE,
+                float(op.Aufmass),
+            )
+            if messung.gruende:
+                variante.grund = "; ".join(messung.gruende)
+                yield plan, variante
+                continue
+            variante.material = messung
+            variante.rest = messung.rest + messung.unsicherheit
+            variante.material_geprueft = True
+            ergebnis = kb.kollision(
+                variante.fahrt,
+                variante.job,
+                nullpunkt,
+                bibliothek,
+                fortschritt=fortschritt,
+                rohteil=True,
+            )
+            if ergebnis.abgebrochen or ergebnis.hinweise:
+                variante.grund = tr("s5p.fehler.unvollstaendig")
+            elif ergebnis.befunde:
+                variante.befunde = ergebnis.befunde
+                erster = ergebnis.befunde[0]
+                variante.grund = (
+                    tr("s5p.fehler.kollision")
+                    + " "
+                    + erster.a
+                    + " / "
+                    + erster.b
+                    + f" ({erster.abstand:.3f} mm)"
+                )
+            else:
+                variante.kollision_geprueft = True
+                plan.beste = variante
+            yield plan, variante
+            if plan.beste is not None:
+                break
+
+    rand_versagt = set()
+    for werkzeuge, r_liste, a_liste in _runden(
+        controller,
+        lambda tc: an.radius_von(_Ansicht(op, ToolController=tc)),
+        richtungen,
+        anstellungen,
+        alle,
+    ):
+        davor = len(plan.varianten)
+        for tc in werkzeuge:
+            if tc.Name not in rand_versagt:
+                yield from werkzeug(tc, r_liste, a_liste)
+        yield from zulassen(plan.varianten[davor:])
         if plan.beste is not None:
             break
 

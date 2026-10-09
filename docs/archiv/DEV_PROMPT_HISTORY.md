@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-04 simultanvergleich-sinnvolle-varianten
+
+### EINGELESEN
+- Manuel, 2026-10-09: „Die Durchmesser 4 Variante warum müssen wir die Prüfen??“ → Vorschlag,
+  den Vergleich standardmäßig auf die sinnvollen Varianten zu beschränken und den Referenztest
+  auf die Gewinnervariante einzudampfen → „Ja, mach das so“. Befund 4 der Durchsicht von Codex'
+  Freiformbeispiel: 60 Kombinationen voll gerechnet, 58 abgewiesen, 16 min auf 24 Kernen.
+
+### DATEIEN
+- `camaddon/simultan_planung.py` (`_runden`, `vergleichen(..., alle=False)` in Runden:
+  `werkzeug()` rechnet, `zulassen()` prüft), `camaddon/simultan_folge.py` (`alle` durchgereicht),
+  `camaddon/gui_simultan_planung.py` (Haken „Alle Kombinationen vergleichen“),
+  `translations/de.json`, `translations/en.json` (`s5p.alle`, `s5p.alle.tooltip`),
+  `tests/test_simultan_runden.py` (neu), `tests/test_simultan_planung.py` (Runden-Prüfung),
+  `beispiele/grob_g550_freiform/pruefen.py` (`ALLE_KOMBINATIONEN=1`) und `README.md`,
+  `docs/spezifikation_strategien.md` (16.5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.203.5).
+
+### AKZEPTANZKRITERIUM
+„5-Achs-Schlichten vergleichen …“ ohne Haken rechnet am Freiformbeispiel zwei Ø-4-Varianten
+(entlang der Fläche, Frei und Frei – ganze Bahn) nach zwei Abweisungen am Flächenrand und findet
+denselben Gewinner wie der volle Vergleich; mit Haken alle Kombinationen wie bisher.
+
+### DONE
+- `_runden`: ohne `alle` je Kugel, die größte zuerst (die weitesten Zeilen, wenn sie überall
+  hinkommt), drei Stufen: `flaeche` (fehlt sie unter den gegebenen Richtungen, die erste) mit
+  `frei`/`frei_gesamt` (keine davon gegeben: alle gegebenen), dann die übrigen Richtungen frei,
+  dann alle Richtungen mit den festen Anstellungen. Nach jeder Runde die Zulassung der neuen
+  Kandidaten; die erste zugelassene Variante beendet den Vergleich, eine Kugel ohne Flächenrand
+  wird übersprungen, sonst die nächste kleinere Kugel. Mit `alle` eine Runde mit allem – das alte
+  Verhalten. Erster Wurf nur mit Stufe 1: `szenario_simultan_planung` fand an seiner Kuppel nichts
+  („entlang der Fläche“ schneidet 0,036 mm ins Teil); der volle Vergleich dort nimmt Zeilen X/Y
+  und Äquidistant frei – daher die Stufen.
+- Dialog: Haken „Alle Kombinationen vergleichen“ unter „mit Schruppen“, gesperrt während des
+  Rechnens; wirkt auf den einfachen und den gemeinsamen Vergleich. `pruefen.py` des Beispiels
+  rechnet standardmäßig die sinnvollen Varianten, mit `ALLE_KOMBINATIONEN=1` alle 60.
+- Referenztest: Er rechnete schon vorher nur entlang der Fläche mit einer Anstellung – die
+  Gewinnervariante allein braucht hier 30 min (eine Bahn samt Material- und Kollisionsprüfung
+  auf 4 Kernen), nicht die 20 Ø-4-Kombinationen, die ich Manuel genannt hatte. Neu prüft er die
+  Runden: Einträge Ø 12 und Ø 6 am Flächenrand abgewiesen, Ø 4 gerechnet – nichts weiter.
+  Die goldenen Referenzen bleiben gleich (derselbe Gewinner).
+
+### TESTS
+- 1.1.3: `tests/test_simultan_runden.py` (neu, OK), `tests/test_sprache.py` (OK);
+  `szenario_simultan_planung` und `tests/test_simultan_planung.py`: siehe Nachtrag unten.
+  black und ruff sauber.
+
 ## P-2026-10-09-03 simultan-pruefung-geeicht
 
 ### EINGELESEN

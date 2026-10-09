@@ -2525,6 +2525,8 @@
     "s5p.bereit": "Comparison does not change the job. Remaining stock, complete surface cells, scallop height, load and collision are checked.",
     "s5p.vergleichen": "Calculate and check variants",
     "s5p.rechnet": "Calculating variants. Cancel leaves the job unchanged.",
+    "s5p.alle": "Compare all combinations",
+    "s5p.alle.tooltip": "Every ball mill of the job with every path direction and every tilt – 60 variants on the freeform example, 16 minutes on 24 cores. Unchecked: the largest ball first, along the surface with both free tilts (two variants); if nothing is admitted, the other directions, then the fixed tilts, then the next smaller ball.",
     "s5p.kollision": "Current check step: {prozent} %",
     "s5p.beste": "Fastest checked variant: {werkzeug}, {bahn}, {anstellung}, {zeit}. Slower variants cannot beat it.",
     "s5p.geprueft": "Material and model collision checked",

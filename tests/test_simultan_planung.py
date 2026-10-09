@@ -79,6 +79,14 @@ def pruefung():
         print("VARIANTE", variante.werkzeug.ToolNumber, variante.grund, flush=True)
     assert plan is not None and plan.beste is not None, "Keine geprüfte Freiformbahn"
     assert plan.beste.werkzeug.ToolNumber == 4, "Zu großer Fräser nicht ausgeschlossen"
+    # Runden (P-2026-10-09-04): die größte Kugel zuerst. Ø 12 und Ø 6 scheitern am Flächenrand,
+    # erst die Ø 4 wird gerechnet und zugelassen – drei Einträge, nicht jede Kombination.
+    assert [(v.werkzeug.ToolNumber, bool(v.grund)) for v in plan.varianten] == [
+        (2, True),
+        (3, True),
+        (4, False),
+    ], [(v.werkzeug.ToolNumber, v.grund) for v in plan.varianten]
+    assert all("Flächenrand" in v.grund for v in plan.varianten if v.grund)
     assert plan.beste.kollision_geprueft and not plan.beste.befunde
     assert plan.beste.rest <= float(op.Grathoehe)
     assert plan.beste.material_geprueft and not plan.beste.material.gruende

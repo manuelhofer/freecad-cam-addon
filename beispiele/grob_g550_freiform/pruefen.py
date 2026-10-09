@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Das Beispiel vollständig vergleichen, geprüft übernehmen und mit Bericht neu speichern.
+"""Das Beispiel vergleichen, geprüft übernehmen und mit Bericht neu speichern.
 
 Mit FreeCADCmd in einem vorher angelegten eigenen FREECAD_USER_HOME ausführen.
 Die Bibliothek wird dort gespeichert; die Beispieldateien liegen neben diesem Skript.
+Ohne ALLE_KOMBINATIONEN=1 nur die sinnvollen Varianten (P-2026-10-09-04): die größte Kugel
+zuerst, entlang der Fläche, frei – mit dem Flag jede Kugel, Richtung und Anstellung.
 """
 
 import json
@@ -19,7 +21,7 @@ sys.path.insert(0, str(ROOT))
 
 
 def pruefen():
-    """Alle aktuellen Varianten, Gewinner, Maschinenprogramm und Beispieldateien."""
+    """Die Varianten, der Gewinner, das Maschinenprogramm und die Beispieldateien."""
     import FreeCAD as App
 
     from camaddon import postprozessor as pp
@@ -49,7 +51,8 @@ def pruefen():
         return True
 
     plan = None
-    for aktueller_plan, variante in sp.vergleichen(op, p, bib, fortschritt=fortschritt):
+    alle = os.environ.get("ALLE_KOMBINATIONEN") == "1"
+    for aktueller_plan, variante in sp.vergleichen(op, p, bib, fortschritt=fortschritt, alle=alle):
         plan = aktueller_plan
         print(
             "VARIANTE",
@@ -63,7 +66,13 @@ def pruefen():
         plan is not None and plan.beste is not None
     ), "Keine material- und kollisionsgeprüfte Bahn"
     beste = plan.beste
-    assert len(plan.varianten) == 3 * len(sp.RICHTUNGEN) * len(sp.ANSTELLUNGEN)
+    if alle:
+        assert len(plan.varianten) == 3 * len(sp.RICHTUNGEN) * len(sp.ANSTELLUNGEN)
+    else:
+        # Ø 12 und Ø 6 am Flächenrand abgewiesen (je frei und frei – ganze Bahn), Ø 4 gerechnet.
+        assert len(plan.varianten) == 3 * len(sp.SINNVOLL_ANSTELLUNGEN), len(plan.varianten)
+        assert all(v.grund for v in plan.varianten if v.werkzeug.ToolNumber != 4)
+    assert beste.werkzeug.ToolNumber == 4
     assert beste.sekunden == min(
         v.sekunden for v in plan.varianten if not v.grund and math.isfinite(v.sekunden)
     )
