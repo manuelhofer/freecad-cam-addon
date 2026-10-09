@@ -1,7 +1,16 @@
-"""Freiform mit Mulde, Sattel und Erhebung: große Kugeln abweisen, passende Bahn prüfen.
+"""Der Simultanvergleich an der kleinsten Geometrie, die ihn zeigt: die Gewinnervariante
+nachrechnen, zulassen, übernehmen, zurücknehmen – mit goldener Referenz.
 
-Der Vergleich bleibt ohne Dokumentänderung; Übernahme, Rückgängig und Ablehnung
-einer nach der Prüfung geänderten Operation werden an echten CAM-Objekten geprüft.
+Vorgabe ist die Kugelkappe 20 × 16 (`erstellen.py` des Freiformbeispiels, Form KUPPEL): eine
+Variante (Zeilen X, frei), die größte Kugel Ø 12 gewinnt gleich – gut zwei Minuten, die meiste
+Zeit davon der Materialstand nach dem Schruppen. Der Vergleich bleibt ohne Dokumentänderung;
+Übernahme, Rückgängig und Ablehnung einer nach der Prüfung geänderten Operation werden an echten
+CAM-Objekten geprüft; zum Schluss hält auch das feinere Materialraster die Grathöhe.
+
+`SIMULTAN_TEST_FORM=freiform` rechnet stattdessen das Freiformbeispiel (Mulde, Sattel, Erhebung:
+Ø 12 und Ø 6 am Flächenrand abgewiesen, Ø 4 gewinnt) – 30 Minuten und mehr, von Hand, keine
+Prüfung (Arbeitsregeln, Abschnitt 5; P-2026-10-09-10). Die goldenen Referenzen heißen nach der
+Form: `tests/golden/<form>_simultan.json` bzw. `…_gesamt.json` (SIMULTAN_TEST_ANSTELLUNG).
 """
 
 import hashlib
@@ -38,8 +47,10 @@ def pruefung():
     assert profil.is_dir() and pathlib.Path(App.getUserAppDataDir()).resolve() == profil
     sprache.setze_sprache("de")
     ordner = pathlib.Path(tempfile.mkdtemp())
+    form = os.environ.get("SIMULTAN_TEST_FORM", "kuppel")
+    assert form in ("kuppel", "freiform"), form
     bauen = runpy.run_path(str(ADDON / "beispiele/grob_g550_freiform/erstellen.py"))["erstellen"]
-    doc, bib = bauen(ordner)
+    doc, bib = bauen(ordner, form)
     user_asset_store.set_dir(ordner / "assets")
     md = App.openDocument(str(ADDON / "beispiele/grob_g550_simultan/g550_winkelaufnahme.FCStd"))
     p = rw.Pruefung(md.Assembly, md.Maschine)
@@ -72,21 +83,28 @@ def pruefung():
             letztes = jetzt
         return True
 
+    # An der Kuppel reicht Zeilen X; an der Freiform „entlang der Fläche“ (sie schneidet an der
+    # Kuppel 0,036 mm ins Teil, P-2026-10-09-04).
+    richtungen = ("flaeche",) if form == "freiform" else ("x",)
     for aktueller_plan, variante in sp.vergleichen(
-        op, p, bib, richtungen=("flaeche",), anstellungen=(anstellung,), fortschritt=fortschritt
+        op, p, bib, richtungen=richtungen, anstellungen=(anstellung,), fortschritt=fortschritt
     ):
         plan = aktueller_plan
         print("VARIANTE", variante.werkzeug.ToolNumber, variante.grund, flush=True)
-    assert plan is not None and plan.beste is not None, "Keine geprüfte Freiformbahn"
-    assert plan.beste.werkzeug.ToolNumber == 4, "Zu großer Fräser nicht ausgeschlossen"
-    # Runden (P-2026-10-09-04): die größte Kugel zuerst. Ø 12 und Ø 6 scheitern am Flächenrand,
-    # erst die Ø 4 wird gerechnet und zugelassen – drei Einträge, nicht jede Kombination.
-    assert [(v.werkzeug.ToolNumber, bool(v.grund)) for v in plan.varianten] == [
-        (2, True),
-        (3, True),
-        (4, False),
-    ], [(v.werkzeug.ToolNumber, v.grund) for v in plan.varianten]
-    assert all("Flächenrand" in v.grund for v in plan.varianten if v.grund)
+    assert plan is not None and plan.beste is not None, "Keine geprüfte Bahn"
+    gerechnet = [(v.werkzeug.ToolNumber, bool(v.grund)) for v in plan.varianten]
+    if form == "freiform":
+        assert plan.beste.werkzeug.ToolNumber == 4, "Zu großer Fräser nicht ausgeschlossen"
+        # Runden (P-2026-10-09-04): die größte Kugel zuerst. Ø 12 und Ø 6 scheitern am
+        # Flächenrand, erst die Ø 4 wird gerechnet und zugelassen – drei Einträge, nicht jede
+        # Kombination.
+        assert gerechnet == [(2, True), (3, True), (4, False)], gerechnet
+        assert all("Flächenrand" in v.grund for v in plan.varianten if v.grund)
+    else:
+        # Die Kappe ist überall erreichbar: Die größte Kugel kommt zuerst dran und gewinnt – der
+        # Vergleich hört nach der ersten zugelassenen Variante auf, eine Zeile.
+        assert plan.beste.werkzeug.ToolNumber == 2, plan.beste.werkzeug.ToolNumber
+        assert gerechnet == [(2, False)], gerechnet
     assert plan.beste.kollision_geprueft and not plan.beste.befunde
     assert plan.beste.rest <= float(op.Grathoehe)
     assert plan.beste.material_geprueft and not plan.beste.material.gruende
@@ -127,21 +145,27 @@ def pruefung():
     bib.halter[0].name = original
     bib.speichern()
     sp.uebernehmen(op, plan)
-    assert op.ToolController.ToolNumber == 4 and str(op.Kippachse) == anstellung
+    gewinner = plan.beste.werkzeug.ToolNumber
+    assert op.ToolController.ToolNumber == gewinner and str(op.Kippachse) == anstellung
     assert op.Randgang and op.Anstellen and len(op.Werkzeugachsen) == len(op.Path.Commands)
     # Die übernommene und neu gerechnete Operation führt dieselbe Kugelmitte wie die geprüfte.
-    aktuell = an.punkte(list(op.Path.Commands), [tuple(a) for a in op.Werkzeugachsen], 2.0)
+    radius = an.radius_von(op)
+    assert radius == plan.beste.werkzeug.Tool.Diameter / 2, radius
+    aktuell = an.punkte(list(op.Path.Commands), [tuple(a) for a in op.Werkzeugachsen], radius)
     erwartet = an.punkte(
         list(plan.beste.operation.Path.Commands),
         [tuple(a) for a in plan.beste.operation.Werkzeugachsen],
-        2.0,
+        radius,
     )
     assert len(aktuell) == len(erwartet), "Andere Bahn nach Übernahme"
     for a, b in zip(aktuell, erwartet, strict=True):
         assert max(abs(x - y) for x, y in zip(a.spitze, b.spitze, strict=True)) < 1e-6
         assert max(abs(x - y) for x, y in zip(a.achse, b.achse, strict=True)) < 1e-6
     maschine = sw.Maschine(
-        p, p.werkzeugaufnahme(4), rw.einspannung(op.ToolController, bib), rw.nullpunkt(doc.Job)
+        p,
+        p.werkzeugaufnahme(gewinner),
+        rw.einspannung(op.ToolController, bib),
+        rw.nullpunkt(doc.Job),
     )
     befehle = so.befehle(op, maschine)
 
@@ -155,10 +179,14 @@ def pruefung():
         plan.beste.operation._pruefprogramm[1]
     ), "Anderes Maschinenprogramm nach Übernahme"
     werte = np.round(np.array([(*p.spitze, *p.achse, int(p.eilgang)) for p in aktuell]), 6)
-    golden = ADDON / (
-        "tests/golden/freiform_simultan_gesamt.json"
-        if anstellung == "frei_gesamt"
-        else "tests/golden/freiform_simultan.json"
+    golden = (
+        ADDON
+        / "tests/golden"
+        / (
+            f"{form}_simultan_gesamt.json"
+            if anstellung == "frei_gesamt"
+            else f"{form}_simultan.json"
+        )
     )
     ist = {
         "punkte": len(werte),
@@ -187,7 +215,8 @@ def pruefung():
                 spitze_mb <= soll["spitzenspeicher_python_mb"] * 2
             ), "Speicherbudget überschritten"
     else:
-        assert rechenzeit < 2400, "Erster Qualitätslauf überschreitet 40 Minuten"
+        grenze = 2400 if form == "freiform" else 600
+        assert rechenzeit < grenze, f"Erster Qualitätslauf überschreitet {grenze} s"
     # Feinere Materialauflösung muss die Qualitätsgrenze ebenfalls halten.
     q = sa.Pruefstand(doc.Job, op, bib, raster=0.05)
     assert not any(m.gruende for _name, m in q.vorher), q.vorher

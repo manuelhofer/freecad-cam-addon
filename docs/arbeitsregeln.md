@@ -140,12 +140,14 @@ ein ASCII-Entwurf des Dialogs reicht.
     - Länger als der Richtwert nur mit Begründung im Docstring der Prüfung und
       im Verlaufseintrag – „damit alles geprüft ist“ ist keine. Lieber eine
       zweite kleine Prüfung als eine große.
-    - Was beim Schreiben dieser Regel darüber liegt (`test_simultan_gesamt`
-      70 min, `test_simultan_planung` 30 min allein für die Gewinnervariante),
-      wird beim nächsten Anfassen eingedampft – und die Rechenzeit im Betrieb
+    - So kamen `test_simultan_planung` (30 min) und `test_simultan_gesamt`
+      (70 min) am 2026-10-09 auf die Kuppel 20 × 16 (je unter drei Minuten,
+      P-2026-10-09-10); das Freiformbeispiel rechnet nur noch, wer es von Hand
+      verlangt (`SIMULTAN_TEST_FORM=freiform`). Die Rechenzeit im Betrieb
       selbst gehört kleiner (Manuel, 2026-10-09: „Wir müssen auch noch schauen,
       dass die Rechenzeit im Betrieb weniger wird … oder eben mehr CPUs zum
-      Rechnen verwendet werden“; Spezifikation Strategien, 16.5).
+      Rechnen verwendet werden“; Spezifikation Strategien, 16.5; seit
+      P-2026-10-09-07 rechnen die Nebenrechner auf allen Kernen).
   - **So viel wie nötig – die Entscheidung liegt beim Assistenten** (Manuel,
     2026-10-03: „es schaut von hier aus nach SEHR viel Testen aus … ob das
     nötig ist oder nicht, musst dennoch du entscheiden, du bist ja derjenige,

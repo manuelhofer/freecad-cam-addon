@@ -99,8 +99,10 @@ wurden aus einem frischen Prozess ohne Schreibflag gegen ihre NC-Referenz vergli
 
 `tests/test_schruppen3d_anlauf.py` schützt den Anlaufvergleich und die Schruppbestmarke.
 `test_simultan_planung.py` prüft Punkte, Achsen, Befehle, Zeit und Qualitätsbudget
-einschließlich der Vorbearbeitung im feineren Raster;
-`test_simultan_nc.py` prüft die geschriebene Geometrie und den echten Export.
+einschließlich der Vorbearbeitung im feineren Raster – seit P-2026-10-09-10 an der kleinen
+Kuppel (`erstellen.py`, Form KUPPEL); das Beispiel selbst rechnet es mit
+`SIMULTAN_TEST_FORM=freiform` (von Hand, 30 Minuten und mehr), wie `pruefen.py`;
+`test_simultan_nc.py` prüft die geschriebene Geometrie und den echten Export des Beispiels.
 `test_simultan_export_referenz.py` wiederholt nur den frischen exakten Exportvergleich.
 `test_simultan_folge.py` schützt die gemeinsame Auswahl, Eingabeschutz, Abbruch,
 Rollback und ein Undo für beide Operationen. Goldene Referenzen sichern Wiederholbarkeit;

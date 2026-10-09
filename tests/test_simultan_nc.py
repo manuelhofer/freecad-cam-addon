@@ -1,9 +1,14 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Die ausgeschriebenen Siemens-Achswerte des gespeicherten Freiformjobs nachfahren.
+"""Die ausgeschriebenen Siemens-Achswerte eines gespeicherten Simultanjobs nachfahren.
 
-Die frühere Ausgabe mit drei Stellen schneidet hier 0,0019 mm ins Teil und lässt
+Die frühere Ausgabe mit drei Stellen schneidet am Freiformbeispiel 0,0019 mm ins Teil und lässt
 sechs Flächenzellen ungeprüft. Sechs Stellen müssen zusammen mit dem reservierten
 Glättungsbudget bestehen. Schreiben nur ausdrücklich nach sämtlichen Prüfungen.
+
+Allein gestartet nimmt es das gespeicherte Freiformbeispiel (`freiform_5achs.FCStd`, Form
+„freiform“); in der Kette test_simultan_gesamt das Dokument aus SIMULTAN_NC_DOKUMENT mit der
+Form aus SIMULTAN_TEST_FORM (Vorgabe dort die Kuppel). Die goldenen Referenzen heißen
+`tests/golden/<form>_simultan[_gesamt]_nc.json`.
 """
 
 import hashlib
@@ -23,6 +28,7 @@ import Path
 from Path.Tool.camassets import user_asset_store
 
 from camaddon import abfahren as ab
+from camaddon import angestellt as an
 from camaddon import postprozessor as pp
 from camaddon import reichweite as rw
 from camaddon import schwenken as sw
@@ -38,6 +44,8 @@ def pruefung():
     profil = pathlib.Path(os.environ["FREECAD_USER_HOME"]).resolve()
     assert profil.is_dir() and pathlib.Path(App.getUserAppDataDir()).resolve() == profil
     sprache.setze_sprache("de")
+    form = os.environ.get("SIMULTAN_TEST_FORM", "freiform")
+    assert form in ("kuppel", "freiform"), form
     out = ROOT / "beispiele/grob_g550_freiform"
     user_asset_store.set_dir(out / "assets")
     bib = wz.Bibliothek.laden(str(out / "beispiel_werkzeuge.json"))
@@ -62,13 +70,12 @@ def pruefung():
 
     mas = maschine(op)
     quelle = so.befehle(virtuell, mas)
+    radius = an.radius_von(op)  # die Kugel des Gewinners: Ø 4 an der Freiform, Ø 12 an der Kuppel
     if str(op.Kippachse) == "frei_gesamt":
         import numpy as np
 
-        from camaddon import angestellt as an
-
-        referenz = json.loads((ROOT / "tests/golden/freiform_simultan_gesamt.json").read_text())
-        punkte = an.punkte(list(op.Path.Commands), [tuple(a) for a in op.Werkzeugachsen], 2)
+        referenz = json.loads((ROOT / f"tests/golden/{form}_simultan_gesamt.json").read_text())
+        punkte = an.punkte(list(op.Path.Commands), [tuple(a) for a in op.Werkzeugachsen], radius)
         geladene_werte = np.round(
             np.array([(*p.spitze, *p.achse, int(p.eilgang)) for p in punkte]), 6
         )
@@ -77,7 +84,7 @@ def pruefung():
         # Die rohe Rechenreferenz bleibt im Planungsprüfstand unverändert streng.
         assert len(geladene_werte) == referenz["punkte"]
         assert np.max(np.abs(geladene_werte[::97] - np.asarray(referenz["stichprobe"]))) <= 0.000002
-        bisher = json.loads((ROOT / "tests/golden/freiform_simultan.json").read_text())
+        bisher = json.loads((ROOT / f"tests/golden/{form}_simultan.json").read_text())
         assert referenz["zeit_s"] <= bisher["zeit_s"] * 1.005
         assert referenz["rechenzeit_s"] <= bisher["rechenzeit_s"] * 2
         if (
@@ -163,7 +170,7 @@ def pruefung():
             fahrt.dauer <= referenz["zeit_s"] * 1.005
         ), "Zeitbestmarke nach NC-Rundung überschritten"
     nummer = next(i for i, o in enumerate(rw._operationen(job)) if o is virtuell)
-    bahn = sa.maschinenbahn(fahrt, nummer, 2, materialdaten=daten)
+    bahn = sa.maschinenbahn(fahrt, nummer, radius, materialdaten=daten)
     stand_material = sa.Pruefstand(job, virtuell, bib)
     # NC-Reserve einschließlich CTOL, dazu 0,00025 mm für die Interpolation.
     m = stand_material.messen(
@@ -176,7 +183,7 @@ def pruefung():
     print("NC_MATERIAL", json.dumps(asdict(m)), flush=True)
     assert not m.gruende, m.gruende
     reserve = 0.00025 + sa.NC_RESERVE
-    abstand = sa.einschnitt(stand_material.form, bahn, 2, grenze=reserve)
+    abstand = sa.einschnitt(stand_material.form, bahn, radius, grenze=reserve)
     print("NC_BREP", abstand, flush=True)
     assert abstand >= reserve, abstand
     # Ganzen tatsächlichen Job schreiben und nachlesen.
@@ -224,17 +231,21 @@ def pruefung():
                 ]
             ).encode()
         ).hexdigest()
-    golden = ROOT / (
-        "tests/golden/freiform_simultan_gesamt_nc.json"
-        if str(op.Kippachse) == "frei_gesamt"
-        else "tests/golden/freiform_simultan_nc.json"
+    golden = (
+        ROOT
+        / "tests/golden"
+        / (
+            f"{form}_simultan_gesamt_nc.json"
+            if str(op.Kippachse) == "frei_gesamt"
+            else f"{form}_simultan_nc.json"
+        )
     )
     schreiben = os.environ.get("GOLDENE_BAHNEN_SCHREIBEN") == "1"
     if schreiben:
         golden.write_text(json.dumps(ist, indent=2) + "\n")
     else:
         assert ist == json.loads(golden.read_text()), "Ausgeschriebenes NC-Programm verändert"
-    if os.environ.get("SIMULTAN_BEISPIEL_SCHREIBEN") == "1":
+    if os.environ.get("SIMULTAN_BEISPIEL_SCHREIBEN") == "1" and form == "freiform":
         (out / "freiform_5achs.mpf").write_text(programm.text)
         (out / "nc_pruefung.json").write_text(
             json.dumps(ist | {"material": asdict(m), "brep_abstand_mm": abstand}, indent=2) + "\n"

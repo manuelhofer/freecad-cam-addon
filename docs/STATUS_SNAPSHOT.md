@@ -610,8 +610,11 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   letzten 10 % der Stationen ein Viertel der Zeit). **Vorschau des 4-Achs-Assistenten im
   Hintergrund (P-2026-10-09-09):** je Bearbeitung ein Auftrag, das Fenster bleibt bedienbar
   (Manuel, 2026-10-09: der „Lag“ beim Ändern der seitlichen Zustellung) – ob es sich so anfühlt,
-  prüft Manuel. Als Nächstes: Normalen, Kugelschnitt und Material des Simultanvergleichs in
-  Stücken und Halter/Spindel mit numpy (Hebel 2).
+  prüft Manuel. **Prüfungen eingedampft (P-2026-10-09-10):** `test_simultan_planung` und
+  `test_simultan_gesamt` an der Kuppel in je unter drei Minuten (vorher 30 und 70 min). Als
+  Nächstes: der Materialstand nach dem Schruppen im Prüfstand (gut 90 s an der Kuppel, ein Kern),
+  Normalen, Kugelschnitt und Material des Simultanvergleichs in Stücken, Halter/Spindel mit
+  numpy (Hebel 2).
 - **T-007 Werkzeugkiste: Import** nach `docs/werkzeugkiste_json.md` (Format steht, P-2026-10-04-46):
   Ordner `CamAddon/werkzeugkiste/`, „Aus Datei einlesen …“ mit Prüfung, „Vorlage speichern …“.
   Danach weitere Hersteller-Reihen (Manuel: „zum Schluss“).

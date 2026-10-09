@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-10 simultan-pruefungen-eingedampft
+
+### EINGELESEN
+- Manuel, 2026-10-09: „ich benötige keine 30 mintuen tests .. ich benötige garkeine tests ich
+  will das du entscheidest ob tests sinnvoll oder nicht sinnvoll sind .. eine fläche mit einem
+  4rer fräser durchzurechnen ist für mich nicht sinnvoll … es muss getestet werden ob mit dem
+  fräser das maximal mögliche weggenommen wurde .. das auch in relation auf die zeit gesetzt“.
+  Arbeitsregeln, Abschnitt 5 („so schlank wie möglich, so groß wie nötig“: die bekannten
+  Ausreißer `test_simultan_gesamt` 70 min und `test_simultan_planung` 30 min werden beim nächsten
+  Anfassen eingedampft), `tests/test_simultan_planung.py`, `tests/test_simultan_gesamt.py`,
+  `tests/test_simultan_nc.py`, `beispiele/grob_g550_freiform/erstellen.py`,
+  `tests/gui/szenario_simultan_planung.py` (die Kuppel 20 × 16).
+
+### DATEIEN
+- `beispiele/grob_g550_freiform/erstellen.py` (`erstellen(ordner, form)`: FREIFORM wie bisher,
+  KUPPEL die Kugelkappe des Szenarios mit denselben Werkzeugen und derselben Bibliothek),
+  `tests/test_simultan_planung.py` (Vorgabe Kuppel, Zeilen X; Freiform mit
+  `SIMULTAN_TEST_FORM=freiform`; Kugelradius aus der Operation statt fest 2 mm; goldene Referenz
+  nach Form), `tests/test_simultan_gesamt.py` (Kette an derselben Form), `tests/test_simultan_nc.py`
+  (Form aus der Umgebung, Radius aus der Operation, Referenzen nach Form),
+  `tests/golden/kuppel_simultan.json`, `kuppel_simultan_gesamt.json`,
+  `kuppel_simultan_gesamt_nc.json` (neu), `docs/arbeitsregeln.md` (Abschnitt 5),
+  `beispiele/grob_g550_freiform/README.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.204.0 –
+  Nebenrechner, Kollision auf allen Kernen, Vorschau im Hintergrund, P-2026-10-09-07 bis -10).
+
+### AKZEPTANZKRITERIUM
+`tests/test_simultan_planung.py` und `tests/test_simultan_gesamt.py` laufen ohne Umgebungsvariable
+an der Kuppel in je unter drei Minuten grün und prüfen dasselbe wie zuvor: Gewinnervariante
+nachgerechnet (Material, Kontaktwinkel, Kollision auf den Nebenrechnern), Übernahme, Rückgängig,
+veraltete Eingaben abgelehnt, feineres Materialraster, geschriebenes NC-Programm nachgefahren.
+
+### DONE
+- Die Kuppel ist die kleinste Geometrie, die den Vergleich zeigt: eine Variante (Zeilen X, frei),
+  die größte Kugel Ø 12 kommt zuerst dran und gewinnt – an der Kappe ist alles erreichbar, der
+  Vergleich hört nach der ersten zugelassenen Variante auf (das belegt die Runden; die
+  Abweisungen am Flächenrand belegt weiterhin das Freiformbeispiel, von Hand). Was Manuel verlangt
+  – „ob mit dem Fräser das maximal Mögliche weggenommen wurde, in Relation zur Zeit“ – prüfen
+  dieselben Zeilen wie vorher: Rest ≤ Grathöhe, keine ungedeckte Flächenzelle, die Zeit gegen die
+  Bestmarke der Referenz.
+- Gefunden dabei: Die NC-Prüfung und die Planungsprüfung rechneten mit einem fest eingetragenen
+  Kugelradius 2 (der Ø 4 der Freiform) – an der Kuppel mit Ø 12 blieben dann 0,47 mm stehen. Jetzt
+  kommt der Radius aus der Operation (`angestellt.radius_von`); an der Freiform ändert das nichts
+  (Ø 4 → 2), die Freiform-Referenzen bleiben gleich.
+- Die Freiform bleibt per `SIMULTAN_TEST_FORM=freiform` ein Handlauf mit ihren bisherigen
+  Referenzen (`freiform_simultan*.json`); `test_simultan_nc.py` allein nimmt weiter das gespeicherte
+  Beispiel (214 s hier – unter dem Richtwert), `test_simultan_export_referenz.py` ebenso.
+- Die Zeit an der Kuppel geht zum großen Teil in den Materialstand nach dem Schruppen (der
+  Prüfstand simuliert das Schruppen mit 1-mm-Zwischenlagen: gut 90 s, ein Kern) – der nächste
+  Hebel für den Vergleich im Betrieb, nicht für diese Prüfung.
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_simultan_planung.py` OK (149 s schreibend, 179 s
+  Nachlauf ohne Schreibflag aus einem frischen Prozess – gleiche Referenz),
+  `tests/test_simultan_gesamt.py` OK (164 s schreibend, Nachlauf ohne Schreibflag grün),
+  `tests/test_simultan_nc.py` allein am Freiformbeispiel OK (214 s).
+
 ## P-2026-10-09-09 vierachs-vorschau-im-hintergrund
 
 ### EINGELESEN

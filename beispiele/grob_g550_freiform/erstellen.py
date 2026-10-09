@@ -22,9 +22,16 @@ from camaddon import schruppen3d as r3
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import werkzeuge as wz
 
+FREIFORM, KUPPEL = "freiform", "kuppel"
 
-def erstellen(ordner):
-    """(Job-Dokument, Werkzeugbibliothek) – D12 schruppen, drei Kugelfräser zum Vergleichen."""
+
+def erstellen(ordner, form=FREIFORM):
+    """(Job-Dokument, Werkzeugbibliothek) – D12 schruppen, drei Kugelfräser zum Vergleichen.
+
+    `form`: FREIFORM ist das Beispiel (50 × 40 × 30, Mulde, Sattel, Erhebung); KUPPEL die kleine
+    Kugelkappe 20 × 16 des Szenarios `szenario_simultan_planung` – dieselben Werkzeuge, dieselbe
+    Werkzeugbibliothek, derselbe Job, nur die kleinste Geometrie, die den Vergleich zeigt
+    (Arbeitsregeln, Abschnitt 5: Prüfungen so schlank wie möglich)."""
     profil = Path(os.environ["FREECAD_USER_HOME"]).resolve()
     assert profil.is_dir() and Path(App.getUserAppDataDir()).resolve() == profil
     ordner = Path(ordner)
@@ -49,6 +56,8 @@ def erstellen(ordner):
     bib.halter = [h]
     bib.speichern()
     ue.uebergeben(bib)
+    if form == KUPPEL:
+        return _kuppel(w, kugeln, bib)
     V = App.Vector
     grid = []
     for i in range(9):
@@ -106,5 +115,44 @@ def erstellen(ordner):
     grob.Rampenanlauf = True
     grob.Eintauchwinkel = 2.5
     s3.lege_an(job, t2, 0.02, flaechen=faces)
+    doc.recompute()
+    return doc, bib
+
+
+def _kuppel(w, kugeln, bib):
+    """Der Job an der Kugelkappe 20 × 16 (Kugel R 40 über einem Sockel 6 hoch): D12 schruppen
+    mit 1-mm-Zwischenlagen, Kugel 12 schlichten auf 0,02 mm – zum Vergleichen wie das Beispiel."""
+    V = App.Vector
+    kappe = Part.makeSphere(40, V(10, 8, -25)).common(Part.makeBox(20, 16, 20, V(0, 0, 6)))
+    solid = Part.makeBox(20, 16, 6).fuse(kappe).removeSplitter()
+    assert solid.isValid() and solid.Volume > 0
+    doc = App.newDocument("KuppelSimultan")
+    doc.UndoMode = 1
+    obj = doc.addObject("Part::Feature", "Kuppel")
+    obj.Shape = solid
+    doc.recompute()
+    job = PathJob.Create("Job", [obj])
+    job.Label = "Kuppel - 5 Achsen vergleichen"
+    faces = [f"Face{i+1}" for i, f in enumerate(solid.Faces) if isinstance(f.Surface, Part.Sphere)]
+    assert len(faces) == 1, faces
+    old = job.Stock
+    stock = doc.addObject("Part::Feature", "Rohteil")
+    stock.Shape = Part.makeBox(20, 16, 18)
+    job.Stock = stock
+    doc.removeObject(old.Name)
+    doc.recompute()
+    t1 = js.controller_ohne_transaktion(
+        doc, job, w, next(e for e in w.schnittwerte[wz.ALLE] if e.art == wz.SCHRUPPEN)
+    )
+    controller = [
+        js.controller_ohne_transaktion(
+            doc, job, k, next(e for e in k.schnittwerte[wz.ALLE] if e.art == wz.SCHLICHTEN)
+        )
+        for k in kugeln
+    ]
+    grob = r3.lege_an(job, t1, 25, 1.5, aufmass=0.3, zwischen=1, flaechen=faces)
+    grob.Rampenanlauf = True
+    grob.Eintauchwinkel = 2.5
+    s3.lege_an(job, controller[0], 0.02, flaechen=faces)
     doc.recompute()
     return doc, bib
