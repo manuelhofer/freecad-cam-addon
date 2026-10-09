@@ -139,6 +139,23 @@ grad = max(abs(b.phi - a.phi) for a, b in zip(bahn.punkte, bahn.punkte[1:], stri
 pruefe(grad <= vb.HOECHSTENS_GRAD + 1e-9, f"ein Satz dreht {grad}°")
 # Die vier oberen Lagen liegen über dem ganzen Teil: je Lage höchstens alle 90° ein Punkt.
 pruefe(len(bahn.punkte) < 400 * 4 + 9000, f"zu viele Punkte: {len(bahn.punkte)}")
+# Auch die letzte Lage: Sie folgt der Hüllfläche des Netzes, deren Facetten um Tausendstel
+# wackeln – mit dem Spiel (schrupp_spiel: ein Zehntel des Aufmaßes) bleibt davon rundum ein Satz
+# je 90° (P-2026-10-09-02; Manuel: „ein Grad … eine sehr große Zahl“), kein Punkt tiefer als das
+# Aufmaß (oben: min(ueber) ≥ 30,3), die Bahn selbst höchstens das Spiel darüber.
+letzte_lage = [p for p in schnitte(bahn) if p.r < 32 and -100 + R <= p.a <= -R]
+schritte = sorted(abs(b.phi - a.phi) for a, b in zip(letzte_lage, letzte_lage[1:], strict=False))
+pruefe(
+    schritte and schritte[len(schritte) // 2] >= 89.0,
+    f"letzte Lage: {len(letzte_lage)} Punkte, mittlerer Schritt {schritte[len(schritte) // 2]}°",
+)
+pruefe(max(p.r for p in letzte_lage) <= 30.3 + 0.03 + welle.toleranz + vb.RAND + 1e-6, "zu hoch")
+pruefe(
+    vb.schrupp_spiel(0.3) == 0.03
+    and vb.schrupp_spiel(0.0) == 0.0
+    and vb.schrupp_spiel(1.0) == 0.05,
+    "schrupp_spiel",
+)
 print(ascii(f"Welle: {bahn.lagen} Lagen, {len(bahn.punkte)} Punkte"))
 
 # --- Exzenter Ø 20, 15 mm außermittig: nie näher als das Aufmaß, auch zwischen den Punkten
@@ -631,6 +648,21 @@ pruefe(
     f"lagen_grenze: {grenze_1}",
 )
 print(ascii(f"Schruppen mit Querachse: {d_bahn.lagen} Lagen, {len(d_bahn.punkte)} Punkte"))
+# Auf der glatten Welle fasst auch die Spirale mit der Querachse die letzte Lage zu Sätzen je 90°
+# zusammen (das Spiel wie rundum), ohne unter das Aufmaß zu kommen (P-2026-10-09-02).
+quer_welle = vb.schruppen(welle, C_LAENGS, C_RADIAL, replace(WERTE, querachse=True))
+quer_letzte = [p for p in schnitte(quer_welle) if p.r < 32 and -100 + R <= p.a <= -R]
+quer_schritte = sorted(
+    abs(b.phi - a.phi) for a, b in zip(quer_letzte, quer_letzte[1:], strict=False)
+)
+pruefe(
+    quer_schritte and quer_schritte[len(quer_schritte) // 2] >= 89.0,
+    f"Querachse, letzte Lage: mittlerer Schritt {quer_schritte[len(quer_schritte) // 2]}°",
+)
+pruefe(
+    min(p.r for p in quer_letzte) >= 30.3 - 1e-6,
+    f"Querachse: zu tief {min(p.r for p in quer_letzte)}",
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

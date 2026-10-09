@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-02 rundum-schruppen-lange-saetze
+
+### EINGELESEN
+- Manuel, 2026-10-09 (Sprachnachricht): „wenn ich ein Programm erzeuge, dann hatten wir ja ein
+  Grad beim Schruppen, was die C-Achse sich dreht. Ich finde das ein bisschen unfein … eine sehr
+  große Zahl. Ich finde, das sollte irgendwie abhängig von irgendwas sein, vor allem von der
+  Größe. Wenn das Bauteil sehr klein ist, dann ist ein Grad schon sehr, sehr viel.“
+- Nachgemessen (Welle Ø 60 in Ø 80, Fräser Ø 12, ap 2, Steigung 4,8, Aufmaß 0,3): 5.573 Sätze,
+  davon 4.740 mit 1° oder 2° – alle in der letzten Lage. Die oberen Lagen (fester Radius) hatten
+  längst einen Satz je 90°: Die Rundachse interpoliert, auf gleichem Radius ist ein Satz über 90°
+  genau der Bogen. In der letzten Lage folgt der Radius der Hüllfläche des Netzes, und deren
+  Facetten wackeln um Tausendstel; `_knicke` hielt jeden Punkt, an dem sich r um mehr als 1e-9
+  ändert, für einen Knick – also fast jeden.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`SCHRUPP_SPIEL_ANTEIL`, `SCHRUPP_SPIEL_HOECHSTENS`,
+  `schrupp_spiel`, `_gehoben`, `_zusammengefasst(…, innen)`, `_QuerAbstand`, `_quer_hebung`,
+  `_quer_ausgeben(…, toleranz, innen)`, `_zusammen_quer(…, innen)`; `_knicke` weg),
+  `tests/test_vierachs_bahn.py`, `docs/spezifikation_vierachs.md` (V3b), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.203.3).
+
+### AKZEPTANZKRITERIUM
+Rundum schruppen auf einer glatten Welle: ein Satz je 90° auch in der letzten Lage, rundum und
+mit der Querachse, bei jedem Durchmesser; kein Punkt tiefer als das Aufmaß; die Sätze werden von
+selbst kürzer, wo sich das Teil krümmt oder absetzt.
+
+### DONE
+- Beim Schruppen hat die zusammengefasste Bahn Spiel: ein Zehntel des Aufmaßes, höchstens
+  0,05 mm (`schrupp_spiel`; ohne Aufmaß 0). Die Spirale rundum und die Zeilen über gewählten
+  Flächen gehen durch `_zusammengefasst` mit diesem Spiel nach außen und innen; danach hebt
+  `_gehoben` die bleibenden Punkte genau um das an, was die Gerade zu tief läge – nichts
+  schneidet ins Aufmaß, höchstens das Spiel bleibt mehr stehen. Fest bleibt, wo ein Ring
+  beginnt oder endet (a knickt), wo die Rundachse umkehrt und wo es frei wird.
+- Mit der Querachse dasselbe: `_zusammen_quer` bekommt das Spiel nach innen, `_quer_hebung`
+  rückt die bleibenden Punkte um die gemessene Unterschreitung hinaus (x ist der Radius im
+  mitdrehenden Rahmen – beide Enden angehoben, hebt es das ganze Stück). Das Schlichten
+  rechnet unverändert mit BAHN_TOLERANZ und QUER_INNEN.
+- Gemessen (Ø 60 in Ø 80: 497 statt 5.573 Sätze, 4 je Umdrehung; Ø 8 in Ø 12: 43 statt 2.058;
+  Ø 160 in Ø 200: 662 statt 5.608; Welle mit Absatz, Rundung R 5 und Kegel: 1.670 Sätze, davon
+  930 mit 90° und 379 unter 10° an Absatz und Rundung). Ein Satz dreht höchstens 90°
+  (HOECHSTENS_GRAD) – nicht nach der Größe des Teils, weil der Bogen auf der Rundachse
+  unabhängig vom Durchmesser genau ist; die Größe wirkt nur, wo das Teil nicht rund ist.
+- Der erste Anlauf (`_gehoben` als höchster Nachbarwert) hob an Absätzen und Ringanfängen um
+  Millimeter – vier rote Prüfungen in `test_vierachs_bahn`; darum die genaue Anhebung je Stück.
+
+### TESTS
+- 1.1.3: `test_vierachs_bahn` (neu: letzte Lage rundum und mit Querachse median 90°, nie unter
+  30,3, höchstens das Spiel darüber; `schrupp_spiel`), `test_vierachs_operation`;
+  `szenario_vierachs_schruppen` – OK. black und ruff sauber.
+
 ## P-2026-10-09-01 stabile-version-wieder-gruen
 
 ### EINGELESEN
@@ -99,10 +149,12 @@ Grenzüberschreitung wieder als Station mit rotem Satz, der Abspieler hält an d
 ### TESTS
 - 1.1.3 (fcenv-stabil): `test_abfahren`, `test_bahnzugang`, `test_flanke`, `test_sprache`,
   `test_simultan_bereiche`, `test_raum_bahn`, `test_raum_material`, `test_schwenken`,
-  `test_simultan`, `test_simultan_folge`, `test_simultan_planung`, `test_simultan_gesamt`,
+  `test_simultan`, `test_simultan_folge`, `test_simultan_gesamt` (allein, 70 min),
   `test_vierachs_plan`, `test_testteil`, `test_kollision` (3 ×), `test_programmkopf`,
   `test_raeumen` (OK); alle 25 roten Szenarien einzeln nachgelaufen (OK); Gesamtlauf siehe
-  Snapshot.
+  Snapshot. `test_simultan_planung` ist hier nicht nachgewiesen: Im Gesamtlauf und parallel zu
+  `_gesamt` hat der Kernel den Prozess bei 7,5 GB abgeschossen (Codex' Feinprüfung im
+  0,05-mm-Raster); allein endet er zweimal nach der Messung ohne OK und ohne Fehlertext.
 
 ## P-2026-10-08-14 github-veroeffentlichung
 

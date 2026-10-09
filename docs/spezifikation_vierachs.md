@@ -580,6 +580,16 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   Zeit. Liegen Punkte in (a, r, φ) auf einer Geraden, bleibt nur der letzte.
   *Gebaut (P-2026-09-27-47):* höchstens 90° je Satz – FreeCAD 1.1.3 zeigt
   einen Satz über mehr als eine Umdrehung als Gerade.
+  *Gebaut (P-2026-10-09-02; Manuel: „ein Grad … eine sehr große Zahl … sollte abhängig von der
+  Größe sein“):* In der letzten Lage folgt der Radius der Hüllfläche des Netzes, deren Facetten
+  um Tausendstel wackeln – bis dahin blieb dort alle 1–2° ein Satz (Welle Ø 60: 5.573 Sätze).
+  Beim Schruppen hat die zusammengefasste Bahn jetzt Spiel: ein Zehntel des Aufmaßes, höchstens
+  0,05 mm (`schrupp_spiel`), nach außen und innen; danach werden die bleibenden Punkte genau um
+  das angehoben, was die Gerade zu tief läge – nichts schneidet ins Aufmaß, höchstens das Spiel
+  bleibt mehr stehen. Rundum und mit der Querachse ein Satz je 90° auf der glatten Welle, bei
+  jedem Durchmesser (Ø 60: 497 Sätze, Ø 8: 43, Ø 160: 662); kürzer nur, wo sich das Teil krümmt
+  oder absetzt. Die Größe entscheidet nicht über den Winkel, weil der Bogen auf der Rundachse
+  unabhängig vom Durchmesser genau ist. Ohne Aufmaß kein Spiel; das Schlichten unverändert.
 - **V3c – Operation** (`camaddon/vierachs_operation.py`): „Rundum schruppen“,
   eine CAM-Operation mit Controller und Kühlmittel. Sie rechnet ihre Bahn beim
   Neuberechnen aus Modell und Stange des Jobs, ihre Werte stehen als

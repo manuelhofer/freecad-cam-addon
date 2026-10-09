@@ -128,6 +128,16 @@ QUER_MEHR_LAGEN = 3  # so viele Lagen mehr als rundum höchstens beim Schruppen 
 # Punkt 8,5° – mehr als eine Facette des Netzes (5° bei R 5 mm).
 QUER_GLATT = 8
 QUER_INNEN = 0.0005  # mm
+# Beim Schruppen hat die zusammengefasste Bahn Spiel: ein Zehntel des Aufmaßes, höchstens
+# SCHRUPP_SPIEL_HOECHSTENS – so weit darf die Gerade zwischen zwei bleibenden Punkten beim
+# Auswählen über und unter den ausgelassenen liegen; danach werden die bleibenden Punkte so
+# weit angehoben, dass nichts ins Aufmaß schneidet (höchstens das Spiel bleibt mehr stehen).
+# Die Hüllfläche folgt den Facetten des Netzes um Tausendstel; mit BAHN_TOLERANZ allein und
+# ohne Spiel nach innen blieb davon in der letzten Lage alle 1–2° ein Satz (Manuel, 2026-10-09:
+# „ein Grad … eine sehr große Zahl“). So reicht rundum ein Satz je HOECHSTENS_GRAD, und die
+# Sätze werden von selbst kürzer, wo sich das Teil krümmt. Ohne Aufmaß gibt es kein Spiel.
+SCHRUPP_SPIEL_ANTEIL = 0.1
+SCHRUPP_SPIEL_HOECHSTENS = 0.05  # mm
 QUER_SEITLICH = 0.5  # mm – fünf Punkte weit; längs rückt die Spirale dabei um Tausendstel
 # … bei Schaft- und Torusfräsern (geprüft am Weg der Spitze): Seitlich verschoben läge die
 # ebene Stirn in einer Kehle tiefer – so wenig nur.
@@ -246,6 +256,33 @@ class Schlichtbahn:
     rest_ueber: float = 0.0
     linien: int = 0  # Linien längs (Muster LINIEN): so viele Linien hat die Bahn
     querachse: bool = False  # die Spirale fährt mit der Querachse (Schlichtwerte.querachse)
+
+
+def schrupp_spiel(aufmass):
+    """So weit (mm) darf die zusammengefasste Schruppbahn vom Raster abweichen: ein Zehntel des
+    Aufmaßes `aufmass`, höchstens SCHRUPP_SPIEL_HOECHSTENS; 0 ohne Aufmaß."""
+    return min(SCHRUPP_SPIEL_HOECHSTENS, max(0.0, float(aufmass)) * SCHRUPP_SPIEL_ANTEIL)
+
+
+def _gehoben(r, bleibt, t=None):
+    """Je bleibendem Punkt (Stellen `bleibt` in `r`) sein Radius, so weit angehoben, dass die
+    Gerade zu den bleibenden Nachbarn über jedem ausgelassenen Punkt liegt – um das, was
+    _zusammengefasst mit `innen` darunter ließ (höchstens das Spiel; 0, wo nichts darunter lag).
+    `t` wie dort: a und φ sind dann linear in t."""
+    r = np.asarray(r, dtype=float)
+    stelle = np.arange(len(r), dtype=float) if t is None else np.asarray(t, dtype=float)
+    hebung = np.zeros(len(bleibt))
+    for k in range(len(bleibt) - 1):
+        i, j = bleibt[k], bleibt[k + 1]
+        if j <= i + 1:
+            continue
+        zwischen = np.arange(i + 1, j)
+        anteil = (stelle[zwischen] - stelle[i]) / max(stelle[j] - stelle[i], 1e-12)
+        fehlt = float(np.max(r[zwischen] - (r[i] + anteil * (r[j] - r[i]))))
+        if fehlt > 0.0:
+            hebung[k] = max(hebung[k], fehlt)
+            hebung[k + 1] = max(hebung[k + 1], fehlt)
+    return (r[list(bleibt)] + hebung).tolist()
 
 
 def rillenhoehe(fraeser_radius, eckradius, steigung):
@@ -506,6 +543,8 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         )
         return Bahn(punkte, lagen, r_min, hinten_frei)
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
+    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    spiel = schrupp_spiel(w.aufmass)
     for lage in range(1, lagen + 1):
         unten = boden(versatz)
         r = np.maximum(unten, w.stange_radius - lage * w.zustellung)
@@ -514,10 +553,15 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         # Lage davor schon bis auf die Hüllfläche kam, reicht nicht – an steilen Flanken lässt
         # die Spirale bis 0,7 mm stehen, nachgefahren im Modell der Stange.)
         frei = _frei(a, r, phi, unten >= w.stange_radius - LEER)
-        bleiben = set(_knicke(r, int(round(HOECHSTENS_GRAD / schritt_phi)), a).tolist())
-        bleiben.update(np.flatnonzero(frei[:-1] != frei[1:]).tolist())
-        for i in sorted(bleiben):
-            punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i]), frei=bool(frei[i])))
+        # Es bleiben die Punkte, zwischen denen die Gerade über allen anderen liegt – höchstens
+        # das Spiel darüber (schrupp_spiel): Die Hüllfläche folgt den Facetten des Netzes um
+        # Tausendstel, und jeder davon als Knick ließ alle 1–2° einen Satz stehen. Dazu, wo ein
+        # Ring beginnt oder endet (a knickt) und wo es frei wird oder aufhört, frei zu sein.
+        fest = set((np.flatnonzero(_a_knicke(a)) + 1).tolist()) if len(a) > 2 else set()
+        fest.update(np.flatnonzero(frei[:-1] != frei[1:]).tolist())
+        bleibt = _zusammengefasst(r, max(BAHN_TOLERANZ, spiel), abstand, sorted(fest), innen=spiel)
+        for i, r_i in zip(bleibt, _gehoben(r, bleibt), strict=True):
+            punkte.append(Punkt(False, float(a[i]), r_i, float(phi[i]), frei=bool(frei[i])))
         versatz += int(k[-1])
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
@@ -549,6 +593,7 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
         ring_r.append(zeile)
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     kugelform = form.nur_kugel
+    spiel = schrupp_spiel(w.aufmass)
 
     def lage_rechnen(versatz, tiefer):
         winkel_i = (drehung * (versatz + k)) % je_umdrehung
@@ -570,7 +615,18 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
         lage += 1
         a_p, x, q_p, psi_p, fest, noch = lage_rechnen(versatz, lage * w.zustellung)
         _quer_ausgeben(
-            punkte, a_p, x, q_p, psi_p, fest, sicher, abstand, drehung, radius if kugelform else 0.0
+            punkte,
+            a_p,
+            x,
+            q_p,
+            psi_p,
+            fest,
+            sicher,
+            abstand,
+            drehung,
+            radius if kugelform else 0.0,
+            toleranz=max(BAHN_TOLERANZ, spiel),
+            innen=max(QUER_INNEN, spiel),
         )
         punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
         versatz += int(k[-1])
@@ -914,6 +970,7 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi)
         fahrten = _fahrten(drin)
     sicher = w.stange_radius + w.sicherheit
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    spiel = schrupp_spiel(w.aufmass)
     nah = np.concatenate([[False], np.diff(-zeilen_a) <= w.fraeser_radius + GLEICH])
     davor = np.full(boden.shape, float(w.stange_radius))
     for lage in range(1, lagen + 1):
@@ -930,8 +987,14 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi)
             m0, j0 = fahrt[0][1], int(j[0]) % n
             offen = nah[m0] and gefraest[m0 - 1, j0]
             _einfahrt(punkte, a, r, phi, davor[m0, j0], offen, w)
-            for i in _knicke(r, abstand, a, phi):
-                punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i])))
+            # Zusammengefasst mit dem Spiel wie die Spirale rundum; fest bleibt, wo a knickt
+            # (ein Ring beginnt oder endet) und wo die Rundachse umkehrt (phi, hin und her).
+            fest = (
+                (np.flatnonzero(_a_knicke(a) | _a_knicke(phi)) + 1).tolist() if len(a) > 2 else []
+            )
+            bleibt = _zusammengefasst(r, max(BAHN_TOLERANZ, spiel), abstand, fest, innen=spiel)
+            for i, r_i in zip(bleibt, _gehoben(r, bleibt), strict=True):
+                punkte.append(Punkt(False, float(a[i]), r_i, float(phi[i])))
             punkte.append(Punkt(True, float(a[-1]), sicher, float(phi[-1])))
             auf_zeile = m >= 0
             gefraest[m[auf_zeile], j[auf_zeile] % n] = True
@@ -1756,11 +1819,26 @@ def _uebergaenge(a, x, q, psi, fest, radius, eingefuegt=None):
     )
 
 
-def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius, neigung=0.0):
+def _quer_ausgeben(
+    punkte,
+    a,
+    x,
+    q,
+    psi,
+    fest,
+    sicher,
+    abstand,
+    drehung,
+    radius,
+    neigung=0.0,
+    toleranz=BAHN_TOLERANZ,
+    innen=QUER_INNEN,
+):
     """Hängt die Stellungen (a, x, q, ψ) an `punkte`: im Eilgang über den Anfang, die Punkte
     zusammengefasst (_zusammen_quer, geprüft am Weg des Punkts `radius` über der Spitze, längs der
-    Normalen ψ − `neigung`), am Ende radial hinaus. Der Winkel zählt weiter, wo die Rundachse
-    steht."""
+    Normalen ψ − `neigung`, höchstens `toleranz` außen und `innen` innen – was `innen` über
+    QUER_INNEN hinausgeht, ist das Spiel beim Schruppen, und darum rücken die bleibenden Punkte
+    nach außen), am Ende radial hinaus. Der Winkel zählt weiter, wo die Rundachse steht."""
     weiter = punkte[-1].phi
     if drehung > 0:
         versatz = 360.0 * math.ceil((weiter - psi[0]) / 360.0 - 1e-9)
@@ -1769,9 +1847,19 @@ def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius,
     anfahren = Punkt(True, float(a[0]), sicher, float(psi[0] + versatz), q=float(q[0]))
     if anfahren != punkte[-1]:
         punkte.append(anfahren)
-    for i in _zusammen_quer(x, q, psi, radius, BAHN_TOLERANZ, abstand, fest, neigung):
+    bleibt = _zusammen_quer(x, q, psi, radius, toleranz, abstand, fest, neigung, innen)
+    # Mit Spiel beim Schruppen: die bleibenden Punkte so weit hinaus, dass nichts ins Aufmaß
+    # schneidet; sonst (Schlichten) wie bisher.
+    hebung = (
+        _quer_hebung(x, q, psi, radius, bleibt, neigung)
+        if innen > QUER_INNEN
+        else np.zeros(len(bleibt))
+    )
+    for i, h in zip(bleibt, hebung, strict=True):
         punkte.append(
-            Punkt(False, float(a[i]), float(x[i]), float(psi[i] + versatz), q=float(q[i]))
+            Punkt(
+                False, float(a[i]), float(x[i]) + float(h), float(psi[i] + versatz), q=float(q[i])
+            )
         )
     letzter = len(a) - 1
     punkte.append(
@@ -1779,13 +1867,63 @@ def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius,
     )
 
 
-def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0):
+class _QuerAbstand:
+    """Wie weit die Kurve, die die Maschine zwischen zwei Punkten der Spirale mit der Querachse
+    fährt (x, q und ψ zugleich geradlinig; die Kugelmitte im Teil auf Rot(ψ(t)) · (x(t) + R,
+    q(t))), an den ausgelassenen Punkten dazwischen von diesen abweicht – längs ihrer Normalen
+    ψ − `neigung` (außen positiv) und quer dazu (_zusammen_quer, _quer_hebung)."""
+
+    def __init__(self, x, q, psi, radius, neigung=0.0):
+        self.x = np.asarray(x, dtype=float)
+        self.q = np.asarray(q, dtype=float)
+        self.psi = np.asarray(psi, dtype=float)
+        self.radius = radius
+        rad = np.radians(self.psi)
+        self.mitte_x = (self.x + radius) * np.cos(rad) - self.q * np.sin(rad)
+        self.mitte_y = (self.x + radius) * np.sin(rad) + self.q * np.cos(rad)
+        normale = rad - math.radians(neigung)
+        self.c, self.s = np.cos(normale), np.sin(normale)
+
+    def zwischen(self, i, j):
+        """(längs, seitlich) je Punkt zwischen i und j (beide nicht dabei)."""
+        x, q, psi, radius = self.x, self.q, self.psi, self.radius
+        k = np.arange(i + 1, j)
+        t = (k - i) / (j - i)
+        xt = x[i] + t * (x[j] - x[i])
+        qt = q[i] + t * (q[j] - q[i])
+        pt = np.radians(psi[i] + t * (psi[j] - psi[i]))
+        ct, st = np.cos(pt), np.sin(pt)
+        dx = (xt + radius) * ct - qt * st - self.mitte_x[k]
+        dy = (xt + radius) * st + qt * ct - self.mitte_y[k]
+        return dx * self.c[k] + dy * self.s[k], dy * self.c[k] - dx * self.s[k]
+
+
+def _quer_hebung(x, q, psi, radius, bleibt, neigung=0.0):
+    """Je bleibendem Punkt: so weit nach außen (längs seiner Normalen), dass die Kurve zu seinen
+    bleibenden Nachbarn an keinem ausgelassenen Punkt innen liegt – um das, was _zusammen_quer
+    mit `innen` beim Schruppen darunter ließ (höchstens das Spiel; 0, wo nichts darunter lag).
+    x ist der Radius im mitdrehenden Rahmen: beide Enden angehoben, hebt es das ganze Stück."""
+    abstand = _QuerAbstand(x, q, psi, radius, neigung)
+    hebung = np.zeros(len(bleibt))
+    for k in range(len(bleibt) - 1):
+        i, j = bleibt[k], bleibt[k + 1]
+        if j <= i + 1:
+            continue
+        laengs, _seitlich = abstand.zwischen(i, j)
+        fehlt = float(max(0.0, -np.min(laengs)))
+        if fehlt > 0.0:
+            hebung[k] = max(hebung[k], fehlt)
+            hebung[k + 1] = max(hebung[k + 1], fehlt)
+    return hebung
+
+
+def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0, innen=QUER_INNEN):
     """Die Punkte, die von der Spirale mit der Querachse bleiben (wie _zusammengefasst, nur
     im Rahmen des Teils gemessen). Die Maschine fährt zwischen zwei Punkten x, q und ψ
     zugleich geradlinig; die Kugelmitte läuft dabei im Teil auf der Kurve Rot(ψ(t)) · (x(t) +
     R, q(t)) – auf einer Ebene (ψ hält) eine Gerade, auf einem Zylinder (x und q halten) ein
     Bogen, beides genau. Ein Punkt kann weg, wenn diese Kurve an ihm längs seiner Normalen
-    höchstens `toleranz` außen und QUER_INNEN innen liegt und quer dazu höchstens
+    höchstens `toleranz` außen und `innen` innen liegt und quer dazu höchstens
     QUER_SEITLICH – quer heißt nur: an einer anderen Stelle derselben Bahn. Je Lauf das
     längste Stück, das passt (verdoppeln, dann halbieren), höchstens `hoechstens` Punkte;
     die Punkte in `fest` bleiben (Ringe, Innenecken). Mit radius 0 (die Spitze eines Fräsers,
@@ -1793,31 +1931,15 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0
     neben der Normalen (normale_quer), zählt längs und quer zur Normalen ψ − `neigung`."""
     seitlich_hoechstens = QUER_SEITLICH if radius > 0 else QUER_SEITLICH_SPITZE
     n = len(x)
-    rad = np.radians(np.asarray(psi, dtype=float))
-    mitte_x = (x + radius) * np.cos(rad) - q * np.sin(rad)
-    mitte_y = (x + radius) * np.sin(rad) + q * np.cos(rad)
-    normale = rad - math.radians(neigung)
-    c, s = np.cos(normale), np.sin(normale)
-    x = np.asarray(x, dtype=float)
-    q = np.asarray(q, dtype=float)
-    psi = np.asarray(psi, dtype=float)
+    abstand = _QuerAbstand(x, q, psi, radius, neigung)
 
     def passt(i, j):
         if j <= i + 1:
             return True
-        k = np.arange(i + 1, j)
-        t = (k - i) / (j - i)
-        xt = x[i] + t * (x[j] - x[i])
-        qt = q[i] + t * (q[j] - q[i])
-        pt = np.radians(psi[i] + t * (psi[j] - psi[i]))
-        ct, st = np.cos(pt), np.sin(pt)
-        dx = (xt + radius) * ct - qt * st - mitte_x[k]
-        dy = (xt + radius) * st + qt * ct - mitte_y[k]
-        laengs = dx * c[k] + dy * s[k]  # längs der Normalen: außen positiv
-        seitlich = dy * c[k] - dx * s[k]
+        laengs, seitlich = abstand.zwischen(i, j)
         return bool(
             np.all(laengs <= toleranz)
-            and np.all(laengs >= -QUER_INNEN)
+            and np.all(laengs >= -innen)
             and np.all(np.abs(seitlich) <= seitlich_hoechstens)
         )
 
@@ -1931,12 +2053,13 @@ def _sehnenfehler(r, t=None):
     return heben
 
 
-def _zusammengefasst(r, toleranz, hoechstens, fest=(), t=None):
+def _zusammengefasst(r, toleranz, hoechstens, fest=(), t=None, innen=0.0):
     """Die Punkte, die bleiben: Anfang, Ende, die Punkte in `fest` und so wenige dazwischen,
-    dass die Gerade zwischen zwei bleibenden Punkten über keinem ausgelassenen liegt und
-    höchstens `toleranz` darüber – zwischen ihnen sind a und φ linear (an den Punkten in
-    `fest` knickt a: ein Ring beginnt oder endet). Höchstens `hoechstens` Punkte weit. `t` wie
-    bei _sehnenfehler: a und φ sind dann linear in t, die Weite zählt in t."""
+    dass die Gerade zwischen zwei bleibenden Punkten über keinem ausgelassenen liegt (höchstens
+    `innen` darunter – beim Schruppen das Spiel im Aufmaß, sonst 0) und höchstens `toleranz`
+    darüber – zwischen ihnen sind a und φ linear (an den Punkten in `fest` knickt a: ein Ring
+    beginnt oder endet). Höchstens `hoechstens` Punkte weit. `t` wie bei _sehnenfehler: a und
+    φ sind dann linear in t, die Weite zählt in t."""
     werte = r.tolist()
     stelle = list(range(len(werte))) if t is None else np.asarray(t, dtype=float).tolist()
     fest = set(fest)
@@ -1951,8 +2074,9 @@ def _zusammengefasst(r, toleranz, hoechstens, fest=(), t=None):
             bleibt.append(anfang)
             schritte = stelle[i] - stelle[anfang]
             unten, oben = -math.inf, math.inf
-        # Ab hier muss die Gerade über Punkt i liegen, höchstens `toleranz` darüber.
-        unten = max(unten, (werte[i] - werte[anfang]) / schritte)
+        # Ab hier muss die Gerade über Punkt i liegen (höchstens `innen` darunter), höchstens
+        # `toleranz` darüber.
+        unten = max(unten, (werte[i] - innen - werte[anfang]) / schritte)
         oben = min(oben, (werte[i] + toleranz - werte[anfang]) / schritte)
         if i in fest and i < len(werte) - 1:
             bleibt.append(i)
@@ -1997,21 +2121,6 @@ def _frei(a, r, phi, leer):
         bis_zum_ende = np.cumsum(lauf[::-1])[::-1] - lauf  # vom Ende des Stücks bis zum Material
         frei[von + 1 : bis + 2] = bis_zum_ende >= fw.VORLAUF
     return frei
-
-
-def _knicke(r, abstand, a=None, phi=None):
-    """Die Stellen der Spirale, die bleiben: Anfang, Ende, wo der Radius sich ändert, wo ein
-    Ring beginnt oder endet (`a` ändert dort seine Steigung), wo die Rundachse umkehrt
-    (`phi`, hin und her) und alle `abstand` Stellen eine – dazwischen liegen die Punkte auf
-    einer Geraden in (a, r, φ)."""
-    anders = np.abs(np.diff(r)) > GLEICH
-    bleibt = np.arange(len(r)) % abstand == 0
-    bleibt[0] = bleibt[-1] = True
-    bleibt[1:-1] |= anders[:-1] | anders[1:]
-    for x in (a, phi):
-        if x is not None and len(x) > 2:
-            bleibt[1:-1] |= _a_knicke(x)
-    return np.nonzero(bleibt)[0]
 
 
 def _a_knicke(a, t=None):
