@@ -81,7 +81,8 @@ def schritte(h):
     h.pruefe(raeumen.zeit is not None and raeumen.zeit < 2.7, f"Räumen: {raeumen.zeit} min")
     h.pruefe("– die schnellste; Planfräsen wäre" in text and "% langsamer" in text, f"{text!r}")
     text_plan = plan.ergebnis.text()
-    h.pruefe(text_plan.startswith("→ 1 Lage, 56 Zeilen, etwa 6 min"), f"Planfräsen: {text_plan!r}")
+    # Seit P-2026-10-03-29/-04-34 (Zelle für Zelle, keine unnötigen Rampen) 3 statt 6 min.
+    h.pruefe(text_plan.startswith("→ 1 Lage, 56 Zeilen, etwa 3 min"), f"Planfräsen: {text_plan!r}")
     h.pruefe(text_plan.endswith("% langsamer als Räumen"), f"Planfräsen: {text_plan!r}")
     h.pruefe("Zeilen längs X" in text_plan, f"Planfräsen ohne Richtung: {text_plan!r}")
     h.bild("1_wettbewerb", panel.form)

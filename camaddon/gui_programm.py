@@ -362,7 +362,16 @@ def _abschnitte_und_kette(job, gewaehlt):
     from . import simultan_operation as so
 
     if gewaehlt is None:
-        return pp.abschnitte(job), bool(sw.ist_ebene(job) or sw.ebenen_von(job) or so.im_job(job))
+        teile = pp.abschnitte(job)
+        ohne = bool(sw.ist_ebene(job) or sw.ebenen_von(job) or so.im_job(job))
+        if ohne and (
+            getattr(job, rw.EIGENSCHAFT_MASCHINE, "")
+            or getattr(rw.grundjob_von(job), rw.EIGENSCHAFT_MASCHINE, "")
+        ):
+            # Der Job hat seine Maschine: pp.abschnitte rechnet Ebenen und Simultanbahnen mit ihr
+            # (maschinenzugang) – ohne Kette ist nur, was es dabei auslassen musste.
+            ohne = any(a.hinweis for a in teile)
+        return teile, ohne
     _name, pfad, dok = gewaehlt
     verborgen = None
     if dok is None:

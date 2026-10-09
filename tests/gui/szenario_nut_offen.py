@@ -111,8 +111,10 @@ def schritte(h):
     )
     yield 1500
     h.pruefe(nut_block.aktiv() and not raeumen.aktiv(), "Grund: die Nut nicht der Sieger")
+    # Seit P-2026-10-02-89 tritt das Räumen am Grund der offenen Nut adaptiv an (kein
+    # Vollschnitt mehr) und verliert nach der Zeit gegen die Nut.
     h.pruefe(
-        "in der Nut schnitte es zuerst in voller Breite" in raeumen.ergebnis.text(),
+        "adaptiv" in raeumen.ergebnis.text() and "langsamer als Nut" in raeumen.ergebnis.text(),
         f"Räumen am Grund: {raeumen.ergebnis.text()!r}",
     )
     h.bild("2_grund", panel.form)

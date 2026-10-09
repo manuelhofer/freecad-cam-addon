@@ -92,7 +92,7 @@ def schritte(h):
     h.pruefe(nut_block.aktiv() and not raeumen.aktiv(), "Grund: die Nut nicht der Sieger")
     h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 31 Bögen, etwa "), f"Nut am Grund: {text!r}")
     h.pruefe(
-        "in der Nut schnitte es zuerst in voller Breite" in raeumen.ergebnis.text(),
+        "auf dem Grund der Nut schnitte es zuerst in voller Breite" in raeumen.ergebnis.text(),
         f"Räumen am Grund: {raeumen.ergebnis.text()!r}",
     )
     h.pruefe(not nut_block.hinweis.text(), f"rot: {nut_block.hinweis.text()!r}")

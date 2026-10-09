@@ -103,7 +103,14 @@ def programm(op, maschine, tcpm=False, bei_null=False):
         # Dieselbe Herkunftsliste auch nach dem Auslassen und Verdichten erzeugen.
         daten = []
         view = sb._Ansicht(op, _pruefmaterial=daten)
-        nc, rest = sb.teilen(view, maschine, str(fehler))
+        try:
+            nc, rest = sb.teilen(view, maschine, str(fehler))
+        except ValueError:
+            if not maschine.rundachsen:
+                # Ohne Rundachsen bleibt kein Zug: ein Satz, der es sagt (statt „Punkt 1 der
+                # Bahn: keine Stellung der Rundachsen“).
+                raise ValueError(tr("so.fehler.ohne_rundachsen")) from fehler
+            raise
         if isinstance(getattr(op, "_pruefmaterial", None), list):
             op._pruefmaterial[:] = daten
         return Programm(nc, rest, tuple(daten))

@@ -8,6 +8,9 @@
 # Ohne Argument laufen alle tests/gui/szenario_*.py. Ausgabeordner:
 # $AUSGABE, sonst tests/gui/ausgabe.
 set -u
+# FreeCADCmd druckt nach der Locale: ohne UTF-8 bricht eine Pruefung beim ersten
+# Umlaut in print() ab ('ascii' codec can't encode ...). Dann C.UTF-8 nehmen.
+case "$(locale charmap 2>/dev/null)" in UTF-8) ;; *) export LC_ALL=C.UTF-8 ;; esac
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 fc="${FREECAD:-${FC_UMGEBUNG:-$HOME/.cache/freecad-cam-addon/fcenv}/bin/freecad}"
@@ -19,7 +22,8 @@ if [ $# -eq 0 ]; then
 fi
 ausgabe_basis="${AUSGABE:-$repo/tests/gui/ausgabe}"
 # Ein Szenario beendet FreeCAD selbst. Laeuft es laenger, haengt etwas.
-zeitlimit_s=180
+# CAMADDON_ZEITLIMIT: laenger auf einem langsamen oder ausgelasteten Rechner.
+zeitlimit_s="${CAMADDON_ZEITLIMIT:-180}"
 
 fehler=0
 for szenario in "$@"; do

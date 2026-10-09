@@ -5,7 +5,8 @@
 # Rohteil, nicht den Block. Gewählt: Das Rohteil des Jobs ist ein Klon des Körpers (−2 … 102,
 # −2 … 62, oben 25), Schritt 2 sagt „Rohteil: Rohteil · …“. Zurück zum Quader: wieder der Quader
 # mit Aufmaß; wieder der Körper. Nullpunkt „Mitte oben“: Teil und Rohteil wandern zusammen – die
-# Mitte oben des Körpers liegt im Ursprung. „Anlegen“: Planfräsen, das Rohteil bleibt der Körper.
+# Mitte oben des Körpers liegt im Ursprung. „Anlegen“: Planfräsen oder Räumen (die Zeit
+# entscheidet, 3 % auseinander), das Rohteil bleibt der Körper.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -119,7 +120,9 @@ def schritte(h):
         f"nach dem Anlegen: {job.Stock.Label}",
     )
     ops = [o.Label for o in job.Operations.Group]
-    h.pruefe(any(o.startswith("Planfräsen") for o in ops), f"Operationen: {ops}")
+    # Die Zeit entscheidet (Grundsatz 0): Planfräsen und Räumen liegen hier 3 % auseinander,
+    # der Adaptiv-Kern streut ±1,5 % – beides ist richtig; geprüft wird das Rohteil.
+    h.pruefe(any(o.startswith(("Planfräsen", "Räumen")) for o in ops), f"Operationen: {ops}")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800

@@ -154,8 +154,9 @@ def schritte(h):
         d.write(siemens.text)
 
     # --- „Programm schreiben“ ohne Schwenkzyklus: mit der Kette der Maschine gerechnet -----------
-    # (je Werkzeug mit seiner Länge, wie „Auf der Maschine prüfen“) – nicht wie ein gedachter
-    # Tisch A, C um den Nullpunkt: Der Nullpunkt liegt nicht im Drehpunkt der Maschine.
+    # (je Werkzeug mit seiner Länge, wie „Auf der Maschine prüfen“): Der Nullpunkt liegt nicht im
+    # Drehpunkt der Maschine. Die Rundachsen stehen nach DIN 66217 im Programm (P-2026-10-05-17:
+    # die um 30° geschwenkte Ebene auf dem Tisch/Tisch heißt A30, nicht A−30).
     from camaddon import gui_programm
 
     Gui.Selection.clearSelection()
@@ -174,11 +175,11 @@ def schritte(h):
             gui_programm.abschnitte_mit_maschine(grundjob, gewaehlt), d.steuerung(), d.info,
             grundjob.Label,
         ).text  # fmt: skip
-        ohne = pp.programm(pp.abschnitte(grundjob), d.steuerung(), d.info, grundjob.Label).text
         h.pruefe(
-            text == mit and text != ohne, "das Fenster rechnet die Ebenen nicht mit der Maschine"
+            text == mit and "(Ebene geschwenkt: A30 C0)" in text,
+            "das Fenster rechnet die Ebenen nicht mit der Maschine",
         )
-        h.pruefe("G0 A-30.000 C0.000" in text, "LinuxCNC: Rundachsen der Schräge fehlen")
+        h.pruefe("G0 A30.000 C0.000" in text, "LinuxCNC: Rundachsen der Schräge fehlen")
         with open(
             os.path.join(os.environ.get("CAMADDON_AUSGABE", ordner), "schwenkteil.ngc"), "w"
         ) as datei:
@@ -199,12 +200,15 @@ def schritte(h):
         h.bild("0b_tcpm", d)
         d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("linuxcnc"))
         yield 800
-        # Ohne Maschine: der gedachte Tisch A, C um den Nullpunkt – ein Hinweis sagt es.
+        # Im Fenster „keine“ gewählt: Der Job hat seine Maschine (merke_maschine), das Programm
+        # rechnet die Ebenen weiter mit ihr (maschinenzugang, P-2026-10-08-10) – kein Hinweis,
+        # die Ebenen fehlten; den gedachten Tisch A, C gibt es nicht mehr.
         d.wahl_maschine.setCurrentIndex(0)
         yield 800
         h.pruefe(
-            "keine zwei Rundachsen" in d.hinweise.text(),
-            f"ohne Maschine kein Hinweis: {d.hinweise.text()!r}",
+            "Für die Ebenen fehlt" not in d.hinweise.text()
+            and "G0 A30.000 C0.000" in d._programm().text,
+            f"mit der Maschine des Jobs: {d.hinweise.text()!r}",
         )
         d.reject()
         yield 300

@@ -244,8 +244,10 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     """Die Stationen aller aktiven Operationen des Jobs auf der Maschine der Prüfung.
 
     Operationen, die die Prüfung übergeht (kein Werkzeug-Controller, kein
-    Platz am Revolver, zu viele Linearachsen), fehlen – das sagt schon die
-    Reichweite (reichweite.Pruefung.pruefe_job).
+    Platz am Revolver, zu viele Linearachsen, eine Rundachse, die die Maschine
+    nicht hat), fehlen – das sagt schon die Reichweite (reichweite.Pruefung.pruefe_job).
+    Eine überschrittene Grenze lässt nichts aus: Sie ist eine Station, der Abspieler
+    hält dort an (4a/4b); nur das Programm lässt die Operation aus (postprozessor).
     """
     from . import maschinenzugang as mz
     from . import schwenken as sw
@@ -277,7 +279,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                     ergebnis.hinweise.append(f"{op.Label}: {programm.hinweis}")
             else:
                 befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
-            grund = mz.bahn_grund(m_bahn, befehle, op.Label)
+            grund = mz.bahn_grund(m_bahn, befehle, op.Label, grenzen=False)
             if grund:
                 ergebnis.hinweise.append(
                     f"{op.Label}: " + tr("pp.hinweis.simultan_ausgelassen", grund=grund)

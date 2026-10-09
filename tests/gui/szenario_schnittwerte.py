@@ -193,7 +193,11 @@ def schritte(h):
         s.tabelle.cellWidget(0, gs.WERKSTOFF).currentText() == "Alle Werkstoffe",
         f"Spalte: {s.tabelle.cellWidget(0, gs.WERKSTOFF).currentText()!r}",
     )
-    h.pruefe(s.zustand.text().startswith("Jede Zeile gilt für den Werkstoff"), s.zustand.text())
+    # Seit den Werkstoffklassen (P-2026-10-03-02) gilt eine Zeile für die Klasse oder den Werkstoff.
+    h.pruefe(
+        s.zustand.text().startswith("Jede Zeile gilt für die Werkstoffklasse oder den Werkstoff"),
+        s.zustand.text(),
+    )
 
     # Eine Zeile für 1.4301 (Manuel, 2026-10-01: „Wenn ich Schnittwerte anlege, muss ich das
     # Material auswählen“): Sie steht hinter den Zeilen für alle, mit 1.4301 in der Spalte;
@@ -258,9 +262,11 @@ def schritte(h):
     s.zeige(s.werkzeug, d.bibliothek)
     yield 100
     wahl = s.tabelle.cellWidget(0, gs.WERKSTOFF)
+    # Vorn nach „Alle Werkstoffe“ und den Werkstoffklassen, vor den mitgelieferten.
+    eigen = wahl.findData("eigen-1")
     h.pruefe(
-        wahl.findData("eigen-1") == 2 and "MeinStahl" in wahl.itemText(2),
-        f"eigener Werkstoff in der Auswahl: {wahl.findData('eigen-1')}",
+        0 < eigen < wahl.findData("1.0038") and "MeinStahl" in wahl.itemText(eigen),
+        f"eigener Werkstoff in der Auswahl: {eigen}, 1.0038 bei {wahl.findData('1.0038')}",
     )
     # Aufgeklappt: höchstens 20 Zeilen mit Rollbalken, oben „Alle Werkstoffe“, so breit wie die
     # Namen – nicht alle Werkstoffe auf einmal, höher als der Bildschirm (Manuel, 2026-10-02:

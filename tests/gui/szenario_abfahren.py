@@ -192,8 +192,10 @@ def schritte(h):
         spieler.station == len(abfahrt.stationen) - 2, f"Punkt zurück: Station {spieler.station}"
     )
     spieler.springe_zu_operation(1)
+    # Die zweite Operation beginnt mit der Fahrt zum Wechselpunkt der Maschine (D-5,
+    # P-2026-10-04-36), dann kommen ihre Sätze.
     h.pruefe(
-        spieler.stelle.text().startswith("„Bohren“ · Satz 3 von 7 · "),
+        spieler.stelle.text().startswith("„Bohren“ · zum Werkzeugwechsel · "),
         f"Zweite Operation: {spieler.stelle.text()!r}",
     )
     yield 300

@@ -72,11 +72,15 @@ def _maschine(job, operation):
         return False
 
 
-def bahn_grund(maschine, befehle, name=""):
+def bahn_grund(maschine, befehle, name="", grenzen=True):
     """Grund bei fehlender Achse, unlesbarer Bewegung oder überschrittener Grenze, sonst leer.
 
     Der bestehende Reichweitenkern prüft auch innere Kreisextrema. Hier werden
     keine Bewegungen begrenzt oder ersetzt; eine ungültige Operation bleibt aus.
+    Ohne `grenzen` (der Abspieler) zählt eine überschrittene Grenze nicht als Grund:
+    Das Prüffenster zeigt sie rot, jede Überschreitung ist eine Station, und der
+    Abspieler hält an der Grenze (Spezifikation Simulation 4a/4b) – nur, was die
+    Maschine gar nicht fahren kann (fremde Rundachse, unlesbare Sätze), bleibt aus.
     """
     p = maschine.pruefung
     kin = Kinematik(p, maschine.aufnahme, maschine.laenge, maschine.nullpunkt)
@@ -97,7 +101,7 @@ def bahn_grund(maschine, befehle, name=""):
             if b in c.Parameters:
                 wert = float(c.Parameters[b])
                 rund[b] = wert if absolut else rund[b] + wert
-                if not a.erlaubt(rund[b]):
+                if grenzen and not a.erlaubt(rund[b]):
                     return tr("mz.fehler.rundgrenze", achse=b, wert=f"{rund[b]:g}")
     unbekannt = []
     for s in rw._bahn(befehle, unbekannt.append, rueckzug=True):
@@ -111,11 +115,11 @@ def bahn_grund(maschine, befehle, name=""):
                 sammler.punkt(ort, s.rund, loesung, stellungen)
     sammler.ende_operation()
     sammler.fertig()
-    if result.ueberschreitungen:
+    if grenzen and result.ueberschreitungen:
         return result.ueberschreitungen[0].text()
     if unbekannt:
         return tr("mz.fehler.befehle", befehle=", ".join(unbekannt))
-    return "; ".join(result.hinweise)
+    return "; ".join(result.hinweise) if grenzen else ""
 
 
 def operation_erreichbar(job, operation):

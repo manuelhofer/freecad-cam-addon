@@ -188,10 +188,13 @@ def schritte(h):
         yield 500
         h.pruefe(mitte.rund.get("C", 0.0) < -90, f"C mitten in der Lage: {mitte.rund}")
         h.pruefe("C1" in spieler.achswerte.text(), f"Achswerte: {spieler.achswerte.text()!r}")
+        # Die Spitze steht in den Zahlen des Programms: C schreibt die Drehmaschine nach DIN 66217
+        # umgekehrt zum Gelenk (P-2026-10-05-18) – die Station zählt negativ, der Text positiv.
         spitze = spieler.spitze.text()
         h.pruefe(
             spitze.startswith("Spitze im Programm: X Ø ")
-            and ", C −" in spitze
+            and ", C " in spitze
+            and ", C −" not in spitze
             and "soll" not in spitze,
             f"Spitze: {spitze!r}",
         )

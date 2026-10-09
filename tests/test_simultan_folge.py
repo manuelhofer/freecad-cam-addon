@@ -198,9 +198,9 @@ def pruefen():
         ):
             assert ist[name] == soll[name], f"Referenz verändert: {name}"
         assert beste.sekunden <= soll["sekunden"] * 1.005
-        assert (
-            laufzeit <= soll["laufzeit_s"] * 2 and spitze <= soll["spitzenspeicher_python_mb"] * 2
-        )
+        # Die Laufzeit ist Information (MESSUNG unten), keine Prüfung: Sie hängt am Rechner
+        # und an der Last. Der Speicher bleibt geprüft.
+        assert spitze <= soll["spitzenspeicher_python_mb"] * 2
     print("MESSUNG", json.dumps(ist), flush=True)
     (profil / "folge.mpf").write_text(wirklich.text)
     doc.saveAs(str(profil / "folge.FCStd"))

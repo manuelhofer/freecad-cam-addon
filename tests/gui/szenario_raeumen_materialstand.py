@@ -4,9 +4,11 @@
 # darin eine Nut 20 × 60 um x −10 y 0, Grund −15. Nut zuerst: den Grund der Nut anklicken,
 # „Bearbeitung“, „Anlegen“ – die Nut von oben bis −15. Dann den Boden um den Zapfen am Teil im Job:
 # Das Räumen sagt grau „noch … – … hat „Nut T1“ schon weggenommen“, und „Weg müssen …“ darüber ist
-# um die Nut kleiner als beim ersten Mal (W-012 M4a); „Anlegen“: ein Job mit beiden, das Räumen
-# merkt sich, woraus es gerechnet hat. Denselben Boden noch einmal: Räumen und Planfräsen sagen rot
-# „Hier ist nichts mehr zu tun …“ (M4b) und haben keinen Haken.
+# um die Nut kleiner als beim ersten Mal (W-012 M4a); angehakt ist das schnellere von Räumen und
+# Planfräsen (seit M4b rechnet auch das Planfräsen auf dem Materialstand – in 1.1.3 gewinnt es mit
+# 7 gegen 8 min); „Anlegen“: ein Job mit beiden, die Operation merkt sich, woraus sie gerechnet
+# hat. Denselben Boden noch einmal: Räumen und Planfräsen sagen rot „Hier ist nichts mehr zu
+# tun …“ (M4b) und haben keinen Haken.
 import re
 
 import FreeCAD
@@ -28,6 +30,7 @@ def schritte(h):
     from camaddon import gui_bearbeitung
     from camaddon import materialstand as mst
     from camaddon import nut as nu
+    from camaddon import planfraesen as pf
     from camaddon import raeumen as ra
     from camaddon import vierachs_rohteil as vr
     from camaddon import werkzeuge as wz
@@ -100,7 +103,10 @@ def schritte(h):
     yield 1500
     material = panel.raeumen.material.text()
     print(ascii(f"Räumen: {panel.raeumen.ergebnis.text()} / {material}"))
-    h.pruefe(panel.raeumen.aktiv(), "das Räumen nicht angehakt")
+    h.pruefe(
+        panel.raeumen.aktiv() or panel.plan.aktiv(),
+        f"weder Räumen noch Planfräsen angehakt: {panel.raeumen.ergebnis.text()!r}",
+    )
     # Die Nut ist weg: 40 × 20 + π · 10², von oben (+1) bis −15 – rund 17,8 cm³ weniger.
     nachher = weg_muessen(panel)
     print(ascii(f"Weg müssen: vorher {vorher}, nachher {nachher}"))
@@ -117,12 +123,12 @@ def schritte(h):
     h.pruefe(panel.accept() is True, "Räumen: „Anlegen“ ging nicht")
     yield 3000
     ops = list(job.Operations.Group)
-    raeumen = [o for o in ops if ra.ist_raeumen(o)]
-    h.pruefe(len(raeumen) == 1, f"im Job: {[o.Label for o in ops]}")
-    if raeumen:
+    boden_ops = [o for o in ops if ra.ist_raeumen(o) or pf.ist_planfraesen(o)]
+    h.pruefe(len(boden_ops) == 1, f"im Job: {[o.Label for o in ops]}")
+    if boden_ops:
         h.pruefe(
-            raeumen[0].Materialstand == mst.kennung_vor(job, raeumen[0]),
-            "Räumen: woraus gerechnet nicht gemerkt",
+            boden_ops[0].Materialstand == mst.kennung_vor(job, boden_ops[0]),
+            f"{boden_ops[0].Label}: woraus gerechnet nicht gemerkt",
         )
     Gui.Selection.clearSelection()
     Gui.ActiveDocument.ActiveView.viewTop()

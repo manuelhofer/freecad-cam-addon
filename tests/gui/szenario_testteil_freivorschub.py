@@ -1,7 +1,10 @@
 # Die zusätzliche Räumwahl am vorhandenen Testteil, mit allen Assertions des Grundszenarios:
 # bisherig ist vorgewählt; schneller Freivorschub ändert nur freie Verbindungen, andere
 # Bearbeitungen behalten ihre Bahnen; Anlegen, Speichern, Laden und Doppelklick erhalten die
-# Wahl. Das Grundszenario prüft weiterhin alle sechs Operationen und den Materialabtrag.
+# Wahl. Seit „im Freien schnell“ (P-2026-10-04-39) fährt auch „bisherig“ durch die Luft mit dem
+# Freivorschub, und der Assistent rechnet ihn in die Zeit (P-2026-10-04-45): Die Wahl setzt nur
+# ihre eigene Obergrenze und ist nicht langsamer – hier 9,40 gegen 9,41 min. Das Grundszenario
+# prüft weiterhin alle sechs Operationen und den Materialabtrag.
 import importlib.util
 import os
 from dataclasses import replace
@@ -54,7 +57,8 @@ def schritte(h):
             )
             neu = block.vorschau
             h.pruefe(not block.freivorschub_zeile.isHidden(), "Freivorschub fehlt")
-            h.pruefe(block.zeit < zeit_alt - 0.1, f"Freivorschub: {block.zeit} statt {zeit_alt}")
+            # Nicht langsamer als bisherig (der Adaptiv-Kern streut um ±1,5 %).
+            h.pruefe(block.zeit <= zeit_alt * 1.015, f"Freivorschub: {block.zeit} statt {zeit_alt}")
             h.pruefe(len(neu.punkte) == len(alt.punkte), "Freivorschub: andere Punktzahl")
             for a, b in zip(alt.punkte, neu.punkte, strict=False):
                 h.pruefe(replace(b, anteil=a.anteil) == a, "Freivorschub: Schnittbahn geändert")

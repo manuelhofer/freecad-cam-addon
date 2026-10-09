@@ -90,9 +90,11 @@ def schritte(h):
     befehle = list(op.Path.Commands)
     namen = [c.Name for c in befehle]
     h.pruefe("G3" in namen and "G2" not in namen, "nicht im Gleichlauf (G3)")
+    # Der Rückweg mit 3 × F liegt unter den Vorschüben; darüber steht seit den Freiwegen
+    # (P-2026-10-04-39) der Vorschub durch die Luft.
     vorschuebe = sorted({round(c.Parameters["F"], 3) for c in befehle if "F" in c.Parameters})
     h.pruefe(
-        len(vorschuebe) >= 2 and abs(vorschuebe[-1] / vorschuebe[-2] - 3.0) < 0.01,
+        any(abs(b / a - 3.0) < 0.01 for a in vorschuebe for b in vorschuebe),
         f"kein Rückweg mit 3 × F: {vorschuebe}",
     )
     Gui.Selection.clearSelection()

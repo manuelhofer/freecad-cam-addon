@@ -35,10 +35,15 @@ def schritte(h):
     sprache.setze_sprache("de")
     Gui.doCommand("import FreeCADGui as Gui")
     Gui.doCommand("import FreeCAD as App")
+    # Der zweite Bildschirm (CAMADDON_GROB_BILDSCHIRM), wenn es ihn gibt – sonst der erste
+    # (unter Xvfb gibt es nur einen).
     screen = next(
-        s
-        for s in QtGui.QApplication.screens()
-        if s.name() == os.environ["CAMADDON_GROB_BILDSCHIRM"]
+        (
+            s
+            for s in QtGui.QApplication.screens()
+            if s.name() == os.environ.get("CAMADDON_GROB_BILDSCHIRM")
+        ),
+        QtGui.QApplication.primaryScreen(),
     )
     mw = Gui.getMainWindow()
     mw.windowHandle().setScreen(screen)

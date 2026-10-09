@@ -1917,6 +1917,7 @@
     "ra.warnung.last": "{operation}: Keine Bahn hält hier die Last (bis {last} ae) – zu eng für diesen Fräser: Bruchgefahr. Einen kleineren Fräser oder einen kleineren Zeilenabstand nehmen.",
     "ra.gerechnet.gebremst": "an {saetze} Sätzen langsamer",
     "si.fehler.achse": "Punkt {punkt} der Bahn: Für diese Werkzeugachse gibt es keine Stellung der Rundachsen.",
+    "so.fehler.ohne_rundachsen": "braucht eine oder zwei Rundachsen für die Werkzeugachse je Satz – diese Maschine hat keine.",
     "si.fehler.grenze": "Punkt {punkt} der Bahn: {achse} müsste auf {wert}° – das liegt außerhalb ihrer Grenzen.",
     "si.fehler.linear": "Die Maschine hat für dieses Werkzeug keine drei Linearachsen – ohne TCPM lässt sich die Bahn nicht rechnen.",
     "sw.fehler.flaeche": "Die Fläche {name} gibt es am Teil nicht.",

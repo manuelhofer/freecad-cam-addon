@@ -91,7 +91,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.203.1 (P-2026-10-08-13). Alles, was hier als gebaut steht,
+Stand 0.203.2 (P-2026-10-09-01). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -235,8 +235,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Strategien T5e).
 - **FreeCAD-Versionen:** 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
   Prüfungen und 98 Szenarien grün mit P-2026-10-02-85, seither je die Prüfung und das Szenario
-  zum geänderten Teil. 1.1.3 und Wochen-Build 26.3.0 dev (2026-09-16) zuletzt voll grün mit
-  0.96.0 (83 Szenarien); auf Manuels Rechner gibt es beide nicht (Einrichten lädt mehrere GB –
+  zum geänderten Teil. **1.1.3 (stabil):** mit 0.203.1 waren 19 von 110 Prüfungen und 25 von
+  125 Szenarien rot (eine Regression im Abspieler, Umlaute ohne UTF-8-Locale, Wanduhr-Zeiten,
+  zweiter Bildschirm, veraltete Erwartungen, elf Szenarien am Zeitlimit von 180 s auf dem
+  ausgelasteten 4-Kern-Prüfrechner) – mit P-2026-10-09-01 (0.203.2) alles grün, die schweren
+  Szenarien einzeln mit `CAMADDON_ZEITLIMIT=900`. Wochen-Build 26.3.0 dev (2026-09-16) zuletzt
+  voll grün mit 0.96.0; auf Manuels Rechner gibt es beide nicht (Einrichten lädt mehrere GB –
   vorher fragen). Im Wochen-Build stürzte 26.3 einmal beim Schließen des 4-Achs-Fensters ab
   (`closeDialog`, FreeCAD selbst) – bleibt im Blick.
 

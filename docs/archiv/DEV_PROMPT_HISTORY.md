@@ -12,6 +12,98 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-01 stabile-version-wieder-gruen
+
+### EINGELESEN
+- Manuel, 2026-10-09: „Die Woche über hat Codex weiter programmiert und getestet … du kannst
+  dir schon mal anschauen, was passiert ist, und kontrollieren, ob das alles so passt, wie wir
+  es bisher besprochen haben“ – dann: „weiter machen auf jeden Fall … du musst dich jetzt durch
+  alles durcharbeiten“.
+- Stand 0.203.1 (d721868): 250 Commits seit 0.123.0 – 226 aus Claude-Sitzungen (2.–6.10.),
+  23 von Codex (6.–8.10.), einer von Manuel; geprüft nur noch auf Manuels 1.1.4. Die stabile
+  1.1.3 war zuletzt bei 0.96.0 voll grün. Alle 110 Prüfungen und 125 Szenarien in 1.1.3
+  laufen lassen (vier Kerne, stark ausgelastet): 19 Prüfungen und 25 Szenarien rot – davon
+  11 Szenarien nur am Zeitlimit von 180 s.
+
+### DATEIEN
+- `camaddon/maschinenzugang.py` (`bahn_grund(…, grenzen=True)`), `camaddon/abfahren.py`,
+  `camaddon/simultan_operation.py`, `translations/de|en.json` (`so.fehler.ohne_rundachsen`),
+  `camaddon/gui_programm.py` (`_abschnitte_und_kette`), `scripts/tests_ausfuehren.sh`,
+  `scripts/oberflaeche_testen.sh` (UTF-8-Locale, `CAMADDON_ZEITLIMIT`),
+  `tests/test_ebenen_auslassen.py`, `tests/test_raum_bahn.py`, `tests/test_raum_material.py`,
+  `tests/test_simultan_bereiche.py`, `tests/test_simultan_folge.py`,
+  `tests/test_simultan_planung.py` (Zeit informativ), `tests/test_vierachs_plan.py`,
+  `tests/gui/szenario_abfahren.py`, `szenario_erster_start.py`, `szenario_nut.py`,
+  `szenario_nut_offen.py`, `szenario_nut_durch.py`, `szenario_raeumen.py`,
+  `szenario_raeumen_materialstand.py`, `szenario_rohteil_teil.py`,
+  `szenario_schnittwerte.py`, `szenario_schwenkteil.py`, `szenario_testteil_freivorschub.py`,
+  `szenario_vierachs_schruppen.py`,
+  `szenario_bahnzugang.py`, `szenario_ebenen_auslassen.py`, `szenario_raum_bahn.py`,
+  `szenario_simultan_bereiche.py`, `szenario_simultan_maschinen.py`, `.gitignore`
+  (`*.FCBak`, zwei Sicherungsdateien raus), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.203.2)
+
+### AKZEPTANZKRITERIUM
+Alle Prüfungen und Szenarien in FreeCAD 1.1.3 grün, auf jedem Rechner (ohne zweiten
+Bildschirm, ohne UTF-8-Locale, ohne Manuels 24 Kerne); das Prüffenster zeigt eine
+Grenzüberschreitung wieder als Station mit rotem Satz, der Abspieler hält an der Grenze.
+
+### DONE
+- **Regression (Codex, P-2026-10-08-10):** `bahn_grund` ließ im Abspieler jede Operation ganz
+  weg, sobald eine Achse ihre Grenze überschritt – gegen Spezifikation Simulation 4a/4b (jede
+  Überschreitung eine Station, Klick springt hin, Abspieler hält an der Grenze);
+  `test_abfahren` und `szenario_abfahren` waren rot, auch in 1.1.4. Jetzt `grenzen=False` für
+  den Abspieler: nur fremde Rundachsen und unlesbare Sätze lassen aus; Programm, Materialstand
+  und Simultan-Teilbereiche prüfen die Grenzen weiter wie von Codex gebaut.
+- Simultan-Operation an einer Maschine ohne Rundachsen, wenn kein Zug bleibt: ein Satz
+  („braucht eine oder zwei Rundachsen … diese Maschine hat keine“) statt „Punkt 1 der Bahn:
+  keine Stellung der Rundachsen“ (`test_flanke`); bleiben senkrechte Züge, laufen die weiter
+  (Codex' Teilbereiche, `test_simultan_bereiche`).
+- Die Prüfläufer setzen `LC_ALL=C.UTF-8`, wenn die Locale kein UTF-8 ist: FreeCADCmd bricht
+  sonst beim ersten Umlaut in `print()` ab (`test_freiwege`, `_programmkopf`, `_planfraesen`,
+  `_pruefstand`, `_raeumen`, `_schwenken`, `_simultan`, `_simultan_bereiche`).
+- **„Programm schreiben“ mit zugewiesener Maschine:** seit Codex' Maschinenzugang rechnet
+  `pp.abschnitte(job)` die Ebenen und Simultanbahnen mit der Maschine des Jobs – das Fenster
+  hängte trotzdem „Für die Ebenen fehlt eine lesbare tatsächliche Maschine“ an und ließ die
+  Kette weg, obwohl die Ebene im Programm stand (`szenario_schwenkteil`). Jetzt fehlt die Kette
+  nur, wenn ein Abschnitt wirklich ausgelassen wurde (`Abschnitt.hinweis`).
+- Wanduhr-Zeiten in Codex' Prüfungen (`< 120 s`, `≤ 2 × Referenz` vom 24-Kern-Rechner) sind
+  Information, keine Prüfung mehr – hier unter Last 172 statt 50 s; der Speicher bleibt geprüft
+  (`test_ebenen_auslassen`, `_raum_bahn`, `_raum_material`, `_simultan_bereiche`,
+  `_simultan_folge`, `_simultan_planung` – darüber auch `_simultan_gesamt`).
+- Fünf Codex-Szenarien verlangten `os.environ["CAMADDON_GROB_BILDSCHIRM"]` (sein zweiter
+  Bildschirm DP-1) – jetzt der erste Bildschirm, wenn es keinen zweiten gibt.
+- Veraltete Erwartungen aus der Claude-Woche nachgezogen (die Patches hatten Texte und
+  Verhalten geändert, ohne das Szenario zu laufen): `szenario_abfahren` (die zweite Operation
+  beginnt am Wechselpunkt, P-2026-10-04-36), `szenario_erster_start` (12 Knöpfe, 16
+  Menüeinträge seit „Ebene schwenken“ und „5-Achs-Schlichten vergleichen“), `szenario_nut` und
+  `szenario_nut_offen` (Wortlaut seit P-2026-10-05-30), `szenario_raeumen` (56 Zeilen, Lage),
+  `szenario_rohteil_teil` (Räumen vor dem Planfräsen), `szenario_schnittwerte` (Satz über der
+  Tabelle, eigene Zeile), `test_vierachs_plan` (Wortlaut „ist nichts, was …“),
+  `szenario_schwenkteil` (A30 statt A−30 nach DIN 66217, P-2026-10-05-17; die Ebene kommt
+  mit der Maschine des Jobs), `szenario_vierachs_schruppen` (die Spitze zeigt C wie das
+  Programm – an der Drehmaschine umgekehrt zum Gelenk, P-2026-10-05-18), `szenario_nut_durch`
+  (über dem Rückweg mit 3 × F steht seit den Freiwegen der Vorschub durch die Luft,
+  P-2026-10-04-39), `szenario_raeumen_materialstand` (seit M4b rechnet auch das Planfräsen auf
+  dem Materialstand und ist hier mit 7 gegen 8 min das schnellere – angehakt ist das schnellere
+  von beiden, beide kennen die Nut), `szenario_testteil_freivorschub` (seit P-2026-10-04-39/-45
+  fährt auch „bisherig“ durch die Luft mit dem Freivorschub und der Assistent rechnet ihn mit –
+  „schneller Freivorschub“ ist nicht mehr 0,1 min schneller, nur nicht langsamer).
+- Elf Szenarien brauchen hier unter Last länger als 180 s (`angestellt`, `raum_bahn`,
+  `raum_material`, `rundum_drehmaschine`, `schwenken`, `schwenkteil`, `simultan_planung`,
+  `testteil`, `testteil_freivorschub`, `vierachs_nocke`, `wegkippen`) – Zeitlimit mit
+  `CAMADDON_ZEITLIMIT` einstellbar, einzeln mit 900–1200 s grün.
+- `test_kollision`: im belasteten Gesamtlauf einmal „list index out of range“, allein dreimal
+  grün – bleibt im Blick.
+- Repo: `*.FCBak` ignoriert, zwei eingecheckte Sicherungsdateien entfernt.
+
+### TESTS
+- 1.1.3 (fcenv-stabil): `test_abfahren`, `test_bahnzugang`, `test_flanke`, `test_sprache`,
+  `test_simultan_bereiche`, `test_raum_bahn`, `test_raum_material`, `test_schwenken`,
+  `test_simultan`, `test_simultan_folge`, `test_simultan_planung`, `test_simultan_gesamt`,
+  `test_vierachs_plan`, `test_testteil`, `test_kollision` (3 ×), `test_programmkopf`,
+  `test_raeumen` (OK); alle 25 roten Szenarien einzeln nachgelaufen (OK); Gesamtlauf siehe
+  Snapshot.
+
 ## P-2026-10-08-14 github-veroeffentlichung
 
 ### EINGELESEN

@@ -8,6 +8,9 @@
 # direkt dahinter landen. "UEBERSPRUNGEN <datei>: Grund" ist nur fuer
 # Funktionen erlaubt, die es in der geprueften FreeCAD-Version nicht gibt.
 set -u
+# FreeCADCmd druckt nach der Locale: ohne UTF-8 bricht eine Pruefung beim ersten
+# Umlaut in print() ab ('ascii' codec can't encode ...). Dann C.UTF-8 nehmen.
+case "$(locale charmap 2>/dev/null)" in UTF-8) ;; *) export LC_ALL=C.UTF-8 ;; esac
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 fc="${FREECADCMD:-${FC_UMGEBUNG:-$HOME/.cache/freecad-cam-addon/fcenv}/bin/freecadcmd}"
