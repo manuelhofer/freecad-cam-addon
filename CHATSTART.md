@@ -1,7 +1,8 @@
 # Einstieg für KI-Assistenten
 
 Startpunkt für **jede KI und jedes Werkzeug** an diesem Projekt – Claude Code,
-Cursor, Copilot, Aider oder ein beliebiger Chat.
+Codex, Cursor, Copilot, Aider oder ein beliebiger Chat. `CLAUDE.md` und
+`AGENTS.md` sind nur Wegweiser hierher.
 
 **Lies diese Datei ganz. Danach nur das, was zu deiner Aufgabe passt – nicht
 alles.**

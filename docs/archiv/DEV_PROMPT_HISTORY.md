@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-05 pruefungen-schlank-regel
+
+### EINGELESEN
+- Manuel, 2026-10-09: „generell hast du ja immer die Aufgabe die Tests so schlank wie möglich
+  und so gross wie nötig zu halten!!!!!!!!! Und wenn Codex das anders macht ist das in den
+  Regeln auf GitHub nicht klar genug dargestellt. Wir müssen auch noch schauen dass die
+  Rechenzeit im Betrieb weniger wird... Oder eben mehr CPUs zum Rechnen verwendet werden.“
+
+### DATEIEN
+- `docs/arbeitsregeln.md` (Abschnitt 5, neue Regel), `AGENTS.md` (neu – Codex sucht zuerst
+  diese Datei, es gab sie nicht), `CHATSTART.md` (Codex genannt, Wegweiser erklärt),
+  `docs/STATUS_SNAPSHOT.md`.
+
+### AKZEPTANZKRITERIUM
+Jeder Assistent findet die Regel „so schlank wie möglich, so groß wie nötig“ mit Richtwert
+und Beispielen auf dem Weg, den sein Werkzeug vorgibt (`CLAUDE.md`, `AGENTS.md`, `CHATSTART.md`).
+
+### DONE
+- Regel mit Richtwert fünf Minuten, kleinste Geometrie, Referenztest nur Gewinnervariante,
+  Begründungspflicht darüber; die bekannten Ausreißer (`test_simultan_gesamt` 70 min,
+  `test_simultan_planung` 30 min) sind genannt und werden beim nächsten Anfassen eingedampft.
+- Warum Codex es anders machte: Codex liest `AGENTS.md`, und die fehlte – `CHATSTART.md` und
+  die Arbeitsregeln hat es so nie sicher gesehen. Jetzt zeigt `AGENTS.md` dorthin und nennt
+  die drei meistübersehenen Punkte.
+- Rechenzeit im Betrieb: eigener Punkt (Messung an der Kuppel und am Beispiel, Vorschlag in
+  Spezifikation Strategien 16.5), kein Teil dieses Doku-Patches.
+
+### TESTS
+- Reine Doku-Änderung, kein Testlauf.
+
 ## P-2026-10-09-04 simultanvergleich-sinnvolle-varianten
 
 ### EINGELESEN

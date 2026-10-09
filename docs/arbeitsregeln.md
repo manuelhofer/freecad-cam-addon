@@ -125,6 +125,27 @@ ein ASCII-Entwurf des Dialogs reicht.
     writing“), und etwa `szenario_erster_start` scheitert – mit dem Code hat
     das nichts zu tun, der Lauf zählt trotzdem nicht (P-2026-09-27-33).
   - Reine Doku-Änderungen brauchen keinen Testlauf.
+  - **So schlank wie möglich, so groß wie nötig** (Manuel, 2026-10-09: „generell
+    hast du ja immer die Aufgabe die Tests so schlank wie möglich und so groß
+    wie nötig zu halten“ – Anlass: ein Referenztest von Codex, der das ganze
+    Freiformbeispiel nachrechnet, 30 bis 45 Minuten läuft und 7,5 GB braucht).
+    Das gilt für jeden Assistenten, Claude wie Codex:
+    - Eine Prüfdatei belegt **eine** Sache an der **kleinsten Geometrie, die sie
+      zeigt** – eine Kuppel 20 × 16 statt des Freiformbeispiels, eine Variante
+      statt 60, eine Ebene mit zwei Zeilen statt eines ganzen Teils. Richtwert:
+      **fünf Minuten** auf Manuels Rechner, ein Szenario ebenso.
+    - Ein Referenztest rechnet **nur die Gewinnervariante** nach und zählt die
+      Abweisungen mit ihrem Grund; der volle Vergleich eines Beispiels ist
+      `beispiele/<name>/pruefen.py`, von Hand gestartet, keine Prüfung.
+    - Länger als der Richtwert nur mit Begründung im Docstring der Prüfung und
+      im Verlaufseintrag – „damit alles geprüft ist“ ist keine. Lieber eine
+      zweite kleine Prüfung als eine große.
+    - Was beim Schreiben dieser Regel darüber liegt (`test_simultan_gesamt`
+      70 min, `test_simultan_planung` 30 min allein für die Gewinnervariante),
+      wird beim nächsten Anfassen eingedampft – und die Rechenzeit im Betrieb
+      selbst gehört kleiner (Manuel, 2026-10-09: „Wir müssen auch noch schauen,
+      dass die Rechenzeit im Betrieb weniger wird … oder eben mehr CPUs zum
+      Rechnen verwendet werden“; Spezifikation Strategien, 16.5).
   - **So viel wie nötig – die Entscheidung liegt beim Assistenten** (Manuel,
     2026-10-03: „es schaut von hier aus nach SEHR viel Testen aus … ob das
     nötig ist oder nicht, musst dennoch du entscheiden, du bist ja derjenige,
