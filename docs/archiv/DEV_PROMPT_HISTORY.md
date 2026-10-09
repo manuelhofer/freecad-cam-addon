@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-07 nebenrechner-pool
+
+### EINGELESEN
+- Manuel, 2026-10-09: „man sollte versuchen immer so viele resourcen wie möglich zu nutzen …
+  wenn der pc 24 threats hat .. sollten diese auch möglichst genutzt werden … ich finde das SEHR
+  wichtig“ und „ein ‚lag‘ … wo ich nichts klicken oder machen kann .. sowas muss unbedingt
+  vermieden werden .. lass das im hintergrund rechnen“. T-006 im Snapshot, Spezifikation
+  Strategien 16.5 (Rechenzeit: das Addon rechnet auf einem Kern, kein Prozess, kein Thread).
+
+### DATEIEN
+- `camaddon/nebenrechner.py` (neu: der Pool – `Nebenrechner`, `pool()`, `Auftrag`, Platzhalter
+  `Form`, `Dokument`, `Gemeinsam`, `Fortschritt`, `kopie()`, `gemeinsam()`, `warten()`,
+  `abfragen()`, `abbrechen()`), `camaddon/nebenrechner_arbeiter.py` (neu: das Skript, das jeder
+  Arbeiter in FreeCADCmd ausführt), `tests/test_nebenrechner.py` (neu), `docs/aufbau.md`
+  (zwei Module, drei Stolpersteine), `docs/arbeitsregeln.md` (Abschnitt 7: FreeCADCmd als zweiter
+  Fremdprozess), `docs/STATUS_SNAPSHOT.md` (T-006).
+
+### AKZEPTANZKRITERIUM
+`tests/test_nebenrechner.py` läuft in Sekunden grün: drei Aufträge je 1 s sind nach gut 1 s fertig
+(drei Arbeiter), Form, Dokumentkopie, gemeinsame Daten und Fortschritt kommen an, ein Fehler im
+Arbeiter kommt als Traceback, Abbrechen beendet den Arbeiter, beenden() lässt keinen Prozess übrig.
+
+### DONE
+- Warum eigene Prozesse: Python rechnet in einem Prozess nichts zugleich (GIL), FreeCADs Dokumente
+  vertragen keine Threads; ein Thread brächte weder mehr Kerne noch ein bedienbares Fenster.
+  Warum FreeCADCmd und nicht ein nackter Python: Es liegt neben FreeCAD (`ConfigGet("BinPath")`,
+  auf jedem System), bringt Part, Path und die Mod-Pfade mit und startet hier in 0,2 s. Fehlt es,
+  gibt es keine Nebenrechner (`verfuegbar()`), und der Aufrufer rechnet wie bisher selbst.
+- Die Arbeiter laufen im Profil des Benutzers (Werkzeugverwaltung, installierte Addons), aber mit
+  eigener Kopie von `user.cfg` und `system.cfg` (`-u`, `-s`): FreeCADCmd schreibt beide beim
+  Beenden, und ein Arbeiter, der nach einer Spracheinstellung des Benutzers endet, hätte sie sonst
+  mit seinem alten Stand überschrieben. Die Einstellungen des Addons bekommen sie als Export der
+  Parametergruppe, die Sprache ausdrücklich.
+- Verbindung über `multiprocessing.connection` (Listener mit Schlüssel; Unix-Socket, unter Windows
+  eine Named Pipe); die Startdaten gehen über stdin, nicht über die Befehlszeile. Ein kleiner
+  Thread nimmt nur Verbindungen an; alles andere läuft im Prozess der Oberfläche, Rückrufe nie aus
+  dem Thread. Mit Oberfläche fragt ein QTimer (30 ms) die Arbeiter ab, solange etwas läuft.
+- Verworfen: `fork` (nur Linux, aus einem Qt-Prozess heraus riskant), `multiprocessing.Pool` mit
+  `set_executable` (FreeCADCmd versteht `--multiprocessing-fork` nicht, und der Kindprozess
+  bräuchte den Python-Pfad zu FreeCAD), ein temporäres Profil für die Arbeiter (dann blockiert
+  FreeCAD beim Öffnen einer Dokumentkopie die Proxys des Addons: „blocked import … Only modules
+  from FreeCAD or installed addons are permitted“).
+- Noch nichts benutzt den Pool – das kommen die nächsten Patches: Kollision in Stücken,
+  Vorschau des 4-Achs-Assistenten im Hintergrund.
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_nebenrechner.py` OK (3 s), black und ruff ohne Befund.
+  Eine Prüfung, kein Szenario – es gibt noch keine Oberfläche dazu.
+
 ## P-2026-10-09-06 rechenzeit-simultanvergleich-befund
 
 ### EINGELESEN

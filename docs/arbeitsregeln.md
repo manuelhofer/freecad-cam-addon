@@ -251,10 +251,15 @@ müsste.
 
 - Pfade über `os.path` / `pathlib` und die FreeCAD-Funktionen
   (`FreeCAD.getUserAppDataDir()` u. ä.), nie fest verdrahtet.
-- Keine Shell-Aufrufe, keine systemabhängigen Bibliotheken. **Einzige
-  Ausnahme:** Git für die Update-Suche in `camaddon/aktualisierung.py`
+- Keine Shell-Aufrufe, keine systemabhängigen Bibliotheken. **Zwei
+  Ausnahmen:** Git für die Update-Suche in `camaddon/aktualisierung.py`
   (Manuels Entscheidung, P-2026-09-25-24) – nie mit Rückfrage, immer mit
-  Zeitlimit, Ausgabe als UTF-8.
+  Zeitlimit, Ausgabe als UTF-8 – und FreeCADCmd als Nebenrechner
+  (`camaddon/nebenrechner.py`, P-2026-10-09-07): eigene Prozesse sind der
+  einzige Weg, alle Kerne zu nutzen und das Fenster beim Rechnen bedienbar
+  zu halten (Manuel, 2026-10-09). FreeCADCmd liegt auf jedem System neben
+  FreeCAD (`FreeCAD.ConfigGet("BinPath")`); fehlt es, rechnet das Addon wie
+  bisher im eigenen Prozess – ohne Fehler, nur langsamer.
 - Qt-Import über `from PySide import QtCore, QtGui` – den Shim, den FreeCAD
   selbst mitbringt –, nicht direkt PySide2/PySide6.
 
