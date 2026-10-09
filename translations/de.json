@@ -2596,5 +2596,8 @@
     "sb.fehler.verbindung": "Die neue Verbindung ist nicht frei von Rohteil-, Werkzeug-, Halter- oder Maschinenkollisionen; der Teilbereich bleibt unbearbeitet.",
     "sb.fehler.tcpm": "Teilbereiche sind nur ohne TCPM geprüft; Ausgabe mit der geprüften Maschinenabbildung ohne TCPM.",
     "sb.hinweis.ausgelassen": "Schnittzug {zug}: unbearbeitet – ausgelassen: {grund}",
-    "rm3.fehler.bahn_budget": "Die räumliche NC-Folge überschreitet das Rechenbudget; der ursprüngliche Materialstand bleibt erhalten."
+    "rm3.fehler.bahn_budget": "Die räumliche NC-Folge überschreitet das Rechenbudget; der ursprüngliche Materialstand bleibt erhalten.",
+    "sb.fehler.budget": "Die Suche nach sicheren Teilstrecken überschreitet ihr Rechenbudget; der Schnittzug bleibt unbearbeitet.",
+    "sb.fehler.geometrie": "Für die neue Ein-/Ausfahrt fehlen vollständige Werkzeug- oder Halterdaten; der Schnittzug bleibt unbearbeitet.",
+    "sb.zug.teil": "{zug}, Strecke zwischen Bahnpunkt {von} und {bis}"
 }

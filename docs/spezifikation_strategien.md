@@ -3758,3 +3758,39 @@ der festen Zeit-/Speichergrenzen. Feine Zulassung, tatsächlicher Export,
 Übernahme/Undo/Abbruch und G550-Kaltexport bestanden. Keine vorhandene Referenz
 neu geschrieben. Eigene Profile und Speicherdeckel; persönlicher Werkzeugbestand
 seit Manuels Änderung unverändert. Kein Push, Manuels Klickprüfung steht aus.
+
+
+### 16.20 Sichere Teilstrecken eines Schnittzugs (P-2026-10-08-15)
+
+Manuel beauftragt nach der Veröffentlichung das Weiterarbeiten an den Bahnen.
+Heute bleibt ein zusammenhängender Simultanschnittzug vollständig aus, sobald
+nur ein Teil seiner Richtungen oder Verfahrwege unerreichbar ist. Künftig dürfen
+innerhalb eines solchen Zugs erreichbare Abschnitte erhalten bleiben, wenn ihre
+vorhandenen Anfangs- und Endpunkte mit dem vollständigen Werkzeug und Halter
+nachweislich außerhalb des ursprünglichen Rohteils liegen. Neue Verbindungen
+vergleichen den direkten Weg und den Rückzug längs der jeweiligen Werkzeugachse;
+die kürzere gemessene, vollständig geprüfte Variante wird verwendet; die tatsächliche
+verdichtete Maschinen-NC muss alle Achsgrenzen und die kontinuierliche BRep-Prüfung
+gegen Rohteil, Werkzeug/Halter, Spannung und Maschine bestehen. Kein Schnitt wird
+an einem Anschlag begrenzt, kein Eintritt im Material erfunden. Nicht beweisbare
+Abschnitte bleiben mit ihren Bahnstellen und Grund unbearbeitet; ihr Abtrag fehlt
+weiterhin im Materialbild. Suche und Zahl der Abschnitte sind begrenzt.
+
+```text
+Zusammenhängender Schnittzug
+[erreichbar] -- [freie Bahnstellen] -- [unerreichbar] -- [frei] -- [erreichbar]
+                   \______ geprüfte Aus-/Einfahrt ______/
+Programm/Abfahren: unbearbeitet zwischen Bahnpunkt … und …, mit Grund
+Rohteilvergleich: nur behaltene Schnitte; ausgelassenes Material bleibt stehen
+```
+
+Duplicate-Check: Der vorhandene Teilbereichskern trennt ausschließlich an originalen
+G0-Rückzügen (16.18), keine sichere interne Unterteilung im Git-Verlauf. Native
+FreeCAD-Einfahrten der CAM-Operationen ersetzen keine maschinenbezogene Erreichbarkeits-
+und BRep-Freigabe für gespeicherte Simultanrichtungen. Wiederverwendet werden
+Kinematik, reale NC-Verdichtung, Achsprüfung und vorhandene kontinuierliche Kollision.
+
+**Akzeptanzkriterium:** Einen Simultanzug mit erreichbaren Schnitten vor und nach
+einem unerreichbaren Abschnitt exportieren und abfahren → nachweislich materialfrei
+verbundene Schnitte bleiben erhalten, der ausgelassene Abschnitt ist mit Bahnstellen
+und Grund sichtbar und sein Material bleibt im Rohteilvergleich stehen.

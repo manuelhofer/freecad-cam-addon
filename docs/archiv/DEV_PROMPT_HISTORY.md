@@ -12,6 +12,58 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-01 zwischenstand-schnittbereiche
+
+### EINGELESEN
+- Manuel: „Jetzt weiter mit den Bahnen“, zuletzt „Sekunde... Speicher Mal ich muss
+  rebooten“. CHATSTART, Arbeitsregeln, Snapshot, Strategien 16.20 und relevante
+  Simultan-/Abtragsadapter; Vorbeschreibung und Duplicate-/FreeCAD-Check in 16.20.
+
+### DATEIEN
+- `camaddon/simultan_bereiche.py`, neues `simultan_schnittbereiche.py`, zwei neue
+  native Prüfdateien mit festen Referenzen und GUI-Szenario; Programmhilfe DE/EN,
+  Sprachdateien, Strategienspezifikation, Snapshot, Verlauf und Version 0.204.0.
+
+### AKZEPTANZKRITERIUM
+Nach Manuels Reboot den lokalen Projektstand öffnen → alle bisherigen Bahnänderungen
+und Prüfdateien sind im Git-Commit vorhanden und der Snapshot nennt den offenen Befund
+und den nächsten Arbeitsschritt.
+
+### DONE
+- Arbeitsstand für interne Teilstrecken gespeichert: vorhandene materialfreie
+  Quellpunkte mit vollständigem Werkzeug/Halter, tatsächliche Maschinenlimits,
+  direkte oder achsparallele neue Verbindung nach Zeitvergleich und kontinuierlicher
+  BRep-Prüfung gegen ursprüngliches Rohteil und Maschine; keine gekappte Achse.
+- Auslassungen mit Bahnstellen und Grund, tatsächliche Materialherkunft und modaler
+  Vorschub erhalten. Fehlende Halterdaten und überschrittenes Suchbudget sperren.
+- Auf ausdrückliche Neustart-Bitte sofort unterbrochen. Noch kein fertiger Release
+  und kein Push; veröffentlichter Stand bleibt 0.203.1 / d721868.
+- Gefundene Entwurfsfehler: automatische Haltervorschläge waren keine belegte Geometrie
+  und werden nun zurückgewiesen; erste lange Probe überschritt 180 s wegen wiederholter
+  Einzelkompilierung zur Materialprobe, jetzt ganze Intervalle und BRep-Hüllquaderfilter.
+- Die zusätzliche Flankengegenprobe verwendet irrtümlich die nur für 3D-Schlichtjobs
+  angebotene Höhenvorschau; diesen Test nach Neustart über vorhandenen räumlichen
+  Zylinderabtrag qualifizieren, keine Produktzulassung abschwächen.
+
+### TEST
+- Vor dem Reboot: Kerngegenprobe mit Kugel-D12, alle sechs echten Kinematiken,
+  Materialrest/feines Raster, verbotene Einfahrt, Wandumfahrung, Grenz-/Budget-/Halter-
+  Sperren bestanden; feste neue Referenz mit 10 NC-Bewegungen. Alte-Kern-Gegenprobe
+  verwirft erwartungsgemäß den ganzen Zug.
+- 4004 Quellpunkte / 4040 NC-Sätze: 13,04 s / 36,45 MiB Python-Spitze;
+  SHA256 9b60bfc0278c0294c2f1dd33ffc3ade2b315fd041c311e115d87471c9d3aec45.
+- Zusätzlicher Standard-D12-Flankenfall: direkte NC und Abfahrt erfolgreich,
+  vollständiger neuer Test derzeit nicht grün wegen fehlender Höhenvorschau.
+  Diagnose `ergebnisse/schnittbereiche-2026-10-08/diagnose2.log` außerhalb des Repos.
+- GUI-Szenario und alte Referenzfolge vorbereitet, noch nicht ausgeführt. Kein
+  fertiger Gesamtprüfnachweis für diesen Zwischenstand. Bildschirmaufteilung geprüft:
+  zweiter Bildschirm DP-1, 1280×1024 bei +0+56. Persönliches Profil unverändert benutzt.
+
+### NEXT
+- Nach „weiter“ den Flankenfall mit räumlichem Abtrag fertig prüfen, GUI auf DP-1,
+  vorbereitete gezielte Referenzfolge samt goldenem Weg/Zeit/Speicher ausführen,
+  Formatierung/Sprachen prüfen und den fertig qualifizierten Stand dokumentieren.
+
 ## P-2026-10-08-14 github-veroeffentlichung
 
 ### EINGELESEN

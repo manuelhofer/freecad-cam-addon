@@ -8,6 +8,24 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
+**Neustart-Zwischenstand (2026-10-09, P-2026-10-09-01):** Auf Manuels Bitte
+sofort lokal gespeichert und Arbeit für seinen Reboot unterbrochen; kein Push.
+Version 0.204.0 ist ein **noch nicht fertig geprüfter Arbeitsstand** zu sicheren
+Teilstrecken innerhalb eines Simultanzugs (Strategien 16.20).
+Kerngegenprobe und alle sechs Kinematiken bestanden; 4004-Punkte-Probe: etwa 13 s,
+36,45 MiB Python, feste neue NC-Referenz. Die zusätzliche Standard-D12-Flankengegenprobe
+scheitert derzeit bei `tests/test_simultan_schnittbereiche.py`, Funktion `fahren`,
+an `assert bild is not None`: `simultan_restbild.fuer` verlangt einen 3D-Schlichtjob,
+der neue reine Flankenjob erfüllt diese bestehende Voraussetzung nicht. Direkte NC
+und Abfahrt des Flankenjobs wurden bereits erfolgreich diagnostiziert. Als Nächstes
+diesen Test mit dem vorhandenen räumlichen Zylinderabtrag prüfen, anschließend GUI
+auf DP-1 und gezielte alte Referenzen einschließlich goldener Gesamtfolge abschließen.
+Prüfarchiv: `../../ergebnisse/schnittbereiche-2026-10-08/`; vorbereiteter Prüflauf
+`/tmp/camaddon-schnittbereiche-regression.sh`, eigenes Profil
+`/tmp/camaddon-schnittbereiche-test`, GUI-Profil `/tmp/camaddon-schnittbereiche-gui`.
+Die Prüfdateien sind im Repository gespeichert; temporäre Profile nach einem Reboot
+bei Bedarf neu anlegen und vor Beispieldaten den tatsächlichen Profilpfad prüfen.
+
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
 22 zuvor lokalen Addon-Patches; Veröffentlichung auf Manuels ausdrücklichen Wunsch
