@@ -38,6 +38,11 @@ def aufbauen(profil):
         str(ROOT / "tests/test_simultan_bereiche.py"), run_name="teilbereiche_fixture"
     )
     doc, job, op, bib, m = fixture["aufbauen"](profil)
+    # Die neue Einfahrt wird ausdrücklich mit bekannten Maßen qualifiziert;
+    # die gewöhnliche Vorschau schätzt beim Standardwerkzeug sonst den Schaft.
+    for werkzeug in bib.werkzeuge:
+        werkzeug.schaft = werkzeug.durchmesser
+    bib.speichern()
     cmds = list(op.Path.Commands)
     for i in range(1, len(cmds) - 1):
         cmds[i] = Path.Command("G1", dict(cmds[i].Parameters))
@@ -169,14 +174,46 @@ def pruefen():
         raise AssertionError("Einfahrt ohne vollständige Haltergeometrie")
     bib.halter = halter
     bib.speichern()
+    # Eine angenommene Schneiden-/Schaft-/Gesamtlänge genügt nicht als Nachweis.
+    w = next(w for w in bib.werkzeuge if w.kennung != bib.werkzeuge[0].kennung)
+    for feld in ("durchmesser", "schneidenlaenge", "schaft", "gesamtlaenge"):
+        alt = getattr(w, feld)
+        setattr(w, feld, 0)
+        bib.speichern()
+        try:
+            so.programm(op, m)
+        except ValueError as e:
+            assert "Halterdaten" in str(e), (feld, str(e))
+        else:
+            raise AssertionError(f"Neue Einfahrt mit unbekanntem {feld}")
+        finally:
+            setattr(w, feld, alt)
+            bib.speichern()
+    # Ein gespeicherter Winkelhalter ohne Kopf ist ebenfalls kein vollständiger Körper.
+    h = bib.halter[0]
+    richtung, versatz, kopf = h.richtung, h.versatz, h.kopf_d
+    h.richtung, h.versatz, h.kopf_d = "gewinkelt", 100, 0
+    bib.speichern()
+    try:
+        so.programm(op, m)
+    except ValueError as e:
+        assert "Halterdaten" in str(e), str(e)
+    else:
+        raise AssertionError("Neue Einfahrt mit unvollständigem Winkelhalter")
+    finally:
+        h.richtung, h.versatz, h.kopf_d = richtung, versatz, kopf
+        bib.speichern()
     # Auch der unveränderte Standard-Schaftfräser benutzt dieselbe Unterteilung;
     # die Kugel ist nur für den Anstelladapter der ersten Gegenprobe erforderlich.
     from camaddon import flanke as fl
     from camaddon import job_schnittwerte as js
+    from camaddon import raum_bahn as rb
+    from camaddon import raum_material as raum
     from camaddon import werkzeuge as wz
 
     standard = next(w for w in bib.werkzeuge if w.art == wz.SCHAFTFRAESER)
-    tc = js.controller_ohne_transaktion(doc, job, standard, standard.einsaetze(wz.ALLE)[0])
+    einsatz_schaft = next(e for e in standard.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
+    tc = js.controller_ohne_transaktion(doc, job, standard, einsatz_schaft)
     flat = fl.lege_an(job, tc)
     flat.Schneide = float(tc.Tool.CuttingEdgeHeight)
     flat.Path, flat.Werkzeugachsen = Path.Path(original), axes
@@ -185,15 +222,27 @@ def pruefen():
     mf = sw.Maschine(m.pruefung, m.aufnahme, rw.einspannung(tc, bib), m.nullpunkt)
     flatprogramm = so.programm(flat, mf)
     assert flatprogramm.ausgelassen
-    ff, fh, _fb = fahren(job, flat, mf, bib)
-    assert fh[0] < 11.2 and fh[1] == 11.2 and fh[2] < 11.2, fh
+    ff = ab.abfahrt(m.pruefung, job, mf.nullpunkt, bib)
+    assert ff.stationen and len(ff.operationen) == 1 and ff.hinweise, ff.hinweise
+    # Ein Flankenjob hat keine Kugel-Höhenvorschau. Die endliche D12-Schneide
+    # wird daher durch denselben räumlichen NC-Replay geprüft wie bei 3+2-Folgen.
+    form = vs.form_des_controllers(tc)
+    rest = raum.Material(stock, 0.5)
+    assert rb.abtragen(rest, ff, flatprogramm.materialdaten, form, float(flat.Schneide))
+    assert rest.belegt([[20, y, 10.6] for y in (10, 30, 50)]).tolist() == [False, True, False]
+    assert rest.belegt([[20, y, 9.9] for y in (10, 30, 50)]).all()
+    flatbahn = sa.maschinenbahn(ff, 0, 6, materialdaten=flatprogramm.materialdaten)
+    flatfein = rm.Quader(0, 40, 0, 60, 0, 11.2, 0.05)
+    flast = sa.fahren(flatfein, flatbahn, form, einsatz_schaft.ae, einsatz_schaft.ap)
+    assert flast.eilgang_abtrag == 0 and flast.schnell_abtrag == 0, vars(flast)
+    assert flast.last_max <= einsatz_schaft.ae * einsatz_schaft.ap, vars(flast)
     k = kb.kollision(ff, job, mf.nullpunkt, bib)
     assert not (k.abgebrochen or k.hinweise or k.befunde), (
         k.abgebrochen,
         k.hinweise,
         [b.text() for b in k.befunde],
     )
-    assert vs.form_des_controllers(tc).eben
+    assert form.eben
     job.Operations.Group = [op]
     maschinen = {}
     for art in bm.ARTEN:

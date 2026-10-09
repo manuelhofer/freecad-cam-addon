@@ -9,7 +9,7 @@ import runpy
 
 import FreeCAD as App
 import FreeCADGui as Gui
-from PySide import QtGui
+from PySide import QtCore, QtGui
 
 
 def schritte(h):
@@ -108,6 +108,14 @@ def schritte(h):
     out = pathlib.Path(os.environ["CAMADDON_AUSGABE"])
     view.saveImage(str(out / "material.png"), 1000, 750, "Current")
     h.bild("prueffenster", panel.form)
+    # Ein transparentes Kind alleine zu greifen verwendet ggf. die Systempalette;
+    # für das Theme zusätzlich die tatsächlich zusammengesetzte Ansicht speichern.
+    h.bild("freecad")
+    bildschirmbild = mw.grab()
+    rechteck = QtCore.QRect(panel.form.mapTo(mw, QtCore.QPoint()), panel.form.size())
+    bildschirmbild.copy(rechteck.intersected(bildschirmbild.rect())).save(
+        str(out / "prueffenster-sichtbar.png")
+    )
     panel.abspieler.springe_zu_station(0)
     h.pruefe((q.h == 11.2).all(), "Zurückspulen verliert unbearbeiteten Rest")
     panel.reject()

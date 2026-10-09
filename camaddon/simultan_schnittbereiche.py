@@ -7,6 +7,7 @@ simultan_bereiche gegen Grenzen und kontinuierliche BRep-Kollision. Die lokale
 Punktprüfung ist nur eine Vorauswahl, keine Freigabe der Verbindung.
 """
 
+import math
 from dataclasses import replace
 
 import FreeCAD as App
@@ -17,11 +18,73 @@ from . import kollision as kb
 from . import maschinenzugang as mz
 from . import reichweite as rw
 from . import simultan as si
+from . import werkzeuge as wz
 from .kinematik import Kinematik
 from .sprache import tr
 
 MAX_PUNKTE = 20000
 MAX_BEREICHE = 64
+
+
+def _koerper(tc, bibliothek, ein):
+    """Nur explizite Kugel-/Schaftmaße erlauben eine neue freie Eintrittsstelle.
+
+    Die allgemeine Kollisionsvorschau darf fehlende Maße schätzen. Eine neue
+    Einfahrt braucht dagegen bekannte Körper, einschließlich aller Halterstücke.
+    """
+    w = js.werkzeug_von(tc, bibliothek)
+    h = rw.werkzeughalter(tc, bibliothek)
+    if w is None or h is None or hl.ist_vorschlag(h):
+        raise ValueError(tr("sb.fehler.geometrie"))
+    if w.art not in (wz.SCHAFTFRAESER, wz.KUGELFRAESER):
+        raise ValueError(tr("sb.fehler.form"))
+
+    def positiv(*werte):
+        return all(math.isfinite(v) and v > 0 for v in werte)
+
+    def nichtnegativ(*werte):
+        return all(math.isfinite(v) and v >= 0 for v in werte)
+
+    if not positiv(w.durchmesser, w.schneidenlaenge, w.schaft, w.gesamtlaenge, ein.laenge):
+        raise ValueError(tr("sb.fehler.geometrie"))
+    if not nichtnegativ(w.hals_d, w.hals_laenge, w.laenge_spindelnase, h.spanntiefe):
+        raise ValueError(tr("sb.fehler.geometrie"))
+    if (w.hals_d > 0) != (w.hals_laenge > 0):
+        raise ValueError(tr("sb.fehler.geometrie"))
+    if (
+        w.schneidenlaenge + w.hals_laenge > w.gesamtlaenge
+        or (
+            not w.laenge_spindelnase
+            and (
+                h.spanntiefe <= 0
+                or h.spanntiefe > w.gesamtlaenge - w.schneidenlaenge - w.hals_laenge
+            )
+        )
+        or (w.art == wz.KUGELFRAESER and w.schneidenlaenge < w.durchmesser / 2)
+        or not h.abschnitte
+        or any(
+            not positiv(a.laenge)
+            or not nichtnegativ(a.d_oben, a.d_unten)
+            or max(a.d_oben, a.d_unten) <= 0
+            for a in h.abschnitte
+        )
+        or (
+            h.gewinkelt
+            and (
+                not positiv(h.versatz, h.kopf_d)
+                or not math.isfinite(h.winkel)
+                or not math.isfinite(h.drehung)
+            )
+        )
+    ):
+        raise ValueError(tr("sb.fehler.geometrie"))
+    aktuell = rw.einspannung(tc, bibliothek)
+    if abs(aktuell.laenge - ein.laenge) > 1e-7 or aktuell.lage != ein.lage:
+        raise ValueError(tr("sb.fehler.geometrie"))
+    koerper = kb.werkzeugkoerper(rw.werkzeugmasse(tc, bibliothek, ein.laenge), ein.laenge, h)
+    if not koerper:
+        raise ValueError(tr("sb.fehler.geometrie"))
+    return koerper
 
 
 def unterteilen(op, job, maschine, punkte, von, bis, bezug, toleranz, bibliothek):
@@ -32,15 +95,7 @@ def unterteilen(op, job, maschine, punkte, von, bis, bezug, toleranz, bibliothek
     """
     if bis - von + 1 > MAX_PUNKTE:
         raise ValueError(tr("sb.fehler.budget"))
-    tc = op.ToolController
-    w = js.werkzeug_von(tc, bibliothek)
-    halter = rw.werkzeughalter(tc, bibliothek)
-    if w is None or halter is None or hl.ist_vorschlag(halter) or hl.form(halter) is None:
-        raise ValueError(tr("sb.fehler.geometrie"))
     ein = rw._einspannung(maschine.laenge)
-    koerper = kb.werkzeugkoerper(rw.werkzeugmasse(tc, bibliothek, ein.laenge), ein.laenge, halter)
-    if not koerper:
-        raise ValueError(tr("sb.fehler.geometrie"))
     kin = Kinematik(maschine.pruefung, maschine.aufnahme, maschine.laenge, maschine.nullpunkt)
     gesehen = {}
 
@@ -166,6 +221,9 @@ def unterteilen(op, job, maschine, punkte, von, bis, bezug, toleranz, bibliothek
         gruppen.append((anfang, bis))
     if len(gruppen) > MAX_BEREICHE:
         raise ValueError(tr("sb.fehler.budget"))
+    if not gruppen:
+        return []
+    koerper = _koerper(op.ToolController, bibliothek, ein)
     result = []
     for a, b in gruppen:
         while a < b and not frei(a):

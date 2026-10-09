@@ -2599,5 +2599,6 @@
     "rm3.fehler.bahn_budget": "The spatial NC sequence exceeds the computation budget; the original stock state is retained.",
     "sb.fehler.budget": "The search for safe partial strokes exceeds its computation budget; the cutting stroke remains unmachined.",
     "sb.fehler.geometrie": "Complete tool or holder data are missing for the new entry/retract; the cutting stroke remains unmachined.",
+    "sb.fehler.form": "Internal partial strokes are verified for flat-end and ball-end mills with complete dimensions; this tool shape leaves the cutting stroke unmachined.",
     "sb.zug.teil": "{zug}, path between point {von} and {bis}"
 }

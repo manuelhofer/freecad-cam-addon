@@ -12,6 +12,8 @@ applies to complete operations or planes for ordinary paths. Simultaneous paths 
 retain complete reachable cutting strokes between existing retract points.
 They can also retain partial paths inside a long stroke when existing points
 are entirely outside the stock for the tool and holder. New entry/retract motions
+are qualified for flat-end and ball-end mills with complete dimensions; missing
+tool dimensions or holder contours are not estimated. These motions
 are computed and checked using the selected kinematics; omitted paths list their
 path points. Boundaries inside material retreat to safe existing points. Without
 such points, the affected area remains completely unmachined. Omitted

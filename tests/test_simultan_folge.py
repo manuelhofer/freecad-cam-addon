@@ -160,6 +160,22 @@ def pruefen():
     assert wirklich.text == erwartet.text, "Tatsächlicher Export weicht von der geprüften Folge ab"
     befunde, saetze = pp.nachlesen(wirklich, steuerung, info)
     assert not befunde, befunde
+    # Eine fehlgeschlagene Referenz muss ihre tatsächliche Ausgabe zeigen,
+    # bevor die nachfolgende feine Materialprüfung oder ein Vergleich abbricht.
+    if ausgabe := os.environ.get("CAMADDON_PRUEFAUSGABE"):
+        Path(ausgabe, "folge_vor_qualifizierung.mpf").write_text(wirklich.text)
+        Path(ausgabe, "folge_vor_qualifizierung.json").write_text(
+            json.dumps(
+                {
+                    "sekunden": beste.sekunden,
+                    "nc_sha256": hashlib.sha256(wirklich.text.encode()).hexdigest(),
+                    "nc_saetze": saetze,
+                    "laufzeit_s": laufzeit,
+                    "spitzenspeicher_python_mb": spitze,
+                },
+                indent=2,
+            )
+        )
     # Material unabhängig am echten, neu berechneten Job und mit feinerem Raster prüfen.
     q = sa.Pruefstand(doc.Job, op, bib, raster=0.05)
     assert not any(m.gruende for _name, m in q.vorher)

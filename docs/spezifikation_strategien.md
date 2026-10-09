@@ -3794,3 +3794,42 @@ Kinematik, reale NC-Verdichtung, Achsprüfung und vorhandene kontinuierliche Kol
 einem unerreichbaren Abschnitt exportieren und abfahren → nachweislich materialfrei
 verbundene Schnitte bleiben erhalten, der ausgelassene Abschnitt ist mit Bahnstellen
 und Grund sichtbar und sein Material bleibt im Rohteilvergleich stehen.
+
+**Gebaut und gezielt qualifiziert (0.204.0, P-2026-10-09-02):** Der nach dem
+Neustart fortgesetzte Entwurf wird für Kugel- und Schaftfräser freigegeben, wenn
+Durchmesser, Schneiden-/Schaft-/Gesamtlänge, eventueller Hals und die vollständige
+Halterkontur bekannt sind. Eine gemessene Einspannung oder deren vollständige
+Ausgangsmaße müssen zur tatsächlich verwendeten Einspannung passen; beim Winkelhalter
+dürfen Kopf und Versatz nicht fehlen. Die allgemeine Kollisionsvorschau darf Maße
+schätzen, die neue Einfahrt ausdrücklich nicht. Andere Schneidenformen erhalten
+weiterhin ihre schon vorhandenen vollständigen Züge, keine neue innere Teilfreigabe.
+
+Die rekursive Erreichbarkeitsprüfung rechnet ganze Intervalle und halbiert nur
+gesperrte Abschnitte. Grenzen werden auf vorhandene freie Bahnstellen zurückgenommen;
+reine verbleibende Luftfahrt zählt nicht als Bearbeitung. Suchbudget und höchstens
+64 Teilbereiche begrenzen den Aufwand. Direkter und achsparalleler Rückzug werden
+einzeln an echten Achsstellungen/BRep zugelassen und nach tatsächlicher Fahrtzeit
+verglichen. Die vollständig neu kompilierte Ausgabe prüft anschließend erneut
+alle Grenzen und Verbindungen. Originaloperationen und ihre modalen Vorschübe bleiben erhalten.
+
+Native Gegenproben in FreeCAD 1.1.4: alle sechs Kinematiken, freie/gesperrte innere
+Grenze, Umfahrung einer Rohteilwand, unerreichbarer hoher Rückzug, Suchbudget,
+fehlende Werkzeug-/Haltermaße und Winkelhalter ohne Kopf. Standard-D12 mit ae 1,5,
+ap 25, vc 85, fz 0,1 wird als Flanke mit tatsächlichem räumlichem NC-Abtrag geprüft;
+das feine Raster prüft Last und Abtrag im Eilgang. Die Kugelgegenprobe hat dieselbe
+NC-/Materialqualifikation, ein weiteres BRep-Fertigteilkriterium und Zurückspulen.
+Alte-Code-Gegenprobe bestätigt: unbekannter Schaft wurde vorher geschätzt und wird
+jetzt gesperrt. Eigenes Profil und 16-GiB-Speicherdeckel; GUI auf DP-1 gesehen.
+
+Neue feste Referenz: 10 NC-Bewegungen, SHA ac696622e113469b07bd0759b3b94bed4d26f91ef9e523ed5f5708b8ff46cf34,
+39,11 s / 256,06 MiB Python; 4004 Quellpunkte/4040 NC-Sätze in 12,20 s / 36,45 MiB,
+SHA 9b60bfc0278c0294c2f1dd33ffc3ade2b315fd041c311e115d87471c9d3aec45.
+Goldene Gesamtfolge im frischen Profil exakt unverändert: 46,470163 s, 5948 Punkte,
+6181 NC-Bewegungen und SHA 83a7f0968c79a088a898befb0c6425db21c7808f0bf112742529e8b92cb489a5;
+Vergleich 243,88 s / 240,44 MiB innerhalb der festen Grenzen. Feine Materialabnahme,
+tatsächlicher Export, Übernahme, Undo und Abbruch bestanden. Ein vorher wiederverwendetes
+Prüfprofil lieferte abweichende NC; Ursache nicht als Produktfehler nachgewiesen, keine
+Referenz angepasst. Der Gesamtlauf verwendet deshalb je Prüfung ein frisches Profil.
+Belege unter `../../ergebnisse/abgabe-2026-10-09/`. Kein Push und noch kein vollständiger
+Gesamtlauf dieses Stands; der Abgabenachweis folgt separat. Einfahrt mitten im Material,
+weitere Schneidenformen und automatische Aufspannungen bleiben offen.

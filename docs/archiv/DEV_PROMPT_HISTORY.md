@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-02 innere-schnittbereiche-qualifizieren
+
+### EINGELESEN
+- Manuel setzt nach dem Reboot fort: Abgabe heute um 10 Uhr, alle bisher eingebauten
+  Bahnfunktionen stabil mit Beispiel/Testergebnissen; Qualität vor Zeit. CHATSTART,
+  Arbeitsregeln, Snapshot, Strategien 16.20 und relevante Bahn-/Abtragsadapter.
+- Duplicate-/FreeCAD-Check und Vorbeschreibung bereits vor dem begonnenen Entwurf
+  in 16.20; setzt den gespeicherten P-2026-10-09-01 fort.
+
+### DATEIEN
+- `simultan_schnittbereiche.py`, native Schnittbereichs-/Folgeprüfung, GUI-Szenario,
+  Programmhilfe/Sprachdateien DE/EN; Version 0.204.0, Strategien, Snapshot und Verlauf.
+
+### AKZEPTANZKRITERIUM
+Einen Simultanzug mit erreichbaren Schnitten vor und nach einem unerreichbaren Abschnitt
+exportieren und abfahren → mit bekannten Werkzeug-/Haltermaßen und geprüften freien
+Verbindungen bleiben die Schnitte erhalten, der ausgelassene Abschnitt ist mit Grund
+sichtbar und sein Material bleibt im Rohteilvergleich stehen.
+
+### DONE
+- Offenen Flankentest auf vorhandenen räumlichen Replay der endlichen D12-Schneide
+  umgestellt; die Kugel-Höhenvorschau ist kein Adapter für reine Flankenjobs.
+- Lesende unabhängige Kernprüfung fand eine reale Lücke: allgemeine Körperhilfen
+  schätzten fehlende Werkzeugmaße. Neue innere Unterteilung erlaubt jetzt ausschließlich
+  vollständige bekannte Kugel-/Schaftmaße, konsistenten Hals, Halterstücke und Winkelkopf;
+  aktuelle Einspannung muss zur Prüfung passen. Bestehende vollständig erreichbare
+  Züge anderer Werkzeuge bleiben erhalten. DE/EN erklären den Umfang.
+- Standardfräser mit tatsächlichem Schruppensatz und zusätzlicher feiner Last-/Eilgang-
+  Abnahme; eigene Entwurfsfehler (Quantity statt float, falscher Vorschauadapter,
+  zunächst Planeneinsatz) behoben. Keine Produktprüfung dafür abgeschwächt.
+- NC einer fehlgeschlagenen Folgereferenz wird vor der feinen Abnahme diagnostisch
+  gespeichert; Referenzen nicht neu gesetzt. Zusammengesetzte GUI-Aufnahme ergänzt:
+  ein isoliertes transparentes Kind sah mit dunkler Systempalette irreführend dunkel
+  aus; im tatsächlichen hellen FreeCAD-Aufgabenfenster ist die Schrift lesbar.
+- Neutrale Starter außerhalb Git vorbereitet; eigener freier Modus, Schnittbereichs-
+  gegenprobe und vorhandenes komplexes Freiformbeispiel. Finale Quellkopie und
+  Gesamtlauf sind die folgenden Abgabeschritte, noch keine Gesamtfreigabe/kein Push.
+
+### TEST
+- Installiertes FreeCAD 1.1.4, eigene vorab angelegte Profile, App-home vor Schreiben
+  geprüft, jeder Lauf mit 16 GiB / ohne Swap; persönliche Bibliothek unverändert.
+- Neue native Prüfung grün: alle sechs Kinematiken, Grenzen/Umfahrung, fehlende Maße,
+  Materialrest und Eilgang/Last im 0,05-mm-Raster; unveränderte neue feste NC-Referenz.
+  39,11 s / 256,06 MiB Python. Lange Probe 4004 Punkte / 4040 NC: 12,20 s / 36,45 MiB.
+- Alte-Code-Gegenprobe erlaubt unbekannten Schaft, neuer Guard sperrt. Lesende zweite
+  Prüfung des endgültigen Guards ohne weiteren Blocker. Black/Ruff/diff ohne Befund.
+- GUI auf DP-1, 1280×1024 bei +0+56: Materialrest, Zurückspulen und Programmhinweis
+  grün; vollständige tatsächliche Oberfläche als Screenshot gesehen.
+- Alte Teilbereiche, räumlicher NC-Abtrag, Sprache und kalter Freiformexport grün.
+  Goldene gemeinsame Folge im frischen Profil bytegleich (6181 NC, SHA 83a7f096…89a5),
+  46,470163 s, Vergleich 243,88 s / 240,44 MiB; feine Abnahme/Übernahme/Undo/Abbruch grün.
+- Wiederverwendetes Prüfprofil lieferte zuvor eine Abweichung von −0,008 s und anderem
+  NC-Hash; frisches Profil stellt den alten Nachweis exakt her. Ursache nicht als
+  Produktfehler belegt; fehlgeschlagener Lauf archiviert, keine Referenz angepasst.
+
+### NEXT
+- Eingefrorenen Stand einschließlich Git-Metadaten bereitstellen, gesamten vorhandenen
+  Prüfbestand der installierten 1.1.4 je Datei im frischen Profil laufen lassen und
+  tatsächliche Starter samt Version/Ladepfad/DP-1 prüfen; Befunde beheben und Abgabebericht.
+
 ## P-2026-10-09-01 zwischenstand-schnittbereiche
 
 ### EINGELESEN

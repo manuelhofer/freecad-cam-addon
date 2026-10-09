@@ -8,23 +8,20 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-**Neustart-Zwischenstand (2026-10-09, P-2026-10-09-01):** Auf Manuels Bitte
-sofort lokal gespeichert und Arbeit für seinen Reboot unterbrochen; kein Push.
-Version 0.204.0 ist ein **noch nicht fertig geprüfter Arbeitsstand** zu sicheren
-Teilstrecken innerhalb eines Simultanzugs (Strategien 16.20).
-Kerngegenprobe und alle sechs Kinematiken bestanden; 4004-Punkte-Probe: etwa 13 s,
-36,45 MiB Python, feste neue NC-Referenz. Die zusätzliche Standard-D12-Flankengegenprobe
-scheitert derzeit bei `tests/test_simultan_schnittbereiche.py`, Funktion `fahren`,
-an `assert bild is not None`: `simultan_restbild.fuer` verlangt einen 3D-Schlichtjob,
-der neue reine Flankenjob erfüllt diese bestehende Voraussetzung nicht. Direkte NC
-und Abfahrt des Flankenjobs wurden bereits erfolgreich diagnostiziert. Als Nächstes
-diesen Test mit dem vorhandenen räumlichen Zylinderabtrag prüfen, anschließend GUI
-auf DP-1 und gezielte alte Referenzen einschließlich goldener Gesamtfolge abschließen.
-Prüfarchiv: `../../ergebnisse/schnittbereiche-2026-10-08/`; vorbereiteter Prüflauf
-`/tmp/camaddon-schnittbereiche-regression.sh`, eigenes Profil
-`/tmp/camaddon-schnittbereiche-test`, GUI-Profil `/tmp/camaddon-schnittbereiche-gui`.
-Die Prüfdateien sind im Repository gespeichert; temporäre Profile nach einem Reboot
-bei Bedarf neu anlegen und vor Beispieldaten den tatsächlichen Profilpfad prüfen.
+**Abgabe am 2026-10-09 um 10 Uhr:** Manuel verlangt alle bisher eingebauten
+Bahnbearbeitungen stabil, mit Beispiel und Prüfergebnissen; Qualität hat Vorrang.
+**Sichere innere Teilstrecken (0.204.0, P-2026-10-09-02):** Nachweislich freie
+Quellstellen verbinden erreichbare Abschnitte eines einzigen Schnittzugs; vollständige
+bekannte Kugel-/Schaft- und Haltermaße erforderlich, neue Verbindungen anhand echter
+Maschinen-NC und BRep geprüft. Alle sechs Kinematiken, Standard-D12 samt Last/Eilgang,
+räumlicher Rest, neue feste Referenzen und DP-1 bestanden (Strategien 16.20).
+Goldene Gesamtfolge bytegleich, einschließlich Zeit/Speicher, feiner Materialabnahme,
+Export, Übernahme/Undo/Abbruch. Bestehende Referenzen unverändert.
+Prüfarchiv `../../ergebnisse/abgabe-2026-10-09/`; neuer neutraler Starter
+`../../testen/0.204.0/Addon-starten.sh`, Teilbereichs- und Freiformbeispiel im eigenen Profil.
+Nächster Schritt für die Abgabe: Gesamtlauf aller vorhandenen Prüfdateien und Szenarien
+im eingefrorenen Stand mit dem installierten FreeCAD 1.1.4, tatsächliche Starter-Ladepfade
+und Bildschirmplatzierung prüfen, Befunde beheben und abschließenden Bericht erstellen.
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
@@ -56,8 +53,8 @@ operationen werden in die nächste 3+2-Ebene übernommen, für Kugel und endlich
 zylindrische Schneide mit konservativer Bewegungsschranke. Ausgelassene Züge bleiben
 stehen; unbekannte/unsichere Bewegung fällt auf das ursprüngliche Rohteil zurück
 (Strategien 16.19). Sechs gelesene Kinematiken und DP-1 geprüft.
-Nächster Schritt: qualifizierte Ein-/Ausfahrten innerhalb eines zusammenhängenden
-Schnittzugs, weitere Schneidenformen und automatische Aufspannungswahl.
+Nächster funktionaler Schritt nach der Abgabe: Einfahrten in nachweislich vorbereiteten
+Materialraum, weitere Schneidenformen und automatische Aufspannungswahl.
 Maschinenweite Vorgabe: Richtungen und Grenzen aus der tatsächlich gewählten
 Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennzeichnen.
 
@@ -109,7 +106,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.203.1 (P-2026-10-08-13). Alles, was hier als gebaut steht,
+Lokaler Stand 0.204.0 (P-2026-10-09-02), GitHub weiterhin 0.203.1. Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
