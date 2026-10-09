@@ -151,7 +151,9 @@ class Schlichten3D(PathOp.ObjectOp):
         for name in ("Zeilen", "Hoehenlinien", "Umlaeufe", "Abstand"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Werkzeugachsen", 2)  # gerechnet, je Satz – nicht zum Ansehen
-        obj.setEditorMode("BahnGrathoehe", 2)  # vom geprüften Vergleich, Ziel bleibt Grathoehe
+        # BahnGrathoehe sichtbar und änderbar (Manuel, 2026-10-09: „die Auflösung bei jeder
+        # Strategie einstellbar“): die Grathöhe, für die die Bahn gerechnet wird; 0 = Grathöhe.
+        obj.setEditorMode("BahnGrathoehe", 0)
 
     def execute(self, obj):
         """Wie jede Operation – mit `Anstellen` danach je Satz der fertigen Bahn die

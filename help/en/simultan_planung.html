@@ -28,6 +28,16 @@ plans the complete direction sequence ahead, seeking the least change among its 
 directions. It is an additional candidate; actual machine time and the same checks decide
 whether it wins. Both rotary axes need not move
 all the time: reachability and time decide. A precise boundary pass completes open face edges.</p>
+<h3>How finely the path is computed</h3>
+<p><b>Path computed for</b> is the scallop height the comparison lays its rows for. It is finer
+than the operation's scallop height because the check keeps reserves: it uses a test sphere
+0.002 mm smaller and requires every surface cell to lie entirely within one cut. Empty means a
+quarter of the scallop height – with 0.02 mm that is 0.005 mm, rows of 0.28 mm with the Ø 4
+ball. The check accepts that even on curved surfaces; a dome accepts 75 % (0.015 mm, rows of
+0.49 mm), the freeform with its bump does not. Smaller: closer rows, longer
+machining, finer surface. Larger, up to the scallop height: fewer rows and shorter machining,
+but the check may reject the path. After applying, the value is stored on the operation
+(<b>BahnGrathoehe</b>) and can be changed there as well as here; 0 means the scallop height.</p>
 <h3>Checks and results</h3>
 <p>The material check starts with the stock and replays preceding operations. It checks
 continuous ball sweeps and complete surface cells, including boundaries. Mesh uncertainty

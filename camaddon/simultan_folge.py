@@ -51,9 +51,11 @@ def vergleichen(
     fortschritt=None,
     controller=None,
     alle=False,
+    feinheit=None,
 ):
-    """Alle angegebenen Zwischenlagen samt Schlichtvergleich unverändernd auswerten. `alle` wie
-    bei simultan_planung.vergleichen (jede Kugel, Richtung und Anstellung)."""
+    """Alle angegebenen Zwischenlagen samt Schlichtvergleich unverändernd auswerten. `alle` und
+    `feinheit` wie bei simultan_planung.vergleichen (jede Kugel, Richtung und Anstellung; die
+    Grathöhe, für die die Bahn gerechnet wird)."""
     grob = schruppen_vor(operation)
     if grob is None:
         raise ValueError(tr("s5f.fehler.schruppen"))
@@ -104,6 +106,7 @@ def vergleichen(
                 controller=controller,
                 zeitgrenze=plan.beste.sekunden if plan.beste is not None else math.inf,
                 alle=alle,
+                feinheit=feinheit,
             ):
                 teilplan = aktueller_plan
                 variante.zwischenlagen = lage

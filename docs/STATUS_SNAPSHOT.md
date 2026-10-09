@@ -617,6 +617,14 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   36 s. Am Freiformbeispiel eine Variante 670 → 211 s (P-2026-10-09-13:
   Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). Als Nächstes: Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
   Kombinationen“ parallel (Hebel 3), `fahren` (Materialstand) in Stücken.
+- **T-009 Auflösung je Strategie einstellbar** (Manuel, 2026-10-09: „die Auflösung bei jeder
+  Strategie einstellbar … in mm, immer mit verständlicher Erklärung“). Gebaut (P-2026-10-09-14):
+  „Bahn gerechnet für“ im 5-Achs-Vergleich, `BahnGrathoehe` sichtbar. Offen, in dieser Folge:
+  (1) der Vergleich verfeinert von selbst – bei 75 % beginnen, bei Rest/Deckung halb so fein
+  noch einmal (die Kuppel nimmt 75 % an: 98 → 74 s; die Freiform erst 25 %); (2) Feld
+  „Auflösung“ (Raster, mm) je Strategie-Block in „Bearbeitung“ (heute fest: 3D-Schlichten 0,25,
+  Bleistift 0,25, Räumen/Kontur/Entgraten 3D 0,5, Flanke 0,2), Eigenschaft `Raster` an der
+  Operation; (3) dasselbe im 4-Achs-Assistenten (0,5 mm längs, 1° rundum).
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit

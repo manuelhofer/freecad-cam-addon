@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-14 bahnfeinheit-sichtbar-und-einstellbar
+
+### EINGELESEN
+- Manuel, 2026-10-09: „Ich finde, dass die Auflösung bei jeder Strategie einstellbar sein
+  sollte … geht ja um jeden [Fall]“ und „mm ist super, aber immer eine sinnvoll verständliche
+  Erklärung dabei“. Befund: Der Simultanvergleich rechnete jede Bahn fest mit Grathöhe ÷ 4,
+  unsichtbar (`BahnGrathoehe` im Eigenschaftseditor verborgen).
+
+### DATEIEN
+- `camaddon/simultan_planung.py` (`vergleichen(..., feinheit=None)`, `bahnfeinheit()`,
+  `VORGABE_FEINHEIT`), `camaddon/simultan_folge.py` (durchgereicht), `camaddon/schlichten3d.py`
+  (`BahnGrathoehe` sichtbar und änderbar), `camaddon/gui_simultan_planung.py` (Feld „Bahn
+  gerechnet für“ mit Vorschlag als Platzhalter, grauer Erklärsatz, Prüfung der Eingabe),
+  `translations/de.json`, `translations/en.json` (`s5p.feinheit*`, `s5p.fehler.feinheit`,
+  `s5p.eigenschaft.bahngrat`), `help/de/simultan_planung.html`, `help/en/simultan_planung.html`
+  (Abschnitt „Wie fein die Bahn gerechnet wird“), `docs/STATUS_SNAPSHOT.md`.
+
+### AKZEPTANZKRITERIUM
+„5-Achs-Schlichten vergleichen …“ zeigt unter „Alle Kombinationen“ das Feld „Bahn gerechnet
+für“ mit grauem Vorschlag und Erklärsatz; leer rechnet der Vergleich wie bisher, ein Wert bis
+zur Grathöhe gilt, ein ungültiger wird mit einem Satz abgewiesen; an der Operation steht
+`BahnGrathoehe` sichtbar.
+
+### DONE
+- Die Vorgabe bleibt ein Viertel der Grathöhe – nicht die geeichten 75 % (P-2026-10-09-03),
+  und das ist ein Befund: Die Eichung galt der ebenen Fläche. Gemessen an der Freiform
+  (Ø 4, entlang der Fläche): bei 0,015 mm (75 %) Rest 0,026 mm und 70 258 Flächenzellen
+  ungedeckt, bei 0,010 (50 %) Rest 0,019, aber 1 074 Zellen ungedeckt, erst bei 0,005 (25 %)
+  alles angenommen; die hohen Zellen liegen an der gewölbten Erhebung (x 30–50, y 8–16). Die
+  Kuppel dagegen nimmt 75 % an: Ø 12 zugelassen, Maschinenzeit 98 → 74 s. Die richtige
+  Feinheit hängt also am Teil – genau Manuels Punkt.
+- Nicht gebaut, nächster Patch: Verfeinern von selbst – ohne Eingabe bei 75 % beginnen und,
+  wenn die Prüfung nur wegen Rest oder Deckung ablehnt, dieselbe Variante halb so fein noch
+  einmal rechnen (bis 10 %); der gefundene Wert ins Feld. Dann hat die Kuppel ihre 25 % Zeit
+  gewonnen, ohne dass die Freiform leer ausgeht. Danach „Auflösung“ (Raster) als Feld in jedem
+  Strategie-Block von „Bearbeitung“ und im 4-Achs-Assistenten.
+- Die goldenen Referenzen sind unverändert (Vorgabe wie bisher).
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_sprache.py` OK, `tests/test_simultan_runden.py` OK,
+  `tests/test_simultan_planung.py` OK (Kuppel, Referenz unverändert). Messungen an Kuppel und
+  Freiform (Skripte im Scratch-Ordner). Das Szenario `szenario_simultan_planung` lief mit dem
+  Zwischenstand (75 %) – mit dem Feld noch nicht geprüft; das Bild des Dialogs schuldet der
+  nächste Lauf.
+
 ## P-2026-10-09-13 freiform-referenzen-neu
 
 ### EINGELESEN

@@ -15,6 +15,8 @@ from . import simultan_folge as sf
 from . import simultan_planung as sp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
+from .gui_teile import GRAU, mit_einheit
+from .gui_zahlen import groesse_fest, groesse_lesen, groesse_zeigen
 from .sprache import tr
 
 
@@ -102,6 +104,34 @@ class SimultanPanel:
         self.alle = QtGui.QCheckBox(tr("s5p.alle"))
         self.alle.setToolTip(tr("s5p.alle.tooltip"))
         layout.addWidget(self.alle)
+        # Die Bahnfeinheit (P-2026-10-09-14): leer heißt Vorschlag – ein Viertel der Grathöhe; eine
+        # frühere Übernahme steht schon an der Operation (BahnGrathoehe) und wird gezeigt.
+        feinheit_zeile = QtGui.QHBoxLayout()
+        feinheit_zeile.setContentsMargins(0, 0, 0, 0)
+        beschriftung = QtGui.QLabel(tr("s5p.feinheit"))
+        beschriftung.setToolTip(tr("s5p.feinheit.tooltip"))
+        feinheit_zeile.addWidget(beschriftung)
+        self.feinheit = QtGui.QLineEdit()
+        self.feinheit.setToolTip(tr("s5p.feinheit.tooltip"))
+        self.feinheit.setMaximumWidth(110)
+        vorschlag = float(op.Grathoehe) * sp.VORGABE_FEINHEIT
+        self.feinheit.setPlaceholderText(groesse_zeigen(vorschlag, einheiten.LAENGE, 4))
+        bisher = float(getattr(op, "BahnGrathoehe", 0.0) or 0.0)
+        if bisher > 0:
+            self.feinheit.setText(groesse_zeigen(bisher, einheiten.LAENGE, 4))
+        feinheit_zeile.addWidget(mit_einheit(self.feinheit, einheiten.LAENGE))
+        feinheit_zeile.addStretch()
+        layout.addLayout(feinheit_zeile)
+        self.feinheit_hinweis = QtGui.QLabel(
+            tr(
+                "s5p.feinheit.hinweis",
+                vorschlag=groesse_fest(vorschlag, einheiten.LAENGE, 4),
+                grathoehe=groesse_fest(float(op.Grathoehe), einheiten.LAENGE, 4),
+            )
+        )
+        self.feinheit_hinweis.setWordWrap(True)
+        self.feinheit_hinweis.setStyleSheet(f"color: {GRAU.name()};")
+        layout.addWidget(self.feinheit_hinweis)
         self.lagenbereich = QtGui.QWidget()
         zeile = QtGui.QGridLayout(self.lagenbereich)
         zeile.setContentsMargins(0, 0, 0, 0)
@@ -193,6 +223,7 @@ class SimultanPanel:
         self.plan = None
         self.abbruch = False
         try:
+            feinheit = self.bahnfeinheit()
             if self.mit_schruppen.isChecked():
                 lagen = sf.zwischenlagen(
                     self.von.value(),
@@ -207,6 +238,7 @@ class SimultanPanel:
                     lagen,
                     fortschritt=self.fortschritt,
                     alle=self.alle.isChecked(),
+                    feinheit=feinheit,
                 )
             else:
                 self.laeufer = sp.vergleichen(
@@ -215,6 +247,7 @@ class SimultanPanel:
                     self.bibliothek,
                     fortschritt=self.fortschritt,
                     alle=self.alle.isChecked(),
+                    feinheit=feinheit,
                 )
         except (ValueError, AttributeError) as fehler:
             self.start.setEnabled(True)
@@ -225,6 +258,20 @@ class SimultanPanel:
         self.alle.setEnabled(False)
         self.status.setText(tr("s5p.rechnet"))
         QtCore.QTimer.singleShot(0, self.schritt)
+
+    def bahnfeinheit(self):
+        """Die eingetragene Bahnfeinheit in mm, None für den Vorschlag; ValueError mit einem
+        Satz, wenn das Feld nicht lesbar ist oder über der Grathöhe liegt."""
+        text = self.feinheit.text().strip()
+        if not text:
+            return None
+        try:
+            wert = groesse_lesen(text, einheiten.LAENGE)
+        except ValueError:
+            raise ValueError(tr("s5p.fehler.feinheit")) from None
+        if wert <= 0 or wert > float(self.op.Grathoehe) + 1e-9:
+            raise ValueError(tr("s5p.fehler.feinheit"))
+        return wert
 
     def fortschritt(self, anteil):
         self.status.setText(tr("s5p.kollision", prozent=f"{anteil * 100:.0f}"))

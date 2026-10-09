@@ -30,6 +30,16 @@ im Voraus und sucht unter ihren angebotenen Richtungen nach möglichst wenig Kip
 Das ist ein weiterer Kandidat; die vollständige Maschinenzeit und dieselben Prüfungen
 entscheiden, ob er gewinnt. Beide Rundachsen müssen nicht ständig fahren: Die erreichbare, schnellere
 Bearbeitung zählt. Ein genauer Randgang ergänzt die offenen Flächenränder.</p>
+<h3>Wie fein die Bahn gerechnet wird</h3>
+<p><b>Bahn gerechnet für</b> ist die Grathöhe, für die der Vergleich die Zeilen legt. Sie ist
+feiner als die Grathöhe der Operation, weil die Prüfung Reserven hält: Sie rechnet mit einer um
+0,002 mm kleineren Prüfkugel und verlangt, dass jede Flächenzelle ganz in einem Schnitt liegt.
+Leer heißt ein Viertel der Grathöhe – bei 0,02 mm also 0,005 mm, Zeilen von 0,28 mm mit der
+Kugel Ø 4. Das nimmt die Prüfung auch an gewölbten Flächen an; eine Kuppel nimmt 75 % an
+(0,015 mm, Zeilen von 0,49 mm), die Freiform mit ihrer Erhebung nicht. Kleiner: engere Zeilen, längere Bearbeitung,
+feinere Oberfläche. Größer, bis zur Grathöhe: weniger Zeilen und kürzere Bearbeitung, aber die
+Prüfung kann die Bahn ablehnen. Der Wert steht nach dem Übernehmen an der Operation
+(<b>BahnGrathoehe</b>) und lässt sich dort wie hier ändern; 0 heißt wie die Grathöhe.</p>
 <h3>Die Prüfungen</h3>
 <p>Der Materialvergleich beginnt beim Rohteil und fährt die vorherigen Operationen ab.
 Die Kugel wird über ganze Schnittstrecken geprüft; ganze Flächenzellen müssen innerhalb

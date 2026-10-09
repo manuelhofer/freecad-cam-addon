@@ -44,6 +44,7 @@ ANSTELLUNGEN = ("X", "Y", "frei", "frei_gesamt")
 # (Manuel, 2026-10-09: „Ja, mach das so“); an der Kuppel des Szenarios schneidet „entlang der
 # Fläche“ ins Teil, die zweite Stufe findet Zeilen X frei.
 SINNVOLL_RICHTUNG = "flaeche"
+VORGABE_FEINHEIT = 0.25  # Anteil der Grathöhe, für den die Bahn ohne Angabe gerechnet wird
 SINNVOLL_ANSTELLUNGEN = ("frei", "frei_gesamt")
 
 
@@ -314,6 +315,7 @@ def vergleichen(
     controller=None,
     zeitgrenze=math.inf,
     alle=False,
+    feinheit=None,
 ):
     """Planung erzeugen; Generator liefert (Planung, aktuelle Variante) für eine lebendige UI.
 
@@ -322,6 +324,10 @@ def vergleichen(
     `alle`: jede Kugel mit jeder Richtung und Anstellung in einer Runde; sonst die Runden aus
     _runden (die größte Kugel zuerst, entlang der Fläche frei, dann die übrigen Richtungen, dann
     die festen Anstellungen – bis eine Variante zugelassen ist).
+    `feinheit`: die Grathöhe (mm), für die die Bahn gerechnet wird – feiner als die verlangte,
+    damit die Prüfung mit ihren Reserven die verlangte annimmt. Ohne Angabe die `BahnGrathoehe`
+    der Operation, wenn sie eine hat (ein früherer Vergleich oder die Eingabe im
+    Eigenschaftseditor), sonst VORGABE_FEINHEIT der Grathöhe.
     """
     job = job_von(op)
     if job is None or not s3.ist_schlichten3d(op) or sw.ist_ebene(job):
@@ -346,6 +352,7 @@ def vergleichen(
         pruefung=pruefung,
         sicherheitszustand=_sicherheitszustand(pruefung, bibliothek),
     )
+    feinheit = bahnfeinheit(op, feinheit)
     normalen_cache = {}
 
     def werkzeug(tc, richtungen, anstellungen):
@@ -379,7 +386,6 @@ def vergleichen(
                     yield plan, variante
             return
         for richtung in richtungen:
-            feinheit = float(op.Grathoehe) / 4
             quelle = _Ansicht(
                 op, Richtung=richtung, ToolController=tc, Randgang=True, BahnGrathoehe=feinheit
             )
@@ -586,6 +592,23 @@ def vergleichen(
         yield from zulassen(plan.varianten[davor:])
         if plan.beste is not None:
             break
+
+
+def bahnfeinheit(op, feinheit=None):
+    """Die Grathöhe (mm), für die der Vergleich die Bahn rechnet: `feinheit`, wenn angegeben
+    (> 0); sonst die BahnGrathoehe der Operation (> 0); sonst VORGABE_FEINHEIT der verlangten
+    Grathöhe. Nie mehr als die verlangte Grathöhe."""
+    grathoehe = float(op.Grathoehe)
+    wert = float(feinheit or 0.0)
+    if wert <= 0:
+        wert = float(getattr(op, "BahnGrathoehe", 0.0) or 0.0)
+    if wert <= 0:
+        # Vorgabe ein Viertel, nicht die geeichten 75 % (bahn_grathoehe): Die Eichung galt der
+        # ebenen Fläche; die Kuppel nimmt 75 % an, die Freiform mit ihrer gewölbten Erhebung
+        # erst 25 bis 40 % (P-2026-10-09-14: Rest 0,026 mm bei 0,015). Bis der Vergleich von
+        # selbst verfeinert, bleibt die sichere Vorgabe.
+        wert = grathoehe * VORGABE_FEINHEIT
+    return min(wert, grathoehe)
 
 
 def uebernehmen(op, plan):
