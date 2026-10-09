@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-12 normalen-kugelschnitt-und-deckung-in-stuecken
+
+### EINGELESEN
+- Profil des Kuppelvergleichs nach P-2026-10-09-11 (eine Variante, 44 s): `deckung` 19 s,
+  Normalen 3 s, Kugelschnitt (`einschnitt`) 1 s; am Freiformbeispiel (16.5): Material 5 min,
+  Normalen 4 min, Kugelschnitt 2 min. Spezifikation Strategien 16.5, Hebel 3 und 5.
+
+### DATEIEN
+- `camaddon/angestellt.py` (`normalen`: neue Spitzen in Stücken auf den Nebenrechnern,
+  `normalen_stueck`, `_normale`), `camaddon/simultan_abtrag.py` (`einschnitt` → `einschnitt_stueck`,
+  `deckung` → `deckung_stueck`, Kapseln einmal je Arbeiter mit gemerktem Index),
+  `camaddon/nebenrechner.py` (`form_gemeinsam`, `ereignisse`, `stuecke`), `camaddon/hoehenfeld.py`
+  (nutzt `ereignisse`), `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/spezifikation_strategien.md` (16.5), `package.xml` (0.204.2).
+
+### AKZEPTANZKRITERIUM
+„5-Achs-Schlichten vergleichen …“ an der Kuppel (eine Variante) ist nach 23 s fertig statt nach
+44 s, mit derselben Bahn; `tests/test_simultan_planung.py` hält seine goldene Referenz.
+
+### DONE
+- Alle drei sind je Stück unabhängig: eine Normale je Spitze (ein `distToShape` am Teil), der
+  Kugelschnitt je Prüfstrecke, die Deckung je Flächenzelle. Die Form des Teils geht als BREP
+  einmal je Arbeiter hin (`form_gemeinsam`, nach dem Fingerabdruck des Texts), die Kapseln der
+  Deckung ebenso (ihr räumlicher Index bleibt im Arbeiter stehen). Ab 400 neuen Spitzen, 200
+  Strecken, 4000 Zellen; sonst, ohne Nebenrechner oder wenn sie scheitern, wie bisher hier.
+- Der Normalen-Cache bleibt: Was ein Arbeiter rechnet, landet darin, die nächste Variante findet
+  es dort. Abbrechen über den Fortschritt wie bisher (ValueError „unvollständig“).
+- Zusammen mit P-07 bis P-11: der Kuppelvergleich (eine Variante) 131 → 23 s, die Prüfung
+  `test_simultan_planung` 149 → 36 s – bitgleiche Bahn, dieselbe goldene Referenz.
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_angestellt.py` OK (35 s), `tests/test_simultan_eichung.py`
+  OK, `tests/test_simultan_abtrag.py` OK, `tests/test_simultan_planung.py` OK (36 s, Referenz
+  unverändert); Messung an der Kuppel (Skript im Scratch-Ordner).
+
 ## P-2026-10-09-11 huellflaeche-in-bloecken-und-auf-allen-kernen
 
 ### EINGELESEN

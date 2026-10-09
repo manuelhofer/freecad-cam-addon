@@ -3130,7 +3130,13 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    Jetzt in Blöcken von 8192 Paaren (Cache), Dreiecke zuerst, Ecken und Kanten nur, wo sie höher
    kommen können, und die Zeilen auf den Nebenrechnern: an der Kuppel 60 → 2,6 s für die
    Hüllfläche, der Vergleich einer Variante 131 → 44 s.
-5. **`deckung` vektorisieren** (6 s reines Python an der Kuppel).
+5. **`deckung` vektorisieren** (6 s reines Python an der Kuppel). **Gebaut anders
+   (P-2026-10-09-12):** Deckung, Kugelschnitt und Normalen in Stücken auf den Nebenrechnern –
+   je Zelle, je Prüfstrecke, je Spitze unabhängig; der Kuppelvergleich damit 44 → 23 s.
+
+Stand nach P-2026-10-09-07 bis -12 (Kuppel, eine Variante Ø 12 Zeilen X frei, 24 Kerne):
+131 s → 23 s, bitgleiche Bahn. Was bleibt, ist in einem Prozess: `fahren` (Materialstand),
+Maschinenbahn, das Programm – und die Kosten je Stelle der Kollision (Hebel 2).
 
 
 ### 16.6 Qualitätsprüfung des Simultanvergleichs (gebaut, P-2026-10-07-03)

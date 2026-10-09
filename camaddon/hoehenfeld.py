@@ -260,7 +260,7 @@ def _je_zeile_verteilt(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
         for a, b in bereiche
     ]
     try:
-        teile = pool.warten(auftraege, zwischendurch=_ereignisse)
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse)
     except nr.Fehler as fehler:
         FreeCAD.Console.PrintWarning(
             f"CAM-Addon: Hüllfläche auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
@@ -270,18 +270,6 @@ def _je_zeile_verteilt(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
     for (a, b), teil in zip(bereiche, teile, strict=True):
         ergebnis[:, a:b] = teil
     return ergebnis
-
-
-def _ereignisse():
-    """Beim Warten auf die Nebenrechner: das Fenster verarbeitet seine Ereignisse – ohne
-    Oberfläche nichts."""
-    try:
-        from PySide import QtGui
-    except ImportError:
-        return True
-    if QtGui.QApplication.instance() is not None:
-        QtGui.QApplication.processEvents()
-    return True
 
 
 # (Netz, seine Kanten) – je Netz einmal: Ein Arbeiter rechnet viele Stücke desselben Netzes.

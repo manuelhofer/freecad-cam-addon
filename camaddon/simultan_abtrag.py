@@ -12,9 +12,11 @@ einer beliebigen kontinuierlichen CAD-Fläche. Auflösung und Unsicherheit gehö
 deshalb zum Ergebnis; die Grathöhe wird durch diese Unsicherheit nicht vergrößert.
 """
 
+import hashlib
 import math
 from dataclasses import dataclass, field
 
+import FreeCAD
 import numpy as np
 import Part
 
@@ -322,8 +324,24 @@ def einsatz_von(tc, bibliothek):
     )
 
 
+PARALLEL_AB_STRECKEN = 200  # ab so vielen Prüfstrecken rechnen die Nebenrechner (einschnitt)
+PARALLEL_AB_ZELLEN = 4000  # ab so vielen Flächenzellen rechnen die Nebenrechner (deckung)
+
+
 def einschnitt(form, punkte, radius, grenze=0.00025, fortschritt=None):
-    """Kleinster BRep-Abstand der ganzen Kugelstrecken zum gesamten fertigen Teil."""
+    """Kleinster BRep-Abstand der ganzen Kugelstrecken zum gesamten fertigen Teil – in Stücken
+    auf den Nebenrechnern (P-2026-10-09-12), sonst hier."""
+    strecken = _pruefstrecken(punkte, radius, mit_original=True)
+    if len(strecken) >= PARALLEL_AB_STRECKEN:
+        kleinster = _einschnitt_verteilt(form, strecken, radius, grenze, fortschritt)
+        if kleinster is not None:
+            return kleinster
+    return einschnitt_stueck(form, strecken, radius, grenze, fortschritt)
+
+
+def einschnitt_stueck(form, strecken, radius, grenze, fortschritt=None):
+    """einschnitt() für diese Prüfstrecken (a, b, Originalpunkte) – ein Stück; hört auf, sobald
+    eine unter der Grenze liegt."""
     kleinster = math.inf
     from FreeCAD import Vector
 
@@ -332,7 +350,6 @@ def einschnitt(form, punkte, radius, grenze=0.00025, fortschritt=None):
         linie = Part.Vertex(von) if von.distanceToPoint(nach) < 1e-9 else Part.makeLine(von, nach)
         return form.distToShape(linie)[0] - radius
 
-    strecken = _pruefstrecken(punkte, radius, mit_original=True)
     for i, (a, b, original) in enumerate(strecken):
         _meldung(fortschritt, i, len(strecken))
         schranke = abstand(a, b) - SEHNENFEHLER
@@ -343,6 +360,43 @@ def einschnitt(form, punkte, radius, grenze=0.00025, fortschritt=None):
         if kleinster < grenze:
             break
     return kleinster
+
+
+def _einschnitt_verteilt(form, strecken, radius, grenze, fortschritt):
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    gemeinsam = nr.form_gemeinsam(pool, form)
+    bereiche = nr.stuecke(len(strecken), pool.anzahl, je_arbeiter=4, mindestens=20)
+    auftraege = [
+        pool.auftrag(
+            "simultan_abtrag", "einschnitt_stueck", gemeinsam, strecken[a:b], radius, grenze
+        )
+        for a, b in bereiche
+    ]
+    try:
+        teile = pool.warten(auftraege, _zwischendurch(auftraege, fortschritt))
+    except nr.Abgebrochen:
+        raise ValueError(tr("s5p.fehler.unvollstaendig")) from None
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Kugelschnitt auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    return min(teile)
+
+
+def _zwischendurch(auftraege, fortschritt):
+    """Fürs Warten: Ereignisse verarbeiten und den Fortschritt melden; False bricht ab."""
+    from . import nebenrechner as nr
+
+    def rufen():
+        nr.ereignisse()
+        return fortschritt is None or fortschritt(nr.fortschritt_von(auftraege) * 0.99) is not False
+
+    return rufen
 
 
 def an_mitte(punkt, radius):
@@ -372,22 +426,80 @@ def deckung(dreiecke, punkte, radius, hoehe, unsicherheit=NETZ, fortschritt=None
     Punkte dazwischen. Die kleinere Prüfkugel reserviert die Vernetzungsunsicherheit.
     Das ist konservativ: Eine Zelle, die mehrere Schnitte gemeinsam abdecken,
     kann durchfallen; eine bloße Probe in der Zellenmitte genügt niemals.
+
+    Jede Zelle für sich: Viele Zellen rechnen die Nebenrechner in Stücken (P-2026-10-09-12).
     """
     strecken = _pruefstrecken(punkte, radius)
     if not strecken:
         return len(dreiecke)
     von = np.array([a for a, _b in strecken])
     nach = np.array([b for _a, b in strecken])
+    if len(dreiecke) >= PARALLEL_AB_ZELLEN:
+        ungedeckt = _deckung_verteilt(dreiecke, von, nach, radius, hoehe, unsicherheit, fortschritt)
+        if ungedeckt is not None:
+            return ungedeckt
+    return deckung_stueck(dreiecke, von, nach, radius, hoehe, unsicherheit, fortschritt)
+
+
+def _deckung_verteilt(dreiecke, von, nach, radius, hoehe, unsicherheit, fortschritt):
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    kennung = hashlib.blake2b(von.tobytes() + nach.tobytes(), digest_size=16).hexdigest()
+    kapseln = pool.gemeinsam("kapseln-" + kennung, (von, nach))
+    bereiche = nr.stuecke(len(dreiecke), pool.anzahl, je_arbeiter=4, mindestens=500)
+    auftraege = [
+        pool.auftrag(
+            "simultan_abtrag",
+            "deckung_stueck",
+            dreiecke[a:b],
+            kapseln,
+            None,
+            radius,
+            hoehe,
+            unsicherheit,
+        )
+        for a, b in bereiche
+    ]
+    try:
+        teile = pool.warten(auftraege, _zwischendurch(auftraege, fortschritt))
+    except nr.Abgebrochen:
+        raise ValueError(tr("s5p.fehler.unvollstaendig")) from None
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Flächenzellen auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    return sum(teile)
+
+
+_kapselindex_gemerkt = (None, None)  # ((von, nach), Index) – ein Arbeiter: viele Stücke, ein Index
+
+
+def deckung_stueck(dreiecke, von, nach, radius, hoehe, unsicherheit=NETZ, fortschritt=None):
+    """deckung() für diese Zellen gegen die Kapseln `von` → `nach` (Kugelmitten) – ein Stück. Mit
+    `nach` None ist `von` das Paar (von, nach) als gemeinsame Daten eines Arbeiters."""
+    global _kapselindex_gemerkt
+    if nach is None:
+        kapseln = von
+        von, nach = kapseln
+    else:
+        kapseln = (von, nach)
     weg = nach - von
     quadrat = np.maximum(np.sum(weg * weg, axis=1), 1e-20)
     breite = max(radius, 1.0)
-    index = {}
-    for i, (a, b) in enumerate(zip(von, nach, strict=True)):
-        unten = np.floor((np.minimum(a[:2], b[:2]) - radius) / breite).astype(int)
-        oben = np.floor((np.maximum(a[:2], b[:2]) + radius) / breite).astype(int)
-        for x in range(unten[0], oben[0] + 1):
-            for y in range(unten[1], oben[1] + 1):
-                index.setdefault((x, y), []).append(i)
+    if _kapselindex_gemerkt[0] is not kapseln:
+        index = {}
+        for i, (a, b) in enumerate(zip(von, nach, strict=True)):
+            unten = np.floor((np.minimum(a[:2], b[:2]) - radius) / breite).astype(int)
+            oben = np.floor((np.maximum(a[:2], b[:2]) + radius) / breite).astype(int)
+            for x in range(unten[0], oben[0] + 1):
+                for y in range(unten[1], oben[1] + 1):
+                    index.setdefault((x, y), []).append(i)
+        _kapselindex_gemerkt = (kapseln, index)
+    index = _kapselindex_gemerkt[1]
     ursprung = np.arange(len(dreiecke))
     schlecht = set()
     grenze = max(0, radius - unsicherheit - SEHNENFEHLER) ** 2

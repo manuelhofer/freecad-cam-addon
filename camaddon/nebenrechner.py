@@ -732,6 +732,37 @@ def _gemeinsame_schluessel(wert, tiefe=0):
     return gefunden
 
 
+def form_gemeinsam(pool, shape):
+    """Eine Form (Part.Shape) als gemeinsame Daten – einmal je Arbeiter, nach dem Fingerabdruck
+    ihres BREP-Texts; die Arbeiter bekommen daraus wieder eine Form. Gibt den Platzhalter
+    zurück."""
+    import hashlib
+
+    brep = shape.exportBrepToString()
+    kennung = hashlib.blake2b(brep.encode("utf-8"), digest_size=16).hexdigest()
+    return pool.gemeinsam("form-" + kennung, Form(brep))
+
+
+def ereignisse():
+    """Fürs Warten auf die Arbeiter (`warten(..., zwischendurch=ereignisse)`): Das Fenster
+    verarbeitet seine Ereignisse, ohne Oberfläche nichts; immer True (kein Abbruch)."""
+    try:
+        from PySide import QtGui
+    except ImportError:
+        return True
+    if QtGui.QApplication.instance() is not None:
+        QtGui.QApplication.processEvents()
+    return True
+
+
+def stuecke(anzahl, pool_groesse, je_arbeiter=4, mindestens=1):
+    """[(von, bis)] – `anzahl` Dinge in Stücke für die Arbeiter: je Arbeiter `je_arbeiter`,
+    keins kürzer als `mindestens`."""
+    teile = max(1, min(pool_groesse * je_arbeiter, anzahl // max(1, mindestens)))
+    grenzen = [round(k * anzahl / teile) for k in range(teile + 1)]
+    return [(a, b) for a, b in zip(grenzen, grenzen[1:], strict=False) if b > a]
+
+
 _pool = None
 
 

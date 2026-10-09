@@ -137,38 +137,96 @@ def neigungen(wege, verbote, aenderung=AENDERUNG):
     return ergebnis
 
 
+PARALLEL_AB_SPITZEN = 400  # ab so vielen ungerechneten Spitzen rechnen die Nebenrechner
+
+
 def normalen(form, spitzen, radius, aufmass=0.0, kontakt=KONTAKT, cache=None, fortschritt=None):
     """[(x, y, z) oder None] – je Spitze der Kugel (senkrecht, Radius `radius`) die Normale der
     Fläche, wo sie das Teil `form` berührt; None, wo sie es nicht berührt (mehr als `kontakt`
     weg – über dem Teil). `aufmass`: so viel bleibt stehen, die Kugel berührt um es weiter
-    außen."""
-    import Part
-
-    ergebnis = []
+    außen. Viele neue Spitzen rechnen die Nebenrechner in Stücken (P-2026-10-09-12); was im
+    `cache` steht, kommt von dort."""
     cache = {} if cache is None else cache
-    for i, (x, y, z) in enumerate(spitzen):
+    schluessel = [_schluessel(p, radius, aufmass, kontakt) for p in spitzen]
+    fehlend = []
+    gesehen = set()
+    for key, p in zip(schluessel, spitzen, strict=True):
+        if key not in cache and key not in gesehen:
+            gesehen.add(key)
+            fehlend.append(p)
+    if len(fehlend) >= PARALLEL_AB_SPITZEN:
+        neu = _normalen_verteilt(form, fehlend, radius, aufmass, kontakt, fortschritt)
+        if neu is not None:
+            for p, n in zip(fehlend, neu, strict=True):
+                cache[_schluessel(p, radius, aufmass, kontakt)] = n
+    ergebnis = []
+    for i, (key, p) in enumerate(zip(schluessel, spitzen, strict=True)):
         if fortschritt is not None and i % 256 == 0 and not fortschritt(i / max(1, len(spitzen))):
             raise ValueError(tr("s5p.fehler.unvollstaendig"))
-        key = (radius, aufmass, kontakt, round(x, 9), round(y, 9), round(z, 9))
-        if key in cache:
-            ergebnis.append(cache[key])
-            continue
-        mitte = FreeCAD.Vector(x, y, z + radius)
-        try:
-            abstand, paare, _info = form.distToShape(Part.Vertex(mitte))
-        except Exception:  # eine Form, mit der OpenCascade nicht rechnen kann: senkrecht
-            cache[key] = None
-            ergebnis.append(None)
-            continue
-        if not paare or abstand < 1e-9 or abstand > radius + aufmass + kontakt:
-            cache[key] = None
-            ergebnis.append(None)
-            continue
-        n = mitte - paare[0][0]
-        n.normalize()
-        cache[key] = (n.x, n.y, n.z)
+        if key not in cache:
+            cache[key] = _normale(form, p, radius, aufmass, kontakt)
         ergebnis.append(cache[key])
     return ergebnis
+
+
+def _schluessel(spitze, radius, aufmass, kontakt):
+    x, y, z = spitze
+    return (radius, aufmass, kontakt, round(x, 9), round(y, 9), round(z, 9))
+
+
+def _normale(form, spitze, radius, aufmass, kontakt):
+    """Die Normale an einer Spitze (siehe normalen) – ein distToShape."""
+    import Part
+
+    x, y, z = spitze
+    mitte = FreeCAD.Vector(x, y, z + radius)
+    try:
+        abstand, paare, _info = form.distToShape(Part.Vertex(mitte))
+    except Exception:  # eine Form, mit der OpenCascade nicht rechnen kann: senkrecht
+        return None
+    if not paare or abstand < 1e-9 or abstand > radius + aufmass + kontakt:
+        return None
+    n = mitte - paare[0][0]
+    n.normalize()
+    return (n.x, n.y, n.z)
+
+
+def normalen_stueck(form, spitzen, radius, aufmass, kontakt):
+    """Die Normalen dieser Spitzen – ein Stück, im Nebenrechner."""
+    return [_normale(form, p, radius, aufmass, kontakt) for p in spitzen]
+
+
+def _normalen_verteilt(form, spitzen, radius, aufmass, kontakt, fortschritt):
+    """Die Normalen in Stücken auf den Nebenrechnern (die Form einmal je Arbeiter); None ohne
+    sie – dann rechnet der Aufrufer selbst."""
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    gemeinsam = nr.form_gemeinsam(pool, form)
+    bereiche = nr.stuecke(len(spitzen), pool.anzahl, je_arbeiter=4, mindestens=50)
+    auftraege = [
+        pool.auftrag(
+            "angestellt", "normalen_stueck", gemeinsam, spitzen[a:b], radius, aufmass, kontakt
+        )
+        for a, b in bereiche
+    ]
+
+    def zwischendurch():
+        nr.ereignisse()
+        return fortschritt is None or fortschritt(nr.fortschritt_von(auftraege) * 0.99) is not False
+
+    try:
+        teile = pool.warten(auftraege, zwischendurch)
+    except nr.Abgebrochen:
+        raise ValueError(tr("s5p.fehler.unvollstaendig")) from None
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Normalen auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    return [n for teil in teile for n in teil]
 
 
 def vorausblick(normalen):
