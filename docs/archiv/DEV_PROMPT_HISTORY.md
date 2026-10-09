@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-16 bahnfeinheit-einheit-mm
+
+### EINGELESEN
+- Screenshot des Szenarios `szenario_simultan_planung` (P-2026-10-09-15): neben dem Feld „Bahn
+  gerechnet für“ stand „laenge“ statt „mm“ – `mit_einheit` bekam die Größe statt ihrer Einheit.
+
+### DATEIEN
+- `camaddon/gui_simultan_planung.py`, `package.xml` (0.205.2).
+
+### AKZEPTANZKRITERIUM
+Im Dialog „5-Achs-Schlichten vergleichen …“ steht rechts neben „Bahn gerechnet für“ die Einheit
+„mm“ (bzw. „in“ im Zollsystem).
+
+### DONE
+- `einheiten.einheit(einheiten.LAENGE)` wie in den anderen Dialogen.
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `szenario_simultan_planung` OK (Bild 2 zeigt „mm“).
+
 ## P-2026-10-09-15 simultanvergleich-verfeinert-von-selbst
 
 ### EINGELESEN

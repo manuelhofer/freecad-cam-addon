@@ -119,7 +119,7 @@ class SimultanPanel:
         bisher = float(getattr(op, "BahnGrathoehe", 0.0) or 0.0)
         if bisher > 0:
             self.feinheit.setText(groesse_zeigen(bisher, einheiten.LAENGE, 4))
-        feinheit_zeile.addWidget(mit_einheit(self.feinheit, einheiten.LAENGE))
+        feinheit_zeile.addWidget(mit_einheit(self.feinheit, einheiten.einheit(einheiten.LAENGE)))
         feinheit_zeile.addStretch()
         layout.addLayout(feinheit_zeile)
         self.feinheit_hinweis = QtGui.QLabel(
