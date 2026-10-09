@@ -25,6 +25,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import angestellt as an
+from . import aufloesung as au
 from . import bahn as bn
 from . import fraeserform as ff
 from . import freiwege as fw
@@ -110,6 +111,8 @@ class Schlichten3D(PathOp.ObjectOp):
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
         neu = []
+        if au.eigenschaft(obj, GRUPPE):
+            neu.append(au.EIGENSCHAFT)
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("s3.eigenschaft.flaechen")),
             ("App::PropertyLength", "Grathoehe", tr("s3.eigenschaft.grathoehe")),
@@ -256,6 +259,9 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         raise ValueError(tr("s3.fehler.form"))
     fein = float(getattr(obj, "BahnGrathoehe", 0.0))
     weiter = {"schritt": 0.1, "raster": 0.1, "toleranz": 0.001} if fein > 0 else {}
+    # Die Auflösung (T-009): der Schritt längs der Zeilen – er bestimmt die Sätze der Bahn; das
+    # Raster der Hüllfläche (Neigung, Höhenlinien, Spirale) bleibt.
+    weiter["schritt"] = au.wert(obj, weiter.get("schritt", sb.SCHRITT))
     bahn = bahn_fuer(
         job,
         modell,

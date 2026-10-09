@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-17 aufloesung-je-strategie
+
+### EINGELESEN
+- Manuel, 2026-10-09: „Ich finde, dass die Auflösung bei jeder Strategie einstellbar sein sollte
+  … mm ist super, aber immer eine sinnvoll verständliche Erklärung dabei“ (T-009, Teil 2).
+  Die Raster und Schritte standen fest in den Bahnmodulen; `gui_bearbeitung._Strategie`
+  (Felder, Platzhalter), die `rechne()` der Operationen.
+
+### DATEIEN
+- `camaddon/aufloesung.py` (neu: Eigenschaft `Raster`, `eigenschaft`, `wert`, `setze`),
+  `camaddon/planfraesen.py`, `raeumen.py`, `kontur.py`, `entgraten.py`, `bleistift.py`,
+  `schruppen3d.py`, `schlichten3d.py` (Eigenschaft anlegen, `rechne()` mit dem Raster),
+  `camaddon/gui_bearbeitung.py` (`_Strategie.aufloesung`, Feld „Auflösung“ je Block, Wert beim
+  Anlegen, Ändern und Laden), `translations/de.json`, `translations/en.json` (`ba.aufloesung`,
+  `ba.aufloesung.tooltip`, `au.eigenschaft.raster`), `help/de/bearbeitung.html`,
+  `help/en/bearbeitung.html`, `tests/test_aufloesung.py` (neu), `docs/aufbau.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.206.0).
+
+### AKZEPTANZKRITERIUM
+Assistent „Bearbeitung“, Schritt 3: Unter Planfräsen (und Räumen, Kontur, Entgraten, Bleistift,
+3D-Schruppen, 3D-Schlichten) steht das Feld „Auflösung“ mit dem Vorschlag grau (0,25 bzw. 0,5
+bzw. 0,2 mm), Tooltip mit Erklärung und Wert; ein Eintrag landet als `Raster` an der Operation
+und ändert ihre Bahn, leer bleibt alles wie bisher.
+
+### DONE
+- Je Operation die Eigenschaft `Raster` (0 = Vorschlag) in der Gruppe „Fräsen“, auch an älteren
+  Dokumenten nachgerüstet; `rechne()` nimmt sie statt der Konstante (3D-Schlichten: der Schritt
+  längs der Zeile, der die Sätze bestimmt – das Raster der Hüllfläche für Neigung und Höhenlinien
+  bleibt). Der Assistent trägt den Wert generisch ein: ein Feld je Strategie mit `aufloesung`,
+  beim Anlegen und Ändern über den Block, beim Laden aus der Operation.
+- Die Vorschau im Assistenten bleibt grob (ihre eigene Abtastung) – der Tooltip sagt es.
+- Nicht dabei: Nut (braucht kein Raster), Entgraten 3D und Flanke (ihr Schritt sitzt tiefer in
+  der Bahn, ohne Parameter nach außen), der 4-Achs-Assistent (Teil 3 von T-009).
+- Prüfung: An der Kuppel mit der Kugel Ø 6 ergibt ein Raster 2,0 oder 0,1 eine andere Bahn als
+  die Vorgabe 0,2, und 0 genau die Vorgabe. Die Zahl der Sätze ist dabei kein Maß: Grob
+  abgetastet lässt das Vereinfachen mehr Punkte stehen (1 092 bei 2,0, 792 bei 0,2, 764 bei 0,1).
+
+### TESTS
+- 1.1.4 (Manuels Rechner): `tests/test_aufloesung.py` OK (4 s), `tests/test_sprache.py` OK,
+  `tests/test_planfraesen.py` OK, `tests/test_raeumen.py` OK (39 s), `tests/test_schlichten3d.py`
+  OK (36 s) – die Vorgaben ändern keine Bahn; `szenario_bearbeitung` OK (33 s, Bild 1c zeigt das
+  Feld unter Planfräsen mit „0,25“ grau). Ob die Erklärung trägt, prüft Manuel.
+
 ## P-2026-10-09-16 bahnfeinheit-einheit-mm
 
 ### EINGELESEN

@@ -1822,6 +1822,8 @@
     "ba.zeilenabstand": "Zeilenabstand",
     "ba.zeilenabstand.tooltip": "So weit rücken die Zeilen quer – höchstens so breit wie der ebene Teil der Stirn. Leer: der graue Vorschlag, ae des Einsatzes.",
     "ba.aufmass": "Aufmaß",
+    "ba.aufloesung": "Auflösung",
+    "ba.aufloesung.tooltip": "Das Raster in mm, in dem die Bahn gerechnet wird: feiner ist genauer und dauert länger, gröber schneller. Leer: der Vorschlag der Strategie ({vorschlag} mm). Die Vorschau hier bleibt grob; der Wert gilt für die Operation.",
     "ba.aufmass.tooltip": "So viel bleibt auf der Fläche stehen; 0 macht sie fertig.",
     "ba.ergebnis": "→ {lagen}, {zeilen}, etwa {zeit}",
     "ba.ergebnis_flaechen": "→ {flaechen}: {lagen}, {zeilen}, etwa {zeit}",
@@ -2604,5 +2606,6 @@
     "sb.fehler.verbindung": "Die neue Verbindung ist nicht frei von Rohteil-, Werkzeug-, Halter- oder Maschinenkollisionen; der Teilbereich bleibt unbearbeitet.",
     "sb.fehler.tcpm": "Teilbereiche sind nur ohne TCPM geprüft; Ausgabe mit der geprüften Maschinenabbildung ohne TCPM.",
     "sb.hinweis.ausgelassen": "Schnittzug {zug}: unbearbeitet – ausgelassen: {grund}",
-    "rm3.fehler.bahn_budget": "Die räumliche NC-Folge überschreitet das Rechenbudget; der ursprüngliche Materialstand bleibt erhalten."
+    "rm3.fehler.bahn_budget": "Die räumliche NC-Folge überschreitet das Rechenbudget; der ursprüngliche Materialstand bleibt erhalten.",
+    "au.eigenschaft.raster": "Das Raster in mm, in dem die Operation ihre Bahn rechnet – feiner ist genauer und dauert länger; 0: der Vorschlag der Strategie."
 }

@@ -1822,6 +1822,8 @@
     "ba.zeilenabstand": "Row spacing",
     "ba.zeilenabstand.tooltip": "How far the rows step across – at most as wide as the flat part of the tip. Empty: the grey suggestion, ae of the application.",
     "ba.aufmass": "Allowance",
+    "ba.aufloesung": "Resolution",
+    "ba.aufloesung.tooltip": "The grid in mm the path is computed on: finer is more exact and takes longer, coarser is faster. Empty: the strategy's proposal ({vorschlag} mm). The preview here stays coarse; the value applies to the operation.",
     "ba.aufmass.tooltip": "This much stays on the face; 0 finishes it.",
     "ba.ergebnis": "→ {lagen}, {zeilen}, about {zeit}",
     "ba.ergebnis_flaechen": "→ {flaechen}: {lagen}, {zeilen}, about {zeit}",
@@ -2604,5 +2606,6 @@
     "sb.fehler.verbindung": "The new connection is not clear of stock, tool, holder or machine collisions; the region remains unmachined.",
     "sb.fehler.tcpm": "Partial regions are qualified only without TCPM; output uses the qualified machine mapping without TCPM.",
     "sb.hinweis.ausgelassen": "Cutting stroke {zug}: unmachined – omitted: {grund}",
-    "rm3.fehler.bahn_budget": "The spatial NC sequence exceeds the computation budget; the original stock state is retained."
+    "rm3.fehler.bahn_budget": "The spatial NC sequence exceeds the computation budget; the original stock state is retained.",
+    "au.eigenschaft.raster": "The grid in mm the operation computes its path on – finer is more exact and takes longer; 0: the strategy's proposal."
 }

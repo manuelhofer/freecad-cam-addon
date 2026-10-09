@@ -621,10 +621,10 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   Strategie einstellbar … in mm, immer mit verständlicher Erklärung“). Gebaut (P-2026-10-09-14):
   „Bahn gerechnet für“ im 5-Achs-Vergleich, `BahnGrathoehe` sichtbar. Gebaut (P-2026-10-09-15): der Vergleich
   verfeinert von selbst (75, 50, 25, 12,5 %; die Kuppel besteht bei 75 %: 98 → 74 s, die
-  Freiform bei 25 %). Offen, in dieser Folge: (2) Feld
-  „Auflösung“ (Raster, mm) je Strategie-Block in „Bearbeitung“ (heute fest: 3D-Schlichten 0,25,
-  Bleistift 0,25, Räumen/Kontur/Entgraten 3D 0,5, Flanke 0,2), Eigenschaft `Raster` an der
-  Operation; (3) dasselbe im 4-Achs-Assistenten (0,5 mm längs, 1° rundum).
+  Freiform bei 25 %). Gebaut (P-2026-10-09-17): Feld „Auflösung“ je
+  Strategie-Block in „Bearbeitung“ (Planfräsen, Räumen, Kontur, Entgraten, Bleistift, 3D-Schruppen,
+  3D-Schlichten), Eigenschaft `Raster` an der Operation. Offen: (3) dasselbe im 4-Achs-Assistenten
+  (0,5 mm längs, 1° rundum); Entgraten 3D und Flanke (Schritt ohne Parameter nach außen).
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit

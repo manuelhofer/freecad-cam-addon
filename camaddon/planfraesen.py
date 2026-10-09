@@ -22,6 +22,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import bahn as bn
 from . import freiwege as fw
 from . import hoehenfeld as hf
@@ -70,6 +71,7 @@ class PlanFraesen(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)
         neu = []
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("pf.eigenschaft.flaechen")),
@@ -157,6 +159,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         stand=stand,
+        schritt=au.wert(obj, pb.SCHRITT),
     )
 
 

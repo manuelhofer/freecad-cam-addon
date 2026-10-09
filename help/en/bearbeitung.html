@@ -172,6 +172,7 @@ to the job – one undo step (job and stock a second one). The operation has
 FreeCAD's depths and heights: the start depth follows the stock, the final
 depth is the face plus allowance, safe and clearance height come from the
 job's setup sheet.</li>
+<li><b>Resolution</b> – the grid in millimetres the path is computed on; every operation that has one shows its field with the proposal in grey (clearing, contour, deburring, 3D roughing 0.5 mm; face milling and pencil 0.25 mm; 3D finishing 0.2 mm along the row). Finer is more exact and takes longer to compute, coarser is faster. Empty means the proposal; the value is stored on the operation as <b>Raster</b> and can be changed there. The coarse preview in the window is computed independently.</li>
 </ul>
 
 <h3>4. Clearing</h3>

@@ -20,6 +20,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import bahn as bn
 from . import entgrat_bahn as eb
 from . import fraeserform as ff
@@ -64,6 +65,7 @@ class Entgraten(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)
         neu = []
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("eg.eigenschaft.flaechen")),
@@ -144,6 +146,7 @@ def rechne(obj, job, modell):
         sicherheit=float(obj.Sicherheitsabstand),
         profilradius=profil,
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
+        schritt=au.wert(obj, eb.SCHRITT),
     )
 
 

@@ -25,6 +25,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, spannung, symbol
+from . import aufloesung as au
 from . import bahn as bn
 from . import bleistift as bst
 from . import bohren as bh
@@ -477,6 +478,8 @@ class _Strategie:
     nimmt_kanten = False  # bekommt auch angeklickte Kanten („Edge12“) – nur Entgraten 3D
     einsatz_reihenfolge = ()  # welcher Einsatz vorgewählt ist
     bevorzugt = wz.SCHAFTFRAESER  # diese Art vorgewählt, wenn sonst nichts entscheidet
+    # mm – das Raster, in dem die Operation ihre Bahn rechnet (aufloesung.py); None: hat keins.
+    aufloesung = None
 
     def titel(self):
         return ""
@@ -537,6 +540,8 @@ class _Strategie:
         return 0.0
 
     def platzhalter(self, feld, werkzeug, einsatz):
+        if feld == "aufloesung":
+            return groesse_zeigen(self.aufloesung, einheiten.LAENGE)
         return groesse_zeigen(self.vorschlag(feld, werkzeug, einsatz), einheiten.LAENGE) or "0"
 
     def vorschau(self, job, werkzeug, werte, flaechen):
@@ -561,6 +566,7 @@ class _Strategie:
 
 class _Planfraesen(_Strategie):
     kennung = "planfraesen"
+    aufloesung = pf.pb.SCHRITT
     gemerkt = GEMERKT_FRAESER
     tief = False  # mit „Schruppen“ schneller als mit „Planen“ (Panel, _planeinsatz_waehlen)
 
@@ -692,6 +698,7 @@ class _Planfraesen(_Strategie):
 
 class _Raeumen(_Strategie):
     kennung = "raeumen"
+    aufloesung = ra.rb.SCHRITT
     gemerkt = GEMERKT_RAEUMFRAESER
     einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN)
 
@@ -1187,6 +1194,7 @@ class _Nut(_Strategie):
 
 class _Kontur(_Strategie):
     kennung = "kontur"
+    aufloesung = ko.kb.SCHRITT
     gemerkt = GEMERKT_KONTURFRAESER
     einsatz_reihenfolge = (wz.SCHRUPPEN, wz.SCHLICHTEN, wz.PLANEN)
 
@@ -1624,6 +1632,7 @@ class _Entgraten(_Strategie):
     keine Strategie im Wettbewerb; den Haken setzt man selbst."""
 
     kennung = "entgraten"
+    aufloesung = eg.eb.SCHRITT
     gemerkt = GEMERKT_FASENFRAESER
     einsatz_reihenfolge = (wz.FASEN, wz.VERRUNDEN)
 
@@ -1966,6 +1975,7 @@ class _Schruppen3D(_Strategie):
     (schruppen3d_bahn) – mit dem Fräser fürs Räumen; gegen keine Strategie im Wettbewerb."""
 
     kennung = "schruppen3d"
+    aufloesung = r3op.sr.SCHRITT
     gemerkt = GEMERKT_RAEUMFRAESER
     einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN)
 
@@ -2214,6 +2224,7 @@ class _Schlichten3D(_Strategie):
     (schlichten3d_bahn) – am liebsten mit dem Kugelfräser; gegen keine Strategie im Wettbewerb."""
 
     kennung = "schlichten3d"
+    aufloesung = s3op.sb.SCHRITT
     gemerkt = GEMERKT_FRAESER_3D
     einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
     bevorzugt = wz.KUGELFRAESER
@@ -2549,6 +2560,7 @@ class _Bleistift(_Strategie):
     selbst."""
 
     kennung = "bleistift"
+    aufloesung = bst.bb.RASTER
     gemerkt = GEMERKT_FRAESER_3D
     einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
     bevorzugt = wz.KUGELFRAESER
@@ -2861,6 +2873,18 @@ class _Block:
         self.felder = {}
         for feld, text, tooltip in strategie.felder():
             _zahlenfeld(self.felder, feld, text, tooltip, self.reihen, self.panel.vorschau_starten)
+        if strategie.aufloesung:  # T-009: die Auflösung je Strategie, leer = Vorschlag
+            _zahlenfeld(
+                self.felder,
+                "aufloesung",
+                tr("ba.aufloesung"),
+                tr(
+                    "ba.aufloesung.tooltip",
+                    vorschlag=groesse_zeigen(strategie.aufloesung, einheiten.LAENGE),
+                ),
+                self.reihen,
+                self.panel.vorschau_starten,
+            )
         self.haken_felder = {}
         self._haken_texte = {}  # Name → (Beschriftung, Tooltip) – gesperrt kommt der Grund dazu
         for feld, text, tooltip, vorgabe in strategie.haken():
@@ -4747,7 +4771,10 @@ class BearbeitungPanel:
         self._bearbeitung_fuellen()
         self._fuellt = True
         try:
-            for feld, wert in block.s.werte_von(op).items():
+            werte_der_op = dict(block.s.werte_von(op))
+            if "aufloesung" in block.felder:
+                werte_der_op["aufloesung"] = au.wert(op, 0.0)
+            for feld, wert in werte_der_op.items():
                 if feld == "eintauchen_bei":  # die Eintauchstellen der Nut (W-012 E1)
                     block.eintauchen = dict(wert)
                     continue
@@ -6524,7 +6551,9 @@ class BearbeitungPanel:
                         ops.append(neue[0])
                         folge.extend(neue[1:])
                     else:
-                        ops.append(block.s.lege_an(self.job, tc, werte, flaechen))
+                        neue_op = block.s.lege_an(self.job, tc, werte, flaechen)
+                        au.setze(neue_op, werte.get("aufloesung", 0.0))
+                        ops.append(neue_op)
                     tc_davor = tc
                     # Gleich rechnen: Die nächste rechnet mit dem Material, das diese lässt
                     # (Materialstand, W-012) – FreeCAD rechnete sie sonst in beliebiger Folge.
@@ -6605,6 +6634,7 @@ class BearbeitungPanel:
                     self.doc, self.job, block.fraeser(), block.einsatz(), self.werkstoff(), op
                 )
                 block.s.aendere(op, tc, werte, flaechen)
+                au.setze(op, werte.get("aufloesung", 0.0))
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)
                 if frei and bisher is not tc:
                     js.controller_weg(self.doc, [bisher])

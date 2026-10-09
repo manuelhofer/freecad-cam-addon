@@ -21,6 +21,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import bahn as bn
 from . import fraeserform as ff
 from . import freiwege as fw
@@ -73,6 +74,7 @@ class Schruppen3D(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)
         neu = []
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("r3.eigenschaft.flaechen")),
@@ -170,6 +172,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         davor=form_davor(obj),
         stand=stand,
         nachbereiten=nachbereiten,
+        schritt=au.wert(obj, sr.SCHRITT),
     )
     return bahn
 

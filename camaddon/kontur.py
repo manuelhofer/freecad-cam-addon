@@ -20,6 +20,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import bahn as bn
 from . import freiwege as fw
 from . import hoehenfeld as hf
@@ -72,6 +73,7 @@ class Kontur(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)
         neu = []
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("ko.eigenschaft.flaechen")),
@@ -170,6 +172,7 @@ def rechne(obj, job, modell):
         radius_davor=radius_davor,
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         stand=stand,
+        schritt=au.wert(obj, kb.SCHRITT),
     )
 
 

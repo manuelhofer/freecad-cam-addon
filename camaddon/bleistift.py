@@ -19,6 +19,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import bahn as bn
 from . import bleistift_bahn as bb
 from . import freiwege as fw
@@ -56,6 +57,7 @@ class Bleistift(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)
         neu = []
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("s3.eigenschaft.flaechen")),
@@ -118,6 +120,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchen=eintauchen,
         bahnen=max(0, int(getattr(obj, "BahnenJeSeite", 0) or 0)),
         seitlich=float(getattr(obj, "Seitenabstand", 0.0) or 0.0),
+        raster=au.wert(obj, bb.RASTER),
     )
 
 

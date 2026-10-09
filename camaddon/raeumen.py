@@ -24,6 +24,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import bahn as bn
 from . import fahrzeit as fz
 from . import freiwege as fw
@@ -81,6 +82,7 @@ class Raeumen(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)
         neu = []
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("ra.eigenschaft.flaechen")),
@@ -212,6 +214,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchen=eintauchen,
         stand=stand,
         freivorschub=float(obj.Freivorschub) * 60.0,
+        schritt=au.wert(obj, rb.SCHRITT),
     )
 
 
