@@ -465,15 +465,32 @@ for bahn, soll in (
     e = kb.kollision(fahrt, job, nullpunkt, bibliothek)
     pruefe(not any(b.ins_rohteil for b in e.befunde), "ohne rohteil=True ein Rohteil-Befund")
 
-# --- Am Anschlag: Muss eine Achse über ihre Grenze, sagt der Befund es dazu ------------------------
-# (Kopf/Tisch am Schwenkteil: X1 müsste bis 526 statt 320 – die Kollision rechnet mit X1 an der
-# Grenze, die Berührung dort folgt aus ihr, nicht aus der Bahn.)
+# --- Außerhalb des Anschlags: keine erfundene Maschinenfahrt --------------------------------
 op.Gcode = ["G0 X50 Y30 Z30", "G0 X500 Y30 Z30"]
 teil.recompute()
 fahrt = ab.abfahrt(p, job, nullpunkt, bibliothek)
-letzte = len(fahrt.stationen) - 1
-pruefe(kb._am_anschlag(fahrt, p.verfahren, letzte - 1, letzte, 1.0) == ["X1"], "X1 am Anschlag")
-pruefe(kb._am_anschlag(fahrt, p.verfahren, 0, 1, 0.0) == [], "am Anfang am Anschlag")
+pruefe(
+    not fahrt.stationen
+    and not fahrt.operationen
+    and any("unbearbeitet" in h for h in fahrt.hinweise),
+    f"Unmögliche Bahn abgefahren: {fahrt.hinweise}",
+)
+grenzen = p.pruefe_job(job, nullpunkt, bibliothek).ueberschreitungen
+pruefe([u.name for u in grenzen] == ["X1"], f"Echte Grenzüberschreitung fehlt: {grenzen}")
+# Die Diagnose ungeprüfter Roh-Achsstellungen bleibt separat gedeckt: Sie darf
+# keine physisch unmögliche CAM-Operation zum Abfahren freigeben.
+aufnahme = p.werkzeugaufnahme(1)
+ein = rw.einspannung(op.ToolController, bibliothek)
+roh = [p.stellungen(V(x, 30, 30), aufnahme, ein, nullpunkt) for x in (50, 500)]
+pruefe(all(w is not None for w in roh), "Roh-Achsstellungen nicht lesbar")
+achsen = list(roh[0])
+diagnose = SimpleNamespace(
+    pruefung=p,
+    achsen=achsen,
+    wirksam=lambda i: [roh[i][a] for a in achsen],
+)
+pruefe(kb._am_anschlag(diagnose, p.verfahren, 0, 1, 1.0) == ["X1"], "X1 am Anschlag")
+pruefe(kb._am_anschlag(diagnose, p.verfahren, 0, 1, 0.0) == [], "am Anfang am Anschlag")
 befund = kb.Befund(True, True, "Eigene", "die Schneide von T1", "das Teil", 0.0, 0.0, 1, 2,
                    {"X": 500.0, "Y": 30.0, "Z": 30.0}, anschlag="X1")  # fmt: skip
 pruefe("Am Anschlag dort: X1" in befund.text(), befund.text())

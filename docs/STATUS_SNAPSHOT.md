@@ -22,6 +22,9 @@ Prüfarchiv `../../ergebnisse/abgabe-2026-10-09/`; neuer neutraler Starter
 Nächster Schritt für die Abgabe: Gesamtlauf aller vorhandenen Prüfdateien und Szenarien
 im eingefrorenen Stand mit dem installierten FreeCAD 1.1.4, tatsächliche Starter-Ladepfade
 und Bildschirmplatzierung prüfen, Befunde beheben und abschließenden Bericht erstellen.
+Ältere Abfahr-/Flanken-/Kollisionsgegenproben erwarten nun korrekt das seit 16.17
+verbindliche Auslassen statt fiktiver Stationen außerhalb der Anschläge; ihre positiven
+Zeit-/Geometrie-/Kollisionskriterien bleiben erhalten und sind nativ grün (P-2026-10-09-03).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller

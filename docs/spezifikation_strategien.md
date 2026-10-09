@@ -3833,3 +3833,43 @@ Referenz angepasst. Der Gesamtlauf verwendet deshalb je Prüfung ein frisches Pr
 Belege unter `../../ergebnisse/abgabe-2026-10-09/`. Kein Push und noch kein vollständiger
 Gesamtlauf dieses Stands; der Abgabenachweis folgt separat. Einfahrt mitten im Material,
 weitere Schneidenformen und automatische Aufspannungen bleiben offen.
+
+### 16.21 Vorhandene Gegenproben am gemeinsamen Maschinenzugang ausrichten
+
+Der Gesamtlauf zur Abgabe prüft auch ältere Mechanik-/Kollisionsfälle. Seit 16.17
+verweigert die gemeinsame Ausgabe ganze gewöhnliche Operationen außerhalb der echten
+Maschinenlimits. Einige alte Gegenproben erwarten dagegen Stationen für unmögliche
+Bewegungen. Ihre Grenzprüfung bleibt erhalten, die Ausgabe-/Abfahrprüfung muss das
+Auslassen mit Grund und fehlendem Abtrag kontrollieren. Zulässige positive Fälle
+behalten ihre Zeit-, Geometrie- und Kollisionskriterien. Keine Maschinenanschläge
+erweitern und keine Produktzulassung abschwächen, um eine Prüfung grün zu machen.
+
+Duplicate-Check: 16.17/Commits b0b8c1a bauen den gemeinsamen Zugang; die älteren
+Abfahrprüfungen erwarten noch Stationen für X außerhalb des Anschlags und unerreichbare
+Y-Bewegung. Der native FreeCAD-Parser erzeugt weiterhin Quellsätze, die tatsächliche
+Maschinenfreigabe übernimmt der bestehende Addonkern. Vorbeschreibung für die
+gezielte Anpassung der betroffenen Gegenproben (P-2026-10-09-03).
+
+**Akzeptanzkriterium:** Einen Job mit einer zulässigen und einer nachgewiesen
+unerreichbaren Operation auf der gewählten Maschine abfahren und exportieren → die
+zulässige Bahn bleibt geprüft erhalten, die unmögliche Operation fehlt mit Grund und
+ihre Gegenprobe verlangt weder erfundene Stationen noch Materialabtrag.
+
+**Gegenproben angepasst, nativ grün (P-2026-10-09-03):** Der grenzverletzende
+Vollkreis behält seinen analytischen Reichweitenbefund; die gemeinsame Abfahrt
+enthält keine Stationen. Ein um 1 mm nach innen versetzter zulässiger Kreis prüft
+weiter dieselbe Stationszahl und alle vier exakten Achsextrema. Ohne Y wird der
+erreichbare Einzelpunkt zuerst separat geprüft, die unmögliche ganze Operation danach
+ausgelassen. Die Kollisionsprüfung erhält keine gekappte Fahrt zu X500; die Diagnose
+aus realer Kinematik gelesener hypothetischer Roh-Achsstellungen bleibt als separates
+Hilfskriterium gedeckt. Die Flankengegenprobe verlangt die tatsächliche Richtungs-
+unmöglichkeit und leeren Export mit Grund statt der alten pauschalen Zwei-Achsen-Meldung.
+Alle übrigen positiven Kriterien unverändert. Kein Produktcode oder Maschinenlimit geändert.
+
+Der erste Gesamtlauf verwendete einen `runpy`-Wrapper und wurde zur eindeutigen
+Diagnose angehalten. Der native Prüfläufer startet jetzt Originaldateien direkt und
+auditiert das eigene Profil vorher über einen separaten öffentlichen Mod/Init.py-Einstieg.
+Die später sichtbare doppelte Dateiausführung war beim direkten Lauf Folge eines
+FreeCAD-Skriptfehlers: die eigentliche Ursache waren die alten Erwartungen, nicht
+ein erneut aufgebautes Modell durch den erfolgreichen Prüffall. Drei native Nachläufe
+mit genau einem Profilmarker grün; Black/Ruff/diff ohne Befund. Gesamtnachweis folgt.

@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-09-03 gegenproben-maschinenzugang
+
+### EINGELESEN
+- Manuels Abgabeauftrag mit Vorrang für Qualität; CHATSTART, Regeln, Snapshot,
+  Strategien 16.17/16.21 und drei ältere Abfahr-/Flanken-/Kollisionsprüfungen.
+- Duplicate-Check: b0b8c1a baut das gemeinsame Auslassen; ältere Gegenproben verlangen
+  noch Fahrtstationen außerhalb der tatsächlichen Grenzen. Keine native FreeCAD-
+  Einstellung ersetzt diese Addon-Freigabe; Vorbeschreibung in 16.21 vor Codeänderung.
+
+### DATEIEN
+- `tests/test_abfahren.py`, `tests/test_flanke.py`, `tests/test_kollision.py`;
+  Strategien, Snapshot und Verlauf. Keine Versionserhöhung: Prüfungen, kein Produktcode.
+
+### AKZEPTANZKRITERIUM
+Einen Job mit einer zulässigen und einer nachgewiesen unerreichbaren Operation auf
+der gewählten Maschine abfahren und exportieren → die zulässige Bahn bleibt geprüft
+erhalten, die unmögliche Operation fehlt mit Grund und ihre Gegenprobe verlangt
+weder erfundene Stationen noch Materialabtrag.
+
+### DONE
+- Analytische Grenzverletzung des Vollkreises und manuelle Anschlagprobe erhalten;
+  erwartete Abfahrt verlangt nun Auslassen. Zulässigen um 1 mm versetzten Kreis mit
+  strenger alter Stationszahl und vier exakten Extrema ergänzen.
+- Ohne-Y-Gegenprobe prüft zuerst einen tatsächlich erreichbaren Einzelpunkt samt
+  Koordinatencache, dann die gesamte ursprüngliche unmögliche Operation als ausgelassen.
+- Kollision lässt keine X500-Fahrt vorgeben; echte Reichweitenverletzung bleibt geprüft.
+  Der Anschlag-Helfer prüft separat Roh-Achsstellungen aus der wirklichen Kinematik,
+  ohne damit eine physisch unmögliche CAM-Ausgabe freizugeben.
+- Flanke meldet reale Richtungsunmöglichkeit statt pauschal „zwei Rundachsen“; kein
+  Abfahren oder Export der unmöglichen Operation, Quelle und Richtungen unverändert.
+- Kein Anschlag erweitert, kein Produktguard abgeschwächt, keine Referenz geändert;
+  alle positiven Zeit-/Geometrie-/Kollisions-/TCPM-Kriterien bleiben erhalten.
+
+### TEST
+- Installierte 1.1.4, drei neue getrennte vorab angelegte Profile, 16-GiB-Speicherdeckel.
+  Originalprüfdateien direkt gestartet; öffentliches Test-Mod/Init.py prüft App-home
+  und Ladepfad vor Schreibtests. Je genau ein Profilmarker, drei exakte OK ohne Ausnahme.
+- Black/Ruff/diff grün; Belege unter `ergebnisse/abgabe-2026-10-09/test_*.log` außerhalb Git.
+- Eigene erste Ursachenhypothese korrigiert: doppelte Ausführung im initialen `runpy`-
+  Prüfläufer wirkte wie falscher Fehler; direkte Diagnose zeigt zuerst StopIteration
+  wegen leerer Abfahrt außerhalb X1=250, danach FreeCADs erneute Skriptausführung.
+  Root-Prüfläufer außerhalb Git startet jetzt Originaldateien mit getrenntem Audit.
+- Abgebrochener erster Gesamtlauf bleibt archiviert; noch kein vollständiger Gesamtnachweis.
+
+### NEXT
+- Mit endgültigen Originalprüfungen und unverändertem Produktcode den eingefrorenen
+  Gesamtlauf erneut ausführen; Starter prüfen, weitere echte Befunde behandeln und Bericht.
+
 ## P-2026-10-09-02 innere-schnittbereiche-qualifizieren
 
 ### EINGELESEN

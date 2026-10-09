@@ -8,9 +8,9 @@
 # Stationen fährt die Maschine geradlinig (stellungen_bei); eine Rundachse im
 # Vorschub zählt in Grad; ohne F gilt 1000 mm/min mit Hinweis; der Revolver
 # schwenkt zwischen zwei Werkzeugen, auch in einem Vorschubsatz ohne Weg; Kreise
-# halten auch an den Umkehrstellen der Achsen, sodass jede Überschreitung eine
-# Station ist; Punkte, die eine Drehmaschine ohne Y nicht erreicht, lassen sie
-# stehen.
+# halten auch an den Umkehrstellen der Achsen. Überschreitungen und unerreichbare
+# Punkte lassen die ganze gewöhnliche Operation mit Grund aus; die Reichweite
+# weist ihre Geometrie weiterhin nach.
 import math
 import os
 import sys
@@ -150,34 +150,56 @@ pruefe(
     f"Hinweis ohne F: {fahrt.hinweise}",
 )
 
-# Die Umkehrstellen eines Kreises sind Stationen, auch abseits der 5°-Schritte: Jede
-# Überschreitung der Reichweite liegt genau auf einer Station (dorthin springt ein Klick
-# im Fenster). Vollkreis um (−240, 3) mit r = √109 ≈ 10,44: ganz links X −250,44, also
-# X1 250,44 – über der Grenze 250.
+# Vollkreis um (−240, 3) mit r = √109 ≈ 10,44: ganz links X −250,44, also
+# X1 250,44 – über der Grenze 250. Die Reichweite zeigt das genaue Kreisextremum;
+# die Abfahrt darf keine Station der unzulässigen Operation erfinden oder kappen.
 op2.Gcode = ["G0 X-230 Y0 Z10", "G2 X-230 Y0 I-10 J3 F10"]
 teil.recompute()
 fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
-pruefe(len(fahrt.stationen) == 1 + 71 + 4 + 1, f"Vollkreis, Stationen: {len(fahrt.stationen)}")
+pruefe(not fahrt.stationen and not fahrt.operationen, "Vollkreis über X1-Grenze nicht ausgelassen")
+pruefe(
+    any("Op1" in h and "unbearbeitet" in h and "X1" in h for h in fahrt.hinweise),
+    f"Vollkreis, Auslassungsgrund: {fahrt.hinweise}",
+)
 ueber = p.pruefe_job(job, FreeCAD.Vector()).ueberschreitungen
 pruefe([u.name for u in ueber] == ["X1"], f"Vollkreis, Überschreitungen: {ueber}")
-index = fahrt.station_von(ueber[0]) if ueber else None
 pruefe(
-    index is not None and nahe(fahrt.stationen[index].punkt[0], -240 - math.sqrt(109)),
-    f"Station der Überschreitung: {index}",
+    len(ueber) == 1
+    and nahe(ueber[0].punkt["X"], -240 - math.sqrt(109))
+    and nahe(ueber[0].stellung, 240 + math.sqrt(109))
+    and nahe(ueber[0].grenze, 250),
+    f"Genaues Kreisextremum der Überschreitung: {ueber}",
 )
-anschlag = fahrt.stellungen_bei(fahrt.stationen[index].zeit) if index is not None else {}
-x1 = next(a for a in fahrt.achsen if vf.namen(ma, a) == "X1")
-pruefe(nahe(anschlag.get(x1), 240 + math.sqrt(109)), f"X1 dort: {anschlag.get(x1)}")
-# So fährt der Abspieler: alle Achsen auf einmal, jede höchstens bis zu ihrer Grenze –
-# zurück kommen die, die an einer Grenze halten.
-y1 = next(a for a in fahrt.achsen if vf.namen(ma, a) == "Y1")
-angehalten = p.verfahren.setze_alle(anschlag)
-pruefe(angehalten == [x1], f"setze_alle, angehalten: {angehalten}")
-pruefe(
-    nahe(p.verfahren.stellung(x1), 250) and nahe(p.verfahren.stellung(y1), anschlag[y1]),
-    f"setze_alle: X1 {p.verfahren.stellung(x1)}, Y1 {p.verfahren.stellung(y1)}",
-)
+# Manuelles Verfahren begrenzt weiterhin an echten Anschlägen. Diese Gegenprobe
+# nutzt die nachgewiesene Wunschstellung, keine freigegebene Abspielstation.
+if len(ueber) == 1:
+    anschlag = ueber[0].stellungen
+    x1 = next(a for a in p.kette.achsen if vf.namen(ma, a) == "X1")
+    y1 = next(a for a in p.kette.achsen if vf.namen(ma, a) == "Y1")
+    angehalten = p.verfahren.setze_alle(anschlag)
+    pruefe(angehalten == [x1], f"setze_alle, angehalten: {angehalten}")
+    pruefe(
+        nahe(p.verfahren.stellung(x1), 250) and nahe(p.verfahren.stellung(y1), anschlag[y1]),
+        f"setze_alle: X1 {p.verfahren.stellung(x1)}, Y1 {p.verfahren.stellung(y1)}",
+    )
 p.verfahren.grundstellung()
+# Einen Millimeter nach innen versetzt bleibt derselbe Vollkreis zulässig.
+# Alle vier Umkehrstellen müssen auch abseits der 5°-Schritte Stationen sein.
+op2.Gcode = ["G0 X-229 Y0 Z10", "G2 X-229 Y0 I-10 J3 F10"]
+teil.recompute()
+fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
+pruefe(len(fahrt.stationen) == 1 + 71 + 4 + 1, f"Vollkreis, Stationen: {len(fahrt.stationen)}")
+pruefe(not fahrt.hinweise, f"Zulässiger Vollkreis, Hinweise: {fahrt.hinweise}")
+pruefe(
+    not p.pruefe_job(job, FreeCAD.Vector()).ueberschreitungen,
+    "Versetzter Vollkreis überschreitet weiter eine Grenze",
+)
+radius = math.sqrt(109)
+for achse, extremum in ((0, -239 - radius), (0, -239 + radius), (1, 3 - radius), (1, 3 + radius)):
+    pruefe(
+        any(nahe(s.punkt[achse], extremum) for s in fahrt.stationen),
+        f"Vollkreis, Umkehrstelle {achse}: {extremum}",
+    )
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 
@@ -352,7 +374,7 @@ pruefe(
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 
-# --- Drehmaschine ohne Y: ein Punkt quer daneben lässt die Maschine stehen ------------------
+# --- Drehmaschine ohne Y: unerreichbare Operation fehlt mit Grund ---------------------------
 asm, ma = beispielmaschinen.drehmaschine_komplett()
 p = rw.Pruefung(asm, ma)
 platz = p.werkzeugaufnahme(1)
@@ -384,15 +406,42 @@ teil, job = neuer_job(
 # Mit 30 mm Werkzeuglänge wie beim Messen oben – über die Werkzeugverwaltung (Ø 5 mm wie
 # das CAM-Werkzeug, T1).
 bibliothek = wz.Bibliothek([wz.Werkzeug(nummer=1, durchmesser=5.0, laenge_spindelnase=30.0)])
+op = job.Operations.Group[0]
+quelle = list(op.Gcode)
+# Der erste Punkt ist unabhängig zulässig; seine Station und das gemerkte
+# Material-/Bild-Koordinatenfeld bleiben eine positive Gegenprobe.
+op.Gcode = quelle[:1]
+teil.recompute()
 fahrt = ab.abfahrt(p, job, FreeCAD.Vector(), bibliothek)
-pruefe(len(fahrt.stationen) == 2, f"ohne Y, Stationen: {len(fahrt.stationen)}")
-pruefe(fahrt.stationen[0].stellungen is not None, "ohne Y: erster Punkt nicht erreichbar")
-pruefe(fahrt.stationen[1].stellungen is None, "ohne Y: Punkt quer daneben erreichbar?")
-pruefe(fahrt.wirksam(1) == fahrt.wirksam(0), "ohne Y: Maschine bleibt nicht stehen")
-# Die Spitze am Werkstück je Station: einmal gerechnet, beim zweiten Mal dieselbe Liste
-# (P-2026-10-04-20 – das Bild, der Abtrag und die Kollision fragen danach).
+pruefe(
+    len(fahrt.stationen) == 1
+    and len(fahrt.operationen) == 1
+    and fahrt.stationen[0].stellungen is not None
+    and not fahrt.hinweise,
+    f"Ohne Y, erreichbarer Einzelpunkt: {len(fahrt.stationen)}, {fahrt.hinweise}",
+)
 erste = fahrt.am_werkstueck()
 pruefe(fahrt.am_werkstueck() is erste and len(erste) == len(fahrt.stationen), "nicht gemerkt")
+pruefe(
+    p.stellungen(punkt, platz, 30, FreeCAD.Vector()) is not None
+    and p.stellungen(daneben, platz, 30, FreeCAD.Vector()) is None,
+    "Ohne Y: geometrische Gegenprobe erreichbar/quer daneben stimmt nicht",
+)
+op.Gcode = quelle
+teil.recompute()
+grenzen = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
+pruefe(
+    any("Op1" in h and "Linearachsen" in h for h in grenzen.hinweise),
+    f"Ohne Y, Reichweitenbefund: {grenzen.hinweise}",
+)
+fahrt = ab.abfahrt(p, job, FreeCAD.Vector(), bibliothek)
+pruefe(
+    not fahrt.stationen and not fahrt.operationen, "Ohne Y: unmögliche Operation nicht ausgelassen"
+)
+pruefe(
+    any("Op1" in h and "unbearbeitet" in h and "Linearachsen" in h for h in fahrt.hinweise),
+    f"Ohne Y, Auslassungsgrund: {fahrt.hinweise}",
+)
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 

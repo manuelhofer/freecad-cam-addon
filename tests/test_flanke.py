@@ -248,13 +248,41 @@ zeit = ab.abfahrt(pruefung, job, null).stationen[-1].zeit / 60.0
 print(ascii(f"Zeit auf der Maschine: {zeit:.2f} min"))
 pruefe(0.1 < zeit < 1.0, f"Zeit {zeit:.2f} min")
 
-# An der 3-Achs-Fräse: ein Satz; ohne Maschine schreibt das Programm sie nicht.
+# Die feste Spindel erreicht die geneigten Flankenrichtungen nicht. Entscheidend
+# sind ihre tatsächlichen Richtungen, nicht pauschal die Zahl ihrer Rundachsen.
+quellsaetze = [c.toGCode() for c in op.Path.Commands]
+quellachsen = [tuple(a) for a in op.Werkzeugachsen]
 asm3, ma3 = beispielmaschine.fraesmaschine()
-drei = rw.Pruefung(asm3, ma3).pruefe_job(job)
-pruefe(
-    any("Flanke T5" in str(h) and "zwei Rundachsen" in str(h) for h in drei.hinweise),
-    "3-Achs ohne Satz",
+pruefung3 = rw.Pruefung(asm3, ma3)
+maschine3 = sw.Maschine(
+    pruefung3, pruefung3.werkzeugaufnahme(tc.ToolNumber), rw.einspannung(tc, None), null
 )
+drei = pruefung3.pruefe_job(job)
+pruefe(
+    any("Flanke T5" in str(h) and "keine Stellung" in str(h) for h in drei.hinweise),
+    f"3-Achs ohne Grund zur unerreichbaren Werkzeugrichtung: {drei.hinweise}",
+)
+fahrt3 = ab.abfahrt(pruefung3, job, null)
+pruefe(
+    not fahrt3.stationen
+    and not fahrt3.operationen
+    and any("Flanke T5" in h and "unbearbeitet" in h for h in fahrt3.hinweise),
+    f"3-Achs fährt unerreichbare Flanke oder meldet ihren Rest nicht: {fahrt3.hinweise}",
+)
+ausgelassen3 = pp.abschnitte(job, maschine3)
+pruefe(
+    len(ausgelassen3) == 1
+    and ausgelassen3[0].befehle == []
+    and "unbearbeitet" in ausgelassen3[0].hinweis
+    and "keine Stellung" in ausgelassen3[0].hinweis,
+    f"3-Achs schreibt unerreichbare Flanke ohne Grund: {ausgelassen3}",
+)
+pruefe(
+    [c.toGCode() for c in op.Path.Commands] == quellsaetze
+    and [tuple(a) for a in op.Werkzeugachsen] == quellachsen,
+    "3-Achs verändert die ursprüngliche Bahn oder ersetzt die Werkzeugrichtungen",
+)
+# Ohne Maschine schreibt das Programm die gespeicherten Richtungen ebenfalls nicht.
 ohne = pp.abschnitte(job)
 pruefe(len(ohne) == 1 and ohne[0].befehle == [] and ohne[0].hinweis, "ohne Maschine geschrieben")
 mit = pp.abschnitte(job, maschine)
