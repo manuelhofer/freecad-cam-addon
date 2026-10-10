@@ -16,6 +16,9 @@ import numpy as np
 
 ZELLE_MINDESTENS = 2.0  # mm – kleiner lohnt sich nicht: je Punkt werden 27 Zellen gelesen
 ZELLE_HOECHSTENS = 25.0  # mm – größer: zu viele Dreiecke je Zelle
+STAPEL = 4096  # so viele Paare (Strecke, Dreieck) rechnet `kapseln` auf einmal, die nächsten zuerst
+# Mehr Paare als das: zu teuer, die Abfrage gibt auf (die Kollision fragt dann OpenCascade).
+PAARE_HOECHSTENS = 60000
 
 
 class Netz:
@@ -23,7 +26,9 @@ class Netz:
     Vernetzung (mm). `zelle`: die Zellenbreite (mm), ohne Angabe nach der Größe der Form."""
 
     def __init__(self, form, toleranz=0.02, zelle=None):
-        punkte, dreiecke = form.tessellate(toleranz)
+        # Eine Form, die schon feiner vernetzt war, bliebe so fein (OpenCascade merkt sich das
+        # Netz an der Form); eine Kopie ohne Netz wird so grob wie verlangt.
+        punkte, dreiecke = form.copy(False, False).tessellate(toleranz)
         self.toleranz = float(toleranz)
         if not dreiecke:
             self.ecken = np.zeros((0, 3, 3))
@@ -71,6 +76,8 @@ class Netz:
         reihenfolge = np.argsort(zellen, kind="stable")
         zellen = zellen[reihenfolge]
         self.index = dreiecke[reihenfolge]
+        self.d_unten = self.ecken.min(axis=1)  # Hüllquader je Dreieck, für die Vorauswahl
+        self.d_oben = self.ecken.max(axis=1)
         gesamt = int(np.prod(self.anzahl))
         self.start = np.zeros(gesamt + 1, dtype=np.int64)
         np.add.at(self.start, zellen + 1, 1)
@@ -85,13 +92,14 @@ class Netz:
         return (ix * self.anzahl[1] + iy) * self.anzahl[2] + iz
 
     def _dreiecke_in(self, zellen):
-        """Die Dreiecke (Indizes, ohne Doppelte) in den Zellen (…, 3), ungültige übergangen."""
+        """Die Dreiecke (Indizes) in den Zellen (…, 3; jede Zelle einmal), ungültige übergangen.
+        Ein Dreieck, das in mehreren Zellen liegt, kommt mehrmals – das ist billiger als
+        `np.unique`, und zweimal gerechnet ändert ein Minimum nicht."""
         zellen = zellen.reshape(-1, 3)
         gueltig = np.all((zellen >= 0) & (zellen < self.anzahl), axis=1)
         if not gueltig.any():
             return np.zeros(0, dtype=np.int64)
         nummern = self._zellennummer(zellen[gueltig, 0], zellen[gueltig, 1], zellen[gueltig, 2])
-        nummern = np.unique(nummern)
         anfang = self.start[nummern]
         laengen = self.start[nummern + 1] - anfang
         welche = np.flatnonzero(laengen)
@@ -100,7 +108,7 @@ class Netz:
         laengen = laengen[welche]
         anfang = anfang[welche]
         lauf = np.arange(int(laengen.sum())) - np.repeat(np.cumsum(laengen) - laengen, laengen)
-        return np.unique(self.index[np.repeat(anfang, laengen) + lauf])
+        return self.index[np.repeat(anfang, laengen) + lauf]
 
     def kapseln(self, von, nach, reichweite=None):
         """Je Strecke (von, nach: (k, 3)): so weit ist sie mindestens von der Oberfläche
@@ -134,9 +142,10 @@ class Netz:
         m = len(dreiecke)
         if m == 0:
             return ergebnis - self.toleranz
-        ecken = self.ecken[dreiecke]
-        # Nur Dreiecke, deren Hüllquader der Strecke näher als eine Zelle kommt.
-        d_unten, d_oben = ecken.min(axis=1), ecken.max(axis=1)  # (m, 3)
+        # Nur Dreiecke, deren Hüllquader der Strecke näher als die Suchweite kommt – und die
+        # nächsten zuerst: Sobald das Beste je Strecke unter der Lücke der übrigen liegt,
+        # können die nichts mehr ändern (ihr Abstand ist mindestens ihre Lücke).
+        d_unten, d_oben = self.d_unten[dreiecke], self.d_oben[dreiecke]  # (m, 3)
         s_unten, s_oben = np.minimum(von, nach), np.maximum(von, nach)  # (k, 3)
         luecke = np.maximum(
             np.maximum(
@@ -144,12 +153,25 @@ class Netz:
             ),
             0.0,
         )
-        nah = np.einsum("kmj,kmj->km", luecke, luecke) < reichweite * reichweite  # (k, m)
-        paare_k, paare_m = np.nonzero(nah)
+        luecke = np.sqrt(np.einsum("kmj,kmj->km", luecke, luecke))  # (k, m)
+        paare_k, paare_m = np.nonzero(luecke < reichweite)
         if len(paare_k) == 0:
             return ergebnis - self.toleranz
-        d = segment_dreieck_abstand(von[paare_k], nach[paare_k], ecken[paare_m])
-        np.minimum.at(ergebnis, paare_k, d)
+        if len(paare_k) > PAARE_HOECHSTENS * k:
+            return np.zeros(k)  # nichts entschieden – billiger als die Rechnung
+        luecken = luecke[paare_k, paare_m]
+        reihenfolge = np.argsort(luecken, kind="stable")
+        for anfang in range(0, len(reihenfolge), STAPEL):
+            stapel = reihenfolge[anfang : anfang + STAPEL]
+            kk = paare_k[stapel]
+            offen = luecken[stapel] < ergebnis[kk]
+            if not offen.any():
+                if luecken[stapel[0]] >= ergebnis.max():
+                    break  # alle weiteren Lücken sind mindestens so groß
+                continue
+            kk, mm = kk[offen], paare_m[stapel[offen]]
+            d = segment_dreieck_abstand(von[kk], nach[kk], self.ecken[dreiecke[mm]])
+            np.minimum.at(ergebnis, kk, d)
         return ergebnis - self.toleranz
 
     def abstand(self, punkte):

@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-28 netzschranke-feinschliff-und-freiform-phasen
+
+### EINGELESEN
+- Nach P-2026-10-10-27 im Profil der Kuppel (ein Prozess, 31,6 s Kollision): die Netzschranke
+  selbst 21 s – 1,2 ms je Abfrage, davon `np.unique` 2 s; und im Maßstab: eine Abfrage für ein
+  Werkzeug mit Halter r 16 auf einem Netz mit 14 600 Dreiecken 13 ms (die Suchweite wächst mit
+  dem Radius, das Fenster um 90 mm Werkzeug ist dann fast das ganze Teil).
+- Die Phasen des Freiformbeispiels mit 24 Arbeitern (376 s): `schlichten3d.rechne` 181 s (48 %,
+  davon die Hüllfläche nur 4 s – der Rest Bahnbau in einem Prozess), `deckung` 58 s,
+  `Pruefstand` 48 s (einmal), Kollision 18 s, `fahren` 25 s, Normalen 12 s, Einschnitt 7 s.
+
+### DATEIEN
+- `camaddon/netzabstand.py` (ohne `np.unique` – doppelte Dreiecke ändern ein Minimum nicht;
+  Hüllquader je Dreieck einmal; die Paare nach Lücke sortiert in Stapeln von 4096, abgebrochen,
+  wenn die Lücke der übrigen über dem Besten liegt; mehr als 60 000 Paare je Strecke: aufgeben;
+  die Form vor dem Vernetzen kopiert, sonst bliebe ein feineres Netz an ihr kleben),
+  `camaddon/kollision.py` (für den Warnabstand ein grobes Netz des Teils mit 0,3 mm –
+  `NETZ_TOLERANZ_GROB`, `Koerper.netz(fein)`; nur die Berührung des Kerns braucht das feine;
+  `stueck` gibt `aufbau_s` und `lauf_s` zurück, zum Messen), `docs/STATUS_SNAPSHOT.md` (die
+  Freiform-Phasen als Stand).
+
+### AKZEPTANZKRITERIUM
+Dieselben Prüfungen grün (`test_netzabstand`, `test_kollision`, `test_kollision_verteilt`);
+die Halterabfrage auf dem dichten Netz deutlich billiger.
+
+### DONE
+- Werkzeug mit Halter r 16: 13 → 5,6 ms (grobes Netz 4 800 statt 14 600 Dreiecke); der Kern am
+  Boden 0,35 ms unverändert; die Kuppel in einem Prozess 31,6 → 30,6 s (mit `unique` weg, die
+  Stapel bringen dort nichts). Je Arbeiter an der Kuppel: Aufbau der Welt 0,03 s, der Lauf 89 s
+  CPU für 14 359 Stellen über 24 Arbeiter (SMT: halbe Geschwindigkeit) – 4,6 s Wand.
+- Nächster Hebel nach den Freiform-Zahlen: der Bahnbau in `schlichten3d_bahn` (48 %), dann
+  `deckung` und `Pruefstand`.
+
 ## P-2026-10-10-27 netzschranke-kapseln-gegen-das-vernetzte-teil
 
 ### EINGELESEN

@@ -127,6 +127,9 @@ STUECK_MINDESTENS = 20
 # das vernetzte Teil, die Backen und die Bauteile der Maschine – so fein vernetzt (mm). Beim
 # Teil muss sie den Kern (EINDRINGEN unter der Schneide) von der Oberfläche unterscheiden.
 NETZ_TOLERANZ = {"teil": 0.01, "schraubstock": 0.02, "maschine": 0.05}
+# Für den Warnabstand (1 mm) reicht ein gröberes Netz des Teils – ein Zehntel der Dreiecke; die
+# Abfrage sucht dort um große Radien (Halter) herum, und die Suchweite wächst mit dem Radius.
+NETZ_TOLERANZ_GROB = {"teil": 0.3, "schraubstock": 0.3}
 NETZ_SCHRITT = 2.0  # mm – so weit über den Warnabstand hinaus sucht die Netzschranke (Schritt)
 # So oft darf die Netzschranke je Paar nichts entscheiden, was der genaue Abstand dann doch
 # entscheidet (Kapsel zu grob: der flache Halter von unten, der Kern eines Schaftfräsers am
@@ -341,21 +344,26 @@ class Koerper:
     # Werkzeugteile: Kapseln (z0, z1, r) um die eigene Z-Achse, die den Körper enthalten –
     # für die Netzschranke (werkzeugkapseln); leer: keine Schranke für diesen Körper.
     kapseln: tuple = ()
-    _netz: object = field(default=None, repr=False)
+    _netze: dict = field(default_factory=dict, repr=False)
 
-    def netz(self):
+    def netz(self, fein=True):
         """Die Oberfläche als Netz in eigenen Koordinaten (netzabstand.Netz), beim ersten Mal
-        gebaut; None für Körper, gegen die es keine Netzschranke gibt."""
-        if self._netz is None:
-            self._netz = False
-            if self.art in NETZ_TOLERANZ:
-                form = self.form.copy()
-                form.Placement = FreeCAD.Placement()
-                try:
-                    self._netz = na.Netz(form, NETZ_TOLERANZ[self.art])
-                except Exception:  # eine Form, die sich nicht vernetzen lässt: ohne Schranke
-                    self._netz = False
-        return self._netz or None
+        gebaut – `fein` für Berührungen (NETZ_TOLERANZ), sonst gröber (NETZ_TOLERANZ_GROB, wo
+        es das gibt); None für Körper, gegen die es keine Netzschranke gibt."""
+        toleranzen = (
+            NETZ_TOLERANZ if fein or self.art not in NETZ_TOLERANZ_GROB else NETZ_TOLERANZ_GROB
+        )
+        toleranz = toleranzen.get(self.art)
+        if toleranz is None:
+            return None
+        if toleranz not in self._netze:
+            form = self.form.copy()
+            form.Placement = FreeCAD.Placement()
+            try:
+                self._netze[toleranz] = na.Netz(form, toleranz)
+            except Exception:  # eine Form, die sich nicht vernetzen lässt: ohne Schranke
+                self._netze[toleranz] = None
+        return self._netze[toleranz]
 
     def __post_init__(self):
         box = self.form.BoundBox
@@ -846,6 +854,7 @@ def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=N
     """Prüft die Stationen `bereich` (von, bis) – im Nebenrechner. Gibt die Befunde je Paar,
     die Zahl der Stellen und die Hinweise zurück, als Daten ohne FreeCAD-Objekte."""
     global _welt_im_arbeiter
+    beginn = time.perf_counter()
     pruefung = _pruefung_fuer(dokument, maschine)
     kennung = (fahrt.kennung, daten.kennung, warnabstand, id(pruefung))
     ergebnis = Ergebnis(warnabstand)
@@ -856,6 +865,7 @@ def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=N
     else:
         welt = _welt_im_arbeiter[1]
         welt.neu(ergebnis, fortschritt, bereich)
+    aufbau = time.perf_counter() - beginn
     zu_viele = None
     welt.vorlauf(bereich[0])
     for i in range(*bereich):
@@ -864,6 +874,8 @@ def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=N
             zu_viele = i
             break
     return {
+        "aufbau_s": aufbau,  # die Welt gebaut (oder wiederverwendet) – zum Messen
+        "lauf_s": time.perf_counter() - beginn - aufbau,
         "schlimmste": {
             k: replace(b, stelle=tuple(b.stelle) if b.stelle is not None else None)
             for k, b in welt.schlimmste.items()
@@ -1438,7 +1450,7 @@ class _Welt:
             return None
         if self._netz_fehl.get((id(paar.a), id(paar.b)), 0) >= NETZ_FEHLVERSUCHE:
             return None
-        netz = anderer.netz()
+        netz = anderer.netz(fein=reicht < 0.1)  # Berührung: fein; Warnabstand: grob reicht
         if netz is None:
             return None
         # Die Kapseln in die Koordinaten des anderen: seine Lage zurück, die des Werkzeugs hin.
