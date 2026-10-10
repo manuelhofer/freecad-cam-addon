@@ -200,6 +200,12 @@ Vorweg, damit es keine Überraschung gibt: Entworfen und an der Maschine geprüf
 [*]Oberfläche und Hilfe auf Deutsch und Englisch, Beispiele dabei.
 [/list]
 
+[b]Bilder:[/b] der Assistent „Bearbeitung“ mit Vorschlägen und Zeiten, Rundum schruppen an einer Welle, „Auf der Maschine prüfen“ an der 5-Achs-Fräse.
+
+[img]https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/docs/bilder/forum/bearbeitung_vorschlaege.png[/img]
+[img]https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/docs/bilder/forum/vierachs_welle.png[/img]
+[img]https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/docs/bilder/forum/maschine_pruefen.png[/img]
+
 [b]Was geprüft ist:[/b] 3-Achs- und 4-Achs-Kinematik, an meiner CLX mit Y und an 3-Achs-Fräsen. Alles mit 5 Achsen ist bisher gerechnet und simuliert. Es wird laufend weiter daran gearbeitet; jeder Schritt ist im Repo nachvollziehbar.
 
 [b]Was ich mir wünsche:[/b]
@@ -251,6 +257,12 @@ Up front, so there is no surprise: I designed the add-on and verified it on the 
 [*][b]Post-processor[/b] for Siemens (CYCLE800, drilling cycles) and computed rotary axes, program per machine, setup sheet.
 [*]Interface and help in English and German, examples included.
 [/list]
+
+[b]Pictures:[/b] the “Machining” assistant with proposals and times, all-round roughing on a shaft, “Check on machine” on the 5-axis mill.
+
+[img]https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/docs/bilder/forum/bearbeitung_vorschlaege.png[/img]
+[img]https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/docs/bilder/forum/vierachs_welle.png[/img]
+[img]https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/docs/bilder/forum/maschine_pruefen.png[/img]
 
 [b]What is verified:[/b] 3-axis and 4-axis kinematics, on my CLX with Y and on 3-axis mills. Everything with 5 axes is so far computed and simulated. Work continues; every step is traceable in the repository.
 

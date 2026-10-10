@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-14 forum-bbcode-bilder-als-links
+
+### EINGELESEN
+- Das Repo ist öffentlich: Die Bilder aus `docs/bilder/forum/` lassen sich im Beitrag als
+  [img]-Links auf raw.githubusercontent.com einbinden – kein Hochladen im Forum nötig.
+
+### DATEIEN
+- `docs/forum_vorstellung.md` (die drei Bilder im BBCode, deutsch und englisch).
+
+### AKZEPTANZKRITERIUM
+Der BBCode zeigt die drei Bilder vor „Was geprüft ist“.
+
+### DONE
+- Erreichbarkeit des Rohlinks geprüft (200).
+
 ## P-2026-10-10-13 forum-entwurf-als-bbcode
 
 ### EINGELESEN
