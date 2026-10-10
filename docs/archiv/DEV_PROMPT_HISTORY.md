@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-10 forum-entwurf-mit-standardantworten
+
+### EINGELESEN
+- Manuel, 2026-10-10: „nimm doch nicht alles so wörtlich das muss da nicht mit rein ich finde nur
+  ‚ich hab keine ahnung von programmierung‘ nicht den richtigen satz .. also bitte den text
+  nochmal schön usw .. und bau so standart antworten gleich mit ein vonwegen lizenz usw“.
+
+### DATEIEN
+- `docs/forum_vorstellung.md` (neu geschrieben: Einordnung in zwei Sätzen ohne Lebenslauf, Block
+  „Vorab beantwortet“ mit Lizenz, Betriebssystem, FreeCAD-Version, Addon statt CAM-Modul,
+  KI-Code, Steuerungen, Sprache, Telemetrie, Fehler melden – deutsch und englisch).
+
+### AKZEPTANZKRITERIUM
+Der Text nennt keine Programmiersprachen und sagt nicht „kein Programmierer“; die Standardfragen
+sind vorab beantwortet.
+
+### DONE
+- Telemetrie-Antwort geprüft: `gui_aktualisierung.beim_start` sucht nur, wenn es eingeschaltet
+  ist.
+
 ## P-2026-10-10-09 forum-entwurf-einordnung
 
 ### EINGELESEN
