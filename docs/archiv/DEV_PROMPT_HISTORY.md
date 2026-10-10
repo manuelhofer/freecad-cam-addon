@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-58 rest-ueber-mit-querachse-richtig
+
+### EINGELESEN
+- Manuels 4-Achs-Testteil: „Rundum schlichten T2: Nach dem Schruppen stehen bis 47,60 mm über der
+  Bahn“. Nachgerechnet: Mit der Querachse rechnete `_rest_ueber` auf dem Strahl der Spirale vor
+  dem Umrechnen – die Kugel steht aber quer versetzt (bis ±48 mm) woanders. An ihrer wirklichen
+  Stelle (Kugel auf dem Strahl durch ihre Mitte) sind es 25,3 mm: bei a 4, vor der Wellenstirn,
+  wo der Schruppfräser Ø 12 nicht bis zur Achse kam (er darf die Kante der Stirn nicht
+  anschneiden).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`_rest_ueber_quer`: der Rest über den Punkten der Spirale mit der
+  Querachse, je Kugel auf dem Strahl durch ihre Mitte – `_auf_dem_strahl`, dasselbe wie für die
+  freien Stücke), `package.xml` (0.213.11), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Am Testteil meldet „Rundum schlichten T2“ 25,3 mm Rest (statt 47,6); die Bahn bleibt bitgleich.
+
+### TEST
+- KI: Testteil Rest 47,6 → 25,3 mm, Schruppen und Schlichten bitgleich zu P-57;
+  `test_vierachs_schlichten`, `test_vierachs_schlichten_op`, `test_vierachs_frei`,
+  `test_goldene_bahnen` grün in 1.1.4.
+
+### DONE
+- Für Manuel: Testteil, „Rundum schlichten T2“ neu berechnen → Meldung „bis 25,30 mm über der
+  Bahn“. Das ist echt: vor der Stirn der Welle schneidet die Kugel Ø 8 dort in einem Zug so tief.
+
 ## P-2026-10-10-57 vierachs-bahnen-auf-allen-kernen
 
 ### EINGELESEN

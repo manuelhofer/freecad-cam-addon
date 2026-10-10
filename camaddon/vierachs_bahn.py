@@ -1179,6 +1179,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
                 netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
             )
 
+        anfang = len(punkte)
         r_min = _spirale_quer(
             punkte,
             a,
@@ -1194,6 +1195,12 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
             w.anstellen if form.nur_kugel else 0.0,
             material_oben=lambda a_k, winkel_k: _material_oben(w, form, a_k, winkel_k),
         )
+        if form.nur_kugel:
+            # Mit der Querachse steht die Kugel woanders als auf dem Strahl der Spirale (quer
+            # versetzt bis fast zum Stangenradius): der Rest über ihr dort, wo sie wirklich steht
+            # (P-2026-10-10-58). Auf dem Strahl gemessen meldete Manuels Testteil 47,6 statt
+            # 25,3 mm.
+            rest_ueber = _rest_ueber_quer(w, form, punkte[anfang:])
     else:
         a, r, winkel, t, _ = _verfeinert(
             netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne
@@ -1707,12 +1714,34 @@ def _quer_frei(a, x, q, psi, radius, material_oben):
     R)), die Spitze bei |Mitte| − R. Dort steht nichts mehr über ihr, wenn diese Spitze über
     `material_oben` liegt (Manuel, 2026-10-10: vor der Stirn seines Testteils fuhr die Spirale
     mit der Querachse 7 m im Vorschub durch die Luft)."""
+    a, spitze, winkel = _auf_dem_strahl(a, x, q, psi, radius)
+    leer = spitze >= material_oben(a, winkel) - LEER
+    return _frei(a, spitze, winkel, leer)
+
+
+def _auf_dem_strahl(a, x, q, psi, radius):
+    """Die Kugel mit der Querachse (Spitze x längs der Werkzeugachse unter ψ, quer um q) als Kugel
+    auf dem Strahl durch ihre Mitte: (a, Spitze dort, Winkel des Strahls in Grad)."""
     x, q, psi = (np.asarray(v, dtype=float) for v in (x, q, psi))
     mitte = x + radius
     winkel = psi + np.degrees(np.arctan2(q, mitte))
-    spitze = np.hypot(mitte, q) - radius
-    leer = spitze >= material_oben(np.asarray(a, dtype=float), winkel) - LEER
-    return _frei(a, spitze, winkel, leer)
+    return np.asarray(a, dtype=float), np.hypot(mitte, q) - radius, winkel
+
+
+def _rest_ueber_quer(w, form, punkte):
+    """_rest_ueber für die Punkte der Spirale mit der Querachse – je Kugel auf dem Strahl durch
+    ihre Mitte (_auf_dem_strahl)."""
+    stellungen = [p for p in punkte if not p.eilgang]
+    if w.rest is None or not stellungen:
+        return 0.0
+    a, spitze, winkel = _auf_dem_strahl(
+        [p.a for p in stellungen],
+        [p.r for p in stellungen],
+        [p.q for p in stellungen],
+        [p.phi for p in stellungen],
+        form.radius,
+    )
+    return _rest_ueber(w, form, spitze, a, np.radians(winkel))
 
 
 def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
