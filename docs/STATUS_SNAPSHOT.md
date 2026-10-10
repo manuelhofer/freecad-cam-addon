@@ -617,7 +617,7 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   (P-2026-10-09-11):** der Kuppelvergleich (eine Variante) 131 → 44 s. **Normalen, Kugelschnitt und
   Deckung in Stücken (P-2026-10-09-12):** der Kuppelvergleich 44 → 23 s, `test_simultan_planung`
   36 s. Am Freiformbeispiel eine Variante 670 → 211 s (P-2026-10-09-13:
-  Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). Als Nächstes (Manuel, 2026-10-10: „erst werkzeugkiste import“): T-007, dann Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
+  Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). T-007 Werkzeugkiste-Import gebaut (P-2026-10-10-06, mit exakter Dublettenprüfung). Als Nächstes (Manuel, 2026-10-10: erst der Import, dann die Hebel): Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
   Kombinationen“ parallel (Hebel 3), `fahren` (Materialstand) in Stücken. GPU verworfen (Manuels Frage, 2026-10-10): OpenCascade
   rechnet nur auf der CPU, der numpy-Anteil läuft schon auf allen Kernen, und je Hersteller
   (NVIDIA, AMD, Intel) bräuchte FreeCADs Python einen eigenen Treiberstapel – zu wenig Gewinn
@@ -641,9 +641,8 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit
   `GOLDENE_BAHNEN_SCHREIBEN=1` neu schreiben (Befund nebenbei, P-2026-10-09-11).
-- **T-007 Werkzeugkiste: Import** nach `docs/werkzeugkiste_json.md` (Format steht, P-2026-10-04-46):
-  Ordner `CamAddon/werkzeugkiste/`, „Aus Datei einlesen …“ mit Prüfung, „Vorlage speichern …“.
-  Danach weitere Hersteller-Reihen (Manuel: „zum Schluss“).
+- **T-007b Weitere Hersteller-Reihen** in der Kiste (Manuel: „zum Schluss“) – seit P-2026-10-10-06 über
+  Dateien („Aus Datei einlesen …“); Manuels Hoffmann-Datei (83 Reihen) liegt in `beispiele/`.
 
 - **T-005** Repo öffentlich stellen – Empfehlung Claude (P-2026-09-25-43: Verlauf ohne
   Geheimnisse und ohne private Mail-Adressen, Lizenz LGPL). Umstellen kann nur Manuel:

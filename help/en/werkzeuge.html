@@ -71,7 +71,14 @@ already there stays as you changed it. Every tool brings cutting data per <b>mat
 class</b> (P1 steel up to 750 N/mm², P2 quenched and tempered steel, M stainless, K cast
 iron, N1 aluminium, N2 brass, N3 plastics, S titanium, H hardened); where the catalogue does
 not give them, they are <b>guide values, estimated</b> – the description says so; compare them
-with the catalogue before the first cut.</li>
+with the catalogue before the first cut. <b>Read from file …</b> adds your own series – a JSON
+file in the format of <code>docs/werkzeugkiste_json.md</code>, for example collected at the
+manufacturer by an AI agent; <b>Save template …</b> gives the example for it. The check says
+line by line what stays out: errors, notes – and duplicates: the same article number or, without
+a number, exactly the same dimensions already exist (in the built-in box, in another file or in
+the file itself). Files read in are kept in the folder <code>CamAddon/werkzeugkiste</code>; a
+file of the same name replaces its earlier version. A ready example with 83 Hoffmann tools comes
+with the addon as <code>beispiele/werkzeugkiste_hoffmann_2026-10-07.json</code>.</li>
 <li><b>Import from CAM</b> (bottom left) takes the tools of a FreeCAD CAM tool
 library: type, T number, the dimensions the type has (diameter, flutes,
 lengths, shank, angles, neck, pitch …) and tool material; the name comes

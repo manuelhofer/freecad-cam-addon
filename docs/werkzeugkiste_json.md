@@ -173,3 +173,35 @@ darunter ist die vc in m/min.
 > weglassen – nicht schätzen. Schreib in `quelle`, woher die Daten sind und an welchem Tag. Gib
 > eine Datei `werkzeugkiste_<hersteller>_<datum>.json` aus, die genau dem Beispiel
 > `werkzeugkiste_beispiel.json` folgt.
+
+## 7. Einlesen – und was doppelt ist
+
+Im Fenster **Werkzeuge der Hersteller …** (Werkzeugverwaltung) liest **Aus Datei einlesen …**
+eine Datei in diesem Format; **Vorlage speichern …** schreibt das Beispiel als Datei. Eine
+eingelesene Datei liegt danach im Ordner `CamAddon/werkzeugkiste/` neben der
+`werkzeugverwaltung.json`; ihre Reihen stehen im Baum wie die eingebauten (der Tooltip nennt die
+Datei). Eine Datei gleichen Namens ersetzt ihre frühere Fassung. Die Prüfung meldet je Zeile:
+
+- **Fehler** – die Reihe bleibt draußen: Pflichtfeld fehlt, Kennung ungültig, in der Datei doppelt
+  oder schon belegt (eingebaute Kiste oder andere Datei), unbekannte Werkzeugart, keine Größen.
+- **Hinweise** – übernommen, aber: unbekanntes Feld (ausgelassen), Feld anders geschrieben
+  („gesamtlänge“ → `gesamtlaenge`, „auskraglaenge“ → Auskragung), keine Zahl, unbekannte
+  Werkstoffklasse oder ein Einsatz, den die Art nicht hat, Schneidstoff unbekannt (es gilt VHM;
+  „HM“, „HSS-E“, „HSS-Co“ werden verstanden).
+- **Doppelt** – die Größe bleibt draußen, weil es sie schon gibt (Manuel, 2026-10-10: „wenn
+  jemand 3 mal den Schaftfräser 12 von Hoffmann einpflegen will, ist das unnötig … exakt
+  verglichen“): **gleicher Hersteller und gleiche Artikelnummer** (Schreibweise und Leerzeichen
+  egal), oder **ohne Artikelnummer exakt dieselben Maße** (Art, Hersteller, Marke, Beschichtung,
+  Schneidstoff, Schneiden, jede Länge, jeder Winkel, die Steigung). Zwei verschiedene
+  Artikelnummern mit gleichen Maßen sind zwei Produkte und bleiben beide. Verglichen wird gegen
+  die eingebaute Kiste, die anderen Dateien und die Datei selbst.
+
+Beim **Hinzufügen** in die eigene Werkzeugkiste gilt dasselbe: Was es dort schon gibt – gleicher
+Name, gleiche Artikelnummer oder (ohne Nummer) gleiche Maße –, bleibt, wie es ist.
+
+Schnittwerte aus der Datei werden Katalogwerte: `f` wird fz je Schneide, `ap_d`/`ae_d` Vielfache
+von D; fehlt vc oder fz, steht der Richtwert ein – vc nie über der höchsten, die die Datei für die
+Klasse nennt. Eine Reihe ganz ohne Schnittwerte trägt „Richtwerte (geschätzt)“ in der Bezeichnung.
+Ein zweites Beispiel mit echten Daten, 83 Reihen ohne Schnittwerte, von einem KI-Agenten nach
+Abschnitt 6 zusammengestellt (Manuel, 2026-10-07):
+[`beispiele/werkzeugkiste_hoffmann_2026-10-07.json`](../beispiele/werkzeugkiste_hoffmann_2026-10-07.json).

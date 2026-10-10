@@ -8,6 +8,8 @@ von FreeCAD: OK, Übernehmen, Abbrechen (fragt nach, wenn etwas geändert ist).
 Die Daten stehen in werkzeuge.py und werkstoffe.py.
 """
 
+import os
+
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
@@ -1384,6 +1386,26 @@ def bericht_text(bericht):
     return "\n\n".join(absaetze)
 
 
+def kiste_datei_waehlen(eltern, ordner):
+    """Fragt nach der Datei zum Einlesen; "" bei Abbrechen. Die Szenarien ersetzen diese
+    Funktion – einen Dateidialog können sie nicht bedienen."""
+    pfad, _filter = QtGui.QFileDialog.getOpenFileName(
+        eltern, tr("wv.kiste.datei_waehlen"), ordner, "JSON (*.json)"
+    )
+    return pfad
+
+
+def vorlage_datei_waehlen(eltern, ordner):
+    """Fragt, wohin die Vorlage soll; "" bei Abbrechen. Die Szenarien ersetzen diese Funktion."""
+    pfad, _filter = QtGui.QFileDialog.getSaveFileName(
+        eltern,
+        tr("wv.kiste.vorlage_waehlen"),
+        os.path.join(ordner, "werkzeugkiste_vorlage.json"),
+        "JSON (*.json)",
+    )
+    return pfad
+
+
 class KisteDialog(QtGui.QDialog):
     """„Werkzeuge der Hersteller“ (W-007): die Werkzeugkiste als Baum – je Werkzeugart eine
     Gruppe, darin die Reihen der Hersteller, darin jede Größe mit eigenem Haken (Manuel,
@@ -1402,6 +1424,39 @@ class KisteDialog(QtGui.QDialog):
         self.baum.setHeaderHidden(True)
         self.baum.setIndentation(16)
         self._reihen = []  # die Zeilen der Reihen, in der Reihenfolge der Anzeige
+        self.bericht = None  # die letzte Prüfung von „Aus Datei einlesen …“ (für die Szenarien)
+        self.fuellen()
+        aufbau.addWidget(self.baum, 1)
+        unten = QtGui.QHBoxLayout()
+        self.knopf_alle = knopf(
+            tr("wv.kiste.alle"), tr("wv.kiste.alle.tooltip"), lambda: self.alle_setzen(True)
+        )
+        self.knopf_keine = knopf(
+            tr("wv.kiste.keine"), tr("wv.kiste.keine.tooltip"), lambda: self.alle_setzen(False)
+        )
+        # Eigene Dateien im Format docs/werkzeugkiste_json.md (T-007): einlesen mit Prüfung und
+        # Dubletten-Vergleich, und die Vorlage dafür.
+        self.knopf_einlesen = knopf(
+            tr("wv.kiste.einlesen"), tr("wv.kiste.einlesen.tooltip"), self.einlesen
+        )
+        self.knopf_vorlage = knopf(
+            tr("wv.kiste.vorlage"), tr("wv.kiste.vorlage.tooltip"), self.vorlage
+        )
+        for k in (self.knopf_alle, self.knopf_keine, self.knopf_einlesen, self.knopf_vorlage):
+            unten.addWidget(k)
+        unten.addStretch()
+        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.knopf_hinzufuegen = knoepfe.button(QtGui.QDialogButtonBox.Ok)
+        self.knopf_hinzufuegen.setText(tr("wv.kiste.hinzufuegen"))
+        knoepfe.accepted.connect(self.accept)
+        knoepfe.rejected.connect(self.reject)
+        unten.addWidget(knoepfe)
+        aufbau.addLayout(unten)
+
+    def fuellen(self):
+        """Der Baum aus allen Reihen – eingebaute und eingelesene –, alles angehakt."""
+        self.baum.clear()
+        self._reihen = []
         haken = (
             QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsAutoTristate
         )
@@ -1441,24 +1496,70 @@ class KisteDialog(QtGui.QDialog):
                     groesse.setCheckState(0, QtCore.Qt.Checked)
                     zeile.addChild(groesse)
             gruppe.setExpanded(True)
-        aufbau.addWidget(self.baum, 1)
-        unten = QtGui.QHBoxLayout()
-        self.knopf_alle = knopf(
-            tr("wv.kiste.alle"), tr("wv.kiste.alle.tooltip"), lambda: self.alle_setzen(True)
+
+    def einlesen(self):
+        """„Aus Datei einlesen …“: die Datei prüfen, in den Ordner der Kiste legen, den Baum neu
+        füllen; der Bericht sagt, was kam, was es schon gab und was draußen blieb."""
+        from . import werkzeugkiste_datei as wd
+
+        pfad = kiste_datei_waehlen(self, os.path.expanduser("~"))
+        if not pfad:
+            return
+        pruefung = wd.einlesen(pfad)
+        self.bericht = pruefung
+        if pruefung.reihen:
+            self.fuellen()
+        self.bericht_zeigen(pruefung)
+
+    def bericht_zeigen(self, pruefung):
+        """Die Rückmeldung zu einer eingelesenen Datei (werkzeugkiste_datei.Pruefung): kurz im
+        Text, jede Zeile zu Dubletten, Hinweisen und Fehlern unter „Einzelheiten“."""
+        absaetze, zeilen = [], []
+        if pruefung.reihen:
+            absaetze.append(
+                tr(
+                    "wv.kiste.einlesen.bericht",
+                    reihen=len(pruefung.reihen),
+                    groessen=pruefung.anzahl,
+                    datei=pruefung.datei,
+                )
+            )
+            if pruefung.ersetzt:
+                absaetze.append(tr("wv.kiste.einlesen.ersetzt", anzahl=len(pruefung.ersetzt)))
+        else:
+            absaetze.append(tr("wv.kiste.einlesen.nichts", datei=pruefung.datei))
+        for schluessel, liste in (
+            ("wv.kiste.einlesen.doppelt", pruefung.doppelt),
+            ("wv.kiste.einlesen.fehler", pruefung.fehler),
+            ("wv.kiste.einlesen.hinweise", pruefung.hinweise),
+        ):
+            if liste:
+                absaetze.append(tr(schluessel, anzahl=len(liste)))
+                zeilen.append(tr(schluessel, anzahl=len(liste)))
+                zeilen.extend(f"• {satz}" for satz in liste)
+                zeilen.append("")
+        meldung = QtGui.QMessageBox(self)
+        meldung.setIcon(
+            QtGui.QMessageBox.Information if pruefung.reihen else QtGui.QMessageBox.Warning
         )
-        self.knopf_keine = knopf(
-            tr("wv.kiste.keine"), tr("wv.kiste.keine.tooltip"), lambda: self.alle_setzen(False)
+        meldung.setWindowTitle(tr("wv.kiste.einlesen.titel"))
+        meldung.setText("\n\n".join(absaetze))
+        if zeilen:
+            meldung.setDetailedText("\n".join(zeilen).strip())
+        meldung.setStandardButtons(QtGui.QMessageBox.Ok)
+        meldung.exec()
+
+    def vorlage(self):
+        """„Vorlage speichern …“: das vollständige Beispiel als Datei zum Ausfüllen."""
+        from . import werkzeugkiste_datei as wd
+
+        pfad = vorlage_datei_waehlen(self, os.path.expanduser("~"))
+        if not pfad:
+            return
+        wd.vorlage_schreiben(pfad)
+        QtGui.QMessageBox.information(
+            self, tr("wv.kiste.titel"), tr("wv.kiste.vorlage.fertig", datei=pfad)
         )
-        unten.addWidget(self.knopf_alle)
-        unten.addWidget(self.knopf_keine)
-        unten.addStretch()
-        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        self.knopf_hinzufuegen = knoepfe.button(QtGui.QDialogButtonBox.Ok)
-        self.knopf_hinzufuegen.setText(tr("wv.kiste.hinzufuegen"))
-        knoepfe.accepted.connect(self.accept)
-        knoepfe.rejected.connect(self.reject)
-        unten.addWidget(knoepfe)
-        aufbau.addLayout(unten)
 
     def reihen_eintraege(self):
         """Die Zeilen der Reihen in der Reihenfolge der Anzeige (für die Szenarien)."""

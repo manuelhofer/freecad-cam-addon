@@ -941,6 +941,18 @@ mehr“. Nachgeschlagen auf hoffmann-group.com (Hoffmann Group, Marke HOLEX), je
 - Noch einzeln und eher teuer: Lollipop, Gewindefräser, Planfräser (Sandvik), Fasenfräser –
   nach und nach.
 
+### 13.y Eigene Dateien einlesen (T-007; Manuel, 2026-10-04 und 2026-10-10)
+
+- **Gebaut (P-2026-10-10-06):** `camaddon/werkzeugkiste_datei.py` liest Dateien nach
+  `docs/werkzeugkiste_json.md` (Abschnitt 7 dort: Prüfung, Hinweise, Dubletten), legt sie in
+  `CamAddon/werkzeugkiste/`; `werkzeugkiste.reihen()` hängt sie an die eingebauten. Im Fenster
+  „Werkzeuge der Hersteller“ die Knöpfe „Aus Datei einlesen …“ (mit Bericht, Einzelheiten je
+  Zeile) und „Vorlage speichern …“. Dubletten exakt (Manuel: „wenn jemand 3 mal den Schaftfräser
+  12 von Hoffmann einpflegen will, ist das unnötig“): gleiche Artikelnummer, oder ohne Nummer
+  gleiche Maße; zwei Artikelnummern mit gleichen Maßen sind zwei Produkte. Beim Hinzufügen in die
+  eigene Kiste gilt dasselbe (`werkzeugkiste.gleiche_masse`). Manuels Hoffmann-Datei (83 Reihen,
+  von einem KI-Agenten nach Abschnitt 6 gesammelt) liegt als zweites Beispiel in `beispiele/`.
+
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 
 Manuel: „Natürlich muss man die Drehrichtung des Werkzeuges im Werkzeug angeben.“

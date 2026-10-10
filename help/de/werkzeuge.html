@@ -73,7 +73,15 @@ Nummern an – was schon da ist, bleibt, wie du es geändert hast. Jedes Werkzeu
 Schnittwerte je <b>Werkstoffklasse</b> mit (P1 Stahl bis 750 N/mm², P2 vergüteter Stahl, M
 rostfrei, K Guss, N1 Aluminium, N2 Messing, N3 Kunststoff, S Titan, H gehärtet); wo der
 Katalog sie nicht nennt, sind es <b>Richtwerte, geschätzt</b> – die Bezeichnung sagt es; vor
-dem ersten Schnitt mit dem Katalog vergleichen.</li>
+dem ersten Schnitt mit dem Katalog vergleichen. <b>Aus Datei einlesen …</b> nimmt eigene Reihen
+dazu – eine JSON-Datei im Format von <code>docs/werkzeugkiste_json.md</code>, etwa von einem
+KI-Agenten beim Hersteller zusammengesucht; <b>Vorlage speichern …</b> gibt das Beispiel dafür.
+Die Prüfung sagt je Zeile, was draußen bleibt: Fehler, Hinweise – und Doppeltes: dieselbe
+Artikelnummer oder, ohne Nummer, exakt dieselben Maße gibt es schon (in der eingebauten Kiste, in
+einer anderen Datei oder in der Datei selbst). Eingelesene Dateien liegen im Ordner
+<code>CamAddon/werkzeugkiste</code>; eine Datei gleichen Namens ersetzt ihre frühere Fassung.
+Ein fertiges Beispiel mit 83 Hoffmann-Werkzeugen liegt im Addon unter
+<code>beispiele/werkzeugkiste_hoffmann_2026-10-07.json</code>.</li>
 <li><b>Aus CAM übernehmen</b> (unten links) holt die Werkzeuge einer
 Werkzeugbibliothek von FreeCAD CAM: Art, T-Nummer, die Maße, die die Art hat
 (Durchmesser, Schneiden, Längen, Schaft, Winkel, Hals, Steigung …), und

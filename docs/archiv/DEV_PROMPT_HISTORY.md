@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-06 werkzeugkiste-aus-datei-einlesen
+
+### EINGELESEN
+- Manuel, 2026-10-10: „ja mach mal den werkzeuglisten import .. wichtig is mir hierbei .. zu
+  erkennen wenn es doppelimports gibt .. also .. wenn jetzt jemand 3 mal den schaftfräser 12 von
+  hoffman einpflegen will ist das unnötig .. daher muss das schon exakt geschaut und verglichen
+  werden“. T-007 nach `docs/werkzeugkiste_json.md` (Format seit P-2026-10-04-46); seine
+  Hoffmann-Datei (83 Reihen, 2026-10-07) als Prüfstein.
+- Die Kiste bestand aus festen Reihen (`werkzeugkiste.reihen()`, `Reihe` mit `groessen`,
+  `gemeinsam`, `katalogwerte` {Ø: {Klasse: {Einsatz: (vc, fz, ap, ae)}}}); `hinzufuegen` erkannte
+  Doppeltes nur an Hersteller plus Name oder Artikelnummer.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_datei.py` (neu: `lesen` mit `Pruefung` – Fehler, Hinweise, Dubletten,
+  ersetzt –, `einlesen` in `CamAddon/werkzeugkiste/`, `eingelesene` mit Zwischenspeicher je
+  Datei, `entfernen`, `vorlage_schreiben`; `_Index` für den exakten Vergleich),
+  `camaddon/werkzeugkiste.py` (`Reihe.marke`, `Reihe.datei`; `eingebaute()` und `reihen()` mit den
+  eingelesenen; `richtwert`; `_schon_da` auch über `gleiche_masse`; `werkzeuge()` lässt „_…“-Felder
+  aus), `camaddon/gui_werkzeuge.py` (`KisteDialog.fuellen`, Knöpfe „Aus Datei einlesen …“ und
+  „Vorlage speichern …“, `bericht_zeigen` mit Einzelheiten, `kiste_datei_waehlen`,
+  `vorlage_datei_waehlen`), `translations/de.json`, `translations/en.json` (`wd.*`, `wv.kiste.*`),
+  `beispiele/werkzeugkiste_hoffmann_2026-10-07.json` (neu), `docs/werkzeugkiste_json.md`
+  (Abschnitt 7), `docs/spezifikation_werkzeugverwaltung.md` (13.y), `help/de|en/werkzeuge.html`,
+  `tests/test_werkzeugkiste_datei.py` (neu), `tests/gui/szenario_werkzeugkiste.py` (neu),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.209.0).
+
+### AKZEPTANZKRITERIUM
+„Werkzeuge der Hersteller …“ → „Aus Datei einlesen …“ mit der Hoffmann-Datei: Bericht „83 Reihen
+mit 83 Größen … 5 Hinweise“, die Reihen stehen im Baum, angehakt; dieselbe Datei noch einmal: „83
+Reihen ersetzen die frühere Fassung“; eine Datei mit demselben Artikel unter anderer Kennung:
+„kommt nichts in die Kiste“, Einzelheiten nennen den Artikel und wo er schon ist. „Hinzufügen“
+legt die Werkzeuge an, ein zweites Mal „gab es schon“.
+
+### DONE
+- Exakt heißt: Hersteller plus Artikelnummer (Schreibweise egal); ohne Nummer jede Länge, jeder
+  Winkel, Steigung, Schneiden, Schneidstoff, Marke und Beschichtung. Zwei verschiedene Nummern mit
+  gleichen Maßen bleiben zwei Produkte – an der Hoffmann-Datei wären sonst fünf echte Artikel
+  (GARANT 203055 gegen 203057 …) als Dubletten weggefallen.
+- Kataloge schreiben „HM“, „HSS-E“, „HSS Co 10“ – gelesen als VHM und HSS; „gesamtlänge“ und
+  „auskraglaenge“ werden erkannt und als Hinweis genannt.
+- Das Beispiel aus `beispiele/` ist gegen die eingebaute Kiste selbst doppelt (dieselben HOLEX-
+  Artikel) – die Prüfung in `test_werkzeugkiste_datei` liest es darum gegen eine leere Kiste.
+- Prüfungen grün: `test_werkzeugkiste_datei`, `test_werkzeugkiste` (111 Werkzeuge), Szenario
+  `szenario_werkzeugkiste` (Hoffmann-Datei: 83 Reihen, 5 Hinweise; Dublette gemeldet; Hinzufügen).
+
 ## P-2026-10-10-05 der-naechste-schritt-als-knopf
 
 ### EINGELESEN

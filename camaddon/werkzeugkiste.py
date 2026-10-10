@@ -126,6 +126,8 @@ class Reihe:
     # Aus dem Katalog des Herstellers: {Durchmesser: {Klasse: {Art: (vc, fz, ap, ae)}}}
     # (katalogwerte) – was fehlt, wird geschätzt.
     katalogwerte: dict = field(default_factory=dict)
+    marke: str = ""  # „HOLEX“, „GARANT“ – aus einer eingelesenen Datei (werkzeugkiste_datei)
+    datei: str = ""  # der Name der Datei, aus der die Reihe kommt; leer: eingebaut
 
     @property
     def anzahl(self):
@@ -837,8 +839,8 @@ def _einstechen():
     )
 
 
-def reihen():
-    """Alle Reihen der Werkzeugkiste, Manuels zuerst."""
+def eingebaute():
+    """Die eingebauten Reihen der Werkzeugkiste, Manuels zuerst."""
     return (
         _bohrer(),
         _gewindebohrer(),
@@ -853,6 +855,14 @@ def reihen():
         _drehen(),
         *_einstechen(),
     )
+
+
+def reihen():
+    """Alle Reihen: die eingebauten und die aus den eingelesenen Dateien des Benutzers
+    (werkzeugkiste_datei, T-007)."""
+    from . import werkzeugkiste_datei as wd
+
+    return (*eingebaute(), *wd.eingelesene())
 
 
 def reihe(kennung):
@@ -870,8 +880,8 @@ def werkzeuge(reihe):
         werte = dict(reihe.gemeinsam, **groesse)
         w = wz.Werkzeug(art=reihe.art)
         for feld, wert in werte.items():
-            if feld in ("link", "artikel", "name", "bezeichnung", "katalog"):
-                continue
+            if feld in ("link", "artikel", "name", "bezeichnung", "katalog") or feld[0] == "_":
+                continue  # „_…“: nur zum Vergleichen (werkzeugkiste_datei)
             setattr(w, feld, wert)
         w.name = werte.get("name", "")
         w.hersteller = reihe.hersteller
@@ -885,6 +895,12 @@ def werkzeuge(reihe):
                 w.schnittwerte[klasse] = einsaetze(w, klasse, katalog)
         ergebnis.append(w)
     return ergebnis
+
+
+def richtwert(werkzeug, art, klasse):
+    """Der geschätzte Einsatz (Richtwert) des Werkzeugs für eine Einsatzart und Klasse – oder
+    None, wenn es für die Art keinen gibt; für eingelesene Dateien, die vc oder fz nicht nennen."""
+    return _geschaetzt(werkzeug, art, klasse)
 
 
 def richtwerte_moeglich(werkzeug):
@@ -1048,9 +1064,32 @@ def hinzufuegen(bibliothek, kennungen):
 
 
 def _schon_da(bibliothek, werkzeug):
+    """Gibt es das Werkzeug schon: gleiche Art und gleicher Hersteller – und dazu derselbe Name,
+    dieselbe Artikelnummer oder exakt dieselben Maße (Manuel, 2026-10-10: „wenn jemand 3 mal den
+    Schaftfräser 12 von Hoffmann einpflegen will, ist das unnötig … exakt verglichen“)."""
     return any(
         w.art == werkzeug.art
         and w.hersteller == werkzeug.hersteller
-        and (w.name == werkzeug.name or (werkzeug.artikel and w.artikel == werkzeug.artikel))
+        and (
+            w.name == werkzeug.name
+            or (werkzeug.artikel and w.artikel == werkzeug.artikel)
+            or (not (w.artikel and werkzeug.artikel) and gleiche_masse(w, werkzeug))
+        )
         for w in bibliothek.werkzeuge
+    )
+
+
+def gleiche_masse(a, b):
+    """Sind zwei Werkzeuge in allen Maßen gleich – Schneidstoff, Schneiden, jede Länge, jeder
+    Winkel, die Steigung (auf ein Zehntausendstel)? Beide brauchen einen Durchmesser, sonst ist
+    nichts vergleichbar. Zwei verschiedene Artikelnummern bleiben trotzdem zwei Werkzeuge – das
+    entscheidet der Aufrufer (_schon_da, werkzeugkiste_datei)."""
+    if not a.durchmesser or not b.durchmesser:
+        return False
+    if a.schneidstoff != b.schneidstoff or int(a.schneiden) != int(b.schneiden):
+        return False
+    return all(
+        abs(float(getattr(a, feld, 0.0) or 0.0) - float(getattr(b, feld, 0.0) or 0.0)) < 1e-4
+        for feld in wz.ZAHLEN_FELDER
+        if feld != "auskragung"
     )
