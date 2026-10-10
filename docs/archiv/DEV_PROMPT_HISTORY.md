@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-27 netzschranke-kapseln-gegen-das-vernetzte-teil
+
+### EINGELESEN
+- Spezifikation Strategien 16.5, Hebel 2 (Manuel, 2026-10-10: erst der Import, dann die Hebel).
+  Zuerst gezählt, wer die genauen Abstände verursacht – an der Kuppel (`test_simultan_planung`,
+  ein Prozess): 14 230 Stellen, 10 374 `distToShape`-Aufrufe, 21,4 s; davon **9 246 der Kern
+  der Schneide gegen das Teil** (1,8 ms je Aufruf) – nicht Halter und Spindel, wie die
+  Spezifikation vermutete. Der Kern liegt im Vorschub immer EINDRINGEN (0,05 mm) unter der
+  Oberfläche; die Hüllquader entscheiden das nie, und die Schrittrechnung fragte danach an
+  jeder Stelle OpenCascade, obwohl der Schritt davon nie größer wurde.
+
+### DATEIEN
+- `camaddon/netzabstand.py` (neu: `Netz` – das Teil vernetzt, die Dreiecke in einem Gitter;
+  `abstand` für Punkte, `kapseln` für Strecken mit Suchweite; Punkt–Dreieck, Strecke–Strecke
+  und Strecke–Dreieck als Vektorrechnung nach Ericson; nie mehr als der wahre Abstand, die
+  Sehnenabweichung abgezogen), `camaddon/kollision.py` (`werkzeugkapseln`: je Werkzeugteil
+  Kapseln auf der Achse der Aufnahme, beim Kugelfräser genau, sonst der umschließende Zylinder;
+  `Koerper.kapseln`, `Koerper.netz()` für Teil, Backen und Bauteile der Maschine; in `_stelle`
+  die Netzschranke vor dem genauen Abstand und in der Schrittrechnung – sieht das Netz die
+  Oberfläche, gilt sie als fast genau; je Paar nach NETZ_FEHLVERSUCHE vergeblichen Versuchen
+  nur noch OpenCascade), `tests/test_netzabstand.py` (neu), `docs/STATUS_SNAPSHOT.md`,
+  `docs/spezifikation_strategien.md` (16.5, Hebel 2), `docs/aufbau.md`, `package.xml` (0.211.0).
+
+### AKZEPTANZKRITERIUM
+Dieselben Befunde (`test_kollision`, `test_kollision_verteilt`, `szenario_kollision` grün,
+`test_simultan_planung` mit denselben Referenzen); an der Kuppel deutlich weniger genaue
+Abstände.
+
+### DONE
+- Kuppel, ein Prozess: 10 374 → **841 genaue Abstände** (Kern gegen Teil 9 246 → 189), 21,4 →
+  3,7 s in OpenCascade, die Variante 114 → 95 s. Mit 24 Arbeitern: Kollision 7,0 → 5,0 s von
+  32 s – dort bleibt je Aufruf der Aufbau der Welt in jedem Arbeiter (Körper, Berührungen in
+  Grundstellung, Netz), der nächste Hebel.
+- Unterwegs gelernt: Die Suchweite der Kapsel muss ihren Radius einschließen (Ø 12 auf einer
+  Zelle von 2 mm sah nie etwas); die Kapsel eines Schaftfräsers reicht unter der Stirn um r zu
+  tief – am Boden entscheidet sie nichts, darum der Zähler je Paar. Übrig bleiben Spindel gegen
+  Tischständer (383 Aufrufe, Maschine gegen Maschine – ohne Kapseln).
+
 ## P-2026-10-10-26 freiformbeispiel-auf-der-neuen-g550
 
 ### EINGELESEN

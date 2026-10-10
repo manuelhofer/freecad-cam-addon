@@ -3120,7 +3120,18 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    (Hebel 2).
 2. **Halter und Spindel gegen das vernetzte Teil mit numpy** statt OpenCascade – so, wie der
    Materialprüfstand den Kugelschnitt rechnet; die genauen OpenCascade-Aufrufe bleiben nur für
-   die Stellen, die die Schätzung nicht entscheidet. Trifft die 51 % direkt.
+   die Stellen, die die Schätzung nicht entscheidet. Trifft die 51 % direkt. **Gebaut
+   (P-2026-10-10-27):** Vorher gezählt – die 51 % waren nicht Halter und Spindel, sondern der
+   Kern der Schneide gegen das Teil (9 246 von 10 374 Aufrufen an der Kuppel): Er liegt im
+   Vorschub immer 0,05 mm unter der Oberfläche, der Hüllquader entscheidet das nie, und die
+   Schrittrechnung fragte an jeder Stelle genau nach. Jetzt `netzabstand.py`: das Teil, die
+   Backen und die Bauteile der Maschine einmal vernetzt (Teil 0,01 mm), die Dreiecke in einem
+   Gitter; jedes Werkzeugteil als Kapseln (Strecke auf der Werkzeugachse mit Radius, beim
+   Kugelfräser genau) – der Abstand Strecke–Dreieck als Vektorrechnung, die Sehnenabweichung
+   abgezogen, nie mehr als der wahre Abstand. Kuppel, ein Prozess: 841 statt 10 374 genaue
+   Abstände, 3,7 statt 21,4 s; mit 24 Arbeitern 5,0 statt 7,0 s. Ein Schaftfräser am Boden
+   gewinnt nichts (die Kapsel reicht unter der Stirn um r zu tief; nach drei vergeblichen
+   Versuchen fragt das Paar nur noch OpenCascade).
 3. **Varianten und Zwischenlagen parallel** – sie sind unabhängig: mit dem Haken „Alle
    Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
 4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich

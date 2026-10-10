@@ -74,9 +74,11 @@ from dataclasses import dataclass, field, replace
 from types import SimpleNamespace
 
 import FreeCAD
+import numpy as np
 
 from . import abfahren as ab
 from . import halter as hl
+from . import netzabstand as na
 from . import reichweite as rw
 from .kette import LINEAR
 from .sprache import tr
@@ -121,6 +123,15 @@ WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 PARALLEL_AB = 60
 STUECKE_JE_ARBEITER = 48  # gemessen am Freiformbeispiel, 24 Kerne: 4 → 83 s, 16 → 60 s, 48 → 54 s
 STUECK_MINDESTENS = 20
+# Die Netzschranke (Spezifikation Strategien 16.5, Hebel 2): Werkzeugteile als Kapseln gegen
+# das vernetzte Teil, die Backen und die Bauteile der Maschine – so fein vernetzt (mm). Beim
+# Teil muss sie den Kern (EINDRINGEN unter der Schneide) von der Oberfläche unterscheiden.
+NETZ_TOLERANZ = {"teil": 0.01, "schraubstock": 0.02, "maschine": 0.05}
+NETZ_SCHRITT = 2.0  # mm – so weit über den Warnabstand hinaus sucht die Netzschranke (Schritt)
+# So oft darf die Netzschranke je Paar nichts entscheiden, was der genaue Abstand dann doch
+# entscheidet (Kapsel zu grob: der flache Halter von unten, der Kern eines Schaftfräsers am
+# Boden) – danach fragt das Paar nur noch OpenCascade.
+NETZ_FEHLVERSUCHE = 3
 
 
 # --- Die Körper -----------------------------------------------------------------------------
@@ -179,6 +190,57 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     if form is not None:
         teile.append((HALTER, form))
     return teile
+
+
+def werkzeugkapseln(masse, laenge, halter):
+    """{Art: ((z0, z1, r), …)} – je Werkzeugteil Kapseln (Strecke auf der Z-Achse der Aufnahme
+    mit Radius), die den Körper aus werkzeugkoerper() enthalten, für die Netzschranke
+    (netzabstand): beim Kugelfräser genau (die Kapsel von der Kugelmitte an ist der Fräser),
+    sonst der umschließende Zylinder als Kapsel – unter der Stirn um r zu lang, dort hilft sie
+    nicht, darüber schon. Der Halter je Abschnitt eine. Leer beim gewinkelten Halter: Seine
+    Teile liegen nicht auf der Z-Achse."""
+    if halter is not None and halter.gewinkelt:
+        return {}
+    spitze = -laenge
+    if halter is not None and hl.form(halter) is not None:
+        ende = -halter.laenge
+    else:
+        ende = min(spitze + masse.gesamt, 0.0) if masse.gesamt > 0 else 0.0
+    oben = min(spitze + masse.schneide, ende)
+    radius = masse.durchmesser / 2
+    stirn = masse.stirn
+    kapseln = {}
+    kugel = radius if masse.kugel else (stirn.kugel if stirn is not None and stirn.nur_kugel else 0)
+    if kugel > 0:  # Kugel an der Spitze: die Kapsel ab der Kugelmitte ist der Fräser selbst
+        mitte = spitze + kugel
+        r = max(radius, kugel)
+        kapseln[SCHNEIDE] = ((mitte, max(oben, mitte), r),)
+        if r > EINDRINGEN:
+            kapseln[KERN] = ((mitte, max(oben, mitte), r - EINDRINGEN),)
+    elif oben - spitze > 1e-6 and radius > 0:
+        kapseln[SCHNEIDE] = ((spitze, oben, radius),)
+        if radius > EINDRINGEN:
+            kapseln[KERN] = ((spitze + EINDRINGEN, oben, radius - EINDRINGEN),)
+    if masse.hals_laenge > 0 and masse.hals_d > 0:
+        hals_ende = min(oben + masse.hals_laenge, ende)
+        if hals_ende - oben > 1e-6:
+            kapseln[HALS] = ((oben, hals_ende, masse.hals_d / 2),)
+        oben = hals_ende
+    if masse.schaft > 0 and ende - oben > 1e-6:
+        kapseln[SCHAFT] = ((oben, ende, masse.schaft / 2),)
+    if halter is not None:
+        stufen = []
+        z = 0.0
+        for abschnitt in halter.abschnitte:
+            if abschnitt.laenge <= 0:
+                continue
+            r = max(abschnitt.d_oben, abschnitt.d_unten) / 2
+            if r > 0:
+                stufen.append((-z - abschnitt.laenge, -z, r))
+            z += abschnitt.laenge
+        if stufen:
+            kapseln[HALTER] = tuple(stufen)
+    return kapseln
 
 
 def drehkoerper(stirn, spitze, oben):
@@ -276,6 +338,24 @@ class Koerper:
     glied: object
     basis: object  # FreeCAD.Placement
     ecken: list = field(default_factory=list)  # Ecken des Hüllquaders, eigene Koordinaten
+    # Werkzeugteile: Kapseln (z0, z1, r) um die eigene Z-Achse, die den Körper enthalten –
+    # für die Netzschranke (werkzeugkapseln); leer: keine Schranke für diesen Körper.
+    kapseln: tuple = ()
+    _netz: object = field(default=None, repr=False)
+
+    def netz(self):
+        """Die Oberfläche als Netz in eigenen Koordinaten (netzabstand.Netz), beim ersten Mal
+        gebaut; None für Körper, gegen die es keine Netzschranke gibt."""
+        if self._netz is None:
+            self._netz = False
+            if self.art in NETZ_TOLERANZ:
+                form = self.form.copy()
+                form.Placement = FreeCAD.Placement()
+                try:
+                    self._netz = na.Netz(form, NETZ_TOLERANZ[self.art])
+                except Exception:  # eine Form, die sich nicht vernetzen lässt: ohne Schranke
+                    self._netz = False
+        return self._netz or None
 
     def __post_init__(self):
         box = self.form.BoundBox
@@ -903,8 +983,16 @@ class _Welt:
             if schluessel not in gebaut:
                 glied = p._glied(op.aufnahme)
                 basis = p._lage(op.aufnahme)
+                kapseln = werkzeugkapseln(w.masse, op.laenge, w.halter)
                 gebaut[schluessel] = [
-                    Koerper(_werkzeug_name(art, w.nummer, w.halter), art, form, glied, basis)
+                    Koerper(
+                        _werkzeug_name(art, w.nummer, w.halter),
+                        art,
+                        form,
+                        glied,
+                        basis,
+                        kapseln=kapseln.get(art, ()),
+                    )
                     for art, form in werkzeugkoerper(w.masse, op.laenge, w.halter, mit_kern=True)
                 ]
             self.werkzeuge.append(gebaut[schluessel])
@@ -917,6 +1005,9 @@ class _Welt:
         self._fahren = {}  # Glied -> die Achsen, die es fahren
         self._paarfaktor = {}  # (a, b) -> je Achse: mm je mm bzw. Grad gegeneinander
         self._drehfaktoren_je_koerper = {}  # (Körper, Drehachse) -> mm je Grad
+        self._netz_fehl = (
+            {}
+        )  # (a, b) -> wie oft die Netzschranke nichts entschied (NETZ_FEHLVERSUCHE)
 
     def neu(self, ergebnis, fortschritt=None, bereich=None):
         """Für einen (weiteren) Lauf über `bereich`: Ergebnis, Fortschritt und alles, was
@@ -1269,26 +1360,103 @@ class _Welt:
                 # Enger: die gedrehten Hüllquader – an einem gekippten Rundtisch ist der Quader
                 # in Weltachsen riesig, längs seiner Normalen bleibt er flach.
                 abstand = max(abstand, _quader_luecke(quader[paar.a], quader[paar.b]))
+            # Die Netzschranke schon gerechnet? Und sagt sie den Abstand fast genau (das Netz sieht
+            # die Oberfläche näher als eine Zelle) – dann lohnt kein genauer Abstand mehr für den
+            # Schritt, er wäre kaum größer.
+            geschaetzt, knapp = False, False
+            if abstand <= reicht and not ist_genau:
+                # Enger noch: das Werkzeugteil als Kapseln gegen das Netz des anderen – meist
+                # entscheidet das, ohne OpenCascade (Spezifikation Strategien 16.5, Hebel 2).
+                netz = self._netzschranke(paar, platzierung, reicht)
+                if netz is not None:
+                    geschaetzt = True
+                    knapp = netz[1]
+                    if netz[0] > abstand:
+                        abstand = netz[0]
+                        self._schranken[schluessel[k]] = (abstand, False)
             if abstand <= reicht and not ist_genau:  # vielleicht ein Befund
                 abstand, stelle = rechne_genau(k)
                 ist_genau = True
+                if geschaetzt:
+                    self._netz_gelernt(paar, abstand > reicht)
                 if abstand <= reicht and _zaehlt(paar, k, abstand, s, anfang):
                     self._merke(paar, abstand, stelle, i, naechste, s, ziel)
             if anfang is not None and paar.nur_eilgang and s == 0.0:
                 anfang[k] = abstand
             if weg > 1e-9:
-                schritte[k] = [self._anteil(paar, abstand, weg), ist_genau]
+                schritte[k] = [
+                    self._anteil(paar, abstand, weg),
+                    ist_genau or knapp,
+                    geschaetzt,
+                    abstand,
+                ]
         # Macht ein Paar den Schritt nur mit seiner Schranke am kürzesten, rechnet es genau –
         # oft liegt es weiter weg, als die Schranke sagt; außer der Schritt reicht auch so bis
-        # zur nächsten Station. Befunde gibt es dabei keine mehr: Der genaue Abstand ist nie
-        # kleiner als die Schranke.
+        # zur nächsten Station. Davor einmal die Netzschranke, wenn sie noch fehlt: Sie reicht
+        # eine Zellenbreite weit und kostet einen Bruchteil – und sieht sie die Oberfläche
+        # näher als das, ist sie fast der genaue Abstand (der Kern der Schneide im Vorschub:
+        # immer EINDRINGEN von der Oberfläche, ein genauer Abstand machte den Schritt nicht
+        # größer). Befunde gibt es dabei keine mehr: Der genaue Abstand ist nie kleiner als
+        # die Schranke.
         while schritte:
             k = min(schritte, key=lambda j: schritte[j][0])
-            if schritte[k][1] or s + schritte[k][0] >= 1.0:
-                return schritte[k][0]
+            anteil, fertig, geschaetzt, abstand = schritte[k]
+            if fertig or s + anteil >= 1.0:
+                return anteil
+            if not geschaetzt:
+                schritte[k][2] = True
+                reicht = BERUEHRT if paare[k].nur_vorschub else self.warn
+                netz = self._netzschranke(paare[k], platzierung, reicht)
+                if netz is not None and (netz[0] > abstand or netz[1]):
+                    if netz[0] > abstand:
+                        self._schranken[schluessel[k]] = (netz[0], False)
+                        schritte[k][0] = self._anteil(paare[k], netz[0], paarwege[k])
+                        schritte[k][3] = netz[0]
+                    schritte[k][1] = netz[1]
+                    continue
             abstand, _stelle = rechne_genau(k)
-            schritte[k] = [self._anteil(paare[k], abstand, paarwege[k]), True]
+            schritte[k] = [self._anteil(paare[k], abstand, paarwege[k]), True, True, abstand]
         return math.inf
+
+    def _netz_gelernt(self, paar, umsonst):
+        """Merkt je Paar, ob die Netzschranke umsonst war (sie entschied nichts, der genaue
+        Abstand dann doch); nach NETZ_FEHLVERSUCHE Malen in Folge lässt das Paar sie weg."""
+        k = (id(paar.a), id(paar.b))
+        self._netz_fehl[k] = self._netz_fehl.get(k, 0) + 1 if umsonst else 0
+
+    def _netzschranke(self, paar, platzierung, reicht):
+        """(Wie weit die beiden mindestens auseinander sind, knapp?) aus den Kapseln des
+        Werkzeugteils gegen das Netz des anderen (netzabstand) – höchstens eine Zellenbreite
+        des Netzes; `knapp`: das Netz hat die Oberfläche näher als eine Zelle gesehen, die
+        Schranke ist dann fast der Abstand (beim Kugelfräser bis auf die Toleranz). None, wenn
+        das Paar keine Kapseln oder kein Netz hat."""
+        if paar.a.kapseln:
+            werkzeug, anderer = paar.a, paar.b
+        elif paar.b.kapseln:
+            werkzeug, anderer = paar.b, paar.a
+        else:
+            return None
+        if self._netz_fehl.get((id(paar.a), id(paar.b)), 0) >= NETZ_FEHLVERSUCHE:
+            return None
+        netz = anderer.netz()
+        if netz is None:
+            return None
+        # Die Kapseln in die Koordinaten des anderen: seine Lage zurück, die des Werkzeugs hin.
+        m = platzierung[anderer].inverse().multiply(platzierung[werkzeug]).toMatrix()
+        z0 = np.array([k[0] for k in werkzeug.kapseln])
+        z1 = np.array([k[1] for k in werkzeug.kapseln])
+        radius = np.array([k[2] for k in werkzeug.kapseln])
+        achse = np.array([m.A13, m.A23, m.A33])
+        ursprung = np.array([m.A14, m.A24, m.A34])
+        von = ursprung + z0[:, None] * achse
+        nach = ursprung + z1[:, None] * achse
+        # So weit suchen, dass die Schranke über `reicht` hinaus noch einen Schritt erlaubt.
+        reichweite = float(radius.max()) + reicht + NETZ_SCHRITT
+        schranken = netz.kapseln(von, nach, reichweite)
+        werte = schranken - radius
+        k = int(np.argmin(werte))
+        knapp = bool(schranken[k] < reichweite - netz.toleranz - 1e-9)
+        return float(werte[k]), knapp
 
     def _beruehrt_schon(self, operation, paar):
         """Stecken die beiden in dieser Operation schon ineinander (Abstand 0)? Dann bleibt
@@ -1552,8 +1720,16 @@ def _beladen_koerper(pruefung, eintraege):
         if aufnahme is None or aufnahme in ergebnis or masse is None or laenge <= 0:
             continue
         glied, basis = pruefung._glied(aufnahme), pruefung._lage(aufnahme)
+        kapseln = werkzeugkapseln(masse, laenge, halter)
         ergebnis[aufnahme] = [
-            Koerper(_beladen_name(art, nummer, halter), art, form, glied, basis)
+            Koerper(
+                _beladen_name(art, nummer, halter),
+                art,
+                form,
+                glied,
+                basis,
+                kapseln=kapseln.get(art, ()),
+            )
             for art, form in werkzeugkoerper(masse, laenge, halter)
         ]
     return ergebnis

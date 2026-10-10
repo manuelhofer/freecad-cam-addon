@@ -609,8 +609,7 @@ in P-2026-10-10-19 bis -22); nächste freie Nummer B-017.
   (P-2026-10-09-11):** der Kuppelvergleich (eine Variante) 131 → 44 s. **Normalen, Kugelschnitt und
   Deckung in Stücken (P-2026-10-09-12):** der Kuppelvergleich 44 → 23 s, `test_simultan_planung`
   36 s. Am Freiformbeispiel eine Variante 670 → 211 s (P-2026-10-09-13:
-  Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). T-007 Werkzeugkiste-Import gebaut (P-2026-10-10-06, mit exakter Dublettenprüfung). Als Nächstes (Manuel, 2026-10-10: erst der Import, dann die Hebel): Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
-  Kombinationen“ parallel (Hebel 3), `fahren` (Materialstand) in Stücken. GPU verworfen (Manuels Frage, 2026-10-10): OpenCascade
+  Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). T-007 Werkzeugkiste-Import gebaut (P-2026-10-10-06, mit exakter Dublettenprüfung). **Netzschranke gebaut (P-2026-10-10-27, Hebel 2):** gezählt war es nicht Halter und Spindel, sondern der Kern der Schneide gegen das Teil (9 246 von 10 374 genauen Abständen an der Kuppel); jetzt Werkzeugteile als Kapseln gegen das vernetzte Teil mit numpy – 10 374 → 841 Aufrufe, 21,4 → 3,7 s in OpenCascade, mit 24 Arbeitern Kollision 7,0 → 5,0 s von 32 s. Als Nächstes: der Aufbau der Welt je Arbeiter und Aufruf (Körper, Berührungen in Grundstellung, Netz – an der Kuppel der Rest der 5 s), die Varianten des Hakens „Alle Kombinationen“ parallel (Hebel 3), `fahren` (Materialstand) in Stücken. GPU verworfen (Manuels Frage, 2026-10-10): OpenCascade
   rechnet nur auf der CPU, der numpy-Anteil läuft schon auf allen Kernen, und je Hersteller
   (NVIDIA, AMD, Intel) bräuchte FreeCADs Python einen eigenen Treiberstapel – zu wenig Gewinn
   für zu viel Abhängigkeit. Die Arbeiterzahl folgt `os.cpu_count()` des Rechners, auf dem FreeCAD
