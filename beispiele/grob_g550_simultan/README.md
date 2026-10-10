@@ -41,7 +41,7 @@ Werkzeugverwaltung ist zum Ausprobieren nicht nötig.
 
 ## Ergebnis der Modellprüfung
 
-In FreeCAD 1.1.4 geprüft (2026-10-06):
+In FreeCAD 1.1.4 geprüft (2026-10-06, nach dem Neubau der Maschine am 2026-10-10 kopflos nachgemessen):
 
 | Ergebnis | Wert |
 | --- | --- |
@@ -51,11 +51,13 @@ In FreeCAD 1.1.4 geprüft (2026-10-06):
 | A und B | jeweils −10° … +10° |
 | Verfahrgrenzen überschritten | keine |
 | Kollisionen oder Annäherungen unter 1 mm im Modell | keine |
-| Rechnerische Fahrzeit | etwa 12 s, davon 10 s Vorschub und 2 s Eilgang |
+| Rechnerische Fahrzeit | etwa 14 s, davon 9,6 s Vorschub und 4,6 s Eilgang |
 
 Die Zählung vergleicht aufeinanderfolgende Vorschubsätze mit einer Schwelle von
 0,00001 für jede Achse. `messung.json` enthält die Messwerte; ihre XYZ-Werte sind
 Bahnkoordinaten in mm, keine MKS-Endlagen der Maschine. A/B sind Programmwinkel in Grad.
+Die Z-Werte reichen bis 887 mm: Vor jedem Schwenk zieht die Bahn bis an die Grenze der
+Z-Achse zurück (P-2026-10-10-19), damit Spindel und Tisch beim Schwenken frei sind.
 Ein probeweise ausgegebenes Siemens-Programm wurde vom vorhandenen Nachleser ohne
 Befund gelesen; es ist kein Bestandteil dieses Beispiels.
 
@@ -76,4 +78,6 @@ an keiner echten G550 geprüft. Die Zeit ist eine Modellrechnung.
 
 Bei einer flachen Aufspannung direkt auf dem Rundtisch wurden im ersten Versuch
 Kollisionen auf der Rückfahrt und ein unpassender Hinweis zur Werkzeugrichtung
-gefunden. Das bleibt als B-015 offen; diese Aufspannung ist hier nicht enthalten.
+gefunden (B-015). Seit dem Rückzug bis an die Z-Grenze, der neu gebauten Maschine und
+dem Hinweis nur für feste Werkzeugrichtungen (P-2026-10-10-19 bis -22) ist auch diese
+Aufspannung im Modell ohne Befund; sie ist hier nicht enthalten.

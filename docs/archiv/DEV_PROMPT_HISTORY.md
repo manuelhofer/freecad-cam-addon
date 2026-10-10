@@ -55,6 +55,58 @@ Ebene schwenken, Strg+Z, irgendetwas anderes tun: Der Klon ist weg, der Baum sau
   gelöschten Klon wieder her. Darum erst, wenn der Wiederholen-Stapel leer ist.
 - Szenario `szenario_werkzeugzugang` grün (mit der neuen Prüfung).
 
+## P-2026-10-10-20 g550-neu-gebaut
+
+### EINGELESEN
+- Manuel, 2026-10-10: „die grob ist echt schlecht gebaut worden .. 1. bei der realen grob fährt
+  die z achse komplett aus dem verfahrraum raus die ist in einem loch da kommt der tisch garnicht
+  hin .. vll solltest du die maschine nochmal neu bauen ?“ GROB-Konzept (Produktseite G550,
+  2026-10-10): alle drei Linearachsen auf der Spindelseite, die Z-Achse zieht die waagerechte
+  Spindel in den Tunnel des Ständers zurück; der Tisch trägt nur A (Wiege) und B (Rundtisch). Das
+  alte Modell hatte Y als Hubtisch – darum fuhr der Tisch beim Rückzug in die Spindel (B-015).
+- Zahlen weiter aus der Spezifikation G550 (Wege 800/1.020/970, A −185 … +45°, B endlos, Tisch
+  Ø 770); Körpermaße bleiben angenähert.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (`grob_g550`: Bett aus Spindel- und Tischseite; X-Sattel mit
+  zwei Wänden und Decke als Tunnel, darin der Y-Schlitten als Rahmen, darin der Z-Schlitten mit
+  der waagerechten Spindel; Tischständer mit zwei A-Lagern, Wiege aus zwei kurzen Zapfen außerhalb
+  der Tischscheibe, Rundtisch mit Nuten, Winkelaufnahme wie bisher; X1 ±400, Y1 ±510, Z1 ±485 auf
+  der Spindelseite, A1/B1 am Tisch), `tests/test_beispielmaschine.py` (Rollen X/Y/Z Kopf, A/B
+  Tisch; Bewegung je Achse, Tunnel, Freiräume an den Enden), `tests/gui/szenario_grob_g550.py`,
+  `translations/de.json`, `translations/en.json`, `help/de/neue_maschine.html`,
+  `help/en/neue_maschine.html`, `docs/spezifikation_grob_g550.md`, `beispiele/README.md`.
+- Neu geschrieben: `beispiele/grob_g550.FCStd`, `beispiele/grob_g550_simultan/g550_winkelaufnahme.FCStd`,
+  `beispiele/grob_g550_freiform/g550_winkelaufnahme.FCStd`, `beispiele/grob_g550_simultan/messung.json`
+  (kopflos nachgemessen) und `…/README.md`; die Referenzen des Simultanvergleichs
+  `tests/golden/kuppel_simultan.json`, `kuppel_simultan_gesamt.json`, `kuppel_simultan_gesamt_nc.json`,
+  `simultan_folge.json`, `freiform_simultan_gesamt_nc.json` (der Rückzug aus P-2026-10-10-19 und
+  die neue Maschine ändern die Sätze); `tests/test_simultan_export_referenz.py`
+  (`EXPORT_REFERENZ_SCHREIBEN=1` schreibt die Referenz).
+- `docs/STATUS_SNAPSHOT.md`: B-015 und B-016 geschlossen, G550 und Simultanbeispiel im
+  Projektstatus; dabei nach Manuels Antworten vom 2026-10-10 T-008 gestrichen („ist egal kannste
+  löschen“), T-004 im Klartext erklärt und als nicht behoben bestätigt („ist das im wochenbuild
+  schon behoben“: nein – im Quelltext von main am 2026-10-10 unverändert, in 1.1.4 gibt es das
+  Modul gar nicht), T-010 neu (der Transaktionsfehler aus P-2026-10-10-21).
+
+### AKZEPTANZKRITERIUM
+`test_beispielmaschine` und `szenario_grob_g550` grün; die flache Tasche aus P-2026-10-10-19 auf
+der neuen G550 ohne Berührung; das Simultanbeispiel ohne Kollision und ohne Grenzüberschreitung.
+
+### DONE
+- Flache Tasche auf dem Rundtisch, Flanke mit A bis 80°: 0 Befunde (vorher drei). Simultanbeispiel:
+  299 Sätze, 252 davon mit allen fünf Achsen, 14,2 s (9,6 Vorschub, 4,6 Eilgang), keine Kollision,
+  keine Überschreitung, einziger Hinweis die geschätzte Werkzeuglänge wie bisher; die Z-Werte der
+  Bahn reichen bis 887 mm (Rückzug bis an die Z-Grenze).
+- Unterwegs: die Tischeinheit 150 mm näher an den Ständer (sonst Z1 −522 bei Grenze −485) und die
+  Wiege als zwei kurze Zapfen r 90 außerhalb der Tischscheibe (die Schneide traf eine durchgehende
+  Wiege).
+- `test_beispielmaschine` 1 s, `szenario_grob_g550` 11 s (Bilder: Grundstellung, Spindel seitlich
+  zurück und gesenkt, A −90 B −45), `test_simultan_export_referenz`, `test_simultan_folge`,
+  `test_simultan_planung`, `test_simultan_gesamt` mit den neuen Referenzen grün. Das
+  Freiformbeispiel (`pruefen.py`, rund 35 min) rechnet auf der neuen Maschine nach; sein Ergebnis
+  kommt als eigener Patch.
+
 ## P-2026-10-10-19 simultan-rueckzug-bis-an-die-achsgrenze
 
 ### EINGELESEN

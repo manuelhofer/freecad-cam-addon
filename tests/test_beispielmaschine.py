@@ -185,8 +185,8 @@ for art in beispielmaschine.ARTEN:
         v.grundstellung()
     App.closeDocument(doc.Name)
 
-# Die G550 hat X/Z am Werkzeug, Y/A/B am Tisch. Welt-Z ist die Höhe, NC-Y dagegen
-# die relative Bewegung: Positives Y senkt das Werkstück unter dem waagerechten Werkzeug.
+# Die G550 nach dem GROB-Konzept (P-2026-10-10-19): X, Y und Z auf der Werkzeugseite, der Tisch
+# hat nur A und B. Welt-Z ist die Höhe; NC-Y hebt die Spindel, NC-Z fährt sie zurück (Welt −Y).
 asm, ma = beispielmaschine.grob_g550()
 doc = asm.Document
 kette = kette_modul.lies_kette(asm)
@@ -194,7 +194,7 @@ rollen, _ = m.rollen(kette, ma)
 achsen = {a.gelenk.Label: a for a in kette.achsen}
 pruefe(
     {n: rollen.get(achsen[n].gelenk) for n in ("X", "Y", "Z", "A", "B")}
-    == {"X": m.KOPF, "Y": m.TISCH, "Z": m.KOPF, "A": m.TISCH, "B": m.TISCH},
+    == {"X": m.KOPF, "Y": m.KOPF, "Z": m.KOPF, "A": m.TISCH, "B": m.TISCH},
     "G550: Achsen auf der falschen Seite",
 )
 v = vf.Verfahren(asm, kette)
@@ -202,10 +202,10 @@ gebaut = {
     n: App.Placement(doc.getObject(n).Placement)
     for n in (
         "XSattel",
+        "YSchlitten",
         "ZSchlitten",
         "Spindel",
         "Tischstaender",
-        "YSchlitten",
         "Wiege",
         "Rundtisch",
     )
@@ -213,36 +213,55 @@ gebaut = {
 v.setze_alle({achsen["X"]: 60, achsen["Z"]: 100, achsen["Y"]: 40})
 for teil, soll in (
     ("XSattel", App.Vector(60, 0, 0)),
-    ("Spindel", App.Vector(60, -100, 0)),
-    ("Rundtisch", App.Vector(0, 0, -40)),
-    ("Wiege", App.Vector(0, 0, -40)),
+    ("YSchlitten", App.Vector(60, 0, 40)),
+    ("Spindel", App.Vector(60, -100, 40)),
+    ("Rundtisch", App.Vector()),
+    ("Wiege", App.Vector()),
     ("Tischstaender", App.Vector()),
 ):
     pruefe(weg(teil).isEqual(soll, 1e-6), f"G550 {teil}: {weg(teil)} statt {soll}")
 v.grundstellung()
-# Die Hubplatte bleibt auch am unteren Y-Ende über dem Bett; die Oberkante der
-# Führung bleibt wie gebaut. Gegenprobe am alten Beispiel: 650 − 510 < 300.
-v.setze(achsen["Y"], 510)
-hub = doc.getObject("Hubplatte")
-hubform = hub.Shape.copy()
-hubform.Placement = hub.getGlobalPlacement()
-pruefe(
-    hubform.BoundBox.ZMin > doc.getObject("Bett").Shape.BoundBox.ZMax,
-    "G550: Hubplatte am unteren Y-Ende im Bett",
-)
+
+
+def _form(name):
+    teil = doc.getObject(name)
+    form = teil.Shape.copy()
+    form.Placement = teil.getGlobalPlacement()
+    return form
+
+
+# Der Tunnel (Manuel, 2026-10-10: „die z achse fährt komplett aus dem verfahrraum raus, die ist in
+# einem loch, da kommt der tisch garnicht hin“): Bei Z ganz zurück steht die Spindelnase nicht
+# vor der Ständerfront, und der Y-Schlitten bleibt in jeder Y-Stellung zwischen Sattel und Decke.
+v.setze(achsen["Z"], 485)
+nase = doc.getObject("Spindelnase").getGlobalPlacement().Base
+front = _form("WandLinks").BoundBox.YMax
+pruefe(nase.y <= front + 1e-6, f"G550: Spindelnase bei Z +485 vor dem Ständer ({nase.y} > {front})")
+v.grundstellung()
+for y in (-510, 510):
+    v.setze(achsen["Y"], y)
+    unten, oben = _form("YUnten").BoundBox.ZMin, _form("YOben").BoundBox.ZMax
+    pruefe(
+        unten > _form("Sattel").BoundBox.ZMax and oben < _form("Decke").BoundBox.ZMin,
+        f"G550: Y-Schlitten bei Y {y} außerhalb des Tunnels ({unten} … {oben})",
+    )
 v.grundstellung()
 pruefe(vf.programm_vorzeichen(achsen["A"], kette) == -1, "G550: A gegen DIN")
-v.setze(achsen["Y"], 510)
+# Der Ständer kommt in keiner Endlage an die Lagerböcke oder den Tisch.
 for x in (-400, 400):
-    v.setze(achsen["X"], x)
-    boden = doc.getObject("Sattelboden")
-    bodenform = boden.Shape.copy()
-    bodenform.Placement = boden.getGlobalPlacement()
-    for name in ("Hubplatte", "Tragarm", "ALager"):
-        teil = doc.getObject(name)
-        form = teil.Shape.copy()
-        form.Placement = teil.getGlobalPlacement()
-        pruefe(bodenform.distToShape(form)[0] > 1.0, f"G550: X-Sattel bei X {x}/Y 510 an {name}")
+    for y in (-510, 510):
+        for z in (-485, 485):
+            v.setze_alle({achsen["X"]: x, achsen["Y"]: y, achsen["Z"]: z})
+            for a_name, b_name in (
+                ("WandLinks", "LagerRechts"),
+                ("WandRechts", "LagerLinks"),
+                ("ZSchlitten", "Tischscheibe"),
+                ("Spindel", "Tischscheibe"),
+            ):
+                abstand = _form(a_name).distToShape(_form(b_name))[0]
+                pruefe(
+                    abstand > 1.0, f"G550: X {x}/Y {y}/Z {z}: {a_name} an {b_name} ({abstand:.1f})"
+                )
 v.grundstellung()
 pruefe(vf.programm_vorzeichen(achsen["B"], kette) == -1, "G550: B gegen DIN")
 pruefe(v.grenzen(achsen["A"]) == (-45.0, 185.0), f"G550: A {v.grenzen(achsen['A'])}")

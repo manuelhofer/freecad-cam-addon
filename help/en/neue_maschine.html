@@ -14,13 +14,15 @@ the main dimensions yourself – for the 5-axis mills also how far they swivel.<
 with a fixed joint – the collision check (“Check on machine”) then takes it
 into account.</p>
 
-<h3>GROB G550 – horizontal spindle and lifting table</h3>
-<p><b>X</b> moves the spindle unit sideways; <b>Z</b> moves the spindle forwards and backwards.
-<b>Y</b> raises and lowers the entire table including its rotary axes. <b>A</b> tilts the table;
-<b>B</b> rotates it about the normal of its clamping surface. At A = 0 the table is horizontal;
-at A = −90 its clamping surface faces the spindle. Try this under <b>Move machine</b>.
-For machining on the top of the table, <b>Swivel plane (3+2)</b> aligns the face with the
-horizontal spindle.</p>
+<h3>GROB G550 – horizontal spindle, tunnel, tilting rotary table</h3>
+<p>Following the GROB concept, all three linear axes sit on the tool side: <b>X</b> moves the
+column with the spindle sideways, <b>Y</b> raises and lowers the spindle slide inside the column,
+<b>Z</b> moves the spindle unit forwards and back – fully retracted, the spindle nose sits in the
+column's tunnel, where the table never reaches. The table does not move linearly: <b>A</b> tilts
+it, <b>B</b> rotates it on its clamping face. At A = 0 the table is horizontal; at A = −90 its
+clamping face points at the spindle. Try it under <b>Move machine</b>. For machining on the table
+top, <b>Swivel plane (3+2)</b> aligns the face with the horizontal spindle. The chip space below
+the table stays free.</p>
 <p>The defaults are X/Y/Z travel of 800/1,020/970 mm, a table diameter of 770 mm,
 A from −185 to +45 degrees, and a 16,000 rpm spindle. B rotates endlessly.
 Bodies and distances are approximate; travel limits are measured from the built position 0

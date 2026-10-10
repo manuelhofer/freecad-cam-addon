@@ -1,5 +1,5 @@
-# G550 wählen, bauen und die getrennten Bewegungen der horizontalen Spindel und
-# des Hubtisches zeigen. A=−90 (an der Steuerung) stellt die Spannfläche zur Spindel.
+# G550 wählen, bauen und die Bewegungen zeigen: X, Y, Z fahren die Spindel, A und B den Tisch
+# (GROB-Konzept, P-2026-10-10-19). A=−90 (an der Steuerung) stellt die Spannfläche zur Spindel.
 import os
 
 import FreeCAD as App
@@ -29,7 +29,7 @@ def schritte(h):
     d.liste.setCurrentRow(bm.ARTEN.index(bm.GROB_G550))
     yield 200
     h.pruefe(d.masse() == bm.FuenfachsMasse.vorgabe(bm.GROB_G550), "G550: falsche Vorbelegung")
-    h.pruefe("Y hebt und senkt" in d.beschreibung.text(), "G550: Hubtisch nicht erklärt")
+    h.pruefe("Y hebt und senkt" in d.beschreibung.text(), "G550: Y nicht erklärt")
     h.pruefe(not d.feld_bett.isVisible(), "G550: Drehmaschinenfelder sichtbar")
     h.pruefe(
         d._schwenk_zeilen[0].isVisible() and not d._schwenk_zeilen[1].isVisible(),
@@ -63,18 +63,18 @@ def schritte(h):
         fahren.zeilen[fahren.achse(name)][1].setValue(wert)
     h.pruefe(
         (doc.getObject("Spindel").Placement.Base - vorher["Spindel"].Base).isEqual(
-            App.Vector(200, -200, 0), 1e-6
+            App.Vector(200, -200, -200), 1e-6
         ),
         "G550: Spindel bewegt sich falsch",
     )
     h.pruefe(
         (doc.getObject("Rundtisch").Placement.Base - vorher["Rundtisch"].Base).isEqual(
-            App.Vector(0, 0, 200), 1e-6
+            App.Vector(), 1e-6
         ),
-        "G550: Y hebt den Tisch nicht",
+        "G550: der Tisch fährt linear mit",
     )
     yield 300
-    h.bild("3_tisch_angehoben_spindel_zurueck")
+    h.bild("3_spindel_seitlich_zurueck_gesenkt")
     fahren.grundstellung()
     for name, wert in (("A1", -90), ("B1", -45)):
         fahren.zeilen[fahren.achse(name)][1].setValue(wert)

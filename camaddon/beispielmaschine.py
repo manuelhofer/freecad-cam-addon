@@ -580,54 +580,80 @@ def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, drehzahl, wechsel_
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
 
 
-def grob_g550(masse=None):
-    """Grobe G550: Spindel waagerecht auf X/Z, Tisch auf Y, darin A und endlos B.
+def grob_g550(masse=None, winkelaufnahme=False):
+    """Grobe G550 nach dem GROB-Konzept: waagerechte Spindel, alle drei Linearachsen auf der
+    Werkzeugseite – X fährt den Ständer seitlich, Y den Spindelschlitten im Ständer hoch und
+    runter, Z den Spindelstock durch den Tunnel vor und zurück –, der Tisch hat nur A (schwenken
+    um X) und endlos B (drehen). Steht Z ganz zurück, liegt die Spindelnase im Tunnel hinter der
+    Ständerfront: Dort kommt der Tisch nie hin (Manuel, 2026-10-10: „bei der realen grob fährt
+    die z achse komplett aus dem verfahrraum raus die ist in einem loch da kommt der tisch garnicht
+    hin“; GROB: „Tunnel-Konzept“, Störkreis Ø 900). Unter dem Tisch bleibt der Späneraum frei.
 
-    Welt-Z ist die Höhe des Modells, NC-Y dagegen eine Tischachse: Ihr Plus senkt den Tisch,
-    damit das Werkzeug relativ zum Werkstück nach oben fährt. NC-Z fährt die Spindel in
-    Welt−Y zurück. A=0 zeigt die Spannfläche nach oben, A=−90 zur Spindel (DIN 66217).
-    Körpermaße und Drehpunktabstände sind angenähert; Quellen: docs/spezifikation_grob_g550.md.
+    Welt-Z ist die Höhe des Modells. NC-Z fährt die Spindel in Welt −Y zurück (plus: vom Tisch
+    weg), NC-Y hebt sie, NC-X fährt sie seitlich. A=0 zeigt die Spannfläche nach oben, A=−90 zur
+    Spindel (DIN 66217). Körpermaße und Drehpunktabstände sind angenähert; Quellen und Grenzen:
+    docs/spezifikation_grob_g550.md. `winkelaufnahme`: dazu die angenäherte Winkelaufnahme der
+    Beispiele (Fuß 180 × 200 × 25 auf dem Tisch, Wand 150 × 20 × 380) und der Spannplatz an ihrer
+    Wand, 400 über dem Tisch, zur Spindel gerichtet (beispiele/grob_g550_simultan, …_freiform).
     Gibt (Assembly, Maschine) zurück.
     """
     masse = masse or FuenfachsMasse.vorgabe(GROB_G550)
     b = _neu(GROB_G550)
-    bett = b.quader("Bett", 2600, 3200, 300, farbe=GUSS)
+    # Das Bett in zwei Teilen: Unter dem Tisch (y 1300 … 1750) ist der Späneraum frei – der Tisch
+    # schwenkt um die A-Achse bei y 2000, z 1200 (Störkreis Ø 900, Herstellerangabe); bei Z ganz vorn
+    # (−485) steht die Nase 30 mm vor der Tischfläche in A = −90.
+    bett, _ = b.bauteil(
+        "Bett",
+        [
+            b.quader("BettSpindel", 2600, 1300, 300, farbe=GUSS),
+            b.quader("BettTisch", 2600, 1450, 300, y=1750, farbe=GUSS),
+        ],
+    )
     b.fixieren(bett)
+    # Die Spindelseite: der Ständer fährt auf dem Bett seitlich (X); in ihm der Tunnel (x 1050 …
+    # 1550, z 400 … 2300, Front bei y 1000), darin der Y-Schlitten als Rahmen, durch den der
+    # Spindelstock (Z) läuft.
     sattel, _ = b.bauteil(
         "XSattel",
         [
-            # Der X-Sattel endet vor dem Bewegungsraum des Hubtischs. Die frühere
-            # 1800-mm-Platte lag bei tiefem Y und seitlichem X unter dem A-Lager.
-            b.quader("Sattelboden", 800, 1150, 250, x=900, z=300, farbe=SCHLITTEN),
-            b.quader("Spindelstaender", 800, 450, 750, x=900, z=550, farbe=GUSS),
+            b.quader("Sattel", 1000, 1200, 100, x=800, y=50, z=300, farbe=SCHLITTEN),
+            b.quader("WandLinks", 250, 900, 1900, x=800, y=100, z=400, farbe=GUSS),
+            b.quader("WandRechts", 250, 900, 1900, x=1550, y=100, z=400, farbe=GUSS),
+            b.quader("Decke", 1000, 900, 200, x=800, y=100, z=2300, farbe=GUSS),
         ],
     )
-    schlitten = b.quader("ZSchlitten", 500, 1100, 250, x=1050, y=50, z=950, farbe=KOPF)
+    hub, _ = b.bauteil(
+        "YSchlitten",
+        [
+            b.quader("YLinks", 90, 600, 400, x=1060, y=250, z=1000, farbe=SCHLITTEN),
+            b.quader("YRechts", 90, 600, 400, x=1450, y=250, z=1000, farbe=SCHLITTEN),
+            b.quader("YUnten", 480, 600, 50, x=1060, y=250, z=1000, farbe=SCHLITTEN),
+            b.quader("YOben", 480, 600, 50, x=1060, y=250, z=1350, farbe=SCHLITTEN),
+        ],
+    )
+    schlitten = b.quader("ZSchlitten", 300, 1300, 300, x=1150, y=185, z=1050, farbe=KOPF)
     spindel, spindelnase = b.bauteil(
         "Spindel",
         b.zylinder(
             "Spindelkoerper",
             100,
-            500,
+            400,
             x=1300,
-            y=1150,
-            z=1150,
+            y=1485,
+            z=1200,
             achse=(0, -1, 0),
             farbe=SPINDEL,
         ),
         lcs_name="Spindelnase",
     )
     x = b.gelenk_wie_gebaut(
-        "X", "Slider", bett, "Face6", sattel, "Sattelboden.Face5", richtung=(1, 0, 0)
+        "X", "Slider", bett, "BettSpindel.Face6", sattel, "Sattel.Face5", richtung=(1, 0, 0)
+    )
+    y = b.gelenk_wie_gebaut(
+        "Y", "Slider", sattel, "WandLinks.Face2", hub, "YLinks.Face1", richtung=(0, 0, 1)
     )
     z = b.gelenk_wie_gebaut(
-        "Z",
-        "Slider",
-        sattel,
-        "Spindelstaender.Face6",
-        schlitten,
-        "Face5",
-        richtung=(0, -1, 0),
+        "Z", "Slider", hub, "YLinks.Face2", schlitten, "Face1", richtung=(0, -1, 0)
     )
     s = b.gelenk_wie_gebaut(
         "Spindelachse",
@@ -638,47 +664,65 @@ def grob_g550(masse=None):
         "Spindelkoerper.Face2",
         richtung=(0, -1, 0),
     )
-
-    staender = b.quader("Tischstaender", 1000, 350, 2000, x=800, y=2300, z=300, farbe=GUSS)
-    b.gelenk_wie_gebaut("Tischstaender_fest", "Fixed", bett, "Face6", staender, "Face5")
-    hub, _ = b.bauteil(
-        "YSchlitten",
+    # Die Tischseite: zwei Lagerböcke auf dem hinteren Bett, dazwischen die Wiege (A) mit dem
+    # Rundtisch (B). Nichts davon fährt linear.
+    staender, _ = b.bauteil(
+        "Tischstaender",
         [
-            # Unten Platz für den ganzen Y-Weg lassen: Die frühere Platte begann bei 650
-            # und schnitt bei Y > 350 ins Bett (gefunden beim Simultan-Beispiel).
-            b.quader("Hubplatte", 700, 300, 750, x=950, y=2000, z=900, farbe=SCHLITTEN),
-            b.quader("Tragarm", 250, 700, 380, x=650, y=1600, z=960, farbe=SCHLITTEN),
-            b.zylinder("ALager", 190, 200, x=700, y=1600, z=1150, achse=(1, 0, 0), farbe=GUSS),
+            b.quader("LagerLinks", 300, 500, 1400, x=500, y=1750, z=300, farbe=GUSS),
+            b.zylinder("ALager", 150, 200, x=700, y=2000, z=1200, achse=(1, 0, 0), farbe=GUSS),
+            b.quader("LagerRechts", 300, 500, 1400, x=1800, y=1750, z=300, farbe=GUSS),
         ],
     )
-    y = b.gelenk_wie_gebaut(
-        "Y", "Slider", staender, "Face3", hub, "Hubplatte.Face4", richtung=(0, 0, -1)
+    b.gelenk_wie_gebaut(
+        "Tischstaender_fest", "Fixed", bett, "BettTisch.Face6", staender, "LagerLinks.Face5"
     )
     wiege, _ = b.bauteil(
         "Wiege",
         [
-            b.zylinder("AZapfen", 130, 350, x=900, y=1600, z=1150, achse=(1, 0, 0), farbe=SPINDEL),
-            b.quader("Tischtraeger", 440, 500, 120, x=1080, y=1350, z=1030, farbe=KOPF),
+            # Die Zapfen nur außerhalb des Tisches (Ø 770 um x 1300) und kleiner als der Abstand
+            # der Spannfläche zur A-Achse (100): Nichts ragt vor die Spannfläche, wenn sie in
+            # A = −90 zur Spindel zeigt – der erste Bau ließ die Schneide am Zapfen anstoßen.
+            b.zylinder(
+                "AZapfenLinks", 90, 200, x=900, y=2000, z=1200, achse=(1, 0, 0), farbe=SPINDEL
+            ),
+            b.zylinder(
+                "AZapfenRechts", 90, 200, x=1700, y=2000, z=1200, achse=(1, 0, 0), farbe=SPINDEL
+            ),
+            b.quader("Tischtraeger", 440, 500, 120, x=1080, y=1750, z=1030, farbe=KOPF),
         ],
     )
     a = b.gelenk_wie_gebaut(
-        "A", "Revolute", hub, "ALager.Face3", wiege, "AZapfen.Face3", richtung=(1, 0, 0)
+        "A", "Revolute", staender, "ALager.Face3", wiege, "AZapfenLinks.Face3", richtung=(1, 0, 0)
     )
     # Tisch und Spannplatz bleiben als ein Part zusammen; seine Z-Achse ist die Normale
     # der Spannfläche. B dreht tatsächlich um die senkrechte NC-Y-Achse, nicht um NC-Z.
+    aufnahme = []
+    if winkelaufnahme:
+        aufnahme = [
+            b.quader("WinkelaufnahmeFuss", 180, 200, 25, x=1210, y=1900, z=1250, farbe=KOPF),
+            b.quader("WinkelaufnahmeWand", 150, 20, 380, x=1225, y=2000, z=1275, farbe=KOPF),
+        ]
     tisch, spannplatz = b.bauteil(
         "Rundtisch",
         [
-            b.zylinder("Tischscheibe", 385, 100, x=1300, y=1600, z=1150, farbe=TISCH),
+            b.zylinder("Tischscheibe", 385, 100, x=1300, y=2000, z=1150, farbe=TISCH),
             # Angedeutete Nuten machen das Drehen von B auch ohne Werkstück sichtbar.
             *[
-                b.quader(f"Tischnut{i}", 520, 12, 1, x=1040, y=1594 + versatz, z=1250, farbe=GUSS)
+                b.quader(f"Tischnut{i}", 520, 12, 1, x=1040, y=1994 + versatz, z=1250, farbe=GUSS)
                 for i, versatz in enumerate((-240, -120, 0, 120, 240), 1)
             ],
+            *aufnahme,
         ],
         lcs_name="Spannplatz",
-        lcs_hoehe=100,
+        lcs_hoehe=400 if winkelaufnahme else 100,
     )
+    if winkelaufnahme:
+        # Der Spannplatz an der Wand: seine Z-Achse (die Normale der Spannfläche) zeigt in A = 0
+        # längs der Tischfläche zur Spindel hin – wie in den gespeicherten Beispielen.
+        spannplatz.Placement = App.Placement(
+            App.Vector(0, 0, 400), App.Rotation(App.Vector(1, 0, 0), 90)
+        )
     dreh = b.gelenk_wie_gebaut(
         "B",
         "Revolute",

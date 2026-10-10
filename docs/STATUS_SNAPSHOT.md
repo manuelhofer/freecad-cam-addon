@@ -79,17 +79,19 @@ Vorschau mit 0,5-mm-Raster; genaue Qualitätszulassung im Simultanvergleich (P-2
 
 **G550-Simultanbeispiel:** fertiger Flanken-Schlichtjob mit D12 auf Winkelaufnahme unter
 `beispiele/grob_g550_simultan/`; 252 Vorschubbewegungen ändern X/Y/Z/A/B gemeinsam,
-Modellprüfung ohne Kollisionen oder Grenzüberschreitungen, etwa 12 s gerechnet. Startskript
-öffnet Maschine, Job und Prüffenster im eigenen Profil auf dem zweiten Bildschirm
-(P-2026-10-06-05). Persönliche Werkzeugbibliothek noch nicht wiederhergestellt: T-008.
+Modellprüfung ohne Kollisionen oder Grenzüberschreitungen, etwa 14 s gerechnet (auf der neu
+gebauten Maschine nachgemessen, P-2026-10-10-20). Startskript öffnet Maschine, Job und
+Prüffenster im eigenen Profil auf dem zweiten Bildschirm (P-2026-10-06-05).
 
-**GROB G550 als Beispielmaschine:** gebaut, waagerechte Spindel auf X/Z und Hubtisch Y mit
-A/B; „Neue Maschine …“ → GROB G550 oder `beispiele/grob_g550.FCStd` direkt öffnen; Achsbewegungen,
-Grenzen, 3+2-Ausrichtung und Oberfläche in 1.1.4 geprüft, Manuels Klickprüfung steht aus
-(P-2026-10-06-02; Quellen: [spezifikation_grob_g550.md](spezifikation_grob_g550.md)).
-Die Hubplatte bleibt jetzt auch am unteren Y-Ende über dem Bett (P-2026-10-06-04).
-Der X-Sattelboden endet vor dem Bewegungsraum des A-Lagers; die Modellkollision bei
-gleichzeitig seitlichem X und tiefem Y ist behoben (P-2026-10-07-01).
+**GROB G550 als Beispielmaschine:** am 2026-10-10 neu gebaut nach dem GROB-Konzept
+(P-2026-10-10-20; Manuel: „bei der realen grob fährt die z achse komplett aus dem verfahrraum
+raus die ist in einem loch da kommt der tisch garnicht hin“): waagerechte Spindel auf X/Y/Z,
+die Z-Achse zieht sie in den Tunnel des Ständers zurück, der Tisch trägt nur A (Wiege) und B
+(Rundtisch); vor jedem Schwenk zieht die Bahn bis an die Z-Grenze zurück (P-2026-10-10-19).
+„Neue Maschine …“ → GROB G550 oder `beispiele/grob_g550.FCStd` direkt öffnen; Achsbewegungen,
+Grenzen, Tunnel-Freiräume und Oberfläche in 1.1.4 geprüft (`test_beispielmaschine`,
+`szenario_grob_g550`), Manuels Klickprüfung steht aus
+(Quellen: [spezifikation_grob_g550.md](spezifikation_grob_g550.md)).
 
 **Zusätzliche Räumwahl:** Schritt 3 → Räumen → Bahnerzeugung → „Adaptiv – schneller
 Freivorschub“, mit einstellbarer Obergrenze und gespeicherter Auswahl; bisherige Bahnerzeugung
@@ -569,25 +571,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-- **B-016 Job-Undo lässt Rohteilklon zurück:** Nach der Rücknahme eines geschwenkten
-  Ebenenjobs bleibt ein unbenutzter nativer `Clone002` ohne Ebenenjob im Dokument;
-  eigenständig bereinigen (P-2026-10-08-07, GUI-Beleg Werkzeugzugang).
-
-- **B-015 G550: Rückfahrt bei flacher Aufspannung und Richtungswarnung.** Beim Simultanversuch
-  mit flacher Tasche direkt auf dem Rundtisch kollidierten Spindelseite/Wiege und Tisch
-  auf der Rückfahrt; außerdem wurde die Werkzeugrichtung für die wechselnde
-  Simultanstellung unpassend als quer gemeldet. Der vorzeigbare Job verwendet eine
-  Winkelaufnahme und ist kollisionsfrei im Modell. Die flache Aufspannung ist nicht
-  behoben: [G550-Spezifikation](spezifikation_grob_g550.md), P-2026-10-06-05.
-
-B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
+Zurzeit kein offener Bug. B-001 bis B-016 sind behoben (Belege im Verlauf; B-015 und B-016
+in P-2026-10-10-19 bis -22); nächste freie Nummer B-017.
 
 ## Offene Tasks
-
-- **T-008 Werkzeugbibliothek wiederherstellen:** Ein FreeCADCmd-Versuch vom 2026-10-06
-  überschrieb Manuels Werkzeugverwaltung, weil `FREECAD_USER_HOME` auf einen fehlenden
-  Ordner zeigte; die normale `.bak` enthält ebenfalls Beispieldaten. Eine ursprüngliche
-  Sicherung bzw. eine noch geöffnete Werkzeugliste wird benötigt (P-2026-10-06-03).
 
 - **T-006 Alle Kerne nutzen** (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
   … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
@@ -641,16 +628,23 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   indexiert (Netzfeinheit), Rundum entgraten, Entgraten 3D und Flanke (Schritt auf der Kante);
   jede Erklärung mit Beispiel, wo feiner nichts mehr bringt (gemessen: 3D-Schruppen Freiform
   0,5 → 0,25 mm: 3 → 6,5 s). **T-009 fertig**; die Erklärung trägt (Manuel, 2026-10-10: „das ist gut so“).
-- **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
-  Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
-  neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit
-  `GOLDENE_BAHNEN_SCHREIBEN=1` neu schreiben (Befund nebenbei, P-2026-10-09-11).
 - **T-007b Weitere Hersteller-Reihen** in der Kiste (Manuel: „zum Schluss“) – seit P-2026-10-10-06 über
   Dateien („Aus Datei einlesen …“); Manuels Hoffmann-Datei (79 Reihen) liegt in `beispiele/` – die
   vier Tonnenfräser sind raus, die Form hat das Addon nicht (P-2026-10-10-17).
 
 - **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei Linearachsen einen
-  Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in P-2026-09-25-20, im Wochen-Build vom
-  2026-09-16 noch da). Solange er besteht, übergibt das Addon Linearachsen mit Ursprung 0.
+  Ursprung ≠ (0,0,0) als Richtung. Im Klartext: Speichert CAM eine Maschine und lädt sie wieder,
+  kommt jede Linearachse, deren Gelenk nicht im Nullpunkt sitzt, verdreht zurück – beim Lesen
+  wird der erste Vektor des Gelenks (der Ursprung) für die Richtung gehalten (Befund und Beleg in
+  P-2026-09-25-20). **Nicht behoben** (Manuel, 2026-10-10: „ist das im wochenbuild schon
+  behoben“): im Wochen-Build vom 2026-09-16 da, im FreeCAD-Quelltext (main, 2026-10-10)
+  unverändert; FreeCAD 1.1.4 hat das Modul `Machine` gar nicht, nur der Wochen-Build. Solange er
+  besteht, übergibt das Addon Linearachsen mit Ursprung 0 und ist nicht betroffen.
   **Der Bericht ist fertig zum Einreichen:** [freecad_fehler_T-004.md](freecad_fehler_T-004.md)
   – einreichen kann nur Manuel (GitHub-Konto).
+- **T-010** Fehler an FreeCAD melden: `Path.Tool.Controller.Create` – in jedem
+  `Path.Main.Job.Create` – schließt die laufende Undo-Transaktion; was ein Skript danach in
+  derselben Transaktion anlegt, kennt das Rückgängig nicht. Ursache von B-016 (P-2026-10-08-07,
+  eingegrenzt in P-2026-10-10-21); das Addon räumt seine verwaisten Klone nach dem Rückgängig
+  selbst auf. **Der Bericht ist fertig zum Einreichen:**
+  [freecad_fehler_T-010.md](freecad_fehler_T-010.md) – einreichen kann nur Manuel.

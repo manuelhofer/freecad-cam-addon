@@ -967,7 +967,7 @@
     "beispiel.kopf_tisch.beschreibung": "The swivel head tilts about B (about Y), the rotary table in the machine table turns about C. X, Y and Z move the head.",
     "beispiel.kopf_tisch.dokument": "Example 5-axis head-table",
     "beispiel.grob_g550": "GROB G550 – horizontal (A/B)",
-    "beispiel.grob_g550.beschreibung": "Horizontal spindle: X moves sideways, Z moves forwards and backwards. Y raises and lowers the table; A tilts it, B rotates it. Body dimensions and the position of travel limits are approximate.",
+    "beispiel.grob_g550.beschreibung": "Horizontal spindle with all three linear axes on the tool side: X moves it sideways, Y raises and lowers it, Z moves it forwards and back – fully retracted it sits in the column's tunnel, where the table never reaches. The table only tilts (A) and rotates (B). Body dimensions and the position of travel limits are approximate.",
     "beispiel.grob_g550.dokument": "Example GROB G550",
     "beispiel.rundtisch": "Rotary table",
     "beispiel.futter": "Chuck",

@@ -967,7 +967,7 @@
     "beispiel.kopf_tisch.beschreibung": "Der Schwenkkopf schwenkt um B (um Y), der Rundtisch im Maschinentisch dreht um C. X, Y und Z fährt der Kopf.",
     "beispiel.kopf_tisch.dokument": "Beispiel 5-Achs Kopf-Tisch",
     "beispiel.grob_g550": "GROB G550 – horizontal (A/B)",
-    "beispiel.grob_g550.beschreibung": "Waagerechte Spindel: X fährt seitlich, Z vor und zurück. Y hebt und senkt den Tisch; A schwenkt ihn, B dreht ihn. Körpermaße und Lage der Weggrenzen sind angenähert.",
+    "beispiel.grob_g550.beschreibung": "Waagerechte Spindel mit allen drei Linearachsen auf der Werkzeugseite: X fährt sie seitlich, Y hebt und senkt sie, Z fährt sie vor und zurück – ganz zurück steht sie im Tunnel des Ständers, dort kommt der Tisch nie hin. Der Tisch schwenkt nur (A) und dreht (B). Körpermaße und Lage der Weggrenzen sind angenähert.",
     "beispiel.grob_g550.dokument": "Beispiel GROB G550",
     "beispiel.rundtisch": "Rundtisch",
     "beispiel.futter": "Futter",

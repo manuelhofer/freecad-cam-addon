@@ -46,8 +46,12 @@ def pruefen():
     befunde, saetze = pp.nachlesen(programm, steuerung, info)
     assert not befunde, befunde
     suffix = "_gesamt" if str(doc.Schlichten3D.Kippachse) == "frei_gesamt" else ""
-    soll = json.loads((ROOT / f"tests/golden/freiform_simultan{suffix}_nc.json").read_text())
+    golden = ROOT / f"tests/golden/freiform_simultan{suffix}_nc.json"
+    soll = json.loads(golden.read_text())
     ist = hashlib.sha256(programm.text.encode()).hexdigest()
+    if os.environ.get("EXPORT_REFERENZ_SCHREIBEN") == "1":  # nach Änderung an Maschine oder Kern
+        soll["sha256"], soll["nc_saetze"] = ist, saetze
+        golden.write_text(json.dumps(soll, indent=2) + "\n")
     assert ist == soll["sha256"], "Tatsächlicher frischer NC-Export verändert"
     assert saetze == soll["nc_saetze"], "Andere NC-Bewegungszahl"
     print("REFERENZ", suffix or "frei", saetze, ist, flush=True)
