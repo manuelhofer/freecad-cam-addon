@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-24 uebersetzungsschluessel-als-fester-text
+
+### EINGELESEN
+- `test_sprache` war rot seit P-2026-10-09-17 und P-2026-10-10-06: fünf Schlüssel
+  (`ba.aufloesung.tooltip`, `ba.aufloesung.kante.tooltip`, `wv.kiste.einlesen.doppelt`, `.fehler`,
+  `.hinweise`) standen im Code in Variablen (Klassenattribut, Tupel), nicht als fester Text in
+  `tr("…")` – die Prüfung findet sie dann nicht (so steht es in ihr: „nie zusammengesetzt“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`aufloesung_erklaerung(vorschlag)` als Methode der Strategie,
+  Kanten mit eigenem Text), `camaddon/gui_werkzeuge.py` (die drei Überschriften des Einleseberichts
+  direkt mit `tr`), `package.xml` (0.210.0).
+
+### AKZEPTANZKRITERIUM
+`test_sprache` grün; der Bericht nach „Aus Datei einlesen …“ und das Feld „Auflösung“ sehen aus
+wie vorher.
+
+### DONE
+- `test_sprache` grün, `szenario_werkzeugkiste` grün. Version 0.210.0 für Manuel: die neue G550,
+  der Rückzug bis an die Achsgrenze, das Aufräumen nach dem Rückgängig.
+
+## P-2026-10-10-23 t010-fehlerbericht-undo-transaktion
+
+### EINGELESEN
+- B-016 lag an FreeCAD (P-2026-10-10-21); für einen Bericht fehlte die genaue Ursache. Szenarien
+  K1–K29 (Oberfläche, 1.1.4): Hilfsdokument an- und unverändert zulegen – harmlos; `.FCStd`
+  versteckt öffnen und schließen – harmlos; Hilfsdokument ändern und offen lassen – harmlos (es
+  zeigt den Namen der fremden Transaktion in `UndoNames`); **Hilfsdokument ändern und schließen –
+  die Transaktion des Aufrufers ist zu**; mit `UndoMode = 0` am Hilfsdokument nicht;
+  `copyObject` harmlos; `ToolBitShape.make_body` und `Controller.Create` (mit Werkzeug) brechen,
+  `Controller.Create(assignTool=False)` nicht. Kopflos tritt nichts davon auf.
+
+### DATEIEN
+- `docs/freecad_fehler_T-010.md` (neu: der Bericht in Englisch mit zwei Nachstellungen, Tabelle
+  der Varianten, Ursache und Vorschlag), `docs/STATUS_SNAPSHOT.md` (T-010 mit Ursache).
+
+### AKZEPTANZKRITERIUM
+Der Bericht lässt sich ohne weiteres Wissen in ein FreeCAD-Issue kopieren; die kurze
+Nachstellung ohne CAM zeigt den Fehler in der Python-Konsole.
+
+### DONE
+- Einreichen kann nur Manuel (GitHub-Konto); danach die Issue-Nummer im Snapshot eintragen.
+
 ## P-2026-10-10-22 keine-richtungswarnung-bei-simultanbahnen
 
 ### EINGELESEN

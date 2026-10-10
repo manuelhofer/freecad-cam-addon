@@ -645,6 +645,8 @@ in P-2026-10-10-19 bis -22); nächste freie Nummer B-017.
 - **T-010** Fehler an FreeCAD melden: `Path.Tool.Controller.Create` – in jedem
   `Path.Main.Job.Create` – schließt die laufende Undo-Transaktion; was ein Skript danach in
   derselben Transaktion anlegt, kennt das Rückgängig nicht. Ursache von B-016 (P-2026-10-08-07,
-  eingegrenzt in P-2026-10-10-21); das Addon räumt seine verwaisten Klone nach dem Rückgängig
-  selbst auf. **Der Bericht ist fertig zum Einreichen:**
+  eingegrenzt in P-2026-10-10-21 und -23: der Werkzeugkörper entsteht in einem versteckten
+  Hilfsdokument, das mit der ersten Änderung der Transaktion beitritt; sein Schließen beendet sie
+  für alle Dokumente – mit `UndoMode = 0` am Hilfsdokument nicht). Das Addon räumt seine
+  verwaisten Klone nach dem Rückgängig selbst auf. **Der Bericht ist fertig zum Einreichen:**
   [freecad_fehler_T-010.md](freecad_fehler_T-010.md) – einreichen kann nur Manuel.
