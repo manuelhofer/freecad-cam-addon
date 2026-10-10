@@ -19,6 +19,7 @@ from . import symbol
 from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
+from .gui_teile import weiter
 from .gui_zahlen import zahlenformat
 from .sprache import tr
 
@@ -42,9 +43,13 @@ class BefehlSchwenken:
     def Activated(self):
         dokument = FreeCAD.ActiveDocument
         job, flaeche = gewaehlt(dokument) if dokument is not None else (None, None)
-        if job is None:
-            QtGui.QMessageBox.information(
-                FreeCADGui.getMainWindow(), tr("sw.titel"), tr("sw.kein_job")
+        if job is None:  # der Knopf führt gleich zum Assistenten, der den Job anlegt
+            weiter(
+                tr("sw.titel"),
+                tr("sw.kein_job"),
+                tr("weiter.bearbeitung"),
+                lambda: FreeCADGui.runCommand("CamAddon_Bearbeitung"),
+                FreeCADGui.getMainWindow(),
             )
             return
         FreeCADGui.Control.showDialog(SchwenkenPanel(job, flaeche))

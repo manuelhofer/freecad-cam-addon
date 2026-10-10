@@ -13,6 +13,8 @@ import contextlib
 
 from PySide import QtCore, QtGui
 
+from .sprache import tr
+
 GRAU = QtGui.QColor("#6d6d6d")  # gerechnete oder geerbte Werte
 ROT = "#c0392b"  # Hinweise, was fehlt oder nicht passt
 LISTE_ZEILEN = 20  # so viele Einträge zeigt eine lange Auswahlliste auf einmal
@@ -25,6 +27,22 @@ def fett(text):
     schrift.setBold(True)
     beschriftung.setFont(schrift)
     return beschriftung
+
+
+def weiter(titel, text, knopf_text, aktion, eltern=None):
+    """Eine Meldung, die den nächsten Schritt gleich anbietet: der Knopf `knopf_text` ruft
+    `aktion()`, „Schließen“ lässt es. Statt „Zuerst X anlegen“ mit nur OK (Manuel, 2026-10-10:
+    „ein Knopf ‚Anlegen‘ oder ‚Jetzt starten‘, so dass der Benutzer im Flow weitermachen kann“)."""
+    meldung = QtGui.QMessageBox(eltern)
+    meldung.setIcon(QtGui.QMessageBox.Information)
+    meldung.setWindowTitle(titel)
+    meldung.setText(text)
+    los = meldung.addButton(knopf_text, QtGui.QMessageBox.AcceptRole)
+    meldung.addButton(tr("weiter.schliessen"), QtGui.QMessageBox.RejectRole)
+    meldung.setDefaultButton(los)
+    meldung.exec()
+    if meldung.clickedButton() is los:
+        aktion()
 
 
 def knopf(text, tooltip, aktion):

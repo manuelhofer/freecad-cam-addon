@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-05 der-naechste-schritt-als-knopf
+
+### EINGELESEN
+- Manuel, 2026-10-10, zwei Screenshots aus seinem FreeCAD: „5-Achs-Schlichten vergleichen …“ grau
+  – „was für 3d schlichten ?? warum kann ich den nicht anklicken ?“; „Ebene schwenken“ mit der
+  Meldung „Zuerst braucht das Teil einen Job im Quader – ‚Bearbeitung‘ legt ihn an“ und nur OK –
+  „hier wäre schön wenn man einfach einen knopf einbaut ‚anlegen‘ oder ‚jetzt Starten‘ so das der
+  benutzer einfach im flow weiter machen kann“.
+- Der Vergleichsbefehl war nur mit genau einer gewählten 3D-Schlichtoperation aktiv
+  (`IsActive`), der Tooltip setzte voraus, dass man weiß, was das ist. Vier weitere Befehle
+  (Schnittwerte Job, Bestückung, Auf der Maschine prüfen, Programm schreiben) sagten über
+  `dokument_mit_job` nur „In keinem offenen Dokument gibt es einen CAM-Job“.
+
+### DATEIEN
+- `camaddon/gui_teile.py` (`weiter`: Meldung mit Knopf für den nächsten Schritt und „Schließen“),
+  `camaddon/gui_schwenken.py`, `camaddon/gui_job_schnittwerte.py` (`dokument_mit_job`),
+  `camaddon/gui_simultan_planung.py` (immer bedienbar; die einzige Operation nimmt er selbst,
+  bei mehreren sagt er es, ohne führt er zu „Bearbeitung“; `im_dokument`), `translations/de.json`,
+  `translations/en.json` (`weiter.*`, `s5p.tooltip`, `s5p.keine_op`, `s5p.mehrere`, die
+  `*.kein_job` mit dem Angebot), `help/de|en/simultan_planung.html`, `help/de|en/schwenken.html`,
+  `docs/arbeitsregeln.md` (Abschnitt 8: der nächste Schritt ist ein Knopf), `package.xml` (0.208.1).
+
+### AKZEPTANZKRITERIUM
+Ohne Job: „Ebene schwenken“, „Schnittwerte Job“, „Bestückung“, „Auf der Maschine prüfen“ und
+„Programm schreiben“ zeigen die Meldung mit dem Knopf „‚Bearbeitung‘ öffnen“, der den Assistenten
+öffnet. „5-Achs-Schlichten vergleichen …“ ist bedienbar: mit genau einer 3D-Schlichtoperation im
+Dokument öffnet er den Vergleich ohne Auswahl, ohne eine führt er zu „Bearbeitung“, bei mehreren
+sagt er, dass man eine anklickt; der Tooltip erklärt das.
+
+### DONE
+- Die Regel steht in Abschnitt 8 der Arbeitsregeln, damit jede neue Meldung so gebaut wird.
+- Die Szenarien rufen die Befehle mit Auswahl und Job auf – ihr Weg ist unverändert.
+- Prüfungen: `szenario_schnittwerte_job` (18 s) und `szenario_simultan_planung` (411 s) grün.
+
 ## P-2026-10-10-04 maschinenliste-ohne-fluechtige-dateien
 
 ### EINGELESEN

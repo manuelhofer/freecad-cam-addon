@@ -324,6 +324,12 @@ Nur was dafür zu groß ist (z. B. ganze Vorlagensätze), kommt als Datei unter
 
 ## 8. Bedienbarkeit und Sprache
 
+**Der nächste Schritt ist ein Knopf** (Manuel, 2026-10-10: „hier wäre schön wenn man einfach
+einen knopf einbaut ‚anlegen‘ oder ‚jetzt starten‘ so das der benutzer einfach im flow weiter
+machen kann“): Eine Meldung „zuerst X anlegen“ bietet X als Knopf an (`gui_teile.weiter`), ein
+Befehl ist nicht grau, weil etwas fehlt – er sagt, was fehlt, und führt hin (P-2026-10-10-05).
+Fehlt eine Datei, stehen „Suchen …“ und „Aus der Liste nehmen“ an Ort und Stelle (P-2026-10-10-04).
+
 **Bedienbarkeit ist das oberste Ziel** – vor Funktionsumfang und vor
 Eleganz im Code. Der Maßstab: Wer den Bildschirm sieht, hat keine Frage.
 

@@ -22,7 +22,7 @@ from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import grau, hinweiszeile, ruhiges_mausrad
+from .gui_teile import grau, hinweiszeile, ruhiges_mausrad, weiter
 from .gui_werkzeuge import WerkzeugDialog, werkstoffe_anbieten
 from .gui_zahlen import dezimal, groesse_fest, groesse_zeigen, zahl_zeigen, zahlenformat
 from .sprache import tr
@@ -63,8 +63,14 @@ def dokument_mit_job(titel, kein_job):
     Job, sagt `kein_job` (ein Satz) es – dann None."""
     hauptfenster = FreeCADGui.getMainWindow()
     kandidaten = js.dokumente_mit_jobs(FreeCAD.ActiveDocument)
-    if not kandidaten:
-        QtGui.QMessageBox.information(hauptfenster, titel, kein_job)
+    if not kandidaten:  # der Knopf führt gleich zum Assistenten, der einen Job anlegt
+        weiter(
+            titel,
+            kein_job,
+            tr("weiter.bearbeitung"),
+            lambda: FreeCADGui.runCommand("CamAddon_Bearbeitung"),
+            hauptfenster,
+        )
         return None
     for objekt in FreeCADGui.Selection.getSelection("*"):
         for dokument in kandidaten:

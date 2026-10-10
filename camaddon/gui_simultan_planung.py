@@ -15,7 +15,7 @@ from . import simultan_folge as sf
 from . import simultan_planung as sp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import GRAU, mit_einheit
+from .gui_teile import GRAU, mit_einheit, weiter
 from .gui_zahlen import dezimalzeichen, groesse_fest, groesse_lesen, groesse_zeigen
 from .sprache import tr
 
@@ -47,6 +47,12 @@ def ausgewaehlt():
     return ops[0] if len(ops) == 1 else None
 
 
+def im_dokument():
+    """Die 3D-Schlichtoperationen des aktiven Dokuments."""
+    dokument = FreeCAD.ActiveDocument
+    return [o for o in dokument.Objects if s3.ist_schlichten3d(o)] if dokument else []
+
+
 class BefehlSimultanPlanen:
     def GetResources(self):
         return {
@@ -56,11 +62,28 @@ class BefehlSimultanPlanen:
         }
 
     def IsActive(self):
-        return ausgewaehlt() is not None
+        # Bedienbar, solange kein anderes Aufgabenfenster offen ist – was fehlt, sagt der Befehl
+        # selbst und führt hin (Manuel, 2026-10-10: „warum kann ich den nicht anklicken?“).
+        return not Gui.Control.activeDialog()
 
     def Activated(self):
         op = ausgewaehlt()
+        alle = im_dokument()
+        if op is None and len(alle) == 1:
+            op = alle[0]  # die einzige: keine Auswahl nötig
         if op is None:
+            if alle:
+                QtGui.QMessageBox.information(
+                    Gui.getMainWindow(), tr("s5p.titel"), tr("s5p.mehrere")
+                )
+            else:  # der Knopf führt gleich zum Assistenten, der die Operation anlegt
+                weiter(
+                    tr("s5p.titel"),
+                    tr("s5p.keine_op"),
+                    tr("weiter.bearbeitung"),
+                    lambda: Gui.runCommand("CamAddon_Bearbeitung"),
+                    Gui.getMainWindow(),
+                )
             return
         from .gui_reichweite import maschine_fuer
 
