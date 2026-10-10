@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-30 deckung-auf-feinem-gitter
+
+### EINGELESEN
+- Die Deckung (`simultan_abtrag.deckung_stueck`, Flächenzellen in Kapseln) war mit 59 s der
+  größte Posten des Freiformvergleichs. Die Eingaben eines Aufrufs abgefangen (545 585 Zellen,
+  20 307 Kapseln, r 2) und einen Ausschnitt von 20 000 Zellen in einem Prozess gemessen:
+  4,4 s, 220 µs je Zelle, hochgerechnet 125 s CPU je Aufruf. Die Gitterzellen waren r breit
+  (2 mm): je Gruppe 195 Kapseln als Kandidaten (höchstens 283), und die Vierteilung
+  unentschiedener Zellen bis Tiefe 6 machte 85 % der Zeit – jede Teilzelle wieder gegen alle 195.
+
+### DATEIEN
+- `camaddon/simultan_abtrag.py` (`_kapselindex` mit numpy gebaut; `deckung_stueck` auf
+  Gitterzellen von ZELLE_FEIN = 0,5 mm, höchstens r/4 – je Gruppe etwa 25 Kandidaten –, zuerst
+  die nahen Kapseln (näher als NAH_FAKTOR · √(2 r h), mehr als der halbe Zeilenabstand: die
+  nächste Bahn deckt die meisten Zellen) und nur das Ja daraus, dann alle; Gruppen und Index mit
+  `lexsort` statt Python-Schleifen), `package.xml` (0.211.2).
+
+### AKZEPTANZKRITERIUM
+Dieselben Urteile (am Ausschnitt 1 483 ungedeckte Zellen vorher wie nachher; `test_simultan_abtrag`,
+`test_simultan_eichung`, `test_simultan_planung` grün mit denselben Referenzen); der Vergleich
+schneller.
+
+### DONE
+- Ausschnitt: 4,4 → 1,7 s (85 µs je Zelle, 47 s CPU je Aufruf). Freiformvergleich mit 24
+  Arbeitern: `deckung` 59 → 26 s, gesamt **243 → 201 s**, derselbe Gewinner (317,90 s). Kuppel
+  (`test_simultan_planung`) 18 → 16 s.
+- Übrig in der Deckung: `gedeckt` 20 000-mal je 60 000 Zellen, sechs Reduktionen je Block – und
+  die Vierteilung. Weiter ließe sich mit den deckenden Kapseln der Elternzelle rechnen statt mit
+  allen der Gitterzelle.
+
 ## P-2026-10-10-29 netz-hoehenfeld-und-randzuege-gemerkt
 
 ### EINGELESEN

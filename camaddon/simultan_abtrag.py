@@ -35,6 +35,10 @@ NETZ = 0.001  # mm, unabhängig von der Vernetzung der Bahn
 HOEHEN_MERKEN = 3  # so viele Soll-Höhenfelder bleiben gemerkt (Teil, Flächen, Raster)
 _hoehen_gemerkt = {}
 SEHNENFEHLER = 0.001  # mm, nur für konservative Zusammenfassung der Prüfkapseln
+ZELLE_FEIN = 0.5  # mm – Gitterzellen der Deckung (deckung_stueck), höchstens r/4
+NAH_FAKTOR = (
+    1.5  # deckung: erst Kapseln näher als so viel mal √(2 r h) (mehr als der halbe Zeilenabstand)
+)
 NC_RESERVE = 0.00011  # mm: Steuerungsglättung 0,0001 plus Reserve für sechs Ausgabestellen
 
 
@@ -499,9 +503,43 @@ def _deckung_verteilt(dreiecke, von, nach, radius, hoehe, unsicherheit, fortschr
 _kapselindex_gemerkt = (None, None)  # ((von, nach), Index) – ein Arbeiter: viele Stücke, ein Index
 
 
+def _kapselindex(von, nach, rand, breite):
+    """{Zelle (ix, iy): Kapseln (Indizes)} – jede Kapsel in jeder Zelle (breite × breite in XY),
+    der sie näher als `rand` kommen kann; mit numpy gebaut (am Freiformbeispiel 20 000 Kapseln
+    in 80 Zellen je Kapsel)."""
+    unten = np.floor((np.minimum(von[:, :2], nach[:, :2]) - rand) / breite).astype(np.int64)
+    oben = np.floor((np.maximum(von[:, :2], nach[:, :2]) + rand) / breite).astype(np.int64)
+    spannen = oben - unten + 1
+    zellen, kapseln = [], []
+    for dx in range(int(spannen[:, 0].max())):
+        for dy in range(int(spannen[:, 1].max())):
+            welche = (spannen[:, 0] > dx) & (spannen[:, 1] > dy)
+            if welche.any():
+                ix = unten[welche, 0] + dx
+                iy = unten[welche, 1] + dy
+                zellen.append(np.stack([ix, iy], axis=1))
+                kapseln.append(np.flatnonzero(welche))
+    zellen = np.concatenate(zellen)
+    kapseln = np.concatenate(kapseln)
+    reihenfolge = np.lexsort((zellen[:, 1], zellen[:, 0]))
+    zellen, kapseln = zellen[reihenfolge], kapseln[reihenfolge]
+    wechsel = np.flatnonzero(np.any(np.diff(zellen, axis=0) != 0, axis=1)) + 1
+    grenzen = np.concatenate([[0], wechsel, [len(zellen)]])
+    return {
+        (int(zellen[a, 0]), int(zellen[a, 1])): kapseln[a:b]
+        for a, b in zip(grenzen[:-1], grenzen[1:], strict=True)
+    }
+
+
 def deckung_stueck(dreiecke, von, nach, radius, hoehe, unsicherheit=NETZ, fortschritt=None):
     """deckung() für diese Zellen gegen die Kapseln `von` → `nach` (Kugelmitten) – ein Stück. Mit
-    `nach` None ist `von` das Paar (von, nach) als gemeinsame Daten eines Arbeiters."""
+    `nach` None ist `von` das Paar (von, nach) als gemeinsame Daten eines Arbeiters.
+
+    Die Zellen in Gruppen je Gitterzelle (ZELLE_FEIN, höchstens r/4 – so bleiben die Kapseln je
+    Gruppe wenige: am Freiformbeispiel 25 statt 195 bei Zellen von r), zuerst gegen die nahen
+    Kapseln (die nächste Bahn deckt die meisten), dann gegen alle, die der Gitterzelle näher als r
+    kommen; was keine Kapsel ganz deckt, aber jede Ecke eine, wird geviertelt (bis Tiefe 6,
+    P-2026-10-10-30)."""
     global _kapselindex_gemerkt
     if nach is None:
         kapseln = von
@@ -510,47 +548,66 @@ def deckung_stueck(dreiecke, von, nach, radius, hoehe, unsicherheit=NETZ, fortsc
         kapseln = (von, nach)
     weg = nach - von
     quadrat = np.maximum(np.sum(weg * weg, axis=1), 1e-20)
-    breite = max(radius, 1.0)
-    if _kapselindex_gemerkt[0] is not kapseln:
-        index = {}
-        for i, (a, b) in enumerate(zip(von, nach, strict=True)):
-            unten = np.floor((np.minimum(a[:2], b[:2]) - radius) / breite).astype(int)
-            oben = np.floor((np.maximum(a[:2], b[:2]) + radius) / breite).astype(int)
-            for x in range(unten[0], oben[0] + 1):
-                for y in range(unten[1], oben[1] + 1):
-                    index.setdefault((x, y), []).append(i)
-        _kapselindex_gemerkt = (kapseln, index)
-    index = _kapselindex_gemerkt[1]
+    breite = max(ZELLE_FEIN, radius / 4.0)
+    if _kapselindex_gemerkt[0] is not kapseln or _kapselindex_gemerkt[1][0] != (breite, radius):
+        nah = max(breite, NAH_FAKTOR * math.sqrt(max(2.0 * radius * hoehe, 0.0)))
+        _kapselindex_gemerkt = (
+            kapseln,
+            (
+                (breite, radius),
+                _kapselindex(von, nach, radius, breite),
+                _kapselindex(von, nach, min(nah, radius), breite),
+            ),
+        )
+    _, index, index_nah = _kapselindex_gemerkt[1]
     ursprung = np.arange(len(dreiecke))
     schlecht = set()
     grenze = max(0, radius - unsicherheit - SEHNENFEHLER) ** 2
+    leer = np.zeros(0, dtype=np.int64)
+
+    def gedeckt(teil, saetze):
+        """(gedeckt von einer Kapsel, jede Ecke von irgendeiner) je Zelle in `teil`."""
+        ecken = dreiecke[teil] + (0, 0, hoehe)
+        delta = ecken[:, None, :, :] - von[None, saetze, None, :]
+        t = np.clip(
+            np.sum(delta * weg[None, saetze, None, :], axis=3) / quadrat[None, saetze, None],
+            0,
+            1,
+        )
+        dist2 = np.sum((delta - t[..., None] * weg[None, saetze, None, :]) ** 2, axis=3)
+        ganz = np.min(np.max(dist2, axis=2), axis=1) <= grenze
+        ecken_da = np.max(np.min(dist2, axis=1), axis=1) <= grenze
+        return ganz, ecken_da
+
     for tiefe in range(7):
-        gruppen = {}
-        for i, ort in enumerate(np.floor(np.mean(dreiecke[:, :, :2], axis=1) / breite).astype(int)):
-            gruppen.setdefault(tuple(ort), []).append(i)
+        orte = np.floor(np.mean(dreiecke[:, :, :2], axis=1) / breite).astype(np.int64)
+        reihenfolge = np.lexsort((orte[:, 1], orte[:, 0]))
+        orte = orte[reihenfolge]
+        wechsel = np.flatnonzero(np.any(np.diff(orte, axis=0) != 0, axis=1)) + 1
+        grenzen = np.concatenate([[0], wechsel, [len(orte)]])
         teilen = []
-        for nummer, (ort, zellen) in enumerate(gruppen.items()):
-            if fortschritt is not None and not fortschritt(nummer / max(1, len(gruppen))):
+        anzahl = len(grenzen) - 1
+        for nummer, (a, b) in enumerate(zip(grenzen[:-1], grenzen[1:], strict=True)):
+            if fortschritt is not None and not fortschritt(nummer / max(1, anzahl)):
                 raise ValueError(tr("s5p.fehler.unvollstaendig"))
-            saetze = np.asarray(index.get(ort, []), dtype=int)
+            zellen = reihenfolge[a:b]
+            ort = (int(orte[a, 0]), int(orte[a, 1]))
+            saetze = index.get(ort, leer)
             if not len(saetze):
                 schlecht.update(ursprung[zellen])
                 continue
+            nahe = index_nah.get(ort, leer)
             for start in range(0, len(zellen), 32):
-                teil = np.asarray(zellen[start : start + 32])
-                ecken = dreiecke[teil] + (0, 0, hoehe)
-                delta = ecken[:, None, :, :] - von[None, saetze, None, :]
-                t = np.clip(
-                    np.sum(delta * weg[None, saetze, None, :], axis=3)
-                    / quadrat[None, saetze, None],
-                    0,
-                    1,
-                )
-                dist2 = np.sum((delta - t[..., None] * weg[None, saetze, None, :]) ** 2, axis=3)
-                offen = np.min(np.max(dist2, axis=2), axis=1) > grenze
-                ecke_fehlt = np.max(np.min(dist2, axis=1), axis=1) > grenze
-                schlecht.update(ursprung[teil[offen & ecke_fehlt]])
-                teilen.extend(teil[offen & ~ecke_fehlt])
+                teil = zellen[start : start + 32]
+                if len(nahe) and len(nahe) < len(saetze):
+                    ganz, _ecken = gedeckt(teil, nahe)  # nur das Ja zählt: ein Teil der Kapseln
+                    teil = teil[~ganz]
+                    if not len(teil):
+                        continue
+                ganz, ecken_da = gedeckt(teil, saetze)
+                offen = ~ganz
+                schlecht.update(ursprung[teil[offen & ~ecken_da]])
+                teilen.extend(teil[offen & ecken_da])
         if not teilen:
             break
         teilen = np.asarray([i for i in teilen if ursprung[i] not in schlecht], dtype=int)

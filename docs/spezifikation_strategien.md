@@ -3141,6 +3141,10 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    Sehnenabweichung, halb so viele Dreiecke), aber die Deckung zählt Flächenzellen am Rand
    anders – an der Kuppel kippte eine Variante. Ein anderes Netz nur mit neuen Referenzen und
    Manuels Ja.
+7. **Deckung auf feinem Gitter (P-2026-10-10-30):** Die Flächenzellen gegen die Kapseln in
+   Gitterzellen von 0,5 mm statt r – je Gruppe 25 statt 195 Kandidaten –, erst die nahen Kapseln
+   (die nächste Bahn), dann alle; die Vierteilung unentschiedener Zellen rechnet so gegen wenige.
+   Dieselben Urteile; am Freiformbeispiel 59 → 26 s, der Vergleich 243 → 201 s.
 3. **Varianten und Zwischenlagen parallel** – sie sind unabhängig: mit dem Haken „Alle
    Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
 4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich
