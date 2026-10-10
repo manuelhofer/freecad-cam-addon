@@ -72,7 +72,7 @@ def _maschine(job, operation):
         return False
 
 
-def bahn_grund(maschine, befehle, name="", grenzen=True):
+def bahn_grund(maschine, befehle, name="", grenzen=True, schritte=None):
     """Grund bei fehlender Achse, unlesbarer Bewegung oder überschrittener Grenze, sonst leer.
 
     Der bestehende Reichweitenkern prüft auch innere Kreisextrema. Hier werden
@@ -81,6 +81,8 @@ def bahn_grund(maschine, befehle, name="", grenzen=True):
     Das Prüffenster zeigt sie rot, jede Überschreitung ist eine Station, und der
     Abspieler hält an der Grenze (Spezifikation Simulation 4a/4b) – nur, was die
     Maschine gar nicht fahren kann (fremde Rundachse, unlesbare Sätze), bleibt aus.
+    `schritte`: (Schritte, unbekannte Befehle) von `reichweite._bahn(befehle, …,
+    rueckzug=True)`, wenn der Aufrufer sie schon hat (abfahren.abfahrt).
     """
     p = maschine.pruefung
     kin = Kinematik(p, maschine.aufnahme, maschine.laenge, maschine.nullpunkt)
@@ -103,8 +105,12 @@ def bahn_grund(maschine, befehle, name="", grenzen=True):
                 rund[b] = wert if absolut else rund[b] + wert
                 if grenzen and not a.erlaubt(rund[b]):
                     return tr("mz.fehler.rundgrenze", achse=b, wert=f"{rund[b]:g}")
-    unbekannt = []
-    for s in rw._bahn(befehle, unbekannt.append, rueckzug=True):
+    if schritte is None:
+        unbekannt = []
+        schritte = rw._bahn(befehle, unbekannt.append, rueckzug=True)
+    else:
+        schritte, unbekannt = schritte
+    for s in schritte:
         if not grenzen and s.art == "punkt":
             # Der Abspieler fragt nur, was die Maschine gar nicht fahren kann – Punkte sammelt
             # er selbst (am 4-Achs-Testteil 330 000 Punkte umsonst, P-2026-10-11-01).

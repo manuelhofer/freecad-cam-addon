@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-11 abfahrt-und-reichweite-schneller
+
+### EINGELESEN
+- Das Prüffenster steht beim Öffnen am 4-Achs-Testteil rund 11 s (FreeCAD nimmt keinen Klick):
+  `abfahren.abfahrt` 5,2 s, `pruefe_job` 2,8 s, dazu das Bild. Im Profil: die Bahn
+  (`reichweite._bahn`, 330 000 Schritte) wurde zweimal gelesen – für `maschinenzugang.bahn_grund`
+  und fürs Abfahren –, die Lösung der Kinematik je Station zweimal geholt, und je Schritt kosteten
+  kleine Generatoren (bekannt?, dreht eine Rundachse?) mehr als die Rechnung.
+
+### DATEIEN
+- `camaddon/abfahren.py`: ohne Ebene die Bahn einmal lesen für `bahn_grund` und das Abfahren;
+  die Lösung einmal je Schritt.
+- `camaddon/maschinenzugang.py`: `bahn_grund(…, schritte=)` nimmt gelesene Schritte.
+- `camaddon/reichweite.py`: `_bahn` fragt X, Y, Z und A, B, C ausgeschrieben ab (dieselben
+  Rechenschritte, dieselben Zahlen); der Schlüssel in `loeser().loesung` ebenso.
+- `package.xml` (0.213.24), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Am Testteil mit CLX550 und Manuels Werkzeugen: `abfahrt` 5,2 → 3,8 s, `pruefe_job` 2,8 →
+  2,1 s; alle 329 532 Stationen, die Operationen, Hinweise, Achsen und das Ergebnis der
+  Reichweite gleich (gegen eine Kopie von HEAD gerechnet).
+- Grün: `test_abfahren.py`, `test_reichweite.py`, `test_vierachs_pruefen.py`.
+
 ## P-2026-10-11-10 netzschranke-jedes-dreieck-einmal
 
 ### EINGELESEN

@@ -833,7 +833,9 @@ class Pruefung:
         drehungen = {}
 
         def loesung(rund):
-            schluessel = tuple(round(rund.get(b, 0.0), 9) for b in RUNDACHSEN)
+            # RUNDACHSEN ausgeschrieben: je Station gerufen, am 4-Achs-Testteil 330 000-mal.
+            g = rund.get
+            schluessel = (round(g("A", 0.0), 9), round(g("B", 0.0), 9), round(g("C", 0.0), 9))
             if schluessel not in drehungen:
                 dreh_wege = self._dreh_wege(werkzeugaufnahme, drehachsen, rund)
                 drehungen[schluessel] = {
@@ -1383,7 +1385,8 @@ def _bahn(befehle, unbekannt, rueckzug=False, start=None):
     invers = False  # G93 statt G94
 
     def bekannt():
-        return all(v is not None for v in lage.values())
+        # lage hat immer genau X, Y und Z – ausgeschrieben: je Schritt gefragt (P-2026-10-11-11).
+        return lage["X"] is not None and lage["Y"] is not None and lage["Z"] is not None
 
     def ziel(werte):
         neu = dict(lage)
@@ -1427,18 +1430,19 @@ def _bahn(befehle, unbekannt, rueckzug=False, start=None):
         if name in ("G0", "G1"):
             eilgang = name == "G0"
             neu, neu_rund = ziel(werte)
-            if bekannt() and any(abs(neu_rund[b] - rund[b]) > 1e-9 for b in RUNDACHSEN):
+            # Wie weit dreht welche Rundachse (A, B, C ausgeschrieben – je Satz gefragt).
+            ra, rb, rc = rund["A"], rund["B"], rund["C"]
+            da, db, dc = neu_rund["A"] - ra, neu_rund["B"] - rb, neu_rund["C"] - rc
+            dreht = max(abs(da), abs(db), abs(dc))
+            if dreht > 1e-9 and bekannt():
                 # Eine Rundachse dreht sich im Satz: Punkte in kleinen Schritten.
-                schritte = max(
-                    1,
-                    math.ceil(max(abs(neu_rund[b] - rund[b]) for b in RUNDACHSEN) / DREH_SCHRITT),
-                )
-                von = (lage["X"], lage["Y"], lage["Z"])
-                nach = (neu["X"], neu["Y"], neu["Z"])
+                schritte = max(1, math.ceil(dreht / DREH_SCHRITT))
+                vx, vy, vz = lage["X"], lage["Y"], lage["Z"]
+                nx, ny, nz = neu["X"], neu["Y"], neu["Z"]
                 for k in range(1, schritte + 1):
                     t = k / schritte
-                    punkt = tuple(a + t * (b - a) for a, b in zip(von, nach, strict=True))
-                    zwischen = {b: rund[b] + t * (neu_rund[b] - rund[b]) for b in RUNDACHSEN}
+                    punkt = (vx + t * (nx - vx), vy + t * (ny - vy), vz + t * (nz - vz))
+                    zwischen = {"A": ra + t * da, "B": rb + t * db, "C": rc + t * dc}
                     yield _Schritt(
                         "punkt", punkt, zwischen, eilgang, vorschub, satz, invers, 1 / schritte
                     )

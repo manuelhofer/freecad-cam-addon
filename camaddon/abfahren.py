@@ -342,7 +342,19 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                     ergebnis.hinweise.append(f"{op.Label}: {programm.hinweis}")
             else:
                 befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
-            grund = mz.bahn_grund(m_bahn, befehle, op.Label, grenzen=False)
+            # Ohne Ebene liest unten dieselbe Bahn noch einmal (ohne Start): einmal gelesen für
+            # beide – am 4-Achs-Testteil 330 000 Schritte (P-2026-10-11-11).
+            schritte = None
+            if ebene is None:
+                unbekannt = []
+                schritte = list(rw._bahn(befehle, unbekannt.append, rueckzug=True))
+            grund = mz.bahn_grund(
+                m_bahn,
+                befehle,
+                op.Label,
+                grenzen=False,
+                schritte=None if schritte is None else (schritte, unbekannt),
+            )
             if grund:
                 ergebnis.hinweise.append(
                     f"{op.Label}: " + tr("pp.hinweis.simultan_ausgelassen", grund=grund)
@@ -353,7 +365,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 f"{op.Label}: " + tr("pp.hinweis.simultan_ausgelassen", grund=str(fehler))
             )
             continue
-        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle, ebene))
+        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte))
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
@@ -412,7 +424,10 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     vorheriger_tc = None
     gewechselt = []  # je Werkzeugwechsel die Station, vor der er dauert (Wechselzeit)
     davor = None  # (Lösung, Linearachsen) der Operation davor – für den Wechselpunkt in WKS
-    for op, tc, aufnahme, eingespannt, linear, befehle, ebene in vorbereitet:
+    for k, (op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte) in enumerate(
+        vorbereitet
+    ):
+        vorbereitet[k] = None  # die Schritte dieser Operation nicht länger als nötig
         geschwenkt = ebene is not None
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
@@ -461,9 +476,12 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         # Maschine in einem Zug: einmal anfahren, einmal bremsen – nicht an jedem Schritt (das
         # Zurückschwenken nach dem Wegkippen dauerte so 15,8 statt 1,7 s).
         eil_schritt, eil_anfang, eil_bisher = None, None, 0.0
-        for schritt in rw._bahn(befehle, lambda _name: None, rueckzug=True, start=start):
-            for punkt, rund in _punkte(schritt, loesung(schritt.rund)[0]):
-                geloest, dreh = loesung(rund)
+        if schritte is None or start is not None:
+            schritte = rw._bahn(befehle, lambda _name: None, rueckzug=True, start=start)
+        for schritt in schritte:
+            # _punkte gibt je Punkt die Rundachsen des Schritts: eine Lösung für alle.
+            geloest, dreh = loesung(schritt.rund)
+            for punkt, rund in _punkte(schritt, geloest):
                 stellungen = _stellungen(geloest, dreh, punkt, linear, index)
                 if anflug and stellungen is not None:
                     # Vom Home- oder Wechselpunkt: erst die anderen Achsen über den Punkt, die
