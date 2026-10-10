@@ -2598,7 +2598,10 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   keine senkrechte Wand, nicht nach unten) steht in der Liste als „30° schräg – im Job nicht,
   geschwenkt ja“, darunter ein Satz und der Knopf „Ebene schwenken (3+2) …“: schließt den
   Assistenten ohne anzulegen und öffnet „Ebene schwenken“ mit der Fläche, im Grundjob. In einem
-  gerade erst entstandenen Job (noch nicht angelegt) nur der Satz: erst „Anlegen“. Dabei
+  gerade erst entstandenen Job (noch nicht angelegt) stand anfangs nur der Satz: erst „Anlegen“;
+  seit P-2026-10-10-40 ist der Knopf auch dort und behält den neuen Job ohne Operationen (Manuel,
+  2026-10-10, an einer Bohrung in einer Schräge: „Ich will nur dass Loch da fräsen“;
+  `szenario_loch_schraeg`). Dabei
   gefunden: `getStandardButtons` im Fenster „Ebene schwenken“ warf seit P-39 unter PySide6 einen
   TypeError (`int(...)`), FreeCAD zeigte die Knöpfe nicht – die Szenarien riefen `accept()`
   direkt und merkten es nicht. `scripts/oberflaeche_testen.sh` lässt ein Szenario jetzt

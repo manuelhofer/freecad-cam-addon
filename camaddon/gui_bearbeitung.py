@@ -5010,8 +5010,8 @@ class BearbeitungPanel:
         self._haken_vorschlagen(form)
 
     def _schwenken_zeigen(self, form):
-        """Ist eine gewählte Fläche schräg, die Zeile „geschwenkt fräsen“ – der Knopf nur, wenn
-        der Job schon steht (ein neuer entsteht erst mit „Anlegen“)."""
+        """Ist eine gewählte Fläche schräg, die Zeile „geschwenkt fräsen“ mit dem Knopf – auch
+        an einem neuen Job: Der Knopf legt ihn dann ohne Operationen an (P-2026-10-10-40)."""
         schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
         if self._fuenfachs():
             # Schräge Wände aus Geraden fräst die Flanke (5 Achsen simultan) ohne Schwenken.
@@ -5020,24 +5020,27 @@ class BearbeitungPanel:
             return
         name = schraege[0]
         winkel = f"{_schraeg(form, name):.0f}"
-        if self._job_offen:
-            self.schwenken_text.setText(tr("ba.schwenken.erst_anlegen", name=name, winkel=winkel))
-        else:
-            self.schwenken_text.setText(tr("ba.schwenken.text", name=name, winkel=winkel))
-        self.schwenken_knopf.setVisible(not self._job_offen)
+        self.schwenken_text.setText(tr("ba.schwenken.text", name=name, winkel=winkel))
+        self.schwenken_knopf.show()
         self.schwenken_zeile.show()
 
     def ebene_schwenken(self):
-        """„Ebene schwenken (3+2) …“: Der Assistent schließt (ohne anzulegen), das Fenster dafür
-        öffnet mit der ersten schrägen Fläche – im Grundjob dieses Jobs."""
-        if self.job is None or self._job_offen:
+        """„Ebene schwenken (3+2) …“: Der Assistent schließt, ohne Operationen anzulegen, das
+        Fenster dafür öffnet mit der ersten schrägen Fläche – im Grundjob dieses Jobs. Ist der
+        Job neu, bleibt er stehen, ohne Operationen: Vorher musste „Anlegen“ erst etwas anlegen,
+        das keiner wollte (Manuel, 2026-10-10, an einer Bohrung in einer 41°-Schräge: „Ich will
+        nur dass Loch da fräsen“)."""
+        if self.job is None:
             return
         form = vr.modell(self.job).Shape
         schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
         if not schraege:
             return
         grundjob, flaeche = rw.grundjob_von(self.job), schraege[0]
-        self.reject()
+        if self._job_offen:
+            self._job_ohne_operationen_behalten()
+        else:
+            self.reject()
 
         def oeffnen():
             from .gui_schwenken import SchwenkenPanel
@@ -5045,6 +5048,23 @@ class BearbeitungPanel:
             FreeCADGui.Control.showDialog(SchwenkenPanel(grundjob, flaeche))
 
         QtCore.QTimer.singleShot(0, oeffnen)
+
+    def _job_ohne_operationen_behalten(self):
+        """Schließt den Assistenten und behält den neuen Job – Teil, Maschine, Rohteil und
+        Nullpunkt wie bei „Anlegen“, ein Schritt Rückgängig –, nur ohne Operationen."""
+        if self._rohteil_uhr.isActive():
+            self._rohteil_uhr.stop()
+            self._rohteil_anwenden()
+        if self._nullpunkt_uhr.isActive():
+            self._nullpunkt_uhr.stop()
+            self._nullpunkt_anwenden()
+        self.doc.commitTransaction()
+        self._job_offen = False
+        self._vor_dem_schliessen()
+        if not self._aufspannung_fest():
+            nullpunkt_vorgeben(self.nullpunkt())
+        FreeCADGui.Control.closeDialog()
+        self.doc.recompute()
 
     def _haken_vorschlagen(self, form):
         """Je Block: möglich mit dieser Wahl? Dann der Haken, wie die Wahl ihn nahelegt –

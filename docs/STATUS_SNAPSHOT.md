@@ -582,6 +582,9 @@ P-2026-10-10-35 bis -39); nächste freie Nummer B-019.
 
 ## Offene Tasks
 
+- **T-011 Versionscheck 26.3** – Manuel arbeitet mit FreeCAD 26.3.0RC1 (Windows); dort brach schon
+  der Adaptiv-Kern (P-2026-10-10-39): voller Lauf im Wochen-Build 26.3, was er findet, sofort
+  beheben (Arbeitsregeln, Abschnitt 9).
 - **T-006 Alle Kerne nutzen** (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
   … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
   das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je

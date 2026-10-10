@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-40 schwenken-ohne-anlegen
+
+### EINGELESEN
+- Manuel, 2026-10-10, Foto: „Bearbeitung“ an einem Quader in FreeCAD 26.3.0RC1, gewählt der Boden
+  einer Bohrung in einer 41°-Schräge (Spinner1520); der Assistent sagt „Face9 ist 41° schräg … erst
+  ‚Anlegen‘, dann die Fläche anklicken und ‚Ebene schwenken (3+2) …‘“, angehakt sind Planfräsen
+  und 3D-Schruppen. Dazu: „Ich will nur dass Loch da fräsen“.
+- `gui_bearbeitung.py` (`_schwenken_zeigen`, `ebene_schwenken`, `accept`, `reject`,
+  `_kann_anlegen`: „Anlegen“ braucht mindestens einen angehakten Block), `gui_schwenken.py`,
+  `tests/gui/szenario_schwenken.py`, Arbeitsregeln Abschnitt 8 („Der nächste Schritt ist ein
+  Knopf“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (Knopf „Ebene schwenken (3+2) …“ auch am neuen Job;
+  `_job_ohne_operationen_behalten`: Rohteil und Nullpunkt übernehmen, Transaktion abschließen,
+  schließen wie „Anlegen“, nur ohne Operationen), `translations/de.json`, `translations/en.json`
+  (`ba.schwenken.erst_anlegen` entfällt, Tooltip des Knopfs), `help/de/bearbeitung.html`,
+  `help/en/bearbeitung.html`, `docs/spezifikation_strategien.md` (15), `package.xml` (0.213.0),
+  `tests/gui/szenario_loch_schraeg.py` (neu), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Am Quader den Boden der Bohrung in der Schräge anklicken, „Bearbeitung“ → unter der Liste steht
+„… schräg“ mit dem Knopf „Ebene schwenken (3+2) …“; Knopf → „Ebene schwenken“ mit der Fläche,
+„OK“ → der Assistent in der Ebene, „Anlegen“ → nur dort eine Operation, im Grundjob keine.
+
+### DONE
+- Bisher erzwang der Assistent ein „Anlegen“ mit einer Operation, bevor man schwenken durfte –
+  wer nur das Loch wollte, musste etwas Überflüssiges anlegen und wieder löschen.
+- Im Grundjob bleibt kein Planfräsen o. Ä.; der Job ist ein Schritt Rückgängig wie bei „Anlegen“.
+- Das Szenario wartete zuerst auf „alle Vorschauen da“ – bei null angehakten Blöcken sofort wahr;
+  im Wochen-Build ist der Assistent in der Ebene langsamer fertig, das Szenario lief zu Ende, und
+  das Schließen der Dokumente traf ihn mitten im Rechnen (`ReferenceError … Grundjob`). Es
+  wartet jetzt, bis ein Block angehakt ist. Derselbe `ReferenceError` steht auch im Log von
+  `szenario_schwenken` im Wochen-Build (beim Schließen am Ende, das Szenario besteht) – notiert.
+- Bewusst nicht: was in der Ebene angehakt wird – das entscheidet der Assistent wie immer. Ist das
+  Rohteil ein Quader, räumt er über der Schräge mit, bis er an die Bohrung kommt.
+
+### TEST
+- KI: `szenario_loch_schraeg` grün in 1.1.3 (66 s) und im Wochen-Build 26.3.0 (94 s), keine
+  Traceback im Log; Screenshots angesehen (Knopf am neuen Job, Ebene, Bahn nur in der Ebene).
+  `test_sprache` OK. `black`, `ruff` ohne Befund.
+- Ob es sich in seinem FreeCAD so bedient: Manuel.
+
+### NEXT
+- Voller Lauf im Wochen-Build 26.3 (aus P-2026-10-10-39).
+
 ## P-2026-10-10-39 adaptiv-kern-in-26-3
 
 ### EINGELESEN
