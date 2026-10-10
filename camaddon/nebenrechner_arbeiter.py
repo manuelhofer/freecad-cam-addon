@@ -80,7 +80,7 @@ class _Fortschritt:
 
 def _aufloesen(wert, gemeinsam, dokumente, fortschritt, tiefe=0):
     """Ersetzt die Platzhalter in `wert` – bis drei Ebenen tief in Listen, Tupeln und
-    Wörterbüchern."""
+    Wörterbüchern, nicht in langen Folgen (nebenrechner.FOLGE_DATEN)."""
     from camaddon import nebenrechner as nr
 
     if isinstance(wert, nr.Form):
@@ -91,7 +91,7 @@ def _aufloesen(wert, gemeinsam, dokumente, fortschritt, tiefe=0):
         return dokumente.hole(wert.pfad)
     if isinstance(wert, nr.Fortschritt):
         return fortschritt
-    if tiefe >= 3:
+    if tiefe >= 3 or nr.ist_datenfolge(wert):
         return wert
     if isinstance(wert, dict):
         return {

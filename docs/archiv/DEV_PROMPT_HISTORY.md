@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-12 pruefen-weniger-kleinarbeit
+
+### EINGELESEN
+- Das Prüffenster am 4-Achs-Testteil in der Oberfläche gemessen (Szenario mit CLX550 und Manuels
+  Werkzeugen): 11,0 s vor P-2026-10-11-11, jetzt 7,4 s, bis es offen ist. Im Profil noch: der
+  Pool durchsuchte die 330 000 Stationen, die `am_werkstueck` an die Nebenrechner schickt, nach
+  Platzhaltern (und der Arbeiter baute sie dabei neu); `_pruefe_operation` baute je Schritt eine
+  Menge der gedrehten Rundachsen.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`, `camaddon/nebenrechner_arbeiter.py`: Listen und Tupel mit mehr
+  als `FOLGE_DATEN` (1000) Einträgen sind Daten – kein Platzhalter darin, nichts zu durchsuchen
+  (im Modulkopf beschrieben).
+- `camaddon/reichweite.py`: je Schritt nur die Rundachsen prüfen, die die Maschine nicht hat.
+- `package.xml` (0.213.25), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `pruefe_job` und `abfahrt` am Testteil wie vor P-2026-10-11-11 (verglichen), 2,05 s und 3,8 s.
+- Grün: `test_reichweite.py`, `test_nebenrechner.py`, `test_abfahren.py`,
+  `test_kollision_verteilt.py`.
+
 ## P-2026-10-11-11 abfahrt-und-reichweite-schneller
 
 ### EINGELESEN

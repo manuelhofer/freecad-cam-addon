@@ -16,7 +16,12 @@ Argumente und Ergebnisse müssen sich pickeln lassen. Dafür gibt es Platzhalter
 auflöst: `Form` (eine Part.Shape als BREP-Text), `Dokument` (eine gespeicherte Kopie, die der
 Arbeiter öffnet und offen hält – `kopie()`), `Gemeinsam` (große Daten, die jeder Arbeiter einmal
 bekommt und behält – `gemeinsam()`), `Fortschritt` (wird zur Funktion, die den Fortschritt
-meldet). Eine Funktion, die im Arbeiter läuft, bekommt und liefert nur solche Daten.
+meldet). Eine Funktion, die im Arbeiter läuft, bekommt und liefert nur solche Daten. Platzhalter
+stehen als Argument oder bis drei Ebenen tief in Listen, Tupeln und Wörterbüchern – nicht in
+einer Folge mit mehr als FOLGE_DATEN Einträgen.
+
+Was ein Arbeiter rechnet, darf selbst verteilen: `pool()` ist dort ein Unterpool, der beim Pool
+des Hauptprozesses bestellt (Unteraufträge, P-2026-10-11-07).
 
 Benutzung – im Prozess der Oberfläche oder in einer Prüfung:
 
@@ -1194,6 +1199,16 @@ def puffer_vergroessern(verbindung):
         dup.close()
 
 
+# Eine Liste oder ein Tupel mit mehr Einträgen ist Daten, kein Ort für Platzhalter: weder der Pool
+# noch der Arbeiter sucht darin (die Stationen der Abfahrt: 330 000 Tupel, je Auftrag einmal
+# durchsucht und im Arbeiter neu gebaut; P-2026-10-11-12).
+FOLGE_DATEN = 1000
+
+
+def ist_datenfolge(wert):
+    return isinstance(wert, (list, tuple)) and len(wert) > FOLGE_DATEN
+
+
 # Was ein Arbeiter über seinen Unterpool meldet (P-2026-10-11-07).
 _VOM_UNTERPOOL = frozenset({"unter", "gemeinsam", "vergessen", "warte", "weiter", "unter_ab"})
 
@@ -1210,10 +1225,11 @@ def _stammt_von(auftrag, ahne):
 
 def _gemeinsame_schluessel(wert, tiefe=0):
     """Die Schlüssel aller Gemeinsam-Platzhalter in `wert` – bis drei Ebenen tief in Listen,
-    Tupeln und Wörterbüchern (tiefer sucht der Arbeiter auch nicht)."""
+    Tupeln und Wörterbüchern (tiefer sucht der Arbeiter auch nicht), nicht in langen Folgen
+    (FOLGE_DATEN)."""
     if isinstance(wert, Gemeinsam):
         return {wert.schluessel}
-    if tiefe >= 3:
+    if tiefe >= 3 or ist_datenfolge(wert):
         return set()
     gefunden = set()
     if isinstance(wert, dict):

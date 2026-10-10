@@ -1022,8 +1022,12 @@ class Pruefung:
             sammler.hinweis(f"{op.Label}: {grund}")
             sammler.ende_operation()
             return
+        # Je Schritt nur die Rundachsen, die die Maschine nicht hat (_bahn gibt A, B und C).
+        fehlend = [b for b in RUNDACHSEN if b not in vorhanden]
         for schritt in _bahn(befehle, sammler.unbekannt):
-            fremd |= {b for b, w in schritt.rund.items() if abs(w) > 1e-9} - vorhanden
+            for b in fehlend:
+                if abs(schritt.rund[b]) > 1e-9:
+                    fremd.add(b)
             if schritt.art == "punkt":
                 sammler.punkt(schritt.ort, schritt.rund, *loesung(schritt.rund))
                 continue
