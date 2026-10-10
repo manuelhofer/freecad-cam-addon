@@ -105,12 +105,16 @@ def bahn_grund(maschine, befehle, name="", grenzen=True):
                     return tr("mz.fehler.rundgrenze", achse=b, wert=f"{rund[b]:g}")
     unbekannt = []
     for s in rw._bahn(befehle, unbekannt.append, rueckzug=True):
+        if not grenzen and s.art == "punkt":
+            # Der Abspieler fragt nur, was die Maschine gar nicht fahren kann – Punkte sammelt
+            # er selbst (am 4-Achs-Testteil 330 000 Punkte umsonst, P-2026-10-11-01).
+            continue
         loesung, stellungen = kin._loesung(s.rund)
         if s.art == "punkt":
             sammler.punkt(s.ort, s.rund, loesung, stellungen)
         elif loesung is None:
             return tr("si.fehler.linear")
-        else:
+        elif grenzen:
             for ort in s.ort.punkte(loesung.s):
                 sammler.punkt(ort, s.rund, loesung, stellungen)
     sammler.ende_operation()

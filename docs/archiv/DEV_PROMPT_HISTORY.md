@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-01 abfahren-ohne-reichweite-sammeln
+
+### EINGELESEN
+- Profil der Abfahrt fürs Prüffenster am 4-Achs-Testteil: `maschinenzugang.bahn_grund` zerlegt
+  je Operation alle Sätze und sammelt je Punkt die Reichweite (`_Sammler.punkt`) – der Abspieler
+  ruft es mit `grenzen=False` und bekommt dann immer „“ zurück, außer bei fremder Rundachse,
+  unlesbaren Sätzen oder einem Bogen, den die Linearachsen nicht fahren können.
+
+### DATEIEN
+- `camaddon/maschinenzugang.py` (`bahn_grund` ohne Grenzen: keine Punkte sammeln, nur Bögen
+  lösen), `package.xml` (0.213.15), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Dieselbe Abfahrt, schneller.
+
+### TEST
+- KI: Testteil, Dauer und alle 329 532 Stationen gleich; 7,7 → 5,1 s. `test_abfahren`,
+  `test_bahnzugang`, `test_vierachs_pruefen`, `test_simultan_maschinen` grün in 1.1.4.
+
 ## P-2026-10-10-63 kollision-je-kern-ein-arbeiter
 
 ### EINGELESEN
