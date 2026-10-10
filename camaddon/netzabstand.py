@@ -16,7 +16,8 @@ import numpy as np
 
 ZELLE_MINDESTENS = 2.0  # mm – kleiner lohnt sich nicht: je Punkt werden 27 Zellen gelesen
 ZELLE_HOECHSTENS = 25.0  # mm – größer: zu viele Dreiecke je Zelle
-STAPEL = 4096  # so viele Paare (Strecke, Dreieck) rechnet `kapseln` auf einmal, die nächsten zuerst
+STAPEL = 4096  # so viele Paare (Strecke, Dreieck) rechnet `kapseln` höchstens auf einmal
+STAPEL_ERSTER = 256  # der erste Stapel (die nächsten Paare) – oft entscheidet er schon
 # Mehr Paare als das: zu teuer, die Abfrage gibt auf (die Kollision fragt dann OpenCascade).
 PAARE_HOECHSTENS = 60000
 
@@ -163,29 +164,38 @@ class Netz:
             return ergebnis - self.toleranz
         if len(paare_k) > PAARE_HOECHSTENS * k:
             return np.zeros(k) - self.toleranz  # nichts entschieden – billiger als die Rechnung
-        luecken = luecke[paare_k, paare_m] - radien[paare_k]  # Schranke je Paar, grob
-        reihenfolge = np.argsort(luecken, kind="stable")
+        # Die billige Schranke je Paar: die Lücke der Hüllquader um den Radius verschoben – und
+        # beim Zylinder der Abstand zur Stirnebene, wo das Dreieck ganz darunter oder darüber
+        # liegt. Danach sortiert, in wachsenden Stapeln: Der Kern eines Schaftfräsers über dem
+        # Boden ist nach dem ersten kleinen Stapel entschieden (P-2026-10-10-47).
         achse = nach - von
         laenge = np.linalg.norm(achse, axis=1)
         achse = achse / np.where(laenge > 1e-12, laenge, 1.0)[:, None]
-        for anfang in range(0, len(reihenfolge), STAPEL):
-            stapel = reihenfolge[anfang : anfang + STAPEL]
+        grob = luecke[paare_k, paare_m] - radien[paare_k]
+        scheibe = np.full(len(paare_k), -np.inf)  # ohne Stirnebene: keine zweite Schranke
+        flache = flach[paare_k]
+        if flache.any():
+            w = np.flatnonzero(flache)
+            kw, mw = paare_k[w], paare_m[w]
+            s = np.einsum("nej,nj->ne", self.ecken[dreiecke[mw]] - von[kw][:, None, :], achse[kw])
+            scheibe[w] = np.maximum(-s.max(axis=1), s.min(axis=1) - laenge[kw])
+            grob = np.maximum(grob, scheibe)
+        reihenfolge = np.argsort(grob, kind="stable")
+        anfang, stapel_groesse = 0, STAPEL_ERSTER
+        while anfang < len(reihenfolge):
+            stapel = reihenfolge[anfang : anfang + stapel_groesse]
+            anfang += stapel_groesse
+            stapel_groesse = min(STAPEL, stapel_groesse * 4)
             kk = paare_k[stapel]
-            offen = luecken[stapel] < ergebnis[kk]
+            offen = grob[stapel] < ergebnis[kk]
             if not offen.any():
-                if luecken[stapel[0]] >= ergebnis.max():
-                    break  # alle weiteren Lücken sind mindestens so groß
+                if grob[stapel[0]] >= ergebnis.max():
+                    break  # alle weiteren billigen Schranken sind mindestens so groß
                 continue
-            kk, mm = kk[offen], paare_m[stapel[offen]]
-            ecken = self.ecken[dreiecke[mm]]
-            d = segment_dreieck_abstand(von[kk], nach[kk], ecken) - radien[kk]
-            scheiben = flach[kk]
-            if scheiben.any():
-                # Ganz unter der unteren oder über der oberen Stirnebene: der Abstand zur Ebene.
-                s = np.einsum("kej,kj->ke", ecken - von[kk][:, None, :], achse[kk])  # (n, 3)
-                unter = -s.max(axis=1)
-                ueber = s.min(axis=1) - laenge[kk]
-                d = np.where(scheiben, np.maximum(d, np.maximum(unter, ueber)), d)
+            stapel = stapel[offen]
+            kk, mm = paare_k[stapel], paare_m[stapel]
+            d = segment_dreieck_abstand(von[kk], nach[kk], self.ecken[dreiecke[mm]]) - radien[kk]
+            d = np.maximum(d, scheibe[stapel])
             np.minimum.at(ergebnis, kk, d)
         return ergebnis - self.toleranz
 

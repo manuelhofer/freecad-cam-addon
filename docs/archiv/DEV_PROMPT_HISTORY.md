@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-47 netzschranke-billige-schranke-vorab
+
+### EINGELESEN
+- Nach P-2026-10-10-34 blieb in der Netzschranke (`Netz.kapseln`) Rechenzeit je Abfrage: die
+  Paare (Strecke, Dreieck) nach der Hüllquader-Lücke sortiert, in Stapeln zu 4096 genau
+  gerechnet, die Stirnebenen-Schranke erst danach. Der Kern eines Schaftfräsers über dem Boden
+  ist aber schon an den nächsten Paaren entschieden. Die Änderung lag halb fertig und
+  unversioniert im Arbeitsordner (Sitzung mit Fable, abgebrochen, weil das Kontingent aufgebraucht war); darin klemmte
+  `np.maximum(d, 0)` beim Kugelfräser (nicht flach) ein Eindringen auf 0.
+
+### DATEIEN
+- `camaddon/netzabstand.py` (`kapseln`: die Stirnebenen-Schranke für alle flachen Paare vorab,
+  sortiert nach dem Größeren aus Lücke und Ebene, Stapel wachsend ab 256 – `STAPEL_ERSTER` –
+  bis 4096; ohne Stirnebene `-inf` statt 0), `package.xml` (0.213.5).
+
+### AKZEPTANZKRITERIUM
+Dieselben Werte wie vorher (`test_netzabstand`, `test_kollision` grün), schneller.
+
+### TEST
+- KI: `test_netzabstand`, `test_kollision` grün in 1.1.4. Alt gegen neu am Testteil (20 574
+  Dreiecke, 3000 Abfragen mit Schaftfräser Ø 12 samt Halter und Kugelfräser Ø 6, 0,05 bis 3 mm
+  über den vier Böden, auch eindringend): 2999 bitgleich, einer um 2 · 10⁻¹⁵ mm anders
+  (Rundung). Schaftfräser 11,7 → 10,5 s, Kugelfräser 2,6 → 1,7 s, gesamt 14,0 → 12,2 s.
+
+### DONE
+- Für Manuel: nichts Neues zu sehen – „Kollision prüfen“ rechnet etwas schneller, dieselben
+  Befunde.
+
 ## P-2026-10-10-46 installieren-fehlertext
 
 ### EINGELESEN
