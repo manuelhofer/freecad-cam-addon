@@ -196,12 +196,13 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
 
 
 def werkzeugkapseln(masse, laenge, halter):
-    """{Art: ((z0, z1, r), …)} – je Werkzeugteil Kapseln (Strecke auf der Z-Achse der Aufnahme
-    mit Radius), die den Körper aus werkzeugkoerper() enthalten, für die Netzschranke
-    (netzabstand): beim Kugelfräser genau (die Kapsel von der Kugelmitte an ist der Fräser),
-    sonst der umschließende Zylinder als Kapsel – unter der Stirn um r zu lang, dort hilft sie
-    nicht, darüber schon. Der Halter je Abschnitt eine. Leer beim gewinkelten Halter: Seine
-    Teile liegen nicht auf der Z-Achse."""
+    """{Art: ((z0, z1, r, flach), …)} – je Werkzeugteil Strecken auf der Z-Achse der Aufnahme mit
+    Radius, die den Körper aus werkzeugkoerper() enthalten, für die Netzschranke (netzabstand):
+    `flach` – der Körper liegt ganz zwischen z0 und z1 (Zylinder, Kegel, Schaftfräser samt
+    Kern: unter der Stirn zählt der Abstand zur Stirnebene); nicht flach beim Kugelfräser und
+    Lollipop – da beginnt die Strecke in der Kugelmitte, die Kapsel ist der Fräser selbst. Der
+    Halter je Abschnitt eine. Leer beim gewinkelten Halter: Seine Teile liegen nicht auf der
+    Z-Achse."""
     if halter is not None and halter.gewinkelt:
         return {}
     spitze = -laenge
@@ -217,20 +218,20 @@ def werkzeugkapseln(masse, laenge, halter):
     if kugel > 0:  # Kugel an der Spitze: die Kapsel ab der Kugelmitte ist der Fräser selbst
         mitte = spitze + kugel
         r = max(radius, kugel)
-        kapseln[SCHNEIDE] = ((mitte, max(oben, mitte), r),)
+        kapseln[SCHNEIDE] = ((mitte, max(oben, mitte), r, False),)
         if r > EINDRINGEN:
-            kapseln[KERN] = ((mitte, max(oben, mitte), r - EINDRINGEN),)
+            kapseln[KERN] = ((mitte, max(oben, mitte), r - EINDRINGEN, False),)
     elif oben - spitze > 1e-6 and radius > 0:
-        kapseln[SCHNEIDE] = ((spitze, oben, radius),)
+        kapseln[SCHNEIDE] = ((spitze, oben, radius, True),)
         if radius > EINDRINGEN:
-            kapseln[KERN] = ((spitze + EINDRINGEN, oben, radius - EINDRINGEN),)
+            kapseln[KERN] = ((spitze + EINDRINGEN, oben, radius - EINDRINGEN, True),)
     if masse.hals_laenge > 0 and masse.hals_d > 0:
         hals_ende = min(oben + masse.hals_laenge, ende)
         if hals_ende - oben > 1e-6:
-            kapseln[HALS] = ((oben, hals_ende, masse.hals_d / 2),)
+            kapseln[HALS] = ((oben, hals_ende, masse.hals_d / 2, True),)
         oben = hals_ende
     if masse.schaft > 0 and ende - oben > 1e-6:
-        kapseln[SCHAFT] = ((oben, ende, masse.schaft / 2),)
+        kapseln[SCHAFT] = ((oben, ende, masse.schaft / 2, True),)
     if halter is not None:
         stufen = []
         z = 0.0
@@ -239,7 +240,7 @@ def werkzeugkapseln(masse, laenge, halter):
                 continue
             r = max(abschnitt.d_oben, abschnitt.d_unten) / 2
             if r > 0:
-                stufen.append((-z - abschnitt.laenge, -z, r))
+                stufen.append((-z - abschnitt.laenge, -z, r, True))
             z += abschnitt.laenge
         if stufen:
             kapseln[HALTER] = tuple(stufen)
@@ -1458,16 +1459,16 @@ class _Welt:
         z0 = np.array([k[0] for k in werkzeug.kapseln])
         z1 = np.array([k[1] for k in werkzeug.kapseln])
         radius = np.array([k[2] for k in werkzeug.kapseln])
+        flach = np.array([k[3] for k in werkzeug.kapseln])
         achse = np.array([m.A13, m.A23, m.A33])
         ursprung = np.array([m.A14, m.A24, m.A34])
         von = ursprung + z0[:, None] * achse
         nach = ursprung + z1[:, None] * achse
         # So weit suchen, dass die Schranke über `reicht` hinaus noch einen Schritt erlaubt.
         reichweite = float(radius.max()) + reicht + NETZ_SCHRITT
-        schranken = netz.kapseln(von, nach, reichweite)
-        werte = schranken - radius
+        werte = netz.kapseln(von, nach, reichweite, radius, flach)
         k = int(np.argmin(werte))
-        knapp = bool(schranken[k] < reichweite - netz.toleranz - 1e-9)
+        knapp = bool(werte[k] < reichweite - radius[k] - netz.toleranz - 1e-9)
         return float(werte[k]), knapp
 
     def _beruehrt_schon(self, operation, paar):

@@ -82,12 +82,13 @@ h = hl.aus_vorlage("er25")
 kapseln = kb.werkzeugkapseln(masse, 110.0, h)
 assert set(kapseln) >= {kb.SCHNEIDE, kb.KERN, kb.HALS, kb.SCHAFT, kb.HALTER}, kapseln
 assert kapseln[kb.KERN][0][2] == kapseln[kb.SCHNEIDE][0][2] - kb.EINDRINGEN
+assert not kapseln[kb.KERN][0][3] and kapseln[kb.SCHAFT][0][3]  # Kugel nicht flach, Schaft flach
 for art, koerper in kb.werkzeugkoerper(masse, 110.0, h, mit_kern=True):
     strecken = kapseln[art]
     ecken, _ = koerper.tessellate(0.05)
     p = np.array([(v.x, v.y, v.z) for v in ecken])
     drin = np.zeros(len(p), dtype=bool)
-    for z0, z1, r in strecken:
+    for z0, z1, r, _flach in strecken:
         a, b = np.array([0, 0, z0]), np.array([0, 0, z1])
         d = na.segment_segment_abstand(
             p, p, np.broadcast_to(a, p.shape), np.broadcast_to(b, p.shape)
@@ -99,9 +100,24 @@ flach = rw.Werkzeugmasse(
     durchmesser=10.0, schneide=20.0, hals_d=0, hals_laenge=0, schaft=10.0, gesamt=70.0
 )
 k2 = kb.werkzeugkapseln(flach, 60.0, None)
-assert k2[kb.SCHNEIDE] == ((-60.0, -40.0, 5.0),) and k2[kb.SCHAFT] == ((-40.0, 0.0, 5.0),)
-assert k2[kb.KERN] == ((-60.0 + kb.EINDRINGEN, -40.0, 5.0 - kb.EINDRINGEN),)
+assert k2[kb.SCHNEIDE] == ((-60.0, -40.0, 5.0, True),) and k2[kb.SCHAFT] == (
+    (-40.0, 0.0, 5.0, True),
+)
+assert k2[kb.KERN] == ((-60.0 + kb.EINDRINGEN, -40.0, 5.0 - kb.EINDRINGEN, True),)
 gewinkelt = hl.aus_vorlage("er25")
 gewinkelt.richtung = hl.GEWINKELT
 assert kb.werkzeugkapseln(flach, 60.0, gewinkelt) == {}
+# Flacher Zylinder über dem Taschenboden (z = 5): Kern r 2,45 mit der Stirn 0,05 darüber – die
+# Kapsel allein sagt −2,4, mit der Stirnebene 0,05 (minus Toleranz); die Kugel bleibt bei der Kapsel.
+von = np.array([[50.0, 30.0, 5.05]])
+nach = np.array([[50.0, 30.0, 15.05]])
+r = np.array([2.45])
+kapsel = netz.kapseln(von, nach, 5.0, r, np.array([False]))[0]
+zylinder = netz.kapseln(von, nach, 5.0, r, np.array([True]))[0]
+assert kapsel < 0 and abs(zylinder - (0.05 - TOLERANZ)) < 1e-6, (kapsel, zylinder)
+# Ein Zylinder neben der Taschenwand (x = 30): die Stirnebene hilft nicht, die Kapsel gilt.
+von = np.array([[32.5, 30.0, 8.0]])
+nach = np.array([[32.5, 30.0, 18.0]])
+wand = netz.kapseln(von, nach, 5.0, np.array([2.0]), np.array([True]))[0]
+assert abs(wand - (0.5 - TOLERANZ)) < 2 * TOLERANZ, wand
 print("OK", pathlib.Path(__file__).name)

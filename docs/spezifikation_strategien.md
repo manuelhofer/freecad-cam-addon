@@ -3145,6 +3145,10 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    Gitterzellen von 0,5 mm statt r – je Gruppe 25 statt 195 Kandidaten –, erst die nahen Kapseln
    (die nächste Bahn), dann alle; die Vierteilung unentschiedener Zellen rechnet so gegen wenige.
    Dieselben Urteile; am Freiformbeispiel 59 → 26 s, der Vergleich 243 → 201 s.
+8. **Netzschranke mit Stirnebene (P-2026-10-10-34):** Für Zylinder (Schaft, Hals, Halter,
+   Schaftfräser samt Kern) zählt unter und über den Stirnebenen der Abstand zur Ebene – so
+   entscheidet der Kern 0,05 mm über dem Boden ohne OpenCascade. Manuels 3-Achs-Testteil:
+   „Kollision prüfen“ 21,8 → 9,3 s, genaue Abstände 30 769 → 684, dieselben Befunde.
 3. **Varianten und Zwischenlagen parallel** – sie sind unabhängig: mit dem Haken „Alle
    Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
 4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich

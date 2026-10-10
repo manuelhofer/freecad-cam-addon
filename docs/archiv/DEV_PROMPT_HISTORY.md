@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-34 netzschranke-mit-stirnebene-fuer-flache-fraeser
+
+### EINGELESEN
+- Die Netzschranke (P-2026-10-10-27) brachte an Manuels 3-Achs-Testteil nichts: „Kollision
+  prüfen“ mit der Beispiel-Fräse (12 897 Stationen, Räumen, Kontur, Restmaterial, 3D-Schruppen
+  mit Schaftfräsern, 3D-Schlichten mit Kugel) 21,4 → 21,8 s mit 24 Arbeitern; in einem Prozess
+  30 079 genaue Abstände „Kern gegen Teil“ (4 ms je Aufruf am vielflächigen Teil, 119 s). Der
+  Kern eines Schaftfräsers steht mit seiner flachen Stirn 0,05 mm über dem Boden – die Kapsel
+  reicht um r darunter, entschied nichts, und nach drei Fehlversuchen fragte das Paar nur noch
+  OpenCascade.
+
+### DATEIEN
+- `camaddon/netzabstand.py` (`kapseln` mit `radien` und `flach`: ein Dreieck ganz unter der
+  unteren oder über der oberen Stirnebene eines Zylinders ist mindestens so weit weg wie von der
+  Ebene – das Größere aus Kapsel- und Ebenenschranke je Dreieck; die Vorauswahl nach Lücke um
+  den Radius verschoben), `camaddon/kollision.py` (`werkzeugkapseln` mit viertem Wert `flach`:
+  alles außer Kugelfräser und Lollipop, deren Strecke in der Kugelmitte beginnt;
+  `_netzschranke` reicht Radien und `flach` durch), `tests/test_netzabstand.py` (Zylinder
+  über dem Taschenboden: 0,05 − Toleranz; neben der Wand: die Kapsel), `docs/STATUS_SNAPSHOT.md`,
+  `docs/spezifikation_strategien.md` (16.5), `package.xml` (0.212.0).
+
+### AKZEPTANZKRITERIUM
+Dieselben Befunde (`test_kollision`, `test_kollision_verteilt`, `szenario_kollision`,
+`test_simultan_planung` grün), am Testteil deutlich weniger genaue Abstände.
+
+### DONE
+- Testteil, 24 Arbeiter: **21,8 → 9,3 s**, dieselben zwei Befunde; ein Prozess 146 → 58 s,
+  genaue Abstände 30 769 → 684 (Kern gegen Teil 30 079 → 24). Kuppel unverändert (Kugelfräser).
+- Für Manuel: „Auf der Maschine prüfen“ → „Kollision prüfen“ am Testteil mit der Beispiel-Fräse
+  läuft jetzt in unter zehn Sekunden statt gut zwanzig.
+
 ## P-2026-10-10-33 douglas-peucker-stufenweise-vektorisiert
 
 ### EINGELESEN

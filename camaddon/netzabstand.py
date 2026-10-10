@@ -110,17 +110,21 @@ class Netz:
         lauf = np.arange(int(laengen.sum())) - np.repeat(np.cumsum(laengen) - laengen, laengen)
         return self.index[np.repeat(anfang, laengen) + lauf]
 
-    def kapseln(self, von, nach, reichweite=None):
+    def kapseln(self, von, nach, reichweite=None, radien=None, flach=None):
         """Je Strecke (von, nach: (k, 3)): so weit ist sie mindestens von der Oberfläche
-        entfernt – wie `abstand`, für Strecken statt Punkte (eine Kapsel mit Radius r ist dann
-        mindestens Ergebnis − r entfernt). Höchstens `reichweite` (ohne Angabe eine
-        Zellenbreite) minus `toleranz`: So weit sucht es um die Strecken; eine Kapsel mit
-        Radius r braucht mindestens r plus den Abstand, der entscheiden soll."""
+        entfernt – wie `abstand`, für Strecken statt Punkte. Mit `radien` (k,) je Strecke der
+        Abstand des Körpers mit diesem Radius um sie: einer Kapsel, oder mit `flach` (k, bool)
+        eines Zylinders zwischen den Enden – ein Dreieck ganz unter seiner unteren oder über
+        seiner oberen Stirnebene ist mindestens so weit weg wie von der Ebene (der Kern eines
+        Schaftfräsers über dem Boden, P-2026-10-10-34). Höchstens `reichweite` (ohne Angabe eine
+        Zellenbreite) minus Radius und `toleranz`: So weit sucht es um die Strecken."""
         von = np.asarray(von, dtype=np.float64).reshape(-1, 3)
         nach = np.asarray(nach, dtype=np.float64).reshape(-1, 3)
         k = len(von)
         reichweite = self.zelle if reichweite is None else float(reichweite)
-        ergebnis = np.full(k, reichweite)
+        radien = np.zeros(k) if radien is None else np.asarray(radien, dtype=np.float64)
+        flach = np.zeros(k, dtype=bool) if flach is None else np.asarray(flach, dtype=bool)
+        ergebnis = np.full(k, reichweite) - radien
         if k == 0 or len(self.ecken) == 0:
             return ergebnis - self.toleranz
         # Die Dreiecke um alle Strecken auf einmal (sie liegen meist nah beieinander – die
@@ -158,9 +162,12 @@ class Netz:
         if len(paare_k) == 0:
             return ergebnis - self.toleranz
         if len(paare_k) > PAARE_HOECHSTENS * k:
-            return np.zeros(k)  # nichts entschieden – billiger als die Rechnung
-        luecken = luecke[paare_k, paare_m]
+            return np.zeros(k) - self.toleranz  # nichts entschieden – billiger als die Rechnung
+        luecken = luecke[paare_k, paare_m] - radien[paare_k]  # Schranke je Paar, grob
         reihenfolge = np.argsort(luecken, kind="stable")
+        achse = nach - von
+        laenge = np.linalg.norm(achse, axis=1)
+        achse = achse / np.where(laenge > 1e-12, laenge, 1.0)[:, None]
         for anfang in range(0, len(reihenfolge), STAPEL):
             stapel = reihenfolge[anfang : anfang + STAPEL]
             kk = paare_k[stapel]
@@ -170,7 +177,15 @@ class Netz:
                     break  # alle weiteren Lücken sind mindestens so groß
                 continue
             kk, mm = kk[offen], paare_m[stapel[offen]]
-            d = segment_dreieck_abstand(von[kk], nach[kk], self.ecken[dreiecke[mm]])
+            ecken = self.ecken[dreiecke[mm]]
+            d = segment_dreieck_abstand(von[kk], nach[kk], ecken) - radien[kk]
+            scheiben = flach[kk]
+            if scheiben.any():
+                # Ganz unter der unteren oder über der oberen Stirnebene: der Abstand zur Ebene.
+                s = np.einsum("kej,kj->ke", ecken - von[kk][:, None, :], achse[kk])  # (n, 3)
+                unter = -s.max(axis=1)
+                ueber = s.min(axis=1) - laenge[kk]
+                d = np.where(scheiben, np.maximum(d, np.maximum(unter, ueber)), d)
             np.minimum.at(ergebnis, kk, d)
         return ergebnis - self.toleranz
 
