@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-55 forum-antwort-vierachs-testteil
+
+### EINGELESEN
+- Manuel, 2026-10-10: „mach als erstes mal einen Forumpost fertig auf Englisch … und lädst die
+  Bilder mit sinnvollen Namen hoch … auf GitHub … und das Testteil … natürlich schreiben wir
+  dazu, dass hier die Strategie noch nicht perfekt ist“. Bilder in `~/freecad_cam/forumbilder/`,
+  das Teil `~/freecad_cam/testteile/zweites4achstestteil.FCStd`.
+- Im Thread seit dem Vormittag: MTronic, Dimitrios2 (Lob), legros (installiert; 2017er Aluminium;
+  Bild: Kollision des ER16-Halters in „Flank T1“ an der 5-Achs-Tisch/Tisch-Fräse), MTronic ruft
+  sliptonic und Connor. Und der Listenfehler im ersten Beitrag hat seine Ursache in der Vorlage:
+  `[[i]]*` statt `[*][i]`.
+
+### DATEIEN
+- `docs/bilder/forum/` (sechs Bilder: `clx550_neue_maschine.png`, `vierachs_nase_1_flaeche_waehlen.png`
+  … `vierachs_nase_5_abfahren_mit_abtrag.png`), `beispiele/testteil_4achs_nase.FCStd` (Manuels
+  Teil mit Job; der gemerkte Maschinenpfad auf seinen Ordner geleert), `beispiele/README.md`,
+  `docs/forum_vorstellung.md` (Listenmarken korrigiert, Antwort „4 Achsen“ als BBCode),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Manuel kopiert den BBCode als Antwort in den Thread, und alle Bilder und der Link zum Teil gehen.
+
+### DONE
+- Teil in 26.3.0RC1 geöffnet: 53 Objekte, Schruppen 12 998 und Schlichten 223 086 Sätze, kein
+  Pfad nach `/home/` mehr.
+
 ## P-2026-10-10-54 werkstoff-en-aw-2017a
 
 ### EINGELESEN
