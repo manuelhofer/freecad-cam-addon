@@ -9,7 +9,8 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-**Im FreeCAD-Forum vorgestellt (2026-10-10):** der englische Beitrag im Unterforum „CAM“ (Manuel);
+**Im FreeCAD-Forum vorgestellt (2026-10-10):** der englische Beitrag im Unterforum „CAM“ (Manuel),
+https://forum.freecad.org/viewtopic.php?t=107889 – wartet auf die Freigabe durch einen Moderator;
 der deutsche folgt, sobald das Forum es zulässt. Text, Bilder und Stand: `docs/forum_vorstellung.md`.
 Antworten dort sind ab jetzt Eingang für Wünsche und Fehler.
 

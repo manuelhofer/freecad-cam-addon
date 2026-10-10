@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-16 forum-thread-link
+
+### EINGELESEN
+- Manuel, 2026-10-10: „https://forum.freecad.org/viewtopic.php?t=107889 <-- muss erst von einem moderator freigegeben werden.“
+
+### DATEIEN
+- `docs/forum_vorstellung.md` (Link im Stand und im deutschen Beitrag), `docs/STATUS_SNAPSHOT.md`.
+
+### AKZEPTANZKRITERIUM
+Der deutsche BBCode-Text nennt den englischen Thread; der Snapshot führt den Link.
+
+### DONE
+- Der Thread ist auch als Merkposten im Gedächtnis dieser Sitzungen hinterlegt, um Antworten
+  nachzulesen.
+
 ## P-2026-10-10-15 forum-beitrag-abgeschickt
 
 ### EINGELESEN

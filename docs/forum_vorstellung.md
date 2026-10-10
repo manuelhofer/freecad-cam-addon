@@ -14,7 +14,8 @@ Vorschlägen und Zeiten), `vierachs_welle.png` (Rundum schruppen an der Welle), 
 
 **Stand 2026-10-10:** Der englische Beitrag ist im Unterforum „CAM“ abgeschickt (Manuel). Der
 deutsche wartet: Das Forum lässt kurz hintereinander keine zwei Beiträge zu. Link zum englischen
-Thread: *noch eintragen* – er gehört in den ersten Satz des deutschen Beitrags.
+Thread: https://forum.freecad.org/viewtopic.php?t=107889 (wartet auf die Freigabe durch einen Moderator); er
+steht im ersten Satz des deutschen Beitrags.
 
 ## Deutsch
 
@@ -23,7 +24,7 @@ Y, 4-Achs-Bearbeitung – Meinungen und Tester gesucht
 
 Hallo zusammen,
 
-(Dieselbe Vorstellung auf Englisch im Unterforum „CAM“: LINK)
+(Dieselbe Vorstellung auf Englisch im Unterforum „CAM“: https://forum.freecad.org/viewtopic.php?t=107889)
 
 ich fräse und drehe an einer DMG CLX 550 mit Y-Achse und an ein paar 3-Achs-Fräsen und wollte
 den Weg vom Teil zum Programm in FreeCAD bequemer haben: weniger Dialoge, mehr Vorschläge, die
@@ -190,7 +191,7 @@ Betreff: CAM-Addon für FreeCAD 1.1 – Werkzeugverwaltung, Maschinen-Baukasten,
 ```
 Hallo zusammen,
 
-(Dieselbe Vorstellung auf Englisch im Unterforum „CAM“: LINK)
+(Dieselbe Vorstellung auf Englisch im Unterforum „CAM“: https://forum.freecad.org/viewtopic.php?t=107889)
 
 ich fräse und drehe an einer DMG CLX 550 mit Y-Achse und an ein paar 3-Achs-Fräsen und wollte den Weg vom Teil zum Programm in FreeCAD bequemer haben: weniger Dialoge, mehr Vorschläge, die man einfach annehmen kann. Daraus ist über die letzten Wochen ein Addon geworden, das ich hier vorstellen und zur Diskussion stellen möchte.
 
