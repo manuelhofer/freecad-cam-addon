@@ -299,7 +299,7 @@ def _je_stellung_verteilt(netz, laengs, radial, form, phi, q, a):
         for t in teile
     ]
     try:
-        ergebnisse = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+        ergebnisse = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler as fehler:
         FreeCAD.Console.PrintWarning(
             f"CAM-Addon: Hüllfläche je Stellung auf den Nebenrechnern gescheitert, rechne hier: "

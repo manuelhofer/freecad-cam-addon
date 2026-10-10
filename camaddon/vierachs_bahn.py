@@ -2128,7 +2128,7 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
             )
         )
     try:
-        ketten = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+        ketten = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler as fehler:
         FreeCAD.Console.PrintWarning(
             f"CAM-Addon: Bahn zusammenfassen auf den Nebenrechnern gescheitert, rechne hier: "
@@ -2285,7 +2285,7 @@ def _tiefste_verteilt(breit, n_a, n_phi, schritt_a, schritt_phi, form, zeilen_an
         for a, b in bereiche
     ]
     try:
-        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler as fehler:
         FreeCAD.Console.PrintWarning(
             f"CAM-Addon: Rest auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"

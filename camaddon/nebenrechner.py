@@ -828,6 +828,20 @@ def ereignisse():
     return True
 
 
+def ereignisse_ohne_eingaben():
+    """Wie ereignisse(), aber ohne Maus und Tastatur: Das Fenster zeichnet sich neu, nimmt aber
+    keinen Klick an – für das Warten mitten in einer Neuberechnung (die Bahn einer Operation),
+    wo ein Klick auf ein Objekt fiele, das gerade gerechnet wird (FreeCAD 26.3 stürzte so ab,
+    P-2026-10-10-45). Immer True."""
+    try:
+        from PySide import QtCore, QtGui
+    except ImportError:
+        return True
+    if QtGui.QApplication.instance() is not None:
+        QtGui.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+    return True
+
+
 def stuecke(anzahl, pool_groesse, je_arbeiter=4, mindestens=1):
     """[(von, bis)] – `anzahl` Dinge in Stücke für die Arbeiter: je Arbeiter `je_arbeiter`,
     keins kürzer als `mindestens`."""

@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-03 warten-in-der-neuberechnung-ohne-klicks
+
+### EINGELESEN
+- Seit P-2026-10-10-57 und -62 warten die 4-Achs-Bahnen mitten in FreeCADs Neuberechnung auf die
+  Nebenrechner – mit `nebenrechner.ereignisse`, das alle Ereignisse verarbeitet, auch Klicks. Ein
+  Klick fiele dann auf Objekte, die gerade gerechnet werden; in 26.3 stürzte FreeCAD an solchen
+  Stellen schon ab (P-2026-10-10-45, und einmal `munmap_chunk` nach „Rundum schlichten“ im
+  vollen Lauf in RC1).
+
+### DATEIEN
+- `camaddon/nebenrechner.py` (`ereignisse_ohne_eingaben`: neu zeichnen, keine Maus und Tastatur),
+  `camaddon/vierachs_huelle.py`, `camaddon/vierachs_bahn.py` (ihre drei Wartestellen damit),
+  `package.xml` (0.213.17), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Das Fenster zeichnet sich beim Neuberechnen weiter, nimmt aber keinen Klick an; kein Absturz.
+
+### TEST
+- KI: Szenario (nur im Scratchpad) mit Manuels 4-Achs-Testteil, beide Operationen neu berechnet:
+  1.1.4 9,5 s, 26.3.0RC1 10,1 s (mit dem Start der Arbeiter), kein Absturz, Rest 25,26 mm.
+  `szenario_vierachs_schlichten`, `szenario_vierachs_schruppen` grün in 1.1.4 und RC1.
+
 ## P-2026-10-11-02 raeumen-abstand-ohne-rand-sofort
 
 ### EINGELESEN
