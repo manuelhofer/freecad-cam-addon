@@ -87,7 +87,7 @@ for adresse, grund in (
         inst.installiere(adresse, mod, PARAMETER)
         fehler.append(f"{grund}: kein Fehler gemeldet")
     except (OSError, ValueError) as f:
-        pruefe("privat" in inst.fehlertext(f), f"{grund}: Fehlertext {inst.fehlertext(f)!r}")
+        pruefe("Download ZIP" in inst.fehlertext(f), f"{grund}: Fehlertext {inst.fehlertext(f)!r}")
     pruefe(Path(ziel, "InitGui.py").read_text() == "# neu", f"{grund}: Installation verändert")
 kein_zip = Path(basis, "kein.zip")
 kein_zip.write_text("kein Archiv")

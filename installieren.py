@@ -325,11 +325,11 @@ def fehlertext(fehler):
     """Die Rückmeldung, wenn es nicht geklappt hat, deutsch und englisch."""
     return (
         f"Das CAM-Addon ließ sich nicht installieren:\n{fehler}\n\n"
-        f"Ist das Repository noch privat? Dann bitte nach der Anleitung mit"
-        f" GitHub Desktop installieren (README).\n\n"
+        f"Dann bitte von Hand: auf GitHub Code → Download ZIP, weiter wie im README unter"
+        f" „Geht keine der drei Zeilen“.\n\n"
         f"The CAM Addon could not be installed:\n{fehler}\n\n"
-        f"Is the repository still private? Then please follow the"
-        f" GitHub Desktop instructions (README)."
+        f"Then please install by hand: on GitHub Code → Download ZIP, then as described in the"
+        f" README under „Geht keine der drei Zeilen“."
     )
 
 

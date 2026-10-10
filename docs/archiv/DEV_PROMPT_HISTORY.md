@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-46 installieren-fehlertext
+
+### EINGELESEN
+- Geht die Installationszeile schief, fragte `installieren.fehlertext()` „Ist das Repository noch
+  privat?“ und verwies auf eine Anleitung mit GitHub Desktop, die das README nicht mehr hat – das
+  Repository ist öffentlich, der Weg ohne Zeile ist seit P-2026-10-10-36 die ZIP von Hand.
+
+### DATEIEN
+- `installieren.py` (`fehlertext`: Code → Download ZIP, weiter wie im README unter „Geht keine
+  der drei Zeilen“), `tests/test_installieren.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Scheitert eine der drei Zeilen, nennt das Fenster den Weg von Hand.
+
+### TEST
+- KI: `test_installieren` grün in 1.1.3.
+
 ## P-2026-10-10-45 uhren-nicht-mitten-in-rechnungen
 
 ### EINGELESEN
