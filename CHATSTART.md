@@ -52,12 +52,13 @@ Hier stehen nur die vier, bei denen ein Verstoß nicht mehr zu reparieren ist:
 
 ## 3. Lesekarte – was liest du wann?
 
-**Immer, vor jeder Änderung – diese drei Zeilen, mehr nicht:**
+**Immer, vor jeder Änderung – diese vier Zeilen, mehr nicht:**
 
 | Datei | Wofür |
 | --- | --- |
 | [docs/arbeitsregeln.md](docs/arbeitsregeln.md) | Wie gearbeitet wird |
 | [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md) | Der ganze Stand: nächster Schritt, Wunschliste, offene Bugs |
+| [docs/OFFENE_FRAGEN.md](docs/OFFENE_FRAGEN.md) | Was nur Manuel beantworten kann – je Frage der Grund; wird gefragt, nicht nachgemessen |
 | `git log --oneline -20` | Was zuletzt passiert ist |
 
 **Je nach Thema – nur das Passende:** Die Tabelle wächst mit dem Projekt. Jede

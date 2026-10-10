@@ -28,6 +28,14 @@ darin mitgelaufen ist.
 in `CHATSTART.md` schon entschieden ist (stabile Version und Wochen-Build, jedes
 Betriebssystem, keine bestimmte Maschine), wird nicht noch einmal gefragt.
 
+**Offene Fragen stehen in [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md)** (Manuel, 2026-10-10). Was
+nur Manuel beantworten kann – eine Entscheidung, etwas, das nur sein FreeCAD oder seine Maschine
+zeigt, der Stand eines Teils bei ihm –, kommt dort hinein: mit Datum, mit dem Grund, warum der
+Assistent es nicht selbst beantwortet, und mit dem, was die Antwort ändert. Beantwortet: raus
+aus der Datei, die Antwort in Verlauf oder Spezifikation. Keine Prüfläufe, um einer solchen
+Frage auszuweichen: 13 Minuten Szenario für eine Komma-Frage waren Zeit, die eine Zeile in der
+Datei gekostet hätte.
+
 ## 1. Wann überhaupt gearbeitet wird
 
 Ob gerade gearbeitet wird, entscheidet der **Projektstatus** in

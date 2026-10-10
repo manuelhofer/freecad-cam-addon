@@ -4,7 +4,8 @@
 Wunschliste, offene Bugs und Tasks. Was fertig ist, steht nicht mehr hier, sondern im
 Verlauf ([archiv/DEV_PROMPT_HISTORY.md](archiv/DEV_PROMPT_HISTORY.md), ein Eintrag je
 Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekarte in
-`CHATSTART.md`).
+`CHATSTART.md`). Fragen, die nur Manuel beantworten kann, stehen mit Grund in
+[OFFENE_FRAGEN.md](OFFENE_FRAGEN.md).
 
 ## Projektstatus
 
@@ -610,7 +611,7 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   letzten 10 % der Stationen ein Viertel der Zeit). **Vorschau des 4-Achs-Assistenten im
   Hintergrund (P-2026-10-09-09):** je Bearbeitung ein Auftrag, das Fenster bleibt bedienbar
   (Manuel, 2026-10-09: der „Lag“ beim Ändern der seitlichen Zustellung) – ob es sich so anfühlt,
-  prüft Manuel. **Prüfungen eingedampft (P-2026-10-09-10):** `test_simultan_planung` und
+  prüft Manuel (Frage 3 in [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md)). **Prüfungen eingedampft (P-2026-10-09-10):** `test_simultan_planung` und
   `test_simultan_gesamt` an der Kuppel in je unter drei Minuten (vorher 30 und 70 min). **Hüllfläche in Blöcken und auf allen Kernen
   (P-2026-10-09-11):** der Kuppelvergleich (eine Variante) 131 → 44 s. **Normalen, Kugelschnitt und
   Deckung in Stücken (P-2026-10-09-12):** der Kuppelvergleich 44 → 23 s, `test_simultan_planung`
@@ -628,7 +629,7 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   Vergleichsdialog zeigt überall dasselbe Dezimalzeichen (Restgrenze, Zwischenlage und Statuszeile
   folgten „gewählt, sonst Punkt“, das Feld „Bahn gerechnet für“ dem Zahlenformat der Oberfläche). Offen: Plan
   indexiert, Rundum entgraten, Entgraten 3D und Flanke (ihr Schritt sitzt ohne Parameter in der
-  Bahn) – nur, wenn Manuel es dort braucht.
+  Bahn) – nur, wenn Manuel es dort braucht (Frage 1 in [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md)).
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit

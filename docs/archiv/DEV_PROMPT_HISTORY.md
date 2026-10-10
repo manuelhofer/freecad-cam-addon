@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-02 offene-fragen-im-repo
+
+### EINGELESEN
+- Manuel, 2026-10-10: „kannst du bitte offene fragen einfach immer im gitrepo speichern als
+  separate .md datei“ und „in offene fragen muss dann aber auch stehen warum du mir die frage
+  stellen musst und sie nicht selbst beantwortest“. Anlass: 13 Minuten Prüflauf für etwas, das eine
+  Frage an ihn war („das ist schwachsinn !!!! nicht effizient !“). Bisher standen solche Fragen
+  verstreut im Snapshot („prüft Manuel“), in Chat-Zusammenfassungen und nirgends dauerhaft.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (neu), `docs/arbeitsregeln.md` (Abschnitt 0: die Regel), `CHATSTART.md`
+  (Startlektüre: vier Zeilen statt drei), `docs/STATUS_SNAPSHOT.md` (Verweis, Querverweise).
+
+### AKZEPTANZKRITERIUM
+Jede Frage, die nur Manuel beantworten kann, steht in `docs/OFFENE_FRAGEN.md` mit Datum, dem Grund,
+warum Claude sie nicht selbst beantwortet, und dem, was die Antwort ändert. Beantwortet → raus aus
+der Datei, Antwort in Verlauf oder Spezifikation. Kein Prüflauf, um einer solchen Frage auszuweichen.
+
+### DONE
+- Fünf Fragen eingetragen: Auflösung in weiteren Strategien; Reihenfolge Werkzeugkiste-Import gegen
+  Rechenhebel; Vorschau im 4-Achs-Assistenten ohne Lag; Erklärung der Auflösungsfelder; 5-Achs-Testteil
+  fertig?
+- Die Komma-Frage steht nicht drin: durch P-2026-10-10-01 braucht sie Manuel nicht mehr.
+
 ## P-2026-10-10-01 vergleichsdialog-ein-dezimalzeichen
 
 ### EINGELESEN
