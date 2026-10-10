@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-10 netzschranke-jedes-dreieck-einmal
+
+### EINGELESEN
+- „Kollision prüfen“ am 4-Achs-Testteil (CLX550, Manuels Werkzeuge): 181 s. Je Stück der
+  Prüfung steckten 3,6 von 5,9 s in `netzabstand.kapseln`, 2,3 Mio. Paare (Strecke, Dreieck)
+  je zwei Stücke. Nötig waren davon 60 000: `_dreiecke_in` gibt ein Dreieck so oft, wie es Zellen
+  berührt (für einzelne Punkte billiger als `np.unique`); im Quader um die Kapseln eines
+  Werkzeugs liegt ein großes Dreieck der Mantelfläche aber in vielen Zellen – im Mittel 20-mal.
+- Geprüft und verworfen: nur den kleinsten Wert aller Kapseln rechnen (kaum weniger Paare),
+  früher aufhören, sobald die Schranke den Warnabstand unterschreitet (kam nie vor), die
+  Arbeiter je an einen Kern binden (OpenCascade rechnet `distToShape` selbst mit mehreren Fäden;
+  gebunden 184 s statt 162 s).
+
+### DATEIEN
+- `camaddon/netzabstand.py` (`kapseln`: jedes Dreieck einmal), `package.xml` (0.213.23),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Vier Stücke der Prüfung Befund für Befund wie vorher (Abstand, Station, Satz, Stellen,
+  Hinweise); 0,30 statt 2,36 Mio. Paare. Ganze Prüfung 181 → 162 s, dieselben drei Befunde.
+- Grün: `test_netzabstand.py`, `test_kollision.py`, `test_kollision_verteilt.py`.
+
 ## P-2026-10-11-09 vierachs-bahnen-weniger-auf-einem-kern
 
 ### EINGELESEN

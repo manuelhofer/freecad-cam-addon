@@ -143,7 +143,10 @@ class Netz:
             ),
             axis=-1,
         )
-        dreiecke = self._dreiecke_in(zellen)
+        # Hier jedes Dreieck nur einmal: Ein großes Dreieck (die Mantelfläche eines Teils) liegt
+        # in vielen Zellen des Quaders um die Strecken – am 4-Achs-Testteil kam jedes im Mittel
+        # 20-mal und wurde 20-mal gerechnet (P-2026-10-11-10).
+        dreiecke = np.unique(self._dreiecke_in(zellen))
         m = len(dreiecke)
         if m == 0:
             return ergebnis - self.toleranz
