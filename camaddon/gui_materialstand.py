@@ -18,6 +18,7 @@ from PySide import QtCore
 
 from . import job_schnittwerte as js
 from . import materialstand as mst
+from . import uhren
 
 
 def mit_materialstand(op):
@@ -75,7 +76,7 @@ class _Beobachter:
         self._uhr = QtCore.QTimer()
         self._uhr.setSingleShot(True)
         self._uhr.setInterval(0)
-        self._uhr.timeout.connect(self._pruefen)
+        self._uhr.timeout.connect(uhren.aus_der_schleife(self._uhr, self._pruefen))
 
     def slotChangedObject(self, objekt, eigenschaft):
         if self._rechnet or eigenschaft not in ("Path", "Group"):

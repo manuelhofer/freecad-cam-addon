@@ -39,6 +39,7 @@ from . import (
     gui_neue_maschine,
     gui_werkzeuge,
     symbol,
+    uhren,
 )
 from . import job_schnittwerte as js
 from . import maschine as m
@@ -309,7 +310,7 @@ class PruefPanel:
         self._uhr = QtCore.QTimer()
         self._uhr.setSingleShot(True)
         self._uhr.setInterval(VERZOEGERUNG)
-        self._uhr.timeout.connect(self.pruefe)
+        self._uhr.timeout.connect(uhren.aus_der_schleife(self._uhr, self.pruefe))
         self.form = self._baue()
         self.wahl_job.setCurrentIndex(jobs.index(job))
         self._job_gewechselt()

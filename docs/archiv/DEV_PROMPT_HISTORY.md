@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-45 uhren-nicht-mitten-in-rechnungen
+
+### EINGELESEN
+- T-011, Szenarien im Wochen-Build: `szenario_schwenken` bestand alle Prüfungen, danach stürzte
+  FreeCAD ab (SIGSEGV in `_recomputeFeature`, davor „Cannot access attribute 'Grundjob' of
+  deleted object“). FreeCAD 26.3 zeigt den Fortschritt boolescher Operationen von Part und
+  arbeitet dabei Qt-Ereignisse ab: Während der Assistent im Job der Ebene noch rechnete (ein
+  `common()`), lief die Uhr des Szenarios weiter, schloss am Ende die Dokumente, und die Rechnung
+  darunter griff auf den gelöschten Job zu. Eingaben sperrt FreeCAD dabei – Uhren nicht; die
+  Uhren des Addons (Vorschau, Rohteil, Nullpunkt, Prüfen, Materialstand) konnten genauso mitten
+  in eine Rechnung fallen. In 1.1.3 rechnen boolesche Operationen ohne Fortschritt.
+- `szenario_maschinen` fiel in beiden Versionen: Die verschobene Maschinendatei lag im temporären
+  Ordner, und das Fenster nimmt solche Einträge seit P-2026-10-10-04 selbst aus der Liste.
+
+### DATEIEN
+- `camaddon/uhren.py` (neu: `aus_der_schleife(uhr, slot)` – den Slot nur aus Qts
+  Ereignisschleife, sonst die Uhr neu starten), `camaddon/gui_bearbeitung.py`,
+  `camaddon/gui_vierachs.py`, `camaddon/gui_reichweite.py`, `camaddon/gui_materialstand.py` (ihre
+  Uhren darüber), `tests/gui/_lauf/szenario_lauf.py` (der nächste Schritt eines Szenarios erst,
+  wenn keine Rechnung darunter läuft – ein modales Fenster zählt nicht),
+  `tests/gui/szenario_maschinen.py` (Ordner im Benutzerordner), `docs/aufbau.md` (auch
+  `farben.py` aus -42 nachgetragen), `package.xml` (0.213.4), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+FreeCAD 26.3: „Ebene schwenken“ mit Haken „Bearbeitung öffnen“, dann gleich Werte ändern oder
+abbrechen – kein Absturz. 1.1.3 wie bisher.
+
+### DONE
+- „Mitten in einer Rechnung“: Unter dem Slot liegt noch Python-Code (aus der Ereignisschleife
+  gerufen liegt nichts darunter, sie ist C++) und kein modales Fenster ist offen.
+
+### TEST
+- KI: Wochen-Build `szenario_schwenken` (vorher Absturz), `szenario_bearbeitung`,
+  `szenario_vierachs_schruppen`, `szenario_maschinen` grün; 1.1.3 `szenario_schwenken`, `szenario_bearbeitung`,
+  `szenario_raeumen_materialstand`, `szenario_reichweite`, `szenario_maschinen` grün. Dazu im
+  Wochen-Build grün: erster Start, Bohren, Gewinde, Reiben, Loch schräg, Räumen, offene Nut,
+  Programm.
+
 ## P-2026-10-10-44 pruefdateien-nachgezogen
 
 ### EINGELESEN

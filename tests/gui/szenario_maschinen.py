@@ -26,7 +26,10 @@ def schritte(h):
     from camaddon import maschinenspeicher as ms
 
     ms.speichern([])
-    ordner = tempfile.mkdtemp()
+    # Nicht im temporären Ordner: Eine Datei, die dort verschwindet, nimmt das Fenster selbst aus
+    # der Liste (P-2026-10-10-04) – „nicht gefunden“ und „Suchen …“ gibt es nur woanders
+    # (P-2026-10-10-45).
+    ordner = tempfile.mkdtemp(prefix="camaddon_szenario_", dir=os.path.expanduser("~"))
     dateien = {}
     for art, name in ((beispielmaschine.DREHMASCHINE, "Drehmaschine"),
                       (beispielmaschine.FRAESE_3, "Fraese")):  # fmt: skip

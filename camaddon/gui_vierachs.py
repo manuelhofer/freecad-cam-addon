@@ -48,7 +48,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, farben, symbol
+from . import PARAMETER_PFAD, einheiten, farben, symbol, uhren
 from . import aufloesung as au
 from . import bestueckung as bs
 from . import fraeserform as ff
@@ -499,7 +499,7 @@ class VierachsPanel:
         self._uhr = QtCore.QTimer()
         self._uhr.setSingleShot(True)
         self._uhr.setInterval(NACHZIEHEN_MS)
-        self._uhr.timeout.connect(self._anwenden)
+        self._uhr.timeout.connect(uhren.aus_der_schleife(self._uhr, self._anwenden))
         self.seite = 1  # 1: Rohteil, 2: Was willst du machen?
         self.bibliothek = None  # die Werkzeugverwaltung – geladen, wenn Schritt 2 kommt
         self._pruefung = None  # (Assembly, reichweite.Pruefung) der gewählten Maschine
@@ -556,7 +556,9 @@ class VierachsPanel:
         self._vorschau_uhr = QtCore.QTimer()
         self._vorschau_uhr.setSingleShot(True)
         self._vorschau_uhr.setInterval(VORSCHAU_MS)
-        self._vorschau_uhr.timeout.connect(self._vorschau_rechnen)
+        self._vorschau_uhr.timeout.connect(
+            uhren.aus_der_schleife(self._vorschau_uhr, self._vorschau_rechnen)
+        )
         # Die Vorschau rechnen die Nebenrechner (P-2026-10-09-09): je Bearbeitung ein Auftrag,
         # die Nummer sagt, ob eine Antwort noch zur letzten Eingabe gehört.
         self._vorschau_nummer = 0

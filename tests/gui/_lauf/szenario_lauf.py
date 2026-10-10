@@ -49,6 +49,16 @@ class Helfer:
             self.fehler.append(text)
 
 
+def _verschachtelt():
+    """Läuft der Aufrufer (weiter) mitten in Python-Code statt aus Qts Ereignisschleife – und
+    ohne modales Fenster, das seine eigene Schleife hat? Wie camaddon.uhren.verschachtelt."""
+    try:
+        sys._getframe(2)
+    except ValueError:  # nichts darunter: aus der Ereignisschleife
+        return False
+    return QtGui.QApplication.activeModalWidget() is None
+
+
 def _ende(helfer, fehler=None):
     if fehler:
         helfer.fehler.append(fehler)
@@ -93,6 +103,11 @@ def starten():
     sys.excepthook = ausnahme
 
     def weiter():
+        # Mitten in einer Rechnung des Addons (FreeCAD 26.3 arbeitet in booleschen Operationen
+        # Ereignisse ab) noch nicht – ein Mensch kann dann auch nicht klicken (P-2026-10-10-45).
+        if _verschachtelt():
+            QtCore.QTimer.singleShot(50, weiter)
+            return
         try:
             warten = next(ablauf)
         except StopIteration:

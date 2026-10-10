@@ -25,7 +25,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, spannung, symbol
+from . import PARAMETER_PFAD, einheiten, spannung, symbol, uhren
 from . import aufloesung as au
 from . import bahn as bn
 from . import bleistift as bst
@@ -3504,15 +3504,21 @@ class BearbeitungPanel:
         self._vorschau_uhr = QtCore.QTimer()
         self._vorschau_uhr.setSingleShot(True)
         self._vorschau_uhr.setInterval(VORSCHAU_MS)
-        self._vorschau_uhr.timeout.connect(self._vorschau_rechnen)
+        self._vorschau_uhr.timeout.connect(
+            uhren.aus_der_schleife(self._vorschau_uhr, self._vorschau_rechnen)
+        )
         self._rohteil_uhr = QtCore.QTimer()
         self._rohteil_uhr.setSingleShot(True)
         self._rohteil_uhr.setInterval(NACHZIEHEN_MS)
-        self._rohteil_uhr.timeout.connect(self._rohteil_anwenden)
+        self._rohteil_uhr.timeout.connect(
+            uhren.aus_der_schleife(self._rohteil_uhr, self._rohteil_anwenden)
+        )
         self._nullpunkt_uhr = QtCore.QTimer()
         self._nullpunkt_uhr.setSingleShot(True)
         self._nullpunkt_uhr.setInterval(NACHZIEHEN_MS)
-        self._nullpunkt_uhr.timeout.connect(self._nullpunkt_anwenden)
+        self._nullpunkt_uhr.timeout.connect(
+            uhren.aus_der_schleife(self._nullpunkt_uhr, self._nullpunkt_anwenden)
+        )
         self._nullpunkte = nullpunkte()
         self._unten = None  # die Fläche des Teils, die unten liegt („Face6“) – None: wie modelliert
         self._viertel = 0  # X um so viele Viertel um Z gedreht
