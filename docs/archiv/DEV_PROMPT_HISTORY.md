@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-54 werkstoff-en-aw-2017a
+
+### EINGELESEN
+- Forum (t=107889), legros, 2026-10-10: „you’re using 2007-series aluminum, whereas I mostly use
+  the 2017 series“ – in der Liste stand von den 2xxx-Legierungen nur EN AW-2007.
+
+### DATEIEN
+- `daten/werkstoffe.json` (EN AW-2017A, 3.1325 AlCu4MgSi(A), T4, Gruppe Aluminium-Knet – die
+  Schnittwerte wie die übrigen Knetlegierungen; Zusammensetzung und Festigkeit als Anhaltswerte
+  aus EN 573-3 / EN 755-2), `package.xml` (0.213.8), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+In der Werkzeugverwaltung steht unter den Werkstoffen „EN AW-2017A“.
+
+### TEST
+- KI: `test_werkstoffe`, `test_werkzeuge` grün in 1.1.4.
+
 ## P-2026-10-10-53 versionscheck-26-3-rc1
 
 ### EINGELESEN
