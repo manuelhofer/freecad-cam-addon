@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-48 dunkles-theme-in-26-3-lesbar
+
+### EINGELESEN
+- T-011, voller Lauf in FreeCAD 26.3.0RC1: `szenario_dunkles_theme` rot – grau auf #5a5a5a
+  Kontrast 3,3, rot 2,7. In RC1 ist „FreeCAD Dark“ heller: `PrimaryColor` #323232 statt #191919,
+  der Grund der Dialoge und Aufgabenfenster (`DialogBackgroundColor` = `lighten(PrimaryColor,
+  80)`) also #5a5a5a statt #2d2d2d. P-2026-10-10-42 war nur in 1.1.3 und im Wochen-Build vom
+  September gemessen – Manuels Foto kam aber aus RC1.
+
+### DATEIEN
+- `camaddon/farben.py` (`grund()`: der Grund an einem polierten QDialog; im dunklen Theme jede
+  Farbe so wenig wie nötig zu Weiß gemischt, bis sie 4,5 : 1 erreicht – in 1.1 bleiben alle vier
+  Farben gleich, in RC1 Grau #d2d2d2, Rot #ffc2be, Grün #9ae650, Gelb #f3ce5e; das helle Theme
+  unberührt), `tests/gui/szenario_dunkles_theme.py` (prüft hell statt fester Werte),
+  `package.xml` (0.213.6), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+FreeCAD 26.3.0RC1 mit „FreeCAD Dark“, „Bearbeitung“ an einer Fläche, für die der Fräser zu groß
+ist → die grauen Sätze und der rote Hinweis unter „Räumen“ heben sich deutlich vom Grund ab.
+
+### TEST
+- KI: `szenario_dunkles_theme` grün in 26.3.0RC1 und 1.1.4 (Kontrast am echten Bild). Screenshot
+  angesehen.
+
+### DONE
+- Für Manuel: in FreeCAD 26.3 mit dunklem Theme „Bearbeitung“ öffnen – die grauen Erklärsätze
+  sind fast weiß, der rote Hinweis hellrot; beides lesbar.
+
 ## P-2026-10-10-47 netzschranke-billige-schranke-vorab
 
 ### EINGELESEN

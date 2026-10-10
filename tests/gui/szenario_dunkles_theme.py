@@ -3,7 +3,8 @@
 # lesen im dunkel Modus“): „Bearbeitung“ an einem Block mit einer Bohrung Ø 8, 5 tief, ihr Boden
 # gewählt – der Standardfräser Ø 12 passt nicht hinein, also steht unter „Räumen“ ein roter
 # Hinweis, darüber die grauen Sätze. Die Textfarben sind die hellen für dunklen Grund
-# (farben.py), und jeder graue und rote Satz hebt sich deutlich vom Grund des Fensters ab.
+# (farben.py), und jeder graue und rote Satz hebt sich deutlich vom Grund des Fensters ab – auch
+# in 26.3, wo der Grund der Aufgabenfenster mittelgrau ist (#5a5a5a, P-2026-10-10-48).
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -45,7 +46,7 @@ def schritte(h):
 
     h.pruefe(farben.dunkel(), "dunkles Theme nicht erkannt")
     h.pruefe(
-        (farben.GRAU, farben.ROT) == ("#b4b4b4", "#ff7b72"),
+        min(QtGui.QColor(f).lightness() for f in (farben.GRAU, farben.ROT)) > 160,
         f"Farben für dunklen Grund: {farben.GRAU}, {farben.ROT}",
     )
     wz.Bibliothek([wz.standardwerkzeug()]).speichern()
