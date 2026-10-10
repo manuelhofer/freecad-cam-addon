@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-05 bahn-am-werkstueck-auf-allen-kernen
+
+### EINGELESEN
+- „Auf der Maschine prüfen“ an Manuels 4-Achs-Testteil (CLX550, seine Werkzeuge) in der
+  Oberfläche gemessen: 13,3 s (1.1.4) bzw. 15,7 s (RC1), bis das Fenster aufgeht – FreeCAD steht
+  so lange. Im Profil: die Abfahrt, die Reichweite und fürs 3D-Bild `Abfahrt.am_werkstueck` –
+  je Station die Spitze im gedrehten Werkstück über FreeCADs Placements, 329 532-mal, 5,4 s.
+
+### DATEIEN
+- `camaddon/abfahren.py` (`am_werkstueck` ab 50 000 Stationen in Stücken auf den
+  Nebenrechnern – je Stück nur seine Stationen), `camaddon/kollision.py`
+  (`am_werkstueck_stueck`: dieselbe Rechnung im Nebenrechner, mit der Maschinenkopie der
+  Kollision; `lage_als_daten`: die Lage gewinkelter Halter dafür), `package.xml` (0.213.19),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Dieselben Punkte (bitgleich), schneller; das Prüffenster geht schneller auf.
+
+### TEST
+- KI: Testteil, 329 532 Punkte bitgleich (Abweichung 0), 5,4 → 1,5 s (beim zweiten Mal 0,8 s).
+  Oberfläche (Szenario im Scratchpad): Prüffenster 13,3 → 11,0 s (1.1.4), 15,7 → 11,7 s (RC1),
+  mit dem Start der Arbeiter. `test_abfahren`, `test_kollision`, `test_kollision_verteilt`,
+  `test_materialstand` grün in 1.1.4.
+- Nebenbei gesehen: `fahrtdaten`/`_fahrt_aus` geben die Lage gewinkelter Halter nicht an die
+  Arbeiter der Kollision – dort braucht sie niemand (die Körper hängen an der Aufnahme, gerechnet
+  aus den Achsen); `am_werkstueck_stueck` bekommt sie mit.
+
 ## P-2026-10-11-04 schruppen-mit-querachse-im-freien-schnell
 
 ### EINGELESEN

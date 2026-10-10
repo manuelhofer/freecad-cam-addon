@@ -85,6 +85,10 @@ class OperationAbfahrt:
         return rw.Einspannung(self.laenge, self.lage)
 
 
+# Ab so vielen Stationen rechnen die Nebenrechner am_werkstueck() (P-2026-10-11-05).
+AM_WERKSTUECK_PARALLEL_AB = 50000
+
+
 @dataclass
 class Abfahrt:
     """Die Stationen eines Jobs auf einer Maschine – abfahrt() baut sie."""
@@ -207,14 +211,73 @@ class Abfahrt:
         und die Kollision fragen danach; nicht verändern."""
         if self._am_werkstueck is not None and len(self._am_werkstueck) == len(self.stationen):
             return self._am_werkstueck
-        ergebnis = []
-        for i, station in enumerate(self.stationen):
-            if not any(station.rund.values()) or station.stellungen is None:
-                ergebnis.append(station.punkt)
-                continue
-            ergebnis.append(self.kinematik(station.operation).am_werkstueck(self.stellungen_an(i)))
+        ergebnis = None
+        if len(self.stationen) >= AM_WERKSTUECK_PARALLEL_AB:
+            ergebnis = self._am_werkstueck_verteilt()
+        if ergebnis is None:
+            ergebnis = []
+            for i, station in enumerate(self.stationen):
+                if not any(station.rund.values()) or station.stellungen is None:
+                    ergebnis.append(station.punkt)
+                    continue
+                kinematik = self.kinematik(station.operation)
+                ergebnis.append(kinematik.am_werkstueck(self.stellungen_an(i)))
         self._am_werkstueck = ergebnis
         return ergebnis
+
+    def _am_werkstueck_verteilt(self):
+        """am_werkstueck() in Stücken auf den Nebenrechnern (kollision.am_werkstueck_stueck): je
+        Stück nur seine Stationen, die Maschine als Kopie wie für die Kollision. None ohne sie –
+        dann rechnet der Aufrufer selbst. Am 4-Achs-Testteil öffnete das Prüffenster 13 s, davon
+        rund 5 s für diese Umrechnung (P-2026-10-11-05)."""
+        import FreeCAD
+
+        from . import kollision as kb
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        if not pool.verfuegbar() or pool.anzahl < 2:
+            return None
+        try:
+            kopie, maschine = kb._maschinendaten(pool, self.pruefung)
+        except kb.NichtTeilbar:
+            return None
+        kette = list(self.pruefung.kette.achsen)
+        operationen = [
+            (op.aufnahme.Name, op.laenge, kb.lage_als_daten(op.lage)) for op in self.operationen
+        ]
+        eintraege = [
+            (
+                s.operation,
+                self._wirksam[i],
+                bool(any(s.rund.values()) and s.stellungen is not None),
+                s.punkt,
+            )
+            for i, s in enumerate(self.stationen)
+        ]
+        bereiche = nr.stuecke(len(eintraege), pool.anzahl, je_arbeiter=2, mindestens=2000)
+        auftraege = [
+            pool.auftrag(
+                "kollision",
+                "am_werkstueck_stueck",
+                kopie,
+                maschine,
+                operationen,
+                tuple(self.nullpunkt),
+                [kette.index(a) for a in self.achsen],
+                eintraege[a:b],
+            )
+            for a, b in bereiche
+        ]
+        try:
+            teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+        except nr.Fehler as fehler:
+            FreeCAD.Console.PrintWarning(
+                f"CAM-Addon: Bahn am Werkstück auf den Nebenrechnern gescheitert, rechne hier: "
+                f"{fehler}\n"
+            )
+            return None
+        return [punkt for teil in teile for punkt in teil]
 
     def spitze(self, index, stellungen):
         """Wo die Spitze bei `stellungen` ({Achse: Stellung}, etwa so, wie die Maschine an
