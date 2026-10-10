@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-15 forum-beitrag-abgeschickt
+
+### EINGELESEN
+- Manuel, 2026-10-10: „der englische post steht ... der deutsche muss noch warten man darf nicht
+  so schnell hintereinander posten“. Im Unterforum „CAM“ und über die Forumssuche war der Beitrag
+  noch nicht zu sehen (Freigabe oder Suchindex) – der Link kommt von Manuel.
+
+### DATEIEN
+- `docs/forum_vorstellung.md` (Stand, Platz für den Link im deutschen Text), `docs/STATUS_SNAPSHOT.md`
+  (Projektstatus: im Forum vorgestellt).
+
+### AKZEPTANZKRITERIUM
+Der Snapshot sagt, dass das Addon im Forum steht; der deutsche Text verweist auf den englischen
+Thread, sobald der Link eingesetzt ist.
+
+### DONE
+- Nichts weiter.
+
 ## P-2026-10-10-14 forum-bbcode-bilder-als-links
 
 ### EINGELESEN
