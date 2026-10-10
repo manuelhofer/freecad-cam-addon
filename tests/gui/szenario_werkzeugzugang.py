@@ -161,7 +161,10 @@ def schritte(h):
         not aufraeumen.verwaiste(doc) and all(doc.getObject(n) is None for n in verwaist),
         f"verwaiste Klone nach dem Rückgängig: {verwaist} -> {[o.Name for o in aufraeumen.verwaiste(doc)]}",
     )
-    h.pruefe(bool(verwaist), "kein verwaister Klon beobachtet – B-016 nicht mehr nachstellbar?")
+    if int(App.Version()[0]) < 26:
+        h.pruefe(bool(verwaist), "kein verwaister Klon beobachtet – B-016 nicht mehr nachstellbar?")
+    else:  # In 26.3.0RC1 schließt die Job-Anlage die Transaktion nicht mehr (T-010 behoben).
+        h.pruefe(not verwaist, f"verwaiste Klone in 26.3: {verwaist}")
     yield 300
     asm4, ma4 = bm.lade(bm.DREHMASCHINE)
     datei4 = str(profil / "maschine4.FCStd")

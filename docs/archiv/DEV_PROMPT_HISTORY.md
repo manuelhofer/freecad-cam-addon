@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-52 b-016-in-26-3-behoben
+
+### EINGELESEN
+- T-011, voller Lauf in 26.3.0RC1: `szenario_werkzeugzugang` rot – „kein verwaister Klon
+  beobachtet – B-016 nicht mehr nachstellbar?“. In 1.1.4 dasselbe Szenario grün (der Klon bleibt
+  dort stehen). FreeCAD 26.3 schließt bei der Job-Anlage die Transaktion nicht mehr – der Fehler
+  T-010 ist dort behoben; der Aufräumer des Addons schadet nicht.
+
+### DATEIEN
+- `tests/gui/szenario_werkzeugzugang.py` (unter FreeCAD 26 kein verwaister Klon erwartet, in 1.1
+  weiter einer), `docs/STATUS_SNAPSHOT.md` (T-010: in 26.3.0RC1 behoben),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+`szenario_werkzeugzugang` grün in 26.3.0RC1 und 1.1.4.
+
+### TEST
+- KI: `szenario_werkzeugzugang` grün in 26.3.0RC1 und 1.1.4.
+
 ## P-2026-10-10-51 vierachs-flaechen-3d-farben-wie-vorher
 
 ### EINGELESEN

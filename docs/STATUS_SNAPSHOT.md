@@ -663,3 +663,5 @@ P-2026-10-10-35 bis -39); nächste freie Nummer B-019.
   für alle Dokumente – mit `UndoMode = 0` am Hilfsdokument nicht). Das Addon räumt seine
   verwaisten Klone nach dem Rückgängig selbst auf. **Der Bericht ist fertig zum Einreichen:**
   [freecad_fehler_T-010.md](freecad_fehler_T-010.md) – einreichen kann nur Manuel.
+  **In FreeCAD 26.3.0RC1 behoben** (P-2026-10-10-52): Dasselbe Szenario lässt dort keinen
+  verwaisten Klon mehr zurück, in 1.1.4 weiter. Einreichen lohnt also nur noch für 1.1.
