@@ -590,6 +590,20 @@ P-2026-10-10-35 bis -39); nächste freie Nummer B-019.
   Szenario „Ebene schwenken“). `test_goldene_bahnen` hängt an der Umgebung (numpy, OCCT) – nicht
   neu schreiben. Im Wochen-Build grün: 13 Szenarien zu Assistent, Bohren, Gewinde, Reiben,
   Räumen, Nut, Programm, Schwenken, 4 Achsen; die übrigen 114 nicht gelaufen.
+  **Voller Lauf in 26.3.0RC1 (2026-10-10, Manuels Version, Linux-AppImage von GitHub):** 111
+  Prüfdateien und 127 Szenarien. Behoben: dunkles Theme in RC1 (-48: Grund der Aufgabenfenster
+  #5a5a5a), Job-Gruppe „Workplanes“ (-49), Qt-Installationszeile in 26.3 grundsätzlich abgelehnt
+  – die Update-Suche ohne Git geht (-50), 3D-Flächenfarben im 4-Achs-Assistenten (-51, Folge von
+  -42, auch in 1.1), B-016 in RC1 behoben (-52). Danach alles grün außer: `test_goldene_bahnen`
+  (Umgebung, wie oben), `szenario_mausrad` (die Rasten per XTest kommen unter gamescope nicht an –
+  auch in 1.1.4 rot; auf diesem Rechner nicht prüfbar), einmal ein Absturz in
+  `szenario_vierachs_schlichten` (`munmap_chunk(): invalid pointer` in `doc.recompute()` nach dem
+  Schließen, unter Volllast mit fünf anderen Läufen) – siebenmal danach grün, nicht nachgestellt.
+  Nebenbei: `test_simultan_planung` und andere richten den Werkzeugspeicher auf
+  `beispiele/grob_g550_freiform/assets`, und RC1 schreibt dort die `.fctb` beim Laden neu
+  (sortiert, `"Units": "Metric"`) – nach einem Lauf in 26.3 mit `git checkout` zurücksetzen.
+  Offen: Manuel klickt die sichtbaren Funktionen in seinem RC1 einmal durch (Arbeitsregeln,
+  Abschnitt 9).
 - **T-006 Alle Kerne nutzen** (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
   … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
   das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je

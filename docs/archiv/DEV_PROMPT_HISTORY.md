@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-53 versionscheck-26-3-rc1
+
+### EINGELESEN
+- Manuel, 2026-10-10: „wir sollten zwecks der neuen RC1 schauen, dass dort alles funktionsfähig
+  ist, was wir bisher gebaut haben“. FreeCAD 26.3.0RC1 als Linux-AppImage von GitHub geladen
+  (Prüfsumme stimmt), entpackt; alle Prüfdateien (10 parallel) und alle Szenarien (6 parallel,
+  gamescope statt Xvfb, je Lauf eigenes Profil und TMPDIR) darin laufen lassen.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (T-011: Ergebnis des vollen Laufs in RC1, was behoben ist, was
+  bleibt), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Im Snapshot steht, was in 26.3.0RC1 geprüft, behoben und offen ist.
+
+### DONE
+- Prüfdateien: 109 von 111 grün, danach 110 (-49). Szenarien: 121 von 127 grün, danach 125 (-48,
+  -50, -51, -52); die zwei übrigen siehe T-011.
+
 ## P-2026-10-10-52 b-016-in-26-3-behoben
 
 ### EINGELESEN
