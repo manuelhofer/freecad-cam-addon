@@ -60,6 +60,27 @@ _SCHNEIDSTOFFE = {
 }  # fmt: skip
 _UMLAUTE = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
 _WERTE = ("vc", "fz", "f", "ap", "ap_d", "ae", "ae_d")
+# Maße, ohne die eine Art nicht rechnen kann (Abschnitt 4 des Formats) – fehlen sie, sagt es ein
+# Hinweis: Manuels Agent legte Tonnenfräser als Konikfräser ohne Kegelwinkel ab (2026-10-10).
+_KENNZEICHNEND = {
+    wz.KONIKFRAESER: ("kegelwinkel",),
+    wz.TORUSFRAESER: ("eckradius",),
+    wz.RADIENFRAESER: ("profilradius",),
+    wz.NUTENFRAESER: ("schneidenbreite",),
+    wz.GEWINDEFRAESER: ("steigung",),
+    wz.GEWINDEBOHRER_RECHTS: ("steigung",),
+    wz.GEWINDEBOHRER_LINKS: ("steigung",),
+    wz.EINSTECHWERKZEUG: ("schneidenbreite",),
+}
+# Formen, die das Addon nicht hat – nennt der Titel sie, passt die Art vermutlich nicht.
+_FREMDE_FORMEN = (
+    "tonnenfräser",
+    "tonnenfraeser",
+    "barrel",
+    "linsenfräser",
+    "linsenfraeser",
+    "lens",
+)
 
 
 def ordner():
@@ -172,6 +193,11 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
     hersteller = str(daten["hersteller"]).strip()
     marke = str(daten.get("marke") or "").strip()
     titel = str(daten["titel"]).strip()
+    fremd = next((w for w in _FREMDE_FORMEN if w in titel.lower()), None)
+    if fremd:
+        pruefung.hinweise.append(
+            tr("wd.hinweis.fremde_form", stelle=stelle, wort=fremd, art=wz.art_text(art))
+        )
     gemeinsam = _felder(daten.get("gemeinsam") or {}, stelle, pruefung)
     werte_reihe = _schnittwerte(daten.get("schnittwerte"), art, stelle, pruefung)
     mit_werten = bool(werte_reihe)
@@ -187,6 +213,16 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
         preis = daten_groesse.get("preis_netto")
         groesse["_werte"] = _vereint(werte_reihe, werte_groesse)
         groesse["_preis"] = float(preis) if isinstance(preis, (int, float)) else 0.0
+        fehlt = [f for f in _KENNZEICHNEND.get(art, ()) if not (groesse.get(f) or gemeinsam.get(f))]
+        if fehlt:
+            pruefung.hinweise.append(
+                tr(
+                    "wd.hinweis.mass_fehlt",
+                    stelle=stelle_g,
+                    felder=", ".join(fehlt),
+                    art=wz.art_text(art),
+                )
+            )
         fertige.append(groesse)
     if not fertige:
         pruefung.fehler.append(tr("wd.fehler.groessen", stelle=stelle))
@@ -364,7 +400,7 @@ def _groesse(daten, gemeinsam, titel, marke, hersteller, mit_werten, art):
         d = werte.get("durchmesser")
         werte["name"] = f"{wer} {artikel}".strip() if artikel else f"{wer} D{d:g}".strip()
     teile = [titel]
-    if beschichtung:
+    if beschichtung and beschichtung.lower() not in titel.lower():
         teile.append(beschichtung)
     if daten.get("_preis"):
         teile.append(tr("wd.preis", preis=f"{daten['_preis']:.2f}"))

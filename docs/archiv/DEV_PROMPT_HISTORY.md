@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-17 werkzeugkiste-import-hinweise-kennzeichnende-masse
+
+### EINGELESEN
+- Manuel, 2026-10-10, zwei Screenshots: T3 „Konik D4 3Grad“ (das eingebaute Beispiel) und T6
+  „GARANT 207534-16/1000“ aus seiner Hoffmann-Datei – „was ist schiefgelaufen braucht der andere
+  anweisungen ??“. Befund: 207529/207530/207534/207537 sind Tonnenfräser mit konischer Form
+  (α/2 = 9°, 18°, 27°, R2 500/1000 mm); der Agent legte sie als Konikfräser ab, den Winkel nur im
+  Titel, dazu die Beschichtung noch einmal im Titel. Das Addon hat keine Tonnenfräser.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_datei.py` (Hinweis, wenn ein kennzeichnendes Maß der Art fehlt –
+  `_KENNZEICHNEND`: Konik Kegelwinkel, Torus Eckradius, Radien Profilradius, Nuten
+  Schneidenbreite, Gewinde Steigung, Einstechen Schneidenbreite; Hinweis, wenn der Titel eine
+  fremde Form nennt – Tonnen-, Linsenfräser; die Beschichtung nicht doppelt in der Bezeichnung),
+  `translations/de.json`, `translations/en.json` (`wd.hinweis.mass_fehlt`, `wd.hinweis.fremde_form`),
+  `beispiele/werkzeugkiste_hoffmann_2026-10-07.json` (79 Reihen: die Tonnenfräser raus),
+  `docs/werkzeugkiste_json.md` (Auftrag an den Agenten: nur Formen aus Abschnitt 4, kennzeichnende
+  Maße als Feld, Beschichtung und Preis nicht in den Titel; Abschnitt 7), `tests/test_werkzeugkiste_datei.py`
+  (Konik ohne Kegelwinkel, Tonnenfräser im Titel, Beschichtung einmal), `tests/gui/szenario_werkzeugkiste.py`
+  (79 Reihen, 7 Hinweise), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.209.1).
+
+### AKZEPTANZKRITERIUM
+Die Hoffmann-Datei mit den vier Tonnenfräsern eingelesen: je Reihe zwei Hinweise („Titel nennt
+‚tonnenfräser‘ – diese Form hat das Addon nicht“, „Maß ‚kegelwinkel‘ fehlt“). Die Beispieldatei
+im Addon hat sie nicht mehr: 79 Reihen, 7 Hinweise (Reihe 53: unbekannte Felder, Umlaut).
+
+### DONE
+- Der Agent braucht andere Anweisungen – sie stehen jetzt im Auftrag (Abschnitt 6): keine
+  fremden Formen, kennzeichnende Maße als Feld, Titel ohne Beschichtung und Preis.
+- Prüfungen grün: `test_werkzeugkiste_datei`, `szenario_werkzeugkiste`.
+
 ## P-2026-10-10-16 forum-thread-link
 
 ### EINGELESEN

@@ -646,7 +646,8 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit
   `GOLDENE_BAHNEN_SCHREIBEN=1` neu schreiben (Befund nebenbei, P-2026-10-09-11).
 - **T-007b Weitere Hersteller-Reihen** in der Kiste (Manuel: „zum Schluss“) – seit P-2026-10-10-06 über
-  Dateien („Aus Datei einlesen …“); Manuels Hoffmann-Datei (83 Reihen) liegt in `beispiele/`.
+  Dateien („Aus Datei einlesen …“); Manuels Hoffmann-Datei (79 Reihen) liegt in `beispiele/` – die
+  vier Tonnenfräser sind raus, die Form hat das Addon nicht (P-2026-10-10-17).
 
 - **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei Linearachsen einen
   Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in P-2026-09-25-20, im Wochen-Build vom

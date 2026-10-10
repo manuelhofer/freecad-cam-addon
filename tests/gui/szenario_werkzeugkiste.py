@@ -1,5 +1,5 @@
 # „Aus Datei einlesen …“ in „Werkzeuge der Hersteller“ (T-007, werkzeugkiste_datei): die
-# Hoffmann-Datei aus beispiele/ (83 Reihen, ohne Dubletten, fünf Hinweise) kommt in die Kiste und
+# Hoffmann-Datei aus beispiele/ (79 Reihen, ohne Dubletten, fünf Hinweise) kommt in die Kiste und
 # steht im Baum; dieselbe Datei noch einmal ersetzt sich selbst; eine zweite Datei mit demselben
 # Artikel unter anderer Kennung bleibt draußen – der Bericht sagt es; „Vorlage speichern …“
 # schreibt das Beispiel; „Hinzufügen“ einer eingelesenen Reihe legt sie in die eigene Kiste, ein
@@ -57,8 +57,8 @@ def schritte(h):
     meldung = h.modal()
     if isinstance(meldung, QtGui.QMessageBox):
         text = meldung.text()
-        h.pruefe("83 Reihen mit 83 Größen" in text, f"Bericht: {text!r}")
-        h.pruefe("5 Hinweise" in text and "ausgelassen" not in text, f"Bericht: {text!r}")
+        h.pruefe("79 Reihen mit 79 Größen" in text, f"Bericht: {text!r}")
+        h.pruefe("7 Hinweise" in text and "ausgelassen" not in text, f"Bericht: {text!r}")
         h.bild("2_bericht", meldung)
         meldung.accept()
     else:
@@ -67,21 +67,21 @@ def schritte(h):
     b = kiste.bericht
     h.pruefe(
         b is not None
-        and len(b.reihen) == 83
+        and len(b.reihen) == 79
         and not b.doppelt
         and not b.fehler
-        and len(b.hinweise) == 5,
+        and len(b.hinweise) == 7,
         f"Prüfung: {b and (len(b.reihen), b.doppelt[:1], b.fehler[:1], len(b.hinweise))}",
     )
     h.pruefe(
-        len(kiste.reihen_eintraege()) == vorher + 83,
-        f"Baum: {len(kiste.reihen_eintraege())} statt {vorher + 83}",
+        len(kiste.reihen_eintraege()) == vorher + 79,
+        f"Baum: {len(kiste.reihen_eintraege())} statt {vorher + 79}",
     )
     h.pruefe(
         os.path.isfile(os.path.join(wd.ordner(), os.path.basename(hoffmann))),
         "Datei nicht im Ordner",
     )
-    h.pruefe(len(wk.reihen()) == eingebaut + 83, f"reihen(): {len(wk.reihen())}")
+    h.pruefe(len(wk.reihen()) == eingebaut + 79, f"reihen(): {len(wk.reihen())}")
     h.bild("3_baum", kiste)
 
     # --- Noch einmal dieselbe Datei: ersetzt sich selbst, nichts doppelt ------------------------
@@ -89,12 +89,12 @@ def schritte(h):
     yield from h.warte_auf(lambda: isinstance(h.modal(), QtGui.QMessageBox), 60000)
     meldung = h.modal()
     if isinstance(meldung, QtGui.QMessageBox):
-        h.pruefe("83 Reihen ersetzen" in meldung.text(), f"nochmal: {meldung.text()!r}")
+        h.pruefe("79 Reihen ersetzen" in meldung.text(), f"nochmal: {meldung.text()!r}")
         meldung.accept()
     else:
         h.pruefe(False, f"nochmal: kein Bericht: {meldung}")
     yield 500
-    h.pruefe(len(kiste.reihen_eintraege()) == vorher + 83, "nochmal: der Baum hat sie doppelt")
+    h.pruefe(len(kiste.reihen_eintraege()) == vorher + 79, "nochmal: der Baum hat sie doppelt")
 
     # --- Eine zweite Datei: derselbe Artikel unter anderer Kennung – bleibt draußen -------------
     ordner = tempfile.mkdtemp()

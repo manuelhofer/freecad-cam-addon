@@ -527,6 +527,8 @@
     "wd.hinweis.umbenannt": "{stelle}: field “{feld}” read as “{name}”.",
     "wd.hinweis.wert": "{stelle}: “{feld}” = {wert} is not a usable number – skipped.",
     "wd.hinweis.schneidstoff": "{stelle}: tool material “{wert}” unknown (vhm or hss, also HM, HSS-E, HSS-Co) – skipped, solid carbide applies.",
+    "wd.hinweis.mass_fehlt": "{stelle}: dimension “{felder}” missing – a {art} needs it (docs/werkzeugkiste_json.md, section 4); please add it on the tool.",
+    "wd.hinweis.fremde_form": "{stelle}: the title says “{wort}” – the addon does not have that form; as a {art} it would compute wrongly. Better leave it out.",
     "wd.hinweis.schnittwerte": "{stelle}: cutting data not as object class → application → values – skipped.",
     "wd.hinweis.ohne_einsaetze": "{stelle}: {art} has no cutting data – skipped.",
     "wd.hinweis.klasse": "{stelle}: material class “{klasse}” unknown – skipped (P1, P2, M, K, N1, N2, N3, S, H).",

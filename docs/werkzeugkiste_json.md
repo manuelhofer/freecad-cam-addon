@@ -173,6 +173,13 @@ darunter ist die vc in m/min.
 > weglassen – nicht schätzen. Schreib in `quelle`, woher die Daten sind und an welchem Tag. Gib
 > eine Datei `werkzeugkiste_<hersteller>_<datum>.json` aus, die genau dem Beispiel
 > `werkzeugkiste_beispiel.json` folgt.
+>
+> Dabei gilt: Nur Werkzeuge, deren Form eine Art aus Abschnitt 4 ist – Tonnenfräser, Linsenfräser
+> und andere Sonderformen weglassen, nicht einer ähnlichen Art zuordnen. Jede Art hat
+> kennzeichnende Maße (Konikfräser: `kegelwinkel`; Torusfräser: `eckradius`; Radienfräser:
+> `profilradius`; Nutenfräser: `schneidenbreite`; Gewinde: `steigung`): immer als Feld, nie nur im
+> Titel. `beschichtung` und `preis_netto` in ihre Felder, nicht in den Titel; `titel` ist die
+> Bezeichnung der Reihe ohne Größe und Preis.
 
 ## 7. Einlesen – und was doppelt ist
 
@@ -184,7 +191,9 @@ Datei). Eine Datei gleichen Namens ersetzt ihre frühere Fassung. Die Prüfung m
 
 - **Fehler** – die Reihe bleibt draußen: Pflichtfeld fehlt, Kennung ungültig, in der Datei doppelt
   oder schon belegt (eingebaute Kiste oder andere Datei), unbekannte Werkzeugart, keine Größen.
-- **Hinweise** – übernommen, aber: unbekanntes Feld (ausgelassen), Feld anders geschrieben
+- **Hinweise** – übernommen, aber: ein kennzeichnendes Maß der Art fehlt (Konik ohne
+  `kegelwinkel`), der Titel nennt eine Form, die das Addon nicht hat (Tonnenfräser),
+  unbekanntes Feld (ausgelassen), Feld anders geschrieben
   („gesamtlänge“ → `gesamtlaenge`, „auskraglaenge“ → Auskragung), keine Zahl, unbekannte
   Werkstoffklasse oder ein Einsatz, den die Art nicht hat, Schneidstoff unbekannt (es gilt VHM;
   „HM“, „HSS-E“, „HSS-Co“ werden verstanden).
@@ -202,6 +211,6 @@ Name, gleiche Artikelnummer oder (ohne Nummer) gleiche Maße –, bleibt, wie es
 Schnittwerte aus der Datei werden Katalogwerte: `f` wird fz je Schneide, `ap_d`/`ae_d` Vielfache
 von D; fehlt vc oder fz, steht der Richtwert ein – vc nie über der höchsten, die die Datei für die
 Klasse nennt. Eine Reihe ganz ohne Schnittwerte trägt „Richtwerte (geschätzt)“ in der Bezeichnung.
-Ein zweites Beispiel mit echten Daten, 83 Reihen ohne Schnittwerte, von einem KI-Agenten nach
+Ein zweites Beispiel mit echten Daten, 79 Reihen ohne Schnittwerte, von einem KI-Agenten nach
 Abschnitt 6 zusammengestellt (Manuel, 2026-10-07):
 [`beispiele/werkzeugkiste_hoffmann_2026-10-07.json`](../beispiele/werkzeugkiste_hoffmann_2026-10-07.json).

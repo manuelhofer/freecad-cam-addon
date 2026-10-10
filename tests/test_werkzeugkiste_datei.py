@@ -106,6 +106,15 @@ reihe_b = dict(reihe_a, titel="Kennung doppelt")
 reihe_c = dict(reihe_a, kennung=wk.eingebaute()[0].kennung, titel="Kennung eingebaut")
 reihe_d = dict(reihe_a, kennung="probe-d", art="laserschwert")
 reihe_e = dict(reihe_a, kennung="Probe_E")
+reihe_k = {
+    "kennung": "probe-k",
+    "art": "konikfraeser",
+    "hersteller": "Probe GmbH",
+    "titel": "Probe Tonnenfräser konische Form, TiAlN",
+    "quelle": "Probe, 2026-10-10",
+    "gemeinsam": {"schneiden": 4, "beschichtung": "TiAlN"},
+    "groessen": [{"durchmesser": 16, "gesamtlaenge": 90, "schaft": 16, "artikel": "K-16"}],
+}  # fmt: skip
 reihe_f = {
     "kennung": "probe-f",
     "art": "bohrer",
@@ -119,13 +128,21 @@ reihe_f = {
 }  # fmt: skip
 datei1 = schreibe(
     os.path.join(tmp, "werkzeugkiste_probe.json"),
-    [reihe_a, reihe_b, reihe_c, reihe_d, reihe_e, reihe_f],
+    [reihe_a, reihe_b, reihe_c, reihe_d, reihe_e, reihe_f, reihe_k],
 )
 p = wd.lesen(datei1)
 pruefe(
-    [r.kennung for r in p.reihen] == ["probe-a", "probe-f"],
+    [r.kennung for r in p.reihen] == ["probe-a", "probe-f", "probe-k"],
     f"Reihen: {[r.kennung for r in p.reihen]}",
 )
+# Der Konikfräser ohne Kegelwinkel mit „Tonnenfräser“ im Titel: zwei Hinweise, die Beschichtung
+# steht nicht doppelt in der Bezeichnung (Manuels Agent, 2026-10-10).
+pruefe(
+    any("kegelwinkel" in h for h in p.hinweise) and any("tonnenfräser" in h for h in p.hinweise),
+    f"Konik-Hinweise: {p.hinweise}",
+)
+wk_k = wk.werkzeuge(p.reihen[2])[0]
+pruefe(wk_k.bezeichnung.lower().count("tialn") == 1, f"Beschichtung doppelt: {wk_k.bezeichnung!r}")
 pruefe(len(p.fehler) == 4, f"Fehler ({len(p.fehler)}): {p.fehler}")
 pruefe(len(p.doppelt) == 2, f"Dubletten ({len(p.doppelt)}): {p.doppelt}")
 pruefe(
@@ -166,13 +183,15 @@ pruefe(
     wk.reihe("probe-a") is not None and wk.reihe("probe-a").datei == "werkzeugkiste_probe.json",
     "nicht in der Kiste",
 )
-pruefe(len(wk.reihen()) == eingebaut + 2, f"Reihen: {len(wk.reihen())} statt {eingebaut + 2}")
+pruefe(len(wk.reihen()) == eingebaut + 3, f"Reihen: {len(wk.reihen())} statt {eingebaut + 3}")
 p = wd.einlesen(datei1)
 pruefe(
-    sorted(p.ersetzt) == ["probe-a", "probe-f"] and len(p.doppelt) == 2 and len(p.reihen) == 2,
+    sorted(p.ersetzt) == ["probe-a", "probe-f", "probe-k"]
+    and len(p.doppelt) == 2
+    and len(p.reihen) == 3,
     f"nochmal: {p.ersetzt} {p.doppelt}",
 )
-pruefe(len(wk.reihen()) == eingebaut + 2, "nochmal: Reihen doppelt")
+pruefe(len(wk.reihen()) == eingebaut + 3, "nochmal: Reihen doppelt")
 reihe_g = {
     "kennung": "probe-g",
     "art": "schaftfraeser",
@@ -193,13 +212,13 @@ pruefe(
     f"zweite Datei: {p.doppelt} {p.fehler}",
 )
 pruefe(p.fehler and "werkzeugkiste_probe.json" in p.fehler[0], f"belegt durch: {p.fehler}")
-pruefe(len(wk.reihen()) == eingebaut + 3, f"Reihen: {len(wk.reihen())}")
+pruefe(len(wk.reihen()) == eingebaut + 4, f"Reihen: {len(wk.reihen())}")
 wd.vergessen()  # wie nach einem Neustart: der Ordner wird neu gelesen
 pruefe(
-    [r.kennung for r in wd.eingelesene()] == ["probe-a", "probe-f", "probe-g"],
+    [r.kennung for r in wd.eingelesene()] == ["probe-a", "probe-f", "probe-k", "probe-g"],
     f"neu gelesen: {[r.kennung for r in wd.eingelesene()]}",
 )
-pruefe(wd.entfernen("werkzeugkiste_probe2.json") and len(wk.reihen()) == eingebaut + 2, "entfernen")
+pruefe(wd.entfernen("werkzeugkiste_probe2.json") and len(wk.reihen()) == eingebaut + 3, "entfernen")
 pruefe(not wd.entfernen("gibt_es_nicht.json"), "entfernen ohne Datei")
 vorlage = wd.vorlage_schreiben(os.path.join(tmp, "vorlage.json"))
 with open(vorlage, encoding="utf-8") as datei:
