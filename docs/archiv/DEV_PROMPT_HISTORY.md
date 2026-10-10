@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-41 bohren-namen-in-26-3
+
+### EINGELESEN
+- Manuel, 2026-10-10: „Kannst du generell Mal schauen wegen der neuen weekly Version ob wir noch
+  mehr anpassen müssen... Übrigens soll es für auch die alten Versionen funktionieren!“ (T-011).
+- Voller Lauf ohne Fenster im Wochen-Build 26.3.0 (2026-09-16): `test_bohren` und `test_reiben`
+  mit `'FeaturePython' object has no attribute 'RetractHeight'`.
+- FreeCAD-Quelltext 26.3 (`Path/Op/Drilling.py`): `RetractHeight` heißt am Bohren `PeckRetract`
+  (die Ebene R), `feedRetractEnabled` heißt `FeedRetractEnabled`, ExtraOffset „Drill Tip“ heißt
+  „Tool Tip“; alte Dokumente migriert FreeCAD selbst. `Path/Op/Tapping.py` behält
+  `RetractHeight` und „Drill Tip“.
+
+### DATEIEN
+- `camaddon/bohren.py` (`setze_r`, `setze_extra`, `setze_heraus_im_vorschub`,
+  `heraus_im_vorschub` – je der Name, den die laufende Version kennt), `camaddon/gewinde.py`
+  (R und ExtraOffset über diese), `camaddon/reiben.py` (`ist_reiben` liest beide Namen),
+  `package.xml` (0.213.1), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+In FreeCAD 26.3 im Assistenten eine Bohrung bohren und eine reiben → beide Operationen entstehen
+ohne Fehler, die Reibung mit G85; in 1.1.3 genauso.
+
+### DONE
+- Stiller Fehler mitbehoben: In 26.3 hätte `ist_reiben` das Reiben nie erkannt
+  (`getattr(op, "feedRetractEnabled", False)`), und G85 wäre nie gesetzt worden.
+
+### TEST
+- KI, FreeCADCmd: `test_bohren`, `test_reiben`, `test_gewinde` OK in 1.1.3 und im Wochen-Build
+  26.3 (vorher im Wochen-Build zwei davon Fehler). `black`, `ruff` ohne Befund.
+
 ## P-2026-10-10-40 schwenken-ohne-anlegen
 
 ### EINGELESEN

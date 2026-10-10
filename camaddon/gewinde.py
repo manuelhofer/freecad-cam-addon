@@ -17,6 +17,7 @@ import math
 from dataclasses import dataclass
 
 from . import bahn as bn
+from . import bohren as bh
 from . import bohrung_bahn as bb
 from . import einheiten, namen
 from .sprache import tr
@@ -171,8 +172,8 @@ def _lege_eine_an(job, tc, gruppe, steigung, name):
     *_rohteil, oben = pf.rohteil_von_oben(job)
     obj.setExpression("FinalDepth", None)
     obj.FinalDepth = min((tiefe_fuer(b, steigung) for b in gruppe), default=0.0)
-    obj.RetractHeight = oben + UEBER_R
-    obj.ExtraOffset = "None"
+    bh.setze_r(obj, oben + UEBER_R)
+    bh.setze_extra(obj, "None")
     obj.DwellEnabled = False
     obj.DwellTime = 0.0
     durchmesser = float(tc.Tool.Diameter)

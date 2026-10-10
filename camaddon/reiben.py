@@ -124,4 +124,4 @@ def lege_an(job, tc, flaechen, name=None):
 
 def ist_reiben(op):
     """Ist `op` FreeCADs Bohren als Reiben (G85, heraus im Vorschub)?"""
-    return bh.ist_bohren(op) and bool(getattr(op, "feedRetractEnabled", False))
+    return bh.ist_bohren(op) and bh.heraus_im_vorschub(op)

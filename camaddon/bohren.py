@@ -239,15 +239,14 @@ def bohrzyklus(job, tc, flaechen, endtiefe, name, extra="None", hub=0.0, heraus_
     *_rohteil, oben = pf.rohteil_von_oben(job)
     obj.setExpression("FinalDepth", None)
     obj.FinalDepth = endtiefe
-    obj.RetractHeight = oben + UEBER_R
-    obj.ExtraOffset = extra
+    setze_r(obj, oben + UEBER_R)
+    setze_extra(obj, extra)
     obj.PeckEnabled = hub > 0
     obj.PeckDepth = hub if hub > 0 else float(tc.Tool.Diameter)
     obj.DwellEnabled = False
     obj.DwellTime = 0.0
     obj.KeepToolDown = False
-    if hasattr(obj, "feedRetractEnabled"):
-        obj.feedRetractEnabled = bool(heraus_im_vorschub)
+    setze_heraus_im_vorschub(obj, heraus_im_vorschub)
     obj.Label = namen.eindeutig(dokument, name, obj)
     if FreeCAD.GuiUp:
         import Path.Op.Gui.Base as PathOpGui
@@ -262,3 +261,39 @@ def ist_bohren(op):
     """Ist `op` FreeCADs Bohr-Operation?"""
     proxy = getattr(op, "Proxy", None)
     return type(proxy).__name__ == "ObjectDrilling"
+
+
+# --- Namen, die FreeCAD 26.3 an Bohren und Gewinde geändert hat (P-2026-10-10-41) -------------
+# 1.1 und der Wochen-Build/26.3 heißen dieselben Dinge anders; das Addon setzt und liest sie unter
+# dem Namen, den die laufende Version kennt (Manuel, 2026-10-10: „soll es auch für die alten
+# Versionen funktionieren“).
+
+
+def setze_r(obj, hoehe):
+    """Die Ebene R der Bohrzyklen (G81–G85 „R“). FreeCAD 1.1: `RetractHeight`; 26.3 nennt sie am
+    Bohren `PeckRetract` (dort zu leicht mit der Sicherheitshöhe zu verwechseln), das Gewinde
+    behält `RetractHeight`."""
+    setattr(obj, "PeckRetract" if hasattr(obj, "PeckRetract") else "RetractHeight", hoehe)
+
+
+def setze_extra(obj, wert):
+    """Die Zugabe für die Spitze (ExtraOffset): „None“, „Drill Tip“ oder „2x Drill Tip“ – 26.3
+    nennt sie am Bohren „Tool Tip“ und „2x Tool Tip“, weil sie auch fürs Gewinde gilt."""
+    moeglich = obj.getEnumerationsOfProperty("ExtraOffset") or []
+    if wert not in moeglich:
+        wert = wert.replace("Drill Tip", "Tool Tip")
+    obj.ExtraOffset = wert
+
+
+def setze_heraus_im_vorschub(obj, ja):
+    """G85 – heraus im Vorschub (Reiben). FreeCAD 1.1: `feedRetractEnabled`, 26.3
+    `FeedRetractEnabled`; ohne beide (ältere Fassungen) nichts."""
+    for name in ("FeedRetractEnabled", "feedRetractEnabled"):
+        if hasattr(obj, name):
+            setattr(obj, name, bool(ja))
+            return
+
+
+def heraus_im_vorschub(op):
+    """Geht das Bohren im Vorschub heraus (G85)? Unter beiden Namen (setze_heraus_im_vorschub)."""
+    return bool(getattr(op, "FeedRetractEnabled", getattr(op, "feedRetractEnabled", False)))
