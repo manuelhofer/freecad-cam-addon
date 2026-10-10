@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-43 adaptiv-kern-26-3
+
+### EINGELESEN
+- T-011 (Manuel, 2026-10-10: „Kannst du generell Mal schauen wegen der neuen weekly Version ob wir
+  noch mehr anpassen müssen... Übrigens soll es für auch die alten Versionen funktionieren!“):
+  im Wochen-Build fielen `test_testteil` („Räumen über drei Höhen: 28-mal abgehoben“) und
+  `test_pruefstand` (Absatz: „lässt 6.00 mm auf der Fläche stehen“, dazu Bestmarken).
+- Der Adaptiv-Kern von 26.3 hält den Abstand zu einer Insel nur, wo sie im Material liegt: An
+  Wandenden, die bis an den Rand des Rohteils reichen (offene Nut), fuhr er bis 0,8 mm zu nah;
+  `_adaptiv_gebiet` verwarf die Variante, die Fläche bekam Ringe.
+- Der „Rest“ am Absatz war ein Messfehler des Prüfstands: Ein Knoten der oberen Fläche lag im Netz
+  des Wochen-Builds auf einer inneren Kante, fiel mit `innen` auf den Boden (z 0), und die Zelle
+  1,5 mm daneben galt nicht mehr als „neben der Wand“ – dort steht der Saum, den das Aufmaß lässt.
+  Die Bahn ist dieselbe wie in 1.1.3 (die Wand bei x 17,0 statt 16,99).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`neuer_adaptiv_kern()`; im Kern von 26.3 zählen die Inseln für den
+  Kern als Material), `camaddon/restmaterial.py` (`teilhoehen`: ein Knoten auf einer inneren
+  Kante bekommt die Höhe ringsum), `tests/test_pruefstand.py` (je Kern eigene Bestmarken),
+  `tests/bestmarken_26.json` (neu, im Wochen-Build geschrieben), `docs/aufbau.md`,
+  `package.xml` (0.213.3), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+FreeCAD 26.3: Räumen an einer offenen Nut und am Testteil nimmt wieder die Variante „adaptiv“ (am
+Testteil kaum Abheben). FreeCAD 1.1.3: Bahnen unverändert – der Kern von 1.1 bekommt die Inseln
+nicht als Material.
+
+### DONE
+- Die Bestmarken von 26.3 gegen die von 1.1.3: Absatz und Platte (Räumen) 2–3,5 % langsamer,
+  Zapfen 2 % schneller, die Luft je 1–2 Punkte anders – der Kern von FreeCAD, nicht das Addon.
+  Langsamer als diese Marken darf im Wochen-Build künftig auch nichts werden.
+
+### TEST
+- KI: 1.1.3 `test_pruefstand`, `test_raeumen`, `test_nut_offen` grün (Bestmarken unverändert);
+  Wochen-Build `test_pruefstand` (Marken geschrieben), `test_testteil`, `test_nut_offen` grün.
+
 ## P-2026-10-10-42 dunkles-theme-lesbar
 
 ### EINGELESEN

@@ -612,7 +612,8 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
    jede Strategie nimmt von ihren Varianten die schnellste; zwischen den
    Strategien steht fest, welche wo gewinnt (Räumen auf dem Zapfen-Block und
    der Platte, Planfräsen am Absatz, Räumen + Kontur in der Tasche); und keine
-   Bahn wird langsamer als ihre Bestmarke (`tests/bestmarken.json`) – schneller
+   Bahn wird langsamer als ihre Bestmarke (`tests/bestmarken.json`; mit dem Adaptiv-Kern
+   von 26.3 `tests/bestmarken_26.json`, P-2026-10-10-43) – schneller
    darf jede, dann werden die Bestmarken neu geschrieben, und der Verlauf sagt,
    warum. Der erste Lauf fand gleich drei Fehler: die Wandfahrt des Planfräsens
    lief vor dem Zapfen quer durch ihn (zum Anfang der vorigen Zeile statt zu

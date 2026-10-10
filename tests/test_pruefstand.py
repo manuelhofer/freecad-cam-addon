@@ -7,7 +7,8 @@
 # die Platte 200 × 200 (Abschnitt 11), der Block mit zwei Bohrungen. Jede Bahn muss bestehen (nirgends ins Teil, nichts
 # stehen geblieben, im Eilgang nichts abgetragen, nicht zu viel Luft); jede Strategie nimmt von
 # ihren Varianten die schnellste; zwischen den Strategien steht fest, welche gewinnt; und keine
-# Bahn darf langsamer werden als ihre Bestmarke in tests/bestmarken.json (schneller immer –
+# Bahn darf langsamer werden als ihre Bestmarke in tests/bestmarken.json (mit dem Adaptiv-Kern von
+# 26.3: tests/bestmarken_26.json; schneller immer –
 # BESTMARKEN_SCHREIBEN=1 schreibt die Datei neu, der Verlauf sagt, warum). Die Tabelle am Ende
 # zeigt je Bahn Zeit, Untergrenze und Wirkungsgrad, Luft, Eilgang, Halte, Eintauchen, Rampen.
 import json
@@ -42,7 +43,12 @@ def pruefe(bedingung, text):
 
 V = FreeCAD.Vector
 sprache.setze_sprache("de")
-DATEI = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bestmarken.json")
+# Der Adaptiv-Kern von 26.3 (und dem Wochen-Build) rechnet andere Bahnen als der von 1.1 – je
+# Kern eigene Bestmarken (P-2026-10-10-43).
+DATEI = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "bestmarken_26.json" if rb.neuer_adaptiv_kern() else "bestmarken.json",
+)
 SCHREIBEN = os.environ.get("BESTMARKEN_SCHREIBEN") == "1"
 LANGSAMER_ZULAESSIG = 0.02  # so viel über der Bestmarke lässt die Rechnung schwanken
 werkzeug = wz.standardwerkzeug()

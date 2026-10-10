@@ -2313,6 +2313,18 @@ def _dicht(ecken, schritt):
     return np.concatenate([ecken[:1, 0], x]), np.concatenate([ecken[:1, 1], y])
 
 
+def neuer_adaptiv_kern():
+    """Der Adaptiv-Kern von 26.3 und dem Wochen-Build (Ziel und Minimum der Helix) – nicht der
+    von 1.1 (ein fester Durchmesser)? Ohne Kern: nein. Seine Bahnen sind andere – der Prüfstand
+    misst sie gegen eigene Bestmarken (P-2026-10-10-43)."""
+    try:
+        import area  # FreeCADs libarea
+
+        return not hasattr(area.Adaptive2d(), "helixRampDiameter")
+    except Exception:  # ein FreeCAD ohne den Kern
+        return False
+
+
 def _helix_setzen(kern, durchmesser):
     """Der Durchmesser der Helix ins Volle am Adaptiv-Kern. FreeCAD 1.1 kennt einen festen
     (`helixRampDiameter`); der Wochen-Build und 26.3 ein Ziel und ein Minimum, zwischen denen er
@@ -2381,6 +2393,14 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     # dreieckige Tasche: nur Ringe, bis 4,5 ae). Reicht das Gebiet bis an den Rand, hielte der
     # Kern das Material dahinter für Luft: Dann misst planen() nach.
     tiefe = feld.tiefe.copy()
+    if neuer_adaptiv_kern() and np.isfinite(D).any():
+        # Der Kern von 26.3 (und dem Wochen-Build) hält den Abstand zu einer Insel nur, wo sie im
+        # Material liegt: An der offenen Nut (test_nut_offen) fuhr er an den Wandenden, die bis
+        # an den Rand des Rohteils reichen, bis 0,8 mm zu nah, und _adaptiv_gebiet verwarf sie
+        # (P-2026-10-10-43). Die Inseln – das Gesperrte im Maß der Schneide – zählen für ihn
+        # deshalb als Material; nachgestellt am Kern hält er dann 6,05 statt 5,20 mm bei R 6.
+        # Der Kern von 1.1 rechnet damit genauso wie ohne, er bekommt es nicht.
+        tiefe = np.maximum(tiefe, np.where(np.isfinite(D), -(D + r), -np.inf))
     rand = np.zeros(tiefe.shape, dtype=bool)
     rand[0, :] = rand[-1, :] = rand[:, 0] = rand[:, -1] = True
     if (tiefe[rand] > 0).any():

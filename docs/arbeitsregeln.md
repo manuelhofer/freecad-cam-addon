@@ -200,7 +200,8 @@ ein ASCII-Entwurf des Dialogs reicht.
     Standardfräser an den Maßstabsteilen und fährt sie im Quader ab: nirgends
     ins Teil, nichts stehen geblieben, im Eilgang nichts abgetragen, nicht zu
     viel Luft; jede Strategie nimmt ihre schnellste Variante; und keine Bahn
-    wird langsamer als ihre Bestmarke (`tests/bestmarken.json`). Wird eine
+    wird langsamer als ihre Bestmarke (`tests/bestmarken.json`; mit dem
+    Adaptiv-Kern von 26.3 `tests/bestmarken_26.json`, P-2026-10-10-43). Wird eine
     Bahn mit Absicht anders (schneller, oder ein Fehler behoben), schreibt
     `BESTMARKEN_SCHREIBEN=1` die Bestmarken neu, und der Verlauf sagt, warum.
     Eine neue Strategie bekommt ihre Zeilen im Prüfstand, bevor sie in den

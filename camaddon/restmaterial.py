@@ -933,10 +933,26 @@ def teilhoehen(netz, quader):
     (hoehenfeld.hoehen: das höchste Dreieck über der Zelle). Ein Knoten genau auf einer Kante
     zählt nicht (`innen`): Auf der Linie einer Wand gehört er zur Oberseite wie zum Boden – die
     Kontur führt den Fräser genau bis an die Wand, und der Vergleich meldete dort 15 mm „ins
-    Teil“ (W-006 S3e). Seine Nachbarn bekommen damit die Schwelle der Außenkante (_spruenge)."""
+    Teil“ (W-006 S3e). Seine Nachbarn bekommen damit die Schwelle der Außenkante (_spruenge).
+
+    Ein Knoten auf einer inneren Kante der Vernetzung – zwei Dreiecke derselben Fläche – fiele
+    mit `innen` durch die Fläche auf die nächste darunter: Er bekommt die Höhe, die ringsum dicht
+    neben ihm überall gleich ist. Am Absatz des Prüfstands lag im Netz des Wochen-Builds ein
+    Knoten der oberen Fläche (z 25) so und zählte als Boden (z 0) – die Zelle 1,5 mm daneben galt
+    damit nicht mehr als „neben der Wand“ und meldete den Saum, den das Aufmaß dort lässt, als 6
+    mm Rest (P-2026-10-10-43; wie teilhoehen_kanten, P-2026-10-01-27)."""
     from . import hoehenfeld as hf
 
-    return hf.hoehen(netz, quader.x, quader.y, innen=True)
+    teil = hf.hoehen(netz, quader.x, quader.y, innen=True)
+    nah = 2.0 * max(float(getattr(netz, "toleranz", hf.TOLERANZ)), 0.005)
+    ringsum = [
+        hf.hoehen(netz, quader.x + dx, quader.y + dy)
+        for dx, dy in ((nah, 0.0), (-nah, 0.0), (0.0, nah), (0.0, -nah))
+    ]
+    hoechste = np.maximum.reduce(ringsum)
+    tiefste = np.minimum.reduce(ringsum)
+    durchgefallen = np.isfinite(tiefste) & (hoechste - tiefste < 1e-6) & ~(teil > tiefste - 1e-6)
+    return np.where(durchgefallen, tiefste, teil)
 
 
 def teilhoehen_kanten(netz, quader):
