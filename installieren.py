@@ -15,7 +15,10 @@ Es braucht alle drei: Manchem FreeCAD fehlt Pythons ssl, dann meldet urllib
 (P-2026-09-30-33). In FreeCAD 26.3.0RC1 unter Windows kommen beide nicht durch:
 Qt gibt None („'NoneType' object has no attribute 'data'“), urllib hat kein
 https (Manuel, 2026-10-10, B-017) – dort hilft nur curl, das Windows 10/11
-mitbringt (P-2026-10-10-38). Das ZIP lädt danach hole() auf demselben Weg:
+mitbringt (P-2026-10-10-38). Warum Qt None gibt: Der Addon-Manager von 26.3
+lehnt jede blockierende Anfrage im Hauptthread ab – aus der Konsole lädt die
+Qt-Zeile dort auf keinem System; im Thread der Update-Suche lädt Qt weiter
+(P-2026-10-10-50). Das ZIP lädt danach hole() auf demselben Weg:
 urllib, wenn es kann, sonst Qt, sonst curl.
 
 Was dabei passiert:

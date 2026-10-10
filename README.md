@@ -40,7 +40,8 @@ Schritten. Jedes Fenster hat ein **?** mit Hilfe. Ein Beispielteil liegt in
    import subprocess as s; exec(s.run(["curl", "-sSfL", "https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py"], capture_output=True, check=True).stdout)
    ```
 
-   **Linux und macOS** – über den Netzzugang des Addon-Managers (Qt):
+   **Linux und macOS** – über den Netzzugang des Addon-Managers (Qt), bis FreeCAD 1.1 (in 26.3 lädt
+   der Addon-Manager aus der Python-Konsole grundsätzlich nicht – dann die Zeile darunter):
 
    ```
    import NetworkManager as n; n.InitializeNetworkManager(); exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())

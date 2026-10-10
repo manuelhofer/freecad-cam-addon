@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-50 qt-zeile-in-26-3-abgelehnt
+
+### EINGELESEN
+- T-011, voller Lauf in FreeCAD 26.3.0RC1: `szenario_update` brach an der Qt-Zeile aus dem
+  README ab („'NoneType' object has no attribute 'data'“) – das Symptom aus B-017. Die Ursache,
+  in RC1 nachgestellt: Der Addon-Manager von 26.3 meldet „a blocking network request was made on
+  the thread that owns the network manager, where it could never complete. The request was
+  refused.“ – er lehnt jede blockierende Anfrage im Hauptthread ab, auch gegen GitHub selbst und
+  unter Linux. Aus der Python-Konsole kann die Qt-Zeile in 26.3 also nie laden.
+- Die Update-Suche ohne Git lädt in einem eigenen Thread – dort lädt Qt in RC1 weiter (der Rest
+  des Szenarios, bisher nie erreicht, ist grün).
+
+### DATEIEN
+- `tests/gui/szenario_update.py` (ab FreeCAD 26 gilt die Ablehnung der Qt-Zeile als bekannt, der
+  Rest läuft), `README.md` (die Linux-/macOS-Zeile: bis FreeCAD 1.1, in 26.3 die Zeile darunter),
+  `installieren.py` (Kopf: warum Qt None gibt), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+`szenario_update` grün in 26.3.0RC1, die Suche über Qt im Thread eingeschlossen.
+
+### TEST
+- KI: `szenario_update` grün in 26.3.0RC1; `test_installieren` grün in 1.1.4.
+
+### DONE
+- Für Manuel: nichts zu tun. „Nach Updates schauen“ geht in 26.3 auch ohne Git; installiert
+  wird unter Windows weiter mit der curl-Zeile.
+
 ## P-2026-10-10-49 job-schnittwerte-workplanes-in-26-3
 
 ### EINGELESEN

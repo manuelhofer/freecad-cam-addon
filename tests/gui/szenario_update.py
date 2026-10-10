@@ -164,8 +164,18 @@ def schritte(h):
     adresse = "https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py"
     h.pruefe(adresse in zeile, f"README-Zeile: {zeile!r}")
     namensraum = {}
-    exec(zeile.replace(adresse, f"{github}/zeile.py"), namensraum)
-    h.pruefe(namensraum.get("GELADEN") == 42, "die Zeile aus dem README lädt nicht über Qt")
+    # FreeCAD 26.3 lehnt im Addon-Manager jede blockierende Anfrage im Hauptthread ab („a blocking
+    # network request was made on the thread that owns the network manager … refused“) – aus der
+    # Konsole lädt die Qt-Zeile dort nie, blocking_get gibt None (B-017); das README nennt dafür
+    # urllib und curl. Im Thread (die Suche unten) lädt Qt auch dort.
+    ab_26 = int(FreeCAD.Version()[0]) >= 26
+    try:
+        exec(zeile.replace(adresse, f"{github}/zeile.py"), namensraum)
+    except AttributeError:
+        if not ab_26:
+            raise
+    if not ab_26:
+        h.pruefe(namensraum.get("GELADEN") == 42, "die Zeile aus dem README lädt nicht über Qt")
 
     # Die Suche ohne Git, über Qt: installieren.py im Addon-Ordner nimmt den Weg über Qt, wie
     # ohne ssl für https – hier für http, weil „GitHub“ kein https spricht.
