@@ -340,7 +340,7 @@ Thanks a lot for the kind words – and for actually trying it out.
 [img]https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/docs/bilder/forum/vierachs_nase_5_abfahren_mit_abtrag.png[/img]
 
 [b]Honestly: on this part the strategy is not good yet.[/b] Roughing leaves up to 47.6 mm of material around the nose (the add-on warns about it), and the ball end mill then spends 3 h 18 min finishing the whole part in one spiral – including the flat faces of the nose, which the Ø12 end mill could finish in minutes, indexed with C and moving in Y. That is what I am working on next: flat faces finished by the end mill, the ball end mill only where it is really needed.
-The part is in the repository if you want to try it yourself (saved with FreeCAD 26.3 RC1): [url=https://github.com/manuelhofer/freecad-cam-addon/blob/main/beispiele/testteil_4achs_nase.FCStd]beispiele/testteil_4achs_nase.FCStd[/url]
+The part is in the repository if you want to try it yourself (saved with FreeCAD 26.3 RC1): [url=https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/beispiele/testteil_4achs_nase.FCStd]testteil_4achs_nase.FCStd[/url] (direct download; all examples: [url=https://github.com/manuelhofer/freecad-cam-addon/tree/main/beispiele]beispiele/[/url])
 
 @legros – thanks for testing! In your picture the collision check did its job, but the assistant should not have proposed a flank tilt where the ER16 holder touches the part in the first place. Could you attach the .FCStd (or describe how you made the part)? Then I can reproduce and fix it. And good point about the aluminium: EN AW-2017A is now in the material list too (version 0.213.8, "Check for updates" offers it).
 
