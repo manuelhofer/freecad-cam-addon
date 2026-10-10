@@ -372,6 +372,40 @@ def programm_ohne_tcpm(
     return befehle
 
 
+RUECKZUG_RAND = 1.0  # mm – so weit vor der Achsgrenze endet der Rückzug
+
+
+def rueckzug_z(maschine, hoehe):
+    """Z im Programm, auf das die Spitze vor jedem Schwenk der Rundachsen zurückfährt: bis an
+    die Grenze der Linearachse, die das Werkzeug vom Werkstück wegführt – so weit die Maschine
+    kann –, mindestens `hoehe` (schwenken.schwenkhoehe über dem Rohteil, oder None). Die
+    Schwenkhöhe allein sieht nur das Rohteil: An der G550 mit dem Teil flach auf dem Rundtisch
+    schwenkte A von 80° zurück auf 0, während die Spindel 58 mm über dem Teil stand – Z-Schlitten
+    und Spindel trafen Rundtisch und Wiege (B-015, Manuel, 2026-10-10: „fahr so, dass nichts
+    kollidiert“). Ohne Grenze an der Achse bleibt `hoehe`."""
+    try:
+        loesung, _ = maschine.pruefung.loeser(
+            maschine.aufnahme, maschine.laenge, maschine.nullpunkt
+        )({})
+    except (AttributeError, TypeError, ValueError):
+        return hoehe
+    if loesung is None:
+        return hoehe
+    unten, oben = loesung.werte(0.0, 0.0, 0.0), loesung.werte(0.0, 0.0, 1.0)
+    ergebnis = hoehe
+    for achse, s0, s1 in zip(maschine.linear, unten, oben, strict=True):
+        steigung = s1 - s0
+        if abs(steigung) < 1e-9:
+            continue
+        minimum, maximum = maschine.pruefung.verfahren.grenzen(achse)
+        grenze = maximum if steigung > 0 else minimum
+        if grenze is None:
+            continue
+        z = (grenze - s0) / steigung - RUECKZUG_RAND
+        ergebnis = z if ergebnis is None else max(ergebnis, z)
+    return ergebnis
+
+
 def befehle_auf_maschine(
     maschine,
     punkte,
@@ -386,7 +420,8 @@ def befehle_auf_maschine(
     (programm_ohne_tcpm) – davor auf die Schwenkhöhe (über dem Raum, den das Rohteil `rohteil`
     beim Schwenken überstreicht; schwenken.schwenkhoehe), geschwenkt und über den ersten Punkt;
     danach wieder hinauf und die Rundachsen auf 0 (wie 3+2 ohne Zyklus; endlose auf das nächste
-    Vielfache von 360°). ValueError mit einem Satz wie programm_ohne_tcpm."""
+    Vielfache von 360°). Hinauf heißt bis an die Achsgrenze (rueckzug_z), mindestens die
+    Schwenkhöhe. ValueError mit einem Satz wie programm_ohne_tcpm."""
     import Path
 
     if not punkte:
@@ -414,6 +449,7 @@ def befehle_auf_maschine(
             sw.schwenkhoehe(rohteil, maschine.abbildung, rund_anfang),
             sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
         )
+    hoehe = rueckzug_z(maschine, hoehe)  # vor jedem Schwenk bis an die Achsgrenze (B-015)
     davor = []
     if hoehe is not None:
         davor.append(Path.Command("G0", {"Z": max(hoehe, float(erster["Z"]))}))
@@ -495,6 +531,7 @@ def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERAN
             sw.schwenkhoehe(rohteil, maschine.abbildung, rund_anfang),
             sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
         )
+    hoehe = rueckzug_z(maschine, hoehe)  # vor jedem Schwenk bis an die Achsgrenze (B-015)
     davor = []
     if bei_null:
         # Rundachsen auf 0: die Lage im Programm ist die im Werkstück – über dem ersten Punkt.
