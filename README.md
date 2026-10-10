@@ -55,6 +55,19 @@ Schritten. Jedes Fenster hat ein **?** mit Hilfe. Ein Beispielteil liegt in
 Was die Zeilen tun, steht oben in [installieren.py](installieren.py). Sie brauchen weder Git
 noch GitHub Desktop.
 
+**Geht keine der beiden Zeilen**, kommt dieses FreeCAD gar nicht an GitHub – so FreeCAD 26.3.0RC1
+unter Windows: Python ohne SSL, und auch Qt lädt nichts. Dann von Hand:
+
+1. Auf dieser Seite **Code → Download ZIP**.
+2. In FreeCADs Python-Konsole `FreeCAD.getUserAppDataDir()` eingeben. Im angezeigten Ordner liegt
+   `Mod` – fehlt er, anlegen.
+3. Den Ordner `freecad-cam-addon-main` aus dem ZIP nach `Mod` ziehen und in `freecad-cam-addon`
+   umbenennen. `InitGui.py` muss direkt darin liegen, nicht eine Ebene tiefer.
+4. FreeCAD neu starten.
+
+In so einem FreeCAD geht auch das Aktualisieren nur von Hand: den Ordner `freecad-cam-addon` durch
+den aus einem neuen ZIP ersetzen. Die Einstellungen des Addons bleiben dabei erhalten.
+
 **Oder über den Addon-Manager:** **Bearbeiten → Einstellungen → Addon-Manager → Eigene
 Repositories**, dort `https://github.com/manuelhofer/freecad-cam-addon` mit dem Branch `main`
 eintragen. Dann **Werkzeuge → Addon-Manager**, **freecad-cam-addon** suchen, installieren,

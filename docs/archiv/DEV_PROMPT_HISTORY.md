@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-36 installieren-von-hand
+
+### EINGELESEN
+- Manuel, 2026-10-10, Antwort auf Frage 4 (Fotos der Python-Konsole, FreeCAD 26.3.0RC1 unter
+  Windows, `C:\Program Files\FreeCAD 26.3`): die Python-Zeile endet mit
+  `urllib.error.URLError: <urlopen error unknown url type: https>` – Pythons SSL fehlt; die
+  Qt-Zeile scheiterte vorher schon (`blocking_get` → `None`). Dieses FreeCAD kommt über keinen
+  der beiden Wege an GitHub; Firefox auf demselben Rechner schon.
+- `README.md` (Installieren), `docs/OFFENE_FRAGEN.md` (Frage 4), `docs/STATUS_SNAPSHOT.md`
+  (B-017), `installieren.py` (`_ersetze`: ein Update ersetzt den Ordner ganz).
+
+### DATEIEN
+- `README.md` (Abschnitt „Geht keine der beiden Zeilen“: ZIP laden, `Mod` über
+  `FreeCAD.getUserAppDataDir()` finden, Ordner umbenennen, neu starten; Aktualisieren ebenso von
+  Hand), `docs/STATUS_SNAPSHOT.md` (B-017 mit Ursache und Umgehung),
+  `docs/OFFENE_FRAGEN.md` (Frage 4 raus), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+In FreeCAD 26.3.0RC1 nach dem README von Hand installiert, FreeCAD neu gestartet → das Menü
+„CAM-Addon“ steht in Assembly und CAM.
+
+### DONE
+- Frage 4 beantwortet: 26.3.0RC1 unter Windows kann gar kein HTTPS – Python ohne SSL, und Qt lädt
+  auch nichts (ob Qt am selben fehlenden OpenSSL hängt, ist nicht geprüft).
+- B-017 bleibt offen: Die Ursache liegt im FreeCAD-Build; das Addon kann dort ohne Netz nur von
+  Hand kommen. Eine bekannte Meldung dazu bei FreeCAD war nicht zu finden.
+- Keine neue Version: nur README und Doku.
+- Aufgefallen, nicht mitgemacht (eigener Patch): `installieren.fehlertext()` verweist auf eine
+  Anleitung mit GitHub Desktop im README, die es dort nicht mehr gibt.
+
+### TEST
+- Reine Doku, kein Testlauf. Den Weg von Hand prüft Manuel in seinem FreeCAD.
+
+### NEXT
+- Manuel: von Hand installieren, Menü „CAM-Addon“ prüfen.
+- `fehlertext()` auf den Weg von Hand im README zeigen lassen.
+
 ## P-2026-10-10-35 installieren-beide-zeilen
 
 ### EINGELESEN
