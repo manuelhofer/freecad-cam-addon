@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-25 freiform-pruefen-zaehlt-kombinationen
+
+### EINGELESEN
+- `beispiele/grob_g550_freiform/pruefen.py` auf der neuen G550 (eigenes Profil, 780 s): Ø 12 und
+  Ø 6 am Flächenrand abgewiesen wie immer, Ø 4 entlang der Fläche bei 75/50/25 % Bahnfeinheit
+  abgewiesen (Grathöhe, 70 258 bzw. 1 074 Zellen), bei voller Feinheit zugelassen: frei 317,9 s,
+  frei – ganze Bahn 318,2 s. Dann brach das Skript mit `AssertionError: 10`: Es erwartet sechs
+  Varianten, seit der Verfeinerung von selbst (P-2026-10-09-15) stehen dieselben Kombinationen
+  mehrmals in der Liste. Nichts an der Bahn ist falsch; die Zählung des Skripts war veraltet.
+
+### DATEIEN
+- `beispiele/grob_g550_freiform/pruefen.py` (zählt die verschiedenen Kombinationen Werkzeug ×
+  Richtung × Anstellung).
+
+### AKZEPTANZKRITERIUM
+`pruefen.py` läuft durch und schreibt `vergleich.json`, `freiform_5achs.mpf`, `freiform_5achs.FCStd`
+neu.
+
+### DONE
+- Nur lokal committet, nicht gelaufen (Nutzungslimit): der nächste Lauf (~13 min, eigenes Profil
+  `FREECAD_USER_HOME`, nie das Profil anderer Läufe) schreibt die Beispieldateien neu; danach
+  README-Zahlen des Beispiels nachziehen und pushen.
+
 ## P-2026-10-10-24 uebersetzungsschluessel-als-fester-text
 
 ### EINGELESEN

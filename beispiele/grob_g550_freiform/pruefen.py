@@ -70,7 +70,9 @@ def pruefen():
         assert len(plan.varianten) == 3 * len(sp.RICHTUNGEN) * len(sp.ANSTELLUNGEN)
     else:
         # Ø 12 und Ø 6 am Flächenrand abgewiesen (je frei und frei – ganze Bahn), Ø 4 gerechnet.
-        assert len(plan.varianten) == 3 * len(sp.SINNVOLL_ANSTELLUNGEN), len(plan.varianten)
+        # Die Verfeinerung von selbst (P-2026-10-09-15) legt dieselbe Kombination mehrmals an.
+        kombinationen = {(v.werkzeug.ToolNumber, v.richtung, v.anstellung) for v in plan.varianten}
+        assert len(kombinationen) == 3 * len(sp.SINNVOLL_ANSTELLUNGEN), sorted(kombinationen)
         assert all(v.grund for v in plan.varianten if v.werkzeug.ToolNumber != 4)
     assert beste.werkzeug.ToolNumber == 4
     assert beste.sekunden == min(
