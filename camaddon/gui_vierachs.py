@@ -3388,7 +3388,7 @@ class VierachsPanel:
         self._vorschau_nummer += 1
         nummer = self._vorschau_nummer
         try:
-            kopie = pool.kopie(self.doc)
+            kopie = pool.kopie(self.doc, wiederverwenden=True)  # liest nur
             for name, (args, kwargs) in auftraege.items():
                 auftrag = pool.auftrag(
                     "vierachs_vorschau",

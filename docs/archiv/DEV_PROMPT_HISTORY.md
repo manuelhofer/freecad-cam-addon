@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-08 vorschau-kopie-wiederverwenden
+
+### EINGELESEN
+- Nach P-2026-10-11-07 gemessen: Für jede Vorschau im 4-Achs-Assistenten speichert der Pool eine
+  neue Kopie des Dokuments – am Nasen-Testteil 0,44 s im Prozess der Oberfläche, in denen das
+  Fenster steht; der Arbeiter öffnet sie danach noch einmal (0,21 s). Beim Tippen ändert sich das
+  Dokument aber nicht, nur die Felder des Assistenten.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `kopie(dokument, wiederverwenden=True)` gibt die letzte Kopie
+  zurück, solange sich das Dokument nicht geändert hat – ein Beobachter der Dokumente
+  (`_Aenderungen`, FreeCAD.addDocumentObserver) vergisst sie bei jeder Änderung eines Objekts,
+  einer Eigenschaft, des Dokuments, bei Rückgängig/Wiederholen. Ohne `wiederverwenden` wie
+  bisher (die Kollision verändert ihre Maschinenkopie im Arbeiter).
+- `camaddon/gui_vierachs.py`: die Vorschau nimmt `wiederverwenden=True` (sie liest nur).
+- `tests/test_nebenrechner.py` (dieselbe Kopie, neue nach Umbenennen und neuer Form),
+  `package.xml` (0.213.21), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_vierachs_schlichten` mit Zähler: von 6 Vorschauen 3 ohne Speichern (dazwischen
+  ändert das Szenario das Dokument). Grün: `test_nebenrechner.py` in 1.1.4 und 26.3.0RC1,
+  `szenario_vierachs_schlichten`.
+
 ## P-2026-10-11-07 vorschau-verteilt-auf-allen-kernen
 
 ### EINGELESEN

@@ -78,6 +78,19 @@ ergebnisse = pool.warten(
     ]
 )
 assert [round(v, 9) for v in ergebnisse] == [10.0, 12.0], ergebnisse
+# Wiederverwenden (P-2026-10-11-08): dieselbe Kopie, solange sich das Dokument nicht ändert.
+kopie3 = pool.kopie(doc, wiederverwenden=True)
+assert pool.kopie(doc, wiederverwenden=True) == kopie3, "unverändert neu gespeichert"
+assert pool.kopie(doc) != kopie3, "ohne wiederverwenden nicht neu gespeichert"
+kopie4 = pool.kopie(doc, wiederverwenden=True)
+objekt.Label = "Umbenannt"
+kopie5 = pool.kopie(doc, wiederverwenden=True)
+objekt.Shape = Part.makeBox(1, 2, 7)
+kopie6 = pool.kopie(doc, wiederverwenden=True)
+doc.recompute()
+assert kopie5 != kopie4 and kopie6 != kopie5, (kopie4, kopie5, kopie6)
+(volumen,) = pool.warten([pool.auftrag("nebenrechner", "_probe_dokument", kopie6, "Kasten")])
+assert abs(volumen - 14.0) < 1e-9, volumen
 FreeCAD.closeDocument(doc.Name)
 
 # Gemeinsame Daten: einmal je Arbeiter, in Argumenten auch verschachtelt.

@@ -372,18 +372,32 @@ class Nebenrechner:
                 with contextlib.suppress(OSError, EOFError):
                     arbeiter.verbindung.send(("vergiss", schluessel))
 
-    def kopie(self, dokument):
+    def kopie(self, dokument, wiederverwenden=False):
         """Speichert eine Kopie des Dokuments für die Arbeiter; gibt Dokument(pfad) zurück. Je
         Dokument bleiben die letzten KOPIEN_JE_DOKUMENT liegen (ein Arbeiter hat die ältere
-        vielleicht noch offen)."""
+        vielleicht noch offen). Mit `wiederverwenden` die letzte, wenn sich das Dokument seitdem
+        nicht geändert hat (_Aenderungen) – für Aufträge, die die Kopie nur lesen: Die Vorschau
+        im 4-Achs-Assistenten speicherte nach jeder Eingabe neu, 0,44 s, in denen das Fenster
+        stand (P-2026-10-11-08); die Arbeiter haben sie dann auch schon offen."""
         self._einrichten()
         ordner = os.path.join(self._ordner, "kopien")
         os.makedirs(ordner, exist_ok=True)
         name = dokument.Name
         pfade = self._kopien.setdefault(name, [])
+        aenderungen = _Aenderungen.beobachten()
+        if (
+            wiederverwenden
+            and pfade
+            and aenderungen is not None
+            and aenderungen.unveraendert(dokument, pfade[-1])
+            and os.path.isfile(pfade[-1])
+        ):
+            return Dokument(pfade[-1])
         pfad = os.path.join(ordner, f"{name}-{len(pfade) + 1}.FCStd")
         while pfad in pfade or os.path.exists(pfad):
             pfad = os.path.join(ordner, f"{name}-{secrets.token_hex(3)}.FCStd")
+        if aenderungen is not None:
+            aenderungen.kopiert(dokument, pfad)
         dokument.saveCopy(pfad)
         pfade.append(pfad)
         for alt in pfade[:-KOPIEN_JE_DOKUMENT]:
@@ -960,6 +974,58 @@ class Nebenrechner:
             melder.deleteLater()
 
 
+class _Aenderungen:
+    """Ein Beobachter der Dokumente (FreeCAD.addDocumentObserver): Je Dokument der Pfad seiner
+    letzten Kopie, bis sich darin etwas ändert – ein Objekt, eine Eigenschaft, das Dokument
+    selbst, Rückgängig. Was sich nicht zuordnen lässt, macht alle Kopien ungültig."""
+
+    _einer = None
+
+    @classmethod
+    def beobachten(cls):
+        """Der eine Beobachter (beim ersten Bedarf angemeldet); None, wenn FreeCAD keinen nimmt."""
+        if cls._einer is None:
+            try:
+                einer = cls()
+                FreeCAD.addDocumentObserver(einer)
+            except Exception:  # noqa: BLE001 – ohne Beobachter wird jedes Mal gespeichert
+                return None
+            cls._einer = einer
+        return cls._einer
+
+    def __init__(self):
+        self._kopie = {}  # Dokumentname -> Pfad der Kopie, solange es sich nicht geändert hat
+
+    def unveraendert(self, dokument, pfad):
+        return self._kopie.get(dokument.Name) == pfad
+
+    def kopiert(self, dokument, pfad):
+        self._kopie[dokument.Name] = pfad
+
+    def _geaendert(self, dokument):
+        try:
+            self._kopie.pop(dokument.Name, None)
+        except Exception:  # noqa: BLE001 – lässt sich nicht zuordnen: alle neu
+            self._kopie.clear()
+
+    def _objekt(self, obj, *_):
+        try:
+            dokument = obj.Document
+        except Exception:  # noqa: BLE001
+            self._kopie.clear()
+            return
+        self._geaendert(dokument)
+
+    slotCreatedObject = slotDeletedObject = slotChangedObject = _objekt  # noqa: N815
+    slotRelabelObject = _objekt  # noqa: N815
+
+    def _dokument(self, dokument, *_):
+        self._geaendert(dokument)
+
+    slotCreatedDocument = slotDeletedDocument = slotChangedDocument = _dokument  # noqa: N815
+    slotUndoDocument = slotRedoDocument = slotRelabelDocument = _dokument  # noqa: N815
+
+
 class Unterpool:
     """Der Pool in einem Arbeiter (P-2026-10-11-07): dieselben Aufrufe wie Nebenrechner, nur
     bestellt er die Aufträge über die Verbindung beim Pool des Hauptprozesses, als Unteraufträge
@@ -1020,7 +1086,7 @@ class Unterpool:
         with contextlib.suppress(OSError, EOFError):
             self._verbindung.send(("vergessen", schluessel))
 
-    def kopie(self, dokument):
+    def kopie(self, dokument, wiederverwenden=False):  # noqa: ARG002 – wie Nebenrechner.kopie
         """Eine Kopie des Dokuments im Ordner des Arbeiters (die anderen öffnen sie dort)."""
         ordner = os.path.join(os.getcwd(), "kopien")
         os.makedirs(ordner, exist_ok=True)
