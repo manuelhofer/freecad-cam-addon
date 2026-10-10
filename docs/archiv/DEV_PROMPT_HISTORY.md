@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-26 freiformbeispiel-auf-der-neuen-g550
+
+### EINGELESEN
+- Nach P-2026-10-10-25 lief `beispiele/grob_g550_freiform/pruefen.py` im eigenen Profil durch:
+  466 s, Gewinner Ø 4 entlang der Fläche „Frei“ mit 317,90 s (Frei – ganze Bahn 318,18 s; vorher
+  auf dem alten Modell 316,63 s), Rest 0,01694 mm, 545 585 Flächenzellen gedeckt, 45 143
+  NC-Bewegungen, keine Kollision, keine Überschreitung.
+
+### DATEIEN
+- Neu geschrieben: `beispiele/grob_g550_freiform/vergleich.json`, `freiform_5achs.mpf`,
+  `freiform_5achs.FCStd`, `beispiel_werkzeuge.json`; `README.md` (Tabelle „Stand 2026-10-10“,
+  die alten Zahlen als Läufe vom 2026-10-08 gekennzeichnet); `package.xml` (0.210.1).
+
+### AKZEPTANZKRITERIUM
+`./starten.sh` im Beispielordner öffnet Maschine und Job; „5-Achs-Schlichten vergleichen …“
+findet dieselbe Wahl wie `vergleich.json`.
+
+### DONE
+- Nichts weiter; der Lauf selbst ist die Prüfung.
+
 ## P-2026-10-10-25 freiform-pruefen-zaehlt-kombinationen
 
 ### EINGELESEN

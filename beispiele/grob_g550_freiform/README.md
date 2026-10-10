@@ -44,6 +44,25 @@ zu aufwendig: 82 getrennte Schnittzüge, 8,28 min Schruppen und rund 31 % Luft i
 normalen Vorschub. P-2026-10-08-01 verglich die gefahrenen Schruppbahnen einschließlich
 Rampen und freier Verbindungen; 3-mm-Zwischenlagen verkürzten den Job auf 5 min 57,5 s.
 
+**Nachgerechnet am 2026-10-10 auf der neu gebauten G550** (Spindel auf X/Y/Z im Tunnel,
+Tisch nur A/B, Rückzug vor jedem Schwenk bis an die Z-Grenze; P-2026-10-10-19 und -20), mit
+`pruefen.py` im normalen Vergleich ohne „Alle Kombinationen“:
+
+| Gemessener Modellwert | Stand 2026-10-10 |
+| --- | --- |
+| Gewinner | Ø 4, entlang der Fläche, Frei: 317,90 s; Frei – ganze Bahn 318,18 s |
+| Restgrenze einschließlich Vernetzungsunsicherheit | 0,01694 mm bei erlaubten 0,02 mm |
+| Abgedeckte Flächenzellen | 545.585, keine offene Zelle |
+| Kontaktwinkel | 16,9° |
+| Modellkollision, Verfahrgrenzen, Eintritt und schneller Abtrag | ohne Befund |
+| NC-Bewegungen | 45.143 |
+| Dauer des Vergleichs | 457 s auf 24 Kernen (Ø 12 und Ø 6 am Flächenrand abgewiesen, Ø 4 bei 75/50/25 % Bahnfeinheit an der Grathöhe, bei voller Feinheit zugelassen) |
+
+`vergleich.json`, `freiform_5achs.mpf` und `freiform_5achs.FCStd` stammen aus diesem Lauf
+(10 Einträge: die Verfeinerung von selbst legt dieselbe Kombination mehrmals an). Die Zahlen
+darunter stammen aus den Läufen vom 2026-10-08 auf dem alten Maschinenmodell, mit dem Haken
+„Alle Kombinationen“ und dem gemeinsamen Vergleich der Materialzweige.
+
 Der neue gemeinsame Vergleich (P-2026-10-08-03) rechnet Schruppen und Schlichten
 für jeden angebotenen Materialzweig zusammen. 2,5/3/3,5/4 mm wurden mit dem
 Standardfräser und beiden freien Anstellungen entlang der Fläche verglichen.
