@@ -13,10 +13,12 @@ import contextlib
 
 from PySide import QtCore, QtGui
 
+from . import farben
 from .sprache import tr
 
-GRAU = QtGui.QColor("#6d6d6d")  # gerechnete oder geerbte Werte
-ROT = "#c0392b"  # Hinweise, was fehlt oder nicht passt
+# Hell oder dunkel nach dem Theme von FreeCAD (farben.py, P-2026-10-10-42).
+GRAU = QtGui.QColor(farben.GRAU)  # gerechnete oder geerbte Werte
+ROT = farben.ROT  # Hinweise, was fehlt oder nicht passt
 LISTE_ZEILEN = 20  # so viele Einträge zeigt eine lange Auswahlliste auf einmal
 
 

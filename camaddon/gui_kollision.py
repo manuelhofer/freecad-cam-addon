@@ -15,7 +15,7 @@ import html
 import FreeCAD
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten
+from . import PARAMETER_PFAD, einheiten, farben
 from . import kollision as kb
 from . import reichweite as rw
 from .gui_hilfe import kopfzeile
@@ -23,8 +23,8 @@ from .gui_teile import GRAU, ROT, mit_einheit
 from .gui_zahlen import Zahlenpruefer, groesse_lesen, groesse_zeigen
 from .sprache import tr
 
-GRUEN = "#2e7d32"
-GELB = "#b9770e"  # Warnung – dunkles Gelb, lesbar auf Weiß
+GRUEN = farben.GRUEN
+GELB = farben.GELB  # Warnung – lesbar im hellen wie im dunklen Theme (farben.py)
 WARNABSTAND = "KollisionWarnabstand"  # gemerkt in den Einstellungen des Addons, mm
 
 

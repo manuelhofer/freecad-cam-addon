@@ -34,6 +34,15 @@ for szenario in "$@"; do
     rm -rf "$ausgabe"; mkdir -p "$ausgabe" "$profil/Mod"
     ln -s "$repo" "$profil/Mod/freecad-cam-addon"
     ln -s "$repo/tests/gui/_lauf" "$profil/Mod/_camaddon_lauf"
+    # Mit einem Theme von FreeCAD starten ("FreeCAD Dark"): CAMADDON_THEMA oder eine Zeile
+    # "# THEMA: <Name>" im Szenario - sein Einstellungspaket als Einstellungen des Profils,
+    # wie "Theme" in den Einstellungen von FreeCAD.
+    thema="${CAMADDON_THEMA:-$(sed -n 's/^# THEMA: //p' "$szenario" | head -1)}"
+    if [ -n "$thema" ]; then
+        paket="$(dirname "$fc")/../share/Gui/PreferencePacks/$thema/$thema.cfg"
+        [ -f "$paket" ] || { echo "Theme nicht gefunden: $paket" >&2; exit 2; }
+        cp "$paket" "$profil/user.cfg"
+    fi
     # CAMADDON_OHNE_UPDATE: keine Update-Suche beim Start (kein Netz im Test).
     CAMADDON_OHNE_UPDATE=1 FREECAD_USER_HOME="$profil" CAMADDON_SZENARIO="$(cd "$(dirname "$szenario")" && pwd)/$(basename "$szenario")" \
         CAMADDON_AUSGABE="$ausgabe" \

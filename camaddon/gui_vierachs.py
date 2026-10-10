@@ -48,7 +48,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, symbol
+from . import PARAMETER_PFAD, einheiten, farben, symbol
 from . import aufloesung as au
 from . import bestueckung as bs
 from . import fraeserform as ff
@@ -84,8 +84,8 @@ from .gui_zahlen import (
 )
 from .sprache import tr
 
-GRUEN = "#4e9a06"  # „passt“ – das Grün der Tango-Farben, wie in den Symbolen
-GRAU_TEXT = "#6d6d6d"  # gerechnete Werte
+GRUEN = farben.GRUEN  # „passt“ – hell oder dunkel nach dem Theme (farben.py)
+GRAU_TEXT = farben.GRAU  # gerechnete Werte
 
 # Nach der letzten Eingabe so lange warten, bevor Job und Stange nachziehen –
 # sonst rechnet jede Ziffer von „80“ einzeln.

@@ -22,7 +22,15 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import beispielmaschine, export, gui_neue_maschine, gui_zeigen, schraege_achse, symbol
+from . import (
+    beispielmaschine,
+    export,
+    farben,
+    gui_neue_maschine,
+    gui_zeigen,
+    schraege_achse,
+    symbol,
+)
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_bericht import BerichtFenster
@@ -1180,7 +1188,7 @@ def _leerzeile(text=None, tooltip=None):
     """Graue, nicht wählbare Zeile – ohne Text „noch keine Betriebsart“ unter einem Gelenk."""
     zeile = QtGui.QTreeWidgetItem([text or tr("dialog.noch_keine_betriebsart")])
     zeile.setToolTip(0, tooltip or tr("dialog.noch_keine_betriebsart.tooltip"))
-    zeile.setForeground(0, QtGui.QBrush(QtGui.QColor("gray")))
+    zeile.setForeground(0, QtGui.QBrush(QtGui.QColor(farben.GRAU)))
     zeile.setFlags(QtCore.Qt.NoItemFlags)
     return zeile
 

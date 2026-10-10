@@ -10,7 +10,7 @@ entscheidet am Ende über alles zusammen.
 
 from PySide import QtGui
 
-from . import einheiten, export, schraege_achse
+from . import einheiten, export, farben, schraege_achse
 from . import maschine as m
 from .gui_hilfe import zeige_hilfe
 from .gui_teile import hinweiszeile, mit_einheit, ruhiges_mausrad
@@ -133,7 +133,7 @@ class DetailKasten(QtGui.QFrame):
         Steuerung zeigt (wie im Datenblatt), „von“ ist das Ende „Max“ am Gelenk."""
         erklaerung = QtGui.QLabel()
         erklaerung.setWordWrap(True)
-        erklaerung.setStyleSheet("color: gray;")
+        erklaerung.setStyleSheet(f"color: {farben.GRAU};")
 
         def erklaeren():
             saetze = (

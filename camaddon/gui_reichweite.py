@@ -33,6 +33,7 @@ from . import abfahren as ab
 from . import (
     beispielmaschine,
     einheiten,
+    farben,
     gui_abfahren,
     gui_kollision,
     gui_neue_maschine,
@@ -50,7 +51,7 @@ from .gui_zahlen import Zahlenpruefer, groesse_fest, groesse_lesen, zahlenformat
 from .sprache import tr
 
 VERZOEGERUNG = 300  # ms nach der letzten Eingabe, dann rechnet das Fenster neu
-GRUEN = "#2e7d32"
+GRUEN = farben.GRUEN
 ACHSEN = ("X", "Y", "Z")
 
 

@@ -20,7 +20,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, symbol
+from . import PARAMETER_PFAD, farben, symbol
 from . import job_schnittwerte as js
 from . import maschinenspeicher as msp
 from . import postprozessor as pp
@@ -33,7 +33,7 @@ from .sprache import tr
 EIGENSCHAFT_STEUERUNG = "CamAddonSteuerung"  # am Job: die Kennung der Steuerung
 EIGENSCHAFT_DATEI = "CamAddonProgrammdatei"  # am Job: wohin sein Programm zuletzt kam
 VORSCHAU_SAETZE = 300  # so viele Bewegungssätze zeigt die Vorschau
-GELB = "#c4a000"
+GELB = farben.GELB
 
 # Die Gruppen der Einstellungen: (Gruppe, Anker in der Hilfe, Haken und Befehle darin).
 GRUPPEN = (
@@ -990,7 +990,7 @@ class ProgrammDialog(QtGui.QDialog):
                 datei.write(programm.text)
         except OSError as fehler:
             self.ergebnis.setText(tr("pp.fehler.speichern", fehler=str(fehler)))
-            self.ergebnis.setStyleSheet("color: #cc0000;")
+            self.ergebnis.setStyleSheet(f"color: {farben.ROT};")
             return None
         steuerung_merken(self.job, self.kennung())
         datei_merken(self.job, pfad)
@@ -998,7 +998,7 @@ class ProgrammDialog(QtGui.QDialog):
         self.knopf_ordner.show()
         # Nachgelesen, wie die Steuerung es läse: Werkzeuglänge, Spindel, Vorschub, Kreise.
         befunde, saetze = pp.nachlesen(programm, self.steuerung(), self.info)
-        self.ergebnis.setStyleSheet("color: #cc0000;" if befunde else "")
+        self.ergebnis.setStyleSheet(f"color: {farben.ROT};" if befunde else "")
         self.ergebnis.setText(
             tr("pp.gespeichert", datei=pfad, saetze=programm.saetze, zeilen=len(programm.zeilen))
             + "\n"

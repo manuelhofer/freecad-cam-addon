@@ -17,6 +17,7 @@ Platz zweimal, ein Platz über der Zahl der Plätze).
 import FreeCADGui
 from PySide import QtCore, QtGui
 
+from . import farben
 from . import maschinenspeicher as msp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
@@ -27,7 +28,7 @@ FENSTER_GROESSE = (1000, 620)
 LISTE_BREITE = 260
 GROESSTE_NUMMER = 9999
 GROESSTE_PLATZ = 999
-ROT = "#cc0000"
+ROT = farben.ROT
 SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ = range(4)
 ROLLE = (
     QtCore.Qt.UserRole

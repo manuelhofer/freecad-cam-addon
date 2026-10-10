@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-42 dunkles-theme-lesbar
+
+### EINGELESEN
+- Manuel, 2026-10-10, Foto aus FreeCAD 26.3.0RC1 mit dunklem Theme: „Man kann die Schrift nicht
+  lesen im dunkel Modus .... Sollte manstandartmässig ändern“ – die grauen Sätze im Assistenten
+  und der rote Hinweis unter „Räumen“ stehen fast unsichtbar auf Dunkelgrau.
+- Textfarben fest für weißen Grund: `gui_teile` (GRAU #6d6d6d, ROT #c0392b), `gui_vierachs`,
+  `gui_kollision`, `gui_reichweite`, `gui_schwenken`, `gui_magazine`, `gui_programm` (#cc0000,
+  Gelb), `gui_details` und `gui_maschine` („gray“).
+- Im dunklen Theme („FreeCAD Dark“, 1.1.3 und Wochen-Build) ist das Hauptfenster #191919, die
+  Palette der Anwendung bleibt #efefef – erkennen lässt es sich nur am Fenster.
+
+### DATEIEN
+- `camaddon/farben.py` (neu: Grau, Rot, Grün, Gelb je für hellen und dunklen Grund; dunkel, wenn
+  der Grund des Hauptfensters dunkel ist), die zehn Fenstermodule oben (ihre Konstanten aus
+  `farben`), `scripts/oberflaeche_testen.sh` (`CAMADDON_THEMA` oder `# THEMA: …` im Szenario:
+  startet mit dem Einstellungspaket des Themes), `tests/gui/szenario_dunkles_theme.py` (neu),
+  `package.xml` (0.213.2), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+FreeCAD mit Theme „FreeCAD Dark“, „Bearbeitung“ an einer Fläche, für die der Fräser zu groß ist →
+die grauen Sätze sind hellgrau, der Hinweis unter „Räumen“ hellrot, beides gut lesbar; im hellen
+Theme wie bisher.
+
+### DONE
+- Erst flackerte die Erkennung (einmal „hell“ in 1.1.3): Beim ersten Start lädt das Addon für die
+  Sprachwahl, bevor Qt das Hauptfenster poliert hat – `ensurePolished()` vor dem Messen, danach
+  dreimal in Folge grün.
+- Nach einem Wechsel des Themes gelten die Farben nach dem Neustart von FreeCAD (gelesen wird
+  einmal). Nicht angefasst: Farben, die das Addon in seinen Bildern selbst malt.
+
+### TEST
+- KI: `szenario_dunkles_theme` (Kontrast nach WCAG am echten Bild, mindestens 4,5 : 1) grün in
+  1.1.3 (dreimal) und im Wochen-Build; Gegenprobe mit den alten Farben: 2,7 (grau) und 3,2 (rot)
+  – rot. `szenario_bearbeitung` im hellen Theme grün. Screenshot angesehen.
+
 ## P-2026-10-10-41 bohren-namen-in-26-3
 
 ### EINGELESEN
