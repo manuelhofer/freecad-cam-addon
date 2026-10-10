@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-33 douglas-peucker-stufenweise-vektorisiert
+
+### EINGELESEN
+- Profil je Bahn (P-2026-10-10-29): `_vereinfacht3d` (Douglas-Peucker im Raum) 3,5 s je
+  Bahn, 349 Aufrufe – Stück für Stück mit einem Stapel, je Stück Kreuzprodukt und Norm neu.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (`_vereinfacht3d`: alle offenen Stücke einer Stufe auf einmal
+  – dieselben Formeln, bei Gleichstand der erste fernste Punkt wie `np.argmax`), `package.xml`
+  (0.211.4).
+
+### AKZEPTANZKRITERIUM
+Bitgleiche Bahnen: `test_schlichten3d` und `test_simultan_planung` grün mit denselben
+Referenzen; auf 300 Zufallsbahnen (mit Gleichständen und Punkten der Länge 0) dieselbe Auswahl
+wie die alte Fassung.
+
+### DONE
+- 300 von 300 gleich; 5,0 → 0,77 s für die 300 Bahnen. Am Freiformbeispiel rund 3 s je Bahn
+  weniger (fünf Bahnen je Vergleich).
+
 ## P-2026-10-10-32 forum-thread-freigegeben-erste-antwort
 
 ### EINGELESEN

@@ -793,31 +793,46 @@ def _dreieck_kaesten(netz):
 
 
 def _vereinfacht3d(punkte):
-    """Douglas-Peucker im Raum mit TOLERANZ_GERADE – die Indizes, die bleiben."""
+    """Douglas-Peucker im Raum mit TOLERANZ_GERADE – die Indizes, die bleiben. Stufe für Stufe
+    über alle offenen Stücke auf einmal (vektorisiert; dieselben Zahlen und dieselbe Wahl bei
+    Gleichstand wie Stück für Stück: der erste fernste Punkt, P-2026-10-10-33)."""
     n = len(punkte)
     if n <= 2:
         return list(range(n))
+    punkte = np.asarray(punkte, dtype=float)
     behalten = np.zeros(n, dtype=bool)
     behalten[0] = behalten[-1] = True
-    stapel = [(0, n - 1)]
-    while stapel:
-        a, b = stapel.pop()
-        if b - a < 2:
-            continue
-        p, q = punkte[a], punkte[b]
-        d = q - p
-        laenge = float(np.linalg.norm(d))
-        innen = punkte[a + 1 : b]
-        if laenge < GLEICH:
-            abstand = np.linalg.norm(innen - p, axis=1)
-        else:
-            abstand = np.linalg.norm(np.cross(innen - p, d), axis=1) / laenge
-        k = int(np.argmax(abstand))
-        if abstand[k] > TOLERANZ_GERADE:
-            m = a + 1 + k
-            behalten[m] = True
-            stapel.append((a, m))
-            stapel.append((m, b))
+    von = np.array([0])
+    bis = np.array([n - 1])
+    while len(von):
+        laengen = bis - von - 1  # innere Punkte je Stück
+        offen = laengen > 0
+        von, bis, laengen = von[offen], bis[offen], laengen[offen]
+        if not len(von):
+            break
+        stueck = np.repeat(np.arange(len(von)), laengen)
+        lauf = np.arange(int(laengen.sum())) - np.repeat(np.cumsum(laengen) - laengen, laengen)
+        innen = lauf + np.repeat(von + 1, laengen)
+        p = punkte[von]
+        d = punkte[bis] - p
+        laenge = np.linalg.norm(d, axis=1)
+        q = punkte[innen] - p[stueck]
+        kurz = laenge < GLEICH
+        abstand = np.where(
+            kurz[stueck],
+            np.linalg.norm(q, axis=1),
+            np.linalg.norm(np.cross(q, d[stueck]), axis=1) / np.where(kurz, 1.0, laenge)[stueck],
+        )
+        groesste = np.full(len(von), -np.inf)
+        np.maximum.at(groesste, stueck, abstand)
+        # Je Stück der erste fernste Punkt (wie np.argmax Stück für Stück).
+        erster = np.full(len(von), n, dtype=np.int64)
+        np.minimum.at(erster, stueck, np.where(abstand == groesste[stueck], innen, n))
+        teilen = groesste > TOLERANZ_GERADE
+        mitte = erster[teilen]
+        behalten[mitte] = True
+        von = np.concatenate([von[teilen], mitte])
+        bis = np.concatenate([mitte, bis[teilen]])
     return list(np.flatnonzero(behalten))
 
 
