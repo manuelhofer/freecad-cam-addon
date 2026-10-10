@@ -1771,8 +1771,25 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
     phi = np.radians(np.asarray(winkel, dtype=float))
     teile_a, teile_x, teile_q, teile_psi, teile_neu, fest = [], [], [], [], [], []
     anzahl = 0
-    for k in range(len(psi)):
-        if k > 0:
+    # Nur an den Sprüngen ist etwas zu tun; dazwischen gehen die Punkte am Stück durch (bis
+    # P-2026-10-11-09 Punkt für Punkt: 0,7 s an der Schlichtbahn des 4-Achs-Testteils).
+    if len(psi) > 1:
+        spruenge = (
+            np.flatnonzero(np.ceil(np.abs(np.diff(psi)) / schritt_phi - 1e-9) > QUER_SPRUNG) + 1
+        )
+    else:
+        spruenge = np.zeros(0, dtype=np.int64)
+    vorher = 0
+    for k in [*spruenge.tolist(), len(psi)]:
+        if k > vorher:
+            teile_a.append(a[vorher:k])
+            teile_x.append(x[vorher:k])
+            teile_q.append(q[vorher:k])
+            teile_psi.append(psi[vorher:k])
+            teile_neu.append(np.zeros(k - vorher, dtype=bool))
+            anzahl += k - vorher
+            vorher = k
+        if k < len(psi):
             sprung = psi[k] - psi[k - 1]
             schritte = int(math.ceil(abs(sprung) / schritt_phi - 1e-9))
             if schritte > QUER_SPRUNG:
@@ -1799,12 +1816,6 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
                 teile_psi.append(zwischen)
                 fest.extend(range(anzahl - 1, anzahl + schritte))
                 anzahl += schritte - 1
-        teile_a.append(a[k : k + 1])
-        teile_x.append(x[k : k + 1])
-        teile_q.append(q[k : k + 1])
-        teile_psi.append(psi[k : k + 1])
-        teile_neu.append(np.zeros(1, dtype=bool))
-        anzahl += 1
     a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt = _uebergaenge(
         np.concatenate(teile_a),
         np.concatenate(teile_x),
@@ -1944,17 +1955,20 @@ def _quer_ausgeben(
         if innen > QUER_INNEN
         else np.zeros(len(bleibt))
     )
-    for n, (i, h) in enumerate(zip(bleibt, hebung, strict=True)):
-        punkte.append(
-            Punkt(
-                False,
-                float(a[i]),
-                float(x[i]) + float(h),
-                float(psi[i] + versatz),
-                q=float(q[i]),
-                frei=bool(frei[i]) if frei is not None and n > 0 else False,
-            )
-        )
+    # Am Stück umgerechnet, dann je Punkt nur noch angelegt – dieselben Zahlen wie float() je
+    # Punkt (P-2026-10-11-09: an der Schlichtbahn des 4-Achs-Testteils 0,4 s für 70 000 Punkte).
+    i = np.asarray(bleibt, dtype=np.int64)
+    a_b = np.asarray(a, dtype=float)[i].tolist()
+    x_b = (np.asarray(x, dtype=float)[i] + np.asarray(hebung, dtype=float)).tolist()
+    psi_b = (np.asarray(psi, dtype=float)[i] + versatz).tolist()
+    q_b = np.asarray(q, dtype=float)[i].tolist()
+    frei_b = frei[i].tolist() if frei is not None else [False] * len(i)
+    if frei_b:
+        frei_b[0] = False
+    punkte.extend(
+        Punkt(False, a_, x_, psi_, q=q_, frei=f_)
+        for a_, x_, psi_, q_, f_ in zip(a_b, x_b, psi_b, q_b, frei_b, strict=True)
+    )
     letzter = len(a) - 1
     punkte.append(
         Punkt(True, float(a[letzter]), sicher, float(psi[letzter] + versatz), q=float(q[letzter]))
@@ -2040,8 +2054,8 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0
 
 # Nebenrechner (P-2026-10-10-57): ab so vielen Punkten rechnen sie _zusammen_quer in Stücken – am
 # 4-Achs-Testteil 4 s in 390 000 kleinen Prüfungen nacheinander.
-QUER_PARALLEL_AB = 20000
-QUER_STUECK_MINDESTENS = 5000  # Punkte je Stück
+QUER_PARALLEL_AB = 10000
+QUER_STUECK_MINDESTENS = 2500  # Punkte je Stück
 QUER_STUECKE_JE_ARBEITER = 2
 
 
@@ -2053,6 +2067,8 @@ def zusammen_quer_kette(
     hinter `start`). Ab einem Punkt, der bleibt, ist die Kette dieselbe, woher man auch kam: Darum
     lassen sich Stücke getrennt rechnen und zusammensetzen."""
     seitlich_hoechstens = QUER_SEITLICH if radius > 0 else QUER_SEITLICH_SPITZE
+    if isinstance(grenzen, np.ndarray):  # so kommen sie zum Nebenrechner
+        grenzen = grenzen.tolist()
     abstand = _QuerAbstand(x, q, psi, radius, neigung)
 
     def passt(i, j):
@@ -2140,11 +2156,10 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
         bis = min(n, stopp + int(hoechstens) + 2)
         # Die Grenzen relativ zum Stück: eine am Anfang, alle dahinter bis eine hinter dem Ende.
         relativ = [0]
-        for g in grenzen:
-            if g > von:
-                relativ.append(g - von)
-                if g >= bis:
-                    break
+        for g in grenzen[bisect.bisect_right(grenzen, von) :]:
+            relativ.append(g - von)
+            if g >= bis:
+                break
         auftraege.append(
             pool.auftrag(
                 "vierachs_bahn",
@@ -2155,7 +2170,9 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
                 radius,
                 toleranz,
                 hoechstens,
-                relativ,
+                np.asarray(
+                    relativ, dtype=np.int64
+                ),  # eine Liste durchsuchte der Pool Zahl für Zahl
                 neigung,
                 innen,
                 0,
@@ -2176,9 +2193,9 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
         von = anfaenge[k]
         kette = [von + i for i in ketten[k]]
         stelle = {wert: m for m, wert in enumerate(kette)}
-        treffer = next(
-            (p for p, wert in enumerate(ergebnis) if wert >= von and wert in stelle), None
-        )
+        # Die Kette steigt: ab dem ersten Punkt nicht vor `von` suchen.
+        ab = bisect.bisect_left(ergebnis, von)
+        treffer = next((p for p in range(ab, len(ergebnis)) if ergebnis[p] in stelle), None)
         if treffer is not None:
             ergebnis = ergebnis[:treffer] + kette[stelle[ergebnis[treffer]] :]
             k += 1

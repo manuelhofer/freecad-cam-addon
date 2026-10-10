@@ -605,6 +605,7 @@ class Nebenrechner:
                 return
             for arbeiter in self._arbeiter:
                 if arbeiter.nummer == nummer and arbeiter.verbindung is None:
+                    puffer_vergroessern(verbindung)
                     arbeiter.verbindung = verbindung
                     self._je_gemeldet = True
                     break
@@ -1167,6 +1168,30 @@ class Unterpool:
         elif not self._verarbeiten(nachricht):
             raise EOFError("der Pool hat den Arbeiter beendet")
         return art
+
+
+PUFFER = 4 * 1024 * 1024  # Byte: so viel darf eine Verbindung aufnehmen, ohne dass Senden wartet
+
+
+def puffer_vergroessern(verbindung):
+    """Gibt der Verbindung (ein Unix-Socket) einen Sendepuffer von PUFFER Byte, soweit das System
+    ihn erlaubt (net.core.wmem_max). Mit den üblichen 208 KiB wartete der Prozess der Oberfläche
+    bei jedem Auftrag über 208 KiB, bis der Arbeiter las – und der kam, wenn alle Kerne rechnen,
+    erst spät dran: An der Hüllfläche je Stellung des 4-Achs-Testteils (96 Stücke à 240 KiB) stand
+    er so 0,34 von 1,1 s (P-2026-10-11-09). Unter Windows (Pipes) nichts."""
+    import socket
+
+    try:
+        dup = socket.fromfd(verbindung.fileno(), socket.AF_UNIX, socket.SOCK_STREAM)
+    except (AttributeError, OSError, ValueError):
+        return
+    try:
+        dup.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, PUFFER)
+        dup.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, PUFFER)
+    except OSError:
+        pass
+    finally:
+        dup.close()
 
 
 # Was ein Arbeiter über seinen Unterpool meldet (P-2026-10-11-07).

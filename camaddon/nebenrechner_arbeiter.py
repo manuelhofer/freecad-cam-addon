@@ -159,6 +159,7 @@ def hauptschleife():
         FreeCAD.ParamGet(PARAMETER_PFAD).Import(start["einstellungen"])
     sprache.setze_sprache(start["sprache"])
     _verbindung = _verbinden(start)
+    nr.puffer_vergroessern(_verbindung)
     _verbindung.send((nr.HALLO, start["nummer"], os.getpid()))
     _dokumente = _Dokumente()
     if start.get("unter"):

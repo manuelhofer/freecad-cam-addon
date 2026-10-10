@@ -365,53 +365,133 @@ def rest_nach(schruppen, radius, a_von, a_bis):
     r = np.full((len(a), n_phi), float(radius))
     for bahn, fraeser, _aufmass in schruppen:
         form = fraeser if isinstance(fraeser, ff.Form) else ff.scheibe(float(fraeser))
-        pa, pr, pphi, pq = _im_vorschub(bahn, schritt_a, radius * schritt_phi)
-        if not len(pa):
+        punkte = _im_vorschub(bahn, schritt_a, radius * schritt_phi)
+        if not len(punkte[0]):
             continue
-        stirn = form.radius
-        zeile0 = np.rint((pa - a_von) / schritt_a).astype(np.int64)
-        spalte0 = np.rint(pphi / schritt_phi).astype(np.int64)
-        # So weit reicht die Stirn seitlich, als Winkel von der Achse aus – nur zur eigenen
-        # Seite (δ unter 90°): Was eine Stirn jenseits der Achse wegnimmt, ist auf den Strahlen
-        # dort ein Kern an der Achse, und den kennt ein Außenradius je Strahl nicht. Mit der
-        # Querachse (Versatz q, V5e) liegt die Stirn von q − R bis q + R quer.
-        hoehe0 = np.maximum(pr, 1e-9)
-        unten = np.where(pr > 0, np.arctan2(pq - stirn, hoehe0), -math.pi / 2)
-        oben = np.where(pr > 0, np.arctan2(pq + stirn, hoehe0), math.pi / 2)
-        reichweite = int(math.ceil(stirn / schritt_a))
-        j_von = max(-(n_phi // 4), int(math.floor(float(np.min(unten)) / schritt_phi)))
-        j_bis = min(n_phi // 4, int(math.ceil(float(np.max(oben)) / schritt_phi)))
-        for j in range(j_von, j_bis + 1):
-            delta = j * schritt_phi
-            cos_d, tan_d = math.cos(delta), math.tan(delta)
-            if cos_d < 1e-6:
-                continue
-            drin = (delta >= unten - 1e-9) & (delta <= oben + 1e-9)
-            if not drin.any():
-                continue
-            r0, z0, s0, q0 = pr[drin], zeile0[drin], spalte0[drin], pq[drin]
-            spalten = (s0 + j) % n_phi
-            for i in range(-reichweite, reichweite + 1):
-                zeilen = z0 + i
-                im_raster = (zeilen >= 0) & (zeilen < len(a))
-                if not im_raster.any():
-                    continue
-                da = i * schritt_a
-                # Die Höhe der Stirn dort, wo sie den Strahl trifft – mit der Höhe steigt der
-                # Versatz quer, deshalb zweimal; die höhere zählt (der Fräser bleibt höher).
-                dt = np.maximum(r0, 0.0) * tan_d - q0
-                h = form.hoehe(np.hypot(da, dt))
-                dt = np.maximum(r0 + np.where(np.isfinite(h), h, 0.0), 0.0) * tan_d - q0
-                h2 = form.hoehe(np.hypot(da, dt))
-                h = np.maximum(h, h2)
-                steht = np.isfinite(h) & im_raster
-                # Steht die Spitze über der Achse (r + h ≤ 0), nimmt die Stirn auf diesem Strahl
-                # alles bis zur Achse – es bleibt nichts (negativ, wie die Spitze selbst).
-                hoch = r0 + h
-                wert = np.where(hoch > 0, hoch / cos_d, hoch)
-                if steht.any():
-                    np.minimum.at(r, (zeilen[steht], spalten[steht]), wert[steht])
+        teile = _rest_stirn_verteilt(r.shape, float(radius), a_von, punkte, form)
+        if teile is None:
+            _rest_stirn(r, a_von, punkte, form, _rest_winkel(punkte, form, n_phi))
+        else:
+            for teil in teile:
+                np.minimum(r, teil, out=r)
     return a, phi, r
+
+
+def _rest_winkel(punkte, form, n_phi):
+    """Die Spalten j (Winkel δ = j · Rasterschritt neben der Spitze), die die Stirn erreicht –
+    nur zur eigenen Seite (δ unter 90°): Was eine Stirn jenseits der Achse wegnimmt, ist auf den
+    Strahlen dort ein Kern an der Achse, und den kennt ein Außenradius je Strahl nicht. Mit der
+    Querachse (Versatz q, V5e) liegt die Stirn von q − R bis q + R quer."""
+    _pa, pr, _pphi, pq = punkte
+    schritt_phi = math.radians(rm.SCHRITT_PHI)
+    stirn = form.radius
+    hoehe0 = np.maximum(pr, 1e-9)
+    unten = np.where(pr > 0, np.arctan2(pq - stirn, hoehe0), -math.pi / 2)
+    oben = np.where(pr > 0, np.arctan2(pq + stirn, hoehe0), math.pi / 2)
+    j_von = max(-(n_phi // 4), int(math.floor(float(np.min(unten)) / schritt_phi)))
+    j_bis = min(n_phi // 4, int(math.ceil(float(np.max(oben)) / schritt_phi)))
+    return list(range(j_von, j_bis + 1))
+
+
+def _rest_stirn(r, a_von, punkte, form, spalten_j):
+    """Trägt in `r` (Raster ab `a_von`) ein, bis wohin die Stirn kam – für die Winkel
+    `spalten_j` (_rest_winkel): je Winkel und Stelle längs der kleinste Radius (rest_nach)."""
+    pa, pr, pphi, pq = punkte
+    schritt_a, schritt_phi = rm.SCHRITT_A, math.radians(rm.SCHRITT_PHI)
+    n_a, n_phi = r.shape
+    stirn = form.radius
+    zeile0 = np.rint((pa - a_von) / schritt_a).astype(np.int64)
+    spalte0 = np.rint(pphi / schritt_phi).astype(np.int64)
+    hoehe0 = np.maximum(pr, 1e-9)
+    unten = np.where(pr > 0, np.arctan2(pq - stirn, hoehe0), -math.pi / 2)
+    oben = np.where(pr > 0, np.arctan2(pq + stirn, hoehe0), math.pi / 2)
+    reichweite = int(math.ceil(stirn / schritt_a))
+    for j in spalten_j:
+        delta = j * schritt_phi
+        cos_d, tan_d = math.cos(delta), math.tan(delta)
+        if cos_d < 1e-6:
+            continue
+        drin = (delta >= unten - 1e-9) & (delta <= oben + 1e-9)
+        if not drin.any():
+            continue
+        r0, z0, s0, q0 = pr[drin], zeile0[drin], spalte0[drin], pq[drin]
+        spalten = (s0 + j) % n_phi
+        for i in range(-reichweite, reichweite + 1):
+            zeilen = z0 + i
+            im_raster = (zeilen >= 0) & (zeilen < n_a)
+            if not im_raster.any():
+                continue
+            da = i * schritt_a
+            # Die Höhe der Stirn dort, wo sie den Strahl trifft – mit der Höhe steigt der
+            # Versatz quer, deshalb zweimal; die höhere zählt (der Fräser bleibt höher).
+            dt = np.maximum(r0, 0.0) * tan_d - q0
+            h = form.hoehe(np.hypot(da, dt))
+            dt = np.maximum(r0 + np.where(np.isfinite(h), h, 0.0), 0.0) * tan_d - q0
+            h2 = form.hoehe(np.hypot(da, dt))
+            h = np.maximum(h, h2)
+            steht = np.isfinite(h) & im_raster
+            # Steht die Spitze über der Achse (r + h ≤ 0), nimmt die Stirn auf diesem Strahl
+            # alles bis zur Achse – es bleibt nichts (negativ, wie die Spitze selbst).
+            hoch = r0 + h
+            wert = np.where(hoch > 0, hoch / cos_d, hoch)
+            if steht.any():
+                np.minimum.at(r, (zeilen[steht], spalten[steht]), wert[steht])
+
+
+# Nebenrechner (P-2026-10-11-09): ab so viel Arbeit (Punkte × Winkel × Stellen längs) rechnen sie
+# den Rest nach dem Schruppen, je Stück einige Winkel – am 4-Achs-Testteil 0,9 s auf einem Kern.
+REST_PARALLEL_AB = 5_000_000
+
+
+def _rest_stirn_verteilt(form_r, radius, a_von, punkte, form):
+    """_rest_stirn auf den Nebenrechnern: die Winkel reihum in Stücken (die mittleren treffen
+    mehr Punkte), je Stück ein eigenes Raster; das kleinste je Stelle zählt – dasselbe wie hier
+    gerechnet. None ohne Nebenrechner oder bei wenig Arbeit (dann rechnet der Aufrufer selbst)."""
+    import hashlib
+
+    from . import nebenrechner as nr
+
+    spalten_j = _rest_winkel(punkte, form, form_r[1])
+    reichweite = int(math.ceil(form.radius / rm.SCHRITT_A))
+    if len(punkte[0]) * len(spalten_j) * (2 * reichweite + 1) < REST_PARALLEL_AB:
+        return None
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2 or len(spalten_j) < 4:
+        return None
+    stuecke = min(pool.anzahl, len(spalten_j) // 2)
+    pruef = hashlib.blake2b(digest_size=16)
+    for feld in punkte:
+        pruef.update(np.ascontiguousarray(feld).tobytes())
+    gemeinsam = pool.gemeinsam("rest-punkte-" + pruef.hexdigest(), tuple(punkte))
+    auftraege = [
+        pool.auftrag(
+            "vierachs_schlichten",
+            "rest_stirn_stueck",
+            tuple(form_r),
+            radius,
+            a_von,
+            gemeinsam,
+            form,
+            spalten_j[k::stuecke],
+        )
+        for k in range(stuecke)
+    ]
+    try:
+        return pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Rest nach dem Schruppen auf den Nebenrechnern gescheitert, rechne hier: "
+            f"{fehler}\n"
+        )
+        return None
+
+
+def rest_stirn_stueck(form_r, radius, a_von, punkte, form, spalten_j):
+    """Im Nebenrechner: ein eigenes Raster mit dem Stangenradius, darin _rest_stirn für die
+    Winkel `spalten_j`."""
+    r = np.full(form_r, float(radius))
+    _rest_stirn(r, a_von, punkte, form, spalten_j)
+    return r
 
 
 def _im_vorschub(bahn, schritt_a, schritt_bogen):

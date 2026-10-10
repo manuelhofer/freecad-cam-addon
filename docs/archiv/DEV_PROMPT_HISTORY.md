@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-09 vierachs-bahnen-weniger-auf-einem-kern
+
+### EINGELESEN
+- Weiter mit „die sachen schneller berechnet werden“: Profil der Neuberechnung am Nasen-Testteil
+  mit dem Pool – Schlichten 5,6 s, davon auf einem Kern: `rest_nach` 0,9 s, `_quer_plan` 0,7 s
+  (Punkt für Punkt in Python), Punkte anlegen in `_quer_ausgeben` 0,4 s, die Hüllfläche je Winkel
+  (`je_winkel`) 0,3–0,9 s, `_zusammen_quer` unter 20 000 Punkten (die drei Lagen beim
+  Schruppen) 0,4 s.
+- Der Prozess der Oberfläche wartete beim Verteilen auf den Arbeiter: Aufträge über 208 KiB
+  (Sendepuffer des Sockets) blockierten, bis der Arbeiter las – an der Hüllfläche je Stellung
+  0,34 von 1,1 s.
+
+### DATEIEN
+- `camaddon/vierachs_schlichten.py`: `rest_nach` geteilt in `_rest_winkel`/`_rest_stirn`; ab
+  `REST_PARALLEL_AB` rechnen die Nebenrechner je Stück einige Winkel (reihum verteilt) in ein
+  eigenes Raster, das kleinste je Stelle zählt (`rest_stirn_stueck`).
+- `camaddon/vierachs_huelle.py`: `je_winkel` ab 64 Winkeln und 200 000 Winkel × Dreiecke in
+  Stücken auf den Nebenrechnern (`je_winkel_stueck`).
+- `camaddon/vierachs_bahn.py`: `_quer_plan` geht nur die Sprünge einzeln durch; `_quer_ausgeben`
+  rechnet die Zahlen am Stück um; `QUER_PARALLEL_AB` 20 000 → 10 000; Zusammensetzen der Ketten
+  sucht ab der Stelle (bisect), die Grenzen gehen als Feld zum Nebenrechner.
+- `camaddon/nebenrechner.py`, `camaddon/nebenrechner_arbeiter.py`: `puffer_vergroessern` – 4 MiB
+  Sende-/Empfangspuffer je Verbindung (so weit das System erlaubt).
+- `package.xml` (0.213.22), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Neuberechnung „Rundum schlichten“ am Testteil mit dem Pool 5,5 → 3,7 s; Vorschau im Prozess
+  mit dem Pool Schruppen 3,1 → 1,1 s, Schlichten 3,2 → 0,6 s. Bahnen und Vorschauen Bit für Bit
+  wie vor dem Patch (Kopie von HEAD daneben gerechnet), auf einem Kern wie mit dem Pool.
+- Grün: `test_goldene_bahnen`, `test_vierachs_frei`, `test_vierachs_plan`,
+  `test_vierachs_schlichten`, `test_vierachs_huelle`, `test_vierachs_entgraten`.
+
 ## P-2026-10-11-08 vorschau-kopie-wiederverwenden
 
 ### EINGELESEN

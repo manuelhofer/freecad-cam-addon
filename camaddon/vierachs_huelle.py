@@ -184,7 +184,71 @@ def je_winkel(netz, laengs, radial, form, a0, schritt, anzahl, phi_werte):
     """Die Hüllfläche eines Fräsers mit der Form `form` für jeden Winkel phi_werte[j] (rad) an
     den Stellen a0[j] + k · schritt, k = 0 … anzahl − 1: r[k, j] (mm); KEIN_TREFFER, wo er das
     Teil nicht trifft. Jeder Winkel hat sein eigenes Raster längs – so rechnet das Schlichten
-    genau an den Stellen, an denen seine Spirale vorbeikommt."""
+    genau an den Stellen, an denen seine Spirale vorbeikommt. Viele Winkel an einem großen Netz
+    gehen in Stücken an die Nebenrechner (_je_winkel_verteilt)."""
+    phi_werte = np.asarray(phi_werte, dtype=float)
+    if (
+        len(phi_werte) >= PARALLEL_AB_WINKEL
+        and len(phi_werte) * len(netz.dreiecke) >= PARALLEL_AB_WINKEL_ARBEIT
+    ):
+        ergebnis = _je_winkel_verteilt(netz, laengs, radial, form, a0, schritt, anzahl, phi_werte)
+        if ergebnis is not None:
+            return ergebnis
+    return je_winkel_stueck(netz, laengs, radial, form, a0, schritt, anzahl, phi_werte)
+
+
+# Nebenrechner (P-2026-10-11-09): ab so vielen Winkeln, und wenn Winkel mal Dreiecke so viel Arbeit
+# ergeben – am 4-Achs-Testteil 0,34 s je Schruppbahn, 0,9 s je Schlichtbahn auf einem Kern.
+PARALLEL_AB_WINKEL = 64
+PARALLEL_AB_WINKEL_ARBEIT = 200_000
+WINKEL_JE_STUECK = 16  # mindestens
+
+
+def _je_winkel_verteilt(netz, laengs, radial, form, a0, schritt, anzahl, phi_werte):
+    """je_winkel() auf den Nebenrechnern: die Winkel der Reihe nach in Stücken, je Winkel
+    dieselbe Rechnung. None ohne Nebenrechner (dann rechnet der Aufrufer selbst)."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    a0 = np.broadcast_to(np.asarray(a0, dtype=float), phi_werte.shape)
+    bereiche = nr.stuecke(len(phi_werte), pool.anzahl, je_arbeiter=2, mindestens=WINKEL_JE_STUECK)
+    if len(bereiche) < 2:
+        return None
+    netz_gemeinsam = pool.gemeinsam("vh-netz-" + kennung(netz).hex(), netz)
+    laengs = tuple(float(x) for x in laengs)
+    radial = tuple(float(x) for x in radial)
+    auftraege = [
+        pool.auftrag(
+            "vierachs_huelle",
+            "je_winkel_stueck",
+            netz_gemeinsam,
+            laengs,
+            radial,
+            form,
+            np.array(a0[von:bis]),
+            schritt,
+            anzahl,
+            phi_werte[von:bis],
+        )
+        for von, bis in bereiche
+    ]
+    try:
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Hüllfläche je Winkel auf den Nebenrechnern gescheitert, rechne hier: "
+            f"{fehler}\n"
+        )
+        return None
+    return np.concatenate(teile, axis=1)
+
+
+def je_winkel_stueck(netz, laengs, radial, form, a0, schritt, anzahl, phi_werte):
+    """je_winkel() hier, Winkel für Winkel – auch im Nebenrechner für ein Stück davon."""
     l_, u_, v_ = rahmen(laengs, radial)
     punkte = netz.punkte
     a = punkte @ l_
