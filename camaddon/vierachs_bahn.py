@@ -569,6 +569,20 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     return Bahn(punkte, lagen, r_min, hinten_frei)
 
 
+def _quer_schrupp_frei(a, x, q, psi, radius, stange_radius):
+    """Je Stellung des Schruppfräsers mit der Querachse: Ist das Stück dorthin frei (_frei)? Frei,
+    wo er die Stange gar nicht erreicht – wie ohne Querachse, wo die Hüllfläche nicht unter der
+    Stange liegt: Die Stirn reicht quer von q − R bis q + R, ihr nächster Punkt zur Achse liegt
+    bei (x, max(0, |q| − R)); über der Stirn ist er weiter weg, hinter der Achse (x < 0) zählt
+    der Schaft auf ihrer Höhe. Manuels CLX mit Y schruppt mit der Querachse – „im Freien
+    schnell“ (P-2026-10-05) galt dort nicht (P-2026-10-11-04)."""
+    x, q = np.asarray(x, dtype=float), np.asarray(q, dtype=float)
+    quer = np.maximum(np.abs(q) - radius, 0.0)
+    abstand = np.where(x >= 0.0, np.hypot(np.maximum(x, 0.0), quer), quer)
+    leer = abstand >= stange_radius - LEER
+    return _frei(a, x, psi, leer)
+
+
 def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, schritt_phi):
     """Die Lagen von „Rundum schruppen“ mit der Querachse (P-2026-10-03-23): je Lage der Plan
     einer Kugel mit dem Radius des Fräsers (_quer_plan auf ihrer Hüllfläche mit Aufmaß), die
@@ -628,6 +642,7 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
             radius if kugelform else 0.0,
             toleranz=max(BAHN_TOLERANZ, spiel),
             innen=max(QUER_INNEN, spiel),
+            frei=_quer_schrupp_frei(a_p, x, q_p, psi_p, radius, w.stange_radius),
         )
         punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
         versatz += int(k[-1])

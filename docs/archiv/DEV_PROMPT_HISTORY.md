@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-04 schruppen-mit-querachse-im-freien-schnell
+
+### EINGELESEN
+- „Im Freien schnell“ (P-2026-10-05, Manuels Scheibe Ø 40 in der Stange Ø 40: „er bearbeitet
+  beim Schruppen auch die Ø 40“) galt nur für die Spirale ohne Querachse. Manuels CLX mit Y
+  schruppt mit der Querachse (`Querachse` an seinen Operationen) – dort fuhr das Schruppen durch
+  die Luft weiter im Schnittvorschub.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`_quer_schrupp_frei`: frei, wo die Stirn des Fräsers mit dem
+  Versatz quer die Stange nicht erreicht – wie ohne Querachse „die Hüllfläche liegt nicht unter
+  der Stange“; `_schruppen_quer` gibt es an `_quer_ausgeben`), `tests/test_vierachs_frei.py`
+  (Schruppen mit der Querachse: kein freier Lauf nimmt etwas weg; Ø 40 mehr als 30 % frei),
+  `package.xml` (0.213.18), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Kein freier Lauf des Schruppens mit Querachse nimmt Material weg; an der Scheibe Ø 40 ist gut die
+Hälfte des Wegs frei.
+
+### TEST
+- KI: Scheibe Ø 40: 6018 von 11 077 mm frei, Ø 45: 0 mm; kein freier Lauf nimmt etwas weg.
+  `test_vierachs_frei`, `test_vierachs_bahn`, `test_vierachs_operation`,
+  `test_vierachs_schlichten`, `test_goldene_bahnen` grün in 1.1.4.
+
+### DONE
+- Für Manuel: an der CLX mit Y fährt „Rundum schruppen“ dort, wo nichts mehr steht, mit dem
+  Freivorschub der Maschine.
+
 ## P-2026-10-11-03 warten-in-der-neuberechnung-ohne-klicks
 
 ### EINGELESEN
