@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-14 frage-rest-vor-dem-schlichten
+
+### EINGELESEN
+- Die Neuberechnung des 4-Achs-Testteils in der Oberfläche gemessen (9,5 → 6,2 s seit gestern
+  Abend) – dabei meldet „Rundum schlichten T2“ 25 mm Rest über der Bahn. Nachgemessen, wo: auf
+  dem Schaft das Aufmaß, an den Rändern der Mulden 2–4 mm (die Stufen der Schruppspirale mit
+  5,4 mm Steigung), vorne an der Nase 6–25 mm (teils eine Schwäche des Restmodells an der Achse).
+- Geprüft und kein Fehler: Die freien Läufe des Schlichtens nehmen im Modell der Stange bis
+  10 mm weg – vorne, wo die Kugel über die Achse fährt; das Modell (ein Radius je Strahl) hält dort
+  die Mitte für voll, die das Schruppen von der Gegenseite schon leer gefahren hat (Rest auf
+  Strahl 0° bis −10,4 mm).
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Frage 8, mit Bild), `docs/bilder/vorschlaege/
+  testteil_4achs_rest_vor_dem_schlichten.png`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Manuel sieht im Bild, wo vor dem Schlichten wie viel steht, und entscheidet über einen
+Zwischenschritt. Nur Doku – kein Testlauf.
+
 ## P-2026-10-11-13 nebenrechner-vorwaermen
 
 ### EINGELESEN

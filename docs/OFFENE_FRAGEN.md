@@ -11,7 +11,7 @@ Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* –
 (Die Fragen 1–3 hat Manuel in P-2026-10-10-08 beantwortet, Frage 4 in P-2026-10-10-36 – siehe
 Verlauf.)
 
-Alle drei folgenden Fragen kommen von Manuels zweitem 4-Achs-Testteil
+Alle folgenden Fragen kommen von Manuels zweitem 4-Achs-Testteil
 (`beispiele/testteil_4achs_nase.FCStd`, CLX550, Nacht vom 10. auf den 11.10.2026). Was in der
 Nacht ohne ihn ging, ist gebaut (P-2026-10-10-56 bis -60: Luft im Freivorschub, alles schneller,
 richtige Rest-Meldung); das hier ändert, *wie* geschnitten wird – das entscheidet er.
@@ -71,3 +71,24 @@ den Rest stehen lassen (mit Meldung)? Oder reicht die Meldung im Prüffenster?
 anderer Halter oder ein anderer Platz die bessere Lösung ist, weiß nur er.
 *Was die Antwort ändert:* ein neuer Schritt in der Bahn (Halter gegen Teil) – oder nichts.
 Seit 2026-10-10.
+
+### 8. Vor dem Schlichten stehen an Kanten bis 5 mm – Zwischenschritt oder kleinere Steigung?
+
+![Rest vor dem Schlichten](bilder/vorschlaege/testteil_4achs_rest_vor_dem_schlichten.png)
+
+Nachts gemessen (11.10.), wie viel nach „Rundum schruppen T1“ (Ø 12, Steigung 5,4 mm, mit
+Querachse) über der Kugel von „Rundum schlichten T2“ (Ø 8, 0,4 mm) steht: auf dem Schaft meist
+das Aufmaß (0,3–0,6 mm), aber rund um die Mulden 2–4 mm (die Stufen der Spirale mit 5,4 mm
+Steigung an schrägen Wänden) und vorne an der Nase 6 bis 25 mm. 62 000 der 223 000 Punkte
+schneiden mehr als 1 mm. Vorne ist ein Teil davon eine Schwäche des Restmodells (ein Radius je
+Strahl; was das Schruppen von der Gegenseite an der Achse wegnahm, kennt es nicht) – sicher ist
+es dort nicht nachzuweisen. Die Operation meldet es heute nur im Report-Fenster („vb.rest_viel“).
+**Die Frage:** Soll bei viel Rest ein Zwischenschritt kommen (die Kugel erst mit größerer
+Schrittweite vorschlichten, oder nur dort, wo mehr als z. B. 1 mm steht), oder soll das Schruppen
+an schrägen Wänden enger steigen? Oder reicht dir die Kugel so (Ø 8, bis 5 mm tief an Kanten)?
+*Warum nur Manuel:* Ein neuer Schritt oder andere Schruppwerte ändern, wie geschnitten wird
+(Strategiewahl); ob die Kugel das aushält, weiß er von seiner Maschine.
+*Was die Antwort ändert:* ein Schritt „Vorschlichten“ im 4-Achs-Assistenten (angehakt, wenn mehr
+als … steht) – oder eine Meldung im Assistenten statt nur im Report-Fenster – oder nichts.
+Seit 2026-10-11.
+
