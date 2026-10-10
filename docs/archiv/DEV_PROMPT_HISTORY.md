@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-06 snapshot-nacht-10-auf-11
+
+### EINGELESEN
+- Die Nacht vom 10. auf den 11.10.: was gebaut ist, was offen bleibt, wo die Fragen stehen.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Nächster Schritt: die Nacht; T-006: was dazukam),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Manuel liest im Snapshot, was in der Nacht passiert ist und was er entscheiden soll.
+
 ## P-2026-10-11-05 bahn-am-werkstueck-auf-allen-kernen
 
 ### EINGELESEN
