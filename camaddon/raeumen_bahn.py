@@ -2313,6 +2313,34 @@ def _dicht(ecken, schritt):
     return np.concatenate([ecken[:1, 0], x]), np.concatenate([ecken[:1, 1], y])
 
 
+def _helix_setzen(kern, durchmesser):
+    """Der Durchmesser der Helix ins Volle am Adaptiv-Kern. FreeCAD 1.1 kennt einen festen
+    (`helixRampDiameter`); der Wochen-Build und 26.3 ein Ziel und ein Minimum, zwischen denen er
+    selbst wählt (`helixRampTargetDiameter`, `helixRampMinDiameter`) – das alte Attribut gibt es
+    dort nicht mehr (Manuel, 2026-10-10: AttributeError in FreeCAD 26.3.0RC1). Beide gleich
+    gesetzt, rechnet er wie bisher mit genau diesem Durchmesser."""
+    if hasattr(kern, "helixRampDiameter"):
+        kern.helixRampDiameter = durchmesser
+    else:
+        kern.helixRampTargetDiameter = durchmesser
+        kern.helixRampMinDiameter = durchmesser
+
+
+def _adaptiv_rechnen(kern, material, grenzen):
+    """`Execute` des Adaptiv-Kerns. Im Wochen-Build und in 26.3 will er zwischen Gebiet und
+    Rückmeldung eine dritte Liste – was schon geräumt ist (`clearedPaths`, für das Restmaterial
+    der CAM-Operation) –, hier leer; FreeCAD 1.1 kennt sie nicht. Mit der falschen Zahl wirft
+    pybind11 TypeError, bevor er rechnet – dann die andere."""
+
+    def weiter(_wege):
+        return False  # nie abbrechen
+
+    try:
+        return kern.Execute(material, grenzen, [], weiter)
+    except TypeError:
+        return kern.Execute(material, grenzen, weiter)
+
+
 def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     """Die Variante „adaptiv“ auf einer Lage: FreeCADs Adaptiv-Kern (area.Adaptive2d, der Kern
     der CAM-Operation „Adaptive“) räumt, was der Fräser auf der Lage erreicht – in Bahnen, die
@@ -2379,14 +2407,14 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
         kern.finishingProfile = True
         kern.opType = innen
         kern.stepOverFactor = ADAPTIV_SCHRITT * enger * ae / (2.0 * r)
-        kern.helixRampDiameter = 2.0 * helix * r
+        _helix_setzen(kern, 2.0 * helix * r)
         eingabe = repr(
             (
                 material,
                 grenzen,
                 kern.stepOverFactor,
                 2.0 * r,
-                kern.helixRampDiameter,
+                2.0 * helix * r,
                 kern.tolerance,
             )
         )
@@ -2396,7 +2424,7 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
             _ADAPTIV.move_to_end(schluessel)
             return gebiete
         try:
-            ergebnisse = kern.Execute(material, grenzen, lambda _wege: False)
+            ergebnisse = _adaptiv_rechnen(kern, material, grenzen)
         except Exception as fehler:
             raise _KeinAdaptiv() from fehler
         vorzeichen = -1.0 if spiegeln else 1.0

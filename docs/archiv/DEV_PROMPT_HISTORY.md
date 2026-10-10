@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-39 adaptiv-kern-in-26-3
+
+### EINGELESEN
+- Manuel, 2026-10-10, Fotos aus FreeCAD 26.3.0RC1 unter Windows (Addon installiert unter
+  `…\AppData\Roaming\FreeCAD\v26-3\Mod\freecad-cam-addon` – B-017 damit erledigt): „Bearbeitung“
+  an einem Quader, gewählt der Boden einer Bohrung in einer 41° schrägen Fläche (Maschine
+  Spinner1520), die Vorschau bricht ab – **B-018**: `AttributeError: 'area.Adaptive2d' object has
+  no attribute 'helixRampDiameter' … Did you mean: 'helixRampMinDiameter'?` in
+  `raeumen_bahn.gebiete_fuer`. Dazu: „Ich will nur dass Loch da fräsen“.
+- FreeCAD-Quelltext (main): `pyarea.cpp` bindet statt `helixRampDiameter` nun
+  `helixRampTargetDiameter` und `helixRampMinDiameter`; `Adaptive2d::Execute(stockPaths, paths,
+  clearedPaths, progressCallbackFn)` – eine dritte Liste, in `Path/Op/Adaptive.py` das schon
+  Geräumte für Restmaterial, sonst leer. `Adaptive.cpp` (1.1): fester Durchmesser, geklemmt auf
+  D/8 … D; (main): Ziel zwischen Minimum und D, Minimum ≥ D/8.
+- Testumgebung: Wochen-Build 26.3.0 (2026-09-16) hat beide Änderungen, 1.1.3 keine.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`_helix_setzen`: altes Attribut, wenn es das gibt, sonst Ziel und
+  Minimum gleich – derselbe feste Durchmesser; `_adaptiv_rechnen`: `Execute` mit leerer dritter
+  Liste, bei TypeError ohne; Schlüssel des Merkers ohne `kern.helixRampDiameter`),
+  `package.xml` (0.212.2), `docs/STATUS_SNAPSHOT.md` (B-017 und B-018 erledigt),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+In FreeCAD 26.3.0RC1 „Bearbeitung“ an Manuels Quader öffnen und eine Fläche wählen → die Vorschau
+rechnet (Räumen mit seiner Zeit), kein AttributeError im Bericht.
+
+### DONE
+- Nur die Helix umzustellen reichte nicht: Dann scheiterte `Execute` mit TypeError (falsche
+  Zahl der Argumente), das Addon nahm das als „kein Adaptiv“ – die Variante fiel still weg,
+  `test_raeumen` im Wochen-Build schlug mit „Zapfen, ohne Vorgabe: morph …“ fehl. Gefunden mit
+  einem Lauf, der die Ursache von `_KeinAdaptiv` druckt.
+- Bewusst nicht: die Helix zwischen Minimum und Ziel wählen lassen – gleich gesetzt rechnet 26.3
+  wie 1.1, die Bahnen bleiben vergleichbar.
+
+### TEST
+- KI, FreeCADCmd: `test_raeumen` OK in 1.1.3 (95 s) und im Wochen-Build 26.3.0 (101 s; vorher
+  dort Fehler, s. o.). `black`, `ruff` ohne Befund.
+- In 26.3.0RC1 unter Windows: nur Manuel.
+
+### NEXT
+- Manuels Loch in der schrägen Fläche: „Ebene schwenken“ geht heute erst nach „Anlegen“ mit
+  einer Operation – P-2026-10-10-40.
+- Voller Lauf im Wochen-Build 26.3 (Manuel arbeitet jetzt damit), was er findet, sofort beheben.
+
 ## P-2026-10-10-38 installieren-mit-curl
 
 ### EINGELESEN
