@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-37 regel-curl-als-dritte-ausnahme
+
+### EINGELESEN
+- Manuel, 2026-10-10, auf die Auswahl A/B/C zu B-017 (A: Rückfall auf curl, braucht eine dritte
+  Ausnahme von „keine Shell-Aufrufe“): „Extra für Windows eine Zeile einfügen so dass es auf
+  jeden Fall funktioniert für alle... Einfach drei verschiedene Zeilen die für verschiedene
+  Sachen sind auf der ersten Seite vi. Github“ – also A.
+- `docs/arbeitsregeln.md`, Abschnitt 7 (Plattformneutral).
+
+### DATEIEN
+- `docs/arbeitsregeln.md` (Abschnitt 7: drei Ausnahmen, die dritte curl in `installieren.py`
+  und in der dritten README-Zeile – nur, wenn urllib und Qt beide nicht laden, ohne Fenster, mit
+  Zeitlimit), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Wer die Arbeitsregeln liest, findet curl als dritte Ausnahme mit Grund und Grenzen.
+
+### DONE
+- Regel geändert als eigener Patch (Abschnitt 0); gebaut wird in P-2026-10-10-38.
+
+### TEST
+- Reine Doku, kein Testlauf.
+
 ## P-2026-10-10-36 installieren-von-hand
 
 ### EINGELESEN

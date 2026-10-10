@@ -268,7 +268,7 @@ müsste.
 
 - Pfade über `os.path` / `pathlib` und die FreeCAD-Funktionen
   (`FreeCAD.getUserAppDataDir()` u. ä.), nie fest verdrahtet.
-- Keine Shell-Aufrufe, keine systemabhängigen Bibliotheken. **Zwei
+- Keine Shell-Aufrufe, keine systemabhängigen Bibliotheken. **Drei
   Ausnahmen:** Git für die Update-Suche in `camaddon/aktualisierung.py`
   (Manuels Entscheidung, P-2026-09-25-24) – nie mit Rückfrage, immer mit
   Zeitlimit, Ausgabe als UTF-8 – und FreeCADCmd als Nebenrechner
@@ -276,7 +276,15 @@ müsste.
   einzige Weg, alle Kerne zu nutzen und das Fenster beim Rechnen bedienbar
   zu halten (Manuel, 2026-10-09). FreeCADCmd liegt auf jedem System neben
   FreeCAD (`FreeCAD.ConfigGet("BinPath")`); fehlt es, rechnet das Addon wie
-  bisher im eigenen Prozess – ohne Fehler, nur langsamer.
+  bisher im eigenen Prozess – ohne Fehler, nur langsamer. Und curl als
+  letzter Weg zum Download in `installieren.py` (`hole()`) und in der
+  dritten Installationszeile im README (Manuel, 2026-10-10: „Extra für
+  Windows eine Zeile einfügen so dass es auf jeden Fall funktioniert für
+  alle“): Manchem FreeCAD fehlen Pythons ssl und Qts Download zugleich
+  (B-017, FreeCAD 26.3.0RC1 unter Windows); curl bringen Windows 10/11,
+  macOS und die meisten Linux mit. Nur, wenn urllib und Qt beide nicht
+  laden, ohne Fenster und mit Zeitlimit; fehlt curl, bleibt der Fehler wie
+  bisher.
 - Qt-Import über `from PySide import QtCore, QtGui` – den Shim, den FreeCAD
   selbst mitbringt –, nicht direkt PySide2/PySide6.
 
