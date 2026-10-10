@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-01 vergleichsdialog-ein-dezimalzeichen
+
+### EINGELESEN
+- Manuel, 2026-10-10: „Die Punkt-Komma-Frage im Vergleichsdialog … was meinst du“. Gemeint war: Im
+  5-Achs-Vergleich (`gui_simultan_planung.py`) zeigten Restgrenze, Zwischenlage und die Statuszeile
+  ihr Dezimalzeichen als „gewählt, sonst Punkt“ (`einheiten.gewaehltes_dezimalzeichen() or "."`),
+  das Feld „Bahn gerechnet für“ und die Spalte „Bahn (… mm)“ aber über das Zahlenformat der
+  Oberfläche (`gui_zahlen.zahlenformat`: gewählt, sonst FreeCADs Zahlenformat). Ohne ausdrückliche
+  Wahl konnten so „0,1875 mm“ und „0.026“ nebeneinander stehen. Die Szenarien zeigen überall Punkte
+  (das Testprofil folgt nicht der System-Locale) – darum war es im Screenshot nicht zu sehen.
+
+### DATEIEN
+- `camaddon/gui_simultan_planung.py` (Restgrenze, Zwischenlage in Tabelle und Statuszeile über
+  `gui_zahlen.dezimalzeichen()`), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.207.1).
+
+### AKZEPTANZKRITERIUM
+„5-Achs-Schlichten vergleichen …“: Feld „Bahn gerechnet für“, Spalten „Bahn“, „Zwischenlage“,
+„Restgrenze“ und die Statuszeile zeigen dasselbe Dezimalzeichen – das gewählte, sonst das von
+FreeCAD.
+
+### DONE
+- Eine Quelle für das Dezimalzeichen im Dialog. Lesen war schon richtig: `zahl_aus_text` nimmt
+  Punkt und Komma. Damit braucht die Frage Manuel nicht mehr: Zeigt sein FreeCAD den Punkt, wählt
+  er in den Addon-Einstellungen das Komma, und der ganze Dialog folgt.
+- `szenario_simultan_planung` grün (6:23 min). Der Lauf war überflüssig: Es war eine Frage an Manuel,
+  und die gehört in eine Datei, nicht in einen Prüflauf (Manuel, 2026-10-10) – siehe P-2026-10-10-02.
+
 ## P-2026-10-09-18 aufloesung-im-vierachs-assistenten
 
 ### EINGELESEN

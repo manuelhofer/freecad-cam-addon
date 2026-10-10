@@ -16,7 +16,7 @@ from . import simultan_planung as sp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, mit_einheit
-from .gui_zahlen import groesse_fest, groesse_lesen, groesse_zeigen
+from .gui_zahlen import dezimalzeichen, groesse_fest, groesse_lesen, groesse_zeigen
 from .sprache import tr
 
 
@@ -303,9 +303,7 @@ class SimultanPanel:
                     "bahn": richtung_text(beste.richtung),
                     "anstellung": anstellung_text(beste.anstellung),
                     "zeit": ab.dauer_text(beste.sekunden),
-                    "lage": f"{beste.zwischenlagen:g}".replace(
-                        ".", einheiten.gewaehltes_dezimalzeichen() or "."
-                    ),
+                    "lage": f"{beste.zwischenlagen:g}".replace(".", dezimalzeichen()),
                 }
                 self.status.setText(
                     tr("s5f.beste", **werte)
@@ -338,15 +336,17 @@ class SimultanPanel:
             self._zeilen[key] = QtGui.QTreeWidgetItem(self.tabelle)
         zeile = self._zeilen[key]
         rest = (
-            f"{max(0, variante.rest):.3f}".replace(
-                ".", einheiten.gewaehltes_dezimalzeichen() or "."
-            )
+            f"{max(0, variante.rest):.3f}".replace(".", dezimalzeichen())
             if math.isfinite(variante.rest)
             else "–"
         )
         geprueft = tr("s5p.geprueft") if variante.kollision_geprueft else tr("s5p.kollision_offen")
         werte = [
-            f"{variante.zwischenlagen:g}" if variante.zwischenlagen else "–",
+            (
+                f"{variante.zwischenlagen:g}".replace(".", dezimalzeichen())
+                if variante.zwischenlagen
+                else "–"
+            ),
             variante.werkzeug.Label,
             (
                 richtung_text(variante.richtung)

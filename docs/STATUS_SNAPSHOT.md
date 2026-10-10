@@ -624,7 +624,9 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   Freiform bei 25 %). Gebaut (P-2026-10-09-17): Feld „Auflösung“ je
   Strategie-Block in „Bearbeitung“ (Planfräsen, Räumen, Kontur, Entgraten, Bleistift, 3D-Schruppen,
   3D-Schlichten), Eigenschaft `Raster` an der Operation. Gebaut (P-2026-10-09-18): im 4-Achs-Assistenten „Auflösung längs“ (mm)
-  und „Auflösung rundum“ (°) beim Schruppen, „Auflösung rundum“ beim Schlichten. Offen: Plan
+  und „Auflösung rundum“ (°) beim Schruppen, „Auflösung rundum“ beim Schlichten. Nachgezogen (P-2026-10-10-01): der
+  Vergleichsdialog zeigt überall dasselbe Dezimalzeichen (Restgrenze, Zwischenlage und Statuszeile
+  folgten „gewählt, sonst Punkt“, das Feld „Bahn gerechnet für“ dem Zahlenformat der Oberfläche). Offen: Plan
   indexiert, Rundum entgraten, Entgraten 3D und Flanke (ihr Schritt sitzt ohne Parameter in der
   Bahn) – nur, wenn Manuel es dort braucht.
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
