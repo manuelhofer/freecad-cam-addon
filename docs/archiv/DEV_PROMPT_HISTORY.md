@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-38 installieren-mit-curl
+
+### EINGELESEN
+- Manuel, 2026-10-10: „Extra für Windows eine Zeile einfügen so dass es auf jeden Fall
+  funktioniert für alle... Einfach drei verschiedene Zeilen die für verschiedene Sachen sind auf
+  der ersten Seite vi. Github“ (Auswahl A aus B-017, Regel in P-2026-10-10-37).
+- `installieren.py` (`hole`, `_hole_mit_qt`), `camaddon/aktualisierung.py` (Suche ohne Git lädt
+  mit `hole()`, `OHNE_FENSTER` für Git), `tests/test_installieren.py`, `README.md`.
+
+### DATEIEN
+- `installieren.py` (Kopf: drei Zeilen; `hole()`: kann urllib nicht, erst Qt, dann curl –
+  `_hole_ohne_python`, `_hole_mit_curl` mit `--fail --location`, Zeitlimit, ohne Fenster),
+  `README.md` (Windows-Zeile mit curl zuerst, dann Linux/macOS mit Qt, dann Python zum
+  Ausweichen; „Geht keine der drei Zeilen“: von Hand), `camaddon/aktualisierung.py` (Docstring:
+  curl über `hole()`), `tests/test_installieren.py` (drei Zeilen in README und Kopf; Zertifikat →
+  Qt → curl; ohne ssl und Qt → curl, Fehler mit beiden Gründen; echtes curl am Test-Server mit
+  Umleitung und 404; ohne curl; Installation ohne ssl und Qt; Such-Thread ohne Netzzugang lädt
+  mit curl), `package.xml` (0.212.1), `docs/STATUS_SNAPSHOT.md` (B-017),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+In FreeCAD 26.3.0RC1 unter Windows die Windows-Zeile aus dem README in die Python-Konsole → Fenster
+„CAM-Addon 0.212.1 ist installiert“, nach dem Neustart das Menü „CAM-Addon“ in Assembly und CAM.
+
+### DONE
+- Die Bootstrap-Zeile ruft `curl -sSfL` per `subprocess` (Windows 10/11 bringt curl mit) und
+  führt `installieren.py` aus; das ZIP lädt dann `hole()` – urllib scheitert ohne ssl, Qt ebenso,
+  also curl. Dieselbe Kette gilt für „Nach Updates suchen“ ohne Git.
+- Die Zeile selbst zeigt unter Windows kurz ein Konsolenfenster (curl ohne `CREATE_NO_WINDOW`) –
+  bewusst, damit sie kurz bleibt; `hole()` startet curl ohne Fenster.
+- Weiter offen (eigener Patch): `fehlertext()` verweist auf GitHub Desktop im README.
+
+### TEST
+- KI, FreeCAD 1.1.3 (FreeCADCmd): `test_installieren` OK. Gegenprobe: mit dem alten
+  `installieren.py` scheitert sie (`_hole_mit_curl` fehlt).
+- KI ohne FreeCAD, wie in Manuels FreeCAD (Python 3.13 mit gesperrtem `ssl`, kein Addon-Manager):
+  urllib meldet „unknown url type: https“; die Windows-Zeile aus dem README (vor dem Push mit
+  `installieren.py` aus der Arbeitskopie) installiert das Addon von GitHub per curl.
+- `black --check`, `ruff check` für die geänderten Python-Dateien ohne Befund.
+- In FreeCAD 26.3.0RC1 unter Windows: nur Manuel.
+
+### NEXT
+- Manuel: die Windows-Zeile in FreeCAD 26.3.0RC1; dann B-017 schließen.
+
 ## P-2026-10-10-37 regel-curl-als-dritte-ausnahme
 
 ### EINGELESEN

@@ -577,10 +577,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-- **B-017** FreeCAD 26.3.0RC1 unter Windows kommt gar nicht an GitHub: Die Qt-Zeile endet mit
-  „'NoneType' object has no attribute 'data'“, die Python-Zeile mit „unknown url type: https“ –
-  Python ohne SSL (Manuel, 2026-10-10); seit P-2026-10-10-36 steht im README der Weg von Hand
-  (ZIP nach `Mod/freecad-cam-addon`), behoben ist es erst mit einem FreeCAD, das HTTPS kann.
+- **B-017** FreeCAD 26.3.0RC1 unter Windows kommt selbst nicht an GitHub (Qt gibt `None`, Python
+  ohne SSL: „unknown url type: https“; Manuel, 2026-10-10) – seit P-2026-10-10-38 lädt dort die
+  Windows-Zeile im README mit curl, und `installieren.hole()` nimmt curl als letzten Weg (auch
+  für „Nach Updates suchen“); erledigt, sobald Manuel die Zeile in diesem FreeCAD geprüft hat.
 
 B-001 bis B-016 sind behoben (Belege im Verlauf; B-015 und B-016 in P-2026-10-10-19 bis -22);
 nächste freie Nummer B-018.

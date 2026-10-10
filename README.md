@@ -30,23 +30,31 @@ Schritten. Jedes Fenster hat ein **?** mit Hilfe. Ein Beispielteil liegt in
 ## Installieren
 
 1. In FreeCAD **Ansicht → Fenster → Python-Konsole** öffnen.
-2. Eine der beiden Zeilen hineinkopieren und Enter drücken.
+2. Die Zeile für dein System hineinkopieren und Enter drücken. Alle drei tun dasselbe, nur der
+   Weg zu GitHub ist ein anderer.
 
-   Über den Netzzugang des Addon-Managers (Qt):
+   **Windows** – lädt mit dem curl, das Windows 10/11 mitbringt. Geht auch, wenn FreeCAD selbst
+   nicht ins Netz kommt (etwa FreeCAD 26.3.0RC1):
+
+   ```
+   import subprocess as s; exec(s.run(["curl", "-sSfL", "https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py"], capture_output=True, check=True).stdout)
+   ```
+
+   **Linux und macOS** – über den Netzzugang des Addon-Managers (Qt):
 
    ```
    import NetworkManager as n; n.InitializeNetworkManager(); exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())
    ```
 
-   Über Python (urllib):
+   **Ausweichen über Python (urllib)** – wenn die Zeile oben `'NoneType' object has no attribute
+   'data'` meldet:
 
    ```
    import urllib.request as u; exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())
    ```
 
-   Beide tun dasselbe, nur der Weg zu GitHub ist ein anderer – welcher geht, hängt vom FreeCAD
-   ab. Meldet die erste `'NoneType' object has no attribute 'data'`, kommt Qt nicht durch: dann
-   die zweite. Meldet die zweite `unknown url type: https`, fehlt Pythons SSL: dann die erste.
+   Meldet diese `unknown url type: https`, fehlt Pythons SSL – dann die curl-Zeile von oben; die
+   geht auch unter Linux und macOS, wo curl installiert ist.
 
 3. FreeCAD neu starten. Beim ersten Start fragt das Addon nach der Sprache. Das Menü
    **CAM-Addon** und seine Werkzeugleiste erscheinen in den Arbeitsbereichen **Assembly** und
@@ -55,8 +63,8 @@ Schritten. Jedes Fenster hat ein **?** mit Hilfe. Ein Beispielteil liegt in
 Was die Zeilen tun, steht oben in [installieren.py](installieren.py). Sie brauchen weder Git
 noch GitHub Desktop.
 
-**Geht keine der beiden Zeilen**, kommt dieses FreeCAD gar nicht an GitHub – so FreeCAD 26.3.0RC1
-unter Windows: Python ohne SSL, und auch Qt lädt nichts. Dann von Hand:
+**Geht keine der drei Zeilen** – etwa ohne curl in einem FreeCAD, das selbst nicht ins Netz
+kommt –, dann von Hand:
 
 1. Auf dieser Seite **Code → Download ZIP**.
 2. In FreeCADs Python-Konsole `FreeCAD.getUserAppDataDir()` eingeben. Im angezeigten Ordner liegt

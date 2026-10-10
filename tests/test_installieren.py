@@ -4,6 +4,7 @@
 import importlib.util
 import io
 import os
+import shutil
 import sys
 import tempfile
 import zipfile
@@ -116,13 +117,17 @@ pruefe(
     f"andere Repositories: {repositories()!r}",
 )
 
-# Die Zeile aus dem README lädt genau diese Datei.
+# Die drei Zeilen aus dem README – curl, Qt, urllib – laden genau diese Datei, und der Kopf von
+# installieren.py nennt dieselben (P-2026-10-10-38).
 readme = Path(ADDON, "README.md").read_text("utf-8")
-zeile = 'exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())'
-pruefe(zeile in readme, "README: Installationszeile fehlt oder weicht ab")
-pruefe(
-    zeile in Path(ADDON, "installieren.py").read_text("utf-8"), "installieren.py: Zeile weicht ab"
-)
+kopf = Path(ADDON, "installieren.py").read_text("utf-8")
+for zeile in (
+    'exec(s.run(["curl", "-sSfL", "https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py"], capture_output=True, check=True).stdout)',
+    'exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())',
+    'exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())',
+):
+    pruefe(zeile in readme, f"README: Installationszeile fehlt oder weicht ab: {zeile[:40]}")
+    pruefe(zeile in kopf, f"installieren.py: Zeile weicht ab: {zeile[:40]}")
 
 
 # --- Ohne https in Python: über Qt (P-2026-09-30-33) -----------------------------------------
@@ -146,9 +151,13 @@ try:
 finally:
     http.client.HTTPSConnection = mit_ssl
 
-# Kennt urllib das Zertifikat nicht, springt Qt ein; kann Qt es auch nicht, bleibt der Fehler
-# von urllib. Andere Fehler (kein Netz) gehen nicht an Qt.
-urlopen, hole_mit_qt = inst.urllib.request.urlopen, inst._hole_mit_qt
+# Kennt urllib das Zertifikat nicht, springt Qt ein, kann Qt es auch nicht, curl; können beide
+# nicht, bleibt der Fehler von urllib. Andere Fehler (kein Netz) gehen nicht an Qt.
+urlopen, hole_mit_qt, hole_mit_curl = (
+    inst.urllib.request.urlopen,
+    inst._hole_mit_qt,
+    inst._hole_mit_curl,
+)
 geholt = []
 
 
@@ -169,16 +178,41 @@ def ohne_netz(adresse, timeout):
     raise urllib.error.URLError("timed out")
 
 
+def curl_laedt(adresse, zeitlimit_s):
+    return b"curl"
+
+
+def curl_scheitert(adresse, zeitlimit_s):
+    raise OSError("curl auch nicht")
+
+
 try:
     inst.urllib.request.urlopen = ohne_zertifikat
     inst._hole_mit_qt = qt_laedt
+    inst._hole_mit_curl = curl_scheitert
     pruefe(inst.hole("https://github.com/x") == b"qt", "Zertifikat: Qt springt nicht ein")
     inst._hole_mit_qt = qt_scheitert
     try:
         inst.hole("https://github.com/x")
-        fehler.append("Zertifikat, Qt scheitert: kein Fehler")
+        fehler.append("Zertifikat, Qt und curl scheitern: kein Fehler")
     except urllib.error.URLError as f:
-        pruefe("certificate" in str(f), f"Zertifikat, Qt scheitert: {f}")
+        pruefe("certificate" in str(f), f"Zertifikat, Qt und curl scheitern: {f}")
+    inst._hole_mit_curl = curl_laedt
+    pruefe(inst.hole("https://github.com/x") == b"curl", "Zertifikat, Qt scheitert: kein curl")
+    # Ohne Pythons ssl und ohne Qt – FreeCAD 26.3.0RC1 unter Windows (B-017): curl.
+    nur_ueber_qt = inst._nur_ueber_qt
+    inst._nur_ueber_qt = lambda adresse: True
+    try:
+        pruefe(inst.hole("https://github.com/x") == b"curl", "ohne ssl und Qt: kein curl")
+        inst._hole_mit_curl = curl_scheitert
+        try:
+            inst.hole("https://github.com/x")
+            fehler.append("ohne ssl, Qt und curl: kein Fehler")
+        except OSError as f:
+            pruefe("Qt" in str(f) and "curl" in str(f), f"ohne ssl, Qt und curl: {f}")
+    finally:
+        inst._nur_ueber_qt = nur_ueber_qt
+    inst._hole_mit_curl = curl_scheitert
     inst.urllib.request.urlopen = ohne_netz
     inst._hole_mit_qt = qt_laedt
     geholt.clear()
@@ -189,6 +223,7 @@ try:
         pruefe(not geholt, "kein Netz: an Qt gegeben")
 finally:
     inst.urllib.request.urlopen, inst._hole_mit_qt = urlopen, hole_mit_qt
+    inst._hole_mit_curl = hole_mit_curl
 
 # Über Qt wirklich laden – den Netzzugang des Addon-Managers gibt es nur mit einer
 # Qt-Anwendung; FreeCADCmd hat keine, also legt die Prüfung eine an.
@@ -219,6 +254,33 @@ class Github(http.server.BaseHTTPRequestHandler):
 server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Github)
 threading.Thread(target=server.serve_forever, daemon=True).start()
 github = f"http://127.0.0.1:{server.server_address[1]}"
+# curl nähme sonst einen Proxy aus der Umgebung – auch für 127.0.0.1.
+for name in ("no_proxy", "NO_PROXY"):
+    os.environ[name] = ",".join(filter(None, [os.environ.get(name, ""), "127.0.0.1"]))
+
+# --- curl, der letzte Weg (P-2026-10-10-38) --------------------------------------------------
+# Mit dem echten curl vom selben „GitHub“: Umleitung wie bei GitHub, 404; und ohne curl.
+if shutil.which("curl"):
+    pruefe(
+        inst._hole_mit_curl(f"{github}/umleitung", 10) == dateien["/stand.zip"],
+        "curl: Umleitung nicht gefolgt",
+    )
+    try:
+        inst._hole_mit_curl(f"{github}/fehlt.zip", 10)
+        fehler.append("curl, 404: kein Fehler")
+    except OSError as f:
+        pruefe("curl" in str(f), f"curl, 404: {f}")
+else:
+    print("Hinweis: kein curl auf diesem Rechner – der echte Aufruf ist nicht geprüft")
+which = shutil.which
+shutil.which = lambda name: None
+try:
+    inst._hole_mit_curl(f"{github}/stand.zip", 10)
+    fehler.append("ohne curl: kein Fehler")
+except OSError as f:
+    pruefe("curl fehlt" in str(f), f"ohne curl: {f}")
+finally:
+    shutil.which = which
 
 from PySide import QtCore  # noqa: E402
 
@@ -245,6 +307,14 @@ try:
         fehler.append("über Qt, 404: kein Fehler")
     except OSError as f:
         pruefe("Qt" in str(f), f"über Qt, 404: {f}")
+    # B-017 (FreeCAD 26.3.0RC1 unter Windows): weder Pythons ssl noch Qt – curl installiert.
+    if shutil.which("curl"):
+        inst._hole_mit_qt = qt_scheitert
+        try:
+            e = inst.installiere(f"{github}/umleitung", os.path.join(basis, "ModCurl"), PARAMETER)
+            pruefe(e.status == inst.NEU and e.version == "4.0.0", f"ohne ssl und Qt: {e}")
+        finally:
+            inst._hole_mit_qt = hole_mit_qt
 
     # Im Such-Thread (gui_aktualisierung): Der Netzzugang entstand im Hauptthread, und der
     # arbeitet derweil Ereignisse ab – wie FreeCADs Oberfläche.
@@ -266,16 +336,29 @@ try:
     ergebnis = []
     pruefe(warte(ergebnis), "im Such-Thread: hängt")
     pruefe(ergebnis == [dateien["/stand.zip"]], f"im Such-Thread: {ergebnis[:1]!r:.80}")
-    # Ohne Netzzugang aus dem Hauptthread hinge der Such-Thread: Er meldet einen Fehler.
+    # Ohne Netzzugang aus dem Hauptthread hinge der Such-Thread über Qt: Er meldet einen Fehler
+    # – ohne curl – oder lädt mit curl (so sucht das Addon in B-017 nach Updates).
     angelegt = NetworkManager.AM_NETWORK_MANAGER
     NetworkManager.AM_NETWORK_MANAGER = None
-    ergebnis = []
-    pruefe(warte(ergebnis), "ohne Netzzugang: hängt")
-    NetworkManager.AM_NETWORK_MANAGER = angelegt
-    pruefe(
-        len(ergebnis) == 1 and isinstance(ergebnis[0], OSError),
-        f"ohne Netzzugang: {ergebnis[:1]!r:.80}",
-    )
+    try:
+        inst._hole_mit_curl = curl_scheitert
+        ergebnis = []
+        pruefe(warte(ergebnis), "ohne Netzzugang: hängt")
+        pruefe(
+            len(ergebnis) == 1 and isinstance(ergebnis[0], OSError),
+            f"ohne Netzzugang: {ergebnis[:1]!r:.80}",
+        )
+        inst._hole_mit_curl = hole_mit_curl
+        if shutil.which("curl"):
+            ergebnis = []
+            pruefe(warte(ergebnis), "ohne Netzzugang, mit curl: hängt")
+            pruefe(
+                ergebnis == [dateien["/stand.zip"]],
+                f"ohne Netzzugang, mit curl: {ergebnis[:1]!r:.80}",
+            )
+    finally:
+        NetworkManager.AM_NETWORK_MANAGER = angelegt
+        inst._hole_mit_curl = hole_mit_curl
     inst.netz_vorbereiten()  # ohne Oberfläche: nichts
 finally:
     inst._nur_ueber_qt = nur_ueber_qt

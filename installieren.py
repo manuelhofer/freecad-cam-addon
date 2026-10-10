@@ -1,20 +1,22 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Installiert oder aktualisiert das CAM-Addon mit einer Zeile (P-2026-09-25-43).
 
-In FreeCAD **Ansicht → Fenster → Python-Konsole** öffnen, eine der beiden
+In FreeCAD **Ansicht → Fenster → Python-Konsole** öffnen, eine der drei
 Zeilen hineinkopieren, Enter, danach FreeCAD neu starten. Die erste lädt diese
-Datei über den Netzzugang des Addon-Managers (Qt), die zweite über Pythons urllib:
+Datei mit dem curl des Systems (Windows), die zweite über den Netzzugang des
+Addon-Managers (Qt), die dritte über Pythons urllib:
 
+    import subprocess as s; exec(s.run(["curl", "-sSfL", "https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py"], capture_output=True, check=True).stdout)
     import NetworkManager as n; n.InitializeNetworkManager(); exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())
     import urllib.request as u; exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())
 
-Es braucht beide (P-2026-10-10-35): Manchem FreeCAD fehlt Pythons ssl, dann
-meldet urllib „unknown url type: https“ (Manuel, 2026-09-30) – dafür kam die
-erste Zeile (P-2026-09-30-33). In einem anderen kommt Qt nicht durch:
-`blocking_get` gibt None, und die erste Zeile meldet „'NoneType' object has no
-attribute 'data'“ (Manuel, 2026-10-10, FreeCAD 26.3.0RC1 unter Windows) – dort
-hilft die zweite. Das ZIP lädt danach in beiden Fällen hole(): mit urllib, ohne
-ssl oder bei einem Zertifikatsfehler über Qt.
+Es braucht alle drei: Manchem FreeCAD fehlt Pythons ssl, dann meldet urllib
+„unknown url type: https“ (Manuel, 2026-09-30) – dafür kam die Qt-Zeile
+(P-2026-09-30-33). In FreeCAD 26.3.0RC1 unter Windows kommen beide nicht durch:
+Qt gibt None („'NoneType' object has no attribute 'data'“), urllib hat kein
+https (Manuel, 2026-10-10, B-017) – dort hilft nur curl, das Windows 10/11
+mitbringt (P-2026-10-10-38). Das ZIP lädt danach hole() auf demselben Weg:
+urllib, wenn es kann, sonst Qt, sonst curl.
 
 Was dabei passiert:
 
@@ -38,6 +40,7 @@ die Sprachwahl des Addons gibt es zu diesem Zeitpunkt noch nicht.
 import io
 import os
 import shutil
+import subprocess
 import tempfile
 import threading
 import urllib.error
@@ -127,10 +130,11 @@ def hole(adresse, zeitlimit_s=ZEITLIMIT_S):
     Zuerst mit Pythons urllib. Manchem FreeCAD fehlt aber Pythons ssl – dann
     kann urllib kein https („unknown url type: https“) –, oder es kennt die
     Zertifikate nicht. Dann lädt Qt, über den Netzzugang des Addon-Managers
-    von FreeCAD (mit dessen Proxy-Einstellungen).
+    von FreeCAD (mit dessen Proxy-Einstellungen), und lädt auch Qt nicht, das
+    curl des Systems (B-017, P-2026-10-10-38).
     """
     if _nur_ueber_qt(adresse):
-        return _hole_mit_qt(adresse, zeitlimit_s)
+        return _hole_ohne_python(adresse, zeitlimit_s)
     try:
         with urllib.request.urlopen(adresse, timeout=zeitlimit_s) as antwort:
             return antwort.read()
@@ -138,9 +142,47 @@ def hole(adresse, zeitlimit_s=ZEITLIMIT_S):
         if not (adresse.lower().startswith("https:") and _ist_ssl_fehler(fehler.reason)):
             raise
         try:
-            return _hole_mit_qt(adresse, zeitlimit_s)
+            return _hole_ohne_python(adresse, zeitlimit_s)
         except OSError:
             raise fehler from None  # die eigentliche Ursache: das Zertifikat
+
+
+def _hole_ohne_python(adresse, zeitlimit_s):
+    """Lädt, wenn urllib es nicht kann: erst über Qt, dann mit curl; wirft OSError mit beiden
+    Gründen. In FreeCAD 26.3.0RC1 unter Windows fehlen Pythons ssl und Qts Download zugleich
+    (Manuel, 2026-10-10) – curl bringt Windows 10/11 mit."""
+    try:
+        return _hole_mit_qt(adresse, zeitlimit_s)
+    except OSError as qt_grund:
+        try:
+            return _hole_mit_curl(adresse, zeitlimit_s)
+        except OSError as curl_grund:
+            raise OSError(f"{qt_grund}; {curl_grund}") from None
+
+
+def _hole_mit_curl(adresse, zeitlimit_s):
+    """Lädt mit dem curl des Systems – Windows 10/11, macOS und die meisten Linux haben es; es
+    prüft die Zertifikate selbst, unter Windows mit denen des Systems. Ausnahme von „keine
+    Shell-Aufrufe“: nur hier, nur als letzter Weg (Arbeitsregeln, Abschnitt 7)."""
+    curl = shutil.which("curl")
+    if curl is None:
+        raise OSError("curl fehlt / curl is missing")
+    try:
+        lauf = subprocess.run(
+            [curl, "--silent", "--show-error", "--fail", "--location"]
+            + ["--max-time", str(int(zeitlimit_s)), adresse],
+            capture_output=True,
+            timeout=zeitlimit_s + 10,
+            stdin=subprocess.DEVNULL,
+            # Unter Windows sonst bei jedem Aufruf kurz ein schwarzes Konsolenfenster.
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+    except subprocess.TimeoutExpired:
+        raise OSError(f"{adresse}: curl – Zeitlimit / timed out") from None
+    if lauf.returncode != 0:
+        grund = lauf.stderr.decode("utf-8", "replace").strip()
+        raise OSError(f"{adresse}: curl {lauf.returncode} ({grund})")
+    return lauf.stdout
 
 
 def netz_vorbereiten():

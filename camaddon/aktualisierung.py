@@ -11,7 +11,9 @@ Kam das Addon ohne Git (Zeile aus dem README, installieren.py), liest es die
 Version direkt aus der package.xml bei GitHub (HTTPS) und aktualisiert mit
 installieren.py – dafür muss das Repository öffentlich sein.
 
-Ausnahme von der Regel „keine Aufrufe externer Programme“: nur Git, nur hier.
+Ausnahme von der Regel „keine Aufrufe externer Programme“: Git, nur hier. Ohne
+Git lädt installieren.hole(); kann es weder mit Pythons ssl noch über Qt, nimmt
+es curl (Arbeitsregeln, Abschnitt 7; P-2026-10-10-38).
 
 Läuft ohne Oberfläche; die Oberfläche steht in gui_aktualisierung.py.
 """
