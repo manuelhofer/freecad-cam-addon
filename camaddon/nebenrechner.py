@@ -161,6 +161,11 @@ class Auftrag:
         self.bei_fertig = None
         self.bei_fortschritt = None
         self.arbeiter = None  # solange er läuft
+        # Unteraufträge (P-2026-10-11-07): Hat ein Arbeiter den Auftrag bestellt, ist `eltern` der
+        # Auftrag, an dem er dabei rechnete, und `fuer` (Arbeiter, seine Nummer dafür) – dorthin
+        # geht das Ergebnis. Im Hauptprozess bestellt: beide None.
+        self.eltern = None
+        self.fuer = None
 
     @property
     def erledigt(self):
@@ -192,10 +197,21 @@ class _Arbeiter:
         self.ordner = ordner
         self.protokoll = protokoll  # die offene Datei mit seiner Ausgabe
         self.verbindung = None  # bis er sich gemeldet hat
-        self.auftrag = None  # woran er gerade rechnet
+        # Woran er rechnet: außen zuerst, darüber, was er beim Warten auf seine Unteraufträge
+        # selbst nimmt (P-2026-10-11-07).
+        self.stapel = []
+        self.wartet = False  # wartet auf Unteraufträge – liest und nimmt dabei eigene
+        self.post = (
+            []
+        )  # Meldungen an ihn, bis er wieder liest (die Ergebnisse seiner Unteraufträge)
         self.gemeinsam = OrderedDict()  # Schlüssel der gemeinsamen Daten, die er hat, nach Alter
         self.gestartet = time.monotonic()
         self.zuletzt = self.gestartet  # wann er zuletzt einen Auftrag bekam oder abgab
+
+    @property
+    def auftrag(self):
+        """Der äußere Auftrag, an dem er rechnet, oder None."""
+        return self.stapel[0] if self.stapel else None
 
     def lebt(self):
         return self.prozess.poll() is None
@@ -301,6 +317,7 @@ class Nebenrechner:
         self._kopien = {}  # Dokumentname -> [Pfade der Kopien]
         self._uhr = None
         self._aufraeumuhr = None
+        self._melder = {}  # Arbeiter -> QSocketNotifier (_melder_abgleichen)
         self.in_arbeit = 0  # so viele Aufträge liefen bisher in Arbeitern (für Prüfungen)
 
     # --- Nach außen ------------------------------------------------------------------
@@ -382,13 +399,19 @@ class Nebenrechner:
         if self._in_abfrage:
             return
         self._in_abfrage = True
+        for melder in self._melder.values():
+            melder.setEnabled(False)  # sonst weckte er, solange er Ungelesenes hat, immer wieder
         try:
             self._verbindungen_annehmen()
             for arbeiter in list(self._arbeiter):
                 self._lesen(arbeiter)
             self._verteilen()
+            for arbeiter in list(self._arbeiter):
+                self._post_senden(arbeiter)
         finally:
             self._in_abfrage = False
+            for melder in self._melder.values():
+                melder.setEnabled(True)
         self._uhren()
 
     def warten(self, auftraege, zwischendurch=None):
@@ -415,8 +438,12 @@ class Nebenrechner:
 
     def abbrechen(self, auftrag):
         """Nimmt den Auftrag zurück; läuft er, endet sein Arbeiter (ein neuer kommt beim
-        nächsten Auftrag)."""
+        nächsten Auftrag). Seine Unteraufträge fallen mit (_weich_abbrechen)."""
         if auftrag.erledigt:
+            return
+        if auftrag.fuer is not None:
+            self._weich_abbrechen(auftrag)
+            self._uhren()
             return
         auftrag.abgebrochen = True
         if auftrag in self._warteschlange:
@@ -425,16 +452,16 @@ class Nebenrechner:
         if arbeiter is not None:
             self._laufend.pop(auftrag.nummer, None)
             auftrag.arbeiter = None
-            arbeiter.auftrag = None
             self._entfernen(arbeiter)
+        self._nachkommen_abbrechen(auftrag)
         self._uhren()
 
     def beenden(self):
         """Beendet alle Arbeiter und räumt auf; der Pool lässt sich danach weiter benutzen."""
-        for arbeiter in list(self._arbeiter):
-            self._entfernen(arbeiter)
         for auftrag in list(self._laufend.values()) + self._warteschlange:
             auftrag.abgebrochen = True
+        for arbeiter in list(self._arbeiter):
+            self._entfernen(arbeiter)
         self._laufend.clear()
         self._warteschlange.clear()
         if self._listener is not None:
@@ -529,6 +556,10 @@ class Nebenrechner:
             "nummer": nummer,
             "sprache": sprache.aktuelle_sprache(),
             "einstellungen": einstellungen,
+            # Unteraufträge (P-2026-10-11-07): Der Arbeiter darf selbst verteilen – über diesen
+            # Pool, so groß wie er.
+            "unter": True,
+            "anzahl": self.anzahl,
         }
         try:
             prozess = subprocess.Popen(
@@ -570,21 +601,25 @@ class Nebenrechner:
 
     def _verteilen(self):
         """Gibt wartende Aufträge an freie Arbeiter – je Gruppe höchstens so viele zugleich, wie
-        sie darf (Auftrag.gleichzeitig); startet, was an Arbeitern fehlt."""
+        sie darf (Auftrag.gleichzeitig); startet, was an Arbeitern fehlt. Ein Arbeiter, der auf
+        seine Unteraufträge wartet, nimmt selbst welche davon (nur seine: So hängt nie ein
+        Auftrag an Arbeitern, die alle warten)."""
         laufend = {}
         for arbeiter in self._arbeiter:
-            gruppe = getattr(arbeiter.auftrag, "gruppe", None)
-            if gruppe is not None:
-                laufend[gruppe] = laufend.get(gruppe, 0) + 1
-        for arbeiter in self._arbeiter:
+            if arbeiter.stapel and not arbeiter.wartet:
+                gruppe = arbeiter.stapel[-1].gruppe
+                if gruppe is not None:
+                    laufend[gruppe] = laufend.get(gruppe, 0) + 1
+        wartende = [a for a in self._arbeiter if a.stapel and a.wartet]
+        freie = [a for a in self._arbeiter if not a.stapel]
+        for arbeiter in wartende + freie:
             if not self._warteschlange:
                 break
-            if arbeiter.verbindung is None or arbeiter.auftrag is not None:
+            if arbeiter.verbindung is None:
                 continue
-            auftrag = self._naechster(laufend)
-            if auftrag is None:
-                break
-            self._senden(arbeiter, auftrag)
+            auftrag = self._naechster(laufend, arbeiter.stapel[-1] if arbeiter.stapel else None)
+            if auftrag is not None:
+                self._senden(arbeiter, auftrag)
         startend = sum(1 for a in self._arbeiter if a.verbindung is None)
         fehlend = min(self._ausfuehrbar(laufend) - startend, self.anzahl - len(self._arbeiter))
         for _ in range(max(0, fehlend)):
@@ -592,10 +627,13 @@ class Nebenrechner:
                 break
             self._starten()
 
-    def _naechster(self, laufend):
+    def _naechster(self, laufend, von=None):
         """Der erste wartende Auftrag, dessen Gruppe noch einen frei hat – aus der Warteschlange
-        genommen und in `laufend` gezählt; None, wenn keiner darf."""
+        genommen und in `laufend` gezählt; None, wenn keiner darf. Mit `von` nur einer, der
+        darunter bestellt wurde (_stammt_von)."""
         for k, auftrag in enumerate(self._warteschlange):
+            if von is not None and not _stammt_von(auftrag, von):
+                continue
             gruppe = auftrag.gruppe
             if gruppe is None or auftrag.gleichzeitig is None:
                 return self._warteschlange.pop(k)
@@ -652,7 +690,8 @@ class Nebenrechner:
             auftrag.fehler = f"Senden an den Nebenrechner: {fehler!r}"
             self._melden(auftrag)
             return
-        arbeiter.auftrag = auftrag
+        arbeiter.stapel.append(auftrag)
+        arbeiter.wartet = False
         arbeiter.zuletzt = time.monotonic()
         auftrag.arbeiter = arbeiter
         self._laufend[auftrag.nummer] = auftrag
@@ -678,7 +717,11 @@ class Nebenrechner:
             self._entfernen(arbeiter)
 
     def _verarbeiten(self, arbeiter, nachricht):
-        art, nummer = nachricht[0], nachricht[1]
+        art = nachricht[0]
+        if art in _VOM_UNTERPOOL:
+            self._unter_verarbeiten(arbeiter, nachricht)
+            return
+        nummer = nachricht[1]
         auftrag = self._laufend.get(nummer)
         if auftrag is None or auftrag.arbeiter is not arbeiter:
             return  # ein abgebrochener Auftrag, der doch noch etwas meldet
@@ -687,7 +730,10 @@ class Nebenrechner:
             if auftrag.bei_fortschritt is not None:
                 auftrag.bei_fortschritt(auftrag)
             return
-        if art == "fertig":
+        weich_abgebrochen = auftrag.abgebrochen  # das Ergebnis verfällt, gemeldet ist es schon
+        if weich_abgebrochen:
+            pass
+        elif art == "fertig":
             auftrag.ergebnis = nachricht[2]
             auftrag.fertig = True
         elif art == "fehler":
@@ -697,18 +743,111 @@ class Nebenrechner:
             auftrag.fehler = f"unbekannte Meldung {art!r}"
         del self._laufend[nummer]
         auftrag.arbeiter = None
-        arbeiter.auftrag = None
+        if auftrag in arbeiter.stapel:
+            arbeiter.stapel.remove(auftrag)
+        arbeiter.wartet = False  # wartet er weiter, meldet er es wieder („warte“)
         arbeiter.zuletzt = time.monotonic()
-        self._melden(auftrag)
+        if not weich_abgebrochen:
+            self._melden(auftrag)
 
     def _melden(self, auftrag):
-        if auftrag.bei_fertig is not None:
+        """Ein Auftrag ist erledigt: Ein Unterauftrag geht an seinen Besteller zurück, sonst ruft
+        der Pool bei_fertig. Was er selbst bestellt hat und noch aussteht, fällt weg."""
+        if auftrag.fuer is not None:
+            self._zurueck(auftrag)
+        elif auftrag.bei_fertig is not None:
             auftrag.bei_fertig(auftrag)
+        self._nachkommen_abbrechen(auftrag)
+
+    # --- Unteraufträge (P-2026-10-11-07) -------------------------------------------------
+    #
+    # Ein Arbeiter rechnet einen Auftrag – die Vorschau im 4-Achs-Assistenten etwa – und will
+    # Teile davon verteilen (die Hüllfläche je Stellung, das Zusammenfassen der Spirale). Er hat
+    # keinen eigenen Pool; über seine Verbindung bestellt er Unteraufträge hier (Unterpool),
+    # der Pool reiht sie ein wie jeden Auftrag und schickt ihm die Ergebnisse. Solange er darauf
+    # wartet, liest er und nimmt selbst welche davon: So kommen sie auch voran, wenn alle
+    # Arbeiter warten. Ergebnisse gehen nur an einen Arbeiter, der liest (wartet oder frei ist)
+    # – sonst blockierte das Senden, bis er fertig ist.
+
+    def _unter_verarbeiten(self, arbeiter, nachricht):
+        art = nachricht[0]
+        if art == "unter":
+            _, nummer, modul, funktion, args, kwargs, gruppe, gleichzeitig = nachricht
+            self._zaehler += 1
+            auftrag = Auftrag(self, self._zaehler, modul, funktion, args, kwargs)
+            auftrag.gruppe, auftrag.gleichzeitig = gruppe, gleichzeitig
+            auftrag.fuer = (arbeiter, nummer)
+            auftrag.eltern = arbeiter.stapel[-1] if arbeiter.stapel else None
+            if auftrag.eltern is None or auftrag.eltern.erledigt:
+                auftrag.abgebrochen = True
+                self._zurueck(auftrag)
+            else:
+                self._warteschlange.append(auftrag)
+        elif art == "gemeinsam":
+            self._gemeinsam.setdefault(nachricht[1], nachricht[2])
+        elif art == "vergessen":
+            self.vergessen(nachricht[1])
+        elif art == "warte":
+            arbeiter.wartet = bool(arbeiter.stapel)
+            self._post_senden(arbeiter)
+        elif art == "weiter":
+            arbeiter.wartet = False
+        elif art == "unter_ab":
+            for auftrag in self._warteschlange + list(self._laufend.values()):
+                if auftrag.fuer is not None and auftrag.fuer == (arbeiter, nachricht[1]):
+                    self._weich_abbrechen(auftrag)
+                    break
+
+    def _zurueck(self, auftrag):
+        """Das Ergebnis eines Unterauftrags an seinen Besteller – wenn es ihn noch gibt."""
+        arbeiter, nummer = auftrag.fuer
+        if arbeiter not in self._arbeiter:
+            return
+        if auftrag.fertig:
+            arbeiter.post.append(("unter_fertig", nummer, auftrag.ergebnis))
+        elif auftrag.fehler is not None:
+            arbeiter.post.append(
+                ("unter_fehler", nummer, auftrag.fehler, auftrag.fehlerart, auftrag.fehlersatz)
+            )
+        else:
+            arbeiter.post.append(("unter_ab", nummer))
+        self._post_senden(arbeiter)
+
+    def _post_senden(self, arbeiter):
+        """Schickt dem Arbeiter, was für ihn liegt – nur, wenn er liest."""
+        if not arbeiter.post or arbeiter.verbindung is None:
+            return
+        if arbeiter.stapel and not arbeiter.wartet:
+            return
+        post, arbeiter.post = arbeiter.post, []
+        try:
+            for nachricht in post:
+                arbeiter.verbindung.send(nachricht)
+        except (OSError, EOFError, ValueError):
+            pass  # die Verbindung ist weg – _lesen merkt es
+
+    def _weich_abbrechen(self, auftrag):
+        """Nimmt einen Unterauftrag zurück, ohne seinen Arbeiter zu beenden: Wartet er, fällt er
+        weg; rechnet er, rechnet er zu Ende, und das Ergebnis verfällt. Der Besteller erfährt es
+        gleich; was der Auftrag selbst bestellt hat, fällt mit."""
+        if auftrag.erledigt:
+            return
+        auftrag.abgebrochen = True
+        if auftrag in self._warteschlange:
+            self._warteschlange.remove(auftrag)
+        if auftrag.fuer is not None:
+            self._zurueck(auftrag)
+        self._nachkommen_abbrechen(auftrag)
+
+    def _nachkommen_abbrechen(self, auftrag):
+        """Alles, was unter `auftrag` bestellt wurde und noch aussteht, fällt weg."""
+        for kind in self._warteschlange + list(self._laufend.values()):
+            if not kind.erledigt and _stammt_von(kind, auftrag):
+                self._weich_abbrechen(kind)
 
     def _gestorben(self, arbeiter, grund):
         """Ein Arbeiter ist weg: Sein Auftrag scheitert – außer, er wurde abgebrochen."""
-        auftrag = arbeiter.auftrag
-        self._entfernen(arbeiter)
+        self._entfernen(arbeiter, grund)
         if not self._je_gemeldet and not any(a.verbindung is not None for a in self._arbeiter):
             # Noch nie hat sich einer gemeldet: Es gibt keine Nebenrechner.
             self._fehlgeschlagen = True
@@ -717,11 +856,6 @@ class Nebenrechner:
                 f"gerechnet (Ausgabe des Arbeiters: {self._protokoll_hinweis(arbeiter)}).\n"
             )
             self._alle_scheitern()
-        if auftrag is not None and not auftrag.erledigt:
-            self._laufend.pop(auftrag.nummer, None)
-            auftrag.arbeiter = None
-            auftrag.fehler = f"Nebenrechner {arbeiter.nummer} {grund}"
-            self._melden(auftrag)
 
     def _protokoll_hinweis(self, arbeiter):
         try:
@@ -737,14 +871,26 @@ class Nebenrechner:
                 auftrag.fehler = "Nebenrechner nicht verfügbar"
         wartend, self._warteschlange = self._warteschlange, []
         laufend, self._laufend = list(self._laufend.values()), {}
+        for arbeiter in self._arbeiter:
+            arbeiter.stapel, arbeiter.wartet, arbeiter.post = [], False, []
         for auftrag in wartend + laufend:
             auftrag.arbeiter = None
             self._melden(auftrag)
 
-    def _entfernen(self, arbeiter):
+    def _entfernen(self, arbeiter, grund="beendet"):
+        """Beendet den Arbeiter. Was er noch rechnete und nicht abgebrochen ist, scheitert."""
         if arbeiter in self._arbeiter:
             self._arbeiter.remove(arbeiter)
+        self._melder_weg(arbeiter)  # vor dem Schließen der Verbindung
         arbeiter.beenden()
+        stapel, arbeiter.stapel = arbeiter.stapel, []
+        arbeiter.wartet, arbeiter.post = False, []
+        for auftrag in reversed(stapel):
+            self._laufend.pop(auftrag.nummer, None)
+            auftrag.arbeiter = None
+            if not auftrag.erledigt:
+                auftrag.fehler = f"Nebenrechner {arbeiter.nummer} {grund}"
+                self._melden(auftrag)
 
     def _ruhen(self, dauer):
         """Wartet höchstens `dauer` – kürzer, sobald ein Arbeiter etwas schickt."""
@@ -777,6 +923,7 @@ class Nebenrechner:
         elif self._uhr is not None:
             self._uhr.stop()
             self._uhr = None
+        self._melder_abgleichen(QtCore)
         if self._arbeiter:
             if self._aufraeumuhr is None:
                 self._aufraeumuhr = QtCore.QTimer()
@@ -786,6 +933,188 @@ class Nebenrechner:
         elif self._aufraeumuhr is not None:
             self._aufraeumuhr.stop()
             self._aufraeumuhr = None
+
+    def _melder_abgleichen(self, QtCore):  # noqa: N803 – das Modul
+        """Unter Linux und macOS weckt je Arbeiter ein QSocketNotifier abfragen(), sobald er
+        etwas schickt, solange etwas läuft: Die Unteraufträge eines Arbeiters warten so nicht auf
+        den QTimer (bis UHR_MS je Weg, an der Vorschau des Testteils Hunderte Wege;
+        P-2026-10-11-07). Unter Windows (Pipes) bleibt es beim QTimer."""
+        if os.name != "posix":
+            return
+        sollen = [a for a in self._arbeiter if a.verbindung is not None] if self.offen() else []
+        for arbeiter in list(self._melder):
+            if arbeiter not in sollen:
+                self._melder_weg(arbeiter)
+        art = getattr(QtCore.QSocketNotifier, "Type", QtCore.QSocketNotifier).Read
+        for arbeiter in sollen:
+            if arbeiter not in self._melder:
+                melder = QtCore.QSocketNotifier(arbeiter.verbindung.fileno(), art)
+                melder.activated.connect(lambda *_: self.abfragen())
+                melder.setEnabled(not self._in_abfrage)
+                self._melder[arbeiter] = melder
+
+    def _melder_weg(self, arbeiter):
+        melder = self._melder.pop(arbeiter, None)
+        if melder is not None:
+            melder.setEnabled(False)
+            melder.deleteLater()
+
+
+class Unterpool:
+    """Der Pool in einem Arbeiter (P-2026-10-11-07): dieselben Aufrufe wie Nebenrechner, nur
+    bestellt er die Aufträge über die Verbindung beim Pool des Hauptprozesses, als Unteraufträge
+    des Auftrags, an dem der Arbeiter gerade rechnet. In `warten()` liest er die Ergebnisse und
+    rechnet, was der Pool ihm von seinen eigenen Unteraufträgen gibt (`verarbeiten`, die
+    Hauptschleife des Arbeiters für eine Meldung). Die Vorschau im 4-Achs-Assistenten rechnete so
+    auf einem Kern: am Testteil die Hüllfläche je Stellung (2,6 s beim Schruppen) und das
+    Zusammenfassen der Spirale (1,8 s beim Schlichten) – jetzt auf allen."""
+
+    def __init__(self, verbindung, anzahl, verarbeiten):
+        self.anzahl = max(1, int(anzahl))
+        self._verbindung = verbindung
+        self._verarbeiten = verarbeiten
+        self._zaehler = 0
+        self._offen = {}  # Nummer -> Auftrag, bis sein Ergebnis da ist
+        self._gesendet = set()  # die Schlüssel gemeinsamer Daten, die der Pool schon hat
+        self._gruppe = (None, None)
+        self._kopien = []
+        self.in_arbeit = 0
+
+    def verfuegbar(self):
+        return self._verbindung is not None and self.anzahl >= 2
+
+    def auftrag(self, modul, funktion, *args, **kwargs):
+        if not self.verfuegbar():
+            raise NichtVerfuegbar("kein Pool im Hauptprozess")
+        self._zaehler += 1
+        auftrag = Auftrag(self, self._zaehler, modul, funktion, args, kwargs)
+        auftrag.gruppe, auftrag.gleichzeitig = self._gruppe
+        try:
+            self._verbindung.send(
+                ("unter", auftrag.nummer, modul, funktion, args, kwargs) + self._gruppe
+            )
+        except (OSError, EOFError, ValueError, TypeError) as fehler:
+            raise NichtVerfuegbar(f"Unterauftrag: {fehler!r}") from fehler
+        self._offen[auftrag.nummer] = auftrag
+        self.in_arbeit += 1
+        return auftrag
+
+    @contextlib.contextmanager
+    def gruppe(self, name, gleichzeitig):
+        vorher = self._gruppe
+        self._gruppe = (name, gleichzeitig)
+        try:
+            yield
+        finally:
+            self._gruppe = vorher
+
+    def gemeinsam(self, schluessel, wert):
+        """Gibt die Daten dem Pool – einmal; er verteilt sie wie seine eigenen."""
+        if schluessel not in self._gesendet:
+            self._verbindung.send(("gemeinsam", schluessel, wert))
+            self._gesendet.add(schluessel)
+        return Gemeinsam(schluessel)
+
+    def vergessen(self, schluessel):
+        self._gesendet.discard(schluessel)
+        with contextlib.suppress(OSError, EOFError):
+            self._verbindung.send(("vergessen", schluessel))
+
+    def kopie(self, dokument):
+        """Eine Kopie des Dokuments im Ordner des Arbeiters (die anderen öffnen sie dort)."""
+        ordner = os.path.join(os.getcwd(), "kopien")
+        os.makedirs(ordner, exist_ok=True)
+        pfad = os.path.join(ordner, f"{dokument.Name}-{secrets.token_hex(4)}.FCStd")
+        dokument.saveCopy(pfad)
+        self._kopien.append(pfad)
+        for alt in self._kopien[:-KOPIEN_JE_DOKUMENT]:
+            with contextlib.suppress(OSError):
+                os.remove(alt)
+        del self._kopien[:-KOPIEN_JE_DOKUMENT]
+        return Dokument(pfad)
+
+    def warten(self, auftraege, zwischendurch=None):
+        """Wie Nebenrechner.warten. Dabei liest der Arbeiter: Ergebnisse, gemeinsame Daten – und
+        Aufträge, die er selbst rechnet (seine eigenen Unteraufträge)."""
+        auftraege = list(auftraege)
+        gemeldet = False
+        try:
+            while not all(a.erledigt for a in auftraege):
+                if zwischendurch is not None and zwischendurch() is False:
+                    for a in auftraege:
+                        self.abbrechen(a)
+                    break
+                if not gemeldet:
+                    self._verbindung.send(("warte",))
+                    gemeldet = True
+                # Hat er gerechnet, weiß der Pool nicht, ob er noch wartet.
+                if self._verbindung.poll(TAKT) and self._lesen() == "auftrag":
+                    gemeldet = False
+        finally:
+            with contextlib.suppress(OSError, EOFError):
+                self._verbindung.send(("weiter",))
+        for a in auftraege:
+            if a.abgebrochen:
+                raise Abgebrochen(repr(a))
+            if a.fehler is not None:
+                raise Fehler(a.fehler, a.fehlerart, a.fehlersatz)
+        return [a.ergebnis for a in auftraege]
+
+    def abfragen(self):
+        while self._verbindung.poll(0):
+            self._lesen()
+
+    def abbrechen(self, auftrag):
+        if auftrag.erledigt:
+            return
+        auftrag.abgebrochen = True
+        self._offen.pop(auftrag.nummer, None)
+        with contextlib.suppress(OSError, EOFError):
+            self._verbindung.send(("unter_ab", auftrag.nummer))
+
+    def offen(self):
+        return bool(self._offen)
+
+    def beenden(self):
+        pass
+
+    @property
+    def arbeiter(self):
+        return 0
+
+    def _lesen(self):
+        """Eine Meldung vom Pool; gibt ihre Art zurück. EOFError, wenn er weg ist."""
+        nachricht = self._verbindung.recv()
+        art = nachricht[0]
+        if art in ("unter_fertig", "unter_fehler", "unter_ab"):
+            auftrag = self._offen.pop(nachricht[1], None)
+            if auftrag is None:
+                return art
+            if art == "unter_fertig":
+                auftrag.ergebnis = nachricht[2]
+                auftrag.fertig = True
+            elif art == "unter_fehler":
+                auftrag.fehler = nachricht[2]
+                auftrag.fehlerart, auftrag.fehlersatz = nachricht[3], nachricht[4]
+            else:
+                auftrag.abgebrochen = True
+        elif not self._verarbeiten(nachricht):
+            raise EOFError("der Pool hat den Arbeiter beendet")
+        return art
+
+
+# Was ein Arbeiter über seinen Unterpool meldet (P-2026-10-11-07).
+_VOM_UNTERPOOL = frozenset({"unter", "gemeinsam", "vergessen", "warte", "weiter", "unter_ab"})
+
+
+def _stammt_von(auftrag, ahne):
+    """Wurde `auftrag` unter `ahne` bestellt – von ihm oder einem seiner Unteraufträge?"""
+    eltern = auftrag.eltern
+    while eltern is not None:
+        if eltern is ahne:
+            return True
+        eltern = eltern.eltern
+    return False
 
 
 def _gemeinsame_schluessel(wert, tiefe=0):
@@ -895,5 +1224,30 @@ def _probe_fehler():
 
 
 def _probe_verfuegbar():
-    """Ob es im Arbeiter selbst Nebenrechner gibt (es gibt keine)."""
+    """Ob es im Arbeiter selbst Nebenrechner gibt (den Unterpool)."""
     return pool().verfuegbar()
+
+
+def _probe_verschachtelt(werte, dauer=0.0, fehler=False):
+    """Bestellt je Wert einen Unterauftrag _probe (im Arbeiter über den Unterpool) – die Summe
+    der Quadrate; mit `fehler` noch einen, der scheitert."""
+    p = pool()
+    auftraege = [p.auftrag("nebenrechner", "_probe", x, dauer=dauer) for x in werte]
+    if fehler:
+        auftraege.append(p.auftrag("nebenrechner", "_probe_fehler"))
+    return sum(p.warten(auftraege))
+
+
+def _probe_tief(tiefe):
+    """Zwei Unteraufträge je Ebene, `tiefe` Ebenen: 2 ** tiefe."""
+    if tiefe <= 0:
+        return 1
+    p = pool()
+    return sum(p.warten([p.auftrag("nebenrechner", "_probe_tief", tiefe - 1) for _ in range(2)]))
+
+
+def _probe_gemeinsam_verschachtelt(zahlen):
+    """Gemeinsame Daten aus dem Arbeiter, in zwei Unteraufträgen summiert."""
+    p = pool()
+    g = p.gemeinsam("probe-verschachtelt", list(zahlen))
+    return p.warten([p.auftrag("nebenrechner", "_probe_summe", g, k) for k in (1, 2)])

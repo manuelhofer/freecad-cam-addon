@@ -93,8 +93,39 @@ assert pool.warten([pool.auftrag("nebenrechner", "_probe_summe", zahlen, 1)]) ==
 pool.vergessen("zahlen")
 zahlen = pool.gemeinsam("zahlen", list(range(10)))
 assert pool.warten([pool.auftrag("nebenrechner", "_probe_summe", zahlen, 1)]) == [45]
-# In einem Arbeiter gibt es keine Nebenrechner (keine verschachtelten Pools).
-assert pool.warten([pool.auftrag("nebenrechner", "_probe_verfuegbar")]) == [False]
+# Unteraufträge (P-2026-10-11-07): Ein Arbeiter verteilt selbst – über diesen Pool. Drei je 1 s
+# auf drei Arbeitern brauchen eine Sekunde, nicht drei.
+assert pool.warten([pool.auftrag("nebenrechner", "_probe_verfuegbar")]) == [True]
+beginn = time.monotonic()
+(summe,) = pool.warten([pool.auftrag("nebenrechner", "_probe_verschachtelt", [1, 2, 3], dauer=1.0)])
+dauer = time.monotonic() - beginn
+assert summe == 14 and dauer < 2.5, (summe, f"{dauer:.1f} s – Unteraufträge nicht parallel")
+# Alle Arbeiter warten auf ihre Unteraufträge: Jeder rechnet seine selbst – nichts hängt.
+auftraege = [
+    pool.auftrag("nebenrechner", "_probe_verschachtelt", [k, k], dauer=0.3) for k in range(3)
+]
+assert pool.warten(auftraege) == [0, 2, 8]
+assert pool.warten([pool.auftrag("nebenrechner", "_probe_tief", 4)]) == [16]
+# Gemeinsame Daten, die der Arbeiter angelegt hat.
+auftrag = pool.auftrag("nebenrechner", "_probe_gemeinsam_verschachtelt", list(range(100)))
+assert pool.warten([auftrag]) == [[4950, 9900]]
+# Ein Fehler im Unterauftrag scheitert beim Besteller – mit dem Traceback von dort.
+try:
+    pool.warten([pool.auftrag("nebenrechner", "_probe_verschachtelt", [1], fehler=True)])
+except nr.Fehler as fehler:
+    assert "ValueError: absichtlich" in str(fehler), str(fehler)
+else:
+    raise AssertionError("Fehler im Unterauftrag nicht gemeldet")
+# Abbrechen: Was er bestellt hat, fällt mit; danach rechnet der Pool weiter.
+lang = pool.auftrag("nebenrechner", "_probe_verschachtelt", list(range(12)), dauer=1.0)
+beginn = time.monotonic()
+while not any(a.eltern is lang for a in pool._warteschlange) and time.monotonic() - beginn < 30:
+    pool.abfragen()
+    time.sleep(0.02)
+assert any(a.eltern is lang for a in pool._warteschlange), "keine Unteraufträge bestellt"
+lang.abbrechen()
+assert not any(a.eltern is not None for a in pool._warteschlange), pool._warteschlange
+assert pool.warten([pool.auftrag("nebenrechner", "_probe", 6)]) == [36]
 
 # Ein Fehler im Arbeiter kommt als Traceback – der Arbeiter lebt weiter.
 try:

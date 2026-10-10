@@ -2098,8 +2098,11 @@ def zusammen_quer_kette(
 
 def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen):
     """_zusammen_quer auf den Nebenrechnern: je Stück die Kette ab seinem Anfang, ein Stück über
-    sein Ende hinaus; zusammengesetzt am ersten Punkt, den beide Ketten haben. None ohne
-    Nebenrechner (dann rechnet der Aufrufer selbst)."""
+    sein Ende hinaus; zusammengesetzt am ersten Punkt, den beide Ketten haben. Die Stücke
+    beginnen, wo es geht, an einer Grenze (einem Punkt, der bleibt): Dort treffen sich die Ketten
+    sicher – sonst laufen sie auf einer gleichmäßigen Spirale nebeneinander her, ohne sich zu
+    treffen, und der Rest blieb hier zu rechnen (an der Schlichtbahn des 4-Achs-Testteils 1,6 s
+    von 1,8 s; P-2026-10-11-07). None ohne Nebenrechner (dann rechnet der Aufrufer selbst)."""
     import FreeCAD
 
     from . import nebenrechner as nr
@@ -2112,11 +2115,28 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
     if stuecke < 2:
         return None
     x, q, psi = (np.asarray(v, dtype=float) for v in (x, q, psi))
-    anfaenge = [round(k * n / stuecke) for k in range(stuecke)]
+    an_grenze = set(grenzen)
+    spanne = n / stuecke
+    anfaenge = [0]
+    for k in range(1, stuecke):
+        ziel = k * spanne
+        i = bisect.bisect_left(grenzen, ziel)
+        nah = [grenzen[j] for j in (i - 1, i) if 0 <= j < len(grenzen) and 0 < grenzen[j] < n - 1]
+        von = min(nah, key=lambda g: abs(g - ziel)) if nah else None
+        if von is None or abs(von - ziel) > spanne / 2:
+            von = round(ziel)
+        if von > anfaenge[-1]:
+            anfaenge.append(von)
+    stuecke = len(anfaenge)
     ueberlapp = max(256, 16 * int(hoechstens))
     auftraege = []
     for k, von in enumerate(anfaenge):
-        stopp = n - 1 if k == stuecke - 1 else min(n - 1, anfaenge[k + 1] + ueberlapp)
+        if k == stuecke - 1:
+            stopp = n - 1
+        elif anfaenge[k + 1] in an_grenze:
+            stopp = anfaenge[k + 1]  # dort endet die Kette, und dort beginnt die nächste
+        else:
+            stopp = min(n - 1, anfaenge[k + 1] + ueberlapp)
         bis = min(n, stopp + int(hoechstens) + 2)
         # Die Grenzen relativ zum Stück: eine am Anfang, alle dahinter bis eine hinter dem Ende.
         relativ = [0]
@@ -2151,28 +2171,38 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
         )
         return None
     ergebnis = [anfaenge[0] + i for i in ketten[0]]
-    for von, kette in zip(anfaenge[1:], ketten[1:], strict=True):
-        kette = [von + i for i in kette]
+    k = 1
+    while k < stuecke:
+        von = anfaenge[k]
+        kette = [von + i for i in ketten[k]]
         stelle = {wert: m for m, wert in enumerate(kette)}
         treffer = next(
             (p for p, wert in enumerate(ergebnis) if wert >= von and wert in stelle), None
         )
-        if treffer is None:  # die Ketten trafen sich im Überlapp nicht: hier weiter
-            rest = zusammen_quer_kette(
-                x,
-                q,
-                psi,
-                radius,
-                toleranz,
-                hoechstens,
-                grenzen,
-                neigung,
-                innen,
-                ergebnis[-1],
-                n - 1,
-            )
-            return ergebnis + rest[1:]
-        ergebnis = ergebnis[:treffer] + kette[stelle[ergebnis[treffer]] :]
+        if treffer is not None:
+            ergebnis = ergebnis[:treffer] + kette[stelle[ergebnis[treffer]] :]
+            k += 1
+            continue
+        # Die Ketten trafen sich im Überlapp nicht: hier weiter – bis zum nächsten Stück, das an
+        # einer Grenze beginnt (dort trifft es sicher), sonst bis zum Ende.
+        weiter = next((m for m in range(k + 1, stuecke) if anfaenge[m] in an_grenze), None)
+        rest = zusammen_quer_kette(
+            x,
+            q,
+            psi,
+            radius,
+            toleranz,
+            hoechstens,
+            grenzen,
+            neigung,
+            innen,
+            ergebnis[-1],
+            n - 1 if weiter is None else anfaenge[weiter],
+        )
+        ergebnis = ergebnis + rest[1:]
+        if weiter is None:
+            break
+        k = weiter
     return ergebnis
 
 

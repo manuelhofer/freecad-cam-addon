@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-07 vorschau-verteilt-auf-allen-kernen
+
+### EINGELESEN
+- Manuel, 2026-10-10 abends: „die geschichte mit den mehrkern arbeiten bitte nochmal verbessern
+  also so das mehr rechenleistung genutzt werden kann ... und die sachen schneller berechnet
+  werden“.
+- Gemessen an `beispiele/testteil_4achs_nase.FCStd`: Die Vorschau im 4-Achs-Assistenten läuft je
+  Bearbeitung in einem Nebenrechner – dort ohne Pool, also auf einem Kern: Schruppen 3,5 s,
+  Schlichten 3,5 s nach jeder Eingabe. Davon wären 2/3 schon verteilbar (Hüllfläche je Stellung,
+  Zusammenfassen der Spirale), nur nicht im Nebenrechner.
+- Das verteilte Zusammenfassen (`_zusammen_quer_verteilt`) gewann auch im Hauptprozess kaum: Die
+  Ketten der Stücke trafen sich auf der gleichmäßigen Spirale nicht, und der Rest (1,6 von 1,8 s)
+  lief danach doch hier.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: Unteraufträge – `Unterpool` im Arbeiter bestellt über die
+  Verbindung beim Pool des Hauptprozesses; der reiht sie ein, schickt die Ergebnisse zurück
+  (nur an einen Arbeiter, der liest), und ein wartender Arbeiter rechnet selbst von seinen
+  eigenen (so hängt nichts, wenn alle warten). Abbrechen nimmt die Unteraufträge mit (wartende
+  fallen weg, laufende rechnen zu Ende, ihr Ergebnis verfällt). Mit Oberfläche weckt unter
+  Linux/macOS ein QSocketNotifier je Arbeiter das Abfragen sofort statt alle 30 ms.
+- `camaddon/nebenrechner_arbeiter.py`: Hauptschleife in `_verarbeiten`/`_ausfuehren` geteilt,
+  damit der Unterpool beim Warten dieselben Meldungen verarbeitet; `nr.pool()` ist im Arbeiter
+  der Unterpool.
+- `camaddon/vierachs_bahn.py`: `_zusammen_quer_verteilt` beginnt die Stücke an Grenzen (Punkte,
+  die bleiben), wo es welche gibt – dort treffen sich die Ketten sicher; trifft sich eine nicht,
+  rechnet der Hauptprozess nur bis zum nächsten solchen Stück, nicht bis zum Ende.
+- `tests/test_nebenrechner.py` (Unteraufträge: parallel, alle Arbeiter wartend, vier Ebenen tief,
+  gemeinsame Daten aus dem Arbeiter, Fehler, Abbrechen), `package.xml` (0.213.20),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Vorschau am Testteil (Arbeiter warm, Qt-Ereignisschleife wie im Fenster): Schruppen 3,5 →
+  1,8 s, Schlichten 3,5 → 1,1 s; die Bahnen Bit für Bit wie auf einem Kern.
+- Zusammenfassen allein (60 000 Punkte, 5–500 feste Punkte): 0,8 → 0,1–0,17 s, Punkt für Punkt
+  gleich; ohne feste Punkte wie bisher. Neuberechnung beider Operationen im Hauptprozess: 19,5 s
+  auf einem Kern, 7,2 s mit dem Pool, gleich.
+- Grün: `test_nebenrechner.py`, `test_kollision_verteilt.py`, `szenario_vierachs_schlichten`.
+
 ## P-2026-10-11-06 snapshot-nacht-10-auf-11
 
 ### EINGELESEN
