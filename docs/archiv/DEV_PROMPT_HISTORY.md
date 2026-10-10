@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-11 forum-entwurf-installation-wie-readme
+
+### EINGELESEN
+- Nachgesehen: Das README nennt zuerst den Einzeiler für die Python-Konsole, dann den
+  Addon-Manager mit Branch `main`; die Update-Prüfung ist ab Werk aus
+  (`gui_aktualisierung.suche_beim_start`).
+
+### DATEIEN
+- `docs/forum_vorstellung.md` (Installation in beiden Fassungen wie im README).
+
+### AKZEPTANZKRITERIUM
+Der Installationsabsatz nennt den Einzeiler und den Addon-Manager mit Branch `main`.
+
+### DONE
+- Nichts weiter.
+
 ## P-2026-10-10-10 forum-entwurf-mit-standardantworten
 
 ### EINGELESEN

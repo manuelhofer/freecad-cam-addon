@@ -59,10 +59,10 @@ jeder Schritt ist im Repo nachvollziehbar.
    durchspielen mag.
 3. Bediener-Feedback – Screenshot, ein Satz, was unklar war. Das reicht mir.
 
-**Installation:** FreeCAD 1.1 (geprüft mit 1.1.4), Addon-Manager → Einstellungen → eigenes
-Repository eintragen: `https://github.com/manuelhofer/freecad-cam-addon` – oder das Repo in
-den Ordner `Mod/` klonen. Im Menü erscheint „CAM-Addon“, der erste Punkt „So geht’s“ führt
-durch.
+**Installation:** FreeCAD 1.1 (geprüft mit 1.1.4). Am einfachsten die eine Zeile für die
+Python-Konsole aus dem README des Repos; oder Addon-Manager → Einstellungen → eigenes Repository
+`https://github.com/manuelhofer/freecad-cam-addon` (Branch `main`) eintragen und dort
+installieren. Im Menü erscheint „CAM-Addon“, der erste Punkt „So geht’s“ führt durch.
 
 **Vorab beantwortet:**
 
@@ -141,9 +141,10 @@ in the repository.
 2. Testers – anyone with a 5-axis machine or another control who would run an example part once.
 3. Operator feedback – a screenshot and one sentence about what was unclear. That is enough.
 
-**Installation:** FreeCAD 1.1 (verified with 1.1.4), Addon Manager → preferences → custom
-repository: `https://github.com/manuelhofer/freecad-cam-addon` – or clone the repository into
-`Mod/`. A menu “CAM-Addon” appears; its first entry “How it works” walks you through.
+**Installation:** FreeCAD 1.1 (verified with 1.1.4). Easiest is the one line for the Python
+console from the README of the repository; or Addon Manager → preferences → custom repository
+`https://github.com/manuelhofer/freecad-cam-addon` (branch `main`) and install from there. A
+menu “CAM-Addon” appears; its first entry “How it works” walks you through.
 
 **Answered in advance:**
 
