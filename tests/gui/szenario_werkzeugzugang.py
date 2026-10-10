@@ -147,6 +147,21 @@ def schritte(h):
         )
     )
     h.pruefe(not sw.ebenen_von(job) and js.jobs(doc) == [job], "Rücknahme des Ebenenjobs")
+    # B-016: FreeCADs Job-Anlage schließt die Transaktion, der Rohteilklon des Ebenenjobs bleibt
+    # beim Rückgängig stehen – der Aufräumer nimmt ihn, sobald die nächste Transaktion
+    # abgeschlossen ist (kein Wiederholen mehr möglich).
+    from camaddon import aufraeumen
+
+    verwaist = [o.Name for o in aufraeumen.verwaiste(doc)]
+    doc.openTransaction("Weiter")
+    doc.addObject("Part::Feature", "Danach")
+    doc.commitTransaction()
+    yield 500
+    h.pruefe(
+        not aufraeumen.verwaiste(doc) and all(doc.getObject(n) is None for n in verwaist),
+        f"verwaiste Klone nach dem Rückgängig: {verwaist} -> {[o.Name for o in aufraeumen.verwaiste(doc)]}",
+    )
+    h.pruefe(bool(verwaist), "kein verwaister Klon beobachtet – B-016 nicht mehr nachstellbar?")
     yield 300
     asm4, ma4 = bm.lade(bm.DREHMASCHINE)
     datei4 = str(profil / "maschine4.FCStd")

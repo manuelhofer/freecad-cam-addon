@@ -15,6 +15,7 @@ from PySide import QtGui
 
 from . import (
     VERSION,
+    aufraeumen,
     gui_aktualisierung,
     gui_bearbeitung,
     gui_bestueckung,
@@ -116,6 +117,7 @@ def starten():
     gui_sprachwahl.einstellungsseite_anmelden()
     gui_maschinen.beobachten()  # gespeicherte Maschinen kommen in die Liste (W-011)
     gui_materialstand.beobachten()  # Operationen mit Materialstand rechnen nach (W-012)
+    aufraeumen.beobachten()  # verwaiste Klone nach einem Rückgängig (B-016)
     gui_sprachwahl.beim_ersten_start_fragen()
     gui_aktualisierung.beim_start()
     FreeCAD.Console.PrintLog("CAM-Addon geladen\n")
