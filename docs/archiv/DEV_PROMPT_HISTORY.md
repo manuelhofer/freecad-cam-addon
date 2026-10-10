@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-02 raeumen-abstand-ohne-rand-sofort
+
+### EINGELESEN
+- Profil von `test_testteil` (Manuels 3-Achs-Testteil, Räumen über drei Höhen): `_Feld.abstand_zu`
+  17,5 s in 74 Aufrufen – davon dreimal 4,3 s mit einem Raster 191 × 199, in dem jede Zelle
+  gesperrt ist: ohne Rand nahm es alle 38 009 Zellen als Rand und maß 38 009 × 38 009 Abstände,
+  um überall 0 zu finden.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`abstand_zu`: ohne Rand ist alles gesperrt – gleich −Schritt
+  überall, dieselben Werte), `package.xml` (0.213.16), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Dieselben Bahnen, schneller.
+
+### TEST
+- KI: `test_testteil` (vorher 51 s im Profil, die drei Aufrufe 12,8 s), `test_raeumen`,
+  `test_nut_offen`, `test_pruefstand` grün in 1.1.4.
+
+### DONE
+- Für Manuel: „Bearbeitung“ an seinem 3-Achs-Testteil, Räumen über alle drei Höhen – die
+  Vorschau ist rund 13 s Rechenzeit schneller.
+
 ## P-2026-10-11-01 abfahren-ohne-reichweite-sammeln
 
 ### EINGELESEN

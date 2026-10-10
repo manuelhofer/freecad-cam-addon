@@ -490,7 +490,10 @@ class _Feld:
         rand = gesperrt & ~innen
         ri, rj = np.nonzero(rand)
         if not len(ri):
-            ri, rj = np.nonzero(gesperrt)
+            # Ohne Rand ist alles gesperrt (sonst grenzte eine gesperrte Zelle an eine freie): jede
+            # Zelle ist ihr eigener nächster Punkt, der Abstand überall 0 – gemessen hatte es das
+            # am 3-Achs-Testteil mit 38 009 × 38 009 Abständen, dreimal 4,3 s (P-2026-10-11-02).
+            return np.full((self.nx, self.ny), -0.0 - self.schritt)
         rx = self.xs[ri]
         ry = self.ys[rj]
         gx, gy = np.meshgrid(self.xs, self.ys, indexing="ij")
