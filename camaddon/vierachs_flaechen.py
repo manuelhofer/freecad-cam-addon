@@ -27,6 +27,7 @@ Läuft ohne Oberfläche; numpy gehört zu FreeCAD.
 """
 
 import math
+import os
 from dataclasses import dataclass
 
 import numpy as np
@@ -56,7 +57,42 @@ class FlaechenNetz:
     anzahl: int  # so viele Flächen hat die Form
 
 
+VERNETZT_MERKEN = 3  # so viele Netze bleiben im Hauptprozess (je Form und Toleranz eins)
+_gemerkt = {}  # (kennung, toleranz) -> FlaechenNetz, in der Reihenfolge des Vernetzens
+
+
+def kennung(form):
+    """Was eine Form ausmacht, ohne sie zu lesen: die Kennzahlen ihrer Körper (FreeCADs
+    `hashCode` – mit der Lage; nach einem Neuberechnen oder Verschieben eine andere) und die
+    Zahl ihrer Flächen. Dieselbe Kennung: dasselbe Netz."""
+    teile = form.Solids or form.Shells or form.Faces or [form]
+    return (tuple(sorted(t.hashCode() for t in teile)), len(form.Faces))
+
+
 def vernetze(form, toleranz=vh.TOLERANZ):
+    """Das Netz einer Form (Part.Shape), jede Fläche für sich (FlaechenNetz) – gemerkt: Der
+    Simultanvergleich vernetzt dasselbe Teil je Variante und Stufe neu (am Freiformbeispiel
+    13 s von 37 s je Bahn, P-2026-10-10-29), und wer zweimal vergleicht, zweimal. Die letzten
+    VERNETZT_MERKEN Netze bleiben, in den Nebenrechnern keins (sie bekommen Netze als
+    gemeinsame Daten)."""
+    if os.environ.get("CAMADDON_ARBEITER") == "1":
+        return _vernetze(form, toleranz)
+    schluessel = (kennung(form), float(toleranz))
+    netz = _gemerkt.get(schluessel)
+    if netz is None:
+        netz = _vernetze(form, toleranz)
+        _gemerkt[schluessel] = netz
+        while len(_gemerkt) > VERNETZT_MERKEN:
+            del _gemerkt[next(iter(_gemerkt))]
+    return netz
+
+
+def vergessen():
+    """Die gemerkten Netze loslassen (Prüfungen, Speicher)."""
+    _gemerkt.clear()
+
+
+def _vernetze(form, toleranz):
     """Das Netz einer Form (Part.Shape), jede Fläche für sich (FlaechenNetz).
 
     Vernetzt wird eine Kopie ohne Netz, zuerst ganz – so teilen Nachbarflächen die Punkte

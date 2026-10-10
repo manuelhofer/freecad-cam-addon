@@ -32,6 +32,8 @@ from .sprache import tr
 
 RASTER = 0.1  # mm, zusätzlich im Test mit halbem Raster geprüft
 NETZ = 0.001  # mm, unabhängig von der Vernetzung der Bahn
+HOEHEN_MERKEN = 3  # so viele Soll-Höhenfelder bleiben gemerkt (Teil, Flächen, Raster)
+_hoehen_gemerkt = {}
 SEHNENFEHLER = 0.001  # mm, nur für konservative Zusammenfassung der Prüfkapseln
 NC_RESERVE = 0.00011  # mm: Steuerungsglättung 0,0001 plus Reserve für sechs Ausgabestellen
 
@@ -223,11 +225,30 @@ class Pruefstand:
         else:
             raise ValueError(tr("s5p.fehler.abtragform"))
         self.unsicherheit = toleranz
-        self.soll = hf.hoehen(fnetz.netz, self.quader.x, self.quader.y)
-        from . import vierachs_huelle as vh
+        # Soll und Maske sind teuer (am Freiformbeispiel je 2–5 s) und hängen nur an Netz, Flächen
+        # und Raster – gemerkt für den nächsten Vergleich desselben Teils.
+        schluessel = (
+            vf.kennung(form),
+            toleranz,
+            tuple(sorted(vf.nummern(list(operation.Flaechen)))),
+            self.quader.x[0],
+            self.quader.x[-1],
+            len(self.quader.x),
+            self.quader.y[0],
+            self.quader.y[-1],
+            len(self.quader.y),
+        )
+        gemerkt = _hoehen_gemerkt.get(schluessel)
+        if gemerkt is None:
+            from . import vierachs_huelle as vh
 
-        nur = vh.Netz(fnetz.netz.punkte, fnetz.netz.dreiecke[gewaehlt], toleranz)
-        self.nur = hf.hoehen(nur, self.quader.x, self.quader.y) > hf.KEIN_TREFFER / 2
+            soll = hf.hoehen(fnetz.netz, self.quader.x, self.quader.y)
+            nur = vh.Netz(fnetz.netz.punkte, fnetz.netz.dreiecke[gewaehlt], toleranz)
+            gemerkt = (soll, hf.hoehen(nur, self.quader.x, self.quader.y) > hf.KEIN_TREFFER / 2)
+            _hoehen_gemerkt[schluessel] = gemerkt
+            while len(_hoehen_gemerkt) > HOEHEN_MERKEN:
+                del _hoehen_gemerkt[next(iter(_hoehen_gemerkt))]
+        self.soll, self.nur = gemerkt
         self.vorher = []
         aktive = [o for o in job.Operations.Group if getattr(o, "Active", True)]
         if not aktive or aktive[-1] != operation:

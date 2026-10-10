@@ -3132,6 +3132,15 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    Abstände, 3,7 statt 21,4 s; mit 24 Arbeitern 5,0 statt 7,0 s. Ein Schaftfräser am Boden
    gewinnt nichts (die Kapsel reicht unter der Stirn um r zu tief; nach drei vergeblichen
    Versuchen fragt das Paar nur noch OpenCascade).
+6. **Gemerkt statt neu gerechnet (P-2026-10-10-29):** Der Vergleich rechnet je Variante und
+   Feinheitsstufe dieselbe Form neu: das Netz des Teils (0,001 mm, 13 s je Bahn am
+   Freiformbeispiel), das Soll-Höhenfeld des Prüfstands, die Randzüge (`schlicht_rand`, 12 s je
+   Bahn, davon 8 s `isInside`). Jetzt gemerkt je Kennung der Form (FreeCADs `hashCode` der
+   Körper samt Lage) – Freiform 376 → 243 s bei gleichem Ergebnis. **Nicht genommen:**
+   `MeshPart.meshFromShape` vernetzt achtmal schneller als `Shape.tessellate` (gleiche
+   Sehnenabweichung, halb so viele Dreiecke), aber die Deckung zählt Flächenzellen am Rand
+   anders – an der Kuppel kippte eine Variante. Ein anderes Netz nur mit neuen Referenzen und
+   Manuels Ja.
 3. **Varianten und Zwischenlagen parallel** – sie sind unabhängig: mit dem Haken „Alle
    Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
 4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich

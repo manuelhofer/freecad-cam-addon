@@ -7,6 +7,7 @@ unabhängig vom Raster. Eine Gegenfläche, die die Kugel dabei schneidet, führt
 zu einem Fehler; ein zu großer Fräser wird nicht durch Hochsetzen beschönigt.
 """
 
+import copy
 import math
 
 import Part
@@ -32,6 +33,57 @@ def ergaenzen(
 ):
     """Randzüge ergänzen; Spitze senkrecht gespeichert, die Kugelmitte exakt am Rand."""
     punkte = list(bahn.punkte)
+    for zug in _zuege(form, tuple(namen), radius, aufmass, schritt):
+        if len(zug) < 2:
+            continue
+        erster = zug[0]
+        if punkte:
+            letzter = punkte[-1]
+            punkte.append(bn.Punkt(True, letzter.x, letzter.y, sicher))
+        punkte.append(bn.Punkt(True, erster.x, erster.y, sicher))
+        punkte.append(
+            bn.Punkt(True, erster.x, erster.y, min(sicher, max(oben, erster.z) + sicherheit))
+        )
+        punkte.extend(copy.copy(p) for p in zug)  # gemerkte Punkte bleiben unberührt
+        letzter = punkte[-1]
+        punkte.append(bn.Punkt(True, letzter.x, letzter.y, sicher))
+        bahn.umlaeufe += 1
+    bahn.punkte = punkte
+    bahn.laenge = sum(
+        bn.weg(a, b) for a, b in zip(punkte, punkte[1:], strict=False) if not b.eilgang
+    )
+    bahn.zeit = bn.zeit(punkte, vorschub, eintauchen)
+    return bahn
+
+
+ZUEGE_MERKEN = 4  # so viele Randzüge bleiben gemerkt (Form, Flächen, Fräser, Schritt)
+_zuege_gemerkt = {}  # Schlüssel -> [Züge] oder die Fehlermeldung (ValueError)
+
+
+def _zuege(form, namen, radius, aufmass, schritt):
+    """[[Punkt]] – je Draht der Flächen `namen` der Randzug (Spitze unter der Kugelmitte am
+    Rand); ValueError wie bisher. Gemerkt: Der Simultanvergleich ruft das je Variante und Stufe
+    mit derselben Form, demselben Fräser (am Freiformbeispiel 12 s je Bahn, davon 8 s
+    `isInside`; P-2026-10-10-29) – auch ein Fehler bleibt gemerkt."""
+    from . import vierachs_flaechen as vf
+
+    schluessel = (vf.kennung(form), namen, float(radius), float(aufmass), float(schritt))
+    gemerkt = _zuege_gemerkt.get(schluessel)
+    if gemerkt is None:
+        try:
+            gemerkt = _zuege_rechnen(form, namen, radius, aufmass, schritt)
+        except ValueError as fehler:
+            gemerkt = fehler
+        _zuege_gemerkt[schluessel] = gemerkt
+        while len(_zuege_gemerkt) > ZUEGE_MERKEN:
+            del _zuege_gemerkt[next(iter(_zuege_gemerkt))]
+    if isinstance(gemerkt, ValueError):
+        raise ValueError(str(gemerkt))
+    return gemerkt
+
+
+def _zuege_rechnen(form, namen, radius, aufmass, schritt):
+    zuege = []
     for name in namen:
         face = form.getElement(name)
         for wire in face.Wires:
@@ -66,23 +118,5 @@ def ergaenzen(
                     if not zug or bn.weg(zug[-1], punkt) > 1e-6:
                         zug.append(punkt)
                 letzter_rand = orte[-1]
-            if len(zug) < 2:
-                continue
-            erster = zug[0]
-            if punkte:
-                letzter = punkte[-1]
-                punkte.append(bn.Punkt(True, letzter.x, letzter.y, sicher))
-            punkte.append(bn.Punkt(True, erster.x, erster.y, sicher))
-            punkte.append(
-                bn.Punkt(True, erster.x, erster.y, min(sicher, max(oben, erster.z) + sicherheit))
-            )
-            punkte.extend(zug)
-            letzter = punkte[-1]
-            punkte.append(bn.Punkt(True, letzter.x, letzter.y, sicher))
-            bahn.umlaeufe += 1
-    bahn.punkte = punkte
-    bahn.laenge = sum(
-        bn.weg(a, b) for a, b in zip(punkte, punkte[1:], strict=False) if not b.eilgang
-    )
-    bahn.zeit = bn.zeit(punkte, vorschub, eintauchen)
-    return bahn
+            zuege.append(zug)
+    return zuege

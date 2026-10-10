@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-29 netz-hoehenfeld-und-randzuege-gemerkt
+
+### EINGELESEN
+- Profil je Bahn am Freiformbeispiel (`schlichten3d.rechne`, 37 s bei voller Feinheit, fünfmal je
+  Vergleich): `_netze` 13 s – das Teil bei 0,001 mm vernetzt, bei jedem Aufruf neu;
+  `schlicht_rand.ergaenzen` 12 s – 3 655 Randpunkte, je einmal `isInside` (2,2 ms) und
+  `distToShape`, bei jedem Aufruf dieselben; `_flaeche_entlang` 5,5 s, `_vereinfacht3d` 3,5 s,
+  `fahren` 3,2 s, `_raster` 2 s. Der Prüfstand des Simultanvergleichs: `tessellate` 37 s von
+  48 s (0,001 mm, dann 0,0005 mm wegen eines fast senkrechten Dreiecks), `hf.hoehen` 2 × 2,5 s.
+- Versucht und verworfen: `MeshPart.meshFromShape` statt `Shape.tessellate` – achtmal
+  schneller (Freiform 0,001 mm: 1,3 statt 10 s, halb so viele Dreiecke bei gleicher
+  Sehnenabweichung 9 · 10⁻⁴), aber die Deckung des Prüfstands zählt Flächenzellen am Rand
+  anders: an der Kuppel blieben 4 Zellen „nicht abgedeckt“, die erste Variante kippte. Ein
+  anderes Netz ändert Urteile an der Grenze – nicht ohne Manuel. Dabei gemessen: `tessellate`
+  unterschreitet die verlangte Abweichung an der Kugel zehnfach (10⁻⁴ statt 10⁻³), an der
+  Freiform nicht (6 · 10⁻⁴).
+
+### DATEIEN
+- `camaddon/vierachs_flaechen.py` (`kennung(form)` aus FreeCADs `hashCode` der Körper – mit
+  der Lage, nach Neuberechnen anders – und der Flächenzahl; `vernetze` merkt die letzten drei
+  Netze je Form und Toleranz im Hauptprozess, `vergessen()`), `camaddon/simultan_abtrag.py`
+  (Soll-Höhenfeld und Maske des Prüfstands je Teil, Flächen und Raster gemerkt),
+  `camaddon/schlicht_rand.py` (`_zuege`: die Randzüge je Form, Flächen, Fräser und Schritt
+  gemerkt, auch ein Fehler; `ergaenzen` kopiert die Punkte), `docs/STATUS_SNAPSHOT.md`,
+  `docs/spezifikation_strategien.md` (16.5), `docs/aufbau.md`, `package.xml` (0.211.1).
+
+### AKZEPTANZKRITERIUM
+`test_schlichten3d` und `test_simultan_planung` grün, dieselben Referenzen; das
+Freiformbeispiel findet denselben Gewinner mit denselben Zahlen, deutlich schneller.
+
+### DONE
+- Freiformbeispiel (24 Arbeiter): **376 → 243 s**; `rechne` 181 → 57 s (7 Aufrufe), Prüfstand
+  48 → 41 s. Derselbe Gewinner, 317,90 s, Rest 0,01694 mm. Kuppel: 18 statt 20 s.
+- Was bleibt: `deckung` 59 s (6 Aufrufe, auf den Arbeitern), Prüfstand 41 s (davon 36 s
+  Vernetzen in OpenCascade, zweimal), Kollision 20 s, `fahren` 27 s in einem Prozess, Normalen
+  15 s, Einschnitt 9 s.
+
 ## P-2026-10-10-28 netzschranke-feinschliff-und-freiform-phasen
 
 ### EINGELESEN
