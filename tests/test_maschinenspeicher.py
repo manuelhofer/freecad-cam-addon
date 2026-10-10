@@ -138,6 +138,21 @@ rw.merke_maschine(job, dreh)  # die Datei ist offen – die Drehmaschine von obe
 pruefe(ms.finde(ms.laden(liste), dreh) is not None, "merke_maschine nimmt sie nicht auf")
 pruefe(getattr(job, rw.EIGENSCHAFT_MASCHINE, "") == dreh, "am Job nicht gemerkt")
 
+# Verschwundene Dateien aus dem temporären Ordner (P-2026-10-10-04): aufraeumen() nimmt sie aus
+# der Liste; eine fehlende Datei anderswo bleibt – dort hat „Suchen …“ Sinn.
+im_tmp = os.path.join(tempfile.gettempdir(), "camaddon_probe_weg", "weg.FCStd")
+woanders = os.path.join(FreeCAD.getUserAppDataDir(), "camaddon_probe_weg.FCStd")
+pruefe(ms.fluechtig(im_tmp) and not ms.fluechtig(woanders), "fluechtig erkennt den Ordner nicht")
+eintraege = ms.laden(liste)
+eintraege.append(ms.Eintrag(name="Weg (tmp)", datei=im_tmp))
+eintraege.append(ms.Eintrag(name="Weg (woanders)", datei=woanders))
+ms.speichern(eintraege, liste)
+weg = ms.aufraeumen(liste)
+pruefe([e.name for e in weg] == ["Weg (tmp)"], f"aufraeumen: {[e.name for e in weg]}")
+namen = [e.name for e in ms.laden(liste)]
+pruefe("Weg (tmp)" not in namen and "Weg (woanders)" in namen, "aufraeumen nahm das Falsche")
+pruefe(ms.aufraeumen(liste) == [], "aufraeumen nicht idempotent")
+
 shutil.rmtree(ordner, ignore_errors=True)
 if fehler:
     raise AssertionError("\n".join(fehler))

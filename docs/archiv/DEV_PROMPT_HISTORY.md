@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-04 maschinenliste-ohne-fluechtige-dateien
+
+### EINGELESEN
+- Manuel, 2026-10-10, Screenshot aus „Bearbeitung“: „GROB G550 … (Datei nicht gefunden)“ mit rotem
+  Hinweis – „die datei der maschine liegt da nicht mehr ??? warum steht die maschine dann in der
+  liste“. Seine `maschinen.json` zeigte auf `/tmp/camaddon-grob-simultan/grob_g550.FCStd`: eine
+  Beispielmaschine, die ein früheres Skript im temporären Ordner gespeichert hatte; der
+  Beobachter (W-011) nahm sie beim Speichern in die Liste, der Neustart leerte /tmp. Im Repo
+  schreibt nichts dorthin – der Eintrag war ein Überbleibsel, aber die Liste hielt ihn mit
+  „Suchen …“ fest, wo es nichts zu suchen gibt.
+- Dazu sein Grundsatz (gleicher Tag, zu „Ebene schwenken“): ein Knopf, mit dem man im Flow
+  weitermacht – hier: wiederfinden oder streichen, ohne erst „Maschinen …“ zu öffnen.
+
+### DATEIEN
+- `camaddon/maschinenspeicher.py` (`fluechtig`, `aufraeumen`), `camaddon/gui_maschinen.py`
+  (räumt beim Füllen auf), `camaddon/gui_bearbeitung.py` (räumt auf; unter dem roten Hinweis
+  „Suchen …“ und „Aus der Liste nehmen“: `maschine_suchen`, `maschine_entfernen`),
+  `translations/de.json`, `translations/en.json` (`ba.maschine.nicht_gefunden`,
+  `ba.maschine.entfernen*`, `ms.fluechtig_weg`), `help/de|en/bearbeitung.html`,
+  `help/de|en/maschinen.html`, `tests/test_maschinenspeicher.py`.
+
+### AKZEPTANZKRITERIUM
+Ein Eintrag, dessen Datei im temporären Ordner lag und weg ist, verschwindet beim nächsten Öffnen
+von „Maschinen …“ oder „Bearbeitung“ aus der Liste, die Konsole sagt es. Ein Eintrag, dessen Datei
+anderswo fehlt, steht rot in „Bearbeitung“ mit „Suchen …“ und „Aus der Liste nehmen“ darunter.
+
+### DONE
+- Nur die flüchtigen fliegen von selbst: `tempfile.gettempdir()` als Maßstab (Windows-Laufwerke
+  abgefangen). Die Szenarien speichern ihre Maschinen auch unter /tmp – solange die Datei da ist,
+  bleibt der Eintrag; nur „weg und flüchtig“ wird gestrichen.
+- Prüfungen: `test_maschinenspeicher` mit dem neuen Block; `szenario_bearbeitung_maschine` (28 s)
+  und `szenario_maschine_merken` (26 s) grün.
+
 ## P-2026-10-10-03 aufloesung-ueberall
 
 ### EINGELESEN

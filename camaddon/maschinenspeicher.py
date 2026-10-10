@@ -21,6 +21,7 @@ Läuft ohne Oberfläche.
 
 import json
 import os
+import tempfile
 from dataclasses import asdict, dataclass, field
 
 import FreeCAD
@@ -198,6 +199,33 @@ def merken_datei(datei, pfad=None):
         if gleiche_datei(dokument.FileName, datei):
             return merken_dokument(dokument, pfad)
     return []
+
+
+def fluechtig(datei):
+    """Liegt die Datei im temporären Ordner des Systems – den das System leert?"""
+    if not datei:
+        return False
+    try:
+        ordner = os.path.realpath(tempfile.gettempdir())
+        return os.path.commonpath([ordner, os.path.realpath(datei)]) == ordner
+    except ValueError:  # andere Laufwerke (Windows)
+        return False
+
+
+def aufraeumen(pfad=None):
+    """Nimmt die Einträge aus der Liste, deren Datei im temporären Ordner lag und weg ist –
+    von dort kommt sie nicht wieder, „Suchen …“ hätte keinen Sinn (Manuel, 2026-10-10: eine
+    Beispielmaschine aus /tmp stand mit „nicht gefunden“ in der Liste). Gibt [Eintrag] zurück,
+    die weg sind; die Konsole sagt es je Maschine."""
+    eintraege = laden(pfad)
+    weg = [e for e in eintraege if not e.vorhanden and fluechtig(e.datei)]
+    if weg:
+        speichern([e for e in eintraege if e not in weg], pfad)
+        for eintrag in weg:
+            FreeCAD.Console.PrintWarning(
+                tr("ms.fluechtig_weg", name=eintrag.name, datei=eintrag.datei) + "\n"
+            )
+    return weg
 
 
 def entfernen(datei, pfad=None):

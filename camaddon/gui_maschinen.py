@@ -144,6 +144,7 @@ class MaschinenDialog(QtGui.QDialog):
         bleibt die gewählte."""
         if auswahl is None and self.gewaehlter() is not None:
             auswahl = self.gewaehlter().datei
+        ms.aufraeumen(self.pfad)  # verschwundene Dateien aus dem temporären Ordner
         self.eintraege = ms.laden(self.pfad)
         self.tabelle.setRowCount(len(self.eintraege))
         for zeile, eintrag in enumerate(self.eintraege):

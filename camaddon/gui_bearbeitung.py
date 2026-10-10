@@ -18,6 +18,7 @@ _Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; 
 import contextlib
 import html
 import math
+import os
 from collections import OrderedDict
 
 import FreeCAD
@@ -3625,6 +3626,24 @@ class BearbeitungPanel:
         oben.reihe(tr("ba.maschine"), tr("ba.maschine.tooltip"), zeile)
         self.maschine_hinweis = _grau()
         oben.ganz(self.maschine_hinweis)
+        # Liegt die Datei nicht mehr dort: gleich hier weiter – wiederfinden oder aus der Liste
+        # nehmen, statt über „Maschinen …“ (Manuel, 2026-10-10: im Flow bleiben).
+        self.maschine_knoepfe = QtGui.QWidget()
+        reihe = QtGui.QHBoxLayout(self.maschine_knoepfe)
+        reihe.setContentsMargins(0, 0, 0, 0)
+        self.knopf_maschine_suchen = knopf(
+            tr("ms.suchen"), tr("ms.suchen.tooltip"), self.maschine_suchen
+        )
+        self.knopf_maschine_entfernen = knopf(
+            tr("ba.maschine.entfernen"),
+            tr("ba.maschine.entfernen.tooltip"),
+            self.maschine_entfernen,
+        )
+        reihe.addWidget(self.knopf_maschine_suchen)
+        reihe.addWidget(self.knopf_maschine_entfernen)
+        reihe.addStretch()
+        oben.ganz(self.maschine_knoepfe)
+        self.maschine_knoepfe.hide()
         # Drehmaschine oder 4-Achs-Fräse: Das Rohteil ist eine Stange (W-011 S3) – weiter im
         # 4-Achs-Assistenten, mit Teil, Fläche und Maschine.
         self.knopf_vierachs = knopf(
@@ -4283,6 +4302,7 @@ class BearbeitungPanel:
         Datei; "" heißt keine), ohne die des Jobs, sonst die zuletzt benutzte, sonst die
         erste. Ohne Maschine in der Liste steht „keine“ da – der Assistent rechnet dann mit
         einer 3-Achs-Fräse."""
+        msp.aufraeumen()  # verschwundene Dateien aus dem temporären Ordner
         eintraege = msp.laden()
         gewollt = auswahl is not None
         if not gewollt:
@@ -4357,6 +4377,7 @@ class BearbeitungPanel:
         else:
             self.maschine_hinweis.setText("")
         self.maschine_hinweis.setVisible(bool(self.maschine_hinweis.text()))
+        self.maschine_knoepfe.setVisible(eintrag is not None and not eintrag.vorhanden)
         self.knopf_vierachs.setVisible(stange and not self._aufspannung_fest())
         if hasattr(self, "knopf_weiter"):
             self.seite_zeigen(self._seite)  # „Weiter“ geht auf der Drehmaschine nicht
@@ -4411,6 +4432,36 @@ class BearbeitungPanel:
                 gui_vierachs.VierachsPanel(doc, wahl, maschine=maschine)
             ),
         )
+
+    def maschine_suchen(self):
+        """„Suchen …“: die Datei der gewählten Maschine liegt nicht mehr dort – die neue wählen,
+        der Eintrag zieht mit (wie in „Maschinen …“)."""
+        from . import gui_maschinen
+
+        eintrag = self.maschine()
+        if eintrag is None:
+            return
+        datei = gui_maschinen.datei_waehlen(self.form, os.path.dirname(eintrag.datei))
+        if not datei:
+            return
+        try:
+            gefunden = gui_maschinen.einlesen(datei)
+        except Exception as fehler:  # keine FreeCAD-Datei, kaputt: sagen statt still scheitern
+            QtGui.QMessageBox.warning(
+                self.form, tr("ba.titel"), tr("ms.datei_fehler", datei=datei, fehler=fehler)
+            )
+            return
+        if gefunden and not msp.gleiche_datei(datei, eintrag.datei):
+            msp.entfernen(eintrag.datei)
+        self._maschinen_fuellen(gefunden[0].datei if gefunden else eintrag.datei)
+
+    def maschine_entfernen(self):
+        """„Aus der Liste nehmen“: der Eintrag ohne Datei verschwindet; eine Datei bleibt."""
+        eintrag = self.maschine()
+        if eintrag is None:
+            return
+        msp.entfernen(eintrag.datei)
+        self._maschinen_fuellen("")
 
     def maschinen_oeffnen(self):
         """„Maschinen …“: die Liste zum Hinzufügen und Bauen; danach ist die Wahl neu gefüllt."""
