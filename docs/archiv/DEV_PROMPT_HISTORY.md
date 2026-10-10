@@ -12,6 +12,94 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-22 keine-richtungswarnung-bei-simultanbahnen
+
+### EINGELESEN
+- B-015, zweiter Teil: „Auf der Maschine prüfen“ meldete an der flachen Tasche „Die Bahn ist für
+  ein Werkzeug längs Z gerechnet, T5 sitzt auf Spindel aber quer dazu“, obwohl die Flanke je Satz
+  ihre eigene Werkzeugachse hat und die Richtung der Aufnahme in Grundstellung dafür nichts sagt.
+
+### DATEIEN
+- `camaddon/reichweite.py` (`_simultan(op)`; der Hinweis `rw.werkzeug_quer` nicht für Operationen
+  mit eigener Werkzeugachse je Satz).
+
+### AKZEPTANZKRITERIUM
+`pruefe_job` an der flachen Tasche auf der G550: kein Hinweis „quer dazu“ für „Flanke T5“.
+
+### DONE
+- Nichts weiter.
+
+## P-2026-10-10-21 verwaiste-klone-nach-undo
+
+### EINGELESEN
+- B-016 (P-2026-10-08-07): Nach dem Rückgängig eines geschwenkten Ebenenjobs blieb `Clone002`
+  (sein Rohteilklon) ohne Job im Dokument. Kopflos tritt es nicht auf; in der Oberfläche in sechs
+  Experimenten eingegrenzt: Nicht Neuberechnen, nicht `Draft.clone`, nicht das Öffnen und
+  Schließen eines Dokuments – **das Anlegen eines Werkzeug-Controllers** (`Path.Tool.Controller.Create`,
+  das `Path.Main.Job.Create` immer tut) schließt die laufende Transaktion; alles danach kennt das
+  Rückgängig nicht. Eine Transaktion auf Anwendungsebene (`App.setActiveTransaction`) und eine
+  Job-Vorlage ohne Werkzeug ändern nichts. Das ist ein Fehler in FreeCAD (T-010 im Snapshot).
+
+### DATEIEN
+- `camaddon/aufraeumen.py` (neu: `verwaiste`, `aufraeumen`, Beobachter – nach einem Rückgängig
+  merkt er sich das Dokument, nach dem Abschluss der nächsten Transaktion, wenn kein Wiederholen
+  mehr möglich ist, entfernt er Klone mit `PathResource`, die nichts mehr verwendet),
+  `camaddon/gui_start.py` (anmelden), `tests/gui/szenario_werkzeugzugang.py` (nach dem
+  Rückgängig und einer weiteren Transaktion kein verwaister Klon).
+
+### AKZEPTANZKRITERIUM
+Ebene schwenken, Strg+Z, irgendetwas anderes tun: Der Klon ist weg, der Baum sauber.
+
+### DONE
+- Nicht sofort beim Rückgängig gelöscht: Ein Wiederholen stellte den Job mit Verweis auf den
+  gelöschten Klon wieder her. Darum erst, wenn der Wiederholen-Stapel leer ist.
+- Szenario `szenario_werkzeugzugang` grün (mit der neuen Prüfung).
+
+## P-2026-10-10-19 simultan-rueckzug-bis-an-die-achsgrenze
+
+### EINGELESEN
+- B-015 an der G550 (Spezifikation G550, P-2026-10-06-05): Mit dem Teil flach auf dem Rundtisch
+  trafen auf der Rückfahrt Spindel und Z-Schlitten den Rundtisch und die Wiege. Manuel, 2026-10-10:
+  „das mit der g550 ... keine ahnung fahr so das nichts kolidiert ???“.
+- Nachgestellt kopflos (Tasche mit 10°-Wänden flach auf der G550, Flanke, `kollision_parallel`):
+  drei Berührungen in Satz 247 – Rückzug auf Z 58 (Schwenkhöhe über dem Rohteil), dann der
+  Schwenk von A 80° auf 0 mit der Spindel 58 mm über dem Teil. Die Schwenkhöhe
+  (`schwenken.schwenkhoehe`) sieht nur das Rohteil, nicht Tisch und Wiege.
+
+### DATEIEN
+- `camaddon/simultan.py` (`rueckzug_z`: vor jedem Schwenk bis an die Grenze der Linearachse, die
+  das Werkzeug vom Werkstück wegführt – aus `pruefung.loeser` und `verfahren.grenzen` –,
+  mindestens die Schwenkhöhe; in `befehle_auf_maschine` und `befehle_mit_tcpm`).
+
+### AKZEPTANZKRITERIUM
+Dieselbe flache Tasche: Rückzug auf Z 408 (Grenze −1 mm), der Schwenk am Ende ohne Berührung.
+
+### DONE
+- Mit Rückzug 150 blieb eine Berührung, mit 300 keine, mit 408 eine neue am Anfang (Rundtisch
+  gegen Bett) – die lag am groben Maschinenmodell, nicht am Kern: P-2026-10-10-20 baut die G550
+  neu. Die Referenzen des Simultanvergleichs (Kuppel, Folge, Freiform-NC) ändern sich durch den
+  höheren Rückzug; neu geschrieben in P-2026-10-10-20 zusammen mit der neuen Maschine.
+
+## P-2026-10-10-18 goldene-bahnen-neu
+
+### EINGELESEN
+- Manuel, 2026-10-10: „gernerell solltest du alle offenen fehler abarbeiten ... arbeite durch“. Die
+  Prüfdatei `test_goldene_bahnen` war rot (Snapshot, Befund P-2026-10-09-11): `welle_schruppen`
+  5584 → 508 Punkte und `welle_absatz_schruppen` 23064 → 1690 seit P-2026-10-09-02 (Rundum
+  schruppen mit langen Sätzen: gleiche Bahn, weniger Punkte); `welle_absatz_schlichten` ein Wert um
+  4 · 10⁻⁶ (Rechenrauschen der exakteren Hüllfläche, wie P-2026-10-09-13 an der Freiform);
+  `welle_absatz_schlichten_linien` 12027 → 12040 Punkte (die exaktere Hüllfläche, P-2026-10-09-11).
+
+### DATEIEN
+- `tests/golden/welle_schruppen.json`, `welle_absatz_schruppen.json`, `welle_absatz_schlichten.json`,
+  `welle_absatz_schlichten_linien.json` (mit `GOLDENE_BAHNEN_SCHREIBEN=1` neu geschrieben).
+
+### AKZEPTANZKRITERIUM
+`test_goldene_bahnen` grün.
+
+### DONE
+- Nichts an der Rechnung geändert; die Referenzen folgen den vier dokumentierten Patches.
+
 ## P-2026-10-10-17 werkzeugkiste-import-hinweise-kennzeichnende-masse
 
 ### EINGELESEN
