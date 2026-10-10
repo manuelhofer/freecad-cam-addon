@@ -22,6 +22,7 @@ import Part
 from Path.Tool.camassets import user_asset_store
 
 from camaddon import abfahren as ab
+from camaddon import aufloesung as au
 from camaddon import beispielmaschine, sprache
 from camaddon import flanke as flop
 from camaddon import flanke_bahn as fb
@@ -212,6 +213,22 @@ tc = js.controller_ohne_transaktion(doc, job, t5, t5.schnittwerte[wz.ALLE][0])
 doc.recompute()
 op = flop.lege_an(job, tc, flaechen=namen_a)
 doc.recompute()
+# Die Auflösung (T-009, aufloesung.py): Eigenschaft `Raster` da (0 = Vorschlag); gesetzt rechnet
+# die Operation damit eine andere Bahn, 0 wieder genau die bisherige.
+
+
+def _raster_bahn():
+    return [(c.Name, tuple(sorted(c.Parameters.items()))) for c in op.Path.Commands]
+
+
+_raster_vorgabe = _raster_bahn()
+assert au.EIGENSCHAFT in op.PropertiesList and float(op.Raster) == 0.0, "Raster fehlt"
+au.setze(op, 0.6)
+doc.recompute()
+assert _raster_bahn() != _raster_vorgabe, "das Raster ändert die Bahn nicht"
+au.setze(op, 0)
+doc.recompute()
+assert _raster_bahn() == _raster_vorgabe, "Raster 0 ist nicht die Vorgabe"
 pruefe(op.Label == "Flanke T5", f"Name {op.Label}")
 pruefe(op.Umlaeufe == 1 and op.Lagen == 1, f"Umläufe {op.Umlaeufe}, Lagen {op.Lagen}")
 pruefe(abs(float(op.Schneide) - 30.0) < 1e-6, f"Schneide {op.Schneide}")

@@ -801,6 +801,11 @@ class VierachsPanel:
                 self._feld("aufloesung").setText(groesse_zeigen(laengs, einheiten.LAENGE))
             if grad > 0:
                 self._feld("aufloesung_rundum").setText(zahl_zeigen(grad))
+        elif self._art in (PLAN, ENTGRATEN):
+            mm = au.wert(op, 0.0)
+            if mm > 0:
+                feld = "aufloesung_plan" if self._art == PLAN else "aufloesung_entgraten"
+                self._feld(feld).setText(groesse_zeigen(mm, einheiten.LAENGE))
         self.gewaehlte = list(vo.flaechen(op))
         self._flaechen_zeigen()
         for feld, wert in paare:
@@ -1365,6 +1370,19 @@ class VierachsPanel:
             ("aufmass_plan", tr("va.aufmass_plan"), tr("va.aufmass_plan.tooltip")),
         ):
             zahlenfeld(self.felder_plan, feld, text, tooltip, plan)
+        zahlenfeld(  # die Auflösung (T-009): so fein wird das Teil vernetzt, leer der Vorschlag
+            self.felder_plan,
+            "aufloesung_plan",
+            tr("va.aufloesung_netz"),
+            tr(
+                "va.aufloesung_netz.tooltip",
+                vorschlag=groesse_zeigen(vp.TOLERANZ, einheiten.LAENGE),
+            ),
+            plan,
+        )
+        self.felder_plan["aufloesung_plan"].setPlaceholderText(
+            groesse_zeigen(vp.TOLERANZ, einheiten.LAENGE)
+        )
         # Die Zeilen nur im Gleichlauf: jede von vorne zum Futter, dazwischen abheben
         # (P-2026-10-02-24, Manuel: „auswählbar, ob er abhebt und wieder von vorne anfängt“).
         self.plan_nur_gleichlauf = QtGui.QCheckBox(tr("ba.nur_gleichlauf"))
@@ -1406,6 +1424,19 @@ class VierachsPanel:
         self.felder_entgraten = {}
         zahlenfeld(
             self.felder_entgraten, "breite", tr("va.breite"), tr("va.breite.tooltip"), entgraten
+        )
+        zahlenfeld(  # die Auflösung (T-009): der Schritt auf der Kante, leer der Vorschlag
+            self.felder_entgraten,
+            "aufloesung_entgraten",
+            tr("va.aufloesung_kante"),
+            tr(
+                "va.aufloesung_kante.tooltip",
+                vorschlag=groesse_zeigen(vent.ve.SCHRITT, einheiten.LAENGE),
+            ),
+            entgraten,
+        )
+        self.felder_entgraten["aufloesung_entgraten"].setPlaceholderText(
+            groesse_zeigen(vent.ve.SCHRITT, einheiten.LAENGE)
         )
         self.entgratfelder = entgraten.widget
         aufbau.addWidget(self.entgratfelder)
@@ -3124,6 +3155,10 @@ class VierachsPanel:
             return vh.SCHRITT_PHI
         if feld == "aufloesung_schlichten":
             return vb.SCHRITT_PHI_SCHLICHTEN
+        if feld == "aufloesung_plan":
+            return vp.TOLERANZ
+        if feld == "aufloesung_entgraten":
+            return vent.ve.SCHRITT
         if feld in ("ueberlauf", "abstand_futter", "sicherheit"):
             radius = self.fraeser().durchmesser / 2 if self.fraeser() is not None else 0.0
             ueberlauf, abstand, sicherheit = vo.vorgeschlagene_abstaende(radius, self.job)
@@ -3153,7 +3188,7 @@ class VierachsPanel:
         if not text.strip():
             return 0.0
         try:
-            if feld == "aufloesung":
+            if feld in ("aufloesung", "aufloesung_plan", "aufloesung_entgraten"):
                 return max(0.0, groesse_lesen(text, einheiten.LAENGE))
             return max(0.0, zahl_lesen(text))
         except ValueError:
@@ -3963,6 +3998,7 @@ class VierachsPanel:
                             flaechen=plan_flaechen,
                             eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
                             nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
+                            raster=self._aufloesung("aufloesung_plan"),
                         )
                     )
                     if loecher:
@@ -3986,6 +4022,7 @@ class VierachsPanel:
                             abstaende=entgrat_abstaende,
                             halter=self._halter_fuer(self.entgratfraeser()),
                             flaechen=flaechen,
+                            raster=self._aufloesung("aufloesung_entgraten"),
                         )
                     )
                 self.doc.recompute()
@@ -4085,6 +4122,7 @@ class VierachsPanel:
                         flaechen,
                         self._eintauchwinkel_fuer(self.planfraeser()),
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
+                        raster=self._aufloesung("aufloesung_plan"),
                     )
                 elif self._art == ENTGRATEN:
                     tc = js.controller_fuer(
@@ -4103,6 +4141,7 @@ class VierachsPanel:
                         entgrat_abstaende,
                         self._halter_fuer(self.entgratfraeser()),
                         flaechen,
+                        raster=self._aufloesung("aufloesung_entgraten"),
                     )
                 else:
                     tc = js.controller_fuer(
@@ -4178,6 +4217,7 @@ class VierachsPanel:
                         flaechen=plan_flaechen,
                         eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
+                        raster=self._aufloesung("aufloesung_plan"),
                     )
                     if loecher:
                         self._bohrer_dazu_anlegen(self.achse(), op.QuerAufNull, loecher)
@@ -4199,6 +4239,7 @@ class VierachsPanel:
                         abstaende=entgrat_abstaende,
                         halter=self._halter_fuer(self.entgratfraeser()),
                         flaechen=flaechen,
+                        raster=self._aufloesung("aufloesung_entgraten"),
                     )
                 self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)

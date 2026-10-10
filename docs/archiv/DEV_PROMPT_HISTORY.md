@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-03 aufloesung-ueberall
+
+### EINGELESEN
+- Manuel, 2026-10-10, zu Frage 1 aus `docs/OFFENE_FRAGEN.md`: „ich würde es überall einbauen …
+  wenn jemand ein sehr exaktes teil braucht sollte er die auflösung auf eine sehr genaue
+  einstellung stellen können … ambesten mit erklärung und beispiel ‚eine auflösung von 0.02 bringt
+  dir … allerdings must du mit einer rechenzeit von 4 stunden rechnen … und effektiv hast du
+  keinerlei nutzen‘“. Dazu Frage 2: „erst werkzeugkiste import das dauert ja nicht lang“; Frage 3:
+  „generell sollte alles so gebaut werden das kein lag entsteht !!!“; und die Frage, ob die 24
+  Arbeiter an seinen Rechner gebunden sind und ob eine GPU etwas brächte.
+- Wo der Schritt saß: Plan indexiert vernetzt das Teil mit `vierachs_planbahn.TOLERANZ` (0,005 mm,
+  Parameter `toleranz` von `bahn_fuer`); Rundum entgraten setzt die Punkte alle
+  `vierachs_entgratbahn.SCHRITT` (0,25 mm, Parameter `schritt`); Entgraten 3D die Stellen alle
+  `entgrat3d_bahn.SCHRITT` (0,5 mm) und tastet das Teil alle `PUNKTABSTAND` (0,25 mm) ab –
+  `planen` nahm beides, `bahn_fuer` reichte nichts durch; die Flanke nahm `flanke_bahn.SCHRITT`
+  (0,2 mm) als Modulkonstante in `_punkte_der_kante` und `_grenze`.
+- Gemessen für das Beispiel in der Erklärung: 3D-Schruppen am Freiformbeispiel mit Raster
+  1 / 0,5 / 0,25 mm: 2,5 / 3,0 / 6,5 s (3160 / 3347 / 3418 Sätze, Pool auf 24 Threads);
+  3D-Schlichten an der Kuppel 0,4 … 0,05 mm längs der Zeile: alles um eine Sekunde (die Zeilen
+  zählt die Grathöhe, nicht das Raster).
+
+### DATEIEN
+- `camaddon/vierachs_plan.py` (Eigenschaft `Raster`, `rechne` mit `toleranz`, `lege_an`/`aendere`
+  mit `raster`), `camaddon/vierachs_entgraten.py` (`Raster`, `rechne` mit `schritt`, `lege_an`/
+  `aendere` mit `raster`), `camaddon/entgraten3d.py` (`Raster`, `bahn_fuer(…, schritt)`, Abtastung
+  halb so fein), `camaddon/flanke.py` und `camaddon/flanke_bahn.py` (`Raster`,
+  `Flankenwerte.schritt`), `camaddon/gui_bearbeitung.py` (Feld bei Entgraten 3D und Flanke, je
+  Strategie der Schlüssel ihrer Erklärung), `camaddon/gui_vierachs.py` (Feld „Auflösung“ bei Plan
+  indexiert und Rundum entgraten: Vorschlag, Lesen, Laden, Anlegen, Ändern), `translations/de.json`,
+  `translations/en.json` (`ba.aufloesung.kante.tooltip`, `va.aufloesung_netz*`,
+  `va.aufloesung_kante*`; alle Auflösungs-Erklärungen mit Beispiel), `help/de|en/bearbeitung.html`,
+  `help/de|en/vierachs.html`, `tests/test_entgraten3d.py`, `tests/test_flanke.py`,
+  `tests/test_vierachs_plan.py`, `tests/test_vierachs_entgraten.py` (Raster da, gesetzt eine andere
+  Bahn, 0 die Vorgabe), `docs/OFFENE_FRAGEN.md` (Fragen 1–3 beantwortet, raus),
+  `docs/arbeitsregeln.md` (Abschnitt 7: kein Lag), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.208.0).
+
+### AKZEPTANZKRITERIUM
+„Bearbeitung“: Entgraten 3D und Flanke zeigen „Auflösung“ (grau 0,5 bzw. 0,2 mm); 4-Achs-Assistent:
+Plan indexiert und Rundum entgraten zeigen „Auflösung“ (grau 0,005 bzw. 0,25 mm). Jeder Tooltip
+sagt, was das Raster ist, wie die Rechenzeit damit wächst, und bringt ein Beispiel, bei dem feiner
+nichts mehr bringt. Ein Eintrag landet als `Raster` an der Operation und ändert ihre Bahn; leer
+bleibt alles wie bisher.
+
+### DONE
+- Plan indexiert: das Raster ist die Netzfeinheit (höchstens so weit weicht das Netz von der Fläche
+  ab) – ebene Flächen sind im Netz exakt, der Wert bestimmt, wie genau die Zeilen vor Wänden enden.
+  Der Tooltip sagt das (eigener Schlüssel `va.aufloesung_netz`).
+- Entgraten 3D: ein Wert, zwei Wirkungen – der Schritt auf der Kante und die Abtastung des Teils
+  halb so fein (0,25 zu 0,5 wie bisher), damit „gröber“ auch wirklich schneller ist.
+- Die Erklärungen: Raster halb so grob = bis zu viermal so viel Rechnung (beide Richtungen),
+  gemessen 3 → 6,5 s; Kante halb so grob = doppelt; 0,02 mm als Beispiel ohne Nutzen (Bogen R 10:
+  drei Tausendstel schon bei 0,5 mm). Keine Vier-Stunden-Zahl erfunden: „aus Sekunden Stunden“.
+- Fragen 2 und 3 geschlossen: Reihenfolge erst T-007, dann Rechenhebel; „kein Lag“ als Regel in
+  Abschnitt 7. GPU verworfen (Snapshot): OpenCascade rechnet nur auf der CPU, der numpy-Anteil
+  läuft auf allen Kernen, je Hersteller bräuchte FreeCADs Python einen eigenen Treiberstapel.
+- Die Arbeiterzahl: `nebenrechner.anzahl_kerne()` ist `os.cpu_count()` des Rechners, auf dem
+  FreeCAD läuft – sechs Kerne, sechs Arbeiter; in den Einstellungen änderbar.
+- Prüfungen grün: `test_aufloesung` (4 s), `test_flanke` (18 s), `test_entgraten3d` (38 s),
+  `test_vierachs_plan` (5 s), `test_vierachs_entgraten` (2 s) – je mit dem neuen Raster-Block.
+
 ## P-2026-10-10-02 offene-fragen-im-repo
 
 ### EINGELESEN

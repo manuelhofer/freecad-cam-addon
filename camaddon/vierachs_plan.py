@@ -26,6 +26,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import namen
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -67,6 +68,7 @@ class PlanIndexiert(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, vo.GRUPPE)  # die Auflösung: so fein wird das Teil vernetzt (mm), T-009
         return vo.eigenschaften_anlegen(
             obj,
             vo.achs_eigenschaften()
@@ -147,6 +149,7 @@ def rechne(obj, job, modell):
         vo.halter_zum_futter(obj),
         vo.flaechen(obj),
         float(obj.Eintauchwinkel),
+        toleranz=au.wert(obj, vp.TOLERANZ),
         bohrer=bohrer,
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
@@ -319,12 +322,14 @@ def lege_an(
     flaechen=(),
     eintauchwinkel=None,
     nur_gleichlauf=False,
+    raster=0.0,
 ):
     """Legt „Plan indexiert“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand) – ohne: die Vorschläge; `halter`: so weit reicht der Halter
     seitlich über die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen
-    („Face3“ …); `eintauchwinkel`: Grad, ohne der Vorschlag. Gibt die Operation zurück.
+    („Face3“ …); `eintauchwinkel`: Grad, ohne der Vorschlag; `raster`: die Auflösung
+    (aufloesung.py, 0: der Vorschlag). Gibt die Operation zurück.
     Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit DoNotSetDefaultValues."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "PlanIndexiert")
@@ -343,6 +348,7 @@ def lege_an(
     obj.Zustellung = zustellung
     obj.Zeilenabstand = zeilenabstand
     obj.Aufmass = aufmass
+    au.setze(obj, raster)
     radius = float(tc.Tool.Diameter) / 2
     obj.Ueberlauf, obj.AbstandFutter, obj.Sicherheitsabstand = (
         abstaende or vo.vorgeschlagene_abstaende(radius, job)
@@ -371,10 +377,11 @@ def aendere(
     flaechen=None,
     eintauchwinkel=None,
     nur_gleichlauf=None,
+    raster=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `abstaende`, `halter`, `flaechen`, `eintauchwinkel` und `nur_gleichlauf` wie
-    bei lege_an, ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist.
+    Transaktion; `abstaende`, `halter`, `flaechen`, `eintauchwinkel`, `nur_gleichlauf` und
+    `raster` wie bei lege_an, ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist.
     """
     if _vorgeschlagener_name(obj.Label):
         obj.Label = namen.eindeutig(obj.Document, _name(tc), obj)
@@ -393,6 +400,8 @@ def aendere(
         obj.Eintauchwinkel = eintauchwinkel
     if nur_gleichlauf is not None:
         obj.NurGleichlauf = bool(nur_gleichlauf)
+    if raster is not None:
+        au.setze(obj, raster)
 
 
 def _name(tc):

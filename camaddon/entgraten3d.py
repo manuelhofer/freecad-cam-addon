@@ -23,6 +23,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import entgrat3d_bahn as e3
 from . import fraeserform as ff
 from . import namen
@@ -67,6 +68,7 @@ class Entgraten3D(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)  # die Auflösung: der Schritt auf der Kante (mm), T-009
         neu = []
         for typ, name, gruppe, text in (
             ("App::PropertyStringList", "Flaechen", GRUPPE, tr("e3.eigenschaft.flaechen")),
@@ -224,6 +226,7 @@ def rechne(obj, job, modell, vorschub=0.0):
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         vorschub=vorschub,
         aufbau=aufbau_von(fraeser, einspannung),
+        schritt=au.wert(obj, e3.SCHRITT),
     )
 
 
@@ -239,9 +242,11 @@ def bahn_fuer(
     gleichlauf=True,
     vorschub=0.0,
     aufbau=None,
+    schritt=e3.SCHRITT,
 ):
     """Die Bahn „Entgraten 3D“ an den Flächen und Kanten `flaechen` des Modells; `aufbau`
-    (entgrat3d_bahn.Aufbau): Schaft und Halter, None ohne. ValueError mit einem Satz, wenn es
+    (entgrat3d_bahn.Aufbau): Schaft und Halter, None ohne; `schritt`: so dicht liegen die
+    Stellen auf der Kante (mm) – das Teil wird um die Kanten halb so fein abgetastet. ValueError mit einem Satz, wenn es
     nicht geht."""
     form_teil = vs._teil(modell)
     if sicher is None:
@@ -256,7 +261,9 @@ def bahn_fuer(
         vorschub=vorschub,
         aufbau=aufbau,
     )
-    return e3.planen(form_teil, list(flaechen), werte)
+    return e3.planen(
+        form_teil, list(flaechen), werte, schritt, schritt * e3.PUNKTABSTAND / e3.SCHRITT
+    )
 
 
 VORSCHAU_SCHRITT = 1.0  # mm – im Assistenten gröber

@@ -21,6 +21,7 @@ import FreeCAD
 import numpy as np
 import Part
 
+from camaddon import aufloesung as au
 from camaddon import fraeserform as ff
 from camaddon import job_schnittwerte as js
 from camaddon import kollision as ko
@@ -319,6 +320,22 @@ stirn_im_job = next(
 
 op = vent.lege_an(job, tc3, achse, breite=0.3, flaechen=[flach_im_job])
 doc.recompute()
+# Die Auflösung (T-009, aufloesung.py): Eigenschaft `Raster` da (0 = Vorschlag); gesetzt rechnet
+# die Operation damit eine andere Bahn, 0 wieder genau die bisherige.
+
+
+def _raster_bahn():
+    return [(c.Name, tuple(sorted(c.Parameters.items()))) for c in op.Path.Commands]
+
+
+_raster_vorgabe = _raster_bahn()
+assert au.EIGENSCHAFT in op.PropertiesList and float(op.Raster) == 0.0, "Raster fehlt"
+au.setze(op, 1.0)
+doc.recompute()
+assert _raster_bahn() != _raster_vorgabe, "das Raster ändert die Bahn nicht"
+au.setze(op, 0)
+doc.recompute()
+assert _raster_bahn() == _raster_vorgabe, "Raster 0 ist nicht die Vorgabe"
 pruefe(op.Label == "Rundum entgraten T3" and op in job.Operations.Group, f"{op.Label}")
 pruefe(vo.ist_rundum(op) and vent.ist_entgraten(op) and not vo.ist_schruppen(op), "Art")
 pruefe(js.operationsart(op) == "vierachs_entgraten", f"Art: {js.operationsart(op)}")

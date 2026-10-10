@@ -30,6 +30,7 @@ import FreeCAD
 import numpy as np
 import Part
 
+from camaddon import aufloesung as au
 from camaddon import entgrat3d_bahn as e3
 from camaddon import sprache
 
@@ -437,6 +438,22 @@ tc = js.controller_ohne_transaktion(doc, job, fase, fase.schnittwerte[wz.ALLE][0
 doc.recompute()
 op = e3op.lege_an(job, tc, flaechen=namen)
 doc.recompute()
+# Die Auflösung (T-009, aufloesung.py): Eigenschaft `Raster` da (0 = Vorschlag); gesetzt rechnet
+# die Operation damit eine andere Bahn, 0 wieder genau die bisherige.
+
+
+def _raster_bahn():
+    return [(c.Name, tuple(sorted(c.Parameters.items()))) for c in op.Path.Commands]
+
+
+_raster_vorgabe = _raster_bahn()
+assert au.EIGENSCHAFT in op.PropertiesList and float(op.Raster) == 0.0, "Raster fehlt"
+au.setze(op, 1.5)
+doc.recompute()
+assert _raster_bahn() != _raster_vorgabe, "das Raster ändert die Bahn nicht"
+au.setze(op, 0)
+doc.recompute()
+assert _raster_bahn() == _raster_vorgabe, "Raster 0 ist nicht die Vorgabe"
 pruefe(op.Label == "Entgraten 3D T3", f"Name {op.Label}")
 # Mit Halter und Spindel bleiben unten am Tisch zwei Kanten ohne Fase (13 statt 15).
 pruefe(op.Kanten >= 12 and len(op.Werkzeugachsen) == len(op.Path.Commands), f"Kanten {op.Kanten}")

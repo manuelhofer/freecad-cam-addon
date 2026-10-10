@@ -480,6 +480,7 @@ class _Strategie:
     bevorzugt = wz.SCHAFTFRAESER  # diese Art vorgewählt, wenn sonst nichts entscheidet
     # mm – das Raster, in dem die Operation ihre Bahn rechnet (aufloesung.py); None: hat keins.
     aufloesung = None
+    aufloesung_tooltip = "ba.aufloesung.tooltip"  # die Erklärung dazu (Kanten: eine eigene)
 
     def titel(self):
         return ""
@@ -1728,6 +1729,8 @@ class _Entgraten3D(_Strategie):
     nimmt_kanten = True
     einsatz_reihenfolge = (wz.FASEN, wz.SCHLICHTEN)
     bevorzugt = wz.FASENFRAESER
+    aufloesung = e3op.e3.SCHRITT  # der Schritt auf der Kante
+    aufloesung_tooltip = "ba.aufloesung.kante.tooltip"
 
     def titel(self):
         return tr("ba.e3")
@@ -2384,6 +2387,8 @@ class _Flanke(_Strategie):
     gemerkt = GEMERKT_FLANKENFRAESER
     einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
     bevorzugt = wz.SCHAFTFRAESER
+    aufloesung = flb.SCHRITT  # der Schritt an gekrümmten Kanten
+    aufloesung_tooltip = "ba.aufloesung.kante.tooltip"
 
     def titel(self):
         return tr("ba.fl")
@@ -2879,7 +2884,7 @@ class _Block:
                 "aufloesung",
                 tr("ba.aufloesung"),
                 tr(
-                    "ba.aufloesung.tooltip",
+                    strategie.aufloesung_tooltip,
                     vorschlag=groesse_zeigen(strategie.aufloesung, einheiten.LAENGE),
                 ),
                 self.reihen,

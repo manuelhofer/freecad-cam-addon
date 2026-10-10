@@ -18,6 +18,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import flanke_bahn as fb
 from . import fraeserform as ff
 from . import namen
@@ -58,6 +59,7 @@ class Flanke(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, GRUPPE)  # die Auflösung: der Schritt an gekrümmten Kanten (mm), T-009
         neu = []
         for typ, name, gruppe, text in (
             ("App::PropertyStringList", "Flaechen", GRUPPE, tr("fl.eigenschaft.flaechen")),
@@ -142,6 +144,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
             vorschub=vorschub,
             eintauchen=eintauchen,
             gleichlauf=sp.fuer_m3(True, obj.ToolController),
+            schritt=au.wert(obj, fb.SCHRITT),
         ),
         schneide,
     )
@@ -173,9 +176,10 @@ def bahn_fuer(
     vorschub=0.0,
     eintauchen=0.0,
     gleichlauf=True,
+    schritt=fb.SCHRITT,
 ):
-    """Die Bahn „Flanke“ an den Wänden `flaechen` des Modells. ValueError mit einem Satz, wenn
-    es nicht geht."""
+    """Die Bahn „Flanke“ an den Wänden `flaechen` des Modells; `schritt`: so dicht liegen die
+    Stellen an gekrümmten Kanten (mm). ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -192,6 +196,7 @@ def bahn_fuer(
         eintauchen=eintauchen,
         sicherheit=sicherheit,
         gleichlauf=gleichlauf,
+        schritt=schritt,
     )
     return fb.planen(form_teil, list(flaechen), werte)
 

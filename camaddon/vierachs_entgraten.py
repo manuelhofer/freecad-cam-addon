@@ -23,6 +23,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import aufloesung as au
 from . import namen
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -65,6 +66,7 @@ class RundumEntgraten(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        au.eigenschaft(obj, vo.GRUPPE)  # die Auflösung: der Schritt auf der Kante (mm), T-009
         return vo.eigenschaften_anlegen(
             obj,
             vo.achs_eigenschaften()
@@ -134,6 +136,7 @@ def rechne(obj, job, modell):
         vo.abstaende(obj),
         vo.halter_zum_futter(obj),
         vo.flaechen(obj),
+        schritt=au.wert(obj, ve.SCHRITT),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
@@ -214,13 +217,15 @@ def lege_an(
     abstaende=None,
     halter=0.0,
     flaechen=(),
+    raster=0.0,
 ):
     """Legt „Rundum entgraten“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand) – ohne: die Vorschläge; `halter`: so weit reicht der Halter
     seitlich über die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen
-    („Face3“ …). Gibt die Operation zurück. Angelegt wie „Rundum schruppen“
-    (vierachs_operation.lege_an), mit DoNotSetDefaultValues."""
+    („Face3“ …); `raster`: die Auflösung (aufloesung.py, 0: der Vorschlag). Gibt die Operation
+    zurück. Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit
+    DoNotSetDefaultValues."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "RundumEntgraten")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -242,6 +247,7 @@ def lege_an(
     )
     obj.HalterZumFutter = halter
     obj.Flaechen = list(flaechen)
+    au.setze(obj, raster)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("ve.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -252,10 +258,10 @@ def lege_an(
     return obj
 
 
-def aendere(obj, tc, breite, abstaende=None, halter=None, flaechen=None):
+def aendere(obj, tc, breite, abstaende=None, halter=None, flaechen=None, raster=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und eine neue Fasenbreite – ohne
-    eigene Transaktion; `abstaende`, `halter` und `flaechen` wie bei lege_an, ohne bleiben
-    sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
+    eigene Transaktion; `abstaende`, `halter`, `flaechen` und `raster` wie bei lege_an, ohne
+    bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = namen.eindeutig(obj.Document, tr("ve.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
@@ -267,6 +273,8 @@ def aendere(obj, tc, breite, abstaende=None, halter=None, flaechen=None):
         obj.HalterZumFutter = halter
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
+    if raster is not None:
+        au.setze(obj, raster)
 
 
 def _vorgeschlagener_name(name):

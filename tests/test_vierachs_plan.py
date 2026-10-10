@@ -21,6 +21,7 @@ import FreeCAD
 import numpy as np
 import Part
 
+from camaddon import aufloesung as au
 from camaddon import fraeserform as ff
 from camaddon import job_schnittwerte as js
 from camaddon import restmaterial as rm
@@ -715,6 +716,21 @@ stirn_im_job = next(
 
 op = vplan.lege_an(job, tc1, achse, zustellung=2.0, zeilenabstand=4.0, flaechen=[flach_im_job])
 doc.recompute()
+# Die Auflösung (T-009, aufloesung.py): Eigenschaft `Raster` da (0 = Vorschlag); gesetzt rechnet
+# die Operation damit, 0 wieder genau die bisherige.
+
+
+def _raster_bahn():
+    return [(c.Name, tuple(sorted(c.Parameters.items()))) for c in op.Path.Commands]
+
+
+_raster_vorgabe = _raster_bahn()
+assert au.EIGENSCHAFT in op.PropertiesList and float(op.Raster) == 0.0, "Raster fehlt"
+au.setze(op, 0.05)
+doc.recompute()
+au.setze(op, 0)
+doc.recompute()
+assert _raster_bahn() == _raster_vorgabe, "Raster 0 ist nicht die Vorgabe"
 pruefe(op.Label == "Plan indexiert T1" and op in job.Operations.Group, f"{op.Label}")
 pruefe(vo.ist_rundum(op) and vplan.ist_plan(op) and not vo.ist_schruppen(op), "Art")
 pruefe(js.operationsart(op) == "vierachs_plan", f"Art: {js.operationsart(op)}")

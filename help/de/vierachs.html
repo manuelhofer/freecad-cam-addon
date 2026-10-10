@@ -329,6 +329,13 @@ Werkzeugverwaltung; <b>Einsatz</b> – vorgewählt „Planen“.</li>
 <li><b>Zustellung je Lage</b> (ap), <b>Zeilenabstand</b> (ae, höchstens so breit
 wie der ebene Teil der Stirn) und <b>Aufmaß</b> – leer gelten die grauen
 Vorschläge aus dem Einsatz.</li>
+<li><b>Auflösung</b> – so fein wird das Teil für die Bahn vernetzt (Vorschlag 0,005 mm:
+höchstens so weit weicht das Netz von der Fläche ab). Die ebenen Flächen sind im Netz exakt;
+der Wert bestimmt, wie genau die Zeilen vor Wänden, Zylindern und Absätzen enden. Feiner
+rechnet länger ohne sichtbaren Gewinn – fünf Tausendstel liegen unter dem, was Fräser und
+Maschine halten –, gröber (0,05 mm) ist eine schnelle Probe, dann kann eine Zeile vor einer
+Wand um bis zu diesen Betrag früher enden. Der Wert steht an der Operation als
+<b>Raster</b>.</li>
 <li><b>nur im Gleichlauf (abheben, von vorne)</b>: aus fährt der Fräser die Zeilen hin
 und her, jede zweite im Gegenlauf. An fährt er jede Zeile von vorne zum Futter, hebt
 am Ende ab und setzt vorne an der nächsten wieder ein; die Zeilen quer nimmt er in
@@ -398,6 +405,11 @@ dass er die Kanten rund bricht, wenn du ihn setzt.</li>
 <li><b>Fasenbreite</b> – so breit wird die Fase an einer rechtwinkligen Kante mit dem
 90°-Fasenfräser (mit ebener Spitze auf der flachen Seite um deren Radius
 breiter), beziehungsweise der Kantenbruch mit der Kugel; leer 0,3 mm.</li>
+<li><b>Auflösung</b> – so dicht liegen die Punkte auf der Kante (Vorschlag 0,25 mm). Halb so
+grob heißt doppelt so viele Punkte und etwa doppelt so lange Rechnung; an einem Bogen R 10
+liegt die Bahn schon mit 0,5 mm Schritt auf drei Tausendstel am Bogen – feiner bringt nur an
+sehr kleinen Rundungen etwas, gröber ist eine schnelle Probe. Der Wert steht an der Operation
+als <b>Raster</b>.</li>
 <li>Was keinen Grat hat, bleibt: Innenkanten, Rundungen, die tangential
 übergehen. Die Stirnen vorne und hinten gibt es im Job noch nicht (das Planen
 und das Abstechen kommen später) – ihre Kanten zählen nicht. Wo der Fräser eine

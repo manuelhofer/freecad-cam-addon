@@ -321,6 +321,12 @@ that at most 0.01 mm remains (at 8.6° and Ø 12 every 1.8 mm).</li>
 <li><b>Stepdown per layer</b> (ap), <b>row spacing</b> (ae, at most as wide as
 the flat part of the tip) and <b>allowance</b> – empty, the grey suggestions
 from the application apply.</li>
+<li><b>Resolution</b> – how finely the part is meshed for the path (proposal 0.005 mm: at most
+this far the mesh deviates from the surface). Flat faces are exact in the mesh; the value
+decides how exactly the rows end before walls, cylinders and steps. Finer computes longer
+without a visible gain – five thousandths are below what cutter and machine hold –, coarser
+(0.05 mm) is a quick trial, a row may then end up to that much earlier before a wall. The
+value is stored on the operation as <b>Raster</b>.</li>
 <li><b>climb milling only (lift, start again)</b>: off, the cutter runs the rows back and
 forth, every other one conventional. On, it runs every row from the front towards the
 chuck, lifts at its end and enters again at the front of the next; it takes the rows
@@ -387,6 +393,10 @@ preselected, it gives speed and feed.</li>
 <li><b>Chamfer width</b> – how wide the chamfer gets at a right-angled edge with
 a 90° chamfer mill (with a flat tip, wider by its radius on the flat side), or
 the edge break with the ball; empty 0.3 mm.</li>
+<li><b>Resolution</b> – how close the points on the edge are (proposal 0.25 mm). Half as
+coarse means twice the points and about twice the computation; on an arc R 10 the path
+already sits within three thousandths of the arc at 0.5 mm – finer only helps on very small
+fillets, coarser is a quick trial. The value is stored on the operation as <b>Raster</b>.</li>
 <li>What has no burr stays: inner edges, fillets that blend tangentially. The
 end faces front and rear do not exist in the job yet (facing and parting come
 later) – their edges do not count. Where the cutter cannot reach an edge (in

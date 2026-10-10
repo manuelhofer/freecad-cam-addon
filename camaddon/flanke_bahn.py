@@ -60,6 +60,7 @@ class Flankenwerte:
     eintauchen: float = 0.0
     sicherheit: float = SICHERHEIT
     gleichlauf: bool = True
+    schritt: float = SCHRITT  # so dicht liegen die Stellen an gekrümmten Kanten (T-009)
 
 
 @dataclass
@@ -273,15 +274,15 @@ def zuege(form, namen, genau=1e-3):
     return ergebnis
 
 
-def _punkte_der_kante(form, kante, name, umgedreht):
+def _punkte_der_kante(form, kante, name, umgedreht, schritt=SCHRITT):
     """[Punkt] entlang der Kante in Fahrrichtung: an einer geraden Kante einer Ebene alle
     SCHRITT_EBEN (die Achse bleibt dort; wo eine Innenecke beginnt, sucht _grenze genauer), sonst
-    alle SCHRITT."""
+    alle `schritt`."""
     import Part
 
     flaeche = form.getElement(name)
     eben = _eben(flaeche) and isinstance(kante.Curve, Part.Line)
-    anzahl = max(1, int(math.ceil(kante.Length / (SCHRITT_EBEN if eben else SCHRITT))))
+    anzahl = max(1, int(math.ceil(kante.Length / (SCHRITT_EBEN if eben else schritt))))
     punkte = kante.discretize(Number=anzahl + 1)
     return list(reversed(punkte)) if umgedreht else punkte
 
@@ -314,7 +315,7 @@ def _stellen_des_zugs(form, zug, w):
     stuecke, stueck = [], []
     for kante, name, umgedreht in zug:
         flaeche = form.getElement(name)
-        for punkt in _punkte_der_kante(form, kante, name, umgedreht):
+        for punkt in _punkte_der_kante(form, kante, name, umgedreht, w.schritt):
             stelle = _stelle(form, flaeche, punkt, w)
             if stelle is None:
                 continue
@@ -429,7 +430,7 @@ def _grenze(form, a, b, a_geht, lage, hoehe, w, schritte=12):
     """(Spitze, Achse, Normale) der letzten Stelle zwischen `a` und `b` (Stellen), an der der
     Fräser noch nicht ins Teil schneidet – halbiert auf der Geraden zwischen ihren Füßen; None,
     wenn sie zu nah beieinander liegen."""
-    if (a[3] - b[3]).Length <= SCHRITT * 1.01:
+    if (a[3] - b[3]).Length <= w.schritt * 1.01:
         return None
     gut, schlecht = (a, b) if a_geht else (b, a)
     for _ in range(schritte):

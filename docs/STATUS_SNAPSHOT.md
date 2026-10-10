@@ -611,13 +611,18 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   letzten 10 % der Stationen ein Viertel der Zeit). **Vorschau des 4-Achs-Assistenten im
   Hintergrund (P-2026-10-09-09):** je Bearbeitung ein Auftrag, das Fenster bleibt bedienbar
   (Manuel, 2026-10-09: der „Lag“ beim Ändern der seitlichen Zustellung) – ob es sich so anfühlt,
-  prüft Manuel (Frage 3 in [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md)). **Prüfungen eingedampft (P-2026-10-09-10):** `test_simultan_planung` und
+  prüft Manuel; seine Regel dazu (2026-10-10): generell nichts bauen, was laggt – Arbeitsregeln,
+  Abschnitt 7. **Prüfungen eingedampft (P-2026-10-09-10):** `test_simultan_planung` und
   `test_simultan_gesamt` an der Kuppel in je unter drei Minuten (vorher 30 und 70 min). **Hüllfläche in Blöcken und auf allen Kernen
   (P-2026-10-09-11):** der Kuppelvergleich (eine Variante) 131 → 44 s. **Normalen, Kugelschnitt und
   Deckung in Stücken (P-2026-10-09-12):** der Kuppelvergleich 44 → 23 s, `test_simultan_planung`
   36 s. Am Freiformbeispiel eine Variante 670 → 211 s (P-2026-10-09-13:
-  Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). Als Nächstes: Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
-  Kombinationen“ parallel (Hebel 3), `fahren` (Materialstand) in Stücken.
+  Referenzen neu, 4 Punkte weniger durch exaktere Hüllfläche). Als Nächstes (Manuel, 2026-10-10: „erst werkzeugkiste import“): T-007, dann Halter/Spindel mit numpy (Hebel 2), die Varianten des Hakens „Alle
+  Kombinationen“ parallel (Hebel 3), `fahren` (Materialstand) in Stücken. GPU verworfen (Manuels Frage, 2026-10-10): OpenCascade
+  rechnet nur auf der CPU, der numpy-Anteil läuft schon auf allen Kernen, und je Hersteller
+  (NVIDIA, AMD, Intel) bräuchte FreeCADs Python einen eigenen Treiberstapel – zu wenig Gewinn
+  für zu viel Abhängigkeit. Die Arbeiterzahl folgt `os.cpu_count()` des Rechners, auf dem FreeCAD
+  läuft (sechs Kerne: sechs Arbeiter), änderbar in den Einstellungen.
 - **T-009 Auflösung je Strategie einstellbar** (Manuel, 2026-10-09: „die Auflösung bei jeder
   Strategie einstellbar … in mm, immer mit verständlicher Erklärung“). Gebaut (P-2026-10-09-14):
   „Bahn gerechnet für“ im 5-Achs-Vergleich, `BahnGrathoehe` sichtbar. Gebaut (P-2026-10-09-15): der Vergleich
@@ -627,9 +632,11 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   3D-Schlichten), Eigenschaft `Raster` an der Operation. Gebaut (P-2026-10-09-18): im 4-Achs-Assistenten „Auflösung längs“ (mm)
   und „Auflösung rundum“ (°) beim Schruppen, „Auflösung rundum“ beim Schlichten. Nachgezogen (P-2026-10-10-01): der
   Vergleichsdialog zeigt überall dasselbe Dezimalzeichen (Restgrenze, Zwischenlage und Statuszeile
-  folgten „gewählt, sonst Punkt“, das Feld „Bahn gerechnet für“ dem Zahlenformat der Oberfläche). Offen: Plan
-  indexiert, Rundum entgraten, Entgraten 3D und Flanke (ihr Schritt sitzt ohne Parameter in der
-  Bahn) – nur, wenn Manuel es dort braucht (Frage 1 in [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md)).
+  folgten „gewählt, sonst Punkt“, das Feld „Bahn gerechnet für“ dem Zahlenformat der Oberfläche). Gebaut (P-2026-10-10-03, Manuel: „ich würde es überall einbauen“): auch Plan
+  indexiert (Netzfeinheit), Rundum entgraten, Entgraten 3D und Flanke (Schritt auf der Kante);
+  jede Erklärung mit Beispiel, wo feiner nichts mehr bringt (gemessen: 3D-Schruppen Freiform
+  0,5 → 0,25 mm: 3 → 6,5 s). **T-009 fertig**; ob die Erklärung trägt, Frage 1 in
+  [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md).
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit

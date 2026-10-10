@@ -249,6 +249,13 @@ Was in den Eintrag gehört und oft vergessen wird:
 
 ## 7. Technik und Stil
 
+**Kein Lag** (Manuel, 2026-10-10: „generell sollte alles so gebaut werden das kein lag
+entsteht !!! das find ich schon wichtig“): Nichts, was spürbar rechnet, läuft im Thread des
+Fensters – weder in einem Dialog noch beim Ändern eines Felds. Rechnen über
+`camaddon/nebenrechner.py` in Stücken, mit `bei_fertig` oder `warten(…, zwischendurch=
+processEvents)`; die Felder reagieren sofort, das Ergebnis kommt nach. Das gilt für jeden
+neuen Dialog und jede neue Rechnung, nicht nur für den 4-Achs-Assistenten (P-2026-10-09-09).
+
 **Zielsystem:** die aktuelle **stabile Version** von FreeCAD (derzeit 1.1.3)
 **und** der aktuelle **Wochen-Build**, auf jedem Betriebssystem. Fehlt in der
 stabilen Version etwas, fragt der Code danach (z. B. `export.verfuegbar()`)
