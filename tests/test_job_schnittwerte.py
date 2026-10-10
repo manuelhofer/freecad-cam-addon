@@ -377,8 +377,10 @@ vorher = sorted(o.Name for o in dok.Objects)
 js.entferne_controller(dok, unbenutzt, "Unbenutzte entfernen")
 pruefe(js.werkzeug_controller(job) == [], "Controller noch im Job")
 geblieben = sorted(o.Name for o in dok.Objects)
+# FreeCAD 26.3 legt in jedem Job zusätzlich die Gruppe „Workplanes“ an.
+erwartet = ["Clone", "Job", "Klotz", "Model", "Operations", "SetupSheet", "Stock", "Tools"]
 pruefe(
-    geblieben == ["Clone", "Job", "Klotz", "Model", "Operations", "SetupSheet", "Stock", "Tools"],
+    geblieben == sorted(erwartet + [n for n in vorher if n == "Workplanes"]),
     f"nach dem Entfernen: {geblieben}",
 )
 dok.undo()

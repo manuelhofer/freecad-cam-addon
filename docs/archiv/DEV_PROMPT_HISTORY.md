@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-49 job-schnittwerte-workplanes-in-26-3
+
+### EINGELESEN
+- T-011, voller Lauf in FreeCAD 26.3.0RC1 (Linux-AppImage von GitHub, 2026-10-08):
+  `test_job_schnittwerte` rot – „nach dem Entfernen: […, 'Workplanes']“. RC1 legt in jedem Job
+  eine versteckte Gruppe „Workplanes“ an (`Path/Main/Job.py`, `setupWorkplanes`); der Wochen-Build
+  vom September hatte sie noch nicht. Das Addon entfernt den Controller richtig, nur die erwartete
+  Liste war fest.
+
+### DATEIEN
+- `tests/test_job_schnittwerte.py` (die Liste nimmt „Workplanes“ auf, wo der Job sie hat),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+`test_job_schnittwerte` grün in 1.1.4 und 26.3.0RC1.
+
+### TEST
+- KI: `test_job_schnittwerte` grün in 1.1.4 und 26.3.0RC1.
+
 ## P-2026-10-10-48 dunkles-theme-in-26-3-lesbar
 
 ### EINGELESEN
