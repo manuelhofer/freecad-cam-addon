@@ -18,11 +18,12 @@ den Weg vom Teil zum Programm in FreeCAD bequemer haben – weniger Dialoge, meh
 die man einfach annehmen kann. Daraus ist ein Addon geworden, das ich hier gern vorstelle und
 zur Diskussion stelle.
 
-Zur Einordnung, bevor jemand den Code liest: Ich habe das Addon **erdacht und getestet, aber
-nicht selbst programmiert** – der Code ist mit KI-Unterstützung entstanden („vibe coded“, wenn
-man so will). Ich habe jede Funktion an meinen Maschinen und an Beispielteilen geprüft, aber ich
-bin Zerspaner, kein Programmierer. Genau deshalb interessiert mich eure Meinung: zur Bedienung,
-zu den Bahnen, zu dem, was fehlt.
+Zur Einordnung: Ich habe das Addon entworfen, aber den Code nicht selbst geschrieben – er ist
+nach meinen Vorgaben mit KI-Unterstützung entstanden. Programmiert habe ich früher selbst (PHP,
+SQL, Pascal, etwas C), ich kann also einschätzen, was da steht; geprüft habe ich das Addon aber
+über das Ergebnis, an meinen Maschinen und an Beispielteilen, nicht Zeile für Zeile. Genau deshalb
+interessiert mich eure Meinung: zur Bedienung, zu den Bahnen, zu dem, was fehlt – und von denen,
+die in den Code schauen, zum Code.
 
 Was drin ist (Stand heute, Version 0.209):
 
@@ -77,11 +78,11 @@ I mill and turn on a DMG CLX 550 with Y axis and on a few 3-axis mills, and I wa
 from part to program in FreeCAD to be more convenient – fewer dialogs, more proposals you can
 simply accept. The result is an add-on I would like to present here and put up for discussion.
 
-For context, before anyone reads the code: I **designed and tested** the add-on, but did not
-write it myself – the code was created with AI assistance (“vibe coded”, if you like). I checked
-every function on my machines and on example parts, but I am a machinist, not a programmer.
-That is exactly why I am interested in your opinion: on the handling, the paths, and what is
-missing.
+For context: I designed the add-on but did not write the code myself – it was created with AI
+assistance, to my specification. I have programmed before (PHP, SQL, Pascal, some C), so I can
+judge what is there; but I verified the add-on by its results, on my machines and on example
+parts, not line by line. That is exactly why I am interested in your opinion: on the handling,
+the paths, what is missing – and, from those who look at the code, on the code.
 
 What is in it (as of today, version 0.209):
 

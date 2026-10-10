@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-09 forum-entwurf-einordnung
+
+### EINGELESEN
+- Manuel, 2026-10-10, zum Absatz „ich bin Zerspaner, kein Programmierer“: „das finde ich
+  unglücklich .. ja ich programmiere hier nichts selbst oder sehr wenig ich habe aber schon
+  programier erfahrung in php sql und pascal ein bisschen c... und kann schon ein bisschen
+  einschätzen was da so steht ... aber ja ich habe mir nicht eine zeile code von dir angeschaut ..
+  für mich ist das ergebniss wichtig“. Dazu die Frage, ob das Addon die „CAM Development
+  Philosophy“ aus dem Forum (sliptonic) halbwegs einhält und ob sich ein Mensch einlesen kann.
+
+### DATEIEN
+- `docs/forum_vorstellung.md` (der Absatz zur Einordnung, deutsch und englisch).
+
+### AKZEPTANZKRITERIUM
+Der Absatz sagt: entworfen, nicht selbst geschrieben, Programmiererfahrung vorhanden, geprüft über
+das Ergebnis, nicht Zeile für Zeile.
+
+### DONE
+- Einschätzung zur Philosophie (im Chat, zum Nachlesen): eingehalten sind Black/PEP8 (ruff, 100
+  Zeichen), Lizenzkopf in allen 144 Modulen, Prüfungen (110 Dateien, 125 Szenarien), kleine
+  Patches mit Verlauf, Doku des Aufbaus (`docs/aufbau.md`). Nicht eingehalten bzw. nicht
+  anwendbar: Fork/Draft-PR-Weg (eigenes Addon, kein Upstream-Beitrag), FreeCADs
+  Unittest-Rahmen (`-t TestPathApp`), keine CI; Hürde fürs Einlesen: alles auf Deutsch (Namen,
+  Kommentare, Doku) und zwei sehr große GUI-Module (6710 und 4515 Zeilen).
+
 ## P-2026-10-10-08 offene-fragen-1-bis-3-beantwortet
 
 ### EINGELESEN
