@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-13 forum-entwurf-als-bbcode
+
+### EINGELESEN
+- Manuel, 2026-10-10: „kann ich das hier mit freecad forum verbinden ?“ – über den eingebauten
+  Browser der Sitzung: Manuel meldet sich dort an (Passwörter tippt Claude nicht), Claude füllt
+  das Thema aus, Manuel sendet ab. Das Forum (phpBB) versteht kein Markdown, darum der Text als
+  BBCode.
+
+### DATEIEN
+- `docs/forum_vorstellung.md` (zwei Blöcke „BBCode zum Einfügen“, deutsch und englisch).
+
+### AKZEPTANZKRITERIUM
+Der BBCode-Block lässt sich unverändert in das Beitragsfeld des Forums einfügen; fett, Listen und
+Absätze kommen an.
+
+### DONE
+- Umgesetzt mit einem kleinen Wandler (Absätze zusammengezogen, [b], [i], [list]); der Betreff
+  steht eigens, nicht im Text.
+
 ## P-2026-10-10-12 repo-oeffentlich-installation-geprueft-forum-bilder
 
 ### EINGELESEN
