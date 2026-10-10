@@ -573,6 +573,7 @@ class VierachsPanel:
         # die Nummer sagt, ob eine Antwort noch zur letzten Eingabe gehört.
         self._vorschau_nummer = 0
         self._vorschau_auftraege = {}  # Name („schruppen“, „planbohren“ …) -> Auftrag
+        self._vorwaermen()
         self._vorschau_ergebnisse = {}
         self._vorschau_gruende = {}
         self.form = self._baue()
@@ -3365,6 +3366,19 @@ class VierachsPanel:
             "nur_gleichlauf": self.schruppen_nur_gleichlauf.isChecked(),
             "form": ff.von_werkzeug(werkzeug),
         }
+
+    @staticmethod
+    def _vorwaermen():
+        """Die Nebenrechner starten und laden, was die Vorschau braucht, während man noch
+        Flächen anklickt – die erste Vorschau wartet dann nicht darauf (P-2026-10-11-13)."""
+        from . import nebenrechner as nr
+
+        try:
+            nr.pool().vorwaermen(
+                ["vierachs_vorschau", "vierachs_huelle", "vierachs_bahn", "vierachs_quer"]
+            )
+        except Exception as fehler:  # noqa: BLE001 – ohne Vorwärmen rechnet die Vorschau wie bisher
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Nebenrechner vorwärmen: {fehler}\n")
 
     @staticmethod
     def _vorschau_funktion(name):

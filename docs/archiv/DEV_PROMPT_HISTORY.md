@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-13 nebenrechner-vorwaermen
+
+### EINGELESEN
+- Seit P-2026-10-11-07 verteilt die Vorschau im 4-Achs-Assistenten auf alle Arbeiter; die erste
+  Vorschau wartete dabei, bis jeder Arbeiter seine Module geladen hatte (0,6–0,8 s je Arbeiter):
+  am Nasen-Testteil 2,2/2,0 s statt 1,4/1,2 s.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `vorwaermen(module)` startet die Arbeiter bis zur Poolgröße und
+  schickt jedem („laden“) die Module, auch denen, die erst danach starten; solange Arbeiter
+  starten, fragt der Pool sie ab (sonst nähme erst der nächste Auftrag ihre Verbindung an).
+  `Unterpool.vorwaermen` tut nichts.
+- `camaddon/nebenrechner_arbeiter.py`: „laden“ importiert die Module.
+- `camaddon/gui_vierachs.py`: das Fenster wärmt beim Öffnen vor (die Vorschau-Module).
+- `tests/test_nebenrechner.py` (alle Arbeiter haben das Modul, bevor ein Auftrag kommt),
+  `package.xml` (0.213.26), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Erste Vorschau am Testteil (Qt-Ereignisschleife, 3 s nach dem Öffnen): Schruppen 2,2 → 1,7 s,
+  Schlichten 2,0 → 1,4 s.
+- Grün: `test_nebenrechner.py`, `szenario_vierachs_schruppen`, `szenario_vierachs_schlichten`,
+  `szenario_vierachs_aendern` (und vorher mit P-2026-10-11-07…12: `szenario_vierachs_plan`,
+  `_entgraten`, `_drehteil`, `_flaechen`).
+
 ## P-2026-10-11-12 pruefen-weniger-kleinarbeit
 
 ### EINGELESEN

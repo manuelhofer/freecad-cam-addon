@@ -183,6 +183,16 @@ else:
     raise AssertionError("zwischendurch=False hat nicht abgebrochen")
 assert len(rufe) == 5, rufe
 
+# Vorwärmen (P-2026-10-11-13): Jeder Arbeiter lädt die Module, bevor ein Auftrag sie braucht –
+# auch einer, der erst danach startet.
+pool.beenden()
+pool.vorwaermen(["vierachs_huelle"])
+assert pool.arbeiter == pool.anzahl, pool.arbeiter
+auftraege = [
+    pool.auftrag("nebenrechner", "_probe_geladen", "vierachs_huelle", 0.5) for _ in range(3)
+]
+assert pool.warten(auftraege) == [True, True, True]
+
 # Beenden: keine Arbeiter mehr, der Ordner ist weg; danach geht es wieder.
 ordner = pool._ordner
 pids = [a.prozess for a in pool._arbeiter]

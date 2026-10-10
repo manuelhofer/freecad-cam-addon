@@ -323,6 +323,7 @@ class Nebenrechner:
         self._uhr = None
         self._aufraeumuhr = None
         self._melder = {}  # Arbeiter -> QSocketNotifier (_melder_abgleichen)
+        self._laden = []  # Module, die jeder Arbeiter gleich nach dem Start lädt (vorwaermen)
         self.in_arbeit = 0  # so viele Aufträge liefen bisher in Arbeitern (für Prüfungen)
 
     # --- Nach außen ------------------------------------------------------------------
@@ -359,6 +360,24 @@ class Nebenrechner:
             yield
         finally:
             self._gruppe = vorher
+
+    def vorwaermen(self, module):
+        """Startet die Arbeiter bis `anzahl` und lässt jeden die Module `module` (Namen in
+        camaddon) laden, auch die, die später starten – für ein Fenster, dessen erste Rechnung
+        sonst darauf wartete: Die Vorschau im 4-Achs-Assistenten verteilt auf alle Arbeiter, und
+        jeder lud dafür erst 0,6–0,8 s seine Module (P-2026-10-11-13)."""
+        if not self.verfuegbar():
+            return
+        neu = [m for m in module if m not in self._laden]
+        self._laden.extend(neu)
+        if neu:
+            for arbeiter in self._arbeiter:
+                if arbeiter.verbindung is not None:
+                    with contextlib.suppress(OSError, EOFError):
+                        arbeiter.verbindung.send(("laden", neu))
+        while len(self._arbeiter) < self.anzahl and not self._fehlgeschlagen:
+            self._starten()
+        self._uhren()
 
     def gemeinsam(self, schluessel, wert):
         """Legt gemeinsame Daten ab; Aufträge verweisen mit Gemeinsam(schluessel) darauf. Der
@@ -612,6 +631,9 @@ class Nebenrechner:
                 if arbeiter.nummer == nummer and arbeiter.verbindung is None:
                     puffer_vergroessern(verbindung)
                     arbeiter.verbindung = verbindung
+                    if self._laden:
+                        with contextlib.suppress(OSError, EOFError):
+                            verbindung.send(("laden", list(self._laden)))
                     self._je_gemeldet = True
                     break
             else:
@@ -934,7 +956,8 @@ class Nebenrechner:
             return
         if QtCore.QCoreApplication.instance() is None:
             return
-        if self.offen():
+        # Auch solange Arbeiter starten: Erst das Abfragen nimmt ihre Verbindung an.
+        if self.offen() or any(a.verbindung is None for a in self._arbeiter):
             if self._uhr is None:
                 self._uhr = QtCore.QTimer()
                 self._uhr.setInterval(UHR_MS)
@@ -1070,6 +1093,9 @@ class Unterpool:
         self._offen[auftrag.nummer] = auftrag
         self.in_arbeit += 1
         return auftrag
+
+    def vorwaermen(self, module):
+        pass  # die Arbeiter des Pools laden selbst
 
     @contextlib.contextmanager
     def gruppe(self, name, gleichzeitig):
@@ -1333,6 +1359,13 @@ def _probe_fehler():
 def _probe_verfuegbar():
     """Ob es im Arbeiter selbst Nebenrechner gibt (den Unterpool)."""
     return pool().verfuegbar()
+
+
+def _probe_geladen(modul, dauer=0.0):
+    """Hat der Arbeiter `camaddon.<modul>` schon geladen (vorwaermen)?"""
+    geladen = "camaddon." + modul in sys.modules
+    time.sleep(dauer)
+    return geladen
 
 
 def _probe_verschachtelt(werte, dauer=0.0, fehler=False):

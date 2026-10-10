@@ -14,6 +14,7 @@ FreeCADCmd führt diese Datei als Skript aus; `__name__` ist dann der Dateiname,
 die Umgebungsvariable CAMADDON_ARBEITER die Hauptschleife frei – importiert tut die Datei nichts.
 """
 
+import contextlib
 import importlib
 import json
 import os
@@ -142,6 +143,11 @@ def _verarbeiten(nachricht):
         _gemeinsam.pop(nachricht[1], None)
     elif art == "auftrag":
         return _ausfuehren(nachricht)
+    elif art == "laden":  # vorwaermen: die Module schon jetzt, nicht beim ersten Auftrag
+        for modul in nachricht[1]:
+            # Scheitert es, dann eben beim Auftrag, mit dessen Fehler.
+            with contextlib.suppress(Exception):
+                importlib.import_module("camaddon." + modul)
     return True
 
 
