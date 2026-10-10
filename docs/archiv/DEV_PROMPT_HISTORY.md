@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-61 fragen-zum-vierachs-testteil
+
+### EINGELESEN
+- Manuel, 2026-10-10: „was fährt der da? … die Nase … könnte man einfach mit dem 12er fertig
+  schlichten … vll als Option ‚gerade Flächen mit dem Schaftfräser fertig schlichten‘“. In der
+  Nacht gemessen: Kugelzeit je Fläche (der Schaft 137 von 190 min, die Seiten der Nase 8 min, mit
+  „Plan indexiert“ T1 2,3 min), die Kollision mit seinen Haltern (drei Berührungen des Halters).
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Fragen 5–7: ebene Flächen mit dem Schaftfräser; Schrittweite und Lage
+  des Schafts; der Halter gegen das Teil), `docs/bilder/vorschlaege/testteil_4achs_kugelzeit_je_flaeche.png`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Manuel findet morgens die drei Entscheidungen mit Bild und Zahlen.
+
 ## P-2026-10-10-60 abfahren-eilgangzeit-nur-wenn-gebraucht
 
 ### EINGELESEN
