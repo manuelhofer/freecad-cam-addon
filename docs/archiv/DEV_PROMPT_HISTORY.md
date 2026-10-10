@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-60 abfahren-eilgangzeit-nur-wenn-gebraucht
+
+### EINGELESEN
+- „Auf der Maschine prüfen“ rechnet beim Öffnen und bei jedem neuen Nullpunkt `abfahren.abfahrt`
+  im Fenster – am 4-Achs-Testteil 329 532 Stationen, 7,6 s. Im Profil: die Eilgangzeit je
+  Station zweimal (`_eilgangzeit` 659 046-mal) – einmal mit Beschleunigung, die bei Sätzen in G93
+  keiner braucht, einmal ohne über die allgemeine Trapezrechnung.
+
+### DATEIEN
+- `camaddon/abfahren.py` (die Eilgangzeit mit Beschleunigung nur für Eilgänge und Vorschubsätze
+  ohne G93; für G93 `_eilgangzeit_ohne_anfahren`: der längste Weg durch sein Tempo),
+  `camaddon/fahrzeit.py` (`GLEICH_WEG` für sie), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Dieselbe Abfahrt, schneller: am Testteil Dauer und alle Stationen gleich.
+
+### TEST
+- KI: Testteil, Dauer 12 794,443 s und 329 532 Stationen gleich zur Fassung davor; 7,6 → 6,5 s.
+  `test_abfahren`, `test_fahrzeit` grün in 1.1.4.
+
 ## P-2026-10-10-59 netzschranke-auch-mit-gewinkeltem-halter
 
 ### EINGELESEN

@@ -413,7 +413,6 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 anflug = False
                 wirksam = _wirksam(vorher, stellungen, len(index))
                 if vorher is not None:
-                    eilgang = _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung)
                     geteilt = schritt.eilgang and schritt.anteil < 1.0 - 1e-12
                     if not geteilt:
                         eil_schritt = None
@@ -426,6 +425,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                         saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=max(bis_hier - eil_bisher, 0.0)))
                         eil_bisher = max(bis_hier, eil_bisher)
                     elif schritt.eilgang:
+                        eilgang = _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung)
                         saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=eilgang))
                     elif schritt.invers and schritt.vorschub > 0:
                         # G93: F = 1 ÷ Zeit des Satzes in Minuten, FreeCAD führt es ÷ 60 –
@@ -433,9 +433,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                         # als im Eilgang fährt keine Achse. Nicht vom Stand in den Stand: Die
                         # Sätze einer Spirale gehen ineinander über – so gerechnet dauerte sie
                         # siebenmal so lang (test_vierachs_pruefen, P-2026-10-01-34).
-                        hoechstens = _eilgangzeit(
-                            vorher[2], wirksam, tempo, [0.0] * len(beschleunigung)
-                        )
+                        hoechstens = _eilgangzeit_ohne_anfahren(vorher[2], wirksam, tempo)
                         fest = max(schritt.anteil / schritt.vorschub, hoechstens)
                         saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=fest))
                     else:
@@ -450,7 +448,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                                 rund,
                                 wirksam,
                                 vorschub,
-                                eilgang,
+                                _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung),
                                 tempo,
                                 beschleunigung,
                                 linear_achsen,
@@ -553,6 +551,21 @@ def _eilgangzeit(von, nach, tempo, beschleunigung):
         b - a if a is not None and b is not None else None for a, b in zip(von, nach, strict=True)
     ]
     return fz.eilgangzeit(wege, tempo, beschleunigung)
+
+
+def _eilgangzeit_ohne_anfahren(von, nach, tempo):
+    """_eilgangzeit ohne Beschleunigung – jede Achse gleich mit ihrem Eilgang: der längste Weg
+    durch sein Tempo (fahrzeit.trapez mit a = 0), ohne den Umweg über die allgemeine Rechnung.
+    Für die Sätze in G93 fragt abfahrt() das je Station (am 4-Achs-Testteil 330 000-mal)."""
+    zeit = 0.0
+    for a, b, t in zip(von, nach, tempo, strict=True):
+        if a is None or b is None:
+            continue
+        weg = abs(b - a)
+        if weg <= fz.GLEICH_WEG:
+            continue
+        zeit = max(zeit, weg / t if t > 0 else math.inf)
+    return zeit
 
 
 def _vorschubsatz(vorher, punkt, rund, wirksam, vorschub, eilgang, tempo, beschleunigung, linear):

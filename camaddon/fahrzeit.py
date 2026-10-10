@@ -26,6 +26,7 @@ EILGANG = export.VORGABE_EILGANG  # mm/min
 BESCHLEUNIGUNG = export.VORGABE_BESCHLEUNIGUNG * 1000.0  # mm/s²
 ECKE = 15.0  # Grad – ab so viel Richtungswechsel hält die Maschine zwischen zwei Sätzen an
 _GLEICH = 1e-12
+GLEICH_WEG = _GLEICH  # so kurz gilt ein Weg als keiner (trapez)
 
 
 @dataclass
