@@ -1560,7 +1560,7 @@
     "va.querachse.vorschlag_stirn": "Die Maschine hat die Achse quer: Der Fräser steht senkrecht auf der Fläche, auf ebenen Stellen liegt seine Stirn flach auf und fährt mit ihr die Gerade; die Rundachse hält dort.",
     "va.querachse.schruppen.tooltip": "Die Spirale jeder Lage fährt mit allen Achsen: Die Werkzeugachse steht längs der Normalen der Fläche, auf ebenen Stellen hält die Rundachse und die Querachse fährt die Gerade; je Lage höchstens die Zustellung unter die Stange. Die Vorschau rechnet ohne Querachse (Lagen und Zeit fast gleich).",
     "va.querachse.schruppen.vorschlag": "Die Maschine hat die Achse quer: Die Lagen folgen der Fläche – auf ebenen Stellen fährt der Fräser mit ihr die Gerade, das Aufmaß bleibt dort gleichmäßig.",
-    "va.querachse.nur_rundum": "Nur rundum – mit gewählten Flächen fährt das Schruppen Zeilen.",
+    "va.querachse.nur_rundum": "Nur rundum – mit gewählten Flächen fährt das Schruppen Zeilen bei festem Winkel, ohne Y. Eine ebene Fläche längs der Stange fräst „Plan indexiert“ weiter unten mit der Querachse eben in Zeilen; der Assistent hakt es an, sobald es geht.",
     "va.querachse.vorschlag": "Die Maschine hat die Achse quer, der Kugelfräser fährt auf ebenen Stellen mit ihr die Gerade; die Rundachse hält dort.",
     "va.querachse.keine": "{maschine} hat keine Achse quer zur Stange – die Spirale fährt mit Rundachse und Radius.",
     "va.querachse.nur_spirale": "Nur mit dem Muster „Spirale“.",

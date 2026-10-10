@@ -1560,7 +1560,7 @@
     "va.querachse.vorschlag_stirn": "The machine has the cross axis: the cutter stands normal to the surface; on flat spots its face lies flat and drives the straight line with it, the rotary axis holds there.",
     "va.querachse.schruppen.tooltip": "The spiral of every layer uses all axes: the tool axis stands along the surface normal, on flat spots the rotary axis holds and the cross axis drives the straight line; per layer at most the step-down below the bar. The preview computes without the cross axis (layers and time almost the same).",
     "va.querachse.schruppen.vorschlag": "The machine has the cross axis: the layers follow the surface – on flat spots the cutter drives the straight line with it, the stock allowance stays even there.",
-    "va.querachse.nur_rundum": "All round only – with selected faces roughing runs rows.",
+    "va.querachse.nur_rundum": "Only all round – with chosen faces, roughing runs rows at a fixed angle, without Y. A flat face along the bar is milled flat in rows with the cross axis by “Indexed facing” further down; the assistant ticks it as soon as it works.",
     "va.querachse.vorschlag": "The machine has the cross axis; on flat spots the ball mill drives the straight line with it, the rotary axis holds there.",
     "va.querachse.keine": "{maschine} has no axis across the bar – the spiral runs with rotary axis and radius.",
     "va.querachse.nur_spirale": "Only with the pattern “Spiral”.",

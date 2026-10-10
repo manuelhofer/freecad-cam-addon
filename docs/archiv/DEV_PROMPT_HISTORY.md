@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-07 querachse-hinweis-und-offene-fragen
+
+### EINGELESEN
+- Manuel, 2026-10-10, 4-Achs-Assistent mit seinem Testteil (Zylinder mit schräger Abflachung,
+  CLX 550 mit Y): „wenn ich jetzt von dem testteil nur diese fläche bearbeiten möchte .. warum ist
+  da mit y bearbeiten nicht aktiviert ??“ – der Haken „Mit der Querachse (Y)“ unter „Rundum
+  schruppen“ ist mit gewählten Flächen gesperrt (Zeilen bei festem Winkel); der graue Satz sagte
+  nur „Nur rundum – mit gewählten Flächen fährt das Schruppen Zeilen.“, nicht, dass „Plan
+  indexiert“ weiter unten genau das mit Y macht.
+- Zweiter Screenshot (Rundum schlichten mit Face4): „er fährt hier auch über die ecken drüber ..
+  weis ich nicht ich finde nicht das das gut ist wenn dann mit aufmass aber ist das überhaupt
+  nötig ?“ – die Linien laufen um den Fräserradius über die Kante der Fläche hinaus
+  (`vierachs_flaechen.bereich_fuer`), dahinter folgt die Spitze dem Zylinder plus Aufmaß.
+- Dazu: „wir sollten das addon langsam mal ins freecad forum reinschreiben … den text noch etwas
+  verschönern … kannst du da einen text schreiben … denkst du das addon ist soweit ??“
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json` (`va.querachse.nur_rundum`: nennt „Plan
+  indexiert“), `docs/OFFENE_FRAGEN.md` (Frage 2: Linien über die Kante – Optionen mit Empfehlung),
+  `docs/forum_vorstellung.md` (neu: der Entwurf deutsch und englisch, mit dem, was vor dem Posten
+  zu tun ist).
+
+### AKZEPTANZKRITERIUM
+Unter dem gesperrten Haken „Mit der Querachse (Y)“ steht, dass „Plan indexiert“ weiter unten die
+ebene Fläche mit Y fräst. Die Kantenfrage steht mit Optionen in `docs/OFFENE_FRAGEN.md`; der
+Forum-Text liegt im Repo.
+
+### DONE
+- Die Linien über die Kante nicht allein geändert (Arbeitsregeln: Strategiewahl wird besprochen);
+  Empfehlung in der Frage: an der Kante enden – keine Stufe auf dem Zylinder, die Kante wird fertig.
+- Forum: vorher Repo öffentlich (T-005) und die Installationszeile einmal frisch probieren.
+
 ## P-2026-10-10-06 werkzeugkiste-aus-datei-einlesen
 
 ### EINGELESEN
