@@ -83,6 +83,7 @@ Maschine. Die Bahn bleibt, wo sie ist; nur schneller.
 Läuft ohne Oberfläche.
 """
 
+import bisect
 import math
 from dataclasses import dataclass, replace
 
@@ -1977,9 +1978,37 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0
     längste Stück, das passt (verdoppeln, dann halbieren), höchstens `hoechstens` Punkte;
     die Punkte in `fest` bleiben (Ringe, Innenecken). Mit radius 0 (die Spitze eines Fräsers,
     der keine Kugel ist) seitlich höchstens QUER_SEITLICH_SPITZE. Steht die Kugel um `neigung`
-    neben der Normalen (normale_quer), zählt längs und quer zur Normalen ψ − `neigung`."""
-    seitlich_hoechstens = QUER_SEITLICH if radius > 0 else QUER_SEITLICH_SPITZE
+    neben der Normalen (normale_quer), zählt längs und quer zur Normalen ψ − `neigung`.
+    Lange Bahnen rechnen die Nebenrechner in Stücken (_zusammen_quer_verteilt) – Punkt für
+    Punkt dasselbe Ergebnis."""
     n = len(x)
+    grenzen = sorted({0, n - 1} | {int(i) for i in fest if 0 < i < n - 1})
+    if n >= QUER_PARALLEL_AB:
+        bleibt = _zusammen_quer_verteilt(
+            x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen
+        )
+        if bleibt is not None:
+            return bleibt
+    return zusammen_quer_kette(
+        x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, 0, n - 1
+    )
+
+
+# Nebenrechner (P-2026-10-10-57): ab so vielen Punkten rechnen sie _zusammen_quer in Stücken – am
+# 4-Achs-Testteil 4 s in 390 000 kleinen Prüfungen nacheinander.
+QUER_PARALLEL_AB = 20000
+QUER_STUECK_MINDESTENS = 5000  # Punkte je Stück
+QUER_STUECKE_JE_ARBEITER = 2
+
+
+def zusammen_quer_kette(
+    x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, start, stopp
+):
+    """Die bleibenden Punkte von _zusammen_quer ab dem Punkt `start` (er bleibt), bis einer bei
+    `stopp` oder dahinter liegt – `grenzen`: die Punkte, die bleiben, aufsteigend (der erste nicht
+    hinter `start`). Ab einem Punkt, der bleibt, ist die Kette dieselbe, woher man auch kam: Darum
+    lassen sich Stücke getrennt rechnen und zusammensetzen."""
+    seitlich_hoechstens = QUER_SEITLICH if radius > 0 else QUER_SEITLICH_SPITZE
     abstand = _QuerAbstand(x, q, psi, radius, neigung)
 
     def passt(i, j):
@@ -1992,11 +2021,13 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0
             and np.all(np.abs(seitlich) <= seitlich_hoechstens)
         )
 
-    grenzen = sorted({0, n - 1} | {i for i in fest if 0 < i < n - 1})
-    bleibt = [0]
-    for von, bis in zip(grenzen, grenzen[1:], strict=False):
-        anfang = von
+    bleibt = [start]
+    anfang = start
+    k = max(0, bisect.bisect_right(grenzen, start) - 1)
+    for bis in grenzen[k + 1 :]:
         while anfang < bis:
+            if anfang >= stopp:
+                return bleibt
             ende = min(bis, anfang + hoechstens)
             # Verdoppeln, bis es nicht mehr passt, dann halbieren.
             gut, schlecht = anfang + 1, None
@@ -2019,6 +2050,86 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0
             bleibt.append(gut)
             anfang = gut
     return bleibt
+
+
+def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen):
+    """_zusammen_quer auf den Nebenrechnern: je Stück die Kette ab seinem Anfang, ein Stück über
+    sein Ende hinaus; zusammengesetzt am ersten Punkt, den beide Ketten haben. None ohne
+    Nebenrechner (dann rechnet der Aufrufer selbst)."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    n = len(x)
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    stuecke = min(pool.anzahl * QUER_STUECKE_JE_ARBEITER, n // QUER_STUECK_MINDESTENS)
+    if stuecke < 2:
+        return None
+    x, q, psi = (np.asarray(v, dtype=float) for v in (x, q, psi))
+    anfaenge = [round(k * n / stuecke) for k in range(stuecke)]
+    ueberlapp = max(256, 16 * int(hoechstens))
+    auftraege = []
+    for k, von in enumerate(anfaenge):
+        stopp = n - 1 if k == stuecke - 1 else min(n - 1, anfaenge[k + 1] + ueberlapp)
+        bis = min(n, stopp + int(hoechstens) + 2)
+        # Die Grenzen relativ zum Stück: eine am Anfang, alle dahinter bis eine hinter dem Ende.
+        relativ = [0]
+        for g in grenzen:
+            if g > von:
+                relativ.append(g - von)
+                if g >= bis:
+                    break
+        auftraege.append(
+            pool.auftrag(
+                "vierachs_bahn",
+                "zusammen_quer_kette",
+                x[von:bis],
+                q[von:bis],
+                psi[von:bis],
+                radius,
+                toleranz,
+                hoechstens,
+                relativ,
+                neigung,
+                innen,
+                0,
+                stopp - von,
+            )
+        )
+    try:
+        ketten = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Bahn zusammenfassen auf den Nebenrechnern gescheitert, rechne hier: "
+            f"{fehler}\n"
+        )
+        return None
+    ergebnis = [anfaenge[0] + i for i in ketten[0]]
+    for von, kette in zip(anfaenge[1:], ketten[1:], strict=True):
+        kette = [von + i for i in kette]
+        stelle = {wert: m for m, wert in enumerate(kette)}
+        treffer = next(
+            (p for p, wert in enumerate(ergebnis) if wert >= von and wert in stelle), None
+        )
+        if treffer is None:  # die Ketten trafen sich im Überlapp nicht: hier weiter
+            rest = zusammen_quer_kette(
+                x,
+                q,
+                psi,
+                radius,
+                toleranz,
+                hoechstens,
+                grenzen,
+                neigung,
+                innen,
+                ergebnis[-1],
+                n - 1,
+            )
+            return ergebnis + rest[1:]
+        ergebnis = ergebnis[:treffer] + kette[stelle[ergebnis[treffer]] :]
+    return ergebnis
 
 
 def _auffuellen(huelle, anfang_je_winkel, schritt, teil_vorne, teil_hinten):
@@ -2045,6 +2156,33 @@ def _nicht_tiefer(rest, form, grenze, a, phi):
     nirgends mehr als `grenze` unter den Rest nach dem Schruppen schneidet: je Stelle des
     Rests unter dem Fräser seine Höhe dort minus Profil – der höchste Wert, minus `grenze`.
     Zwischen den Rasterpunkten gilt der höchste Nachbar."""
+    rest_a, rest_phi, _rest_r = rest
+    schritt_a = rest_a[1] - rest_a[0]
+    schritt_phi = rest_phi[1] - rest_phi[0]
+    tiefste = _tiefste(rest, form) - grenze
+    lage_a = (a - rest_a[0]) / schritt_a
+    lage_phi = np.mod(phi - rest_phi[0], 2 * math.pi) / schritt_phi
+    ergebnis = np.full(len(a), -math.inf)
+    for i in (np.floor(lage_a), np.ceil(lage_a)):
+        drin = (i >= 0) & (i < len(rest_a))
+        zeile = np.clip(i, 0, len(rest_a) - 1).astype(np.int64)
+        for j in (np.floor(lage_phi), np.ceil(lage_phi)):
+            spalte = j.astype(np.int64) % len(rest_phi)
+            ergebnis = np.maximum(ergebnis, np.where(drin, tiefste[zeile, spalte], -math.inf))
+    return ergebnis
+
+
+# Der letzte Rest und Fräser in _tiefste – dieselbe Bahn fragt zweimal (Rest über der Bahn, freie
+# Stücke), und die Rechnung über das ganze Raster kostet am Testteil 2 s.
+_tiefste_gemerkt = (None, None, None)
+
+
+def _tiefste(rest, form):
+    """Je Rasterstelle des Rests: so tief darf die Spitze dort höchstens, damit der Fräser nirgends
+    unter den Rest schneidet (_nicht_tiefer ohne Grenze und Nachschlagen)."""
+    global _tiefste_gemerkt
+    if _tiefste_gemerkt[0] is rest[2] and _tiefste_gemerkt[1] == form:
+        return _tiefste_gemerkt[2]
     rest_a, rest_phi, rest_r = rest
     schritt_a = rest_a[1] - rest_a[0]
     schritt_phi = rest_phi[1] - rest_phi[0]
@@ -2069,17 +2207,8 @@ def _nicht_tiefer(rest, form, grenze, a, phi):
                 unter = abstand < radius - 1e-9
                 wert = r_p * math.cos(delta) - form.hoehe(np.minimum(abstand, radius))
                 np.maximum(tiefste, np.where(unter, wert, -math.inf), out=tiefste)
-    tiefste -= grenze
-    lage_a = (a - rest_a[0]) / schritt_a
-    lage_phi = np.mod(phi - rest_phi[0], 2 * math.pi) / schritt_phi
-    ergebnis = np.full(len(a), -math.inf)
-    for i in (np.floor(lage_a), np.ceil(lage_a)):
-        drin = (i >= 0) & (i < len(rest_a))
-        zeile = np.clip(i, 0, len(rest_a) - 1).astype(np.int64)
-        for j in (np.floor(lage_phi), np.ceil(lage_phi)):
-            spalte = j.astype(np.int64) % len(rest_phi)
-            ergebnis = np.maximum(ergebnis, np.where(drin, tiefste[zeile, spalte], -math.inf))
-    return ergebnis
+    _tiefste_gemerkt = (rest_r, form, tiefste)
+    return tiefste
 
 
 def _sehnenfehler(r, t=None):

@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-57 vierachs-bahnen-auf-allen-kernen
+
+### EINGELESEN
+- Manuel, 2026-10-10: „die Geschichte mit dem Mehrkern-Arbeiten bitte nochmal verbessern, so dass
+  mehr Rechenleistung genutzt werden kann … und die Sachen schneller berechnet werden“.
+- Gemessen am 4-Achs-Testteil (1.1.4, ein Prozess): Neuberechnen Schruppen 3,1 s + Schlichten
+  19,6 s – im Fenster, das so lange steht. Im Profil des Schlichtens: die Hüllfläche je Stellung
+  (`vierachs_huelle.je_stellung`, 4 × 2 s), das Zusammenfassen der Punkte (`_zusammen_quer`, 4 s in
+  390 000 kleinen Prüfungen), die Schruppbahn noch einmal (3,8 s, für den Rest darüber), der Rest
+  je Rasterstelle (`_nicht_tiefer`, seit P-56 zweimal je 2 s).
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py` (`je_stellung`: ab 1000 Stellungen und 2 Mio. Stellungen ×
+  Dreiecke nach Richtungen in Stücken auf die Nebenrechner – jede Richtung ganz in einem Stück;
+  `kennung` des Netzes), `camaddon/vierachs_bahn.py` (`_zusammen_quer`: ab 20 000 Punkten je Stück
+  die Kette ab seinem Anfang, ein Stück über sein Ende hinaus, zusammengesetzt am ersten
+  gemeinsamen Punkt – ab einem bleibenden Punkt ist die Kette eindeutig, darum Punkt für Punkt
+  dasselbe; `_tiefste`: der Rest je Rasterstelle einmal je Bahn), `camaddon/vierachs_operation.py`
+  (die zuletzt gerechneten Schruppbahnen gemerkt, nach allem, wovon sie abhängen),
+  `package.xml` (0.213.10), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Dieselben Bahnen, schneller: am Testteil Schruppen und Schlichten bitgleich zur Fassung davor.
+
+### TEST
+- KI: Testteil, Schruppen 12 993 und Schlichten 223 160 Punkte bitgleich (alt im Prozess, neu mit
+  24 Nebenrechnern); Neuberechnen 3,1 + 19,6 s → 1,8 + 7,5 s. Das Zusammensetzen der Ketten an
+  60 000 Zufallspunkten mit 40 festen Punkten gegen die Rechnung am Stück: gleich.
+  `test_vierachs_schlichten`, `test_vierachs_schlichten_op`, `test_vierachs_bahn`,
+  `test_vierachs_operation`, `test_vierachs_huelle`, `test_vierachs_frei`, `test_goldene_bahnen`
+  grün in 1.1.4.
+
+### DONE
+- Für Manuel: 4-Achs-Assistent → „Anlegen“ (oder eine Operation neu berechnen) am Testteil: das
+  Fenster steht rund 9 statt 23 s; das Prüffenster zeigt dieselben Bahnen.
+
 ## P-2026-10-10-56 vierachs-querachse-im-freien-schnell
 
 ### EINGELESEN

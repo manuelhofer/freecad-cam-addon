@@ -32,6 +32,7 @@ genau an den Stellen seiner Spirale.
 Läuft ohne Oberfläche; numpy gehört zu FreeCAD.
 """
 
+import hashlib
 import math
 from dataclasses import dataclass
 
@@ -231,7 +232,88 @@ def je_stellung(netz, laengs, radial, form, phi, q, a):
     trifft. Je Richtung rechnen alle ihre Stellungen in einem Zug – die Kerne nehmen den Versatz
     je Stelle –, aufgeteilt in Bänder quer (BAND_JE_RADIUS Fräserradien breit), damit je Band nur
     die Kanten und Dreiecke dazukommen, die quer unter den Fräser reichen (vierachs_quer, V5e:
-    die Spirale mit der Querachse für Schaft- und Torusfräser)."""
+    die Spirale mit der Querachse für Schaft- und Torusfräser). Viele Stellungen an einem großen
+    Netz gehen nach Richtungen in Stücken an die Nebenrechner (_je_stellung_verteilt)."""
+    phi = np.asarray(phi, dtype=float)
+    q = np.asarray(q, dtype=float)
+    a = np.asarray(a, dtype=float)
+    if len(a) >= PARALLEL_AB_STELLUNGEN and len(a) * len(netz.dreiecke) >= PARALLEL_AB_ARBEIT:
+        ergebnis = _je_stellung_verteilt(netz, laengs, radial, form, phi, q, a)
+        if ergebnis is not None:
+            return ergebnis
+    return je_stellung_stueck(netz, laengs, radial, form, phi, q, a)
+
+
+# Nebenrechner (P-2026-10-10-57): ab so vielen Stellungen, und wenn Stellungen mal Dreiecke so
+# viel Arbeit ergeben, gehen die Stellungen in Stücken an sie – am 4-Achs-Testteil viermal 2 s je
+# Schlichtbahn, dreimal 0,9 s beim Schruppen.
+PARALLEL_AB_STELLUNGEN = 1000
+PARALLEL_AB_ARBEIT = 2_000_000
+STUECKE_JE_ARBEITER = 4
+
+
+def kennung(netz):
+    """Ein Fingerabdruck des Netzes: seine Punkte und Dreiecke."""
+    pruef = hashlib.blake2b(digest_size=16)
+    for teil in (netz.punkte, netz.dreiecke):
+        feld = np.ascontiguousarray(teil)
+        pruef.update(str(feld.shape).encode())
+        pruef.update(feld.tobytes())
+    return pruef.digest()
+
+
+def _je_stellung_verteilt(netz, laengs, radial, form, phi, q, a):
+    """je_stellung() auf den Nebenrechnern: die Richtungen der Reihe nach in Stücke mit etwa
+    gleich vielen Stellungen – jede Richtung ganz in einem Stück, sie rechnet ihre Stellungen in
+    einem Zug. None ohne Nebenrechner (dann rechnet der Aufrufer selbst)."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    richtungen, welche = np.unique(phi, return_inverse=True)
+    stuecke = max(2, min(pool.anzahl * STUECKE_JE_ARBEITER, len(richtungen)))
+    bis = np.cumsum(np.bincount(welche, minlength=len(richtungen)))
+    # Je Richtung das Stück: nach der Zahl der Stellungen bis dahin.
+    stueck_je_richtung = np.minimum((bis - 1) * stuecke // len(a), stuecke - 1)
+    stueck = stueck_je_richtung[welche]
+    netz_gemeinsam = pool.gemeinsam("vh-netz-" + kennung(netz).hex(), netz)
+    laengs = tuple(float(x) for x in laengs)
+    radial = tuple(float(x) for x in radial)
+    teile = [np.flatnonzero(stueck == k) for k in range(stuecke)]
+    teile = [t for t in teile if len(t)]
+    auftraege = [
+        pool.auftrag(
+            "vierachs_huelle",
+            "je_stellung_stueck",
+            netz_gemeinsam,
+            laengs,
+            radial,
+            form,
+            phi[t],
+            q[t],
+            a[t],
+        )
+        for t in teile
+    ]
+    try:
+        ergebnisse = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Hüllfläche je Stellung auf den Nebenrechnern gescheitert, rechne hier: "
+            f"{fehler}\n"
+        )
+        return None
+    ergebnis = np.full(len(a), KEIN_TREFFER)
+    for t, teil in zip(teile, ergebnisse, strict=True):
+        ergebnis[t] = teil
+    return ergebnis
+
+
+def je_stellung_stueck(netz, laengs, radial, form, phi, q, a):
+    """je_stellung() hier im Prozess – im Nebenrechner für ein Stück oder ohne sie."""
     phi = np.asarray(phi, dtype=float)
     q = np.asarray(q, dtype=float)
     a = np.asarray(a, dtype=float)
