@@ -297,11 +297,37 @@ def vorschau(job, werkzeug, breite, flaechen, fuenf=True, vorschub=0.0, biblioth
 
 
 def passt(form, name):
-    """Hat die Fläche `name` konvexe, scharfe Kanten zum Fasen?"""
+    """Hat die Fläche `name` konvexe, scharfe Kanten zum Fasen? Je Form und Fläche gemerkt: Der
+    Assistent „Bearbeitung“ fragt es je gewählter Fläche bei jeder Vorschau – am 3-Achs-Testteil
+    19-mal je Lauf, 1,8 s im Fenster (P-2026-10-11-15)."""
     try:
-        return bool(e3.kanten(form, [name]))
+        flaeche = form.getElement(name)
+        schluessel = (
+            form.hashCode(),
+            round(form.Volume, 6),
+            round(form.Area, 6),
+            len(form.Faces),
+            name,
+            flaeche.hashCode(),
+            round(flaeche.Area, 6),
+        )
     except Exception:
-        return False
+        schluessel = None
+    if schluessel is not None and schluessel in _PASST:
+        return _PASST[schluessel]
+    try:
+        ergebnis = e3.hat_kanten(form, [name])
+    except Exception:
+        ergebnis = False
+    if schluessel is not None:
+        _PASST[schluessel] = ergebnis
+        while len(_PASST) > PASST_MERK:
+            del _PASST[next(iter(_PASST))]
+    return ergebnis
+
+
+_PASST = {}  # (Form, Fläche) → passt? (passt)
+PASST_MERK = 512
 
 
 def lege_an(job, tc, breite=BREITE, fuenf=True, name=None, flaechen=()):

@@ -280,11 +280,32 @@ def _aussen(form, nummer, gemerkt):
 def kanten(form, namen):
     """[Kante3D] – die konvexen, scharfen Kanten der gewählten Flächen („Face3“: ihre Kanten) und
     Kanten („Edge7“), ohne die auf dem Tisch (an einer Fläche ganz unten, die nach unten zeigt)."""
+    gemerkt = {}  # je Fläche ±1 (_aussen)
+    ergebnis = []
+    for nummer, kante, flaechen, vorzeichen in _scharfe_kanten(form, namen):
+        nummern = tuple(next(i for i, f in enumerate(form.Faces) if f.isSame(g)) for g in flaechen)
+        glatt = _glatt(form, nummern, gemerkt)
+        kappen = tuple(_kappen(form, form.Edges[nummer], glatt, ende, gemerkt) for ende in (0, 1))
+        ergebnis.append(
+            Kante3D(f"Edge{nummer + 1}", kante, tuple(flaechen), nummern, vorzeichen, kappen, glatt)
+        )
+    return ergebnis
+
+
+def hat_kanten(form, namen):
+    """Hat `kanten(form, namen)` mindestens eine? – ohne Glätte und Kappen, bei der ersten
+    fertig (der Assistent fragt es je gewählter Fläche, P-2026-10-11-15)."""
+    return next(_scharfe_kanten(form, namen), None) is not None
+
+
+def _scharfe_kanten(form, namen):
+    """Je konvexe, scharfe Kante der gewählten Flächen und Kanten, nicht auf dem Tisch:
+    (Nummer in form.Edges, Kante, ihre zwei Flächen, je Fläche ±1 nach außen) – der Reihe nach,
+    wie kanten() sie nimmt."""
     import FreeCAD
     import Part
 
     z_unten = form.BoundBox.ZMin
-    gemerkt = {}  # je Fläche ±1 (_aussen)
     gesucht = []
     for name in namen:
         if name.startswith("Face"):
@@ -292,7 +313,7 @@ def kanten(form, namen):
                 gesucht.append(kante)
         elif name.startswith("Edge"):
             gesucht.append(form.getElement(name))
-    ergebnis, gesehen = [], set()
+    gesehen = set()
     for kante in gesucht:
         nummer = next((i for i, k in enumerate(form.Edges) if k.isSame(kante)), None)
         if nummer is None or nummer in gesehen or kante.Length < 2 * SCHRITT:
@@ -321,13 +342,7 @@ def kanten(form, namen):
         p = np.array([mitte.x, mitte.y, mitte.z])
         if any(form.isInside(FreeCAD.Vector(*(p + 0.05 * r)), 1e-6, False) for r in (d, -d)):
             continue  # Innenkante
-        nummern = tuple(next(i for i, f in enumerate(form.Faces) if f.isSame(g)) for g in flaechen)
-        glatt = _glatt(form, nummern, gemerkt)
-        kappen = tuple(_kappen(form, form.Edges[nummer], glatt, ende, gemerkt) for ende in (0, 1))
-        ergebnis.append(
-            Kante3D(f"Edge{nummer + 1}", kante, tuple(flaechen), nummern, vorzeichen, kappen, glatt)
-        )
-    return ergebnis
+        yield nummer, kante, flaechen, vorzeichen
 
 
 def _glatt(form, nummern, gemerkt, stufen=GLATT_STUFEN):

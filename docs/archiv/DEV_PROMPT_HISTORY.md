@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-15 entgraten3d-passt-gemerkt
+
+### EINGELESEN
+- Die Vorschau des Assistenten „Bearbeitung“ (3 Achsen) rechnet im Prozess der Oberfläche – am
+  3-Achs-Testteil (Szenario `szenario_testteil`) 4,0 s und 10,4 s, in denen FreeCAD keinen Klick
+  annimmt. Im Profil 1,8 s davon in `entgraten3d.passt`: je gewählter Fläche und Lauf alle
+  Kanten mit Glätte und Kappen berechnet, nur um zu wissen, ob es eine gibt.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py`: `_scharfe_kanten` (die Auswahl aus `kanten`, als Generator),
+  `hat_kanten` (bei der ersten fertig); `kanten` wie bisher.
+- `camaddon/entgraten3d.py`: `passt` mit `hat_kanten`, je Form und Fläche gemerkt (Schlüssel:
+  hashCode, Volumen, Fläche, Flächenzahl, Name, hashCode und Fläche der Fläche).
+- `package.xml` (0.213.27), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Szenario `szenario_testteil` mit Zeitmessung: Vorschau 4,0/10,4 → 3,7/8,7 s.
+- Grün: `test_entgraten3d.py`, `test_entgraten.py`, `szenario_testteil`.
+
 ## P-2026-10-11-14 frage-rest-vor-dem-schlichten
 
 ### EINGELESEN
