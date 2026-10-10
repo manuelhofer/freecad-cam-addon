@@ -141,14 +141,21 @@ pruefe(getattr(job, rw.EIGENSCHAFT_MASCHINE, "") == dreh, "am Job nicht gemerkt"
 # Verschwundene Dateien aus dem temporären Ordner (P-2026-10-10-04): aufraeumen() nimmt sie aus
 # der Liste; eine fehlende Datei anderswo bleibt – dort hat „Suchen …“ Sinn.
 im_tmp = os.path.join(tempfile.gettempdir(), "camaddon_probe_weg", "weg.FCStd")
-woanders = os.path.join(FreeCAD.getUserAppDataDir(), "camaddon_probe_weg.FCStd")
+# „Woanders“ ist nicht das Profil: Das legen die Prüfläufer mit mktemp an, also im temporären
+# Ordner (P-2026-10-10-44) – der Ordner dieser Datei liegt sicher nicht dort.
+woanders = os.path.join(os.path.dirname(os.path.abspath(__file__)), "camaddon_probe_weg.FCStd")
 pruefe(ms.fluechtig(im_tmp) and not ms.fluechtig(woanders), "fluechtig erkennt den Ordner nicht")
 eintraege = ms.laden(liste)
 eintraege.append(ms.Eintrag(name="Weg (tmp)", datei=im_tmp))
 eintraege.append(ms.Eintrag(name="Weg (woanders)", datei=woanders))
 ms.speichern(eintraege, liste)
 weg = ms.aufraeumen(liste)
-pruefe([e.name for e in weg] == ["Weg (tmp)"], f"aufraeumen: {[e.name for e in weg]}")
+# Auch die verschobene Kopf/Kopf-Maschine geht: Ihr Ordner kam aus mkdtemp, liegt also im
+# temporären Ordner, und ihre Datei ist weg (P-2026-10-10-44).
+pruefe(
+    sorted(e.name for e in weg) == sorted(["Weg (tmp)", kopf.name]),
+    f"aufraeumen: {[e.name for e in weg]}",
+)
 namen = [e.name for e in ms.laden(liste)]
 pruefe("Weg (tmp)" not in namen and "Weg (woanders)" in namen, "aufraeumen nahm das Falsche")
 pruefe(ms.aufraeumen(liste) == [], "aufraeumen nicht idempotent")

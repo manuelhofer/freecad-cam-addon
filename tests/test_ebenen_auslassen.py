@@ -180,6 +180,8 @@ def pruefen():
         )
 
 
-if __name__ == "__main__":
+# FreeCADCmd führt eine Datei unter ihrem eigenen Namen aus, nicht als "__main__"
+# (P-2026-10-10-44) – sonst lief die Prüfung dort nie.
+if __name__ in ("__main__", pathlib.Path(__file__).stem):
     pruefen()
     print("OK", pathlib.Path(__file__).name, flush=True)

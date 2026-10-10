@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-44 pruefdateien-nachgezogen
+
+### EINGELESEN
+- T-011, voller Lauf: drei Prüfdateien fielen in beiden Versionen, nicht wegen 26.3.
+- `test_maschinenspeicher`: „Woanders“ lag im Profil – das legen die Prüfläufer mit `mktemp` an,
+  also im temporären Ordner, und `aufraeumen()` nahm den Eintrag zu Recht heraus.
+- `test_ebenen_auslassen`: FreeCADCmd führt eine Datei unter ihrem Namen aus, nicht als
+  `__main__` – die Prüfung lief dort nie und schrieb trotzdem nichts Falsches, nur kein „OK“.
+- `test_simultan_nc` und `test_simultan_export_referenz`: P-2026-10-10-26 hat das
+  Freiformbeispiel auf der neuen G550 neu gerechnet (45 143 NC-Bewegungen), die NC-Referenz
+  `tests/golden/freiform_simultan_nc.json` aber nicht nachgezogen (bisect: grün bei cb9c757, rot
+  ab fec9370).
+
+### DATEIEN
+- `tests/test_maschinenspeicher.py`, `tests/test_ebenen_auslassen.py`,
+  `tests/golden/freiform_simultan_nc.json` (mit `GOLDENE_BAHNEN_SCHREIBEN=1` in 1.1.3: 45 143
+  Sätze wie im Verlauf von -26), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Die drei Prüfdateien grün in 1.1.3 und im Wochen-Build.
+
+### DONE
+- `test_goldene_bahnen` bleibt rot, wo die Umgebung anders rechnet (numpy 2.4.6, OCCT 7.9.3 – rot
+  auch bei cb9c757); die goldenen Bahnen werden dafür nicht neu geschrieben.
+
+### TEST
+- KI: `test_ebenen_auslassen`, `test_simultan_export_referenz` grün in 1.1.3 und im Wochen-Build;
+  `test_simultan_nc` im Wochen-Build gegen die neue Referenz grün; `test_maschinenspeicher` in
+  beiden grün.
+
 ## P-2026-10-10-43 adaptiv-kern-26-3
 
 ### EINGELESEN
