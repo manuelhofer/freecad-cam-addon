@@ -1528,14 +1528,14 @@ class KisteDialog(QtGui.QDialog):
                 absaetze.append(tr("wv.kiste.einlesen.ersetzt", anzahl=len(pruefung.ersetzt)))
         else:
             absaetze.append(tr("wv.kiste.einlesen.nichts", datei=pruefung.datei))
-        for schluessel, liste in (
-            ("wv.kiste.einlesen.doppelt", pruefung.doppelt),
-            ("wv.kiste.einlesen.fehler", pruefung.fehler),
-            ("wv.kiste.einlesen.hinweise", pruefung.hinweise),
+        for ueberschrift, liste in (
+            (tr("wv.kiste.einlesen.doppelt", anzahl=len(pruefung.doppelt)), pruefung.doppelt),
+            (tr("wv.kiste.einlesen.fehler", anzahl=len(pruefung.fehler)), pruefung.fehler),
+            (tr("wv.kiste.einlesen.hinweise", anzahl=len(pruefung.hinweise)), pruefung.hinweise),
         ):
             if liste:
-                absaetze.append(tr(schluessel, anzahl=len(liste)))
-                zeilen.append(tr(schluessel, anzahl=len(liste)))
+                absaetze.append(ueberschrift)
+                zeilen.append(ueberschrift)
                 zeilen.extend(f"• {satz}" for satz in liste)
                 zeilen.append("")
         meldung = QtGui.QMessageBox(self)

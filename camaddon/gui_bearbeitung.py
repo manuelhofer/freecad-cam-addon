@@ -481,7 +481,10 @@ class _Strategie:
     bevorzugt = wz.SCHAFTFRAESER  # diese Art vorgewählt, wenn sonst nichts entscheidet
     # mm – das Raster, in dem die Operation ihre Bahn rechnet (aufloesung.py); None: hat keins.
     aufloesung = None
-    aufloesung_tooltip = "ba.aufloesung.tooltip"  # die Erklärung dazu (Kanten: eine eigene)
+
+    def aufloesung_erklaerung(self, vorschlag):
+        """Die Erklärung zum Feld „Auflösung“ – Kanten haben eine eigene."""
+        return tr("ba.aufloesung.tooltip", vorschlag=vorschlag)
 
     def titel(self):
         return ""
@@ -1731,7 +1734,9 @@ class _Entgraten3D(_Strategie):
     einsatz_reihenfolge = (wz.FASEN, wz.SCHLICHTEN)
     bevorzugt = wz.FASENFRAESER
     aufloesung = e3op.e3.SCHRITT  # der Schritt auf der Kante
-    aufloesung_tooltip = "ba.aufloesung.kante.tooltip"
+
+    def aufloesung_erklaerung(self, vorschlag):
+        return tr("ba.aufloesung.kante.tooltip", vorschlag=vorschlag)
 
     def titel(self):
         return tr("ba.e3")
@@ -2389,7 +2394,9 @@ class _Flanke(_Strategie):
     einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
     bevorzugt = wz.SCHAFTFRAESER
     aufloesung = flb.SCHRITT  # der Schritt an gekrümmten Kanten
-    aufloesung_tooltip = "ba.aufloesung.kante.tooltip"
+
+    def aufloesung_erklaerung(self, vorschlag):
+        return tr("ba.aufloesung.kante.tooltip", vorschlag=vorschlag)
 
     def titel(self):
         return tr("ba.fl")
@@ -2884,9 +2891,8 @@ class _Block:
                 self.felder,
                 "aufloesung",
                 tr("ba.aufloesung"),
-                tr(
-                    strategie.aufloesung_tooltip,
-                    vorschlag=groesse_zeigen(strategie.aufloesung, einheiten.LAENGE),
+                strategie.aufloesung_erklaerung(
+                    groesse_zeigen(strategie.aufloesung, einheiten.LAENGE)
                 ),
                 self.reihen,
                 self.panel.vorschau_starten,
