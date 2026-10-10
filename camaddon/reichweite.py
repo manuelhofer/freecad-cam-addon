@@ -985,7 +985,9 @@ class Pruefung:
                     sammler.hinweis(tr("rw.werkzeug_radial_gerade", **werte))
                 else:
                     sammler.hinweis(tr("rw.werkzeug_radial", **werte))
-        elif self._werkzeug_quer(aufnahme, grundstellung, eingespannt):
+        elif self._werkzeug_quer(aufnahme, grundstellung, eingespannt) and not _simultan(op):
+            # Eine Simultanbahn (Flanke, Entgraten 3D) hat je Satz ihre eigene Werkzeugachse – die
+            # Richtung der Aufnahme in Grundstellung sagt nichts über sie (B-015, P-2026-10-10-21).
             sammler.hinweis(
                 tr(
                     "rw.werkzeug_quer",
@@ -1033,6 +1035,13 @@ class Pruefung:
         for buchstabe in sorted(fremd):
             sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
         sammler.ende_operation()
+
+
+def _simultan(op):
+    """Fährt die Operation mit eigener Werkzeugachse je Satz (simultan_operation)?"""
+    from . import simultan_operation as so
+
+    return so.ist_simultan(op)
 
 
 def _ist_rundum(op):
