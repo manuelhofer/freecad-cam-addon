@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-35 installieren-beide-zeilen
+
+### EINGELESEN
+- Manuel, 2026-10-10, Foto der Python-Konsole (FreeCAD 26.3.0RC1 unter Windows, Python 3.13.15):
+  die Installationszeile aus dem README endet mit „AttributeError: 'NoneType' object has no
+  attribute 'data'“ – `blocking_get` gab `None`, der Download über Qt kam nicht durch. Ein Proxy
+  ist nicht eingestellt; die Adresse stimmt (`installieren.py` ist dort öffentlich abrufbar).
+- Manuel: „Python war vorher wir haben dann umgestellt auf qt kann man bitte ins git beide rein
+  machen beide Befehle!!“
+- `README.md` (Installieren), `installieren.py` (Kopf, `hole()`), `tests/test_installieren.py`
+  (prüft die Qt-Zeile in README und `installieren.py`), `git show 3586f33` (P-2026-09-30-33: die
+  frühere Zeile über urllib).
+
+### DATEIEN
+- `README.md` (beide Zeilen, Qt zuerst, dazu welche Meldung zur anderen schickt),
+  `installieren.py` (Docstring: beide Zeilen und warum es beide braucht),
+  `docs/STATUS_SNAPSHOT.md` (B-017), `docs/OFFENE_FRAGEN.md` (Frage 4),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Die zweite Zeile aus dem README in FreeCADs Python-Konsole → Fenster „CAM-Addon … ist
+installiert“, nach dem Neustart steht das Menü „CAM-Addon“ in Assembly und CAM – auch in FreeCAD
+26.3.0RC1 unter Windows, wo die erste scheitert (prüft Manuel, Frage 4).
+
+### DONE
+- Die Python-Zeile ist wörtlich die aus P-2026-09-25-43, die bis P-2026-09-30-33 im README stand.
+- Keine neue Version in `package.xml`: Im Addon ändert sich nichts, nur README und Docstring.
+- Bewusst nicht: eine Anleitung „ZIP von Hand“ für ein FreeCAD, das gar kein HTTPS kann – erst,
+  wenn Frage 4 zeigt, dass es so eines ist. `tests/test_installieren.py` bleibt, wie er ist: Er
+  prüft die Qt-Zeile weiter in beiden Dateien.
+
+### TEST
+- KI ohne FreeCAD (Python 3.13, ein FreeCAD-Ersatz mit `getUserAppDataDir`, `ParamGet`,
+  `Console`, `GuiUp = False`): die Python-Zeile, wie sie im README steht, ausgeführt – lädt
+  `installieren.py` von GitHub, holt das ZIP, meldet „CAM-Addon 0.212.0 ist installiert“, legt
+  `Mod/freecad-cam-addon` mit `InitGui.py` und `package.xml` an und trägt das Repository ein.
+- `black --check installieren.py` und `ruff check installieren.py` ohne Befund.
+- In FreeCAD 26.3.0RC1 unter Windows: nur Manuel (Frage 4).
+
+### NEXT
+- Manuel: in FreeCAD 26.3.0RC1 die zweite Zeile probieren; meldet sie einen Fehler, die Meldung
+  schicken.
+
 ## P-2026-10-10-34 netzschranke-mit-stirnebene-fuer-flache-fraeser
 
 ### EINGELESEN

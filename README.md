@@ -30,18 +30,30 @@ Schritten. Jedes Fenster hat ein **?** mit Hilfe. Ein Beispielteil liegt in
 ## Installieren
 
 1. In FreeCAD **Ansicht → Fenster → Python-Konsole** öffnen.
-2. Diese Zeile hineinkopieren und Enter drücken:
+2. Eine der beiden Zeilen hineinkopieren und Enter drücken.
+
+   Über den Netzzugang des Addon-Managers (Qt):
 
    ```
    import NetworkManager as n; n.InitializeNetworkManager(); exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())
    ```
 
+   Über Python (urllib):
+
+   ```
+   import urllib.request as u; exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())
+   ```
+
+   Beide tun dasselbe, nur der Weg zu GitHub ist ein anderer – welcher geht, hängt vom FreeCAD
+   ab. Meldet die erste `'NoneType' object has no attribute 'data'`, kommt Qt nicht durch: dann
+   die zweite. Meldet die zweite `unknown url type: https`, fehlt Pythons SSL: dann die erste.
+
 3. FreeCAD neu starten. Beim ersten Start fragt das Addon nach der Sprache. Das Menü
    **CAM-Addon** und seine Werkzeugleiste erscheinen in den Arbeitsbereichen **Assembly** und
    **CAM**.
 
-Was die Zeile tut, steht oben in [installieren.py](installieren.py). Sie braucht weder Git noch
-GitHub Desktop.
+Was die Zeilen tun, steht oben in [installieren.py](installieren.py). Sie brauchen weder Git
+noch GitHub Desktop.
 
 **Oder über den Addon-Manager:** **Bearbeiten → Einstellungen → Addon-Manager → Eigene
 Repositories**, dort `https://github.com/manuelhofer/freecad-cam-addon` mit dem Branch `main`

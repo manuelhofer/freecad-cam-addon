@@ -1,15 +1,20 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Installiert oder aktualisiert das CAM-Addon mit einer Zeile (P-2026-09-25-43).
 
-In FreeCAD **Ansicht → Fenster → Python-Konsole** öffnen, diese Zeile
-hineinkopieren, Enter, danach FreeCAD neu starten:
+In FreeCAD **Ansicht → Fenster → Python-Konsole** öffnen, eine der beiden
+Zeilen hineinkopieren, Enter, danach FreeCAD neu starten. Die erste lädt diese
+Datei über den Netzzugang des Addon-Managers (Qt), die zweite über Pythons urllib:
 
     import NetworkManager as n; n.InitializeNetworkManager(); exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())
+    import urllib.request as u; exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())
 
-Die Zeile lädt über den Netzzugang des Addon-Managers (Qt), nicht über
-Pythons urllib: Manchem FreeCAD fehlt Pythons ssl, dann meldet urllib
-„unknown url type: https“ (Manuel, 2026-09-30). Aus demselben Grund lädt
-hole() über Qt, wenn urllib kein https kann (P-2026-09-30-33).
+Es braucht beide (P-2026-10-10-35): Manchem FreeCAD fehlt Pythons ssl, dann
+meldet urllib „unknown url type: https“ (Manuel, 2026-09-30) – dafür kam die
+erste Zeile (P-2026-09-30-33). In einem anderen kommt Qt nicht durch:
+`blocking_get` gibt None, und die erste Zeile meldet „'NoneType' object has no
+attribute 'data'“ (Manuel, 2026-10-10, FreeCAD 26.3.0RC1 unter Windows) – dort
+hilft die zweite. Das ZIP lädt danach in beiden Fällen hole(): mit urllib, ohne
+ssl oder bei einem Zertifikatsfehler über Qt.
 
 Was dabei passiert:
 

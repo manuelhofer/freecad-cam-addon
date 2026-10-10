@@ -577,8 +577,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Zurzeit kein offener Bug. B-001 bis B-016 sind behoben (Belege im Verlauf; B-015 und B-016
-in P-2026-10-10-19 bis -22); nächste freie Nummer B-017.
+- **B-017** Die Installationszeile über Qt scheitert in FreeCAD 26.3.0RC1 unter Windows
+  (`blocking_get` gibt `None`, die Konsole meldet „'NoneType' object has no attribute 'data'“;
+  Manuel, 2026-10-10) – seit P-2026-10-10-35 steht die Zeile über Pythons urllib als zweite im
+  README; ob sie dort geht, steht in [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md) (Frage 4).
+
+B-001 bis B-016 sind behoben (Belege im Verlauf; B-015 und B-016 in P-2026-10-10-19 bis -22);
+nächste freie Nummer B-018.
 
 ## Offene Tasks
 
