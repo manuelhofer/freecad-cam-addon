@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-59 netzschranke-auch-mit-gewinkeltem-halter
+
+### EINGELESEN
+- „Kollision prüfen“ an Manuels 4-Achs-Testteil auf seiner CLX550, mit seiner Werkzeugverwaltung
+  aus RC1 (T1 Ø 12 und T2 Kugel Ø 8 im Halter „VDI40 angetrieben radial · ER32“, gewinkelt 90°):
+  250 s auf 24 Kernen, zusammen 5300 s Rechenzeit der Arbeiter. Beim gewinkelten Halter gab
+  `werkzeugkapseln` nichts zurück („seine Teile liegen nicht auf der Z-Achse“) – jeder Abstand
+  von Werkzeug und Halter zum Teil ging an OpenCascade.
+
+### DATEIEN
+- `camaddon/kollision.py` (`werkzeugkapseln`: Strecken als Punkte im LCS der Aufnahme statt z
+  auf ihrer Achse; beim gewinkelten Halter Werkzeug und Abschnitte gekippt wie in
+  `werkzeugkoerper` (halter.lage), dazu der Kopf längs der Aufnahmeachse; `_netzschranke`
+  dreht die Punkte mit der ganzen Lage – beim geraden Halter bitgleich wie vorher),
+  `tests/test_netzabstand.py` (das neue Format; beim gewinkelten Halter liegt jeder Körper in
+  seinen Kapseln), `package.xml` (0.213.12), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Mit gewinkeltem Halter dieselben Befunde, die Netzschranke rechnet mit.
+
+### TEST
+- KI: `test_netzabstand`, `test_kollision`, `test_kollision_verteilt`, `test_halter` grün in
+  1.1.4. Manuels Halter: alle Körper von T1 und T2 (Längen 60, 90) liegen in ihren Kapseln
+  (0 mm außerhalb). Testteil: dieselben drei Befunde, 250 → 238 s – wenig, weil der Halter dort
+  wirklich am Teil ist: Nah an einer Berührung entscheidet keine Schranke, da rechnet es genau
+  (im teuersten Stück 342 genaue Abstände Halter T2 – Teil, je 63 ms).
+
+### DONE
+- Befund für Manuel (Kollision prüfen am Testteil mit seinen Haltern): der Halter von T1 beim
+  Schruppen vor der Wellenstirn (Satz 8583, X −2,3 Z 18,6), der von T2 beim ersten Eintauchen
+  des Schlichtens (Satz 7) und der von T1 im Revolver, während T2 mit Y −48,7 schlichtet
+  (Satz 39363) – im Snapshot unter den offenen Punkten.
+
 ## P-2026-10-10-58 rest-ueber-mit-querachse-richtig
 
 ### EINGELESEN

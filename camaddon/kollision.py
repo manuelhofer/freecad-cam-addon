@@ -196,15 +196,16 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
 
 
 def werkzeugkapseln(masse, laenge, halter):
-    """{Art: ((z0, z1, r, flach), …)} – je Werkzeugteil Strecken auf der Z-Achse der Aufnahme mit
-    Radius, die den Körper aus werkzeugkoerper() enthalten, für die Netzschranke (netzabstand):
-    `flach` – der Körper liegt ganz zwischen z0 und z1 (Zylinder, Kegel, Schaftfräser samt
-    Kern: unter der Stirn zählt der Abstand zur Stirnebene); nicht flach beim Kugelfräser und
-    Lollipop – da beginnt die Strecke in der Kugelmitte, die Kapsel ist der Fräser selbst. Der
-    Halter je Abschnitt eine. Leer beim gewinkelten Halter: Seine Teile liegen nicht auf der
-    Z-Achse."""
-    if halter is not None and halter.gewinkelt:
-        return {}
+    """{Art: ((p0, p1, r, flach), …)} – je Werkzeugteil Strecken (p0, p1: Punkte im LCS der
+    Aufnahme) mit Radius, die den Körper aus werkzeugkoerper() enthalten, für die Netzschranke
+    (netzabstand): `flach` – der Körper liegt ganz zwischen den Ebenen quer durch p0 und p1
+    (Zylinder, Kegel, Schaftfräser samt Kern: unter der Stirn zählt der Abstand zur
+    Stirnebene); nicht flach beim Kugelfräser und Lollipop – da beginnt die Strecke in der
+    Kugelmitte, die Kapsel ist der Fräser selbst. Der Halter je Abschnitt eine. Beim geraden
+    Halter liegen alle auf der Z-Achse; beim gewinkelten sind Werkzeug und Abschnitte gekippt
+    wie in werkzeugkoerper() (halter.lage), der Kopf liegt längs der Aufnahmeachse
+    (P-2026-10-10-59: an Manuels CLX mit „VDI40 angetrieben radial“ rechnete die Kollision
+    sonst jeden Abstand genau – 5300 s auf 24 Kernen)."""
     spitze = -laenge
     if halter is not None and hl.form(halter) is not None:
         ende = -halter.laenge
@@ -213,25 +214,25 @@ def werkzeugkapseln(masse, laenge, halter):
     oben = min(spitze + masse.schneide, ende)
     radius = masse.durchmesser / 2
     stirn = masse.stirn
-    kapseln = {}
+    auf_z = {}  # Art -> ((z0, z1, r, flach), …) auf der Achse des Werkzeugs
     kugel = radius if masse.kugel else (stirn.kugel if stirn is not None and stirn.nur_kugel else 0)
     if kugel > 0:  # Kugel an der Spitze: die Kapsel ab der Kugelmitte ist der Fräser selbst
         mitte = spitze + kugel
         r = max(radius, kugel)
-        kapseln[SCHNEIDE] = ((mitte, max(oben, mitte), r, False),)
+        auf_z[SCHNEIDE] = ((mitte, max(oben, mitte), r, False),)
         if r > EINDRINGEN:
-            kapseln[KERN] = ((mitte, max(oben, mitte), r - EINDRINGEN, False),)
+            auf_z[KERN] = ((mitte, max(oben, mitte), r - EINDRINGEN, False),)
     elif oben - spitze > 1e-6 and radius > 0:
-        kapseln[SCHNEIDE] = ((spitze, oben, radius, True),)
+        auf_z[SCHNEIDE] = ((spitze, oben, radius, True),)
         if radius > EINDRINGEN:
-            kapseln[KERN] = ((spitze + EINDRINGEN, oben, radius - EINDRINGEN, True),)
+            auf_z[KERN] = ((spitze + EINDRINGEN, oben, radius - EINDRINGEN, True),)
     if masse.hals_laenge > 0 and masse.hals_d > 0:
         hals_ende = min(oben + masse.hals_laenge, ende)
         if hals_ende - oben > 1e-6:
-            kapseln[HALS] = ((oben, hals_ende, masse.hals_d / 2, True),)
+            auf_z[HALS] = ((oben, hals_ende, masse.hals_d / 2, True),)
         oben = hals_ende
     if masse.schaft > 0 and ende - oben > 1e-6:
-        kapseln[SCHAFT] = ((oben, ende, masse.schaft / 2, True),)
+        auf_z[SCHAFT] = ((oben, ende, masse.schaft / 2, True),)
     if halter is not None:
         stufen = []
         z = 0.0
@@ -243,7 +244,24 @@ def werkzeugkapseln(masse, laenge, halter):
                 stufen.append((-z - abschnitt.laenge, -z, r, True))
             z += abschnitt.laenge
         if stufen:
-            kapseln[HALTER] = tuple(stufen)
+            auf_z[HALTER] = tuple(stufen)
+    gewinkelt = halter is not None and halter.gewinkelt
+    matrix = hl.lage(halter).toMatrix() if gewinkelt else None
+
+    def punkt(z):
+        if matrix is None:
+            return (0.0, 0.0, z)
+        v = matrix.multiply(FreeCAD.Vector(0.0, 0.0, z))
+        return (v.x, v.y, v.z)
+
+    kapseln = {
+        art: tuple((punkt(z0), punkt(z1), r, flach) for z0, z1, r, flach in teile)
+        for art, teile in auf_z.items()
+    }
+    if gewinkelt and halter.kopf_d > 0 and halter.versatz > 0:
+        # Der Kopf (halter.form): ein Zylinder längs der Aufnahmeachse, ungekippt.
+        kopf = ((0.0, 0.0, 0.0), (0.0, 0.0, -(halter.versatz + halter.kopf_d / 2)))
+        kapseln[HALTER] = kapseln.get(HALTER, ()) + ((*kopf, halter.kopf_d / 2, True),)
     return kapseln
 
 
@@ -1456,14 +1474,16 @@ class _Welt:
             return None
         # Die Kapseln in die Koordinaten des anderen: seine Lage zurück, die des Werkzeugs hin.
         m = platzierung[anderer].inverse().multiply(platzierung[werkzeug]).toMatrix()
-        z0 = np.array([k[0] for k in werkzeug.kapseln])
-        z1 = np.array([k[1] for k in werkzeug.kapseln])
+        p0 = np.array([k[0] for k in werkzeug.kapseln], dtype=float)
+        p1 = np.array([k[1] for k in werkzeug.kapseln], dtype=float)
         radius = np.array([k[2] for k in werkzeug.kapseln])
         flach = np.array([k[3] for k in werkzeug.kapseln])
-        achse = np.array([m.A13, m.A23, m.A33])
+        drehung = np.array(
+            [[m.A11, m.A12, m.A13], [m.A21, m.A22, m.A23], [m.A31, m.A32, m.A33]], dtype=float
+        )
         ursprung = np.array([m.A14, m.A24, m.A34])
-        von = ursprung + z0[:, None] * achse
-        nach = ursprung + z1[:, None] * achse
+        von = ursprung + p0 @ drehung.T
+        nach = ursprung + p1 @ drehung.T
         # So weit suchen, dass die Schranke über `reicht` hinaus noch einen Schritt erlaubt.
         reichweite = float(radius.max()) + reicht + NETZ_SCHRITT
         werte = netz.kapseln(von, nach, reichweite, radius, flach)
