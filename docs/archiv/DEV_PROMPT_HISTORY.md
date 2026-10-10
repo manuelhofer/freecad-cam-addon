@@ -44,6 +44,11 @@ fährt das Schlichten durchs Freie mit dem Freivorschub.
   nach dem Schruppen (`rest_nach`) hält die vorletzte Zeile an der Stirn für leer, wo das Modell
   der Stange noch 17,6 mm hat; ein freier Lauf nahm dann 6,5 mm weg.
 
+- Nachtrag (nach dem Push gefunden): `test_goldene_bahnen` – `welle_absatz_schlichten` hat einen
+  Punkt mehr (61 423 → 61 424): der Übergang vom freien Anlauf vor der Stange (990 Punkte, vorher
+  im Schnittvorschub) ins Material; sonst Punkt für Punkt dieselbe Bahn. Referenz neu geschrieben
+  (`tests/golden/welle_absatz_schlichten.json`).
+
 ### DONE
 - Für Manuel: Testteil öffnen, „Rundum schlichten T2“ neu berechnen (oder Nach Updates schauen,
   dann neu rechnen) → im Prüffenster ist die Zeit kürzer; vor der Stirn fährt die Kugel schnell.
