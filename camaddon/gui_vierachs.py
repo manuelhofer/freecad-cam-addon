@@ -87,6 +87,16 @@ from .sprache import tr
 GRUEN = farben.GRUEN  # „passt“ – hell oder dunkel nach dem Theme (farben.py)
 GRAU_TEXT = farben.GRAU  # gerechnete Werte
 
+
+def _im_3d(farbe):
+    """Die Farbe einer Fläche in der 3D-Ansicht zur Textfarbe ihrer Zeile in der Liste. Die
+    Flächen behalten in jedem Theme ihre Farben (Tango-Grün, Rot, dunkles Gelb) – seit
+    P-2026-10-10-42 folgt nur der Text dem Theme (P-2026-10-10-51)."""
+    from .gui_kollision import GELB
+
+    return {GRUEN: "#4e9a06", ROT: "#c0392b", GELB: "#b9770e"}.get(farbe, farbe)
+
+
 # Nach der letzten Eingabe so lange warten, bevor Job und Stange nachziehen –
 # sonst rechnet jede Ziffer von „80“ einzeln.
 NACHZIEHEN_MS = 250
@@ -2178,7 +2188,7 @@ class VierachsPanel:
             else:
                 art = vf.beschreibung(form.Faces[nummer[0]], laengs)
                 erreichbar, farbe = self._erreichbar(sicht, nummer[0])
-                farben[nummer[0]] = farbe
+                farben[nummer[0]] = _im_3d(farbe)
             eintrag = QtGui.QListWidgetItem(
                 dezimal(tr("va.flaeche.zeile", name=name, art=art, erreichbar=erreichbar))
             )

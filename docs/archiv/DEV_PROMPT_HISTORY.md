@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-51 vierachs-flaechen-3d-farben-wie-vorher
+
+### EINGELESEN
+- T-011, voller Lauf in 26.3.0RC1: `szenario_vierachs_flaechen` rot – „Farbe im 3D: (0.18, 0.49,
+  0.20)“, erwartet Tango-Grün #4e9a06. Auch in 1.1.4 rot: Seit P-2026-10-10-42 kommt `GRUEN` in
+  `gui_vierachs` aus `farben` (#2e7d32, im dunklen Theme hellgrün), und dieselbe Farbe färbte
+  auch die gewählten Flächen in der 3D-Ansicht – -42 wollte nur den Text ändern („Nicht
+  angefasst: Farben, die das Addon in seinen Bildern selbst malt“).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py` (`_im_3d`: zur Textfarbe der Zeile die Flächenfarbe von vorher –
+  Grün #4e9a06, Rot #c0392b, Gelb #b9770e, in jedem Theme), `package.xml` (0.213.7),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+4-Achs-Assistent, eine erreichbare Fläche anklicken → in 3D wieder im Grün von vorher; der
+Listentext folgt dem Theme.
+
+### TEST
+- KI: `szenario_vierachs_flaechen` grün in 26.3.0RC1 und 1.1.4.
+
 ## P-2026-10-10-50 qt-zeile-in-26-3-abgelehnt
 
 ### EINGELESEN
