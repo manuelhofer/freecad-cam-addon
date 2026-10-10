@@ -10,9 +10,15 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 ## Projektstatus
 
 **Im FreeCAD-Forum vorgestellt (2026-10-10):** der englische Beitrag im Unterforum „CAM“ (Manuel),
-https://forum.freecad.org/viewtopic.php?t=107889 – wartet auf die Freigabe durch einen Moderator;
-der deutsche folgt, sobald das Forum es zulässt. Text, Bilder und Stand: `docs/forum_vorstellung.md`.
-Antworten dort sind ab jetzt Eingang für Wünsche und Fehler.
+https://forum.freecad.org/viewtopic.php?t=107889 – seit dem 10.10. freigegeben; der deutsche
+folgt, sobald das Forum es zulässt. Text, Bilder und Stand: `docs/forum_vorstellung.md`. Antworten
+dort sind Eingang für Wünsche und Fehler. **Erste Antwort (memfis, 10.10., 7:05):** „5 axes?!
+Sounds like a breakthrough. I really hope to see more than that… At least for 4 axes.“ – er will
+mehr sehen, vor allem zu 4 Achsen (Bilder, ein kurzes Video der Rundum-Bahn an der Welle, das
+Beispiel `test4achsbearbeitung.FCStd`); antworten kann nur Manuel. **Schönheitsfehler im
+Beitrag:** die Liste „Answered in advance“ zeigt `[]*` statt Aufzählungspunkten – die
+BBCode-Listentags sind nicht aufgegangen; beim Bearbeiten des Beitrags `[list]`/`[*]` prüfen
+(`docs/forum_vorstellung.md`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller

@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-32 forum-thread-freigegeben-erste-antwort
+
+### EINGELESEN
+- Im eingebauten Browser nachgelesen: der Thread ist freigegeben; eine Antwort (memfis, 10.10.,
+  7:05): „5 axes?! Sounds like a breakthrough. I really hope to see more than that… At least for 4
+  axes. @tarman3?“ Und im Beitrag zeigt die Liste „Answered in advance“ `[]*` statt Punkten.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Projektstatus: Stand des Threads, die Antwort als Wunsch – mehr zu
+  4 Achsen zeigen –, der Listenfehler zum Bearbeiten).
+
+### AKZEPTANZKRITERIUM
+Manuel sieht beim Lesen des Snapshots, was im Forum passiert ist und was er tun kann.
+
+### DONE
+- Antworten kann nur Manuel; Vorschlag: Bilder oder ein kurzes Video der Rundum-Bahn an der Welle.
+
 ## P-2026-10-10-31 verfeinerung-rechnet-die-bahn-je-richtung-einmal
 
 ### EINGELESEN
