@@ -31,6 +31,17 @@ dauer = time.monotonic() - beginn
 assert pool.arbeiter == 3, pool.arbeiter
 assert dauer < 2.5, f"drei Aufträge je 1 s brauchten {dauer:.1f} s – nicht parallel"
 
+# Eine Gruppe mit höchstens zwei zugleich (P-2026-10-10-63): drei Aufträge je 1 s brauchen zwei
+# Runden, obwohl drei Arbeiter frei sind.
+beginn = time.monotonic()
+with pool.gruppe("probe", 2):
+    auftraege = [pool.auftrag("nebenrechner", "_probe", i, dauer=1.0) for i in range(3)]
+assert all(a.gruppe == "probe" and a.gleichzeitig == 2 for a in auftraege)
+assert pool.warten(auftraege) == [0, 1, 4]
+dauer = time.monotonic() - beginn
+assert 1.9 < dauer < 3.5, f"höchstens zwei zugleich: {dauer:.1f} s"
+assert nr.physische_kerne() >= 1
+
 # Fortschritt: die Funktion meldet ihn, der Auftrag kennt ihn, der Rückruf kommt.
 gemeldet = []
 auftrag = pool.auftrag("nebenrechner", "_probe", 3, dauer=0.6, fortschritt=nr.Fortschritt())

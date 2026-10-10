@@ -121,7 +121,9 @@ WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 # Nebenrechner: ab so vielen Stationen lohnen sie sich, so viele Stücke bekommt jeder, und so
 # lang ist ein Stück mindestens (die Stationen sind verschieden teuer – viele Stücke gleichen das aus).
 PARALLEL_AB = 60
-STUECKE_JE_ARBEITER = 48  # gemessen am Freiformbeispiel, 24 Kerne: 4 → 83 s, 16 → 60 s, 48 → 54 s
+# gemessen am Freiformbeispiel, 24 Kerne: 4 → 83 s, 16 → 60 s, 48 → 54 s; an Manuels 4-Achs-Testteil
+# (Halter am Teil, jedes Stück beginnt mit genauen Abständen) 48 → 240 s, 24 → 192 s, 6 → 182 s
+STUECKE_JE_ARBEITER = 24
 STUECK_MINDESTENS = 20
 # Die Netzschranke (Spezifikation Strategien 16.5, Hebel 2): Werkzeugteile als Kapseln gegen
 # das vernetzte Teil, die Backen und die Bauteile der Maschine – so fein vernetzt (mm). Beim
@@ -754,20 +756,22 @@ def _verteilt(pool, abfahrt, job, nullpunkt, bibliothek, warnabstand, fortschrit
     g_daten = pool.gemeinsam(schluessel[1], daten.zum_senden())
     bereiche = _bereiche(len(abfahrt.stationen), pool.anzahl)
     auftraege = []
-    for bereich in bereiche:
-        auftrag = pool.auftrag(
-            "kollision",
-            "stueck",
-            kopie,
-            maschine,
-            g_fahrt,
-            g_daten,
-            warnabstand,
-            bereich,
-            fortschritt=nr.Fortschritt(),
-        )
-        auftrag.gewicht = bereich[1] - bereich[0]
-        auftraege.append(auftrag)
+    # Je Kern einer: Auf den SMT-Zwillingen bremst sich OpenCascade aus (P-2026-10-10-63).
+    with pool.gruppe("kollision", nr.physische_kerne()):
+        for bereich in bereiche:
+            auftrag = pool.auftrag(
+                "kollision",
+                "stueck",
+                kopie,
+                maschine,
+                g_fahrt,
+                g_daten,
+                warnabstand,
+                bereich,
+                fortschritt=nr.Fortschritt(),
+            )
+            auftrag.gewicht = bereich[1] - bereich[0]
+            auftraege.append(auftrag)
 
     def zwischendurch():
         if fortschritt is None:

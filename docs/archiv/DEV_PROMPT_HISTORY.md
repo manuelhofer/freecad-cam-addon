@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-63 kollision-je-kern-ein-arbeiter
+
+### EINGELESEN
+- „Kollision prüfen“ an Manuels 4-Achs-Testteil (CLX550, seine Halter) gemessen: 24 Arbeiter und
+  1152 Stücke 240 s; 12 Arbeiter 183 s, 16 → 213 s, 8 → 192 s. Getrennt: Die Stückzahl zählt am
+  meisten (jedes Stück beginnt ohne Schranken, nah am Teil mit genauen Abständen – der Halter
+  63 ms je Abstand): 24 Arbeiter mit 576 Stücken 192 s, 288 → 198 s, 144 → 182 s; dazu je Kern
+  nur ein Arbeiter (die SMT-Zwillinge bremsen OpenCascade): 12 Arbeiter mit 576 Stücken 182 s.
+
+### DATEIEN
+- `camaddon/nebenrechner.py` (`physische_kerne`: unter Linux aus /sys, sonst ab 8 Threads die
+  Hälfte; `Nebenrechner.gruppe(name, gleichzeitig)`: Aufträge, die darin entstehen, rechnen
+  höchstens so viele zugleich – `_verteilen` hält sich daran), `camaddon/kollision.py` (die Stücke
+  in der Gruppe „kollision“ je Kern einer; `STUECKE_JE_ARBEITER` 48 → 24),
+  `tests/test_nebenrechner.py` (drei Aufträge, höchstens zwei zugleich: zwei Runden),
+  `package.xml` (0.213.14), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Dieselben Befunde, schneller: am Testteil 243 → 181 s.
+
+### TEST
+- KI: Testteil dieselben drei Befunde, 243 → 181 s. `test_nebenrechner`, `test_kollision_verteilt`
+  grün in 1.1.4. Nicht neu gemessen: das Freiformbeispiel (dort waren 48 Stücke je Arbeiter mit
+  54 s gegen 16 mit 60 s die schnellsten – 24 liegt dazwischen).
+
 ## P-2026-10-10-62 rest-je-rasterstelle-auf-allen-kernen
 
 ### EINGELESEN

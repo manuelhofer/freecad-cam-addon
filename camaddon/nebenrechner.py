@@ -154,6 +154,10 @@ class Auftrag:
         self.abgebrochen = False
         self.fortschritt = 0.0
         self.gewicht = 1.0
+        # Höchstens so viele Aufträge derselben `gruppe` rechnen zugleich (None: ohne Grenze) –
+        # OpenCascade bremst sich auf den Zwillingen eines Kerns gegenseitig aus (P-2026-10-10-63).
+        self.gruppe = None
+        self.gleichzeitig = None
         self.bei_fertig = None
         self.bei_fortschritt = None
         self.arbeiter = None  # solange er läuft
@@ -219,6 +223,26 @@ def anzahl_kerne():
     der Kuppel (hoehenfeld, Blöcke von 8192 Paaren) sind 24 Arbeiter schneller als 12 (2,6 s
     gegen 3,1 s), bei OpenCascade (Kollision) gleich schnell."""
     return os.cpu_count() or 1
+
+
+def physische_kerne():
+    """So viele Kerne ohne ihre SMT-Zwillinge (mindestens 1): unter Linux aus /sys gezählt (Paket
+    und Kern), sonst geschätzt – ab 8 Threads die Hälfte. Gemessen an der Kollision von Manuels
+    4-Achs-Testteil (12 Kerne, 24 Threads): 8 Arbeiter 192 s, 12 → 183 s, 16 → 213 s, 24 → 238 s."""
+    import glob
+
+    kerne = set()
+    try:
+        for pfad in glob.glob("/sys/devices/system/cpu/cpu[0-9]*/topology/core_id"):
+            ordner = os.path.dirname(pfad)
+            with open(os.path.join(ordner, "physical_package_id")) as paket, open(pfad) as kern:
+                kerne.add((paket.read().strip(), kern.read().strip()))
+    except OSError:
+        kerne = set()
+    if kerne:
+        return len(kerne)
+    threads = anzahl_kerne()
+    return max(1, threads // 2) if threads >= 8 else threads
 
 
 def gewuenschte_anzahl():
@@ -296,10 +320,23 @@ class Nebenrechner:
             raise NichtVerfuegbar(self._grund())
         self._zaehler += 1
         auftrag = Auftrag(self, self._zaehler, modul, funktion, args, kwargs)
+        auftrag.gruppe, auftrag.gleichzeitig = getattr(self, "_gruppe", (None, None))
         self._warteschlange.append(auftrag)
         self._verteilen()
         self._uhren()
         return auftrag
+
+    @contextlib.contextmanager
+    def gruppe(self, name, gleichzeitig):
+        """Die Aufträge, die in diesem Block entstehen, gehören zur Gruppe `name`: Höchstens
+        `gleichzeitig` davon rechnen zugleich (Auftrag.gruppe) – gesetzt, bevor sie verteilt
+        werden."""
+        vorher = getattr(self, "_gruppe", (None, None))
+        self._gruppe = (name, gleichzeitig)
+        try:
+            yield
+        finally:
+            self._gruppe = vorher
 
     def gemeinsam(self, schluessel, wert):
         """Legt gemeinsame Daten ab; Aufträge verweisen mit Gemeinsam(schluessel) darauf. Der
@@ -532,19 +569,55 @@ class Nebenrechner:
     # --- Verteilen und Lesen ------------------------------------------------------------
 
     def _verteilen(self):
-        """Gibt wartende Aufträge an freie Arbeiter; startet, was an Arbeitern fehlt."""
+        """Gibt wartende Aufträge an freie Arbeiter – je Gruppe höchstens so viele zugleich, wie
+        sie darf (Auftrag.gleichzeitig); startet, was an Arbeitern fehlt."""
+        laufend = {}
+        for arbeiter in self._arbeiter:
+            gruppe = getattr(arbeiter.auftrag, "gruppe", None)
+            if gruppe is not None:
+                laufend[gruppe] = laufend.get(gruppe, 0) + 1
         for arbeiter in self._arbeiter:
             if not self._warteschlange:
                 break
             if arbeiter.verbindung is None or arbeiter.auftrag is not None:
                 continue
-            self._senden(arbeiter, self._warteschlange.pop(0))
+            auftrag = self._naechster(laufend)
+            if auftrag is None:
+                break
+            self._senden(arbeiter, auftrag)
         startend = sum(1 for a in self._arbeiter if a.verbindung is None)
-        fehlend = min(len(self._warteschlange) - startend, self.anzahl - len(self._arbeiter))
+        fehlend = min(self._ausfuehrbar(laufend) - startend, self.anzahl - len(self._arbeiter))
         for _ in range(max(0, fehlend)):
             if self._fehlgeschlagen:
                 break
             self._starten()
+
+    def _naechster(self, laufend):
+        """Der erste wartende Auftrag, dessen Gruppe noch einen frei hat – aus der Warteschlange
+        genommen und in `laufend` gezählt; None, wenn keiner darf."""
+        for k, auftrag in enumerate(self._warteschlange):
+            gruppe = auftrag.gruppe
+            if gruppe is None or auftrag.gleichzeitig is None:
+                return self._warteschlange.pop(k)
+            if laufend.get(gruppe, 0) < auftrag.gleichzeitig:
+                laufend[gruppe] = laufend.get(gruppe, 0) + 1
+                return self._warteschlange.pop(k)
+        return None
+
+    def _ausfuehrbar(self, laufend):
+        """So viele wartende Aufträge dürften jetzt sofort rechnen (ihre Gruppe hat Platz)."""
+        frei = {}
+        anzahl = 0
+        for auftrag in self._warteschlange:
+            gruppe = auftrag.gruppe
+            if gruppe is None or auftrag.gleichzeitig is None:
+                anzahl += 1
+                continue
+            frei.setdefault(gruppe, max(0, auftrag.gleichzeitig - laufend.get(gruppe, 0)))
+            if frei[gruppe] > 0:
+                frei[gruppe] -= 1
+                anzahl += 1
+        return anzahl
 
     def _senden(self, arbeiter, auftrag):
         try:
