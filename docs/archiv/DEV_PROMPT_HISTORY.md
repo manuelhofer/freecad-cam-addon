@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-08 offene-fragen-1-bis-3-beantwortet
+
+### EINGELESEN
+- Manuel, 2026-10-10, zu `docs/OFFENE_FRAGEN.md`: Frage 1 (Erklärung der Auflösungsfelder und
+  „Bahn gerechnet für“): „das ist gut so“. Frage 2 (Schlichtlinien über die Kante): „ich hab das
+  schon verstanden warums so is wir lassen es so wies is“ – Option (a), wie heute. Frage 3
+  (5-Achs-Testteil): „das ist noch nicht fertig .. aber das kannst du auch ignorieren erstmal ..
+  ich will da etwas anderes machen“.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (leer), `docs/STATUS_SNAPSHOT.md` (T-009: die Erklärung trägt).
+
+### AKZEPTANZKRITERIUM
+Keine offene Frage in der Datei; der Snapshot nennt Manuels Antwort zu T-009.
+
+### DONE
+- Die Linien über die Kante bleiben, wie sie sind; keine Änderung an `vierachs_bahn`.
+- Das 5-Achs-Testteil bleibt außen vor, bis Manuel sich meldet – nicht nachfragen.
+
 ## P-2026-10-10-07 querachse-hinweis-und-offene-fragen
 
 ### EINGELESEN

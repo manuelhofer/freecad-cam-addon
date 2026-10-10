@@ -635,8 +635,7 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
   folgten „gewählt, sonst Punkt“, das Feld „Bahn gerechnet für“ dem Zahlenformat der Oberfläche). Gebaut (P-2026-10-10-03, Manuel: „ich würde es überall einbauen“): auch Plan
   indexiert (Netzfeinheit), Rundum entgraten, Entgraten 3D und Flanke (Schritt auf der Kante);
   jede Erklärung mit Beispiel, wo feiner nichts mehr bringt (gemessen: 3D-Schruppen Freiform
-  0,5 → 0,25 mm: 3 → 6,5 s). **T-009 fertig**; ob die Erklärung trägt, Frage 1 in
-  [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md).
+  0,5 → 0,25 mm: 3 → 6,5 s). **T-009 fertig**; die Erklärung trägt (Manuel, 2026-10-10: „das ist gut so“).
 - **B-015 `tests/test_goldene_bahnen.py` rot** („welle_schruppen: 5584 → 508 Punkte“, auch auf dem
   Stand vor P-2026-10-09-07): seit P-2026-10-09-02 (Rundum schruppen mit langen Sätzen) fehlt die
   neue goldene Referenz. Prüfen, ob die 508 Punkte die gewollte Bahn sind, dann mit
