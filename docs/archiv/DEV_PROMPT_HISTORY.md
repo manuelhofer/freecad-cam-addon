@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-62 rest-je-rasterstelle-auf-allen-kernen
+
+### EINGELESEN
+- Nach P-57 im Profil des Schlichtens am 4-Achs-Testteil: `_tiefste` (so tief darf die Spitze je
+  Rasterstelle des Rests) 2,2 s in einem Prozess – je Ausgabezeile nur mit den Nachbarzeilen ±n_a.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`tiefste_stueck`: die Rechnung für einen Zeilenblock;
+  `_tiefste_verteilt`: Blöcke mit Rand auf die Nebenrechner, ab 20 Mio. Zellen × Nachbarn),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Bitgleiche Bahnen, schneller.
+
+### TEST
+- KI: Testteil Schruppen und Schlichten bitgleich; Schlichten 7,5 → 4,8 s (Neuberechnen beider
+  Operationen jetzt 1,6 + 4,8 s, am Abend 3,1 + 19,6 s). `test_vierachs_schlichten`,
+  `test_vierachs_frei`, `test_vierachs_plan`, `test_goldene_bahnen` grün in 1.1.4.
+
 ## P-2026-10-10-61 fragen-zum-vierachs-testteil
 
 ### EINGELESEN

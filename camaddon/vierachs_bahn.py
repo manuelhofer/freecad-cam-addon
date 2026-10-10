@@ -2221,10 +2221,28 @@ def _tiefste(rest, form):
     n_phi = min(len(rest_phi) // 2, int(math.ceil(math.asin(radius / klein) / schritt_phi)) + 1)
     rand = np.full((n_a, rest_r.shape[1]), -math.inf)
     breit = np.concatenate([rand, rest_r, rand])
-    tiefste = np.full(rest_r.shape, -math.inf)
+    tiefste = None
+    if rest_r.size * (2 * n_a + 1) * (2 * n_phi + 1) >= TIEFSTE_PARALLEL_AB:
+        tiefste = _tiefste_verteilt(breit, n_a, n_phi, schritt_a, schritt_phi, form, len(rest_a))
+    if tiefste is None:
+        tiefste = tiefste_stueck(breit, n_a, n_phi, schritt_a, schritt_phi, form, len(rest_a))
+    _tiefste_gemerkt = (rest_r, form, tiefste)
+    return tiefste
+
+
+# Nebenrechner (P-2026-10-10-62): ab so viel Arbeit (Zellen mal Nachbarn) rechnen sie _tiefste in
+# Zeilenblöcken – am 4-Achs-Testteil 2 s je Schlichtbahn.
+TIEFSTE_PARALLEL_AB = 20_000_000
+
+
+def tiefste_stueck(breit, n_a, n_phi, schritt_a, schritt_phi, form, zeilen_anzahl):
+    """_tiefste für `zeilen_anzahl` Zeilen des Rests – `breit`: diese Zeilen und n_a davor und
+    dahinter (am Rand -inf). Hier im Prozess oder im Nebenrechner für einen Block."""
+    radius = form.radius
+    tiefste = np.full((zeilen_anzahl, breit.shape[1]), -math.inf)
     with np.errstate(invalid="ignore"):
         for i in range(-n_a, n_a + 1):
-            zeilen = breit[n_a + i : n_a + i + len(rest_a)]
+            zeilen = breit[n_a + i : n_a + i + zeilen_anzahl]
             for j in range(-n_phi, n_phi + 1):
                 r_p = np.roll(zeilen, -j, axis=1)
                 delta = j * schritt_phi
@@ -2236,8 +2254,44 @@ def _tiefste(rest, form):
                 unter = abstand < radius - 1e-9
                 wert = r_p * math.cos(delta) - form.hoehe(np.minimum(abstand, radius))
                 np.maximum(tiefste, np.where(unter, wert, -math.inf), out=tiefste)
-    _tiefste_gemerkt = (rest_r, form, tiefste)
     return tiefste
+
+
+def _tiefste_verteilt(breit, n_a, n_phi, schritt_a, schritt_phi, form, zeilen_anzahl):
+    """tiefste_stueck in Zeilenblöcken auf den Nebenrechnern – jeder Block mit n_a Zeilen Rand
+    davor und dahinter; None ohne sie."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    bloecke = max(2, min(pool.anzahl * 2, zeilen_anzahl // 8))
+    grenzen = [round(k * zeilen_anzahl / bloecke) for k in range(bloecke + 1)]
+    bereiche = [(a, b) for a, b in zip(grenzen, grenzen[1:], strict=False) if b > a]
+    auftraege = [
+        pool.auftrag(
+            "vierachs_bahn",
+            "tiefste_stueck",
+            np.ascontiguousarray(breit[a : b + 2 * n_a]),
+            n_a,
+            n_phi,
+            schritt_a,
+            schritt_phi,
+            form,
+            b - a,
+        )
+        for a, b in bereiche
+    ]
+    try:
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Rest auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    return np.concatenate(teile)
 
 
 def _sehnenfehler(r, t=None):
