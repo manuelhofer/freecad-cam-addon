@@ -1191,6 +1191,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
             umrechnen,
             form.nur_kugel,
             w.anstellen if form.nur_kugel else 0.0,
+            material_oben=lambda a_k, winkel_k: _material_oben(w, form, a_k, winkel_k),
         )
     else:
         a, r, winkel, t, _ = _verfeinert(
@@ -1214,12 +1215,16 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
 def _material_oben(w, form, a, winkel):
     """Wie hoch die Spitze an den Punkten (a, Winkel in Grad) stehen muss, damit der Fräser das
     Material vor dem Schlichten gerade berührt: der Rest nach dem Schruppen (_nicht_tiefer),
-    ohne ihn – und außerhalb seines Rasters – die Stange."""
+    ohne ihn – und außerhalb seines Rasters – die Stange; ganz vor der Stange, wo der Fräser ihre
+    Stirn nicht mehr erreicht, nichts (-inf): Dort fuhr die Spirale an Manuels Testteil mit dem
+    Schnittvorschub an (P-2026-10-10-56). Knapp davor nicht: Am Rand liegt der Rest neben der
+    Stange (an der Stirn hielt er sie für leer, wo noch 17 mm standen)."""
     a = np.asarray(a, dtype=float)
     if w.rest is None:
         return np.full(len(a), float(w.stange_radius))
     oben = _nicht_tiefer(w.rest, form, 0.0, a, np.radians(np.asarray(winkel, dtype=float)))
-    return np.where(np.isfinite(oben), oben, float(w.stange_radius))
+    vorne = a > float(w.rest[0][-1]) + form.radius
+    return np.where(np.isfinite(oben) | vorne, oben, float(w.stange_radius))
 
 
 def _rest_ueber(w, form, r, a, phi):
@@ -1649,6 +1654,7 @@ def _spirale_quer(
     umrechnen,
     kugel,
     anstellen=0.0,
+    material_oben=None,
 ):
     """Hängt die ganze Spirale mit der Querachse an `punkte` (_quer_plan, normale_quer): die
     Rundachse steht auf ψ, die Spitze bei x längs der Werkzeugachse, quer um q versetzt.
@@ -1656,7 +1662,10 @@ def _spirale_quer(
     Hüllfläche (vierachs_quer.stellungen); auch für die Kugel, denn ihre Zwischenstellungen
     (_uebergaenge) liegen nicht auf ihr. Geprüft wird der Weg der Kugelmitte (`kugel`) bzw. der
     Spitze. `anstellen`: die Kugel so viele Grad neben der Normalen (Schlichtwerte.anstellen).
-    Gibt die tiefste Spitze zurück."""
+    `material_oben`: (a, Winkel in Grad) → wie hoch die Spitze eines radialen Fräsers dieser
+    Form dort stehen muss, um das Material vor dem Schlichten gerade zu berühren (_material_oben)
+    – damit fährt die Kugel durchs Freie mit dem Freivorschub (_quer_frei). Gibt die tiefste
+    Spitze zurück."""
     neigung = math.copysign(float(anstellen), drehung) if kugel else 0.0
     a_p, x_p, q_p, psi_p, fest, eingefuegt = _quer_plan(a, r, winkel, radius, schritt_phi, neigung)
     pruef_radius = radius if kugel else 0.0
@@ -1670,10 +1679,39 @@ def _spirale_quer(
         psi_w, x_w, q_w = umrechnen(a_p[w], x_p[w], q_p[w], psi_p[w])
         psi_p, x_p, q_p = psi_p.copy(), x_p.copy(), q_p.copy()
         psi_p[w], x_p[w], q_p[w] = psi_w, x_w, q_w
+    frei = None
+    if kugel and material_oben is not None:
+        frei = _quer_frei(a_p, x_p, q_p, psi_p, radius, material_oben)
     _quer_ausgeben(
-        punkte, a_p, x_p, q_p, psi_p, fest, sicher, abstand, drehung, pruef_radius, neigung
+        punkte,
+        a_p,
+        x_p,
+        q_p,
+        psi_p,
+        fest,
+        sicher,
+        abstand,
+        drehung,
+        pruef_radius,
+        neigung,
+        frei=frei,
     )
     return float(np.min(x_p))
+
+
+def _quer_frei(a, x, q, psi, radius, material_oben):
+    """Je Stellung der Kugel mit der Querachse (Spitze x längs der Werkzeugachse unter ψ, quer
+    um q versetzt): Ist das Stück dorthin frei (_frei)? Die Kugel ist rund – sie berührt das
+    Material wie eine Kugel auf dem Strahl durch ihre Mitte: unter dem Winkel ψ + atan(q ÷ (x +
+    R)), die Spitze bei |Mitte| − R. Dort steht nichts mehr über ihr, wenn diese Spitze über
+    `material_oben` liegt (Manuel, 2026-10-10: vor der Stirn seines Testteils fuhr die Spirale
+    mit der Querachse 7 m im Vorschub durch die Luft)."""
+    x, q, psi = (np.asarray(v, dtype=float) for v in (x, q, psi))
+    mitte = x + radius
+    winkel = psi + np.degrees(np.arctan2(q, mitte))
+    spitze = np.hypot(mitte, q) - radius
+    leer = spitze >= material_oben(np.asarray(a, dtype=float), winkel) - LEER
+    return _frei(a, spitze, winkel, leer)
 
 
 def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
@@ -1833,12 +1871,15 @@ def _quer_ausgeben(
     neigung=0.0,
     toleranz=BAHN_TOLERANZ,
     innen=QUER_INNEN,
+    frei=None,
 ):
     """Hängt die Stellungen (a, x, q, ψ) an `punkte`: im Eilgang über den Anfang, die Punkte
     zusammengefasst (_zusammen_quer, geprüft am Weg des Punkts `radius` über der Spitze, längs der
     Normalen ψ − `neigung`, höchstens `toleranz` außen und `innen` innen – was `innen` über
     QUER_INNEN hinausgeht, ist das Spiel beim Schruppen, und darum rücken die bleibenden Punkte
-    nach außen), am Ende radial hinaus. Der Winkel zählt weiter, wo die Rundachse steht."""
+    nach außen), am Ende radial hinaus. Der Winkel zählt weiter, wo die Rundachse steht.
+    `frei` je Stellung (_quer_frei): das Stück dorthin durchs Freie – wo es wechselt, bleibt der
+    Punkt."""
     weiter = punkte[-1].phi
     if drehung > 0:
         versatz = 360.0 * math.ceil((weiter - psi[0]) / 360.0 - 1e-9)
@@ -1847,6 +1888,9 @@ def _quer_ausgeben(
     anfahren = Punkt(True, float(a[0]), sicher, float(psi[0] + versatz), q=float(q[0]))
     if anfahren != punkte[-1]:
         punkte.append(anfahren)
+    if frei is not None:
+        frei = np.asarray(frei, dtype=bool)
+        fest = sorted(set(fest) | set(np.flatnonzero(frei[:-1] != frei[1:]).tolist()))
     bleibt = _zusammen_quer(x, q, psi, radius, toleranz, abstand, fest, neigung, innen)
     # Mit Spiel beim Schruppen: die bleibenden Punkte so weit hinaus, dass nichts ins Aufmaß
     # schneidet; sonst (Schlichten) wie bisher.
@@ -1855,10 +1899,15 @@ def _quer_ausgeben(
         if innen > QUER_INNEN
         else np.zeros(len(bleibt))
     )
-    for i, h in zip(bleibt, hebung, strict=True):
+    for n, (i, h) in enumerate(zip(bleibt, hebung, strict=True)):
         punkte.append(
             Punkt(
-                False, float(a[i]), float(x[i]) + float(h), float(psi[i] + versatz), q=float(q[i])
+                False,
+                float(a[i]),
+                float(x[i]) + float(h),
+                float(psi[i] + versatz),
+                q=float(q[i]),
+                frei=bool(frei[i]) if frei is not None and n > 0 else False,
             )
         )
     letzter = len(a) - 1

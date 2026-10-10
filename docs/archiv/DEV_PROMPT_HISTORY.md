@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-56 vierachs-querachse-im-freien-schnell
+
+### EINGELESEN
+- Manuel, 2026-10-10, sein zweites 4-Achs-Testteil (`beispiele/testteil_4achs_nase.FCStd`, CLX550
+  mit Y): „was fährt der da? … der Kugelfräser, der da vorne irgendwelche komischen Faxen macht“.
+  Nachgerechnet: „Rundum schlichten T2“ fährt mit der Querachse; vor der Wellenstirn (a 0 … 17,
+  nur noch die Nase) 42 Umdrehungen, je Umdrehung bis hinter die Achse und zurück – 73 bis 94 %
+  davon ohne Material, alles im Schnittvorschub. „Im Freien schnell“ (P-2026-10-05) gab es nur
+  für die Spirale ohne Querachse; die mit Querachse kannte keine freien Stücke.
+- Und ganz vor der Stange (die Kugel erreicht ihre Stirn nicht mehr) galt die volle Stange als
+  Material: `_material_oben` setzte außerhalb des Rest-Rasters die Stange ein.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`_quer_frei`: je Stellung der Kugel mit der Querachse frei, wenn sie
+  auf dem Strahl durch ihre Mitte über dem Rest steht – die Kugel ist rund; `_spirale_quer` und
+  `_quer_ausgeben` reichen `frei` durch, wo es wechselt, bleibt der Punkt; `_material_oben`: ganz
+  vor der Stange nichts), `tests/test_vierachs_frei.py` (dieselbe Prüfung mit der Querachse, die
+  Bahn mit q im Modell der Stange; vor der Stange zählt nicht gegen den Ø 45),
+  `package.xml` (0.213.9), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Kein freier Lauf nimmt Material weg (`test_vierachs_frei`, mit und ohne Querachse); am Testteil
+fährt das Schlichten durchs Freie mit dem Freivorschub.
+
+### TEST
+- KI: `test_vierachs_frei`, `test_vierachs_schlichten`, `test_vierachs_bahn` grün in 1.1.4.
+- Testteil, Schlichten T2 (568 mm/min, Freivorschub 10 m/min): 141,2 → 125,7 min; frei 24 243
+  von 223 160 Punkten. Die Bahn bleibt, wo sie war.
+- Verworfen unterwegs: das Rest-Raster einen Fräserradius über die Stirn hinaus rechnen – der Rest
+  nach dem Schruppen (`rest_nach`) hält die vorletzte Zeile an der Stirn für leer, wo das Modell
+  der Stange noch 17,6 mm hat; ein freier Lauf nahm dann 6,5 mm weg.
+
+### DONE
+- Für Manuel: Testteil öffnen, „Rundum schlichten T2“ neu berechnen (oder Nach Updates schauen,
+  dann neu rechnen) → im Prüffenster ist die Zeit kürzer; vor der Stirn fährt die Kugel schnell.
+
 ## P-2026-10-10-55 forum-antwort-vierachs-testteil
 
 ### EINGELESEN

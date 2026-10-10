@@ -56,10 +56,10 @@ teil_form = Part.makeCylinder(20, 10, V(0, 0, 0), V(0, 0, 1)).fuse(
 teil_form = teil_form.removeSplitter()
 
 
-def frei_und_weg(stange, bahn, fraeser):
-    """(mm frei, mm im Vorschub, größte Menge, die ein freier Lauf wegnimmt) – die Bahn der Reihe
-    nach im Modell der Stange: je Lauf gleicher Art ein Schritt."""
-    frei_mm = alle_mm = groesste = 0.0
+def frei_und_weg(stange, bahn, fraeser, vorne=math.inf):
+    """(mm frei, mm im Vorschub, größte Menge, die ein freier Lauf wegnimmt, mm frei ganz vor
+    `vorne`) – die Bahn der Reihe nach im Modell der Stange: je Lauf gleicher Art ein Schritt."""
+    frei_mm = alle_mm = groesste = vorne_mm = 0.0
     lauf, art = [], None
 
     def fahren(lauf, frei):
@@ -80,12 +80,13 @@ def frei_und_weg(stange, bahn, fraeser):
             fahren(lauf, art)
             lauf = []
         art = bool(q.frei)
-        lauf.append(((p.a, p.r, p.phi), (q.a, q.r, q.phi)))
+        lauf.append(((p.a, p.r, p.phi, p.q), (q.a, q.r, q.phi, q.q)))
         weg = vb._weg(p, q)
         alle_mm += weg
         frei_mm += weg if q.frei else 0.0
+        vorne_mm += weg if q.frei and min(p.a, q.a) > vorne else 0.0
     fahren(lauf, art)
-    return frei_mm, alle_mm, groesste
+    return frei_mm, alle_mm, groesste, vorne_mm
 
 
 ergebnis = {}
@@ -110,7 +111,11 @@ for durchmesser in (40.0, 45.0):
     schlichten = vs.lege_an(job, tc2, achse, 0.5, aufmass=0.0)
     doc.recompute()
     b1 = vo.rechne(schruppen, job, job.Model.Group, 6.0)
+    schlichten.Querachse = False
     b2 = vs.rechne(schlichten, job, job.Model.Group)
+    # Mit der Querachse (Manuels CLX mit Y): dieselbe Prüfung (P-2026-10-10-56).
+    schlichten.Querachse = True
+    b3 = vs.rechne(schlichten, job, job.Model.Group)
     # Die Stange, wo sie steht: ihre Länge längs der Achse.
     bb = job.Stock.Shape.BoundBox
     ecken = [
@@ -120,16 +125,24 @@ for durchmesser in (40.0, 45.0):
         for z in (bb.ZMin, bb.ZMax)
     ]
     stange = rm.Stange(durchmesser / 2, min(ecken), max(ecken))
-    s_frei, s_alle, s_weg = frei_und_weg(stange, b1, 6.0)
-    l_frei, l_alle, l_weg = frei_und_weg(stange, b2, ff.kugel(3.0))
-    ergebnis[durchmesser] = (s_frei, s_alle, l_frei, l_alle)
+    s_frei, s_alle, s_weg, _vorne = frei_und_weg(stange, b1, 6.0)
+    nach_schruppen = stange.r.copy()
+    # Ganz vor der Stange (die Kugel erreicht ihre Stirn nicht mehr) ist es immer frei.
+    vor_der_stange = max(ecken) + 3.0
+    l_frei, l_alle, l_weg, l_vorne = frei_und_weg(stange, b2, ff.kugel(3.0), vor_der_stange)
+    stange.r = nach_schruppen
+    q_frei, q_alle, q_weg, _vorne = frei_und_weg(stange, b3, ff.kugel(3.0), vor_der_stange)
+    ergebnis[durchmesser] = (s_frei, s_alle, l_frei - l_vorne, l_alle, q_frei, q_alle)
+    pruefe(b3.querachse, f"Ø {durchmesser}: Schlichten ohne Querachse")
+    pruefe(q_weg < 0.01, f"Ø {durchmesser}: ein freier Lauf mit Querachse nimmt {q_weg:.3f} weg")
     pruefe(s_weg < 0.01, f"Ø {durchmesser}: ein freier Lauf beim Schruppen nimmt {s_weg:.3f} weg")
     pruefe(l_weg < 0.01, f"Ø {durchmesser}: ein freier Lauf beim Schlichten nimmt {l_weg:.3f} weg")
     print(
         ascii(
             f"Ø {durchmesser}: Schruppen frei {s_frei:.0f} von {s_alle:.0f} mm, "
             f"{vb.dauer(b1, 1000.0):.2f} -> {vb.dauer(b1, 1000.0, freivorschub=10000.0):.2f} min; "
-            f"Schlichten frei {l_frei:.0f} von {l_alle:.0f} mm"
+            f"Schlichten frei {l_frei:.0f} von {l_alle:.0f} mm, mit Querachse {q_frei:.0f} von "
+            f"{q_alle:.0f} mm"
         )
     )
     if durchmesser == 40.0:
@@ -147,10 +160,11 @@ for durchmesser in (40.0, 45.0):
         )
     FreeCAD.closeDocument(doc.Name)
 
-s_frei, s_alle, l_frei, l_alle = ergebnis[40.0]
+s_frei, s_alle, l_frei, l_alle, q_frei, q_alle = ergebnis[40.0]
 pruefe(s_frei > 0.5 * s_alle, f"Ø 40: Schruppen nur {s_frei:.0f} von {s_alle:.0f} mm frei")
 pruefe(l_frei > 0.4 * l_alle, f"Ø 40: Schlichten nur {l_frei:.0f} von {l_alle:.0f} mm frei")
-s_frei, _s_alle, l_frei, l_alle = ergebnis[45.0]
+pruefe(q_frei > 0.3 * q_alle, f"Ø 40: mit Querachse nur {q_frei:.0f} von {q_alle:.0f} mm frei")
+s_frei, _s_alle, l_frei, l_alle, _q_frei, _q_alle = ergebnis[45.0]
 pruefe(s_frei == 0.0, f"Ø 45: Schruppen {s_frei:.0f} mm frei")
 pruefe(l_frei < 0.01 * l_alle, f"Ø 45: Schlichten {l_frei:.0f} mm frei – der Ø 40 gehört dazu")
 
