@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-31 verfeinerung-rechnet-die-bahn-je-richtung-einmal
+
+### EINGELESEN
+- Im Profil je Bahn (P-2026-10-10-29) stand `rechne` siebenmal: einmal grob, dann je Stufe der
+  Verfeinerung (0,015, 0,01, 0,005 mm) zweimal – `nochmal` sammelte je Werkzeug, Richtung
+  **und Anstellung**, und `werkzeug(tc, (richtung,), (um,), stufe)` rechnete für „Frei“ und
+  „Frei – ganze Bahn“ dieselbe Bahn, dieselbe Materialprüfung, dieselbe Deckung.
+
+### DATEIEN
+- `camaddon/simultan_planung.py` (`vergleichen`: die abgelehnten Anstellungen je Werkzeug und
+  Richtung gesammelt, ein Aufruf mit allen), `package.xml` (0.211.3).
+
+### AKZEPTANZKRITERIUM
+Dieselben Varianten in derselben Reihenfolge (`test_simultan_planung`, `test_simultan_folge`
+grün mit denselben Referenzen); am Freiformbeispiel zwei Bahnen weniger je Stufe.
+
+### DONE
+- Freiform mit 24 Arbeitern: `rechne` 7 → 5 Aufrufe (55 → 45 s), Deckung 6 → 4 Aufrufe,
+  gesamt **201 → 178 s**, derselbe Gewinner (317,90 s). Heute insgesamt 376 → 178 s.
+
 ## P-2026-10-10-30 deckung-auf-feinem-gitter
 
 ### EINGELESEN

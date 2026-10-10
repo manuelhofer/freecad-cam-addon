@@ -623,17 +623,21 @@ def vergleichen(
         )
         while plan.beste is None and stufen:
             stufe = stufen.pop(0)
-            nochmal = []
+            # Je Werkzeug und Richtung einmal, mit allen abgelehnten Anstellungen zusammen: Die
+            # Bahn ist dieselbe (am Freiformbeispiel sonst je Stufe zweimal gerechnet,
+            # P-2026-10-10-31).
+            nochmal = {}
             for v in plan.varianten[davor:]:
-                schluessel = (v.werkzeug.Name, v.richtung, v.anstellung)
-                if v.material_abgelehnt and schluessel not in nochmal:
-                    nochmal.append(schluessel)
+                if v.material_abgelehnt:
+                    ums = nochmal.setdefault((v.werkzeug.Name, v.richtung), [])
+                    if v.anstellung not in ums:
+                        ums.append(v.anstellung)
             if not nochmal:
                 break
             davor = len(plan.varianten)
-            for name, richtung, um in nochmal:
+            for (name, richtung), ums in nochmal.items():
                 tc = next(t for t in controller if t.Name == name)
-                yield from werkzeug(tc, (richtung,), (um,), stufe)
+                yield from werkzeug(tc, (richtung,), tuple(ums), stufe)
             yield from zulassen(plan.varianten[davor:])
         if plan.beste is not None:
             break
