@@ -643,10 +643,6 @@ B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
 - **T-007b Weitere Hersteller-Reihen** in der Kiste (Manuel: „zum Schluss“) – seit P-2026-10-10-06 über
   Dateien („Aus Datei einlesen …“); Manuels Hoffmann-Datei (83 Reihen) liegt in `beispiele/`.
 
-- **T-005** Repo öffentlich stellen – Empfehlung Claude (P-2026-09-25-43: Verlauf ohne
-  Geheimnisse und ohne private Mail-Adressen, Lizenz LGPL). Umstellen kann nur Manuel:
-  GitHub → Settings → Danger Zone → Change visibility → Public. Danach die
-  Installationszeile aus dem README einmal in FreeCAD ausprobieren.
 - **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei Linearachsen einen
   Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in P-2026-09-25-20, im Wochen-Build vom
   2026-09-16 noch da). Solange er besteht, übergibt das Addon Linearachsen mit Ursprung 0.

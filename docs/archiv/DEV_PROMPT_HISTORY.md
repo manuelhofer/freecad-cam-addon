@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-10-12 repo-oeffentlich-installation-geprueft-forum-bilder
+
+### EINGELESEN
+- Manuel, 2026-10-10: „repo is öffentlich oder ?“ – bei GitHub ohne Anmeldung nachgesehen:
+  `visibility: public`, Lizenz LGPL-2.1, die Rohdatei `installieren.py` erreichbar. T-005 ist
+  damit erledigt (Manuel hat umgestellt).
+- Die Installation aus einem leeren Profil: `freecadcmd installieren.py` installiert nichts, weil
+  das Skript in einem Thread lädt und der Konsolenprozess vorher endet; `installiere()` synchron
+  aufgerufen: „CAM-Addon 0.209.0 ist installiert“, Repo im Addon-Manager eingetragen, der zweite
+  Start lädt `camaddon` aus `Mod/freecad-cam-addon` (30 eingebaute Reihen der Kiste).
+
+### DATEIEN
+- `docs/bilder/forum/` (neu: drei Screenshots aus den Szenarien `szenario_bearbeitung`,
+  `szenario_vierachs_schruppen`, `szenario_schwenken`), `docs/forum_vorstellung.md` (Vorbedingungen
+  erledigt, Bilder genannt), `docs/STATUS_SNAPSHOT.md` (T-005 weg).
+
+### AKZEPTANZKRITERIUM
+Der Entwurf nennt, was vor dem Posten erledigt ist und welche Bilder dazugehören; der Snapshot
+führt T-005 nicht mehr.
+
+### DONE
+- Der Forenpost ist damit fertig zum Absenden; was bleibt, ist Manuels Klick.
+
 ## P-2026-10-10-11 forum-entwurf-installation-wie-readme
 
 ### EINGELESEN

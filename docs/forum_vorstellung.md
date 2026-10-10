@@ -5,9 +5,12 @@ noch etwas verschönern sozusagen als aushängeschild … und nach meinungen daz
 bedienern die eben die bedienung verbessern wollen“; „bau so standart antworten gleich mit ein
 vonwegen lizenz usw“. Hier der Entwurf – englisch für das Unterforum „Path/CAM“ (die größere
 Leserschaft), deutsch für das deutsche Unterforum mit Verweis auf den englischen Thread. Vor dem
-Posten: Repo öffentlich (T-005), die Installation einmal in einem frischen FreeCAD ausprobiert,
-zwei bis drei Screenshots (Assistent „Bearbeitung“ mit Vorschlägen, 4-Achs-Assistent am Teil,
-Maschine mit Kollisionsprüfung).
+Posten erledigt (2026-10-10): das Repo ist öffentlich (GitHub ohne Anmeldung: public, LGPL-2.1),
+die Installation aus einem leeren Profil geprüft (`installieren.py` holt 0.209.0, trägt das Repo im
+Addon-Manager ein, der nächste Start lädt das Addon). Die Bilder zum Anhängen liegen in
+`docs/bilder/forum/`: `bearbeitung_vorschlaege.png` (Assistent „Bearbeitung“, Schritt 2 mit
+Vorschlägen und Zeiten), `vierachs_welle.png` (Rundum schruppen an der Welle), `maschine_pruefen.png`
+(„Auf der Maschine prüfen“ an der 5-Achs-Fräse, geschwenkte Ebene).
 
 ## Deutsch
 
