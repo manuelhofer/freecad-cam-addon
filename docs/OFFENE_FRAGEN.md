@@ -50,8 +50,8 @@ quer, bleibt etwas anderes stehen. Am Nasen-Testteil (T1 Ø 12, 11.10. gerechnet
 | Zeit (Freivorschub 10 m/min) | 15,4 min | 15,3 min |
 | C-Weg | 38 545° | 31 063° |
 | C dreht zurück | 266-mal, 3 741° | nie |
-| danach noch Material | 804 781 cm³/1000 | 805 443 (+0,08 %) |
-| die Kugel T2 nimmt beim Schlichten weg | 12 118 | 12 775 (+5 %) |
+| danach noch Material | 804 781 mm³ | 805 443 mm³ (+0,08 %) |
+| die Kugel T2 nimmt beim Schlichten weg | 12 118 mm³ | 12 775 mm³ (+5 %) |
 
 **Die Frage:** Auch beim Schruppen – als Haken „C dreht nicht zurück“, vorbelegt an wie beim
 Schlichten, oder aus (die Kugel hat danach 5 % mehr zu tun)? Oder gar nicht?
