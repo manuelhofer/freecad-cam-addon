@@ -1230,6 +1230,7 @@
     "rw.liste.tooltip": "Click to move the machine there – the axis then stops at its limit.",
     "rw.nicht_in_grenzen": "Not all axes stay within their limits – where, see below.",
     "rw.in_grenzen": "All axes stay within their limits.",
+    "rw.rechnet": "Calculating … (a large job: the window still takes input)",
     "rw.keine_punkte": "No path to check – the job's operations have no points.",
     "rw.bereiche": "What the path needs ({anzahl} points):",
     "rw.kein_job": "There is no CAM job in any open document. Open the document with the job – this command then checks its paths on a machine. Or create one right away: open “Machining”.",

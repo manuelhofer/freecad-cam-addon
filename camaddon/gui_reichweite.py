@@ -22,8 +22,10 @@ Jobs zurück.
 """
 
 import contextlib
+import functools
 import html
 import os
+import time
 
 import FreeCAD
 import FreeCADGui
@@ -296,6 +298,7 @@ class PruefPanel:
         self.pruefung = None  # reichweite.Pruefung für die gewählte Werkstückaufnahme
         self.ergebnis = None
         self.abfahrt = None  # abfahren.Abfahrt zum Ergebnis
+        self._lauf = None  # ein großer Job rechnet im Takt (_lauf_starten); None: keiner
         self.bild = None  # gui_abfahren.Bild: Werkzeug und Werkstück in der 3D-Ansicht
         self._bild_fuer = None  # (Job, Prüfung), für die das Bild gebaut ist
         self._bewegt = False  # hat das Fenster die Maschine verfahren?
@@ -327,6 +330,7 @@ class PruefPanel:
     def _schliessen(self):
         PruefPanel.offen = None
         self._uhr.stop()
+        self._lauf_beenden()
         self.kollision.abbrechen()
         self.abspieler.anhalten()
         self._zurueckfahren()
@@ -550,13 +554,19 @@ class PruefPanel:
     # --- Rechnen und zeigen ---------------------------------------------------------
 
     def pruefe(self):
-        """Rechnet mit dem, was eingestellt ist, und zeigt das Ergebnis."""
+        """Rechnet mit dem, was eingestellt ist, und zeigt das Ergebnis – einen großen Job
+        (IM_TAKT_AB Sätze) im Takt der Ereignisschleife (_lauf_starten): Das Fenster nimmt
+        dazwischen Eingaben an, eine neue Eingabe beginnt von vorn."""
         self._uhr.stop()
+        self._lauf_beenden()
         aufnahme = self.werkstueckaufnahme()
         if self.pruefung is None or self.pruefung.werkstueckaufnahme is not aufnahme:
             self._zurueckfahren()
             self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
         job, nullpunkt = self.job(), self.nullpunkt()
+        if _saetze(job) >= IM_TAKT_AB:
+            self._lauf_starten(job, nullpunkt)
+            return
         # Reichweite und Abfahren lesen dieselben Bahnen: einmal (P-2026-10-11-26).
         with self.pruefung.schritte_teilen():
             self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
@@ -564,11 +574,91 @@ class PruefPanel:
             self._abfahrt_rechnen(job, nullpunkt)
         self.kollision.veraltet()
 
+    # --- Im Takt (P-2026-10-11-41) --------------------------------------------------------
+
+    def rechnet(self):
+        """Rechnet gerade ein großer Job im Takt?"""
+        return self._lauf is not None
+
+    def _lauf_starten(self, job, nullpunkt):
+        """Reichweite und Abfahren als Schritte (pruefe_job_schritte, abfahrt_schritte), je
+        TAKT_MS am Stück aus der Ereignisschleife – am Nasen-Testteil (330 000 Schritte) stand
+        das Fenster beim Öffnen und nach jeder Eingabe des Nullpunkts 6,5 s still (Manuel,
+        2026-10-09: „ein Lag … wo ich nichts klicken kann … sowas muss unbedingt vermieden
+        werden“)."""
+        stapel = contextlib.ExitStack()
+        stapel.enter_context(self.pruefung.schritte_teilen())
+        lauf = self._pruefen_schritte(job, nullpunkt, stapel)
+        self._lauf = lauf
+        self._rechnet_zeigen(True)
+        QtCore.QTimer.singleShot(0, functools.partial(self._lauf_schritt, lauf))
+
+    def _pruefen_schritte(self, job, nullpunkt, stapel):
+        try:
+            self.ergebnis = yield from self.pruefung.pruefe_job_schritte(
+                job, nullpunkt, self.bibliothek
+            )
+            self._zeige()
+            abfahrt = yield from ab.abfahrt_schritte(self.pruefung, job, nullpunkt, self.bibliothek)
+            self._abfahrt_zeigen(job, nullpunkt, abfahrt)
+            self.kollision.veraltet()
+        finally:
+            stapel.close()
+
+    def _lauf_schritt(self, lauf):
+        """Rechnet höchstens TAKT_MS am Lauf; der nächste Schritt kommt aus der Ereignisschleife.
+        Ein veralteter Lauf (neue Eingabe, Fenster zu) hört auf."""
+        if lauf is not self._lauf or PruefPanel.offen is not self:
+            lauf.close()
+            return
+        if uhren.verschachtelt():
+            # Mitten in einer anderen Rechnung (eine, die Ereignisse abarbeitet): danach weiter.
+            QtCore.QTimer.singleShot(TAKT_MS, functools.partial(self._lauf_schritt, lauf))
+            return
+        ende = time.perf_counter() + TAKT_MS / 1000.0
+        try:
+            while time.perf_counter() < ende:
+                next(lauf)
+        except StopIteration:
+            if self._lauf is lauf:
+                self._lauf = None
+                self._rechnet_zeigen(False)
+            return
+        except Exception:
+            if self._lauf is lauf:
+                self._lauf = None
+                self._rechnet_zeigen(False)
+            raise
+        QtCore.QTimer.singleShot(0, functools.partial(self._lauf_schritt, lauf))
+
+    def _lauf_beenden(self):
+        """Ein Lauf im Takt hört auf (sein Block schritte_teilen mit)."""
+        lauf, self._lauf = self._lauf, None
+        if lauf is not None:
+            lauf.close()
+            self._rechnet_zeigen(False)
+
+    def _rechnet_zeigen(self, an):
+        """Solange ein großer Job rechnet: oben grau „rechnet …“; Abspielen und „Kollision
+        prüfen“ warten, bis er fertig ist."""
+        self.abspieler.setEnabled(not an)
+        self.kollision.knopf.setEnabled(not an)
+        if an:
+            self._urteil(tr("rw.rechnet"), GRAU.name())
+            self.liste.setVisible(False)
+            self.abspieler.stelle.setText(tr("rw.rechnet"))
+
     def _abfahrt_rechnen(self, job, nullpunkt):
-        """Die Stationen fürs Abfahren und die Körper in der 3D-Ansicht. Steht die Maschine
-        schon auf der Bahn, fährt sie an dieselbe Zeit – passend zum neuen Nullpunkt."""
+        """Die Stationen fürs Abfahren und die Körper in der 3D-Ansicht (_abfahrt_zeigen)."""
+        self._abfahrt_zeigen(
+            job, nullpunkt, ab.abfahrt(self.pruefung, job, nullpunkt, self.bibliothek)
+        )
+
+    def _abfahrt_zeigen(self, job, nullpunkt, abfahrt):
+        """Zeigt die Abfahrt und die Körper in der 3D-Ansicht. Steht die Maschine schon auf der
+        Bahn, fährt sie an dieselbe Zeit – passend zum neuen Nullpunkt."""
         zeit = self.abspieler.zeit if self._bewegt else None
-        self.abfahrt = ab.abfahrt(self.pruefung, job, nullpunkt, self.bibliothek)
+        self.abfahrt = abfahrt
         fuer = self._bild_fuer
         if fuer is None or fuer[0] is not job or fuer[1] is not self.pruefung:
             self._bild_weg()
@@ -821,6 +911,19 @@ class PruefPanel:
         self.assembly.Document.recompute()
         if self.bild is not None:
             self.bild.folge()
+
+
+IM_TAKT_AB = 20000  # Sätze im Job: ab so vielen rechnet das Fenster im Takt (_lauf_starten)
+TAKT_MS = 40  # so lange rechnet ein Schritt im Takt am Stück
+
+
+def _saetze(job):
+    """Wie viele Sätze die aktiven Operationen des Jobs haben (auch in geschwenkten Ebenen)."""
+    zahl = 0
+    for op, _ebene in rw.operationen_mit_ebene(job):
+        pfad = getattr(op, "Path", None)
+        zahl += len(pfad.Commands) if pfad is not None else 0
+    return zahl
 
 
 def _veraltet_satz(vergleich):

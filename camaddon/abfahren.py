@@ -304,7 +304,15 @@ class Abfahrt:
 
 
 def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
-    """Die Stationen aller aktiven Operationen des Jobs auf der Maschine der Prüfung.
+    """Die Stationen aller aktiven Operationen des Jobs auf der Maschine der Prüfung – am Stück
+    (abfahrt_schritte)."""
+    return rw.zu_ende(abfahrt_schritte(pruefung, job, nullpunkt_des_jobs, bibliothek))
+
+
+def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
+    """Die Stationen aller aktiven Operationen des Jobs auf der Maschine der Prüfung – als
+    Schritte (ein Generator, die Abfahrt kommt mit StopIteration): je reichweite.TAKT_SCHRITTE
+    Schritte hält es an, so rechnet das Prüffenster einen großen Job im Takt (P-2026-10-11-41).
 
     Operationen, die die Prüfung übergeht (kein Werkzeug-Controller, kein
     Platz am Revolver, zu viele Linearachsen, eine Rundachse, die die Maschine
@@ -347,7 +355,10 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             schritte = None
             if ebene is None:
                 unbekannt = []
-                schritte = list(pruefung.schritte(befehle, unbekannt.append, rueckzug=True))
+                schritte = []
+                for stueck in rw.teile(pruefung.schritte(befehle, unbekannt.append, True)):
+                    schritte.extend(stueck)
+                    yield
             grund = mz.bahn_grund(
                 m_bahn,
                 befehle,
@@ -478,67 +489,73 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         eil_schritt, eil_anfang, eil_bisher = None, None, 0.0
         if schritte is None or start is not None:
             schritte = rw._bahn(befehle, lambda _name: None, rueckzug=True, start=start)
-        for schritt in schritte:
-            # _punkte gibt je Punkt die Rundachsen des Schritts: eine Lösung für alle.
-            geloest, dreh = loesung(schritt.rund)
-            for punkt, rund in _punkte(schritt, geloest):
-                stellungen = _stellungen(geloest, dreh, punkt, linear, index)
-                if anflug and stellungen is not None:
-                    # Vom Home- oder Wechselpunkt: erst die anderen Achsen über den Punkt, die
-                    # wegziehende bleibt oben.
-                    anfahren(
-                        tuple(None if z else s for s, z in zip(stellungen, zuerst, strict=True)),
-                        nummer,
-                        HOME if nummer == 0 else WECHSEL,
-                    )
-                anflug = False
-                wirksam = _wirksam(vorher, stellungen, len(index))
-                if vorher is not None:
-                    geteilt = schritt.eilgang and schritt.anteil < 1.0 - 1e-12
-                    if not geteilt:
-                        eil_schritt = None
-                    if geteilt:
-                        # Ein Teil eines Eilgangs, in dem eine Rundachse dreht (reichweite._bahn
-                        # teilt ihn in DREH_SCHRITT): die Zeit vom Anfang des Satzes bis hier.
-                        if eil_schritt != schritt.satz:
-                            eil_schritt, eil_anfang, eil_bisher = schritt.satz, vorher[2], 0.0
-                        bis_hier = _eilgangzeit(eil_anfang, wirksam, tempo, beschleunigung)
-                        saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=max(bis_hier - eil_bisher, 0.0)))
-                        eil_bisher = max(bis_hier, eil_bisher)
-                    elif schritt.eilgang:
-                        eilgang = _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung)
-                        saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=eilgang))
-                    elif schritt.invers and schritt.vorschub > 0:
-                        # G93: F = 1 ÷ Zeit des Satzes in Minuten, FreeCAD führt es ÷ 60 –
-                        # der Satz dauert 1 ÷ F Sekunden, jeder Schritt seinen Anteil; schneller
-                        # als im Eilgang fährt keine Achse. Nicht vom Stand in den Stand: Die
-                        # Sätze einer Spirale gehen ineinander über – so gerechnet dauerte sie
-                        # siebenmal so lang (test_vierachs_pruefen, P-2026-10-01-34).
-                        hoechstens = _eilgangzeit_ohne_anfahren(vorher[2], wirksam, tempo)
-                        fest = max(schritt.anteil / schritt.vorschub, hoechstens)
-                        saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=fest))
-                    else:
-                        vorschub = schritt.vorschub * 60.0  # mm/min
-                        if vorschub <= 0:
-                            ohne_vorschub = True
-                            vorschub = VORSCHUB_ERSATZ
-                        saetze.append(
-                            _vorschubsatz(
-                                vorher,
-                                punkt,
-                                rund,
-                                wirksam,
-                                vorschub,
-                                _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung),
-                                tempo,
-                                beschleunigung,
-                                linear_achsen,
-                            )
+        for stueck in rw.teile(schritte):
+            for schritt in stueck:
+                # _punkte gibt je Punkt die Rundachsen des Schritts: eine Lösung für alle.
+                geloest, dreh = loesung(schritt.rund)
+                for punkt, rund in _punkte(schritt, geloest):
+                    stellungen = _stellungen(geloest, dreh, punkt, linear, index)
+                    if anflug and stellungen is not None:
+                        # Vom Home- oder Wechselpunkt: erst die anderen Achsen über den Punkt, die
+                        # wegziehende bleibt oben.
+                        anfahren(
+                            tuple(
+                                None if z else s for s, z in zip(stellungen, zuerst, strict=True)
+                            ),
+                            nummer,
+                            HOME if nummer == 0 else WECHSEL,
                         )
-                ergebnis.stationen.append(
-                    Station(0.0, nummer, schritt.satz, punkt, rund, stellungen, schritt.eilgang)
-                )
-                vorher = (punkt, rund, wirksam)
+                    anflug = False
+                    wirksam = _wirksam(vorher, stellungen, len(index))
+                    if vorher is not None:
+                        geteilt = schritt.eilgang and schritt.anteil < 1.0 - 1e-12
+                        if not geteilt:
+                            eil_schritt = None
+                        if geteilt:
+                            # Ein Teil eines Eilgangs, in dem eine Rundachse dreht (reichweite._bahn
+                            # teilt ihn in DREH_SCHRITT): die Zeit vom Anfang des Satzes bis hier.
+                            if eil_schritt != schritt.satz:
+                                eil_schritt, eil_anfang, eil_bisher = schritt.satz, vorher[2], 0.0
+                            bis_hier = _eilgangzeit(eil_anfang, wirksam, tempo, beschleunigung)
+                            saetze.append(
+                                fz.Satz(0.0, 0.0, 0.0, fest=max(bis_hier - eil_bisher, 0.0))
+                            )
+                            eil_bisher = max(bis_hier, eil_bisher)
+                        elif schritt.eilgang:
+                            eilgang = _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung)
+                            saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=eilgang))
+                        elif schritt.invers and schritt.vorschub > 0:
+                            # G93: F = 1 ÷ Zeit des Satzes in Minuten, FreeCAD führt es ÷ 60 –
+                            # der Satz dauert 1 ÷ F Sekunden, jeder Schritt seinen Anteil; schneller
+                            # als im Eilgang fährt keine Achse. Nicht vom Stand in den Stand: Die
+                            # Sätze einer Spirale gehen ineinander über – so gerechnet dauerte sie
+                            # siebenmal so lang (test_vierachs_pruefen, P-2026-10-01-34).
+                            hoechstens = _eilgangzeit_ohne_anfahren(vorher[2], wirksam, tempo)
+                            fest = max(schritt.anteil / schritt.vorschub, hoechstens)
+                            saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=fest))
+                        else:
+                            vorschub = schritt.vorschub * 60.0  # mm/min
+                            if vorschub <= 0:
+                                ohne_vorschub = True
+                                vorschub = VORSCHUB_ERSATZ
+                            saetze.append(
+                                _vorschubsatz(
+                                    vorher,
+                                    punkt,
+                                    rund,
+                                    wirksam,
+                                    vorschub,
+                                    _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung),
+                                    tempo,
+                                    beschleunigung,
+                                    linear_achsen,
+                                )
+                            )
+                    ergebnis.stationen.append(
+                        Station(0.0, nummer, schritt.satz, punkt, rund, stellungen, schritt.eilgang)
+                    )
+                    vorher = (punkt, rund, wirksam)
+            yield
         if ohne_vorschub:
             gezeigt = f"{einheiten.gerundet(VORSCHUB_ERSATZ, einheiten.VORSCHUB):g}"
             ergebnis.hinweise.append(

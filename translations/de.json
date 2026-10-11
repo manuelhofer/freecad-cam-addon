@@ -1230,6 +1230,7 @@
     "rw.liste.tooltip": "Ein Klick fährt die Maschine an diese Stelle – die Achse steht dann an ihrer Grenze.",
     "rw.nicht_in_grenzen": "Nicht alle Achsen bleiben in ihren Grenzen – wo, steht darunter.",
     "rw.in_grenzen": "Alle Achsen bleiben in ihren Grenzen.",
+    "rw.rechnet": "Rechnet … (ein großer Job: das Fenster nimmt dabei Eingaben an)",
     "rw.keine_punkte": "Keine Bahn zum Prüfen – die Operationen des Jobs haben keine Punkte.",
     "rw.bereiche": "Was die Bahn braucht ({anzahl} Punkte):",
     "rw.kein_job": "In keinem offenen Dokument gibt es einen CAM-Job. Öffne das Dokument mit dem Job – dann prüft dieser Befehl seine Bahnen auf einer Maschine. Oder du legst gleich einen an: „Bearbeitung“ öffnen.",

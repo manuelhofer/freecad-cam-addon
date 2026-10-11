@@ -28,6 +28,7 @@ Läuft ohne Oberfläche.
 """
 
 import contextlib
+import itertools
 import json
 import math
 from dataclasses import dataclass, field
@@ -579,6 +580,31 @@ class _Loesung:
         ]
 
 
+TAKT_SCHRITTE = 4000  # so viele Schritte rechnen Reichweite und Abfahren am Stück (…_schritte)
+
+
+def teile(folge, groesse=None):
+    """`folge` in Listen von TAKT_SCHRITTE (islice – ohne Zähler je Schritt): Die Schritte-Fassungen
+    (pruefe_job_schritte, abfahren.abfahrt_schritte) rechnen ein Stück und halten dann an."""
+    groesse = groesse or TAKT_SCHRITTE
+    folge = iter(folge)
+    while True:
+        stueck = list(itertools.islice(folge, groesse))
+        if stueck:
+            yield stueck
+        if len(stueck) < groesse:
+            return
+
+
+def zu_ende(lauf):
+    """Rechnet einen Generator wie pruefe_job_schritte bis zum Ende; gibt sein Ergebnis zurück."""
+    try:
+        while True:
+            next(lauf)
+    except StopIteration as ende:
+        return ende.value
+
+
 class Pruefung:
     """Eine Maschine, bereit für die Bahnen eines Jobs.
 
@@ -874,6 +900,12 @@ class Pruefung:
         Jobs, ohne Angabe nullpunkt(job). `bibliothek`: die Werkzeugverwaltung
         (werkzeuge.Bibliothek) für die Werkzeuglängen.
         """
+        return zu_ende(self.pruefe_job_schritte(job, nullpunkt_des_jobs, bibliothek))
+
+    def pruefe_job_schritte(self, job, nullpunkt_des_jobs=None, bibliothek=None):
+        """pruefe_job als Schritte (ein Generator, das Ergebnis kommt mit StopIteration): je
+        TAKT_SCHRITTE Schritte der Bahnen hält es an – so rechnet das Prüffenster einen großen
+        Job im Takt der Ereignisschleife (P-2026-10-11-41)."""
         ergebnis = Ergebnis()
         if self.werkstueckaufnahme is None:
             ergebnis.hinweise.append(tr("rw.keine_werkstueckaufnahme"))
@@ -886,7 +918,7 @@ class Pruefung:
         sammler = _Sammler(self, ergebnis)
         self._bestueckung_pruefen(job, bibliothek, sammler)
         for op, ebene in operationen_mit_ebene(job):
-            self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler, ebene)
+            yield from self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler, ebene)
         sammler.fertig()
         from . import spannung
 
@@ -939,10 +971,20 @@ class Pruefung:
             return
         schluessel = ("schritte", id(befehle))
         if schluessel not in self._geteilt:
+            # Gelesen, während der Erste sie schon bekommt (er kann im Takt rechnen, P-2026-10-11-41);
+            # gemerkt erst, wenn alle gelesen sind – hört er vorher auf, liest der Nächste neu.
             folge = []
-            for schritt in _bahn(befehle, lambda name: folge.append(("unbekannt", name)), True):
+
+            def merke(name):
+                folge.append(("unbekannt", name))
+                unbekannt(name)
+
+            for schritt in _bahn(befehle, merke, True):
                 folge.append(("schritt", schritt))
+                if rueckzug or not schritt.rueckzug:
+                    yield schritt
             self._geteilt[schluessel] = (befehle, folge)  # befehle: die id bleibt gültig
+            return
         for art, wert in self._geteilt[schluessel][1]:
             if art == "unbekannt":
                 unbekannt(wert)
@@ -998,6 +1040,7 @@ class Pruefung:
             sammler.hinweis(tr("rw.bestueckung.doppelt", platz=f"P{nummer}", werkzeuge=namen))
 
     def _pruefe_operation(self, op, nullpunkt_des_jobs, bibliothek, sammler, ebene=None):
+        """Prüft eine Operation – ein Generator: je TAKT_SCHRITTE Schritte hält er an."""
         tc = getattr(op, "ToolController", None)
         if tc is None:
             sammler.hinweis(tr("rw.ohne_controller", operation=op.Label))
@@ -1078,20 +1121,22 @@ class Pruefung:
             return
         # Je Schritt nur die Rundachsen, die die Maschine nicht hat (_bahn gibt A, B und C).
         fehlend = [b for b in RUNDACHSEN if b not in vorhanden]
-        for schritt in self.schritte(befehle, sammler.unbekannt, rueckzug=False):
-            for b in fehlend:
-                if abs(schritt.rund[b]) > 1e-9:
-                    fremd.add(b)
-            if schritt.art == "punkt":
-                sammler.punkt(schritt.ort, schritt.rund, *loesung(schritt.rund))
-                continue
-            # Kreis: Punkte an den Umkehrstellen jeder Achse
-            geloest, dreh = loesung(schritt.rund)
-            if geloest is None:
-                sammler.zu_viele(linear)
-                continue
-            for punkt in schritt.ort.punkte(geloest.s):
-                sammler.punkt(punkt, schritt.rund, geloest, dreh)
+        for stueck in teile(self.schritte(befehle, sammler.unbekannt, rueckzug=False)):
+            for schritt in stueck:
+                for b in fehlend:
+                    if abs(schritt.rund[b]) > 1e-9:
+                        fremd.add(b)
+                if schritt.art == "punkt":
+                    sammler.punkt(schritt.ort, schritt.rund, *loesung(schritt.rund))
+                    continue
+                # Kreis: Punkte an den Umkehrstellen jeder Achse
+                geloest, dreh = loesung(schritt.rund)
+                if geloest is None:
+                    sammler.zu_viele(linear)
+                    continue
+                for punkt in schritt.ort.punkte(geloest.s):
+                    sammler.punkt(punkt, schritt.rund, geloest, dreh)
+            yield
         for buchstabe in sorted(fremd):
             sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
         sammler.ende_operation()

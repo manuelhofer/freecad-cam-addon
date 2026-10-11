@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-41 pruefen-im-takt
+
+### EINGELESEN
+- „Auf der Maschine prüfen“ am Nasen-Testteil (330 000 Schritte): Beim Öffnen und nach jeder
+  Eingabe des Nullpunkts rechnete das Fenster Reichweite und Abfahren am Stück – 6,5 s, in denen
+  FreeCAD keinen Klick annahm (Manuel, 2026-10-09: „ein Lag … wo ich nichts klicken kann …
+  sowas muss unbedingt vermieden werden“).
+
+### DATEIEN
+- `camaddon/reichweite.py`: `pruefe_job_schritte` (ein Generator; `pruefe_job` rechnet ihn zu
+  Ende, `zu_ende`), `_pruefe_operation` hält je TAKT_SCHRITTE (4000) Schritte an (`teile`,
+  islice – ohne Zähler je Schritt); `schritte()` gibt die Schritte schon beim ersten Lesen heraus
+  und merkt sie erst, wenn alle gelesen sind.
+- `camaddon/abfahren.py`: `abfahrt_schritte` (Generator, `abfahrt` rechnet ihn zu Ende), je
+  TAKT_SCHRITTE beim Lesen und beim Abfahren ein Halt.
+- `camaddon/gui_reichweite.py`: ab IM_TAKT_AB (20 000) Sätzen rechnet das Fenster im Takt –
+  höchstens TAKT_MS (40 ms) am Stück aus der Ereignisschleife, oben grau „Rechnet …“, Abspieler und
+  „Kollision prüfen“ warten; eine neue Eingabe oder Schließen beendet den Lauf (`rechnet()`,
+  `_lauf_starten`, `_lauf_schritt`, `_lauf_beenden`); kleinere Jobs wie bisher am Stück.
+- `translations/de.json`, `translations/en.json` (`rw.rechnet`),
+  `tests/gui/szenario_pruefen_im_takt.py` (neu), `package.xml` (0.213.47),
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil auf der Beispiel-Drehmaschine: das Fenster stand höchstens 0,48 s am Stück
+  (vorher 6,5 s); mit einer Eingabe mitten im Lauf alles in 8,1 s fertig.
+- Reichweite und Abfahren (CLX550, Manuels Werkzeuge) Punkt für Punkt gleich dem Stand davor,
+  ohne Fenster gleich schnell (2,37 + 2,67 s).
+- Grün: `test_abfahren`, `test_reichweite`, `szenario_pruefen_im_takt`, `szenario_abfahren`,
+  `szenario_kollision`.
+
 ## P-2026-10-11-40 schrittweite-aus-kammhoehe
 
 ### EINGELESEN
