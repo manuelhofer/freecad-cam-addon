@@ -71,6 +71,10 @@ UHR_MS = 30  # mit Oberfläche: so oft fragt der Pool die Arbeiter ab, solange e
 AUFRAEUMEN_MS = 60000  # mit Oberfläche: so oft beendet er Arbeiter im Leerlauf
 KOPIEN_JE_DOKUMENT = 3  # so viele Kopien eines Dokuments bleiben liegen
 GEMEINSAM_JE_ARBEITER = 16  # so viele gemeinsame Daten behält ein Arbeiter, die ältesten gehen
+# So viele behält der Pool selbst (P-2026-10-11-19): Bis dahin blieben sie, bis jemand sie vergaß
+# – die Netze der Hüllflächen, die Bahnpunkte des Rests je Neuberechnung … in einer langen
+# Sitzung wuchs so der Speicher der Oberfläche. Was ein wartender Auftrag noch braucht, bleibt.
+GEMEINSAM_IM_POOL = 64
 EINSTELLUNGEN_DATEI = "einstellungen.FCParam"  # die Einstellungen des Addons für die Arbeiter
 HALLO = "hallo"  # die erste Meldung eines Arbeiters: (HALLO, Nummer, PID)
 
@@ -308,7 +312,7 @@ class Nebenrechner:
         self._arbeiter = []
         self._warteschlange = []
         self._laufend = {}  # Auftragsnummer -> Auftrag
-        self._gemeinsam = {}  # Schlüssel -> Wert
+        self._gemeinsam = OrderedDict()  # Schlüssel -> Wert, zuletzt gebraucht am Ende
         self._zaehler = 0  # Aufträge
         self._gestartete = 0  # Arbeiter, je eine Nummer
         self._ordner = None
@@ -385,14 +389,31 @@ class Nebenrechner:
         bleibt der alte Wert, und die Arbeiter, die ihn haben, bekommen ihn nicht noch einmal."""
         if schluessel not in self._gemeinsam:
             self._gemeinsam[schluessel] = wert
+        self._gemeinsam.move_to_end(schluessel)
+        self._gemeinsam_kuerzen()
         return Gemeinsam(schluessel)
 
+    def _gemeinsam_kuerzen(self):
+        """Höchstens GEMEINSAM_IM_POOL gemeinsame Daten: die am längsten nicht gebrauchten gehen
+        (auch in den Arbeitern) – außer denen, die ein wartender Auftrag noch braucht."""
+        if len(self._gemeinsam) <= GEMEINSAM_IM_POOL:
+            return
+        gebraucht = set()
+        for auftrag in self._warteschlange:
+            gebraucht |= _gemeinsame_schluessel((auftrag.args, auftrag.kwargs))
+        for schluessel in list(self._gemeinsam):
+            if len(self._gemeinsam) <= GEMEINSAM_IM_POOL:
+                break
+            if schluessel not in gebraucht:
+                self.vergessen(schluessel)
+
     def vergessen(self, schluessel):
-        """Gibt gemeinsame Daten frei – hier und in den Arbeitern."""
+        """Gibt gemeinsame Daten frei – hier und in den Arbeitern. Allen gesagt, auch denen, die
+        sie nicht haben: Ein Unterpool, der sie gebracht hat, bringt sie dann wieder."""
         self._gemeinsam.pop(schluessel, None)
         for arbeiter in self._arbeiter:
-            if schluessel in arbeiter.gemeinsam and arbeiter.verbindung is not None:
-                del arbeiter.gemeinsam[schluessel]
+            arbeiter.gemeinsam.pop(schluessel, None)
+            if arbeiter.verbindung is not None:
                 with contextlib.suppress(OSError, EOFError):
                     arbeiter.verbindung.send(("vergiss", schluessel))
 
@@ -827,6 +848,8 @@ class Nebenrechner:
                 self._warteschlange.append(auftrag)
         elif art == "gemeinsam":
             self._gemeinsam.setdefault(nachricht[1], nachricht[2])
+            self._gemeinsam.move_to_end(nachricht[1])
+            self._gemeinsam_kuerzen()
         elif art == "vergessen":
             self.vergessen(nachricht[1])
         elif art == "warte":

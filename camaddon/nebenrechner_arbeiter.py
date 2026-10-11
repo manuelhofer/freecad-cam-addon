@@ -141,6 +141,10 @@ def _verarbeiten(nachricht):
         _gemeinsam[nachricht[1]] = _aufloesen(nachricht[2], _gemeinsam, _dokumente, None)
     elif art == "vergiss":
         _gemeinsam.pop(nachricht[1], None)
+        from camaddon import nebenrechner as nr
+
+        if isinstance(nr._pool, nr.Unterpool):
+            nr._pool._gesendet.discard(nachricht[1])  # der Pool hat sie nicht mehr
     elif art == "auftrag":
         return _ausfuehren(nachricht)
     elif art == "laden":  # vorwaermen: die Module schon jetzt, nicht beim ersten Auftrag

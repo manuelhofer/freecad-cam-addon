@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-19 pool-gemeinsam-begrenzt
+
+### EINGELESEN
+- Beim Durchsehen des Pools: Gemeinsame Daten blieben im Prozess der Oberfläche, bis jemand sie
+  vergaß – das tat nur die Kollision. Die Netze der Hüllflächen, die Bahnpunkte des Rests nach
+  dem Schruppen (P-2026-10-11-09, je Neuberechnung ein neuer Schlüssel, ~3 MB) … sammelten sich
+  über eine lange Sitzung an. In den Arbeitern war es schon begrenzt (16 je Arbeiter).
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: höchstens `GEMEINSAM_IM_POOL` (64) gemeinsame Daten im Pool, die
+  am längsten nicht gebrauchten gehen (auch in den Arbeitern), außer was ein wartender Auftrag
+  braucht; `vergessen` sagt es allen Arbeitern.
+- `camaddon/nebenrechner_arbeiter.py`: ein Unterpool, dessen Daten der Pool vergaß, bringt sie
+  beim nächsten Mal wieder.
+- `tests/test_nebenrechner.py` (Grenze 3: die drei jüngsten bleiben, ein Auftrag damit rechnet),
+  `package.xml` (0.213.29), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `test_nebenrechner.py`. Dazu einmal alle 111 Prüfdateien ohne Oberfläche nach den
+  Umbauten der Nacht (Pool, Reichweite, Abfahren, Netzschranke): alle grün, `test_export.py` in
+  1.1.4 übersprungen (keine CAM-Maschinendefinition).
+
 ## P-2026-10-11-18 snapshot-nacht-10-auf-11-nachtrag
 
 ### EINGELESEN

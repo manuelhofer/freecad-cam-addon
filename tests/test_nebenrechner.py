@@ -106,6 +106,17 @@ assert pool.warten([pool.auftrag("nebenrechner", "_probe_summe", zahlen, 1)]) ==
 pool.vergessen("zahlen")
 zahlen = pool.gemeinsam("zahlen", list(range(10)))
 assert pool.warten([pool.auftrag("nebenrechner", "_probe_summe", zahlen, 1)]) == [45]
+# Höchstens GEMEINSAM_IM_POOL gemeinsame Daten (P-2026-10-11-19): die ältesten gehen, was ein
+# wartender Auftrag braucht, bleibt.
+grenze, nr.GEMEINSAM_IM_POOL = nr.GEMEINSAM_IM_POOL, 3
+platzhalter = [pool.gemeinsam(f"viele-{k}", [k] * 10) for k in range(5)]
+assert list(pool._gemeinsam)[-3:] == ["viele-2", "viele-3", "viele-4"], list(pool._gemeinsam)
+assert len(pool._gemeinsam) == 3, list(pool._gemeinsam)
+assert pool.warten([pool.auftrag("nebenrechner", "_probe_summe", platzhalter[4], 1)]) == [40]
+nr.GEMEINSAM_IM_POOL = grenze
+for k in range(5):
+    pool.vergessen(f"viele-{k}")
+
 # Unteraufträge (P-2026-10-11-07): Ein Arbeiter verteilt selbst – über diesen Pool. Drei je 1 s
 # auf drei Arbeitern brauchen eine Sekunde, nicht drei.
 assert pool.warten([pool.auftrag("nebenrechner", "_probe_verfuegbar")]) == [True]
