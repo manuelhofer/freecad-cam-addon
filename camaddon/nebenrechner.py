@@ -44,6 +44,7 @@ import atexit
 import contextlib
 import json
 import os
+import pickle
 import queue
 import secrets
 import shutil
@@ -747,6 +748,13 @@ class Nebenrechner:
             auftrag.fehler = str(fehler)
             self._melden(auftrag)
             return
+        except (pickle.PicklingError, TypeError, AttributeError) as fehler:
+            # Etwas lässt sich nicht pickeln – ein Fehler des Aufrufers; pickle prüft vor dem
+            # Senden, der Arbeiter hat nichts bekommen und bleibt.
+            auftrag.fehler = f"Senden an den Nebenrechner: {fehler!r}"
+            auftrag.fehlerart = type(fehler).__name__
+            self._melden(auftrag)
+            return
         except (OSError, EOFError, ValueError) as fehler:
             # ValueError: etwas lässt sich nicht pickeln – das ist ein Fehler des Aufrufers.
             self._entfernen(arbeiter)
@@ -1111,8 +1119,19 @@ class Unterpool:
             self._verbindung.send(
                 ("unter", auftrag.nummer, modul, funktion, args, kwargs) + self._gruppe
             )
-        except (OSError, EOFError, ValueError, TypeError) as fehler:
-            raise NichtVerfuegbar(f"Unterauftrag: {fehler!r}") from fehler
+        except (
+            OSError,
+            EOFError,
+            ValueError,
+            TypeError,
+            AttributeError,
+            pickle.PicklingError,
+        ) as fehler:
+            # Wie im Pool (_senden): Der Auftrag scheitert, warten() meldet es – der Aufrufer
+            # rechnet dann selbst.
+            auftrag.fehler = f"Unterauftrag nicht gesendet: {fehler!r}"
+            auftrag.fehlerart = type(fehler).__name__
+            return auftrag
         self._offen[auftrag.nummer] = auftrag
         self.in_arbeit += 1
         return auftrag
@@ -1399,6 +1418,18 @@ def _probe_verschachtelt(werte, dauer=0.0, fehler=False):
     if fehler:
         auftraege.append(p.auftrag("nebenrechner", "_probe_fehler"))
     return sum(p.warten(auftraege))
+
+
+def _probe_nicht_senden():
+    """Ein Unterauftrag mit etwas, das sich nicht pickeln lässt: scheitert beim Warten (Fehler),
+    nicht schon beim Bestellen."""
+    p = pool()
+    auftrag = p.auftrag("nebenrechner", "_probe", lambda: 1)
+    try:
+        p.warten([auftrag])
+    except Fehler:
+        return True
+    return False
 
 
 def _probe_tief(tiefe):

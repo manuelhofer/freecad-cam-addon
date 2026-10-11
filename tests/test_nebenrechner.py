@@ -133,6 +133,17 @@ assert pool.warten([pool.auftrag("nebenrechner", "_probe_tief", 4)]) == [16]
 # Gemeinsame Daten, die der Arbeiter angelegt hat.
 auftrag = pool.auftrag("nebenrechner", "_probe_gemeinsam_verschachtelt", list(range(100)))
 assert pool.warten([auftrag]) == [[4950, 9900]]
+# Was sich nicht senden lässt, scheitert im Unterpool wie im Pool – beim Warten, nicht beim
+# Bestellen; der Arbeiter bleibt.
+assert pool.warten([pool.auftrag("nebenrechner", "_probe_nicht_senden")]) == [True]
+arbeiter_vorher = pool.arbeiter
+try:
+    pool.warten([pool.auftrag("nebenrechner", "_probe", lambda: 1)])
+except nr.Fehler as fehler:
+    assert "Senden" in str(fehler), str(fehler)
+else:
+    raise AssertionError("ungepickelt gesendet")
+assert pool.arbeiter == arbeiter_vorher, (pool.arbeiter, arbeiter_vorher)
 # Ein Fehler im Unterauftrag scheitert beim Besteller – mit dem Traceback von dort.
 try:
     pool.warten([pool.auftrag("nebenrechner", "_probe_verschachtelt", [1], fehler=True)])

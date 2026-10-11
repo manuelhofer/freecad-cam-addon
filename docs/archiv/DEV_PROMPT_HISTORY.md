@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-21 pool-pickelfehler-sanft
+
+### EINGELESEN
+- Beim Durchsehen des Unterpools: Ließ sich ein Argument nicht pickeln (eine Part.Wire, eine
+  lokale Funktion), warf `pickle` TypeError, AttributeError oder PicklingError – der Pool fing nur
+  ValueError (und beendete dabei den Arbeiter), der Unterpool warf NichtVerfuegbar schon beim
+  Bestellen. Die verteilenden Funktionen rechnen nur bei einem Fehler aus `warten()` selbst
+  weiter; ein Fehler beim Bestellen hätte die Rechnung abgebrochen.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `_senden` – Pickelfehler lassen den Auftrag scheitern, der
+  Arbeiter bleibt; `Unterpool.auftrag` – ein Auftrag, der nicht gesendet werden kann, scheitert
+  beim Warten (wie im Pool).
+- `tests/test_nebenrechner.py` (eine Lambda im Pool und im Unterpool: Fehler beim Warten, die
+  Arbeiter bleiben), `package.xml` (0.213.30), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `test_nebenrechner.py`, `test_kollision_verteilt.py`.
+
 ## P-2026-10-11-20 frage-9-mit-zahlen
 
 ### EINGELESEN
