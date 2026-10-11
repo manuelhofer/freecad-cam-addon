@@ -40,6 +40,7 @@ from dataclasses import dataclass, field, replace
 
 import numpy as np
 
+from . import uhren
 from .sprache import tr
 
 SCHRITT = 0.5  # mm – so dicht liegen die Stellen auf der Kante
@@ -682,6 +683,7 @@ def _umriss(aufbau, fraeser):
 
 def _aufbau_im_teil(spitze, achse, w, grob):
     """So viel (mm) kommen Schaft und Halter dem Teil näher als ABSTAND; 0: nicht."""
+    uhren.atmen()  # je Stellung; nur in uhren.atmend() (Anlegen): das Fenster zeichnet neu
     if w.aufbau is None or grob is None or not w.aufbau.stuecke:
         return 0.0
     stuecke = w.aufbau.stuecke

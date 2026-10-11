@@ -73,6 +73,7 @@ import numpy as np
 
 from . import bahn as bn
 from . import hoehenfeld as hf
+from . import uhren
 from . import vierachs_bahn as vb
 from . import vierachs_huelle as vh
 from .sprache import tr
@@ -706,6 +707,7 @@ def _bilinear(raster, x, y, stufe=None):
     zu tief (an einer Kavität mit runden Ecken bis 0,09 mm in der Wand) oder zu hoch, je nach
     Seite (B-014): dort genau gerechnet (_Genau), und nur, wenn die gewählten Flächen die Höhe
     bestimmen."""
+    uhren.atmen()  # je Kurve; nur in uhren.atmend() (Anlegen)
     xs, ys, z = raster.xs, raster.ys, raster.z
     sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
     fx = (np.asarray(x, dtype=float) - xs[0]) / sx
@@ -1037,6 +1039,7 @@ def _abstandsfeld(raster, maske):
         vorher = d.copy()
         for vor in (1, -1):
             for i in range(nx) if vor == 1 else range(nx - 1, -1, -1):
+                uhren.atmen()  # nur in uhren.atmend() (Anlegen): das Fenster zeichnet neu
                 zeile = d[i]
                 for di, dj in nachbarn:
                     k = i - vor * di

@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-72 atmen-in-jedem-befehl
+
+### EINGELESEN
+- Lag-Sonde über die übrigen 61 Szenarien (alle grün): fast alles unter 1 s. Noch lang: „Anlegen“
+  beim Entgraten 3D 3,5 s, „Übernehmen“ (eine Operation im Assistenten ändern) beim Restschlichten
+  2 s – Ändern lief nicht in `uhren.atmend()`, nur Anlegen –, das 3D-Schlichten beim Anlegen 2,4 s
+  (Abstandsfeld Zeile für Zeile, je Kurve `_bilinear`).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_im_befehl` (Anlegen, Ändern, neuer Job – in beiden Assistenten) in
+  `uhren.atmend()`; `_im_befehl_ohne_atmen` wie bisher.
+- `camaddon/gui_bearbeitung.py`: die Sonderhülle aus P-2026-10-11-67 entfällt.
+- `camaddon/entgrat3d_bahn.py` (`_aufbau_im_teil`), `camaddon/schlichten3d_bahn.py`
+  (`_abstandsfeld` je Zeile, `_bilinear`): `uhren.atmen()`.
+- `package.xml` (0.213.77), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Längste Pause: Entgraten 3D 3,5 → 0,7 s, Restschlichten 2,4 → 0,8 s, Formplatte 1,9 → 0,8 s,
+  3D-Schlichten 3,9 → 2,3 s.
+
+### AKZEPTANZKRITERIUM
+- `test_entgraten3d`, `test_schlichten3d`, `test_restschlichten`, `szenario_entgraten3d`,
+  `szenario_restschlichten`, `szenario_schlichten3d`, `szenario_formplatte`,
+  `szenario_vierachs_schlichten`, `szenario_vierachs_plan`, `szenario_vierachs_aendern`,
+  `szenario_testteil`, `szenario_raeumen`, `szenario_bearbeitung` grün.
+
 ## P-2026-10-11-71 mehr-atmen
 
 ### EINGELESEN

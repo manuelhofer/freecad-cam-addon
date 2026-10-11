@@ -360,7 +360,15 @@ def _im_befehl(aufgabe):
     P-2026-09-27-49). In einem Befehl schützt FreeCAD die Transaktion, die darin geöffnet
     wird; vorher darf keine offen sein. Der Wochen-Build führt Transaktionen je Dokument
     – dort läuft `aufgabe` einfach so.
+
+    Während `aufgabe` rechnet (Anlegen, Ändern), zeichnet das Fenster neu, nimmt aber keinen
+    Klick an (uhren.atmend; P-2026-10-11-67/-72).
     """
+    with uhren.atmend():
+        return _im_befehl_ohne_atmen(aufgabe)
+
+
+def _im_befehl_ohne_atmen(aufgabe):
     if not _globale_transaktionen():
         return aufgabe()
     if _Intern.NAME not in FreeCADGui.listCommands():

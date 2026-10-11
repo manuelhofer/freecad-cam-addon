@@ -7027,14 +7027,8 @@ class BearbeitungPanel:
             self.doc.commitTransaction()
             return ops
 
-        def anlegen_atmend():
-            # Beim Rechnen der Bahnen zeichnet das Fenster neu (uhren.atmen), nimmt aber keinen
-            # Klick an – am 3-Achs-Testteil stand es dafür bis 8 s am Stück (P-2026-10-11-67).
-            with uhren.atmend():
-                return anlegen()
-
         try:
-            self.operationen = _im_befehl(anlegen_atmend)
+            self.operationen = _im_befehl(anlegen)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
             FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n")
             self.operationen = []
