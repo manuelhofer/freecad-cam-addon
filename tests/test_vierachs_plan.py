@@ -864,6 +864,52 @@ if zur_achse:
         f"innen: {nb.flaechen} Flächen, tiefste Spitze {nb.r_min}",
     )
     pruefe(min(p.r for p in im_vorschub) >= -5.0 - 1e-9, "innen: Spitze tiefer als die Fläche")
+    pruefe(
+        vp.schaft_lage(nase, z, LAENGS, RADIAL, 15.0) is None, "die Innenseite als Seite genommen"
+    )
+
+# --- Seiten mit dem Schaft (Frage 10, „beide variationen anbieten“): die Seite y = 5 des Klotzes.
+# Die Werkzeugachse liegt in ihr (C auf 0°, längs +x), der Umfang 3 + Rand vor ihr, in Lagen bis
+# an ihre Unterkante x = 5 – die Schneide muss 10 lang sein (Stange 15 − 5); mit 8 nicht.
+seite = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(nase.Faces)
+    if (vr.aussennormale(f) - V(0, 1, 0)).Length < 1e-6
+)
+e_seite = vp.ebenen(nase, LAENGS, RADIAL, [seite])[0]
+lage = vp.schaft_lage(nase, e_seite, LAENGS, RADIAL, 15.0)
+pruefe(lage is not None and abs(lage[2] - 10.0) < 1e-6, f"Schaft: Weg {lage and lage[2]}")
+virt = vp.mit_dem_schaft(nase, e_seite, LAENGS, RADIAL, 15.0, 3.0, 0.0, 20.0, vp.TOLERANZ)
+q_soll = 5.0 + 3.0 + vp.TOLERANZ + vb.RAND
+pruefe(
+    virt is not None
+    and abs(virt.phi) < 1e-6
+    and abs(virt.tiefe - 5.0) < 1e-6
+    and abs(virt.q_von - q_soll) < 1e-6,
+    f"Schaft: {virt}",
+)
+pruefe(
+    vp.mit_dem_schaft(nase, e_seite, LAENGS, RADIAL, 15.0, 3.0, 0.0, 8.0, vp.TOLERANZ) is None,
+    "Schaft mit zu kurzer Schneide",
+)
+if virt is not None:
+    sb = vp.planen(
+        vp.netz_ohne(nase, [seite]),
+        LAENGS,
+        RADIAL,
+        dataclasses.replace(werte, stange_radius=15.0, a_futter=-60.0),
+        [virt],
+    )
+    vor = [p for p in sb.punkte if not p.eilgang]
+    pruefe(
+        bool(vor) and all(abs(p.phi) < 1e-6 and abs(p.q - q_soll) < 1e-6 for p in vor),
+        f"Schaft: C oder q daneben {sorted({(round(p.phi, 3), round(p.q, 3)) for p in vor})}",
+    )
+    pruefe(
+        bool(vor) and 5.0 - 1e-9 <= min(p.r for p in vor) < 5.0 + 0.1,
+        f"Schaft: tiefste Spitze {min((p.r for p in vor), default=None)}",
+    )
+    pruefe(sb.lagen >= 5, f"Schaft: {sb.lagen} Lagen")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

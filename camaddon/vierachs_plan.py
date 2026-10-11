@@ -82,6 +82,7 @@ class PlanIndexiert(PathOp.ObjectOp):
             + (
                 ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
                 ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
+                ("App::PropertyBool", "Schaft", tr("vp.eigenschaft.schaft")),
                 ("App::PropertyInteger", "Ebenen", tr("vp.eigenschaft.ebenen")),
                 ("App::PropertyInteger", "Lagen", tr("vp.eigenschaft.lagen")),
                 ("App::PropertyInteger", "Zeilen", tr("vp.eigenschaft.zeilen")),
@@ -153,7 +154,18 @@ def rechne(obj, job, modell):
         bohrer=bohrer,
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
+        schaft=bool(getattr(obj, "Schaft", False)),
+        schneide=schneidenlaenge(obj.ToolController),
     )
+
+
+def schneidenlaenge(tc):
+    """Die Schneidenlänge des Werkzeugs im Controller (mm) – 0, wenn das ToolBit keine hat."""
+    wert = getattr(getattr(tc, "Tool", None), "CuttingEdgeHeight", None)
+    try:
+        return max(0.0, float(getattr(wert, "Value", wert) or 0.0))
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def bohrer_von(werkzeug):
@@ -206,6 +218,8 @@ def bahn_fuer(
     gleichlauf=True,
     nur_gleichlauf=False,
     zur_achse=True,
+    schaft=False,
+    schneide=0.0,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
@@ -216,8 +230,10 @@ def bahn_fuer(
     Spitzenwinkel) – die Querbohrungen radial bohren (bohrer_von()), ebene Flächen nicht;
     `gleichlauf`: im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `nur_gleichlauf`:
     die Zeilen jede im Gleichlauf, dazwischen abheben (sonst hin und her); `zur_achse`: auch
-    ebene Flächen, die zur Achse schauen, wenn der Weg dorthin frei ist (vierachs_planbahn.ebenen).
-    ValueError mit einem Satz, wenn es nicht geht."""
+    ebene Flächen, die zur Achse schauen, wenn der Weg dorthin frei ist (vierachs_planbahn.ebenen);
+    `schaft`: die Seiten mit dem Schaft, soweit die Schneide (`schneide`, mm) reicht
+    (vierachs_planbahn.mit_dem_schaft), die anderen mit der Stirn. ValueError mit einem Satz, wenn
+    es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen, zur_achse=zur_achse)
@@ -247,13 +263,23 @@ def bahn_fuer(
         nur_gleichlauf=nur_gleichlauf,
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
+    nuten = vp.nuten(form_teil, laengs, radial, ebenen)
+    if schaft:
+        mit_schaft = [
+            vp.mit_dem_schaft(
+                form_teil, e, laengs, radial, radius, form.radius, aufmass, schneide, netz.toleranz
+            )
+            for e in ebenen
+        ]
+        ebenen = [s or e for s, e in zip(mit_schaft, ebenen, strict=True)]
+        nuten = {n: v for n, v in nuten.items() if n not in {s.name for s in mit_schaft if s}}
     return vp.planen(
         netz,
         laengs,
         radial,
         werte,
         ebenen,
-        nuten_=vp.nuten(form_teil, laengs, radial, ebenen),
+        nuten_=nuten,
         bohrungen_=bohrungen,
         mantelnuten_=mantelnuten,
     )
@@ -274,6 +300,8 @@ def vorschau(
     eintauchwinkel=vb.EINTAUCHWINKEL,
     bohrer=None,
     nur_gleichlauf=False,
+    schaft=False,
+    schneide=0.0,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten, bevor es die
     Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt. ValueError wie
@@ -295,6 +323,8 @@ def vorschau(
         vp.VORSCHAU_TOLERANZ,
         bohrer,
         nur_gleichlauf=nur_gleichlauf,
+        schaft=schaft,
+        schneide=schneide,
     )
 
 
@@ -325,6 +355,7 @@ def lege_an(
     eintauchwinkel=None,
     nur_gleichlauf=False,
     raster=0.0,
+    schaft=False,
 ):
     """Legt „Plan indexiert“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
@@ -360,6 +391,7 @@ def lege_an(
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
     obj.NurGleichlauf = bool(nur_gleichlauf)
+    obj.Schaft = bool(schaft)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -380,6 +412,7 @@ def aendere(
     eintauchwinkel=None,
     nur_gleichlauf=None,
     raster=None,
+    schaft=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `abstaende`, `halter`, `flaechen`, `eintauchwinkel`, `nur_gleichlauf` und
@@ -404,6 +437,8 @@ def aendere(
         obj.NurGleichlauf = bool(nur_gleichlauf)
     if raster is not None:
         au.setze(obj, raster)
+    if schaft is not None and bool(schaft) != bool(getattr(obj, "Schaft", False)):
+        obj.Schaft = bool(schaft)
 
 
 def _name(tc):

@@ -287,8 +287,9 @@ abgearbeitet):
    den Rest macht die Kugel rundum; für die Seiten **beide Varianten** anbieten (Stirn wie „Plan
    indexiert“, angestellt mit dem Schaft); X unter 0 ist keine Frage – die Grenze kommt aus der
    Maschine, mit Halter und Werkzeug gerechnet (vom VDI-Halter aus etwa 200 mm ins Minus).
-   Erledigt mit der Stirn: P-2026-10-11-48 (rundum vorbelegt, Schruppfräser, Face8 dabei). Offen:
-   die Seiten angestellt mit dem Schaft als zweite Variante.
+   Erledigt mit der Stirn: P-2026-10-11-48 (rundum vorbelegt, Schruppfräser, Face8 dabei); die
+   Seiten mit dem Schaft als Haken (vorbelegt aus – Manuels T1 reicht mit 26 mm Schneide dort
+   nicht): P-2026-10-11-49.
 7. ~~**Magazin ohne Maschine** sagt das im Fenster (legros).~~ Erledigt: P-2026-10-11-31.
 Frage 6 erledigt: Schrittweite aus der Kammhöhe (Vorgabe 0,02 mm), Spalte „ae max“ (P-2026-10-11-40).
 Offen bei Manuel: nichts (Fragen 10 und 11 beantwortet, P-2026-10-11-46).

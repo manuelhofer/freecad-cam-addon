@@ -177,6 +177,70 @@ def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_achse=Tr
     return ergebnis
 
 
+SEITE_HOECHSTENS = math.cos(math.radians(45.0))  # |n · Richtung zur Fläche| einer Seite
+
+
+def mit_dem_schaft(
+    form, ebene, laengs, radial, stange_radius, fraeser_radius, aufmass, schneide, toleranz
+):
+    """Eine Seite für den Schaft (Manuel, 2026-10-11, Frage 10: die Seiten der Nase „beide
+    variationen anbieten“): Die Rundachse dreht 90° weiter, die Werkzeugachse liegt in der
+    Fläche, der Fräser steht mit seinem Umfang daran und geht in Lagen bis an ihre Unterkante.
+    Für planen() eine gedachte schmale Ebene: ihre Normale die Werkzeugachse, eine Zeile quer im
+    Abstand Fräserradius + Aufmaß + Vernetzung vor der Fläche, ihre Tiefe die Unterkante längs der
+    Werkzeugachse. Von den zwei Seiten, von denen das geht, die mit dem kürzeren Weg in die Stange.
+    None, wenn `ebene` keine Seite ist (ihre Normale zeigt zur Achse hin oder von ihr weg – eine
+    Abflachung, die Unterseite einer Nase), längs schräg, oder die Schneide (`schneide`, mm; 0:
+    unbekannt) nicht bis zur Unterkante reicht – dann bleibt sie bei der Stirn."""
+    lage = schaft_lage(form, ebene, laengs, radial, stange_radius)
+    if lage is None or schneide <= 0 or lage[2] > schneide + GERADE:
+        return None
+    t, unten, _weg = lage
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    rad = math.radians(ebene.phi)
+    n = math.cos(rad) * u_ + math.sin(rad) * v_
+    quer = np.cross(l_, t)
+    q = float(n @ quer) * (ebene.tiefe + fraeser_radius + aufmass + toleranz + vb.RAND)
+    return Ebene(
+        ebene.name,
+        math.degrees(math.atan2(float(t @ v_), float(t @ u_))),
+        unten,
+        ebene.a_von,
+        ebene.a_bis,
+        q,
+        q,
+    )
+
+
+def schaft_lage(form, ebene, laengs, radial, stange_radius):
+    """(Werkzeugachse t, Unterkante längs t, wie lang die Schneide sein muss) für eine Seite mit
+    dem Schaft (mit_dem_schaft) – von den zwei Richtungen die mit dem kürzeren Weg in die Stange;
+    None, wenn `ebene` keine Seite ist oder längs schräg."""
+    if abs(ebene.steigung) > GERADE:
+        return None
+    nummer = int(ebene.name[4:]) - 1
+    punkte, _dreiecke = form.Faces[nummer].copy().tessellate(VORSCHAU_TOLERANZ)
+    if not punkte:
+        return None
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    p = np.array([[pt.x, pt.y, pt.z] for pt in punkte], dtype=float)
+    rad = math.radians(ebene.phi)
+    n = math.cos(rad) * u_ + math.sin(rad) * v_
+    mitte = p.mean(axis=0)
+    mitte = mitte - float(mitte @ l_) * l_
+    if np.linalg.norm(mitte) < GERADE:
+        return None
+    if abs(float(n @ mitte) / float(np.linalg.norm(mitte))) > SEITE_HOECHSTENS:
+        return None  # zeigt zur Achse hin oder von ihr weg: keine Seite
+    beste = None
+    for vorzeichen in (1.0, -1.0):
+        t = vorzeichen * np.cross(l_, n)
+        unten = float((p @ t).min())
+        if beste is None or unten > beste[1]:
+            beste = (t, unten, stange_radius - unten)
+    return beste
+
+
 FREI_STRAHLEN = 5  # so viele Strahlen prüft _frei_vor je Fläche
 FREI_EINGERUECKT = 0.8  # die Strahlen so weit zur Mitte der Fläche hin (nicht auf der Kante)
 FREI_ABSTAND = 0.05  # mm: so weit vor der Fläche beginnt ein Strahl

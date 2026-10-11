@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-49 seiten-mit-dem-schaft
+
+### EINGELESEN
+- Frage 10, zweiter Teil (Manuel, 2026-10-11): „die seiten beide variationen anbieten“ – neben der
+  Stirn die Seiten angestellt mit dem Schaft.
+- Gemessen am Nasen-Testteil: Manuels T1 (Ø 12, Schneide 26 mm) reicht für Face4/Face6 nicht (39,5 mm
+  von der Stange Ø 90 bis 5,5 vor die Mitte); mit 60 mm Schneide und gleicher Zustellung 2,63 statt
+  1,21 min, im Voxelmodell nichts ins Teil. Darum als Haken, vorbelegt aus.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `schaft_lage()` (Werkzeugachse in der Fläche, Unterkante, nötige
+  Schneidenlänge – nur für Seiten: die Normale quer zur Richtung von der Achse zur Fläche),
+  `mit_dem_schaft()` (eine gedachte schmale Ebene für planen(): C 90° weiter, eine Zeile Radius +
+  Aufmaß + Vernetzung vor der Fläche, bis an die Unterkante).
+- `camaddon/vierachs_plan.py`: Eigenschaft „Schaft“, `bahn_fuer/vorschau(..., schaft, schneide)`,
+  `schneidenlaenge(tc)`, `lege_an/aendere(..., schaft)`.
+- `camaddon/gui_vierachs.py`: unter „Plan indexiert“ der Haken „Seiten mit dem Schaft“ – frei, wenn
+  eine Seite da ist und die Schneide reicht; grau darunter, welche mit dem Schaft gehen und welche
+  bei der Stirn bleiben (mit der nötigen Länge).
+- `translations/de.json`, `translations/en.json` (`va.plan.schaft*`, `vp.eigenschaft.schaft`),
+  `tests/test_vierachs_plan.py` (die Seite y = 5 eines Klotzes mit dem Schaft, mit zu kurzer
+  Schneide nicht), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.213.55),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil im Assistenten: mit 40 mm Schneide grau „Für Face4, Face6 reicht die Schneide von
+  T1 (40 mm) nicht – sie bräuchte 40,7 mm …“; mit 60 mm „Mit dem Schaft: Face4, Face6.“ und die
+  Vorschau „→ 3 Flächen: 7 Lagen, 15 Zeilen, etwa 2 min“ (mit der Stirn 9 Lagen, 65 Zeilen,
+  etwa 7 min). `test_vierachs_plan.py`, `szenario_vierachs_plan`, `test_sprache.py` grün.
+
 ## P-2026-10-11-48 plan-mit-dem-schruppfraeser
 
 ### EINGELESEN

@@ -2695,5 +2695,12 @@
     "va.lagen.unter": "→ {lagen} Lagen (Ø {von} {e_laenge} → bis {tiefe} {e_laenge} unter die Mitte)",
     "va.lagen.eine_unter": "→ 1 Lage (Ø {von} {e_laenge} → bis {tiefe} {e_laenge} unter die Mitte)",
     "vo.eigenschaft.stetig": "Mit der Querachse: C dreht nie gegen die Spirale zurück – die Werkzeugachse steht nur so weit auf der Normalen, wie C dabei weiterdreht.",
-    "va.stetig.schruppen.tooltip": "Mit der Querachse steht die Werkzeugachse nur so weit auf der Normalen der Fläche, wie C dabei weiterdreht – C dreht nie zurück, die Maschine läuft ruhiger. Am Nasen-Testteil gleich schnell (15,3 statt 15,4 min, C nie zurück statt 266-mal); die Kugel hat danach etwa 5 % mehr zu tun."
+    "va.stetig.schruppen.tooltip": "Mit der Querachse steht die Werkzeugachse nur so weit auf der Normalen der Fläche, wie C dabei weiterdreht – C dreht nie zurück, die Maschine läuft ruhiger. Am Nasen-Testteil gleich schnell (15,3 statt 15,4 min, C nie zurück statt 266-mal); die Kugel hat danach etwa 5 % mehr zu tun.",
+    "vp.eigenschaft.schaft": "Die Seiten mit dem Schaft: Die Rundachse dreht 90° weiter, die Werkzeugachse liegt in der Fläche, der Fräser steht mit seinem Umfang daran – wo die Schneide bis an die Unterkante reicht; sonst mit der Stirn.",
+    "va.plan.schaft": "Seiten mit dem Schaft",
+    "va.plan.schaft.tooltip": "Statt mit der Stirn quer zur Fläche fräst der Fräser eine Seite (eine Fläche, die quer zur Richtung von der Achse zu ihr steht) mit seinem Umfang: Die Rundachse dreht 90° weiter, die Werkzeugachse liegt in der Fläche, er geht in Lagen der Zustellung bis an ihre Unterkante. Nur, wo die Schneide so tief in die Stange reicht – die anderen Flächen bleiben bei der Stirn.",
+    "va.plan.schaft.keine": "Unter den Flächen ist keine Seite – die Stirn macht alle.",
+    "va.plan.schaft.geht": "Mit dem Schaft: {flaechen}.",
+    "va.plan.schaft.zu_kurz": "Für {flaechen} reicht die Schneide von {werkzeug} ({schneide} {e_laenge}) nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn.",
+    "va.plan.schaft.ohne_schneide": "Für {flaechen} kennt die Werkzeugverwaltung die Schneidenlänge von {werkzeug} nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn."
 }

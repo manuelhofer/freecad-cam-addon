@@ -2695,5 +2695,12 @@
     "va.lagen.unter": "→ {lagen} layers (Ø {von} {e_laenge} → down to {tiefe} {e_laenge} below the centre)",
     "va.lagen.eine_unter": "→ 1 layer (Ø {von} {e_laenge} → down to {tiefe} {e_laenge} below the centre)",
     "vo.eigenschaft.stetig": "With the cross axis: C never turns back against the spiral – the tool axis follows the surface normal only as far as C keeps turning forward.",
-    "va.stetig.schruppen.tooltip": "With the cross axis the tool axis follows the surface normal only as far as C keeps turning forward – C never turns back, the machine runs more smoothly. On the nose test part just as fast (15.3 instead of 15.4 min, C never back instead of 266 times); the ball then has about 5 % more to remove."
+    "va.stetig.schruppen.tooltip": "With the cross axis the tool axis follows the surface normal only as far as C keeps turning forward – C never turns back, the machine runs more smoothly. On the nose test part just as fast (15.3 instead of 15.4 min, C never back instead of 266 times); the ball then has about 5 % more to remove.",
+    "vp.eigenschaft.schaft": "The sides with the flank: the rotary axis turns 90° further, the tool axis lies in the face, the cutter touches it with its periphery – where the flute reaches down to the bottom edge; otherwise with the end face.",
+    "va.plan.schaft": "Sides with the flank",
+    "va.plan.schaft.tooltip": "Instead of the end face square to the face, the cutter mills a side (a face standing across the direction from the axis to it) with its periphery: the rotary axis turns 90° further, the tool axis lies in the face, it goes down in step-downs to its bottom edge. Only where the flute reaches that deep into the bar – the other faces stay with the end face.",
+    "va.plan.schaft.keine": "None of the faces is a side – the end face does all of them.",
+    "va.plan.schaft.geht": "With the flank: {flaechen}.",
+    "va.plan.schaft.zu_kurz": "For {flaechen} the flute of {werkzeug} ({schneide} {e_laenge}) is too short – it would need {braucht} {e_laenge}; they stay with the end face.",
+    "va.plan.schaft.ohne_schneide": "For {flaechen} the tool library does not know the flute length of {werkzeug} – it would need {braucht} {e_laenge}; they stay with the end face."
 }

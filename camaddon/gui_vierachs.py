@@ -802,6 +802,7 @@ class VierachsPanel:
                 ("aufmass_plan", op.Aufmass),
             ]
             self.plan_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
+            self.plan_schaft.setChecked(bool(getattr(op, "Schaft", False)))
         elif self._art == ENTGRATEN:
             paare = [("breite", op.Breite)]
         else:
@@ -1448,6 +1449,15 @@ class VierachsPanel:
         self.plan_nur_gleichlauf.setToolTip(tr("va.plan.nur_gleichlauf.tooltip"))
         self.plan_nur_gleichlauf.toggled.connect(lambda _an: self._vorschau_starten())
         plan.ganz(self.plan_nur_gleichlauf)
+        # Die Seiten mit dem Schaft statt mit der Stirn (Manuel, 2026-10-11, Frage 10: „die
+        # seiten beide variationen anbieten“) – wo die Schneide reicht; grau darunter, welche.
+        self.plan_schaft = QtGui.QCheckBox(tr("va.plan.schaft"))
+        self.plan_schaft.setToolTip(tr("va.plan.schaft.tooltip"))
+        self.plan_schaft.toggled.connect(lambda _an: self._vorschau_starten())
+        plan.ganz(self.plan_schaft)
+        self.plan_schaft_grund = self._grau()
+        self.plan_schaft_grund.setWordWrap(True)
+        plan.ganz(self.plan_schaft_grund)
         self.mit_planbohrer = QtGui.QCheckBox()
         self.mit_planbohrer.setToolTip(tr("va.plan.mit_bohrer.tooltip"))
         self.mit_planbohrer.toggled.connect(lambda _an: self._planbohrer_umgeschaltet())
@@ -2809,6 +2819,7 @@ class VierachsPanel:
             return
         werkzeug, einsatz = self.planfraeser(), self.planeinsatz()
         self.schnittwerte_plan.setText(self._schnittwerte_text(werkzeug, einsatz))
+        self._schaft_zeigen()
         bohrer = vplan.bohrer_von(werkzeug)
         for feld, eingabe in self.felder_plan.items():
             eingabe.setPlaceholderText(
@@ -2914,8 +2925,67 @@ class VierachsPanel:
         self.planfelder.setEnabled(self.plan_an())
         self.planfelder.setVisible(self.plan_an())
         self.ergebnis_plan.setVisible(self.plan_an())
+        self._schaft_zeigen()
         if self.plan_an() != war:
             self._umgeschaltet()
+
+    def _schaft_zeigen(self):
+        """Der Haken „Seiten mit dem Schaft“: frei, wenn unter den Flächen von „Plan indexiert“
+        eine Seite ist, an die die Schneide des Fräsers reicht (vierachs_planbahn.schaft_lage);
+        grau darunter, welche mit dem Schaft gehen und welche bei der Stirn bleiben."""
+        werkzeug = self.planfraeser()
+        seiten = []  # (Name, so lang muss die Schneide sein)
+        if self.job is not None and werkzeug is not None and not vplan.bohrer_von(werkzeug):
+            achse = self.achse()
+            form = vr.modell(self.job).Shape
+            laengs, radial = achse.laengs, va.radial(achse)
+            radius = self.stange().durchmesser / 2
+            for ebene in vp.ebenen(form, laengs, radial, self._plan_namen()):
+                lage = vp.schaft_lage(form, ebene, laengs, radial, radius)
+                if lage is not None:
+                    seiten.append((ebene.name, lage[2]))
+        schneide = float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0)
+        geht = [n for n, weg in seiten if schneide > 0 and weg <= schneide]
+        zu_kurz = [(n, weg) for n, weg in seiten if not (schneide > 0 and weg <= schneide)]
+        saetze = []
+        if not seiten:
+            saetze.append(tr("va.plan.schaft.keine"))
+        if geht:
+            saetze.append(tr("va.plan.schaft.geht", flaechen=", ".join(geht)))
+        if zu_kurz:
+            braucht = einheiten.text(max(weg for _n, weg in zu_kurz), einheiten.LAENGE, 1)
+            if schneide > 0:
+                saetze.append(
+                    tr(
+                        "va.plan.schaft.zu_kurz",
+                        flaechen=", ".join(n for n, _w in zu_kurz),
+                        werkzeug=f"T{werkzeug.nummer}",
+                        schneide=einheiten.text(schneide, einheiten.LAENGE, 1),
+                        braucht=braucht,
+                    )
+                )
+            else:
+                saetze.append(
+                    tr(
+                        "va.plan.schaft.ohne_schneide",
+                        flaechen=", ".join(n for n, _w in zu_kurz),
+                        werkzeug=f"T{werkzeug.nummer}",
+                        braucht=braucht,
+                    )
+                )
+        vorher = self._fuellt
+        self._fuellt = True
+        try:
+            self.plan_schaft.setEnabled(bool(geht))
+            if not geht:
+                self.plan_schaft.setChecked(False)
+        finally:
+            self._fuellt = vorher
+        self.plan_schaft_grund.setText(" ".join(saetze))
+
+    def plan_schaft_an(self):
+        """Die Seiten mit dem Schaft (angehakt und möglich)?"""
+        return self.plan_schaft.isEnabled() and self.plan_schaft.isChecked()
 
     def _plan_argumente(self):
         """{"plan": Argumente, "planbohren": Argumente} für die grobe Bahn „Plan indexiert“
@@ -2949,7 +3019,11 @@ class VierachsPanel:
             flaechen,
             self._eintauchwinkel_fuer(werkzeug),
             bohrer,
-        ), {"nur_gleichlauf": self.plan_nur_gleichlauf.isChecked()}
+        ), {
+            "nur_gleichlauf": self.plan_nur_gleichlauf.isChecked(),
+            "schaft": self.plan_schaft_an() and not bohrer,
+            "schneide": float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0),
+        }
 
     def _plan_text(self, bahn):
         """„→ 2 Lagen, 6 Zeilen, etwa 1 min“ – bei mehreren Flächen mit ihrer Zahl, und was
@@ -4272,6 +4346,7 @@ class VierachsPanel:
                             flaechen=plan_flaechen,
                             eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
                             nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
+                            schaft=self.plan_schaft_an(),
                             raster=self._aufloesung("aufloesung_plan"),
                         )
                     )
@@ -4397,6 +4472,7 @@ class VierachsPanel:
                         flaechen,
                         self._eintauchwinkel_fuer(self.planfraeser()),
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
+                        schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
                     )
                 elif self._art == ENTGRATEN:
@@ -4494,6 +4570,7 @@ class VierachsPanel:
                         flaechen=plan_flaechen,
                         eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
+                        schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
                     )
                     if loecher:
