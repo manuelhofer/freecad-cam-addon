@@ -2715,8 +2715,13 @@ Am Schwenkteil (Unterseite im Spannmittel): alle 27 übrigen Flächen aus drei R
 30° 10, 45° 3; Tisch/Tisch A0/A30/A45 C90, G550 A−90/A−60/A−45 B90; auf der 3-Achs-Fräse oben 14, 13
 „Maschine schwenkt nicht so weit“. 0,07 s.
 
-**Gebaut:** Schritt 1 (Beschriftung) und 2 (`zugang.py`, `tests/test_zugang.py`, P-2026-10-11-93).
-**Offen:** Schritt 2 im Fenster, Schritt 4.
+**Gebaut:** Schritt 1 (Beschriftung) und 2 (`zugang.py`, `tests/test_zugang.py`, P-2026-10-11-93);
+Schritt 3 als Knopf „Alles aus dieser Aufspannung“ in Schritt 2 des Assistenten: wählt alles von oben,
+je weitere Richtung eine Zeile in ihrer Farbe mit „Ebene schwenken (3+2) …“ (öffnet mit ihrer
+Stirnfläche), Rot mit Grund; ohne 5-Achs-Maschine nur von oben (P-2026-10-11-94,
+`szenario_bearbeitung_aufspannung`). **Offen:** Schritt 4 – je Richtung die Ebene und ihre
+Operationen ohne Umweg über das Fenster „Ebene schwenken“; die Stellungen der Rundachsen an der
+Zeile (dafür die Maschine öffnen).
 
 ## 16. 5 Achsen simultan (W-015)
 

@@ -50,6 +50,9 @@ class Richtung:
     achse: tuple  # (x, y, z), Einheitsvektor, von der Spitze weg
     flaechen: list = field(default_factory=list)  # ["Face4", …]
     stellung: dict = None  # Rundachsen an der Steuerung ({"A": −30.0, …}); None ohne Maschine
+    stirn: str = (
+        None  # die erste ebene Fläche, deren Normale die Richtung ist („Face3“), sonst None
+    )
 
     @property
     def neigung(self):
@@ -267,6 +270,16 @@ def zugang(form, unten=(0.0, 0.0, -1.0), spannflaeche=None, maschine=None):
         else:
             unerreichbar[name] = tr("zg.grund.sicht")
     _waende_mit_ihrer_tasche_weg(form, nachbarn, flaechen, richtungen, unerreichbar)
+    for r in richtungen:
+        k = Vector(*r.achse)
+        r.stirn = next(
+            (
+                f.name
+                for f in flaechen
+                if f.name in r.flaechen and f.art == EBENE and _gleich(f.achse, k)
+            ),
+            None,
+        )
     return Zugang(richtungen, unerreichbar, spannflaeche)
 
 
@@ -327,6 +340,36 @@ def _waende_zu_ihrer_tasche(form, nachbarn, flaechen, richtungen, strahlen, merk
         ziel.flaechen.sort(key=lambda s: int(s[4:]))
         richtung_von[fl.name] = ziel
     richtungen[:] = [r for r in richtungen if r.flaechen]
+
+
+def ohne_schwenken(zugang_, oben=(0.0, 0.0, 1.0)):
+    """Der Zugang einer Maschine, die nicht schwenkt: nur die Richtung `oben` bleibt, die Flächen
+    der anderen sind unerreichbar – „die Maschine schwenkt nicht so weit“."""
+    k = Vector(*oben)
+    bleibt = [r for r in zugang_.richtungen if _gleich(Vector(*r.achse), k)]
+    unerreichbar = dict(zugang_.unerreichbar)
+    for r in zugang_.richtungen:
+        if r not in bleibt:
+            unerreichbar.update(dict.fromkeys(r.flaechen, tr("zg.grund.maschine")))
+    return Zugang(bleibt, unerreichbar, zugang_.spannflaeche)
+
+
+def spannflaeche_unten(form, unten=(0.0, 0.0, -1.0)):
+    """Die Fläche, die im Spannmittel liegt, wenn keine gewählt ist: die unterste ebene, die nach
+    `unten` zeigt – oder None."""
+    u = Vector(*unten)
+    beste = None
+    for n in range(ft.anzahl(form)):
+        f = ft.flaeche(form, n)
+        if f.Surface.__class__.__name__ != "Plane":
+            continue
+        u0, u1, v0, v1 = f.ParameterRange
+        if not _gleich(f.normalAt((u0 + u1) / 2, (v0 + v1) / 2), u):
+            continue
+        tiefe = f.CenterOfMass.dot(u)
+        if beste is None or tiefe > beste[0] + GENAU:
+            beste = (tiefe, f"Face{n + 1}")
+    return beste[1] if beste else None
 
 
 def _stellung(maschine, k):

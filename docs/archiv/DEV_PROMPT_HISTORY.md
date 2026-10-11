@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-94 alles-aus-der-aufspannung
+
+### EINGELESEN
+- Weiter mit Frage 14 (Manuel: „ja das ist ein toller Ablauf“): Schritt 3 – im zweiten Fenster.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Knopf „Alles aus dieser Aufspannung“ (`aus_der_aufspannung`) neben
+  „Oberseite“ – `zugang` am Teil im Job, die Fläche im Spannmittel aus „Unten im Spannmittel“ oder
+  die unterste nach unten; ohne 5-Achs-Maschine `zugang.ohne_schwenken`. Gewählt die Richtung oben;
+  `_richtungen_zeigen`: je weitere Richtung eine Zeile in ihrer Farbe (`RICHTUNG_FARBEN`) mit „Ebene
+  schwenken (3+2) …“ → `ebene_schwenken(flaeche)` mit ihrer Stirnfläche; rot je Grund; die Farben
+  am Teil. Neu fragen nach „Oberseite“, „Auswahl leeren“ oder einer anderen Fläche im Spannmittel.
+- `camaddon/zugang.py`: `Richtung.stirn`, `ohne_schwenken`, `spannflaeche_unten`.
+- `translations/de.json`, `en.json` (`ba.flaechen.aufspannung_knopf`, `ba.richtung.*`, Anleitung
+  Schritt 1), `help/de|en/bearbeitung.html`, Spezifikation Strategien 15.5.
+- `tests/gui/szenario_bearbeitung_aufspannung.py` (neu). `package.xml` (0.213.97).
+
+### ERGEBNIS
+- Schwenkteil auf der Tisch/Tisch: 14 Flächen von oben gewählt (grün), „30° geneigt: 10 Flächen“
+  orange, „45° geneigt: 3 Flächen“ violett; „Ebene schwenken“ der 30°-Zeile öffnet mit Face3. Ohne
+  Maschine: 14 von oben, 13 rot „Die Maschine schwenkt nicht so weit.“
+
+### AKZEPTANZKRITERIUM
+- `test_zugang`, `test_sprache`, `test_hilfe` in 1.1.4; `szenario_bearbeitung_aufspannung`,
+  `szenario_bearbeitung`, `szenario_bearbeitung_maschine` grün.
+
 ## P-2026-10-11-93 zugang-aus-der-aufspannung
 
 ### EINGELESEN

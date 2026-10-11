@@ -73,6 +73,7 @@ from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
 from . import werkzeugform as wf
 from . import zielzeit as zz
+from . import zugang as zg
 from .gui_hilfe import kopfzeile
 from .gui_kollision import GELB
 from .gui_maschine import _EnterBleibtImDialog
@@ -259,6 +260,16 @@ def _aussennormale(form, name):
     if not 0 <= nummer < ft.anzahl(form) or not vr.ist_eben(ft.flaeche(form, nummer)):
         return None
     return vr.aussennormale(ft.flaeche(form, nummer))
+
+
+# Die Farben der weiteren Richtungen (aus_der_aufspannung) – weder Grün (gewählt) noch Rot.
+RICHTUNG_FARBEN = ("#e8962d", "#9b59b6", "#1f9e8f", "#b5651d", "#2e86c1")
+
+
+def _stirnflaeche(richtung):
+    """Die Fläche einer Richtung (zugang.Richtung), mit der „Ebene schwenken“ öffnet: die erste
+    ebene, deren Normale die Richtung ist – sonst die erste."""
+    return richtung.stirn or richtung.flaechen[0]
 
 
 def _schraeg(form, name):
@@ -3784,6 +3795,7 @@ class BearbeitungPanel:
         )
         self._nullpunkte = nullpunkte()
         self._unten = None  # die Fläche des Teils, die unten liegt („Face6“) – None: wie modelliert
+        self._zugang = None  # „Alles aus dieser Aufspannung“: zugang.Zugang, bis sich etwas ändert
         self._viertel = 0  # X um so viele Viertel um Z gedreht
         self.bloecke = []
         self.form = self._baue()
@@ -4075,10 +4087,24 @@ class BearbeitungPanel:
             )
         )
         knoepfe.addWidget(
+            knopf(
+                tr("ba.flaechen.aufspannung_knopf"),
+                tr("ba.flaechen.aufspannung_knopf.tooltip"),
+                self.aus_der_aufspannung,
+            )
+        )
+        knoepfe.addWidget(
             knopf(tr("ba.flaechen.leeren"), tr("ba.flaechen.leeren.tooltip"), self.flaechen_leeren)
         )
         knoepfe.addStretch()
         ziel[0].addWidget(zeile)
+        # „Alles aus dieser Aufspannung“: je weitere Richtung eine Zeile in ihrer Farbe mit „Ebene
+        # schwenken …“, darunter rot, was in dieser Aufspannung nicht geht (Frage 14).
+        self.richtungen_box = QtGui.QWidget()
+        self._richtungen_aufbau = QtGui.QVBoxLayout(self.richtungen_box)
+        self._richtungen_aufbau.setContentsMargins(0, 0, 0, 0)
+        self.richtungen_box.hide()
+        ziel[0].addWidget(self.richtungen_box)
         # Eine schräge ebene Fläche gewählt: geschwenkt fräsen (3+2, W-014).
         self.schwenken_zeile = QtGui.QWidget()
         schwenken = QtGui.QVBoxLayout(self.schwenken_zeile)
@@ -4416,6 +4442,7 @@ class BearbeitungPanel:
             return
         self.hinweis.setText("")
         self._unten = flaeche
+        self._zugang = None  # eine andere Fläche im Spannmittel – neu fragen
         self._lage_geaendert()
 
     def x_drehen(self, viertel):
@@ -5166,11 +5193,88 @@ class BearbeitungPanel:
     def oberseite_waehlen(self):
         if self.job is None:
             return
+        self._zugang = None
         self.gewaehlte = hf.oberseite(vr.modell(self.job).Shape)
         self._flaechen_zeigen()
         self.vorschau_starten()
 
+    def aus_der_aufspannung(self):
+        """„Alles aus dieser Aufspannung“ (Frage 14; Manuel, 2026-10-11: „ich gebe eine Fläche an,
+        die in dem Spannmittel ist .. und dann wird bearbeitet“): jede Fläche, die in dieser
+        Aufspannung erreichbar ist, nach Richtung (zugang) – die von oben gewählt; die anderen je
+        Richtung eine Zeile in ihrer Farbe mit „Ebene schwenken …“; was nicht geht, rot mit Grund.
+        Ohne 5-Achs-Maschine nur von oben."""
+        if self.job is None:
+            return
+        form = vr.modell(self.job).Shape
+        spann = self._unten or zg.spannflaeche_unten(form)
+        ergebnis = zg.zugang(form, spannflaeche=spann)
+        if not self._fuenfachs():
+            ergebnis = zg.ohne_schwenken(ergebnis)
+        self._zugang = ergebnis
+        oben = ergebnis.richtungen[0] if ergebnis.richtungen else None
+        oben = oben if oben is not None and oben.achse[2] > 1 - 1e-6 else None
+        self.gewaehlte = list(oben.flaechen) if oben is not None else []
+        self.kanten = []
+        self._flaechen_zeigen()
+        self.vorschau_starten()
+
+    def _richtungen_zeigen(self, farben):
+        """Die Zeilen unter der Liste (aus_der_aufspannung) und die Farben der Flächen anderer
+        Richtungen und der unerreichbaren in `farben` ({Nummer: Farbe}) – gewählte behalten
+        ihre."""
+        while self._richtungen_aufbau.count():
+            widget = self._richtungen_aufbau.takeAt(0).widget()
+            if widget is not None:
+                widget.deleteLater()
+        z = self._zugang
+        if z is None:
+            self.richtungen_box.hide()
+            return
+        weitere = [r for r in z.richtungen if r.achse[2] <= 1 - 1e-6]
+        for i, r in enumerate(weitere):
+            farbe = RICHTUNG_FARBEN[i % len(RICHTUNG_FARBEN)]
+            for name in r.flaechen:
+                if name not in self.gewaehlte:
+                    farben[int(name[4:]) - 1] = farbe
+            zeile = QtGui.QWidget()
+            aufbau = QtGui.QHBoxLayout(zeile)
+            aufbau.setContentsMargins(0, 0, 0, 0)
+            text = QtGui.QLabel(
+                dezimal(
+                    tr(
+                        "ba.richtung.zeile",
+                        winkel=f"{r.neigung:.0f}",
+                        anzahl=len(r.flaechen),
+                        namen=", ".join(r.flaechen),
+                    )
+                )
+            )
+            text.setWordWrap(True)
+            text.setStyleSheet(f"color: {farbe};")
+            aufbau.addWidget(text, 1)
+            aufbau.addWidget(
+                knopf(
+                    tr("ba.schwenken.knopf"),
+                    tr("ba.richtung.knopf.tooltip"),
+                    lambda _=False, r=r: self.ebene_schwenken(_stirnflaeche(r)),
+                )
+            )
+            self._richtungen_aufbau.addWidget(zeile)
+        gruende = {}
+        for name, grund in z.unerreichbar.items():
+            gruende.setdefault(grund, []).append(name)
+            if name not in self.gewaehlte:
+                farben[int(name[4:]) - 1] = ROT
+        for grund, namen in gruende.items():
+            text = QtGui.QLabel(tr("ba.richtung.unerreichbar", namen=", ".join(namen), grund=grund))
+            text.setWordWrap(True)
+            text.setStyleSheet(f"color: {ROT};")
+            self._richtungen_aufbau.addWidget(text)
+        self.richtungen_box.setVisible(bool(weitere or gruende))
+
     def flaechen_leeren(self):
+        self._zugang = None
         self.gewaehlte = []
         self.kanten = []
         self._flaechen_zeigen()
@@ -5280,6 +5384,7 @@ class BearbeitungPanel:
         else:
             self.flaechen_text.setText(tr("ba.flaechen.nur"))
         self._schwenken_zeigen(form)
+        self._richtungen_zeigen(farben)
         self._farben_zeigen(farben, kanten_farben)
         self._haken_vorschlagen(form)
 
@@ -5298,19 +5403,22 @@ class BearbeitungPanel:
         self.schwenken_knopf.show()
         self.schwenken_zeile.show()
 
-    def ebene_schwenken(self):
+    def ebene_schwenken(self, flaeche=None):
         """„Ebene schwenken (3+2) …“: Der Assistent schließt, ohne Operationen anzulegen, das
-        Fenster dafür öffnet mit der ersten schrägen Fläche – im Grundjob dieses Jobs. Ist der
+        Fenster dafür öffnet mit der ersten schrägen Fläche (oder `flaeche`, aus einer Zeile von
+        „Alles aus dieser Aufspannung“) – im Grundjob dieses Jobs. Ist der
         Job neu, bleibt er stehen, ohne Operationen: Vorher musste „Anlegen“ erst etwas anlegen,
         das keiner wollte (Manuel, 2026-10-10, an einer Bohrung in einer 41°-Schräge: „Ich will
         nur dass Loch da fräsen“)."""
         if self.job is None:
             return
         form = vr.modell(self.job).Shape
-        schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
-        if not schraege:
-            return
-        grundjob, flaeche = rw.grundjob_von(self.job), schraege[0]
+        if flaeche is None:
+            schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
+            if not schraege:
+                return
+            flaeche = schraege[0]
+        grundjob = rw.grundjob_von(self.job)
         if self._job_offen:
             self._job_ohne_operationen_behalten()
         else:
