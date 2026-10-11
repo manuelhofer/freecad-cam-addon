@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-16 bearbeitung-vorschau-im-takt
+
+### EINGELESEN
+- Die Vorschau des Assistenten „Bearbeitung“ (3 Achsen) rechnete nach jeder Eingabe am Stück im
+  Prozess der Oberfläche – am 3-Achs-Testteil (`szenario_testteil`) 4,0 und 10,4 s, in denen
+  FreeCAD keinen Klick annahm. Manuel, 2026-10-09, zum 4-Achs-Assistenten: „ein Lag … wo ich
+  nichts klicken kann … sowas muss unbedingt vermieden werden“; seine Regel seitdem: nichts
+  bauen, was laggt (Arbeitsregeln, Abschnitt 7). Der 4-Achs-Assistent rechnet seine Vorschau in
+  Nebenrechnern; der 3-Achs-Assistent hängt mit seinen Blöcken, dem Materialstand je Block und
+  dem Wettbewerb so am Fenster, dass das ein großer Umbau wäre.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_vorschau_schritte` – die Vorschau als Generator, ein Schritt je
+  Block, je Teil der Folge „Planfräsen + Räumen der Böden“ (`_folge_schritte`), nach dem
+  Wettbewerb und vor den letzten Anzeigen; `_vorschau_im_takt` (an der Uhr nach einer Eingabe)
+  rechnet Schritt für Schritt aus der Ereignisschleife (`functools.partial`, damit
+  `uhren.verschachtelt` keinen Python-Rahmen darunter sieht; mitten in einer anderen Rechnung
+  später). Eine neue Eingabe (`vorschau_starten`) macht den Lauf ungültig; „Anlegen“ rechnet ihn
+  am Stück fertig (`_vorschau_rechnen`), auch wenn die Uhr noch läuft; die Flächen je Block
+  (`_flaechen_merk`) gelten nur während eines Schritts.
+- `tests/gui/szenario_testteil_freivorschub.py` (wartet auf `vorschau_laeuft()`),
+  `docs/aufbau.md` (Nebenrechner: Unterpool, Kopie wiederverwenden, Vorwärmen, Puffer;
+  Assistent: Vorschau im Takt), `package.xml` (0.213.28), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_testteil` mit Zeitmessung je Schritt: 32 Schritte in zwei Läufen, 12,3 s zusammen,
+  der längste 3,4 s (das Räumen), die anderen höchstens 1,1 s – vorher stand das Fenster 4,0 und
+  10,4 s am Stück (seit P-2026-10-11-15: 3,7 und 8,7 s).
+- Grün: alle 54 Szenarien, die den Assistenten „Bearbeitung“ benutzen –
+  `szenario_testteil_freivorschub` wartete nur auf die Uhr und las die anderen Blöcke mitten im
+  Lauf; es wartet jetzt auf `vorschau_laeuft()` (neu: Uhr oder Lauf im Takt).
+- Manuel prüft, ob es sich so anfühlt: Flächen anklicken, gleich danach ein Feld ändern – das
+  Fenster nimmt die Eingabe an, die Vorschau beginnt neu.
+
 ## P-2026-10-11-15 entgraten3d-passt-gemerkt
 
 ### EINGELESEN

@@ -16,6 +16,7 @@ _Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; 
 """
 
 import contextlib
+import functools
 import html
 import math
 import os
@@ -118,6 +119,7 @@ GEMERKT_NULLPUNKT = "BaNullpunkt"
 NULLPUNKT_VORGABE = (0, 0, 1)
 REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
+UHR_SCHRITT_MS = 30  # ein Schritt der Vorschau mitten in einer Rechnung: so viel später
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 VORSCHAU_MERK = 60  # so viele Vorschauen merkt sich der Assistent (_Block.vorschau_rechnen)
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -3505,8 +3507,9 @@ class BearbeitungPanel:
         self._vorschau_uhr.setSingleShot(True)
         self._vorschau_uhr.setInterval(VORSCHAU_MS)
         self._vorschau_uhr.timeout.connect(
-            uhren.aus_der_schleife(self._vorschau_uhr, self._vorschau_rechnen)
+            uhren.aus_der_schleife(self._vorschau_uhr, self._vorschau_im_takt)
         )
+        self._vorschau_lauf = None  # der Lauf, der gerade Block für Block rechnet (_im_takt)
         self._rohteil_uhr = QtCore.QTimer()
         self._rohteil_uhr.setSingleShot(True)
         self._rohteil_uhr.setInterval(NACHZIEHEN_MS)
@@ -4037,7 +4040,9 @@ class BearbeitungPanel:
         if self._nullpunkt_uhr.isActive():
             self._nullpunkt_uhr.stop()
             self._nullpunkt_anwenden()
-        if any(b.vorschau is None for b in self.aktive_bloecke()):
+        # Rechnet die Vorschau noch (im Takt, oder gleich nach einer Eingabe): erst ganz fertig –
+        # der Wettbewerb am Ende setzt noch Haken.
+        if self.vorschau_laeuft() or any(b.vorschau is None for b in self.aktive_bloecke()):
             self._vorschau_rechnen()
         if not self._kann_anlegen() or any(b.vorschau is None for b in self.aktive_bloecke()):
             return False  # der Grund steht rot im Fenster
@@ -4086,6 +4091,7 @@ class BearbeitungPanel:
     def _vor_dem_schliessen(self):
         BearbeitungPanel.offen = None
         self.geschlossen = True
+        self._vorschau_lauf = None
         from .gui_reichweite import job_merken
 
         job_merken(self.job)  # Prüfen, Bestückung und Programm nehmen ihn ohne Auswahl
@@ -5318,16 +5324,24 @@ class BearbeitungPanel:
     def vorschau_starten(self):
         if self._fuellt or self._ruhig or self.geschlossen:
             return
+        self._vorschau_lauf = None  # was noch zur Eingabe davor rechnet, ist veraltet
         for block in self.bloecke:
             block.vorschau = None
         self._vorschau_uhr.start()
         self._knoepfe_beschriften()
 
+    def vorschau_laeuft(self):
+        """Steht eine Vorschau noch aus – die Uhr nach einer Eingabe läuft, oder ein Lauf rechnet
+        im Takt?"""
+        return self._vorschau_uhr.isActive() or self._vorschau_lauf is not None
+
     def _vorschau_rechnen(self):
         """Die grobe Bahn je angehaktem Block – und damit „Anlegen“ weiß, ob es geht. Was die
         Strategien mit den gewählten Flächen anfangen können, gilt für den ganzen Lauf
-        (_eigene, P-2026-10-03-28: am Testteil 95 Fragen je Lauf)."""
+        (_eigene, P-2026-10-03-28: am Testteil 95 Fragen je Lauf). Am Stück – für „Anlegen“;
+        nach einer Eingabe rechnet sie Schritt für Schritt (_vorschau_im_takt)."""
         self._vorschau_uhr.stop()
+        self._vorschau_lauf = None  # ein Lauf im Takt ist damit erledigt
         if self.geschlossen or self.job is None:
             return
         self._flaechen_merk = {}
@@ -5336,14 +5350,71 @@ class BearbeitungPanel:
         finally:
             self._flaechen_merk = None
 
+    def _vorschau_im_takt(self):
+        """Wie _vorschau_rechnen, aber Block für Block aus der Ereignisschleife: Dazwischen nimmt
+        das Fenster Klicks an, und eine neue Eingabe (vorschau_starten) macht den Lauf ungültig
+        – er hört beim nächsten Schritt auf. Bis P-2026-10-11-16 rechnete die Vorschau am Stück
+        im Prozess der Oberfläche: am 3-Achs-Testteil 4 und 9 s nach dem Anklicken der Flächen,
+        in denen FreeCAD keinen Klick annahm (Manuel, 2026-10-09: „ein Lag … wo ich nichts
+        klicken kann … sowas muss unbedingt vermieden werden“)."""
+        self._vorschau_uhr.stop()
+        if self.geschlossen or self.job is None:
+            return
+        lauf = self._vorschau_schritte()
+        self._vorschau_lauf = lauf
+        QtCore.QTimer.singleShot(0, functools.partial(self._vorschau_schritt, lauf, {}))
+
+    def _vorschau_schritt(self, lauf, merk):
+        """Ein Schritt des Laufs; der nächste kommt aus der Ereignisschleife. `merk`: die Flächen
+        je Block für diesen Lauf (_eigene) – nur während eines Schritts gesetzt, dazwischen kann
+        sich die Wahl ändern."""
+        if lauf is not self._vorschau_lauf or self.geschlossen:
+            lauf.close()
+            return
+        if uhren.verschachtelt():
+            # Mitten in einer anderen Rechnung (eine, die Ereignisse abarbeitet): danach weiter.
+            QtCore.QTimer.singleShot(
+                UHR_SCHRITT_MS, functools.partial(self._vorschau_schritt, lauf, merk)
+            )
+            return
+        self._flaechen_merk = merk
+        try:
+            next(lauf)
+        except StopIteration:
+            if self._vorschau_lauf is lauf:
+                self._vorschau_lauf = None
+            return
+        except Exception:
+            if self._vorschau_lauf is lauf:
+                self._vorschau_lauf = None
+            raise
+        finally:
+            self._flaechen_merk = None
+        # partial, kein lambda: Ein Rahmen aus Python darunter hielte uhren.verschachtelt() für
+        # eine laufende Rechnung.
+        QtCore.QTimer.singleShot(0, functools.partial(self._vorschau_schritt, lauf, merk))
+
     def _vorschau_rechnen_mit_merk(self):
+        for _schritt in self._vorschau_schritte():
+            pass
+
+    def _vorschau_schritte(self):
+        """Die Vorschau aller Blöcke als Schritte (ein Generator): nach jedem Block, nach dem
+        Wettbewerb und vor jedem der letzten Teile ein `yield`."""
         form = vr.modell(self.job).Shape
         self._raeumen_boeden = None
         boeden = self._nur_boeden(form)
         gerechnet = {}  # Block → woraus seine Vorschau gerechnet ist (_block_rechnen)
         for block in self.bloecke:
-            self._block_rechnen(block, form, boeden, gerechnet)
+            if block is self.raeumen and boeden is not None and self._dabei(block):
+                # Die Folge mit den Taschenböden – in ihren eigenen Schritten (_block_rechnen
+                # täte dasselbe am Stück).
+                yield from self._folge_schritte(form, boeden)
+            else:
+                self._block_rechnen(block, form, boeden, gerechnet)
+            yield
         self._wettbewerb(form, nur_bohrung=boeden is not None)
+        yield
         # Der Wettbewerb setzt Haken um: Das Planfräsen verliert ihn ans Räumen oder umgekehrt.
         # Wer dahinter gerechnet hat, stand dann auf dem Material des Verlierers („… hat
         # „Planfräsen“ schon weggenommen“ unter dem 3D-Schruppen, obwohl das Räumen angehakt ist –
@@ -5351,12 +5422,18 @@ class BearbeitungPanel:
         # rechnet noch einmal, und der Wettbewerb entscheidet mit den neuen Zeiten. Höchstens
         # zweimal – dann steht es.
         for _runde in range(2):
-            neu = [b for b in self.bloecke if self._block_rechnen(b, form, boeden, gerechnet, True)]
+            neu = []
+            for b in self.bloecke:
+                if self._block_rechnen(b, form, boeden, gerechnet, True):
+                    neu.append(b)
+                    yield
             if not neu:
                 break
             self._wettbewerb(form, nur_bohrung=boeden is not None)
+            yield
         self._schon_weg_abhaken()
         self._ziel_zeigen(form)
+        yield
         self._raeumen_ausgelassen_zeigen()
         self._unfertig_zeigen(form)
         self._knoepfe_beschriften()
@@ -5446,7 +5523,7 @@ class BearbeitungPanel:
         wenn sich daran etwas geändert hat. Gibt zurück, ob er gerechnet hat."""
         if nur_anders and boeden is not None and block in (self.plan, self.raeumen):
             return False  # die Folge (_folge) hat beide gerechnet, mit ihren Sätzen
-        dabei = block.aktiv() or self._im_wettbewerb(block)
+        dabei = self._dabei(block)
         if block is self.raeumen and boeden is not None and dabei:
             self._folge(form, boeden)  # setzt die Haken selbst, vor allen dahinter
             return False
@@ -5484,6 +5561,10 @@ class BearbeitungPanel:
             d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
             block.ergebnis.setText(tr("ba.bohren.vorbohren", text=block.ergebnis_basis, d=d))
         return True
+
+    def _dabei(self, block):
+        """Rechnet der Block mit – angehakt oder im Wettbewerb?"""
+        return block.aktiv() or self._im_wettbewerb(block)
 
     def _raeumt(self, form):
         """Die Flächen, die das Räumen wirklich räumt: seine Flächen ohne die Böden der Taschen,
@@ -6411,6 +6492,12 @@ class BearbeitungPanel:
         Planfräsen fräst die ebenen Flächen und das Räumen nur die Böden – die schnellere Folge
         bekommt die Haken (Grundsatz 0), solange niemand sie von Hand gesetzt hat. Sind beide
         angehakt, räumt das Räumen nur die Böden: keine Fläche zweimal."""
+        for _schritt in self._folge_schritte(form, boeden):
+            pass
+
+    def _folge_schritte(self, form, boeden):
+        """_folge als Schritte (ein Generator): nach jeder der bis zu drei Vorschauen ein `yield` –
+        im Takt (_vorschau_im_takt) wäre die Folge am Stück einer der längsten Schritte."""
         plan, raeumen = self.plan, self.raeumen
         flaechen = raeumen.s.flaechen_fuer(form, self.gewaehlte)
 
@@ -6425,8 +6512,10 @@ class BearbeitungPanel:
             plan.vorschau_rechnen(
                 self.job, eben, {"materialstand": self._materialstand(plan, form, eben)}
             )
+            yield
         raeumen.vorschau_rechnen(self.job, flaechen, mit_stand(flaechen))
         alles = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
+        yield
         # Nur die Böden: Das Planfräsen fräst davor die ebenen Flächen – es gehört dazu.
         raeumen.vorschau_rechnen(self.job, boeden, mit_stand(boeden, (plan,)))
         nur = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
