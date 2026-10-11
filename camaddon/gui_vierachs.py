@@ -129,6 +129,9 @@ SCHRUPPEN, SCHLICHTEN, PLAN, ENTGRATEN = "schruppen", "schlichten", "plan", "ent
 # 3,1 mm² gegen 2,4 mm²). Darunter steht grau, wie viel.
 REST_VIEL = 2.0
 REST_AUFMASS_MINDESTENS = 0.1  # mm: so viel Aufmaß rechnet der Vergleich mindestens
+# „T1 auf … mm ausspannen“ (Halter stößt an): so viel mm über „bräuchte mindestens“ hinaus; angeboten
+# nur, wenn danach noch mindestens ein Schaftdurchmesser im Halter steckt.
+AUSSPANNEN_RESERVE = 1
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
 # Stirn als Scheibe – für jedes dieser Werkzeuge sicher (vierachs_huelle).
@@ -3875,8 +3878,83 @@ class VierachsPanel:
             verweis = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=kennung), quote=False)
             etikett.setText(
                 f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'
+                + self._ausspannen_verweis(werkzeug, heraus, mindestens)
             )
             etikett.show()
+
+    def _ausspannen_verweis(self, werkzeug, heraus, mindestens):
+        """Der nächste Schritt zur gelben Zeile „Halter stößt an“ als Verweis (Manuel: die Meldung
+        bietet an, was zu tun ist): „T1 auf 50 mm ausspannen“ – die Länge ab Spindelnase um so viel
+        länger (werkzeug_ausspannen()). Reicht die Gesamtlänge dafür nicht (es bliebe weniger als ein
+        Schaftdurchmesser im Halter), sagt es das stattdessen."""
+        from . import reichweite as rw
+
+        if self.bibliothek is None:
+            return ""
+        kennung = f"T{werkzeug.nummer}"
+        ziel = math.ceil(mindestens) + AUSSPANNEN_RESERVE
+        gesamt = float(werkzeug.gesamtlaenge or 0.0)
+        schaft = float(werkzeug.schaft or werkzeug.durchmesser or 0.0)
+        if gesamt and gesamt - ziel < schaft:
+            satz = tr(
+                "va.halter_zu_kurz",
+                werkzeug=kennung,
+                gesamt=einheiten.text(gesamt, einheiten.LAENGE, 0),
+            )
+            return " " + html.escape(satz, quote=False)
+        laenge, _quelle = rw.laenge_des_werkzeugs(werkzeug, self.bibliothek)
+        neu = laenge + (ziel - heraus)
+        text = tr(
+            "va.halter_ausspannen",
+            werkzeug=kennung,
+            heraus=einheiten.text(ziel, einheiten.LAENGE, 0),
+        )
+        return f' · <a href="ausspannen:{werkzeug.nummer}:{neu:.3f}:{ziel}">{html.escape(text)}</a>'
+
+    def werkzeug_ausspannen(self, nummer, laenge, heraus):
+        """„T1 auf 50 mm ausspannen“ (_ausspannen_verweis): die Länge ab Spindelnase von T`nummer`
+        in der Werkzeugverwaltung auf `laenge` mm – so misst sie das Voreinstellgerät, wenn es
+        `heraus` mm heraussteht –, gespeichert; grau darunter, was gesetzt ist, dann prüft es neu.
+        Gibt das Werkzeug zurück – None, wenn es nicht (mehr) da ist."""
+        werkzeug = next(
+            (
+                w
+                for w in (self.bibliothek.werkzeuge if self.bibliothek else ())
+                if w.nummer == nummer
+            ),
+            None,
+        )
+        if werkzeug is None:
+            return None
+        werkzeug.laenge_spindelnase = round(float(laenge), 3)
+        self.bibliothek.speichern()
+        drin = ""
+        if werkzeug.gesamtlaenge:
+            drin = tr(
+                "va.halter_ausgespannt_drin",
+                drin=einheiten.text(float(werkzeug.gesamtlaenge) - heraus, einheiten.LAENGE, 0),
+            )
+        satz = tr(
+            "va.halter_ausgespannt",
+            werkzeug=f"T{nummer}",
+            heraus=einheiten.text(heraus, einheiten.LAENGE, 0),
+            laenge=einheiten.text(werkzeug.laenge_spindelnase, einheiten.LAENGE, 1),
+            drin=drin,
+        )
+        # Grau dorthin, wo die gelbe Zeile mit diesem Verweis stand – nicht zu Bearbeitungen, die
+        # das Werkzeug nur vorgewählt haben.
+        zeilen = [
+            etikett
+            for etikett in self._halter_etiketten().values()
+            if f'href="ausspannen:{nummer}:' in etikett.text()
+        ]
+        self._halter_starten()
+        for etikett in zeilen:
+            etikett.setText(
+                f'<span style="color: {GRAU_TEXT};">{html.escape(satz, quote=False)}</span>'
+            )
+            etikett.show()
+        return werkzeug
 
     def _rest_soll(self):
         """mm² – was die Kugel ohne Rest höchstens nimmt: das Aufmaß des Schruppens über ihrem
@@ -4345,6 +4423,9 @@ class VierachsPanel:
         art, wert = ziel.split(":", 1)
         if art == "magazin":
             self.ins_magazin(wert)
+        elif art == "ausspannen":
+            nummer, laenge, heraus = wert.split(":")
+            self.werkzeug_ausspannen(int(nummer), float(laenge), int(heraus))
         else:
             self.werkzeugverwaltung(int(wert))
 

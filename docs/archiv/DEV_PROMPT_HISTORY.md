@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-63 halter-ausspannen-als-knopf
+
+### EINGELESEN
+- Die gelbe Zeile „Halter oder Schaft von T1 stoßen hier ans Teil … bräuchte mindestens 49 mm“ im
+  4-Achs-Assistenten (P-2026-10-11-51) verwies nur zum Werkzeug; den Wert „Länge ab Spindelnase“
+  musste man dort selbst finden und ausrechnen. Manuels Regel: die Meldung bietet den nächsten
+  Schritt als Knopf an.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: hinter „T1 öffnen …“ der Verweis „T1 auf 50 mm ausspannen“
+  (`_ausspannen_verweis`: „bräuchte mindestens“ aufgerundet + `AUSSPANNEN_RESERVE` 1 mm); ein Klick
+  (`werkzeug_ausspannen`) setzt die Länge ab Spindelnase in der Werkzeugverwaltung um so viel länger
+  (so misst sie das Voreinstellgerät danach), speichert, zeigt grau, was gesetzt ist und wie viel
+  noch im Halter steckt, und prüft neu. Bliebe weniger als ein Schaftdurchmesser im Halter, steht
+  statt des Verweises „T1 ist dafür zu kurz (Gesamtlänge …)“.
+- `translations/de.json`, `translations/en.json` (`va.halter_ausspannen`, `va.halter_zu_kurz`,
+  `va.halter_ausgespannt`, `va.halter_ausgespannt_drin`).
+- `tests/gui/szenario_vierachs_ausspannen.py` (neu): Welle mit Bund, T1 im ER32 30 mm heraus –
+  gelb mit Verweis, Klick: gespeichert, grau nur beim Schruppen, die Prüfung danach frei.
+- `package.xml` (0.213.68), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_vierachs_ausspannen` grün.
+
 ## P-2026-10-11-62 netzabstand-ohne-warnung
 
 ### EINGELESEN

@@ -2709,5 +2709,9 @@
     "va.nur_noetig": "Folgelagen nur, wo nötig",
     "va.nur_noetig.tooltip": "Wo eine Lage die Fläche schon erreicht hat, führe die nächste sie noch einmal ab, fast nur durch Luft. Angehakt fährt eine Lage nur so weit, wie die davor noch über der Fläche blieb. Am Nasen-Testteil mit der Querachse 11,1 statt 15,3 min, mit 5 mm Zustellung 39,7 statt 63,9 min; die Kugel hat danach etwa 10 % mehr zu tun (die Kämme der Lage davor bleiben stehen).",
     "va.querachse.nur_rundum_schlichten": "Nur rundum – mit Flächen (gewählt, oder ohne die, die „Plan indexiert“ fertig macht) fährt das Schlichten Zeilen hin und her, ohne Y.",
-    "ab.abtrag_rechnet": "Abtrag rechnet …"
+    "ab.abtrag_rechnet": "Abtrag rechnet …",
+    "va.halter_ausspannen": "{werkzeug} auf {heraus} {e_laenge} ausspannen",
+    "va.halter_zu_kurz": "{werkzeug} ist dafür zu kurz (Gesamtlänge {gesamt} {e_laenge}) – ein längeres Werkzeug nehmen.",
+    "va.halter_ausgespannt": "{werkzeug} steht jetzt {heraus} {e_laenge} heraus: Länge ab Spindelnase {laenge} {e_laenge}, in der Werkzeugverwaltung gespeichert{drin}. So einspannen und am Voreinstellgerät nachmessen.",
+    "va.halter_ausgespannt_drin": "; im Halter stecken dann noch {drin} {e_laenge}"
 }
