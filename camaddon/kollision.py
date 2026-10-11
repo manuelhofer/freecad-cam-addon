@@ -1655,6 +1655,8 @@ class _Welt:
                     abstand[k] = netz[0]
                     schranke[k], genau[k] = netz[0], False
             if abstand[k] <= reicht[k]:  # vielleicht ein Befund
+                if self._nicht_schlimmer(paar, ziel.operation, abstand[k], anfang):
+                    continue
                 abstand[k], stelle = rechne_genau(k)
                 if geschaetzt[k]:
                     self._netz_gelernt(paar, abstand[k] > reicht[k])
@@ -1700,6 +1702,18 @@ class _Welt:
             abstand[k] = wert
             anteile[j] = max(wert - feld.abzug[k], MIN_SCHRITT) / weg[j]
             fertig[j] = True
+
+    def _nicht_schlimmer(self, paar, operation, mindestens, anfang):
+        """Hat das Paar in der Operation schon einen Befund, der nicht weiter weg ist als
+        `mindestens` (die Schranke hier)? Dann wird die Stelle kein schlimmerer – _merke nähme
+        sie nicht –, genau rechnen braucht es sie dafür nicht. Am Nasen-Testteil auf der CLX550
+        rechnete es den Halter von T2 beim Wegfahren vom Teil an jeder Stelle genau, 20 ms je
+        Stelle. Nicht im Eilgang nach einem Vorschub: Dort zählt der Abstand am Anfang
+        (`anfang`, _zaehlt), und der braucht den genauen Wert."""
+        if anfang is not None and paar.nur_eilgang:
+            return False
+        befund = self.schlimmste.get((operation, paar.a.name, paar.b.name, paar.nur_vorschub))
+        return befund is not None and befund.abstand <= mindestens
 
     def _netz_gelernt(self, paar, umsonst):
         """Merkt je Paar, ob die Netzschranke umsonst war (sie entschied nichts, der genaue

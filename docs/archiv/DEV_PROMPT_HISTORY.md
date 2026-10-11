@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-89 kollision-nicht-schlimmer
+
+### EINGELESEN
+- Weiter an „Kollision prüfen“ (Nasen-Testteil auf der CLX550): In P-2026-10-11-85 schien der
+  Halter von T2 nach der ersten Berührung noch 236-mal genau gerechnet. Nachgemessen (je Aufruf
+  die Zeile und `schon`): Der Merker greift – nach der Berührung kommt keine Rechnung mehr. Die
+  Aufrufe sind Anlauf und Wegfahren im Warnabstand: Jede Stelle, deren Schranke unter dem
+  Warnabstand liegt, rechnete genau, auch wenn das Paar in der Operation schon einen Befund mit
+  kleinerem Abstand hatte – der neue hätte ihn nie ersetzt (`_merke`).
+
+### DATEIEN
+- `camaddon/kollision.py`: `_Welt._nicht_schlimmer` – hat das Paar in der Operation schon einen
+  Befund, der nicht weiter weg ist als die Schranke hier, rechnet es die Stelle nicht genau
+  (außer im Eilgang nach einem Vorschub, wo der Abstand am Anfang zählt). `package.xml` (0.213.93).
+
+### ERGEBNIS
+- Nase auf der CLX550, Manuels Werkzeuge, alle Kerne: 171,9 → 164,0 s, dieselben drei Befunde
+  (Text, Satz, Stelle gleich). Der große Rest liegt nicht hier.
+
+### AKZEPTANZKRITERIUM
+- `test_kollision`, `test_kollision_verteilt` in 1.1.4.
+
 ## P-2026-10-11-88 maschine-bleibt-in-ihrer-datei
 
 ### EINGELESEN
