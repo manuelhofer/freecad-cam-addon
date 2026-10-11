@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-90 jede-schneide-raeumlich
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends, auf „weitere Fräserformen fehlen“: „dann los“. Nachgesehen: Der
+  räumliche Materialstand (`raum_material.fuer_ebene`, für jede geschwenkte Ebene nach der davor)
+  kannte nur Kugel- und Schaftfräser. Stand in einer Ebene davor ein Torus-, Konik-, Fasen- oder
+  Radienfräser, gab er `None` – die nächste Ebene rechnete mit dem ganzen Rohteil (Luft). In den
+  Simultan-Sweeps (`raum_bahn.abtragen`) dasselbe als Fehler.
+
+### DATEIEN
+- `camaddon/raum_material.py`: `koerperteile(form, laenge, toleranz)` – die Schneide als
+  („kugel“, z, r) und („schaft“, z, r, l): Kugel und Schaft genau; sonst innen eine Treppe von
+  Zylindern (an jeder Stufe des Profils der Radius bis zum Ende der Schneide – liegt ganz im
+  Fräser, das Profil steigt nach außen nie ab), Stufen gleich weit längs des Profils höchstens
+  eine Rasterzelle, die Kugel eines Konikfräsers genau; außen der volle Zylinder ab der Spitze.
+  `teile_abtragen` (quer für die Sehne eines Bogens, längs für die Bewegungsschranke);
+  `fuer_ebene` nimmt jede Form – im Vorschub innen, im Eilgang außen.
+- `camaddon/raum_bahn.py`: `abtragen` mit jeder Form – die Teile um die Schranke des ganzen
+  Körpers erodiert (Vorschub) bzw. erweitert (Eilgang).
+- `tests/test_raum_material.py`: sechs Formen – jedes Teil im Fräser, die Treppe höchstens eine
+  halbe Zelle neben dem Profil; Torus Ø 12 R 2 durch einen Block zwischen Kern und Zylinder,
+  64 mm³ Ecken plus 14 mm³ Treppe; eine Ebene nach einem Torusfräser hat einen Stand und dort
+  kein Material mehr. `tests/test_raum_bahn.py`: die bewegte Schneide als Torus trägt ab, weniger
+  als der Schaftfräser, als Eilgang nichts. Doku: Snapshot, Strategien 16.19. `package.xml` (0.213.94).
+
+### ERGEBNIS
+- Kugel und Schaft rufen genau dieselben Sweeps wie vorher – die festen Referenzen
+  (`raum_material.json`, `raum_bahn.json`, `simultan_bereiche.json`) unverändert.
+- Erster Versuch mit Stufen gleich weit in ρ: am steilen Ende des Eckradius 0,7 mm hohe Stufen,
+  44 mm³ zu viel stehen gelassen; längs des Profils verteilt 14 mm³.
+
+### AKZEPTANZKRITERIUM
+- `test_raum_material`, `test_raum_bahn`, `test_simultan_bereiche` in 1.1.4.
+
 ## P-2026-10-11-89 kollision-nicht-schlimmer
 
 ### EINGELESEN

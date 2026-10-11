@@ -199,14 +199,29 @@ def abtragen(material, fahrt, daten, form, schneide, fortschritt=None):
     Der Vorschub erodiert Kugel und Zylinder um ihre eigene Fehlerschranke. Der
     Eilgang prüft die größere äußere Hülle in einer unabhängigen Materialkopie.
     Diese Änderungen bleiben lokal bis zur vollständigen Freigabe des Aufrufers.
+    Jede andere Schneide als Kugel und Schaft (Torus, Konik, Fase) als Kugeln und Zylinder
+    (raum_material.koerperteile), jedes Teil um die Schranke des ganzen Körpers erodiert bzw.
+    erweitert.
     """
+    from . import raum_material as rm
+
     r = form.radius
-    if not (form.eben or form.nur_kugel) or schneide < (2 * r if form.nur_kugel else r / 4):
+    if schneide < (2 * r if form.nur_kugel else r / 4):
         raise ValueError(tr("rm3.fehler.geometrie"))
+    allgemein = not (form.eben or form.nur_kugel)
+    innen, aussen = rm.koerperteile(form, schneide, material.schritt) if allgemein else ((), ())
     for s in strecken(fahrt, daten, r, schneide, material.schritt / 8, fortschritt):
         q = material.kopie() if s.eilgang else material
         vorzeichen = 1 if s.eilgang else -1
         volumen = 0.0
+        if allgemein:
+            e = vorzeichen * s.schaftfehler
+            teile = aussen if s.eilgang else innen
+            volumen = rm.teile_abtragen(q, s.von, s.nach, s.achse, teile, e, e)
+            if s.eilgang and volumen > 1e-7:
+                return False
+            material.bewegungsfehler = max(getattr(material, "bewegungsfehler", 0), s.schaftfehler)
+            continue
         if form.nur_kugel:
             volumen += q.kugel(s.mitte_von, s.mitte_nach, r + vorzeichen * s.kugelfehler)
             von, nach = s.von + r * s.achse, s.nach + r * s.achse

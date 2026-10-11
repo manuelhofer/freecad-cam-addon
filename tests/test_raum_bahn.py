@@ -212,6 +212,17 @@ def pruefen():
     rapid = rm.Material(stock, 0.5)
     assert not rb.abtragen(rapid, f, [(True, 0)] * len(cmds), toolform, length)
     assert np.array_equal(rapid.grenzen, rm.Material(stock, 0.5).grenzen, equal_nan=True)
+    # Dieselbe bewegte Schneide als Torusfräser (P-2026-10-11-90): trägt ab, weniger als der
+    # Schaftfräser gleichen Durchmessers, und als Eilgang gibt sie nichts frei.
+    from camaddon import fraeserform as ff
+
+    voll = rm.Material(stock, 0.5).volumen
+    mit_torus = rm.Material(stock, 0.5)
+    assert rb.abtragen(mit_torus, f, data, ff.torus(6, 2), length)
+    assert 0 < voll - mit_torus.volumen < voll - q.volumen, (voll, mit_torus.volumen, q.volumen)
+    assert not rb.abtragen(
+        rm.Material(stock, 0.5), f, [(True, 0)] * len(cmds), ff.torus(6, 2), length
+    )
     try:
         list(rb.strecken(f, data, 6, length, 0.5 / 8, lambda _x: False))
     except ValueError:

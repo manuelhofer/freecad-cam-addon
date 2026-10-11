@@ -124,8 +124,11 @@ Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennze
 und endliche Fräser mit beliebiger fester Richtung; native Gegenprobe am Hohlraum,
 Referenz-/Zeit-/Speicher- und vorhandene 3+2-Prüfungen bestanden. Sichtprüfung auf DP-1.
 Für Kugel und endliche zylindrische Schneide ist kontinuierliches Umorientieren
-über tatsächliche NC gebaut (16.19); weitere Schneidenformen und automatische
-Zugänglichkeits-/Aufspannungswahl bleiben offen (Strategien 16.12).
+über tatsächliche NC gebaut (16.19); seit P-2026-10-11-90 jede Schneide (Torus, Konik, Fase,
+Radien) als Kugeln und Zylinder, innen eine Treppe in der Schneide, außen der volle Zylinder –
+vorher gab es nach einem Torusfräser in einer Ebene davor keinen räumlichen Stand, die nächste
+Ebene fing beim Rohteil an. Offen bleibt die automatische Zugänglichkeits-/Aufspannungswahl
+(Strategien 16.12) – sie ändert, was das Addon wählt: erst als Bild mit Zahlen an Manuel.
 
 Der gemeinsame Schrupp-/Schlichtvergleich ist gebaut und qualifiziert (P-2026-10-08-03, Strategien 16.10).
 Er wählt innerhalb eines angegebenen Zwischenlagenbereichs und der eingerichteten

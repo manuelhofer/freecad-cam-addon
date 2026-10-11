@@ -3,7 +3,8 @@
 
 Ein Strahl darf Material unter und über einem Hohlraum tragen. Seine ursprünglichen
 Abschnitte stammen aus BRep-Schnitten, nicht aus einer Oberflächenvernetzung. Kugeln
-und endliche Schaftfräser mit fester Richtung schneiden über die ganze Gerade.
+und endliche Schaftfräser mit fester Richtung schneiden über die ganze Gerade; jede andere
+Schneide (Torus, Konik, Fase, Radien) setzt sich daraus zusammen (koerperteile).
 Das XY-Raster bleibt eine Näherung; es ersetzt keine BRep-/NC-Qualitätsprüfung.
 """
 
@@ -30,6 +31,84 @@ def _vektor(wert):
     if v.shape != (3,) or not np.isfinite(v).all():
         raise ValueError(tr("rm3.fehler.geometrie"))
     return v
+
+
+def koerperteile(form, laenge, toleranz):
+    """Die Schneide eines Fräsers (fraeserform.Form, `laenge` hoch) als Kugeln und Zylinder auf
+    seiner Achse: (innen, aussen), je eine Liste von ("kugel", z der Mitte, Radius) und
+    ("schaft", z unten, Radius, Länge) – z ab der Spitze längs der Achse.
+
+    `innen` liegt ganz im Fräser: Im Vorschub trägt es nie mehr ab, als er schneidet (kein
+    freier Raum, wo noch Material steht). `aussen` umfasst ihn: Im Eilgang sieht es alles, was
+    er streifen könnte. Kugel- und Schaftfräser sind genau. Jede andere Schneide ist innen eine
+    Treppe: an jeder Stufe (ρ, z) des Profils ein Zylinder mit Radius ρ von z bis zum Ende der
+    Schneide – das Profil steigt nach außen nie ab, so liegt jeder ganz im Fräser –, die Stufen
+    höchstens `toleranz` breit und hoch, die Kugel an der Spitze eines Konikfräsers genau; außen
+    der Zylinder mit dem vollen Radius ab der Spitze. Bis P-2026-10-11-90 gab es den räumlichen
+    Materialstand nur nach Kugel- und Schaftfräsern – stand davor ein Torusfräser, keinen."""
+    r = float(form.radius)
+    if form.nur_kugel:
+        teile = [("kugel", r, r), ("schaft", r, r, laenge - r)]
+        return teile, teile
+    if form.eben:
+        teile = [("schaft", 0.0, r, laenge)]
+        return teile, teile
+    innen = []
+    k = float(form.kugel)
+    if k > GENAU:
+        innen.append(("kugel", k, k))
+    stufen = []
+    for stueck in form.stuecke:
+        if stueck.art == "eben":
+            stufen.append((stueck.rho_bis, stueck.z_von))
+            continue
+        if k > GENAU and stueck is form.stuecke[0]:
+            continue  # die Kugel an der Spitze steht schon genau da
+        # Gleich weit längs des Profils: Am steilen Ende eines Eckradius stiege z sonst in einer
+        # Stufe um ein Vielfaches von `toleranz`.
+        if stueck.art == "gerade":
+            z_von, z_bis = stueck.z_von, stueck.z_bis
+            anzahl = max(
+                1, math.ceil(math.hypot(stueck.rho_bis - stueck.rho_von, z_bis - z_von) / toleranz)
+            )
+            for n in range(1, anzahl + 1):
+                rho = stueck.rho_von + (stueck.rho_bis - stueck.rho_von) * n / anzahl
+                stufen.append((rho, z_von + (z_bis - z_von) * n / anzahl))
+            continue
+        von, bis = (stueck._winkel(x) for x in (stueck.rho_von, stueck.rho_bis))
+        anzahl = max(1, math.ceil(abs(bis - von) * stueck.radius / toleranz))
+        for n in range(1, anzahl + 1):
+            w = von + (bis - von) * n / anzahl
+            rho = stueck.mitte[0] + stueck.radius * math.cos(w)
+            stufen.append((min(rho, stueck.rho_bis), float(stueck.hoehe(min(rho, stueck.rho_bis)))))
+    for rho, z in stufen:
+        if rho > GENAU and z < laenge - GENAU:
+            innen.append(("schaft", z, rho, laenge - z))
+    return innen, [("schaft", 0.0, r, laenge)]
+
+
+def teile_abtragen(ziel, von, nach, achse, teile, quer=0.0, laengs=0.0):
+    """Trägt die Teile (koerperteile) längs der Geraden von → nach der Spitze ab, die Achse fest.
+    `quer`: jeder Radius um so viel größer (< 0: kleiner – die Sehne eines Bogens); `laengs`:
+    jeder Zylinder an beiden Enden um so viel länger (< 0: kürzer). Mit beiden gleich wächst
+    oder schrumpft jedes Teil rundum (die Bewegungsschranke in raum_bahn). Gibt das abgetragene
+    Volumen zurück."""
+    u = np.asarray(achse, dtype=float)
+    a, b = np.asarray(von, dtype=float), np.asarray(nach, dtype=float)
+    volumen = 0.0
+    for teil in teile:
+        if teil[0] == "kugel":
+            _art, z, radius = teil
+            if radius + quer > GENAU:
+                volumen += ziel.kugel(a + z * u, b + z * u, radius + quer)
+            continue
+        _art, z, radius, laenge = teil
+        if radius + quer > GENAU and laenge + 2 * laengs > GENAU:
+            unten = z - laengs
+            volumen += ziel.schaft(
+                a + unten * u, b + unten * u, u, radius + quer, laenge + 2 * laengs
+            )
+    return volumen
 
 
 # Ab so vielen Blöcken Strahlen schneiden die Nebenrechner (je Block ein boolescher Schnitt, am
@@ -821,11 +900,11 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
             laenge = float(getattr(tc.Tool, "CuttingEdgeHeight", 0))
             if (
                 form is None
-                or not (form.eben or form.nur_kugel)
                 or not math.isfinite(laenge)
                 or laenge <= (form.radius if form.nur_kugel else 0)
             ):
                 return None
+            innen, aussen = koerperteile(form, laenge, material.schritt)
             unbekannt = []
             letzter = None
             for s in rw._bahn(op.Path.Commands, unbekannt.append, rueckzug=True):
@@ -851,19 +930,10 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
                         if s.eilgang:
                             stapel.leeren()
                         ziel = material if s.eilgang else stapel
-                        if form.nur_kugel:
-                            volumen = ziel.kugel(
-                                letzter + form.radius * u, jetzt + form.radius * u, radius
-                            )
-                            volumen += ziel.schaft(
-                                letzter + form.radius * u,
-                                jetzt + form.radius * u,
-                                u,
-                                radius,
-                                laenge - form.radius,
-                            )
-                        else:
-                            volumen = ziel.schaft(letzter, jetzt, u, radius, laenge)
+                        teile = aussen if s.eilgang else innen
+                        volumen = teile_abtragen(
+                            ziel, letzter, jetzt, u, teile, radius - form.radius
+                        )
                         if s.eilgang and volumen > 1e-7:
                             return None
                     letzter = jetzt

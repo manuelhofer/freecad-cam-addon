@@ -184,6 +184,65 @@ def pruefen():
     assert ungefraest.belegt([[10, 13, 10]]).all()
     op.Active = True
     doc.recompute()
+
+    # Jede Schneide als Kugeln und Zylinder (koerperteile, P-2026-10-11-90): innen ganz im
+    # Fräser, die Treppe höchstens eine halbe Zelle neben seinem Profil; außen um ihn herum.
+    from camaddon import fraeserform as ff
+
+    formen = (
+        ff.torus(6, 2),
+        ff.konik(1.5, 5, 20, 3.0),
+        ff.kegel(0.5, 6, 5.5),
+        ff.radien(1, 3, 4),
+        ff.kugel(3),
+        ff.scheibe(5),
+    )
+    for form in formen:
+        innen, aussen = raum.koerperteile(form, 20, 0.5)
+        for teil in innen:
+            if teil[0] == "kugel":
+                _art, z, rad = teil
+                rho = np.linspace(0, rad, 50)
+                assert np.all(z - np.sqrt(rad**2 - rho**2) >= form.hoehe(rho) - 1e-9), teil
+            else:
+                _art, z, rad, lang = teil
+                assert rad <= form.radius + 1e-9 and z >= float(form.hoehe(rad)) - 1e-9, teil
+                assert z + lang <= 20 + 1e-9, teil
+        for rho in np.linspace(0, form.radius - 1e-6, 200):
+            z = float(form.hoehe(rho))
+            assert any(
+                (t_[0] == "schaft" and t_[2] >= rho - 0.5 and t_[1] <= z + 0.5)
+                or (t_[0] == "kugel" and rho <= t_[2] + 1e-9)
+                for t_ in innen
+            ), (form, rho)
+        if not (form.eben or form.nur_kugel):
+            assert aussen == [("schaft", 0.0, form.radius, 20)], aussen
+    # Ein Torusfräser Ø 12, R 2, 3 mm tief durch einen Block: Was innen abträgt, liegt zwischen
+    # dem flachen Kern (Ø 8) und dem vollen Zylinder (außen). Dem Torus fehlen gegen den Zylinder
+    # die Ecken – längs 20 mm je 4 − π mm², an den Enden eine halbe Drehung: zusammen 64 mm³; die
+    # Treppe lässt bei 0,5 mm Stufen 14 mm³ mehr stehen (78).
+    innen, aussen = raum.koerperteile(ff.torus(6, 2), 20, 0.5)
+    weg = {}
+    for name, teile in (("kern", [("schaft", 0.0, 4.0, 20)]), ("innen", innen), ("aussen", aussen)):
+        block = raum.Material(Part.makeBox(40, 20, 20), 0.5)
+        weg[name] = raum.teile_abtragen(block, (10, 10, 17), (30, 10, 17), (0, 0, 1), teile)
+    assert weg["kern"] < weg["innen"] < weg["aussen"], weg
+    assert 60 < weg["aussen"] - weg["innen"] < 90, weg
+    # Eine Ebene nach einem Torusfräser bekommt einen räumlichen Materialstand (vorher keinen).
+    torus = wz.Werkzeug(
+        nummer=2, name="Torus 12", art=wz.TORUSFRAESER, durchmesser=12.0, schneiden=4,
+        schneidenlaenge=26.0, eckradius=2.0,
+    )  # fmt: skip
+    torus.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1.5, ap=10, vc=85, fz=0.1)]
+    ue.uebergeben(wz.Bibliothek([standard, torus]))
+    tc_torus = js.controller_ohne_transaktion(doc, erster, torus, torus.schnittwerte[wz.ALLE][0])
+    op.ToolController = tc_torus
+    doc.recompute()
+    mit_torus = raum.fuer_ebene(naechster)
+    assert mit_torus is not None, "nach einem Torusfräser kein räumlicher Materialstand"
+    assert not mit_torus.belegt([[10, 13, 10]]).any(), "der Torusfräser hat nichts abgetragen"
+    op.ToolController = tc
+    doc.recompute()
     doc.saveAs(str(profil / "raeumlicher_materialstand.FCStd"))
     info = {
         "restvolumen_mm3": q.volumen,

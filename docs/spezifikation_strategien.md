@@ -3868,7 +3868,8 @@ besteht, tatsächliche Maschinenanschläge unverändert. Im ersten Rest-Entwurf 
 das Anlegen der Ebene durch Nachrechnen die gespeicherte Testbahn; die Gegenprobe
 bewahrt jetzt ihre Quelle ausdrücklich. Prüfbelege:
 `../../ergebnisse/bewegter-rest-2026-10-08/`. Die Vorschau ist weiterhin ein
-XY-Strahlraster; weitere Schneidenformen, qualifizierte Einfahrten innerhalb eines
+XY-Strahlraster; weitere Schneidenformen (seit P-2026-10-11-90: jede Schneide als Kugeln und
+Zylinder, `raum_material.koerperteile`), qualifizierte Einfahrten innerhalb eines
 Zugs und automatische Aufspannungen bleiben offen.
 
 Goldene gemeinsame Schrupp-/Schlichtfolge unverändert: 46,470163 s Bearbeitung,
