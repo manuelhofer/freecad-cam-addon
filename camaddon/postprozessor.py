@@ -839,10 +839,17 @@ def _adresse(s, buchstabe, info):
     return buchstabe
 
 
+_MIT_NUMMER = {}  # Adresse → endet sie mit einer Ziffer? – je Wort gefragt, Hunderttausende Mal
+
+
 def _wort(s, adresse, zahl):
     """„X12.000“ – bei Siemens eine Adresse mit Nummer mit „=“: „C4=90.000“."""
-    if s.gleich_bei_nummer and re.search(r"\d$", adresse):
-        return f"{adresse}={zahl}"
+    if s.gleich_bei_nummer:
+        mit_nummer = _MIT_NUMMER.get(adresse)
+        if mit_nummer is None:
+            mit_nummer = _MIT_NUMMER[adresse] = re.search(r"\d$", adresse) is not None
+        if mit_nummer:
+            return f"{adresse}={zahl}"
     return f"{adresse}{zahl}"
 
 
@@ -1365,6 +1372,11 @@ def _weg(stand, parameter):
     return summe**0.5
 
 
+_MARKE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*:")
+_NUR_NUMMER = re.compile(r"N\d+")
+_PROGRAMMNUMMER = re.compile(r"O\d")
+
+
 def _nummeriert(zeilen, s):
     """Mit Satznummern (N10, N20 …), wenn die Steuerung sie schreiben soll – nicht vor „%“, der
     Programmnummer (O…) und reinen Kommentaren."""
@@ -1373,8 +1385,8 @@ def _nummeriert(zeilen, s):
     ergebnis, nummer = [], 0
     for zeile in zeilen:
         roh = zeile.strip()
-        marke = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*:", roh) or re.fullmatch(r"N\d+", roh)
-        if roh == "%" or re.match(r"O\d", roh) or roh.startswith(("(", ";")) or marke:
+        marke = _MARKE.fullmatch(roh) or _NUR_NUMMER.fullmatch(roh)
+        if roh == "%" or _PROGRAMMNUMMER.match(roh) or roh.startswith(("(", ";")) or marke:
             ergebnis.append(zeile)
             continue
         nummer += SATZNUMMER_SCHRITT

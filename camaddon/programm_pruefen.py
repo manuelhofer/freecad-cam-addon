@@ -55,23 +55,36 @@ class Pruefung:
         return [b for b in self.befunde if b.art == art]
 
 
+# Einmal übersetzt – ein Programm hat Hunderttausende Sätze (am 4-Achs-Testteil 236 000).
+_KLAMMER = re.compile(r"\([^)]*\)")
+_SATZNUMMER = re.compile(r"^\s*N\d+\s*")
+# Siemens: „C4=12.5“, eine Moduloachse auch „C4=ACN(270.000)“ (ACP, ACN, DC, AC, IC).
+_MIT_GLEICH = re.compile(r"([A-Z]+)(\d*)=(?:ACP|ACN|DC|AC|IC)?\(?(-?[\d.]+)\)?")
+_WORT = re.compile(r"([A-Z])(-?[\d.]+)")
+_D_AUS = re.compile(r"\bD0\b")
+_D_EIN = re.compile(r"\bD[1-9]\d*\b")
+_T_MIT_D = re.compile(r"T\S*\s+D[1-9]")
+_MASCHINENKOORDINATEN = re.compile(r"\bG53\b|\bSUPA\b|\bG75\b|\bG28\b")
+
+
 def _ohne_kommentar(zeile, siemens):
-    zeile = re.sub(r"\([^)]*\)", "", zeile)
+    if "(" in zeile:
+        zeile = _KLAMMER.sub("", zeile)
     if siemens or ";" in zeile:
         zeile = zeile.split(";", 1)[0]
-    return re.sub(r"^\s*N\d+\s*", "", zeile).strip()
+    return _SATZNUMMER.sub("", zeile).strip()
 
 
 def _zerlegen(satz):
     """(G-Befehle, M-Befehle, {Adresse: Zahl}) eines Satzes."""
     g, m, werte = [], [], {}
     for teil in satz.split():
-        # Siemens: „C4=12.5“, eine Moduloachse auch „C4=ACN(270.000)“ (ACP, ACN, DC, AC, IC).
-        treffer = re.fullmatch(r"([A-Z]+)(\d*)=(?:ACP|ACN|DC|AC|IC)?\(?(-?[\d.]+)\)?", teil.upper())
+        teil = teil.upper()
+        treffer = _MIT_GLEICH.fullmatch(teil) if "=" in teil else None
         if treffer:
             werte[treffer.group(1) + treffer.group(2)] = float(treffer.group(3))
             continue
-        treffer = re.fullmatch(r"([A-Z])(-?[\d.]+)", teil.upper())
+        treffer = _WORT.fullmatch(teil)
         if not treffer:
             continue
         adresse, zahl = treffer.group(1), treffer.group(2)
@@ -110,10 +123,11 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False, nu
         if not satz or satz.startswith("%"):
             continue
         g, m, werte = _zerlegen(satz)
+        gross = satz.upper()
         if siemens:
-            if re.search(r"\bD0\b", satz.upper()):
+            if _D_AUS.search(gross):
                 laenge = False
-            if re.search(r"\bD[1-9]\d*\b", satz.upper()):
+            if _D_EIN.search(gross):
                 laenge = True
         for code in g:
             if code in ("0", "1", "2", "3"):
@@ -145,9 +159,9 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False, nu
             laenge = siemens or laenge_mit_wechsel
         if "F" in werte:
             f = werte["F"] if werte["F"] > 0 else None
-        if siemens and re.match(r"T\S*\s+D[1-9]", satz.upper()):
+        if siemens and _T_MIT_D.match(gross):
             laenge = True  # Drehmaschine: „T1 D1“
-        if re.search(r"\bG53\b|\bSUPA\b|\bG75\b|\bG28\b", satz.upper()):
+        if _MASCHINENKOORDINATEN.search(gross):
             continue  # Maschinenkoordinaten: ohne Länge gefahren, ändert den Stand im WKS nicht
         achsen = {k: v for k, v in werte.items() if k[0] in "XYZABCUVW" and len(k) <= 2}
         if not achsen or bewegung is None:

@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-28 programm-nachlesen-schneller
+
+### EINGELESEN
+- „Programm schreiben“ am Nasen-Testteil (236 000 Sätze, CLX550, Siemens): Öffnen 2,1 s
+  (Bahnen mit der Maschine), Speichern 1,4 s Programm und 2,0 s Nachlesen – im Fenster am Stück.
+  Das Nachlesen (`programm_pruefen.pruefe`) übersetzte je Satz und Wort seine regulären Ausdrücke
+  neu (2,8 Mio. `re.fullmatch`), das Programm fragte je Wort `re.search(r"\d$", Adresse)`.
+
+### DATEIEN
+- `camaddon/programm_pruefen.py`: die Ausdrücke einmal übersetzt; „C4=…“ nur gesucht, wo ein
+  „=“ steht, Klammern nur, wo eine steht; der Satz einmal großgeschrieben.
+- `camaddon/postprozessor.py`: `_wort` merkt sich je Adresse, ob sie mit einer Ziffer endet;
+  die Ausdrücke der Satznummern einmal übersetzt.
+- `package.xml` (0.213.36), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Alle sieben Steuerungen an beiden Testteilen (Nase mit CLX550, 3-Achs): Programmtext (SHA-256),
+  Sätze, Hinweise und Befunde des Nachlesens gleich dem Stand davor.
+- Nase: Nachlesen 1,70 → 0,96 s (Siemens 2,04 → 1,20 s), Programm Siemens 1,39 → 1,14 s.
+- Grün: `test_programm_pruefen`, `test_postprozessor`.
+
 ## P-2026-10-11-27 vierachs-frei-nur-ausserhalb-der-stange
 
 ### EINGELESEN
