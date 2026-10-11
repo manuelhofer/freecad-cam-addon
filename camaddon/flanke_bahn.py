@@ -453,51 +453,81 @@ def halter_pruefen(form, bahn, koerper, radius):
     """Anstoss oder None: Führen die Körper über der Schneide – `koerper` [(von, bis, Radius)],
     von und bis in mm längs der Achse ab der Spitze (Hals, Schaft, Halter) – an einer Stelle der
     Bahn im Vorschub ins Teil `form`? Es zählen nur die dicker als die Schneide (`radius`): Ein
-    Schaft wie sie liegt an der Wand nur an, wie sie. Gerechnet mit dem Netz des Teils
-    (netzabstand), je HALTER_JE_ABFRAGE Stellen auf einmal; `mindestens` aus einer Halbierung je
-    anstoßender Stelle: um wie viel weiter oben die Körper frei wären."""
-    from . import netzabstand as na
-
-    teile = [(a, b, r) for a, b, r in koerper if r > radius + 1e-3 and b - a > 1e-6]
+    Schaft wie sie liegt an der Wand nur an, wie sie (halter_an_stellen)."""
     stellen = [p for p in bahn.punkte if not p.eilgang]
-    if not teile or not stellen:
+    if not stellen:
         return None
-    netz = na.Netz(form, HALTER_NETZ)
     spitzen = np.array([tuple(p.spitze) for p in stellen], dtype=float)
     achsen = np.array([tuple(p.achse) for p in stellen], dtype=float)
-    # Etwa alle HALTER_SCHRITT längs der Bahn – ein Halter ist breit, er steckt nie nur 0,2 mm im
-    # Teil (am Kegel 2400 Stellen in drei Lagen: 15 statt 2 s).
+    return halter_an_stellen(form, spitzen, achsen, koerper, radius)
+
+
+def dickere_koerper(koerper, radius):
+    """Die Körper aus `koerper`, die dicker sind als die Schneide (`radius`) und Länge haben."""
+    return [(a, b, r) for a, b, r in koerper if r > radius + 1e-3 and b - a > 1e-6]
+
+
+def ausgewaehlt(spitzen, schritt=HALTER_SCHRITT):
+    """Die Indizes der Stellen, etwa je `schritt` Weg eine – ein Halter ist breit, er steckt nie
+    nur 0,2 mm im Teil (am Kegel 2400 Stellen in drei Lagen: 15 statt 2 s)."""
+    if len(spitzen) < 2:
+        return np.arange(len(spitzen))
     weg = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(spitzen, axis=0), axis=1))])
-    marken = np.arange(0.0, weg[-1] + HALTER_SCHRITT, HALTER_SCHRITT)
-    waehle = np.unique(np.minimum(np.searchsorted(weg, marken), len(weg) - 1))
-    spitzen, achsen = spitzen[waehle], achsen[waehle]
+    marken = np.arange(0.0, weg[-1] + schritt, schritt)
+    return np.unique(np.minimum(np.searchsorted(weg, marken), len(weg) - 1))
+
+
+def stoesst_an(netz, spitzen, achsen, teile, weiter):
+    """[bool] je Stelle: führt einer der Körper `teile` ins Teil (das Netz `netz`), um `weiter`
+    (je Stelle) zur Spindel geschoben? Auch in einem Nebenrechner für ein Stück der Stellen."""
     reichweite = max(r for _a, _b, r in teile) + 1.0
+    ergebnis = np.zeros(len(spitzen), dtype=bool)
+    for anfang in range(0, len(spitzen), HALTER_JE_ABFRAGE):
+        hier = slice(anfang, anfang + HALTER_JE_ABFRAGE)
+        s, a, w = spitzen[hier], achsen[hier], weiter[hier]
+        von = np.concatenate([s + (t[0] + w)[:, None] * a for t in teile])
+        nach = np.concatenate([s + (t[1] + w)[:, None] * a for t in teile])
+        radien = np.concatenate([np.full(len(s), t[2]) for t in teile])
+        abstand = netz.kapseln(von, nach, reichweite, radien, np.ones(len(von), dtype=bool))
+        ergebnis[hier] = (abstand.reshape(len(teile), -1) < -HALTER_TIEFER).any(axis=0)
+    return ergebnis
 
-    def stoesst(index, weiter):
-        """Je Stelle `index`: stößt ein Teil an, um `weiter` (je Stelle) zur Spindel geschoben?"""
-        ergebnis = np.zeros(len(index), dtype=bool)
-        for anfang in range(0, len(index), HALTER_JE_ABFRAGE):
-            hier = slice(anfang, anfang + HALTER_JE_ABFRAGE)
-            s, a, w = spitzen[index[hier]], achsen[index[hier]], weiter[hier]
-            von = np.concatenate([s + (t[0] + w)[:, None] * a for t in teile])
-            nach = np.concatenate([s + (t[1] + w)[:, None] * a for t in teile])
-            radien = np.concatenate([np.full(len(s), t[2]) for t in teile])
-            abstand = netz.kapseln(von, nach, reichweite, radien, np.ones(len(von), dtype=bool))
-            ergebnis[hier] = (abstand.reshape(len(teile), -1) < -HALTER_TIEFER).any(axis=0)
-        return ergebnis
 
+def noetig_weiter(netz, spitzen, achsen, teile):
+    """(Indizes der Stellen, die anstoßen, so viel weiter heraus wäre es je davon frei – mm):
+    erst alle Stellen, dann für die anstoßenden eine Halbierung bis HALTER_LAENGER, auf 0,1 mm
+    genau. Auch in einem Nebenrechner für ein Stück der Stellen."""
     alle = np.arange(len(spitzen))
-    an = alle[stoesst(alle, np.zeros(len(alle)))]
+    an = alle[stoesst_an(netz, spitzen, achsen, teile, np.zeros(len(alle)))]
     if not len(an):
-        return None
+        return an, np.zeros(0)
     unten, oben = np.zeros(len(an)), np.full(len(an), HALTER_LAENGER)
     for _ in range(12):  # auf 0,1 mm genau
         mitte = (unten + oben) / 2
-        noch = stoesst(an, mitte)
+        noch = stoesst_an(netz, spitzen[an], achsen[an], teile, mitte)
         unten = np.where(noch, mitte, unten)
         oben = np.where(noch, oben, mitte)
+    return an, oben
+
+
+def halter_an_stellen(form, spitzen, achsen, koerper, radius, netz=None):
+    """Anstoss oder None für die Stellen (Spitzen und Werkzeugachsen zur Spindel, (n, 3)):
+    etwa je HALTER_SCHRITT eine geprüft (ausgewaehlt), gerechnet mit dem Netz des Teils
+    (netzabstand), je HALTER_JE_ABFRAGE Stellen auf einmal; `mindestens` aus einer Halbierung je
+    anstoßender Stelle: um wie viel weiter oben die Körper frei wären (noetig_weiter)."""
+    from . import netzabstand as na
+
+    teile = dickere_koerper(koerper, radius)
+    if not teile or not len(spitzen):
+        return None
+    if netz is None:
+        netz = na.Netz(form, HALTER_NETZ)
+    waehle = ausgewaehlt(spitzen)
+    an, weiter = noetig_weiter(netz, spitzen[waehle], achsen[waehle], teile)
+    if not len(an):
+        return None
     heraus = min(a for a, _b, _r in teile)
-    return Anstoss(len(an), heraus, heraus + float(oben.max()))
+    return Anstoss(len(an), heraus, heraus + float(weiter.max()))
 
 
 def _lage(stelle, lage, hoehe):

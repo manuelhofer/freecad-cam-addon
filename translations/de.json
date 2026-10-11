@@ -2703,5 +2703,6 @@
     "va.plan.schaft.geht": "Mit dem Schaft: {flaechen}.",
     "va.plan.schaft.zu_kurz": "Für {flaechen} reicht die Schneide von {werkzeug} ({schneide} {e_laenge}) nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn.",
     "va.plan.schaft.ohne_schneide": "Für {flaechen} kennt die Werkzeugverwaltung die Schneidenlänge von {werkzeug} nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn.",
-    "pp.rechnet": "Rechnet auf einem Nebenrechner … – das Fenster bleibt bedienbar."
+    "pp.rechnet": "Rechnet auf einem Nebenrechner … – das Fenster bleibt bedienbar.",
+    "va.halter_stoesst": "Halter oder Schaft von {werkzeug} stoßen hier ans Teil ({richtung} {von} … {bis} {e_laenge}): {werkzeug} steht {heraus} {e_laenge} heraus, bräuchte mindestens {mindestens} {e_laenge} – länger ausspannen oder ein längeres Werkzeug. (Ohne den Kopf eines gewinkelten Halters – den prüft „Kollision prüfen“ mit der Maschine.)"
 }

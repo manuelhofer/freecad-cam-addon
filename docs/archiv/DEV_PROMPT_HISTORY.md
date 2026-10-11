@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-51 halter-im-assistenten
+
+### EINGELESEN
+- Frage 7 (Manuel, 2026-10-11): „sehr klar darauf hinweisen das die ausspannlänge des fräsers nicht
+  ausreicht“; „wenn ein anderes anstellen oder eine andere bewegung der y achse die kollision
+  verhindern würde .. warum sollte man das nicht tun ?? also klar die bauteil form sollte natürlich
+  vorhanden bleiben !!! und ja effektives ziel sollte schon sein das die maschine in die kollisions
+  überwachung mit einfliest“.
+- „Kollision prüfen“ am Nasen-Testteil (CLX550, Manuels Werkzeuge; Schruppen, Plan T1 auf
+  Face4/6/8, Schlichten ohne sie): drei Befunde, alle zu kurz eingespannt – T1 (44 mm) bräuchte 48,
+  im Plan 45, T2 (18 mm) 31. Ausweichen hilft dort nicht: Der ER32 (Ø 50) steht über einer 20 mm
+  breiten Nase, und beim Schaftfräser änderte Kippen die Form. Gesagt wurde es bis dahin erst nach
+  dem Anlegen, nach drei Minuten.
+
+### DATEIEN
+- `camaddon/vierachs_halter.py` (neu): `stellen` (Spitze, Werkzeugachse je Satz im Teil), `koerper`
+  (Hals, Schaft, Halter längs der Werkzeugachse – beim gewinkelten ohne den Kopf), `stueck` und
+  `pruefen` (in Stücken auf den Nebenrechnern, das Netz des Teils je Arbeiter gemerkt).
+- `camaddon/flanke_bahn.py`: der Kern von `halter_pruefen` herausgezogen (`dickere_koerper`,
+  `ausgewaehlt`, `stoesst_an`, `noetig_weiter`, `halter_an_stellen`) – die Flanke rechnet wie vorher.
+- `camaddon/vierachs_vorschau.py`: `halter()` – je Bahn der Vorschau der Befund.
+- `camaddon/gui_vierachs.py`: sind die Vorschauen da, rechnet ein Nebenrechner nach, ob Hals,
+  Schaft oder Halter von Schruppen, Schlichten oder Plan anstoßen; gelb unter der Bearbeitung „…
+  T2 steht 18 mm heraus, bräuchte mindestens 34 mm …“ mit „T2 öffnen …“.
+- `translations/de.json`, `translations/en.json` (`va.halter_stoesst`),
+  `tests/test_vierachs_halter.py` (neu: Welle mit Bund), `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.213.57), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil ohne Oberfläche: Schruppen T1 mindestens 49 mm (0,2 s), Plan T1 49,3 (0,1 s),
+  Schlichten T2 54,2 (2,0 s statt 15,6 s in einem Prozess) – „Kollision prüfen“ mit der Maschine
+  rechnet nur ab der ersten Berührung (48, 45, 31). Im Assistenten mit Manuels Werkzeugen (Ø 90):
+  T1 44 → 49, T2 18 → 34, gelb mit Verweis. `test_vierachs_halter.py`, `test_schraeg_abtrag.py` grün.
+
 ## P-2026-10-11-50 programm-im-hintergrund
 
 ### EINGELESEN

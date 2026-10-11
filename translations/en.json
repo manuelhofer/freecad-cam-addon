@@ -2703,5 +2703,6 @@
     "va.plan.schaft.geht": "With the flank: {flaechen}.",
     "va.plan.schaft.zu_kurz": "For {flaechen} the flute of {werkzeug} ({schneide} {e_laenge}) is too short – it would need {braucht} {e_laenge}; they stay with the end face.",
     "va.plan.schaft.ohne_schneide": "For {flaechen} the tool library does not know the flute length of {werkzeug} – it would need {braucht} {e_laenge}; they stay with the end face.",
-    "pp.rechnet": "Calculating on a helper process … – the window stays usable."
+    "pp.rechnet": "Calculating on a helper process … – the window stays usable.",
+    "va.halter_stoesst": "The holder or shank of {werkzeug} hits the part here ({richtung} {von} … {bis} {e_laenge}): {werkzeug} sticks out {heraus} {e_laenge}, it would need at least {mindestens} {e_laenge} – clamp it longer or use a longer tool. (Without the head of an angled holder – “Check collision” checks that with the machine.)"
 }

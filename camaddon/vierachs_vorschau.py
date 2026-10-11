@@ -114,3 +114,17 @@ def rest(
         "strecke": float(laenge[viel].sum()),
         "volumen": float(np.sum(weg)) * h**3,
     }
+
+
+def halter(dokument, job_name, laengs, radial, bahnen):
+    """Stoßen Hals, Schaft oder Halter ans Teil (vierachs_halter.pruefen; Frage 7)? `bahnen`:
+    {Name: (Sätze (n, 4), Eilgänge [bool], Körper, Schneidenradius)} – je Name (Stellen, heraus,
+    mindestens, a von, a bis) oder None."""
+    from . import vierachs_halter as vhalter
+
+    job = _job(dokument, job_name)
+    teil = vs._teil(job.Model.Group)
+    return {
+        name: vhalter.pruefen(teil, saetze, eilgang, laengs, radial, koerper, radius)
+        for name, (saetze, eilgang, koerper, radius) in bahnen.items()
+    }

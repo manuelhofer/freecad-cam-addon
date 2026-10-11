@@ -264,9 +264,11 @@ abgearbeitet):
    rechnet ihre Prüfungen auf den Nebenrechnern: am Kegel 15,5 → 2,7 s (P-2026-10-11-34).
 3. **Kollision (Frage 7):** ~~im Abspieler an der Kollision anhalten, Knopf „Zur nächsten
    Kollision“~~ (P-2026-10-11-35); ~~klare Meldung, wenn die Ausspannlänge nicht reicht~~
-   („bräuchte mindestens … mm“ im Befund, P-2026-10-11-38; an der Flanke P-2026-10-11-33). Offen:
-   die Bahn weicht aus (Anstellung, Y), wo die Form des Teils bleibt – die Maschine gehört in die
-   Kollisionsüberwachung.
+   („bräuchte mindestens … mm“ im Befund, P-2026-10-11-38; an der Flanke P-2026-10-11-33; im
+   4-Achs-Assistenten schon vor dem Anlegen, P-2026-10-11-51). Offen: die Bahn weicht aus
+   (Anstellung, Y), wo die Form des Teils bleibt – am Nasen-Testteil hilft das nicht (ER32 Ø 50 über
+   einer 20 mm breiten Nase, zu kurz eingespannt); die Maschine selbst (Kopf, Revolver) beim Rechnen
+   der Bahn.
 4. **Querachse nur, wo nötig (Frage 9):** „C dreht nicht zurück“ (P-2026-10-11-37) – die
    Werkzeugachse quer nur, soweit C weiterdreht; am Testteil 187,5 → 177,8 min, keine Umkehr mehr.
    Dasselbe für „Rundum schruppen“ mit der Querachse (Frage 11, Manuel 2026-10-11: „als option
@@ -314,7 +316,8 @@ aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-29 (0.213.8 �
   22,7 → 5,8 s ohne Fenster, in der Oberfläche 9,5 → 6,2 s (-57, -62, 11-09); Kollision mit seinen
   Haltern 243 → 162 s (-59, -63, 11-10: jedes Dreieck einmal); Prüffenster 13–16 → 6,5 s (-60,
   11-01, 11-05, 11-11, 11-12, 11-26); 3-Achs-Räumen −13 s Rechenzeit (11-02); Programm
-  speichern (Siemens, 236 000 Sätze) 3,4 → 2,3 s (11-28).
+  speichern (Siemens, 236 000 Sätze) 3,4 → 2,3 s (11-28), seit P-2026-10-11-50 auf einem
+  Nebenrechner: das Fenster steht höchstens 0,2 s.
 - **Kein Lag im 3-Achs-Assistenten mehr (11-15, 11-16, 11-23 bis 11-25, 11-29):** Die Vorschau rechnet
   nach einer Eingabe Block für Block, dazwischen nimmt das Fenster Klicks an; Räumen, Planfräsen,
   Kontur, 3D-Schruppen, Restschruppen und 3D-Schlichten rechnen in Nebenrechnern. Am Testteil stand das Fenster 4,0 und 10,4 s

@@ -582,6 +582,7 @@ class VierachsPanel:
         self._vorschau_nummer = 0
         self._vorschau_auftraege = {}  # Name („schruppen“, „planbohren“ …) -> Auftrag
         self._rest_auftrag = None  # der Rest für die Kugel (vierachs_vorschau.rest)
+        self._halter_auftrag = None  # stößt der Halter an (vierachs_vorschau.halter, Frage 7)
         self._vorwaermen()
         self._vorschau_ergebnisse = {}
         self._vorschau_gruende = {}
@@ -1301,6 +1302,7 @@ class VierachsPanel:
         self.schruppfelder = schruppen.widget
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
+        self.halter_schruppen = gelb()  # Halter oder Schaft stoßen ans Teil (Frage 7)
         self.hinweis_rund = grau()  # Kugel- und Torusfräser: wie ein Schaftfräser
         self.lage_schruppen = gelb()  # der Fräser säße auf der Maschine nicht radial
 
@@ -1406,6 +1408,7 @@ class VierachsPanel:
         self.rest_schlichten = grau()
         self.rest_schlichten.setToolTip(tr("va.rest.tooltip"))
         self.rest_schlichten.hide()
+        self.halter_schlichten = gelb()
         self.lage_schlichten = gelb()
         self.schlichtfelder.setEnabled(False)
         self.schlichtfelder.setVisible(False)
@@ -1466,6 +1469,7 @@ class VierachsPanel:
         self.planfelder = plan.widget
         aufbau.addWidget(self.planfelder)
         self.ergebnis_plan = grau()
+        self.halter_plan = gelb()
         self.lage_plan = gelb()
         self.planfelder.setEnabled(False)
         self.planfelder.setVisible(False)
@@ -3668,6 +3672,7 @@ class VierachsPanel:
         ):
             etikett.setText(text(e[name]) if e.get(name) is not None else "")
         self._rest_starten()
+        self._halter_starten()
         self.hinweis_bearbeitung.setText(
             " ".join(
                 gruende[name]
@@ -3708,6 +3713,110 @@ class VierachsPanel:
             auftrag.abbrechen()
         self.rest_schlichten.setText("")
         self.rest_schlichten.hide()
+        self._halter_zurueck()
+
+    # --- Stößt der Halter an? (Frage 7) -----------------------------------------------------
+
+    def _halter_etiketten(self):
+        return {
+            SCHRUPPEN: self.halter_schruppen,
+            SCHLICHTEN: self.halter_schlichten,
+            PLAN: self.halter_plan,
+        }
+
+    def _halter_zurueck(self):
+        auftrag, self._halter_auftrag = self._halter_auftrag, None
+        if auftrag is not None and not auftrag.erledigt:
+            auftrag.abbrechen()
+        for etikett in self._halter_etiketten().values():
+            etikett.setText("")
+            etikett.hide()
+
+    def _halter_starten(self):
+        """Wenn die Vorschauen da sind: auf einem Nebenrechner nachrechnen, ob Hals, Schaft oder
+        Halter der Fräser längs ihrer Bahn ans Teil stoßen (vierachs_vorschau.halter) – „Kollision
+        prüfen“ sagt es sonst erst nach dem Anlegen, mit der Maschine. Ohne Nebenrechner nichts."""
+        from . import nebenrechner as nr
+        from . import vierachs_halter as vhalter
+        from . import voxelstange as vx
+
+        self._halter_zurueck()
+        if self.geschlossen or self.job is None:
+            return
+        bahnen, werkzeuge = {}, {}
+        for name, bahn, werkzeug in (
+            (SCHRUPPEN, self.vorschau, self.fraeser()),
+            (SCHLICHTEN, self.vorschau_schlichten, self.schlichtfraeser()),
+            (PLAN, self.vorschau_plan, self.planfraeser()),
+        ):
+            if bahn is None or werkzeug is None:
+                continue
+            koerper = vhalter.koerper(werkzeug, self.bibliothek)
+            if not koerper:
+                continue
+            bahnen[name] = (
+                vx.als_feld(bahn.punkte),
+                [bool(p.eilgang) for p in bahn.punkte],
+                koerper,
+                werkzeug.durchmesser / 2,
+            )
+            werkzeuge[name] = werkzeug
+        pool = nr.pool()
+        if not bahnen or not pool.verfuegbar():
+            return
+        achse = self.achse()
+        nummer = self._vorschau_nummer
+        try:
+            auftrag = pool.auftrag(
+                "vierachs_vorschau",
+                "halter",
+                pool.kopie(self.doc, wiederverwenden=True),
+                self.job.Name,
+                tuple(achse.laengs),
+                tuple(va.radial(achse)),
+                bahnen,
+            )
+        except nr.NichtVerfuegbar:
+            return
+        auftrag.bei_fertig = lambda a: self._halter_angekommen(nummer, a, werkzeuge)
+        self._halter_auftrag = auftrag
+
+    def _halter_angekommen(self, nummer, auftrag, werkzeuge):
+        """Je Bearbeitung, deren Halter anstößt, gelb: wie weit das Werkzeug heraussteht und wie
+        weit es müsste, wo längs – mit dem Verweis zum Werkzeug in der Werkzeugverwaltung."""
+        if (
+            nummer != self._vorschau_nummer
+            or self.geschlossen
+            or auftrag is not self._halter_auftrag
+        ):
+            return
+        self._halter_auftrag = None
+        if auftrag.fehler is not None:
+            if not auftrag.abgebrochen:
+                FreeCAD.Console.PrintWarning(f"CAM-Addon: Halter prüfen: {auftrag.fehler}\n")
+            return
+        richtung = va.achsbuchstabe(FreeCAD.Vector(*self.achse().laengs)) or tr("va.rest.laengs")
+        for name, etikett in self._halter_etiketten().items():
+            befund = (auftrag.ergebnis or {}).get(name)
+            if befund is None or name not in werkzeuge:
+                continue
+            _stellen, heraus, mindestens, a_von, a_bis = befund
+            werkzeug = werkzeuge[name]
+            kennung = f"T{werkzeug.nummer}"
+            satz = tr(
+                "va.halter_stoesst",
+                werkzeug=kennung,
+                heraus=einheiten.text(heraus, einheiten.LAENGE, 0),
+                mindestens=einheiten.text(math.ceil(mindestens), einheiten.LAENGE, 0),
+                richtung=richtung,
+                von=einheiten.text(a_von, einheiten.LAENGE, 0).replace("-", "−"),
+                bis=einheiten.text(a_bis, einheiten.LAENGE, 0).replace("-", "−"),
+            )
+            verweis = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=kennung), quote=False)
+            etikett.setText(
+                f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'
+            )
+            etikett.show()
 
     def _rest_soll(self):
         """mm² – was die Kugel ohne Rest höchstens nimmt: das Aufmaß des Schruppens über ihrem
