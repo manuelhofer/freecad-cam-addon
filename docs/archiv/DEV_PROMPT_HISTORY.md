@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-30 manuels-antworten-5-bis-9
+
+### EINGELESEN
+- Manuel, 2026-10-11 morgens, zu den offenen Fragen vom Nasen-Testteil
+  (Bilder: `docs/bilder/vorschlaege/testteil_4achs_*.png`):
+  - **5 (ebene Flächen mit dem Schaftfräser):** „man kann die c achse ja so stellen … das die flache
+    seite der nase die zur werkstück mitte zeigt .. zum schaftfräser gerade steht .. dann kann der
+    schaftfräser diese gerade mit y abfahren .. auch wenn das unter 0 ist solange es nicht weiter
+    unter 0 ist als die maschine fahren kann … dann wäre mit einem schlag sozusagen die ‚front‘
+    fertig … dann die seitenflächen … kann der radien fräser ja eh nicht sinnvoll bearbeiten …
+    auch hier kann der schaftfräser die seiten perfekt fertig machen mit der y achse … einmal
+    angestellt so das der schaft die seitlichen grünen (face4) teile bearbeitet oder eben mit der
+    stirn des fräsers … für den kleinen schnibbel der vorne seitlich rausschaut … und dann der
+    kugelfräser muss sich dann ja vorne nurnoch um die face 9 kümmern“. Face8 („schaut zur
+    Achse“) geht also doch: von der anderen Seite, die Spitze unter X 0.
+  - **6:** Die Stange Ø 90 bleibt („da liegt das teil grad so drinnen so solls … sein“); die
+    Schrittweite soll von der Kammhöhe abhängen (0,035 mm ist für ihn in Ordnung) – wie genau mit
+    der Werkzeugtabelle, steht neu gefasst in `OFFENE_FRAGEN.md`.
+  - **7 (Halter stößt an):** „man sollte schon sehr klar darauf hinweisen das die ausspannlänge des
+    fräsers nicht ausreicht und man eine kollision fährt … und vll auch bis zu dem punkt fährt in
+    der simulation und dort dann pausiert … vll einen knopf ‚zur nächsten kollision fahren‘ …
+    wenn ein anderes anstellen oder eine andere bewegung der y achse die kollision verhindern würde
+    .. warum sollte man das nicht tun ?? … die bauteil form sollte natürlich vorhanden bleiben !!!
+    … effektives ziel sollte schon sein das die maschine in die kollisions überwachung mit
+    einfliest ! … das ist wichtig“.
+  - **8 (Rest vor dem Schlichten):** „das schruppen [sollte] vorher schon sagen … hier steht noch
+    ganzschön viel kann ich noch mehr machen … die schräge auch einfach mit deinem schaftfräser
+    zusätztich beim schruppen noch in z richtung abzeilen … oder eben nur diesen bereich nochmal am
+    umfang mit weniger schrittweite abfahren ja ... beides möglich“.
+  - **9 (C dreht zurück):** „es sollte schon immer der sinnvollste weg vorgeschlagen werden …
+    wenn das bauteil sinnvoller ohne y oder nur da wo y nötig ist bearbeitet werden kann ... und
+    das auch noch besser .. ist das the way to go“.
+- Aus dem Forum (legros, 10.10. abends): Kegel auf der Beispielmaschine 5-Achs Tisch/Tisch mit
+  „Flanke“ – der Halter steckt in den unteren Lagen im Kegel, der Abspieler trägt nichts ab (die
+  Flanke hat keinen Abtrag); Magazinplätze „scheinen nicht zu zählen“ (seine Maschine war nicht
+  gespeichert – ein Magazin gehört zu einer Maschinendatei). Manuel: „dann muss man das ändern“,
+  „es hilft nichts wenn der halter dann in den kegel reinballert“, Vorschruppen auf 3 Achsen mit dem
+  Schaftfräser, Schlichten mit der Flanke.
+- Manuel: Forumsbeiträge nur lokal, nicht auf GitHub (außer verlinkten Bildern).
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (5, 7–9 beantwortet und heraus; 6 neu gefasst mit Zahlen),
+  `docs/STATUS_SNAPSHOT.md` (Nächster Schritt: die Aufträge daraus; Forum ohne Beitragstexte),
+  `docs/forum_vorstellung.md` entfernt (liegt bei Manuel), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
 ## P-2026-10-11-29 bearbeitung-schlichten3d-im-nebenrechner
 
 ### EINGELESEN

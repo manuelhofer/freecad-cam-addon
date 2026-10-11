@@ -9,16 +9,11 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-**Im FreeCAD-Forum vorgestellt (2026-10-10):** der englische Beitrag im Unterforum „CAM“ (Manuel),
-https://forum.freecad.org/viewtopic.php?t=107889 – seit dem 10.10. freigegeben; der deutsche
-folgt, sobald das Forum es zulässt. Text, Bilder und Stand: `docs/forum_vorstellung.md`. Antworten
-dort sind Eingang für Wünsche und Fehler. **Erste Antwort (memfis, 10.10., 7:05):** „5 axes?!
-Sounds like a breakthrough. I really hope to see more than that… At least for 4 axes.“ – er will
-mehr sehen, vor allem zu 4 Achsen (Bilder, ein kurzes Video der Rundum-Bahn an der Welle, das
-Beispiel `test4achsbearbeitung.FCStd`); antworten kann nur Manuel. **Schönheitsfehler im
-Beitrag:** die Liste „Answered in advance“ zeigt `[]*` statt Aufzählungspunkten – die
-BBCode-Listentags sind nicht aufgegangen; beim Bearbeiten des Beitrags `[list]`/`[*]` prüfen
-(`docs/forum_vorstellung.md`).
+**Im FreeCAD-Forum vorgestellt (2026-10-10):** Unterforum „CAM“,
+https://forum.freecad.org/viewtopic.php?t=107889. Antworten dort sind Eingang für Wünsche und
+Fehler – sie kommen hierher; die Beiträge selbst liegen nur bei Manuel (Manuel, 2026-10-11: „alles
+was mit posts zutun hat … einfach nicht auf github … auser es werden bilder benötigt“; die Bilder
+in `docs/bilder/forum/`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
@@ -260,6 +255,27 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Aufträge aus Manuels Antworten vom 2026-10-11 morgens** (Verlauf P-2026-10-11-30; Reihenfolge so
+abgearbeitet):
+1. **Abtrag im Abspieler auch mit schrägem Werkzeug** (Flanke, 3+2, simultan) – heute bleibt das
+   Rohteil dort stehen (legros im Forum: Kegel mit „Flanke“). Manuel: „dann muss man das ändern“.
+2. **Flanke: der Halter darf nicht ins Teil** – Lagen so planen, dass der Halter frei bleibt
+   (anders anstellen, wo die Form bleibt), sonst klar melden: „steht zu wenig heraus, mindestens …
+   mm“. Vorschruppen auf 3 Achsen mit dem Schaftfräser, Schlichten mit der Flanke.
+3. **Kollision (Frage 7):** klare Meldung, wenn die Ausspannlänge nicht reicht; im Abspieler bis zur
+   Kollision fahren und dort anhalten; Knopf „Zur nächsten Kollision“; die Bahn weicht aus
+   (Anstellung, Y), wo die Form des Teils bleibt – die Maschine gehört in die Kollisionsüberwachung.
+4. **Querachse nur, wo nötig (Frage 9)** – vorschlagen, wenn das Teil so besser wird.
+5. **Rest nach dem Schruppen (Frage 8)** im Assistenten melden und mehr anbieten: an schrägen
+   Wänden zusätzlich in Z abzeilen (Schaftfräser) oder dort am Umfang mit kleinerer Steigung –
+   erst Bild mit Zahlen.
+6. **Nase mit dem Schaftfräser (Frage 5):** C so, dass Face8 (zur Mitte) quer zum Fräser steht,
+   mit Y abzeilen (X auch unter 0, soweit die Maschine fährt); die Seiten Face4/Face6 mit dem
+   Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – erst
+   Bild mit Zahlen.
+7. **Magazin ohne Maschine** sagt das im Fenster (legros).
+Offen bei Manuel: Frage 6 (Schrittweite aus der Kammhöhe, mit Zahlen).
+
 **Die Nacht vom 2026-10-10 auf den 11.** (Manuel: „schau dir die Werkzeugwege nochmal genau an
 und deren Generation … auch die Geschichte mit dem Mehrkern-Arbeiten bitte nochmal verbessern“),
 an seinem zweiten 4-Achs-Testteil (`beispiele/testteil_4achs_nase.FCStd`, CLX550, seine Werkzeuge
@@ -287,7 +303,6 @@ aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-29 (0.213.8 �
   am Stück, jetzt höchstens 0,8 s (im Fenster 2,2 statt 12,3 s gerechnet).
 - **Offen für Manuel:** Fragen 5–9 in `OFFENE_FRAGEN.md` (ebene Flächen mit dem Schaftfräser,
   Schrittweite des Schafts, der Halter stößt ans Teil, Rest vor dem Schlichten, C dreht zurück).
-  Der Forumsbeitrag liegt als BBCode in `~/freecad_cam/forumbilder/forumpost_4achsen_bbcode.txt`.
 - **Nicht geschafft:** das Prüffenster im Hintergrund (es steht noch 6,5 s), Hebel 3 (Varianten
   des 5-Achs-Vergleichs parallel); im 3-Achs-Assistenten rechnen Restschlichten, 3D-Schlichten
   mit Wegkippen und die kleinen Strategien noch im Fenster (je unter 1 s).
