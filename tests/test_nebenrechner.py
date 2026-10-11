@@ -3,6 +3,7 @@
 Platzhalter auf (Form, Dokument, Gemeinsam, Fortschritt), melden Fehler als Traceback, lassen
 sich abbrechen und enden mit dem Pool. Rechnet nur Kleinigkeiten – Sekunden, nicht Minuten."""
 
+import contextlib
 import os
 import pathlib
 import sys
@@ -171,6 +172,11 @@ except nr.Fehler as fehler:
 else:
     raise AssertionError("Fehler im Arbeiter nicht gemeldet")
 assert pool.warten([pool.auftrag("nebenrechner", "_probe", 2)]) == [4]
+# Was die Ausnahme fürs Fachliche mitbringt (ihr Feld „daten“), kommt mit (P-2026-10-11-65).
+auftrag = pool.auftrag("nebenrechner", "_probe_fehler", {"ausspannen": (32.0, 42.4)})
+with contextlib.suppress(nr.Fehler):
+    pool.warten([auftrag])
+assert auftrag.fehlerdaten == {"ausspannen": (32.0, 42.4)}, auftrag.fehlerdaten
 
 # Abbrechen: ein langer Auftrag endet sofort, sein Arbeiter ist weg, ein neuer rechnet weiter.
 lang = pool.auftrag("nebenrechner", "_probe", 1, dauer=60.0)

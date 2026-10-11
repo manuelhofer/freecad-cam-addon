@@ -3,9 +3,13 @@
 # in den kegel reinballert“): ein Kegel Ø 50 → Ø 30, 30 hoch, auf einer Platte, die 5-Achs-Maschine
 # Tisch/Tisch, ein Schaftfräser Ø 10 mit 12 mm Schneide in einem ER16 (er steht 32 mm heraus, die
 # Wand ist 31,6 mm lang) und ein Kugelfräser Ø 6. Den Mantel anklicken → „Bearbeitung“: Die Flanke
-# ist rot – Halter oder Schaft führen in die Wand, mindestens 42 mm bräuchte es –, den Haken hat das
-# 3D-Schlichten.
+# ist rot – Halter oder Schaft führen in die Wand, mindestens 42 mm bräuchte es, und T5 ist dafür zu
+# kurz (Gesamtlänge 52) –, den Haken hat das 3D-Schlichten. Dann ist T5 in der Werkzeugverwaltung
+# länger (80 mm, derselbe Überstand 32): Hinter dem roten Satz steht „T5 auf 43 mm ausspannen“; ein
+# Klick setzt die Länge ab Spindelnase, der Assistent rechnet neu, und die Flanke hat ihre Bahn
+# (P-2026-10-11-65).
 import os
+import re
 import tempfile
 
 import FreeCAD
@@ -104,11 +108,47 @@ def schritte(h):
         "in die Wand" in rot and "32 mm heraus" in rot and "mindestens" in rot,
         f"Flanke: {rot!r}",
     )
+    h.pruefe("T5 ist dafür zu kurz (Gesamtlänge 52 mm)" in rot, f"zu kurz? {rot!r}")
     h.pruefe(flanke.vorschau is None, "die Flanke hat trotzdem eine Bahn")
     h.pruefe(not flanke.aktiv() and s3.aktiv(), f"Haken: Flanke {flanke.aktiv()}, 3D {s3.aktiv()}")
     panel.seite_zeigen(1)
     yield 500
     h.bild("1_flanke_halter", panel.form)
+
+    # T5 länger, derselbe Überstand (Länge ab Spindelnase gesetzt): jetzt mit dem Verweis.
+    laenge, _quelle = rw.laenge_des_werkzeugs(t5, bibliothek)
+    t5.gesamtlaenge, t5.laenge_spindelnase = 80.0, laenge
+    bibliothek.speichern()
+    panel._werkzeuge_gespeichert()
+    yield 500
+    flanke = panel.flanke
+    yield from h.warte_auf(
+        lambda: not panel.vorschau_laeuft() and "ausspannen" in flanke.hinweis.text(), 300000
+    )
+    rot = flanke.hinweis.text()
+    verweis = re.search(r'href="(ausspannen:[^"]+)"', rot)
+    h.pruefe(verweis is not None and "T5 auf 43 mm ausspannen" in rot, f"Verweis: {rot!r}")
+    yield 300
+    h.bild("2_ausspannen_angeboten", panel.form)
+    if verweis is None:
+        return
+    flanke.hinweis.linkActivated.emit(verweis.group(1))
+    yield 500
+    gespeichert = next(w for w in wz.Bibliothek.laden().werkzeuge if w.nummer == 5)
+    h.pruefe(
+        abs(gespeichert.laenge_spindelnase - (laenge + 11.0)) < 1e-3,
+        f"Länge ab Spindelnase {gespeichert.laenge_spindelnase} (vorher {laenge})",
+    )
+    flanke = panel.flanke
+    yield from h.warte_auf(
+        lambda: not panel.vorschau_laeuft() and flanke.vorschau is not None, 300000
+    )
+    h.pruefe(
+        flanke.vorschau is not None and not flanke.hinweis.text(),
+        f"nach dem Ausspannen: {flanke.hinweis.text()!r}",
+    )
+    yield 500
+    h.bild("3_ausgespannt", panel.form)
     panel.reject()
     yield 800
     FreeCAD.closeDocument(doc.Name)

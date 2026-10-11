@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-65 flanke-ausspannen
+
+### EINGELESEN
+- Die Flanke im 3-Achs-Assistenten meldete rot „Halter oder Schaft führen hier in die Wand … bräuchte
+  mindestens … mm“ (P-2026-10-11-33), ohne den nächsten Schritt anzubieten – wie seit -63/-64 der
+  4-Achs-Assistent und das Prüffenster. Der Satz kommt als Fehlertext aus dem Nebenrechner; die
+  Zahlen fehlten dem Assistenten.
+
+### DATEIEN
+- `camaddon/nebenrechner_arbeiter.py`, `camaddon/nebenrechner.py`: eine Ausnahme darf ein Feld
+  `daten` mitbringen (wenn es sich senden lässt) – es kommt als `Auftrag.fehlerdaten` an, auch über
+  Unteraufträge; `_probe_fehler(daten)`.
+- `camaddon/flanke.py`: `vorschau` hängt `{"ausspannen": (heraus, mindestens)}` an den ValueError.
+- `camaddon/gui_bearbeitung.py`: `_aus_dem_hintergrund` gibt die Daten mit; der Block setzt hinter
+  den roten Satz „T5 auf … mm ausspannen“ (`_fehler_text`, reichweite.ausspannen_auf) oder „T5 ist
+  dafür zu kurz“; ein Klick (`_hinweis_verweis`) setzt die Länge ab Spindelnase, speichert, und der
+  Assistent rechnet neu.
+- `tests/test_nebenrechner.py` (die Daten kommen an), `tests/gui/szenario_flanke_halter.py`: T5
+  (Gesamtlänge 52) „zu kurz“; dann 80 mm lang, derselbe Überstand – Verweis „T5 auf 43 mm
+  ausspannen“, Klick: gespeichert, die Flanke hat ihre Bahn (2 min, die schnellste).
+- `package.xml` (0.213.70), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `test_nebenrechner`, `szenario_flanke_halter` grün.
+
 ## P-2026-10-11-64 pruefen-ausspannen-ganze-operation
 
 ### EINGELESEN

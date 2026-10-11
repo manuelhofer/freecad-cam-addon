@@ -18,6 +18,7 @@ import contextlib
 import importlib
 import json
 import os
+import pickle
 import sys
 import time
 import traceback
@@ -122,9 +123,23 @@ def _ausfuehren(nachricht):
         ergebnis = f(*args, **kwargs)
         _verbindung.send(("fertig", nummer, ergebnis))
     except BaseException as fehler:  # noqa: BLE001 – jeder Fehler gehört zum Hauptprozess
+        # Was die Ausnahme fürs Fachliche mitbringt (ihr Feld „daten“, etwa wie weit ein Werkzeug
+        # heraus müsste) – nur, wenn es sich senden lässt.
+        daten = getattr(fehler, "daten", None)
+        try:
+            pickle.dumps(daten)
+        except Exception:  # noqa: BLE001
+            daten = None
         try:
             _verbindung.send(
-                ("fehler", nummer, traceback.format_exc(), type(fehler).__name__, str(fehler))
+                (
+                    "fehler",
+                    nummer,
+                    traceback.format_exc(),
+                    type(fehler).__name__,
+                    str(fehler),
+                    daten,
+                )
             )
         except (OSError, EOFError):
             return False

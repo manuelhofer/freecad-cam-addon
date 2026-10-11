@@ -240,13 +240,16 @@ def vorschau(
         koerper=list(koerper),
     )
     if bahn.anstoss is not None:
-        raise ValueError(
+        fehler = ValueError(
             tr(
                 "ba.fl.halter_stoesst",
                 heraus=einheiten.text(bahn.anstoss.heraus, einheiten.LAENGE, 1),
                 mindestens=einheiten.text(math.ceil(bahn.anstoss.mindestens), einheiten.LAENGE, 0),
             )
         )
+        # Für „T5 auf … mm ausspannen“ im Assistenten (P-2026-10-11-65), auch aus dem Nebenrechner.
+        fehler.daten = {"ausspannen": (bahn.anstoss.heraus, bahn.anstoss.mindestens)}
+        raise fehler
     return bahn
 
 

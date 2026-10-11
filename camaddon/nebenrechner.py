@@ -161,6 +161,7 @@ class Auftrag:
         self.fehler = None  # der Traceback aus dem Arbeiter
         self.fehlerart = ""  # der Name der Ausnahme dort
         self.fehlersatz = ""  # ihr Text
+        self.fehlerdaten = None  # ihr Feld „daten“, wenn sie eins hatte (nebenrechner_arbeiter)
         self.abgebrochen = False
         self.fortschritt = 0.0
         self.gewicht = 1.0
@@ -811,6 +812,7 @@ class Nebenrechner:
         elif art == "fehler":
             auftrag.fehler = nachricht[2]
             auftrag.fehlerart, auftrag.fehlersatz = nachricht[3], nachricht[4]
+            auftrag.fehlerdaten = nachricht[5] if len(nachricht) > 5 else None
         else:
             auftrag.fehler = f"unbekannte Meldung {art!r}"
         del self._laufend[nummer]
@@ -881,7 +883,14 @@ class Nebenrechner:
             arbeiter.post.append(("unter_fertig", nummer, auftrag.ergebnis))
         elif auftrag.fehler is not None:
             arbeiter.post.append(
-                ("unter_fehler", nummer, auftrag.fehler, auftrag.fehlerart, auftrag.fehlersatz)
+                (
+                    "unter_fehler",
+                    nummer,
+                    auftrag.fehler,
+                    auftrag.fehlerart,
+                    auftrag.fehlersatz,
+                    auftrag.fehlerdaten,
+                )
             )
         else:
             arbeiter.post.append(("unter_ab", nummer))
@@ -1237,6 +1246,7 @@ class Unterpool:
             elif art == "unter_fehler":
                 auftrag.fehler = nachricht[2]
                 auftrag.fehlerart, auftrag.fehlersatz = nachricht[3], nachricht[4]
+                auftrag.fehlerdaten = nachricht[5] if len(nachricht) > 5 else None
             else:
                 auftrag.abgebrochen = True
         elif not self._verarbeiten(nachricht):
@@ -1421,8 +1431,11 @@ def _probe_summe(zahlen, faktor):
     return sum(zahlen) * faktor
 
 
-def _probe_fehler():
-    raise ValueError("absichtlich")
+def _probe_fehler(daten=None):
+    fehler = ValueError("absichtlich")
+    if daten is not None:
+        fehler.daten = daten  # kommt als Auftrag.fehlerdaten an
+    raise fehler
 
 
 def _probe_verfuegbar():

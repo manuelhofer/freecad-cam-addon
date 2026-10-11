@@ -2872,6 +2872,8 @@ class _Block:
         self.material = _Satz(GRAU_TEXT)
         aufbau.addWidget(self.material)
         self.hinweis = _Satz(ROT)
+        for etikett in (self.hinweis, self.hinweis.spiegel):
+            etikett.linkActivated.connect(self._hinweis_verweis)
         aufbau.addWidget(self.hinweis)
         # Schritt 3, die Einstellungen – nur solange angehakt: der Titel, die Erklärung, Fräser,
         # Einsatz, Felder und Haken, darunter dasselbe Ergebnis.
@@ -3384,7 +3386,7 @@ class _Block:
             yield auftrag
             mitgerechnet = _aus_dem_hintergrund(auftrag)
         if mitgerechnet is not None and mitgerechnet[0] == "fehler":
-            self.hinweis.setText(mitgerechnet[1])
+            self.hinweis.setText(self._fehler_text(mitgerechnet[1], mitgerechnet[3]))
             self.schon_weg = mitgerechnet[2]
             self._merken(merk, schluessel)
             return
@@ -3394,7 +3396,7 @@ class _Block:
             try:
                 self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
             except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
-                self.hinweis.setText(str(fehler))
+                self.hinweis.setText(self._fehler_text(str(fehler), getattr(fehler, "daten", None)))
                 self.schon_weg = isinstance(fehler, mst.SchonWeg)
                 self._merken(merk, schluessel)
                 return
@@ -3412,6 +3414,47 @@ class _Block:
         if self.s.kennung == "nut":
             self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
         self._merken(merk, schluessel)
+
+    def _fehler_text(self, satz, daten):
+        """Der rote Satz zur Vorschau – stößt der Halter an (flanke.vorschau: Daten
+        „ausspannen“), mit dem nächsten Schritt dahinter: „T5 auf … mm ausspannen“, oder dass das
+        Werkzeug dafür zu kurz ist (reichweite.ausspannen_auf; wie im 4-Achs-Assistenten)."""
+        from . import reichweite as rw
+
+        ausspannen = daten.get("ausspannen") if isinstance(daten, dict) else None
+        werkzeug = self.fraeser()
+        bibliothek = self.panel.bibliothek
+        if not ausspannen or werkzeug is None or bibliothek is None:
+            return satz
+        heraus, mindestens = ausspannen
+        kennung = f"T{werkzeug.nummer}"
+        auf = rw.ausspannen_auf(werkzeug, bibliothek, heraus, mindestens)
+        if auf is None:
+            gesamt = einheiten.text(float(werkzeug.gesamtlaenge), einheiten.LAENGE, 0)
+            zu_kurz = tr("va.halter_zu_kurz", werkzeug=kennung, gesamt=gesamt)
+            return f"{html.escape(satz, quote=False)} {html.escape(zu_kurz, quote=False)}"
+        ziel, laenge = auf
+        text = tr(
+            "va.halter_ausspannen",
+            werkzeug=kennung,
+            heraus=einheiten.text(ziel, einheiten.LAENGE, 0),
+        )
+        verweis = f"ausspannen:{werkzeug.nummer}:{laenge:.3f}:{ziel}"
+        return f'{html.escape(satz, quote=False)} <a href="{verweis}">{html.escape(text)}</a>'
+
+    def _hinweis_verweis(self, ziel):
+        """„ausspannen:5:83.000:43“ im roten Satz: die Länge ab Spindelnase von T5 in der
+        Werkzeugverwaltung, gespeichert; der Assistent liest sie neu und rechnet die Vorschau."""
+        art, nummer, laenge, _heraus = (ziel.split(":") + ["", "", ""])[:4]
+        bibliothek = self.panel.bibliothek
+        if art != "ausspannen" or bibliothek is None:
+            return
+        werkzeug = next((w for w in bibliothek.werkzeuge if w.nummer == int(nummer)), None)
+        if werkzeug is None:
+            return
+        werkzeug.laenge_spindelnase = round(float(laenge), 3)
+        bibliothek.speichern()
+        self.panel._werkzeuge_gespeichert()
 
     def _im_hintergrund(self, job, werkzeug, werte, flaechen, vorschub, senkrecht):
         """Gibt die Vorschau einem Nebenrechner, wenn die Strategie das kann (`hintergrund`):
@@ -3527,14 +3570,19 @@ def _abwarten(schritt):
 
 def _aus_dem_hintergrund(auftrag):
     """Was ein Nebenrechner für die Vorschau gerechnet hat: ("ok", (Bahn, Zeit im Freien)),
-    ("fehler", Satz, schon weg?) für einen Grund, den die Strategie selbst nennt (ValueError,
+    ("fehler", Satz, schon weg?, Daten der Ausnahme) für einen Grund, den die Strategie selbst nennt (ValueError,
     auch materialstand.SchonWeg; RuntimeError aus OpenCascade) – oder None: gescheitert oder
     abgebrochen, dann rechnet der Assistent hier."""
     if auftrag.fertig:
         return ("ok", auftrag.ergebnis)
     eigene = ("ValueError", "RuntimeError", "SchonWeg")  # Gründe der Strategie selbst
     if auftrag.fehler is not None and auftrag.fehlerart in eigene:
-        return ("fehler", auftrag.fehlersatz, auftrag.fehlerart == "SchonWeg")
+        return (
+            "fehler",
+            auftrag.fehlersatz,
+            auftrag.fehlerart == "SchonWeg",
+            getattr(auftrag, "fehlerdaten", None),
+        )
     if auftrag.fehler is not None:
         FreeCAD.Console.PrintWarning(
             f"CAM-Addon: Vorschau im Nebenrechner gescheitert, rechne hier: {auftrag.fehler}\n"
