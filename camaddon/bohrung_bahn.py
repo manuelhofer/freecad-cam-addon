@@ -21,6 +21,7 @@ Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
 import math
+from collections import OrderedDict
 from dataclasses import dataclass
 
 from . import bahn as bn
@@ -33,6 +34,13 @@ TIEFER = 0.5  # mm – so weit fräst er unter den Grund einer durchgehenden Boh
 KERN_ANTEIL = 0.9  # vom Fräserradius: so weit außen darf die Helix laufen, und der Kern fällt
 MIN_STEIGUNG = 0.05  # mm je Umlauf – flacher wird keine Helix (sonst endlos)
 BOGEN_TEILE = 4  # je Umlauf so viele Bögen (G2/G3 mit Z: je ein Viertel)
+
+# Was unter dem Grund einer Bohrung liegt (durch, Spitze), je Form und Fläche (_unter_gemerkt):
+# Der Assistent fragt bei einem Klick dutzendfach nach denselben Bohrungen – am Deckel mit vier
+# Löchern 1102-mal je acht isInside, 2,4 s (P-2026-10-11-74). Je Form ihr hashCode ->
+# (die Form – festgehalten, damit OpenCascade ihren Speicher keiner anderen gibt –, {Fläche: …}).
+_UNTER = OrderedDict()
+UNTER_FORMEN = 8
 
 
 @dataclass(frozen=True)
@@ -89,10 +97,7 @@ def bohrungen(form, namen=None):
     import Part
 
     ergebnis = []
-    for nummer, flaeche in enumerate(form.Faces):
-        name = f"Face{nummer + 1}"
-        if namen is not None and name not in namen:
-            continue
+    for name, flaeche in _flaechen(form, namen):
         flaeche_ = flaeche.Surface
         if not isinstance(flaeche_, Part.Cylinder):
             continue
@@ -109,7 +114,7 @@ def bohrungen(form, namen=None):
         if normale.x * zur_achse.x + normale.y * zur_achse.y <= 0:
             continue  # die Normale zeigt von der Achse weg: ein Zapfen, keine Bohrung
         bb = flaeche.BoundBox
-        durch = not _boden_unter(form, mitte, float(flaeche_.Radius), bb.ZMin)
+        durch, spitze = _unter_gemerkt(form, name, flaeche, mitte, bb)
         ergebnis.append(
             Bohrung(
                 name,
@@ -117,10 +122,51 @@ def bohrungen(form, namen=None):
                 float(flaeche_.Radius),
                 float(bb.ZMax),
                 float(bb.ZMin),
-                bool(durch),
-                0.0 if durch else _spitze_unter(form, flaeche, mitte, bb.ZMin),
+                durch,
+                spitze,
             )
         )
+    return ergebnis
+
+
+def _flaechen(form, namen):
+    """(Name, Fläche) in der Reihenfolge der Form – mit `namen` nur diese, ohne alle Flächen der
+    Form auszupacken (der Assistent fragt je Fläche einzeln, an großen Teilen tausendfach)."""
+    if namen is None:
+        return [(f"Face{i + 1}", f) for i, f in enumerate(form.Faces)]
+    nummern = set()
+    for name in namen:
+        if isinstance(name, str) and name.startswith("Face") and name[4:].isdigit():
+            nummern.add(int(name[4:]))
+    if not nummern:
+        return []
+    anzahl = form.countElement("Face")
+    return [(f"Face{n}", form.getElement(f"Face{n}")) for n in sorted(nummern) if 1 <= n <= anzahl]
+
+
+def _unter_gemerkt(form, name, flaeche, mitte, bb):
+    """(durch, Spitze) der Bohrung `flaeche` – _boden_unter und _spitze_unter, gemerkt je Form und
+    Fläche (mit ihrer Lage, falls zwei Formen dieselbe Fläche anders nennen)."""
+    radius = float(flaeche.Surface.Radius)
+    try:
+        kennung = form.hashCode()
+    except Exception:  # noqa: BLE001 – keine Form, die sich merken lässt
+        kennung = None
+    eintrag = _UNTER.get(kennung) if kennung is not None else None
+    if eintrag is not None and eintrag[0].isSame(form):
+        _UNTER.move_to_end(kennung)
+    elif kennung is not None:
+        eintrag = (form, {})
+        _UNTER[kennung] = eintrag
+        while len(_UNTER) > UNTER_FORMEN:
+            _UNTER.popitem(last=False)
+    schluessel = (name, tuple(round(float(w), 6) for w in (mitte.x, mitte.y, radius, bb.ZMin)))
+    if eintrag is not None and schluessel in eintrag[1]:
+        return eintrag[1][schluessel]
+    durch = not _boden_unter(form, mitte, radius, bb.ZMin)
+    ergebnis = (bool(durch), 0.0 if durch else _spitze_unter(form, flaeche, mitte, bb.ZMin))
+    if eintrag is not None:
+        eintrag[1][schluessel] = ergebnis
     return ergebnis
 
 

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-74 bohrungen-gemerkt
+
+### EINGELESEN
+- Die Lag-Sonde zeigte beim Anklicken von Flächen im Assistenten „Bearbeitung“ immer wieder
+  `bohrung_bahn._boden_unter`: am Deckel 3,4 s am Stück, am Flansch 2 s. Gezählt: Für vier
+  Bohrungen lief die Frage „liegt unter dem Grund Material?“ (je acht `isInside`) 1102-mal – jede
+  Strategie, jede Werkzeugwahl, jeder Vorschlag fragt `bohrungen(form, [Fläche])` neu, und jedes
+  Mal packte es alle Flächen der Form aus.
+
+### DATEIEN
+- `camaddon/bohrung_bahn.py`: `_unter_gemerkt` – durch und Spitze je Form (hashCode, die Form
+  festgehalten, höchstens acht) und Fläche; `_flaechen` – mit Namen nur diese Flächen
+  (`getElement`), nicht alle.
+- `package.xml` (0.213.78), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Am Deckel 1102 → 8 Fragen; längste Pause 3,4 → 1,6 s (das Szenario schaltet 18 Flächen in
+  einem Zug um), Flansch 2,0 → 0,8 s, Lagerbock 1,0 → 0,8 s.
+
+### AKZEPTANZKRITERIUM
+- `test_bohrung`, `test_bohren`, `test_senken`, `test_gewinde`, `test_reiben`,
+  `test_gewindefraesen`, `szenario_deckel`, `szenario_flansch`, `szenario_lagerbock` grün; je
+  Fläche einzeln gefragt dasselbe wie alle auf einmal, auch an einer gedrehten Form.
+
 ## P-2026-10-11-73 hilfe-nachgezogen
 
 ### EINGELESEN
