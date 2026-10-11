@@ -97,6 +97,18 @@ def _verteilt(form, args, bloecke, fortschritt):
         return None
 
 
+def _ist_quader(form):
+    """Füllt `form` (ein Körper) ihren achsparallelen Hüllquader ganz aus?"""
+    try:
+        if len(form.Solids) != 1:
+            return False
+        box = form.BoundBox
+        quader = box.XLength * box.YLength * box.ZLength
+        return quader > 0 and abs(form.Volume - quader) <= 1e-9 * quader
+    except Exception:  # noqa: BLE001 – im Zweifel schneiden
+        return False
+
+
 class Material:
     """Mehrere Z-Intervalle je Strahl; NaN markiert freie Speicherplätze."""
 
@@ -121,6 +133,12 @@ class Material:
         self.ausgelassen = ()  # Unveränderliche Angaben; auch Materialkopien teilen keine Liste.
         self.bewegungsfehler = 0.0  # Einseitige zusätzliche Schranke des Simultansweeps.
         self.grenzen = np.full((nx, ny, 1, 2), np.nan)
+        if _ist_quader(form):
+            # Ein Quader (das übliche Rohteil): Jeder Strahl durch eine Zellmitte geht von unten
+            # bis oben – ohne BRep-Schnitt (am Schwenkteil 2 s auf allen Kernen).
+            self.grenzen[:, :, 0, 0] = box.ZMin
+            self.grenzen[:, :, 0, 1] = box.ZMax
+            return
         bloecke = [(start, min(nx * ny, start + BLOCK)) for start in range(0, nx * ny, BLOCK)]
         args = (self.x, self.y, box.ZMin, box.ZMax, self.dx, self.dy)
         stuecke = (
@@ -194,30 +212,19 @@ class Material:
         return slice(ix[0], min(len(self.x), ix[1] + 1)), slice(iy[0], min(len(self.y), iy[1] + 1))
 
     def _abtragen(self, fenster, unten, oben):
-        g = self.grenzen[fenster]
-        a, b = g[..., 0], g[..., 1]
-        schnitt_unten, schnitt_oben = unten[..., None], oben[..., None]
-        abtrag = np.maximum(0, np.minimum(b, schnitt_oben) - np.maximum(a, schnitt_unten))
+        beide, anzahl, abtrag = _schneiden(self.grenzen[fenster], unten, oben)
         volumen = float(np.nansum(abtrag)) * self.dx * self.dy
-        # Nicht getroffene und völlig freie Strahlen unverändert lassen. Zwei
-        # Stücke entstehen nur, wenn der Schnitt wirklich innerhalb des Materials liegt.
-        trifft = (
-            (schnitt_oben > a + GENAU)
-            & (schnitt_unten < b - GENAU)
-            & (schnitt_oben > schnitt_unten)
-        )
-        links = np.stack([a, np.where(trifft, np.minimum(b, schnitt_unten), b)], axis=-1)
-        rechts = np.stack([np.maximum(a, schnitt_oben), b], axis=-1)
-        links[links[..., 1] <= links[..., 0] + GENAU] = np.nan
-        rechts[~trifft | (rechts[..., 1] <= rechts[..., 0] + GENAU)] = np.nan
-        beide = np.concatenate([links, rechts], axis=2)
-        reihenfolge = np.argsort(np.nan_to_num(beide[..., 0], nan=np.inf), axis=2)
-        beide = np.take_along_axis(beide, reihenfolge[..., None], axis=2)
-        anzahl = max(1, int(np.max(np.sum(np.isfinite(beide[..., 0]), axis=2), initial=0)))
         self._platz(anzahl)
         self.grenzen[fenster] = np.nan
         self.grenzen[fenster][:, :, :anzahl] = beide[:, :, :anzahl]
         return volumen
+
+    def _abtragen_zellen(self, i, j, unten, oben):
+        """Wie _abtragen, aber an einzelnen Strahlen (i, j), jeder höchstens einmal."""
+        beide, anzahl, _abtrag = _schneiden(self.grenzen[i, j], unten, oben)
+        self._platz(anzahl)
+        self.grenzen[i, j] = np.nan
+        self.grenzen[i, j, :anzahl] = beide[:, :anzahl]
 
     def kugel(self, von, nach, radius):
         """Eine Kugel mit MITTE von/nach schneidet ihre ganze Gerade, in jeder Richtung."""
@@ -247,6 +254,286 @@ class Material:
         x, y = np.meshgrid(self.x[f[0]], self.y[f[1]], indexing="ij")
         unten, oben = schaftschnitt(x, y, a, b, u, radius, laenge)
         return self._abtragen(f, unten, oben)
+
+
+def _schneiden(g, unten, oben):
+    """Die Abschnitte `g` (…, Plätze, 2) ohne [unten, oben] (…) je Strahl: (die neuen, sortiert,
+    freie Plätze NaN und hinten; wie viele höchstens belegt; die abgetragene Länge je Platz)."""
+    a, b = g[..., 0], g[..., 1]
+    schnitt_unten, schnitt_oben = unten[..., None], oben[..., None]
+    abtrag = np.maximum(0, np.minimum(b, schnitt_oben) - np.maximum(a, schnitt_unten))
+    # Nicht getroffene und völlig freie Strahlen unverändert lassen. Zwei
+    # Stücke entstehen nur, wenn der Schnitt wirklich innerhalb des Materials liegt.
+    trifft = (
+        (schnitt_oben > a + GENAU) & (schnitt_unten < b - GENAU) & (schnitt_oben > schnitt_unten)
+    )
+    links = np.stack([a, np.where(trifft, np.minimum(b, schnitt_unten), b)], axis=-1)
+    rechts = np.stack([np.maximum(a, schnitt_oben), b], axis=-1)
+    links[links[..., 1] <= links[..., 0] + GENAU] = np.nan
+    rechts[~trifft | (rechts[..., 1] <= rechts[..., 0] + GENAU)] = np.nan
+    beide = np.concatenate([links, rechts], axis=-2)
+    reihenfolge = np.argsort(np.nan_to_num(beide[..., 0], nan=np.inf), axis=-1)
+    beide = np.take_along_axis(beide, reihenfolge[..., None], axis=-2)
+    anzahl = max(1, int(np.max(np.sum(np.isfinite(beide[..., 0]), axis=-1), initial=0)))
+    return beide, anzahl, abtrag
+
+
+# So viele Strahlen schneidet ein Stapel (_Stapel) auf einmal – genug, dass numpy nicht je
+# Bewegung von vorn anfängt, wenig genug für den Speicher (~30 Felder je Strahl).
+STAPEL_STRAHLEN = 100000
+
+
+class _Stapel:
+    """Schnitte einer Bahn, gesammelt und auf einmal abgetragen: Abtragen ist vertauschbar (was
+    zwei Bewegungen wegnehmen, ist ihre Vereinigung, in jeder Reihenfolge) – je Bewegung einzeln
+    rechnete numpy je Aufruf ~100 kleine Felder, am Schwenkteil 13690-mal 1,1 ms
+    (P-2026-10-11-75). Eilgänge prüft der Aufrufer nach leeren() einzeln am Material."""
+
+    def __init__(self, material):
+        self.material = material
+        self.kugeln = []  # (von, nach, radius)
+        self.schaefte = []  # (von, nach, radius, laenge) mit self.achse
+        self.achse = None
+        self.strahlen = 0
+
+    def _dazu(self, unten, oben):
+        m = self.material
+        breit = (oben[0] - unten[0]) / m.dx + 2
+        tief = (oben[1] - unten[1]) / m.dy + 2
+        self.strahlen += max(0.0, breit) * max(0.0, tief)
+        if self.strahlen >= STAPEL_STRAHLEN:
+            self.leeren()
+
+    def kugel(self, von, nach, radius):
+        a, b = _vektor(von), _vektor(nach)
+        if not math.isfinite(radius) or radius <= 0:
+            raise ValueError(tr("rm3.fehler.geometrie"))
+        self.kugeln.append((a, b, float(radius)))
+        self._dazu(np.minimum(a, b) - radius, np.maximum(a, b) + radius)
+        return 0.0
+
+    def schaft(self, von, nach, achse, radius, laenge):
+        a, b, u = _vektor(von), _vektor(nach), _vektor(achse)
+        if (
+            not math.isfinite(radius)
+            or not math.isfinite(laenge)
+            or min(radius, laenge, np.linalg.norm(u)) <= 0
+        ):
+            raise ValueError(tr("rm3.fehler.geometrie"))
+        u = u / np.linalg.norm(u)
+        if self.achse is not None and np.any(np.abs(self.achse - u) > 1e-12):
+            self.leeren()
+        self.achse = u
+        self.schaefte.append((a, b, float(radius), float(laenge)))
+        ecken = np.array([a, b, a + laenge * u, b + laenge * u])
+        self._dazu(ecken.min(axis=0) - radius, ecken.max(axis=0) + radius)
+        return 0.0
+
+    def _strahlen(self, unten, oben):
+        """Die Strahlen in den Fenstern (wie Material._fenster) aller Bewegungen: (Nummer der
+        Bewegung, i, j) je Strahl."""
+        m = self.material
+        ix0 = np.searchsorted(m.x, unten[:, 0], side="left")
+        ix1 = np.minimum(len(m.x), np.searchsorted(m.x, oben[:, 0], side="left") + 1)
+        iy0 = np.searchsorted(m.y, unten[:, 1], side="left")
+        iy1 = np.minimum(len(m.y), np.searchsorted(m.y, oben[:, 1], side="left") + 1)
+        breit, tief = np.maximum(0, ix1 - ix0), np.maximum(0, iy1 - iy0)
+        anzahl = breit * tief
+        welche = np.repeat(np.arange(len(anzahl)), anzahl)
+        k = np.arange(int(anzahl.sum())) - np.repeat(np.cumsum(anzahl) - anzahl, anzahl)
+        return welche, ix0[welche] + k // tief[welche], iy0[welche] + k % tief[welche]
+
+    def leeren(self):
+        """Alles Gesammelte abtragen."""
+        m = self.material
+        teile = []  # (i, j, unten, oben)
+        if self.kugeln:
+            a = np.array([k[0] for k in self.kugeln])
+            b = np.array([k[1] for k in self.kugeln])
+            r = np.array([k[2] for k in self.kugeln])
+            welche, i, j = self._strahlen(
+                np.minimum(a, b) - r[:, None], np.maximum(a, b) + r[:, None]
+            )
+            x, y = m.x[i], m.y[j]
+            spiegel = np.array([1.0, 1.0, -1.0])
+            unten = _kugelschnitt_zellen(x, y, a[welche], b[welche], r[welche])
+            oben = -_kugelschnitt_zellen(x, y, a[welche] * spiegel, b[welche] * spiegel, r[welche])
+            teile.append((i, j, unten, oben))
+        if self.schaefte:
+            u = self.achse
+            a = np.array([s[0] for s in self.schaefte])
+            b = np.array([s[1] for s in self.schaefte])
+            r = np.array([s[2] for s in self.schaefte])
+            laenge = np.array([s[3] for s in self.schaefte])
+            spitze = np.minimum(a, b)
+            ende = np.maximum(a, b)
+            weit = laenge[:, None] * u
+            unten_ = np.minimum(spitze, spitze + weit) - r[:, None]
+            oben_ = np.maximum(ende, ende + weit) + r[:, None]
+            welche, i, j = self._strahlen(unten_, oben_)
+            unten, oben = _schaftschnitt_zellen(
+                m.x[i], m.y[j], a[welche], b[welche], u, r[welche], laenge[welche]
+            )
+            teile.append((i, j, unten, oben))
+        self.kugeln, self.schaefte, self.strahlen = [], [], 0
+        if not teile:
+            return
+        i = np.concatenate([t[0] for t in teile])
+        j = np.concatenate([t[1] for t in teile])
+        unten = np.concatenate([t[2] for t in teile])
+        oben = np.concatenate([t[3] for t in teile])
+        trifft = oben > unten
+        i, j, unten, oben = i[trifft], j[trifft], unten[trifft], oben[trifft]
+        if not len(i):
+            return
+        # Je Strahl die Vereinigung der Schnitte (Lücken bis GENAU schließt auch das Abtragen
+        # nacheinander: ein so dünnes Stück fällt dort weg), dann Runde um Runde je Strahl
+        # einen Abschnitt.
+        strahl = i * len(m.y) + j
+        reihenfolge = np.lexsort((unten, strahl))
+        strahl, unten, oben = strahl[reihenfolge], unten[reihenfolge], oben[reihenfolge]
+        neu_strahl = np.empty(len(strahl), dtype=bool)
+        neu_strahl[0] = True
+        neu_strahl[1:] = strahl[1:] != strahl[:-1]
+        # Bisher höchstes oben im selben Strahl (Präfix-Maximum in Verdopplungsschritten, genau –
+        # ein Versatz je Strahl kostete bei 10⁵ Strahlen mehr Stellen, als GENAU hat).
+        bisher = oben.copy()
+        weit = 1
+        while weit < len(strahl):
+            gleich = strahl[weit:] == strahl[:-weit]
+            if not gleich.any():
+                break
+            bisher[weit:] = np.where(
+                gleich, np.maximum(bisher[weit:], bisher[:-weit]), bisher[weit:]
+            )
+            weit *= 2
+        beginnt = neu_strahl.copy()
+        beginnt[1:] |= unten[1:] > bisher[:-1] + GENAU
+        anfang = np.flatnonzero(beginnt)
+        strahl = strahl[anfang]
+        unten = unten[anfang]
+        oben = np.maximum.reduceat(oben, anfang)
+        runde = (
+            np.arange(len(anfang))
+            - np.flatnonzero(neu_strahl[anfang])[np.cumsum(neu_strahl[anfang]) - 1]
+        )
+        for nummer in range(int(runde.max()) + 1):
+            hier = runde == nummer
+            s_ = strahl[hier]
+            m._abtragen_zellen(s_ // len(m.y), s_ % len(m.y), unten[hier], oben[hier])
+
+
+def _kugelschnitt_zellen(xs, ys, a, b, radius):
+    """simultan_abtrag.kugelschnitt je Strahl mit eigener Strecke a → b (n, 3) und eigenem
+    Radius."""
+    with np.errstate(invalid="ignore", divide="ignore"):
+        d = b - a
+        dx, dy = xs - a[:, 0], ys - a[:, 1]
+        quer2 = d[:, 0] ** 2 + d[:, 1] ** 2
+        senkrecht = quer2 < 1e-20
+        q = np.where(senkrecht, 1.0, quer2)
+        lang2 = np.where(senkrecht, 1.0, np.sum(d * d, axis=1))
+        r2 = radius**2
+        t0 = (dx * d[:, 0] + dy * d[:, 1]) / q
+        rho2 = np.maximum(0.0, dx**2 + dy**2 - t0**2 * quer2)
+        innen = r2 - rho2
+        t = t0 - d[:, 2] * np.sqrt(np.maximum(innen, 0) / (q * lang2))
+        t = np.clip(t, 0.0, 1.0)
+        innen = r2 - (dx - t * d[:, 0]) ** 2 - (dy - t * d[:, 1]) ** 2
+        schraeg = np.where(
+            innen >= 0, a[:, 2] + t * d[:, 2] - np.sqrt(np.maximum(innen, 0)), np.inf
+        )
+        innen = r2 - dx**2 - dy**2
+        gerade = np.where(
+            innen >= 0, np.minimum(a[:, 2], b[:, 2]) - np.sqrt(np.maximum(innen, 0)), np.inf
+        )
+        return np.where(senkrecht, gerade, schraeg)
+
+
+def _schaftschnitt_zellen(xs, ys, a, b, u, radius, laenge):
+    """schaftschnitt je Strahl mit eigener Strecke a → b (n, 3), eigenem Radius und eigener Länge;
+    die Achse `u` (Einheitsvektor) für alle gleich. Die Vektoren in Komponenten: Summen über die
+    letzte Achse (n, 3) sind in numpy so langsam wie alles andere zusammen."""
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ux, uy, uz = (float(c) for c in u)
+        dx, dy, dz = b[:, 0] - a[:, 0], b[:, 1] - a[:, 1], b[:, 2] - a[:, 2]
+        wx, wy, wz = xs - a[:, 0], ys - a[:, 1], -a[:, 2]
+        h0 = wx * ux + wy * uy + wz * uz
+        hd = dx * ux + dy * uy + dz * uz
+        hz = uz
+        # v = w − h0·u, q = d − hd·u (quer zur Achse), e = (0, 0, 1) − hz·u
+        vx, vy, vz = wx - h0 * ux, wy - h0 * uy, wz - h0 * uz
+        qx, qy, qz = dx - hd * ux, dy - hd * uy, dz - hd * uz
+        ex, ey, ez = -hz * ux, -hz * uy, 1.0 - hz * uz
+        ee = ex * ex + ey * ey + ez * ez
+        r2 = radius**2
+        unten, oben = np.full(xs.shape, np.inf), np.full(xs.shape, -np.inf)
+
+        def nimm(z, t):
+            endlich = np.isfinite(z) & np.isfinite(t)
+            z, t = np.where(endlich, z, 0), np.where(endlich, t, 0)
+            h = h0 + hz * z - hd * t
+            rx, ry, rz = vx + z * ex - t * qx, vy + z * ey - t * qy, vz + z * ez - t * qz
+            gut = (
+                endlich
+                & (t >= -GENAU)
+                & (t <= 1 + GENAU)
+                & (h >= -GENAU)
+                & (h <= laenge + GENAU)
+                & (rx * rx + ry * ry + rz * rz <= r2 + GENAU)
+            )
+            np.minimum(unten, np.where(gut, z, np.inf), out=unten)
+            np.maximum(oben, np.where(gut, z, -np.inf), out=oben)
+
+        for t in (0.0, 1.0):
+            rx, ry, rz = vx - t * qx, vy - t * qy, vz - t * qz
+            lo, hi = _nullstellen(
+                ee, 2 * (rx * ex + ry * ey + rz * ez), rx * rx + ry * ry + rz * rz - r2
+            )
+            if abs(hz) > 1e-14:
+                stirnen = ((-h0 + hd * t) / hz, (laenge - h0 + hd * t) / hz)
+                lo = np.maximum(lo, np.minimum(*stirnen))
+                hi = np.minimum(hi, np.maximum(*stirnen))
+            nimm(lo, np.full(xs.shape, t))
+            nimm(hi, np.full(xs.shape, t))
+        for h in (np.zeros(xs.shape), laenge * np.ones(xs.shape)):
+            if abs(hz) > 1e-14:
+                z0, zt = (h - h0) / hz, hd / hz
+                rx, ry, rz = vx + z0 * ex, vy + z0 * ey, vz + z0 * ez
+                sx, sy, sz = zt * ex - qx, zt * ey - qy, zt * ez - qz
+                lo, hi = _nullstellen(
+                    sx * sx + sy * sy + sz * sz,
+                    2 * (rx * sx + ry * sy + rz * sz),
+                    rx * rx + ry * ry + rz * rz - r2,
+                )
+                for t in (np.maximum(0, lo), np.minimum(1, hi)):
+                    z = z0 + np.where(np.isfinite(t), t, 0) * zt
+                    nimm(np.where(np.isfinite(t), z, np.inf), t)
+            else:
+                schief = np.abs(hd) > 1e-14
+                t = np.where(schief, (h0 - h) / np.where(schief, hd, 1.0), np.nan)
+                rx, ry, rz = vx - t * qx, vy - t * qy, vz - t * qz
+                lo, hi = _nullstellen(
+                    ee, 2 * (rx * ex + ry * ey + rz * ez), rx * rx + ry * ry + rz * rz - r2
+                )
+                nimm(lo, t)
+                nimm(hi, t)
+        qq = qx * qx + qy * qy + qz * qz
+        quer = qq > 1e-14
+        if quer.any():
+            qq = np.where(quer, qq, 1.0)
+            t0 = np.where(quer, (vx * qx + vy * qy + vz * qz) / qq, np.nan)
+            tz = np.where(quer, (ex * qx + ey * qy + ez * qz) / qq, np.nan)
+            rx, ry, rz = vx - t0 * qx, vy - t0 * qy, vz - t0 * qz
+            sx, sy, sz = ex - tz * qx, ey - tz * qy, ez - tz * qz
+            lo, hi = _nullstellen(
+                sx * sx + sy * sy + sz * sz,
+                2 * (rx * sx + ry * sy + rz * sz),
+                rx * rx + ry * ry + rz * rz - r2,
+            )
+            nimm(lo, t0 + np.where(np.isfinite(lo), lo, 0) * tz)
+            nimm(hi, t0 + np.where(np.isfinite(hi), hi, 0) * tz)
+        return unten, oben
 
 
 def _nullstellen(a, b, c):
@@ -377,18 +664,21 @@ def _simultane_vorbereiten(job):
     return result
 
 
-def kennung(job, schritt=0.5, simultane=None):
-    """Rohteil, Richtungen, Werkzeugkörper und vollständige aktive Vorgängerpfade."""
+def _kennungen(job, schritt=0.5, simultane=None):
+    """Je Stand vor `job` ein Schlüssel: [das Rohteil, nach dem Grundjob, nach der ersten Ebene,
+    …] – Rohteil, Richtungen, Werkzeugkörper und vollständige aktive Vorgängerpfade, jeder Schlüssel
+    über alles bis dahin. So fängt die nächste Ebene beim Stand der vorigen an (fuer_ebene)."""
     from . import maschinenzugang as mz
     from . import materialstand as ms
     from . import schwenken as sw
 
     if simultane is None:
         simultane = _simultane_vorbereiten(job)
-    daten = [job.Grundjob.Stock.Shape.exportBrepToString(), schritt]
+    summe = hashlib.sha256(repr([job.Grundjob.Stock.Shape.exportBrepToString(), schritt]).encode())
+    ergebnis = [summe.hexdigest()]
     for davor in _jobs_vor(job):
         lage = sw.ebene_von(davor)
-        daten.append(tuple(lage.toMatrix().A) if lage is not None else None)
+        daten = [tuple(lage.toMatrix().A) if lage is not None else None]
         for op in ms.operationen_vor(davor):
             tc = op.ToolController
             daten.append(
@@ -414,7 +704,25 @@ def kennung(job, schritt=0.5, simultane=None):
                         sicherheit,
                     )
                 )
-    return hashlib.sha256(repr(daten).encode()).hexdigest()
+        summe.update(repr(daten).encode())
+        ergebnis.append(summe.hexdigest())
+    return ergebnis
+
+
+def kennung(job, schritt=0.5, simultane=None):
+    """Rohteil, Richtungen, Werkzeugkörper und vollständige aktive Vorgängerpfade."""
+    return _kennungen(job, schritt, simultane)[-1]
+
+
+# So viele Stände merkt sich fuer_ebene (auch die Zwischenstände nach jeder Ebene und das Rohteil).
+GEMERKT_HOECHSTENS = 6
+
+
+def _merken(schluessel, material):
+    _GEMERKT[schluessel] = material
+    _GEMERKT.move_to_end(schluessel)
+    while len(_GEMERKT) > GEMERKT_HOECHSTENS:
+        _GEMERKT.popitem(last=False)
 
 
 def fuer_ebene(job, schritt=0.5, fortschritt=None):
@@ -431,12 +739,27 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
     from . import vierachs_schlichten as vs
 
     simultane = _simultane_vorbereiten(job)
-    key = kennung(job, schritt, simultane)
+    kennungen = _kennungen(job, schritt, simultane)
+    key = kennungen[-1]
     if key in _GEMERKT:
         _GEMERKT.move_to_end(key)
         return _GEMERKT[key]
-    material = Material(job.Grundjob.Stock.Shape, schritt, fortschritt)
-    for davor in _jobs_vor(job):
+    # Beim letzten gemerkten Stand weiter (dem Rohteil oder nach einer Ebene davor): Jede Ebene
+    # fuhr sonst alle Ebenen vor ihr noch einmal ab, und das Rohteil schnitt jede neu.
+    jobs = _jobs_vor(job)
+    beginn = next((n for n in range(len(jobs) - 1, -1, -1) if kennungen[n] in _GEMERKT), None)
+    if beginn is None:
+        beginn = 0
+        material = Material(job.Grundjob.Stock.Shape, schritt, fortschritt)
+        _merken(kennungen[0], material.kopie())
+    else:
+        _GEMERKT.move_to_end(kennungen[beginn])
+        material = _GEMERKT[kennungen[beginn]].kopie()
+    stapel = _Stapel(material)
+    for nummer, davor in enumerate(jobs[beginn:], beginn):
+        if nummer > beginn:
+            stapel.leeren()
+            _merken(kennungen[nummer], material.kopie())
         lage = sw.ebene_von(davor)
         achse = np.array(tuple(lage.Rotation.multVec(Vector(0, 0, 1)))) if lage else (0, 0, 1)
 
@@ -448,6 +771,7 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
                 material.ausgelassen += ((op.Label, davor.Label),)
                 continue  # Nicht gefahrener Schnitt darf keinen freien Raum vortäuschen.
             if so.ist_simultan(op):
+                stapel.leeren()
                 vorbereitet = simultane.get((davor.Name, op.Name))
                 if vorbereitet is None:
                     return None  # Ohne tatsächliche Kinematik kein räumlich gedachter Schnitt.
@@ -516,11 +840,16 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
                         if fortschritt is not None and not fortschritt(0.5):
                             raise ValueError(tr("s5p.fehler.unvollstaendig"))
                         u = np.asarray(achse)
+                        # Im Vorschub gesammelt (_Stapel); ein Eilgang am Material, wie es
+                        # dann steht – schneidet er, ist der Rest nicht sicher.
+                        if s.eilgang:
+                            stapel.leeren()
+                        ziel = material if s.eilgang else stapel
                         if form.nur_kugel:
-                            volumen = material.kugel(
+                            volumen = ziel.kugel(
                                 letzter + form.radius * u, jetzt + form.radius * u, radius
                             )
-                            volumen += material.schaft(
+                            volumen += ziel.schaft(
                                 letzter + form.radius * u,
                                 jetzt + form.radius * u,
                                 u,
@@ -528,13 +857,12 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
                                 laenge - form.radius,
                             )
                         else:
-                            volumen = material.schaft(letzter, jetzt, u, radius, laenge)
+                            volumen = ziel.schaft(letzter, jetzt, u, radius, laenge)
                         if s.eilgang and volumen > 1e-7:
                             return None
                     letzter = jetzt
             if unbekannt:
                 return None
-    _GEMERKT[key] = material
-    while len(_GEMERKT) > 3:
-        _GEMERKT.popitem(last=False)
+    stapel.leeren()
+    _merken(key, material)
     return material

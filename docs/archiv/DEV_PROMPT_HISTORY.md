@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-75 raumrest-im-stapel
+
+### EINGELESEN
+- Neu berechnen am Schwenkteil stand bis 15 s (Lag-Sonde: `raum_material`): Der räumliche Rest
+  vor einer 3+2-Ebene trug jede Bewegung einzeln ab – am Schwenkteil 13690 Bewegungen, je ~100
+  kleine numpy-Felder (1,1 ms). Jede Ebene schnitt dazu das Rohteil neu auf Strahlen (2 s auf allen
+  Kernen) und fuhr alle Ebenen vor ihr noch einmal ab.
+
+### DATEIEN
+- `camaddon/raum_material.py`:
+  - `_Stapel`: die Vorschubbewegungen gesammelt und je ~10⁵ Strahlen auf einmal geschnitten
+    (`_schaftschnitt_zellen`, `_kugelschnitt_zellen` – dieselben Formeln je Strahl mit eigener
+    Strecke, die Vektoren in Komponenten), je Strahl die Vereinigung, dann Runde um Runde
+    abgetragen (`_abtragen_zellen`, `_schneiden` gemeinsam mit `_abtragen`). Abtragen ist
+    vertauschbar; ein Eilgang wird wie bisher einzeln am Material gemessen, wie es dann steht.
+  - `_kennungen`: je Stand (Rohteil, nach dem Grundjob, nach jeder Ebene) ein Schlüssel;
+    `fuer_ebene` fängt beim letzten gemerkten an (`_merken`, höchstens sechs).
+  - `_ist_quader`: ein Quader-Rohteil ohne Strahlenschnitt.
+- `package.xml` (0.213.79), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Schwenkteil, beide Ebenen nacheinander: 18,6 → 3,7 s (Ebene 1 allein 5,0 → 1,0 s); im
+  Szenario die längste Pause beim Neuberechnen der Ebenen 14,8 → 4,6 s.
+- Derselbe Rest: Ebene 1 bitgleich, Ebene 2 höchstens 4·10⁻¹⁴ mm anders (andere
+  Summationsreihenfolge), gleiche Abschnitte je Strahl. Zufallsbahnen (Kugel und Schaft, fünf
+  Achsen, senkrecht, längs und quer zur Achse): je Strahl dieselben Formelwerte, nach 400
+  Bewegungen bitgleiche Abschnitte.
+
+### AKZEPTANZKRITERIUM
+- `test_raum_material`, `test_raum_bahn`, `test_schwenken`, `test_materialstand`,
+  `szenario_schwenkteil`, `szenario_schwenkdatensatz` grün.
+
 ## P-2026-10-11-74 bohrungen-gemerkt
 
 ### EINGELESEN
