@@ -338,7 +338,7 @@ def segment_schneidet_dreieck(p0, p1, dreiecke):
         q = np.cross(s, e1)
         v = inv * np.einsum("ij,ij->i", richtung, q)
         t = inv * np.einsum("ij,ij->i", e2, q)
-    return (np.abs(det) > 1e-14) & (u >= 0) & (v >= 0) & (u + v <= 1) & (t >= 0) & (t <= 1)
+        return (np.abs(det) > 1e-14) & (u >= 0) & (v >= 0) & (u + v <= 1) & (t >= 0) & (t <= 1)
 
 
 def segment_dreieck_abstand(p0, p1, dreiecke):

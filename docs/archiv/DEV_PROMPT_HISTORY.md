@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-62 netzabstand-ohne-warnung
+
+### EINGELESEN
+- `netzabstand.segment_schneidet_dreieck` (Netzschranke der Kollision) warnte „RuntimeWarning:
+  invalid value encountered in add“: Bei einer Strecke parallel zum Dreieck ist `det` 0, `u` und
+  `v` werden unendlich, und `u + v` stand außerhalb von `np.errstate`. Das Ergebnis stimmte (solche
+  Paare schließt `abs(det) > 1e-14` aus), nur die Warnung landete in der Ausgabe.
+- Nebenbei nachgemessen (ohne Änderung): „Rundum schruppen“ mit der Querachse an der Nase – alle
+  14 661 Stellen, an denen die Netzschranke Zweifel ließ, mit OpenCascade gerechnet: mindestens
+  0,318 mm vom Teil bei Aufmaß 0,3.
+
+### DATEIEN
+- `camaddon/netzabstand.py`: die Rückgabe in den `np.errstate`-Block.
+- `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `test_netzabstand` grün.
+
 ## P-2026-10-11-61 querachse-nicht-ins-teil
 
 ### EINGELESEN
