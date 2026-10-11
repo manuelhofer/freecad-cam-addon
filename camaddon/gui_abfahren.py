@@ -666,13 +666,18 @@ class Abspieler(QtGui.QWidget):
         self.haken_teil.toggled.connect(self._teil_umgeschaltet)
         for widget in (self.knopf_anfang, self.knopf_zurueck, self.knopf_spielen, self.knopf_vor):
             zeile.addWidget(widget)
-        zeile.addWidget(self.knopf_kollision)
         zeile.addStretch()
         zeile.addWidget(self.haken_bahn)
         zeile.addWidget(self.haken_teil)
         zeile.addWidget(self.knopf_hinsehen)
         zeile.addWidget(self.wahl_tempo)
         aufbau.addLayout(zeile)
+        # Eine eigene Zeile: Neben den Knöpfen war im schmalen Fenster kein Platz für den Text
+        # („o to next collision (:“, P-2026-10-11-39).
+        kollision = QtGui.QHBoxLayout()
+        kollision.addWidget(self.knopf_kollision)
+        kollision.addStretch()
+        aufbau.addLayout(kollision)
 
         self.schieber = QtGui.QSlider(QtCore.Qt.Horizontal)
         self.schieber.setRange(0, SCHIEBER_SCHRITTE)

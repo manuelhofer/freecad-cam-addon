@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-39 knopf-naechste-kollision-eigene-zeile
+
+### EINGELESEN
+- Im Prüffenster auf Englisch (legros' Kegel, Bilder fürs Forum) stand neben den Abspielknöpfen
+  nur „o to next collision (:“ – der Knopf „Go to next collision (2)“ (P-2026-10-11-35) war im
+  schmalen Fenster abgeschnitten.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`: der Knopf in einer eigenen Zeile unter den Abspielknöpfen.
+- `package.xml` (0.213.45), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_kollision` grün; im Bild steht „Zur nächsten Kollision“ ganz.
+
 ## P-2026-10-11-38 kollision-ausspannung
 
 ### EINGELESEN
