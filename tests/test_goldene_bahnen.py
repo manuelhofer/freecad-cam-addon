@@ -2,7 +2,11 @@
 # Rechnung liefert – Anzahl der Punkte, ein Hash über alle Punkte (auf 1 µm gerundet) und eine
 # Stichprobe. Ändert eine Beschleunigung die Bahn, fällt es hier auf; ändert eine Verbesserung
 # sie mit Absicht, schreibt GOLDENE_BAHNEN_SCHREIBEN=1 die Dateien neu – und der Verlauf sagt,
-# warum. Die Stichprobe nennt den ersten Punkt, der abweicht.
+# warum. Die Stichprobe nennt den ersten Punkt, der abweicht. Je OpenCascade-Version eine eigene
+# Referenz (P-2026-10-11-92; Manuel: „warum passt du das dann nicht an die neue Version an?“): In
+# FreeCAD 26.3 (OCC 8.0) vernetzt OpenCascade die Form etwas anders, die Linien liegen anders und
+# ein Punkt kippt beim Runden um 1 µm – eine Bahn kann nur für eine Version bitgleich feststehen.
+# Ohne Zusatz gilt die Datei für OCC 7.9 (FreeCAD 1.1), sonst `<name>@occ-<Version>.json`.
 import hashlib
 import json
 import os
@@ -23,6 +27,7 @@ from camaddon import vierachs_schlichten as vs
 V = FreeCAD.Vector
 LAENGS, RADIAL = (0, 0, 1), (1, 0, 0)
 ORDNER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "golden")
+OCC_GRUNDDATEI = "7.9"  # für diese OCC-Version (Haupt.Neben) gilt `<name>.json` ohne Zusatz
 SCHREIBEN = os.environ.get("GOLDENE_BAHNEN_SCHREIBEN") == "1"
 STICHPROBE = 97  # jeder so vielte Punkt steht in der Datei
 fehler = []
@@ -102,8 +107,16 @@ def kennzahlen(bahn):
     }
 
 
+def referenzdatei(name):
+    """Die Referenz für die OpenCascade-Version, mit der hier gerechnet wird."""
+    occ = ".".join(Part.OCC_VERSION.split(".")[:2])
+    if occ == OCC_GRUNDDATEI:
+        return os.path.join(ORDNER, name + ".json")
+    return os.path.join(ORDNER, f"{name}@occ-{occ}.json")
+
+
 def vergleiche(name, bahn):
-    pfad = os.path.join(ORDNER, name + ".json")
+    pfad = referenzdatei(name)
     ist = kennzahlen(bahn)
     if SCHREIBEN or not os.path.exists(pfad):
         os.makedirs(ORDNER, exist_ok=True)

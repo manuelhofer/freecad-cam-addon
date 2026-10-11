@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-92 goldene-bahnen-je-occ
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends, zu „`test_goldene_bahnen` ist in RC1 rot – andere Bibliotheken“:
+  „warum … passt du das dann nicht an die neue Version an?“ Nachgesehen in RC1: Schlichten der Welle
+  mit Absatz – ein Punkt kippt beim Runden um 1 µm; Schlichten in Linien – 12 040 → 12 028 Punkte,
+  die Linien liegen anders (OpenCascade 8.0 vernetzt die Form anders). Eine Toleranz reicht dafür
+  nicht; eine Bahn steht nur je Version bitgleich fest.
+
+### DATEIEN
+- `tests/test_goldene_bahnen.py`: `referenzdatei` – für OCC 7.9 (FreeCAD 1.1) die Datei ohne
+  Zusatz, sonst `<name>@occ-<Haupt.Neben>.json`. `tests/golden/*@occ-8.0.json` (in RC1 geschrieben).
+  Snapshot.
+
+### ERGEBNIS
+- Grün in 1.1.4 (OCC 7.9.3), RC1 (OCC 8.0.1) und im Wochen-Build vom 16.09. (OCC 8.0.1, numpy 2.5.4)
+  – RC1 und Wochen-Build rechnen dieselben Bahnen.
+
+### AKZEPTANZKRITERIUM
+- `test_goldene_bahnen` in 1.1.4, RC1 und Wochen-Build.
+
 ## P-2026-10-11-91 g550-wie-grob
 
 ### EINGELESEN

@@ -773,15 +773,16 @@ nächste freie Nummer B-020.
   beheben (Arbeitsregeln, Abschnitt 9). Behoben: Kern-Aufruf (-39), Bohren-Namen (-41), dunkles
   Theme (-42), Räumen mit dem neuen Adaptiv-Kern und Bestmarken je Kern (-43), drei Prüfdateien,
   die in beiden Versionen fielen (-44), Uhren mitten in booleschen Operationen (-45: Absturz im
-  Szenario „Ebene schwenken“). `test_goldene_bahnen` hängt an der Umgebung (numpy, OCCT) – nicht
-  neu schreiben. Im Wochen-Build grün: 13 Szenarien zu Assistent, Bohren, Gewinde, Reiben,
+  Szenario „Ebene schwenken“). `test_goldene_bahnen` hat seit P-2026-10-11-92 eine Referenz je
+  OpenCascade-Version (7.9 für 1.1, 8.0 für 26.3 – RC1 und Wochen-Build gleich): in OCC 8.0
+  liegen die Linien beim Schlichten anders (12 040 → 12 028 Punkte), keine Rundungsfrage. Im Wochen-Build grün: 13 Szenarien zu Assistent, Bohren, Gewinde, Reiben,
   Räumen, Nut, Programm, Schwenken, 4 Achsen; die übrigen 114 nicht gelaufen.
   **Voller Lauf in 26.3.0RC1 (2026-10-10, Manuels Version, Linux-AppImage von GitHub):** 111
   Prüfdateien und 127 Szenarien. Behoben: dunkles Theme in RC1 (-48: Grund der Aufgabenfenster
   #5a5a5a), Job-Gruppe „Workplanes“ (-49), Qt-Installationszeile in 26.3 grundsätzlich abgelehnt
   – die Update-Suche ohne Git geht (-50), 3D-Flächenfarben im 4-Achs-Assistenten (-51, Folge von
   -42, auch in 1.1), B-016 in RC1 behoben (-52). Danach alles grün außer: `test_goldene_bahnen`
-  (Umgebung, wie oben), `szenario_mausrad` (die Rasten per XTest kommen unter gamescope nicht an –
+  (Umgebung, wie oben – seit P-2026-10-11-92 grün), `szenario_mausrad` (die Rasten per XTest kommen unter gamescope nicht an –
   auch in 1.1.4 rot; auf diesem Rechner nicht prüfbar), einmal ein Absturz in
   `szenario_vierachs_schlichten` (`munmap_chunk(): invalid pointer` in `doc.recompute()` nach dem
   Schließen, unter Volllast mit fünf anderen Läufen) – siebenmal danach grün, nicht nachgestellt.
