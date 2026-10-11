@@ -101,11 +101,20 @@ versetzt). An den Rändern der Mulden (Strahl 140° und 215°, a −57 … 0) un
 dreht die Normale gegen die Spirale – C fährt dort je Umdrehung ein Stück zurück: 741 Läufe,
 im Mittel 14°, 22 000° von 171 000° Drehweg (13 %). Jede Umkehr bremst die C-Achse ab und
 wieder an (das rechnet die Zeit im Prüffenster nicht mit), und ein Spiel in C zeigt sich dort.
-Ohne Querachse (Y 0) dreht C stetig – die Kugel berührt dann neben ihrer Achse; wo sie radial
-nicht hinkommt (steile Wände der Mulden, die Seiten der Nase), braucht es Y. Wie viel davon an
-diesem Teil radial ginge, ist noch nicht gemessen – das wäre der erste Schritt nach einem Ja.
+Ohne Querachse (Y 0) dreht C stetig – die Kugel berührt dann neben ihrer Achse. Nachgerechnet
+(11.10. nachts, dieselbe Operation einmal ohne den Haken „Querachse“): **179,9 statt 193,6 min**
+bei 408 mm/min, C dreht 127 000° statt 171 000°, kein einziges Mal zurück. Im Modell der Stange
+nach dem Schruppen bleibt ohne Querachse nur an den beiden Rändern der Mulden mehr stehen –
+höchstens 0,07 mm, an 0,5 % der Stellen:
+
+![Ohne Querachse mehr](bilder/vorschlaege/testteil_4achs_ohne_querachse_mehr.png)
+
+Vorsicht: Das Modell kennt je Strahl nur einen Radius – an steilen Wänden sieht es nicht alles.
+Ob die Seiten der Nase ohne Querachse fertig werden, zeigt erst das Prüffenster (Rest) oder die
+Maschine.
 **Die Frage:** Soll das Schlichten mit Querachse nur dort quer fahren, wo die Kugel radial nicht
-hinkommt, und sonst mit Y 0 stetig drehen? Oder ist dir die Kugel auf der Normalen wichtiger?
+hinkommt, und sonst mit Y 0 stetig drehen? Oder an diesem Teil gleich ohne Querachse (der Haken
+in der Operation)? Oder ist dir die Kugel auf der Normalen wichtiger?
 *Warum nur Manuel:* Es ändert, wie geschlichtet wird (Strategiewahl); wie seine CLX550 mit
 Umkehrungen in C zurechtkommt, weiß nur er.
 *Was die Antwort ändert:* „Querachse“ nur bei Bedarf (angehakt wie bisher, oder als eigener Haken

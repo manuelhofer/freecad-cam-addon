@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-20 frage-9-mit-zahlen
+
+### EINGELESEN
+- Zu Frage 9 nachgerechnet: „Rundum schlichten T2“ am Nasen-Testteil ohne den Haken „Querachse“
+  – 179,9 statt 193,6 min, C dreht nie zurück; im Modell der Stange bleibt nur an den Rändern der
+  Mulden bis 0,07 mm mehr stehen (0,5 % der Stellen).
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Frage 9: Zahlen und zweites Bild), `docs/bilder/vorschlaege/
+  testteil_4achs_ohne_querachse_mehr.png`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Manuel entscheidet Frage 9 mit Zahlen. Nur Doku – kein Testlauf.
+
 ## P-2026-10-11-19 pool-gemeinsam-begrenzt
 
 ### EINGELESEN
