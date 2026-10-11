@@ -1275,6 +1275,7 @@ class _Welt:
         self.beladen = _beladen_koerper(p, daten.beladen)
 
         self._paare = {}  # Glied der Werkzeugaufnahme -> Paare ohne Werkzeug
+        self._felder = {}  # Operation -> ihre Paare als Felder (_Paarfeld)
         self._schon_gemessen = {}  # (a, b) -> berühren sich in der Grundstellung?
         self._faktor = self._drehfaktoren()
         self._fahren = {}  # Glied -> die Achsen, die es fahren
@@ -1295,7 +1296,11 @@ class _Welt:
         self.schlimmste = {}  # (Operation, Name a, Name b, nur Vorschub) -> Befund
         # (a, b) -> (so weit sind sie an der Stelle, an der es gerade ist, mindestens
         # auseinander: zuletzt genau gerechnet, minus dem Weg seither; genau hier gerechnet?)
-        self._schranken = {}
+        self._schranke = None  # je Paar des Felds: Abstand mindestens (np, −inf: unbekannt)
+        self._genau = None  # … hier genau gerechnet?
+        self._schranken_feld = None  # das Paarfeld, zu dem sie gehören
+        for feld in getattr(self, "_felder", {}).values():
+            feld.schon[:] = False  # die Befunde fangen neu an
         self._operation = None  # die Operation des letzten Abschnitts
         # Die geraden Vorschubwege der Operation [(Anfang, Ende)] (Programmpunkte, Rundachsen
         # gleich) – ein Eilgang darauf fährt die Schneide, wo sie schon im Vorschub war.
@@ -1482,25 +1487,23 @@ class _Welt:
         naechste = min(i + 1, len(stationen) - 1)
         von, nach = abfahrt.wirksam(i), abfahrt.wirksam(naechste)
         ziel = stationen[naechste]
-        deltas = [
-            abs(b - a) if a is not None and b is not None else 0.0
-            for a, b in zip(von, nach, strict=True)
-        ]
-        paare = self.paare(ziel.operation)
+        deltas = np.array(
+            [
+                abs(b - a) if a is not None and b is not None else 0.0
+                for a, b in zip(von, nach, strict=True)
+            ]
+        )
+        feld = self._feld(ziel.operation)
         # Je Paar: so weit bewegen sich die beiden gegeneinander auf dem ganzen Abschnitt.
-        paarwege = [
-            sum(d * f for d, f in zip(deltas, self._paarfaktoren(paar), strict=True))
-            for paar in paare
-        ]
+        paarwege = feld.faktoren @ deltas if len(deltas) else np.zeros(len(feld.paare))
         # Die Schranken gelten weiter, wenn die Maschine stetig hierher fuhr – nicht nach
         # einem Sprung (eine Achse bekommt hier ihren ersten Wert), und nur für Paare, die
         # schon bisher zählten: Die anderen fuhren, ohne dass es mitgezählt hat.
-        schluessel = [(id(paar.a), id(paar.b)) for paar in paare]
         sprung = any((a is None) != (b is None) for a, b in zip(von, nach, strict=True))
-        if sprung or ziel.operation != self._operation:
-            self._schranken = {}
-        else:
-            self._schranken = {k: self._schranken[k] for k in schluessel if k in self._schranken}
+        if sprung or ziel.operation != self._operation or self._schranken_feld is not feld:
+            self._schranke = np.full(len(feld.paare), -math.inf)
+            self._genau = np.zeros(len(feld.paare), dtype=bool)
+            self._schranken_feld = feld
         if ziel.operation != self._operation:
             self._vorschubwege = []
         self._operation = ziel.operation
@@ -1508,24 +1511,31 @@ class _Welt:
         # Ein Eilgang, der dort beginnt, wo ein Vorschub aufhörte: je Paar der Schneide der
         # Abstand am Anfang (nach unten abgeschätzt).
         anfang = {} if ziel.eilgang and not stationen[i].eilgang else None
+        bewegt = paarwege > 0
         s = 0.0
         while True:
             self._melden()
             self.ergebnis.stellen += 1
             if self.ergebnis.stellen > HOECHSTENS:
                 return False
-            weiter = self._stelle(
-                i, naechste, s, paare, paarwege, schluessel, ziel, anfang, eigener_weg
-            )
+            weiter = self._stelle(i, naechste, s, feld, paarwege, ziel, anfang, eigener_weg)
             if s >= 1.0 or naechste == i:
                 return True
             neu = min(1.0, s + weiter)
-            for k, weg in zip(schluessel, paarwege, strict=True):
-                if k in self._schranken and weg > 0:
-                    self._schranken[k] = (self._schranken[k][0] - weg * (neu - s), False)
+            gemerkt = bewegt & (self._schranke > -math.inf)
+            if gemerkt.any():
+                self._schranke[gemerkt] -= paarwege[gemerkt] * (neu - s)
+                self._genau[gemerkt] = False
             if weiter == math.inf:  # nichts, was zählt, kommt sich näher
                 return True
             s = neu
+
+    def _feld(self, operation):
+        """Die Paare der Operation als Felder (_Paarfeld), je Operation einmal gebaut."""
+        feld = self._felder.get(operation)
+        if feld is None:
+            feld = self._felder[operation] = _Paarfeld(self, self.paare(operation))
+        return feld
 
     def _melden(self):
         """Ruft den Fortschritt, wenn es Zeit ist; sagt er „aufhören“, endet die Prüfung."""
@@ -1558,15 +1568,18 @@ class _Welt:
         self._eigener_zuletzt = _auf_wegen(anfang, ende, self._vorschubwege)
         return self._eigener_zuletzt
 
-    def _stelle(
-        self, i, naechste, s, paare, paarwege, schluessel, ziel, anfang=None, eigener_weg=False
-    ):
+    def _stelle(self, i, naechste, s, feld, paarwege, ziel, anfang=None, eigener_weg=False):
         """Prüft die Stelle beim Anteil `s` zwischen Station i und der nächsten; gibt zurück,
         wie weit (als Anteil) es von hier sicher weitergeht: je Paar, das hier zählt, sein
         Abstand (nach unten abgeschätzt) minus Warnabstand, mindestens MIN_SCHRITT, geteilt
         durch seinen Weg (`paarwege`); math.inf, wenn sich nichts gegeneinander bewegt.
-        Was es genau rechnet, merkt es als Schranke (`schluessel`: je Paar der Schlüssel).
-        `anfang`: Eilgang nach einem Vorschub – die Abstände der Schneide am Anfang."""
+        Was es genau rechnet, merkt es als Schranke (_schranke, _genau). `anfang`: Eilgang nach
+        einem Vorschub – die Abstände der Schneide am Anfang.
+
+        Die Hüllquader aller Körper und ihre Lücken je Paar rechnet numpy für alle Paare
+        zugleich (_Paarfeld) – je Paar in Python waren es an Manuels Nasen-Testteil auf der
+        CLX550 85 Paare je Stelle, 0,5 ms (P-2026-10-11-85); einzeln geht es nur weiter, wo ein
+        Paar so nah ist, dass die Netzschranke oder OpenCascade entscheiden."""
         abfahrt = self.abfahrt
         von, nach = abfahrt.wirksam(i), abfahrt.wirksam(naechste)
         wege = {}
@@ -1576,95 +1589,84 @@ class _Welt:
             wert = b if a is None else a if b is None else a + s * (b - a)
             wert = self.verfahren.begrenzt(achse, wert)
             wege[achse] = self.verfahren.weg_bei(achse, wert)
-        bewegung = {}
-        huelle = {}
-        quader = {}  # Körper → (Mitte, Achsen, halbe Kanten) seines gedrehten Hüllquaders
+        # Je Glied seine Lage, je Körper (Glied · Basis) sein Hüllquader in Weltachsen.
+        bewegung = []
+        lagen = np.empty((len(feld.glieder), 4, 4))
+        for g, glied in enumerate(feld.glieder):
+            platz = self.pruefung._glied_lage(glied, wege)
+            bewegung.append(platz)
+            lagen[g] = np.array(platz.toMatrix().A).reshape(4, 4)
+        m = np.matmul(lagen[feld.glied_von], feld.basis)
+        drehung = m[:, :3, :3]
+        mitte = np.einsum("kij,kj->ki", drehung, feld.mitte) + m[:, :3, 3]
+        halb = np.einsum("kij,kj->ki", np.abs(drehung), feld.halb)
+        unten, oben = mitte - halb, mitte + halb
+        pa, pb = feld.pa, feld.pb
+        spalt = np.maximum(np.maximum(unten[pa] - oben[pb], unten[pb] - oben[pa]), 0.0)
+        # Welche Paare zählen hier?
+        aktiv = ~feld.schon
+        if ziel.eilgang:
+            aktiv &= ~feld.nur_vorschub
+        else:
+            aktiv &= ~feld.nur_eilgang
+        if eigener_weg:
+            aktiv &= ~feld.nur_eilgang  # die Schneide fährt, wo sie eben im Vorschub war
+        schranke, genau = self._schranke, self._genau
+        reicht = feld.reicht
+        abstand = np.maximum(np.sqrt(np.sum(spalt * spalt, axis=1)), schranke)
+        # Enger: die gedrehten Hüllquader – an einem gekippten Rundtisch ist der Quader in
+        # Weltachsen riesig, längs seiner Normalen bleibt er flach.
+        nah = aktiv & ~genau & (abstand <= reicht + QUADER_NAH)
+        if nah.any():
+            a_, b_ = pa[nah], pb[nah]
+            abstand[nah] = np.maximum(
+                abstand[nah],
+                _quader_luecken(
+                    mitte[a_], drehung[a_], feld.halb[a_], mitte[b_], drehung[b_], feld.halb[b_]
+                ),
+            )
         platzierung = {}  # Körper → seine Lage hier; an die Form erst, wenn genau gerechnet wird
 
-        def lage(koerper):
-            if koerper not in huelle:
-                glied = koerper.glied
-                if glied not in bewegung:
-                    bewegung[glied] = self.pruefung._glied_lage(glied, wege)
-                platz = bewegung[glied].multiply(koerper.basis)
-                platzierung[koerper] = platz
-                m = platz.toMatrix()
-                cx, cy, cz = koerper.mitte
-                hx, hy, hz = koerper.halb
-                x = m.A11 * cx + m.A12 * cy + m.A13 * cz + m.A14
-                y = m.A21 * cx + m.A22 * cy + m.A23 * cz + m.A24
-                z = m.A31 * cx + m.A32 * cy + m.A33 * cz + m.A34
-                ex = abs(m.A11) * hx + abs(m.A12) * hy + abs(m.A13) * hz
-                ey = abs(m.A21) * hx + abs(m.A22) * hy + abs(m.A23) * hz
-                ez = abs(m.A31) * hx + abs(m.A32) * hy + abs(m.A33) * hz
-                huelle[koerper] = (x - ex, y - ey, z - ez, x + ex, y + ey, z + ez)
-                quader[koerper] = (
-                    (x, y, z),
-                    ((m.A11, m.A21, m.A31), (m.A12, m.A22, m.A32), (m.A13, m.A23, m.A33)),
-                    koerper.halb,
-                )
-            return huelle[koerper]
+        def platz(koerper):
+            if koerper not in platzierung:
+                g = feld.glied_index[id(koerper)]
+                platzierung[koerper] = bewegung[g].multiply(koerper.basis)
+            return platzierung[koerper]
 
         def rechne_genau(k):
-            for koerper in (paare[k].a, paare[k].b):
-                koerper.form.Placement = platzierung[koerper]
-            abstand, stelle = self._abstand(paare[k].a, paare[k].b)
-            self._schranken[schluessel[k]] = (abstand, True)
-            return abstand, stelle
+            paar = feld.paare[k]
+            for koerper in (paar.a, paar.b):
+                koerper.form.Placement = platz(koerper)
+            wert, stelle = self._abstand(paar.a, paar.b)
+            schranke[k], genau[k] = wert, True
+            return wert, stelle
 
-        schritte = {}  # Paar (Index) -> [Anteil bis zur nächsten Stelle, genau gerechnet?]
-        for k, (paar, weg) in enumerate(zip(paare, paarwege, strict=True)):
-            if paar.nur_eilgang and not ziel.eilgang or paar.nur_vorschub and ziel.eilgang:
-                continue
-            if paar.nur_eilgang and eigener_weg:
-                continue  # die Schneide fährt, wo sie eben im Vorschub war (_eigener_weg)
-            if self._beruehrt_schon(ziel.operation, paar):
-                continue  # schlimmer wird es nicht
-            # Beim Kern zählt nur eine Berührung: kein Warnabstand, auch nicht für den Schritt.
-            reicht = BERUEHRT if paar.nur_vorschub else self.warn
-            # Genau hier schon gerechnet (am Ende des letzten Abschnitts): auch gemerkt.
-            schranke, ist_genau = self._schranken.get(schluessel[k], (-math.inf, False))
-            # Der Abstand der Hüllquader (wie _luecke, hier ausgeschrieben – je Stelle viele Paare).
-            h1 = huelle.get(paar.a) or lage(paar.a)
-            h2 = huelle.get(paar.b) or lage(paar.b)
-            dx = max(h1[0] - h2[3], h2[0] - h1[3], 0.0)
-            dy = max(h1[1] - h2[4], h2[1] - h1[4], 0.0)
-            dz = max(h1[2] - h2[5], h2[2] - h1[5], 0.0)
-            abstand = max(math.sqrt(dx * dx + dy * dy + dz * dz), schranke)
-            if abstand <= reicht + QUADER_NAH and not ist_genau:
-                # Enger: die gedrehten Hüllquader – an einem gekippten Rundtisch ist der Quader
-                # in Weltachsen riesig, längs seiner Normalen bleibt er flach.
-                abstand = max(abstand, _quader_luecke(quader[paar.a], quader[paar.b]))
-            # Die Netzschranke schon gerechnet? Und sagt sie den Abstand fast genau (das Netz sieht
-            # die Oberfläche näher als eine Zelle) – dann lohnt kein genauer Abstand mehr für den
-            # Schritt, er wäre kaum größer.
-            geschaetzt, knapp = False, False
-            if abstand <= reicht and not ist_genau:
-                # Enger noch: das Werkzeugteil als Kapseln gegen das Netz des anderen – meist
-                # entscheidet das, ohne OpenCascade (Spezifikation Strategien 16.5, Hebel 2).
-                netz = self._netzschranke(paar, platzierung, reicht)
-                if netz is not None:
-                    geschaetzt = True
-                    knapp = netz[1]
-                    if netz[0] > abstand:
-                        abstand = netz[0]
-                        self._schranken[schluessel[k]] = (abstand, False)
-            if abstand <= reicht and not ist_genau:  # vielleicht ein Befund
-                abstand, stelle = rechne_genau(k)
-                ist_genau = True
-                if geschaetzt:
-                    self._netz_gelernt(paar, abstand > reicht)
-                if abstand <= reicht and _zaehlt(paar, k, abstand, s, anfang):
-                    self._merke(paar, abstand, stelle, i, naechste, s, ziel)
-            if anfang is not None and paar.nur_eilgang and s == 0.0:
-                anfang[k] = abstand
-            if weg > 1e-9:
-                schritte[k] = [
-                    self._anteil(paar, abstand, weg),
-                    ist_genau or knapp,
-                    geschaetzt,
-                    abstand,
-                ]
+        geschaetzt = np.zeros(len(feld.paare), dtype=bool)
+        knapp = np.zeros(len(feld.paare), dtype=bool)
+        for k in np.flatnonzero(aktiv & ~genau & (abstand <= reicht)):
+            paar = feld.paare[k]
+            # Enger noch: das Werkzeugteil als Kapseln gegen das Netz des anderen – meist
+            # entscheidet das, ohne OpenCascade (Spezifikation Strategien 16.5, Hebel 2).
+            netz = self._netzschranke(paar, platz, reicht[k])
+            if netz is not None:
+                geschaetzt[k] = True
+                knapp[k] = netz[1]
+                if netz[0] > abstand[k]:
+                    abstand[k] = netz[0]
+                    schranke[k], genau[k] = netz[0], False
+            if abstand[k] <= reicht[k]:  # vielleicht ein Befund
+                abstand[k], stelle = rechne_genau(k)
+                if geschaetzt[k]:
+                    self._netz_gelernt(paar, abstand[k] > reicht[k])
+                if abstand[k] <= reicht[k] and _zaehlt(paar, k, abstand[k], s, anfang):
+                    self._merke(paar, float(abstand[k]), stelle, i, naechste, s, ziel)
+                    befund = self.schlimmste.get(
+                        (ziel.operation, paar.a.name, paar.b.name, paar.nur_vorschub)
+                    )
+                    feld.schon[k] = befund is not None and befund.abstand <= 0.0
+        if anfang is not None and s == 0.0:
+            for k in np.flatnonzero(aktiv & feld.nur_eilgang):
+                anfang[int(k)] = float(abstand[k])
         # Macht ein Paar den Schritt nur mit seiner Schranke am kürzesten, rechnet es genau –
         # oft liegt es weiter weg, als die Schranke sagt; außer der Schritt reicht auch so bis
         # zur nächsten Station. Davor einmal die Netzschranke, wenn sie noch fehlt: Sie reicht
@@ -1673,25 +1675,31 @@ class _Welt:
         # immer EINDRINGEN von der Oberfläche, ein genauer Abstand machte den Schritt nicht
         # größer). Befunde gibt es dabei keine mehr: Der genaue Abstand ist nie kleiner als
         # die Schranke.
-        while schritte:
-            k = min(schritte, key=lambda j: schritte[j][0])
-            anteil, fertig, geschaetzt, abstand = schritte[k]
-            if fertig or s + anteil >= 1.0:
-                return anteil
-            if not geschaetzt:
-                schritte[k][2] = True
-                reicht = BERUEHRT if paare[k].nur_vorschub else self.warn
-                netz = self._netzschranke(paare[k], platzierung, reicht)
-                if netz is not None and (netz[0] > abstand or netz[1]):
-                    if netz[0] > abstand:
-                        self._schranken[schluessel[k]] = (netz[0], False)
-                        schritte[k][0] = self._anteil(paare[k], netz[0], paarwege[k])
-                        schritte[k][3] = netz[0]
-                    schritte[k][1] = netz[1]
+        kandidaten = np.flatnonzero(aktiv & (paarwege > 1e-9))
+        if not len(kandidaten):
+            return math.inf
+        weg = paarwege[kandidaten]
+        anteile = np.maximum(abstand[kandidaten] - feld.abzug[kandidaten], MIN_SCHRITT) / weg
+        fertig = genau[kandidaten] | knapp[kandidaten]
+        while True:
+            j = int(np.argmin(anteile))
+            k = int(kandidaten[j])
+            if fertig[j] or s + anteile[j] >= 1.0:
+                return float(anteile[j])
+            if not geschaetzt[k]:
+                geschaetzt[k] = True
+                netz = self._netzschranke(feld.paare[k], platz, reicht[k])
+                if netz is not None and (netz[0] > abstand[k] or netz[1]):
+                    if netz[0] > abstand[k]:
+                        schranke[k], genau[k] = netz[0], False
+                        abstand[k] = netz[0]
+                        anteile[j] = max(netz[0] - feld.abzug[k], MIN_SCHRITT) / weg[j]
+                    fertig[j] = netz[1]
                     continue
-            abstand, _stelle = rechne_genau(k)
-            schritte[k] = [self._anteil(paare[k], abstand, paarwege[k]), True, True, abstand]
-        return math.inf
+            wert, _stelle = rechne_genau(k)
+            abstand[k] = wert
+            anteile[j] = max(wert - feld.abzug[k], MIN_SCHRITT) / weg[j]
+            fertig[j] = True
 
     def _netz_gelernt(self, paar, umsonst):
         """Merkt je Paar, ob die Netzschranke umsonst war (sie entschied nichts, der genaue
@@ -1717,7 +1725,7 @@ class _Welt:
         if netz is None:
             return None
         # Die Kapseln in die Koordinaten des anderen: seine Lage zurück, die des Werkzeugs hin.
-        m = platzierung[anderer].inverse().multiply(platzierung[werkzeug]).toMatrix()
+        m = platzierung(anderer).inverse().multiply(platzierung(werkzeug)).toMatrix()
         p0 = np.array([k[0] for k in werkzeug.kapseln], dtype=float)
         p1 = np.array([k[1] for k in werkzeug.kapseln], dtype=float)
         radius = np.array([k[2] for k in werkzeug.kapseln])
@@ -1734,17 +1742,6 @@ class _Welt:
         k = int(np.argmin(werte))
         knapp = bool(werte[k] < reichweite - radius[k] - netz.toleranz - 1e-9)
         return float(werte[k]), knapp
-
-    def _beruehrt_schon(self, operation, paar):
-        """Stecken die beiden in dieser Operation schon ineinander (Abstand 0)? Dann bleibt
-        der Befund, wie er ist – das Paar braucht nicht mehr gerechnet zu werden."""
-        befund = self.schlimmste.get((operation, paar.a.name, paar.b.name, paar.nur_vorschub))
-        return befund is not None and befund.abstand <= 0.0
-
-    def _anteil(self, paar, abstand, weg):
-        """So weit (als Anteil am Abschnitt) darf es bei diesem Abstand weitergehen."""
-        abzug = 0.0 if paar.nur_vorschub else self.warn
-        return max(abstand - abzug, MIN_SCHRITT) / weg
 
     def _abstand(self, a, b):
         """(Abstand in mm, Stelle) zweier Körper an ihrer gesetzten Lage; 0, wenn sie sich
@@ -1803,6 +1800,59 @@ class _Welt:
             anschlag=anschlag,
             halter_am_teil=halter_am_teil,
         )
+
+
+class _Paarfeld:
+    """Die Paare einer Operation als Felder für _stelle: je Körper sein Glied, seine Basis
+    (4 × 4), Mitte und halbe Kanten seines Hüllquaders; je Paar die Körper, was zählt, und je
+    Achse, wie weit sich die beiden gegeneinander bewegen (_paarfaktoren)."""
+
+    def __init__(self, welt, paare):
+        self.paare = paare
+        koerper, index = [], {}
+        for paar in paare:
+            for k in (paar.a, paar.b):
+                if id(k) not in index:
+                    index[id(k)] = len(koerper)
+                    koerper.append(k)
+        glieder, glied_index = [], {}
+        for k in koerper:
+            if id(k.glied) not in glied_index:
+                glied_index[id(k.glied)] = len(glieder)
+                glieder.append(k.glied)
+        self.glieder = glieder
+        self.glied_von = np.array([glied_index[id(k.glied)] for k in koerper], dtype=int)
+        self.glied_index = {id(k): glied_index[id(k.glied)] for k in koerper}
+        self.basis = np.array([np.array(k.basis.toMatrix().A).reshape(4, 4) for k in koerper])
+        self.basis = self.basis.reshape(len(koerper), 4, 4)
+        self.mitte = np.array([k.mitte for k in koerper], dtype=float).reshape(-1, 3)
+        self.halb = np.array([k.halb for k in koerper], dtype=float).reshape(-1, 3)
+        self.pa = np.array([index[id(p.a)] for p in paare], dtype=int)
+        self.pb = np.array([index[id(p.b)] for p in paare], dtype=int)
+        self.nur_eilgang = np.array([p.nur_eilgang for p in paare], dtype=bool)
+        self.nur_vorschub = np.array([p.nur_vorschub for p in paare], dtype=bool)
+        # Beim Kern zählt nur eine Berührung: kein Warnabstand, auch nicht für den Schritt.
+        self.reicht = np.where(self.nur_vorschub, BERUEHRT, welt.warn)
+        self.abzug = np.where(self.nur_vorschub, 0.0, welt.warn)
+        self.faktoren = np.array([welt._paarfaktoren(p) for p in paare], dtype=float).reshape(
+            len(paare), len(welt.abfahrt.achsen)
+        )
+        # Stecken die beiden in dieser Operation schon ineinander (Abstand 0)? Dann bleibt der
+        # Befund, wie er ist – das Paar braucht nicht mehr gerechnet zu werden.
+        self.schon = np.zeros(len(paare), dtype=bool)
+
+
+def _quader_luecken(ca, ra, ha, cb, rb, hb):
+    """_quader_luecke für viele Paare zugleich: je Paar (Mitten (n, 3), Drehungen (n, 3, 3) –
+    die Achsen in den Spalten –, halbe Kanten (n, 3)) die größte Lücke der Schatten auf die
+    sechs Kantenrichtungen; 0, wenn überall überdeckt."""
+    achsen_a = np.swapaxes(ra, 1, 2)  # je Zeile eine Achse
+    achsen_b = np.swapaxes(rb, 1, 2)
+    u = np.concatenate([achsen_a, achsen_b], axis=1)  # (n, 6, 3)
+    schatten_a = np.einsum("nuk,nk->nu", np.abs(np.einsum("nuj,nkj->nuk", u, achsen_a)), ha)
+    schatten_b = np.einsum("nuk,nk->nu", np.abs(np.einsum("nuj,nkj->nuk", u, achsen_b)), hb)
+    luecke = np.abs(np.einsum("nuj,nj->nu", u, cb - ca)) - schatten_a - schatten_b
+    return np.maximum(luecke.max(axis=1), 0.0)
 
 
 def _am_anschlag(abfahrt, verfahren, i, naechste, s):

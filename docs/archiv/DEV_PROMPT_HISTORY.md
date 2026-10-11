@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-85 kollision-paare-als-felder
+
+### EINGELESEN
+- „Kollision prüfen“ an Manuels Nasen-Testteil auf der CLX550 (seine Werkzeuge): 155 s. Je Stelle
+  prüfte `_stelle` 85 Körperpaare einzeln in Python (Hüllquader, gedrehte Quader, Schranken),
+  `paare()` baute die Liste je Station neu.
+- Gemessen danach: Die Gesamtzeit bestimmen wenige Stücke (576 Stücke, im Mittel 3,3 s, das
+  teuerste 64 s) – Strecken, auf denen ein Halter das Teil berührt oder fast berührt: dort je
+  Stelle ein genauer Abstand in OpenCascade (20–70 ms). Am teuersten Stück 236 genaue Abstände
+  Halter T2 / Teil mit Abstand 0 – im alten wie im neuen Stand (offen, nächster Schritt).
+
+### DATEIEN
+- `camaddon/kollision.py`: `_Paarfeld` (die Paare einer Operation als Felder, je Operation einmal),
+  `_stelle` rechnet Hüllquader aller Körper und Lücken aller Paare mit numpy, die gedrehten Quader
+  vektorisiert (`_quader_luecken`); einzeln nur noch Netzschranke und OpenCascade; Schranken als
+  Felder (`_schranke`, `_genau`); `_beruehrt_schon` und `_anteil` entfallen.
+- `package.xml` (0.213.89), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Bitgleich: an fünf Abschnitten der Nase dieselbe Zahl Stellen und dieselben Befunde.
+- Abschnitte ohne Berührung 1,3–1,9× schneller (Schlichten, 6000 Stationen: 4,35 → 2,41 s); der
+  ganze Lauf nur 155 → 147 s – die Berührungsstrecken bestimmen ihn.
+
+### AKZEPTANZKRITERIUM
+- `test_kollision`, `test_kollision_verteilt`, `test_vierachs_pruefen`, `test_netzabstand`,
+  `test_spannung`, `test_entgraten3d`, `test_wegkippen`, `test_simultan_bereiche`,
+  `test_vierachs_entgraten`, `test_simultan_planung`, `test_simultan_folge`,
+  `test_simultan_maschinen` grün.
+
 ## P-2026-10-11-84 nadeln-nachholen
 
 ### EINGELESEN
