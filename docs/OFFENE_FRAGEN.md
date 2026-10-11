@@ -11,35 +11,36 @@ Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* –
 (Die Fragen 1–3 hat Manuel in P-2026-10-10-08 beantwortet, Frage 4 in P-2026-10-10-36, 5 und 7–9
 in P-2026-10-11-30 – siehe Verlauf.)
 
-### 6. Die Schrittweite der Kugel aus der Kammhöhe – und was gilt, wenn die Werkzeugtabelle weniger sagt?
+### 6. Die Schrittweite der Kugel aus der Kammhöhe – welche Kammhöhe ohne Vorgabe?
 
-Manuel (11.10.): „0.005mm kammhöhe ist quatsch … ich finde eine kammhöhe von 0.035 sogar völlig in
-ordnung beim schlichten mit kugel … von daher sollten wir den seitlichen vorschub vll an die
-kammhöhe koppeln?? ich mein wenn in der werkzeugliste steht das der fräser nicht mehr kann ists
-doof … aber ich glaub kammhöhe sollte dennoch unseren vorschlag beeinflussen“. Die Stange Ø 90
-bleibt (beantwortet).
+Manuel (11.10.): Die Stange Ø 90 bleibt; die Schrittweite soll von der Kammhöhe abhängen (0,035 mm
+ist für ihn beim Kugelschlichten in Ordnung); dazu eine eigene Spalte „ae höchstens“ in der
+Werkzeugtabelle (Wahl c) – „wenn wir mit dem kugelfäser angestellt fahren .. sind die 0,4
+hinfällig .. ich denke die 0.4 beziehen sich nur wenn du mit der spitze fährst“.
 
-Heute: Schrittweite = ae des Einsatzes „Schlichten“ aus der Werkzeugtabelle (Manuel, 2026-09-30) –
-bei T2 (Kugel Ø 8) 0,4 mm. Am Nasen-Testteil, „Rundum schlichten T2“ mit Querachse, 408 mm/min,
-Freivorschub 10 m/min (11.10. gerechnet):
+Nachgesehen (11.10., Herstellerseiten): T2 ist der HOLEX-Vollradiusfräser 207125-8 (Ø 8, Z2);
+Hoffmann nennt „Eingriffsbreite max. ae = 0,05 × D“ und „Schnitttiefe max. 0,4“ zu seiner
+vc-Tabelle – zur Rautiefe und zum Anstellen sagt die Seite nichts. Andere: Gühring GF 500 B
+(gleiche Art) 0,1 × D in Stahl und Alu (0,8 mm, Kammhöhe ≈ 0,02), 0,05 × D erst ab 54 HRC;
+GARANT 207028 für Alu 0,03 × D; Sandvik zum Feinstschlichten 10–15° anstellen (wegen vc = 0 in der
+Mitte), Mitsubishi iMX 0,25 × D. Kein Hersteller sagt, dass Anstellen ein größeres ae erlaubt –
+es verbessert Schnitt und Standzeit; die Kammhöhe auf einer Ebene hängt nur von R und ae ab. Das
+Katalog-ae ist der Eingriff, für den vc und fz gelten (Gühring: weniger ae, mehr vc), keine
+Grenze der Oberfläche. Üblich sind 0,01–0,02 mm Kammhöhe (Gühring ≈ 0,02 bei Ø 8), 0,005 mm nur
+vor dem Polieren.
 
-| Kammhöhe | Schrittweite | Zeit |
+| Kammhöhe | Schrittweite (R 4) | Zeit am Nasen-Testteil (vor P-2026-10-11-37) |
 | --- | --- | --- |
-| 0,005 mm (heute) | 0,40 mm | 187,5 min |
+| 0,005 mm (heute, ae 0,4) | 0,40 mm | 187,5 min |
 | 0,010 mm | 0,57 mm | 132,5 min |
 | 0,020 mm | 0,80 mm | 94,4 min |
-| **0,035 mm** | **1,06 mm** | **71,7 min** |
+| 0,035 mm | 1,06 mm | 71,7 min |
 
-**Die Frage:** Wie sollen Kammhöhe und Tabelle zusammen den Vorschlag machen?
-(a) Schrittweite aus der Kammhöhe (Vorgabe 0,035 mm, im Assistenten änderbar), die ae der Tabelle
-nur als Obergrenze – bei T2 bliebe es bei 0,4, bis die Tabelle mehr sagt;
-(b) Schrittweite aus der Kammhöhe, die ae der Tabelle zählt fürs Schlichten mit Kugel/Torus nicht
-mehr – bei T2 1,06 mm;
-(c) wie (b), aber eine eigene Spalte „ae höchstens“ in der Werkzeugtabelle, die dann gilt.
-*Warum nur Manuel:* Es ändert den Vorschlag ohne Vorgabe (Strategiewahl), und was die Kugel an
-seiner Maschine aushält, weiß nur er.
-*Was die Antwort ändert:* `vierachs_schlichten.schrittweite_vorschlag` (und das 3D-Schlichten im
-3-Achs-Assistenten genauso?), ein Feld „Kammhöhe“ im Schritt 2.
+**Die Frage:** Welche Kammhöhe soll der Assistent ohne Vorgabe nehmen – deine 0,035 mm oder 0,02
+mm wie bei Gühring? (Gebaut wird: Feld „Kammhöhe“ im Schritt 2, die Schrittweite daraus, höchstens
+„ae höchstens“ aus der neuen Spalte der Werkzeugtabelle, wenn dort etwas steht.)
+*Warum nur Manuel:* der Vorschlag ohne Vorgabe (Strategiewahl).
+*Was die Antwort ändert:* die Vorgabe des neuen Felds.
 Seit 2026-10-10, neu gefasst 2026-10-11.
 
 ### 10. Die Nase mit dem Schaftfräser fertig – so, wie im Bild?
