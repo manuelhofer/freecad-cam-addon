@@ -290,7 +290,9 @@ abgearbeitet):
 3. **Kollision (Frage 7):** ~~im Abspieler an der Kollision anhalten, Knopf „Zur nächsten
    Kollision“~~ (P-2026-10-11-35); ~~klare Meldung, wenn die Ausspannlänge nicht reicht~~
    („bräuchte mindestens … mm“ im Befund, P-2026-10-11-38; an der Flanke P-2026-10-11-33; im
-   4-Achs-Assistenten schon vor dem Anlegen, P-2026-10-11-51). Offen: die Bahn weicht aus
+   4-Achs-Assistenten schon vor dem Anlegen, P-2026-10-11-51; „T1 auf … mm ausspannen“ als Verweis
+   im Assistenten und im Prüffenster, P-2026-10-11-63/-64 – die Flanke im 3-Achs-Assistenten noch
+   nicht: ihr Anstoß kommt als Fehlertext vom Nebenrechner). Offen: die Bahn weicht aus
    (Anstellung, Y), wo die Form des Teils bleibt – am Nasen-Testteil hilft das nicht (ER32 Ø 50 über
    einer 20 mm breiten Nase, zu kurz eingespannt); die Maschine selbst (Kopf, Revolver) beim Rechnen
    der Bahn.
