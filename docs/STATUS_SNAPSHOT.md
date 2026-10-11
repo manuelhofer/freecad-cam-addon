@@ -56,14 +56,18 @@ echte Luft nur Räumen T1 7 s (ein Ring 1 mm vor einer schon freien Wand) und 3D
 letzten 2 mm des Eintauchens) – nicht der Rede wert; was das 0,5-mm-Raster sonst als Luft zeigt, ist
 die 0,3-mm-Haut an den Wänden, die es nicht auflöst (genau nachgerechnet: die Kontur nimmt sie).
 
-**Der 11.10. abends (P-2026-10-11-73 bis -76, 0.213.77 → 0.213.80):** Hilfe zu den Neuerungen
+**Der 11.10. abends (P-2026-10-11-73 bis -78, 0.213.77 → 0.213.82):** Hilfe zu den Neuerungen
 nachgezogen. Bohrungen beim Anklicken je Form und Fläche gemerkt (Deckel 1102 → 8 Fragen, 3,4 →
 1,6 s). Der räumliche Rest vor einer 3+2-Ebene trägt gesammelt ab und fängt beim Stand der vorigen
 Ebene an (Schwenkteil, beide Ebenen 18,6 → 3,7 s, derselbe Rest); FreeCADs Adaptiv-Kern rechnet
 mit Oberfläche auf einem Nebenrechner – Schwenkteil längste Pause 14,8 → 1,05 s. **Gefunden:
 FreeCADs Adaptiv-Kern (libarea) liefert bei gleicher Eingabe nicht dieselbe Bahn** (sechs Aufrufe,
 sechs Bahnen) – „Räumen“ mit Adaptiv hat darum je Sitzung ein paar Sätze mehr oder weniger; das
-liegt in FreeCAD.
+liegt in FreeCAD. Das Räumen rechnet ohne Vorgabe die Ringvarianten gleichzeitig auf den
+Nebenrechnern, „adaptiv“ derweil im Hauptprozess (-77: Testteil 6,0 → 4,1 s mit warmen
+Arbeitern). Alle Operationen atmen bei jedem Neuberechnen, nicht nur beim Anlegen; die übrigen
+Uhren und die Rückrufe angeklickter Flächen laufen dafür nie mitten in einer Rechnung (-78:
+3D-Schlichten umstellen 2,25 → 0,62 s).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
