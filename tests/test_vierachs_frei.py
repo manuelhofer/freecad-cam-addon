@@ -225,6 +225,16 @@ for quer in (True, False):
     schneiden = int(np.sum(frei & (weg > 0)))
     pruefe(schneiden == 0, f"Nase, Querachse {quer}: {schneiden} freie Sätze schneiden Material")
     pruefe(frei.any(), f"Nase, Querachse {quer}: kein freier Satz mehr")
+    if quer:
+        # „C dreht nicht zurück“ (Stetig, in älteren Operationen angehakt; P-2026-10-11-37): Die
+        # Rundachse läuft längs der Spirale nie zurück – bis dahin 741-mal, 22 000°.
+        winkel = np.array([p.phi for p in bahn.punkte if not p.eilgang])
+        schritte = np.diff(winkel) * np.sign(winkel[-1] - winkel[0])
+        pruefe(bool(sop.Stetig), "Nase: „C dreht nicht zurück“ nicht angehakt")
+        pruefe(
+            float(schritte.min()) > -1e-6,
+            f"Nase: C dreht {float(-schritte[schritte < 0].sum()):.0f}° zurück",
+        )
 FreeCAD.closeDocument(nase.Name)
 
 FreeCAD.closeDocument(asm.Document.Name)

@@ -667,4 +667,22 @@ pruefe(
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
+
+# _stetig (P-2026-10-11-37): ψ läuft nie zurück, liegt zwischen Normale und radial (φ + Neigung),
+# folgt der Normalen, wo sie vorwärts läuft; geht es nicht, bleibt ψ stehen.
+_phi = np.arange(0.0, 50.0, 1.0)
+_psi = _phi + 8.0 * np.sin(_phi / 3.0)  # die Normale pendelt um den Strahl, läuft auch zurück
+for _richtung in (1.0, -1.0):
+    _st = vb._stetig(_richtung * _psi, _richtung * _phi, 0.0)
+    _d = np.diff(_st) * _richtung
+    assert _d.min() > -1e-9, f"_stetig läuft zurück ({_richtung})"
+    _lo = np.minimum(_richtung * _psi, _richtung * _phi) - 1e-9
+    _hi = np.maximum(_richtung * _psi, _richtung * _phi) + 1e-9
+    _gehalten = np.concatenate([[False], np.abs(np.diff(_st)) < 1e-12])
+    assert (((_st >= _lo) & (_st <= _hi)) | _gehalten).all(), f"_stetig außerhalb ({_richtung})"
+_vorwaerts = np.arange(10.0) * 2.0
+assert np.allclose(
+    vb._stetig(_vorwaerts + 1.0, _vorwaerts, 0.0), _vorwaerts + 1.0
+), "_stetig ändert"
+
 print("OK", os.path.basename(__file__))

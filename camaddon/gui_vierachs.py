@@ -553,6 +553,7 @@ class VierachsPanel:
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
         self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
         self._anstellen_von_hand = False  # der Haken „Kugel anstellen“ von Hand gesetzt
+        self._stetig_von_hand = False  # der Haken „C dreht nicht zurück“ von Hand gesetzt
         self._querachse_schruppen_von_hand = False  # … beim Schruppen
         self.gewaehlte = []  # die Flächen zum Fräsen („Face3“ …), V4 – leer: rundum
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
@@ -780,6 +781,11 @@ class VierachsPanel:
             self._anstellen_vorschlagen()
             self.schlichten_anstellen.setChecked(
                 self.schlichten_anstellen.isEnabled() and bool(getattr(op, "Anstellen", True))
+            )
+            self._stetig_von_hand = True
+            self._stetig_vorschlagen()
+            self.schlichten_stetig.setChecked(
+                self.schlichten_stetig.isEnabled() and bool(getattr(op, "Stetig", True))
             )
         elif self._art == PLAN:
             paare = [
@@ -1356,6 +1362,12 @@ class VierachsPanel:
         self.schlichten_anstellen.setToolTip(tr("va.anstellen.tooltip"))
         self.schlichten_anstellen.toggled.connect(lambda _an: self._anstellen_umgeschaltet())
         schlichten.ganz(self.schlichten_anstellen)
+        # C dreht dabei nicht zurück (P-2026-10-11-37; Manuel zu Frage 9: „nur da wo y nötig ist
+        # … ist das the way to go“): frei mit der Querachse, dann angehakt.
+        self.schlichten_stetig = QtGui.QCheckBox(tr("va.stetig"))
+        self.schlichten_stetig.setToolTip(tr("va.stetig.tooltip"))
+        self.schlichten_stetig.toggled.connect(lambda _an: self._stetig_umgeschaltet())
+        schlichten.ganz(self.schlichten_stetig)
         self.schlichtfelder = schlichten.widget
         aufbau.addWidget(self.schlichtfelder)
         self.ergebnis_schlichten = grau()
@@ -2057,6 +2069,7 @@ class VierachsPanel:
         self.querachse_grund.setText(grund)
         self._haken_setzen(self.schlichten_querachse, geht, self._querachse_von_hand)
         self._anstellen_vorschlagen()
+        self._stetig_vorschlagen()
         # Beim Schruppen: rundum (mit gewählten Flächen fährt es Zeilen) und ein Fräser mit Form.
         schrupp_form = ff.von_werkzeug(self.fraeser()) if self.fraeser() is not None else None
         if not achse.quer:
@@ -2104,6 +2117,24 @@ class VierachsPanel:
         """Die Kugel mit der Querachse anstellen (angehakt und möglich)?"""
         return self.schlichten_anstellen.isEnabled() and self.schlichten_anstellen.isChecked()
 
+    def _stetig_vorschlagen(self):
+        """Der Haken „C dreht nicht zurück“: frei mit der Querachse, dann angehakt, solange man ihn
+        nicht von Hand gesetzt hat."""
+        quer = self.schlichten_querachse.isChecked() and self.schlichten_querachse.isEnabledTo(
+            self.schlichtfelder
+        )
+        self._haken_setzen(self.schlichten_stetig, quer, self._stetig_von_hand)
+
+    def stetig(self):
+        """Mit der Querachse dreht C nicht zurück (angehakt und möglich)?"""
+        return self.schlichten_stetig.isEnabled() and self.schlichten_stetig.isChecked()
+
+    def _stetig_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._stetig_von_hand = True
+        self._vorschau_starten()
+
     def querachse_schruppen(self):
         """Schruppen mit der Querachse (angehakt und möglich)?"""
         return self.schruppen_querachse.isEnabled() and self.schruppen_querachse.isChecked()
@@ -2113,6 +2144,7 @@ class VierachsPanel:
             return
         self._querachse_von_hand = True
         self._anstellen_vorschlagen()
+        self._stetig_vorschlagen()
         self._vorschau_starten()
 
     def _anstellen_umgeschaltet(self):
@@ -2404,6 +2436,7 @@ class VierachsPanel:
             "nur_gleichlauf": self.linien_nur_gleichlauf.isChecked(),
             "querachse": self.querachse(),
             "anstellen": self.anstellen(),
+            "stetig": self.stetig(),
         }
 
     def _schlicht_text(self, bahn):
@@ -3997,6 +4030,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                         querachse=self.querachse(),
                         anstellen=self.anstellen(),
+                        stetig=self.stetig(),
                     )
                     self._aufloesung_setzen(neu_schlichten, schlichten=True)
                     angelegt.append(neu_schlichten)
@@ -4125,6 +4159,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                         querachse=self.querachse(),
                         anstellen=self.anstellen(),
+                        stetig=self.stetig(),
                     )
                     self._aufloesung_setzen(op, schlichten=True)
                 elif self._art == PLAN:
@@ -4217,6 +4252,7 @@ class VierachsPanel:
                             nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                             querachse=self.querachse(),
                             anstellen=self.anstellen(),
+                            stetig=self.stetig(),
                         ),
                         schlichten=True,
                     )

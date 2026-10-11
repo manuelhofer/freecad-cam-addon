@@ -239,6 +239,9 @@ class Schlichtwerte:
     # Grad – mit der Querachse steht die Kugel so weit neben der Normalen, in Vorschubrichtung
     # geneigt (ANSTELLEN_QUER); 0: auf der Normalen, sie schneidet mit der Spitze.
     anstellen: float = 0.0
+    # Mit der Querachse: C dreht nie gegen die Spirale zurück (_stetig) – die Werkzeugachse steht
+    # nur so weit auf der Normalen, wie C dabei weiterdreht (P-2026-10-11-37).
+    stetig: bool = False
 
 
 @dataclass
@@ -1209,6 +1212,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
             form.nur_kugel,
             w.anstellen if form.nur_kugel else 0.0,
             material_oben=lambda a_k, winkel_k: _material_oben(w, form, a_k, winkel_k),
+            stetig=w.stetig,
         )
         if form.nur_kugel:
             # Mit der Querachse steht die Kugel woanders als auf dem Strahl der Spirale (quer
@@ -1605,7 +1609,7 @@ def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None,
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
 
 
-def normale_quer(r, winkel, radius, a=None, neigung=0.0):
+def normale_quer(r, winkel, radius, a=None, neigung=0.0, stetig=False):
     """Die Spirale mit der Querachse (V5e): Je Punkt steht die Werkzeugachse längs der
     Normalen der Hüllfläche – im Querschnitt. Die Mitte der Kugel liegt auf dem Strahl φ im
     Abstand ρ = r + R von der Achse; die Normale der Kurve ρ(φ) hat den Winkel ψ = φ − β mit
@@ -1620,7 +1624,8 @@ def normale_quer(r, winkel, radius, a=None, neigung=0.0):
     wo ein Ring beginnt oder endet, springt die Hüllfläche, dort wird nicht über die Grenze
     hinweg abgeleitet. `neigung` (Grad): Die Werkzeugachse steht so weit neben der Normalen –
     ψ = φ − β + Neigung, die Mitte quer um ρ · sin(β − Neigung); positiv zu wachsendem φ hin
-    (die Kugel schneidet dann nicht mit der Spitze, ANSTELLEN_QUER)."""
+    (die Kugel schneidet dann nicht mit der Spitze, ANSTELLEN_QUER). `stetig`: ψ nur so weit zur
+    Normalen, dass es nie gegen die Spirale zurückläuft (_stetig)."""
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
     if len(rho) < 2:
@@ -1651,7 +1656,35 @@ def normale_quer(r, winkel, radius, a=None, neigung=0.0):
     # Werkzeug dabei steht, und ob die Gerade über eine Ebene eine ist.
     beta = beta - math.radians(neigung)
     psi = np.degrees(phi - beta)
+    if stetig:
+        psi = _stetig(psi, np.degrees(phi), neigung)
+        beta = phi - np.radians(psi)
     return psi, rho * np.cos(beta) - radius, rho * np.sin(beta)
+
+
+def _stetig(psi, winkel, neigung=0.0):
+    """ψ (Grad) so, dass es längs der Spirale nie zurückläuft – an Manuels Nasen-Testteil drehte C
+    mit der Querachse an den Mulden 741-mal zurück, 22 000° von 171 000° (Frage 9; Manuel,
+    2026-10-11: „es sollte schon immer der sinnvollste weg vorgeschlagen werden … nur da wo y
+    nötig ist“). Je Punkt zwischen der Normalen (ψ) und radial (φ + Neigung) möglichst nah an der
+    Normalen, aber nicht hinter dem Punkt davor; geht das nicht, bleibt ψ stehen. Die Kugelmitte
+    bleibt dabei, wo sie ist (normale_quer: für jedes ψ auf der Hüllfläche) – nur das Werkzeug steht
+    anders; wo sein Schaft dann anstieße, hebt vierachs_quer.stellungen die Kugel wie bisher."""
+    psi = np.asarray(psi, dtype=float)
+    winkel = np.asarray(winkel, dtype=float)
+    if len(psi) < 2:
+        return psi
+    richtung = 1.0 if winkel[-1] >= winkel[0] else -1.0
+    ziel = richtung * psi
+    radial = richtung * (winkel + neigung)
+    unten, oben = np.minimum(ziel, radial).tolist(), np.maximum(ziel, radial).tolist()
+    ergebnis = []
+    davor = -math.inf
+    for z, u, o in zip(ziel.tolist(), unten, oben, strict=True):
+        grenze = max(u, davor)
+        davor = min(max(z, grenze), o) if grenze <= o else davor
+        ergebnis.append(davor)
+    return richtung * np.array(ergebnis)
 
 
 def _ableitung(werte, stellen):
@@ -1681,6 +1714,7 @@ def _spirale_quer(
     kugel,
     anstellen=0.0,
     material_oben=None,
+    stetig=False,
 ):
     """Hängt die ganze Spirale mit der Querachse an `punkte` (_quer_plan, normale_quer): die
     Rundachse steht auf ψ, die Spitze bei x längs der Werkzeugachse, quer um q versetzt.
@@ -1690,10 +1724,12 @@ def _spirale_quer(
     Spitze. `anstellen`: die Kugel so viele Grad neben der Normalen (Schlichtwerte.anstellen).
     `material_oben`: (a, Winkel in Grad) → wie hoch die Spitze eines radialen Fräsers dieser
     Form dort stehen muss, um das Material vor dem Schlichten gerade zu berühren (_material_oben)
-    – damit fährt die Kugel durchs Freie mit dem Freivorschub (_quer_frei). Gibt die tiefste
-    Spitze zurück."""
+    – damit fährt die Kugel durchs Freie mit dem Freivorschub (_quer_frei). `stetig`: C dreht nie
+    zurück (_stetig). Gibt die tiefste Spitze zurück."""
     neigung = math.copysign(float(anstellen), drehung) if kugel else 0.0
-    a_p, x_p, q_p, psi_p, fest, eingefuegt = _quer_plan(a, r, winkel, radius, schritt_phi, neigung)
+    a_p, x_p, q_p, psi_p, fest, eingefuegt = _quer_plan(
+        a, r, winkel, radius, schritt_phi, neigung, stetig
+    )
     pruef_radius = radius if kugel else 0.0
     if not kugel or neigung:
         # Angestellt steht der Schaft der Kugel schräg: In einer Innenecke des Querschnitts käme
@@ -1762,14 +1798,14 @@ def _rest_ueber_quer(w, form, punkte):
     return _rest_ueber(w, form, spitze, a, np.radians(winkel))
 
 
-def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
+def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0, stetig=False):
     """Der Plan der Spirale mit der Querachse für eine Kugel mit `radius` (normale_quer):
     (a, Spitze x, Versatz q, ψ in Grad, Punkte, die bleiben, eingefügte Zwischenstellungen). Springt ψ zwischen zwei Punkten um
     mehr als QUER_SPRUNG Schritte (eine Innenecke: dort liegt die Kugel in der Ecke, die Normale
     ist nicht eindeutig; um eine Außenkante rollt sie mit 1–3° je Punkt, das bleibt), dreht das
     Werkzeug um die ruhende Kugelmitte in Schritten von `schritt_phi`. `neigung`: die Kugel so
-    viele Grad neben der Normalen (normale_quer)."""
-    psi, x, q = normale_quer(r, winkel, radius, a, neigung)
+    viele Grad neben der Normalen (normale_quer); `stetig`: ψ läuft nie zurück (_stetig)."""
+    psi, x, q = normale_quer(r, winkel, radius, a, neigung, stetig)
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
     teile_a, teile_x, teile_q, teile_psi, teile_neu, fest = [], [], [], [], [], []

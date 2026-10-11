@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-37 querachse-c-dreht-nicht-zurueck
+
+### EINGELESEN
+- Frage 9 (C dreht beim Schlichten an den Mulden 741-mal zurück); Manuel, 2026-10-11: „es sollte
+  schon immer der sinnvollste weg vorgeschlagen werden … wenn das bauteil sinnvoller ohne y oder
+  nur da wo y nötig ist bearbeitet werden kann ... und das auch noch besser .. ist das the way to
+  go“.
+- Nachgesehen: Mit der Querachse liegt die Kugelmitte für jedes ψ auf der Hüllfläche
+  (normale_quer) – ψ bestimmt nur, wie das Werkzeug steht. C läuft zurück, wo die Normale gegen
+  die Spirale dreht; dort darf das Werkzeug weniger quer stehen, die Kugel fährt dieselbe Fläche.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `_stetig(psi, winkel, neigung)` – ψ je Punkt zwischen Normale und
+  radial (φ + Neigung), möglichst nah an der Normalen, nie hinter dem Punkt davor; geht das nicht,
+  bleibt ψ stehen. `normale_quer(..., stetig)`, `_quer_plan`, `_spirale_quer`,
+  `Schlichtwerte.stetig`.
+- `camaddon/vierachs_schlichten.py`: Eigenschaft „Stetig“ (angehakt, auch in älteren
+  Operationen), `bahn_fuer`/`vorschau`/`lege_an`/`aendere` mit `stetig`.
+- `camaddon/gui_vierachs.py`: Haken „C dreht nicht zurück“ unter „Kugel anstellen“, frei mit der
+  Querachse, vorbelegt an.
+- `translations/de.json`, `translations/en.json`; `tests/test_vierachs_bahn.py` (_stetig),
+  `tests/test_vierachs_frei.py` (am Nasen-Testteil läuft C nie zurück, kein freier Satz schneidet),
+  `package.xml` (0.213.43), `docs/STATUS_SNAPSHOT.md`, `docs/OFFENE_FRAGEN.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil, „Rundum schlichten T2“ mit Querachse (408 mm/min, Freivorschub 10 m/min):
+  187,5 → 177,8 min; C-Weg 171 366° → 127 262°, zurück 22 052° in 741 Läufen → 0; Y −49 … 47 →
+  −49 … 17; Punkte 223 081 → 167 273. Wo der Schaft anstößt, hebt die Kugel an weniger Stellen ab
+  (50 754 statt 74 570 Stellungen).
+- Grün: `test_vierachs_bahn`, `test_vierachs_frei`, `test_vierachs_schlichten`,
+  `test_vierachs_schlichten_op`, `test_goldene_bahnen`, `test_vierachs_plan`, `test_sprache`,
+  `szenario_vierachs_schlichten`, `szenario_vierachs_aendern`, `szenario_testteil_freivorschub`,
+  `szenario_magazin_vierachs`.
+
 ## P-2026-10-11-36 frage-nase-mit-schaftfraeser
 
 ### EINGELESEN

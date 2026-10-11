@@ -266,7 +266,9 @@ abgearbeitet):
    Kollision“~~ (P-2026-10-11-35). Offen: klare Meldung, wenn die Ausspannlänge nicht reicht (an
    der Flanke: P-2026-10-11-33); die Bahn weicht aus (Anstellung, Y), wo die Form des Teils bleibt –
    die Maschine gehört in die Kollisionsüberwachung.
-4. **Querachse nur, wo nötig (Frage 9)** – vorschlagen, wenn das Teil so besser wird.
+4. **Querachse nur, wo nötig (Frage 9):** „C dreht nicht zurück“ (P-2026-10-11-37) – die
+   Werkzeugachse quer nur, soweit C weiterdreht; am Testteil 187,5 → 177,8 min, keine Umkehr mehr.
+   Offen: dasselbe für „Rundum schruppen“ mit der Querachse.
 5. **Rest nach dem Schruppen (Frage 8)** im Assistenten melden und mehr anbieten: an schrägen
    Wänden zusätzlich in Z abzeilen (Schaftfräser) oder dort am Umfang mit kleinerer Steigung –
    erst Bild mit Zahlen.
