@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-107 kollision-mit-vorwissen
+
+### EINGELESEN
+- Nachtauftrag „Kollisionsgeschwindigkeit“ (Manuel, 2026-10-11: „mehr Optimierung für mehr
+  Threads“). Gemessen an Manuels Nasen-Testteil auf der Beispiel-Drehmaschine mit Y (329.528
+  Stationen): nacheinander 66 s (33,7 s in 3.434 genauen OCC-Abständen, 10 ms je Stück), auf den
+  Nebenrechnern 86 s – langsamer. Je Stück gemessen: Ein Stück, das mitten in einer Strecke
+  beginnt, an der der Schaft knapp am Teil liegt, rechnet dort jede Stelle genau (eins 194 s für
+  3.433 Stationen); nacheinander war das Paar längst berührt (Abstand 0) und fiel weg.
+- Dabei: nacheinander hört die Prüfung nach HOECHSTENS (200.000) Stellen auf – die verteilte sieht
+  vier Berührungen mehr („Rundum schlichten T2“: Schaft T1 und T2, Revolver, Eilgang der Schneide);
+  sie sind echt (bei jeder Stückelung dieselben).
+
+### DATEIEN
+- `camaddon/kollision.py`: `_verteilt` vergibt die Stücke der Reihe nach, höchstens so viele wie
+  physische Kerne zugleich; jedes bekommt, was die früheren, fertigen fanden (`_bekannt_vor`, nur
+  frühere – die gemeldete Stelle bleibt die erste). `_Welt.bekannt_setzen`: ein dort schon berührtes
+  Paar ist „schon“ (wie nacheinander), `_nicht_schlimmer` beachtet das Bekannte. `stueck(…,
+  bekannt=)`.
+- `camaddon/nebenrechner.py`: `warten_bis_einer`.
+- `package.xml` (0.222.0).
+
+### ERGEBNIS
+- Nasen-Testteil verteilt: 38 s statt 86 s, dieselben 9 Befunde an denselben Sätzen (mit einem
+  Stück je Nebenrechner 33 s; mit 4 bleibt ein großes Stück der ersten Welle ohne Vorwissen langsam
+  – die Vorgabe, 24 kleine je Nebenrechner, ist richtig).
+
+### AKZEPTANZKRITERIUM
+- `test_kollision`, `test_kollision_verteilt`, `test_nebenrechner`, `test_vierachs_pruefen`,
+  `test_simultan_folge`, `test_pruefstand` (zweiter Lauf; der erste rot an der bekannten Streuung
+  des Adaptiv-Kerns, 35,68 statt ≤ 34,58 min) in 1.1.4.
+
 ## P-2026-10-11-106 kette-schneller
 
 ### EINGELESEN

@@ -1013,10 +1013,18 @@ def _verteilt(pool, abfahrt, job, nullpunkt, bibliothek, warnabstand, fortschrit
     g_fahrt = pool.gemeinsam(schluessel[0], fahrt)
     g_daten = pool.gemeinsam(schluessel[1], daten.zum_senden())
     bereiche = _bereiche(len(abfahrt.stationen), pool.anzahl)
-    auftraege = []
-    # Je Kern einer: Auf den SMT-Zwillingen bremst sich OpenCascade aus (P-2026-10-10-63).
-    with pool.gruppe("kollision", nr.physische_kerne()):
-        for bereich in bereiche:
+    gesamt = max(1, sum(b - a for a, b in bereiche))
+    # Je Kern einer: Auf den SMT-Zwillingen bremst sich OpenCascade aus (P-2026-10-10-63). Die
+    # Stücke der Reihe nach, jedes mit dem, was die früheren schon fanden (P-2026-10-11-107).
+    gleichzeitig = max(1, min(nr.physische_kerne(), pool.anzahl))
+    stuecke = [None] * len(bereiche)
+    laufend = {}  # Auftrag -> Nummer des Stücks
+    naechstes = 0
+
+    def vergeben():
+        nonlocal naechstes
+        while naechstes < len(bereiche) and len(laufend) < gleichzeitig:
+            bekannt = _bekannt_vor(stuecke, naechstes)
             auftrag = pool.auftrag(
                 "kollision",
                 "stueck",
@@ -1025,24 +1033,39 @@ def _verteilt(pool, abfahrt, job, nullpunkt, bibliothek, warnabstand, fortschrit
                 g_fahrt,
                 g_daten,
                 warnabstand,
-                bereich,
+                bereiche[naechstes],
                 fortschritt=nr.Fortschritt(),
+                bekannt=bekannt,
             )
-            auftrag.gewicht = bereich[1] - bereich[0]
-            auftraege.append(auftrag)
+            laufend[auftrag] = naechstes
+            naechstes += 1
 
     def zwischendurch():
         if fortschritt is None:
             return True
-        return fortschritt(nr.fortschritt_von(auftraege) * 0.999) is not False
+        fertig = sum(
+            bereiche[j][1] - bereiche[j][0] for j, s in enumerate(stuecke) if s is not None
+        )
+        unterwegs = sum(
+            a.fortschritt * (bereiche[j][1] - bereiche[j][0]) for a, j in laufend.items()
+        )
+        return fortschritt((fertig + unterwegs) / gesamt * 0.999) is not False
 
     try:
+        vergeben()
         # Die Eilgänge ins Rohteil rechnet dieser Prozess, während die Stücke laufen.
         # Das Fenster ist gesperrt, der Fortschritt arbeitet ohnehin Ereignisse ab: Der Abtrag
         # darf dabei atmen (an der Nocke stand es dafür 1,8 s; P-2026-10-11-68).
         with uhren.atmend():
             rohteil_befunde = _eilgaenge_ins_rohteil(abfahrt, job) if rohteil else []
-        stuecke = pool.warten(auftraege, zwischendurch)
+        while laufend:
+            for auftrag in pool.warten_bis_einer(list(laufend), zwischendurch):
+                stuecke[laufend.pop(auftrag)] = auftrag.ergebnis
+            vergeben()
+    except nr.Fehler:
+        for auftrag in laufend:
+            pool.abbrechen(auftrag)
+        raise
     finally:
         for s in schluessel:
             pool.vergessen(s)
@@ -1071,6 +1094,20 @@ def _verteilt(pool, abfahrt, job, nullpunkt, bibliothek, warnabstand, fortschrit
         befunde += rohteil_befunde
     _abschliessen(ergebnis, befunde, abfahrt, job, False, fortschritt, bibliothek)
     return ergebnis
+
+
+def _bekannt_vor(stuecke, nummer):
+    """{Schlüssel: kleinster Abstand} aus den fertigen Stücken vor `nummer` (stuecke: Ergebnisse
+    von stueck() oder None) – nur frühere: So bleibt die gemeldete Stelle die erste, wie bei der
+    Prüfung nacheinander."""
+    bekannt = {}
+    for stueck in stuecke[:nummer]:
+        if stueck is None:
+            continue
+        for k, befund in stueck["schlimmste"].items():
+            if befund.abstand < bekannt.get(k, math.inf):
+                bekannt[k] = befund.abstand
+    return bekannt
 
 
 def _bereiche(stationen, arbeiter):
@@ -1179,9 +1216,10 @@ def am_werkstueck_stueck(dokument, maschine, operationen, nullpunkt, achsen, sta
     return ergebnis
 
 
-def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=None):
+def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=None, bekannt=None):
     """Prüft die Stationen `bereich` (von, bis) – im Nebenrechner. Gibt die Befunde je Paar,
-    die Zahl der Stellen und die Hinweise zurück, als Daten ohne FreeCAD-Objekte."""
+    die Zahl der Stellen und die Hinweise zurück, als Daten ohne FreeCAD-Objekte. `bekannt`: was
+    frühere Stücke fanden (_Welt.bekannt_setzen)."""
     global _welt_im_arbeiter
     beginn = time.perf_counter()
     pruefung = _pruefung_fuer(dokument, maschine)
@@ -1194,6 +1232,7 @@ def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=N
     else:
         welt = _welt_im_arbeiter[1]
         welt.neu(ergebnis, fortschritt, bereich)
+    welt.bekannt_setzen(bekannt)
     aufbau = time.perf_counter() - beginn
     zu_viele = None
     welt.vorlauf(bereich[0])
@@ -1368,11 +1407,31 @@ class _Welt:
         self._schranken_feld = None  # das Paarfeld, zu dem sie gehören
         for feld in getattr(self, "_felder", {}).values():
             feld.schon[:] = False  # die Befunde fangen neu an
+        self.bekannt = {}  # bekannt_setzen()
         self._operation = None  # die Operation des letzten Abschnitts
         # Die geraden Vorschubwege der Operation [(Anfang, Ende)] (Programmpunkte, Rundachsen
         # gleich) – ein Eilgang darauf fährt die Schneide, wo sie schon im Vorschub war.
         self._vorschubwege = []
         self._eigener_zuletzt = False  # lag der Abschnitt davor auf einem eigenen Weg?
+
+    def bekannt_setzen(self, bekannt):
+        """Die schlimmsten Abstände, die frühere Stücke schon fanden ({(Operation, Name a, Name b,
+        nur Vorschub): mm}, P-2026-10-11-107): Ein Paar, das sich dort schon berührte, rechnet
+        dieses Stück nicht mehr – wie die Prüfung nacheinander, die es nach der ersten Berührung
+        weglässt. Sonst rechnete jedes Stück, das mitten in einer Strecke beginnt, an der der Schaft
+        knapp am Teil liegt, dort jede Stelle genau (am Nasen-Testteil ein Stück 194 s statt 3 s).
+        """
+        self.bekannt = dict(bekannt or {})
+        for operation, feld in self._felder.items():
+            self._bekannt_anwenden(feld, operation)
+
+    def _bekannt_anwenden(self, feld, operation):
+        if not self.bekannt:
+            return
+        for k, paar in enumerate(feld.paare):
+            schluessel = (operation, paar.a.name, paar.b.name, paar.nur_vorschub)
+            if self.bekannt.get(schluessel, math.inf) <= 0.0:
+                feld.schon[k] = True
 
     def vorlauf(self, bis):
         """Vor einem Stück, das bei Station `bis` beginnt: die geraden Vorschubwege der
@@ -1606,6 +1665,7 @@ class _Welt:
         feld = self._felder.get(operation)
         if feld is None:
             feld = self._felder[operation] = _Paarfeld(self, self.paare(operation))
+            self._bekannt_anwenden(feld, operation)
         return feld
 
     def _melden(self):
@@ -1783,8 +1843,13 @@ class _Welt:
         (`anfang`, _zaehlt), und der braucht den genauen Wert."""
         if anfang is not None and paar.nur_eilgang:
             return False
-        befund = self.schlimmste.get((operation, paar.a.name, paar.b.name, paar.nur_vorschub))
-        return befund is not None and befund.abstand <= mindestens
+        schluessel = (operation, paar.a.name, paar.b.name, paar.nur_vorschub)
+        befund = self.schlimmste.get(schluessel)
+        if befund is not None and befund.abstand <= mindestens:
+            return True
+        # Was frühere Stücke schon fanden (bekannt_setzen): Auch dann wird es hier kein
+        # schlimmerer – beim Zusammenführen bliebe der frühere.
+        return self.bekannt.get(schluessel, math.inf) <= mindestens
 
     def _netz_gelernt(self, paar, umsonst):
         """Merkt je Paar, ob die Netzschranke umsonst war (sie entschied nichts, der genaue

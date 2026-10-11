@@ -517,6 +517,27 @@ class Nebenrechner:
                 raise Fehler(a.fehler, a.fehlerart, a.fehlersatz)
         return [a.ergebnis for a in auftraege]
 
+    def warten_bis_einer(self, auftraege, zwischendurch=None):
+        """Wie warten(), aber nur, bis einer der Aufträge erledigt ist: gibt die erledigten
+        zurück – für einen Aufrufer, der danach weitere vergibt (kollision._verteilt)."""
+        auftraege = list(auftraege)
+        while True:
+            self.abfragen()
+            fertig = [a for a in auftraege if a.erledigt]
+            if fertig:
+                break
+            if zwischendurch is not None and zwischendurch() is False:
+                for a in auftraege:
+                    self.abbrechen(a)
+                raise Abgebrochen(repr(auftraege[0]))
+            self._ruhen(TAKT)
+        for a in fertig:
+            if a.abgebrochen:
+                raise Abgebrochen(repr(a))
+            if a.fehler is not None:
+                raise Fehler(a.fehler, a.fehlerart, a.fehlersatz)
+        return fertig
+
     def abbrechen(self, auftrag):
         """Nimmt den Auftrag zurück; läuft er, endet sein Arbeiter (ein neuer kommt beim
         nächsten Auftrag). Seine Unteraufträge fallen mit (_weich_abbrechen)."""
