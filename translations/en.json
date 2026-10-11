@@ -2702,5 +2702,6 @@
     "va.plan.schaft.keine": "None of the faces is a side – the end face does all of them.",
     "va.plan.schaft.geht": "With the flank: {flaechen}.",
     "va.plan.schaft.zu_kurz": "For {flaechen} the flute of {werkzeug} ({schneide} {e_laenge}) is too short – it would need {braucht} {e_laenge}; they stay with the end face.",
-    "va.plan.schaft.ohne_schneide": "For {flaechen} the tool library does not know the flute length of {werkzeug} – it would need {braucht} {e_laenge}; they stay with the end face."
+    "va.plan.schaft.ohne_schneide": "For {flaechen} the tool library does not know the flute length of {werkzeug} – it would need {braucht} {e_laenge}; they stay with the end face.",
+    "pp.rechnet": "Calculating on a helper process … – the window stays usable."
 }

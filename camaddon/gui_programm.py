@@ -24,6 +24,7 @@ from . import PARAMETER_PFAD, farben, symbol
 from . import job_schnittwerte as js
 from . import maschinenspeicher as msp
 from . import postprozessor as pp
+from . import programm_rechnen as pr
 from . import reichweite as rw
 from .gui_hilfe import kopfzeile
 from .gui_teile import knopf, ruhiges_mausrad
@@ -333,12 +334,8 @@ class BefehlProgrammSchreiben:
 
 
 def abschnitte_mit_maschine(job, gewaehlt):
-    """pp.abschnitte des Jobs – hat er Ebenen (3+2), mit der gewählten Maschine `gewaehlt`
-    ((Name, Pfad, Dokument) aus pp.maschinen_zur_wahl): Ohne Schwenkzyklus rechnet das Programm
-    die Rundachsen und Punkte aus ihrer Kette, je Werkzeug mit seiner Länge, wie „Auf der
-    Maschine prüfen“. Liegt sie nur in ihrer Datei, wird sie dafür verborgen geöffnet und wieder
-    geschlossen. Ohne Maschine mit zwei Rundachsen wie bisher (Tisch A, C um den Nullpunkt)."""
-    return _abschnitte_und_kette(job, gewaehlt)[0]
+    """pp.abschnitte des Jobs mit der gewählten Maschine (programm_rechnen.abschnitte_und_kette)."""
+    return pr.abschnitte_und_kette(job, gewaehlt)[0]
 
 
 def _rohteil(job):
@@ -353,90 +350,8 @@ def _rohteil(job):
     return (box.XMin, box.YMin, box.ZMin), (box.XMax, box.YMax, box.ZMax)
 
 
-def _abschnitte_und_kette(job, gewaehlt):
-    """(abschnitte_mit_maschine, ohne Kette): ob eine Ebene ohne die Kette einer Maschine mit
-    zwei Rundachsen gerechnet ist – dann gilt der gedachte Tisch A, C um den Nullpunkt.
-    Operationen mit Werkzeugachse je Satz (Kugelfräser angestellt, Flanke) brauchen die Maschine
-    auch – ohne sie sagt das Programm selbst, was es schreibt."""
-    from . import schwenken as sw
-    from . import simultan_operation as so
-
-    if gewaehlt is None:
-        teile = pp.abschnitte(job)
-        ohne = bool(sw.ist_ebene(job) or sw.ebenen_von(job) or so.im_job(job))
-        if ohne and (
-            getattr(job, rw.EIGENSCHAFT_MASCHINE, "")
-            or getattr(rw.grundjob_von(job), rw.EIGENSCHAFT_MASCHINE, "")
-        ):
-            # Der Job hat seine Maschine: pp.abschnitte rechnet Ebenen und Simultanbahnen mit ihr
-            # (maschinenzugang) – ohne Kette ist nur, was es dabei auslassen musste.
-            ohne = any(a.hinweis for a in teile)
-        return teile, ohne
-    _name, pfad, dok = gewaehlt
-    verborgen = None
-    if dok is None:
-        try:
-            dok = verborgen = FreeCAD.openDocument(pfad, True)
-        except Exception:  # nicht lesbar: wie ohne Maschine
-            return pp.abschnitte(job), True
-    try:
-        fuer = _maschine_je_operation(job, dok)
-        if fuer is None:
-            return pp.abschnitte(job), True
-        ohne = []
-
-        def gemerkt(op):
-            maschine = fuer(op)
-            if maschine is None and not so.ist_simultan(op):
-                ohne.append(op)
-            return maschine
-
-        return pp.abschnitte(job, gemerkt), bool(ohne)
-    finally:
-        if verborgen is not None:
-            FreeCAD.closeDocument(verborgen.Name)
-
-
-def _maschine_je_operation(job, dok):
-    """Eine Funktion Operation → schwenken.Maschine (je Werkzeugnummer einmal) für die erste
-    Maschine im Dokument – None, wenn es keine gibt; die Funktion gibt None, wenn die Maschine
-    für das Werkzeug keine Aufnahme hat; feste und einzelne Rundachsen bleiben erhalten."""
-    from . import maschine as m
-    from . import schwenken as sw
-    from .gui_reichweite import _bibliothek
-
-    gefunden = next(
-        (
-            (o, m.finde_maschine(o))
-            for o in dok.Objects
-            if o.TypeId == "Assembly::AssemblyObject" and m.finde_maschine(o) is not None
-        ),
-        None,
-    )
-    if gefunden is None:
-        return None
-    try:
-        pruefung = rw.Pruefung(*gefunden)
-    except Exception as fehler:  # eine kaputte Maschine: wie ohne
-        FreeCAD.Console.PrintLog(f"CAM-Addon: Programm: {fehler}\n")
-        return None
-    bibliothek = _bibliothek()
-    nullpunkt = rw.nullpunkt(job)
-    je_nummer = {}
-
-    def fuer(op):
-        tc = getattr(op, "ToolController", None)
-        nummer = int(getattr(tc, "ToolNumber", 0) or 0)
-        if nummer not in je_nummer:
-            aufnahme = pruefung.werkzeugaufnahme(nummer) if tc is not None else None
-            maschine = None
-            if aufnahme is not None:
-                laenge = rw.einspannung(tc, bibliothek)
-                maschine = sw.Maschine(pruefung, aufnahme, laenge, nullpunkt)
-            je_nummer[nummer] = maschine
-        return je_nummer[nummer]
-
-    return fuer
+_abschnitte_und_kette = pr.abschnitte_und_kette
+_maschine_je_operation = pr.maschine_je_operation
 
 
 class ProgrammDialog(QtGui.QDialog):
@@ -455,6 +370,10 @@ class ProgrammDialog(QtGui.QDialog):
         self.gespeichert = ""  # die zuletzt gespeicherte Datei – für „Ordner öffnen“
         self._teile = None  # die Abschnitte des Jobs, je gewählter Maschine einmal gerechnet
         self._ohne_kette = False  # eine Ebene ohne die Kette einer 5-Achs-Maschine gerechnet
+        # Große Jobs rechnet ein Nebenrechner (programm_rechnen, P-2026-10-11-50): je ein Auftrag
+        # für die Vorschau und fürs Speichern – das Fenster nimmt dabei Klicks an.
+        self._auftraege = {}  # "vorschau" / "speichern" -> nebenrechner.Auftrag
+        self._gross_fuer = (None, False)  # (Job, ab IM_HINTERGRUND_AB Sätzen?)
         self._fuellt = False
         self.haken = {}  # Haken der Einstellungen: Feld → QCheckBox (Szenarien)
         self.felder = {}  # Befehle: Feld → (Name, Eingabe)
@@ -953,13 +872,98 @@ class ProgrammDialog(QtGui.QDialog):
             programm.hinweise.append(tr("pp.hinweis.ebene_ohne_kette"))
         return programm
 
+    def _gross(self):
+        """Rechnet ein Nebenrechner (ab programm_rechnen.IM_HINTERGRUND_AB Sätzen im Job)?"""
+        from . import nebenrechner as nr
+
+        if self.job is None:
+            return False
+        job, gross = self._gross_fuer
+        if job is not self.job:
+            gross = _saetze_im_job(self.job) >= pr.IM_HINTERGRUND_AB
+            self._gross_fuer = (self.job, gross)
+        return gross and nr.pool().verfuegbar()
+
+    def _im_hintergrund(self, art, vorschau, nachlesen, fertig):
+        """Gibt programm_rechnen.programm einem Nebenrechner (der Auftrag `art` davor endet);
+        `fertig(Ergebnis)` bekommt seine Antwort – None, wenn er scheiterte. False ohne Pool."""
+        from . import nebenrechner as nr
+
+        self._abbrechen(art)
+        k = self.wahl_maschine.currentIndex() - 1
+        gewaehlt = self._maschinen[k] if 0 <= k < len(self._maschinen) else None
+        pool = nr.pool()
+        try:
+            maschine = None
+            if gewaehlt is not None:
+                _name, pfad, dok = gewaehlt
+                maschine = pool.kopie(dok, wiederverwenden=True) if dok is not None else pfad
+            auftrag = pool.auftrag(
+                "programm_rechnen",
+                "programm",
+                pool.kopie(self.job.Document, wiederverwenden=True),
+                self.job.Name,
+                maschine,
+                self.steuerung(),
+                self.info,
+                vorschau,
+                datei=self.feld_datei.text().strip(),
+                rohteil=_rohteil(self.job),
+                nachlesen=nachlesen,
+            )
+        except nr.Fehler:
+            return False
+        auftrag.bei_fertig = lambda a: self._angekommen(art, a, fertig)
+        self._auftraege[art] = auftrag
+        return True
+
+    def _angekommen(self, art, auftrag, fertig):
+        if self._auftraege.get(art) is not auftrag:
+            return  # abgelöst
+        del self._auftraege[art]
+        if auftrag.fehler is None:
+            fertig(auftrag.ergebnis)
+        elif not auftrag.abgebrochen:
+            FreeCAD.Console.PrintWarning(
+                f"CAM-Addon: Programm auf dem Nebenrechner gescheitert, rechne hier: "
+                f"{auftrag.fehler}\n"
+            )
+            fertig(None)
+
+    def _abbrechen(self, art=None):
+        """Nimmt einen laufenden Auftrag (`art`, ohne: alle) zurück."""
+        for name in [art] if art else list(self._auftraege):
+            auftrag = self._auftraege.pop(name, None)
+            if auftrag is not None and not auftrag.erledigt:
+                auftrag.abbrechen()
+
+    def rechnet(self):
+        """Rechnet gerade ein Nebenrechner für das Fenster? (Für die Szenarien.)"""
+        return bool(self._auftraege)
+
     def vorschau_rechnen(self):
         if self.job is None:
             return
+        if self._gross() and self._im_hintergrund(
+            "vorschau", VORSCHAU_SAETZE, False, self._vorschau_angekommen
+        ):
+            self.vorschau.setPlainText(tr("pp.rechnet"))
+            self.ergebnis.setText("")
+            return
         programm = self._programm(VORSCHAU_SAETZE)
-        self.vorschau.setPlainText(programm.text)
-        self.hinweise.setText("\n".join(programm.hinweise))
-        self.hinweise.setVisible(bool(programm.hinweise))
+        self._vorschau_zeigen(programm.text, programm.hinweise)
+
+    def _vorschau_angekommen(self, ergebnis):
+        if ergebnis is None:  # der Nebenrechner scheiterte: hier
+            programm = self._programm(VORSCHAU_SAETZE)
+            self._vorschau_zeigen(programm.text, programm.hinweise)
+            return
+        self._vorschau_zeigen("\n".join(ergebnis["zeilen"]) + "\n", ergebnis["hinweise"])
+
+    def _vorschau_zeigen(self, text, hinweise):
+        self.vorschau.setPlainText(text)
+        self.hinweise.setText("\n".join(hinweise))
+        self.hinweise.setVisible(bool(hinweise))
         self.ergebnis.setText("")
 
     def _datei_waehlen(self):
@@ -984,10 +988,42 @@ class ProgrammDialog(QtGui.QDialog):
             pfad = self.feld_datei.text().strip()
             if not pfad:
                 return None
+        if self._gross() and self._im_hintergrund(
+            "speichern", None, True, lambda e: self._speichern_angekommen(pfad, e)
+        ):
+            self.ergebnis.setStyleSheet("")
+            self.ergebnis.setText(tr("pp.rechnet"))
+            self.knopf_speichern.setEnabled(False)
+            return None
         programm = self._programm()
+        # Nachgelesen, wie die Steuerung es läse: Werkzeuglänge, Spindel, Vorschub, Kreise.
+        befunde, saetze = pp.nachlesen(programm, self.steuerung(), self.info)
+        groesse = pp.groesse_text(programm, self.steuerung())
+        return self._schreiben(pfad, programm.zeilen, programm.saetze, befunde, saetze, groesse)
+
+    def _speichern_angekommen(self, pfad, ergebnis):
+        self.knopf_speichern.setEnabled(True)
+        if ergebnis is None:  # der Nebenrechner scheiterte: hier
+            programm = self._programm()
+            befunde, saetze = pp.nachlesen(programm, self.steuerung(), self.info)
+            groesse = pp.groesse_text(programm, self.steuerung())
+            self._schreiben(pfad, programm.zeilen, programm.saetze, befunde, saetze, groesse)
+            return
+        self._schreiben(
+            pfad,
+            ergebnis["zeilen"],
+            ergebnis["saetze"],
+            ergebnis["befunde"],
+            ergebnis["nachgelesen"],
+            ergebnis["groesse"],
+        )
+
+    def _schreiben(self, pfad, zeilen, saetze_bewegung, befunde, saetze, groesse):
+        """Schreibt die Zeilen in die Datei und sagt im Fenster, was gespeichert und was beim
+        Nachlesen aufgefallen ist; gibt den Pfad zurück (None, wenn es nicht ging)."""
         try:
             with open(pfad, "w", encoding="utf-8", newline="\n") as datei:
-                datei.write(programm.text)
+                datei.write("\n".join(zeilen) + "\n")
         except OSError as fehler:
             self.ergebnis.setText(tr("pp.fehler.speichern", fehler=str(fehler)))
             self.ergebnis.setStyleSheet(f"color: {farben.ROT};")
@@ -996,14 +1032,12 @@ class ProgrammDialog(QtGui.QDialog):
         datei_merken(self.job, pfad)
         self.gespeichert = pfad
         self.knopf_ordner.show()
-        # Nachgelesen, wie die Steuerung es läse: Werkzeuglänge, Spindel, Vorschub, Kreise.
-        befunde, saetze = pp.nachlesen(programm, self.steuerung(), self.info)
         self.ergebnis.setStyleSheet(f"color: {farben.ROT};" if befunde else "")
         self.ergebnis.setText(
-            tr("pp.gespeichert", datei=pfad, saetze=programm.saetze, zeilen=len(programm.zeilen))
+            tr("pp.gespeichert", datei=pfad, saetze=saetze_bewegung, zeilen=len(zeilen))
             + "\n"
             + pp.nachgelesen_text(befunde, saetze)
-            + "".join("\n" + x for x in [pp.groesse_text(programm, self.steuerung())] if x)
+            + "".join("\n" + x for x in [groesse] if x)
         )
         return pfad
 
@@ -1015,4 +1049,16 @@ class ProgrammDialog(QtGui.QDialog):
 
     def done(self, ergebnis):
         ProgrammDialog.offen = None
+        self._abbrechen()
         super().done(ergebnis)
+
+
+def _saetze_im_job(job):
+    """So viele Sätze haben die Operationen des Jobs (Path.Size – ohne die Sätze zu lesen)."""
+    from . import job_schnittwerte as js
+
+    anzahl = 0
+    for op in js.operationen(job):
+        pfad = getattr(op, "Path", None)
+        anzahl += int(getattr(pfad, "Size", 0) or 0)
+    return anzahl

@@ -2702,5 +2702,6 @@
     "va.plan.schaft.keine": "Unter den Flächen ist keine Seite – die Stirn macht alle.",
     "va.plan.schaft.geht": "Mit dem Schaft: {flaechen}.",
     "va.plan.schaft.zu_kurz": "Für {flaechen} reicht die Schneide von {werkzeug} ({schneide} {e_laenge}) nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn.",
-    "va.plan.schaft.ohne_schneide": "Für {flaechen} kennt die Werkzeugverwaltung die Schneidenlänge von {werkzeug} nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn."
+    "va.plan.schaft.ohne_schneide": "Für {flaechen} kennt die Werkzeugverwaltung die Schneidenlänge von {werkzeug} nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn.",
+    "pp.rechnet": "Rechnet auf einem Nebenrechner … – das Fenster bleibt bedienbar."
 }
