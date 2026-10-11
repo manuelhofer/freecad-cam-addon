@@ -449,7 +449,7 @@ class _Beobachter:
         if not unterelement:
             return
         # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert das Dokument.
-        QtCore.QTimer.singleShot(0, lambda: self.panel.angeklickt(objekt, unterelement, punkt))
+        uhren.gleich(lambda: self.panel.angeklickt(objekt, unterelement, punkt))
 
 
 class _NurFlaechen:

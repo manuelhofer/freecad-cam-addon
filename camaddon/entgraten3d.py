@@ -26,7 +26,7 @@ import Path.Op.Base as PathOp
 from . import aufloesung as au
 from . import entgrat3d_bahn as e3
 from . import fraeserform as ff
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import simultan as si
 from . import spindel as sp
@@ -96,6 +96,7 @@ class Entgraten3D(PathOp.ObjectOp):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Werkzeugachsen", 2)  # gerechnet, je Satz – nicht zum Ansehen
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         self._vorne = len(self.commandlist)  # was FreeCAD davor schreibt (der Name)
         self._achsen = []

@@ -14,6 +14,7 @@ der Slot kommt, wenn die Rechnung darunter fertig ist.
 """
 
 import contextlib
+import functools
 import sys
 import time
 
@@ -54,6 +55,36 @@ def atmen():
         return
     if isinstance(QtGui.QApplication.instance(), QtGui.QApplication):
         QtGui.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+
+
+def atmend_rechnen(methode):
+    """Für `opExecute` der Operationen des Addons: Ihre Bahn rechnet in atmend() – bei jedem
+    Neuberechnen (eine Eigenschaft geändert, „Neu berechnen“), nicht nur beim Anlegen im
+    Assistenten. Sonst stand das Fenster, solange sie rechnete (3D-Schlichten 2,3 s, Räumen am
+    Testteil 6 s; unter Windows meldet es nach 5 s „Keine Rückmeldung“; P-2026-10-11-78). Die
+    Uhren des Addons laufen dabei nicht (aus_der_schleife, gleich)."""
+
+    @functools.wraps(methode)
+    def gehuellt(*args, **kwargs):
+        with atmend():
+            return methode(*args, **kwargs)
+
+    return gehuellt
+
+
+def gleich(slot):
+    """Wie `QTimer.singleShot(0, slot)` – aber nicht mitten in einer Rechnung (verschachtelt):
+    Dann kommt `slot`, wenn sie fertig ist. Für Rückrufe, die Dokumente anfassen (eine
+    angeklickte Fläche)."""
+    from PySide import QtCore
+
+    def abgelaufen():  # direkt von Qt gerufen: kein Python-Rahmen darunter, außer in einer Rechnung
+        if verschachtelt():
+            QtCore.QTimer.singleShot(ATMEN_ALLE * 1000, abgelaufen)
+            return
+        slot()
+
+    QtCore.QTimer.singleShot(0, abgelaufen)
 
 
 def verschachtelt(tiefe=2):

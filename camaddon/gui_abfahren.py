@@ -667,7 +667,7 @@ class Abspieler(QtGui.QWidget):
         self.bei_kollision = None
         self._uhr = QtCore.QTimer(self)
         self._uhr.setInterval(TAKT)
-        self._uhr.timeout.connect(self._takt)
+        self._uhr.timeout.connect(uhren.aus_der_schleife(self._uhr, self._takt))
         self._baue()
         self.zeige(None)
 

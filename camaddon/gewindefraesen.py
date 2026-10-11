@@ -24,7 +24,7 @@ import Path.Op.Base as PathOp
 from . import bahn as bn
 from . import bohrung_bahn as bb
 from . import gewinde_bahn as gb
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -88,6 +88,7 @@ class GewindeFraesen(PathOp.ObjectOp):
         for name in ("Gewinde", "Bohrungen", "Umlaeufe"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

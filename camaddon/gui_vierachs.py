@@ -401,11 +401,11 @@ class _Beobachter:
         # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert dabei das
         # Dokument bzw. leert die Auswahl.
         if self.panel.seite == 2:
-            QtCore.QTimer.singleShot(0, lambda: self.panel.flaeche_angeklickt(objekt, unterelement))
+            uhren.gleich(lambda: self.panel.flaeche_angeklickt(objekt, unterelement))
         else:
             # Der Klickpunkt: An einer runden Fläche liegt das Ende vorne, an dem man klickt.
             angeklickt = FreeCAD.Vector(*punkt) if punkt else None
-            QtCore.QTimer.singleShot(0, lambda: self.panel.auswahl_lesen(angeklickt))
+            uhren.gleich(lambda: self.panel.auswahl_lesen(angeklickt))
 
 
 class _NurFlaechen:
@@ -436,7 +436,7 @@ class _Einfahren:
         self.schritt = 0
         self.uhr = QtCore.QTimer()
         self.uhr.setInterval(TAKT_MS)
-        self.uhr.timeout.connect(self._weiter)
+        self.uhr.timeout.connect(uhren.aus_der_schleife(self.uhr, self._weiter))
 
     def start(self):
         self.uhr.start()

@@ -29,7 +29,7 @@ from . import aufloesung as au
 from . import bahn as bn
 from . import fraeserform as ff
 from . import freiwege as fw
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import schlichten3d_bahn as sb
 from . import spindel as sp
@@ -224,6 +224,7 @@ class Schlichten3D(PathOp.ObjectOp):
             )
         return ergebnis.achsen
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

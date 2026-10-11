@@ -10,9 +10,9 @@ Ebene als eigenen Job an (schwenken.lege_an) und öffnet auf Wunsch gleich den A
 
 import FreeCAD
 import FreeCADGui
-from PySide import QtCore, QtGui
+from PySide import QtGui
 
-from . import farben, symbol
+from . import farben, symbol, uhren
 from . import job_schnittwerte as js
 from . import reichweite as rw
 from . import schwenken as sw
@@ -257,7 +257,7 @@ class SchwenkenPanel:
             return
         klone = [vr.modell(self.grundjob)] + [vr.modell(e) for e in sw.ebenen_von(self.grundjob)]
         if gemeint in klone:
-            QtCore.QTimer.singleShot(0, lambda: self.waehle(unterelement))
+            uhren.gleich(lambda: self.waehle(unterelement))
 
     def _winkelfeld(self, von, bis, tooltip):
         feld = QtGui.QDoubleSpinBox()
@@ -375,7 +375,7 @@ class SchwenkenPanel:
             bearbeiten = self.haken_bearbeiten.isChecked()
             self._schliessen()
             if bearbeiten:
-                QtCore.QTimer.singleShot(0, lambda: _bearbeiten(job, flaeche))
+                uhren.gleich(lambda: _bearbeiten(job, flaeche))
             return True
         dokument = self.grundjob.Document
         dokument.openTransaction(tr("sw.titel"))
@@ -391,7 +391,7 @@ class SchwenkenPanel:
         flaeche = self.flaeche
         self._schliessen()
         if bearbeiten:
-            QtCore.QTimer.singleShot(0, lambda: _bearbeiten(job, flaeche))
+            uhren.gleich(lambda: _bearbeiten(job, flaeche))
         return True
 
     def reject(self):

@@ -35,7 +35,7 @@ import Path.Op.Base as PathOp
 from . import aufloesung as au
 from . import fraeserform as ff
 from . import freiwege as fw
-from . import namen
+from . import namen, uhren
 from . import restmaterial as rm
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -128,6 +128,7 @@ class RundumSchlichten(PathOp.ObjectOp):
         if "Workplane" in obj.PropertiesList:  # Wochen-Build: die Bahn dreht selbst
             obj.setEditorMode("Workplane", 2)
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

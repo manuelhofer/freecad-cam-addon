@@ -18,7 +18,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import ADDON_ORDNER, PARAMETER_PFAD, symbol
+from . import ADDON_ORDNER, PARAMETER_PFAD, symbol, uhren
 from . import aktualisierung as a
 from .sprache import tr
 
@@ -72,7 +72,7 @@ class Suche:
         self.ergebnis = None  # setzt der Such-Thread, liest der Zeitgeber
         self.uhr = QtCore.QTimer()
         self.uhr.setInterval(NACHSEHEN_MS)
-        self.uhr.timeout.connect(self._nachsehen)
+        self.uhr.timeout.connect(uhren.aus_der_schleife(self.uhr, self._nachsehen))
 
     def start(self):
         a.netz_vorbereiten(self.ordner)  # hier im Hauptthread – Qt lädt nur dort

@@ -32,7 +32,7 @@ from . import hoehenfeld as hf
 from . import kontur as ko
 from . import kontur_bahn as kb
 from . import materialstand as mst
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import raeumen_bahn as rb
 from . import spindel as sp
@@ -125,6 +125,7 @@ class Raeumen(PathOp.ObjectOp):
         obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
         obj.setEditorMode("Freivorschub", 0 if str(obj.Variante) == ADAPTIV_FREI else 2)
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         self._editormodi(obj)
         try:

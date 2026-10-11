@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-78 atmen-beim-neuberechnen
+
+### EINGELESEN
+- Die Bahnen atmeten nur beim Anlegen im Assistenten (`uhren.atmend()` um `_im_befehl`). Ändert
+  man eine Eigenschaft einer Operation oder rechnet neu, rechnet sie im Hauptprozess am Stück:
+  3D-Schlichten mit „äquidistant“ 2,3 s, Räumen am Testteil bis 6 s; unter Windows (Manuels RC1)
+  meldet FreeCAD nach 5 s „Keine Rückmeldung“.
+- Vorher durchgesehen, welche Uhren des Addons mitten in eine Rechnung fallen könnten: sechs
+  wiederkehrende ohne `aus_der_schleife` – der Takt des Abspielers, das Einfahren im
+  4-Achs-Assistenten, zwei Bewegungen in `gui_zeigen`, das Zeigen im Maschinenfenster, die
+  Update-Suche – und die Rückrufe einer angeklickten Fläche (`singleShot(0, …)`) in den
+  Assistenten „Bearbeitung“, „4 Achsen“ und beim Schwenken. Das betrifft auch schon FreeCAD 26.3,
+  das bei booleschen Operationen Ereignisse abarbeitet.
+
+### DATEIEN
+- `camaddon/uhren.py`: `atmend_rechnen` (Dekorator: die Rechnung in `atmend()`), `gleich`
+  (wie `singleShot(0, …)`, mitten in einer Rechnung danach).
+- Die 16 Operationen (`bohrung`, `bleistift`, `entgraten`, `entgraten3d`, `flanke`,
+  `gewindefraesen`, `kontur`, `nut`, `planfraesen`, `raeumen`, `schlichten3d`, `schruppen3d`,
+  `vierachs_entgraten`, `vierachs_operation`, `vierachs_plan`, `vierachs_schlichten`):
+  `opExecute` mit `@uhren.atmend_rechnen`.
+- `camaddon/gui_abfahren.py`, `gui_vierachs.py`, `gui_zeigen.py`, `gui_maschine.py`,
+  `gui_aktualisierung.py`: die Uhren über `uhren.aus_der_schleife`; `gui_bearbeitung.py`,
+  `gui_vierachs.py`, `gui_schwenken.py`: angeklickte Flächen über `uhren.gleich`.
+- `package.xml` (0.213.82), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- `szenario_schlichten3d`: längste Pause 2,25 → 0,62 s (die Richtung an der Operation umstellen).
+
+### AKZEPTANZKRITERIUM
+- `test_raeumen`, `test_kontur`, `test_schlichten3d`, `test_vierachs_schlichten`;
+  `szenario_schlichten3d`, `szenario_pruefen_im_takt`, `szenario_schwenken`, `szenario_zeigen`,
+  `szenario_maschine_bearbeiten`, `szenario_vierachs_maschine`, `szenario_testteil`,
+  `szenario_vierachs_schlichten`, `szenario_bearbeitung`, `szenario_abfahren`,
+  `szenario_kollision`, `szenario_vierachs_ausspannen`, `szenario_rundum_drehmaschine` grün.
+
 ## P-2026-10-11-77 raeumen-varianten-gleichzeitig
 
 ### EINGELESEN

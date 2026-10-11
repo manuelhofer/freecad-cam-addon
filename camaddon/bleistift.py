@@ -23,7 +23,7 @@ from . import aufloesung as au
 from . import bahn as bn
 from . import bleistift_bahn as bb
 from . import freiwege as fw
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
@@ -78,6 +78,7 @@ class Bleistift(PathOp.ObjectOp):
         for name in ("Linien", "Laenge"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

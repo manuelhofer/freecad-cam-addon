@@ -24,7 +24,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import aufloesung as au
-from . import namen
+from . import namen, uhren
 from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_entgratbahn as ve
@@ -86,6 +86,7 @@ class RundumEntgraten(PathOp.ObjectOp):
         if "Workplane" in obj.PropertiesList:  # Wochen-Build: die Bahn dreht selbst
             obj.setEditorMode("Workplane", 2)
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

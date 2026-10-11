@@ -27,7 +27,7 @@ from . import bahn as bn
 from . import freiwege as fw
 from . import hoehenfeld as hf
 from . import materialstand as mst
-from . import namen
+from . import namen, uhren
 from . import planfraesen_bahn as pb
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -100,6 +100,7 @@ class PlanFraesen(PathOp.ObjectOp):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

@@ -24,7 +24,7 @@ from . import bahn as bn
 from . import freiwege as fw
 from . import kontur as ko
 from . import materialstand as mst
-from . import namen
+from . import namen, uhren
 from . import nut_bahn as nb
 from . import planfraesen as pf
 from . import spindel as sp
@@ -99,6 +99,7 @@ class Nut(PathOp.ObjectOp):
         if "Kreise" in obj.PropertiesList:  # bis P-2026-10-02-52 (Trochoide): ausgeblendet
             obj.setEditorMode("Kreise", 2)
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

@@ -28,7 +28,7 @@ from . import freiwege as fw
 from . import hoehenfeld as hf
 from . import kontur as ko
 from . import materialstand as mst
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import raeumen as ra
 from . import raeumen_bahn as rb
@@ -104,6 +104,7 @@ class Schruppen3D(PathOp.ObjectOp):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

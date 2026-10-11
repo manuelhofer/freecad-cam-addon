@@ -30,6 +30,7 @@ from . import (
     gui_zeigen,
     schraege_achse,
     symbol,
+    uhren,
 )
 from . import kette as kette_modul
 from . import maschine as m
@@ -187,7 +188,9 @@ class MaschinenPanel:
         self._zeige_uhr = QtCore.QTimer()
         self._zeige_uhr.setSingleShot(True)
         self._zeige_uhr.setInterval(ZEIGEN_NACH_MS)
-        self._zeige_uhr.timeout.connect(lambda: self.zeige(self._zeige_ziel))
+        self._zeige_uhr.timeout.connect(
+            uhren.aus_der_schleife(self._zeige_uhr, lambda: self.zeige(self._zeige_ziel))
+        )
 
         self.form = self._baue()
         self.neu_aufbauen()

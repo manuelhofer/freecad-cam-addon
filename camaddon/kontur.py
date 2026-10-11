@@ -26,7 +26,7 @@ from . import freiwege as fw
 from . import hoehenfeld as hf
 from . import kontur_bahn as kb
 from . import materialstand as mst
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -104,6 +104,7 @@ class Kontur(PathOp.ObjectOp):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

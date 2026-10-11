@@ -26,7 +26,7 @@ from . import entgrat_bahn as eb
 from . import fraeserform as ff
 from . import freiwege as fw
 from . import hoehenfeld as hf
-from . import namen
+from . import namen, uhren
 from . import planfraesen as pf
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -86,6 +86,7 @@ class Entgraten(PathOp.ObjectOp):
         for name in ("Ketten", "Ausgelassen"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
 
+    @uhren.atmend_rechnen
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:

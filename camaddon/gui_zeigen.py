@@ -13,6 +13,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore
 
+from . import uhren
 from .kette import LINEAR
 
 # Wie weit und wie lange gewackelt wird.
@@ -57,7 +58,7 @@ class Wackeln:
         self.schritt = 0
         self.uhr = QtCore.QTimer()
         self.uhr.setInterval(DAUER_MS // SCHRITTE)
-        self.uhr.timeout.connect(self._weiter)
+        self.uhr.timeout.connect(uhren.aus_der_schleife(self.uhr, self._weiter))
 
     def start(self):
         self.uhr.start()
@@ -125,7 +126,7 @@ class WackelnProgramm(Wackeln):
         self.schritt = 0
         self.uhr = QtCore.QTimer()
         self.uhr.setInterval(DAUER_MS // SCHRITTE)
-        self.uhr.timeout.connect(self._weiter)
+        self.uhr.timeout.connect(uhren.aus_der_schleife(self.uhr, self._weiter))
 
     def _weite_nach_groesse(self):
         groesse = max(
