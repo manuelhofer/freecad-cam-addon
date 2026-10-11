@@ -452,7 +452,11 @@ class PruefPanel:
         self.abspieler.bei_kollision = self._kollision_hin
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
-            self._kollision_daten, self._kollision_hin, self._sperren, self._kollision_gemeldet
+            self._kollision_daten,
+            self._kollision_hin,
+            self._sperren,
+            self._kollision_gemeldet,
+            self._werkzeug_ausspannen,
         )
         aufbau.addWidget(self.kollision)
         self.bereiche = QtGui.QLabel()
@@ -830,6 +834,20 @@ class PruefPanel:
         self.bibliothek = _bibliothek()
         self._bild_weg()  # Werkzeug und Halter in der Ansicht neu
         self.pruefe()
+
+    def _werkzeug_ausspannen(self, nummer, laenge, heraus):
+        """„T1 auf … mm ausspannen“ unter den Befunden (gui_kollision): die Länge ab Spindelnase von
+        T`nummer` in der Werkzeugverwaltung auf `laenge` mm, gespeichert; das Fenster rechnet mit
+        ihr neu (wie nach dem Speichern in der Werkzeugverwaltung). Gibt den Satz dazu zurück."""
+        werkzeuge = self.bibliothek.werkzeuge if self.bibliothek is not None else ()
+        werkzeug = next((w for w in werkzeuge if w.nummer == nummer), None)
+        if werkzeug is None:
+            return ""
+        werkzeug.laenge_spindelnase = round(float(laenge), 3)
+        self.bibliothek.speichern()
+        satz = rw.ausgespannt_text(werkzeug, heraus) + " " + tr("kb.ausgespannt_pruefen")
+        self._werkzeuge_gespeichert()
+        return satz
 
     def _kollision_verweis(self, ziel):
         """Die Verweise im Urteil „Kollision“: „kollision:pruefen“ prüft, „kollision:wo“ zeigt

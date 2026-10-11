@@ -2713,5 +2713,6 @@
     "va.halter_ausspannen": "{werkzeug} auf {heraus} {e_laenge} ausspannen",
     "va.halter_zu_kurz": "{werkzeug} ist dafür zu kurz (Gesamtlänge {gesamt} {e_laenge}) – ein längeres Werkzeug nehmen.",
     "va.halter_ausgespannt": "{werkzeug} steht jetzt {heraus} {e_laenge} heraus: Länge ab Spindelnase {laenge} {e_laenge}, in der Werkzeugverwaltung gespeichert{drin}. So einspannen und am Voreinstellgerät nachmessen.",
-    "va.halter_ausgespannt_drin": "; im Halter stecken dann noch {drin} {e_laenge}"
+    "va.halter_ausgespannt_drin": "; im Halter stecken dann noch {drin} {e_laenge}",
+    "kb.ausgespannt_pruefen": "„Kollision prüfen“ sagt, ob es jetzt frei ist."
 }

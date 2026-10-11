@@ -129,9 +129,6 @@ SCHRUPPEN, SCHLICHTEN, PLAN, ENTGRATEN = "schruppen", "schlichten", "plan", "ent
 # 3,1 mm² gegen 2,4 mm²). Darunter steht grau, wie viel.
 REST_VIEL = 2.0
 REST_AUFMASS_MINDESTENS = 0.1  # mm: so viel Aufmaß rechnet der Vergleich mindestens
-# „T1 auf … mm ausspannen“ (Halter stößt an): so viel mm über „bräuchte mindestens“ hinaus; angeboten
-# nur, wenn danach noch mindestens ein Schaftdurchmesser im Halter steckt.
-AUSSPANNEN_RESERVE = 1
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
 # Stirn als Scheibe – für jedes dieser Werkzeuge sicher (vierachs_huelle).
@@ -3892,18 +3889,15 @@ class VierachsPanel:
         if self.bibliothek is None:
             return ""
         kennung = f"T{werkzeug.nummer}"
-        ziel = math.ceil(mindestens) + AUSSPANNEN_RESERVE
-        gesamt = float(werkzeug.gesamtlaenge or 0.0)
-        schaft = float(werkzeug.schaft or werkzeug.durchmesser or 0.0)
-        if gesamt and gesamt - ziel < schaft:
+        auf = rw.ausspannen_auf(werkzeug, self.bibliothek, heraus, mindestens)
+        if auf is None:
             satz = tr(
                 "va.halter_zu_kurz",
                 werkzeug=kennung,
-                gesamt=einheiten.text(gesamt, einheiten.LAENGE, 0),
+                gesamt=einheiten.text(float(werkzeug.gesamtlaenge), einheiten.LAENGE, 0),
             )
             return " " + html.escape(satz, quote=False)
-        laenge, _quelle = rw.laenge_des_werkzeugs(werkzeug, self.bibliothek)
-        neu = laenge + (ziel - heraus)
+        ziel, neu = auf
         text = tr(
             "va.halter_ausspannen",
             werkzeug=kennung,
@@ -3916,6 +3910,8 @@ class VierachsPanel:
         in der Werkzeugverwaltung auf `laenge` mm – so misst sie das Voreinstellgerät, wenn es
         `heraus` mm heraussteht –, gespeichert; grau darunter, was gesetzt ist, dann prüft es neu.
         Gibt das Werkzeug zurück – None, wenn es nicht (mehr) da ist."""
+        from . import reichweite as rw
+
         werkzeug = next(
             (
                 w
@@ -3928,19 +3924,7 @@ class VierachsPanel:
             return None
         werkzeug.laenge_spindelnase = round(float(laenge), 3)
         self.bibliothek.speichern()
-        drin = ""
-        if werkzeug.gesamtlaenge:
-            drin = tr(
-                "va.halter_ausgespannt_drin",
-                drin=einheiten.text(float(werkzeug.gesamtlaenge) - heraus, einheiten.LAENGE, 0),
-            )
-        satz = tr(
-            "va.halter_ausgespannt",
-            werkzeug=f"T{nummer}",
-            heraus=einheiten.text(heraus, einheiten.LAENGE, 0),
-            laenge=einheiten.text(werkzeug.laenge_spindelnase, einheiten.LAENGE, 1),
-            drin=drin,
-        )
+        satz = rw.ausgespannt_text(werkzeug, heraus)
         # Grau dorthin, wo die gelbe Zeile mit diesem Verweis stand – nicht zu Bearbeitungen, die
         # das Werkzeug nur vorgewählt haben.
         zeilen = [

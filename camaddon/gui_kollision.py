@@ -58,14 +58,17 @@ class KollisionsBereich(QtGui.QWidget):
     """`daten()` liefert (Abfahrt, Job, Nullpunkt, Bibliothek) vom Fenster; `hin(befund)`
     stellt den Abspieler an die Stelle eines Befunds; `sperren(ja)` sperrt den Rest des
     Fensters, solange gerechnet wird; `gemeldet(text, farbe, fett)` bekommt das Urteil für
-    oben im Fenster, sobald es sich ändert (kurzurteil)."""
+    oben im Fenster, sobald es sich ändert (kurzurteil); `ausspannen(Nummer, Länge, heraus)`
+    setzt die Länge ab Spindelnase eines Werkzeugs, dessen Halter anstößt, und gibt den Satz
+    dazu zurück (P-2026-10-11-63) – ohne sie bietet der Bereich das nicht an."""
 
-    def __init__(self, daten, hin, sperren, gemeldet=None):
+    def __init__(self, daten, hin, sperren, gemeldet=None, ausspannen=None):
         super().__init__()
         self._daten = daten
         self._hin = hin
         self._sperren = sperren
         self._gemeldet = gemeldet or (lambda *_urteil: None)
+        self._ausspannen = ausspannen
         self.ergebnis = None
         self.laeuft = False
         self._abbrechen = False
@@ -112,6 +115,19 @@ class KollisionsBereich(QtGui.QWidget):
         self.liste.setToolTip(tr("kb.liste.tooltip"))
         self.liste.itemClicked.connect(lambda _eintrag: self._befund_gewaehlt())
         aufbau.addWidget(self.liste)
+        # Stößt ein Halter an: „T1 auf … mm ausspannen“ (der nächste Schritt als Verweis); danach
+        # grau, was gesetzt ist – bis zur nächsten Prüfung.
+        self.ausspannen_zeile = QtGui.QLabel()
+        self.ausspannen_zeile.setWordWrap(True)
+        self.ausspannen_zeile.setTextFormat(QtCore.Qt.RichText)
+        self.ausspannen_zeile.linkActivated.connect(self._ausspannen_geklickt)
+        self.ausspannen_zeile.hide()
+        aufbau.addWidget(self.ausspannen_zeile)
+        self.notiz = QtGui.QLabel()
+        self.notiz.setWordWrap(True)
+        self.notiz.setStyleSheet(f"color: {GRAU.name()};")
+        self.notiz.hide()
+        aufbau.addWidget(self.notiz)
         self.hinweise = hinweis_label()
         aufbau.addWidget(self.hinweise)
 
@@ -144,6 +160,8 @@ class KollisionsBereich(QtGui.QWidget):
         self.balken.show()
         self.liste.hide()
         self.hinweise.hide()
+        self.ausspannen_zeile.hide()
+        self.notiz.hide()
         self._urteil(tr("kb.laeuft"), GRAU.name())
         self._sperren(True)
         self._melde()
@@ -181,6 +199,7 @@ class KollisionsBereich(QtGui.QWidget):
         self.liste.clear()
         self.liste.hide()
         self.hinweise.hide()
+        self.ausspannen_zeile.hide()
         self._urteil(tr("kb.noch_nicht"), GRAU.name(), fett=False)
         self._melde()
 
@@ -203,7 +222,55 @@ class KollisionsBereich(QtGui.QWidget):
             self._urteil(tr("kb.frei", abstand=abstand), GRUEN)
         self.hinweise.setText(hinweise_html(ergebnis.hinweise))
         self.hinweise.setVisible(bool(ergebnis.hinweise))
+        self._ausspannen_zeigen(ergebnis)
         self._melde()
+
+    def _ausspannen_zeigen(self, ergebnis):
+        """Je Werkzeug der Werkzeugverwaltung, dessen Halter anstößt (Befund.mindestens): „T1 auf
+        … mm ausspannen“ – oder dass es dafür zu kurz ist (reichweite.ausspannen_auf)."""
+        from . import job_schnittwerte as js
+
+        verweise = []
+        abfahrt, _job, _nullpunkt, bibliothek = self._daten()
+        if self._ausspannen is not None and abfahrt is not None and bibliothek is not None:
+            je_werkzeug = {}
+            for befund in ergebnis.befunde:
+                if befund.mindestens <= befund.heraus or befund.halter_am_teil < 0:
+                    continue
+                tc = abfahrt.operationen[befund.halter_am_teil].tc
+                werkzeug = js.werkzeug_von(tc, bibliothek)
+                if werkzeug is None:
+                    continue
+                bisher = je_werkzeug.get(werkzeug.nummer)
+                if bisher is None or befund.mindestens > bisher[2]:
+                    je_werkzeug[werkzeug.nummer] = (werkzeug, befund.heraus, befund.mindestens)
+            for werkzeug, heraus, mindestens in je_werkzeug.values():
+                kennung = f"T{werkzeug.nummer}"
+                auf = rw.ausspannen_auf(werkzeug, bibliothek, heraus, mindestens)
+                if auf is None:
+                    gesamt = einheiten.text(float(werkzeug.gesamtlaenge), einheiten.LAENGE, 0)
+                    satz = tr("va.halter_zu_kurz", werkzeug=kennung, gesamt=gesamt)
+                    verweise.append(html.escape(satz, quote=False))
+                    continue
+                ziel, laenge = auf
+                text = tr(
+                    "va.halter_ausspannen",
+                    werkzeug=kennung,
+                    heraus=einheiten.text(ziel, einheiten.LAENGE, 0),
+                )
+                ziel_verweis = f"ausspannen:{werkzeug.nummer}:{laenge:.3f}:{ziel}"
+                verweise.append(f'<a href="{ziel_verweis}">{html.escape(text)}</a>')
+        self.ausspannen_zeile.setText(" · ".join(verweise))
+        self.ausspannen_zeile.setVisible(bool(verweise))
+
+    def _ausspannen_geklickt(self, ziel):
+        """„ausspannen:1:111.000:41“: T1 so weit ausspannen (das Fenster setzt es und rechnet
+        neu); grau darunter, was gesetzt ist."""
+        _art, nummer, laenge, heraus = ziel.split(":")
+        satz = self._ausspannen(int(nummer), float(laenge), int(heraus))
+        if satz:
+            self.notiz.setText(satz)
+            self.notiz.show()
 
     def _melde(self):
         self._gemeldet(*self.kurzurteil())

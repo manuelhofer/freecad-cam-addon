@@ -2713,5 +2713,6 @@
     "va.halter_ausspannen": "Clamp {werkzeug} at {heraus} {e_laenge} stick-out",
     "va.halter_zu_kurz": "{werkzeug} is too short for that (overall length {gesamt} {e_laenge}) – use a longer tool.",
     "va.halter_ausgespannt": "{werkzeug} now sticks out {heraus} {e_laenge}: length from spindle nose {laenge} {e_laenge}, saved in the tool manager{drin}. Clamp it like that and measure it on the presetter.",
-    "va.halter_ausgespannt_drin": "; {drin} {e_laenge} then remain in the holder"
+    "va.halter_ausgespannt_drin": "; {drin} {e_laenge} then remain in the holder",
+    "kb.ausgespannt_pruefen": "“Check collision” tells whether it is clear now."
 }

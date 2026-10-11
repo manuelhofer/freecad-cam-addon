@@ -407,6 +407,43 @@ def laenge_des_werkzeugs(werkzeug, bibliothek):
     return wz.geschaetzte_laenge(werkzeug), LAENGE_GESCHAETZT
 
 
+# „T1 auf … mm ausspannen“ (Halter stößt an): so viel mm über „bräuchte mindestens“ hinaus.
+AUSSPANNEN_RESERVE = 1
+
+
+def ausspannen_auf(werkzeug, bibliothek, heraus, mindestens):
+    """(so weit heraus in mm, Länge ab Spindelnase dafür in mm) für ein Werkzeug der
+    Werkzeugverwaltung, das `heraus` mm heraussteht und `mindestens` mm bräuchte, damit sein
+    Halter nicht ans Teil stößt (vierachs_halter.pruefen, kollision.ausspannung): aufgerundet plus
+    AUSSPANNEN_RESERVE, die Länge ab Spindelnase um so viel länger – so misst sie das
+    Voreinstellgerät danach. None, wenn es dafür zu kurz ist: Es bliebe weniger als ein
+    Schaftdurchmesser im Halter."""
+    ziel = math.ceil(mindestens) + AUSSPANNEN_RESERVE
+    gesamt = float(werkzeug.gesamtlaenge or 0.0)
+    schaft = float(werkzeug.schaft or werkzeug.durchmesser or 0.0)
+    if gesamt and gesamt - ziel < schaft:
+        return None
+    laenge, _quelle = laenge_des_werkzeugs(werkzeug, bibliothek)
+    return ziel, laenge + (ziel - heraus)
+
+
+def ausgespannt_text(werkzeug, heraus):
+    """Der graue Satz, nachdem „T1 auf … mm ausspannen“ die Länge ab Spindelnase gesetzt hat."""
+    drin = ""
+    if werkzeug.gesamtlaenge:
+        drin = tr(
+            "va.halter_ausgespannt_drin",
+            drin=einheiten.text(float(werkzeug.gesamtlaenge) - heraus, einheiten.LAENGE, 0),
+        )
+    return tr(
+        "va.halter_ausgespannt",
+        werkzeug=f"T{werkzeug.nummer}",
+        heraus=einheiten.text(heraus, einheiten.LAENGE, 0),
+        laenge=einheiten.text(werkzeug.laenge_spindelnase, einheiten.LAENGE, 1),
+        drin=drin,
+    )
+
+
 @dataclass
 class Einspannung:
     """Wie das Werkzeug in seiner Aufnahme sitzt (W-002 Stufe E): die Länge vom Bezugspunkt

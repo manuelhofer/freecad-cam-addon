@@ -711,8 +711,10 @@ def _abschliessen(ergebnis, befunde, abfahrt, job, rohteil, fortschritt, bibliot
     Teil ist, wie weit das Werkzeug dort herausstehen müsste (ausspannung)."""
     if rohteil and not ergebnis.abgebrochen:
         befunde += _eilgaenge_ins_rohteil(abfahrt, job)
+    # Zwischendurch bedient der Fortschritt die Oberfläche (an Manuels Nasen-Testteil ~2 s).
+    zwischendurch = (lambda: fortschritt(0.999)) if fortschritt is not None else None
     try:
-        ausspannung(befunde, abfahrt, job, bibliothek)
+        ausspannung(befunde, abfahrt, job, bibliothek, zwischendurch)
     except Exception as fehler:  # noqa: BLE001 – ohne den Satz bleibt der Befund, wie er ist
         FreeCAD.Console.PrintLog(f"CAM-Addon: Ausspannung nicht gerechnet: {fehler}\n")
     # Berührungen zuerst, dann was nur näher kommt – je nach der Zeit.
@@ -722,21 +724,30 @@ def _abschliessen(ergebnis, befunde, abfahrt, job, rohteil, fortschritt, bibliot
 
 
 AUSSPANNUNG_HOECHSTENS = 300.0  # mm – weiter heraus sucht ausspannung() nicht
-AUSSPANNUNG_SCHRITTE = 12  # Halbierungen: auf 0,1 mm
+AUSSPANNUNG_SCHRITTE = 10  # Halbierungen: auf 0,3 mm (gemeldet aufgerundet auf ganze mm)
 AUSSPANNUNG_STATIONEN = 20  # so viele Stationen nach der ersten Berührung sieht sie nach
+# … und über die ganze Operation höchstens so viele Stichproben, dann um die schlimmste herum fein
+# (höchstens AUSSPANNUNG_FEIN Stationen): Beim Schruppen in Lagen streift der Halter zuerst nur und
+# steckt erst eine Lage tiefer richtig drin (P-2026-10-11-63).
+AUSSPANNUNG_PROBEN = 1500
+AUSSPANNUNG_FEIN = 400
+AUSSPANNUNG_ZELLE = 25.0  # mm – so nah beieinander liegende Stellen fragt sie auf einmal ab
 AUSSPANNUNG_NETZ = 0.05  # mm – so fein vernetzt sie das Teil
 AUSSPANNUNG_TIEFER = 0.1  # mm – so weit (nach Netz und Schranke) muss der Halter im Teil stecken
 
 
-def ausspannung(befunde, abfahrt, job, bibliothek=None):
+def ausspannung(befunde, abfahrt, job, bibliothek=None, zwischendurch=None):
     """Trägt in jeden Befund „der Halter am Teil“ (Befund.halter_am_teil) ein, wie weit das
     Werkzeug heraussteht und wie weit es dort mindestens müsste – der Halter so weit längs der
     Werkzeugachse zurück, dass er das Teil nicht mehr berührt (Manuel, 2026-10-11: „sehr klar
     darauf hinweisen das die ausspannlänge des fräsers nicht ausreicht“). Nachgesehen an der
-    ersten Berührung und den Stationen danach (höchstens AUSSPANNUNG_STATIONEN), alle auf einmal:
+    ersten Berührung und den Stationen danach (höchstens AUSSPANNUNG_STATIONEN) und über die ganze
+    Operation (AUSSPANNUNG_PROBEN Stichproben, um die schlimmste fein) – „mindestens“ gilt so für
+    die ganze Operation wie im 4-Achs-Assistenten (vierachs_halter). Je Stelle auf einmal:
     die Kapseln des Halters (werkzeugkapseln) gegen das Netz des Teils (netzabstand), halbiert –
     auch mit gewinkeltem Halter (Revolver): Die Achse ist die des Werkzeugs. Mit OpenCascade Stelle
-    für Stelle waren es an Manuels Nasen-Testteil 39 s."""
+    für Stelle waren es an Manuels Nasen-Testteil 39 s. `zwischendurch()` wird zwischen den Abfragen
+    gerufen (die Oberfläche bleibt bedienbar)."""
     befunde = [b for b in befunde if b.beruehrung and b.halter_am_teil >= 0]
     if not befunde:
         return
@@ -758,6 +769,52 @@ def ausspannung(befunde, abfahrt, job, bibliothek=None):
         kapseln = werkzeugkapseln(masse, op.laenge, halter).get(HALTER, ())
         if not kapseln:
             continue
+        # Je Stelle die Kapseln in Koordinaten des Teils und die Werkzeugachse (zur Aufnahme).
+        achse_lcs = FreeCAD.Vector(0, 0, 1)
+        if halter.gewinkelt:
+            achse_lcs = hl.lage(halter).Rotation.multVec(achse_lcs)
+
+        def bedarf(stellen, op=op, kapseln=kapseln, achse_lcs=achse_lcs):
+            """Je Stelle: so weit (mm) müsste das Werkzeug weiter heraus, damit der Halter dort
+            nicht ans Teil stößt – 0, wo er frei ist oder auch AUSSPANNUNG_HOECHSTENS nicht reicht.
+            """
+            von, nach, achsen = [], [], []
+            for st in stellen:
+                lage = _halter_im_teil(pruefung, op, werkstueck_glied, am_nullpunkt, st)
+                achse = lage.Rotation.multVec(achse_lcs)
+                for p0, p1, _r, _flach in kapseln:
+                    von.append(tuple(lage.multVec(FreeCAD.Vector(*p0))))
+                    nach.append(tuple(lage.multVec(FreeCAD.Vector(*p1))))
+                    achsen.append(tuple(achse))
+            von, nach, achsen = (np.array(x, dtype=float) for x in (von, nach, achsen))
+            radien = np.tile([r for _p0, _p1, r, _f in kapseln], len(stellen))
+            flach = np.tile([bool(f) for _p0, _p1, _r, f in kapseln], len(stellen))
+            je = len(kapseln)
+            halter_hier = (netz, von, nach, achsen, radien, flach, je)
+            if zwischendurch is not None:
+                zwischendurch()
+            ergebnis = np.zeros(len(stellen))
+            an = np.flatnonzero(_halter_stoesst(halter_hier, np.zeros(len(stellen))))
+            if not len(an):
+                return ergebnis
+            # Weiter nur mit den Stellen, an denen er anstößt.
+            zeilen = (an[:, None] * je + np.arange(je)).ravel()
+            halter_hier = (netz, von[zeilen], nach[zeilen], achsen[zeilen], radien[zeilen])
+            halter_hier += (flach[zeilen], je)
+            reicht = ~_halter_stoesst(halter_hier, np.full(len(an), AUSSPANNUNG_HOECHSTENS))
+            unten = np.zeros(len(an))
+            oben = np.where(reicht, AUSSPANNUNG_HOECHSTENS, 0.0)
+            for _ in range(AUSSPANNUNG_SCHRITTE):
+                if zwischendurch is not None:
+                    zwischendurch()
+                mitte = (unten + oben) / 2
+                noch = _halter_stoesst(halter_hier, mitte) & reicht
+                unten = np.where(noch, mitte, unten)
+                oben = np.where(noch, oben, mitte)
+            ergebnis[an] = oben
+            return ergebnis
+
+        # An der ersten Berührung und den Stationen danach …
         stellen = [abfahrt.stellungen_bei(befund.zeit)]
         k = befund.station
         while (
@@ -767,38 +824,35 @@ def ausspannung(befunde, abfahrt, job, bibliothek=None):
         ):
             stellen.append(abfahrt.stellungen_an(k))
             k += 1
-        # Je Stelle die Kapseln in Koordinaten des Teils und die Werkzeugachse (zur Aufnahme).
-        achse_lcs = FreeCAD.Vector(0, 0, 1)
-        if halter.gewinkelt:
-            achse_lcs = hl.lage(halter).Rotation.multVec(achse_lcs)
-        von, nach, achsen = [], [], []
-        for st in stellen:
-            lage = _halter_im_teil(pruefung, op, werkstueck_glied, am_nullpunkt, st)
-            achse = lage.Rotation.multVec(achse_lcs)
-            for p0, p1, _r, _flach in kapseln:
-                von.append(tuple(lage.multVec(FreeCAD.Vector(*p0))))
-                nach.append(tuple(lage.multVec(FreeCAD.Vector(*p1))))
-                achsen.append(tuple(achse))
-        von, nach, achsen = (np.array(x, dtype=float) for x in (von, nach, achsen))
-        radien = np.tile([r for _p0, _p1, r, _f in kapseln], len(stellen))
-        flach = np.tile([bool(f) for _p0, _p1, _r, f in kapseln], len(stellen))
-        halter_hier = (netz, von, nach, achsen, radien, flach, len(kapseln))
-        an = _halter_stoesst(halter_hier, np.zeros(len(stellen)))
-        if not an.any():
-            continue  # an der Zeit des Befunds frei (er gilt für einen Abschnitt davor)
-        unten = np.zeros(len(stellen))
-        oben = np.where(an, AUSSPANNUNG_HOECHSTENS, 0.0)
-        if _halter_stoesst(halter_hier, oben).any():
-            continue
-        for _ in range(AUSSPANNUNG_SCHRITTE):
-            mitte = (unten + oben) / 2
-            noch = _halter_stoesst(halter_hier, mitte)
-            unten = np.where(noch, mitte, unten)
-            oben = np.where(noch, oben, mitte)
+        noetig = float(bedarf(stellen).max())
+        # … und über die ganze Operation: Stichproben, um die schlimmste herum fein.
+        erste = op.erste
+        letzte = (
+            abfahrt.operationen[befund.halter_am_teil + 1].erste - 1
+            if befund.halter_am_teil + 1 < len(abfahrt.operationen)
+            else len(abfahrt.stationen) - 1
+        )
+        proben = np.unique(
+            np.linspace(erste, letzte, min(AUSSPANNUNG_PROBEN, letzte - erste + 1)).astype(int)
+        )
+        if len(proben):
+            je_probe = bedarf([abfahrt.stellungen_an(int(i)) for i in proben])
+            if je_probe.max() > 0:
+                noetig = max(noetig, float(je_probe.max()))
+                schritt = max(1, (letzte - erste) // max(len(proben) - 1, 1))
+                mitte = int(proben[int(np.argmax(je_probe))])
+                fein = np.arange(max(erste, mitte - schritt), min(letzte, mitte + schritt) + 1)
+                if len(fein) > AUSSPANNUNG_FEIN:
+                    fein = fein[:: int(math.ceil(len(fein) / AUSSPANNUNG_FEIN))]
+                noetig = max(
+                    noetig, float(bedarf([abfahrt.stellungen_an(int(i)) for i in fein]).max())
+                )
+        if noetig <= 0:
+            continue  # nirgends ein Halter, der mit mehr Auskragung frei wäre
         heraus = op.laenge - halter.laenge if halter.laenge else masse.gesamt
         befund.werkzeug = f"T{getattr(op.tc, 'ToolNumber', 0)}"
         befund.heraus = max(float(heraus), 0.0)
-        befund.mindestens = befund.heraus + float(oben.max())
+        befund.mindestens = befund.heraus + noetig
 
 
 def _halter_stoesst(halter, weiter):
@@ -807,8 +861,24 @@ def _halter_stoesst(halter, weiter):
     Stelle) aus ausspannung()."""
     netz, von, nach, achsen, radien, flach, je_stelle = halter
     w = np.repeat(np.asarray(weiter, dtype=float), je_stelle)[:, None] * achsen
-    abstand = netz.kapseln(von + w, nach + w, float(radien.max()) + 1.0, radien, flach)
-    return (abstand.reshape(-1, je_stelle) < -AUSSPANNUNG_TIEFER).any(axis=1)
+    von, nach = von + w, nach + w
+    # Je Zelle eine Abfrage: netzabstand sammelt die Dreiecke um alle Strecken einer Abfrage –
+    # Stellen über das ganze Teil verteilt (Stichproben) hießen sonst alle Dreiecke gegen alle
+    # Strecken (an Manuels Nasen-Testteil 5,3 s).
+    n = len(von) // je_stelle
+    mitte = ((von + nach) / 2).reshape(n, je_stelle, 3).mean(axis=1)
+    _zellen, gruppe = np.unique(
+        np.floor(mitte / AUSSPANNUNG_ZELLE).astype(np.int64), axis=0, return_inverse=True
+    )
+    gruppe = np.asarray(gruppe).ravel()
+    reichweite = float(radien.max()) + 1.0
+    stoesst = np.zeros(n, dtype=bool)
+    for g in range(int(gruppe.max()) + 1 if n else 0):
+        stellen = np.flatnonzero(gruppe == g)
+        zeilen = (stellen[:, None] * je_stelle + np.arange(je_stelle)).ravel()
+        abstand = netz.kapseln(von[zeilen], nach[zeilen], reichweite, radien[zeilen], flach[zeilen])
+        stoesst[stellen] = (abstand.reshape(-1, je_stelle) < -AUSSPANNUNG_TIEFER).any(axis=1)
+    return stoesst
 
 
 def _halter_im_teil(pruefung, op, werkstueck_glied, am_nullpunkt, stellungen):

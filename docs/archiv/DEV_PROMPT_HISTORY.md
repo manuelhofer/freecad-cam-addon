@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-64 pruefen-ausspannen-ganze-operation
+
+### EINGELESEN
+- „Kollision prüfen“ im Prüffenster sagte „T1 steht 44 mm heraus, hier bräuchte es mindestens
+  48 mm“ – gerechnet nur an der ersten Berührung und 20 Stationen danach. Beim Schruppen in Lagen
+  streift der Halter zuerst nur (Abstand 0, ohne Eindringen) und steckt eine Lage tiefer richtig
+  drin: an einer Welle mit Bund fehlte die Angabe ganz, an der Nase war sie zu klein (T2: 31 mm,
+  über die ganze Bahn 53 mm mit dem Kopf des gewinkelten Halters; T1 48 statt 49 mm).
+- Wie im Assistenten (P-2026-10-11-63) soll das Prüffenster den nächsten Schritt anbieten.
+
+### DATEIEN
+- `camaddon/kollision.py`: `ausspannung` sieht zusätzlich die ganze Operation an
+  (`AUSSPANNUNG_PROBEN` 1500 Stichproben, um die schlimmste fein, höchstens `AUSSPANNUNG_FEIN`
+  400 Stationen); halbiert nur noch die Stellen, an denen der Halter anstößt (10 Runden, 0,3 mm);
+  `_halter_stoesst` fragt je Zelle (`AUSSPANNUNG_ZELLE` 25 mm) ab; `zwischendurch` bedient die
+  Oberfläche (aus `_abschliessen` über den Fortschritt). Nase mit der CLX550: 1,6 s, längste Pause
+  0,26 s.
+- `camaddon/reichweite.py`: `ausspannen_auf` (Ziel und Länge ab Spindelnase, None, wenn zu kurz)
+  und `ausgespannt_text` – gemeinsam für Assistent und Prüffenster; `gui_vierachs.py` benutzt sie.
+- `camaddon/gui_kollision.py`: unter den Befunden „T1 auf … mm ausspannen“ je Werkzeug der
+  Werkzeugverwaltung, dessen Halter anstößt (oder „zu kurz“); nach dem Klick grau, was gesetzt ist,
+  bis zur nächsten Prüfung. `camaddon/gui_reichweite.py`: `_werkzeug_ausspannen` setzt, speichert
+  und rechnet neu wie nach dem Speichern in der Werkzeugverwaltung.
+- `translations/de.json`, `translations/en.json` (`kb.ausgespannt_pruefen`).
+- `tests/gui/szenario_pruefen_ausspannen.py` (neu): Welle mit Bund auf dem Beispiel-Drehautomaten,
+  T1 im VDI-Radialhalter ER32 – Befund mit „bräuchte mindestens 50 mm“, Klick auf „T1 auf 51 mm
+  ausspannen“, gespeichert, neu gerechnet, die zweite Prüfung frei.
+- `package.xml` (0.213.69), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `test_kollision`, `szenario_pruefen_ausspannen` grün.
+
 ## P-2026-10-11-63 halter-ausspannen-als-knopf
 
 ### EINGELESEN
