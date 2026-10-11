@@ -49,10 +49,21 @@ def schlichten(dokument, job_name, laengs, radial, *args, **kwargs):
     )
 
 
-def plan(dokument, job_name, laengs, radial, *args, **kwargs):
+def plan(dokument, job_name, laengs, radial, *args, schrupp=None, **kwargs):
     """Die grobe Bahn „Plan indexiert“ (vierachs_planbahn.Planbahn) – vierachs_plan.vorschau,
-    mit dem Fräser oder dem Bohrer für die Querbohrungen."""
+    mit dem Fräser oder dem Bohrer für die Querbohrungen. `schrupp`: vom Rest nach dem Schruppen
+    aus – (Argumente, Schlüsselwörter) wie für schruppen() (das Schruppen, das der Assistent
+    anlegt) oder "job" (die „Rundum schruppen“ im Job); sonst von der Stange aus. So sagt die
+    Vorschau Lagen und Zeit wie die Operation (am Nasen-Testteil bis dahin 100 Lagen, etwa 12 min
+    statt 39 Lagen, 1,2 min)."""
     job = _job(dokument, job_name)
+    if schrupp == "job":
+        kwargs["schruppen"] = vs.schruppbahnen(job, job.Model.Group)
+    elif schrupp is not None:
+        schrupp_args, schrupp_kwargs = schrupp
+        bahn = schruppen(dokument, job_name, *schrupp_args, **schrupp_kwargs)
+        fraeser = schrupp_kwargs.get("form") or schrupp_args[2]
+        kwargs["schruppen"] = [(bahn, fraeser, schrupp_args[5])]
     return vplan.vorschau(
         job, job.Model.Group, FreeCAD.Vector(*laengs), FreeCAD.Vector(*radial), *args, **kwargs
     )

@@ -2,7 +2,7 @@
 # einer Abflachung auf x = 8 zwischen zwei Wänden, Stange Ø 24, T1 Schaftfräser Ø 6 (Einsätze
 # Planen und Schruppen), T2 Kugelfräser Ø 4 (Schlichten). Schritt 2 ohne Flächen: rundum
 # „Plan indexiert“ angehakt mit T1, dem Fräser des Schruppens, das Schlichten ohne die Ebene. Ein Klick auf die Abflachung: der Haken geht an
-# (Vorschlag mit Grund), die Vorschau sagt „→ 2 Lagen, 6 Zeilen“. „Anlegen“: drei Operationen,
+# (Vorschlag mit Grund), die Vorschau sagt „→ 2 Lagen, 9 Zeilen“ (vom Rest nach dem Schruppen). „Anlegen“: drei Operationen,
 # „Plan indexiert T1“ mit 2 Lagen und 6–9 Zeilen, die Sätze mit Y und festem C. Doppelklick
 # darauf öffnet den Assistenten mit ihren Werten; „Übernehmen“ mit 1 mm Zustellung rechnet
 # sie neu – vom Rest nach dem Schruppen aus, feiner.
@@ -109,7 +109,9 @@ def schritte(h):
     yield from h.warte_auf(lambda: panel.vorschau_plan is not None, 30000)
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
     text = panel.ergebnis_plan.text()
-    h.pruefe(text.startswith("→ 2 Lagen, 6 Zeilen, etwa"), f"Vorschau: {text!r}")
+    # Vom Rest nach dem Schruppen aus wie die Operation (P-2026-10-11-52) – mit den kurzen Zeilen
+    # in der oberen Lage, die der Rest neben der Wand braucht (bis dahin von der Stange: 6).
+    h.pruefe(text.startswith("→ 2 Lagen, 9 Zeilen, etwa"), f"Vorschau: {text!r}")
     from camaddon.gui_teile import blaettere_zu
 
     blaettere_zu(panel.mit_plan)

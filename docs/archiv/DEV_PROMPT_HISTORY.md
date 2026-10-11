@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-52 plan-vorschau-vom-rest
+
+### EINGELESEN
+- Im Bild des Assistenten am Nasen-Testteil: „Plan indexiert → 3 Flächen: 100 Lagen, 332 Zeilen,
+  etwa 12 min“ – die Operation selbst rechnet vom Rest nach dem Schruppen aus 39 Lagen, 1,2 min.
+  Die Vorschau ging von der Stange aus.
+
+### DATEIEN
+- `camaddon/vierachs_vorschau.py`: `plan(..., schrupp=)` – die Schruppbahn mit den Argumenten der
+  Schruppvorschau (im Arbeiter, parallel zu ihr) oder die „Rundum schruppen“ des Jobs ("job").
+- `camaddon/vierachs_plan.py`: `vorschau(..., schruppen=)`.
+- `camaddon/gui_vierachs.py`: `_plan_schrupp` – mit angehaktem Schruppen dessen Argumente, sonst die
+  Schruppen im Job.
+- `tests/gui/szenario_vierachs_plan.py` (die Vorschau wie die Operation: 2 Lagen, 9 Zeilen),
+  `package.xml` (0.213.58), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil im Assistenten: „→ 3 Flächen: 32 Lagen, 68 Zeilen, etwa 1 min“ (vorher 100 Lagen,
+  etwa 12 min). `szenario_vierachs_plan` grün.
+
 ## P-2026-10-11-51 halter-im-assistenten
 
 ### EINGELESEN

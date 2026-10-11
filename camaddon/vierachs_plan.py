@@ -302,9 +302,11 @@ def vorschau(
     nur_gleichlauf=False,
     schaft=False,
     schneide=0.0,
+    schruppen=(),
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten, bevor es die
-    Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt. ValueError wie
+    Operationen gibt: gröber vernetzt, vom Rest nach den Schruppbahnen `schruppen` aus ([(Bahn,
+    Fräser, Aufmaß)] wie schlichten.schruppbahnen; leer: von der Stange). ValueError wie
     bahn_fuer()."""
     return bahn_fuer(
         job,
@@ -316,7 +318,7 @@ def vorschau(
         zeilenabstand,
         aufmass,
         abstaende,
-        (),
+        schruppen,
         halter,
         flaechen,
         eintauchwinkel,

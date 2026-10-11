@@ -3027,7 +3027,21 @@ class VierachsPanel:
             "nur_gleichlauf": self.plan_nur_gleichlauf.isChecked(),
             "schaft": self.plan_schaft_an() and not bohrer,
             "schneide": float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0),
+            "schrupp": self._plan_schrupp(),
         }
+
+    def _plan_schrupp(self):
+        """Wovon die Vorschau von „Plan indexiert“ ausgeht (vierachs_vorschau.plan): vom Schruppen,
+        das der Assistent anlegt (seine Argumente), von dem im Job ("job") – oder von der Stange
+        (None)."""
+        if self.mit_schruppen.isChecked() and self.fraeser() is not None:
+            try:
+                return self._schrupp_argumente()
+            except ValueError:
+                return None
+        if self.job is not None and any(vo.ist_schruppen(o) for o in js.operationen(self.job)):
+            return "job"
+        return None
 
     def _plan_text(self, bahn):
         """„→ 2 Lagen, 6 Zeilen, etwa 1 min“ – bei mehreren Flächen mit ihrer Zahl, und was
