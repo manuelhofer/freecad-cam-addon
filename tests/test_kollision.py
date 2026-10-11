@@ -206,6 +206,14 @@ if e.befunde:
     pruefe(e.befunde[0].satz == 5, f"Halter: Satz {e.befunde[0].satz}")
     z = e.befunde[0].punkt["Z"]
     pruefe(9 <= z <= 10.1, f"Halter berührt bei Z {z}")
+    # Wie weit T1 dort herausstehen müsste (kollision.ausspannung, P-2026-10-11-38): gut 1 mm mehr.
+    b = e.befunde[0]
+    pruefe(
+        b.werkzeug == "T1"
+        and 0.5 < b.mindestens - b.heraus < 3.0
+        and "bräuchte es mindestens" in b.text(),
+        f"Ausspannung: {b.heraus} → {b.mindestens}: {b.text()}",
+    )
 pruefe(not any("ohne Halter" in h for h in e.hinweise), f"Hinweise: {e.hinweise}")
 
 # --- Kurzes Werkzeug neben dem Spanneisen: die Spindel --------------------------------------

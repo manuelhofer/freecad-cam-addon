@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-38 kollision-ausspannung
+
+### EINGELESEN
+- Manuel, 2026-10-11 (Frage 7): „ich bin der meinung das man schon sehr klar darauf hinweisen
+  sollte das die ausspannlänge des fräsers nicht ausreicht und man eine kollision fährt“.
+
+### DATEIEN
+- `camaddon/kollision.py`: Ein Befund „der Halter des arbeitenden Werkzeugs berührt das Teil“
+  merkt sich die Operation (`Befund.halter_am_teil`); nach der Prüfung rechnet `ausspannung()`
+  im Hauptprozess, wie weit das Werkzeug dort herausstehen müsste: die Kapseln des Halters
+  (werkzeugkapseln, auch gewinkelt am Revolver) gegen das Netz des Teils (netzabstand), an der
+  ersten Berührung und bis 20 Stationen danach, alle auf einmal halbiert. Der Satz bekommt
+  „– T2 steht 18,00 mm heraus, hier bräuchte es mindestens 49,00 mm.“
+- `translations/de.json`, `translations/en.json` (`kb.ausspannung`); `tests/test_kollision.py`
+  (der ER16 1 mm zu tief: gut 1 mm mehr), `package.xml` (0.213.44), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil, CLX550, Manuels Werkzeuge (VDI40 radial · ER32): T1 44 → mindestens 48 mm, T2
+  18 → mindestens 49 mm; der Halter von T1 im Revolver bekommt keinen Satz (er arbeitet nicht).
+  Gerechnet in 0,1 s (der erste Entwurf mit OpenCascade Stelle für Stelle: 38,6 s).
+- Grün: `test_kollision`.
+
 ## P-2026-10-11-37 querachse-c-dreht-nicht-zurueck
 
 ### EINGELESEN

@@ -446,6 +446,12 @@ class Befund:
     # Achsen, die dort am Anschlag stehen („X1, Z1“): Die Maschine erreicht die Stelle nicht – die
     # Kollision rechnet mit der Achse an der Grenze, der Befund folgt aus ihr, nicht aus der Bahn.
     anschlag: str = ""
+    # Der Halter des Werkzeugs der Operation (Nummer in der Abfahrt) am Teil (ausspannung): wie
+    # weit das Werkzeug heraussteht und wie weit es hier müsste (mm; 0: nicht gerechnet).
+    halter_am_teil: int = -1
+    werkzeug: str = ""
+    heraus: float = 0.0
+    mindestens: float = 0.0
 
     def text(self):
         werte = {
@@ -470,6 +476,13 @@ class Befund:
             text += " " + tr("kb.wechsel_ohne_punkt", werkzeug=self.wechsel)
         if self.anschlag:
             text += " " + tr("kb.anschlag", achsen=self.anschlag)
+        if self.mindestens > self.heraus:
+            text += " " + tr(
+                "kb.ausspannung",
+                werkzeug=self.werkzeug,
+                heraus=rw.weg_text(self.heraus),
+                mindestens=rw.weg_text(math.ceil(self.mindestens)),
+            )
         return text
 
 
@@ -687,18 +700,126 @@ def kollision(
     except _Abbruch:
         ergebnis.abgebrochen = True
         ergebnis.hinweise.append(tr("kb.abgebrochen", **_bis_hier(abfahrt, welt.station)))
-    _abschliessen(ergebnis, list(welt.schlimmste.values()), abfahrt, job, rohteil, fortschritt)
+    _abschliessen(
+        ergebnis, list(welt.schlimmste.values()), abfahrt, job, rohteil, fortschritt, bibliothek
+    )
     return ergebnis
 
 
-def _abschliessen(ergebnis, befunde, abfahrt, job, rohteil, fortschritt):
-    """Die Eilgänge ins Rohteil dazu, sortieren, den Fortschritt auf 1."""
+def _abschliessen(ergebnis, befunde, abfahrt, job, rohteil, fortschritt, bibliothek=None):
+    """Die Eilgänge ins Rohteil dazu, sortieren, den Fortschritt auf 1 – und wo der Halter am
+    Teil ist, wie weit das Werkzeug dort herausstehen müsste (ausspannung)."""
     if rohteil and not ergebnis.abgebrochen:
         befunde += _eilgaenge_ins_rohteil(abfahrt, job)
+    try:
+        ausspannung(befunde, abfahrt, job, bibliothek)
+    except Exception as fehler:  # noqa: BLE001 – ohne den Satz bleibt der Befund, wie er ist
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Ausspannung nicht gerechnet: {fehler}\n")
     # Berührungen zuerst, dann was nur näher kommt – je nach der Zeit.
     ergebnis.befunde = sorted(befunde, key=lambda b: (not b.beruehrung, b.zeit, b.a, b.b))
     if fortschritt is not None and not ergebnis.abgebrochen:
         fortschritt(1.0)
+
+
+AUSSPANNUNG_HOECHSTENS = 300.0  # mm – weiter heraus sucht ausspannung() nicht
+AUSSPANNUNG_SCHRITTE = 12  # Halbierungen: auf 0,1 mm
+AUSSPANNUNG_STATIONEN = 20  # so viele Stationen nach der ersten Berührung sieht sie nach
+AUSSPANNUNG_NETZ = 0.05  # mm – so fein vernetzt sie das Teil
+AUSSPANNUNG_TIEFER = 0.1  # mm – so weit (nach Netz und Schranke) muss der Halter im Teil stecken
+
+
+def ausspannung(befunde, abfahrt, job, bibliothek=None):
+    """Trägt in jeden Befund „der Halter am Teil“ (Befund.halter_am_teil) ein, wie weit das
+    Werkzeug heraussteht und wie weit es dort mindestens müsste – der Halter so weit längs der
+    Werkzeugachse zurück, dass er das Teil nicht mehr berührt (Manuel, 2026-10-11: „sehr klar
+    darauf hinweisen das die ausspannlänge des fräsers nicht ausreicht“). Nachgesehen an der
+    ersten Berührung und den Stationen danach (höchstens AUSSPANNUNG_STATIONEN), alle auf einmal:
+    die Kapseln des Halters (werkzeugkapseln) gegen das Netz des Teils (netzabstand), halbiert –
+    auch mit gewinkeltem Halter (Revolver): Die Achse ist die des Werkzeugs. Mit OpenCascade Stelle
+    für Stelle waren es an Manuels Nasen-Testteil 39 s."""
+    befunde = [b for b in befunde if b.beruehrung and b.halter_am_teil >= 0]
+    if not befunde:
+        return
+    pruefung = abfahrt.pruefung
+    teil = _teil_form(job)
+    if teil is None or pruefung.werkstueckaufnahme is None:
+        return
+    netz = na.Netz(teil, AUSSPANNUNG_NETZ)
+    werkstueck_glied = pruefung._glied(pruefung.werkstueckaufnahme)
+    am_nullpunkt = pruefung._lage(pruefung.werkstueckaufnahme).multiply(
+        FreeCAD.Placement(FreeCAD.Vector(*abfahrt.nullpunkt), FreeCAD.Rotation())
+    )
+    for befund in befunde:
+        op = abfahrt.operationen[befund.halter_am_teil]
+        halter = rw.werkzeughalter(op.tc, bibliothek)
+        if halter is None:
+            continue
+        masse = rw.werkzeugmasse(op.tc, bibliothek, op.laenge)
+        kapseln = werkzeugkapseln(masse, op.laenge, halter).get(HALTER, ())
+        if not kapseln:
+            continue
+        stellen = [abfahrt.stellungen_bei(befund.zeit)]
+        k = befund.station
+        while (
+            k < len(abfahrt.stationen)
+            and len(stellen) <= AUSSPANNUNG_STATIONEN
+            and abfahrt.stationen[k].operation == befund.halter_am_teil
+        ):
+            stellen.append(abfahrt.stellungen_an(k))
+            k += 1
+        # Je Stelle die Kapseln in Koordinaten des Teils und die Werkzeugachse (zur Aufnahme).
+        achse_lcs = FreeCAD.Vector(0, 0, 1)
+        if halter.gewinkelt:
+            achse_lcs = hl.lage(halter).Rotation.multVec(achse_lcs)
+        von, nach, achsen = [], [], []
+        for st in stellen:
+            lage = _halter_im_teil(pruefung, op, werkstueck_glied, am_nullpunkt, st)
+            achse = lage.Rotation.multVec(achse_lcs)
+            for p0, p1, _r, _flach in kapseln:
+                von.append(tuple(lage.multVec(FreeCAD.Vector(*p0))))
+                nach.append(tuple(lage.multVec(FreeCAD.Vector(*p1))))
+                achsen.append(tuple(achse))
+        von, nach, achsen = (np.array(x, dtype=float) for x in (von, nach, achsen))
+        radien = np.tile([r for _p0, _p1, r, _f in kapseln], len(stellen))
+        flach = np.tile([bool(f) for _p0, _p1, _r, f in kapseln], len(stellen))
+        halter_hier = (netz, von, nach, achsen, radien, flach, len(kapseln))
+        an = _halter_stoesst(halter_hier, np.zeros(len(stellen)))
+        if not an.any():
+            continue  # an der Zeit des Befunds frei (er gilt für einen Abschnitt davor)
+        unten = np.zeros(len(stellen))
+        oben = np.where(an, AUSSPANNUNG_HOECHSTENS, 0.0)
+        if _halter_stoesst(halter_hier, oben).any():
+            continue
+        for _ in range(AUSSPANNUNG_SCHRITTE):
+            mitte = (unten + oben) / 2
+            noch = _halter_stoesst(halter_hier, mitte)
+            unten = np.where(noch, mitte, unten)
+            oben = np.where(noch, oben, mitte)
+        heraus = op.laenge - halter.laenge if halter.laenge else masse.gesamt
+        befund.werkzeug = f"T{getattr(op.tc, 'ToolNumber', 0)}"
+        befund.heraus = max(float(heraus), 0.0)
+        befund.mindestens = befund.heraus + float(oben.max())
+
+
+def _halter_stoesst(halter, weiter):
+    """Je Stelle: stößt der Halter ans Teil, um `weiter` (mm je Stelle) längs der Werkzeugachse
+    zurückgezogen? `halter`: (Netz des Teils, Kapseln von, nach, Achse, Radien, flach, Kapseln je
+    Stelle) aus ausspannung()."""
+    netz, von, nach, achsen, radien, flach, je_stelle = halter
+    w = np.repeat(np.asarray(weiter, dtype=float), je_stelle)[:, None] * achsen
+    abstand = netz.kapseln(von + w, nach + w, float(radien.max()) + 1.0, radien, flach)
+    return (abstand.reshape(-1, je_stelle) < -AUSSPANNUNG_TIEFER).any(axis=1)
+
+
+def _halter_im_teil(pruefung, op, werkstueck_glied, am_nullpunkt, stellungen):
+    """Die Lage der Aufnahme von `op` in Koordinaten des Teils bei diesen Stellungen – wie _Welt
+    die Körper stellt (Bewegung des Glieds · Lage), das Teil am Nullpunkt."""
+    wege = {achse: pruefung.verfahren.weg_bei(achse, w) for achse, w in stellungen.items()}
+    lage_werkzeug = pruefung._glied_lage(pruefung._glied(op.aufnahme), wege).multiply(
+        pruefung._lage(op.aufnahme)
+    )
+    lage_teil = pruefung._glied_lage(werkstueck_glied, wege).multiply(am_nullpunkt)
+    return lage_teil.inverse().multiply(lage_werkzeug)
 
 
 def kollision_parallel(
@@ -808,7 +929,7 @@ def _verteilt(pool, abfahrt, job, nullpunkt, bibliothek, warnabstand, fortschrit
     befunde = list(schlimmste.values())
     if rohteil:
         befunde += rohteil_befunde
-    _abschliessen(ergebnis, befunde, abfahrt, job, False, fortschritt)
+    _abschliessen(ergebnis, befunde, abfahrt, job, False, fortschritt, bibliothek)
     return ergebnis
 
 
@@ -1584,6 +1705,11 @@ class _Welt:
             ):
                 wechsel = f"T{nummer}"
         anschlag = ", ".join(_am_anschlag(abfahrt, self.verfahren, i, naechste, s))
+        werkzeug = self.werkzeuge[ziel.operation]
+        halter_am_teil = -1
+        am_teil = self.teil is not None and (paar.a is self.teil or paar.b is self.teil)
+        if am_teil and any(k is paar.a or k is paar.b for k in werkzeug if k.art == HALTER):
+            halter_am_teil = ziel.operation
         self.schlimmste[schluessel] = Befund(
             beruehrung=abstand <= BERUEHRT,
             eilgang=ziel.eilgang,
@@ -1601,6 +1727,7 @@ class _Welt:
             umgekehrt=abfahrt.pruefung.umgekehrt,
             wechsel=wechsel,
             anschlag=anschlag,
+            halter_am_teil=halter_am_teil,
         )
 
 

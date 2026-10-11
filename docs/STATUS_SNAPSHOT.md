@@ -263,9 +263,10 @@ abgearbeitet):
    (rot mit „mindestens … mm“; anders anstellen hilft bei der Flanke nicht). Die Bahn der Flanke
    rechnet ihre Prüfungen auf den Nebenrechnern: am Kegel 15,5 → 2,7 s (P-2026-10-11-34).
 3. **Kollision (Frage 7):** ~~im Abspieler an der Kollision anhalten, Knopf „Zur nächsten
-   Kollision“~~ (P-2026-10-11-35). Offen: klare Meldung, wenn die Ausspannlänge nicht reicht (an
-   der Flanke: P-2026-10-11-33); die Bahn weicht aus (Anstellung, Y), wo die Form des Teils bleibt –
-   die Maschine gehört in die Kollisionsüberwachung.
+   Kollision“~~ (P-2026-10-11-35); ~~klare Meldung, wenn die Ausspannlänge nicht reicht~~
+   („bräuchte mindestens … mm“ im Befund, P-2026-10-11-38; an der Flanke P-2026-10-11-33). Offen:
+   die Bahn weicht aus (Anstellung, Y), wo die Form des Teils bleibt – die Maschine gehört in die
+   Kollisionsüberwachung.
 4. **Querachse nur, wo nötig (Frage 9):** „C dreht nicht zurück“ (P-2026-10-11-37) – die
    Werkzeugachse quer nur, soweit C weiterdreht; am Testteil 187,5 → 177,8 min, keine Umkehr mehr.
    Offen: dasselbe für „Rundum schruppen“ mit der Querachse.
