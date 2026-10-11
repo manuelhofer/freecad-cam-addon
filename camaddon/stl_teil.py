@@ -34,6 +34,7 @@ from .sprache import tr
 
 EIGENSCHAFT_STL = "CamAddonAusStl"
 EIGENSCHAFT_NETZ = "CamAddonNetz"  # das vorbereitete Netz, aus dem der Körper besteht
+EIGENSCHAFT_FLAECHEN = "CamAddonNetzFlaechen"  # je Dreieck des Netzes die Nummer seiner Fläche
 NETZ_AB = 500  # Flächen: erst so große Formen sucht netz_fuer() (kleine vernetzt OCC schnell)
 NETZ_GENAU = 1e-3  # mm: so genau deckt sich das Netz mit dem Hüllquader der Form
 VEREINFACHEN_AB = 200_000  # Dreiecke
@@ -233,34 +234,62 @@ def koerper(netz):
 
 
 def koerper_und_bericht(netz, massstab=1.0):
-    """(Form, vorbereitetes Netz, Bericht): vorbereiten() und koerper() in einem."""
+    """(Form, vorbereitetes Netz, Bericht, Fläche je Dreieck): vorbereiten(), koerper() und
+    flaechen_der_dreiecke() in einem."""
     netz, bericht = vorbereiten(netz, massstab)
     form = koerper(netz)
     bericht.geschlossen = form.ShapeType == "Solid"
-    return form, netz, bericht
+    return form, netz, bericht, flaechen_der_dreiecke(form, netz)
+
+
+def flaechen_der_dreiecke(form, netz):
+    """Je Dreieck des Netzes die Nummer seiner Fläche im Körper (0 ist „Face1“; −1: keine) –
+    `makeShapeFromMesh` ordnet die Flächen anders als die Dreiecke. Zugeordnet über die Ecken
+    (auf 0,1 µm gerundet); am Geist 2,6 s, einmal beim Umwandeln."""
+    ecken = np.array(
+        [[(v.X, v.Y, v.Z) for v in flaeche.Vertexes] for flaeche in form.Faces], dtype=float
+    )
+    p, d = netz.Topology
+    punkte = np.array([(q.x, q.y, q.z) for q in p], dtype=float).reshape(-1, 3)
+    dreiecke = np.array(d, dtype=np.int64).reshape(-1, 3)
+    zuordnung = np.full(len(dreiecke), -1, dtype=np.int64)
+    if ecken.ndim != 3 or ecken.shape[1:] != (3, 3):
+        return zuordnung  # nicht jede Fläche ein Dreieck
+    nummer = {k: i for i, k in enumerate(_eckenschluessel(ecken))}
+    for j, k in enumerate(_eckenschluessel(punkte[dreiecke])):
+        zuordnung[j] = nummer.get(k, -1)
+    return zuordnung
+
+
+def _eckenschluessel(dreiecke):
+    """Je Dreieck (m, 3, 3) ein Schlüssel aus seinen gerundeten Ecken, unabhängig von ihrer
+    Reihenfolge."""
+    gerundet = np.round(np.asarray(dreiecke, dtype=float), 4) + 0.0  # −0,0 wird 0,0
+    zeilen = gerundet.view([("x", float), ("y", float), ("z", float)]).reshape(len(gerundet), 3)
+    return [z.tobytes() for z in np.sort(zeilen, axis=1)]
 
 
 def koerper_rechnen(datei, massstab=1.0):
-    """Auf einem Nebenrechner: (nebenrechner.Form, Bericht) zum Netz in der STL-Datei `datei` –
-    koerper_und_bericht(); das vorbereitete Netz steht danach in `datei` (FreeCAD hält Netze in
-    float32 wie das STL, nichts geht verloren). Am Geist (68.242 Dreiecke) 5 s, die das Fenster
-    sonst stünde."""
+    """Auf einem Nebenrechner: (nebenrechner.Form, Bericht, Fläche je Dreieck als Liste) zum Netz
+    in der STL-Datei `datei` – koerper_und_bericht(); das vorbereitete Netz steht danach in
+    `datei` (FreeCAD hält Netze in float32 wie das STL, nichts geht verloren). Am Geist (68.242
+    Dreiecke) 8 s, die das Fenster sonst stünde."""
     import Mesh
 
     from . import nebenrechner as nr
 
-    form, netz, bericht = koerper_und_bericht(Mesh.Mesh(datei), massstab)
+    form, netz, bericht, zuordnung = koerper_und_bericht(Mesh.Mesh(datei), massstab)
     netz.write(datei)
-    return nr.Form.von(form), bericht
+    return nr.Form.von(form), bericht, zuordnung.tolist()
 
 
 def koerper_aus_netz(dokument, netzobjekt, massstab=1.0, gerechnet=None):
     """(Part::Feature, Bericht): der Körper des Netzes `netzobjekt` im Dokument – ohne eigene
-    Transaktion (der Aufrufer hält sie). `gerechnet`: (Form, vorbereitetes Netz, Bericht), schon
-    woanders gerechnet (koerper_rechnen). Die Punkte des Netzes enthalten seine Platzierung schon;
-    der Körper liegt deshalb ohne eigene da – das vorbereitete Netz ist so zugleich sein Netz im
-    eigenen Koordinatensystem (EIGENSCHAFT_NETZ)."""
-    form, netz, bericht = gerechnet or koerper_und_bericht(netzobjekt.Mesh, massstab)
+    Transaktion (der Aufrufer hält sie). `gerechnet`: (Form, vorbereitetes Netz, Bericht, Fläche
+    je Dreieck), schon woanders gerechnet (koerper_rechnen). Die Punkte des Netzes enthalten seine
+    Platzierung schon; der Körper liegt deshalb ohne eigene da – das vorbereitete Netz ist so
+    zugleich sein Netz im eigenen Koordinatensystem (EIGENSCHAFT_NETZ)."""
+    form, netz, bericht, zuordnung = gerechnet or koerper_und_bericht(netzobjekt.Mesh, massstab)
     teil = dokument.addObject("Part::Feature", "TeilAusStl")
     teil.Label = tr("stl.teil", name=netzobjekt.Label)
     teil.Shape = form
@@ -270,6 +299,9 @@ def koerper_aus_netz(dokument, netzobjekt, massstab=1.0, gerechnet=None):
     teil.addProperty("Mesh::PropertyMeshKernel", EIGENSCHAFT_NETZ, "CAM-Addon", tr("stl.netz"))
     setattr(teil, EIGENSCHAFT_NETZ, netz)
     teil.setEditorMode(EIGENSCHAFT_NETZ, 2)  # versteckt
+    teil.addProperty("App::PropertyIntegerList", EIGENSCHAFT_FLAECHEN, "CAM-Addon", tr("stl.netz"))
+    setattr(teil, EIGENSCHAFT_FLAECHEN, [int(n) for n in zuordnung])
+    teil.setEditorMode(EIGENSCHAFT_FLAECHEN, 2)
     return teil, bericht
 
 
@@ -289,6 +321,11 @@ def netz_fuer(form):
         return None
     if anzahl < NETZ_AB:
         return None
+    if form.ShapeType == "Compound":  # die Kollision verbindet die Modelle (_teil_form)
+        kinder = form.childShapes()  # mit der Lage des Verbunds
+        if len(kinder) != 1:
+            return None
+        form = kinder[0]
     kasten = None
     for schluessel, netz in _netze_mit(anzahl):
         if kasten is None:
@@ -302,6 +339,38 @@ def netz_fuer(form):
         )
         if np.all(np.abs(np.concatenate([unten, oben]) - soll) < NETZ_GENAU):
             return im_job, dreiecke
+    return None
+
+
+def flaechennetz_fuer(form):
+    """(Punkte, Dreiecke, Fläche je Dreieck) wie netz_fuer() – mit der Nummer der Fläche je
+    Dreieck (0 ist „Face1“), für vierachs_flaechen.vernetze; None, wenn die Form kein solcher
+    Körper ist oder die Zuordnung fehlt oder nicht stimmt (an zwei Dreiecken nachgesehen)."""
+    gefunden = netz_fuer(form)
+    if gefunden is None:
+        return None
+    punkte, dreiecke = gefunden
+    flaeche = _zuordnung(len(dreiecke), form)
+    if flaeche is None:
+        return None
+    for j in (0, len(dreiecke) // 2):
+        ecken = form.getElement(f"Face{flaeche[j] + 1}").Vertexes
+        soll = _eckenschluessel(punkte[dreiecke[j]][None])[0]
+        ist = _eckenschluessel(np.array([[(v.X, v.Y, v.Z) for v in ecken]], dtype=float))[0]
+        if ist != soll:
+            return None
+    return punkte, dreiecke, flaeche
+
+
+def _zuordnung(anzahl, form):
+    """Die gespeicherte Fläche je Dreieck (EIGENSCHAFT_FLAECHEN) des Körpers mit `anzahl`
+    Dreiecken, dessen Netz zur Form passt – None ohne, oder wenn ein Dreieck keine hat."""
+    for dokument in FreeCAD.listDocuments().values():
+        for objekt in dokument.Objects:
+            liste = getattr(objekt, EIGENSCHAFT_FLAECHEN, None)
+            if liste is not None and len(liste) == anzahl:
+                flaeche = np.asarray(liste, dtype=np.int64)
+                return flaeche if len(flaeche) and flaeche.min() >= 0 else None
     return None
 
 

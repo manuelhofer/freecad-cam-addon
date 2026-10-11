@@ -171,7 +171,7 @@ def _im_hintergrund(netzobjekt, massstab):
         netzobjekt.Mesh.write(datei)
         auftrag = pool.auftrag("stl_teil", "koerper_rechnen", datei, massstab)
         nebenbei = QtCore.QEventLoop.ExcludeUserInputEvents
-        ((form, bericht),) = pool.warten(
+        ((form, bericht, zuordnung),) = pool.warten(
             [auftrag], zwischendurch=lambda: QtGui.QApplication.processEvents(nebenbei) or True
         )
         netz = Mesh.Mesh(datei)  # das vorbereitete, vom Nebenrechner zurückgeschrieben
@@ -183,4 +183,4 @@ def _im_hintergrund(netzobjekt, massstab):
         return None  # gescheitert: hier noch einmal, mit der Meldung von hier
     finally:
         os.remove(datei)
-    return form.form(), netz, bericht
+    return form.form(), netz, bericht, zuordnung

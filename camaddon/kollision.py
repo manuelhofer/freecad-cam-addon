@@ -87,6 +87,9 @@ from .sprache import tr
 WARNABSTAND = 1.0  # mm, Vorgabe
 MIN_SCHRITT = 0.5  # mm: so fein wird es, wo es eng ist
 BERUEHRT = 1e-3  # mm: näher gilt als Berührung
+# mm: so weit um einen Körper herum nimmt der genaue Abstand die Flächen eines Teils aus einem STL
+# (Koerper.ausschnitt) – liegt keine so nah, gilt dieser Abstand (weniger als der wahre).
+AUSSCHNITT_RAND = 10.0
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
 # mm: So tief darf die Schneide im Vorschub ins fertige Teil – Rundung der Bahn; tiefer ist
 # ein Befund („fährt ins fertige Teil“).
@@ -366,7 +369,27 @@ class Koerper:
     # Werkzeugteile: Kapseln (z0, z1, r) um die eigene Z-Achse, die den Körper enthalten –
     # für die Netzschranke (werkzeugkapseln); leer: keine Schranke für diesen Körper.
     kapseln: tuple = ()
+    # Ein Teil aus einem STL (stl_teil.flaechennetz_fuer, in eigenen Koordinaten): (Punkte,
+    # Dreiecke, Fläche je Dreieck) – sein Netz ist genau, und OpenCascade rechnet nur mit den
+    # Flächen in der Nähe (_ausschnitt; P-2026-10-11-101).
+    stl: object = None
     _netze: dict = field(default_factory=dict, repr=False)
+    _ausschnitt_daten: object = field(default=None, repr=False)
+    _huelle: object = field(default=None, repr=False)
+
+    def huelle(self):
+        """Der Hüllquader dieses Teils aus einem STL als Körper an seiner Lage – gegen ihn ist
+        der Abstand nie größer als gegen das Teil, und OpenCascade rechnet ihn in Mikrosekunden
+        (das Bett gegen den Geist: 77 s)."""
+        import Part
+
+        if self._huelle is None:
+            punkte = self.stl[0]
+            unten, oben = punkte.min(axis=0), punkte.max(axis=0)
+            groesse = np.maximum(oben - unten, 1e-6)
+            self._huelle = Part.makeBox(*map(float, groesse), FreeCAD.Vector(*map(float, unten)))
+        self._huelle.Placement = self.form.Placement
+        return self._huelle
 
     def netz(self, fein=True):
         """Die Oberfläche als Netz in eigenen Koordinaten (netzabstand.Netz), beim ersten Mal
@@ -378,6 +401,9 @@ class Koerper:
         toleranz = toleranzen.get(self.art)
         if toleranz is None:
             return None
+        if toleranz not in self._netze and self.stl is not None:
+            punkte, dreiecke, _flaeche = self.stl
+            self._netze[toleranz] = na.Netz(None, toleranz, ecken=punkte[dreiecke])
         if toleranz not in self._netze:
             form = self.form.copy()
             form.Placement = FreeCAD.Placement()
@@ -386,6 +412,39 @@ class Koerper:
             except Exception:  # eine Form, die sich nicht vernetzen lässt: ohne Schranke
                 self._netze[toleranz] = None
         return self._netze[toleranz]
+
+    def ausschnitt(self, anderer):
+        """Die Flächen dieses Teils aus einem STL nahe am Körper `anderer` (an ihren gesetzten
+        Lagen) als Verbund an der Lage dieses Teils – None, wenn keine näher als AUSSCHNITT_RAND
+        liegt (dann sind beide mindestens so weit auseinander). Gewählt über die Hüllquader der
+        Dreiecke gegen den des anderen, in eigenen Koordinaten."""
+        import Part
+
+        if self._ausschnitt_daten is None:
+            punkte, dreiecke, flaeche = self.stl
+            ecken = punkte[dreiecke]
+            lage = self.form.Placement
+            self.form.Placement = FreeCAD.Placement()
+            try:
+                flaechen = self.form.Faces  # einmal, an der eigenen Lage
+            finally:
+                self.form.Placement = lage
+            self._ausschnitt_daten = (ecken.min(axis=1), ecken.max(axis=1), flaeche, flaechen)
+        unten_d, oben_d, flaeche, flaechen = self._ausschnitt_daten
+        box = anderer.form.BoundBox
+        zurueck = np.array(self.form.Placement.inverse().toMatrix().A, dtype=float).reshape(4, 4)
+        ecken = np.array(
+            [(x, y, z) for x in (box.XMin, box.XMax) for y in (box.YMin, box.YMax)
+             for z in (box.ZMin, box.ZMax)],
+            dtype=float,
+        ) @ zurueck[:3, :3].T + zurueck[:3, 3]  # fmt: skip
+        unten, oben = ecken.min(axis=0) - AUSSCHNITT_RAND, ecken.max(axis=0) + AUSSCHNITT_RAND
+        nah = np.all((oben_d >= unten) & (unten_d <= oben), axis=1)
+        if not nah.any():
+            return None
+        verbund = Part.makeCompound([flaechen[i] for i in np.unique(flaeche[nah])])
+        verbund.Placement = self.form.Placement
+        return verbund
 
     def __post_init__(self):
         box = self.form.BoundBox
@@ -524,6 +583,9 @@ class Daten:
     schraubstock: object = None
     werkzeuge: list = field(default_factory=list)  # je Operation ein Werkzeugdaten
     beladen: list = field(default_factory=list)  # [(Platznummer, Maße, Länge, Halter)]
+    teil_stl: object = (
+        None  # (Punkte, Dreiecke, Fläche je Dreieck), wenn das Teil aus einem STL ist
+    )
 
     def zum_senden(self):
         from . import nebenrechner as nr
@@ -583,9 +645,12 @@ def vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt=None):
 
     if nullpunkt is None:
         nullpunkt = abfahrt.nullpunkt
+    from . import stl_teil
+
     teil = _teil_form(job)
     if teil is None:
         ergebnis.hinweise.append(tr("kb.kein_teil"))
+    teil_stl = stl_teil.flaechennetz_fuer(teil) if teil is not None else None
     werkzeuge = []
     ohne_halter = set()
     for op in abfahrt.operationen:
@@ -610,6 +675,7 @@ def vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt=None):
         spannung.schraubstock(job),
         werkzeuge,
         _beladen_daten(abfahrt.pruefung, job, bibliothek),
+        teil_stl,
     )
 
 
@@ -1236,8 +1302,9 @@ class _Welt:
         self.teil = None
         if daten.teil is not None:
             self.teil = Koerper(
-                tr("kb.teil"), TEIL, daten.teil, self.werkstueck_glied, am_nullpunkt
-            )
+                tr("kb.teil"), TEIL, daten.teil, self.werkstueck_glied, am_nullpunkt,
+                stl=daten.teil_stl,
+            )  # fmt: skip
         # Von unten gespannt (S3h): die Backen stehen am Rohteil wie das Teil – jedes Werkzeugteil
         # zählt gegen sie, auch die Schneide im Vorschub.
         self.schraubstock = None
@@ -1391,6 +1458,10 @@ class _Welt:
         """Berühren sich zwei Körper schon in der Grundstellung? Dann prüft es sie nicht –
         mit Hinweis, wenn zwei Maschinenteile nicht an einem gemeinsamen Gelenk hängen."""
         schluessel = (id(a), id(b))
+        if schluessel not in self._schon_gemessen and _quader_spalt(a, b) > BERUEHRT:
+            # Die Hüllquader liegen auseinander – ohne OpenCascade, das an einem Körper aus einem
+            # STL (68.242 Flächen) je Paar Minuten rechnete (P-2026-10-11-101).
+            self._schon_gemessen[schluessel] = False
         if schluessel not in self._schon_gemessen:
             for k in (a, b):
                 k.form.Placement = k.basis
@@ -1759,9 +1830,23 @@ class _Welt:
 
     def _abstand(self, a, b):
         """(Abstand in mm, Stelle) zweier Körper an ihrer gesetzten Lage; 0, wenn sie sich
-        berühren oder einer im anderen steckt."""
+        berühren oder einer im anderen steckt. Ein Teil aus einem STL nur mit seinen Flächen in
+        der Nähe (Koerper.ausschnitt) – am Geist (68.242 Flächen) sonst Sekunden je Stelle."""
+        form_a, form_b = a.form, b.form
+        if a.stl is not None or b.stl is not None:
+            stl, anderer = (a, b) if a.stl is not None else (b, a)
+            try:
+                grob, _punkte, _info = anderer.form.distToShape(stl.huelle())
+            except Exception:  # dann eben mit den Flächen
+                grob = 0.0
+            if grob > AUSSCHNITT_RAND:  # schon der Hüllquader weiter weg: das Teil erst recht
+                return grob, None
+            nah = stl.ausschnitt(anderer)
+            if nah is None:
+                return AUSSCHNITT_RAND, None
+            form_a, form_b = (nah, anderer.form) if stl is a else (anderer.form, nah)
         try:
-            abstand, punkte, _info = a.form.distToShape(b.form)
+            abstand, punkte, _info = form_a.distToShape(form_b)
         except Exception:  # eine Form, mit der OpenCascade nicht rechnen kann, hält nichts an
             if (a.name, b.name) not in self._fehler:
                 self._fehler.add((a.name, b.name))
@@ -1854,6 +1939,20 @@ class _Paarfeld:
         # Stecken die beiden in dieser Operation schon ineinander (Abstand 0)? Dann bleibt der
         # Befund, wie er ist – das Paar braucht nicht mehr gerechnet zu werden.
         self.schon = np.zeros(len(paare), dtype=bool)
+
+
+def _quader_spalt(a, b):
+    """Der Abstand der Hüllquader zweier Körper an ihrer Grundlage (`basis`), in Weltachsen –
+    nie mehr als ihr wahrer Abstand."""
+    unten, oben = [], []
+    for k in (a, b):
+        m = np.array(k.basis.toMatrix().A, dtype=float).reshape(4, 4)
+        mitte = m[:3, :3] @ np.asarray(k.mitte, dtype=float) + m[:3, 3]
+        halb = np.abs(m[:3, :3]) @ np.asarray(k.halb, dtype=float)
+        unten.append(mitte - halb)
+        oben.append(mitte + halb)
+    spalt = np.maximum(np.maximum(unten[0] - oben[1], unten[1] - oben[0]), 0.0)
+    return float(np.sqrt(np.sum(spalt * spalt)))
 
 
 def _quader_luecken(ca, ra, ha, cb, rb, hb):

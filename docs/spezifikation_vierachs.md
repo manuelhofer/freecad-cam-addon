@@ -1435,9 +1435,16 @@ Gebaut (P-2026-10-11-100):
    (`stl_teil.netz_fuer`, erkannt an Flächenzahl und Hüllquader). Sonst vernetzte jeder
    Nebenrechner 68.242 Flächen neu – 1 GB je Arbeiter.
 
-Offen (Stufe 2 und weiter): „Auf der Maschine prüfen“ mit Materialvergleich und Kollision gegen
-den Körper (Laufzeit bei vielen Flächen), einzelne Bereiche wählen statt Dreiecke, die Achse ohne
-ebene Fläche (X/Y/Z), 5 Achsen mit STL im Assistenten „Bearbeitung“.
+5. **Auf der Maschine prüfen** (P-2026-10-11-101): Die Kollision trägt die Dreiecke des Teils mit
+   (auch zu den Nebenrechnern); OpenCascade rechnet den genauen Abstand nur gegen die Flächen nahe
+   am anderen Körper, vorher gegen den Hüllquader des Teils (das Bett gegen den Geist: 77 s → µs).
+   Am Geist auf der Beispiel-Drehmaschine 224.019 Stationen in 45 s auf einem Kern (vorher nach
+   20 min nicht fertig), Materialvergleich 0,1 s. Je Dreieck die Nummer seiner Fläche ist am
+   Körper gespeichert (`makeShapeFromMesh` ordnet um) – das Netz je Fläche
+   (`vierachs_flaechen.vernetze`) kommt so ohne OpenCascade aus.
+
+Offen: einzelne Bereiche wählen statt Dreiecke, die Achse ohne ebene Fläche (X/Y/Z), 5 Achsen mit
+STL im Assistenten „Bearbeitung“.
 
 ## Entschieden
 

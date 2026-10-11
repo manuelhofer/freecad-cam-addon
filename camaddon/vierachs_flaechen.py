@@ -100,6 +100,11 @@ def _vernetze(form, toleranz):
     ihrer gemeinsamen Kante, und kein Strahl schlüpft zwischen ihnen durch – und dann Fläche
     für Fläche ausgelesen (wie vierachs_huelle.vernetze).
     """
+    from . import stl_teil
+
+    aus_stl = stl_teil.flaechennetz_fuer(form)  # ein Körper aus einem STL: seine Dreiecke
+    if aus_stl is not None:
+        return FlaechenNetz(vh.Netz(aus_stl[0], aus_stl[1], toleranz), aus_stl[2], ft.anzahl(form))
     kopie = form.copy()
     kopie.tessellate(toleranz)
     punkte, dreiecke, flaeche = [], [], []

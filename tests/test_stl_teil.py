@@ -103,13 +103,14 @@ griff, datei = tempfile.mkstemp(suffix=".stl")
 os.close(griff)
 try:
     netz.write(datei)
-    brep, bericht = stl_teil.koerper_rechnen(datei, 1.0)
+    brep, bericht, zuordnung = stl_teil.koerper_rechnen(datei, 1.0)
 finally:
     os.remove(datei)
 uebertragen = brep.form()
 pruefe(uebertragen.ShapeType == "Solid", "über die Datei kein Solid")
 pruefe(nahe(uebertragen.Volume, form.Volume, 1e-6 * form.Volume), "über die Datei ein anderes")
 pruefe(bericht.dreiecke == netz.CountFacets and bericht.geschlossen, f"Bericht {bericht}")
+pruefe(sorted(zuordnung) == list(range(netz.CountFacets)), "Fläche je Dreieck: nicht jede einmal")
 
 # --- Im Dokument: Körper verweist aufs Netz, Name, nur lesen -------------------------------------
 dok = FreeCAD.newDocument("StlTeil")
@@ -164,6 +165,19 @@ for name, objekt in (("Körper", teil), ("Klon", klon)):
         f"{name}: Netz liegt woanders ({unten}, {oben}; {kasten})",
     )
 pruefe(stl_teil.netz_fuer(Part.makeBox(1, 2, 3)) is None, "ein Quader gilt als STL")
+# Je Fläche vernetzt (vierachs_flaechen.vernetze): die Dreiecke mit der Nummer ihrer Fläche –
+# makeShapeFromMesh ordnet die Flächen anders als die Dreiecke.
+from camaddon import vierachs_flaechen as vfl  # noqa: E402
+
+fnetz = vfl._vernetze(klon.Shape, 0.01)
+pruefe(len(fnetz.flaeche) == netz.CountFacets and fnetz.anzahl == netz.CountFacets, "Flächennetz")
+for j in (1, len(fnetz.flaeche) // 3, len(fnetz.flaeche) - 1):
+    ecken = sorted(
+        tuple(round(c, 4) for c in v.Point)
+        for v in klon.Shape.getElement(f"Face{fnetz.flaeche[j] + 1}").Vertexes
+    )
+    soll = sorted(tuple(round(c, 4) for c in q) for q in fnetz.netz.punkte[fnetz.netz.dreiecke[j]])
+    pruefe(ecken == soll, f"Dreieck {j} gehört nicht zu Face{fnetz.flaeche[j] + 1}")
 schieben = FreeCAD.Matrix()
 schieben.move(V(0, 0, 1))
 anders = teil.Shape.transformGeometry(schieben)  # verschoben in der Geometrie, nicht in der Lage
@@ -175,6 +189,32 @@ pruefe(
     gefunden is not None and abs(gefunden[0][:, 0].min() - bewegt.BoundBox.XMin) < 1e-3,
     "bewegte Form (Lage) nicht erkannt",
 )
+
+# --- Kollision (P-2026-10-11-101): genau, aber nur mit den Flächen in der Nähe -------------------
+import types  # noqa: E402
+
+from camaddon import kollision as kb  # noqa: E402
+
+verbund = Part.makeCompound([klon.Shape.copy()])  # wie kollision._teil_form
+stl_daten = stl_teil.flaechennetz_fuer(verbund)
+pruefe(stl_daten is not None, "Verbund aus dem Klon nicht als STL erkannt")
+if stl_daten is not None:
+    teil_k = kb.Koerper("Teil", kb.TEIL, verbund, None, FreeCAD.Placement(), stl=stl_daten)
+    welt = types.SimpleNamespace(_fehler=set(), ergebnis=None)
+    kasten = verbund.BoundBox
+    for name, quader in (
+        ("nah", Part.makeBox(4, 4, 4, V(kasten.XMin + 20, kasten.YMax + 2, -2))),
+        ("weit", Part.makeBox(4, 4, 4, V(kasten.XMin + 20, kasten.YMax + 60, -2))),
+        ("drin", Part.makeBox(4, 4, 4, V(kasten.XMin + 20, -2, -2))),
+    ):
+        anderer = kb.Koerper(name, kb.MASCHINE, quader, None, FreeCAD.Placement())
+        ist, _stelle = kb._Welt._abstand(welt, teil_k, anderer)
+        wahr = verbund.distToShape(quader)[0]
+        if name == "weit":
+            pruefe(kb.AUSSCHNITT_RAND <= ist <= wahr + 1e-9, f"weit: {ist} (wahr {wahr})")
+        else:
+            pruefe(abs(ist - wahr) < 1e-6, f"{name}: {ist} statt {wahr}")
+    pruefe(teil_k.netz() is not None and teil_k.netz().toleranz > 0, "Netz des Teils fehlt")
 
 # --- formteile.flaechen: wenige einzeln, viele auf einmal – dieselben ------------------------
 wenige = ft.flaechen(form, [0, 5, len(form.Faces), -1, 7])

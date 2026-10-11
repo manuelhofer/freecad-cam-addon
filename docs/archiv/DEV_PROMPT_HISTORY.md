@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-101 stl-auf-der-maschine-pruefen
+
+### EINGELESEN
+- W-017 Stufe 2 (Manuel, 2026-10-11, Nachtauftrag: „Abspieler/Prüfung gegen das Netz“): „Auf der
+  Maschine prüfen“ mit dem Geist (68.242 Flächen) auf der Beispiel-Drehmaschine hing ohne Fenster
+  nach 20 min noch in der Kollision – OpenCascade rechnete `distToShape` gegen alle Flächen.
+
+### DATEIEN
+- `camaddon/kollision.py`: `Daten.teil_stl` (Punkte, Dreiecke, Fläche je Dreieck – mit zu den
+  Nebenrechnern), `Koerper.stl`; sein Netz aus den Dreiecken (genau, ohne Kopie und Vernetzen);
+  `Koerper.huelle` (Hüllquader als Körper) und `Koerper.ausschnitt` (nur die Flächen, deren
+  Dreiecke nahe am anderen Körper liegen) – `_abstand` rechnet erst gegen den Hüllquader, dann gegen
+  den Ausschnitt; liegt nichts näher als AUSSCHNITT_RAND (10 mm), gilt dieser Abstand (nie mehr
+  als der wahre). `_beruehren_sich_schon`: Hüllquader auseinander → ohne OpenCascade
+  (`_quader_spalt`).
+- `camaddon/stl_teil.py`: `flaechen_der_dreiecke` (je Dreieck seine Fläche; beim Umwandeln, 2,6 s
+  auf dem Nebenrechner), Eigenschaft `CamAddonNetzFlaechen`, `flaechennetz_fuer` (geprüft an zwei
+  Dreiecken), `netz_fuer` auch für einen Verbund mit einem Körper (`kollision._teil_form`).
+- `camaddon/vierachs_flaechen.py`: `_vernetze` nimmt beim STL Dreiecke und Flächen daraus.
+- `camaddon/gui_stl.py`: die Zuordnung vom Nebenrechner. `tests/test_stl_teil.py` (Zuordnung,
+  Flächennetz, Abstand über den Ausschnitt gegen OpenCascade am ganzen Teil),
+  `docs/spezifikation_vierachs.md` (16.5). `package.xml` (0.216.0).
+
+### ERGEBNIS
+- Geist, Rundum schruppen (27 Lagen, 25.009 Sätze), Beispiel-Drehmaschine: Kollision über 224.019
+  Stationen 45 s auf einem Kern (in der Oberfläche verteilt auf die Nebenrechner), keine Befunde;
+  vorher nach 20 min nicht fertig, mit Ausschnitt allein 159 s (das Bett gegen den Geist 77 s – jetzt
+  über den Hüllquader). Speicher dabei +0,2 statt +1,5 GB. Materialvergleich 0,1 s.
+
+### AKZEPTANZKRITERIUM
+- `test_stl_teil`, `test_kollision`, `test_kollision_verteilt`, `test_vierachs_pruefen`,
+  `test_vierachs_flaechen` in 1.1.4.
+
 ## P-2026-10-11-100 stl-im-vierachs-assistenten
 
 ### EINGELESEN
