@@ -304,6 +304,45 @@ def zeilen_stueck(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
 _RAND = 1e-7  # so weit außerhalb eines Dreiecks zählt eine Zellenmitte noch dazu (Kanten)
 
 
+# Dreiecke, die im Raster höchstens so viele Zellen je Richtung überdecken, rechnet hoehen() je
+# Größe auf einmal (_kleine_dreiecke) statt einzeln in Python – an einem feinen Netz fast alle.
+KLEIN_ZELLEN = 48
+_KLEIN_BLOCK = 2_000_000  # so viele Zellen höchstens je Rechenschritt (Speicher)
+
+
+def _kleine_dreiecke(z, x, y, a, v0, v1, det, i_von, i_bis, j_von, j_bis, ks, rand):
+    """Wie die Schleife in hoehen(), für die Dreiecke `ks` – gruppiert nach der Zahl der Zellen,
+    die sie je Richtung überdecken, je Gruppe zugleich; dieselben Formeln in derselben
+    Reihenfolge, also dasselbe Ergebnis (P-2026-10-11-97: am Folge-Vergleich steckten 38 s in der
+    Schleife über einzelne Dreiecke)."""
+    if not len(ks):
+        return
+    ni = (i_bis - i_von)[ks]
+    nj = (j_bis - j_von)[ks]
+    for gi, gj in set(zip(ni.tolist(), nj.tolist(), strict=True)):
+        gruppe = ks[(ni == gi) & (nj == gj)]
+        schritt = max(1, _KLEIN_BLOCK // (gi * gj))
+        di = np.arange(gi)[None, :, None]
+        dj = np.arange(gj)[None, None, :]
+        for anfang in range(0, len(gruppe), schritt):
+            k = gruppe[anfang : anfang + schritt]
+            ii = i_von[k][:, None, None] + di  # (K, gi, 1)
+            jj = j_von[k][:, None, None] + dj  # (K, 1, gj)
+            px = x[ii] - a[k, 0][:, None, None]
+            py = y[jj] - a[k, 1][:, None, None]
+            d = det[k][:, None, None]
+            l1 = (px * v1[k, 1][:, None, None] - py * v1[k, 0][:, None, None]) / d
+            l2 = (py * v0[k, 0][:, None, None] - px * v0[k, 1][:, None, None]) / d
+            drin = (l1 >= -rand) & (l2 >= -rand) & (l1 + l2 <= 1.0 + rand)
+            if not drin.any():
+                continue
+            hoehe = (
+                a[k, 2][:, None, None] + l1 * v0[k, 2][:, None, None] + l2 * v1[k, 2][:, None, None]
+            )
+            ii, jj = np.broadcast_to(ii, drin.shape), np.broadcast_to(jj, drin.shape)
+            np.maximum.at(z, (ii[drin], jj[drin]), hoehe[drin])
+
+
 def hoehen(netz, x, y, innen=False):
     """z[i, j] (mm): die Oberseite des Netzes über (x[i], y[j]) – das höchste Dreieck, unter
     dem die Zellenmitte liegt; KEIN_TREFFER, wo keins liegt. Senkrechte Dreiecke tragen nichts
@@ -330,7 +369,11 @@ def hoehen(netz, x, y, innen=False):
     i_bis = np.searchsorted(x, x_max + saum, "right")
     j_von = np.searchsorted(y, y_min - saum)
     j_bis = np.searchsorted(y, y_max + saum, "right")
-    for k in np.flatnonzero((np.abs(det) > 1e-12) & (i_von < i_bis) & (j_von < j_bis)):
+    nutzbar = np.flatnonzero((np.abs(det) > 1e-12) & (i_von < i_bis) & (j_von < j_bis))
+    ni, nj = (i_bis - i_von)[nutzbar], (j_bis - j_von)[nutzbar]
+    klein = (ni <= KLEIN_ZELLEN) & (nj <= KLEIN_ZELLEN)
+    _kleine_dreiecke(z, x, y, a, v0, v1, det, i_von, i_bis, j_von, j_bis, nutzbar[klein], rand)
+    for k in nutzbar[~klein]:
         i0, i1, j0, j1 = i_von[k], i_bis[k], j_von[k], j_bis[k]
         px = (x[i0:i1] - a[k, 0])[:, None]
         py = (y[j0:j1] - a[k, 1])[None, :]

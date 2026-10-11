@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-97 hoehenfeld-gruppiert
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends, mit Bildschirmfoto (`top`: ein freecadcmd 100 %, keine Nebenrechner):
+  „aber das ist ja wieder nur ein Prozess … warum kann man das, was da so lange auf dem einen Kern
+  rechnet, nicht aufteilen? … ich will's verstehen“. Gemessen mit cProfile am Folge-Vergleich
+  (`test_simultan_folge`): 113,6 s, davon 11 s Warten auf Nebenrechner, der Rest im Hauptprozess –
+  `hoehenfeld.hoehen` 38 s (13 Aufrufe), Materialabtrag 18 s, Maschinenprogramm 14,5 s, Anlauf 8 s,
+  FreeCAD-Neuberechnung 6 s. Die Aufrufe einzeln: 65 000 Dreiecke auf 30 000 – 130 000 Zellen, je
+  0,5 s allein und bis 6 s, während die Nebenrechner liefen; dasselbe Feld sechsmal.
+
+### DATEIEN
+- `camaddon/hoehenfeld.py`: `_kleine_dreiecke` – die Dreiecke, die je Richtung höchstens
+  `KLEIN_ZELLEN` (48) Zellen überdecken, je Größe zugleich mit numpy (dieselben Formeln, dieselbe
+  Reihenfolge – bitgleich, nachgeprüft an Freiform, Kugel, Quader und Schwenkteil mit 0,02 – 0,5 mm
+  Raster); `np.maximum.at`; größere wie bisher einzeln.
+
+### ERGEBNIS
+- `test_simultan_folge` 113,6 → 76,3 s; kein Aufruf von `hoehen` mehr über 0,2 s (vorher zehn mit
+  0,5 – 6 s). An einzelnen Netzen ×1 (große Dreiecke, feines Raster) bis ×23 (feines Netz).
+
+### AKZEPTANZKRITERIUM
+- `test_materialstand`, `test_restmaterial`, `test_schlichten3d`, `test_schruppen3d`,
+  `test_schruppen3d_anlauf`, `test_wegkippen`, `test_zielzeit` in 1.1.4.
+
 ## P-2026-10-11-96 g550-beispiele-neu
 
 ### EINGELESEN
