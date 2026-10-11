@@ -748,7 +748,13 @@ nächste freie Nummer B-020.
   5-Achs-Simultan scheitert in CAM bisher daran, dass das Werkzeug immer in Z steht. Prüfen, sobald
   es im Wochen-Build steht: 3+2 über TWP statt eigenem CYCLE800/PLANE SPATIAL, die Spannmittel aus
   der Bibliothek in unserer Kollision statt nur Schraubstock und Futter, die Maschine weiter als
-  `.fcm` übergeben (`export.py`). Nichts davon ersetzen, ohne Manuel zu fragen.
+  `.fcm` übergeben (`export.py`). Nichts davon ersetzen, ohne Manuel zu fragen. Manuel,
+  2026-10-11 abends: Was FreeCAD schon hat, nutzen – aber erst Bahnen und Programme an echten
+  Fällen vergleichen, ob sie so gut sind wie die eigenen. Seine Linie: Das Addon rechnet die Bahnen
+  aus, die Maschine braucht keine Zyklen, fährt kleinschrittig mit Glättung (heute so bei 4 und 5
+  Achsen simultan; 3+2 schreibt für Siemens noch CYCLE800, Bohren die Bohrzyklen). Im RC1: die
+  Maschine erklärt DWO (G54.2/G254) oder TWP (G68.2/G268/PLANE SPATIAL), kein CYCLE800;
+  POST_TRANSFORM (selbst umrechnen) ist vorgesehen, wird aber noch nicht geschrieben.
 - **T-011 Versionscheck 26.3** – Manuel arbeitet mit FreeCAD 26.3.0RC1 (Windows); dort brach schon
   der Adaptiv-Kern (P-2026-10-10-39): voller Lauf im Wochen-Build 26.3, was er findet, sofort
   beheben (Arbeitsregeln, Abschnitt 9). Behoben: Kern-Aufruf (-39), Bohren-Namen (-41), dunkles
