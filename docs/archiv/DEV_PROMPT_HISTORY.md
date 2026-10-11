@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-55 vierachs-schritt-zwei-schneller
+
+### EINGELESEN
+- Am Nasen-Testteil (mit seinen Operationen im Dokument) stand der 4-Achs-Assistent nach „Weiter“
+  0,81 s am Stück. Gemessen: die Kopie des Dokuments für die Nebenrechner 0,58 s (mit Oberfläche
+  rendert FreeCAD dabei das Vorschaubild; ohne 0,24 s), `_bearbeitung_fuellen` 0,57 s – darin
+  `vp.ebenen` achtmal mit je vier Strahlen vor Face8 (32 boolesche Schnitte, 0,26 s; seit
+  P-2026-10-11-48) und die Kanten fürs Entgraten (0,21 s).
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `kopie()` speichert ohne Vorschaubild und ungepackt
+  (`_schnell_speichern` – die Einstellungen danach genau wie vorher).
+- `camaddon/vierachs_huelle.py`: `form_kennung`, `gemerkt` (Ergebnisse je Form gemerkt, tief
+  kopiert zurück).
+- `camaddon/vierachs_planbahn.py`: `ebenen` gemerkt (`ebenen_rechnen` rechnet).
+- `camaddon/vierachs_entgratbahn.py`: `kanten` gemerkt (`kanten_rechnen` rechnet).
+- `package.xml` (0.213.61), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil im Assistenten: die Kopie 0,58 → 0,16 s, `_bearbeitung_fuellen` 0,57 → 0,44 s, die
+  längste Pause 0,81 → 0,38 s; die Vorschläge und Vorschauen wie vorher. `test_vierachs_plan.py`,
+  `test_vierachs_entgraten.py`, `test_nebenrechner.py` grün.
+
 ## P-2026-10-11-54 materialstand-im-takt
 
 ### EINGELESEN

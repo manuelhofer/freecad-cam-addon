@@ -32,6 +32,7 @@ Gerechnet in (a, r, φ) wie vierachs_bahn.Punkt, ohne Versatz quer. Läuft ohne 
 """
 
 import math
+from collections import OrderedDict
 from dataclasses import dataclass
 
 import numpy as np
@@ -69,7 +70,29 @@ class Kante:
     material: tuple = None
 
 
+_KANTEN = OrderedDict()  # (Form, Achsen, Namen, …) -> [Kante]
+
+
 def kanten(form, laengs, radial, namen, schritt=SCHRITT, mindest_knick=MINDEST_KNICK):
+    """kanten_rechnen(), gemerkt je Form, Achsen, Namen und Werten – der 4-Achs-Assistent
+    fragt beim Wechsel zu Schritt 2 danach (0,2 s, P-2026-10-11-55)."""
+    namen = tuple(namen) if namen else namen
+    schluessel = (
+        vh.form_kennung(form),
+        tuple(float(c) for c in laengs),
+        tuple(float(c) for c in radial),
+        tuple(namen or ()),
+        float(schritt),
+        float(mindest_knick),
+    )
+    return vh.gemerkt(
+        _KANTEN,
+        schluessel,
+        lambda: kanten_rechnen(form, laengs, radial, namen, schritt, mindest_knick),
+    )
+
+
+def kanten_rechnen(form, laengs, radial, namen, schritt=SCHRITT, mindest_knick=MINDEST_KNICK):
     """[Kante] – die Außenkanten der Flächen `namen` („Face3“ …; leer: alle) von `form`
     (Part.Shape), jede einmal: wo eine gewählte Fläche mit einer anderen um mindestens
     `mindest_knick` Grad nach außen knickt. Nicht dabei: Innenkanten, tangentiale Übergänge,

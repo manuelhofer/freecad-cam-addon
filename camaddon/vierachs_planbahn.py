@@ -68,6 +68,7 @@ Werkzeugachse, der Winkel der der Rundachse, der Versatz quer. Läuft ohne Oberf
 """
 
 import math
+from collections import OrderedDict
 from dataclasses import dataclass
 
 import numpy as np
@@ -122,7 +123,30 @@ class Ebene:
         return float(max(self.hoehe(self.a_von), self.hoehe(self.a_bis)))
 
 
+_EBENEN = OrderedDict()  # (Form, Achsen, Namen, …) -> [Ebene] – der Assistent fragt oft dasselbe
+
+
 def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_achse=True):
+    """ebenen_rechnen(), gemerkt je Form, Achsen, Namen, Vernetzung und `zur_achse`: Der
+    4-Achs-Assistent fragt beim Wechsel zu Schritt 2 achtmal dasselbe, und die Strahlen vor einer
+    Fläche zur Achse (_frei_vor) kosteten dabei 0,26 s (P-2026-10-11-55)."""
+    namen = tuple(namen)
+    schluessel = (
+        vh.form_kennung(form),
+        tuple(float(c) for c in laengs),
+        tuple(float(c) for c in radial),
+        tuple(namen),
+        float(toleranz),
+        bool(zur_achse),
+    )
+    return vh.gemerkt(
+        _EBENEN,
+        schluessel,
+        lambda: ebenen_rechnen(form, laengs, radial, namen, toleranz, zur_achse),
+    )
+
+
+def ebenen_rechnen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_achse=True):
     """[Ebene] – die Flächen `namen` („Face3“ …) von `form` (Part.Shape), die eben sind und
     deren Außennormale quer zur Stangenachse zeigt – auch längs geneigt bis SCHRAEG_HOECHSTENS
     (Ebene.steigung). Andere zählen nicht: Zylinder, eine Stirn oder ein Absatz quer zur Achse.

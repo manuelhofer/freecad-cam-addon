@@ -113,6 +113,37 @@ class Huelle:
         return np.maximum(wert(links), wert(rechts))
 
 
+def form_kennung(form):
+    """Ein Schlüssel für eine Form (Part.Shape), unter dem Ergebnisse zu ihr gemerkt werden
+    dürfen: ihr hashCode – dieselbe Form in OpenCascade –, dazu, falls ein freigegebener
+    Speicher wiederverwendet wurde, die Zahl ihrer Flächen und Kanten und ihr Hüllquader."""
+    kasten = form.BoundBox
+    return (
+        form.hashCode(),
+        len(form.Faces),
+        len(form.Edges),
+        tuple(
+            round(float(w), 6)
+            for w in (kasten.XMin, kasten.YMin, kasten.ZMin, kasten.XMax, kasten.YMax, kasten.ZMax)
+        ),
+    )
+
+
+def gemerkt(merk, schluessel, rechnen, hoechstens=32):
+    """Das Ergebnis von `rechnen()` unter `schluessel` in `merk` (OrderedDict) – gemerkt, die
+    ältesten über `hoechstens` fallen heraus; zurück eine tiefe Kopie (wer es ändert, ändert den
+    Merker nicht)."""
+    import copy
+
+    if schluessel in merk:
+        merk.move_to_end(schluessel)
+    else:
+        merk[schluessel] = rechnen()
+        while len(merk) > hoechstens:
+            merk.popitem(last=False)
+    return copy.deepcopy(merk[schluessel])
+
+
 def rahmen(laengs, radial):
     """(L, U, V) als numpy-Einheitsvektoren: längs, radial (φ = 0) und quer = L × U."""
     l_ = np.array(laengs, dtype=float)

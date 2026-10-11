@@ -444,7 +444,8 @@ class Nebenrechner:
             pfad = os.path.join(ordner, f"{name}-{secrets.token_hex(3)}.FCStd")
         if aenderungen is not None:
             aenderungen.kopiert(dokument, pfad)
-        dokument.saveCopy(pfad)
+        with _schnell_speichern():
+            dokument.saveCopy(pfad)
         pfade.append(pfad)
         for alt in pfade[:-KOPIEN_JE_DOKUMENT]:
             with contextlib.suppress(OSError):
@@ -1352,6 +1353,32 @@ def stuecke(anzahl, pool_groesse, je_arbeiter=4, mindestens=1):
     teile = max(1, min(pool_groesse * je_arbeiter, anzahl // max(1, mindestens)))
     grenzen = [round(k * anzahl / teile) for k in range(teile + 1)]
     return [(a, b) for a, b in zip(grenzen, grenzen[1:], strict=False) if b > a]
+
+
+# Die Kopie für die Arbeiter: ohne Vorschaubild (FreeCAD rendert es aus der 3D-Ansicht) und kaum
+# gepackt – am Nasen-Testteil stand das Fenster für die Kopie 0,58 s (P-2026-10-11-55).
+_DOKUMENT_EINSTELLUNGEN = "User parameter:BaseApp/Preferences/Document"
+_KOPIE_EINSTELLUNGEN = (("SaveThumbnail", "Bool", False), ("CompressionLevel", "Int", 0))
+
+
+@contextlib.contextmanager
+def _schnell_speichern():
+    """Für die Dauer des Speicherns einer Kopie: kein Vorschaubild, Kompression 0 – danach die
+    Einstellungen genau wie vorher (auch, ob es sie gab)."""
+    gruppe = FreeCAD.ParamGet(_DOKUMENT_EINSTELLUNGEN)
+    vorher = []
+    for name, art, wert in _KOPIE_EINSTELLUNGEN:
+        da = name in getattr(gruppe, f"Get{art}s")()
+        vorher.append((name, art, da, getattr(gruppe, f"Get{art}")(name) if da else None))
+        getattr(gruppe, f"Set{art}")(name, wert)
+    try:
+        yield
+    finally:
+        for name, art, da, wert in vorher:
+            if da:
+                getattr(gruppe, f"Set{art}")(name, wert)
+            else:
+                getattr(gruppe, f"Rem{art}")(name)
 
 
 _pool = None
