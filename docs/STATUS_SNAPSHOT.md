@@ -714,7 +714,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Zurzeit kein offener Bug. B-001 bis B-018 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39);
+Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
 nächste freie Nummer B-020.
 
 ## Offene Tasks
