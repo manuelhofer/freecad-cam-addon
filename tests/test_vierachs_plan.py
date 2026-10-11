@@ -825,8 +825,10 @@ if schraeg:
     print(ascii(f"Schraeg 10 Grad: {sb.lagen} Lagen, {sb.zeilen} Zeilen, fein {fein:.2f} mm"))
 
 # --- Zur Achse hin (Manuel, 2026-10-11, Frage 10): ein Klotz neben der Achse (x 5 … 12) wie die
-# Nase seines Testteils; seine Seite x = 5 schaut zur Achse. Ohne `zur_achse` zählt sie nicht,
-# mit ihr steht die Spitze 5 unter der Mitte (φ 180°, Tiefe −5) – nie tiefer.
+# Nase seines Testteils; seine Seite x = 5 schaut zur Achse, davor ist frei. Ohne `zur_achse`
+# zählt sie nicht, mit ihr (der Vorgabe) steht die Spitze 5 unter der Mitte (φ 180°, Tiefe −5) –
+# nie tiefer. Ein zweiter Klotz gegenüber (x −12 … −5) steht davor: Dann zählen die beiden
+# Innenseiten nicht – wie die Wände einer Nut.
 nase = Part.makeBox(7, 10, 20, V(5, -5, -30))
 nase_namen = [f"Face{i + 1}" for i in range(len(nase.Faces))]
 innen = next(
@@ -835,10 +837,16 @@ innen = next(
     if (vr.aussennormale(f) - V(-1, 0, 0)).Length < 1e-6
 )
 pruefe(
-    innen not in [e.name for e in vp.ebenen(nase, LAENGS, RADIAL, nase_namen)],
+    innen not in [e.name for e in vp.ebenen(nase, LAENGS, RADIAL, nase_namen, zur_achse=False)],
     "zur Achse hin ohne zur_achse angenommen",
 )
-zur_achse = vp.ebenen(nase, LAENGS, RADIAL, [innen], zur_achse=True)
+zur_achse = vp.ebenen(nase, LAENGS, RADIAL, [innen])
+zwei = nase.fuse(Part.makeBox(7, 10, 20, V(-12, -5, -30)))
+zwei_namen = [f"Face{i + 1}" for i in range(len(zwei.Faces))]
+gegenueber = [
+    e.name for e in vp.ebenen(zwei, LAENGS, RADIAL, zwei_namen) if e.hoechste <= vp.GERADE
+]
+pruefe(not gegenueber, f"Innenseiten gegenüber angenommen: {gegenueber}")
 pruefe(len(zur_achse) == 1, f"zur Achse hin: {zur_achse}")
 if zur_achse:
     z = zur_achse[0]

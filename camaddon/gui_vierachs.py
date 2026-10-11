@@ -1942,6 +1942,8 @@ class VierachsPanel:
     def _fraeser_gewaehlt(self):
         if not self._fuellt:
             self._einsatz_fuellen()
+            if not self._planfraeser_von_hand and self._art != PLAN:
+                self._planfraeser_fuellen()  # „Plan indexiert“ nimmt den Schruppfräser
 
     def _einsatz_fuellen(self):
         """Die Einsätze des Fräsers; vorgewählt „Schruppen“, sonst „Schruppen dynamisch“,
@@ -2536,8 +2538,10 @@ class VierachsPanel:
 
     def _planfraeser_fuellen(self):
         """Die Fräser mit ebener Stirn (vierachs_planbahn.ebener_radius) mit Schnittwerten für
-        den Werkstoff; vorgewählt der bisher gewählte, beim Ändern der der Operation, sonst der
-        zuletzt benutzte, sonst einer mit Einsatz „Planen“, sonst ein Schaftfräser."""
+        den Werkstoff; vorgewählt der von Hand gewählte, beim Ändern der der Operation, sonst der
+        Fräser des Schruppens (Manuel, 2026-10-11, Frage 10: „der fräser vom schruppen“), sonst
+        der bisher gewählte, sonst der zuletzt benutzte, sonst einer mit Einsatz „Planen“, sonst
+        ein Schaftfräser."""
         werkstoff = self.werkstoff()
         vorher = self.planfraeser()
         self._planfraeser = [
@@ -2549,10 +2553,15 @@ class VierachsPanel:
         ]
         kennungen = [w.kennung for w in self._planfraeser]
         gemerkt = _parameter().GetString(GEMERKT_PLANFRAESER, "")
-        if vorher is not None and vorher.kennung in kennungen:
+        schrupp = self.fraeser() if self.mit_schruppen.isChecked() else None
+        if self._planfraeser_von_hand and vorher is not None and vorher.kennung in kennungen:
             wahl = kennungen.index(vorher.kennung)
         elif self._vorwahl_plan in kennungen:  # beim Ändern: der Fräser der Operation
             wahl = kennungen.index(self._vorwahl_plan)
+        elif schrupp is not None and schrupp.kennung in kennungen and not vplan.bohrer_von(schrupp):
+            wahl = kennungen.index(schrupp.kennung)
+        elif vorher is not None and vorher.kennung in kennungen:
+            wahl = kennungen.index(vorher.kennung)
         elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
@@ -2698,8 +2707,15 @@ class VierachsPanel:
             return flaechen
         achse = self.achse()
         form = vr.modell(self.job).Shape
-        mantel = vf.namen(vf.mantelflaechen(self._sicht()))
-        return [e.name for e in vp.ebenen(form, achse.laengs, va.radial(achse), mantel)]
+        mantel = set(vf.namen(vf.mantelflaechen(self._sicht())))
+        # Dazu die Ebenen zur Achse hin, vor denen frei ist (Frage 10: die Unterseite der Nase) –
+        # von außen sieht man sie nicht, unter den Mantelflächen sind sie nicht.
+        alle = [f"Face{i + 1}" for i in range(len(form.Faces))]
+        return [
+            e.name
+            for e in vp.ebenen(form, achse.laengs, va.radial(achse), alle)
+            if e.name in mantel or e.hoechste <= vp.GERADE
+        ]
 
     def _schlicht_flaechen(self):
         """Die Flächen für „Rundum schlichten“: die gewählten – rundum mit „Plan indexiert“ für
@@ -2890,8 +2906,9 @@ class VierachsPanel:
             if not geht:
                 self.mit_plan.setChecked(False)
             elif not self._plan_von_hand and self.zu_aendern is None:
-                # Rundum nur angeboten: Der Haken kommt von Hand (P-2026-10-03-09).
-                self.mit_plan.setChecked(bool(self._planfraeser) and bool(self.flaechen()))
+                # Auch rundum vorbelegt an (Manuel, 2026-10-11, Frage 10: der Schruppfräser macht
+                # die ebenen Flächen, die Kugel den Rest) – bis dahin nur angeboten.
+                self.mit_plan.setChecked(bool(self._planfraeser))
         finally:
             self._fuellt = vorher
         self.planfelder.setEnabled(self.plan_an())
@@ -3706,7 +3723,13 @@ class VierachsPanel:
                     menge=flaeche(e["hoechstens"]),
                     faktor=f"{e['hoechstens'] / soll:.0f}",
                     soll=flaeche(soll),
-                    strecke=einheiten.text(e["strecke"] / 1000, einheiten.STRECKE, 1),
+                    strecke=(
+                        f"{einheiten.text(e['strecke'], einheiten.LAENGE, 0)} "
+                        f"{einheiten.einheit(einheiten.LAENGE)}"
+                        if e["strecke"] < 1000
+                        else f"{einheiten.text(e['strecke'] / 1000, einheiten.STRECKE, 1)} "
+                        f"{einheiten.einheit(einheiten.STRECKE)}"
+                    ),
                     richtung=richtung,
                     von=stelle(e["a_von"]),
                     bis=stelle(e["a_bis"]),

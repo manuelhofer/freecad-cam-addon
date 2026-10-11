@@ -80,7 +80,8 @@ def schritte(h):
     h.pruefe(panel.entgratfraeser() is not None and panel.entgratfraeser().nummer == 3, "Fräser T3")
     einsatz = panel.entgrateinsatz()
     h.pruefe(einsatz is not None and einsatz.art == wz.FASEN, "Einsatz Fasen vorgewählt")
-    h.pruefe(not panel.mit_plan.isChecked(), "Plan ohne ebene Fläche an")
+    # Rundum ist „Plan indexiert“ für die Abflachung vorbelegt (Frage 10, P-2026-10-11-48).
+    h.pruefe(panel.mit_plan.isChecked(), "Plan rundum mit der Abflachung nicht vorbelegt")
     yield from h.warte_auf(lambda: panel.vorschau_entgraten is not None, 30000)
     text = panel.ergebnis_entgraten.text()
     h.pruefe(text.startswith("→ 6 Kanten, etwa"), f"Vorschau rundum: {text!r}")

@@ -122,17 +122,17 @@ class Ebene:
         return float(max(self.hoehe(self.a_von), self.hoehe(self.a_bis)))
 
 
-def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_achse=False):
+def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_achse=True):
     """[Ebene] – die Flächen `namen` („Face3“ …) von `form` (Part.Shape), die eben sind und
-    deren Außennormale quer zur Stangenachse von der Achse weg zeigt – auch längs geneigt bis
-    SCHRAEG_HOECHSTENS (Ebene.steigung). Andere zählen nicht: Zylinder, eine Stirn oder ein
-    Absatz quer zur Achse – und ohne `zur_achse` eine Ebene, die zur Achse schaut. Mit
-    `zur_achse` auch sie (Manuel, 2026-10-11, Frage 10: die flache Seite der Nase zur Mitte –
-    „auch wenn das unter 0 ist solange es nicht weiter unter 0 ist als die maschine fahren
-    kann“): Die Spitze steht dann unter der Mitte (Ebene.tiefe < 0); was im Weg liegt, hält die
-    Zeile an wie sonst auch (die Hüllfläche ohne die Fläche), ob X so weit fährt, sagt „Auf der
-    Maschine prüfen“. Die Ausdehnung längs und quer kommt aus der Vernetzung der Fläche
-    (`toleranz`)."""
+    deren Außennormale quer zur Stangenachse zeigt – auch längs geneigt bis SCHRAEG_HOECHSTENS
+    (Ebene.steigung). Andere zählen nicht: Zylinder, eine Stirn oder ein Absatz quer zur Achse.
+    Eine Ebene, die zur Achse schaut, mit `zur_achse` nur, wenn der Weg längs ihrer Normale frei
+    ist (_frei_vor – Manuel, 2026-10-11, Frage 10: die flache Seite der Nase zur Mitte macht der
+    Schruppfräser, „das steht ja in der maschine“): Die Spitze steht dann unter der Mitte
+    (Ebene.tiefe < 0); was im Weg liegt, hält die Zeile an wie sonst auch (die Hüllfläche ohne
+    die Fläche), ob X so weit fährt, sagt „Auf der Maschine prüfen“. Die Wände einer Nut schauen
+    einander an – vor ihnen liegt das Teil, sie zählen nicht. Die Ausdehnung längs und quer
+    kommt aus der Vernetzung der Fläche (`toleranz`)."""
     from . import vierachs_flaechen as vf
     from . import vierachs_rohteil as vr
 
@@ -171,10 +171,46 @@ def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_achse=Fa
             float((p @ np.cross(l_, n_quer)).max()),
             -laengs_anteil / quer_anteil,
         )
-        if ebene.hoechste <= GERADE and not zur_achse:
-            continue  # schaut zur Achse hin: von außen nicht zu fräsen
+        if ebene.hoechste <= GERADE and not (zur_achse and _frei_vor(form, p, n_quer)):
+            continue  # schaut zur Achse hin, und davor liegt das Teil: nicht zu fräsen
         ergebnis.append(ebene)
     return ergebnis
+
+
+FREI_STRAHLEN = 5  # so viele Strahlen prüft _frei_vor je Fläche
+FREI_EINGERUECKT = 0.8  # die Strahlen so weit zur Mitte der Fläche hin (nicht auf der Kante)
+FREI_ABSTAND = 0.05  # mm: so weit vor der Fläche beginnt ein Strahl
+
+
+def _frei_vor(form, punkte, richtung):
+    """Liegt vor der Fläche (ihre Punkte `punkte`, (n, 3)) längs `richtung` nirgends das Teil
+    `form`? Strahlen aus der Mitte und von den äußersten Punkten (zur Mitte hin eingerückt) bis
+    aus dem Teil hinaus – schneidet keiner das Teil, kommt der Fräser von dort an die Fläche."""
+    import FreeCAD
+    import Part
+
+    mitte = punkte.mean(axis=0)
+    weit = float(form.BoundBox.DiagonalLength) + 1.0
+    auswahl = [mitte]
+    for spalte in range(3):
+        auswahl += [
+            punkte[int(np.argmin(punkte[:, spalte]))],
+            punkte[int(np.argmax(punkte[:, spalte]))],
+        ]
+    gesehen = []
+    for punkt in auswahl:
+        punkt = mitte + FREI_EINGERUECKT * (punkt - mitte)
+        if any(np.linalg.norm(punkt - q) < 1e-6 for q in gesehen):
+            continue
+        gesehen.append(punkt)
+        von = FreeCAD.Vector(*(punkt + FREI_ABSTAND * richtung))
+        bis = FreeCAD.Vector(*(punkt + weit * richtung))
+        drin = form.common(Part.makeLine(von, bis))
+        if drin.Edges and sum(e.Length for e in drin.Edges) > 1e-3:
+            return False
+        if len(gesehen) >= FREI_STRAHLEN:
+            break
+    return True
 
 
 def _anheben(form, steigung):

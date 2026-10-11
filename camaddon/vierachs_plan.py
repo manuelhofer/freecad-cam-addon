@@ -205,7 +205,7 @@ def bahn_fuer(
     bohrer=None,
     gleichlauf=True,
     nur_gleichlauf=False,
-    zur_achse=False,
+    zur_achse=True,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
@@ -216,8 +216,8 @@ def bahn_fuer(
     Spitzenwinkel) – die Querbohrungen radial bohren (bohrer_von()), ebene Flächen nicht;
     `gleichlauf`: im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `nur_gleichlauf`:
     die Zeilen jede im Gleichlauf, dazwischen abheben (sonst hin und her); `zur_achse`: auch
-    ebene Flächen, die zur Achse schauen (vierachs_planbahn.ebenen). ValueError mit einem Satz,
-    wenn es nicht geht."""
+    ebene Flächen, die zur Achse schauen, wenn der Weg dorthin frei ist (vierachs_planbahn.ebenen).
+    ValueError mit einem Satz, wenn es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen, zur_achse=zur_achse)

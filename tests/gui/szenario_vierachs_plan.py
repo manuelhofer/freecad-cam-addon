@@ -1,7 +1,7 @@
 # „Plan indexiert“ im 4-Achs-Assistenten (W-003 Stufe V4c; W-006 S2). Welle Ø 20 × 40 mit
 # einer Abflachung auf x = 8 zwischen zwei Wänden, Stange Ø 24, T1 Schaftfräser Ø 6 (Einsätze
-# Planen und Schruppen), T2 Kugelfräser Ø 4 (Schlichten). Schritt 2 ohne Flächen: der Haken
-# „Plan indexiert“ gesperrt, grau der Grund. Ein Klick auf die Abflachung: der Haken geht an
+# Planen und Schruppen), T2 Kugelfräser Ø 4 (Schlichten). Schritt 2 ohne Flächen: rundum
+# „Plan indexiert“ angehakt mit T1, dem Fräser des Schruppens, das Schlichten ohne die Ebene. Ein Klick auf die Abflachung: der Haken geht an
 # (Vorschlag mit Grund), die Vorschau sagt „→ 2 Lagen, 6 Zeilen“. „Anlegen“: drei Operationen,
 # „Plan indexiert T1“ mit 2 Lagen und 6–9 Zeilen, die Sätze mit Y und festem C. Doppelklick
 # darauf öffnet den Assistenten mit ihren Werten; „Übernehmen“ mit 1 mm Zustellung rechnet
@@ -72,13 +72,22 @@ def schritte(h):
     yield 300
     h.pruefe(panel.seite == 2, f"Seite {panel.seite}")
 
-    # --- Ohne Flächen (rundum): mit dem Y angeboten, ohne Haken (P-2026-10-03-09) -----------
+    # --- Ohne Flächen (rundum): vorbelegt an, mit dem Fräser des Schruppens (Manuel, 2026-10-11,
+    # Frage 10; bis dahin nur angeboten, P-2026-10-03-09) – das Schlichten lässt die Ebene aus.
     h.pruefe(
-        panel.mit_plan.isEnabled() and not panel.mit_plan.isChecked(), "Plan rundum nicht angeboten"
+        panel.mit_plan.isEnabled() and panel.mit_plan.isChecked(), "Plan rundum nicht vorbelegt"
     )
     text = panel.plan_grund.text()
-    h.pruefe(text.startswith("Mit der Querachse geht Face"), f"Grund: {text!r}")
-    h.pruefe(panel._schlicht_flaechen() == [], "rundum ohne Haken: Schlichten nicht rundum")
+    h.pruefe(text.startswith("Vorschlag: an – Face"), f"Grund: {text!r}")
+    h.pruefe(
+        panel.planfraeser() is not None and panel.planfraeser() is panel.fraeser(),
+        "Plan rundum: nicht der Fräser des Schruppens",
+    )
+    schlicht = panel._schlicht_flaechen()
+    h.pruefe(
+        bool(schlicht) and abflachung not in schlicht,
+        f"rundum mit Plan: Schlichten über {schlicht}",
+    )
     yield from h.warte_auf(
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )

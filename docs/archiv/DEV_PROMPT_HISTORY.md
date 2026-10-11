@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-48 plan-mit-dem-schruppfraeser
+
+### EINGELESEN
+- Frage 10 (Manuel, 2026-10-11): „ich hätte es gerne so das der fräser vom schruppen das macht und
+  zwar dreht die nase sich so hin das der fräser unterkante paralell dazu ist … den rest kann dann
+  der kugelfräser machen beim ringsrum bearbeiten“. Erster Teil: die ebenen Flächen mit der Stirn
+  („Plan indexiert“); die Seiten mit dem Schaft („beide variationen anbieten“) folgen.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `ebenen(..., zur_achse=True)` – eine Ebene zur Achse hin zählt,
+  wenn der Weg längs ihrer Normale frei ist (`_frei_vor`: fünf Strahlen gegen das Teil); die Wände
+  einer Nut schauen einander an und zählen nicht.
+- `camaddon/vierachs_plan.py`: `bahn_fuer(..., zur_achse=True)`.
+- `camaddon/gui_vierachs.py`: rundum ist „Plan indexiert“ für die ebenen Flächen vorbelegt an (bis
+  dahin nur angeboten), dazu die Ebenen zur Achse hin, vor denen frei ist; vorgewählt der Fräser
+  des Schruppens (folgt ihm, solange man ihn nicht von Hand wählt); „Rundum schlichten“ lässt die
+  Flächen aus. Die Restmeldung schreibt kurze Strecken in mm.
+- `translations/de.json`, `translations/en.json` (`va.plan.vorschlag_rundum`, `va.plan.keine_ebene`,
+  `va.rest.viel`), `tests/test_vierachs_plan.py` (zwei Klötze gegenüber: die Innenseiten zählen
+  nicht), `tests/gui/szenario_vierachs_plan.py`, `tests/gui/szenario_vierachs_entgraten.py` (rundum
+  vorbelegt), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.213.54), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil im Assistenten (Face1 angeklickt): „Vorschlag: an – Face4, Face6, Face8 eben mit dem
+  Fräser des Schruppens …“, T1, „→ 3 Flächen: 9 Lagen, 65 Zeilen“; das Schlichten über Face1, 2, 5,
+  9, 10. `szenario_vierachs_plan`, `szenario_vierachs_entgraten`, `szenario_vierachs_schlichten` und
+  `test_vierachs_plan.py` grün.
+
 ## P-2026-10-11-47 schruppen-stetig
 
 ### EINGELESEN
