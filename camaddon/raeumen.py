@@ -27,6 +27,7 @@ import Path.Op.Base as PathOp
 from . import aufloesung as au
 from . import bahn as bn
 from . import fahrzeit as fz
+from . import formteile as ft
 from . import freiwege as fw
 from . import hoehenfeld as hf
 from . import kontur as ko
@@ -290,7 +291,7 @@ def bahn_fuer(
 
 def konturen_des_teils(form_teil):
     """Die Unterkanten aller Wände des Teils als Konturen – leer, wenn es keine Wand gibt."""
-    namen = [f"Face{i + 1}" for i in range(len(form_teil.Faces))]
+    namen = [f"Face{i + 1}" for i in range(ft.anzahl(form_teil))]
     try:
         return kb.konturen(form_teil, namen)
     except ValueError:

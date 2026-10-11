@@ -26,6 +26,7 @@ from dataclasses import dataclass
 
 from . import bahn as bn
 from . import einheiten
+from . import formteile as ft
 from . import vierachs_bahn as vb
 from .sprache import tr
 
@@ -97,7 +98,8 @@ def bohrungen(form, namen=None):
     import Part
 
     ergebnis = []
-    for name, flaeche in _flaechen(form, namen):
+    for nummer, flaeche in ft.mit_namen(form, namen):
+        name = f"Face{nummer + 1}"
         flaeche_ = flaeche.Surface
         if not isinstance(flaeche_, Part.Cylinder):
             continue
@@ -127,21 +129,6 @@ def bohrungen(form, namen=None):
             )
         )
     return ergebnis
-
-
-def _flaechen(form, namen):
-    """(Name, Fläche) in der Reihenfolge der Form – mit `namen` nur diese, ohne alle Flächen der
-    Form auszupacken (der Assistent fragt je Fläche einzeln, an großen Teilen tausendfach)."""
-    if namen is None:
-        return [(f"Face{i + 1}", f) for i, f in enumerate(form.Faces)]
-    nummern = set()
-    for name in namen:
-        if isinstance(name, str) and name.startswith("Face") and name[4:].isdigit():
-            nummern.add(int(name[4:]))
-    if not nummern:
-        return []
-    anzahl = form.countElement("Face")
-    return [(f"Face{n}", form.getElement(f"Face{n}")) for n in sorted(nummern) if 1 <= n <= anzahl]
 
 
 def _unter_gemerkt(form, name, flaeche, mitte, bb):

@@ -38,6 +38,7 @@ from . import entgraten as eg
 from . import entgraten3d as e3op
 from . import flanke as flop
 from . import flanke_bahn as flb
+from . import formteile as ft
 from . import fraeserform as ff
 from . import gewinde as gw
 from . import gewinde_bahn as gfb
@@ -229,7 +230,7 @@ def _boeden_vor_je_wand(form):
     Der Assistent fragt je Vorschau mehrmals (am Testteil 0,7 s je Mal)."""
     try:
         kasten = form.BoundBox
-        schluessel = (form.hashCode(), len(form.Faces), round(form.Volume, 6)) + tuple(
+        schluessel = (form.hashCode(), ft.anzahl(form), round(form.Volume, 6)) + tuple(
             round(v, 6) for v in (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax)
         )
     except Exception:  # eine Form ohne Prüfsumme: rechnen
@@ -255,9 +256,9 @@ def _aussennormale(form, name):
     """Die Normale der ebenen Fläche `name` („Face6“) von `form` aus dem Material heraus – None,
     wenn es sie nicht gibt oder sie nicht eben ist."""
     nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
-    if not 0 <= nummer < len(form.Faces) or not vr.ist_eben(form.Faces[nummer]):
+    if not 0 <= nummer < ft.anzahl(form) or not vr.ist_eben(ft.flaeche(form, nummer)):
         return None
-    return vr.aussennormale(form.Faces[nummer])
+    return vr.aussennormale(ft.flaeche(form, nummer))
 
 
 def _schraeg(form, name):
@@ -5190,7 +5191,7 @@ class BearbeitungPanel:
         farben = {}
         for name in self.gewaehlte:
             nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
-            if nummer < 0 or nummer >= len(form.Faces):
+            if nummer < 0 or nummer >= ft.anzahl(form):
                 text, farbe = tr("ba.flaeche.fehlt", name=name), ROT
             elif self.nut.s.passt(form, name):
                 n = nb.nuten(form, [name])[0]
@@ -5231,10 +5232,10 @@ class BearbeitungPanel:
                 winkel = f"{round(senkung.winkel, 1):g}"
                 text, farbe = tr("ba.flaeche.senkung", name=name, d=d, winkel=winkel), GRUEN
             elif self.flanke.s.passt(form, name) and self._fuenfachs():
-                z = groesse_zeigen(form.Faces[nummer].BoundBox.ZMin, einheiten.LAENGE) or "0"
+                z = groesse_zeigen(ft.flaeche(form, nummer).BoundBox.ZMin, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.flanke", name=name, z=z), GRUEN
             elif self.schlichten3d.s.passt(form, name):
-                z = groesse_zeigen(form.Faces[nummer].BoundBox.ZMin, einheiten.LAENGE) or "0"
+                z = groesse_zeigen(ft.flaeche(form, nummer).BoundBox.ZMin, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.freiform", name=name, z=z), GRUEN
             elif eb.ist_fase(form, name):
                 text, farbe = tr("ba.flaeche.fase", name=name), GRUEN

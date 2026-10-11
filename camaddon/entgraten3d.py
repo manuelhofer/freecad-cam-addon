@@ -25,6 +25,7 @@ import Path.Op.Base as PathOp
 
 from . import aufloesung as au
 from . import entgrat3d_bahn as e3
+from . import formteile as ft
 from . import fraeserform as ff
 from . import namen, uhren
 from . import planfraesen as pf
@@ -307,7 +308,7 @@ def passt(form, name):
             form.hashCode(),
             round(form.Volume, 6),
             round(form.Area, 6),
-            len(form.Faces),
+            ft.anzahl(form),
             name,
             flaeche.hashCode(),
             round(flaeche.Area, 6),

@@ -44,6 +44,7 @@ import numpy as np
 
 from . import bahn as bn
 from . import einheiten
+from . import formteile as ft
 from . import hoehenfeld as hf
 from . import kontur_bahn as kb
 from . import vierachs_bahn as vb
@@ -201,7 +202,7 @@ def _oberkanten(form, wand, index):
 def hat_oberkanten(form, name):
     """Hat die Fläche `name` Oberkanten mit Grat – als Wand, oder als ebene Fläche nach oben mit
     Wänden, die an ihren Kanten hinab gehen?"""
-    index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    index = ft.nummern(form)
     return any(_oberkanten(form, w, index) for w in waende(form, [name]))
 
 
@@ -210,7 +211,7 @@ def ketten(form, namen):
     (Part.sortEdges), die höchsten zuerst. ValueError mit einem Satz, wenn es keine gibt."""
     import Part
 
-    index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    index = ft.nummern(form)
     gruppen = []  # [(z, [(Kante, Wand)])]
     for wand in waende(form, namen):
         for kante in _oberkanten(form, wand, index):
@@ -267,7 +268,7 @@ def _fase(form, nummer, index):
     oben. None, wenn sie keins von beiden ist."""
     import Part
 
-    flaeche = form.Faces[nummer]
+    flaeche = ft.flaeche(form, nummer)
     radius = _rundung_radius(flaeche)
     if radius <= 0 and not isinstance(flaeche.Surface, (Part.Plane, Part.Cone)):
         return None
@@ -289,11 +290,11 @@ def _fase(form, nummer, index):
         nachbarn = [index.get(f.hashCode()) for f in form.ancestorsOfType(kante, Part.Face)]
         nachbarn = [i for i in nachbarn if i is not None and i != nummer]
         if abs(kbb.ZMax - bb.ZMin) <= kb.NAH:
-            waende_ = [i for i in nachbarn if kb.ist_wand(form.Faces[i])]
+            waende_ = [i for i in nachbarn if kb.ist_wand(ft.flaeche(form, i))]
             if waende_:
                 unten.append((kante, waende_))
         elif abs(kbb.ZMin - bb.ZMax) <= kb.NAH:
-            oben.update(i for i in nachbarn if _nach_oben(form.Faces[i]))
+            oben.update(i for i in nachbarn if _nach_oben(ft.flaeche(form, i)))
     if not unten or not oben:
         return None
     if radius > 0:
@@ -314,11 +315,11 @@ def ist_fase(form, name):
     """Ist die Fläche `name` eine gezeichnete Fase an einer Oberkante?"""
     from . import vierachs_flaechen as vf
 
-    index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    index = ft.nummern(form)
     return any(
         _fase(form, nummer, index) is not None
         for nummer in vf.nummern([name])
-        if nummer < len(form.Faces)
+        if nummer < ft.anzahl(form)
     )
 
 
@@ -354,7 +355,7 @@ def fasen(form, namen):
     import FreeCAD
     import Part
 
-    index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    index = ft.nummern(form)
     gruppen = {}  # (z_unten, z_oben, winkel, radius) → [(Kante, Wand)]
     for fase in _gewaehlte_fasen(form, namen, index):
         schluessel = (

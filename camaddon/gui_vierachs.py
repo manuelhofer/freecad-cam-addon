@@ -52,6 +52,7 @@ from PySide import QtCore, QtGui
 from . import PARAMETER_PFAD, einheiten, farben, symbol, uhren
 from . import aufloesung as au
 from . import bestueckung as bs
+from . import formteile as ft
 from . import fraeserform as ff
 from . import halter as hl
 from . import job_schnittwerte as js
@@ -2350,10 +2351,10 @@ class VierachsPanel:
         farben = {}
         for name in self.gewaehlte:
             nummer = vf.nummern([name])
-            if not nummer or nummer[0] >= len(form.Faces):
+            if not nummer or nummer[0] >= ft.anzahl(form):
                 art, (erreichbar, farbe) = "?", (tr("va.flaeche.fehlt"), ROT)
             else:
-                art = vf.beschreibung(form.Faces[nummer[0]], laengs)
+                art = vf.beschreibung(ft.flaeche(form, nummer[0]), laengs)
                 erreichbar, farbe = self._erreichbar(sicht, nummer[0])
                 farben[nummer[0]] = _im_3d(farbe)
             eintrag = QtGui.QListWidgetItem(
@@ -2777,7 +2778,7 @@ class VierachsPanel:
         mantel = set(vf.namen(vf.mantelflaechen(self._sicht())))
         # Dazu die Ebenen zur Achse hin, vor denen frei ist (Frage 10: die Unterseite der Nase) –
         # von außen sieht man sie nicht, unter den Mantelflächen sind sie nicht.
-        alle = [f"Face{i + 1}" for i in range(len(form.Faces))]
+        alle = [f"Face{i + 1}" for i in range(ft.anzahl(form))]
         return [
             e.name
             for e in vp.ebenen(form, achse.laengs, va.radial(achse), alle)

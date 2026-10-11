@@ -25,6 +25,7 @@ from . import bahn as bn
 from . import bohren as bh
 from . import bohrung_bahn as bb
 from . import einheiten
+from . import formteile as ft
 from . import gewinde as gw
 from .sprache import tr
 
@@ -69,12 +70,9 @@ def senkungen(form, namen=None):
     nach oben offen sind, das Material außen haben und unten an einer Bohrung enden."""
     import Part
 
-    index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
     ergebnis = []
-    for nummer, flaeche in enumerate(form.Faces):
+    for nummer, flaeche in ft.mit_namen(form, namen):
         name = f"Face{nummer + 1}"
-        if namen is not None and name not in namen:
-            continue
         kegel = flaeche.Surface
         if not isinstance(kegel, Part.Cone) or abs(abs(kegel.Axis.z) - 1.0) > 1e-6:
             continue
@@ -98,7 +96,7 @@ def senkungen(form, namen=None):
             continue  # das Material innen: ein Kegelstumpf, keine Senkung
         bohrung = ""
         for nachbar in form.ancestorsOfType(unten[0], Part.Face):
-            i = index.get(nachbar.hashCode())
+            i = ft.nummern(form).get(nachbar.hashCode())
             if i is not None and i != nummer and bb.bohrungen(form, [f"Face{i + 1}"]):
                 bohrung = f"Face{i + 1}"
                 break

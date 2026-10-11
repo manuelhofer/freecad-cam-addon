@@ -32,6 +32,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import formteile as ft
 from . import vierachs_huelle as vh
 from .sprache import tr
 
@@ -66,7 +67,7 @@ def kennung(form):
     `hashCode` – mit der Lage; nach einem Neuberechnen oder Verschieben eine andere) und die
     Zahl ihrer Flächen. Dieselbe Kennung: dasselbe Netz."""
     teile = form.Solids or form.Shells or form.Faces or [form]
-    return (tuple(sorted(t.hashCode() for t in teile)), len(form.Faces))
+    return (tuple(sorted(t.hashCode() for t in teile)), ft.anzahl(form))
 
 
 def vernetze(form, toleranz=vh.TOLERANZ):
@@ -383,7 +384,7 @@ def bereich_fuer(form, laengs, radial, namen_, radius, toleranz=vh.TOLERANZ):
     gewaehlt = nummern(namen_)
     if not gewaehlt:
         return None
-    anzahl = len(form.Faces)
+    anzahl = ft.anzahl(form)
     fehlt = [n for n in gewaehlt if n >= anzahl]
     if fehlt:
         raise ValueError(tr("vf.fehler.fehlt", namen=", ".join(namen(fehlt))))

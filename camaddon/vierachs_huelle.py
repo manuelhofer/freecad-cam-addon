@@ -38,6 +38,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import formteile as ft
 from . import uhren
 
 TOLERANZ = 0.02  # mm – so weit darf das Netz von der Oberfläche des Teils abweichen
@@ -122,7 +123,7 @@ def form_kennung(form):
     kasten = form.BoundBox
     return (
         form.hashCode(),
-        len(form.Faces),
+        ft.anzahl(form),
         len(form.Edges),
         tuple(
             round(float(w), 6)

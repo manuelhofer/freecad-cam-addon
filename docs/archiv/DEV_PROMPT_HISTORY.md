@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-79 einzelne-flaechen
+
+### EINGELESEN
+- P-74 bis -78 in FreeCAD 26.3.0RC1 nachgeprüft (Manuels Version): `test_raeumen`, `test_testteil`,
+  `test_raum_material`, `test_raum_bahn`, `test_bohrung`, `test_senken`, `test_nut_offen`,
+  `test_schlichten3d` und die Szenarien Schwenkteil, Testteil, 3D-Schlichten, Deckel, Räumen,
+  Prüfen im Takt, Schwenken, 4 Achsen an der Maschine grün.
+- Dabei: Flächen anklicken stand in RC1 doppelt so lange wie in 1.1.4 (Testteil 4,7 statt 2,0 s,
+  Deckel 2,8 statt 1,6 s für alle Flächen eines Schritts). Gemessen: `form.Faces` baut je Aufruf
+  alle Flächen – in 26.3 0,52 ms am Testteil (26 Flächen), in 1.1 0,13 ms; `getElement("Face7")`
+  0,02 ms. Die Analyse einer Fläche (Fase, Wand, Nut, Senkung, Boden, Außennormale …) holte so
+  je Frage alle Flächen, um eine zu nehmen, und baute für die Nachbarn einer Kante je Aufruf die
+  Nummern aller Flächen neu.
+
+### DATEIEN
+- `camaddon/formteile.py` (neu): `flaeche(form, nummer)` (`getElement`), `anzahl(form)`
+  (`countElement`), `nummern(form)` (je Form einmal, festgehalten wie in P-74), `mit_namen(form,
+  namen)` (nur die gewählten). An den drei Testteilen, auch gedreht, in 1.1.4 und RC1 je Fläche
+  dieselbe (isSame, Orientierung, Normale, Hüllquader) wie `form.Faces[i]`.
+- 20 Module: `form.Faces[…]` → `ft.flaeche`, `len(form.Faces)` → `ft.anzahl`, die Nummern
+  (`entgrat_bahn`, `kontur_bahn`, `nut_bahn`, `senken`) → `ft.nummern`; `senken.senkungen` und
+  `bohrung_bahn.bohrungen` nur noch über die gewählten Flächen (`ft.mit_namen`).
+- `package.xml` (0.213.83), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- RC1, 18 Flächen nacheinander am Testteil angeklickt: zusammen 3,8 → 1,4 s (je Klick ~75 ms);
+  längste Pause im Szenario Testteil 4,7 → 1,8 s, Deckel 2,8 → 1,2 s.
+
+### AKZEPTANZKRITERIUM
+- In 1.1.4: `test_bleistift`, `test_bohren`, `test_bohrung`, `test_entgraten`,
+  `test_entgraten3d`, `test_gewinde`, `test_kontur`, `test_nut`, `test_nut_offen`, `test_raeumen`,
+  `test_reiben`, `test_restmaterial`, `test_schlichten3d`, `test_schruppen3d`, `test_schwenken`,
+  `test_senken`, `test_vierachs_flaechen`, `test_vierachs_huelle`, `test_vierachs_plan`; Szenarien
+  Testteil, Senken, Deckel, Flansch, Lagerbock, Entgraten 3D, 4 Achsen Plan, Bearbeitung. In RC1:
+  Testteil, Deckel, Flansch, 4 Achsen Plan, Lagerbock. Alle grün.
+
 ## P-2026-10-11-78 atmen-beim-neuberechnen
 
 ### EINGELESEN

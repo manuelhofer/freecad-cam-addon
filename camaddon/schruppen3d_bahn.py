@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from . import bahn as bn
+from . import formteile as ft
 from . import hoehenfeld as hf
 from . import kontur_bahn as kb
 from . import raeumen_bahn as rb
@@ -390,7 +391,7 @@ def bereich(form_teil, namen):
     flaechen = sb.freiformflaechen(form_teil, namen)
     if not flaechen:
         raise ValueError(tr("r3.fehler.keine"))
-    z_unten = min(form_teil.Faces[n].BoundBox.ZMin for n in vf.nummern(flaechen))
+    z_unten = min(ft.flaeche(form_teil, n).BoundBox.ZMin for n in vf.nummern(flaechen))
     return flaechen, z_unten
 
 

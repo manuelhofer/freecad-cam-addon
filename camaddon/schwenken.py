@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
+from . import formteile as ft
 from .sprache import tr
 
 GRUPPE = "5-Achs"  # die Gruppe der Eigenschaften am Job
@@ -87,9 +88,9 @@ def ebene_aus_flaeche(form, name, bezug=None, x_richtung=None):
     Fläche ist. ValueError mit einem Satz, wenn es die Fläche nicht gibt oder sie beides nicht
     ist."""
     nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
-    if not 0 <= nummer < len(form.Faces):
+    if not 0 <= nummer < ft.anzahl(form):
         raise ValueError(tr("sw.fehler.flaeche", name=name))
-    flaeche = form.Faces[nummer]
+    flaeche = ft.flaeche(form, nummer)
     normale = aussennormale(flaeche)
     if normale is not None:
         return ebene(normale, flaeche.Vertexes[0].Point, bezug, x_richtung)

@@ -40,6 +40,7 @@ from dataclasses import dataclass, field, replace
 
 import numpy as np
 
+from . import formteile as ft
 from . import uhren
 from .sprache import tr
 
@@ -268,7 +269,7 @@ def _aussen(form, nummer, gemerkt):
     import FreeCAD
 
     if nummer not in gemerkt:
-        flaeche = form.Faces[nummer]
+        flaeche = ft.flaeche(form, nummer)
         ecken, dreiecke = flaeche.tessellate(0.1)
         if not dreiecke:
             gemerkt[nummer] = 1.0
@@ -357,7 +358,7 @@ def _glatt(form, nummern, gemerkt, stufen=GLATT_STUFEN):
     for _stufe in range(stufen):
         neu = []
         for nummer in rand:
-            flaeche = form.Faces[nummer]
+            flaeche = ft.flaeche(form, nummer)
             for kante in flaeche.Edges:
                 if kante.Length < 1e-9:
                     continue

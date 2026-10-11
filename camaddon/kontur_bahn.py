@@ -41,6 +41,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from . import bahn as bn
+from . import formteile as ft
 from . import hoehenfeld as hf
 from . import vierachs_bahn as vb
 from . import vierachs_planbahn as vp
@@ -176,7 +177,7 @@ def waende(form, namen):
     (P-2026-10-03-28, wie hoehenfeld.ebenen_oben)."""
     from . import vierachs_flaechen as vf
 
-    anzahl = len(form.Faces)
+    anzahl = ft.anzahl(form)
     ergebnis = []
     for nummer in vf.nummern(namen):
         if nummer >= anzahl:
@@ -193,7 +194,7 @@ _WAND_HOECHSTENS = 20000
 
 def _wand(form, nummer):
     """Die Wand der Fläche `nummer` – oder None, wenn sie keine ist."""
-    flaeche = form.Faces[nummer]
+    flaeche = ft.flaeche(form, nummer)
     bb = flaeche.BoundBox
     try:
         # Die Prüfsumme hängt am Speicher – mit dem Kasten der Fläche dazu verwechselt eine neue
@@ -228,7 +229,7 @@ def ohne_flaechen(form, waende_):
     gewählte Wände) hält ihn an."""
     import Part
 
-    nummern = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    nummern = ft.nummern(form)
     ergebnis = set()
     for wand in waende_:
         ergebnis.add(wand.name)
@@ -254,7 +255,7 @@ def boeden_vor(form, namen):
     if not waende_:
         return None
     ebenen = {e.name for e in hf.ebenen_oben(form)}
-    nummern = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    nummern = ft.nummern(form)
     boeden = set()
     for wand in waende_:
         for kante in wand.kanten:

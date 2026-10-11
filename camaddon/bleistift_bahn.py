@@ -34,6 +34,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from . import bahn as bn
+from . import formteile as ft
 from . import hoehenfeld as hf
 from . import schlichten3d_bahn as sb
 from . import uhren
@@ -274,7 +275,7 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         raise ValueError(tr("s3.fehler.keine"))
     box = None
     for nummer in vf.nummern(flaechen):
-        bb = form_teil.Faces[nummer].BoundBox
+        bb = ft.flaeche(form_teil, nummer).BoundBox
         teil = (bb.XMin, bb.XMax, bb.YMin, bb.YMax)
         box = (
             teil

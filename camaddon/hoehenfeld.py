@@ -24,6 +24,7 @@ from dataclasses import dataclass
 import FreeCAD
 import numpy as np
 
+from . import formteile as ft
 from . import vierachs_huelle as vh
 
 TOLERANZ = vh.TOLERANZ  # mm – so fein wird das Teil vernetzt
@@ -58,10 +59,10 @@ def ebenen_oben(form, namen=(), toleranz=VORSCHAU_TOLERANZ):
     über tausendmal nach denselben Flächen."""
     from . import vierachs_flaechen as vf
 
-    nummern = vf.nummern(namen) if namen else range(len(form.Faces))
+    nummern = vf.nummern(namen) if namen else range(ft.anzahl(form))
     ergebnis = []
     for nummer in nummern:
-        if nummer >= len(form.Faces):
+        if nummer >= ft.anzahl(form):
             continue
         ebene = _ebene(form, nummer, toleranz)
         if ebene is not None:
@@ -77,7 +78,7 @@ def _ebene(form, nummer, toleranz):
     """Die Ebene der Fläche `nummer`, wenn sie eben ist und nach oben schaut – sonst None."""
     from . import vierachs_rohteil as vr
 
-    flaeche = form.Faces[nummer]
+    flaeche = ft.flaeche(form, nummer)
     try:
         # Die Prüfsumme hängt am Speicher – mit dem Kasten der Fläche dazu verwechselt eine neue
         # Form an derselben Stelle ihre Flächen nicht mit den alten.

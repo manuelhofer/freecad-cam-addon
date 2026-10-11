@@ -58,6 +58,7 @@ from dataclasses import dataclass, replace
 
 from . import bahn as bn
 from . import einheiten
+from . import formteile as ft
 from . import kontur_bahn as kb
 from . import vierachs_bahn as vb
 from .sprache import tr
@@ -461,7 +462,7 @@ def _schluessel(form):
     """Was eine Form wiedererkennt: ihr Kern (hashCode), die Zahl der Flächen, ihre Box."""
     bb = form.BoundBox
     box = tuple(round(v, 6) for v in (bb.XMin, bb.YMin, bb.ZMin, bb.XMax, bb.YMax, bb.ZMax))
-    return (form.hashCode(), len(form.Faces), *box)
+    return (form.hashCode(), ft.anzahl(form), *box)
 
 
 def _nut_der_flaeche(form, name, schluessel, index):
@@ -475,9 +476,9 @@ def _nut_der_flaeche(form, name, schluessel, index):
     gefunden = None
     nummern = vf.nummern([name])
     waende = ()
-    if nummern and nummern[0] < len(form.Faces):
+    if nummern and nummern[0] < ft.anzahl(form):
         if not index:
-            index.update({f.hashCode(): i for i, f in enumerate(form.Faces)})
+            index.update(ft.nummern(form))
         waende = _waende_der_nut(form, nummern[0], index)
     try:
         konturen = kb.konturen(form, [f"Face{i + 1}" for i in waende]) if waende else []
@@ -496,7 +497,7 @@ def _nut_der_flaeche(form, name, schluessel, index):
         durch = _durch(form, a, b, r, float(k.z_unten))
         gefunden = Nut(k.waende, a, b, r, float(k.z_oben), float(k.z_unten), durch)
         break
-    if gefunden is None and nummern and nummern[0] < len(form.Faces):
+    if gefunden is None and nummern and nummern[0] < ft.anzahl(form):
         offen = _waende_offen(form, nummern[0], index)
         try:
             konturen = kb.konturen(form, [f"Face{i + 1}" for i in offen]) if offen else []
@@ -545,7 +546,9 @@ def ist_grund(form, name):
     from . import vierachs_flaechen as vf
 
     nummern = vf.nummern([name])
-    return bool(nummern) and nummern[0] < len(form.Faces) and _ist_boden(form.Faces[nummern[0]])
+    return (
+        bool(nummern) and nummern[0] < ft.anzahl(form) and _ist_boden(ft.flaeche(form, nummern[0]))
+    )
 
 
 # --- Bahn ---------------------------------------------------------------------------------

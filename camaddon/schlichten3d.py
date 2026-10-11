@@ -27,6 +27,7 @@ import Path.Op.Base as PathOp
 from . import angestellt as an
 from . import aufloesung as au
 from . import bahn as bn
+from . import formteile as ft
 from . import fraeserform as ff
 from . import freiwege as fw
 from . import namen, uhren
@@ -438,7 +439,7 @@ def _endtiefe(obj, job):
         nummern = []
     if nummern:
         obj.setExpression("FinalDepth", None)
-        obj.FinalDepth = min(form_teil.Faces[n].BoundBox.ZMin for n in nummern)
+        obj.FinalDepth = min(ft.flaeche(form_teil, n).BoundBox.ZMin for n in nummern)
 
 
 def _name(tc, durchmesser_davor=0.0):

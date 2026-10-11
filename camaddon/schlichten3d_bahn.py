@@ -72,6 +72,7 @@ from dataclasses import dataclass, replace
 import numpy as np
 
 from . import bahn as bn
+from . import formteile as ft
 from . import hoehenfeld as hf
 from . import uhren
 from . import vierachs_bahn as vb
@@ -168,9 +169,9 @@ def ist_freiform(form, name):
     from . import vierachs_flaechen as vf
 
     nummern = vf.nummern([name])
-    if not nummern or nummern[0] >= len(form.Faces):
+    if not nummern or nummern[0] >= ft.anzahl(form):
         return False
-    flaeche = form.Faces[nummern[0]]
+    flaeche = ft.flaeche(form, nummern[0])
     if hf.ebenen_oben(form, [name]) or kb.ist_wand(flaeche):
         return False
     try:
@@ -969,7 +970,7 @@ def _flaeche_entlang(form_teil, flaechen, raster, w, abstand, laengs_u, geformt)
     z_min = math.inf
     rueckwaerts = False
     for nummer in vf.nummern(flaechen):
-        f = form_teil.Faces[nummer]
+        f = ft.flaeche(form_teil, nummer)
         for t in _fluss_kurven(f, laengs_u, abstand):
             x, y = _fluss_kurve(f, laengs_u, float(t), w.schritt, geformt)
             zu = _geschlossen(x, y, w.schritt)
@@ -1244,7 +1245,7 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
 
     box = None
     for nummer in vf.nummern(flaechen):
-        bb = form_teil.Faces[nummer].BoundBox
+        bb = ft.flaeche(form_teil, nummer).BoundBox
         teil = (bb.XMin, bb.XMax, bb.YMin, bb.YMax)
         if box is None:
             box = teil

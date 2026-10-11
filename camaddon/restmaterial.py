@@ -60,6 +60,7 @@ from functools import lru_cache
 
 import numpy as np
 
+from . import formteile as ft
 from . import fraeserform as ff
 from . import uhren
 from . import vierachs_huelle as vh
@@ -782,7 +783,7 @@ def _boeden(job, operationen, laengs, radial):
         bohrer = bohrer_des_controllers(getattr(op, "ToolController", None))
         if bohrer is None:  # ein Bohrer fräst keine Fläche
             for ebene in vp.ebenen(form, l_, u_, flaechen_von(op)):
-                ergebnis.append((ebene, form.Faces[int(ebene.name[4:]) - 1]))
+                ergebnis.append((ebene, ft.flaeche(form, int(ebene.name[4:]) - 1)))
         paare = vp.bohrungen(form, l_, u_, flaechen_von(op))
         namen = [e.name for e, _b in paare]
         for ebene, bohrung in paare:

@@ -74,6 +74,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from . import einheiten
+from . import formteile as ft
 from . import fraeserform as ff
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -163,9 +164,9 @@ def ebenen_rechnen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_
     l_, u_, v_ = vh.rahmen(laengs, radial)
     ergebnis = []
     for nummer in vf.nummern(namen):
-        if nummer >= len(form.Faces):
+        if nummer >= ft.anzahl(form):
             continue
-        flaeche = form.Faces[nummer]
+        flaeche = ft.flaeche(form, nummer)
         if not vr.ist_eben(flaeche):
             continue
         normale = vr.aussennormale(flaeche)
@@ -243,7 +244,7 @@ def schaft_lage(form, ebene, laengs, radial, stange_radius):
     if abs(ebene.steigung) > GERADE:
         return None
     nummer = int(ebene.name[4:]) - 1
-    punkte, _dreiecke = form.Faces[nummer].copy().tessellate(VORSCHAU_TOLERANZ)
+    punkte, _dreiecke = ft.flaeche(form, nummer).copy().tessellate(VORSCHAU_TOLERANZ)
     if not punkte:
         return None
     l_, u_, v_ = vh.rahmen(laengs, radial)
@@ -420,9 +421,9 @@ def bohrungen(form, laengs, radial, namen):
     l_, u_, v_ = vh.rahmen(laengs, radial)
     ergebnis = []
     for nummer in vf.nummern(namen):
-        if nummer >= len(form.Faces):
+        if nummer >= ft.anzahl(form):
             continue
-        flaeche = form.Faces[nummer]
+        flaeche = ft.flaeche(form, nummer)
         zylinder = flaeche.Surface
         if not isinstance(zylinder, Part.Cylinder):
             continue
@@ -511,9 +512,9 @@ def mantelnuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
     l_, u_, v_ = vh.rahmen(laengs, radial)
     ergebnis = []
     for nummer in vf.nummern(namen):
-        if nummer >= len(form.Faces):
+        if nummer >= ft.anzahl(form):
             continue
-        flaeche = form.Faces[nummer]
+        flaeche = ft.flaeche(form, nummer)
         zylinder = flaeche.Surface
         if not isinstance(zylinder, Part.Cylinder):
             continue
