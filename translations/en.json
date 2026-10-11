@@ -2704,5 +2704,8 @@
     "va.plan.schaft.zu_kurz": "For {flaechen} the flute of {werkzeug} ({schneide} {e_laenge}) is too short – it would need {braucht} {e_laenge}; they stay with the end face.",
     "va.plan.schaft.ohne_schneide": "For {flaechen} the tool library does not know the flute length of {werkzeug} – it would need {braucht} {e_laenge}; they stay with the end face.",
     "pp.rechnet": "Calculating on a helper process … – the window stays usable.",
-    "va.halter_stoesst": "The holder or shank of {werkzeug} hits the part here ({richtung} {von} … {bis} {e_laenge}): {werkzeug} sticks out {heraus} {e_laenge}, it would need at least {mindestens} {e_laenge} – clamp it longer or use a longer tool. (Without the head of an angled holder – “Check collision” checks that with the machine.)"
+    "va.halter_stoesst": "The holder or shank of {werkzeug} hits the part here ({richtung} {von} … {bis} {e_laenge}): {werkzeug} sticks out {heraus} {e_laenge}, it would need at least {mindestens} {e_laenge} – clamp it longer or use a longer tool. (Without the head of an angled holder – “Check collision” checks that with the machine.)",
+    "vo.eigenschaft.nur_noetig": "With the cross axis: a layer only as far as the one before stayed above the surface – otherwise it would run the same surface again.",
+    "va.nur_noetig": "Further layers only where needed",
+    "va.nur_noetig.tooltip": "With the cross axis the layers follow the surface – where a layer has already reached it, the next would run it again, almost only through air. Ticked, a layer only goes as far as the one before stayed above the surface. On the nose test part 11.1 instead of 15.3 min; the ball then has about 10 % more to remove (the cusps of the previous layer stay)."
 }

@@ -211,6 +211,9 @@ class Schruppwerte:
     # Mit der Querachse: C dreht nie gegen die Spirale zurück (_stetig) – wie beim Schlichten
     # (Manuel, 2026-10-11, Frage 11: „wens ruhiger wird ists gut“; P-2026-10-11-47).
     stetig: bool = False
+    # Mit der Querachse: eine Lage nur so weit, wie die davor noch über der Hüllfläche blieb
+    # (_schruppen_quer, P-2026-10-11-57) – sonst fährt sie dieselbe Fläche noch einmal ab.
+    nur_noetig: bool = False
 
 
 @dataclass(frozen=True)
@@ -630,13 +633,30 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
         )
         grenze = vq.lagen_grenze(w.stange_radius, q_p, radius, tiefer)
         x = np.maximum(np.maximum(x_p, grenze), w.r_tiefste)
-        return a_p, x, q_p, psi_p, fest, bool(np.any(grenze > x_p + BAHN_TOLERANZ))
+        return a_p, x, x_p, q_p, psi_p, fest, bool(np.any(grenze > x_p + BAHN_TOLERANZ))
 
     versatz = 0
-    lage = 0
+    lage = gefahren = 0
     while True:
         lage += 1
-        a_p, x, q_p, psi_p, fest, noch = lage_rechnen(versatz, lage * w.zustellung)
+        a_p, x, x_p, q_p, psi_p, fest, noch = lage_rechnen(versatz, lage * w.zustellung)
+        if lage > 1 and w.nur_noetig:
+            # Nur so weit, wie die Lage davor noch über der Hüllfläche blieb (P-2026-10-11-57):
+            # Wo sie sie schon erreicht hat, fährt diese dieselbe Fläche noch einmal ab – am
+            # Nasen-Testteil die halbe zweite und fast die ganze dritte Lage durch Luft im
+            # Vorschub. Die Spirale läuft von vorne nach hinten: hinter der letzten Stelle, die
+            # sie braucht (und Fräserradius und Steigung dahinter), endet sie.
+            davor = vq.lagen_grenze(w.stange_radius, q_p, radius, (lage - 1) * w.zustellung)
+            noetig = np.flatnonzero(np.maximum(x_p, w.r_tiefste) < davor - BAHN_TOLERANZ)
+            if not len(noetig):
+                if not noch or lage >= lagen + QUER_MEHR_LAGEN:
+                    return gefahren
+                versatz += int(k[-1])
+                continue
+            bis_a = float(a_p[noetig[-1]]) - radius - w.steigung
+            ende = int(np.flatnonzero(a_p >= bis_a).max()) + 1
+            a_p, x, q_p, psi_p = a_p[:ende], x[:ende], q_p[:ende], psi_p[:ende]
+            fest = [f for f in fest if f < ende]
         _quer_ausgeben(
             punkte,
             a_p,
@@ -653,11 +673,12 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
             frei=_quer_schrupp_frei(a_p, x, q_p, psi_p, radius, w.stange_radius),
         )
         punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
+        gefahren += 1
         versatz += int(k[-1])
         if lage >= lagen and not noch:
-            return lage
+            return gefahren
         if lage >= lagen + QUER_MEHR_LAGEN:
-            return lage
+            return gefahren
 
 
 def _rampe(a, r, phi, von, bis, oben, w):

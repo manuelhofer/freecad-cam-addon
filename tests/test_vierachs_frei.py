@@ -280,7 +280,8 @@ rest = vv.rest(
     1.0,
 )
 pruefe(
-    rest is not None and 1.0 < rest["hoechstens"] < 10.0 and 10000 < rest["volumen"] < 14000,
+    # 12,8 cm³ – seit „Folgelagen nur, wo nötig“ (P-2026-10-11-57) 14,1: die Kämme der zweiten Lage
+    rest is not None and 1.0 < rest["hoechstens"] < 10.0 and 10000 < rest["volumen"] < 16000,
     f"Nase, Rest für die Kugel: {rest}",
 )
 FreeCAD.closeDocument(nase.Name)

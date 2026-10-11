@@ -2704,5 +2704,8 @@
     "va.plan.schaft.zu_kurz": "Für {flaechen} reicht die Schneide von {werkzeug} ({schneide} {e_laenge}) nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn.",
     "va.plan.schaft.ohne_schneide": "Für {flaechen} kennt die Werkzeugverwaltung die Schneidenlänge von {werkzeug} nicht – sie bräuchte {braucht} {e_laenge}; sie bleiben bei der Stirn.",
     "pp.rechnet": "Rechnet auf einem Nebenrechner … – das Fenster bleibt bedienbar.",
-    "va.halter_stoesst": "Halter oder Schaft von {werkzeug} stoßen hier ans Teil ({richtung} {von} … {bis} {e_laenge}): {werkzeug} steht {heraus} {e_laenge} heraus, bräuchte mindestens {mindestens} {e_laenge} – länger ausspannen oder ein längeres Werkzeug. (Ohne den Kopf eines gewinkelten Halters – den prüft „Kollision prüfen“ mit der Maschine.)"
+    "va.halter_stoesst": "Halter oder Schaft von {werkzeug} stoßen hier ans Teil ({richtung} {von} … {bis} {e_laenge}): {werkzeug} steht {heraus} {e_laenge} heraus, bräuchte mindestens {mindestens} {e_laenge} – länger ausspannen oder ein längeres Werkzeug. (Ohne den Kopf eines gewinkelten Halters – den prüft „Kollision prüfen“ mit der Maschine.)",
+    "vo.eigenschaft.nur_noetig": "Mit der Querachse: eine Lage nur so weit, wie die davor noch über der Fläche blieb – sonst führe sie dieselbe Fläche noch einmal ab.",
+    "va.nur_noetig": "Folgelagen nur, wo nötig",
+    "va.nur_noetig.tooltip": "Mit der Querachse folgen die Lagen der Fläche – wo eine Lage sie schon erreicht hat, führe die nächste sie noch einmal ab, fast nur durch Luft. Angehakt fährt eine Lage nur so weit, wie die davor noch über der Fläche blieb. Am Nasen-Testteil 11,1 statt 15,3 min; die Kugel hat danach etwa 10 % mehr zu tun (die Kämme der Lage davor bleiben stehen)."
 }

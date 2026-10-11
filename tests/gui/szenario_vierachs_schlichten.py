@@ -131,6 +131,10 @@ def schritte(h):
         and panel.schruppen_stetig.isChecked(),
         "Schruppen: „C dreht nicht zurück“ nicht angehakt",
     )
+    h.pruefe(
+        panel.schruppen_noetig.isEnabled() and panel.schruppen_noetig.isChecked(),
+        "Schruppen: „Folgelagen nur, wo nötig“ nicht angehakt",
+    )
     h.bild("1_schruppen_und_schlichten", panel.form)
 
     # Nur schruppen – das Schlichten kommt nachträglich.
@@ -145,7 +149,10 @@ def schritte(h):
     if not ops:
         return
     schruppen = ops[0]
-    h.pruefe(bool(schruppen.Stetig), "Rundum schruppen: Stetig aus")
+    h.pruefe(
+        bool(schruppen.Stetig) and bool(schruppen.NurNoetig),
+        "Rundum schruppen: Stetig/NurNoetig aus",
+    )
 
     # --- Doppelklick aufs Schruppen: Schlichten dazunehmen ----------------------------------
     schritte_vorher = len(doc.UndoNames)

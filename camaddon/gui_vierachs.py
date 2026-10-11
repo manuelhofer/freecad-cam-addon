@@ -576,6 +576,7 @@ class VierachsPanel:
         self._stetig_von_hand = False  # der Haken „C dreht nicht zurück“ von Hand gesetzt
         self._querachse_schruppen_von_hand = False  # … beim Schruppen
         self._stetig_schruppen_von_hand = False  # „C dreht nicht zurück“ beim Schruppen
+        self._noetig_von_hand = False  # „Folgelagen nur, wo nötig“ von Hand gesetzt
         self.gewaehlte = []  # die Flächen zum Fräsen („Face3“ …), V4 – leer: rundum
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
@@ -836,6 +837,11 @@ class VierachsPanel:
             self._stetig_schruppen_vorschlagen()
             self.schruppen_stetig.setChecked(
                 self.schruppen_stetig.isEnabled() and bool(getattr(op, "Stetig", True))
+            )
+            self._noetig_von_hand = True
+            self._stetig_schruppen_vorschlagen()
+            self.schruppen_noetig.setChecked(
+                self.schruppen_noetig.isEnabled() and bool(getattr(op, "NurNoetig", True))
             )
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
         # Die Auflösung: nur ein gesetzter Wert (0 ist der Vorschlag und bleibt grau).
@@ -1313,6 +1319,12 @@ class VierachsPanel:
         self.schruppen_stetig.setToolTip(tr("va.stetig.schruppen.tooltip"))
         self.schruppen_stetig.toggled.connect(lambda _an: self._stetig_schruppen_umgeschaltet())
         schruppen.ganz(self.schruppen_stetig)
+        # Folgelagen nur, wo die davor nicht bis auf die Fläche kam (P-2026-10-11-57) – frei mit
+        # der Querachse, dann angehakt.
+        self.schruppen_noetig = QtGui.QCheckBox(tr("va.nur_noetig"))
+        self.schruppen_noetig.setToolTip(tr("va.nur_noetig.tooltip"))
+        self.schruppen_noetig.toggled.connect(lambda _an: self._noetig_umgeschaltet())
+        schruppen.ganz(self.schruppen_noetig)
         self.schruppfelder = schruppen.widget
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
@@ -2211,6 +2223,7 @@ class VierachsPanel:
             self.schruppfelder
         )
         self._haken_setzen(self.schruppen_stetig, quer, self._stetig_schruppen_von_hand)
+        self._haken_setzen(self.schruppen_noetig, quer, self._noetig_von_hand)
 
     def stetig_schruppen(self):
         """Beim Schruppen mit der Querachse dreht C nicht zurück (angehakt und möglich)?"""
@@ -2220,6 +2233,16 @@ class VierachsPanel:
         if self._fuellt:
             return
         self._stetig_schruppen_von_hand = True
+        self._vorschau_starten()
+
+    def nur_noetig(self):
+        """Beim Schruppen mit der Querachse Folgelagen nur, wo nötig (angehakt und möglich)?"""
+        return self.schruppen_noetig.isEnabled() and self.schruppen_noetig.isChecked()
+
+    def _noetig_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._noetig_von_hand = True
         self._vorschau_starten()
 
     def _querachse_umgeschaltet(self):
@@ -3595,6 +3618,7 @@ class VierachsPanel:
             "nur_gleichlauf": self.schruppen_nur_gleichlauf.isChecked(),
             "form": ff.von_werkzeug(werkzeug),
             "stetig": self.stetig_schruppen(),
+            "nur_noetig": self.nur_noetig(),
         }
 
     @staticmethod
@@ -4426,6 +4450,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                         querachse=self.querachse_schruppen(),
                         stetig=self.stetig_schruppen(),
+                        nur_noetig=self.nur_noetig(),
                     )
                     self._aufloesung_setzen(neu_schruppen)
                     angelegt.append(neu_schruppen)
@@ -4651,6 +4676,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                         querachse=self.querachse_schruppen(),
                         stetig=self.stetig_schruppen(),
+                        nur_noetig=self.nur_noetig(),
                     )
                     self._aufloesung_setzen(op)
                 if schlichten_dazu:

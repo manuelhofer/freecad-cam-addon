@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-57 folgelagen-nur-wo-noetig
+
+### EINGELESEN
+- Nachgerechnet am Nasen-Testteil (Voxel): Beim „Rundum schruppen“ mit der Querachse (Zustellung
+  22,2, drei Lagen) lief fast die Hälfte des Vorschubwegs durch Luft – die Lagen folgen der Fläche,
+  und wo die zweite sie schon erreicht hatte, fuhr die dritte sie noch einmal ab (ein Stück von
+  440 mm nahm 1,0 mm³, Voxel 0,2 mm). Kein Satz war frei markiert.
+- Im Freivorschub fahren ginge nur, wo sicher nichts steht – geprüft mit einem Modell, das nach
+  oben hält (abtragen mit dem kleineren, prüfen mit dem größeren Fräser): nur 0,22 m, denn die
+  Lage fährt tangential am Aufmaß. Darum die doppelten Lagen weglassen statt schneller fahren.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `Schruppwerte.nur_noetig`; `_schruppen_quer` – ab der zweiten Lage
+  nur bis hinter die letzte Stelle (Fräserradius und Steigung dahinter), an der die Lage davor von
+  ihrer Grenze über der Hüllfläche gehalten wurde; eine Lage, die nirgends nötig ist, entfällt; die
+  Zahl der Lagen zählt nur die gefahrenen.
+- `camaddon/vierachs_operation.py`: Eigenschaft „NurNoetig“ (auch in älteren an), durch `rechne`,
+  `bahn_fuer`, `lege_an`, `aendere`.
+- `camaddon/gui_vierachs.py`: Haken „Folgelagen nur, wo nötig“ unter „C dreht nicht zurück“ –
+  frei mit der Querachse, vorbelegt an (Manuel: Neues als Haken, angehakt).
+- `translations/de.json`, `translations/en.json` (`va.nur_noetig*`, `vo.eigenschaft.nur_noetig`),
+  `tests/test_vierachs_frei.py` (die Kugel nimmt danach bis 16 cm³), `tests/gui/szenario_vierachs_
+  schlichten.py` (der Haken, die Eigenschaft), `package.xml` (0.213.63),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil: Schruppen 15,3 → 11,1 min (10 564 → 7 854 Sätze); die Kugel nimmt danach 12,8 →
+  14,1 cm³ (+10 %, die Kämme der zweiten Lage), ihr schwerster Eingriff bleibt 4,0 mm²; nichts ins
+  Teil. `test_vierachs_frei.py`, `test_vierachs_bahn.py`, `test_sprache.py`,
+  `szenario_vierachs_schlichten` grün.
+
 ## P-2026-10-11-56 vorschau-saetze-einmal
 
 ### EINGELESEN

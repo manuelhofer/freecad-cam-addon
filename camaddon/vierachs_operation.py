@@ -97,11 +97,14 @@ class RundumSchruppen(PathOp.ObjectOp):
                 ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
                 ("App::PropertyBool", "Querachse", tr("vo.eigenschaft.querachse")),
                 ("App::PropertyBool", "Stetig", tr("vo.eigenschaft.stetig")),
+                ("App::PropertyBool", "NurNoetig", tr("vo.eigenschaft.nur_noetig")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
             ),
         )
         if "Stetig" in neu:
             obj.Stetig = True  # auch in älteren Operationen, wie beim Schlichten (P-2026-10-11-47)
+        if "NurNoetig" in neu:
+            obj.NurNoetig = True  # ebenso: Folgelagen nur, wo nötig (P-2026-10-11-57)
         return neu
 
     @staticmethod
@@ -225,6 +228,7 @@ def rechne(obj, job, modell, fraeser_radius):
         form=form_des_controllers(obj.ToolController),
         querachse=bool(getattr(obj, "Querachse", False)),
         stetig=bool(getattr(obj, "Stetig", True)),
+        nur_noetig=bool(getattr(obj, "NurNoetig", True)),
         schritt_a=au.wert(obj, vh.SCHRITT_A),
         schritt_phi=au.wert_rundum(obj, vh.SCHRITT_PHI),
     )
@@ -253,6 +257,7 @@ def bahn_fuer(
     schritt_a=vh.SCHRITT_A,
     schritt_phi=vh.SCHRITT_PHI,
     stetig=False,
+    nur_noetig=False,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -261,7 +266,8 @@ def bahn_fuer(
     rundum; `eintauchwinkel` (Grad) für die Rampe ins Material zwischen ihnen; `gleichlauf`:
     die Spirale im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `querachse`: die
     Spirale mit der Querachse (vierachs_bahn.Schruppwerte.querachse), `stetig`: C dreht dabei nie
-    zurück (Schruppwerte.stetig). ValueError mit einem Satz, wenn es nicht geht."""
+    zurück (Schruppwerte.stetig), `nur_noetig`: Folgelagen nur, wo die davor über der Hüllfläche
+    blieb (Schruppwerte.nur_noetig). ValueError mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -292,6 +298,7 @@ def bahn_fuer(
         r_tiefste=r_tiefste,
         querachse=querachse,
         stetig=stetig,
+        nur_noetig=nur_noetig,
     )
     netz = vh.vernetze(teil)
     # Dieselbe Schruppbahn rechnet „Rundum schlichten“ nach (für den Rest darüber) – gemerkt, nach
@@ -322,6 +329,7 @@ def bahn_fuer(
                 "r_tiefste",
                 "querachse",
                 "stetig",
+                "nur_noetig",
             )
         ),
         schritt_a,
@@ -402,6 +410,7 @@ def lege_an(
     nur_gleichlauf=False,
     querachse=False,
     stetig=True,
+    nur_noetig=True,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
@@ -439,6 +448,7 @@ def lege_an(
     obj.NurGleichlauf = bool(nur_gleichlauf)
     obj.Querachse = bool(querachse)
     obj.Stetig = bool(stetig)
+    obj.NurNoetig = bool(nur_noetig)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -487,6 +497,7 @@ def aendere(
     nur_gleichlauf=None,
     querachse=None,
     stetig=None,
+    nur_noetig=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
@@ -513,6 +524,8 @@ def aendere(
         obj.Querachse = bool(querachse)
     if stetig is not None and bool(stetig) != bool(getattr(obj, "Stetig", True)):
         obj.Stetig = bool(stetig)
+    if nur_noetig is not None and bool(nur_noetig) != bool(getattr(obj, "NurNoetig", True)):
+        obj.NurNoetig = bool(nur_noetig)
 
 
 def setze_achse(obj, achse, quer_auf_null=None):
