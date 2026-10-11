@@ -61,6 +61,7 @@ from functools import lru_cache
 import numpy as np
 
 from . import fraeserform as ff
+from . import uhren
 from . import vierachs_huelle as vh
 
 SCHRITT_A = 0.5  # mm – Raster längs der Achse
@@ -882,7 +883,7 @@ class Quader:
         """Wie fahre(), für viele Stücke auf einmal: `von` und `nach` je (n, 3). Blockweise
         wie Stange.fahre_stuecke – weg ist, was irgendein Teilschritt trifft."""
         for _ in self.fahre_stuecke_schritte(von, nach, fraeser, TEILSCHRITTE_JE_BLOCK):
-            pass
+            uhren.atmen()  # im Hauptprozess: das Fenster zeichnet neu
 
     def fahre_stuecke_schritte(self, von, nach, fraeser, je_block=TEILSCHRITTE_IM_TAKT):
         """fahre_stuecke() als Generator: nach je `je_block` Teilschritten ein `yield` – für

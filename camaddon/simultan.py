@@ -25,6 +25,7 @@ from dataclasses import dataclass
 import FreeCAD
 
 from . import schwenken as sw
+from . import uhren
 from .sprache import tr
 
 SCHRITT = 1e-4  # Grad – so weit dreht eine Rundachse für die Ableitung der Werkzeugachse
@@ -192,6 +193,7 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=F
     buchstaben = [a.buchstabe for a in maschine.rundachsen]
 
     def halbieren(von, nach, r_von, r_nach, tiefe):
+        uhren.atmen()  # im Hauptprozess: das Fenster zeichnet neu (P-2026-10-11-67)
         fehler = abweichung(maschine, von, nach, r_von, r_nach, bezug, tcpm)
         if fehler is None or fehler <= toleranz or tiefe >= TIEFE:
             neu_punkte.append(nach)

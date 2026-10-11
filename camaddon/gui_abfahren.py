@@ -25,6 +25,7 @@ from . import kollision as kb
 from . import maschine as m
 from . import reichweite as rw
 from . import restmaterial as rm
+from . import uhren
 from .abfahren import zeit_text
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, ROT
@@ -233,6 +234,9 @@ class Bild:
         """Ein Takt des Abtrags (höchstens ABTRAG_TAKT_MS); am Ende zeigen und `fertig`."""
         lauf = getattr(self, "_abtrag_lauf", None)
         if lauf is None:
+            return
+        if uhren.verschachtelt():  # mitten in einer anderen Rechnung: danach
+            QtCore.QTimer.singleShot(ABTRAG_TAKT_MS, self._abtrag_weiter)
             return
         schritte, index, fertig = lauf
         ende = time.perf_counter() + ABTRAG_TAKT_MS / 1000.0

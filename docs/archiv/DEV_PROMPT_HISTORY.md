@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-67 anlegen-ohne-einfrieren
+
+### EINGELESEN
+- Die Lag-Sonde (P-2026-10-11-66) zeigte „Anlegen“ im Assistenten „Bearbeitung“ bis 26 s am Stück
+  (testteil 7,8 s, flanke 7,0 s, formplatte 5,6 s): die Bahnen rechnen im Hauptprozess (FreeCADs
+  Neuberechnen), am meisten das Räumen – `raeumen_bahn.abstand_zu` (jede Rasterzelle gegen jede
+  Randzelle), der Adaptiv-Kern (C++), der Abtrag in Stücken (Freiwege, Materialstand).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `abstand_zu` nach Achsen getrennt (je Spalte der Abstand in x zur
+  nächsten Randzelle, dann je Zeile das Kleinste über die Spalten) – bitgleich, an einer Maske
+  300 × 260 mit 12 000 Randzellen 2,56 → 0,011 s. Die Rückmeldung des Adaptiv-Kerns ruft
+  `uhren.atmen()`.
+- `camaddon/uhren.py`: `atmen()` – höchstens alle 0,1 s die Ereignisse ohne Maus und Tastatur (das
+  Fenster zeichnet neu, nimmt keinen Klick an), nur innerhalb von `atmend()`.
+- `camaddon/gui_bearbeitung.py`: „Anlegen“ in `uhren.atmend()`, zwischen den Operationen `atmen()`.
+- `camaddon/restmaterial.py` (`fahre_stuecke`), `camaddon/simultan.py` (`halbieren`): `atmen()`.
+- `camaddon/gui_abfahren.py`: der Takt des Abtrags im Abspieler wartet, wenn er mitten in eine
+  andere Rechnung fiele (`uhren.verschachtelt()`).
+- `package.xml` (0.213.72), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Längste Pause bei „Anlegen“: testteil 7,8 → 1,7 s, flanke 7,0 → 2,0 s, formplatte 5,6 → 1,9 s,
+  deckel 4,7 → unter 1,3 s, schlichten3d 4,4 → 3,9 s (dort jetzt der Materialstand des Räumens,
+  `ungeschnitten`).
+
+### AKZEPTANZKRITERIUM
+- `test_raeumen`, `test_restmaterial`, `test_testteil`, `test_materialstand`, `test_freiwege`,
+  `test_nut`, `test_nut_offen`, `test_kontur`, `test_schruppen3d`, `test_schlichten3d`,
+  `szenario_testteil`, `szenario_deckel`, `szenario_formplatte`, `szenario_schlichten3d`,
+  `szenario_flanke`, `szenario_raeumen` grün.
+
 ## P-2026-10-11-66 lag-sonde-und-speicher
 
 ### EINGELESEN

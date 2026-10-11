@@ -13,7 +13,47 @@ Ereignisschleife – dann liegt unter ihm noch ein Python-Rahmen. Die Uhr läuft
 der Slot kommt, wenn die Rechnung darunter fertig ist.
 """
 
+import contextlib
 import sys
+import time
+
+# atmen(): höchstens so oft (s) arbeitet eine lange Rechnung im Hauptprozess die Ereignisse ab.
+ATMEN_ALLE = 0.1
+_GEATMET = [0.0]
+_ATMEND = [0]  # wie tief in atmend()
+
+
+@contextlib.contextmanager
+def atmend():
+    """Darin arbeitet atmen() Ereignisse ab – nur wo der Aufrufer weiß, dass dazwischen nichts
+    dieselben Daten anfasst (das Anlegen im Assistenten „Bearbeitung“). Sonst nicht: Im Abspieler
+    liefe sein eigener Takt mitten in den Abtrag hinein."""
+    _ATMEND[0] += 1
+    try:
+        yield
+    finally:
+        _ATMEND[0] -= 1
+
+
+def atmen():
+    """Für lange Rechnungen im Hauptprozess (die Bahn einer Operation beim Anlegen, das
+    5-Achs-Programm): höchstens alle ATMEN_ALLE s arbeitet Qt seine Ereignisse ab – ohne Maus und
+    Tastatur, wie beim Warten auf die Nebenrechner (nebenrechner.ereignisse_ohne_eingaben): Das
+    Fenster zeichnet sich neu, nimmt aber keinen Klick an. Die Uhren des Addons laufen dabei nicht
+    (aus_der_schleife). Nur in atmend(); ohne Oberfläche (Nebenrechner, Prüfdateien) nichts
+    (P-2026-10-11-67)."""
+    if not _ATMEND[0]:
+        return
+    jetzt = time.monotonic()
+    if jetzt - _GEATMET[0] < ATMEN_ALLE:
+        return
+    _GEATMET[0] = jetzt
+    try:
+        from PySide import QtCore, QtGui
+    except ImportError:
+        return
+    if isinstance(QtGui.QApplication.instance(), QtGui.QApplication):
+        QtGui.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
 
 
 def verschachtelt(tiefe=2):

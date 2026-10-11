@@ -71,6 +71,7 @@ from . import bahn as bn
 from . import hoehenfeld as hf
 from . import kontur_bahn as kb
 from . import nut_bahn as nb
+from . import uhren
 from . import vierachs_bahn as vb
 from . import vierachs_planbahn as vp
 from .sprache import tr
@@ -488,23 +489,29 @@ class _Feld:
         innen[:, 1:] &= gesperrt[:, :-1]
         innen[:, :-1] &= gesperrt[:, 1:]
         rand = gesperrt & ~innen
-        ri, rj = np.nonzero(rand)
-        if not len(ri):
+        if not rand.any():
             # Ohne Rand ist alles gesperrt (sonst grenzte eine gesperrte Zelle an eine freie): jede
             # Zelle ist ihr eigener nächster Punkt, der Abstand überall 0 – gemessen hatte es das
             # am 3-Achs-Testteil mit 38 009 × 38 009 Abständen, dreimal 4,3 s (P-2026-10-11-02).
             return np.full((self.nx, self.ny), -0.0 - self.schritt)
-        rx = self.xs[ri]
-        ry = self.ys[rj]
-        gx, gy = np.meshgrid(self.xs, self.ys, indexing="ij")
-        px, py = gx.ravel(), gy.ravel()
-        abstand = np.empty(len(px))
-        block = max(1, 2_000_000 // max(len(rx), 1))
-        for a in range(0, len(px), block):
-            dx = px[a : a + block, None] - rx[None, :]
-            dy = py[a : a + block, None] - ry[None, :]
-            abstand[a : a + block] = np.sqrt((dx * dx + dy * dy).min(axis=1))
-        abstand = abstand.reshape(self.nx, self.ny)
+        # Derselbe kleinste Abstand zu einer Randzelle, nach Achsen getrennt: je Spalte der Abstand
+        # in x zur nächsten Randzelle darin, dann je Zeile das Kleinste über die Spalten von
+        # dy² + dx² – O(nx · ny²) statt jede Zelle gegen jede Randzelle; bitgleich. An den
+        # Testteilen stand „Anlegen“ hier bis 7 s (formplatte, flanke; P-2026-10-11-67).
+        nx, ny = self.nx, self.ny
+        xs, ys = np.asarray(self.xs, dtype=float), np.asarray(self.ys, dtype=float)
+        nummer = np.broadcast_to(np.arange(nx)[:, None], (nx, ny))
+        unten = np.maximum.accumulate(np.where(rand, nummer, -1), axis=0)
+        oben = np.minimum.accumulate(np.where(rand, nummer, nx)[::-1], axis=0)[::-1]
+        dx = np.where(unten >= 0, xs[:, None] - xs[np.clip(unten, 0, nx - 1)], np.inf)
+        dx = np.minimum(dx, np.where(oben < nx, xs[np.clip(oben, 0, nx - 1)] - xs[:, None], np.inf))
+        dx2 = dx * dx
+        dy2 = (ys[:, None] - ys[None, :]) ** 2
+        abstand = np.empty((nx, ny))
+        block = max(1, 2_000_000 // max(ny * ny, 1))
+        for a in range(0, nx, block):
+            abstand[a : a + block] = (dx2[a : a + block, None, :] + dy2[None, :, :]).min(axis=2)
+        abstand = np.sqrt(abstand)
         return np.where(gesperrt, -abstand - self.schritt, abstand)
 
 
@@ -2348,6 +2355,7 @@ def _adaptiv_rechnen(kern, material, grenzen):
     pybind11 TypeError, bevor er rechnet – dann die andere."""
 
     def weiter(_wege):
+        uhren.atmen()  # die Rückmeldung des Kerns: das Fenster zeichnet neu (P-2026-10-11-67)
         return False  # nie abbrechen
 
     try:
