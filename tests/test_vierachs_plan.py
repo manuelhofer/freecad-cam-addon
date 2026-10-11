@@ -824,6 +824,39 @@ if schraeg:
     )
     print(ascii(f"Schraeg 10 Grad: {sb.lagen} Lagen, {sb.zeilen} Zeilen, fein {fein:.2f} mm"))
 
+# --- Zur Achse hin (Manuel, 2026-10-11, Frage 10): ein Klotz neben der Achse (x 5 … 12) wie die
+# Nase seines Testteils; seine Seite x = 5 schaut zur Achse. Ohne `zur_achse` zählt sie nicht,
+# mit ihr steht die Spitze 5 unter der Mitte (φ 180°, Tiefe −5) – nie tiefer.
+nase = Part.makeBox(7, 10, 20, V(5, -5, -30))
+nase_namen = [f"Face{i + 1}" for i in range(len(nase.Faces))]
+innen = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(nase.Faces)
+    if (vr.aussennormale(f) - V(-1, 0, 0)).Length < 1e-6
+)
+pruefe(
+    innen not in [e.name for e in vp.ebenen(nase, LAENGS, RADIAL, nase_namen)],
+    "zur Achse hin ohne zur_achse angenommen",
+)
+zur_achse = vp.ebenen(nase, LAENGS, RADIAL, [innen], zur_achse=True)
+pruefe(len(zur_achse) == 1, f"zur Achse hin: {zur_achse}")
+if zur_achse:
+    z = zur_achse[0]
+    pruefe(abs(abs(z.phi) - 180.0) < 1e-6 and abs(z.tiefe + 5.0) < 1e-6, f"innen: {z}")
+    nb = vp.planen(
+        vp.netz_ohne(nase, [innen]),
+        LAENGS,
+        RADIAL,
+        dataclasses.replace(werte, stange_radius=15.0, a_futter=-60.0),
+        zur_achse,
+    )
+    im_vorschub = [p for p in nb.punkte if not p.eilgang]
+    pruefe(
+        nb.flaechen == 1 and abs(nb.r_min + 5.0) < 1e-9,
+        f"innen: {nb.flaechen} Flächen, tiefste Spitze {nb.r_min}",
+    )
+    pruefe(min(p.r for p in im_vorschub) >= -5.0 - 1e-9, "innen: Spitze tiefer als die Fläche")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

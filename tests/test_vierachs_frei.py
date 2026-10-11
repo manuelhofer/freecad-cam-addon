@@ -193,8 +193,7 @@ pruefe(l_frei < 0.01 * l_alle, f"Ø 45: Schlichten {l_frei:.0f} mm frei – der 
 # Schruppen, dann das Schlichten mit und ohne Querachse. Kein freier Satz nimmt etwas weg. Bis
 # dahin hielt das Schlichten Ecken vorne an der Platte für leer, die das Schruppen stehen ließ
 # (das Restmodell, ein Radius je Strahl, sieht sie nicht): bei 1 mm Voxeln 102 Sätze.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from voxelstange import Voxelstange  # noqa: E402
+from camaddon.voxelstange import Voxelstange  # noqa: E402
 
 nase = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", "testteil_4achs_nase.FCStd"))
 job = nase.getObject("Job")

@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-42 plan-zur-achse-und-voxel-verteilt
+
+### EINGELESEN
+- Frage 10 (Manuel, 2026-10-11): die flache Seite der Nase zur Mitte (Face8) mit dem
+  Schaftfräser – „auch wenn das unter 0 ist solange es nicht weiter unter 0 ist als die maschine
+  fahren kann“. „Plan indexiert“ nahm eine ebene Fläche, die zur Achse schaut, bis dahin nicht an.
+- Manuel, 2026-10-11 (Bild von top: ein freecadcmd mit 100 %): „warum rechnet da nur ein kern ??“
+  – die Nachrechnung im Voxelmodell (tests/voxelstange.py) lief in einem Prozess, an 0,5 mm Voxeln
+  über eine Viertelstunde.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `ebenen(..., zur_achse=False)` – mit `zur_achse` auch eine
+  Ebene, die zur Achse schaut (Spitze unter der Mitte, Ebene.tiefe < 0); Vorgabe unverändert.
+- `camaddon/vierachs_plan.py`: `bahn_fuer(..., zur_achse=False)` reicht es durch.
+- `camaddon/voxelstange.py` (aus `tests/` hierher, damit ein Nebenrechner es laden kann):
+  `fahre()` teilt die Sätze nach ihrer Arbeit in Stücke für die Nebenrechner (die Stange
+  gemeinsam, einmal je Arbeiter); die Stange danach wie der Reihe nach, die Zahlen je Satz in
+  einem zweiten verteilten Durchgang (`je_satz`); ohne Nebenrechner wie bisher selbst. Ein Versuch
+  mit `fork` aus freecadcmd heraus hing (24 Kinder warteten auf Aufträge, die nie kamen).
+- `tests/test_vierachs_plan.py` (ein Klotz neben der Achse: seine Innenseite nur mit `zur_achse`,
+  Spitze nie tiefer als −5), `tests/test_vierachs_frei.py` (Import), `package.xml` (0.213.48),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil, Face8 mit T1 (Ø 7,2) im Voxelmodell (0,5 mm, Fräser 0,05 kleiner): 81 314 Voxel
+  weg, keiner im fertigen Teil.
+- `test_vierachs_frei.py` 20 s statt 32 s; verteilt und der Reihe nach dieselbe Stange und dieselben
+  Zahlen je Satz.
+
 ## P-2026-10-11-41 pruefen-im-takt
 
 ### EINGELESEN

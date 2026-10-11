@@ -122,12 +122,17 @@ class Ebene:
         return float(max(self.hoehe(self.a_von), self.hoehe(self.a_bis)))
 
 
-def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
+def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_achse=False):
     """[Ebene] – die Flächen `namen` („Face3“ …) von `form` (Part.Shape), die eben sind und
     deren Außennormale quer zur Stangenachse von der Achse weg zeigt – auch längs geneigt bis
     SCHRAEG_HOECHSTENS (Ebene.steigung). Andere zählen nicht: Zylinder, eine Stirn oder ein
-    Absatz quer zur Achse, eine Ebene, die zur Achse schaut. Die Ausdehnung längs und quer kommt
-    aus der Vernetzung der Fläche (`toleranz`)."""
+    Absatz quer zur Achse – und ohne `zur_achse` eine Ebene, die zur Achse schaut. Mit
+    `zur_achse` auch sie (Manuel, 2026-10-11, Frage 10: die flache Seite der Nase zur Mitte –
+    „auch wenn das unter 0 ist solange es nicht weiter unter 0 ist als die maschine fahren
+    kann“): Die Spitze steht dann unter der Mitte (Ebene.tiefe < 0); was im Weg liegt, hält die
+    Zeile an wie sonst auch (die Hüllfläche ohne die Fläche), ob X so weit fährt, sagt „Auf der
+    Maschine prüfen“. Die Ausdehnung längs und quer kommt aus der Vernetzung der Fläche
+    (`toleranz`)."""
     from . import vierachs_flaechen as vf
     from . import vierachs_rohteil as vr
 
@@ -166,7 +171,7 @@ def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
             float((p @ np.cross(l_, n_quer)).max()),
             -laengs_anteil / quer_anteil,
         )
-        if ebene.hoechste <= GERADE:
+        if ebene.hoechste <= GERADE and not zur_achse:
             continue  # schaut zur Achse hin: von außen nicht zu fräsen
         ergebnis.append(ebene)
     return ergebnis
