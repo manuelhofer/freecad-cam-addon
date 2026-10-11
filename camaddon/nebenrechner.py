@@ -78,6 +78,17 @@ GEMEINSAM_JE_ARBEITER = 16  # so viele gemeinsame Daten behält ein Arbeiter, di
 GEMEINSAM_IM_POOL = 64
 EINSTELLUNGEN_DATEI = "einstellungen.FCParam"  # die Einstellungen des Addons für die Arbeiter
 HALLO = "hallo"  # die erste Meldung eines Arbeiters: (HALLO, Nummer, PID)
+# Speicher (P-2026-10-11-100): Jeder Arbeiter, der eine Dokumentkopie öffnet und darauf rechnet,
+# braucht ein Vielfaches ihrer Größe – am Geist aus einem STL (68.242 Flächen) 105 MB Kopie, 1,6 GB
+# im Arbeiter (0,4 GB das Dokument, 1 GB das Vernetzen). 24 Arbeiter überschritten so die 16 GB
+# des Szenarios, und der Kernel beendete den Lauf. Neue Arbeiter öffnen eine Kopie deshalb nur,
+# solange der Speicher reicht; die, die sie schon offen haben, rechnen weiter.
+DOKUMENTE_OFFEN = 3  # so viele Kopien hält ein Arbeiter offen (nebenrechner_arbeiter)
+DOKUMENT_FAKTOR = 15  # so viel Speicher je Byte der (unkomprimierten) Kopie im Arbeiter
+DOKUMENT_KLEIN = 64 * 2**20  # Bytes: weniger braucht eine Kopie – sie zählt nicht
+RESERVE_ANTEIL = 0.15  # so viel des Arbeitsspeichers bleibt für alles andere frei
+RESERVE_MINDESTENS = 1.5 * 2**30  # Bytes – mindestens
+UNTERWEGS_S = 20.0  # s: so lange zählt eine eben verschickte Kopie, bis der Speicher sie zeigt
 
 
 class Fehler(Exception):
@@ -216,6 +227,7 @@ class _Arbeiter:
             []
         )  # Meldungen an ihn, bis er wieder liest (die Ergebnisse seiner Unteraufträge)
         self.gemeinsam = OrderedDict()  # Schlüssel der gemeinsamen Daten, die er hat, nach Alter
+        self.dokumente = []  # Pfade der Kopien, die er offen hat, zuletzt benutzt am Ende
         self.gestartet = time.monotonic()
         self.zuletzt = self.gestartet  # wann er zuletzt einen Auftrag bekam oder abgab
 
@@ -334,6 +346,8 @@ class Nebenrechner:
         self._aufraeumuhr = None
         self._melder = {}  # Arbeiter -> QSocketNotifier (_melder_abgleichen)
         self._laden = []  # Module, die jeder Arbeiter gleich nach dem Start lädt (vorwaermen)
+        self._unterwegs = []  # (Zeit, Pfad, Bytes): Kopien, die ein Arbeiter gerade öffnet
+        self.speicher = speicher_frei  # () -> Bytes frei oder None (unbekannt); für Prüfungen
         self.in_arbeit = 0  # so viele Aufträge liefen bisher in Arbeitern (für Prüfungen)
 
     # --- Nach außen ------------------------------------------------------------------
@@ -682,13 +696,17 @@ class Nebenrechner:
                 if gruppe is not None:
                     laufend[gruppe] = laufend.get(gruppe, 0) + 1
         wartende = [a for a in self._arbeiter if a.stapel and a.wartet]
-        freie = [a for a in self._arbeiter if not a.stapel]
+        # Wer schon Kopien offen hat, zuerst: Er braucht für sie keinen Speicher mehr.
+        freie = sorted((a for a in self._arbeiter if not a.stapel), key=lambda a: -len(a.dokumente))
+        frei = [self._speicher_fuer_kopien()] if self._warteschlange else [None]
         for arbeiter in wartende + freie:
             if not self._warteschlange:
                 break
             if arbeiter.verbindung is None:
                 continue
-            auftrag = self._naechster(laufend, arbeiter.stapel[-1] if arbeiter.stapel else None)
+            auftrag = self._naechster(
+                laufend, arbeiter.stapel[-1] if arbeiter.stapel else None, arbeiter, frei
+            )
             if auftrag is not None:
                 self._senden(arbeiter, auftrag)
         startend = sum(1 for a in self._arbeiter if a.verbindung is None)
@@ -698,20 +716,72 @@ class Nebenrechner:
                 break
             self._starten()
 
-    def _naechster(self, laufend, von=None):
+    def _naechster(self, laufend, von=None, arbeiter=None, frei=None):
         """Der erste wartende Auftrag, dessen Gruppe noch einen frei hat – aus der Warteschlange
         genommen und in `laufend` gezählt; None, wenn keiner darf. Mit `von` nur einer, der
-        darunter bestellt wurde (_stammt_von)."""
+        darunter bestellt wurde (_stammt_von). Mit `arbeiter` und `frei` ([Bytes] oder [None]):
+        nur einer, dessen Kopien der Arbeiter offen hat oder für die der Speicher reicht (`frei`
+        sinkt dann um ihren Bedarf) – oder die noch keiner offen hat (sonst rechnete keiner)."""
         for k, auftrag in enumerate(self._warteschlange):
             if von is not None and not _stammt_von(auftrag, von):
                 continue
             gruppe = auftrag.gruppe
-            if gruppe is None or auftrag.gleichzeitig is None:
-                return self._warteschlange.pop(k)
-            if laufend.get(gruppe, 0) < auftrag.gleichzeitig:
+            frei_in_gruppe = (
+                gruppe is None
+                or auftrag.gleichzeitig is None
+                or laufend.get(gruppe, 0) < auftrag.gleichzeitig
+            )
+            if not frei_in_gruppe:
+                continue
+            bedarf = self._bedarf(auftrag, arbeiter) if arbeiter is not None else 0
+            if bedarf and frei and frei[0] is not None:
+                if bedarf > frei[0] and self._schon_offen(auftrag):
+                    continue  # wartet auf einen Arbeiter, der die Kopie offen hat
+                frei[0] -= bedarf
+            if gruppe is not None and auftrag.gleichzeitig is not None:
                 laufend[gruppe] = laufend.get(gruppe, 0) + 1
-                return self._warteschlange.pop(k)
+            return self._warteschlange.pop(k)
         return None
+
+    def _bedarf(self, auftrag, arbeiter):
+        """Bytes, die `arbeiter` für die Kopien des Auftrags noch braucht (die er nicht offen
+        hat)."""
+        return sum(
+            kopie_bedarf(pfad)
+            for pfad in _dokument_pfade((auftrag.args, auftrag.kwargs))
+            if pfad not in arbeiter.dokumente
+        )
+
+    def _schon_offen(self, auftrag):
+        """Hat ein Arbeiter jede Kopie des Auftrags offen (oder öffnet sie gerade)?"""
+        jetzt = time.monotonic()
+        offen = {p for a in self._arbeiter for p in a.dokumente}
+        offen |= {p for t, p, _b in self._unterwegs if jetzt - t < UNTERWEGS_S}
+        return _dokument_pfade((auftrag.args, auftrag.kwargs)) <= offen
+
+    def _speicher_fuer_kopien(self):
+        """Bytes, die Arbeiter jetzt noch für Kopien brauchen dürfen – None: unbekannt, keine
+        Grenze. Was gerade verschickt ist, zeigt der Speicher noch nicht: abgezogen."""
+        frei = self.speicher()
+        jetzt = time.monotonic()
+        self._unterwegs = [e for e in self._unterwegs if jetzt - e[0] < UNTERWEGS_S]
+        if frei is None:
+            return None
+        return frei - sum(b for _t, _p, b in self._unterwegs)
+
+    def _kopien_merken(self, arbeiter, auftrag):
+        """Merkt die Kopien, die `arbeiter` für den Auftrag öffnet – wie er: höchstens
+        DOKUMENTE_OFFEN, die älteste geht zu."""
+        jetzt = time.monotonic()
+        for pfad in _dokument_pfade((auftrag.args, auftrag.kwargs)):
+            if pfad in arbeiter.dokumente:
+                arbeiter.dokumente.remove(pfad)
+            else:
+                bedarf = kopie_bedarf(pfad)
+                if bedarf:
+                    self._unterwegs.append((jetzt, pfad, bedarf))
+            arbeiter.dokumente.append(pfad)
+        del arbeiter.dokumente[:-DOKUMENTE_OFFEN]
 
     def _ausfuehrbar(self, laufend):
         """So viele wartende Aufträge dürften jetzt sofort rechnen (ihre Gruppe hat Platz)."""
@@ -779,6 +849,7 @@ class Nebenrechner:
         arbeiter.stapel.append(auftrag)
         arbeiter.wartet = False
         arbeiter.zuletzt = time.monotonic()
+        self._kopien_merken(arbeiter, auftrag)
         auftrag.arbeiter = arbeiter
         self._laufend[auftrag.nummer] = auftrag
         self.in_arbeit += 1
@@ -1333,6 +1404,69 @@ def _gemeinsame_schluessel(wert, tiefe=0):
     return gefunden
 
 
+def _dokument_pfade(wert, tiefe=0):
+    """Die Pfade aller Dokument-Platzhalter in `wert` – so tief, wie der Arbeiter sucht."""
+    if isinstance(wert, Dokument):
+        return {wert.pfad}
+    if tiefe >= 3 or ist_datenfolge(wert):
+        return set()
+    gefunden = set()
+    if isinstance(wert, dict):
+        for v in wert.values():
+            gefunden |= _dokument_pfade(v, tiefe + 1)
+    elif isinstance(wert, (list, tuple)):
+        for v in wert:
+            gefunden |= _dokument_pfade(v, tiefe + 1)
+    return gefunden
+
+
+def kopie_bedarf(pfad):
+    """Bytes, die ein Arbeiter für die Kopie `pfad` braucht (DOKUMENT_FAKTOR) – 0 für eine kleine
+    (DOKUMENT_KLEIN) oder eine, die es nicht mehr gibt."""
+    try:
+        bedarf = os.path.getsize(pfad) * DOKUMENT_FAKTOR
+    except OSError:
+        return 0
+    return bedarf if bedarf >= DOKUMENT_KLEIN else 0
+
+
+def speicher_frei():
+    """Bytes, die Arbeiter noch belegen dürfen: was das System frei hat (MemAvailable) – in einer
+    Speichergrenze (cgroup v2, etwa systemd-run -p MemoryMax) höchstens, was darin frei ist –,
+    weniger die Reserve (RESERVE_ANTEIL, RESERVE_MINDESTENS). None, wo sich das nicht lesen lässt
+    (nicht Linux): dann keine Grenze, wie bisher."""
+    try:
+        werte = {}
+        with open("/proc/meminfo", encoding="ascii") as datei:
+            for zeile in datei:
+                name, _doppelpunkt, rest = zeile.partition(":")
+                werte[name] = int(rest.split()[0]) * 1024
+        gesamt, frei = werte["MemTotal"], werte["MemAvailable"]
+    except (OSError, KeyError, ValueError, IndexError):
+        return None
+    grenze = _cgroup_frei()
+    if grenze is not None:
+        gesamt, frei = min(gesamt, grenze[0]), min(frei, grenze[1])
+    return frei - max(RESERVE_MINDESTENS, RESERVE_ANTEIL * gesamt)
+
+
+def _cgroup_frei():
+    """(Grenze, frei) in Bytes der Speichergrenze dieses Prozesses (cgroup v2) – None ohne."""
+    try:
+        with open("/proc/self/cgroup", encoding="ascii") as datei:
+            pfad = next(z.split(":", 2)[2].strip() for z in datei if z.startswith("0::"))
+        ordner = os.path.join("/sys/fs/cgroup", pfad.lstrip("/"))
+        with open(os.path.join(ordner, "memory.max"), encoding="ascii") as datei:
+            grenze = datei.read().strip()
+        if grenze == "max":
+            return None
+        with open(os.path.join(ordner, "memory.current"), encoding="ascii") as datei:
+            belegt = int(datei.read().strip())
+        return int(grenze), int(grenze) - belegt
+    except (OSError, StopIteration, ValueError, IndexError):
+        return None
+
+
 def form_gemeinsam(pool, shape):
     """Eine Form (Part.Shape) als gemeinsame Daten – einmal je Arbeiter, nach dem Fingerabdruck
     ihres BREP-Texts; die Arbeiter bekommen daraus wieder eine Form. Gibt den Platzhalter
@@ -1385,13 +1519,19 @@ def stuecke(anzahl, pool_groesse, je_arbeiter=4, mindestens=1):
 # Die Kopie für die Arbeiter: ohne Vorschaubild (FreeCAD rendert es aus der 3D-Ansicht) und kaum
 # gepackt – am Nasen-Testteil stand das Fenster für die Kopie 0,58 s (P-2026-10-11-55).
 _DOKUMENT_EINSTELLUNGEN = "User parameter:BaseApp/Preferences/Document"
-_KOPIE_EINSTELLUNGEN = (("SaveThumbnail", "Bool", False), ("CompressionLevel", "Int", 0))
+# Formen binär (SaveBinaryBrep, P-2026-10-11-100): am Geist aus einem STL 0,58 statt 1,26 s Speichern
+# (das Fenster steht so lange), die halbe Größe, die Arbeiter öffnen sie in 0,38 statt 0,71 s.
+_KOPIE_EINSTELLUNGEN = (
+    ("SaveThumbnail", "Bool", False),
+    ("CompressionLevel", "Int", 0),
+    ("SaveBinaryBrep", "Bool", True),
+)
 
 
 @contextlib.contextmanager
 def _schnell_speichern():
-    """Für die Dauer des Speicherns einer Kopie: kein Vorschaubild, Kompression 0 – danach die
-    Einstellungen genau wie vorher (auch, ob es sie gab)."""
+    """Für die Dauer des Speicherns einer Kopie: kein Vorschaubild, Kompression 0, Formen binär –
+    danach die Einstellungen genau wie vorher (auch, ob es sie gab)."""
     gruppe = FreeCAD.ParamGet(_DOKUMENT_EINSTELLUNGEN)
     vorher = []
     for name, art, wert in _KOPIE_EINSTELLUNGEN:
@@ -1438,8 +1578,9 @@ def _probe_form(form):
     return form.Volume
 
 
-def _probe_dokument(dokument, name):
-    """Das Volumen des Objekts `name` im (vom Arbeiter geöffneten) Dokument."""
+def _probe_dokument(dokument, name, dauer=0.0):
+    """Das Volumen des Objekts `name` im (vom Arbeiter geöffneten) Dokument – nach `dauer` s."""
+    time.sleep(dauer)
     return dokument.getObject(name).Shape.Volume
 
 

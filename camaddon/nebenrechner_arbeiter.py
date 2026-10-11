@@ -24,7 +24,7 @@ import time
 import traceback
 
 MELDEN_ALLE = 0.2  # s: so oft höchstens meldet eine Funktion ihren Fortschritt
-DOKUMENTE_OFFEN = 3  # so viele Dokumentkopien bleiben offen, die älteste geht zu
+DOKUMENTE_OFFEN = 3  # so viele Dokumentkopien bleiben offen, die älteste geht zu (wie im Pool)
 
 
 def _verbinden(start):

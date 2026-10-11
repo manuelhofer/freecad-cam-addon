@@ -77,16 +77,16 @@ def koerper(werkzeug, bibliothek):
     ]
 
 
-def stueck(form, schluessel, spitzen, achsen, teile):
+def stueck(ecken, schluessel, spitzen, achsen, teile):
     """Auch im Nebenrechner: (Indizes der Stellen, die anstoßen, so viel weiter heraus wäre es
-    dort frei) – flanke_bahn.noetig_weiter am Teil `form`. Sein Netz bleibt für die nächsten
-    Stücke gemerkt (`schluessel`)."""
+    dort frei) – flanke_bahn.noetig_weiter am Teil, dessen Dreiecke `ecken` sind
+    (netzabstand.dreiecke). Sein Netz bleibt für die nächsten Stücke gemerkt (`schluessel`)."""
     from . import netzabstand as na
 
     netz = _NETZE.get(schluessel)
     if netz is None:
         _NETZE.clear()
-        netz = _NETZE[schluessel] = na.Netz(form, fb.HALTER_NETZ)
+        netz = _NETZE[schluessel] = na.Netz(None, fb.HALTER_NETZ, ecken=ecken)
     return fb.noetig_weiter(
         netz, np.asarray(spitzen, dtype=float), np.asarray(achsen, dtype=float), teile
     )
@@ -99,15 +99,20 @@ def _verteilt(form, spitzen, achsen, teile):
         from . import nebenrechner as nr
     except ImportError:
         return None
+    from . import netzabstand as na
+
     if len(spitzen) < VERTEILT_AB:
         return None
     try:
         pool = nr.pool()
         if not pool.verfuegbar() or pool.anzahl < 2:
             return None
-        brep = form.exportBrepToString()
-        schluessel = "vh-teil-" + hashlib.sha1(brep.encode()).hexdigest()
-        teil = pool.gemeinsam(schluessel, nr.Form(brep))
+        # Einmal hier vernetzt, die Dreiecke an alle (P-2026-10-11-100): Bis dahin bekam jeder
+        # Nebenrechner die Form und vernetzte sie selbst – am Geist aus einem STL (68.242 Flächen)
+        # je 1,5 GB, 24-mal.
+        ecken = na.dreiecke(form, fb.HALTER_NETZ)
+        schluessel = "vh-teil-" + hashlib.sha1(np.ascontiguousarray(ecken).tobytes()).hexdigest()
+        teil = pool.gemeinsam(schluessel, ecken)
         bereiche = nr.stuecke(
             len(spitzen), pool.anzahl, je_arbeiter=3, mindestens=STELLEN_JE_STUECK
         )

@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-100 stl-im-vierachs-assistenten
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends: „sowas … auf der 4-Achs aus einem Rundstahl rausfräsen, soweit es eben
+  möglich ist … einfach dass STL-Dateien funktionieren würden – könnte man das bauen?“; dazu
+  „Standfläche zum Futter … X, Y oder Z zur Wahl – beides ja“, „die Bahn … wenn nicht das abbildet,
+  was ich sehe … ist doch Quatsch“, „Ja, bis 0,01 mm“, „Löcher schließen?“, „vielleicht kann man es
+  skalieren?“. Später: „bitte den Geist nehmen, den ich dir geschickt hab“ (Thingiverse
+  thing:6265018, CC0 – „darf ins Repo“), „wir brauchen mehr Optimierung für mehr Threads“.
+- Ein Szenario mit dem Geist (68.242 Dreiecke) ließ 24 Nebenrechner je 1,5–2 GB belegen; der Kernel
+  beendete den Lauf (16-GB-Grenze des Szenarios).
+
+### DATEIEN
+- `camaddon/stl_teil.py` (neu): `vorbereiten` (Maßstab um die Mitte der Unterseite, doppelte und
+  entartete Dreiecke weg, Normalen einheitlich nach außen – `_volumen` mit Vorzeichen –, Löcher zu,
+  ab 200.000 Dreiecken vereinfacht mit nachgemessen höchstens 0,01 mm – `_abstaende`, Ericson),
+  `koerper` (`makeShapeFromMesh` + `makeSolid`, ohne `isValid`: 4 s am Geist), `koerper_rechnen`
+  (für den Nebenrechner, über eine STL-Datei), `koerper_aus_netz` (Part::Feature „… (Körper)“, Verweis
+  aufs Netz, das vorbereitete Netz als versteckte Eigenschaft `CamAddonNetz`), `netz_fuer` (die
+  Dreiecke eines solchen Körpers oder seines Klons in der Lage der Form – erkannt an Flächenzahl
+  und Hüllquader, in allen offenen Dokumenten), `Bericht`.
+- `camaddon/gui_stl.py` (neu): Fenster „STL als Teil“ (Dreiecke, Maße, Maßstab, × 25,4, „Auf diese
+  Höhe“), `teil_aus_netz` – rechnet auf einem Nebenrechner, Fenster zeichnet weiter.
+- `camaddon/gui_vierachs.py`: ein gewähltes Netz → erst „STL als Teil“; Anleitung „Klick die
+  Standfläche an“; eine ebene Fläche eines STL-Körpers liegt am Futter (umgedreht), „Umdrehen“ auch
+  an ebenen Flächen; „Plan indexiert“ und „Rundum entgraten“ beim STL aus mit Grund (sie prüften
+  jedes Dreieck – 7 min im Fenster); der Klon ohne Dreieckskanten.
+- `camaddon/vierachs_rohteil.py`: `vermesse(…, umgedreht=True)` an einer ebenen Fläche (Normale
+  gegen die Stange, vorne das andere Ende); `_punkte` (beim STL aus dem Netz statt 68.242 Flächen
+  vernetzt); `einstellung` findet beim STL die Fläche über das Netz (`_ebenen_aus_netz`,
+  `findSubShapesWithSharedVertex`: 0,1 statt 17 s), sonst auch eine Fläche am Futter
+  (`_ebene_am_futter`).
+- `camaddon/vierachs_huelle.py` (`vernetze`), `netzabstand.py` (`dreiecke`, `Netz(ecken=…)`),
+  `vierachs_operation.py` (`waende` beim STL mit numpy): die Dreiecke des STL statt OpenCascade.
+- `camaddon/vierachs_halter.py`: die verteilte Halterprüfung schickt die Dreiecke (einmal
+  vernetzt) statt der Form – jeder Nebenrechner vernetzte sie sonst selbst.
+- `camaddon/nebenrechner.py`: speicherbewusst – eine Dokumentkopie öffnen neue Arbeiter nur, solange
+  der Speicher reicht (MemAvailable, in einer cgroup-Grenze deren Rest, weniger 15 % Reserve;
+  Bedarf 15 × Größe der Kopie), wer sie offen hat, rechnet weiter, und rechnet sonst keiner, dann
+  einer; Kopien mit binären Formen (`SaveBinaryBrep`: 0,58 statt 1,26 s, halbe Größe).
+- `camaddon/formteile.py` (`flaechen`: wenige einzeln, viele auf einmal), `vierachs_planbahn.py`
+  (drei Schleifen damit – `getElement`/`countElement` gehen je Aufruf alle Flächen durch).
+- `beispiele/geist_stl/` (Manuels Geist, CC0, mit Quelle), `beispiele/README.md`,
+  Hilfe `vierachs` (de, en: „Ein STL als Teil“), `translations/de.json`, `en.json` (`stl.*`, `va.anleitung.stl`, `va.art.am_futter`,
+  `va.plan.stl`, `va.entgraten.stl`), `docs/spezifikation_vierachs.md` (Abschnitt 16),
+  `docs/STATUS_SNAPSHOT.md` (W-017), `tests/test_stl_teil.py` (neu),
+  `tests/test_nebenrechner.py` (Speicher), `tests/gui/szenario_vierachs_stl.py` (neu).
+  `package.xml` (0.215.0).
+
+### ERGEBNIS
+- Der Geist: Körper in 5 s auf einem Nebenrechner (bis dahin 18 s im Fenster), Standfläche ans
+  Futter, Stange Ø 85 vorgeschlagen, Rundum schruppen 26 Lagen, Rundum schlichten 164 Umdrehungen
+  (etwa 38 min), beide angelegt mit Bahnen. Längste Pause im Fenster 3,0 s (Körper zeigen, Job
+  anlegen – OpenCascade/Coin mit 68.242 Flächen), vorher 17 s und 7 min. Nebenrechner zusammen
+  7,4 GB, der größte 0,88 GB (vorher bis 1,5–2 GB je Arbeiter, Lauf vom Kernel beendet).
+- Offen (Stufe 2): „Auf der Maschine prüfen“ gegen den Körper – die Kollision schickt ihn noch als
+  Form an jeden Nebenrechner.
+
+### AKZEPTANZKRITERIUM
+- `test_stl_teil`, `test_nebenrechner`, `test_netzabstand`, `test_vierachs_halter`,
+  `test_vierachs_rohteil`, `test_vierachs_operation`, `test_vierachs_plan`,
+  `test_vierachs_schlichten`, `test_sprache` in 1.1.4; `szenario_vierachs_stl` grün (12-GB-Grenze).
+
 ## P-2026-10-11-99 varianten-mit-der-maschine
 
 ### EINGELESEN

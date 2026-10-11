@@ -67,7 +67,15 @@ def vernetze(form, toleranz=TOLERANZ):
     sie gerechnet wurde, wenn es fein genug ist – etwa das feinere vom Vermessen.
     Dann hinge die Bahn davon ab, was vorher geschah, und sähe nach dem Laden
     anders aus (ausprobiert, P-2026-09-27-48).
+
+    Ein Körper aus einem STL (und sein Klon) bringt seine Dreiecke mit (stl_teil.netz_fuer):
+    genau die Form, für jede Toleranz – ohne OpenCascade (P-2026-10-11-100).
     """
+    from . import stl_teil
+
+    aus_stl = stl_teil.netz_fuer(form)
+    if aus_stl is not None:
+        return Netz(aus_stl[0], aus_stl[1], toleranz)
     punkte, dreiecke = form.copy().tessellate(toleranz)
     return Netz(
         np.array([(p.x, p.y, p.z) for p in punkte], dtype=float).reshape(-1, 3),

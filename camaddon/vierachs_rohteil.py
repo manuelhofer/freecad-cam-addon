@@ -14,7 +14,9 @@ dreht A um X, B um Y und C um Z.
 
 Eine runde Fläche (Zylinder, Kegel, Kugel, Torus – ein Drehteil, V2b) geht auch: Ihre Achse
 wird die Stangenachse, vorne liegt das Ende des Teils, an dem man geklickt hat (`nahe`), und
-„Umdrehen“ tauscht die Enden; die Mitte der Fläche ist ihre Achse.
+„Umdrehen“ tauscht die Enden; die Mitte der Fläche ist ihre Achse. Eine ebene Fläche „umgedreht“
+liegt am Futter und wird abgestochen – vorne ist das andere Ende (eine Figur auf ihrer
+Standfläche, etwa aus einem STL; P-2026-10-11-100).
 
 Teuer ist nur das Vermessen einer Fläche (Tessellierung, Hülle, kleinster
 Kreis); vermesse() macht es einmal, lage() rechnet daraus für jede Mitte,
@@ -267,11 +269,12 @@ def vermesse(form, flaeche, nahe=None, umgedreht=False):
             raise ValueError("Die Stirnfläche ist weder eben noch rund.")
         return _vermesse_rund(form, flaeche, rund, nahe, umgedreht)
     normale = aussennormale(flaeche)
+    if umgedreht:  # die Fläche liegt am Futter: Die Stange zeigt von ihr weg nach vorne
+        normale = normale * -1
     u, v = _quer(normale)
-    # Die Tessellierung enthält Ecken und Kanten – für den Umriss reicht das.
-    punkte, _dreiecke = form.tessellate(TESSELLIERUNG)
-    punkte = list(punkte) + [ecke.Point for ecke in form.Vertexes]
-    hoehe = flaeche.CenterOfMass.dot(normale)
+    punkte = _punkte(form)
+    # Umgedreht ist vorne das andere Ende des Teils, sonst die Fläche selbst.
+    hoehe = max(p.dot(normale) for p in punkte) if umgedreht else flaeche.CenterOfMass.dot(normale)
     laengs = [p.dot(normale) - hoehe for p in punkte]
     # Der weiteste Punkt von einer Mitte liegt immer auf der Hülle.
     huelle = konvexe_huelle([(p.dot(u), p.dot(v)) for p in punkte])
@@ -291,6 +294,19 @@ def vermesse(form, flaeche, nahe=None, umgedreht=False):
         vorne=max(laengs),
         hinten=min(laengs),
     )
+
+
+def _punkte(form):
+    """Punkte des Teils für Umriss und Länge: die Tessellierung mit Ecken und Kanten – für den
+    Umriss reicht das. Ein Körper aus einem STL hat sie schon (stl_teil.netz_fuer): genau, ohne
+    68.242 Flächen zu vernetzen (2,4 s beim Anklicken, P-2026-10-11-100)."""
+    from . import stl_teil
+
+    aus_stl = stl_teil.netz_fuer(form)
+    if aus_stl is not None:
+        return [FreeCAD.Vector(*q) for q in aus_stl[0]]
+    punkte, _dreiecke = form.tessellate(TESSELLIERUNG)
+    return list(punkte) + [ecke.Point for ecke in form.Vertexes]
 
 
 def _vermesse_rund(form, flaeche, rund, nahe, umgedreht):
@@ -500,11 +516,15 @@ def einstellung(job):
         return None
     laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
     platz = klon.Placement.multiply(teil.Placement.inverse())  # Welt → Job
-    flaeche, umgedreht = _stirnflaeche(form, platz, laengs), False
-    if flaeche is not None:
+    aus_netz = _ebenen_aus_netz(form, platz, laengs)
+    if aus_netz is not None:  # ein Körper aus einem STL: über sein Netz, nicht Fläche für Fläche
+        flaeche, umgedreht = aus_netz
+        vermessung = vermesse(form, form.getElement(flaeche), None, umgedreht)
+    elif (flaeche := _stirnflaeche(form, platz, laengs)) is not None:
+        umgedreht = False
         vermessung = vermesse(form, form.getElement(flaeche))
     else:  # ein Drehteil ohne ebene Stirnfläche vorne (V2b): die runde Fläche längs
-        gefunden = _runde_laengs(form, platz, laengs)
+        gefunden = _runde_laengs(form, platz, laengs) or _ebene_am_futter(form, platz, laengs)
         if gefunden is None:
             return None
         flaeche, vermessung, umgedreht = gefunden
@@ -549,6 +569,61 @@ def _stirnflaeche(form, platz, laengs):
             platz.multVec(flaeche.CenterOfMass).dot(laengs)
         ) < 1e-6 * max(1.0, form.BoundBox.DiagonalLength):
             return f"Face{nummer}"
+    return None
+
+
+def _ebenen_aus_netz(form, platz, laengs):
+    """(„FaceN“, umgedreht) für einen Körper aus einem STL – die ebene Fläche am Futter
+    (Außennormale gegen die Stange, am hinteren Ende), sonst die vorne (längs, bei a = 0) –,
+    gefunden in seinem Netz (stl_teil.netz_fuer) und nur ihr Name von OpenCascade: am Geist 0,1
+    statt 17 s Fläche für Fläche. None, wenn es kein solcher Körper ist oder keine passt."""
+    import numpy as np
+    import Part
+
+    from . import stl_teil
+
+    aus_stl = stl_teil.netz_fuer(form)
+    if aus_stl is None:
+        return None
+    punkte, dreiecke = aus_stl
+    matrix = np.array(platz.toMatrix().A, dtype=float).reshape(4, 4)
+    im_job = punkte @ matrix[:3, :3].T + matrix[:3, 3]
+    l_ = np.array(tuple(laengs), dtype=float)
+    a = im_job @ l_
+    p0, p1, p2 = (im_job[dreiecke[:, k]] for k in range(3))
+    normalen = np.cross(p1 - p0, p2 - p0)
+    laenge = np.linalg.norm(normalen, axis=1)
+    quer = np.where(laenge > 1e-12, (normalen @ l_) / np.maximum(laenge, 1e-300), 0.0)
+    mitte = (p0 + p1 + p2) @ l_ / 3.0
+    toleranz = max(1e-6 * max(1.0, form.BoundBox.DiagonalLength), TESSELLIERUNG)
+    for umgedreht, richtung, wo in ((True, -1.0, float(a.min())), (False, 1.0, 0.0)):
+        passend = np.flatnonzero((np.abs(quer - richtung) < 1e-6) & (np.abs(mitte - wo) < toleranz))
+        for k in passend[:3]:
+            ecken = [FreeCAD.Vector(*punkte[i]) for i in dreiecke[k]]
+            dreieck = Part.Face(Part.makePolygon([*ecken, ecken[0]]))
+            gefunden = form.findSubShapesWithSharedVertex(
+                dreieck, needName=True, checkGeometry=False
+            )
+            if gefunden:
+                return gefunden[0][0], umgedreht
+    return None
+
+
+def _ebene_am_futter(form, platz, laengs):
+    """(„FaceN“, Vermessung, True) der ebenen Fläche, die nach `platz` hinten am Futter liegt –
+    Außennormale gegen die Stange, am hinteren Ende des Teils („Umdrehen“ an einer ebenen
+    Fläche) –, oder None."""
+    punkte, _dreiecke = form.tessellate(TESSELLIERUNG)
+    hinten = min(platz.multVec(p).dot(laengs) for p in punkte)
+    toleranz = 1e-6 * max(1.0, form.BoundBox.DiagonalLength)
+    for nummer, flaeche in enumerate(form.Faces, start=1):
+        if not ist_eben(flaeche):
+            continue
+        normale = platz.Rotation.multVec(aussennormale(flaeche))
+        if (normale + laengs).Length < 1e-6 and abs(
+            platz.multVec(flaeche.CenterOfMass).dot(laengs) - hinten
+        ) < max(toleranz, TESSELLIERUNG):
+            return f"Face{nummer}", vermesse(form, flaeche, None, True), True
     return None
 
 

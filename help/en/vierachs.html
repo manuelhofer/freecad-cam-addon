@@ -55,6 +55,21 @@ preselected if the part fits the bar that way, otherwise the whole part.</li>
 0° of the rotary axis is.</li>
 </ul>
 
+<h3>An STL as the part</h3>
+<ul>
+<li>Click an imported STL (a <b>mesh</b>), then “4-axis machining”: first comes the window
+<b>STL as part</b> with triangles and dimensions. An STL has no unit, it is read in mm –
+<b>Scale</b>, “× 25.4 (inch)” or a <b>height</b> with “To this height” make it fit.</li>
+<li><b>Convert</b> turns it into a solid of exactly these triangles – what you see is machined.
+Duplicate and degenerate triangles are removed, holes are closed; from 200,000 triangles it is
+simplified, at most 0.01 mm deviation (measured). The mesh stays hidden in the document.</li>
+<li>Then click the <b>base face</b>: it lies at the chuck and is parted off at the end, the other
+end is at the front of the bar. “Flip” puts it at the front.</li>
+<li>In step 2, rough and finish all round work. “Indexed facing” and “Deburr all round” are off:
+every triangle is flat, and between them there are only the kinks of the approximation, no burr.
+</li>
+</ul>
+
 <h3>The bar</h3>
 <p>Behind the part come the <b>parting width</b> (room for parting off or
 sawing) and the <b>clamping length</b> (how far the bar sits in the chuck).

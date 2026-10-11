@@ -372,6 +372,11 @@ def waende(form, laengs):
     nach vorn schaut, −1, wenn zum Futter hin. Vor jeder hält die Spirale eine Umdrehung an
     (Ringgang, D-42)."""
     laengs = FreeCAD.Vector(laengs)
+    from . import stl_teil
+
+    aus_stl = stl_teil.netz_fuer(form)
+    if aus_stl is not None:
+        return _waende_der_dreiecke(*aus_stl, laengs)
     enden = [v.Point.dot(laengs) for v in form.Vertexes]
     if not enden:
         return ()
@@ -387,6 +392,35 @@ def waende(form, laengs):
         if hinten + WAND_RAND < a < vorne - WAND_RAND:
             gefunden.add((round(a, 6), 1 if quer > 0 else -1))
     return tuple(sorted(gefunden))
+
+
+def _waende_der_dreiecke(punkte, dreiecke, laengs):
+    """waende() für einen Körper aus einem STL (stl_teil.netz_fuer): jedes Dreieck ist eine ebene
+    Fläche – mit numpy statt 68.242 Flächen einzeln (P-2026-10-11-100)."""
+    import numpy as np
+
+    l_ = np.array(tuple(laengs), dtype=float)
+    a_punkte = punkte @ l_
+    if not len(a_punkte):
+        return ()
+    hinten, vorne = float(a_punkte.min()), float(a_punkte.max())
+    p0, p1, p2 = punkte[dreiecke[:, 0]], punkte[dreiecke[:, 1]], punkte[dreiecke[:, 2]]
+    normalen = np.cross(p1 - p0, p2 - p0)
+    laenge = np.linalg.norm(normalen, axis=1)
+    gueltig = laenge > 1e-12
+    quer = np.zeros(len(dreiecke))
+    quer[gueltig] = (normalen[gueltig] @ l_) / laenge[gueltig]
+    a = (p0 + p1 + p2) @ l_ / 3.0
+    wand = gueltig & (np.abs(np.abs(quer) - 1) <= GERADE)
+    wand &= (a > hinten + WAND_RAND) & (a < vorne - WAND_RAND)
+    return tuple(
+        sorted(
+            {
+                (round(float(w), 6), 1 if q > 0 else -1)
+                for w, q in zip(a[wand], quer[wand], strict=True)
+            }
+        )
+    )
 
 
 def _verbunden(formen):

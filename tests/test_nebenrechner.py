@@ -92,6 +92,32 @@ doc.recompute()
 assert kopie5 != kopie4 and kopie6 != kopie5, (kopie4, kopie5, kopie6)
 (volumen,) = pool.warten([pool.auftrag("nebenrechner", "_probe_dokument", kopie6, "Kasten")])
 assert abs(volumen - 14.0) < 1e-9, volumen
+# Speicher (P-2026-10-11-100): Eine große Kopie öffnen nur so viele Arbeiter, wie der Speicher
+# trägt – einer hat sie schon offen, der Speicher reicht für einen zweiten; die übrigen Aufträge
+# warten auf diese beiden, der dritte Arbeiter öffnet sie nicht.
+frei = nr.speicher_frei()
+assert frei is None or frei < os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"), frei
+groesse = 100 * 2**20
+bedarf_vorher = nr.kopie_bedarf
+nr.kopie_bedarf = lambda pfad: groesse if pfad == kopie6.pfad else bedarf_vorher(pfad)
+pool.speicher = lambda: 1.5 * groesse
+try:
+    auftraege = [
+        pool.auftrag("nebenrechner", "_probe_dokument", kopie6, "Kasten", dauer=0.3)
+        for _ in range(6)
+    ]
+    assert [round(v, 9) for v in pool.warten(auftraege)] == [14.0] * 6
+    offen = [a.nummer for a in pool._arbeiter if kopie6.pfad in a.dokumente]
+    assert len(offen) == 2, f"die große Kopie öffneten {offen} (von {pool.arbeiter} Arbeitern)"
+    # Reicht der Speicher für keinen, rechnet trotzdem einer – sonst rechnete nie einer.
+    pool.speicher = lambda: 0
+    neu = pool.kopie(doc)
+    nr.kopie_bedarf = lambda pfad: groesse
+    (volumen,) = pool.warten([pool.auftrag("nebenrechner", "_probe_dokument", neu, "Kasten")])
+    assert abs(volumen - 14.0) < 1e-9, volumen
+finally:
+    nr.kopie_bedarf = bedarf_vorher
+    pool.speicher = nr.speicher_frei
 FreeCAD.closeDocument(doc.Name)
 
 # Gemeinsame Daten: einmal je Arbeiter, in Argumenten auch verschachtelt.

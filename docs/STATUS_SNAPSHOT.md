@@ -725,6 +725,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   der Assistent „Bearbeitung“ weist die Drehmaschine heute ab (Manuel, 2026-10-06: „nur
   dokumentieren und vielleicht schon ein paar Ideen aufschreiben“ – noch nicht bauen):
   [spezifikation_drehmaschine_quader.md](spezifikation_drehmaschine_quader.md).
+- **W-017 STL als Teil** – ein STL aus einem Rundstahl fräsen, soweit es geht, auf 4 und später 5
+  Achsen (Manuel, 2026-10-11; sein Geist `beispiele/geist_stl/`, CC0). Stufe 1 gebaut
+  (P-2026-10-11-100): Netz anklicken → „4-Achs-Bearbeitung“ → Maßstab → Körper aus genau den
+  Dreiecken (Nebenrechner), Standfläche ans Futter, Rundum schruppen und schlichten; offen:
+  Prüfen gegen den Körper, Achse ohne ebene Fläche, 5 Achsen –
+  [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
 
 ## Offene Bugs
 

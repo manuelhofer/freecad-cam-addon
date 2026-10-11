@@ -22,16 +22,33 @@ STAPEL_ERSTER = 256  # der erste Stapel (die nächsten Paare) – oft entscheide
 PAARE_HOECHSTENS = 60000
 
 
+def dreiecke(form, toleranz=0.02):
+    """Die Ecken der Dreiecke einer Form (m, 3, 3) – wie Netz sie vernetzt. Ein Körper aus einem
+    STL bringt seine mit (stl_teil.netz_fuer): genau, ohne OpenCascade (P-2026-10-11-100)."""
+    from . import stl_teil
+
+    aus_stl = stl_teil.netz_fuer(form)
+    if aus_stl is not None:
+        return aus_stl[0][aus_stl[1]]
+    # Eine Form, die schon feiner vernetzt war, bliebe so fein (OpenCascade merkt sich das Netz an
+    # der Form); eine Kopie ohne Netz wird so grob wie verlangt.
+    punkte, dreiecke_ = form.copy(False, False).tessellate(toleranz)
+    if not dreiecke_:
+        return np.zeros((0, 3, 3))
+    ecken = np.array([(p.x, p.y, p.z) for p in punkte], dtype=np.float64)
+    return ecken[np.array(dreiecke_, dtype=np.int64)]
+
+
 class Netz:
     """Die Dreiecke einer Form in einem Gitter. `toleranz`: die Sehnenabweichung der
-    Vernetzung (mm). `zelle`: die Zellenbreite (mm), ohne Angabe nach der Größe der Form."""
+    Vernetzung (mm). `zelle`: die Zellenbreite (mm), ohne Angabe nach der Größe der Form.
+    `ecken`: die Dreiecke schon vernetzt (dreiecke()) – dann bleibt `form` ungelesen (None)."""
 
-    def __init__(self, form, toleranz=0.02, zelle=None):
-        # Eine Form, die schon feiner vernetzt war, bliebe so fein (OpenCascade merkt sich das
-        # Netz an der Form); eine Kopie ohne Netz wird so grob wie verlangt.
-        punkte, dreiecke = form.copy(False, False).tessellate(toleranz)
+    def __init__(self, form, toleranz=0.02, zelle=None, ecken=None):
+        if ecken is None:
+            ecken = dreiecke(form, toleranz)
         self.toleranz = float(toleranz)
-        if not dreiecke:
+        if not len(ecken):
             self.ecken = np.zeros((0, 3, 3))
             self.zelle = ZELLE_MINDESTENS
             self.ursprung = np.zeros(3)
@@ -39,8 +56,7 @@ class Netz:
             self.start = np.zeros(2, dtype=np.int64)
             self.index = np.zeros(0, dtype=np.int64)
             return
-        ecken = np.array([(p.x, p.y, p.z) for p in punkte], dtype=np.float64)
-        self.ecken = ecken[np.array(dreiecke, dtype=np.int64)]  # (m, 3, 3)
+        self.ecken = np.asarray(ecken, dtype=np.float64).reshape(-1, 3, 3)  # (m, 3, 3)
         unten = self.ecken.min(axis=(0, 1))
         oben = self.ecken.max(axis=(0, 1))
         if zelle is None:

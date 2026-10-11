@@ -29,6 +29,24 @@ def anzahl(form):
     return form.countElement("Face")
 
 
+# Ab so vielen gefragten Flächen alle auf einmal (`form.Faces`): `getElement` und `countElement`
+# gehen je Aufruf alle Flächen durch – an einem Körper aus einem STL (17.848 Dreiecke) 0,3 ms je
+# Fläche, in einer Schleife über alle quadratisch (P-2026-10-11-100: 100 s beim Wechsel zu
+# Schritt 2 im 4-Achs-Assistenten).
+EINZELN_BIS = 64
+
+
+def flaechen(form, nummern_):
+    """[(Nummer, Fläche)] der Flächen `nummern_` (0 ist „Face1“), die es gibt, in dieser
+    Reihenfolge – wenige einzeln, viele auf einmal."""
+    gesamt = anzahl(form)
+    gibt_es = [n for n in nummern_ if 0 <= n < gesamt]
+    if len(gibt_es) <= EINZELN_BIS:
+        return [(n, form.getElement(f"Face{n + 1}")) for n in gibt_es]
+    alle = form.Faces
+    return [(n, alle[n]) for n in gibt_es]
+
+
 def nummern(form):
     """{hashCode einer Fläche: ihre Nummer (0 ist „Face1“)} – für die Nachbarn einer Kante
     (`ancestorsOfType`); je Form einmal gerechnet, nur zum Lesen."""

@@ -49,7 +49,7 @@ import FreeCADGui
 import numpy as np
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, farben, symbol, uhren
+from . import PARAMETER_PFAD, einheiten, farben, stl_teil, symbol, uhren
 from . import aufloesung as au
 from . import bestueckung as bs
 from . import formteile as ft
@@ -234,7 +234,20 @@ class BefehlVierachs:
         if operation is not None:
             bearbeiten(operation)
             return
-        wahl = gewaehlte_flaeche(dokument)
+        netz = next(
+            (o for o in FreeCADGui.Selection.getSelection(dokument.Name) if stl_teil.ist_netz(o)),
+            None,
+        )
+        if netz is not None:
+            # Ein STL (W-017): erst der Körper aus seinen Dreiecken – Maßstab im Fenster davor.
+            from .gui_stl import teil_aus_netz
+
+            teil = teil_aus_netz(dokument, netz)
+            if teil is None:
+                return
+            wahl = (teil, None)
+        else:
+            wahl = gewaehlte_flaeche(dokument)
         # Die Transaktion öffnet der Assistent, wenn er den Job anlegt (_neuer_job).
         FreeCADGui.Control.showDialog(VierachsPanel(dokument, wahl))
 
@@ -620,6 +633,11 @@ class VierachsPanel:
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
         if wahl is not None and wahl[1] is not None:
             self.waehle_flaeche(*wahl, nahe=klickpunkt(dokument))
+        elif wahl is not None and stl_teil.aus_stl(wahl[0]):
+            # Ein Körper aus einem STL: zuerst seine Standfläche anklicken – sie kommt ans Futter.
+            from .gui_stl import teil_aus_netz
+
+            self.anleitung.setText(tr("va.anleitung.stl", bericht=teil_aus_netz.bericht))
         self._auffrischen()
 
     def _zum_aendern(self):
@@ -1634,7 +1652,12 @@ class VierachsPanel:
         except ValueError:  # weder eben noch rund (oder keine solche Fläche)
             self._hinweis(tr("va.nicht_eben", flaeche=flaeche, teil=teil.Label))
             return
-        self._nahe, self.umgedreht = nahe, False
+        # Eine ebene Fläche eines Teils aus einem STL liegt am Futter (seine Standfläche; Manuel,
+        # 2026-10-11: „Standfläche zum Futter, abstechen“) – „Umdrehen“ legt sie nach vorne.
+        am_futter = vr.ist_eben(element) and stl_teil.aus_stl(teil)
+        if am_futter:
+            vermessung = vr.vermesse(form, element, nahe, True)
+        self._nahe, self.umgedreht = nahe, am_futter
         if self.zu_aendern is not None and teil is not self.teil:
             self._hinweis(tr("va.aendern.anderes_teil", teil=self.teil.Label))
             return
@@ -1668,8 +1691,9 @@ class VierachsPanel:
             self._zeige_bewegung(vorher)
 
     def umdrehen(self):
-        """„Umdrehen“: An einer runden Fläche kommt das andere Ende des Teils nach vorne."""
-        if self.vermessung is None or not self.vermessung.rund or self.teil is None:
+        """„Umdrehen“: An einer runden Fläche kommt das andere Ende des Teils nach vorne – eine
+        ebene Fläche liegt danach am Futter (wird abgestochen) oder wieder vorne."""
+        if self.vermessung is None or self.teil is None:
             return
         self.umgedreht = not self.umgedreht
         element = self.teil.Shape.getElement(self.flaeche)
@@ -2773,6 +2797,8 @@ class VierachsPanel:
         Mantelflächen) mit einer Achse quer zur Stange die ebenen Mantelflächen, auch schräg zur
         Achse (P-2026-10-03-09; Manuel: „die Maschine hat eine Y-Achse … den Winkel richtig
         stellen und die Y-Achse verfahren“)."""
+        if stl_teil.aus_stl(self.teil):
+            return []  # nur Dreiecke, jedes eben – keine Abflachung, die Plan indexiert fräst
         flaechen = self.flaechen()
         if flaechen or self.job is None or not self.achse().quer:
             return flaechen
@@ -2928,7 +2954,9 @@ class VierachsPanel:
         ebenen = self._plan_ebenen()
         achse = self.achse()
         self._planbohrer_dazu([], False)  # der Bohrer daneben nur, wenn es unten passt
-        if not ebenen:
+        if not ebenen and stl_teil.aus_stl(self.teil):
+            geht, grund = False, tr("va.plan.stl")
+        elif not ebenen:
             geht, grund = False, tr("va.plan.keine_ebene")
         elif not achse.quer:
             geht, grund = False, tr("va.plan.keine_querachse", maschine=achse.maschine)
@@ -3289,8 +3317,9 @@ class VierachsPanel:
 
     def _entgrat_kanten(self):
         """[vierachs_entgratbahn.Kante] – die Außenkanten der gewählten Flächen (leer: alle),
-        grob unterteilt – zum Zählen."""
-        if self.job is None:
+        grob unterteilt – zum Zählen. Keine an einem Körper aus einem STL: Zwischen seinen Dreiecken
+        liegen nur Knicke der Annäherung, kein Grat."""
+        if self.job is None or stl_teil.aus_stl(self.teil):
             return []
         achse = self.achse()
         return ve.kanten(
@@ -3313,6 +3342,8 @@ class VierachsPanel:
         kanten = self._entgrat_kanten() if werkzeug is not None else []
         if werkzeug is None:
             geht, vorschlag, grund = False, False, tr("va.entgraten.kein_fraeser")
+        elif not kanten and stl_teil.aus_stl(self.teil):
+            geht, vorschlag, grund = False, False, tr("va.entgraten.stl")
         elif not kanten:
             geht, vorschlag, grund = False, False, tr("va.entgraten.keine_kanten")
         elif werkzeug.art == wz.FASENFRAESER:
@@ -4979,6 +5010,9 @@ class VierachsPanel:
         if klon.ViewObject is not None:
             klon.ViewObject.Visibility = True
             klon.ViewObject.Transparency = 0
+            if stl_teil.aus_stl(self.teil):  # ohne die Kanten der Dreiecke, wie das Netz
+                with contextlib.suppress(ValueError, AttributeError):
+                    klon.ViewObject.DisplayMode = "Shaded"
         if self.teil.ViewObject is not None:
             self._sichtbar_vorher = (self.teil, self.teil.ViewObject.Visibility)
             self.teil.ViewObject.Visibility = False
@@ -5073,7 +5107,7 @@ class VierachsPanel:
             self.urteil.setText("")
             return
         einheit_laenge = einheiten.LAENGE
-        self.knopf_umdrehen.setVisible(mess.rund)
+        self.knopf_umdrehen.setVisible(True)
         if mess.rund:  # V2b: eine runde Fläche, ihre Achse ist die Stangenachse
             art = tr("va.art.mantel", d=groesse_fest(2 * mess.kreis[1], einheit_laenge, 1))
             self.knopf_mitte_flaeche.setText(tr("va.mitte.achse"))
@@ -5083,6 +5117,8 @@ class VierachsPanel:
         else:
             art = tr("va.art.eben")
             self.knopf_mitte_flaeche.setText(tr("va.mitte.flaeche_eckig"))
+        if not mess.rund and self.umgedreht:
+            art = tr("va.art.am_futter", art=art)
         self.teil_text.setText(
             tr("va.teil.text", teil=self.teil.Label, flaeche=self.flaeche, art=art)
         )

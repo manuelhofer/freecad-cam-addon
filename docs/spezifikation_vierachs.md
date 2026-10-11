@@ -1399,6 +1399,46 @@ die Abstände gelten für beide.
 10. **Jeder Durchlauf legt einen neuen Job an**; ein zweiter Durchlauf auf
     einem Job des Assistenten beginnt bei Schritt 2 (V9).
 
+## 16. STL als Teil (W-017)
+
+Manuel, 2026-10-11: „so etwas … auf der 4-Achs aus einem Rundstahl rausfräsen, soweit es eben
+möglich ist … einfach dass STL-Dateien funktionieren würden“ – sein Testteil ist der Geist
+`beispiele/geist_stl/Geist1_v2.stl` (Glaschick, Thingiverse, CC0; 68.242 Dreiecke).
+
+Entschieden (Manuel, 2026-10-11):
+- Die Bahn bildet ab, was man sieht: „die Bahn … wenn nicht das abbildet, was ich sehe … ist doch
+  Quatsch“ – der Körper besteht aus genau den Dreiecken des Netzes, nichts geglättet.
+- Die Standfläche kommt ans Futter und wird abgestochen; dazu die Achse X/Y/Z zur Wahl („beides
+  ja“).
+- Große Netze vereinfachen bis 0,01 mm („Ja, bis 0,01 mm“) – nachgemessen, nicht FreeCADs
+  Toleranz geglaubt.
+- Offene Netze: Löcher schließen („Löcher schließen?“).
+- Ein STL hat keine Einheit: skalieren („vielleicht kann man es skalieren?“).
+
+Gebaut (P-2026-10-11-100):
+1. **Netz anklicken → „4-Achs-Bearbeitung“**: erst das Fenster „STL als Teil“ – Dreiecke, Maße,
+   Maßstab (× 25,4 für Zoll, „Auf diese Höhe“). „Umwandeln“ rechnet auf einem Nebenrechner
+   (`stl_teil.koerper_rechnen`): doppelte und entartete Dreiecke weg, Normalen einheitlich nach
+   außen, Löcher zu, ab 200.000 Dreiecken vereinfacht; daraus ein Körper aus genau diesen
+   Dreiecken (`makeShapeFromMesh` + `makeSolid`, am Geist 5 s). Das Netz wird ausgeblendet, der
+   Körper ohne Dreieckskanten gezeigt; ein zweites Mal nimmt den schon gemachten Körper.
+2. **Standfläche anklicken**: Eine ebene Fläche eines Körpers aus einem STL liegt am Futter
+   („umgedreht“), vorne das andere Ende; „Umdrehen“ legt sie nach vorne. Die Stange liegt um das
+   ganze Teil (Mitte des Teils – ein einzelnes Dreieck ist keine Mitte). Wiedergefunden im Job
+   (`vierachs_rohteil._ebene_am_futter`).
+3. **Schritt 2**: Rundum schruppen und Rundum schlichten wie an jedem Teil. „Plan indexiert“ und
+   „Rundum entgraten“ sind aus, mit Grund: Jedes Dreieck ist eben (keine Abflachung), zwischen
+   ihnen liegen nur Knicke der Annäherung (kein Grat). Sie prüften vorher jedes der 17.848
+   Dreiecke einzeln – 7 min, in denen das Fenster stand.
+4. **Vernetzen ohne OpenCascade**: Der Körper trägt sein vorbereitetes Netz
+   (`CamAddonNetz`); `vierachs_huelle.vernetze` nimmt dessen Dreiecke in der Lage der Form
+   (`stl_teil.netz_fuer`, erkannt an Flächenzahl und Hüllquader). Sonst vernetzte jeder
+   Nebenrechner 68.242 Flächen neu – 1 GB je Arbeiter.
+
+Offen (Stufe 2 und weiter): „Auf der Maschine prüfen“ mit Materialvergleich und Kollision gegen
+den Körper (Laufzeit bei vielen Flächen), einzelne Bereiche wählen statt Dreiecke, die Achse ohne
+ebene Fläche (X/Y/Z), 5 Achsen mit STL im Assistenten „Bearbeitung“.
+
 ## Entschieden
 
 Alle von Manuel, 2026-09-26, P-2026-09-26-78 – aus Fragen mit Optionen bzw.

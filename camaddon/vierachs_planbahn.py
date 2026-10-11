@@ -163,10 +163,7 @@ def ebenen_rechnen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ, zur_
 
     l_, u_, v_ = vh.rahmen(laengs, radial)
     ergebnis = []
-    for nummer in vf.nummern(namen):
-        if nummer >= ft.anzahl(form):
-            continue
-        flaeche = ft.flaeche(form, nummer)
+    for nummer, flaeche in ft.flaechen(form, vf.nummern(namen)):
         if not vr.ist_eben(flaeche):
             continue
         normale = vr.aussennormale(flaeche)
@@ -420,10 +417,7 @@ def bohrungen(form, laengs, radial, namen):
 
     l_, u_, v_ = vh.rahmen(laengs, radial)
     ergebnis = []
-    for nummer in vf.nummern(namen):
-        if nummer >= ft.anzahl(form):
-            continue
-        flaeche = ft.flaeche(form, nummer)
+    for nummer, flaeche in ft.flaechen(form, vf.nummern(namen)):
         zylinder = flaeche.Surface
         if not isinstance(zylinder, Part.Cylinder):
             continue
@@ -511,10 +505,7 @@ def mantelnuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
 
     l_, u_, v_ = vh.rahmen(laengs, radial)
     ergebnis = []
-    for nummer in vf.nummern(namen):
-        if nummer >= ft.anzahl(form):
-            continue
-        flaeche = ft.flaeche(form, nummer)
+    for nummer, flaeche in ft.flaechen(form, vf.nummern(namen)):
         zylinder = flaeche.Surface
         if not isinstance(zylinder, Part.Cylinder):
             continue
