@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-81 wandhoehe-ohne-schnitte
+
+### EINGELESEN
+- Nach P-79 stand das Anklicken in RC1 noch in `kontur_bahn._wandkanten`: Je Millimeter
+  Wandunterkante ein boolescher Schnitt (`section`) einer Senkrechten mit der Wand, um zu sehen,
+  wo sie die Wand verlässt – für jede Wand, die zum ersten Mal vorkommt (beim Öffnen des
+  Assistenten alle Wände des Teils).
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_gleich_hoch` – besteht der äußere Rand der Wand nur aus
+  waagerechten Kanten unten und oben (eine Höhe) und senkrechten, ist sie überall gleich hoch:
+  kein Schnitt. `_hoehen_zusammen` – sonst ein Schnitt mit allen Senkrechten zugleich (je Stelle
+  wie bisher, wenn OpenCascade nicht schneidet).
+- `package.xml` (0.213.85), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- An allen Wänden der Beispielteile und einer gestuften Wand (12 Formen, 71 Unterkanten, 57 ohne
+  Schnitt): dieselben Stücke, bitgleich; der gemeinsame Schnitt an den 14 gestuften dreimal so
+  schnell (1.1.4 und RC1).
+- RC1, allein gemessen: Deckel, alle Flächen in einem Schritt 2,8 (vor P-79) → 0,62 s; Testteil
+  4,7 → 1,3 s; Flansch 1,2 → 0,7 s.
+
+### AKZEPTANZKRITERIUM
+- `test_kontur`, `test_raeumen`, `test_nut`, `test_nut_offen`, `test_testteil`, `test_entgraten`;
+  in RC1 `szenario_deckel`, `szenario_flansch`, `szenario_testteil`, `szenario_kontur` grün.
+
 ## P-2026-10-11-80 still-nach-dem-schliessen
 
 ### EINGELESEN

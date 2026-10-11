@@ -312,6 +312,51 @@ def _freie_seite(wand, kante):
     return (float(mitte.x), float(mitte.y)), (float(n.x / laenge), float(n.y / laenge))
 
 
+def _gleich_hoch(wand):
+    """z der Oberkante, wenn die Wand überall gleich hoch ist: Ihr äußerer Rand besteht nur aus
+    waagerechten Kanten unten (z_unten) und oben (alle auf einer Höhe) und senkrechten Kanten
+    (Löcher in der Wand zählen nicht – eine Senkrechte verlässt sie trotzdem oben). None sonst."""
+    try:
+        rand = wand.flaeche.OuterWire
+        oben = None
+        for k in rand.Edges:
+            zs = [v.Point.z for v in k.Vertexes]
+            bb = k.BoundBox
+            if bb.ZLength <= GLEICH:  # waagerecht
+                z = zs[0]
+                if abs(z - wand.z_unten) <= GLEICH:
+                    continue
+                if oben is not None and abs(z - oben) > GLEICH:
+                    return None
+                oben = z if oben is None else max(oben, z)
+            elif bb.XLength > GLEICH or bb.YLength > GLEICH:
+                return None  # schräg oder gebogen nach oben
+        return float(oben) if oben is not None else None
+    except Exception:  # noqa: BLE001 – im Zweifel schneiden
+        return None
+
+
+def _hoehen_zusammen(wand, punkte, linien):
+    """Je Stelle, wo ihre Senkrechte die Wand verlässt – mit einem Schnitt für alle (an den Wänden
+    der Beispiele bitgleich mit einem je Stelle, dreimal so schnell; P-2026-10-11-81). None, wenn
+    OpenCascade nicht schneidet."""
+    import Part
+
+    try:
+        ecken = wand.flaeche.section(Part.makeCompound(linien)).Vertexes
+    except Exception:  # noqa: BLE001 – dann je Stelle
+        return None
+    xy = np.array([(q.x, q.y) for q in punkte], dtype=float)
+    hoehen = [None] * len(punkte)
+    for v in ecken:
+        p = v.Point
+        abstand = np.hypot(xy[:, 0] - p.x, xy[:, 1] - p.y)
+        i = int(np.argmin(abstand))
+        if abstand[i] <= NAH:
+            hoehen[i] = p.z if hoehen[i] is None else max(hoehen[i], p.z)
+    return [wand.z_oben if h is None else h for h in hoehen]
+
+
 def _wandkanten(wand, kante):
     """[(x, y, z_oben)] – die Unterkante `kante` der Wand in Stücke gleicher Höhe geteilt: Eine
     Wand kann über ihrer Unterkante verschieden hoch sein (die Rückwand des Testteils: über der
@@ -323,17 +368,29 @@ def _wandkanten(wand, kante):
     punkte = kante.discretize(Distance=WANDHOEHE_SCHRITT)
     if len(punkte) < 2:
         punkte = [kante.Vertexes[0].Point, kante.Vertexes[-1].Point]
-    hoehen = []
-    for q in punkte:
-        linie = Part.makeLine(
+    oben = _gleich_hoch(wand)
+    if oben is not None:
+        # Unten, oben und an den Seiten gerade Kanten: Jede Senkrechte verlässt die Wand an der
+        # Oberkante – ohne einen Schnitt je Millimeter (P-2026-10-11-81).
+        xs = np.array([q.x for q in punkte], dtype=float)
+        ys = np.array([q.y for q in punkte], dtype=float)
+        return [(xs, ys, oben)]
+    linien = [
+        Part.makeLine(
             FreeCAD.Vector(q.x, q.y, wand.z_unten - 1.0),
             FreeCAD.Vector(q.x, q.y, wand.z_oben + 1.0),
         )
-        try:
-            ecken = wand.flaeche.section(linie).Vertexes
-        except Exception:
-            ecken = []
-        hoehen.append(max((v.Point.z for v in ecken), default=wand.z_oben))
+        for q in punkte
+    ]
+    hoehen = _hoehen_zusammen(wand, punkte, linien)
+    if hoehen is None:
+        hoehen = []
+        for linie in linien:
+            try:
+                ecken = wand.flaeche.section(linie).Vertexes
+            except Exception:
+                ecken = []
+            hoehen.append(max((v.Point.z for v in ecken), default=wand.z_oben))
     stuecke = []
     anfang = 0
     for i in range(1, len(punkte) + 1):
