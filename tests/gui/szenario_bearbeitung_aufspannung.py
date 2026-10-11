@@ -2,7 +2,8 @@
 # dem Spannmittel ist .. und dann wird bearbeitet“): das Schwenkteil, unten im Spannmittel, auf der
 # 5-Achs-Fräse Tisch/Tisch. Schritt 2, der Knopf: gewählt sind die 14 Flächen von oben, darunter je
 # eine Zeile für die 30°-Schräge (10 Flächen) und die 45°-Fase (3), nichts rot; am Teil in ihren
-# Farben. „Ebene schwenken …“ der 30°-Zeile öffnet das Fenster mit ihrer Fläche. Ohne Maschine (der
+# Farben, darunter grau, dass „Anlegen“ die Ebenen anlegt. „Ebene schwenken …“ der 30°-Zeile öffnet
+# das Fenster mit ihrer Fläche. Ohne Maschine (der
 # Assistent nimmt eine 3-Achs-Fräse an): nur von oben, 13 Flächen rot – „Die Maschine schwenkt nicht
 # so weit.“ Die Beschriftung in Schritt 1 heißt „Unten im Spannmittel“.
 import os
@@ -76,9 +77,10 @@ def schritte(h):
     ]
     h.pruefe(
         panel.richtungen_box.isVisible()
-        and len(zeilen) == 2
+        and len(zeilen) == 3
         and zeilen[0].startswith("30° geneigt: 10 Flächen")
-        and zeilen[1].startswith("45° geneigt: 3 Flächen"),
+        and zeilen[1].startswith("45° geneigt: 3 Flächen")
+        and zeilen[2].startswith("Nach „Anlegen“ legt das Addon diese Ebenen an"),
         f"Zeilen: {zeilen}",
     )
     Gui.activeDocument().activeView().viewIsometric()

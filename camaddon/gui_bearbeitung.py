@@ -262,6 +262,92 @@ def _aussennormale(form, name):
     return vr.aussennormale(ft.flaeche(form, nummer))
 
 
+# Strategien für Freiform – sie nehmen auch eine ebene oder kegelige Fläche, die zu etwas anderem
+# gehört (die Spitze einer Bohrung): bei „Alles aus dieser Aufspannung“ nicht für solche.
+FREIFORM_STRATEGIEN = {
+    "schruppen3d",
+    "restschruppen",
+    "schlichten3d",
+    "restschlichten",
+    "bleistift",
+}
+ANALYTISCH = {"Plane", "Cylinder", "Cone"}
+
+# Die nächsten Ebenen aus „Alles aus dieser Aufspannung“: [(Job der Ebene, [Flächen], Satz)].
+_FOLGE = []
+
+
+def _ebenen_der_aufspannung(grundjob, richtungen):
+    """Nach „Anlegen“ mit „Alles aus dieser Aufspannung“ (Frage 14, Schritt 4): je weitere
+    Richtung die Ebene (schwenken.lege_an – ein Schritt Rückgängig für alle), dann der Assistent
+    für die erste, ihre Flächen gewählt; nach seinem „Anlegen“ die nächste (_folge_weiter). Die
+    Maschine des Jobs mit dem ersten Werkzeug rechnet die Rundachsen; ohne sie keine Ebene."""
+    from . import schwenken as sw
+    from .gui_schwenken import maschine_fuer
+
+    controller = next(iter(js.werkzeug_controller(grundjob)), None)
+    maschine, _name = maschine_fuer(grundjob, controller) if controller is not None else (None, "")
+    if maschine is None:
+        QtGui.QMessageBox.information(
+            FreeCADGui.getMainWindow(), tr("ba.folge.titel"), tr("ba.folge.ohne_maschine")
+        )
+        return
+    dokument = grundjob.Document
+    dokument.openTransaction(tr("ba.folge.titel"))
+    angelegt, fehler = [], []
+    for r in richtungen:
+        try:
+            if r.stirn:
+                job = sw.lege_an(grundjob, r.stirn, maschine)
+            else:
+                x, y, z = r.achse
+                winkel = (
+                    math.degrees(math.acos(max(-1.0, min(1.0, z)))),
+                    math.degrees(math.atan2(y, x)),
+                )
+                job = sw.lege_an(grundjob, "", maschine, winkel=winkel)
+        except ValueError as grund:
+            fehler.append(str(grund))
+            continue
+        angelegt.append((job, r))
+    dokument.commitTransaction()
+    with uhren.still():
+        dokument.recompute()
+    if fehler:
+        QtGui.QMessageBox.information(
+            FreeCADGui.getMainWindow(),
+            tr("ba.folge.titel"),
+            tr("ba.folge.fehler", fehler="\n".join(fehler)),
+        )
+    _FOLGE[:] = [
+        (
+            job,
+            list(r.flaechen),
+            tr("ba.folge.text", nummer=i + 1, anzahl=len(angelegt), winkel=f"{r.neigung:.0f}"),
+        )
+        for i, (job, r) in enumerate(angelegt)
+    ]
+    _folge_weiter()
+
+
+def _folge_weiter():
+    """Der Assistent für die nächste Ebene der Kette – oder nichts mehr."""
+    if not _FOLGE:
+        return
+    job, flaechen, text = _FOLGE.pop(0)
+    klon = vr.modell(job)
+    FreeCADGui.Selection.clearSelection()
+    FreeCADGui.Control.showDialog(
+        BearbeitungPanel(
+            job.Document,
+            (vr.original(klon), flaechen[0]),
+            angeklickt=klon,
+            flaechen=flaechen,
+            folge=text,
+        )
+    )
+
+
 # Die Farben der weiteren Richtungen (aus_der_aufspannung) – weder Grün (gewählt) noch Rot.
 RICHTUNG_FARBEN = ("#e8962d", "#9b59b6", "#1f9e8f", "#b5651d", "#2e86c1")
 
@@ -3741,9 +3827,16 @@ class BearbeitungPanel:
 
     offen = None  # das offene Fenster – für die Oberflächen-Szenarien
 
-    def __init__(self, dokument, wahl=None, operation=None, neu=False, angeklickt=None):
+    def __init__(
+        self, dokument, wahl=None, operation=None, neu=False, angeklickt=None, flaechen=None,
+        folge=None,
+    ):  # fmt: skip
         BearbeitungPanel.offen = self
         self.doc = dokument
+        # Aus „Alles aus dieser Aufspannung“ (_ebenen_der_aufspannung): die Flächen dieser Ebene,
+        # gewählt zu Beginn, und der Satz „Ebene 1 von 2 …“ – nach „Anlegen“ kommt die nächste.
+        self._vorwahl = list(flaechen) if flaechen else None
+        self._folge = folge
         # Hat das Teil schon einen Job, kommen die neuen Operationen dort hinein (W-012 M2) –
         # außer `neu`: „Neuer Job …“ für eine zweite Aufspannung.
         self._neu = bool(neu)
@@ -4346,6 +4439,7 @@ class BearbeitungPanel:
                 self.doc.openTransaction(tr("ba.titel"))  # für weitere Eingaben
                 self._job_offen = True
                 return False
+        folge = self._folge_vorbereiten() if self.zu_aendern is None else None
         self._vor_dem_schliessen()
         for block in self.aktive_bloecke():
             block.merken()
@@ -4354,9 +4448,24 @@ class BearbeitungPanel:
         FreeCADGui.Control.closeDialog()
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
+        if folge is not None:
+            uhren.gleich(lambda: _ebenen_der_aufspannung(*folge))
+        elif self._folge:
+            uhren.gleich(_folge_weiter)
         return True
 
+    def _folge_vorbereiten(self):
+        """(Grundjob, [zugang.Richtung]) der weiteren Richtungen aus „Alles aus dieser
+        Aufspannung“ – an einer 5-Achs-Maschine; sonst None."""
+        z = self._zugang
+        if z is None or not self._fuenfachs():
+            return None
+        weitere = [r for r in z.richtungen if r.achse[2] <= 1 - 1e-6]
+        return (rw.grundjob_von(self.job), weitere) if weitere else None
+
     def reject(self):
+        if self._folge:
+            _FOLGE.clear()  # „Abbrechen“ hört mit der Kette auf – die Ebenen bleiben
         self._vor_dem_schliessen()
         if self._aufspannung_vorher:
             from .gui_schwenken import zeige_wieder
@@ -4517,13 +4626,12 @@ class BearbeitungPanel:
             text = tr("ba.dazu.eine", job=job.Label, name=ops[0].Label)
         else:
             text = tr("ba.dazu.mehrere", job=job.Label, n=len(ops), name=ops[-1].Label)
+        if self._folge:
+            text = f"{self._folge}\n{text}"
         self.dazu_text.setText(text)
         self.dazu_zeile.setVisible(True)
         form = vr.modell(job).Shape
-        if flaeche and any(b.s.passt(form, flaeche) for b in self.bloecke):
-            self.gewaehlte = [flaeche]
-        else:
-            self.gewaehlte = []
+        self.gewaehlte = self._vorwahl_nehmen(form, flaeche)
         self.kanten = []
         FreeCADGui.Selection.clearSelection()
         self._bearbeitung_fuellen()
@@ -4531,6 +4639,27 @@ class BearbeitungPanel:
         self._auffrischen()
         self.seite_zeigen(self._seite)
         self.vorschau_starten()
+
+    def _vorwahl_nehmen(self, form, flaeche):
+        """Die Flächen, die zu Beginn gewählt sind: die einer Ebene aus „Alles aus dieser
+        Aufspannung“ – sonst die angeklickte –, soweit eine Strategie sie nimmt."""
+        if self._vorwahl:
+            return [n for n in self._vorwahl if self._nimmt_eine(form, n)]
+        return [flaeche] if flaeche and any(b.s.passt(form, flaeche) for b in self.bloecke) else []
+
+    def _nimmt_eine(self, form, name):
+        """Nimmt eine Strategie die Fläche einer Richtung aus „Alles aus dieser Aufspannung“? Eine
+        ebene, zylindrische oder kegelige nicht über die Freiform-Strategien – die Spitze einer
+        Bohrung gehört zu ihr, nicht zum 3D-Schlichten."""
+        nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
+        if not 0 <= nummer < ft.anzahl(form):
+            return False
+        analytisch = ft.flaeche(form, nummer).Surface.__class__.__name__ in ANALYTISCH
+        return any(
+            b.s.passt(form, name)
+            for b in self.bloecke
+            if not (analytisch and b.s.kennung in FREIFORM_STRATEGIEN)
+        )
 
     def neuer_job(self):
         """„Neuer Job …“: statt in den vorhandenen Job einen neuen anlegen – eine zweite
@@ -4574,10 +4703,7 @@ class BearbeitungPanel:
         if self.nullpunkt() is not None or self._nullpunkt_versatz().Length > 0:
             self._nullpunkt_setzen(self.job)
         form = vr.modell(self.job).Shape
-        if flaeche and any(b.s.passt(form, flaeche) for b in self.bloecke):
-            self.gewaehlte = [flaeche]
-        else:
-            self.gewaehlte = []
+        self.gewaehlte = self._vorwahl_nehmen(form, flaeche)
         self.kanten = []
         FreeCADGui.Selection.clearSelection()
         self._bearbeitung_fuellen()
@@ -5214,7 +5340,8 @@ class BearbeitungPanel:
         self._zugang = ergebnis
         oben = ergebnis.richtungen[0] if ergebnis.richtungen else None
         oben = oben if oben is not None and oben.achse[2] > 1 - 1e-6 else None
-        self.gewaehlte = list(oben.flaechen) if oben is not None else []
+        namen = list(oben.flaechen) if oben is not None else []
+        self.gewaehlte = [n for n in namen if self._nimmt_eine(form, n)]
         self.kanten = []
         self._flaechen_zeigen()
         self.vorschau_starten()
@@ -5271,6 +5398,8 @@ class BearbeitungPanel:
             text.setWordWrap(True)
             text.setStyleSheet(f"color: {ROT};")
             self._richtungen_aufbau.addWidget(text)
+        if weitere and self._fuenfachs():
+            self._richtungen_aufbau.addWidget(_grau(tr("ba.richtung.danach")))
         self.richtungen_box.setVisible(bool(weitere or gruende))
 
     def flaechen_leeren(self):

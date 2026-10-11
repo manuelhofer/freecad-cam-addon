@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-95 ebenen-in-einem-rutsch
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends, auf „als Nächstes die Ebenen in einem Rutsch anlegen, dann T-014“:
+  „ja mach“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `BearbeitungPanel(…, flaechen=, folge=)` – die Flächen einer Ebene
+  vorgewählt (`_vorwahl_nehmen`, `_nimmt_eine`: eine ebene, zylindrische oder kegelige Fläche nicht
+  über die Freiform-Strategien), der Satz „Ebene 1 von 2 …“ über dem Job; `accept` → mit „Alles aus
+  dieser Aufspannung“ an einer 5-Achs-Maschine `_ebenen_der_aufspannung` (je Richtung `lege_an` mit
+  der Maschine des Jobs und seinem ersten Werkzeug, ein Schritt Rückgängig, Fehler als Meldung), dann
+  `_folge_weiter` je Ebene; `reject` beendet die Kette. Graue Zeile `ba.richtung.danach`.
+- `translations/de.json`, `en.json` (`ba.folge.*`, `ba.richtung.danach`), `help/de|en/bearbeitung.html`,
+  Spezifikation Strategien 15.5.
+- `tests/gui/szenario_bearbeitung_aufspannung_folge.py` (neu), `…_aufspannung.py` (die graue Zeile).
+  `package.xml` (0.213.98).
+
+### ERGEBNIS
+- Schwenkteil auf der Tisch/Tisch: Grundjob 2 Operationen, „Ebene Face3 (A−30 C0)“ 2, „Ebene Face13
+  (A−45 C−90)“ – die Bohrung Ø 8,5 ist für den Ø 12 zu klein (rot, wie es sein soll), abgehakt: 1+.
+- Erster Lauf: Die Spitze der Bohrung (Kegel) kam als „Freiform“ mit, 3D-Schlichten rot angehakt –
+  seitdem nicht über die Freiform-Strategien.
+
+### AKZEPTANZKRITERIUM
+- `test_zugang`, `test_sprache` in 1.1.4; `szenario_bearbeitung_aufspannung_folge`,
+  `szenario_bearbeitung_aufspannung`, `szenario_bearbeitung`, `szenario_bearbeitung_maschine`,
+  `szenario_schwenken` grün.
+
 ## P-2026-10-11-94 alles-aus-der-aufspannung
 
 ### EINGELESEN

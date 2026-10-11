@@ -2719,9 +2719,14 @@ Am Schwenkteil (Unterseite im Spannmittel): alle 27 übrigen Flächen aus drei R
 Schritt 3 als Knopf „Alles aus dieser Aufspannung“ in Schritt 2 des Assistenten: wählt alles von oben,
 je weitere Richtung eine Zeile in ihrer Farbe mit „Ebene schwenken (3+2) …“ (öffnet mit ihrer
 Stirnfläche), Rot mit Grund; ohne 5-Achs-Maschine nur von oben (P-2026-10-11-94,
-`szenario_bearbeitung_aufspannung`). **Offen:** Schritt 4 – je Richtung die Ebene und ihre
-Operationen ohne Umweg über das Fenster „Ebene schwenken“; die Stellungen der Rundachsen an der
-Zeile (dafür die Maschine öffnen).
+`szenario_bearbeitung_aufspannung`). Schritt 4 (P-2026-10-11-95, Manuel: „ja mach“): „Anlegen“
+legt die Operationen von oben an, dann je weitere Richtung die Ebene (`schwenken.lege_an` mit der
+Maschine des Jobs und seinem ersten Werkzeug, ein Schritt Rückgängig) und öffnet den Assistenten
+für die erste, ihre Flächen gewählt („Ebene 1 von 2 … – 30° geneigt“); nach ihrem „Anlegen“ die
+nächste, „Abbrechen“ hört auf. Vorgewählt nur, was eine Strategie nimmt – eine ebene, zylindrische
+oder kegelige Fläche nicht über die Freiform-Strategien (die Spitze einer Bohrung gehört zu ihr).
+`szenario_bearbeitung_aufspannung_folge`. **Offen:** die Stellungen der Rundachsen an den Zeilen
+(dafür die Maschine schon in Schritt 2 öffnen).
 
 ## 16. 5 Achsen simultan (W-015)
 
