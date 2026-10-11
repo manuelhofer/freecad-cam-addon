@@ -675,6 +675,13 @@ P-2026-10-10-35 bis -39); nächste freie Nummer B-019.
 
 ## Offene Tasks
 
+- **T-012 Schnittstellen zu 26.3** (Forum, 2026-10-11, Connor aus dem CAM-Team): 26.3 hat 3+2 mit
+  DRO und TWP, Postprozessoren je Maschine und den Maschineneditor; ein neuer Simulator mit einer
+  Bibliothek für Spannmittel (Schraubstöcke, Platten, Spanner) und Kollisionsanzeige ist in Arbeit;
+  5-Achs-Simultan scheitert in CAM bisher daran, dass das Werkzeug immer in Z steht. Prüfen, sobald
+  es im Wochen-Build steht: 3+2 über TWP statt eigenem CYCLE800/PLANE SPATIAL, die Spannmittel aus
+  der Bibliothek in unserer Kollision statt nur Schraubstock und Futter, die Maschine weiter als
+  `.fcm` übergeben (`export.py`). Nichts davon ersetzen, ohne Manuel zu fragen.
 - **T-011 Versionscheck 26.3** – Manuel arbeitet mit FreeCAD 26.3.0RC1 (Windows); dort brach schon
   der Adaptiv-Kern (P-2026-10-10-39): voller Lauf im Wochen-Build 26.3, was er findet, sofort
   beheben (Arbeitsregeln, Abschnitt 9). Behoben: Kern-Aufruf (-39), Bohren-Namen (-41), dunkles
