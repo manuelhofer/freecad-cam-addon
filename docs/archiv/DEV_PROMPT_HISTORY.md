@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-104 erreichbar-gemerkt
+
+### EINGELESEN
+- Der Geist aus einem STL auf der 5-Achs-Fräse Tisch/Tisch, „Alles aus dieser Aufspannung“ als
+  Kette (7 Ebenen, alle mit 3D-Schruppen und 3D-Schlichten): zwischen „Anlegen“ und der nächsten
+  Ebene je 3,5–4 min, das Fenster stand. Stapelproben: `maschinenzugang.operation_erreichbar` – die
+  Kinematik für jeden Satz der Operationen davor (69.000 Sätze), aus den Schlüsseln des
+  Materialstands (`materialstand._kennung_zugang`, `raum_material._kennungen`) bei jedem Bau neu.
+
+### DATEIEN
+- `camaddon/maschinenzugang.py`: `operation_erreichbar` gemerkt (`_ERREICHBAR`) je Dokument, Job,
+  Ebene, Maschinendatei und ihrem Stand, Stand der Werkzeugverwaltung, Bahn (Prüfsumme), Werkzeug
+  und Nullpunkt; `_operation_erreichbar` rechnet.
+- `docs/STATUS_SNAPSHOT.md` (W-017). `package.xml` (0.219.0).
+
+### ERGEBNIS
+- Lücke vor Ebene 1 am Geist 57 s statt 3,5 min; die Kette legt alle Ebenen an (gemessen bis Ebene
+  5: je Ebene 3D-Schruppen und 3D-Schlichten mit Bahnen).
+
+### AKZEPTANZKRITERIUM
+- `test_materialstand`, `test_raum_material`, `test_bahnzugang` in 1.1.4;
+  `szenario_bearbeitung_aufspannung_folge` grün.
+
 ## P-2026-10-11-103 stl-in-der-bearbeitung
 
 ### EINGELESEN

@@ -132,8 +132,58 @@ def bahn_grund(maschine, befehle, name="", grenzen=True, schritte=None):
     return "; ".join(result.hinweise) if grenzen else ""
 
 
+_ERREICHBAR = {}  # _schluessel() -> True/False/None
+_ERREICHBAR_HOECHSTENS = 256
+
+
 def operation_erreichbar(job, operation):
-    """Erreichbarkeit der vollständigen tatsächlichen Bahn für den Materialentwurf."""
+    """Erreichbarkeit der vollständigen tatsächlichen Bahn für den Materialentwurf – gemerkt je
+    Job, Ebene, Maschine (Datei und Stand), Bahn, Werkzeug und Nullpunkt (P-2026-10-11-104): Der
+    Materialstand baut daraus seine Schlüssel, bei jeder Vorschau und für jede Ebene einer Kette
+    neu – am Geist aus einem STL je Ebene 3,5 min im Fenster für dieselben 69.000 Sätze."""
+    schluessel = _schluessel(job, operation)
+    if schluessel is not None and schluessel in _ERREICHBAR:
+        return _ERREICHBAR[schluessel]
+    ergebnis = _operation_erreichbar(job, operation)
+    if schluessel is not None:
+        if len(_ERREICHBAR) >= _ERREICHBAR_HOECHSTENS:
+            _ERREICHBAR.clear()
+        _ERREICHBAR[schluessel] = ergebnis
+    return ergebnis
+
+
+def _schluessel(job, operation):
+    """Wovon operation_erreichbar() abhängt – None, wenn sich das nicht sagen lässt (dann
+    rechnen)."""
+    from . import materialstand as ms
+
+    try:
+        grund = rw.grundjob_von(job)
+        datei = getattr(job, rw.EIGENSCHAFT_MASCHINE, "") or getattr(
+            grund, rw.EIGENSCHAFT_MASCHINE, ""
+        )
+        stand = os.path.getmtime(datei) if datei and os.path.isfile(datei) else None
+        bibliothek = wz.datei_pfad()
+        werkzeuge = os.path.getmtime(bibliothek) if os.path.isfile(bibliothek) else None
+        lage = sw.ebene_von(job)
+        tc = operation.ToolController
+        return (
+            job.Document.Name,
+            job.Name,
+            tuple(lage.toMatrix().A) if lage is not None else None,
+            datei,
+            stand,
+            werkzeuge,
+            ms._kennung_op(operation),
+            int(getattr(tc, "ToolNumber", 0)),
+            tuple(rw.nullpunkt(grund)),
+        )
+    except Exception:  # noqa: BLE001 – ohne Schlüssel wird gerechnet
+        return None
+
+
+def _operation_erreichbar(job, operation):
+    """operation_erreichbar() ohne Merken."""
     m = _maschine(job, operation)
     if m is None or m is False:
         return m
