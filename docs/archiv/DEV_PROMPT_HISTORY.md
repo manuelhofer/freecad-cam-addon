@@ -65,6 +65,9 @@ patch_naming:
 - Nase, Schlichten: schlimmste Stelle 0,098 → 0,004 mm (genau gerechnet; die Hüllfläche ist auf
   0,005 mm vernetzt), mehr als 0,01 mm drin: 670 → 0 Stellen. 167 273 → 172 148 Punkte; die Bahn
   rechnet 3,3 s statt 2,5 s (Nachsehen 0,8 s).
+- Nachgetragen: Y kehrt im Programm gleich oft um (2063-mal, die Seiten der Nase, Hub im Median
+  22 mm), aber mit Hub unter 0,01 mm nur noch 2-mal statt 36-mal (unter 0,2 mm 13 statt 47); C
+  kehrt nie um, kein Satz ohne Weg.
 
 ### AKZEPTANZKRITERIUM
 - `test_vierachs_bahn`, `test_vierachs_schlichten`, `test_vierachs_frei`,
