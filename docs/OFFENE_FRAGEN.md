@@ -38,3 +38,25 @@ CLX550 darf, weiß er.
 *Was die Antwort ändert:* der Haken im Schritt 2, `vierachs_planbahn.ebenen` mit Flächen zur
 Achse, die Flächen der Kugel ohne die fertigen.
 Seit 2026-10-11.
+
+### 11. „C dreht nicht zurück“ auch beim Rundum-Schruppen mit der Querachse?
+
+Beim Schlichten ist es gebaut (P-2026-10-11-37: die Kugel fährt dieselbe Fläche, nur das Werkzeug
+steht weniger quer). Beim Schruppen schneidet die Stirn des Schaftfräsers mit – steht er weniger
+quer, bleibt etwas anderes stehen. Am Nasen-Testteil (T1 Ø 12, 11.10. gerechnet, Voxel 1 mm):
+
+| Schruppen T1 mit Querachse | heute | C dreht nicht zurück |
+| --- | --- | --- |
+| Zeit (Freivorschub 10 m/min) | 15,4 min | 15,3 min |
+| C-Weg | 38 545° | 31 063° |
+| C dreht zurück | 266-mal, 3 741° | nie |
+| danach noch Material | 804 781 cm³/1000 | 805 443 (+0,08 %) |
+| die Kugel T2 nimmt beim Schlichten weg | 12 118 | 12 775 (+5 %) |
+
+**Die Frage:** Auch beim Schruppen – als Haken „C dreht nicht zurück“, vorbelegt an wie beim
+Schlichten, oder aus (die Kugel hat danach 5 % mehr zu tun)? Oder gar nicht?
+*Warum nur Manuel:* Es ändert, wie geschruppt wird (Strategiewahl), und ob die ruhigere C-Achse die
+5 % wert ist, weiß er von seiner Maschine.
+*Was die Antwort ändert:* die Eigenschaft „Stetig“ auch an „Rundum schruppen“ und der Haken im
+Schritt 2 – oder nichts.
+Seit 2026-10-11.
