@@ -2240,22 +2240,10 @@ def _kippachse(job):
 
 
 def _wegkippen_bedarf(job, werkzeug, bahn, form):
-    """wegkippen.Bedarf für die Vorschau: wie weit der Kugelfräser an der Bahn mindestens
-    herausstehen muss – senkrecht und weggekippt – und wie weit er heraussteht (Halter und Länge
-    aus der Werkzeugverwaltung, wie „Auf der Maschine prüfen“). None, wenn es nicht geht."""
-    from . import vierachs_schlichten as vs
+    """wegkippen.Bedarf für die Vorschau (wegkippen.bedarf_fuer_bahn)."""
     from . import wegkippen as wk
 
-    try:
-        bibliothek = wz.Bibliothek.laden()
-    except (wz.BeschaedigteDatei, OSError):
-        bibliothek = None
-    einspannung = wk.einspannung_werkzeug(werkzeug, bibliothek)
-    punkte = [(p.x, p.y, p.z) for p in bahn.punkte if not p.eilgang]
-    if einspannung is None or not punkte:
-        return None
-    teil = vs._teil(job.Model.Group)
-    return wk.bedarf(teil, punkte, float(form.radius), einspannung)
+    return wk.bedarf_fuer_bahn(job, werkzeug, bahn, form)
 
 
 def _job_der(op):
@@ -2358,12 +2346,13 @@ class _Schlichten3D(_Strategie):
         return bahn
 
     def hintergrund(self, werkzeug, werte, flaechen):
-        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie) – None mit dem
-        Wegkippen: Dessen Bedarf liest Halter und Länge aus der Werkzeugverwaltung, das rechnet
-        der Assistent selbst."""
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie) – mit dem
+        Wegkippen samt dessen Bedarf (bearbeitung_vorschau.schlichten3d_wegkippen: Halter und
+        Länge liest der Arbeiter aus der Werkzeugverwaltung desselben Profils)."""
+        argumente = self._argumente(werkzeug, werte, flaechen)
         if self._wegkippen(werkzeug, werte):
-            return None
-        return "strategie", ("schlichten3d", *self._argumente(werkzeug, werte, flaechen))
+            return "schlichten3d_wegkippen", (werkzeug, *argumente)
+        return "strategie", ("schlichten3d", *argumente)
 
     def ergebnis_text(self, bahn, zeit):
         text = self._ergebnis_text(bahn, zeit)
@@ -2473,7 +2462,9 @@ class _Flanke(_Strategie):
     def vorschlag(self, feld, werkzeug, einsatz):
         return 0.0
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Argumente, Schlüsselwörter) für flanke.vorschau nach Job und Modell – die Körper über
+        der Schneide aus der Werkzeugverwaltung (der Halter in der Wand: „bräuchte mindestens“)."""
         form = ff.von_werkzeug(werkzeug)
         if form is None or not form.eben:
             raise ValueError(tr("fl.fehler.fraeser"))
@@ -2483,30 +2474,21 @@ class _Flanke(_Strategie):
             bibliothek = wz.Bibliothek.laden()
         except (wz.BeschaedigteDatei, OSError):
             bibliothek = None
-        bahn = flop.bahn_fuer(
-            job,
-            job.Model.Group,
-            radius,
-            schneide,
-            flaechen,
-            aufmass=werte["aufmass"],
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            koerper=flop.koerper_ueber_der_schneide(werkzeug, bibliothek),
-        )
-        if bahn.anstoss is not None:
-            # Der Halter in der Wand (legros im Forum; Manuel, 2026-10-11: „es hilft nichts wenn
-            # der halter dann in den kegel reinballert“): so nicht – mit dem, was es bräuchte.
-            raise ValueError(
-                tr(
-                    "ba.fl.halter_stoesst",
-                    heraus=groesse_zeigen(bahn.anstoss.heraus, einheiten.LAENGE, 1),
-                    mindestens=groesse_zeigen(
-                        math.ceil(bahn.anstoss.mindestens), einheiten.LAENGE, 0
-                    ),
-                )
-            )
-        return bahn
+        return (form, radius, schneide, list(flaechen)), {
+            "aufmass": werte["aufmass"],
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "koerper": flop.koerper_ueber_der_schneide(werkzeug, bibliothek),
+        }
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return flop.vorschau(job, job.Model.Group, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie) – am Kegel stand
+        das Fenster dafür 2,7 s ohne Klick (P-2026-10-11-53)."""
+        return "strategie", ("flanke", *self._argumente(werkzeug, werte, flaechen))
 
     def zeit(self, bahn, vorschub, eintauchen):
         return bahn.zeit  # mit dem Drehen der Achse (flanke_bahn._laenge_und_zeit)
@@ -2583,22 +2565,26 @@ class _Restschlichten(_Schlichten3D):
         eckenradius = werte.get("davor_eck")
         return durchmesser, float(durchmesser / 2 if eckenradius is None else eckenradius)
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Argumente, Schlüsselwörter) für schlichten3d.vorschau – mit dem Fräser davor."""
         form = ff.von_werkzeug(werkzeug)
         if form is None:
             raise ValueError(tr("s3.fehler.form"))
         durchmesser, eckenradius = self.davor(werte)
-        return s3op.vorschau(
-            job,
-            job.Model.Group,
-            form,
-            werte["grathoehe"],
-            flaechen,
-            aufmass=werte["aufmass"],
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            davor=ff.torus(durchmesser / 2, min(eckenradius, durchmesser / 2)),
-        )
+        return (form, werte["grathoehe"], list(flaechen)), {
+            "aufmass": werte["aufmass"],
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "davor": ff.torus(durchmesser / 2, min(eckenradius, durchmesser / 2)),
+        }
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return s3op.vorschau(job, job.Model.Group, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie)."""
+        return "strategie", ("schlichten3d", *self._argumente(werkzeug, werte, flaechen))
 
     def lege_an(self, job, tc, werte, flaechen):
         op = s3op.lege_an(

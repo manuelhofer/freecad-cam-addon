@@ -48,6 +48,18 @@ def strategie(dokument, job_name, modul, argumente, weiter, zeit):
     return bahn, _frei(argumente[0], bahn, zeit)
 
 
+def schlichten3d_wegkippen(dokument, job_name, werkzeug, argumente, weiter, zeit):
+    """(Bahn, Zeit im Freien oder None) – das 3D-Schlichten mit dem Bedarf zum Wegkippen
+    (wegkippen.bedarf_fuer_bahn: Halter und Länge aus der Werkzeugverwaltung des Profils)."""
+    from . import schlichten3d
+    from . import wegkippen as wk
+
+    job = _job(dokument, job_name)
+    bahn = schlichten3d.vorschau(job, job.Model.Group, *argumente, **weiter)
+    bahn.wegkippen = wk.bedarf_fuer_bahn(job, werkzeug, bahn, argumente[0])
+    return bahn, _frei(argumente[0], bahn, zeit)
+
+
 def _frei(form, bahn, zeit):
     """freiwege.zeit_im_freien für die Bahn – None ohne `zeit` (Vorschub, Eintauchen,
     Freivorschub, Materialstand: der des Assistenten, wie gui_bearbeitung._zeit_im_freien; das

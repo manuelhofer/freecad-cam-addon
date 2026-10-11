@@ -684,3 +684,23 @@ def bedarf(
     if math.isfinite(gekippt):
         gekippt = min(math.ceil(gekippt - 1e-9) + ZUGABE, max(senkrecht, gekippt))
     return Bedarf(senkrecht, gekippt, auskragung)
+
+
+def bedarf_fuer_bahn(job, werkzeug, bahn, form):
+    """Bedarf für die Vorschau im Assistenten (auch in einem Nebenrechner): wie weit der
+    Kugelfräser an der Bahn mindestens herausstehen muss – senkrecht und weggekippt – und wie
+    weit er heraussteht (Halter und Länge aus der Werkzeugverwaltung, wie „Auf der Maschine
+    prüfen“). None, wenn es nicht geht."""
+    from . import vierachs_schlichten as vs
+    from . import werkzeuge as wz
+
+    try:
+        bibliothek = wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        bibliothek = None
+    einspannung = einspannung_werkzeug(werkzeug, bibliothek)
+    punkte = [(p.x, p.y, p.z) for p in bahn.punkte if not p.eilgang]
+    if einspannung is None or not punkte:
+        return None
+    teil = vs._teil(job.Model.Group)
+    return bedarf(teil, punkte, float(form.radius), einspannung)

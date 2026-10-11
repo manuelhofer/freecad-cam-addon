@@ -14,6 +14,8 @@ zugleich ihre Art für „Schnittwerte in den Job“: Einsatz „Schlichten“. 
 Läuft ohne Oberfläche.
 """
 
+import math
+
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
@@ -204,6 +206,47 @@ def bahn_fuer(
     bahn = fb.planen(form_teil, list(flaechen), werte)
     if koerper:
         bahn.anstoss = fb.halter_pruefen(form_teil, bahn, koerper, radius)
+    return bahn
+
+
+def vorschau(
+    job,
+    modell,
+    form,
+    radius,
+    schneide,
+    flaechen,
+    aufmass=0.0,
+    vorschub=0.0,
+    eintauchen=0.0,
+    koerper=(),
+):
+    """Die Bahn der Flanke für den Assistenten (gui_bearbeitung, auch in einem Nebenrechner über
+    bearbeitung_vorschau.strategie; `form` ist dort die Form des Fräsers): bahn_fuer – und stoßen
+    die Körper über der Schneide (`koerper`) an, ein ValueError mit dem, was es bräuchte (legros im
+    Forum; Manuel, 2026-10-11: „es hilft nichts wenn der halter dann in den kegel reinballert“)."""
+    from . import einheiten
+
+    del form  # nur für die Zeit im Freien (bearbeitung_vorschau)
+    bahn = bahn_fuer(
+        job,
+        modell,
+        radius,
+        schneide,
+        flaechen,
+        aufmass=aufmass,
+        vorschub=vorschub,
+        eintauchen=eintauchen,
+        koerper=list(koerper),
+    )
+    if bahn.anstoss is not None:
+        raise ValueError(
+            tr(
+                "ba.fl.halter_stoesst",
+                heraus=einheiten.text(bahn.anstoss.heraus, einheiten.LAENGE, 1),
+                mindestens=einheiten.text(math.ceil(bahn.anstoss.mindestens), einheiten.LAENGE, 0),
+            )
+        )
     return bahn
 
 

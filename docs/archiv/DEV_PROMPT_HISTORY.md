@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-53 bearbeitung-mehr-im-hintergrund
+
+### EINGELESEN
+- Offen aus der Nacht (Snapshot, „Nicht geschafft“): Im 3-Achs-Assistenten rechneten Flanke,
+  Restschlichten und 3D-Schlichten mit Wegkippen noch im Fenster – die Flanke am Kegel 2,7 s, in
+  denen das Fenster zeichnete, aber keinen Klick annahm (Manuel, 2026-10-09: „ein Lag … wo ich
+  nichts klicken kann … sowas muss unbedingt vermieden werden“).
+
+### DATEIEN
+- `camaddon/flanke.py`: `vorschau()` ohne Oberfläche – die Bahn und, wenn der Halter anstößt, der
+  ValueError mit dem, was es bräuchte (bis dahin in gui_bearbeitung).
+- `camaddon/wegkippen.py`: `bedarf_fuer_bahn()` (aus gui_bearbeitung._wegkippen_bedarf) – der
+  Arbeiter liest Halter und Länge aus der Werkzeugverwaltung desselben Profils.
+- `camaddon/bearbeitung_vorschau.py`: `schlichten3d_wegkippen()`.
+- `camaddon/gui_bearbeitung.py`: `_Flanke.hintergrund`, `_Restschlichten._argumente/hintergrund`,
+  `_Schlichten3D.hintergrund` auch mit dem Wegkippen.
+- `package.xml` (0.213.59), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_flanke`, `szenario_flanke_halter`, `szenario_wegkippen`, `szenario_restschlichten` grün;
+  mitgeschrieben gehen die Vorschauen an die Nebenrechner (`strategie (flanke)`,
+  `schlichten3d_wegkippen`, `strategie (schlichten3d, davor)`).
+
 ## P-2026-10-11-52 plan-vorschau-vom-rest
 
 ### EINGELESEN

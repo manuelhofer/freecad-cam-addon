@@ -325,8 +325,9 @@ aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-29 (0.213.8 �
 - **Offen für Manuel:** Fragen 5–9 in `OFFENE_FRAGEN.md` (ebene Flächen mit dem Schaftfräser,
   Schrittweite des Schafts, der Halter stößt ans Teil, Rest vor dem Schlichten, C dreht zurück).
 - **Nicht geschafft:** ~~das Prüffenster im Hintergrund~~ (P-2026-10-11-41: im Takt, höchstens 0,5 s am Stück), Hebel 3 (Varianten
-  des 5-Achs-Vergleichs parallel); im 3-Achs-Assistenten rechnen Restschlichten, 3D-Schlichten
-  mit Wegkippen und die kleinen Strategien noch im Fenster (je unter 1 s).
+  des 5-Achs-Vergleichs parallel); im 3-Achs-Assistenten rechnen nur noch die kleinen Strategien
+  im Fenster (je unter 1 s) – Flanke, Restschlichten und 3D-Schlichten mit Wegkippen seit
+  P-2026-10-11-53 im Hintergrund.
 
 **Die Nacht vom 2026-10-03 auf den 04.** (Manuel: „bau weiter, fang von mir aus mit
 5-Achs-Strategien an … mach einfach weiter, bis ich guten Morgen sage“): 3+2 durchgängig
