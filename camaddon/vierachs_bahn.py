@@ -104,6 +104,12 @@ ABSTECHBREITE = 3.0  # mm – wie vierachs_rohteil.ABSTECHBREITE, ohne Job
 RAND = 0.005  # mm – zum Aufmaß dazu, für Rundungen im Raster
 GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
 LEER = 1e-3  # mm – so knapp über dem Material gilt eine Stelle als frei (nichts weg)
+# Mit Flächen und der Querachse (Frage 12, Manuel 2026-10-11: „Spirale, Flächen überspringen …
+# angehoben, Freivorschub“): Wo die Kugel nur noch Flächen berührte, die nicht gewählt sind (die
+# „Plan indexiert“ fertig macht), fährt sie so viel höher im Freivorschub darüber – mehr als das
+# Aufmaß des Schruppens und die Kämme (bis 0,7 mm), die an den Nachbarflächen noch stehen können.
+UEBERSPRINGEN = 2.0  # mm
+UEBERSPRINGEN_GENAU = 0.01  # mm – so viel tiefer muss die gewählte Fläche liegen, damit sie es tut
 # So tief bliebe ein Hindernis zwischen zwei Zeilen im Abstand g höchstens unentdeckt, wenn nur
 # auf den Zeilen geprüft wird: g² ÷ (8 R). Mehr – ein großer Fräser mit großem ae – und auch
 # dazwischen wird geprüft, ob der Weg von Zeile zu Zeile frei ist (_zwischen; P-2026-10-02-30:
@@ -255,6 +261,10 @@ class Schlichtwerte:
     # Mit der Querachse: C dreht nie gegen die Spirale zurück (_stetig) – die Werkzeugachse steht
     # nur so weit auf der Normalen, wie C dabei weiterdreht (P-2026-10-11-37).
     stetig: bool = False
+    # Das Netz nur der gewählten Flächen (vierachs_huelle.vernetze): Mit `bereich` und der
+    # Querachse fährt die Spirale dann rundum und hebt über den übrigen ab (UEBERSPRINGEN) statt
+    # Zeilen ohne Y zu fahren (Frage 12, P-2026-10-11-86).
+    flaechen_netz: object = None
 
 
 @dataclass
@@ -1224,7 +1234,8 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         return _schlichten_linien(
             netz, laengs, radial, w, a_anfang, a_ende, teil_vorne, teil_hinten, hinten_frei
         )
-    if w.bereich is not None:  # gewählte Flächen: Zeilen hin und her (V4)
+    ueberspringen = w.bereich is not None and bool(w.querachse) and w.flaechen_netz is not None
+    if w.bereich is not None and not ueberspringen:  # gewählte Flächen: Zeilen hin und her (V4)
         return _schlichten_zeilen(
             netz,
             laengs,
@@ -1263,6 +1274,19 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
                 netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
             )
 
+        ueber = None
+        if ueberspringen:
+
+            def ueber(a_p, x_p, q_p, psi_p):
+                # Außerhalb des Bereichs (dort muss die Mitte nicht hin, um die gewählten Flächen
+                # ganz zu fräsen – wie die Zeilen, _schlichten_zeilen) oder wo nur eine andere
+                # Fläche den Fräser hält (_ueber_anderen).
+                a_s, _spitze, winkel_s = _auf_dem_strahl(a_p, x_p, q_p, psi_p, radius)
+                draussen = ~w.bereich.bei(a_s, np.radians(winkel_s))
+                return draussen | _ueber_anderen(
+                    netz, w.flaechen_netz, laengs, radial, form, zugabe, a_p, q_p, psi_p, x_p
+                )
+
         anfang = len(punkte)
         r_min = _spirale_quer(
             punkte,
@@ -1279,6 +1303,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
             w.anstellen if form.nur_kugel else 0.0,
             material_oben=lambda a_k, winkel_k: _material_oben(w, form, a_k, winkel_k),
             stetig=w.stetig,
+            ueber=ueber,
         )
         if form.nur_kugel:
             # Mit der Querachse steht die Kugel woanders als auf dem Strahl der Spirale (quer
@@ -1785,6 +1810,7 @@ def _spirale_quer(
     anstellen=0.0,
     material_oben=None,
     stetig=False,
+    ueber=None,
 ):
     """Hängt die ganze Spirale mit der Querachse an `punkte` (_quer_plan, normale_quer): die
     Rundachse steht auf ψ, die Spitze bei x längs der Werkzeugachse, quer um q versetzt.
@@ -1795,7 +1821,9 @@ def _spirale_quer(
     `material_oben`: (a, Winkel in Grad) → wie hoch die Spitze eines radialen Fräsers dieser
     Form dort stehen muss, um das Material vor dem Schlichten gerade zu berühren (_material_oben)
     – damit fährt die Kugel durchs Freie mit dem Freivorschub (_quer_frei). `stetig`: C dreht nie
-    zurück (_stetig). Gibt die tiefste Spitze zurück."""
+    zurück (_stetig). `ueber`: (a, x, q, ψ) → je Stellung, ob der Fräser dort nur Flächen
+    berührt, die nicht gewählt sind (_ueber_anderen) – dort fährt er UEBERSPRINGEN höher im
+    Freivorschub. Gibt die tiefste Spitze zurück."""
     neigung = math.copysign(float(anstellen), drehung) if kugel else 0.0
     a_p, x_p, q_p, psi_p, fest, eingefuegt, normale = _quer_plan(
         a, r, winkel, radius, schritt_phi, neigung, stetig
@@ -1815,9 +1843,25 @@ def _spirale_quer(
         psi_w, x_w, q_w = umrechnen(a_p[w], x_p[w], q_p[w], psi_p[w])
         psi_p, x_p, q_p = psi_p.copy(), x_p.copy(), q_p.copy()
         psi_p[w], x_p[w], q_p[w] = psi_w, x_w, q_w
+    tiefste = float(np.min(x_p))
+    gehoben = None
+    if ueber is not None:
+        gehoben = np.asarray(ueber(a_p, x_p, q_p, psi_p), dtype=bool)
+        if gehoben.any():
+            # Angehoben – hinaus längs der Werkzeugachse, weg vom Teil; die Punkte, an denen es
+            # wechselt, bleiben (auch beim Zusammenfassen).
+            x_p = np.where(gehoben, np.asarray(x_p, dtype=float) + UEBERSPRINGEN, x_p)
+            wechsel = np.flatnonzero(gehoben[:-1] != gehoben[1:])
+            fest = sorted(
+                set(np.asarray(fest).tolist()) | set(wechsel.tolist()) | set((wechsel + 1).tolist())
+            )
     frei = None
     if kugel and material_oben is not None:
         frei = _quer_frei(a_p, x_p, q_p, psi_p, radius, material_oben)
+    if gehoben is not None and gehoben.any():
+        a_s, spitze, winkel_s = _auf_dem_strahl(a_p, x_p, q_p, psi_p, radius)
+        darueber = _frei(a_s, spitze, winkel_s, gehoben)
+        frei = darueber if frei is None else (np.asarray(frei, dtype=bool) | darueber)
     _quer_ausgeben(
         punkte,
         a_p,
@@ -1833,7 +1877,32 @@ def _spirale_quer(
         frei=frei,
         normale=normale,
     )
-    return float(np.min(x_p))
+    return tiefste
+
+
+def _ueber_anderen(netz, flaechen_netz, laengs, radial, form, zugabe, a, q, psi, x):
+    """Je Stellung des Fräsers mit der Querachse (Spitze x längs der Werkzeugachse unter ψ, quer
+    um q, an der Stelle a): Berührt er dort nur Flächen, die nicht gewählt sind? Die Spitze aus der
+    Hüllfläche des ganzen Teils und aus der nur der gewählten Flächen (`flaechen_netz`) – je in
+    derselben Stellung, auf der nächsten Rasterrichtung (wie vierachs_quer.stellungen) –: Liegt
+    die der gewählten Flächen UEBERSPRINGEN_GENAU tiefer oder trifft er sie gar nicht, hält ihn
+    dort eine andere Fläche. Wo er gar nichts trifft, nein (dort sagt es _quer_frei)."""
+    radius = form.radius
+    geformt = ff.scheibe(radius + zugabe) if form.eben else form.mit_aufmass(zugabe)
+    psi = np.asarray(psi, dtype=float)
+    raster = vq.PSI_RASTER
+    psi_s = np.round(psi / raster) * raster
+    drehen = np.radians(psi - psi_s)
+    mitte_x = np.asarray(x, dtype=float) + radius
+    mitte_q = np.asarray(q, dtype=float)
+    q_s = mitte_x * np.sin(drehen) + mitte_q * np.cos(drehen)
+    stufen = int(round(360.0 / raster))
+    richtung = np.radians(np.mod(np.round(psi_s / raster), stufen) * raster)
+    stelle = np.asarray(a, dtype=float)
+    ganz = vh.je_stellung(netz, laengs, radial, geformt, richtung, q_s, stelle)
+    gewaehlt = vh.je_stellung(flaechen_netz, laengs, radial, geformt, richtung, q_s, stelle)
+    trifft = np.isfinite(ganz)
+    return trifft & (~np.isfinite(gewaehlt) | (gewaehlt < ganz - UEBERSPRINGEN_GENAU))
 
 
 def _quer_frei(a, x, q, psi, radius, material_oben):
@@ -1860,7 +1929,9 @@ def _auf_dem_strahl(a, x, q, psi, radius):
 def _rest_ueber_quer(w, form, punkte):
     """_rest_ueber für die Punkte der Spirale mit der Querachse – je Kugel auf dem Strahl durch
     ihre Mitte (_auf_dem_strahl)."""
-    stellungen = [p for p in punkte if not p.eilgang]
+    # Was sie im Freivorschub überfährt (vor der Stange, über den fertigen Flächen – Frage 12),
+    # nimmt sie nicht: dort zählt kein Rest.
+    stellungen = [p for p in punkte if not p.eilgang and not p.frei]
     if w.rest is None or not stellungen:
         return 0.0
     a, spitze, winkel = _auf_dem_strahl(

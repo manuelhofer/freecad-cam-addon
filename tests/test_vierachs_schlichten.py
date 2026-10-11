@@ -415,6 +415,66 @@ print(
     )
 )
 
+# --- Mit Flächen und der Querachse (Frage 12, Manuel 2026-10-11: „Spirale, Flächen überspringen
+# … angehoben, Freivorschub“) ------------------------------------------------------------------
+# Das D-Profil, gewählt ist alles außer der Abflachung (die „Plan indexiert“ fertig macht): Die
+# Spirale fährt rundum mit Y; über der Abflachung steht die Kugelmitte UEBERSPRINGEN höher, dort im
+# Freivorschub; auf dem Zylinder bleibt sie R vom Teil. Kürzer als rundum.
+eben_d = next(
+    i
+    for i, f in enumerate(d_profil.Faces)
+    if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-6
+)
+uebrige_d = [i for i in range(len(d_profil.Faces)) if i != eben_d]
+sicht_d = vf.sicht(vf.vernetze(d_profil), LAENGS, RADIAL, vf.raster_a(-65.0, 5.0), vh.raster_phi())
+netz_uebrige = vh.vernetze(
+    Part.makeCompound([d_profil.Faces[i] for i in uebrige_d]), vb.TOLERANZ_SCHLICHTEN
+)
+werte_c = replace(
+    werte_d,
+    querachse=True,
+    bereich=vf.bereich(sicht_d, uebrige_d, 5.0),
+    flaechen_netz=netz_uebrige,
+)
+ueber_d = vb.schlichten(netz_d, LAENGS, RADIAL, werte_c)
+zeilen_d = vb.schlichten(netz_d, LAENGS, RADIAL, replace(werte_c, flaechen_netz=None))
+pruefe(ueber_d.querachse, "mit Flächen und Querachse: keine Spirale")
+pruefe(not zeilen_d.querachse, "ohne Netz der Flächen: keine Zeilen")
+vorschub_c = [p for p in ueber_d.punkte if not p.eilgang]
+psi_c = np.radians([p.phi for p in vorschub_c])
+x_c = np.array([p.r for p in vorschub_c])
+q_c = np.array([p.q for p in vorschub_c])
+a_c = np.array([p.a for p in vorschub_c])
+frei_c = np.array([p.frei for p in vorschub_c])
+mx_c = (x_c + 5.0) * np.cos(psi_c) - q_c * np.sin(psi_c)
+my_c = (x_c + 5.0) * np.sin(psi_c) + q_c * np.cos(psi_c)
+ecke_c = np.minimum(np.hypot(mx_c - 6.0, my_c - w_d), np.hypot(mx_c - 6.0, my_c + w_d))
+abstand_c = np.where(
+    mx_c > 6.0,
+    np.where(np.abs(my_c) <= w_d, mx_c - 6.0, ecke_c),
+    np.hypot(mx_c, my_c) - 20.0,
+)
+im_teil_c = (a_c < -6.0) & (a_c > -54.0)
+ueber_ebene = im_teil_c & (np.abs(my_c) < w_d - 6.0) & (mx_c > 6.0)
+auf_zylinder = im_teil_c & (mx_c < 0.0)
+pruefe(ueber_ebene.any() and auf_zylinder.any(), "D-Profil: keine Stellen über Ebene/Zylinder")
+pruefe(
+    abstand_c[ueber_ebene].min() >= 5.0 + vb.UEBERSPRINGEN - 0.01,
+    f"über der Abflachung nur {abstand_c[ueber_ebene].min():.3f} mm (Mitte) vom Teil",
+)
+pruefe(
+    frei_c[ueber_ebene].mean() > 0.8, f"über der Abflachung frei: {frei_c[ueber_ebene].mean():.2f}"
+)
+pruefe(
+    abstand_c[auf_zylinder].min() >= 5.0 - 1e-3 and abstand_c[auf_zylinder].max() <= 5.0 + 0.2,
+    f"Zylinder: Kugelmitte {abstand_c[auf_zylinder].min():.4f} … "
+    f"{abstand_c[auf_zylinder].max():.4f} vom Teil",
+)
+zeit_c = vb.dauer(ueber_d, 1000.0, freivorschub=10000.0, fraeser_radius=5.0)
+zeit_rundum = vb.dauer(quer_d, 1000.0, freivorschub=10000.0, fraeser_radius=5.0)
+pruefe(zeit_c < zeit_rundum, f"überspringen {zeit_c:.2f} min, rundum {zeit_rundum:.2f} min")
+print(ascii(f"Mit Flaechen und Querachse: {zeit_c:.2f} statt {zeit_rundum:.2f} min"))
+
 # --- Zwischen den Punkten (P-2026-10-03-22 und -24) ------------------------------------------
 # Die Abflachung nah an der Achse (x = 2): An ihren Rändern steigt die Hüllfläche von der Achse
 # aus gesehen steil und biegt – die Gerade zwischen zwei Punkten 0,5° auseinander lag unter

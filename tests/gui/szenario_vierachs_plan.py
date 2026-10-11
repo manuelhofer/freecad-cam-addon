@@ -88,10 +88,12 @@ def schritte(h):
         bool(schlicht) and abflachung not in schlicht,
         f"rundum mit Plan: Schlichten über {schlicht}",
     )
-    # Nur die übrigen Flächen fährt das Schlichten in Zeilen ohne Y – der Haken sagt es (Frage 12).
+    # Mit den übrigen Flächen: die Spirale rundum mit Y, über der Ebene angehoben im Freivorschub
+    # (Frage 12, Manuel 2026-10-11) – der Haken frei und vorgeschlagen, der Grund sagt es.
     h.pruefe(
-        not panel.schlichten_querachse.isEnabled()
-        and panel.querachse_grund.text().startswith("Nur rundum – mit Flächen"),
+        panel.schlichten_querachse.isEnabled()
+        and panel.schlichten_querachse.isChecked()
+        and panel.querachse_grund.text().startswith("Mit Flächen fährt die Spirale rundum"),
         f"Querachse beim Schlichten: {panel.querachse_grund.text()!r}",
     )
     yield from h.warte_auf(

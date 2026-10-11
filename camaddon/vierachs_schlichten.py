@@ -277,9 +277,21 @@ def bahn_fuer(
         querachse=querachse,
         anstellen=vb.ANSTELLEN_QUER if anstellen else 0.0,
         stetig=stetig,
+        flaechen_netz=_flaechen_netz(form_teil, flaechen, querachse, vb.TOLERANZ_SCHLICHTEN),
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte, schritt_phi)
+
+
+def _flaechen_netz(form_teil, flaechen, querachse, toleranz):
+    """Das Netz nur der gewählten Flächen – mit der Querachse fährt die Spirale dann rundum und
+    hebt über den übrigen ab (vierachs_bahn.Schlichtwerte.flaechen_netz, Frage 12); None ohne
+    Flächen oder ohne Querachse."""
+    import Part
+
+    if not flaechen or not querachse:
+        return None
+    return vh.vernetze(Part.makeCompound([form_teil.getElement(n) for n in flaechen]), toleranz)
 
 
 def vorschau(
@@ -314,6 +326,7 @@ def vorschau(
         querachse=querachse,
         anstellen=vb.ANSTELLEN_QUER if anstellen else 0.0,
         stetig=stetig,
+        flaechen_netz=_flaechen_netz(form_teil, flaechen, querachse, VORSCHAU_TOLERANZ),
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)

@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-86 frage-12-spirale-ueberspringt
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends, auf Frage 12 (die Kugel nach „Plan indexiert“): **(c)** – „Spirale,
+  Flächen überspringen“, und dabei „angehoben, Freivorschub“ (nicht heraus und wieder hinein).
+  Dazu: den Fehler im Adaptiv-Kern nicht bei FreeCAD melden, nur dokumentieren (steht in
+  P-2026-10-11-76/-84); den Wochen-Build „generell immer herunterladen und schauen, dass man up to
+  date bleibt“ – eingerichtet (conda-forge, FreeCAD 26.3.0 vom 16.09.2026, `~/.cache/…/fcenv`).
+- Erster Versuch: nur angehoben, wo der Fräser allein die nicht gewählten Flächen berührt (die
+  Hüllfläche nur der gewählten verlangt ihn tiefer) – am Nasen-Testteil 6,5 % der Stellen, 6,2 m
+  frei, 173,3 min. Die 11,9 m Luft aus Frage 12 liegen auch dort, wo die Kugel die Nachbarflächen
+  streift, an denen nichts mehr ist: dazu der Bereich wie bei den Zeilen (wo die Mitte stehen muss,
+  um die gewählten Flächen ganz zu fräsen).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `Schlichtwerte.flaechen_netz` (Netz nur der gewählten Flächen);
+  mit Bereich und Querachse fährt `schlichten` die Spirale statt der Zeilen; `_spirale_quer(…,
+  ueber=)` hebt die Stellen außerhalb des Bereichs oder über anderen Flächen (`_ueber_anderen`)
+  um `UEBERSPRINGEN` (2 mm) an, im Freivorschub (`_frei`), die Wechsel bleiben beim
+  Zusammenfassen; der Rest über der Kugel zählt nicht, wo sie frei fährt.
+- `camaddon/vierachs_schlichten.py`: `_flaechen_netz` – mit Flächen und Querachse in Bahn und
+  Vorschau.
+- `camaddon/gui_vierachs.py`: der Haken „Mit der Querachse (Y)“ mit Flächen frei und
+  vorgeschlagen, Grund `va.querachse.mit_flaechen` (statt `nur_rundum_schlichten`);
+  `translations/de.json`, `en.json`; `help/de|en/vierachs.html`.
+- `tests/test_vierachs_schlichten.py`: D-Profil ohne die Abflachung – Spirale, über der Abflachung
+  R + 2 mm und frei, auf dem Zylinder R, kürzer als rundum (6,61 statt 8,64 min).
+- `tests/gui/szenario_vierachs_plan.py`: der Haken frei und angehakt.
+- `docs/OFFENE_FRAGEN.md` (Frage 12 beantwortet), `package.xml` (0.213.90).
+
+### ERGEBNIS
+- Nasen-Testteil, Kugel T2: (b) rundum 179,9 min, (a) Zeilen ohne Y 157,8 min, **(c) 162,4 min**
+  – 11,1 m im Freivorschub. Nicht die geschätzten „etwa 150“: Die Spirale mit Y fährt den ganzen
+  Mantel mit der Schrittweite aus der Kammhöhe, die Zeilen sind kürzer.
+- Voxel (0,25 mm), (b) und (c) je auf der frischen Stange: Was nur (c) stehen lässt (1184 mm³), liegt
+  zu 99,8 % an den Planflächen (macht „Plan indexiert“), der Rest 2,5–4,2 mm vor den Stirnflächen
+  (die auch die Zeilen nicht fahren); kein Voxel näher als 1 mm an einer gewählten Fläche.
+
+### AKZEPTANZKRITERIUM
+- `test_vierachs_schlichten`, `test_vierachs_schlichten_op`, `test_vierachs_plan`,
+  `test_vierachs_flaechen`, `test_vierachs_pruefen`, `test_sprache`, `test_hilfe` in 1.1.4,
+  die ersten drei auch in RC1; `szenario_vierachs_plan`, `szenario_vierachs_schlichten`,
+  `szenario_vierachs_aendern` grün.
+
 ## P-2026-10-11-85 kollision-paare-als-felder
 
 ### EINGELESEN

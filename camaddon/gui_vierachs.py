@@ -2148,13 +2148,13 @@ class VierachsPanel:
             geht, grund = False, tr("va.querachse.keine", maschine=achse.maschine)
         elif self.muster() != vb.SPIRALE:
             geht, grund = False, tr("va.querachse.nur_spirale")
-        elif self._schlicht_flaechen():
-            # Mit Flächen (gewählt, oder ohne die, die „Plan indexiert“ fertig macht) fährt das
-            # Schlichten Zeilen hin und her – ohne Y (vierachs_bahn._schlichten_zeilen); der Haken
-            # blieb angehakt und galt nicht (P-2026-10-11-59, Frage 12).
-            geht, grund = False, tr("va.querachse.nur_rundum_schlichten")
         elif form is None:
             geht, grund = False, tr("va.querachse.ohne_form")
+        elif self._schlicht_flaechen():
+            # Mit Flächen (gewählt, oder ohne die, die „Plan indexiert“ fertig macht): die Spirale
+            # rundum, über den übrigen Flächen angehoben im Freivorschub (Frage 12, Manuel
+            # 2026-10-11; vierachs_bahn.Schlichtwerte.flaechen_netz) – ohne den Haken Zeilen ohne Y.
+            geht, grund = True, tr("va.querachse.mit_flaechen")
         elif form.nur_kugel:
             geht, grund = True, tr("va.querachse.vorschlag")
         else:
