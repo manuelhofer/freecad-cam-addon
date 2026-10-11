@@ -289,8 +289,11 @@ abgearbeitet):
    Nachgerechnet (Voxel): die halbe Steigung überall kostet 14 min und nimmt der Kugel nur 10 %.
    Die „408 mm³ je mm an der Nase“ vom Morgen waren ein Messfehler (Weg ohne Y); richtig: höchstens
    4 mm³ je mm, mehr als 1 auf 2,6 von 100 m (P-2026-10-11-44). ~~Die Meldung im Assistenten~~
-   steht (P-2026-10-11-44: „Rest für die Kugel …“, gelb ab 4 × Aufmaß × Schrittweite). Offen: die
-   Abhilfen als Knopf (in Z abzeilen; dort kleinere Steigung) – vorher messen, was jede bringt.
+   steht (P-2026-10-11-44: „Rest für die Kugel …“, gelb ab 4 × Aufmaß × Schrittweite). ~~Die
+   Abhilfen als Knopf~~ – gemessen (Voxel, Nase, Querachse, Zustellung 22,2): die halbe Steigung
+   15,4 → 29,6 min Schruppen, die Kugel nimmt 12,1 → 10,8 cm³; Zustellung 5 mm 65,4 min, 10,0 cm³;
+   der Rest bleibt überall höchstens 4 mm² im Querschnitt. Lohnt nicht als Knopf; die Zustellung
+   stellt Manuel schon selbst.
 6. **Nase mit dem Schaftfräser (Frage 5):** C so, dass Face8 (zur Mitte) quer zum Fräser steht,
    mit Y abzeilen (X auch unter 0, soweit die Maschine fährt); die Seiten Face4/Face6 mit dem
    Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – Bild
