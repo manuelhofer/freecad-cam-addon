@@ -69,6 +69,7 @@ SCHRITT_XY = 0.5  # mm – Raster des Quaders (2,5D)
 EILGANG_SCHWELLE = 0.1  # mm – so viel Material darf ein Eilgang (im Raster) streifen
 TEILSCHRITT = 0.5  # mm – so fein fährt der Fräser zwischen zwei Punkten der Bahn
 TEILSCHRITTE_JE_BLOCK = 50000  # so viele Teilschritte rechnet fahre_stuecke() auf einmal
+TEILSCHRITTE_IM_TAKT = 10000  # so viele zwischen zwei yield in fahre_stuecke_schritte()
 GENAU = 1e-3  # mm – mit einer so kleinen Scheibe liest der Vergleich das Teil auf dem Strahl
 SUCHSCHRITTE = 30  # so oft rückt ein Strahl höchstens an die Stirn heran
 TABELLE = 4096  # so viele Stücke hat die Stirn zum Nachschlagen
@@ -862,6 +863,14 @@ class Quader:
     def fahre_stuecke(self, von, nach, fraeser):
         """Wie fahre(), für viele Stücke auf einmal: `von` und `nach` je (n, 3). Blockweise
         wie Stange.fahre_stuecke – weg ist, was irgendein Teilschritt trifft."""
+        for _ in self.fahre_stuecke_schritte(von, nach, fraeser, TEILSCHRITTE_JE_BLOCK):
+            pass
+
+    def fahre_stuecke_schritte(self, von, nach, fraeser, je_block=TEILSCHRITTE_IM_TAKT):
+        """fahre_stuecke() als Generator: nach je `je_block` Teilschritten ein `yield` – für
+        einen Lauf aus der Ereignisschleife (materialstand.fuer_schritte: im Assistenten
+        „Bearbeitung“ stand das Fenster dafür 0,85 s am Stück, P-2026-10-11-54). Das Minimum je
+        Zelle hängt nicht von der Reihenfolge ab – dasselbe Ergebnis."""
         von = np.asarray(von, dtype=float).reshape(-1, 3)
         nach = np.asarray(nach, dtype=float).reshape(-1, 3)
         if not len(von):
@@ -871,7 +880,7 @@ class Quader:
         summe = np.cumsum(anzahl)
         start = 0
         while start < len(von):
-            ziel = summe[start] - anzahl[start] + TEILSCHRITTE_JE_BLOCK
+            ziel = summe[start] - anzahl[start] + je_block
             ende = max(int(np.searchsorted(summe, ziel, "right")), start + 1)
             stueck = np.repeat(np.arange(start, ende), anzahl[start:ende])
             vorher = np.repeat(
@@ -881,6 +890,7 @@ class Quader:
             punkte = von[stueck] + t * (nach[stueck] - von[stueck])
             self.schnitte(punkte[:, 0], punkte[:, 1], punkte[:, 2], fraeser)
             start = ende
+            yield
 
     def schnitt(self, x_t, y_t, z_t, fraeser):
         """Nimmt weg, was der Fräser mit der Spitze bei (x_t, y_t, z_t) trifft."""

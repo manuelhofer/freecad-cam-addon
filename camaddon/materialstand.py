@@ -247,6 +247,15 @@ def fuer(job, vor=None, dazu=()):
     """Der Materialstand im Job vor der Operation `vor` (ohne: nach allen) – danach die Bahnen
     `dazu` ([(Name, [bahn.Punkt], Fräser)]: Form oder Radius), die der Assistent im selben Lauf
     vorher anlegt. None ohne Rohteil, und wenn eine Operation davor eine Rundachse dreht."""
+    from . import reichweite as rw_
+
+    return rw_.zu_ende(fuer_schritte(job, vor, dazu))
+
+
+def fuer_schritte(job, vor=None, dazu=()):
+    """fuer() als Generator (das Ergebnis ist sein Rückgabewert): beim Abfahren der Bahnen
+    zwischendurch ein `yield` – für den Lauf des Assistenten „Bearbeitung“ aus der
+    Ereignisschleife (P-2026-10-11-54)."""
     try:
         anfang = _rohteil_kennung(job)
     except ValueError:
@@ -276,7 +285,7 @@ def fuer(job, vor=None, dazu=()):
         vorher = stand.quader.h.copy()
         if isinstance(was, tuple):
             name, punkte, fraeser = was
-            _fahre_punkte(stand.quader, punkte, _grosszuegig(fraeser))
+            yield from _fahre_punkte_schritte(stand.quader, punkte, _grosszuegig(fraeser))
         else:
             if mz.operation_erreichbar(job, was) is False:
                 stand.kennung = stand.kennung + (kennung,)
@@ -288,7 +297,7 @@ def fuer(job, vor=None, dazu=()):
                 return None  # Keine aus der senkrechten Ersatzbahn angenommene Vorbearbeitung.
             name = was.Label
             fraeser = _grosszuegig(rm._fraeser(was.ToolController))
-            if not _fahre_befehle(stand.quader, was.Path.Commands, fraeser):
+            if not (yield from _fahre_befehle_schritte(stand.quader, was.Path.Commands, fraeser)):
                 return None  # eine Rundachse dreht sich: das kennt ein Höhenfeld von oben nicht
         stand.namen = stand.namen + [name]
         stand.gesenkt = stand.gesenkt + [stand.quader.h < vorher - 1e-9]
@@ -563,6 +572,13 @@ def _grosszuegig(fraeser):
 def _fahre_befehle(quader, befehle, fraeser):
     """Fährt die Befehle einer Operation im Quader ab (Bögen in Sehnen, Bohrzyklen hinab und
     zurück). False, wenn sich dabei eine Rundachse dreht."""
+    from . import reichweite as rw_
+
+    return rw_.zu_ende(_fahre_befehle_schritte(quader, befehle, fraeser))
+
+
+def _fahre_befehle_schritte(quader, befehle, fraeser):
+    """_fahre_befehle als Generator – das Ergebnis ist sein Rückgabewert."""
     von, nach = [], []
     letzter = None
     for schritt in rw._bahn(befehle, lambda _name: None, rueckzug=True):
@@ -580,19 +596,25 @@ def _fahre_befehle(quader, befehle, fraeser):
                 nach.append(punkt)
             letzter = punkt
     if von:
-        quader.fahre_stuecke(von, nach, fraeser)
+        yield from quader.fahre_stuecke_schritte(von, nach, fraeser)
     return True
 
 
 def _fahre_punkte(quader, punkte, fraeser):
     """Fährt eine Bahn des Assistenten ([bahn.Punkt]) im Quader ab."""
+    for _ in _fahre_punkte_schritte(quader, punkte, fraeser):
+        pass
+
+
+def _fahre_punkte_schritte(quader, punkte, fraeser):
+    """_fahre_punkte als Generator."""
     von, nach = [], []
     for a, b in zip(punkte, punkte[1:], strict=False):
         for stueck in sehnen(a, b):
             von.append(stueck[0])
             nach.append(stueck[1])
     if von:
-        quader.fahre_stuecke(von, nach, fraeser)
+        yield from quader.fahre_stuecke_schritte(von, nach, fraeser)
 
 
 def sehnen(von, nach, schritt=BOGENSCHRITT):

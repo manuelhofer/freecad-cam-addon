@@ -5717,11 +5717,11 @@ class BearbeitungPanel:
         eigen = zusatz = self._zusatz(block, form)
         stand = None
         if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d):
-            stand = self._materialstand(block, form)
+            stand = yield from self._materialstand_schritte(block, form)
             zusatz = dict(zusatz or {}, materialstand=stand)
         elif block in (self.restraeumen, self.schlichten_danach):
             # Nach dem Räumen derselben Flächen – sie treten nicht gegen es an.
-            stand = self._materialstand(block, form, flaechen=())
+            stand = yield from self._materialstand_schritte(block, form, flaechen=())
             zusatz = dict(zusatz or {}, materialstand=stand)
         flaechen = self._flaechen(block, form)
         woraus = (tuple(flaechen), eigen, getattr(stand, "kennung", None))
@@ -6123,13 +6123,17 @@ class BearbeitungPanel:
         self.kontur.ergebnis.setText(text)
 
     def _materialstand(self, block, form, flaechen=None, mit=()):
+        """_materialstand_schritte am Stück."""
+        return rw.zu_ende(self._materialstand_schritte(block, form, flaechen, mit))
+
+    def _materialstand_schritte(self, block, form, flaechen=None, mit=()):
         """Der Materialstand vor dem Block (W-012): das Rohteil, die Operationen, die im Job
         schon stehen – beim Ändern die vor der Operation –, dazu die Vorschauen der angehakten
         Blöcke davor in diesem Lauf (sie werden vor ihm angelegt; die in `mit` auch ohne Haken).
         Wer dieselben Flächen hat (`flaechen`, ohne: die des Blocks), tritt gegen ihn an und
         kommt nicht davor (Räumen und Planfräsen am Grund der Nut). None ohne Materialstand."""
         if self.zu_aendern is not None:
-            return mst.fuer(self.job, vor=self.zu_aendern)
+            return (yield from mst.fuer_schritte(self.job, vor=self.zu_aendern))
         eigene = set(self._flaechen(block, form) if flaechen is None else flaechen)
         dazu = []
         for anderer in self.bloecke:
@@ -6144,7 +6148,7 @@ class BearbeitungPanel:
             fraeser = ff.von_werkzeug(werkzeug)
             if fraeser is not None:
                 dazu.append((anderer.s.titel(), anderer.vorschau.punkte, fraeser))
-        return mst.fuer(self.job, dazu=dazu)
+        return (yield from mst.fuer_schritte(self.job, dazu=dazu))
 
     def _zusatz(self, block, form):
         """Was der Assistent einem Block vorgibt: Räumt das Räumen den Boden einer Tasche, deren

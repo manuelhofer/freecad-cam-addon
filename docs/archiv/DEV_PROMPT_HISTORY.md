@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-54 materialstand-im-takt
+
+### EINGELESEN
+- `szenario_bearbeitung_im_takt` (3-Achs-Testteil): die längste Pause der Ereignisschleife 0,74 s.
+  Gemessen je Schritt des Laufs: der Block „Rest räumen“ baute seinen Materialstand am Stück
+  (materialstand.fuer – die Vorschauen der Blöcke davor im Höhenfeld nachgefahren), 0,85 s.
+
+### DATEIEN
+- `camaddon/restmaterial.py`: `QuaderAbtrag.fahre_stuecke_schritte` – nach je TEILSCHRITTE_IM_TAKT
+  (10 000) Teilschritten ein `yield`; `fahre_stuecke` rechnet ihn zu Ende (Blöcke wie bisher). Das
+  Minimum je Zelle hängt nicht von der Reihenfolge ab.
+- `camaddon/materialstand.py`: `fuer_schritte` (fuer() als Generator), `_fahre_befehle_schritte`,
+  `_fahre_punkte_schritte`.
+- `camaddon/gui_bearbeitung.py`: `_materialstand_schritte`; `_block_schritte` holt den Stand mit
+  `yield from` – zwischendurch nimmt das Fenster Klicks an.
+- `package.xml` (0.213.60), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_bearbeitung_im_takt`: längste Pause 0,74 → 0,35 s, der Lauf 13,1 → 11,7 s;
+  `test_materialstand.py`, `test_restmaterial.py` grün.
+
 ## P-2026-10-11-53 bearbeitung-mehr-im-hintergrund
 
 ### EINGELESEN
