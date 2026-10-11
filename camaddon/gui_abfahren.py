@@ -607,6 +607,12 @@ class Abspieler(QtGui.QWidget):
         self.bei_station = None
         self.bei_bahn = None  # bekommt True/False, wenn jemand den Haken „Bahn“ setzt
         self.bei_teil = None  # dasselbe für den Haken „Teil“
+        # Die Berührungen aus „Kollision prüfen“ (kollision.Befund), nach der Zeit: Das Abspielen
+        # hält an jeder an, der Knopf „Zur nächsten Kollision“ springt hin (Manuel, 2026-10-11:
+        # „bis zu dem punkt fährt in der simulation und dort dann pausiert … vll einen knopf ‚zur
+        # nächsten kollision fahren‘“). `bei_kollision(befund)` zeigt die Stelle (rote Kugel).
+        self.kollisionen = []
+        self.bei_kollision = None
         self._uhr = QtCore.QTimer(self)
         self._uhr.setInterval(TAKT)
         self._uhr.timeout.connect(self._takt)
@@ -639,6 +645,11 @@ class Abspieler(QtGui.QWidget):
         for tempo in TEMPI:
             self.wahl_tempo.addItem(f"×{tempo}", tempo)
         self.wahl_tempo.setToolTip(tr("ab.tempo.tooltip"))
+        self.knopf_kollision = QtGui.QPushButton(tr("ab.kollision_naechste"))
+        self.knopf_kollision.setAutoDefault(False)
+        self.knopf_kollision.setToolTip(tr("ab.kollision_naechste.tooltip"))
+        self.knopf_kollision.clicked.connect(lambda: self.zur_naechsten_kollision())
+        self.knopf_kollision.hide()
         self.knopf_hinsehen = QtGui.QToolButton()
         self.knopf_hinsehen.setIcon(QtGui.QIcon(":/icons/zoom-selection.svg"))
         self.knopf_hinsehen.setToolTip(tr("ab.hinsehen.tooltip"))
@@ -655,6 +666,7 @@ class Abspieler(QtGui.QWidget):
         self.haken_teil.toggled.connect(self._teil_umgeschaltet)
         for widget in (self.knopf_anfang, self.knopf_zurueck, self.knopf_spielen, self.knopf_vor):
             zeile.addWidget(widget)
+        zeile.addWidget(self.knopf_kollision)
         zeile.addStretch()
         zeile.addWidget(self.haken_bahn)
         zeile.addWidget(self.haken_teil)
@@ -847,7 +859,46 @@ class Abspieler(QtGui.QWidget):
         if neu >= self.abfahrt.dauer:
             neu = self.abfahrt.dauer
             self.anhalten()
+        befund = self._kollision_zwischen(self.zeit, neu)
+        if befund is not None:  # dort anhalten – man sieht, wo es anstößt, und entscheidet
+            self.anhalten()
+            self._zur_kollision(befund)
+            return
         self.setze_zeit(neu)
+
+    def kollisionen_setzen(self, befunde):
+        """Die Befunde aus „Kollision prüfen“ – es zählen die Berührungen; leer: keine (veraltet).
+        Der Knopf „Zur nächsten Kollision“ steht nur da, wenn es welche gibt."""
+        self.kollisionen = sorted((b for b in befunde or () if b.beruehrung), key=lambda b: b.zeit)
+        self.knopf_kollision.setVisible(bool(self.kollisionen))
+        if self.kollisionen:
+            self.knopf_kollision.setText(
+                tr("ab.kollision_naechste.zahl", anzahl=len(self.kollisionen))
+                if len(self.kollisionen) > 1
+                else tr("ab.kollision_naechste")
+            )
+
+    def _kollision_zwischen(self, von, bis):
+        """Die erste Berührung nach `von` bis einschließlich `bis` (s) – oder None."""
+        return next((b for b in self.kollisionen if von + 1e-9 < b.zeit <= bis + 1e-9), None)
+
+    def zur_naechsten_kollision(self):
+        """An die nächste Berührung nach der jetzigen Zeit – nach der letzten wieder an die erste;
+        das Abspielen hält an. Gibt den Befund zurück (None ohne)."""
+        if not self.kollisionen or self.abfahrt is None:
+            return None
+        self.anhalten()
+        befund = next(
+            (b for b in self.kollisionen if b.zeit > self.zeit + 1e-6), self.kollisionen[0]
+        )
+        self._zur_kollision(befund)
+        return befund
+
+    def _zur_kollision(self, befund):
+        if self.bei_kollision is not None:
+            self.bei_kollision(befund)
+        else:
+            self.setze_zeit(befund.zeit)
 
     def _geschoben(self, wert):
         if self.abfahrt is None or not self.abfahrt.stationen:

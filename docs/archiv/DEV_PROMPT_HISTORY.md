@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-35 abspieler-zur-naechsten-kollision
+
+### EINGELESEN
+- Manuel, 2026-10-11 (Frage 7): „vll auch bis zu dem punkt fährt in der simulation und dort dann
+  pausiert wenn es kolidiert .. dann kann derjenige sehen wo es kollidiert und entscheiden … vll
+  einen knopf ‚zur nächsten kollision fahren‘ … in der simulation einbauen ??“
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`: Der Abspieler kennt die Berührungen aus „Kollision prüfen“
+  (`kollisionen_setzen`, nach der Zeit); beim Abspielen hält er an jeder an (`_takt`), der Knopf
+  „Zur nächsten Kollision“ (mit der Zahl, wenn es mehrere sind) springt an die nächste nach der
+  jetzigen Zeit, nach der letzten wieder an die erste; `bei_kollision` zeigt die Stelle.
+- `camaddon/gui_reichweite.py`: gibt dem Abspieler die Berührungen, sobald das Urteil der
+  Kollision sich ändert (veraltet: keine), `bei_kollision` = die rote Kugel wie beim Klick auf den
+  Befund.
+- `translations/de.json`, `translations/en.json` (`ab.kollision_naechste…`).
+- `tests/gui/szenario_kollision.py` (Abspielen hält an der Berührung, der Knopf springt hin, nach
+  neuem Nullpunkt ist er weg), `package.xml` (0.213.42), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `szenario_kollision`, `szenario_abfahren`, `test_sprache`.
+
 ## P-2026-10-11-34 flanke-im-nebenrechner
 
 ### EINGELESEN

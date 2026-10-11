@@ -262,9 +262,10 @@ abgearbeitet):
 2. ~~**Flanke: der Halter darf nicht ins Teil**~~ – erledigt im Assistenten: P-2026-10-11-33
    (rot mit „mindestens … mm“; anders anstellen hilft bei der Flanke nicht). Die Bahn der Flanke
    rechnet ihre Prüfungen auf den Nebenrechnern: am Kegel 15,5 → 2,7 s (P-2026-10-11-34).
-3. **Kollision (Frage 7):** klare Meldung, wenn die Ausspannlänge nicht reicht; im Abspieler bis zur
-   Kollision fahren und dort anhalten; Knopf „Zur nächsten Kollision“; die Bahn weicht aus
-   (Anstellung, Y), wo die Form des Teils bleibt – die Maschine gehört in die Kollisionsüberwachung.
+3. **Kollision (Frage 7):** ~~im Abspieler an der Kollision anhalten, Knopf „Zur nächsten
+   Kollision“~~ (P-2026-10-11-35). Offen: klare Meldung, wenn die Ausspannlänge nicht reicht (an
+   der Flanke: P-2026-10-11-33); die Bahn weicht aus (Anstellung, Y), wo die Form des Teils bleibt –
+   die Maschine gehört in die Kollisionsüberwachung.
 4. **Querachse nur, wo nötig (Frage 9)** – vorschlagen, wenn das Teil so besser wird.
 5. **Rest nach dem Schruppen (Frage 8)** im Assistenten melden und mehr anbieten: an schrägen
    Wänden zusätzlich in Z abzeilen (Schaftfräser) oder dort am Umfang mit kleinerer Steigung –

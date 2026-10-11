@@ -151,6 +151,29 @@ def schritte(h):
     h.bild("2_kollision")
     h.bild("2b_fenster", panel.form)
 
+    # --- Im Abspieler (Manuel, 2026-10-11: „bis zu dem punkt fährt in der simulation und dort
+    # dann pausiert … vll einen knopf ‚zur nächsten kollision fahren‘“): An den Anfang, ×10
+    # abspielen – er hält an der Berührung an; „Zur nächsten Kollision“ springt hin.
+    spieler = panel.abspieler
+    h.pruefe(
+        spieler.knopf_kollision.isVisible() and spieler.kollisionen == [befund],
+        f"Knopf: {spieler.knopf_kollision.isVisible()}, {len(spieler.kollisionen)} Berührungen",
+    )
+    spieler.anfang()
+    spieler.wahl_tempo.setCurrentIndex(spieler.wahl_tempo.count() - 1)
+    spieler.umschalten()
+    yield from h.warte_auf(lambda: not spieler._uhr.isActive(), 60000)
+    h.pruefe(
+        abs(spieler.zeit - befund.zeit) < 1e-9 and panel.bild._marke is not None,
+        f"nicht an der Berührung angehalten: {spieler.zeit} statt {befund.zeit}",
+    )
+    spieler.anfang()
+    yield 200
+    h.pruefe(spieler.zur_naechsten_kollision() is befund, "„Zur nächsten Kollision“: anderer")
+    yield 300
+    h.pruefe(abs(spieler.zeit - befund.zeit) < 1e-9, "„Zur nächsten Kollision“: nicht dort")
+    h.bild("2c_abspieler_kollision", panel.form)
+
     # --- Warnabstand 10 mm: gelbe Sätze dazu --------------------------------------------------
     panel.kollision.feld_warnabstand.setText("10")
     k.knopf.click()
@@ -176,6 +199,9 @@ def schritte(h):
     panel.felder_nullpunkt["Z"].setText("5")
     yield 800
     h.pruefe(k.ergebnis is None and not k.liste.isVisible(), "Ergebnis nach neuem Nullpunkt")
+    h.pruefe(
+        not panel.abspieler.knopf_kollision.isVisible(), "Kollisionsknopf nach neuem Nullpunkt"
+    )
     h.pruefe(k.urteil.text().startswith("Noch nicht geprüft"), f"{k.urteil.text()!r}")
 
     # --- „T1 öffnen …“: Halter wählen, OK – das Fenster rechnet mit ihm (D-11) --------------

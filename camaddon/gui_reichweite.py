@@ -445,6 +445,7 @@ class PruefPanel:
         self.abspieler.bei_station = self._abtragen
         self.abspieler.bei_bahn = self._bahn_zeigen
         self.abspieler.bei_teil = self._teil_zeigen
+        self.abspieler.bei_kollision = self._kollision_hin
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
             self._kollision_daten, self._kollision_hin, self._sperren, self._kollision_gemeldet
@@ -710,8 +711,11 @@ class PruefPanel:
         _zeige_urteil(self.urteil, text, farbe)
 
     def _kollision_gemeldet(self, text, farbe, fett):
-        """Das Urteil der Kollision, oben im Fenster."""
+        """Das Urteil der Kollision, oben im Fenster – und ihre Berührungen für den Abspieler
+        (er hält dort an; „Zur nächsten Kollision“)."""
         _zeige_urteil(self.urteil_kollision, text, farbe, fett)
+        ergebnis = self.kollision.ergebnis if hasattr(self, "kollision") else None
+        self.abspieler.kollisionen_setzen(ergebnis.befunde if ergebnis is not None else [])
 
     def _werkzeug_oeffnen(self, ziel):
         """„werkzeug:1“: die Werkzeugverwaltung bei T1. Speichert man dort, rechnet das
