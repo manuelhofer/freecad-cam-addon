@@ -26,7 +26,7 @@ Kein Stehen: „Programm schreiben“ auf einem Nebenrechner (2,3 → 0,2 s), Fl
 Vorschaubild (0,58 → 0,16 s). Das Voxelmodell (`camaddon/voxelstange.py`) rechnet auf allen Kernen
 und füllt das Teil übers Netz in 0,1 s. Berichtigt: die „408 mm³ je mm“ vom Morgen (Messfehler).
 
-**Der 11.10. nachmittags (P-2026-10-11-59 bis -65, 0.213.65 → 0.213.70):** Mit Flächen ist der
+**Der 11.10. nachmittags (P-2026-10-11-59 bis -69, 0.213.65 → 0.213.74):** Mit Flächen ist der
 Haken „Querachse“ beim Schlichten grau und sagt warum (Frage 12 an Manuel). Der Abspieler im
 Prüffenster rechnet weite Sprünge im Takt (ans Ende: 3 s → höchstens 0,19 s am Stück). **Die
 Schlichtbahn mit der Querachse schnitt an der Nase bis 0,1 mm ins Teil** (nachgemessen: Kugelmitte
@@ -39,7 +39,16 @@ Python je Station, nicht OpenCascade; nicht weiter verfolgt. 3-Achs-Schlichten u
 zwischen den Stellen): höchstens 0,007 mm. **Stößt ein Halter an, bieten die Assistenten
 und das Prüffenster „T1 auf … mm ausspannen“ an** (-63 bis -65): ein Klick setzt die Länge ab Spindelnase in
 der Werkzeugverwaltung; „bräuchte mindestens“ gilt im Prüffenster jetzt für die ganze Operation
-(Nase: T1 49, T2 53 mm mit dem Kopf des gewinkelten Halters).
+(Nase: T1 49, T2 53 mm mit dem Kopf des gewinkelten Halters). **Lag-Sonde im Szenario-Lauf**
+(-66): jedes Szenario schreibt `pausen.txt` – wo das Fenster wie lange stand und was dabei rechnete.
+Damit gefunden und behoben (-66 bis -69): Fläche anklicken im Assistenten 7,3 → 2,0 s (passt je
+Fläche gemerkt), „Anlegen“ bis 26 → 1,7–3,9 s (Abstandsfeld des Räumens bitgleich ~200× schneller,
+das Fenster zeichnet beim Rechnen neu), der Materialstand-Beobachter am 5-Achs-Job 18 s → nichts
+(5-Achs-Programm je Inhalt gemerkt), „Kollision prüfen“ an der Nocke 5,9 → 0,9 s (gemeinsame Daten
+einmal gepickelt), Neu berechnen am Schwenkteil 84 → 44,5 s (Strahlenschnitt auf den Nebenrechnern).
+Offen: das erste 5-Achs-Programm beim Öffnen des Prüffensters (12 s, gehört auf einen Nebenrechner),
+das Abtragen je Bewegung im räumlichen Materialstand (17 s am Schwenkteil), die erste Analyse der
+Bohrungen beim Anklicken (`_boden_unter`, je Bohrung acht `isInside`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
