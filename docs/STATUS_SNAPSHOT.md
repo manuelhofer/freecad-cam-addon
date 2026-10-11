@@ -14,6 +14,7 @@ https://forum.freecad.org/viewtopic.php?t=107889. Antworten dort sind Eingang f�
 Fehler – sie kommen hierher; die Beiträge selbst liegen nur bei Manuel (Manuel, 2026-10-11: „alles
 was mit posts zutun hat … einfach nicht auf github … auser es werden bilder benötigt“; die Bilder
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
+Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
 **Der 11.10. ab Mittag (P-2026-10-11-42 bis -58, 0.213.48 → 0.213.64):** Manuels Antworten zu
 Frage 10 und 11 gebaut („Plan indexiert“ rundum vorbelegt mit dem Schruppfräser, auch Face8 zur
@@ -725,6 +726,20 @@ nächste freie Nummer B-020.
 
 ## Offene Tasks
 
+- **T-013 Herbert im deutschen Thread** (Forum t=107911, 2026-10-11, herbk; 26.3.0RC1-AppImage auf
+  CachyOS, Addon 0.213.66, dazu CfdOF, Curves, Fasteners, RobotCAD u. a.):
+  (a) „eine ganze Liste von Fehlermeldungen“ beim Aufruf von CAM, wieder beim Wechsel nach CAM in
+  einer Teile-Datei – nachgespielt im gleichen RC1-AppImage und im Wochen-Build, frisches Profil,
+  0.213.66 und 0.213.90, mit Maschine anlegen/speichern, Teil öffnen, Job anlegen: Bericht leer.
+  Wortlaut ist angefragt; bis dahin kein Bug. (b) Wie Maschinen- und Teile-Datei zusammenkommen,
+  hat er nicht gefunden (Job merkt die Maschine, `reichweite.merke_maschine`) – deutlicher in
+  „So geht’s“ und in den Meldungen ohne Maschine. (c) Beispielmaschine Portalfräse (Router) fehlt.
+  (d) Feld „Ausspannlänge“ beim Werkzeug, gekoppelt an die Länge ab Spindelnase (heute nur
+  abgeleitet aus Länge ab Spindelnase − Halter bzw. Gesamtlänge − Spanntiefe). (e) Maschinendaten
+  aus der Steuerung einlesen statt eintippen (LinuxCNC-INI, GRBL „$$“, Siemens-Maschinendaten;
+  26.3-CAM legt Maschinen aus MTConnect an – `.fcm` lesen wäre der Weg dorthin). (f) Dialekt: ist
+  schon so gebaut (Path-Befehle, Postprozessor übersetzt) – die Vorstellung nannte nur Siemens.
+  Antwortentwurf bei Manuel; was davon gebaut wird, sagt er.
 - **T-012 Schnittstellen zu 26.3** (Forum, 2026-10-11, Connor aus dem CAM-Team): 26.3 hat 3+2 mit
   DRO und TWP, Postprozessoren je Maschine und den Maschineneditor; ein neuer Simulator mit einer
   Bibliothek für Spannmittel (Schraubstöcke, Platten, Spanner) und Kollisionsanzeige ist in Arbeit;
