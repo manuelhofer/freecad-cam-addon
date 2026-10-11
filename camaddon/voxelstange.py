@@ -22,6 +22,8 @@ import math
 
 import numpy as np
 
+TEIL_TOLERANZ = 0.01  # mm: so fein wird das Teil für teil() vernetzt
+_SCHIEF = (1.234567e-5, 2.345678e-5)  # mm: so weit liegen die Strahlen neben den Spaltenmitten
 STUECKE_JE_ARBEITER = 3  # wer früher fertig ist, nimmt das nächste
 VERTEILT_AB = 2000  # Stellungen: darunter rechnet fahre() selbst
 
@@ -31,6 +33,16 @@ def _als_feld(punkte):
     if isinstance(punkte, np.ndarray):
         return np.asarray(punkte, dtype=float)
     return np.array([(p.a, p.r, p.q, p.phi) for p in punkte], dtype=float).reshape(-1, 4)
+
+
+def _rahmen(laengs, radial):
+    """(L, U, V) wie vierachs_huelle.rahmen – hier ohne FreeCAD."""
+    l_ = np.array([float(c) for c in laengs], dtype=float)
+    u = np.array([float(c) for c in radial], dtype=float)
+    l_ /= np.linalg.norm(l_)
+    u -= l_ * float(u @ l_)
+    u /= np.linalg.norm(u)
+    return l_, u, np.cross(l_, u)
 
 
 def _packen(maske):
@@ -125,6 +137,77 @@ class Voxelstange:
         if n:
             teil[treffer] = False
         return n
+
+    def teil(self, form, laengs, radial, toleranz=TEIL_TOLERANZ):
+        """Die Voxel (wie material), deren Mitte in `form` liegt (ein Solid in Job-Koordinaten,
+        die Stangenachse `laengs` durch den Nullpunkt, φ = 0 bei `radial`): a = p·L, quer
+        y = p·U, z = p·V (vierachs_huelle.rahmen). Gefüllt über das Netz der Form – je Spalte
+        (y, z) ein Strahl längs: wo er durch die Dreiecke tritt, wechselt drinnen und draußen.
+        In numpy über alle Dreiecke zugleich, Sekunden statt eines isInside je Voxel."""
+        punkte, dreiecke = form.tessellate(toleranz)
+        maske = np.zeros(self.material.shape, dtype=bool)
+        if not dreiecke:
+            return maske
+        l_, u_, v_ = _rahmen(laengs, radial)
+        p = np.array([[q.x, q.y, q.z] for q in punkte], dtype=float)
+        ecken = np.column_stack([p @ l_, p @ u_, p @ v_])[np.array(dreiecke, dtype=np.int64)]
+        return self._fuellen(ecken)
+
+    def _fuellen(self, ecken):
+        """Die Maske zu den Dreiecken `ecken` ((m, 3, 3) – je Ecke a, y, z)."""
+        h, rad = self.h, self.radius
+        maske = np.zeros(self.material.shape, dtype=bool)
+        # Die Spalten leicht versetzt, damit kein Strahl genau eine Kante oder Ecke trifft.
+        y, z = ecken[:, :, 1] - _SCHIEF[0], ecken[:, :, 2] - _SCHIEF[1]
+        j0 = np.ceil((y.min(axis=1) + rad) / h - 0.5).astype(np.int64).clip(0, self.ny)
+        j1 = np.floor((y.max(axis=1) + rad) / h - 0.5).astype(np.int64).clip(-1, self.ny - 1)
+        k0 = np.ceil((z.min(axis=1) + rad) / h - 0.5).astype(np.int64).clip(0, self.ny)
+        k1 = np.floor((z.max(axis=1) + rad) / h - 0.5).astype(np.int64).clip(-1, self.ny - 1)
+        nj, nk = np.maximum(j1 - j0 + 1, 0), np.maximum(k1 - k0 + 1, 0)
+        anzahl = nj * nk
+        if not anzahl.sum():
+            return maske
+        t = np.repeat(np.arange(len(ecken)), anzahl)
+        versatz = np.arange(int(anzahl.sum())) - np.repeat(np.cumsum(anzahl) - anzahl, anzahl)
+        j = j0[t] + versatz // nk[t]
+        k = k0[t] + versatz % nk[t]
+        py, pz = self.yc[j], self.yc[k]
+        # Baryzentrisch in der Ebene (y, z): liegt die Spalte im Dreieck, und wo trifft sie es?
+        y0, y1, y2 = y[t, 0], y[t, 1], y[t, 2]
+        z0, z1, z2 = z[t, 0], z[t, 1], z[t, 2]
+        det = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0)
+        gut = np.abs(det) > 1e-12
+        det = np.where(gut, det, 1.0)
+        b1 = ((py - y0) * (z2 - z0) - (y2 - y0) * (pz - z0)) / det
+        b2 = ((y1 - y0) * (pz - z0) - (py - y0) * (z1 - z0)) / det
+        drin = gut & (b1 >= 0) & (b2 >= 0) & (b1 + b2 <= 1)
+        a = (
+            ecken[t, 0, 0]
+            + b1 * (ecken[t, 1, 0] - ecken[t, 0, 0])
+            + b2 * (ecken[t, 2, 0] - ecken[t, 0, 0])
+        )
+        j, k, a = j[drin], k[drin], a[drin]
+        # Je Spalte die Durchtritte der Reihe nach: zwischen dem 1. und 2., 3. und 4. … drinnen.
+        folge = np.lexsort((a, k, j))
+        j, k, a = j[folge], k[folge], a[folge]
+        spalte = j * self.ny + k
+        neu = np.ones(len(spalte), dtype=bool)
+        neu[1:] = spalte[1:] != spalte[:-1]
+        rang = np.arange(len(spalte)) - np.maximum.accumulate(
+            np.where(neu, np.arange(len(spalte)), 0)
+        )
+        rein, raus = (rang % 2) == 0, (rang % 2) == 1
+        # paarweise: jeder Eintritt mit dem Austritt gleich danach (eine offene Spalte zählt nicht)
+        paar = rein[:-1] & raus[1:] & (spalte[:-1] == spalte[1:])
+        von = np.ceil((a[:-1][paar] - self.a_von) / h - 0.5).astype(np.int64).clip(0, self.na)
+        bis = np.floor((a[1:][paar] - self.a_von) / h - 0.5).astype(np.int64).clip(-1, self.na - 1)
+        jj, kk = j[:-1][paar], k[:-1][paar]
+        stufen = np.zeros((self.na + 1, self.ny, self.ny), dtype=np.int32)
+        ok = bis >= von
+        np.add.at(stufen, (von[ok], jj[ok], kk[ok]), 1)
+        np.add.at(stufen, (bis[ok] + 1, jj[ok], kk[ok]), -1)
+        maske[:] = np.cumsum(stufen, axis=0)[:-1] > 0
+        return maske
 
     def _schritte(self, p, n_):
         """So viele Stellungen fährt der Weg von `p` nach `n_` ((a, r, q, phi), je höchstens ein

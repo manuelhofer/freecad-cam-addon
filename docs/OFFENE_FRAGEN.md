@@ -41,8 +41,11 @@ fertig“, vorbelegt an, der „Plan indexiert“ mit dem Schruppfräser für di
 (wie im Bild) – oder angestellt mit dem Schaft, wie du es auch beschrieben hast?
 *Warum nur Manuel:* eine neue Wahl ohne Vorgabe (Strategiewahl), und wie weit X unter 0 an seiner
 CLX550 darf, weiß er.
-*Was die Antwort ändert:* der Haken im Schritt 2, `vierachs_planbahn.ebenen` mit Flächen zur
-Achse, die Flächen der Kugel ohne die fertigen.
+*Was die Antwort ändert:* der Haken im Schritt 2, die Flächen der Kugel ohne die fertigen.
+*Schon vorgebaut* (ohne Vorgabe zu ändern, P-2026-10-11-42/43): „Plan indexiert“ nimmt eine Fläche
+zur Achse auf Wunsch an (`zur_achse`); im 3D-Modell der Stange (Voxel 0,5 mm) nachgerechnet,
+Face8 und Face4/Face6 mit T1: nirgends ins fertige Teil (81 314 und 999 966 Voxel weg, keiner im
+Teil).
 Seit 2026-10-11.
 
 ### 11. „C dreht nicht zurück“ auch beim Rundum-Schruppen mit der Querachse?

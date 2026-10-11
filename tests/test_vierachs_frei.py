@@ -213,6 +213,15 @@ weg = nach_schruppen.fahre(schruppbahn.punkte, float(rop.ToolController.Tool.Dia
 frei = np.array([bool(p.frei) for p in schruppbahn.punkte])
 schneiden = int(np.sum(frei & (weg > 0)))
 pruefe(schneiden == 0, f"Nase, Schruppen: {schneiden} freie Sätze schneiden Material")
+# Das fertige Teil als Voxel (übers Netz, P-2026-10-11-42): so groß wie das Teil, und das
+# Schruppen nahm nichts davon weg.
+fertig = nach_schruppen.teil(vs._teil(job.Model.Group), laengs, rop.Werkzeugrichtung)
+volumen = float(fertig.sum()) * nach_schruppen.h**3
+pruefe(
+    abs(volumen / vs._teil(job.Model.Group).Volume - 1) < 0.02,
+    f"Nase: das Teil als Voxel {volumen:.0f} mm³",
+)
+pruefe(bool(nach_schruppen.material[fertig].all()), "Nase: das Schruppen schneidet ins Teil")
 kugel_radius = vs.form_des_controllers(sop.ToolController).radius
 for quer in (True, False):
     sop.Querachse = quer

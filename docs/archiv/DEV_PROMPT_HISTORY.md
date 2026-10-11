@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-43 teil-als-voxel
+
+### EINGELESEN
+- Manuel, 2026-10-11 (wieder ein Bild von top): „schon wieder nur einer ?“ – nach dem Verteilen des
+  Voxelmodells (P-2026-10-11-42) fragte die Nachrechnung je abgetragenen Voxel ein isInside von
+  OpenCascade, ob er im fertigen Teil lag: 1 Mio. Voxel, 11 ms je Stück – auf 24 Kernen noch 464 s,
+  vorher auf einem.
+
+### DATEIEN
+- `camaddon/voxelstange.py`: `Voxelstange.teil(form, laengs, radial)` – die Voxel im Teil, gefüllt
+  über sein Netz: je Spalte ein Strahl längs, die Durchtritte durch alle Dreiecke zugleich in
+  numpy, drinnen zwischen dem 1. und 2., 3. und 4. … (Strahlen um 10⁻⁵ mm neben den Mitten, damit
+  keiner eine Kante trifft).
+- `tests/test_vierachs_frei.py`: am Nasen-Testteil das Teil als Voxel so groß wie das Teil, und
+  das Schruppen nimmt nichts davon weg.
+- `docs/OFFENE_FRAGEN.md` (Frage 10: vorgebaut, nachgerechnet), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.213.49), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil, Voxel 0,5 mm: `teil()` 0,09 s statt 464 s; 323,5 cm³ (OpenCascade 323,4 cm³);
+  4000 Voxel, die Hälfte nah an der Oberfläche, gegen isInside: kein Unterschied.
+- Face4/Face6 mit T1 („Plan indexiert“): 999 966 Voxel weg, keiner im Teil.
+
 ## P-2026-10-11-42 plan-zur-achse-und-voxel-verteilt
 
 ### EINGELESEN
@@ -36,7 +59,7 @@ patch_naming:
   `docs/archiv/DEV_PROMPT_HISTORY.md`.
 
 ### AKZEPTANZKRITERIUM
-- Nasen-Testteil, Face8 mit T1 (Ø 7,2) im Voxelmodell (0,5 mm, Fräser 0,05 kleiner): 81 314 Voxel
+- Nasen-Testteil, Face8 mit T1 (Zeilenabstand 7,2) im Voxelmodell (0,5 mm, Fräser 0,05 kleiner): 81 314 Voxel
   weg, keiner im fertigen Teil.
 - `test_vierachs_frei.py` 20 s statt 32 s; verteilt und der Reihe nach dieselbe Stange und dieselben
   Zahlen je Satz.

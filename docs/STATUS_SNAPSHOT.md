@@ -276,11 +276,14 @@ abgearbeitet):
    Nachgerechnet (Voxel): die halbe Steigung überall kostet 14 min und nimmt der Kugel nur 10 %;
    der große Rest sitzt an der Nase – Frage 10 (T1 macht die ebenen Flächen) senkt die schwerste
    Stelle für die Kugel von 408 auf 25 mm³ je mm Weg. Die Meldung im Assistenten braucht ein
-   Restmodell, das nach oben hält (Voxel in den Nebenrechnern?).
+   Restmodell, das nach oben hält: Die Teile dafür stehen (P-2026-10-11-42/43) –
+   `camaddon/voxelstange.py` fährt Bahnen auf den Nebenrechnern, `teil()` füllt das fertige Teil
+   in 0,1 s; der Rest ist Stange nach dem Schruppen ohne Teil.
 6. **Nase mit dem Schaftfräser (Frage 5):** C so, dass Face8 (zur Mitte) quer zum Fräser steht,
    mit Y abzeilen (X auch unter 0, soweit die Maschine fährt); die Seiten Face4/Face6 mit dem
    Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – Bild
-   mit Zahlen als Frage 10 bei Manuel (187,5 → 159,3 min).
+   mit Zahlen als Frage 10 bei Manuel (187,5 → 159,3 min). Vorgebaut: „Plan indexiert“ mit
+   `zur_achse` (P-2026-10-11-42), im Voxelmodell kein Schnitt ins Teil; der Haken wartet auf ihn.
 7. ~~**Magazin ohne Maschine** sagt das im Fenster (legros).~~ Erledigt: P-2026-10-11-31.
 Frage 6 erledigt: Schrittweite aus der Kammhöhe (Vorgabe 0,02 mm), Spalte „ae max“ (P-2026-10-11-40).
 Offen bei Manuel: Frage 10 (die Nase mit dem Schaftfräser, Bild).
