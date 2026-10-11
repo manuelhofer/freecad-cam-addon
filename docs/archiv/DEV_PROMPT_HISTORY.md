@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-18 snapshot-nacht-10-auf-11-nachtrag
+
+### EINGELESEN
+- Was nach P-2026-10-11-06 in der Nacht dazukam (P-2026-10-11-07 bis -17).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Nächster Schritt: die Nacht, nachgetragen; T-006),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Manuel liest im Snapshot den Stand am Morgen. Nur Doku – kein Testlauf.
+
 ## P-2026-10-11-17 frage-c-rueckwaerts
 
 ### EINGELESEN
