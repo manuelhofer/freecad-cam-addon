@@ -74,7 +74,9 @@ viermal so teuer, die Analyse einer Fläche holt jetzt nur diese (-79, `formteil
 ein Absturz unter Volllast im Neuberechnen gleich nach dem Schließen des 4-Achs-Assistenten –
 dort wird jetzt ohne Ereignisse gerechnet (-80, `uhren.still`). Die Wandhöhe über der Unterkante
 ohne einen Schnitt je Millimeter (-81: RC1, Deckel anklicken 2,8 → 0,6 s, Testteil 4,7 → 1,3 s),
-„Auf der Maschine prüfen“ atmet beim Rechnen am Stück (-82: RC1, Nocke 2,7 → 0,8 s).
+„Auf der Maschine prüfen“ atmet beim Rechnen am Stück (-82: RC1, Nocke 2,7 → 0,8 s). Danach alle
+113 Prüfdateien in 1.1.4 und RC1: grün (in RC1 bis auf `test_goldene_bahnen` – Umgebung, eine
+Koordinate in der sechsten Stelle; in 1.1.4 überspringt sich `test_export`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
