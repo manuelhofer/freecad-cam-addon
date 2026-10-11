@@ -770,16 +770,9 @@ class _Raeumen(_Strategie):
             return ra.AUFMASS
         return 0.0  # Aufmaß am Boden: die Fläche ist fertig
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
-        argumente = (
-            job,
-            job.Model.Group,
-            ff.von_werkzeug(werkzeug),
-            werte["zustellung"],
-            werte["zeilenabstand"],
-            werte["aufmass"],
-            flaechen,
-        )
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Form, Zustellung, Zeilenabstand, Aufmaß, Flächen, Schlüsselwörter) für
+        raeumen.vorschau_fuer_assistent."""
         weiter = {
             "aufmass_boden": werte["aufmass_boden"],
             "gleichlauf": werte["gleichlauf"],
@@ -790,16 +783,23 @@ class _Raeumen(_Strategie):
             "variante": werte.get("variante"),
             "freivorschub": werte.get("freivorschub", ra.FREIVORSCHUB),
         }
-        bahn = ra.vorschau(*argumente, **weiter)
-        if bahn.variante == "adaptiv" or weiter["variante"] == rb.RINGE:
-            return bahn  # adaptiv hält die Last nach seiner Bauart; „ringe“ ohne Blick auf sie
-        # Ringe: Die grobe Vorschau rechnet eine etwas andere Bahn und kann die Last unterschätzen
-        # – am Testteil maß sie in der dreieckigen Tasche (Ø 6) 1,7 ae, die genaue Bahn, die die
-        # Maschine fährt, 4,5 ae (Werkzeugbruch; Manuel, 2026-10-04). Dann gilt die genaue.
-        try:
-            return ra.bahn_fuer(*argumente, **weiter)
-        except ValueError:
-            return bahn
+        return (
+            ff.von_werkzeug(werkzeug),
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            list(flaechen),
+            weiter,
+        )
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        *argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return ra.vorschau_fuer_assistent(job, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """(Funktion in bearbeitung_vorschau, ihre Argumente nach Dokument und Job und vor der
+        Zeit) – die Vorschau in einem Nebenrechner (P-2026-10-11-23)."""
+        return "raeumen", self._argumente(werkzeug, werte, flaechen)
 
     def ergebnis_text(self, bahn, zeit):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
@@ -3299,7 +3299,14 @@ class _Block:
     def vorschau_rechnen(self, job, flaechen, zusatz=None):
         """Die grobe Bahn – Lagen, Zeilen bzw. Bahnen, Zeit – und damit „Anlegen“ weiß, ob
         es geht; der Grund steht rot. `zusatz`: Werte, die der Assistent vorgibt (die Breite
-        der Kontur nach dem Räumen)."""
+        der Kontur nach dem Räumen). Am Stück: Rechnet ein Nebenrechner, wartet es auf ihn."""
+        for schritt in self.vorschau_schritte(job, flaechen, zusatz):
+            _abwarten(schritt)
+
+    def vorschau_schritte(self, job, flaechen, zusatz=None):
+        """vorschau_rechnen als Schritte (ein Generator): Rechnet die Strategie in einem
+        Nebenrechner (`hintergrund`, P-2026-10-11-23), gibt er den Auftrag aus – weiter geht es,
+        wenn er erledigt ist; scheitert er, rechnet es hier."""
         self.vorschau = None
         self.zeit = None
         self.schon_weg = False
@@ -3321,16 +3328,33 @@ class _Block:
             merk.move_to_end(schluessel)
             self._gemerkt_zeigen(merk[schluessel])
             return
-        try:
-            self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
-        except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
-            self.hinweis.setText(str(fehler))
-            self.schon_weg = isinstance(fehler, mst.SchonWeg)
+        frei = mitgerechnet = None
+        auftrag = self._im_hintergrund(job, werkzeug, werte, flaechen, vorschub, senkrecht)
+        if auftrag is not None:
+            yield auftrag
+            mitgerechnet = _aus_dem_hintergrund(auftrag)
+        if mitgerechnet is not None and mitgerechnet[0] == "fehler":
+            self.hinweis.setText(mitgerechnet[1])
+            self.schon_weg = mitgerechnet[2]
             self._merken(merk, schluessel)
             return
+        if mitgerechnet is not None:
+            self.vorschau, frei = mitgerechnet[1]
+        else:
+            try:
+                self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
+            except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
+                self.hinweis.setText(str(fehler))
+                self.schon_weg = isinstance(fehler, mst.SchonWeg)
+                self._merken(merk, schluessel)
+                return
         self.zeit = self.s.zeit(self.vorschau, vorschub, senkrecht) if vorschub > 0 else None
         if self.zeit is not None and self.s.kennung in IM_FREIEN_SCHNELL:
-            self.zeit = _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
+            self.zeit = (
+                frei
+                if frei is not None
+                else _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
+            )
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
         self.ergebnis_basis = self.s.ergebnis_text(self.vorschau, zeit)
         self.ergebnis.setText(self.ergebnis_basis)
@@ -3338,6 +3362,29 @@ class _Block:
         if self.s.kennung == "nut":
             self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
         self._merken(merk, schluessel)
+
+    def _im_hintergrund(self, job, werkzeug, werte, flaechen, vorschub, senkrecht):
+        """Gibt die Vorschau einem Nebenrechner, wenn die Strategie das kann (`hintergrund`):
+        der Auftrag, oder None – dann rechnet sie hier."""
+        hintergrund = getattr(self.s, "hintergrund", None)
+        if hintergrund is None:
+            return None
+        from . import freiwege as fw
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return None
+        try:
+            funktion, argumente = hintergrund(werkzeug, werte, flaechen)
+            zeit = None
+            if vorschub > 0 and self.s.kennung in IM_FREIEN_SCHNELL:
+                zeit = (vorschub, senkrecht, fw.freivorschub_fuer(job))
+            kopie = pool.kopie(job.Document, wiederverwenden=True)
+            return pool.auftrag("bearbeitung_vorschau", funktion, kopie, job.Name, *argumente, zeit)
+        except Exception as fehler:  # noqa: BLE001 – dann rechnet sie hier, wie bisher
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Vorschau im Nebenrechner: {fehler}\n")
+            return None
 
     def _merken(self, merk, schluessel):
         """Merkt, was die Vorschau ergab – höchstens VORSCHAU_MERK, die ältesten fallen heraus."""
@@ -3391,20 +3438,47 @@ IM_FREIEN_SCHNELL = {
 }
 
 
+def _abwarten(schritt):
+    """Ist der Schritt einer Vorschau ein Auftrag an einen Nebenrechner: auf ihn warten (das
+    Fenster zeichnet sich dabei neu, nimmt aber keinen Klick an) – für das Rechnen am Stück."""
+    from . import nebenrechner as nr
+
+    if isinstance(schritt, nr.Auftrag) and not schritt.erledigt:
+        with contextlib.suppress(nr.Fehler):  # was scheiterte, liest _aus_dem_hintergrund
+            nr.pool().warten([schritt], zwischendurch=nr.ereignisse_ohne_eingaben)
+
+
+def _aus_dem_hintergrund(auftrag):
+    """Was ein Nebenrechner für die Vorschau gerechnet hat: ("ok", (Bahn, Zeit im Freien)),
+    ("fehler", Satz, schon weg?) für einen Grund, den die Strategie selbst nennt (ValueError,
+    auch materialstand.SchonWeg; RuntimeError aus OpenCascade) – oder None: gescheitert oder
+    abgebrochen, dann rechnet der Assistent hier."""
+    if auftrag.fertig:
+        return ("ok", auftrag.ergebnis)
+    eigene = ("ValueError", "RuntimeError", "SchonWeg")  # Gründe der Strategie selbst
+    if auftrag.fehler is not None and auftrag.fehlerart in eigene:
+        return ("fehler", auftrag.fehlersatz, auftrag.fehlerart == "SchonWeg")
+    if auftrag.fehler is not None:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Vorschau im Nebenrechner gescheitert, rechne hier: {auftrag.fehler}\n"
+        )
+    return None
+
+
 def _zeit_im_freien(job, werkzeug, werte, bahn, vorschub, eintauchen):
     """Die Zeit der Vorschau (min) mit dem Freivorschub im Freien – wie die Operation fährt
     (freiwege). Gerechnet im Materialstand, den der Assistent dem Block gibt; ohne ihn wie
     bisher."""
     from . import freiwege as fw
 
-    punkte = getattr(bahn, "punkte", None)
-    stand = werte.get("materialstand")
-    form = ff.von_werkzeug(werkzeug)
-    if not punkte or stand is None or form is None:
-        return bn.zeit(punkte or [], vorschub, eintauchen)
-    quader = mst._kopie(stand).quader
-    neu, _weg = fw.schneller(punkte, form, quader, vorschub, fw.freivorschub_fuer(job))
-    return bn.zeit(neu, vorschub, eintauchen)
+    return fw.zeit_im_freien(
+        ff.von_werkzeug(werkzeug),
+        werte.get("materialstand"),
+        getattr(bahn, "punkte", None),
+        vorschub,
+        eintauchen,
+        fw.freivorschub_fuer(job),
+    )
 
 
 def _merk_schluessel(kennung, job, werkzeug, einsatz, werte, flaechen):
@@ -3510,6 +3584,7 @@ class BearbeitungPanel:
             uhren.aus_der_schleife(self._vorschau_uhr, self._vorschau_im_takt)
         )
         self._vorschau_lauf = None  # der Lauf, der gerade Block für Block rechnet (_im_takt)
+        self._vorschau_auftrag = None  # sein Block in einem Nebenrechner
         self._rohteil_uhr = QtCore.QTimer()
         self._rohteil_uhr.setSingleShot(True)
         self._rohteil_uhr.setInterval(NACHZIEHEN_MS)
@@ -4091,7 +4166,7 @@ class BearbeitungPanel:
     def _vor_dem_schliessen(self):
         BearbeitungPanel.offen = None
         self.geschlossen = True
-        self._vorschau_lauf = None
+        self._vorschau_lauf_beenden()
         from .gui_reichweite import job_merken
 
         job_merken(self.job)  # Prüfen, Bestückung und Programm nehmen ihn ohne Auswahl
@@ -5324,11 +5399,18 @@ class BearbeitungPanel:
     def vorschau_starten(self):
         if self._fuellt or self._ruhig or self.geschlossen:
             return
-        self._vorschau_lauf = None  # was noch zur Eingabe davor rechnet, ist veraltet
+        self._vorschau_lauf_beenden()  # was noch zur Eingabe davor rechnet, ist veraltet
         for block in self.bloecke:
             block.vorschau = None
         self._vorschau_uhr.start()
         self._knoepfe_beschriften()
+
+    def _vorschau_lauf_beenden(self):
+        """Der Lauf im Takt hört auf; rechnet sein Block in einem Nebenrechner, endet der."""
+        self._vorschau_lauf = None
+        auftrag, self._vorschau_auftrag = self._vorschau_auftrag, None
+        if auftrag is not None and not auftrag.erledigt:
+            auftrag.abbrechen()
 
     def vorschau_laeuft(self):
         """Steht eine Vorschau noch aus – die Uhr nach einer Eingabe läuft, oder ein Lauf rechnet
@@ -5341,7 +5423,7 @@ class BearbeitungPanel:
         (_eigene, P-2026-10-03-28: am Testteil 95 Fragen je Lauf). Am Stück – für „Anlegen“;
         nach einer Eingabe rechnet sie Schritt für Schritt (_vorschau_im_takt)."""
         self._vorschau_uhr.stop()
-        self._vorschau_lauf = None  # ein Lauf im Takt ist damit erledigt
+        self._vorschau_lauf_beenden()  # ein Lauf im Takt ist damit erledigt
         if self.geschlossen or self.job is None:
             return
         self._flaechen_merk = {}
@@ -5368,6 +5450,8 @@ class BearbeitungPanel:
         """Ein Schritt des Laufs; der nächste kommt aus der Ereignisschleife. `merk`: die Flächen
         je Block für diesen Lauf (_eigene) – nur während eines Schritts gesetzt, dazwischen kann
         sich die Wahl ändern."""
+        from . import nebenrechner as nr
+
         if lauf is not self._vorschau_lauf or self.geschlossen:
             lauf.close()
             return
@@ -5379,7 +5463,7 @@ class BearbeitungPanel:
             return
         self._flaechen_merk = merk
         try:
-            next(lauf)
+            schritt = next(lauf)
         except StopIteration:
             if self._vorschau_lauf is lauf:
                 self._vorschau_lauf = None
@@ -5390,13 +5474,20 @@ class BearbeitungPanel:
             raise
         finally:
             self._flaechen_merk = None
+        weiter = functools.partial(self._vorschau_schritt, lauf, merk)
+        if isinstance(schritt, nr.Auftrag) and not schritt.erledigt:
+            # Ein Nebenrechner rechnet den Block: Weiter geht es, wenn er fertig ist – bis dahin
+            # ist das Fenster ganz frei.
+            self._vorschau_auftrag = schritt
+            schritt.bei_fertig = lambda _auftrag: QtCore.QTimer.singleShot(0, weiter)
+            return
         # partial, kein lambda: Ein Rahmen aus Python darunter hielte uhren.verschachtelt() für
         # eine laufende Rechnung.
-        QtCore.QTimer.singleShot(0, functools.partial(self._vorschau_schritt, lauf, merk))
+        QtCore.QTimer.singleShot(0, weiter)
 
     def _vorschau_rechnen_mit_merk(self):
-        for _schritt in self._vorschau_schritte():
-            pass
+        for schritt in self._vorschau_schritte():
+            _abwarten(schritt)
 
     def _vorschau_schritte(self):
         """Die Vorschau aller Blöcke als Schritte (ein Generator): nach jedem Block, nach dem
@@ -5406,12 +5497,7 @@ class BearbeitungPanel:
         boeden = self._nur_boeden(form)
         gerechnet = {}  # Block → woraus seine Vorschau gerechnet ist (_block_rechnen)
         for block in self.bloecke:
-            if block is self.raeumen and boeden is not None and self._dabei(block):
-                # Die Folge mit den Taschenböden – in ihren eigenen Schritten (_block_rechnen
-                # täte dasselbe am Stück).
-                yield from self._folge_schritte(form, boeden)
-            else:
-                self._block_rechnen(block, form, boeden, gerechnet)
+            yield from self._block_schritte(block, form, boeden, gerechnet)
             yield
         self._wettbewerb(form, nur_bohrung=boeden is not None)
         yield
@@ -5424,7 +5510,7 @@ class BearbeitungPanel:
         for _runde in range(2):
             neu = []
             for b in self.bloecke:
-                if self._block_rechnen(b, form, boeden, gerechnet, True):
+                if (yield from self._block_schritte(b, form, boeden, gerechnet, True)):
                     neu.append(b)
                     yield
             if not neu:
@@ -5517,6 +5603,16 @@ class BearbeitungPanel:
         self.unfertig.show()
 
     def _block_rechnen(self, block, form, boeden, gerechnet, nur_anders=False):
+        """_block_schritte am Stück (wartet auf Nebenrechner); gibt zurück, ob er gerechnet hat."""
+        lauf = self._block_schritte(block, form, boeden, gerechnet, nur_anders)
+        while True:
+            try:
+                schritt = next(lauf)
+            except StopIteration as ende:
+                return ende.value
+            _abwarten(schritt)
+
+    def _block_schritte(self, block, form, boeden, gerechnet, nur_anders=False):
         """Die Vorschau eines Blocks, wenn er angehakt ist oder im Wettbewerb steht; sonst leer.
         `gerechnet` merkt je Block, woraus sie gerechnet ist – seine Flächen, was der Assistent
         ihm vorgibt, sein Materialstand. Mit `nur_anders` (nach dem Wettbewerb) rechnet er nur,
@@ -5525,7 +5621,7 @@ class BearbeitungPanel:
             return False  # die Folge (_folge) hat beide gerechnet, mit ihren Sätzen
         dabei = self._dabei(block)
         if block is self.raeumen and boeden is not None and dabei:
-            self._folge(form, boeden)  # setzt die Haken selbst, vor allen dahinter
+            yield from self._folge_schritte(form, boeden)  # setzt die Haken selbst
             return False
         if block is self.restraeumen:
             self._restraeumen_einrichten(form)  # nach dem Räumen: was es ausließ
@@ -5553,7 +5649,7 @@ class BearbeitungPanel:
         woraus = (tuple(flaechen), eigen, getattr(stand, "kennung", None))
         if nur_anders and gerechnet.get(block) == woraus:
             return False
-        block.vorschau_rechnen(self.job, flaechen, zusatz)
+        yield from block.vorschau_schritte(self.job, flaechen, zusatz)
         gerechnet[block] = woraus
         if block is self.kontur:
             self._kontur_text(form, eigen)
@@ -6492,8 +6588,8 @@ class BearbeitungPanel:
         Planfräsen fräst die ebenen Flächen und das Räumen nur die Böden – die schnellere Folge
         bekommt die Haken (Grundsatz 0), solange niemand sie von Hand gesetzt hat. Sind beide
         angehakt, räumt das Räumen nur die Böden: keine Fläche zweimal."""
-        for _schritt in self._folge_schritte(form, boeden):
-            pass
+        for schritt in self._folge_schritte(form, boeden):
+            _abwarten(schritt)
 
     def _folge_schritte(self, form, boeden):
         """_folge als Schritte (ein Generator): nach jeder der bis zu drei Vorschauen ein `yield` –
@@ -6505,19 +6601,19 @@ class BearbeitungPanel:
             return {"materialstand": self._materialstand(raeumen, form, eigene, mit)}
 
         if not plan.aktiv() and (plan.von_hand or not plan.moeglich):
-            raeumen.vorschau_rechnen(self.job, flaechen, mit_stand(flaechen))
+            yield from raeumen.vorschau_schritte(self.job, flaechen, mit_stand(flaechen))
             return
         if plan.vorschau is None:
             eben = plan.s.flaechen_fuer(form, self.gewaehlte)
-            plan.vorschau_rechnen(
+            yield from plan.vorschau_schritte(
                 self.job, eben, {"materialstand": self._materialstand(plan, form, eben)}
             )
             yield
-        raeumen.vorschau_rechnen(self.job, flaechen, mit_stand(flaechen))
+        yield from raeumen.vorschau_schritte(self.job, flaechen, mit_stand(flaechen))
         alles = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
         yield
         # Nur die Böden: Das Planfräsen fräst davor die ebenen Flächen – es gehört dazu.
-        raeumen.vorschau_rechnen(self.job, boeden, mit_stand(boeden, (plan,)))
+        yield from raeumen.vorschau_schritte(self.job, boeden, mit_stand(boeden, (plan,)))
         nur = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
         zeiten = (plan.zeit, alles[1], nur[1])
         if not (plan.von_hand or raeumen.von_hand) and all(z and z > 0 for z in zeiten):

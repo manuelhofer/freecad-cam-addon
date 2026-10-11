@@ -4,7 +4,7 @@
 # Räumens ändern – der Lauf hört auf, ein neuer rechnet mit dem neuen Wert; mitten im nächsten
 # Lauf „Anlegen“ – er rechnet am Stück fertig, und die Operationen entstehen. Eine Uhr des Fensters
 # zählt mit, wie oft die Ereignisschleife während des Laufs drankam (takt.txt: auch die längste
-# Pause – ein Block, der lange rechnet, hält sie so lange an).
+# Pause); das Räumen rechnet ein Nebenrechner, kein Schritt hält das Fenster lange an.
 import os
 import time
 
@@ -79,6 +79,9 @@ def schritte(h):
     im_lauf = [t for t in takte if t >= beginn]
     pausen = [b - a for a, b in zip(im_lauf, im_lauf[1:], strict=False)]
     h.pruefe(len(im_lauf) >= 5, f"die Ereignisschleife kam während {dauer:.1f} s kaum dran")
+    # Das Räumen rechnet ein Nebenrechner (P-2026-10-11-23): Kein Schritt hält das Fenster lange
+    # an (am Testteil 0,7 s; im Prozess der Oberfläche waren es 7,7 s).
+    h.pruefe(max(pausen or [0]) < 5.0, f"das Fenster stand {max(pausen or [0]):.1f} s am Stück")
     with open(os.path.join(os.environ["CAMADDON_AUSGABE"], "takt.txt"), "w") as f:
         f.write(
             f"Lauf {dauer:.1f} s, Takte {len(im_lauf)}, längste Pause {max(pausen or [0]):.2f} s\n"

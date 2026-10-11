@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-23 bearbeitung-raeumen-im-nebenrechner
+
+### EINGELESEN
+- Nach P-2026-10-11-16 hielt im Assistenten „Bearbeitung“ noch ein einzelner Block das Fenster
+  an: das Räumen, am 3-Achs-Testteil 3–3,4 s, mit kleiner Zustellung bis 14 s. Seine Eingaben
+  (der Materialstand davor) und die Bahn lassen sich pickeln (gemessen: 0,7 MB und 80 kB).
+
+### DATEIEN
+- `camaddon/bearbeitung_vorschau.py` (neu): `raeumen(dokument, job_name, …)` – die Vorschau des
+  Räumens im Nebenrechner, mit der Zeit im Freien.
+- `camaddon/raeumen.py`: `vorschau_fuer_assistent` (grob, mit Ringen genau – bisher im Fenster).
+- `camaddon/freiwege.py`: `zeit_im_freien` (bisher `gui_bearbeitung._zeit_im_freien`).
+- `camaddon/gui_bearbeitung.py`: `_Block.vorschau_schritte` gibt bei einer Strategie mit
+  `hintergrund` (Räumen, Rest räumen) einen Auftrag aus; im Takt geht es weiter, wenn er fertig
+  ist (bis dahin ist das Fenster frei), am Stück wartet `_abwarten`; ein Grund der Strategie
+  (ValueError, SchonWeg, RuntimeError) kommt als Hinweis, sonst rechnet es hier (mit Warnung).
+  `_block_schritte`, `_folge_schritte` reichen die Aufträge durch; eine neue Eingabe bricht den
+  wartenden Auftrag ab.
+- `tests/gui/szenario_bearbeitung_im_takt.py` (die längste Pause unter 5 s),
+  `docs/aufbau.md`, `package.xml` (0.213.31), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Am 3-Achs-Testteil (`szenario_testteil` mit Messung je Schritt): im Fenster 5,3 statt 12,3 s
+  gerechnet, der längste Schritt 1,1 s (das Planfräsen) statt 3,4 s; die Räumen-Vorschauen kamen
+  alle aus dem Nebenrechner. `szenario_bearbeitung_im_takt`: die Ereignisschleife kam während
+  des Laufs 478-mal dran, die längste Pause 0,7 s (vorher 7,7 s).
+- Grün: alle 54 Szenarien des Assistenten (1.1.4), dazu `szenario_testteil` in 26.3.0RC1.
+
 ## P-2026-10-11-22 szenarien-warten-auf-den-lauf
 
 ### EINGELESEN

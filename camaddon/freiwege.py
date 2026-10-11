@@ -276,6 +276,19 @@ def _unten_bleiben(punkte, i, quader, weite):
     punkte[i + 1 : j + 1] = ersatz
 
 
+def zeit_im_freien(form, stand, punkte, vorschub, eintauchen, freivorschub):
+    """Die Zeit (min) der Bahn `punkte` mit dem Freivorschub im Freien – wie die Operation fährt
+    (schneller), im Materialstand `stand` (materialstand) vor ihr; ohne ihn oder ohne Form die
+    Zeit wie bisher. Für die Vorschau des Assistenten „Bearbeitung“, auch im Nebenrechner."""
+    from . import materialstand as mst
+
+    if not punkte or stand is None or form is None:
+        return bn.zeit(punkte or [], vorschub, eintauchen)
+    quader = mst._kopie(stand).quader
+    neu, _weg = schneller(punkte, form, quader, vorschub, freivorschub)
+    return bn.zeit(neu, vorschub, eintauchen)
+
+
 def freivorschub_fuer(job):
     """Der Freivorschub (mm/min) für einen Job: der kleinste Höchstvorschub der Linearachsen
     seiner Maschine (die gemerkte – maschinenspeicher kennt ihn, ohne die Datei zu öffnen);

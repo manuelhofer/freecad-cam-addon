@@ -336,6 +336,25 @@ def vorschau(
     )
 
 
+def vorschau_fuer_assistent(
+    job, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter
+):  # fmt: skip
+    """Die Vorschau im Assistenten „Bearbeitung“ (gui_bearbeitung, auch im Nebenrechner:
+    bearbeitung_vorschau): grob (vorschau()) – mit Ringen die genaue Bahn (bahn_fuer()), denn die
+    grobe rechnet eine etwas andere und kann die Last unterschätzen: Am Testteil maß sie in der
+    dreieckigen Tasche (Ø 6) 1,7 ae, die genaue Bahn, die die Maschine fährt, 4,5 ae
+    (Werkzeugbruch; Manuel, 2026-10-04). Adaptiv hält die Last nach seiner Bauart, „ringe“ ohne
+    Blick auf sie. `weiter`: die Schlüsselwörter von vorschau()."""
+    argumente = (job, job.Model.Group, form, zustellung, zeilenabstand, aufmass, flaechen)
+    bahn = vorschau(*argumente, **weiter)
+    if bahn.variante == "adaptiv" or weiter.get("variante") == rb.RINGE:
+        return bahn
+    try:
+        return bahn_fuer(*argumente, **weiter)
+    except ValueError:
+        return bahn
+
+
 def lege_an(
     job,
     tc,
