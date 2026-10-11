@@ -1671,54 +1671,51 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         varianten = VARIANTEN
     else:
         varianten = (w.variante,) if w.variante in ALLE_VARIANTEN else AUTOMATISCH
-    taschen = {id(e): _tasche_um(e, konturen) for e in ebenen}
-    if all(taschen[id(e)] is not None for e in ebenen) and w.variante != "adaptiv":
+    folge = _folge(ebenen, konturen)
+    if all(tasche is not None for _e, tasche in folge) and w.variante != "adaptiv":
         # Nur Taschen: Die Ringe haben dort eine Art, von innen nach außen.
         ringe = w.variante == RINGE or w.variante in VARIANTEN
         varianten = ("inseln",) if ringe else ("inseln", "adaptiv")
     huellen = {}  # je Fläche die Hüllfläche im Raster – für jede Variante dieselbe
-    # Die Reihenfolge (Spezifikation Strategien 13.5, T1; Manuels Testteil): die offenen Flächen
-    # von unten nach oben – jede Stelle wird einmal gefräst, gleich auf ihre Tiefe, statt Höhe
-    # für Höhe über alles hinweg, was darunter noch kommt –, danach die Taschen von oben nach
-    # unten (jede beginnt, wo die Fläche um sie schon geräumt ist).
-    folge = sorted((e for e in ebenen if taschen[id(e)] is None), key=lambda e: e.z)
-    folge += sorted((e for e in ebenen if taschen[id(e)] is not None), key=lambda e: -e.z)
     ergebnisse = {}
     davor = []  # wer vorher an den Flächen weggenommen hat (für den Satz, wenn nichts zu tun ist)
 
     def rechnen(variante, w):
         """(Variante, _Stand) – None, wenn sie nirgends passt; die Variante wird „rohteil“, wo
         eine vorgegebene nicht passt."""
-        st = _Stand()
-        # Mehrere Flächen: Jede sieht, was die davor in dieser Bahn schon weggenommen haben.
-        material = _Material(w, stand) if len(folge) > 1 else None
-        eigen = False  # der Morph oder der Adaptiv-Kern hat an einer Fläche gepasst
-        for ebene in folge:
-            tasche = taschen[id(ebene)]
-            teil = _Stand()
-            lauf = (hf.netz_fuer(netz, ebene), w, ebene, tasche, konturen)
-            try:
-                _flaeche(teil, *lauf, variante, r, schritt, stand, material, huellen)
-                eigen |= variante == "adaptiv" or (variante == "morph" and tasche is None)
-            except (_KeinMorph, _KeinAdaptiv):
-                # Passt nicht zu dieser Fläche: für sie die Ringe vom Rohteil her (in der Tasche
-                # die von innen nach außen).
-                teil = _Stand()
-                _flaeche(teil, *lauf, "rohteil", r, schritt, stand, material, huellen)
-            st.dazu(teil)
-            if material is not None and teil.punkte:
-                material.fahre(teil.punkte)
-        if variante in ("morph", "adaptiv") and not eigen:
-            if len(varianten) > 1:
-                return None  # passt nirgends: die anderen Varianten entscheiden
-            variante = "rohteil"  # vorgegeben, passt aber nicht: es waren die Ringe vom Rohteil
-        return variante, st
+        return _variante(
+            netz, w, folge, konturen, r, schritt, stand, huellen, variante, len(varianten) > 1
+        )
 
     def zeit_von(st):
         return bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
 
+    # Die Ringe gleichzeitig auf den Nebenrechnern, der Adaptiv-Kern derweil hier (sein Merker
+    # _ADAPTIV bleibt hier: Er rechnet bei gleicher Eingabe nicht dasselbe, und „adaptiv mit
+    # Freivorschub“ soll genau die Bahn der automatischen Wahl wiederholen). Ausgewertet wird in
+    # der Reihenfolge der Varianten – auch ein Fehler kommt, wo er nacheinander käme.
+    unterwegs, gemeinsam = _varianten_auftraege(
+        netz, w, ebenen, konturen, schritt, stand, varianten
+    )
+    hier = {}
+    try:
+        for variante in varianten:
+            if variante not in unterwegs:
+                try:
+                    hier[variante] = rechnen(variante, w)
+                except Exception as fehler:  # noqa: BLE001 – kommt an seiner Stelle
+                    hier[variante] = fehler
+    finally:
+        verteilt = _varianten_abholen(unterwegs, gemeinsam, huellen)
     for variante in varianten:
-        gerechnet = rechnen(variante, w)
+        if variante in hier:
+            gerechnet = hier[variante]
+            if isinstance(gerechnet, Exception):
+                raise gerechnet
+        elif variante in verteilt:
+            gerechnet = verteilt[variante]
+        else:
+            gerechnet = rechnen(variante, w)  # der Arbeiter lieferte nicht: hier, mit seinem Fehler
         if gerechnet is None:
             continue
         variante, st = gerechnet
@@ -1940,6 +1937,141 @@ def _tasche_um(ebene, konturen):
         if beste is None or flaeche.Area < beste[1]:
             beste = (k, flaeche.Area)
     return beste[0] if beste else None
+
+
+def _folge(ebenen, konturen):
+    """[(Ebene, Tasche um sie oder None)] in der Reihenfolge des Räumens (Spezifikation
+    Strategien 13.5, T1; Manuels Testteil): die offenen Flächen von unten nach oben – jede Stelle
+    wird einmal gefräst, gleich auf ihre Tiefe, statt Höhe für Höhe über alles hinweg, was
+    darunter noch kommt –, danach die Taschen von oben nach unten (jede beginnt, wo die Fläche um
+    sie schon geräumt ist)."""
+    paare = [(e, _tasche_um(e, konturen)) for e in ebenen]
+    offen = sorted((p for p in paare if p[1] is None), key=lambda p: p[0].z)
+    return offen + sorted((p for p in paare if p[1] is not None), key=lambda p: -p[0].z)
+
+
+def _variante(netz, w, folge, konturen, r, schritt, stand, huellen, variante, mehrere):
+    """Eine Variante über alle Flächen (planen): (Variante, _Stand) – None, wenn sie nirgends
+    passt und es `mehrere` gibt; die Variante wird „rohteil“, wo eine vorgegebene nicht passt."""
+    st = _Stand()
+    # Mehrere Flächen: Jede sieht, was die davor in dieser Bahn schon weggenommen haben.
+    material = _Material(w, stand) if len(folge) > 1 else None
+    eigen = False  # der Morph oder der Adaptiv-Kern hat an einer Fläche gepasst
+    for ebene, tasche in folge:
+        teil = _Stand()
+        lauf = (hf.netz_fuer(netz, ebene), w, ebene, tasche, konturen)
+        try:
+            _flaeche(teil, *lauf, variante, r, schritt, stand, material, huellen)
+            eigen |= variante == "adaptiv" or (variante == "morph" and tasche is None)
+        except (_KeinMorph, _KeinAdaptiv):
+            # Passt nicht zu dieser Fläche: für sie die Ringe vom Rohteil her (in der Tasche
+            # die von innen nach außen).
+            teil = _Stand()
+            _flaeche(teil, *lauf, "rohteil", r, schritt, stand, material, huellen)
+        st.dazu(teil)
+        if material is not None and teil.punkte:
+            material.fahre(teil.punkte)
+    if variante in ("morph", "adaptiv") and not eigen:
+        if mehrere:
+            return None  # passt nirgends: die anderen Varianten entscheiden
+        variante = "rohteil"  # vorgegeben, passt aber nicht: es waren die Ringe vom Rohteil
+    return variante, st
+
+
+def variante_rechnen(netz, w, ebenen, konturen, schritt, stand, variante, mehrere):
+    """Auch im Nebenrechner: _variante() für eine Variante – (ihr Ergebnis, die Hüllflächen
+    {Fläche: Raster}). `konturen`: [(Draht als Form, Kontur ohne Draht)] (ein Part.Wire lässt sich
+    nicht pickeln; _konturen_verpackt)."""
+    konturen = [
+        dataclasses.replace(k, draht=draht.Wires[0] if draht.ShapeType == "Wire" else draht)
+        for draht, k in konturen
+    ]
+    folge = _folge(ebenen, konturen)
+    huellen = {}
+    ergebnis = _variante(
+        netz, w, folge, konturen, float(w.form.radius), schritt, stand, huellen, variante, mehrere
+    )
+    return ergebnis, huellen
+
+
+def _konturen_verpackt(konturen, nr):
+    """Die Konturen für einen Nebenrechner: [(Draht als nebenrechner.Form, Kontur ohne Draht)]."""
+    return [(nr.Form.von(k.draht), dataclasses.replace(k, draht=None)) for k in konturen]
+
+
+def _varianten_auftraege(netz, w, ebenen, konturen, schritt, stand, varianten):
+    """({Variante: Auftrag}, [Schlüssel der gemeinsamen Daten]) – die Ringe (alle Varianten außer
+    „adaptiv“) je auf einem Nebenrechner, gleichzeitig (sie hängen nicht voneinander ab; am
+    Testteil rechneten die vier Varianten nacheinander 6,4 s, P-2026-10-11-77). Leer, wenn es
+    nichts zu verteilen gibt oder keine Nebenrechner."""
+    import secrets
+
+    fremd = [v for v in varianten if v != "adaptiv"]
+    if len(varianten) < 2 or not fremd:
+        return {}, []
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return {}, []
+    auftraege, schluessel = {}, []
+    try:
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return {}, []
+        gemeinsam = []
+        for name, wert in (("netz", netz), ("stand", stand)):
+            if wert is None:
+                gemeinsam.append(None)
+                continue
+            kennung = f"raeumen-{name}-{secrets.token_hex(8)}"
+            schluessel.append(kennung)
+            gemeinsam.append(pool.gemeinsam(kennung, wert))
+        verpackt = _konturen_verpackt(konturen, nr)
+        for v in fremd:
+            auftraege[v] = pool.auftrag(
+                "raeumen_bahn",
+                "variante_rechnen",
+                gemeinsam[0],
+                w,
+                ebenen,
+                verpackt,
+                schritt,
+                gemeinsam[1],
+                v,
+                True,
+            )
+    except nr.Fehler:
+        for a in auftraege.values():
+            a.abbrechen()
+        for kennung in schluessel:
+            pool.vergessen(kennung)
+        return {}, []
+    return auftraege, schluessel
+
+
+def _varianten_abholen(auftraege, gemeinsam, huellen):
+    """{Variante: was _variante() ergab} aus _varianten_auftraege – wartet (das Fenster zeichnet
+    dabei neu); ihre Hüllflächen kommen in `huellen` (für feiner() danach). Was ein Arbeiter nicht
+    lieferte, fehlt – das rechnet planen() dann selbst, mit genau seinem Fehler."""
+    if not auftraege:
+        return {}
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    try:
+        pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler:
+        pass  # die anderen gelten; die gescheiterte rechnet planen() selbst
+    finally:
+        for kennung in gemeinsam:
+            pool.vergessen(kennung)
+    ergebnisse = {}
+    for v, a in auftraege.items():
+        if a.fertig and a.fehler is None and not a.abgebrochen:
+            ergebnisse[v], ihre = a.ergebnis
+            for name, huelle in ihre.items():
+                huellen.setdefault(name, huelle)
+    return ergebnisse
 
 
 def _flaeche(

@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-77 raeumen-varianten-gleichzeitig
+
+### EINGELESEN
+- Ohne Vorgabe rechnet das Räumen vier Varianten nacheinander (Ringe vom Rohteil, Morph, Inseln,
+  Adaptiv) und nimmt die schnellste, die die Last hält. Sie hängen nicht voneinander ab – am
+  Testteil (drei Höhen) 0,7 + 0,7 + 0,9 + 4,0 s nacheinander, 6,0 s.
+- Erster Versuch – alle vier auf den Nebenrechnern – brach `test_raeumen`: „adaptiv mit
+  Freivorschub“ soll genau die Bahn der automatischen Wahl wiederholen, und das hält nur der
+  Merker `_ADAPTIV` im Hauptprozess (der Kern rechnet bei gleicher Eingabe nicht dasselbe,
+  P-2026-10-11-76). Darum rechnet „adaptiv“ weiter hier.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `planen` – die Ringvarianten je auf einem Nebenrechner
+  (`_varianten_auftraege`, `variante_rechnen`, `_varianten_abholen`), „adaptiv“ derweil hier;
+  ausgewertet in der Reihenfolge der Varianten, ein Fehler kommt, wo er nacheinander käme; was ein
+  Arbeiter nicht liefert, rechnet `planen` selbst. `_folge` und `_variante` aus `planen` gelöst.
+  Die Konturen reisen als BREP (`_konturen_verpackt`: ein Part.Wire lässt sich nicht pickeln;
+  der Text weicht bis 10⁻¹⁴ mm ab), Netz und Materialstand als gemeinsame Daten, die Hüllflächen
+  kommen zurück (für `feiner` danach).
+- `package.xml` (0.213.81), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Eine Planung am Testteil (drei Höhen, automatisch): 6,0 → 4,1 s, sobald die Arbeiter die Fläche
+  kennen (ihre Hüllflächen gemerkt); die erste wie bisher. Dieselbe Wahl (adaptiv).
+
+### AKZEPTANZKRITERIUM
+- `test_raeumen`, `test_nut_offen`, `test_testteil`, `test_pruefstand`, `test_restmaterial`,
+  `test_schruppen3d`, `szenario_testteil`, `szenario_raeumen`, `szenario_bearbeitung`,
+  `szenario_nut_offen`, `szenario_raeumen_materialstand` grün.
+
 ## P-2026-10-11-76 adaptiv-im-nebenrechner
 
 ### EINGELESEN
