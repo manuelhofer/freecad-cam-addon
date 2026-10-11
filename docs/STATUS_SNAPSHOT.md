@@ -26,7 +26,7 @@ Kein Stehen: „Programm schreiben“ auf einem Nebenrechner (2,3 → 0,2 s), Fl
 Vorschaubild (0,58 → 0,16 s). Das Voxelmodell (`camaddon/voxelstange.py`) rechnet auf allen Kernen
 und füllt das Teil übers Netz in 0,1 s. Berichtigt: die „408 mm³ je mm“ vom Morgen (Messfehler).
 
-**Der 11.10. nachmittags (P-2026-10-11-59 bis -69, 0.213.65 → 0.213.74):** Mit Flächen ist der
+**Der 11.10. nachmittags (P-2026-10-11-59 bis -70, 0.213.65 → 0.213.75):** Mit Flächen ist der
 Haken „Querachse“ beim Schlichten grau und sagt warum (Frage 12 an Manuel). Der Abspieler im
 Prüffenster rechnet weite Sprünge im Takt (ans Ende: 3 s → höchstens 0,19 s am Stück). **Die
 Schlichtbahn mit der Querachse schnitt an der Nase bis 0,1 mm ins Teil** (nachgemessen: Kugelmitte
@@ -46,8 +46,8 @@ Fläche gemerkt), „Anlegen“ bis 26 → 1,7–3,9 s (Abstandsfeld des Räumen
 das Fenster zeichnet beim Rechnen neu), der Materialstand-Beobachter am 5-Achs-Job 18 s → nichts
 (5-Achs-Programm je Inhalt gemerkt), „Kollision prüfen“ an der Nocke 5,9 → 0,9 s (gemeinsame Daten
 einmal gepickelt), Neu berechnen am Schwenkteil 84 → 44,5 s (Strahlenschnitt auf den Nebenrechnern).
-Offen: das erste 5-Achs-Programm beim Öffnen des Prüffensters (12 s, gehört auf einen Nebenrechner),
-das Abtragen je Bewegung im räumlichen Materialstand (17 s am Schwenkteil), die erste Analyse der
+Das erste 5-Achs-Programm rechnen beim Öffnen des Prüffensters jetzt die Nebenrechner (-70: 12 →
+1,3 s am Stück; dabei zwei Fehler aus -60 im Abspieler behoben). Offen: das Abtragen je Bewegung im räumlichen Materialstand (17 s am Schwenkteil), die erste Analyse der
 Bohrungen beim Anklicken (`_boden_unter`, je Bohrung acht `isInside`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
