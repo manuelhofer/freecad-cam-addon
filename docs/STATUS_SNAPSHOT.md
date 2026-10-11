@@ -15,6 +15,17 @@ Fehler – sie kommen hierher; die Beiträge selbst liegen nur bei Manuel (Manue
 was mit posts zutun hat … einfach nicht auf github … auser es werden bilder benötigt“; die Bilder
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 
+**Der 11.10. ab Mittag (P-2026-10-11-42 bis -58, 0.213.48 → 0.213.64):** Manuels Antworten zu
+Frage 10 und 11 gebaut („Plan indexiert“ rundum vorbelegt mit dem Schruppfräser, auch Face8 zur
+Achse; Seiten mit dem Schaft als Haken; „C dreht nicht zurück“ beim Schruppen); der 4-Achs-
+Assistent sagt vor dem Anlegen, mit wie viel ap × ae die Kugel nach dem Schruppen eingreift und ob
+Halter oder Schaft anstoßen („bräuchte mindestens … mm“); „Folgelagen nur, wo nötig“ (Haken,
+vorbelegt an): am Nasen-Testteil Schruppen 15,3 → 11,1 min, mit 5 mm Zustellung 64 → 37 min.
+Kein Stehen: „Programm schreiben“ auf einem Nebenrechner (2,3 → 0,2 s), Flanke, Restschlichten und
+3D-Schlichten mit Wegkippen im Hintergrund, Materialstand im Takt, die Kopie für die Arbeiter ohne
+Vorschaubild (0,58 → 0,16 s). Das Voxelmodell (`camaddon/voxelstange.py`) rechnet auf allen Kernen
+und füllt das Teil übers Netz in 0,1 s. Berichtigt: die „408 mm³ je mm“ vom Morgen (Messfehler).
+
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
 22 zuvor lokalen Addon-Patches; Veröffentlichung auf Manuels ausdrücklichen Wunsch
