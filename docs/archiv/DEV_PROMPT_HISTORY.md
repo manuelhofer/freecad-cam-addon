@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-50 programm-im-hintergrund
+
+### EINGELESEN
+- „Programm schreiben“ am Nasen-Testteil (236 000 Sätze, Drehmaschine mit Y): beim Öffnen stand das
+  Fenster 2,1 s (die Abschnitte mit der Maschine), beim Speichern 2,3 s (Programm und Nachlesen) –
+  Manuel, 2026-10-09: „ein Lag … wo ich nichts klicken kann … sowas muss unbedingt vermieden
+  werden“. Die Abschnitte tragen Path.Command und gehen nicht durch die Verbindung.
+
+### DATEIEN
+- `camaddon/programm_rechnen.py` (neu): `abschnitte_und_kette`, `maschine_je_operation` (aus
+  gui_programm, ohne Oberfläche), `programm()` – auf einer Kopie des Dokuments bis zum Text, mit
+  Hinweisen und auf Wunsch dem Nachlesen; die Abschnitte bleiben im Arbeiter gemerkt.
+- `camaddon/gui_programm.py`: ab IM_HINTERGRUND_AB (20 000) Sätzen (Path.Size) rechnen Vorschau und
+  Speichern auf einem Nebenrechner – je ein Auftrag, „Rechnet auf einem Nebenrechner …“, „Speichern“
+  solange gesperrt; scheitert er, rechnet das Fenster selbst; kleinere Jobs wie bisher;
+  `rechnet()` für die Szenarien.
+- `translations/de.json`, `translations/en.json` (`pp.rechnet`),
+  `tests/gui/szenario_programm_im_hintergrund.py` (neu), `docs/aufbau.md` (Nachtrag), `package.xml`
+  (0.213.56), `docs/archiv/DEV_PROMPT_HISTORY.md` (Nachtrag – der Eintrag fehlte im Commit).
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil: das Fenster stand beim Öffnen höchstens 0,06 s, beim Speichern 0,21 s am Stück
+  (vorher 2,1 und 2,3 s); die Datei (236 113 Zeilen) zeichengleich mit dem im Fenster gerechneten
+  Programm, nachgelesen ohne Befund. `szenario_programm` (kleiner Job, am Stück) grün.
+
 ## P-2026-10-11-49 seiten-mit-dem-schaft
 
 ### EINGELESEN
