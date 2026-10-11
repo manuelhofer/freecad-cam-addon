@@ -56,7 +56,7 @@ echte Luft nur Räumen T1 7 s (ein Ring 1 mm vor einer schon freien Wand) und 3D
 letzten 2 mm des Eintauchens) – nicht der Rede wert; was das 0,5-mm-Raster sonst als Luft zeigt, ist
 die 0,3-mm-Haut an den Wänden, die es nicht auflöst (genau nachgerechnet: die Kontur nimmt sie).
 
-**Der 11.10. abends (P-2026-10-11-73 bis -82, 0.213.77 → 0.213.86):** Hilfe zu den Neuerungen
+**Der 11.10. abends (P-2026-10-11-73 bis -84, 0.213.77 → 0.213.88):** Hilfe zu den Neuerungen
 nachgezogen. Bohrungen beim Anklicken je Form und Fläche gemerkt (Deckel 1102 → 8 Fragen, 3,4 →
 1,6 s). Der räumliche Rest vor einer 3+2-Ebene trägt gesammelt ab und fängt beim Stand der vorigen
 Ebene an (Schwenkteil, beide Ebenen 18,6 → 3,7 s, derselbe Rest); FreeCADs Adaptiv-Kern rechnet
@@ -76,7 +76,13 @@ dort wird jetzt ohne Ereignisse gerechnet (-80, `uhren.still`). Die Wandhöhe ü
 ohne einen Schnitt je Millimeter (-81: RC1, Deckel anklicken 2,8 → 0,6 s, Testteil 4,7 → 1,3 s),
 „Auf der Maschine prüfen“ atmet beim Rechnen am Stück (-82: RC1, Nocke 2,7 → 0,8 s). Danach alle
 113 Prüfdateien in 1.1.4 und RC1: grün (in RC1 bis auf `test_goldene_bahnen` – Umgebung, eine
-Koordinate in der sechsten Stelle; in 1.1.4 überspringt sich `test_export`).
+Koordinate in der sechsten Stelle; in 1.1.4 überspringt sich `test_export`). Das Räumen rechnet die
+Hüllflächen einmal vor dem Verteilen (-83: Testteil 9,7 → 6,8 s, Rechenzeit 81 → 28 s). **B-019
+gefunden und behoben (-84):** Der Adaptiv-Kern lässt an der Platte des Prüfstands in jedem Lauf eine
+Nadel stehen (bis 0,04 mm², 20 mm hoch), die das Raster nicht sah – jetzt gesucht, genau
+nachgesehen und am Ende der Lage von der Seite nachgeholt (+0,03 min je Nadel).
+`test_pruefstand` bleibt gelegentlich rot an „platte/raeumen oben+tasche“ (35,6 statt höchstens
+35,27 min): die Streuung des Kerns selbst.
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
