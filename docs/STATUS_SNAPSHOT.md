@@ -35,7 +35,8 @@ nicht zurück“ gegen die falsche Normale, weite Sprünge fuhren schräg an Sei
 Behoben (-61): höchstens 0,004 mm (die Vernetzung). Rundum ohne Querachse, mit Flächen und „Plan
 indexiert“ nachgemessen: sauber. „Kollision prüfen“ mit der CLX550 156 s – der größere Teil ist
 Python je Station, nicht OpenCascade; nicht weiter verfolgt. 3-Achs-Schlichten und Restmaterial am
-3-Achs-Testteil nachgemessen: höchstens 0,003 mm ins Teil. **Stößt ein Halter an, bieten die Assistenten
+3-Achs-Testteil nachgemessen: höchstens 0,003 mm ins Teil; die 5-Achs-Flanke an zwei Kegeln (auch
+zwischen den Stellen): höchstens 0,007 mm. **Stößt ein Halter an, bieten die Assistenten
 und das Prüffenster „T1 auf … mm ausspannen“ an** (-63 bis -65): ein Klick setzt die Länge ab Spindelnase in
 der Werkzeugverwaltung; „bräuchte mindestens“ gilt im Prüffenster jetzt für die ganze Operation
 (Nase: T1 49, T2 53 mm mit dem Kopf des gewinkelten Halters).
