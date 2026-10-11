@@ -2365,6 +2365,78 @@ def _adaptiv_rechnen(kern, material, grenzen):
         return kern.Execute(material, grenzen, weiter)
 
 
+def adaptiv_kern(material, grenzen, einstellungen):
+    """Auch im Nebenrechner: FreeCADs Adaptiv-Kern (area.Adaptive2d) auf dem Material und im
+    Gebiet (Vielecke, _vielecke) mit `einstellungen` (_ringe_adaptiv) – seine Gebiete
+    [(Start, Mitte der Helix, [(schneidet, durchs Freie, Ecken (m, 2))])], gespiegelt zurück, wenn
+    die Vielecke gespiegelt waren. _KeinAdaptiv, wenn er nicht rechnet."""
+    try:
+        import area  # FreeCADs libarea
+
+        innen = area.AdaptiveOperationType.ClearingInside
+        schneiden = area.AdaptiveMotionType.Cutting
+        durchs_freie = area.AdaptiveMotionType.LinkClear
+        # Je Versuch ein frischer Kern: Ein zweites Execute auf demselben rechnet nicht dasselbe.
+        kern = area.Adaptive2d()
+        kern.toolDiameter = einstellungen["durchmesser"]
+        kern.keepToolDownDistRatio = ADAPTIV_HALTEN
+        kern.stockToLeave = 0.0
+        kern.tolerance = einstellungen["genau"]
+        kern.forceInsideOut = False
+        kern.finishingProfile = True
+        kern.opType = innen
+        kern.stepOverFactor = einstellungen["schritt"]
+        _helix_setzen(kern, einstellungen["helix"])
+        ergebnisse = _adaptiv_rechnen(kern, material, grenzen)
+    except Exception as fehler:  # ein FreeCAD ohne den Kern, oder er findet keinen Anfang
+        raise _KeinAdaptiv() from fehler
+    vorzeichen = -1.0 if einstellungen["spiegeln"] else 1.0
+    gebiete = []
+    for ergebnis in ergebnisse:
+        stuecke = []
+        for art, ecken in ergebnis.AdaptivePaths:
+            ecken = np.asarray(ecken, dtype=float).reshape(-1, 2)
+            if len(ecken):
+                ecken[:, 0] *= vorzeichen
+                stuecke.append((art == schneiden, art == durchs_freie, ecken))
+        start = (vorzeichen * float(ergebnis.StartPoint[0]), float(ergebnis.StartPoint[1]))
+        mitte = (
+            vorzeichen * float(ergebnis.HelixCenterPoint[0]),
+            float(ergebnis.HelixCenterPoint[1]),
+        )
+        gebiete.append((start, mitte, stuecke))
+    return gebiete
+
+
+def _adaptiv_gebiete(material, grenzen, einstellungen):
+    """adaptiv_kern() – mit Oberfläche auf einem Nebenrechner, während das Fenster neu zeichnet:
+    Der Kern rechnet am Stück und meldet sich kaum (am Schwenkteil 10 s, dreimal), das Fenster
+    stand so lange (P-2026-10-11-76). Ohne Oberfläche, in einem Arbeiter oder ohne Nebenrechner
+    hier."""
+    import os
+
+    import FreeCAD
+
+    if FreeCAD.GuiUp and os.environ.get("CAMADDON_ARBEITER") != "1":
+        try:
+            from . import nebenrechner as nr
+        except ImportError:
+            nr = None
+        if nr is not None:
+            try:
+                pool = nr.pool()
+                if pool.verfuegbar():
+                    auftrag = pool.auftrag(
+                        "raeumen_bahn", "adaptiv_kern", material, grenzen, einstellungen
+                    )
+                    return pool.warten([auftrag], zwischendurch=nr.ereignisse_ohne_eingaben)[0]
+            except nr.NichtVerfuegbar:
+                pass
+            except nr.Fehler as fehler:
+                raise _KeinAdaptiv() from fehler
+    return adaptiv_kern(material, grenzen, einstellungen)
+
+
 def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     """Die Variante „adaptiv“ auf einer Lage: FreeCADs Adaptiv-Kern (area.Adaptive2d, der Kern
     der CAM-Operation „Adaptive“) räumt, was der Fräser auf der Lage erreicht – in Bahnen, die
@@ -2384,11 +2456,7 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     hier nach: Die Mitte bleibt im Erlaubten, eingetaucht wird im Freien – sonst _KeinAdaptiv,
     und die Fläche bekommt Ringe."""
     try:
-        import area  # FreeCADs libarea
-
-        innen = area.AdaptiveOperationType.ClearingInside
-        schneiden = area.AdaptiveMotionType.Cutting
-        durchs_freie = area.AdaptiveMotionType.LinkClear
+        import area  # noqa: F401 – FreeCADs libarea; ohne sie Ringe
     except Exception as fehler:  # ein FreeCAD ohne den Kern
         raise _KeinAdaptiv() from fehler
     ae = w.zeilenabstand
@@ -2429,25 +2497,22 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     genau = ADAPTIV_GENAU_VORSCHAU if schritt >= VORSCHAU_SCHRITT - GLEICH else ADAPTIV_GENAU
 
     def gebiete_fuer(helix, enger):
-        # Je Versuch ein frischer Kern: Ein zweites Execute auf demselben rechnet nicht dasselbe.
-        kern = area.Adaptive2d()
-        kern.toolDiameter = 2.0 * r
-        kern.keepToolDownDistRatio = ADAPTIV_HALTEN
-        kern.stockToLeave = 0.0
-        kern.tolerance = genau
-        kern.forceInsideOut = False
-        kern.finishingProfile = True
-        kern.opType = innen
-        kern.stepOverFactor = ADAPTIV_SCHRITT * enger * ae / (2.0 * r)
-        _helix_setzen(kern, 2.0 * helix * r)
+        einstellungen = {
+            "durchmesser": 2.0 * r,
+            "genau": genau,
+            "schritt": ADAPTIV_SCHRITT * enger * ae / (2.0 * r),
+            "helix": 2.0 * helix * r,
+            "spiegeln": spiegeln,
+        }
         eingabe = repr(
             (
                 material,
                 grenzen,
-                kern.stepOverFactor,
+                einstellungen["schritt"],
                 2.0 * r,
                 2.0 * helix * r,
-                kern.tolerance,
+                genau,
+                spiegeln,
             )
         )
         schluessel = hashlib.blake2b(eingabe.encode("utf-8"), digest_size=16).hexdigest()
@@ -2455,25 +2520,7 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
         if gebiete is not None:
             _ADAPTIV.move_to_end(schluessel)
             return gebiete
-        try:
-            ergebnisse = _adaptiv_rechnen(kern, material, grenzen)
-        except Exception as fehler:
-            raise _KeinAdaptiv() from fehler
-        vorzeichen = -1.0 if spiegeln else 1.0
-        gebiete = []
-        for ergebnis in ergebnisse:
-            stuecke = []
-            for art, ecken in ergebnis.AdaptivePaths:
-                ecken = np.asarray(ecken, dtype=float).reshape(-1, 2)
-                if len(ecken):
-                    ecken[:, 0] *= vorzeichen
-                    stuecke.append((art == schneiden, art == durchs_freie, ecken))
-            start = (vorzeichen * float(ergebnis.StartPoint[0]), float(ergebnis.StartPoint[1]))
-            mitte = (
-                vorzeichen * float(ergebnis.HelixCenterPoint[0]),
-                float(ergebnis.HelixCenterPoint[1]),
-            )
-            gebiete.append((start, mitte, stuecke))
+        gebiete = _adaptiv_gebiete(material, grenzen, einstellungen)
         _ADAPTIV[schluessel] = gebiete
         while len(_ADAPTIV) > ADAPTIV_GEMERKT:
             _ADAPTIV.popitem(last=False)

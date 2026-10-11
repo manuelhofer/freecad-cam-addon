@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-76 adaptiv-im-nebenrechner
+
+### EINGELESEN
+- Nach P-75 stand das Schwenkteil noch 11,6 s beim Anlegen des Räumens im Grundjob: FreeCADs
+  Adaptiv-Kern (`area.Adaptive2d.Execute`) rechnet die Lage 10 s am Stück und meldet sich dabei
+  dreimal – `uhren.atmen()` in seiner Rückmeldung hilft da nicht.
+- Nebenbei gefunden: **Der Adaptiv-Kern rechnet bei gleicher Eingabe nicht dasselbe** – in einem
+  Prozess sechsmal hintereinander derselbe Aufruf, sechs verschiedene Bahnen (1969 bis 2023
+  Punkte), mit und ohne Rückmeldung, mit festem `PYTHONHASHSEED`. Die Eingaben, die das Addon ihm
+  gibt, sind von Lauf zu Lauf gleich (Prüfsumme). Deshalb hat „Räumen T1“ am Schwenkteil je Lauf
+  3088 bis 3164 Sätze. Das liegt in FreeCAD (libarea), nicht im Addon; innerhalb einer Sitzung
+  bleibt es gleich (`_ADAPTIV` merkt sich das Ergebnis je Eingabe).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `adaptiv_kern` (auch im Nebenrechner: Kern stellen, rechnen, seine
+  Gebiete als Listen und Felder zurück), `_adaptiv_gebiete` (mit Oberfläche auf einem
+  Nebenrechner, das Fenster zeichnet beim Warten neu, ohne Eingaben; ohne Oberfläche, in einem
+  Arbeiter oder ohne Nebenrechner wie bisher hier). Stürzt der Kern im Arbeiter ab, bekommt die
+  Fläche Ringe statt dass FreeCAD abstürzt.
+- `camaddon/raum_material.py`: zwischen zwei Stapeln `uhren.atmen()` (in `uhren.atmend()` – der
+  Stapel rechnet nur an seinem eigenen Material).
+- `package.xml` (0.213.80), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- `szenario_schwenkteil`: längste Pause 14,8 s (vor P-75) → 1,05 s; das Räumen im Grundjob
+  11,6 → 0,9 s, das Neuberechnen der Ebenen 4,6 → 0,9 s.
+
+### AKZEPTANZKRITERIUM
+- `test_raeumen`, `test_nut_offen`, `test_raum_material`, `szenario_schwenkteil`,
+  `szenario_raeumen`, `szenario_nut_offen` grün.
+
 ## P-2026-10-11-75 raumrest-im-stapel
 
 ### EINGELESEN

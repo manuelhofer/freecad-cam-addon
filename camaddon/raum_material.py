@@ -15,6 +15,7 @@ import numpy as np
 import Part
 from FreeCAD import Vector
 
+from . import uhren
 from .sprache import tr
 
 MAX_STRAHLEN = 1000000
@@ -421,6 +422,11 @@ class _Stapel:
             hier = runde == nummer
             s_ = strahl[hier]
             m._abtragen_zellen(s_ // len(m.y), s_ % len(m.y), unten[hier], oben[hier])
+        # Zwischen zwei Stapeln zeichnet das Fenster neu – ohne Maus und Tastatur, wie beim Warten
+        # auf die Nebenrechner (_verteilt): Der Stapel rechnet nur an seinem eigenen Material
+        # (am Schwenkteil stand das Neuberechnen der Ebenen sonst 4,6 s am Stück).
+        with uhren.atmend():
+            uhren.atmen()
 
 
 def _kugelschnitt_zellen(xs, ys, a, b, radius):
