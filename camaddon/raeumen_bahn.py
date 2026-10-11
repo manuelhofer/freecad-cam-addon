@@ -823,6 +823,7 @@ class _Stand:
     anschluesse: int = 0  # Läufe, die an den vorigen anschlossen (die Spirale)
     rampen_bei: list = field(default_factory=list)  # je Rampe: (Ring, Zahl der Stellen)
     nachgeholt: int = 0  # Anfangsstücke, die nach den Ringen um die Insel nachkamen
+    nadeln: int = 0  # Nadeln, die der Adaptiv-Kern stehen ließ, nachgeholt (_nadeln_fahren)
     ecken: int = 0  # Ecken mit Eckenbögen (Manuels Räumen)
     z_min: float = math.inf
     laenge: float = 0.0
@@ -847,7 +848,7 @@ class _Stand:
         self.z_min = min(self.z_min, teil.z_min)
         for zahl in (
             "flaechen", "lagen", "ringe", "laeufe", "rampen", "einfahrten", "seitlich",
-            "anschluesse", "nachgeholt", "ecken", "laenge", "noch", "weg",
+            "anschluesse", "nachgeholt", "nadeln", "ecken", "laenge", "noch", "weg",
         ):  # fmt: skip
             setattr(self, zahl, getattr(self, zahl) + getattr(teil, zahl))
 
@@ -862,6 +863,7 @@ class _Lage:
         self, st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben=None, decke=None
     ):
         self.st = st
+        self.beginn = len(st.punkte)  # hier beginnen die Punkte dieser Lage (_nadeln_fahren)
         self.feld = feld
         self.w = w
         self.r = r
@@ -2211,6 +2213,7 @@ def _flaeche(
             _ringe_adaptiv(ablauf, feld, w, r, D, schritt)
             ablauf.einschwenken = True
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
+            _nadeln_fahren(ablauf, _nadeln(feld, st.punkte[beginn:], lage, D, erlaubt, r))
         elif tasche is None and variante == "rohteil":
             _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
@@ -2586,6 +2589,155 @@ def _adaptiv_gebiete(material, grenzen, einstellungen):
             except nr.Fehler as fehler:
                 raise _KeinAdaptiv() from fehler
     return adaptiv_kern(material, grenzen, einstellungen)
+
+
+def _mitten(punkte, lage, abstand):
+    """(x, y) der Mitten im Vorschub auf der Lage `lage`, längs der Sätze höchstens `abstand`
+    auseinander – auch auf Bögen."""
+    xs, ys = [], []
+    for von, nach in zip(punkte, punkte[1:], strict=False):
+        if nach.eilgang or abs(nach.z - lage) > GLEICH or abs(von.z - lage) > GLEICH:
+            continue
+        anzahl = max(1, int(math.ceil(bn.weg(von, nach) / abstand)))
+        t = np.arange(anzahl + 1) / anzahl
+        if nach.bogen is None:
+            xs.append(von.x + t * (nach.x - von.x))
+            ys.append(von.y + t * (nach.y - von.y))
+            continue
+        mx, my, uhr = nach.bogen
+        a0 = math.atan2(von.y - my, von.x - mx)
+        bogen = bn.winkel(von, nach)
+        radius = math.hypot(von.x - mx, von.y - my)
+        winkel = a0 - t * bogen if uhr else a0 + t * bogen
+        xs.append(mx + radius * np.cos(winkel))
+        ys.append(my + radius * np.sin(winkel))
+    if not xs:
+        return np.zeros(0), np.zeros(0)
+    return np.concatenate(xs), np.concatenate(ys)
+
+
+def _nadeln(feld, punkte, lage, D, erlaubt, r):
+    """Nach dem Adaptiv-Kern (B-019): (nx, ny) – die Zellen, die das Raster für geschnitten hält
+    (frei), an denen aber keine Mitte der Lage sicher nah genug vorbeikam. Der Kern lässt zwischen
+    zwei Bahnen gelegentlich eine schmale Linse stehen – an der Platte des Prüfstands in jedem
+    Lauf eine, 0,005 bis 0,04 mm² und 20 mm hoch, eine Nadel; `merke` setzt den Stempel um die auf
+    die Zelle gerastete Mitte und sieht sie nicht. Sicher geschnitten ist eine Zelle, wenn eine
+    Zelle mit einer Mitte nicht weiter als r − (Rasterfehler zweier Zellen + halber Abstand der
+    Mitten) entfernt liegt: Dann liegt auch jeder Punkt im Umkreis einer halben Zelle in der
+    Stirn."""
+    s = feld.schritt
+    nadel = np.zeros((feld.nx, feld.ny), dtype=bool)
+    x, y = _mitten(punkte, lage, s / 2.0)
+    if not len(x):
+        return nadel
+    drin = feld.im_raster(x, y)
+    if not drin.any():
+        return nadel
+    i, j = feld.zellen(x[drin], y[drin])
+    getroffen = np.zeros((feld.nx, feld.ny), dtype=bool)
+    getroffen[i, j] = True
+    sicher = feld.aufweiten(getroffen, r - (math.sqrt(2.0) * s + s / 4.0))
+    return feld.frei & ~sicher & feld.rohteil_zellen & erlaubt & (D >= 0)
+
+
+def _nadel_echt(feld, gruppe, x, y, r):
+    """Steht an der Gruppe (_nadeln) wirklich etwas? Genau nachgesehen: auf 0,02 mm um ihre
+    Zellen (eine Linse liegt höchstens eine halbe Zellendiagonale neben einer von ihnen) der
+    Abstand zu den Mitten `x`, `y` (dicht, _mitten) – größer als r heißt ungeschnitten. Die
+    Prüfung im Raster (_nadeln) ist vorsichtig und meldet auch Stellen, die knapp geschnitten
+    sind (am Prüfstand die Tasche: je Stelle 2 s mehr)."""
+    rand = feld.schritt
+    gx_ = feld.xs[gruppe[:, 0]]
+    gy_ = feld.ys[gruppe[:, 1]]
+    x0, x1 = float(gx_.min()) - rand, float(gx_.max()) + rand
+    y0, y1 = float(gy_.min()) - rand, float(gy_.max()) + rand
+    nah = (x > x0 - r - 0.1) & (x < x1 + r + 0.1) & (y > y0 - r - 0.1) & (y < y1 + r + 0.1)
+    if not nah.any():
+        return True
+    mx, my = x[nah], y[nah]
+    gx, gy = np.meshgrid(np.arange(x0, x1, 0.02), np.arange(y0, y1, 0.02), indexing="ij")
+    gx, gy = gx.ravel(), gy.ravel()
+    offen = np.ones(len(gx), dtype=bool)
+    for start in range(0, len(mx), 2000):
+        ax, ay = mx[start : start + 2000], my[start : start + 2000]
+        offen &= ((gx[:, None] - ax) ** 2 + (gy[:, None] - ay) ** 2).min(axis=1) > r * r
+        if not offen.any():
+            return False
+    return True
+
+
+def _gruppen(maske):
+    """[(i, j) der Zellen] je zusammenhängender Gruppe der Maske (acht Nachbarn)."""
+    offen = {tuple(z) for z in np.argwhere(maske)}
+    gruppen = []
+    while offen:
+        stapel = [offen.pop()]
+        gruppe = []
+        while stapel:
+            i, j = stapel.pop()
+            gruppe.append((i, j))
+            for di in (-1, 0, 1):
+                for dj in (-1, 0, 1):
+                    nachbar = (i + di, j + dj)
+                    if nachbar in offen:
+                        offen.remove(nachbar)
+                        stapel.append(nachbar)
+        gruppen.append(np.array(gruppe))
+    return gruppen
+
+
+def _nadeln_fahren(ablauf, nadel):
+    """Holt die Nadeln (_nadeln) am Ende der Lage nach, je Gruppe einmal: neben ihr im Freien auf
+    die Lage (die Stirn trifft sie dort nicht), dann waagerecht hin, bis sie unter den Schneiden
+    liegt (die Mitte R/2 neben ihr) – unter der Stirn steht dabei sonst nichts. Die Nadel ist
+    dünner als eine Zelle: kein Ring dafür (er fand neben ihr keinen Eingang und fuhr eine Rampe
+    über die ganze Tiefe), kein Eintauchen über ihr (im Vorschub durch die ganze Höhe)."""
+    if not nadel.any():
+        return
+    feld, w, st = ablauf.feld, ablauf.w, ablauf.st
+    punkte = st.punkte
+    r = ablauf.r
+    mx, my = _mitten(punkte[ablauf.beginn :], ablauf.lage, 0.05)
+    vorher = feld.frei.copy()
+    for gruppe in _gruppen(nadel):
+        if not _nadel_echt(feld, gruppe, mx, my, r):
+            continue
+        cx = float(np.mean(feld.xs[gruppe[:, 0]]))
+        cy = float(np.mean(feld.ys[gruppe[:, 1]]))
+        wahl = None
+        for winkel in np.radians(np.arange(0.0, 360.0, 45.0)):
+            ux, uy = math.cos(winkel), math.sin(winkel)
+            ziel = (cx + 0.5 * r * ux, cy + 0.5 * r * uy)
+            start = (cx + (1.5 * r + 1.0) * ux, cy + (1.5 * r + 1.0) * uy)
+            qx = np.linspace(start[0], ziel[0], 8)
+            qy = np.linspace(start[1], ziel[1], 8)
+            if not feld.im_raster(qx, qy).all() or not feld.bei(ablauf.erlaubt, qx, qy).all():
+                continue
+            feld.frei[:] = vorher | nadel  # auf dem Weg darf nur die Nadel unter der Stirn stehen
+            leer = float(np.max(feld.ungeschnitten(qx, qy))) <= 0.0
+            feld.frei[:] = vorher & ~nadel  # am Anfang nicht einmal sie
+            draussen = float(feld.ungeschnitten([start[0]], [start[1]])[0]) <= 0.0
+            feld.frei[:] = vorher
+            if leer and draussen:
+                wahl = (start, ziel)
+                break
+        if wahl is None:
+            continue  # kein Platz für die Stirn: bleibt ungeschnitten
+        start, ziel = wahl
+        hoch = ablauf.knapp if ablauf.unten else w.sicher
+        if ablauf.unten and ablauf.ort is not None:
+            punkte.append(bn.Punkt(True, ablauf.ort[0], ablauf.ort[1], hoch))
+        punkte.append(bn.Punkt(True, start[0], start[1], hoch))
+        punkte.append(bn.Punkt(True, start[0], start[1], ablauf._hinab(start, hoch)))
+        punkte.append(bn.Punkt(False, start[0], start[1], ablauf.lage, True))
+        punkt = bn.Punkt(False, ziel[0], ziel[1], ablauf.lage)
+        st.laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
+        st.einfahrten += 1
+        st.nadeln += 1
+        feld.merke(np.linspace(start[0], ziel[0], 8), np.linspace(start[1], ziel[1], 8))
+        vorher = feld.frei.copy()
+        ablauf.ort, ablauf.unten = ziel, True
 
 
 def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):

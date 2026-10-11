@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-84 nadeln-nachholen
+
+### EINGELESEN
+- B-019: Nachgemessen (Abstand jeder Stelle auf 0,01 mm zu den Mitten, Bögen als Bögen): An der
+  Platte des Prüfstands lässt der Adaptiv-Kern **in jedem Lauf** mitten in der Platte eine Linse
+  stehen – 0,005 bis 0,038 mm², 20 mm hoch; der Prüfstand trifft sie mit seinem 0,5-mm-Raster nur
+  manchmal (daher „gelegentlich rot“). Das Addon sieht sie nicht: `merke` setzt den Stempel um die
+  auf die Zelle gerastete Mitte.
+- Zwei Wege verworfen: Die Nadel über die Ringe um die Inseln nachholen fand neben ihr keinen
+  Eingang und fuhr eine Rampe über 20 mm (+0,5 min); über ihr eintauchen hieß 20 mm im Vorschub,
+  und vor den Wandringen machte es deren Wege lang.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`:
+  - `_nadeln` – nach dem Kern die Zellen, die das Raster für geschnitten hält, an denen aber keine
+    Mitte der Lage sicher nah genug vorbeikam (FFT-Aufweitung der Zellen mit Mitten um
+    r − √2 · Raster − Raster/4); `_mitten` – die Mitten im Vorschub dicht, auch auf Bögen.
+  - `_nadel_echt` – je Gruppe genau nachgesehen (0,02 mm), ob dort wirklich etwas steht; die
+    Prüfung im Raster meldet auch knapp Geschnittenes (am Prüfstand die Tasche: je Stelle 2 s).
+  - `_nadeln_fahren` – am Ende der Lage, nach den Wandringen: neben der Nadel im Freien auf die
+    Lage, dann waagerecht hin, bis sie unter den Schneiden liegt (die Mitte R/2 daneben).
+  - `_Stand.nadeln`, `_Lage.beginn`.
+- `package.xml` (0.213.88), `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md` (B-019
+  behoben).
+
+### ERGEBNIS
+- Platte, mit der aufgezeichneten Ausgabe des Kerns: Rest 20 → 0 mm, Zeit +0,03 min (5 Sätze, 9 mm
+  Vorschub). Zwölf freie Läufe: ohne Rest. Platte oben + Tasche: eine Nadel, +0,03 min.
+- `test_pruefstand` bleibt gelegentlich rot an „platte/raeumen oben+tasche“ (35,6 statt höchstens
+  35,27 min): Das ist die Streuung des Kerns selbst (auch in Läufen ohne Nadel und vor diesem
+  Patch).
+
+### AKZEPTANZKRITERIUM
+- In 1.1.4 `test_raeumen`, `test_testteil`, `test_nut_offen`, `test_restmaterial`,
+  `szenario_raeumen`, `szenario_testteil`, `szenario_nut_offen`; in RC1 `test_raeumen`,
+  `test_testteil`, `test_pruefstand`, `test_nut_offen` grün.
+
 ## P-2026-10-11-83 huellen-einmal
 
 ### EINGELESEN
