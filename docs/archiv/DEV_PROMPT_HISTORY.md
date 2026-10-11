@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-80 still-nach-dem-schliessen
+
+### EINGELESEN
+- 29 bedienintensive Szenarien in FreeCAD 26.3.0RC1 mit der Lag-Sonde (Assistenten, 4 Achsen,
+  Prüffenster, Programm): alle grün bis auf einen Absturz unter Volllast – `szenario_vierachs_aendern`,
+  „free(): invalid size“ in `doc.recompute()` gleich nach `FreeCADGui.Control.closeDialog()`
+  (`gui_vierachs.reject`). Neunmal danach grün; derselbe Ort wie der Absturz aus T-011
+  (`szenario_vierachs_schlichten`, „munmap_chunk(): invalid pointer“, vor P-78). Seit P-78 atmen
+  die Operationen bei jedem Neuberechnen – auch in diesem, während Qt das geschlossene
+  Aufgabenfenster noch abbaut. Dasselbe tat schon das Warten auf die Nebenrechner (Räumen,
+  räumlicher Rest) und FreeCAD 26.3 selbst bei booleschen Operationen.
+- Die längsten Pausen in RC1 liegen sonst nahe an 1.1.4; die 6,7 s in
+  `szenario_programm_im_hintergrund` sind die Gegenrechnung des Szenarios selbst.
+
+### DATEIEN
+- `camaddon/uhren.py`: `still()` (darin atmet nichts), `ist_still()`; `atmen` hält sich daran.
+- `camaddon/nebenrechner.py`: `ereignisse_ohne_eingaben` in `still()` ohne Ereignisse.
+- `camaddon/gui_vierachs.py`, `gui_bearbeitung.py`, `gui_maschine.py`, `gui_verfahren.py`: das
+  Neuberechnen nach `closeDialog()` (zehn Stellen) in `uhren.still()`.
+- `package.xml` (0.213.84), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `test_nebenrechner`; in RC1 `szenario_vierachs_aendern`, `szenario_vierachs_schlichten`,
+  `szenario_bearbeitung`, `szenario_maschine_bearbeiten`, `szenario_raeumen`,
+  `szenario_neue_maschine` grün.
+
 ## P-2026-10-11-79 einzelne-flaechen
 
 ### EINGELESEN

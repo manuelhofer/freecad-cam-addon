@@ -953,7 +953,8 @@ class VierachsPanel:
         self._vorschlaege_merken()
         self.doc.commitTransaction()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def _uebernehmen(self):
@@ -977,7 +978,8 @@ class VierachsPanel:
         self._fraeser_merken()
         self.doc.commitTransaction()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def reject(self):
@@ -993,7 +995,8 @@ class VierachsPanel:
                 self.doc.undo()
         self._stange_zurueck()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def _vor_dem_schliessen(self):

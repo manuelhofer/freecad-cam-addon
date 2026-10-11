@@ -20,7 +20,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import beispielmaschine, einheiten, schraege_achse, symbol
+from . import beispielmaschine, einheiten, schraege_achse, symbol, uhren
 from . import maschine as m
 from . import verfahren as vf
 from .gui_hilfe import kopfzeile
@@ -145,7 +145,8 @@ class VerfahrPanel:
         VerfahrPanel.offen = None
         self.doc.commitTransaction()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def reject(self):
@@ -154,7 +155,8 @@ class VerfahrPanel:
         self.verfahren.grundstellung()
         self.doc.abortTransaction()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     # --- Aufbau ---------------------------------------------------------------------

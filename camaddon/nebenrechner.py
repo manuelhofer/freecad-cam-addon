@@ -1361,6 +1361,10 @@ def ereignisse_ohne_eingaben():
     keinen Klick an – für das Warten mitten in einer Neuberechnung (die Bahn einer Operation),
     wo ein Klick auf ein Objekt fiele, das gerade gerechnet wird (FreeCAD 26.3 stürzte so ab,
     P-2026-10-10-45). Immer True."""
+    from . import uhren
+
+    if uhren.ist_still():
+        return True
     try:
         from PySide import QtCore, QtGui
     except ImportError:

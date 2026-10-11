@@ -207,14 +207,16 @@ class MaschinenPanel:
         self._vor_dem_schliessen()
         self.doc.commitTransaction()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def reject(self):
         self._vor_dem_schliessen()
         self.doc.abortTransaction()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def _vor_dem_schliessen(self):

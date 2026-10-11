@@ -4326,7 +4326,8 @@ class BearbeitungPanel:
         if not self._aufspannung_fest():
             nullpunkt_vorgeben(self.nullpunkt())
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def reject(self):
@@ -4345,7 +4346,8 @@ class BearbeitungPanel:
             while len(self.doc.UndoNames) > self._undo_vorher:
                 self.doc.undo()
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
         return True
 
     def _vor_dem_schliessen(self):
@@ -5336,7 +5338,8 @@ class BearbeitungPanel:
         if not self._aufspannung_fest():
             nullpunkt_vorgeben(self.nullpunkt())
         FreeCADGui.Control.closeDialog()
-        self.doc.recompute()
+        with uhren.still():  # Qt baut das Fenster noch ab
+            self.doc.recompute()
 
     def _haken_vorschlagen(self, form):
         """Je Block: möglich mit dieser Wahl? Dann der Haken, wie die Wahl ihn nahelegt –

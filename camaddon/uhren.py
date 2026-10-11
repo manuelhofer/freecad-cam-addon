@@ -22,6 +22,7 @@ import time
 ATMEN_ALLE = 0.1
 _GEATMET = [0.0]
 _ATMEND = [0]  # wie tief in atmend()
+_STILL = [0]  # wie tief in still()
 
 
 @contextlib.contextmanager
@@ -36,6 +37,24 @@ def atmend():
         _ATMEND[0] -= 1
 
 
+@contextlib.contextmanager
+def still():
+    """Darin arbeitet nichts Ereignisse ab – weder atmen() noch das Warten auf die Nebenrechner
+    (nebenrechner.ereignisse_ohne_eingaben): für das Neuberechnen gleich nach dem Schließen eines
+    Aufgabenfensters, solange Qt es noch abbaut (FreeCAD 26.3 stürzte unter Last einmal in
+    `doc.recompute()` nach `closeDialog()` ab, „free(): invalid size“; P-2026-10-11-80)."""
+    _STILL[0] += 1
+    try:
+        yield
+    finally:
+        _STILL[0] -= 1
+
+
+def ist_still():
+    """In still()?"""
+    return bool(_STILL[0])
+
+
 def atmen():
     """Für lange Rechnungen im Hauptprozess (die Bahn einer Operation beim Anlegen, das
     5-Achs-Programm): höchstens alle ATMEN_ALLE s arbeitet Qt seine Ereignisse ab – ohne Maus und
@@ -43,7 +62,7 @@ def atmen():
     Fenster zeichnet sich neu, nimmt aber keinen Klick an. Die Uhren des Addons laufen dabei nicht
     (aus_der_schleife). Nur in atmend(); ohne Oberfläche (Nebenrechner, Prüfdateien) nichts
     (P-2026-10-11-67)."""
-    if not _ATMEND[0]:
+    if not _ATMEND[0] or _STILL[0]:
         return
     jetzt = time.monotonic()
     if jetzt - _GEATMET[0] < ATMEN_ALLE:
