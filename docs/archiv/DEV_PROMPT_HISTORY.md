@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-99 varianten-mit-der-maschine
+
+### EINGELESEN
+- Manuel, 2026-10-11 nachts, auf Frage 13 („Sollen Räumen und Planfräsen ihre Varianten mit
+  Eilgang und Beschleunigung der gewählten Maschine vergleichen?“): „Ja, mit der Maschine“.
+
+### DATEIEN
+- `camaddon/maschinenspeicher.py`: `Eintrag.eilgang` (mm/min) und `.beschleunigung` (m/s²) – je der
+  kleinste der Linearachsen; `dynamik_merken(job, eintrag)` schreibt sie versteckt an den Job
+  (`CamAddonMaschineEilgang`, `…Beschleunigung`), `dynamik_des_jobs(job)` liest sie (mm/min, mm/s²;
+  0: unbekannt). Am Job, nicht aus der Liste gelesen: Die Vorschau rechnet auch auf Nebenrechnern
+  mit einer Kopie des Dokuments – so rechnen alle mit denselben Zahlen.
+- `camaddon/reichweite.py`: `merke_maschine` schreibt sie mit dem Pfad der Maschine.
+- `camaddon/raeumen_bahn.py`, `planfraesen_bahn.py`: `Raeumwerte`/`Planwerte.eilgang`,
+  `.beschleunigung` → `bahn.zeit` (0: die Vorgaben 10 m/min, 1 m/s²); `raeumen.py`,
+  `planfraesen.py`: aus `dynamik_des_jobs`.
+- `translations/de.json`, `en.json` (`ms.eigenschaft.dynamik`), `tests/test_varianten_maschine.py`
+  (neu), Offene Fragen (13 beantwortet). `package.xml` (0.214.0).
+
+### ERGEBNIS
+- An den Prüfstandsteilen mit dem Standardfräser (vf 902): die Zeiten je Maschine 1 – 8 % anders
+  (Platte oben+Tasche Räumen 35,21 min mit den Vorgaben, 35,10 auf der 3-Achs-Beispielfräse, 35,52
+  bei 3 m/min und 0,3 m/s²); die gewählte Variante bleibt an diesen Teilen dieselbe – bei 902 mm/min
+  entscheidet die Schnittzeit. Ohne Maschine wie vorher (Bestmarken unverändert).
+- Ein Eintrag aus der Liste, der vor diesem Patch gespeichert wurde, hat die Werte noch nicht: Sie
+  kommen mit dem nächsten Speichern oder Prüfen auf der Maschine.
+
+### AKZEPTANZKRITERIUM
+- `test_varianten_maschine`, `test_raeumen`, `test_planfraesen`, `test_maschinenspeicher`,
+  `test_reichweite`, `test_pruefstand` in 1.1.4; `szenario_bearbeitung_maschine`,
+  `szenario_bearbeitung`, `szenario_bearbeitung_aufspannung_folge` grün.
+
 ## P-2026-10-11-98 abtrag-ohne-meshgrid
 
 ### EINGELESEN

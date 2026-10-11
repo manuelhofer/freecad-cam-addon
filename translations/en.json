@@ -1041,6 +1041,7 @@
     "ms.fluechtig_weg": "CAM addon: “{name}” removed from the machine list – its file {datei} was in the temporary folder the system clears, and it is gone.",
     "ms.entfernen": "Remove",
     "ms.entfernen.tooltip": "Takes the machine off the list – the file stays.",
+    "ms.eigenschaft.dynamik": "Rapid (mm/min) or acceleration (m/s²) of the job's machine, the slowest linear axis – used by clearing and facing to compare their variants (CAM Addon)",
     "ms.fehlt": "{datei} – not found",
     "ms.datei_waehlen": "Choose machine",
     "ms.keine_maschine": "There is no machine in {datei} – an assembly with the machine object from “Edit machine”.",

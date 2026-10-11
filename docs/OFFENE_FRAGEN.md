@@ -9,6 +9,6 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
 (Die Fragen 1–3 hat Manuel in P-2026-10-10-08 beantwortet, Frage 4 in P-2026-10-10-36, 5 und 7–9
-in P-2026-10-11-30, 6 in P-2026-10-11-40, 10 und 11 in P-2026-10-11-46, 12 in P-2026-10-11-86, 13 am 2026-10-11 abends („Ja, mit der Maschine“ – gebaut in einem der nächsten Patches), 14 in P-2026-10-11-93 – siehe Verlauf.)
+in P-2026-10-11-30, 6 in P-2026-10-11-40, 10 und 11 in P-2026-10-11-46, 12 in P-2026-10-11-86, 13 in P-2026-10-11-99, 14 in P-2026-10-11-93 – siehe Verlauf.)
 
 Zurzeit keine offene Frage.

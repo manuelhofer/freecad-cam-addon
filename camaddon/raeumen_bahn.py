@@ -191,6 +191,10 @@ class Raeumwerte:
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0  # mm/min senkrecht; 0: wie der Vorschub
     freivorschub: float = 0.0  # mm/min im Freien; 0: wie bisher RUECKWEG × Vorschub
+    # Die Maschine des Jobs (maschinenspeicher.dynamik_des_jobs; Frage 13): Eilgang (mm/min) und
+    # Beschleunigung (mm/s²) für die Zeit, nach der die Variante fällt; 0: die Vorgaben.
+    eilgang: float = 0.0
+    beschleunigung: float = 0.0
     # Wo die Ringe die Last nicht hielten ((x, y) …): Dort kommen zwischen zwei Ringe Teilstücke,
     # `teilung` Schritte statt einem (_ringe_um_inseln; planen misst und teilt bei Bedarf).
     verdichten: tuple = ()
@@ -1690,7 +1694,13 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         )
 
     def zeit_von(st):
-        return bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+        return bn.zeit(
+            st.punkte,
+            w.vorschub if w.vorschub > 0 else 1000.0,
+            w.eintauchen or None,
+            eilgang=w.eilgang or None,
+            beschleunigung=w.beschleunigung or None,
+        )
 
     # Die Ringe gleichzeitig auf den Nebenrechnern, der Adaptiv-Kern derweil hier (sein Merker
     # _ADAPTIV bleibt hier: Er rechnet bei gleicher Eingabe nicht dasselbe, und „adaptiv mit

@@ -26,6 +26,7 @@ from . import aufloesung as au
 from . import bahn as bn
 from . import freiwege as fw
 from . import hoehenfeld as hf
+from . import maschinenspeicher as msp
 from . import materialstand as mst
 from . import namen, uhren
 from . import planfraesen_bahn as pb
@@ -215,6 +216,7 @@ def bahn_fuer(
     ebenen = hf.ebenen_oben(form_teil, namen)
     if not ebenen:
         raise ValueError(tr("pf.fehler.keine_ebene"))
+    dynamik = msp.dynamik_des_jobs(job)
     werte = pb.Planwerte(
         form=form,
         zustellung=zustellung,
@@ -231,6 +233,8 @@ def bahn_fuer(
         eintauchen=eintauchen,
         nur_gleichlauf=nur_gleichlauf,
         gleichlauf=gleichlauf,
+        eilgang=dynamik[0],
+        beschleunigung=dynamik[1],
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     return pb.planen(netz, werte, ebenen, schritt, stand)

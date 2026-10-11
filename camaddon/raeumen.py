@@ -32,6 +32,7 @@ from . import freiwege as fw
 from . import hoehenfeld as hf
 from . import kontur as ko
 from . import kontur_bahn as kb
+from . import maschinenspeicher as msp
 from . import materialstand as mst
 from . import namen, uhren
 from . import planfraesen as pf
@@ -265,6 +266,7 @@ def bahn_fuer(
     ebenen = hf.ebenen_oben(form_teil, namen)
     if not ebenen:
         raise ValueError(tr("ra.fehler.keine_ebene"))
+    dynamik = msp.dynamik_des_jobs(job)
     werte = rb.Raeumwerte(
         form=form,
         zustellung=zustellung,
@@ -284,6 +286,8 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
         freivorschub=freivorschub if schnell_frei else 0.0,
+        eilgang=dynamik[0],
+        beschleunigung=dynamik[1],
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     return rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)

@@ -1041,6 +1041,7 @@
     "ms.fluechtig_weg": "CAM-Addon: „{name}“ aus der Maschinenliste genommen – ihre Datei {datei} lag im temporären Ordner, den das System leert, und ist weg.",
     "ms.entfernen": "Entfernen",
     "ms.entfernen.tooltip": "Nimmt die Maschine aus der Liste – die Datei bleibt.",
+    "ms.eigenschaft.dynamik": "Eilgang (mm/min) bzw. Beschleunigung (m/s²) der Maschine des Jobs, die langsamste Linearachse – damit vergleichen Räumen und Planfräsen ihre Varianten (CAM-Addon)",
     "ms.fehlt": "{datei} – nicht gefunden",
     "ms.datei_waehlen": "Maschine wählen",
     "ms.keine_maschine": "In {datei} ist keine Maschine – eine Baugruppe mit dem Maschinenobjekt aus „Maschine bearbeiten“.",

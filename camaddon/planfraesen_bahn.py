@@ -84,6 +84,10 @@ class Planwerte:
     laengs: bool = None
     vorschub: float = 0.0  # mm/min – für die Zeit im Vergleich; 0: 1000
     eintauchen: float = 0.0  # mm/min senkrecht ins Material; 0: wie der Vorschub
+    # Die Maschine des Jobs (maschinenspeicher.dynamik_des_jobs; Frage 13): Eilgang (mm/min) und
+    # Beschleunigung (mm/s²) für die Zeit, nach der die Variante fällt; 0: die Vorgaben.
+    eilgang: float = 0.0
+    beschleunigung: float = 0.0
     # Nur im Gleichlauf (Manuel 2026-10-02: „auswählbar, ob er abhebt und wieder von vorne
     # anfängt“): jede Zeile in dieselbe Richtung, danach abheben und von vorne
     # (vierachs_bahn._einzeln);
@@ -491,7 +495,13 @@ def _ebene(
         vorige = lage
         vorher_drin = drin
         z_min = min(z_min, lage)
-    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    zeit = bn.zeit(
+        punkte,
+        w.vorschub if w.vorschub > 0 else 1000.0,
+        w.eintauchen or None,
+        eilgang=w.eilgang or None,
+        beschleunigung=w.beschleunigung or None,
+    )
     return _Ebene(
         punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit, noch, weg, davor
     )

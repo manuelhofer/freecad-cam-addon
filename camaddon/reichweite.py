@@ -358,6 +358,9 @@ def merke_maschine(job, pfad):
         return
     try:
         maschinenspeicher.merken_datei(pfad)
+        eintrag = maschinenspeicher.finde(maschinenspeicher.laden(), pfad)
+        if eintrag is not None:
+            maschinenspeicher.dynamik_merken(job, eintrag)
     except Exception as fehler:  # die Liste ist ein Zusatz – das Prüfen geht vor
         FreeCAD.Console.PrintWarning(f"CAM-Addon: Maschinen-Liste: {fehler}\n")
     FreeCAD.ParamGet(PARAMETER_PFAD).SetString(ZULETZT_MASCHINE, pfad)

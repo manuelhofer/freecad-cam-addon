@@ -60,6 +60,10 @@ class Eintrag:
     werkzeugdrehzahl: float = 0.0
     vorschub: float = 0.0
     leistung: float = 0.0
+    # Für den Vergleich der Bahnvarianten (Frage 13): der kleinste Eilgang (mm/min) und die
+    # kleinste Beschleunigung (m/s²) der Linearachsen – die langsamste Achse bremst; 0: unbekannt.
+    eilgang: float = 0.0
+    beschleunigung: float = 0.0
 
     @property
     def vorhanden(self):
@@ -140,6 +144,11 @@ def beschreibe(assembly, maschine):
     eintrag.drehzahl = max(drehzahlen, default=0.0)
     from . import schruppwerte  # hier: schruppwerte liest die Liste selbst
 
+    linear = [ba for ba in arten if ba.Art == m.ART_LINEAR]
+    eilgaenge = [float(getattr(ba, "Eilgang", 0.0) or 0.0) for ba in linear]
+    beschleunigungen = [float(getattr(ba, "Beschleunigung", 0.0) or 0.0) for ba in linear]
+    eintrag.eilgang = min((e for e in eilgaenge if e > 0), default=0.0)
+    eintrag.beschleunigung = min((b for b in beschleunigungen if b > 0), default=0.0)
     try:
         eintrag.werkzeugdrehzahl, eintrag.vorschub = schruppwerte.grenzen_der_maschine(maschine)
         eintrag.leistung = schruppwerte.leistung_der_maschine(maschine)
@@ -153,6 +162,42 @@ def beschreibe(assembly, maschine):
     else:
         eintrag.art = {0: FRAESE_3, 1: FRAESE_4}.get(len(eintrag.rundachsen), FRAESE_5)
     return eintrag
+
+
+# Am Job, wenn ihm eine Maschine zugeordnet wird (reichweite.merke_maschine): ihr Eilgang und ihre
+# Beschleunigung – so rechnen Vorschau (auch auf den Nebenrechnern, mit einer Kopie des Dokuments)
+# und Operation mit denselben Zahlen, auch dort, wo die Liste der Maschinen fehlt.
+EIGENSCHAFT_EILGANG = "CamAddonMaschineEilgang"
+EIGENSCHAFT_BESCHLEUNIGUNG = "CamAddonMaschineBeschleunigung"
+
+
+def dynamik_merken(job, eintrag):
+    """Schreibt Eilgang (mm/min) und Beschleunigung (m/s²) des Eintrags an den Job – versteckt,
+    wie den Pfad der Maschine. None oder unbekannte Werte: 0 (dann rechnen die Bahnen mit den
+    Vorgaben)."""
+    werte = (
+        (EIGENSCHAFT_EILGANG, float(getattr(eintrag, "eilgang", 0.0) or 0.0)),
+        (EIGENSCHAFT_BESCHLEUNIGUNG, float(getattr(eintrag, "beschleunigung", 0.0) or 0.0)),
+    )
+    for name, wert in werte:
+        if name not in job.PropertiesList:
+            if not wert:
+                continue
+            job.addProperty("App::PropertyFloat", name, "CAM-Addon", tr("ms.eigenschaft.dynamik"))
+            job.setEditorMode(name, 2)
+        if abs(float(getattr(job, name)) - wert) > 1e-9:
+            setattr(job, name, wert)
+
+
+def dynamik_des_jobs(job):
+    """(Eilgang in mm/min, Beschleunigung in mm/s²) der Maschine des Jobs (dynamik_merken) – 0, wo
+    nichts bekannt ist; so rechnen Räumen und Planfräsen ihre Varianten (Frage 13; Manuel,
+    2026-10-11: „Ja, mit der Maschine“)."""
+    if job is None:
+        return 0.0, 0.0
+    eilgang = float(getattr(job, EIGENSCHAFT_EILGANG, 0.0) or 0.0)
+    beschleunigung = float(getattr(job, EIGENSCHAFT_BESCHLEUNIGUNG, 0.0) or 0.0)
+    return eilgang, beschleunigung * 1000.0
 
 
 def _reihenfolge(name):
