@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
-from . import PARAMETER_PFAD, einheiten, maschinenspeicher
+from . import PARAMETER_PFAD, einheiten, maschinenspeicher, uhren
 from . import bestueckung as bs
 from . import halter as hl
 from . import job_schnittwerte as js
@@ -634,10 +634,13 @@ def teile(folge, groesse=None):
 
 
 def zu_ende(lauf):
-    """Rechnet einen Generator wie pruefe_job_schritte bis zum Ende; gibt sein Ergebnis zurück."""
+    """Rechnet einen Generator wie pruefe_job_schritte bis zum Ende; gibt sein Ergebnis zurück.
+    Zwischen den Schritten atmet die Oberfläche (uhren.atmen – nur in uhren.atmend(), etwa beim
+    Anlegen im Assistenten)."""
     try:
         while True:
             next(lauf)
+            uhren.atmen()
     except StopIteration as ende:
         return ende.value
 

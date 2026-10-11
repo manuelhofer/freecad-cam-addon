@@ -469,6 +469,7 @@ class _Feld:
         i, j = self.zellen(x, y)
         m = self._m
         for ci, cj in zip(i, j, strict=True):
+            uhren.atmen()  # nur in uhren.atmend() (Anlegen): das Fenster zeichnet neu
             i0, j0 = ci - m, cj - m
             a0, b0 = max(i0, 0), max(j0, 0)
             a1, b1 = min(i0 + 2 * m + 1, self.nx), min(j0 + 2 * m + 1, self.ny)

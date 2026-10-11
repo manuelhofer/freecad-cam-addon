@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-71 mehr-atmen
+
+### EINGELESEN
+- Die 46 Szenarien mit dem Abspieler (für P-60/P-70 nachgeprüft, alle grün) haben je eine
+  `pausen.txt` geschrieben. Noch lang: „Anlegen“ an der Platte 5,3 s (Materialstand im Quader über
+  `reichweite.zu_ende` am Stück, die Stempel-Schleife `merke` des Räumens), beim Bleistift 3,7 s
+  (Hüllfläche je Punkt) und seine Vorschau 2,5 s im Hauptprozess (der Block hatte keinen
+  `hintergrund`). Die 5 s nach der Sprachwahl beim ersten Start kamen nur vom gleichzeitigen
+  Start von sechs FreeCADs (allein 0,6 s).
+
+### DATEIEN
+- `camaddon/reichweite.py`: `zu_ende` ruft je Schritt `uhren.atmen()`.
+- `camaddon/raeumen_bahn.py` (`merke`), `camaddon/bleistift_bahn.py` (Hüllfläche je Punkt),
+  `camaddon/vierachs_huelle.py` (je Winkel): `uhren.atmen()` – wirkt nur in `uhren.atmend()`.
+- `camaddon/gui_bearbeitung.py`: `_Bleistift._argumente` und `hintergrund` – die Vorschau auf einem
+  Nebenrechner (`bearbeitung_vorschau.strategie`).
+- `package.xml` (0.213.76), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Längste Pause: Platte 5,3 → 0,7 s, Bleistift 4,3 → 1,3 s, Zapfen 3,3 → 1,7 s.
+
+### AKZEPTANZKRITERIUM
+- `test_vierachs_huelle`, `test_bleistift`, `test_materialstand`, `test_reichweite`,
+  `test_vierachs_bahn`, `test_raeumen`, `szenario_bleistift`, `szenario_platte`, `szenario_zapfen`,
+  `szenario_testteil` grün; die 46 Abspieler-Szenarien grün (vor dieser Änderung).
+
 ## P-2026-10-11-70 fuenfachs-vorrechnen
 
 ### EINGELESEN

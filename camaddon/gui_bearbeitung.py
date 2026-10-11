@@ -2718,20 +2718,27 @@ class _Bleistift(_Strategie):
     def unmoeglich_text(self):
         return tr("ba.bs.keine")
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
+    def _argumente(self, werkzeug, werte, flaechen):
+        """((Form, Flächen), weitere) für bleistift.vorschau – hier und im Nebenrechner."""
         form = ff.von_werkzeug(werkzeug)
         if form is None:
             raise ValueError(tr("bs.fehler.form"))
-        return bst.vorschau(
-            job,
-            job.Model.Group,
-            form,
-            flaechen,
-            aufmass=werte["aufmass"],
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            bahnen=self._bahnen(werkzeug, werte),
-        )
+        weiter = {
+            "aufmass": werte["aufmass"],
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "bahnen": self._bahnen(werkzeug, werte),
+        }
+        return (form, list(flaechen)), weiter
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return bst.vorschau(job, job.Model.Group, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie) – im Hauptprozess
+        stand das Fenster dafür 2,5 s am Stück (P-2026-10-11-71)."""
+        return "strategie", ("bleistift", *self._argumente(werkzeug, werte, flaechen))
 
     def ergebnis_text(self, bahn, zeit):
         kehlen = tr("ba.zahl.kehle") if bahn.linien == 1 else tr("ba.zahl.kehlen", n=bahn.linien)

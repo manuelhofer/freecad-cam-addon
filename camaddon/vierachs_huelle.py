@@ -38,6 +38,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import uhren
+
 TOLERANZ = 0.02  # mm – so weit darf das Netz von der Oberfläche des Teils abweichen
 SCHRITT_A = 0.25  # mm – Raster längs der Achse
 SCHRITT_PHI = 1.0  # Grad – Raster rundum
@@ -186,6 +188,7 @@ def schaftfraeser(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne=Fa
     schritt = a_werte[1] - a_werte[0] if len(a_werte) > 1 else 1.0
     r = np.full((len(a_werte), len(phi_werte)), KEIN_TREFFER)
     for j, phi in enumerate(phi_werte):
+        uhren.atmen()  # nur in uhren.atmend(): das Fenster zeichnet neu
         c, s = math.cos(phi), math.sin(phi)
         x = u * c + v * s
         y = v * c - u * s
@@ -288,6 +291,7 @@ def je_winkel_stueck(netz, laengs, radial, form, a0, schritt, anzahl, phi_werte)
     kanten = _kanten(netz.dreiecke)
     r = np.full((anzahl, len(phi_werte)), KEIN_TREFFER)
     for j, phi in enumerate(phi_werte):
+        uhren.atmen()  # nur in uhren.atmend(): das Fenster zeichnet neu
         c, s = math.cos(phi), math.sin(phi)
         x = u * c + v * s
         y = v * c - u * s

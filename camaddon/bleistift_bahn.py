@@ -36,6 +36,7 @@ import numpy as np
 from . import bahn as bn
 from . import hoehenfeld as hf
 from . import schlichten3d_bahn as sb
+from . import uhren
 from . import vierachs_bahn as vb
 from . import vierachs_huelle as vh
 from .sprache import tr
@@ -221,6 +222,7 @@ def huelle_an(netz, form, x, y):
     kanten = vh._kanten(netz.dreiecke)
     ergebnis = np.full(len(x), hf.KEIN_TREFFER)
     for k, (px, py) in enumerate(zip(x, y, strict=True)):
+        uhren.atmen()  # nur in uhren.atmend() (Anlegen): das Fenster zeichnet neu
         spalte = np.full(1, hf.KEIN_TREFFER)
         vh._form_treffen(
             spalte, a, hoehe, quer - float(py), kanten, netz.dreiecke, form, float(px), 1.0
