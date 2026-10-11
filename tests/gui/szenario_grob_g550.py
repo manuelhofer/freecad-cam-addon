@@ -1,5 +1,6 @@
-# G550 wählen, bauen und die Bewegungen zeigen: X, Y, Z fahren die Spindel, A und B den Tisch
-# (GROB-Konzept, P-2026-10-10-19). A=−90 (an der Steuerung) stellt die Spannfläche zur Spindel.
+# G550 wählen, bauen und die Bewegungen zeigen: X und Z fahren die Spindel, Y, A und B den Tisch
+# an der Säule (GROB G-Serie, P-2026-10-11-91). A=−90 (an der Steuerung) stellt die Spannfläche
+# zur Spindel.
 import os
 
 import FreeCAD as App
@@ -29,7 +30,7 @@ def schritte(h):
     d.liste.setCurrentRow(bm.ARTEN.index(bm.GROB_G550))
     yield 200
     h.pruefe(d.masse() == bm.FuenfachsMasse.vorgabe(bm.GROB_G550), "G550: falsche Vorbelegung")
-    h.pruefe("Y hebt und senkt" in d.beschreibung.text(), "G550: Y nicht erklärt")
+    h.pruefe("Y hebt und senkt ihn" in d.beschreibung.text(), "G550: Y nicht erklärt")
     h.pruefe(not d.feld_bett.isVisible(), "G550: Drehmaschinenfelder sichtbar")
     h.pruefe(
         d._schwenk_zeilen[0].isVisible() and not d._schwenk_zeilen[1].isVisible(),
@@ -61,20 +62,13 @@ def schritte(h):
     vorher = {n: App.Placement(doc.getObject(n).Placement) for n in ("Spindel", "Rundtisch")}
     for name, wert in (("X1", 200), ("Z1", 200), ("Y1", -200)):
         fahren.zeilen[fahren.achse(name)][1].setValue(wert)
-    h.pruefe(
-        (doc.getObject("Spindel").Placement.Base - vorher["Spindel"].Base).isEqual(
-            App.Vector(200, -200, -200), 1e-6
-        ),
-        "G550: Spindel bewegt sich falsch",
-    )
-    h.pruefe(
-        (doc.getObject("Rundtisch").Placement.Base - vorher["Rundtisch"].Base).isEqual(
-            App.Vector(), 1e-6
-        ),
-        "G550: der Tisch fährt linear mit",
-    )
+    spindel_weg = doc.getObject("Spindel").Placement.Base - vorher["Spindel"].Base
+    tisch_weg = doc.getObject("Rundtisch").Placement.Base - vorher["Rundtisch"].Base
+    h.pruefe(spindel_weg.isEqual(App.Vector(200, -200, 0), 1e-6), f"G550: Spindel {spindel_weg}")
+    # Y fährt das Werkstück: Y −200 (das Werkzeug relativ 200 tiefer) hebt den Tisch.
+    h.pruefe(tisch_weg.isEqual(App.Vector(0, 0, 200), 1e-6), f"G550: Tisch {tisch_weg}")
     yield 300
-    h.bild("3_spindel_seitlich_zurueck_gesenkt")
+    h.bild("3_spindel_seitlich_zurueck_tisch_hoch")
     fahren.grundstellung()
     for name, wert in (("A1", -90), ("B1", -45)):
         fahren.zeilen[fahren.achse(name)][1].setValue(wert)

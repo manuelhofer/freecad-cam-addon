@@ -157,14 +157,18 @@ Modellprüfung ohne Kollisionen oder Grenzüberschreitungen, etwa 14 s gerechnet
 gebauten Maschine nachgemessen, P-2026-10-10-20). Startskript öffnet Maschine, Job und
 Prüffenster im eigenen Profil auf dem zweiten Bildschirm (P-2026-10-06-05).
 
-**GROB G550 als Beispielmaschine:** am 2026-10-10 neu gebaut nach dem GROB-Konzept
-(P-2026-10-10-20; Manuel: „bei der realen grob fährt die z achse komplett aus dem verfahrraum
-raus die ist in einem loch da kommt der tisch garnicht hin“): waagerechte Spindel auf X/Y/Z,
-die Z-Achse zieht sie in den Tunnel des Ständers zurück, der Tisch trägt nur A (Wiege) und B
-(Rundtisch); vor jedem Schwenk zieht die Bahn bis an die Z-Grenze zurück (P-2026-10-10-19).
+**GROB G550 als Beispielmaschine:** am 2026-10-11 zum dritten Mal gebaut, jetzt nach der
+Kinematik der GROB G-Serie (P-2026-10-11-91; Manuel: „da ist nur ein Ständer, an dem der Tisch
+befestigt ist … der Tisch fährt hoch, runter und schwenken … mach das richtig“; GROB: „X- und
+Z-Achse auf der Werkzeugseite, Y-Achse und A/B werkstückseitig, auskragend“): die waagerechte
+Spindel fährt nur X und Z und zieht sich ganz in ihren Spindelschacht zurück, der Tisch hängt
+an einer Säule – Y hebt und senkt ihn, A schwenkt (einseitig gelagert), B dreht. Der Bau vom
+10.10. (alle drei Linearachsen an der Spindel, Tisch zwischen zwei Lagerböcken) war falsch.
 „Neue Maschine …“ → GROB G550 oder `beispiele/grob_g550.FCStd` direkt öffnen; Achsbewegungen,
-Grenzen, Tunnel-Freiräume und Oberfläche in 1.1.4 geprüft (`test_beispielmaschine`,
-`szenario_grob_g550`), Manuels Klickprüfung steht aus
+Grenzen, Freiräume in allen Endlagen und Oberfläche in 1.1.4 geprüft (`test_beispielmaschine`,
+`szenario_grob_g550`). **Offen (T-014):** Die beiden Beispieljobs `grob_g550_simultan/` und
+`grob_g550_freiform/` tragen ihre eigene, gespeicherte Maschine vom alten Bau – neu aufsetzen
+auf der richtigen Kinematik (Bahnen, Referenzen der Simultanprüfungen).
 (Quellen: [spezifikation_grob_g550.md](spezifikation_grob_g550.md)).
 
 **Zusätzliche Räumwahl:** Schritt 3 → Räumen → Bahnerzeugung → „Adaptiv – schneller
@@ -729,6 +733,12 @@ nächste freie Nummer B-020.
 
 ## Offene Tasks
 
+- **T-014 G550-Beispieljobs auf die richtige Kinematik** (seit P-2026-10-11-91): `grob_g550_simultan/`
+  und `grob_g550_freiform/` (Winkelaufnahme, Simultan-Schlichten, Freiform mit Kugel Ø 4) tragen
+  ihre gespeicherte Maschine vom Bau des 10.10. (alle Linearachsen an der Spindel). Neu aufsetzen
+  mit `beispielmaschine.grob_g550(winkelaufnahme=True)`, Bahnen neu rechnen, die Referenzen der
+  Simultanprüfungen (`test_simultan_planung`, `_nc`, `_export_referenz`, `_folge`, `_restbild`,
+  `test_schruppen3d_anlauf`) mit Begründung neu schreiben.
 - **T-013 Herbert im deutschen Thread** (Forum t=107911, 2026-10-11, herbk; 26.3.0RC1-AppImage auf
   CachyOS, Addon 0.213.66, dazu CfdOF, Curves, Fasteners, RobotCAD u. a.):
   (a) „eine ganze Liste von Fehlermeldungen“ beim Aufruf von CAM, wieder beim Wechsel nach CAM in

@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-91 g550-wie-grob
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends, mit Bildschirmfoto der G550 vom 10.10.: „so schaut die grob nicht aus
+  .. da ist nur ein ständer an dem der tisch befestigt ist ... also die kinematik ist komplett
+  daneben ... die spindel fährt glaub ich nur eine richtung der tisch fährt hoch runter und
+  schwenken … es gibt von grob doch übersichtliche zeichnungen .. mach das richtig !“
+- Nachgelesen: GROB-Zeichnung „Achsanordnung“ (G350a/G550a-Seite) – Säule mit Y′, daran einseitig
+  A′ und B′, die Spindel auf X und Z; GROB-Broschüren der G-Serie: „X- und Z-Achse auf der
+  Werkzeugseite, Y-Achse und A/B-Achse werkstückseitig, auskragend“, „da die Spindel
+  ausschließlich in X- und Z-Achse bewegt wird“, „Motorspindel und Werkzeug können sich vollständig
+  in den Spindelschacht zurückziehen“. P-2026-10-10-19 hatte „Anordnung der drei Linearachsen …
+  Tunnel“ als „alle drei an der Spindel, Tunnel im Ständer“ gelesen.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`: `grob_g550` neu – X-Schlitten mit Spindelschacht, darin der
+  Spindelstock (Z), Spindel Ø 200; die Säule links vom Tisch, Y-Schlitten mit Gehäuse der
+  Schwenkeinheit, A längs +X (einseitig), Rundtisch Ø 770 an Flansch und Tischträger; Y-Gelenk nach
+  unten (plus senkt den Tisch, +Y relativ nach DIN wie der Kreuztisch – sonst wäre das Achsenkreuz
+  linkshändig und B gegen DIN falsch gezählt). Winkelaufnahme mitverschoben.
+- `translations/de.json`, `en.json` (Beschreibung), `help/de|en/neue_maschine.html`.
+- `tests/test_beispielmaschine.py`: G550 – Achsen (X, Z Kopf; Y, A, B Tisch), Bewegungen,
+  Spindelnase im Schacht, in 64 Endlagen (X, Y, Z, A) kein Maschinenteil an einem anderen.
+  `tests/gui/szenario_grob_g550.py`: Beschreibung, Spindel (200, −200, 0), Tisch +200 bei Y −200.
+- `beispiele/grob_g550.FCStd` aus dem Szenario neu, `beispiele/README.md`,
+  `docs/spezifikation_grob_g550.md`, Snapshot (T-014: die beiden G550-Beispieljobs tragen noch die
+  alte Maschine). `package.xml` (0.213.95).
+
+### ERGEBNIS
+- Szenario-Bilder: Säule hinten links mit Y-Schlitten und Schwenkeinheit, der Tisch frei daran,
+  vorn der Spindelschacht; A −90 stellt die Spannfläche zur Spindel. 3+2 erreicht oben (A 90 am
+  Gelenk), seitlich (B −90) und die 30°-Fläche (A 120).
+
+### AKZEPTANZKRITERIUM
+- `test_beispielmaschine`, `test_raum_bahn`, `test_bahnzugang`, `test_schwenken_maschinen`,
+  `test_simultan_bereiche` in 1.1.4; `szenario_grob_g550`, `szenario_schwenken_maschinenwahl` grün.
+
 ## P-2026-10-11-90 jede-schneide-raeumlich
 
 ### EINGELESEN
