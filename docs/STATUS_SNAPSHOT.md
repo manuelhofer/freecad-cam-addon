@@ -273,12 +273,11 @@ abgearbeitet):
    (C stetig, aber die Kugel hat danach 5 % mehr zu tun).
 5. **Rest nach dem Schruppen (Frage 8)** im Assistenten melden und mehr anbieten: an schrägen
    Wänden zusätzlich in Z abzeilen (Schaftfräser) oder dort am Umfang mit kleinerer Steigung.
-   Nachgerechnet (Voxel): die halbe Steigung überall kostet 14 min und nimmt der Kugel nur 10 %;
-   der große Rest sitzt an der Nase – Frage 10 (T1 macht die ebenen Flächen) senkt die schwerste
-   Stelle für die Kugel von 408 auf 25 mm³ je mm Weg. Die Meldung im Assistenten braucht ein
-   Restmodell, das nach oben hält: Die Teile dafür stehen (P-2026-10-11-42/43) –
-   `camaddon/voxelstange.py` fährt Bahnen auf den Nebenrechnern, `teil()` füllt das fertige Teil
-   in 0,1 s; der Rest ist Stange nach dem Schruppen ohne Teil.
+   Nachgerechnet (Voxel): die halbe Steigung überall kostet 14 min und nimmt der Kugel nur 10 %.
+   Die „408 mm³ je mm an der Nase“ vom Morgen waren ein Messfehler (Weg ohne Y); richtig: höchstens
+   4 mm³ je mm, mehr als 1 auf 2,6 von 100 m (P-2026-10-11-44). ~~Die Meldung im Assistenten~~
+   steht (P-2026-10-11-44: „Rest für die Kugel …“, gelb ab 4 × Aufmaß × Schrittweite). Offen: die
+   Abhilfen als Knopf (in Z abzeilen; dort kleinere Steigung) – vorher messen, was jede bringt.
 6. **Nase mit dem Schaftfräser (Frage 5):** C so, dass Face8 (zur Mitte) quer zum Fräser steht,
    mit Y abzeilen (X auch unter 0, soweit die Maschine fährt); die Seiten Face4/Face6 mit dem
    Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – Bild

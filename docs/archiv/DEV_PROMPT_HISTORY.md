@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-44 rest-fuer-die-kugel
+
+### EINGELESEN
+- Frage 8 (Manuel, 2026-10-11): das Schruppen soll vorher sagen, wenn viel stehen bleibt – „beides
+  möglich“ (in Z abzeilen, dort mit kleinerer Steigung). Erst die Meldung; die Abhilfen kommen
+  danach.
+- Beim Bauen gefunden: Die „408 mm³ je mm Weg an der Nase“ vom Morgen (Frage 10, Snapshot) waren ein
+  Messfehler – das Skript zählte beim Weg die Querachse (Y) nicht mit. Richtig (Voxel 1 mm, über
+  5 mm Weg gemittelt): höchstens 4 mm³ je mm; die Menge insgesamt stimmte (12,1 cm³). Frage 10 und
+  Snapshot berichtigt: T1 auf Face4/6/8 spart der Kugel 36 m Weg (Zeit), ihre schwerste Stelle
+  wird nicht leichter (10 mm³ je mm).
+
+### DATEIEN
+- `camaddon/vierachs_vorschau.py`: `rest()` – Schrupp- und Schlichtbahn in der Stange als Voxel
+  nachgefahren (Nebenrechner), je mm Weg der Eingriff der Kugel; das Höchste und wo, von wo bis wo
+  mehr als die Schwelle, auf wie viel Weg.
+- `camaddon/voxelstange.py`: `fraeser()` (Fräser des Modells ganz im echten – der Rest hält nach
+  oben), `je_mm()` (mm³ je mm Weg über JE_MM_STRECKE gemittelt, Weg mit Y), `als_feld()`.
+- `camaddon/gui_vierachs.py`: unter dem Ergebnis des Schlichtens die Zeile „Rest für die Kugel …“
+  – rechnet auf einem Nebenrechner, sobald Schrupp- und Schlichtvorschau da sind; grau, wie viel;
+  gelb ab REST_VIEL (4) × Aufmaß × Schrittweite, mit Strecke und Bereich längs.
+- `camaddon/einheiten.py`: Größen QUERSCHNITT (mm², in²) und STRECKE (m, ft).
+- `translations/de.json`, `translations/en.json` (`va.rest.*`),
+  `tests/test_vierachs_frei.py` (Rest am Nasen-Testteil), `tests/gui/szenario_vierachs_schlichten.py`
+  (die graue Zeile), `docs/aufbau.md`, `docs/OFFENE_FRAGEN.md` (Frage 10 berichtigt),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.213.50), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Welle des Szenarios: grau „Sie greift höchstens mit 0,4 mm² ein … Aufmaß × Schrittweite,
+  0,21 mm²“. Nasen-Testteil im Assistenten (Stange Ø 135, T1 mit 22 mm je Lage): gelb „bis zu
+  39,9 mm² … 166-mal … auf 7,8 m ihres Wegs, X −124 … 2 mm“ – in 21 s mit allem.
+
 ## P-2026-10-11-43 teil-als-voxel
 
 ### EINGELESEN

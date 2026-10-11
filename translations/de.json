@@ -2686,5 +2686,10 @@
     "sb.hinweis.ausgelassen": "Schnittzug {zug}: unbearbeitet – ausgelassen: {grund}",
     "rm3.fehler.bahn_budget": "Die räumliche NC-Folge überschreitet das Rechenbudget; der ursprüngliche Materialstand bleibt erhalten.",
     "au.eigenschaft.raster": "Das Raster in mm, in dem die Operation ihre Bahn rechnet – feiner ist genauer und dauert länger (halb so grob: bis zu viermal so viel Rechnung im Raster, doppelt auf einer Kante), meist ohne sichtbaren Unterschied am Werkstück; 0: der Vorschlag der Strategie.",
-    "au.eigenschaft.raster_rundum": "Das Raster rundum in Grad, in dem die Operation ihre Bahn rechnet – feiner ist genauer und dauert länger; 0: der Vorschlag der Strategie."
+    "au.eigenschaft.raster_rundum": "Das Raster rundum in Grad, in dem die Operation ihre Bahn rechnet – feiner ist genauer und dauert länger; 0: der Vorschlag der Strategie.",
+    "va.rest.rechnet": "Rest für die Kugel nach dem Schruppen: rechnet nach …",
+    "va.rest.wenig": "Rest für die Kugel nach dem Schruppen: Sie greift höchstens mit {menge} {e_querschnitt} ein (ap × ae, über 5 mm Weg gemittelt) – ohne Rest wären es Aufmaß × Schrittweite, {soll} {e_querschnitt}.",
+    "va.rest.viel": "Nach dem Schruppen greift die Kugel stellenweise mit bis zu {menge} {e_querschnitt} ein (ap × ae, über 5 mm Weg gemittelt) – {faktor}-mal so viel wie Aufmaß × Schrittweite ({soll} {e_querschnitt}), auf {strecke} {e_strecke} ihres Wegs, {richtung} {von} … {bis} {e_laenge}. Für so viel sind ihre Schnittwerte nicht gedacht.",
+    "va.rest.laengs": "längs",
+    "va.rest.tooltip": "Nachgerechnet in der Stange als Würfel von 1 mm: erst die Schruppbahn, dann die Schlichtbahn, je mm Weg, was die Kugel dabei wegnimmt. Der Fräser im Modell liegt ganz im echten – es bleibt dort eher mehr stehen als auf der Maschine."
 }

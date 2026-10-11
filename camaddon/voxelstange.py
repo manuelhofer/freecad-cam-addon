@@ -24,15 +24,53 @@ import numpy as np
 
 TEIL_TOLERANZ = 0.01  # mm: so fein wird das Teil für teil() vernetzt
 _SCHIEF = (1.234567e-5, 2.345678e-5)  # mm: so weit liegen die Strahlen neben den Spaltenmitten
+JE_MM_STRECKE = 5.0  # mm Weg: darüber mittelt je_mm()
 STUECKE_JE_ARBEITER = 3  # wer früher fertig ist, nimmt das nächste
 VERTEILT_AB = 2000  # Stellungen: darunter rechnet fahre() selbst
 
 
-def _als_feld(punkte):
+def als_feld(punkte):
     """Die Sätze als (n, 4): a, r, q, phi (Grad) – Punkte (Attribute) oder schon ein Feld."""
     if isinstance(punkte, np.ndarray):
         return np.asarray(punkte, dtype=float)
     return np.array([(p.a, p.r, p.q, p.phi) for p in punkte], dtype=float).reshape(-1, 4)
+
+
+def fraeser(form):
+    """(Radius, Kugel) für fahre(), so dass der Fräser des Voxelmodells ganz im echten liegt – es
+    nimmt eher weniger weg, ein Rest hält nach oben: der Schaft- und Torusfräser als Scheibe mit
+    dem Radius ihrer ebenen Stirn, Kugel und Konik als Kugel an der Spitze. None für eine
+    Spitze ohne beides (Kegel)."""
+    erstes = form.stuecke[0]
+    if erstes.art == "eben" and erstes.rho_bis > 0:
+        return float(erstes.rho_bis), False
+    if form.kugel > 0:
+        return float(form.kugel), True
+    return None
+
+
+def je_mm(saetze, weg, h, eilgang=None, strecke=JE_MM_STRECKE):
+    """(mm³ je mm Weg, a) je Satz – was der Fräser nimmt (`weg`: Voxel je Satz aus fahre()),
+    gemittelt über die letzten `strecke` mm Weg im Vorschub (ein Voxel allein wäre Rauschen).
+    Der Weg: längs, radial, quer und am Umfang (r · Δφ). Eilgänge zählen nicht."""
+    saetze = als_feld(saetze)
+    if len(saetze) < 2:
+        return np.zeros(0), np.zeros(0)
+    d = np.diff(saetze, axis=0)
+    r_mitte = np.abs(saetze[1:, 1] + saetze[:-1, 1]) / 2
+    laenge = np.sqrt(
+        d[:, 0] ** 2 + d[:, 1] ** 2 + d[:, 2] ** 2 + (r_mitte * np.radians(d[:, 3])) ** 2
+    )
+    volumen = np.asarray(weg[1:], dtype=float) * h**3
+    if eilgang is not None:
+        im_vorschub = ~np.asarray(eilgang[1:], dtype=bool)
+        laenge, volumen = np.where(im_vorschub, laenge, 0.0), np.where(im_vorschub, volumen, 0.0)
+    s = np.concatenate([[0.0], np.cumsum(laenge)])
+    v = np.concatenate([[0.0], np.cumsum(volumen)])
+    von = np.searchsorted(s, s[1:] - strecke, "right") - 1
+    von = np.clip(von, 0, None)
+    lang = s[1:] - s[von]
+    return np.where(lang > 0, (v[1:] - v[von]) / np.maximum(lang, 1e-9), 0.0), saetze[1:, 0]
 
 
 def _rahmen(laengs, radial):
@@ -221,7 +259,7 @@ class Voxelstange:
         """Je Punkt (ab dem zweiten): so viele Voxel nimmt der Weg dorthin weg (Eilgänge auch) –
         `verteilt` auf den Nebenrechnern. Ohne `je_satz` verteilt nur einmal: Die Stange danach
         stimmt, die Zahlen je Satz zählen dann auch, was ein Stück davor schon wegnahm."""
-        saetze = _als_feld(punkte)
+        saetze = als_feld(punkte)
         if verteilt and len(saetze) > 2:
             weg = self._fahre_verteilt(saetze, r_fraeser, kugel, je_satz)
             if weg is not None:
@@ -292,7 +330,7 @@ class Voxelstange:
 
     def _fahre_selbst(self, punkte, r_fraeser, kugel):
         """Wie fahre(), der Reihe nach in diesem Prozess."""
-        saetze = _als_feld(punkte)
+        saetze = als_feld(punkte)
         weg = np.zeros(len(saetze), dtype=np.int64)
         for i in range(1, len(saetze)):
             p, n_ = saetze[i - 1], saetze[i]

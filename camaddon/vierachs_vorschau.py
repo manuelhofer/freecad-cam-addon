@@ -15,11 +15,15 @@ bedienen kann“. Läuft ohne Oberfläche.
 """
 
 import FreeCAD
+import numpy as np
 
 from . import vierachs_entgraten as vent
 from . import vierachs_operation as vo
 from . import vierachs_plan as vplan
 from . import vierachs_schlichten as vs
+from . import voxelstange as vx
+
+REST_VOXEL = 1.0  # mm: so fein rechnet rest() die Stange nach
 
 
 def _job(dokument, name):
@@ -61,3 +65,52 @@ def entgraten(dokument, job_name, laengs, radial, *args, **kwargs):
     return vent.vorschau(
         job, job.Model.Group, FreeCAD.Vector(*laengs), FreeCAD.Vector(*radial), *args, **kwargs
     )
+
+
+def rest(
+    dokument,
+    job_name,
+    laengs,
+    schruppen,
+    schrupp_form,
+    schlichten,
+    schlicht_form,
+    schwelle,
+    h=REST_VOXEL,
+):
+    """Was nach dem Schruppen für die Kugel stehen bleibt (Manuel, 2026-10-11, Frage 8:
+    „vorher sagen, wenn viel stehen bleibt“): die Stange als Voxel, erst die Schruppbahn, dann
+    die Schlichtbahn nachgefahren (auf den Nebenrechnern) – `schruppen`, `schlichten`: (Sätze
+    (n, 4) aus voxelstange.als_feld, Eilgänge [bool]). Der Fräser des Modells liegt ganz im
+    echten (voxelstange.fraeser): Das Schruppen nimmt eher weniger, die Zahl hält nach oben.
+    {hoechstens, a, a_von, a_bis, strecke, volumen}: das Meiste, was die Kugel je mm Weg nimmt
+    (mm³/mm, über JE_MM_STRECKE gemittelt) und wo längs; von wo bis wo sie mehr als `schwelle`
+    nimmt und auf wie viel Weg (mm); was sie insgesamt nimmt (mm³). None, wenn ein Fräser nicht
+    ins Voxelmodell passt."""
+    job = _job(dokument, job_name)
+    schrupp_fraeser, schlicht_fraeser = vx.fraeser(schrupp_form), vx.fraeser(schlicht_form)
+    if schrupp_fraeser is None or schlicht_fraeser is None:
+        return None
+    achse, radius, _a_vorne, _a_futter = vs._stange(job, FreeCAD.Vector(*laengs))
+    teil = vs._teil(job.Model.Group)
+    a_teil = [v.Point.dot(achse) for v in teil.Vertexes]
+    stange = vx.Voxelstange(radius, min(a_teil) - h, max(a_teil) + h, h)
+    stange.fahre(schruppen[0], *schrupp_fraeser, je_satz=False)
+    saetze, eilgang = schlichten
+    weg = stange.fahre(saetze, *schlicht_fraeser)
+    last, a = vx.je_mm(saetze, weg, h, eilgang)
+    if not len(last):
+        return None
+    am_meisten = int(np.argmax(last))
+    viel = last > schwelle
+    d = np.diff(np.asarray(saetze, dtype=float), axis=0)
+    r_mitte = np.abs(saetze[1:, 1] + saetze[:-1, 1]) / 2
+    laenge = np.sqrt((d[:, :3] ** 2).sum(axis=1) + (r_mitte * np.radians(d[:, 3])) ** 2)
+    return {
+        "hoechstens": float(last[am_meisten]),
+        "a": float(a[am_meisten]),
+        "a_von": float(a[viel].min()) if viel.any() else None,
+        "a_bis": float(a[viel].max()) if viel.any() else None,
+        "strecke": float(laenge[viel].sum()),
+        "volumen": float(np.sum(weg)) * h**3,
+    }

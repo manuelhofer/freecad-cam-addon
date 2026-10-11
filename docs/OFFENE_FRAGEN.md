@@ -29,12 +29,14 @@ Zusammen **159,3 statt 187,5 min** (gerechnet vor „C dreht nicht zurück“, P
 sind beide Zeiten kürzer, heute 177,8 min). Die Seiten mit der Stirn (Fräserachse quer zur Fläche) gibt es
 schon („Plan indexiert“); neu ist nur, dass eine Fläche, die zur Achse schaut, auch geht, wenn der
 Weg von außen frei ist – bis zur Grenze von X der Maschine (das prüft „Auf der Maschine prüfen“).
-**Und es hilft der Kugel (Frage 8):** Nachgerechnet im 3D-Modell der Stange (Voxel 1 mm, 11.10.):
-Nach dem Schruppen schneidet die Kugel an der Nase stellenweise bis **408 mm³ je mm Weg** (bis
-25 mm tief, a −55 … 15, rund um die Nase). Macht T1 vorher die drei ebenen Flächen (1,2 min),
-sind es höchstens **25 mm³ je mm** – die Strecke, auf der die Kugel mehr als 5 mm³ je mm nimmt,
-0,15 statt 0,34 m. Zum Vergleich die halbe Steigung beim Schruppen (2,7 statt 5,4 mm) überall:
-15,4 → 29,6 min, die Kugel nimmt nur 10 % weniger, die schwerste Stelle bleibt bei 408.
+**Berichtigt (11.10. mittags):** Hier stand, es helfe auch der Kugel (408 → 25 mm³ je mm Weg). Das
+war ein Messfehler – mein Skript hat beim Weg die Querachse (Y) vergessen; wo die Kugel über
+ebene Stellen in Y fährt, war der Weg fast null und die Zahl je mm riesig. Richtig gemessen
+(Voxel 1 mm, über 5 mm Weg gemittelt; die Menge insgesamt war richtig, 12,1 cm³): Nach dem
+Schruppen nimmt die Kugel höchstens **4 mm³ je mm**, mehr als 1 mm³ je mm auf 2,6 m ihrer
+100 m (a −65 … 15). Mit T1 auf den drei Flächen fährt sie 36 m weniger (das ist die Zeit oben),
+ihre schwerste Stelle wird aber nicht leichter: 10 mm³ je mm. Frage 10 ist also eine Frage der
+Zeit, nicht der Last.
 **Die Frage:** So bauen – im 4-Achs-Assistenten ein Haken „Ebene Flächen mit dem Schaftfräser
 fertig“, vorbelegt an, der „Plan indexiert“ mit dem Schruppfräser für die ebenen Flächen anlegt
 (auch die zur Mitte) und die Kugel diese Flächen auslassen lässt? Und die Seiten mit der Stirn

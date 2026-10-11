@@ -193,6 +193,8 @@ pruefe(l_frei < 0.01 * l_alle, f"Ø 45: Schlichten {l_frei:.0f} mm frei – der 
 # Schruppen, dann das Schlichten mit und ohne Querachse. Kein freier Satz nimmt etwas weg. Bis
 # dahin hielt das Schlichten Ecken vorne an der Platte für leer, die das Schruppen stehen ließ
 # (das Restmodell, ein Radius je Strahl, sieht sie nicht): bei 1 mm Voxeln 102 Sätze.
+from camaddon import vierachs_vorschau as vv  # noqa: E402
+from camaddon import voxelstange as vx  # noqa: E402
 from camaddon.voxelstange import Voxelstange  # noqa: E402
 
 nase = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", "testteil_4achs_nase.FCStd"))
@@ -243,6 +245,31 @@ for quer in (True, False):
             float(schritte.min()) > -1e-6,
             f"Nase: C dreht {float(-schritte[schritte < 0].sum()):.0f}° zurück",
         )
+# Der Rest für die Kugel (Frage 8, P-2026-10-11-44) wie im Assistenten: Die Kugel nimmt nach dem
+# Schruppen insgesamt rund 12 cm³, höchstens wenige mm² Eingriff je mm Weg – am Morgen des 11.10.
+# standen hier 408, weil der Weg quer (Y) nicht mitzählte.
+sop.Querachse = True
+schlichtbahn = vs.rechne(sop, job, job.Model.Group)
+
+
+def _saetze(b):
+    return vx.als_feld(b.punkte), [bool(p.eilgang) for p in b.punkte]
+
+
+rest = vv.rest(
+    nase,
+    job.Name,
+    tuple(laengs),
+    _saetze(schruppbahn),
+    vs.form_des_controllers(rop.ToolController),
+    _saetze(schlichtbahn),
+    vs.form_des_controllers(sop.ToolController),
+    1.0,
+)
+pruefe(
+    rest is not None and 1.0 < rest["hoechstens"] < 10.0 and 10000 < rest["volumen"] < 14000,
+    f"Nase, Rest für die Kugel: {rest}",
+)
 FreeCAD.closeDocument(nase.Name)
 
 FreeCAD.closeDocument(asm.Document.Name)

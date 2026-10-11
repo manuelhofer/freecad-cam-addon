@@ -122,6 +122,10 @@ GEMERKT_PLANFRAESER = "VaPlanfraeser"  # … des zuletzt gewählten Fräsers fü
 GEMERKT_ENTGRATFRAESER = "VaEntgratfraeser"  # … des zuletzt gewählten Fräsers zum Entgraten
 # Welche Bearbeitung man ändert.
 SCHRUPPEN, SCHLICHTEN, PLAN, ENTGRATEN = "schruppen", "schlichten", "plan", "entgraten"
+# Gelb, wenn die Kugel nach dem Schruppen stellenweise so viel mal Aufmaß × Schrittweite nimmt
+# (Frage 8, P-2026-10-11-44) – darunter steht grau, wie viel.
+REST_VIEL = 4.0
+REST_AUFMASS_MINDESTENS = 0.1  # mm: so viel Aufmaß rechnet der Vergleich mindestens
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
 # Stirn als Scheibe – für jedes dieser Werkzeuge sicher (vierachs_huelle).
@@ -574,6 +578,7 @@ class VierachsPanel:
         # die Nummer sagt, ob eine Antwort noch zur letzten Eingabe gehört.
         self._vorschau_nummer = 0
         self._vorschau_auftraege = {}  # Name („schruppen“, „planbohren“ …) -> Auftrag
+        self._rest_auftrag = None  # der Rest für die Kugel (vierachs_vorschau.rest)
         self._vorwaermen()
         self._vorschau_ergebnisse = {}
         self._vorschau_gruende = {}
@@ -1382,6 +1387,10 @@ class VierachsPanel:
         self.schlichtfelder = schlichten.widget
         aufbau.addWidget(self.schlichtfelder)
         self.ergebnis_schlichten = grau()
+        # Was die Kugel nach dem Schruppen nimmt (Frage 8) – grau, gelb wenn viel.
+        self.rest_schlichten = grau()
+        self.rest_schlichten.setToolTip(tr("va.rest.tooltip"))
+        self.rest_schlichten.hide()
         self.lage_schlichten = gelb()
         self.schlichtfelder.setEnabled(False)
         self.schlichtfelder.setVisible(False)
@@ -3358,6 +3367,7 @@ class VierachsPanel:
         ):
             etikett.setText("")
         self.kammhoehe.hide()
+        self._rest_zurueck()
         self.hinweis_bearbeitung.setText("")
         if schruppen and (self.fraeser() is None or self.einsatz() is None):
             self.hinweis_bearbeitung.setText(tr("va.fraeser.keiner"))
@@ -3531,6 +3541,7 @@ class VierachsPanel:
             (ENTGRATEN, self.ergebnis_entgraten, self._entgrat_text),
         ):
             etikett.setText(text(e[name]) if e.get(name) is not None else "")
+        self._rest_starten()
         self.hinweis_bearbeitung.setText(
             " ".join(
                 gruende[name]
@@ -3560,6 +3571,112 @@ class VierachsPanel:
             if not auftrag.erledigt:
                 auftrag.abbrechen()
         self._vorschau_auftraege = {}
+        self._rest_zurueck()
+
+    # --- Der Rest für die Kugel (Frage 8) ---------------------------------------------------
+
+    def _rest_zurueck(self):
+        """Nimmt den Auftrag für den Rest zurück und leert die Zeile."""
+        auftrag, self._rest_auftrag = self._rest_auftrag, None
+        if auftrag is not None and not auftrag.erledigt:
+            auftrag.abbrechen()
+        self.rest_schlichten.setText("")
+        self.rest_schlichten.hide()
+
+    def _rest_soll(self):
+        """mm² – was die Kugel ohne Rest nimmt: das Aufmaß des Schruppens über ihrem eigenen
+        (mindestens REST_AUFMASS_MINDESTENS) mal ihre Schrittweite."""
+        aufmass = self._wert("aufmass") - self._wert("aufmass_schlichten")
+        return max(aufmass, REST_AUFMASS_MINDESTENS) * self._wert("schrittweite")
+
+    def _rest_starten(self):
+        """Wenn Schrupp- und Schlichtvorschau da sind: auf einem Nebenrechner nachrechnen, was
+        die Kugel nach dem Schruppen nimmt (vierachs_vorschau.rest), die Zeile darunter füllt
+        _rest_angekommen. Ohne Nebenrechner nichts – im Fenster stünde es sonst Sekunden."""
+        from . import nebenrechner as nr
+        from . import voxelstange as vx
+
+        self._rest_zurueck()
+        if self.vorschau is None or self.vorschau_schlichten is None or self.geschlossen:
+            return
+        schrupp_form = ff.von_werkzeug(self.fraeser())
+        schlicht_form = ff.von_werkzeug(self.schlichtfraeser())
+        soll = self._rest_soll()
+        if vx.fraeser(schrupp_form) is None or vx.fraeser(schlicht_form) is None or soll <= 0:
+            return
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return
+
+        def saetze(bahn):
+            return vx.als_feld(bahn.punkte), [bool(p.eilgang) for p in bahn.punkte]
+
+        nummer = self._vorschau_nummer
+        try:
+            auftrag = pool.auftrag(
+                "vierachs_vorschau",
+                "rest",
+                pool.kopie(self.doc, wiederverwenden=True),
+                self.job.Name,
+                tuple(self.achse().laengs),
+                saetze(self.vorschau),
+                schrupp_form,
+                saetze(self.vorschau_schlichten),
+                schlicht_form,
+                REST_VIEL * soll,
+            )
+        except nr.NichtVerfuegbar:
+            return
+        auftrag.bei_fertig = lambda a: self._rest_angekommen(nummer, a, soll)
+        self._rest_auftrag = auftrag
+        self.rest_schlichten.setStyleSheet(f"color: {GRAU_TEXT};")
+        self.rest_schlichten.setText(tr("va.rest.rechnet"))
+        self.rest_schlichten.show()
+
+    def _rest_angekommen(self, nummer, auftrag, soll):
+        """Der Rest ist gerechnet: grau, wie viel die Kugel höchstens nimmt – gelb und wo, wenn
+        es mehr als REST_VIEL × `soll` ist. Eine Antwort auf eine ältere Eingabe zählt nicht."""
+        from .gui_kollision import GELB
+
+        if nummer != self._vorschau_nummer or self.geschlossen or auftrag is not self._rest_auftrag:
+            return
+        self._rest_auftrag = None
+        e = auftrag.ergebnis if auftrag.fehler is None else None
+        if not e:
+            if auftrag.fehler is not None and not auftrag.abgebrochen:
+                FreeCAD.Console.PrintWarning(f"CAM-Addon: Rest für die Kugel: {auftrag.fehler}\n")
+            self.rest_schlichten.hide()
+            return
+
+        def flaeche(wert):
+            return einheiten.text(wert, einheiten.QUERSCHNITT, 1 if wert >= 1 else 2)
+
+        def stelle(wert):
+            return einheiten.text(wert, einheiten.LAENGE, 0).replace("-", "−")
+
+        if e["a_von"] is None:
+            self.rest_schlichten.setStyleSheet(f"color: {GRAU_TEXT};")
+            self.rest_schlichten.setText(
+                tr("va.rest.wenig", menge=flaeche(e["hoechstens"]), soll=flaeche(soll))
+            )
+        else:
+            richtung = va.achsbuchstabe(FreeCAD.Vector(*self.achse().laengs)) or tr(
+                "va.rest.laengs"
+            )
+            self.rest_schlichten.setStyleSheet(f"color: {GELB};")
+            self.rest_schlichten.setText(
+                tr(
+                    "va.rest.viel",
+                    menge=flaeche(e["hoechstens"]),
+                    faktor=f"{e['hoechstens'] / soll:.0f}",
+                    soll=flaeche(soll),
+                    strecke=einheiten.text(e["strecke"] / 1000, einheiten.STRECKE, 1),
+                    richtung=richtung,
+                    von=stelle(e["a_von"]),
+                    bis=stelle(e["a_bis"]),
+                )
+            )
+        self.rest_schlichten.show()
 
     def _lage_zeigen(self):
         """Unter jedem angehakten Fräser ein gelber Satz, wenn er auf der gewählten Maschine

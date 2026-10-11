@@ -35,6 +35,8 @@ VORSCHUB = "vorschub"  # vf, Eilgang
 ABTRAG = "abtrag"  # Q
 VOLUMEN = "volumen"
 WEG_JE_VOLUMEN = "weg_je_volumen"  # Schneidenweg je Volumen: m je cm³, ft je in³
+QUERSCHNITT = "querschnitt"  # Eingriff ap × ae (mm³ je mm Weg)
+STRECKE = "strecke"  # ein langer Weg in m bzw. ft
 GROESSEN = {
     LAENGE: ("mm", "in", 25.4, 4),
     SPAN: ("mm", "in", 25.4, 5),
@@ -43,6 +45,8 @@ GROESSEN = {
     ABTRAG: ("cm³/min", "in³/min", 16.387064, 2),
     VOLUMEN: ("cm³", "in³", 16.387064, 2),
     WEG_JE_VOLUMEN: ("m", "ft", 0.3048 / 16.387064, 2),
+    QUERSCHNITT: ("mm²", "in²", 645.16, 4),
+    STRECKE: ("m", "ft", 0.3048, 1),
 }
 # „Zeit für 100 cm³“ macht Q greifbar – in inch 5 in³ statt krummer 6,1 in³.
 VERGLEICHSVOLUMEN = {METRISCH: 100, ZOLL: 5}

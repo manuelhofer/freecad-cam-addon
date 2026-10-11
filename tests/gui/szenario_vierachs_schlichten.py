@@ -98,6 +98,15 @@ def schritte(h):
         f"Ausspannen: {ausspannen!r}",
     )
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
+    # Darunter, was die Kugel nach dem Schruppen nimmt (Frage 8, P-2026-10-11-44) – auf einem
+    # Nebenrechner nachgerechnet; an der glatten Welle wenig, also grau.
+    yield from h.warte_auf(lambda: panel._rest_auftrag is None, 60000)
+    rest = panel.rest_schlichten.text()
+    h.pruefe(
+        panel.rest_schlichten.isVisible()
+        and rest.startswith("Rest für die Kugel nach dem Schruppen: Sie greift höchstens"),
+        f"Rest: {rest!r}",
+    )
     # Mit der Querachse (V5e): ohne Maschine gilt die Achse quer als da, T2 ist eine Kugel –
     # der Haken ist frei und vorgeschlagen, der Grund steht grau darunter.
     h.pruefe(
