@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-40 schrittweite-aus-kammhoehe
+
+### EINGELESEN
+- Frage 6: Manuel, 2026-10-11: „0.005mm kammhöhe ist quatsch … eine kammhöhe von 0.035 sogar völlig
+  in ordnung … den seitlichen vorschub vll an die kammhöhe koppeln“; „wenn wir mit dem kugelfäser
+  angestellt fahren .. sind die 0,4 hinfällig … ich würde aber auch sagen c“ (eine Spalte „ae
+  höchstens“); zur Vorgabe: „mach gühring“ (0,02 mm).
+- Nachgesehen: T2 ist HOLEX 207125-8; Hoffmann nennt „Eingriffsbreite max. ae = 0,05 × D“ zur
+  vc-Tabelle. Gühring GF 500 B (gleiche Art) 0,1 × D in Stahl und Alu (Kammhöhe ≈ 0,02 bei Ø 8).
+  Dass Anstellen ein größeres ae erlaubt, sagt kein Hersteller – das ist Manuels Regel.
+
+### DATEIEN
+- `camaddon/werkzeuge.py`: `Einsatz.ae_max` (0: keine Grenze; gespeichert nur, wenn gesetzt).
+- `camaddon/vierachs_schlichten.py`: `KAMMHOEHE = 0.02`, `schrittweite_vorschlag(werkzeug,
+  einsatz, kammhoehe, angestellt)` – mit Kugel/Torus aus der Kammhöhe (`schrittweite_fuer_kammhoehe`),
+  höchstens `ae_max`, außer angestellt; der Schaftfräser wie bisher aus ae.
+- `camaddon/gui_vierachs.py`: Feld „Kammhöhe“ über der Schrittweite (leer: 0,02); der Vorschlag der
+  Schrittweite folgt Kammhöhe, Querachse und Anstellen.
+- `camaddon/gui_schnittwerte.py`: Spalte „ae max“ in der Schnittwert-Tabelle (leer: keine Grenze).
+- `camaddon/werkzeugkiste_datei.py`: `ae_max`/`ae_max_d` je Einsatz; `camaddon/werkzeugkiste.py`:
+  Katalogwerte mit ae max dahinter; `camaddon/katalogwerte.py`: der HOLEX-Kugelfräser mit
+  ae max 0,05 × D.
+- `docs/werkzeugkiste_json.md` (`ae_max`, `ae_max_d`), `translations/de.json`, `translations/en.json`,
+  `tests/test_werkzeugkiste_datei.py`, `tests/test_vierachs_schlichten.py`,
+  `tests/gui/szenario_vierachs_schlichten.py` (Kugel Ø 6: grau 0,692 statt 0,3, Kammhöhe 0,020),
+  `docs/OFFENE_FRAGEN.md` (Frage 6 heraus), `package.xml` (0.213.46),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Kugel Ø 8: Kammhöhe 0,02 → Schrittweite 0,799; mit ae max 0,4 → 0,4; angestellt → 0,799.
+  Am Nasen-Testteil heißt das für ein neu angelegtes Schlichten etwa 94 statt 188 min.
+- Grün: `test_werkzeugkiste`, `test_werkzeugkiste_datei`, `test_vierachs_schlichten`,
+  `test_sprache`, `szenario_vierachs_schlichten`, `szenario_schnittwerte`, `szenario_zoll`.
+
 ## P-2026-10-11-39 knopf-naechste-kollision-eigene-zeile
 
 ### EINGELESEN

@@ -1307,6 +1307,17 @@ class VierachsPanel:
         self.schnittwerte_schlichten = self._grau()
         schlichten.ganz(self.schnittwerte_schlichten)
         self.felder_schlichten = {}
+        # Die Kammhöhe, aus der die Schrittweite kommt (P-2026-10-11-40; Manuel, Frage 6).
+        zahlenfeld(
+            self.felder_schlichten,
+            "kammhoehe_ziel",
+            tr("va.kammhoehe_ziel"),
+            tr("va.kammhoehe_ziel.tooltip"),
+            schlichten,
+        )
+        self.felder_schlichten["kammhoehe_ziel"].textChanged.connect(
+            lambda _text: self._schrittweite_vorschlag_zeigen()
+        )
         zahlenfeld(
             self.felder_schlichten,
             "schrittweite",
@@ -2145,13 +2156,24 @@ class VierachsPanel:
         self._querachse_von_hand = True
         self._anstellen_vorschlagen()
         self._stetig_vorschlagen()
+        self._schrittweite_vorschlag_zeigen()
         self._vorschau_starten()
 
     def _anstellen_umgeschaltet(self):
         if self._fuellt:
             return
         self._anstellen_von_hand = True
+        self._schrittweite_vorschlag_zeigen()
         self._vorschau_starten()
+
+    def _schrittweite_vorschlag_zeigen(self):
+        """Der Vorschlag der Schrittweite grau im Feld – er hängt an Kammhöhe, Fräser, Einsatz und
+        ob die Kugel angestellt fährt (vierachs_schlichten.schrittweite_vorschlag)."""
+        eingabe = self.felder_schlichten.get("schrittweite")
+        if eingabe is not None:
+            eingabe.setPlaceholderText(
+                groesse_zeigen(self._vorschlag("schrittweite"), einheiten.LAENGE) or "0"
+            )
 
     def _querachse_schruppen_umgeschaltet(self):
         if self._fuellt:
@@ -3172,11 +3194,18 @@ class VierachsPanel:
         Einsatz (ap und ae – ae höchstens der Durchmesser), das Aufmaß 0,3 mm, der Überlauf
         Fräserradius + 0,5 mm, Abstand zum Futter 5 mm, Sicherheitsabstand 2 mm; beim Schlichten
         die Schrittweite aus der Werkzeugtabelle (ae) und das Aufmaß 0."""
+        if feld == "kammhoehe_ziel":
+            return vs.KAMMHOEHE
         if feld == "schrittweite":
             werkzeug = self.schlichtfraeser()
             if werkzeug is None:
                 return 0.0
-            return vs.schrittweite_vorschlag(werkzeug, self.schlichteinsatz())
+            return vs.schrittweite_vorschlag(
+                werkzeug,
+                self.schlichteinsatz(),
+                self._wert("kammhoehe_ziel"),
+                angestellt=self.querachse() and self.anstellen(),
+            )
         if feld == "zustellung_plan":
             einsatz = self.planeinsatz()
             return einsatz.ap if einsatz is not None and einsatz.ap > 0 else vo.ZUSTELLUNG

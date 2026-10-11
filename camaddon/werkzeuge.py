@@ -312,9 +312,12 @@ class Einsatz:
     ap: float = 0.0  # Tiefe, mm
     vc: float = 0.0  # Schnittgeschwindigkeit, m/min
     fz: float = 0.0  # Vorschub je Zahn, mm
+    # Die größte Eingriffsbreite laut Hersteller („max. ae = 0,05 × D“), mm; 0: keine Grenze. Die
+    # Assistenten schlagen nie mehr vor (Manuel, 2026-10-11, Frage 6: Wahl c).
+    ae_max: float = 0.0
 
     def als_dict(self):
-        return {
+        daten = {
             "art": self.art,
             "name": self.name,
             "ae": self.ae,
@@ -322,13 +325,16 @@ class Einsatz:
             "vc": self.vc,
             "fz": self.fz,
         }
+        if self.ae_max > 0:
+            daten["ae_max"] = self.ae_max
+        return daten
 
     @classmethod
     def aus_dict(cls, daten):
         e = cls()
         e.art = daten.get("art") if daten.get("art") in EINSATZARTEN else EIGEN
         e.name = str(daten.get("name") or "")
-        for wert in ("ae", "ap", "vc", "fz"):
+        for wert in ("ae", "ap", "vc", "fz", "ae_max"):
             setattr(e, wert, max(_zahl(daten.get(wert), float, 0.0), 0.0))
         return e
 

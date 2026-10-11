@@ -777,6 +777,28 @@ oben_rand = vb._nicht_tiefer(
 )
 pruefe(float(oben_rand[0]) < 1.0, f"Rand der Kugel zählt als Rest: {float(oben_rand[0]):.2f}")
 
+# --- Die Schrittweite aus der Kammhöhe (P-2026-10-11-40; Manuel, Frage 6) ---------------------
+from camaddon import vierachs_schlichten as vs_  # noqa: E402
+from camaddon import werkzeuge as wz_  # noqa: E402
+
+kugel8 = wz_.Werkzeug(art=wz_.KUGELFRAESER, durchmesser=8.0, schneiden=2)
+einsatz_holex = wz_.Einsatz(art=wz_.SCHLICHTEN, ae=0.4, ap=0.4, ae_max=0.4)
+s_frei = vs_.schrittweite_vorschlag(kugel8, wz_.Einsatz(art=wz_.SCHLICHTEN, ae=0.4), vs_.KAMMHOEHE)
+pruefe(abs(s_frei - 2 * math.sqrt(2 * 4.0 * 0.02 - 0.02**2)) < 2e-3, f"aus der Kammhöhe: {s_frei}")
+s_grenze = vs_.schrittweite_vorschlag(kugel8, einsatz_holex, vs_.KAMMHOEHE)
+pruefe(abs(s_grenze - 0.4) < 1e-9, f"ae max hält nicht: {s_grenze}")
+s_angestellt = vs_.schrittweite_vorschlag(kugel8, einsatz_holex, vs_.KAMMHOEHE, angestellt=True)
+pruefe(abs(s_angestellt - s_frei) < 1e-9, f"angestellt gilt ae max: {s_angestellt}")
+schaft8 = wz_.Werkzeug(art=wz_.SCHAFTFRAESER, durchmesser=8.0, schneiden=3)
+s_schaft = vs_.schrittweite_vorschlag(
+    schaft8, wz_.Einsatz(art=wz_.SCHLICHTEN, ae=1.5), vs_.KAMMHOEHE
+)
+pruefe(abs(s_schaft - 1.5) < 1e-9, f"Schaftfräser nicht aus der Tabelle: {s_schaft}")
+pruefe(
+    abs(vs_.schrittweite_vorschlag(kugel8, einsatz_holex) - 0.4) < 1e-9,
+    "ohne Kammhöhe nicht wie bisher",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor

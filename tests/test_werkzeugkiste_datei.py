@@ -248,6 +248,48 @@ if bibliothek.werkzeuge:
         "andere Schneidenlänge gilt als gleich",
     )
 
+# --- „ae max“ (P-2026-10-11-40): ae_max_d und ae_max kommen als Grenze in den Einsatz -----------
+datei_max = schreibe(
+    os.path.join(tmp, "werkzeugkiste_aemax.json"),
+    [
+        {
+            "kennung": "probe-kugel-aemax",
+            "art": "kugelfraeser",
+            "hersteller": "Probe",
+            "titel": "Kugelfräser mit Grenze",
+            "quelle": "Prüfung, 2026-10-11",
+            "gemeinsam": {"schneiden": 2, "schneidstoff": "vhm"},
+            "schnittwerte": {"N1": {"schlichten": {"vc": 300, "fz": 0.05, "ae_max_d": 0.05}}},
+            "groessen": [
+                {"durchmesser": 8.0, "artikel": "PROBE-8", "gesamtlaenge": 63.0},
+                {
+                    "durchmesser": 10.0,
+                    "artikel": "PROBE-10",
+                    "gesamtlaenge": 72.0,
+                    "schnittwerte": {"N1": {"schlichten": {"ae_max": 0.7}}},
+                },
+            ],
+        }
+    ],
+)
+p = wd.lesen(datei_max, vorhandene=[])
+pruefe(
+    not p.fehler and not any("ae_max" in h for h in p.hinweise), f"ae max: {p.fehler} {p.hinweise}"
+)
+if p.reihen:
+    grenzen = {}
+    for w in wk.werkzeuge(p.reihen[0]):
+        schlicht = next((e for e in w.schnittwerte.get("N1", []) if e.art == wz.SCHLICHTEN), None)
+        grenzen[w.durchmesser] = schlicht.ae_max if schlicht is not None else None
+    pruefe(
+        nahe(grenzen.get(8.0) or 0, 0.4) and nahe(grenzen.get(10.0) or 0, 0.7),
+        f"ae max je Größe: {grenzen}",
+    )
+    # In der Werkzeugverwaltung gespeichert und wieder gelesen: dieselbe Grenze.
+    zurueck = wz.Einsatz.aus_dict(wz.Einsatz(art=wz.SCHLICHTEN, ae_max=0.4).als_dict())
+    pruefe(nahe(zurueck.ae_max, 0.4), f"ae max gespeichert: {zurueck.ae_max}")
+    pruefe("ae_max" not in wz.Einsatz(art=wz.SCHLICHTEN).als_dict(), "ae max 0 wird gespeichert")
+
 shutil.rmtree(tmp, ignore_errors=True)
 wd.vergessen()
 if fehler:

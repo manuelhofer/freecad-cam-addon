@@ -370,13 +370,20 @@ HOLEX_KUGEL_FZ = {"P1": 1.0, "P2": 0.8, "M": 0.7, "K": 1.0, "N1": 1.4, "N2": 1.2
 
 
 def holex_kugel_werte():
-    """{Ø: {Klasse: {SCHLICHTEN: (vc, fz, ap, ae)}}} – Kopierfräsen nach der Seite."""
+    """{Ø: {Klasse: {SCHLICHTEN: (vc, fz, ap, ae, ae max)}}} – Kopierfräsen nach der Seite: „max.
+    ae = 0,05 × D“ ist dort eine Grenze (P-2026-10-11-40), ap und ae wie bisher ebenso groß."""
     werte = {}
     for d, (_lc, _l, _ds, fz) in HOLEX_KUGEL_MASSE.items():
         zustellung = round(0.05 * d, 3)
         werte[float(d)] = {
             klasse: {
-                wz.SCHLICHTEN: (vc, round(fz * HOLEX_KUGEL_FZ[klasse], 4), zustellung, zustellung)
+                wz.SCHLICHTEN: (
+                    vc,
+                    round(fz * HOLEX_KUGEL_FZ[klasse], 4),
+                    zustellung,
+                    zustellung,
+                    zustellung,
+                )
             }
             for klasse, vc in HOLEX_KUGEL_VC.items()
         }

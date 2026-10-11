@@ -59,7 +59,7 @@ _SCHNEIDSTOFFE = {
     "hss co 10": wz.HSS, "hss-co5": wz.HSS, "hss-co8": wz.HSS, "hss-co10": wz.HSS,
 }  # fmt: skip
 _UMLAUTE = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
-_WERTE = ("vc", "fz", "f", "ap", "ap_d", "ae", "ae_d")
+_WERTE = ("vc", "fz", "f", "ap", "ap_d", "ae", "ae_d", "ae_max", "ae_max_d")
 # Maße, ohne die eine Art nicht rechnen kann (Abschnitt 4 des Formats) – fehlen sie, sagt es ein
 # Hinweis: Manuels Agent legte Tonnenfräser als Konikfräser ohne Kegelwinkel ab (2026-10-10).
 _KENNZEICHNEND = {
@@ -411,9 +411,10 @@ def _groesse(daten, gemeinsam, titel, marke, hersteller, mit_werten, art):
 
 
 def _katalog(werkzeug, werte):
-    """{Klasse: {Einsatz: (vc, fz, ap, ae)}} für werkzeugkiste (katalogwerte): f wird fz je
-    Schneide, ap_d und ae_d Vielfache des Durchmessers; was fehlt, sind die Richtwerte – vc nie
-    über der höchsten, die die Datei für die Klasse nennt."""
+    """{Klasse: {Einsatz: (vc, fz, ap, ae, ae max)}} für werkzeugkiste (katalogwerte): f wird fz
+    je Schneide, ap_d, ae_d und ae_max_d Vielfache des Durchmessers; was fehlt, sind die
+    Richtwerte – vc nie über der höchsten, die die Datei für die Klasse nennt; ae max fehlt: keine
+    Grenze."""
     d = float(werkzeug.durchmesser)
     ergebnis = {}
     for klasse, einsaetze in werte.items():
@@ -432,7 +433,8 @@ def _katalog(werkzeug, werte):
                 fz = richtwert.fz if richtwert is not None else 0.0
             ap = w.get("ap") if "ap" in w else (w["ap_d"] * d if "ap_d" in w else None)
             ae = w.get("ae") if "ae" in w else (w["ae_d"] * d if "ae_d" in w else None)
-            ergebnis.setdefault(klasse, {})[einsatz] = (vc, fz, ap, ae)
+            ae_max = w.get("ae_max") if "ae_max" in w else w.get("ae_max_d", 0.0) * d
+            ergebnis.setdefault(klasse, {})[einsatz] = (vc, fz, ap, ae, ae_max or None)
     return ergebnis
 
 

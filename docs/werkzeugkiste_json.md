@@ -126,6 +126,7 @@ Je **Werkstoffklasse** und **Einsatz** ein Satz Werte:
 | `f` | Vorschub je Umdrehung in mm/U (Bohrer, Senker, Reibahlen, Bohrstangen – wenn der Katalog es so nennt; das Addon rechnet fz = f ÷ Z) |
 | `ap` / `ap_d` | Schnitttiefe in mm – oder als Vielfaches von D (`0.05` = 0,05 × D) |
 | `ae` / `ae_d` | Eingriffsbreite in mm – oder als Vielfaches von D |
+| `ae_max` / `ae_max_d` | die **größte** Eingriffsbreite laut Hersteller („max. ae = 0,05 × D“) in mm oder als Vielfaches von D – eine Grenze, kein Vorschlag (ab 0.213.46). Ohne „max.“ gehört der Wert nach `ae`/`ae_d` |
 
 Was fehlt, schätzt das Addon wie bisher – aber nie schneller als die höchste vc, die die Datei
 für diese Klasse nennt. Gewindebohren braucht kein fz (der Vorschub ist die Steigung).

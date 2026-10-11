@@ -3,8 +3,8 @@
 # T1 Schaftfräser Ø 12 („Schruppen“) und T2 Kugelfräser Ø 6 („Schlichten“, ae 0,3 mm).
 # Welle Ø 60 mit Absatz auf Ø 40, Stange Ø 80, ohne Maschine. Schritt 2: „Rundum
 # schlichten“ ist angehakt (T2 hat einen Einsatz „Schlichten“), T2 und „Schlichten“
-# vorgewählt, grau „0,3“ als Schrittweite (ae aus der Werkzeugtabelle), „→ Kammhöhe
-# 0,004 mm“ und „→ … Umdrehungen, etwa … min“; unter „Abstände“ grau „Radius + 0,5“; die
+# vorgewählt, grau „0,692“ als Schrittweite (aus der Kammhöhe 0,02 mm, P-2026-10-11-40 – das ae 0,3
+# der Werkzeugtabelle zählt beim Kugelfräser nicht mehr), „→ Kammhöhe 0,020 mm“ und „→ … Umdrehungen, etwa … min“; unter „Abstände“ grau „Radius + 0,5“; die
 # Stange ragt so weit heraus, wie T1 braucht. Erst nur schruppen (Haken aus) → „Anlegen“.
 # Doppelklick auf „Rundum schruppen T1“: „Rundum schlichten“ ist frei, „Haken setzen: …“ –
 # Haken, „Übernehmen“: Im Job stehen jetzt auch „T2 Schlichten“ und „Rundum schlichten
@@ -79,14 +79,14 @@ def schritte(h):
     einsatz = panel.schlichteinsatz()
     h.pruefe(einsatz is not None and einsatz.art == wz.SCHLICHTEN, "Einsatz nicht „Schlichten“")
     grau = panel.felder_schlichten["schrittweite"].placeholderText()
-    h.pruefe(grau == "0,3", f"Schrittweite grau: {grau!r}")
+    h.pruefe(grau == "0,692", f"Schrittweite grau: {grau!r}")
     grau = panel.felder_schruppen["ueberlauf"].placeholderText()
     h.pruefe(grau == "Abstechbreite + 0,5", f"Überlauf grau: {grau!r}")
     yield from h.warte_auf(
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )
     kamm = panel.kammhoehe.text()
-    h.pruefe(kamm == "→ Kammhöhe 0,004 mm", f"Kammhöhe: {kamm!r}")
+    h.pruefe(kamm == "→ Kammhöhe 0,020 mm", f"Kammhöhe: {kamm!r}")
     ergebnis = panel.ergebnis_schlichten.text()
     h.pruefe(
         ergebnis.startswith("→ ") and "Umdrehungen, etwa" in ergebnis and "min" in ergebnis,
@@ -167,7 +167,7 @@ def schritte(h):
         "Vorstufen" not in schlichten.PropertiesList and schlichten.RestHoechstens.Value > 0.3,
         f"Rest höchstens: {schlichten.RestHoechstens}",
     )
-    h.pruefe(abs(schlichten.Schrittweite.Value - 0.3) < 1e-9, f"{schlichten.Schrittweite}")
+    h.pruefe(abs(schlichten.Schrittweite.Value - 0.692) < 1e-9, f"{schlichten.Schrittweite}")
     # Die Operation fährt mit der Querachse, die Kugel angestellt: die Sätze tragen das Y; an der
     # runden Welle steht es (r + R) · sin 15° neben der Mitte – Ø 40: 5,95, Ø 60: 8,54; um die
     # Kanten am Absatz 4,3 … 11,9 –, nie auf ihr (dort schnitte die Kugel mit der Spitze).

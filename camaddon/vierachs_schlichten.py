@@ -49,6 +49,7 @@ AUFMASS = 0.0  # mm – Schlichten macht fertig
 # Die Werte der Eigenschaft „Muster“ (Aufzählung, bleibt in jeder Datei) und das Muster der
 # Bahn dazu (vierachs_bahn.SPIRALE, LINIEN).
 MUSTER_WERTE = {"Spirale": vb.SPIRALE, "Linien": vb.LINIEN}
+KAMMHOEHE = 0.02  # mm – ohne Vorgabe (Manuel, 2026-10-11: „mach gühring“; Gühring ≈ 0,02 bei Ø 8)
 SCHRITTWEITE_ANTEIL = 0.02  # ohne ae im Einsatz: D/50 – wie die Vorlage „Schlichten“
 # Die Vorschau im Assistenten rechnet grob: Umdrehungen, Zeit und ob es geht – schnell genug
 # für jede Eingabe. Die Operation rechnet dann genau.
@@ -535,14 +536,39 @@ def _im_vorschub(bahn, schritt_a, schritt_bogen):
     return np.array(a), np.array(r), np.array(phi), np.array(q)
 
 
-def schrittweite_vorschlag(werkzeug, einsatz):
-    """Die Schrittweite, wenn nichts anderes gesagt ist: ae des Einsatzes aus der
-    Werkzeugtabelle (Manuel, 2026-09-30), sonst D/50 wie die Vorlage „Schlichten“ – höchstens
-    der Durchmesser."""
+def schrittweite_vorschlag(werkzeug, einsatz, kammhoehe=None, angestellt=False):
+    """Die Schrittweite, wenn nichts anderes gesagt ist. Mit `kammhoehe` (mm) und einer runden
+    Stirn (Kugel, Torus): so weit, dass zwischen zwei Bahnen höchstens diese Kammhöhe stehen
+    bleibt (Manuel, 2026-10-11, Frage 6: „kammhöhe sollte … unseren vorschlag beeinflussen“,
+    Vorgabe KAMMHOEHE wie bei Gühring), höchstens „ae max“ des Einsatzes – außer die Kugel fährt
+    angestellt (`angestellt`; Manuel: „wenn wir mit dem kugelfäser angestellt fahren .. sind die
+    0,4 hinfällig“). Sonst ae des Einsatzes aus der Werkzeugtabelle (Manuel, 2026-09-30), sonst
+    D/50 wie die Vorlage „Schlichten“ – höchstens der Durchmesser."""
     durchmesser = werkzeug.durchmesser
+    form = ff.von_werkzeug(werkzeug) if kammhoehe else None
+    if form is not None and not form.eben and kammhoehe > 0:
+        schritt = schrittweite_fuer_kammhoehe(form, kammhoehe)
+        if einsatz is not None and einsatz.ae_max > 0 and not angestellt:
+            schritt = min(schritt, einsatz.ae_max)
+        return round(min(schritt, durchmesser), 3)
     if einsatz is not None and 0 < einsatz.ae <= durchmesser:
         return einsatz.ae
     return SCHRITTWEITE_ANTEIL * durchmesser
+
+
+def schrittweite_fuer_kammhoehe(form, kammhoehe):
+    """Die größte Schrittweite (mm), bei der zwischen zwei Bahnen höchstens `kammhoehe` stehen
+    bleibt (fraeserform.Form.kammhoehe, halbiert) – höchstens der Durchmesser."""
+    unten, oben = 0.0, 2.0 * form.radius
+    if form.kammhoehe(oben) <= kammhoehe:
+        return oben
+    for _ in range(50):
+        mitte = (unten + oben) / 2
+        if form.kammhoehe(mitte) <= kammhoehe:
+            unten = mitte
+        else:
+            oben = mitte
+    return unten
 
 
 def lege_an(

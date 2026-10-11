@@ -40,8 +40,9 @@ from .gui_zahlen import (
 from .sprache import tr
 
 # Spalten der Tabelle.
-WERKSTOFF, EINSATZ, AE, AP, VC, FZ, N, VF, Q = range(9)
-EINGABE_SPALTEN = {AE: "ae", AP: "ap", VC: "vc", FZ: "fz"}
+# AE_MAX: die Grenze des Herstellers („max. ae = 0,05 × D“), leer: keine (P-2026-10-11-40).
+WERKSTOFF, EINSATZ, AE, AE_MAX, AP, VC, FZ, N, VF, Q = range(10)
+EINGABE_SPALTEN = {AE: "ae", AE_MAX: "ae_max", AP: "ap", VC: "vc", FZ: "fz"}
 TABELLE_MINDESTHOEHE = 150  # Pixel
 WERKSTOFF_BREITE = 190  # Pixel – die Spalte mit der Auswahl des Werkstoffs
 SPAN = einheiten.SPAN  # fz und Spandicke: mm oder inch, feiner gerundet
@@ -114,7 +115,7 @@ class SchnittwertBereich(QtGui.QWidget):
         aufbau.addLayout(zeile)
         self.zustand.setText(tr("wv.schnittwerte.werkstoffe"))
 
-        self.tabelle = QtGui.QTableWidget(0, 9)
+        self.tabelle = QtGui.QTableWidget(0, Q + 1)
         self.tabelle.setMinimumHeight(TABELLE_MINDESTHOEHE)
         self.tabelle.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tabelle.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
@@ -526,6 +527,7 @@ class SchnittwertBereich(QtGui.QWidget):
             (tr("wv.spalte.werkstoff"), tr("wv.spalte.werkstoff.tooltip")),
             (tr("wv.spalte.einsatz"), tr("wv.spalte.einsatz.tooltip")),
             ("ae\n" + einheit, tr("wv.spalte.ae.tooltip")),
+            ("ae max\n" + einheit, tr("wv.spalte.ae_max.tooltip")),
             ("ap\n" + einheit, tr("wv.spalte.ap.tooltip")),
             ("vc\n" + einheiten.einheit(einheiten.SCHNITT), tr("wv.spalte.vc.tooltip")),
             vorschub,
@@ -538,6 +540,7 @@ class SchnittwertBereich(QtGui.QWidget):
             kopf.setToolTip(tooltip)
             self.tabelle.setHorizontalHeaderItem(spalte, kopf)
         self.tabelle.setColumnHidden(AE, bohrer)
+        self.tabelle.setColumnHidden(AE_MAX, bohrer)
         self.tabelle.setColumnHidden(AP, bohrer)
         self.wahl_einheit.setVisible(not bohrer)
         # „ae, ap: mm“ oder „ae, ap: in“ – je nach Maßsystem.
@@ -597,6 +600,7 @@ class SchnittwertBereich(QtGui.QWidget):
         eingaben = {
             EINSATZ: wz.einsatz_name(einsatz),
             AE: self._zustellung_zeigen(einsatz.ae),
+            AE_MAX: self._zustellung_zeigen(einsatz.ae_max) if einsatz.ae_max > 0 else "",
             AP: self._zustellung_zeigen(einsatz.ap),
             VC: groesse_zeigen(einsatz.vc, einheiten.SCHNITT),
             FZ: groesse_zeigen(vorschub, einheiten.SPAN),
@@ -677,6 +681,8 @@ class SchnittwertBereich(QtGui.QWidget):
         if spalte == EINSATZ:
             # Der Name der Art ist kein eigener Name – so folgt er der Sprache.
             einsatz.name = "" if text == wz.einsatzart_text(einsatz.art) else text
+        elif spalte == AE_MAX and not text:
+            einsatz.ae_max = 0.0  # leer: keine Grenze
         elif spalte in EINGABE_SPALTEN:
             try:
                 wert = zahl_lesen(text)
@@ -685,7 +691,7 @@ class SchnittwertBereich(QtGui.QWidget):
             else:
                 if spalte == FZ and self._bohrend():
                     wert = wert / max(self.werkzeug.schneiden, 1)
-                if spalte in (AE, AP) and self.in_prozent:
+                if spalte in (AE, AE_MAX, AP) and self.in_prozent:
                     wert = wert * self.werkzeug.durchmesser / 100
                 else:
                     # Getippt in mm oder inch, m/min oder SFM – gespeichert metrisch.

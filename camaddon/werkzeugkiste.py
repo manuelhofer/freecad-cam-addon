@@ -948,17 +948,20 @@ def _aus_katalog(werkzeug, art, werte):
     Schaftfräser selten nennen, mit vc und fz des Schruppens (Eckfräsen); None ohne Werte."""
     eigen = werte.get(art)
     if eigen is None and art in (wz.SCHLICHTEN, wz.PLANEN) and wz.SCHRUPPEN in werte:
-        vc, fz, _ap, _ae = werte[wz.SCHRUPPEN]
+        vc, fz, *_rest = werte[wz.SCHRUPPEN]
         eigen = (vc, fz, None, None)
     if eigen is None:
         return None
-    vc, fz, ap, ae = eigen
+    # (vc, fz, ap, ae) – dahinter wahlweise ae max (die Grenze des Herstellers, P-2026-10-11-40).
+    vc, fz, ap, ae, *rest = eigen
     einsatz = wz.vorlage(werkzeug, art)
     einsatz.vc, einsatz.fz = vc, fz
     if ap:
         einsatz.ap = min(ap, werkzeug.schneidenlaenge) if werkzeug.schneidenlaenge else ap
     if ae:
         einsatz.ae = ae
+    if rest and rest[0]:
+        einsatz.ae_max = rest[0]
     return _runden(einsatz)
 
 

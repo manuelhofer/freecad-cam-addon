@@ -9,39 +9,7 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
 (Die Fragen 1–3 hat Manuel in P-2026-10-10-08 beantwortet, Frage 4 in P-2026-10-10-36, 5 und 7–9
-in P-2026-10-11-30 – siehe Verlauf.)
-
-### 6. Die Schrittweite der Kugel aus der Kammhöhe – welche Kammhöhe ohne Vorgabe?
-
-Manuel (11.10.): Die Stange Ø 90 bleibt; die Schrittweite soll von der Kammhöhe abhängen (0,035 mm
-ist für ihn beim Kugelschlichten in Ordnung); dazu eine eigene Spalte „ae höchstens“ in der
-Werkzeugtabelle (Wahl c) – „wenn wir mit dem kugelfäser angestellt fahren .. sind die 0,4
-hinfällig .. ich denke die 0.4 beziehen sich nur wenn du mit der spitze fährst“.
-
-Nachgesehen (11.10., Herstellerseiten): T2 ist der HOLEX-Vollradiusfräser 207125-8 (Ø 8, Z2);
-Hoffmann nennt „Eingriffsbreite max. ae = 0,05 × D“ und „Schnitttiefe max. 0,4“ zu seiner
-vc-Tabelle – zur Rautiefe und zum Anstellen sagt die Seite nichts. Andere: Gühring GF 500 B
-(gleiche Art) 0,1 × D in Stahl und Alu (0,8 mm, Kammhöhe ≈ 0,02), 0,05 × D erst ab 54 HRC;
-GARANT 207028 für Alu 0,03 × D; Sandvik zum Feinstschlichten 10–15° anstellen (wegen vc = 0 in der
-Mitte), Mitsubishi iMX 0,25 × D. Kein Hersteller sagt, dass Anstellen ein größeres ae erlaubt –
-es verbessert Schnitt und Standzeit; die Kammhöhe auf einer Ebene hängt nur von R und ae ab. Das
-Katalog-ae ist der Eingriff, für den vc und fz gelten (Gühring: weniger ae, mehr vc), keine
-Grenze der Oberfläche. Üblich sind 0,01–0,02 mm Kammhöhe (Gühring ≈ 0,02 bei Ø 8), 0,005 mm nur
-vor dem Polieren.
-
-| Kammhöhe | Schrittweite (R 4) | Zeit am Nasen-Testteil (vor P-2026-10-11-37) |
-| --- | --- | --- |
-| 0,005 mm (heute, ae 0,4) | 0,40 mm | 187,5 min |
-| 0,010 mm | 0,57 mm | 132,5 min |
-| 0,020 mm | 0,80 mm | 94,4 min |
-| 0,035 mm | 1,06 mm | 71,7 min |
-
-**Die Frage:** Welche Kammhöhe soll der Assistent ohne Vorgabe nehmen – deine 0,035 mm oder 0,02
-mm wie bei Gühring? (Gebaut wird: Feld „Kammhöhe“ im Schritt 2, die Schrittweite daraus, höchstens
-„ae höchstens“ aus der neuen Spalte der Werkzeugtabelle, wenn dort etwas steht.)
-*Warum nur Manuel:* der Vorschlag ohne Vorgabe (Strategiewahl).
-*Was die Antwort ändert:* die Vorgabe des neuen Felds.
-Seit 2026-10-10, neu gefasst 2026-10-11.
+in P-2026-10-11-30, 6 in P-2026-10-11-40 – siehe Verlauf.)
 
 ### 10. Die Nase mit dem Schaftfräser fertig – so, wie im Bild?
 
