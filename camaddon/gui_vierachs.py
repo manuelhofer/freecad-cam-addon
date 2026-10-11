@@ -634,10 +634,13 @@ class VierachsPanel:
         if wahl is not None and wahl[1] is not None:
             self.waehle_flaeche(*wahl, nahe=klickpunkt(dokument))
         elif wahl is not None and stl_teil.aus_stl(wahl[0]):
-            # Ein Körper aus einem STL: zuerst seine Standfläche anklicken – sie kommt ans Futter.
+            # Ein Körper aus einem STL: zuerst seine Standfläche anklicken – sie kommt ans Futter –
+            # oder eine seiner Achsen wählen.
             from .gui_stl import teil_aus_netz
 
+            self._stl_teil = vr.original(wahl[0])
             self.anleitung.setText(tr("va.anleitung.stl", bericht=teil_aus_netz.bericht))
+            self.teilachsen.show()
         self._auffrischen()
 
     def _zum_aendern(self):
@@ -768,6 +771,7 @@ class VierachsPanel:
         self.teil, self.flaeche = einstellung.teil, einstellung.flaeche
         self.vermessung, self.mitte = einstellung.vermessung, einstellung.mitte
         self._nahe, self.umgedreht = None, einstellung.umgedreht
+        self.teilachsen.setVisible(stl_teil.aus_stl(self.teil))
         stange, laenge = einstellung.stange, einheiten.LAENGE
         self._fuellt = True
         try:
@@ -1057,6 +1061,23 @@ class VierachsPanel:
         self.anleitung = QtGui.QLabel(tr("va.anleitung"))
         self.anleitung.setWordWrap(True)
         aufbau.addWidget(self.anleitung)
+        # Ein Teil aus einem STL: statt einer Fläche eine seiner Achsen längs der Stange (Manuel,
+        # 2026-10-11: „X, Y oder Z zur Wahl – beides ja“).
+        self.teilachsen = QtGui.QWidget()
+        reihe = QtGui.QHBoxLayout(self.teilachsen)
+        reihe.setContentsMargins(0, 0, 0, 0)
+        reihe.addWidget(QtGui.QLabel(tr("va.teilachse")))
+        self.knoepfe_teilachse = {}
+        for achse in vr.TEILACHSEN:
+            taste = QtGui.QPushButton(achse)
+            taste.setToolTip(tr("va.teilachse.tooltip", achse=achse))
+            taste.setAutoDefault(False)
+            taste.clicked.connect(lambda _an=False, a=achse: self.waehle_teilachse(a))
+            reihe.addWidget(taste)
+            self.knoepfe_teilachse[achse] = taste
+        reihe.addStretch(1)
+        self.teilachsen.hide()
+        aufbau.addWidget(self.teilachsen)
 
         self.felder = QtGui.QWidget()
         raster = QtGui.QGridLayout(self.felder)
@@ -1641,22 +1662,34 @@ class VierachsPanel:
         if wahl is not None and wahl[1] is not None and wahl != (self.teil, self.flaeche):
             self.waehle_flaeche(*wahl, nahe=punkt)
 
+    def waehle_teilachse(self, achse):
+        """Legt das Teil aus einem STL mit seiner Achse `achse` („X“, „Y“, „Z“) längs der Stange,
+        ihr Plus-Ende vorne – ohne Fläche (vierachs_rohteil.vermesse_achse)."""
+        teil = self.teil if self.teil is not None else getattr(self, "_stl_teil", None)
+        if teil is not None:
+            self.waehle_flaeche(teil, achse)
+
     def waehle_flaeche(self, teil, flaeche, nahe=None):
         """Legt `teil` mit seiner Fläche `flaeche` („FaceN“) vorne in die Stange – eine runde
-        Fläche mit ihrer Achse als Stangenachse, das Ende nahe `nahe` vorne (V2b)."""
+        Fläche mit ihrer Achse als Stangenachse, das Ende nahe `nahe` vorne (V2b); „X“, „Y“, „Z“:
+        eine Achse des Teils längs der Stange (waehle_teilachse)."""
         teil = vr.original(teil)
-        try:
-            form = teil.Shape
-            element = form.getElement(flaeche)
-            vermessung = vr.vermesse(form, element, nahe)
-        except ValueError:  # weder eben noch rund (oder keine solche Fläche)
-            self._hinweis(tr("va.nicht_eben", flaeche=flaeche, teil=teil.Label))
-            return
-        # Eine ebene Fläche eines Teils aus einem STL liegt am Futter (seine Standfläche; Manuel,
-        # 2026-10-11: „Standfläche zum Futter, abstechen“) – „Umdrehen“ legt sie nach vorne.
-        am_futter = vr.ist_eben(element) and stl_teil.aus_stl(teil)
-        if am_futter:
-            vermessung = vr.vermesse(form, element, nahe, True)
+        form = teil.Shape
+        if flaeche in vr.TEILACHSEN:
+            vermessung, element, am_futter = vr.vermesse_achse(form, flaeche), None, False
+        else:
+            try:
+                element = form.getElement(flaeche)
+                vermessung = vr.vermesse(form, element, nahe)
+            except ValueError:  # weder eben noch rund (oder keine solche Fläche)
+                self._hinweis(tr("va.nicht_eben", flaeche=flaeche, teil=teil.Label))
+                return
+            # Eine ebene Fläche eines Teils aus einem STL liegt am Futter (seine Standfläche;
+            # Manuel, 2026-10-11: „Standfläche zum Futter, abstechen“) – „Umdrehen“ legt sie nach
+            # vorne.
+            am_futter = vr.ist_eben(element) and stl_teil.aus_stl(teil)
+            if am_futter:
+                vermessung = vr.vermesse(form, element, nahe, True)
         self._nahe, self.umgedreht = nahe, am_futter
         if self.zu_aendern is not None and teil is not self.teil:
             self._hinweis(tr("va.aendern.anderes_teil", teil=self.teil.Label))
@@ -1696,6 +1729,10 @@ class VierachsPanel:
         if self.vermessung is None or self.teil is None:
             return
         self.umgedreht = not self.umgedreht
+        if self.flaeche in vr.TEILACHSEN:
+            self.vermessung = vr.vermesse_achse(self.teil.Shape, self.flaeche, self.umgedreht)
+            self._anwenden()
+            return
         element = self.teil.Shape.getElement(self.flaeche)
         self.vermessung = vr.vermesse(self.teil.Shape, element, self._nahe, self.umgedreht)
         self._anwenden()
@@ -5117,11 +5154,15 @@ class VierachsPanel:
         else:
             art = tr("va.art.eben")
             self.knopf_mitte_flaeche.setText(tr("va.mitte.flaeche_eckig"))
-        if not mess.rund and self.umgedreht:
+        flaeche = self.flaeche
+        teilachse = flaeche in vr.TEILACHSEN
+        self.knopf_mitte_flaeche.setEnabled(not teilachse)  # ohne Fläche keine Mitte der Fläche
+        if teilachse:
+            flaeche = tr("va.teilachse.name", achse=flaeche)
+            art = tr("va.art.teilachse_minus") if self.umgedreht else tr("va.art.teilachse_plus")
+        elif not mess.rund and self.umgedreht:
             art = tr("va.art.am_futter", art=art)
-        self.teil_text.setText(
-            tr("va.teil.text", teil=self.teil.Label, flaeche=self.flaeche, art=art)
-        )
+        self.teil_text.setText(tr("va.teil.text", teil=self.teil.Label, flaeche=flaeche, art=art))
         self.braucht_flaeche.setText(
             tr("va.braucht", d=groesse_fest(mess.noetig[vr.MITTE_FLAECHE], einheit_laenge, 1))
         )

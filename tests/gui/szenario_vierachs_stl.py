@@ -101,6 +101,14 @@ def schritte(h):
     h.pruefe(doc.UndoNames[:1] == ["STL als Teil"], f"Rückgängig: {doc.UndoNames[:2]}")
     h.bild("2_assistent_stl", panel.form)
 
+    # --- Eine Achse des Teils statt einer Fläche: „X“ ----------------------------------------------
+    h.pruefe(panel.teilachsen.isVisible(), "Knöpfe X, Y, Z nicht da")
+    panel.knoepfe_teilachse["X"].click()
+    yield from h.warte_auf(lambda: panel.job is not None, 30000)
+    text = panel.teil_text.text()
+    h.pruefe("Achse X (längs der Stange, Plus-Ende vorne)" in text, f"Teil mit Achse X: {text!r}")
+    yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 5000)
+
     # --- Die Standfläche ans Futter -----------------------------------------------------------
     standflaeche = next(
         f"Face{i}"
@@ -108,8 +116,9 @@ def schritte(h):
         if abs(f.CenterOfMass.z) < 1e-6 and vr.aussennormale(f).z < -0.99
     )
     Gui.Selection.clearSelection()
-    Gui.Selection.addSelection(doc.Name, teil.Name, standflaeche)
-    yield from h.warte_auf(lambda: panel.job is not None, 30000)
+    # Im Job liegt der Klon (das Original ist ausgeblendet): Seine Flächen heißen wie die des Teils.
+    Gui.Selection.addSelection(doc.Name, vr.modell(panel.job).Name, standflaeche)
+    yield from h.warte_auf(lambda: panel.flaeche == standflaeche, 30000)
     h.pruefe(panel.job is not None and panel.umgedreht, "kein Job oder Standfläche nicht am Futter")
     if panel.job is None:
         return

@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-102 stl-achse-zur-wahl
+
+### EINGELESEN
+- Manuel, 2026-10-11, auf „Standfläche zum Futter, abstechen … Oder willst du auch … X, Y oder Z
+  zur Wahl?“: „beides ja“. Die Standfläche kam mit P-100; das hier ist die Achse – für eine Figur
+  ohne ebene Standfläche.
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py`: `TEILACHSEN`, `vermesse_achse(form, achse, umgedreht)` (vorne das
+  vorderste Ende, Mitte des ganzen Teils, Punkte beim STL aus dem Netz); `einstellung` findet die
+  Achse wieder (`_teilachse_laengs`) – beim STL ohne passende ebene Fläche direkt, ohne die
+  68.242 Flächen einzeln zu prüfen (`_ebenen_aus_netz` gibt dann False).
+- `camaddon/gui_vierachs.py`: unter der Anleitung „Oder eine Achse des Teils längs der Stange: X Y Z“
+  (nur bei einem Teil aus einem STL), `waehle_teilachse`; `waehle_flaeche` und `umdrehen` nehmen
+  „X“/„Y“/„Z“ statt einer Fläche; Text „Achse X (längs der Stange, Plus-Ende vorne)“, „Mitte der
+  Fläche“ dann gesperrt.
+- `translations/de.json`, `en.json` (`va.teilachse*`, `va.art.teilachse_*`, `va.anleitung.stl`),
+  Hilfe `vierachs` (de, en), `docs/spezifikation_vierachs.md` (16.6), `tests/test_stl_teil.py`
+  (Achse X hin und zurück, auch umgedreht), `tests/gui/szenario_vierachs_stl.py` (erst „X“, dann
+  die Standfläche am Klon). `package.xml` (0.217.0).
+
+### AKZEPTANZKRITERIUM
+- `test_stl_teil`, `test_vierachs_rohteil`, `test_sprache`, `test_hilfe` in 1.1.4;
+  `szenario_vierachs_stl` grün.
+
 ## P-2026-10-11-101 stl-auf-der-maschine-pruefen
 
 ### EINGELESEN

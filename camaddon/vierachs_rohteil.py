@@ -296,6 +296,36 @@ def vermesse(form, flaeche, nahe=None, umgedreht=False):
     )
 
 
+TEILACHSEN = {"X": (1, 0, 0), "Y": (0, 1, 0), "Z": (0, 0, 1)}  # statt einer Fläche (W-017)
+
+
+def vermesse_achse(form, achse, umgedreht=False):
+    """Vermisst das Teil, das mit seiner Achse `achse` („X“, „Y“, „Z“ – TEILACHSEN) längs der
+    Stange liegt, ihr Plus-Ende vorne (`umgedreht`: das Minus-Ende) – ohne eine Fläche (Manuel,
+    2026-10-11, zu einem STL: „X, Y oder Z zur Wahl – beides ja“). Vorne ist das vorderste Ende
+    des Teils; die Mitte ist die des ganzen Teils."""
+    normale = FreeCAD.Vector(*TEILACHSEN[achse])
+    if umgedreht:
+        normale = normale * -1
+    u, v = _quer(normale)
+    punkte = _punkte(form)
+    hoehe = max(p.dot(normale) for p in punkte)
+    laengs = [p.dot(normale) - hoehe for p in punkte]
+    huelle = konvexe_huelle([(p.dot(u), p.dot(v)) for p in punkte])
+    x, y, r = kleinster_kreis(huelle)
+    return Vermessung(
+        normale=normale,
+        quer=(u, v),
+        hoehe=hoehe,
+        kreis=None,
+        mitte_flaeche=(x, y),
+        mitte_teil=(x, y),
+        noetig={MITTE_FLAECHE: 2 * r, MITTE_TEIL: 2 * r},
+        vorne=max(laengs),
+        hinten=min(laengs),
+    )
+
+
 def _punkte(form):
     """Punkte des Teils für Umriss und Länge: die Tessellierung mit Ecken und Kanten – für den
     Umriss reicht das. Ein Körper aus einem STL hat sie schon (stl_teil.netz_fuer): genau, ohne
@@ -517,14 +547,23 @@ def einstellung(job):
     laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
     platz = klon.Placement.multiply(teil.Placement.inverse())  # Welt → Job
     aus_netz = _ebenen_aus_netz(form, platz, laengs)
-    if aus_netz is not None:  # ein Körper aus einem STL: über sein Netz, nicht Fläche für Fläche
+    if aus_netz:  # ein Körper aus einem STL: über sein Netz, nicht Fläche für Fläche
         flaeche, umgedreht = aus_netz
         vermessung = vermesse(form, form.getElement(flaeche), None, umgedreht)
+    elif aus_netz is False:  # aus einem STL, ohne passende ebene Fläche: eine Achse des Teils
+        gefunden = _teilachse_laengs(form, platz, laengs)
+        if gefunden is None:
+            return None
+        flaeche, vermessung, umgedreht = gefunden
     elif (flaeche := _stirnflaeche(form, platz, laengs)) is not None:
         umgedreht = False
         vermessung = vermesse(form, form.getElement(flaeche))
     else:  # ein Drehteil ohne ebene Stirnfläche vorne (V2b): die runde Fläche längs
-        gefunden = _runde_laengs(form, platz, laengs) or _ebene_am_futter(form, platz, laengs)
+        gefunden = (
+            _runde_laengs(form, platz, laengs)
+            or _ebene_am_futter(form, platz, laengs)
+            or _teilachse_laengs(form, platz, laengs)
+        )
         if gefunden is None:
             return None
         flaeche, vermessung, umgedreht = gefunden
@@ -576,7 +615,7 @@ def _ebenen_aus_netz(form, platz, laengs):
     """(„FaceN“, umgedreht) für einen Körper aus einem STL – die ebene Fläche am Futter
     (Außennormale gegen die Stange, am hinteren Ende), sonst die vorne (längs, bei a = 0) –,
     gefunden in seinem Netz (stl_teil.netz_fuer) und nur ihr Name von OpenCascade: am Geist 0,1
-    statt 17 s Fläche für Fläche. None, wenn es kein solcher Körper ist oder keine passt."""
+    statt 17 s Fläche für Fläche. None, wenn es kein solcher Körper ist; False, wenn keine passt."""
     import numpy as np
     import Part
 
@@ -606,6 +645,17 @@ def _ebenen_aus_netz(form, platz, laengs):
             )
             if gefunden:
                 return gefunden[0][0], umgedreht
+    return False
+
+
+def _teilachse_laengs(form, platz, laengs):
+    """(„X“/„Y“/„Z“, Vermessung, umgedreht), wenn nach `platz` eine Achse des Teils längs der
+    Stange liegt (vermesse_achse) – oder None."""
+    im_teil = platz.Rotation.inverted().multVec(laengs)
+    for achse, richtung in TEILACHSEN.items():
+        anteil = im_teil.dot(FreeCAD.Vector(*richtung))
+        if abs(abs(anteil) - 1) < 1e-9:
+            return achse, vermesse_achse(form, achse, anteil < 0), anteil < 0
     return None
 
 

@@ -148,6 +148,28 @@ e = vr.einstellung(job)
 pruefe(e is not None and e.umgedreht and e.flaeche == standflaeche, f"Einstellung {e}")
 pruefe(e is not None and e.stange == stange and e.mitte == vr.MITTE_TEIL, f"Einstellung {e}")
 
+# Statt der Standfläche eine Achse des Teils (vermesse_achse): X längs der Stange, Plus-Ende vorne
+# – wiedergefunden im Job als „X“; umgedreht das Minus-Ende vorne.
+achse_x = vr.vermesse_achse(form, "X")
+pruefe((achse_x.normale - V(1, 0, 0)).Length < 1e-12, f"Achse X: {achse_x.normale}")
+breite = form.BoundBox.XLength
+pruefe(nahe(achse_x.vorne, 0) and nahe(achse_x.hinten, -breite, 1e-3), "Achse X: Länge")
+dok_x = FreeCAD.newDocument("StlAchse")
+netz_x = dok_x.addObject("Mesh::Feature", "Figur")
+netz_x.Mesh = netz
+teil_x, _b = stl_teil.koerper_aus_netz(dok_x, netz_x)
+dok_x.recompute()
+for umgedreht in (False, True):
+    mess_x = vr.vermesse_achse(teil_x.Shape, "X", umgedreht)
+    job_x = vr.richte_ein(dok_x, teil_x, vr.lage(mess_x, "A", vr.MITTE_AUTO, 0.0, 40), stange, "A")
+    dok_x.recompute()
+    e_x = vr.einstellung(job_x)
+    pruefe(
+        e_x is not None and e_x.flaeche == "X" and e_x.umgedreht == umgedreht,
+        f"Achse X (umgedreht {umgedreht}) nicht wiedergefunden: {e_x}",
+    )
+FreeCAD.closeDocument(dok_x.Name)
+
 # Vernetzen (vierachs_huelle.vernetze): Körper und Klon bringen die Dreiecke des Netzes mit, in
 # ihrer Lage – ohne OpenCascade; eine kleine Form, die keiner ist, vernetzt OCC wie bisher.
 from camaddon import vierachs_huelle as vh  # noqa: E402

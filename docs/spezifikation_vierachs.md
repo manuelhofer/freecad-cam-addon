@@ -1443,8 +1443,13 @@ Gebaut (P-2026-10-11-100):
    Körper gespeichert (`makeShapeFromMesh` ordnet um) – das Netz je Fläche
    (`vierachs_flaechen.vernetze`) kommt so ohne OpenCascade aus.
 
-Offen: einzelne Bereiche wählen statt Dreiecke, die Achse ohne ebene Fläche (X/Y/Z), 5 Achsen mit
-STL im Assistenten „Bearbeitung“.
+6. **Eine Achse des Teils statt einer Fläche** (P-2026-10-11-102): Bei einem Teil aus einem STL
+   stehen unter der Anleitung die Knöpfe X, Y, Z – das Teil liegt mit dieser Achse längs der
+   Stange, ihr Plus-Ende vorne (`vierachs_rohteil.vermesse_achse`), „Umdrehen“ legt das
+   Minus-Ende nach vorne; die Mitte ist die des ganzen Teils. `einstellung()` findet so einen Job
+   wieder (`_teilachse_laengs`; beim STL ohne die Flächen einzeln zu prüfen).
+
+Offen: einzelne Bereiche wählen statt Dreiecke, 5 Achsen mit STL im Assistenten „Bearbeitung“.
 
 ## Entschieden
 
