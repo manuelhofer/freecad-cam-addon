@@ -216,6 +216,11 @@ def zugang(form, unten=(0.0, 0.0, -1.0), spannflaeche=None, maschine=None):
     u = Vector(*unten)
     u.normalize()
     oben = -u
+    from . import stl_teil
+
+    daten = stl_teil.daten(form)
+    if daten is not None:  # ein Körper aus einem STL: je Richtung ein Höhenfeld, nicht je Fläche
+        return _zugang_stl(daten, u, spannflaeche, maschine)
     flaechen = []
     for n in range(ft.anzahl(form)):
         if f"Face{n + 1}" != spannflaeche:
@@ -281,6 +286,105 @@ def zugang(form, unten=(0.0, 0.0, -1.0), spannflaeche=None, maschine=None):
             None,
         )
     return Zugang(richtungen, unerreichbar, spannflaeche)
+
+
+STL_RASTER = 0.25  # mm – so fein das Höhenfeld je Richtung (_zugang_stl)
+STL_TOLERANZ = 0.05  # mm – so weit darf ein Dreieck unter dem Höhenfeld liegen und gilt als gesehen
+STL_NEIGUNGEN = (45.0, 90.0)  # Grad – geschwenkt an einer Maschine, die schwenkt, je vier Seiten
+
+
+def _zugang_stl(daten, u, spannflaeche, maschine):
+    """zugang() für einen Körper aus einem STL (stl_teil.Dreiecksdaten): Jedes Dreieck ist eine
+    Fläche. Richtungen: oben, und an einer Maschine (die schwenkt) dazu je STL_NEIGUNGEN zu den
+    vier Seiten. Aus einer Richtung k gesehen ist ein Dreieck, das zu ihr schaut und dessen
+    Schwerpunkt längs k nicht unter dem niedrigsten der vier Rasterpunkte um ihn liegt – das
+    Höhenfeld des ganzen Netzes längs k (hoehenfeld.hoehen); liegt ein Überhang darüber, sind
+    alle vier höher. Gewählt wie sonst: oben zuerst, dann die Richtung, die die meisten übrigen
+    nimmt. Die Dreiecke, die ins Spannmittel schauen, fräst keine (die Standfläche)."""
+    from . import hoehenfeld as hf
+    from . import vierachs_huelle as vh
+
+    oben = -u
+    kandidaten = [oben]
+    e1, e2 = _quer_zu(oben)
+    for neigung in STL_NEIGUNGEN:
+        s, c = math.sin(math.radians(neigung)), math.cos(math.radians(neigung))
+        for seite in (e1, -e1, e2, -e2):
+            k = oben * c + seite * s
+            k.normalize()
+            if k.dot(u) <= GENAU:
+                kandidaten.append(k)
+    stellungen = {}
+    if maschine is not None:
+        stellungen = {id(k): _stellung(maschine, k) for k in kandidaten}
+        kandidaten = [k for k in kandidaten if stellungen[id(k)] is not None or k is oben]
+    ins_spannmittel = daten.normale @ np.array(tuple(u)) >= 1.0 - GLEICH
+    offen = ~ins_spannmittel
+    sichtbar = {}
+    for k in kandidaten:
+        sichtbar[id(k)] = _sichtbar_stl(daten, k, hf, vh) & offen
+    richtungen = []
+    rest = list(kandidaten)
+    while offen.any() and rest:
+        k = (
+            rest[0]
+            if not richtungen and rest[0] is oben
+            else max(rest, key=lambda k_: (int((sichtbar[id(k_)] & offen).sum()), k_.dot(oben)))
+        )
+        rest.remove(k)
+        gedeckt = np.flatnonzero(sichtbar[id(k)] & offen)
+        if not len(gedeckt):
+            if richtungen or k is not oben:
+                break
+            continue
+        richtungen.append(
+            Richtung(
+                achse=(k.x, k.y, k.z),
+                flaechen=[f"Face{n + 1}" for n in gedeckt],
+                stellung=stellungen.get(id(k)),
+            )
+        )
+        offen[gedeckt] = False
+    grund = tr("zg.grund.sicht")
+    unerreichbar = {f"Face{n + 1}": grund for n in np.flatnonzero(offen)}
+    grund = tr("zg.grund.spannmittel")
+    for n in np.flatnonzero(ins_spannmittel):
+        if f"Face{n + 1}" != spannflaeche:
+            unerreichbar[f"Face{n + 1}"] = grund
+    return Zugang(richtungen, unerreichbar, spannflaeche)
+
+
+def _quer_zu(achse):
+    """Zwei Einheitsvektoren quer zu `achse` (und zueinander) – möglichst die x- und y-Achse."""
+    for hilfe in (Vector(1, 0, 0), Vector(0, 1, 0)):
+        e1 = hilfe - achse * hilfe.dot(achse)
+        if e1.Length > 0.5:
+            e1.normalize()
+            e2 = achse.cross(e1)
+            e2.normalize()
+            return e1, e2
+    return Vector(1, 0, 0), Vector(0, 1, 0)
+
+
+def _sichtbar_stl(daten, k, hf, vh):
+    """Maske je Fläche (Dreieck): aus der Richtung k zu sehen (_zugang_stl)."""
+    kv = np.array(tuple(k), dtype=float)
+    e1, e2 = _quer_zu(k)
+    drehung = np.array([tuple(e1), tuple(e2), tuple(k)], dtype=float)  # Zeilen: neue Achsen
+    p = daten.punkte @ drehung.T
+    zeigt = daten.normale @ kv > 1e-3
+    lo, hi = p[:, :2].min(axis=0), p[:, :2].max(axis=0)
+    xs = np.arange(lo[0] - STL_RASTER, hi[0] + 2 * STL_RASTER, STL_RASTER)
+    ys = np.arange(lo[1] - STL_RASTER, hi[1] + 2 * STL_RASTER, STL_RASTER)
+    hoehe = hf.hoehen(vh.Netz(p, daten.dreiecke, 0.0), xs, ys)
+    # Je Fläche ihr Schwerpunkt (die Dreiecke in der Reihenfolge der Flächen).
+    mitte = p[daten.dreiecke[daten.dreieck]].mean(axis=1)
+    i = np.clip(np.searchsorted(xs, mitte[:, 0]) - 1, 0, len(xs) - 2)
+    j = np.clip(np.searchsorted(ys, mitte[:, 1]) - 1, 0, len(ys) - 2)
+    um = np.minimum(
+        np.minimum(hoehe[i, j], hoehe[i + 1, j]), np.minimum(hoehe[i, j + 1], hoehe[i + 1, j + 1])
+    )
+    return zeigt & (mitte[:, 2] >= um - STL_TOLERANZ)
 
 
 def _waende_mit_ihrer_tasche_weg(form, nachbarn, flaechen, richtungen, unerreichbar):
@@ -358,6 +462,16 @@ def spannflaeche_unten(form, unten=(0.0, 0.0, -1.0)):
     """Die Fläche, die im Spannmittel liegt, wenn keine gewählt ist: die unterste ebene, die nach
     `unten` zeigt – oder None."""
     u = Vector(*unten)
+    from . import stl_teil
+
+    daten = stl_teil.daten(form)
+    if daten is not None:  # ein Körper aus einem STL: das unterste Dreieck, das nach unten schaut
+        uv = np.array(tuple(u), dtype=float)
+        unten_ = np.flatnonzero(daten.normale @ uv >= 1.0 - GLEICH)
+        if not len(unten_):
+            return None
+        tiefe = (daten.unten[unten_] + daten.oben[unten_]) / 2 @ uv
+        return f"Face{int(unten_[int(np.argmax(tiefe))]) + 1}"
     beste = None
     for n in range(ft.anzahl(form)):
         f = ft.flaeche(form, n)

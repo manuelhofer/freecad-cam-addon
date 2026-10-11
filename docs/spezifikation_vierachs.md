@@ -1449,7 +1449,19 @@ Gebaut (P-2026-10-11-100):
    Minus-Ende nach vorne; die Mitte ist die des ganzen Teils. `einstellung()` findet so einen Job
    wieder (`_teilachse_laengs`; beim STL ohne die Flächen einzeln zu prüfen).
 
-Offen: einzelne Bereiche wählen statt Dreiecke, 5 Achsen mit STL im Assistenten „Bearbeitung“.
+7. **Im Assistenten „Bearbeitung“** (P-2026-10-11-103): Netz anklicken → „Bearbeitung“ → „STL als
+   Teil“ → der Job. „Alles aus dieser Aufspannung“ wählt die Freiform-Dreiecke von oben
+   (`zugang._zugang_stl`: je Richtung – oben, an einer 5-Achs-Fräse dazu 45° und 90° zu vier
+   Seiten – ein Höhenfeld des Netzes; am Geist 0,55 s statt quadratisch je Fläche); die Liste hat
+   eine Zeile statt einer je Dreieck, nur 3D-Schruppen, 3D-Schlichten (und Rest/Bleistift) gehen,
+   die anderen Blöcke sagen warum. Was die Strategien je Fläche fragten (Freiform? eben oben? Kasten,
+   Tiefe, Wände mit Böden davor), kommt beim STL aus `stl_teil.Dreiecksdaten`. Am Geist: Fenster in
+   17 s offen (Umwandeln eingeschlossen), Vorschau 10 s, „Anlegen“ 24 s – 3D-Schruppen 10.805 Sätze,
+   3D-Schlichten 2.950; längste Pause im Fenster 3 s. Bild: `docs/bilder/stl_geist_bearbeitung.png`.
+
+Offen: einzelne Bereiche wählen statt Dreiecke; mit einer 5-Achs-Fräse die Ebenen der anderen
+Richtungen nacheinander (die Kette aus „Alles aus dieser Aufspannung“) – gerechnet, aber mit einem
+STL noch nicht durchgespielt.
 
 ## Entschieden
 

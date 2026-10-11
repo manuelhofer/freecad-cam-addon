@@ -439,7 +439,13 @@ def _endtiefe(obj, job):
         nummern = []
     if nummern:
         obj.setExpression("FinalDepth", None)
-        obj.FinalDepth = min(ft.flaeche(form_teil, n).BoundBox.ZMin for n in nummern)
+        from . import stl_teil
+
+        daten = stl_teil.daten(form_teil)
+        if daten is not None:  # ein Körper aus einem STL: alle Dreiecke auf einmal
+            obj.FinalDepth = daten.kasten(nummern)[4]
+        else:
+            obj.FinalDepth = min(ft.flaeche(form_teil, n).BoundBox.ZMin for n in nummern)
 
 
 def _name(tc, durchmesser_davor=0.0):

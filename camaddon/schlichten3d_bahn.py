@@ -166,8 +166,16 @@ def ist_freiform(form, name):
     fräst „Entgraten“ genau) und keine Senkung (die senkt „Senken“)?"""
     from . import entgrat_bahn as eb
     from . import kontur_bahn as kb
+    from . import stl_teil
     from . import vierachs_flaechen as vf
 
+    daten = stl_teil.daten(form)
+    if daten is not None:  # ein Körper aus einem STL: aus der Normale seines Dreiecks
+        nummern = daten.nummern([name])
+        if not len(nummern):
+            return False
+        nz = float(daten.normale[nummern[0], 2])
+        return NACH_OBEN < nz < 1.0 - hf.GERADE  # nach oben, nicht eben oben (keine Wand)
     nummern = vf.nummern([name])
     if not nummern or nummern[0] >= ft.anzahl(form):
         return False
@@ -191,7 +199,15 @@ def ist_freiform(form, name):
 
 
 def freiformflaechen(form, namen):
-    """Die Namen unter `namen`, die Freiformflächen sind (ist_freiform)."""
+    """Die Namen unter `namen`, die Freiformflächen sind (ist_freiform) – bei einem Körper aus
+    einem STL alle auf einmal aus den Normalen seiner Dreiecke."""
+    from . import stl_teil
+
+    daten = stl_teil.daten(form)
+    if daten is not None:
+        nummern = daten.nummern(namen)
+        nz = daten.normale[nummern, 2]
+        return [f"Face{n + 1}" for n in nummern[(nz > NACH_OBEN) & (nz < 1.0 - hf.GERADE)]]
     return [n for n in namen if ist_freiform(form, n)]
 
 
@@ -223,7 +239,14 @@ def _netze(form_teil, namen, toleranz):
     neu = np.full(len(fnetz.netz.punkte), -1, dtype=np.int64)
     neu[benutzt] = np.arange(len(benutzt))
     rest = vh.Netz(fnetz.netz.punkte[benutzt], neu[dreiecke], toleranz)
-    gewaehlt = (fnetz.netz.punkte, fnetz.netz.dreiecke[~bleibt], fnetz.flaeche[~bleibt])
+    flaeche = fnetz.flaeche[~bleibt]
+    from . import stl_teil
+
+    if stl_teil.daten(form_teil) is not None:
+        # Ein Körper aus einem STL: seine Dreiecke sind eine glatte Fläche – die Normalen gemittelt
+        # über alle (_beruehrt), nicht je Dreieck für sich (68.242 Durchgänge).
+        flaeche = np.zeros_like(flaeche)
+    gewaehlt = (fnetz.netz.punkte, fnetz.netz.dreiecke[~bleibt], flaeche)
     return fnetz.netz, rest, gewaehlt
 
 
@@ -1241,10 +1264,14 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     flaechen = freiformflaechen(form_teil, namen)
     if not flaechen:
         raise ValueError(tr("s3.fehler.keine"))
+    from . import stl_teil
     from . import vierachs_flaechen as vf
 
     box = None
-    for nummer in vf.nummern(flaechen):
+    daten = stl_teil.daten(form_teil)
+    if daten is not None:  # ein Körper aus einem STL: die Kästen aller Dreiecke auf einmal
+        box = daten.kasten(daten.nummern(flaechen))[:4]
+    for nummer in vf.nummern(flaechen) if daten is None else ():
         bb = ft.flaeche(form_teil, nummer).BoundBox
         teil = (bb.XMin, bb.XMax, bb.YMin, bb.YMax)
         if box is None:
@@ -1269,6 +1296,8 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         FLAECHE: (FLAECHE,),
         AEQUI: (AEQUI,),
     }.get(w.richtung, (True, False, SPIRALE, FLAECHE, AEQUI) if steil_flach else (True, False))
+    if daten is not None:  # Dreiecke haben kein u, v, an dem man entlangfahren könnte
+        richtungen = tuple(r for r in richtungen if r != FLAECHE) or (True, False)
     if steil_flach or {SPIRALE, FLAECHE, AEQUI} & set(richtungen) or w.davor is not None:
         raster = _raster(netz_alle, netz_rest, geformt, box, w, netz_gewaehlt)
     if w.davor is not None:

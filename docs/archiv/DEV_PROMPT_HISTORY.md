@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-103 stl-in-der-bearbeitung
+
+### EINGELESEN
+- Nachtauftrag (Manuel, 2026-10-11): „4. STL mit 5 Achsen“ – der Geist im Assistenten
+  „Bearbeitung“. Gemessen: Das Fenster öffnete nach 8 min nicht (`hoehenfeld.ebenen_oben` zählte
+  und holte je Fläche alle 68.242), „Alles aus dieser Aufspannung“ hing in `zugang` (jede Normale
+  ein Kandidat, ein Strahl je Fläche), die Liste prüfte je Dreieck jede Strategie.
+
+### DATEIEN
+- `camaddon/stl_teil.py`: `Dreiecksdaten` (je Fläche Normale, Kasten, Dreieck; `nummern`,
+  `kasten`), `daten(form)`; `netz_fuer`/`flaechennetz_fuer` je Form gemerkt (`_ERKANNT`, hält die
+  Form fest), geben Kopien der Punkte.
+- `camaddon/zugang.py`: `_zugang_stl` (Höhenfeld je Richtung, `_sichtbar_stl`), die Dreiecke ins
+  Spannmittel unerreichbar mit Grund; `spannflaeche_unten` beim STL aus den Normalen.
+- `camaddon/hoehenfeld.py`: `ebenen_oben` mit `ft.flaechen` (wenige einzeln, viele auf einmal) und
+  beim STL aus den Dreiecksdaten (`_ebenen_oben_stl`); `_ebene(…, flaeche)`.
+- `camaddon/schlichten3d_bahn.py`: `ist_freiform`, `freiformflaechen`, der Kasten in `planen` beim
+  STL aus den Dreiecksdaten; „entlang der Fläche“ nicht bei Dreiecken; `_netze` gibt beim STL alle
+  gewählten Dreiecke als eine Fläche (Normalen gemittelt). `schruppen3d_bahn.py`,
+  `schlichten3d.py`: die Tiefe aus den Dreiecksdaten.
+- `camaddon/gui_bearbeitung.py`: Befehl mit Netz → `gui_stl.teil_aus_netz`; `_ist_stl`; `_wahl`
+  gibt Nicht-Freiform-Blöcken beim STL nichts; `_haken_vorschlagen` beim STL nur Freiform
+  (`ba.stl.nur_freiform`); `_flaechen_zeigen_stl` (eine Zeile statt einer je Dreieck);
+  `aus_der_aufspannung`/`_vorwahl_nehmen` vektorisiert; `flaechen_fuer` der Freiform-Strategien
+  beim STL auf einmal; `_boeden_vor_je_wand` beim STL leer; `_namen_kurz` (lange Namenlisten
+  gekürzt, `ba.namen.weitere`); Mengen statt Listen beim Färben; Flächen und Kanten gezählt statt
+  ausgepackt. Der Klon ohne Dreieckskanten (`gui_stl.ohne_kanten`, auch im 4-Achs-Assistenten).
+- `translations/de.json`, `en.json` (`ba.stl.*`, `ba.namen.weitere`), `tests/test_stl_teil.py`
+  (Ebenen, Freiform gegen den Weg je Fläche, Spannfläche, Zugang – jede Fläche genau einmal –,
+  3D-Schlichten), `tests/gui/szenario_bearbeitung_stl.py` (neu),
+  `docs/spezifikation_vierachs.md` (16.7), `docs/bilder/stl_geist_bearbeitung.png`.
+  `package.xml` (0.218.0).
+
+### ERGEBNIS
+- Der Geist ohne Maschine: Fenster nach 17 s offen (statt nach 8 min nicht), „Alles aus dieser
+  Aufspannung“ 2,3 s → 25.577 Freiform-Dreiecke; 3D-Schruppen T1 „4 Lagen und 66 Zwischenlagen,
+  196 Ringe, etwa 36 min“, 3D-Schlichten mit der Kugel T2; „Anlegen“ 24 s, 10.805 und 2.950 Sätze.
+  Längste Pause im Fenster 3 s (Körper und Job anlegen).
+
+### AKZEPTANZKRITERIUM
+- `test_stl_teil`, `test_zugang`, `test_schlichten3d`, `test_schruppen3d`, `test_bleistift`,
+  `test_restschlichten`, `test_planfraesen`, `test_quader`, `test_kontur`, `test_testteil` in
+  1.1.4; `szenario_bearbeitung_stl`, `szenario_vierachs_stl` grün.
+
 ## P-2026-10-11-102 stl-achse-zur-wahl
 
 ### EINGELESEN

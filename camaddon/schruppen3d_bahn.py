@@ -391,7 +391,13 @@ def bereich(form_teil, namen):
     flaechen = sb.freiformflaechen(form_teil, namen)
     if not flaechen:
         raise ValueError(tr("r3.fehler.keine"))
-    z_unten = min(ft.flaeche(form_teil, n).BoundBox.ZMin for n in vf.nummern(flaechen))
+    from . import stl_teil
+
+    daten = stl_teil.daten(form_teil)
+    if daten is not None:  # ein Körper aus einem STL: alle Dreiecke auf einmal
+        z_unten = daten.kasten(daten.nummern(flaechen))[4]
+    else:
+        z_unten = min(ft.flaeche(form_teil, n).BoundBox.ZMin for n in vf.nummern(flaechen))
     return flaechen, z_unten
 
 

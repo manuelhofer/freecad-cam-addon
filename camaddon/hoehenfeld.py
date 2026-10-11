@@ -57,28 +57,52 @@ def ebenen_oben(form, namen=(), toleranz=VORSCHAU_TOLERANZ):
     sind und nach oben schauen (Außennormale +z). Die Ausdehnung kommt aus der Vernetzung der
     Fläche (`toleranz`). Je Fläche einmal gerechnet (_EBENE): Der Assistent fragt je Vorschau
     über tausendmal nach denselben Flächen."""
+    from . import stl_teil
     from . import vierachs_flaechen as vf
 
+    daten = stl_teil.daten(form)
+    if daten is not None:  # ein Körper aus einem STL: aus seinen Dreiecken (P-2026-10-11-103)
+        return _ebenen_oben_stl(daten, daten.nummern(namen) if namen else None)
     nummern = vf.nummern(namen) if namen else range(ft.anzahl(form))
     ergebnis = []
-    for nummer in nummern:
-        if nummer >= ft.anzahl(form):
-            continue
-        ebene = _ebene(form, nummer, toleranz)
+    # Wenige einzeln, viele auf einmal: je Fläche gezählt und geholt war es quadratisch – am Geist
+    # aus einem STL (68.242 Flächen) stand das Fenster „Bearbeitung“ beim Öffnen minutenlang.
+    for nummer, flaeche in ft.flaechen(form, list(nummern)):
+        ebene = _ebene(form, nummer, toleranz, flaeche)
         if ebene is not None:
             ergebnis.append(ebene)
     return ergebnis
+
+
+def _ebenen_oben_stl(daten, nummern=None):
+    """ebenen_oben() für einen Körper aus einem STL (stl_teil.Dreiecksdaten): die Flächen – je
+    ein Dreieck –, die nach oben schauen, nur die `nummern` (None: alle)."""
+    nummern = np.arange(len(daten.dreieck)) if nummern is None else np.asarray(nummern)
+    oben = nummern[daten.normale[nummern, 2] >= 1.0 - GERADE]
+    return [
+        Ebene(
+            f"Face{int(n) + 1}",
+            float(daten.unten[n, 2] + daten.oben[n, 2]) / 2,
+            float(daten.unten[n, 0]),
+            float(daten.oben[n, 0]),
+            float(daten.unten[n, 1]),
+            float(daten.oben[n, 1]),
+        )
+        for n in oben
+    ]
 
 
 _EBENE = {}  # (Prüfsumme der Form, Nummer, Toleranz) → Ebene oder None
 _EBENE_HOECHSTENS = 20000
 
 
-def _ebene(form, nummer, toleranz):
-    """Die Ebene der Fläche `nummer`, wenn sie eben ist und nach oben schaut – sonst None."""
+def _ebene(form, nummer, toleranz, flaeche=None):
+    """Die Ebene der Fläche `nummer` (`flaeche`, schon geholt), wenn sie eben ist und nach oben
+    schaut – sonst None."""
     from . import vierachs_rohteil as vr
 
-    flaeche = ft.flaeche(form, nummer)
+    if flaeche is None:
+        flaeche = ft.flaeche(form, nummer)
     try:
         # Die Prüfsumme hängt am Speicher – mit dem Kasten der Fläche dazu verwechselt eine neue
         # Form an derselben Stelle ihre Flächen nicht mit den alten.

@@ -238,6 +238,54 @@ if stl_daten is not None:
             pruefe(abs(ist - wahr) < 1e-6, f"{name}: {ist} statt {wahr}")
     pruefe(teil_k.netz() is not None and teil_k.netz().toleranz > 0, "Netz des Teils fehlt")
 
+# --- „Bearbeitung“ (P-2026-10-11-103): die Fragen je Fläche aus den Dreiecken ------------------
+# Gegen den gewöhnlichen Weg (Fläche für Fläche bei OpenCascade) an einer Kopie, deren Geometrie
+# verschoben ist – die erkennt netz_fuer() nicht.
+from camaddon import hoehenfeld as hf  # noqa: E402
+from camaddon import schlichten3d_bahn as s3b  # noqa: E402
+from camaddon import zugang as zg  # noqa: E402
+
+pruefe(stl_teil.daten(form) is not None, "Dreiecksdaten fehlen")
+verschieben = FreeCAD.Matrix()
+verschieben.move(V(0, 0, 100))
+gewoehnlich = form.transformGeometry(verschieben)
+pruefe(stl_teil.daten(gewoehnlich) is None, "verschobene Kopie gilt als STL")
+alle_namen = [f"Face{i + 1}" for i in range(len(form.Faces))]
+oben_stl = sorted(e.name for e in hf.ebenen_oben(form))
+oben_occ = sorted(e.name for e in hf.ebenen_oben(gewoehnlich))
+pruefe(oben_stl == oben_occ, f"Ebenen oben: {len(oben_stl)} statt {len(oben_occ)}")
+frei_stl = s3b.freiformflaechen(form, alle_namen)
+frei_occ = [n for n in alle_namen if s3b.ist_freiform(gewoehnlich, n)]
+pruefe(frei_stl == frei_occ, f"Freiform: {len(frei_stl)} statt {len(frei_occ)}")
+pruefe(
+    all(s3b.ist_freiform(form, n) for n in frei_stl[:50])
+    and not any(s3b.ist_freiform(form, n) for n in oben_stl),
+    "ist_freiform je Name",
+)
+unten_name = zg.spannflaeche_unten(form)
+pruefe(
+    unten_name is not None and nahe(form.getElement(unten_name).BoundBox.ZMax, 0.0, 1e-6),
+    f"Spannfläche unten: {unten_name}",
+)
+z = zg.zugang(form, spannflaeche=unten_name)
+von_oben = z.richtungen[0] if z.richtungen else None
+pruefe(von_oben is not None and von_oben.achse[2] > 0.999, "Zugang: nicht zuerst von oben")
+gesehen = set(von_oben.flaechen) if von_oben else set()
+irgendwo = set().union(*(r.flaechen for r in z.richtungen)) | set(z.unerreichbar)
+pruefe(irgendwo == set(alle_namen) - {unten_name}, "Zugang: Flächen fehlen oder doppelt")
+pruefe(sum(len(r.flaechen) for r in z.richtungen) + len(z.unerreichbar) == len(irgendwo), "doppelt")
+pruefe(unten_name not in gesehen, "Zugang: die Standfläche von oben gesehen")
+# Der Kopf (Kugel) von oben ganz zu sehen, der Kegel darunter von der Seite: oben mehr als die
+# Hälfte der Freiform, und 3D-Schlichten fräst sie.
+pruefe(len(gesehen & set(frei_stl)) > len(frei_stl) / 2, f"von oben {len(gesehen)}")
+from camaddon import fraeserform as ff  # noqa: E402
+from camaddon import werkzeuge as wz  # noqa: E402
+
+kugel = ff.von_werkzeug(wz.Werkzeug(nummer=2, art=wz.KUGELFRAESER, durchmesser=6, schneiden=2))
+werte = s3b.Schlichtwerte(kugel, oben=hoehe + 2, sicher=hoehe + 10, grathoehe=0.05)
+bahn = s3b.planen(form, sorted(gesehen & set(frei_stl)), werte)
+pruefe(len(bahn.punkte) > 100, f"3D-Schlichten: {len(bahn.punkte)} Punkte")
+
 # --- formteile.flaechen: wenige einzeln, viele auf einmal – dieselben ------------------------
 wenige = ft.flaechen(form, [0, 5, len(form.Faces), -1, 7])
 pruefe([n for n, _f in wenige] == [0, 5, 7], f"wenige: {[n for n, _f in wenige]}")

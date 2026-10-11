@@ -24,6 +24,7 @@ Oberfläche; das Fenster dazu in gui_stl.
 """
 
 import math
+from collections import OrderedDict
 from dataclasses import dataclass
 
 import FreeCAD
@@ -309,7 +310,51 @@ _ARRAYS = {}  # (Dokument, Objekt, Dreiecke, Punkte) -> (Punkte (n, 3), Dreiecke
 _ARRAYS_HOECHSTENS = 4
 
 
+_ERKANNT = OrderedDict()  # hashCode der Form -> (die Form, netz_fuer, flaechennetz_fuer oder …)
+_ERKANNT_HOECHSTENS = 8
+_NOCH_NICHT = object()
+
+
+def _gemerkt(form):
+    """Der Eintrag zur Form in _ERKANNT – die Form hält er fest, damit OpenCascade ihren Speicher
+    (und so ihren hashCode) keiner anderen gibt; None ohne."""
+    try:
+        kennung = form.hashCode()
+    except Exception:  # noqa: BLE001 – keine Form, die sich merken lässt
+        return None, None
+    eintrag = _ERKANNT.get(kennung)
+    if eintrag is not None and eintrag[0].isSame(form):
+        _ERKANNT.move_to_end(kennung)
+        return kennung, eintrag
+    return kennung, None
+
+
+def _merken(kennung, eintrag):
+    if kennung is None:
+        return
+    _ERKANNT[kennung] = eintrag
+    while len(_ERKANNT) > _ERKANNT_HOECHSTENS:
+        _ERKANNT.popitem(last=False)
+
+
 def netz_fuer(form):
+    """netz_fuer_rechnen(), gemerkt je Form: Der Assistent „Bearbeitung“ fragt je Vorschau oft
+    nach derselben."""
+    kennung, eintrag = _gemerkt(form)
+    if eintrag is None:
+        eintrag = [form, netz_fuer_rechnen(form), _NOCH_NICHT]
+        _merken(kennung, eintrag)
+    return _kopie(eintrag[1])
+
+
+def _kopie(ergebnis):
+    """Die Punkte als eigene Kopie – wer sie verschiebt, verschiebt nicht die gemerkten."""
+    if ergebnis is None:
+        return None
+    return (ergebnis[0].copy(), *ergebnis[1:])
+
+
+def netz_fuer_rechnen(form):
     """(Punkte (n, 3), Dreiecke (m, 3)) der Form (Part.Shape), wenn sie ein Körper aus einem STL
     ist oder sein Klon im Job: das Netz, das der Körper trägt (EIGENSCHAFT_NETZ), in der Lage der
     Form – sonst None. Erkannt an der Zahl der Flächen (ein Dreieck je Fläche) und daran, dass
@@ -343,6 +388,20 @@ def netz_fuer(form):
 
 
 def flaechennetz_fuer(form):
+    """flaechennetz_fuer_rechnen(), gemerkt je Form."""
+    kennung, eintrag = _gemerkt(form)
+    if eintrag is not None and eintrag[2] is not _NOCH_NICHT:
+        return _kopie(eintrag[2])
+    ergebnis = flaechennetz_fuer_rechnen(form)
+    kennung, eintrag = _gemerkt(form)  # netz_fuer() hat ihn eben angelegt
+    if eintrag is not None:
+        eintrag[2] = ergebnis
+    else:
+        _merken(kennung, [form, netz_fuer_rechnen(form), ergebnis])
+    return _kopie(ergebnis)
+
+
+def flaechennetz_fuer_rechnen(form):
     """(Punkte, Dreiecke, Fläche je Dreieck) wie netz_fuer() – mit der Nummer der Fläche je
     Dreieck (0 ist „Face1“), für vierachs_flaechen.vernetze; None, wenn die Form kein solcher
     Körper ist oder die Zuordnung fehlt oder nicht stimmt (an zwei Dreiecken nachgesehen)."""
@@ -360,6 +419,73 @@ def flaechennetz_fuer(form):
         if ist != soll:
             return None
     return punkte, dreiecke, flaeche
+
+
+@dataclass
+class Dreiecksdaten:
+    """Je Fläche eines Körpers aus einem STL (jede ein Dreieck) was die Strategien sonst Fläche für
+    Fläche bei OpenCascade erfragen – einmal mit numpy gerechnet (daten()): Bei 68.242 Flächen
+    kostete jede Frage ein `getElement`, das alle Flächen durchgeht."""
+
+    punkte: np.ndarray  # (n, 3) in der Lage der Form
+    dreiecke: np.ndarray  # (m, 3)
+    flaeche: np.ndarray  # (m,) die Fläche je Dreieck (0 ist „Face1“)
+    dreieck: np.ndarray  # (m,) das Dreieck je Fläche
+    normale: np.ndarray  # (m, 3) je Fläche die Außennormale, Einheitsvektor (0 bei entarteten)
+    unten: np.ndarray  # (m, 3) je Fläche die kleinsten x, y, z
+    oben: np.ndarray  # (m, 3) je Fläche die größten x, y, z
+
+    def nummern(self, namen):
+        """Die Flächennummern zu den Namen („Face3“ → 2), die es gibt."""
+        anzahl = len(self.dreieck)
+        ergebnis = []
+        for name in namen:
+            if name.startswith("Face") and name[4:].isdigit() and 0 < int(name[4:]) <= anzahl:
+                ergebnis.append(int(name[4:]) - 1)
+        return np.asarray(ergebnis, dtype=np.int64)
+
+    def kasten(self, nummern):
+        """(x von, x bis, y von, y bis, z von, z bis) über die Flächen `nummern` – None ohne."""
+        nummern = np.asarray(nummern, dtype=np.int64)
+        if not len(nummern):
+            return None
+        u, o = self.unten[nummern].min(axis=0), self.oben[nummern].max(axis=0)
+        return (float(u[0]), float(o[0]), float(u[1]), float(o[1]), float(u[2]), float(o[2]))
+
+
+def daten(form):
+    """Dreiecksdaten der Form, wenn sie ein Körper aus einem STL ist (flaechennetz_fuer) – je Form
+    gemerkt; sonst None."""
+    kennung, eintrag = _gemerkt(form)
+    if eintrag is not None and len(eintrag) > 3:
+        return eintrag[3]
+    netz = flaechennetz_fuer(form)
+    ergebnis = None
+    if netz is not None:
+        punkte, dreiecke, flaeche = netz
+        ecken = punkte[dreiecke]
+        normale = np.cross(ecken[:, 1] - ecken[:, 0], ecken[:, 2] - ecken[:, 0])
+        laenge = np.linalg.norm(normale, axis=1)
+        normale = np.where(
+            laenge[:, None] > 1e-12, normale / np.maximum(laenge, 1e-300)[:, None], 0
+        )
+        dreieck = np.empty(len(flaeche), dtype=np.int64)
+        dreieck[flaeche] = np.arange(len(flaeche))
+        ergebnis = Dreiecksdaten(
+            punkte,
+            dreiecke,
+            flaeche,
+            dreieck,
+            normale[dreieck],
+            ecken.min(axis=1)[dreieck],
+            ecken.max(axis=1)[dreieck],
+        )
+    kennung, eintrag = _gemerkt(form)
+    if eintrag is not None:
+        while len(eintrag) < 4:
+            eintrag.append(None)
+        eintrag[3] = ergebnis
+    return ergebnis
 
 
 def _zuordnung(anzahl, form):

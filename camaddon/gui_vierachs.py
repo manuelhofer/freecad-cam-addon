@@ -234,15 +234,12 @@ class BefehlVierachs:
         if operation is not None:
             bearbeiten(operation)
             return
-        netz = next(
-            (o for o in FreeCADGui.Selection.getSelection(dokument.Name) if stl_teil.ist_netz(o)),
-            None,
-        )
+        from . import gui_stl
+
+        netz = gui_stl.gewaehltes_netz(dokument)
         if netz is not None:
             # Ein STL (W-017): erst der Körper aus seinen Dreiecken – Maßstab im Fenster davor.
-            from .gui_stl import teil_aus_netz
-
-            teil = teil_aus_netz(dokument, netz)
+            teil = gui_stl.teil_aus_netz(dokument, netz)
             if teil is None:
                 return
             wahl = (teil, None)
@@ -5048,8 +5045,9 @@ class VierachsPanel:
             klon.ViewObject.Visibility = True
             klon.ViewObject.Transparency = 0
             if stl_teil.aus_stl(self.teil):  # ohne die Kanten der Dreiecke, wie das Netz
-                with contextlib.suppress(ValueError, AttributeError):
-                    klon.ViewObject.DisplayMode = "Shaded"
+                from .gui_stl import ohne_kanten
+
+                ohne_kanten(klon)
         if self.teil.ViewObject is not None:
             self._sichtbar_vorher = (self.teil, self.teil.ViewObject.Visibility)
             self.teil.ViewObject.Visibility = False

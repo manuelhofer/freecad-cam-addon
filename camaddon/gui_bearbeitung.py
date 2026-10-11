@@ -228,7 +228,12 @@ _BOEDEN_VOR = {}  # Kennung der Form → [(Wand, frozenset der Böden vor ihr)]
 
 def _boeden_vor_je_wand(form):
     """Je Wand des Teils die Böden vor ihr (kontur_bahn.boeden_vor) – je Form einmal gerechnet:
-    Der Assistent fragt je Vorschau mehrmals (am Testteil 0,7 s je Mal)."""
+    Der Assistent fragt je Vorschau mehrmals (am Testteil 0,7 s je Mal). Ein Körper aus einem
+    STL hat keine Wände mit Böden davor – nur Dreiecke (sonst 2,6 s je Vorschau am Geist)."""
+    from . import stl_teil
+
+    if stl_teil.daten(form) is not None:
+        return []
     try:
         kasten = form.BoundBox
         schluessel = (form.hashCode(), ft.anzahl(form), round(form.Volume, 6)) + tuple(
@@ -251,6 +256,16 @@ def _boeden_vor_je_wand(form):
             _BOEDEN_VOR.clear()
         _BOEDEN_VOR[schluessel] = ergebnis
     return ergebnis
+
+
+def _namen_kurz(namen, hoechstens=8):
+    """„Face3, Face4, …“ – mehr als `hoechstens` Namen gekürzt auf die ersten und wie viele noch
+    (ein STL hat Zehntausende)."""
+    namen = list(namen)
+    if len(namen) <= hoechstens:
+        return ", ".join(namen)
+    rest = f"{len(namen) - hoechstens:,}".replace(",", "\u202f")
+    return tr("ba.namen.weitere", namen=", ".join(namen[:hoechstens]), anzahl=rest)
 
 
 def _aussennormale(form, name):
@@ -475,6 +490,17 @@ class BefehlBearbeitung:
         if operation is not None:
             bearbeiten(operation)
             return
+        from . import gui_stl
+
+        netz = gui_stl.gewaehltes_netz(dokument)
+        if netz is not None:
+            # Ein STL (W-017): erst der Körper aus seinen Dreiecken – Maßstab im Fenster davor.
+            teil = gui_stl.teil_aus_netz(dokument, netz)
+            if teil is not None:
+                FreeCADGui.Control.showDialog(
+                    BearbeitungPanel(dokument, (teil, None), angeklickt=teil)
+                )
+            return
         FreeCADGui.Control.showDialog(
             BearbeitungPanel(
                 dokument, gewaehlte_flaeche(dokument), angeklickt=angeklicktes_teil(dokument)
@@ -679,6 +705,11 @@ class _Strategie:
         return form is not None and vp.ebener_radius(form) > 0
 
     def flaechen_fuer(self, form, gewaehlte):
+        if self.kennung in FREIFORM_STRATEGIEN and len(gewaehlte) > 64:
+            from . import stl_teil
+
+            if stl_teil.daten(form) is not None:  # ein STL: alle Dreiecke auf einmal (W-017)
+                return s3b.freiformflaechen(form, gewaehlte)
         return [name for name in gewaehlte if self.passt(form, name)]
 
     def vorgeschlagen(self, form, gewaehlte):
@@ -4643,6 +4674,8 @@ class BearbeitungPanel:
     def _vorwahl_nehmen(self, form, flaeche):
         """Die Flächen, die zu Beginn gewählt sind: die einer Ebene aus „Alles aus dieser
         Aufspannung“ – sonst die angeklickte –, soweit eine Strategie sie nimmt."""
+        if self._vorwahl and self._ist_stl():
+            return s3b.freiformflaechen(form, self._vorwahl)
         if self._vorwahl:
             return [n for n in self._vorwahl if self._nimmt_eine(form, n)]
         return [flaeche] if flaeche and any(b.s.passt(form, flaeche) for b in self.bloecke) else []
@@ -4654,7 +4687,10 @@ class BearbeitungPanel:
         nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
         if not 0 <= nummer < ft.anzahl(form):
             return False
-        analytisch = ft.flaeche(form, nummer).Surface.__class__.__name__ in ANALYTISCH
+        analytisch = (
+            not self._ist_stl()  # die Dreiecke eines STL sind eben – und doch Freiform
+            and ft.flaeche(form, nummer).Surface.__class__.__name__ in ANALYTISCH
+        )
         return any(
             b.s.passt(form, name)
             for b in self.bloecke
@@ -5165,6 +5201,10 @@ class BearbeitungPanel:
         if klon.ViewObject is not None:
             klon.ViewObject.Visibility = True
             klon.ViewObject.Transparency = 0
+            if self._ist_stl():
+                from .gui_stl import ohne_kanten
+
+                ohne_kanten(klon)
         if self.teil.ViewObject is not None:
             self._sichtbar_vorher = (self.teil, self.teil.ViewObject.Visibility)
             self.teil.ViewObject.Visibility = False
@@ -5297,9 +5337,21 @@ class BearbeitungPanel:
 
     def _wahl(self, block):
         """Was der Block bekommt: die gewählten Flächen – „Entgraten 3D“ dazu die Kanten."""
+        if self._ist_stl() and block.s.kennung not in FREIFORM_STRATEGIEN:
+            return []  # ein Teil aus einem STL: nur Freiform (W-017)
         if getattr(block.s, "nimmt_kanten", False):
             return list(self.gewaehlte) + list(self.kanten)
         return self.gewaehlte
+
+    def _ist_stl(self):
+        """Ist das Teil im Job ein Körper aus einem STL (stl_teil.daten – je Form gemerkt)? Dann
+        ist jedes Dreieck eine Fläche, und der Assistent fragt nicht Fläche für Fläche nach Nut,
+        Bohrung, Wand … (P-2026-10-11-103)."""
+        if self.job is None:
+            return False
+        from . import stl_teil
+
+        return stl_teil.daten(vr.modell(self.job).Shape) is not None
 
     def flaeche_umschalten(self, name):
         """Nimmt die Fläche `name` („Face6“) dazu – oder heraus, wenn sie schon gewählt ist; eine
@@ -5341,7 +5393,10 @@ class BearbeitungPanel:
         oben = ergebnis.richtungen[0] if ergebnis.richtungen else None
         oben = oben if oben is not None and oben.achse[2] > 1 - 1e-6 else None
         namen = list(oben.flaechen) if oben is not None else []
-        self.gewaehlte = [n for n in namen if self._nimmt_eine(form, n)]
+        if self._ist_stl():  # die Freiform-Dreiecke alle auf einmal
+            self.gewaehlte = s3b.freiformflaechen(form, namen)
+        else:
+            self.gewaehlte = [n for n in namen if self._nimmt_eine(form, n)]
         self.kanten = []
         self._flaechen_zeigen()
         self.vorschau_starten()
@@ -5359,10 +5414,11 @@ class BearbeitungPanel:
             self.richtungen_box.hide()
             return
         weitere = [r for r in z.richtungen if r.achse[2] <= 1 - 1e-6]
+        gewaehlt = set(self.gewaehlte)  # ein STL hat 68.242 Flächen: nicht je Name die Liste
         for i, r in enumerate(weitere):
             farbe = RICHTUNG_FARBEN[i % len(RICHTUNG_FARBEN)]
             for name in r.flaechen:
-                if name not in self.gewaehlte:
+                if name not in gewaehlt:
                     farben[int(name[4:]) - 1] = farbe
             zeile = QtGui.QWidget()
             aufbau = QtGui.QHBoxLayout(zeile)
@@ -5373,7 +5429,7 @@ class BearbeitungPanel:
                         "ba.richtung.zeile",
                         winkel=f"{r.neigung:.0f}",
                         anzahl=len(r.flaechen),
-                        namen=", ".join(r.flaechen),
+                        namen=_namen_kurz(r.flaechen),
                     )
                 )
             )
@@ -5391,10 +5447,12 @@ class BearbeitungPanel:
         gruende = {}
         for name, grund in z.unerreichbar.items():
             gruende.setdefault(grund, []).append(name)
-            if name not in self.gewaehlte:
+            if name not in gewaehlt:
                 farben[int(name[4:]) - 1] = ROT
         for grund, namen in gruende.items():
-            text = QtGui.QLabel(tr("ba.richtung.unerreichbar", namen=", ".join(namen), grund=grund))
+            text = QtGui.QLabel(
+                tr("ba.richtung.unerreichbar", namen=_namen_kurz(namen), grund=grund)
+            )
             text.setWordWrap(True)
             text.setStyleSheet(f"color: {ROT};")
             self._richtungen_aufbau.addWidget(text)
@@ -5423,6 +5481,9 @@ class BearbeitungPanel:
             self.flaechen_text.setText("")
             return
         form = vr.modell(self.job).Shape
+        if self._ist_stl():
+            self._flaechen_zeigen_stl(form)
+            return
         farben = {}
         for name in self.gewaehlte:
             nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
@@ -5517,6 +5578,38 @@ class BearbeitungPanel:
         self._farben_zeigen(farben, kanten_farben)
         self._haken_vorschlagen(form)
 
+    def _flaechen_zeigen_stl(self, form):
+        """_flaechen_zeigen() für ein Teil aus einem STL: statt einer Zeile je Dreieck zwei – wie
+        viele Freiform sind (3D-Schruppen, 3D-Schlichten) und wie viele keine Strategie hat (eben
+        nach oben, senkrecht oder nach unten gewandt); die Farben am Teil wie sonst."""
+        from . import stl_teil
+
+        daten = stl_teil.daten(form)
+        nummern = daten.nummern(self.gewaehlte)
+        nz = daten.normale[nummern, 2]
+        frei = (nz > s3b.NACH_OBEN) & (nz < 1.0 - hf.GERADE)
+        farben = {int(n): GRUEN for n in nummern[frei]}
+        farben.update({int(n): ROT for n in nummern[~frei]})
+        anzahl = lambda n: f"{int(n):,}".replace(",", "\u202f")  # noqa: E731
+        if frei.any():
+            z = groesse_fest(float(daten.unten[nummern[frei], 2].min()), einheiten.LAENGE, 1)
+            eintrag = QtGui.QListWidgetItem(
+                dezimal(tr("ba.stl.freiform", anzahl=anzahl(frei.sum()), z=z or "0"))
+            )
+            eintrag.setForeground(QtGui.QColor(GRUEN))
+            self.flaechen_liste.addItem(eintrag)
+        if (~frei).any():
+            eintrag = QtGui.QListWidgetItem(tr("ba.stl.ohne", anzahl=anzahl((~frei).sum())))
+            eintrag.setForeground(QtGui.QColor(ROT))
+            self.flaechen_liste.addItem(eintrag)
+        zeile = max(self.flaechen_liste.sizeHintForRow(0), 1)
+        rand = 2 * self.flaechen_liste.frameWidth() + 4
+        self.flaechen_liste.setFixedHeight(max(1, self.flaechen_liste.count()) * zeile + rand)
+        self.flaechen_text.setText(tr("ba.stl.text") if self.gewaehlte else tr("ba.stl.keine"))
+        self._richtungen_zeigen(farben)
+        self._farben_zeigen(farben, {})
+        self._haken_vorschlagen(form)
+
     def _schwenken_zeigen(self, form):
         """Ist eine gewählte Fläche schräg, die Zeile „geschwenkt fräsen“ mit dem Knopf – auch
         an einem neuen Job: Der Knopf legt ihn dann ohne Operationen an (P-2026-10-10-40)."""
@@ -5583,18 +5676,30 @@ class BearbeitungPanel:
         solange ihn niemand von Hand gesetzt hat."""
         if self.zu_aendern is not None:
             return
-        self._reibahle_waehlen(form)
-        gerieben = self._gerieben(form)
-        self._bohrer_waehlen(form, gerieben)
-        self._gewindebohrer_waehlen(form)
-        self._gewindefraeser_waehlen(form)
-        self._senker_waehlen(form)
-        self._entgratfraeser_waehlen(form)
-        self._nutfraeser_waehlen(form)
-        self._planeinsatz_waehlen(form)
+        stl = self._ist_stl()
+        gerieben = False
+        if (
+            not stl
+        ):  # ein Teil aus einem STL hat nur Freiform – die Werkzeuge dafür wählen die Blöcke
+            self._reibahle_waehlen(form)
+            gerieben = self._gerieben(form)
+            self._bohrer_waehlen(form, gerieben)
+            self._gewindebohrer_waehlen(form)
+            self._gewindefraeser_waehlen(form)
+            self._senker_waehlen(form)
+            self._entgratfraeser_waehlen(form)
+            self._nutfraeser_waehlen(form)
+            self._planeinsatz_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
+                if stl and block.s.kennung not in FREIFORM_STRATEGIEN:
+                    block.moeglich = False
+                    block.haken.setEnabled(False)
+                    block.haken.setChecked(False)
+                    block.erklaerung.setText(tr("ba.stl.nur_freiform"))
+                    block.zustand_zeigen()
+                    continue
                 moeglich = block.s.moeglich(form, self._wahl(block))
                 grund = None
                 if block is self.bohren:
@@ -5716,7 +5821,7 @@ class BearbeitungPanel:
             )
         self._kanten_faerben(ansicht, klon, kanten or {})
         grund = self._farben_vorher[1]
-        anzahl = len(klon.Shape.Faces)
+        anzahl = ft.anzahl(klon.Shape)
         if len(grund) != anzahl:
             grund = [tuple(grund[0]) if grund else tuple(ansicht.ShapeColor)] * anzahl
         alpha = grund[0][3] if grund and len(grund[0]) > 3 else 0.0
@@ -5730,7 +5835,7 @@ class BearbeitungPanel:
         """Die angeklickten Kanten in ihrer Farbe (LineColorArray), die anderen wie vorher."""
         if not hasattr(ansicht, "LineColorArray") or self._farben_vorher[3] is None:
             return
-        anzahl = len(klon.Shape.Edges)
+        anzahl = klon.Shape.countElement("Edge")
         grund = list(self._farben_vorher[3])
         if len(grund) != anzahl:
             grund = [tuple(grund[0]) if grund else tuple(ansicht.LineColor)] * anzahl

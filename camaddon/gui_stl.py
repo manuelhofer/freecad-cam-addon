@@ -102,6 +102,22 @@ class StlDialog(QtGui.QDialog):
         super().done(ergebnis)
 
 
+def ohne_kanten(objekt):
+    """Ein Körper aus einem STL (oder sein Klon) ohne die Kanten seiner Dreiecke – sonst decken
+    68.242 schwarze Kanten ihn zu, auch seine Farben."""
+    ansicht = getattr(objekt, "ViewObject", None)
+    if ansicht is not None and "Shaded" in ansicht.getEnumerationsOfProperty("DisplayMode"):
+        ansicht.DisplayMode = "Shaded"
+
+
+def gewaehltes_netz(dokument):
+    """Das gewählte Netz (ein eingelesenes STL) – oder None."""
+    return next(
+        (o for o in FreeCADGui.Selection.getSelection(dokument.Name) if stl_teil.ist_netz(o)),
+        None,
+    )
+
+
 def teil_aus_netz(dokument, netzobjekt, frage=True):
     """Der Körper zum Netz: einer, der schon daraus gemacht ist, sonst – nach dem Fenster (`frage`)
     – ein neuer (ein Schritt Rückgängig). None, wenn man abbricht oder es nicht geht (die Meldung
@@ -137,9 +153,7 @@ def teil_aus_netz(dokument, netzobjekt, frage=True):
         return None
     QtGui.QApplication.restoreOverrideCursor()
     dokument.commitTransaction()
-    ansicht = getattr(teil, "ViewObject", None)
-    if ansicht is not None and "Shaded" in ansicht.getEnumerationsOfProperty("DisplayMode"):
-        ansicht.DisplayMode = "Shaded"  # ohne die Kanten der Dreiecke: wie das Netz
+    ohne_kanten(teil)  # wie das Netz
     if getattr(netzobjekt, "ViewObject", None) is not None:
         netzobjekt.ViewObject.Visibility = False
     FreeCADGui.Selection.clearSelection()
