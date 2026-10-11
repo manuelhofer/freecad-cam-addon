@@ -263,11 +263,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 **Die Nacht vom 2026-10-10 auf den 11.** (Manuel: „schau dir die Werkzeugwege nochmal genau an
 und deren Generation … auch die Geschichte mit dem Mehrkern-Arbeiten bitte nochmal verbessern“),
 an seinem zweiten 4-Achs-Testteil (`beispiele/testteil_4achs_nase.FCStd`, CLX550, seine Werkzeuge
-aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-26 (0.213.8 → 0.213.34):
+aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-27 (0.213.8 → 0.213.35):
 - **Bahnen:** Rundum schlichten und schruppen mit der Querachse fahren durchs Freie mit dem
-  Freivorschub (-56, 11-04; Schlichten am Testteil 141 → 126 min bei 568 mm/min); die Meldung
-  „Rest über der Bahn“ misst mit der Querachse dort, wo die Kugel steht (-58: 25,3 statt 47,6 mm).
-  Nachgeprüft: kein freier Lauf nimmt Material weg (vorne an der Achse täuscht das Restmodell).
+  Freivorschub (-56, 11-04); die Meldung „Rest über der Bahn“ misst mit der Querachse dort, wo
+  die Kugel steht (-58: 25,3 statt 47,6 mm). **In 3D nachgerechnet (11-27):** freie Läufe des
+  Schlichtens schnitten vorne an der Platte Material (das Restmodell sieht die Ecken nicht, die
+  das Schruppen dort stehen lässt) – jetzt schnell nur außerhalb der Stange; Schlichten T2 mit
+  Querachse 193,6 → 187,5 min statt → 172,2. Prüfung mit Voxeln in `test_vierachs_frei`.
 - **Alle Kerne:** Nebenrechner verteilen selbst weiter (Unteraufträge über den Pool der
   Oberfläche, 11-07) – die Vorschau im 4-Achs-Assistenten Schruppen 3,5 → 1,1–1,8 s,
   Schlichten 3,5 → 0,6–1,4 s; die Arbeiter starten und laden beim Öffnen des Assistenten (11-13),

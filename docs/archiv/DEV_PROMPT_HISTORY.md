@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-27 vierachs-frei-nur-ausserhalb-der-stange
+
+### EINGELESEN
+- Nachgerechnet mit einem unabhängigen 3D-Modell (die Stange als Voxel, `tests/voxelstange.py`):
+  An Manuels Nasen-Testteil schnitten freie Läufe von „Rundum schlichten“ (Freivorschub 10 m/min)
+  Material – mit Querachse 440 Sätze bis 6 mm³ je Satz, ohne Querachse 644, alle vorne an der
+  Platte vor der Wellenstirn. Das Schruppen lässt dort Ecken stehen, die das Restmodell (ein
+  Radius je Strahl, `rest_nach`) nicht sieht – es ist keine Grenze nach oben. Die Aussage von
+  P-2026-10-10-56 („kein freier Lauf nimmt Material weg“) galt nur in diesem Modell.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `_material_oben` – nur noch die Stange: frei ist die Kugel außerhalb
+  ihres Radius oder ganz vor ihr, nicht mehr über dem Rest nach dem Schruppen.
+- `tests/voxelstange.py` (neu): die Stange als Voxel, `fahre(punkte, r_fraeser, kugel)` nimmt
+  Satz für Satz weg, was der Fräser trifft.
+- `tests/test_vierachs_frei.py`: am Nasen-Testteil Schruppen, dann Schlichten mit und ohne
+  Querachse im Voxelmodell (1 mm) – kein freier Satz nimmt etwas weg (vorher 102 bei 1 mm).
+- `package.xml` (0.213.35), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Kein freier Satz von Schruppen und Schlichten nimmt im Voxelmodell Material weg.
+- Am Testteil kostet das Zeit (Schlichten T2, Vorschub aus dem Testteil, Freivorschub 10 m/min):
+  mit Querachse 172,2 → 187,5 min, ohne 170,4 → 175,1 min (ganz ohne Freivorschub 193,6 und
+  179,9 min). Ein Teil der Ersparnis von P-2026-10-10-56 ist damit zurückgenommen.
+- Grün: `test_vierachs_frei`, `test_goldene_bahnen`, `test_vierachs_schlichten`,
+  `test_vierachs_schlichten_op`, `test_vierachs_bahn`, `test_vierachs_plan`,
+  `szenario_vierachs_schlichten`.
+
+### NÄCHSTER SCHRITT
+- Die Zeit zurückholen geht nur mit einem Materialmodell, das nach oben hält (3D, wie die Voxel,
+  oder der Rest je Strahl über die ganze Kugel statt durch ihre Mitte).
+
 ## P-2026-10-11-26 pruefen-schritte-einmal
 
 ### EINGELESEN

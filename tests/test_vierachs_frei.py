@@ -189,6 +189,44 @@ s_frei, _s_alle, l_frei, l_alle, _q_frei, _q_alle = ergebnis[45.0]
 pruefe(s_frei == 0.0, f"Ø 45: Schruppen {s_frei:.0f} mm frei")
 pruefe(l_frei < 0.01 * l_alle, f"Ø 45: Schlichten {l_frei:.0f} mm frei – der Ø 40 gehört dazu")
 
+# In 3D nachgerechnet (P-2026-10-11-27): Manuels Nasen-Testteil, die Stange als Voxel – erst das
+# Schruppen, dann das Schlichten mit und ohne Querachse. Kein freier Satz nimmt etwas weg. Bis
+# dahin hielt das Schlichten Ecken vorne an der Platte für leer, die das Schruppen stehen ließ
+# (das Restmodell, ein Radius je Strahl, sieht sie nicht): bei 1 mm Voxeln 102 Sätze.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from voxelstange import Voxelstange  # noqa: E402
+
+nase = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", "testteil_4achs_nase.FCStd"))
+job = nase.getObject("Job")
+rop, sop = nase.getObject("RundumSchruppen"), nase.getObject("RundumSchlichten")
+laengs = rop.Stangenachse
+bb = job.Stock.Shape.BoundBox
+ecken = [
+    V(x, y, z).dot(laengs)
+    for x in (bb.XMin, bb.XMax)
+    for y in (bb.YMin, bb.YMax)
+    for z in (bb.ZMin, bb.ZMax)
+]
+stange_radius = vs._stange(job, laengs)[1]
+schruppbahn = vo.rechne(rop, job, job.Model.Group, float(rop.ToolController.Tool.Diameter) / 2)
+nach_schruppen = Voxelstange(stange_radius, min(ecken), max(ecken), h=1.0)
+weg = nach_schruppen.fahre(schruppbahn.punkte, float(rop.ToolController.Tool.Diameter) / 2, False)
+frei = np.array([bool(p.frei) for p in schruppbahn.punkte])
+schneiden = int(np.sum(frei & (weg > 0)))
+pruefe(schneiden == 0, f"Nase, Schruppen: {schneiden} freie Sätze schneiden Material")
+kugel_radius = vs.form_des_controllers(sop.ToolController).radius
+for quer in (True, False):
+    sop.Querachse = quer
+    bahn = vs.rechne(sop, job, job.Model.Group)
+    stange = Voxelstange(stange_radius, min(ecken), max(ecken), h=1.0)
+    stange.material = nach_schruppen.material.copy()
+    weg = stange.fahre(bahn.punkte, kugel_radius, True)
+    frei = np.array([bool(p.frei) for p in bahn.punkte])
+    schneiden = int(np.sum(frei & (weg > 0)))
+    pruefe(schneiden == 0, f"Nase, Querachse {quer}: {schneiden} freie Sätze schneiden Material")
+    pruefe(frei.any(), f"Nase, Querachse {quer}: kein freier Satz mehr")
+FreeCAD.closeDocument(nase.Name)
+
 FreeCAD.closeDocument(asm.Document.Name)
 if fehler:
     raise AssertionError("\n".join(fehler))

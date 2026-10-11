@@ -1235,19 +1235,22 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     )
 
 
-def _material_oben(w, form, a, winkel):
-    """Wie hoch die Spitze an den Punkten (a, Winkel in Grad) stehen muss, damit der Fräser das
-    Material vor dem Schlichten gerade berührt: der Rest nach dem Schruppen (_nicht_tiefer),
-    ohne ihn – und außerhalb seines Rasters – die Stange; ganz vor der Stange, wo der Fräser ihre
-    Stirn nicht mehr erreicht, nichts (-inf): Dort fuhr die Spirale an Manuels Testteil mit dem
-    Schnittvorschub an (P-2026-10-10-56). Knapp davor nicht: Am Rand liegt der Rest neben der
-    Stange (an der Stirn hielt er sie für leer, wo noch 17 mm standen)."""
+def _material_oben(w, form, a, winkel):  # noqa: ARG001 – Winkel: wie _nicht_tiefer gefragt
+    """Wie hoch die Spitze an den Punkten (a, Winkel in Grad) mindestens stehen muss, damit der
+    Fräser sicher kein Material mehr berührt – für die freien Läufe des Schlichtens: die Stange;
+    ganz vor ihr, wo der Fräser ihre Stirn nicht mehr erreicht, nichts (-inf; dort fuhr die
+    Spirale an Manuels Testteil mit dem Schnittvorschub an, P-2026-10-10-56).
+
+    Bis P-2026-10-11-27 zählte hier der Rest nach dem Schruppen (rest_nach, ein Radius je Strahl)
+    – der ist aber keine Grenze nach oben: Was ein Schruppfräser auf einem Strahl erreicht, hat er
+    nicht immer bis außen weggenommen (er kam von der Seite, mit der Querachse, oder neben einem
+    Teil, das nicht um die Achse liegt). In 3D nachgerechnet (die Stange als Voxel, alle Sätze
+    der Reihe nach) schnitten an Manuels Nasen-Testteil vorne an der Platte 440 freie Sätze mit
+    Querachse bis 6 mm³ je Satz und 644 ohne Querachse durch Ecken, die das Schruppen stehen
+    ließ – im Freivorschub. Darum zählt nur, was sicher leer ist."""
     a = np.asarray(a, dtype=float)
-    if w.rest is None:
-        return np.full(len(a), float(w.stange_radius))
-    oben = _nicht_tiefer(w.rest, form, 0.0, a, np.radians(np.asarray(winkel, dtype=float)))
-    vorne = a > float(w.rest[0][-1]) + form.radius
-    return np.where(np.isfinite(oben) | vorne, oben, float(w.stange_radius))
+    vorne = a > float(w.a_stange_vorne) + form.radius
+    return np.where(vorne, -math.inf, float(w.stange_radius))
 
 
 def _rest_ueber(w, form, r, a, phi):
