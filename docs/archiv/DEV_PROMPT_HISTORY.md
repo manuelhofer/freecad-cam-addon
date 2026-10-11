@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-46 rest-gegen-durchmesser
+
+### EINGELESEN
+- Manuels Antworten (2026-10-11):
+  - Frage 10: „ich hätte es gerne so das der fräser vom schruppen das macht und zwar dreht die nase
+    sich so hin das der fräser unterkante paralell dazu ist … den rest kann dann der kugelfräser
+    machen beim ringsrum bearbeiten“; die Seiten: „beide variationen anbieten“; X: „spielt
+    garkeine rolle weil das steht ja in der maschine … mit dem werkzeug 200 mm ins minus … das
+    müsste man berechnen können“.
+  - Frage 11: „als option anbieten … wens rhuiger wird ists gut“ – Haken, vorbelegt an.
+- Gemessen am Nasen-Testteil (Manuels Job, Voxel 1 mm), was die Abhilfen aus Frage 8 bringen:
+  Steigung 5,4 → 2,7 → 1,35 und Zustellung 22,2 → 5 → 2 kosten 15,4 → 29,6 / 58,0 / 65,4 /
+  155,1 min Schruppen; die schwerste Stelle der Kugel bleibt überall bei 4,0 mm², nur der Weg über
+  1 mm² wird kürzer (2,63 → 1,3 m). Die Stellen sind keine Reste: Wo die Kugel das erste Mal mit
+  ganzer Breite übers Aufmaß fährt, nimmt sie Ø 8 × 0,3 = 2,4 mm² (ohne das Planaufmaß vorne
+  höchstens 3,1). Mit „4 × Aufmaß × Schrittweite“ (P-2026-10-11-44) wäre fast jeder Job gelb.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_rest_soll` = Aufmaß × Durchmesser der Kugel, REST_VIEL 2 – gelb
+  erst, wo die Kugel mehr als doppelt so viel nimmt wie beim ersten Schnitt übers Aufmaß.
+- `translations/de.json`, `translations/en.json` (`va.rest.wenig`, `va.rest.viel`).
+- `docs/OFFENE_FRAGEN.md` (Fragen 10 und 11 beantwortet), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.213.52), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_vierachs_schlichten` grün (grau an der Welle); Manuels Nase grau (3,1 gegen 4,8 mm²),
+  der Aufbau mit Ø 135 und 22 mm je Lage gelb (39,9 mm², 17-mal).
+
 ## P-2026-10-11-45 lagen-unter-der-mitte
 
 ### EINGELESEN

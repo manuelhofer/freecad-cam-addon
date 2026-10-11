@@ -122,9 +122,11 @@ GEMERKT_PLANFRAESER = "VaPlanfraeser"  # … des zuletzt gewählten Fräsers fü
 GEMERKT_ENTGRATFRAESER = "VaEntgratfraeser"  # … des zuletzt gewählten Fräsers zum Entgraten
 # Welche Bearbeitung man ändert.
 SCHRUPPEN, SCHLICHTEN, PLAN, ENTGRATEN = "schruppen", "schlichten", "plan", "entgraten"
-# Gelb, wenn die Kugel nach dem Schruppen stellenweise so viel mal Aufmaß × Schrittweite nimmt
-# (Frage 8, P-2026-10-11-44) – darunter steht grau, wie viel.
-REST_VIEL = 4.0
+# Gelb, wenn die Kugel nach dem Schruppen stellenweise so viel mal Aufmaß × Durchmesser nimmt –
+# so viel nimmt sie, wo sie das erste Mal mit ganzer Breite übers Aufmaß fährt (Frage 8,
+# P-2026-10-11-44/46: mit Aufmaß × Schrittweite wäre fast jeder Job gelb, auch Manuels Nase mit
+# 3,1 mm² gegen 2,4 mm²). Darunter steht grau, wie viel.
+REST_VIEL = 2.0
 REST_AUFMASS_MINDESTENS = 0.1  # mm: so viel Aufmaß rechnet der Vergleich mindestens
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
@@ -3584,10 +3586,11 @@ class VierachsPanel:
         self.rest_schlichten.hide()
 
     def _rest_soll(self):
-        """mm² – was die Kugel ohne Rest nimmt: das Aufmaß des Schruppens über ihrem eigenen
-        (mindestens REST_AUFMASS_MINDESTENS) mal ihre Schrittweite."""
+        """mm² – was die Kugel ohne Rest höchstens nimmt: das Aufmaß des Schruppens über ihrem
+        eigenen (mindestens REST_AUFMASS_MINDESTENS) mal ihr Durchmesser – so greift sie ein, wo
+        sie das erste Mal übers Aufmaß fährt."""
         aufmass = self._wert("aufmass") - self._wert("aufmass_schlichten")
-        return max(aufmass, REST_AUFMASS_MINDESTENS) * self._wert("schrittweite")
+        return max(aufmass, REST_AUFMASS_MINDESTENS) * self.schlichtfraeser().durchmesser
 
     def _rest_starten(self):
         """Wenn Schrupp- und Schlichtvorschau da sind: auf einem Nebenrechner nachrechnen, was

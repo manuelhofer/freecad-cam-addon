@@ -269,8 +269,8 @@ abgearbeitet):
    Kollisionsüberwachung.
 4. **Querachse nur, wo nötig (Frage 9):** „C dreht nicht zurück“ (P-2026-10-11-37) – die
    Werkzeugachse quer nur, soweit C weiterdreht; am Testteil 187,5 → 177,8 min, keine Umkehr mehr.
-   Offen: dasselbe für „Rundum schruppen“ mit der Querachse – mit Zahlen als Frage 11 bei Manuel
-   (C stetig, aber die Kugel hat danach 5 % mehr zu tun).
+   Dasselbe für „Rundum schruppen“ mit der Querachse (Frage 11, Manuel 2026-10-11: „als option
+   anbieten … wens ruhiger wird ists gut“): Haken, vorbelegt an – in Arbeit.
 5. **Rest nach dem Schruppen (Frage 8)** im Assistenten melden und mehr anbieten: an schrägen
    Wänden zusätzlich in Z abzeilen (Schaftfräser) oder dort am Umfang mit kleinerer Steigung.
    Nachgerechnet (Voxel): die halbe Steigung überall kostet 14 min und nimmt der Kugel nur 10 %.
@@ -281,11 +281,16 @@ abgearbeitet):
 6. **Nase mit dem Schaftfräser (Frage 5):** C so, dass Face8 (zur Mitte) quer zum Fräser steht,
    mit Y abzeilen (X auch unter 0, soweit die Maschine fährt); die Seiten Face4/Face6 mit dem
    Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – Bild
-   mit Zahlen als Frage 10 bei Manuel (187,5 → 159,3 min). Vorgebaut: „Plan indexiert“ mit
-   `zur_achse` (P-2026-10-11-42), im Voxelmodell kein Schnitt ins Teil; der Haken wartet auf ihn.
+   mit Zahlen als Frage 10 (187,5 → 159,3 min). Vorgebaut: „Plan indexiert“ mit `zur_achse`
+   (P-2026-10-11-42), im Voxelmodell kein Schnitt ins Teil. **Manuels Antwort (11.10.):** der
+   Schruppfräser macht es – die Nase dreht sich so, dass seine Unterkante parallel zu Face8 steht,
+   den Rest macht die Kugel rundum; für die Seiten **beide Varianten** anbieten (Stirn wie „Plan
+   indexiert“, angestellt mit dem Schaft); X unter 0 ist keine Frage – die Grenze kommt aus der
+   Maschine, mit Halter und Werkzeug gerechnet (vom VDI-Halter aus etwa 200 mm ins Minus) – in
+   Arbeit.
 7. ~~**Magazin ohne Maschine** sagt das im Fenster (legros).~~ Erledigt: P-2026-10-11-31.
 Frage 6 erledigt: Schrittweite aus der Kammhöhe (Vorgabe 0,02 mm), Spalte „ae max“ (P-2026-10-11-40).
-Offen bei Manuel: Frage 10 (die Nase mit dem Schaftfräser, Bild).
+Offen bei Manuel: nichts (Fragen 10 und 11 beantwortet, P-2026-10-11-46).
 
 **Die Nacht vom 2026-10-10 auf den 11.** (Manuel: „schau dir die Werkzeugwege nochmal genau an
 und deren Generation … auch die Geschichte mit dem Mehrkern-Arbeiten bitte nochmal verbessern“),
