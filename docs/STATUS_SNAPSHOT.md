@@ -26,6 +26,16 @@ Kein Stehen: „Programm schreiben“ auf einem Nebenrechner (2,3 → 0,2 s), Fl
 Vorschaubild (0,58 → 0,16 s). Das Voxelmodell (`camaddon/voxelstange.py`) rechnet auf allen Kernen
 und füllt das Teil übers Netz in 0,1 s. Berichtigt: die „408 mm³ je mm“ vom Morgen (Messfehler).
 
+**Der 11.10. nachmittags (P-2026-10-11-59 bis -61, 0.213.65 → 0.213.67):** Mit Flächen ist der
+Haken „Querachse“ beim Schlichten grau und sagt warum (Frage 12 an Manuel). Der Abspieler im
+Prüffenster rechnet weite Sprünge im Takt (ans Ende: 3 s → höchstens 0,19 s am Stück). **Die
+Schlichtbahn mit der Querachse schnitt an der Nase bis 0,1 mm ins Teil** (nachgemessen: Kugelmitte
+gegen ein feines Netz, die schlimmsten mit OpenCascade) – das Zusammenfassen maß seit „C dreht
+nicht zurück“ gegen die falsche Normale, weite Sprünge fuhren schräg an Seitenflächen entlang.
+Behoben (-61): höchstens 0,004 mm (die Vernetzung). Rundum ohne Querachse, mit Flächen und „Plan
+indexiert“ nachgemessen: sauber. „Kollision prüfen“ mit der CLX550 156 s – der größere Teil ist
+Python je Station, nicht OpenCascade; nicht weiter verfolgt.
+
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
 22 zuvor lokalen Addon-Patches; Veröffentlichung auf Manuels ausdrücklichen Wunsch
