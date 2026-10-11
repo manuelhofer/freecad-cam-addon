@@ -54,8 +54,16 @@ auch im Materialstand und in den Hüllflächen, die Bleistift-Vorschau rechnet a
 3-Achs-Testteil nachgemessen (Luft im Vorschub je Satz im Materialstand, Zappler): keine Zappler;
 echte Luft nur Räumen T1 7 s (ein Ring 1 mm vor einer schon freien Wand) und 3D-Schruppen 6 s (die
 letzten 2 mm des Eintauchens) – nicht der Rede wert; was das 0,5-mm-Raster sonst als Luft zeigt, ist
-die 0,3-mm-Haut an den Wänden, die es nicht auflöst (genau nachgerechnet: die Kontur nimmt sie). Offen: das Abtragen je Bewegung im räumlichen Materialstand (17 s am Schwenkteil), die erste Analyse der
-Bohrungen beim Anklicken (`_boden_unter`, je Bohrung acht `isInside`).
+die 0,3-mm-Haut an den Wänden, die es nicht auflöst (genau nachgerechnet: die Kontur nimmt sie).
+
+**Der 11.10. abends (P-2026-10-11-73 bis -76, 0.213.77 → 0.213.80):** Hilfe zu den Neuerungen
+nachgezogen. Bohrungen beim Anklicken je Form und Fläche gemerkt (Deckel 1102 → 8 Fragen, 3,4 →
+1,6 s). Der räumliche Rest vor einer 3+2-Ebene trägt gesammelt ab und fängt beim Stand der vorigen
+Ebene an (Schwenkteil, beide Ebenen 18,6 → 3,7 s, derselbe Rest); FreeCADs Adaptiv-Kern rechnet
+mit Oberfläche auf einem Nebenrechner – Schwenkteil längste Pause 14,8 → 1,05 s. **Gefunden:
+FreeCADs Adaptiv-Kern (libarea) liefert bei gleicher Eingabe nicht dieselbe Bahn** (sechs Aufrufe,
+sechs Bahnen) – „Räumen“ mit Adaptiv hat darum je Sitzung ein paar Sätze mehr oder weniger; das
+liegt in FreeCAD.
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
