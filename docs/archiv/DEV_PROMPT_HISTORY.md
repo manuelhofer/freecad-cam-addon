@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-36 frage-nase-mit-schaftfraeser
+
+### EINGELESEN
+- Manuels Antwort auf Frage 5 (11.10.): Face8 (zur Mitte) mit C quer zum Schaftfräser stellen und
+  mit Y abzeilen, auch unter X 0; die Seiten Face4/Face6 ebenso; die Kugel nur noch Face9.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Frage 10 mit Bild und Zahlen),
+  `docs/bilder/vorschlaege/testteil_4achs_nase_schaftfraeser.png`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md` (dieser Eintrag kam einen Commit später nach).
+
+### AKZEPTANZKRITERIUM
+- Prototyp am Nasen-Testteil: „Plan indexiert“ T1 Ø 12 für Face8 (X bis −5,5; 0,55 min) und
+  Face4/Face6 (0,94 min), die Kugel T2 ohne diese Flächen 157,8 statt 187,5 min – zusammen 159,3
+  statt 187,5 min. Gebaut wird erst nach Manuels Ja.
+
 ## P-2026-10-11-35 abspieler-zur-naechsten-kollision
 
 ### EINGELESEN
