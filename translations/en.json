@@ -1559,7 +1559,7 @@
     "va.radius_durchmesser": "X is in the program as a diameter (Ø), as on your control; the check window shows it that way. FreeCAD's own post processors write X as a radius – the help (?) says what to do then.",
     "va.schlichten": "All-round finishing",
     "va.schlichten.tooltip": "Creates the operation “All-round finishing”: after roughing, one spiral – or lines along the axis – on the part.",
-    "va.schlichten.text": "After roughing, runs one spiral on the part – or lines along the axis where the faces do not go all round – the tip on the surface plus allowance, calculated with the cutter's shape. The stepover comes from the tool table.",
+    "va.schlichten.text": "After roughing, runs one spiral on the part – or lines along the axis where the faces do not go all round – the tip on the surface plus allowance, calculated with the cutter's shape. For ball and torus end mills the stepover comes from the cusp height, otherwise from the tool table.",
     "va.schlichtfraeser.tooltip": "A cutter from the tool manager with cutting data whose shape the add-on knows: ball, torus, flat, tapered ball, lollipop, chamfer, radius, slitting, face or dovetail mill.",
     "va.schlichteinsatz.tooltip": "Which cutting data of the cutter applies – “Finishing” preselected. It gives speed, feed and the stepover (ae).",
     "va.schlichtfraeser.keiner": "The tool manager has no cutter “All-round finishing” can calculate with (with cutting data for this material) – add one there (“Tool manager …”).",

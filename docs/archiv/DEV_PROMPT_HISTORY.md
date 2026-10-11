@@ -65,7 +65,8 @@ patch_naming:
 - `camaddon/werkzeugkiste_datei.py`: `ae_max`/`ae_max_d` je Einsatz; `camaddon/werkzeugkiste.py`:
   Katalogwerte mit ae max dahinter; `camaddon/katalogwerte.py`: der HOLEX-Kugelfräser mit
   ae max 0,05 × D.
-- `docs/werkzeugkiste_json.md` (`ae_max`, `ae_max_d`), `translations/de.json`, `translations/en.json`,
+- `docs/werkzeugkiste_json.md` (`ae_max`, `ae_max_d`), `translations/de.json`, `translations/en.json`
+  (auch `va.schlichten.text`: die Schrittweite der Kugel aus der Kammhöhe – im Nachtrag),
   `tests/test_werkzeugkiste_datei.py`, `tests/test_vierachs_schlichten.py`,
   `tests/gui/szenario_vierachs_schlichten.py` (Kugel Ø 6: grau 0,692 statt 0,3, Kammhöhe 0,020),
   `docs/OFFENE_FRAGEN.md` (Frage 6 heraus), `package.xml` (0.213.46),

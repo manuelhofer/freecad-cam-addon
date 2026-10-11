@@ -269,14 +269,15 @@ abgearbeitet):
    Kollisionsüberwachung.
 4. **Querachse nur, wo nötig (Frage 9):** „C dreht nicht zurück“ (P-2026-10-11-37) – die
    Werkzeugachse quer nur, soweit C weiterdreht; am Testteil 187,5 → 177,8 min, keine Umkehr mehr.
-   Offen: dasselbe für „Rundum schruppen“ mit der Querachse.
+   Offen: dasselbe für „Rundum schruppen“ mit der Querachse – mit Zahlen als Frage 11 bei Manuel
+   (C stetig, aber die Kugel hat danach 5 % mehr zu tun).
 5. **Rest nach dem Schruppen (Frage 8)** im Assistenten melden und mehr anbieten: an schrägen
    Wänden zusätzlich in Z abzeilen (Schaftfräser) oder dort am Umfang mit kleinerer Steigung –
    erst Bild mit Zahlen.
 6. **Nase mit dem Schaftfräser (Frage 5):** C so, dass Face8 (zur Mitte) quer zum Fräser steht,
    mit Y abzeilen (X auch unter 0, soweit die Maschine fährt); die Seiten Face4/Face6 mit dem
-   Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – erst
-   Bild mit Zahlen.
+   Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – Bild
+   mit Zahlen als Frage 10 bei Manuel (187,5 → 159,3 min).
 7. ~~**Magazin ohne Maschine** sagt das im Fenster (legros).~~ Erledigt: P-2026-10-11-31.
 Frage 6 erledigt: Schrittweite aus der Kammhöhe (Vorgabe 0,02 mm), Spalte „ae max“ (P-2026-10-11-40).
 Offen bei Manuel: Frage 10 (die Nase mit dem Schaftfräser, Bild).
