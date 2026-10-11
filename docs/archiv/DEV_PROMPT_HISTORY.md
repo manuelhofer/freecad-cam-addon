@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-61 querachse-nicht-ins-teil
+
+### EINGELESEN
+- Nachgemessen (Kugelmitte an jedem Satz und fünfmal dazwischen gegen ein Netz des Teils, die
+  schlimmsten mit OpenCascade gegengerechnet): Die Schlichtbahn mit der Querachse an Manuels
+  Nasen-Testteil schnitt an rund 500 von 970 000 Stellen mehr als 0,04 mm ins Teil, bis 0,098 mm –
+  Umdrehung für Umdrehung an denselben Winkeln (φ 90° und 285°).
+- Zwei Ursachen: (1) `_zusammen_quer` maß „längs der Normalen“ als ψ − Neigung. Seit „C dreht
+  nicht zurück“ (P-2026-10-11-37, `_stetig`) steht ψ nicht mehr auf der Normalen; an den Seiten der
+  Nase lag die echte Normale quer, und quer ließ die Prüfung 0,5 mm zu. (2) Nach dem Umrechnen auf
+  die Hüllfläche des Fräsers (`vierachs_quer.stellungen`, mit Anstellen für alle Punkte) sprang die
+  Spitze bei ψ 90,0 → 90,5° von −9,6 auf 7,1 mm – die Gerade strich an einer Seitenfläche parallel
+  zur Werkzeugachse entlang; und rollte die Kugel steigend um die obere Kante, lag die Gerade in der
+  Mitte 0,03 mm unter der Hüllfläche.
+- Nebenbei: „Kollision prüfen“ am Beispiel-Drehautomaten meldet für T2 „ins fertige Teil“ – dort
+  steckt T2 ohne Halter axial im Revolver (das Prüffenster sagt es), die Befunde gelten der falschen
+  Werkzeuglage, nicht der Bahn.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `normale_quer(..., mit_normale)` gibt die Normale der Hüllfläche je
+  Punkt mit; `_quer_plan` und `_uebergaenge` tragen sie (an eingefügten Stellungen zwischen denen der
+  Nachbarn); `_QuerAbstand`, `_zusammen_quer`, `zusammen_quer_kette`, `_zusammen_quer_verteilt`,
+  `_quer_hebung`, `_quer_ausgeben` messen längs dieser Normalen (ohne sie wie bisher ψ − Neigung –
+  ohne `stetig` dasselbe). Neu `_heben_vor_drehen`: steigt oder fällt die Spitze nach dem Umrechnen
+  weit (mehr als `QUER_HEBEN_AB` 0,25 mm und dreimal so weit wie um sie herum), erst längs der
+  Werkzeugachse heben, dann drehen (fallend umgekehrt). Neu `_nachsehen`: auf Schritten mit mehr als
+  0,25 mm Hub die Mitte über die Hüllfläche nachgerechnet, zu tief → die Stellung dazu (bis 6
+  Runden). Beides beim Schlichten (mit Anstellen oder ohne Kugel) und beim Schruppen mit der
+  Querachse.
+- `package.xml` (0.213.67), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Nase, Schlichten: schlimmste Stelle 0,098 → 0,004 mm (genau gerechnet; die Hüllfläche ist auf
+  0,005 mm vernetzt), mehr als 0,01 mm drin: 670 → 0 Stellen. 167 273 → 172 148 Punkte; die Bahn
+  rechnet 3,3 s statt 2,5 s (Nachsehen 0,8 s).
+
+### AKZEPTANZKRITERIUM
+- `test_vierachs_bahn`, `test_vierachs_schlichten`, `test_vierachs_frei`,
+  `szenario_vierachs_schlichten` grün.
+
 ## P-2026-10-11-60 abspieler-ans-ende-im-takt
 
 ### EINGELESEN

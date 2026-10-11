@@ -143,6 +143,13 @@ QUER_SEITLICH = 0.5  # mm – fünf Punkte weit; längs rückt die Spirale dabei
 # … bei Schaft- und Torusfräsern (geprüft am Weg der Spitze): Seitlich verschoben läge die
 # ebene Stirn in einer Kehle tiefer – so wenig nur.
 QUER_SEITLICH_SPITZE = 0.02  # mm
+# Steigt oder fällt die Spitze nach dem Umrechnen auf die Hüllfläche des Fräsers (vierachs_quer.
+# stellungen) zwischen zwei Punkten um mehr als so viel (und mehr als QUER_SPRUNG_MITTE-mal so viel
+# wie um sie herum), hebt sie erst längs der Werkzeugachse und dreht dann (_heben_vor_drehen).
+QUER_HEBEN_AB = 0.25  # mm
+# Schritte, auf denen die Spitze mehr als QUER_HEBEN_AB steigt oder fällt, sieht _nachsehen in der
+# Mitte nach – höchstens so viele Runden, jede halbiert die Schritte, die zu tief lagen.
+QUER_NACHSEHEN_RUNDEN = 6
 # Grad – so weit steht die Kugel mit der Querachse neben der Normalen, in Vorschubrichtung geneigt
 # (ziehend): Sie schneidet nicht mit der Spitze (Manuel, 2026-10-04: „als Haken, der aber pauschal
 # angehakt ist“) – wie das Anstellen beim 5-Achs-Schlichten (angestellt.WINKEL).
@@ -642,21 +649,32 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
         r = r + zugabe
         r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft nichts: oben
         winkel = drehung * (versatz + k) * schritt_phi
-        a_p, x_p, q_p, psi_p, fest, _neu = _quer_plan(
+        a_p, x_p, q_p, psi_p, fest, _neu, normale = _quer_plan(
             a, r, winkel, radius, schritt_phi, stetig=w.stetig
         )
         psi_p, x_p, q_p = vq.stellungen(
             netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
         )
+        a_p, x_p, q_p, psi_p, fest, normale = _heben_vor_drehen(a_p, x_p, q_p, psi_p, fest, normale)
+
+        def umrechnen(a_m, x_m, q_m, psi_m):
+            return vq.stellungen(
+                netz, laengs, radial, form, zugabe, a_m, x_m, q_m, psi_m, teil_hinten, teil_vorne
+            )
+
+        a_p, x_p, q_p, psi_p, fest, normale = _nachsehen(
+            a_p, x_p, q_p, psi_p, fest, normale, umrechnen
+        )
         grenze = vq.lagen_grenze(w.stange_radius, q_p, radius, tiefer)
         x = np.maximum(np.maximum(x_p, grenze), w.r_tiefste)
-        return a_p, x, x_p, q_p, psi_p, fest, bool(np.any(grenze > x_p + BAHN_TOLERANZ))
+        noch = bool(np.any(grenze > x_p + BAHN_TOLERANZ))
+        return a_p, x, x_p, q_p, psi_p, fest, normale, noch
 
     versatz = 0
     lage = gefahren = 0
     while True:
         lage += 1
-        a_p, x, x_p, q_p, psi_p, fest, noch = lage_rechnen(versatz, lage * w.zustellung)
+        a_p, x, x_p, q_p, psi_p, fest, normale, noch = lage_rechnen(versatz, lage * w.zustellung)
         if lage > 1 and w.nur_noetig:
             # Nur so weit, wie die Lage davor noch über der Hüllfläche blieb (P-2026-10-11-57):
             # Wo sie sie schon erreicht hat, fährt diese dieselbe Fläche noch einmal ab – am
@@ -673,6 +691,7 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
             bis_a = float(a_p[noetig[-1]]) - radius - w.steigung
             ende = int(np.flatnonzero(a_p >= bis_a).max()) + 1
             a_p, x, q_p, psi_p = a_p[:ende], x[:ende], q_p[:ende], psi_p[:ende]
+            normale = normale[:ende]
             fest = [f for f in fest if f < ende]
             schritte = int(k[np.flatnonzero(a >= bis_a).max()])  # so weit kam die Spirale
         else:
@@ -691,6 +710,7 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
             toleranz=max(BAHN_TOLERANZ, spiel),
             innen=max(QUER_INNEN, spiel),
             frei=_quer_schrupp_frei(a_p, x, q_p, psi_p, radius, w.stange_radius),
+            normale=normale,
         )
         punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
         gefahren += 1
@@ -1655,7 +1675,7 @@ def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None,
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
 
 
-def normale_quer(r, winkel, radius, a=None, neigung=0.0, stetig=False):
+def normale_quer(r, winkel, radius, a=None, neigung=0.0, stetig=False, mit_normale=False):
     """Die Spirale mit der Querachse (V5e): Je Punkt steht die Werkzeugachse längs der
     Normalen der Hüllfläche – im Querschnitt. Die Mitte der Kugel liegt auf dem Strahl φ im
     Abstand ρ = r + R von der Achse; die Normale der Kurve ρ(φ) hat den Winkel ψ = φ − β mit
@@ -1671,11 +1691,13 @@ def normale_quer(r, winkel, radius, a=None, neigung=0.0, stetig=False):
     hinweg abgeleitet. `neigung` (Grad): Die Werkzeugachse steht so weit neben der Normalen –
     ψ = φ − β + Neigung, die Mitte quer um ρ · sin(β − Neigung); positiv zu wachsendem φ hin
     (die Kugel schneidet dann nicht mit der Spitze, ANSTELLEN_QUER). `stetig`: ψ nur so weit zur
-    Normalen, dass es nie gegen die Spirale zurückläuft (_stetig)."""
+    Normalen, dass es nie gegen die Spirale zurückläuft (_stetig). `mit_normale`: dazu je Punkt
+    die Richtung der Normalen der Hüllfläche (Grad) – mit Neigung oder `stetig` ist sie nicht ψ."""
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
     if len(rho) < 2:
-        return np.asarray(winkel, dtype=float), np.asarray(r, dtype=float), np.zeros(len(rho))
+        ergebnis = np.asarray(winkel, dtype=float), np.asarray(r, dtype=float), np.zeros(len(rho))
+        return (*ergebnis, np.asarray(winkel, dtype=float)) if mit_normale else ergebnis
     grenzen = [0, len(rho)]
     if a is not None and len(a) > 2:
         grenzen = [0] + (np.flatnonzero(_a_knicke(np.asarray(a, dtype=float))) + 1).tolist()
@@ -1697,6 +1719,7 @@ def normale_quer(r, winkel, radius, a=None, neigung=0.0, stetig=False):
             innen = np.convolve(stueck, kern, mode="valid")
             stueck = np.concatenate([stueck[:QUER_GLATT], innen, stueck[-QUER_GLATT:]])
         beta[von:bis] = stueck
+    normale = np.degrees(phi - beta)
     # ψ muss nicht genau die Normale sein: Die Kugelmitte liegt für jedes ψ auf der
     # Hüllfläche (x + R und q sind ihre Lage im Rahmen unter ψ) – ψ bestimmt nur, wie das
     # Werkzeug dabei steht, und ob die Gerade über eine Ebene eine ist.
@@ -1705,7 +1728,8 @@ def normale_quer(r, winkel, radius, a=None, neigung=0.0, stetig=False):
     if stetig:
         psi = _stetig(psi, np.degrees(phi), neigung)
         beta = phi - np.radians(psi)
-    return psi, rho * np.cos(beta) - radius, rho * np.sin(beta)
+    ergebnis = psi, rho * np.cos(beta) - radius, rho * np.sin(beta)
+    return (*ergebnis, normale) if mit_normale else ergebnis
 
 
 def _stetig(psi, winkel, neigung=0.0):
@@ -1773,7 +1797,7 @@ def _spirale_quer(
     – damit fährt die Kugel durchs Freie mit dem Freivorschub (_quer_frei). `stetig`: C dreht nie
     zurück (_stetig). Gibt die tiefste Spitze zurück."""
     neigung = math.copysign(float(anstellen), drehung) if kugel else 0.0
-    a_p, x_p, q_p, psi_p, fest, eingefuegt = _quer_plan(
+    a_p, x_p, q_p, psi_p, fest, eingefuegt, normale = _quer_plan(
         a, r, winkel, radius, schritt_phi, neigung, stetig
     )
     pruef_radius = radius if kugel else 0.0
@@ -1782,6 +1806,10 @@ def _spirale_quer(
         # er der zweiten Wand näher als die Kugel – die Hüllfläche in genau dieser Stellung
         # rechnet ihn mit (dort hebt die Kugel ab, statt in die Wand zu schneiden).
         psi_p, x_p, q_p = umrechnen(a_p, x_p, q_p, psi_p)
+        a_p, x_p, q_p, psi_p, fest, normale = _heben_vor_drehen(a_p, x_p, q_p, psi_p, fest, normale)
+        a_p, x_p, q_p, psi_p, fest, normale = _nachsehen(
+            a_p, x_p, q_p, psi_p, fest, normale, umrechnen
+        )
     elif eingefuegt.any():  # die Kugel: ihr Plan liegt auf der Hüllfläche, die Übergänge nicht
         w = np.flatnonzero(eingefuegt)
         psi_w, x_w, q_w = umrechnen(a_p[w], x_p[w], q_p[w], psi_p[w])
@@ -1803,6 +1831,7 @@ def _spirale_quer(
         pruef_radius,
         neigung,
         frei=frei,
+        normale=normale,
     )
     return float(np.min(x_p))
 
@@ -1846,15 +1875,17 @@ def _rest_ueber_quer(w, form, punkte):
 
 def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0, stetig=False):
     """Der Plan der Spirale mit der Querachse für eine Kugel mit `radius` (normale_quer):
-    (a, Spitze x, Versatz q, ψ in Grad, Punkte, die bleiben, eingefügte Zwischenstellungen). Springt ψ zwischen zwei Punkten um
+    (a, Spitze x, Versatz q, ψ in Grad, Punkte, die bleiben, eingefügte Zwischenstellungen,
+    Normale der Hüllfläche in Grad – an den Zwischenstellungen zwischen denen ihrer Nachbarn
+    gedreht). Springt ψ zwischen zwei Punkten um
     mehr als QUER_SPRUNG Schritte (eine Innenecke: dort liegt die Kugel in der Ecke, die Normale
     ist nicht eindeutig; um eine Außenkante rollt sie mit 1–3° je Punkt, das bleibt), dreht das
     Werkzeug um die ruhende Kugelmitte in Schritten von `schritt_phi`. `neigung`: die Kugel so
     viele Grad neben der Normalen (normale_quer); `stetig`: ψ läuft nie zurück (_stetig)."""
-    psi, x, q = normale_quer(r, winkel, radius, a, neigung, stetig)
+    psi, x, q, normale = normale_quer(r, winkel, radius, a, neigung, stetig, mit_normale=True)
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
-    teile_a, teile_x, teile_q, teile_psi, teile_neu, fest = [], [], [], [], [], []
+    teile_a, teile_x, teile_q, teile_psi, teile_neu, teile_n, fest = [], [], [], [], [], [], []
     anzahl = 0
     # Nur an den Sprüngen ist etwas zu tun; dazwischen gehen die Punkte am Stück durch (bis
     # P-2026-10-11-09 Punkt für Punkt: 0,7 s an der Schlichtbahn des 4-Achs-Testteils).
@@ -1871,6 +1902,7 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0, stetig=False):
             teile_x.append(x[vorher:k])
             teile_q.append(q[vorher:k])
             teile_psi.append(psi[vorher:k])
+            teile_n.append(normale[vorher:k])
             teile_neu.append(np.zeros(k - vorher, dtype=bool))
             anzahl += k - vorher
             vorher = k
@@ -1899,9 +1931,10 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0, stetig=False):
                 teile_x.append(x_t)
                 teile_q.append(q_t)
                 teile_psi.append(zwischen)
+                teile_n.append(normale[k - 1] + (normale[k] - normale[k - 1]) * t)
                 fest.extend(range(anzahl - 1, anzahl + schritte))
                 anzahl += schritte - 1
-    a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt = _uebergaenge(
+    a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt, n_alle = _uebergaenge(
         np.concatenate(teile_a),
         np.concatenate(teile_x),
         np.concatenate(teile_q),
@@ -1909,10 +1942,11 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0, stetig=False):
         fest,
         radius,
         np.concatenate(teile_neu),
+        np.concatenate(teile_n),
     )
     fest.extend((np.flatnonzero(_a_knicke(a_alle)) + 1).tolist())
     fest = sorted({i for i in fest if 0 < i < len(a_alle) - 1})
-    return a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt
+    return a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt, n_alle
 
 
 def _um_die_kante(a, x, q, psi, k, radius, t, zwischen):
@@ -1943,20 +1977,22 @@ def _um_die_kante(a, x, q, psi, k, radius, t, zwischen):
     return a_t, cx * cu + cy * su - radius, cy * cu - cx * su
 
 
-def _uebergaenge(a, x, q, psi, fest, radius, eingefuegt=None):
+def _uebergaenge(a, x, q, psi, fest, radius, eingefuegt=None, normale=None):
     """Wo die Mitte der Kugel zwischen zwei Punkten des Plans springt – viel weiter als die
     Schritte um sie herum (QUER_SPRUNG_MITTE) –, Zwischenstellungen auf der Geraden
     zwischen den beiden Mitten, alle QUER_UEBERGANG; ihre Höhe rechnet danach die Hüllfläche
     (vierachs_quer.stellungen). Das geschieht, wo das Teil unter die Drehmitte geht: Von der Achse
     aus sieht die Spirale dort nicht jede Stelle der Hüllfläche, die Mitte springt (an Manuels
     Teil hinten um gut 1 mm – die Gerade darüber schnitt 0,05 mm ins Teil, P-2026-10-03-22).
-    Gibt (a, x, q, ψ, fest, eingefügt) zurück, die Nummern in `fest` verschoben, `eingefügt` je
-    Punkt, ob er dazukam – mit denen, die schon `eingefuegt` waren (um eine Außenkante)."""
+    Gibt (a, x, q, ψ, fest, eingefügt, Normale) zurück, die Nummern in `fest` verschoben,
+    `eingefügt` je Punkt, ob er dazukam – mit denen, die schon `eingefuegt` waren (um eine
+    Außenkante); die Normale (Grad, ohne Angabe ψ) an den neuen zwischen denen der Nachbarn."""
     eingefuegt = (
         np.zeros(len(a), dtype=bool) if eingefuegt is None else np.asarray(eingefuegt, dtype=bool)
     )
+    normale = np.asarray(psi if normale is None else normale, dtype=float)
     if len(a) < 2:
-        return a, x, q, psi, fest, eingefuegt
+        return a, x, q, psi, fest, eingefuegt, normale
     rad = np.radians(psi)
     mx = (x + radius) * np.cos(rad) - q * np.sin(rad)
     my = (x + radius) * np.sin(rad) + q * np.cos(rad)
@@ -1969,7 +2005,7 @@ def _uebergaenge(a, x, q, psi, fest, radius, eingefuegt=None):
     umgebung = np.median(fenster, axis=1)
     noetig = sprung > QUER_SPRUNG_MITTE * umgebung + QUER_UEBERGANG
     if not noetig.any():
-        return a, x, q, psi, fest, eingefuegt
+        return a, x, q, psi, fest, eingefuegt, normale
     schritte = np.flatnonzero(noetig)
     teile = np.ceil(sprung[schritte] / QUER_UEBERGANG).astype(np.int64)
     je = teile - 1
@@ -1979,6 +2015,7 @@ def _uebergaenge(a, x, q, psi, fest, radius, eingefuegt=None):
     )
     a_z = a[welcher] + bruch * (a[welcher + 1] - a[welcher])
     psi_z = psi[welcher] + bruch * (psi[welcher + 1] - psi[welcher])
+    n_z = normale[welcher] + bruch * (normale[welcher + 1] - normale[welcher])
     mx_z = mx[welcher] + bruch * (mx[welcher + 1] - mx[welcher])
     my_z = my[welcher] + bruch * (my[welcher + 1] - my[welcher])
     rad_z = np.radians(psi_z)
@@ -1995,7 +2032,82 @@ def _uebergaenge(a, x, q, psi, fest, radius, eingefuegt=None):
         np.concatenate([psi, psi_z])[ordnung],
         [int(neue_nummer[i]) for i in fest],
         np.concatenate([eingefuegt, np.ones(len(a_z), dtype=bool)])[ordnung],
+        np.concatenate([normale, n_z])[ordnung],
     )
+
+
+def _heben_vor_drehen(a, x, q, psi, fest, normale):
+    """Wo die Spitze nach dem Umrechnen auf die Hüllfläche des Fräsers (vierachs_quer.stellungen)
+    zwischen zwei Punkten weit steigt oder fällt – mehr als QUER_HEBEN_AB und QUER_SPRUNG_MITTE-mal
+    so weit wie um sie herum, quer kaum versetzt –, kommt eine Ecke dazwischen: Steigt sie, geht es
+    erst längs der Werkzeugachse hinauf (ψ und q des Punkts davor), dann wird gedreht; fällt sie,
+    wird oben gedreht und dann hinab gefahren. Über einer Stellung aus der Hüllfläche ist längs der
+    Werkzeugachse alles frei. Gerade von unten nach oben und dabei gedreht strich das Werkzeug an
+    Manuels Nasen-Testteil an einer Seitenfläche entlang, die parallel zur Werkzeugachse lag, und
+    schnitt bis 0,1 mm hinein (ψ 90,0 → 90,5°, die Spitze −9,6 → 7,1 mm; P-2026-10-11-61). Gibt
+    (a, x, q, ψ, fest, Normale) zurück – die Ecke und ihre Nachbarn bleiben beim Zusammenfassen."""
+    a, x, q, psi, normale = (np.asarray(v, dtype=float) for v in (a, x, q, psi, normale))
+    if len(x) < 2:
+        return a, x, q, psi, fest, normale
+    weit = np.abs(np.diff(x))
+    breit = np.pad(weit, QUER_UMGEBUNG, mode="edge")
+    fenster = np.lib.stride_tricks.sliding_window_view(breit, 2 * QUER_UMGEBUNG + 1)
+    umgebung = np.median(fenster, axis=1)
+    ecken = np.flatnonzero(
+        (weit > QUER_HEBEN_AB)
+        & (weit > QUER_SPRUNG_MITTE * umgebung)
+        & (np.abs(np.diff(q)) <= QUER_SEITLICH)
+    )
+    if not len(ecken):
+        return a, x, q, psi, fest, normale
+    steigt = x[ecken + 1] > x[ecken]
+    # Steigt sie: an der Stelle davor hinauf; fällt sie: an der Stelle danach, noch oben.
+    wo = np.where(steigt, ecken, ecken + 1)
+    hoehe = np.maximum(x[ecken], x[ecken + 1])
+    a = np.insert(a, ecken + 1, a[wo])
+    x = np.insert(x, ecken + 1, hoehe)
+    q = np.insert(q, ecken + 1, q[wo])
+    psi = np.insert(psi, ecken + 1, psi[wo])
+    normale = np.insert(normale, ecken + 1, normale[wo])
+    neu = ecken + 1 + np.arange(len(ecken))  # wo die Ecken jetzt stehen
+    fest = [int(i + np.searchsorted(ecken, i, side="left")) for i in fest]
+    fest = sorted({*fest, *(neu - 1).tolist(), *neu.tolist(), *(neu + 1).tolist()})
+    fest = [i for i in fest if 0 < i < len(x) - 1]
+    return a, x, q, psi, fest, normale
+
+
+def _nachsehen(a, x, q, psi, fest, normale, umrechnen, toleranz=BAHN_TOLERANZ):
+    """Die Stellungen aus der Hüllfläche des Fräsers (vierachs_quer.stellungen) liegen auf ihr –
+    die Gerade dazwischen (x, q und ψ zugleich) nicht immer: Rollt die Kugel um eine Kante und
+    steigt dabei, lag sie an Manuels Nasen-Testteil in der Mitte 0,03 mm unter der Hüllfläche
+    (P-2026-10-11-61). Je Schritt, auf dem die Spitze mehr als QUER_HEBEN_AB steigt oder fällt und
+    der nicht nur längs der Werkzeugachse fährt: die Mitte über `umrechnen` ((a, x, q, ψ) → (ψ, x,
+    q)) nachgerechnet; liegt die Gerade dort mehr als `toleranz` tiefer, kommt die Stellung dazu –
+    bis zu QUER_NACHSEHEN_RUNDEN Runden. Gibt (a, x, q, ψ, fest, Normale) zurück."""
+    a, x, q, psi, normale = (np.asarray(v, dtype=float) for v in (a, x, q, psi, normale))
+    fest = list(fest)
+    for _ in range(QUER_NACHSEHEN_RUNDEN):
+        if len(x) < 2:
+            break
+        dreht = (np.abs(np.diff(psi)) > 1e-9) | (np.abs(np.diff(q)) > 1e-9)
+        pruefen = np.flatnonzero((np.abs(np.diff(x)) > QUER_HEBEN_AB) & dreht)
+        if not len(pruefen):
+            break
+        a_m, x_m, q_m, psi_m, n_m = (
+            (v[pruefen] + v[pruefen + 1]) / 2 for v in (a, x, q, psi, normale)
+        )
+        psi_s, x_s, q_s = (np.asarray(v, dtype=float) for v in umrechnen(a_m, x_m, q_m, psi_m))
+        tief = np.flatnonzero(x_m < x_s - toleranz)
+        if not len(tief):
+            break
+        nach = pruefen[tief] + 1
+        a = np.insert(a, nach, a_m[tief])
+        x = np.insert(x, nach, x_s[tief])
+        q = np.insert(q, nach, q_s[tief])
+        psi = np.insert(psi, nach, psi_s[tief])
+        normale = np.insert(normale, nach, n_m[tief])
+        fest = [int(i + np.searchsorted(pruefen[tief], i, side="left")) for i in fest]
+    return a, x, q, psi, fest, normale
 
 
 def _quer_ausgeben(
@@ -2013,10 +2125,11 @@ def _quer_ausgeben(
     toleranz=BAHN_TOLERANZ,
     innen=QUER_INNEN,
     frei=None,
+    normale=None,
 ):
     """Hängt die Stellungen (a, x, q, ψ) an `punkte`: im Eilgang über den Anfang, die Punkte
     zusammengefasst (_zusammen_quer, geprüft am Weg des Punkts `radius` über der Spitze, längs der
-    Normalen ψ − `neigung`, höchstens `toleranz` außen und `innen` innen – was `innen` über
+    Normalen – `normale` je Punkt in Grad, ohne sie ψ − `neigung` –, höchstens `toleranz` außen und `innen` innen – was `innen` über
     QUER_INNEN hinausgeht, ist das Spiel beim Schruppen, und darum rücken die bleibenden Punkte
     nach außen), am Ende radial hinaus. Der Winkel zählt weiter, wo die Rundachse steht.
     `frei` je Stellung (_quer_frei): das Stück dorthin durchs Freie – wo es wechselt, bleibt der
@@ -2032,11 +2145,11 @@ def _quer_ausgeben(
     if frei is not None:
         frei = np.asarray(frei, dtype=bool)
         fest = sorted(set(fest) | set(np.flatnonzero(frei[:-1] != frei[1:]).tolist()))
-    bleibt = _zusammen_quer(x, q, psi, radius, toleranz, abstand, fest, neigung, innen)
+    bleibt = _zusammen_quer(x, q, psi, radius, toleranz, abstand, fest, neigung, innen, normale)
     # Mit Spiel beim Schruppen: die bleibenden Punkte so weit hinaus, dass nichts ins Aufmaß
     # schneidet; sonst (Schlichten) wie bisher.
     hebung = (
-        _quer_hebung(x, q, psi, radius, bleibt, neigung)
+        _quer_hebung(x, q, psi, radius, bleibt, neigung, normale)
         if innen > QUER_INNEN
         else np.zeros(len(bleibt))
     )
@@ -2064,9 +2177,13 @@ class _QuerAbstand:
     """Wie weit die Kurve, die die Maschine zwischen zwei Punkten der Spirale mit der Querachse
     fährt (x, q und ψ zugleich geradlinig; die Kugelmitte im Teil auf Rot(ψ(t)) · (x(t) + R,
     q(t))), an den ausgelassenen Punkten dazwischen von diesen abweicht – längs ihrer Normalen
-    ψ − `neigung` (außen positiv) und quer dazu (_zusammen_quer, _quer_hebung)."""
+    (außen positiv) und quer dazu (_zusammen_quer, _quer_hebung). Die Normale: `normale` (Grad,
+    je Punkt, _quer_plan), ohne sie ψ − `neigung`. Mit „C dreht nicht zurück“ (_stetig) steht ψ
+    nicht auf der Normalen: An der Seite der Nase von Manuels Testteil lag die echte Normale quer
+    zur Werkzeugachse, quer ließ die Prüfung 0,5 mm zu – die zusammengefasste Schlichtbahn schnitt
+    dort bis 0,1 mm ins Teil (P-2026-10-11-61)."""
 
-    def __init__(self, x, q, psi, radius, neigung=0.0):
+    def __init__(self, x, q, psi, radius, neigung=0.0, normale=None):
         self.x = np.asarray(x, dtype=float)
         self.q = np.asarray(q, dtype=float)
         self.psi = np.asarray(psi, dtype=float)
@@ -2074,7 +2191,10 @@ class _QuerAbstand:
         rad = np.radians(self.psi)
         self.mitte_x = (self.x + radius) * np.cos(rad) - self.q * np.sin(rad)
         self.mitte_y = (self.x + radius) * np.sin(rad) + self.q * np.cos(rad)
-        normale = rad - math.radians(neigung)
+        if normale is None:
+            normale = rad - math.radians(neigung)
+        else:
+            normale = np.radians(np.asarray(normale, dtype=float))
         self.c, self.s = np.cos(normale), np.sin(normale)
 
     def zwischen(self, i, j):
@@ -2091,12 +2211,12 @@ class _QuerAbstand:
         return dx * self.c[k] + dy * self.s[k], dy * self.c[k] - dx * self.s[k]
 
 
-def _quer_hebung(x, q, psi, radius, bleibt, neigung=0.0):
+def _quer_hebung(x, q, psi, radius, bleibt, neigung=0.0, normale=None):
     """Je bleibendem Punkt: so weit nach außen (längs seiner Normalen), dass die Kurve zu seinen
     bleibenden Nachbarn an keinem ausgelassenen Punkt innen liegt – um das, was _zusammen_quer
     mit `innen` beim Schruppen darunter ließ (höchstens das Spiel; 0, wo nichts darunter lag).
     x ist der Radius im mitdrehenden Rahmen: beide Enden angehoben, hebt es das ganze Stück."""
-    abstand = _QuerAbstand(x, q, psi, radius, neigung)
+    abstand = _QuerAbstand(x, q, psi, radius, neigung, normale)
     hebung = np.zeros(len(bleibt))
     for k in range(len(bleibt) - 1):
         i, j = bleibt[k], bleibt[k + 1]
@@ -2110,7 +2230,9 @@ def _quer_hebung(x, q, psi, radius, bleibt, neigung=0.0):
     return hebung
 
 
-def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0, innen=QUER_INNEN):
+def _zusammen_quer(
+    x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0, innen=QUER_INNEN, normale=None
+):
     """Die Punkte, die von der Spirale mit der Querachse bleiben (wie _zusammengefasst, nur
     im Rahmen des Teils gemessen). Die Maschine fährt zwischen zwei Punkten x, q und ψ
     zugleich geradlinig; die Kugelmitte läuft dabei im Teil auf der Kurve Rot(ψ(t)) · (x(t) +
@@ -2121,19 +2243,19 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0
     längste Stück, das passt (verdoppeln, dann halbieren), höchstens `hoechstens` Punkte;
     die Punkte in `fest` bleiben (Ringe, Innenecken). Mit radius 0 (die Spitze eines Fräsers,
     der keine Kugel ist) seitlich höchstens QUER_SEITLICH_SPITZE. Steht die Kugel um `neigung`
-    neben der Normalen (normale_quer), zählt längs und quer zur Normalen ψ − `neigung`.
-    Lange Bahnen rechnen die Nebenrechner in Stücken (_zusammen_quer_verteilt) – Punkt für
+    neben der Normalen (normale_quer), zählt längs und quer zur Normalen ψ − `neigung` – oder zu
+    `normale` (Grad je Punkt, _QuerAbstand). Lange Bahnen rechnen die Nebenrechner in Stücken (_zusammen_quer_verteilt) – Punkt für
     Punkt dasselbe Ergebnis."""
     n = len(x)
     grenzen = sorted({0, n - 1} | {int(i) for i in fest if 0 < i < n - 1})
     if n >= QUER_PARALLEL_AB:
         bleibt = _zusammen_quer_verteilt(
-            x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen
+            x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, normale
         )
         if bleibt is not None:
             return bleibt
     return zusammen_quer_kette(
-        x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, 0, n - 1
+        x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, 0, n - 1, normale
     )
 
 
@@ -2145,7 +2267,7 @@ QUER_STUECKE_JE_ARBEITER = 2
 
 
 def zusammen_quer_kette(
-    x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, start, stopp
+    x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, start, stopp, normale=None
 ):
     """Die bleibenden Punkte von _zusammen_quer ab dem Punkt `start` (er bleibt), bis einer bei
     `stopp` oder dahinter liegt – `grenzen`: die Punkte, die bleiben, aufsteigend (der erste nicht
@@ -2154,7 +2276,7 @@ def zusammen_quer_kette(
     seitlich_hoechstens = QUER_SEITLICH if radius > 0 else QUER_SEITLICH_SPITZE
     if isinstance(grenzen, np.ndarray):  # so kommen sie zum Nebenrechner
         grenzen = grenzen.tolist()
-    abstand = _QuerAbstand(x, q, psi, radius, neigung)
+    abstand = _QuerAbstand(x, q, psi, radius, neigung, normale)
 
     def passt(i, j):
         if j <= i + 1:
@@ -2197,7 +2319,9 @@ def zusammen_quer_kette(
     return bleibt
 
 
-def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen):
+def _zusammen_quer_verteilt(
+    x, q, psi, radius, toleranz, hoechstens, grenzen, neigung, innen, normale=None
+):
     """_zusammen_quer auf den Nebenrechnern: je Stück die Kette ab seinem Anfang, ein Stück über
     sein Ende hinaus; zusammengesetzt am ersten Punkt, den beide Ketten haben. Die Stücke
     beginnen, wo es geht, an einer Grenze (einem Punkt, der bleibt): Dort treffen sich die Ketten
@@ -2216,6 +2340,8 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
     if stuecke < 2:
         return None
     x, q, psi = (np.asarray(v, dtype=float) for v in (x, q, psi))
+    if normale is not None:
+        normale = np.asarray(normale, dtype=float)
     an_grenze = set(grenzen)
     spanne = n / stuecke
     anfaenge = [0]
@@ -2262,6 +2388,7 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
                 innen,
                 0,
                 stopp - von,
+                normale[von:bis] if normale is not None else None,
             )
         )
     try:
@@ -2300,6 +2427,7 @@ def _zusammen_quer_verteilt(x, q, psi, radius, toleranz, hoechstens, grenzen, ne
             innen,
             ergebnis[-1],
             n - 1 if weiter is None else anfaenge[weiter],
+            normale,
         )
         ergebnis = ergebnis + rest[1:]
         if weiter is None:
