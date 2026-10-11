@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-33 flanke-halter-in-der-wand
+
+### EINGELESEN
+- legros' Kegel (Forum, 10.10.): Die Wand ist länger als die Schneide, die Flanke fährt in Lagen
+  von oben nach unten – in den unteren steht der Halter (ER16, Ø 28) dort, wo die Wand weiter oben
+  steht. Der Assistent bot die Flanke trotzdem an. Manuel, 2026-10-11: „ok aber es hilft nichts wenn
+  der halter dann in den kegel reinballert“; Frage 7: „sehr klar darauf hinweisen das die
+  ausspannlänge des fräsers nicht ausreicht“.
+- Andere Anstellung hilft bei der Flanke nicht: Nur mit der Achse parallel zur Mantellinie liegt
+  der Mantel an der Wand an – sonst wäre es keine Flanke mehr (die Form bliebe nicht).
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `halter_pruefen(form, bahn, koerper, radius)` – die Körper über der
+  Schneide, die dicker sind als sie (Halter, dicker Schaft), etwa jeden Millimeter der Bahn als
+  Kapseln gegen das Netz des Teils (netzabstand); stößt einer an, sucht eine Halbierung je Stelle,
+  wie weit er weiter oben frei wäre. `Anstoss` (Stellen, heraus, mindestens);
+  `Flankenbahn.anstoss`.
+- `camaddon/flanke.py`: `bahn_fuer(..., koerper=)`, `koerper_ueber_der_schneide(werkzeug,
+  bibliothek)` (Hals, Schaft, Halter wie „Kollision prüfen“ – kollision.werkzeugkapseln).
+- `camaddon/gui_bearbeitung.py`: `_Flanke.vorschau` prüft den Halter; stößt er an, ist die Flanke
+  rot mit dem Satz „Halter oder Schaft führen hier in die Wand: Das Werkzeug steht 32 mm heraus,
+  für diese Wand bräuchte es mindestens 42 mm – ein längeres Werkzeug, oder das 3D-Schlichten.“ –
+  den Haken bekommt das 3D-Schlichten.
+- `translations/de.json`, `translations/en.json` (`ba.fl.halter_stoesst`).
+- `tests/test_schraeg_abtrag.py` (Halter am Kegel: 12 mm Schneide stößt an, frei ab gut 41 mm;
+  35 mm frei), `tests/gui/szenario_flanke_halter.py` (neu), `package.xml` (0.213.40),
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `test_schraeg_abtrag`, `test_flanke`, `test_sprache`, `szenario_flanke_halter`,
+  `szenario_flanke`. Die Prüfung kostet am Kegel 0,6 s (die Bahn selbst 16,5 s – siehe
+  Nächster Schritt).
+
 ## P-2026-10-11-32 abtrag-mit-schraegem-werkzeug
 
 ### EINGELESEN

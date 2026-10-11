@@ -2479,7 +2479,11 @@ class _Flanke(_Strategie):
             raise ValueError(tr("fl.fehler.fraeser"))
         radius = float(form.radius)
         schneide = float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0) or 4.0 * radius
-        return flop.bahn_fuer(
+        try:
+            bibliothek = wz.Bibliothek.laden()
+        except (wz.BeschaedigteDatei, OSError):
+            bibliothek = None
+        bahn = flop.bahn_fuer(
             job,
             job.Model.Group,
             radius,
@@ -2488,7 +2492,21 @@ class _Flanke(_Strategie):
             aufmass=werte["aufmass"],
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
+            koerper=flop.koerper_ueber_der_schneide(werkzeug, bibliothek),
         )
+        if bahn.anstoss is not None:
+            # Der Halter in der Wand (legros im Forum; Manuel, 2026-10-11: „es hilft nichts wenn
+            # der halter dann in den kegel reinballert“): so nicht – mit dem, was es bräuchte.
+            raise ValueError(
+                tr(
+                    "ba.fl.halter_stoesst",
+                    heraus=groesse_zeigen(bahn.anstoss.heraus, einheiten.LAENGE, 1),
+                    mindestens=groesse_zeigen(
+                        math.ceil(bahn.anstoss.mindestens), einheiten.LAENGE, 0
+                    ),
+                )
+            )
+        return bahn
 
     def zeit(self, bahn, vorschub, eintauchen):
         return bahn.zeit  # mit dem Drehen der Achse (flanke_bahn._laenge_und_zeit)

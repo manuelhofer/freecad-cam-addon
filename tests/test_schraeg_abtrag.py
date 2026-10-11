@@ -4,7 +4,9 @@
 # 80 × 80 × 10, das Rohteil ein Kasten; „Flanke“ mit einem Schaftfräser Ø 10 (35 mm Schneide: ein
 # Umlauf; 12 mm: drei Lagen). Bisher kein Abtrag (restmaterial, simultan_restbild: None); jetzt
 # steht auf dem Mantel noch der Kegel, unten am Fuß ist ein Ring bis auf die Platte weg, in der Ecke
-# steht das Rohteil. Dazu tiefste() an einem schrägen Zylinder und einer Kapsel nachgerechnet.
+# steht das Rohteil. Dazu tiefste() an einem schrägen Zylinder und einer Kapsel nachgerechnet. Und
+# der Halter (flanke_bahn.halter_pruefen): mit 12 mm Schneide steht der ER16 32 mm von der Spitze,
+# in den unteren Lagen im Kegel – frei wäre er ab gut 41 mm; mit 35 mm Schneide ist er frei.
 import math
 import os
 import pathlib
@@ -115,11 +117,26 @@ def abtrag_mit(schneide):
     doc.recompute()
     fahrt = ab.abfahrt(pruefung, job, rw.nullpunkt(job), bibliothek)
     spitzen = fahrt.am_werkstueck()
-    return doc, job, op, fahrt, spitzen
+    return doc, job, op, fahrt, spitzen, werkzeug, bibliothek
 
 
 for schneide, lagen in ((35.0, 1), (12.0, 3)):
-    doc, job, op, fahrt, spitzen = abtrag_mit(schneide)
+    doc, job, op, fahrt, spitzen, werkzeug, bibliothek = abtrag_mit(schneide)
+    # Der Halter (flanke_bahn.halter_pruefen): mit 12 mm Schneide steht der ER16 in den unteren
+    # Lagen im Kegel – die Bahn sagt es und wie weit das Werkzeug herausstehen müsste.
+    koerper = flop.koerper_ueber_der_schneide(werkzeug, bibliothek)
+    bahn = flop.bahn_fuer(job, job.Model.Group, 5.0, schneide, mantel, koerper=koerper)
+    anstoss = bahn.anstoss
+    print(ascii(f"Schneide {schneide}: Koerper {koerper}, Anstoss {anstoss}"))
+    if lagen == 1:
+        pruefe(anstoss is None, f"Schneide {schneide}: Halter stößt an: {anstoss}")
+    else:
+        pruefe(
+            anstoss is not None
+            and abs(anstoss.heraus - 32.0) < 1e-6
+            and 40.0 < anstoss.mindestens < 44.0,
+            f"Schneide {schneide}: Anstoß {anstoss}",
+        )
     pruefe(op.Lagen == lagen, f"Schneide {schneide}: {op.Lagen} Lagen statt {lagen}")
     pruefe(rm.fuer(fahrt, job, spitzen) is None, "restmaterial trägt schon ab?")
     pruefe(simultan_restbild.fuer(fahrt, job, spitzen) is None, "simultan_restbild trägt schon ab?")

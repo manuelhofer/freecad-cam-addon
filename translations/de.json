@@ -1965,6 +1965,7 @@
     "ba.fl.fraeser.tooltip": "Ein Schaftfräser – mit der Schneide so lang wie die Wand ein Umlauf, sonst mehrere Lagen.",
     "ba.fl.aufmass.tooltip": "So viel bleibt an den Wänden stehen (leer: 0).",
     "ba.fl.keine": "Für schräge Wände aus Geraden (Ebene, Kegel, Regelfläche), 0,5° bis 45° aus der Senkrechten: sie anklicken.",
+    "ba.fl.halter_stoesst": "Halter oder Schaft führen hier in die Wand: Das Werkzeug steht {heraus} mm heraus, für diese Wand bräuchte es mindestens {mindestens} mm – ein längeres Werkzeug, oder das 3D-Schlichten.",
     "ba.fl.ohne_maschine": "Geht an einer 5-Achs-Maschine – oben wählen.",
     "ba.flaeche.flanke": "{name}: schräge Wand aus Geraden, unten {z} – Flanke oder 3D-Schlichten",
     "ba.ergebnis_fl": "→ {umlaeufe}, die Achse bis {neigung}° geneigt, etwa {zeit}",

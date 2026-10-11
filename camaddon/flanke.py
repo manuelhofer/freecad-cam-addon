@@ -177,9 +177,12 @@ def bahn_fuer(
     eintauchen=0.0,
     gleichlauf=True,
     schritt=fb.SCHRITT,
+    koerper=None,
 ):
     """Die Bahn „Flanke“ an den Wänden `flaechen` des Modells; `schritt`: so dicht liegen die
-    Stellen an gekrümmten Kanten (mm). ValueError mit einem Satz, wenn es nicht geht."""
+    Stellen an gekrümmten Kanten (mm); `koerper` (koerper_ueber_der_schneide): mit ihnen sieht
+    die Bahn nach, wo Halter oder Schaft ins Teil führen (Flankenbahn.anstoss). ValueError mit
+    einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -198,7 +201,32 @@ def bahn_fuer(
         gleichlauf=gleichlauf,
         schritt=schritt,
     )
-    return fb.planen(form_teil, list(flaechen), werte)
+    bahn = fb.planen(form_teil, list(flaechen), werte)
+    if koerper:
+        bahn.anstoss = fb.halter_pruefen(form_teil, bahn, koerper, radius)
+    return bahn
+
+
+def koerper_ueber_der_schneide(werkzeug, bibliothek):
+    """[(von, bis, Radius)] längs der Achse ab der Spitze (mm): Hals, Schaft und Halter des
+    Werkzeugs der Werkzeugverwaltung, wie „Kollision prüfen“ sie sieht (kollision.werkzeugkapseln,
+    der Halter gewählt oder vorgeschlagen) – leer bei einem gewinkelten Halter (eine Fräse hat
+    keinen) oder ohne Durchmesser."""
+    from . import kollision as kb
+    from . import reichweite as rw
+
+    if bibliothek is None or not werkzeug.durchmesser:
+        return []
+    halter = bibliothek.halter_fuer_pruefung(werkzeug)
+    if halter is not None and halter.gewinkelt:
+        return []
+    laenge, _quelle = rw.laenge_des_werkzeugs(werkzeug, bibliothek)
+    kapseln = kb.werkzeugkapseln(rw.masse_des_werkzeugs(werkzeug), laenge, halter)
+    return [
+        (p0[2] + laenge, p1[2] + laenge, r)
+        for art in (kb.HALS, kb.SCHAFT, kb.HALTER)
+        for p0, p1, r, _flach in kapseln.get(art, ())
+    ]
 
 
 def lege_an(job, tc, aufmass=0.0, name=None, flaechen=()):

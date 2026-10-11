@@ -1965,6 +1965,7 @@
     "ba.fl.fraeser.tooltip": "An end mill – with a cutting length as long as the wall one loop, otherwise several levels.",
     "ba.fl.aufmass.tooltip": "This much stays on the walls (empty: 0).",
     "ba.fl.keine": "For sloped walls made of straight lines (plane, cone, ruled surface), 0.5° to 45° off vertical: click them.",
+    "ba.fl.halter_stoesst": "The holder or shank would run into the wall here: the tool sticks out {heraus} mm, this wall needs at least {mindestens} mm – a longer tool, or 3D finishing.",
     "ba.fl.ohne_maschine": "Works on a 5-axis machine – choose it above.",
     "ba.flaeche.flanke": "{name}: sloped wall of straight lines, bottom {z} – flank or 3D finishing",
     "ba.ergebnis_fl": "→ {umlaeufe}, axis tilted up to {neigung}°, about {zeit}",

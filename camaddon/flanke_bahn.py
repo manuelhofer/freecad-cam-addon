@@ -21,6 +21,11 @@ gerade Parameterlinie.
   Würde der Fräser dort in eine andere Fläche des Teils schneiden (eine scharfe Innenecke), fällt
   die Stelle weg – dort bleibt Material, wie bei jedem Schaftfräser.
 - **Lagen:** Ist die Wand länger als die Schneide, mehrere Umläufe von oben nach unten.
+- **Der Halter:** Mit `halter_pruefen` (die Körper über der Schneide, die dicker sind als sie:
+  Halter, ein dicker Schaft) sieht die Bahn, wo er in die Wand führe – in den unteren Lagen liegt
+  er dort, wo die Wand weiter oben steht (legros im Forum, 2026-10-10: ein Kegel, der ER16 im
+  Kegel; Manuel, 2026-10-11: „es hilft nichts wenn der halter dann in den kegel reinballert“) –
+  und wie weit das Werkzeug mindestens herausstehen müsste.
 - **An- und Abfahren:** im Eilgang über dem Anfang die Achse entlang hinab, im Eintauchvorschub
   bis ABSTAND vor der Wand, quer an die Wand; am Ende quer weg und die Achse entlang hinauf.
 
@@ -32,6 +37,7 @@ import math
 from dataclasses import dataclass, field
 
 import FreeCAD
+import numpy as np
 
 from .sprache import tr
 
@@ -44,6 +50,11 @@ ABSTAND = 2.0  # mm – so weit vor der Wand beginnt und endet ein Umlauf
 GERADE = 1e-4  # mm je mm – so weit darf eine Parameterlinie von der Sehne abweichen
 TOLERANZ = 0.002  # mm – so viel näher als der Radius darf eine andere Fläche der Achse kommen
 SICHERHEIT = 2.0  # mm über dem Rohteil
+HALTER_NETZ = 0.05  # mm – so fein wird das Teil für halter_pruefen vernetzt
+HALTER_TIEFER = 0.1  # mm – so weit (nach Netz und Schranke) muss ein Körper ins Teil, um zu zählen
+HALTER_JE_ABFRAGE = 16  # so viele Stellen fragt halter_pruefen auf einmal (nah beieinander)
+HALTER_LAENGER = 300.0  # mm – weiter heraus sucht halter_pruefen nicht
+HALTER_SCHRITT = 1.0  # mm – so dicht längs der Bahn prüft halter_pruefen (die Bahn hat 0,2 mm)
 UEBERLAPP = 0.5  # mm – so viel überlappen sich zwei Lagen
 
 
@@ -85,6 +96,16 @@ class Flankenbahn:
     neigung: float  # Grad – die größte Neigung der Achse gegen die Senkrechte
     weggelassen: int = 0  # Stellen, an denen der Fräser in eine andere Fläche schnitte
     zuege: list = field(default_factory=list)  # je Zug die Flächen
+    anstoss: object = None  # Anstoss: Halter oder Schaft im Teil (halter_pruefen), sonst None
+
+
+@dataclass
+class Anstoss:
+    """Wo die Körper über der Schneide ins Teil führen (halter_pruefen)."""
+
+    stellen: int  # so viele der geprüften Stellen im Vorschub (etwa je HALTER_SCHRITT eine)
+    heraus: float  # mm von der Spitze bis zum ersten dickeren Körper (meist der Halter)
+    mindestens: float  # mm – so weit müsste er von der Spitze weg sein, damit nichts anstößt
 
 
 # --- Die Wände ------------------------------------------------------------------------------
@@ -412,6 +433,57 @@ def planen(form, namen, werte):
     return Flankenbahn(
         punkte, umlaeufe, lagen_max, laenge, zeit, neigung, weggelassen, namen_je_zug
     )
+
+
+def halter_pruefen(form, bahn, koerper, radius):
+    """Anstoss oder None: Führen die Körper über der Schneide – `koerper` [(von, bis, Radius)],
+    von und bis in mm längs der Achse ab der Spitze (Hals, Schaft, Halter) – an einer Stelle der
+    Bahn im Vorschub ins Teil `form`? Es zählen nur die dicker als die Schneide (`radius`): Ein
+    Schaft wie sie liegt an der Wand nur an, wie sie. Gerechnet mit dem Netz des Teils
+    (netzabstand), je HALTER_JE_ABFRAGE Stellen auf einmal; `mindestens` aus einer Halbierung je
+    anstoßender Stelle: um wie viel weiter oben die Körper frei wären."""
+    from . import netzabstand as na
+
+    teile = [(a, b, r) for a, b, r in koerper if r > radius + 1e-3 and b - a > 1e-6]
+    stellen = [p for p in bahn.punkte if not p.eilgang]
+    if not teile or not stellen:
+        return None
+    netz = na.Netz(form, HALTER_NETZ)
+    spitzen = np.array([tuple(p.spitze) for p in stellen], dtype=float)
+    achsen = np.array([tuple(p.achse) for p in stellen], dtype=float)
+    # Etwa alle HALTER_SCHRITT längs der Bahn – ein Halter ist breit, er steckt nie nur 0,2 mm im
+    # Teil (am Kegel 2400 Stellen in drei Lagen: 15 statt 2 s).
+    weg = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(spitzen, axis=0), axis=1))])
+    marken = np.arange(0.0, weg[-1] + HALTER_SCHRITT, HALTER_SCHRITT)
+    waehle = np.unique(np.minimum(np.searchsorted(weg, marken), len(weg) - 1))
+    spitzen, achsen = spitzen[waehle], achsen[waehle]
+    reichweite = max(r for _a, _b, r in teile) + 1.0
+
+    def stoesst(index, weiter):
+        """Je Stelle `index`: stößt ein Teil an, um `weiter` (je Stelle) zur Spindel geschoben?"""
+        ergebnis = np.zeros(len(index), dtype=bool)
+        for anfang in range(0, len(index), HALTER_JE_ABFRAGE):
+            hier = slice(anfang, anfang + HALTER_JE_ABFRAGE)
+            s, a, w = spitzen[index[hier]], achsen[index[hier]], weiter[hier]
+            von = np.concatenate([s + (t[0] + w)[:, None] * a for t in teile])
+            nach = np.concatenate([s + (t[1] + w)[:, None] * a for t in teile])
+            radien = np.concatenate([np.full(len(s), t[2]) for t in teile])
+            abstand = netz.kapseln(von, nach, reichweite, radien, np.ones(len(von), dtype=bool))
+            ergebnis[hier] = (abstand.reshape(len(teile), -1) < -HALTER_TIEFER).any(axis=0)
+        return ergebnis
+
+    alle = np.arange(len(spitzen))
+    an = alle[stoesst(alle, np.zeros(len(alle)))]
+    if not len(an):
+        return None
+    unten, oben = np.zeros(len(an)), np.full(len(an), HALTER_LAENGER)
+    for _ in range(12):  # auf 0,1 mm genau
+        mitte = (unten + oben) / 2
+        noch = stoesst(an, mitte)
+        unten = np.where(noch, mitte, unten)
+        oben = np.where(noch, oben, mitte)
+    heraus = min(a for a, _b, _r in teile)
+    return Anstoss(len(an), heraus, heraus + float(oben.max()))
 
 
 def _lage(stelle, lage, hoehe):

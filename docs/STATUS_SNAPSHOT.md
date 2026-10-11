@@ -259,9 +259,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 abgearbeitet):
 1. ~~**Abtrag im Abspieler auch mit schrägem Werkzeug** (Flanke, 3+2, simultan).~~ Erledigt:
    P-2026-10-11-32 (Höhenfeld – Hinterschnitte zeigt es nicht).
-2. **Flanke: der Halter darf nicht ins Teil** – Lagen so planen, dass der Halter frei bleibt
-   (anders anstellen, wo die Form bleibt), sonst klar melden: „steht zu wenig heraus, mindestens …
-   mm“. Vorschruppen auf 3 Achsen mit dem Schaftfräser, Schlichten mit der Flanke.
+2. ~~**Flanke: der Halter darf nicht ins Teil**~~ – erledigt im Assistenten: P-2026-10-11-33
+   (rot mit „mindestens … mm“; anders anstellen hilft bei der Flanke nicht). Offen: die Bahn der
+   Flanke rechnet am Kegel mit drei Lagen 16,5 s im Fenster – schneller und in den Nebenrechner.
 3. **Kollision (Frage 7):** klare Meldung, wenn die Ausspannlänge nicht reicht; im Abspieler bis zur
    Kollision fahren und dort anhalten; Knopf „Zur nächsten Kollision“; die Bahn weicht aus
    (Anstellung, Y), wo die Form des Teils bleibt – die Maschine gehört in die Kollisionsüberwachung.
