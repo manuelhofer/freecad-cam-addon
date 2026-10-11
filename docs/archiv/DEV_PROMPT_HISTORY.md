@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-93 zugang-aus-der-aufspannung
+
+### EINGELESEN
+- Manuel, 2026-10-11 abends, auf Frage 14 (Bild: Schwenkteil eingefärbt nach Richtung): „ja das ist
+  ein toller Ablauf“; „das Wort Spannmittel kann man vll noch irgendwo mit beischreiben“. Dazu gefragt:
+  „was ist mit Ausweichfräsen – der Werkzeughalter kommt nicht dran, aber wenn du etwas schwenkst, ist
+  alles gut?“ – beantwortet: „Wegkippen (5 Achsen simultan)“ beim 3D-Schlichten mit Kugel; nicht beim
+  Schruppen, nicht mit Torus/Schaft, keine schräg gestellte 3+2-Ebene; sein Testteil dafür ist noch
+  nicht fertig.
+
+### DATEIEN
+- `camaddon/zugang.py` (neu): `zugang(form, unten, spannflaeche, maschine)` → Richtungen mit
+  Flächen und Stellungen, unerreichbar mit Grund – Spezifikation Strategien 15.5. Strahlen gegen das
+  vernetzte Teil (Möller-Trumbore mit numpy); Wände gehen über Innenkanten mit ihrem Boden.
+- `translations/de.json`, `en.json`: „Unten im Spannmittel“ (`ba.unten`, Tooltips), `zg.grund.*`;
+  `help/de|en/bearbeitung.html`.
+- `tests/test_zugang.py` (neu). Spezifikation Strategien 15.5, Offene Fragen (14 beantwortet).
+
+### ERGEBNIS
+- Schwenkteil: oben 14, 30° 10, 45° 3 Flächen, nichts unerreichbar, 0,07 s; Tisch/Tisch A0 C0 /
+  A30 C0 / A45 C90, G550 A−90 / A−60 / A−45 B90; 3-Achs-Fräse oben 14, 13 „Maschine“.
+- Zwei Fehlversuche: Die Seitenwände der Tasche in der Schräge kamen „von oben“ (der Mantel käme
+  dran) – Wände gehen jetzt über Innenkanten mit ihrem Boden; danach wanderte eine Außenwand zur
+  Schräge mit – nur Innenkanten zählen.
+
+### AKZEPTANZKRITERIUM
+- `test_zugang`, `test_sprache`, `test_hilfe` in 1.1.4.
+
 ## P-2026-10-11-92 goldene-bahnen-je-occ
 
 ### EINGELESEN

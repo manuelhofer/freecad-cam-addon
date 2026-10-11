@@ -2691,6 +2691,33 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **Eilgang durchs Rohteil** (Simulation 4c): bleibt so (Manuel: „habe ich ja eigentlich vorher
   schon geklärt“).
 
+### 15.5 Aus der Aufspannung: alles Erreichbare nach Richtungen (Frage 14, 2026-10-11)
+
+Manuel, 2026-10-11 abends: „ich gebe eine Fläche an, die in dem Spannmittel ist .. und dann wird
+bearbeitet … vll kann man ja so machen, dass man Flächen anklicken kann im zweiten Auswahlfenster,
+welche man bearbeitet haben will … oder Bereiche“ – auf den Vorschlag mit Bild: „ja das ist ein
+toller Ablauf“; dazu „das Wort Spannmittel kann man vll noch irgendwo mit beischreiben“.
+
+1. Schritt 1 des Assistenten „Bearbeitung“: „Unten im Spannmittel: Fläche anklicken …“.
+2. `zugang.zugang` ordnet jede andere Fläche einer Richtung der Werkzeugachse zu: Stirnflächen
+   ihrer Normalen, Wände (Normale quer zur Richtung) dem Mantel – senkrechte von oben, ohne Schwenk –,
+   Zylinder und Kegel (Bohrung, Ecke, Zapfen) ihrer Achse, Freiform einer Richtung ohne Hinterschnitt;
+   nie ins Spannmittel; freie Sicht längs der Achse (Strahlen gegen das vernetzte Teil). Oben zuerst,
+   dann die Richtung mit den meisten übrigen Flächen. Eine Wand geht mit ihrem Boden (Nachbar an einer
+   Innenkante), auch wenn der unerreichbar ist. Mit der Maschine nur Richtungen, in die sie schwenkt,
+   die Stellung der Rundachsen wie an der Steuerung. Unerreichbar mit Grund: Maschine, Spannmittel,
+   Sicht.
+3. Schritt 2: das Teil eingefärbt nach Richtung, ein Klick nimmt eine Fläche heraus oder hinein,
+   vorbelegt alle erreichbaren; Rot mit Grund.
+4. Je Richtung eine Ebene (wie „Ebene schwenken“), darin die Strategien wie heute.
+
+Am Schwenkteil (Unterseite im Spannmittel): alle 27 übrigen Flächen aus drei Richtungen – oben 14,
+30° 10, 45° 3; Tisch/Tisch A0/A30/A45 C90, G550 A−90/A−60/A−45 B90; auf der 3-Achs-Fräse oben 14, 13
+„Maschine schwenkt nicht so weit“. 0,07 s.
+
+**Gebaut:** Schritt 1 (Beschriftung) und 2 (`zugang.py`, `tests/test_zugang.py`, P-2026-10-11-93).
+**Offen:** Schritt 2 im Fenster, Schritt 4.
+
 ## 16. 5 Achsen simultan (W-015)
 
 Die gebauten Schritte stehen in 16.3. Simultan ändert, wie Bahnen entstehen und was im
