@@ -208,6 +208,9 @@ class Schruppwerte:
     # Normalen – auf einer ebenen Fläche hält die Rundachse, die Querachse fährt die Gerade; je
     # Lage höchstens die Zustellung unter die Stange (vierachs_quer.lagen_grenze).
     querachse: bool = False
+    # Mit der Querachse: C dreht nie gegen die Spirale zurück (_stetig) – wie beim Schlichten
+    # (Manuel, 2026-10-11, Frage 11: „wens ruhiger wird ists gut“; P-2026-10-11-47).
+    stetig: bool = False
 
 
 @dataclass(frozen=True)
@@ -619,7 +622,9 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
         r = r + zugabe
         r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft nichts: oben
         winkel = drehung * (versatz + k) * schritt_phi
-        a_p, x_p, q_p, psi_p, fest, _neu = _quer_plan(a, r, winkel, radius, schritt_phi)
+        a_p, x_p, q_p, psi_p, fest, _neu = _quer_plan(
+            a, r, winkel, radius, schritt_phi, stetig=w.stetig
+        )
         psi_p, x_p, q_p = vq.stellungen(
             netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
         )

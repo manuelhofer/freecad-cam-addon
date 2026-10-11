@@ -2693,5 +2693,7 @@
     "va.rest.laengs": "along the axis",
     "va.rest.tooltip": "Recalculated in the bar as 1 mm cubes: first the roughing path, then the finishing path, and per mm of path what the ball removes. The cutter in the model lies entirely within the real one – so it leaves rather more stock than the machine does.",
     "va.lagen.unter": "→ {lagen} layers (Ø {von} {e_laenge} → down to {tiefe} {e_laenge} below the centre)",
-    "va.lagen.eine_unter": "→ 1 layer (Ø {von} {e_laenge} → down to {tiefe} {e_laenge} below the centre)"
+    "va.lagen.eine_unter": "→ 1 layer (Ø {von} {e_laenge} → down to {tiefe} {e_laenge} below the centre)",
+    "vo.eigenschaft.stetig": "With the cross axis: C never turns back against the spiral – the tool axis follows the surface normal only as far as C keeps turning forward.",
+    "va.stetig.schruppen.tooltip": "With the cross axis the tool axis follows the surface normal only as far as C keeps turning forward – C never turns back, the machine runs more smoothly. On the nose test part just as fast (15.3 instead of 15.4 min, C never back instead of 266 times); the ball then has about 5 % more to remove."
 }

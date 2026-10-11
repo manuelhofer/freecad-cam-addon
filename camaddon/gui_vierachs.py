@@ -561,6 +561,7 @@ class VierachsPanel:
         self._anstellen_von_hand = False  # der Haken „Kugel anstellen“ von Hand gesetzt
         self._stetig_von_hand = False  # der Haken „C dreht nicht zurück“ von Hand gesetzt
         self._querachse_schruppen_von_hand = False  # … beim Schruppen
+        self._stetig_schruppen_von_hand = False  # „C dreht nicht zurück“ beim Schruppen
         self.gewaehlte = []  # die Flächen zum Fräsen („Face3“ …), V4 – leer: rundum
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
@@ -814,6 +815,11 @@ class VierachsPanel:
             self._querachse_vorschlagen()
             self.schruppen_querachse.setChecked(
                 self.schruppen_querachse.isEnabled() and bool(getattr(op, "Querachse", False))
+            )
+            self._stetig_schruppen_von_hand = True
+            self._stetig_schruppen_vorschlagen()
+            self.schruppen_stetig.setChecked(
+                self.schruppen_stetig.isEnabled() and bool(getattr(op, "Stetig", True))
             )
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
         # Die Auflösung: nur ein gesetzter Wert (0 ist der Vorschlag und bleibt grau).
@@ -1285,6 +1291,12 @@ class VierachsPanel:
         self.querachse_grund_schruppen = self._grau()
         self.querachse_grund_schruppen.setWordWrap(True)
         schruppen.ganz(self.querachse_grund_schruppen)
+        # C dreht dabei nicht zurück (Manuel, 2026-10-11, Frage 11: „als option anbieten … wens
+        # ruhiger wird ists gut“): frei mit der Querachse, dann angehakt.
+        self.schruppen_stetig = QtGui.QCheckBox(tr("va.stetig"))
+        self.schruppen_stetig.setToolTip(tr("va.stetig.schruppen.tooltip"))
+        self.schruppen_stetig.toggled.connect(lambda _an: self._stetig_schruppen_umgeschaltet())
+        schruppen.ganz(self.schruppen_stetig)
         self.schruppfelder = schruppen.widget
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
@@ -2104,6 +2116,7 @@ class VierachsPanel:
             geht, grund = True, tr("va.querachse.schruppen.vorschlag")
         self.querachse_grund_schruppen.setText(grund)
         self._haken_setzen(self.schruppen_querachse, geht, self._querachse_schruppen_von_hand)
+        self._stetig_schruppen_vorschlagen()
 
     def _haken_setzen(self, haken, geht, von_hand):
         """Ein Haken „mit der Querachse“: frei und vorgeschlagen, wenn es geht – solange er nicht
@@ -2161,6 +2174,24 @@ class VierachsPanel:
         """Schruppen mit der Querachse (angehakt und möglich)?"""
         return self.schruppen_querachse.isEnabled() and self.schruppen_querachse.isChecked()
 
+    def _stetig_schruppen_vorschlagen(self):
+        """„C dreht nicht zurück“ beim Schruppen: frei mit der Querachse, dann angehakt, solange
+        man ihn nicht von Hand gesetzt hat."""
+        quer = self.schruppen_querachse.isChecked() and self.schruppen_querachse.isEnabledTo(
+            self.schruppfelder
+        )
+        self._haken_setzen(self.schruppen_stetig, quer, self._stetig_schruppen_von_hand)
+
+    def stetig_schruppen(self):
+        """Beim Schruppen mit der Querachse dreht C nicht zurück (angehakt und möglich)?"""
+        return self.schruppen_stetig.isEnabled() and self.schruppen_stetig.isChecked()
+
+    def _stetig_schruppen_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._stetig_schruppen_von_hand = True
+        self._vorschau_starten()
+
     def _querachse_umgeschaltet(self):
         if self._fuellt:
             return
@@ -2190,6 +2221,7 @@ class VierachsPanel:
         if self._fuellt:
             return
         self._querachse_schruppen_von_hand = True
+        self._stetig_schruppen_vorschlagen()
         self._vorschau_starten()
 
     def _muster_gewaehlt(self):
@@ -3439,6 +3471,7 @@ class VierachsPanel:
         ), {
             "nur_gleichlauf": self.schruppen_nur_gleichlauf.isChecked(),
             "form": ff.von_werkzeug(werkzeug),
+            "stetig": self.stetig_schruppen(),
         }
 
     @staticmethod
@@ -4161,6 +4194,7 @@ class VierachsPanel:
                         eintauchwinkel=self._eintauchwinkel(),
                         nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                         querachse=self.querachse_schruppen(),
+                        stetig=self.stetig_schruppen(),
                     )
                     self._aufloesung_setzen(neu_schruppen)
                     angelegt.append(neu_schruppen)
@@ -4383,6 +4417,7 @@ class VierachsPanel:
                         eintauchwinkel=self._eintauchwinkel(),
                         nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                         querachse=self.querachse_schruppen(),
+                        stetig=self.stetig_schruppen(),
                     )
                     self._aufloesung_setzen(op)
                 if schlichten_dazu:

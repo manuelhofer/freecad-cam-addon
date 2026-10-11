@@ -82,7 +82,7 @@ class RundumSchruppen(PathOp.ObjectOp):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
         au.eigenschaft(obj, GRUPPE)  # die Auflösung längs (mm) und rundum (Grad), T-009
         au.eigenschaft_rundum(obj, GRUPPE)
-        return eigenschaften_anlegen(
+        neu = eigenschaften_anlegen(
             obj,
             achs_eigenschaften()
             + (
@@ -96,9 +96,13 @@ class RundumSchruppen(PathOp.ObjectOp):
                 ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
                 ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
                 ("App::PropertyBool", "Querachse", tr("vo.eigenschaft.querachse")),
+                ("App::PropertyBool", "Stetig", tr("vo.eigenschaft.stetig")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
             ),
         )
+        if "Stetig" in neu:
+            obj.Stetig = True  # auch in älteren Operationen, wie beim Schlichten (P-2026-10-11-47)
+        return neu
 
     @staticmethod
     def _editormodi(obj):
@@ -220,6 +224,7 @@ def rechne(obj, job, modell, fraeser_radius):
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         form=form_des_controllers(obj.ToolController),
         querachse=bool(getattr(obj, "Querachse", False)),
+        stetig=bool(getattr(obj, "Stetig", True)),
         schritt_a=au.wert(obj, vh.SCHRITT_A),
         schritt_phi=au.wert_rundum(obj, vh.SCHRITT_PHI),
     )
@@ -247,6 +252,7 @@ def bahn_fuer(
     querachse=False,
     schritt_a=vh.SCHRITT_A,
     schritt_phi=vh.SCHRITT_PHI,
+    stetig=False,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -254,8 +260,8 @@ def bahn_fuer(
     Werkzeugachse (halter.seitlich); `flaechen_`: die gewählten Flächen („Face3“ …), leer:
     rundum; `eintauchwinkel` (Grad) für die Rampe ins Material zwischen ihnen; `gleichlauf`:
     die Spirale im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `querachse`: die
-    Spirale mit der Querachse (vierachs_bahn.Schruppwerte.querachse). ValueError mit einem Satz,
-    wenn es nicht geht."""
+    Spirale mit der Querachse (vierachs_bahn.Schruppwerte.querachse), `stetig`: C dreht dabei nie
+    zurück (Schruppwerte.stetig). ValueError mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -285,6 +291,7 @@ def bahn_fuer(
         form=form,
         r_tiefste=r_tiefste,
         querachse=querachse,
+        stetig=stetig,
     )
     netz = vh.vernetze(teil)
     # Dieselbe Schruppbahn rechnet „Rundum schlichten“ nach (für den Rest darüber) – gemerkt, nach
@@ -314,6 +321,7 @@ def bahn_fuer(
                 "nur_gleichlauf",
                 "r_tiefste",
                 "querachse",
+                "stetig",
             )
         ),
         schritt_a,
@@ -393,6 +401,7 @@ def lege_an(
     eintauchwinkel=None,
     nur_gleichlauf=False,
     querachse=False,
+    stetig=True,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
@@ -429,6 +438,7 @@ def lege_an(
         obj.Eintauchwinkel = eintauchwinkel
     obj.NurGleichlauf = bool(nur_gleichlauf)
     obj.Querachse = bool(querachse)
+    obj.Stetig = bool(stetig)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -476,6 +486,7 @@ def aendere(
     eintauchwinkel=None,
     nur_gleichlauf=None,
     querachse=None,
+    stetig=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
@@ -500,6 +511,8 @@ def aendere(
         obj.NurGleichlauf = bool(nur_gleichlauf)
     if querachse is not None and bool(querachse) != bool(getattr(obj, "Querachse", False)):
         obj.Querachse = bool(querachse)
+    if stetig is not None and bool(stetig) != bool(getattr(obj, "Stetig", True)):
+        obj.Stetig = bool(stetig)
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

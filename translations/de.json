@@ -2693,5 +2693,7 @@
     "va.rest.laengs": "längs",
     "va.rest.tooltip": "Nachgerechnet in der Stange als Würfel von 1 mm: erst die Schruppbahn, dann die Schlichtbahn, je mm Weg, was die Kugel dabei wegnimmt. Der Fräser im Modell liegt ganz im echten – es bleibt dort eher mehr stehen als auf der Maschine.",
     "va.lagen.unter": "→ {lagen} Lagen (Ø {von} {e_laenge} → bis {tiefe} {e_laenge} unter die Mitte)",
-    "va.lagen.eine_unter": "→ 1 Lage (Ø {von} {e_laenge} → bis {tiefe} {e_laenge} unter die Mitte)"
+    "va.lagen.eine_unter": "→ 1 Lage (Ø {von} {e_laenge} → bis {tiefe} {e_laenge} unter die Mitte)",
+    "vo.eigenschaft.stetig": "Mit der Querachse: C dreht nie gegen die Spirale zurück – die Werkzeugachse steht nur so weit auf der Normalen, wie C dabei weiterdreht.",
+    "va.stetig.schruppen.tooltip": "Mit der Querachse steht die Werkzeugachse nur so weit auf der Normalen der Fläche, wie C dabei weiterdreht – C dreht nie zurück, die Maschine läuft ruhiger. Am Nasen-Testteil gleich schnell (15,3 statt 15,4 min, C nie zurück statt 266-mal); die Kugel hat danach etwa 5 % mehr zu tun."
 }

@@ -270,7 +270,7 @@ abgearbeitet):
 4. **Querachse nur, wo nötig (Frage 9):** „C dreht nicht zurück“ (P-2026-10-11-37) – die
    Werkzeugachse quer nur, soweit C weiterdreht; am Testteil 187,5 → 177,8 min, keine Umkehr mehr.
    Dasselbe für „Rundum schruppen“ mit der Querachse (Frage 11, Manuel 2026-10-11: „als option
-   anbieten … wens ruhiger wird ists gut“): Haken, vorbelegt an – in Arbeit.
+   anbieten … wens ruhiger wird ists gut“): Haken, vorbelegt an – erledigt, P-2026-10-11-47.
 5. **Rest nach dem Schruppen (Frage 8)** im Assistenten melden und mehr anbieten: an schrägen
    Wänden zusätzlich in Z abzeilen (Schaftfräser) oder dort am Umfang mit kleinerer Steigung.
    Nachgerechnet (Voxel): die halbe Steigung überall kostet 14 min und nimmt der Kugel nur 10 %.

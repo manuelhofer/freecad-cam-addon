@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-47 schruppen-stetig
+
+### EINGELESEN
+- Frage 11 (Manuel, 2026-10-11): „als option anbieten ? keine ahnung was bringts .. wens rhuiger
+  wird ists gut“ – „C dreht nicht zurück“ auch beim Rundum-Schruppen mit der Querachse, als Haken,
+  vorbelegt an (wie beim Schlichten, P-2026-10-11-37).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `Schruppwerte.stetig`; `_schruppen_quer` plant je Lage mit
+  `_quer_plan(..., stetig=w.stetig)`.
+- `camaddon/vierachs_operation.py`: Eigenschaft „Stetig“ (auch in älteren Operationen an),
+  `rechne`, `bahn_fuer(..., stetig)` (auch im Schlüssel der gemerkten Bahnen), `lege_an(...,
+  stetig=True)`, `aendere(..., stetig)`.
+- `camaddon/gui_vierachs.py`: Haken „C dreht nicht zurück“ unter „Mit der Querachse (Y)“ beim
+  Schruppen – frei mit der Querachse, dann angehakt; Vorschau, Anlegen, Ändern.
+- `translations/de.json`, `translations/en.json` (`vo.eigenschaft.stetig`,
+  `va.stetig.schruppen.tooltip`), `tests/test_vierachs_frei.py` (am Nasen-Testteil dreht C beim
+  Schruppen nie zurück), `tests/gui/szenario_vierachs_schlichten.py` (der Haken, die Eigenschaft),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.213.53), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil: Schruppen mit Querachse dreht C in keiner Lage zurück (vorher 266-mal, 3741°),
+  kein freier Satz schneidet, nichts vom Teil weg, der Rest für die Kugel wie zuvor im Rahmen.
+- `szenario_vierachs_schlichten` grün, der Haken im Bild.
+
 ## P-2026-10-11-46 rest-gegen-durchmesser
 
 ### EINGELESEN

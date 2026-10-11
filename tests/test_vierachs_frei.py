@@ -215,6 +215,19 @@ weg = nach_schruppen.fahre(schruppbahn.punkte, float(rop.ToolController.Tool.Dia
 frei = np.array([bool(p.frei) for p in schruppbahn.punkte])
 schneiden = int(np.sum(frei & (weg > 0)))
 pruefe(schneiden == 0, f"Nase, Schruppen: {schneiden} freie Sätze schneiden Material")
+# „C dreht nicht zurück“ auch beim Schruppen mit der Querachse (Frage 11, P-2026-10-11-47): in
+# älteren Operationen angehakt; in keiner Lage dreht C zurück (vorher 266-mal, 3741°).
+pruefe(bool(rop.Stetig) and bool(rop.Querachse), "Nase: Schruppen nicht stetig mit Querachse")
+zurueck, lage = 0.0, []
+for p in schruppbahn.punkte + [vb.Punkt(True, 0.0, 0.0, 0.0)]:
+    if p.eilgang:
+        if len(lage) > 1:
+            schritte = np.diff(lage) * np.sign(lage[-1] - lage[0])
+            zurueck += float(-schritte[schritte < 0].sum())
+        lage = []
+    else:
+        lage.append(p.phi)
+pruefe(zurueck < 1e-6, f"Nase, Schruppen: C dreht {zurueck:.0f}° zurück")
 # Das fertige Teil als Voxel (übers Netz, P-2026-10-11-42): so groß wie das Teil, und das
 # Schruppen nahm nichts davon weg.
 fertig = nach_schruppen.teil(vs._teil(job.Model.Group), laengs, rop.Werkzeugrichtung)

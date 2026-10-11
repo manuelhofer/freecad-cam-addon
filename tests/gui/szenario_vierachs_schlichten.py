@@ -123,6 +123,14 @@ def schritte(h):
         panel.schlichten_anstellen.isEnabled() and panel.schlichten_anstellen.isChecked(),
         "„Kugel 15° anstellen“ nicht angehakt",
     )
+    # Beim Schruppen mit der Querachse darunter „C dreht nicht zurück“ (Frage 11,
+    # P-2026-10-11-47) – frei und angehakt.
+    h.pruefe(
+        panel.schruppen_querachse.isChecked()
+        and panel.schruppen_stetig.isEnabled()
+        and panel.schruppen_stetig.isChecked(),
+        "Schruppen: „C dreht nicht zurück“ nicht angehakt",
+    )
     h.bild("1_schruppen_und_schlichten", panel.form)
 
     # Nur schruppen – das Schlichten kommt nachträglich.
@@ -137,6 +145,7 @@ def schritte(h):
     if not ops:
         return
     schruppen = ops[0]
+    h.pruefe(bool(schruppen.Stetig), "Rundum schruppen: Stetig aus")
 
     # --- Doppelklick aufs Schruppen: Schlichten dazunehmen ----------------------------------
     schritte_vorher = len(doc.UndoNames)
