@@ -29,29 +29,30 @@ def _job(dokument, name):
 
 def raeumen(dokument, job_name, form, zustellung, zeilenabstand, aufmass, flaechen, weiter, zeit):
     """(Raeumbahn, Zeit im Freien oder None) – raeumen.vorschau_fuer_assistent; `weiter` seine
-    Schlüsselwörter (mit dem Materialstand `stand`), `zeit` (Vorschub, Eintauchen, Freivorschub)
-    für freiwege.zeit_im_freien, None ohne."""
+    Schlüsselwörter (mit dem Materialstand `stand`), `zeit` (Vorschub, Eintauchen, Freivorschub,
+    Materialstand) für freiwege.zeit_im_freien, None ohne."""
     job = _job(dokument, job_name)
     bahn = ra.vorschau_fuer_assistent(
         job, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter
     )
-    return bahn, _frei(form, weiter.get("stand"), bahn, zeit)
+    return bahn, _frei(form, bahn, zeit)
 
 
 def strategie(dokument, job_name, modul, argumente, weiter, zeit):
     """(Bahn, Zeit im Freien oder None) – `camaddon.<modul>.vorschau(job, Modell, *argumente,
-    **weiter)` (Planfräsen, Kontur, 3D-Schruppen); das erste der `argumente` ist die Form des
-    Fräsers."""
+    **weiter)` (Planfräsen, Kontur, 3D-Schruppen und Restschruppen, 3D-Schlichten); das erste der
+    `argumente` ist die Form des Fräsers."""
     job = _job(dokument, job_name)
     vorschau = importlib.import_module("camaddon." + modul).vorschau
     bahn = vorschau(job, job.Model.Group, *argumente, **weiter)
-    return bahn, _frei(argumente[0], weiter.get("stand"), bahn, zeit)
+    return bahn, _frei(argumente[0], bahn, zeit)
 
 
-def _frei(form, stand, bahn, zeit):
+def _frei(form, bahn, zeit):
     """freiwege.zeit_im_freien für die Bahn – None ohne `zeit` (Vorschub, Eintauchen,
-    Freivorschub)."""
+    Freivorschub, Materialstand: der des Assistenten, wie gui_bearbeitung._zeit_im_freien; das
+    Restschruppen rechnet seine Bahn ohne ihn)."""
     if zeit is None:
         return None
-    vorschub, eintauchen, freivorschub = zeit
+    vorschub, eintauchen, freivorschub, stand = zeit
     return fw.zeit_im_freien(form, stand, bahn.punkte, vorschub, eintauchen, freivorschub)

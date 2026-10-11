@@ -2168,23 +2168,32 @@ class _Restschruppen(_Schruppen3D):
             raise ValueError(tr("ba.rr.davor.fehlt"))
         return durchmesser, float(werte.get("davor_eck") or 0.0)
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Argumente, Schlüsselwörter) für schruppen3d.vorschau – mit dem Fräser davor, ohne
+        Materialstand (die Zeit im Freien rechnet mit ihm)."""
         durchmesser, eckenradius = self.davor(werte)
-        return r3op.vorschau(
-            job,
-            job.Model.Group,
+        return (
             ff.von_werkzeug(werkzeug),
             werte["zustellung"],
             werte["zeilenabstand"],
             werte["aufmass"],
-            flaechen,
-            zwischen=werte["zwischen"],
-            gleichlauf=werte["gleichlauf"],
-            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            davor=ff.torus(durchmesser / 2, min(eckenradius, durchmesser / 2)),
-        )
+            list(flaechen),
+        ), {
+            "zwischen": werte["zwischen"],
+            "gleichlauf": werte["gleichlauf"],
+            "schneidenlaenge": float(werkzeug.schneidenlaenge or 0.0),
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "davor": ff.torus(durchmesser / 2, min(eckenradius, durchmesser / 2)),
+        }
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return r3op.vorschau(job, job.Model.Group, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie)."""
+        return "strategie", ("schruppen3d", *self._argumente(werkzeug, werte, flaechen))
 
     def lege_an(self, job, tc, werte, flaechen):
         return r3op.lege_an(
@@ -2325,23 +2334,36 @@ class _Schlichten3D(_Strategie):
     def vorschlag(self, feld, werkzeug, einsatz):
         return s3b.GRATHOEHE if feld == "grathoehe" else 0.0
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Argumente, Schlüsselwörter) für schlichten3d.vorschau nach Job und Modell."""
         form = ff.von_werkzeug(werkzeug)
         if form is None:
             raise ValueError(tr("s3.fehler.form"))
-        bahn = s3op.vorschau(
-            job,
-            job.Model.Group,
-            form,
-            werte["grathoehe"],
-            flaechen,
-            aufmass=werte["aufmass"],
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-        )
-        if werte.get("wegkippen") and form.nur_kugel:
-            bahn.wegkippen = _wegkippen_bedarf(job, werkzeug, bahn, form)
+        return (form, werte["grathoehe"], list(flaechen)), {
+            "aufmass": werte["aufmass"],
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+        }
+
+    def _wegkippen(self, werkzeug, werte):
+        """Rechnet die Vorschau den Bedarf zum Wegkippen mit (wegkippen.Bedarf)?"""
+        form = ff.von_werkzeug(werkzeug)
+        return bool(werte.get("wegkippen")) and form is not None and form.nur_kugel
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        bahn = s3op.vorschau(job, job.Model.Group, *argumente, **weiter)
+        if self._wegkippen(werkzeug, werte):
+            bahn.wegkippen = _wegkippen_bedarf(job, werkzeug, bahn, argumente[0])
         return bahn
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie) – None mit dem
+        Wegkippen: Dessen Bedarf liest Halter und Länge aus der Werkzeugverwaltung, das rechnet
+        der Assistent selbst."""
+        if self._wegkippen(werkzeug, werte):
+            return None
+        return "strategie", ("schlichten3d", *self._argumente(werkzeug, werte, flaechen))
 
     def ergebnis_text(self, bahn, zeit):
         text = self._ergebnis_text(bahn, zeit)
@@ -3400,10 +3422,15 @@ class _Block:
         if not pool.verfuegbar():
             return None
         try:
-            funktion, argumente = hintergrund(werkzeug, werte, flaechen)
+            ziel = hintergrund(werkzeug, werte, flaechen)
+            if ziel is None:  # diesmal nicht (Schlichten 3D mit dem Wegkippen)
+                return None
+            funktion, argumente = ziel
             zeit = None
             if vorschub > 0 and self.s.kennung in IM_FREIEN_SCHNELL:
-                zeit = (vorschub, senkrecht, fw.freivorschub_fuer(job))
+                # Wie _zeit_im_freien: im Materialstand, den der Assistent dem Block gibt.
+                stand = werte.get("materialstand")
+                zeit = (vorschub, senkrecht, fw.freivorschub_fuer(job), stand)
             kopie = pool.kopie(job.Document, wiederverwenden=True)
             return pool.auftrag("bearbeitung_vorschau", funktion, kopie, job.Name, *argumente, zeit)
         except Exception as fehler:  # noqa: BLE001 – dann rechnet sie hier, wie bisher

@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-29 bearbeitung-schlichten3d-im-nebenrechner
+
+### EINGELESEN
+- Im 3-Achs-Assistenten rechneten 3D-Schlichten und Restschruppen ihre Vorschau noch im Fenster
+  (P-2026-10-11-25 nahm Planfräsen, Kontur und 3D-Schruppen in die Nebenrechner).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_Restschruppen` und `_Schlichten3D` mit `_argumente` und
+  `hintergrund` (schruppen3d.vorschau mit dem Fräser davor, schlichten3d.vorschau); mit dem
+  Wegkippen rechnet das 3D-Schlichten weiter hier (der Bedarf liest die Werkzeugverwaltung) –
+  `hintergrund` darf None geben. Die Zeit im Freien im Nebenrechner mit dem Materialstand des
+  Assistenten, wie `_zeit_im_freien` (das Restschruppen rechnet seine Bahn ohne ihn).
+- `camaddon/bearbeitung_vorschau.py`: `zeit` trägt den Materialstand.
+- `package.xml` (0.213.37), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `szenario_schlichten3d`, `_schlichten3d_rand`, `_restschruppen`, `_restschlichten`,
+  `_wegkippen`, `_bearbeitung_im_takt`, `_testteil`, `_mulde`, `_formplatte`.
+
 ## P-2026-10-11-28 programm-nachlesen-schneller
 
 ### EINGELESEN
