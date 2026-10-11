@@ -211,8 +211,8 @@ class Schruppwerte:
     # Mit der Querachse: C dreht nie gegen die Spirale zurück (_stetig) – wie beim Schlichten
     # (Manuel, 2026-10-11, Frage 11: „wens ruhiger wird ists gut“; P-2026-10-11-47).
     stetig: bool = False
-    # Mit der Querachse: eine Lage nur so weit, wie die davor noch über der Hüllfläche blieb
-    # (_schruppen_quer, P-2026-10-11-57) – sonst fährt sie dieselbe Fläche noch einmal ab.
+    # Eine Lage nur so weit, wie die davor noch über der Hüllfläche blieb (P-2026-10-11-57, ohne
+    # Querachse -58) – sonst fährt sie dieselbe Fläche noch einmal ab.
     nur_noetig: bool = False
 
 
@@ -555,27 +555,44 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     spiel = schrupp_spiel(w.aufmass)
+    gefahren = 0
     for lage in range(1, lagen + 1):
         unten = boden(versatz)
+        ende = len(a)
+        if lage > 1 and w.nur_noetig:
+            # Wie mit der Querachse (_schruppen_quer): nur so weit, wie die Lage davor noch über
+            # der Hüllfläche blieb – am Nasen-Testteil mit 5 mm Zustellung fuhren die zwölf Lagen
+            # 24 m durch Luft im Vorschub.
+            davor = w.stange_radius - (lage - 1) * w.zustellung
+            noetig = np.flatnonzero(unten < davor - BAHN_TOLERANZ)
+            if not len(noetig):
+                break  # die tieferen sind es dann auch nicht
+            bis_a = float(a[noetig[-1]]) - w.fraeser_radius - w.steigung
+            ende = int(np.flatnonzero(a >= bis_a).max()) + 1
         r = np.maximum(unten, w.stange_radius - lage * w.zustellung)
         phi = drehung * (versatz + k) * schritt_phi
+        a_l, r, phi, unten_l = a[:ende], r[:ende], phi[:ende], unten[:ende]
         # Frei, wo die Hüllfläche nicht unter der Stange liegt: Dort steht nie etwas. (Dass die
         # Lage davor schon bis auf die Hüllfläche kam, reicht nicht – an steilen Flanken lässt
         # die Spirale bis 0,7 mm stehen, nachgefahren im Modell der Stange.)
-        frei = _frei(a, r, phi, unten >= w.stange_radius - LEER)
+        frei = _frei(a_l, r, phi, unten_l >= w.stange_radius - LEER)
         # Es bleiben die Punkte, zwischen denen die Gerade über allen anderen liegt – höchstens
         # das Spiel darüber (schrupp_spiel): Die Hüllfläche folgt den Facetten des Netzes um
         # Tausendstel, und jeder davon als Knick ließ alle 1–2° einen Satz stehen. Dazu, wo ein
         # Ring beginnt oder endet (a knickt) und wo es frei wird oder aufhört, frei zu sein.
-        fest = set((np.flatnonzero(_a_knicke(a)) + 1).tolist()) if len(a) > 2 else set()
+        fest = set((np.flatnonzero(_a_knicke(a_l)) + 1).tolist()) if len(a_l) > 2 else set()
         fest.update(np.flatnonzero(frei[:-1] != frei[1:]).tolist())
         bleibt = _zusammengefasst(r, max(BAHN_TOLERANZ, spiel), abstand, sorted(fest), innen=spiel)
         for i, r_i in zip(bleibt, _gehoben(r, bleibt), strict=True):
-            punkte.append(Punkt(False, float(a[i]), r_i, float(phi[i]), frei=bool(frei[i])))
-        versatz += int(k[-1])
-        punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
+            punkte.append(Punkt(False, float(a_l[i]), r_i, float(phi[i]), frei=bool(frei[i])))
+        versatz += int(k[ende - 1])
+        # Gekürzt: erst radial hinaus – der Weg zum Ende der Stange liefe sonst schräg durchs Teil.
+        punkte.append(
+            Punkt(True, a_ende if ende == len(a) else float(a_l[-1]), sicher, float(phi[-1]))
+        )
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
-    return Bahn(punkte, lagen, r_min, hinten_frei)
+        gefahren += 1
+    return Bahn(punkte, gefahren, r_min, hinten_frei)
 
 
 def _quer_schrupp_frei(a, x, q, psi, radius, stange_radius):
@@ -657,6 +674,9 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
             ende = int(np.flatnonzero(a_p >= bis_a).max()) + 1
             a_p, x, q_p, psi_p = a_p[:ende], x[:ende], q_p[:ende], psi_p[:ende]
             fest = [f for f in fest if f < ende]
+            schritte = int(k[np.flatnonzero(a >= bis_a).max()])  # so weit kam die Spirale
+        else:
+            schritte = int(k[-1])
         _quer_ausgeben(
             punkte,
             a_p,
@@ -674,7 +694,7 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
         )
         punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
         gefahren += 1
-        versatz += int(k[-1])
+        versatz += schritte
         if lage >= lagen and not noch:
             return gefahren
         if lage >= lagen + QUER_MEHR_LAGEN:

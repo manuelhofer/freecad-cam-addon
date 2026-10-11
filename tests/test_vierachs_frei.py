@@ -107,11 +107,23 @@ for durchmesser in (40.0, 45.0):
     tc = job.Tools.Group[0]
     tc.Tool.Diameter = 12
     tc.HorizFeed = "1000 mm/min"
-    schruppen = vo.lege_an(job, tc, achse, zustellung=2.5, steigung=6.0, aufmass=0.3)
+    # Mit allen Lagen: Hier geht es um die freien Wege (das Kürzen der Folgelagen, P-2026-10-11-57,
+    # nähme die frei laufenden mit weg und änderte ihren Anteil) – gekürzt nie länger, unten.
+    schruppen = vo.lege_an(
+        job, tc, achse, zustellung=2.5, steigung=6.0, aufmass=0.3, nur_noetig=False
+    )
     tc2 = js.controller_ohne_transaktion(doc, job, kugel, kugel.schnittwerte[wz.ALLE][0])
     schlichten = vs.lege_an(job, tc2, achse, 0.5, aufmass=0.0)
     doc.recompute()
     b1 = vo.rechne(schruppen, job, job.Model.Group, 6.0)
+    schruppen.NurNoetig = True
+    gekuerzt = vo.rechne(schruppen, job, job.Model.Group, 6.0)
+    schruppen.NurNoetig = False
+    pruefe(
+        vb.dauer(gekuerzt, 1000.0, freivorschub=10000.0)
+        <= vb.dauer(b1, 1000.0, freivorschub=10000.0) + 1e-6,
+        f"Ø {durchmesser}: gekürzt länger",
+    )
     # Schruppen mit der Querachse (P-2026-10-11-04): dieselbe Prüfung – danach wieder wie
     # angelegt, das Schlichten rechnet seinen Rest aus diesem Schruppen.
     wie_angelegt = schruppen.Querachse

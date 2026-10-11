@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-58 folgelagen-auch-rundum
+
+### EINGELESEN
+- Dieselbe Luft wie mit der Querachse (P-2026-10-11-57) auch beim „Rundum schruppen“ ohne sie: am
+  Nasen-Testteil mit 5 mm Zustellung fuhren die zwölf Lagen 24,3 von 71,7 m Vorschub ohne Abtrag
+  (Voxel 0,2 mm) – je tiefer die Lage, desto mehr nur auf der Hüllfläche der vorigen.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: in `schruppen` ohne Querachse ab der zweiten Lage nur bis hinter die
+  letzte Stelle, an der die Lage davor über der Hüllfläche blieb (wie `_schruppen_quer`); gekürzt
+  erst radial hinaus (der Weg zum Ende der Stange liefe sonst schräg durchs Teil); die Lagen zählen
+  die gefahrenen; der Versatz der nächsten Lage an ihrem wirklichen Ende (auch mit der Querachse).
+- `camaddon/gui_vierachs.py`: „Folgelagen nur, wo nötig“ rundum frei, mit und ohne Querachse.
+- `translations/de.json`, `translations/en.json` (Tooltip, Eigenschaft),
+  `tests/test_vierachs_frei.py` (die freien Wege mit allen Lagen; gekürzt nie länger),
+  `package.xml` (0.213.64), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil, je alle Lagen → gekürzt: mit Querachse 22,2 mm 15,3 → 11,1 min, 5 mm 63,9 → 39,7
+  min; ohne Querachse 22,2 mm 15,4 → 11,0 min, 5 mm 64,0 → 37,1 min. Die Kugel nimmt danach 6–12 %
+  mehr, ihr schwerster Eingriff höchstens 4,6 mm² (gelb erst ab 4,8); nichts ins Teil.
+- Grün (mit „OK“ im Protokoll): `test_vierachs_frei.py`, `test_vierachs_operation.py`,
+  `test_vierachs_pruefen.py`, `test_vierachs_bahn.py`; `szenario_maschine_bearbeiten`,
+  `szenario_schruppwerte`, `szenario_vierachs_schlichten`.
+
 ## P-2026-10-11-57 folgelagen-nur-wo-noetig
 
 ### EINGELESEN

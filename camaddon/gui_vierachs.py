@@ -1319,8 +1319,8 @@ class VierachsPanel:
         self.schruppen_stetig.setToolTip(tr("va.stetig.schruppen.tooltip"))
         self.schruppen_stetig.toggled.connect(lambda _an: self._stetig_schruppen_umgeschaltet())
         schruppen.ganz(self.schruppen_stetig)
-        # Folgelagen nur, wo die davor nicht bis auf die Fläche kam (P-2026-10-11-57) – frei mit
-        # der Querachse, dann angehakt.
+        # Folgelagen nur, wo die davor nicht bis auf die Fläche kam (P-2026-10-11-57/58) – rundum
+        # frei, dann angehakt.
         self.schruppen_noetig = QtGui.QCheckBox(tr("va.nur_noetig"))
         self.schruppen_noetig.setToolTip(tr("va.nur_noetig.tooltip"))
         self.schruppen_noetig.toggled.connect(lambda _an: self._noetig_umgeschaltet())
@@ -2223,7 +2223,10 @@ class VierachsPanel:
             self.schruppfelder
         )
         self._haken_setzen(self.schruppen_stetig, quer, self._stetig_schruppen_von_hand)
-        self._haken_setzen(self.schruppen_noetig, quer, self._noetig_von_hand)
+        # Rundum mit und ohne Querachse (P-2026-10-11-58), mit gewählten Flächen fährt es Zeilen.
+        self._haken_setzen(
+            self.schruppen_noetig, not self.flaechen() or quer, self._noetig_von_hand
+        )
 
     def stetig_schruppen(self):
         """Beim Schruppen mit der Querachse dreht C nicht zurück (angehakt und möglich)?"""
