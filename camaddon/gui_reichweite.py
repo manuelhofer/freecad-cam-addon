@@ -575,8 +575,9 @@ class PruefPanel:
         if _saetze(job) >= IM_TAKT_AB:
             self._lauf_starten(job, nullpunkt)
             return
-        # Reichweite und Abfahren lesen dieselben Bahnen: einmal (P-2026-10-11-26).
-        with self.pruefung.schritte_teilen():
+        # Reichweite und Abfahren lesen dieselben Bahnen: einmal (P-2026-10-11-26). Am Stück, aber
+        # das Fenster zeichnet dabei neu (an der Nocke in RC1 2,7 s; P-2026-10-11-82).
+        with self.pruefung.schritte_teilen(), uhren.atmend():
             self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
             self._zeige()
             self._abfahrt_rechnen(job, nullpunkt)

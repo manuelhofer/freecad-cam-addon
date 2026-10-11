@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-82 pruefen-atmet
+
+### EINGELESEN
+- „Auf der Maschine prüfen“ rechnet bis IM_TAKT_AB (20 000) Sätze am Stück: an der Nocke
+  (4 Achsen) stand das Fenster beim Öffnen 2,5 s (1.1.4) bzw. 2,7 s (RC1), am Deckel 1,0 s.
+  Über 40 Szenarien lesen das Ergebnis gleich danach – ein Wechsel auf „im Takt nach Zeit“ hätte
+  sie alle verändert. Reichweite und Abfahren laufen aber schon über `reichweite.zu_ende`, das
+  zwischen den Schritten atmet – nur nicht in `uhren.atmend()`.
+
+### DATEIEN
+- `camaddon/gui_reichweite.py`: `PruefPanel.pruefe` rechnet am Stück in `uhren.atmend()` (die
+  Uhren des Fensters laufen dabei nicht – `aus_der_schleife`, `verschachtelt`, P-78).
+- `package.xml` (0.213.86), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- RC1: Nocke 2,7 → 0,8 s längste Pause, Deckel 1,0 → 0,7 s.
+
+### AKZEPTANZKRITERIUM
+- In RC1 `szenario_vierachs_nocke`, `szenario_reichweite`, `szenario_abfahren`,
+  `szenario_deckel`, `szenario_kollision`; in 1.1.4 `szenario_testteil`, `szenario_bohren`,
+  `szenario_kontur`, `szenario_flanke`, `szenario_vierachs_schruppen`, `szenario_pruefen_im_takt`,
+  `szenario_angestellt`, `szenario_home` grün.
+
 ## P-2026-10-11-81 wandhoehe-ohne-schnitte
 
 ### EINGELESEN
