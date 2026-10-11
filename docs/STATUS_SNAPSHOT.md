@@ -50,7 +50,11 @@ Das erste 5-Achs-Programm rechnen beim Öffnen des Prüffensters jetzt die Neben
 1,3 s am Stück; dabei zwei Fehler aus -60 im Abspieler behoben); beim Anlegen atmet die Oberfläche
 auch im Materialstand und in den Hüllflächen, die Bleistift-Vorschau rechnet auf einem Nebenrechner
 (-71: Platte 5,3 → 0,7 s, Bleistift 4,3 → 1,3 s), auch beim Ändern im Assistenten (-72: Entgraten 3D
-3,5 → 0,7 s). Alle 131 Szenarien liefen mit der Sonde; fast alles bleibt unter 1 s. Offen: das Abtragen je Bewegung im räumlichen Materialstand (17 s am Schwenkteil), die erste Analyse der
+3,5 → 0,7 s). Alle 131 Szenarien liefen mit der Sonde; fast alles bleibt unter 1 s.
+3-Achs-Testteil nachgemessen (Luft im Vorschub je Satz im Materialstand, Zappler): keine Zappler;
+echte Luft nur Räumen T1 7 s (ein Ring 1 mm vor einer schon freien Wand) und 3D-Schruppen 6 s (die
+letzten 2 mm des Eintauchens) – nicht der Rede wert; was das 0,5-mm-Raster sonst als Luft zeigt, ist
+die 0,3-mm-Haut an den Wänden, die es nicht auflöst (genau nachgerechnet: die Kontur nimmt sie). Offen: das Abtragen je Bewegung im räumlichen Materialstand (17 s am Schwenkteil), die erste Analyse der
 Bohrungen beim Anklicken (`_boden_unter`, je Bohrung acht `isInside`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
