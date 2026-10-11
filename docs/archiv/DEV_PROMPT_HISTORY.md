@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-34 flanke-im-nebenrechner
+
+### EINGELESEN
+- Die Bahn „Flanke“ fragt je Stelle und Lage OpenCascade, ob der Fräser in eine andere Fläche
+  schneidet (`_schneidet`, `distToShape`): am Kegel (Ø 50 → Ø 30, 30 hoch) mit 12 mm Schneide
+  2364-mal, 15,4 von 16,5 s – im Assistenten im Fenster, beim Neuberechnen der Operation ebenso.
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `planen` fragt erst für alle Stellen und Lagen eines Zugs auf einmal
+  (`_gehen`), ab PARALLEL_AB (200) auf den Nebenrechnern (`_gehen_verteilt`, `geht_stueck`, das
+  Teil einmal als gemeinsame Daten); ohne sie oder wenn sie scheitern wie bisher hier.
+- `package.xml` (0.213.41), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Kegel, 12 mm Schneide (3 Lagen): 15,5 → 2,7 s; 35 mm (1 Lage): 8,5 → 1,7 s (ohne Fenster, die
+  Nebenrechner frisch gestartet) – Punkt für Punkt gleich dem Stand davor.
+- Grün: `test_flanke`, `test_schraeg_abtrag`, `szenario_flanke`, `szenario_flanke_halter`.
+
 ## P-2026-10-11-33 flanke-halter-in-der-wand
 
 ### EINGELESEN

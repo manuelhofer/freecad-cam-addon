@@ -55,6 +55,11 @@ HALTER_TIEFER = 0.1  # mm – so weit (nach Netz und Schranke) muss ein Körper 
 HALTER_JE_ABFRAGE = 16  # so viele Stellen fragt halter_pruefen auf einmal (nah beieinander)
 HALTER_LAENGER = 300.0  # mm – weiter heraus sucht halter_pruefen nicht
 HALTER_SCHRITT = 1.0  # mm – so dicht längs der Bahn prüft halter_pruefen (die Bahn hat 0,2 mm)
+# Ob der Fräser an einer Stelle ins Teil schneidet (_schneidet), fragt je Stelle und Lage
+# OpenCascade – am Kegel mit drei Lagen 2364-mal, 15 s. Ab so vielen rechnen die Nebenrechner,
+# je Auftrag so viele Stellen.
+PARALLEL_AB = 200
+STELLEN_JE_STUECK = 40
 UEBERLAPP = 0.5  # mm – so viel überlappen sich zwei Lagen
 
 
@@ -398,12 +403,21 @@ def planen(form, namen, werte):
         lagen_max = max(lagen_max, lagen)
         hoehe = wand / lagen
         namen_je_zug.append(sorted({n for _k, n, _u in zug}))
+        # Erst für alle Stellen und Lagen, ob der Fräser dort geht – auf einmal, verteilt.
+        gehen = iter(
+            _gehen(
+                form,
+                [(stelle, lage) for lage in range(lagen) for st in stuecke for stelle in st],
+                hoehe,
+                w,
+            )
+        )
         for lage in range(lagen):
             for stueck in stuecke:
                 teile, aus = [], []
                 davor = None  # (Stelle, geht) der Stelle davor
                 for stelle in stueck:
-                    geht = _geht(form, stelle, lage, hoehe, w)
+                    geht = next(gehen)
                     if davor is not None and davor[1] != geht:
                         # Wo es von „geht“ auf „schneidet“ wechselt: die Grenze genauer.
                         grenze = _grenze(form, davor[0], stelle, davor[1], lage, hoehe, w)
@@ -496,6 +510,55 @@ def _geht(form, stelle, lage, hoehe, w):
     """Schneidet der Fräser an der Stelle in dieser Lage nirgends ins Teil?"""
     spitze, achse, _normale = _lage(stelle, lage, hoehe)
     return not _schneidet(form, spitze, achse, min(w.schneide, stelle[4] + 1.0), w.radius)
+
+
+def _gehen(form, paare, hoehe, w):
+    """[_geht] je (Stelle, Lage) aus `paare` – ab PARALLEL_AB auf den Nebenrechnern
+    (geht_stueck), sonst oder wenn sie scheitern hier. Dieselbe Rechnung, dasselbe Ergebnis."""
+    fragen = []
+    for stelle, lage in paare:
+        spitze, achse, _normale = _lage(stelle, lage, hoehe)
+        fragen.append((tuple(spitze), tuple(achse), min(w.schneide, stelle[4] + 1.0)))
+    if len(fragen) >= PARALLEL_AB:
+        verteilt = _gehen_verteilt(form, fragen, w.radius)
+        if verteilt is not None:
+            return verteilt
+    return geht_stueck(form, fragen, w.radius)
+
+
+def _gehen_verteilt(form, fragen, radius):
+    """geht_stueck in Stücken auf den Nebenrechnern – None ohne sie oder wenn sie scheitern."""
+    import hashlib
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    bereiche = nr.stuecke(len(fragen), pool.anzahl, je_arbeiter=3, mindestens=STELLEN_JE_STUECK)
+    if len(bereiche) < 2:
+        return None
+    try:
+        brep = form.exportBrepToString()
+        teil = pool.gemeinsam("fl-teil-" + hashlib.sha1(brep.encode()).hexdigest(), nr.Form(brep))
+        auftraege = [
+            pool.auftrag("flanke_bahn", "geht_stueck", teil, fragen[von:bis], radius)
+            for von, bis in bereiche
+        ]
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except Exception as fehler:  # noqa: BLE001 – dann rechnet es hier, wie bisher
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Flanke auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    return [geht for teil_ in teile for geht in teil_]
+
+
+def geht_stueck(form, fragen, radius):
+    """Je (Spitze, Achse, Länge) aus `fragen` (Tupel): schneidet der Fräser dort nirgends ins Teil
+    (_schneidet)? Auch im Nebenrechner für ein Stück davon."""
+    v = FreeCAD.Vector
+    return [not _schneidet(form, v(*s), v(*a), laenge, radius) for s, a, laenge in fragen]
 
 
 def _grenze(form, a, b, a_geht, lage, hoehe, w, schritte=12):

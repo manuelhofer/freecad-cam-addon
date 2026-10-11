@@ -260,8 +260,8 @@ abgearbeitet):
 1. ~~**Abtrag im Abspieler auch mit schrägem Werkzeug** (Flanke, 3+2, simultan).~~ Erledigt:
    P-2026-10-11-32 (Höhenfeld – Hinterschnitte zeigt es nicht).
 2. ~~**Flanke: der Halter darf nicht ins Teil**~~ – erledigt im Assistenten: P-2026-10-11-33
-   (rot mit „mindestens … mm“; anders anstellen hilft bei der Flanke nicht). Offen: die Bahn der
-   Flanke rechnet am Kegel mit drei Lagen 16,5 s im Fenster – schneller und in den Nebenrechner.
+   (rot mit „mindestens … mm“; anders anstellen hilft bei der Flanke nicht). Die Bahn der Flanke
+   rechnet ihre Prüfungen auf den Nebenrechnern: am Kegel 15,5 → 2,7 s (P-2026-10-11-34).
 3. **Kollision (Frage 7):** klare Meldung, wenn die Ausspannlänge nicht reicht; im Abspieler bis zur
    Kollision fahren und dort anhalten; Knopf „Zur nächsten Kollision“; die Bahn weicht aus
    (Anstellung, Y), wo die Form des Teils bleibt – die Maschine gehört in die Kollisionsüberwachung.
