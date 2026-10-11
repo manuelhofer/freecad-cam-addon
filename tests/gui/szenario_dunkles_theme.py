@@ -77,7 +77,11 @@ def schritte(h):
     if boden not in a.gewaehlte:
         a.flaeche_umschalten(boden)
     a.seite_zeigen(1)
-    yield 3000
+    yield 500
+    # Die Vorschau rechnet im Takt, das Räumen in einem Nebenrechner (P-2026-10-11-23): warten,
+    # bis sie fertig ist – der rote Hinweis kommt mit ihr.
+    yield from h.warte_auf(lambda: not a.vorschau_laeuft(), 60000)
+    yield 500
 
     # Jeder sichtbare graue oder rote Satz hebt sich vom Grund ab, auf dem er im Hauptfenster
     # steht – gemessen am Bild: Die Palette des Fensters bleibt hell, den Grund malt das Theme.

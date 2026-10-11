@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-24 bearbeitung-vorwaermen
+
+### EINGELESEN
+- Nach P-2026-10-11-23 schlug `szenario_dunkles_theme` fehl („kein roter Hinweis“): Es wartete
+  nach dem Anklicken fest 3 s – die erste Vorschau des Räumens kam aus einem Nebenrechner, der
+  dafür erst starten, die Kopie öffnen und seine Module laden musste, später. Das Pushen von
+  P-2026-10-11-23 kam vor diesem Lauf (er lief mit dem Theme-Starter getrennt).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: der Assistent wärmt beim Öffnen die Nebenrechner vor (Module
+  der Vorschau: bearbeitung_vorschau, raeumen_bahn, hoehenfeld, freiwege – wie gui_vierachs).
+- `tests/gui/szenario_dunkles_theme.py`: wartet, bis die Vorschau fertig ist, statt fest 3 s.
+- `package.xml` (0.213.32), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `szenario_dunkles_theme` (mit „FreeCAD Dark“), `szenario_bearbeitung_im_takt`,
+  `szenario_testteil`; die übrigen 53 Szenarien des Assistenten liefen mit P-2026-10-11-23 grün.
+
 ## P-2026-10-11-23 bearbeitung-raeumen-im-nebenrechner
 
 ### EINGELESEN

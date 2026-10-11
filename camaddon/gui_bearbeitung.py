@@ -3438,6 +3438,17 @@ IM_FREIEN_SCHNELL = {
 }
 
 
+def _vorwaermen():
+    """Die Nebenrechner starten und laden, was die Vorschau dort braucht, während man noch
+    Flächen anklickt – die erste Vorschau wartet dann nicht darauf (wie gui_vierachs)."""
+    from . import nebenrechner as nr
+
+    try:
+        nr.pool().vorwaermen(["bearbeitung_vorschau", "raeumen_bahn", "hoehenfeld", "freiwege"])
+    except Exception as fehler:  # noqa: BLE001 – ohne Vorwärmen rechnet die Vorschau wie bisher
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Nebenrechner vorwärmen: {fehler}\n")
+
+
 def _abwarten(schritt):
     """Ist der Schritt einer Vorschau ein Auftrag an einen Nebenrechner: auf ihn warten (das
     Fenster zeichnet sich dabei neu, nimmt aber keinen Klick an) – für das Rechnen am Stück."""
@@ -3585,6 +3596,7 @@ class BearbeitungPanel:
         )
         self._vorschau_lauf = None  # der Lauf, der gerade Block für Block rechnet (_im_takt)
         self._vorschau_auftrag = None  # sein Block in einem Nebenrechner
+        _vorwaermen()
         self._rohteil_uhr = QtCore.QTimer()
         self._rohteil_uhr.setSingleShot(True)
         self._rohteil_uhr.setInterval(NACHZIEHEN_MS)
