@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-56 vorschau-saetze-einmal
+
+### EINGELESEN
+- Kommen die Vorschauen im 4-Achs-Assistenten an, wandelten Restmeldung und Halterprüfung dieselben
+  Bahnen je für sich in Zahlenfelder (eine Schleife über alle Punkte im Fenster).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_saetze(bahn)` – einmal je Bahn, an ihr gemerkt.
+- `package.xml` (0.213.62), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil: `_vorschau_abschliessen` 0,146 → 0,117 s, Rest und Halter wie vorher;
+  `szenario_vierachs_schlichten` grün.
+
 ## P-2026-10-11-55 vierachs-schritt-zwei-schneller
 
 ### EINGELESEN

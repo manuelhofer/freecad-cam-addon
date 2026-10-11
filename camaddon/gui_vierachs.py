@@ -46,6 +46,7 @@ import math
 
 import FreeCAD
 import FreeCADGui
+import numpy as np
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, farben, symbol, uhren
@@ -143,6 +144,19 @@ VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Lagen re
 
 def _parameter():
     return FreeCAD.ParamGet(PARAMETER_PFAD)
+
+
+def _saetze(bahn):
+    """(Sätze (n, 4), Eilgänge) einer Bahn der Vorschau für die Nebenrechner (voxelstange.als_feld)
+    – an der Bahn gemerkt: Rest und Halter fragen beide danach, und die Schleife über alle Punkte
+    kostet am Nasen-Testteil je Bahn eine Zehntelsekunde im Fenster."""
+    from . import voxelstange as vx
+
+    gemerkt = getattr(bahn, "_als_saetze", None)
+    if gemerkt is None:
+        gemerkt = (vx.als_feld(bahn.punkte), np.array([bool(p.eilgang) for p in bahn.punkte]))
+        bahn._als_saetze = gemerkt
+    return gemerkt
 
 
 def _achstexte():
@@ -3752,7 +3766,6 @@ class VierachsPanel:
         prüfen“ sagt es sonst erst nach dem Anlegen, mit der Maschine. Ohne Nebenrechner nichts."""
         from . import nebenrechner as nr
         from . import vierachs_halter as vhalter
-        from . import voxelstange as vx
 
         self._halter_zurueck()
         if self.geschlossen or self.job is None:
@@ -3769,8 +3782,7 @@ class VierachsPanel:
             if not koerper:
                 continue
             bahnen[name] = (
-                vx.als_feld(bahn.punkte),
-                [bool(p.eilgang) for p in bahn.punkte],
+                *_saetze(bahn),
                 koerper,
                 werkzeug.durchmesser / 2,
             )
@@ -3858,8 +3870,7 @@ class VierachsPanel:
         if not pool.verfuegbar():
             return
 
-        def saetze(bahn):
-            return vx.als_feld(bahn.punkte), [bool(p.eilgang) for p in bahn.punkte]
+        saetze = _saetze
 
         nummer = self._vorschau_nummer
         try:
