@@ -305,7 +305,7 @@ abgearbeitet):
    nicht): P-2026-10-11-49.
 7. ~~**Magazin ohne Maschine** sagt das im Fenster (legros).~~ Erledigt: P-2026-10-11-31.
 Frage 6 erledigt: Schrittweite aus der Kammhöhe (Vorgabe 0,02 mm), Spalte „ae max“ (P-2026-10-11-40).
-Offen bei Manuel: nichts (Fragen 10 und 11 beantwortet, P-2026-10-11-46).
+Offen bei Manuel: Frage 12 (die Kugel nach „Plan indexiert“: rundum mit Y, die fertigen Flächen überspringen?).
 
 **Die Nacht vom 2026-10-10 auf den 11.** (Manuel: „schau dir die Werkzeugwege nochmal genau an
 und deren Generation … auch die Geschichte mit dem Mehrkern-Arbeiten bitte nochmal verbessern“),

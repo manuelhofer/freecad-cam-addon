@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-59 querachse-mit-flaechen-ehrlich
+
+### EINGELESEN
+- Mit einer Flächenliste (gewählt, oder ohne die, die „Plan indexiert“ fertig macht – seit
+  P-2026-10-11-48 rundum vorbelegt) fährt „Rundum schlichten“ Zeilen hin und her
+  (`vierachs_bahn._schlichten_zeilen`) – ohne Y; der Haken „Mit der Querachse (Y)“ blieb angehakt
+  und galt nicht (am Nasen-Testteil: rundum q bis 49 mm, mit Flächen überall 0).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_querachse_vorschlagen` – mit Flächen fürs Schlichten ist der Haken
+  grau, grau darunter „Nur rundum – mit Flächen … fährt das Schlichten Zeilen hin und her, ohne Y“;
+  beim Umschalten von „Plan indexiert“ neu gesetzt.
+- `translations/de.json`, `translations/en.json` (`va.querachse.nur_rundum_schlichten`),
+  `tests/gui/szenario_vierachs_plan.py` (rundum mit Plan: der Haken grau mit Grund),
+  `docs/OFFENE_FRAGEN.md` (Frage 12: (a) Zeilen ohne Y 157,8 min, (b) Spirale mit Y 177,7 min –
+  davon 29 min über Face4/6 durch Luft –, (c) Spirale mit Y, die fertigen Flächen übersprungen,
+  etwa 150 min), `docs/bilder/vorschlaege/testteil_4achs_nase_kugel_ueber_plan.png`, `package.xml`
+  (0.213.65), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `szenario_vierachs_plan`, `szenario_vierachs_schlichten` grün.
+
 ## P-2026-10-11-58 folgelagen-auch-rundum
 
 ### EINGELESEN

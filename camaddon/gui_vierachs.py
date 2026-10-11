@@ -2136,6 +2136,11 @@ class VierachsPanel:
             geht, grund = False, tr("va.querachse.keine", maschine=achse.maschine)
         elif self.muster() != vb.SPIRALE:
             geht, grund = False, tr("va.querachse.nur_spirale")
+        elif self._schlicht_flaechen():
+            # Mit Flächen (gewählt, oder ohne die, die „Plan indexiert“ fertig macht) fährt das
+            # Schlichten Zeilen hin und her – ohne Y (vierachs_bahn._schlichten_zeilen); der Haken
+            # blieb angehakt und galt nicht (P-2026-10-11-59, Frage 12).
+            geht, grund = False, tr("va.querachse.nur_rundum_schlichten")
         elif form is None:
             geht, grund = False, tr("va.querachse.ohne_form")
         elif form.nur_kugel:
@@ -2880,6 +2885,8 @@ class VierachsPanel:
     def _plan_umgeschaltet(self, an):
         if not self._fuellt:
             self._plan_von_hand = True
+        if self.job is not None:
+            self._querachse_vorschlagen()  # rundum oder nur die übrigen Flächen (Frage 12)
         self.planfelder.setEnabled(an)
         self.planfelder.setVisible(an)
         self.ergebnis_plan.setVisible(an)

@@ -2707,5 +2707,6 @@
     "va.halter_stoesst": "Halter oder Schaft von {werkzeug} stoßen hier ans Teil ({richtung} {von} … {bis} {e_laenge}): {werkzeug} steht {heraus} {e_laenge} heraus, bräuchte mindestens {mindestens} {e_laenge} – länger ausspannen oder ein längeres Werkzeug. (Ohne den Kopf eines gewinkelten Halters – den prüft „Kollision prüfen“ mit der Maschine.)",
     "vo.eigenschaft.nur_noetig": "Eine Lage nur so weit, wie die davor noch über der Fläche blieb – sonst führe sie dieselbe Fläche noch einmal ab.",
     "va.nur_noetig": "Folgelagen nur, wo nötig",
-    "va.nur_noetig.tooltip": "Wo eine Lage die Fläche schon erreicht hat, führe die nächste sie noch einmal ab, fast nur durch Luft. Angehakt fährt eine Lage nur so weit, wie die davor noch über der Fläche blieb. Am Nasen-Testteil mit der Querachse 11,1 statt 15,3 min, mit 5 mm Zustellung 39,7 statt 63,9 min; die Kugel hat danach etwa 10 % mehr zu tun (die Kämme der Lage davor bleiben stehen)."
+    "va.nur_noetig.tooltip": "Wo eine Lage die Fläche schon erreicht hat, führe die nächste sie noch einmal ab, fast nur durch Luft. Angehakt fährt eine Lage nur so weit, wie die davor noch über der Fläche blieb. Am Nasen-Testteil mit der Querachse 11,1 statt 15,3 min, mit 5 mm Zustellung 39,7 statt 63,9 min; die Kugel hat danach etwa 10 % mehr zu tun (die Kämme der Lage davor bleiben stehen).",
+    "va.querachse.nur_rundum_schlichten": "Nur rundum – mit Flächen (gewählt, oder ohne die, die „Plan indexiert“ fertig macht) fährt das Schlichten Zeilen hin und her, ohne Y."
 }
