@@ -87,7 +87,9 @@ def schritte(h):
         panel.flaeche_umschalten(name)
     yield 1000
     yield from h.warte_auf(
-        lambda: all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke), 600000
+        lambda: not panel.vorschau_laeuft()
+        and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke),
+        600000,
     )
     yield 4000
     raeumen, kontur = panel.raeumen, panel.kontur

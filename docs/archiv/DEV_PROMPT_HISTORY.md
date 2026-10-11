@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-22 szenarien-warten-auf-den-lauf
+
+### EINGELESEN
+- Seit P-2026-10-11-16 rechnet die Vorschau des Assistenten „Bearbeitung“ im Takt: Die
+  Szenarien, die nur warteten, bis jeder angehakte Block eine Vorschau hat, konnten mitten im
+  Lauf weiterlesen (vor dem Wettbewerb). Und das Rechnen im Takt hatte noch kein eigenes
+  Szenario.
+
+### DATEIEN
+- `tests/gui/szenario_absatz.py`, `_deckel`, `_ecken`, `_flanke`, `_formplatte`, `_lagerbock`,
+  `_testteil`, `_zapfen`: warten zusätzlich auf `not panel.vorschau_laeuft()`.
+- `tests/gui/szenario_bearbeitung_im_takt.py` (neu): eine Eingabe mitten im Lauf bricht ihn ab,
+  der neue rechnet mit dem neuen Wert; „Anlegen“ mitten im Lauf legt an; die Ereignisschleife
+  kommt während des Laufs dran (am Testteil 33-mal in 8,3 s; die längste Pause 7,7 s ist ein
+  einzelner Block – die vier ebenen Flächen im Planfräsen und Räumen).
+- `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `szenario_bearbeitung_im_takt` und die acht Szenarien mit den geänderten
+  Wartebedingungen.
+- Bleibt: Ein einzelner Block kann lange rechnen (Räumen mit kleiner Zustellung am Testteil bis
+  14 s) – dagegen hilft erst eine Vorschau in Nebenrechnern wie im 4-Achs-Assistenten.
+
 ## P-2026-10-11-21 pool-pickelfehler-sanft
 
 ### EINGELESEN

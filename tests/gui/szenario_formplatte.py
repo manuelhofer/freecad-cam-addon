@@ -74,7 +74,9 @@ def schritte(h):
     yield 1000
     bohren, r3, s3 = panel.bohren, panel.schruppen3d, panel.schlichten3d
     yield from h.warte_auf(
-        lambda: all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke), 400000
+        lambda: not panel.vorschau_laeuft()
+        and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke),
+        400000,
     )
     yield 3000
     h.pruefe(bohren.aktiv() and bohren.fraeser().nummer == 2, "Bohren: kein Haken oder nicht T2")
