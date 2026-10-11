@@ -2,10 +2,10 @@
   "zwischenlagen_mm": 2.0,
   "richtung": "x",
   "anstellung": "frei",
-  "sekunden": 39.95728661163955,
+  "sekunden": 39.906159081965114,
   "punkte": 4908,
-  "nc_sha256": "f5ad6822c8f2f6fd1dca16a81fdf1dcee73a8b6719e30ac0e24f0a1fa91b54ac",
+  "nc_sha256": "edd428026a90330eb767744550bc049ff7bf66a71962ae967072b87a3ffee7a1",
   "nc_saetze": 5139,
-  "laufzeit_s": 156.79229594100616,
-  "spitzenspeicher_python_mb": 114.13440322875977
+  "laufzeit_s": 79.4092580889992,
+  "spitzenspeicher_python_mb": 68.34111022949219
 }

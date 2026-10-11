@@ -44,9 +44,13 @@ zu aufwendig: 82 getrennte Schnittzüge, 8,28 min Schruppen und rund 31 % Luft i
 normalen Vorschub. P-2026-10-08-01 verglich die gefahrenen Schruppbahnen einschließlich
 Rampen und freier Verbindungen; 3-mm-Zwischenlagen verkürzten den Job auf 5 min 57,5 s.
 
-**Nachgerechnet am 2026-10-10 auf der neu gebauten G550** (Spindel auf X/Y/Z im Tunnel,
-Tisch nur A/B, Rückzug vor jedem Schwenk bis an die Z-Grenze; P-2026-10-10-19 und -20), mit
-`pruefen.py` im normalen Vergleich ohne „Alle Kombinationen“:
+**Seit 2026-10-11 auf der G550 nach der Kinematik der GROB G-Serie** (Spindel nur X/Z mit
+Spindelschacht, Tisch an der Säule mit Y, A, B; P-2026-10-11-91): `g550_winkelaufnahme.FCStd`
+neu, das Siemens-Programm `freiform_5achs.mpf` darauf neu geschrieben – 45.143 Sätze, wie vorher;
+Materialprüfung ohne Befund, Rest 0,0164 mm, kleinster Abstand zum Teil 0,0004 mm
+(`nc_pruefung.json`). Die Bahn selbst liegt im Teil und bleibt dieselbe. Der Vergleich darunter
+lief am 2026-10-10 mit `pruefen.py` (normaler Vergleich ohne „Alle Kombinationen“) noch auf dem
+Bau davor (Spindel auf X/Y/Z, Tisch nur A/B):
 
 | Gemessener Modellwert | Stand 2026-10-10 |
 | --- | --- |

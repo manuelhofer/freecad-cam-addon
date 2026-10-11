@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-96 g550-beispiele-neu
+
+### EINGELESEN
+- T-014 (aus P-2026-10-11-91): Die Beispieljobs `grob_g550_simultan/` und `grob_g550_freiform/`
+  trugen ihre gespeicherte G550 vom Bau des 10.10. (alle Linearachsen an der Spindel). Manuel,
+  2026-10-11: „ja mach“. Unterwegs: sieben Simultan-Prüfdateien gleichzeitig – der Kernel beendete
+  einen Lauf (Popup bei Manuel), jede holt sich 24 Nebenrechner; seitdem schwere Läufe einzeln.
+
+### DATEIEN
+- `beispiele/grob_g550_simultan/g550_winkelaufnahme.FCStd`, `…_freiform/g550_winkelaufnahme.FCStd`:
+  `beispielmaschine.grob_g550(winkelaufnahme=True)` neu gespeichert (dieselben Bauteile wie der
+  Bauplan – nachgesehen).
+- `beispiele/grob_g550_freiform/freiform_5achs.mpf`, `nc_pruefung.json` (test_simultan_nc mit
+  SIMULTAN_BEISPIEL_SCHREIBEN), `tests/golden/freiform_simultan_nc.json`, `kuppel_simultan.json`,
+  `simultan_folge.json` – neu geschrieben (GOLDENE_BAHNEN_/FOLGE_GOLDEN_SCHREIBEN); in allen vier
+  Prüfungen vorher bestanden: Material, Abstand ≥ Reserve, Kollision, Nachlesen ohne Befund.
+- `beispiele/grob_g550_simultan/README.md`, `messung.json`; `…_freiform/README.md`; Snapshot.
+
+### ERGEBNIS
+- Kuppel: Bahn gleich (3539 Punkte, gleicher SHA), nur die Maschinenbefehle anders. Freiform:
+  45.143 Sätze wie vorher, Rest 0,0164 mm, Abstand 0,0004 mm. Simultan-Beispiel auf der neuen G550:
+  keine Grenze, keine Kollision, 304 Stationen, 297 Sätze, 220 mit allen fünf Achsen, A ±10°,
+  14,2 s, Z-Rückzug bis 872 (in den Spindelschacht).
+- `test_simultan_nc` braucht allein 7,5 GB (Haupt 4,1 GB + 24 Nebenrechner) – mit sechs anderen
+  zugleich lief er in die 8-GB-Grenze.
+
+### AKZEPTANZKRITERIUM
+- `test_simultan_nc`, `_export_referenz`, `_folge`, `_planung`, `_bereiche`, `_restbild`,
+  `test_schruppen3d_anlauf` in 1.1.4 (einzeln nacheinander); `szenario_simultan_planung`,
+  `szenario_simultan_restbild` grün.
+
 ## P-2026-10-11-95 ebenen-in-einem-rutsch
 
 ### EINGELESEN

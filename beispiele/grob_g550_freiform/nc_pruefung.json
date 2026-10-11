@@ -1,18 +1,16 @@
 {
-  "sha256": "36b3599008fdd6e1b879ced5dcd056f66e21ea875b721ce26ebe6f2ad88c474d",
-  "nc_saetze": 45682,
-  "geladene_punkte_sha256": "827b958d98ede6292e0967d3f251fc9d8526c1f9d4df624b6cf0adf27b49c19e",
-  "geladene_befehle_sha256": "c0d52d310fa6b541408651e64384bbd8133290844ce6fffea0250cbbd54bbd3a",
+  "sha256": "7f17eeae2e342bbbd3b8ffda4aeab49dcb61bd81bad0121214ca8e0a5e031cb0",
+  "nc_saetze": 45143,
   "material": {
-    "rest": 0.016439580753129235,
-    "einschnitt": 0.001365879567103434,
+    "rest": 0.01644218766042016,
+    "einschnitt": 0.0013375577036889297,
     "eilgang_abtrag": 0.0,
     "schnell_abtrag": 0.0,
-    "schnellweg": 3.999999790394577,
-    "luftweg": 71.03977363420813,
-    "vorschubweg": 8141.3150380835805,
-    "volumen": 4751.282559566161,
-    "last_max": 6.819171805997823,
+    "schnellweg": 3.999999220557651,
+    "luftweg": 72.57482788983947,
+    "vorschubweg": 8141.179072358653,
+    "volumen": 4752.155578969154,
+    "last_max": 6.819197429679077,
     "eintauchungen": 0,
     "luftzuege": 0,
     "rampenwinkel_max": 0.0,
@@ -20,9 +18,9 @@
     "eilgaenge": [],
     "raster": 0.1,
     "unsicherheit": 0.0005,
-    "flaechenzellen": 550457,
+    "flaechenzellen": 545585,
     "ungedeckt": 0,
     "gruende": []
   },
-  "brep_abstand_mm": 0.0003827027993329466
+  "brep_abstand_mm": 0.0003615958915460524
 }

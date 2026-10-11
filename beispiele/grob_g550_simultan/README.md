@@ -41,23 +41,25 @@ Werkzeugverwaltung ist zum Ausprobieren nicht nötig.
 
 ## Ergebnis der Modellprüfung
 
-In FreeCAD 1.1.4 geprüft (2026-10-06, nach dem Neubau der Maschine am 2026-10-10 kopflos nachgemessen):
+In FreeCAD 1.1.4 geprüft (2026-10-06), am 2026-10-11 auf der G550 nach der Kinematik der GROB
+G-Serie neu gemessen (Spindel nur X/Z, Tisch an der Säule mit Y, A, B; P-2026-10-11-91):
 
 | Ergebnis | Wert |
 | --- | --- |
-| Vorschubbewegungen, in denen X, Y, Z, A und B gleichzeitig ändern | 252 |
-| Befehle der Bahn auf der Maschine | 299 |
+| Vorschubsätze, in denen X, Y, Z, A und B gleichzeitig ändern | 220 |
+| Sätze im Siemens-Programm | 297 |
 | Simulationsstationen | 304 |
-| A und B | jeweils −10° … +10° |
+| A | −10° … +10° (B im Programm als ACP 0 … 360°, also −10° … +10° um 0) |
 | Verfahrgrenzen überschritten | keine |
 | Kollisionen oder Annäherungen unter 1 mm im Modell | keine |
-| Rechnerische Fahrzeit | etwa 14 s, davon 9,6 s Vorschub und 4,6 s Eilgang |
+| Rechnerische Fahrzeit | etwa 14 s |
 
 Die Zählung vergleicht aufeinanderfolgende Vorschubsätze mit einer Schwelle von
 0,00001 für jede Achse. `messung.json` enthält die Messwerte; ihre XYZ-Werte sind
 Bahnkoordinaten in mm, keine MKS-Endlagen der Maschine. A/B sind Programmwinkel in Grad.
-Die Z-Werte reichen bis 887 mm: Vor jedem Schwenk zieht die Bahn bis an die Grenze der
-Z-Achse zurück (P-2026-10-10-19), damit Spindel und Tisch beim Schwenken frei sind.
+Die Z-Werte reichen bis 872 mm: Vor jedem Schwenk zieht die Bahn bis an die Grenze der
+Z-Achse zurück (P-2026-10-10-19) – die Spindel verschwindet dabei in ihrem Schacht –, damit
+Spindel und Tisch beim Schwenken frei sind.
 Ein probeweise ausgegebenes Siemens-Programm wurde vom vorhandenen Nachleser ohne
 Befund gelesen; es ist kein Bestandteil dieses Beispiels.
 

@@ -1,7 +1,7 @@
 {
   "Z": [
-    -48.8450069320504,
-    886.9999999999998
+    -48.845,
+    872.0
   ],
   "A": [
     -10.0,
@@ -12,22 +12,23 @@
     10.0
   ],
   "X": [
-    27.972177776081093,
-    52.027822223918506
+    27.972,
+    52.028
   ],
   "Y": [
-    20.601502757940096,
-    34.000000232496035
+    20.602,
+    34.0
   ],
-  "simultane_saetze": 252,
-  "saetze": 299,
-  "alle_fuenf_gleichzeitig": 252,
-  "zeit_min": 0.23693441899363396,
+  "simultane_saetze": 220,
+  "saetze": 297,
+  "alle_fuenf_gleichzeitig": 220,
+  "zeit_min": 0.2363,
   "kollisionen": [],
   "hinweise": [],
   "programm_befunde": [],
   "ueberschreitungen": [],
   "reichweite_hinweise": [
     "T1 „VHM 12“: gerechnet mit 112.00 mm, geschätzt aus Halter und Werkzeug (Halterlänge + Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der Werkzeugverwaltung."
-  ]
+  ],
+  "gemessen": "2026-10-11, G550 nach GROB G-Serie (P-2026-10-11-91)"
 }
