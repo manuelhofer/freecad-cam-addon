@@ -42,17 +42,23 @@ def nachrechnen(dokument):
     neu = []
     for job in js.jobs(dokument):
         try:
-            anfang = mst.kennung_vor(job, None).split("|")[0]
+            # Nur das Rohteil – kennung_vor(job, None) rechnete dafür alle Operationen mit.
+            anfang = mst._rohteil_kennung(job)
         except Exception:  # kein Rohteil: nichts zu rechnen
             continue
         if not anfang:
             continue
         ops = mst.operationen_vor(job)
-        kennungen = [mst._kennung_zugang(job, op) for op in ops]
+        # Die Kennungen erst, wenn eine Operation mit Materialstand sie braucht – nur die davor:
+        # Die der letzten (am 5-Achs-Szenario „Wegkippen“ das 3D-Schlichten) kostete mit der
+        # Erreichbarkeit 18 s, ohne dass eine danach sie las (P-2026-10-11-66).
+        kennungen = []
         for k, op in enumerate(ops):
             ziel = mit_materialstand(op)
             if ziel is None:
                 continue
+            while len(kennungen) < k:
+                kennungen.append(mst._kennung_zugang(job, ops[len(kennungen)]))
             soll = "|".join([anfang] + kennungen[:k])
             if ziel.Materialstand == soll:
                 continue
@@ -61,8 +67,7 @@ def nachrechnen(dokument):
             if op is not ziel:  # die Nachbearbeitung trägt ihre Bahn weiter
                 op.touch()
                 op.recompute()
-            kennungen[k] = mst._kennung_zugang(job, op)
-            neu.append(ziel)
+            neu.append(ziel)  # ihre Kennung rechnet die nächste, die sie braucht
     return neu
 
 

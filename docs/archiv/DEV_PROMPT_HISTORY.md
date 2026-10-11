@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-66 lag-sonde-und-speicher
+
+### EINGELESEN
+- Manuel: „das Fenster darf nie laggen“. Systematisch gesucht: Der Szenario-Lauf hat jetzt eine
+  Lag-Sonde (`tests/gui/_lauf/szenario_lauf.py`): eine 20-ms-Uhr im Hauptthread und ein Wachhund, der
+  in den Python-Stapel sieht, wenn sie länger als 0,3 s nicht tickt – `pausen.txt` je Szenario mit
+  Auslöser (Klick, Uhr, Schritt) und wo es rechnete. 24 schwere Szenarien: Fläche anklicken im
+  Assistenten „Bearbeitung“ bis 7 s (testteil, deckel), „Anlegen“ bis 26 s, „Auf der Maschine prüfen“
+  öffnen 23,5 s und eine Uhr des Materialstand-Beobachters 18–23 s (beide 5-Achs-Szenario
+  „Wegkippen“), „Kollision prüfen“ 5,9 s (nocke), Neu berechnen bis 37 s (schwenkteil).
+- Ursachen: (1) `maschinenzugang.operation_erreichbar` baut je Aufruf die Prüfung neu und rechnet
+  das 5-Achs-Programm (`simultan_operation.programm`, ~12–20 s an der Wegkippen-Bahn) – der
+  Beobachter, der Materialstand und das Prüffenster fragen es immer wieder. (2) Der Beobachter
+  rechnete die Kennungen aller Operationen, auch der letzten, die keine danach liest, und dazu über
+  `kennung_vor(job, None)` noch einmal alle. (3) Beim Anklicken fragte der Assistent jede Strategie
+  nach jeder gewählten Fläche neu (`passt`), und `form_kennung` zählte dabei jedes Mal alle Flächen.
+
+### DATEIEN
+- `camaddon/simultan_operation.py`: `programm` merkt sich je Inhalt (`_inhalt`: Bahn und Achsen je
+  Satz als Prüfsumme, Grathöhe, Schneide, Fräser, Rohteil, Kinematik, Aufnahme, Einspannung,
+  Nullpunkt) höchstens 8 Programme; `_programm_rechnen` wie bisher.
+- `camaddon/reichweite.py`: `Pruefung.kennung()` – Prüfsumme der Kinematik (Achsen mit Richtung,
+  Ursprung, Grenzen; Lagen der Bauteile und Aufnahmen beim Anlegen; Eigenschaften der Maschine).
+- `camaddon/gui_materialstand.py`: `nachrechnen` mit `_rohteil_kennung` statt `kennung_vor(job,
+  None)`, die Kennungen erst, wenn eine Operation mit Materialstand sie braucht.
+- `camaddon/gui_bearbeitung.py`: `passt` je Variante, Form und Fläche gemerkt
+  (`_Strategie.__init_subclass__`, `_gemerkt_passt`), die Formkennung je Formobjekt (`_form_kennung`).
+- `tests/gui/_lauf/szenario_lauf.py`: die Lag-Sonde (`_Sonde`, `PAUSE_AB`).
+- `package.xml` (0.213.71), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Wegkippen: der Beobachter steht nicht mehr (18 s → –), „Anlegen“ 26 → 15 s; Erreichbarkeit beim
+  zweiten Mal 11,8 → 0,16 s. Anklicken: testteil 8 Flächen 7,3 → 2,0 s, deckel 7,2 → 2,8 s.
+- Offen: das erste 5-Achs-Programm beim Öffnen des Prüffensters (12 s) – auf einen Nebenrechner;
+  „Anlegen“ (Räumen rechnet Freiwege und Materialstand im Hauptprozess); „Kollision prüfen“ bei der
+  Nocke; Neu berechnen am Schwenkteil (Ebene, `befehle_ohne_zyklus`).
+
+### AKZEPTANZKRITERIUM
+- Die 16 Prüfdateien zu 5 Achsen, `test_materialstand`, `szenario_wegkippen`, `szenario_testteil`,
+  `szenario_deckel`, `szenario_materialstand`, `szenario_raeumen_materialstand`,
+  `szenario_kontur_materialstand` grün.
+
 ## P-2026-10-11-65 flanke-ausspannen
 
 ### EINGELESEN

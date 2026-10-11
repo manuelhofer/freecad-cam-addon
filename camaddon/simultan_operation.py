@@ -10,9 +10,16 @@ auch mit einer Rundachse oder einer festen Spindel. Es gibt keine senkrechte Ers
 Läuft ohne Oberfläche.
 """
 
+import collections
 from dataclasses import dataclass
 
 from .sprache import tr
+
+# Programme echter Operationen, je Inhalt gemerkt (_inhalt): Der Beobachter des Materialstands,
+# das Prüffenster und „Programm schreiben“ fragen dieselbe 5-Achs-Bahn mit einer jedes Mal neu
+# gebauten Prüfung – an der Bahn des Szenarios „Wegkippen“ je 20 s (P-2026-10-11-66).
+_PROGRAMME = collections.OrderedDict()
+PROGRAMME_HOECHSTENS = 8
 
 
 @dataclass
@@ -63,7 +70,74 @@ def befehle(op, maschine, tcpm=False, bei_null=False):
 
 
 def programm(op, maschine, tcpm=False, bei_null=False):
-    """NC und Restbericht; bei Fehlern nur sicher getrennte vollständige Schnittzüge behalten."""
+    """NC und Restbericht; bei Fehlern nur sicher getrennte vollständige Schnittzüge behalten.
+    Je Inhalt (Bahn, Achsen je Satz, Fräser, Rohteil, Maschine, Einspannung, Nullpunkt) gemerkt –
+    höchstens PROGRAMME_HOECHSTENS; was nicht geht (ValueError), nicht."""
+    schluessel = _inhalt(op, maschine, tcpm, bei_null)
+    gemerkt = _PROGRAMME.get(schluessel) if schluessel is not None else None
+    if gemerkt is None:
+        gemerkt = _programm_rechnen(op, maschine, tcpm, bei_null)
+        if schluessel is not None:
+            _PROGRAMME[schluessel] = Programm(
+                list(gemerkt.befehle), tuple(gemerkt.ausgelassen), tuple(gemerkt.materialdaten)
+            )
+            while len(_PROGRAMME) > PROGRAMME_HOECHSTENS:
+                _PROGRAMME.popitem(last=False)
+        return gemerkt
+    _PROGRAMME.move_to_end(schluessel)
+    if isinstance(getattr(op, "_pruefmaterial", None), list):
+        op._pruefmaterial[:] = list(gemerkt.materialdaten)
+    return Programm(list(gemerkt.befehle), gemerkt.ausgelassen, gemerkt.materialdaten)
+
+
+def _inhalt(op, maschine, tcpm, bei_null):
+    """Der Schlüssel für _PROGRAMME – alles, was die Umrechnung liest: Bahn und Achsen je Satz
+    (als Prüfsumme), Grathöhe, Schneide, Fräser, Rohteil, die Kinematik (reichweite.Pruefung.
+    kennung), Aufnahme, Einspannung und Nullpunkt. None, wenn sich einer nicht lesen lässt (dann
+    rechnet es jedes Mal) – und für die Ansichten der Varianten (die haben ihren eigenen
+    Speicher)."""
+    import hashlib
+
+    import numpy as np
+
+    from . import angestellt as an
+    from . import reichweite as rw
+    from . import restmaterial as rm
+
+    if maschine is None or getattr(op, "_pruefprogramm", None) is not None:
+        return None
+    try:
+        h = hashlib.blake2b(digest_size=16)
+        h.update(op.Path.toGCode().encode("utf-8"))
+        achsen = [tuple(v) for v in getattr(op, "Werkzeugachsen", ())]
+        h.update(np.asarray(achsen, dtype=float).tobytes())
+        for name in ("BahnGrathoehe", "Schneide"):
+            h.update(repr(getattr(op, name, None)).encode("utf-8"))
+        h.update(repr(rm._fraeser(op.ToolController)).encode("utf-8"))
+        rohteil = an.rohteil_von(op)
+        if rohteil is not None and not rohteil.isNull():
+            bb = rohteil.BoundBox
+            h.update(
+                repr((round(rohteil.Volume, 6), tuple(bb.getPoint(i) for i in (0, 6)))).encode()
+            )
+        einspannung = rw._einspannung(maschine.laenge)
+        return (
+            op.Name,
+            h.hexdigest(),
+            maschine.pruefung.kennung(),
+            maschine.aufnahme.Name,
+            float(einspannung.laenge),
+            repr(einspannung.lage),
+            tuple(maschine.nullpunkt),
+            bool(tcpm),
+            bool(bei_null),
+        )
+    except Exception:  # noqa: BLE001 – ohne Schlüssel eben ohne Speicher
+        return None
+
+
+def _programm_rechnen(op, maschine, tcpm, bei_null):
+    """programm() ohne den Speicher."""
     from . import angestellt as an
     from . import entgraten3d as e3op
     from . import flanke as fl

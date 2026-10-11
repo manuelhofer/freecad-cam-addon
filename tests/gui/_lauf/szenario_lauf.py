@@ -6,6 +6,8 @@
 import importlib.util
 import os
 import sys
+import threading
+import time
 import traceback
 
 import FreeCAD
@@ -16,6 +18,9 @@ AUSGABE = os.environ["CAMADDON_AUSGABE"]
 
 # Erst loslegen, wenn das Hauptfenster steht.
 START_NACH_MS = 3000
+# Die Lag-Sonde: Steht die Ereignisschleife länger als so viele Sekunden, hält ein Wachhund fest,
+# was im Hauptthread gerade rechnet (pausen.txt; Manuel: „das Fenster darf nie laggen“).
+PAUSE_AB = 0.3
 
 
 class Helfer:
@@ -59,9 +64,89 @@ def _verschachtelt():
     return QtGui.QApplication.activeModalWidget() is None
 
 
+class _Sonde:
+    """Eine Uhr im Hauptthread (alle 20 ms) und ein Wachhund daneben: Tickt die Uhr länger als
+    PAUSE_AB nicht, sieht er alle 50 ms in den Python-Stapel des Hauptthreads – je Pause der
+    Auslöser (die äußersten Rahmen aus Addon oder Szenario) und wo es darin am meisten rechnete; je
+    Auslöser die längste Pause. Rechnet der Hauptthread in C++ (OpenCascade) ohne die GIL
+    freizugeben, sieht der Wachhund die Stelle erst danach – meist noch dieselbe Funktion."""
+
+    def __init__(self):
+        self.zuletzt = time.perf_counter()
+        self.laengste = 0.0
+        self.stellen = {}  # Auslöser -> [längste Pause, wie viele Pausen, wo es darin rechnete]
+        self.uhr = QtCore.QTimer()
+        self.uhr.setInterval(20)
+        self.uhr.timeout.connect(self._tick)
+        self.uhr.start()
+        self._haupt = threading.main_thread().ident
+        self._aus = False
+        threading.Thread(target=self._wachen, daemon=True).start()
+
+    def _tick(self):
+        jetzt = time.perf_counter()
+        self.laengste = max(self.laengste, jetzt - self.zuletzt)
+        self.zuletzt = jetzt
+
+    def _wachen(self):
+        pause = None  # [Beginn, Auslöser → [Proben], innen → Proben]
+        while not self._aus:
+            time.sleep(0.05)
+            stehen = time.perf_counter() - self.zuletzt
+            if stehen < PAUSE_AB:
+                if pause is not None:
+                    self._pause_fertig(pause)
+                    pause = None
+                continue
+            rahmen = sys._current_frames().get(self._haupt)
+            if rahmen is None:
+                continue
+            zeilen = [
+                f"{os.path.basename(f.filename)}:{f.lineno} {f.name}"
+                for f in traceback.extract_stack(rahmen)
+                if "camaddon" in f.filename or "szenario_" in f.filename
+            ]
+            if pause is None or pause[0] != self.zuletzt:
+                if pause is not None:
+                    self._pause_fertig(pause)
+                pause = [self.zuletzt, {}, {}]
+            # Auslöser: die äußersten zwei Rahmen aus Addon oder Szenario; innen: der innerste.
+            ausloeser = " → ".join(zeilen[:2]) or "(außerhalb des Addons)"
+            innen = zeilen[-1] if zeilen else "(außerhalb des Addons)"
+            pause[1][ausloeser] = pause[1].get(ausloeser, 0) + 1
+            pause[2][innen] = pause[2].get(innen, 0) + 1
+            pause.append(stehen)
+
+    def _pause_fertig(self, pause):
+        dauer = max(pause[3:], default=0.0) + 0.05
+        ausloeser = max(pause[1], key=pause[1].get)
+        innen = sorted(pause[2].items(), key=lambda e: -e[1])[:4]
+        eintrag = self.stellen.setdefault(ausloeser, [0.0, 0, []])
+        if dauer > eintrag[0]:
+            eintrag[0] = dauer
+            eintrag[2] = innen
+        eintrag[1] += 1
+
+    def schreiben(self):
+        self._aus = True
+        self.uhr.stop()
+        zeilen = [f"längste Pause: {self.laengste:.2f} s"]
+        for ausloeser, (dauer, wie_oft, innen) in sorted(
+            self.stellen.items(), key=lambda e: -e[1][0]
+        ):
+            zeilen.append(f"{dauer:6.2f} s ({wie_oft:2d}×)  {ausloeser}")
+            for stelle, proben in innen:
+                zeilen.append(f"            {proben:4d} Proben  {stelle}")
+        with open(os.path.join(AUSGABE, "pausen.txt"), "w", encoding="utf-8") as datei:
+            datei.write("\n".join(zeilen) + "\n")
+
+
 def _ende(helfer, fehler=None):
     if fehler:
         helfer.fehler.append(fehler)
+    sonde = getattr(starten, "sonde", None)
+    if sonde is not None:
+        sonde.schreiben()
     with open(os.path.join(AUSGABE, "ergebnis.txt"), "w", encoding="utf-8") as datei:
         datei.write("\n".join(helfer.fehler) if helfer.fehler else "OK")
     # Offene modale Dialoge zuerst schließen, sonst beendet quit() nicht.
@@ -101,6 +186,7 @@ def starten():
         vorher(art, wert, verlauf)
 
     sys.excepthook = ausnahme
+    starten.sonde = _Sonde()
 
     def weiter():
         # Mitten in einer Rechnung des Addons (FreeCAD 26.3 arbeitet in booleschen Operationen

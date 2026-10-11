@@ -65,6 +65,7 @@ from . import schruppen3d_bahn as r3b
 from . import senken as sk
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_bahn as vb
+from . import vierachs_huelle as vh
 from . import vierachs_plan as vplan
 from . import vierachs_planbahn as vp
 from . import vierachs_rohteil as vr
@@ -472,9 +473,59 @@ class _NurFlaechen:
 # --- Die Strategien ---------------------------------------------------------------------------
 
 
+# Was passt(form, name) ergab, je Variante, Form und Fläche (_gemerkt_passt) – höchstens so viele.
+_PASST = OrderedDict()
+PASST_HOECHSTENS = 20000
+
+
+_FORMEN = OrderedDict()  # id(Form) -> (Form, vierachs_huelle.form_kennung) – die Form festgehalten
+
+
+def _form_kennung(form):
+    """vierachs_huelle.form_kennung, je Formobjekt einmal: Sie zählt Flächen und Kanten, und der
+    Assistent fragt bei einem Klick tausendfach mit derselben Form."""
+    eintrag = _FORMEN.get(id(form))
+    if eintrag is not None and eintrag[0] is form:
+        return eintrag[1]
+    kennung = vh.form_kennung(form)
+    _FORMEN[id(form)] = (form, kennung)
+    while len(_FORMEN) > 8:
+        _FORMEN.popitem(last=False)
+    return kennung
+
+
+def _gemerkt_passt(passt):
+    """passt(form, name) einer Strategie, gemerkt: Es hängt nur an der Form und der Fläche, und
+    der Assistent fragt bei jedem Klick auf eine Fläche alle Strategien nach allen gewählten
+    Flächen – am 3-Achs-Testteil stand er für acht Flächen 7 s (Bohrungen, Nuten, Wände je Klick
+    neu; P-2026-10-11-66)."""
+
+    @functools.wraps(passt)
+    def gemerkt(self, form, name):
+        try:
+            schluessel = (id(passt), _form_kennung(form), name)
+        except Exception:  # noqa: BLE001 – keine Form: ungemerkt
+            return passt(self, form, name)
+        if schluessel in _PASST:
+            _PASST.move_to_end(schluessel)
+            return _PASST[schluessel]
+        ergebnis = passt(self, form, name)
+        _PASST[schluessel] = ergebnis
+        while len(_PASST) > PASST_HOECHSTENS:
+            _PASST.popitem(last=False)
+        return ergebnis
+
+    return gemerkt
+
+
 class _Strategie:
     """Eine 2,5D-Strategie im Assistenten: ihre Texte, Felder, Vorschläge, Vorschau, Anlegen
     und Ändern. Die Schlüssel stehen wörtlich in tr(…) – so findet sie die Sprachprüfung."""
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if "passt" in cls.__dict__:
+            cls.passt = _gemerkt_passt(cls.__dict__["passt"])
 
     kennung = ""
     gemerkt = ""  # Parameter: der zuletzt gewählte Fräser

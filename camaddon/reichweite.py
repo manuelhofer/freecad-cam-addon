@@ -653,6 +653,7 @@ class Pruefung:
 
     def __init__(self, assembly, maschine, werkstueckaufnahme=None, kette=None):
         self._geteilt = None  # schritte_teilen(): Sätze und Schritte je Operation, einmal gelesen
+        self._kennung = None  # kennung(), einmal gerechnet
         self.maschine = maschine
         self.verfahren = vf.Verfahren(assembly, kette)
         self.kette = self.verfahren.kette
@@ -693,6 +694,41 @@ class Pruefung:
             for platz in m.plaetze(maschine, self.kette, revolver):
                 if m.name_von(platz) in stellungen:
                     self._platzstellung[platz] = (achse, stellungen[m.name_von(platz)])
+
+    def kennung(self):
+        """Eine Prüfsumme dessen, was die Kinematik dieser Maschine ausmacht – für Speicher über
+        Prüfungen hinweg (simultan_operation.programm): je Achse Gelenk, Art, Richtung, Ursprung und
+        Grenzen, die Lage der Bauteile und Aufnahmen beim Anlegen, die Eigenschaften des
+        Maschinenobjekts. Einmal je Prüfung gerechnet (die Maschine ändert sich nicht, solange sie
+        lebt)."""
+        if self._kennung is None:
+            import hashlib
+
+            teile = [repr(sorted(self.umgekehrt)), repr(self.x_durchmesser)]
+            for a in self.kette.achsen:
+                teile.append(
+                    repr(
+                        (
+                            getattr(a.gelenk, "Name", ""),
+                            a.art,
+                            tuple(a.richtung),
+                            tuple(a.ursprung),
+                            a.minimum,
+                            a.maximum,
+                        )
+                    )
+                )
+            lagen = list(self.verfahren.ausgang.items()) + list(self._ausgang.items())
+            for objekt, lage in sorted(lagen, key=lambda e: getattr(e[0], "Name", "")):
+                lage = FreeCAD.Placement(lage)
+                teile.append(
+                    repr((getattr(objekt, "Name", ""), tuple(lage.Base), tuple(lage.Rotation.Q)))
+                )
+            for name in sorted(self.maschine.PropertiesList):
+                teile.append(f"{name}={getattr(self.maschine, name, None)!r}")
+            text = "\n".join(teile).encode("utf-8")
+            self._kennung = hashlib.blake2b(text, digest_size=16).hexdigest()
+        return self._kennung
 
     # --- Was die Maschine hergibt ---------------------------------------------------
 
