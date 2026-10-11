@@ -164,7 +164,25 @@ unter die Stange, gemessen an der höchsten Stelle unter seiner Stirn. Vorgeschl
 wenn die Maschine eine Achse quer zur Stange hat und rundum geschruppt wird (mit
 gewählten Flächen fährt das Schruppen Zeilen). Die Vorschau rechnet ohne Querachse –
 Lagen und Zeit sind fast gleich.</li>
+<li><b>C dreht nicht zurück</b> – mit der Querachse, angehakt: Die Werkzeugachse steht nur so
+weit auf der Normalen der Fläche, wie C dabei weiterdreht. C dreht so nie zurück, die Maschine
+läuft ruhiger; am Nasen-Testteil gleich schnell, die Kugel hat danach etwa 5 % mehr zu tun.</li>
+<li><b>Folgelagen nur, wo nötig</b> – angehakt: Eine Lage fährt nur so weit, wie die davor
+noch über der Fläche blieb. Wo eine Lage die Fläche schon erreicht hat, führe die nächste sie
+sonst noch einmal ab, fast nur durch Luft. Am Nasen-Testteil mit der Querachse 11,1 statt
+15,3 min; die Kugel hat danach etwa 10 % mehr zu tun (die Kämme der Lage davor bleiben
+stehen).</li>
 </ul>
+<p><b>Halter oder Schaft am Teil</b> – steht die Vorschau, rechnet ein Nebenrechner nach, ob
+Hals, Schaft oder Halter des Fräsers längs der Bahn ans Teil stoßen. Wenn ja, steht es gelb
+unter der Bearbeitung: wo längs, wie weit der Fräser heraussteht und wie weit er mindestens
+müsste („… T1 steht 44 mm heraus, bräuchte mindestens 49 mm“). Dahinter <b>T1 öffnen …</b> (die
+Werkzeugverwaltung) und <b>T1 auf 50 mm ausspannen</b>: Ein Klick setzt die Länge ab Spindelnase
+in der Werkzeugverwaltung um so viel länger – so misst sie das Voreinstellgerät, wenn du das
+Werkzeug so einspannst –, speichert und prüft neu; grau steht dann, was gesetzt ist und wie viel
+noch im Halter steckt. Bliebe weniger als ein Schaftdurchmesser im Halter, steht statt des
+Verweises, dass das Werkzeug dafür zu kurz ist. Den Kopf eines gewinkelten Halters kennt erst
+„Kollision prüfen“ mit der Maschine – dort kann es mehr brauchen.</p>
 <p><b>Abstände</b> – gelten für Schruppen und Schlichten:</p>
 <ul>
 <li><b>Überlauf</b> – so weit fährt die Mitte des Fräsers hinter das Teil und fräst
@@ -263,9 +281,10 @@ Schwalbenschwanzfräser; der Radienfräser rechnet mit der Sehne seiner Kehle
 <li><b>Einsatz</b> – vorgewählt „Schlichten“; er gibt Drehzahl und
 Vorschub.</li>
 <li><b>Schrittweite</b> – so weit rückt die Spirale je Umdrehung vor. Leer
-gilt grau das ae des Einsatzes aus der Werkzeugtabelle. Darunter steht die
-<b>Kammhöhe</b>, die zwischen zwei Bahnen stehen bleibt (Kugel Ø 6 mit 0,3 mm:
-0,004 mm).</li>
+gilt grau der Vorschlag: mit Kugel- und Torusfräser aus der <b>Kammhöhe</b> darüber (so hoch
+darf zwischen zwei Bahnen höchstens stehen bleiben, leer 0,02 mm; steht beim Einsatz „ae
+max“, schlägt der Assistent nie mehr vor), sonst das ae des Einsatzes aus der Werkzeugtabelle.
+Darunter steht die Kammhöhe, die mit der Schrittweite bleibt.</li>
 <li><b>Aufmaß</b> – so viel bleibt stehen; 0 macht das Teil fertig.</li>
 <li><b>Muster</b> – wie die Bahn läuft: <b>Spirale</b> rundum, oder <b>Linien
 längs</b> der Achse bei festem Winkel, gegenläufig, im Abstand der Schrittweite
@@ -288,7 +307,17 @@ Torusfräser liegt auf ebenen Stellen mit der Stirn flach auf, um eine Kante dre
 um sie; wie tief er darf, rechnet die Hüllfläche des Fräsers in genau dieser Stellung.
 Vorgeschlagen (angehakt), wenn die Maschine eine Achse quer zur Stange hat (bei C das Y);
 der Grund steht grau darunter. Ohne Querachse (oder abgehakt) fährt die Spirale mit
-Rundachse und Radius, die Spitze auch über die Drehmitte hinaus.</li>
+Rundachse und Radius, die Spitze auch über die Drehmitte hinaus. Mit Flächen (gewählt, oder
+ohne die, die „Plan indexiert“ fertig macht) fährt das Schlichten Zeilen hin und her, ohne Y –
+dann ist der Haken grau und sagt es.</li>
+<li><b>Kugel 15° anstellen (nicht mit der Spitze)</b> – mit der Querachse, angehakt: Ohne
+Anstellen stünde die Werkzeugachse genau auf der Normalen der Fläche, und die Kugel schnitte mit
+der Spitze, wo die Schnittgeschwindigkeit 0 ist. Angestellt steht sie 15° daneben, in
+Vorschubrichtung geneigt: Y fährt versetzt, die Rundachse dreht 15° weiter; Kugelmitte und
+Fläche bleiben dieselben.</li>
+<li><b>C dreht nicht zurück</b> – wie beim Schruppen: Die Werkzeugachse steht nur so weit auf
+der Normalen, wie C dabei weiterdreht; an Mulden und Kanten drehte C sonst immer wieder ein Stück
+zurück. Die Kugel fährt dieselbe Fläche ab.</li>
 </ul>
 <p>Grau darunter: wie viele Umdrehungen die Spirale hat und wie lange sie etwa
 braucht – etwa „→ 365 Umdrehungen, etwa 1 h 35 min“, bei Linien längs „→ 126
@@ -300,6 +329,13 @@ was das Schruppen stehen ließ (Aufmaß, Rillen und was sein Fräser nicht errei
 nimmt sie in einem Zug. Wie viel das höchstens ist, steht an der Operation
 („Rest höchstens“); ist es mehr als Aufmaß + 1 mm, sagt es das Ausgabefenster –
 dort kam der Schruppfräser nicht hin.</p>
+<p><b>Rest für die Kugel nach dem Schruppen</b> – sind Schruppen und Schlichten angehakt, rechnet
+ein Nebenrechner nach, wie viel die Kugel nach dem Schruppen höchstens auf einmal nimmt (in der
+Stange als Würfel von 1 mm: erst die Schruppbahn, dann die Schlichtbahn; ap × ae, über 5 mm Weg
+gemittelt). Grau: „Sie greift höchstens mit … mm² ein“. Gelb, wenn es stellenweise mehr als
+doppelt so viel ist, wie sie ohne Rest nimmt (Aufmaß × Durchmesser) – mit der Strecke und der
+Stelle längs: Für so viel sind ihre Schnittwerte nicht gedacht; dann hilft eine kleinere
+Zustellung beim Schruppen. Das Modell lässt eher mehr stehen als die Maschine.</p>
 
 <p><b>Auflösung rundum</b> – so viele Grad liegen zwischen zwei Punkten der Schlichtspirale (Vorschlag 0,5): feiner ist genauer und dauert länger zu rechnen, gröber geht schneller; leer gilt der Vorschlag. Der Wert steht an der Operation als <b>RasterRundum</b>.</p>
 <h3>Schritt 2: Plan indexiert</h3>
@@ -315,10 +351,18 @@ der Maschine eine Achse quer zur Stange (bei C das Y).</p>
 <li>Angehakt wird es vorgeschlagen, sobald eine gewählte Fläche eben längs der
 Stange liegt – der Grund steht grau darunter. Ohne solche Fläche oder ohne
 Querachse ist der Haken gesperrt, und der Satz sagt, warum.</li>
-<li><b>Rundum</b> (keine Fläche gewählt oder alle Mantelflächen) bietet es die ebenen
-Mantelflächen an – ohne Haken: „Mit der Querachse geht Face4 eben in Zeilen …“. Setzt du
-ihn, fräst „Plan indexiert“ diese Flächen, und „Rundum schlichten“ lässt sie aus. An einem
-Teil mit einer großen ebenen Seite ist das schneller und wirklich eben.</li>
+<li><b>Rundum</b> (keine Fläche gewählt oder alle Mantelflächen) ist es angehakt, sobald das
+Teil ebene Flächen hat, die die Rundachse quer zum Fräser stellen kann – auch eine, die zur Mitte
+hin schaut, wenn der Weg dorthin frei ist: „Vorschlag: an – Face4, Face6, Face8 eben mit dem
+Fräser des Schruppens …“. Vorgewählt ist der Fräser des Schruppens; „Rundum schlichten“ lässt
+diese Flächen aus, die Kugel macht den Rest. An einem Teil mit großen ebenen Seiten ist das
+schneller und wirklich eben.</li>
+<li><b>Seiten mit dem Schaft</b> – aus vorbelegt: Statt mit der Stirn quer zur Fläche fräst der
+Fräser eine Seite (eine Fläche, die quer zur Richtung von der Achse zu ihr steht) mit seinem
+Umfang: Die Rundachse dreht 90° weiter, die Werkzeugachse liegt in der Fläche, er geht in Lagen
+der Zustellung bis an ihre Unterkante. Nur, wo seine Schneide so tief reicht – grau steht,
+welche Flächen er so macht und für welche die Schneide nicht reicht; die bleiben bei der
+Stirn.</li>
 <li><b>Schräg zur Achse</b> darf die Fläche bis 30° fallen: Jede Zeile fährt längs eine
 Gerade, die der Fläche folgt – auch unter die Drehmitte (X unter null). Weil die Maschine
 die Fläche nur quer zur Stange drehen kann, steht die ebene Stirn dort um die Neigung schräg:

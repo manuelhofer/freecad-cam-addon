@@ -202,6 +202,13 @@ in order what the paths take away; would a rapid take more than 0.1 mm of materi
 is a crash. If an axis is at its limit where a finding is, the sentence says so – then the machine
 cannot reach the spot, and the limits come first. Parts that already touch in
 the home position (a slide on its guide, say) are not checked.</p>
+<p>If the <b>holder</b> (or a shank thicker than the flutes) hits the part, the finding says how
+far the tool sticks out and how far it would have to at least over the whole operation (“… T1
+sticks out 44 mm, here it would need at least 49 mm”). Below it is <b>“Clamp T1 at 50 mm
+stick-out”</b>: one click sets the length from the spindle nose in the tool manager that much
+longer – the presetter measures it like that once you clamp the tool so –, saves, and the window
+computes with it again; then run “Check collision” once more. If less than one shank diameter
+would remain in the holder, it says that the tool is too short for that.</p>
 <ul>
 <li><b>Warning distance</b> – if two bodies come closer than this, it shows in
 yellow (empty: 1 mm).</li>

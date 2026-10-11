@@ -157,7 +157,26 @@ below the turning centre. Per layer the cutter cuts at most the step-down below 
 measured at the highest spot under its face. Suggested when the machine has an axis across
 the bar and roughing runs all round (with selected faces it runs rows). The preview
 computes without the cross axis – layers and time are almost the same.</li>
+<li><b>C does not turn back</b> – with the cross axis, ticked: the tool axis stands on the
+surface normal only as far as C keeps turning forward. So C never turns back and the machine
+runs more smoothly; on the nose test part just as fast, the ball has about 5 % more to do
+afterwards.</li>
+<li><b>Further layers only where needed</b> – ticked: a layer runs only as far as the one
+before still stayed above the surface. Where a layer has already reached the surface, the next
+would otherwise run it again, almost only through air. On the nose test part with the cross
+axis 11.1 instead of 15.3 min; the ball has about 10 % more to do afterwards (the ridges of the
+layer before remain).</li>
 </ul>
+<p><b>Holder or shank against the part</b> – once the preview is there, a helper process checks
+whether neck, shank or holder of the cutter hit the part along the path. If so, it shows in
+yellow below the operation: where along the axis, how far the cutter sticks out and how far it
+would have to at least (“… T1 sticks out 44 mm, it would need at least 49 mm”). Behind it
+<b>Open T1 …</b> (the tool manager) and <b>Clamp T1 at 50 mm stick-out</b>: one click sets the
+length from the spindle nose in the tool manager that much longer – the presetter measures it
+like that once you clamp the tool so –, saves and checks again; grey then says what was set and
+how much remains in the holder. If less than one shank diameter would remain in the holder, it
+says instead that the tool is too short for that. The head of an angled holder is only known to
+“Check collision” with the machine – it may need more there.</p>
 <p><b>Distances</b> – apply to roughing and finishing:</p>
 <ul>
 <li><b>Overrun</b> – how far the centre of the cutter runs past the back of the
@@ -254,10 +273,11 @@ dovetail mills; the radius mill is calculated with the chord of its profile
 “Finishing” application – ball before torus.</li>
 <li><b>Application</b> – “Finishing” preselected; it gives speed and
 feed.</li>
-<li><b>Stepover</b> – how far the spiral advances per revolution. Empty, the
-grey ae of the application from the tool table applies. Below it is the
-<b>scallop height</b> left between two passes (ball Ø 6 at 0.3 mm:
-0.004 mm).</li>
+<li><b>Stepover</b> – how far the spiral advances per revolution. Empty, the grey
+proposal applies: with ball and torus cutters from the <b>cusp height</b> above it (how high
+at most may remain between two passes, empty 0.02 mm; if the application has an “ae max”, the
+assistant never proposes more), otherwise the ae of the application from the tool table. Below
+it is the scallop height that remains with that stepover.</li>
 <li><b>Allowance</b> – what stays; 0 finishes the part.</li>
 <li><b>Pattern</b> – how the path runs: <b>spiral</b> all round, or <b>lines
 along the axis</b> at a fixed angle, alternating in direction, spaced by the
@@ -280,7 +300,16 @@ spiral as without. With any cutter: an end or bull-nose mill lies flat on flat s
 and pivots about an edge; how deep it may go, the hull of the cutter in exactly that
 orientation computes. Suggested (ticked) when the machine has an axis across the bar
 (Y with C); the reason shows in grey below. Without the cross axis (or unticked) the
-spiral runs with rotary axis and radius, the tip also beyond the turning centre.</li>
+spiral runs with rotary axis and radius, the tip also beyond the turning centre. With faces
+(selected, or without those “indexed facing” finishes) finishing runs rows back and forth,
+without Y – then the tick is greyed out and says so.</li>
+<li><b>Tilt the ball 15° (not cutting with the tip)</b> – with the cross axis, ticked: without
+tilting, the tool axis would stand exactly on the surface normal and the ball would cut with its
+tip, where the cutting speed is 0. Tilted it stands 15° beside it, leaning in the feed direction:
+Y runs offset, the rotary axis turns 15° further; ball centre and surface stay the same.</li>
+<li><b>C does not turn back</b> – as with roughing: the tool axis stands on the normal only as
+far as C keeps turning forward; at hollows and edges C would otherwise turn back a little again
+and again. The ball runs over the same surface.</li>
 </ul>
 <p>In grey below: how many revolutions the spiral has and roughly how long it
 takes – say “→ 365 revolutions, about 1 h 35 min”, for lines along the axis
@@ -292,6 +321,13 @@ roughing left (allowance, ridges and what its cutter could not reach) it takes i
 one pass. How much that is at most shows at the operation (“RestHoechstens”); if it
 is more than allowance + 1 mm, the report view says so – the roughing cutter did
 not get there.</p>
+<p><b>Stock left for the ball after roughing</b> – with roughing and finishing ticked, a helper
+process checks how much the ball takes at most at once after roughing (in the bar as cubes of
+1 mm: first the roughing path, then the finishing path; ap × ae, averaged over 5 mm of path).
+Grey: “it engages at most … mm²”. Yellow if in places it is more than twice what it takes
+without leftover stock (allowance × diameter) – with the length and the place along the axis:
+its cutting data are not meant for that much; a smaller step-down when roughing helps. The model
+tends to leave more than the machine does.</p>
 
 <p><b>Resolution around</b> – the degrees between two points of the finishing spiral (proposal 0.5): finer is more exact and takes longer to compute, coarser is faster; empty means the proposal. The value is stored on the operation as <b>RasterRundum</b>.</p>
 <h3>Step 2: indexed facing</h3>
@@ -307,10 +343,17 @@ something would remain at the edge. Needs an axis across the bar on the machine
 <li>It is suggested ticked as soon as a selected face lies flat along the bar –
 the reason is shown in grey below. Without such a face or without a cross axis
 the tick is locked, and the sentence says why.</li>
-<li><b>All round</b> (no face selected or all lateral faces) it offers the flat lateral faces
-– without a tick: “With the cross axis, Face4 can be machined flat in rows …”. Tick it and
-“indexed facing” mills those faces while “Finish all round” leaves them out. On a part with a
-large flat side that is faster and really flat.</li>
+<li><b>All round</b> (no face selected or all lateral faces) it is ticked as soon as the part
+has flat faces the rotary axis can turn square to the cutter – also one facing the centre, when
+the way there is free: “Suggestion: on – Face4, Face6, Face8 flat with the roughing cutter …”.
+The roughing cutter is preselected; “all-round finishing” leaves those faces out, the ball does
+the rest. On a part with large flat sides that is faster and really flat.</li>
+<li><b>Sides with the flank</b> – unticked by default: instead of with its end square to the
+face, the cutter mills a side (a face standing across the direction from the axis to it) with
+its circumference: the rotary axis turns 90° further, the tool axis lies in the face, and it goes
+down in layers of the step-down to the face's lower edge. Only where its flutes reach that deep –
+grey says which faces it does so and for which the flutes are too short; those stay with the
+end.</li>
 <li><b>Sloping along the axis</b> the face may fall by up to 30°: every row runs a straight
 line along that follows the face – also below the centre of rotation (X below zero). As the
 machine can only turn the face across the bar, the flat end sits at the slope's angle there:

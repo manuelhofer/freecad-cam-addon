@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-73 hilfe-nachgezogen
+
+### EINGELESEN
+- Die Hilfe zur 4-Achs-Bearbeitung kannte die Neuerungen der letzten Tage nicht: „C dreht nicht
+  zurück“, „Folgelagen nur, wo nötig“, die Halterzeile mit „T1 auf … mm ausspannen“, „Rest für die
+  Kugel“, „Kugel 15° anstellen“, die Querachse beim Schlichten mit Flächen, „Plan indexiert“ rundum
+  vorbelegt mit dem Fräser des Schruppens und „Seiten mit dem Schaft“; die Schrittweite kommt seit
+  P-2026-10-11-40 aus der Kammhöhe. Die Hilfe zu „Kollision prüfen“ und zur Flanke erklärte
+  „bräuchte mindestens“ und den Verweis zum Ausspannen nicht.
+
+### DATEIEN
+- `help/de/vierachs.html`, `help/en/vierachs.html`, `help/de/reichweite.html`,
+  `help/en/reichweite.html`, `help/de/bearbeitung.html`, `help/en/bearbeitung.html`.
+- Zwei leere Ordner im Wurzelverzeichnis (Rest eines verunglückten Prüflaufs) entfernt.
+- `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `test_hilfe`, `test_sprache` grün.
+
 ## P-2026-10-11-72 atmen-in-jedem-befehl
 
 ### EINGELESEN

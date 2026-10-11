@@ -808,7 +808,11 @@ floor; at sharp inside corners the radius of the cutter remains. If the wall is 
 cutting length, it runs several levels. “Check on the machine”, the collision check and “Write
 program” compute the rotary axes per point (on the table/table machine: A stays, C turns once
 around). The actual kinematics must reach all directions; otherwise the operation is
-explicitly omitted as unmachined. There is no vertical substitute path. The operation is called “Flank T5”.</li>
+explicitly omitted as unmachined. There is no vertical substitute path. The operation is called “Flank T5”.
+If holder or shank would run into the wall, the block turns red and says how far the tool would
+have to stick out at least; behind it “Clamp T5 at … mm stick-out” (sets the length from the
+spindle nose in the tool manager, then the assistant computes again) – or, if less than one shank
+diameter would remain in the holder, that the tool is too short.</li>
 </ul>
 
 <h3>16. 3D roughing</h3>
