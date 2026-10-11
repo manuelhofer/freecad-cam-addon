@@ -90,6 +90,43 @@ def programm(op, maschine, tcpm=False, bei_null=False):
     return Programm(list(gemerkt.befehle), gemerkt.ausgelassen, gemerkt.materialdaten)
 
 
+def merken(schluessel, befehle, ausgelassen=(), materialdaten=()):
+    """Ein Programm, das ein Nebenrechner gerechnet hat (programm_im_arbeiter: die Sätze als
+    (Name, Parameter)), unter `schluessel` (_inhalt) in den Speicher – das Prüffenster fragt danach
+    mit derselben Maschine (P-2026-10-11-70)."""
+    import Path
+
+    _PROGRAMME[schluessel] = Programm(
+        [Path.Command(name, dict(parameter)) for name, parameter in befehle],
+        tuple(ausgelassen),
+        tuple(materialdaten),
+    )
+    while len(_PROGRAMME) > PROGRAMME_HOECHSTENS:
+        _PROGRAMME.popitem(last=False)
+
+
+def programm_im_arbeiter(dokument, op_name, maschine_dok, maschine, aufnahme, laenge, lage, null):
+    """Im Nebenrechner: programm() der Operation `op_name` aus der Kopie des Jobs `dokument` – mit
+    der Maschine aus ihrer Kopie (`maschine`: kollision.Maschinendaten), der Werkzeugaufnahme
+    `aufnahme`, der Einspannung (`laenge`, `lage` wie kollision.lage_als_daten) und dem Nullpunkt
+    `null`. Gibt (Sätze als (Name, Parameter), ausgelassen, Materialdaten) zurück."""
+    import FreeCAD
+
+    from . import kollision as kb
+    from . import reichweite as rw
+    from . import schwenken as sw
+
+    pruefung = kb._pruefung_fuer(maschine_dok, maschine)
+    einspannung = rw.Einspannung(float(laenge), kb._lage_aus_daten(lage))
+    m = sw.Maschine(pruefung, maschine_dok.getObject(aufnahme), einspannung, FreeCAD.Vector(*null))
+    ergebnis = programm(dokument.getObject(op_name), m)
+    return (
+        [(c.Name, dict(c.Parameters)) for c in ergebnis.befehle],
+        tuple(ergebnis.ausgelassen),
+        tuple(ergebnis.materialdaten),
+    )
+
+
 def _inhalt(op, maschine, tcpm, bei_null):
     """Der Schlüssel für _PROGRAMME – alles, was die Umrechnung liest: Bahn und Achsen je Satz
     (als Prüfsumme), Grathöhe, Schneide, Fräser, Rohteil, die Kinematik (reichweite.Pruefung.

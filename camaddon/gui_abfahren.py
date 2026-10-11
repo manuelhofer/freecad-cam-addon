@@ -204,19 +204,17 @@ class Bild:
     def abtragen(self, index, fertig=None):
         """Trägt die Stange bis Station `index` ab und zeigt sie; an der letzten Station
         eingefärbt gegen das fertige Teil. Gibt den Satz dazu zurück („“ ohne Abtrag). Mit
-        `fertig` und einem weiten Sprung (ab ABTRAG_IM_TAKT_AB Stationen, oder zurück – dann von
-        vorn) im Takt aus der Ereignisschleife (bis_station_schritte): zurück kommt „rechnet …“,
-        und `fertig(Satz)` bekommt den Satz, wenn es dort ist. Am Nasen-Testteil stand der
-        Abspieler ans Ende sonst 3 s am Stück (P-2026-10-11-60)."""
+        `fertig` und viel zu rechnen (ab ABTRAG_IM_TAKT_AB Stationen – zurück beginnt es von vorn,
+        dann sind es `index`) im Takt aus der Ereignisschleife (bis_station_schritte): zurück kommt
+        „rechnet …“, und `fertig(Satz)` bekommt den Satz, wenn es dort ist. Am Nasen-Testteil stand
+        der Abspieler ans Ende sonst 3 s am Stück (P-2026-10-11-60). Ein kurzer Sprung (auch
+        zurück an den Anfang) rechnet gleich – mit dem Satz zurück."""
         if self.abtrag is None:
             return ""
         schritte = getattr(self.abtrag, "bis_station_schritte", None)
         bis = getattr(self.abtrag, "bis", index)
-        if (
-            fertig is not None
-            and schritte is not None
-            and (index + 1 < bis or index - bis >= ABTRAG_IM_TAKT_AB)
-        ):
+        arbeit = index if index + 1 < bis else index - bis
+        if fertig is not None and schritte is not None and arbeit >= ABTRAG_IM_TAKT_AB:
             laeuft = self.abtrag_rechnet()
             self._abtrag_lauf = (schritte(index), index, fertig)  # ein neuer Sprung ersetzt ihn
             if not laeuft:
@@ -459,7 +457,9 @@ class Bild:
             self.bahn_schalter.whichChild = vorher
 
     def weg(self):
-        """Nimmt die Körper aus der Ansicht."""
+        """Nimmt die Körper aus der Ansicht; ein Abtrag im Takt hört auf (sein `fertig` gehört zu
+        einem Fenster, das gerade geht)."""
+        self._abtrag_lauf = None
         wurzel = self.ansicht.getSceneGraph()
         if wurzel.findChild(self.wurzel) >= 0:
             wurzel.removeChild(self.wurzel)

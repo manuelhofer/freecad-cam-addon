@@ -299,6 +299,8 @@ class PruefPanel:
         self.ergebnis = None
         self.abfahrt = None  # abfahren.Abfahrt zum Ergebnis
         self._lauf = None  # ein großer Job rechnet im Takt (_lauf_starten); None: keiner
+        self._vorrechnen = {}  # Schlüssel -> Auftrag: 5-Achs-Programme auf den Nebenrechnern
+        self._vorrechnen_gescheitert = set()  # … die dort nicht gingen: dann hier
         self.bild = None  # gui_abfahren.Bild: Werkzeug und Werkstück in der 3D-Ansicht
         self._bild_fuer = None  # (Job, Prüfung), für die das Bild gebaut ist
         self._bewegt = False  # hat das Fenster die Maschine verfahren?
@@ -568,6 +570,8 @@ class PruefPanel:
             self._zurueckfahren()
             self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
         job, nullpunkt = self.job(), self.nullpunkt()
+        if self._fuenfachs_vorrechnen(job, nullpunkt):
+            return  # die Nebenrechner rechnen die 5-Achs-Programme; danach noch einmal
         if _saetze(job) >= IM_TAKT_AB:
             self._lauf_starten(job, nullpunkt)
             return
@@ -581,8 +585,85 @@ class PruefPanel:
     # --- Im Takt (P-2026-10-11-41) --------------------------------------------------------
 
     def rechnet(self):
-        """Rechnet gerade ein großer Job im Takt?"""
-        return self._lauf is not None
+        """Rechnet gerade ein großer Job im Takt – oder rechnen die Nebenrechner seine
+        5-Achs-Programme vor?"""
+        return self._lauf is not None or bool(self._vorrechnen)
+
+    def _fuenfachs_vorrechnen(self, job, nullpunkt):
+        """Die Programme der 5-Achs-Operationen (simultan_operation.programm) – das Teuerste beim
+        Öffnen, an der Bahn des Szenarios „Wegkippen“ 12 s am Stück – rechnen die Nebenrechner vor,
+        je Operation einer; bis sie da sind, steht oben „rechnet …“, und das Fenster bleibt
+        bedienbar. Danach prüft es mit ihnen aus dem Speicher (P-2026-10-11-70). True, solange es
+        auf sie wartet; False ohne Nebenrechner oder wenn nichts fehlt."""
+        from . import kollision as kb
+        from . import nebenrechner as nr
+        from . import schwenken as sw
+        from . import simultan_operation as so
+
+        fehlen = []
+        for op, ebene in rw.operationen_mit_ebene(job):
+            if ebene is not None or not so.ist_simultan(op):
+                continue
+            tc = getattr(op, "ToolController", None)
+            aufnahme = self.pruefung.werkzeugaufnahme(getattr(tc, "ToolNumber", 0)) if tc else None
+            if aufnahme is None:
+                continue
+            eingespannt = rw.einspannung(tc, self.bibliothek)
+            m = sw.Maschine(self.pruefung, aufnahme, eingespannt, nullpunkt)
+            schluessel = so._inhalt(op, m, False, False)
+            if (
+                schluessel is None
+                or schluessel in so._PROGRAMME
+                or schluessel in self._vorrechnen_gescheitert
+            ):
+                continue
+            fehlen.append((schluessel, op, aufnahme, eingespannt))
+        if not fehlen:
+            return False
+        neu = [f for f in fehlen if f[0] not in self._vorrechnen]
+        if neu:
+            pool = nr.pool()
+            if not pool.verfuegbar():
+                return False
+            try:
+                job_kopie = pool.kopie(job.Document, wiederverwenden=True)
+                maschine_kopie, maschine = kb._maschinendaten(pool, self.pruefung)
+                for schluessel, op, aufnahme, eingespannt in neu:
+                    auftrag = pool.auftrag(
+                        "simultan_operation",
+                        "programm_im_arbeiter",
+                        job_kopie,
+                        op.Name,
+                        maschine_kopie,
+                        maschine,
+                        aufnahme.Name,
+                        float(eingespannt.laenge),
+                        kb.lage_als_daten(eingespannt.lage),
+                        tuple(nullpunkt),
+                    )
+                    auftrag.bei_fertig = functools.partial(self._vorgerechnet, schluessel)
+                    self._vorrechnen[schluessel] = auftrag
+            except (nr.Fehler, kb.NichtTeilbar):
+                return False
+        self._rechnet_zeigen(True)
+        return True
+
+    def _vorgerechnet(self, schluessel, auftrag):
+        """Ein 5-Achs-Programm vom Nebenrechner: in den Speicher (simultan_operation.merken) – sind
+        alle da, prüft das Fenster (über seine Uhr, nicht mitten in einer Rechnung)."""
+        from . import simultan_operation as so
+
+        if self._vorrechnen.get(schluessel) is not auftrag:
+            return
+        del self._vorrechnen[schluessel]
+        if auftrag.fertig and auftrag.ergebnis is not None:
+            so.merken(schluessel, *auftrag.ergebnis)
+        else:
+            self._vorrechnen_gescheitert.add(schluessel)  # dann rechnet pruefe() es hier
+        if self._vorrechnen or PruefPanel.offen is not self:
+            return
+        self._rechnet_zeigen(False)
+        self._uhr.start()
 
     def _lauf_starten(self, job, nullpunkt):
         """Reichweite und Abfahren als Schritte (pruefe_job_schritte, abfahrt_schritte), je
@@ -717,8 +798,9 @@ class PruefPanel:
         return self.bild.abtragen(station, fertig=self._abtrag_angekommen)
 
     def _abtrag_angekommen(self, satz):
-        """Der Abtrag im Takt ist gerechnet (Bild.abtragen): sein Satz unter den Abspieler."""
-        if self.abspieler is None:
+        """Der Abtrag im Takt ist gerechnet (Bild.abtragen): sein Satz unter den Abspieler – nicht
+        mehr, wenn das Fenster inzwischen zu ist."""
+        if self.abspieler is None or PruefPanel.offen is not self:
             return
         self.abspieler.rest.setText(satz)
         self.abspieler.rest.setVisible(bool(satz))

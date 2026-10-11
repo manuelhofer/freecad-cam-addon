@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-70 fuenfachs-vorrechnen
+
+### EINGELESEN
+- Lag-Sonde: „Auf der Maschine prüfen“ öffnete mit der 5-Achs-Bahn des Szenarios „Wegkippen“ 12 s
+  am Stück – das Programm auf den Maschinenachsen (`simultan_operation.programm`) rechnete im
+  Hauptprozess, bevor das Fenster etwas zeigte.
+- Dabei gefunden, zwei Fehler aus P-2026-10-11-60 (Abspieler im Takt): Zurück an den Anfang lief
+  auch in den Takt, obwohl dann nichts zu rechnen ist (szenario_simultan_restbild: „Bahn fehlt am
+  Anfang“); und schloss man das Fenster, während der Takt lief, schrieb er in ein gelöschtes Label
+  (szenario_simultan_bereiche).
+
+### DATEIEN
+- `camaddon/simultan_operation.py`: `programm_im_arbeiter` (im Nebenrechner, aus den Kopien von Job
+  und Maschine) und `merken` (das Ergebnis unter demselben Inhaltsschlüssel in den Speicher).
+- `camaddon/gui_reichweite.py`: `_fuenfachs_vorrechnen` – beim Prüfen rechnen die Nebenrechner die
+  fehlenden 5-Achs-Programme, je Operation einer; bis dahin „rechnet …“ (bedienbar), `rechnet()`
+  sagt es; `_vorgerechnet` legt sie ab und prüft über die Uhr neu; was dort nicht geht, rechnet
+  `pruefe()` hier. `_abtrag_angekommen` nur, solange das Fenster offen ist.
+- `camaddon/gui_abfahren.py`: `Bild.abtragen` – im Takt nur bei viel Arbeit (zurück: `index`
+  Stationen, sonst `index − bis`); `weg()` beendet einen laufenden Takt.
+- `tests/gui/szenario_wegkippen.py`, `szenario_kugel_angestellt.py`, `szenario_simultan_restbild.py`,
+  `szenario_simultan_bereiche.py`: warten nach dem Öffnen, bis das Fenster nicht mehr rechnet.
+- `package.xml` (0.213.75), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Wegkippen: das Prüffenster steht beim Öffnen höchstens 1,3 s am Stück (vorher 12 s).
+
+### AKZEPTANZKRITERIUM
+- `szenario_wegkippen`, `szenario_kugel_angestellt`, `szenario_angestellt`,
+  `szenario_simultan_restbild`, `szenario_simultan_bereiche`, `szenario_pruefen_im_takt`,
+  `szenario_abfahren`, `szenario_rest`, `szenario_flanke`, `szenario_schwenken`,
+  `szenario_schwenkteil` grün.
+
 ## P-2026-10-11-69 raummaterial-verteilt
 
 ### EINGELESEN

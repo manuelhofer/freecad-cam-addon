@@ -58,6 +58,8 @@ def schritte(h):
     Gui.runCommand("CamAddon_AufMaschinePruefen")
     yield from h.warte_auf(lambda: gr.PruefPanel.offen is not None, 10000)
     panel = gr.PruefPanel.offen
+    # Die 5-Achs-Programme rechnen die Nebenrechner vor (P-2026-10-11-70).
+    yield from h.warte_auf(lambda: panel is None or not panel.rechnet(), 120000)
     yield from h.warte_auf(lambda: panel.abfahrt is not None and panel.bild is not None, 15000)
     h.pruefe(len(panel.abfahrt.operationen) == 1, "Erreichbare Schnittzüge fehlen")
     h.pruefe(any("Schnittzug 2" in t for t in panel.abfahrt.hinweise), "Teilbereichsgrund fehlt")

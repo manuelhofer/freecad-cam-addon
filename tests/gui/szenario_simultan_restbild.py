@@ -53,6 +53,8 @@ def schritte(h):
     Gui.runCommand("CamAddon_AufMaschinePruefen")
     yield from h.warte_auf(lambda: gr.PruefPanel.offen is not None, 10000)
     panel = gr.PruefPanel.offen
+    # Die 5-Achs-Programme rechnen die Nebenrechner vor (P-2026-10-11-70).
+    yield from h.warte_auf(lambda: panel is None or not panel.rechnet(), 120000)
     assert panel is not None
     yield from h.warte_auf(lambda: panel.abfahrt is not None and panel.bild is not None, 120000)
     assert isinstance(panel.bild.abtrag, sb.SimultanRestbild)

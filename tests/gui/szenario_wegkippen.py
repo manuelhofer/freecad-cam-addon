@@ -131,6 +131,8 @@ def schritte(h):
     QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
     yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None, 120000)
     pruef = gui_reichweite.PruefPanel.offen
+    # Die 5-Achs-Programme rechnen die Nebenrechner vor (P-2026-10-11-70).
+    yield from h.warte_auf(lambda: pruef is None or not pruef.rechnet(), 120000)
     h.pruefe(pruef is not None, "„Auf der Maschine prüfen“ öffnet kein Fenster")
     if pruef is None:
         return
