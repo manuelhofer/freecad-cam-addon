@@ -125,6 +125,36 @@ def pruefung():
         m.luftanteil < 0.3 and m.luftzuege == 1 and m.gruende
     ), "Kurzer ganzer Luftzug wird im Mittel versteckt"
 
+    # In Streifen auf den Nebenrechnern (P-2026-10-11-105): dasselbe Material, dieselben Befunde
+    # wie nacheinander – eine Kugel und ein Schaftfräser im Zickzack über 4000 Segmente, mit Eilgang
+    # und Eintauchen dazwischen.
+    zickzack = []
+    for zeile in range(40):
+        y = -9.5 + zeile * 0.5
+        xs_ = np.linspace(-9, 9, 100) if zeile % 2 == 0 else np.linspace(9, -9, 100)
+        for k, x in enumerate(xs_):
+            zickzack.append(p(float(x), y, 2.0 + 0.5 * np.sin(x + y), eil=(k == 0 and zeile == 20)))
+    for form in (ff.kugel(1.5), ff.scheibe(2)):
+        ergebnisse = []
+        from camaddon import nebenrechner as nr
+
+        for ab in (10**9, 100):
+            sa.STREIFEN_AB = ab
+            q = rm.Quader(-11, 11, -11, 11, 0, 5, schritt=0.1)
+            vorher = nr.pool().in_arbeit
+            m = sa.fahren(q, zickzack, form, 1.0, 1.0)
+            verteilt = nr.pool().in_arbeit > vorher
+            assert verteilt == (ab == 100), f"verteilt: {verteilt} bei {ab}"
+            ergebnisse.append((m, q.h.copy()))
+        sa.STREIFEN_AB = 3000
+        (m1, h1), (m2, h2) = ergebnisse
+        assert np.array_equal(h1, h2), f"{form}: Höhen verschieden ({np.abs(h1 - h2).max()})"
+        for feld in ("volumen", "luftweg", "vorschubweg", "last_max", "eilgang_abtrag"):
+            a_, b_ = getattr(m1, feld), getattr(m2, feld)
+            assert abs(a_ - b_) <= 1e-9 * max(1.0, abs(a_)), f"{form} {feld}: {a_} / {b_}"
+        assert (m1.luftzuege, m1.eintauchungen) == (m2.luftzuege, m2.eintauchungen), form
+        assert m1.gruende == m2.gruende, (m1.gruende, m2.gruende)
+
 
 pruefung()
 print("OK", os.path.basename(__file__))

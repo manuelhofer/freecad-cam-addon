@@ -94,6 +94,111 @@ def kugelschnitt(xs, ys, von, nach, radius):
     return np.where(innen >= 0, a[2] + t * d[2] - np.sqrt(np.maximum(innen, 0)), np.inf)
 
 
+def _abtragen(x, y, h, z_von, schritt, von, nach, form, i_von, i_bis):
+    """Das Segment `von` → `nach` senkt die Höhen `h` (Zeilen i_von … i_bis des Rasters x, y –
+    h hat nur diese Zeilen); gibt das Volumen zurück, das es dort nahm."""
+    ix, iy = _ausschnitt_xy(x, y, von, nach, form.radius)
+    a, e = max(ix.start, i_von), min(ix.stop, i_bis)
+    if a >= e:
+        return 0.0
+    teil = (slice(a - i_von, e - i_von), iy)
+    vorher = h[teil].copy()
+    # Spalte und Zeile statt eines Gitters: dieselben Werte, ohne 73 000 meshgrid-Aufrufe am
+    # Folge-Vergleich (3,3 s; P-2026-10-11-98).
+    xs, ys = x[a:e][:, None], y[iy][None, :]
+    if form.nur_kugel:
+        unten = kugelschnitt(
+            xs, ys, von + (0, 0, form.radius), nach + (0, 0, form.radius), form.radius
+        )
+    else:
+        unten = schaftschnitt(xs, ys, von, nach, form.radius)
+    np.minimum(h[teil], np.maximum(z_von, unten), out=h[teil])
+    return float((vorher - h[teil]).sum()) * schritt**2
+
+
+def _volumina_verteilt(q, punkte, form):
+    """Das Volumen je Segment (Feld, len(punkte) − 1), q.h danach gesenkt – in Streifen längs x
+    auf den Nebenrechnern (abtrag_streifen). None bei wenigen Segmenten oder ohne Nebenrechner:
+    Dann trägt fahren() selbst ab."""
+    n = len(punkte) - 1
+    if n < STREIFEN_AB or len(q.x) < 8:
+        return None
+    try:
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        if not pool.verfuegbar() or pool.anzahl < 2:
+            return None
+        ecken = np.array([(p.x, p.y, p.z) for p in punkte], dtype=float)
+        anzahl = min(pool.anzahl, max(2, len(q.x) // 8))
+        grenzen = np.linspace(0, len(q.x), anzahl + 1).round().astype(int)
+        schluessel = "abtrag-" + hashlib.blake2b(ecken.tobytes(), digest_size=12).hexdigest()
+        gemeinsam = pool.gemeinsam(schluessel, (q.x, q.y, ecken))
+        art = (bool(form.nur_kugel), float(form.radius))
+        auftraege = [
+            pool.auftrag(
+                "simultan_abtrag",
+                "abtrag_streifen",
+                gemeinsam,
+                q.h[a:e].copy(),
+                int(a),
+                int(e),
+                float(q.z_von),
+                float(q._schritt),
+                art,
+            )
+            for a, e in zip(grenzen[:-1], grenzen[1:], strict=True)
+            if e > a
+        ]
+        ergebnisse = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+        pool.vergessen(schluessel)
+    except Exception as fehler:  # noqa: BLE001 – dann eben hier
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Abtrag verteilt: {fehler}\n")
+        return None
+    volumina = np.zeros(n)
+    for (a, e), (vol, h) in zip(
+        ((a, e) for a, e in zip(grenzen[:-1], grenzen[1:], strict=True) if e > a),
+        ergebnisse,
+        strict=True,
+    ):
+        volumina += vol
+        q.h[a:e] = h
+    return volumina
+
+
+@dataclass(frozen=True)
+class _Form:
+    """Was abtrag_streifen() vom Fräser braucht."""
+
+    nur_kugel: bool
+    radius: float
+
+
+def abtrag_streifen(gemeinsam, h, i_von, i_bis, z_von, schritt, art):
+    """Im Nebenrechner: alle Segmente der Bahn (`gemeinsam`: x, y, Punkte) nacheinander über den
+    Zeilen i_von … i_bis des Rasters (`h`) – (Volumen je Segment, h danach)."""
+    x, y, ecken = gemeinsam
+    form = _Form(*art)
+    h = np.array(h, dtype=float)
+    volumina = np.zeros(len(ecken) - 1)
+    # Nur die Segmente, deren Ausschnitt den Streifen trifft (wie _ausschnitt, ± Radius).
+    x_lo = np.minimum(ecken[:-1, 0], ecken[1:, 0]) - form.radius
+    x_hi = np.maximum(ecken[:-1, 0], ecken[1:, 0]) + form.radius
+    drin = np.flatnonzero((x_hi >= x[i_von] - schritt) & (x_lo <= x[i_bis - 1] + schritt))
+    for i in drin:
+        volumina[i] = _abtragen(x, y, h, z_von, schritt, ecken[i], ecken[i + 1], form, i_von, i_bis)
+    return volumina, h
+
+
+def _ausschnitt_xy(x, y, a, b, radius):
+    """_ausschnitt() mit den Achsen des Rasters statt des Quaders."""
+    ix = np.searchsorted(x, [min(a[0], b[0]) - radius, max(a[0], b[0]) + radius], side="left")
+    iy = np.searchsorted(y, [min(a[1], b[1]) - radius, max(a[1], b[1]) + radius], side="left")
+    return slice(max(0, ix[0]), min(len(x), ix[1] + 1)), slice(
+        max(0, iy[0]), min(len(y), iy[1] + 1)
+    )
+
+
 def _ausschnitt(q, a, b, radius):
     ix = np.searchsorted(q.x, [min(a[0], b[0]) - radius, max(a[0], b[0]) + radius], side="left")
     iy = np.searchsorted(q.y, [min(a[1], b[1]) - radius, max(a[1], b[1]) + radius], side="left")
@@ -119,30 +224,27 @@ def schaftschnitt(xs, ys, von, nach, radius):
     return np.where(drin, a[2] + t * d[2], np.inf)
 
 
+# Ab so vielen Segmenten trägt fahren() in Streifen längs x auf den Nebenrechnern ab
+# (P-2026-10-11-105): Was ein Segment nimmt, hängt nur vom Stand derselben Zelle davor ab – jeder
+# Streifen fährt alle Segmente in ihrer Reihenfolge über seinen Zellen, die Volumina addieren sich.
+STREIFEN_AB = 3000
+
+
 def fahren(q, punkte, form, ae, ap, eintauchwinkel=90.0, fortschritt=None):
     """Material sequenziell abtragen und Vorschub, Last und Eilgang unabhängig messen."""
+    if not (form.nur_kugel or form.eben):
+        raise ValueError(tr("s5p.fehler.abtragform"))
     m = Messung(raster=q._schritt)
     fenster = []
     zug_volumen, zug_schnittweg = 0.0, 0.0
+    volumina = _volumina_verteilt(q, punkte, form)
     for i, (a, b) in enumerate(zip(punkte, punkte[1:], strict=False)):
         _meldung(fortschritt, i, len(punkte))
         von, nach = np.array((a.x, a.y, a.z)), np.array((b.x, b.y, b.z))
-        ausschnitt = _ausschnitt(q, von, nach, form.radius)
-        vorher = q.h[ausschnitt].copy()
-        # Spalte und Zeile statt eines Gitters: dieselben Werte, ohne 73 000 meshgrid-Aufrufe am
-        # Folge-Vergleich (3,3 s; P-2026-10-11-98).
-        xs, ys = q.x[ausschnitt[0]][:, None], q.y[ausschnitt[1]][None, :]
-        if form.nur_kugel:
-            unten = kugelschnitt(
-                xs, ys, von + (0, 0, form.radius), nach + (0, 0, form.radius), form.radius
-            )
-        elif form.eben:
-            unten = schaftschnitt(xs, ys, von, nach, form.radius)
+        if volumina is not None:
+            volumen = float(volumina[i])
         else:
-            raise ValueError(tr("s5p.fehler.abtragform"))
-        np.minimum(q.h[ausschnitt], np.maximum(q.z_von, unten), out=q.h[ausschnitt])
-        gesenkt = vorher - q.h[ausschnitt]
-        volumen = float(gesenkt.sum()) * q._schritt**2
+            volumen = _abtragen(q.x, q.y, q.h, q.z_von, q._schritt, von, nach, form, 0, len(q.x))
         weg = bn.weg(a, b)
         if b.eilgang:
             if zug_schnittweg > 1e-6 and zug_volumen < 1e-9:

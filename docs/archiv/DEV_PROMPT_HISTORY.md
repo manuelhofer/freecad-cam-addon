@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-105 abtrag-in-streifen
+
+### EINGELESEN
+- Nachtauftrag (Manuel, 2026-10-11: „wir brauchen mehr Optimierung für mehr Threads“): Der
+  Materialabtrag der Simultanplanung (`simultan_abtrag.fahren`) lief auf einem Kern – im Profil von
+  `test_simultan_folge` 14,4 s, davon `kugelschnitt` 6,8 s in 62.001 Aufrufen.
+- Dabei gefunden: `test_simultan_gesamt` war seit P-2026-10-11-96 rot – die neue G550 (GROB
+  G-Serie) änderte die NC-Sätze, die Referenz `kuppel_simultan_gesamt` war nicht neu geschrieben.
+
+### DATEIEN
+- `camaddon/simultan_abtrag.py`: `fahren` trägt ab STREIFEN_AB (3000) Segmenten in Streifen längs x
+  auf den Nebenrechnern ab (`_volumina_verteilt`, `abtrag_streifen`): Was ein Segment nimmt, hängt
+  nur vom Stand derselben Zelle davor ab – jeder Streifen fährt alle Segmente in ihrer Reihenfolge
+  über seinen Zellen, die Volumina je Segment addieren sich; die Befunde (Luft, Last, Eilgang,
+  Eintauchen) rechnet die bisherige Schleife daraus. `_abtragen`, `_ausschnitt_xy`.
+- `tests/test_simultan_abtrag.py`: Kugel und Schaftfräser im Zickzack über 4000 Segmente – verteilt
+  und nacheinander dieselben Höhen (bitgleich) und Befunde, und verteilt heißt wirklich verteilt.
+- `tests/golden/kuppel_simultan_gesamt.json`, `…_nc.json`: neu (Bahnpunkte und Satzzahl gleich,
+  Zeit 74,49 → 74,44 s, Rest gleich; nur die NC-Prüfsummen der neuen Kinematik).
+- `package.xml` (0.220.0).
+
+### ERGEBNIS
+- `test_simultan_folge` mit `test_simultan_eichung` daneben 49 s (vorher allein 72 s);
+  Rechenzeit in `test_simultan_gesamt` 22,4 → 12,6 s.
+
+### AKZEPTANZKRITERIUM
+- `test_simultan_abtrag`, `test_simultan_folge`, `test_simultan_eichung`, `test_simultan_planung`,
+  `test_schruppen3d_anlauf`, `test_simultan_restbild`, `test_simultan_gesamt` in 1.1.4.
+
 ## P-2026-10-11-104 erreichbar-gemerkt
 
 ### EINGELESEN
