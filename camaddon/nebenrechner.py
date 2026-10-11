@@ -55,7 +55,7 @@ import threading
 import time
 from collections import OrderedDict
 from dataclasses import dataclass
-from multiprocessing import connection
+from multiprocessing import connection, reduction
 
 import FreeCAD
 
@@ -315,6 +315,10 @@ class Nebenrechner:
         self._warteschlange = []
         self._laufend = {}  # Auftragsnummer -> Auftrag
         self._gemeinsam = OrderedDict()  # Schlüssel -> Wert, zuletzt gebraucht am Ende
+        # Schlüssel -> die Nachricht („daten“, Schlüssel, Wert) gepickelt: einmal, nicht je Arbeiter
+        # (die Fahrt der Kollision an der Nocke, 140 000 Stationen: zwölfmal gepickelt standen
+        # 3,3 s, bevor die Prüfung Ereignisse abarbeitete; P-2026-10-11-68).
+        self._gepickelt = {}
         self._zaehler = 0  # Aufträge
         self._gestartete = 0  # Arbeiter, je eine Nummer
         self._ordner = None
@@ -413,6 +417,7 @@ class Nebenrechner:
         """Gibt gemeinsame Daten frei – hier und in den Arbeitern. Allen gesagt, auch denen, die
         sie nicht haben: Ein Unterpool, der sie gebracht hat, bringt sie dann wieder."""
         self._gemeinsam.pop(schluessel, None)
+        self._gepickelt.pop(schluessel, None)
         for arbeiter in self._arbeiter:
             arbeiter.gemeinsam.pop(schluessel, None)
             if arbeiter.verbindung is not None:
@@ -731,7 +736,15 @@ class Nebenrechner:
                     continue
                 if schluessel not in self._gemeinsam:
                     raise KeyError(f"gemeinsame Daten „{schluessel}“ fehlen")
-                arbeiter.verbindung.send(("daten", schluessel, self._gemeinsam[schluessel]))
+                nachricht = self._gepickelt.get(schluessel)
+                if nachricht is None:
+                    nachricht = bytes(
+                        reduction.ForkingPickler.dumps(
+                            ("daten", schluessel, self._gemeinsam[schluessel])
+                        )
+                    )
+                    self._gepickelt[schluessel] = nachricht
+                arbeiter.verbindung.send_bytes(nachricht)  # wie send(), schon gepickelt
                 arbeiter.gemeinsam[schluessel] = True
                 while len(arbeiter.gemeinsam) > GEMEINSAM_JE_ARBEITER:
                     alt, _ = arbeiter.gemeinsam.popitem(last=False)

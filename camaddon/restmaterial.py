@@ -130,6 +130,7 @@ class Stange:
             ende = max(int(np.searchsorted(summe, ziel, "right")), start + 1)
             self._teilschritte(von[start:ende], nach[start:ende], anzahl[start:ende], fraeser)
             start = ende
+            uhren.atmen()  # nur in uhren.atmend(): das Fenster zeichnet neu
 
     def _teilschritte(self, von, nach, anzahl, fraeser):
         """fahre_stuecke() für einen Block: die Stücke in `anzahl` Teilschritte zerlegt."""

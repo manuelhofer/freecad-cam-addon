@@ -80,6 +80,7 @@ from . import abfahren as ab
 from . import halter as hl
 from . import netzabstand as na
 from . import reichweite as rw
+from . import uhren
 from .kette import LINEAR
 from .sprache import tr
 
@@ -971,7 +972,10 @@ def _verteilt(pool, abfahrt, job, nullpunkt, bibliothek, warnabstand, fortschrit
 
     try:
         # Die Eilgänge ins Rohteil rechnet dieser Prozess, während die Stücke laufen.
-        rohteil_befunde = _eilgaenge_ins_rohteil(abfahrt, job) if rohteil else []
+        # Das Fenster ist gesperrt, der Fortschritt arbeitet ohnehin Ereignisse ab: Der Abtrag
+        # darf dabei atmen (an der Nocke stand es dafür 1,8 s; P-2026-10-11-68).
+        with uhren.atmend():
+            rohteil_befunde = _eilgaenge_ins_rohteil(abfahrt, job) if rohteil else []
         stuecke = pool.warten(auftraege, zwischendurch)
     finally:
         for s in schluessel:

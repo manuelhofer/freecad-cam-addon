@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-68 kollision-prueft-ohne-stehen
+
+### EINGELESEN
+- Lag-Sonde: „Kollision prüfen“ am 4-Achs-Nockenteil (140 000 Stationen) stand 5,9 s am Stück, bevor
+  das Warten auf die Nebenrechner Ereignisse abarbeitete. Gemessen im Szenario: 576 Aufträge
+  anlegen 3,3 s – beim Verteilen gingen die gemeinsamen Daten (die ganze Fahrt) an jeden der zwölf
+  Arbeiter, und `Connection.send` pickelte sie jedes Mal neu; dazu die Eilgänge ins Rohteil 1–1,8 s
+  im Hauptprozess.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: gemeinsame Daten einmal gepickelt (`_gepickelt`), an die Arbeiter mit
+  `send_bytes` – der Arbeiter liest sie unverändert mit `recv()`; mit `vergessen` weg.
+- `camaddon/kollision.py`: `_eilgaenge_ins_rohteil` in `uhren.atmend()` (das Fenster ist dabei
+  gesperrt, der Fortschritt arbeitet ohnehin Ereignisse ab).
+- `camaddon/restmaterial.py`: `Stange.fahre_stuecke` ruft `uhren.atmen()` je Block.
+- `package.xml` (0.213.73), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- Aufträge anlegen 3,3 → 0,5 s; längste Pause bei „Kollision prüfen“ an der Nocke 5,9 → 0,9 s.
+
+### AKZEPTANZKRITERIUM
+- `test_kollision`, `test_kollision_verteilt`, `test_nebenrechner`, `test_vierachs_pruefen`,
+  `test_restmaterial`, `test_quader`, `szenario_kollision`, `szenario_vierachs_nocke`,
+  `szenario_pruefen_ausspannen`, `szenario_pruefen_im_takt` grün.
+
 ## P-2026-10-11-67 anlegen-ohne-einfrieren
 
 ### EINGELESEN
