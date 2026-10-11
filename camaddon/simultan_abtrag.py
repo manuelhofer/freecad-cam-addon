@@ -129,7 +129,9 @@ def fahren(q, punkte, form, ae, ap, eintauchwinkel=90.0, fortschritt=None):
         von, nach = np.array((a.x, a.y, a.z)), np.array((b.x, b.y, b.z))
         ausschnitt = _ausschnitt(q, von, nach, form.radius)
         vorher = q.h[ausschnitt].copy()
-        xs, ys = np.meshgrid(q.x[ausschnitt[0]], q.y[ausschnitt[1]], indexing="ij")
+        # Spalte und Zeile statt eines Gitters: dieselben Werte, ohne 73 000 meshgrid-Aufrufe am
+        # Folge-Vergleich (3,3 s; P-2026-10-11-98).
+        xs, ys = q.x[ausschnitt[0]][:, None], q.y[ausschnitt[1]][None, :]
         if form.nur_kugel:
             unten = kugelschnitt(
                 xs, ys, von + (0, 0, form.radius), nach + (0, 0, form.radius), form.radius

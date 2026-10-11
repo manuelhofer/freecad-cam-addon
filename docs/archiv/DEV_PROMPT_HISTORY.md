@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-98 abtrag-ohne-meshgrid
+
+### EINGELESEN
+- Weiter mit dem, was am Folge-Vergleich auf einem Kern hängt (P-2026-10-11-97): der Materialabtrag
+  `simultan_abtrag.fahren` 18 s in 52 Aufrufen à ~1200 Strecken – zu klein zum Verteilen (Hin und
+  Her je Aufruf so teuer wie die Rechnung), aber je Strecke `np.meshgrid` (73 000 Aufrufe, 3,3 s).
+
+### DATEIEN
+- `camaddon/simultan_abtrag.py`: `fahren` – Spalte und Zeile statt eines Gitters (Broadcasting,
+  dieselben Werte).
+
+### ERGEBNIS
+- `fahren` 18,0 → 14,4 s; `test_simultan_folge` 76 → 72 s (113 vor P-97). Was bleibt: das
+  Maschinenprogramm (`simultan_operation.programm`, 14,6 s – Rundachsen je Punkt mit Stetigkeit,
+  nicht einfach zu teilen), Materialabtrag 14 s, Anlauf 7 s, FreeCAD-Neuberechnung 4,6 s.
+
+### AKZEPTANZKRITERIUM
+- `test_simultan_folge`, `test_simultan_planung` in 1.1.4.
+
 ## P-2026-10-11-97 hoehenfeld-gruppiert
 
 ### EINGELESEN
