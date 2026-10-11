@@ -13,7 +13,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 https://forum.freecad.org/viewtopic.php?t=107889. Antworten dort sind Eingang für Wünsche und
 Fehler – sie kommen hierher; die Beiträge selbst liegen nur bei Manuel (Manuel, 2026-10-11: „alles
 was mit posts zutun hat … einfach nicht auf github … auser es werden bilder benötigt“; die Bilder
-in `docs/bilder/forum/`).
+im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
