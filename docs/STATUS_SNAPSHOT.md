@@ -714,8 +714,15 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Zurzeit kein offener Bug. B-001 bis B-018 sind behoben (Belege im Verlauf; B-017 und B-018 in
-P-2026-10-10-35 bis -39); nächste freie Nummer B-019.
+- **B-019 Nadel nach dem Adaptiv-Kern** (gefunden 2026-10-11, P-2026-10-11-83): FreeCADs Adaptiv-Kern
+  lässt bei manchen Läufen mitten im Gebiet eine schmale Linse ungeschnitten (an der Platte des
+  Prüfstands 0,036 mm², 0,85 × 0,27 mm, 20 mm hoch), je Lauf an anderer Stelle oder gar nicht. Das
+  Raster des Addons (0,5 mm, die Mitte beim Merken auf die Zelle gerastet) zählt sie als geschnitten,
+  kein Ring fährt nach. Darum ist `test_pruefstand` gelegentlich rot („lässt 20,00 mm … stehen“).
+  Reproduzierbar mit der aufgezeichneten Ausgabe des Kerns.
+
+B-001 bis B-018 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39);
+nächste freie Nummer B-020.
 
 ## Offene Tasks
 

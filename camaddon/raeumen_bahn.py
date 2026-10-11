@@ -1695,7 +1695,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     # Freivorschub“ soll genau die Bahn der automatischen Wahl wiederholen). Ausgewertet wird in
     # der Reihenfolge der Varianten – auch ein Fehler kommt, wo er nacheinander käme.
     unterwegs, gemeinsam = _varianten_auftraege(
-        netz, w, ebenen, konturen, schritt, stand, varianten
+        netz, w, ebenen, konturen, schritt, stand, varianten, folge, huellen
     )
     hier = {}
     try:
@@ -1978,16 +1978,16 @@ def _variante(netz, w, folge, konturen, r, schritt, stand, huellen, variante, me
     return variante, st
 
 
-def variante_rechnen(netz, w, ebenen, konturen, schritt, stand, variante, mehrere):
+def variante_rechnen(netz, w, ebenen, konturen, schritt, stand, variante, mehrere, huellen=None):
     """Auch im Nebenrechner: _variante() für eine Variante – (ihr Ergebnis, die Hüllflächen
     {Fläche: Raster}). `konturen`: [(Draht als Form, Kontur ohne Draht)] (ein Part.Wire lässt sich
-    nicht pickeln; _konturen_verpackt)."""
+    nicht pickeln; _konturen_verpackt); `huellen`: die schon gerechneten (_huellen_vorab)."""
     konturen = [
         dataclasses.replace(k, draht=draht.Wires[0] if draht.ShapeType == "Wire" else draht)
         for draht, k in konturen
     ]
     folge = _folge(ebenen, konturen)
-    huellen = {}
+    huellen = dict(huellen or {})
     ergebnis = _variante(
         netz, w, folge, konturen, float(w.form.radius), schritt, stand, huellen, variante, mehrere
     )
@@ -1999,7 +1999,7 @@ def _konturen_verpackt(konturen, nr):
     return [(nr.Form.von(k.draht), dataclasses.replace(k, draht=None)) for k in konturen]
 
 
-def _varianten_auftraege(netz, w, ebenen, konturen, schritt, stand, varianten):
+def _varianten_auftraege(netz, w, ebenen, konturen, schritt, stand, varianten, folge, huellen):
     """({Variante: Auftrag}, [Schlüssel der gemeinsamen Daten]) – die Ringe (alle Varianten außer
     „adaptiv“) je auf einem Nebenrechner, gleichzeitig (sie hängen nicht voneinander ab; am
     Testteil rechneten die vier Varianten nacheinander 6,4 s, P-2026-10-11-77). Leer, wenn es
@@ -2018,8 +2018,9 @@ def _varianten_auftraege(netz, w, ebenen, konturen, schritt, stand, varianten):
         pool = nr.pool()
         if not pool.verfuegbar():
             return {}, []
+        _huellen_vorab(netz, w, folge, float(w.form.radius), schritt, huellen)
         gemeinsam = []
-        for name, wert in (("netz", netz), ("stand", stand)):
+        for name, wert in (("netz", netz), ("stand", stand), ("huellen", dict(huellen))):
             if wert is None:
                 gemeinsam.append(None)
                 continue
@@ -2039,6 +2040,7 @@ def _varianten_auftraege(netz, w, ebenen, konturen, schritt, stand, varianten):
                 gemeinsam[1],
                 v,
                 True,
+                gemeinsam[2],
             )
     except nr.Fehler:
         for a in auftraege.values():
@@ -2074,6 +2076,47 @@ def _varianten_abholen(auftraege, gemeinsam, huellen):
     return ergebnisse
 
 
+def _feld_der_flaeche(netz, w, ebene, tasche, r, schritt, huellen=None):
+    """(_Feld, Toleranz, Zugabe) einer Fläche: das Raster um das Rohteil – in einer Tasche um sie
+    –, die Hüllfläche aus `huellen`, wenn sie dort schon steht, sonst gerechnet und dort gemerkt."""
+    x_von, x_bis, y_von, y_bis = w.rohteil
+    rand = 3.0 * r + w.zeilenabstand
+    if tasche is not None:
+        bb = tasche.draht.BoundBox
+        x_von, x_bis = max(x_von, bb.XMin - rand), min(x_bis, bb.XMax + rand)
+        y_von, y_bis = max(y_von, bb.YMin - rand), min(y_bis, bb.YMax + rand)
+    toleranz = netz.toleranz
+    zugabe = max(w.aufmass, 0.0) + toleranz + vb.RAND  # mit_aufmass: das Ergebnis heben
+    geformt = form_mit_aufmass(w.form, max(w.aufmass, 0.0) + toleranz)
+    feld = _Feld(
+        netz,
+        geformt,
+        zugabe,
+        r,
+        x_von - rand,
+        x_bis + rand,
+        y_von - rand,
+        y_bis + rand,
+        schritt,
+        w.rohteil,
+        w.zeilenabstand + schritt,
+        None if huellen is None else huellen.get(ebene.name),
+    )
+    if huellen is not None:
+        huellen[ebene.name] = feld.roh
+    return feld, toleranz, zugabe
+
+
+def _huellen_vorab(netz, w, folge, r, schritt, huellen):
+    """Die Hüllflächen aller Flächen, über denen etwas zu räumen ist, in `huellen` – einmal, bevor
+    die Varianten gleichzeitig rechnen (sonst rechnete jede sie selbst: am Testteil 81 s
+    Rechenzeit auf allen Kernen für 9,7 s; P-2026-10-11-83)."""
+    for ebene, tasche in folge:
+        if w.oben <= ebene.z + max(w.aufmass_boden, 0.0) + GLEICH or ebene.name in huellen:
+            continue
+        _feld_der_flaeche(hf.netz_fuer(netz, ebene), w, ebene, tasche, r, schritt, huellen)
+
+
 def _flaeche(
     st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=None, material=None,
     huellen=None,
@@ -2100,31 +2143,7 @@ def _flaeche(
     zustellung = w.zustellung
     if w.schneidenlaenge > 0:
         zustellung = min(zustellung, w.schneidenlaenge)
-    x_von, x_bis, y_von, y_bis = w.rohteil
-    rand = 3.0 * r + w.zeilenabstand
-    if tasche is not None:
-        bb = tasche.draht.BoundBox
-        x_von, x_bis = max(x_von, bb.XMin - rand), min(x_bis, bb.XMax + rand)
-        y_von, y_bis = max(y_von, bb.YMin - rand), min(y_bis, bb.YMax + rand)
-    toleranz = netz.toleranz
-    zugabe = max(w.aufmass, 0.0) + toleranz + vb.RAND  # mit_aufmass: das Ergebnis heben
-    geformt = form_mit_aufmass(w.form, max(w.aufmass, 0.0) + toleranz)
-    feld = _Feld(
-        netz,
-        geformt,
-        zugabe,
-        r,
-        x_von - rand,
-        x_bis + rand,
-        y_von - rand,
-        y_bis + rand,
-        schritt,
-        w.rohteil,
-        w.zeilenabstand + schritt,
-        None if huellen is None else huellen.get(ebene.name),
-    )
-    if huellen is not None:
-        huellen[ebene.name] = feld.roh
+    feld, toleranz, zugabe = _feld_der_flaeche(netz, w, ebene, tasche, r, schritt, huellen)
     if tasche is not None:
         # Die Tasche endet an ihren Wänden: Liegt das Teil daneben tiefer als ihr Boden (eine
         # Tasche in einer Insel), dürfte die Spitze sonst auch dorthin – an Manuels Testteil

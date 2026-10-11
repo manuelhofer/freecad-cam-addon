@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-83 huellen-einmal
+
+### EINGELESEN
+- „Räumen T1“ am 3-Achs-Testteil neu berechnet: 9,7 s, aber 81 s Rechenzeit über alle Prozesse.
+  Seit P-77 rechnete jede Ringvariante auf ihrem Nebenrechner die Hüllflächen selbst (und
+  verteilte das noch einmal), der Hauptprozess für „adaptiv“ ebenso – nacheinander rechnete sie
+  nur die erste Variante, die übrigen übernahmen sie.
+- Dabei `test_pruefstand` rot („platte/raeumen: lässt 20,00 mm auf der Fläche stehen“, auch
+  „35,62 min, die Bestmarke ist 34,58“) – mit dem Stand davor ebenso (nachgestellt, B-019):
+  FreeCADs Adaptiv-Kern lässt bei manchen Läufen mitten in der Platte eine Linse von 0,036 mm²
+  stehen (0,85 × 0,27 mm, 20 mm hoch – eine Nadel); das Raster des Addons (0,5 mm, die Mitte auf
+  die Zelle gerastet) sieht sie nicht. Mit der aufgezeichneten Ausgabe des Kerns reproduzierbar.
+  Nicht P-83, nicht das Verteilen.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_feld_der_flaeche` (das Raster einer Fläche, aus `_flaeche`
+  gelöst), `_huellen_vorab` – die Hüllflächen einmal, bevor die Varianten gleichzeitig rechnen;
+  als gemeinsame Daten an die Nebenrechner (`variante_rechnen(…, huellen)`).
+- `package.xml` (0.213.87), `docs/archiv/DEV_PROMPT_HISTORY.md`, `docs/STATUS_SNAPSHOT.md` (B-019).
+
+### ERGEBNIS
+- „Räumen T1“ am Testteil: 9,7 → 6,8 s, Rechenzeit 81 → 28 s.
+
+### AKZEPTANZKRITERIUM
+- `test_raeumen`, `test_testteil`, `test_nut_offen`, `test_restmaterial` grün,
+  `test_pruefstand` viermal grün (B-019 offen).
+
 ## P-2026-10-11-82 pruefen-atmet
 
 ### EINGELESEN
