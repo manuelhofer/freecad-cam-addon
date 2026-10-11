@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-32 abtrag-mit-schraegem-werkzeug
+
+### EINGELESEN
+- legros im Forum (10.10.): ein Kegel mit „Flanke“ auf der Beispielmaschine 5-Achs Tisch/Tisch –
+  das Rohteil blieb im Abspieler ganz. Abgetragen wurde nur an einer runden Stange (Rundum), in
+  einem Kasten mit Werkzeugen senkrecht von oben (restmaterial.fuer_quader) und beim 3D-Schlichten
+  mit angestellter Kugel (simultan_restbild). Manuel, 2026-10-11: „dann muss man das ändern“.
+
+### DATEIEN
+- `camaddon/schraeg_abtrag.py` (neu): `SchraegAbtrag` – das Höhenfeld des Kastens, je Station
+  auch die Achse des Werkzeugs (aus einer 1 mm längeren Kinematik, je Rundachsen-Stellung einmal);
+  senkrechte Stücke wie bisher mit der Form des Fräsers, schräge mit seinem Körper über die Länge
+  der Schneide (`tiefste`: Zylinder, beim Kugelfräser Kapsel – je Zelle der tiefste Punkt, eine
+  quadratische Ungleichung in z), in Teilschritten, die weder Spitze noch Schneidenende mehr als
+  0,5 mm springen lassen. `fuer()`: Rohteil des Grundjobs ein Kasten, kein Werkzeug flacher als
+  FLACHSTE_ACHSE (z 0,2) im Material – sonst None wie bisher.
+- `camaddon/gui_abfahren.py`: nach restmaterial und simultan_restbild der schräge Abtrag.
+- `tests/test_schraeg_abtrag.py` (neu): `tiefste` an Zylinder und Kapsel gegen eine fein
+  abgetastete Senkrechte (2 µm); Kegel Ø 50 → Ø 30 auf einer Platte mit „Flanke“ Ø 10 (35 mm
+  Schneide: ein Umlauf; 12 mm mit ER16: drei Lagen) auf der 5-Achs-Maschine – auf dem Mantel steht
+  der Kegel (z 25 bei r 20), am Fuß ein schräger Ring weg, außen das Rohteil; zurück und wieder
+  vor: dasselbe. `tests/gui/szenario_flanke.py`: am Ende abgetragen, Bild `5_abgetragen`.
+- `package.xml` (0.213.39), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `test_schraeg_abtrag`, `szenario_flanke` und die 5-Achs- und 3+2-Szenarien
+  (`angestellt`, `kugel_angestellt`, `entgraten3d`, `loch_schraeg`, `schwenkteil`, `schwenken`,
+  `schwenken_maschinenwahl`, `schwenkdatensatz`, `simultan_restbild`, `simultan_bereiche`,
+  `grob_g550`, `raum_material`, `wegkippen`, `flaechen_pruefen`).
+- 1,7 m schräge Bahn (Achse 30°) bis zum Ende abgetragen in 0,13 s.
+
 ## P-2026-10-11-31 magazin-ohne-maschine
 
 ### EINGELESEN

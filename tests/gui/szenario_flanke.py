@@ -186,6 +186,16 @@ def schritte(h):
     spieler.knopf_hinsehen.click()
     yield 800
     h.bild("4_auf_der_maschine")
+    # Mit schrägem Werkzeug trägt der Abspieler ab (schraeg_abtrag, P-2026-10-11-32): am Ende
+    # steht die Tasche mit ihren schrägen Wänden im Rohteil.
+    bild = pruef.bild
+    h.pruefe(bild is not None and bild.abtrag is not None, "kein Abtrag mit schrägem Werkzeug")
+    if bild is not None and bild.abtrag is not None:
+        spieler.springe_zu_station(len(fahrt.stationen) - 1)
+        yield 800
+        q = bild.abtrag.quader
+        h.pruefe(float(q.h.min()) < q.z_bis - 5.0, f"nichts abgetragen: {float(q.h.min()):.2f}")
+        h.bild("5_abgetragen")
     pruef.reject()
     yield 500
     FreeCAD.closeDocument(doc.Name)

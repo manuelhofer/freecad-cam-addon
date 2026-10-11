@@ -257,8 +257,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 **Aufträge aus Manuels Antworten vom 2026-10-11 morgens** (Verlauf P-2026-10-11-30; Reihenfolge so
 abgearbeitet):
-1. **Abtrag im Abspieler auch mit schrägem Werkzeug** (Flanke, 3+2, simultan) – heute bleibt das
-   Rohteil dort stehen (legros im Forum: Kegel mit „Flanke“). Manuel: „dann muss man das ändern“.
+1. ~~**Abtrag im Abspieler auch mit schrägem Werkzeug** (Flanke, 3+2, simultan).~~ Erledigt:
+   P-2026-10-11-32 (Höhenfeld – Hinterschnitte zeigt es nicht).
 2. **Flanke: der Halter darf nicht ins Teil** – Lagen so planen, dass der Halter frei bleibt
    (anders anstellen, wo die Form bleibt), sonst klar melden: „steht zu wenig heraus, mindestens …
    mm“. Vorschruppen auf 3 Achsen mit dem Schaftfräser, Schlichten mit der Flanke.

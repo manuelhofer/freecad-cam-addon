@@ -119,13 +119,18 @@ class Bild:
         werkstueck.addChild(self.modell_schalter)
         punkte = abfahrt.am_werkstueck()
         # Eine runde Stange mit „Rundum schruppen“ wird beim Abspielen abgetragen (V3g), ein
-        # Kasten als Rohteil mit Werkzeugen senkrecht von oben ebenso (W-006 S3d).
+        # Kasten als Rohteil mit Werkzeugen senkrecht von oben ebenso (W-006 S3d) – und mit
+        # schräg stehendem Werkzeug (Flanke, 3+2, simultan; P-2026-10-11-32).
         try:
             self.abtrag = rm.fuer(abfahrt, job, punkte)
             if self.abtrag is None:
                 from . import simultan_restbild
 
                 self.abtrag = simultan_restbild.fuer(abfahrt, job, punkte)
+            if self.abtrag is None:
+                from . import schraeg_abtrag
+
+                self.abtrag = schraeg_abtrag.fuer(abfahrt, job, punkte)
         except Exception as fehler:  # ohne Abtrag geht alles andere weiter
             FreeCAD.Console.PrintLog(f"CAM-Addon: Restmaterial: {fehler}\n")
             self.abtrag = None
