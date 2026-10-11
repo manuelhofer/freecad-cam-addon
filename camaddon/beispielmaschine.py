@@ -12,6 +12,7 @@ gewählte in einem neuen Dokument an, ihr Maschinenobjekt schon ausgefüllt:
   und S1/C1); wie das Werkzeug steht (radial, axial), sagt sein Halter aus der
   Werkzeugverwaltung (W-002 Stufe E);
 - 3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z;
+- Portalfräse (Router): fahrendes Portal X, Y-Schlitten, Z mit Frässpindel; der Tisch steht;
 - 5-Achs Tisch/Tisch: Schwenkbrücke A mit Rundtisch C, X, Y, Z im Kopf;
 - 5-Achs Kopf/Kopf: Portal mit Gabelkopf A/B, der Tisch steht;
 - 5-Achs Kopf/Tisch: Schwenkkopf B, Rundtisch C;
@@ -61,11 +62,12 @@ REVOLVER = (0.93, 0.93, 0.95)  # hell, damit er sich von Schlitten und Bett abhe
 # Die Bauarten, in der Reihenfolge der Auswahl (wie Manuel sie aufzählte).
 DREHMASCHINE = "drehmaschine"
 FRAESE_3 = "fraese3"
+PORTAL_3 = "portal3"
 TISCH_TISCH = "tisch_tisch"
 KOPF_KOPF = "kopf_kopf"
 KOPF_TISCH = "kopf_tisch"
 GROB_G550 = "grob_g550"
-ARTEN = (DREHMASCHINE, FRAESE_3, TISCH_TISCH, KOPF_KOPF, KOPF_TISCH, GROB_G550)
+ARTEN = (DREHMASCHINE, FRAESE_3, PORTAL_3, TISCH_TISCH, KOPF_KOPF, KOPF_TISCH, GROB_G550)
 FUENFACHS = (TISCH_TISCH, KOPF_KOPF, KOPF_TISCH, GROB_G550)
 
 _ZULETZT = "Beispielmaschine"  # Schlüssel in den Einstellungen: zuletzt gewählte Bauart
@@ -260,6 +262,7 @@ def titel(art):
     return {
         DREHMASCHINE: tr("beispiel.drehmaschine"),
         FRAESE_3: tr("beispiel.fraese3"),
+        PORTAL_3: tr("beispiel.portal3"),
         TISCH_TISCH: tr("beispiel.tisch_tisch"),
         KOPF_KOPF: tr("beispiel.kopf_kopf"),
         KOPF_TISCH: tr("beispiel.kopf_tisch"),
@@ -272,6 +275,7 @@ def beschreibung(art):
     return {
         DREHMASCHINE: tr("beispiel.drehmaschine.beschreibung"),
         FRAESE_3: tr("beispiel.fraese3.beschreibung"),
+        PORTAL_3: tr("beispiel.portal3.beschreibung"),
         TISCH_TISCH: tr("beispiel.tisch_tisch.beschreibung"),
         KOPF_KOPF: tr("beispiel.kopf_kopf.beschreibung"),
         KOPF_TISCH: tr("beispiel.kopf_tisch.beschreibung"),
@@ -284,6 +288,7 @@ def _dokument(art):
     return {
         DREHMASCHINE: tr("beispiel.drehmaschine.dokument"),
         FRAESE_3: tr("beispiel.fraese3.dokument"),
+        PORTAL_3: tr("beispiel.portal3.dokument"),
         TISCH_TISCH: tr("beispiel.tisch_tisch.dokument"),
         KOPF_KOPF: tr("beispiel.kopf_kopf.dokument"),
         KOPF_TISCH: tr("beispiel.kopf_tisch.dokument"),
@@ -350,6 +355,17 @@ class FraesenMasse:
         if self.drehzahl <= 0:
             ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
         return ergebnis
+
+
+@dataclass
+class PortalMasse(FraesenMasse):
+    """Die Maße der Portalfräse, vorbelegt wie ihr Beispiel: Tisch 1150 × 750 mm, Z gebaut ganz
+    oben (die Spindelnase 175 mm über dem Tisch), eine schnell drehende Frässpindel."""
+
+    weg_x: tuple = (-550.0, 550.0)
+    weg_y: tuple = (-350.0, 350.0)
+    weg_z: tuple = (-150.0, 0.0)
+    drehzahl: float = 24000.0
 
 
 def _wege_fehler(masse, ohne_null=()):
@@ -534,6 +550,87 @@ def fraesmaschine(masse=None, spanneisen=True):
     _linear(ma, y, "Y1", 20000, 10000, 3)
     _linear(ma, z, "Z1", 15000, 10000, 3, wechsel=masse.weg_z[1])  # ganz oben
     s1 = _spindel(ma, s, "S1", masse.drehzahl, 1.5)
+    m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
+    m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
+    _benenne(asm, ma, masse.name)
+    asm.Document.recompute()
+    return asm, ma
+
+
+def portalfraese(masse=None):
+    """Portalfräse (Router), Herbert im Forum (2026-10-11): „Was ich bei den Maschinensetups
+    vermisse, ist ein Router“. Der Tisch steht fest auf dem Bett; das Portal fährt auf den
+    Bettkanten längs X, an seiner Traverse der Y-Schlitten, davor der Z-Schlitten mit der
+    Frässpindel (Ø 80, wie eine 2,2-kW-Spindel mit ER-Spannzange). Die Spindel hängt vor dem
+    Portal – so kommt sie über den ganzen Tisch, und unter der Traverse bleiben 255 mm für das
+    Teil. Gebaut steht Z ganz oben: die Spindelnase 175 mm über dem Tisch, auf Z −150 noch 25.
+    Eilgang und Beschleunigung wie an einer Werkstatt-Portalfräse, deutlich unter denen der
+    Kreuztisch-Fräse. Zwischen Spindel und Z-Platte 5 mm Luft – sonst berührten sie sich in
+    der Kollisionsprüfung längs einer Linie. `masse` (PortalMasse) ändert Wege, Drehzahl und
+    Name. Gibt (Assembly, Maschine) zurück."""
+    masse = masse or PortalMasse()
+    b = _neu(PORTAL_3)
+    bett = b.quader("Bett", 1500, 900, 100, farbe=GUSS)
+    b.fixieren(bett)
+    tisch, spannplatz = b.bauteil(
+        "Tisch",
+        b.quader("Tischplatte", 1150, 750, 25, x=75, y=75, z=100, farbe=TISCH),
+        lcs_name="Spannplatz",
+        lcs_x=575,
+        lcs_y=375,
+        lcs_hoehe=25,
+    )
+    portal, _ = b.bauteil(
+        "Portal",
+        [
+            b.quader("WangeVorn", 150, 60, 280, x=775, y=0, z=100, farbe=GUSS),
+            b.quader("WangeHinten", 150, 60, 280, x=775, y=840, z=100, farbe=GUSS),
+            b.quader("Traverse", 150, 900, 150, x=775, y=0, z=380, farbe=GUSS),
+        ],
+    )
+    y_schlitten = b.quader("YSchlitten", 40, 140, 200, x=735, y=380, z=330, farbe=SCHLITTEN)
+    z_schlitten, _ = b.bauteil(
+        "ZSchlitten",
+        [
+            b.quader("ZPlatte", 40, 100, 220, x=695, y=400, z=300, farbe=KOPF),
+            b.quader("Spindelhalter", 85, 80, 60, x=610, y=410, z=500, farbe=KOPF),
+        ],
+    )
+    spindel, spindelnase = b.bauteil(
+        "Spindel",
+        b.zylinder("Spindelkoerper", 40, 200, x=650, y=450, z=300, farbe=SPINDEL),
+        lcs_name="Spindelnase",
+    )
+
+    b.gelenk_wie_gebaut("Tisch_fest", "Fixed", bett, "Face6", tisch, "Tischplatte.Face5")
+    x = b.gelenk_wie_gebaut(
+        "X", "Slider", bett, "Face6", portal, "WangeVorn.Face5", richtung=(1, 0, 0)
+    )
+    b.begrenze(x, *masse.weg_x)
+    y = b.gelenk_wie_gebaut(
+        "Y", "Slider", portal, "Traverse.Face1", y_schlitten, "Face2", richtung=(0, 1, 0)
+    )
+    b.begrenze(y, *masse.weg_y)
+    z = b.gelenk_wie_gebaut(
+        "Z", "Slider", y_schlitten, "Face1", z_schlitten, "ZPlatte.Face2", richtung=(0, 0, 1)
+    )
+    b.begrenze(z, *masse.weg_z)
+    s = b.gelenk_wie_gebaut(
+        "Spindelachse",
+        "Revolute",
+        z_schlitten,
+        "Spindelhalter.Face5",
+        spindel,
+        "Spindelkoerper.Face2",
+    )
+    asm = b.fertig()
+
+    ma = _maschine(asm, PORTAL_3)
+    _linear(ma, x, "X1", 15000, 10000, 1)
+    _linear(ma, y, "Y1", 15000, 10000, 1)
+    # Z nicht langsamer: Der kleinste Höchstvorschub begrenzt das Planen der Schnittwerte.
+    _linear(ma, z, "Z1", 10000, 10000, 1, wechsel=masse.weg_z[1])  # ganz oben
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 4)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
     _benenne(asm, ma, masse.name)
@@ -1324,6 +1421,7 @@ def _in_die_wege(b, asm, wege):
 BAUPLAENE = {
     DREHMASCHINE: drehmaschine,
     FRAESE_3: fraesmaschine,
+    PORTAL_3: portalfraese,
     TISCH_TISCH: fuenfachs_tisch_tisch,
     KOPF_KOPF: fuenfachs_kopf_kopf,
     KOPF_TISCH: fuenfachs_kopf_tisch,

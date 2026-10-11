@@ -5,10 +5,13 @@ workpiece mounts. Afterwards <b>Edit machine</b> opens, where everything can
 be looked at and changed.</p>
 
 <h3>Types</h3>
-<p>You can choose a lathe with Y axis and turret, a 3-axis mill and three
-5-axis mills (table/table, head/head, head/table), and the horizontal
+<p>You can choose a lathe with Y axis and turret, a 3-axis mill, a <b>gantry router</b>,
+three 5-axis mills (table/table, head/head, head/table), and the horizontal
 <b>GROB G550 (A/B)</b> example. For every type you enter
 the main dimensions yourself – for the 5-axis mills also how far they swivel.</p>
+<p>On the gantry router the gantry moves along X over the fixed table; the Y carriage runs on
+the beam, Z with the router spindle hangs in front of it. Z is built at the top, the spindle nose
+175 mm above the table.</p>
 <p>The table of the built 3-axis mill is empty. Whatever stands on your table
 (vice, clamps) you build as a body into the assembly and fix it to the table
 with a fixed joint – the collision check (“Check on machine”) then takes it
@@ -82,9 +85,9 @@ roughing values” takes it from the machine.</li>
 the tool) and C3 (orients it). If your control calls them e.g. S4/C4 and S1/C1, enter 4 and 1
 – then the postprocessor writes “SPOS[4]=0”, “C4=…” and “M1=3 S1=…”.</li>
 </ul>
-<h3>The dimensions of the 3-axis mill</h3>
+<h3>The dimensions of the 3-axis mill and the gantry router</h3>
 <ul>
-<li><b>Name</b> – for machine and document. Empty: “3-axis mill”.</li>
+<li><b>Name</b> – for machine and document. Empty: the name of the type.</li>
 <li><b>Travel X, Y, Z</b> – from … to, counted from the position in which the
 machine is built; 0 lies in between. “from” goes negative – the minus is
 already in the field, you type only the number. These become the limits of

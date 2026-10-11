@@ -397,7 +397,7 @@ class NeueMaschineDialog(QtGui.QDialog):
 
     def masse(self):
         """Die eingetragenen Maße – DrehmaschinenMasse bei der Drehmaschine, FraesenMasse
-        bei der 3-Achs-Fräse, FuenfachsMasse bei den 5-Achs-Fräsen. Ein Weg, der noch wie
+        bei der 3-Achs-Fräse, PortalMasse bei der Portalfräse, FuenfachsMasse bei den 5-Achs-Fräsen. Ein Weg, der noch wie
         vorbelegt dasteht, gilt genau – in inch ohne Rundung."""
         art = self.gewaehlt()
         vorgabe = _vorgabe(art)
@@ -435,8 +435,8 @@ class NeueMaschineDialog(QtGui.QDialog):
                 schwenk=schwenk,
                 drehzahl=float(self.feld_drehzahl.value()),
             )
-        if art == beispielmaschine.FRAESE_3:
-            return beispielmaschine.FraesenMasse(
+        if art in (beispielmaschine.FRAESE_3, beispielmaschine.PORTAL_3):
+            return type(vorgabe)(
                 name=self.feld_name.text().strip(),
                 weg_x=wege["X"],
                 weg_y=wege["Y"],
@@ -515,6 +515,8 @@ def _vorgabe(art):
         return beispielmaschine.DrehmaschinenMasse()
     if art == beispielmaschine.FRAESE_3:
         return beispielmaschine.FraesenMasse()
+    if art == beispielmaschine.PORTAL_3:
+        return beispielmaschine.PortalMasse()
     if art in beispielmaschine.FUENFACHS:
         return beispielmaschine.FuenfachsMasse.vorgabe(art)
     return None

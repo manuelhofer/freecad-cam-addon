@@ -12,6 +12,7 @@
   "maschinen": {
     "drehmaschine": 15,
     "fraese3": 10,
+    "portal3": 10,
     "tisch_tisch": 78,
     "kopf_kopf": 78,
     "kopf_tisch": 78,

@@ -2,7 +2,7 @@
 # Teile, wo sie gebaut sind; X1, Y1, Z1, S1 und beide Aufnahmen sind
 # eingerichtet, ohne Warnung; Verfahren bewegt Tisch, Sattel und Kopf in
 # Achsrichtung und hält die Grenzen ein. Dann alle Bauarten zur Auswahl
-# (Drehmaschine, 3-Achs, drei senkrechte 5-Achs, G550): jede mit ihren Achsen, ohne Warnung,
+# (Drehmaschine, 3-Achs, Portalfräse, drei senkrechte 5-Achs, G550): jede mit ihren Achsen, ohne Warnung,
 # jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene. Zuletzt
 # die Drehmaschine mit eigenen Maßen („Neue Maschine …“): Name, Wege,
 # Bettneigung, Plätze, Drehzahl und die schräge Achse – ebenso die 3-Achs-Fräse
@@ -97,6 +97,7 @@ App.closeDocument(doc.Name)
 ACHSEN = {
     beispielmaschine.DREHMASCHINE: ["C1", "C3", "S1", "S3", "T", "X1", "Y1", "Z1"],
     beispielmaschine.FRAESE_3: ["S1", "X1", "Y1", "Z1"],
+    beispielmaschine.PORTAL_3: ["S1", "X1", "Y1", "Z1"],
     beispielmaschine.TISCH_TISCH: ["A1", "C1", "S1", "X1", "Y1", "Z1"],
     beispielmaschine.KOPF_KOPF: ["A1", "B1", "S1", "X1", "Y1", "Z1"],
     beispielmaschine.KOPF_TISCH: ["B1", "C1", "S1", "X1", "Y1", "Z1"],
@@ -126,10 +127,13 @@ for art in beispielmaschine.ARTEN:
     doc.recompute()
     verschoben = [o.Name for o in teile if not o.Placement.isSame(gebaut[o.Name], 1e-6)]
     pruefe(not verschoben, f"{art}: verschoben {verschoben}")
-    # Jede Achse fährt (30 mm oder 30°, höchstens bis zur Grenze), Grundstellung zurück.
+    # Jede Achse fährt (30 mm oder 30°, höchstens bis zur Grenze – steht sie gebaut am oberen
+    # Ende wie Z der Portalfräse, −30), Grundstellung zurück.
     v = vf.Verfahren(asm)
     for achse in v.achsen:
         erreicht = v.setze(achse, 30)
+        if abs(erreicht) <= 1:
+            erreicht = v.setze(achse, -30)
         ist = vf.gelenkstellung(achse.gelenk, achse.art)
         pruefe(
             abs(erreicht) > 1 and abs(v.stellung(achse) - erreicht) < 1e-6,
@@ -287,6 +291,61 @@ if passend:
     pruefe(sm.richtung(passend[0]).dot(App.Vector(0, 0, 1)) > 0.999999, "G550: 3+2 falsch")
     pruefe(sm.abbildung(passend[0]) is not None, "G550: keine Abbildung ohne TCPM")
 App.closeDocument(doc.Name)
+
+# --- Portalfräse (Herbert im Forum, 2026-10-11: „ein Router“) -----------------------------
+# Das Portal fährt X über den festen Tisch, Y an der Traverse, Z davor. In keiner Endlage stößt
+# etwas Bewegtes an den Tisch, die Spindel bleibt auf Z −150 über ihm und kommt über alle vier
+# Ecken des Tischs; der Tisch bewegt sich nie.
+asm, ma = beispielmaschine.portalfraese()
+doc = asm.Document
+kette = kette_modul.lies_kette(asm)
+achsen = {a.gelenk.Label: a for a in kette.achsen}
+rollen, _ = m.rollen(kette, ma)
+pruefe(
+    {n: rollen.get(achsen[n].gelenk) for n in ("X", "Y", "Z")}
+    == {"X": m.KOPF, "Y": m.KOPF, "Z": m.KOPF},
+    "Portal: Achsen auf der falschen Seite",
+)
+v = vf.Verfahren(asm, kette)
+gebaut = {n: App.Placement(doc.getObject(n).Placement) for n in ("Portal", "YSchlitten",
+          "ZSchlitten", "Spindel", "Tisch")}  # fmt: skip
+v.setze_alle({achsen["X"]: 100, achsen["Y"]: 50, achsen["Z"]: -40})
+for teil, soll in (
+    ("Portal", App.Vector(100, 0, 0)),
+    ("YSchlitten", App.Vector(100, 50, 0)),
+    ("ZSchlitten", App.Vector(100, 50, -40)),
+    ("Spindel", App.Vector(100, 50, -40)),
+    ("Tisch", App.Vector()),
+):
+    pruefe(weg(teil).isEqual(soll, 1e-6), f"Portal {teil}: {weg(teil)} statt {soll}")
+tisch_bb = _form("Tischplatte").BoundBox
+for x in (-550, 550):
+    for y in (-350, 350):
+        v.setze_alle({achsen["X"]: x, achsen["Y"]: y, achsen["Z"]: -150})
+        for teil in ("Spindelkoerper", "ZPlatte", "Spindelhalter", "YSchlitten", "Traverse",
+                     "WangeVorn", "WangeHinten"):  # fmt: skip
+            abstand = _form(teil).distToShape(_form("Tischplatte"))[0]
+            pruefe(abstand > 1.0, f"Portal X {x}/Y {y}/Z −150: {teil} am Tisch ({abstand:.1f})")
+        nase = doc.getObject("Spindelnase").getGlobalPlacement().Base
+        pruefe(
+            tisch_bb.XMin < nase.x < tisch_bb.XMax and tisch_bb.YMin < nase.y < tisch_bb.YMax,
+            f"Portal X {x}/Y {y}: Spindel nicht über dem Tisch ({nase.x:.0f}, {nase.y:.0f})",
+        )
+        pruefe(abs(nase.z - tisch_bb.ZMax - 25) < 1e-6, f"Portal Z −150: Nase {nase.z}")
+v.grundstellung()
+pruefe(sw.grenzen_der_maschine(ma) == (24000, 10000), f"Portal {sw.grenzen_der_maschine(ma)}")
+App.closeDocument(doc.Name)
+# Mit eigenen Maßen aus „Neue Maschine …“.
+masse = beispielmaschine.PortalMasse(name="Meine Portalfräse", weg_x=(-400, 400), drehzahl=18000)
+pruefe(not masse.fehler(), f"Portal, gültige Maße: {masse.fehler()}")
+pruefe(beispielmaschine.PortalMasse(weg_z=(-150, -10)).fehler(), "Portal: Z ohne 0 gültig")
+asm, ma = beispielmaschine.lade(beispielmaschine.PORTAL_3, masse)
+achsen = {a.gelenk.Label: a for a in kette_modul.lies_kette(asm).achsen}
+pruefe((achsen["X"].minimum, achsen["X"].maximum) == (-400, 400), "Portal: eigener Weg X")
+pruefe(ma.Label == "Meine Portalfräse", f"Portal: {ma.Label}")
+s1 = next(b for b in m.betriebsarten(ma) if b.NcName == "S1")
+pruefe(s1.Drehzahl == 18000, f"Portal S1: {s1.Drehzahl}")
+App.closeDocument(asm.Document.Name)
 
 # --- Drehmaschine mit eigenen Maßen („Neue Maschine …“) ----------------------------------
 masse = beispielmaschine.DrehmaschinenMasse(

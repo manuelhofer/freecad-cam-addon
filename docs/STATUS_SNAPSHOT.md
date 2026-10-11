@@ -733,13 +733,13 @@ nächste freie Nummer B-020.
   0.213.66 und 0.213.90, mit Maschine anlegen/speichern, Teil öffnen, Job anlegen: Bericht leer.
   Wortlaut ist angefragt; bis dahin kein Bug. (b) Wie Maschinen- und Teile-Datei zusammenkommen,
   hat er nicht gefunden (Job merkt die Maschine, `reichweite.merke_maschine`) – deutlicher in
-  „So geht’s“ und in den Meldungen ohne Maschine. (c) Beispielmaschine Portalfräse (Router) fehlt.
-  (d) Feld „Ausspannlänge“ beim Werkzeug, gekoppelt an die Länge ab Spindelnase (heute nur
-  abgeleitet aus Länge ab Spindelnase − Halter bzw. Gesamtlänge − Spanntiefe). (e) Maschinendaten
-  aus der Steuerung einlesen statt eintippen (LinuxCNC-INI, GRBL „$$“, Siemens-Maschinendaten;
-  26.3-CAM legt Maschinen aus MTConnect an – `.fcm` lesen wäre der Weg dorthin). (f) Dialekt: ist
-  schon so gebaut (Path-Befehle, Postprozessor übersetzt) – die Vorstellung nannte nur Siemens.
-  Antwortentwurf bei Manuel; was davon gebaut wird, sagt er.
+  „So geht’s“ und in den Meldungen ohne Maschine. (c) Portalfräse (Router) – gebaut,
+  P-2026-10-11-87. (d) Feld „Ausspannlänge“ – Manuel: nein, der Halter gehört in die Kollision,
+  darum zählt die Länge ab Spindelnase. (e) Maschinendaten aus der Steuerung einlesen – Manuel:
+  nein, zu viele Steuerungen; Eilgang, Vorschub und Beschleunigung trägt man einmal ein (Hilfe
+  „Beschleunigung ermitteln“), Zeiten und Variantenwahl rechnen damit. (f) Dialekt: ist schon so
+  gebaut (Path-Befehle, Postprozessor übersetzt) – die Vorstellung nannte nur Siemens.
+  Offen bleiben (a) und (b).
 - **T-012 Schnittstellen zu 26.3** (Forum, 2026-10-11, Connor aus dem CAM-Team): 26.3 hat 3+2 mit
   DRO und TWP, Postprozessoren je Maschine und den Maschineneditor; ein neuer Simulator mit einer
   Bibliothek für Spannmittel (Schraubstöcke, Platten, Spanner) und Kollisionsanzeige ist in Arbeit;

@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-87 portalfraese
+
+### EINGELESEN
+- Forum, deutscher Thread t=107911, Herbert (herbk), 2026-10-11: „Was ich bei den
+  Maschinensetups vermisse, ist ein Router.“ Manuel, 2026-10-11 abends: „portalfräse kann man ja
+  machen“. (Das Feld „Ausspannlänge“ lehnt Manuel ab – der Halter gehört in die Kollision, darum
+  zählt die Länge ab Spindelnase; Maschinendaten einlesen auch – zu viele Steuerungen; T-013.)
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`: Bauart `PORTAL_3` „Portalfräse (Router)“ nach der 3-Achs-Fräse
+  – `portalfraese()`: Bett 1500 × 900, fester Tisch 1150 × 750, Portal auf den Bettkanten längs X,
+  Y-Schlitten an der Traverse, davor Z mit Spindelhalter und Frässpindel Ø 80 (5 mm Luft zur
+  Z-Platte); gebaut Z ganz oben, Nase 175 mm über dem Tisch. `PortalMasse` (X ±550, Y ±350,
+  Z −150 … 0, 24 000 U/min); Eilgang 15 m/min, Vorschub 10 m/min, 1 m/s², Spindel 4 s Hochlauf.
+- `camaddon/gui_neue_maschine.py`: „Neue Maschine …“ trägt Wege, Drehzahl und Name der
+  Portalfräse wie bei der 3-Achs-Fräse ein.
+- `translations/de.json`, `en.json`; `help/de|en/neue_maschine.html`, `verfahren.html`,
+  `achsen.html`.
+- `tests/test_beispielmaschine.py`: die Portalfräse – Achsen auf der Werkzeugseite, in allen
+  Ecken (X ±550, Y ±350, Z −150) nichts Bewegtes näher als 1 mm am Tisch, die Spindel über dem
+  Tisch, 25 mm darüber; eigene Maße; „jede Achse fährt“ auch nach unten, wenn sie gebaut oben
+  steht. `tests/golden/raum_bahn.json`, `simultan_bereiche.json`: der Eintrag `portal3` (wie die
+  3-Achs-Fräse: 2 Strecken, 10 Sätze).
+- `package.xml` (0.213.91).
+
+### ERGEBNIS
+- Im Fenster „Neue Maschine“ steht die Portalfräse als dritte Bauart; das Bild aller
+  Beispielmaschinen zeigt sie mit dem Portal über dem Tisch.
+- Erster Lauf: Z mit 3 m/min begrenzte als kleinster Höchstvorschub das Planen der Schnittwerte
+  der ganzen Maschine (`grenzen_der_maschine`) – Z jetzt 10 m/min wie X und Y.
+
+### AKZEPTANZKRITERIUM
+- `test_beispielmaschine`, `test_bahnzugang`, `test_raum_bahn`, `test_simultan_bereiche`,
+  `test_schwenken_maschinen`, `test_sprache`, `test_hilfe` in 1.1.4; `szenario_beispielmaschine`,
+  `szenario_neue_maschine` grün.
+
 ## P-2026-10-11-86 frage-12-spirale-ueberspringt
 
 ### EINGELESEN
