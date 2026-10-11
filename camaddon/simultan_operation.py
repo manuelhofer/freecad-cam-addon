@@ -217,14 +217,33 @@ def _programm_rechnen(op, maschine, tcpm, bei_null):
         try:
             nc, rest = sb.teilen(view, maschine, str(fehler))
         except ValueError:
-            if not maschine.rundachsen:
+            if not maschine.rundachsen and not _richtungen_fest(op, maschine):
                 # Ohne Rundachsen bleibt kein Zug: ein Satz, der es sagt (statt „Punkt 1 der
                 # Bahn: keine Stellung der Rundachsen“).
                 raise ValueError(tr("so.fehler.ohne_rundachsen")) from fehler
+            if not maschine.rundachsen:
+                # Die Richtungen passen zur festen Spindel – der Grund ist ein anderer (etwa ein
+                # Anschlag einer Linearachse), und den sagt der erste Fehler.
+                raise ValueError(str(fehler)) from fehler
             raise
         if isinstance(getattr(op, "_pruefmaterial", None), list):
             op._pruefmaterial[:] = daten
         return Programm(nc, rest, tuple(daten))
+
+
+def _richtungen_fest(op, maschine):
+    """Zeigt jede Werkzeugachse der Operation in die Richtung der festen Spindel?"""
+    import FreeCAD
+
+    fest = maschine.richtung({})
+    for achse in getattr(op, "Werkzeugachsen", ()) or ():
+        v = FreeCAD.Vector(*achse)
+        if v.Length < 1e-12:
+            return False
+        v.normalize()
+        if (v - fest).Length > 1e-6:
+            return False
+    return True
 
 
 def pruefschluessel(maschine, tcpm=False, bei_null=False):

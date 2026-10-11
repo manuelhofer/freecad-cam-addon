@@ -72,6 +72,7 @@ class Verfahren:
         self._vorzeichen = {a: _vorzeichen(a) for a in self.achsen}
         self.weg = dict.fromkeys(self.achsen, 0.0)  # seit dem Ausgang, in Achsrichtung
         self._platz_lage = {}  # Revolverplatz -> Lage beim Öffnen
+        self._glied_pfad = {}  # Glied -> Achsen vom Bett (pfad)
         # Je Bauteil die Achsen vom Bett nach außen.
         self._pfad = {}
         for glied in self.kette.glieder:
@@ -155,8 +156,13 @@ class Verfahren:
         return self._lage[achse]
 
     def pfad(self, glied):
-        """Die Achsen vom Bett bis zu `glied`, beim Bett beginnend."""
-        return list(reversed(self.kette.pfad_zum_bett(glied)))
+        """Die Achsen vom Bett bis zu `glied`, beim Bett beginnend – je Glied gemerkt (die Kette
+        steht fest; die Kollision und das Maschinenprogramm fragen je Stelle, 1,4 Mio. Mal im
+        Folge-Vergleich)."""
+        gemerkt = self._glied_pfad.get(glied)
+        if gemerkt is None:
+            gemerkt = self._glied_pfad[glied] = tuple(reversed(self.kette.pfad_zum_bett(glied)))
+        return gemerkt
 
     def _bewege(self):
         bewegung = {a: self.bewegung(a, self.weg[a]) for a in self.achsen}

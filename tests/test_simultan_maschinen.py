@@ -151,14 +151,26 @@ def pruefen():
             assert not ausgelassen and "unbearbeitet" in hinweis
             without, hint = pp._simultan(op, None)
             assert not without and "unbearbeitet" in hint
-            # Auch eine tatsächlich gewinkelte feste Spindel fährt nur ihre realen XYZ.
+        if art in (bm.FRAESE_3, bm.PORTAL_3):
+            # Auch eine tatsächlich gewinkelte feste Spindel fährt nur ihre realen XYZ. Die
+            # Portalfräse (Z −150 … 0) erreicht diesen ausgedachten Punkt mit dem waagerechten
+            # 85-mm-Werkzeug nicht (Z −173): Der Satz sagt den Anschlag – nicht, dass Rundachsen
+            # fehlten (die Richtung passt ja zur Spindel).
             winkel = rw.Einspannung(
                 85, App.Placement(App.Vector(8, -2, 3), App.Rotation(App.Vector(0, 1, 0), 90))
             )
             angled = sw.Maschine(p, auf, winkel, App.Vector())
             fixed = SimpleNamespace(**vars(op))
             fixed.Werkzeugachsen = [angled.richtung({})] * len(cmds)
-            assert so.befehle(fixed, angled, tcpm=True)
+            if art == bm.FRAESE_3:
+                assert so.befehle(fixed, angled, tcpm=True)
+            else:
+                try:
+                    so.befehle(fixed, angled, tcpm=True)
+                except ValueError as fehler:
+                    assert "Grenze" in str(fehler) and "Rundachsen" not in str(fehler), fehler
+                else:
+                    raise AssertionError("Portalfräse: Z −173 trotz Anschlag −150")
         if art == bm.DREHMASCHINE:
             assert len(m.rundachsen) == 1
             c_values = [float(c.Parameters["C"]) for c in g]

@@ -247,6 +247,7 @@ class Maschine:
         self.laenge = laenge
         self.nullpunkt = FreeCAD.Vector(nullpunkt)
         self.linear, self.drehachsen = pruefung.achsen_fuer(werkzeugaufnahme)
+        self._festes = None  # was richtung() je Aufruf gleich braucht
         self.rundachsen = []
         for achse in pruefung._dreh_wege(werkzeugaufnahme, self.drehachsen, {}):
             buchstabe = pruefung.programmbuchstabe(achse)
@@ -257,16 +258,25 @@ class Maschine:
     def richtung(self, rund):
         """Die Werkzeugachse (von der Spitze weg) in Koordinaten des Grundjobs bei den
         Rundachsen `rund` ({"A": Grad, …})."""
-        from . import reichweite as rw
-
         p = self.pruefung
         wege = p._dreh_wege(self.aufnahme, self.drehachsen, rund)
-        werkzeug = p._glied_lage(p._glied(self.aufnahme), wege).multiply(p._lage(self.aufnahme))
-        werkstueck = p._glied_lage(p._glied(p.werkstueckaufnahme), wege).multiply(
-            p._lage(p.werkstueckaufnahme)
-        )
-        z = werkzeug.Rotation.multVec(rw._einspannung(self.laenge).achse())
-        return werkstueck.Rotation.inverted().multVec(z)
+        # Nur die Drehungen der Kette: dieselben Quaternionen wie in den ganzen Lagen
+        # (reichweite._glied_lage), ohne Verschiebungen und ohne die Achsen, die stehen – ×1 ist
+        # genau; das Maschinenprogramm fragt je Punkt mehrmals (P-2026-10-11-106).
+        if self._festes is None:
+            from . import reichweite as rw
+
+            self._festes = (
+                p._glied(self.aufnahme),
+                p._lage(self.aufnahme).Rotation,
+                p._glied(p.werkstueckaufnahme),
+                p._lage(p.werkstueckaufnahme).Rotation,
+                rw._einspannung(self.laenge).achse(),
+            )
+        glied_wz, lage_wz, glied_ws, lage_ws, achse = self._festes
+        werkzeug = _drehung(p.verfahren, glied_wz, wege).multiply(lage_wz)
+        werkstueck = _drehung(p.verfahren, glied_ws, wege).multiply(lage_ws)
+        return werkstueck.inverted().multVec(werkzeug.multVec(achse))
 
     def loese(self, normale):
         """Die Stellungen der Rundachsen ([{"A": Grad, …}]), in denen die Werkzeugachse die
@@ -364,6 +374,22 @@ def _auf_180(wert):
     if wert < 0:
         wert += 360.0
     return wert - 180.0
+
+
+def _drehung(verfahren, glied, wege):
+    """Die Drehung eines Glieds seit dem Ausgang (wie reichweite._glied_lage(…).Rotation): die
+    Drehachsen auf dem Pfad vom Bett, nur die, die sich drehen."""
+    from .kette import LINEAR
+
+    gesamt = FreeCAD.Rotation()
+    for achse in verfahren.pfad(glied):
+        if achse.art == LINEAR:
+            continue
+        weg = wege.get(achse, 0.0)
+        if weg == 0.0:
+            continue
+        gesamt = gesamt.multiply(FreeCAD.Rotation(verfahren.achslage(achse)[0], weg))
+    return gesamt
 
 
 def _genau(fehler, werte, schritte=60):

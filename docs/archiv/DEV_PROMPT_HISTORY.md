@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-106 kette-schneller
+
+### EINGELESEN
+- Nachtauftrag „mehr Optimierung“: Im Profil von `test_simultan_folge` rechnete das
+  Maschinenprogramm (`simultan.programm_ohne_tcpm`) 12,8 s, davon 557.000–876.000 Placements in
+  `verfahren.bewegung` und 1,4 Mio. Mal `verfahren.pfad` – die Kette Punkt für Punkt.
+- Dabei gefunden: `test_simultan_maschinen` war rot, seit die Portalfräse in `ARTEN` steht: Für den
+  ausgedachten Punkt mit waagerechter 85-mm-Spindel müsste Z bis −173 (Anschlag −150), und die
+  Meldung sagte „braucht eine oder zwei Rundachsen“ statt des Anschlags.
+
+### DATEIEN
+- `camaddon/schwenken.py`: `Maschine.richtung` nur aus den Drehungen der Kette (`_drehung`):
+  dieselben Quaternionen, ohne Verschiebungen und ohne stehende Achsen; das Feste je Maschine
+  gemerkt (`_festes`).
+- `camaddon/verfahren.py`: `pfad` je Glied gemerkt (Tupel).
+- `camaddon/reichweite.py`: `_glied_lage` lässt Achsen auf 0 weg.
+- `camaddon/simultan_operation.py`: Ohne Rundachsen und mit Richtungen, die zur festen Spindel
+  passen, kommt der erste Grund (der Anschlag) statt „braucht Rundachsen“ (`_richtungen_fest`).
+- `tests/test_simultan_maschinen.py`: die gewinkelte feste Spindel an der 3-Achs-Fräse wie bisher,
+  an der Portalfräse mit dem Anschlag als Grund. `package.xml` (0.221.0).
+
+### ERGEBNIS
+- Profil `test_simultan_folge`: Maschinenprogramm 14,9 → 12,5 s (`programm_ohne_tcpm` 12,8 → 10,3,
+  `rundachsen_entlang` nicht mehr unter den teuersten). Alle NC-Referenzen bitgleich (Prüfsummen).
+
+### AKZEPTANZKRITERIUM
+- `test_simultan_nc`, `_gesamt`, `_planung`, `_folge`, `_maschinen`, `test_kollision`,
+  `_verteilt`, `test_reichweite`, `test_goldene_bahnen`, `test_schwenken`, `_maschinen`,
+  `test_vierachs_pruefen`, `test_abfahren`, `test_kinematik`, `test_programm_pruefen`,
+  `test_postprozessor`, `test_rundachsen_din`, `test_beispielmaschine`, `test_verfahren`,
+  `test_wegkippen`, `test_angestellt`, `test_pruefstand` in 1.1.4.
+
 ## P-2026-10-11-105 abtrag-in-streifen
 
 ### EINGELESEN

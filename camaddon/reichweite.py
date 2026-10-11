@@ -798,10 +798,14 @@ class Pruefung:
         return wege
 
     def _glied_lage(self, glied, wege):
-        """Die Bewegung eines Glieds seit dem Ausgang, bei diesen Wegen (fehlende: 0)."""
+        """Die Bewegung eines Glieds seit dem Ausgang, bei diesen Wegen (fehlende: 0) – eine Achse
+        auf 0 bewegt nichts und bleibt weg (P-2026-10-11-106: 557.000 Placements im
+        Folge-Vergleich, die meisten davon für stehende Achsen)."""
         gesamt = FreeCAD.Placement()
         for achse in self.verfahren.pfad(glied):
-            gesamt = gesamt.multiply(self.verfahren.bewegung(achse, wege.get(achse, 0.0)))
+            weg = wege.get(achse, 0.0)
+            if weg != 0.0:
+                gesamt = gesamt.multiply(self.verfahren.bewegung(achse, weg))
         return gesamt
 
     def _spitze(self, werkzeugaufnahme, laenge, wege):
