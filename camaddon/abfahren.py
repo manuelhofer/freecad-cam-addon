@@ -347,7 +347,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             schritte = None
             if ebene is None:
                 unbekannt = []
-                schritte = list(rw._bahn(befehle, unbekannt.append, rueckzug=True))
+                schritte = list(pruefung.schritte(befehle, unbekannt.append, rueckzug=True))
             grund = mz.bahn_grund(
                 m_bahn,
                 befehle,

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-26 pruefen-schritte-einmal
+
+### EINGELESEN
+- Das Prüffenster rechnet nacheinander die Reichweite (`pruefe_job`) und das Abfahren
+  (`abfahren.abfahrt`); beide holten sich die Sätze jeder Operation und lasen sie Schritt für
+  Schritt (`reichweite._bahn`) – am 4-Achs-Testteil zweimal 330 000 Schritte.
+
+### DATEIEN
+- `camaddon/reichweite.py`: `Pruefung.schritte_teilen()` – in diesem Block merkt sich die Prüfung
+  je Operation (Ebene, Aufnahme, Einspannung, Nullpunkt) die Sätze (`befehle`) und je Sätze die
+  Schritte, einmal mit Rückzug gelesen (`schritte`); ohne Rückzug fehlen die Rückzugspunkte (neu:
+  `_Schritt.rueckzug`), unbekannte Befehle kommen in derselben Reihenfolge. `_pruefe_operation`
+  nimmt `schritte`.
+- `camaddon/abfahren.py`: die Schritte über `pruefung.schritte`.
+- `camaddon/gui_reichweite.py`: `pruefe()` rechnet Reichweite und Abfahren im Block.
+- `tests/test_abfahren.py` (geteilt wie einzeln, mit dem Rückzug nach G81), `package.xml`
+  (0.213.34), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Am Testteil (CLX550, Manuels Werkzeuge): Reichweite und alle Stationen gleich (auch gleich
+  dem Stand vor der Nacht); das Prüffenster öffnet in der Oberfläche in 6,5 statt 7,4 s.
+- Grün: `test_abfahren.py`, `test_reichweite.py`, `test_vierachs_pruefen.py`,
+  `test_kollision.py`, die 60 Szenarien mit dem Prüffenster.
+
 ## P-2026-10-11-25 bearbeitung-mehr-strategien-im-nebenrechner
 
 ### EINGELESEN

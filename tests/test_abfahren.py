@@ -115,6 +115,21 @@ pruefe(st[61].punkt == (50, 30, 10), f"Rückzug auf die Ausgangshöhe: {st[61].p
 gesamt = ende_kreis + satz(15, 250) + sum(erwartet)
 pruefe(nahe(fahrt.dauer, gesamt), f"Dauer: {fahrt.dauer} statt {gesamt}")
 pruefe(fahrt.hinweise == [], f"Hinweise: {fahrt.hinweise}")
+# Reichweite und Abfahren teilen die Schritte (P-2026-10-11-26): dasselbe wie einzeln – auch der
+# Rückzug nach dem Bohrzyklus, den nur das Abfahren hat.
+einzeln = p.pruefe_job(job, FreeCAD.Vector())
+with p.schritte_teilen():
+    geteilt = p.pruefe_job(job, FreeCAD.Vector())
+    fahrt_geteilt = ab.abfahrt(p, job, FreeCAD.Vector())
+pruefe(
+    [repr(vars(s)) for s in fahrt_geteilt.stationen] == [repr(vars(s)) for s in st],
+    "geteilte Schritte: andere Stationen",
+)
+pruefe(
+    (geteilt.punkte, [u.text() for u in geteilt.ueberschreitungen], geteilt.hinweise)
+    == (einzeln.punkte, [u.text() for u in einzeln.ueberschreitungen], einzeln.hinweise),
+    f"geteilte Schritte: andere Reichweite ({geteilt.punkte} statt {einzeln.punkte})",
+)
 op = fahrt.operationen[0]
 pruefe(
     op.name == "Op1" and op.erste == 0 and op.saetze == len(job.Operations.Group[0].Path.Commands),

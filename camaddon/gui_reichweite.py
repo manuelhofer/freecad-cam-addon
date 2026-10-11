@@ -556,9 +556,11 @@ class PruefPanel:
             self._zurueckfahren()
             self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
         job, nullpunkt = self.job(), self.nullpunkt()
-        self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
-        self._zeige()
-        self._abfahrt_rechnen(job, nullpunkt)
+        # Reichweite und Abfahren lesen dieselben Bahnen: einmal (P-2026-10-11-26).
+        with self.pruefung.schritte_teilen():
+            self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
+            self._zeige()
+            self._abfahrt_rechnen(job, nullpunkt)
         self.kollision.veraltet()
 
     def _abfahrt_rechnen(self, job, nullpunkt):

@@ -27,6 +27,7 @@ Koordinaten:
 Läuft ohne Oberfläche.
 """
 
+import contextlib
 import json
 import math
 from dataclasses import dataclass, field
@@ -588,6 +589,7 @@ class Pruefung:
     """
 
     def __init__(self, assembly, maschine, werkstueckaufnahme=None, kette=None):
+        self._geteilt = None  # schritte_teilen(): Sätze und Schritte je Operation, einmal gelesen
         self.maschine = maschine
         self.verfahren = vf.Verfahren(assembly, kette)
         self.kette = self.verfahren.kette
@@ -895,7 +897,59 @@ class Pruefung:
         ergebnis.hinweise.extend(s for s in ergebnis.spannung if s not in ergebnis.hinweise)
         return ergebnis
 
+    @contextlib.contextmanager
+    def schritte_teilen(self):
+        """In diesem Block liest jede Operation ihre Sätze und Schritte nur einmal – pruefe_job und
+        abfahren.abfahrt teilen sie (das Prüffenster rechnet beide nacheinander; am 4-Achs-
+        Testteil je 330 000 Schritte, P-2026-10-11-26)."""
+        vorher = self._geteilt
+        self._geteilt = {}
+        try:
+            yield
+        finally:
+            self._geteilt = vorher
+
     def befehle(self, op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs):
+        """Wie _befehle – in schritte_teilen() je Operation, Ebene, Aufnahme, Einspannung und
+        Nullpunkt einmal."""
+        if self._geteilt is None:
+            return self._befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
+        lage = getattr(eingespannt, "lage", None)
+        schluessel = (
+            "befehle",
+            op.Name,
+            getattr(ebene, "Name", None),
+            getattr(aufnahme, "Name", None),
+            float(getattr(eingespannt, "laenge", 0.0)),
+            None if lage is None else (tuple(lage.Base), tuple(lage.Rotation.Q)),
+            tuple(FreeCAD.Vector(nullpunkt_des_jobs)),
+        )
+        if schluessel not in self._geteilt:
+            self._geteilt[schluessel] = self._befehle(
+                op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs
+            )
+        return self._geteilt[schluessel]
+
+    def schritte(self, befehle, unbekannt, rueckzug):
+        """Die Schritte von _bahn(befehle, unbekannt, rueckzug) – in schritte_teilen() einmal je
+        Sätze gelesen (mit Rückzug), ohne Rückzug ohne die Rückzugspunkte; `unbekannt` wird in
+        derselben Reihenfolge gerufen."""
+        if self._geteilt is None:
+            yield from _bahn(befehle, unbekannt, rueckzug=rueckzug)
+            return
+        schluessel = ("schritte", id(befehle))
+        if schluessel not in self._geteilt:
+            folge = []
+            for schritt in _bahn(befehle, lambda name: folge.append(("unbekannt", name)), True):
+                folge.append(("schritt", schritt))
+            self._geteilt[schluessel] = (befehle, folge)  # befehle: die id bleibt gültig
+        for art, wert in self._geteilt[schluessel][1]:
+            if art == "unbekannt":
+                unbekannt(wert)
+            elif rueckzug or not wert.rueckzug:
+                yield wert
+
+    def _befehle(self, op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs):
         """Die Sätze der Operation, wie die Maschine sie fährt: die eigenen – oder, in einer
         geschwenkten Ebene (`ebene`: ihr Job), ohne Schwenkzyklus gerechnet (die Rundachsen der
         Ebene, X, Y, Z im Grundjob ohne TCPM; schwenken.befehle_ohne_zyklus) – mit dieser
@@ -1024,7 +1078,7 @@ class Pruefung:
             return
         # Je Schritt nur die Rundachsen, die die Maschine nicht hat (_bahn gibt A, B und C).
         fehlend = [b for b in RUNDACHSEN if b not in vorhanden]
-        for schritt in _bahn(befehle, sammler.unbekannt):
+        for schritt in self.schritte(befehle, sammler.unbekannt, rueckzug=False):
             for b in fehlend:
                 if abs(schritt.rund[b]) > 1e-9:
                     fremd.add(b)
@@ -1353,6 +1407,7 @@ class _Schritt:
     satz: int  # der wievielte Befehl der Bahn (ab 1)
     invers: bool = False  # G93: F ist 1 ÷ Zeit des ganzen Satzes (FreeCAD: ÷ 60)
     anteil: float = 1.0  # so viel vom Satz macht dieser Schritt aus (für G93)
+    rueckzug: bool = False  # der Punkt nach einem Bohrzyklus, den nur `rueckzug=True` liefert
 
 
 def _anteil(phi, start, ueberstrichen):
@@ -1495,7 +1550,7 @@ def _bahn(befehle, unbekannt, rueckzug=False, start=None):
             lage["Z"] = zyklus.get("R") if rueckzug_auf_r or ausgang is None else ausgang
             if rueckzug:
                 punkt = (lage["X"], lage["Y"], lage["Z"])
-                yield _Schritt("punkt", punkt, dict(rund), True, vorschub, satz)
+                yield _Schritt("punkt", punkt, dict(rund), True, vorschub, satz, rueckzug=True)
         elif any(b in werte for b in ("X", "Y", "Z", *RUNDACHSEN)):
             unbekannt(name)
 

@@ -263,7 +263,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 **Die Nacht vom 2026-10-10 auf den 11.** (Manuel: „schau dir die Werkzeugwege nochmal genau an
 und deren Generation … auch die Geschichte mit dem Mehrkern-Arbeiten bitte nochmal verbessern“),
 an seinem zweiten 4-Achs-Testteil (`beispiele/testteil_4achs_nase.FCStd`, CLX550, seine Werkzeuge
-aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-25 (0.213.8 → 0.213.33):
+aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-26 (0.213.8 → 0.213.34):
 - **Bahnen:** Rundum schlichten und schruppen mit der Querachse fahren durchs Freie mit dem
   Freivorschub (-56, 11-04; Schlichten am Testteil 141 → 126 min bei 568 mm/min); die Meldung
   „Rest über der Bahn“ misst mit der Querachse dort, wo die Kugel steht (-58: 25,3 statt 47,6 mm).
@@ -276,8 +276,8 @@ aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-25 (0.213.8 �
   nach dem Schruppen (11-09).
 - **Schneller, Ergebnis gleich (bitgleich nachgeprüft):** Neuberechnen beider 4-Achs-Operationen
   22,7 → 5,8 s ohne Fenster, in der Oberfläche 9,5 → 6,2 s (-57, -62, 11-09); Kollision mit seinen
-  Haltern 243 → 162 s (-59, -63, 11-10: jedes Dreieck einmal); Prüffenster 13–16 → 7,4 s (-60,
-  11-01, 11-05, 11-11, 11-12); 3-Achs-Räumen −13 s Rechenzeit (11-02).
+  Haltern 243 → 162 s (-59, -63, 11-10: jedes Dreieck einmal); Prüffenster 13–16 → 6,5 s (-60,
+  11-01, 11-05, 11-11, 11-12, 11-26); 3-Achs-Räumen −13 s Rechenzeit (11-02).
 - **Kein Lag im 3-Achs-Assistenten mehr (11-15, 11-16, 11-23 bis 11-25):** Die Vorschau rechnet
   nach einer Eingabe Block für Block, dazwischen nimmt das Fenster Klicks an; Räumen, Planfräsen,
   Kontur und 3D-Schruppen rechnen in Nebenrechnern. Am Testteil stand das Fenster 4,0 und 10,4 s
@@ -285,7 +285,7 @@ aus RC1) und dem 3-Achs-Testteil, P-2026-10-10-55 bis P-2026-10-11-25 (0.213.8 �
 - **Offen für Manuel:** Fragen 5–9 in `OFFENE_FRAGEN.md` (ebene Flächen mit dem Schaftfräser,
   Schrittweite des Schafts, der Halter stößt ans Teil, Rest vor dem Schlichten, C dreht zurück).
   Der Forumsbeitrag liegt als BBCode in `~/freecad_cam/forumbilder/forumpost_4achsen_bbcode.txt`.
-- **Nicht geschafft:** das Prüffenster im Hintergrund (es steht noch 7 s), Hebel 3 (Varianten
+- **Nicht geschafft:** das Prüffenster im Hintergrund (es steht noch 6,5 s), Hebel 3 (Varianten
   des 5-Achs-Vergleichs parallel); im 3-Achs-Assistenten rechnen 3D-Schlichten, Restschruppen und
   die kleinen Strategien noch im Fenster (je unter 1 s).
 
