@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-25 bearbeitung-mehr-strategien-im-nebenrechner
+
+### EINGELESEN
+- Nach dem Räumen (P-2026-10-11-23) waren die längsten Schritte im Fenster das Planfräsen (bis
+  1,1 s), die Kontur und das 3D-Schruppen (je ~0,5 s).
+
+### DATEIEN
+- `camaddon/bearbeitung_vorschau.py`: `strategie(dokument, job_name, modul, argumente, weiter,
+  zeit)` – `camaddon.<modul>.vorschau(job, Modell, …)` im Nebenrechner, mit der Zeit im Freien.
+- `camaddon/gui_bearbeitung.py`: Planfräsen, Kontur und 3D-Schruppen mit `hintergrund`;
+  `_hintergrund_passt`: nur, wenn `hintergrund` und `vorschau` aus derselben Klasse kommen (das
+  Restschruppen überschreibt `vorschau` – es rechnet weiter hier).
+- `package.xml` (0.213.33), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Am 3-Achs-Testteil (`szenario_testteil` mit Messung je Schritt): im Fenster 2,2 s gerechnet
+  (vor der Nacht 12,3 s), der längste Schritt 0,8 s; alle neun Vorschauen aus den Nebenrechnern
+  kamen an.
+- Grün: alle 55 Szenarien des Assistenten (das dunkle Theme mit „FreeCAD Dark“),
+  `szenario_testteil` in 26.3.0RC1.
+
 ## P-2026-10-11-24 bearbeitung-vorwaermen
 
 ### EINGELESEN

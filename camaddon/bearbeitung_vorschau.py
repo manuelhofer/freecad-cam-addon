@@ -12,14 +12,18 @@ im Prozess der Oberfläche nahm FreeCAD so lange keinen Klick an (P-2026-10-11-2
 Oberfläche.
 """
 
+import importlib
+
 from . import freiwege as fw
 from . import raeumen as ra
 
 
 def _job(dokument, name):
+    """Der Job in der Kopie – fehlt er, LookupError (kein ValueError: Der Assistent zeigte den als
+    Grund; so rechnet er die Vorschau selbst)."""
     job = dokument.getObject(name)
     if job is None:
-        raise ValueError(f"Job „{name}“ fehlt im Dokument {dokument.Name}")
+        raise LookupError(f"Job „{name}“ fehlt im Dokument {dokument.Name}")
     return job
 
 
@@ -31,10 +35,23 @@ def raeumen(dokument, job_name, form, zustellung, zeilenabstand, aufmass, flaech
     bahn = ra.vorschau_fuer_assistent(
         job, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter
     )
-    frei = None
-    if zeit is not None:
-        vorschub, eintauchen, freivorschub = zeit
-        frei = fw.zeit_im_freien(
-            form, weiter.get("stand"), bahn.punkte, vorschub, eintauchen, freivorschub
-        )
-    return bahn, frei
+    return bahn, _frei(form, weiter.get("stand"), bahn, zeit)
+
+
+def strategie(dokument, job_name, modul, argumente, weiter, zeit):
+    """(Bahn, Zeit im Freien oder None) – `camaddon.<modul>.vorschau(job, Modell, *argumente,
+    **weiter)` (Planfräsen, Kontur, 3D-Schruppen); das erste der `argumente` ist die Form des
+    Fräsers."""
+    job = _job(dokument, job_name)
+    vorschau = importlib.import_module("camaddon." + modul).vorschau
+    bahn = vorschau(job, job.Model.Group, *argumente, **weiter)
+    return bahn, _frei(argumente[0], weiter.get("stand"), bahn, zeit)
+
+
+def _frei(form, stand, bahn, zeit):
+    """freiwege.zeit_im_freien für die Bahn – None ohne `zeit` (Vorschub, Eintauchen,
+    Freivorschub)."""
+    if zeit is None:
+        return None
+    vorschub, eintauchen, freivorschub = zeit
+    return fw.zeit_im_freien(form, stand, bahn.punkte, vorschub, eintauchen, freivorschub)

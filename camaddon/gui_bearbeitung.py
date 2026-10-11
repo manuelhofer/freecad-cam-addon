@@ -630,20 +630,28 @@ class _Planfraesen(_Strategie):
             return vplan.zeilenabstand_vorschlag(werkzeug, einsatz, ff.von_werkzeug(werkzeug))
         return pf.AUFMASS
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
-        return pf.vorschau(
-            job,
-            job.Model.Group,
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Argumente, Schlüsselwörter) für planfraesen.vorschau nach Job und Modell."""
+        return (
             ff.von_werkzeug(werkzeug),
             werte["zustellung"],
             werte["zeilenabstand"],
             werte["aufmass"],
-            flaechen,
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            nur_gleichlauf=werte.get("nur_gleichlauf", False),
-            stand=werte.get("materialstand"),
-        )
+            list(flaechen),
+        ), {
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "nur_gleichlauf": werte.get("nur_gleichlauf", False),
+            "stand": werte.get("materialstand"),
+        }
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return pf.vorschau(job, job.Model.Group, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie)."""
+        return "strategie", ("planfraesen", *self._argumente(werkzeug, werte, flaechen))
 
     def ergebnis_text(self, bahn, zeit):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
@@ -1255,20 +1263,28 @@ class _Kontur(_Strategie):
             return tr("ba.breite.leer")
         return super().platzhalter(feld, werkzeug, einsatz)
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
-        return ko.vorschau(
-            job,
-            job.Model.Group,
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Argumente, Schlüsselwörter) für kontur.vorschau nach Job und Modell."""
+        return (
             ff.von_werkzeug(werkzeug),
             werte["zustellung"],
             werte["zeilenabstand"],
             werte["aufmass"],
             werte["schlichten"],
-            flaechen,
+            list(flaechen),
             werte["breite"],
-            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
-            stand=werte.get("materialstand"),
-        )
+        ), {
+            "schneidenlaenge": float(werkzeug.schneidenlaenge or 0.0),
+            "stand": werte.get("materialstand"),
+        }
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return ko.vorschau(job, job.Model.Group, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie)."""
+        return "strategie", ("kontur", *self._argumente(werkzeug, werte, flaechen))
 
     def ergebnis_text(self, bahn, zeit):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
@@ -2031,22 +2047,30 @@ class _Schruppen3D(_Strategie):
             return r3op.AUFMASS
         return _Raeumen().vorschlag(feld, werkzeug, einsatz)
 
-    def vorschau(self, job, werkzeug, werte, flaechen):
-        return r3op.vorschau(
-            job,
-            job.Model.Group,
+    def _argumente(self, werkzeug, werte, flaechen):
+        """(Argumente, Schlüsselwörter) für schruppen3d.vorschau nach Job und Modell."""
+        return (
             ff.von_werkzeug(werkzeug),
             werte["zustellung"],
             werte["zeilenabstand"],
             werte["aufmass"],
-            flaechen,
-            zwischen=werte["zwischen"],
-            gleichlauf=werte["gleichlauf"],
-            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            stand=werte.get("materialstand"),
-        )
+            list(flaechen),
+        ), {
+            "zwischen": werte["zwischen"],
+            "gleichlauf": werte["gleichlauf"],
+            "schneidenlaenge": float(werkzeug.schneidenlaenge or 0.0),
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "stand": werte.get("materialstand"),
+        }
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        argumente, weiter = self._argumente(werkzeug, werte, flaechen)
+        return r3op.vorschau(job, job.Model.Group, *argumente, **weiter)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie)."""
+        return "strategie", ("schruppen3d", *self._argumente(werkzeug, werte, flaechen))
 
     def ergebnis_text(self, bahn, zeit):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
@@ -3367,7 +3391,7 @@ class _Block:
         """Gibt die Vorschau einem Nebenrechner, wenn die Strategie das kann (`hintergrund`):
         der Auftrag, oder None – dann rechnet sie hier."""
         hintergrund = getattr(self.s, "hintergrund", None)
-        if hintergrund is None:
+        if hintergrund is None or not _hintergrund_passt(type(self.s)):
             return None
         from . import freiwege as fw
         from . import nebenrechner as nr
@@ -3447,6 +3471,17 @@ def _vorwaermen():
         nr.pool().vorwaermen(["bearbeitung_vorschau", "raeumen_bahn", "hoehenfeld", "freiwege"])
     except Exception as fehler:  # noqa: BLE001 – ohne Vorwärmen rechnet die Vorschau wie bisher
         FreeCAD.Console.PrintLog(f"CAM-Addon: Nebenrechner vorwärmen: {fehler}\n")
+
+
+def _hintergrund_passt(klasse):
+    """Kommen `hintergrund` und `vorschau` der Strategie aus derselben Klasse? Eine Strategie, die
+    vorschau() überschreibt, hintergrund() aber erbt, rechnete im Nebenrechner die ihrer
+    Elternklasse – sie rechnet hier."""
+
+    def woher(name):
+        return next((k for k in klasse.__mro__ if name in vars(k)), None)
+
+    return woher("hintergrund") is not None and woher("hintergrund") is woher("vorschau")
 
 
 def _abwarten(schritt):
