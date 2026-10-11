@@ -2691,5 +2691,7 @@
     "va.rest.wenig": "Stock left for the ball after roughing: it engages at most {menge} {e_querschnitt} (ap × ae, averaged over 5 mm of path) – without leftover stock it would be allowance × stepover, {soll} {e_querschnitt}.",
     "va.rest.viel": "After roughing the ball engages up to {menge} {e_querschnitt} in places (ap × ae, averaged over 5 mm of path) – {faktor} times allowance × stepover ({soll} {e_querschnitt}), over {strecke} {e_strecke} of its path, {richtung} {von} … {bis} {e_laenge}. Its cutting data are not meant for that much.",
     "va.rest.laengs": "along the axis",
-    "va.rest.tooltip": "Recalculated in the bar as 1 mm cubes: first the roughing path, then the finishing path, and per mm of path what the ball removes. The cutter in the model lies entirely within the real one – so it leaves rather more stock than the machine does."
+    "va.rest.tooltip": "Recalculated in the bar as 1 mm cubes: first the roughing path, then the finishing path, and per mm of path what the ball removes. The cutter in the model lies entirely within the real one – so it leaves rather more stock than the machine does.",
+    "va.lagen.unter": "→ {lagen} layers (Ø {von} {e_laenge} → down to {tiefe} {e_laenge} below the centre)",
+    "va.lagen.eine_unter": "→ 1 layer (Ø {von} {e_laenge} → down to {tiefe} {e_laenge} below the centre)"
 }

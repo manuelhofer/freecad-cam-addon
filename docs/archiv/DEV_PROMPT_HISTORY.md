@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-45 lagen-unter-der-mitte
+
+### EINGELESEN
+- Im Bild des Assistenten am Nasen-Testteil (P-2026-10-11-44): „→ 5 Lagen (Ø 135,0 mm → Ø -61,8 mm)“
+  – die tiefste Lage geht unter die Mitte, ein negativer Durchmesser sagt das nicht.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py` (`_lagen_text`): unter der Mitte „→ 5 Lagen (Ø 135,0 mm → bis 30,9 mm
+  unter die Mitte)“.
+- `translations/de.json`, `translations/en.json` (`va.lagen.unter`, `va.lagen.eine_unter`),
+  `package.xml` (0.213.51), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Nasen-Testteil im Assistenten: der Satz wie oben; `test_sprache.py` grün.
+
 ## P-2026-10-11-44 rest-fuer-die-kugel
 
 ### EINGELESEN

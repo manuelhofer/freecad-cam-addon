@@ -3995,6 +3995,14 @@ class VierachsPanel:
         laenge = einheiten.LAENGE
         if bahn.lagen == 0:
             text = tr("va.lagen.keine")
+        elif bahn.r_min < 0:
+            # Unter die Mitte (eine Fläche zur Achse hin): ein Durchmesser sagte „Ø −61,8“.
+            von = groesse_fest(self.stange().durchmesser, laenge, 1)
+            tiefe = groesse_fest(-bahn.r_min, laenge, 1)
+            if bahn.lagen == 1:
+                text = tr("va.lagen.eine_unter", von=von, tiefe=tiefe)
+            else:
+                text = tr("va.lagen.unter", lagen=bahn.lagen, von=von, tiefe=tiefe)
         else:
             von = groesse_fest(self.stange().durchmesser, laenge, 1)
             bis = groesse_fest(2 * bahn.r_min, laenge, 1)

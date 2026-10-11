@@ -2691,5 +2691,7 @@
     "va.rest.wenig": "Rest für die Kugel nach dem Schruppen: Sie greift höchstens mit {menge} {e_querschnitt} ein (ap × ae, über 5 mm Weg gemittelt) – ohne Rest wären es Aufmaß × Schrittweite, {soll} {e_querschnitt}.",
     "va.rest.viel": "Nach dem Schruppen greift die Kugel stellenweise mit bis zu {menge} {e_querschnitt} ein (ap × ae, über 5 mm Weg gemittelt) – {faktor}-mal so viel wie Aufmaß × Schrittweite ({soll} {e_querschnitt}), auf {strecke} {e_strecke} ihres Wegs, {richtung} {von} … {bis} {e_laenge}. Für so viel sind ihre Schnittwerte nicht gedacht.",
     "va.rest.laengs": "längs",
-    "va.rest.tooltip": "Nachgerechnet in der Stange als Würfel von 1 mm: erst die Schruppbahn, dann die Schlichtbahn, je mm Weg, was die Kugel dabei wegnimmt. Der Fräser im Modell liegt ganz im echten – es bleibt dort eher mehr stehen als auf der Maschine."
+    "va.rest.tooltip": "Nachgerechnet in der Stange als Würfel von 1 mm: erst die Schruppbahn, dann die Schlichtbahn, je mm Weg, was die Kugel dabei wegnimmt. Der Fräser im Modell liegt ganz im echten – es bleibt dort eher mehr stehen als auf der Maschine.",
+    "va.lagen.unter": "→ {lagen} Lagen (Ø {von} {e_laenge} → bis {tiefe} {e_laenge} unter die Mitte)",
+    "va.lagen.eine_unter": "→ 1 Lage (Ø {von} {e_laenge} → bis {tiefe} {e_laenge} unter die Mitte)"
 }
