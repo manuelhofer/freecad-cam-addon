@@ -273,7 +273,7 @@ abgearbeitet):
    mit Y abzeilen (X auch unter 0, soweit die Maschine fährt); die Seiten Face4/Face6 mit dem
    Schaftfräser (Plan indexiert oder angestellt mit dem Schaft); die Kugel nur noch Face9 – erst
    Bild mit Zahlen.
-7. **Magazin ohne Maschine** sagt das im Fenster (legros).
+7. ~~**Magazin ohne Maschine** sagt das im Fenster (legros).~~ Erledigt: P-2026-10-11-31.
 Offen bei Manuel: Frage 6 (Schrittweite aus der Kammhöhe, mit Zahlen).
 
 **Die Nacht vom 2026-10-10 auf den 11.** (Manuel: „schau dir die Werkzeugwege nochmal genau an

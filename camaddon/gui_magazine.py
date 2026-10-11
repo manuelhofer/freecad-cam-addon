@@ -14,10 +14,14 @@ wird mit dessen OK oder Übernehmen. Unten rot, was nicht zusammenpasst (eine Nu
 Platz zweimal, ein Platz über der Zahl der Plätze).
 """
 
+import os
+
+import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import farben
+from . import maschine as m
 from . import maschinenspeicher as msp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
@@ -42,6 +46,18 @@ def werkzeug_text(werkzeug):
     return f"{text} – {werkzeug.name}" if werkzeug.name else text
 
 
+def ungespeicherte_maschine():
+    """Das erste offene Dokument mit einer Maschine, das in keiner Datei liegt (eine Maschine aus
+    „Neue Maschine …“) – None ohne."""
+    for dokument in FreeCAD.listDocuments().values():
+        if dokument.FileName:
+            continue
+        for objekt in dokument.Objects:
+            if objekt.TypeId == "Assembly::AssemblyObject" and m.finde_maschine(objekt) is not None:
+                return dokument
+    return None
+
+
 def platz_text(magazin, maschinen):
     """„30 Plätze“ / „12 Plätze (Revolver der Maschine)“ – oder leer."""
     eintrag = msp.finde(maschinen, magazin.maschine) if magazin.maschine else None
@@ -62,9 +78,15 @@ def plaetze_von(magazin, maschinen):
 
 
 def probleme(magazin, maschinen):
-    """Sätze, was nicht zusammenpasst: eine T-Nummer zweimal, ein Platz zweimal, ein Platz über
-    der Zahl der Plätze."""
+    """Sätze, was nicht zusammenpasst: keine Maschine (dann nimmt kein Job die Nummern – legros im
+    Forum, 2026-10-10: „you can specify the pocket location, but it doesn't seem to take it into
+    account“; seine Beispielmaschine war nicht gespeichert), eine T-Nummer zweimal, ein Platz
+    zweimal, ein Platz über der Zahl der Plätze."""
     saetze = []
+    if not magazin.maschine and maschinen:
+        saetze.append(tr("mg.problem.ohne_maschine"))
+    elif not magazin.maschine:
+        saetze.append(tr("mg.problem.keine_maschinen"))
     gesehen = {}
     for e in magazin.eintraege:
         if e.nummer in gesehen:
@@ -112,10 +134,18 @@ class MagazinDialog(QtGui.QDialog):
         teilung.setStretchFactor(1, 1)
         teilung.setSizes([LISTE_BREITE, FENSTER_GROESSE[0] - LISTE_BREITE])
         aufbau.addWidget(teilung, 1)
+        unter = QtGui.QHBoxLayout()
         self.probleme = QtGui.QLabel()
         self.probleme.setWordWrap(True)
         self.probleme.setStyleSheet(f"color: {ROT};")
-        aufbau.addWidget(self.probleme)
+        unter.addWidget(self.probleme, 1)
+        # Ohne Maschine der nächste Schritt gleich daneben: die offene Maschine speichern.
+        self.knopf_maschine_speichern = QtGui.QPushButton()
+        self.knopf_maschine_speichern.setToolTip(tr("mg.maschine_speichern.tooltip"))
+        self.knopf_maschine_speichern.clicked.connect(lambda: self.maschine_speichern())
+        self.knopf_maschine_speichern.hide()
+        unter.addWidget(self.knopf_maschine_speichern, 0, QtCore.Qt.AlignTop)
+        aufbau.addLayout(unter)
         unten = QtGui.QHBoxLayout()
         speichern = QtGui.QLabel(tr("mg.speichern"))
         speichern.setStyleSheet(f"color: {GRAU.name()};")
@@ -451,6 +481,44 @@ class MagazinDialog(QtGui.QDialog):
     def _probleme_zeigen(self):
         saetze = probleme(self.magazin, self.maschinen) if self.magazin else []
         self.probleme.setText("\n".join(saetze))
+        offen = (
+            ungespeicherte_maschine()
+            if self.magazin is not None and not self.magazin.maschine
+            else None
+        )
+        if offen is not None:
+            self.knopf_maschine_speichern.setText(
+                tr("mg.maschine_speichern", name=offen.Label or offen.Name)
+            )
+        self.knopf_maschine_speichern.setVisible(offen is not None)
+
+    def maschine_speichern(self, pfad=None):
+        """„Maschine … speichern …“: die offene, ungespeicherte Maschine in eine Datei (ohne
+        `pfad` fragt ein Dateifenster), in den Maschinen-Speicher, und das gewählte Magazin gilt
+        für sie. Gibt den Pfad zurück oder None."""
+        dokument = ungespeicherte_maschine()
+        if dokument is None or self.magazin is None:
+            return None
+        if pfad is None:
+            vorschlag = os.path.join(
+                os.path.expanduser("~"), f"{dokument.Label or dokument.Name}.FCStd"
+            )
+            pfad, _filter = QtGui.QFileDialog.getSaveFileName(
+                self, tr("mg.maschine_speichern.titel"), vorschlag, "*.FCStd"
+            )
+            if not pfad:
+                return None
+        if not pfad.lower().endswith(".fcstd"):
+            pfad += ".FCStd"
+        dokument.saveAs(pfad)
+        eintraege = msp.merken_dokument(dokument)
+        self.maschinen = msp.laden()
+        if eintraege:
+            self.magazin.maschine = eintraege[0].datei
+            if self.bibliothek.magazin_fuer(self.magazin.maschine) in (None, self.magazin):
+                self.bibliothek.magazin_gilt(self.magazin)
+        self._liste_fuellen(self.magazin)
+        return pfad
 
     def _name_geaendert(self, text):
         if self.magazin is not None and not self._fuellt:

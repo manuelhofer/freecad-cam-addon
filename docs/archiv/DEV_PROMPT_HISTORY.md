@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-31 magazin-ohne-maschine
+
+### EINGELESEN
+- legros im Forum (10.10.): Magazinplätze „scheinen nicht zu zählen“ – seine Beispielmaschine war
+  nicht gespeichert; ein Magazin gehört zu einer Maschinendatei, ohne sie nimmt kein Job seine
+  Nummern. Das Fenster sagte davon nichts.
+
+### DATEIEN
+- `camaddon/gui_magazine.py`: `probleme` meldet ein Magazin ohne Maschine (ohne gespeicherte
+  Maschine mit dem Satz, dass eine aus „Neue Maschine …“ erst nach dem Speichern in einer Datei
+  liegt); daneben der Knopf „„…“ speichern …“, wenn eine ungespeicherte Maschine offen ist
+  (`ungespeicherte_maschine`, `MagazinDialog.maschine_speichern`): speichert sie, nimmt sie in den
+  Maschinen-Speicher, das Magazin gehört zu ihr und gilt für sie.
+- `translations/de.json`, `translations/en.json` (`mg.problem.ohne_maschine`,
+  `mg.problem.keine_maschinen`, `mg.maschine_speichern…`).
+- `tests/gui/szenario_magazin_ohne_maschine.py` (neu), `package.xml` (0.213.38),
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- Grün: `szenario_magazin_ohne_maschine`, `szenario_magazine`, `szenario_magazin_bearbeitung`,
+  `szenario_magazin_vierachs`, `test_sprache`.
+
 ## P-2026-10-11-30 manuels-antworten-5-bis-9
 
 ### EINGELESEN
