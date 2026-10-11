@@ -31,6 +31,72 @@ def _vektor(wert):
     return v
 
 
+# Ab so vielen Blöcken Strahlen schneiden die Nebenrechner (je Block ein boolescher Schnitt, am
+# Schwenkteil ~1 s; 40 nacheinander im Hauptprozess standen 41 s; P-2026-10-11-69).
+VERTEILT_AB = 4
+
+
+def strahlen_stueck(form, x, y, z_von, z_bis, dx, dy, start, ende):
+    """Auch im Nebenrechner: [(i, j, unten, oben)] – die Abschnitte der senkrechten Strahlen
+    `start` … `ende` − 1 (Nummer i · len(y) + j) im Körper `form`, aus dem BRep-Schnitt."""
+    ny = len(y)
+    linien = Part.makeCompound(
+        [
+            Part.makeLine(
+                Vector(x[i // ny], y[i % ny], z_von - 1), Vector(x[i // ny], y[i % ny], z_bis + 1)
+            )
+            for i in range(start, ende)
+        ]
+    )
+    ergebnis = []
+    for kante in form.common(linien).Edges:
+        bb = kante.BoundBox
+        if bb.XLength > GENAU or bb.YLength > GENAU:
+            raise ValueError(tr("rm3.fehler.geometrie"))
+        if bb.ZLength > GENAU:
+            i = int(round((bb.XMin - x[0]) / dx))
+            j = int(round((bb.YMin - y[0]) / dy))
+            ergebnis.append((i, j, bb.ZMin, bb.ZMax))
+    return ergebnis
+
+
+def _verteilt(form, args, bloecke, fortschritt):
+    """strahlen_stueck() je Block auf den Nebenrechnern – die Ergebnisse in der Reihenfolge der
+    Blöcke; None ohne sie (dann rechnet der Aufrufer selbst)."""
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return None
+    try:
+        pool = nr.pool()
+        if not pool.verfuegbar() or pool.anzahl < 2:
+            return None
+        brep = form.exportBrepToString()
+        schluessel = "rm3-form-" + hashlib.sha1(brep.encode("utf-8")).hexdigest()
+        koerper = pool.gemeinsam(schluessel, nr.Form(brep))
+        auftraege = [
+            pool.auftrag("raum_material", "strahlen_stueck", koerper, *args, start, ende)
+            for start, ende in bloecke
+        ]
+
+        def zwischendurch():
+            nr.ereignisse_ohne_eingaben()
+            if fortschritt is None:
+                return True
+            return bool(fortschritt(nr.fortschritt_von(auftraege)))
+
+        try:
+            return pool.warten(auftraege, zwischendurch=zwischendurch)
+        finally:
+            pool.vergessen(schluessel)
+    except nr.Abgebrochen as fehler:
+        raise ValueError(tr("s5p.fehler.unvollstaendig")) from fehler
+    except nr.Fehler as fehler:
+        if fehler.art == "ValueError":
+            raise ValueError(fehler.satz) from fehler
+        return None
+
+
 class Material:
     """Mehrere Z-Intervalle je Strahl; NaN markiert freie Speicherplätze."""
 
@@ -55,27 +121,20 @@ class Material:
         self.ausgelassen = ()  # Unveränderliche Angaben; auch Materialkopien teilen keine Liste.
         self.bewegungsfehler = 0.0  # Einseitige zusätzliche Schranke des Simultansweeps.
         self.grenzen = np.full((nx, ny, 1, 2), np.nan)
-        for start in range(0, nx * ny, BLOCK):
-            if fortschritt is not None and not fortschritt(start / (nx * ny)):
-                raise ValueError(tr("s5p.fehler.unvollstaendig"))
-            ids = np.arange(start, min(nx * ny, start + BLOCK))
-            linien = Part.makeCompound(
-                [
-                    Part.makeLine(
-                        Vector(self.x[i // ny], self.y[i % ny], box.ZMin - 1),
-                        Vector(self.x[i // ny], self.y[i % ny], box.ZMax + 1),
-                    )
-                    for i in ids
-                ]
-            )
-            for kante in form.common(linien).Edges:
-                bb = kante.BoundBox
-                if bb.XLength > GENAU or bb.YLength > GENAU:
-                    raise ValueError(tr("rm3.fehler.geometrie"))
-                i = int(round((bb.XMin - self.x[0]) / self.dx))
-                j = int(round((bb.YMin - self.y[0]) / self.dy))
-                if bb.ZLength > GENAU:
-                    self._eintragen(i, j, bb.ZMin, bb.ZMax)
+        bloecke = [(start, min(nx * ny, start + BLOCK)) for start in range(0, nx * ny, BLOCK)]
+        args = (self.x, self.y, box.ZMin, box.ZMax, self.dx, self.dy)
+        stuecke = (
+            _verteilt(form, args, bloecke, fortschritt) if len(bloecke) >= VERTEILT_AB else None
+        )
+        if stuecke is None:
+            stuecke = []
+            for start, ende in bloecke:
+                if fortschritt is not None and not fortschritt(start / (nx * ny)):
+                    raise ValueError(tr("s5p.fehler.unvollstaendig"))
+                stuecke.append(strahlen_stueck(form, *args, start, ende))
+        for stueck in stuecke:
+            for i, j, unten, oben in stueck:
+                self._eintragen(i, j, unten, oben)
 
     def _platz(self, anzahl):
         if anzahl <= self.grenzen.shape[2]:

@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-69 raummaterial-verteilt
+
+### EINGELESEN
+- Lag-Sonde: Neu berechnen am Schwenkteil (Räumen in geschwenkten Ebenen) stand bis 37,7 s. Ohne
+  Oberfläche gemessen 84 s; davon 43,7 s im räumlichen Materialstand (`raum_material.Material`): Er
+  schneidet den Körper mit ~80 000 senkrechten Strahlen, in Blöcken zu 2048 je ein boolescher
+  Schnitt von ~1 s – 40 nacheinander im Hauptprozess.
+
+### DATEIEN
+- `camaddon/raum_material.py`: `strahlen_stueck` (ein Block, auch im Nebenrechner), `_verteilt`
+  (ab `VERTEILT_AB` 4 Blöcken auf den Nebenrechnern, der Körper einmal als gemeinsame Daten,
+  Fortschritt und Ereignisse ohne Eingaben beim Warten); eingetragen in der Reihenfolge der Blöcke
+  wie bisher.
+- `package.xml` (0.213.74), `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### ERGEBNIS
+- `Material` 43,7 → 4,8 s, das Neuberechnen am Schwenkteil 84 → 44,5 s; im Szenario längste Pause
+  37,7 → 18,7 s. Offen dort: das Abtragen je Bewegung (`schaftschnitt`, 17 s, Python) und der
+  Adaptiv-Kern (11 s).
+
+### AKZEPTANZKRITERIUM
+- `test_raum_material`, `test_raum_bahn`, `test_ebenen_auslassen`, `test_schwenken`,
+  `szenario_schwenkteil`, `szenario_raum_material`, `szenario_raum_bahn`,
+  `szenario_ebenen_auslassen`, `szenario_loch_schraeg`, `szenario_schwenken` grün.
+
 ## P-2026-10-11-68 kollision-prueft-ohne-stehen
 
 ### EINGELESEN
