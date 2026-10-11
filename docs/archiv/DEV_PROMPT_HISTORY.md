@@ -34,7 +34,8 @@ patch_naming:
   Satz als Prüfsumme, Grathöhe, Schneide, Fräser, Rohteil, Kinematik, Aufnahme, Einspannung,
   Nullpunkt) höchstens 8 Programme; `_programm_rechnen` wie bisher.
 - `camaddon/reichweite.py`: `Pruefung.kennung()` – Prüfsumme der Kinematik (Achsen mit Richtung,
-  Ursprung, Grenzen; Lagen der Bauteile und Aufnahmen beim Anlegen; Eigenschaften der Maschine).
+  Ursprung, Grenzen; Lagen der Bauteile und Aufnahmen beim Anlegen; welche die Werkstückaufnahme ist
+  – nachgetragen, an ihr hängt der Nullpunkt; Eigenschaften der Maschine).
 - `camaddon/gui_materialstand.py`: `nachrechnen` mit `_rohteil_kennung` statt `kennung_vor(job,
   None)`, die Kennungen erst, wenn eine Operation mit Materialstand sie braucht.
 - `camaddon/gui_bearbeitung.py`: `passt` je Variante, Form und Fläche gemerkt

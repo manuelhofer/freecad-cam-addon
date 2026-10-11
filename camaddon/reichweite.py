@@ -698,13 +698,17 @@ class Pruefung:
     def kennung(self):
         """Eine Prüfsumme dessen, was die Kinematik dieser Maschine ausmacht – für Speicher über
         Prüfungen hinweg (simultan_operation.programm): je Achse Gelenk, Art, Richtung, Ursprung und
-        Grenzen, die Lage der Bauteile und Aufnahmen beim Anlegen, die Eigenschaften des
-        Maschinenobjekts. Einmal je Prüfung gerechnet (die Maschine ändert sich nicht, solange sie
+        Grenzen, die Lage der Bauteile und Aufnahmen beim Anlegen, welche die Werkstückaufnahme ist,
+        die Eigenschaften des Maschinenobjekts. Einmal je Prüfung gerechnet (die Maschine ändert sich nicht, solange sie
         lebt)."""
         if self._kennung is None:
             import hashlib
 
-            teile = [repr(sorted(self.umgekehrt)), repr(self.x_durchmesser)]
+            teile = [
+                repr(sorted(self.umgekehrt)),
+                repr(self.x_durchmesser),
+                repr(getattr(self.werkstueckaufnahme, "Name", None)),  # an ihr hängt der Nullpunkt
+            ]
             for a in self.kette.achsen:
                 teile.append(
                     repr(
