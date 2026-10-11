@@ -92,3 +92,23 @@ an schrägen Wänden enger steigen? Oder reicht dir die Kugel so (Ø 8, bis 5 mm
 als … steht) – oder eine Meldung im Assistenten statt nur im Report-Fenster – oder nichts.
 Seit 2026-10-11.
 
+### 9. C dreht beim Schlichten an den Mulden 741-mal kurz zurück – Querachse nur, wo nötig?
+
+![C dreht zurück](bilder/vorschlaege/testteil_4achs_c_rueckwaerts.png)
+
+„Rundum schlichten T2“ mit Querachse hält die Kugel auf der Normalen der Fläche (ψ, mit Y
+versetzt). An den Rändern der Mulden (Strahl 140° und 215°, a −57 … 0) und vorne an der Nase
+dreht die Normale gegen die Spirale – C fährt dort je Umdrehung ein Stück zurück: 741 Läufe,
+im Mittel 14°, 22 000° von 171 000° Drehweg (13 %). Jede Umkehr bremst die C-Achse ab und
+wieder an (das rechnet die Zeit im Prüffenster nicht mit), und ein Spiel in C zeigt sich dort.
+Ohne Querachse (Y 0) dreht C stetig – die Kugel berührt dann neben ihrer Achse; wo sie radial
+nicht hinkommt (steile Wände der Mulden, die Seiten der Nase), braucht es Y. Wie viel davon an
+diesem Teil radial ginge, ist noch nicht gemessen – das wäre der erste Schritt nach einem Ja.
+**Die Frage:** Soll das Schlichten mit Querachse nur dort quer fahren, wo die Kugel radial nicht
+hinkommt, und sonst mit Y 0 stetig drehen? Oder ist dir die Kugel auf der Normalen wichtiger?
+*Warum nur Manuel:* Es ändert, wie geschlichtet wird (Strategiewahl); wie seine CLX550 mit
+Umkehrungen in C zurechtkommt, weiß nur er.
+*Was die Antwort ändert:* „Querachse“ nur bei Bedarf (angehakt wie bisher, oder als eigener Haken
+„nur wo nötig“) – oder nichts.
+Seit 2026-10-11.
+

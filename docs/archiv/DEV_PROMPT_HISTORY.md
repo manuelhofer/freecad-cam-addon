@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-17 frage-c-rueckwaerts
+
+### EINGELESEN
+- Die Bahnen des 4-Achs-Testteils nach Zapplern durchsucht (wie in der Nacht vom 3. auf den 4.):
+  in X und Y nur winzige (unter 0,02 mm, aus dem Netz), in a keine. Aber C dreht beim Schlichten
+  mit Querachse 741-mal zurück, im Mittel 14° – an den Rändern der Mulden und vorne an der Nase,
+  wo die Normale gegen die Spirale dreht; 22 000° von 171 000° Drehweg.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Frage 9, mit Bild), `docs/bilder/vorschlaege/
+  testteil_4achs_c_rueckwaerts.png`, `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+Manuel sieht im Bild, wo C zurückdreht, und entscheidet, ob die Querachse nur dort fahren soll,
+wo die Kugel radial nicht hinkommt. Nur Doku – kein Testlauf.
+
 ## P-2026-10-11-16 bearbeitung-vorschau-im-takt
 
 ### EINGELESEN
