@@ -56,7 +56,7 @@ echte Luft nur Räumen T1 7 s (ein Ring 1 mm vor einer schon freien Wand) und 3D
 letzten 2 mm des Eintauchens) – nicht der Rede wert; was das 0,5-mm-Raster sonst als Luft zeigt, ist
 die 0,3-mm-Haut an den Wänden, die es nicht auflöst (genau nachgerechnet: die Kontur nimmt sie).
 
-**Der 11.10. abends (P-2026-10-11-73 bis -78, 0.213.77 → 0.213.82):** Hilfe zu den Neuerungen
+**Der 11.10. abends (P-2026-10-11-73 bis -80, 0.213.77 → 0.213.84):** Hilfe zu den Neuerungen
 nachgezogen. Bohrungen beim Anklicken je Form und Fläche gemerkt (Deckel 1102 → 8 Fragen, 3,4 →
 1,6 s). Der räumliche Rest vor einer 3+2-Ebene trägt gesammelt ab und fängt beim Stand der vorigen
 Ebene an (Schwenkteil, beide Ebenen 18,6 → 3,7 s, derselbe Rest); FreeCADs Adaptiv-Kern rechnet
@@ -67,7 +67,12 @@ liegt in FreeCAD. Das Räumen rechnet ohne Vorgabe die Ringvarianten gleichzeiti
 Nebenrechnern, „adaptiv“ derweil im Hauptprozess (-77: Testteil 6,0 → 4,1 s mit warmen
 Arbeitern). Alle Operationen atmen bei jedem Neuberechnen, nicht nur beim Anlegen; die übrigen
 Uhren und die Rückrufe angeklickter Flächen laufen dafür nie mitten in einer Rechnung (-78:
-3D-Schlichten umstellen 2,25 → 0,62 s).
+3D-Schlichten umstellen 2,25 → 0,62 s). **In RC1 (Manuels Version) nachgeprüft:** P-74 bis -78
+grün; Flächen anklicken stand dort doppelt so lange wie in 1.1.4 – `form.Faces` ist in 26.3
+viermal so teuer, die Analyse einer Fläche holt jetzt nur diese (-79, `formteile.py`: RC1,
+18 Klicks am Testteil 3,8 → 1,4 s). 29 bedienintensive Szenarien in RC1: sonst nahe an 1.1.4;
+ein Absturz unter Volllast im Neuberechnen gleich nach dem Schließen des 4-Achs-Assistenten –
+dort wird jetzt ohne Ereignisse gerechnet (-80, `uhren.still`).
 
 **WEITERARBEIT an der allgemeinen Gesamtplanung (Manuel, 2026-10-08).**
 **Auf GitHub veröffentlicht:** Version 0.203.1 auf `main`, einschließlich aller
@@ -734,6 +739,8 @@ P-2026-10-10-35 bis -39); nächste freie Nummer B-019.
   auch in 1.1.4 rot; auf diesem Rechner nicht prüfbar), einmal ein Absturz in
   `szenario_vierachs_schlichten` (`munmap_chunk(): invalid pointer` in `doc.recompute()` nach dem
   Schließen, unter Volllast mit fünf anderen Läufen) – siebenmal danach grün, nicht nachgestellt.
+  Am 11.10. derselbe Ort in `szenario_vierachs_aendern` („free(): invalid size“, unter Volllast);
+  seit P-2026-10-11-80 rechnet das Dokument nach `closeDialog()` ohne Ereignisse (`uhren.still`).
   Nebenbei: `test_simultan_planung` und andere richten den Werkzeugspeicher auf
   `beispiele/grob_g550_freiform/assets`, und RC1 schreibt dort die `.fctb` beim Laden neu
   (sortiert, `"Units": "Metric"`) – nach einem Lauf in 26.3 mit `git checkout` zurücksetzen.
