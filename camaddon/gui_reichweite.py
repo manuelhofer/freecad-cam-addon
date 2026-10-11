@@ -708,7 +708,16 @@ class PruefPanel:
         """Rohteil und Fertigteil (W-003 V3g): die Stange bis zu dieser Station abgetragen;
         gibt den Satz dazu zurück („“, wenn der Job keine runde Stange mit „Rundum schruppen“
         hat)."""
-        return self.bild.abtragen(station) if self.bild is not None else ""
+        if self.bild is None:
+            return ""
+        return self.bild.abtragen(station, fertig=self._abtrag_angekommen)
+
+    def _abtrag_angekommen(self, satz):
+        """Der Abtrag im Takt ist gerechnet (Bild.abtragen): sein Satz unter den Abspieler."""
+        if self.abspieler is None:
+            return
+        self.abspieler.rest.setText(satz)
+        self.abspieler.rest.setVisible(bool(satz))
 
     def _bahn_zeigen(self, an):
         """Der Haken „Bahn“ im Abspieler: die Bahn in der 3D-Ansicht ein- oder ausblenden."""

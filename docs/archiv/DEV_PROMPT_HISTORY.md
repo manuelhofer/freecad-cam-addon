@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-60 abspieler-ans-ende-im-takt
+
+### EINGELESEN
+- „Auf der Maschine prüfen“, Nasen-Testteil (330 000 Stationen): Der Sprung ans Ende im
+  Abspieler stand 3 s am Stück (2,3 s bis zur Mitte, 0,7 s bis zum Ende) – `Abtrag.bis_station`
+  trug alle Stationen in einem Zug ab (Manuel: „das Fenster darf nie laggen“).
+
+### DATEIEN
+- `camaddon/restmaterial.py`: `Abtrag.bis_station_schritte` und `QuaderAbtrag.bis_station_schritte`
+  – bis_station() als Generator, nach je `STATIONEN_JE_SCHRITT` (4000) Stationen ein `yield`, der
+  Stand (`bis`) stimmt dann; `bis_station` verbraucht ihn.
+- `camaddon/gui_abfahren.py`: `Bild.abtragen(index, fertig=None)` – mit `fertig` und einem weiten
+  Sprung (ab `ABTRAG_IM_TAKT_AB` = 20 000 Stationen, oder zurück) im Takt aus der
+  Ereignisschleife (`_abtrag_weiter`, je höchstens 40 ms), zurück kommt „Abtrag rechnet …“, am
+  Ende `_abtrag_zeigen` und `fertig(Satz)`; ein neuer Sprung ersetzt den laufenden, ohne eine
+  zweite Uhr; `abtrag_rechnet()`.
+- `camaddon/gui_reichweite.py`: `PruefPanel._abtragen` gibt `_abtrag_angekommen` mit (Satz unter
+  den Abspieler).
+- `translations/de.json`, `translations/en.json` (`ab.abtrag_rechnet`).
+- `tests/gui/szenario_pruefen_im_takt.py`: ans Ende springen – erst „rechnet“, dann „Am Ende …“,
+  längste Pause unter 1 s (gemessen 0,19 s); die Szenarien, die den Satz gleich nach einem Sprung
+  lesen (`flaechen_pruefen`, `kontur`, `kontur_materialstand`, `bearbeitung`,
+  `vierachs_schruppen`), warten, bis dort nicht mehr „rechnet“ steht. `package.xml` (0.213.66),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`.
+
+### AKZEPTANZKRITERIUM
+- `test_restmaterial`, `test_quader`, `szenario_pruefen_im_takt` grün.
+
 ## P-2026-10-11-59 querachse-mit-flaechen-ehrlich
 
 ### EINGELESEN

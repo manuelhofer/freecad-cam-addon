@@ -185,6 +185,7 @@ def schritte(h):
         mitte = fahrt.stationen[len(fahrt.stationen) // 10]
         spieler.setze_zeit(mitte.zeit)
         spieler.knopf_hinsehen.click()
+        yield from h.warte_auf(lambda: "rechnet" not in spieler.rest.text(), 300000)
         yield 500
         h.pruefe(mitte.rund.get("C", 0.0) < -90, f"C mitten in der Lage: {mitte.rund}")
         h.pruefe("C1" in spieler.achswerte.text(), f"Achswerte: {spieler.achswerte.text()!r}")
@@ -228,6 +229,7 @@ def schritte(h):
             f"beim Abtragen: {spieler.rest.text()!r}",
         )
         spieler.setze_zeit(fahrt.dauer)
+        yield from h.warte_auf(lambda: "rechnet" not in spieler.rest.text(), 300000)
         yield 500
         rest = spieler.rest.text()
         h.pruefe(

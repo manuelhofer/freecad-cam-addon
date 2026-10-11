@@ -178,6 +178,7 @@ def schritte(h):
     stationen = [s for s in fahrt.stationen if not s.eilgang]
     h.pruefe(len(stationen) > 100, f"{len(stationen)} Stationen im Vorschub")
     spieler.setze_zeit(fahrt.dauer)
+    yield from h.warte_auf(lambda: "rechnet" not in spieler.rest.text(), 300000)
     yield 800
     rest = spieler.rest.text()
     h.pruefe(

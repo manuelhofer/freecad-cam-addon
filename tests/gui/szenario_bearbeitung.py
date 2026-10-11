@@ -216,6 +216,7 @@ def schritte(h):
     if stationen:
         spieler.setze_zeit(stationen[len(stationen) // 2].zeit)
         spieler.knopf_hinsehen.click()
+        yield from h.warte_auf(lambda: "rechnet" not in spieler.rest.text(), 300000)
         yield 500
         satz = spieler.rest.text()
         h.pruefe(satz.startswith("Das Rohteil wird beim Abspielen abgetragen"), f"{satz!r}")

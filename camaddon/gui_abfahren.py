@@ -13,6 +13,7 @@ Stellung jeder Achse, rot am Anschlag. Gerechnet wird in abfahren.py.
 
 import html
 import math
+import time
 
 import FreeCAD
 import FreeCADGui
@@ -74,6 +75,12 @@ def _einstellungen():
 
 
 # --- Die Körper ---------------------------------------------------------------------------
+
+
+# Ab so vielen Stationen auf einmal rechnet der Abtrag im Abspieler im Takt (Bild.abtragen),
+# höchstens ABTRAG_TAKT_MS am Stück.
+ABTRAG_IM_TAKT_AB = 20000
+ABTRAG_TAKT_MS = 40
 
 
 class Bild:
@@ -193,12 +200,53 @@ class Bild:
 
     # --- Rohteil und Fertigteil (V3g) ------------------------------------------------
 
-    def abtragen(self, index):
+    def abtragen(self, index, fertig=None):
         """Trägt die Stange bis Station `index` ab und zeigt sie; an der letzten Station
-        eingefärbt gegen das fertige Teil. Gibt den Satz dazu zurück („“ ohne Abtrag)."""
+        eingefärbt gegen das fertige Teil. Gibt den Satz dazu zurück („“ ohne Abtrag). Mit
+        `fertig` und einem weiten Sprung (ab ABTRAG_IM_TAKT_AB Stationen, oder zurück – dann von
+        vorn) im Takt aus der Ereignisschleife (bis_station_schritte): zurück kommt „rechnet …“,
+        und `fertig(Satz)` bekommt den Satz, wenn es dort ist. Am Nasen-Testteil stand der
+        Abspieler ans Ende sonst 3 s am Stück (P-2026-10-11-60)."""
         if self.abtrag is None:
             return ""
+        schritte = getattr(self.abtrag, "bis_station_schritte", None)
+        bis = getattr(self.abtrag, "bis", index)
+        if (
+            fertig is not None
+            and schritte is not None
+            and (index + 1 < bis or index - bis >= ABTRAG_IM_TAKT_AB)
+        ):
+            laeuft = self.abtrag_rechnet()
+            self._abtrag_lauf = (schritte(index), index, fertig)  # ein neuer Sprung ersetzt ihn
+            if not laeuft:
+                QtCore.QTimer.singleShot(0, self._abtrag_weiter)
+            return tr("ab.abtrag_rechnet")
+        self._abtrag_lauf = None
         self.abtrag.bis_station(index)
+        return self._abtrag_zeigen(index)
+
+    def abtrag_rechnet(self):
+        """Rechnet der Abtrag gerade im Takt? (Für die Szenarien.)"""
+        return getattr(self, "_abtrag_lauf", None) is not None
+
+    def _abtrag_weiter(self):
+        """Ein Takt des Abtrags (höchstens ABTRAG_TAKT_MS); am Ende zeigen und `fertig`."""
+        lauf = getattr(self, "_abtrag_lauf", None)
+        if lauf is None:
+            return
+        schritte, index, fertig = lauf
+        ende = time.perf_counter() + ABTRAG_TAKT_MS / 1000.0
+        try:
+            while time.perf_counter() < ende:
+                next(schritte)
+        except StopIteration:
+            self._abtrag_lauf = None
+            fertig(self._abtrag_zeigen(index))
+            return
+        QtCore.QTimer.singleShot(0, self._abtrag_weiter)
+
+    def _abtrag_zeigen(self, index):
+        """Zeigt den Abtrag bis `index` (der schon gerechnet ist); gibt den Satz zurück."""
         ende = index >= self.abtrag.letzte()
         vergleich = self.abtrag.vergleich() if ende else None
         self._am_ende = ende

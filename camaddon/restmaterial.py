@@ -70,6 +70,7 @@ EILGANG_SCHWELLE = 0.1  # mm – so viel Material darf ein Eilgang (im Raster) s
 TEILSCHRITT = 0.5  # mm – so fein fährt der Fräser zwischen zwei Punkten der Bahn
 TEILSCHRITTE_JE_BLOCK = 50000  # so viele Teilschritte rechnet fahre_stuecke() auf einmal
 TEILSCHRITTE_IM_TAKT = 10000  # so viele zwischen zwei yield in fahre_stuecke_schritte()
+STATIONEN_JE_SCHRITT = 4000  # so viele Stationen zwischen zwei yield in bis_station_schritte()
 GENAU = 1e-3  # mm – mit einer so kleinen Scheibe liest der Vergleich das Teil auf dem Strahl
 SUCHSCHRITTE = 30  # so oft rückt ein Strahl höchstens an die Stirn heran
 TABELLE = 4096  # so viele Stücke hat die Stirn zum Nachschlagen
@@ -455,27 +456,44 @@ class Abtrag:
 
     def bis_station(self, index):
         """Trägt ab bis einschließlich Station `index`; zurück rechnet es von vorn."""
+        for _ in self.bis_station_schritte(index):
+            pass
+
+    def bis_station_schritte(self, index, je=STATIONEN_JE_SCHRITT):
+        """bis_station() als Generator: nach je `je` Stationen ein `yield` – dann stimmt der Stand
+        (bis), und ein neuer Sprung kann ihn übernehmen (der Abspieler, gui_abfahren: ans Ende
+        des Nasen-Testteils 3 s am Stück, P-2026-10-11-60)."""
         index = min(index, len(self.a) - 1)
         if index + 1 < self.bis:
             self.stange.zuruecksetzen()
             self._erlaubt.fill(0.0)
             self.bis = 0
-        k = np.arange(max(self.bis, 1), index + 1)
-        fahren = (
-            self.gueltig[k - 1] & self.gueltig[k] & (self.operation[k - 1] == self.operation[k])
-        )
-        k = k[fahren]
-        for nummer, fraeser in self.fraeser.items():
-            stuecke = k[self.operation[k] == nummer]
-            if nummer in self.fasen and len(stuecke):
-                vorher = self.stange.r.copy()
+        start = max(self.bis, 1)
+        while start <= index:
+            ende = min(index + 1, start + je)
+            k = np.arange(start, ende)
+            fahren = (
+                self.gueltig[k - 1] & self.gueltig[k] & (self.operation[k - 1] == self.operation[k])
+            )
+            k = k[fahren]
+            for nummer, fraeser in self.fraeser.items():
+                stuecke = k[self.operation[k] == nummer]
+                if nummer in self.fasen and len(stuecke):
+                    vorher = self.stange.r.copy()
+                    self.stange.fahre_stuecke(
+                        self._punkte[stuecke - 1], self._punkte[stuecke], fraeser
+                    )
+                    getroffen = self.stange.r < vorher
+                    np.maximum(
+                        self._erlaubt,
+                        np.where(getroffen, self.fasen[nummer], 0.0),
+                        out=self._erlaubt,
+                    )
+                    continue
                 self.stange.fahre_stuecke(self._punkte[stuecke - 1], self._punkte[stuecke], fraeser)
-                getroffen = self.stange.r < vorher
-                np.maximum(
-                    self._erlaubt, np.where(getroffen, self.fasen[nummer], 0.0), out=self._erlaubt
-                )
-                continue
-            self.stange.fahre_stuecke(self._punkte[stuecke - 1], self._punkte[stuecke], fraeser)
+            self.bis = max(self.bis, ende)
+            start = ende
+            yield
         self.bis = max(self.bis, index + 1)
 
     def eilgaenge_ins_material(self, eilgang, schwelle=EILGANG_SCHWELLE):
@@ -1071,33 +1089,44 @@ class QuaderAbtrag:
 
     def bis_station(self, index):
         """Trägt ab bis einschließlich Station `index`; zurück rechnet es von vorn."""
+        for _ in self.bis_station_schritte(index):
+            pass
+
+    def bis_station_schritte(self, index, je=STATIONEN_JE_SCHRITT):
+        """bis_station() als Generator – wie Abtrag.bis_station_schritte."""
         index = min(index, len(self.punkte) - 1)
         if index + 1 < self.bis:
             self.quader.zuruecksetzen()
             self._fasen_erlaubt.fill(0.0)
             self.bis = 0
-        k = np.arange(max(self.bis, 1), index + 1)
-        fahren = (
-            self.gueltig[k - 1] & self.gueltig[k] & (self.operation[k - 1] == self.operation[k])
-        )
-        k = k[fahren]
-        for nummer, fraeser in self.fraeser.items():
-            stuecke = k[self.operation[k] == nummer]
-            if not len(stuecke):
-                continue
-            merken = nummer in self.fasen or nummer in self.ringe
-            vorher = self.quader.h.copy() if merken else None
-            self.quader.fahre_stuecke(self.punkte[stuecke - 1], self.punkte[stuecke], fraeser)
-            if vorher is not None:
-                getroffen = self.quader.h < vorher - 1e-9
-                if nummer in self.fasen:
-                    np.maximum(
-                        self._fasen_erlaubt,
-                        np.where(getroffen, self.fasen[nummer], 0.0),
-                        out=self._fasen_erlaubt,
-                    )
-                if nummer in self.ringe:
-                    self._fasen_erlaubt[getroffen & self._in_ringen(nummer)] = np.inf
+        start = max(self.bis, 1)
+        while start <= index:
+            ende = min(index + 1, start + je)
+            k = np.arange(start, ende)
+            fahren = (
+                self.gueltig[k - 1] & self.gueltig[k] & (self.operation[k - 1] == self.operation[k])
+            )
+            k = k[fahren]
+            for nummer, fraeser in self.fraeser.items():
+                stuecke = k[self.operation[k] == nummer]
+                if not len(stuecke):
+                    continue
+                merken = nummer in self.fasen or nummer in self.ringe
+                vorher = self.quader.h.copy() if merken else None
+                self.quader.fahre_stuecke(self.punkte[stuecke - 1], self.punkte[stuecke], fraeser)
+                if vorher is not None:
+                    getroffen = self.quader.h < vorher - 1e-9
+                    if nummer in self.fasen:
+                        np.maximum(
+                            self._fasen_erlaubt,
+                            np.where(getroffen, self.fasen[nummer], 0.0),
+                            out=self._fasen_erlaubt,
+                        )
+                    if nummer in self.ringe:
+                        self._fasen_erlaubt[getroffen & self._in_ringen(nummer)] = np.inf
+            self.bis = max(self.bis, ende)
+            start = ende
+            yield
         self.bis = max(self.bis, index + 1)
 
     def eilgaenge_ins_material(self, eilgang, schwelle=EILGANG_SCHWELLE):

@@ -84,6 +84,24 @@ def schritte(h):
     h.pruefe("Rechnet" not in panel.urteil.text(), f"oben: {panel.urteil.text()!r}")
     yield 500
     h.bild("2_fertig", panel.form)
+
+    # Ans Ende springen (P-2026-10-11-60): Der Abtrag der Stange rechnet im Takt – darunter
+    # „Abtrag rechnet …“, bis der Vergleich dasteht (bis dahin 3 s am Stück).
+    spieler = panel.abspieler
+    takte.clear()
+    uhr.start()
+    spieler.setze_zeit(spieler.abfahrt.dauer)
+    h.pruefe("rechnet" in spieler.rest.text(), f"beim Sprung: {spieler.rest.text()!r}")
+    yield from h.warte_auf(lambda: "rechnet" not in spieler.rest.text(), 120000)
+    uhr.stop()
+    pausen = [b - a for a, b in zip(takte, takte[1:], strict=False)]
+    ende = max(pausen or [0.0])
+    with open(os.path.join(os.environ["CAMADDON_AUSGABE"], "takt.txt"), "a") as f:
+        f.write(f"ans Ende: längste Pause {ende:.2f} s\n")
+    h.pruefe(spieler.rest.text().startswith("Am Ende"), f"am Ende: {spieler.rest.text()!r}")
+    h.pruefe(ende < 1.0, f"beim Sprung ans Ende stand das Fenster {ende:.2f} s")
+    yield 500
+    h.bild("3_am_ende", panel.form)
     panel.reject()
     yield 800
     FreeCAD.closeDocument(teil.Name)

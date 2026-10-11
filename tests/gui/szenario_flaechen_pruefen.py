@@ -104,6 +104,7 @@ def schritte(h):
     yield 800
     spieler = pruef.abspieler
     spieler.setze_zeit(spieler.abfahrt.dauer)
+    yield from h.warte_auf(lambda: "rechnet" not in spieler.rest.text(), 300000)
     yield 800
     rest = spieler.rest.text()
     h.pruefe("Verglichen auf den gewählten Flächen" in rest, f"Satz: {rest!r}")
