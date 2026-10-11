@@ -1803,7 +1803,7 @@
     "ba.maschine.eintrag": "{name} – {art}",
     "ba.maschine.fehlt": "{maschine} (file not found)",
     "ba.maschine.keine": "– no machine –",
-    "ba.maschine.leer": "No machine chosen yet: “Machines …” takes yours. Until then the assistant assumes a 3-axis mill.",
+    "ba.maschine.leer": "No machine chosen yet: “Machines …” takes yours – every saved one is listed there by itself. It stays in its own file; the job remembers which one. Until then the assistant assumes a 3-axis mill.",
     "ba.maschine.nicht_gefunden": "This machine's file is no longer there. “Find …” shows where it is now – the entry follows; “Remove from list” drops it.",
     "ba.maschine.entfernen": "Remove from list",
     "ba.maschine.entfernen.tooltip": "Removes the machine from the “Machines …” list; a file stays where it is.",

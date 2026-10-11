@@ -1803,7 +1803,7 @@
     "ba.maschine.eintrag": "{name} – {art}",
     "ba.maschine.fehlt": "{maschine} (Datei nicht gefunden)",
     "ba.maschine.keine": "– keine Maschine –",
-    "ba.maschine.leer": "Noch keine Maschine gewählt: „Maschinen …“ nimmt deine auf. Bis dahin rechnet der Assistent mit einer 3-Achs-Fräse.",
+    "ba.maschine.leer": "Noch keine Maschine gewählt: „Maschinen …“ nimmt deine auf – jede gespeicherte steht dort von selbst. Sie bleibt in ihrer eigenen Datei; der Job merkt sich, welche. Bis dahin rechnet der Assistent mit einer 3-Achs-Fräse.",
     "ba.maschine.nicht_gefunden": "Die Datei dieser Maschine liegt nicht mehr dort. „Suchen …“ zeigt, wo sie jetzt ist – der Eintrag zieht mit; „Aus der Liste nehmen“ streicht ihn.",
     "ba.maschine.entfernen": "Aus der Liste nehmen",
     "ba.maschine.entfernen.tooltip": "Nimmt die Maschine aus der Liste „Maschinen …“; eine Datei bleibt, wo sie ist.",

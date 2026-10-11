@@ -737,9 +737,11 @@ nächste freie Nummer B-020.
   P-2026-10-11-87. (d) Feld „Ausspannlänge“ – Manuel: nein, der Halter gehört in die Kollision,
   darum zählt die Länge ab Spindelnase. (e) Maschinendaten aus der Steuerung einlesen – Manuel:
   nein, zu viele Steuerungen; Eilgang, Vorschub und Beschleunigung trägt man einmal ein (Hilfe
-  „Beschleunigung ermitteln“), Zeiten und Variantenwahl rechnen damit. (f) Dialekt: ist schon so
+  „Beschleunigung ermitteln“), „Auf der Maschine prüfen“ rechnet die Zeit damit. Die Wahl
+  zwischen Bahnvarianten (Räumen, Planfräsen: `bahn.zeit`) rechnet noch mit den Vorgaben
+  10 m/min und 1 m/s² – ob sie die gewählte Maschine nehmen soll, ist Manuels Entscheidung. (f) Dialekt: ist schon so
   gebaut (Path-Befehle, Postprozessor übersetzt) – die Vorstellung nannte nur Siemens.
-  Offen bleiben (a) und (b).
+  (b) „So geht’s“ und `ba.maschine.leer` sagen es jetzt (P-2026-10-11-88). Offen bleibt (a).
 - **T-012 Schnittstellen zu 26.3** (Forum, 2026-10-11, Connor aus dem CAM-Team): 26.3 hat 3+2 mit
   DRO und TWP, Postprozessoren je Maschine und den Maschineneditor; ein neuer Simulator mit einer
   Bibliothek für Spannmittel (Schraubstöcke, Platten, Spanner) und Kollisionsanzeige ist in Arbeit;

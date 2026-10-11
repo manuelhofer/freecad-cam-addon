@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-88 maschine-bleibt-in-ihrer-datei
+
+### EINGELESEN
+- Forum t=107911, Herbert: Maschine und Teil liegen in zwei Dateien, „auf Anhieb auch keinen Weg
+  gefunden, beide Dateien zu verbinden … intuitiv ist das für mich nicht wirklich“. Der Weg gibt es
+  (der Job merkt sich die Maschine, `reichweite.merke_maschine`), gesagt wurde er nirgends.
+
+### DATEIEN
+- `help/de|en/so_gehts.html`: Schritt 1 – die Maschine bleibt in ihrer Datei, der Job merkt sie
+  sich (Schritt 3), die Portalfräse in der Aufzählung; Schritt 3 – oben die Maschine wählen.
+- `translations/de.json`, `en.json`: `ba.maschine.leer` sagt, dass jede gespeicherte Maschine von
+  selbst in „Maschinen …“ steht, in ihrer Datei bleibt und der Job sich merkt, welche.
+- `docs/STATUS_SNAPSHOT.md` (T-013), `package.xml` (0.213.92).
+
+### ERGEBNIS
+- Schritt 1 von „Bearbeitung“ ohne Maschine: der graue Satz unter „Maschine“ fünfzeilig, das
+  Fenster bleibt ohne Rollbalken (Screenshot `4_ohne_maschine`).
+
+### AKZEPTANZKRITERIUM
+- `test_sprache`, `test_hilfe` in 1.1.4; `szenario_bearbeitung_maschine` grün.
+
 ## P-2026-10-11-87 portalfraese
 
 ### EINGELESEN
