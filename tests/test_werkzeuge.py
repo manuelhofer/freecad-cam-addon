@@ -512,6 +512,13 @@ pruefe(
     "gelöschtes Werkzeug noch im Magazin",
 )
 
+# Der Durchmesser im Namen (für den Hinweis der Werkzeugverwaltung): nur ein eindeutiger.
+for name, soll in (
+    ("494W D6", 6.0), ("Fräser Ø 12", 12.0), ("HSS d2,5 lang", 2.5), ("VU494M06B-HI06", None),
+    ("Fraeser VHM 12", None), ("D6 auf D8", None), ("", None),
+):  # fmt: skip
+    pruefe(wz.durchmesser_im_namen(name) == soll, f"Durchmesser im Namen {name!r}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

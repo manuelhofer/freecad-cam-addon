@@ -14,6 +14,7 @@ import copy
 import dataclasses
 import json
 import os
+import re
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -1309,6 +1310,19 @@ def nummer_text(werkzeug):
 def genannt(werkzeug):
     """Wie ein Satz das Werkzeug nennt: „T3“ – ohne Nummer „Schaftfräser Ø 12“."""
     return f"T{werkzeug.nummer}" if werkzeug.nummer > 0 else kurz(werkzeug)
+
+
+_DURCHMESSER_IM_NAMEN = re.compile(r"(?<![A-Za-z0-9])[DdØø]\s?(\d+(?:[.,]\d+)?)(?![\d.,])")
+
+
+def durchmesser_im_namen(name):
+    """Der Durchmesser, den der Name nennt („494W D6“ → 6.0, „Ø 12“ → 12.0) – None, wenn er keinen
+    nennt. Für den Hinweis, wenn ein kopiertes Werkzeug den Namen seines Vorbilds behielt (Manuel,
+    2026-10-12: T4 Ø 4 hieß „494W D6“ wie T3)."""
+    treffer = _DURCHMESSER_IM_NAMEN.findall(name or "")
+    if len(treffer) != 1:
+        return None
+    return float(treffer[0].replace(",", "."))
 
 
 def nach_nummer(werkzeug):

@@ -992,10 +992,29 @@ class WerkzeugDialog(QtGui.QDialog):
                 saetze.append(
                     tr("wv.hinweis.nummer", nummer=w.nummer, werkzeug=dezimal(wz.kurz(doppelt)))
                 )
+            im_namen = wz.durchmesser_im_namen(w.name)
+            if (
+                "durchmesser" in pflicht
+                and w.durchmesser
+                and im_namen is not None
+                and abs(im_namen - w.durchmesser) > 0.005
+            ):
+                saetze.append(
+                    tr(
+                        "wv.hinweis.name_durchmesser",
+                        name=w.name,
+                        durchmesser=groesse_zeigen(w.durchmesser, einheiten.LAENGE),
+                    )
+                )
             gleicher_name = self.bibliothek.mit_name(w.name, ausser=w)
             if gleicher_name is not None:
                 saetze.append(
-                    tr("wv.hinweis.name", name=w.name, werkzeug=dezimal(wz.genannt(gleicher_name)))
+                    tr(
+                        "wv.hinweis.name",
+                        name=w.name,
+                        werkzeug=dezimal(wz.genannt(gleicher_name)),
+                        art=dezimal(wz.kurz(gleicher_name)),
+                    )
                 )
         self.hinweis.setText("\n".join(saetze))
         self.hinweis.setVisible(bool(saetze))

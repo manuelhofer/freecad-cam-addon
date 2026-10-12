@@ -165,7 +165,17 @@ def schritte(h):
     # Derselbe Name wie T1 (groß/klein egal): Hinweis, aber erlaubt.
     tippen(d.feld_name, "fraeser vhm 12")
     yield 100
-    h.pruefe("heißt auch T1" in d.hinweis.text(), f"doppelter Name: {d.hinweis.text()!r}")
+    h.pruefe(
+        "hat schon T1 (Schaftfräser Ø 12)" in d.hinweis.text(),
+        f"doppelter Name: {d.hinweis.text()!r}",
+    )
+    # Ein Name, der einen anderen Durchmesser nennt (Manuel, 2026-10-12: T4 Ø 4 hieß „494W D6“).
+    tippen(d.feld_name, "494W D6")
+    yield 100
+    h.pruefe(
+        "anderen Durchmesser als 10,5 mm" in d.hinweis.text(), f"D im Namen: {d.hinweis.text()!r}"
+    )
+    h.bild("6b_name_durchmesser", d)
     tippen(d.feld_name, "")
     yield 100
     h.pruefe(d.werkzeug.name == "" and not d.hinweis.isVisible(), "Name leeren")
