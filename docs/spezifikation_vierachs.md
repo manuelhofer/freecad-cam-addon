@@ -1489,8 +1489,11 @@ Gebaut (P-2026-10-11-100):
     (`_Welt._abstand_stl_netz`) nimmt nur die Dreiecke, die nach den Netzen der nächste sein können
     (das Kleinste plus dreimal die Toleranzen); berühren sich die Netze, die acht nächsten –
     OpenCascade sammelte sonst jeden Punkt der Schnittlinie (1.363 Dreiecke im Revolver: über
-    10 min). `_rund_um` fragt ein STL-Teil nicht mehr (1,6 s je Welt). Am Geist mit Querachse
-    „Auf der Maschine prüfen“ verteilt 28,7 s statt nach 60 min nicht fertig.
+    10 min). `_rund_um` fragt ein STL-Teil nicht mehr (1,6 s je Welt). Am Geist mit Querachse und
+    T1 axial im Revolver (so liefen die Messungen von 9 und 11 – eine Bibliothek ohne den radialen
+    Halter) „Auf der Maschine prüfen“ verteilt 28,7 s statt nach 60 min nicht fertig, drei Befunde,
+    die für diese Lage stimmen. Mit dem radialen Halter wie beim Anlegen kommt kein Maschinenteil
+    dem Geist nahe: 14,3 s, keine Befunde (vor 9: 14,1 s).
 
 Offen: einzelne Bereiche wählen statt Dreiecke. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 

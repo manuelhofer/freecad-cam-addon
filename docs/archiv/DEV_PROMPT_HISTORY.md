@@ -46,9 +46,17 @@ patch_naming:
   Stichproben je 1.000 Stationen im Nebenrechner: hochgerechnet 16 min auf einem Kern (vorher an
   einer Stelle allein über 20 min).
 - Geist mit Querachse verteilt: 28,7 s statt nach 60 min nicht fertig. Drei Befunde – die
-  Schneide von T1 im Eilgang am Teil (Satz 1762), der Revolver berührt das Teil (Satz 4697), der
-  Schaft von T1 berührt es (Satz 11492); alle drei unabhängig nachgesehen (FreeCADs Mesh-Modul:
-  die Netze schneiden sich dort).
+  Schneide von T1 am Teil (Satz 1762), der Revolver berührt das Teil (Satz 4697), der Schaft von
+  T1 berührt es (Satz 11492); alle drei unabhängig nachgesehen (FreeCADs Mesh-Modul: die Netze
+  schneiden sich dort).
+- **Nachtrag (Messaufbau):** Diese Messungen – auch die von P-110 („der Revolver schwebt 0,7 bis
+  1,2 mm neben dem Teil“) – liefen mit einer Werkzeugbibliothek ohne den radialen Halter, mit dem
+  der Job angelegt war: T1 steckte axial im Revolver, längs der Spindelachse. Für diese Lage
+  stimmen die drei Befunde (die Bahn selbst hält am Geist das Aufmaß: an Satz 1762 genau 2,7 mm
+  Luft, an den engsten Stellen 0,40 mm). Mit dem radialen Halter VDI30 wie beim Anlegen: verteilt
+  14,3 s, keine Befunde – vor P-110 (Stand P-109) ebenso 14,1 s. Was P-110 und P-112 schneller
+  machen, zählt also, wo ein Maschinenteil einem STL-Teil nahe kommt; am Geist richtig gespannt
+  tut es das nicht.
 
 ### AKZEPTANZKRITERIUM
 - `test_stl_teil`, `test_netzabstand`, `test_kollision`, `test_kollision_verteilt`,
