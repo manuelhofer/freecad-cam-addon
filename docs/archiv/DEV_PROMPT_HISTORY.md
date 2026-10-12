@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-119 texte-kuerzer-zweite-runde
+
+### EINGELESEN
+- Weiter mit den blumigen Texten (Herbert im Forum, Manuel 2026-10-12): die 70 Texte der
+  Assistenten „Bearbeitung“ (`ba.`) und „4 Achsen“ (`va.`) über 220 Zeichen.
+
+### DATEIEN
+- `translations/de.json`, `en.json`: 70 Texte kürzer – Deutsch 24.208 → 14.910 Zeichen, Englisch
+  23.077 → 14.583; Platzhalter gleich, höchstens ein Gedankenstrich je Text, keine neuen
+  Zeilenumbrüche. Im Englischen vier Knopfnamen richtig, die vorher falsch standen („Click a
+  face …“, „Face milling“, „Check for collisions“, „Lines along the axis“). Was Szenarien wörtlich
+  prüfen, steht unverändert. Gekürzt von einem Hilfsagenten, nachgesehen und eingespielt hier.
+  `package.xml` (0.234.0).
+
+### ERGEBNIS
+- Etwa Gewindefräsen 548 → 272 Zeichen: „Fräst metrische Innengewinde mit einem Gewindefräser in
+  Bohrungen mit passendem Kernloch (Ø 8,5 bei Steigung 1,5 → M10 × 1,5, 6H). Je Bohrung eine Helix
+  im Gleichlauf. …“
+
+### AKZEPTANZKRITERIUM
+- `test_sprache` grün (auf dem Code dieses Stands).
+
 ## P-2026-10-12-118 maschine-des-jobs-fehlt
 
 ### EINGELESEN
