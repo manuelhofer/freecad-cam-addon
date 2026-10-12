@@ -72,7 +72,7 @@ from . import vierachs_rohteil as vr
 from . import vierachs_schlichten as vs
 from . import vierachs_vorschau as vv
 from . import werkzeuge as wz
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import dialog_schliessen, kopfzeile
 from .gui_maschine import _EnterBleibtImDialog
 from .gui_teile import ROT, knopf, mit_einheit, ruhiges_mausrad
 from .gui_zahlen import (
@@ -1006,7 +1006,7 @@ class VierachsPanel:
         self._vor_dem_schliessen()
         self._vorschlaege_merken()
         self.doc.commitTransaction()
-        FreeCADGui.Control.closeDialog()
+        dialog_schliessen(self.doc)
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
         return True
@@ -1031,7 +1031,7 @@ class VierachsPanel:
         self._stange_zurueck()
         self._fraeser_merken()
         self.doc.commitTransaction()
-        FreeCADGui.Control.closeDialog()
+        dialog_schliessen(self.doc)
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
         return True
@@ -1048,7 +1048,7 @@ class VierachsPanel:
             while len(self.doc.UndoNames) > self._undo_vorher:
                 self.doc.undo()
         self._stange_zurueck()
-        FreeCADGui.Control.closeDialog()
+        dialog_schliessen(self.doc)
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
         return True

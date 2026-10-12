@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-141 dialog-schliessen-in-26-3
+
+### EINGELESEN
+- Voller Lauf in FreeCAD 26.3.0RC1 (Manuels Version) vor dem Forum-Update: „Alles aus dieser
+  Aufspannung“ an der 5-Achs-Maschine öffnete die erste Ebene nicht – „Active task dialog found“,
+  davor „ControlSingleton::closeDialog: Cannot close dialog of nullptr document“. In 26.3 gehört
+  ein Aufgabenfenster zu einem Dokument, `closeDialog()` schließt nur das des aktiven; „Anlegen“
+  hatte die Maschinendatei geöffnet, sie war aktiv. In 1.1.4 grün.
+- Dazu rot, ohne Fehler im Addon: `test_goldene_bahnen` (gewollt geändert durch P-135, gleiche
+  Lagen, und P-140, Spirale erst am Teil) und `szenario_bearbeitung_aufspannung` (zählte 13
+  „Face“, seit P-2026-10-11-103 steht „Face3 … und 5 weitere“).
+
+### DATEIEN
+- `camaddon/gui_hilfe.py`: `dialog_schliessen(dokument)` – erst das Dokument des Fensters aktiv,
+  dann `closeDialog()`. `gui_bearbeitung.py`, `gui_vierachs.py`, `gui_schwenken.py` benutzen es;
+  `_folge_weiter` macht vor `showDialog` das Dokument des Jobs aktiv.
+- `tests/golden/welle_*.json` (OCC 7.9 und 8.0) neu geschrieben.
+- `tests/gui/szenario_bearbeitung_aufspannung.py`: acht Namen und „und 5 weitere“.
+- `package.xml` (0.255.1).
+
+### ERGEBNIS
+- In 26.3.0RC1 grün: `szenario_bearbeitung_aufspannung_folge`, `szenario_bearbeitung_aufspannung`;
+  `test_goldene_bahnen` in 26.3 und 1.1.4.
+
+### OFFEN
+- `szenario_aufspannung` (3-Achs, Räumen-Vorschlag der Oberseite): ein Arbeiter wächst manchmal
+  auf über 10 GB, in 1.1.4 und 26.3, nicht jedes Mal (von acht Läufen dreimal). Ein Python-Wächter
+  im Arbeiter kam nicht dran – der Prozess steckt dann in C++ und hält das GIL; Verdacht: FreeCADs
+  Adaptiv-Kern (area.Adaptive2d) im Nebenrechner. Noch nicht geklärt.
+- Der volle Lauf ist nicht durch: 72 Prüfdateien und 9 Szenarien grün, der Rest angehalten (zu
+  viele Speicher-Popups bei Manuel).
+
 ## P-2026-10-12-140 schlichtspirale-erst-am-teil
 
 ### EINGELESEN

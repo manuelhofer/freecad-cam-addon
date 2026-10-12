@@ -126,10 +126,11 @@ def schritte(h):
         if w.isVisibleTo(panel.richtungen_box)
     ]
     h.pruefe(len(panel.gewaehlte) == 14, f"ohne Maschine von oben: {panel.gewaehlte}")
+    # 13 Flächen: die ersten acht mit Namen, „und 5 weitere“ (gui_bearbeitung._namen_kurz).
     h.pruefe(
         len(rot) == 1 and rot[0].startswith("Nicht in dieser Aufspannung: ")
         and rot[0].endswith("Die Maschine schwenkt nicht so weit.")
-        and rot[0].count("Face") == 13,
+        and rot[0].count("Face") == 8 and " und 5 weitere" in rot[0],
         f"rot: {rot}",
     )  # fmt: skip
     Gui.activeDocument().activeView().viewIsometric()

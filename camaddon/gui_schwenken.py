@@ -18,7 +18,7 @@ from . import reichweite as rw
 from . import schwenken as sw
 from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import dialog_schliessen, kopfzeile
 from .gui_teile import weiter
 from .gui_zahlen import zahlenformat
 from .sprache import tr
@@ -403,7 +403,7 @@ class SchwenkenPanel:
     def _schliessen(self):
         FreeCADGui.Selection.removeObserver(self)
         SchwenkenPanel.offen = None
-        FreeCADGui.Control.closeDialog()
+        dialog_schliessen(self.grundjob.Document)
 
 
 def _zeigen(job):

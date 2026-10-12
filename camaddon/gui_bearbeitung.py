@@ -74,7 +74,7 @@ from . import werkzeuge as wz
 from . import werkzeugform as wf
 from . import zielzeit as zz
 from . import zugang as zg
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import dialog_schliessen, kopfzeile
 from .gui_kollision import GELB
 from .gui_maschine import _EnterBleibtImDialog
 from .gui_teile import ROT, knopf, mit_einheit, ruhiges_mausrad
@@ -358,6 +358,8 @@ def _folge_weiter():
     if datei and not getattr(job, rw.EIGENSCHAFT_MASCHINE, ""):
         rw.merke_maschine(job, datei)
     FreeCADGui.Selection.clearSelection()
+    if FreeCAD.ActiveDocument is not job.Document:  # in 26.3 kommt das Fenster ins aktive
+        FreeCAD.setActiveDocument(job.Document.Name)
     FreeCADGui.Control.showDialog(
         BearbeitungPanel(
             job.Document,
@@ -4588,7 +4590,7 @@ class BearbeitungPanel:
             block.merken()
         if not self._aufspannung_fest():
             nullpunkt_vorgeben(self.nullpunkt())
-        FreeCADGui.Control.closeDialog()
+        dialog_schliessen(self.doc)
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
         if folge is not None:
@@ -4623,7 +4625,7 @@ class BearbeitungPanel:
             self._sichtbarkeit_zurueck()
             while len(self.doc.UndoNames) > self._undo_vorher:
                 self.doc.undo()
-        FreeCADGui.Control.closeDialog()
+        dialog_schliessen(self.doc)
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
         return True
@@ -5799,7 +5801,7 @@ class BearbeitungPanel:
         self._vor_dem_schliessen()
         if not self._aufspannung_fest():
             nullpunkt_vorgeben(self.nullpunkt())
-        FreeCADGui.Control.closeDialog()
+        dialog_schliessen(self.doc)
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
 

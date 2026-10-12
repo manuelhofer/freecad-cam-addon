@@ -30,6 +30,27 @@ def lebt(panel):
     return name in FreeCAD.listDocuments()
 
 
+def dialog_schliessen(dokument):
+    """Schließt das Aufgabenfenster in `dokument`. In FreeCAD 26.3 gehört ein Aufgabenfenster zu
+    einem Dokument, und `Control.closeDialog()` schließt nur das des aktiven: Öffnete „Anlegen“
+    die Maschinendatei, war sie aktiv, das Fenster im Teil blieb stehen („Cannot close dialog of
+    nullptr document“), und die erste Ebene von „Alles aus dieser Aufspannung“ ging nicht auf
+    („Active task dialog found“). Deshalb erst das eigene Dokument aktiv – in 1.1 ändert das
+    nichts."""
+    import FreeCAD
+    import FreeCADGui
+
+    try:
+        name = dokument.Name
+    except Exception:  # noqa: BLE001 – das Dokument ist weg
+        name = None
+    if name in FreeCAD.listDocuments() and FreeCAD.ActiveDocument is not dokument:
+        FreeCAD.setActiveDocument(name)
+        if FreeCADGui.getDocument(name) is not None:
+            FreeCADGui.setActiveDocument(name)
+    FreeCADGui.Control.closeDialog()
+
+
 def arbeitsdokument():
     """Das Dokument, in dem ein Assistent anlegen soll – None ohne offenes Dokument. Liegt die
     Auswahl in genau einem Dokument, dieses; sonst das aktive – ist das aber nur eine Maschine
