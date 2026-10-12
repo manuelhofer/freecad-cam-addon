@@ -37,15 +37,7 @@ def _maschine(job, operation):
     if not os.path.isfile(datei):
         return False
     try:
-        pfad = os.path.normcase(os.path.abspath(datei))
-        doc = next(
-            (
-                d
-                for d in FreeCAD.listDocuments().values()
-                if d.FileName and os.path.normcase(os.path.abspath(d.FileName)) == pfad
-            ),
-            None,
-        )
+        doc = _offene_maschine(datei)
         if doc is None:
             # Verborgen lesen; keine sichtbare Maschine oder persönliche Bibliothek ändern.
             doc = FreeCAD.openDocument(datei, True)
@@ -70,6 +62,45 @@ def _maschine(job, operation):
     except Exception as fehler:
         FreeCAD.Console.PrintLog(f"CAM-Addon: Ebenenzugang: {fehler}\n")
         return False
+
+
+def _offene_maschine(datei):
+    """Das Dokument der Maschinendatei, wenn es schon geöffnet ist – sonst None."""
+    pfad = os.path.normcase(os.path.abspath(datei))
+    return next(
+        (
+            d
+            for d in FreeCAD.listDocuments().values()
+            if d.FileName and os.path.normcase(os.path.abspath(d.FileName)) == pfad
+        ),
+        None,
+    )
+
+
+# Die Anschläge eines Gelenks (Assembly) – reichweite und schwenken lesen sie aus dem offenen
+# Dokument, auch ungespeichert.
+ANSCHLAEGE = tuple(
+    schalter + art + ende
+    for art in ("Angle", "Length")
+    for ende in ("Min", "Max")
+    for schalter in ("Enable", "")
+)
+
+
+def _stand_der_maschine(datei):
+    """Wovon die Maschine in `datei` gerade abhängt: geöffnet die Anschläge ihrer Gelenke (wie sie
+    im Fenster stehen, auch ungespeichert – ebene_erreichbar liest genau sie), sonst wann die
+    Datei gespeichert wurde; None ohne Datei."""
+    if not datei or not os.path.isfile(datei):
+        return None
+    doc = _offene_maschine(datei)
+    if doc is None:
+        return os.path.getmtime(datei)
+    return tuple(
+        (o.Name, *(str(getattr(o, n, None)) for n in ANSCHLAEGE))
+        for o in doc.Objects
+        if hasattr(o, "JointType")
+    )
 
 
 def bahn_grund(maschine, befehle, name="", grenzen=True, schritte=None):
@@ -138,7 +169,8 @@ _ERREICHBAR_HOECHSTENS = 256
 
 def operation_erreichbar(job, operation):
     """Erreichbarkeit der vollständigen tatsächlichen Bahn für den Materialentwurf – gemerkt je
-    Job, Ebene, Maschine (Datei und Stand), Bahn, Werkzeug und Nullpunkt (P-2026-10-11-104): Der
+    Job, Ebene, Maschine (Datei und Stand – geöffnet ihre Anschläge, _stand_der_maschine),
+    Bahn, Werkzeug und Nullpunkt (P-2026-10-11-104): Der
     Materialstand baut daraus seine Schlüssel, bei jeder Vorschau und für jede Ebene einer Kette
     neu – am Geist aus einem STL je Ebene 3,5 min im Fenster für dieselben 69.000 Sätze."""
     schluessel = _schluessel(job, operation)
@@ -162,7 +194,7 @@ def _schluessel(job, operation):
         datei = getattr(job, rw.EIGENSCHAFT_MASCHINE, "") or getattr(
             grund, rw.EIGENSCHAFT_MASCHINE, ""
         )
-        stand = os.path.getmtime(datei) if datei and os.path.isfile(datei) else None
+        stand = _stand_der_maschine(datei)
         bibliothek = wz.datei_pfad()
         werkzeuge = os.path.getmtime(bibliothek) if os.path.isfile(bibliothek) else None
         lage = sw.ebene_von(job)

@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-125 erreichbar-mit-offenen-anschlaegen
+
+### EINGELESEN
+- `tests/test_ebenen_auslassen.py` schlug fehl („Geänderter Anschlag fehlt im Materialcache“):
+  Seit P-2026-10-11-104 merkt sich `maschinenzugang.operation_erreichbar` das Ergebnis, der
+  Schlüssel kannte von der Maschine aber nur das Speicherdatum der Datei. Wer in der geöffneten
+  Maschine einen Anschlag ändert (ungespeichert), bekam die alte Antwort – der Materialstand
+  rechnete eine Ebene, die nicht mehr erreichbar ist, als gefräst.
+
+### DATEIEN
+- `camaddon/maschinenzugang.py`: `_stand_der_maschine` – ist die Maschine geöffnet, die Anschläge
+  ihrer Gelenke (Enable/Angle/Length, Min/Max, wie `ebene_erreichbar` sie liest), sonst das
+  Speicherdatum; `_offene_maschine` aus `_maschine` herausgelöst. `package.xml` (0.240.0).
+
+### ERGEBNIS
+- Anschlag A auf ±10° in der offenen Maschine: die Ebene „90° nach 180°“ ausgelassen, 4318 mm³
+  bleiben stehen; zurück auf ±110° wieder gefräst.
+
+### AKZEPTANZKRITERIUM
+- `test_ebenen_auslassen`, `test_beispielmaschine`, `test_vorschau_merk` grün.
+
 ## P-2026-10-12-124 n-eck-schruppen-in-zeilen
 
 ### EINGELESEN
