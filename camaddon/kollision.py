@@ -1983,7 +1983,7 @@ class _Welt:
         elif paar.b.kapseln:
             werkzeug, anderer = paar.b, paar.a
         else:
-            return None
+            return self._netzschranke_stl(paar, platzierung, reicht)
         if self._netz_fehl.get((id(paar.a), id(paar.b)), 0) >= NETZ_FEHLVERSUCHE:
             return None
         netz = anderer.netz(fein=reicht < 0.1)  # Berührung: fein; Warnabstand: grob reicht
@@ -2007,6 +2007,36 @@ class _Welt:
         k = int(np.argmin(werte))
         knapp = bool(werte[k] < reichweite - radius[k] - netz.toleranz - 1e-9)
         return float(werte[k]), knapp
+
+    def _netzschranke_stl(self, paar, platzierung, reicht):
+        """(Schranke, knapp) für ein Maschinenteil (ohne Kapseln) gegen ein Teil aus einem STL:
+        die Dreiecke seines Netzes gegen die des Teils (netzabstand.zu_dreiecken), weniger die
+        Toleranzen beider Netze – nie mehr als der wahre Abstand (P-2026-10-11-110). Am Geist
+        schwebte der Revolver über lange Strecken 0,7 bis 1,2 mm daneben, und ohne Schranke wurde
+        jede Stelle genau gerechnet (0,09 s); mit ihr nur, wo er näher kommen könnte als bisher.
+        `knapp` wie bei den Kapseln: Die Netze sahen sich, der Schritt nimmt die Schranke.
+        None, wenn es das Paar nicht ist."""
+        a, b = paar.a, paar.b
+        stl, anderer = (a, b) if a.stl is not None else (b, a) if b.stl is not None else (b, a)
+        if stl.stl is None or anderer.art not in (MASCHINE, SCHRAUBSTOCK):
+            return None
+        if self._netz_fehl.get((id(a), id(b)), 0) >= NETZ_FEHLVERSUCHE:
+            return None
+        netz_teil, netz_anderer = stl.netz(fein=True), anderer.netz(fein=True)
+        if netz_teil is None or netz_anderer is None or not len(netz_anderer.ecken):
+            return None
+        m = platzierung(stl).inverse().multiply(platzierung(anderer)).toMatrix()
+        drehung = np.array(
+            [[m.A11, m.A12, m.A13], [m.A21, m.A22, m.A23], [m.A31, m.A32, m.A33]], dtype=float
+        )
+        ursprung = np.array([m.A14, m.A24, m.A34])
+        ecken = netz_anderer.ecken @ drehung.T + ursprung
+        abzug = netz_teil.toleranz + netz_anderer.toleranz
+        bis = reicht + NETZ_SCHRITT + abzug
+        d = netz_teil.zu_dreiecken(ecken, bis)
+        # Gefunden (unter `bis`): Netz gegen Netz ist bis auf die Toleranzen der Abstand – knapp,
+        # für den Schritt braucht es ihn nicht genau.
+        return d - abzug, bool(d < bis - 1e-9)
 
     def _abstand(self, a, b):
         """(Abstand in mm, Stelle) zweier Körper an ihrer gesetzten Lage; 0, wenn sie sich

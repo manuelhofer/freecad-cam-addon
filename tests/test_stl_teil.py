@@ -318,6 +318,27 @@ werte = s3b.Schlichtwerte(kugel, oben=hoehe + 2, sicher=hoehe + 10, grathoehe=0.
 bahn = s3b.planen(form, sorted(gesehen & set(frei_stl)), werte)
 pruefe(len(bahn.punkte) > 100, f"3D-Schlichten: {len(bahn.punkte)} Punkte")
 
+# Ein Maschinenteil ohne Kapseln (P-2026-10-11-110): die Netzschranke Netz gegen Netz ist nie mehr
+# als der wahre Abstand und liegt nah an ihm (ein Quader: sein Netz ist er selbst).
+if stl_daten is not None:
+    welt._netz_fehl = {}
+    for name, ort in (("nah", V(kasten.XMin + 20, kasten.YMax - 2.0, -2)), ("weiter", V(kasten.XMin + 20, kasten.YMax + 1.8, -2))):
+        quader = kb.Koerper(name, kb.MASCHINE, Part.makeBox(6, 6, 6), None, FreeCAD.Placement())
+        quader.form.Placement = FreeCAD.Placement(ort, FreeCAD.Rotation())
+        teil_k.form.Placement = FreeCAD.Placement()
+        paar = types.SimpleNamespace(a=quader, b=teil_k)
+        schranke, _knapp = kb._Welt._netzschranke_stl(
+            welt, paar, lambda k: k.form.Placement, kb.WARNABSTAND
+        )
+        wahr = verbund.distToShape(quader.form)[0]
+        pruefe(schranke <= wahr + 1e-9, f"{name}: Schranke {schranke} über dem Abstand {wahr}")
+        deckel = kb.WARNABSTAND + kb.NETZ_SCHRITT  # weiter sucht sie nicht
+        pruefe(
+            schranke >= min(wahr, deckel) - 0.1, f"{name}: Schranke {schranke} zu klein ({wahr})"
+        )
+        if name == "nah":
+            pruefe(0 < wahr < deckel, f"Quader nicht nah genug: {wahr}")
+
 # --- formteile.flaechen: wenige einzeln, viele auf einmal – dieselben ------------------------
 wenige = ft.flaechen(form, [0, 5, len(form.Faces), -1, 7])
 pruefe([n for n, _f in wenige] == [0, 5, 7], f"wenige: {[n for n, _f in wenige]}")

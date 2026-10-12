@@ -218,6 +218,56 @@ class Netz:
             np.minimum.at(ergebnis, kk, d)
         return ergebnis - self.toleranz
 
+    def zu_dreiecken(self, ecken, bis):
+        """So weit sind die Dreiecke `ecken` ((n, 3, 3), in den Koordinaten dieses Netzes)
+        mindestens von diesem Netz entfernt – das Kleinste über die Paare von Dreiecken (je die
+        drei Kanten des einen gegen das andere und umgekehrt; 0, wo sie sich schneiden), höchstens
+        `bis`. Ohne Toleranzen abgezogen (P-2026-10-11-110: ein Maschinenteil gegen ein Teil aus
+        einem STL)."""
+        ecken = np.asarray(ecken, dtype=np.float64).reshape(-1, 3, 3)
+        bis = float(bis)
+        if len(ecken) == 0 or len(self.ecken) == 0:
+            return bis
+        lo, hi = ecken.min(axis=1), ecken.max(axis=1)
+        unten = self.ecken.min(axis=(0, 1))
+        oben = self.ecken.max(axis=(0, 1))
+        nah = np.all((hi >= unten - bis) & (lo <= oben + bis), axis=1)
+        if not nah.any():
+            return bis
+        paare_o, paare_t = [], []
+        for o in np.flatnonzero(nah):
+            i0 = self._zelle_von(lo[o] - bis)
+            i1 = self._zelle_von(hi[o] + bis)
+            zellen = np.stack(
+                np.meshgrid(
+                    np.arange(i0[0], i1[0] + 1),
+                    np.arange(i0[1], i1[1] + 1),
+                    np.arange(i0[2], i1[2] + 1),
+                    indexing="ij",
+                ),
+                axis=-1,
+            )
+            t = np.unique(self._dreiecke_in(zellen))
+            if len(t):
+                paare_o.append(np.full(len(t), o, dtype=np.int64))
+                paare_t.append(t)
+        if not paare_o:
+            return bis
+        po, pt = np.concatenate(paare_o), np.concatenate(paare_t)
+        # Erst die Lücke der Hüllquader: weiter als `bis` – das Paar zählt nicht.
+        luecke = np.maximum(
+            np.maximum(lo[po] - self.d_oben[pt], self.d_unten[pt] - hi[po]), 0.0
+        )
+        drin = np.sqrt(np.einsum("nj,nj->n", luecke, luecke)) < bis
+        if not drin.any():
+            return bis
+        a, b = ecken[po[drin]], self.ecken[pt[drin]]
+        d = np.full(len(a), bis)
+        for i, j in ((0, 1), (1, 2), (2, 0)):
+            d = np.minimum(d, segment_dreieck_abstand(a[:, i], a[:, j], b))
+            d = np.minimum(d, segment_dreieck_abstand(b[:, i], b[:, j], a))
+        return float(min(bis, d.min()))
+
     def dreiecke_nah(self, von, nach, radien, reichweite):
         """(Dreiecke, Schranke): die Dreiecke (Indizes in `ecken`), denen eine der Kapseln (von,
         nach: (k, 3), `radien` (k,)) näher als `reichweite` kommt, und je Dreieck der Abstand zur

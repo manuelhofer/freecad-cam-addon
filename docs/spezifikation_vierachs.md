@@ -1465,10 +1465,15 @@ Gebaut (P-2026-10-11-100):
    gebaut – die Nebenrechner bekommen statt des Körpers einen Quader (sonst je 1 GB). Am Geist
    mit Querachse auf der Drehmaschine mit Y: die teure Strecke viermal schneller.
 
-Offen: einzelne Bereiche wählen statt Dreiecke; die Kollision am Geist mit Querachse braucht
-weiter über 30 min – der Revolver liegt über lange Strecken knapp im Warnabstand, und gegen ein
-Maschinenteil gibt es keine Netzschranke (je Stelle ein genauer Abstand). Mit einer 5-Achs-Fräse
-die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
+9. **Netzschranke auch gegen ein Maschinenteil** (P-2026-10-11-110): Ein Maschinenteil hat keine
+   Kapseln; gegen ein Teil aus einem STL rechnet `netzabstand.Netz.zu_dreiecken` die Dreiecke
+   beider Netze gegeneinander (Kante gegen Dreieck in beide Richtungen, nur Paare, deren Hüllquader
+   nah genug sind), weniger die Toleranzen beider Netze – eine Schranke nach unten. Am Geist mit
+   Querachse schwebt der Revolver über lange Strecken 0,7 bis 1,2 mm neben dem Teil (Warnabstand
+   1 mm): 3.000 Stationen dort 44 s statt über 60 s für 2.000, der Revolver 11 s statt 54 s.
+
+Offen: einzelne Bereiche wählen statt Dreiecke; die Kollision am Geist mit Querachse ganz durch
+messen. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 
 ## Entschieden
 

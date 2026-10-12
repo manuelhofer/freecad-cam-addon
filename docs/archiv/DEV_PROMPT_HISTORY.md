@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-110 netzschranke-maschine-stl
+
+### EINGELESEN
+- Nach P-109 braucht „Auf der Maschine prüfen“ am Geist mit Querachse (Drehmaschine mit Y) weiter
+  über 30 min: Der Revolver schwebt über lange Strecken 0,67 bis 1,2 mm neben dem Teil
+  (Warnabstand 1 mm), und gegen ein Maschinenteil (keine Kapseln) gab es keine Netzschranke – je
+  Stelle ein genauer Abstand mit OpenCascade (433 in 60 s, 53,7 s).
+
+### DATEIEN
+- `camaddon/netzabstand.py`: `Netz.zu_dreiecken(ecken, bis)` – kleinster Abstand fremder Dreiecke
+  zu den Dreiecken des Netzes, höchstens `bis`: vorab nach Hüllquader des Netzes, je fremdem
+  Dreieck die eigenen aus den Zellen, Paare nach Hüllquader-Abstand, dann Kante gegen Dreieck in
+  beide Richtungen.
+- `camaddon/kollision.py`: `_Welt._netzschranke_stl` – Maschinenteil oder Spannmittel gegen ein
+  Teil aus einem STL, das Netz des anderen in die Lage des Teils, weniger beide Toleranzen;
+  `knapp`, wenn sich die Netze sahen (der Schritt nimmt dann die Schranke). `_netzschranke` fällt
+  ohne Kapseln darauf zurück.
+- `tests/test_stl_teil.py`: Quader nah und etwas weiter am Geist – die Schranke nie über dem
+  Abstand von OpenCascade, und nicht mehr als 0,1 mm darunter.
+- `docs/spezifikation_vierachs.md` (16.9). `package.xml` (0.225.0).
+
+### ERGEBNIS
+- Dieselbe Strecke am Revolver: 3.000 Stationen 44 s; der Revolver 157 genaue Abstände 11,1 s
+  statt 433 in 53,7 s (dort kamen in 60 s nur rund 2.000 Stationen durch).
+
+### AKZEPTANZKRITERIUM
+- `test_stl_teil`, `test_kollision`, `test_kollision_verteilt`, `test_netzabstand`,
+  `test_vierachs_pruefen` grün.
+
 ## P-2026-10-11-109 kollision-am-stl
 
 ### EINGELESEN
