@@ -104,6 +104,14 @@ ABSTECHBREITE = 3.0  # mm – wie vierachs_rohteil.ABSTECHBREITE, ohne Job
 RAND = 0.005  # mm – zum Aufmaß dazu, für Rundungen im Raster
 GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
 LEER = 1e-3  # mm – so knapp über dem Material gilt eine Stelle als frei (nichts weg)
+# Beim Schruppen frei auch, wo die Lagen davor schon alles genommen haben (P-2026-10-12-150): so
+# weit um die Stirn herum muss es im Rest (restmaterial.Stange, Lage für Lage nachgefahren) leer
+# sein – wie freiwege.RAND im Quader.
+FREI_RAND = 1.0  # mm
+# So hoch darf der Rest dort über der Spitze stehen und es gilt doch als leer: Wo der Fräser an
+# einer Flanke anliegt, liegt der Rest genau auf seiner Stirn – im Raster der Stange (0,5 mm × 1°)
+# um Hundertstel darüber oder darunter.
+FREI_REST = 0.05  # mm
 # Mit Flächen und der Querachse (Frage 12, Manuel 2026-10-11: „Spirale, Flächen überspringen …
 # angehoben, Freivorschub“): Wo die Kugel nur noch Flächen berührte, die nicht gewählt sind (die
 # „Plan indexiert“ fertig macht), fährt sie so viel höher im Freivorschub darüber – mehr als das
@@ -589,6 +597,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     spiel = schrupp_spiel(w.aufmass)
     gefahren = 0
+    rest = _rest_neu(w) if lagen > 1 else None
     for lage in range(1, lagen + 1):
         unten = boden(versatz)
         ende = len(a)
@@ -608,7 +617,14 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         # Frei, wo die Hüllfläche nicht unter der Stange liegt: Dort steht nie etwas. (Dass die
         # Lage davor schon bis auf die Hüllfläche kam, reicht nicht – an steilen Flanken lässt
         # die Spirale bis 0,7 mm stehen, nachgefahren im Modell der Stange.)
-        frei = _frei(a_l, r, phi, unten_l >= w.stange_radius - LEER)
+        leer = unten_l >= w.stange_radius - LEER
+        if rest is not None and lage > 1:
+            # Und wo die Lagen davor schon alles genommen haben (P-2026-10-12-150): Liegt die
+            # Hüllfläche über der Lage, fährt sie die Fläche noch einmal ab – am Nasen-Testteil
+            # 1,8 m im Vorschub durch Luft, mit der Querachse 5,3 von 16,6 m.
+            leer = leer | rest.leer(a_l, r, phi, np.zeros(len(a_l)), w.fraeser_radius)
+        frei = _frei(a_l, r, phi, leer)
+        anfang_lage = len(punkte)
         # Es bleiben die Punkte, zwischen denen die Gerade über allen anderen liegt – höchstens
         # das Spiel darüber (schrupp_spiel): Die Hüllfläche folgt den Facetten des Netzes um
         # Tausendstel, und jeder davon als Knick ließ alle 1–2° einen Satz stehen. Dazu, wo ein
@@ -625,21 +641,104 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         )
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
         gefahren += 1
+        if rest is not None and lage < lagen:
+            rest.fahren(punkte, anfang_lage, w.form if w.form is not None else w.fraeser_radius)
     return Bahn(punkte, gefahren, r_min, hinten_frei)
 
 
-def _quer_schrupp_frei(a, x, q, psi, radius, stange_radius):
+def _quer_schrupp_frei(a, x, q, psi, radius, stange_radius, leer_auch=None):
     """Je Stellung des Schruppfräsers mit der Querachse: Ist das Stück dorthin frei (_frei)? Frei,
     wo er die Stange gar nicht erreicht – wie ohne Querachse, wo die Hüllfläche nicht unter der
     Stange liegt: Die Stirn reicht quer von q − R bis q + R, ihr nächster Punkt zur Achse liegt
     bei (x, max(0, |q| − R)); über der Stirn ist er weiter weg, hinter der Achse (x < 0) zählt
     der Schaft auf ihrer Höhe. Manuels CLX mit Y schruppt mit der Querachse – „im Freien
-    schnell“ (P-2026-10-05) galt dort nicht (P-2026-10-11-04)."""
+    schnell“ (P-2026-10-05) galt dort nicht (P-2026-10-11-04). `leer_auch`: je Stellung auch leer
+    (im Rest der Lagen davor nichts mehr unter der Stirn, _Rest.leer)."""
     x, q = np.asarray(x, dtype=float), np.asarray(q, dtype=float)
     quer = np.maximum(np.abs(q) - radius, 0.0)
     abstand = np.where(x >= 0.0, np.hypot(np.maximum(x, 0.0), quer), quer)
     leer = abstand >= stange_radius - LEER
+    if leer_auch is not None:
+        leer = leer | np.asarray(leer_auch, dtype=bool)
     return _frei(a, x, psi, leer)
+
+
+def _rest_neu(w):
+    """Der Rest beim Schruppen (_Rest): die ganze Stange, längs über die ganze Bahn."""
+    return _Rest(w.stange_radius, w.a_futter - w.fraeser_radius - 5.0, w.a_stange_vorne + 5.0)
+
+
+class _Rest:
+    """Was nach den Lagen davor noch steht (P-2026-10-12-150): restmaterial.Stange – ein Radius je
+    Strahl, das Äußerste; an Überhängen sieht sie mehr, nie weniger als da ist. leer() sagt je
+    Stellung, ob über der Stirn (mit FREI_RAND rundum) nichts mehr steht: dann ist die Lage dort
+    Luft und fährt im Freivorschub (_frei)."""
+
+    def __init__(self, radius, a_von, a_bis):
+        from . import restmaterial as rm
+
+        self.stange = rm.Stange(radius, a_von, a_bis)
+        self._fenster = None
+
+    def fahren(self, punkte, von, fraeser):
+        """Fährt die Sätze punkte[von:] (ab dem Satz davor) in den Rest."""
+        stueck = punkte[max(von - 1, 0) :]
+        paare = [(p, n) for p, n in zip(stueck, stueck[1:], strict=False) if not n.eilgang]
+        if paare:
+            self.stange.fahre_stuecke(
+                [(p.a, p.r, p.phi, p.q) for p, _n in paare],
+                [(n.a, n.r, n.phi, n.q) for _p, n in paare],
+                fraeser,
+            )
+        self._fenster = None
+
+    def _hoechstes_laengs(self, halb):
+        """Je Zelle das Höchste des Rests in ± `halb` Zellen längs (gemerkt bis zum nächsten
+        fahren())."""
+        if self._fenster is not None and self._fenster[0] == halb:
+            return self._fenster[1]
+        r = self.stange.r
+        laengs = r.copy()
+        for d in range(1, halb + 1):
+            laengs[d:] = np.maximum(laengs[d:], r[:-d])
+            laengs[:-d] = np.maximum(laengs[:-d], r[d:])
+        self._fenster = (halb, laengs)
+        return laengs
+
+    def leer(self, a, x, psi, q, radius):
+        """Je Stellung (Spitze x längs der Werkzeugachse unter ψ Grad, quer um q, an der Stelle
+        a): Steht im Rest nichts mehr über der Stirn? Auf jedem Strahl, den die Stirn (Radius +
+        FREI_RAND) quer überdeckt – unter ihr und über ihr bis zum Rand der Stange –, längs ± so
+        viel: das Äußerste des Rests ρ, längs der Werkzeugachse ρ · cos Δ (Δ der Winkel zwischen
+        Strahl und Achse), nicht höher als die Spitze. (Unter einer ebenen Stirn liegt der Rest
+        neben der Achse bei x ÷ cos Δ – genau auf ihrer Ebene.) Nahe der Achse (x unter dem
+        Radius) nie."""
+        a, x, psi, q = (np.asarray(v, dtype=float) for v in (a, x, psi, q))
+        st = self.stange
+        breit = radius + FREI_RAND
+        schritt_a = float(st.a[1] - st.a[0])
+        laengs = self._hoechstes_laengs(int(math.ceil(breit / schritt_a)) + 1)  # + die Rundung
+        n_phi = st.r.shape[1]
+        schritt_phi = 2 * math.pi / n_phi
+        weit = x > breit
+        hoch = np.maximum(x, breit)
+        rand = max(st.radius, 1.0)
+        # Die Strahlen unter der Stirn und über ihr bis zum Rand der Stange – quer versetzt
+        # reicht der Schaft über der Stirn an Strahlen näher an der Werkzeugachse.
+        achse = np.radians(psi)
+        von = achse + np.minimum(np.arctan2(q - breit, hoch), np.arctan2(q - breit, rand))
+        bis = achse + np.maximum(np.arctan2(q + breit, hoch), np.arctan2(q + breit, rand))
+        j0 = np.floor(np.mod(von, 2 * math.pi) / schritt_phi).astype(np.int64)
+        laenge = np.clip(np.ceil((bis - von) / schritt_phi).astype(np.int64) + 2, 1, n_phi)
+        ia = np.clip(np.rint((a - st.a[0]) / schritt_a).astype(np.int64), 0, len(st.a) - 1)
+        hoechstes = np.full(len(a), -np.inf)
+        for versatz in range(int(laenge[weit].max()) if weit.any() else 0):
+            m = weit & (versatz < laenge)
+            j = (j0[m] + versatz) % n_phi
+            delta = j * schritt_phi - achse[m]
+            hoechstes[m] = np.maximum(hoechstes[m], laengs[ia[m], j] * np.cos(delta))
+        drin = (a >= st.a[0]) & (a <= st.a[-1])
+        return weit & drin & (hoechstes <= x + FREI_REST)
 
 
 def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, schritt_phi):
@@ -698,6 +797,7 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
 
     versatz = 0
     lage = gefahren = 0
+    rest = _rest_neu(w)
     while True:
         lage += 1
         a_p, x, x_p, q_p, psi_p, fest, normale, noch = lage_rechnen(versatz, lage * w.zustellung)
@@ -722,24 +822,27 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
             schritte = int(k[np.flatnonzero(a >= bis_a).max()])  # so weit kam die Spirale
         else:
             schritte = int(k[-1])
-        _quer_ausgeben(
-            punkte,
+        anfang_lage = len(punkte)
+        _quer_ausgeben(punkte, a_p, x, q_p, psi_p, fest, sicher, abstand, drehung, (
+            radius if kugelform else 0.0
+        ), toleranz=max(BAHN_TOLERANZ, spiel), innen=max(
+            QUER_INNEN, spiel
+        ),
+        # Frei auch, wo die Lagen davor schon alles genommen haben (P-2026-10-12-150).
+         frei=_quer_schrupp_frei(
             a_p,
             x,
             q_p,
             psi_p,
-            fest,
-            sicher,
-            abstand,
-            drehung,
-            radius if kugelform else 0.0,
-            toleranz=max(BAHN_TOLERANZ, spiel),
-            innen=max(QUER_INNEN, spiel),
-            frei=_quer_schrupp_frei(a_p, x, q_p, psi_p, radius, w.stange_radius),
+            radius,
+            w.stange_radius,
+            rest.leer(a_p, x, psi_p, q_p, radius) if lage > 1 else None,
+            ),  # fmt: skip
             normale=normale,
         )
         punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
         gefahren += 1
+        rest.fahren(punkte, anfang_lage, form)
         versatz += schritte
         if lage >= lagen and not noch:
             return gefahren

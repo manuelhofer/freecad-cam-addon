@@ -5,7 +5,7 @@
 # nach dem Schruppen unter dem Fräser nirgends über die Bahn reicht. In der Stange Ø 40 ist der
 # Weg über die Scheibe frei (Schruppen mehr als die Hälfte, Schlichten fast die Hälfte); die
 # Bahn nachgefahren im Modell der Stange (restmaterial.Stange, erst Schruppen, dann Schlichten):
-# Kein freier Lauf nimmt etwas weg. In der Stange Ø 45 bleibt das Schruppen, wie es war, und das
+# Kein freier Lauf nimmt etwas weg (beim Schruppen höchstens FREI_REST, P-2026-10-12-150). In der Stange Ø 45 ist das Schruppen nur frei, wo die Lagen davor schon alles nahmen, und das
 # Schlichten fährt den Ø 40. Die Befehle: frei mit dem Freivorschub, sonst mit dem Vorschub.
 import math
 import os
@@ -146,8 +146,13 @@ for durchmesser in (40.0, 45.0):
     stange = rm.Stange(durchmesser / 2, min(ecken), max(ecken))
     sq_frei, sq_alle, sq_weg, _vorne = frei_und_weg(stange, b1q, 6.0)
     pruefe(any(abs(p.q) > 1e-6 for p in b1q.punkte), f"Ø {durchmesser}: Schruppen ohne Querachse")
+    # Frei auch, wo die Lagen davor schon alles genommen haben (P-2026-10-12-150): Dort darf der
+    # Rest im Raster der Stange um vierachs_bahn.FREI_REST über der Stirn liegen (wo der Fräser an
+    # einer Flanke anliegt) – so viel nimmt ein freier Lauf dann höchstens.
+    schrupp_frei_grenze = vb.FREI_REST + 0.01
     pruefe(
-        sq_weg < 0.01, f"Ø {durchmesser}: freier Lauf beim Schruppen quer nimmt {sq_weg:.3f} weg"
+        sq_weg < schrupp_frei_grenze,
+        f"Ø {durchmesser}: freier Lauf beim Schruppen quer nimmt {sq_weg:.3f} weg",
     )
     stange = rm.Stange(durchmesser / 2, min(ecken), max(ecken))
     s_frei, s_alle, s_weg, _vorne = frei_und_weg(stange, b1, 6.0)
@@ -161,7 +166,10 @@ for durchmesser in (40.0, 45.0):
     quer_schruppen[durchmesser] = (sq_frei, sq_alle)
     pruefe(b3.querachse, f"Ø {durchmesser}: Schlichten ohne Querachse")
     pruefe(q_weg < 0.01, f"Ø {durchmesser}: ein freier Lauf mit Querachse nimmt {q_weg:.3f} weg")
-    pruefe(s_weg < 0.01, f"Ø {durchmesser}: ein freier Lauf beim Schruppen nimmt {s_weg:.3f} weg")
+    pruefe(
+        s_weg < schrupp_frei_grenze,
+        f"Ø {durchmesser}: ein freier Lauf beim Schruppen nimmt {s_weg:.3f} weg",
+    )
     pruefe(l_weg < 0.01, f"Ø {durchmesser}: ein freier Lauf beim Schlichten nimmt {l_weg:.3f} weg")
     print(
         ascii(
@@ -198,7 +206,10 @@ print(
 pruefe(l_frei > 0.4 * l_alle, f"Ø 40: Schlichten nur {l_frei:.0f} von {l_alle:.0f} mm frei")
 pruefe(q_frei > 0.3 * q_alle, f"Ø 40: mit Querachse nur {q_frei:.0f} von {q_alle:.0f} mm frei")
 s_frei, _s_alle, l_frei, l_alle, _q_frei, _q_alle = ergebnis[45.0]
-pruefe(s_frei == 0.0, f"Ø 45: Schruppen {s_frei:.0f} mm frei")
+# Ø 45: Außerhalb der Stange liegt nichts – frei nur, wo die Lagen davor schon alles nahmen
+# (P-2026-10-12-150; hier alle Lagen, ungekürzt); was ein freier Lauf dort höchstens wegnimmt,
+# prüft frei_und_weg oben (FREI_REST). Nicht alles frei.
+pruefe(s_frei < 0.9 * _s_alle, f"Ø 45: Schruppen {s_frei:.0f} von {_s_alle:.0f} mm frei")
 pruefe(l_frei < 0.01 * l_alle, f"Ø 45: Schlichten {l_frei:.0f} mm frei – der Ø 40 gehört dazu")
 
 # In 3D nachgerechnet (P-2026-10-11-27): Manuels Nasen-Testteil, die Stange als Voxel – erst das

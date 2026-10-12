@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-150 schruppen-frei-im-rest
+
+### EINGELESEN
+- Beim Abschätzen von „Plan indexiert zuerst“ (Manuel, 2026-10-12: „so dass alle anderen Fräser
+  diese Nase nicht machen müssen“): Das spart dem Schruppen an der Nase nur etwa 1 min – aber
+  „Rundum schruppen“ fährt dort schon so 5,3 von 16,6 m im Vorschub durch Luft (mit der Querachse;
+  ohne 1,8 von 12,5 m, Würfel 0,5 mm), in der 2. und 3. Lage: Wo die Hüllfläche über der Lage
+  liegt, fährt die Lage sie noch einmal ab. Frei war bisher nur, was außerhalb der Stange liegt.
+- Erster Versuch – frei, wo schon die Lage davor auf der Hüllfläche stand – falsch: Die Spiralen
+  der Lagen sind gegeneinander versetzt (bis eine halbe Steigung längs); an den Flanken der Nase
+  nahmen die „freien“ Stücke 3,2–3,5 cm³ im Würfelmodell. Zurückgenommen.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `_Rest` (restmaterial.Stange, nach jeder Lage nachgefahren;
+  `leer()`: auf allen Strahlen unter der Stirn mit FREI_RAND und über ihr bis zum Rand der Stange,
+  längs ± so viel, das Äußerste des Rests längs der Werkzeugachse – ρ · cos Δ – nicht mehr als
+  FREI_REST über der Spitze). `schruppen` (ohne Querachse) und `_schruppen_quer` nehmen es ab der
+  zweiten Lage dazu (`_quer_schrupp_frei(..., leer_auch)`); `_frei` wie bisher (5 mm, 2 mm Vorlauf).
+- `tests/test_vierachs_frei.py`: freie Läufe beim Schruppen höchstens FREI_REST + 0,01; Ø 45 nicht
+  mehr „null frei“. `tests/golden/welle_absatz_schruppen*.json` (Punkte an den Übergängen frei/Schnitt
+  – 1682 → 1712, die Form gleich). `docs/STATUS_SNAPSHOT.md`. `package.xml` (0.257.0).
+
+### ERGEBNIS
+- Nasen-Testteil: mit der Querachse 3,4 m frei, 14,8 → 12,1 min; ohne 0,8 m, 11,2 → 10,5 min
+  (Freivorschub 10 m/min). In freien Stücken im Würfelmodell (0,5 mm, Fräser auch +0,5 mm)
+  zusammen 3 mm³, höchstens 1,4 mm³ je Stück.
+- Grün in 26.3: `test_vierachs_frei` (auch ihr Teil am Nasen-Testteil im Würfelmodell),
+  `test_vierachs_bahn`, `test_vierachs_operation`, `test_goldene_bahnen` (neu, beide Versionen),
+  `szenario_vierachs_schruppen`.
+
 ## P-2026-10-12-149 querachse-ohne-duenne-lage
 
 ### EINGELESEN
