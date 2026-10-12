@@ -144,3 +144,58 @@ class WackelnProgramm(Wackeln):
         for bauteil, lage in self.vorher.items():
             verschiebung = self.je_mm[bauteil] * auslenkung
             bauteil.Placement = FreeCAD.Placement(verschiebung, FreeCAD.Rotation()) * lage
+
+
+# --- Flächen färben (Assistenten) ------------------------------------------------------------
+# FreeCAD 26.3 kennt am Klon (dem Modell eines Jobs) kein DiffuseColor mehr – die Assistenten
+# färbten die gewählten Flächen dort nicht (Manuel, 2026-10-12: „es wäre gut wenn die schon
+# selektierten flächen farbig signalisiert wären“). Dort trägt ShapeAppearance ein Material je
+# Fläche (gemessen in 26.3.0RC1).
+
+_MATERIAL_FELDER = (
+    "AmbientColor",
+    "DiffuseColor",
+    "SpecularColor",
+    "EmissiveColor",
+    "Shininess",
+    "Transparency",
+)
+
+
+def _rgb(farbe):
+    """„#rrggbb“ → (r, g, b) von 0 bis 1."""
+    return tuple(int(farbe[i : i + 2], 16) / 255 for i in (1, 3, 5))
+
+
+def flaechen_material(ansicht, anzahl, grund, farben):
+    """Färbt Flächen über ShapeAppearance: `grund` die Materialien vorher (eins für alle oder eins
+    je Fläche), `farben` Nummer → „#rrggbb“; die anderen bleiben, wie sie waren."""
+    grund = list(grund)
+    if not grund:
+        return
+    if len(grund) != anzahl:
+        grund = [grund[0]] * anzahl
+    neu = []
+    for nummer, material in enumerate(grund):
+        farbe = farben.get(nummer)
+        if farbe is None:
+            neu.append(material)
+            continue
+        kopie = FreeCAD.Material()
+        for name in _MATERIAL_FELDER:
+            setattr(kopie, name, getattr(material, name))
+        alpha = material.DiffuseColor[3] if len(material.DiffuseColor) > 3 else 1.0
+        kopie.DiffuseColor = (*_rgb(farbe), alpha)
+        neu.append(kopie)
+    ansicht.ShapeAppearance = neu
+
+
+def flaechen_farben(ansicht, anzahl):
+    """[(r, g, b)] je Fläche, wie sie gezeigt wird – aus DiffuseColor oder ShapeAppearance."""
+    if hasattr(ansicht, "DiffuseColor"):
+        liste = [tuple(f[:3]) for f in ansicht.DiffuseColor]
+    else:
+        liste = [tuple(m.DiffuseColor[:3]) for m in ansicht.ShapeAppearance]
+    if len(liste) != anzahl and liste:
+        liste = [liste[0]] * anzahl
+    return liste

@@ -20,13 +20,14 @@ import functools
 import html
 import math
 import os
+import traceback
 from collections import OrderedDict
 
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, spannung, stl_anzeige, symbol, uhren
+from . import PARAMETER_PFAD, einheiten, gui_zeigen, spannung, stl_anzeige, symbol, uhren
 from . import aufloesung as au
 from . import bahn as bn
 from . import bleistift as bst
@@ -4850,7 +4851,7 @@ class BearbeitungPanel:
         try:
             self.job = _im_befehl(self._neuer_job)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
-            FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n")
+            FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n{traceback.format_exc()}")
             self.hinweis.setText(tr("ba.fehler.anlegen", fehler=str(fehler)))
             self.teil = None
             return
@@ -5945,7 +5946,23 @@ class BearbeitungPanel:
             stl_anzeige.flaechen_faerben(klon, farben)
             self._farben_vorher = (klon, None, None, None)
             return
-        if ansicht is None or not hasattr(ansicht, "DiffuseColor"):
+        if ansicht is None:
+            return
+        if not hasattr(ansicht, "DiffuseColor"):  # 26.3: ein Material je Fläche
+            if not hasattr(ansicht, "ShapeAppearance"):
+                return
+            if self._farben_vorher is None:
+                linien = getattr(ansicht, "LineColorArray", None)
+                self._farben_vorher = (
+                    klon,
+                    None,
+                    list(ansicht.ShapeAppearance),
+                    list(linien) if linien is not None else None,
+                )
+            self._kanten_faerben(ansicht, klon, kanten or {})
+            gui_zeigen.flaechen_material(
+                ansicht, ft.anzahl(klon.Shape), self._farben_vorher[2], farben
+            )
             return
         if self._farben_vorher is None:
             aussehen = getattr(ansicht, "ShapeAppearance", None)
@@ -7516,7 +7533,7 @@ class BearbeitungPanel:
         try:
             self.operationen = _im_befehl(anlegen)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
-            FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n")
+            FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n{traceback.format_exc()}")
             self.operationen = []
             self.operation = None
             self.hinweis.setText(tr("ba.fehler.anlegen", fehler=str(fehler)))
@@ -7595,7 +7612,7 @@ class BearbeitungPanel:
         try:
             _im_befehl(aendern)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
-            FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n")
+            FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n{traceback.format_exc()}")
             self.hinweis.setText(tr("ba.fehler.aendern", fehler=str(fehler)))
             self._knoepfe_beschriften()
             return False

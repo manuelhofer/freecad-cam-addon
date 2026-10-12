@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-168 flaechen-farbig-in-263
+
+### EINGELESEN
+- Manuel (2026-10-12, Bild aus „Bearbeitung“, Schritt 2, in 26.3): „es wäre gut wenn die schon
+  selektierten flächen farbig signalisiert wären“. In 26.3 hat der Klon (das Modell im Job) kein
+  `DiffuseColor` mehr – beide Assistenten färbten dort gar nicht.
+- „Konnte nicht anlegen: PropertyLink does not support external object“ (Bearbeitung, 3-Achs-Fräse
+  als eigenes Dokument offen) – nicht nachgestellt (headless, und mit Fräse vorn in der Oberfläche,
+  ging das Anlegen); die Meldung im Ausgabefenster trägt jetzt die ganze Fehlerspur (B-020).
+
+### DATEIEN
+- `camaddon/gui_zeigen.py`: `flaechen_material` (ein Material je Fläche über ShapeAppearance, die
+  anderen wie vorher), `flaechen_farben` (lesen, beide Wege). `camaddon/gui_bearbeitung.py`,
+  `camaddon/gui_vierachs.py`: ohne DiffuseColor über ShapeAppearance; zurück wie bisher.
+  `gui_bearbeitung`: Fehler beim Anlegen mit `traceback`. Szenarien: `szenario_bearbeitung` (die
+  gewählte Fläche farbig), `szenario_vierachs_flaechen` (Farben über `flaechen_farben`).
+  `package.xml` (0.259.11).
+
+### ERGEBNIS
+- Grün: `szenario_bearbeitung` (26.3), `szenario_vierachs_flaechen` (26.3 und 1.1.4).
+
 ## P-2026-10-12-167 neue-maschine-im-assistenten
 
 ### EINGELESEN

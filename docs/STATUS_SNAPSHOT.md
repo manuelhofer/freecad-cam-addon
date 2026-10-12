@@ -374,6 +374,24 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
 - Face28, Face6, Face17 (die Nuten, stirnseitig): radial nicht erreichbar – das muss gesagt werden
   (nicht still weglassen) und eine Bearbeitung von vorn angeboten werden.
 
+**Manuel am Ring-Teil in „Bearbeitung“ (3-Achs-Fräse, 2026-10-12 ~20:00, mit Bildern) – aufschreiben:**
+1. **Kreise nach unten außerhalb des Rohteils**: „du bist hier auserhalb vom rohteil ... warum
+   zirkulierst du da nach unten ?!?!?!?“ – rechts neben dem Rohteil eine Helix hinab (und daneben
+   dichte Zickzack-Pakete). Verdacht: die Helix aus P-2026-10-12-162/163 (Kontur/Räumen) hält das
+   Freie für Material. Nachstellen am Ring (Kopie in `~/freecad_cam/testteile/…`), beheben.
+2. **Z −30 bei der Grenze −10**: „Z1 fährt in „Kontur T4“ bis −30,00 mm, die Grenze ist −10,00 mm“ –
+   Manuel: „z kann nicht in -30 fahren weil z0 sollte eigentlich tisch oberkante sein .. also wenn
+   die spindelnase auf dem tisch aufliegt ist z=0 ... wird wohl vom fräser aus gerechnet bitte schau
+   da bei allen maschinen nach das dies nicht der fall ist“. Prüfen: wie Z der Maschine (Grenzen,
+   „Was die Bahn braucht“) gerechnet wird – Spindelnase gegen Tisch, nicht die Spitze –, an allen
+   Beispielmaschinen (3-Achs-Fräse, CLX550, 5-Achs, G550).
+3. **Planfräsen fährt „km in der Luft“** (Bild: T4 Ø 4 weit über dem Teil; „Planfräsen T4“ 20 min,
+   Kontur 9,1 min am kleinen Ring) – die Luftwege messen (Bahnen prüfen ohne Manuel) und beseitigen.
+4. **B-020** „Konnte nicht anlegen: PropertyLink does not support external object“ (Bearbeitung,
+   eine neue 3-Achs-Fräse als eigenes Dokument offen, ein halber Job „Body – Fräsen“ und ein loses
+   „TC: 5mm Endmill“ im Baum) – nicht nachgestellt; beim nächsten Mal steht die Fehlerspur im
+   Ausgabefenster (P-2026-10-12-168).
+
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
    unten dreht, so dass die fläche der nase zum fräserboden schaut … einfach bearbeiten indem man mit
@@ -879,7 +897,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 ## Offene Bugs
 
 Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
-nächste freie Nummer B-020.
+B-020 offen (siehe „Nächster Schritt“, Ring-Teil Punkt 4); nächste freie Nummer B-021.
 
 ## Offene Tasks
 

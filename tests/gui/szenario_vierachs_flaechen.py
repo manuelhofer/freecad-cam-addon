@@ -25,7 +25,7 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import gui_vierachs
+    from camaddon import gui_vierachs, gui_zeigen
     from camaddon import vierachs_bahn as vb
     from camaddon import vierachs_flaechen as vf
     from camaddon import vierachs_operation as vo
@@ -93,7 +93,8 @@ def schritte(h):
     # --- Ein Klick auf die Abflachung --------------------------------------------------------
     job = panel.job
     klon = vr.modell(job)
-    farben_vorher = list(klon.ViewObject.DiffuseColor)
+    anzahl_flaechen = len(klon.Shape.Faces)
+    farben_vorher = gui_zeigen.flaechen_farben(klon.ViewObject, anzahl_flaechen)
     Gui.Selection.addSelection(doc.Name, klon.Name, abflachung)
     yield 500
     h.pruefe(panel.gewaehlte == [abflachung], f"gewählt: {panel.gewaehlte}")
@@ -109,7 +110,7 @@ def schritte(h):
     text = panel.flaechen_text.text()
     h.pruefe(text.startswith("Nur diese Flächen:"), f"mit Wahl: {text!r}")
     nummer = int(abflachung[4:]) - 1
-    farben = klon.ViewObject.DiffuseColor
+    farben = gui_zeigen.flaechen_farben(klon.ViewObject, anzahl_flaechen)
     h.pruefe(
         len(farben) == len(klon.Shape.Faces)
         and abs(farben[nummer][1] - 0x9A / 255) < 0.01
@@ -156,7 +157,10 @@ def schritte(h):
     panel.flaechen_leeren()
     yield 300
     h.pruefe(panel.gewaehlte == [] and panel.flaechen_liste.isHidden(), "leeren")
-    h.pruefe(list(klon.ViewObject.DiffuseColor) == farben_vorher, "Farben nach dem Leeren")
+    h.pruefe(
+        gui_zeigen.flaechen_farben(klon.ViewObject, anzahl_flaechen) == farben_vorher,
+        "Farben nach dem Leeren",
+    )
     Gui.Selection.addSelection(doc.Name, klon.Name, abflachung)
     yield 500
     h.pruefe(panel.flaechen() == [abflachung], f"wieder: {panel.flaechen()}")
@@ -171,7 +175,10 @@ def schritte(h):
     panel.accept()  # Anlegen
     yield 2000
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster nach „Anlegen“ offen")
-    h.pruefe(list(klon.ViewObject.DiffuseColor) == farben_vorher, "Farben nach dem Anlegen")
+    h.pruefe(
+        gui_zeigen.flaechen_farben(klon.ViewObject, anzahl_flaechen) == farben_vorher,
+        "Farben nach dem Anlegen",
+    )
     ops = [o for o in job.Operations.Group if vo.ist_rundum(o)]
     h.pruefe(len(ops) == 2, f"Operationen: {[o.Label for o in ops]}")
     for op in ops:
@@ -227,4 +234,7 @@ def schritte(h):
     yield 1500
     h.pruefe(list(schruppen.Flaechen) == [], f"nach dem Ändern: {list(schruppen.Flaechen)}")
     h.pruefe(math.isclose(schruppen.Eintauchwinkel.Value, 5.0), "Eintauchwinkel")
-    h.pruefe(list(klon.ViewObject.DiffuseColor) == farben_vorher, "Farben nach dem Ändern")
+    h.pruefe(
+        gui_zeigen.flaechen_farben(klon.ViewObject, anzahl_flaechen) == farben_vorher,
+        "Farben nach dem Ändern",
+    )

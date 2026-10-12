@@ -84,6 +84,18 @@ def schritte(h):
     panel.knopf_weiter.click()
     yield 300
     h.bild("1_bearbeitung", panel.form)
+    # Die gewählte Fläche im 3D farbig – auch in 26.3, wo der Klon kein DiffuseColor mehr hat
+    # (Manuel, 2026-10-12: „es wäre gut wenn die schon selektierten flächen farbig signalisiert
+    # wären“).
+    from camaddon import gui_zeigen
+
+    klon = job.Model.Group[0]
+    gezeigt = gui_zeigen.flaechen_farben(klon.ViewObject, len(klon.Shape.Faces))
+    nummer = int(flaeche[4:]) - 1
+    h.pruefe(
+        len(gezeigt) > 1 and gezeigt[nummer] != gezeigt[0 if nummer else 1],
+        f"gewählte Fläche nicht farbig: {gezeigt[nummer] if len(gezeigt) > nummer else gezeigt}",
+    )
     panel.knopf_weiter.click()
     yield 300
     h.bild("1c_einstellungen", panel.form)

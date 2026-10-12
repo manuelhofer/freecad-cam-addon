@@ -49,7 +49,17 @@ import FreeCADGui
 import numpy as np
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, farben, gui_rechnet, stl_anzeige, stl_teil, symbol, uhren
+from . import (
+    PARAMETER_PFAD,
+    einheiten,
+    farben,
+    gui_rechnet,
+    gui_zeigen,
+    stl_anzeige,
+    stl_teil,
+    symbol,
+    uhren,
+)
 from . import aufloesung as au
 from . import bestueckung as bs
 from . import formteile as ft
@@ -2523,7 +2533,16 @@ class VierachsPanel:
             stl_anzeige.flaechen_faerben(klon, farben)
             self._farben_vorher = (klon, None, None)
             return
-        if ansicht is None or not hasattr(ansicht, "DiffuseColor"):
+        if ansicht is None:
+            return
+        if not hasattr(ansicht, "DiffuseColor"):  # 26.3: ein Material je Fläche
+            if not hasattr(ansicht, "ShapeAppearance"):
+                return
+            if self._farben_vorher is None:
+                self._farben_vorher = (klon, None, list(ansicht.ShapeAppearance))
+            gui_zeigen.flaechen_material(
+                ansicht, ft.anzahl(klon.Shape), self._farben_vorher[2], farben
+            )
             return
         if self._farben_vorher is None:
             aussehen = getattr(ansicht, "ShapeAppearance", None)
