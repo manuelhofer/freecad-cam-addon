@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-162 kontur-helix-statt-rampe
+
+### EINGELESEN
+- Manuel (2026-10-12): Zickzack in Fräser-Z nur in der geschlossenen Nut, „wobei selbst da würde
+  ich wenns irgendwie geht auf eine helix setzten“; „warum nutzt du es dann überall ??“ – die Rampe
+  ist der Einstieg überall, wo eine Bahn im Material beginnt (Auftrag 4 im Snapshot).
+- Kontur: Sie taucht schon außerhalb des Rohteils und im Geräumten senkrecht ein (am 3-Achs-Testteil
+  kein Einstieg im Material); im Material lief sie die Rampe längs des Einfahrens.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_helix_radius` (der Kreis um den Einstieg – 0,9 R wie beim Bohrung
+  fräsen, sonst 0,45 R – frei vom Teil und weit genug von der Wand?), `_helix_hinab` (über dem
+  Material auf den Kreis, in der Helix mit dem Eintauchwinkel hinab – `bohrung_bahn._helix` –,
+  zurück in die Mitte); die Rampe nur noch, wo kein Kreis passt. `package.xml` (0.259.5).
+
+### ERGEBNIS
+- In `test_kontur` 57 Einstiege als Helix, 37 bleiben Rampe (kein Platz); grün in 26.3 RC1, auch
+  `test_testteil` (dort keiner im Material).
+
 ## P-2026-10-12-161 plan-ohne-zickzack-vorn
 
 ### EINGELESEN

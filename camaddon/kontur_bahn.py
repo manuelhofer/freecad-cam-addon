@@ -1354,7 +1354,12 @@ def _lauf(
     if knapp < w.sicher - GLEICH:
         punkte.append(bn.Punkt(True, start[0], start[1], knapp))
     laenge = 0.0
-    if material:
+    helix = _helix_radius(start, r, frei) if material else None
+    if helix is not None:
+        # Eine Helix statt der Rampe im Zickzack (Manuel, 2026-10-12: „selbst da würde ich wenns
+        # irgendwie geht auf eine helix setzten“; Spezifikation Strategien, Abschnitt 5).
+        laenge += _helix_hinab(punkte, start, helix, knapp, vorige, lage, w)
+    elif material:
         punkte.append(bn.Punkt(False, start[0], start[1], vorige, True))  # bis ans Material
         laenge += _rampe(punkte, ein, x, y, lage, vorige, w, schritt)
     else:
@@ -1414,6 +1419,47 @@ def _anfahrt_punkte(punkte, an, lage, hinein):
             continue
         laenge += bn.weg(punkte[-1], punkt)
         punkte.append(punkt)
+    return laenge
+
+
+HELIX_PROBEN = 24  # so viele Punkte auf dem Kreis prüft _helix_radius
+
+
+def _helix_radius(mitte, r, frei):
+    """Der Radius der Helix um `mitte` (die Mitte des Fräsers läuft darauf), wenn der Kreis
+    überall frei ist (`frei(x, y)`: nicht ins Teil, weit genug von der Wand) – wie beim Bohrung
+    fräsen bohrung_bahn.KERN_ANTEIL des Fräserradius, sonst die Hälfte; None, wenn keiner passt."""
+    from . import bohrung_bahn as bb
+
+    winkel = np.linspace(0.0, 2 * math.pi, HELIX_PROBEN, endpoint=False)
+    for anteil in (bb.KERN_ANTEIL, bb.KERN_ANTEIL / 2):
+        radius = anteil * r
+        qx = mitte[0] + radius * np.cos(winkel)
+        qy = mitte[1] + radius * np.sin(winkel)
+        if frei(qx, qy):
+            return radius
+    return None
+
+
+def _helix_hinab(punkte, mitte, radius, knapp, oben, lage, w):
+    """Über dem Material auf den Kreis, bis ans Material, in der Helix (bohrung_bahn._helix, mit
+    dem Eintauchwinkel) hinab auf die Lage, zurück in die Mitte. Gibt die Länge zurück."""
+    from . import bohrung_bahn as bb
+
+    uhr = not w.gleichlauf
+    anfang = (mitte[0] + radius, mitte[1])
+    punkte.append(bn.Punkt(True, anfang[0], anfang[1], knapp))
+    punkt = bn.Punkt(False, anfang[0], anfang[1], oben, True)
+    laenge = bn.weg(punkte[-1], punkt)
+    punkte.append(punkt)
+    steigung = max(
+        2 * math.pi * radius * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), bb.MIN_STEIGUNG
+    )
+    stueck, _winkel, _umlaeufe = bb._helix(punkte, mitte, radius, 0.0, oben, lage, steigung, uhr)
+    laenge += stueck
+    punkt = bn.Punkt(False, mitte[0], mitte[1], lage)
+    laenge += bn.weg(punkte[-1], punkt)
+    punkte.append(punkt)
     return laenge
 
 

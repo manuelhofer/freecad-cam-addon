@@ -375,7 +375,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    zu schmalen geschlossenen Nut). Manuel: „warum nutzt du es dann überall ??“ – die Rampe
    (`vierachs_bahn._rampe`) ist der Einstieg überall, wo eine Bahn im Material beginnt. Noch
    durchzusehen, je mit Zählung an seinen Testteilen (3-Achs-Testteil, Nase, Geist):
-   `kontur_bahn._rampe` (Kontur), `raeumen_bahn` (Ringe/Stiche über `kontur_bahn._rampe`),
+   ~~`kontur_bahn._rampe` (Kontur)~~ (Helix, P-2026-10-12-162), `raeumen_bahn` (Ringe/Stiche über `kontur_bahn._rampe`),
    `planfraesen_bahn` (Rampe, wo kein Rand offen ist), `vierachs_bahn` (Rundum schruppen zwischen
    gewählten Flächen), `vierachs_planbahn` (die 4 übrigen vor der Nase: von der Seite statt von
    vorn), `schlicht_anlauf`. Bleiben darf sie nur in `nut_bahn` (geschlossene Nut, zu schmal für
