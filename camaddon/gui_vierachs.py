@@ -3999,9 +3999,9 @@ class VierachsPanel:
         )
         if werkzeug is None:
             return None
-        werkzeug.laenge_spindelnase = round(float(laenge), 3)
+        rw.ausspannen_setzen(werkzeug, laenge, heraus)
         self.bibliothek.speichern()
-        satz = rw.ausgespannt_text(werkzeug, heraus)
+        satz = rw.ausgespannt_text(werkzeug, heraus, laenge)
         # Grau dorthin, wo die gelbe Zeile mit diesem Verweis stand – nicht zu Bearbeitungen, die
         # das Werkzeug nur vorgewählt haben.
         zeilen = [

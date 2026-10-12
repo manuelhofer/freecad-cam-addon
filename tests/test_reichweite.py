@@ -241,10 +241,20 @@ pruefe(bereich(e, "Z1") == (-38.0, -20.0), f"Z1 mit Halter: {bereich(e, 'Z1')}")
 pruefe(
     e.hinweise[0]
     == f"{t1}: gerechnet mit 100.00 mm, geschätzt aus Halter und Werkzeug (Halterlänge + "
-    "Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der "
-    "Werkzeugverwaltung.",
+    "Gesamtlänge − Spanntiefe). Genauer mit „Schaut aus dem Halter“ oder der gemessenen „Länge "
+    "ab Spindelnase“ in der Werkzeugverwaltung.",
     f"Hinweis mit Halter: {e.hinweise}",
 )
+# Wie weit es aus dem Halter schaut, eingetragen (P-2026-10-12-113): Halterlänge + Ausspannlänge,
+# nicht geschätzt – kein Hinweis.
+w1.ausspannlaenge = 25.0
+laenge = rw.werkzeuglaenge(op.ToolController, bibliothek)
+pruefe(laenge == (95.0, rw.LAENGE_AUSSPANN), f"Länge mit Ausspannlänge: {laenge}")
+e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
+pruefe(
+    e.geschaetzte_laengen() == [], f"Ausspannlänge gilt als geschätzt: {e.geschaetzte_laengen()}"
+)
+w1.ausspannlaenge = 0.0
 w1.laenge_spindelnase = 110.0
 pruefe(rw.werkzeuglaenge(op.ToolController, bibliothek)[0] == 110.0, "gemessen vor Halter")
 

@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-113 ausspannlaenge-je-werkzeug
+
+### EINGELESEN
+- Herbert im deutschen Forum-Thread (2026-10-11 abends): „„Länge ab Spindelnase“ war mir nicht
+  eindeutig … das Maß für die freie Länge [im Bild] anzeigen wäre hilfreich. Schätzen lassen würde
+  ich dieses Maß nicht.“ Manuel (2026-10-12): „wir haben eine Spanntiefe im Halter … so ist jedes
+  Werkzeug, das ich in diesen einen Halter spanne, 40 eingespannt … aber in einer Spannzange kann
+  das variieren … es macht mehr Sinn, im Fräser selber ein ‚schaut x aus Halter raus‘ einzubauen.“
+
+### DATEIEN
+- `camaddon/werkzeuge.py`: `Werkzeug.ausspannlaenge` (gespeichert, ältere Dateien 0);
+  `laenge_im_halter()` – gemessen, sonst Halterlänge + Ausspannlänge, sonst geschätzt;
+  `Bibliothek.laenge_ab_spindelnase` nimmt sie.
+- `camaddon/reichweite.py`: `LAENGE_AUSSPANN` (eingetragen, kein Hinweis „geschätzt“);
+  `ausspannen_setzen()` – „T1 auf … mm ausspannen“ setzt die Ausspannlänge, wo keine Länge ab
+  Spindelnase gemessen ist; `ausgespannt_text(…, laenge)`. Aufrufer in `gui_reichweite`,
+  `gui_vierachs`, `gui_bearbeitung`.
+- `camaddon/gui_werkzeuge.py`: neben „Länge ab Spindelnase“ das Feld „Schaut aus dem Halter“; grau
+  je das, was aus dem anderen folgt, ohne beide ausdrücklich „geschätzt“.
+- `camaddon/gui_halter.py`: im Bild von Halter und Werkzeug das Maß der freien Länge.
+- `camaddon/werkzeugkiste_datei.py`: die Ausspannlänge kommt nicht aus einer Hersteller-Datei.
+- `translations/de.json`, `en.json`: neue Texte, „geschätzt“ in den grauen Längen, die Hinweise
+  der Prüfung nennen das neue Feld.
+- Tests: `test_werkzeuge` (speichern/laden), `test_halter` (Halterlänge + Ausspannlänge),
+  `test_reichweite` (Quelle, kein Hinweis); Szenarien `szenario_halter` (Feld, Bild mit Maß 25),
+  `szenario_werkzeugverwaltung` (Texte). `package.xml` (0.228.0).
+
+### ERGEBNIS
+- T1 im SK40-ER32-Halter (70 mm, Spanntiefe 40): leer grau „geschätzt 43“ heraus und „geschätzt
+  113“ ab Spindelnase; 25 eingetragen → „95 = Halter + heraus“, das Halter-Bild zeigt 25.
+
+### AKZEPTANZKRITERIUM
+- `test_werkzeuge`, `test_halter`, `test_reichweite`, `test_sprache`, `test_werkzeugkiste_datei`,
+  `test_kollision`, `szenario_halter`, `szenario_werkzeugverwaltung` grün.
+
 ## P-2026-10-12-112 kollision-am-stl-ohne-teure-faelle
 
 ### EINGELESEN

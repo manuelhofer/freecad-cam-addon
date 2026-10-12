@@ -118,7 +118,7 @@ def schritte(h):
     # Werkzeug.
     h.pruefe(d.feld_laenge_spindelnase.isVisible(), "Länge ab Spindelnase fehlt")
     grau = d.feld_laenge_spindelnase.placeholderText()
-    h.pruefe(grau == "leer: 101 mit ER25", f"Länge ab Spindelnase leer: {grau!r}")
+    h.pruefe(grau == "leer: geschätzt 101 mit ER25", f"Länge ab Spindelnase leer: {grau!r}")
     tippen(d.feld_laenge_spindelnase, "115")
     yield 100
     h.pruefe(d.werkzeug.laenge_spindelnase == 115, f"eingetragen: {d.werkzeug.laenge_spindelnase}")

@@ -70,6 +70,7 @@ MITTE = {"X": "I", "Y": "J", "Z": "K"}  # Mittelpunkt eines Kreises, ab seinem S
 
 # Woher die Länge eines Werkzeugs kommt.
 LAENGE_SPINDELNASE = "spindelnase"  # eingetragen: ab Spindelnase, mit Halter
+LAENGE_AUSSPANN = "ausspann"  # eingetragen: Halterlänge + Ausspannlänge
 LAENGE_HALTER = "halter"  # geschätzt: Halterlänge + Gesamtlänge − Spanntiefe
 LAENGE_VORSCHLAG = "vorschlag"  # im vorgeschlagenen Halter: Halterlänge + Auskragung + 5
 LAENGE_GESAMT = "gesamt"  # Gesamtlänge aus der Werkzeugverwaltung, ohne Halter
@@ -184,7 +185,11 @@ class Ergebnis:
     def geschaetzte_laengen(self):
         """Die Werkzeugnummern, deren Länge nicht gemessen ist – alles außer „Länge ab
         Spindelnase“ –, in der Reihenfolge der Operationen."""
-        return [nummer for nummer, quelle in self.laengen.items() if quelle != LAENGE_SPINDELNASE]
+        return [
+            nummer
+            for nummer, quelle in self.laengen.items()
+            if quelle not in (LAENGE_SPINDELNASE, LAENGE_AUSSPANN)
+        ]
 
 
 # --- Texte (ohne Oberfläche) -----------------------------------------------------------
@@ -382,8 +387,8 @@ def werkzeuglaenge(tc, bibliothek):
 
     Aus der Werkzeugverwaltung, wenn das Werkzeug dort steht (wie „Schnittwerte
     in den Job“: über die Kennung, sonst Nummer und Durchmesser): die Länge ab
-    Spindelnase, mit Halter – sonst mit seinem Halter geschätzt (Halterlänge +
-    Gesamtlänge − Spanntiefe), ohne Halter die Gesamtlänge; fehlt auch sie,
+    Spindelnase, mit Halter – sonst Halterlänge + Ausspannlänge, sonst mit seinem Halter
+    geschätzt (Halterlänge + Gesamtlänge − Spanntiefe), ohne Halter die Gesamtlänge; fehlt auch sie,
     geschätzt wie für CAM. Sonst die Länge des CAM-Werkzeugs.
     """
     werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
@@ -401,6 +406,8 @@ def laenge_des_werkzeugs(werkzeug, bibliothek):
     if werkzeug.laenge_spindelnase:
         return werkzeug.laenge_spindelnase, LAENGE_SPINDELNASE
     halter = bibliothek.halter_fuer_pruefung(werkzeug)
+    if werkzeug.ausspannlaenge and halter is not None:
+        return wz.laenge_im_halter(werkzeug, halter), LAENGE_AUSSPANN
     if hl.ist_vorschlag(halter):
         return wz.laenge_mit_vorschlag(werkzeug, halter), LAENGE_VORSCHLAG
     if halter is not None:
@@ -430,8 +437,19 @@ def ausspannen_auf(werkzeug, bibliothek, heraus, mindestens):
     return ziel, laenge + (ziel - heraus)
 
 
-def ausgespannt_text(werkzeug, heraus):
-    """Der graue Satz, nachdem „T1 auf … mm ausspannen“ die Länge ab Spindelnase gesetzt hat."""
+def ausspannen_setzen(werkzeug, laenge, heraus):
+    """„T1 auf … mm ausspannen“ in der Werkzeugverwaltung: Ist die Länge ab Spindelnase gemessen
+    eingetragen, wird sie `laenge` (mm) – sonst die Ausspannlänge `heraus` (mm), so wie man es
+    beim Einspannen misst (P-2026-10-12-113)."""
+    if werkzeug.laenge_spindelnase:
+        werkzeug.laenge_spindelnase = round(float(laenge), 3)
+    else:
+        werkzeug.ausspannlaenge = round(float(heraus), 3)
+
+
+def ausgespannt_text(werkzeug, heraus, laenge):
+    """Der graue Satz, nachdem „T1 auf … mm ausspannen“ die Länge gesetzt hat (ausspannen_setzen):
+    `heraus` so weit steht es jetzt heraus, `laenge` die Länge ab Spindelnase damit (mm)."""
     drin = ""
     if werkzeug.gesamtlaenge:
         drin = tr(
@@ -442,7 +460,7 @@ def ausgespannt_text(werkzeug, heraus):
         "va.halter_ausgespannt",
         werkzeug=f"T{werkzeug.nummer}",
         heraus=einheiten.text(heraus, einheiten.LAENGE, 0),
-        laenge=einheiten.text(werkzeug.laenge_spindelnase, einheiten.LAENGE, 1),
+        laenge=einheiten.text(laenge, einheiten.LAENGE, 1),
         drin=drin,
     )
 

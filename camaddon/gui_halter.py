@@ -415,7 +415,7 @@ class HalterDialog(QtGui.QDialog):
         werkzeug = self.werkzeug if self.werkzeug is not None else _beispielwerkzeug(werkzeuge)
         laenge = 0.0
         if werkzeug is not None:
-            laenge = werkzeug.laenge_spindelnase or wz.laenge_mit_halter(werkzeug, h)
+            laenge = wz.laenge_im_halter(werkzeug, h)
         self.bild.zeige(h, werkzeug, laenge)
         zeile = self._gezeigt.index(h)
         eintrag = self.liste.item(zeile)
@@ -668,6 +668,30 @@ class HalterBild(QtGui.QWidget):
         # Die Aufnahme als Strich.
         maler.setPen(QtGui.QPen(FARBE_SPINDEL, 1.5))
         maler.drawLine(QtCore.QPointF(mitte - halb, nase), QtCore.QPointF(mitte + halb, nase))
+
+        if w is not None:
+            # Wie weit das Werkzeug aus dem Halter schaut – das Maß, das in der Werkstatt zählt
+            # (Herbert im Forum, P-2026-10-12-113): ein Maßstrich neben ihm, die Zahl daneben.
+            seite = max(w.durchmesser, wz.schaft_fuer_cam(w) or w.durchmesser) / 2
+            a, b = bild(punkt(h.laenge, seite)), bild(punkt(self.laenge, seite))
+            versatz, haken = 6.0, 3.0
+            a = QtCore.QPointF(a.x() + quer[0] * versatz, a.y() + quer[1] * versatz)
+            b = QtCore.QPointF(b.x() + quer[0] * versatz, b.y() + quer[1] * versatz)
+            maler.setPen(QtGui.QPen(FARBE_SPINDEL, 1.0))
+            maler.drawLine(a, b)
+            for p in (a, b):
+                maler.drawLine(
+                    QtCore.QPointF(p.x() - quer[0] * haken, p.y() - quer[1] * haken),
+                    QtCore.QPointF(p.x() + quer[0] * haken, p.y() + quer[1] * haken),
+                )
+            zahl = einheiten.text(self.laenge - h.laenge, einheiten.LAENGE, 1)
+            mitte_mass = QtCore.QPointF((a.x() + b.x()) / 2 + 4, (a.y() + b.y()) / 2)
+            hoehe = maler.fontMetrics().height()
+            maler.drawText(
+                QtCore.QRectF(mitte_mass.x(), mitte_mass.y() - hoehe / 2, 60, hoehe),
+                int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter),
+                zahl,
+            )
 
 
 def _vdi_offener_maschinen():

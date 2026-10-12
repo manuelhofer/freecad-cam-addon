@@ -3630,16 +3630,17 @@ class _Block:
         return f'{html.escape(satz, quote=False)} <a href="{verweis}">{html.escape(text)}</a>'
 
     def _hinweis_verweis(self, ziel):
-        """„ausspannen:5:83.000:43“ im roten Satz: die Länge ab Spindelnase von T5 in der
-        Werkzeugverwaltung, gespeichert; der Assistent liest sie neu und rechnet die Vorschau."""
-        art, nummer, laenge, _heraus = (ziel.split(":") + ["", "", ""])[:4]
+        """„ausspannen:5:83.000:43“ im roten Satz: T5 in der Werkzeugverwaltung auf 83 mm ab
+        Spindelnase, 43 mm heraus (rw.ausspannen_setzen), gespeichert; der Assistent liest es neu
+        und rechnet die Vorschau."""
+        art, nummer, laenge, heraus = (ziel.split(":") + ["", "", ""])[:4]
         bibliothek = self.panel.bibliothek
         if art != "ausspannen" or bibliothek is None:
             return
         werkzeug = next((w for w in bibliothek.werkzeuge if w.nummer == int(nummer)), None)
         if werkzeug is None:
             return
-        werkzeug.laenge_spindelnase = round(float(laenge), 3)
+        rw.ausspannen_setzen(werkzeug, float(laenge), float(heraus or 0.0))
         bibliothek.speichern()
         self.panel._werkzeuge_gespeichert()
 

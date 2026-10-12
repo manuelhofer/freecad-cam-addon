@@ -919,16 +919,16 @@ class PruefPanel:
         self.pruefe()
 
     def _werkzeug_ausspannen(self, nummer, laenge, heraus):
-        """„T1 auf … mm ausspannen“ unter den Befunden (gui_kollision): die Länge ab Spindelnase von
-        T`nummer` in der Werkzeugverwaltung auf `laenge` mm, gespeichert; das Fenster rechnet mit
+        """„T1 auf … mm ausspannen“ unter den Befunden (gui_kollision): T`nummer` in der
+        Werkzeugverwaltung auf `laenge` mm ab Spindelnase (rw.ausspannen_setzen), gespeichert; das Fenster rechnet mit
         ihr neu (wie nach dem Speichern in der Werkzeugverwaltung). Gibt den Satz dazu zurück."""
         werkzeuge = self.bibliothek.werkzeuge if self.bibliothek is not None else ()
         werkzeug = next((w for w in werkzeuge if w.nummer == nummer), None)
         if werkzeug is None:
             return ""
-        werkzeug.laenge_spindelnase = round(float(laenge), 3)
+        rw.ausspannen_setzen(werkzeug, laenge, heraus)
         self.bibliothek.speichern()
-        satz = rw.ausgespannt_text(werkzeug, heraus) + " " + tr("kb.ausgespannt_pruefen")
+        satz = rw.ausgespannt_text(werkzeug, heraus, laenge) + " " + tr("kb.ausgespannt_pruefen")
         self._werkzeuge_gespeichert()
         return satz
 

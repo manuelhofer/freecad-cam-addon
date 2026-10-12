@@ -1,12 +1,12 @@
 # Halter (W-002 Stufe D): In der Werkzeugverwaltung ein Werkzeug mit 83 mm
 # Gesamtlänge; neben der Länge ab Spindelnase grau der vorgeschlagene Halter (D-23: Schaft
-# Ø 12 → ER25) und „Halter …“, im leeren Feld „leer: 101 mit ER25“ (70 + Auskragung 26 + 5).
+# Ø 12 → ER25) und „Halter …“, im leeren Feld „leer: geschätzt 101 mit ER25“ (70 + Auskragung 26 + 5).
 # Das Fenster „Halter“ ist leer; „Neu“ → „Spannzangenfutter ER32 · SK40“: die
 # Kontur Flansch Ø63 × 16, Körper Ø50 × 54, „Länge 70,00 mm · größter Ø
 # 63,00 mm“, das Bild zeigt Halter und Werkzeug, über OK „OK: T1 bekommt den
 # Halter …“. Ein Abschnitt dazu (10 mm, Ø 42) macht ihn 80 mm lang, wieder weg
 # 70 mm; Name „SK40 ER32 A70“. OK → das Werkzeug hat den Halter, im leeren Feld
-# steht grau „leer: 113 mit Halter“ (70 + 83 − 40). Abbrechen im Halter-Fenster
+# steht grau „leer: geschätzt 113 mit Halter“ (70 + 83 − 40). Abbrechen im Halter-Fenster
 # verwirft einen neuen Halter. Speichern und neu laden: Halter und Zuordnung
 # sind da. Löschen fragt und nennt T1; danach ist T1 ohne Halter.
 import os
@@ -56,7 +56,7 @@ def schritte(h):
         f"Halter: {d.feld_halter.currentText()}",
     )
     h.pruefe(
-        d.feld_laenge_spindelnase.placeholderText() == "leer: 101 mit ER25",
+        d.feld_laenge_spindelnase.placeholderText() == "leer: geschätzt 101 mit ER25",
         f"Platzhalter ohne Halter: {d.feld_laenge_spindelnase.placeholderText()!r}",
     )
     h.bild("0_vorschlag", d)
@@ -115,10 +115,35 @@ def schritte(h):
     h.pruefe(gui_halter.HalterDialog.offen is None, "Halter-Fenster noch offen")
     h.pruefe(d.feld_halter.currentText() == "SK40 ER32 A70", f"{d.feld_halter.currentText()}")
     h.pruefe(
-        d.feld_laenge_spindelnase.placeholderText() == "leer: 113 mit Halter",
+        d.feld_laenge_spindelnase.placeholderText() == "leer: geschätzt 113 mit Halter",
         f"Platzhalter mit Halter: {d.feld_laenge_spindelnase.placeholderText()!r}",
     )
     h.bild("4_werkzeug_mit_halter", d)
+
+    # Wie weit T1 aus dem Halter schaut (P-2026-10-12-113): grau geschätzt 43 (113 − 70); 25
+    # eingetragen → die Länge ab Spindelnase grau 95 = Halter + heraus, im Bild des Halters das
+    # Maß 25 neben dem Fräser.
+    h.pruefe(
+        d.feld_ausspannlaenge.placeholderText() == "leer: geschätzt 43",
+        f"Ausspannlänge leer: {d.feld_ausspannlaenge.placeholderText()!r}",
+    )
+    tippen(d.feld_ausspannlaenge, "25")
+    yield 300
+    h.pruefe(
+        d.feld_laenge_spindelnase.placeholderText() == "leer: 95 = Halter + heraus",
+        f"mit Ausspannlänge: {d.feld_laenge_spindelnase.placeholderText()!r}",
+    )
+    h.bild("4b_ausspannlaenge", d)
+    QtCore.QTimer.singleShot(0, d.knopf_halter.click)
+    yield 500
+    f = gui_halter.HalterDialog.offen
+    h.pruefe(f is not None and abs(f.bild.laenge - 95) < 1e-6, "Halter-Bild nicht mit 95")
+    if f is not None:
+        h.bild("4c_halter_mit_mass", f)
+        f.knoepfe.button(QtGui.QDialogButtonBox.Cancel).click()
+    yield 300
+    d.werkzeug.ausspannlaenge = 0.0
+    d._felder_fuellen()
 
     # Abbrechen verwirft: ein neuer Halter kommt nicht an.
     QtCore.QTimer.singleShot(0, d.knopf_halter.click)

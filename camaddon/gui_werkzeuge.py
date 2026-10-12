@@ -45,7 +45,7 @@ GROESSTE_SCHNEIDENZAHL = 20
 SYMBOL_GROESSE = 16  # Pixel, Kästchen mit dem ISO-Buchstaben
 # Felder mit Längen – gezeigt in mm oder inch, gespeichert in mm.
 # Felder mit Längeneinheit (mm oder in): die Maße der Arten und die Länge ab Spindelnase.
-LAENGEN = (*wz.LAENGEN_FELDER, "laenge_spindelnase")
+LAENGEN = (*wz.LAENGEN_FELDER, "laenge_spindelnase", "ausspannlaenge")
 
 # Farben der ISO-Gruppen, wie auf Wendeplatten-Schachteln und in Katalogen:
 # (Hintergrund, Schrift).
@@ -458,6 +458,13 @@ class WerkzeugDialog(QtGui.QDialog):
         self.beschriftung_laenge_spindelnase = QtGui.QLabel(tr("wv.laenge_spindelnase"))
         self.beschriftung_laenge_spindelnase.setToolTip(tr("wv.laenge_spindelnase.tooltip"))
         self.zeile_laenge_spindelnase = self._mit_laenge(eingabe)
+        # Daneben, wie weit es aus dem Halter schaut – je Werkzeug, in einer Spannzange steckt
+        # jedes anders tief (P-2026-10-12-113). Eins von beiden genügt, grau steht das andere.
+        eingabe = self._zahlenfeld(tr("wv.ausspannlaenge.tooltip"), "ausspannlaenge")
+        self._zahlenfelder["ausspannlaenge"] = eingabe
+        self.beschriftung_ausspannlaenge = QtGui.QLabel(tr("wv.ausspannlaenge"))
+        self.beschriftung_ausspannlaenge.setToolTip(tr("wv.ausspannlaenge.tooltip"))
+        self.zeile_ausspannlaenge = self._mit_laenge(eingabe)
         # Daneben der Halter (W-002 Stufe D): Auswahl und „Halter …“ für das Fenster.
         self.feld_halter = QtGui.QComboBox()
         self.feld_halter.setToolTip(tr("wv.halter.tooltip"))
@@ -811,6 +818,8 @@ class WerkzeugDialog(QtGui.QDialog):
         for widget in (
             self.beschriftung_laenge_spindelnase,
             self.zeile_laenge_spindelnase,
+            self.beschriftung_ausspannlaenge,
+            self.zeile_ausspannlaenge,
             self.beschriftung_halter,
             self.zeile_halter,
             self.beschriftung_bezeichnung,
@@ -838,6 +847,8 @@ class WerkzeugDialog(QtGui.QDialog):
         unten = 2 + (len(daten.felder) + 1) // 2
         gitter.addWidget(self.beschriftung_laenge_spindelnase, unten, 0)
         gitter.addWidget(self.zeile_laenge_spindelnase, unten, 1)
+        gitter.addWidget(self.beschriftung_ausspannlaenge, unten, 2)
+        gitter.addWidget(self.zeile_ausspannlaenge, unten, 3)
         # Der Halter über die ganze Breite – Namen wie „Spannzangenfutter ER32 · SK40“.
         gitter.addWidget(self.beschriftung_halter, unten + 1, 0)
         gitter.addWidget(self.zeile_halter, unten + 1, 1, 1, 3)
@@ -851,6 +862,21 @@ class WerkzeugDialog(QtGui.QDialog):
         gitter.addWidget(self.beispiel_hinweis, unten + 5, 0, 1, 4)
         gitter.addWidget(self.hinweis, unten + 6, 0, 1, 4)
         gitter.addWidget(self.werkzeugbild, 0, 4, unten + 7, 1, QtCore.Qt.AlignTop)
+
+    @staticmethod
+    def _ausspann_platzhalter(w, halter):
+        """Grau im leeren Feld „Schaut aus dem Halter“: aus der gemessenen Länge ab Spindelnase
+        gerechnet, sonst geschätzt (Gesamtlänge − Spanntiefe) – als geschätzt benannt."""
+        if w is None or halter is None:
+            return tr("feld.unbekannt")
+        if w.laenge_spindelnase:
+            wert = max(w.laenge_spindelnase - halter.laenge, 0.0)
+            return tr("wv.ausspannlaenge.platzhalter", wert=groesse_zeigen(wert, einheiten.LAENGE))
+        if hl.ist_vorschlag(halter):
+            wert = wz.laenge_mit_vorschlag(w, halter) - halter.laenge
+        else:
+            wert = wz.laenge_mit_halter(w, halter) - halter.laenge
+        return tr("wv.ausspannlaenge.geschaetzt", wert=groesse_zeigen(wert, einheiten.LAENGE))
 
     def _beispielfelder(self):
         return {
@@ -901,7 +927,13 @@ class WerkzeugDialog(QtGui.QDialog):
         halter = self.bibliothek.halter_fuer_pruefung(w) if w is not None else None
         gesamt = (w.gesamtlaenge or wz.geschaetzte_laenge(w)) if w is not None else 0.0
         self._halter_ohne_beschriften(halter)
-        if hl.ist_vorschlag(halter):
+        if w is not None and w.ausspannlaenge and halter is not None:
+            # Aus der Ausspannlänge: eingetragen, nicht geschätzt.
+            platzhalter = tr(
+                "wv.laenge_spindelnase.platzhalter_ausspann",
+                wert=groesse_zeigen(wz.laenge_im_halter(w, halter), einheiten.LAENGE),
+            )
+        elif hl.ist_vorschlag(halter):
             platzhalter = tr(
                 "wv.laenge_spindelnase.platzhalter_vorschlag",
                 wert=groesse_zeigen(wz.laenge_mit_vorschlag(w, halter), einheiten.LAENGE),
@@ -919,6 +951,7 @@ class WerkzeugDialog(QtGui.QDialog):
         else:
             platzhalter = tr("feld.unbekannt")
         self.feld_laenge_spindelnase.setPlaceholderText(platzhalter)
+        self.feld_ausspannlaenge.setPlaceholderText(self._ausspann_platzhalter(w, halter))
         # Beim gewinkelten Halter zählt die Länge ab seinem Bezugspunkt (W-002 Stufe E).
         gewinkelt = halter is not None and halter.gewinkelt
         self.beschriftung_laenge_spindelnase.setText(

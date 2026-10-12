@@ -47,7 +47,8 @@ _WERKZEUGFELDER = {f.name for f in fields(wz.Werkzeug)} | {"auskragung"}
 # Felder des Werkzeugs, die eine Datei nicht setzt (sie kommen aus der Reihe oder gehören dem Benutzer).
 _NICHT_AUS_DATEI = {
     "kennung", "nummer", "art", "schnittwerte", "beispiel", "name", "bezeichnung", "hersteller",
-    "artikel", "link", "katalog", "halter", "laenge_spindelnase", "ae_warngrenze",
+    "artikel", "link", "katalog", "halter", "laenge_spindelnase", "ausspannlaenge",
+    "ae_warngrenze",
 }  # fmt: skip
 _TEXTE = ("artikel", "name", "link", "beschichtung", "schneidstoff", "ausfuehrung", "drehrichtung")
 _ANDERE_NAMEN = {"auskraglaenge": "auskragung", "nutzlaenge": "auskragung", "zaehne": "schneiden"}

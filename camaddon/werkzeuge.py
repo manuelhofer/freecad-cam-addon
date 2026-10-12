@@ -417,6 +417,11 @@ class Werkzeug:
     # für „Auf der Maschine prüfen“ (reichweite.py). 0 = nicht gemessen: mit Halter
     # geschätzt (laenge_mit_halter), ohne die Gesamtlänge.
     laenge_spindelnase: float = 0.0  # mm
+    # So weit schaut das Werkzeug aus dem Halter heraus (Ausspannlänge) – je Werkzeug, denn in
+    # einer Spannzange steckt jedes anders tief (Herbert im Forum, Manuel 2026-10-12). Ohne
+    # gemessene Länge ab Spindelnase gilt dann Halterlänge + Ausspannlänge (laenge_im_halter);
+    # 0 = nicht eingetragen.
+    ausspannlaenge: float = 0.0  # mm
     # Kennung des Halters (halter.Halter in Bibliothek.halter); leer = keiner bekannt.
     halter: str = ""
     schaft: float = 0.0  # Schaftdurchmesser, mm
@@ -562,6 +567,7 @@ class Werkzeug:
             "eckradius": self.eckradius,
             "gesamtlaenge": self.gesamtlaenge,
             "laenge_spindelnase": self.laenge_spindelnase,
+            "ausspannlaenge": self.ausspannlaenge,
             "halter": self.halter,
             "schaft": self.schaft,
             "eintauchwinkel": self.eintauchwinkel,
@@ -604,6 +610,8 @@ class Werkzeug:
         w.schaft = max(_zahl(daten.get("schaft"), float, 0.0), 0.0)
         # Erst seit P-2026-09-26-86 – fehlt sie, gilt die Gesamtlänge.
         w.laenge_spindelnase = max(_zahl(daten.get("laenge_spindelnase"), float, 0.0), 0.0)
+        # Erst seit P-2026-10-12-113 – fehlt sie, gilt, was die Länge ab Spindelnase sagt.
+        w.ausspannlaenge = max(_zahl(daten.get("ausspannlaenge"), float, 0.0), 0.0)
         # Erst seit P-2026-09-26-94 – fehlt er, hat das Werkzeug keinen Halter.
         w.halter = str(daten.get("halter") or "")
         w.eintauchwinkel = min(max(_zahl(daten.get("eintauchwinkel"), float, 0.0), 0.0), 90.0)
@@ -751,6 +759,16 @@ def laenge_mit_halter(werkzeug, halter):
     − Spanntiefe, mindestens Halterlänge + Reichweite (Schneide und Hals) – in mm."""
     stueck = laenge_fuer_cam(werkzeug) - halter.spanntiefe
     return halter.laenge + max(stueck, reichweite(werkzeug))
+
+
+def laenge_im_halter(werkzeug, halter):
+    """Die Länge ab Spindelnase (beim gewinkelten Halter ab Bezugspunkt) im Halter `halter`, in
+    mm: gemessen, sonst Halterlänge + Ausspannlänge, sonst geschätzt (laenge_mit_halter)."""
+    if werkzeug.laenge_spindelnase:
+        return werkzeug.laenge_spindelnase
+    if werkzeug.ausspannlaenge:
+        return halter.laenge + werkzeug.ausspannlaenge
+    return laenge_mit_halter(werkzeug, halter)
 
 
 def laenge_mit_vorschlag(werkzeug, halter):
@@ -1607,12 +1625,13 @@ class Bibliothek:
         return hl.vorschlag(schaft_fuer_cam(werkzeug))
 
     def laenge_ab_spindelnase(self, werkzeug):
-        """Die Länge ab Spindelnase in mm: gemessen, sonst mit Halter geschätzt – ohne Halter
-        0 (dann rechnet, wer sie braucht, mit der Gesamtlänge)."""
+        """Die Länge ab Spindelnase in mm: gemessen, sonst Halterlänge + Ausspannlänge, sonst mit
+        Halter geschätzt (laenge_im_halter) – ohne Halter 0 (dann rechnet, wer sie braucht, mit
+        der Gesamtlänge)."""
         if werkzeug.laenge_spindelnase:
             return werkzeug.laenge_spindelnase
         halter = self.halter_von(werkzeug)
-        return laenge_mit_halter(werkzeug, halter) if halter is not None else 0.0
+        return laenge_im_halter(werkzeug, halter) if halter is not None else 0.0
 
     def neuer_halter(self, vorlage=None, vdi=None):
         """Legt einen Halter an – leer oder aus einer Vorlage (halter.VORLAGEN); `vdi`: die

@@ -196,6 +196,15 @@ pruefe(nahe(b.laenge_ab_spindelnase(t1), 113), "Länge ab Spindelnase mit Halter
 t1.laenge_spindelnase = 120
 pruefe(nahe(b.laenge_ab_spindelnase(t1), 120), "gemessen gilt")
 t1.laenge_spindelnase = 0
+# Wie weit es aus dem Halter schaut (P-2026-10-12-113): Halterlänge + Ausspannlänge, je Werkzeug –
+# die Spanntiefe des Halters zählt dann nicht; gemessen gilt weiter vor allem.
+t1.ausspannlaenge = 25
+pruefe(
+    nahe(b.laenge_ab_spindelnase(t1), 70 + 25), f"mit Ausspannlänge: {b.laenge_ab_spindelnase(t1)}"
+)
+t1.laenge_spindelnase = 120
+pruefe(nahe(b.laenge_ab_spindelnase(t1), 120), "gemessen vor Ausspannlänge")
+t1.laenge_spindelnase, t1.ausspannlaenge = 0, 0
 kurz = wz.Werkzeug(durchmesser=12, schneidenlaenge=26, gesamtlaenge=40)
 pruefe(nahe(wz.laenge_mit_halter(kurz, a), 70 + 26), "mindestens bis zur Reichweite")
 pruefe(b.laenge_ab_spindelnase(wz.Werkzeug(gesamtlaenge=83)) == 0, "ohne Halter 0")
