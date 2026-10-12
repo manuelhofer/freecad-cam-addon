@@ -179,6 +179,32 @@ def gewaehltes_netz(dokument):
     )
 
 
+def stl_angebot(dokument, titel):
+    """Ist nichts gewählt und liegt im Dokument genau ein Körper aus einem STL – oder ohne ihn
+    genau ein Netz –, fragt es, ob man ihn bearbeiten will (Manuel, 2026-10-12: „hey, da ist ein
+    STL geöffnet … vielleicht will der Bediener ja die in 4 Achsen bearbeiten, also frag ich
+    mal“ – ohne Auswahl ließ sich im Assistenten nichts anklicken, ein Netz hat keine Flächen).
+    Gibt das Netz oder den Körper zurück – None ohne Angebot oder mit „Nein“."""
+    if FreeCADGui.Selection.getSelection(dokument.Name):
+        return None
+    koerper = [o for o in dokument.Objects if stl_teil.aus_stl(o)]
+    netze = [o for o in dokument.Objects if stl_teil.ist_netz(o)]
+    if len(koerper) == 1:
+        angebot = koerper[0]
+    elif not koerper and len(netze) == 1:
+        angebot = netze[0]
+    else:
+        return None
+    antwort = QtGui.QMessageBox.question(
+        FreeCADGui.getMainWindow(),
+        titel,
+        tr("stl.angebot", name=angebot.Label),
+        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+        QtGui.QMessageBox.Yes,
+    )
+    return angebot if antwort == QtGui.QMessageBox.Yes else None
+
+
 def teil_aus_netz(dokument, netzobjekt, frage=True, n_eck=False):
     """Der Körper zum Netz: einer, der schon daraus gemacht ist, sonst – nach dem Fenster (`frage`)
     – ein neuer (ein Schritt Rückgängig). None, wenn man abbricht oder es nicht geht (die Meldung

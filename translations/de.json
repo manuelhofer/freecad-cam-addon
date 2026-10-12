@@ -2803,5 +2803,6 @@
     "vr.umstellen.fehler": "Der Job sieht nicht mehr so aus, wie die 4-Achs-Bearbeitung ihn angelegt hat – die Stange lässt sich nicht umstellen. Den Job im Assistenten neu anlegen.",
     "rw.achse.anders": "Der Job dreht die Stange um {job}, diese Maschine um {maschine} – so liegt die Stange nicht im Futter, und die 4-Achs-Operationen fallen aus.",
     "rw.achse.umstellen": "Auf {maschine} umstellen",
-    "rw.achse.umstellen.tooltip": "Legt das Teil für die Rundachse dieser Maschine neu in die Stange (Stirnfläche, Mitte, Drehlage und Stange bleiben) und rechnet die 4-Achs-Operationen damit neu – ein Schritt Rückgängig."
+    "rw.achse.umstellen.tooltip": "Legt das Teil für die Rundachse dieser Maschine neu in die Stange (Stirnfläche, Mitte, Drehlage und Stange bleiben) und rechnet die 4-Achs-Operationen damit neu – ein Schritt Rückgängig.",
+    "stl.angebot": "Im Dokument liegt das STL „{name}“, aber nichts ist gewählt. Soll es das sein?"
 }

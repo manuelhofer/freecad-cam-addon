@@ -158,6 +158,11 @@ def schritte(h):
     yield from h.warte_auf(lambda: panel._rechnet.zu_sehen, 5000)
     h.pruefe(panel._rechnet.zu_sehen, "kein Zeichen, dass gerechnet wird")
     h.pruefe(panel.rechnet.text().endswith("rechnet …"), f"Zeichen: {panel.rechnet.text()!r}")
+    # Neben „Anlegen“ dreht sich ein Rad, „Anlegen“ oben und unten ist so lange grau.
+    h.pruefe(not panel.rad_unten.isHidden(), "kein Rad neben „Anlegen“ unten")
+    oben = panel.knopf_anlegen()
+    h.pruefe(oben is not None and not oben.isEnabled(), "„Anlegen“ oben bedienbar beim Rechnen")
+    h.pruefe(not panel.knopf_fertig.isEnabled(), "„Anlegen“ unten bedienbar beim Rechnen")
     h.bild("4a_rechnet", panel.form)
     h.bild("4b_rechnet_statusleiste")
     yield from h.warte_auf(
@@ -167,6 +172,8 @@ def schritte(h):
     yield from h.warte_auf(lambda: not panel.rechnet_noch(), 240000)
     yield 400
     h.pruefe(not panel._rechnet.zu_sehen, "Zeichen bleibt nach dem Rechnen")
+    h.pruefe(panel.rad_unten.isHidden(), "Rad dreht nach dem Rechnen weiter")
+    h.pruefe(panel.knopf_fertig.isEnabled(), "„Anlegen“ bleibt nach dem Rechnen grau")
     h.pruefe(panel.vorschau is not None, "keine Vorschau Schruppen")
     h.pruefe(panel.vorschau_schlichten is not None, "keine Vorschau Schlichten")
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")

@@ -555,6 +555,15 @@ class BefehlBearbeitung:
         from . import gui_stl
 
         netz = gui_stl.gewaehltes_netz(dokument)
+        if netz is None:  # nichts gewählt, aber ein STL im Dokument: fragen, ob es das sein soll
+            angebot = gui_stl.stl_angebot(dokument, tr("ba.titel"))
+            if angebot is not None and gui_stl.stl_teil.ist_netz(angebot):
+                netz = angebot
+            elif angebot is not None:
+                FreeCADGui.Control.showDialog(
+                    BearbeitungPanel(dokument, (angebot, None), angeklickt=angebot)
+                )
+                return
         if netz is not None:
             # Ein STL (W-017): erst der Körper aus seinen Dreiecken – Maßstab im Fenster davor, dazu
             # das Rohteil: wie bisher oder eine N-Eck-Stange im Schraubstock (W-018).
@@ -635,6 +644,12 @@ class _Beobachter:
         self.panel = panel
 
     def addSelection(self, _dokument, objekt, unterelement, punkt):
+        from .gui_hilfe import lebt
+
+        if not lebt(self.panel):  # das Fenster ist weg: abmelden statt ins Leere zu rufen
+            with contextlib.suppress(Exception):
+                FreeCADGui.Selection.removeObserver(self)
+            return
         if not unterelement:
             return
         # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert das Dokument.
@@ -649,6 +664,12 @@ class _NurFlaechen:
         self.panel = panel
 
     def allow(self, _dokument, objekt, unterelement):
+        from .gui_hilfe import lebt
+
+        if not lebt(self.panel):  # das Fenster ist weg: die Sperre auch
+            with contextlib.suppress(Exception):
+                FreeCADGui.Selection.removeSelectionGate()
+            return True
         weg = unterelement.split(".") if unterelement else []
         if not weg or not weg[-1].startswith(("Face", "Edge")):
             return False
@@ -3995,8 +4016,14 @@ class BearbeitungPanel:
         from . import gui_rechnet
 
         self._rechnet = gui_rechnet.Anzeige(
-            self.rechnet, lambda: not self.geschlossen and self.vorschau_laeuft()
+            self.rechnet,
+            lambda: not self.geschlossen and self.vorschau_laeuft(),
+            bei_wechsel=self._knoepfe_beschriften,
         )
+        self._rechnet.rad(self.rad_unten)
+        # Räumt FreeCAD das Fenster ohne „Abbrechen“ weg (das Dokument zu), hier aufräumen – sonst
+        # riefen Beobachter und Uhren ins Leere (Manuel, 2026-10-12: „deleted object“).
+        self.form.destroyed.connect(lambda *_a: self._verschwunden())
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
         self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
         self.restraeumen = next(b for b in self.bloecke if b.s.kennung == "restraeumen")
@@ -4410,6 +4437,10 @@ class BearbeitungPanel:
         # Dasselbe wie „OK“ der Aufgabe: „Anlegen“, beim Ändern „Übernehmen“.
         self.knopf_fertig = knopf(tr("va.anlegen"), tr("ba.anlegen.tooltip"), self.accept)
         self.knopf_fertig.hide()
+        from . import gui_rechnet
+
+        self.rad_unten = gui_rechnet.Rad()  # dreht, solange gerechnet wird
+        knoepfe.addWidget(self.rad_unten)
         knoepfe.addWidget(self.knopf_fertig)
         aufbau.addWidget(zeile)
         self._seite = 0
@@ -4483,6 +4514,8 @@ class BearbeitungPanel:
 
     def modifyStandardButtons(self, knoepfe):
         self._knoepfe = knoepfe
+        with contextlib.suppress(Exception):  # links neben den Knöpfen: das Rad (gui_rechnet)
+            knoepfe.layout().insertWidget(0, self._rechnet.rad())
         self._knoepfe_beschriften()
 
     def knopf_anlegen(self):
@@ -4493,6 +4526,9 @@ class BearbeitungPanel:
     def _knoepfe_beschriften(self):
         aendern = self.zu_aendern is not None
         geht = self.job is not None and self._kann_anlegen()
+        anzeige = getattr(self, "_rechnet", None)
+        if anzeige is not None and anzeige.an:
+            geht = False  # solange gerechnet wird (gui_rechnet; Manuel, 2026-10-12)
         unten = getattr(self, "knopf_fertig", None)
         for knopf_ in (self.knopf_anlegen(), unten):
             if knopf_ is None:
@@ -4591,6 +4627,13 @@ class BearbeitungPanel:
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
         return True
+
+    def _verschwunden(self):
+        """Das Fenster ist weg, ohne dass es geschlossen wurde: aufräumen wie beim Schließen."""
+        if not self.geschlossen:
+            with contextlib.suppress(Exception):
+                self._vor_dem_schliessen()
+            self.geschlossen = True
 
     def _vor_dem_schliessen(self):
         BearbeitungPanel.offen = None

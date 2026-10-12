@@ -9,8 +9,8 @@ was gerechnet wird“.
 `Anzeige` fragt im Takt, ob der Assistent noch rechnet (eine Funktion, die er mitgibt): Solange
 ja, steht oben im Fenster ein Zeichen, das sich dreht, mit „rechnet …“, und unten in der
 Statusleiste von FreeCAD ein Balken ohne Ende – die ist immer zu sehen, auch wenn das Fenster
-weiter unten steht. „Anlegen“ bleibt bedienbar (Manuel: kein Befehl grau, weil etwas fehlt) –
-es rechnet ohnehin selbst zu Ende.
+weiter unten steht –, und neben „Anlegen“ oben und unten dreht sich ein Rad, „Anlegen“ ist so lange
+grau (Manuel, 2026-10-12: „Anlegen oben und unten sollte ausgegraut werden, solange“).
 """
 
 import FreeCADGui
@@ -20,17 +20,50 @@ from . import farben
 from .sprache import tr
 
 ZEICHEN = "◐◓◑◒"
-TAKT_MS = 150
+TAKT_MS = 100
+RAD_SCHRITT = 36  # Grad je Takt – eine Umdrehung in einer Sekunde
 ERST_NACH_MS = 300  # so lange muss es rechnen, bevor das Zeichen erscheint – kein Flackern
 
 
-class Anzeige:
-    """Das Zeichen im Etikett `etikett` (ein QLabel im Fenster, anfangs verborgen) und der Balken
-    in der Statusleiste, solange `laeuft()` wahr ist. `ende()` beim Schließen des Fensters."""
+class Rad(QtGui.QWidget):
+    """Ein Kreis, der sich dreht, solange gerechnet wird – ein Bogen, der umläuft, neben
+    „Anlegen“ (Manuel, 2026-10-12: „der Streifen unten rechts ist zu unauffällig … neben Anlegen
+    ein sich drehender Kreis, damit man es sehen kann, wenn man auf Anlegen klicken will“)."""
 
-    def __init__(self, etikett, laeuft):
+    def __init__(self, groesse=20):
+        super().__init__()
+        self.setFixedSize(groesse, groesse)
+        self.setToolTip(tr("re.rechnet.tooltip"))
+        self._winkel = 0
+        self.hide()
+
+    def weiter(self):
+        self._winkel = (self._winkel + RAD_SCHRITT) % 360
+        self.update()
+
+    def paintEvent(self, _ereignis):  # noqa: N802 – Qt
+        maler = QtGui.QPainter(self)
+        maler.setRenderHint(QtGui.QPainter.Antialiasing)
+        stift = QtGui.QPen(self.palette().color(QtGui.QPalette.Highlight))
+        stift.setWidth(3)
+        stift.setCapStyle(QtCore.Qt.RoundCap)
+        maler.setPen(stift)
+        maler.drawArc(self.rect().adjusted(3, 3, -3, -3), -self._winkel * 16, 270 * 16)
+        maler.end()
+
+
+class Anzeige:
+    """Das Zeichen im Etikett `etikett` (ein QLabel im Fenster, anfangs verborgen), die Räder
+    (rad()) und der Balken in der Statusleiste, solange `laeuft()` wahr ist; `bei_wechsel()`,
+    wenn es zu rechnen beginnt oder aufhört (der Assistent sperrt dann „Anlegen“ – `an`).
+    `ende()` beim Schließen des Fensters."""
+
+    def __init__(self, etikett, laeuft, bei_wechsel=None):
         self.etikett = etikett
         self.laeuft = laeuft
+        self.bei_wechsel = bei_wechsel
+        self.an = False
+        self._raeder = []
         self._zeichen = 0
         self._seit = 0
         self._balken = None
@@ -43,6 +76,12 @@ class Anzeige:
 
     def _takt(self):
         try:
+            self._takt_zeigen()
+        except RuntimeError:  # das Fenster ist weg (ohne „Abbrechen“ zu): nicht weiter ticken
+            self.ende()
+
+    def _takt_zeigen(self):
+        try:
             an = bool(self.laeuft())
         except Exception:  # noqa: BLE001 – ein Fehler hier darf das Fenster nicht stören
             an = False
@@ -52,10 +91,29 @@ class Anzeige:
             self.etikett.setText(f"{ZEICHEN[self._zeichen]}  {tr('re.rechnet')}")
             self.etikett.setToolTip(tr("re.rechnet.tooltip"))
             self.etikett.show()
+            for rad in self._raeder:
+                rad.show()
+                rad.weiter()
             self._balken_zeigen(True)
+            self._wechsel(True)
         elif not an:
             self.etikett.hide()
+            for rad in self._raeder:
+                rad.hide()
             self._balken_zeigen(False)
+            self._wechsel(False)
+
+    def _wechsel(self, an):
+        if an != self.an:
+            self.an = an
+            if self.bei_wechsel is not None:
+                self.bei_wechsel()
+
+    def rad(self, rad=None):
+        """Ein Rad (für neben „Anlegen“), das mit dieser Anzeige dreht – ein neues oder `rad`."""
+        rad = rad if rad is not None else Rad()
+        self._raeder.append(rad)
+        return rad
 
     def _balken_zeigen(self, an):
         try:
@@ -85,4 +143,7 @@ class Anzeige:
     def ende(self):
         """Beim Schließen: die Uhr aus, der Balken weg."""
         self._uhr.stop()
-        self._balken_zeigen(False)
+        try:
+            self._balken_zeigen(False)
+        except RuntimeError:  # der Balken ist schon weg
+            self._balken = None

@@ -2803,5 +2803,6 @@
     "vr.umstellen.fehler": "The job no longer looks the way 4-axis machining created it – the bar cannot be turned. Create the job again in the wizard.",
     "rw.achse.anders": "The job turns the bar about {job}, this machine about {maschine} – so the bar does not sit in the chuck, and the 4-axis operations are skipped.",
     "rw.achse.umstellen": "Switch to {maschine}",
-    "rw.achse.umstellen.tooltip": "Puts the part into the bar again for this machine’s rotary axis (front face, centre, rotation and bar stay) and recomputes the 4-axis operations with it – one undo step."
+    "rw.achse.umstellen.tooltip": "Puts the part into the bar again for this machine’s rotary axis (front face, centre, rotation and bar stay) and recomputes the 4-axis operations with it – one undo step.",
+    "stl.angebot": "The document holds the STL “{name}”, but nothing is selected. Use it?"
 }

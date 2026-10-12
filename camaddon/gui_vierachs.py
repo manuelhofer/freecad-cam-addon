@@ -239,12 +239,19 @@ class BefehlVierachs:
         from . import gui_stl
 
         netz = gui_stl.gewaehltes_netz(dokument)
+        angebot = None
+        if netz is None:  # nichts gewählt, aber ein STL im Dokument: fragen, ob es das sein soll
+            angebot = gui_stl.stl_angebot(dokument, tr("va.titel"))
+            if angebot is not None and stl_teil.ist_netz(angebot):
+                netz, angebot = angebot, None
         if netz is not None:
             # Ein STL (W-017): erst der Körper aus seinen Dreiecken – Maßstab im Fenster davor.
             teil = gui_stl.teil_aus_netz(dokument, netz)
             if teil is None:
                 return
             wahl = (teil, None)
+        elif angebot is not None:
+            wahl = (angebot, None)
         else:
             wahl = gewaehlte_flaeche(dokument)
         # Die Transaktion öffnet der Assistent, wenn er den Job anlegt (_neuer_job).
@@ -409,6 +416,12 @@ class _Beobachter:
         self.panel = panel
 
     def addSelection(self, _dokument, objekt, unterelement, punkt):
+        from .gui_hilfe import lebt
+
+        if not lebt(self.panel):  # das Fenster ist weg: abmelden statt ins Leere zu rufen
+            with contextlib.suppress(Exception):
+                FreeCADGui.Selection.removeObserver(self)
+            return
         if not unterelement:
             return
         # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert dabei das
@@ -428,6 +441,12 @@ class _NurFlaechen:
         self.panel = panel
 
     def allow(self, _dokument, objekt, unterelement):
+        from .gui_hilfe import lebt
+
+        if not lebt(self.panel):  # das Fenster ist weg: die Sperre auch
+            with contextlib.suppress(Exception):
+                FreeCADGui.Selection.removeSelectionGate()
+            return True
         weg = unterelement.split(".") if unterelement else []
         if not weg or not weg[-1].startswith("Face"):
             return False
@@ -623,7 +642,13 @@ class VierachsPanel:
         self._vorschau_ergebnisse = {}
         self._vorschau_gruende = {}
         self.form = self._baue()
-        self._rechnet = gui_rechnet.Anzeige(self.rechnet, self.rechnet_noch)
+        self._rechnet = gui_rechnet.Anzeige(
+            self.rechnet, self.rechnet_noch, bei_wechsel=self._knoepfe_beschriften
+        )
+        self._rechnet.rad(self.rad_unten)
+        # Räumt FreeCAD das Fenster ohne „Abbrechen“ weg (das Dokument zu), hier aufräumen – sonst
+        # riefen Beobachter und Uhren ins Leere (Manuel, 2026-10-12: „deleted object“).
+        self.form.destroyed.connect(lambda *_a: self._verschwunden())
         self._beobachter = None
         if operation is not None:
             self._zum_aendern()
@@ -791,9 +816,10 @@ class VierachsPanel:
             self.vermessung, self.achse(), self.mitte, einstellung.drehlage, stange.durchmesser
         )
         self._stange_jetzt = stange
-        self._beobachter = _Beobachter(self)
-        FreeCADGui.Selection.addObserver(self._beobachter)
-        FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
+        if self._beobachter is None:  # sonst hinge der erste beim Schließen weiter an FreeCAD
+            self._beobachter = _Beobachter(self)
+            FreeCADGui.Selection.addObserver(self._beobachter)
+            FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
 
     def _achse_waehlen(self, achse):
         """Beim Ändern: Maschine und Rundachse, mit denen die Operation rechnet – Buchstabe,
@@ -916,11 +942,14 @@ class VierachsPanel:
         CAM macht es ebenso (Path.Op.Gui.Base.TaskPanel).
         """
         self._knoepfe = knoepfe
+        with contextlib.suppress(Exception):  # links neben den Knöpfen: das Rad (gui_rechnet)
+            knoepfe.layout().insertWidget(0, self._rechnet.rad())
         self._knoepfe_beschriften()
 
     def _knoepfe_beschriften(self):
         """OK oben und der Knopf unten rechts sagen dasselbe: in Schritt 1 „Weiter“, in Schritt 2
-        „Anlegen“ oder „Übernehmen“ – und sind zusammen gesperrt oder frei."""
+        „Anlegen“ oder „Übernehmen“ – und sind zusammen gesperrt oder frei; gesperrt auch,
+        solange gerechnet wird (gui_rechnet)."""
         ok = self.knopf_anlegen()
         if self.seite == 1:
             text, tooltip = tr("va.weiter"), tr("va.weiter.tooltip")
@@ -933,6 +962,9 @@ class VierachsPanel:
                 text, tooltip = tr("va.anlegen"), tr("va.anlegen.tooltip")
             frei = self.job is not None and self._kann_anlegen()
             unten = getattr(self, "knopf_fertig", None)
+        anzeige = getattr(self, "_rechnet", None)
+        if anzeige is not None and anzeige.an:
+            frei = False
         for k in (ok, unten):
             if k is None:
                 continue
@@ -1032,6 +1064,13 @@ class VierachsPanel:
             or any(not a.erledigt for a in self._vorschau_auftraege.values())
             or (rest is not None and not rest.erledigt)
         )
+
+    def _verschwunden(self):
+        """Das Fenster ist weg, ohne dass es geschlossen wurde: aufräumen wie beim Schließen."""
+        if not self.geschlossen:
+            with contextlib.suppress(Exception):
+                self._vor_dem_schliessen()
+            self.geschlossen = True
 
     def _vor_dem_schliessen(self):
         """Bewegung anhalten, Auswahl-Hilfen abmelden."""
@@ -1648,6 +1687,8 @@ class VierachsPanel:
         zeile = QtGui.QHBoxLayout()
         zeile.addWidget(self.knopf_zurueck)
         zeile.addStretch()
+        self.rad_unten = gui_rechnet.Rad()  # dreht, solange gerechnet wird (gui_rechnet)
+        zeile.addWidget(self.rad_unten)
         zeile.addWidget(self.knopf_fertig)
         aufbau.addLayout(zeile)
         aufbau.addStretch()

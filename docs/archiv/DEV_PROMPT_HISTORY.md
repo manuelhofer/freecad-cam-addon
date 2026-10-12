@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-139 rad-neben-anlegen-stl-angebot-beobachter
+
+### EINGELESEN
+- Manuel (2026-10-12): „unten rechts der Streifen ist zu unauffällig … neben Anlegen ein sich
+  drehender Kreis … und Anlegen oben und unten sollte ausgegraut werden, solange“.
+- „den Geist geöffnet (reines STL) und auf 4-Achs gedrückt – jetzt kann ich nix anklicken, weil
+  ich erst den Geist anklicken muss … da sollten wir was zum Fangen einbauen … frag ich mal, ob er
+  das will“.
+- Bild: eine Liste „ReferenceError: Cannot access attribute ‚Name‘ of deleted object“ aus
+  `gui_vierachs` – „gemacht hat er es trotzdem“. Nachgestellt: Wird das Dokument geschlossen,
+  während ein Assistent offen ist, räumt FreeCAD dessen Fenster weg, ohne „Abbrechen“ – Beobachter
+  der Auswahl, die Sperre „nur Flächen“ und die Uhren blieben und riefen ins Leere.
+
+### DATEIEN
+- `camaddon/gui_rechnet.py`: `Rad` (ein umlaufender Bogen in der Hervorhebungsfarbe); `Anzeige`
+  mit `rad()`, `an` und `bei_wechsel` – der Assistent sperrt „Anlegen“, solange gerechnet wird;
+  verschwindet das Fenster, hört die Uhr auf.
+- `camaddon/gui_vierachs.py`, `camaddon/gui_bearbeitung.py`: das Rad links neben den Knöpfen oben
+  und neben „Anlegen“ unten; `_knoepfe_beschriften` sperrt beim Rechnen; `form.destroyed` →
+  `_verschwunden` räumt auf wie beim Schließen; Beobachter und Sperre melden sich selbst ab, wenn
+  ihr Fenster weg ist (`gui_hilfe.lebt`); `_schritt1_aus` legt keinen zweiten Beobachter an.
+  Ohne Auswahl, mit genau einem STL (oder Körper daraus) im Dokument: die Frage, ob es das sein
+  soll (`gui_stl.stl_angebot`).
+- `translations/de.json`, `en.json`: `stl.angebot`.
+- `tests/gui/szenario_vierachs_stl.py`: Räder und Sperre beim Rechnen, danach frei;
+  `tests/gui/szenario_stl_angebot.py` (neu): die Frage, „Ja“, der Assistent mit dem Körper; das
+  Dokument zu, ohne den Assistenten zu schließen – danach lässt sich eine Kante wählen, kein
+  Traceback. Bild `docs/bilder/rechnet_rad.png`. `package.xml` (0.254.0).
+
+### AKZEPTANZKRITERIUM
+- `szenario_vierachs_stl`, `szenario_stl_angebot`, `szenario_bearbeitung`, `test_sprache` grün.
+
 ## P-2026-10-12-138 rundachse-umstellen
 
 ### EINGELESEN

@@ -14,6 +14,22 @@ from .sprache import tr
 FENSTER_GROESSE = (560, 520)  # Breite, Höhe in Pixeln
 
 
+def lebt(panel):
+    """Ist das Aufgabenfenster `panel` (ein Assistent mit `doc` und `geschlossen`) noch offen und
+    sein Dokument da? Ein Beobachter der Auswahl, dessen Fenster ohne „Abbrechen“ verschwand (das
+    Dokument zugemacht), rief sonst bei jedem Klick ins Leere – „Cannot access attribute ‚Name‘ of
+    deleted object“ (Manuel, 2026-10-12) –, und seine Sperre ließ nur noch Flächen anklicken."""
+    import FreeCAD
+
+    if getattr(panel, "geschlossen", False):
+        return False
+    try:
+        name = panel.doc.Name
+    except Exception:  # noqa: BLE001 – das Dokument ist weg
+        return False
+    return name in FreeCAD.listDocuments()
+
+
 def arbeitsdokument():
     """Das Dokument, in dem ein Assistent anlegen soll – None ohne offenes Dokument. Liegt die
     Auswahl in genau einem Dokument, dieses; sonst das aktive – ist das aber nur eine Maschine
