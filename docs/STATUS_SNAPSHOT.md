@@ -731,8 +731,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Dreiecken (Nebenrechner); 4 Achsen: Standfläche ans Futter oder Achse X/Y/Z, Rundum schruppen und
   schlichten, „Auf der Maschine prüfen“ (Kollision über den nahen Ausschnitt); „Bearbeitung“:
   „Alles aus dieser Aufspannung“ wählt die Freiform-Dreiecke je Richtung, 3D-Schruppen und
-  3D-Schlichten, an der 5-Achs-Fräse die Kette der geschwenkten Ebenen. Offen: Bereiche statt
-  Dreiecke wählen –
+  3D-Schlichten, an der 5-Achs-Fräse die Kette der geschwenkten Ebenen. Schneller in der Nacht
+  zum 2026-10-12 (P-104 bis -112): Rundum schruppen mit Querachse am Geist „Anlegen“ 362 → 127 s
+  (Bahn gleich), „Auf der Maschine prüfen“ mit radialem Halter 14 s ohne Befunde; wo ein
+  Maschinenteil dem STL-Teil nahe kommt (T1 axial gespannt), 28,7 s statt über 60 min. Offen:
+  Bereiche statt Dreiecke wählen; beim Anlegen am Geist steht das Fenster bis zu 23-mal je 3 s
+  (OpenCascade/Coin mit 68.242 Flächen, Ursache nicht eingegrenzt) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
 
 ## Offene Bugs
