@@ -387,6 +387,15 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    da bei allen maschinen nach das dies nicht der fall ist“. Prüfen: wie Z der Maschine (Grenzen,
    „Was die Bahn braucht“) gerechnet wird – Spindelnase gegen Tisch, nicht die Spitze –, an allen
    Beispielmaschinen (3-Achs-Fräse, CLX550, 5-Achs, G550).
+   *Ursache (nachgesehen):* Gerechnet wird mit der Werkzeuglänge ab Spindelnase (reichweite), aber
+   Z = 0 jeder Bauart ist die Stellung, in der sie gebaut ist – an der 3-Achs-Fräse die Spindelnase
+   130 mm über dem Tisch (`test_reichweite`: „Werkzeug 50 mm … Z1 = −80 für Z 0“), an der Portalfräse
+   175 mm; die Wege im Dialog „Neue Maschine“ zählen von dort. Manuels Grenze −10 meint „Nase auf dem
+   Tisch“. Umstellen: Z = 0 = Spindelnase auf der Tischoberkante (Fräsen; die Drehmaschine zählt Z
+   ab der Spindelnase des Futters – eigens prüfen) – im Bau (`beispielmaschine`, die Gelenke von Z),
+   in den Wegen des Dialogs (mit einem Satz, was Z 0 ist) und in den Prüfungen (`test_reichweite`,
+   `test_beispielmaschine`, Szenarien); gespeicherte Maschinen behalten ihre Wege – beim Öffnen
+   umrechnen oder fragen.
 3. **Planfräsen fährt „km in der Luft“** (Bild: T4 Ø 4 weit über dem Teil; „Planfräsen T4“ 20 min,
    Kontur 9,1 min am kleinen Ring) – die Luftwege messen (Bahnen prüfen ohne Manuel) und beseitigen.
 4. **B-020** „Konnte nicht anlegen: PropertyLink does not support external object“ (Bearbeitung,
