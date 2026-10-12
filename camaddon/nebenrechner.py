@@ -1693,7 +1693,7 @@ def _schnell_speichern():
 KLON_SCHWER_AB = 1000
 
 
-def _schwere_klone(dokument):
+def schwere_klone(dokument):
     """Die Klone (Draft, wie die Modelle eines Jobs), deren Form groß ist und genau die ihres
     einen Vorbilds an ihrer eigenen Lage – ohne Maßstab, Vereinigen oder Verbund, nicht 2D."""
     klone = []
@@ -1721,12 +1721,12 @@ def _schwere_klone(dokument):
 
 @contextlib.contextmanager
 def _klone_leicht(dokument):
-    """Für die Dauer des Speicherns einer Kopie: Schwere Klone (_schwere_klone) speichern ihre Form
+    """Für die Dauer des Speicherns einer Kopie: Schwere Klone (schwere_klone) speichern ihre Form
     nicht – danach wie vorher. Das Dokument des Benutzers ändert sich dabei nicht (kein Signal,
     sein eigenes Speichern schreibt alles). Am Geist in der 8-Eck-Stange hatte jeder der acht Jobs
     das Teil als Klon (je 51,5 MB BREP): Jeder Arbeiter, der die Kopie öffnete, brauchte 1,3 GB und
     6,8 s dafür – der Speicherwächter ließ deshalb nur wenige rechnen, die anderen warteten."""
-    klone = _schwere_klone(dokument)
+    klone = schwere_klone(dokument)
     for klon in klone:
         klon.setPropertyStatus("Shape", "Transient")
     try:

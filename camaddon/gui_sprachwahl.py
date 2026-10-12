@@ -13,7 +13,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import einheiten, gui_aktualisierung, sprache
+from . import einheiten, gui_aktualisierung, klone_speichern, sprache
 from .gui_teile import ruhiges_mausrad
 from .gui_zahlen import dezimalzeichen
 from .sprache import tr
@@ -197,10 +197,18 @@ class Einstellungsseite:
         self.zahlen_hinweis.setWordWrap(True)
         _mit_satz(zahlen, zahlen_aufbau, self.zahlen_hinweis)
         self.gruppe_updates = gui_aktualisierung.einstellungen_gruppe(self)
+        dateien = QtGui.QGroupBox(tr("einstellungen.dateien.gruppe"))
+        self.klone_einmal = QtGui.QCheckBox(tr("einstellungen.dateien.klone"))
+        dateien_aufbau = QtGui.QFormLayout()
+        dateien_aufbau.addRow(self.klone_einmal)
+        self.klone_hinweis = QtGui.QLabel(tr("einstellungen.dateien.klone.hinweis"))
+        self.klone_hinweis.setWordWrap(True)
+        _mit_satz(dateien, dateien_aufbau, self.klone_hinweis)
 
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
         aufbau.addWidget(zahlen)
+        aufbau.addWidget(dateien)
         aufbau.addWidget(self.gruppe_updates)
         aufbau.addStretch()
         ruhiges_mausrad(self.form)  # FreeCADs Einstellungen blättern
@@ -213,6 +221,7 @@ class Einstellungsseite:
         self.wahl_masssystem.setCurrentIndex(max(index, 0))
         index = self.wahl_dezimalzeichen.findData(dezimalzeichen())
         self.wahl_dezimalzeichen.setCurrentIndex(max(index, 0))
+        self.klone_einmal.setChecked(klone_speichern.an())
         gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
@@ -221,6 +230,7 @@ class Einstellungsseite:
             self.wahl_masssystem.currentData(),
             self.wahl_dezimalzeichen.currentData(),
         )
+        klone_speichern.setzen(self.klone_einmal.isChecked())
         gui_aktualisierung.einstellungen_speichern(self)
 
 

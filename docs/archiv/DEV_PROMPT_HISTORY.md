@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-154 stl-teil-nur-einmal-speichern
+
+### EINGELESEN
+- Offen aus W-017: Jeder Job hat das Teil als Klon (Draft) im Modell – ein Teil aus einem STL
+  steht so in jeder Datei einmal je Job. Gemessen am Geist mit einem Job (26.3, ohne Fenster):
+  Speichern 6,24 statt 3,61 s, 38,7 statt 22,9 MB, Öffnen 1,14 statt 0,69 s; die 8-Eck-Kette hat
+  acht solche Klone. Die Kopien für die Nebenrechner sparen das schon (P-2026-10-11-109).
+- Manuel (2026-10-12): Die Form soll aus dem kommen, was in der Datei selbst steht – „wenn man
+  immer vom ersten Job das nehmen würde oder die STL in der Datei selbst gespeichert ist einmal,
+  ist das ok“. So ist es: Der Klon nimmt sie vom Körper aus dem STL im selben Dokument, nicht von
+  der STL-Datei auf dem Rechner.
+- FreeCAD merkt sich „Transient“ an einer Eigenschaft in der Datei (status="16"); Python-Beobachter
+  bekommen Anfang und Ende des Speicherns (slotStartSaveDocument/slotFinishSaveDocument), das Ende
+  des Öffnens nicht – in 1.1.4 wie in 26.3.
+
+### DATEIEN
+- `camaddon/klone_speichern.py` (neu): Beim Speichern ist „Shape“ der schweren Klone Transient
+  (`nebenrechner.schwere_klone`, ab 1000 Flächen, genau die Form des einen Vorbilds an eigener
+  Lage), danach wieder nicht – erst wenn FreeCAD fertig ist (sonst stand das Dokument als
+  „geändert“ da). Nach dem Öffnen (sobald `Restoring` vorbei ist) bekommen sie ihre Form aus dem
+  Vorbild (`nebenrechner.klone_herstellen`); das Dokument bleibt „unverändert“, ohne Schritt
+  Rückgängig. Einstellung „Ein Teil aus einem STL nur einmal speichern“, vorbelegt an.
+- `camaddon/gui_start.py` (Beobachter), `camaddon/gui_sprachwahl.py` (Gruppe „Dateien“ in den
+  Einstellungen), `camaddon/nebenrechner.py` (`schwere_klone` öffentlich),
+  `translations/de.json`, `translations/en.json`.
+- `tests/gui/szenario_klone_speichern.py` (neu), `tests/gui/szenario_erster_start.py` (der Haken,
+  der Satz ganz zu sehen). `package.xml` (0.258.0).
+
+### ERGEBNIS
+- Speichern, Schließen, Öffnen mit einem Klon aus 1002 Flächen: Die Datei hat die Form des
+  Vorbilds, nicht die des Klons; danach hat er sie wieder (gleiche Flächen, an seiner Lage, die
+  Daten mit dem Vorbild geteilt), nicht „geändert“, kein Rückgängig; abgeschaltet speichert er
+  alles. Grün in 26.3 RC1 und 1.1.4: `szenario_klone_speichern`, `szenario_erster_start`;
+  `test_nebenrechner`, `test_sprache` in 26.3.
+- Ohne das Addon geöffnet ist der Klon leer – „Neu berechnen“ stellt ihn her (steht beim Haken).
+
 ## P-2026-10-12-153 kein-f0-kein-k-in-g17
 
 ### EINGELESEN

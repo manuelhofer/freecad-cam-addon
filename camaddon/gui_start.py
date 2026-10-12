@@ -33,6 +33,7 @@ from . import (
     gui_verfahren,
     gui_vierachs,
     gui_werkzeuge,
+    klone_speichern,
     sprache,
     symbol,
 )
@@ -118,6 +119,7 @@ def starten():
     gui_maschinen.beobachten()  # gespeicherte Maschinen kommen in die Liste (W-011)
     gui_materialstand.beobachten()  # Operationen mit Materialstand rechnen nach (W-012)
     aufraeumen.beobachten()  # verwaiste Klone nach einem Rückgängig (B-016)
+    klone_speichern.beobachten()  # schwere Modellklone ohne ihre Form speichern (W-017)
     gui_sprachwahl.beim_ersten_start_fragen()
     gui_aktualisierung.beim_start()
     FreeCAD.Console.PrintLog("CAM-Addon geladen\n")

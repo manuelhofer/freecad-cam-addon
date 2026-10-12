@@ -164,7 +164,7 @@ def schritte(h):
     h.pruefe(
         seite.liste.currentData() == "de", "Einstellungsseite zeigt nicht die gewählte Sprache"
     )
-    seite.form.resize(500, 320)
+    seite.form.resize(500, 520)
     seite.form.show()
     yield 300
     h.bild("5_einstellungsseite", seite.form)
@@ -180,6 +180,23 @@ def schritte(h):
     )
     h.pruefe(seite.wahl_dezimalzeichen.currentData() == ",", "Einstellungsseite: Dezimalzeichen")
     h.pruefe(seite.wahl_masssystem.currentData() == "metrisch", "Einstellungsseite: Maßsystem")
+    # „Ein Teil aus einem STL nur einmal speichern“ (klone_speichern): vorbelegt an, abschaltbar.
+    from camaddon import klone_speichern
+
+    h.pruefe(seite.klone_einmal.isChecked(), "„nur einmal speichern“ nicht angehakt")
+    satz = seite.klone_hinweis
+    unten = satz.mapTo(seite.form, satz.rect().bottomLeft()).y()
+    h.pruefe(
+        unten <= oben, f"Satz unter „Dateien“ reicht bis {unten}, „Updates“ beginnt bei {oben}"
+    )
+    h.pruefe(
+        satz.height() >= satz.heightForWidth(satz.width()),
+        f"Satz unter „Dateien“ ist {satz.height()} hoch, braucht {satz.heightForWidth(satz.width())}",
+    )
+    seite.klone_einmal.setChecked(False)
+    seite.saveSettings()
+    h.pruefe(not klone_speichern.an(), "Einstellungsseite speichert „nur einmal speichern“ nicht")
+    seite.klone_einmal.setChecked(True)
     seite.liste.setCurrentIndex(seite.liste.findData("en"))
     seite.wahl_dezimalzeichen.setCurrentIndex(seite.wahl_dezimalzeichen.findData("."))
     seite.saveSettings()

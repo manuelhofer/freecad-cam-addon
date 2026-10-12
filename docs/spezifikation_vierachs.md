@@ -1513,6 +1513,12 @@ Gebaut (P-2026-10-11-100):
     die für diese Lage stimmen. Mit dem radialen Halter wie beim Anlegen kommt kein Maschinenteil
     dem Geist nahe: 14,3 s, keine Befunde (vor 9: 14,1 s).
 
+12. **Das Teil nur einmal in der Datei** (P-2026-10-12-154): Die Klone der Jobs (ab 1000 Flächen,
+    genau die Form ihres Vorbilds an eigener Lage) speichern ihre Form nicht – sie kommt nach dem
+    Öffnen vom Körper aus dem STL im selben Dokument (`klone_speichern`; Einstellung „Ein Teil aus
+    einem STL nur einmal speichern“, vorbelegt an). Am Geist mit einem Job: Speichern 3,6 statt
+    6,2 s, 23 statt 39 MB. Ohne das Addon geöffnet ist der Klon leer, „Neu berechnen“ stellt ihn her.
+
 Offen: einzelne Bereiche wählen statt Dreiecke. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 
 ## 17. STL aus der N-Eck-Stange im Schraubstock (W-018)

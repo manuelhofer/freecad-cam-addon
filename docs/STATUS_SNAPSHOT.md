@@ -752,10 +752,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   3D-Schlichten, an der 5-Achs-Fräse die Kette der geschwenkten Ebenen. Schneller in der Nacht
   zum 2026-10-12 (P-104 bis -112): Rundum schruppen mit Querachse am Geist „Anlegen“ 362 → 127 s
   (Bahn gleich), „Auf der Maschine prüfen“ mit radialem Halter 14 s ohne Befunde; wo ein
-  Maschinenteil dem STL-Teil nahe kommt (T1 axial gespannt), 28,7 s statt über 60 min. Offen:
-  die Datei – jeder Job hat das Teil als eigenen Klon, am Geist je 51,5 MB BREP (die 8-Eck-Kette:
-  9 × im Dokument, 148 MB gepackt; Speichern und jede Kopie für die Nebenrechner entsprechend
-  langsam); Bereiche statt Dreiecke wählen. Das Fenster steht am Geist noch 2,3 s beim Umwandeln
+  Maschinenteil dem STL-Teil nahe kommt (T1 axial gespannt), 28,7 s statt über 60 min. Die Datei
+  hat das Teil nur einmal, die Klone der Jobs holen es beim Öffnen von dort (P-2026-10-12-154,
+  Haken in den Einstellungen, vorbelegt an: am Geist mit einem Job Speichern 3,6 statt 6,2 s).
+  Offen: Bereiche statt Dreiecke wählen. Das Fenster steht am Geist noch 2,3 s beim Umwandeln
   und 1,9 s beim ersten Klick – FreeCADs Anzeige des Körpers mit 68.242 Flächen; sonst höchstens
   1,6 s (P-2026-10-12-152). Weniger nur, wenn das Addon statt des Körpers das Netz zeigte (Auswahl
   über die Zuordnung Dreieck → Fläche) – [spezifikation_vierachs.md](spezifikation_vierachs.md),
