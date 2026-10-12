@@ -116,7 +116,10 @@ pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103.5)) < 0.001, "hinter
 kamm = 3 - math.sqrt(9 - 0.15**2)
 pruefe(abs(op.Kammhoehe.Value - kamm) < 1e-9, f"Kammhöhe {op.Kammhoehe}")
 # … plus die eine Umdrehung des Rings am Ende (P-2026-10-03-17).
-pruefe(abs(op.Umdrehungen - (1 + 3 + 2 + 103.5) / 0.3 - 1) < 0.1, f"Umdrehungen {op.Umdrehungen}")
+# Die Spirale beginnt 1 mm, bevor die Kugel die Spitze erreicht (P-2026-10-12-140), nicht vor der
+# Stange (Planaufmaß 1 + Radius 3 + Sicherheitsabstand 2).
+anfang = 3 + vb.VORLAUF_SCHLICHTEN
+pruefe(abs(op.Umdrehungen - (anfang + 103.5) / 0.3 - 1) < 0.1, f"Umdrehungen {op.Umdrehungen}")
 # Die Welle Ø 60 aus der Stange Ø 70, geschruppt mit Aufmaß 0,3: Über der Spirale stehen das
 # Aufmaß und die Rillen des Schruppens (Scheibe Ø 12 mit 4,8 mm je Umdrehung: 0) – „Rest
 # höchstens“ etwa 0,3 mm, keine Vorstufen mehr (P-2026-10-03-17).

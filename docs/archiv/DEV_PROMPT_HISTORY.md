@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-140 schlichtspirale-erst-am-teil
+
+### EINGELESEN
+- Manuel (2026-10-12, Bild vom Geist in 4 Achsen): „was sind das für Werkzeugwege da vorne, die
+  so bis ganz nach oben gehen … beim Schlichten, am Anfang … gibt’s für mich keinen Grund“.
+- Nachgesehen am gespeicherten Job: Die ersten 5323 von 95.621 Sätzen von „Rundum schlichten“
+  lagen vor dem Kopf (X 0,5 … 5, das Teil endet bei 0) – die Spirale begann vor der Stange
+  (Planaufmaß + Radius + Sicherheitsabstand), mit der Querachse Geraden und Kreise in der Luft,
+  zuletzt im Vorschub 50 mm hinauf (G93 F3: 20 s).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `schlichten` – die Spirale beginnt `VORLAUF_SCHLICHTEN` (1 mm)
+  bevor der Fräser die Spitze des Teils erreicht (das Planaufmaß nahm das Schruppen); der Eilgang
+  davor bleibt.
+- `tests/test_vierachs_schlichten.py`, `tests/test_vierachs_schlichten_op.py`: die Umdrehungen ab
+  dem neuen Anfang. `package.xml` (0.255.0).
+
+### AKZEPTANZKRITERIUM
+- `test_vierachs_schlichten`, `test_vierachs_schlichten_op`, `test_vierachs_frei` grün.
+
 ## P-2026-10-12-139 rad-neben-anlegen-stl-angebot-beobachter
 
 ### EINGELESEN

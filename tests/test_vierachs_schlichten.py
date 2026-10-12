@@ -148,8 +148,12 @@ vorschub = [p for p in bahn.punkte if not p.eilgang]
 pruefe(abs(vorschub[-1].a - a_ende) < 0.35 / 720 + 1e-9, f"Ende bei {vorschub[-1].a}")
 # … plus eine Umdrehung als Ring am Ende, damit das Ende rund ist (P-2026-10-03-17): Die
 # letzten 720 Punkte im Vorschub liegen alle bei a_ende, eine volle Umdrehung.
+# Die Spirale beginnt 1 mm, bevor die Kugel die Spitze des Teils erreicht (bei a 0 + 3 + 1), nicht
+# vor der Stange (6) – davor ist Luft (P-2026-10-12-140).
+anfang = 0.0 + 3.0 + vb.VORLAUF_SCHLICHTEN
 pruefe(
-    abs(bahn.umdrehungen - (6.0 - a_ende) / 0.35 - 1) < 1 / 720, f"{bahn.umdrehungen} Umdrehungen"
+    abs(bahn.umdrehungen - (anfang - a_ende) / 0.35 - 1) < 1 / 720,
+    f"{bahn.umdrehungen} Umdrehungen",
 )
 ring_ende = [p for p in vorschub if abs(p.a - a_ende) < 1e-9]
 pruefe(

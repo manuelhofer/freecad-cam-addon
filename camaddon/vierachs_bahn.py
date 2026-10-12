@@ -119,6 +119,7 @@ ZWISCHEN_GENAU = 0.05  # mm
 # über mehrere Umdrehungen als Gerade (PathSegmentWalker rechnet den Winkel modulo 360°).
 HOECHSTENS_GRAD = 90.0
 SCHRITT_PHI_SCHLICHTEN = 0.5  # Grad – so dicht liegen die Punkte der Schlichtspirale
+VORLAUF_SCHLICHTEN = 1.0  # mm – so weit vor der Spitze des Teils beginnt die Schlichtspirale
 # Mit der Querachse: Springt ψ zwischen zwei Punkten um mehr als so viele Winkelschritte, ist
 # es eine Innenecke – das Werkzeug dreht dort um die ruhende Kugelmitte (_spirale_quer).
 QUER_SPRUNG = 4
@@ -1259,8 +1260,14 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     # Mit der Querachse plant eine Kugel mit dem Radius des Fräsers (vierachs_quer) – die Spirale
     # des Fräsers selbst braucht es dann nicht.
     plan = w if not quer or form.nur_kugel else replace(w, form=ff.kugel(radius))
+    # Die Spirale beginnt, kurz bevor der Fräser die Spitze des Teils erreicht – nicht vor der
+    # Stange: Davor ist alles Luft (das Schruppen nahm das Planaufmaß), und am Geist fuhr das
+    # Schlichten dort vier Umdrehungen, mit der Querachse 5323 Sätze Geraden und Kreise vor dem
+    # Kopf, zuletzt im Vorschub 50 mm hinauf (Manuel, 2026-10-12: „die Werkzeugwege da vorne, die
+    # bis ganz nach oben gehen … für mich keinen Grund“).
+    a_spirale = min(a_anfang, teil_vorne + radius + VORLAUF_SCHLICHTEN)
     spirale = _spirale_rechnen(
-        netz, laengs, radial, plan, s, a_anfang, a_ende, teil_vorne, teil_hinten, schritt_phi
+        netz, laengs, radial, plan, s, a_spirale, a_ende, teil_vorne, teil_hinten, schritt_phi
     )
     a, r, winkel, anzahl, je_umdrehung, drehung = spirale
     # Eine Spirale, von vorne nach hinten, mit der Schrittweite – was das Schruppen stehen
