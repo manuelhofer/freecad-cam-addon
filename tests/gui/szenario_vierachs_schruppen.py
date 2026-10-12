@@ -11,7 +11,7 @@
 # „Anlegen“. „Anlegen“: Die Stange ist 167,0 mm lang (30 im Futter), die
 # Bahn endet 3,5 mm hinter dem Teil. Im Job stehen der
 # Controller „T1 Schruppen“ (FreeCADs Vorgabe-Controller ist weg) und „Rundum
-# schruppen T1“ mit fünf Lagen und G93. „Auf der Maschine prüfen“ (V3e, T1 mit 125 mm
+# schruppen T1“ mit sechs Lagen (die Vorschau sagt 5, offen) und G93. „Auf der Maschine prüfen“ (V3e, T1 mit 125 mm
 # ab Spindelnase): „Alle Achsen bleiben in ihren Grenzen.“, kein Hinweis zur
 # Werkzeuglage; mitten in der ersten Lage steht C gedreht, die Spitze außen am Teil;
 # „Kollision prüfen“ → „Nichts berührt sich …“. Ohne den Haken „Bahn“ ist die Bahn weg, mit
@@ -144,7 +144,10 @@ def schritte(h):
         op = ops[0]
         namen = [b.Name for b in op.Path.Commands]
         h.pruefe(op.Label == "Rundum schruppen T1", f"Name: {op.Label!r}")
-        h.pruefe(op.Lagen == 5 and "G93" in namen and namen[-1] == "G94", f"Bahn: {op.Lagen}")
+        # Sechs: Mit gleich tiefen Lagen (P-2026-10-12-135) reicht die fünfte genau bis zum
+        # Aufmaß, mit der Querachse bleibt seitlich ein dünner Rest für eine sechste (offen im
+        # Snapshot, W-003).
+        h.pruefe(op.Lagen == 6 and "G93" in namen and namen[-1] == "G94", f"Bahn: {op.Lagen}")
         hinten = min(b.Parameters["Z"] for b in op.Path.Commands if b.Name == "G1")
         h.pruefe(abs(hinten + 103.5) < 1e-6, f"Bahn endet bei Z {hinten}")
         # 137 + Spannlänge 30 (Überlauf Abstechbreite + 0,5 seit P-2026-10-03-08).

@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-145 szenarien-nachgezogen
+
+### EINGELESEN
+- Voller Lauf in 26.3.0RC1: rot ohne Fehler im Addon – `szenario_vierachs_rohteil` erwartete kein
+  „Umdrehen“ an einer ebenen Stirnfläche (seit P-2026-10-11-100 gibt es es dort, für die
+  Standfläche eines STL), `szenario_vierachs_schruppen` fünf Lagen (mit gleich tiefen Lagen,
+  P-135, und der Querachse sind es an der Welle sechs; am Nasen-Testteil bleibt es bei drei,
+  +0,1 min – nachgemessen mit dem Stand vor P-135 in einem eigenen Arbeitsbaum).
+
+### DATEIEN
+- `tests/gui/szenario_vierachs_rohteil.py`, `tests/gui/szenario_vierachs_schruppen.py`.
+- `docs/STATUS_SNAPSHOT.md`: offen – die dünne sechste Lage mit der Querachse (die Vorschau sagt
+  5), `vierachs_huelle.je_stellung_stueck` mit 2,2 GB je Auftrag am Geist.
+
+### ERGEBNIS
+- In 26.3 grün: `szenario_vierachs_rohteil`, `szenario_vierachs_schruppen`,
+  `szenario_rundum_drehmaschine`.
+
 ## P-2026-10-12-144 vorschlichten-gemessen-frage-17
 
 ### EINGELESEN

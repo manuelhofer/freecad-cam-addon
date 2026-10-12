@@ -145,7 +145,8 @@ def schritte(h):
     # Der Mantel der Welle (rund, V2b): seine Achse wird die Stangenachse, oben angeklickt liegt
     # das obere Ende vorne (a 0, mit A längs X), die Achse der Welle auf der Stangenachse;
     # „Umdrehen“ legt das untere Ende nach vorn.
-    h.pruefe(panel.knopf_umdrehen.isHidden(), "„Umdrehen“ an der ebenen Stirnfläche")
+    # „Umdrehen“ gibt es seit P-2026-10-11-100 auch an ebenen Flächen (die Standfläche eines STL).
+    h.pruefe(not panel.knopf_umdrehen.isHidden(), "kein „Umdrehen“ an der ebenen Stirnfläche")
     panel.waehle_flaeche(teil, _mantel(teil), nahe=FreeCAD.Vector(30, 0, 90))
     yield 300
     oben = panel.lage.placement.multVec(FreeCAD.Vector(0, 0, 100))
