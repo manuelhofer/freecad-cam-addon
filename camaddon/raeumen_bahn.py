@@ -1152,6 +1152,26 @@ class _Lage:
                 laenge += bn.weg(punkte[-1], punkt)
                 punkte.append(punkt)
                 self.st.seitlich += 1
+            elif (aussen := self._von_aussen(p0)) is not None:
+                # Daneben steht nichts (der Rand des Rohteils, schon Geräumtes): dort hinab und
+                # quer hinein – mit vollem ap von außen statt Helix oder Rampe (Manuel,
+                # 2026-10-12, am Ring: „du bist hier auserhalb vom rohteil ... warum zirkulierst
+                # du da nach unten“; Spezifikation Strategien, Abschnitt 5).
+                knapp = self._hinab(aussen, hoch)
+                punkte.append(bn.Punkt(True, aussen[0], aussen[1], hoch))
+                punkte.append(bn.Punkt(True, aussen[0], aussen[1], knapp))
+                punkte.append(bn.Punkt(False, aussen[0], aussen[1], self.lage, True))
+                punkt = bn.Punkt(False, p0[0], p0[1], self.lage)
+                laenge += bn.weg(punkte[-1], punkt)
+                punkte.append(punkt)
+                self.st.seitlich += 1
+            elif self._nichts_unter(p0):
+                # Unter der Stirn steht nichts (neben dem Rohteil, schon geräumt): senkrecht hinab
+                # – keine Helix, keine Rampe in der Luft (Manuel, 2026-10-12, am Ring: „du bist
+                # hier auserhalb vom rohteil ... warum zirkulierst du da nach unten“).
+                knapp = self._hinab(p0, hoch)
+                punkte.append(bn.Punkt(True, p0[0], p0[1], knapp))
+                punkte.append(bn.Punkt(False, p0[0], p0[1], self.lage, True))
             else:
                 # Im Material: über die Rampe hinab – rundum auf einem ganzen Ring (dann der
                 # Ring in der Tiefe, ab dort, wo die Rampe ankam), sonst längs des Laufs hin
@@ -1494,6 +1514,43 @@ class _Lage:
         anzahl = max(2, int(math.ceil(abs(bis - von) * radius / self.schritt)) + 1)
         t = np.linspace(von, bis, anzahl)
         self.feld.merke(mitte[0] + radius * np.cos(t), mitte[1] + radius * np.sin(t))
+
+    def _von_aussen(self, p0):
+        """Ein Punkt neben `p0` (ein bis zwei Fräserradien weit), unter dessen Stirn nichts
+        Ungeschnittenes steht und von dem der Weg quer zu `p0` erlaubt ist (nicht ins Teil) –
+        None, wenn keiner. Unter der Stirn an `p0` selbst muss etwas stehen, sonst taucht er dort
+        ein (_nichts_unter)."""
+        if self._nichts_unter(p0):
+            return None
+        # Nicht mehr unter der Stirn als bei einem Zeilenabstand: sonst würde quer hinein ein
+        # Stoß in voller Breite mit vollem ap – dann lieber die Helix.
+        h = min(max(self.w.zeilenabstand, 0.0), 2 * self.r)
+        r = self.r
+        segment = r * r * math.acos((r - h) / r) - (r - h) * math.sqrt(max(2 * r * h - h * h, 0.0))
+        if float(self.feld.ungeschnitten([p0[0]], [p0[1]])[0]) > segment / (math.pi * r * r):
+            return None
+        winkel = np.linspace(0.0, 2 * math.pi, 16, endpoint=False)
+        for weite in (self.r + self.w.zeilenabstand, 2 * self.r):
+            for t in winkel:
+                q = (p0[0] + weite * math.cos(t), p0[1] + weite * math.sin(t))
+                anzahl = max(2, int(math.ceil(weite / self.schritt)) + 1)
+                qx = np.linspace(q[0], p0[0], anzahl)
+                qy = np.linspace(q[1], p0[1], anzahl)
+                if not (
+                    self.feld.im_raster(qx, qy).all() and self.feld.bei(self.erlaubt, qx, qy).all()
+                ):
+                    continue
+                if self._nichts_unter(q):
+                    return q
+        return None
+
+    def _nichts_unter(self, p):
+        """Steht unter der Stirn an `p` nichts Ungeschnittenes (eine Zelle Zugabe rundum, wie
+        _hinab)?"""
+        d = self.schritt
+        xs = [p[0], p[0] + d, p[0] - d, p[0], p[0]]
+        ys = [p[1], p[1], p[1], p[1] + d, p[1] - d]
+        return float(np.max(self.feld.ungeschnitten(xs, ys))) <= 0.0
 
     def _hinab(self, start, hoch):
         """Bis wohin der Eilgang über `start` hinab darf: knapp über die Lage, wenn unter der

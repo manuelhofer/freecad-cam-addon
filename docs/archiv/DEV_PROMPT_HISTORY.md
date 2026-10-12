@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-169 raeumen-am-rand-von-aussen
+
+### EINGELESEN
+- Manuel (2026-10-12, Bild am Ring, 3-Achs): „du bist hier auserhalb vom rohteil ... warum
+  zirkulierst du da nach unten ?!?!?!?“ – rechts neben dem Rohteil eine Helix hinab, daneben
+  Zickzack-Pakete. Beim Räumen landete ein Lauf ohne freies Einfahren (tangential, seitlich) im
+  Zweig „im Material“, ohne zu fragen, ob unter der Stirn überhaupt Material steht – früher die
+  Rampe, seit P-2026-10-12-163 die Helix, auch in der Luft.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: vor Helix und Rampe – `_von_aussen`: steht unter der Stirn am Anfang
+  höchstens so viel wie bei einem Zeilenabstand, ein Punkt ein bis zwei Radien daneben ohne
+  Ungeschnittenes, der Weg erlaubt: dort hinab, quer hinein (voller ap von außen); `_nichts_unter`:
+  steht unter der ganzen Stirn nichts, senkrecht hinab. `package.xml` (0.259.12).
+
+### ERGEBNIS
+- Die Prüfteile treffen beides nicht (`test_raeumen`: 28 Helix, alle mitten im Material, bleiben;
+  `test_testteil` keine) – grün in 26.3 RC1: `test_raeumen`, `test_goldene_bahnen`, `test_testteil`.
+  Manuels Fall nicht nachgestellt: sein 3-Achs-Job am Ring ist nicht gespeichert.
+
 ## P-2026-10-12-168 flaechen-farbig-in-263
 
 ### EINGELESEN

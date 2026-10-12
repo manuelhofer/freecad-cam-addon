@@ -379,6 +379,8 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    zirkulierst du da nach unten ?!?!?!?“ – rechts neben dem Rohteil eine Helix hinab (und daneben
    dichte Zickzack-Pakete). Verdacht: die Helix aus P-2026-10-12-162/163 (Kontur/Räumen) hält das
    Freie für Material. Nachstellen am Ring (Kopie in `~/freecad_cam/testteile/…`), beheben.
+   *Teilweise:* P-2026-10-12-169 – beim Räumen am Rand von außen quer hinein, in der Luft
+   senkrecht; nachgemessen erst, wenn Manuels 3-Achs-Job gespeichert ist (Bitte im Chat).
 2. **Z −30 bei der Grenze −10**: „Z1 fährt in „Kontur T4“ bis −30,00 mm, die Grenze ist −10,00 mm“ –
    Manuel: „z kann nicht in -30 fahren weil z0 sollte eigentlich tisch oberkante sein .. also wenn
    die spindelnase auf dem tisch aufliegt ist z=0 ... wird wohl vom fräser aus gerechnet bitte schau
