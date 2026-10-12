@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-156 stl-teil-als-netz
+
+### EINGELESEN
+- Aus P-152 offen: Am Geist stand das Fenster 2,3 s beim Umwandeln und 1,9 s beim ersten Klick –
+  FreeCADs Anzeige eines Körpers mit 68.242 Flächen (jede für sich vernetzt, mit Normalen und
+  Kanten). Manuel (2026-10-12) zum Netz statt des Körpers: „find ich aber ne gute idee wens schneller
+  geht ... und weniger kostet“.
+- Gemessen (26.3): der Körper ausgeblendet angelegt 0,05 s statt 1,7 s; dasselbe Netz als
+  Coin-Knoten 0,06 s. In der Anzeige des Körpers selbst (ViewObject.RootNode) zieht es mit, wenn
+  sich der Klon bewegt, und FreeCADs eigenes Anklicken liefert „FaceN“, wenn die Dreiecke in der
+  Reihenfolge der Flächen liegen (40 Klicks, alle getroffen, 5 ms).
+
+### DATEIEN
+- `camaddon/stl_anzeige.py` (neu): `zeigen(objekt, an)` – ein Teil aus einem STL oder sein Klon
+  (Draft, ohne Maßstab) als Netz, FreeCADs Anzeige aus; jedes andere wie bisher über Visibility.
+  `sichtbar`, `als_netz`; Farben (`flaechen_faerben`, `farben_setzen` – der ausgeblendete Klon hat
+  in 26.3 kein DiffuseColor); Auswahl grün, Vorauswahl gelb über dem Netz (Selection-Beobachter);
+  blendet man den Körper in FreeCAD ein (Leertaste), zeigt FreeCAD ihn selbst und das Netz geht
+  aus; gemerkt am Objekt (`CamAddonNetzAnzeige`), wieder da nach dem Öffnen, Rückgängig,
+  Wiederholen und Abbrechen.
+- `camaddon/stl_teil.py`: der Körper ausgeblendet angelegt (mit Oberfläche).
+  `camaddon/gui_stl.py`: als Netz gezeigt. `camaddon/gui_vierachs.py`,
+  `camaddon/gui_bearbeitung.py`: Klon und Original über `stl_anzeige.zeigen`, die Farben der
+  Flächen ins Netz; die N-Eck-Folge ebenso. `camaddon/gui_start.py`: Beobachter.
+- `tests/gui/szenario_stl_anzeige.py` (neu), `tests/gui/szenario_vierachs_stl.py` (Körper und
+  Klon als Netz, das Original nicht zu sehen). `package.xml` (0.259.0).
+
+### ERGEBNIS
+- Am Geist im 4-Achs-Assistenten: Umwandeln ohne die 2,3 s, der erste Klick 0,8 statt 1,9 s; die
+  längste Pause ist jetzt „Anlegen“ (bis 2,1 s, FreeCADs Werkzeuge und Operationen). Die Lage des
+  Netzes deckt sich mit dem Klon (Hüllquader gleich, Bild mit FreeCADs Anzeige gleich); die Farben
+  im 3-Achs-Assistenten und in der N-Eck-Folge wie vorher.
+- Grün in 26.3 RC1: `szenario_vierachs_stl`, `szenario_bearbeitung_stl`, `szenario_bearbeitung_n_eck`,
+  `szenario_stl_angebot`, `szenario_vierachs_rohteil`, `szenario_stl_anzeige` (auch in 1.1.4).
+- Im Baum stehen Körper und Klon grau (für FreeCAD ausgeblendet).
+
 ## P-2026-10-12-155 einfahren-setzt-nicht-zurueck
 
 ### EINGELESEN

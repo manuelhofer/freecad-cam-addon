@@ -293,6 +293,10 @@ def koerper_aus_netz(dokument, netzobjekt, massstab=1.0, gerechnet=None):
     form, netz, bericht, zuordnung = gerechnet or koerper_und_bericht(netzobjekt.Mesh, massstab)
     teil = dokument.addObject("Part::Feature", "TeilAusStl")
     teil.Label = tr("stl.teil", name=netzobjekt.Label)
+    if getattr(teil, "ViewObject", None) is not None:
+        # Erst ausgeblendet: FreeCADs Anzeige der 68.242 Flächen des Geists kostete 1,7 s – die
+        # Oberfläche zeigt ihn als Netz (stl_anzeige).
+        teil.ViewObject.Visibility = False
     teil.Shape = form
     teil.addProperty("App::PropertyLink", EIGENSCHAFT_STL, "CAM-Addon", tr("stl.eigenschaft"))
     setattr(teil, EIGENSCHAFT_STL, netzobjekt)

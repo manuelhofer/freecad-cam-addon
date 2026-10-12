@@ -93,6 +93,13 @@ def schritte(h):
         return
     h.pruefe(teil.Label == "Geist1_v2 (Körper)", f"Name: {teil.Label!r}")
     h.pruefe(not netz.ViewObject.Visibility, "Netz noch sichtbar")
+    # Der Körper als Netz (stl_anzeige): FreeCADs eigene Anzeige bliebe 1,7 s stehen.
+    from camaddon import stl_anzeige
+
+    h.pruefe(
+        stl_anzeige.als_netz(teil) and not teil.ViewObject.Visibility,
+        f"Körper nicht als Netz: {stl_anzeige.als_netz(teil)}, {teil.ViewObject.Visibility}",
+    )
     anleitung = panel.anleitung.text()
     h.pruefe(
         anleitung.startswith("Körper aus 68\u202f242 Dreiecken.") and "Standfläche" in anleitung,
@@ -107,6 +114,12 @@ def schritte(h):
     yield from h.warte_auf(lambda: panel.job is not None, 30000)
     text = panel.teil_text.text()
     h.pruefe("Achse X (längs der Stange, Plus-Ende vorne)" in text, f"Teil mit Achse X: {text!r}")
+    klon_ = vr.modell(panel.job)
+    h.pruefe(
+        stl_anzeige.als_netz(klon_) and not klon_.ViewObject.Visibility,
+        "Klon im Job nicht als Netz",
+    )
+    h.pruefe(not stl_anzeige.sichtbar(teil), "Original neben dem Klon noch zu sehen")
     yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 5000)
 
     # --- Die Standfläche ans Futter -----------------------------------------------------------

@@ -8,7 +8,7 @@ ohne die Kanten der Dreiecke gezeigt – er sieht aus wie das Netz."""
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import stl_teil
+from . import stl_anzeige, stl_teil
 from .gui_teile import ruhiges_mausrad
 from .gui_zahlen import dezimal, zahlenformat
 from .sprache import tr
@@ -238,6 +238,7 @@ def teil_aus_netz(dokument, netzobjekt, frage=True, n_eck=False):
     try:
         gerechnet = _im_hintergrund(netzobjekt, massstab)
         teil, bericht = stl_teil.koerper_aus_netz(dokument, netzobjekt, massstab, gerechnet)
+        stl_anzeige.zeigen(teil, True)  # als Netz: 0,06 statt 1,7 s am Geist
         dokument.recompute()
     except (ValueError, RuntimeError) as fehler:
         dokument.abortTransaction()

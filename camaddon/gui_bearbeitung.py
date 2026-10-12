@@ -26,7 +26,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, spannung, symbol, uhren
+from . import PARAMETER_PFAD, einheiten, spannung, stl_anzeige, symbol, uhren
 from . import aufloesung as au
 from . import bahn as bn
 from . import bleistift as bst
@@ -410,9 +410,8 @@ def _n_eck_anlegen(dokument, teil, wahl):
         return
     # Zu sehen: das Teil in der Stange, nicht das Original daneben.
     for objekt, sichtbar in ((teil, False), (vr.modell(job), True), (job.Stock, True)):
-        ansicht = getattr(objekt, "ViewObject", None)
-        if ansicht is not None:
-            ansicht.Visibility = sichtbar
+        if getattr(objekt, "ViewObject", None) is not None:
+            stl_anzeige.zeigen(objekt, sichtbar)  # ein Teil aus einem STL als Netz
     _FOLGE[:] = [(j, [], f"{ne.einrichten_text(j)} {tr('ne.folge')}") for j in jobs]
     FreeCADGui.Selection.clearSelection()
     FreeCADGui.Control.showDialog(
@@ -5321,15 +5320,15 @@ class BearbeitungPanel:
             ansicht.addExtension("Gui::ViewProviderGroupExtensionPython")
         klon = vr.modell(self.job)
         if klon.ViewObject is not None:
-            klon.ViewObject.Visibility = True
             klon.ViewObject.Transparency = 0
             if self._ist_stl():
                 from .gui_stl import ohne_kanten
 
                 ohne_kanten(klon)
+            stl_anzeige.zeigen(klon, True)  # ein Teil aus einem STL als Netz
         if self.teil.ViewObject is not None:
-            self._sichtbar_vorher = (self.teil, self.teil.ViewObject.Visibility)
-            self.teil.ViewObject.Visibility = False
+            self._sichtbar_vorher = (self.teil, stl_anzeige.sichtbar(self.teil))
+            stl_anzeige.zeigen(self.teil, False)
 
     def _sichtbarkeit_zurueck(self):
         self._rohteil_original_zeigen(None)
@@ -5339,7 +5338,7 @@ class BearbeitungPanel:
         self._sichtbar_vorher = None
         try:
             if teil.ViewObject is not None:
-                teil.ViewObject.Visibility = sichtbar
+                stl_anzeige.zeigen(teil, sichtbar)
         except (ReferenceError, RuntimeError):
             pass
 
@@ -5942,6 +5941,10 @@ class BearbeitungPanel:
             return
         klon = vr.modell(self.job)
         ansicht = klon.ViewObject
+        if stl_anzeige.als_netz(klon):  # ein Teil aus einem STL: das Netz trägt die Farben
+            stl_anzeige.flaechen_faerben(klon, farben)
+            self._farben_vorher = (klon, None, None, None)
+            return
         if ansicht is None or not hasattr(ansicht, "DiffuseColor"):
             return
         if self._farben_vorher is None:
@@ -5989,6 +5992,9 @@ class BearbeitungPanel:
         try:
             ansicht = klon.ViewObject
             if ansicht is None:
+                return
+            if farben is None and aussehen is None:  # das Netz (stl_anzeige)
+                stl_anzeige.flaechen_faerben(klon, {})
                 return
             if linien is not None and hasattr(ansicht, "LineColorArray"):
                 ansicht.LineColorArray = linien

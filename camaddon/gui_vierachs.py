@@ -49,7 +49,7 @@ import FreeCADGui
 import numpy as np
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, farben, gui_rechnet, stl_teil, symbol, uhren
+from . import PARAMETER_PFAD, einheiten, farben, gui_rechnet, stl_anzeige, stl_teil, symbol, uhren
 from . import aufloesung as au
 from . import bestueckung as bs
 from . import formteile as ft
@@ -2519,6 +2519,10 @@ class VierachsPanel:
             return
         klon = vr.modell(self.job)
         ansicht = klon.ViewObject
+        if stl_anzeige.als_netz(klon):  # ein Teil aus einem STL: das Netz trägt die Farben
+            stl_anzeige.flaechen_faerben(klon, farben)
+            self._farben_vorher = (klon, None, None)
+            return
         if ansicht is None or not hasattr(ansicht, "DiffuseColor"):
             return
         if self._farben_vorher is None:
@@ -2548,6 +2552,9 @@ class VierachsPanel:
         try:
             ansicht = klon.ViewObject
             if ansicht is None:
+                return
+            if farben is None and aussehen is None:  # das Netz (stl_anzeige)
+                stl_anzeige.flaechen_faerben(klon, {})
                 return
             if aussehen is not None:
                 ansicht.ShapeAppearance = aussehen
@@ -5158,15 +5165,16 @@ class VierachsPanel:
             ansicht.addExtension("Gui::ViewProviderGroupExtensionPython")
         klon = vr.modell(self.job)
         if klon.ViewObject is not None:
-            klon.ViewObject.Visibility = True
             klon.ViewObject.Transparency = 0
             if stl_teil.aus_stl(self.teil):  # ohne die Kanten der Dreiecke, wie das Netz
                 from .gui_stl import ohne_kanten
 
                 ohne_kanten(klon)
+            # Ein Teil aus einem STL als Netz – am Geist 1,8 s weniger beim ersten Klick.
+            stl_anzeige.zeigen(klon, True)
         if self.teil.ViewObject is not None:
-            self._sichtbar_vorher = (self.teil, self.teil.ViewObject.Visibility)
-            self.teil.ViewObject.Visibility = False
+            self._sichtbar_vorher = (self.teil, stl_anzeige.sichtbar(self.teil))
+            stl_anzeige.zeigen(self.teil, False)
         self._stange_anzeigen(*STANGE_ANZEIGE, waehlbar=False)
 
     def _stange_anzeigen(self, darstellung, durchsicht, waehlbar):
@@ -5193,7 +5201,7 @@ class VierachsPanel:
         if self._sichtbar_vorher is not None:
             teil, sichtbar = self._sichtbar_vorher
             if teil.ViewObject is not None:
-                teil.ViewObject.Visibility = sichtbar
+                stl_anzeige.zeigen(teil, sichtbar)
             self._sichtbar_vorher = None
 
     def _vor_neuem_teil(self):

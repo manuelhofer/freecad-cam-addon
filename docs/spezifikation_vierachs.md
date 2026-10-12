@@ -1519,6 +1519,14 @@ Gebaut (P-2026-10-11-100):
     einem STL nur einmal speichern“, vorbelegt an). Am Geist mit einem Job: Speichern 3,6 statt
     6,2 s, 23 statt 39 MB. Ohne das Addon geöffnet ist der Klon leer, „Neu berechnen“ stellt ihn her.
 
+13. **Als Netz angezeigt** (P-2026-10-12-156, `stl_anzeige`): FreeCADs Anzeige des Körpers kostete
+    am Geist 1,7 s je Körper (Umwandeln, erster Klick, Öffnen). Körper und Klon bleiben für FreeCAD
+    ausgeblendet (im Baum grau); das Netz, das der Körper trägt, hängt als Coin-Knoten in seiner
+    Anzeige – es zieht mit der Lage mit, die Dreiecke in der Reihenfolge der Flächen: FreeCADs
+    Anklicken wählt „FaceN“. Auswahl, Vorauswahl und die Farben der Assistenten zeichnet das Netz;
+    die Leertaste im Baum zeigt FreeCADs eigene Anzeige (das Netz geht aus). Am Objekt gemerkt
+    (`CamAddonNetzAnzeige`), wieder da nach Öffnen, Rückgängig und Abbrechen.
+
 Offen: einzelne Bereiche wählen statt Dreiecke. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 
 ## 17. STL aus der N-Eck-Stange im Schraubstock (W-018)
