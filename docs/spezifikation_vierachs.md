@@ -1592,7 +1592,7 @@ Manuel (2026-10-12): „ja bau das so … so schwere STL-Geschichten sind ja eh 
    bei X …“; sonst steht beim Urteil „Spannung“: „Nichts fährt an die Backen (die Stange steckt
    20 mm im Schraubstock).“ Das Zeilen-Schruppen (4.) bleibt 1 mm davor.
 
-Offen zu W-018: ein Einrichtblatt für alle Aufspannungen.
+Offen zu W-018: ein Einrichtblatt für alle Aufspannungen – gefragt (OFFENE_FRAGEN, Frage 16).
 
 ## Entschieden
 

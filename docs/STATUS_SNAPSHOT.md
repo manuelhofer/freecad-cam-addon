@@ -748,7 +748,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (P-2026-10-12-124; Geist Aufspannung 1: 3 Lagen, 93 Zeilen, ~11 min statt 227 Ringe, ~48 min;
   `docs/bilder/w018_neck_zeilen.png`). Die Backen des Schraubstocks am Ende der Stange in Bild,
   Kollision und Urteil „Spannung“ (P-2026-10-12-126).
-  Offen: Einrichtblatt – [spezifikation_vierachs.md](spezifikation_vierachs.md),
+  Offen: Einrichtblatt (Frage 16) – [spezifikation_vierachs.md](spezifikation_vierachs.md),
   Abschnitt 17.
 
 ## Offene Bugs
