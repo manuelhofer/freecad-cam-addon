@@ -20,6 +20,9 @@ STAPEL = 4096  # so viele Paare (Strecke, Dreieck) rechnet `kapseln` höchstens 
 STAPEL_ERSTER = 256  # der erste Stapel (die nächsten Paare) – oft entscheidet er schon
 # Mehr Paare als das: zu teuer, die Abfrage gibt auf (die Kollision fragt dann OpenCascade).
 PAARE_HOECHSTENS = 60000
+# So viele Paare (Dreieck, Dreieck) rechnet `zu_dreiecken` je Stapel genau – am Geist gegen den
+# Revolver am schnellsten (64: 18 ms, 256: 14 ms, 1024: 15 ms je Abfrage).
+STAPEL_DREIECKE = 256
 
 
 def dreiecke(form, toleranz=0.02):
@@ -48,6 +51,8 @@ class Netz:
         if ecken is None:
             ecken = dreiecke(form, toleranz)
         self.toleranz = float(toleranz)
+        self._kasten = None  # (unten, oben) aller Dreiecke – zu_dreiecken
+        self._ebenen = None  # je Dreieck (Normale, Abstand, gültig) – zu_dreiecken
         if not len(ecken):
             self.ecken = np.zeros((0, 3, 3))
             self.zelle = ZELLE_MINDESTENS
@@ -218,55 +223,100 @@ class Netz:
             np.minimum.at(ergebnis, kk, d)
         return ergebnis - self.toleranz
 
-    def zu_dreiecken(self, ecken, bis):
+    def zu_dreiecken(self, ecken, bis, spiel=None):
         """So weit sind die Dreiecke `ecken` ((n, 3, 3), in den Koordinaten dieses Netzes)
         mindestens von diesem Netz entfernt – das Kleinste über die Paare von Dreiecken (je die
         drei Kanten des einen gegen das andere und umgekehrt; 0, wo sie sich schneiden), höchstens
         `bis`. Ohne Toleranzen abgezogen (P-2026-10-11-110: ein Maschinenteil gegen ein Teil aus
-        einem STL)."""
+        einem STL).
+
+        Alles zugleich (P-2026-10-12-112): je fremdes Dreieck die Zellen um seinen Hüllquader,
+        daraus die Paare; je Paar eine billige Schranke (Lücke der Hüllquader, die Ebene des einen
+        gegen die Ecken des anderen), genau gerechnet in Stapeln, die kleinsten Schranken zuerst –
+        bis keine mehr unter dem Besten liegt. Am Geist gegen den Revolver 14 statt 55 ms.
+
+        Mit `spiel` (mm): (Abstand, eigene Dreiecke), die Dreiecke dieses Netzes, die höchstens
+        Abstand + spiel von den fremden entfernt sind, die nächsten zuerst – unter ihnen liegt der
+        nächste Punkt der Form, wenn das fremde Netz höchstens spiel / 2 neben ihr liegt
+        (kollision._abstand_stl_netz).
+        None, wenn das mehr als PAARE_HOECHSTENS Paare genau zu rechnen wären."""
         ecken = np.asarray(ecken, dtype=np.float64).reshape(-1, 3, 3)
         bis = float(bis)
         if len(ecken) == 0 or len(self.ecken) == 0:
-            return bis
+            return bis if spiel is None else (bis, np.zeros(0, dtype=np.int64))
         lo, hi = ecken.min(axis=1), ecken.max(axis=1)
-        unten = self.ecken.min(axis=(0, 1))
-        oben = self.ecken.max(axis=(0, 1))
-        nah = np.all((hi >= unten - bis) & (lo <= oben + bis), axis=1)
-        if not nah.any():
-            return bis
-        paare_o, paare_t = [], []
-        for o in np.flatnonzero(nah):
-            i0 = self._zelle_von(lo[o] - bis)
-            i1 = self._zelle_von(hi[o] + bis)
-            zellen = np.stack(
-                np.meshgrid(
-                    np.arange(i0[0], i1[0] + 1),
-                    np.arange(i0[1], i1[1] + 1),
-                    np.arange(i0[2], i1[2] + 1),
-                    indexing="ij",
-                ),
-                axis=-1,
-            )
-            t = np.unique(self._dreiecke_in(zellen))
-            if len(t):
-                paare_o.append(np.full(len(t), o, dtype=np.int64))
-                paare_t.append(t)
-        if not paare_o:
-            return bis
-        po, pt = np.concatenate(paare_o), np.concatenate(paare_t)
-        # Erst die Lücke der Hüllquader: weiter als `bis` – das Paar zählt nicht.
-        luecke = np.maximum(
-            np.maximum(lo[po] - self.d_oben[pt], self.d_unten[pt] - hi[po]), 0.0
+        if self._kasten is None:
+            self._kasten = (self.d_unten.min(axis=0), self.d_oben.max(axis=0))
+        unten, oben = self._kasten
+        nah = np.flatnonzero(np.all((hi >= unten - bis) & (lo <= oben + bis), axis=1))
+        if not len(nah):
+            return bis if spiel is None else (bis, np.zeros(0, dtype=np.int64))
+        # Je fremdes Dreieck die Zellen um seinen Hüllquader, alle zugleich ausgerollt.
+        i0 = self._zelle_von(lo[nah] - bis)
+        spann = self._zelle_von(hi[nah] + bis) - i0 + 1
+        je = spann.prod(axis=1)
+        o = np.repeat(np.arange(len(nah)), je)
+        lokal = np.arange(int(je.sum())) - np.repeat(np.cumsum(je) - je, je)
+        sz, sy = spann[o, 2], spann[o, 1]
+        rest = lokal // sz
+        nummer = self._zellennummer(
+            i0[o, 0] + rest // sy, i0[o, 1] + rest % sy, i0[o, 2] + lokal % sz
         )
-        drin = np.sqrt(np.einsum("nj,nj->n", luecke, luecke)) < bis
+        anfang = self.start[nummer]
+        laenge = self.start[nummer + 1] - anfang
+        voll = np.flatnonzero(laenge)
+        anfang, laenge, o = anfang[voll], laenge[voll], o[voll]
+        lauf = np.arange(int(laenge.sum())) - np.repeat(np.cumsum(laenge) - laenge, laenge)
+        pt = self.index[np.repeat(anfang, laenge) + lauf]
+        po = nah[np.repeat(o, laenge)]
+        # Erst die Lücke der Hüllquader: weiter als `bis` – das Paar zählt nicht. Dann jedes Paar
+        # einmal (ein Dreieck liegt in mehreren Zellen).
+        drin = _luecke(lo[po], hi[po], self.d_unten[pt], self.d_oben[pt]) < bis
         if not drin.any():
-            return bis
-        a, b = ecken[po[drin]], self.ecken[pt[drin]]
-        d = np.full(len(a), bis)
+            return bis if spiel is None else (bis, np.zeros(0, dtype=np.int64))
+        m = len(self.ecken)
+        paar = np.unique(po[drin] * m + pt[drin])
+        po, pt = paar // m, paar % m
+        grob = _luecke(lo[po], hi[po], self.d_unten[pt], self.d_oben[pt])
+        if self._ebenen is None:
+            self._ebenen = _ebenen(self.ecken)
+        n_t, c_t, gut_t = self._ebenen
+        grob = np.maximum(grob, _ebenen_schranke(n_t[pt], c_t[pt], gut_t[pt], ecken[po]))
+        n_o, c_o, gut_o = _ebenen(ecken[nah])
+        wo = np.searchsorted(nah, po)
+        grob = np.maximum(grob, _ebenen_schranke(n_o[wo], c_o[wo], gut_o[wo], self.ecken[pt]))
+        grob_alle = grob.copy() if spiel is not None else None
+        beste = bis
+        offen = np.flatnonzero(grob < beste)
+        while len(offen):
+            if len(offen) > STAPEL_DREIECKE:
+                stapel = offen[np.argpartition(grob[offen], STAPEL_DREIECKE)[:STAPEL_DREIECKE]]
+            else:
+                stapel = offen
+            a, b = ecken[po[stapel]], self.ecken[pt[stapel]]
+            d = np.full(len(stapel), beste)
+            for i, j in ((0, 1), (1, 2), (2, 0)):
+                d = np.minimum(d, segment_dreieck_abstand(a[:, i], a[:, j], b))
+                d = np.minimum(d, segment_dreieck_abstand(b[:, i], b[:, j], a))
+            beste = min(beste, float(d.min()))
+            grob[stapel] = np.inf
+            offen = offen[grob[offen] < beste]
+        if spiel is None:
+            return beste
+        if beste >= bis:
+            return bis, np.zeros(0, dtype=np.int64)
+        welche = np.flatnonzero(grob_alle <= beste + spiel)
+        if len(welche) > PAARE_HOECHSTENS:
+            return None
+        je_dreieck = np.full(len(self.ecken), np.inf)
+        a, b = ecken[po[welche]], self.ecken[pt[welche]]
+        d = np.full(len(welche), np.inf)
         for i, j in ((0, 1), (1, 2), (2, 0)):
             d = np.minimum(d, segment_dreieck_abstand(a[:, i], a[:, j], b))
             d = np.minimum(d, segment_dreieck_abstand(b[:, i], b[:, j], a))
-        return float(min(bis, d.min()))
+        np.minimum.at(je_dreieck, pt[welche], d)
+        nummern = np.flatnonzero(je_dreieck <= beste + spiel)
+        return beste, nummern[np.argsort(je_dreieck[nummern], kind="stable")]
 
     def dreiecke_nah(self, von, nach, radien, reichweite):
         """(Dreiecke, Schranke): die Dreiecke (Indizes in `ecken`), denen eine der Kapseln (von,
@@ -359,6 +409,31 @@ class Netz:
         d = punkt_dreieck_abstand(punkte[punkt], self.ecken[dreieck])
         np.minimum.at(ergebnis, punkt, d)
         return ergebnis - self.toleranz
+
+
+def _luecke(lo_a, hi_a, lo_b, hi_b):
+    """Je Paar der Abstand zweier Hüllquader ((k, 3) je Seite); 0, wo sie sich überlappen."""
+    spalt = np.maximum(np.maximum(lo_a - hi_b, lo_b - hi_a), 0.0)
+    return np.sqrt(np.einsum("nj,nj->n", spalt, spalt))
+
+
+def _ebenen(ecken):
+    """Je Dreieck (m, 3, 3): (Einheitsnormale (m, 3), Abstand der Ebene vom Ursprung (m,),
+    gültig (m,) – False für ein Dreieck ohne Fläche)."""
+    n = np.cross(ecken[:, 1] - ecken[:, 0], ecken[:, 2] - ecken[:, 0])
+    laenge = np.linalg.norm(n, axis=1)
+    gut = laenge > 1e-12
+    n = np.where(gut[:, None], n / np.where(gut, laenge, 1.0)[:, None], 0.0)
+    return n, np.einsum("ij,ij->i", n, ecken[:, 0]), gut
+
+
+def _ebenen_schranke(normale, abstand, gut, ecken):
+    """Je Paar: Liegen die Ecken (k, 3, 3) ganz auf einer Seite der Ebene, ist ihr Dreieck
+    mindestens so weit von ihr – und von jedem Dreieck in ihr – entfernt wie die nächste Ecke;
+    sonst 0."""
+    s = np.einsum("pj,pkj->pk", normale, ecken) - abstand[:, None]
+    seite = np.maximum(np.maximum(s.min(axis=1), -s.max(axis=1)), 0.0)
+    return np.where(gut, seite, 0.0)
 
 
 def punkt_dreieck_abstand(p, dreiecke):

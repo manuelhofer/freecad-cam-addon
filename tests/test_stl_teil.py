@@ -224,6 +224,7 @@ if stl_daten is not None:
     teil_k = kb.Koerper("Teil", kb.TEIL, verbund, None, FreeCAD.Placement(), stl=stl_daten)
     welt = types.SimpleNamespace(_fehler=set(), ergebnis=None)
     welt._abstand_stl = lambda stl, werkzeug: kb._Welt._abstand_stl(welt, stl, werkzeug)
+    welt._abstand_stl_netz = lambda stl, anderer: kb._Welt._abstand_stl_netz(welt, stl, anderer)
     kasten = verbund.BoundBox
     for name, quader in (
         ("nah", Part.makeBox(4, 4, 4, V(kasten.XMin + 20, kasten.YMax + 2, -2))),
@@ -322,7 +323,10 @@ pruefe(len(bahn.punkte) > 100, f"3D-Schlichten: {len(bahn.punkte)} Punkte")
 # als der wahre Abstand und liegt nah an ihm (ein Quader: sein Netz ist er selbst).
 if stl_daten is not None:
     welt._netz_fehl = {}
-    for name, ort in (("nah", V(kasten.XMin + 20, kasten.YMax - 2.0, -2)), ("weiter", V(kasten.XMin + 20, kasten.YMax + 1.8, -2))):
+    for name, ort in (
+        ("nah", V(kasten.XMin + 20, kasten.YMax - 2.0, -2)),
+        ("weiter", V(kasten.XMin + 20, kasten.YMax + 1.8, -2)),
+    ):
         quader = kb.Koerper(name, kb.MASCHINE, Part.makeBox(6, 6, 6), None, FreeCAD.Placement())
         quader.form.Placement = FreeCAD.Placement(ort, FreeCAD.Rotation())
         teil_k.form.Placement = FreeCAD.Placement()

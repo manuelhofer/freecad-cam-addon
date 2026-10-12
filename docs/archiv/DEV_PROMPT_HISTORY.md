@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-112 kollision-am-stl-ohne-teure-faelle
+
+### EINGELESEN
+- Nach P-110 kam „Auf der Maschine prüfen“ am Geist mit Querachse (Drehmaschine mit Y, 286.776
+  Stationen) verteilt in 60 min nicht durch. Im Nebenrechner nachgestellt (das Teil als Quader,
+  die Dreiecke dazu): an einer Stelle 99 s für 1.000 Stationen, an einer anderen über 20 min.
+- Drei Ursachen: (1) Die Netzschranke Revolver gegen Teil kostete 43 ms (je fremdes Dreieck eine
+  Python-Schleife über die Zellen). (2) Fand sie nichts im Suchradius, wollte der Schritt den
+  genauen Abstand – der Revolver 6 mm neben dem Geist, OpenCascade gegen Tausende Dreiecke, 9 s
+  je Stelle. (3) Wo der Revolver das Teil wirklich berührt, sammelte OpenCascade jeden Punkt der
+  Schnittlinie (29.581 Dreiecke im Ausschnitt, 1.363 im Revolver): über 10 min für einen Abstand.
+- Dazu `_rund_um`: drei Kopien des Körpers mit 68.242 Flächen und eine Schnittmenge, 1,6 s je
+  Welt.
+
+### DATEIEN
+- `camaddon/netzabstand.py`: `Netz.zu_dreiecken` alles zugleich – Zellen je fremdes Dreieck
+  ausgerollt, Paare einmal, billige Schranken (Lücke der Hüllquader, Ebene gegen Ecken),
+  genau in Stapeln (`STAPEL_DREIECKE` 256) bis keine Schranke mehr unter dem Besten liegt; mit
+  `spiel` dazu die eigenen Dreiecke bis Abstand + spiel, die nächsten zuerst. `_luecke`,
+  `_ebenen`, `_ebenen_schranke`; `_kasten`/`_ebenen` je Netz gemerkt.
+- `camaddon/kollision.py`: `_netzschranke_stl` immer knapp (Befunde rechnet es weiter genau);
+  `_abstand_stl_netz` – der genaue Abstand eines Körpers ohne Kapseln zum STL-Teil nur mit den
+  Dreiecken, die nach den Netzen der nächste sein können (das Kleinste plus dreimal die
+  Toleranzen), berühren sich die Netze, mit den acht nächsten (`BERUEHRT_DREIECKE`); vom anderen
+  nur die Flächen, deren Kasten ihnen so nah kommt. `_rund_um` fragt ein STL-Teil nicht.
+- `tests/test_stl_teil.py`: Der Quader „nah“, „weit“, „drin“ geht jetzt über `_abstand_stl_netz` –
+  derselbe Abstand wie OpenCascade gegen alle Dreiecke.
+- `docs/spezifikation_vierachs.md` (16.11). `package.xml` (0.227.0).
+
+### ERGEBNIS
+- Die eingefangenen Netzschranken vom Geist dieselben Werte, 55 → 14 ms je Abfrage. Zwölf
+  Stichproben je 1.000 Stationen im Nebenrechner: hochgerechnet 16 min auf einem Kern (vorher an
+  einer Stelle allein über 20 min).
+- Geist mit Querachse verteilt: 28,7 s statt nach 60 min nicht fertig. Drei Befunde – die
+  Schneide von T1 im Eilgang am Teil (Satz 1762), der Revolver berührt das Teil (Satz 4697), der
+  Schaft von T1 berührt es (Satz 11492); alle drei unabhängig nachgesehen (FreeCADs Mesh-Modul:
+  die Netze schneiden sich dort).
+
+### AKZEPTANZKRITERIUM
+- `test_stl_teil`, `test_netzabstand`, `test_kollision`, `test_kollision_verteilt`,
+  `test_vierachs_pruefen` grün.
+
 ## P-2026-10-12-111 huelle-nur-was-unter-den-fraeser-kommt
 
 ### EINGELESEN

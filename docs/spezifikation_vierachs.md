@@ -1481,8 +1481,18 @@ Gebaut (P-2026-10-11-100):
     ist bitgleich. Am Geist mit Querachse „Anlegen“ 362 s → 127 s, die Bahn Zeichen für Zeichen
     dieselbe.
 
-Offen: einzelne Bereiche wählen statt Dreiecke; die Kollision am Geist mit Querachse ganz durch
-messen. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
+11. **Die Kollision am Teil aus einem STL ohne die teuren Fälle** (P-2026-10-12-112): Die
+    Netzschranke Maschinenteil gegen STL (`netzabstand.Netz.zu_dreiecken`) rechnet alle Paare
+    zugleich und genau nur die mit der kleinsten billigen Schranke (Lücke der Hüllquader, Ebene
+    gegen Ecken) – 55 → 14 ms; sie gilt immer als knapp (für den Schritt genügt sie: Der Revolver
+    6 mm neben dem Geist kostete genau 9 s je Stelle). Der genaue Abstand eines Maschinenteils
+    (`_Welt._abstand_stl_netz`) nimmt nur die Dreiecke, die nach den Netzen der nächste sein können
+    (das Kleinste plus dreimal die Toleranzen); berühren sich die Netze, die acht nächsten –
+    OpenCascade sammelte sonst jeden Punkt der Schnittlinie (1.363 Dreiecke im Revolver: über
+    10 min). `_rund_um` fragt ein STL-Teil nicht mehr (1,6 s je Welt). Am Geist mit Querachse
+    „Auf der Maschine prüfen“ verteilt 28,7 s statt nach 60 min nicht fertig.
+
+Offen: einzelne Bereiche wählen statt Dreiecke. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 
 ## Entschieden
 

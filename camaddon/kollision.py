@@ -91,6 +91,9 @@ BERUEHRT = 1e-3  # mm: näher gilt als Berührung
 # (Koerper.ausschnitt) – liegt keine so nah, gilt dieser Abstand (weniger als der wahre).
 AUSSCHNITT_RAND = 10.0
 KAESTEN_HOECHSTENS = 2000  # Flächen: mehr hat ein Körper, dann ohne die Kästen je Fläche
+# So viele Dreiecke eines Teils aus einem STL rechnet der genaue Abstand, wenn sich die Netze schon
+# berühren (_Welt._abstand_stl_netz) – die nächsten.
+BERUEHRT_DREIECKE = 8
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
 # mm: So tief darf die Schneide im Vorschub ins fertige Teil – Rundung der Bahn; tiefer ist
 # ein Befund („fährt ins fertige Teil“).
@@ -2014,8 +2017,7 @@ class _Welt:
         Toleranzen beider Netze – nie mehr als der wahre Abstand (P-2026-10-11-110). Am Geist
         schwebte der Revolver über lange Strecken 0,7 bis 1,2 mm daneben, und ohne Schranke wurde
         jede Stelle genau gerechnet (0,09 s); mit ihr nur, wo er näher kommen könnte als bisher.
-        `knapp` wie bei den Kapseln: Die Netze sahen sich, der Schritt nimmt die Schranke.
-        None, wenn es das Paar nicht ist."""
+        `knapp` immer: Der Schritt nimmt die Schranke. None, wenn es das Paar nicht ist."""
         a, b = paar.a, paar.b
         stl, anderer = (a, b) if a.stl is not None else (b, a) if b.stl is not None else (b, a)
         if stl.stl is None or anderer.art not in (MASCHINE, SCHRAUBSTOCK):
@@ -2033,10 +2035,11 @@ class _Welt:
         ecken = netz_anderer.ecken @ drehung.T + ursprung
         abzug = netz_teil.toleranz + netz_anderer.toleranz
         bis = reicht + NETZ_SCHRITT + abzug
-        d = netz_teil.zu_dreiecken(ecken, bis)
-        # Gefunden (unter `bis`): Netz gegen Netz ist bis auf die Toleranzen der Abstand – knapp,
-        # für den Schritt braucht es ihn nicht genau.
-        return d - abzug, bool(d < bis - 1e-9)
+        # Immer knapp: Für den Schritt genügt die Schranke – gefunden (unter `bis`) ist sie bis auf
+        # die Toleranzen der Abstand, sonst ist das Teil mindestens so weit weg. Genau rechnete
+        # OpenCascade am Geist gegen den Revolver 6 mm daneben Tausende Dreiecke, 9 s je Stelle
+        # (P-2026-10-12-112); Befunde rechnet es weiter genau.
+        return netz_teil.zu_dreiecken(ecken, bis) - abzug, True
 
     def _abstand(self, a, b):
         """(Abstand in mm, Stelle) zweier Körper an ihrer gesetzten Lage; 0, wenn sie sich
@@ -2053,8 +2056,10 @@ class _Welt:
                 return grob, None
             if anderer.kapseln:
                 genau = self._abstand_stl(stl, anderer)
-                if genau is not None:
-                    return genau
+            else:
+                genau = self._abstand_stl_netz(stl, anderer)
+            if genau is not None:
+                return genau
             nah = stl.ausschnitt(anderer)
             if nah is None:
                 return AUSSCHNITT_RAND, None
@@ -2109,6 +2114,58 @@ class _Welt:
             return naechstes
         alle = abstand_zu(kandidaten)
         return alle if alle is not None and alle[0] <= naechstes[0] else naechstes
+
+    def _abstand_stl_netz(self, stl, anderer):
+        """Der genaue Abstand eines Körpers ohne Kapseln (ein Maschinenteil) zu einem Teil aus
+        einem STL, an ihren gesetzten Lagen – OpenCascade nur mit den Dreiecken, die nach den
+        Netzen der nächste sein können (P-2026-10-12-112): Sein Netz liegt höchstens seine
+        Toleranz neben ihm, also ist der wahre Abstand eines Dreiecks höchstens um sie anders als
+        der zum Netz; Dreiecke, die weiter als das Kleinste plus zweimal die Toleranzen liegen,
+        sind es nicht. Am Geist stach der Revolver ins Teil, und der Ausschnitt um ihn hatte
+        29.581 Dreiecke – OpenCascade rechnete Minuten. Von ihm nur die Flächen, deren Kasten
+        diesen Dreiecken so nah kommt. (Abstand, Stelle) oder None (dann wie bisher)."""
+        import Part
+
+        netz_teil, netz_anderer = stl.netz(fein=True), anderer.netz(fein=True)
+        if netz_teil is None or netz_anderer is None or not len(netz_anderer.ecken):
+            return None
+        m = np.array(
+            stl.form.Placement.inverse().multiply(anderer.form.Placement).toMatrix().A,
+            dtype=float,
+        ).reshape(4, 4)
+        ecken = netz_anderer.ecken @ m[:3, :3].T + m[:3, 3]
+        toleranz = netz_teil.toleranz + netz_anderer.toleranz
+        gefunden = netz_teil.zu_dreiecken(ecken, AUSSCHNITT_RAND + toleranz, spiel=3 * toleranz)
+        if gefunden is None:
+            return None
+        naechster, dreiecke = gefunden
+        if not len(dreiecke):  # keins so nah: mindestens so weit weg (wie Koerper.ausschnitt)
+            return AUSSCHNITT_RAND, None
+        if naechster <= toleranz:
+            # Die Netze berühren oder schneiden sich: OpenCascade sammelte jeden Punkt der
+            # Schnittlinie als eigene Lösung (am Geist 1.363 Dreiecke im Revolver, über 10 min) –
+            # die nächsten paar entscheiden es, bis auf die Toleranz der Netze.
+            dreiecke = dreiecke[:BERUEHRT_DREIECKE]
+        reicht = naechster + 3 * toleranz
+        gegen = anderer.form
+        kaesten = anderer.flaechen_kaesten()
+        if kaesten is not None:
+            unten_d, oben_d, _ecken = stl._ausschnitt_vorbereiten()
+            f_ecken = kaesten @ m[:3, :3].T + m[:3, 3]
+            f_lo, f_hi = f_ecken.min(axis=1), f_ecken.max(axis=1)
+            lo, hi = unten_d[dreiecke].min(axis=0), oben_d[dreiecke].max(axis=0)
+            spalt = np.maximum(np.maximum(lo - f_hi, f_lo - hi), 0.0)
+            nahe = np.flatnonzero(np.sqrt(np.einsum("fj,fj->f", spalt, spalt)) <= reicht + 1e-9)
+            if 0 < len(nahe) < len(kaesten):
+                gegen = Part.makeCompound([anderer.flaechen_liste()[i] for i in nahe])
+                gegen.Placement = anderer.form.Placement
+        verbund = stl.dreiecks_verbund(dreiecke)
+        try:
+            d, punkte, _info = gegen.distToShape(verbund)
+        except Exception:  # noqa: BLE001 – dann wie bisher
+            return None
+        stelle = (punkte[0][0] + punkte[0][1]) * 0.5 if punkte else None
+        return d, stelle
 
     def _merke(self, paar, abstand, stelle, i, naechste, s, ziel):
         """Merkt die Stelle, wenn sie für diese Operation und dieses Paar die schlimmste ist."""
@@ -2311,7 +2368,11 @@ def _luecke(h1, h2):
 def _rund_um(koerper, richtung, ursprung):
     """Bleibt der Körper, wo er ist, wenn er sich um die Achse dreht? Um zwei krumme
     Winkel gedreht, deckt er sich mit sich selbst – erst der Hüllquader, dann das Volumen
-    der Schnittmenge. Im Zweifel nein."""
+    der Schnittmenge. Im Zweifel nein – so auch für ein Teil aus einem STL: Am Geist kostete
+    die Prüfung (drei Kopien mit 68.242 Flächen und eine Schnittmenge) 1,6 s je Welt, und rund
+    um die Achse ist ein Netz so gut wie nie."""
+    if getattr(koerper, "stl", None) is not None:
+        return False
     try:
         form = koerper.form.copy()
         form.Placement = koerper.basis
