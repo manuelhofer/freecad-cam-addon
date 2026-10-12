@@ -932,11 +932,15 @@ def _befehl(eintrag):
     return eintrag.Name, dict(eintrag.Parameters)
 
 
-def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil=None):
+def programm(
+    abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil=None, einrichten=""
+):  # fmt: skip
     """Das Programm (Programm) für die Abschnitte mit der Steuerung `s` und der Maschine
     `info`. `vorschau`: höchstens so viele Bewegungssätze, dann ein Hinweis – fürs Fenster.
     Klartext (Heidenhain): `datei` gibt den Namen im BEGIN/END PGM (wie die Datei, sonst `name`),
-    `rohteil` ((xmin, ymin, zmin), (xmax, ymax, zmax)) das BLK FORM."""
+    `rohteil` ((xmin, ymin, zmin), (xmax, ymax, zmax)) das BLK FORM. `einrichten`: wie man
+    einrichtet (die Aufspannung einer N-Eck-Stange, n_eck.einrichten_text) – als Kommentar im
+    Kopf und als Hinweis."""
     info = info or Maschineninfo()
     koordinatenstellen = max((a.koordinatenstellen for a in abschnitte), default=STELLEN)
     if koordinatenstellen > STELLEN:
@@ -972,6 +976,9 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
         )
         if glaetten.option:
             hinweise.append(tr("pp.hinweis.option", befehl=glaetten.befehl.split("\n")[0]))
+    if einrichten:
+        notiz(einrichten)
+        hinweise.append(einrichten)
     if not info.name:
         hinweise.append(tr("pp.hinweis.ohne_maschine"))
     hinweise.extend(_ruest_hinweise(abschnitte))

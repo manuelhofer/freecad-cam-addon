@@ -152,7 +152,12 @@ def programm(
         _ABSCHNITTE.clear()  # nur die letzten: eine neue Kopie macht die alten wertlos
         _ABSCHNITTE[schluessel] = abschnitte_und_kette(job, gewaehlt)
     teile, ohne = _ABSCHNITTE[schluessel]
-    ergebnis = pp.programm(teile, s, info, job.Label, vorschau, datei=datei, rohteil=rohteil)
+    from . import n_eck as ne
+
+    ergebnis = pp.programm(
+        teile, s, info, job.Label, vorschau, datei=datei, rohteil=rohteil,
+        einrichten=ne.einrichten_text(job),
+    )  # fmt: skip
     if ohne and not (s.schwenkzyklus and s.schwenken):
         # Sonst stillschweigend: der gedachte Tisch A, C um den Nullpunkt (schwenken).
         ergebnis.hinweise.append(tr("pp.hinweis.ebene_ohne_kette"))

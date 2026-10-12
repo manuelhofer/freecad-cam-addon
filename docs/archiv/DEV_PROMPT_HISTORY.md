@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-123 n-eck-programm-je-aufspannung
+
+### EINGELESEN
+- W-018: Jede Aufspannung ist ein eigenes Programm ohne Schwenken – geprüft; und an der Maschine
+  muss stehen, wie man einrichtet.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `programm(einrichten=)` – der Satz fürs Einrichten als Kommentar im
+  Kopf und als Hinweis.
+- `camaddon/programm_rechnen.py`, `camaddon/gui_programm.py`: geben `n_eck.einrichten_text(job)`
+  mit.
+- `tests/test_n_eck.py`: Das Programm des Grundjobs hat nur seine Operationen, das einer
+  Aufspannung kein CYCLE800 und keine Rundachse, den Satz im Kopf. `package.xml` (0.238.0).
+
+### ERGEBNIS
+- Siemens, Aufspannung 2 von 8: „; Aufspannung 2 von 8: Stange um 45° gegen die erste gedreht, die
+  Flächen 2 und 6 an den Backen. Nullpunkt: …“ im Kopf, sonst nur die Bahn.
+
+### AKZEPTANZKRITERIUM
+- `test_n_eck`, `test_postprozessor`, `test_programmkopf`, `test_programm_pruefen`,
+  `test_schwenken` grün.
+
 ## P-2026-10-12-122 n-eck-stange-im-assistenten
 
 ### EINGELESEN

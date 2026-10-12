@@ -112,6 +112,41 @@ pruefe(
 )
 pruefe(ne.einrichten_text(job).startswith("Aufspannung 1 von 8"), "Einrichten Grundjob")
 
+# --- Das Programm: je Aufspannung ein eigenes, ohne Schwenken ----------------------------------
+import Path.Op.Custom as PathCustom  # noqa: E402
+
+from camaddon import postprozessor as pp  # noqa: E402
+
+for j, name in ((job, "Oben"), (jobs[0], "Zweite")):
+    FreeCAD.setActiveDocument(dok.Name)
+    op = PathCustom.Create(name, parentJob=j)
+    op.Gcode = ["G0 X10 Y0 Z30", "G1 Z20 F300", "G1 X40", "G0 Z30"]
+dok.recompute()
+grund_teile = pp.abschnitte(job)
+pruefe([a.name for a in grund_teile] == ["Oben"], f"Grundjob: {[a.name for a in grund_teile]}")
+teile = pp.abschnitte(jobs[0])
+pruefe(
+    [a.name for a in teile] == ["Zweite"] and all(a.schwenkung is None for a in teile),
+    f"Aufspannung 2: {[(a.name, a.schwenkung) for a in teile]}",
+)
+programm = pp.programm(
+    teile, pp.steuerung("siemens"), pp.Maschineninfo("3-Achs"), "A2",
+    einrichten=ne.einrichten_text(jobs[0]),
+)  # fmt: skip
+zeilen = programm.zeilen
+pruefe(
+    any("Aufspannung 2 von 8" in z for z in zeilen[:12])
+    and programm.hinweise[0].startswith("Aufspannung 2 von 8"),
+    f"Einrichten nicht im Kopf: {zeilen[:12]} / {programm.hinweise[:2]}",
+)
+pruefe(not any("CYCLE800" in z for z in zeilen), "Aufspannung mit CYCLE800")
+saetze = [z for z in zeilen if z.strip() and not z.lstrip().startswith((";", "("))]
+pruefe(
+    not any(w[0] in "ABC" and w[1:2] in "-0123456789" for z in saetze for w in z.split()),
+    f"Rundachse im Programm: {saetze}",
+)
+pruefe(any("X40" in z for z in saetze), f"Bahn fehlt: {saetze}")
+
 # Ein verschobenes und gedrehtes Teil liegt genauso in der Stange (die Punkte im Dokument).
 schief = dok.addObject("Part::Box", "Schief")
 schief.Length, schief.Width, schief.Height = 30, 20, 50

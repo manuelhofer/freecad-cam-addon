@@ -1553,8 +1553,12 @@ Manuel (2026-10-12): „ja bau das so … so schwere STL-Geschichten sind ja eh 
    Geist (8-Eck SW 86): Aufspannung 1 3D-Schruppen 227 Ringe (etwa 48 min), Aufspannung 2 mit dem
    Restmaterial der ersten 69 Ringe (etwa 8 min). Szenario `szenario_bearbeitung_n_eck`.
 
-Offen zu W-018: der Schraubstock in der Kollisionsprüfung (die Backen am Ende der Stange); das
-Einrichtblatt mit dem Satz je Aufspannung.
+3. **Ein Programm je Aufspannung** (P-2026-10-12-123): ohne CYCLE800 und Rundachsen; der Satz
+   fürs Einrichten steht im Kopf des Programms und als Hinweis im Fenster „Programm“.
+
+Offen zu W-018: das Schruppen von der Stirn zum Schraubstock ohne Abheben (Manuel, 2026-10-12, zum
+3D-Schruppen in Ringen: „die Stiche, die du da fährst … Wahnsinn und unnötig … einfach von vorne,
+weit weg vom Schraubstock, hin zum Schraubstock arbeiten“); der Schraubstock in der Kollision.
 
 ## Entschieden
 

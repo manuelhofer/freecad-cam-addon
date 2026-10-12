@@ -23,6 +23,7 @@ from PySide import QtCore, QtGui
 from . import PARAMETER_PFAD, farben, symbol
 from . import job_schnittwerte as js
 from . import maschinenspeicher as msp
+from . import n_eck as ne
 from . import postprozessor as pp
 from . import programm_rechnen as pr
 from . import reichweite as rw
@@ -866,6 +867,7 @@ class ProgrammDialog(QtGui.QDialog):
             vorschau,
             datei=self.feld_datei.text().strip(),
             rohteil=_rohteil(self.job),
+            einrichten=ne.einrichten_text(self.job),
         )
         if self._ohne_kette and not (s.schwenkzyklus and s.schwenken):
             # Sonst stillschweigend: der gedachte Tisch A, C um den Nullpunkt (schwenken).
