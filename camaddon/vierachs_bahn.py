@@ -533,6 +533,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     lagen = 0
     if ueber_dem_teil.size:
         lagen = max(0, int(math.ceil((w.stange_radius - r_min) / w.zustellung - GLEICH)))
+    ap = w.zustellung
     if lagen > 0:
         # Gleich tief je Lage (Manuel, 2026-10-12: „20 mm bei ap 15 – dann nehm ich 2 × 10 …
         # 1 × 15 und 1 × 5 kann man machen, aber 2 × 10 braucht dieselbe Zeit und schont die
@@ -563,18 +564,27 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
         return Bahn(punkte, lagen, r_min, hinten_frei)
     if w.querachse:
-        lagen = _schruppen_quer(
-            punkte,
-            netz,
-            laengs,
-            radial,
-            w,
-            (a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte),
-            (a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher),
-            lagen,
-            schritt_phi,
+        spirale_ = (a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte)
+        rahmen_ = (a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher)
+        gefahren = _schruppen_quer(
+            punkte, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi
         )
-        return Bahn(punkte, lagen, r_min, hinten_frei)
+        if 0 < lagen < gefahren:
+            # Neben dem Strahl hält die Grenze je Lage (vierachs_quer.lagen_grenze) höher als
+            # auf ihm: Mit gleich tiefen Lagen bis genau ans Teil blieb seitlich ein dünner Rest
+            # für eine Lage mehr (an einer Welle Ø 60 in Ø 80, ap 2: sechs statt fünf). Dann
+            # gleich tief so, dass die geplanten reichen – nie tiefer als ap (P-2026-10-12-149).
+            tiefer = min(ap, w.zustellung * gefahren / lagen)
+            if tiefer > w.zustellung + GLEICH:
+                versuch = punkte[:1]
+                weniger = _schruppen_quer(
+                    versuch, netz, laengs, radial, replace(w, zustellung=tiefer), spirale_,
+                    rahmen_, lagen, schritt_phi,
+                )  # fmt: skip
+                if weniger < gefahren:
+                    punkte[:] = versuch
+                    gefahren = weniger
+        return Bahn(punkte, gefahren, r_min, hinten_frei)
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     spiel = schrupp_spiel(w.aufmass)

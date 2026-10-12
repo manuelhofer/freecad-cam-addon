@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-149 querachse-ohne-duenne-lage
+
+### EINGELESEN
+- Offen seit P-2026-10-12-145: Mit der Querachse und gleich tiefen Lagen (P-135) fuhr „Rundum
+  schruppen“ an der Welle Ø 60 in Ø 80 (ap 2) sechs statt fünf Lagen – neben dem Strahl hält
+  `vierachs_quer.lagen_grenze` höher, die fünfte reichte genau bis ans Teil, seitlich blieb ein
+  dünner Rest; die Vorschau sagte „5 Lagen“.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`schruppen`): Fährt `_schruppen_quer` mehr Lagen als geplant,
+  einmal neu mit der Zustellung gefahrene ÷ geplante Lagen × z, höchstens ap – genommen, wenn es
+  weniger Lagen werden.
+- `tests/gui/szenario_vierachs_schruppen.py`: wieder fünf Lagen. `docs/STATUS_SNAPSHOT.md`.
+  `package.xml` (0.256.2).
+
+### ERGEBNIS
+- `szenario_vierachs_schruppen` (26.3): fünf Lagen. Unverändert: `test_goldene_bahnen`,
+  `test_vierachs_bahn`, `test_vierachs_frei` (Nasen-Testteil, drei Lagen).
+
 ## P-2026-10-12-148 huelle-paare-in-bloecken
 
 ### EINGELESEN

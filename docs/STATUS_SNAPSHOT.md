@@ -652,11 +652,9 @@ Beantwortet am 2026-10-03 (abends):
    Rundum schlichten 0,2 mm: 263 679 Stationen, rechnerisch 3,4 h) öffnet es in etwa 10 s: Prüfen
    1,8, Abfahren 3,9, die Spitze am Werkstück je Station 4 s (Kinematik je Station; seit
    P-2026-10-04-20 einmal gerechnet und gemerkt – die Kollision rechnet sie nicht noch einmal).
-7. W-003, offen seit P-2026-10-12-145: Mit der Querachse und gleich tiefen Lagen (P-135) bleibt an
-   einer einfachen Welle (Ø 60 in Ø 80, ap 2) seitlich ein dünner Rest, die Querachse holt ihn mit
-   einer sechsten Lage (`vierachs_quer.lagen_grenze` liegt neben dem Strahl höher); die Vorschau im
-   Assistenten sagt weiter „5 Lagen“. Am Nasen-Testteil gleich (3 Lagen, +0,1 min). Sauber wäre,
-   die gleiche Aufteilung mit Querachse an der Grenze neben dem Strahl auszurichten.
+7. W-003 (erledigt mit P-2026-10-12-149): Mit der Querachse und gleich tiefen Lagen blieb an einer
+   einfachen Welle seitlich ein dünner Rest für eine sechste Lage; jetzt gleich tief so, dass die
+   geplanten Lagen reichen (nie tiefer als ap).
    (Erledigt mit P-2026-10-12-148: `vierachs_huelle.je_stellung_stueck` 37 statt 2182 MB je Auftrag,
    Schruppen am Geist 205 statt 666–727 s.)
 7. W-002 F2; W-003 V6, V7 (V2b gebaut, P-2026-10-04-01); (das Schruppen rundum an steilen Stellen: gemessen, die Keile
