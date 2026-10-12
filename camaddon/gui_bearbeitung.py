@@ -540,7 +540,9 @@ class BefehlBearbeitung:
         return not FreeCADGui.Control.activeDialog()
 
     def Activated(self):
-        dokument = FreeCAD.ActiveDocument
+        from .gui_hilfe import arbeitsdokument
+
+        dokument = arbeitsdokument()  # das der Auswahl – nicht die Maschine, die gerade aktiv ist
         if dokument is None:
             QtGui.QMessageBox.information(
                 FreeCADGui.getMainWindow(), tr("ba.titel"), tr("ba.kein_dokument")

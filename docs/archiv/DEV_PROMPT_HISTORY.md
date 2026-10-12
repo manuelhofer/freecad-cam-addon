@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-137 assistent-im-dokument-der-auswahl
+
+### EINGELESEN
+- Manuel (2026-10-12, Bild): „4-Achs-Bearbeitung: PropertyLink does not support external object“,
+  dazu ein Werkzeug-Controller „T1 494W D12 – Schruppen“ im Dokument der Maschine CLX550 – nach
+  „Auf der Maschine prüfen“ war die Maschine das aktive Dokument, der Geist in „Unbenannt“ gewählt;
+  die Assistenten nahmen das aktive Dokument.
+
+### DATEIEN
+- `camaddon/gui_hilfe.py`: `arbeitsdokument` – das Dokument der Auswahl (liegt sie in genau einem),
+  sonst das aktive; ist das nur eine Maschine (Baugruppe mit Maschine, kein Job) und gibt es genau
+  ein anderes Dokument, das andere; es wird das aktive.
+- `camaddon/gui_vierachs.py`, `camaddon/gui_bearbeitung.py`, `camaddon/gui_schwenken.py`:
+  `Activated` damit.
+- `tests/gui/szenario_arbeitsdokument.py` (neu): Block in „Teil“, die Beispiel-Drehmaschine aktiv,
+  der Block gewählt – „4-Achs-Bearbeitung“ im Dokument „Teil“; ohne Auswahl „Bearbeitung“ ebenso.
+  `package.xml` (0.252.0).
+
+### AKZEPTANZKRITERIUM
+- `szenario_arbeitsdokument` grün.
+
 ## P-2026-10-12-136 rechnet-anzeige
 
 ### EINGELESEN

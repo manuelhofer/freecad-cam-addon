@@ -41,7 +41,9 @@ class BefehlSchwenken:
         return not FreeCADGui.Control.activeDialog()
 
     def Activated(self):
-        dokument = FreeCAD.ActiveDocument
+        from .gui_hilfe import arbeitsdokument
+
+        dokument = arbeitsdokument()  # das der Auswahl – nicht die Maschine, die gerade aktiv ist
         job, flaeche = gewaehlt(dokument) if dokument is not None else (None, None)
         if job is None:  # der Knopf führt gleich zum Assistenten, der den Job anlegt
             weiter(
