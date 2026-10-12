@@ -735,8 +735,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   zum 2026-10-12 (P-104 bis -112): Rundum schruppen mit Querachse am Geist „Anlegen“ 362 → 127 s
   (Bahn gleich), „Auf der Maschine prüfen“ mit radialem Halter 14 s ohne Befunde; wo ein
   Maschinenteil dem STL-Teil nahe kommt (T1 axial gespannt), 28,7 s statt über 60 min. Offen:
-  Bereiche statt Dreiecke wählen; beim Anlegen am Geist steht das Fenster bis zu 23-mal je 3 s
-  (OpenCascade/Coin mit 68.242 Flächen, Ursache nicht eingegrenzt) –
+  Bereiche statt Dreiecke wählen; beim Anlegen am Geist steht das Fenster einmal bis 3,5 s, sonst
+  unter 1 s (FreeCADs Werkzeugkörper, `updateDepths` mit dem Hüllquader der 68.242 Flächen) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
 
 ## Offene Bugs
