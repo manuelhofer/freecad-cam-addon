@@ -354,6 +354,14 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    (zur Mitte, unter der Drehmitte) ganz ab, Zeilen wie Stiche. Nicht nachgestellt – braucht Manuels
    Job oder ein Bild, wenn es wieder vorkommt (Face8 kommt nur dazu, wenn der Weg vor ihr frei ist,
    `zur_achse`).
+   **Manuels Bild dazu (2026-10-12, 19:10):** [nase_plan_zickzack_manuel.png](bilder/vorschlaege/nase_plan_zickzack_manuel.png)
+   – „Plan indexiert“ und „Rundum schruppen“ an der Nase: An der Dreiecksfläche (Seite der Nase)
+   fahren die Zeilen im Zickzack ein (die Rampe mit dem Eintauchwinkel, weil die Zeile im Material
+   beginnt) und kommen nicht bis an die Fläche der Nase – „was kompletter blödsinn ist für was
+   ?!?!? … einfach auf volle tiefe ap fahren und an der planfläche entlang fahren … da brauch ich
+   kein zickzack fahren … und meine planschneide kaputt machen“. Also: von der freien Seite (vor
+   der Stange) mit vollem ap hinein und an der Fläche entlang, bis an die Nase; keine Rampe, wo die
+   Zeile aus der Luft kommen kann. Das ist Auftrag 1.
 3. **Vorschlichten** (Frage 17, Manuel: „warum kann die nicht einfach die bereiche die sie beim
    fertig schlichten viel nehmen würde vorher auf 0.3mm aufmass runter fahren“): nur dort, wo die
    Kugel beim Schlichten viel nähme, vorher mit der Kugel auf 0,3 mm Aufmaß – mit den schnellsten
