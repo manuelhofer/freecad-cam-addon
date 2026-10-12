@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-153 kein-f0-kein-k-in-g17
+
+### EINGELESEN
+- Forum (Leon, t=107926, Manuel: „haben wir einen post prozessor für mach3 und können dessen
+  problem lösen?“): FreeCADs Plasma-Postprozessor in 26.3 schreibt beim Zünden „G1 F0.000“ und
+  in Bögen der XY-Ebene „K0.000“ – Mach3 lehnt beides ab. Unser „Programm schreiben“ (auch
+  Mach3/Mach4) hatte dieselben zwei Fehler: F0 ließ es nur im Eilgang weg, I/J/K nahm es, wie
+  FreeCAD sie speichert (LinuxCNC lehnt K in G17 ebenso ab).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Die Ebene der Bögen aus dem Kopf und den Sätzen (G17/G18/G19); in
+  G2/G3 entfällt das Mittelpunktsmaß quer zur Ebene, wenn es 0 ist (K in G17, J in G18, I in G19);
+  F0 kommt in keinen Satz (das F davor gilt); ein „G1“ nur mit F0, dessen Achsen schon dort
+  stehen, fällt ganz weg (`_steht`).
+- `tests/test_postprozessor.py`: Leons Bahn (Ausschnitt) für Mach3 und LinuxCNC, ein Bogen in
+  G18 an der Drehmaschine. `package.xml` (0.257.3).
+
+### ERGEBNIS
+- Aus Leons Bahn wird für Mach3 „G3 X1.237 Y0.998 I0.000 J0.289 F50.000“; „G1 F0.000“ und
+  „G1 X1.498 Y2.490 F0.000“ (steht schon dort) fallen weg; ein K, das nicht 0 ist, bleibt.
+  Grün: `test_postprozessor` in 26.3 RC1 und 1.1.4, `test_programm_pruefen`, `test_programmkopf`.
+
 ## P-2026-10-12-152 geist-weniger-stehen
 
 ### EINGELESEN

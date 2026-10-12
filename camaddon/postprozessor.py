@@ -55,6 +55,11 @@ SATZNUMMER_SCHRITT = 10  # N10, N20 …
 MARKE_LAENGE = 32  # Zeichen einer Sprungmarke höchstens (Siemens)
 TOLERANZ_BEREICH = (0.001, 1.0)  # mm – die Toleranz fürs Glätten
 BEWEGUNG = ("G0", "G00", "G1", "G01", "G2", "G02", "G3", "G03")
+BOGEN = ("G2", "G02", "G3", "G03")
+# Die Achse quer zur Ebene des Bogens: ihr Mittelpunktsmaß (FreeCAD schreibt „K0“ in G17) lehnen
+# Mach3 und LinuxCNC ab („K word given for arc in XY plane“) – bei 0 entfällt es.
+QUER_ZUR_EBENE = {"G17": "K", "G18": "J", "G19": "I"}
+_EBENE = re.compile(r"\bG1([789])\b")
 WEG_ADRESSEN = ("X", "Y", "Z", "A", "B", "C")  # zählen beim Vorschub ohne G93
 # Die Reihenfolge der Adressen in einem Satz.
 ADRESSEN = ("X", "Y", "Z", "A", "B", "C", "U", "V", "W", "I", "J", "K", "R", "P", "Q", "L", "F")
@@ -986,6 +991,10 @@ def programm(
     marken = [markenname(a.name, vergeben) for a in abschnitte] if s.marken else []
     if s.kommentare:
         zeilen.extend(_kopfzeilen(s, abschnitte, marken))
+    ebene = "G17"  # die Ebene der Bögen: was der Kopf setzt, danach was die Bahn setzt
+    for zeile in zeilen:
+        for treffer in _EBENE.finditer(zeile.upper()):
+            ebene = "G1" + treffer.group(1)
     werkzeug = None
     spindel_an = None  # ("haupt" oder Nummer des Antriebs, Drehzahl, Richtung)
     c_an = False
@@ -1202,6 +1211,12 @@ def programm(
                 zeilen.extend(_zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor))
                 saetze += 1
                 continue
+            if gross in QUER_ZUR_EBENE:
+                ebene = gross
+            if gross in ("G1", "G01") and _steht(stand, parameter):
+                # FreeCADs Brennschneiden (26.3) zündet mit „G1 F0“ an der Stelle, wo es steht –
+                # nichts zu fahren, und F0 lehnen Mach3 und LinuxCNC ab (Forum, t=107926).
+                continue
             woerter = [gross]
             bewegung = gross in BEWEGUNG
             if laenge_offen and bewegung and ("Z" in parameter or info.drehmaschine):
@@ -1217,8 +1232,12 @@ def programm(
                 if adresse not in parameter:
                     continue
                 wert = float(parameter[adresse])
-                if adresse == "F" and gross in ("G0", "G00") and wert == 0.0:
-                    continue  # FreeCADs Bohren schreibt „G0 … F0“ – modal hielte F0 den G1 danach an
+                if adresse == "F" and bewegung and wert == 0.0:
+                    # FreeCADs Bohren schreibt „G0 … F0“ – modal hielte F0 den G1 danach an; im
+                    # Vorschub hieße F0 „steh“ (Mach3 und LinuxCNC lehnen es ab): das F davor gilt.
+                    continue
+                if gross in BOGEN and adresse == QUER_ZUR_EBENE[ebene] and abs(wert) < 1e-9:
+                    continue
                 if adresse == "F":
                     wert *= 60.0 * faktor
                     if g93 and not s.g93:
@@ -1367,6 +1386,20 @@ def _schwenken_aus(s, schwenkung, zyklus, oben=False):
     if woerter:
         zeilen.append(" ".join(["G0", *woerter]))
     return zeilen
+
+
+def _steht(stand, parameter):
+    """Fährt der Satz nicht – nur F0, und jede Achse darin steht schon dort (`stand`)?"""
+    if float(parameter.get("F", 1.0)) != 0.0:
+        return False
+    for adresse, wert in parameter.items():
+        if adresse == "F":
+            continue
+        if adresse not in WEG_ADRESSEN or adresse not in stand:
+            return False
+        if abs(float(wert) - stand[adresse]) > 1e-9:
+            return False
+    return True
 
 
 def _weg(stand, parameter):

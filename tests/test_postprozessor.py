@@ -678,6 +678,63 @@ pruefe(
     "Zu große Klartext-Glättung der geprüften Bahn",
 )
 
+# Brennschneiden wie FreeCADs Plasma-Postprozessor in 26.3 (Leon im Forum, t=107926): „G1 F0“
+# ohne Weg (Zünden) fällt weg, F0 kommt in keinen Vorschubsatz, das Mittelpunktsmaß quer zur
+# Ebene (K0 in G17, J0 in G18) entfällt – Mach3 und LinuxCNC lehnen beides ab. Ein K, das nicht 0
+# ist, bleibt (das wäre eine andere Bahn).
+brennen = pp.Abschnitt(
+    "Brennen",
+    1,
+    0.0,
+    False,
+    "None",
+    [
+        C("G0", {"X": 0.824, "Y": 0.835}),
+        C("G1", {"F": 0.0}),
+        C("G3", {"X": 0.949, "Y": 0.710, "I": 0.125, "J": 0.0, "F": 50 / 60}),
+        C("G3", {"X": 1.237, "Y": 0.998, "I": 0.0, "J": 0.289, "K": 0.0, "F": 50 / 60}),
+        C("G0", {"X": 1.498, "Y": 2.490}),
+        C("G1", {"X": 1.498, "Y": 2.490, "F": 0.0}),
+        C("G1", {"X": 2.0, "Y": 2.490, "F": 0.0}),
+        C("G2", {"X": 3.0, "Y": 2.490, "I": 0.5, "J": 0.0, "K": 0.3, "F": 50 / 60}),
+    ],
+    "Brenner",
+)
+for kennung in ("mach", "linuxcnc"):
+    zb = [
+        re.sub(r"^N\d+ ", "", x)
+        for x in pp.programm(
+            [brennen], pp.steuerung(kennung), pp.Maschineninfo("Fräse"), "P"
+        ).zeilen
+    ]
+    bewegt = [x for x in zb if x.split()[:1] in (["G0"], ["G1"], ["G2"], ["G3"])]
+    pruefe(not any(re.search(r"F0\.0+\b", x) for x in zb), f"{kennung}: F0 {bewegt}")
+    pruefe("G3 X1.237 Y0.998 I0.000 J0.289 F50.000" in zb, f"{kennung}: K0 in G17 {bewegt}")
+    pruefe("G2 X3.000 Y2.490 I0.500 J0.000 K0.300 F50.000" in zb, f"{kennung}: K≠0 {bewegt}")
+    pruefe(
+        [x for x in bewegt if x.split()[0] == "G1"] == ["G1 X2.000 Y2.490"],
+        f"{kennung}: G1 ohne Weg {bewegt}",
+    )
+drehbogen = pp.Abschnitt(
+    "Drehbogen",
+    1,
+    1000.0,
+    False,
+    "None",
+    [
+        C("G0", {"X": 10.0, "Z": 2.0}),
+        C("G2", {"X": 12.0, "Z": 0.0, "I": 2.0, "J": 0.0, "K": 0.0, "F": 1.0}),
+    ],
+    "Drehmeißel",
+)
+zd = pp.programm(
+    [drehbogen], pp.steuerung("linuxcnc"), pp.Maschineninfo("Drehmaschine", True), "P"
+).zeilen
+pruefe(
+    any(x.startswith("G2 ") and " J" not in x and " K0.000" in x for x in zd),
+    f"J0 in G18: {[x for x in zd if x.startswith('G2')]}",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
