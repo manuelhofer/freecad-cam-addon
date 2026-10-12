@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-116 cam-protokoll-leiser
+
+### EINGELESEN
+- Herbert im Forum (2026-10-11): beim Wechsel nach CAM und beim Anlegen eines Jobs ein Popup mit
+  über hundert roten Zeilen „DEBUG:Path.Tool.assets.manager:…“ und „DEBUG:asyncio:Using selector“ –
+  vor der Installation des Addons nicht. Manuel (2026-10-12): „können wir etwas gegen seine
+  Fehlermeldungen machen?!“
+- Ursache: CAMs Werkzeugverwaltung schreibt über Pythons logging; CAM stellt es mit
+  `logging.basicConfig(level=ERROR)` leise – das wirkt nur, wenn noch niemand es eingestellt hat.
+  Bei Herbert stellt ein anderes Addon (vermutlich RobotCAD) es vorher auf DEBUG. Das Addon lädt
+  CAMs Werkzeugverwaltung schon beim Start mit (seine Operationen importieren `Path.Op.Base`) –
+  darum kam die Flut erst mit ihm. Nachgestellt (Logging auf DEBUG, CAM-Werkzeuge gelesen):
+  101 Zeilen.
+
+### DATEIEN
+- `camaddon/__init__.py`: `cam_protokoll_leiser()` – die Logger `Path.Tool.assets` und `asyncio`
+  bei Warnungen, sofern niemand sie ausdrücklich eingestellt hat; gleich beim Import des Pakets,
+  vor jedem Import aus CAM.
+- `tests/test_werkzeuge_aus_cam.py`: mit dem Logging auf DEBUG keine Zeile aus CAMs
+  Werkzeugverwaltung. `package.xml` (0.231.0).
+
+### ERGEBNIS
+- Nachgestellt mit dem Addon: 0 Zeilen statt 101.
+
+### AKZEPTANZKRITERIUM
+- `test_werkzeuge_aus_cam`, `test_uebergabe_werkzeuge`, `test_sprache` grün.
+
 ## P-2026-10-12-115 maschine-fuer-cam-speichern
 
 ### EINGELESEN

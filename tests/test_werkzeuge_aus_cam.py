@@ -31,6 +31,21 @@ def pruefe(bedingung, text):
 user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
 bibliotheken = aus_cam.bibliotheken()
 namen = [name for _adresse, name, _anzahl in bibliotheken]
+# Stellt ein anderes Addon das Logging auf DEBUG, schreibt CAMs Werkzeugverwaltung hundert Zeilen
+# als rote Fehler (Herbert im Forum) – das Addon hält ihre Logger bei Warnungen (P-2026-10-12-116).
+import io  # noqa: E402
+import logging  # noqa: E402
+
+_puffer = io.StringIO()
+_handler = logging.StreamHandler(_puffer)
+logging.getLogger().addHandler(_handler)
+logging.getLogger().setLevel(logging.DEBUG)
+aus_cam.bibliotheken()
+logging.getLogger().removeHandler(_handler)
+logging.getLogger().setLevel(logging.WARNING)
+_zeilen = [z for z in _puffer.getvalue().splitlines() if "Using selector" in z or "Asset" in z]
+pruefe(not _zeilen, f"Debug-Zeilen aus CAM: {_zeilen[:3]}")
+
 pruefe(namen == ["Default"], f"Bibliotheken: {namen}")
 adresse = bibliotheken[0][0] if bibliotheken else ""
 
