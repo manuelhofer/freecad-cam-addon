@@ -132,7 +132,7 @@ def form_kennung(form):
     return (
         form.hashCode(),
         ft.anzahl(form),
-        len(form.Edges),
+        form.countElement("Edge"),  # nicht len(form.Edges): am Geist 1,2 s im Fenster
         tuple(
             round(float(w), 6)
             for w in (kasten.XMin, kasten.YMin, kasten.ZMin, kasten.XMax, kasten.YMax, kasten.ZMax)

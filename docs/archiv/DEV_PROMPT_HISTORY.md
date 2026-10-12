@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-151 kanten-zaehlen-ohne-liste
+
+### EINGELESEN
+- Lag-Sonde in `szenario_vierachs_stl` (Geist): 1,16 s im Fenster in `vierachs_huelle.form_kennung`
+  – `len(form.Edges)` baut am Geist 102.363 Kanten als Python-Objekte (1,38 s), nur zum Zählen.
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py` (`form_kennung`), `camaddon/gui_bearbeitung.py`:
+  `form.countElement("Edge")` (0,04 s, dieselbe Zahl – der Schlüssel bleibt gleich).
+  `package.xml` (0.257.1).
+
+### ERGEBNIS
+- `form_kennung` am Geist 1,38 → 0,12 s; die Pause ist aus der Lag-Sonde verschwunden,
+  `szenario_vierachs_stl` 160 s. Grün: `test_vierachs_plan`, `test_vierachs_entgraten`.
+- Offen (Lag-Sonde): beim Öffnen des Assistenten am Geist 2,4 s (Aufbau, Form für die
+  Nebenrechner), beim Einrichten der Stange 2,3 s und bei „Anlegen“ 2,3 s (FreeCADs Neuberechnung
+  mit dem Klon, addOperation) – dort fehlt noch ein genaueres Profil.
+
 ## P-2026-10-12-150 schruppen-frei-im-rest
 
 ### EINGELESEN

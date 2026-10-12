@@ -5683,7 +5683,7 @@ class BearbeitungPanel:
         kanten_farben = {}
         for name in self.kanten:
             nummer = int(name[4:]) - 1 if name[4:].isdigit() else -1
-            if 0 <= nummer < len(form.Edges) and self.entgraten3d.s.passt(form, name):
+            if 0 <= nummer < form.countElement("Edge") and self.entgraten3d.s.passt(form, name):
                 laenge = groesse_zeigen(form.Edges[nummer].Length, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.kante.fase", name=name, laenge=laenge), GRUEN
             else:
