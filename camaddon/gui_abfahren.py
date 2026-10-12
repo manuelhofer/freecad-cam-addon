@@ -253,7 +253,13 @@ class Bild:
     def _abtrag_zeigen(self, index):
         """Zeigt den Abtrag bis `index` (der schon gerechnet ist); gibt den Satz zurück."""
         ende = index >= self.abtrag.letzte()
-        vergleich = self.abtrag.vergleich() if ende else None
+        vergleich = None
+        if ende:
+            # Beim ersten Mal rechnet es die Radien des Teils (am Geist 1,5 s am Stück): Das Fenster
+            # zeichnet dabei neu, ohne Klicks (uhren.atmen in vierachs_huelle.schaftfraeser) – der
+            # Abtrag im Takt wartet, solange darunter gerechnet wird (_abtrag_weiter).
+            with uhren.atmend():
+                vergleich = self.abtrag.vergleich()
         self._am_ende = ende
         self._rest_zeigen(vergleich)
         self._bahn_schalten()
@@ -629,6 +635,8 @@ def _rest_satz(vergleich, aufmass, quader=False):
         if len(vergleich.ohne_vergleich) > 3:
             stellen += " …"
         satz += " " + tr("rm.nicht_rundum", stellen=stellen)
+    if getattr(vergleich, "unter_ueberhang", 0):  # P-2026-10-12-160: am Geist unter den Armen
+        satz += " " + tr("rm.unter_ueberhang")
     return satz + " " + tr("rm.farben")
 
 

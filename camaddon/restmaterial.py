@@ -323,6 +323,9 @@ class Vergleich:
     # ((von, bis), …) mm längs, wo das Teil nicht rund um die Achse liegt und nicht verglichen
     # wird (vergleiche()) – leer: überall verglichen.
     ohne_vergleich: tuple = ()
+    # So viele Zellen sähen blau aus, liegen aber unter einem Überhang: Der Fräser kam von der Seite
+    # in die Lücke zwischen Teil und Überhang, nicht ins Teil (vergleiche(..., im_teil)).
+    unter_ueberhang: int = 0
 
 
 def teilradien(netz, laengs, radial, stange, radius=SCHRITT_A / 2):
@@ -332,7 +335,7 @@ def teilradien(netz, laengs, radial, stange, radius=SCHRITT_A / 2):
     return vh.schaftfraeser(netz, laengs, radial, radius, stange.a, stange.phi, nur_vorne=True).r
 
 
-def vergleiche(stange, teil, aufmass, genau=None, nur=None, erlaubt=None):
+def vergleiche(stange, teil, aufmass, genau=None, nur=None, erlaubt=None, im_teil=None):
     """Das Restmaterial gegen das fertige Teil (`teil`: teilradien()), je Zelle eingefärbt;
     `aufmass`: das Aufmaß, das stehen bleiben soll (mm). `genau`: das Teil auf den Strahlen
     (teilradien() mit GENAU) – nur was dort fehlt, ist blau. `nur`: (n_a, n_phi) die Zellen
@@ -346,7 +349,14 @@ def vergleiche(stange, teil, aufmass, genau=None, nur=None, erlaubt=None):
     (Vergleich.ohne_vergleich): Die Stange kennt je Strahl nur einen Radius. Kommt der Fräser
     dort nah an die Achse, nimmt er auf einem Strahl weg, was zwischen Achse und Teil liegt,
     und für die Stange sähe es aus, als fehlte das Teil dahinter. Ein Rohr hat jeder Strahl
-    vor sich – dort kommt kein Fräser an die Achse, es wird verglichen."""
+    vor sich – dort kommt kein Fräser an die Achse, es wird verglichen.
+
+    `im_teil(zeilen, spalten, radien)` -> bool je Punkt: liegt er im Teil? Damit prüft es jede
+    Zelle, die blau würde: Die Stange kennt je Strahl nur einen Radius, das Teil auf dem Strahl
+    sein äußerstes Stück. Unter einem Überhang (die Arme des Geists) kommt der Fräser mit der
+    Querachse von der Seite in die Lücke darunter – auf dem Strahl sah das aus, als fehlten bis
+    29 mm im Teil. Liegt der tiefste Punkt des Fräsers dort nicht im Teil, vergleicht es die
+    Zelle nicht (Vergleich.unter_ueberhang)."""
     with np.errstate(invalid="ignore"):
         da = teil > 0  # das Teil vor der Achse
     halb = da.any(axis=1) & ~da.all(axis=1)
@@ -369,11 +379,76 @@ def vergleiche(stange, teil, aufmass, genau=None, nur=None, erlaubt=None):
         schwelle = schwelle + erlaubt
     with np.errstate(invalid="ignore"):
         blau = tief < -schwelle
+    unter = 0
+    if im_teil is not None and blau.any():
+        zeilen, spalten = np.nonzero(blau)
+        drin = im_teil(zeilen, spalten, stange.r[zeilen, spalten] + IM_TEIL_UEBER)
+        luecke = ~np.asarray(drin, dtype=bool)
+        unter = int(luecke.sum())
+        if unter:
+            z, s = zeilen[luecke], spalten[luecke]
+            blau[z, s] = False
+            tief[z, s] = np.nan
+            rest[z, s] = np.nan
+            da[z, s] = False
+            farbe[z, s] = OHNE_TEIL
+    with np.errstate(invalid="ignore"):
         farbe[blau] = BLAU
         tief = np.where(blau, tief, np.maximum(tief, -BLAU_AB))
     kleinster = float(np.nanmin(tief)) if np.isfinite(tief).any() else 0.0
-    groesster = float(np.nanmax(rest)) if da.any() else 0.0
-    return Vergleich(rest, farbe, kleinster, groesster, nur is not None, _bereiche(stange, halb))
+    groesster = float(np.nanmax(rest)) if da.any() and np.isfinite(rest).any() else 0.0
+    return Vergleich(
+        rest, farbe, kleinster, groesster, nur is not None, _bereiche(stange, halb), unter
+    )
+
+
+IM_TEIL_UEBER = 0.02  # mm über dem tiefsten Punkt des Fräsers wird geprüft, ob er im Teil war
+
+
+def im_teil(netz, laengs, radial, a_werte, phi_werte, zeilen, spalten, radien):
+    """Liegen die Punkte im Teil (`netz` geschlossen) – je Punkt k auf dem Strahl φ =
+    `phi_werte[spalten[k]]` (rad, cos φ · U + sin φ · V wie vierachs_huelle) bei a =
+    `a_werte[zeilen[k]]` im Abstand `radien[k]` von der Achse? Gezählt, wie oft ein Strahl vom
+    Punkt nach außen die Dreiecke kreuzt (ungerade: drinnen; leicht schräg, nicht genau durch
+    Kanten) – je Stelle längs nur die Dreiecke, die dort liegen (am Geist ein bis zwei Prozent)."""
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    p = np.asarray(netz.punkte, dtype=float)
+    d = np.asarray(netz.dreiecke, dtype=np.int64)
+    zeilen = np.asarray(zeilen, dtype=np.int64)
+    spalten = np.asarray(spalten, dtype=np.int64)
+    radien = np.asarray(radien, dtype=float)
+    drin = np.zeros(len(zeilen), dtype=bool)
+    if not len(d) or not len(zeilen):
+        return drin
+    a = p @ l_
+    a_dreieck = a[d]
+    a_min, a_max = a_dreieck.min(axis=1), a_dreieck.max(axis=1)
+    for i in np.unique(zeilen):
+        k = np.flatnonzero(zeilen == i)
+        a0 = float(a_werte[i])
+        t = d[(a_min <= a0 + 1.0) & (a_max >= a0 - 1.0)]  # der Strahl neigt sich längs kaum
+        if not len(t):
+            continue
+        phi = np.asarray(phi_werte, dtype=float)[spalten[k]]
+        richtung = np.cos(phi)[:, None] * u_ + np.sin(phi)[:, None] * v_
+        ursprung = a0 * l_ + radien[k][:, None] * richtung
+        richtung = richtung + 1.3e-3 * l_ + 0.7e-3 * np.cross(l_, richtung)
+        p0 = p[t[:, 0]]
+        e1, e2 = p[t[:, 1]] - p0, p[t[:, 2]] - p0
+        for j in range(0, len(k), 64):
+            o, r = ursprung[j : j + 64, None, :], richtung[j : j + 64, None, :]
+            h = np.cross(r, e2[None])
+            det = np.einsum("kij,kij->ki", np.broadcast_to(e1[None], h.shape), h)
+            gut = np.abs(det) > 1e-12
+            inv = np.where(gut, 1.0 / np.where(gut, det, 1.0), 0.0)
+            s = o - p0[None]
+            uu = np.einsum("kij,kij->ki", s, h) * inv
+            q = np.cross(s, np.broadcast_to(e1[None], s.shape))
+            vv = np.einsum("kij,kij->ki", np.broadcast_to(r, q.shape), q) * inv
+            tt = np.einsum("kij,kij->ki", np.broadcast_to(e2[None], q.shape), q) * inv
+            treffer = gut & (uu >= 0) & (vv >= 0) & (uu + vv <= 1) & (tt > 1e-9)
+            drin[k[j : j + 64]] = (treffer.sum(axis=1) % 2) == 1
+    return drin
 
 
 def _bereiche(stange, zeilen):
@@ -442,6 +517,7 @@ class Abtrag:
         self.aufmass = aufmass
         self._formen = formen
         self._teil = None  # teilradien() mit der halben Rasterweite und GENAU, einmal gerechnet
+        self._netz = None  # das Netz des Teils dazu (vierachs_huelle.vernetze)
         # Die Nummern der gewählten Flächen (V4) – None: alle; dazu ihre Zellen, einmal gerechnet.
         self.flaechen = flaechen
         self._nur = None
@@ -517,6 +593,7 @@ class Abtrag:
 
             form = self._formen[0] if len(self._formen) == 1 else Part.makeCompound(self._formen)
             netz = vh.vernetze(form)
+            self._netz = netz
             self._teil = (
                 teilradien(netz, self.laengs, self.radial, self.stange),
                 teilradien(netz, self.laengs, self.radial, self.stange, GENAU),
@@ -540,6 +617,7 @@ class Abtrag:
                     np.isfinite(self._boden), np.maximum(self._teil[1] - self._boden, 0.0), 0.0
                 )
             erlaubt = mehr if erlaubt is None else np.maximum(erlaubt, mehr)
+        netz, stange = self._netz, self.stange
         return vergleiche(
             self.stange,
             self._teil[0],
@@ -547,6 +625,7 @@ class Abtrag:
             self._teil[1],
             self._nur,
             erlaubt,
+            lambda z, s, r: im_teil(netz, self.laengs, self.radial, stange.a, stange.phi, z, s, r),
         )
 
     def _boden_radien(self):

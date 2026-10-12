@@ -1303,6 +1303,13 @@ die Abstände gelten für beide.
   Dazu ist an scharfen Kanten und an den Enden erst blau, was tiefer liegt als
   die halbe Änderung zur Nachbarzelle (dort 0,11 bzw. 0,05 mm, kein
   Eindringen). Danach am Testteil: nichts blau, Rest 0 … 2,96 mm.
+  *Unter Überhängen (P-2026-10-12-160, am Geist):* „fehlen bis 29,47 mm im Teil“ – unter den
+  Armen liegt auf einem Strahl eine Lücke zwischen Körper und Arm; die Stange kennt nur den
+  äußersten Radius, und der Fräser kommt mit der Querachse von der Seite in die Lücke. Jede Zelle,
+  die blau würde, prüft es jetzt am Netz des Teils (`restmaterial.im_teil`, Strahl nach außen,
+  Schnitte gezählt): Liegt der tiefste Punkt des Fräsers nicht im Teil, vergleicht es die Zelle
+  nicht und sagt das („unter Überhängen“); ob der Fräser dort ins Teil schneidet, zeigt „Kollision
+  prüfen“ (der Kern der Schneide gegen das fertige Teil).
   *Gebaut, Schneide (P-2026-09-30-08):* `kollision.werkzeugkoerper` baut die
   Schneide als Drehkörper aus der Stirn (`drehkoerper`: Bögen und Geraden der
   Form um Z gedreht, darüber zylindrisch bis zur Schneidenlänge) – bei ebener
@@ -1527,7 +1534,7 @@ Gebaut (P-2026-10-11-100):
     die Leertaste im Baum zeigt FreeCADs eigene Anzeige (das Netz geht aus). Am Objekt gemerkt
     (`CamAddonNetzAnzeige`), wieder da nach Öffnen, Rückgängig und Abbrechen.
 
-Offen: einzelne Bereiche wählen statt Dreiecke. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
+Bereiche wählen statt Dreiecke entfällt (Manuel, 2026-10-12: „klar soll das immer rundum bearbeitet werden is ja ne stl“). Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 
 ## 17. STL aus der N-Eck-Stange im Schraubstock (W-018)
 

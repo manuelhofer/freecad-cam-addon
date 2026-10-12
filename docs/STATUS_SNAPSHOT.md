@@ -338,6 +338,31 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
+1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
+   unten dreht, so dass die fläche der nase zum fräserboden schaut … einfach bearbeiten indem man mit
+   einem schaftfräser dort entlang fährt … VOR dem schruppen … vll sogar ohne aufmass“): „Plan
+   indexiert“ als erste Operation, „Rundum schruppen“ und „Rundum schlichten“ wissen, was schon weg
+   ist (Materialstand), die Kugel fährt dort im Freivorschub drüber und nimmt oben nur die Gerade.
+   Die Seiten des Dreiecks so stellen, dass sie parallel zum Schaft stehen, und **mit der ganzen
+   Schneide von vorn hineinfahren** (volles ap und ae, „wie wenn es im schraubstock gespannt wäre
+   senkrecht“) – nicht im Zickzack eintauchen („da sie die schneide sehr schnell kaputt machen“).
+2. **Plan indexiert fräste nur bis zur Mitte, nicht bis zur Nase** (Frage 19, Manuel: „beim
+   planindexieren hat der schaftfräser nur bis zu mitte gearbeitet nicht bis zur nase“) – nachstellen
+   und beheben.
+3. **Vorschlichten** (Frage 17, Manuel: „warum kann die nicht einfach die bereiche die sie beim
+   fertig schlichten viel nehmen würde vorher auf 0.3mm aufmass runter fahren“): nur dort, wo die
+   Kugel beim Schlichten viel nähme, vorher mit der Kugel auf 0,3 mm Aufmaß – mit den schnellsten
+   Wegen (Spiralrampen, D's in Werkzeug-Z …), nicht die ganze Spirale. Kein kleinerer Fräser als die
+   Kugel („quatsch … man muss sich mit der kugel die schnellsten strategien zusammen suchen“). An
+   der Nase erledigt das Punkt 1.
+4. **Einfahren überarbeiten:** „generell … das die entwickelten einfahr strategien nicht die besten
+   sind … irgendwie ist da viel zickzack fahren wo keins hin muss“.
+5. **Einrichtblatt für jede Bearbeitung** (W-019, Frage 16) und **bewegliche Spannmittel** (W-020) –
+   siehe Wunschliste.
+Frage 20 (Bereiche an einem STL wählen) entfällt: Ein STL wird immer rundum bearbeitet, angeklickt wird
+nur, wie es liegt (Manuel: „klar soll das immer rundum bearbeitet werden is ja ne stl“).
+
 **Aufträge aus Manuels Antworten vom 2026-10-11 morgens** (Verlauf P-2026-10-11-30; Reihenfolge so
 abgearbeitet):
 1. ~~**Abtrag im Abspieler auch mit schrägem Werkzeug** (Flanke, 3+2, simultan).~~ Erledigt:
@@ -757,7 +782,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Haken in den Einstellungen, vorbelegt an: am Geist mit einem Job Speichern 3,6 statt 6,2 s).
   Körper und Klon zeigt das Addon als Netz (P-2026-10-12-156): am Geist Umwandeln ohne die 2,3 s,
   der erste Klick 0,8 statt 1,9 s; im Baum stehen sie grau. Mit P-157/-158 (Prüffenster aus dem
-  Netz, CAMs Tiefen ohne Modell) steht das Fenster im ganzen 4-Achs-Ablauf höchstens 1 s. Offen: Bereiche statt Dreiecke wählen (Frage 20) –
+  Netz, CAMs Tiefen ohne Modell) steht das Fenster im ganzen 4-Achs-Ablauf höchstens 1 s. Bereiche wählen braucht es nicht (Manuel: ein STL immer rundum) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
 - **W-018 STL aus der N-Eck-Stange im Schraubstock** – Manuels Wunsch vom 2026-10-12: an der
   3-Achs-Fräse eine gerade N-Eck-Stange waagerecht längs X oder Y, ein Ende 20 mm im Schraubstock,
@@ -768,8 +793,17 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (P-2026-10-12-124; Geist Aufspannung 1: 3 Lagen, 93 Zeilen, ~11 min statt 227 Ringe, ~48 min;
   `docs/bilder/w018_neck_zeilen.png`). Die Backen des Schraubstocks am Ende der Stange in Bild,
   Kollision und Urteil „Spannung“ (P-2026-10-12-126).
-  Offen: Einrichtblatt (Frage 16) – [spezifikation_vierachs.md](spezifikation_vierachs.md),
-  Abschnitt 17.
+  Das Einrichtblatt kommt als allgemeines Feature (W-019) –
+  [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 17.
+- **W-019 Einrichtblatt für jede Bearbeitung** – Manuel, 2026-10-12: „eine einrichtblatt zum
+  drucken/als pdf … wo drinnen steht 1. fräser und deren ausspannlängen zum halter 2. der halter
+  mit abmessungen 3. das spannwerkzeug 4. das rohteil 5. der nullpunkt 6. die einzelnen
+  arbeitsschritte“, „generell soll das einrichtblatt für JEDE bearbeitung generiert werden
+  können !!!!“ (3 Achsen, 4 Achsen, 3+2, N-Eck-Kette).
+- **W-020 Spannmittel, die am Rohteil anliegen** – Manuel, 2026-10-12: „spannwerkzeuge will ich
+  auch noch machen .. aber auch so das sie sich bewegen können und somit immer an das rohteil auch
+  wirklich anliegen ... also ein schraubstock der dann mit seinen backen auch wirklich am rohteil
+  neck anliegt“.
 
 ## Offene Bugs
 

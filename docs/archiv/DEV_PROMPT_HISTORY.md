@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-160 kein-blau-unter-ueberhaengen
+
+### EINGELESEN
+- „Auf der Maschine prüfen“ mit dem Geist auf der Beispiel-Drehmaschine (gemessen): öffnet in 0,4 s,
+  rechnet 392.634 Stationen in 8 s (längste Pause 0,97 s). Am Ende aber: „an manchen Stellen fehlen
+  bis 29,47 mm im Teil (blau)!“ – die Stange kennt je Strahl nur den äußersten Radius des Teils;
+  unter den Armen liegt auf dem Strahl eine Lücke, in die der Fräser mit der Querachse von der Seite
+  kommt. Der Sprung ans Ende stand dazu 1,5 s am Stück (die Radien des Teils, einmal gerechnet).
+- Manuels Antworten zu den Fragen 16–20 (2026-10-12 abends) – als Aufträge im Snapshot („Nächster
+  Schritt“): die Nase zuerst mit dem Schaftfräser Ø 12, Seiten mit der ganzen Schneide von vorn statt
+  Zickzack; Plan indexiert fräste nur bis zur Mitte; Vorschlichten nur, wo die Kugel viel nähme, mit
+  der Kugel auf 0,3 mm und schnellen Wegen; Einfahren überarbeiten; W-019 Einrichtblatt für jede
+  Bearbeitung, W-020 Spannmittel, die am Rohteil anliegen. Frage 20 entfällt (ein STL immer rundum).
+
+### DATEIEN
+- `camaddon/restmaterial.py`: `im_teil()` – liegt ein Punkt im Teil (Strahl nach außen, Schnitte mit
+  dem Netz gezählt, je Stelle längs nur die Dreiecke dort); `vergleiche(..., im_teil)` prüft jede
+  Zelle, die blau würde, am tiefsten Punkt des Fräsers (+0,02 mm) – liegt er nicht im Teil, vergleicht
+  es dort nicht (`Vergleich.unter_ueberhang`); `Abtrag.vergleich` gibt das Netz dazu.
+- `camaddon/gui_abfahren.py`: der Satz „Unter Überhängen vergleicht sie nicht … ob er dort ins Teil
+  schneidet, zeigt „Kollision prüfen““; der Vergleich am Ende in `uhren.atmend()` (das Fenster zeichnet
+  neu). `translations/de.json`, `translations/en.json` (`rm.unter_ueberhang`).
+- `tests/test_restmaterial.py`: Kern mit freiem Ring darüber – in der Lücke nicht blau (360 Zellen),
+  im Ring blau (3 mm). `docs/spezifikation_vierachs.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/OFFENE_FRAGEN.md` (keine offene Frage). `package.xml` (0.259.3).
+
+### ERGEBNIS
+- Am Geist am Ende: „nirgends ins Teil“, dazu der Satz zu den Überhängen. Grün: `test_restmaterial`
+  in 26.3 RC1 und 1.1.4; `szenario_abfahren`, `szenario_pruefen_im_takt` in 26.3 RC1.
+
 ## P-2026-10-12-159 geist-szenario-ohne-flaechenschleife
 
 ### EINGELESEN

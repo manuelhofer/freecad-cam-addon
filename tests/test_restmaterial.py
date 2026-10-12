@@ -389,6 +389,52 @@ finally:
 pruefe(np.array_equal(allein_q.h, streifen_q.h), "Streifen: andere Höhen als allein")
 pruefe(np.min(allein_q.h) < 18.0, "Zickzack hat nichts genommen")
 
+# --- Unter einem Überhang (P-2026-10-12-160; am Geist „fehlen bis 29,47 mm im Teil“): Ein Kern
+# Ø 20 (z −60 … 0) und ein freier Ring darum (Ø 50 / Ø 36, z −40 … −20) wie ein Arm über einer
+# Lücke. Die Stange kennt je Strahl nur den äußersten Radius (25). Steht der Fräser in der Lücke
+# (r 15), sähe das wie 10 mm im Teil aus – liegt der Punkt nicht im Teil, ist es nicht blau.
+# Steht er im Ring (r 22), bleibt es blau.
+z_ = FreeCAD.Vector(0, 0, 1)
+kern = Part.makeCylinder(10.0, 60.0, FreeCAD.Vector(0, 0, -60), z_)
+ring = Part.makeCylinder(25.0, 20.0, FreeCAD.Vector(0, 0, -40), z_).cut(
+    Part.makeCylinder(18.0, 20.0, FreeCAD.Vector(0, 0, -40), z_)
+)
+ueberhang = Part.makeCompound([kern, ring])
+l_u, r_u = (0.0, 0.0, 1.0), (1.0, 0.0, 0.0)
+st_u = rm.Stange(40.0, -60.0, 0.0)
+netz_u = vh.vernetze(ueberhang)
+teil_u = rm.teilradien(netz_u, l_u, r_u, st_u)
+genau_u = rm.teilradien(netz_u, l_u, r_u, st_u, rm.GENAU)
+zeile_luecke = int(np.argmin(np.abs(st_u.a + 30.0)))
+zeile_ring = int(np.argmin(np.abs(st_u.a + 25.0)))
+st_u.r[:] = 40.0
+st_u.r[zeile_luecke, :] = 15.0  # in der Lücke zwischen Kern und Ring, rundum
+st_u.r[zeile_ring, :3] = 22.0  # im Ring
+ohne_u = rm.vergleiche(st_u, teil_u, 0.3, genau_u)
+t0 = time.perf_counter()
+mit_u = rm.vergleiche(
+    st_u,
+    teil_u,
+    0.3,
+    genau_u,
+    im_teil=lambda z, s, r: rm.im_teil(netz_u, l_u, r_u, st_u.a, st_u.phi, z, s, r),
+)
+dauer_u = time.perf_counter() - t0
+pruefe(
+    (ohne_u.farbe[zeile_luecke] == rm.BLAU).all(), "Lücke ohne Prüfung nicht blau – Probe falsch"
+)
+pruefe(
+    not (mit_u.farbe[zeile_luecke] == rm.BLAU).any()
+    and (mit_u.farbe[zeile_luecke] == rm.OHNE_TEIL).all(),
+    f"Lücke blau: {np.unique(mit_u.farbe[zeile_luecke])}",
+)
+pruefe((mit_u.farbe[zeile_ring, :3] == rm.BLAU).all(), "im Ring nicht blau")
+pruefe(
+    mit_u.unter_ueberhang == len(st_u.phi) and abs(mit_u.kleinster + 3.0) < 0.1,
+    f"unter Überhang {mit_u.unter_ueberhang}, kleinster {mit_u.kleinster:.2f}",
+)
+print(ascii(f"Ueberhang: {mit_u.unter_ueberhang} Zellen nicht blau, {dauer_u:.3f} s"))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor

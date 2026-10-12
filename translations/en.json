@@ -1276,6 +1276,7 @@
     "rm.zu_viel": "Red: more than {grenze} left – the cutter did not get there.",
     "rm.nur_gewaehlte": "Compared on the selected faces – what is not selected stays bar stock and has no colour.",
     "rm.nicht_rundum": "From {stellen} along the axis the part does not lie all around the axis – the simulation does not compare there: it knows only one radius per ray from the axis and would not see what of the part remains behind the cutter.",
+    "rm.unter_ueberhang": "Under overhangs it does not compare: there the cutter came into the gap from the side – on the ray from the axis that would look like cutting into the part. Whether it cuts into the part there, “Check for collisions” shows.",
     "rm.von_bis": "{von} to {bis}",
     "rm.und_von": " and from ",
     "rm.farben": "Green: the allowance, yellow: a little more, red: over 1 mm more, blue: into the part.",
