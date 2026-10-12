@@ -568,7 +568,19 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         boden_zeilen = np.array(
             [boden_bei(np.full(je_umdrehung, z), rundum) for z in zeilen_a]
         ).reshape(len(zeilen_a), je_umdrehung)
-        _schruppen_zeilen(punkte, zeilen_a, boden_zeilen, boden_bei, lagen, w, schritt_phi)
+        # Von vorn aus der Luft (Manuel, 2026-10-12: Zickzack ins Material nur in der geschlossenen
+        # Nut): Reicht der Bereich vorn bis ans Teil, fährt die erste Zeile einer Lage in ihrer
+        # Tiefe von vor der Stange längs hinein. Wie tief die Spitze auf dem Weg darf, eigens –
+        # die Hüllfläche des Bereichs reicht nicht bis vor das Teil.
+        vorn = None
+        if len(zeilen_a) and float(zeilen_a[0]) + radius >= teil_vorne - GLEICH:
+            stellen = vh.raster_a(
+                max(teil_vorne - radius, float(zeilen_a[-1])), a_anfang, schritt_a
+            )
+            weg = huelle_bei(stellen).sicher().r + zugabe
+            weg = np.where(np.isfinite(weg), weg, 0.0)
+            vorn = (a_anfang, stellen, np.maximum(weg, w.r_tiefste))
+        _schruppen_zeilen(punkte, zeilen_a, boden_zeilen, boden_bei, lagen, w, schritt_phi, vorn)
         _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
         return Bahn(punkte, lagen, r_min, hinten_frei)
     if w.querachse:
@@ -1163,12 +1175,14 @@ def _einfahrt(punkte, a, r, phi, oben, offen, w):
         punkte.append(Punkt(False, a0, r0, p0, True))
 
 
-def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi):
+def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi, vorn=None):
     """Die Lagen, wenn nur im Bereich gefräst wird (V4): Zeilen hin und her (_fahrten), jede Lage
     auf denselben Stellen – so steht über jeder höchstens die Tiefe der Lage davor. `boden`:
     (Zeilen, N) wie tief die Spitze darf, `boden_bei(stellen, j)` dasselbe dazwischen. Senkrecht
     hinein geht es, wo die Zeile davor (höchstens einen Fräserradius weiter vorn) in dieser Lage
-    schon fräste, sonst über die Rampe."""
+    schon fräste; sonst von vorn aus der Luft, wo `vorn` es erlaubt – (a vor der Stange,
+    Stellen, (Stellen, N) wie tief die Spitze dort darf): in der Tiefe der Zeile längs bis zu
+    ihr, an jeder Stelle des Wegs darf die Spitze so tief –, und nur wo nicht, über die Rampe."""
     if not len(zeilen_a):
         return
     n = boden.shape[1]
@@ -1197,10 +1211,18 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi)
 
         for fahrt in fahrten:
             a, r, j, m = _folge(fahrt, zeilen_a, hoehe, schritt_hoehe)
-            phi = _winkel(j, schritt_phi, punkte[-1].phi)
             m0, j0 = fahrt[0][1], int(j[0]) % n
             offen = nah[m0] and gefraest[m0 - 1, j0]
-            _einfahrt(punkte, a, r, phi, davor[m0, j0], offen, w)
+            oben = davor[m0, j0]
+            if not offen and vorn is not None and r[0] < oben - GLEICH:
+                a_vorn, stellen, weg = vorn
+                auf_weg = stellen >= a[0] - GLEICH
+                if a[0] >= stellen[0] - GLEICH and weg[auf_weg, j0].max() <= r[0] + GLEICH:
+                    a, r = np.concatenate([[a_vorn], a]), np.concatenate([r[:1], r])
+                    j, m = np.concatenate([j[:1], j]), np.concatenate([[-1], m])
+                    offen, oben = True, float(r[0])
+            phi = _winkel(j, schritt_phi, punkte[-1].phi)
+            _einfahrt(punkte, a, r, phi, oben, offen, w)
             # Zusammengefasst mit dem Spiel wie die Spirale rundum; fest bleibt, wo a knickt
             # (ein Ring beginnt oder endet) und wo die Rundachse umkehrt (phi, hin und her).
             fest = (

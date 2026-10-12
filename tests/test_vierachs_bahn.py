@@ -583,6 +583,69 @@ heraus = sum(
 pruefe(heraus == 2 * zwei_bahn.lagen, f"{heraus}-mal heraus bei {zwei_bahn.lagen} Lagen")
 print(ascii(f"Zwei Abflachungen: {zwei_bahn.lagen} Lagen, {heraus}-mal heraus"))
 
+# --- Abflachung vorn (V4): von vorn aus der Luft hinein (P-2026-10-12-164) ---------------------
+# Manuel (2026-10-12): Zickzack ins Material nur in der geschlossenen Nut. Reicht die Abflachung
+# bis ans vordere Ende der Welle, fährt die erste Zeile einer Lage in ihrer Tiefe von vor der
+# Stange längs hinein: keine Rampe, hinab nur vor der Stange in der Luft (oder wo die Lage davor
+# schon so tief kam, durch die Luft dort). Nirgends bleibt
+# weniger als das Aufmaß über der Welle – auch nicht auf dem Weg von vorn.
+vorn_welle = (
+    Part.makeCylinder(10, 40, V(0, 0, -40))
+    .cut(Part.makeBox(10, 30, 30, V(8, -15, -20)))
+    .removeSplitter()
+)
+vorn_flaeche = [
+    f"Face{i + 1}"
+    for i, f in enumerate(vorn_welle.Faces)
+    if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-6
+]
+vorn_bahn = vb.schruppen(
+    vh.vernetze(vorn_welle),
+    C_LAENGS,
+    C_RADIAL,
+    replace(
+        werte_flach,
+        waende=((-20.0, 1),),
+        bereich=vf.bereich_fuer(vorn_welle, C_LAENGS, C_RADIAL, vorn_flaeche, 3.0),
+    ),
+)
+vor_der_stange = werte_flach.a_stange_vorne + werte_flach.fraeser_radius
+hinab = [
+    (v, p) for v, p in zip(vorn_bahn.punkte, vorn_bahn.punkte[1:], strict=False) if p.eintauchen
+]
+von_vorn = sum(1 for _v, p in hinab if p.a > vor_der_stange)
+im_material = [
+    (round(p.a, 2), round(v.r - p.r, 2))
+    for v, p in hinab
+    if p.a <= vor_der_stange and v.r - p.r > werte_flach.sicherheit + 1e-6
+]
+pruefe(vorn_bahn.lagen == 2, f"Abflachung vorn: {vorn_bahn.lagen} Lagen")
+pruefe(von_vorn >= 1, f"von vorn {von_vorn}-mal bei {vorn_bahn.lagen} Lagen")
+pruefe(not im_material, f"hinab ins Material (a, mm): {im_material}")
+stange_vorn = rm.Stange(12.0, -60.0, 1.0)
+von, nach = [], []
+for vorher, punkt in zip(vorn_bahn.punkte, vorn_bahn.punkte[1:], strict=False):
+    if not punkt.eilgang:
+        von.append((vorher.a, vorher.r, vorher.phi))
+        nach.append((punkt.a, punkt.r, punkt.phi))
+stange_vorn.fahre_stuecke(von, nach, 3.0)
+winkel = np.degrees(stange_vorn.phi)
+winkel = np.where(winkel > 180, winkel - 360, winkel)
+eben = np.where(np.abs(winkel) < 89, 8.0 / np.cos(np.radians(np.clip(winkel, -89, 89))), 10.0)
+welle_r = np.where(
+    ((stange_vorn.a >= -20.0) & (stange_vorn.a <= 0.0))[:, None], np.minimum(eben, 10.0), 10.0
+)
+welle_r = np.where((stange_vorn.a <= 0.0)[:, None], welle_r, 0.0)
+ueber_vorn = float((stange_vorn.r - welle_r).min())
+pruefe(ueber_vorn >= 0.3 - vh.TOLERANZ - 0.02, f"über der Welle nur {ueber_vorn:.3f} mm")
+weg_vorn = stange_vorn.r[np.ix_(stange_vorn.a > 0.0, np.abs(winkel) <= 20)]
+print(
+    ascii(
+        f"Abflachung vorn: {vorn_bahn.lagen} Lagen, {von_vorn}-mal von vorn, "
+        f"über der Welle mindestens {ueber_vorn:.2f} mm, vor ihr bis {float(weg_vorn.min()):.2f}"
+    )
+)
+
 # --- Schruppen mit der Querachse (V5e, P-2026-10-03-23) -----------------------------------
 # D-Profil: Welle Ø 40 mit einer Abflachung bei x = 6, Stange Ø 50, Schaftfräser Ø 12, ap 5,
 # 4 mm je Umdrehung, Aufmaß 0,3. Je Lage folgt die Spirale der Fläche: Die Werkzeugachse steht

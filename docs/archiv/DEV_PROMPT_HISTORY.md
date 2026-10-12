@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-164 rundum-schruppen-von-vorn
+
+### EINGELESEN
+- Auftrag 4 (Einfahr-Regel, Manuel 2026-10-12): „Rundum schruppen“ mit gewählten Flächen fuhr die
+  erste Zeile jeder Lage über die Rampe längs der Zeile hin und her ins Material.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: Reicht der Bereich vorn bis ans Teil (die erste Zeile berührt es
+  vorn), fährt die erste Fahrt einer Lage, die im Material beginnt, vor der Stange in der Luft
+  hinab und in der Tiefe der Zeile längs hinein – wo auf dem Weg nichts vom Teil höher steht (die
+  Hüllfläche dafür eigens, vor dem Bereich). Sonst bleibt die Rampe.
+- `tests/test_vierachs_bahn.py`: Abflachung vorn – von vorn, nie hinab ins Material, über der
+  Welle überall mindestens das Aufmaß. `tests/test_vierachs_operation.py`: „nur Mantel“ – vor dem
+  Teil nur das Hinabfahren vor der Stange. `package.xml` (0.259.7).
+
+### ERGEBNIS
+- Nasen-Testteil, Rundum schruppen auf Face4/6/8, hin und her: 14 Rampen → 0, Vorschubweg
+  11.965 → 10.686 mm; nur im Gleichlauf 61 → 22. Abflachung vorn: über der Welle mindestens
+  0,32 mm (Aufmaß 0,3). Grün in 26.3 RC1: `test_vierachs_bahn`, `test_vierachs_operation`.
+
 ## P-2026-10-12-163 raeumen-helix-statt-rampe
 
 ### EINGELESEN

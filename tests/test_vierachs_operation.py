@@ -109,13 +109,18 @@ namen_welle = [f"Face{i + 1}" for i in range(len(welle.Shape.Faces))]
 mantel = [n for n, f in zip(namen_welle, welle.Shape.Faces, strict=True) if not vr.ist_eben(f)]
 stirnen = [n for n, f in zip(namen_welle, welle.Shape.Faces, strict=True) if vr.ist_eben(f)]
 # Nur der Mantel: fünf Lagen wie rundum, aber vorne nicht mehr vor der Stange – nur so weit,
-# wie der Fräser das Teil berührt (Mitte bis 6 mm vor seiner Stirn bei a = 0).
+# wie der Fräser das Teil berührt (Mitte bis 6 mm vor seiner Stirn bei a = 0). Vor dem Teil nur
+# hinab, vor der Stange in der Luft: Von dort fährt die erste Zeile einer Lage in ihrer Tiefe
+# hinein statt über die Rampe (P-2026-10-12-164).
 op.Flaechen = mantel
 doc.recompute()
 schnitte = [b for b in op.Path.Commands if b.Name == "G1"]
 pruefe(op.Lagen == 5, f"nur Mantel: {op.Lagen} Lagen")
-vorne = max(b.Parameters["Z"] for b in schnitte)
-pruefe(vorne <= 6.0 + 0.3, f"nur Mantel: vorne bis {vorne}")
+luft_vorn = max(
+    b.Parameters["Z"] for b in op.Path.Commands if b.Name == "G0" and "Z" in b.Parameters
+)
+vorne = {round(b.Parameters["Z"], 6) for b in schnitte if b.Parameters["Z"] > 6.0 + 0.3}
+pruefe(vorne <= {round(luft_vorn, 6)}, f"nur Mantel: vorne bei {vorne}, vor der Stange {luft_vorn}")
 pruefe(len(schnitte) > 100, "nur Mantel: keine Bahn")
 for flaechen_, satz in (
     (["Face99"], sprache.tr("vf.fehler.fehlt", namen="Face99")),
