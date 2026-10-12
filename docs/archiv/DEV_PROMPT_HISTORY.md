@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-157 pruefen-stl-aus-dem-netz
+
+### EINGELESEN
+- Weiter nach P-156: Auch der Abspieler im Prüffenster baut das Teil aus seiner Form
+  (`gui_abfahren.flaechen` → `form.tessellate`) – am Geist 1,60 s, in denen das Fenster beim Öffnen
+  stand. Ein Teil aus einem STL trägt sein Netz (`stl_teil.netz_fuer`, 0,10 s).
+
+### DATEIEN
+- `camaddon/gui_abfahren.py` (`flaechen`): für ein Teil aus einem STL dessen Netz, sonst wie bisher.
+  `package.xml` (0.259.1).
+
+### ERGEBNIS
+- Am Geist 1,60 → 0,13 s; der Knoten deckt sich mit der Form (Hüllquader bis auf Rundung), ein
+  Quader wie vorher. Grün: `szenario_abfahren` in 26.3 RC1.
+
 ## P-2026-10-12-156 stl-teil-als-netz
 
 ### EINGELESEN

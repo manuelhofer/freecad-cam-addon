@@ -17,6 +17,7 @@ import time
 
 import FreeCAD
 import FreeCADGui
+import numpy as np
 from PySide import QtCore, QtGui
 
 from . import abfahren as ab
@@ -568,23 +569,35 @@ def werkzeug_knoten(laenge, masse, halter, transparenz=0.0):
 
 
 def flaechen(form, farbe, transparenz):
-    """Eine Form als Dreiecke, in ihren eigenen Koordinaten."""
+    """Eine Form als Dreiecke, in ihren eigenen Koordinaten. Ein Teil aus einem STL bringt sein Netz
+    mit (stl_teil.netz_fuer): Seine 68.242 Flächen zu vernetzen kostete am Geist 1,6 s, in denen das
+    Prüffenster beim Öffnen stand – so 0,1 s."""
     from pivy import coin
+
+    from . import stl_teil
 
     teil = coin.SoSeparator()
     teil.addChild(material(farbe, transparenz))
     hinweise = coin.SoShapeHints()
     hinweise.creaseAngle = 0.5
     teil.addChild(hinweise)
-    genauigkeit = max(form.BoundBox.DiagonalLength / 300, 0.05)
-    punkte, dreiecke = form.tessellate(genauigkeit)
+    aus_stl = stl_teil.netz_fuer(form)
+    if aus_stl is not None:
+        punkte = np.asarray(aus_stl[0], dtype=float).tolist()
+        dreiecke = np.asarray(aus_stl[1], dtype=np.int64)
+        index = np.hstack([dreiecke, -np.ones((len(dreiecke), 1), dtype=np.int64)]).ravel()
+        index = index.tolist()
+    else:
+        genauigkeit = max(form.BoundBox.DiagonalLength / 300, 0.05)
+        punkte_, dreiecke_ = form.tessellate(genauigkeit)
+        punkte = [(p.x, p.y, p.z) for p in punkte_]
+        index = []
+        for a, b, c in dreiecke_:
+            index += [a, b, c, -1]
     koordinaten = coin.SoCoordinate3()
-    koordinaten.point.setValues(0, len(punkte), [(p.x, p.y, p.z) for p in punkte])
+    koordinaten.point.setValues(0, len(punkte), punkte)
     teil.addChild(koordinaten)
     netz = coin.SoIndexedFaceSet()
-    index = []
-    for a, b, c in dreiecke:
-        index += [a, b, c, -1]
     netz.coordIndex.setValues(0, len(index), index)
     teil.addChild(netz)
     return teil
