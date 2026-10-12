@@ -647,33 +647,33 @@ def _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):
     p, q = p[zaehlt], q[zaehlt]
     if not len(p):
         return
-    a_p, y_p, x_p = a[p], y[p], x[p]
-    d_a, d_y, d_x = a[q] - a_p, y[q] - y_p, x[q] - x_p
-    qa = d_a * d_a + d_y * d_y
-    welches, index = _ausbreiten(
-        np.minimum(a_p, a[q]) - radius, np.maximum(a_p, a[q]) + radius, a0, schritt, len(spalte)
-    )
-    if not len(index):
-        return
-    a_p, y_p, x_p = a_p[welches], y_p[welches] - _quer(versatz, index), x_p[welches]
-    d_a, d_y, d_x, qa = d_a[welches], d_y[welches], d_x[welches], qa[welches]
-    neben = a_p - _stelle(a0, schritt, index)
-    # Die Punkte der Kante in der Scheibe: qa·t² + qb·t + qc ≤ 0, 0 ≤ t ≤ 1.
-    qb = 2.0 * (d_a * neben + d_y * y_p)
-    qc = neben * neben + y_p * y_p - radius * radius
-    punkt = qa < _KLEIN  # die Kante steht längs x – von oben ein Punkt
-    diskriminante = qb * qb - 4.0 * qa * qc
-    # Die Nullstellen ohne Auslöschung: w = −(qb ± √D)/2, t = w/qa und qc/w.
-    w = -0.5 * (qb + np.copysign(np.sqrt(np.maximum(diskriminante, 0.0)), qb))
-    with np.errstate(divide="ignore", invalid="ignore"):
-        t1 = w / qa
-        t2 = np.where(w == 0, 0.0, qc / w)
-    t_von = np.maximum(np.minimum(t1, t2), 0.0)
-    t_bis = np.minimum(np.maximum(t1, t2), 1.0)
-    trifft = np.where(punkt, qc <= 0.0, (diskriminante >= 0.0) & (t_von <= t_bis))
-    # x ist längs der Kante linear: am höheren Ende des Stücks in der Scheibe.
-    wert = x_p + np.where(punkt, np.maximum(d_x, 0.0), d_x * np.where(d_x > 0, t_bis, t_von))
-    np.maximum.at(spalte, index[trifft], wert[trifft])
+    a_k, y_k, x_k = a[p], y[p], x[p]
+    da_k, dy_k, dx_k = a[q] - a_k, y[q] - y_k, x[q] - x_k
+    qa_k = da_k * da_k + dy_k * dy_k
+    # In Blöcken von Paaren (Kante, Stelle) – alle auf einmal belegten am Geist über 2 GB je
+    # Arbeiter (P-2026-10-12-148); das Maximum je Stelle hängt nicht von der Reihenfolge ab.
+    for welches, index in _ausbreiten_bloecke(
+        np.minimum(a_k, a[q]) - radius, np.maximum(a_k, a[q]) + radius, a0, schritt, len(spalte)
+    ):
+        a_p, y_p, x_p = a_k[welches], y_k[welches] - _quer(versatz, index), x_k[welches]
+        d_a, d_y, d_x, qa = da_k[welches], dy_k[welches], dx_k[welches], qa_k[welches]
+        neben = a_p - _stelle(a0, schritt, index)
+        # Die Punkte der Kante in der Scheibe: qa·t² + qb·t + qc ≤ 0, 0 ≤ t ≤ 1.
+        qb = 2.0 * (d_a * neben + d_y * y_p)
+        qc = neben * neben + y_p * y_p - radius * radius
+        punkt = qa < _KLEIN  # die Kante steht längs x – von oben ein Punkt
+        diskriminante = qb * qb - 4.0 * qa * qc
+        # Die Nullstellen ohne Auslöschung: w = −(qb ± √D)/2, t = w/qa und qc/w.
+        w = -0.5 * (qb + np.copysign(np.sqrt(np.maximum(diskriminante, 0.0)), qb))
+        with np.errstate(divide="ignore", invalid="ignore"):
+            t1 = w / qa
+            t2 = np.where(w == 0, 0.0, qc / w)
+        t_von = np.maximum(np.minimum(t1, t2), 0.0)
+        t_bis = np.minimum(np.maximum(t1, t2), 1.0)
+        trifft = np.where(punkt, qc <= 0.0, (diskriminante >= 0.0) & (t_von <= t_bis))
+        # x ist längs der Kante linear: am höheren Ende des Stücks in der Scheibe.
+        wert = x_p + np.where(punkt, np.maximum(d_x, 0.0), d_x * np.where(d_x > 0, t_bis, t_von))
+        np.maximum.at(spalte, index[trifft], wert[trifft])
 
 
 def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None, versatz=None):
@@ -733,22 +733,21 @@ def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None,
     trifft = s_von <= s_bis
     if not trifft.any():
         return
-    welches, index = _ausbreiten(
+    nummern = np.nonzero(trifft)[0]
+    for welches, index in _ausbreiten_bloecke(
         (s_von - versatz_a)[trifft], (s_bis - versatz_a)[trifft], a0, schritt, len(spalte)
-    )
-    if not len(index):
-        return
-    auswahl = np.nonzero(trifft)[0][welches]
-    p = p[auswahl]
-    stelle_a = _stelle(a0, schritt, index) + versatz_a[auswahl]
-    wert = (
-        x[p]
-        - (n_a[auswahl] * (stelle_a - a[p]) + n_y[auswahl] * (y_stern[auswahl] - y[p]))
-        / n_x[auswahl]
-    )
-    if form is not None:
-        wert = wert - hoch[auswahl]
-    np.maximum.at(spalte, index, wert)
+    ):
+        auswahl = nummern[welches]
+        ecke = p[auswahl]
+        stelle_a = _stelle(a0, schritt, index) + versatz_a[auswahl]
+        wert = (
+            x[ecke]
+            - (n_a[auswahl] * (stelle_a - a[ecke]) + n_y[auswahl] * (y_stern[auswahl] - y[ecke]))
+            / n_x[auswahl]
+        )
+        if form is not None:
+            wert = wert - hoch[auswahl]
+        np.maximum.at(spalte, index, wert)
 
 
 def _dreiecke_versetzt(
@@ -761,35 +760,33 @@ def _dreiecke_versetzt(
     n_a, n_y, n_x = normale
     a_unten = np.minimum(np.minimum(a[p], a[q]), a[s]) - versatz_a
     a_oben = np.maximum(np.maximum(a[p], a[q]), a[s]) - versatz_a
-    welches, index = _ausbreiten(a_unten, a_oben, a0, schritt, len(spalte))
-    if not len(index):
-        return
-    gerade = y_stern[welches] + versatz[index]
-    s_von = np.full(len(index), math.inf)
-    s_bis = np.full(len(index), -math.inf)
-    for k1, k2 in ((p, q), (q, s), (s, p)):
-        y1, y2 = y[k1][welches], y[k2][welches]
-        dy = y2 - y1
-        with np.errstate(divide="ignore", invalid="ignore"):
-            t = (gerade - y1) / dy
-        auf = (np.abs(dy) > _KLEIN) & (t >= 0.0) & (t <= 1.0)
-        a1, a2 = a[k1][welches], a[k2][welches]
-        stelle = a1 + np.where(auf, t, 0.0) * (a2 - a1)
-        s_von = np.where(auf, np.minimum(s_von, stelle), s_von)
-        s_bis = np.where(auf, np.maximum(s_bis, stelle), s_bis)
-    stelle_a = _stelle(a0, schritt, index) + versatz_a[welches]
-    trifft = (s_von <= stelle_a + 1e-9) & (stelle_a <= s_bis + 1e-9)
-    if not trifft.any():
-        return
-    w, i = welches[trifft], index[trifft]
-    ecke = p[w]
-    wert = (
-        x[ecke]
-        - (n_a[w] * (stelle_a[trifft] - a[ecke]) + n_y[w] * (gerade[trifft] - y[ecke])) / n_x[w]
-    )
-    if form is not None:
-        wert = wert - hoch[w]
-    np.maximum.at(spalte, i, wert)
+    for welches, index in _ausbreiten_bloecke(a_unten, a_oben, a0, schritt, len(spalte)):
+        gerade = y_stern[welches] + versatz[index]
+        s_von = np.full(len(index), math.inf)
+        s_bis = np.full(len(index), -math.inf)
+        for k1, k2 in ((p, q), (q, s), (s, p)):
+            y1, y2 = y[k1][welches], y[k2][welches]
+            dy = y2 - y1
+            with np.errstate(divide="ignore", invalid="ignore"):
+                t = (gerade - y1) / dy
+            auf = (np.abs(dy) > _KLEIN) & (t >= 0.0) & (t <= 1.0)
+            a1, a2 = a[k1][welches], a[k2][welches]
+            stelle = a1 + np.where(auf, t, 0.0) * (a2 - a1)
+            s_von = np.where(auf, np.minimum(s_von, stelle), s_von)
+            s_bis = np.where(auf, np.maximum(s_bis, stelle), s_bis)
+        stelle_a = _stelle(a0, schritt, index) + versatz_a[welches]
+        trifft = (s_von <= stelle_a + 1e-9) & (stelle_a <= s_bis + 1e-9)
+        if not trifft.any():
+            continue
+        w, i = welches[trifft], index[trifft]
+        ecke = p[w]
+        wert = (
+            x[ecke]
+            - (n_a[w] * (stelle_a[trifft] - a[ecke]) + n_y[w] * (gerade[trifft] - y[ecke])) / n_x[w]
+        )
+        if form is not None:
+            wert = wert - hoch[w]
+        np.maximum.at(spalte, i, wert)
 
 
 def _im_band(unten, oben, radius, versatz):
@@ -932,41 +929,54 @@ def _kanten_paare(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):
     """Je Kante und Stelle a das Stück der Kante unter dem Fräser (Abstand ≤ radius zur
     Werkzeugachse) – nur, wo es höher liegen kann als, was `spalte` schon hat. Gibt (Stelle,
     Anfang (a, y, x), Richtung (a, y, x), t_von, t_bis) oder None."""
-    p, q = _kanten_im_streifen(a, x, y, kanten, radius, versatz)
-    if not len(p):
+    kp, kq = _kanten_im_streifen(a, x, y, kanten, radius, versatz)
+    if not len(kp):
         return None
-    welches, index = _ausbreiten(
-        np.minimum(a[p], a[q]) - radius, np.maximum(a[p], a[q]) + radius, a0, schritt, len(spalte)
-    )
-    if not len(index):
+    teile = []
+    # In Blöcken von Paaren (wie _kanten_treffen, P-2026-10-12-148); nur, was zählt, bleibt.
+    for welches, index in _ausbreiten_bloecke(
+        np.minimum(a[kp], a[kq]) - radius, np.maximum(a[kp], a[kq]) + radius, a0, schritt,
+        len(spalte),
+    ):  # fmt: skip
+        p, q = kp[welches], kq[welches]
+        hoechstens = np.maximum(x[p], x[q])  # höher als das Ende kann sie nicht (z ≥ 0)
+        offen = hoechstens > spalte[index]
+        p, q, index = p[offen], q[offen], index[offen]
+        anfang = (a[p], y[p] - _quer(versatz, index), x[p])
+        richtung = (a[q] - a[p], y[q] - y[p], x[q] - x[p])
+        neben = anfang[0] - _stelle(a0, schritt, index)
+        qa = richtung[0] ** 2 + richtung[1] ** 2
+        qb = 2.0 * (richtung[0] * neben + richtung[1] * anfang[1])
+        qc = neben * neben + anfang[1] ** 2 - radius * radius
+        diskriminante = qb * qb - 4.0 * qa * qc
+        liegt = (qa > _KLEIN) & (diskriminante >= 0.0)
+        wurzel = np.sqrt(np.maximum(diskriminante, 0.0))
+        with np.errstate(divide="ignore", invalid="ignore"):
+            t1 = np.where(liegt, (-qb - wurzel) / (2.0 * qa), 0.0)
+            t2 = np.where(liegt, (-qb + wurzel) / (2.0 * qa), -1.0)
+        t_von, t_bis = np.maximum(t1, 0.0), np.minimum(t2, 1.0)
+        zaehlt = liegt & (t_von <= t_bis)
+        if zaehlt.any():
+            auswahl = np.nonzero(zaehlt)[0]
+            teile.append(
+                (
+                    index[auswahl],
+                    tuple(k[auswahl] for k in anfang),
+                    tuple(k[auswahl] for k in richtung),
+                    t_von[auswahl],
+                    t_bis[auswahl],
+                )
+            )
+    if not teile:
         return None
-    p, q = p[welches], q[welches]
-    hoechstens = np.maximum(x[p], x[q])  # höher als das Ende kann sie nicht (z ≥ 0)
-    offen = hoechstens > spalte[index]
-    p, q, index = p[offen], q[offen], index[offen]
-    anfang = (a[p], y[p] - _quer(versatz, index), x[p])
-    richtung = (a[q] - a[p], y[q] - y[p], x[q] - x[p])
-    neben = anfang[0] - _stelle(a0, schritt, index)
-    qa = richtung[0] ** 2 + richtung[1] ** 2
-    qb = 2.0 * (richtung[0] * neben + richtung[1] * anfang[1])
-    qc = neben * neben + anfang[1] ** 2 - radius * radius
-    diskriminante = qb * qb - 4.0 * qa * qc
-    liegt = (qa > _KLEIN) & (diskriminante >= 0.0)
-    wurzel = np.sqrt(np.maximum(diskriminante, 0.0))
-    with np.errstate(divide="ignore", invalid="ignore"):
-        t1 = np.where(liegt, (-qb - wurzel) / (2.0 * qa), 0.0)
-        t2 = np.where(liegt, (-qb + wurzel) / (2.0 * qa), -1.0)
-    t_von, t_bis = np.maximum(t1, 0.0), np.minimum(t2, 1.0)
-    zaehlt = liegt & (t_von <= t_bis)
-    if not zaehlt.any():
-        return None
-    auswahl = np.nonzero(zaehlt)[0]
+    if len(teile) == 1:
+        return teile[0]
     return (
-        index[auswahl],
-        tuple(k[auswahl] for k in anfang),
-        tuple(k[auswahl] for k in richtung),
-        t_von[auswahl],
-        t_bis[auswahl],
+        np.concatenate([e[0] for e in teile]),
+        tuple(np.concatenate([e[1][k] for e in teile]) for k in range(3)),
+        tuple(np.concatenate([e[2][k] for e in teile]) for k in range(3)),
+        np.concatenate([e[3] for e in teile]),
+        np.concatenate([e[4] for e in teile]),
     )
 
 

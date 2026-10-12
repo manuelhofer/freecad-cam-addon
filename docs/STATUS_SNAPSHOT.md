@@ -657,8 +657,8 @@ Beantwortet am 2026-10-03 (abends):
    einer sechsten Lage (`vierachs_quer.lagen_grenze` liegt neben dem Strahl höher); die Vorschau im
    Assistenten sagt weiter „5 Lagen“. Am Nasen-Testteil gleich (3 Lagen, +0,1 min). Sauber wäre,
    die gleiche Aufteilung mit Querachse an der Grenze neben dem Strahl auszurichten.
-   Ebenso: `vierachs_huelle.je_stellung_stueck` braucht am Geist 2,2 GB je Auftrag (gemessen vom
-   Pool, P-143) – sparsamer rechnen, dann laufen wieder mehr Arbeiter zugleich.
+   (Erledigt mit P-2026-10-12-148: `vierachs_huelle.je_stellung_stueck` 37 statt 2182 MB je Auftrag,
+   Schruppen am Geist 205 statt 666–727 s.)
 7. W-002 F2; W-003 V6, V7 (V2b gebaut, P-2026-10-04-01); (das Schruppen rundum an steilen Stellen: gemessen, die Keile
    sind größtenteils echt – P-2026-10-03-30);
    ~~„ausweichen“ mit

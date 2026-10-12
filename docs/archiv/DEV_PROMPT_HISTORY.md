@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-148 huelle-paare-in-bloecken
+
+### EINGELESEN
+- Der Pool lernte am Geist (P-143): `vierachs_huelle.je_stellung_stueck` belegt 2,2 GB je
+  Auftrag – darum rechneten beim Schruppen mit der Querachse nur etwa vier Arbeiter zugleich
+  (666–727 s). Ursache: `_kanten_treffen`, `_dreiecke_treffen`, `_dreiecke_versetzt` und
+  `_kanten_paare` bildeten alle Paare (Element, Stelle) auf einmal (`_ausbreiten`), je Paar rund
+  zwanzig Zwischenwerte; `_form_treffen` mit den Kugeln rechnete schon in Blöcken.
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py`: die vier Stellen in Blöcken von BLOCK Paaren
+  (`_ausbreiten_bloecke`); das Maximum je Stelle hängt nicht von der Reihenfolge ab,
+  `_kanten_paare` hängt die Teile in derselben Reihenfolge an. `package.xml` (0.256.1).
+
+### ERGEBNIS
+- Geist, Rundum schruppen mit der Querachse: 205 s statt 666–727 s, alle 24 Arbeiter;
+  `je_stellung_stueck` 37 statt 2182 MB je Auftrag. `szenario_vierachs_stl` 167 s (im vollen
+  Lauf heute 217 s).
+- Bitgleich: `test_goldene_bahnen` (1.1.4 und 26.3); grün `test_vierachs_huelle`,
+  `test_vierachs_schlichten`, `test_vierachs_bahn`, `szenario_vierachs_stl` (26.3).
+
 ## P-2026-10-12-146 plan-stiche-von-der-offenen-seite
 
 ### EINGELESEN
