@@ -370,7 +370,17 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    Kugel („quatsch … man muss sich mit der kugel die schnellsten strategien zusammen suchen“). An
    der Nase erledigt das Punkt 1.
 4. **Einfahren überarbeiten:** „generell … das die entwickelten einfahr strategien nicht die besten
-   sind … irgendwie ist da viel zickzack fahren wo keins hin muss“.
+   sind … irgendwie ist da viel zickzack fahren wo keins hin muss“; die Regel steht in
+   `spezifikation_strategien.md`, Abschnitt 5 (von außen aus der Luft → Helix → Zickzack nur in der
+   zu schmalen geschlossenen Nut). Manuel: „warum nutzt du es dann überall ??“ – die Rampe
+   (`vierachs_bahn._rampe`) ist der Einstieg überall, wo eine Bahn im Material beginnt. Noch
+   durchzusehen, je mit Zählung an seinen Testteilen (3-Achs-Testteil, Nase, Geist):
+   `kontur_bahn._rampe` (Kontur), `raeumen_bahn` (Ringe/Stiche über `kontur_bahn._rampe`),
+   `planfraesen_bahn` (Rampe, wo kein Rand offen ist), `vierachs_bahn` (Rundum schruppen zwischen
+   gewählten Flächen), `vierachs_planbahn` (die 4 übrigen vor der Nase: von der Seite statt von
+   vorn), `schlicht_anlauf`. Bleiben darf sie nur in `nut_bahn` (geschlossene Nut, zu schmal für
+   eine Helix); überall sonst erst „von außen in der Luft“, dann Helix (`bohrung_bahn._helix` gibt
+   es schon).
 5. **Einrichtblatt für jede Bearbeitung** (W-019, Frage 16) und **bewegliche Spannmittel** (W-020) –
    siehe Wunschliste.
 6. **„Kollision prüfen“ am Geist braucht über 12 GB** (2026-10-12 abends, 18:58): Geist auf der
