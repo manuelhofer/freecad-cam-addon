@@ -35,6 +35,8 @@ from .verfahren import namen
 
 TAKT = 40  # ms je Bild beim Abspielen
 TEMPI = (1, 5, 20, 100)
+WIEDERHOLEN_NACH_MS = 400  # so lange gedrückt, dann wiederholen „Punkt zurück“ und „Punkt weiter“
+WIEDERHOLEN_ALLE_MS = 60  # … so oft
 SCHIEBER_SCHRITTE = 10000
 # Farben (r, g, b) von 0 bis 1.
 SCHNEIDE = (0.95, 0.75, 0.10)
@@ -693,6 +695,13 @@ class Abspieler(QtGui.QWidget):
         self.knopf_vor = self._knopf(
             QtGui.QStyle.SP_MediaSeekForward, tr("ab.vor.tooltip"), self.schritt_vor
         )
+        # Gedrückt halten: Punkt um Punkt weiter (Manuel, 2026-10-12: „wenn man auf dem Knopf
+        # bleibt … dass er immer wieder einen Tick zurückgeht – nicht dass ich meinen Knopf
+        # malträtieren muss“).
+        for knopf in (self.knopf_zurueck, self.knopf_vor):
+            knopf.setAutoRepeat(True)
+            knopf.setAutoRepeatDelay(WIEDERHOLEN_NACH_MS)
+            knopf.setAutoRepeatInterval(WIEDERHOLEN_ALLE_MS)
         self.wahl_tempo = QtGui.QComboBox()
         for tempo in TEMPI:
             self.wahl_tempo.addItem(f"×{tempo}", tempo)

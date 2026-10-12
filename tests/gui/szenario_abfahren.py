@@ -191,6 +191,19 @@ def schritte(h):
     h.pruefe(
         spieler.station == len(abfahrt.stationen) - 2, f"Punkt zurück: Station {spieler.station}"
     )
+    # Gedrückt halten (2026-10-12): „Punkt zurück“ wiederholt sich, solange man draufbleibt.
+    try:
+        from PySide import QtTest
+    except ImportError:
+        from PySide6 import QtTest
+    vorher = spieler.station
+    QtTest.QTest.mousePress(spieler.knopf_zurueck, QtCore.Qt.LeftButton)
+    yield 1000
+    QtTest.QTest.mouseRelease(spieler.knopf_zurueck, QtCore.Qt.LeftButton)
+    yield 100
+    h.pruefe(
+        spieler.station <= vorher - 3, f"gedrückt gehalten: Station {vorher} → {spieler.station}"
+    )
     spieler.springe_zu_operation(1)
     # Die zweite Operation beginnt mit der Fahrt zum Wechselpunkt der Maschine (D-5,
     # P-2026-10-04-36), dann kommen ihre Sätze.

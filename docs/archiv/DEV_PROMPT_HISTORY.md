@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-134 abspieler-gedrueckt-halten
+
+### EINGELESEN
+- Manuel (2026-10-12) zu den Pfeilen neben „Abspielen“: „wenn man auf dem Knopf bleibt …
+  draufdrückt und drauf bleibt, dass er immer wieder einen Tick zurückgeht – nicht dass ich meinen
+  Knopf malträtieren muss, um an einen gewissen Punkt zu kommen, den ich sehen will“.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`: „Punkt zurück“ und „Punkt weiter“ wiederholen sich gedrückt
+  gehalten (nach 400 ms alle 60 ms).
+- `translations/de.json`, `en.json`: die Tooltips sagen es.
+- `tests/gui/szenario_abfahren.py`: 1 s gedrückt – mindestens drei Punkte zurück.
+  `package.xml` (0.249.0).
+
+### AKZEPTANZKRITERIUM
+- `szenario_abfahren`, `test_sprache` grün.
+
 ## P-2026-10-12-133 hoehenfeld-abfahren-in-streifen
 
 ### EINGELESEN
