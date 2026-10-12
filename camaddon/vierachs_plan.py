@@ -49,6 +49,8 @@ WEG_WERTE = {
 class PlanIndexiert(PathOp.ObjectOp):
     """Proxy der Operation „Plan indexiert“."""
 
+    updateDepths = vo.tiefen_der_stange  # ohne das Modell (am Geist 1,8 s je Tiefe)
+
     def opFeatures(self, obj):
         return PathOp.FeatureTool | PathOp.FeatureCoolant
 

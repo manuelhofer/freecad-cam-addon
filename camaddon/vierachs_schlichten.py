@@ -63,6 +63,8 @@ REST_VIEL = 1.0  # mm
 class RundumSchlichten(PathOp.ObjectOp):
     """Proxy der Operation „Rundum schlichten“."""
 
+    updateDepths = vo.tiefen_der_stange  # ohne das Modell (am Geist 1,8 s je Tiefe)
+
     def opFeatures(self, obj):
         return PathOp.FeatureTool | PathOp.FeatureCoolant
 

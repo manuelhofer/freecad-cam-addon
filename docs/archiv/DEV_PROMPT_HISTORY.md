@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-158 rundum-tiefen-ohne-modell
+
+### EINGELESEN
+- „Anlegen“ am Geist: Das Fenster stand bis 2,1 s am Stück (fünf Pausen in den ersten sechs
+  Sekunden; die 93 s Schruppen danach bleibt es bedienbar). Zeile für Zeile gemessen: In
+  `vierachs_operation.lege_an` kostete `obj.StartDepth = 1.0` im Fenster 1,76 s (ohne Fenster
+  0,12 s für alles) – CAMs `updateDepths` misst das Modell, in 26.3 mit Arbeitsebene als Kopie
+  (`sh.transformed(matrix)` des Klons mit 68.242 Flächen), mehrmals verschachtelt; beim
+  Neuberechnen noch einmal 1 s. Für Operationen ohne FeatureDepths zählt davon nichts: CAM setzt
+  nur OpStockZMin, OpStockZMax und StartDepth aus dem Rohteil.
+
+### DATEIEN
+- `camaddon/vierachs_operation.py`: `tiefen_der_stange` – updateDepths wie CAM ohne FeatureDepths,
+  nur aus dem Rohteil (in der Arbeitsebene, wenn eine gesetzt ist); `RundumSchruppen`,
+  `vierachs_schlichten.RundumSchlichten`, `vierachs_plan.PlanIndexiert`,
+  `vierachs_entgraten.RundumEntgraten` nehmen es. `package.xml` (0.259.2).
+
+### ERGEBNIS
+- „Anlegen“ am Geist: höchstens 0,99 statt 2,1 s am Stück. Grün: `test_vierachs_operation` in 26.3
+  RC1 und 1.1.4, `szenario_vierachs_stl` in 26.3 RC1.
+
 ## P-2026-10-12-157 pruefen-stl-aus-dem-netz
 
 ### EINGELESEN

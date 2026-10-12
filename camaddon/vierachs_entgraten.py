@@ -43,6 +43,8 @@ ARTEN = (wz.FASENFRAESER, wz.KUGELFRAESER, wz.LOLLIPOPFRAESER)
 class RundumEntgraten(PathOp.ObjectOp):
     """Proxy der Operation „Rundum entgraten“."""
 
+    updateDepths = vo.tiefen_der_stange  # ohne das Modell (am Geist 1,8 s je Tiefe)
+
     def opFeatures(self, obj):
         return PathOp.FeatureTool | PathOp.FeatureCoolant
 

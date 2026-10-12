@@ -45,8 +45,31 @@ GERADE = 1e-6
 WAND_RAND = 1e-3  # mm – eine Planfläche so nah an einem Ende des Teils ist seine Stirn
 
 
+def tiefen_der_stange(self, obj, ignoreErrors=False):  # noqa: N803 – wie CAMs updateDepths
+    """updateDepths() der Rundum-Operationen: was CAM ohne FeatureDepths setzt – die Höhen des
+    Rohteils (OpStockZMin, OpStockZMax) und StartDepth oben auf ihm –, ohne das Modell. CAM maß
+    dafür auch das Modell (in 26.3 mit Arbeitsebene als Kopie: `sh.transformed(matrix)`), obwohl
+    ohne FeatureDepths nichts davon zählt – am Geist (STL, 68.242 Flächen) im Fenster 1,8 s je
+    geänderter Tiefe beim Anlegen und 1 s beim Neuberechnen, in denen das Fenster stand."""
+    if not self._setBaseAndStock(obj, ignoreErrors):
+        return False
+    matrix = getattr(self, "_geom_transform_matrix", None)
+    if matrix is not None:
+        kasten = self.stock.Shape.copy().transformShape(matrix, False, False).BoundBox
+    else:
+        kasten = self.stock.Shape.BoundBox
+    obj.OpStockZMin = kasten.ZMin
+    obj.OpStockZMax = kasten.ZMax
+    if obj.StartDepth.Value != kasten.ZMax:
+        obj.StartDepth = kasten.ZMax
+    self.opUpdateDepths(obj)
+    return None
+
+
 class RundumSchruppen(PathOp.ObjectOp):
     """Proxy der Operation „Rundum schruppen“."""
+
+    updateDepths = tiefen_der_stange
 
     def opFeatures(self, obj):
         return PathOp.FeatureTool | PathOp.FeatureCoolant
