@@ -2650,6 +2650,12 @@ def _nadeln(feld, punkte, lage, D, erlaubt, r):
     return feld.frei & ~sicher & feld.rohteil_zellen & erlaubt & (D >= 0)
 
 
+# _nadel_echt rechnet Abstände in Blöcken: so viele Prüfpunkte je Block, so viele Elemente
+# (Punkte × Mitten, je 8 Byte) höchstens auf einmal – 16 MB je Zwischenstück.
+NADEL_PUNKTE = 4096
+NADEL_ELEMENTE = 2**21
+
+
 def _nadel_echt(feld, gruppe, x, y, r):
     """Steht an der Gruppe (_nadeln) wirklich etwas? Genau nachgesehen: auf 0,02 mm um ihre
     Zellen (eine Linse liegt höchstens eine halbe Zellendiagonale neben einer von ihnen) der
@@ -2667,13 +2673,25 @@ def _nadel_echt(feld, gruppe, x, y, r):
     mx, my = x[nah], y[nah]
     gx, gy = np.meshgrid(np.arange(x0, x1, 0.02), np.arange(y0, y1, 0.02), indexing="ij")
     gx, gy = gx.ravel(), gy.ravel()
-    offen = np.ones(len(gx), dtype=bool)
-    for start in range(0, len(mx), 2000):
-        ax, ay = mx[start : start + 2000], my[start : start + 2000]
-        offen &= ((gx[:, None] - ax) ** 2 + (gy[:, None] - ay) ** 2).min(axis=1) > r * r
-        if not offen.any():
-            return False
-    return True
+    # In Blöcken über beide Seiten, je Block nur die Mitten in seiner Nähe: Eine große Gruppe
+    # (2026-10-12, szenario_aufspannung: 210.000 Punkte gegen 1.950 Mitten je Schritt) brauchte
+    # sonst über 10 GB auf einmal. Ein Punkt, der offen bleibt, genügt für die Antwort.
+    r2 = r * r
+    for g in range(0, len(gx), NADEL_PUNKTE):
+        bx, by = gx[g : g + NADEL_PUNKTE], gy[g : g + NADEL_PUNKTE]
+        nahe = (mx > bx.min() - r) & (mx < bx.max() + r) & (my > by.min() - r) & (my < by.max() + r)
+        ax_alle, ay_alle = mx[nahe], my[nahe]
+        offen = np.ones(len(bx), dtype=bool)
+        je = max(1, NADEL_ELEMENTE // len(bx))
+        for start in range(0, len(ax_alle), je):
+            abstand = (bx[:, None] - ax_alle[start : start + je]) ** 2
+            abstand += (by[:, None] - ay_alle[start : start + je]) ** 2
+            offen &= abstand.min(axis=1) > r2
+            if not offen.any():
+                break
+        if offen.any():
+            return True
+    return False
 
 
 def _gruppen(maske):

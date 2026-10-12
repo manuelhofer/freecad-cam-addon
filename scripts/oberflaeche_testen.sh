@@ -13,6 +13,10 @@ set -u
 case "$(locale charmap 2>/dev/null)" in UTF-8) ;; *) export LC_ALL=C.UTF-8 ;; esac
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
+# Jeder Nebenrechner hoechstens so viel Adressraum (nebenrechner_arbeiter._adressraum_begrenzen):
+# Waechst einer darueber, endet sein Auftrag mit MemoryError und der Stelle, statt dass der
+# Kernel ihn beendet - das gab auf Manuels Rechner Popups und keine Spur (P-2026-10-12-142).
+export CAMADDON_ARBEITER_GB="${CAMADDON_ARBEITER_GB:-8}"
 fc="${FREECAD:-${FC_UMGEBUNG:-$HOME/.cache/freecad-cam-addon/fcenv}/bin/freecad}"
 [ -x "$fc" ] || { echo "FreeCAD nicht gefunden ($fc)" >&2; exit 2; }
 command -v xvfb-run >/dev/null || { echo "xvfb-run fehlt" >&2; exit 2; }

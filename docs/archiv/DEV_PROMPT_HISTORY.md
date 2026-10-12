@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-142 nadel-pruefung-in-bloecken
+
+### EINGELESEN
+- Die Speicher-Popups bei Manuel im vollen Lauf (P-2026-10-12-141, OFFEN): In
+  `szenario_aufspannung` wuchs ein Nebenrechner beim Räumen-Vorschlag der Oberseite auf über 10 GB,
+  in 1.1.4 wie in 26.3, in 3 von 8 Läufen. Ein Python-Wächter im Arbeiter kam nicht dran.
+  Mit einer Grenze für den Adressraum je Arbeiter (RLIMIT_AS) endete er mit MemoryError und Stelle:
+  `raeumen_bahn._nadel_echt` – „Unable to allocate 3.05 GiB for an array with shape (210000, 1950)“.
+  Sie teilte nur die Mitten in Blöcke zu 2.000, die Prüfpunkte (0,02-mm-Raster über die Gruppe)
+  nicht; eine große Gruppe (9 × 9 mm) ergab drei solche Zwischenstücke. Nicht der Adaptiv-Kern.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_nadel_echt` in Blöcken über beide Seiten (NADEL_PUNKTE 4096,
+  NADEL_ELEMENTE 2²¹ – 16 MB je Zwischenstück), je Block nur die Mitten in seiner Nähe; ein Punkt,
+  der offen bleibt, beendet die Prüfung.
+- `camaddon/nebenrechner_arbeiter.py`: `CAMADDON_ARBEITER_GB` begrenzt den Adressraum jedes
+  Arbeiters (`_adressraum_begrenzen`), ein MemoryError schreibt `speicher_<pid>.txt` nach
+  CAMADDON_AUSGABE. `scripts/oberflaeche_testen.sh`, `scripts/tests_ausfuehren.sh`: Vorgabe 8 GB.
+- `package.xml` (0.255.2).
+
+### ERGEBNIS
+- Alte gegen neue `_nadel_echt` an 400 Zufallsfällen: alle gleich. Die große Gruppe gegen 40.000
+  Mitten: 0,1–0,3 s.
+- `szenario_aufspannung` dreimal (1.1.4, 26.3, 1.1.4) mit 6 GB je Arbeiter: grün, kein MemoryError.
+- `test_raeumen` (27 s), `test_pruefstand` (29 s) grün.
+
 ## P-2026-10-12-141 dialog-schliessen-in-26-3
 
 ### EINGELESEN

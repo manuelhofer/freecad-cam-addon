@@ -127,6 +127,8 @@ def _ausfuehren(nachricht):
         ergebnis = f(*args, **kwargs)
         _verbindung.send(("fertig", nummer, ergebnis))
     except BaseException as fehler:  # noqa: BLE001 – jeder Fehler gehört zum Hauptprozess
+        if isinstance(fehler, MemoryError) or "bad_alloc" in str(fehler):
+            _speicher_fehler_merken(fehler)
         # Was die Ausnahme fürs Fachliche mitbringt (ihr Feld „daten“, etwa wie weit ein Werkzeug
         # heraus müsste) – nur, wenn es sich senden lässt.
         daten = getattr(fehler, "daten", None)
@@ -190,9 +192,35 @@ def _wachhund(eltern, alle=WACHHUND_ALLE):
     threading.Thread(target=wachen, daemon=True).start()
 
 
+def _adressraum_begrenzen():
+    """Nur in Prüfläufen: CAMADDON_ARBEITER_GB begrenzt den Adressraum dieses Arbeiters. Wächst
+    er darüber, scheitert die nächste Anforderung (MemoryError, std::bad_alloc) mit der Stelle –
+    statt dass der Kernel ihn an der Speichergrenze des Laufs beendet, was bei Manuel ein Popup
+    gibt und keine Spur (2026-10-12: ein Arbeiter mit 10,8 GB in szenario_aufspannung, nicht jedes
+    Mal). Die Stelle schreibt _speicher_fehler_merken nach CAMADDON_AUSGABE."""
+    gb = os.environ.get("CAMADDON_ARBEITER_GB")
+    if gb:
+        import resource
+
+        grenze = int(float(gb) * 2**30)
+        resource.setrlimit(resource.RLIMIT_AS, (grenze, grenze))
+
+
+def _speicher_fehler_merken(fehler):
+    """Im Prüflauf (_adressraum_begrenzen): wo der Speicher ausging – speicher_<pid>.txt."""
+    ordner = os.environ.get("CAMADDON_AUSGABE")
+    if not ordner or not os.environ.get("CAMADDON_ARBEITER_GB"):
+        return
+    with contextlib.suppress(OSError):
+        pfad = os.path.join(ordner, f"speicher_{os.getpid()}.txt")
+        with open(pfad, "a", encoding="utf-8") as datei:
+            datei.write(f"{type(fehler).__name__}: {fehler}\n{traceback.format_exc()}\n")
+
+
 def hauptschleife():
     global _verbindung, _dokumente
     _wachhund(os.getppid())
+    _adressraum_begrenzen()
     start = json.loads(sys.stdin.readline())
     if start["addon"] not in sys.path:
         sys.path.insert(0, start["addon"])
