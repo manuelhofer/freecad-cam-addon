@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-172 kontur-helix-ab-dem-material
+
+### EINGELESEN
+- Manuels Ring, Kontur nach P-171: noch 47 % Vorschub in der Luft (3,6 m) – davon etwa 1,9 m in
+  Helix-Bögen, die von der vorigen Lage aus hinabschrauben, wo das Planfräsen davor die Nuten schon
+  auf −4 geräumt hat.
+- Warum die Kontur das nicht weiß: Der Materialstand lässt eine Operation aus, die die Maschine
+  nicht erreicht (maschinenzugang.operation_erreichbar) – an Manuels Fräse fährt Z unter die Grenze
+  (der Z-Nullpunkt, Ring-Teil Punkt 2 im Snapshot), also zählt sein Planfräsen nicht.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_oben_unter_helix` – die Helix beginnt über dem höchsten Material
+  unter ihrem Kreis (Materialstand), höchstens an der vorigen Lage. `package.xml` (0.259.15).
+
+### ERGEBNIS
+- Wirkt, sobald der Materialstand die Operationen davor kennt (an Manuels Ring erst mit dem
+  Z-Nullpunkt). Grün in 26.3 RC1: `test_kontur`, `test_testteil`, `test_goldene_bahnen`.
+
 ## P-2026-10-12-171 kontur-von-aussen-und-helix-daneben
 
 ### EINGELESEN

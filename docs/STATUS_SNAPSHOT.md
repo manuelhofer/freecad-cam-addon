@@ -402,7 +402,10 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    in den Wegen des Dialogs (mit einem Satz, was Z 0 ist) und in den Prüfungen (`test_reichweite`,
    `test_beispielmaschine`, Szenarien); gespeicherte Maschinen behalten ihre Wege – beim Öffnen
    umrechnen oder fragen.
-3. **Planfräsen fährt „km in der Luft“** (Bild: T4 Ø 4 weit über dem Teil; „Planfräsen T4“ 20 min,
+3. *Zusammenhang (nachgemessen):* Weil Z dort die Grenze überschreitet, gilt jede Operation als
+   nicht erreichbar, und der Materialstand lässt sie aus – die Kontur nach dem Planfräsen hielt
+   die Nuten für voll (47 % Luft, 1,9 m Helix durch Geräumtes). Der Z-Nullpunkt behebt beides.
+   **Planfräsen fährt „km in der Luft“** (Bild: T4 Ø 4 weit über dem Teil; „Planfräsen T4“ 20 min,
    Kontur 9,1 min am kleinen Ring) – die Luftwege messen (Bahnen prüfen ohne Manuel) und beseitigen.
 4. **B-020** „Konnte nicht anlegen: PropertyLink does not support external object“ (Bearbeitung,
    eine neue 3-Achs-Fräse als eigenes Dokument offen, ein halber Job „Body – Fräsen“ und ein loses

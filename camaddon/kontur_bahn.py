@@ -1385,8 +1385,14 @@ def _lauf(
             mitte, helix = daneben
     if helix is not None:
         # Eine Helix statt der Rampe im Zickzack (Manuel, 2026-10-12: „selbst da würde ich wenns
-        # irgendwie geht auf eine helix setzten“; Spezifikation Strategien, Abschnitt 5).
-        laenge += _helix_hinab(punkte, mitte, helix, knapp, vorige, lage, w)
+        # irgendwie geht auf eine helix setzten“; Spezifikation Strategien, Abschnitt 5) – ab dem
+        # höchsten Material unter ihrem Kreis (Materialstand), nicht von der vorigen Lage durch
+        # die Luft, die die Operationen davor schon geräumt haben (Manuels Ring: 1,9 m Helix in
+        # den vom Planfräsen geräumten Nuten).
+        oben_helix = _oben_unter_helix(mit_stand, mitte, helix, r, vorige, lage)
+        laenge += _helix_hinab(
+            punkte, mitte, helix, min(knapp, oben_helix + w.sicherheit), oben_helix, lage, w
+        )
         if mitte is not start:  # aus dem Loch zum Anfang
             punkt = bn.Punkt(False, start[0], start[1], lage)
             laenge += bn.weg(punkte[-1], punkt)
@@ -1460,6 +1466,23 @@ def _anfahrt_punkte(punkte, an, lage, hinein):
 
 HELIX_PROBEN = 24  # so viele Punkte auf dem Kreis prüft _helix_radius
 LUFT_ANTEIL = 1 / 3  # so viel des Umfangs am Anfang muss in Luft sein für _luft_daneben
+
+
+def _oben_unter_helix(mit_stand, mitte, radius, r, vorige, lage):
+    """Bis wohin unter der Helix um `mitte` (die Stirn mit Radius `r` auf ihrem Kreis) noch
+    Material steht – höchstens die vorige Lage; ohne Materialstand die vorige Lage."""
+    if mit_stand is None:
+        return vorige
+    ms = mit_stand.stand
+    winkel = np.linspace(0.0, 2 * math.pi, 8, endpoint=False)
+    hoehen = [ms.hoechste_bei(mitte[0], mitte[1], r + ms.schritt)]
+    hoehen += [
+        ms.hoechste_bei(
+            mitte[0] + radius * math.cos(t), mitte[1] + radius * math.sin(t), r + ms.schritt
+        )
+        for t in winkel
+    ]
+    return min(vorige, max(max(hoehen), lage + MATERIAL))
 
 
 def _helix_daneben(start, r, frei):
