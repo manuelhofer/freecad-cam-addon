@@ -62,3 +62,31 @@ Fräser mehr einwechselst (A) oder langsamer fährst (C), weißt nur du aus der 
 Ja baue ich keine neue Strategie (Arbeitsregeln, Strategiewahl). – *Was die Antwort ändert:* A baut
 „Rundum restschruppen“ als Haken im Assistenten, vorbelegt an, wenn gelb; B die Vorläufe der Kugel
 über den gelben Abschnitten; C den Vorschub der Kugel je Stelle; D nichts. – seit 2026-10-12.
+
+**18. „Plan indexiert“: Stiche von der offenen Seite statt Zeilen mit Rampe – als Vorgabe?** Du
+hattest gesagt (2026-10-12): „wenn ich nur Plan indexieren mache, fährt mir der Fräser in einem
+Zickzack-Eintauch ins Teil … aber für was? außenrum ist alles frei … fahr doch Morph zum Schruppen
+mit Auswahl nur Gleichlauf / Gleichlauf und Gegenlauf / nur Gegenlauf … so dass er D's fährt“.
+Nachgebaut am Nasen-Testteil (Face4, 6, 8, T1 Ø 12, ap 22,2, ae 5,4, von der Stange): das
+3-Achs-Räumen im Rahmen jeder Fläche, auf denselben Streifen begrenzt wie die Zeilen (Bild:
+[testteil_4achs_plan_stiche_gegen_zeilen.png](bilder/vorschlaege/testteil_4achs_plan_stiche_gegen_zeilen.png)):
+
+| | Zeit (mit Bremsen) | Vorschubweg | Eintauchen | Weg über 120 mm² Eingriff | weggenommen |
+|---|---|---|---|---|---|
+| Zeilen heute (hin und her, Rampen) | 3,8 min | 4,3 m | 11 | 116 mm, ungebremst | 133,7 cm³ |
+| Stiche von der offenen Seite (D's) | 2,5 min | 1,8 m | 7–8 | 301 mm, auf ~50 % gebremst | 132,8 cm³ |
+| Morph | passt hier nicht (fällt auf „Rohteil“, 32-mal eintauchen) | | | | |
+| adaptiv | 5,0 min | 5,6 m | 11 | | |
+
+Beide fahren nicht ins Teil. Gleich- und Gegenlauf geben dieselbe Zeit (die Stiche gespiegelt).
+Ohne die Begrenzung auf den Streifen räumte es nach 3-Achs-Art die ganze Schicht über der Ebene ab,
+bis ans Futter (19 min) – das nimmt ohnehin „Rundum schruppen“.
+
+Ich baue „Stiche von der offenen Seite“ als Wahl in „Plan indexiert“ (Gleichlauf / Gegenlauf;
+„beides“ bleibt das Hin und Her der Zeilen). – *Warum nur Manuel:* Ob die Stiche die Vorgabe
+werden – sie greifen öfter tief ein (bis 205 mm², das Addon bremst dort), die Zeilen dafür mit
+Rampen ins Material –, entscheidest du an der Maschine; ohne dein Ja ändere ich die Vorgabe
+nicht (Strategiewahl). Und: „Plan indexiert als Erstes“, damit die anderen die Nase nicht
+noch einmal fahren, heißt, dass „Rundum schruppen“ danach weiß, was Plan schon weggenommen hat –
+das ist ein eigener, größerer Schritt. – *Was die Antwort ändert:* Ja: die Stiche werden die
+Vorgabe; Nein: sie bleiben eine Wahl. – seit 2026-10-12.
