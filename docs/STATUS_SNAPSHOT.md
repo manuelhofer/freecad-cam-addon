@@ -394,8 +394,14 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    „Was die Bahn braucht“) gerechnet wird – Spindelnase gegen Tisch, nicht die Spitze –, an allen
    Beispielmaschinen (3-Achs-Fräse, CLX550, 5-Achs, G550).
    *Erledigt für 3-Achs- und Portalfräse:* P-2026-10-12-173 (Z = 0: Nase auf dem Tisch). Offen: die
-   5-Achs-Fräsen, die G550 (waagrecht – was ist dort Z 0?) und Manuels gespeicherte „3-Achs-Fräse“
-   (neu bauen). Der Rest dieses Absatzes ist die Herleitung.
+   5-Achs-Fräsen und die G550 – Entwurf in `~/freecad_cam/wip/fuenfachs_z_null_entwurf.diff`
+   (`_fuenfachs_wege` setzt Z gebaut auf die Nasenhöhe über der Spannfläche: Tisch/Tisch 300,
+   Kopf/Kopf 280, Kopf/Tisch 300, G550 500 längs der Werkzeugachse; `stellung_setzen` verschiebt
+   Offset1 längs der Gelenkachse; Vorgaben Z verschoben). Nachgemessen: Teile bleiben, +Z fährt weg.
+   Noch rot: `test_beispielmaschine` (G550 fährt Z auf alte Relativwerte 100/485 – auf 600/985
+   umstellen) und `test_raum_bahn` (Prüfsumme der Grenzen anders, Maschinen/Stücke/Intervalle gleich –
+   prüfen, ob nur Rundung, dann die Referenz neu). Manuels gespeicherte „3-Achs-Fräse“ neu bauen.
+   Der Rest dieses Absatzes ist die Herleitung.
    *Ursache (nachgesehen):* Gerechnet wird mit der Werkzeuglänge ab Spindelnase (reichweite), aber
    Z = 0 jeder Bauart ist die Stellung, in der sie gebaut ist – an der 3-Achs-Fräse die Spindelnase
    130 mm über dem Tisch (`test_reichweite`: „Werkzeug 50 mm … Z1 = −80 für Z 0“), an der Portalfräse
