@@ -137,6 +137,7 @@ def schritte(h):
     e = vr.einstellung(job)
     h.pruefe(e is not None and e.umgedreht and e.flaeche == standflaeche, f"Einstellung: {e}")
     h.bild("3_standflaeche_am_futter")
+    lage_am_futter = FreeCAD.Placement(klon.Placement)
 
     # --- Rundum schruppen und schlichten -------------------------------------------------------
     panel.accept()  # Weiter
@@ -180,6 +181,12 @@ def schritte(h):
     h.bild("4_schruppen_schlichten", panel.form)
     panel.accept()  # Anlegen
     yield from h.warte_auf(lambda: gui_vierachs.VierachsPanel.offen is None, 240000)
+    # Der Geist bleibt, wie er lag: Die Einfahr-Bewegung (nach „X“) setzte ihn beim Anlegen auf ihr
+    # altes Ziel zurück – nach den Bahnen (Manuel, 2026-10-12: „der Geist da falsch drinnen“).
+    h.pruefe(
+        klon.Placement.isSame(lage_am_futter, 1e-9),
+        f"Lage nach dem Anlegen: {klon.Placement} statt {lage_am_futter}",
+    )
     ops = [o for o in job.Operations.Group if vo.ist_rundum(o)]
     namen = [o.Label for o in ops]
     h.pruefe(namen == ["Rundum schruppen T1", "Rundum schlichten T2"], f"Operationen: {namen}")

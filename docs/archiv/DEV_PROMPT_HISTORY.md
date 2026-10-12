@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-155 einfahren-setzt-nicht-zurueck
+
+### EINGELESEN
+- Manuel (2026-10-12, Bild nach „Anlegen“ am Geist): „der Geist da falsch drinnen“. Nachgesehen
+  (Lage des Klons in jedem Schritt protokolliert): Nach der Standfläche liegt er richtig
+  (Pitch 90, Standfläche am Futter); nach „Anlegen“ wieder wie nach dem Knopf „X“ (Pitch 0).
+  Schuld: `_Einfahren.stopp()` – beim Schließen (`_vor_dem_schliessen`) setzte es das Teil auf das
+  Ziel der ersten Bewegung, auch wenn die längst vorbei war und das Teil seither eine andere Lage
+  hatte. Das geschah nach den Bahnen und nach dem Schritt Rückgängig: Die Bahnen passten nicht
+  mehr zum Teil, jedes spätere Neuberechnen nahm die falsche Lage. Seit P-2026-09-26-79, an jedem
+  Teil, an dem nach dem ersten Einfahren noch die Lage geändert wird (andere Fläche, „Umdrehen“,
+  Drehlage, Mitte). Im gepushten Stand (0.258.0) nachgestellt.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_Einfahren.stopp()` tut nichts, wenn die Bewegung vorbei ist.
+- `tests/gui/szenario_vierachs_stl.py`: die Lage nach dem Anlegen gleich der nach der
+  Standfläche. `package.xml` (0.258.1).
+
+### ERGEBNIS
+- Der Geist liegt nach „Anlegen“ in seinen Bahnen. Grün in 26.3 RC1: `szenario_vierachs_stl` (auf
+  dem gepushten Stand mit nur dieser Änderung), `szenario_vierachs_rohteil` (Umdrehen).
+
 ## P-2026-10-12-154 stl-teil-nur-einmal-speichern
 
 ### EINGELESEN

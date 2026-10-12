@@ -478,7 +478,13 @@ class _Einfahren:
         return self.uhr.isActive()
 
     def stopp(self):
-        """Anhalten – das Teil steht dann am Ziel, auch mitten in der Bewegung."""
+        """Anhalten – das Teil steht dann am Ziel, auch mitten in der Bewegung. Ist die Bewegung
+        schon vorbei, bleibt es, wo es ist: Es kann seither eine andere Lage haben (Standfläche,
+        „Umdrehen“, Drehlage) – „Anlegen“ setzte es sonst auf das Ziel der ersten Bewegung zurück,
+        nachdem die Bahnen schon gerechnet waren (Manuel, 2026-10-12, am Geist: „der Geist da
+        falsch drinnen“)."""
+        if not self.uhr.isActive():
+            return
         self.uhr.stop()
         if self.objekt.Placement != self.nach:
             self.objekt.Placement = self.nach
@@ -494,7 +500,7 @@ class _Einfahren:
             drehung = FreeCAD.Rotation(self.achse, 360.0 * (0.5 - 0.5 * _cos_pi(anteil)))
             self.objekt.Placement = FreeCAD.Placement(FreeCAD.Vector(), drehung).multiply(self.nach)
         else:
-            self.stopp()
+            self.stopp()  # läuft noch: steht danach exakt am Ziel
 
 
 def _cos_pi(anteil):
