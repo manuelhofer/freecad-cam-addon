@@ -361,7 +361,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    ?!?!? … einfach auf volle tiefe ap fahren und an der planfläche entlang fahren … da brauch ich
    kein zickzack fahren … und meine planschneide kaputt machen“. Also: von der freien Seite (vor
    der Stange) mit vollem ap hinein und an der Fläche entlang, bis an die Nase; keine Rampe, wo die
-   Zeile aus der Luft kommen kann. Das ist Auftrag 1.
+   Zeile aus der Luft kommen kann. Das ist Auftrag 1. *Erledigt für das Einfahren:* P-2026-10-12-161
+   (nach dem Schruppen keine Rampe mehr, von der Stange 4 von 37 – davor steht die Nase).
 3. **Vorschlichten** (Frage 17, Manuel: „warum kann die nicht einfach die bereiche die sie beim
    fertig schlichten viel nehmen würde vorher auf 0.3mm aufmass runter fahren“): nur dort, wo die
    Kugel beim Schlichten viel nähme, vorher mit der Kugel auf 0,3 mm Aufmaß – mit den schnellsten

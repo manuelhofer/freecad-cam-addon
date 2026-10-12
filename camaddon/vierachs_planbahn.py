@@ -1018,6 +1018,13 @@ def planen(
         q_zeilen = _zeilen_quer(ebene, r_eben + zugabe + LUFT, w.zeilenabstand)
         a_von = max(a_ende, ebene.a_von - radius - UEBERLAUF_LAENGS)
         a_bis = min(a_anfang, ebene.a_bis + radius + UEBERLAUF_LAENGS)
+        vorn_offen = ebene.a_bis >= teil_vorne - vb.GLEICH
+        if vorn_offen:
+            # Die Fläche reicht vorn bis ans Ende des Teils: Die Zeilen reichen bis vor die
+            # Stange, so beginnen sie dort in der Luft – senkrecht mit vollem ap hinein statt
+            # über die Rampe im Material (Manuel, 2026-10-12, an der Nase; die Fahrt kehrt um,
+            # wenn sie dort endet).
+            a_bis = a_anfang
         if a_bis <= a_von + vb.GLEICH:
             continue
         anzahl = max(2, int(math.ceil((a_bis - a_von) / schritt_a - 1e-9)) + 1)
@@ -1077,6 +1084,11 @@ def planen(
             drin = (
                 (hoehe <= lage_a[None, :] + vb.GLEICH) & frei & zeilen_da[:, None] & noetig[None, :]
             )
+            # Wo der Fräser in dieser Lage stehen darf, ohne ins Teil zu fahren, und darüber
+            # nichts mehr steht (nach dem Schruppen): dort taucht er in der Luft ein.
+            luft = (hoehe <= lage_a[None, :] + vb.GLEICH) & frei & zeilen_da[:, None]
+            if not schlichtlage:
+                luft &= ~(oben_grob > lage_a[None, :] + vb.GLEICH)
             if not schlichtlage:  # nur, wo über der Lage noch Material steht
                 drin &= oben_grob > lage_a[None, :] + vb.GLEICH
             if not drin.any():
@@ -1098,12 +1110,35 @@ def planen(
                     (0.0, 0.0, -1.0), (-1.0, 0.0, 0.0), (0.0, -1.0, 0.0)
                 ) == bool(w.gleichlauf)
                 fahrten = vb._einzeln(mit_luecke, False, absteigend=not aufsteigend)
+            elif vorn_offen:
+                # Die Fläche reicht vorn bis ans Teil: jede Zeile von vorn, aus der Luft vor der
+                # Stange mit vollem ap, an der Fläche entlang – kein Hin und Her, dessen Fahrten
+                # hinten im Material über die Rampe einfahren (Manuel, 2026-10-12: „da brauch ich
+                # kein zickzack fahren … und meine planschneide kaputt machen“).
+                fahrten = vb._einzeln(mit_luecke, False)
             else:
                 fahrten = vb._geteilt(vb._fahrten(mit_luecke), zwischen)
             for fahrt in fahrten:
                 a, q, m = _folge(fahrt, a_stellen, q_zeilen)
-                r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
                 offen = float(a[0]) - radius >= w.a_stange_vorne  # vor der Stange: nur Luft
+                if vorn_offen and not offen:
+                    # Davor ist schon alles weg (nach dem Schruppen): eine Stelle früher in der
+                    # Luft eintauchen, dann mit vollem ap ins Material – keine Rampe.
+                    k1 = int(round((float(a[0]) - a_von) / schritt)) + 1
+                    if k1 < anzahl and luft[int(m[0]), k1]:
+                        a = np.concatenate([[a_stellen[k1]], a])
+                        q = np.concatenate([[q[0]], q])
+                        m = np.concatenate([[m[0]], m])
+                        offen = True
+                if not offen and float(a[-1]) - radius >= w.a_stange_vorne:
+                    # Endet die Fahrt vor der Stange, beginnt sie dort: senkrecht in der Luft mit
+                    # vollem ap hinein und an der Fläche entlang, nicht über die Rampe im Material
+                    # (Manuel, 2026-10-12, an der Nase: „was kompletter blödsinn ist … einfach
+                    # auf volle tiefe ap fahren und an der planfläche entlang fahren … da brauch
+                    # ich kein zickzack fahren … und meine planschneide kaputt machen“).
+                    a, q, m = a[::-1], q[::-1], m[::-1]
+                    offen = True
+                r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
                 ueber = vorige if not schlichtlage else float(r[0]) + aufmass + vb.GLEICH
                 _einfahrt(punkte, a, q, float(r[0]), ebene.phi, ueber, offen, w, sicher, r)
                 for i in _knicke(a, q, r):

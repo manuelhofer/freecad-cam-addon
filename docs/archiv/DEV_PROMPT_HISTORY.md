@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-161 plan-ohne-zickzack-vorn
+
+### EINGELESEN
+- Manuels Bilder (2026-10-12 abends, Nasen-Testteil, „Plan indexiert“ und „Rundum schruppen“): an
+  den Seiten des Dreiecks dichte Zickzack-Pakete – „was kompletter blödsinn ist für was ?!?!? …
+  einfach auf volle tiefe ap fahren und an der planfläche entlang fahren … da brauch ich kein
+  zickzack fahren … und meine planschneide kaputt machen“, „du hast so viel platz ausenrum“.
+- Gezählt (Face4, Face6, Face8, T1 Ø 12, 22,2 / 5,4 / 0,3): von der Stange 11 Einfahrten, alle über
+  die Rampe; nach dem Schruppen 5 von 8. Grund: Hin und her beginnen die Fahrten hinten im Material;
+  vorn endeten die Zeilen einen Fräserradius plus Überlauf hinter der Fläche, noch knapp in der
+  Stange (Planaufmaß); nach dem Schruppen beginnen die Zeilenstücke erst, wo noch Material steht.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py` (`planen`, Zeilen): Reicht die Fläche vorn bis ans Ende des Teils
+  (`vorn_offen`), reichen die Zeilen bis vor die Stange (a_anfang), und jede Zeile fährt einzeln von
+  vorn (`vb._einzeln`) – senkrecht in der Luft mit vollem ap hinein, an der Fläche entlang; beginnt
+  ein Zeilenstück, wo davor schon alles weg ist (`luft`), taucht es dort ein; eine Fahrt, die vorn
+  endet, kehrt um. Eine Rampe bleibt nur, wo davor das Teil steht.
+
+### ERGEBNIS
+- Am Nasen-Testteil von der Stange: 37 Einfahrten, 33 senkrecht in der Luft, 4 über die Rampe (je
+  eine Zeile der Seiten in zwei Lagen – davor steht die Nase selbst); nach dem Schruppen 22 von 22
+  senkrecht in der Luft, keine Rampe. Grün in 26.3 RC1: `test_vierachs_plan` (auch: nicht ins Teil),
+  `szenario_vierachs_plan`. `package.xml` (0.259.4).
+
 ## P-2026-10-12-160 kein-blau-unter-ueberhaengen
 
 ### EINGELESEN
