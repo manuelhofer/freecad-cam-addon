@@ -49,7 +49,7 @@ import FreeCADGui
 import numpy as np
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, farben, stl_teil, symbol, uhren
+from . import PARAMETER_PFAD, einheiten, farben, gui_rechnet, stl_teil, symbol, uhren
 from . import aufloesung as au
 from . import bestueckung as bs
 from . import formteile as ft
@@ -621,6 +621,7 @@ class VierachsPanel:
         self._vorschau_ergebnisse = {}
         self._vorschau_gruende = {}
         self.form = self._baue()
+        self._rechnet = gui_rechnet.Anzeige(self.rechnet, self.rechnet_noch)
         self._beobachter = None
         if operation is not None:
             self._zum_aendern()
@@ -1018,10 +1019,23 @@ class VierachsPanel:
             self.doc.recompute()
         return True
 
+    def rechnet_noch(self):
+        """Rechnet noch etwas für das Fenster – die Uhr nach einer Eingabe, eine Vorschau oder
+        der Rest für die Kugel auf den Nebenrechnern?"""
+        if self.geschlossen:
+            return False
+        rest = self._rest_auftrag
+        return (
+            self._vorschau_uhr.isActive()
+            or any(not a.erledigt for a in self._vorschau_auftraege.values())
+            or (rest is not None and not rest.erledigt)
+        )
+
     def _vor_dem_schliessen(self):
         """Bewegung anhalten, Auswahl-Hilfen abmelden."""
         VierachsPanel.offen = None
         self.geschlossen = True
+        self._rechnet.ende()
         from .gui_reichweite import job_merken
 
         job_merken(self.job)  # Prüfen, Bestückung und Programm nehmen ihn ohne Auswahl
@@ -1048,6 +1062,8 @@ class VierachsPanel:
         kopf = kopfzeile(tr("va.kopf"), "vierachs")
         self._kopf_text = kopf.findChild(QtGui.QLabel)
         aussen.addWidget(kopf)
+        self.rechnet = QtGui.QLabel()  # gui_rechnet: dreht sich, solange es rechnet
+        aussen.addWidget(self.rechnet)
         self.seiten = QtGui.QStackedWidget()
         aussen.addWidget(self.seiten)
         rohteil = QtGui.QWidget()

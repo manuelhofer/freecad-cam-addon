@@ -154,9 +154,19 @@ def schritte(h):
     )
     panel.mit_schruppen.setChecked(True)
     panel.mit_schlichten.setChecked(True)
+    # Solange gerechnet wird, dreht sich oben ein Zeichen (gui_rechnet, 2026-10-12).
+    yield from h.warte_auf(lambda: panel._rechnet.zu_sehen, 5000)
+    h.pruefe(panel._rechnet.zu_sehen, "kein Zeichen, dass gerechnet wird")
+    h.pruefe(panel.rechnet.text().endswith("rechnet …"), f"Zeichen: {panel.rechnet.text()!r}")
+    h.bild("4a_rechnet", panel.form)
+    h.bild("4b_rechnet_statusleiste")
     yield from h.warte_auf(
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 240000
     )
+    # Fertig, auch der Rest für die Kugel: das Zeichen ist weg.
+    yield from h.warte_auf(lambda: not panel.rechnet_noch(), 240000)
+    yield 400
+    h.pruefe(not panel._rechnet.zu_sehen, "Zeichen bleibt nach dem Rechnen")
     h.pruefe(panel.vorschau is not None, "keine Vorschau Schruppen")
     h.pruefe(panel.vorschau_schlichten is not None, "keine Vorschau Schlichten")
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")

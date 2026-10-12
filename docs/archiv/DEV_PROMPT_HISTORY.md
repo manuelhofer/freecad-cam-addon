@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-136 rechnet-anzeige
+
+### EINGELESEN
+- Manuel (2026-10-12, Geist im 4-Achs-Assistenten): „bis die gelbe Schrift erscheint, dauert es
+  ein bisschen … man bekommt keine Indikation dafür, dass noch gearbeitet wird … einfach nur irgend
+  einen Indikator, vielleicht auch einfach ein Rädchen, was erscheint und sich dreht“.
+
+### DATEIEN
+- `camaddon/gui_rechnet.py` (neu): `Anzeige` – solange der Assistent rechnet (nach 0,3 s), oben
+  im Fenster ein Zeichen, das sich dreht, mit „rechnet …“, und in der Statusleiste von FreeCAD
+  „CAM-Addon: rechnet …“ mit einem Balken ohne Ende (immer zu sehen, auch weiter unten im
+  Fenster). „Anlegen“ bleibt bedienbar (kein Befehl grau, weil etwas fehlt).
+- `camaddon/gui_vierachs.py`: `rechnet_noch` – Uhr nach einer Eingabe, Vorschauen und der Rest für
+  die Kugel auf den Nebenrechnern; `camaddon/gui_bearbeitung.py`: `vorschau_laeuft`.
+- `translations/de.json`, `en.json`: `re.rechnet*`.
+- `tests/gui/szenario_vierachs_stl.py`: das Zeichen kommt, solange gerechnet wird, und geht
+  danach; Bild `docs/bilder/rechnet_anzeige.png`. `package.xml` (0.251.0).
+
+### AKZEPTANZKRITERIUM
+- `szenario_vierachs_stl`, `test_sprache` grün.
+
 ## P-2026-10-12-135 lagen-gleich-tief
 
 ### EINGELESEN

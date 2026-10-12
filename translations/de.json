@@ -2796,5 +2796,8 @@
     "stl.weiter": "Weiter",
     "ne.titel": "N-Eck-Stange",
     "ne.folge": "„Alles aus dieser Aufspannung“ wählt, was von oben zu sehen ist; „Anlegen“ öffnet die nächste Aufspannung.",
-    "ne.schon_weg": "Hier ist nichts mehr zu schruppen – die Aufspannungen und Operationen davor haben es schon genommen."
+    "ne.schon_weg": "Hier ist nichts mehr zu schruppen – die Aufspannungen und Operationen davor haben es schon genommen.",
+    "re.rechnet": "rechnet …",
+    "re.rechnet.tooltip": "Im Hintergrund wird noch gerechnet – Vorschau und Hinweise kommen, sobald es fertig ist. „Anlegen“ geht trotzdem.",
+    "re.rechnet.leiste": "CAM-Addon: rechnet …"
 }

@@ -3990,6 +3990,11 @@ class BearbeitungPanel:
         self._viertel = 0  # X um so viele Viertel um Z gedreht
         self.bloecke = []
         self.form = self._baue()
+        from . import gui_rechnet
+
+        self._rechnet = gui_rechnet.Anzeige(
+            self.rechnet, lambda: not self.geschlossen and self.vorschau_laeuft()
+        )
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
         self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
         self.restraeumen = next(b for b in self.bloecke if b.s.kennung == "restraeumen")
@@ -4036,6 +4041,8 @@ class BearbeitungPanel:
         aufbau = QtGui.QVBoxLayout(form)
         kopf = kopfzeile(tr("ba.kopf"), "bearbeitung")
         aufbau.addWidget(kopf)
+        self.rechnet = QtGui.QLabel()  # gui_rechnet: dreht sich, solange es rechnet
+        aufbau.addWidget(self.rechnet)
         # Oben, in welchem der drei Schritte man ist; darunter, was dort zu tun ist.
         self.schritt_text = QtGui.QLabel()
         schrift = self.schritt_text.font()
@@ -4586,6 +4593,7 @@ class BearbeitungPanel:
     def _vor_dem_schliessen(self):
         BearbeitungPanel.offen = None
         self.geschlossen = True
+        self._rechnet.ende()
         self._vorschau_lauf_beenden()
         from .gui_reichweite import job_merken
 

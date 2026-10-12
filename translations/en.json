@@ -2796,5 +2796,8 @@
     "stl.weiter": "Next",
     "ne.titel": "Polygon bar",
     "ne.folge": "“Everything from this setup” selects what can be seen from above; “Create” opens the next setup.",
-    "ne.schon_weg": "Nothing left to rough here – the setups and operations before already removed it."
+    "ne.schon_weg": "Nothing left to rough here – the setups and operations before already removed it.",
+    "re.rechnet": "computing …",
+    "re.rechnet.tooltip": "Still computing in the background – the preview and notes appear when it is done. “Create” works anyway.",
+    "re.rechnet.leiste": "CAM add-on: computing …"
 }
