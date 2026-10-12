@@ -364,6 +364,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    sind … irgendwie ist da viel zickzack fahren wo keins hin muss“.
 5. **Einrichtblatt für jede Bearbeitung** (W-019, Frage 16) und **bewegliche Spannmittel** (W-020) –
    siehe Wunschliste.
+6. **„Kollision prüfen“ am Geist braucht über 12 GB** (2026-10-12 abends, 18:58): Geist auf der
+   Beispiel-Drehmaschine (Szenario-Werte, 392.634 Stationen) – der Kernel beendete den Lauf an seiner
+   12-GB-Grenze (Popup bei Manuel). Speicher der Kollision mit STL-Teil und Pool nachmessen und
+   begrenzen (Speicherwächter, `kollision_parallel`); danach die Gegenprobe zu P-160: ob der Fräser
+   unter den Armen wirklich nicht ins Teil geht. Der Sprung ans Ende steht jetzt 0,25 statt 1,5 s.
 Frage 20 (Bereiche an einem STL wählen) entfällt: Ein STL wird immer rundum bearbeitet, angeklickt wird
 nur, wie es liegt (Manuel: „klar soll das immer rundum bearbeitet werden is ja ne stl“).
 
