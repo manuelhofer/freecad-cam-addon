@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-118 maschine-des-jobs-fehlt
+
+### EINGELESEN
+- Manuel (2026-10-12): „Wenn man für CAM eine Maschine speichert … kann ich sie dann auch wieder
+  löschen? Was passiert, wenn ich sie einfach so als Datei lösche – wird das kontrolliert? Kommt
+  eine Fehlermeldung, wenn das passiert ist, für einen Job, der bereits existiert?“
+- Nachgesehen: Die Liste „Maschinen“ zeigt eine fehlende Datei („– nicht gefunden“, „Suchen …“),
+  der Assistent „Bearbeitung“ auch („Datei nicht gefunden“). „Auf der Maschine prüfen“ aber nahm
+  für einen Job, dessen Maschinendatei fehlt, still die zuletzt benutzte – ohne ein Wort.
+- „Maschine für CAM speichern“ schreibt zusätzlich eine Maschinendefinition (.fcm) in CAMs Ordner
+  (nur FreeCAD ab 26.3/Wochen-Build); löschen lässt sie sich in CAMs Einstellungen (Assets →
+  Machines → Delete). Die Prüfung im Addon braucht sie nicht.
+
+### DATEIEN
+- `camaddon/gui_reichweite.py`: `_fehlende_maschine`, `_ohne_maschine_des_jobs` – fehlt die Datei
+  am Job, sagt es das (Meldung mit der Datei, „Maschine öffnen …“, „Neue Maschine …“; ist eine
+  Maschine offen, nennt die Meldung sie; mehrere: die Frage), dazu eine Zeile im Ausgabefenster.
+- `translations/de.json`, `en.json`: `rw.maschine_fehlt`, `rw.maschine_fehlt_offene`,
+  `rw.maschine_fehlt_konsole`.
+- `tests/gui/szenario_maschine_merken.py`: die Maschine des Jobs gelöscht, eine andere zuletzt
+  benutzt – die Meldung nennt die Datei, kein stilles Prüfen. `package.xml` (0.233.0).
+
+### ERGEBNIS
+- Bild `1b_maschine_geloescht`: „Die Maschine dieses Jobs gibt es nicht mehr: …/
+  geloeschte_maschine.FCStd. Öffne eine andere – der Job merkt sie sich – oder leg mit „Neue
+  Maschine …“ eine an.“
+
+### AKZEPTANZKRITERIUM
+- `test_sprache`, `test_reichweite`, `szenario_maschine_merken` grün.
+
 ## P-2026-10-12-117 texte-kuerzer-erste-runde
 
 ### EINGELESEN

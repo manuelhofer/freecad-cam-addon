@@ -122,6 +122,28 @@ def schritte(h):
     h.bild("1_selbst_geoeffnet")
     yield from schliessen()
 
+    # --- Die Maschine des Jobs gibt es nicht mehr: Es sagt das, statt still auf der zuletzt
+    # benutzten zu prüfen (P-2026-10-12-118). Keine offen: die Meldung nennt die Datei. -------
+    weg = os.path.join(ordner, "geloeschte_maschine.FCStd")
+    job.setEditorMode(rw.EIGENSCHAFT_MASCHINE, [])
+    setattr(job, rw.EIGENSCHAFT_MASCHINE, weg)
+    einstellungen.SetString(rw.ZULETZT_MASCHINE, datei)
+    yield from maschinen_zu()
+    yield from pruefen()
+    meldung = h.modal()
+    h.pruefe(
+        isinstance(meldung, QtGui.QMessageBox)
+        and meldung.text().startswith("Die Maschine dieses Jobs gibt es nicht mehr")
+        and "geloeschte_maschine.FCStd" in meldung.text(),
+        f"keine Meldung zur gelöschten Maschine: {meldung and meldung.text()!r}",
+    )
+    h.pruefe(gui_reichweite.PruefPanel.offen is None, "still auf einer anderen geprüft")
+    if isinstance(meldung, QtGui.QMessageBox):
+        h.bild("1b_maschine_geloescht", meldung)
+        meldung.reject()
+    yield 500
+    setattr(job, rw.EIGENSCHAFT_MASCHINE, datei)
+
     # --- … und über „zuletzt benutzt“, wenn der Job nichts gemerkt hat ----------------------
     job.removeProperty(rw.EIGENSCHAFT_MASCHINE)
     yield from maschinen_zu()

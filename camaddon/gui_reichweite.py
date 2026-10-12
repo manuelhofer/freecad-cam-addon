@@ -96,6 +96,9 @@ def maschine_fuer(job, hauptfenster):
     eigene = _maschine_des_jobs(job)
     if eigene is not None:
         return eigene
+    fehlt = _fehlende_maschine(job)
+    if fehlt:
+        return _ohne_maschine_des_jobs(job, hauptfenster, fehlt)
     gemerkt = rw.gemerkte_maschine(job)
     maschinen = offene_maschinen(job.Document)
     if not maschinen and gemerkt and os.path.isfile(gemerkt):
@@ -107,6 +110,34 @@ def maschine_fuer(job, hauptfenster):
     if len(maschinen) > 1:
         # Die gemerkte vorn – dann reicht Enter.
         maschinen.sort(key=lambda e: not gleiche_datei(e[0].Document.FileName, gemerkt))
+        return waehle_maschine(maschinen)
+    return maschinen[0] if maschinen else None
+
+
+def _fehlende_maschine(job):
+    """Die Datei der Maschine, die am Job steht, wenn es sie nicht mehr gibt (gelöscht,
+    verschoben) – sonst ""."""
+    datei = getattr(job, rw.EIGENSCHAFT_MASCHINE, "")
+    return datei if datei and not os.path.isfile(datei) else ""
+
+
+def _ohne_maschine_des_jobs(job, hauptfenster, fehlt):
+    """Die Maschine des Jobs gibt es nicht mehr (Manuel, 2026-10-12: „was passiert, wenn ich sie
+    einfach so als Datei lösche … kommt eine Fehlermeldung?“): Das sagt es, statt still auf der
+    zuletzt benutzten zu prüfen. Ist eine Maschine offen, gilt sie, und die Meldung nennt sie;
+    sind mehrere offen, fragt es; ist keine offen, bietet die Meldung „Maschine öffnen …“ und
+    „Neue Maschine …“ an. Der Job merkt sich danach die neue (rw.merke_maschine)."""
+    FreeCAD.Console.PrintWarning(tr("rw.maschine_fehlt_konsole", datei=fehlt) + "\n")
+    maschinen = offene_maschinen(job.Document)
+    if not maschinen:
+        maschinen = maschine_oeffnen(hauptfenster, job, fehlt)
+    elif len(maschinen) == 1:
+        QtGui.QMessageBox.information(
+            hauptfenster,
+            tr("rw.titel"),
+            tr("rw.maschine_fehlt_offene", datei=fehlt, maschine=maschinen_text(*maschinen[0])),
+        )
+    if len(maschinen) > 1:
         return waehle_maschine(maschinen)
     return maschinen[0] if maschinen else None
 
@@ -133,14 +164,15 @@ def _maschine_des_jobs(job):
     return gefunden
 
 
-def maschine_oeffnen(hauptfenster, job):
+def maschine_oeffnen(hauptfenster, job, fehlt=""):
     """Keine Maschine offen: Die Meldung bietet „Maschine öffnen …“ (eine Datei wählen) und
-    „Neue Maschine …“ (bauen, dann gleich auf ihr prüfen) an. Gibt die danach offenen
+    „Neue Maschine …“ (bauen, dann gleich auf ihr prüfen) an; `fehlt`: die Datei der Maschine
+    des Jobs, die es nicht mehr gibt – die Meldung nennt sie. Gibt die danach offenen
     Maschinen zurück – leer bei Abbrechen oder ohne Maschine in der Datei."""
     meldung = QtGui.QMessageBox(
         QtGui.QMessageBox.Information,
         tr("rw.titel"),
-        tr("rw.keine_maschine"),
+        tr("rw.maschine_fehlt", datei=fehlt) if fehlt else tr("rw.keine_maschine"),
         QtGui.QMessageBox.Cancel,
         hauptfenster,
     )
