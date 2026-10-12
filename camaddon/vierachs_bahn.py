@@ -532,6 +532,11 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     lagen = 0
     if ueber_dem_teil.size:
         lagen = max(0, int(math.ceil((w.stange_radius - r_min) / w.zustellung - GLEICH)))
+    if lagen > 0:
+        # Gleich tief je Lage (Manuel, 2026-10-12: „20 mm bei ap 15 – dann nehm ich 2 × 10 …
+        # 1 × 15 und 1 × 5 kann man machen, aber 2 × 10 braucht dieselbe Zeit und schont die
+        # Last“): alle Lagen bis zum tiefsten Punkt gleich, keine dünne zuletzt.
+        w = replace(w, zustellung=(w.stange_radius - r_min) / lagen)
     sicher = w.stange_radius + w.sicherheit
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     if w.bereich is not None:  # gewählte Flächen: Zeilen hin und her (V4)

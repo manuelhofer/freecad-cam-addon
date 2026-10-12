@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-135 lagen-gleich-tief
+
+### EINGELESEN
+- Manuel (2026-10-12): „wir haben einen ap beim Schruppen … wir müssen eh 2-mal drüber fahren,
+  weil der ap nicht ausreichend ist … man sollte dann so viel ap nehmen, dass man es aufteilt auf
+  die nötigen Schnitte … 20 mm bei ap 15 – dann nehm ich 2 × 10 mm … 1 × 15 und 1 × 5 kann man
+  machen, aber 2 × 10 würde dieselbe Zeit in Anspruch nehmen und schont die Last“.
+- Nachgesehen: Räumen, 3D-Schruppen, Kontur, Planfräsen, Nut, Plan indexiert und das Schruppen in
+  der N-Eck-Stange teilen schon gleich auf (Lage k = oben − Tiefe · k / n). „Rundum schruppen“
+  (4 Achsen) ging je Lage ganze ap tief von der Stange aus – die letzte dünn.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `schruppen` – die Lagen bis zum tiefsten Punkt gleich tief
+  ((Radius der Stange − r_min) / Lagen statt ap), auch mit der Querachse und in Zeilen.
+- `tests/test_vierachs_bahn.py`: Welle R 40, ap 2, tiefster Punkt 30,32: fünf Lagen je 1,935 mm
+  statt 2, 2, 2, 2 und 1,68. `package.xml` (0.250.0).
+
+### AKZEPTANZKRITERIUM
+- `test_vierachs_bahn`, `test_vierachs_frei`, `test_vierachs_operation`, `test_vierachs_halter`,
+  `test_vierachs_achsen` grün.
+
 ## P-2026-10-12-134 abspieler-gedrueckt-halten
 
 ### EINGELESEN

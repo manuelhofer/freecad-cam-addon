@@ -107,9 +107,14 @@ pruefe(
     start.eilgang and (start.a, start.r, start.phi) == (1.0 + R + 2.0, 42.0, 0.0),
     f"Start: {start}",
 )
-# Die Lagen schneiden auf 38, 36, 34, 32 – die fünfte folgt dem Teil.
+# Die Lagen gleich tief bis zum tiefsten Punkt (P-2026-10-12-135; Manuel: „2 × 10 statt 15 + 5“):
+# 40 − k · (40 − r_min)/5, also gut 1,93 statt 2 mm je Lage – die fünfte folgt dem Teil.
 radien = sorted({round(p.r, 6) for p in schnitte(bahn)}, reverse=True)
-pruefe(radien[:4] == [38.0, 36.0, 34.0, 32.0], f"Radien der Lagen: {radien[:6]}")
+tief = (40.0 - bahn.r_min) / 5
+pruefe(
+    all(abs(r - (40.0 - k * tief)) < 1e-5 for k, r in enumerate(radien[:4], start=1)),
+    f"Radien der Lagen: {radien[:6]} (je {tief:.4f} tiefer)",
+)
 # Wo die Stirn das um das Aufmaß dickere Teil trifft (a ≤ 6,3), bleibt sie darüber.
 ueber = [p.r for p in schnitte(bahn) if -100 - R - 0.3 <= p.a <= R + 0.3]
 pruefe(min(ueber) >= 30.3, f"zu tief über dem Teil: {min(ueber)}")
