@@ -738,6 +738,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Bereiche statt Dreiecke wählen; beim Anlegen am Geist steht das Fenster einmal bis 3,5 s, sonst
   unter 1 s (FreeCADs Werkzeugkörper, `updateDepths` mit dem Hüllquader der 68.242 Flächen) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
+- **W-018 STL aus der N-Eck-Stange im Schraubstock** – Manuels Wunsch vom 2026-10-12: an der
+  3-Achs-Fräse eine gerade N-Eck-Stange waagerecht längs X oder Y, ein Ende 20 mm im Schraubstock,
+  je Aufspannung um 360°/N weitergedreht, von oben 3D-Schruppen und -Schlichten mit Restmaterial;
+  als Kette wie die 5-Achs-Ebenen. Zuerst das Bild mit Zahlen am Geist (N = 6, 8) –
+  [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 17.
 
 ## Offene Bugs
 

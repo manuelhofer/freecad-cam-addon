@@ -1497,6 +1497,24 @@ Gebaut (P-2026-10-11-100):
 
 Offen: einzelne Bereiche wählen statt Dreiecke. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 
+## 17. STL aus der N-Eck-Stange im Schraubstock (W-018)
+
+Manuel, 2026-10-12: „das N-Eck in den Schraubstock setzen … jeweils eine Seite des N-Ecks
+bearbeiten … dann das N-Eck weiter drehen … so bekomme ich zwar nicht das perfekte Teil, aber ein
+Teilergebnis, und vielleicht kann man dann den Rest schleifen … oder man nimmt ein 8-Eck“ – eine
+vierte Achse von Hand an einer 3-Achs-Fräse. Entschieden (Frage 15, Manuel 2026-10-12):
+
+- **Maschine und Spannen:** 3-Achs-Fräse, Schraubstock auf dem Tisch. Die N-Eck-Stange liegt
+  waagerecht längs X oder Y, ein Ende steckt im Schraubstock (Spannlänge 20 mm, einstellbar), das
+  Teil ragt heraus; am Schluss wird es abgesägt.
+- **N:** frei wählbar, gerade (zwei Flächen liegen parallel an den Backen).
+- **Ablauf:** als Kette wie die 5-Achs-Ebenen – je Aufspannung ein Job, „Anlegen“ öffnet die
+  nächste; je Aufspannung die Stange um 360°/N weitergedreht, von oben 3D-Schruppen und
+  3D-Schlichten von dem, was von dort zu sehen ist, mit dem Restmaterial der Aufspannungen davor.
+
+Vorher (Strategie erst besprechen): am Geist für N = 6 und 8 ein Bild mit Zahlen – je Aufspannung,
+was sie erreicht, und was aus keiner Richtung erreichbar stehen bleibt.
+
 ## Entschieden
 
 Alle von Manuel, 2026-09-26, P-2026-09-26-78 – aus Fragen mit Optionen bzw.
