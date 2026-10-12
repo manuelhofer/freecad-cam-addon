@@ -454,7 +454,6 @@ class Koerper:
         Lagen) als Verbund an der Lage dieses Teils – None, wenn keine näher als AUSSCHNITT_RAND
         liegt (dann sind beide mindestens so weit auseinander). Gewählt über die Hüllquader der
         Dreiecke gegen den des anderen, in eigenen Koordinaten."""
-        import Part
 
         unten_d, oben_d, _ecken = self._ausschnitt_vorbereiten()
         box = anderer.form.BoundBox
