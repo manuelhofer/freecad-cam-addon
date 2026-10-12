@@ -652,6 +652,16 @@ Beantwortet am 2026-10-03 (abends):
    Rundum schlichten 0,2 mm: 263 679 Stationen, rechnerisch 3,4 h) öffnet es in etwa 10 s: Prüfen
    1,8, Abfahren 3,9, die Spitze am Werkstück je Station 4 s (Kinematik je Station; seit
    P-2026-10-04-20 einmal gerechnet und gemerkt – die Kollision rechnet sie nicht noch einmal).
+7a. W-003, offen (2026-10-12 gemessen): „Rundum schruppen“ fährt am Nasen-Testteil im Vorschub durch
+   Luft – mit der Querachse 5,3 von 16,6 m (gut 5 von 14,8 min), ohne 1,8 von 12,5 m; fast alles in
+   der 2. und 3. Lage, wo die Hüllfläche über der Lage liegt und die Lage die Fläche noch einmal
+   abfährt (Würfel 0,5 mm). Freivorschub dort wäre bis 4,7 min. Der einfache Weg – frei, wo schon die
+   Lage davor auf der Hüllfläche stand – ist **falsch**: Die Spiralen der Lagen sind gegeneinander
+   versetzt (bis eine halbe Steigung längs), an steilen Flanken der Nase nähmen die „freien“ Stücke
+   noch 3,2–3,5 cm³ im Eilgang (gemessen, zurückgenommen). Richtig: den Rest Lage für Lage mitführen
+   (restmaterial.Stange, nach außen sicher) und frei nur, wo über der Stirn nichts mehr steht – mit
+   der Gegenprobe im Würfelmodell, dass in freien Stücken nichts weggenommen wird.
+   Dazu: „Plan indexiert zuerst“ spart dem Schruppen an der Nase nur etwa 1 min (geschätzt).
 7. W-003 (erledigt mit P-2026-10-12-149): Mit der Querachse und gleich tiefen Lagen blieb an einer
    einfachen Welle seitlich ein dünner Rest für eine sechste Lage; jetzt gleich tief so, dass die
    geplanten Lagen reichen (nie tiefer als ap).
