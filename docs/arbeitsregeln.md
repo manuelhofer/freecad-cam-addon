@@ -112,11 +112,13 @@ ein ASCII-Entwurf des Dialogs reicht.
   Tests solange alles funktioniert“; 2026-10-01: „Und weniger testest mehr
   Produktivität...“). Deshalb:
   - Vor einem Push läuft **die eine Prüfdatei zum geänderten Teil** und, wenn
-    Manuel ein Bild sehen soll, **das eine Szenario** dazu – in der stabilen
-    FreeCAD-Version (Manuels), nicht noch einmal im Wochen-Build. Den
-    Wochen-Build nur, wenn die Änderung eine FreeCAD-Schnittstelle trifft, die
-    dort anders ist (Postprozessoren, CAM-Objekte, Assembly). Minuten, nicht
-    mehr; auf nichts warten, was im Hintergrund läuft – weiterbauen.
+    Manuel ein Bild sehen soll, **das eine Szenario** dazu – in Manuels
+    FreeCAD-Version (derzeit der Wochen-Build 26.3 RC1), nicht noch einmal in der
+    stabilen. Die stabile nur, wenn die Änderung eine FreeCAD-Schnittstelle trifft,
+    die dort anders ist (Postprozessoren, CAM-Objekte, Assembly, OpenCascade). Minuten,
+    nicht mehr; auf nichts warten, was im Hintergrund läuft – weiterbauen. Einen vollen
+    Lauf nur in Manuels Version (Manuel, 2026-10-12: „warum denn schon wieder testen auf
+    1.1.4, das machst du schon die ganze Zeit?“).
   - Der **volle Lauf** `scripts/alle_tests.sh` (beide Versionen) ist die
     Ausnahme: vor einem Stand, den Manuel ausprobieren soll, nach vielen
     Änderungen am gemeinsamen Kern (`maschine`, `kette`, `kinematik`,
@@ -257,8 +259,8 @@ Fensters – weder in einem Dialog noch beim Ändern eines Felds. Rechnen über
 processEvents)`; die Felder reagieren sofort, das Ergebnis kommt nach. Das gilt für jeden
 neuen Dialog und jede neue Rechnung, nicht nur für den 4-Achs-Assistenten (P-2026-10-09-09).
 
-**Zielsystem:** die aktuelle **stabile Version** von FreeCAD (derzeit 1.1.3)
-**und** der aktuelle **Wochen-Build**, auf jedem Betriebssystem. Fehlt in der
+**Zielsystem:** die aktuelle **stabile Version** von FreeCAD (derzeit 1.1.4)
+**und** der aktuelle **Wochen-Build** (derzeit 26.3 RC1), auf jedem Betriebssystem. Fehlt in der
 stabilen Version etwas, fragt der Code danach (z. B. `export.verfuegbar()`)
 statt nach Versionsnummern – so wird eine Funktion von selbst frei, sobald
 die stabile Version sie bekommt. Die mitgelieferten Python- und Qt-Versionen von FreeCAD sind
@@ -389,6 +391,16 @@ durch. Bricht etwas, wird es angepasst. Ist eine neue stabile Version da,
 fällt die vorige heraus (unterstützt werden immer genau die aktuelle stabile
 und der Wochen-Build). Welche Versionen zuletzt geprüft wurden, steht im
 Snapshot.
+
+**Immer wieder nachsehen** (Manuel, 2026-10-12: „wir beziehen uns nur auf den neusten weekly build
+… und auf die offizielle release, die aktuell ist … wir nehmen nicht noch andere weekly builds“;
+„kannst du das festhalten, dass wir immer mal wieder prüfen sollten, was ist aktueller weekly
+build und was ist aktuelles release“): zu Beginn einer Arbeitssitzung und vor einem Forum-Update
+in den Releases von FreeCAD nachsehen –
+`curl -s "https://api.github.com/repos/FreeCAD/FreeCAD/releases?per_page=8"`. Der neueste Eintrag
+(„weekly-…“ oder ein Release Candidate) ist der Wochen-Build, der neueste ohne „prerelease“ die
+stabile Version. Ist einer neuer als der in der Testumgebung, wird er geholt und der alte nicht
+mehr geprüft; ältere Wochen-Builds werden nie geprüft.
 
 ## 10. Am Ende: Kaltstart klein halten
 

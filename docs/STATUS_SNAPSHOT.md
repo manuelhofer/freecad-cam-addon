@@ -320,7 +320,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Ringe mit 29 Sätzen bis 0,3 × F, Last 1,49 ae. Manuels D-Bahnen (Bild 2026-10-04) an seiner
   Skizze geprüft: adaptiv ist dort schneller und hält die Last – zurückgelegt (Spezifikation
   Strategien T5e).
-- **FreeCAD-Versionen:** 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
+- **FreeCAD-Versionen (2026-10-12):** geprüft wird nur gegen die aktuelle Release (1.1.4 vom 28.09.)
+  und den neuesten Wochen-Build (26.3 RC1 vom 08.10. – Manuels Version); immer wieder nachsehen
+  (Arbeitsregeln, Abschnitt 9). Voller Lauf zuletzt am 2026-10-12 in 26.3 RC1 mit 0.255.3: 117 von
+  117 Prüfdateien und alle Szenarien grün (nach P-141 bis -145). Der Wochen-Build vom 16.09. in
+  `fcenv` ist veraltet und wird nicht mehr geprüft.
+- Frühere Stände: 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
   Prüfungen und 98 Szenarien grün mit P-2026-10-02-85, seither je die Prüfung und das Szenario
   zum geänderten Teil. **1.1.3 (stabil):** mit 0.203.1 waren 19 von 110 Prüfungen und 25 von
   125 Szenarien rot (eine Regression im Abspieler, Umlaute ohne UTF-8-Locale, Wanduhr-Zeiten,
