@@ -757,7 +757,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Haken in den Einstellungen, vorbelegt an: am Geist mit einem Job Speichern 3,6 statt 6,2 s).
   Körper und Klon zeigt das Addon als Netz (P-2026-10-12-156): am Geist Umwandeln ohne die 2,3 s,
   der erste Klick 0,8 statt 1,9 s; im Baum stehen sie grau. Mit P-157/-158 (Prüffenster aus dem
-  Netz, CAMs Tiefen ohne Modell) steht das Fenster im ganzen 4-Achs-Ablauf höchstens 1 s. Offen: Bereiche statt Dreiecke wählen –
+  Netz, CAMs Tiefen ohne Modell) steht das Fenster im ganzen 4-Achs-Ablauf höchstens 1 s. Offen: Bereiche statt Dreiecke wählen (Frage 20) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
 - **W-018 STL aus der N-Eck-Stange im Schraubstock** – Manuels Wunsch vom 2026-10-12: an der
   3-Achs-Fräse eine gerade N-Eck-Stange waagerecht längs X oder Y, ein Ende 20 mm im Schraubstock,

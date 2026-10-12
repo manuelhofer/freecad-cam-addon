@@ -105,3 +105,22 @@ in einem anderen Job (etwa mit „Plan indexiert“, dann lässt das Schlichten 
 oder an der Maschine. – *Was die Antwort ändert:* Abspieler: die Anzeige für solche Stellen
 genauer machen (3D statt Strahlen). Anderer Job: schick ihn mir, dann suche ich dort. – seit
 2026-10-12.
+**20. Teil aus einem STL: wie willst du Bereiche wählen statt einzelner Dreiecke?** Heute ist bei
+einem STL jedes Dreieck eine Fläche: Ein Klick auf den Geist wählt ein Dreieck von 68.242. Die
+Assistenten kommen meist ohne Klicks aus („Alles aus dieser Aufspannung“, rundum), aber wer nur
+einen Teil schlichten oder auslassen will (z. B. nur das Gesicht, nicht die Unterseite), müsste
+Tausende Dreiecke einzeln anklicken. Möglich wären:
+- **A – zusammenhängend, bis zu einem Knick:** Ein Klick wählt alle anschließenden Dreiecke, die
+  höchstens um einen Winkel (Vorgabe etwa 20°, im Fenster änderbar) gegeneinander geknickt sind –
+  wie eine Fläche im CAD. Am Geist: Kopf, Arme, Körper einzeln, solange zwischen ihnen eine Kante ist;
+  an weichen Übergängen läuft es weiter.
+- **B – gleiche Richtung:** Ein Klick wählt alle Dreiecke, deren Richtung höchstens so viel von der
+  angeklickten abweicht, auch nicht zusammenhängend (z. B. alles, was nach oben schaut).
+- **C – malen:** mit gedrückter Taste über das Teil fahren, was darunter liegt, kommt dazu.
+- **D – so lassen:** rundum und „Alles aus dieser Aufspannung“ genügen.
+
+*Warum nur Manuel:* Wofür du an einem STL Bereiche brauchst und wie du sie an der Maschine denkst
+(nach Kanten, nach Richtung, frei), weißt nur du; jede Art ist eine eigene Bedienung. – *Was die
+Antwort ändert:* A, B oder C baue ich als Art, wie ein Klick auf ein STL-Teil wählt (in beiden
+Assistenten, mit Umschalten auf einzelne Dreiecke); D: der Punkt fällt aus W-017 weg. – seit
+2026-10-12.
