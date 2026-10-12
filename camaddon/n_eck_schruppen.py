@@ -48,7 +48,6 @@ def planen(netz, w, stand=None, x_ende=None, schritt=SCHRITT, boden=BODEN):
     zum Schraubstock (None: bis hinter das Teil). ValueError mit einem Satz, wenn nichts zu tun
     ist."""
     from . import schruppen3d_bahn as sb
-    from .sprache import tr
 
     r = float(w.form.radius)
     zugabe = max(float(w.aufmass), 0.0) + netz.toleranz + vb.RAND
@@ -67,13 +66,13 @@ def planen(netz, w, stand=None, x_ende=None, schritt=SCHRITT, boden=BODEN):
     # je_zeile: [k, j] – k längs x, j die Zeile in y; hier [x, y].
     spitze = np.where(np.isfinite(huelle), huelle + zugabe, TIEF)
     material = _material(stand, xs, ys, w)
-    unter = _umkreis_max(material, int(math.ceil(r / schritt)))  # unter dem Fräser das Höchste
+    unter = _kreis_max(material, r / schritt)  # unter dem Fräser das Höchste
     zustellung = float(w.zustellung)
     if w.schneidenlaenge > 0:
         zustellung = min(zustellung, float(w.schneidenlaenge))
     hoechstes = float(np.max(unter))
     if not math.isfinite(hoechstes):
-        raise ValueError(tr("r3.fehler.nichts"))
+        raise _nichts(stand)
     lagen = _lagen(min(float(w.oben), hoechstes), boden, zustellung)
     jede = max(1, int(round(float(w.zeilenabstand) / schritt)))
     gefahren_x = list(range(jede, len(xs), jede))
@@ -127,7 +126,7 @@ def planen(netz, w, stand=None, x_ende=None, schritt=SCHRITT, boden=BODEN):
             vorwaerts = not vorwaerts
         punkte.append(bn.Punkt(True, punkte[-1].x, punkte[-1].y, float(w.sicher)))
     if not zeilen:
-        raise ValueError(tr("r3.fehler.nichts"))
+        raise _nichts(stand)
     punkte = _zusammen(punkte)
     laenge = sum(
         math.dist((a.x, a.y, a.z), (b.x, b.y, b.z))
@@ -144,6 +143,18 @@ def planen(netz, w, stand=None, x_ende=None, schritt=SCHRITT, boden=BODEN):
     return sb.Schruppbahn(
         punkte, gefahrene_lagen, 0, zeilen, gefahrene_lagen, z_min, laenge, zeit, "zeilen"
     )
+
+
+def _nichts(stand):
+    """Der Fehler, wenn keine Zeile Material findet: mit einem Materialstand „schon weg“
+    (materialstand.SchonWeg – der Assistent nimmt dem Block den Haken; in der Stange ab der
+    sechsten Aufspannung die Regel), sonst „nichts über den Flächen“."""
+    from . import materialstand as mst
+    from .sprache import tr
+
+    if stand is not None:
+        return mst.SchonWeg(tr("ne.schon_weg"))
+    return ValueError(tr("r3.fehler.nichts"))
 
 
 def _lagen(oben, boden, zustellung):
@@ -189,18 +200,30 @@ def _naechste(raster, werte):
     return np.clip(k, 0, len(raster) - 1)
 
 
-def _umkreis_max(feld, n):
-    """Das Höchste im Quadrat ±n Zellen um jede Zelle (eine Schranke für den Kreis darin) –
-    getrennt je Richtung, in Verdopplungsschritten."""
+def _kreis_max(feld, radius):
+    """Das Höchste im Kreis mit `radius` Zellen um jede Zelle – unter dem Fräser. Ein Quadrat
+    reichte nicht (bis P-2026-10-12-129): In seinen Ecken liegt das Teil selbst höher als die
+    Spitze an der Stelle, und jede Zeile über dem Teil zählte als Schnitt – in der 8-Eck-Stange
+    fuhren die Aufspannungen 6 bis 8 je 7 bis 8 m durch Luft (sie nahmen zusammen 2 cm³)."""
+    ergebnis = np.full_like(feld, -np.inf)
+    n = int(math.floor(radius + 1e-9))
+    for dy in range(-n, n + 1):
+        breite = int(math.floor(math.sqrt(max(radius * radius - dy * dy, 0.0)) + 1e-9))
+        zeile = _schieben(feld, dy, 1) if dy else feld
+        np.maximum(ergebnis, _streifen_max(zeile, breite, 0), out=ergebnis)
+    return ergebnis
+
+
+def _streifen_max(feld, n, achse):
+    """Das Höchste im Streifen ±n Zellen längs `achse` um jede Zelle – in Verdopplungsschritten."""
     ergebnis = feld
-    for achse in (0, 1):
-        breite = 0
-        while breite < n:
-            k = min(breite + 1, n - breite)  # [−breite, breite] → [−breite − k, breite + k]
-            ergebnis = np.maximum(
-                ergebnis, np.maximum(_schieben(ergebnis, k, achse), _schieben(ergebnis, -k, achse))
-            )
-            breite += k
+    breite = 0
+    while breite < n:
+        k = min(breite + 1, n - breite)  # [−breite, breite] → [−breite − k, breite + k]
+        ergebnis = np.maximum(
+            ergebnis, np.maximum(_schieben(ergebnis, k, achse), _schieben(ergebnis, -k, achse))
+        )
+        breite += k
     return ergebnis
 
 

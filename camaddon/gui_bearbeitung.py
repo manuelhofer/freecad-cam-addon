@@ -384,19 +384,28 @@ def _n_eck_anlegen(dokument, teil, wahl):
     else:
         punkte = np.array([(v.X, v.Y, v.Z) for v in teil.Shape.Vertexes], dtype=float)
     dokument.openTransaction(tr("ne.titel"))
+    # Acht Jobs mit je einem Klon des Teils (am Geist 3 s): die Sanduhr dazu.
+    QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+    fehler = None
     try:
-        job, _stange = ne.richte_ein(
-            dokument, teil, punkte, wahl["n"], wahl["achse"], wahl["umgedreht"],
-            spannlaenge=wahl["spannlaenge"],
-        )  # fmt: skip
-        jobs = ne.aufspannungen_anlegen(job)
-    except ValueError as grund:
-        dokument.abortTransaction()
-        QtGui.QMessageBox.warning(FreeCADGui.getMainWindow(), tr("ne.titel"), str(grund))
+        try:
+            job, _stange = ne.richte_ein(
+                dokument, teil, punkte, wahl["n"], wahl["achse"], wahl["umgedreht"],
+                spannlaenge=wahl["spannlaenge"],
+            )  # fmt: skip
+            jobs = ne.aufspannungen_anlegen(job)
+        except ValueError as grund:
+            dokument.abortTransaction()
+            fehler = str(grund)
+        else:
+            dokument.commitTransaction()
+            with uhren.still():
+                dokument.recompute()
+    finally:
+        QtGui.QApplication.restoreOverrideCursor()
+    if fehler is not None:
+        QtGui.QMessageBox.warning(FreeCADGui.getMainWindow(), tr("ne.titel"), fehler)
         return
-    dokument.commitTransaction()
-    with uhren.still():
-        dokument.recompute()
     # Zu sehen: das Teil in der Stange, nicht das Original daneben.
     for objekt, sichtbar in ((teil, False), (vr.modell(job), True), (job.Stock, True)):
         ansicht = getattr(objekt, "ViewObject", None)

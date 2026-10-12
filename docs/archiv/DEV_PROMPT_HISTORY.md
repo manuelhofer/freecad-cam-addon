@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-129 n-eck-schruppen-im-kreis
+
+### EINGELESEN
+- Die ganze Kette am Geist (8-Eck SW 86, alle acht Aufspannungen) nachgerechnet, räumlich
+  (`raum_material.fuer_ebene`): Rest vor den Aufspannungen 1 … 8 neben dem Teil 679, 459, 389, 345,
+  289, 228, 227, 227 cm³ – die Aufspannungen 6 bis 8 nahmen zusammen kaum 2 cm³, ihr Schruppen fuhr
+  aber je 6,7 bis 8,0 m im Vorschub. Ursache in `n_eck_schruppen`: „Material unter dem Fräser“ war
+  das Höchste im Quadrat um die Mitte – in seinen Ecken steht das Teil selbst höher als die Spitze.
+
+### DATEIEN
+- `camaddon/n_eck_schruppen.py`: `_kreis_max` (der Kreis des Fräsers, zeilenweise aus
+  `_streifen_max`) statt des Quadrats; ohne Zeile mit Material und mit Materialstand
+  `materialstand.SchonWeg` („Hier ist nichts mehr zu schruppen – die Aufspannungen und Operationen
+  davor haben es schon genommen.“) – der Assistent nimmt dem Block dann den Haken.
+- `camaddon/gui_bearbeitung.py`: beim Anlegen der Stange und ihrer Aufspannungen die Sanduhr (am
+  Geist 3 s).
+- `translations/de.json`, `en.json`: `ne.schon_weg`.
+- `tests/test_n_eck.py`: Steht nur noch das Teil, fährt keine Zeile, und der Grund ist „schon
+  weg“ (Gegenprobe mit dem Quadrat: 4 Zeilen, 215 mm durch Luft).
+- `docs/STATUS_SNAPSHOT.md`: offen die Größe der Datei (jeder Job hat das Teil als eigenen Klon).
+  `package.xml` (0.244.0).
+
+### ERGEBNIS
+- Im Assistenten am Geist, Schruppen je Aufspannung: 1: 12 min wie vorher; 2–5: 6, 5, 5, 5 min
+  (vorher je 9); 6: 1 min (vorher 6); 7: „schon weg“ (vorher 5 min). „Anlegen“ je Aufspannung
+  26–36 s (vorher 51–89, dazu P-128), die Vorschau 13–17 s (vorher bis 109).
+
+### AKZEPTANZKRITERIUM
+- `test_n_eck`, `test_sprache` grün; die Kette im Szenario bis Aufspannung 7 nachgesehen.
+
 ## P-2026-10-12-128 materialstand-einmal-je-rechnung
 
 ### EINGELESEN

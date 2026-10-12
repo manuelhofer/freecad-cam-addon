@@ -736,7 +736,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   zum 2026-10-12 (P-104 bis -112): Rundum schruppen mit Querachse am Geist „Anlegen“ 362 → 127 s
   (Bahn gleich), „Auf der Maschine prüfen“ mit radialem Halter 14 s ohne Befunde; wo ein
   Maschinenteil dem STL-Teil nahe kommt (T1 axial gespannt), 28,7 s statt über 60 min. Offen:
-  Bereiche statt Dreiecke wählen; beim Anlegen am Geist steht das Fenster einmal bis 3,5 s, sonst
+  die Datei – jeder Job hat das Teil als eigenen Klon, am Geist je 51,5 MB BREP (die 8-Eck-Kette:
+  9 × im Dokument, 148 MB gepackt; Speichern und jede Kopie für die Nebenrechner entsprechend
+  langsam); Bereiche statt Dreiecke wählen; beim Anlegen am Geist steht das Fenster einmal bis 3,5 s, sonst
   unter 1 s (FreeCADs Werkzeugkörper, `updateDepths` mit dem Hüllquader der 68.242 Flächen) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
 - **W-018 STL aus der N-Eck-Stange im Schraubstock** – Manuels Wunsch vom 2026-10-12: an der

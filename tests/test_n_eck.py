@@ -189,6 +189,33 @@ for k in range(1, len(bahn.punkte)):
     pruefe(p.x >= x_zuvor - 1e-6, f"zurück zur Stirn bei {p}")
     x_zuvor = p.x
 print(f"Zeilen-Schruppen: {bahn.lagen} Lagen, {bahn.ringe} Zeilen, {bahn.zeit:.1f} min")
+# Steht nur noch das Teil (alles andere ist weg), fährt keine Zeile – unter dem Fräser zählt der
+# Kreis, nicht ein Quadrat, in dessen Ecken das Teil höher steht als die Spitze (P-2026-10-12-129).
+from types import SimpleNamespace  # noqa: E402
+
+from camaddon import hoehenfeld as hf  # noqa: E402
+from camaddon import n_eck_schruppen as ns  # noqa: E402
+from camaddon import raeumen_bahn as rb  # noqa: E402
+from camaddon import vierachs_flaechen as vf  # noqa: E402
+
+netz = vf.vernetze(job.Model.Group[0].Shape, 0.01).netz
+gx = np.arange(rohteil.BoundBox.XMin, rohteil.BoundBox.XMax, 0.5)
+gy = np.arange(rohteil.BoundBox.YMin, rohteil.BoundBox.YMax, 0.5)
+nur_teil = SimpleNamespace(quader=SimpleNamespace(x=gx, y=gy, h=hf.hoehen(netz, gx, gy)))
+werte = rb.Raeumwerte(
+    form=ff.scheibe(r), zustellung=ap, zeilenabstand=ae, aufmass=aufmass,
+    oben=rohteil.BoundBox.ZMax, sicher=rohteil.BoundBox.ZMax + 5,
+    rohteil=(rohteil.BoundBox.XMin, rohteil.BoundBox.XMax, rohteil.BoundBox.YMin,
+             rohteil.BoundBox.YMax),
+)  # fmt: skip
+try:
+    leer = ns.planen(netz, werte, nur_teil, ne.fraeser_bis(job, r))
+    pruefe(False, f"nur das Teil: {leer.ringe} Zeilen, {leer.laenge:.0f} mm")
+except ValueError as grund:
+    # Mit Materialstand „schon weg“: Der Assistent nimmt dem Block dann den Haken.
+    from camaddon import materialstand as mst  # noqa: E402
+
+    pruefe(isinstance(grund, mst.SchonWeg), f"nicht „schon weg“: {grund!r}")
 
 # --- Der Schraubstock: Backen am Ende der Stange, in Bild, Kollision und Prüfung ----------------
 from camaddon import spannung  # noqa: E402

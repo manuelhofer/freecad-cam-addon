@@ -2795,5 +2795,6 @@
     "stl.neck.spannlaenge": "Im Schraubstock",
     "stl.weiter": "Weiter",
     "ne.titel": "N-Eck-Stange",
-    "ne.folge": "„Alles aus dieser Aufspannung“ wählt, was von oben zu sehen ist; „Anlegen“ öffnet die nächste Aufspannung."
+    "ne.folge": "„Alles aus dieser Aufspannung“ wählt, was von oben zu sehen ist; „Anlegen“ öffnet die nächste Aufspannung.",
+    "ne.schon_weg": "Hier ist nichts mehr zu schruppen – die Aufspannungen und Operationen davor haben es schon genommen."
 }

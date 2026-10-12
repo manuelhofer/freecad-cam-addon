@@ -2795,5 +2795,6 @@
     "stl.neck.spannlaenge": "In the vise",
     "stl.weiter": "Next",
     "ne.titel": "Polygon bar",
-    "ne.folge": "“Everything from this setup” selects what can be seen from above; “Create” opens the next setup."
+    "ne.folge": "“Everything from this setup” selects what can be seen from above; “Create” opens the next setup.",
+    "ne.schon_weg": "Nothing left to rough here – the setups and operations before already removed it."
 }
