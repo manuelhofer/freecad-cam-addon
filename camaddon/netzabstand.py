@@ -218,6 +218,47 @@ class Netz:
             np.minimum.at(ergebnis, kk, d)
         return ergebnis - self.toleranz
 
+    def dreiecke_nah(self, von, nach, radien, reichweite):
+        """(Dreiecke, Schranke): die Dreiecke (Indizes in `ecken`), denen eine der Kapseln (von,
+        nach: (k, 3), `radien` (k,)) näher als `reichweite` kommt, und je Dreieck der Abstand zur
+        nächsten Kapsel – nie mehr als der Abstand eines Körpers, den die Kapseln enthalten
+        (P-2026-10-11-109, kollision._abstand_stl). Ohne `toleranz` abgezogen: für ein Netz, das
+        die Form genau ist (ein Teil aus einem STL)."""
+        von = np.asarray(von, dtype=np.float64).reshape(-1, 3)
+        nach = np.asarray(nach, dtype=np.float64).reshape(-1, 3)
+        radien = np.asarray(radien, dtype=np.float64).reshape(-1)
+        leer = (np.zeros(0, dtype=np.int64), np.zeros(0))
+        if len(von) == 0 or len(self.ecken) == 0:
+            return leer
+        weite = float(reichweite) + float(radien.max())
+        unten = np.minimum(von, nach).min(axis=0)
+        oben = np.maximum(von, nach).max(axis=0)
+        i0 = self._zelle_von(unten - weite)
+        i1 = self._zelle_von(oben + weite)
+        zellen = np.stack(
+            np.meshgrid(
+                np.arange(i0[0], i1[0] + 1),
+                np.arange(i0[1], i1[1] + 1),
+                np.arange(i0[2], i1[2] + 1),
+                indexing="ij",
+            ),
+            axis=-1,
+        )
+        dreiecke = np.unique(self._dreiecke_in(zellen))
+        if len(dreiecke) == 0:
+            return leer
+        schranke = np.full(len(dreiecke), np.inf)
+        ecken = self.ecken[dreiecke]
+        for k in range(len(von)):
+            d = segment_dreieck_abstand(
+                np.repeat(von[k : k + 1], len(dreiecke), axis=0),
+                np.repeat(nach[k : k + 1], len(dreiecke), axis=0),
+                ecken,
+            )
+            np.minimum(schranke, d - radien[k], out=schranke)
+        nah = schranke < reichweite
+        return dreiecke[nah], schranke[nah]
+
     def abstand(self, punkte):
         """Je Punkt (n, 3): so weit ist er mindestens von der Oberfläche entfernt – der Abstand
         zum Netz minus `toleranz`, höchstens eine Zellenbreite minus `toleranz` (weiter sieht das

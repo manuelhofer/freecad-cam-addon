@@ -223,6 +223,7 @@ pruefe(stl_daten is not None, "Verbund aus dem Klon nicht als STL erkannt")
 if stl_daten is not None:
     teil_k = kb.Koerper("Teil", kb.TEIL, verbund, None, FreeCAD.Placement(), stl=stl_daten)
     welt = types.SimpleNamespace(_fehler=set(), ergebnis=None)
+    welt._abstand_stl = lambda stl, werkzeug: kb._Welt._abstand_stl(welt, stl, werkzeug)
     kasten = verbund.BoundBox
     for name, quader in (
         ("nah", Part.makeBox(4, 4, 4, V(kasten.XMin + 20, kasten.YMax + 2, -2))),
@@ -237,6 +238,37 @@ if stl_daten is not None:
         else:
             pruefe(abs(ist - wahr) < 1e-6, f"{name}: {ist} statt {wahr}")
     pruefe(teil_k.netz() is not None and teil_k.netz().toleranz > 0, "Netz des Teils fehlt")
+    # Ein Werkzeugteil mit Kapsel (P-2026-10-11-109): nur die Dreiecke, die näher sein können –
+    # derselbe Abstand wie OpenCascade gegen das ganze Teil, nah, schräg und weit weg.
+    for name, lage in (
+        (
+            "schaft nah",
+            FreeCAD.Placement(V(kasten.XMin + 20, kasten.YMax + 1.5, 0), FreeCAD.Rotation()),
+        ),
+        (
+            "schaft schräg",
+            FreeCAD.Placement(
+                V(kasten.XMin + 15, kasten.YMax + 3, 5), FreeCAD.Rotation(V(1, 0, 0), 60)
+            ),
+        ),
+        (
+            "schaft weit",
+            FreeCAD.Placement(V(kasten.XMin + 20, kasten.YMax + 40, 0), FreeCAD.Rotation()),
+        ),
+    ):
+        zylinder = Part.makeCylinder(2.0, 12.0)
+        schaft = kb.Koerper(
+            name, kb.MASCHINE, zylinder, None, FreeCAD.Placement(),
+            kapseln=(((0.0, 0.0, 0.0), (0.0, 0.0, 12.0), 2.0, True),),
+        )  # fmt: skip
+        schaft.form.Placement = lage
+        teil_k.form.Placement = FreeCAD.Placement()
+        ist, _stelle = kb._Welt._abstand(welt, teil_k, schaft)
+        wahr = verbund.distToShape(schaft.form)[0]
+        if name == "schaft weit":
+            pruefe(kb.AUSSCHNITT_RAND <= ist <= wahr + 1e-9, f"{name}: {ist} (wahr {wahr})")
+        else:
+            pruefe(abs(ist - wahr) < 1e-6, f"{name}: {ist} statt {wahr}")
 
 # --- „Bearbeitung“ (P-2026-10-11-103): die Fragen je Fläche aus den Dreiecken ------------------
 # Gegen den gewöhnlichen Weg (Fläche für Fläche bei OpenCascade) an einer Kopie, deren Geometrie

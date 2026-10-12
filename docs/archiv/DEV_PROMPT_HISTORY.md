@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-109 kollision-am-stl
+
+### EINGELESEN
+- „Auf der Maschine prüfen“ mit dem Geist (STL, Rundum schruppen mit Querachse, 121.255 Sätze,
+  286.776 Stationen) auf der Beispiel-Drehmaschine mit Y: im Fenster nach 20 min nicht fertig. Je
+  Stelle gemessen: 3.000 Stationen 431 s, 1.172 genaue Abstände à 0,33 s – der Ausschnitt um den
+  Halter bzw. den Revolver (Hüllquader + 10 mm) umfasste Tausende Dreiecke. Verteilt: Speicherende
+  (14 GB) – jeder Nebenrechner baute den Körper mit 68.242 Flächen aus dem BREP-Text (je ~1 GB).
+- Nach einem Abbruch rechneten die Nebenrechner ihre Stücke weiter (30 min auf 7 Kernen).
+
+### DATEIEN
+- `camaddon/kollision.py`: `_abstand_stl` – gegen ein Werkzeugteil mit Kapseln erst das Dreieck,
+  dem sie am nächsten kommen (ein Abstand d nach oben), dann alle, denen sie näher als d kommen
+  (exakt: die Kapseln enthalten das Teil). `Koerper._enger` – gegen einen Körper ohne Kapseln die
+  Hüllquader seiner Flächen (`flaechen_kaesten`) statt des ganzen. `Koerper.dreiecks_verbund`: die
+  Dreiecke als Flächen nur bei Bedarf (aus denselben Punkten); `Daten.zum_senden` schickt beim STL
+  statt des Körpers seinen Hüllquader.
+- `camaddon/netzabstand.py`: `Netz.dreiecke_nah` (Dreiecke nahe an Kapseln mit Schranke).
+- `camaddon/nebenrechner_arbeiter.py`: Wachhund – der Arbeiter endet, sobald sein Hauptprozess weg
+  ist (geprüft: 3 s nach `kill -9`).
+- `tests/test_stl_teil.py`: Zylinder mit Kapsel nah, schräg, weit – derselbe Abstand wie
+  OpenCascade am ganzen Teil. `docs/spezifikation_vierachs.md` (16.8, offen). `package.xml`
+  (0.224.0).
+
+### ERGEBNIS
+- Die teure Strecke (2.400 Stationen am Revolver) 54 s statt über 150 s für 300; verteilt kein
+  Speicherende mehr (12 Arbeiter 9,5 GB, je höchstens 0,9 GB). Ganz durch ist die Prüfung am Geist
+  trotzdem erst nach über 30 min: der Revolver knapp im Warnabstand, je Stelle genau gerechnet.
+
+### AKZEPTANZKRITERIUM
+- `test_stl_teil`, `test_kollision`, `test_kollision_verteilt`, `test_vierachs_pruefen`,
+  `test_netzabstand`, `test_nebenrechner` in 1.1.4.
+
 ## P-2026-10-11-108 speicher-seltener-lesen
 
 ### EINGELESEN

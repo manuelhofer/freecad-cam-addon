@@ -1459,9 +1459,16 @@ Gebaut (P-2026-10-11-100):
    17 s offen (Umwandeln eingeschlossen), Vorschau 10 s, „Anlegen“ 24 s – 3D-Schruppen 10.805 Sätze,
    3D-Schlichten 2.950; längste Pause im Fenster 3 s. Bild: `docs/bilder/stl_geist_bearbeitung.png`.
 
-Offen: einzelne Bereiche wählen statt Dreiecke; mit einer 5-Achs-Fräse die Ebenen der anderen
-Richtungen nacheinander (die Kette aus „Alles aus dieser Aufspannung“) – gerechnet, aber mit einem
-STL noch nicht durchgespielt.
+8. **Kollision genauer und sparsamer** (P-2026-10-11-109): Gegen ein Werkzeugteil mit Kapseln nur
+   die Dreiecke, die näher sein können als das nächstgelegene (exakt); gegen ein Maschinenteil die
+   Hüllquader seiner einzelnen Flächen statt des ganzen; die Dreiecke als Flächen nur bei Bedarf
+   gebaut – die Nebenrechner bekommen statt des Körpers einen Quader (sonst je 1 GB). Am Geist
+   mit Querachse auf der Drehmaschine mit Y: die teure Strecke viermal schneller.
+
+Offen: einzelne Bereiche wählen statt Dreiecke; die Kollision am Geist mit Querachse braucht
+weiter über 30 min – der Revolver liegt über lange Strecken knapp im Warnabstand, und gegen ein
+Maschinenteil gibt es keine Netzschranke (je Stelle ein genauer Abstand). Mit einer 5-Achs-Fräse
+die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 
 ## Entschieden
 

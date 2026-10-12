@@ -90,6 +90,7 @@ BERUEHRT = 1e-3  # mm: näher gilt als Berührung
 # mm: so weit um einen Körper herum nimmt der genaue Abstand die Flächen eines Teils aus einem STL
 # (Koerper.ausschnitt) – liegt keine so nah, gilt dieser Abstand (weniger als der wahre).
 AUSSCHNITT_RAND = 10.0
+KAESTEN_HOECHSTENS = 2000  # Flächen: mehr hat ein Körper, dann ohne die Kästen je Fläche
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
 # mm: So tief darf die Schneide im Vorschub ins fertige Teil – Rundung der Bahn; tiefer ist
 # ein Befund („fährt ins fertige Teil“).
@@ -375,6 +376,10 @@ class Koerper:
     stl: object = None
     _netze: dict = field(default_factory=dict, repr=False)
     _ausschnitt_daten: object = field(default=None, repr=False)
+    _kaesten: object = field(default=None, repr=False)  # flaechen_kaesten()
+    _flaechen_liste: object = field(default=None, repr=False)  # flaechen_liste()
+    _dreiecke_gebaut: dict = field(default_factory=dict, repr=False)  # dreiecks_verbund()
+    ausschnitt_gegen: object = field(default=None, repr=False)  # aus dem letzten ausschnitt()
     _huelle: object = field(default=None, repr=False)
 
     def huelle(self):
@@ -413,6 +418,37 @@ class Koerper:
                 self._netze[toleranz] = None
         return self._netze[toleranz]
 
+    def _ausschnitt_vorbereiten(self):
+        """(Kästen der Dreiecke unten, oben, Ecken je Dreieck) – einmal."""
+        if self._ausschnitt_daten is None:
+            punkte, dreiecke, _flaeche = self.stl
+            ecken = punkte[dreiecke]
+            self._ausschnitt_daten = (ecken.min(axis=1), ecken.max(axis=1), ecken)
+        return self._ausschnitt_daten
+
+    def dreiecks_verbund(self, dreiecke):
+        """Die Dreiecke `dreiecke` (Indizes) als ebene Flächen in einem Verbund an der Lage dieses
+        Teils – aus denselben Punkten wie die Flächen des Körpers, also genau sie; je Dreieck
+        einmal gebaut (P-2026-10-11-109: so braucht kein Nebenrechner den Körper mit 68.242
+        Flächen, je 1 GB)."""
+        import Part
+
+        ecken = self._ausschnitt_vorbereiten()[2]
+        flaechen = []
+        for j in np.unique(np.asarray(dreiecke, dtype=np.int64)):
+            f = self._dreiecke_gebaut.get(int(j))
+            if f is None:
+                p = [FreeCAD.Vector(*e) for e in ecken[j]]
+                try:
+                    f = Part.Face(Part.makePolygon([*p, p[0]]))
+                except Part.OCCError:
+                    continue  # entartet: kein Punkt, der nicht auch auf einer Nachbarin läge
+                self._dreiecke_gebaut[int(j)] = f
+            flaechen.append(f)
+        verbund = Part.makeCompound(flaechen)
+        verbund.Placement = self.form.Placement
+        return verbund
+
     def ausschnitt(self, anderer):
         """Die Flächen dieses Teils aus einem STL nahe am Körper `anderer` (an ihren gesetzten
         Lagen) als Verbund an der Lage dieses Teils – None, wenn keine näher als AUSSCHNITT_RAND
@@ -420,17 +456,7 @@ class Koerper:
         Dreiecke gegen den des anderen, in eigenen Koordinaten."""
         import Part
 
-        if self._ausschnitt_daten is None:
-            punkte, dreiecke, flaeche = self.stl
-            ecken = punkte[dreiecke]
-            lage = self.form.Placement
-            self.form.Placement = FreeCAD.Placement()
-            try:
-                flaechen = self.form.Faces  # einmal, an der eigenen Lage
-            finally:
-                self.form.Placement = lage
-            self._ausschnitt_daten = (ecken.min(axis=1), ecken.max(axis=1), flaeche, flaechen)
-        unten_d, oben_d, flaeche, flaechen = self._ausschnitt_daten
+        unten_d, oben_d, _ecken = self._ausschnitt_vorbereiten()
         box = anderer.form.BoundBox
         zurueck = np.array(self.form.Placement.inverse().toMatrix().A, dtype=float).reshape(4, 4)
         ecken = np.array(
@@ -442,9 +468,86 @@ class Koerper:
         nah = np.all((oben_d >= unten) & (unten_d <= oben), axis=1)
         if not nah.any():
             return None
-        verbund = Part.makeCompound([flaechen[i] for i in np.unique(flaeche[nah])])
-        verbund.Placement = self.form.Placement
-        return verbund
+        dreiecke = np.flatnonzero(nah)
+        gegen = None  # die Flächen des anderen, die nah genug liegen (sonst der ganze)
+        enger = self._enger(anderer, dreiecke, unten_d, oben_d)
+        if enger is not None:
+            dreiecke, gegen = enger
+        self.ausschnitt_gegen = gegen
+        return self.dreiecks_verbund(dreiecke)
+
+    def _enger(self, anderer, dreiecke, unten_d, oben_d):
+        """Die Dreiecke unter `dreiecke`, die dem Körper `anderer` am nächsten sein können – über
+        die Hüllquader seiner einzelnen Flächen statt seines ganzen (P-2026-10-11-109; der
+        Revolver gegen den Geist: Tausende Flächen je Stelle, 0,39 s): Erst der genaue Abstand d
+        zum Dreieck, dessen Kasten einem Flächenkasten am nächsten liegt; dann alle, deren Kasten
+        höchstens d von einem Flächenkasten entfernt liegt – ein weiteres kann nicht näher sein.
+        None, wenn das nichts bringt (der Körper hat zu viele Flächen)."""
+        import Part
+
+        kaesten = anderer.flaechen_kaesten()
+        if kaesten is None or len(dreiecke) < 64:
+            return None
+        m = np.array(
+            self.form.Placement.inverse().multiply(anderer.form.Placement).toMatrix().A,
+            dtype=float,
+        ).reshape(4, 4)
+        ecken = kaesten @ m[:3, :3].T + m[:3, 3]  # (Flächen, 8, 3) in eigenen Koordinaten
+        f_lo, f_hi = ecken.min(axis=1), ecken.max(axis=1)
+        lo, hi = unten_d[dreiecke], oben_d[dreiecke]
+        luecke = np.maximum(
+            np.maximum(lo[:, None, :] - f_hi[None, :, :], f_lo[None, :, :] - hi[:, None, :]), 0.0
+        )
+        schranke = np.sqrt(np.einsum("tfj,tfj->tf", luecke, luecke)).min(axis=1)
+        erstes = dreiecke[int(np.argmin(schranke))]
+        einzeln = self.dreiecks_verbund([erstes])
+        try:
+            d_oben = anderer.form.distToShape(einzeln)[0]
+        except Exception:  # noqa: BLE001 – dann ohne
+            return None
+        drin = schranke <= d_oben + 1e-9
+        # Vom anderen nur die Flächen, deren Kasten einem der verbliebenen Dreiecke höchstens d
+        # nahe kommt – an ihnen liegt der nächste Punkt.
+        je_flaeche = np.sqrt(np.einsum("tfj,tfj->tf", luecke[drin], luecke[drin])).min(axis=0)
+        nahe_flaechen = np.flatnonzero(je_flaeche <= d_oben + 1e-9)
+        gegen = None
+        if 0 < len(nahe_flaechen) < len(kaesten):
+            gegen = Part.makeCompound([anderer.flaechen_liste()[i] for i in nahe_flaechen])
+            gegen.Placement = anderer.form.Placement
+        return dreiecke[drin], gegen
+
+    def flaechen_liste(self):
+        """Seine Flächen an der eigenen Lage (Faces) – einmal, zu flaechen_kaesten()."""
+        if getattr(self, "_flaechen_liste", None) is None:
+            lage = self.form.Placement
+            self.form.Placement = FreeCAD.Placement()
+            try:
+                self._flaechen_liste = self.form.Faces
+            finally:
+                self.form.Placement = lage
+        return self._flaechen_liste
+
+    def flaechen_kaesten(self):
+        """Die Ecken der Hüllquader seiner Flächen ((Flächen, 8, 3), eigene Koordinaten) – einmal;
+        None bei mehr als KAESTEN_HOECHSTENS Flächen."""
+        if self._kaesten is None:
+            lage = self.form.Placement
+            self.form.Placement = FreeCAD.Placement()
+            try:
+                if self.form.countElement("Face") > KAESTEN_HOECHSTENS:
+                    self._kaesten = False
+                else:
+                    self._kaesten = np.array(
+                        [
+                            [(x, y, z) for x in (b.XMin, b.XMax) for y in (b.YMin, b.YMax)
+                             for z in (b.ZMin, b.ZMax)]
+                            for b in (f.BoundBox for f in self.form.Faces)
+                        ],
+                        dtype=float,
+                    ).reshape(-1, 8, 3)  # fmt: skip
+            finally:
+                self.form.Placement = lage
+        return None if self._kaesten is False else self._kaesten
 
     def __post_init__(self):
         box = self.form.BoundBox
@@ -590,9 +693,22 @@ class Daten:
     def zum_senden(self):
         from . import nebenrechner as nr
 
+        teil = self.teil
+        if teil is not None and self.teil_stl is not None:
+            # Ein Teil aus einem STL: Die Nebenrechner rechnen genau mit seinen Dreiecken
+            # (Koerper.dreiecks_verbund); als Form genügt ihnen sein Hüllquader – für die Lage im
+            # Raum und die Drehfaktoren (eher zu groß: kleinere Schritte). Den Körper selbst
+            # baute jeder neu, je 1 GB (P-2026-10-11-109).
+            import Part
+
+            kasten = teil.BoundBox
+            teil = Part.makeBox(
+                max(kasten.XLength, 1e-6), max(kasten.YLength, 1e-6), max(kasten.ZLength, 1e-6),
+                FreeCAD.Vector(kasten.XMin, kasten.YMin, kasten.ZMin),
+            )  # fmt: skip
         return replace(
             self,
-            teil=nr.Form.von(self.teil) if self.teil is not None else None,
+            teil=nr.Form.von(teil) if teil is not None else None,
             schraubstock=(
                 nr.Form.von(self.schraubstock) if self.schraubstock is not None else None
             ),
@@ -1906,10 +2022,15 @@ class _Welt:
                 grob = 0.0
             if grob > AUSSCHNITT_RAND:  # schon der Hüllquader weiter weg: das Teil erst recht
                 return grob, None
+            if anderer.kapseln:
+                genau = self._abstand_stl(stl, anderer)
+                if genau is not None:
+                    return genau
             nah = stl.ausschnitt(anderer)
             if nah is None:
                 return AUSSCHNITT_RAND, None
-            form_a, form_b = (nah, anderer.form) if stl is a else (anderer.form, nah)
+            gegen = getattr(stl, "ausschnitt_gegen", None) or anderer.form
+            form_a, form_b = (nah, gegen) if stl is a else (gegen, nah)
         try:
             abstand, punkte, _info = form_a.distToShape(form_b)
         except Exception:  # eine Form, mit der OpenCascade nicht rechnen kann, hält nichts an
@@ -1919,6 +2040,46 @@ class _Welt:
             return math.inf, None
         stelle = (punkte[0][0] + punkte[0][1]) * 0.5 if punkte else None
         return abstand, stelle
+
+    def _abstand_stl(self, stl, werkzeug):
+        """Der genaue Abstand eines Werkzeugteils (mit Kapseln, die es enthalten) zu einem Teil
+        aus einem STL, an ihren gesetzten Lagen – OpenCascade nur mit den Dreiecken, die näher
+        sein können (P-2026-10-11-109): erst gegen das Dreieck, dem die Kapseln am nächsten kommen
+        (eine Fläche – ein Abstand d nach oben), dann gegen alle, denen sie näher als d kommen.
+        Weiter entfernte können nicht die nächsten sein. Am Geist mit dem Halter sonst Tausende
+        Flächen je Stelle, 0,33 s. (Abstand, Stelle) oder None (dann wie bisher)."""
+        netz = stl.netz(fein=True)
+        if netz is None:
+            return None
+        m = stl.form.Placement.inverse().multiply(werkzeug.form.Placement).toMatrix()
+        drehung = np.array(
+            [[m.A11, m.A12, m.A13], [m.A21, m.A22, m.A23], [m.A31, m.A32, m.A33]], dtype=float
+        )
+        ursprung = np.array([m.A14, m.A24, m.A34])
+        p0 = np.array([k[0] for k in werkzeug.kapseln], dtype=float) @ drehung.T + ursprung
+        p1 = np.array([k[1] for k in werkzeug.kapseln], dtype=float) @ drehung.T + ursprung
+        radien = np.array([k[2] for k in werkzeug.kapseln], dtype=float)
+        dreiecke, schranke = netz.dreiecke_nah(p0, p1, radien, AUSSCHNITT_RAND)
+        if not len(dreiecke):
+            return AUSSCHNITT_RAND, None  # die Kapseln, die das Teil enthalten, sind so weit weg
+
+        def abstand_zu(welche):
+            verbund = stl.dreiecks_verbund(welche)
+            try:
+                d, punkte, _info = werkzeug.form.distToShape(verbund)
+            except Exception:  # noqa: BLE001 – dann wie bisher
+                return None
+            stelle = (punkte[0][0] + punkte[0][1]) * 0.5 if punkte else None
+            return d, stelle
+
+        naechstes = abstand_zu(dreiecke[[int(np.argmin(schranke))]])
+        if naechstes is None:
+            return None
+        kandidaten = dreiecke[schranke <= naechstes[0] + 1e-9]
+        if len(kandidaten) <= 1:
+            return naechstes
+        alle = abstand_zu(kandidaten)
+        return alle if alle is not None and alle[0] <= naechstes[0] else naechstes
 
     def _merke(self, paar, abstand, stelle, i, naechste, s, ziel):
         """Merkt die Stelle, wenn sie für diese Operation und dieses Paar die schlimmste ist."""

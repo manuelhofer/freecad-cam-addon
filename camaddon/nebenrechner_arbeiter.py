@@ -25,6 +25,7 @@ import traceback
 
 MELDEN_ALLE = 0.2  # s: so oft höchstens meldet eine Funktion ihren Fortschritt
 DOKUMENTE_OFFEN = 3  # so viele Dokumentkopien bleiben offen, die älteste geht zu (wie im Pool)
+WACHHUND_ALLE = 2.0  # s: so oft sieht der Arbeiter nach, ob sein Hauptprozess noch lebt
 
 
 def _verbinden(start):
@@ -170,8 +171,25 @@ def _verarbeiten(nachricht):
     return True
 
 
+def _wachhund(eltern, alle=WACHHUND_ALLE):
+    """Beendet den Arbeiter, sobald sein Hauptprozess weg ist (ein anderer Elternprozess) – auch
+    mitten in einer Rechnung: Bis dahin merkte er es erst beim nächsten Senden, und ein langes
+    Stück der Kollision lief nach einem Absturz des Fensters noch 30 min auf jedem Kern weiter
+    (P-2026-10-11-109)."""
+    import threading
+
+    def wachen():
+        while True:
+            time.sleep(alle)
+            if os.getppid() != eltern:
+                os._exit(3)
+
+    threading.Thread(target=wachen, daemon=True).start()
+
+
 def hauptschleife():
     global _verbindung, _dokumente
+    _wachhund(os.getppid())
     start = json.loads(sys.stdin.readline())
     if start["addon"] not in sys.path:
         sys.path.insert(0, start["addon"])
