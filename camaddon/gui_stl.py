@@ -15,11 +15,13 @@ from .sprache import tr
 
 
 class StlDialog(QtGui.QDialog):
-    """Maße, Dreiecke und Maßstab eines Netzes; `massstab()` nach „Umwandeln“."""
+    """Maße, Dreiecke und Maßstab eines Netzes; `massstab()` nach „Umwandeln“. Mit `n_eck` (aus
+    dem Assistenten „Bearbeitung“) darunter das Rohteil: wie bisher oder eine N-Eck-Stange im
+    Schraubstock (W-018) – `n_eck_wahl()`; `nur_rohteil`: der Körper ist schon da, nur das."""
 
     offen = None  # für die Szenarien
 
-    def __init__(self, netzobjekt, eltern=None):
+    def __init__(self, netzobjekt, eltern=None, n_eck=False, nur_rohteil=False):
         super().__init__(eltern or FreeCADGui.getMainWindow())
         StlDialog.offen = self
         self.netzobjekt = netzobjekt
@@ -75,13 +77,72 @@ class StlDialog(QtGui.QDialog):
         self.masse_text = QtGui.QLabel()
         self.masse_text.setWordWrap(True)
         aufbau.addWidget(self.masse_text)
+        self.n_eck = None
+        if n_eck:
+            self.n_eck = self._n_eck_gruppe()
+            aufbau.addWidget(self.n_eck)
+        if nur_rohteil:
+            for i in range(raster.count()):
+                raster.itemAt(i).widget().setVisible(False)
+            self.masse_text.setVisible(False)
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        knoepfe.button(QtGui.QDialogButtonBox.Ok).setText(tr("stl.umwandeln"))
+        knoepfe.button(QtGui.QDialogButtonBox.Ok).setText(
+            tr("stl.weiter") if nur_rohteil else tr("stl.umwandeln")
+        )
         knoepfe.accepted.connect(self.accept)
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
         self._masse_zeigen()
         ruhiges_mausrad(self)
+
+    def _n_eck_gruppe(self):
+        """„Aus einer N-Eck-Stange im Schraubstock“ (W-018): N, die Achse des Teils längs der
+        Stange, Umdrehen, die Spannlänge."""
+        from . import n_eck as ne
+
+        gruppe = QtGui.QGroupBox(tr("stl.neck"))
+        gruppe.setCheckable(True)
+        gruppe.setChecked(False)
+        gruppe.setToolTip(tr("stl.neck.tooltip"))
+        raster = QtGui.QGridLayout(gruppe)
+        raster.addWidget(QtGui.QLabel(tr("stl.neck.n")), 0, 0)
+        self.feld_n = QtGui.QSpinBox()
+        self.feld_n.setRange(4, 24)
+        self.feld_n.setSingleStep(2)
+        self.feld_n.setValue(ne.VORGABE_N)
+        self.feld_n.setToolTip(tr("stl.neck.n.tooltip"))
+        raster.addWidget(self.feld_n, 0, 1)
+        raster.addWidget(QtGui.QLabel(tr("stl.neck.achse")), 1, 0)
+        self.feld_achse = QtGui.QComboBox()
+        for name in ne.TEILACHSEN:
+            self.feld_achse.addItem(name, name)
+        self.feld_achse.setCurrentIndex(self.feld_achse.findData("Z"))
+        self.feld_achse.setToolTip(tr("stl.neck.achse.tooltip"))
+        raster.addWidget(self.feld_achse, 1, 1)
+        self.feld_umgedreht = QtGui.QCheckBox(tr("stl.neck.umgedreht"))
+        raster.addWidget(self.feld_umgedreht, 1, 2)
+        raster.addWidget(QtGui.QLabel(tr("stl.neck.spannlaenge")), 2, 0)
+        self.feld_spannlaenge = QtGui.QDoubleSpinBox()
+        self.feld_spannlaenge.setLocale(zahlenformat())
+        self.feld_spannlaenge.setDecimals(1)
+        self.feld_spannlaenge.setRange(1.0, 500.0)
+        self.feld_spannlaenge.setValue(ne.SPANNLAENGE)
+        self.feld_spannlaenge.setSuffix(" mm")
+        raster.addWidget(self.feld_spannlaenge, 2, 1)
+        return gruppe
+
+    def n_eck_wahl(self):
+        """{n, achse, umgedreht, spannlaenge} – oder None, wenn die N-Eck-Stange nicht gewählt
+        ist."""
+        if self.n_eck is None or not self.n_eck.isChecked():
+            return None
+        n = int(self.feld_n.value())
+        return {
+            "n": n + (n % 2),
+            "achse": self.feld_achse.currentData(),
+            "umgedreht": self.feld_umgedreht.isChecked(),
+            "spannlaenge": float(self.feld_spannlaenge.value()),
+        }
 
     def massstab(self):
         return float(self.feld_massstab.value())
@@ -118,10 +179,12 @@ def gewaehltes_netz(dokument):
     )
 
 
-def teil_aus_netz(dokument, netzobjekt, frage=True):
+def teil_aus_netz(dokument, netzobjekt, frage=True, n_eck=False):
     """Der Körper zum Netz: einer, der schon daraus gemacht ist, sonst – nach dem Fenster (`frage`)
     – ein neuer (ein Schritt Rückgängig). None, wenn man abbricht oder es nicht geht (die Meldung
-    sagt warum)."""
+    sagt warum). `n_eck` (der Assistent „Bearbeitung“): Das Fenster fragt auch nach dem Rohteil –
+    die Wahl steht danach in `teil_aus_netz.n_eck` (None: wie bisher)."""
+    teil_aus_netz.n_eck = None
     vorhanden = next(
         (
             o
@@ -131,13 +194,19 @@ def teil_aus_netz(dokument, netzobjekt, frage=True):
         None,
     )
     if vorhanden is not None:
+        if n_eck and frage:
+            dialog = StlDialog(netzobjekt, n_eck=True, nur_rohteil=True)
+            if dialog.exec() != QtGui.QDialog.Accepted:
+                return None
+            teil_aus_netz.n_eck = dialog.n_eck_wahl()
         return vorhanden
     massstab = 1.0
     if frage:
-        dialog = StlDialog(netzobjekt)
+        dialog = StlDialog(netzobjekt, n_eck=n_eck)
         if dialog.exec() != QtGui.QDialog.Accepted:
             return None
         massstab = dialog.massstab()
+        teil_aus_netz.n_eck = dialog.n_eck_wahl()
     dokument.openTransaction(tr("stl.titel"))
     QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
     try:
@@ -163,6 +232,7 @@ def teil_aus_netz(dokument, netzobjekt, frage=True):
 
 
 teil_aus_netz.bericht = ""  # der Satz zum letzten Umwandeln – zeigt der Assistent
+teil_aus_netz.n_eck = None  # die Wahl der N-Eck-Stange im letzten Fenster (W-018)
 
 
 def _im_hintergrund(netzobjekt, massstab):

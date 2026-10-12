@@ -1542,6 +1542,19 @@ Manuel (2026-10-12): „ja bau das so … so schwere STL-Geschichten sind ja eh 
    und `raum_material` die Aufspannungen davor als Vorgänger – das Restmaterial wie bei den
    Ebenen. `einrichten_text`: „Aufspannung 3 von 8: Stange um 90° gegen die erste gedreht, die
    Flächen 3 und 7 an den Backen. Nullpunkt: X an der Stirn, Y und Z in der Mitte der Stange.“
+2. **Im Assistenten „Bearbeitung“** (P-2026-10-12-122): Netz anklicken → „Bearbeitung“ → im
+   Fenster „STL als Teil“ „Aus einer N-Eck-Stange im Schraubstock (umspannen)“ (Flächen N, Vorgabe
+   8; Achse längs der Stange X/Y/Z, „Umdrehen“; im Schraubstock 20 mm) → „Umwandeln“ legt Grundjob
+   und Aufspannungen an (ein Schritt Rückgängig), zeigt das Teil in der Stange, und der Assistent
+   führt durch die Kette (`_FOLGE`, wie die 5-Achs-Ebenen): je Aufspannung der Satz fürs
+   Einrichten, „Alles aus dieser Aufspannung“, „Anlegen“ öffnet die nächste, „Abbrechen“ hört auf.
+   Was in einer Aufspannung nicht von oben geht, heißt dort „Kommt in einer anderen Aufspannung der
+   Stange dran“. Ist der Körper schon umgewandelt, fragt das Fenster nur noch das Rohteil. Am
+   Geist (8-Eck SW 86): Aufspannung 1 3D-Schruppen 227 Ringe (etwa 48 min), Aufspannung 2 mit dem
+   Restmaterial der ersten 69 Ringe (etwa 8 min). Szenario `szenario_bearbeitung_n_eck`.
+
+Offen zu W-018: der Schraubstock in der Kollisionsprüfung (die Backen am Ende der Stange); das
+Einrichtblatt mit dem Satz je Aufspannung.
 
 ## Entschieden
 

@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-122 n-eck-stange-im-assistenten
+
+### EINGELESEN
+- W-018 Stufe 2: die N-Eck-Stange im Assistenten „Bearbeitung“ – wählen, anlegen, durch die
+  Aufspannungen führen.
+
+### DATEIEN
+- `camaddon/gui_stl.py`: `StlDialog(n_eck=, nur_rohteil=)` – die Gruppe „Aus einer N-Eck-Stange
+  im Schraubstock (umspannen)“ (N, Achse, Umdrehen, im Schraubstock), `n_eck_wahl()`;
+  `teil_aus_netz(n_eck=)` legt die Wahl in `teil_aus_netz.n_eck`, für einen schon umgewandelten
+  Körper das Fenster nur mit dem Rohteil.
+- `camaddon/gui_bearbeitung.py`: `_n_eck_anlegen` (Grundjob und Aufspannungen, ein Schritt
+  Rückgängig, das Teil in der Stange gezeigt, die Kette in `_FOLGE`); `_folge_weiter` ohne
+  gewählte Flächen und mit der Maschine des Grundjobs; in `aus_der_aufspannung` für die
+  N-Eck-Stange „Kommt in einer anderen Aufspannung der Stange dran“.
+- `translations/de.json`, `en.json`: `stl.neck*`, `stl.weiter`, `ne.titel`, `ne.folge`,
+  `zg.grund.aufspannung`.
+- `help/de|en/bearbeitung.html`: „Ein STL aus einer N-Eck-Stange“.
+- `tests/gui/szenario_bearbeitung_n_eck.py` (neu). `docs/spezifikation_vierachs.md` (17.2),
+  `docs/STATUS_SNAPSHOT.md` (W-018). `package.xml` (0.237.0).
+
+### ERGEBNIS
+- Am Geist: 8-Eck-Stange SW 86, 8 Jobs; Aufspannung 1 3D-Schruppen 227 Ringe (etwa 48 min),
+  3D-Schlichten 52 Ringe; Aufspannung 2 mit dem Restmaterial der ersten 69 Ringe (etwa 8 min).
+  Bilder im Szenario: das Fenster mit der Wahl, die Stange mit dem Geist.
+
+### AKZEPTANZKRITERIUM
+- `test_sprache`, `test_n_eck`, `szenario_bearbeitung_n_eck` grün.
+
 ## P-2026-10-12-121 werkzeugverwaltung-ohne-werkstoff-kopf
 
 ### EINGELESEN

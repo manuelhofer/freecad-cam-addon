@@ -1877,6 +1877,7 @@
     "zg.grund.maschine": "Die Maschine schwenkt nicht so weit.",
     "zg.grund.spannmittel": "Zeigt ins Spannmittel – braucht eine andere Aufspannung.",
     "zg.grund.sicht": "Keine freie Sicht: Das Teil selbst steht im Weg.",
+    "zg.grund.aufspannung": "Kommt in einer anderen Aufspannung der Stange dran.",
     "ba.unten": "Unten im Spannmittel",
     "ba.unten.tooltip": "Die Fläche, die unten im Spannmittel liegt: in Schritt 1 eine ebene Fläche anklicken. Das Teil im Job dreht sich mit ihr nach unten, Rohteil und Nullpunkt folgen; das Modell bleibt.",
     "ba.unten.modell": "wie modelliert",
@@ -2780,5 +2781,16 @@
     "ne.einrichten": "Aufspannung {k} von {n}: Stange um {winkel}° gegen die erste gedreht, die Flächen {a} und {b} an den Backen. Nullpunkt: X an der Stirn, Y und Z in der Mitte der Stange.",
     "ne.eigenschaft.neck": "So viele Flächen hat die N-Eck-Stange (W-018).",
     "ne.eigenschaft.aufspannung": "Die wievielte Aufspannung der N-Eck-Stange dieser Job ist.",
-    "sw.eigenschaft.umspannen": "Eine Aufspannung einer N-Eck-Stange: von Hand umgespannt, ohne Rundachsen, ein eigenes Programm."
+    "sw.eigenschaft.umspannen": "Eine Aufspannung einer N-Eck-Stange: von Hand umgespannt, ohne Rundachsen, ein eigenes Programm.",
+    "stl.neck": "Aus einer N-Eck-Stange im Schraubstock (umspannen)",
+    "stl.neck.tooltip": "Für die 3-Achs-Fräse: Die Stange liegt waagerecht im Schraubstock, ein Ende gespannt. Je Aufspannung drehst du sie um 360°/N weiter und fräst von oben. Das Addon legt je Aufspannung einen Job an, jeder mit dem Restmaterial der vorigen.",
+    "stl.neck.n": "Flächen (N)",
+    "stl.neck.n.tooltip": "Gerade, damit zwei Flächen parallel an den Backen liegen. Mehr Flächen machen die Teilfläche flacher zum Werkzeug, ab 8 kaum noch.",
+    "stl.neck.achse": "Achse längs der Stange",
+    "stl.neck.achse.tooltip": "Die Achse des Teils, die längs der Stange liegt. Ihr Plus-Ende zeigt zur Stirn, das andere Ende zum Schraubstock.",
+    "stl.neck.umgedreht": "Umdrehen",
+    "stl.neck.spannlaenge": "Im Schraubstock",
+    "stl.weiter": "Weiter",
+    "ne.titel": "N-Eck-Stange",
+    "ne.folge": "„Alles aus dieser Aufspannung“ wählt, was von oben zu sehen ist; „Anlegen“ öffnet die nächste Aufspannung."
 }

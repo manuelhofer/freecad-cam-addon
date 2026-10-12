@@ -742,8 +742,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 - **W-018 STL aus der N-Eck-Stange im Schraubstock** – Manuels Wunsch vom 2026-10-12: an der
   3-Achs-Fräse eine gerade N-Eck-Stange waagerecht längs X oder Y, ein Ende 20 mm im Schraubstock,
   je Aufspannung um 360°/N weitergedreht, von oben 3D-Schruppen und -Schlichten mit Restmaterial;
-  als Kette wie die 5-Achs-Ebenen. Zuerst das Bild mit Zahlen am Geist (N = 6, 8) –
-  [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 17.
+  als Kette wie die 5-Achs-Ebenen. Gebaut P-2026-10-12-120 (Kern) und -122 (Assistent
+  „Bearbeitung“, Fenster „STL als Teil“); Bild mit Zahlen `docs/bilder/w018_neck_geist.png`.
+  Offen: Schraubstock in der Kollision, Einrichtblatt – [spezifikation_vierachs.md](spezifikation_vierachs.md),
+  Abschnitt 17.
 
 ## Offene Bugs
 

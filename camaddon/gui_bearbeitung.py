@@ -346,19 +346,70 @@ def _ebenen_der_aufspannung(grundjob, richtungen):
 
 
 def _folge_weiter():
-    """Der Assistent für die nächste Ebene der Kette – oder nichts mehr."""
+    """Der Assistent für die nächste Ebene der Kette – oder nichts mehr. Eine Aufspannung der
+    N-Eck-Stange (W-018) kommt ohne gewählte Flächen („Alles aus dieser Aufspannung“ wählt sie)
+    und nimmt die Maschine ihres Grundjobs."""
     if not _FOLGE:
         return
     job, flaechen, text = _FOLGE.pop(0)
     klon = vr.modell(job)
+    grund = getattr(job, "Grundjob", None)
+    datei = getattr(grund, rw.EIGENSCHAFT_MASCHINE, "") if grund is not None else ""
+    if datei and not getattr(job, rw.EIGENSCHAFT_MASCHINE, ""):
+        rw.merke_maschine(job, datei)
     FreeCADGui.Selection.clearSelection()
     FreeCADGui.Control.showDialog(
         BearbeitungPanel(
             job.Document,
-            (vr.original(klon), flaechen[0]),
+            (vr.original(klon), flaechen[0] if flaechen else None),
             angeklickt=klon,
-            flaechen=flaechen,
+            flaechen=flaechen or None,
             folge=text,
+        )
+    )
+
+
+def _n_eck_anlegen(dokument, teil, wahl):
+    """Das Teil aus einer N-Eck-Stange im Schraubstock (W-018): Grundjob und Aufspannungen 2 … N
+    (n_eck) – ein Schritt Rückgängig –, dann der Assistent für die erste; nach seinem „Anlegen“
+    die nächste (_folge_weiter), jede mit dem Satz fürs Einrichten."""
+    import numpy as np
+
+    from . import n_eck as ne
+    from . import stl_teil
+
+    gefunden = stl_teil.netz_fuer(teil.Shape)
+    if gefunden is not None:
+        punkte = gefunden[0]
+    else:
+        punkte = np.array([(v.X, v.Y, v.Z) for v in teil.Shape.Vertexes], dtype=float)
+    dokument.openTransaction(tr("ne.titel"))
+    try:
+        job, _stange = ne.richte_ein(
+            dokument, teil, punkte, wahl["n"], wahl["achse"], wahl["umgedreht"],
+            spannlaenge=wahl["spannlaenge"],
+        )  # fmt: skip
+        jobs = ne.aufspannungen_anlegen(job)
+    except ValueError as grund:
+        dokument.abortTransaction()
+        QtGui.QMessageBox.warning(FreeCADGui.getMainWindow(), tr("ne.titel"), str(grund))
+        return
+    dokument.commitTransaction()
+    with uhren.still():
+        dokument.recompute()
+    # Zu sehen: das Teil in der Stange, nicht das Original daneben.
+    for objekt, sichtbar in ((teil, False), (vr.modell(job), True), (job.Stock, True)):
+        ansicht = getattr(objekt, "ViewObject", None)
+        if ansicht is not None:
+            ansicht.Visibility = sichtbar
+    _FOLGE[:] = [(j, [], f"{ne.einrichten_text(j)} {tr('ne.folge')}") for j in jobs]
+    FreeCADGui.Selection.clearSelection()
+    FreeCADGui.Control.showDialog(
+        BearbeitungPanel(
+            dokument,
+            (teil, None),
+            angeklickt=vr.modell(job),
+            folge=f"{ne.einrichten_text(job)} {tr('ne.folge')}",
         )
     )
 
@@ -494,12 +545,15 @@ class BefehlBearbeitung:
 
         netz = gui_stl.gewaehltes_netz(dokument)
         if netz is not None:
-            # Ein STL (W-017): erst der Körper aus seinen Dreiecken – Maßstab im Fenster davor.
-            teil = gui_stl.teil_aus_netz(dokument, netz)
-            if teil is not None:
-                FreeCADGui.Control.showDialog(
-                    BearbeitungPanel(dokument, (teil, None), angeklickt=teil)
-                )
+            # Ein STL (W-017): erst der Körper aus seinen Dreiecken – Maßstab im Fenster davor, dazu
+            # das Rohteil: wie bisher oder eine N-Eck-Stange im Schraubstock (W-018).
+            teil = gui_stl.teil_aus_netz(dokument, netz, n_eck=True)
+            if teil is None:
+                return
+            if gui_stl.teil_aus_netz.n_eck is not None:
+                _n_eck_anlegen(dokument, teil, gui_stl.teil_aus_netz.n_eck)
+                return
+            FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, (teil, None), angeklickt=teil))
             return
         FreeCADGui.Control.showDialog(
             BearbeitungPanel(
@@ -5390,6 +5444,18 @@ class BearbeitungPanel:
         ergebnis = zg.zugang(form, spannflaeche=spann)
         if not self._fuenfachs():
             ergebnis = zg.ohne_schwenken(ergebnis)
+        from . import n_eck as ne
+
+        if ne.ist_n_eck(self.job):
+            # Die N-Eck-Stange (W-018): Was hier nicht von oben geht, kommt in einer anderen
+            # Aufspannung dran – nicht „die Maschine schwenkt nicht so weit“ oder „ins Spannmittel“.
+            anders = {tr("zg.grund.maschine"), tr("zg.grund.spannmittel")}
+            neu = tr("zg.grund.aufspannung")
+            ergebnis = zg.Zugang(
+                ergebnis.richtungen,
+                {k: neu if v in anders else v for k, v in ergebnis.unerreichbar.items()},
+                ergebnis.spannflaeche,
+            )
         self._zugang = ergebnis
         oben = ergebnis.richtungen[0] if ergebnis.richtungen else None
         oben = oben if oben is not None and oben.achse[2] > 1 - 1e-6 else None

@@ -898,6 +898,20 @@ large one left on the faces remain for finishing.</li>
 and comes after 3D roughing.</li>
 </ul>
 
+<h3>An STL from a polygon bar</h3>
+<p>Click a mesh (STL) and <b>Machining (milling)</b>: the window “STL as part” has
+<b>From a polygon bar in the vise (re-clamping)</b> at the bottom – a fourth axis by hand on a
+3-axis mill. The bar lies horizontally in the vise, one end clamped (<b>In the vise</b>, 20 mm);
+for each setup you turn it on by 360°/N and mill from above. <b>Faces (N)</b> even, default 8;
+<b>Axis along the bar</b>: which axis of the part lies along it, its plus end to the end face
+(<b>Reverse</b> the other way round).</p>
+<p>“Convert” creates the job of the first setup (the part in the bar, the bar as stock) and one
+job per further setup. For each setup the wizard says how to set up – e.g. “bar turned 90° against
+the first, faces 3 and 7 against the jaws; zero point X at the end face, Y and Z in the middle of
+the bar” (number the faces with a pen). <b>Everything from this setup</b> selects what can be seen
+from above, <b>Create</b> opens the next; each one works with what the ones before have already
+removed. What cannot be seen from any direction stays. Every setup is a program of its own.</p>
+
 <h3>Changing it later</h3>
 <p><b>Double-click</b> an operation of the add-on in the tree – face milling, clearing, slot,
 hole milling, contour, rest material, deburr, deburr 3D, thread milling, 3D roughing, 3D
