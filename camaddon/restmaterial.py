@@ -72,6 +72,8 @@ EILGANG_SCHWELLE = 0.1  # mm – so viel Material darf ein Eilgang (im Raster) s
 TEILSCHRITT = 0.5  # mm – so fein fährt der Fräser zwischen zwei Punkten der Bahn
 TEILSCHRITTE_JE_BLOCK = 50000  # so viele Teilschritte rechnet fahre_stuecke() auf einmal
 TEILSCHRITTE_IM_TAKT = 10000  # so viele zwischen zwei yield in fahre_stuecke_schritte()
+# Ab so vielen Teilschritten fährt fahre_stuecke_schritte() in Streifen auf den Nebenrechnern.
+VERTEILT_AB_TEILSCHRITTE = 100000
 STATIONEN_JE_SCHRITT = 4000  # so viele Stationen zwischen zwei yield in bis_station_schritte()
 GENAU = 1e-3  # mm – mit einer so kleinen Scheibe liest der Vergleich das Teil auf dem Strahl
 SUCHSCHRITTE = 30  # so oft rückt ein Strahl höchstens an die Stirn heran
@@ -887,11 +889,14 @@ class Quader:
         for _ in self.fahre_stuecke_schritte(von, nach, fraeser, TEILSCHRITTE_JE_BLOCK):
             uhren.atmen()  # im Hauptprozess: das Fenster zeichnet neu
 
-    def fahre_stuecke_schritte(self, von, nach, fraeser, je_block=TEILSCHRITTE_IM_TAKT):
+    def fahre_stuecke_schritte(
+        self, von, nach, fraeser, je_block=TEILSCHRITTE_IM_TAKT, verteilt=True
+    ):
         """fahre_stuecke() als Generator: nach je `je_block` Teilschritten ein `yield` – für
         einen Lauf aus der Ereignisschleife (materialstand.fuer_schritte: im Assistenten
         „Bearbeitung“ stand das Fenster dafür 0,85 s am Stück, P-2026-10-11-54). Das Minimum je
-        Zelle hängt nicht von der Reihenfolge ab – dasselbe Ergebnis."""
+        Zelle hängt nicht von der Reihenfolge ab – dasselbe Ergebnis; mit `verteilt` ab
+        VERTEILT_AB_TEILSCHRITTE in Streifen auf den Nebenrechnern (_streifen_fahren)."""
         von = np.asarray(von, dtype=float).reshape(-1, 3)
         nach = np.asarray(nach, dtype=float).reshape(-1, 3)
         if not len(von):
@@ -899,6 +904,12 @@ class Quader:
         weg = np.linalg.norm(nach - von, axis=1)
         anzahl = np.maximum(1, np.ceil(weg / TEILSCHRITT)).astype(np.int64)
         summe = np.cumsum(anzahl)
+        if (
+            verteilt
+            and summe[-1] >= VERTEILT_AB_TEILSCHRITTE
+            and (yield from self._streifen_fahren(von, nach, fraeser))
+        ):
+            return
         start = 0
         while start < len(von):
             ziel = summe[start] - anzahl[start] + je_block
@@ -912,6 +923,55 @@ class Quader:
             self.schnitte(punkte[:, 0], punkte[:, 1], punkte[:, 2], fraeser)
             start = ende
             yield
+
+    def _streifen(self, von, bis):
+        """Die Zellen x[von:bis] als eigener Quader (die Höhen kopiert)."""
+        neu = object.__new__(Quader)
+        neu.__dict__ = self.__dict__.copy()
+        neu.x = self.x[von:bis].copy()
+        neu.h = self.h[von:bis].copy()
+        return neu
+
+    def _streifen_fahren(self, von, nach, fraeser):
+        """fahre_stuecke() in Streifen längs x auf den Nebenrechnern – je Streifen nur die
+        Stücke, deren Fräser ihn erreicht; das Minimum je Zelle ist dasselbe. Generator: True,
+        wenn es so ging (die Höhen stehen dann im Quader), False ohne Nebenrechner. Am Geist in
+        der 8-Eck-Stange fuhr das Fenster die Bahnen der Aufspannungen davor allein ab, während
+        die Nebenrechner warteten (2026-10-12)."""
+        try:
+            from . import nebenrechner as nr
+        except ImportError:
+            return False
+        try:
+            pool = nr.pool()
+            if not pool.verfuegbar() or pool.anzahl < 2 or len(self.x) < 16:
+                return False
+            form = fraeser if isinstance(fraeser, ff.Form) else None
+            reichweite = (form.radius if form is not None else float(fraeser)) + 2 * self._schritt
+            unten = np.minimum(von[:, 0], nach[:, 0]) - reichweite
+            oben = np.maximum(von[:, 0], nach[:, 0]) + reichweite
+            bereiche = nr.stuecke(len(self.x), pool.anzahl, je_arbeiter=2, mindestens=8)
+            auftraege = []
+            for a, b in bereiche:
+                nah = (oben >= self.x[a]) & (unten <= self.x[b - 1])
+                auftraege.append(
+                    pool.auftrag(
+                        "restmaterial", "streifen_fahren", self._streifen(a, b), von[nah],
+                        nach[nah], fraeser,
+                    )  # fmt: skip
+                    if nah.any()
+                    else None
+                )
+            offen = [a for a in auftraege if a is not None]
+            ergebnisse = pool.warten(offen, zwischendurch=nr.ereignisse_ohne_eingaben)
+        except nr.Fehler:
+            return False
+        yield
+        hoehen = iter(ergebnisse)
+        for (a, b), auftrag in zip(bereiche, auftraege, strict=True):
+            if auftrag is not None:
+                self.h[a:b] = next(hoehen)
+        return True
 
     def schnitt(self, x_t, y_t, z_t, fraeser):
         """Nimmt weg, was der Fräser mit der Spitze bei (x_t, y_t, z_t) trifft."""
@@ -957,6 +1017,15 @@ class Quader:
             drin &= tiefe < self.h[zellen_i, zellen_j]
             if drin.any():
                 np.minimum.at(self.h, (zellen_i[drin], zellen_j[drin]), tiefe[drin])
+
+
+def streifen_fahren(streifen, von, nach, fraeser):
+    """Auf einem Nebenrechner: Quader.fahre_stuecke() an einem Streifen – seine Höhen."""
+    for _ in streifen.fahre_stuecke_schritte(
+        von, nach, fraeser, TEILSCHRITTE_JE_BLOCK, verteilt=False
+    ):
+        pass
+    return streifen.h
 
 
 def teilhoehen(netz, quader):

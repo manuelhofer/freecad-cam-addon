@@ -363,6 +363,32 @@ pruefe(
     f"glatt: {ins_teil.farbe[mitte, 50]} {ins_teil.kleinster}",
 )
 
+# In Streifen auf den Nebenrechnern (2026-10-12): eine lange Bahn (Zickzack, Kugel Ø 6) – die
+# Höhen bitgleich wie allein (das Minimum je Zelle hängt nicht von der Reihenfolge ab).
+from camaddon import fraeserform as ff  # noqa: E402
+from camaddon import nebenrechner as nr  # noqa: E402
+
+zick = []
+for k in range(40):
+    y = 2.0 + k * 2.4
+    zick += [(1.0, y, 18.0 - 0.1 * k), (99.0, y, 18.0 - 0.1 * k)]
+von_z, nach_z = np.array(zick[:-1]), np.array(zick[1:])
+allein_q = rm.Quader(0, 100, 0, 100, 0, 20)
+for _ in allein_q.fahre_stuecke_schritte(von_z, nach_z, ff.kugel(3), verteilt=False):
+    pass
+streifen_q = rm.Quader(0, 100, 0, 100, 0, 20)
+alt_ab = rm.VERTEILT_AB_TEILSCHRITTE
+rm.VERTEILT_AB_TEILSCHRITTE = 1
+try:
+    for _ in streifen_q.fahre_stuecke_schritte(von_z, nach_z, ff.kugel(3)):
+        pass
+    pruefe(nr.pool().arbeiter > 0, "Streifen nicht auf den Nebenrechnern")
+finally:
+    rm.VERTEILT_AB_TEILSCHRITTE = alt_ab
+    nr.pool().beenden()
+pruefe(np.array_equal(allein_q.h, streifen_q.h), "Streifen: andere Höhen als allein")
+pruefe(np.min(allein_q.h) < 18.0, "Zickzack hat nichts genommen")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor

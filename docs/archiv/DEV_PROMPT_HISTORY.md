@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-133 hoehenfeld-abfahren-in-streifen
+
+### EINGELESEN
+- Nach P-131/-132 rechnete beim „Anlegen“ in der 8-Eck-Kette im Fenster noch das Abfahren der
+  Bahnen davor im Höhenfeld des Materialstands allein (`restmaterial.Quader.schnitte`, 2,5 von
+  17 s).
+
+### DATEIEN
+- `camaddon/restmaterial.py`: `Quader.fahre_stuecke_schritte` ab 100.000 Teilschritten in
+  Streifen längs x auf den Nebenrechnern (`_streifen_fahren`, `streifen_fahren`), je Streifen nur
+  die Stücke, deren Fräser ihn erreicht – das Minimum je Zelle hängt nicht von der Reihenfolge ab,
+  die Höhen sind bitgleich; ohne Nebenrechner wie bisher.
+- `tests/test_restmaterial.py`: ein Zickzack mit der Kugel Ø 6, erzwungen in Streifen (auf den
+  Nebenrechnern) bitgleich wie allein. `package.xml` (0.248.0).
+
+### AKZEPTANZKRITERIUM
+- `test_restmaterial`, `test_materialstand` grün.
+
 ## P-2026-10-12-132 raum-material-in-streifen
 
 ### EINGELESEN
