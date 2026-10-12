@@ -66,16 +66,19 @@ pruefe(werkstueck.isEqual(App.Vector(400, 350, 250), 1e-6), f"Werkstückaufnahme
 pruefe(werkzeug.isEqual(App.Vector(400, 350, 380), 1e-6), f"Werkzeugaufnahme {werkzeug}")
 pruefe(sw.grenzen_der_maschine(ma) == (12000, 10000), f"Grenzen {sw.grenzen_der_maschine(ma)}")
 
-# Verfahren: alle Achsen stehen auf 0; X bewegt den Tisch, Y Sattel und
-# Tisch, Z Kopf und Spindel – jeweils in Achsrichtung.
+# Verfahren: X und Y stehen auf 0, Z auf 130 – so hoch steht die Spindelnase gebaut über dem
+# Tisch, Z = 0 hieße: sie liegt auf ihm (Manuel, 2026-10-12, P-2026-10-12-173). X bewegt den
+# Tisch, Y Sattel und Tisch, Z Kopf und Spindel – jeweils in Achsrichtung.
 v = vf.Verfahren(asm)
 achse = {a.gelenk.Name: a for a in v.achsen}
 pruefe(sorted(achse) == ["Spindelachse", "X", "Y", "Z"], f"Achsen: {sorted(achse)}")
-for name in ("X", "Y", "Z"):
-    pruefe(abs(v.stellung(achse[name])) < 1e-9, f"{name} steht nicht auf 0")
+for name, soll in (("X", 0.0), ("Y", 0.0), ("Z", 130.0)):
+    pruefe(abs(v.stellung(achse[name]) - soll) < 1e-6, f"{name} steht nicht auf {soll}")
+nase = doc.getObject("Spindelnase").getGlobalPlacement().Base.z
+pruefe(abs(nase - werkstueck.z - 130.0) < 1e-6, f"Nase {nase - werkstueck.z:.3f} über dem Tisch")
 v.setze(achse["X"], 100)
 v.setze(achse["Y"], 50)
-v.setze(achse["Z"], -50)
+v.setze(achse["Z"], 80)
 for teil, soll in (
     ("Tisch", App.Vector(100, 50, 0)),
     ("Sattel", App.Vector(0, 50, 0)),
@@ -84,9 +87,9 @@ for teil, soll in (
     ("Staender", App.Vector()),
 ):
     pruefe(weg(teil).isEqual(soll, 1e-6), f"{teil} um {weg(teil)} statt {soll}")
-pruefe(abs(vf.gelenkstellung(achse["Z"].gelenk, LINEAR) + 50) < 1e-6, "Z steht nicht auf −50")
-# Grenzen: X ±250, Y −150 … 120, Z −100 … 250.
-for name, soll, grenze in (("X", 400, 250), ("Y", -400, -150), ("Z", 400, 250)):
+pruefe(abs(vf.gelenkstellung(achse["Z"].gelenk, LINEAR) - 80) < 1e-6, "Z steht nicht auf 80")
+# Grenzen: X ±250, Y −150 … 120, Z 30 … 380 (die Nase über dem Tisch).
+for name, soll, grenze in (("X", 400, 250), ("Y", -400, -150), ("Z", 400, 380), ("Z", 0, 30)):
     pruefe(v.setze(achse[name], soll) == grenze, f"{name} fährt über die Grenze {grenze}")
 v.grundstellung()
 pruefe(all(weg(t).Length < 1e-6 for t in TEILE), "Grundstellung")
@@ -298,7 +301,7 @@ pruefe(
 v = vf.Verfahren(asm, kette)
 gebaut = {n: App.Placement(doc.getObject(n).Placement) for n in ("Portal", "YSchlitten",
           "ZSchlitten", "Spindel", "Tisch")}  # fmt: skip
-v.setze_alle({achsen["X"]: 100, achsen["Y"]: 50, achsen["Z"]: -40})
+v.setze_alle({achsen["X"]: 100, achsen["Y"]: 50, achsen["Z"]: 135})  # gebaut 175
 for teil, soll in (
     ("Portal", App.Vector(100, 0, 0)),
     ("YSchlitten", App.Vector(100, 50, 0)),
@@ -310,7 +313,7 @@ for teil, soll in (
 tisch_bb = _form("Tischplatte").BoundBox
 for x in (-550, 550):
     for y in (-350, 350):
-        v.setze_alle({achsen["X"]: x, achsen["Y"]: y, achsen["Z"]: -150})
+        v.setze_alle({achsen["X"]: x, achsen["Y"]: y, achsen["Z"]: 25})
         for teil in ("Spindelkoerper", "ZPlatte", "Spindelhalter", "YSchlitten", "Traverse",
                      "WangeVorn", "WangeHinten"):  # fmt: skip
             abstand = _form(teil).distToShape(_form("Tischplatte"))[0]
@@ -327,7 +330,8 @@ App.closeDocument(doc.Name)
 # Mit eigenen Maßen aus „Neue Maschine …“.
 masse = beispielmaschine.PortalMasse(name="Meine Portalfräse", weg_x=(-400, 400), drehzahl=18000)
 pruefe(not masse.fehler(), f"Portal, gültige Maße: {masse.fehler()}")
-pruefe(beispielmaschine.PortalMasse(weg_z=(-150, -10)).fehler(), "Portal: Z ohne 0 gültig")
+pruefe(beispielmaschine.PortalMasse(weg_z=(100, 50)).fehler(), "Portal: Z rückwärts gültig")
+pruefe(not beispielmaschine.PortalMasse(weg_z=(25, 175)).fehler(), "Portal: Z ab dem Tisch ungültig")
 asm, ma = beispielmaschine.lade(beispielmaschine.PORTAL_3, masse)
 achsen = {a.gelenk.Label: a for a in kette_modul.lies_kette(asm).achsen}
 pruefe((achsen["X"].minimum, achsen["X"].maximum) == (-400, 400), "Portal: eigener Weg X")

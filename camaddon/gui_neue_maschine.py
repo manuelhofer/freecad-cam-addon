@@ -336,8 +336,9 @@ class NeueMaschineDialog(QtGui.QDialog):
             self.feld_name.setPlaceholderText(beispielmaschine.titel(art))
             for achse, (von, bis) in self.felder_weg.items():
                 weg = getattr(vorgabe, f"weg_{achse.lower()}")
-                # Z der Drehmaschine zählt ab der Spindelnase: beide Enden ohne Minus.
-                self._negativ[achse] = not (achse == "Z" and art == beispielmaschine.DREHMASCHINE)
+                # Z der Drehmaschine zählt ab der Spindelnase, Z der Fräsen ab der Tischoberkante
+                # (die Spindelnase liegt bei 0 auf dem Tisch): beide Enden ohne Minus.
+                self._negativ[achse] = not (achse == "Z" and art in _Z_OHNE_MINUS)
                 _minus_setzen(von, self._negativ[achse])
                 von.setValue(einheiten.anzeige(abs(weg[0]), einheiten.LAENGE))
                 bis.setValue(einheiten.anzeige(weg[1], einheiten.LAENGE))
@@ -359,7 +360,12 @@ class NeueMaschineDialog(QtGui.QDialog):
             for feld in self._nur_drehmaschine:
                 feld.setVisible(drehmaschine)
                 self._formular.labelForField(feld).setVisible(drehmaschine)
-            self.wege_drehmaschine.setVisible(drehmaschine)
+            # Wovon die Wege zählen: bei der Drehmaschine wie an ihr, bei den Fräsen Z ab dem Tisch.
+            fraese = art in (beispielmaschine.FRAESE_3, beispielmaschine.PORTAL_3)
+            self.wege_drehmaschine.setText(
+                tr("neu.wege.drehmaschine") if drehmaschine else tr("neu.wege.fraese")
+            )
+            self.wege_drehmaschine.setVisible(drehmaschine or fraese)
             schwenk = getattr(vorgabe, "schwenk", ())
             for nummer, zeile in enumerate(self._schwenk_zeilen):
                 da = nummer < len(schwenk)
@@ -380,6 +386,8 @@ class NeueMaschineDialog(QtGui.QDialog):
             }
             for achse, zeile in self._weg_zeilen.items():
                 zeile.setToolTip(tooltips[achse] if drehmaschine else tr("neu.weg.tooltip"))
+            if art in (beispielmaschine.FRAESE_3, beispielmaschine.PORTAL_3):
+                self._weg_zeilen["Z"].setToolTip(tr("neu.weg_z.fraese.tooltip"))
         self.fehler.hide()
         # Mit den Zeilen der Drehmaschine braucht das Fenster mehr Höhe – es wächst mit, sonst
         # quetschte Qt die Zeilen übereinander (P-2026-09-30-52).
@@ -551,6 +559,14 @@ def _wert(feld, vorgabe, faktor=1.0, negativ=False):
     if abs(feld.value() - gezeigt) < 1e-9:
         return vorgabe
     return vorzeichen * einheiten.metrisch(feld.value(), einheiten.LAENGE) / faktor
+
+
+# Bauarten, deren Z beide Enden ab 0 zählt (ohne festes Minus vor „von“).
+_Z_OHNE_MINUS = (
+    beispielmaschine.DREHMASCHINE,
+    beispielmaschine.FRAESE_3,
+    beispielmaschine.PORTAL_3,
+)
 
 
 def _wegfeld(wert, negativ):

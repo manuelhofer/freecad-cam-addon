@@ -340,19 +340,21 @@ def _spindel(ma, gelenk, nc_name, drehzahl, hochlaufzeit):
 class FraesenMasse:
     """Die Maße der 3-Achs-Fräse, vorbelegt wie das Beispiel (Durchsicht W-004, D-26).
 
-    Wege in mm als (Minimum, Maximum), gezählt ab der Stellung, in der die Maschine
-    gebaut ist – 0 muss darin liegen.
+    Wege in mm als (Minimum, Maximum): X und Y gezählt ab der Stellung, in der die Maschine
+    gebaut ist – 0 muss darin liegen –, Z als Höhe der Spindelnase über der Tischoberkante
+    (Manuel, 2026-10-12: „z0 sollte eigentlich tisch oberkante sein .. also wenn die spindelnase
+    auf dem tisch aufliegt ist z=0“; gebaut steht sie 130 mm darüber).
     """
 
     name: str = ""  # leer: der Name des Beispiels
     weg_x: tuple = (-250.0, 250.0)
     weg_y: tuple = (-150.0, 120.0)
-    weg_z: tuple = (-100.0, 250.0)
+    weg_z: tuple = (30.0, 380.0)
     drehzahl: float = 12000.0  # U/min der Spindel
 
     def fehler(self):
         """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
-        ergebnis = _wege_fehler(self)
+        ergebnis = _wege_fehler(self, ohne_null=("weg_z",))
         if self.drehzahl <= 0:
             ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
         return ergebnis
@@ -361,11 +363,12 @@ class FraesenMasse:
 @dataclass
 class PortalMasse(FraesenMasse):
     """Die Maße der Portalfräse, vorbelegt wie ihr Beispiel: Tisch 1150 × 750 mm, Z gebaut ganz
-    oben (die Spindelnase 175 mm über dem Tisch), eine schnell drehende Frässpindel."""
+    oben (die Spindelnase 175 mm über dem Tisch – Z wie bei FraesenMasse ab der Tischoberkante),
+    eine schnell drehende Frässpindel."""
 
     weg_x: tuple = (-550.0, 550.0)
     weg_y: tuple = (-350.0, 350.0)
-    weg_z: tuple = (-150.0, 0.0)
+    weg_z: tuple = (25.0, 175.0)
     drehzahl: float = 24000.0
 
 
@@ -539,12 +542,21 @@ def fraesmaschine(masse=None, spanneisen=True):
             teil,
             f"{eisen_koerper.Name}.Face5",
         )
-    z = b.gelenk_wie_gebaut("Z", "Slider", staender, "Face3", kopf, "Face4", richtung=(0, 0, 1))
-    b.begrenze(z, *masse.weg_z)
+    z = b.gelenk_wie_gebaut(
+        "Z",
+        "Slider",
+        staender,
+        "Face3",
+        kopf,
+        "Face4",
+        richtung=(0, 0, 1),
+        stellung=_nase_ueber_tisch(b, spindelnase, spannplatz),
+    )
     s = b.gelenk_wie_gebaut(
         "Spindelachse", "Revolute", kopf, "Face5", spindel, "Spindelkoerper.Face2"
     )
     asm = b.fertig()
+    _in_die_wege(b, asm, {z: masse.weg_z})
 
     ma = _maschine(asm, FRAESE_3)
     _linear(ma, x, "X1", 20000, 10000, 3)
@@ -613,9 +625,15 @@ def portalfraese(masse=None):
     )
     b.begrenze(y, *masse.weg_y)
     z = b.gelenk_wie_gebaut(
-        "Z", "Slider", y_schlitten, "Face1", z_schlitten, "ZPlatte.Face2", richtung=(0, 0, 1)
+        "Z",
+        "Slider",
+        y_schlitten,
+        "Face1",
+        z_schlitten,
+        "ZPlatte.Face2",
+        richtung=(0, 0, 1),
+        stellung=_nase_ueber_tisch(b, spindelnase, spannplatz),
     )
-    b.begrenze(z, *masse.weg_z)
     s = b.gelenk_wie_gebaut(
         "Spindelachse",
         "Revolute",
@@ -625,6 +643,7 @@ def portalfraese(masse=None):
         "Spindelkoerper.Face2",
     )
     asm = b.fertig()
+    _in_die_wege(b, asm, {z: masse.weg_z})
 
     ma = _maschine(asm, PORTAL_3)
     _linear(ma, x, "X1", 15000, 10000, 1)
@@ -1388,6 +1407,14 @@ def drehmaschine(masse=None):
         schraege_achse.drehe_fuehrung(asm, kette, ma, trafo, masse.y_winkel)
     _in_die_wege(b, asm, {z: masse.weg_z, x: masse.weg_x})
     return asm, ma
+
+
+def _nase_ueber_tisch(b, spindelnase, spannplatz):
+    """So hoch steht die Spindelnase gebaut über der Spannfläche des Tischs (mm, längs Z des
+    Rahmens) – die Stellung von Z, damit Z = 0 heißt: die Nase liegt auf dem Tisch."""
+    oben = b.rahmen.Rotation.multVec(App.Vector(0, 0, 1))
+    abstand = m.globale_platzierung(spindelnase).Base - m.globale_platzierung(spannplatz).Base
+    return float(abstand.dot(oben))
 
 
 def _in_die_wege(b, asm, wege):

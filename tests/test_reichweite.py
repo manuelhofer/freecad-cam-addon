@@ -109,10 +109,11 @@ trifft("Fräse", p, spindel, [(0, 0, 0), (100, 50, -20), (-30, 20, 5), (7.5, -3.
 trifft(
     "Fräse mit Nullpunkt", p, spindel, [(0, 0, 0), (12, 34, -5)], 80, FreeCAD.Vector(-50, -30, 20)
 )
-# Nullpunkt des Jobs auf der Tischmitte, Werkzeug 50 mm: Die Spindelnase steht 130 mm
-# über dem Tisch, also Z1 = −80 für Z 0. X und Y fährt der Tisch: X1 = −X.
+# Nullpunkt des Jobs auf der Tischmitte, Werkzeug 50 mm: Z1 ist die Höhe der Spindelnase über
+# dem Tisch (P-2026-10-12-173), also Z1 = 50 für Z 0, 30 für Z −20. X und Y fährt der Tisch:
+# X1 = −X.
 st = namen(p, p.stellungen((100, 50, -20), spindel, 50, FreeCAD.Vector()))
-pruefe(st == {"X1": -100, "Y1": -50, "Z1": -100}, f"Fräse (100, 50, −20): {st}")
+pruefe(st == {"X1": -100, "Y1": -50, "Z1": 30}, f"Fräse (100, 50, −20): {st}")
 pruefe(p.stellungen((0, 0, 0), spindel, 50, FreeCAD.Vector()) is not None, "Fräse (0, 0, 0)")
 
 # --- Job mit eigener Bahn: Geraden, Kreis, Bohrzyklus ----------------------------------------
@@ -141,12 +142,12 @@ pruefe(
 )
 u = e.ueberschreitungen[0]
 pruefe(
-    namen(p, u.stellungen) == {"X1": -400, "Y1": 0, "Z1": -70},
+    namen(p, u.stellungen) == {"X1": -400, "Y1": 0, "Z1": 60},
     f"Stellungen an der Überschreitung: {namen(p, u.stellungen)}",
 )
 pruefe(bereich(e, "X1") == (-400.0, 0.0), f"X1: {bereich(e, 'X1')}")
 pruefe(bereich(e, "Y1") == (-60.0, 0.0), f"Y1 mit dem Scheitel des Kreises: {bereich(e, 'Y1')}")
-pruefe(bereich(e, "Z1") == (-88.0, -70.0), f"Z1 mit dem Grund der Bohrung: {bereich(e, 'Z1')}")
+pruefe(bereich(e, "Z1") == (42.0, 60.0), f"Z1 mit dem Grund der Bohrung: {bereich(e, 'Z1')}")
 pruefe(
     [b.text() for b in e.bereiche][0]
     == "X1 braucht −400.00 mm … 0.00 mm, die Grenzen sind −250.00 mm … 250.00 mm.",
@@ -200,7 +201,7 @@ pruefe(
 # Ohne Vorschlag gilt die Gesamtlänge – oder geschätzt.
 bibliothek.halter_vorschlagen = False
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
-pruefe(bereich(e, "Z1") == (-78.0, -60.0), f"Z1 mit 60 mm: {bereich(e, 'Z1')}")
+pruefe(bereich(e, "Z1") == (52.0, 70.0), f"Z1 mit 60 mm: {bereich(e, 'Z1')}")
 # Das Werkzeug heißt jetzt wie in der Werkzeugverwaltung – so auch dasselbe Werkzeug zweier
 # Controller, wenn FreeCAD das zweite „… L001“ genannt hat (D-09).
 t1 = rw.werkzeug_text(op.ToolController, bibliothek)
@@ -224,7 +225,7 @@ pruefe(
 bibliothek.werkzeuge[0].laenge_spindelnase = 110.0
 pruefe(rw.werkzeuglaenge(op.ToolController, bibliothek) == (110.0, rw.LAENGE_SPINDELNASE), "")
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
-pruefe(bereich(e, "Z1") == (-28.0, -10.0), f"Z1 mit 110 mm: {bereich(e, 'Z1')}")
+pruefe(bereich(e, "Z1") == (102.0, 120.0), f"Z1 mit 110 mm: {bereich(e, 'Z1')}")
 pruefe(
     not any("Länge" in h for h in e.hinweise), f"Hinweis trotz Länge ab Spindelnase: {e.hinweise}"
 )
@@ -237,7 +238,7 @@ w1.halter = bibliothek.neuer_halter("er16").kennung
 laenge = rw.werkzeuglaenge(op.ToolController, bibliothek)
 pruefe(laenge == (100.0, rw.LAENGE_HALTER), f"Länge mit Halter: {laenge}")
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
-pruefe(bereich(e, "Z1") == (-38.0, -20.0), f"Z1 mit Halter: {bereich(e, 'Z1')}")
+pruefe(bereich(e, "Z1") == (92.0, 110.0), f"Z1 mit Halter: {bereich(e, 'Z1')}")
 pruefe(
     e.hinweise[0]
     == f"{t1}: gerechnet mit 100.00 mm, geschätzt aus Halter und Werkzeug (Halterlänge + "
@@ -272,7 +273,7 @@ e = p.pruefe_job(job, FreeCAD.Vector())
 pruefe(e.in_grenzen() and not e.ueberschreitungen, f"Kreise: {texte(e)}")
 pruefe(bereich(e, "X1") == (-10.0, 10.0), f"X1 am Vollkreis: {bereich(e, 'X1')}")
 pruefe(bereich(e, "Y1") == (-10.0, 10.0), f"Y1 am Vollkreis: {bereich(e, 'Y1')}")
-pruefe(bereich(e, "Z1") == (-80.0, -70.0), f"Z1 mit dem Scheitel in XZ: {bereich(e, 'Z1')}")
+pruefe(bereich(e, "Z1") == (50.0, 60.0), f"Z1 mit dem Scheitel in XZ: {bereich(e, 'Z1')}")
 pruefe(len(e.hinweise) == 1 and "Länge des CAM-Werkzeugs" in e.hinweise[0], f"{e.hinweise}")
 
 # Eine Werkzeugaufnahme, deren Z zum Werkstück zeigt: Hinweis.

@@ -121,14 +121,14 @@ def schritte(h):
     namen = sorted(vf.namen(panel.maschine, a) for a in panel.zeilen)
     h.pruefe(namen == ["Spindelachse", "X1", "Y1", "Z1"], f"Achsen: {namen}")
     h.bild("6_verfahren_grundstellung")
-    for name, stellung in (("X1", 200), ("Y1", -100), ("Z1", -80)):
+    for name, stellung in (("X1", 200), ("Y1", -100), ("Z1", 50)):
         achse = panel.achse(name)
         _regler, feld = panel.zeilen[achse]
         feld.setValue(stellung)
         yield 300
         ist = vf.gelenkstellung(achse.gelenk, achse.art)
         h.pruefe(abs(ist - stellung) < 1e-6, f"{name} steht auf {ist} statt {stellung}")
-    h.bild("7_verfahren_x200_y-100_z-80")
+    h.bild("7_verfahren_x200_y-100_z50")
     panel.reject()
     yield 500
 

@@ -138,11 +138,11 @@ pruefe(
 
 # Dazwischen geradlinig: Mitten auf der Geraden X 0 → 100 steht X1 auf −50.
 mitte = namen(ma, fahrt.stellungen_bei((st[1].zeit + st[2].zeit) / 2))
-pruefe(mitte == {"X1": -50, "Y1": 0, "Z1": -85}, f"Mitte der Geraden: {mitte}")
+pruefe(mitte == {"X1": -50, "Y1": 0, "Z1": 45}, f"Mitte der Geraden: {mitte}")
 pruefe(fahrt.index_bei(0) == 0 and fahrt.index_bei(st[1].zeit) == 1, "index_bei")
 pruefe(fahrt.index_bei(-1) == 0 and fahrt.index_bei(1e9) == len(st) - 1, "index_bei außerhalb")
 anfang = namen(ma, fahrt.stellungen_bei(0))
-pruefe(anfang == {"X1": 0, "Y1": 0, "Z1": -70}, f"Anfang: {anfang}")
+pruefe(anfang == {"X1": 0, "Y1": 0, "Z1": 60}, f"Anfang: {anfang}")
 # Jede Station trifft: dieselben Stellungen wie die Reichweite für ihren Punkt.
 spindel = p.werkzeugaufnahme(1)
 for i in (0, 20, 57, 60):
@@ -202,7 +202,7 @@ FreeCAD.closeDocument(asm.Document.Name)
 # zum Home-Punkt, wieder Z zuerst. Ohne Home-Punkt bleibt alles wie zuvor.
 asm, ma = beispielmaschine.fraesmaschine()
 p = rw.Pruefung(asm, ma)
-heim = {"X1": 100.0, "Y1": 50.0, "Z1": 0.0}
+heim = {"X1": 100.0, "Y1": 50.0, "Z1": 130.0}  # Z1: die Nase über dem Tisch
 for ba in m.betriebsarten(ma):
     if ba.Art == m.ART_LINEAR and ba.NcName in heim:
         ba.Home, ba.HomeAn = heim[ba.NcName], True
@@ -295,7 +295,7 @@ pruefe(
 pruefe(m.wechselpunkt(ma) == {"X": 200.0}, f"WKS: wechselpunkt {m.wechselpunkt(ma)}")
 ma.WechselBezug = m.WECHSEL_MKS
 pruefe(
-    m.wechselpunkt(ma) == {"X": 200.0, "Y": 50.0, "Z": 0.0},
+    m.wechselpunkt(ma) == {"X": 200.0, "Y": 50.0, "Z": 130.0},
     f"MKS: wechselpunkt {m.wechselpunkt(ma)} (Y und Z wie Home)",
 )
 for ba in m.betriebsarten(ma):

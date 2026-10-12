@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-173 z-null-nase-auf-dem-tisch
+
+### EINGELESEN
+- Manuel (2026-10-12, Prüffenster an seiner 3-Achs-Fräse: „Z1 fährt in „Kontur T4“ bis −30,00 mm, die
+  Grenze ist −10,00 mm“): „z kann nicht in -30 fahren weil z0 sollte eigentlich tisch oberkante sein
+  .. also wenn die spindelnase auf dem tisch aufliegt ist z=0 ... bitte schau da bei allen maschinen
+  nach“. Nachgesehen: Gerechnet wird mit der Länge ab Spindelnase, aber Z = 0 jeder Fräse war die
+  Stellung, in der sie gebaut ist (3-Achs-Fräse: Nase 130 mm über dem Tisch, Portalfräse 175 mm);
+  seine Wege meinten „Nase auf dem Tisch“. Folge: Jede Operation an seiner Fräse galt als nicht
+  erreichbar – und der Materialstand ließ sie aus (die Luft der Kontur nach dem Planfräsen, P-172).
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`: 3-Achs- und Portalfräse – das Gelenk Z steht gebaut auf der Höhe
+  der Spindelnase über der Spannfläche (`_nase_ueber_tisch`, gemessen), also Z = 0: die Nase liegt
+  auf dem Tisch; die Wege danach (`_in_die_wege`). Vorgaben Z 30 … 380 (3-Achs, vorher −100 … 250)
+  und 25 … 175 (Portal, vorher −150 … 0) – dieselben Stellungen. Z muss 0 nicht enthalten.
+- `camaddon/gui_neue_maschine.py`: Z der Fräsen ohne festes Minus, darunter grau „Z ist die Höhe der
+  Spindelnase über der Tischoberkante – bei 0 liegt sie auf dem Tisch.“, Tooltip.
+- Prüfungen auf die neue Zählung (Z1 je +130): `test_beispielmaschine`, `test_reichweite`,
+  `test_abfahren`, `szenario_beispielmaschine`. `package.xml` (0.260.0).
+- Nicht umgestellt: die 5-Achs-Fräsen, die G550 (waagrecht) und die Drehmaschine (Z ab der
+  Spindelnase des Futters) – im Snapshot. Gespeicherte Maschinen behalten ihre Gelenke: Manuels
+  „3-Achs-Fräse“ neu bauen („Neue Maschine …“).
+
+### ERGEBNIS
+- Grün in 26.3 RC1: die 17 Prüfdateien mit den Fräsen (u. a. `test_reichweite`, `test_kollision`,
+  `test_abfahren`, `test_simultan_maschinen`, `test_zugang`), Szenarien `beispielmaschine`,
+  `neue_maschine`, `maschinen`, `reichweite`, `bearbeitung_maschine`, `bearbeitung`, `home`,
+  `abfahren`, `kollision`, `testteil`.
+
 ## P-2026-10-12-172 kontur-helix-ab-dem-material
 
 ### EINGELESEN
