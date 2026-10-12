@@ -376,7 +376,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    (`vierachs_bahn._rampe`) ist der Einstieg überall, wo eine Bahn im Material beginnt. Noch
    durchzusehen, je mit Zählung an seinen Testteilen (3-Achs-Testteil, Nase, Geist):
    ~~`kontur_bahn._rampe` (Kontur)~~ (Helix, P-2026-10-12-162), ~~`raeumen_bahn` (Ringe/Stiche über `kontur_bahn._rampe`)~~ (Helix, P-2026-10-12-163),
-   `planfraesen_bahn` (Rampe, wo kein Rand offen ist), `vierachs_bahn` (Rundum schruppen zwischen
+   `planfraesen_bahn` (Rampe, wo kein Rand offen ist – Entwurf einer Helix einen Radius weit in der Zeile in `~/freecad_cam/wip/planfraesen_helix_entwurf.diff`: 12 Helix statt Rampe in `test_planfraesen`, aber der Kreis reicht seitlich über die erste Zeile hinaus (y −6,10, die Wände dort ungeprüft) und der Test zählt seine Bögen als Wendebögen – noch nicht fertig), `vierachs_bahn` (Rundum schruppen zwischen
    gewählten Flächen), `vierachs_planbahn` (die 4 übrigen vor der Nase: von der Seite statt von
    vorn), `schlicht_anlauf`. Bleiben darf sie nur in `nut_bahn` (geschlossene Nut, zu schmal für
    eine Helix); überall sonst erst „von außen in der Luft“, dann Helix (`bohrung_bahn._helix` gibt
