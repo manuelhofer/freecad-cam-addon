@@ -177,6 +177,162 @@ def _verteilt(form, args, bloecke, fortschritt):
         return None
 
 
+def _bewegungen(op, ort, form):
+    """Die Bewegungen der Bahn von `op` im Grundjob (`ort`: Punkt im Job → im Grundjob):
+    (eilgang (n,), von (n, 3), nach (n, 3), quer (n,)) – Kreisbögen in Sehnen, `quer` der
+    kleinere Radius in einer Sehne (sicher in der tatsächlichen Bogenfahrt). None, wenn eine
+    Rundachse dreht oder Sätze unbekannt sind."""
+    from . import reichweite as rw
+
+    unbekannt = []
+    eilgang, von, nach, quer = [], [], [], []
+    letzter = None
+    for s in rw._bahn(op.Path.Commands, unbekannt.append, rueckzug=True):
+        if any(abs(v) > 1e-8 for v in s.rund.values()):
+            return None
+        radius = form.radius
+        if s.art == "bogen":
+            bogen = s.ort
+            anzahl = max(2, int(math.ceil(abs(bogen.winkel) * bogen.radius / 0.5)))
+            punkte = [bogen.bei(k / anzahl) for k in range(1, anzahl + 1)]
+            radius -= bogen.radius * (1 - math.cos(abs(bogen.winkel) / (2 * anzahl)))
+        else:
+            punkte = [s.ort]
+        for p in punkte:
+            jetzt = ort(p)
+            if letzter is not None:
+                eilgang.append(bool(s.eilgang))
+                von.append(letzter)
+                nach.append(jetzt)
+                quer.append(radius - form.radius)
+            letzter = jetzt
+    if unbekannt:
+        return None
+    return (
+        np.array(eilgang, dtype=bool),
+        np.array(von, dtype=float).reshape(-1, 3),
+        np.array(nach, dtype=float).reshape(-1, 3),
+        np.array(quer, dtype=float),
+    )
+
+
+def bewegungen_abtragen(material, bewegungen, achse, innen, aussen, fortschritt=None):
+    """Trägt die Bewegungen (_bewegungen) am Material ab – im Vorschub gesammelt (_Stapel) mit
+    den Teilen `innen`, ein Eilgang am Material, wie es dann steht, mit `aussen`. Gibt je Eilgang
+    das Volumen zurück, das er schnitte (> 0: der Rest ist nicht sicher)."""
+    eilgang, von, nach, quer = bewegungen
+    stapel = _Stapel(material)
+    volumina = np.zeros(int(eilgang.sum()))
+    k = 0
+    for n in range(len(eilgang)):
+        if fortschritt is not None and n % 256 == 0 and not fortschritt(0.5):
+            raise ValueError(tr("s5p.fehler.unvollstaendig"))
+        if eilgang[n]:
+            stapel.leeren()
+            volumina[k] = teile_abtragen(material, von[n], nach[n], achse, aussen, quer[n])
+            k += 1
+        else:
+            teile_abtragen(stapel, von[n], nach[n], achse, innen, quer[n])
+    stapel.leeren()
+    return volumina
+
+
+# Ab so vielen Bewegungen trägt eine Bahn in Streifen des Materials auf den Nebenrechnern ab
+# (_abtragen_verteilt): Je senkrechter Strahl hängt das Abtragen nur von diesem Strahl ab.
+VERTEILT_AB_BEWEGUNGEN = 2000
+
+
+def streifen_abtragen(streifen, bewegungen, achse, innen, aussen):
+    """Auf einem Nebenrechner: bewegungen_abtragen() an einem Streifen des Materials – nur die
+    Bewegungen, deren Fräser ihn erreicht (_in_der_naehe) – (seine Abschnitte, die Volumina der
+    Eilgänge in der Folge aller)."""
+    eilgang, von, nach, quer = bewegungen
+    nah = _in_der_naehe(streifen, bewegungen, achse, innen + aussen)
+    volumina = np.zeros(int(eilgang.sum()))
+    welche = np.flatnonzero(nah[eilgang])
+    teil = (eilgang[nah], von[nah], nach[nah], quer[nah])
+    volumina[welche] = bewegungen_abtragen(streifen, teil, achse, innen, aussen)
+    return streifen.grenzen, volumina
+
+
+def _in_der_naehe(streifen, bewegungen, achse, teile):
+    """Je Bewegung: Reicht der Fräser (alle `teile`, um `quer` größer) in x an den Streifen?"""
+    _eilgang, von, nach, quer = bewegungen
+    u = np.asarray(achse, dtype=float)
+    weit = 0.0
+    laengs = 0.0
+    for teil in teile:
+        weit = max(weit, float(teil[2]))
+        laengs = max(laengs, abs(float(teil[1])) + (float(teil[3]) if teil[0] == "schaft" else 0))
+    reichweite = weit + np.abs(quer) + laengs * float(np.hypot(u[0], u[1])) + streifen.dx
+    unten = np.minimum(von[:, 0], nach[:, 0]) - reichweite
+    oben = np.maximum(von[:, 0], nach[:, 0]) + reichweite
+    return (oben >= streifen.x[0] - streifen.dx) & (unten <= streifen.x[-1] + streifen.dx)
+
+
+def _streifen(material, von, bis):
+    """Die Strahlen x[von:bis] des Materials als eigenes Material (die Abschnitte kopiert)."""
+    neu = object.__new__(Material)
+    neu.__dict__ = material.__dict__.copy()
+    neu.x = material.x[von:bis].copy()
+    neu.grenzen = material.grenzen[von:bis].copy()
+    return neu
+
+
+def _abtragen_verteilt(material, bewegungen, achse, innen, aussen, fortschritt):
+    """bewegungen_abtragen() in Streifen längs x auf den Nebenrechnern – dasselbe Ergebnis (jeder
+    Strahl in derselben Folge); None ohne sie oder bei wenigen Bewegungen (dann rechnet der
+    Aufrufer selbst). Am Geist in der 8-Eck-Stange trug das Fenster jede Bahn allein ab, während
+    die Nebenrechner warteten (2026-10-12)."""
+    if len(bewegungen[0]) < VERTEILT_AB_BEWEGUNGEN or len(material.x) < 16:
+        return None
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return None
+    try:
+        pool = nr.pool()
+        if not pool.verfuegbar() or pool.anzahl < 2:
+            return None
+        pruef = hashlib.sha1()
+        for feld in bewegungen:
+            pruef.update(np.ascontiguousarray(feld).tobytes())
+        schluessel = "rm3-bahn-" + pruef.hexdigest()
+        gemeinsam = pool.gemeinsam(schluessel, bewegungen)
+        bereiche = nr.stuecke(len(material.x), pool.anzahl, je_arbeiter=2, mindestens=8)
+        auftraege = [
+            pool.auftrag(
+                "raum_material", "streifen_abtragen", _streifen(material, a, b), gemeinsam,
+                achse, innen, aussen,
+            )  # fmt: skip
+            for a, b in bereiche
+        ]
+
+        def zwischendurch():
+            nr.ereignisse_ohne_eingaben()
+            if fortschritt is None:
+                return True
+            return bool(fortschritt(nr.fortschritt_von(auftraege)))
+
+        try:
+            teile = pool.warten(auftraege, zwischendurch=zwischendurch)
+        finally:
+            pool.vergessen(schluessel)
+    except nr.Abgebrochen as fehler:
+        raise ValueError(tr("s5p.fehler.unvollstaendig")) from fehler
+    except nr.Fehler as fehler:
+        if fehler.art == "ValueError":
+            raise ValueError(fehler.satz) from fehler
+        return None
+    material._platz(max(g.shape[2] for g, _v in teile))
+    volumina = np.zeros(int(bewegungen[0].sum()))
+    for (a, b), (grenzen, v) in zip(bereiche, teile, strict=True):
+        material.grenzen[a:b] = np.nan
+        material.grenzen[a:b, :, : grenzen.shape[2]] = grenzen
+        volumina += v
+    return volumina
+
+
 def _ist_quader(form):
     """Füllt `form` (ein Körper) ihren achsparallelen Hüllquader ganz aus?"""
     try:
@@ -823,7 +979,6 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
     """
     from . import maschinenzugang as mz
     from . import materialstand as ms
-    from . import reichweite as rw
     from . import schwenken as sw
     from . import simultan_operation as so
     from . import vierachs_schlichten as vs
@@ -910,40 +1065,16 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
             ):
                 return None
             innen, aussen = koerperteile(form, laenge, material.schritt)
-            unbekannt = []
-            letzter = None
-            for s in rw._bahn(op.Path.Commands, unbekannt.append, rueckzug=True):
-                if any(abs(v) > 1e-8 for v in s.rund.values()):
-                    return None
-                radius = form.radius
-                if s.art == "bogen":
-                    bogen = s.ort
-                    anzahl = max(2, int(math.ceil(abs(bogen.winkel) * bogen.radius / 0.5)))
-                    punkte = [bogen.bei(k / anzahl) for k in range(1, anzahl + 1)]
-                    # Die kleinere Scheibe ist sicher in der tatsächlichen Bogenfahrt.
-                    radius -= bogen.radius * (1 - math.cos(abs(bogen.winkel) / (2 * anzahl)))
-                else:
-                    punkte = [s.ort]
-                for p in punkte:
-                    jetzt = ort(p)
-                    if letzter is not None:
-                        if fortschritt is not None and not fortschritt(0.5):
-                            raise ValueError(tr("s5p.fehler.unvollstaendig"))
-                        u = np.asarray(achse)
-                        # Im Vorschub gesammelt (_Stapel); ein Eilgang am Material, wie es
-                        # dann steht – schneidet er, ist der Rest nicht sicher.
-                        if s.eilgang:
-                            stapel.leeren()
-                        ziel = material if s.eilgang else stapel
-                        teile = aussen if s.eilgang else innen
-                        volumen = teile_abtragen(
-                            ziel, letzter, jetzt, u, teile, radius - form.radius
-                        )
-                        if s.eilgang and volumen > 1e-7:
-                            return None
-                    letzter = jetzt
-            if unbekannt:
+            bewegungen = _bewegungen(op, ort, form)
+            if bewegungen is None:
                 return None
+            stapel.leeren()
+            u = np.asarray(achse, dtype=float)
+            volumina = _abtragen_verteilt(material, bewegungen, u, innen, aussen, fortschritt)
+            if volumina is None:
+                volumina = bewegungen_abtragen(material, bewegungen, u, innen, aussen, fortschritt)
+            if np.any(volumina > 1e-7):
+                return None  # ein Eilgang schneidet: der Rest ist nicht sicher
     stapel.leeren()
     _merken(key, material)
     return material

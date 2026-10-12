@@ -184,6 +184,31 @@ def pruefen():
     assert ungefraest.belegt([[10, 13, 10]]).all()
     op.Active = True
     doc.recompute()
+    # In Streifen auf den Nebenrechnern (2026-10-12) dasselbe wie allein – erzwungen schon ab
+    # einer Bewegung; bis auf Rundung in der letzten Stelle gleich.
+    from camaddon import nebenrechner as nr
+
+    allein = raum.fuer_ebene(naechster).grenzen
+    ab = raum.VERTEILT_AB_BEWEGUNGEN
+    raum.VERTEILT_AB_BEWEGUNGEN = 1
+    raum._GEMERKT.clear()
+    try:
+        verteilt = raum.fuer_ebene(naechster).grenzen
+        assert nr.pool().arbeiter > 0, "nicht auf den Nebenrechnern gerechnet"
+    finally:
+        raum.VERTEILT_AB_BEWEGUNGEN = ab
+        raum._GEMERKT.clear()
+        nr.pool().beenden()
+    k = max(allein.shape[2], verteilt.shape[2])
+
+    def aufgefuellt(g):
+        h = np.full(g.shape[:2] + (k, 2), np.nan)
+        h[:, :, : g.shape[2]] = g
+        return h
+
+    a, b = aufgefuellt(allein), aufgefuellt(verteilt)
+    assert np.array_equal(np.isnan(a), np.isnan(b)), "andere Abschnitte in Streifen"
+    assert np.nanmax(np.abs(a - b), initial=0.0) < 1e-9, "Streifen rechnen anders"
 
     # Jede Schneide als Kugeln und Zylinder (koerperteile, P-2026-10-11-90): innen ganz im
     # Fräser, die Treppe höchstens eine halbe Zelle neben seinem Profil; außen um ihn herum.

@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-132 raum-material-in-streifen
+
+### EINGELESEN
+- Beim „Anlegen“ in der 8-Eck-Kette trug das Fenster das räumliche Restmaterial (`raum_material.
+  fuer_ebene`, die Bahnen der Aufspannungen davor) allein ab, während die Nebenrechner warteten –
+  in der Dauerprobe rund 8 von 28 s auf einem Kern.
+
+### DATEIEN
+- `camaddon/raum_material.py`: je Operation erst die Bewegungen als Felder (`_bewegungen`), dann
+  `bewegungen_abtragen` (wie bisher: im Vorschub gesammelt, ein Eilgang am Material) – ab 2000
+  Bewegungen in Streifen längs x auf den Nebenrechnern (`_abtragen_verteilt`,
+  `streifen_abtragen`): Je senkrechter Strahl hängt das Abtragen nur von diesem Strahl ab; jeder
+  Streifen nimmt nur die Bewegungen, deren Fräser ihn erreicht (`_in_der_naehe`); die Volumina
+  der Eilgänge über alle Streifen zusammengezählt (> 1e-7 mm³: der Rest ist nicht sicher, wie
+  bisher).
+- `tests/test_raum_material.py`: erzwungen in Streifen (auf den Nebenrechnern) dieselben
+  Abschnitte wie allein, bis 1e-9 mm. `package.xml` (0.247.0).
+
+### ERGEBNIS
+- Am Geist der Rest vor der achten Aufspannung (sieben davor, je 3D-Schruppen und 3D-Schlichten):
+  80,7 → 23,6 s, Rest 244,25 cm³ gleich; die Abschnitte bis auf 4 · 10⁻¹⁵ mm gleich (Rundung in
+  der letzten Stelle – numpy rechnet die Schnitte in anderen Päckchen). Ohne die Auswahl je
+  Streifen bitgleich, aber nur 92,7 → 47,8 s.
+
+### AKZEPTANZKRITERIUM
+- `test_raum_material`, `test_ebenen_auslassen`, `test_materialstand`, `test_bahnzugang` grün.
+
 ## P-2026-10-12-131 schlichten3d-genau-auf-allen-kernen
 
 ### EINGELESEN
