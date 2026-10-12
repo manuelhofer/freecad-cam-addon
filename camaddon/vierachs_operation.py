@@ -301,6 +301,7 @@ def bahn_fuer(
         stetig=stetig,
         nur_noetig=nur_noetig,
     )
+    uhren.atmen()  # beim Anlegen: die Wände am Geist (STL) 0,1–0,5 s – das Fenster zeichnet neu
     netz = vh.vernetze(teil)
     # Dieselbe Schruppbahn rechnet „Rundum schlichten“ nach (für den Rest darüber) – gemerkt, nach
     # allem, wovon sie abhängt: am 4-Achs-Testteil 3,8 s je Neuberechnen weniger.

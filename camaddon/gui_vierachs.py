@@ -205,7 +205,8 @@ def _entlang(dokument, objekt, unterelement):
 
 def _hat_form(objekt):
     form = getattr(objekt, "Shape", None)
-    return form is not None and not form.isNull() and bool(form.Faces)
+    # Nicht bool(form.Faces): am Geist (STL, 68.242 Flächen) 1 s beim Anklicken der Standfläche.
+    return form is not None and not form.isNull() and ft.anzahl(form) > 0
 
 
 class BefehlVierachs:
@@ -2522,7 +2523,7 @@ class VierachsPanel:
                 list(aussehen) if aussehen is not None else None,
             )
         grund = self._farben_vorher[1]
-        anzahl = len(klon.Shape.Faces)
+        anzahl = ft.anzahl(klon.Shape)
         if len(grund) != anzahl:
             grund = [tuple(grund[0]) if grund else tuple(ansicht.ShapeColor)] * anzahl
         alpha = grund[0][3] if grund and len(grund[0]) > 3 else 0.0
@@ -4673,6 +4674,10 @@ class VierachsPanel:
                 ue.uebergeben(self.bibliothek)
                 fremde = js.unbenutzte_fremde_controller(self.job, self.bibliothek)
                 js.controller_weg(self.doc, fremde)
+                # Zwischen den Schritten zeichnet das Fenster neu (uhren.atmen, ohne Klicks): Am
+                # Geist (STL) stand es sonst 2,3–3,5 s am Stück – je Werkzeug 0,4–0,6 s, je
+                # Operation 0,5–0,8 s in FreeCAD.
+                uhren.atmen()
                 angelegt = []
                 if schruppen:
                     tc = js.controller_ohne_transaktion(
@@ -4683,6 +4688,7 @@ class VierachsPanel:
                         self.werkstoff(),
                         self._programmnummer(self.fraeser()),
                     )
+                    uhren.atmen()
                     neu_schruppen = vo.lege_an(
                         self.job,
                         tc,
@@ -4700,6 +4706,7 @@ class VierachsPanel:
                     )
                     self._aufloesung_setzen(neu_schruppen)
                     angelegt.append(neu_schruppen)
+                    uhren.atmen()
                 if schlichten:
                     tc = js.controller_ohne_transaktion(
                         self.doc,
@@ -4709,6 +4716,7 @@ class VierachsPanel:
                         self.werkstoff(),
                         self._programmnummer(self.schlichtfraeser()),
                     )
+                    uhren.atmen()
                     neu_schlichten = vs.lege_an(
                         self.job,
                         tc,
@@ -4727,6 +4735,7 @@ class VierachsPanel:
                     )
                     self._aufloesung_setzen(neu_schlichten, schlichten=True)
                     angelegt.append(neu_schlichten)
+                    uhren.atmen()
                 if plan:
                     plan_flaechen, loecher = self._plan_flaechen()
                     tc = js.controller_ohne_transaktion(
@@ -4737,6 +4746,7 @@ class VierachsPanel:
                         self.werkstoff(),
                         self._programmnummer(self.planfraeser()),
                     )
+                    uhren.atmen()
                     angelegt.append(
                         vplan.lege_an(
                             self.job,
@@ -4758,6 +4768,7 @@ class VierachsPanel:
                     )
                     if loecher:
                         angelegt.append(self._bohrer_dazu_anlegen(achse, achse.quer, loecher))
+                    uhren.atmen()
                 if entgraten:
                     tc = js.controller_ohne_transaktion(
                         self.doc,
@@ -4767,6 +4778,7 @@ class VierachsPanel:
                         self.werkstoff(),
                         self._programmnummer(self.entgratfraeser()),
                     )
+                    uhren.atmen()
                     angelegt.append(
                         vent.lege_an(
                             self.job,
@@ -4780,6 +4792,7 @@ class VierachsPanel:
                             raster=self._aufloesung("aufloesung_entgraten"),
                         )
                     )
+                    uhren.atmen()
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()

@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-152 geist-weniger-stehen
+
+### EINGELESEN
+- Die offenen Pausen aus P-151 am Geist (STL, 68.242 Flächen) genau gemessen – Zeit je Schritt in
+  einer Kopie von `szenario_vierachs_stl` (nicht im Repo), dazu FreeCADs Neuberechnungen:
+  - Umwandeln 2,3 s: 0,31 s die Form aus dem BREP-Text, 1,8 s `teil.Shape = form` – FreeCAD baut
+    die Anzeige des Körpers (ohne Oberfläche 0,0 s; ein Netz anzuzeigen kostet 0,0 s). Vorher
+    vernetzen hilft nicht (FreeCAD schreibt kein Netz in den BREP-Text und baut die Anzeige ohnehin).
+  - Erster Klick (Job anlegen) 2,8 s: 1,8 s die Anzeige des Klons (`_job_zeigen`), 0,7 s zwei
+    Neuberechnungen des Klons.
+  - Standfläche anklicken: 1,0 s in `_hat_form` – `bool(form.Faces)` baut 68.242 Flächen als Python-
+    Objekte, nur um zu fragen, ob es welche gibt (wie die Kanten in P-151).
+  - „Anlegen“ 2,3–3,5 s am Stück: je Werkzeug 0,4–0,6 s (CAMs ToolBit), je Operation 0,5–0,8 s
+    (CAMs `updateDepths`), dazu am Anfang der Bahn die Wände (0,1–0,5 s) – nacheinander, ohne dass
+    das Fenster dazwischen zeichnet.
+  - Die 93 s „Rundum schruppen“ nach dem Anlegen sind keine doppelte Arbeit: Die Vorschau rechnet
+    ohne Querachse (so festgelegt in `spezifikation_vierachs.md`), die Operation mit; das Fenster
+    bleibt dabei bedienbar.
+  - Die langen `stat`-Aufrufe in Profilen der Lag-Sonde sind ihr eigener Faden, der auf den GIL
+    wartet, während FreeCAD in C++ rechnet – kein Aufwand im Fenster.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_hat_form` und die Farben des Klons zählen mit `ft.anzahl`
+  (`countElement`); in `_bearbeitungen_anlegen` zwischen Werkzeug und Operation `uhren.atmen()`
+  (läuft schon in `uhren.atmend()`, wie im 3-Achs-Assistenten).
+- `camaddon/vierachs_operation.py` (`bahn_fuer`): `uhren.atmen()` nach den Werten (Wände).
+- `package.xml` (0.257.2).
+
+### ERGEBNIS
+- Standfläche anklicken 1,41 → 0,52 s im Assistenten; „Anlegen“ steht höchstens 1,6 statt 2,3–3,5 s
+  am Stück. `szenario_vierachs_stl` grün in 26.3 RC1 (164 s).
+- Bleibt: 2,3 s beim Umwandeln und 1,9 s beim ersten Klick – FreeCADs Anzeige eines Körpers mit
+  68.242 Flächen. Abhilfe nur, wenn das Addon das Netz statt des Körpers zeigte (Auswahl über die
+  Zuordnung Dreieck → Fläche) – nicht gebaut.
+
 ## P-2026-10-12-151 kanten-zaehlen-ohne-liste
 
 ### EINGELESEN
