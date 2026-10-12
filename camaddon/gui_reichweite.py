@@ -889,10 +889,11 @@ class PruefPanel:
             text = f"{tr('rw.spannung.rein', operationen=namen)} – {warum}"
             _zeige_urteil(self.urteil_spannung, text, ROT)
         elif e.gespannt > 0:
-            frei = tr(
-                "rw.spannung.frei_stange" if e.stange else "rw.spannung.frei",
-                gespannt=rw.weg_text(e.gespannt),
-            )
+            gespannt = rw.weg_text(e.gespannt)
+            if e.stange:  # die N-Eck-Stange (W-018)
+                frei = tr("rw.spannung.frei_stange", gespannt=gespannt)
+            else:
+                frei = tr("rw.spannung.frei", gespannt=gespannt)
             _zeige_urteil(self.urteil_spannung, frei, GRUEN)
         for widget in (self.urteil_spannung, self._beschriftung[self.urteil_spannung]):
             widget.setVisible(e.gespannt > 0)

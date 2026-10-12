@@ -36,7 +36,8 @@ patch_naming:
   20 mm im Schraubstock).“
 
 ### AKZEPTANZKRITERIUM
-- `test_n_eck`, `test_spannung` grün.
+- `test_n_eck`, `test_spannung`, `test_sprache` grün (der Satz im Urteil zuerst als bedingter
+  Schlüssel – `test_sprache` findet nur `tr("…")`; nachgebessert).
 
 ## P-2026-10-12-125 erreichbar-mit-offenen-anschlaegen
 
