@@ -507,6 +507,29 @@ def richte_ein(dokument, teil, lage_, stange, achse, job=None, beschriftung=None
     return job
 
 
+def auf_achse_umstellen(job, achse):
+    """Legt das Teil eines Jobs des Assistenten für eine andere Rundachse `achse`
+    (vierachs_achsen.Stangenachse) neu in die Stange – Lage und Rohteil wie richte_ein, mit
+    derselben Stirnfläche, Mitte, Drehlage und Stange –, und die 4-Achs-Operationen des Jobs
+    bekommen die Achse (vierachs_operation.setze_achse). Keine eigene Transaktion. ValueError mit
+    einem Satz, wenn der Job nicht so aussieht, wie der Assistent ihn anlegt.
+
+    Manuel (2026-10-12): den Job ohne Maschine angelegt (die Stange längs X, A), die CLX550
+    danach geladen – „Auf der Maschine prüfen“ legte die Stange quer auf den Tisch und ließ beide
+    Operationen aus („Die Maschine hat diese Rundachsen nicht: A“)."""
+    from . import vierachs_operation as vo
+
+    e = einstellung(job)
+    if e is None:
+        raise ValueError(tr("vr.umstellen.fehler"))
+    neu = lage(e.vermessung, achse, e.mitte, e.drehlage, e.stange.durchmesser)
+    richte_ein(job.Document, e.teil, neu, e.stange, achse, job=job)
+    for op in job.Operations.Group:
+        if vo.ist_rundum(op) and "Rundachse" in op.PropertiesList:
+            vo.setze_achse(op, achse)
+    job.Document.recompute()
+
+
 @dataclass
 class Einstellung:
     """Wie der Assistent einen Job eingerichtet hat – aus dem Job zurückgerechnet

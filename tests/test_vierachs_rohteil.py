@@ -298,6 +298,25 @@ pruefe(
     and e.stange == vr.Stange(75.0, 0.5, 4.0, 25.0),
     f"Einstellung bei B, gedreht: {e and (e.mitte, e.drehlage, e.stange)}",
 )
+# Auf eine andere Rundachse umgestellt (P-2026-10-12-138: der Job ohne Maschine auf B, die
+# Maschine dreht C): dieselbe Stange, Mitte und Drehlage, die Stange jetzt längs Z.
+from camaddon import vierachs_achsen as va  # noqa: E402
+
+dok.openTransaction("umgestellt")
+vr.auf_achse_umstellen(job, va.zugewiesen("C"))
+dok.commitTransaction()
+e = vr.einstellung(job)
+bb = job.Stock.Shape.BoundBox
+pruefe(
+    e is not None
+    and gleich(e.laengs, Z)
+    and e.mitte == vr.MITTE_TEIL
+    and nahe(e.drehlage, 90, 1e-6)
+    and e.stange == vr.Stange(75.0, 0.5, 4.0, 25.0)
+    and nahe(bb.XMin, -37.5, 1e-6)
+    and nahe(bb.XMax, 37.5, 1e-6),
+    f"auf C umgestellt: {e and (e.laengs, e.mitte, e.drehlage, e.stange)}, Rohteil {bb}",
+)
 # Quer verschoben liegt das Teil nicht mehr, wie der Assistent es legt: keine Einstellung.
 klon = vr.modell(job)
 lage_klon = FreeCAD.Placement(klon.Placement)
@@ -306,7 +325,8 @@ pruefe(vr.einstellung(job) is None, "verschobener Klon gilt als eingerichtet")
 klon.Placement = lage_klon
 
 undo = len(dok.UndoNames)
-pruefe(undo == 3, f"{undo} Schritte Rückgängig statt 3: {dok.UndoNames}")
+pruefe(undo == 4, f"{undo} Schritte Rückgängig statt 4: {dok.UndoNames}")
+dok.undo()
 dok.undo()
 dok.undo()
 dok.undo()

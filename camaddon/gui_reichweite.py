@@ -412,6 +412,22 @@ class PruefPanel:
         for widget in (beschriftung, self.wahl_aufnahme):
             widget.setVisible(len(self.werkstueckaufnahmen) > 1)
         aufbau.addLayout(raster)
+        # Dreht der Job um eine Rundachse, die diese Maschine nicht hat (ohne Maschine angelegt):
+        # ein Satz und der Knopf zum Umstellen (_achse_zeigen).
+        self.achse_anders = QtGui.QWidget()
+        zeile_achse = QtGui.QHBoxLayout(self.achse_anders)
+        zeile_achse.setContentsMargins(0, 0, 0, 0)
+        self.achse_satz = QtGui.QLabel()
+        self.achse_satz.setWordWrap(True)
+        self.achse_satz.setStyleSheet(f"color: {ROT};")
+        self.knopf_achse = QtGui.QPushButton()
+        self.knopf_achse.setAutoDefault(False)
+        self.knopf_achse.clicked.connect(lambda: self.achse_umstellen())
+        zeile_achse.addWidget(self.achse_satz, 1)
+        zeile_achse.addWidget(self.knopf_achse)
+        self.achse_anders.hide()
+        self._achse_neu = None
+        aufbau.addWidget(self.achse_anders)
 
         nullpunkt = QtGui.QLabel(tr("rw.nullpunkt"))
         nullpunkt.setWordWrap(True)
@@ -525,6 +541,67 @@ class PruefPanel:
             return None
         return self.werkstueckaufnahmen[max(self.wahl_aufnahme.currentIndex(), 0)]
 
+    def _achse_zeigen(self):
+        """Dreht der gewählte Job (ein 4-Achs-Job des Assistenten) um eine Rundachse, die diese
+        Maschine nicht hat, aber eine, die positionieren kann: der Satz und der Knopf, ihn auf
+        sie umzustellen (Manuel, 2026-10-12: ohne Maschine angelegt – A längs X –, dann die
+        CLX550 mit C; die Stange lag quer auf dem Tisch, beide Operationen ausgelassen)."""
+        from . import vierachs_achsen as va
+        from . import vierachs_operation as vo
+        from . import vierachs_rohteil as vr
+
+        self._achse_neu = None
+        job = self.job()
+        buchstaben = {
+            getattr(op, "Rundachse", "")
+            for op in js.operationen(job)
+            if vo.ist_rundum(op) and getattr(op, "Rundachse", "")
+        }
+        if len(buchstaben) != 1:
+            self.achse_anders.hide()
+            return
+        (buchstabe,) = buchstaben
+        try:
+            achsen = va.von_maschine(self.assembly, self.maschine)
+        except Exception:  # noqa: BLE001 – ohne lesbare Achse kein Vorschlag
+            achsen = []
+        if not achsen or any(a.buchstabe == buchstabe for a in achsen):
+            self.achse_anders.hide()
+            return
+        if vr.einstellung(job) is None:
+            self.achse_anders.hide()
+            return
+        self._achse_neu = achsen[0]
+        self.achse_satz.setText(
+            tr("rw.achse.anders", job=buchstabe, maschine=self._achse_neu.buchstabe)
+        )
+        self.knopf_achse.setText(tr("rw.achse.umstellen", maschine=self._achse_neu.buchstabe))
+        self.knopf_achse.setToolTip(tr("rw.achse.umstellen.tooltip"))
+        self.achse_anders.show()
+
+    def achse_umstellen(self):
+        """Stellt den Job auf die Rundachse dieser Maschine um (vierachs_rohteil.
+        auf_achse_umstellen) – ein Schritt Rückgängig – und prüft neu."""
+        from . import vierachs_rohteil as vr
+
+        achse, job = self._achse_neu, self.job()
+        if achse is None:
+            return
+        dokument = job.Document
+        self._zurueckfahren()
+        dokument.openTransaction(tr("rw.achse.umstellen", maschine=achse.buchstabe))
+        try:
+            with uhren.still():
+                vr.auf_achse_umstellen(job, achse)
+        except ValueError as grund:
+            dokument.abortTransaction()
+            QtGui.QMessageBox.warning(self.form, tr("rw.titel"), str(grund))
+            return
+        dokument.commitTransaction()
+        self.pruefung = None
+        self._achse_zeigen()
+        self.pruefe()
+
     def _job_gewechselt(self):
         """Merkt Nullpunkt und Maschine des bisherigen Jobs, zeigt den Nullpunkt des neuen
         und rechnet."""
@@ -541,6 +618,7 @@ class PruefPanel:
             feld.setText(_zahl(eingetragen[achse], stellen) if achse in eingetragen else "")
             feld.blockSignals(False)
             feld.setPlaceholderText(_zahl(getattr(vorschlag, achse.lower()), stellen))
+        self._achse_zeigen()
         self.pruefe()
 
     def eingetragen(self):

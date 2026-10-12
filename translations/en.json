@@ -2799,5 +2799,9 @@
     "ne.schon_weg": "Nothing left to rough here – the setups and operations before already removed it.",
     "re.rechnet": "computing …",
     "re.rechnet.tooltip": "Still computing in the background – the preview and notes appear when it is done. “Create” works anyway.",
-    "re.rechnet.leiste": "CAM add-on: computing …"
+    "re.rechnet.leiste": "CAM add-on: computing …",
+    "vr.umstellen.fehler": "The job no longer looks the way 4-axis machining created it – the bar cannot be turned. Create the job again in the wizard.",
+    "rw.achse.anders": "The job turns the bar about {job}, this machine about {maschine} – so the bar does not sit in the chuck, and the 4-axis operations are skipped.",
+    "rw.achse.umstellen": "Switch to {maschine}",
+    "rw.achse.umstellen.tooltip": "Puts the part into the bar again for this machine’s rotary axis (front face, centre, rotation and bar stay) and recomputes the 4-axis operations with it – one undo step."
 }

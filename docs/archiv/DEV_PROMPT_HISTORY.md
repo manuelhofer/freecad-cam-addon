@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-138 rundachse-umstellen
+
+### EINGELESEN
+- Manuel (2026-10-12, Bild): „habe einen 4-Achs-Job angewählt – warum steht der jetzt so auf der
+  Planfläche?!? … habe die Maschine im Nachhinein geladen“ – ohne Maschine angelegt (die Stange
+  längs X, A), die CLX550 dreht C: Die Stange lag quer auf dem Tisch, „Rundum schruppen“ und
+  „Rundum schlichten“ fielen aus („Die Maschine hat diese Rundachsen nicht: A“).
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py`: `auf_achse_umstellen` – aus dem Job zurückgerechnet
+  (`einstellung`: Stirnfläche, Mitte, Drehlage, Stange), für die neue Achse neu eingerichtet
+  (`lage`, `richte_ein`), die 4-Achs-Operationen bekommen sie (`vierachs_operation.setze_achse`).
+- `camaddon/gui_reichweite.py`: dreht der Job um eine Rundachse, die die Maschine nicht hat, aber
+  eine, die positionieren kann – ein roter Satz und der Knopf „Auf C umstellen“ (ein Schritt
+  Rückgängig), danach neu geprüft.
+- `translations/de.json`, `en.json`: `rw.achse.*`, `vr.umstellen.fehler`.
+- `tests/test_vierachs_rohteil.py`: von B auf C – die Stange längs Z, Stange, Mitte und Drehlage
+  wie vorher. `tests/gui/szenario_achse_umstellen.py` (neu): Welle auf A, Beispiel-Drehmaschine –
+  Zeile und Knopf, danach dreht die Operation C, die Stange liegt längs Z, nichts fällt aus
+  (dabei gefunden: die rote Farbe als Text, nicht als Qt-Farbe – das Fenster ging nicht auf).
+  Bild `docs/bilder/achse_umstellen.png`. `package.xml` (0.253.0).
+
+### AKZEPTANZKRITERIUM
+- `test_vierachs_rohteil`, `szenario_achse_umstellen`, `test_sprache` grün.
+
 ## P-2026-10-12-137 assistent-im-dokument-der-auswahl
 
 ### EINGELESEN
