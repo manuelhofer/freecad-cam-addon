@@ -583,7 +583,6 @@
     "wv.einsatz.schlichten": "Schlichten",
     "wv.einsatz.bohren": "Bohren",
     "wv.einsatz.eigen": "Eigener Einsatz",
-    "wv.werkstoffe_masssystem": "Werkstoffe und Maßsystem",
     "wv.spalte.werkstoff": "Werkstoff",
     "wv.spalte.werkstoff.tooltip": "Der Werkstoff, für den die Zeile gilt – je Zeile wählbar. „Alle Werkstoffe“ gilt für jeden Werkstoff, der keine eigene Zeile hat. Angaben zum Werkstoff zeigt die Auswahl als Tooltip.",
     "wv.schnittwerte.werkstoffe": "Jede Zeile gilt für die Werkstoffklasse oder den Werkstoff in der ersten Spalte. Ein Werkstoff ohne eigene Zeile nimmt die seiner Klasse, sonst „Alle Werkstoffe“. Eigene Werte für einen einzelnen Werkstoff: „+ Einsatz“ → „Eigene Werte für einen Werkstoff …“.",

@@ -583,7 +583,6 @@
     "wv.einsatz.schlichten": "Finishing",
     "wv.einsatz.bohren": "Drilling",
     "wv.einsatz.eigen": "Own use case",
-    "wv.werkstoffe_masssystem": "Materials and unit system",
     "wv.spalte.werkstoff": "Material",
     "wv.spalte.werkstoff.tooltip": "The material the row applies to – selectable per row. “All materials” applies to every material without a row of its own. The selection shows the material's data as a tooltip.",
     "wv.schnittwerte.werkstoffe": "Each row applies to the material class or material in the first column. A material without rows of its own takes those of its class, otherwise “All materials”. Own values for a single material: “+ Use case” → “Own values for one material …”.",

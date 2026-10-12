@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-121 werkzeugverwaltung-ohne-werkstoff-kopf
+
+### EINGELESEN
+- Manuel (2026-10-12) zur Werkzeugverwaltung: „oben rechts steht ein Fragezeichen, mm und noch
+  ein Fragezeichen … ich finde das nicht schön … lass das aus dem Fenster ganz raus und mach's ins
+  Werkstoffe-Fenster – da ist es schon … ein Relikt längst vergangener Tage?“ Ja: die Überschrift
+  „Werkstoffe und Maßsystem“ mit „?“ stammt aus der Zeit, als der Werkstoff oben gewählt wurde;
+  heute steht dort nur der Knopf „Werkstoffe…“ (mit eigenem Fenster und „?“) und mm/inch.
+
+### DATEIEN
+- `camaddon/gui_werkzeuge.py`: oben ohne Überschrift und „?“ – „Werkstoffe…“ und mm/inch in einer
+  Zeile.
+- `translations/de.json`, `en.json`: `wv.werkstoffe_masssystem` weg. `package.xml` (0.236.0).
+
+### ERGEBNIS
+- Bild `5c_name` im Szenario: oben links „Werkstoffe…“, rechts „mm“, darunter gleich „Werkzeuge“.
+
+### AKZEPTANZKRITERIUM
+- `test_sprache`, `szenario_werkzeugverwaltung` grün.
+
 ## P-2026-10-12-120 n-eck-stange-kern
 
 ### EINGELESEN

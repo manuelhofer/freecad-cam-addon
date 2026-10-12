@@ -330,13 +330,14 @@ class WerkzeugDialog(QtGui.QDialog):
     # --- Aufbau -------------------------------------------------------------------
 
     def _bereich_werkstoff(self):
-        """Oben: „Werkstoffe…“ (die Liste mit Suche, allen Angaben und eigenen Werkstoffen)
-        und mm/inch. Der Werkstoff selbst steht je Zeile in der Schnittwert-Tabelle (Manuel,
+        """Oben in einer Zeile: „Werkstoffe…“ (die Liste mit Suche, allen Angaben und eigenen
+        Werkstoffen) und mm/inch. Der Werkstoff selbst steht je Zeile in der Schnittwert-Tabelle (Manuel,
         2026-10-01: „das Material muss zu den Schnittwerten“)."""
         rahmen = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(rahmen)
         aufbau.setContentsMargins(0, 0, 0, 0)
-        aufbau.addWidget(kopfzeile(tr("wv.werkstoffe_masssystem"), "werkstoffe"))
+        # Ohne Überschrift und „?“: Die Hilfe zu den Werkstoffen hat ihr Fenster (Manuel, 2026-10-12:
+        # „oben rechts ein Fragezeichen, mm und noch ein Fragezeichen … nicht schön“).
         zeile = QtGui.QHBoxLayout()
         self.knopf_werkstoffe = knopf(
             tr("wv.werkstoffe"), tr("wv.werkstoffe.tooltip"), self.werkstoffe_zeigen
