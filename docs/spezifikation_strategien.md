@@ -532,6 +532,18 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
 
 ## 5. Was überall besser sein soll – die Grundsätze
 
+**Einfahren – die Regel** (Manuel, 2026-10-12: „das einzige szenario wo zickzack fahren in
+fräser z richtung sinnvoll ist ... ist wenn du eine nut herstellen willst und die nicht von ausen
+zugänglich ist also eine geschlossene nut ... nur da und sonst nirgends .. wobei selbst da würde
+ich wenns irgendwie geht auf eine helix setzten“). Für jede Strategie, in dieser Reihenfolge:
+1. **Von außen, aus der Luft, mit vollem ap** – wo das Material von einer Seite offen ist (vor der
+   Stange, neben dem Rohteil, wo das Schruppen schon geräumt hat): senkrecht in der Luft hinab,
+   dann seitlich hinein. Kein Eintauchen ins Material.
+2. **Helix** – wo es geschlossen ist und Platz für einen Kreis ist (Durchmesser größer als der
+   Fräser, damit die Mitte nicht schneidet und die Späne nach oben können).
+3. **Zickzack-Rampe** – nur in einer geschlossenen Nut, die für eine Helix zu schmal ist.
+Gebaut für „Plan indexiert“ (P-2026-10-12-161); die anderen Strategien danach durchsehen.
+
 0. **Die Zeit entscheidet** (Manuel, 2026-10-01: „Natürlich muss man immer
    den schnellsten Weg für das gewählte Werkzeug finden … nur muss halt auch
    immer die schnellste Strategie gefunden werden“). Genau so:
