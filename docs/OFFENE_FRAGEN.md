@@ -92,3 +92,16 @@ nicht (Strategiewahl). Und: „Plan indexiert als Erstes“, damit die anderen d
 noch einmal fahren, heißt, dass „Rundum schruppen“ danach weiß, was Plan schon weggenommen hat –
 das ist ein eigener, größerer Schritt. – *Was die Antwort ändert:* Ja: die Stiche werden die
 Vorgabe; Nein: sie bleiben eine Wahl. – seit 2026-10-12.
+
+**19. Wo war die Nase von unten nicht bearbeitet?** Du hattest geschrieben (2026-10-12): „aber die
+Nase von unten ist dennoch nicht bearbeitet“. Im Beispiel-Job (`beispiele/testteil_4achs_nase.FCStd`,
+Rundum schruppen T1 + Rundum schlichten T2) habe ich die Bahn selbst vermessen – den Abstand der
+Kugel zu Punkten im Inneren jeder Fläche, längs der Strecken zwischen den Sätzen: Auf der
+Unterseite (Face5) und allen anderen Flächen der Nase kommt die Kugel bis auf 0,02 mm heran, mit
+und ohne Querachse und Anstellen. – *Warum nur Manuel:* Ich weiß nicht, wo du es gesehen hast:
+im Abspieler (die Anzeige kennt je Strahl aus der Achse nur einen Radius – an schrägen
+Unterseiten und Überhängen zeigt sie Material, das nicht da ist, wie bei den Händen des Geists),
+in einem anderen Job (etwa mit „Plan indexiert“, dann lässt das Schlichten dessen Flächen aus)
+oder an der Maschine. – *Was die Antwort ändert:* Abspieler: die Anzeige für solche Stellen
+genauer machen (3D statt Strahlen). Anderer Job: schick ihn mir, dann suche ich dort. – seit
+2026-10-12.
