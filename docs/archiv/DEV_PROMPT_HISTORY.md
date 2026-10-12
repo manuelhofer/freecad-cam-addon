@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-11-108 speicher-seltener-lesen
+
+### EINGELESEN
+- Im Profil von „Rundum schruppen“ mit der Querachse am Geist aus einem STL (6 min, auf den
+  Nebenrechnern): Der Pool las bei jedem Verteilen den freien Speicher (`/proc/meminfo` und die
+  cgroup-Dateien, seit P-2026-10-11-100) – 35.000 Mal, 21 s im Hauptprozess.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `_verteilen` liest den Speicher erst, wenn ein Auftrag eine große
+  Kopie öffnen will (`_SPAETER`), und `_speicher_fuer_kopien` höchstens alle SPEICHER_ALLE (0,5 s).
+- `package.xml` (0.223.0).
+
+### AKZEPTANZKRITERIUM
+- `test_nebenrechner` in 1.1.4.
+
 ## P-2026-10-11-107 kollision-mit-vorwissen
 
 ### EINGELESEN

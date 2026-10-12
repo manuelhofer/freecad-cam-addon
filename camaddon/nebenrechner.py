@@ -89,6 +89,8 @@ DOKUMENT_KLEIN = 64 * 2**20  # Bytes: weniger braucht eine Kopie – sie zählt 
 RESERVE_ANTEIL = 0.15  # so viel des Arbeitsspeichers bleibt für alles andere frei
 RESERVE_MINDESTENS = 1.5 * 2**30  # Bytes – mindestens
 UNTERWEGS_S = 20.0  # s: so lange zählt eine eben verschickte Kopie, bis der Speicher sie zeigt
+SPEICHER_ALLE = 0.5  # s: so oft höchstens liest der Pool, wie viel Speicher frei ist
+_SPAETER = object()  # _verteilen: den Speicher erst lesen, wenn ihn ein Auftrag braucht
 
 
 class Fehler(Exception):
@@ -719,7 +721,7 @@ class Nebenrechner:
         wartende = [a for a in self._arbeiter if a.stapel and a.wartet]
         # Wer schon Kopien offen hat, zuerst: Er braucht für sie keinen Speicher mehr.
         freie = sorted((a for a in self._arbeiter if not a.stapel), key=lambda a: -len(a.dokumente))
-        frei = [self._speicher_fuer_kopien()] if self._warteschlange else [None]
+        frei = [_SPAETER]  # erst lesen, wenn ein Auftrag eine große Kopie öffnen will
         for arbeiter in wartende + freie:
             if not self._warteschlange:
                 break
@@ -755,6 +757,8 @@ class Nebenrechner:
             if not frei_in_gruppe:
                 continue
             bedarf = self._bedarf(auftrag, arbeiter) if arbeiter is not None else 0
+            if bedarf and frei and frei[0] is _SPAETER:
+                frei[0] = self._speicher_fuer_kopien()
             if bedarf and frei and frei[0] is not None:
                 if bedarf > frei[0] and self._schon_offen(auftrag):
                     continue  # wartet auf einen Arbeiter, der die Kopie offen hat
@@ -782,8 +786,14 @@ class Nebenrechner:
 
     def _speicher_fuer_kopien(self):
         """Bytes, die Arbeiter jetzt noch für Kopien brauchen dürfen – None: unbekannt, keine
-        Grenze. Was gerade verschickt ist, zeigt der Speicher noch nicht: abgezogen."""
-        frei = self.speicher()
+        Grenze. Was gerade verschickt ist, zeigt der Speicher noch nicht: abgezogen. Der Speicher
+        selbst höchstens alle SPEICHER_ALLE s gelesen (P-2026-10-11-108: je Verteilen gelesen
+        waren es 35.000 Mal, 21 s, beim Schruppen mit der Querachse)."""
+        jetzt = time.monotonic()
+        gelesen = getattr(self, "_speicher_gelesen", None)
+        if gelesen is None or jetzt - gelesen[0] > SPEICHER_ALLE or self.speicher is not gelesen[2]:
+            gelesen = self._speicher_gelesen = (jetzt, self.speicher(), self.speicher)
+        frei = gelesen[1]
         jetzt = time.monotonic()
         self._unterwegs = [e for e in self._unterwegs if jetzt - e[0] < UNTERWEGS_S]
         if frei is None:
