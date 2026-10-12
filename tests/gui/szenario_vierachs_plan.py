@@ -148,6 +148,7 @@ def schritte(h):
         f"{plan.Ebenen}, {plan.Lagen}, {plan.Zeilen}",
     )
     h.pruefe(list(plan.Flaechen) == [abflachung], f"Flächen: {list(plan.Flaechen)}")
+    h.pruefe(plan.Weg == "Zeilen", f"Weg ohne Wahl: {plan.Weg!r}")
     schnitte = [b for b in plan.Path.Commands if b.Name == "G1"]
     h.pruefe(len(schnitte) > 10 and all("Y" in b.Parameters for b in schnitte), "Sätze ohne Y")
     h.pruefe(len({round(b.Parameters.get("C", 0.0), 6) for b in schnitte}) == 1, "C dreht")
@@ -174,14 +175,29 @@ def schritte(h):
     h.bild("3_aendern", panel.form)
     panel.felder_plan["zustellung_plan"].setText("1")
     yield from h.warte_auf(lambda: panel.vorschau_plan is not None, 30000)
+    # Stiche von der offenen Seite (P-2026-10-12-146): „nur Gleichlauf“ gilt dann nicht.
+    from camaddon import vierachs_planbahn as vp
+
+    panel.wahl_plan_weg.setCurrentIndex(panel.wahl_plan_weg.findData(vp.WEG_STICHE_GLEICHLAUF))
+    yield 300
+    h.pruefe(
+        not panel.plan_nur_gleichlauf.isEnabled(), "„nur Gleichlauf“ bei den Stichen bedienbar"
+    )
+    yield from h.warte_auf(lambda: panel.vorschau_plan is not None, 30000)
+    h.pruefe(
+        not panel.hinweis_bearbeitung.text(), f"Stiche rot: {panel.hinweis_bearbeitung.text()!r}"
+    )
+    h.bild("3b_stiche", panel.form)
     h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
     yield 1500
     # Die Lagen beginnen auf dem Rest nach dem Schruppen (Aufmaß 0,3 über Ø 16, dazu der Keil
     # an den Wänden bis gut 9,4): mit 1 mm Zustellung zwei Lagen, feiner als vorher die zwei
     # mit 2 mm – mehr Zeilen.
-    h.pruefe(
-        plan.Lagen >= 2 and plan.Zeilen >= 9,
-        f"nach dem Ändern: {plan.Lagen} Lagen, {plan.Zeilen} Zeilen",
-    )
+    h.pruefe(plan.Weg == "Stiche im Gleichlauf", f"Weg nach dem Ändern: {plan.Weg!r}")
+    # Die Stiche beginnen am höchsten Rest, den die Mitte des Fräsers erreicht (wie das Räumen,
+    # raeumen_bahn._mit_stand) – der schmale Keil an den Wänden zählt nicht: eine Lage.
+    h.pruefe(plan.Lagen >= 1, f"nach dem Ändern: {plan.Lagen} Lagen, {plan.Zeilen} Stiche")
+    schnitte = [b for b in plan.Path.Commands if b.Name == "G1"]
+    h.pruefe(len({round(b.Parameters.get("C", 0.0), 6) for b in schnitte}) == 1, "Stiche: C dreht")
     FreeCAD.closeDocument(doc.Name)
     yield 300

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-146 plan-stiche-von-der-offenen-seite
+
+### EINGELESEN
+- Manuel (2026-10-12) zu „Plan indexiert“ am Nasen-Testteil: „fährt mir der Fräser in einem
+  Zickzack-Eintauch ins Teil … aber für was? außenrum ist alles frei … fahr doch Morph zum
+  Schruppen mit Auswahl nur Gleichlauf / Gleichlauf und Gegenlauf / nur Gegenlauf … so dass er
+  D's fährt“. Gemessen (Frage 18, Bild): das 3-Achs-Räumen im Rahmen der Fläche, auf das Feld der
+  Zeilen begrenzt – Stiche 2,5 statt 3,8 min, Morph passt dort nicht.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: WEG_ZEILEN, WEG_STICHE_GLEICHLAUF, WEG_STICHE_GEGENLAUF,
+  `Planwerte.weg`; `planen(..., form_teil=)`; `_stand_im_rahmen` (Stange oder Rest im Rahmen der
+  Fläche), `_stiche_punkte` (Teil gedreht, Wände am Feld der Zeilen, `raeumen_bahn.planen` mit
+  Variante „stiche“, zurück mit `_zurueck`; sonst Zeilen).
+- `camaddon/vierachs_plan.py`: Eigenschaft „Weg“ (Aufzählung, ältere Operationen: Zeilen),
+  `weg_wert`, `weg_der_operation`; `rechne`, `bahn_fuer`, `vorschau`, `lege_an`, `aendere`.
+- `camaddon/gui_vierachs.py`: „Über der Fläche“ im Block „Plan indexiert“ (Zeilen hin und her,
+  Stiche im Gleich-/Gegenlauf), „nur im Gleichlauf“ nur bei den Zeilen; die Vorschau sagt „Stiche“.
+- `translations/de.json`, `en.json`; `tests/test_vierachs_plan.py` (offene Abflachung: Zeilen
+  404, Stiche 56 Sätze, nichts übrig, nichts ins Teil; zwischen zwei Wänden im Feld der Zeilen),
+  `tests/gui/szenario_vierachs_plan.py` (Stiche wählen, Bild `3b_stiche`, „Weg“ an der Operation);
+  `docs/spezifikation_vierachs.md` (V4c++). `package.xml` (0.256.0).
+
+### ERGEBNIS
+- Nasen-Testteil über `vierachs_plan.bahn_fuer`: Zeilen 3,83 min, Stiche 2,51 min (Gleich- und
+  Gegenlauf), 7–8 statt 11-mal eintauchen; gleich viel weg, nichts ins Teil (Voxel 0,5 mm).
+- `test_vierachs_plan` in 26.3 RC1 und 1.1.4, `test_sprache`, `szenario_vierachs_plan` (26.3) grün.
+
+### OFFEN
+- Vorgabe Zeilen oder Stiche: Frage 18. „Plan als Erstes“ (Rundum schruppen weiß nicht, was Plan
+  weggenommen hat).
+
 ## P-2026-10-12-145 szenarien-nachgezogen
 
 ### EINGELESEN

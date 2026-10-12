@@ -875,6 +875,9 @@ class VierachsPanel:
                 ("aufmass_plan", op.Aufmass),
             ]
             self.plan_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
+            self.wahl_plan_weg.setCurrentIndex(
+                max(0, self.wahl_plan_weg.findData(vplan.weg_der_operation(op)))
+            )
             self.plan_schaft.setChecked(bool(getattr(op, "Schaft", False)))
         elif self._art == ENTGRATEN:
             paare = [("breite", op.Breite)]
@@ -1577,6 +1580,17 @@ class VierachsPanel:
         self.felder_plan["aufloesung_plan"].setPlaceholderText(
             groesse_zeigen(vp.TOLERANZ, einheiten.LAENGE)
         )
+        # Der Weg über der Fläche (P-2026-10-12-146; Manuel, 2026-10-12: „außenrum ist alles frei
+        # … so dass er D's fährt“): Zeilen hin und her oder Stiche von der offenen Seite.
+        self.wahl_plan_weg = QtGui.QComboBox()
+        for weg, text in (
+            (vp.WEG_ZEILEN, tr("va.plan.weg.zeilen")),
+            (vp.WEG_STICHE_GLEICHLAUF, tr("va.plan.weg.stiche_gleichlauf")),
+            (vp.WEG_STICHE_GEGENLAUF, tr("va.plan.weg.stiche_gegenlauf")),
+        ):
+            self.wahl_plan_weg.addItem(text, weg)
+        self.wahl_plan_weg.currentIndexChanged.connect(lambda _i: self._plan_weg_gewaehlt())
+        plan.reihe(tr("va.plan.weg"), tr("va.plan.weg.tooltip"), self.wahl_plan_weg)
         # Die Zeilen nur im Gleichlauf: jede von vorne zum Futter, dazwischen abheben
         # (P-2026-10-02-24, Manuel: „auswählbar, ob er abhebt und wieder von vorne anfängt“).
         self.plan_nur_gleichlauf = QtGui.QCheckBox(tr("ba.nur_gleichlauf"))
@@ -3171,6 +3185,15 @@ class VierachsPanel:
         """Die Seiten mit dem Schaft (angehakt und möglich)?"""
         return self.plan_schaft.isEnabled() and self.plan_schaft.isChecked()
 
+    def plan_weg(self):
+        """Der Weg über den ebenen Flächen (vierachs_planbahn.WEG_…)."""
+        return self.wahl_plan_weg.currentData() or vp.WEG_ZEILEN
+
+    def _plan_weg_gewaehlt(self):
+        """„Nur Gleichlauf“ gilt nur für die Zeilen; die Stiche wählen ihn selbst."""
+        self.plan_nur_gleichlauf.setEnabled(self.plan_weg() == vp.WEG_ZEILEN)
+        self._vorschau_starten()
+
     def _plan_argumente(self):
         """{"plan": Argumente, "planbohren": Argumente} für die grobe Bahn „Plan indexiert“
         (vierachs_vorschau.plan) für Lagen, Zeilen und Zeit – „planbohren“ nur mit dem Bohrer
@@ -3205,6 +3228,7 @@ class VierachsPanel:
             bohrer,
         ), {
             "nur_gleichlauf": self.plan_nur_gleichlauf.isChecked(),
+            "weg": self.plan_weg(),
             "schaft": self.plan_schaft_an() and not bohrer,
             "schneide": float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0),
             "schrupp": self._plan_schrupp(),
@@ -3260,7 +3284,16 @@ class VierachsPanel:
             ):
                 text += " " + tr("va.plan.nur_bohrungen")
             return text
-        if bahn.flaechen > 1:
+        stiche = self.plan_weg() != vp.WEG_ZEILEN
+        if bahn.flaechen > 1 and stiche:
+            text = tr(
+                "va.plan.ergebnis_flaechen_stiche",
+                flaechen=bahn.flaechen,
+                lagen=bahn.lagen,
+                zeilen=bahn.zeilen,
+                zeit=zeit,
+            )
+        elif bahn.flaechen > 1:
             text = tr(
                 "va.plan.ergebnis_flaechen",
                 flaechen=bahn.flaechen,
@@ -3268,6 +3301,8 @@ class VierachsPanel:
                 zeilen=bahn.zeilen,
                 zeit=zeit,
             )
+        elif stiche:
+            text = tr("va.plan.ergebnis_stiche", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
         else:
             text = tr("va.plan.ergebnis", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
         if getattr(bahn, "nuten", 0):
@@ -4718,6 +4753,7 @@ class VierachsPanel:
                             nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                             schaft=self.plan_schaft_an(),
                             raster=self._aufloesung("aufloesung_plan"),
+                            weg=self.plan_weg(),
                         )
                     )
                     if loecher:
@@ -4844,6 +4880,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                         schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
+                        weg=self.plan_weg(),
                     )
                 elif self._art == ENTGRATEN:
                     tc = js.controller_fuer(
@@ -4943,6 +4980,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                         schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
+                        weg=self.plan_weg(),
                     )
                     if loecher:
                         self._bohrer_dazu_anlegen(self.achse(), op.QuerAufNull, loecher)

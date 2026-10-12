@@ -38,6 +38,15 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
   dort auch fräst; sonst hebt der Fräser ab.
 - Hinein wie beim Schruppen: senkrecht mit dem Eintauchvorschub, wo die Zeile vor der Stange
   beginnt, sonst über die Rampe mit dem Eintauchwinkel längs der Zeile.
+- **Stiche von der offenen Seite** (Planwerte.weg, P-2026-10-12-146; Manuel, 2026-10-12: „fährt
+  mir der Fräser in einem Zickzack-Eintauch ins Teil … aber für was? außenrum ist alles frei …
+  so dass er D's fährt“): Statt der Zeilen räumt das 3-Achs-Räumen (raeumen_bahn, Variante
+  „stiche“) die Fläche in ihrem Rahmen (_rahmen) – aus der Luft vor der Stange hinein, hinaus und
+  im Bogen zurück, im Gleich- oder Gegenlauf, mit seiner Bremse, wo es tief eingreift. Das Feld
+  ist das der Zeilen: quer die Ränder der Fläche, hinten die Mitte bis a_von − R − Überlauf (als
+  Wände dazugelegt); was daneben steht, nehmen die Rundum-Bahnen. Die Stange (oder der Rest nach
+  dem Schruppen) ist das Rohteil (_stand_im_rahmen). Am Nasen-Testteil: 2,5 statt 3,8 min,
+  7 statt 11-mal eintauchen. Nur parallel zur Stange; geht es dort nicht, fährt die Fläche Zeilen.
 
 - **Nut** (Passfedernut, P-2026-10-02-05): Ist die Fläche der Grund eines Langlochs (zwei
   parallele Wände, an den Enden Halbkreise – nuten()), fräst sie die Bahn „Nut“ des Quaders
@@ -91,6 +100,11 @@ VORSCHAU_TOLERANZ = 0.05  # mm – für die Vorschau im Assistenten
 SEHNE = 0.005  # mm – so weit weicht eine Sehne höchstens vom Bogen der Nut ab
 NUT_AE_ANTEIL = 0.25  # × D: höchstens dieses ae für die Bögen in der Nut
 NUT_LUFT = 0.01  # mm – so weit bleibt der Fräser in der Nut von den Enden und Wänden weg
+# Der Weg über einer ebenen Fläche (Planwerte.weg): Zeilen hin und her – oder Stiche von der
+# offenen Seite (das 3-Achs-Räumen im Rahmen der Fläche) im Gleich- oder Gegenlauf.
+WEG_ZEILEN = "zeilen"
+WEG_STICHE_GLEICHLAUF = "stiche_gleichlauf"
+WEG_STICHE_GEGENLAUF = "stiche_gegenlauf"
 
 
 @dataclass(frozen=True)
@@ -359,6 +373,8 @@ class Planwerte:
     # Die Zeilen auf ebenen Flächen nur im Gleichlauf: jede von vorne zum Futter, danach abheben
     # und von vorne (P-2026-10-02-24); sonst hin und her.
     nur_gleichlauf: bool = False
+    # Der Weg über den ebenen Flächen: WEG_ZEILEN, WEG_STICHE_GLEICHLAUF, WEG_STICHE_GEGENLAUF.
+    weg: str = WEG_ZEILEN
 
 
 @dataclass
@@ -879,13 +895,15 @@ def planen(
     nuten_=None,
     bohrungen_=(),
     mantelnuten_=(),
+    form_teil=None,
 ):
     """Die Bahn „Plan indexiert“ (Planbahn) über die Flächen `flaechen` ([Ebene], ebenen())
     mit den Werten `werte`; `netz` ist das Teil ohne diese Flächen (netz_ohne()), `laengs` und
     `radial` wie in vierachs_huelle; `nuten_` ({Name: [nut_bahn.Nut]}, nuten()): diese Flächen
     als Nut; `bohrungen_` ([(Ebene, Bohrung)], bohrungen()): Querbohrungen; `mantelnuten_`
-    ([Mantelnut], mantelnuten()): Nuten auf dem Mantel. ValueError mit einem Satz, wenn es nicht
-    geht."""
+    ([Mantelnut], mantelnuten()): Nuten auf dem Mantel; `form_teil` (Part.Shape im Job): das Teil
+    für die Stiche (Planwerte.weg) – ohne fahren alle Flächen Zeilen. ValueError mit einem Satz,
+    wenn es nicht geht."""
     w = werte
     form = w.form
     radius = form.radius
@@ -983,6 +1001,20 @@ def planen(
             zeilen_gesamt += nut.boegen + nut.vollnut
             r_min = min(r_min, nut.z_min)
             continue
+        if w.weg != WEG_ZEILEN and form_teil is not None and abs(ebene.steigung) < GERADE:
+            stiche = _stiche_punkte(
+                form_teil, laengs, radial, ebene, w, aufmass, sicher, a_ende, netz.toleranz
+            )
+            if stiche is not None:
+                stueck, raeumbahn = stiche
+                punkte.extend(stueck)
+                letzter = punkte[-1]
+                punkte.append(vb.Punkt(True, letzter.a, sicher, ebene.phi, q=letzter.q))
+                flaechen_gefraest += 1
+                lagen_gesamt += raeumbahn.lagen
+                zeilen_gesamt += raeumbahn.ringe
+                r_min = min(r_min, raeumbahn.z_min)
+                continue
         q_zeilen = _zeilen_quer(ebene, r_eben + zugabe + LUFT, w.zeilenabstand)
         a_von = max(a_ende, ebene.a_von - radius - UEBERLAUF_LAENGS)
         a_bis = min(a_anfang, ebene.a_bis + radius + UEBERLAUF_LAENGS)
@@ -1100,6 +1132,113 @@ def planen(
         seiten_gebohrt,
         mantel_gefraest,
     )
+
+
+def _stand_im_rahmen(w, ebene, xs, ys):
+    """(len(xs), len(ys)): so hoch steht das Material im Rahmen der Fläche (x = a, y = −q, z zum
+    Fräser) – die Stange, oder nach dem Schruppen der Rest (w.rest): je Stelle längs der Rand der
+    Strahlen (r · cos δ, −r · sin δ), dazwischen geradlinig, nie über der Stange; −inf neben ihr."""
+    radius = float(w.stange_radius)
+    ys = np.asarray(ys, dtype=float)
+    stange = np.where(np.abs(ys) < radius, np.sqrt(np.maximum(radius**2 - ys * ys, 0.0)), -np.inf)
+    hoehen = np.repeat(stange[None, :], len(xs), axis=0)
+    if w.rest is None:
+        return hoehen
+    rest_a, rest_phi, rest_r = w.rest
+    delta = np.angle(np.exp(1j * (rest_phi - math.radians(ebene.phi))))
+    vorn = np.abs(delta) < math.pi / 2
+    schritt = float(rest_a[1] - rest_a[0]) if len(rest_a) > 1 else 1.0
+    zeilen = np.clip(
+        np.rint((np.asarray(xs, dtype=float) - rest_a[0]) / schritt).astype(np.int64),
+        0,
+        len(rest_a) - 1,
+    )
+    for k, i in enumerate(zeilen.tolist()):
+        r = rest_r[i, vorn]
+        y_rand, z_rand = -r * np.sin(delta[vorn]), r * np.cos(delta[vorn])
+        folge = np.argsort(y_rand)
+        z = np.interp(ys, y_rand[folge], z_rand[folge], left=-np.inf, right=-np.inf)
+        hoehen[k] = np.minimum(hoehen[k], z)
+    return hoehen
+
+
+def _stiche_punkte(form_teil, laengs, radial, ebene, w, aufmass, sicher, a_ende, toleranz):
+    """([vierachs_bahn.Punkt], raeumen_bahn.Raeumbahn) – die Fläche `ebene` mit Stichen von der
+    offenen Seite (Planwerte.weg): das 3-Achs-Räumen (Variante „stiche“) im Rahmen der Fläche
+    (_rahmen), zurück mit _zurueck. Das Feld wie das der Zeilen, als Wände dazugelegt: quer an den
+    Rändern der Fläche, hinten und – endet die Fläche vor der Stange – vorne, wo die Mitte der
+    Zeilen endet. In einem Feld ohne offene Seite fährt das Räumen in einer Rampe im Kreis hinab
+    (wie die Zeilen über die Rampe). None, wenn es dort nicht geht oder eine andere Variante wählt
+    – dann fährt die Fläche Zeilen."""
+    import FreeCAD
+    import Part
+
+    from . import hoehenfeld as hf
+    from . import materialstand as mst
+    from . import raeumen as ra
+    from . import raeumen_bahn as rb
+    from . import restmaterial as rm
+
+    radius = float(w.form.radius)
+    stange = float(w.stange_radius)
+    lokal = form_teil.copy()
+    lokal.transformShape(_rahmen(laengs, radial, ebene))
+    ebenen_lokal = hf.ebenen_oben(lokal, [ebene.name])
+    if not ebenen_lokal:
+        return None
+    y_von, y_bis = -ebene.q_bis, -ebene.q_von
+    x_hinten = max(a_ende, ebene.a_von - radius - UEBERLAUF_LAENGS) - radius - aufmass
+    # Vorne offen, wo die Zeilen vor der Stange enden; sonst eine Wand, wo ihre Mitte endet.
+    x_wand = ebene.a_bis + radius + UEBERLAUF_LAENGS + radius + aufmass
+    x_vorne = min(float(w.a_stange_vorne), x_wand)
+    if x_vorne <= x_hinten + vb.GLEICH:
+        return None
+    weit, rand = 4 * stange + 200.0, stange + 100.0
+    unten, hoch = -stange - 50.0, 2 * stange + 100.0
+    links = x_hinten - weit
+    waende = [
+        Part.makeBox(weit, 2 * rand, hoch, FreeCAD.Vector(links, -rand, unten)),
+        Part.makeBox(2 * weit, rand, hoch, FreeCAD.Vector(links, y_bis, unten)),
+        Part.makeBox(2 * weit, rand, hoch, FreeCAD.Vector(links, y_von - rand, unten)),
+    ]
+    if x_wand < float(w.a_stange_vorne):
+        waende.append(Part.makeBox(weit, 2 * rand, hoch, FreeCAD.Vector(x_wand, -rand, unten)))
+    mit = Part.makeCompound([lokal, *waende])
+    quader = rm.Quader(
+        x_hinten, x_vorne, max(-stange, y_von), min(stange, y_bis), -stange, stange, mst.SCHRITT
+    )
+    quader.h = _stand_im_rahmen(w, ebene, quader.x, quader.y)
+    steht = quader.h[np.isfinite(quader.h)]
+    if not steht.size:
+        return None
+    werte = rb.Raeumwerte(
+        form=w.form,
+        zustellung=w.zustellung,
+        zeilenabstand=min(w.zeilenabstand, ebener_radius(w.form)),
+        aufmass=aufmass,
+        oben=float(steht.max()),
+        sicher=sicher,
+        rohteil=(x_hinten, x_vorne, max(-stange, y_von), min(stange, y_bis)),
+        aufmass_boden=aufmass,
+        gleichlauf=bool(w.gleichlauf) == (w.weg == WEG_STICHE_GLEICHLAUF),
+        variante=rb.STICHE,
+        sicherheit=w.sicherheit,
+        eintauchwinkel=w.eintauchwinkel,
+    )
+    try:
+        bahn = rb.planen(
+            hf.netze_je_hoehe(mit, ebenen_lokal, toleranz),
+            werte,
+            ebenen_lokal,
+            ra.konturen_des_teils(mit),
+            rb.SCHRITT,
+            mst.Materialstand(quader, quader.h.copy()),
+        )
+    except ValueError:
+        return None
+    if bahn.variante != rb.STICHE:
+        return None  # etwa eine Tasche („inseln“, mit Eintauchen): dann lieber die Zeilen
+    return _zurueck(bahn.punkte, ebene), bahn
 
 
 def _zeilen_rechnen(bezug, q_zeilen):

@@ -911,6 +911,109 @@ if virt is not None:
     )
     pruefe(sb.lagen >= 5, f"Schaft: {sb.lagen} Lagen")
 
+# --- Stiche von der offenen Seite (P-2026-10-12-146) ------------------------------------------
+# Eine Abflachung, die vorne offen ausläuft (x = 8, a −30 … 0, die Stange 1 mm weiter): das
+# 3-Achs-Räumen im Rahmen der Fläche statt der Zeilen – aus der Luft vor der Stange hinein, die
+# Rundachse fest, nicht ins Teil, über der Fläche nichts übrig. Eine Fläche zwischen zwei Wänden
+# (oben, eine Tasche) fährt weiter Zeilen.
+offen_welle = (
+    Part.makeCylinder(10, 40, V(0, 0, -40))
+    .cut(Part.makeBox(10, 30, 31, V(8, -15, -30)))
+    .removeSplitter()
+)
+offen_ebenen = vp.ebenen(
+    offen_welle, LAENGS, RADIAL, [f"Face{i + 1}" for i in range(len(offen_welle.Faces))]
+)
+pruefe(len(offen_ebenen) == 1, f"offen: Ebenen {offen_ebenen}")
+offen_netz = vp.netz_ohne(offen_welle, [e.name for e in offen_ebenen])
+offen_werte = vp.Planwerte(
+    form=ff.scheibe(3.0),
+    stange_radius=12.0,
+    zustellung=2.0,
+    zeilenabstand=2.5,
+    aufmass=0.0,
+    a_stange_vorne=1.0,
+    a_futter=-60.0,
+)
+offen_teilnetz = vh.vernetze(offen_welle, 0.01)
+zeilen_vor = []  # die Sätze der Zeilen, gegen die Stiche
+for weg in (vp.WEG_ZEILEN, vp.WEG_STICHE_GLEICHLAUF, vp.WEG_STICHE_GEGENLAUF):
+    b = vp.planen(
+        offen_netz,
+        LAENGS,
+        RADIAL,
+        dataclasses.replace(offen_werte, weg=weg),
+        offen_ebenen,
+        form_teil=offen_welle,
+    )
+    vor = [p for p, n in zip(b.punkte, b.punkte[1:], strict=False) if not n.eilgang]
+    pruefe(all(abs(p.phi) < 1e-6 for p in b.punkte[1:]), f"{weg}: C dreht")
+    abtrag = rm.Stange(12.0, -60.0, 1.0)
+    abtrag.fahre_stuecke(
+        [(p.a, p.r, p.phi, p.q) for p, n in zip(b.punkte, b.punkte[1:], strict=False) if not n.eilgang],
+        [(n.a, n.r, n.phi, n.q) for p, n in zip(b.punkte, b.punkte[1:], strict=False) if not n.eilgang],
+        ff.scheibe(3.0),
+    )  # fmt: skip
+    vergleich = rm.vergleiche(
+        abtrag,
+        rm.teilradien(offen_teilnetz, LAENGS, RADIAL, abtrag),
+        0.0,
+        rm.teilradien(offen_teilnetz, LAENGS, RADIAL, abtrag, rm.GENAU),
+    )
+    pruefe(vergleich.kleinster >= -rm.BLAU_AB, f"{weg}: ins Teil {vergleich.kleinster:.3f}")
+    a_raster = abtrag.a[:, None] + 0 * abtrag.phi[None, :]
+    phi_raster = np.degrees(np.angle(np.exp(1j * abtrag.phi)))[None, :] + 0 * abtrag.a[:, None]
+    ueber = (a_raster > -28.0) & (a_raster < -2.0) & (np.abs(phi_raster) < 30.0)
+    rest = np.nanmax(np.where(ueber, vergleich.rest, np.nan))
+    pruefe(rest < 0.3, f"{weg}: über der Fläche bleiben {rest:.2f} mm")
+    if weg != vp.WEG_ZEILEN:
+        # Aus der Luft hinein: Der erste Satz im Vorschub auf der Höhe einer Lage liegt vor der
+        # Stange (a > 1 + Fräserradius); keiner taucht senkrecht ins Material.
+        lage_hinein = [n for p, n in zip(b.punkte, b.punkte[1:], strict=False) if not n.eilgang]
+        pruefe(
+            bool(lage_hinein) and lage_hinein[0].a > 1.0 + 3.0 - 1e-6,
+            f"{weg}: beginnt bei a {lage_hinein[0].a if lage_hinein else None}",
+        )
+        pruefe(
+            [round(p.r, 6) for p in vor] != [round(p.r, 6) for p in zeilen_vor],
+            f"{weg}: dieselbe Bahn wie die Zeilen",
+        )
+        print(
+            ascii(f"  {weg}: {b.lagen} Lagen, {b.zeilen} Stiche, {len(vor)} Sätze, Rest {rest:.2f}")
+        )
+    else:
+        zeilen_vor = vor
+        print(
+            ascii(
+                f"  Zeilen: {b.lagen} Lagen, {b.zeilen} Zeilen, {len(vor)} Sätze, Rest {rest:.2f}"
+            )
+        )
+# Zwischen zwei Wänden ist das Feld geschlossen: Die Stiche fahren in der Rampe im Kreis hinab,
+# bleiben im Feld der Zeilen (längs bis a_bis + R + Überlauf) und fahren nicht ins Teil.
+tasche = vp.planen(
+    netz, LAENGS, RADIAL, dataclasses.replace(werte, weg=vp.WEG_STICHE_GLEICHLAUF), ebenen,
+    form_teil=flach_welle,
+)  # fmt: skip
+tasche_vor = [n for p, n in zip(tasche.punkte, tasche.punkte[1:], strict=False) if not n.eilgang]
+pruefe(
+    bool(tasche_vor) and max(p.a for p in tasche_vor) <= -10.0 + 3.0 + vp.UEBERLAUF_LAENGS + 1e-6,
+    f"Tasche: vorne bis a {max((p.a for p in tasche_vor), default=None)}",
+)
+abtrag = rm.Stange(12.0, -60.0, 1.0)
+abtrag.fahre_stuecke(
+    [(p.a, p.r, p.phi, p.q) for p, n in zip(tasche.punkte, tasche.punkte[1:], strict=False) if not n.eilgang],
+    [(n.a, n.r, n.phi, n.q) for p, n in zip(tasche.punkte, tasche.punkte[1:], strict=False) if not n.eilgang],
+    ff.scheibe(3.0),
+)  # fmt: skip
+flach_teilnetz = vh.vernetze(flach_welle, 0.01)
+vergleich = rm.vergleiche(
+    abtrag,
+    rm.teilradien(flach_teilnetz, LAENGS, RADIAL, abtrag),
+    0.0,
+    rm.teilradien(flach_teilnetz, LAENGS, RADIAL, abtrag, rm.GENAU),
+)
+pruefe(vergleich.kleinster >= -rm.BLAU_AB, f"Tasche: ins Teil {vergleich.kleinster:.3f}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

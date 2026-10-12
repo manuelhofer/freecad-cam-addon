@@ -37,6 +37,13 @@ from .sprache import tr
 
 AUFMASS = 0.0  # mm – Plan indexiert macht die Fläche fertig
 ZEILENABSTAND_ANTEIL = 0.6  # ohne ae im Einsatz: so viel vom ebenen Teil der Stirn (Durchmesser)
+# Die Werte der Eigenschaft „Weg“ (Aufzählung, bleibt in jeder Datei) und der Weg der Bahn dazu
+# (vierachs_planbahn.WEG_…, P-2026-10-12-146). Ältere Dateien ohne sie: die Zeilen.
+WEG_WERTE = {
+    "Zeilen": vp.WEG_ZEILEN,
+    "Stiche im Gleichlauf": vp.WEG_STICHE_GLEICHLAUF,
+    "Stiche im Gegenlauf": vp.WEG_STICHE_GEGENLAUF,
+}
 
 
 class PlanIndexiert(PathOp.ObjectOp):
@@ -67,9 +74,10 @@ class PlanIndexiert(PathOp.ObjectOp):
 
     @staticmethod
     def _eigenschaften(obj):
-        """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück. Der Weg (seit
+        P-2026-10-12-146) kommt in älteren Operationen mit den Zeilen dazu."""
         au.eigenschaft(obj, vo.GRUPPE)  # die Auflösung: so fein wird das Teil vernetzt (mm), T-009
-        return vo.eigenschaften_anlegen(
+        neu = vo.eigenschaften_anlegen(
             obj,
             vo.achs_eigenschaften()
             + (
@@ -82,6 +90,7 @@ class PlanIndexiert(PathOp.ObjectOp):
             + (
                 ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
                 ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
+                ("App::PropertyEnumeration", "Weg", tr("vp.eigenschaft.weg")),
                 ("App::PropertyBool", "Schaft", tr("vp.eigenschaft.schaft")),
                 ("App::PropertyInteger", "Ebenen", tr("vp.eigenschaft.ebenen")),
                 ("App::PropertyInteger", "Lagen", tr("vp.eigenschaft.lagen")),
@@ -89,6 +98,9 @@ class PlanIndexiert(PathOp.ObjectOp):
                 ("App::PropertyInteger", "Huebe", tr("vp.eigenschaft.huebe")),
             ),
         )
+        if "Weg" in neu:
+            obj.Weg = list(WEG_WERTE)  # die Werte der Aufzählung; gewählt ist der erste
+        return neu
 
     @staticmethod
     def _editormodi(obj):
@@ -157,7 +169,21 @@ def rechne(obj, job, modell):
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         schaft=bool(getattr(obj, "Schaft", False)),
         schneide=schneidenlaenge(obj.ToolController),
+        weg=weg_der_operation(obj),
     )
+
+
+def weg_wert(weg):
+    """Der Wert der Eigenschaft „Weg“ zu einem Weg der Bahn (vierachs_planbahn.WEG_…)."""
+    for wert, bahn_weg in WEG_WERTE.items():
+        if bahn_weg == weg:
+            return wert
+    return next(iter(WEG_WERTE))
+
+
+def weg_der_operation(obj):
+    """Der Weg der Bahn (vierachs_planbahn.WEG_…) aus der Eigenschaft „Weg“ – ohne: Zeilen."""
+    return WEG_WERTE.get(getattr(obj, "Weg", None), vp.WEG_ZEILEN)
 
 
 def schneidenlaenge(tc):
@@ -221,6 +247,7 @@ def bahn_fuer(
     zur_achse=True,
     schaft=False,
     schneide=0.0,
+    weg=vp.WEG_ZEILEN,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
@@ -233,8 +260,9 @@ def bahn_fuer(
     die Zeilen jede im Gleichlauf, dazwischen abheben (sonst hin und her); `zur_achse`: auch
     ebene Flächen, die zur Achse schauen, wenn der Weg dorthin frei ist (vierachs_planbahn.ebenen);
     `schaft`: die Seiten mit dem Schaft, soweit die Schneide (`schneide`, mm) reicht
-    (vierachs_planbahn.mit_dem_schaft), die anderen mit der Stirn. ValueError mit einem Satz, wenn
-    es nicht geht."""
+    (vierachs_planbahn.mit_dem_schaft), die anderen mit der Stirn; `weg`: über den ebenen Flächen
+    Zeilen oder Stiche von der offenen Seite (vierachs_planbahn.WEG_…). ValueError mit einem Satz,
+    wenn es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen, zur_achse=zur_achse)
@@ -262,6 +290,7 @@ def bahn_fuer(
         bohrer=bohrer,
         gleichlauf=gleichlauf,
         nur_gleichlauf=nur_gleichlauf,
+        weg=weg,
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     nuten = vp.nuten(form_teil, laengs, radial, ebenen)
@@ -283,6 +312,7 @@ def bahn_fuer(
         nuten_=nuten,
         bohrungen_=bohrungen,
         mantelnuten_=mantelnuten,
+        form_teil=form_teil,
     )
 
 
@@ -304,6 +334,7 @@ def vorschau(
     schaft=False,
     schneide=0.0,
     schruppen=(),
+    weg=vp.WEG_ZEILEN,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten, bevor es die
     Operationen gibt: gröber vernetzt, vom Rest nach den Schruppbahnen `schruppen` aus ([(Bahn,
@@ -328,6 +359,7 @@ def vorschau(
         nur_gleichlauf=nur_gleichlauf,
         schaft=schaft,
         schneide=schneide,
+        weg=weg,
     )
 
 
@@ -359,6 +391,7 @@ def lege_an(
     nur_gleichlauf=False,
     raster=0.0,
     schaft=False,
+    weg=vp.WEG_ZEILEN,
 ):
     """Legt „Plan indexiert“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
@@ -394,6 +427,7 @@ def lege_an(
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
     obj.NurGleichlauf = bool(nur_gleichlauf)
+    obj.Weg = weg_wert(weg)
     obj.Schaft = bool(schaft)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
     if FreeCAD.GuiUp:
@@ -416,6 +450,7 @@ def aendere(
     nur_gleichlauf=None,
     raster=None,
     schaft=None,
+    weg=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `abstaende`, `halter`, `flaechen`, `eintauchwinkel`, `nur_gleichlauf` und
@@ -442,6 +477,8 @@ def aendere(
         au.setze(obj, raster)
     if schaft is not None and bool(schaft) != bool(getattr(obj, "Schaft", False)):
         obj.Schaft = bool(schaft)
+    if weg is not None and weg != weg_der_operation(obj):
+        obj.Weg = weg_wert(weg)
 
 
 def _name(tc):

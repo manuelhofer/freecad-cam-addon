@@ -833,6 +833,24 @@ bauen“):*
   (`_schlicht_flaechen`). Manuels Teil (Kugel Ø 10 schruppt, Ø 12 plant Face4 8,5° schräg,
   Kugel schlichtet den Rest mit 0,2): Plan 9,3 min + Schlichten 52 min statt 88 min Spirale
   rundum – und die flache Seite eben bis auf 0,01 mm statt mit der Kugelspitze gefahren.
+- **V4c++ – Plan indexiert mit Stichen von der offenen Seite** (P-2026-10-12-146; Manuel,
+  2026-10-12: „wenn ich nur Plan indexieren mache, fährt mir der Fräser in einem Zickzack-Eintauch
+  ins Teil … aber für was? außenrum ist alles frei … fahr doch Morph zum Schruppen mit Auswahl nur
+  Gleichlauf / Gleichlauf und Gegenlauf / nur Gegenlauf … so dass er D's fährt“): Eigenschaft
+  „Weg“ der Operation (Zeilen | Stiche im Gleichlauf | Stiche im Gegenlauf), im Assistenten
+  „Über der Fläche“, Vorgabe die Zeilen (Frage 18). Mit Stichen räumt das 3-Achs-Räumen
+  (`raeumen_bahn`, Variante „stiche“) jede ebene Fläche parallel zur Stange in ihrem Rahmen
+  (`vierachs_planbahn._stiche_punkte`): das Teil gedreht, die Stange (oder der Rest) als
+  Höhenfeld (`_stand_im_rahmen`), Wände an den Grenzen des Felds der Zeilen (quer die Ränder der
+  Fläche, hinten und vorne, wo die Mitte der Zeilen endet; vorne offen, wo die Fläche vor der
+  Stange endet). Ohne diese Grenzen räumte es nach 3-Achs-Art die ganze Schicht über der Ebene bis
+  ans Futter (am Nasen-Testteil 19 min). Morph passt an der Nase nicht (er fällt auf „Rohteil“ mit
+  32-mal Eintauchen). Am Nasen-Testteil (Face4, 6, 8, T1 Ø 12, ap 22,2, ae 5,4): Zeilen 3,8 min,
+  11-mal eintauchen; Stiche 2,5 min mit dem Bremsen des Räumens, 7–8-mal; gleich viel weg
+  (133,7 / 132,8 cm³), nichts ins Teil. In einem Feld ohne offene Seite fährt das Räumen in der
+  Rampe im Kreis hinab; wählt es eine andere Variante oder geht es nicht, fährt die Fläche Zeilen.
+  Offen: „Plan als Erstes“ – damit „Rundum schruppen“ die Nase nicht noch einmal fährt, müsste es
+  wissen, was Plan schon weggenommen hat.
   *Für 5 Achsen und „ausweichen“:* Mit Y allein ändert sich die Richtung des Werkzeugs zum
   Teil nur mit C, also quer zur Stange; eine längs geneigte Fläche bräuchte eine Schwenkachse
   (B). Mit Y lässt sich aber der Winkel von Werkzeug und Fläche quer wählen – C auf φ_Normale
