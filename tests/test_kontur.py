@@ -258,7 +258,9 @@ pruefe(
 )
 pruefe(bahn.punkte[0].eilgang and abs(bahn.punkte[0].z - 26.0) < 1e-9, "Start oben")
 pruefe(bahn.punkte[-1].eilgang and abs(bahn.punkte[-1].z - 26.0) < 1e-9, "Ende oben")
-pruefe(bahn.laenge > 3000.0, f"Länge {bahn.laenge}")
+# Ohne die Rampen hin und her (Helix neben dem Anfang, quer aus der Luft daneben,
+# P-2026-10-12-171) gut 1.770 mm statt über 3.000.
+pruefe(bahn.laenge > 1500.0, f"Länge {bahn.laenge}")
 befehle = bn.befehle(bahn.punkte, 1000.0, 200.0)
 pruefe({"G0", "G1", "G2", "G3"} <= {b.Name for b in befehle}, "Befehle G0 … G3")
 print(ascii(f"Kontur: {len(bahn.punkte)} Punkte, {len(befehle)} Befehle"))

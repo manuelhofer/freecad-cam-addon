@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-171 kontur-von-aussen-und-helix-daneben
+
+### EINGELESEN
+- Manuels Ring, 3-Achs-Job gespeichert (`~/freecad_cam/testteile/4_achs_planbearbeitung_testteil.FCStd`,
+  „Kontur T4“ an acht Wänden, T4 Ø 4): „du bist hier auserhalb vom rohteil ... warum zirkulierst du
+  da nach unten ?!?!?!?“. Nachgerechnet: eine Helix 1,7 mm neben dem Rohteil (der Fräser streifte es
+  mit 0,3 mm – das galt als „im Material“), dazu 62 Rampen im Zickzack an Läufen dicht an der Wand,
+  wo am Anfang kein Helix-Kreis Platz hatte.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_luft_daneben` – steht am Anfang wenigstens ein Drittel des Umfangs in
+  der Luft (außerhalb des Rohteils, im schon geräumten Band, laut Materialstand), eine Stelle bis zwei
+  Radien daneben mit der ganzen Stirn in der Luft: dort hinab, quer hinein. `_helix_daneben` – passt
+  am Anfang keine Helix, eine bis 0,9 R daneben (der Anfang liegt dann im gebohrten Loch, das
+  Hinüberfahren schneidet nichts). Die Rampe nur noch, wo beides nicht geht.
+  `tests/test_kontur.py`: die Länge (ohne Rampen 1.775 statt über 3.000 mm). `package.xml` (0.259.14).
+
+### ERGEBNIS
+- Manuels Ring, Kontur T4: Rampen 62 → 0, Helix außerhalb des Rohteils → keine (66 Helix im Rohteil,
+  30-mal daneben aus der Luft), Befehle 12.107 → 4.083. Grün in 26.3 RC1: `test_kontur`,
+  `test_raeumen`, `test_testteil`, `test_goldene_bahnen`, `szenario_bearbeitung`.
+
 ## P-2026-10-12-170 schaft-und-halter-nicht-ins-teil
 
 ### EINGELESEN

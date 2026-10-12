@@ -1348,22 +1348,58 @@ def _lauf(
             material, oben_hier = False, lage
         else:
             oben_hier = max(oben_hier, ms.hoechste_bei(start[0], start[1], r))
+    neben = None
+    if material:
+        # Steht die Stirn am Anfang nur zum Teil im Material (am Rand des Rohteils, neben dem
+        # schon Geräumten): daneben in der Luft hinab und quer hinein – nicht im Kreis außerhalb
+        # des Rohteils hinab (Manuel, 2026-10-12, am Ring: „du bist hier auserhalb vom rohteil
+        # ... warum zirkulierst du da nach unten“; T4 streifte das Rohteil dort mit 0,3 mm).
+        def luft_bei(qx, qy, rand):
+            """Je Punkt: steht dort (die Stirn mit Radius `rand`) nichts mehr über der Lage?"""
+            luft = ~_im_rohteil(qx, qy, w.rohteil, max(rand, 2 * GLEICH))  # 0: der Punkt
+            dq = huelle.abstand_zur_wand(qx, qy, lage)
+            luft |= (dq - rand >= frei_von - GLEICH) & (dq + rand <= frei_bis + GLEICH)
+            if mit_stand is not None:
+                ms = mit_stand.stand
+                luft |= np.array(
+                    [ms.hoechste_bei(x, y, rand + ms.schritt) <= lage + MATERIAL
+                     for x, y in zip(qx, qy, strict=True)]
+                )  # fmt: skip
+            return luft
+
+        neben = _luft_daneben(start, r, frei, luft_bei)
+        if neben is not None:
+            material, oben_hier = False, lage
+    hinab = neben if neben is not None else start
     punkte = st.punkte
-    punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
+    punkte.append(bn.Punkt(True, hinab[0], hinab[1], w.sicher))
     knapp = min(w.sicher, oben_hier + w.sicherheit)
     if knapp < w.sicher - GLEICH:
-        punkte.append(bn.Punkt(True, start[0], start[1], knapp))
+        punkte.append(bn.Punkt(True, hinab[0], hinab[1], knapp))
     laenge = 0.0
     helix = _helix_radius(start, r, frei) if material else None
+    mitte = start
+    if material and helix is None:  # am Anfang kein Platz: daneben, er liegt dann im Loch
+        daneben = _helix_daneben(start, r, frei)
+        if daneben is not None:
+            mitte, helix = daneben
     if helix is not None:
         # Eine Helix statt der Rampe im Zickzack (Manuel, 2026-10-12: „selbst da würde ich wenns
         # irgendwie geht auf eine helix setzten“; Spezifikation Strategien, Abschnitt 5).
-        laenge += _helix_hinab(punkte, start, helix, knapp, vorige, lage, w)
+        laenge += _helix_hinab(punkte, mitte, helix, knapp, vorige, lage, w)
+        if mitte is not start:  # aus dem Loch zum Anfang
+            punkt = bn.Punkt(False, start[0], start[1], lage)
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
     elif material:
         punkte.append(bn.Punkt(False, start[0], start[1], vorige, True))  # bis ans Material
         laenge += _rampe(punkte, ein, x, y, lage, vorige, w, schritt)
     else:
-        punkte.append(bn.Punkt(False, start[0], start[1], lage, True))
+        punkte.append(bn.Punkt(False, hinab[0], hinab[1], lage, True))
+        if neben is not None:  # quer hinein zum Anfang
+            punkt = bn.Punkt(False, start[0], start[1], lage)
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
     if ein is not None:
         laenge += _anfahrt_punkte(punkte, ein, lage, hinein=True)
     laenge += _bahnpunkte(punkte, segmente, proben, stellen, lage, hinten, w.austritt, r)
@@ -1423,6 +1459,49 @@ def _anfahrt_punkte(punkte, an, lage, hinein):
 
 
 HELIX_PROBEN = 24  # so viele Punkte auf dem Kreis prüft _helix_radius
+LUFT_ANTEIL = 1 / 3  # so viel des Umfangs am Anfang muss in Luft sein für _luft_daneben
+
+
+def _helix_daneben(start, r, frei):
+    """(Mitte, Radius) einer Helix bis 0,9 Fräserradien neben `start` – so liegt der Anfang noch
+    im Loch, das sie bohrt (sein Rand 1,9 R um die Mitte), und der Weg dorthin schneidet nichts –,
+    deren Kreis frei ist (_helix_radius) und von deren Mitte der Weg zu `start` frei ist. None,
+    wenn keine passt."""
+    winkel = np.linspace(0.0, 2 * math.pi, HELIX_PROBEN, endpoint=False)
+    for anteil in (0.3, 0.6, 0.9):
+        weite = anteil * r
+        for t in winkel:
+            mitte = (start[0] + weite * math.cos(t), start[1] + weite * math.sin(t))
+            radius = _helix_radius(mitte, r, frei)
+            if radius is None or radius + weite > (1.0 + 0.9) * r - GLEICH:
+                continue
+            wx = np.linspace(mitte[0], start[0], 5)
+            wy = np.linspace(mitte[1], start[1], 5)
+            if frei(wx, wy):
+                return mitte, radius
+    return None
+
+
+def _luft_daneben(start, r, frei, luft_bei):
+    """Ein Punkt bis zwei Fräserradien neben `start`, an dem die ganze Stirn in der Luft steht
+    (`luft_bei(x, y, Radius)`) und von dem der Weg quer zu `start` frei ist (`frei(x, y)`) – nur,
+    wenn am Anfang wenigstens LUFT_ANTEIL des Umfangs in der Luft liegt (sonst würde quer hinein
+    ein Stoß in voller Breite: dann die Helix). None, wenn keiner passt."""
+    winkel = np.linspace(0.0, 2 * math.pi, HELIX_PROBEN, endpoint=False)
+    umfang = luft_bei(start[0] + r * np.cos(winkel), start[1] + r * np.sin(winkel), 0.0)
+    if np.mean(umfang) < LUFT_ANTEIL:
+        return None
+    for weite in (0.5 * r, r, 1.5 * r, 2 * r):
+        qx = start[0] + weite * np.cos(winkel)
+        qy = start[1] + weite * np.sin(winkel)
+        luft = luft_bei(qx, qy, r)
+        for i in np.flatnonzero(luft):
+            anzahl = max(2, int(math.ceil(weite / 0.25)) + 1)
+            wx = np.linspace(qx[i], start[0], anzahl)
+            wy = np.linspace(qy[i], start[1], anzahl)
+            if frei(wx, wy):
+                return (float(qx[i]), float(qy[i]))
+    return None
 
 
 def _helix_radius(mitte, r, frei):
