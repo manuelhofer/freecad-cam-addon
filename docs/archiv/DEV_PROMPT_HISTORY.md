@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-165 plan-zeilen-von-aussen
+
+### EINGELESEN
+- Manuel (2026-10-12 spät, Bild zu 0.259.6): „das sind in version 259.6 ja noch mehr zickzack
+  fahrten geworden .. einfach von ausen einfahren“; zweites Bild mit seinem Weg an der Flosse
+  entlang (seitlich von außen im Bogen hinein, an der Flosse nach vorn hinaus).
+- Plan indexiert: „vorn offen“ galt nur, wenn die Fläche bis ans vordere Ende des Teils reicht.
+  Ragt davor etwas weiter vor, fuhren alle Zeilen hin und her und hinten über die Rampe hinein;
+  die Zeilen dicht an der Flosse kamen auch bei offener Fläche nicht nach vorn hinaus (vorn ist die
+  Nase breiter) und fuhren hinten über die Rampe (am Nasen-Testteil 9 je Seite).
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: Endet die Fläche vor dem Teil, je Zeile die Hüllfläche bis vor
+  die Stange – steht dort nichts höher als die Fläche, ist die Zeile vorn offen (reicht bis vor die
+  Stange, jede für sich von vorn), die anderen enden, wo die Fläche endet, hin und her. Kommt eine
+  Fahrt nirgends in der Luft hinein, fährt sie in der in dieser Lage geräumten Zeile daneben hinab
+  und quer hinein (wenn der Schritt dorthin frei ist); wer das noch nicht kann, wartet, bis daneben
+  geräumt ist – erst wenn keine mehr so hineinkommt, die Rampe.
+- `tests/test_vierachs_plan.py`: die Nase (Beispiel-Job), Face4 und Face6 – keine Rampe, nirgends
+  ins Teil. `docs/STATUS_SNAPSHOT.md`: Manuels Bilder (sein Weg, die Front quer, drehen) und die rote
+  Zeile der Werkzeugverwaltung („heißt auch T3“), die er nicht versteht. `package.xml` (0.259.8).
+
+### ERGEBNIS
+- Nasen-Testteil, Plan indexiert ohne Schruppen davor: Face4 9 → 0, Face6 9 → 0, alle drei 18 → 0
+  Rampen; Vorschubweg 13.812 → 11.895 mm; nach dem Schruppen unverändert 0. Grün in 26.3 RC1:
+  `test_vierachs_plan`, `test_goldene_bahnen`, `szenario_vierachs_plan`.
+
 ## P-2026-10-12-164 rundum-schruppen-von-vorn
 
 ### EINGELESEN

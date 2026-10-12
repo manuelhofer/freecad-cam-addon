@@ -338,6 +338,26 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Manuels Bilder vom 2026-10-12 spät (zu 0.259.6, Nase):**
+- „das sind in version 259.6 ja noch mehr zickzack fahrten geworden“ – die Pakete saßen hinten an
+  den Zeilen dicht an der Flosse (vorn verdeckt sie die breitere Nase). *Erledigt:* P-2026-10-12-165
+  (Plan indexiert: je Zeile offen nach vorn, sonst quer aus der geräumten Zeile daneben – am
+  Nasen-Testteil 18 → 0 Rampen), P-2026-10-12-164 (Rundum schruppen mit Flächen: 14 → 0).
+- **Sein Weg für die Nase** (Bild, von oben aus dem Revolver gesehen): der Schaftfräser beginnt
+  seitlich neben der Stange hinten (rot), schwenkt im Bogen an die Flosse, fährt mit dem Umfang
+  an ihr entlang nach vorn und vorn hinaus (gelb) – „einfach von außen einfahren und sozusagen mit
+  dem schaft plan an der flosse vorbei fahren“. Dazu **die Front**: Fräser von oben, seitlich
+  neben der Stange (grün), quer in Y ganz hindurch (gelb) – „fährt im ap und mit dem ae einfach da
+  plan entlang“. Dann **drehen**, dass das Dreieck zur Seite zeigt, und mit derselben Stellung
+  „vorne die spitze … oben und unten fertig machen“. Das ist Auftrag 1 in seiner Form: Flanke
+  (Schaft, `Schaft` in Plan indexiert gibt es für die Seiten schon – Einfahrt im Bogen von der
+  Seite fehlt) und die Front quer mit dem Umfang (neu). Erst als Bild mit Zahlen zeigen.
+- **Werkzeugverwaltung, rote Zeile** „„494W D6“ heißt auch T3 – gewollt (Schwesterwerkzeug)?“ –
+  Manuel: „was heißt hier t3 ?? versteh die rote ansage da unten nicht“. Gemeint: T4 (Ø 4, beim
+  Kopieren von T3 entstanden) trägt denselben Namen wie T3 (Ø 6). Klarer sagen, etwa: „Diesen Namen
+  hat schon T3 (Ø 6) – der Name passt nicht zu Ø 4. Umbenennen, oder ist es dasselbe Werkzeug
+  zweimal im Magazin?“ – und den Widerspruch Name „D6“ ↔ Ø 4 selbst erkennen.
+
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
    unten dreht, so dass die fläche der nase zum fräserboden schaut … einfach bearbeiten indem man mit
@@ -376,9 +396,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    (`vierachs_bahn._rampe`) ist der Einstieg überall, wo eine Bahn im Material beginnt. Noch
    durchzusehen, je mit Zählung an seinen Testteilen (3-Achs-Testteil, Nase, Geist):
    ~~`kontur_bahn._rampe` (Kontur)~~ (Helix, P-2026-10-12-162), ~~`raeumen_bahn` (Ringe/Stiche über `kontur_bahn._rampe`)~~ (Helix, P-2026-10-12-163),
-   `planfraesen_bahn` (Rampe, wo kein Rand offen ist – Entwurf einer Helix einen Radius weit in der Zeile in `~/freecad_cam/wip/planfraesen_helix_entwurf.diff`: 12 Helix statt Rampe in `test_planfraesen`, aber der Kreis reicht seitlich über die erste Zeile hinaus (y −6,10, die Wände dort ungeprüft) und der Test zählt seine Bögen als Wendebögen – noch nicht fertig), `vierachs_bahn` (Rundum schruppen zwischen
-   gewählten Flächen), `vierachs_planbahn` (die 4 übrigen vor der Nase: von der Seite statt von
-   vorn), `schlicht_anlauf`. Bleiben darf sie nur in `nut_bahn` (geschlossene Nut, zu schmal für
+   `planfraesen_bahn` (Rampe, wo kein Rand offen ist – Entwurf einer Helix einen Radius weit in der Zeile in `~/freecad_cam/wip/planfraesen_helix_entwurf.diff`: 12 Helix statt Rampe in `test_planfraesen`, aber der Kreis reicht seitlich über die erste Zeile hinaus (y −6,10, die Wände dort ungeprüft) und der Test zählt seine Bögen als Wendebögen – noch nicht fertig), ~~`vierachs_bahn` (Rundum schruppen zwischen
+   gewählten Flächen)~~ (von vorn aus der Luft, P-2026-10-12-164), ~~`vierachs_planbahn` (die 4 übrigen vor der Nase: von der Seite statt von
+   vorn)~~ (P-2026-10-12-165), `schlicht_anlauf`. Bleiben darf sie nur in `nut_bahn` (geschlossene Nut, zu schmal für
    eine Helix); überall sonst erst „von außen in der Luft“, dann Helix (`bohrung_bahn._helix` gibt
    es schon).
 5. **Einrichtblatt für jede Bearbeitung** (W-019, Frage 16) und **bewegliche Spannmittel** (W-020) –

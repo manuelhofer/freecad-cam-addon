@@ -1014,6 +1014,50 @@ vergleich = rm.vergleiche(
 )
 pruefe(vergleich.kleinster >= -rm.BLAU_AB, f"Tasche: ins Teil {vergleich.kleinster:.3f}")
 
+# --- Die Nase: nirgends über die Rampe hinein (P-2026-10-12-165) --------------------------------
+# Manuel (2026-10-12, mit Bild): „einfach von außen einfahren“ – die Zeilen an den Seiten der Nase
+# beginnen vor der Stange in der Luft; die dicht an der Flosse, vorn von ihr verdeckt, fahren in
+# der geräumten Zeile daneben hinab und quer hinein. Keine Rampe, nirgends ins Teil.
+nase_doc = FreeCAD.openDocument(
+    os.path.join(os.path.dirname(__file__), "..", "beispiele", "testteil_4achs_nase.FCStd"), True
+)
+nase_job = nase_doc.getObject("Job")
+nase_op = next(o for o in nase_job.Operations.Group if vo.ist_schruppen(o))
+nase_l, nase_r = FreeCAD.Vector(nase_op.Stangenachse), FreeCAD.Vector(nase_op.Werkzeugrichtung)
+for seite in ("Face4", "Face6"):
+    nase_bahn = vplan.bahn_fuer(
+        nase_job, nase_job.Model.Group, nase_l, nase_r, ff.scheibe(6.0), 5.0, 5.4, 0.3,
+        vo.vorgeschlagene_abstaende(6.0, nase_job), flaechen=[seite],
+    )  # fmt: skip
+    nase_rampen = sum(
+        1
+        for p, n in zip(nase_bahn.punkte, nase_bahn.punkte[1:], strict=False)
+        if p.eintauchen and not n.eilgang and n.r < p.r - 1e-6
+    )
+    pruefe(nase_rampen == 0, f"Nase {seite}: {nase_rampen} Rampen")
+    radius_n, a_hinten_n, a_vorne_n = vo.stange(nase_job, nase_l)
+    nase_abtrag = rm.Stange(radius_n, a_hinten_n, a_vorne_n)
+    paare = list(zip(nase_bahn.punkte, nase_bahn.punkte[1:], strict=False))
+    nase_abtrag.fahre_stuecke(
+        [(p.a, p.r, p.phi, p.q) for p, n in paare if not n.eilgang],
+        [(n.a, n.r, n.phi, n.q) for p, n in paare if not n.eilgang],
+        ff.scheibe(6.0),
+    )
+    nase_netz = vh.vernetze(nase_job.Model.Group[0].Shape, 0.05)
+    nase_vergleich = rm.vergleiche(
+        nase_abtrag, rm.teilradien(nase_netz, nase_l, nase_r, nase_abtrag), 0.0
+    )
+    pruefe(
+        nase_vergleich.kleinster >= -rm.BLAU_AB,
+        f"Nase {seite}: ins Teil {nase_vergleich.kleinster:.3f}",
+    )
+    print(
+        ascii(
+            f"Nase {seite}: {nase_rampen} Rampen, kleinster Abstand {nase_vergleich.kleinster:.2f}"
+        )
+    )
+FreeCAD.closeDocument(nase_doc.Name)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

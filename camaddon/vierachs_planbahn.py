@@ -1025,6 +1025,24 @@ def planen(
             # über die Rampe im Material (Manuel, 2026-10-12, an der Nase; die Fahrt kehrt um,
             # wenn sie dort endet).
             a_bis = a_anfang
+        vorn_zeilen = None  # je Zeile: von vorn offen, obwohl die Fläche vor dem Teil endet
+        a_bis_flaeche = a_bis
+        if not vorn_offen and abs(ebene.steigung) <= GERADE and a_bis < a_anfang - vb.GLEICH:
+            # Ragt vor der Fläche etwas weiter vor – an der Nase die Flosse neben ihr –, sind
+            # die Zeilen offen, vor denen bis vor die Stange nichts höher steht als die Fläche:
+            # Sie beginnen dort in der Luft (Manuel, 2026-10-12, mit Bild: „einfach von außen
+            # einfahren“ statt der Zickzack-Pakete hinten).
+            anzahl_v = max(2, int(math.ceil((a_anfang - a_bis) / schritt_a - 1e-9)) + 1)
+            schritt_v = (a_anfang - a_bis) / (anzahl_v - 1)
+            roh_v = vh.je_versatz(
+                netz, laengs, radial, geformt, math.radians(ebene.phi), a_bis, schritt_v,
+                anzahl_v, q_zeilen,
+            ).T  # fmt: skip
+            vorn_zeilen = np.all(roh_v + zugabe <= ebene.tiefe + aufmass + vb.GLEICH, axis=1)
+            if vorn_zeilen.any():
+                a_bis = a_anfang
+            else:
+                vorn_zeilen = None
         if a_bis <= a_von + vb.GLEICH:
             continue
         anzahl = max(2, int(math.ceil((a_bis - a_von) / schritt_a - 1e-9)) + 1)
@@ -1091,6 +1109,10 @@ def planen(
                 luft &= ~(oben_grob > lage_a[None, :] + vb.GLEICH)
             if not schlichtlage:  # nur, wo über der Lage noch Material steht
                 drin &= oben_grob > lage_a[None, :] + vb.GLEICH
+            if vorn_zeilen is not None:  # die anderen Zeilen enden, wo die Fläche endet
+                sperre = (~vorn_zeilen)[:, None] & (a_stellen > a_bis_flaeche + vb.GLEICH)[None, :]
+                drin &= ~sperre
+                luft &= ~sperre
             if not drin.any():
                 vorige = lage
                 continue
@@ -1116,12 +1138,34 @@ def planen(
                 # hinten im Material über die Rampe einfahren (Manuel, 2026-10-12: „da brauch ich
                 # kein zickzack fahren … und meine planschneide kaputt machen“).
                 fahrten = vb._einzeln(mit_luecke, False)
+            elif vorn_zeilen is not None:
+                # Die offenen Zeilen jede von vorn wie oben, die anderen hin und her.
+                offene = mit_luecke & np.asarray(vorn_zeilen)[:, None]
+                fahrten = vb._einzeln(offene, False) + vb._geteilt(
+                    vb._fahrten(mit_luecke & ~offene), zwischen
+                )
             else:
                 fahrten = vb._geteilt(vb._fahrten(mit_luecke), zwischen)
-            for fahrt in fahrten:
+            geraeumt = np.zeros((len(q_zeilen), anzahl), dtype=bool)  # in dieser Lage
+
+            def hinein(
+                fahrt,
+                geraeumt=geraeumt,
+                luft=luft,
+                zwischen=zwischen,
+                a_stellen=a_stellen,
+                q_zeilen=q_zeilen,
+                a_von=a_von,
+                schritt=schritt,
+                anzahl=anzahl,
+                vorn_offen=vorn_offen,
+                vorn_zeilen=vorn_zeilen,
+            ):
+                """(a, q, Zeile, offen) einer Fahrt – offen: hinab nur in der Luft."""
                 a, q, m = _folge(fahrt, a_stellen, q_zeilen)
                 offen = float(a[0]) - radius >= w.a_stange_vorne  # vor der Stange: nur Luft
-                if vorn_offen and not offen:
+                von_vorn = vorn_offen or (vorn_zeilen is not None and vorn_zeilen[int(m[0])])
+                if von_vorn and not offen:
                     # Davor ist schon alles weg (nach dem Schruppen): eine Stelle früher in der
                     # Luft eintauchen, dann mit vollem ap ins Material – keine Rampe.
                     k1 = int(round((float(a[0]) - a_von) / schritt)) + 1
@@ -1136,18 +1180,61 @@ def planen(
                     # (Manuel, 2026-10-12, an der Nase: „was kompletter blödsinn ist … einfach
                     # auf volle tiefe ap fahren und an der planfläche entlang fahren … da brauch
                     # ich kein zickzack fahren … und meine planschneide kaputt machen“).
-                    a, q, m = a[::-1], q[::-1], m[::-1]
-                    offen = True
-                r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
-                ueber = vorige if not schlichtlage else float(r[0]) + aufmass + vb.GLEICH
-                _einfahrt(punkte, a, q, float(r[0]), ebene.phi, ueber, offen, w, sicher, r)
-                for i in _knicke(a, q, r):
-                    punkte.append(
-                        vb.Punkt(False, float(a[i]), float(r[i]), ebene.phi, q=float(q[i]))
-                    )
-                punkte.append(vb.Punkt(True, float(a[-1]), sicher, ebene.phi, q=float(q[-1])))
-                zeilen_gesamt += len(set(m[m >= 0].tolist()))
-                r_min = min(r_min, float(np.min(r)))
+                    return a[::-1], q[::-1], m[::-1], True
+                if not offen:
+                    # Daneben schon geräumt (eine Zeile weiter in dieser Lage): dort in der Luft
+                    # hinab und quer hinein, mit vollem ap von der Seite statt über die Rampe –
+                    # an der Nase die Zeilen dicht an der Flosse, die vorn nicht hinauskommen
+                    # (Manuel, 2026-10-12, mit Bild: „einfach von außen einfahren“).
+                    m0 = int(m[0])
+                    k0 = int(round((float(a[0]) - a_von) / schritt))
+                    for nachbar in (m0 - 1, m0 + 1):
+                        if (
+                            0 <= nachbar < len(q_zeilen)
+                            and 0 <= k0 < anzahl
+                            and geraeumt[nachbar, k0]
+                            and zwischen[min(m0, nachbar), k0]
+                        ):
+                            a = np.concatenate([[a[0]], a])
+                            q = np.concatenate([[q_zeilen[nachbar]], q])
+                            m = np.concatenate([[-1], m])  # wie ein Schritt quer
+                            return a, q, m, True
+                return a, q, m, offen
+
+            # Wer nirgends in der Luft hinein kann, wartet, bis daneben geräumt ist; erst wenn
+            # keine mehr so hineinkommt, die übrigen über die Rampe.
+            warten = list(fahrten)
+            while warten:
+                spaeter, folge = [], []
+                for fahrt in warten:
+                    weg = hinein(fahrt)
+                    if not weg[3]:
+                        spaeter.append(fahrt)
+                        continue
+                    folge.append(weg)
+                    a, q, m, _offen = weg
+                    auf = m >= 0
+                    stellen_k = np.rint((a[auf] - a_von) / schritt).astype(np.int64)
+                    geraeumt[m[auf].astype(np.int64), np.clip(stellen_k, 0, anzahl - 1)] = True
+                if not folge:
+                    folge = [hinein(spaeter[0])]
+                    spaeter = spaeter[1:]
+                    a, q, m, _offen = folge[0]
+                    auf = m >= 0
+                    stellen_k = np.rint((a[auf] - a_von) / schritt).astype(np.int64)
+                    geraeumt[m[auf].astype(np.int64), np.clip(stellen_k, 0, anzahl - 1)] = True
+                warten = spaeter
+                for a, q, m, offen in folge:
+                    r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
+                    ueber = vorige if not schlichtlage else float(r[0]) + aufmass + vb.GLEICH
+                    _einfahrt(punkte, a, q, float(r[0]), ebene.phi, ueber, offen, w, sicher, r)
+                    for i in _knicke(a, q, r):
+                        punkte.append(
+                            vb.Punkt(False, float(a[i]), float(r[i]), ebene.phi, q=float(q[i]))
+                        )
+                    punkte.append(vb.Punkt(True, float(a[-1]), sicher, ebene.phi, q=float(q[-1])))
+                    zeilen_gesamt += len(set(m[m >= 0].tolist()))
+                    r_min = min(r_min, float(np.min(r)))
             lagen_gesamt += 1
             vorige = lage
     if flaechen_gefraest == 0:
