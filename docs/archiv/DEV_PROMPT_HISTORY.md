@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-131 schlichten3d-genau-auf-allen-kernen
+
+### EINGELESEN
+- Manuels Frage nach dem einen Kern. Beim „Anlegen“ in der 8-Eck-Kette (Dauerprobe des
+  Hauptthreads alle 20 ms, 28 s): 3D-Schlichten 14 s im Fenster, davon 7 s die genauen Höhen an
+  den Stellen, wo die Hüllfläche springt (`_Genau.hoehen`) – Stelle für Stelle, Kurve für Kurve,
+  immer unter der Schwelle fürs Verteilen.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`: `_aequidistant` sammelt erst alle Ringe und Grate, rechnet
+  die genauen Höhen aller Sprungstellen auf einmal vor (`_genau_vorrechnen` →
+  `_Genau.vorrechnen`, ab 64 Stellen in Stücken auf den Nebenrechnern, `genau_stueck`) und
+  verbindet dann wie bisher; `_Genau.hoehen` schlägt Vorgerechnetes nach. `_ecken` aus
+  `_bilinear` herausgelöst. `package.xml` (0.246.0).
+
+### ERGEBNIS
+- Am Geist, 3D-Schlichten der ersten Aufspannung (32.109 Punkte): 10,9 → 4,5 s, die Bahn
+  bitgleich (Fingerabdruck der Punkte gleich, Zwischenspeicher vor jedem Lauf geleert).
+
+### AKZEPTANZKRITERIUM
+- `test_schlichten3d` grün; am Geist allein und verteilt dieselbe Bahn.
+
 ## P-2026-10-12-130 leichte-kopien-fuer-nebenrechner
 
 ### EINGELESEN

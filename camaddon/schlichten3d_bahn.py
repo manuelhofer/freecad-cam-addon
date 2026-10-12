@@ -732,21 +732,8 @@ def _bilinear(raster, x, y, stufe=None):
     Seite (B-014): dort genau gerechnet (_Genau), und nur, wenn die gewählten Flächen die Höhe
     bestimmen."""
     uhren.atmen()  # je Kurve; nur in uhren.atmend() (Anlegen)
-    xs, ys, z = raster.xs, raster.ys, raster.z
-    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
-    fx = (np.asarray(x, dtype=float) - xs[0]) / sx
-    fy = (np.asarray(y, dtype=float) - ys[0]) / sy
-    drin = (fx >= 0) & (fy >= 0) & (fx <= len(xs) - 1) & (fy <= len(ys) - 1)
-    i0 = np.clip(np.floor(fx).astype(int), 0, len(xs) - 2)
-    j0 = np.clip(np.floor(fy).astype(int), 0, len(ys) - 2)
-    tx, ty = fx - i0, fy - j0
-    ecken = (z[i0, j0], z[i0 + 1, j0], z[i0, j0 + 1], z[i0 + 1, j0 + 1])
-    endlich = np.all([np.isfinite(e) for e in ecken], axis=0) & drin
-    sprung = None
-    if stufe is not None:
-        with np.errstate(invalid="ignore"):
-            spanne = np.maximum.reduce(ecken) - np.minimum.reduce(ecken)
-        sprung = endlich & (np.nan_to_num(spanne, nan=np.inf) > stufe)
+    tx, ty, ecken, endlich, sprung = _ecken(raster, x, y, stufe)
+    if sprung is not None:
         endlich &= ~sprung
     with np.errstate(invalid="ignore"):
         wert = (
@@ -766,6 +753,49 @@ def _bilinear(raster, x, y, stufe=None):
     return wert
 
 
+def _ecken(raster, x, y, stufe=None):
+    """Für _bilinear: (tx, ty, die vier Knoten, endlich, Sprung oder None) an (x, y)."""
+    xs, ys, z = raster.xs, raster.ys, raster.z
+    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
+    fx = (np.asarray(x, dtype=float) - xs[0]) / sx
+    fy = (np.asarray(y, dtype=float) - ys[0]) / sy
+    drin = (fx >= 0) & (fy >= 0) & (fx <= len(xs) - 1) & (fy <= len(ys) - 1)
+    i0 = np.clip(np.floor(fx).astype(int), 0, len(xs) - 2)
+    j0 = np.clip(np.floor(fy).astype(int), 0, len(ys) - 2)
+    tx, ty = fx - i0, fy - j0
+    ecken = (z[i0, j0], z[i0 + 1, j0], z[i0, j0 + 1], z[i0 + 1, j0 + 1])
+    endlich = np.all([np.isfinite(e) for e in ecken], axis=0) & drin
+    sprung = None
+    if stufe is not None:
+        with np.errstate(invalid="ignore"):
+            spanne = np.maximum.reduce(ecken) - np.minimum.reduce(ecken)
+        sprung = endlich & (np.nan_to_num(spanne, nan=np.inf) > stufe)
+    return tx, ty, ecken, endlich, sprung
+
+
+def _genau_vorrechnen(raster, kurven, stufe=STUFE):
+    """Die genauen Höhen aller Stellen der Kurven [(x, y)], an denen _bilinear springt – auf
+    einmal, ab GENAU_VERTEILT_AB auf den Nebenrechnern (_Genau.vorrechnen). Sonst rechnete jede
+    Kurve ihre Stellen einzeln nacheinander im Fenster: am Geist in der 8-Eck-Stange beim Anlegen
+    des 3D-Schlichtens 7 von 14 s auf einem Kern (2026-10-12)."""
+    if raster.genau is None or not kurven:
+        return
+    x = np.concatenate([np.atleast_1d(np.asarray(k[0], dtype=float)) for k in kurven])
+    y = np.concatenate([np.atleast_1d(np.asarray(k[1], dtype=float)) for k in kurven])
+    _tx, _ty, _ecken_, _endlich, sprung = _ecken(raster, x, y, stufe)
+    if sprung is not None and sprung.any():
+        raster.genau.vorrechnen(x[sprung], y[sprung])
+
+
+# Stellen: ab so vielen rechnen die Nebenrechner die genauen Höhen (_Genau.vorrechnen).
+GENAU_VERTEILT_AB = 64
+
+
+def genau_stueck(netz_alle, netz_rest, form, aufmass, x, y):
+    """Auf einem Nebenrechner: die genauen Höhen an den Stellen (x, y) – _Genau._rechnen."""
+    return _Genau(netz_alle, netz_rest, form, aufmass)._rechnen(x, y)
+
+
 class _Genau:
     """Die Hüllfläche an einzelnen Stellen genau – gegen die Dreiecke im Umkreis des Fräsers
     (hoehenfeld._je_zeile mit einem Teilnetz: gegen das ganze Netz 23 ms je Stelle). Nan, wo die
@@ -775,8 +805,68 @@ class _Genau:
         self.netze = [(n, _dreieck_kaesten(n)) for n in (netz_alle, netz_rest)]
         self.form = form
         self.aufmass = aufmass
+        self._gerechnet = {}  # (x, y) → Höhe (vorrechnen)
 
     def hoehen(self, x, y):
+        """Die genauen Höhen an (x, y) – vorgerechnete nachgeschlagen, die anderen gerechnet."""
+        x = np.atleast_1d(np.asarray(x, dtype=float))
+        y = np.atleast_1d(np.asarray(y, dtype=float))
+        ergebnis = np.full(len(x), np.nan)
+        offen = []
+        for k, stelle in enumerate(zip(x.tolist(), y.tolist(), strict=True)):
+            wert = self._gerechnet.get(stelle)
+            if wert is None:
+                offen.append(k)
+            else:
+                ergebnis[k] = wert
+        if offen:
+            ergebnis[offen] = self._rechnen(x[offen], y[offen])
+        return ergebnis
+
+    def vorrechnen(self, x, y):
+        """Rechnet die genauen Höhen an (x, y) auf einmal und merkt sie (für hoehen) – ab
+        GENAU_VERTEILT_AB Stellen in Stücken auf den Nebenrechnern."""
+        xs, ys = np.asarray(x, dtype=float).tolist(), np.asarray(y, dtype=float).tolist()
+        stellen = list(dict.fromkeys(zip(xs, ys, strict=True)))
+        stellen = [st for st in stellen if st not in self._gerechnet]
+        if not stellen:
+            return
+        xa = np.array([st[0] for st in stellen])
+        ya = np.array([st[1] for st in stellen])
+        werte = self._verteilt(xa, ya) if len(stellen) >= GENAU_VERTEILT_AB else None
+        if werte is None:
+            werte = self._rechnen(xa, ya)
+        self._gerechnet.update(zip(stellen, werte.tolist(), strict=True))
+
+    def _verteilt(self, x, y):
+        """Die Stellen in Stücken auf den Nebenrechnern – None ohne sie."""
+        from . import hoehenfeld as hf
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        if not pool.verfuegbar() or pool.anzahl < 2:
+            return None
+        netze = [pool.gemeinsam("netz-" + hf._kennung(n).hex(), n) for n, _k in self.netze]
+        auftraege = [
+            pool.auftrag(
+                "schlichten3d_bahn", "genau_stueck", *netze, self.form, self.aufmass,
+                x[a:b], y[a:b],
+            )  # fmt: skip
+            for a, b in nr.stuecke(len(x), pool.anzahl, je_arbeiter=4, mindestens=16)
+        ]
+        try:
+            teile = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+        except nr.Fehler as fehler:
+            import FreeCAD
+
+            FreeCAD.Console.PrintWarning(
+                f"CAM-Addon: genaue Höhen auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+            )
+            return None
+        return np.concatenate(teile)
+
+    def _rechnen(self, x, y):
+        """Die genauen Höhen an (x, y), Stelle für Stelle."""
         from . import hoehenfeld as hf
 
         ergebnis = np.full(len(x), np.nan)
@@ -1103,6 +1193,7 @@ def _aequidistant(raster, w, abstand):
     laenge = 0.0
     ringe = 0
     z_min = math.inf
+    je_stufe = []
     for stufe in np.linspace(erste, letzte, anzahl):
         stuecke = []
         for linie, geschlossen in rb._hoehenlinien(feld, raster.xs, raster.ys, float(stufe)):
@@ -1110,6 +1201,14 @@ def _aequidistant(raster, w, abstand):
             for teil, zu in _stuecke(linie, geschlossen, behalten):
                 if len(teil) >= 2:
                     stuecke.append((_gerichtet(teil, zu, raster, w.gleichlauf), zu))
+        je_stufe.append(stuecke)
+    grate = list(_grate(feld, maske, raster, np.linspace(erste, letzte, anzahl), abstand))
+    # Die genauen Höhen aller Stellen auf einmal (auf allen Kernen), dann der Reihe nach.
+    _genau_vorrechnen(
+        raster,
+        [(t[:, 0], t[:, 1]) for stuecke in je_stufe for t, _zu in stuecke] + list(grate),
+    )
+    for stuecke in je_stufe:
         if not stuecke:
             continue
         ringe += 1
@@ -1147,7 +1246,7 @@ def _aequidistant(raster, w, abstand):
     # Mitte eines Rechtecks), liegt der letzte Ring um feld − Stufe neben dem Grat – mehr als ein
     # halber Abstand, und zwischen beiden Seiten bliebe mehr als ein Abstand. Dort einmal den
     # Grat entlang.
-    for x, y in _grate(feld, maske, raster, np.linspace(erste, letzte, anzahl), abstand):
+    for x, y in grate:
         with np.errstate(invalid="ignore"):
             z = _bilinear(raster, x, y, STUFE)
         raum = np.column_stack([x, y, z])
