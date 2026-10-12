@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-167 neue-maschine-im-assistenten
+
+### EINGELESEN
+- Manuel (2026-10-12, mit Bild): „der knopf neue maschine macht nichts ! geht nicht“ – im Fenster
+  „Maschinen“, geöffnet aus dem Assistenten „Bearbeitung“. Der Befehl „Neue Maschine“ ist gesperrt,
+  solange ein Fenster im Aufgabenbereich offen ist (`IsActive`), `runCommand` tat dann still nichts.
+- Dazu W-021 (runde Rohteile im Dreibackenfutter auf der Fräse) in den Snapshot.
+
+### DATEIEN
+- `camaddon/gui_maschinen.py`: Mit offenem Aufgabenfenster baut „Neue Maschine …“ selbst (Bauart
+  wählen, `speicherort_waehlen`, `beispielmaschine.lade`, gleich speichern, in die Liste, gewählt),
+  das Dokument davor bleibt vorn, eine Meldung sagt, wo sie liegt und dass „Bearbeiten“ geht, wenn
+  das Aufgabenfenster zu ist. Übersetzungen `ms.neu.*`. `tests/gui/szenario_maschinen.py`: mit
+  offenem Aufgabenfenster. `package.xml` (0.259.10).
+
+### ERGEBNIS
+- Grün in 26.3 RC1: `szenario_maschinen` (Bild 5: die Meldung).
+
+## P-2026-10-12-166 werkzeugname-hinweis
+
+### EINGELESEN
+- Manuel (2026-10-12, Bild der Werkzeugverwaltung): „was heist hier t3 ?? versteh die rote ansage
+  da unten nicht“ – T4 (Ø 4, von T3 kopiert) hieß „494W D6“ wie T3; die Zeile lautete „„494W D6“
+  heißt auch T3 – gewollt (Schwesterwerkzeug)?“.
+
+### DATEIEN
+- `translations/*.json`: „Den Namen „…“ hat schon T3 (Schaftfräser Ø 6). Umbenennen – außer es
+  ist dasselbe Werkzeug zweimal im Magazin.“; neu `wv.hinweis.name_durchmesser`: nennt der Name
+  einen anderen Durchmesser („D6“ bei Ø 4) – „vom Kopieren übrig?“. `camaddon/werkzeuge.py`:
+  `durchmesser_im_namen`. `camaddon/gui_werkzeuge.py`: beide Hinweise. Prüfungen:
+  `tests/test_werkzeuge.py`, `tests/gui/szenario_werkzeugverwaltung.py`. `package.xml` (0.259.9).
+
+### ERGEBNIS
+- Grün in 26.3 RC1: `test_werkzeuge`, `szenario_werkzeugverwaltung`.
+
 ## P-2026-10-12-165 plan-zeilen-von-aussen
 
 ### EINGELESEN

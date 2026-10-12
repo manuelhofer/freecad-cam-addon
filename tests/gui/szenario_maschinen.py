@@ -129,6 +129,45 @@ def schritte(h):
     h.bild("4_bearbeiten")
     Gui.Control.closeDialog()
     yield 800
+
+    # --- Neue Maschine, während ein Assistent offen ist ---------------------------------------
+    # FreeCAD sperrt dann den Befehl – der Knopf tat nichts (Manuel, 2026-10-12). Jetzt: Bauart
+    # wählen, Datei angeben, gebaut und gespeichert, in der Liste; das Dokument davor bleibt vorn.
+    from PySide import QtCore, QtGui
+
+    from camaddon import gui_neue_maschine
+
+    class Aufgabe:
+        def __init__(self):
+            self.form = QtGui.QLabel("Assistent")
+
+    davor = FreeCAD.newDocument("Davor")
+    Gui.Control.showDialog(Aufgabe())
+    yield 300
+    neue = os.path.join(ordner, "Neu_im_Assistenten.FCStd")
+    gui_maschinen.speicherort_waehlen = lambda _eltern, _vorschlag: neue
+    QtCore.QTimer.singleShot(0, dialog.knopf_neu.click)  # modal – blockierte sonst
+    yield from h.warte_auf(lambda: gui_neue_maschine.NeueMaschineDialog.offen is not None, 5000)
+    wahl = gui_neue_maschine.NeueMaschineDialog.offen
+    h.pruefe(wahl is not None, "„Neue Maschine …“ tut bei offenem Assistenten nichts")
+    if wahl is not None:
+        wahl.accept()
+        yield from h.warte_auf(lambda: isinstance(h.modal(), QtGui.QMessageBox), 20000)
+        meldung = h.modal() if isinstance(h.modal(), QtGui.QMessageBox) else None
+        h.pruefe(
+            meldung is not None and "Gebaut und gespeichert" in meldung.text(),
+            f"Meldung: {meldung.text() if meldung is not None else None}",
+        )
+        h.bild("5_neu_im_assistenten", meldung)
+        if meldung is not None:
+            meldung.accept()
+        yield 300
+        h.pruefe(os.path.isfile(neue), "nicht gespeichert")
+        h.pruefe(ms.finde(ms.laden(), neue) is not None, "nicht in der Liste")
+        h.pruefe(FreeCAD.ActiveDocument is davor, f"vorn: {FreeCAD.ActiveDocument.Name}")
+        h.pruefe(Gui.Control.activeDialog(), "Assistent zu")
+    Gui.Control.closeDialog()
+    yield 500
     dialog.close()
     yield 300
     for dokument in list(FreeCAD.listDocuments().values()):

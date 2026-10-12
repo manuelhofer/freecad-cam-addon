@@ -868,6 +868,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   auch noch machen .. aber auch so das sie sich bewegen können und somit immer an das rohteil auch
   wirklich anliegen ... also ein schraubstock der dann mit seinen backen auch wirklich am rohteil
   neck anliegt“.
+- **W-021 Runde Rohteile auf der Fräsmaschine (Dreibackenfutter)** – Manuel, 2026-10-12, zu seinem
+  Ring-Teil: „ich kann auch auf der fräsmaschine ein dreibacken futter einspannen und somit runde
+  rohteile haben .. nur als info .. das sollte unbedingt mit rein“. Im Assistenten „Bearbeitung“
+  (3 Achsen) als Rohteil ein Zylinder (Durchmesser, Länge, Aufmaß), als Spannmittel ein
+  Dreibackenfutter auf dem Tisch (Backen am Rohteil, wie W-020) – mit Bild, Kollision und
+  Einrichtblatt (W-019). Hintergrund: Er hatte nur die CLX550 als Maschine, daher sagte der
+  Assistent „Stange → 4-Achs-Assistent“ („achso ich hab keine 3ach maschine drinnen alles gut“).
 
 ## Offene Bugs
 

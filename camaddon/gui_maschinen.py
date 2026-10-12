@@ -62,6 +62,17 @@ def datei_waehlen(eltern, ordner):
     return pfad
 
 
+def speicherort_waehlen(eltern, vorschlag):
+    """Fragt, wohin eine neue Maschine gespeichert wird; "" bei Abbrechen. Die Szenarien ersetzen
+    diese Funktion."""
+    pfad, _filter = QtGui.QFileDialog.getSaveFileName(
+        eltern, tr("ms.neu.speichern"), vorschlag, "FreeCAD (*.FCStd)"
+    )
+    if pfad and not pfad.lower().endswith(".fcstd"):
+        pfad += ".FCStd"
+    return pfad
+
+
 def einlesen(datei, pfad=None):
     """Nimmt die Maschinen aus der Datei in die Liste (`pfad`: ihre Datei, None: beim
     Benutzer). Ist die Datei nicht offen, öffnet sie sie unsichtbar und schließt sie danach
@@ -213,8 +224,37 @@ class MaschinenDialog(QtGui.QDialog):
         self.fuellen(auswahl=gefunden[0].datei if gefunden else None)
 
     def neue_maschine(self):
-        """„Neue Maschine …“ – in die Liste kommt sie, sobald sie gespeichert ist."""
-        FreeCADGui.runCommand("CamAddon_NeueMaschine")
+        """„Neue Maschine …“ – in die Liste kommt sie, sobald sie gespeichert ist. Ist ein Fenster
+        im Aufgabenbereich offen (ein Assistent), sperrt FreeCAD den Befehl und „Maschine
+        bearbeiten“ – der Knopf tat dann nichts (Manuel, 2026-10-12: „der knopf neue maschine
+        macht nichts“). Dann baut er sie hier und speichert sie gleich: Sie steht sofort in der
+        Liste und im Assistenten zur Wahl; das Dokument des Assistenten bleibt vorn."""
+        if not FreeCADGui.Control.activeDialog():
+            FreeCADGui.runCommand("CamAddon_NeueMaschine")
+            return
+        from . import beispielmaschine, gui_neue_maschine, gui_reichweite
+
+        gewaehlt = gui_neue_maschine.waehle(tr("neu.titel"))
+        if gewaehlt is None:
+            return
+        ordner = self._ordner() or os.path.expanduser("~")
+        datei = speicherort_waehlen(self, os.path.join(ordner, tr("ms.neu.dateiname") + ".FCStd"))
+        if not datei:
+            return
+        vorher = FreeCAD.ActiveDocument
+        assembly, _maschine = beispielmaschine.lade(*gewaehlt)
+        try:
+            assembly.Document.saveAs(datei)
+        except Exception as fehler:  # kein Schreibrecht, …: sagen statt still scheitern
+            QtGui.QMessageBox.warning(
+                self, tr("ms.titel"), tr("ms.datei_fehler", datei=datei, fehler=fehler)
+            )
+            return
+        gefunden = self._einlesen(assembly.Document.FileName)
+        self.fuellen(auswahl=gefunden[0].datei if gefunden else None)
+        if vorher is not None:
+            gui_reichweite.zeige_dokument(vorher)
+        QtGui.QMessageBox.information(self, tr("ms.titel"), tr("ms.neu.gespeichert", datei=datei))
 
     def bearbeiten(self):
         """Öffnet die Datei der gewählten Maschine und „Maschine bearbeiten“."""
