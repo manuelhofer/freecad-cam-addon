@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-163 raeumen-helix-statt-rampe
+
+### EINGELESEN
+- Auftrag 4 (Einfahr-Regel, Manuel 2026-10-12): Das Räumen fuhr im Material, wo weder von außen
+  noch neben der Bahn Platz war, die Rampe längs des Laufs hin und her (auf einem geschlossenen Ring
+  rundum – das bleibt, es ist eine Schraube auf dem Ring, kein Zickzack).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_helix_radius` (Kreis 0,9 R bzw. 0,45 R im Raster und erlaubt – im
+  Material darf er liegen); auf einem offenen Lauf im Material die Helix (`kontur_bahn._helix_hinab`,
+  über dem höchsten Material auf dem Kreis), die Rampe nur, wo kein Kreis passt.
+  `package.xml` (0.259.6).
+
+### ERGEBNIS
+- In `test_raeumen` 28 Einstiege als Helix, 2 bleiben Rampe. Grün in 26.3 RC1: `test_raeumen`,
+  `test_goldene_bahnen` (unverändert), `test_testteil`.
+
 ## P-2026-10-12-162 kontur-helix-statt-rampe
 
 ### EINGELESEN

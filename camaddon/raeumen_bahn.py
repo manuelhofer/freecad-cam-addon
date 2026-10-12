@@ -1158,14 +1158,27 @@ class _Lage:
                 # und her.
                 oben_hier = self.vorige
                 knapp = min(hoch, self._material_oben(p0) + w.sicherheit)
-                punkte.append(bn.Punkt(True, p0[0], p0[1], knapp))
-                punkte.append(bn.Punkt(False, p0[0], p0[1], oben_hier, True))
-                self.st.rampen += 1
-                self.st.rampen_bei.append((getattr(self, "kennung", ""), int(len(stellen))))
-                if ganz:
-                    laenge += self._rampe_rundum(ring, stellen, oben_hier)
-                    return self._fertig(ring, laenge, ein)
-                laenge += kb._rampe(punkte, None, x, y, self.lage, oben_hier, w, self.schritt)
+                helix = None if ganz else self._helix_radius(p0)
+                if helix is not None:
+                    # Eine Helix statt der Rampe hin und her (Manuel, 2026-10-12; Spezifikation
+                    # Strategien, Abschnitt 5) – über dem höchsten Material auf dem Kreis.
+                    kreis = [
+                        (p0[0] + helix * math.cos(t), p0[1] + helix * math.sin(t))
+                        for t in np.linspace(0.0, 2 * math.pi, 8, endpoint=False)
+                    ]
+                    oben_kreis = max(self._material_oben(q) for q in kreis)
+                    knapp = min(hoch, max(oben_kreis, self._material_oben(p0)) + w.sicherheit)
+                    punkte.append(bn.Punkt(True, p0[0], p0[1], knapp))
+                    laenge += kb._helix_hinab(punkte, p0, helix, knapp, oben_hier, self.lage, w)
+                else:
+                    punkte.append(bn.Punkt(True, p0[0], p0[1], knapp))
+                    punkte.append(bn.Punkt(False, p0[0], p0[1], oben_hier, True))
+                    self.st.rampen += 1
+                    self.st.rampen_bei.append((getattr(self, "kennung", ""), int(len(stellen))))
+                    if ganz:
+                        laenge += self._rampe_rundum(ring, stellen, oben_hier)
+                        return self._fertig(ring, laenge, ein)
+                    laenge += kb._rampe(punkte, None, x, y, self.lage, oben_hier, w, self.schritt)
         if self.eckenboegen:
             laenge += self._bahn_mit_ecken(ring, stellen, hinten)
         else:
@@ -1580,6 +1593,20 @@ class _Lage:
         for ring, stellen in reste:
             if len(stellen) >= 2:
                 self._lauf(ring, stellen, False, False)
+
+    def _helix_radius(self, mitte):
+        """Der Radius einer Helix um `mitte` (wie kontur_bahn._helix_radius), wenn der Kreis im
+        Raster und erlaubt ist (nicht ins Teil) – im Material darf er liegen; sonst None."""
+        from . import bohrung_bahn as bb
+
+        winkel = np.linspace(0.0, 2 * math.pi, kb.HELIX_PROBEN, endpoint=False)
+        for anteil in (bb.KERN_ANTEIL, bb.KERN_ANTEIL / 2):
+            radius = anteil * self.r
+            qx = mitte[0] + radius * np.cos(winkel)
+            qy = mitte[1] + radius * np.sin(winkel)
+            if self.feld.im_raster(qx, qy).all() and self.feld.bei(self.erlaubt, qx, qy).all():
+                return radius
+        return None
 
     def _seitlich(self, p0, t0):
         """Der Punkt neben dem Anfang auf der freien Seite (links im Gleichlauf, rechts im
