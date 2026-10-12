@@ -428,13 +428,14 @@ def je_stellung_stueck(netz, laengs, radial, form, phi, q, a):
     ergebnis = np.full(len(a), KEIN_TREFFER)
     if not len(a):
         return ergebnis
-    l_, u_, v_ = rahmen(laengs, radial)
-    punkte = netz.punkte
-    a_p = punkte @ l_
-    u = punkte @ u_
-    v = punkte @ v_
-    kanten = _kanten(netz.dreiecke)
     band = BAND_JE_RADIUS * max(form.aussen().radius, 1.0)
+    # Nur, was unter den Fräser kommen kann (P-2026-10-12-111): Am Geist (68.242 Dreiecke) hatte
+    # eine Richtung oft nur drei Stellungen, und je Band liefen alle Kanten und Dreiecke durch.
+    reichweite = form.aussen().radius + _REICHWEITE_ZUGABE
+    vorrat = _vorrat(netz, laengs, radial)
+    a_p, u, v = vorrat.a, vorrat.u, vorrat.v
+    kanten, dreiecke = vorrat.kanten, vorrat.dreiecke
+    ecken = None if form.aussen().eben else vorrat.ecken()
     for richtung in np.unique(phi):
         in_richtung = np.flatnonzero(phi == richtung)
         c, s = math.cos(richtung), math.sin(richtung)
@@ -444,12 +445,114 @@ def je_stellung_stueck(netz, laengs, radial, form, phi, q, a):
         for nummer in np.unique(baender):
             welche = in_richtung[baender == nummer]
             welche = welche[np.argsort(a[welche], kind="stable")]
+            stellen, versatz = a[welche], q[welche]
+            nah = (stellen, versatz, c, s, reichweite)
             spalte = np.full(len(welche), KEIN_TREFFER)
             _form_treffen(
-                spalte, a_p, x, y, kanten, netz.dreiecke, form, a[welche], None, q[welche]
-            )
+                spalte, a_p, x, y, kanten.nah(*nah), dreiecke.nah(*nah), form, stellen, None,
+                versatz, None if ecken is None else ecken.nah(*nah)[:, 0],
+            )  # fmt: skip
             ergebnis[welche] = spalte
     return ergebnis
+
+
+class _Vorrat:
+    """Was je_stellung_stueck je Netz und Rahmen braucht: die Punkte längs (a) und quer (u, v),
+    Kanten und Dreiecke als _Auswahl – einmal gerechnet (0,2 s am Geist), nicht je Stück."""
+
+    def __init__(self, netz, laengs, radial):
+        l_, u_, v_ = rahmen(laengs, radial)
+        self.a = netz.punkte @ l_
+        self.u = netz.punkte @ u_
+        self.v = netz.punkte @ v_
+        self.kanten = _Auswahl(self.a, self.u, self.v, _kanten(netz.dreiecke))
+        self.dreiecke = _Auswahl(self.a, self.u, self.v, netz.dreiecke)
+        self._ecken = None
+
+    def ecken(self):
+        if self._ecken is None:
+            nummern = np.arange(len(self.a))[:, None]
+            self._ecken = _Auswahl(self.a, self.u, self.v, nummern)
+        return self._ecken
+
+
+_VORRAETE = []  # (Netz, Rahmen, _Vorrat), der zuletzt gebrauchte vorn
+_VORRAETE_HOECHSTENS = 2
+
+
+def _vorrat(netz, laengs, radial):
+    """Der _Vorrat zu Netz und Rahmen – im Nebenrechner ist das Netz bei jedem Stück dasselbe
+    Objekt (nebenrechner.gemeinsam), hier bei jedem Durchgang einer Lage."""
+    rahmen_ = (tuple(float(x) for x in laengs), tuple(float(x) for x in radial))
+    for k, (gemerkt, r, vorrat) in enumerate(_VORRAETE):
+        if gemerkt is netz and r == rahmen_:
+            _VORRAETE.insert(0, _VORRAETE.pop(k))
+            return vorrat
+    vorrat = _Vorrat(netz, laengs, radial)
+    _VORRAETE.insert(0, (netz, rahmen_, vorrat))
+    del _VORRAETE[_VORRAETE_HOECHSTENS:]
+    return vorrat
+
+
+# So viel weiter als der Fräserradius sucht _Auswahl.nah – die Rechnungen selbst nehmen den
+# Radius plus _SAUM; was darüber hinaus mitkommt, kostet nur.
+_REICHWEITE_ZUGABE = 1e-3
+
+
+class _Auswahl:
+    """Elemente eines Netzes (Ecken, Kanten oder Dreiecke als Punktnummern je Zeile), sortiert
+    nach ihrem unteren Ende längs, mit ihrer Lage quer (Mitte und Radius in der Ebene quer zur
+    Achse): nah() gibt die, die unter einen Fräser an den Stellungen kommen können."""
+
+    def __init__(self, a, u, v, elemente):
+        if not len(elemente):
+            self.elemente = elemente
+            return
+        laengs = a[elemente]
+        unten, oben = laengs.min(axis=1), laengs.max(axis=1)
+        folge = np.argsort(unten, kind="stable")
+        self.elemente = elemente[folge]
+        self.unten, self.oben = unten[folge], oben[folge]
+        self.laenge = float((self.oben - self.unten).max())
+        quer_u, quer_v = u[self.elemente], v[self.elemente]
+        u_von, u_bis = quer_u.min(axis=1), quer_u.max(axis=1)
+        v_von, v_bis = quer_v.min(axis=1), quer_v.max(axis=1)
+        self.mitte_u, self.mitte_v = (u_von + u_bis) / 2, (v_von + v_bis) / 2
+        self.radius = np.hypot(u_bis - u_von, v_bis - v_von) / 2
+
+    def nah(self, stellen, versatz, c, s, reichweite):
+        """Die Elemente, die ein Fräser mit `reichweite` (mm, Radius) an den Stellen `stellen`
+        (längs, aufsteigend) mit der Achse um `versatz` quer versetzt erreichen kann – aus der
+        Richtung mit cos `c`, sin `s` (quer: y = v·c − u·s, wie in je_stellung_stueck). Nie
+        weniger als die Rechnung braucht; was zu viel ist, sortiert sie selbst aus."""
+        if not len(self.elemente) or not len(stellen):
+            return self.elemente[:0]
+        # Längs: das untere Ende in [a − r − L, a + r] (L: das längste Element), Fenster nahe
+        # beieinander zusammen – aus der Sortierung so nur Abschnitte, ohne einzeln zu greifen.
+        von = stellen - reichweite - self.laenge
+        bis = np.maximum.accumulate(stellen + reichweite)
+        anfang = np.flatnonzero(np.concatenate(([True], von[1:] > bis[:-1])))
+        ende = np.append(anfang[1:], len(von)) - 1
+        i_von = np.searchsorted(self.unten, von[anfang], side="left")
+        i_bis = np.searchsorted(self.unten, bis[ende], side="right")
+        quer_von = float(versatz.min()) - reichweite
+        quer_bis = float(versatz.max()) + reichweite
+        teile = []
+        for i, j in zip(i_von.tolist(), i_bis.tolist(), strict=True):
+            if j <= i:
+                continue
+            # Quer: der Kreis um das Element im Streifen der Versätze.
+            mitte = self.mitte_v[i:j] * c - self.mitte_u[i:j] * s
+            r = self.radius[i:j]
+            nummern = i + np.flatnonzero((mitte - r <= quer_bis) & (mitte + r >= quer_von))
+            # Genau längs: eine Stelle in [unten − r, oben + r].
+            k = np.searchsorted(stellen, self.unten[nummern] - reichweite, side="left")
+            trifft = k < len(stellen)
+            trifft[trifft] = stellen[k[trifft]] <= self.oben[nummern[trifft]] + reichweite
+            teile.append(nummern[trifft])
+        if not teile:
+            return self.elemente[:0]
+        return self.elemente[teile[0] if len(teile) == 1 else np.concatenate(teile)]
 
 
 BAND_JE_RADIUS = 2.0  # so breit (in Fräserradien) ist ein Band quer in je_stellung
@@ -708,10 +811,13 @@ _GOLDEN = (math.sqrt(5.0) - 1.0) / 2.0
 _GOLDEN_SCHRITTE = 25  # die Suche längs einer Kante: auf 1e-5 der Länge unter dem Fräser
 
 
-def _form_treffen(spalte, a, x, y, kanten, dreiecke, form, a0, schritt, versatz=None):
+def _form_treffen(
+    spalte, a, x, y, kanten, dreiecke, form, a0, schritt, versatz=None, ecken=None
+):  # fmt: skip
     """Wie tief die Spitze eines Fräsers mit `form` an jeder Stelle a0 + k · schritt darf –
     gegen Ecken, Dreiecke und Kanten; in `spalte` eingetragen. `versatz`: je Stelle der
-    Versatz der Werkzeugachse quer (je_stellung); ohne: 0."""
+    Versatz der Werkzeugachse quer (je_stellung); ohne: 0. `ecken`: nur diese Punkte (ohne:
+    alle)."""
     form = form.aussen()
     radius = form.radius
     if form.eben:  # der Schaftfräser: wie immer
@@ -721,7 +827,7 @@ def _form_treffen(spalte, a, x, y, kanten, dreiecke, form, a0, schritt, versatz=
     # Zuerst die Dreiecke (billig, und sie legen die Fläche unter der Spitze fest), dann Ecken
     # und Kanten nur, wo sie höher kommen können als das, was schon steht (P-2026-10-09-11).
     _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form, versatz)
-    _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz)
+    _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz, ecken)
     if form.nur_kugel:
         _kanten_kugel(spalte, a, x, y, kanten, form.kugel, a0, schritt, versatz)
         return
@@ -732,12 +838,15 @@ def _form_treffen(spalte, a, x, y, kanten, dreiecke, form, a0, schritt, versatz=
     _kanten_suchen(spalte, a, x, y, kanten, form, a0, schritt, versatz)
 
 
-def _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz=None):
+def _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz=None, ecken=None):
     """Die Punkte (a, x, y) unter dem Fräser: Die Spitze darf bis x − z(Abstand) – für alle
     Stellen a zugleich; in `spalte` eingetragen. Auch Punkte hinter der Achse (x ≤ 0) zählen
-    (wie bei den Kanten, P-2026-10-03-07)."""
+    (wie bei den Kanten, P-2026-10-03-07). `ecken`: nur diese Punktnummern."""
     radius = form.radius + _SAUM
-    zaehlt = np.nonzero(_im_band(y, y, radius, versatz))[0]
+    if ecken is None:
+        zaehlt = np.nonzero(_im_band(y, y, radius, versatz))[0]
+    else:
+        zaehlt = ecken[_im_band(y[ecken], y[ecken], radius, versatz)]
     if not len(zaehlt):
         return
     a_p, x_p, y_p = a[zaehlt], x[zaehlt], y[zaehlt]

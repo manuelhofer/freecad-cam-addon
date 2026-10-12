@@ -1472,6 +1472,15 @@ Gebaut (P-2026-10-11-100):
    Querachse schwebt der Revolver über lange Strecken 0,7 bis 1,2 mm neben dem Teil (Warnabstand
    1 mm): 3.000 Stationen dort 44 s statt über 60 s für 2.000, der Revolver 11 s statt 54 s.
 
+10. **Die Hüllfläche je Stellung nur mit dem, was unter den Fräser kommt** (P-2026-10-12-111):
+    `vierachs_huelle.je_stellung_stueck` gab je Richtung und Band alle Kanten und Dreiecke an die
+    Rechnung – am Geist hatte eine Richtung beim Nachsehen oft nur drei Stellungen. Jetzt wählt
+    `_Auswahl.nah` vorher: längs nach dem Fenster jeder Stellung (Fräserradius, aus einer
+    Sortierung nur Abschnitte), quer nach dem Streifen der Versätze (Kreis um das Element);
+    `_Vorrat` hält das je Netz und Rahmen (im Nebenrechner je Stück 0,2 s gespart). Das Ergebnis
+    ist bitgleich. Am Geist mit Querachse „Anlegen“ 362 s → 127 s, die Bahn Zeichen für Zeichen
+    dieselbe.
+
 Offen: einzelne Bereiche wählen statt Dreiecke; die Kollision am Geist mit Querachse ganz durch
 messen. Mit einer 5-Achs-Fräse die Kette der Ebenen: gerechnet bis Ebene 5 von 7.
 

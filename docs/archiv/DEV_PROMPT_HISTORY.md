@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-111 huelle-nur-was-unter-den-fraeser-kommt
+
+### EINGELESEN
+- „Rundum schruppen“ mit Querachse am Geist (Drehmaschine mit Y): „Anlegen“ 362 s, fast alles in
+  `vierachs_huelle.je_stellung` (173 Aufrufe, verteilt). Ein Nachsehen-Aufruf hat ~4.200
+  Stellungen in ~1.100 Richtungen; je Richtung und Band liefen alle 68.242 Dreiecke und 102.363
+  Kanten durch die Rechnung (ein Aufruf 11 s auf einem Kern), und jedes Stück baute die Kanten neu.
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py`: `_Auswahl` (Elemente sortiert nach dem unteren Ende längs, Mitte
+  und Radius quer) mit `nah()` – nur Elemente, die eine Stellung der Gruppe erreichen kann;
+  `_Vorrat`/`_vorrat()` hält Punkte im Rahmen, Kanten und Dreiecke je Netz und Rahmen (zwei
+  zuletzt gebrauchte); `_form_treffen`/`_ecken_treffen` nehmen die Ecken als Auswahl.
+- `docs/spezifikation_vierachs.md` (16.10). `package.xml` (0.226.0).
+
+### ERGEBNIS
+- Bitgleich: die eingefangenen Aufrufe vom Geist und Kugel-, Torus- und Schaftfräser gegen die
+  Rechnung ohne Auswahl. Ein Nachsehen-Aufruf 11 s → 3,5 s, Kugel 2,1 → 0,5 s, Torus 4,6 → 0,9 s.
+- Geist mit Querachse: „Anlegen“ 362 s → 127 s, 121.255 Sätze, die Bahn Zeichen für Zeichen gleich.
+
+### AKZEPTANZKRITERIUM
+- `test_vierachs_bahn`, `test_vierachs_huelle` grün.
+
 ## P-2026-10-11-110 netzschranke-maschine-stl
 
 ### EINGELESEN
