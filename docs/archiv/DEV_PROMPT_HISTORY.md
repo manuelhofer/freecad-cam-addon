@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-115 maschine-fuer-cam-speichern
+
+### EINGELESEN
+- Herbert im deutschen Forum-Thread (2026-10-11 abends): „Diese ‚Hand over to CAM‘ am Ende des
+  Dialogs zum Maschine erstellen hatte ich übersehen bzw. ignoriert … Ein ‚store Machine‘ wäre hier
+  eindeutiger.“ Manuel (2026-10-12): „Lies dir bitte mal den deutschen Forumpost durch!“
+
+### DATEIEN
+- `translations/de.json`, `en.json`: der Knopf im Fenster der Maschine heißt „Maschine für CAM
+  speichern“ / „Save machine for CAM“ (vorher „An CAM übergeben“ / „Hand over to CAM“); auch die
+  Überschrift seiner Berichte.
+- `help/de/transformationen.html`: die Überschrift dazu. `package.xml` (0.230.0).
+
+### ERGEBNIS
+- Am Ende von „Neue Maschine …“ und in „Maschine bearbeiten“ sagt der Knopf, was er tut: die
+  Maschine speichern, damit CAM sie beim Job anbietet.
+
+### AKZEPTANZKRITERIUM
+- `test_sprache`, `test_hilfe`, `szenario_uebergeben` grün.
+
 ## P-2026-10-12-114 entladen-nur-ueber-magazine
 
 ### EINGELESEN

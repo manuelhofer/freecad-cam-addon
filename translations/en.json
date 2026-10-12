@@ -310,7 +310,7 @@
     "export.geschwindigkeit_vorgabe": "“{name}” has no speed – CAM gets FreeCAD's default of {geschwindigkeit} rpm. Enter the machine's speed and hand it over again.",
     "export.spindel_ohne_drehzahl": "Spindle {name}, no maximum speed",
     "export.drehzahl_fehlt": "“{name}” has no maximum speed – CAM then does not limit the spindle speed. Enter the machine's speed and hand it over again.",
-    "dialog.uebergeben": "Hand over to CAM",
+    "dialog.uebergeben": "Save machine for CAM",
     "dialog.uebergeben.tooltip": "Saves the machine so that CAM offers it when setting up a job. Repeating overwrites the earlier handover.",
     "uebergeben.trotz_hinweisen": "There are still {anzahl} notes on this machine. Hand it over to CAM anyway?\n\nMissing values then arrive in CAM with default values.",
     "uebergeben.fehler": "The machine could not be saved:\n{fehler}",
