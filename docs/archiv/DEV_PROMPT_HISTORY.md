@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-117 texte-kuerzer-erste-runde
+
+### EINGELESEN
+- Herbert im Forum: „die Beschreibungstexte von Claude sind da manchmal ‚sehr blumig‘, darüber
+  bin ich auch schon das eine oder andere Mal gestolpert“. Manuel (2026-10-12): „ist mir auch schon
+  aufgefallen … vielleicht schaust du mal, ob du irgendwo was sinnvoller schreiben kannst“.
+- Blumig heißt hier: zu lang, Einschub in Einschub, Gedankenstriche, Nebensachen mittendrin. 212
+  Texte über 200 Zeichen; zuerst die, die Herbert gesehen hat (neue Maschine,
+  Werkzeugverwaltung, Werkzeuge der Hersteller).
+
+### DATEIEN
+- `translations/de.json`, `en.json`: 13 Texte kürzer und gerader – `wv.kiste.erklaerung`
+  (711 → 330 Zeichen), `wv.schnittwerte.werkstoffe`, `wv.schnittwerte.leer`, `wv.leer`,
+  `wv.cam.weiter`, `wv.richtwerte.tooltip`, `wv.laenge_spindelnase.tooltip`,
+  `wv.ausspannlaenge.tooltip`, `wv.nummer.tooltip`, `dialog.keine_baugruppe`,
+  `dialog.home.tooltip`, `dialog.vorschlagen.tooltip`, `uebergeben.nicht_verfuegbar`; im Englischen
+  die echten Knopfnamen. `package.xml` (0.232.0).
+
+### ERGEBNIS
+- Dieselbe Auskunft, ohne Nebensachen: Was in der Hilfe steht (welche Klasse ohne Werkstoff gilt,
+  wie Doppeltes erkannt wird, das Format der Kiste), steht nicht mehr im Fenster.
+
+### AKZEPTANZKRITERIUM
+- `test_sprache`, `test_abfahren`, `szenario_schnittwerte`, `szenario_uebergeben`,
+  `szenario_werkzeugkiste` grün.
+
 ## P-2026-10-12-116 cam-protokoll-leiser
 
 ### EINGELESEN
