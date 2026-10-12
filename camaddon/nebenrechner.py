@@ -470,7 +470,7 @@ class Nebenrechner:
             pfad = os.path.join(ordner, f"{name}-{secrets.token_hex(3)}.FCStd")
         if aenderungen is not None:
             aenderungen.kopiert(dokument, pfad)
-        with _schnell_speichern():
+        with _schnell_speichern(), _klone_leicht(dokument):
             dokument.saveCopy(pfad)
         pfade.append(pfad)
         for alt in pfade[:-KOPIEN_JE_DOKUMENT]:
@@ -1590,6 +1590,91 @@ def _schnell_speichern():
                 getattr(gruppe, f"Rem{art}")(name)
 
 
+# Flächen: Ab so vielen speichert die Kopie für die Arbeiter einen Klon ohne seine Form, und der
+# Arbeiter setzt sie aus dem Vorbild wieder zusammen (klone_herstellen).
+KLON_SCHWER_AB = 1000
+
+
+def _schwere_klone(dokument):
+    """Die Klone (Draft, wie die Modelle eines Jobs), deren Form groß ist und genau die ihres
+    einen Vorbilds an ihrer eigenen Lage – ohne Maßstab, Vereinigen oder Verbund, nicht 2D."""
+    klone = []
+    for objekt in dokument.Objects:
+        try:
+            if type(getattr(objekt, "Proxy", None)).__name__ != "Clone":
+                continue
+            if len(getattr(objekt, "Objects", ())) != 1 or objekt.isDerivedFrom(
+                "Part::Part2DObject"
+            ):
+                continue
+            if getattr(objekt, "Fuse", False) or getattr(objekt, "ForceCompound", False):
+                continue
+            skala = getattr(objekt, "Scale", FreeCAD.Vector(1, 1, 1))
+            if (skala - FreeCAD.Vector(1, 1, 1)).Length > 1e-12:
+                continue
+            if "Transient" in objekt.getPropertyStatus("Shape"):
+                continue
+            if objekt.Shape.countElement("Face") >= KLON_SCHWER_AB:
+                klone.append(objekt)
+        except Exception:  # noqa: BLE001 – im Zweifel mit Form speichern
+            continue
+    return klone
+
+
+@contextlib.contextmanager
+def _klone_leicht(dokument):
+    """Für die Dauer des Speicherns einer Kopie: Schwere Klone (_schwere_klone) speichern ihre Form
+    nicht – danach wie vorher. Das Dokument des Benutzers ändert sich dabei nicht (kein Signal,
+    sein eigenes Speichern schreibt alles). Am Geist in der 8-Eck-Stange hatte jeder der acht Jobs
+    das Teil als Klon (je 51,5 MB BREP): Jeder Arbeiter, der die Kopie öffnete, brauchte 1,3 GB und
+    6,8 s dafür – der Speicherwächter ließ deshalb nur wenige rechnen, die anderen warteten."""
+    klone = _schwere_klone(dokument)
+    for klon in klone:
+        klon.setPropertyStatus("Shape", "Transient")
+    try:
+        yield
+    finally:
+        for klon in klone:
+            with contextlib.suppress(Exception):
+                klon.setPropertyStatus("Shape", "-Transient")
+
+
+def klone_herstellen(dokument):
+    """Im Arbeiter nach dem Öffnen einer Kopie: Jeder Klon, den _klone_leicht ohne Form
+    gespeichert hat, bekommt sie wieder – wie Draft beim Neuberechnen (clone.execute: die Form des
+    Vorbilds, die Lage des Klons), aber ohne Kopie: Die Form teilt ihre Daten mit dem Vorbild.
+    Gibt die Zahl der hergestellten Klone zurück."""
+    import Part
+
+    offen = [
+        o
+        for o in dokument.Objects
+        if "Shape" in o.PropertiesList
+        and "Transient" in o.getPropertyStatus("Shape")
+        and len(getattr(o, "Objects", ())) == 1
+    ]
+    hergestellt = 0
+    while offen:  # ein Klon eines Klons erst nach seinem Vorbild
+        weiter = []
+        for klon in offen:
+            vorbild = klon.Objects[0]
+            if vorbild in offen and vorbild not in weiter and vorbild.Shape.isNull():
+                weiter.append(klon)
+                continue
+            form = Part.getShape(vorbild)
+            if form.isNull():
+                continue
+            lage = klon.Placement
+            klon.Shape = form
+            klon.Placement = lage
+            klon.purgeTouched()
+            hergestellt += 1
+        if len(weiter) == len(offen):
+            break
+        offen = weiter
+    return hergestellt
+
+
 _pool = None
 
 
@@ -1682,6 +1767,18 @@ def _probe_dokument(dokument, name, dauer=0.0):
     """Das Volumen des Objekts `name` im (vom Arbeiter geöffneten) Dokument – nach `dauer` s."""
     time.sleep(dauer)
     return dokument.getObject(name).Shape.Volume
+
+
+def _probe_klon(dokument, name, vorbild):
+    """(Flächen, Hüllquader, teilt die Daten mit dem Vorbild) des Klons `name` im (vom Arbeiter
+    geöffneten) Dokument – für tests/test_nebenrechner.py (klone_herstellen)."""
+    klon = dokument.getObject(name).Shape
+    kasten = klon.BoundBox
+    return (
+        klon.countElement("Face"),
+        (kasten.XMin, kasten.YMin, kasten.ZMin, kasten.XMax, kasten.YMax, kasten.ZMax),
+        klon.isPartner(dokument.getObject(vorbild).Shape),
+    )
 
 
 def _probe_summe(zahlen, faktor):

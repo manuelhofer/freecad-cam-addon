@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-130 leichte-kopien-fuer-nebenrechner
+
+### EINGELESEN
+- Manuel (2026-10-12): „weißt du, was ich schon lange nicht mehr gehört habe … mein Lüfter …
+  betreibst du deine Tests alle wieder nur auf einem Kern?“; „nicht dass du wieder Sachen baust,
+  die nur mit einem Prozess gerechnet werden?!“
+- Nachgesehen in der Kette am Geist (8-Eck, acht Aufspannungen): Die 23 Nebenrechner rechneten in
+  14 min je etwa 30 s. Die Datei hat das Teil zehnmal (Körper und je Job ein Klon, je 51,5 MB
+  BREP); die Kopie für die Nebenrechner war 254 MB (ungepackt), ein Nebenrechner brauchte zum
+  Öffnen 1,3 GB und 4,4 s – der Speicherwächter (Größe × 15) ließ nur wenige sie öffnen.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `_klone_leicht` – beim Speichern der Kopie schreiben schwere Klone
+  (Draft, ein Vorbild, ab 1000 Flächen) ihre Form nicht (Status „Transient“, danach wie vorher;
+  das Dokument des Benutzers bleibt unverändert, ohne Signal); `klone_herstellen` setzt sie im
+  Nebenrechner aus dem Vorbild wieder zusammen, wie Draft (Form des Vorbilds, Lage des Klons), aber
+  mit den Daten des Vorbilds geteilt. Probe `_probe_klon`.
+- `camaddon/nebenrechner_arbeiter.py`: nach dem Öffnen einer Kopie `klone_herstellen`.
+- `tests/test_nebenrechner.py`: Ein Klon mit 1002 Flächen fehlt in der Kopie, kommt im
+  Nebenrechner gleich groß an der Lage des Klons an und teilt die Daten mit dem Vorbild; das
+  Dokument bleibt, wie es war. `package.xml` (0.245.0).
+
+### ERGEBNIS
+- Kopie der Kette 254 → 62 MB, Speichern (das Fenster steht) 4,0 → 0,9 s; ein Nebenrechner beim
+  Öffnen +1284 → +645 MB (1,7 s öffnen, 3,9 s die acht Klone zusammensetzen – je 0,4 s in FreeCAD
+  beim Zuweisen der Form). Der Speicherwächter rechnet je Nebenrechner 0,9 statt 3,8 GB.
+- Die Kette danach im Szenario mit Mitschrift der Kerne (alle 5 s): je Aufspannung Vorschau auf
+  3 bis 10 Kernen, „Anlegen“ aber 25–30 s auf genau einem Kern im Fenster; im Mittel 0,8 Kerne
+  Fenster + 2,0 Nebenrechner. Das Anlegen ist der nächste Schritt.
+
+### AKZEPTANZKRITERIUM
+- `test_nebenrechner` grün; die Kette der acht Aufspannungen im Szenario durch.
+
 ## P-2026-10-12-129 n-eck-schruppen-im-kreis
 
 ### EINGELESEN

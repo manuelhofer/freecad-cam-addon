@@ -55,6 +55,9 @@ class _Dokumente:
             if eintrag is not None:
                 FreeCAD.closeDocument(eintrag[1].Name)
             dokument = FreeCAD.openDocument(pfad, hidden=True)
+            from camaddon import nebenrechner as nr
+
+            nr.klone_herstellen(dokument)  # ohne Form gespeichert (nr._klone_leicht)
             self._offen[pfad] = (kennung, dokument)
         if pfad in self._reihe:
             self._reihe.remove(pfad)

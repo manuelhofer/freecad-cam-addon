@@ -92,6 +92,35 @@ doc.recompute()
 assert kopie5 != kopie4 and kopie6 != kopie5, (kopie4, kopie5, kopie6)
 (volumen,) = pool.warten([pool.auftrag("nebenrechner", "_probe_dokument", kopie6, "Kasten")])
 assert abs(volumen - 14.0) < 1e-9, volumen
+# Ein schwerer Klon (wie das Teil aus einem STL im Modell eines Jobs, 2026-10-12): Die Kopie
+# speichert ihn ohne Form, der Arbeiter setzt sie aus dem Vorbild zusammen – gleich groß, an der
+# Lage des Klons, mit den Daten des Vorbilds; das Dokument selbst bleibt, wie es war.
+import zipfile  # noqa: E402
+
+import Draft  # noqa: E402
+
+viele = doc.addObject("Part::Feature", "Viele")
+viele.Shape = Part.makeCompound(
+    [Part.makeBox(1, 1, 1, FreeCAD.Vector(2 * i, 0, 0)) for i in range(nr.KLON_SCHWER_AB // 6 + 1)]
+)
+klon = Draft.clone(viele)
+klon.Placement = FreeCAD.Placement(FreeCAD.Vector(0, 50, 7), FreeCAD.Rotation(30, 0, 0))
+doc.recompute()
+soll = klon.Shape.BoundBox
+leicht = pool.kopie(doc)
+gespeichert = zipfile.ZipFile(leicht.pfad).namelist()
+assert not any(n.startswith(f"{klon.Name}.Shape") for n in gespeichert), gespeichert
+assert any(n.startswith("Viele.Shape") for n in gespeichert), gespeichert
+assert klon.getPropertyStatus("Shape") == [] and not klon.Shape.isNull(), "Dokument verändert"
+((flaechen, kasten, geteilt),) = pool.warten(
+    [pool.auftrag("nebenrechner", "_probe_klon", leicht, klon.Name, "Viele")]
+)
+erwartet = (soll.XMin, soll.YMin, soll.ZMin, soll.XMax, soll.YMax, soll.ZMax)
+assert flaechen == klon.Shape.countElement("Face") and geteilt, (flaechen, geteilt)
+assert max(abs(a - b) for a, b in zip(kasten, erwartet, strict=True)) < 1e-9, (kasten, erwartet)
+doc.removeObject(klon.Name)
+doc.removeObject("Viele")
+
 # Speicher (P-2026-10-11-100): Eine große Kopie öffnen nur so viele Arbeiter, wie der Speicher
 # trägt – einer hat sie schon offen, der Speicher reicht für einen zweiten; die übrigen Aufträge
 # warten auf diese beiden, der dritte Arbeiter öffnet sie nicht.
