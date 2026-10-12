@@ -2781,6 +2781,7 @@
     "ne.einrichten": "Aufspannung {k} von {n}: Stange um {winkel}° gegen die erste gedreht, die Flächen {a} und {b} an den Backen. Nullpunkt: X an der Stirn, Y und Z in der Mitte der Stange.",
     "ne.eigenschaft.neck": "So viele Flächen hat die N-Eck-Stange (W-018).",
     "ne.eigenschaft.aufspannung": "Die wievielte Aufspannung der N-Eck-Stange dieser Job ist.",
+    "ne.eigenschaft.spannlaenge": "So weit steckt die Stange im Schraubstock.",
     "sw.eigenschaft.umspannen": "Eine Aufspannung einer N-Eck-Stange: von Hand umgespannt, ohne Rundachsen, ein eigenes Programm.",
     "stl.neck": "Aus einer N-Eck-Stange im Schraubstock (umspannen)",
     "stl.neck.tooltip": "Für die 3-Achs-Fräse: Die Stange liegt waagerecht im Schraubstock, ein Ende gespannt. Je Aufspannung drehst du sie um 360°/N weiter und fräst von oben. Das Addon legt je Aufspannung einen Job an, jeder mit dem Restmaterial der vorigen.",

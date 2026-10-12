@@ -147,6 +147,49 @@ pruefe(
 )
 pruefe(any("X40" in z for z in saetze), f"Bahn fehlt: {saetze}")
 
+# --- Schruppen in der Stange: Zeilen von der Stirn zum Schraubstock ------------------------------
+# Manuel: „von vorne … hin zum Schraubstock arbeiten … ap muss eingehalten werden, und dann wird
+# einmal abgehoben“ – je Lage genau ein Abheben, die Zeilen rücken nur zum Schraubstock vor, der
+# Fräser bleibt über dem Teil (plus Aufmaß), über der Achse und vor den Backen.
+from camaddon import fraeserform as ff  # noqa: E402
+from camaddon import schruppen3d as r3op  # noqa: E402
+
+r, ap, ae, aufmass = 6.0, 4.0, 5.0, 0.5
+bahn = r3op.bahn_fuer(job, job.Model.Group, ff.scheibe(r), ap, ae, aufmass)
+pruefe(bahn.variante == "zeilen", f"Variante {bahn.variante}")
+oben_stange = rohteil.BoundBox.ZMax
+pruefe(bahn.lagen == math.ceil(oben_stange / ap - 1e-9), f"{bahn.lagen} Lagen bei ap {ap}")
+hoch = [
+    k
+    for k in range(1, len(bahn.punkte))
+    if bahn.punkte[k].eilgang and bahn.punkte[k].z > bahn.punkte[k - 1].z + 1e-6
+]
+pruefe(len(hoch) == bahn.lagen, f"{len(hoch)} Mal abgehoben bei {bahn.lagen} Lagen")
+schnitt = [p for p in bahn.punkte if not p.eilgang]
+pruefe(min(p.z for p in schnitt) >= -1e-6, f"unter der Achse: {min(p.z for p in schnitt)}")
+bis = ne.fraeser_bis(job, r)
+pruefe(nahe(bis, stange.laenge - stange.spannlaenge - ne.BACKE_FREI - r), f"bis x {bis}")
+pruefe(max(p.x for p in schnitt) <= bis + 1e-6, f"an die Backen: x {max(p.x for p in schnitt)}")
+k = klon  # das Teil im Job
+for p in schnitt:
+    # Liegt der Fräser (Radius r) über dem Teil, steht die Spitze darüber – plus Aufmaß.
+    ueber_teil = k.XMin - r < p.x < k.XMax + r and k.YMin - r < p.y < k.YMax + r and p.z < k.ZMax
+    dx = max(k.XMin - p.x, 0.0, p.x - k.XMax)
+    dy = max(k.YMin - p.y, 0.0, p.y - k.YMax)
+    if ueber_teil and math.hypot(dx, dy) < r - 1e-6:
+        pruefe(False, f"ins Teil: {p}")
+        break
+# Je Lage rücken die Zeilen nur zum Schraubstock vor (x steigt, nie zurück).
+x_zuvor = -math.inf
+for k in range(1, len(bahn.punkte)):
+    p = bahn.punkte[k]
+    if p.eilgang:
+        x_zuvor = -math.inf
+        continue
+    pruefe(p.x >= x_zuvor - 1e-6, f"zurück zur Stirn bei {p}")
+    x_zuvor = p.x
+print(f"Zeilen-Schruppen: {bahn.lagen} Lagen, {bahn.ringe} Zeilen, {bahn.zeit:.1f} min")
+
 # Ein verschobenes und gedrehtes Teil liegt genauso in der Stange (die Punkte im Dokument).
 schief = dok.addObject("Part::Box", "Schief")
 schief.Length, schief.Width, schief.Height = 30, 20, 50

@@ -2308,6 +2308,9 @@ class _Schruppen3D(_Strategie):
 
     def ergebnis_text(self, bahn, zeit):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        if bahn.variante == "zeilen":  # in der N-Eck-Stange (n_eck_schruppen): Zeilen statt Ringe
+            zeilen = tr("ba.zahl.zeile") if bahn.ringe == 1 else tr("ba.zahl.zeilen", n=bahn.ringe)
+            return tr("ba.ergebnis_raeumen", lagen=lagen, ringe=zeilen, zeit=zeit)
         ringe = tr("ba.zahl.ring") if bahn.ringe == 1 else tr("ba.zahl.ringe", n=bahn.ringe)
         if not bahn.zwischenlagen:
             return tr("ba.ergebnis_raeumen", lagen=lagen, ringe=ringe, zeit=zeit)

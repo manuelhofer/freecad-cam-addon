@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-124 n-eck-schruppen-in-zeilen
+
+### EINGELESEN
+- Manuel zum 3D-Schruppen in Ringen in der N-Eck-Stange (Bild Aufspannung 1, 227 Ringe): „die
+  Stiche, die du da fährst … Wahnsinn und unnötig … einfach von vorne, weit weg vom Schraubstock,
+  hin zum Schraubstock arbeiten … ap muss eingehalten werden, und dann wird einmal abgehoben“;
+  „effektiv wie die 4-Achs-Strategie, nur ohne 4. Achse“.
+
+### DATEIEN
+- `camaddon/n_eck_schruppen.py` (neu): `planen` – Lagen je ap bis auf die Achse, Zeilen quer im
+  Zickzack von der Stirn zum Schraubstock auf der Hüllfläche (`hoehenfeld.je_zeile`), jede Zeile
+  nur so breit wie das Material (Materialstand, > 0,5 mm über der Spitze), je Lage einmal
+  abheben; Variante „zeilen“ der Schruppbahn.
+- `camaddon/schruppen3d.py`: `bahn_fuer` nimmt in einem Job der Stange (ohne Fräser davor) die
+  Zeilen statt der Ringe (`_in_der_stange`, dieselben Prüfungen der Werte).
+- `camaddon/n_eck.py`: Eigenschaft „Spannlaenge“ an Grundjob und Aufspannungen; `spannlaenge`,
+  `fraeser_bis` (1 mm vor den Backen).
+- `camaddon/gui_bearbeitung.py`: Ergebnis „→ 2 Lagen, 92 Zeilen, etwa 12 min“.
+- `translations/de.json`, `en.json`: `ne.eigenschaft.spannlaenge`.
+- `tests/test_n_eck.py`: Quader in der Stange – Variante, Lagen nach ap, je Lage einmal abheben,
+  nie unter die Achse, nie ins Teil, nie an die Backen, nur zum Schraubstock vor.
+- `tests/gui/szenario_bearbeitung_n_eck.py`: Aufspannung 1 sagt „Zeilen“.
+- `docs/spezifikation_vierachs.md` 17.4, `docs/STATUS_SNAPSHOT.md`, Bild
+  `docs/bilder/w018_neck_zeilen.png`. `package.xml` (0.239.0).
+
+### ERGEBNIS
+- Geist, 8-Eck SW 86, Ø 12, ap 21, ae 3, Aufspannung 1: 3 Lagen, 93 Zeilen, 3 × abheben, etwa
+  11 min (vorher 227 Ringe, etwa 48 min), gerechnet in 2,5 s. Im Assistenten Aufspannung 1
+  „2 Lagen, 92 Zeilen, etwa 12 min“, Aufspannung 2 mit Restmaterial „… etwa 9 min“.
+
+### AKZEPTANZKRITERIUM
+- `test_n_eck` und `szenario_bearbeitung_n_eck` grün.
+
 ## P-2026-10-12-123 n-eck-programm-je-aufspannung
 
 ### EINGELESEN

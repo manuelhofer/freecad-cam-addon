@@ -31,6 +31,8 @@ ABSTAND = 10.0  # mm zwischen dem Teil und den Backen – Platz für den Fräser
 ZUGABE = 1.0  # mm Rohteil rundum ums Teil und vor seiner Stirn
 EIGENSCHAFT_N = "NEck"
 EIGENSCHAFT_AUFSPANNUNG = "Aufspannung"
+EIGENSCHAFT_SPANNLAENGE = "Spannlaenge"
+BACKE_FREI = 1.0  # mm – so weit bleibt der Fräser vor den Backen
 TEILACHSEN = {"X": (1.0, 0.0, 0.0), "Y": (0.0, 1.0, 0.0), "Z": (0.0, 0.0, 1.0)}
 
 
@@ -167,6 +169,13 @@ def richte_ein(dokument, teil, punkte, n=VORGABE_N, achse="Z", umgedreht=False, 
     _merke(
         job, EIGENSCHAFT_AUFSPANNUNG, 1, "App::PropertyInteger", tr("ne.eigenschaft.aufspannung")
     )
+    _merke(
+        job,
+        EIGENSCHAFT_SPANNLAENGE,
+        stange.spannlaenge,
+        "App::PropertyLength",
+        tr("ne.eigenschaft.spannlaenge"),
+    )
     job.Label = tr("ne.job", job=job.Label, k=1, n=n)
     dokument.recompute()
     return job, stange
@@ -196,6 +205,13 @@ def aufspannungen_anlegen(grundjob, n=None):
             "App::PropertyInteger",
             tr("ne.eigenschaft.aufspannung"),
         )
+        _merke(
+            job,
+            EIGENSCHAFT_SPANNLAENGE,
+            spannlaenge(grundjob),
+            "App::PropertyLength",
+            tr("ne.eigenschaft.spannlaenge"),
+        )
         jobs.append(job)
     grundjob.Document.recompute()
     return jobs
@@ -204,6 +220,18 @@ def aufspannungen_anlegen(grundjob, n=None):
 def ist_n_eck(job):
     """Gehört der Job zu einer N-Eck-Stange (Grundjob oder Aufspannung)?"""
     return bool(getattr(job, EIGENSCHAFT_N, 0))
+
+
+def spannlaenge(job):
+    """So weit steckt die Stange des Jobs im Schraubstock (mm)."""
+    return float(getattr(job, EIGENSCHAFT_SPANNLAENGE, SPANNLAENGE))
+
+
+def fraeser_bis(job, radius):
+    """So weit zum Schraubstock darf die Mitte eines Fräsers mit `radius` (x im Job): BACKE_FREI
+    vor den Backen – sie beginnen `spannlaenge` vor dem Ende der Stange."""
+    ende = float(job.Stock.Shape.BoundBox.XMax)
+    return ende - spannlaenge(job) - BACKE_FREI - float(radius)
 
 
 def einrichten_text(job):

@@ -94,6 +94,8 @@ def schritte(h):
         lambda: all(b.vorschau is not None for b in panel.bloecke if b.aktiv()), 300000
     )
     erste = {b.s.kennung: b.ergebnis.text() for b in panel.bloecke if b.aktiv()}
+    # In der Stange schruppt es in Zeilen von der Stirn zum Schraubstock, nicht in Ringen.
+    h.pruefe("Zeilen" in erste.get("schruppen3d", ""), f"Schruppen: {erste}")
     h.bild("2_aufspannung_1", panel.form)
     Gui.activeDocument().activeView().viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")

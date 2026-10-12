@@ -744,6 +744,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   je Aufspannung um 360°/N weitergedreht, von oben 3D-Schruppen und -Schlichten mit Restmaterial;
   als Kette wie die 5-Achs-Ebenen. Gebaut P-2026-10-12-120 (Kern) und -122 (Assistent
   „Bearbeitung“, Fenster „STL als Teil“); Bild mit Zahlen `docs/bilder/w018_neck_geist.png`.
+  Schruppen in der Stange in Zeilen von der Stirn zum Schraubstock, je Lage einmal abheben
+  (P-2026-10-12-124; Geist Aufspannung 1: 3 Lagen, 93 Zeilen, ~11 min statt 227 Ringe, ~48 min;
+  `docs/bilder/w018_neck_zeilen.png`).
   Offen: Schraubstock in der Kollision, Einrichtblatt – [spezifikation_vierachs.md](spezifikation_vierachs.md),
   Abschnitt 17.
 

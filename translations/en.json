@@ -2781,6 +2781,7 @@
     "ne.einrichten": "Setup {k} of {n}: bar turned {winkel}° against the first, faces {a} and {b} against the jaws. Zero point: X at the end face, Y and Z in the middle of the bar.",
     "ne.eigenschaft.neck": "Number of faces of the polygon bar (W-018).",
     "ne.eigenschaft.aufspannung": "Which setup of the polygon bar this job is.",
+    "ne.eigenschaft.spannlaenge": "How far the bar sits in the vise.",
     "sw.eigenschaft.umspannen": "A setup of a polygon bar: re-clamped by hand, no rotary axes, its own program.",
     "stl.neck": "From a polygon bar in the vise (re-clamping)",
     "stl.neck.tooltip": "For the 3-axis mill: the bar lies horizontally in the vise, one end clamped. For each setup you turn it on by 360°/N and mill from above. The add-on creates one job per setup, each with the remaining material of the ones before.",

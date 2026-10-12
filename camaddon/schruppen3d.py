@@ -236,9 +236,32 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
+    from . import n_eck as ne
+
+    if ne.ist_n_eck(job) and davor is None:
+        # Die N-Eck-Stange (W-018): Zeilen von der Stirn zum Schraubstock statt Ringe.
+        return _in_der_stange(job, form_teil, werte, toleranz, schritt, stand)
     return sr.planen(
         form_teil, list(flaechen), werte, zwischen, toleranz, schritt, davor, stand, nachbereiten
     )
+
+
+def _in_der_stange(job, form_teil, werte, toleranz, schritt, stand):
+    """3D-Schruppen in der N-Eck-Stange (n_eck_schruppen) – mit denselben Prüfungen der Werte."""
+    from . import n_eck as ne
+    from . import n_eck_schruppen as ns
+    from . import vierachs_flaechen as vf
+    from . import vierachs_planbahn as vp
+
+    r = float(werte.form.radius)
+    if r <= 0 or vp.ebener_radius(werte.form) <= 0:
+        raise ValueError(tr("ra.fehler.form"))
+    if werte.zustellung <= 0 or werte.zeilenabstand <= 0:
+        raise ValueError(tr("ra.fehler.werte"))
+    if werte.zeilenabstand > r + sr.GLEICH:
+        raise ValueError(tr("ra.fehler.zeilenabstand"))
+    netz = vf.vernetze(form_teil, toleranz).netz
+    return ns.planen(netz, werte, stand, ne.fraeser_bis(job, r), schritt)
 
 
 def vorschau(job, modell, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter):

@@ -1556,9 +1556,32 @@ Manuel (2026-10-12): „ja bau das so … so schwere STL-Geschichten sind ja eh 
 3. **Ein Programm je Aufspannung** (P-2026-10-12-123): ohne CYCLE800 und Rundachsen; der Satz
    fürs Einrichten steht im Kopf des Programms und als Hinweis im Fenster „Programm“.
 
-Offen zu W-018: das Schruppen von der Stirn zum Schraubstock ohne Abheben (Manuel, 2026-10-12, zum
-3D-Schruppen in Ringen: „die Stiche, die du da fährst … Wahnsinn und unnötig … einfach von vorne,
-weit weg vom Schraubstock, hin zum Schraubstock arbeiten“); der Schraubstock in der Kollision.
+4. **Schruppen in Zeilen von der Stirn zum Schraubstock** (P-2026-10-12-124,
+   `camaddon/n_eck_schruppen.py`; Manuel, 2026-10-12, zum 3D-Schruppen in Ringen: „die Stiche, die
+   du da fährst … Wahnsinn und unnötig … einfach von vorne, weit weg vom Schraubstock, hin zum
+   Schraubstock arbeiten … ap muss eingehalten werden, und dann wird einmal abgehoben“; „effektiv
+   wie die 4-Achs-Strategie, nur ohne 4. Achse“). In einem Job der Stange rechnet „3D-Schruppen“
+   (ohne Fräser davor) so – wie „Rundum schruppen“ ohne Drehachse:
+   - Lagen von oben je höchstens ap (und die Schneidenlänge), gleich tief, die letzte auf der
+     Achse der Stange (z 0): Darunter liegt, was die gegenüberliegenden Aufspannungen von ihrer
+     Oberseite her nehmen.
+   - In einer Lage Zeilen quer zur Stange (längs Y) im Abstand ae, im Zickzack von der Stirn zum
+     Schraubstock; die Spitze auf der Lage oder, wo das Teil höher steht, auf seiner Hüllfläche
+     (Fräser um Aufmaß und Toleranz größer, `hoehenfeld.je_zeile`) – sie klettert darüber, statt
+     abzuheben. Jede Zeile nur so breit, wie unter dem Fräser Material steht (mehr als 0,5 mm über
+     der Spitze; der Materialstand, in Aufspannung 2 … N das Restmaterial der Aufspannungen davor);
+     eine Zeile ohne fällt weg. Von Zeile zu Zeile über dem höchsten Punkt der Hüllfläche
+     dazwischen (feine Zeilen im Raster 0,5 mm).
+   - Am Ende der Lage einmal abheben, im Eilgang zurück nach vorn.
+   - Zum Schraubstock höchstens bis 1 mm vor die Backen (`n_eck.fraeser_bis`: das Ende der Stange
+     minus Spannlänge, gemerkt am Job als „Spannlaenge“).
+   Am Geist (8-Eck SW 86, Schaftfräser Ø 12, ap 21, ae 3, Aufspannung 1): 3 Lagen, 93 Zeilen,
+   3 × abheben, etwa 11 min, gerechnet in 2,5 s – vorher 227 Ringe, etwa 48 min. Im Assistenten
+   (Vorschau): Aufspannung 1 „2 Lagen, 92 Zeilen, etwa 12 min“, Aufspannung 2 mit dem Restmaterial
+   „2 Lagen, 92 Zeilen, etwa 9 min“ (dort reichen die Zeilen links in den Keil, den Aufspannung 1
+   nicht erreichte, und rechts in ihre Hinterschnitte). Bild `docs/bilder/w018_neck_zeilen.png`.
+
+Offen zu W-018: der Schraubstock in der Kollision.
 
 ## Entschieden
 
