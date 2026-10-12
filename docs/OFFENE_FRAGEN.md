@@ -82,8 +82,10 @@ Beide fahren nicht ins Teil. Gleich- und Gegenlauf geben dieselbe Zeit (die Stic
 Ohne die Begrenzung auf den Streifen räumte es nach 3-Achs-Art die ganze Schicht über der Ebene ab,
 bis ans Futter (19 min) – das nimmt ohnehin „Rundum schruppen“.
 
-Ich baue „Stiche von der offenen Seite“ als Wahl in „Plan indexiert“ (Gleichlauf / Gegenlauf;
-„beides“ bleibt das Hin und Her der Zeilen). – *Warum nur Manuel:* Ob die Stiche die Vorgabe
+Gebaut in 0.256.0 (P-2026-10-12-146) als Wahl „Über der Fläche“ in „Plan indexiert“: Zeilen hin
+und her (Vorgabe, „beides“), Stiche von der offenen Seite – Gleichlauf, – Gegenlauf. Probier es am
+Nasen-Teil: 4-Achs-Bearbeitung, Plan indexiert anhaken, „Über der Fläche“ auf die Stiche, dann
+„Auf der Maschine prüfen“ und abspielen. – *Warum nur Manuel:* Ob die Stiche die Vorgabe
 werden – sie greifen öfter tief ein (bis 205 mm², das Addon bremst dort), die Zeilen dafür mit
 Rampen ins Material –, entscheidest du an der Maschine; ohne dein Ja ändere ich die Vorgabe
 nicht (Strategiewahl). Und: „Plan indexiert als Erstes“, damit die anderen die Nase nicht
