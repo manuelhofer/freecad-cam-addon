@@ -755,9 +755,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Maschinenteil dem STL-Teil nahe kommt (T1 axial gespannt), 28,7 s statt über 60 min. Offen:
   die Datei – jeder Job hat das Teil als eigenen Klon, am Geist je 51,5 MB BREP (die 8-Eck-Kette:
   9 × im Dokument, 148 MB gepackt; Speichern und jede Kopie für die Nebenrechner entsprechend
-  langsam); Bereiche statt Dreiecke wählen; beim Anlegen am Geist steht das Fenster einmal bis 3,5 s, sonst
-  unter 1 s (FreeCADs Werkzeugkörper, `updateDepths` mit dem Hüllquader der 68.242 Flächen) –
-  [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
+  langsam); Bereiche statt Dreiecke wählen. Das Fenster steht am Geist noch 2,3 s beim Umwandeln
+  und 1,9 s beim ersten Klick – FreeCADs Anzeige des Körpers mit 68.242 Flächen; sonst höchstens
+  1,6 s (P-2026-10-12-152). Weniger nur, wenn das Addon statt des Körpers das Netz zeigte (Auswahl
+  über die Zuordnung Dreieck → Fläche) – [spezifikation_vierachs.md](spezifikation_vierachs.md),
+  Abschnitt 16.
 - **W-018 STL aus der N-Eck-Stange im Schraubstock** – Manuels Wunsch vom 2026-10-12: an der
   3-Achs-Fräse eine gerade N-Eck-Stange waagerecht längs X oder Y, ein Ende 20 mm im Schraubstock,
   je Aufspannung um 360°/N weitergedreht, von oben 3D-Schruppen und -Schlichten mit Restmaterial;
