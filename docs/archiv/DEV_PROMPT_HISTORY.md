@@ -20,10 +20,11 @@ patch_naming:
   Fenster 2,9 GB (aus dem Bericht des Kernels).
 
 ### DATEIEN
-- `camaddon/nebenrechner_arbeiter.py`: `_speicher_zurueckgeben` – nach einem Auftrag, wenn nicht
-  schon der nächste wartet, ab 512 MB belegt und 25 % Wachstum seit der letzten Rückgabe:
-  glibc `malloc_trim(0)` (andere Systeme: nichts). `_belegt_mb` liest `/proc/self/statm`.
-- `camaddon/nebenrechner.py`: Proben `_probe_speicher`, `_probe_belegt`.
+- `camaddon/nebenrechner.py`: `speicher_zurueckgeben` – ab 512 MB belegt und 25 % Wachstum seit
+  der letzten Rückgabe glibc `malloc_trim(0)` (andere Systeme: nichts); `belegt_mb` liest
+  `/proc/self/statm`. Das Fenster gibt im Aufräumtakt des Pools (60 s) zurück, wenn nichts läuft
+  (beim OOM hatte es 2,9 GB). Proben `_probe_speicher`, `_probe_belegt`.
+- `camaddon/nebenrechner_arbeiter.py`: nach einem Auftrag, wenn nicht schon der nächste wartet.
 - `tests/test_nebenrechner.py`: 1500 MB belegt und frei – danach hat der Arbeiter wieder unter
   700 MB (Gegenprobe ohne Rückgabe im selben Prozess: 1560 MB bleiben). `package.xml` (0.242.0).
 

@@ -91,6 +91,10 @@ RESERVE_MINDESTENS = 1.5 * 2**30  # Bytes – mindestens
 UNTERWEGS_S = 20.0  # s: so lange zählt eine eben verschickte Kopie, bis der Speicher sie zeigt
 SPEICHER_ALLE = 0.5  # s: so oft höchstens liest der Pool, wie viel Speicher frei ist
 _SPAETER = object()  # _verteilen: den Speicher erst lesen, wenn ihn ein Auftrag braucht
+# MB: Ab so viel belegtem Speicher gibt ein Prozess zurück, was frei ist – und erst wieder, wenn
+# er um ZURUECKGEBEN_WACHSTUM gewachsen ist (speicher_zurueckgeben).
+ZURUECKGEBEN_AB = 512.0
+ZURUECKGEBEN_WACHSTUM = 1.25
 
 
 class Fehler(Exception):
@@ -1127,11 +1131,18 @@ class Nebenrechner:
             if self._aufraeumuhr is None:
                 self._aufraeumuhr = QtCore.QTimer()
                 self._aufraeumuhr.setInterval(AUFRAEUMEN_MS)
-                self._aufraeumuhr.timeout.connect(self.abfragen)
+                self._aufraeumuhr.timeout.connect(self._aufraeumen)
                 self._aufraeumuhr.start()
         elif self._aufraeumuhr is not None:
             self._aufraeumuhr.stop()
             self._aufraeumuhr = None
+
+    def _aufraeumen(self):
+        """Im Takt AUFRAEUMEN_MS: Arbeiter im Leerlauf beenden (abfragen) – und läuft nichts, gibt
+        das Fenster zurück, was frei ist (speicher_zurueckgeben)."""
+        self.abfragen()
+        if not self.offen():
+            speicher_zurueckgeben()
 
     def _melder_abgleichen(self, QtCore):  # noqa: N803 – das Modul
         """Unter Linux und macOS weckt je Arbeiter ein QSocketNotifier abfragen(), sobald er
@@ -1604,9 +1615,50 @@ def _probe(x, dauer=0.0, fortschritt=None):
     return x * x
 
 
+_malloc_trim = None  # glibc malloc_trim, False ohne (andere Systeme)
+_nach_rueckgabe = 0.0  # MB belegt nach der letzten Rückgabe
+
+
+def belegt_mb():
+    """So viel Speicher (MB) belegt dieser Prozess (RSS, Linux) – None, wenn es sich nicht
+    lesen lässt."""
+    try:
+        with open("/proc/self/statm") as datei:
+            seiten = int(datei.read().split()[1])
+        return seiten * os.sysconf("SC_PAGE_SIZE") / 2**20
+    except (OSError, ValueError, IndexError, AttributeError):
+        return None
+
+
+def speicher_zurueckgeben():
+    """Gibt dem System zurück, was frei ist, aber noch dem Prozess gehört (glibc: malloc_trim) –
+    ab ZURUECKGEBEN_AB MB und wenn er seit der letzten Rückgabe um ZURUECKGEBEN_WACHSTUM gewachsen
+    ist; True, wenn zurückgegeben. Ein Arbeiter, der den Körper aus einem STL rechnete (der Geist,
+    68.242 Flächen), behielt danach 1,8 GB, obwohl alles wieder zu war – mit malloc_trim 0,19 GB,
+    in 62 ms; in der Kette der 5-Achs-Ebenen wuchs einer so auf 4,1 GB (2026-10-12, im Szenario
+    vom Kernel beendet). Der Arbeiter ruft es nach einem Auftrag, der Pool im Fenster im Takt
+    AUFRAEUMEN_MS, wenn nichts läuft."""
+    global _malloc_trim, _nach_rueckgabe
+    belegt = belegt_mb()
+    if belegt is None or belegt < max(ZURUECKGEBEN_AB, ZURUECKGEBEN_WACHSTUM * _nach_rueckgabe):
+        return False
+    if _malloc_trim is None:
+        try:
+            import ctypes
+
+            _malloc_trim = ctypes.CDLL("libc.so.6").malloc_trim
+        except (OSError, AttributeError):
+            _malloc_trim = False
+    if not _malloc_trim:
+        return False
+    _malloc_trim(0)
+    _nach_rueckgabe = belegt_mb() or 0.0
+    return True
+
+
 def _probe_speicher(mb):
     """Belegt `mb` MB in kleinen Stücken und gibt sie wieder frei – glibc behält sie ohne
-    Rückgabe (nebenrechner_arbeiter._speicher_zurueckgeben). Gibt den belegten Speicher (MB, RSS)
+    Rückgabe (speicher_zurueckgeben). Gibt den belegten Speicher (MB, RSS)
     danach zurück – für tests/test_nebenrechner.py."""
     stuecke = [bytes(1000) + bytes([i % 256]) for i in range(int(mb * 1000))]
     # Ein Stück, das bleibt, oben auf dem Heap: Sonst gäbe glibc das freie Ende von selbst zurück
@@ -1618,11 +1670,7 @@ def _probe_speicher(mb):
 
 def _probe_belegt():
     """Der belegte Speicher des Arbeiters (MB, RSS; Linux), sonst None."""
-    try:
-        with open("/proc/self/statm") as datei:
-            return int(datei.read().split()[1]) * os.sysconf("SC_PAGE_SIZE") / 2**20
-    except (OSError, ValueError, IndexError, AttributeError):
-        return None
+    return belegt_mb()
 
 
 def _probe_form(form):

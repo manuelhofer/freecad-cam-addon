@@ -26,10 +26,6 @@ import traceback
 MELDEN_ALLE = 0.2  # s: so oft höchstens meldet eine Funktion ihren Fortschritt
 DOKUMENTE_OFFEN = 3  # so viele Dokumentkopien bleiben offen, die älteste geht zu (wie im Pool)
 WACHHUND_ALLE = 2.0  # s: so oft sieht der Arbeiter nach, ob sein Hauptprozess noch lebt
-# MB: Ab so viel belegtem Speicher gibt der Arbeiter nach einem Auftrag zurück, was frei ist – und
-# erst wieder, wenn er um ZURUECKGEBEN_WACHSTUM gewachsen ist (_speicher_zurueckgeben).
-ZURUECKGEBEN_AB = 512.0
-ZURUECKGEBEN_WACHSTUM = 1.25
 
 
 def _verbinden(start):
@@ -175,43 +171,6 @@ def _verarbeiten(nachricht):
     return True
 
 
-_malloc_trim = None  # glibc malloc_trim, False ohne (andere Systeme)
-_nach_rueckgabe = 0.0  # MB belegt nach der letzten Rückgabe
-
-
-def _belegt_mb():
-    """So viel Speicher (MB) belegt der Arbeiter (RSS, Linux) – None, wenn es sich nicht lesen
-    lässt."""
-    try:
-        with open("/proc/self/statm") as datei:
-            seiten = int(datei.read().split()[1])
-        return seiten * os.sysconf("SC_PAGE_SIZE") / 2**20
-    except (OSError, ValueError, IndexError, AttributeError):
-        return None
-
-
-def _speicher_zurueckgeben():
-    """Gibt dem System zurück, was frei ist, aber noch dem Arbeiter gehört (glibc: malloc_trim) –
-    ab ZURUECKGEBEN_AB MB und wenn er seit der letzten Rückgabe um ZURUECKGEBEN_WACHSTUM gewachsen
-    ist. Ein Arbeiter, der den Körper aus einem STL rechnete (der Geist, 68.242 Flächen), behielt
-    danach 1,8 GB, obwohl alles wieder zu war – mit malloc_trim 0,19 GB, in 62 ms; in der Kette der
-    5-Achs-Ebenen wuchs einer so auf 4,1 GB (2026-10-12, im Szenario vom Kernel beendet)."""
-    global _malloc_trim, _nach_rueckgabe
-    belegt = _belegt_mb()
-    if belegt is None or belegt < max(ZURUECKGEBEN_AB, ZURUECKGEBEN_WACHSTUM * _nach_rueckgabe):
-        return
-    if _malloc_trim is None:
-        try:
-            import ctypes
-
-            _malloc_trim = ctypes.CDLL("libc.so.6").malloc_trim
-        except (OSError, AttributeError):
-            _malloc_trim = False
-    if _malloc_trim:
-        _malloc_trim(0)
-        _nach_rueckgabe = _belegt_mb() or 0.0
-
-
 def _wachhund(eltern, alle=WACHHUND_ALLE):
     """Beendet den Arbeiter, sobald sein Hauptprozess weg ist (ein anderer Elternprozess) – auch
     mitten in einer Rechnung: Bis dahin merkte er es erst beim nächsten Senden, und ein langes
@@ -257,7 +216,7 @@ def hauptschleife():
         if not _verarbeiten(nachricht):
             return
         if nachricht[0] == "auftrag" and not _verbindung.poll():
-            _speicher_zurueckgeben()  # nur, wenn nicht schon der nächste Auftrag wartet
+            nr.speicher_zurueckgeben()  # nur, wenn nicht schon der nächste Auftrag wartet
 
 
 if os.environ.get("CAMADDON_ARBEITER") == "1":
