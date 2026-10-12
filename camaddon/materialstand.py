@@ -364,7 +364,7 @@ def _rohteil_kennung(job):
         from . import raum_material as raum
         from . import schwenken as sw
 
-        teile = [kennung, _placement_text(sw.ebene_von(job))]
+        teile = [kennung, _placement_text(sw.lage_im_grundjob(job))]
         teile += [f"{_placement_text(e)} {s.kennung if s else None}" for e, s in davor]
         kennung += " ebene " + hashlib.sha1(" | ".join(map(str, teile)).encode()).hexdigest()
         kennung += " raum " + raum.kennung(job, SCHRITT)
@@ -384,14 +384,10 @@ def _ebene_davor(job):
     die Ebenen, die vor dieser im Dokument stehen. Leer bei einem anderen Job."""
     from . import schwenken as sw
 
-    if not sw.ist_ebene(job):
+    folge = sw.folge_vor(job)  # Grundjob, Ebenen oder Aufspannungen davor (W-018)
+    if not folge:
         return []
-    grund = job.Grundjob
-    ergebnis = [(None, fuer(grund))]
-    ebenen = sw.ebenen_von(grund)
-    for ebene in ebenen[: ebenen.index(job)] if job in ebenen else ebenen:
-        ergebnis.append((sw.ebene_von(ebene), fuer(ebene)))
-    return ergebnis
+    return [(sw.lage_im_grundjob(davor), fuer(davor)) for davor in folge]
 
 
 def _ist_quader(rohteil):
@@ -425,7 +421,7 @@ def _rohteil(job, kennung):
 
         stand = raum.fuer_ebene(job, SCHRITT)
         if stand is not None:
-            quader.h = _von_oben_in_der_ebene(quader, sw.ebene_von(job), davor, stand)
+            quader.h = _von_oben_in_der_ebene(quader, sw.lage_im_grundjob(job), davor, stand)
     return Materialstand(quader, quader.h.copy(), kennung=(kennung,))
 
 

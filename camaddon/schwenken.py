@@ -644,8 +644,52 @@ def text_rundachsen(rund, programm=False):
 
 
 def ist_ebene(job):
-    """Ist der Job eine geschwenkte Ebene (hat er einen Grundjob)?"""
-    return getattr(job, "Grundjob", None) is not None and hasattr(job, "Ebene")
+    """Ist der Job eine geschwenkte Ebene (hat er einen Grundjob)? Nicht eine Aufspannung einer
+    N-Eck-Stange (ist_umspannen): Die wird von Hand umgespannt – für Maschine, Programm und
+    Prüfung ein eigener Job."""
+    return (
+        getattr(job, "Grundjob", None) is not None
+        and hasattr(job, "Ebene")
+        and not getattr(job, "Umspannen", False)
+    )
+
+
+def ist_umspannen(job):
+    """Ist der Job eine Aufspannung einer N-Eck-Stange (n_eck, W-018): wie eine Ebene ein Job mit
+    Grundjob und Lage darin, aber von Hand umgespannt – keine Rundachsen, ein eigenes Programm.
+    Nur das Restmaterial der Aufspannungen davor gilt wie bei den Ebenen (lage_im_grundjob)."""
+    return (
+        getattr(job, "Grundjob", None) is not None
+        and hasattr(job, "Ebene")
+        and bool(getattr(job, "Umspannen", False))
+    )
+
+
+def umspannen_setzen(job):
+    """Macht einen Job aus lege_an zur Aufspannung (ist_umspannen): ohne Rundachsen."""
+    if "Umspannen" not in job.PropertiesList:
+        job.addProperty("App::PropertyBool", "Umspannen", GRUPPE, tr("sw.eigenschaft.umspannen"))
+        job.setEditorMode("Umspannen", 1)
+    job.Umspannen = True
+    job.Rundachsen = ""
+
+
+def lage_im_grundjob(job):
+    """Das Placement des Jobs im Grundjob – einer Ebene oder einer Aufspannung; None für einen
+    anderen. Für das Restmaterial (materialstand, raum_material)."""
+    return FreeCAD.Placement(job.Ebene) if ist_ebene(job) or ist_umspannen(job) else None
+
+
+def folge_vor(job):
+    """[Grundjob, Ebenen bzw. Aufspannungen davor] – die Jobs, deren Operationen vor `job` am
+    Material waren; leer für einen anderen Job."""
+    if ist_ebene(job):
+        folge = ebenen_von(job.Grundjob)
+    elif ist_umspannen(job):
+        folge = aufspannungen_von(job.Grundjob)
+    else:
+        return []
+    return [job.Grundjob, *folge[: folge.index(job)]] if job in folge else [job.Grundjob, *folge]
 
 
 def ebene_von(job):
@@ -890,6 +934,16 @@ def ebenen_von(grundjob):
         o
         for o in grundjob.Document.Objects
         if o is not grundjob and ist_ebene(o) and o.Grundjob == grundjob
+    ]
+
+
+def aufspannungen_von(grundjob):
+    """Die Aufspannungen einer N-Eck-Stange zu `grundjob` (ist_umspannen) – in der Reihenfolge
+    im Dokument."""
+    return [
+        o
+        for o in grundjob.Document.Objects
+        if o is not grundjob and ist_umspannen(o) and o.Grundjob == grundjob
     ]
 
 

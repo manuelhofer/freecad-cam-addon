@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-120 n-eck-stange-kern
+
+### EINGELESEN
+- W-018 (Manuel, 2026-10-12): ein STL aus einer N-Eck-Stange im Schraubstock einer 3-Achs-Fräse,
+  je Aufspannung um 360°/N gedreht, von oben 3D-Schruppen und -Schlichten mit Restmaterial, als
+  Kette wie die 5-Achs-Ebenen; „ja bau das so“. Stufe 1: der Kern ohne Oberfläche.
+
+### DATEIEN
+- `camaddon/n_eck.py` (neu): `pruefe_n`, `lage`, `stange_fuer`, `form`, `ecken`, `drehwinkel`,
+  `werkzeugachse`, `backenflaechen`, `richte_ein`, `aufspannungen_anlegen`, `ist_n_eck`,
+  `einrichten_text`.
+- `camaddon/schwenken.py`: `ist_ebene` ohne die Aufspannungen; `ist_umspannen`,
+  `umspannen_setzen`, `lage_im_grundjob`, `folge_vor`, `aufspannungen_von`.
+- `camaddon/materialstand.py`, `camaddon/raum_material.py`: die Vorgänger über `folge_vor`, die
+  Lagen über `lage_im_grundjob` – Ebenen wie bisher, dazu die Aufspannungen.
+- `translations/de.json`, `en.json`: `ne.*`, `sw.eigenschaft.umspannen`.
+- `tests/test_n_eck.py` (neu). `docs/spezifikation_vierachs.md` (17.1). `package.xml` (0.235.0).
+
+### ERGEBNIS
+- Quader 30 × 20 × 50 in der 8-Eck-Stange SW 39 (Länge 81): 7 Aufspannungen, keine geschwenkte
+  Ebene, je die gedrehte Richtung oben, die Folge fürs Restmaterial der Reihe nach; ein
+  verschobenes und gedrehtes Teil liegt genauso mittig.
+
+### AKZEPTANZKRITERIUM
+- `test_n_eck`, `test_sprache`, `test_materialstand`, `test_raum_material`, `test_schwenken`,
+  `test_schwenken_maschinen` grün. (`test_ebenen_auslassen` war schon vorher rot – als eigene
+  Aufgabe vorgeschlagen.)
+
 ## P-2026-10-12-119 texte-kuerzer-zweite-runde
 
 ### EINGELESEN

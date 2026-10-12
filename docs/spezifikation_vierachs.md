@@ -1528,6 +1528,21 @@ Außenfläche (139 cm²) erreichen die Aufspannungen von oben (Werkzeugwinkel zu
 Was nicht erreicht wird, ist fast nur der Rand der Öffnung innen (zeigt zum Schraubstock). Mehr
 Ecken machen die Flächen flacher zum Werkzeug, ab 8 kaum noch; erreichbar wird dadurch kaum mehr.
 
+Manuel (2026-10-12): „ja bau das so … so schwere STL-Geschichten sind ja eh meist nur optisch“.
+
+1. **Kern** (P-2026-10-12-120, `camaddon/n_eck.py`): `richte_ein` legt den Grundjob an – das Teil
+   mit der gewählten Achse längs der Stange (Spitze 1 mm hinter der Stirn bei x 0, der Querschnitt
+   mittig auf der X-Achse), das Rohteil die N-Eck-Stange (Inkreis um den Querschnitt + 1 mm, die
+   Schlüsselweite auf ganze mm, lang bis 10 mm hinter das Teil und 20 mm in den Schraubstock;
+   Fläche 1 an der Backe bei +Y). `aufspannungen_anlegen` legt die Aufspannungen 2 … N an
+   (`schwenken.lege_an` mit Winkel, dann `umspannen_setzen`): Jobs mit Grundjob und Lage darin,
+   aber `Umspannen` – `schwenken.ist_ebene` gilt für sie nicht (Programm, Prüfung und Abfahren
+   sehen je Aufspannung einen eigenen 3-Achs-Job, `rw.grundjob_von` ist der Job selbst);
+   `ist_umspannen`, `aufspannungen_von`, `lage_im_grundjob` und `folge_vor` geben Materialstand
+   und `raum_material` die Aufspannungen davor als Vorgänger – das Restmaterial wie bei den
+   Ebenen. `einrichten_text`: „Aufspannung 3 von 8: Stange um 90° gegen die erste gedreht, die
+   Flächen 3 und 7 an den Backen. Nullpunkt: X an der Stirn, Y und Z in der Mitte der Stange.“
+
 ## Entschieden
 
 Alle von Manuel, 2026-09-26, P-2026-09-26-78 – aus Fragen mit Optionen bzw.

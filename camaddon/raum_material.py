@@ -712,11 +712,10 @@ def schaftschnitt(xs, ys, von, nach, achse, radius, laenge):
 def _jobs_vor(job):
     from . import schwenken as sw
 
-    grund = job.Grundjob
-    ebenen = sw.ebenen_von(grund)
-    if job not in ebenen:
+    folge = sw.folge_vor(job)  # Grundjob, Ebenen oder Aufspannungen davor (W-018)
+    if not folge:
         raise ValueError(tr("rm3.fehler.geometrie"))
-    return [grund, *ebenen[: ebenen.index(job)]]
+    return folge
 
 
 def _simultane_vorbereiten(job):
@@ -762,7 +761,7 @@ def _kennungen(job, schritt=0.5, simultane=None):
     summe = hashlib.sha256(repr([job.Grundjob.Stock.Shape.exportBrepToString(), schritt]).encode())
     ergebnis = [summe.hexdigest()]
     for davor in _jobs_vor(job):
-        lage = sw.ebene_von(davor)
+        lage = sw.lage_im_grundjob(davor)
         daten = [tuple(lage.toMatrix().A) if lage is not None else None]
         for op in ms.operationen_vor(davor):
             tc = op.ToolController
@@ -845,7 +844,7 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
         if nummer > beginn:
             stapel.leeren()
             _merken(kennungen[nummer], material.kopie())
-        lage = sw.ebene_von(davor)
+        lage = sw.lage_im_grundjob(davor)
         achse = np.array(tuple(lage.Rotation.multVec(Vector(0, 0, 1)))) if lage else (0, 0, 1)
 
         def ort(p, lage=lage):

@@ -2774,5 +2774,12 @@
     "va.halter_zu_kurz": "{werkzeug} ist dafür zu kurz (Gesamtlänge {gesamt} {e_laenge}) – ein längeres Werkzeug nehmen.",
     "va.halter_ausgespannt": "{werkzeug} steht jetzt {heraus} {e_laenge} heraus: Länge ab Spindelnase {laenge} {e_laenge}, in der Werkzeugverwaltung gespeichert{drin}. So einspannen und am Voreinstellgerät nachmessen.",
     "va.halter_ausgespannt_drin": "; im Halter stecken dann noch {drin} {e_laenge}",
-    "kb.ausgespannt_pruefen": "„Kollision prüfen“ sagt, ob es jetzt frei ist."
+    "kb.ausgespannt_pruefen": "„Kollision prüfen“ sagt, ob es jetzt frei ist.",
+    "ne.fehler.n": "Eine N-Eck-Stange braucht eine gerade Zahl von Flächen ab 4 – im Schraubstock liegen zwei gegenüber an den Backen ({n} geht nicht).",
+    "ne.stange": "{n}-Eck-Stange SW {sw}",
+    "ne.job": "{job} – Aufspannung {k} von {n}",
+    "ne.einrichten": "Aufspannung {k} von {n}: Stange um {winkel}° gegen die erste gedreht, die Flächen {a} und {b} an den Backen. Nullpunkt: X an der Stirn, Y und Z in der Mitte der Stange.",
+    "ne.eigenschaft.neck": "So viele Flächen hat die N-Eck-Stange (W-018).",
+    "ne.eigenschaft.aufspannung": "Die wievielte Aufspannung der N-Eck-Stange dieser Job ist.",
+    "sw.eigenschaft.umspannen": "Eine Aufspannung einer N-Eck-Stange: von Hand umgespannt, ohne Rundachsen, ein eigenes Programm."
 }
