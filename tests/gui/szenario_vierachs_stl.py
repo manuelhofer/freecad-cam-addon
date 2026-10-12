@@ -14,6 +14,7 @@ import os
 import FreeCAD
 import FreeCADGui as Gui
 import Mesh
+import numpy as np
 from PySide import QtCore
 
 V = FreeCAD.Vector
@@ -123,11 +124,10 @@ def schritte(h):
     yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 5000)
 
     # --- Die Standfläche ans Futter -----------------------------------------------------------
-    standflaeche = next(
-        f"Face{i}"
-        for i, f in enumerate(teil.Shape.Faces, 1)
-        if abs(f.CenterOfMass.z) < 1e-6 and vr.aussennormale(f).z < -0.99
-    )
+    # Über die Dreiecksdaten, nicht Fläche für Fläche (1,5 s, die die Lag-Sonde dem Addon zuschrieb).
+    daten = stl_teil.daten(teil.Shape)
+    unten = np.flatnonzero((daten.normale[:, 2] < -0.99) & (np.abs(daten.oben[:, 2]) < 1e-6))
+    standflaeche = f"Face{int(unten[0]) + 1}"
     Gui.Selection.clearSelection()
     # Im Job liegt der Klon (das Original ist ausgeblendet): Seine Flächen heißen wie die des Teils.
     Gui.Selection.addSelection(doc.Name, vr.modell(panel.job).Name, standflaeche)
@@ -142,7 +142,7 @@ def schritte(h):
     job = panel.job
     klon = vr.modell(job)
     laengs = job.Stock.Placement.Rotation.multVec(V(0, 0, 1))
-    a = [ecke.Point.dot(laengs) for ecke in klon.Shape.Vertexes]
+    a = stl_teil.daten(klon.Shape).punkte @ np.array(tuple(laengs))
     # Der Kopf vorne bei a = 0, die Standfläche 82,73 dahinter; die Stange (vorgeschlagen) um
     # das ganze Teil – es braucht Ø 80,75.
     h.pruefe(abs(max(a)) < 0.05 and abs(min(a) + 82.73) < 0.05, f"Klon längs {min(a)} … {max(a)}")

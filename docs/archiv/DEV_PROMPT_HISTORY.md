@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-159 geist-szenario-ohne-flaechenschleife
+
+### EINGELESEN
+- Nach P-152 bis -158 war die größte Pause in `pausen.txt` am Geist das Szenario selbst: Es
+  suchte die Standfläche über alle 68.242 Flächen (`teil.Shape.Faces`, 1,5 s) und maß die Länge
+  über alle Ecken – die Lag-Sonde schreibt solche Pausen dem Schritt zu, in dem sie liegen.
+
+### DATEIEN
+- `tests/gui/szenario_vierachs_stl.py`: Standfläche und Länge über `stl_teil.daten` (numpy).
+
+### ERGEBNIS
+- `szenario_vierachs_stl` grün in 26.3 RC1 (140 s); längste Pause im ganzen Ablauf 0,96 s (am
+  Morgen 2,49 s): Umwandeln 0,62 s, erster Klick 0,75 s, „Anlegen“ höchstens 0,82 s.
+
 ## P-2026-10-12-158 rundum-tiefen-ohne-modell
 
 ### EINGELESEN
