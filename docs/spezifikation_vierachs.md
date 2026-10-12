@@ -1513,7 +1513,20 @@ vierte Achse von Hand an einer 3-Achs-Fräse. Entschieden (Frage 15, Manuel 2026
   3D-Schlichten von dem, was von dort zu sehen ist, mit dem Restmaterial der Aufspannungen davor.
 
 Vorher (Strategie erst besprechen): am Geist für N = 6 und 8 ein Bild mit Zahlen – je Aufspannung,
-was sie erreicht, und was aus keiner Richtung erreichbar stehen bleibt.
+was sie erreicht, und was aus keiner Richtung erreichbar stehen bleibt. Gerechnet 2026-10-12
+(Bild `docs/bilder/w018_neck_geist.png`): Der Geist ist eine Schale, unten offen – mit der
+Standfläche zum Schraubstock zeigt die Höhlung dorthin und bleibt Vollmaterial. Von der
+Außenfläche (139 cm²) erreichen die Aufspannungen von oben (Werkzeugwinkel zur Fläche):
+
+| N  | bis 30° | 30–60° | über 60° | nicht erreicht |
+|----|---------|--------|----------|----------------|
+| 4  | 49 %    | 31 %   | 6 %      | 14 %           |
+| 6  | 66 %    | 16 %   | 4 %      | 14 %           |
+| 8  | 71 %    | 12 %   | 4 %      | 13 %           |
+| 12 | 72 %    | 10 %   | 4 %      | 13 %           |
+
+Was nicht erreicht wird, ist fast nur der Rand der Öffnung innen (zeigt zum Schraubstock). Mehr
+Ecken machen die Flächen flacher zum Werkzeug, ab 8 kaum noch; erreichbar wird dadurch kaum mehr.
 
 ## Entschieden
 
