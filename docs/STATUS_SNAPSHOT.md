@@ -358,6 +358,22 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   hat schon T3 (Ø 6) – der Name passt nicht zu Ø 4. Umbenennen, oder ist es dasselbe Werkzeug
   zweimal im Magazin?“ – und den Widerspruch Name „D6“ ↔ Ø 4 selbst erkennen.
 
+**Manuels Ring-Teil (2026-10-12, 19:46, mit drei Bildern):** `~/freecad_cam/testteile/4_achs_planbearbeitung_testteil.FCStd`
+– ein Ring Ø 65 × 8 mm (PartDesign: drei Segmente mit Schlitzen bis zur Bohrung, je eine Bohrung,
+Ringnuten), Job „Body – 4 Achsen“: Stange Ø 70 von z −86,5 bis 1 (das Teil z −8 … 0), T4 Ø 4,
+„Rundum schruppen“ 9 Lagen, 26.098 Befehle. Manuel: „ich wollte das teil eigentlich normal fräsen …
+aber da es rund ist .. sagt mir der assistent .. hey das wird auf der 4 achs maschine bearbeitet ..
+hab ich zwar nicht verstanden“; „warum fährt der da in der luft ??? warum in dem bauteil … komplette
+anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face 6 face 17“. Zu tun
+(nach den Werkzeugwegen, Manuel: „aufschreiben, erstmal weitermachen“):
+- Der Assistent: Eine flache runde Scheibe (dünn längs, die Flächen stirnseitig) ist kein Teil für
+  „Rundum“ – 3-Achs von vorn vorschlagen (oder beide, mit dem Grund in einem Satz).
+- Die Bahn nachstellen: wo sie durch Luft fährt (hinter dem dünnen Teil die ganze Stange bis zum
+  Futter?) und wo sie ins Teil geht (Bilder: Bahnen quer durch die Mitte, durch die Schlitze zur
+  Bohrung; das Werkzeug steht im Teil) – mit „Bahn prüfen“ am Teil messen, dann beheben.
+- Face28, Face6, Face17 (die Nuten, stirnseitig): radial nicht erreichbar – das muss gesagt werden
+  (nicht still weglassen) und eine Bearbeitung von vorn angeboten werden.
+
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
    unten dreht, so dass die fläche der nase zum fräserboden schaut … einfach bearbeiten indem man mit
