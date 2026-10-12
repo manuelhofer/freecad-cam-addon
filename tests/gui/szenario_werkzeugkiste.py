@@ -48,6 +48,8 @@ def schritte(h):
     if kiste is None:
         return
     vorher = len(kiste.reihen_eintraege())
+    # Am Anfang ist nichts angehakt (P-2026-10-12-114).
+    h.pruefe(kiste.gewaehlt() == [], f"schon angehakt: {kiste.gewaehlt()[:5]}")
     h.bild("1_kiste", kiste)
 
     # --- Die Hoffmann-Datei einlesen ----------------------------------------------------------

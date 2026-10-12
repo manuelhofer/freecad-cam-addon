@@ -407,7 +407,10 @@ class WerkzeugDialog(QtGui.QDialog):
         gitter.setColumnStretch(1, 1)
         gitter.setColumnStretch(3, 1)
 
-        # Die Nummer ist freiwillig (W-002 F2): 0 zeigt „–“ – nicht geladen.
+        # Die Nummer ist freiwillig (W-002 F2): 0 zeigt „–“ – keine. Sie ist nur die Vorgabe für
+        # den Job; was an welcher Maschine geladen ist, sagen die Magazine. Einen Knopf
+        # „Entladen“ gibt es darum hier nicht mehr (Manuel, 2026-10-12: „entladen aus was? wenn ich
+        # 5 Maschinen habe … das nur über die Magazine machen“).
         self.feld_nummer = QtGui.QSpinBox()
         self.feld_nummer.setRange(0, GROESSTE_NUMMER)
         self.feld_nummer.setPrefix("T")
@@ -415,9 +418,6 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_nummer.setToolTip(tr("wv.nummer.tooltip"))
         self.feld_nummer.valueChanged.connect(self._nummer_geaendert)
         self.feld_nummer.editingFinished.connect(self._nach_nummer)
-        self.knopf_entladen = QtGui.QPushButton(tr("wv.nummer.entfernen"))
-        self.knopf_entladen.setToolTip(tr("wv.nummer.entfernen.tooltip"))
-        self.knopf_entladen.clicked.connect(self._entladen)
 
         # Die Arten nach Gruppen – „Fräsen“, „Bohren“ … als Überschrift, nicht wählbar.
         self.feld_art = QtGui.QComboBox()
@@ -559,11 +559,7 @@ class WerkzeugDialog(QtGui.QDialog):
         # Maße der Art ordnet _felder_anordnen() darunter an, zu zweit je Reihe.
         self._gitter = gitter
         gitter.addWidget(QtGui.QLabel(tr("wv.nummer")), 0, 0)
-        nummer_zeile = QtGui.QHBoxLayout()
-        nummer_zeile.setContentsMargins(0, 0, 0, 0)
-        nummer_zeile.addWidget(self.feld_nummer, 1)
-        nummer_zeile.addWidget(self.knopf_entladen)
-        gitter.addLayout(nummer_zeile, 0, 1)
+        gitter.addWidget(self.feld_nummer, 0, 1)
         gitter.addWidget(QtGui.QLabel(tr("wv.art")), 0, 2)
         gitter.addWidget(self.feld_art, 0, 3)
         gitter.addWidget(QtGui.QLabel(tr("wv.name")), 1, 0)
@@ -768,7 +764,6 @@ class WerkzeugDialog(QtGui.QDialog):
             return
         self._fuellt = True
         self.feld_nummer.setValue(max(w.nummer, 0))
-        self.knopf_entladen.setEnabled(w.nummer > 0)
         self.feld_art.setCurrentIndex(self.feld_art.findData(w.art))
         for feld, eingabe in self._zahlenfelder.items():
             eingabe.setText(self._zeigen(feld, getattr(w, feld)))
@@ -1056,15 +1051,7 @@ class WerkzeugDialog(QtGui.QDialog):
         if self._fuellt or self.werkzeug is None:
             return
         self.werkzeug.nummer = int(wert)
-        self.knopf_entladen.setEnabled(self.werkzeug.nummer > 0)
         self._geaendert()
-
-    def _entladen(self):
-        """Nummer entfernen (W-002 F2): Das Werkzeug bleibt, belegt aber keine Nummer mehr."""
-        if self.werkzeug is None:
-            return
-        self.feld_nummer.setValue(0)
-        self._nach_nummer()
 
     def _nach_nummer(self):
         """Nach der Eingabe der Nummer: Liste neu sortieren, das Werkzeug bleibt gewählt."""
@@ -1443,7 +1430,8 @@ class KisteDialog(QtGui.QDialog):
     """„Werkzeuge der Hersteller“ (W-007): die Werkzeugkiste als Baum – je Werkzeugart eine
     Gruppe, darin die Reihen der Hersteller, darin jede Größe mit eigenem Haken (Manuel,
     2026-10-03: „diese Einteilung … und EINZELNE Bohrer aufnehmen, nicht gleich alle“). Alle
-    angehakt; der Tooltip einer Reihe sagt, woher Maße, Nummern und Werte kommen."""
+    angehakt; der Tooltip einer Reihe sagt, woher Maße, Nummern und Werte kommen. Am Anfang ist
+    nichts angehakt (Manuel, 2026-10-12: „dass man nicht immer aus Versehen alle hinzufügt“)."""
 
     def __init__(self, eltern=None):
         super().__init__(eltern)
@@ -1526,7 +1514,7 @@ class KisteDialog(QtGui.QDialog):
                     groesse = QtGui.QTreeWidgetItem([dezimal(wz.zeile_ohne_nummer(werkzeug))])
                     groesse.setData(0, QtCore.Qt.UserRole, (reihe.kennung, nummer))
                     groesse.setFlags(haken)
-                    groesse.setCheckState(0, QtCore.Qt.Checked)
+                    groesse.setCheckState(0, QtCore.Qt.Unchecked)
                     zeile.addChild(groesse)
             gruppe.setExpanded(True)
 
@@ -1597,6 +1585,13 @@ class KisteDialog(QtGui.QDialog):
     def reihen_eintraege(self):
         """Die Zeilen der Reihen in der Reihenfolge der Anzeige (für die Szenarien)."""
         return list(self._reihen)
+
+    def accept(self):
+        """„Hinzufügen“: Ist nichts angehakt, sagt es das und bleibt offen."""
+        if not self.gewaehlt():
+            QtGui.QMessageBox.information(self, tr("wv.kiste.titel"), tr("wv.kiste.nichts"))
+            return
+        super().accept()
 
     def alle_setzen(self, an):
         """„Alle anhaken“ / „Alle abhaken“."""

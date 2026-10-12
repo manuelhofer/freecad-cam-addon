@@ -500,7 +500,9 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    - Noch nicht: Werkzeuge, die im Revolver bleiben, ohne dass der Job sie braucht
      (dann auch für die Kollision).
    - **F2 gebaut** (P-2026-10-04-35, Manuel: „kannst du bauen ja“): Nummer 0 heißt „nicht
-     geladen“ – im Feld „–“ (`setSpecialValueText`), daneben „Entladen“; in der Liste „–“, im
+     geladen“ – im Feld „–“ (`setSpecialValueText`); den Knopf „Entladen“ daneben gibt es seit
+     P-2026-10-12-114 nicht mehr (Manuel: „entladen aus was? … das nur über die Magazine
+     machen“) – die Nummer ist nur die Vorgabe für den Job; in der Liste „–“, im
      Satz der Kurzname („Schaftfräser Ø 12“, `wz.genannt`), sortiert zuletzt (`wz.nach_nummer`);
      „jede Nummer nur einmal“ nur unter Werkzeugen mit Nummer (`mit_nummer(0)` ist None). Im
      Job bekommt es ohne Revolver die Nummer, die es dort schon hat, sonst die kleinste, die

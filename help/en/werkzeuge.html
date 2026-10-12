@@ -65,7 +65,8 @@ carbide end mills Ø 6 to 20 (Jongen UNI-Mill 494W, from the catalogue), deburri
 16 (Garant 208165, from the data sheet), a face mill Ø 50 (Sandvik CoroMill 345), one example
 of every other type and the inserts for turning (C, D, V, W, T, S, R). The window shows them
 as a tree: tool type → series → size, each with a tick – so you can take single sizes of a
-series only; “Tick all” and “Untick all” help. The tooltip of a series says where dimensions,
+series only. At first nothing is ticked, so that nothing is added by accident; “Tick all” and
+“Untick all” help. The tooltip of a series says where dimensions,
 numbers and values come from. <b>Add</b> creates them with the next free numbers – what is
 already there stays as you changed it. Every tool brings cutting data per <b>material
 class</b> (P1 steel up to 750 N/mm², P2 quenched and tempered steel, M stainless, K cast
@@ -104,8 +105,10 @@ machine”. Values are always saved in mm: ½" stays 0.5 in, even after switchin
 back and forth. In inch a new tool has round inch sizes (½", 1" of flute), and
 the planner suggests 400 SFM and 0.002".</p>
 <ul>
-<li><b>Number</b> – the T number. Free to choose, each only once; if it is
-already taken, that is shown right below the fields.</li>
+<li><b>Number</b> – the T number the tool gets in a job unless a magazine of the machine
+says otherwise. Free to choose, each only once; if it is already taken, that is shown right
+below the fields. “–” means none. Which tools are loaded on which machine is in
+<a href="magazine.html">Magazines</a> – that is where you load and unload them.</li>
 <li><b>Name</b> – the tool's name in the control (e.g. T="Endmill carbide
 12"); write it exactly as on the machine, spaces included. Empty: the name
 shown in grey, made from the data, applies: “End mill T1 Carbide D12 L30”.
@@ -137,8 +140,14 @@ estimated.</li>
 <li><b>Gauge length</b> – for every type: from the spindle nose (in a turret
 from the tool mount) to the tip, <b>with holder</b> – as the presetter
 measures it. “Check on machine” uses it to see whether Z reaches. Empty
-means, shown in grey, with a holder: holder length + overall length − clamping
-depth; without a chosen holder the length in the suggested holder (holder length + reach + 5 mm).</li>
+means, shown in grey, with a holder: holder length + “stick-out”; if that is empty too,
+estimated: holder length + overall length − clamping depth; without a chosen holder the length
+in the suggested holder (holder length + reach + 5 mm).</li>
+<li><b>Stick-out</b> – next to it: how far the tool sticks out of the holder, per tool – in a
+collet each one sits at a different depth. If you enter it, holder length + this value applies
+and the holder's clamping depth no longer counts. One of the two fields is enough; the empty
+one shows in grey what follows from the other. The picture in the <b>Holders …</b> window shows
+the dimension next to the cutter.</li>
 <li><b>Holder</b> – next to it: the holder between spindle nose and tool, from
 the list of holders; <b>Holders …</b> opens it (see
 <a href="halter.html">Holders</a>).</li>

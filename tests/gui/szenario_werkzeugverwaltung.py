@@ -169,17 +169,18 @@ def schritte(h):
     tippen(d.feld_name, "")
     yield 100
     h.pruefe(d.werkzeug.name == "" and not d.hinweis.isVisible(), "Name leeren")
-    # Entladen (W-002 F2): Die Nummer geht weg, das Werkzeug bleibt – „–“ im Feld, kein Hinweis;
-    # danach wieder T2.
-    h.pruefe(d.knopf_entladen.isEnabled(), "„Entladen“ gesperrt")
-    d.knopf_entladen.click()
+    # Ohne Nummer (W-002 F2): „–“ im Feld, das Werkzeug bleibt, kein Hinweis; danach wieder T2.
+    # Einen Knopf „Entladen“ gibt es nicht mehr – geladen wird über die Magazine (P-2026-10-12-114).
+    h.pruefe(not hasattr(d, "knopf_entladen"), "„Entladen“ noch da")
+    d.feld_nummer.setValue(0)
+    d._nach_nummer()
     yield 200
     h.pruefe(
-        d.werkzeug.nummer == 0 and d.feld_nummer.text() == "–" and not d.knopf_entladen.isEnabled(),
-        f"entladen: {d.werkzeug.nummer}, {d.feld_nummer.text()!r}",
+        d.werkzeug.nummer == 0 and d.feld_nummer.text() == "–",
+        f"ohne Nummer: {d.werkzeug.nummer}, {d.feld_nummer.text()!r}",
     )
     h.pruefe(not d.hinweis.isVisible(), f"Hinweis ohne Nummer: {d.hinweis.text()!r}")
-    h.bild("6a_entladen", d)
+    h.bild("6a_ohne_nummer", d)
     d.feld_nummer.setValue(2)
     yield 100
 

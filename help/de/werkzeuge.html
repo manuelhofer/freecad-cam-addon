@@ -67,7 +67,8 @@ VHM-Fräser Ø 6 bis 20 (Jongen UNI-Mill 494W, nach Katalog), Entgrater Ø 6 bis
 208165, nach Datenblatt), ein Messerkopf Ø 50 (Sandvik CoroMill 345), je weitere Art ein
 Beispiel und die Wendeplatten zum Drehen (C, D, V, W, T, S, R). Das Fenster zeigt sie als
 Baum: Werkzeugart → Reihe → Größe, jede mit Haken – so nimmst du auch nur einzelne Größen
-einer Reihe; „Alle anhaken“ und „Alle abhaken“ helfen dabei. Der Tooltip einer Reihe sagt,
+einer Reihe. Am Anfang ist nichts angehakt, damit nicht aus Versehen alles hinzukommt;
+„Alle anhaken“ und „Alle abhaken“ helfen dabei. Der Tooltip einer Reihe sagt,
 woher Maße, Nummern und Werte kommen. <b>Hinzufügen</b> legt sie mit den nächsten freien
 Nummern an – was schon da ist, bleibt, wie du es geändert hast. Jedes Werkzeug bringt
 Schnittwerte je <b>Werkstoffklasse</b> mit (P1 Stahl bis 750 N/mm², P2 vergüteter Stahl, M
@@ -108,8 +109,11 @@ Abtrag in in³/min), Planer, Strategievergleich, „Schnittwerte in den Job“ u
 nach dem Umschalten hin und zurück. Ein neues Werkzeug hat in inch runde
 Zoll-Maße (½", Schneide 1"), der Planer schlägt 400 SFM und 0.002" vor.</p>
 <ul>
-<li><b>Nummer</b> – die T-Nummer. Frei wählbar, jede nur einmal; ist sie schon
-vergeben, steht das sofort unter den Feldern.</li>
+<li><b>Nummer</b> – die T-Nummer, mit der das Werkzeug in einen Job kommt, wenn kein
+Magazin der Maschine eine andere sagt. Frei wählbar, jede nur einmal; ist sie schon
+vergeben, steht das sofort unter den Feldern. „–“ heißt keine. Welche Werkzeuge an welcher
+Maschine geladen sind, steht in <a href="magazine.html">Magazine</a> – dort lädst und entlädst
+du sie.</li>
 <li><b>Name</b> – so, wie das Werkzeug in der Steuerung heißt (etwa
 T="Fräser VHM 12"); genau so schreiben wie an der Maschine, auch mit
 Leerzeichen. Leer gilt der grau gezeigte Name aus den Angaben:
@@ -142,9 +146,14 @@ wird.</li>
 <li><b>Länge ab Spindelnase</b> – bei allen Arten: von der Spindelnase (im
 Revolver von der Werkzeugaufnahme) bis zur Spitze, <b>mit Halter</b> – so,
 wie das Voreinstellgerät sie misst. Damit rechnet „Auf der Maschine prüfen“,
-ob Z reicht. Leer gilt, grau im Feld, mit Halter Halterlänge + Gesamtlänge −
-Spanntiefe, ohne gewählten Halter die Länge im vorgeschlagenen Halter
-(Halterlänge + Auskragung + 5 mm).</li>
+ob Z reicht. Leer gilt, grau im Feld, mit Halter Halterlänge + „Schaut aus dem Halter“;
+ist auch das leer, geschätzt: Halterlänge + Gesamtlänge − Spanntiefe, ohne gewählten Halter
+die Länge im vorgeschlagenen Halter (Halterlänge + Auskragung + 5 mm).</li>
+<li><b>Schaut aus dem Halter</b> – daneben: wie weit das Werkzeug aus dem Halter herausschaut,
+je Werkzeug – in einer Spannzange steckt jedes anders tief. Trägst du das ein, gilt
+Halterlänge + dieser Wert, und die Spanntiefe des Halters zählt nicht mehr. Eins der beiden
+Felder genügt; im leeren steht grau, was aus dem anderen folgt. Das Bild im Fenster
+<b>Halter …</b> zeigt das Maß neben dem Fräser.</li>
 <li><b>Halter</b> – daneben: der Halter zwischen Spindelnase und Werkzeug, aus
 der Liste der Halter; <b>Halter …</b> öffnet sie (siehe
 <a href="halter.html">Halter</a>). Ist keiner gewählt, steht grau, mit welchem

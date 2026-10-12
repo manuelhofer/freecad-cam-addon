@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-114 entladen-nur-ueber-magazine
+
+### EINGELESEN
+- Manuel (2026-10-12) zur Werkzeugverwaltung: „da steht Entladen … entladen aus was? wenn ich 5
+  Maschinen habe und diesen Fräser überall als T1 drinnen … vielleicht sollten wir das aus der
+  Werkzeugliste streichen und das nur über die Magazine machen“. Der Knopf nahm nur die Nummer
+  der Werkzeugverwaltung weg; die Magazine der Maschinen fasste er nicht an.
+- Dazu zu „Werkzeuge der Hersteller …“: „nervt mich schon ewig … bitte standardmäßig alle nicht
+  angehakt, dass man nicht immer aus Versehen alle hinzufügt“.
+
+### DATEIEN
+- `camaddon/gui_werkzeuge.py`: kein Knopf „Entladen“ mehr (die Nummer geht weiter auf „–“);
+  im Fenster „Werkzeuge der Hersteller“ am Anfang nichts angehakt, „Hinzufügen“ ohne Haken sagt
+  das und bleibt offen.
+- `translations/de.json`, `en.json`: Tooltip der Nummer (Vorgabe für den Job, geladen wird in den
+  Magazinen), „wv.kiste.nichts“; die Texte zu „Entladen“ weg.
+- `help/de|en/werkzeuge.html` (Nummer, „Schaut aus dem Halter“, nichts angehakt),
+  `help/de|en/halter.html` (Spanntiefe). `docs/spezifikation_werkzeugverwaltung.md` (F2),
+  `docs/STATUS_SNAPSHOT.md` (W-002).
+- Szenarien `szenario_werkzeugverwaltung` (ohne Nummer statt „Entladen“), `szenario_werkzeugkiste`
+  (nichts angehakt). `package.xml` (0.229.0).
+
+### ERGEBNIS
+- Werkzeugverwaltung: neben der Nummer kein Knopf mehr; „Werkzeuge der Hersteller …“ öffnet mit
+  leeren Haken (Bild im Szenario `1_kiste`).
+
+### AKZEPTANZKRITERIUM
+- `test_sprache`, `test_werkzeuge`, `test_hilfe`, `szenario_werkzeugverwaltung`,
+  `szenario_werkzeugkiste`, `szenario_halter` grün.
+
 ## P-2026-10-12-113 ausspannlaenge-je-werkzeug
 
 ### EINGELESEN

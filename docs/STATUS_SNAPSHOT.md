@@ -189,7 +189,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-002 Werkzeugverwaltung** – gebaut bis Stufe G: Werkzeuge mit Einsätzen je Werkstoff,
   Schruppwerte planen, 26 Werkzeugarten, Halter mit Richtung, Bestückung an der Maschine
   und je Job, Drehrichtung M3/M4, Richtwerte eintragen, eigene Werte je Werkstoff, die Nummer
-  am Werkzeug freiwillig („Entladen“, F2, P-2026-10-04-35); Magazine je Maschine in der
+  am Werkzeug freiwillig (F2, P-2026-10-04-35; geladen und entladen nur über die Magazine,
+  P-2026-10-12-114), je Werkzeug „Schaut aus dem Halter“ (P-2026-10-12-113); Magazine je Maschine in der
   Werkzeugverwaltung (Stufe H1, P-2026-10-05-04), die Nummern im Job aus dem Magazin (H2,
   P-2026-10-05-05: Listen mit dem Magazin vorn, gelb „nicht im Magazin“ mit „Ins Magazin
   übernehmen“), Rüstliste im Fenster „Bestückung“ und im Programmkopf mit „Nummern aus dem
