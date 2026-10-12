@@ -172,6 +172,9 @@ def schritte(h):
     yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
     h.pruefe(panel.lage_schruppen.isHidden(), f"gelb bei T1: {panel.lage_schruppen.text()!r}")
     job = panel.job
+    # „Anlegen“ ist grau, solange gerechnet wird (Rest, Halter – P-2026-10-12-139): warten, bis
+    # das Rad steht, wie man es am Bildschirm täte.
+    yield from h.warte_auf(lambda: not panel.rechnet_noch(), 120000)
     h.pruefe(panel.knopf_fertig.isEnabled(), "„Anlegen“ unten gesperrt")
     panel.knopf_fertig.click()  # Anlegen, unten rechts
     yield 1500

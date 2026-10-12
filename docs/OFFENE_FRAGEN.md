@@ -20,3 +20,45 @@ Backen liegen, Werkzeuge und Zeiten. – *Warum nur Manuel:* Ob du an der Maschi
 Programm auskommst oder die Flächen an der Stange anzeichnest und ein Blatt brauchst, weißt nur
 du aus der Werkstatt. – *Was die Antwort ändert:* Ja: Ich baue das Blatt (W-018, Spezifikation
 4 Achsen, Abschnitt 17). Nein: Der Punkt fällt weg. – seit 2026-10-12.
+
+**17. Vorschlichten: was soll die Kugel an den gelben Stellen entlasten?** Du hattest gefragt
+(2026-10-12, am Geist und an der Nase): „kannst du nicht ein ‚Vorschlichten‘ … an die Stellen …
+auf das Schlichtaufmaß vorarbeiten“, „vll vorschruppen bauen?“. Ich habe nachgemessen, was das
+bringt – die Last der Kugel beim Schlichten je mm Weg, nach dem Schruppen und mit Vorläufen
+(Bild: [geist_vorschlichten_kugel_eingriff.png](bilder/vorschlaege/geist_vorschlichten_kugel_eingriff.png)):
+
+| Geist (T1 Schaftfräser Ø 8, T2 Kugel Ø 4, Schlichten 103 min) | Zeit dazu | Kugel höchstens | gelb auf |
+|---|---|---|---|
+| nach dem Schruppen | – | 75,7 mm² | 562 mm |
+| Vorschlichten mit T1 aufs Aufmaß 0,3 (Spirale, Schritt 2) | 18 min | 75,7 mm² | 505 mm |
+| Vorschlichten mit der Kugel, Aufmaß 1,0 (Schritt 1) | 57 min | 18,8 mm² | 104 mm |
+| Kugel Aufmaß 1,5, dann 0,6 | 128 min | 18,8 mm² | 67 mm |
+
+Gelb ist ab 2,4 mm² (2 × Aufmaß 0,3 × Ø 4). Was ich daraus lese:
+- Der **Schaftfräser vom Schruppen hilft nicht**: Er kommt nicht hin, wo er schon beim Schruppen
+  nicht hinkam – die beiden Taschen zwischen Armen und Körper (X −55 und −24) sind enger als Ø 8.
+- Die **Kugel mit Aufmaß** nimmt viel weg, fährt dafür aber die ganze Spirale noch einmal (eine
+  Stunde) und lässt gerade die Taschen stehen: Dort nimmt sie danach noch 17–19 mm², also über 4 mm
+  tief in einem Zug.
+- Die hohen Spitzen an den Enden (X −80 und 0, 50–75 mm²) halte ich für die Rechnung in Würfeln von
+  1 mm an den Rändern, nicht für Material – die Warnung im Assistenten nannte X −29 … −17.
+- An der **Nase** steht mit den gleichen Lagen (P-135) fast nichts mehr: 4,83 gegen 4,80 mm² auf
+  1 mm; Vorschlichten ändert dort nichts.
+
+Möglich wären:
+- **A – Restschruppen in Lagen:** eine neue Operation „Rundum restschruppen“ mit einem kleineren
+  Fräser (der Kugel oder z. B. einem Schaftfräser Ø 4), in Lagen wie das Schruppen, aber nur dort,
+  wo danach noch Material steht – über dem Übrigen hebt sie ab. Am meisten Arbeit, nimmt die Taschen
+  wirklich vor.
+- **B – Vorschlichten mit der Kugel nur an den Stellen:** wie in der Tabelle, aber nur über den
+  gelben Abschnitten längs (am Geist zweimal etwa 6 mm), in Stufen des Aufmaßes (z. B. 3 – 2 – 1 –
+  0,3). Weniger Zeit als die ganze Spirale; die Kugel taucht trotzdem in die Tasche.
+- **C – Vorschub senken, wo die Kugel mehr nimmt:** keine Bahn dazu, nur an den gelben Stellen
+  langsamer (etwa im Verhältnis des Eingriffs, mit einer Untergrenze). Kostet die wenigsten Minuten.
+- **D – so lassen:** die Warnung bleibt, du entscheidest an der Maschine.
+
+*Warum nur Manuel:* Was die Kugel Ø 4 in deinem Werkstoff an 19 mm² aushält, ob du lieber einen
+Fräser mehr einwechselst (A) oder langsamer fährst (C), weißt nur du aus der Werkstatt; ohne dein
+Ja baue ich keine neue Strategie (Arbeitsregeln, Strategiewahl). – *Was die Antwort ändert:* A baut
+„Rundum restschruppen“ als Haken im Assistenten, vorbelegt an, wenn gelb; B die Vorläufe der Kugel
+über den gelben Abschnitten; C den Vorschub der Kugel je Stelle; D nichts. – seit 2026-10-12.

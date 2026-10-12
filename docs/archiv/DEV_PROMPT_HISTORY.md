@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-144 vorschlichten-gemessen-frage-17
+
+### EINGELESEN
+- Manuel (2026-10-12): „kannst du nicht ein ‚Vorschlichten‘ … an die Stellen … auf das
+  Schlichtaufmaß vorarbeiten“, am Geist „vll vorschruppen bauen?“.
+- Gemessen (Voxel 1 mm, die Rest-Rechnung der gelben Warnung): Geist nach dem Schruppen bis
+  75,7 mm² (gelb ab 2,4), T1 aufs Aufmaß ändert nichts, die Kugel mit Aufmaß 1,0 (57 min) senkt auf
+  18,8 mm², die Taschen bei X −55 und −24 bleiben. Nase (gleiche Lagen, P-135): 4,83 gegen 4,80 mm².
+- Weiter rot im vollen Lauf, ohne Fehler im Addon: `szenario_rundum_drehmaschine` (klickte
+  „Anlegen“, während noch gerechnet wurde – seit P-139 grau), `szenario_vierachs_ausspannen` (wie
+  P-143). `szenario_vierachs_maschine` stürzte einmal in 26.3 ab (Segfault in C++), danach grün.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md`: Frage 17 (A Restschruppen in Lagen, B Vorläufe der Kugel nur an den
+  Stellen, C Vorschub senken, D so lassen) mit
+  `docs/bilder/vorschlaege/geist_vorschlichten_kugel_eingriff.png`.
+- `tests/gui/szenario_rundum_drehmaschine.py` (wartet, bis nichts mehr rechnet),
+  `tests/gui/szenario_vierachs_ausspannen.py`.
+
+### ERGEBNIS
+- In 26.3 grün: `szenario_vierachs_ausspannen`, `szenario_vierachs_maschine` (auch 1.1.4).
+
 ## P-2026-10-12-143 speicher-beim-rechnen
 
 ### EINGELESEN

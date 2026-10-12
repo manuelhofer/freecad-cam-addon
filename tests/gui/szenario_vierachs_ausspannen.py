@@ -86,11 +86,16 @@ def schritte(h):
 
     zeile.linkActivated.emit(verweis.group(1))
     yield 200
-    gespeichert = next(w for w in wz.Bibliothek.laden().werkzeuge if w.nummer == 1)
+    gespeichert_bib = wz.Bibliothek.laden()
+    gespeichert = next(w for w in gespeichert_bib.werkzeuge if w.nummer == 1)
+    # Ohne gemessene Länge ab Spindelnase setzt der Klick „Schaut aus dem Halter“
+    # (P-2026-10-12-113); die Länge folgt daraus.
+    laenge_jetzt, _quelle = rw.laenge_des_werkzeugs(gespeichert, gespeichert_bib)
     h.pruefe(
-        abs(gespeichert.laenge_spindelnase - float(laenge)) < 1e-3
-        and abs(gespeichert.laenge_spindelnase - (laenge_vorher + int(heraus) - 30)) < 1e-3,
-        f"Länge ab Spindelnase {gespeichert.laenge_spindelnase} (vorher {laenge_vorher})",
+        abs(laenge_jetzt - float(laenge)) < 1e-3
+        and abs(laenge_jetzt - (laenge_vorher + int(heraus) - 30)) < 1e-3
+        and abs(gespeichert.ausspannlaenge - int(heraus)) < 1e-3,
+        f"Länge {laenge_jetzt} (vorher {laenge_vorher}), heraus {gespeichert.ausspannlaenge}",
     )
     yield from h.warte_auf(lambda: panel._halter_auftrag is None, 120000)
     yield 300
