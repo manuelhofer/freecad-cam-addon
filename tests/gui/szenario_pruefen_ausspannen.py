@@ -103,11 +103,16 @@ def schritte(h):
 
     k.ausspannen_zeile.linkActivated.emit(verweis.group(1))
     yield 300
-    gespeichert = next(w for w in wz.Bibliothek.laden().werkzeuge if w.nummer == 1)
+    gespeichert_bib = wz.Bibliothek.laden()
+    gespeichert = next(w for w in gespeichert_bib.werkzeuge if w.nummer == 1)
+    # Ohne gemessene Länge ab Spindelnase setzt der Klick „Schaut aus dem Halter“
+    # (P-2026-10-12-113); die Länge folgt daraus.
+    laenge_jetzt, _quelle = rw.laenge_des_werkzeugs(gespeichert, gespeichert_bib)
     h.pruefe(
-        abs(gespeichert.laenge_spindelnase - float(laenge)) < 1e-3
-        and gespeichert.laenge_spindelnase > laenge_vorher,
-        f"Länge ab Spindelnase {gespeichert.laenge_spindelnase} (vorher {laenge_vorher})",
+        abs(laenge_jetzt - float(laenge)) < 1e-3
+        and laenge_jetzt > laenge_vorher
+        and abs(gespeichert.ausspannlaenge - float(heraus)) < 1e-3,
+        f"Länge {laenge_jetzt} (vorher {laenge_vorher}), heraus {gespeichert.ausspannlaenge}",
     )
     notiz = k.notiz.text()
     h.pruefe(

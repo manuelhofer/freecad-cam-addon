@@ -130,6 +130,7 @@ groesse = 100 * 2**20
 bedarf_vorher = nr.kopie_bedarf
 nr.kopie_bedarf = lambda pfad: groesse if pfad == kopie6.pfad else bedarf_vorher(pfad)
 pool.speicher = lambda: 1.5 * groesse
+pool.arbeit_unbekannt = 0  # hier zählt nur das Öffnen der Kopie
 try:
     auftraege = [
         pool.auftrag("nebenrechner", "_probe_dokument", kopie6, "Kasten", dauer=0.3)
@@ -147,7 +148,36 @@ try:
 finally:
     nr.kopie_bedarf = bedarf_vorher
     pool.speicher = nr.speicher_frei
+    pool.arbeit_unbekannt = nr.ARBEIT_UNBEKANNT
 FreeCAD.closeDocument(doc.Name)
+
+# Speicher beim Rechnen (P-2026-10-12-143): Der Pool misst je Art, wie viel ein Auftrag belegt,
+# und gibt weiteren freien Arbeitern nur Arbeit, solange der Speicher dafür reicht. Der Speicher
+# hier: das 2,5-Fache einer Art, weniger dem, was die laufenden schon belegen (wie MemAvailable).
+pool.arbeit_unbekannt = 0
+pool._unterwegs.clear()  # die Kopien von eben zählten sonst noch UNTERWEGS_S s
+try:
+    pool.warten([pool.auftrag("nebenrechner", "_probe_halten", 300, 1.0)])
+    gelernt = pool._arbeit.get(("nebenrechner", "_probe_halten"), 0)
+    assert gelernt > 250 * 2**20, f"gemessen {gelernt / 2**20:.0f} MB"
+
+    def _frei():
+        belegt = sum(
+            max(0, a.belegt - a.leer)
+            for a in pool._arbeiter
+            if a.stapel and a.belegt is not None and a.leer is not None
+        )
+        return 2.5 * gelernt - belegt
+
+    pool.speicher = _frei
+    zeiten = pool.warten(
+        [pool.auftrag("nebenrechner", "_probe_halten", 300, 0.8) for _ in range(5)]
+    )
+    zugleich = max(sum(1 for b, e in zeiten if b <= t < e) for t, _ in zeiten)
+    assert zugleich == 2, f"{zugleich} zugleich: {zeiten}"
+finally:
+    pool.speicher = nr.speicher_frei
+    pool.arbeit_unbekannt = nr.ARBEIT_UNBEKANNT
 
 # Gemeinsame Daten: einmal je Arbeiter, in Argumenten auch verschachtelt.
 zahlen = pool.gemeinsam("zahlen", list(range(1000)))

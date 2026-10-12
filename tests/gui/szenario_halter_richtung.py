@@ -129,7 +129,7 @@ def schritte(h):
     beschriftung = d.beschriftung_laenge_spindelnase.text()
     h.pruefe(beschriftung == "Länge ab Bezugspunkt", f"mit gewinkeltem Halter: {beschriftung!r}")
     h.pruefe(
-        d.feld_laenge_spindelnase.placeholderText() == "leer: 92 mit Halter",
+        d.feld_laenge_spindelnase.placeholderText() == "leer: geschätzt 92 mit Halter",
         f"Platzhalter: {d.feld_laenge_spindelnase.placeholderText()!r}",
     )
     h.bild("4_werkzeug", d)

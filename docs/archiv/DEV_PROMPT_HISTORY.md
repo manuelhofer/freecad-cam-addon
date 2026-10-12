@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-143 speicher-beim-rechnen
+
+### EINGELESEN
+- Beim Messen am Geist (Vorschlichten, P-2026-10-12-144 folgt) beendete der Kernel Arbeiter in
+  einem Lauf mit 10 GB Grenze – wieder ein Popup bei Manuel. Gemessen mit 4 Arbeitern: bis 2,35 GB
+  je Arbeiter beim Schlichten des Geists. Der Pool prüfte den Speicher nur fürs Öffnen großer
+  Kopien (Dateigröße × 15); Aufträge mit gemeinsamen Daten verteilte er ohne Grenze an alle
+  24 Arbeiter (56 GB).
+- Dazu im vollen Lauf rot, ohne Fehler im Addon: `szenario_pruefen_ausspannen` (fragte die Länge
+  ab Spindelnase ab, seit P-113 setzt „ausspannen“ ohne gemessene Länge „Schaut aus dem Halter“),
+  `szenario_halter_richtung` (Platzhalter seit P-113 „leer: geschätzt 92 mit Halter“).
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: Der Pool misst je Art (Modul, Funktion), wie viel ein Auftrag über
+  den Leerlauf seines Arbeiters belegt (`_arbeit_messen`, /proc/<pid>/statm, alle
+  ARBEIT_MESSEN_ALLE 0,25 s; der Leerlauf gleich beim Melden), unbekannt ARBEIT_UNBEKANNT 1 GB. Ein
+  freier Arbeiter bekommt Arbeit nur, solange der Speicher (mit dem, was die laufenden seit dem
+  Lesen noch wachsen, `_arbeit_offen`) dafür reicht; einer rechnet immer; ohne Platz startet kein
+  neuer Arbeiter. Wird ein Auftrag fertig, während einer wartet, liest er den Speicher neu.
+  `_probe_halten` für die Prüfung.
+- `tests/test_nebenrechner.py`: 300 MB je Auftrag, Speicher für 2,5 – genau zwei zugleich.
+- `tests/gui/szenario_pruefen_ausspannen.py`, `tests/gui/szenario_halter_richtung.py`.
+
+### ERGEBNIS
+- `test_nebenrechner` dreimal grün (1.1.4, 26.3), 14 s statt 23 s.
+- `szenario_pruefen_ausspannen`, `szenario_halter_richtung` in 26.3 grün.
+
 ## P-2026-10-12-142 nadel-pruefung-in-bloecken
 
 ### EINGELESEN

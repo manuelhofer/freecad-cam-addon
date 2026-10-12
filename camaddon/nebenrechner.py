@@ -91,6 +91,14 @@ RESERVE_MINDESTENS = 1.5 * 2**30  # Bytes – mindestens
 UNTERWEGS_S = 20.0  # s: so lange zählt eine eben verschickte Kopie, bis der Speicher sie zeigt
 SPEICHER_ALLE = 0.5  # s: so oft höchstens liest der Pool, wie viel Speicher frei ist
 _SPAETER = object()  # _verteilen: den Speicher erst lesen, wenn ihn ein Auftrag braucht
+# Speicher beim Rechnen (P-2026-10-12-143): Was ein Auftrag im Arbeiter über dessen Leerlauf hinaus
+# belegt, misst der Pool je Art (Modul, Funktion) an den laufenden Arbeitern (/proc/<pid>/statm –
+# auch, wenn einer in C++ steckt) und gibt einem weiteren freien Arbeiter nur Arbeit, solange der
+# Speicher dafür reicht; einer rechnet immer. Bis dahin zählte nur das Öffnen großer Kopien: Am
+# Geist brauchten Arbeiter beim Schlichten bis 2,35 GB, 24 davon hätten 56 GB verlangt (in einem
+# Lauf mit 10 GB Grenze beendete der Kernel sie, bei Manuel ein Popup).
+ARBEIT_UNBEKANNT = 2**30  # Bytes: so viel nimmt der Pool für eine Art an, bis er sie gemessen hat
+ARBEIT_MESSEN_ALLE = 0.25  # s: so oft höchstens misst der Pool die Arbeiter
 # MB: Ab so viel belegtem Speicher gibt ein Prozess zurück, was frei ist – und erst wieder, wenn
 # er um ZURUECKGEBEN_WACHSTUM gewachsen ist (speicher_zurueckgeben).
 ZURUECKGEBEN_AB = 512.0
@@ -236,6 +244,9 @@ class _Arbeiter:
         self.dokumente = []  # Pfade der Kopien, die er offen hat, zuletzt benutzt am Ende
         self.gestartet = time.monotonic()
         self.zuletzt = self.gestartet  # wann er zuletzt einen Auftrag bekam oder abgab
+        self.leer = None  # Bytes belegt, zuletzt gemessen ohne Auftrag (_arbeit_messen)
+        self.belegt = None  # Bytes belegt, zuletzt gemessen
+        self.beim_lesen = None  # (Auftrag, Bytes gewachsen), als der Pool den Speicher las
 
     @property
     def auftrag(self):
@@ -354,6 +365,10 @@ class Nebenrechner:
         self._laden = []  # Module, die jeder Arbeiter gleich nach dem Start lädt (vorwaermen)
         self._unterwegs = []  # (Zeit, Pfad, Bytes): Kopien, die ein Arbeiter gerade öffnet
         self.speicher = speicher_frei  # () -> Bytes frei oder None (unbekannt); für Prüfungen
+        self.arbeit_unbekannt = ARBEIT_UNBEKANNT  # für Prüfungen änderbar
+        self._arbeit = {}  # (Modul, Funktion) -> Bytes: so viel belegte ein Auftrag höchstens
+        self._arbeit_gemessen = 0.0
+        self._speicher_knapp = False  # _verteilen: ein Auftrag wartete auf Speicher
         self.in_arbeit = 0  # so viele Aufträge liefen bisher in Arbeitern (für Prüfungen)
 
     # --- Nach außen ------------------------------------------------------------------
@@ -701,6 +716,9 @@ class Nebenrechner:
                 if arbeiter.nummer == nummer and arbeiter.verbindung is None:
                     puffer_vergroessern(verbindung)
                     arbeiter.verbindung = verbindung
+                    # Sein Leerlauf, bevor er den ersten Auftrag bekommt – sonst lernte der Pool
+                    # an einem frischen Arbeiter nichts (_arbeit_messen).
+                    arbeiter.leer = arbeiter.belegt = _belegt_von(arbeiter.prozess.pid)
                     if self._laden:
                         with contextlib.suppress(OSError, EOFError):
                             verbindung.send(("laden", list(self._laden)))
@@ -716,6 +734,8 @@ class Nebenrechner:
         sie darf (Auftrag.gleichzeitig); startet, was an Arbeitern fehlt. Ein Arbeiter, der auf
         seine Unteraufträge wartet, nimmt selbst welche davon (nur seine: So hängt nie ein
         Auftrag an Arbeitern, die alle warten)."""
+        self._arbeit_messen()
+        self._speicher_knapp = False
         laufend = {}
         for arbeiter in self._arbeiter:
             if arbeiter.stapel and not arbeiter.wartet:
@@ -738,6 +758,8 @@ class Nebenrechner:
                 self._senden(arbeiter, auftrag)
         startend = sum(1 for a in self._arbeiter if a.verbindung is None)
         fehlend = min(self._ausfuehrbar(laufend) - startend, self.anzahl - len(self._arbeiter))
+        if self._speicher_knapp:
+            fehlend = 0  # ein neuer Arbeiter bekäme auch keine Arbeit
         for _ in range(max(0, fehlend)):
             if self._fehlgeschlagen:
                 break
@@ -760,12 +782,20 @@ class Nebenrechner:
             )
             if not frei_in_gruppe:
                 continue
-            bedarf = self._bedarf(auftrag, arbeiter) if arbeiter is not None else 0
+            kopien = self._bedarf(auftrag, arbeiter) if arbeiter is not None else 0
+            # Ein freier Arbeiter rechnet dann zusätzlich – ein wartender nimmt seine eigenen
+            # Unteraufträge, er belegt den Speicher schon.
+            arbeit = self._arbeit_bedarf(auftrag) if arbeiter and not arbeiter.stapel else 0
+            bedarf = kopien + arbeit
             if bedarf and frei and frei[0] is _SPAETER:
                 frei[0] = self._speicher_fuer_kopien()
             if bedarf and frei and frei[0] is not None:
-                if bedarf > frei[0] and self._schon_offen(auftrag):
-                    continue  # wartet auf einen Arbeiter, der die Kopie offen hat
+                if bedarf > frei[0]:
+                    if kopien and self._schon_offen(auftrag):
+                        continue  # wartet auf einen Arbeiter, der die Kopie offen hat
+                    if arbeit and any(a.stapel for a in self._arbeiter):
+                        self._speicher_knapp = True
+                        continue  # wartet, bis ein Auftrag fertig ist und Speicher freigibt
                 frei[0] -= bedarf
             if gruppe is not None and auftrag.gleichzeitig is not None:
                 laufend[gruppe] = laufend.get(gruppe, 0) + 1
@@ -796,13 +826,63 @@ class Nebenrechner:
         jetzt = time.monotonic()
         gelesen = getattr(self, "_speicher_gelesen", None)
         if gelesen is None or jetzt - gelesen[0] > SPEICHER_ALLE or self.speicher is not gelesen[2]:
+            # Wie weit jeder laufende Auftrag beim Lesen gewachsen war, steckt im gelesenen Wert;
+            # _arbeit_offen zieht nur ab, was danach noch kommt.
+            self._arbeit_messen(sofort=True)
+            for arbeiter in self._arbeiter:
+                arbeiter.beim_lesen = (
+                    (arbeiter.stapel[-1], _gewachsen(arbeiter))
+                    if arbeiter.stapel and not arbeiter.wartet
+                    else None
+                )
             gelesen = self._speicher_gelesen = (jetzt, self.speicher(), self.speicher)
         frei = gelesen[1]
         jetzt = time.monotonic()
         self._unterwegs = [e for e in self._unterwegs if jetzt - e[0] < UNTERWEGS_S]
         if frei is None:
             return None
-        return frei - sum(b for _t, _p, b in self._unterwegs)
+        return frei - sum(b for _t, _p, b in self._unterwegs) - self._arbeit_offen()
+
+    def _arbeit_bedarf(self, auftrag):
+        """Bytes, die ein Arbeiter für `auftrag` beim Rechnen voraussichtlich belegt – gemessen an
+        früheren seiner Art, sonst `arbeit_unbekannt`."""
+        return self._arbeit.get((auftrag.modul, auftrag.funktion), self.arbeit_unbekannt)
+
+    def _arbeit_offen(self):
+        """Bytes, um die die laufenden Aufträge seit dem letzten Lesen des Speichers noch wachsen
+        werden: was ihre Art braucht, weniger dem, was sie beim Lesen schon belegten (ein danach
+        verschickter zählt ganz)."""
+        summe = 0
+        for arbeiter in self._arbeiter:
+            if not arbeiter.stapel or arbeiter.wartet:
+                continue
+            auftrag = arbeiter.stapel[-1]
+            beim_lesen = arbeiter.beim_lesen
+            schon = beim_lesen[1] if beim_lesen is not None and beim_lesen[0] is auftrag else 0
+            summe += max(0, self._arbeit_bedarf(auftrag) - schon)
+        return summe
+
+    def _arbeit_messen(self, sofort=False):
+        """Liest, wie viel jeder Arbeiter belegt (höchstens alle ARBEIT_MESSEN_ALLE s, `sofort`
+        jetzt): ohne Auftrag als sein Leerlauf, mit einem als das, was dessen Art braucht (das
+        Meiste je Art)."""
+        jetzt = time.monotonic()
+        if not sofort and jetzt - self._arbeit_gemessen < ARBEIT_MESSEN_ALLE:
+            return
+        self._arbeit_gemessen = jetzt
+        for arbeiter in self._arbeiter:
+            if arbeiter.verbindung is None:
+                continue
+            belegt = _belegt_von(arbeiter.prozess.pid)
+            if belegt is None:
+                continue
+            arbeiter.belegt = belegt
+            if not arbeiter.stapel:
+                arbeiter.leer = belegt
+            elif arbeiter.leer is not None and not arbeiter.wartet:
+                auftrag = arbeiter.stapel[-1]
+                art = (auftrag.modul, auftrag.funktion)
+                self._arbeit[art] = max(self._arbeit.get(art, 0), belegt - arbeiter.leer)
 
     def _kopien_merken(self, arbeiter, auftrag):
         """Merkt die Kopien, die `arbeiter` für den Auftrag öffnet – wie er: höchstens
@@ -938,6 +1018,8 @@ class Nebenrechner:
         auftrag.arbeiter = None
         if auftrag in arbeiter.stapel:
             arbeiter.stapel.remove(auftrag)
+        if self._speicher_knapp:
+            self._speicher_gelesen = None  # er gab Speicher frei – für die Wartenden neu lesen
         arbeiter.wartet = False  # wartet er weiter, meldet er es wieder („warte“)
         arbeiter.zuletzt = time.monotonic()
         if not weich_abgebrochen:
@@ -1462,6 +1544,22 @@ def _dokument_pfade(wert, tiefe=0):
     return gefunden
 
 
+def _gewachsen(arbeiter):
+    """Bytes, die `arbeiter` über seinen Leerlauf hinaus belegt (zuletzt gemessen), sonst 0."""
+    if arbeiter.leer is None or arbeiter.belegt is None:
+        return 0
+    return max(0, arbeiter.belegt - arbeiter.leer)
+
+
+def _belegt_von(pid):
+    """Bytes, die der Prozess `pid` belegt (RSS) – None, wo es sich nicht lesen lässt."""
+    try:
+        with open(f"/proc/{pid}/statm", "rb") as datei:
+            return int(datei.read().split()[1]) * os.sysconf("SC_PAGE_SIZE")
+    except (OSError, ValueError, IndexError, AttributeError):
+        return None
+
+
 def kopie_bedarf(pfad):
     """Bytes, die ein Arbeiter für die Kopie `pfad` braucht (DOKUMENT_FAKTOR) – 0 für eine kleine
     (DOKUMENT_KLEIN) oder eine, die es nicht mehr gibt."""
@@ -1751,6 +1849,20 @@ def _probe_speicher(mb):
     _probe_speicher.bleibt = bytes(1000) + b"!"
     del stuecke
     return _probe_belegt()
+
+
+def _probe_halten(mb, dauer):
+    """Belegt `mb` MB (beschrieben – sonst zählt der Kernel sie nicht) für `dauer` s; gibt
+    (Beginn, Ende) als time.time() zurück – für tests/test_nebenrechner.py (Speicher beim
+    Rechnen)."""
+    import numpy as np
+
+    beginn = time.time()
+    feld = np.ones(int(mb * 2**20), dtype=np.uint8)
+    time.sleep(dauer)
+    ende = time.time()
+    del feld
+    return beginn, ende
 
 
 def _probe_belegt():
