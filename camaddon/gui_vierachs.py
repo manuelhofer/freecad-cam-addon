@@ -3833,6 +3833,7 @@ class VierachsPanel:
             "form": ff.von_werkzeug(werkzeug),
             "stetig": self.stetig_schruppen(),
             "nur_noetig": self.nur_noetig(),
+            "oben": vo.stufen_des_werkzeugs(werkzeug, self.bibliothek),
         }
 
     @staticmethod

@@ -236,6 +236,11 @@ class Schruppwerte:
     # Eine Lage nur so weit, wie die davor noch über der Hüllfläche blieb (P-2026-10-11-57, ohne
     # Querachse -58) – sonst fährt sie dieselbe Fläche noch einmal ab.
     nur_noetig: bool = False
+    # Was über der Schneide sitzt: ((Radius, ab der Spitze), …) – der Schaft ab der Auskragung N,
+    # der Halter ab dem, was aus ihm herausschaut. Die Spitze darf nur so tief, dass keins davon
+    # ins Teil kommt (Manuels Ring, 2026-10-12: durch die Schlitze 52 mm tief mit N 19 – der
+    # Halter stand im Teil). Leer: nur die Schneide.
+    oben: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -483,12 +488,41 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     rund = w.form is not None and not w.form.eben  # Kugel, Torus: mit ihrer Form
     form = w.form.mit_aufmass(w.aufmass) if rund else None
 
-    def huelle_bei(stellen):
+    def schneide_bei(stellen):
         if rund:
             return vh.fraeser(netz, laengs, radial, form, stellen, phi_werte)
         return vh.schaftfraeser(netz, laengs, radial, radius + w.aufmass, stellen, phi_werte)
 
-    huelle = _hinten_gerade(huelle_bei(a_werte).sicher(), teil_hinten)
+    # Schaft und Halter (Schruppwerte.oben) nur, wo die Spitze tiefer unter die Stange käme, als
+    # sie über ihr hinausreichen: sonst ändern sie nichts – und kosten je eine Hüllfläche.
+    unten = schneide_bei(a_werte)
+    tiefste = unten.r[np.isfinite(unten.r)]
+    tiefe = w.stange_radius - float(tiefste.min()) if tiefste.size else 0.0
+    stufen = [(r_s, ab) for r_s, ab in w.oben if ab > 0 and r_s > 0 and tiefe > ab - GLEICH]
+
+    def stufen_bei(stellen):
+        """So tief darf die Spitze, damit Schaft und Halter nicht ins Teil kommen (r je Stelle
+        und Winkel) – None ohne Stufen."""
+        ergebnis = None
+        for r_s, ab in stufen:
+            darueber = vh.schaftfraeser(
+                netz, laengs, radial, max(r_s, radius) + w.aufmass, stellen, phi_werte
+            )
+            r = darueber.r - ab
+            ergebnis = r if ergebnis is None else np.maximum(ergebnis, r)
+        return ergebnis
+
+    def huelle_bei(stellen, schneide=None, oben_r=None):
+        ergebnis = schneide if schneide is not None else schneide_bei(stellen)
+        if stufen:
+            oben_r = stufen_bei(stellen) if oben_r is None else oben_r
+            ergebnis = vh.Huelle(ergebnis.a, ergebnis.phi, np.maximum(ergebnis.r, oben_r))
+        return ergebnis
+
+    oben_r = stufen_bei(a_werte) if stufen else None
+    # Für die Querachse dieselbe Grenze auf dem Strahl der Werkzeugachse (_schruppen_quer).
+    oben_quer = vh.Huelle(a_werte, phi_werte, oben_r).sicher() if stufen else None
+    huelle = _hinten_gerade(huelle_bei(a_werte, unten, oben_r).sicher(), teil_hinten)
     zugabe = w.aufmass + netz.toleranz + RAND
     # Vor jeder Wand hält die Spirale eine Umdrehung an: Sonst kommt der Fräser nur auf
     # einem Teil des Umfangs bis an die Wand (D-42). Die Hüllfläche dort genau an der Stelle
@@ -587,7 +621,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         spirale_ = (a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte)
         rahmen_ = (a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher)
         gefahren = _schruppen_quer(
-            punkte, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi
+            punkte, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi, oben_quer
         )
         if 0 < lagen < gefahren:
             # Neben dem Strahl hält die Grenze je Lage (vierachs_quer.lagen_grenze) höher als
@@ -599,7 +633,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                 versuch = punkte[:1]
                 weniger = _schruppen_quer(
                     versuch, netz, laengs, radial, replace(w, zustellung=tiefer), spirale_,
-                    rahmen_, lagen, schritt_phi,
+                    rahmen_, lagen, schritt_phi, oben_quer,
                 )  # fmt: skip
                 if weniger < gefahren:
                     punkte[:] = versuch
@@ -753,12 +787,16 @@ class _Rest:
         return weit & drin & (hoechstes <= x + FREI_REST)
 
 
-def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, schritt_phi):
+def _schruppen_quer(
+    punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, schritt_phi, oben=None
+):
     """Die Lagen von „Rundum schruppen“ mit der Querachse (P-2026-10-03-23): je Lage der Plan
     einer Kugel mit dem Radius des Fräsers (_quer_plan auf ihrer Hüllfläche mit Aufmaß), die
     Stellungen und Höhen des Fräsers aus seiner Hüllfläche (vierachs_quer.stellungen), je Lage
     nicht tiefer als die Zustellung unter die Stange (vierachs_quer.lagen_grenze). Mehr Lagen als
-    rundum, wenn die Grenze die letzte noch über dem Teil hält. Gibt die Zahl der Lagen zurück."""
+    rundum, wenn die Grenze die letzte noch über dem Teil hält. `oben`: wie tief die Spitze für
+    Schaft und Halter darf (Hüllfläche, Schruppwerte.oben) – auf dem Strahl der Werkzeugachse.
+    Gibt die Zahl der Lagen zurück."""
     a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte = spirale
     a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher = rahmen_
     radius = w.fraeser_radius
@@ -803,6 +841,9 @@ def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, sc
             a_p, x_p, q_p, psi_p, fest, normale, umrechnen
         )
         grenze = vq.lagen_grenze(w.stange_radius, q_p, radius, tiefer)
+        if oben is not None:  # Schaft und Halter nicht ins Teil
+            j = np.rint(np.radians(psi_p) / (2 * math.pi / je_umdrehung)).astype(np.int64)
+            x_p = np.maximum(x_p, np.nan_to_num(oben.bei(a_p, j) + zugabe, neginf=-np.inf))
         x = np.maximum(np.maximum(x_p, grenze), w.r_tiefste)
         noch = bool(np.any(grenze > x_p + BAHN_TOLERANZ))
         return a_p, x, x_p, q_p, psi_p, fest, normale, noch

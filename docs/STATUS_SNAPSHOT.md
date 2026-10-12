@@ -371,6 +371,12 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
 - Die Bahn nachstellen: wo sie durch Luft fährt (hinter dem dünnen Teil die ganze Stange bis zum
   Futter?) und wo sie ins Teil geht (Bilder: Bahnen quer durch die Mitte, durch die Schlitze zur
   Bohrung; das Werkzeug steht im Teil) – mit „Bahn prüfen“ am Teil messen, dann beheben.
+  *Ins Teil – erledigt:* P-2026-10-12-170 (Schaft und Halter in der Hüllfläche; vorher bis r −17,2,
+  52 mm tief bei N 19). *Luft – offen:* 7 Lagen à ~5,9 mm, über den Segmenten aber nur 2,5 mm –
+  die tieferen Lagen kreisen über dem fertigen Ring, nur um in die Schlitze zu gehen („nur nötig“
+  greift da nicht); Idee: Lagen, die nur noch in schmalen Bereichen fräsen, als Zeilen dort (V4)
+  statt der ganzen Spirale. „Bahn prüfen“ ist am Ring blind (das Strahlenmodell sieht die Bohrung
+  nicht, wie Hinterschnitte).
 - Face28, Face6, Face17 (die Nuten, stirnseitig): radial nicht erreichbar – das muss gesagt werden
   (nicht still weglassen) und eine Bearbeitung von vorn angeboten werden.
 

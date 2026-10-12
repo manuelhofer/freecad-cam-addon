@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-170 schaft-und-halter-nicht-ins-teil
+
+### EINGELESEN
+- Manuels Ring (2026-10-12, `~/freecad_cam/testteile/4_achs_planbearbeitung_testteil.FCStd`, Bilder:
+  Werkzeug und Halter im Teil): „warum fährt der da in der luft ??? warum in dem bauteil“.
+  Nachgerechnet: „Rundum schruppen“ (Querachse) mit T4 Ø 4 fuhr durch die Schlitze über die Achse
+  bis r −17,2 – 52 mm unter der Stange bei 19 mm Auskragung; die Hüllfläche kannte nur die
+  Schneide.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `Schruppwerte.oben` ((Radius, ab der Spitze) für Schaft und
+  Halter); die Hüllfläche des Schruppens nimmt je Stufe die Hüllfläche ihres Radius, um ihren
+  Abstand gesenkt, dazu – nur, wo die Spitze tiefer unter die Stange käme, als die Stufe über ihr
+  liegt (sonst kostet es nichts). Mit Querachse dieselbe Grenze auf dem Strahl der Werkzeugachse.
+- `camaddon/vierachs_operation.py`: `ueber_der_schneide(tc)` / `stufen_des_werkzeugs` – Schaft ab N
+  (sonst ab der Schneide), Halter (gewählt oder vorgeschlagen) ab dem, was herausschaut; `rechne`
+  und `bahn_fuer` (`oben`, im Schlüssel der gemerkten Bahnen). `camaddon/gui_vierachs.py`: die
+  Vorschau ebenso. `tests/test_vierachs_bahn.py`: Welle mit Schlitz 3 mm, Fräser Ø 2 – ohne Schaft
+  bis r 4,3 hinein, mit Schaft Ø 6 ab 4 mm bleibt er bei r 10,1. `package.xml` (0.259.13).
+
+### ERGEBNIS
+- Manuels Ring (ohne seine Werkzeugverwaltung, vorgeschlagener Halter): r −17,2 → −6,1, 9 → 7 Lagen,
+  26.271 → 20.311 Punkte. Grün in 26.3 RC1: `test_vierachs_bahn`, `test_vierachs_operation`,
+  `test_goldene_bahnen`, `test_vierachs_schlichten_op`, `szenario_vierachs_schruppen`,
+  `szenario_vierachs_flaechen`.
+
 ## P-2026-10-12-169 raeumen-am-rand-von-aussen
 
 ### EINGELESEN

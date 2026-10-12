@@ -18,6 +18,7 @@ Qt hier; die Anzeige liegt in gui_vierachs_operation.py.
 Läuft ohne Oberfläche.
 """
 
+import contextlib
 import math
 from collections import OrderedDict
 
@@ -255,7 +256,48 @@ def rechne(obj, job, modell, fraeser_radius):
         nur_noetig=bool(getattr(obj, "NurNoetig", True)),
         schritt_a=au.wert(obj, vh.SCHRITT_A),
         schritt_phi=au.wert_rundum(obj, vh.SCHRITT_PHI),
+        oben=ueber_der_schneide(obj.ToolController),
     )
+
+
+def ueber_der_schneide(tc):
+    """((Radius, ab der Spitze), …) über der Schneide des Werkzeugs (Schruppwerte.oben): der
+    Schaft ab der Auskragung N (sonst ab der Schneide), der Halter ab dem, was aus ihm
+    herausschaut – aus der Werkzeugverwaltung (der gewählte Halter, sonst der vorgeschlagene).
+    Leer, wenn das Werkzeug unbekannt ist."""
+    from . import job_schnittwerte as js
+    from . import werkzeuge as wz
+    from .werkzeuge_aus_cam import vom_controller
+
+    werkzeug = None
+    bibliothek = None
+    with contextlib.suppress(Exception):  # ohne lesbare Werkzeugverwaltung: das ToolBit allein
+        bibliothek = wz.Bibliothek.laden()
+        werkzeug = js.werkzeug_von(tc, bibliothek)
+    if werkzeug is None:
+        werkzeug = vom_controller(tc) if tc is not None else None
+    return stufen_des_werkzeugs(werkzeug, bibliothek)
+
+
+def stufen_des_werkzeugs(werkzeug, bibliothek):
+    """ueber_der_schneide() für ein Werkzeug der Werkzeugverwaltung (`bibliothek` für den Halter;
+    None: ohne Halter) – auch für die Vorschau des Assistenten."""
+    from . import halter as hl
+    from . import werkzeuge as wz
+
+    if werkzeug is None:
+        return ()
+    stufen = []
+    reicht = werkzeug.auskragung or werkzeug.schneidenlaenge
+    schaft = werkzeug.schaft or werkzeug.durchmesser
+    if reicht > 0 and schaft > 0:
+        stufen.append((schaft / 2, float(reicht)))
+    halter = bibliothek.halter_fuer_pruefung(werkzeug) if bibliothek is not None else None
+    if halter is not None:
+        heraus = wz.laenge_im_halter(werkzeug, halter) - halter.laenge
+        if heraus > 0:
+            stufen.append((hl.seitlich(halter), float(heraus)))
+    return tuple(stufen)
 
 
 def bahn_fuer(
@@ -282,6 +324,7 @@ def bahn_fuer(
     schritt_phi=vh.SCHRITT_PHI,
     stetig=False,
     nur_noetig=False,
+    oben=(),
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -323,6 +366,7 @@ def bahn_fuer(
         querachse=querachse,
         stetig=stetig,
         nur_noetig=nur_noetig,
+        oben=tuple(oben),
     )
     uhren.atmen()  # beim Anlegen: die Wände am Geist (STL) 0,1–0,5 s – das Fenster zeichnet neu
     netz = vh.vernetze(teil)
@@ -355,6 +399,7 @@ def bahn_fuer(
                 "querachse",
                 "stetig",
                 "nur_noetig",
+                "oben",
             )
         ),
         schritt_a,

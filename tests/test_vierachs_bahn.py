@@ -646,6 +646,29 @@ print(
     )
 )
 
+# --- Schaft und Halter nicht ins Teil (Schruppwerte.oben, P-2026-10-12-170) ----------------------
+# Manuels Ring (2026-10-12): durch die Schlitze 52 mm tief mit 19 mm Auskragung – der Halter stand
+# im Teil. Welle Ø 20 mit einem Schlitz 3 mm breit bis r = 2, Stange Ø 24, Fräser Ø 2: ohne Schaft
+# geht die Spitze tief in den Schlitz (unter r 5); mit Schaft Ø 6 ab 4 mm über der Spitze nur so
+# tief, dass der Schaft draußen bleibt (über der Welle mit Aufmaß, 4 mm darunter).
+schlitz_welle = Part.makeCylinder(10, 40, V(0, 0, -40)).cut(
+    Part.makeBox(12, 30, 3, V(2, -15, -21.5))
+)
+schlitz_netz = vh.vernetze(schlitz_welle)
+schlitz_werte = vb.Schruppwerte(
+    fraeser_radius=1.0, stange_radius=12.0, zustellung=2.0, steigung=1.5, aufmass=0.3,
+    a_stange_vorne=1.0, a_futter=-60.0,
+)  # fmt: skip
+for oben, soll in (((), (None, 5.0)), (((3.0, 4.0),), (10.0 - 4.0, None))):
+    b = vb.schruppen(schlitz_netz, C_LAENGS, C_RADIAL, replace(schlitz_werte, oben=oben))
+    im_schlitz = [p.r for p in schnitte(b) if -21.0 <= p.a <= -19.0]
+    tiefste = min(im_schlitz) if im_schlitz else math.inf
+    if soll[0] is not None:
+        pruefe(tiefste >= soll[0], f"mit Schaft im Schlitz bis r {tiefste:.2f}")
+    else:
+        pruefe(tiefste <= soll[1], f"ohne Schaft im Schlitz nur bis r {tiefste:.2f}")
+    print(ascii(f"Schlitz, oben {oben}: im Schlitz bis r {tiefste:.2f}, {b.lagen} Lagen"))
+
 # --- Schruppen mit der Querachse (V5e, P-2026-10-03-23) -----------------------------------
 # D-Profil: Welle Ø 40 mit einer Abflachung bei x = 6, Stange Ø 50, Schaftfräser Ø 12, ap 5,
 # 4 mm je Umdrehung, Aufmaß 0,3. Je Lage folgt die Spirale der Fläche: Die Werkzeugachse steht
