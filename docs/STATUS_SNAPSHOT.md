@@ -349,7 +349,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    senkrecht“) – nicht im Zickzack eintauchen („da sie die schneide sehr schnell kaputt machen“).
 2. **Plan indexiert fräste nur bis zur Mitte, nicht bis zur Nase** (Frage 19, Manuel: „beim
    planindexieren hat der schaftfräser nur bis zu mitte gearbeitet nicht bis zur nase“) – nachstellen
-   und beheben.
+   und beheben. *Nachgemessen (2026-10-12 abends):* im Beispiel-Job (`testteil_4achs_nase.FCStd`,
+   T1 Ø 12, 22,2 / 5,4 / 0,3) deckt die Bahn Face4 und Face6 (die Seiten, quer bis ±42,7) und Face8
+   (zur Mitte, unter der Drehmitte) ganz ab, Zeilen wie Stiche. Nicht nachgestellt – braucht Manuels
+   Job oder ein Bild, wenn es wieder vorkommt (Face8 kommt nur dazu, wenn der Weg vor ihr frei ist,
+   `zur_achse`).
 3. **Vorschlichten** (Frage 17, Manuel: „warum kann die nicht einfach die bereiche die sie beim
    fertig schlichten viel nehmen würde vorher auf 0.3mm aufmass runter fahren“): nur dort, wo die
    Kugel beim Schlichten viel nähme, vorher mit der Kugel auf 0,3 mm Aufmaß – mit den schnellsten
