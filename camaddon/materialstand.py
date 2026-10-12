@@ -31,6 +31,7 @@ Höhenfeld angeboten; unbekannte Vorgänger lassen das ursprüngliche Rohteil st
 Läuft ohne Oberfläche; numpy gehört zu FreeCAD.
 """
 
+import contextlib
 import copy
 import hashlib
 import math
@@ -48,7 +49,11 @@ from .sprache import tr
 
 SCHRITT = rm.SCHRITT_XY  # mm – das Raster
 BOGENSCHRITT = 0.5  # mm – in so langen Sehnen fährt es Bögen ab
-GEMERKT = 8  # so viele Stände bleiben gemerkt
+# So viele Stände bleiben gemerkt – höchstens GEMERKT_MB zusammen. Je Job das Rohteil und der
+# Stand nach jeder Operation: In der 8-Eck-Stange (acht Aufspannungen, je zwei Operationen) fielen
+# bei 8 Ständen die der ersten Aufspannungen heraus und wurden je Prüfung neu gerechnet (18 s).
+GEMERKT = 64
+GEMERKT_MB = 256.0
 MATERIAL = 0.05  # mm – so viel muss über einer Lage stehen, damit es als Material zählt
 _RUND = 1e-9  # so wenig darf sich eine Rundachse drehen
 
@@ -325,6 +330,16 @@ def operationen_vor(job, vor=None):
     """Die aktiven Operationen mit Werkzeug, die im Job vor `vor` stehen (ohne: alle) – wie der
     Postprozessor sie nimmt (reichweite._operationen); trägt eine Nachbearbeitung `vor`, endet
     die Folge vor ihr."""
+    return list(
+        im_durchgang(
+            "operationen",
+            (objekt_schluessel(job), objekt_schluessel(vor)),
+            lambda: _operationen_vor(job, vor),
+        )
+    )
+
+
+def _operationen_vor(job, vor):
     ergebnis = []
     for op in rw._operationen(job):
         if vor is not None and (op is vor or _traegt(op, vor)):
@@ -351,6 +366,13 @@ def _rohteil_kennung(job):
     """Die Kennung des Rohteils: seine Art und Maße – bei einer geschwenkten Ebene (3+2) dazu
     die Ebene und woraus der Stand ihres Grundjobs und der Ebenen davor gerechnet ist
     (_ebene_davor). ValueError ohne Rohteil."""
+    with _durchgang():
+        return im_durchgang(
+            "rohteil", objekt_schluessel(job), lambda: _rohteil_kennung_rechnen(job)
+        )
+
+
+def _rohteil_kennung_rechnen(job):
     rohteil = getattr(job, "Stock", None)
     form = getattr(rohteil, "Shape", None)
     if form is None or form.isNull():
@@ -387,7 +409,13 @@ def _ebene_davor(job):
     folge = sw.folge_vor(job)  # Grundjob, Ebenen oder Aufspannungen davor (W-018)
     if not folge:
         return []
-    return [(sw.lage_im_grundjob(davor), fuer(davor)) for davor in folge]
+    return [
+        (
+            sw.lage_im_grundjob(davor),
+            im_durchgang("stand", objekt_schluessel(davor), lambda d=davor: fuer(d)),
+        )
+        for davor in folge
+    ]
 
 
 def _ist_quader(rohteil):
@@ -521,12 +549,65 @@ def _kopie(stand):
 def _merken(stand):
     _GEMERKT[stand.kennung] = stand
     _GEMERKT.move_to_end(stand.kennung)
-    while len(_GEMERKT) > GEMERKT:
+    while len(_GEMERKT) > GEMERKT or (
+        len(_GEMERKT) > 1 and sum(_bytes(s) for s in _GEMERKT.values()) > GEMERKT_MB * 2**20
+    ):
         _GEMERKT.popitem(last=False)
+
+
+def _bytes(stand):
+    """So viel Speicher belegt ein gemerkter Stand (Höhen, Rohteil, gesenkte Zellen)."""
+    gesenkt = sum(getattr(g, "nbytes", 0) for g in stand.gesenkt)
+    return stand.quader.h.nbytes + getattr(stand.voll, "nbytes", 0) + gesenkt
+
+
+# Während einer Rechnung (_rohteil_kennung): was darin schon gerechnet ist – (Art, Schlüssel) →
+# Ergebnis; sonst None. Die Kennung einer Aufspannung (oder Ebene) braucht den Stand jeder davor,
+# und jeder davon wieder die Kennungen seiner Vorgänger: In der 8-Eck-Stange wurde so für die
+# achte Aufspannung 248-mal eine Rohteil-Kennung und 1990-mal die Prüfsumme einer Bahn gerechnet
+# (36 s; nach jedem „Anlegen“ stand das Fenster bis 21 s). Innerhalb einer Rechnung ändert sich
+# nichts am Dokument – jedes wird darin nur einmal gerechnet.
+_DURCHGANG = None
+
+
+@contextlib.contextmanager
+def _durchgang():
+    """Eine Rechnung, in der jede Kennung und jeder Stand nur einmal gerechnet wird – verschachtelt
+    die äußere."""
+    global _DURCHGANG
+    if _DURCHGANG is not None:
+        yield
+        return
+    _DURCHGANG = {}
+    try:
+        yield
+    finally:
+        _DURCHGANG = None
+
+
+def im_durchgang(art, schluessel, rechnen):
+    """`rechnen()` – in einer Rechnung (_durchgang) je (art, schluessel) nur einmal."""
+    if _DURCHGANG is None:
+        return rechnen()
+    k = (art, schluessel)
+    if k not in _DURCHGANG:
+        _DURCHGANG[k] = rechnen()
+    return _DURCHGANG[k]
+
+
+def objekt_schluessel(objekt):
+    """(Dokument, Name) eines Objekts – None für None."""
+    if objekt is None:
+        return None
+    return (objekt.Document.Name, objekt.Name)
 
 
 def _kennung_op(op):
     """Name, Fräser und Bahn einer Operation als Text (die Bahn als Prüfsumme)."""
+    return im_durchgang("op", objekt_schluessel(op), lambda: _kennung_op_rechnen(op))
+
+
+def _kennung_op_rechnen(op):
     tc = op.ToolController
     try:
         fraeser = repr(rm._fraeser(tc))

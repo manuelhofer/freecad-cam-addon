@@ -795,7 +795,13 @@ def _kennungen(job, schritt=0.5, simultane=None):
 
 def kennung(job, schritt=0.5, simultane=None):
     """Rohteil, Richtungen, Werkzeugkörper und vollständige aktive Vorgängerpfade."""
-    return _kennungen(job, schritt, simultane)[-1]
+    from . import materialstand as ms
+
+    if simultane is not None:
+        return _kennungen(job, schritt, simultane)[-1]
+    return ms.im_durchgang(
+        "raum", (ms.objekt_schluessel(job), schritt), lambda: _kennungen(job, schritt)[-1]
+    )
 
 
 # So viele Stände merkt sich fuer_ebene (auch die Zwischenstände nach jeder Ebene und das Rohteil).

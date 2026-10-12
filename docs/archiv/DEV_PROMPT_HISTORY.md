@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-128 materialstand-einmal-je-rechnung
+
+### EINGELESEN
+- Im Szenario der 8-Eck-Stange stand das Fenster nach „Anlegen“ bis 20,96 s am Stück (4 ×), in
+  `gui_materialstand._pruefen` → `materialstand._kennung_op`. Am Dokument der ganzen Kette (alle
+  acht Aufspannungen, je 3D-Schruppen und 3D-Schlichten) gemessen: Ein Prüfdurchgang über alle
+  Jobs 109 s, beim zweiten Mal noch 46 s – die achte Aufspannung allein 248 Rohteil-Kennungen
+  und 1990 Prüfsummen von Bahnen (12 s G-Code-Text), dazu Stände, die aus den nur 8 gemerkten
+  fielen und neu gerechnet wurden (18 s). Eine Prüfsumme selbst kostet nur 6–27 ms.
+
+### DATEIEN
+- `camaddon/materialstand.py`: `_durchgang`/`im_durchgang` – in einer Rechnung
+  (`_rohteil_kennung`) jede Rohteil-Kennung, jeder Stand davor, jede Folge der Operationen und
+  jede Bahn-Kennung nur einmal (innerhalb ändert sich nichts am Dokument); `GEMERKT` 8 → 64
+  Stände, höchstens 256 MB (`_bytes`).
+- `camaddon/raum_material.py`: `kennung` je Job einmal in der Rechnung. `package.xml` (0.243.0).
+
+### ERGEBNIS
+- Prüfdurchgang über die acht Aufspannungen: zweites Mal 46 → 1,1 s, erstes Mal 109 → 81 s (dort
+  werden die Stände wirklich gerechnet). Im Szenario `szenario_bearbeitung_n_eck` die längste
+  Pause im Materialstand 20,96 → 1,96 s; längste überhaupt 3,23 s (das Anlegen der acht Jobs).
+
+### AKZEPTANZKRITERIUM
+- `test_materialstand`, `test_raum_material`, `test_ebenen_auslassen`, `test_bahnzugang`,
+  `szenario_bearbeitung_n_eck` grün.
+
 ## P-2026-10-12-127 nebenrechner-gibt-speicher-zurueck
 
 ### EINGELESEN
