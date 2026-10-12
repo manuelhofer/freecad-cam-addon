@@ -247,6 +247,15 @@ auftraege = [
 ]
 assert pool.warten(auftraege) == [True, True, True]
 
+# Speicher zurückgeben (2026-10-12): Nach einem Auftrag, der viel belegt und wieder freigibt,
+# gibt der Arbeiter es dem System zurück (glibc behielte es – am Geist 1,8 GB je Arbeiter).
+if sys.platform.startswith("linux"):
+    einer = nr.Nebenrechner(anzahl=1)
+    (danach,) = einer.warten([einer.auftrag("nebenrechner", "_probe_speicher", 1500)])
+    (spaeter,) = einer.warten([einer.auftrag("nebenrechner", "_probe_belegt")])
+    einer.beenden()
+    assert danach > 1000 and spaeter < danach - 800, f"belegt {danach:.0f} → {spaeter:.0f} MB"
+
 # Beenden: keine Arbeiter mehr, der Ordner ist weg; danach geht es wieder.
 ordner = pool._ordner
 pids = [a.prozess for a in pool._arbeiter]

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-127 nebenrechner-gibt-speicher-zurueck
+
+### EINGELESEN
+- Offen seit dem Morgen: In der Kette der 5-Achs-Ebenen am Geist beendete der Kernel um 07:39 das
+  Szenario (Grenze 12 GB) – ein Nebenrechner hatte 4,1 GB, die 23 anderen je 0,2–0,4 GB, das
+  Fenster 2,9 GB (aus dem Bericht des Kernels).
+
+### DATEIEN
+- `camaddon/nebenrechner_arbeiter.py`: `_speicher_zurueckgeben` – nach einem Auftrag, wenn nicht
+  schon der nächste wartet, ab 512 MB belegt und 25 % Wachstum seit der letzten Rückgabe:
+  glibc `malloc_trim(0)` (andere Systeme: nichts). `_belegt_mb` liest `/proc/self/statm`.
+- `camaddon/nebenrechner.py`: Proben `_probe_speicher`, `_probe_belegt`.
+- `tests/test_nebenrechner.py`: 1500 MB belegt und frei – danach hat der Arbeiter wieder unter
+  700 MB (Gegenprobe ohne Rückgabe im selben Prozess: 1560 MB bleiben). `package.xml` (0.242.0).
+
+### ERGEBNIS
+- Gemessen: Der Körper aus dem Geist (68.242 Flächen) gerechnet, alles wieder zu – der Prozess
+  behielt 1818 MB; `malloc_trim` gibt 1630 MB in 62 ms zurück (188 MB). Geöffnete Kopien des
+  Dokuments kosten dagegen kaum etwas (6 nacheinander: +2 MB), und die gemerkten Formen in
+  `stl_teil` halten nichts Großes fest.
+
+### AKZEPTANZKRITERIUM
+- `test_nebenrechner` grün.
+
 ## P-2026-10-12-126 n-eck-schraubstock
 
 ### EINGELESEN

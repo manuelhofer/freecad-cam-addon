@@ -1604,6 +1604,27 @@ def _probe(x, dauer=0.0, fortschritt=None):
     return x * x
 
 
+def _probe_speicher(mb):
+    """Belegt `mb` MB in kleinen Stücken und gibt sie wieder frei – glibc behält sie ohne
+    Rückgabe (nebenrechner_arbeiter._speicher_zurueckgeben). Gibt den belegten Speicher (MB, RSS)
+    danach zurück – für tests/test_nebenrechner.py."""
+    stuecke = [bytes(1000) + bytes([i % 256]) for i in range(int(mb * 1000))]
+    # Ein Stück, das bleibt, oben auf dem Heap: Sonst gäbe glibc das freie Ende von selbst zurück
+    # – wie bei einem Körper, von dem etwas offen bleibt.
+    _probe_speicher.bleibt = bytes(1000) + b"!"
+    del stuecke
+    return _probe_belegt()
+
+
+def _probe_belegt():
+    """Der belegte Speicher des Arbeiters (MB, RSS; Linux), sonst None."""
+    try:
+        with open("/proc/self/statm") as datei:
+            return int(datei.read().split()[1]) * os.sysconf("SC_PAGE_SIZE") / 2**20
+    except (OSError, ValueError, IndexError, AttributeError):
+        return None
+
+
 def _probe_form(form):
     """Das Volumen einer Form – kam sie als Platzhalter, hat der Arbeiter sie aufgelöst."""
     return form.Volume
