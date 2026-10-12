@@ -1581,7 +1581,18 @@ Manuel (2026-10-12): „ja bau das so … so schwere STL-Geschichten sind ja eh 
    „2 Lagen, 92 Zeilen, etwa 9 min“ (dort reichen die Zeilen links in den Keil, den Aufspannung 1
    nicht erreichte, und rechts in ihre Hinterschnitte). Bild `docs/bilder/w018_neck_zeilen.png`.
 
-Offen zu W-018: der Schraubstock in der Kollision.
+5. **Der Schraubstock** (P-2026-10-12-126, `n_eck.backen`): je Aufspannung zwei Backen an den
+   Flächen bei ±Y (in jeder Aufspannung liegen zwei gegenüberliegende dort), ab dem vorderen Rand
+   des Schraubstocks (Ende der Stange minus Spannlänge) 100 mm lang, von der Unterseite der Stange
+   bis zum oberen Rand dieser Flächen (SW/2 · tan(180°/N); 8-Eck SW 86: Z 17,8), 20 mm dick.
+   `spannung.schraubstock` gibt sie für „Auf der Maschine prüfen“: im Bild (Abfahren) und in der
+   Kollision gegen Werkzeug, Halter und Maschine wie die Backen bei „von unten gespannt“ (S3h).
+   `spannung.pruefen` meldet je Operation, deren Fräser unter dem oberen Rand der Backen über
+   ihren vorderen Rand reicht: „„…“ fährt an die Backen des Schraubstocks – bis …; sie beginnen
+   bei X …“; sonst steht beim Urteil „Spannung“: „Nichts fährt an die Backen (die Stange steckt
+   20 mm im Schraubstock).“ Das Zeilen-Schruppen (4.) bleibt 1 mm davor.
+
+Offen zu W-018: ein Einrichtblatt für alle Aufspannungen.
 
 ## Entschieden
 

@@ -746,8 +746,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   „Bearbeitung“, Fenster „STL als Teil“); Bild mit Zahlen `docs/bilder/w018_neck_geist.png`.
   Schruppen in der Stange in Zeilen von der Stirn zum Schraubstock, je Lage einmal abheben
   (P-2026-10-12-124; Geist Aufspannung 1: 3 Lagen, 93 Zeilen, ~11 min statt 227 Ringe, ~48 min;
-  `docs/bilder/w018_neck_zeilen.png`).
-  Offen: Schraubstock in der Kollision, Einrichtblatt – [spezifikation_vierachs.md](spezifikation_vierachs.md),
+  `docs/bilder/w018_neck_zeilen.png`). Die Backen des Schraubstocks am Ende der Stange in Bild,
+  Kollision und Urteil „Spannung“ (P-2026-10-12-126).
+  Offen: Einrichtblatt – [spezifikation_vierachs.md](spezifikation_vierachs.md),
   Abschnitt 17.
 
 ## Offene Bugs

@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-12-126 n-eck-schraubstock
+
+### EINGELESEN
+- W-018 offen: der Schraubstock in der Kollision (die Stange steckt am Ende 20 mm darin).
+
+### DATEIEN
+- `camaddon/n_eck.py`: `backen_x`, `backen_oben`, `backen` (zwei Backen an den Flächen bei ±Y, ab
+  dem vorderen Rand 100 mm lang, bis zum oberen Rand dieser Flächen); `fraeser_bis` über
+  `backen_x`.
+- `camaddon/spannung.py`: `schraubstock` gibt in der Stange `n_eck.backen` (Bild und Kollision);
+  `pruefen` meldet in der Stange jede Operation, deren Fräser unter dem oberen Rand über den
+  vorderen Rand der Backen reicht (`_pruefen_stange`).
+- `camaddon/reichweite.py`: `Ergebnis.stange`; in der Stange `gespannt` = Spannlänge.
+- `camaddon/gui_reichweite.py`: Urteil „Spannung“ in der Stange mit eigenem Satz.
+- `translations/de.json`, `en.json`: `sn.backen`, `rw.spannung.frei_stange`.
+- `tests/test_n_eck.py`: Lage der Backen (auch in Aufspannung 3), nicht in der Stange; das
+  Zeilen-Schruppen meldet nichts, eine Bahn 3 mm hinter den vorderen Rand wird gemeldet.
+- `docs/spezifikation_vierachs.md` 17.5, `docs/STATUS_SNAPSHOT.md`. `package.xml` (0.241.0).
+
+### ERGEBNIS
+- 8-Eck SW 86: Backen ab X 93,7, bis Z 17,8; „Nichts fährt an die Backen (die Stange steckt
+  20 mm im Schraubstock).“
+
+### AKZEPTANZKRITERIUM
+- `test_n_eck`, `test_spannung` grün.
+
 ## P-2026-10-12-125 erreichbar-mit-offenen-anschlaegen
 
 ### EINGELESEN

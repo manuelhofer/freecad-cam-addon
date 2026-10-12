@@ -33,6 +33,7 @@ EIGENSCHAFT_N = "NEck"
 EIGENSCHAFT_AUFSPANNUNG = "Aufspannung"
 EIGENSCHAFT_SPANNLAENGE = "Spannlaenge"
 BACKE_FREI = 1.0  # mm – so weit bleibt der Fräser vor den Backen
+BACKE_LAENGE = 100.0  # mm – so lang sind die Backen längs der Stange, ab ihrem vorderen Rand
 TEILACHSEN = {"X": (1.0, 0.0, 0.0), "Y": (0.0, 1.0, 0.0), "Z": (0.0, 0.0, 1.0)}
 
 
@@ -227,11 +228,48 @@ def spannlaenge(job):
     return float(getattr(job, EIGENSCHAFT_SPANNLAENGE, SPANNLAENGE))
 
 
+def backen_x(job):
+    """Wo die Backen des Schraubstocks beginnen (x im Job): `spannlaenge` vor dem Ende der
+    Stange."""
+    return float(job.Stock.Shape.BoundBox.XMax) - spannlaenge(job)
+
+
+def backen_oben(job):
+    """Wie hoch die Backen reichen (z im Job): bis an den oberen Rand der beiden Flächen, an denen
+    sie anliegen (bei ±Y – in jeder Aufspannung liegen zwei gegenüberliegende Flächen dort)."""
+    n = int(getattr(job, EIGENSCHAFT_N))
+    schluesselweite = float(job.Stock.Shape.BoundBox.YLength)
+    return schluesselweite / 2 * math.tan(math.pi / n)
+
+
+def backen(job):
+    """Die Backen des Schraubstocks als ein Körper im Job (Part.Shape, fürs Bild und die
+    Kollision, wie spannung.schraubstock): je eine an den Flächen bei ±Y, ab backen_x
+    BACKE_LAENGE lang (mindestens bis zum Ende der Stange), von der Unterseite der Stange bis
+    backen_oben, spannung.BACKE dick. None ohne Rohteil."""
+    import Part
+
+    from . import spannung
+
+    form = getattr(getattr(job, "Stock", None), "Shape", None)
+    if form is None or form.isNull():
+        return None
+    box = form.BoundBox
+    x0 = backen_x(job)
+    laenge = max(BACKE_LAENGE, box.XMax - x0)
+    hoehe = backen_oben(job) - box.ZMin
+    return Part.makeCompound(
+        [
+            Part.makeBox(laenge, spannung.BACKE, hoehe, FreeCAD.Vector(x0, y, box.ZMin))
+            for y in (box.YMin - spannung.BACKE, box.YMax)
+        ]
+    )
+
+
 def fraeser_bis(job, radius):
     """So weit zum Schraubstock darf die Mitte eines Fräsers mit `radius` (x im Job): BACKE_FREI
-    vor den Backen – sie beginnen `spannlaenge` vor dem Ende der Stange."""
-    ende = float(job.Stock.Shape.BoundBox.XMax)
-    return ende - spannlaenge(job) - BACKE_FREI - float(radius)
+    vor den Backen (backen_x)."""
+    return backen_x(job) - BACKE_FREI - float(radius)
 
 
 def einrichten_text(job):

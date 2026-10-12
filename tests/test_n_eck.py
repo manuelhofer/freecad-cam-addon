@@ -190,6 +190,39 @@ for k in range(1, len(bahn.punkte)):
     x_zuvor = p.x
 print(f"Zeilen-Schruppen: {bahn.lagen} Lagen, {bahn.ringe} Zeilen, {bahn.zeit:.1f} min")
 
+# --- Der Schraubstock: Backen am Ende der Stange, in Bild, Kollision und Prüfung ----------------
+from camaddon import spannung  # noqa: E402
+
+backen = spannung.schraubstock(job)
+vorn = stange.laenge - stange.spannlaenge
+flaeche_oben = stange.schluesselweite / 2 * math.tan(math.pi / 8)
+bb = backen.BoundBox if backen is not None else None
+pruefe(
+    bb is not None
+    and nahe(bb.XMin, vorn)
+    and nahe(bb.YMin, -stange.schluesselweite / 2 - spannung.BACKE)
+    and nahe(bb.YMax, stange.schluesselweite / 2 + spannung.BACKE)
+    and nahe(bb.ZMax, flaeche_oben),
+    f"Backen: {bb}",
+)
+pruefe(backen is not None and backen.common(rohteil).Volume < 1e-6, "Backen in der Stange")
+# Aufspannung 3 hat dieselben Backen in ihrem Job (die Stange liegt dort gleich, nur gedreht).
+b3 = spannung.schraubstock(jobs[1])
+pruefe(b3 is not None and nahe(b3.BoundBox.XMin, vorn), "Backen in Aufspannung 3")
+# Das Zeilen-Schruppen bleibt davor; eine Bahn bis in den Schraubstock wird gemeldet.
+pruefe(not spannung.pruefen(job), f"Befunde ohne Bahn: {spannung.pruefen(job)}")
+FreeCAD.setActiveDocument(dok.Name)
+tief = PathCustom.Create("BisInDenSchraubstock", parentJob=job)
+tief.Gcode = ["G0 X10 Y0 Z50", "G1 Z5 F300", f"G1 X{vorn + 3:.1f}", "G0 Z50"]
+dok.recompute()
+befunde = spannung.pruefen(job)
+pruefe(
+    len(befunde) == 1 and befunde[0].operation == "BisInDenSchraubstock" and "Backen" in befunde[0],
+    f"Befunde: {befunde}",
+)
+dok.removeObject(tief.Name)
+dok.recompute()
+
 # Ein verschobenes und gedrehtes Teil liegt genauso in der Stange (die Punkte im Dokument).
 schief = dok.addObject("Part::Box", "Schief")
 schief.Length, schief.Width, schief.Height = 30, 20, 50

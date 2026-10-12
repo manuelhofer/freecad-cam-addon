@@ -177,6 +177,7 @@ class Ergebnis:
     punkte: int = 0  # so viele Punkte wurden geprüft
     laengen: dict = field(default_factory=dict)  # Werkzeugnummer -> womit gerechnet (LAENGE_…)
     gespannt: float = 0.0  # mm von unten im Schraubstock (spannung.py); 0: nicht geprüft
+    stange: bool = False  # gespannt ist das Ende einer N-Eck-Stange (n_eck, W-018)
     spannung: list = field(default_factory=list)  # [spannung.Befund] – Bahnen hinein
 
     def in_grenzen(self):
@@ -1025,11 +1026,14 @@ class Pruefung:
         for op, ebene in operationen_mit_ebene(job):
             yield from self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler, ebene)
         sammler.fertig()
+        from . import n_eck as ne
         from . import spannung
 
         # Von unten gespannt (S3h): Bahnen in den Schraubstock – oben ein Urteil, die Sätze bei den
         # Hinweisen.
         ergebnis.gespannt = spannung.gespannt(job)
+        if ne.ist_n_eck(job):  # die Stange am Ende im Schraubstock (W-018)
+            ergebnis.gespannt, ergebnis.stange = ne.spannlaenge(job), True
         ergebnis.spannung = spannung.pruefen(job)
         ergebnis.hinweise.extend(s for s in ergebnis.spannung if s not in ergebnis.hinweise)
         return ergebnis

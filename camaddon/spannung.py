@@ -63,11 +63,15 @@ def setze(job, mm):
 
 def schraubstock(job):
     """Die Backen des Schraubstocks als ein Körper in Koordinaten des Grundjobs – None, wenn
-    nichts gespannt ist oder es kein Rohteil gibt."""
+    nichts gespannt ist oder es kein Rohteil gibt. In der N-Eck-Stange (W-018) die Backen am
+    Ende der Stange (n_eck.backen)."""
     import Part
 
+    from . import n_eck as ne
     from . import reichweite as rw
 
+    if ne.ist_n_eck(job):
+        return ne.backen(job)
     tiefe = gespannt(job)
     rohteil = getattr(getattr(rw.grundjob_von(job), "Stock", None), "Shape", None)
     if tiefe <= 0 or rohteil is None or rohteil.isNull():
@@ -83,9 +87,12 @@ def schraubstock(job):
 def pruefen(job):
     """[Befund] – je Operation, die in den Schraubstock fährt, ein Satz (Modulbeschreibung);
     leer, wenn nichts eingetragen ist oder alles darüber bleibt."""
+    from . import n_eck as ne
     from . import reichweite as rw
     from . import schwenken as sw
 
+    if ne.ist_n_eck(job):
+        return _pruefen_stange(job)
     tiefe = gespannt(job)
     grundjob = rw.grundjob_von(job)
     rohteil = getattr(getattr(grundjob, "Stock", None), "Shape", None)
@@ -121,6 +128,33 @@ def pruefen(job):
                 gespannt=rw.weg_text(tiefe),
                 oben=rw.weg_text(oben),
             )
+            saetze.append(Befund(satz, op.Label))
+    return saetze
+
+
+def _pruefen_stange(job):
+    """pruefen() in der N-Eck-Stange (W-018): je Operation, deren Fräser unter dem oberen Rand
+    der Backen über ihren vorderen Rand reicht, ein Satz – mit der Stelle, die am weitesten
+    hineinreicht."""
+    from . import n_eck as ne
+    from . import reichweite as rw
+
+    if getattr(getattr(job, "Stock", None), "Shape", None) is None:
+        return []
+    vorn, oben = ne.backen_x(job), ne.backen_oben(job)
+    saetze = []
+    for op, _ebene in rw.operationen_mit_ebene(job):
+        radius = _radius(op)
+        tiefste = None
+        for punkt in _punkte(op.Path.Commands):
+            if (
+                punkt.x + radius > vorn + GENAU
+                and punkt.z < oben - GENAU
+                and (tiefste is None or punkt.x > tiefste.x)
+            ):
+                tiefste = punkt
+        if tiefste is not None:
+            satz = tr("sn.backen", operation=op.Label, punkt=_xy(tiefste), x=rw.weg_text(vorn))
             saetze.append(Befund(satz, op.Label))
     return saetze
 
