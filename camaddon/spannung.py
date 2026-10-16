@@ -27,6 +27,22 @@ GENAU = 1e-6  # mm
 BOGEN_SCHRITT = math.radians(10.0)
 ZYKLEN = ("G73", "G81", "G82", "G83", "G85", "G86", "G89")
 BACKE = 20.0  # mm – so dick ist eine Backe des Schraubstocks im Bild und in der Kollision
+# Ein runder Rohling (W-021) steckt im Dreibackenfutter: drei Backen, je 120° versetzt, so lang
+# (radial) und so breit wie hier.
+FUTTERBACKE_LANG = 25.0  # mm
+FUTTERBACKE_BREIT = 20.0  # mm
+
+
+def rund(rohteil):
+    """(Mitte x, Mitte y, Radius) eines stehenden runden Rohteils (FreeCADs Zylinder-Rohteil,
+    Achse senkrecht) – sonst None."""
+    if rohteil is None or not (hasattr(rohteil, "Radius") and hasattr(rohteil, "Height")):
+        return None
+    lage = rohteil.Placement
+    if not lage.Rotation.isIdentity() or str(getattr(rohteil, "Axis", "Z") or "Z") not in ("Z", ""):
+        return None
+    radius = getattr(rohteil, "Radius", 0.0)
+    return float(lage.Base.x), float(lage.Base.y), float(getattr(radius, "Value", radius))
 
 
 class Befund(str):
@@ -73,14 +89,38 @@ def schraubstock(job):
     if ne.ist_n_eck(job):
         return ne.backen(job)
     tiefe = gespannt(job)
-    rohteil = getattr(getattr(rw.grundjob_von(job), "Stock", None), "Shape", None)
+    stock = getattr(rw.grundjob_von(job), "Stock", None)
+    rohteil = getattr(stock, "Shape", None)
     if tiefe <= 0 or rohteil is None or rohteil.isNull():
         return None
     box = rohteil.BoundBox
+    kreis = rund(stock)
+    if kreis is not None:
+        return _futter(kreis, box.ZMin, tiefe)
     backen = [
         Part.makeBox(box.XLength, BACKE, tiefe, FreeCAD.Vector(box.XMin, y, box.ZMin))
         for y in (box.YMin - BACKE, box.YMax)
     ]
+    return Part.makeCompound(backen)
+
+
+def _futter(kreis, z, tiefe):
+    """Die drei Backen des Dreibackenfutters am runden Rohling (Mitte, Radius) – von z an so hoch,
+    wie er gespannt ist."""
+    import Part
+
+    x, y, radius = kreis
+    backen = []
+    for winkel in (90.0, 210.0, 330.0):
+        backe = Part.makeBox(
+            FUTTERBACKE_LANG,
+            FUTTERBACKE_BREIT,
+            tiefe,
+            FreeCAD.Vector(radius, -FUTTERBACKE_BREIT / 2, z),
+        )
+        backe.rotate(FreeCAD.Vector(0, 0, z), FreeCAD.Vector(0, 0, 1), winkel)
+        backe.translate(FreeCAD.Vector(x, y, 0))
+        backen.append(backe)
     return Part.makeCompound(backen)
 
 
@@ -100,6 +140,7 @@ def pruefen(job):
         return []
     box = rohteil.BoundBox
     oben = box.ZMin + tiefe
+    kreis = rund(getattr(grundjob, "Stock", None))
     saetze = []
     for op, ebene in rw.operationen_mit_ebene(grundjob):
         lage = sw.ebene_von(ebene) if ebene is not None else None
@@ -113,7 +154,7 @@ def pruefen(job):
                     unter = punkt
             elif (
                 punkt.z < oben - GENAU
-                and _ragt_heraus(punkt, radius, box)
+                and _ragt_heraus(punkt, radius, box, kreis)
                 and (neben is None or punkt.z < neben.z)
             ):
                 neben = punkt
@@ -122,7 +163,7 @@ def pruefen(job):
             saetze.append(Befund(satz, op.Label))
         elif neben is not None:
             satz = tr(
-                "sn.neben",
+                "sn.neben_futter" if kreis is not None else "sn.neben",
                 operation=op.Label,
                 punkt=_xy(neben),
                 gespannt=rw.weg_text(tiefe),
@@ -166,8 +207,11 @@ def _radius(op):
     return float(getattr(durchmesser, "Value", durchmesser) or 0.0) / 2.0
 
 
-def _ragt_heraus(punkt, radius, box):
-    """Reicht der Fräser an dieser Stelle über den Umriss des Rohteils hinaus?"""
+def _ragt_heraus(punkt, radius, box, kreis=None):
+    """Reicht der Fräser an dieser Stelle über den Umriss des Rohteils hinaus – beim runden
+    Rohling (`kreis`: Mitte, Radius) über seinen Umfang?"""
+    if kreis is not None:
+        return math.hypot(punkt.x - kreis[0], punkt.y - kreis[1]) + radius > kreis[2] + GENAU
     return (
         punkt.x - radius < box.XMin - GENAU
         or punkt.x + radius > box.XMax + GENAU

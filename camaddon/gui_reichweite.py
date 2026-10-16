@@ -40,6 +40,7 @@ from . import (
     gui_kollision,
     gui_neue_maschine,
     gui_werkzeuge,
+    spannung,
     symbol,
     uhren,
 )
@@ -1024,6 +1025,8 @@ class PruefPanel:
             gespannt = rw.weg_text(e.gespannt)
             if e.stange:  # die N-Eck-Stange (W-018)
                 frei = tr("rw.spannung.frei_stange", gespannt=gespannt)
+            elif spannung.rund(getattr(rw.grundjob_von(self.job()), "Stock", None)) is not None:
+                frei = tr("rw.spannung.frei_futter", gespannt=gespannt)  # W-021
             else:
                 frei = tr("rw.spannung.frei", gespannt=gespannt)
             _zeige_urteil(self.urteil_spannung, frei, GRUEN)

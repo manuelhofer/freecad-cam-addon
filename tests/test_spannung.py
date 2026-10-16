@@ -113,6 +113,48 @@ spannung.setze(job, 0.0)
 pruefe(spannung.pruefen(job) == [], "nach 0 noch Sätze")
 pruefe(spannung.schraubstock(job) is None, "nach 0 noch Backen")
 
+# --- Ein runder Rohling im Dreibackenfutter (W-021): ein Zylinder Ø 60 × 20 um eine Scheibe Ø 50,
+# 5 mm gespannt. Die Backen: drei, je 120° versetzt, innen am Umfang (r 30), 5 mm hoch. Eine Bahn
+# in der Ecke des Kastens um den Zylinder bis Z 2 ragt über den Kreis – gemeldet als „im
+# Dreibackenfutter“ (nach dem Kasten läge sie drin); eine Bahn innen nicht.
+import Path.Main.Stock as PathStock  # noqa: E402
+
+doc2 = FreeCAD.newDocument("SpannungRund")
+scheibe = doc2.addObject("Part::Feature", "Scheibe")
+scheibe.Shape = Part.makeCylinder(25, 20)
+doc2.recompute()
+job2 = PathJob.Create("Job", [scheibe])
+FreeCAD.setActiveDocument(doc2.Name)
+alt_rohteil = job2.Stock
+job2.Stock = PathStock.CreateCylinder(
+    job2, 30.0, 20.0, FreeCAD.Placement(FreeCAD.Vector(0, 0, 0), FreeCAD.Rotation())
+)
+doc2.removeObject(alt_rohteil.Name)
+doc2.recompute()
+spannung.setze(job2, 5.0)
+backen2 = spannung.schraubstock(job2)
+pruefe(backen2 is not None and len(backen2.Solids) == 3, "nicht drei Backen")
+if backen2 is not None:
+    zylinder = Part.makeCylinder(30, 20)
+    pruefe(
+        all(b.common(zylinder).Volume < 1e-3 and b.distToShape(zylinder)[0] < 1e-6
+            for b in backen2.Solids),
+        "Backen nicht am Umfang",
+    )  # fmt: skip
+    pruefe(abs(backen2.BoundBox.ZMax - 5.0) < 1e-6, f"Backen {backen2.BoundBox}")
+r2 = float(getattr(job2.Tools.Group[0].Tool.Diameter, "Value", 5.0)) / 2
+FreeCAD.setActiveDocument(doc2.Name)
+# In der Ecke des Kastens um den Zylinder (25, 25): draußen am Kreis – gemeldet; mitten drin nicht.
+aussen = operation("Aussen", ["G0 X40 Y40 Z25", "G1 X25 Y25 Z2", "G0 Z25"])
+innen = operation("Innen", ["G0 X10 Y10 Z25", "G1 X5 Y5 Z2", "G0 Z25"])
+doc2.recompute()
+saetze2 = spannung.pruefen(job2)
+pruefe(
+    any("Dreibackenfutter" in t and "Aussen" in t for t in saetze2)
+    and not any("Innen" in t for t in saetze2),
+    f"rund: {saetze2}",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

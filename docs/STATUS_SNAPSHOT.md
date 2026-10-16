@@ -1173,6 +1173,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Strategien räumen über den Materialstand nur, wo Rohteil ist, nicht in den Ecken des Kastens.
   Offen: das Dreibackenfutter als Spannmittel (Backen am Rohling, wie W-020; statt der
   Schraubstockbacken bei „von unten gespannt“), Kollision und Einrichtblatt.
+  *Stufe 2 erledigt:* P-2026-10-16-18. Mit „von unten gespannt“ sitzen am runden Rohling drei
+  Backen (je 120°) im Bild und in der Kollision. Die Prüfung misst am Kreis statt am Kasten und
+  sagt „Dreibackenfutter“.
+  Offen: der Futterkörper unter dem Rohling (er hebt das Teil über den Tisch) und das
+  Einrichtblatt (W-019).
 - **W-022 Die Werkzeugaufnahme gehört in die Maschine; Halter in ihrer Größe** – Manuel, 2026-10-16,
   mit Bild (Menü „Neu“ im Fenster „Halter“, alle Vorlagen „· SK40“): „warum nur sk40 ?? es gibt auch
   sk64 glaub ich ?? ich denke die aufnahme an der maschine ... sollten wir in die maschine packen !

@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-18 dreibackenfutter (W-021, Stufe 2)
+
+### EINGELESEN
+- W-021: Ein runder Rohling steckt auf der Fräse im Dreibackenfutter, nicht im Schraubstock.
+  „Von unten gespannt“ zeichnete aber Schraubstockbacken am Kasten um den Zylinder und prüfte am
+  Kasten.
+
+### DATEIEN
+- `camaddon/spannung.py`:
+  - `rund(rohteil)`: ein stehendes Zylinder-Rohteil.
+  - `_futter`: drei Backen (25 × 20, je 120° versetzt, innen am Umfang, so hoch wie gespannt),
+    über `schraubstock()` fürs Bild und die Kollision.
+  - `pruefen` misst „neben dem Rohteil“ am Kreis; der Satz heißt „… im Dreibackenfutter“.
+- `camaddon/gui_reichweite.py`: „Nichts fährt ins Dreibackenfutter (… von unten gespannt).“
+- `translations/de|en.json`: `sn.neben_futter`, `rw.spannung.frei_futter`.
+- `tests/test_spannung.py`: Zylinder Ø 60 um eine Scheibe, 5 mm gespannt. Drei Backen am Umfang,
+  5 mm hoch. Eine Bahn in der Ecke des Kastens (außerhalb des Kreises) wird gemeldet, eine innen
+  nicht.
+- `package.xml` (0.260.16).
+
+### ERGEBNIS
+- C-Ring mit Zylinder-Rohteil, 3 mm gespannt, Planfräsen angelegt, „Auf der Maschine prüfen“:
+  drei Backen am Rohling, „Nichts fährt ins Dreibackenfutter (3,00 mm von unten gespannt)“.
+- Grün im Wochen-Build: `test_spannung`, `test_sprache`.
+
 ## P-2026-10-16-17 rohteil-zylinder (W-021, Stufe 1)
 
 ### EINGELESEN
