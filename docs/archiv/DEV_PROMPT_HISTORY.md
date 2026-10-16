@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-03 schraeg-durchsicht
+
+### EINGELESEN
+- Durchsicht der Nacht-Patches (P-2026-10-16-53 … -70) am Code, Punkt für Punkt nachgeprüft:
+  - Die schrägen Flächen und ihre Gruppen waren je Job und Wahl gemerkt, nicht je Lage: Nach
+    „unten“ oder „um Z gedreht“ galt eine Fläche, die jetzt waagerecht liegt, weiter als schräg
+    (alle Blöcke grau, „Anlegen“ hätte eine 0°-Ebene angelegt) – und umgekehrt.
+  - Wer in einer laufenden Kette (Aufspannung 2 von 6 der N-Eck-Stange, eine Ebene aus „Alles aus
+    dieser Aufspannung“) eine schräge Fläche wählte, verlor mit „Anlegen“ die übrigen Glieder der
+    Kette; ohne Maschine ging die Kette gar nicht weiter.
+  - Eine schräge Fläche und dazu eine Kante zum Entgraten: Die Blöcke bekamen keine Fläche, und
+    Planfräsen und Räumen schlugen die ganze Oberseite vor.
+  - Der Boden einer runden Tasche bis Ø 40 mit einem Zapfen darin galt als Boden eines Lochs –
+    „Bohrung fräsen“ hätte den Zapfen weggefräst. Die Prüfung lief bei jeder Änderung im
+    Assistenten neu (alle Flächen durchsucht).
+  - Die Wände eines Keils (seitlich unter der Schräge) kamen mit in die geschwenkte Ebene der
+    Schräge – gemeint waren die Wände einer Tasche in ihr.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`:
+  - `_schraege`, `_schraege_gruppen`: die Lage der Form (`_lage_von`, ihre Placement-Matrix) im
+    Merkschlüssel.
+  - `_ebenen_der_aufspannung`, `_gekippt_anlegen`: die neuen Jobs vorn in die Kette (`_FOLGE[:0]`);
+    ohne Maschine geht eine laufende Kette weiter.
+  - `_haken_vorschlagen`: „nur Kanten“ auch, wenn alle gewählten Flächen woanders drankommen.
+  - `_schraege_gruppen`: eine Wand gehört nur dann zur Schräge, wenn sie über ihrer Ebene steht
+    (`darueber`).
+  - `_schraeg`: Docstring sagt, was gilt (schräg nach unten – ein Hinterschnitt – geht ebenso
+    geschwenkt bzw. gekippt).
+- `camaddon/bohrung_bahn.py`: `bohrung_ueber_boden` – ein innerer Rand muss an eine Bohrung
+  grenzen (die Senkung über einer kleineren Bohrung), ein Zapfen macht es zur Tasche; je Form und
+  Name gemerkt.
+- `tests/test_bohrung.py`: Boden eines Lochs, mit Zapfen (keins), Boden einer Senkung.
+- `tests/gui/szenario_schraeg_anlegen.py`: die schräge Fläche mit einer Kante – weder Planfräsen
+  noch Räumen angehakt.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_bohrung`, `szenario_schraeg_anlegen`, `szenario_schraeg_g550`,
+  `szenario_loch_schraeg`, `szenario_bearbeitung_n_eck`.
+
 ## P-2026-10-17-02 vierachs-helix-gleichlauf
 
 ### EINGELESEN

@@ -211,28 +211,66 @@ def bohrung_ueber_boden(form, name):
     """Der Name der Bohrung („Face7“) bis Ø BODEN_LOCH_BIS, deren ebener Boden die Fläche `name`
     ist – ihr Rand nur Kreisbögen, an denen eine Bohrung (bohrungen()) anschließt; None sonst. Wer
     den Boden eines Lochs anklickt, meint das Loch (Manuel, 2026-10-10: „Ich will nur dass Loch
-    da fräsen“) – und das Räumen passt in ein Loch wenig größer als der Fräser nicht hinein."""
+    da fräsen“) – und das Räumen passt in ein Loch wenig größer als der Fräser nicht hinein.
+    Ein innerer Rand muss ebenfalls an eine Bohrung grenzen (die Senkung über einer kleineren
+    Bohrung); steht im Boden ein Zapfen, ist es eine Tasche – die Helix nähme ihn weg. Je Form
+    und Name gemerkt (der Assistent fragt bei jeder Änderung)."""
+    try:
+        schluessel = (form.hashCode(), name)
+    except Exception:  # noqa: BLE001
+        return None
+    if schluessel in _BODEN_MERK:
+        return _BODEN_MERK[schluessel]
+    if len(_BODEN_MERK) > 2000:
+        _BODEN_MERK.clear()
+    ergebnis = _BODEN_MERK[schluessel] = _bohrung_ueber_boden(form, name)
+    return ergebnis
+
+
+_BODEN_MERK = {}
+
+
+def _bohrung_ueber_boden(form, name):
     import Part
 
     try:
         flaeche = form.getElement(name)
-        kanten = flaeche.OuterWire.Edges
+        aussen = flaeche.OuterWire
+        kanten = aussen.Edges
     except Exception:  # noqa: BLE001 – kein Name einer Fläche, keine Fläche mit Rand
         return None
     if not isinstance(flaeche.Surface, Part.Plane) or not kanten:
         return None
     if not all(isinstance(k.Curve, Part.Circle) for k in kanten):
         return None
-    for kante in kanten:
+
+    def name_von(nachbar):
+        for nummer, f in enumerate(form.Faces):
+            if f.isSame(nachbar):
+                return f"Face{nummer + 1}"
+        return None
+
+    def bohrung_an(kante):
+        """(grenzt ein Zylinder an, die Bohrung (bohrungen()) dort oder None)."""
         for nachbar in form.ancestorsOfType(kante, Part.Face):
             if nachbar.isSame(flaeche) or not isinstance(nachbar.Surface, Part.Cylinder):
                 continue
-            for nummer, f in enumerate(form.Faces):
-                if f.isSame(nachbar):
-                    gefunden = bohrungen(form, [f"Face{nummer + 1}"])
-                    if gefunden and 2 * gefunden[0].radius <= BODEN_LOCH_BIS + 1e-9:
-                        return gefunden[0].name
-                    return None
+            nachbar_name = name_von(nachbar)
+            gefunden = bohrungen(form, [nachbar_name]) if nachbar_name else []
+            return True, gefunden[0] if gefunden else None
+        return False, None
+
+    for innen in flaeche.Wires:
+        if innen.isSame(aussen):
+            continue
+        if not all(bohrung_an(k)[1] is not None for k in innen.Edges):
+            return None  # ein Zapfen im Boden (oder sonst eine Insel): eine Tasche
+    for kante in kanten:
+        zylinder, gefunden = bohrung_an(kante)
+        if zylinder:
+            if gefunden is not None and 2 * gefunden.radius <= BODEN_LOCH_BIS + 1e-9:
+                return gefunden.name
+            return None
     return None
 
 

@@ -343,6 +343,38 @@ pruefe(len(op.Path.Commands) == anzahl, f"nach dem Laden {len(op.Path.Commands)}
 pruefe(op.getEditorMode("Umlaeufe") == ["ReadOnly"], "Umläufe nach dem Laden")
 print(ascii(f"Operation: {anzahl} Befehle"))
 
+# Der Boden eines Lochs meint das Loch (bohrung_ueber_boden) – auch der Boden einer Senkung über
+# einer kleineren Bohrung; steht ein Zapfen im Boden, ist es eine Tasche (die Helix nähme ihn weg).
+V = FreeCAD.Vector
+
+
+def boden_von(form, z):
+    return next(
+        f"Face{k + 1}"
+        for k, f in enumerate(form.Faces)
+        if isinstance(f.Surface, Part.Plane)
+        and abs(f.BoundBox.ZMax - z) < 1e-6
+        and abs(f.BoundBox.ZMin - z) < 1e-6
+        and f.BoundBox.XLength < 25
+    )
+
+
+klotz = Part.makeBox(60, 60, 20)
+loch = klotz.cut(Part.makeCylinder(10, 10, V(30, 30, 10)))
+boden = boden_von(loch, 10)
+wand = bb.bohrung_ueber_boden(loch, boden)
+pruefe(wand is not None and bb.ist_bohrung(loch, wand), f"Boden des Lochs: {wand}")
+mit_zapfen = loch.fuse(Part.makeCylinder(3, 5, V(30, 30, 10))).removeSplitter()
+boden = boden_von(mit_zapfen, 10)
+pruefe(bb.bohrung_ueber_boden(mit_zapfen, boden) is None, "Boden mit Zapfen: kein Loch")
+senkung = loch.cut(Part.makeCylinder(4, 30, V(30, 30, -5)))
+boden = boden_von(senkung, 10)
+wand = bb.bohrung_ueber_boden(senkung, boden)
+pruefe(
+    wand is not None and abs(bb.bohrungen(senkung, [wand])[0].radius - 10) < 1e-6,
+    f"Boden der Senkung: {wand}",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

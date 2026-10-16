@@ -143,6 +143,16 @@ def schritte(h):
     for name in waende:
         panel.flaeche_umschalten(name)
     yield 500
+    # Dazu eine Kante zum Entgraten: hier bleibt nur die Kante – kein Planfräsen oder Räumen der
+    # ganzen Oberseite vorgeschlagen.
+    panel.kante_umschalten("Edge1")
+    yield 500
+    h.pruefe(
+        not panel.plan.haken.isChecked() and not panel.raeumen.haken.isChecked(),
+        f"mit einer Kante angehakt: {[b.s.kennung for b in panel.aktive_bloecke()]}",
+    )
+    panel.kante_umschalten("Edge1")
+    yield 500
     h.pruefe(panel._kann_anlegen(), "„Anlegen“ geht nicht")
     h.bild("1_fuenfachs_schritt2", panel.form)
     grundjob = panel.job

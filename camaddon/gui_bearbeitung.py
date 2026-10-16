@@ -337,6 +337,7 @@ def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None):
         QtGui.QMessageBox.information(
             FreeCADGui.getMainWindow(), tr("ba.folge.titel"), tr("ba.folge.ohne_maschine")
         )
+        _folge_weiter()  # eine Kette, die schon lief (N-Eck, Ebenen), geht weiter
         return
     angelegt, fehler = [], []
     for r in richtungen:
@@ -367,7 +368,9 @@ def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None):
             tr("ba.folge.titel"),
             tr("ba.folge.fehler", fehler="\n".join(fehler)),
         )
-    _FOLGE[:] = [
+    # Vorn in die Kette: lief schon eine (die Aufspannungen der N-Eck-Stange, die Ebenen), geht
+    # sie danach weiter.
+    _FOLGE[:0] = [
         (
             job,
             list(r.flaechen),
@@ -415,7 +418,7 @@ def _gekippt_anlegen(grundjob, richtungen):
             tr("ba.gekippt.titel"),
             tr("ba.folge.fehler", fehler="\n".join(fehler)),
         )
-    _FOLGE[:] = [
+    _FOLGE[:0] = [  # vorn in die Kette (wie _ebenen_der_aufspannung)
         (
             job,
             list(r.flaechen),
@@ -456,6 +459,14 @@ def _vorhandene_lage(grundjob, richtung, jobs):
 # mm – so hoch ist eine gezeichnete Fase höchstens, die das Entgraten macht; eine höhere Schräge
 # zwischen Oberseite und Wand wird geschwenkt bzw. gekippt gespannt gefräst (_schraege).
 FASE_HOECHSTENS = 5.0
+
+
+def _lage_von(form):
+    """Die Lage einer Form als Tupel (fürs Merken): ihre Placement-Matrix."""
+    try:
+        return tuple(round(x, 9) for x in form.Placement.toMatrix().A)
+    except Exception:  # noqa: BLE001 – ohne Lage: nichts merken, was nicht stimmt
+        return None
 
 
 def _kleine_fase(form, name):
@@ -555,8 +566,9 @@ RICHTUNG_FARBEN = ("#e8962d", "#9b59b6", "#1f9e8f", "#b5651d", "#2e86c1")
 
 def _schraeg(form, name):
     """Wie weit die ebene Fläche `name` gegen die Waagerechte geneigt ist (Grad) – None, wenn sie
-    nicht eben ist, nach oben zeigt, eine senkrechte Wand ist (das fräst der Job ohne Schwenken)
-    oder nach unten zeigt. Dann geht sie geschwenkt (3+2, gui_schwenken)."""
+    nicht eben ist, gerade nach oben oder gerade nach unten zeigt (das fräst der Job ohne
+    Schwenken bzw. eine andere Seite unten) oder eine senkrechte Wand ist. Auch schräg nach unten
+    (ein Hinterschnitt, über 90°): Dann geht sie geschwenkt bzw. gekippt gespannt."""
     normale = _aussennormale(form, name)
     if normale is None:
         return None
@@ -5813,7 +5825,9 @@ class BearbeitungPanel:
         if self._ist_stl():
             return []
         fuenf = self._fuenfachs()
-        schluessel = (id(self.job), tuple(self.gewaehlte), fuenf)
+        # Die Lage gehört dazu: „unten“ oder „um Z gedreht“ macht aus einer schrägen Fläche eine
+        # waagerechte und umgekehrt.
+        schluessel = (id(self.job), tuple(self.gewaehlte), fuenf, _lage_von(form))
         merk = getattr(self, "_schraege_merk", None)
         if merk is not None and merk[0] == schluessel:
             return list(merk[1])
@@ -5844,7 +5858,7 @@ class BearbeitungPanel:
         schraege = self._schraege(form)
         if not schraege:
             return []
-        schluessel = (id(self.job), tuple(self.gewaehlte), tuple(schraege))
+        schluessel = (id(self.job), tuple(self.gewaehlte), tuple(schraege), _lage_von(form))
         merk = getattr(self, "_gruppen_merk", None)
         if merk is not None and merk[0] == schluessel:
             return [zg.Richtung(r.achse, list(r.flaechen), r.stellung, r.stirn) for r in merk[1]]
@@ -5866,6 +5880,22 @@ class BearbeitungPanel:
             n = _aussennormale(form, name)
             return n is not None and abs(n.dot(achse)) < 1e-6
 
+        def darueber(name, r):
+            """Steht die Wand über der Ebene ihrer schrägen Fläche (eine Tasche darin) – nicht
+            darunter wie die Seiten eines Keils, die zum Grundjob gehören?"""
+            try:
+                stirn = ft.flaeche(form, int(r.stirn[4:]) - 1).CenterOfMass
+                mitte = ft.flaeche(form, int(name[4:]) - 1).CenterOfMass
+            except Exception:  # noqa: BLE001
+                return False
+            return (mitte - stirn).dot(FreeCAD.Vector(*r.achse)) > 1e-6
+
+        def wand_von(name):
+            return next(
+                (r for r in richtungen if quer(name, r) and grenzt(name, r) and darueber(name, r)),
+                None,
+            )
+
         richtungen = []
         for name in sorted(schraege, key=lambda n: _schraeg(form, n)):
             n = _aussennormale(form, name)
@@ -5875,7 +5905,7 @@ class BearbeitungPanel:
                 (r for r in richtungen if (FreeCAD.Vector(*r.achse) - n).Length < zg.GLEICH),
                 None,
             )
-            wand = next((r for r in richtungen if quer(name, r) and grenzt(name, r)), None)
+            wand = wand_von(name)
             if gleich is not None:
                 gleich.flaechen.append(name)
             elif wand is not None:
@@ -5889,7 +5919,7 @@ class BearbeitungPanel:
         while weiter:
             weiter = False
             for name in list(uebrig):
-                r = next((r for r in richtungen if quer(name, r) and grenzt(name, r)), None)
+                r = wand_von(name)
                 if r is not None:
                     r.flaechen.append(name)
                     uebrig.remove(name)
@@ -6350,6 +6380,10 @@ class BearbeitungPanel:
                 nur_dort = tr("ba.schwenken.alles_dort")
             else:
                 nur_dort = tr("ba.gekippt.alles_dort")
+        # Nur Kanten hier: keine Fläche gewählt – oder alle kommen woanders dran (geschwenkt,
+        # gekippt gespannt); sonst schlügen Planfräsen und Räumen die ganze Oberseite vor.
+        weg = set(self._geschwenkt(form)) if self.gewaehlte and not stl else set()
+        nur_kanten = bool(self.kanten) and not [n for n in self.gewaehlte if n not in weg]
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -6404,7 +6438,7 @@ class BearbeitungPanel:
                     vorschlag = block.s.vorgeschlagen(form, self._wahl(block))
                     if block is self.bohrung and self._von_raeumen_geraeumt(form):
                         vorschlag = False  # Räumen + Kontur ist dort die Folge
-                    if self.kanten and not self.gewaehlte and block is not self.entgraten3d:
+                    if nur_kanten and block is not self.entgraten3d:
                         vorschlag = False  # nur Kanten gewählt: die sollen eine Fase bekommen
                     block.haken.setChecked(vorschlag)
                 block.zustand_zeigen()
