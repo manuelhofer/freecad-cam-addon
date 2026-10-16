@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-09 oben-weiter-bis-zum-letzten-schritt
+
+### EINGELESEN
+- Manuel (Bild, 0.260.5, Schritt 1 von 3): „auch in der 260.5 ist der anlegen button schon
+  anklickbar obwohl noch zwei weitere auswahl felder kommen vll sollte man das als "weiter" button
+  deklarieren exakt wie den unten rechts“.
+- Antwort auf Frage 3 (Beispiele im Update): Alle Testteile gehören ins Repository, beim Laden
+  aber wählbar, „mit“ oder „ohne Beispieldateien“; die Maschinen sind immer dabei. Steht im
+  Snapshot (16.10. nachmittags, Punkt 6), aus `OFFENE_FRAGEN.md` genommen.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Der Knopf oben (OK der Aufgabe) heißt vor dem letzten Schritt
+  „Weiter →“ und blättert weiter. Ein Druck auf ihn setzt `_oben_weiter`, bevor FreeCAD
+  `accept()` ruft; `accept()` blättert dann statt anzulegen. Beim Ändern bleibt „Übernehmen“.
+  `panel.accept()` aus den Szenarien legt weiter an.
+- `translations/de|en.json`: `ba.weiter.tooltip` („Angelegt wird im letzten …“).
+- `package.xml` (0.260.7).
+
+### ERGEBNIS
+- C-Ring (Szenario, Klicks auf den Knopf oben):
+  - Schritt 1 „Weiter →“, angeklickt Schritt 2.
+  - Wieder „Weiter →“, angeklickt Schritt 3; jetzt „Anlegen“, wie unten.
+  - Angeklickt: „Nut T3“ angelegt, das Fenster zu.
+- Grün im Wochen-Build: `szenario_bearbeitung`.
+
 ## P-2026-10-16-08 update-ohne-entwicklungsdateien
 
 ### EINGELESEN

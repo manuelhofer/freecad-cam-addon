@@ -1815,7 +1815,7 @@
     "ba.schritt.einstellungen": "Settings",
     "ba.einstellungen.leer": "No strategy is ticked in step 2.",
     "ba.weiter": "Next →",
-    "ba.weiter.tooltip": "To the next step. “Create” works already now – with the suggestions.",
+    "ba.weiter.tooltip": "To the next step. Creating happens in the last one, “Settings”.",
     "ba.zurueck": "← Back",
     "ba.zurueck.tooltip": "To the step before – nothing is lost.",
     "ba.aendern.text": "You are changing “{name}”: faces, cutter, application and the values below apply after “Apply”. The stock stays as it is in the job.",

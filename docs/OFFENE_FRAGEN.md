@@ -31,11 +31,3 @@ dem alten Verlauf auf GitHub verschwinden sie nur, wenn man die Geschichte umsch
 GitHub umzuschreiben ist nicht rückgängig zu machen.
 *Was die Antwort ändert:* Bei „ja“ zieht alles Besprochene um, und die Arbeitsregeln zeigen
 auf das neue Repository. – seit 2026-10-16
-
-**3. Sollen die großen Beispielteile im Update bleiben?**
-Von den 9,7 MB sind 8,3 MB Beispiele: die Nase (`testteil_4achs_nase.FCStd`, 5,2 MB), der Geist
-(`geist_stl/Geist1_v2.stl`, 3,3 MB) und das Freiform-Beispiel. Ohne sie wären es etwa 1,5 MB.
-Sie stehen in `beispiele/README.md` als „Teile zum Ausprobieren“.
-*Warum nur Manuel:* Ob Nutzer die Beispiele mitbekommen sollen, ist seine Entscheidung.
-*Was die Antwort ändert:* Bei „raus“ bleiben sie auf GitHub zum Herunterladen, und die Hilfe
-verweist dorthin. – seit 2026-10-16

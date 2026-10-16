@@ -493,7 +493,9 @@ T1 Ø 12.
    in der Mitte mit einer Helix ein. Nachsehen, ob das mit dem passenden Fräser (P-2026-10-16-05)
    schon so aussieht, und die Bögen in der Bohrung mit seinem Bild vergleichen.
 4. **„Anlegen“ schon in Schritt 1** (Bild: „Schritt 1 von 3 – Aufspannung“, oben „Anlegen“
-   klickbar): „das anlegen sollte erst frei sein wenn alle angaben gemacht worden sind“. Das
+   klickbar): „das anlegen sollte erst frei sein wenn alle angaben gemacht worden sind“.
+   *Erledigt im Assistenten „Bearbeitung“:* P-2026-10-16-09. Die anderen Assistenten stehen
+   noch aus. Das
    Prüfen-Fenster des Assistenten „Bearbeitung“ bietet „Anlegen“ in jedem Schritt an. Künftig erst
    ab Schritt 3 (Flächen gewählt, Strategie angehakt), vorher grau. Der Hinweis sagt, was noch
    fehlt („Erst die Flächen wählen – Schritt 2“), so wie „Nächster Schritt als Knopf“ es verlangt:
@@ -582,12 +584,25 @@ T1 Ø 12.
 4. **„Anlegen“ heißt in Schritt 1 und 2 „Weiter“** (Bild, 0.260.5, Schritt 1): „auch in der 260.5
    ist der anlegen button schon anklickbar obwohl noch zwei weitere auswahl felder kommen vll
    sollte man das als "weiter" button deklarieren exakt wie den unten rechts“. Siehe C-Ring
-   Punkt 4.
+   Punkt 4. *Erledigt:* P-2026-10-16-09 (oben „Weiter →“ bis zum letzten Schritt, dann
+   „Anlegen“).
 5. **„Maschine transparent“ beim Abfahren** (Bild: „Auf der Maschine prüfen“, Abfahren „Räumen
    T2“ am C-Ring; Spindel und Halter verdecken Teil und Bahn): „hier kann man nichs sehen oder
    erkennen .. waäre gut wenn man einen hacken macht mit "maschine transparent"“. Ein Haken neben
    „Bahn“ und „Teil“, der die Körper der Maschine (Spindel, Kopf, Tisch, Spannmittel)
-   durchsichtig macht.
+   durchsichtig macht. Dazu: „vll maschine ausblenden ... also beides .. transparent und
+   ausblenden so das nur das werkzeug mit halter zu sehen ist“.
+6. **Beispiele: alle im Repository, im Update wählbar** (Antwort auf Frage 3): „ich finde es
+   sollten alle testteile im repo vorhanden sein ja ... allerdings solte der benutzer auch
+   irgendwie die möglichkeit haben sie nicht zu laden .. vll kann man "mit beispiel datein" oder
+   "ohne beispiel dateien" ... (maschinen sind immer dabei geht nur um die dateien wie C-ring und
+   die von dir aufgeführen .. )“. Plan:
+   - C-Ring und Ring kommen nach `beispiele/`; das 5-Achs-Ausweichteil erst, wenn Manuel es fertig
+     meldet.
+   - `beispiele/` per `export-ignore` aus dem Update-ZIP nehmen.
+   - Im Addon ein Befehl „Beispiele laden …“, der sie auf Wunsch von GitHub holt (in einen
+     eigenen Ordner, mit Größe vorher).
+   - Die Maschinen entstehen im Code und sind immer dabei.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach

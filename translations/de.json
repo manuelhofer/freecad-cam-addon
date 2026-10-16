@@ -1815,7 +1815,7 @@
     "ba.schritt.einstellungen": "Einstellungen",
     "ba.einstellungen.leer": "In Schritt 2 ist keine Strategie angehakt.",
     "ba.weiter": "Weiter →",
-    "ba.weiter.tooltip": "Zum nächsten Schritt. „Anlegen“ geht auch schon jetzt – mit den Vorschlägen.",
+    "ba.weiter.tooltip": "Zum nächsten Schritt. Angelegt wird im letzten, „Einstellungen“.",
     "ba.zurueck": "← Zurück",
     "ba.zurueck.tooltip": "Zum Schritt davor – nichts geht verloren.",
     "ba.aendern.text": "Du änderst „{name}“: Flächen, Fräser, Einsatz und die Werte darunter gelten nach „Übernehmen“. Das Rohteil bleibt, wie es im Job steht.",

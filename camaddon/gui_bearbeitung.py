@@ -4531,7 +4531,14 @@ class BearbeitungPanel:
         self._knoepfe = knoepfe
         with contextlib.suppress(Exception):  # links neben den Knöpfen: das Rad (gui_rechnet)
             knoepfe.layout().insertWidget(0, self._rechnet.rad())
+        oben = knoepfe.button(QtGui.QDialogButtonBox.Ok)
+        if oben is not None:
+            # Gedrückt kommt vor FreeCADs accept(): So weiß accept(), dass es der Knopf oben war.
+            oben.pressed.connect(self._oben_gedrueckt)
         self._knoepfe_beschriften()
+
+    def _oben_gedrueckt(self):
+        self._oben_weiter = self.zu_aendern is None and self._seite < len(self.seiten) - 1
 
     def knopf_anlegen(self):
         if self._knoepfe is None:
@@ -4545,12 +4552,21 @@ class BearbeitungPanel:
         if anzeige is not None and anzeige.an:
             geht = False  # solange gerechnet wird (gui_rechnet; Manuel, 2026-10-12)
         unten = getattr(self, "knopf_fertig", None)
+        # Vor dem letzten Schritt heißt der Knopf oben „Weiter“ und blättert weiter, wie der unten
+        # rechts (Manuel, 2026-10-16: „anklickbar obwohl noch zwei weitere auswahl felder kommen
+        # vll sollte man das als "weiter" button deklarieren exakt wie den unten rechts“).
+        vorher = not aendern and getattr(self, "_seite", 0) < len(getattr(self, "seiten", ())) - 1
         for knopf_ in (self.knopf_anlegen(), unten):
             if knopf_ is None:
                 continue
             if aendern:
                 knopf_.setText(tr("va.uebernehmen"))
                 knopf_.setToolTip(tr("ba.uebernehmen.tooltip"))
+            elif vorher and knopf_ is not unten:
+                knopf_.setText(tr("ba.weiter"))
+                knopf_.setToolTip(tr("ba.weiter.tooltip"))
+                knopf_.setEnabled(self.job is not None and not self.nur_vierachs())
+                continue
             else:
                 knopf_.setText(tr("va.anlegen"))
                 knopf_.setToolTip(tr("ba.anlegen.tooltip"))
@@ -4566,6 +4582,11 @@ class BearbeitungPanel:
         return all(b.kann_anlegen() for b in aktive)
 
     def accept(self):
+        if getattr(self, "_oben_weiter", False):
+            # Der Knopf oben vor dem letzten Schritt: „Weiter“ (_knoepfe_beschriften).
+            self._oben_weiter = False
+            self.weiter()
+            return False
         if self.job is None:
             return self.reject()
         if self.nur_vierachs():
