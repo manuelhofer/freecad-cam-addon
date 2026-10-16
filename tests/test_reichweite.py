@@ -198,13 +198,13 @@ pruefe(
     "gerechnet mit 85.00 mm im vorgeschlagenen Halter Spannzangenfutter ER16" in e.hinweise[0],
     f"Hinweis Vorschlag: {e.hinweise}",
 )
-# An einer Spindel mit HSK-A63 (W-022) hat der vorgeschlagene Halter deren Flansch (26 statt 16):
-# 95 mm.
+# An einer Spindel mit HSK-A63 (W-022) hat der vorgeschlagene Halter deren Flansch (26 statt 19,1,
+# P-2026-10-16-39): 91,9 mm.
 s1 = next(b for b in m.betriebsarten(ma) if b.Art == m.ART_SPINDEL)
 s1.Werkzeugaufnahme = "HSK-A63"
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
 pruefe(
-    "gerechnet mit 95.00 mm im vorgeschlagenen Halter Spannzangenfutter ER16 · HSK-A63"
+    "gerechnet mit 91.90 mm im vorgeschlagenen Halter Spannzangenfutter ER16 · HSK-A63"
     in e.hinweise[0],
     f"Vorschlag an HSK-A63: {e.hinweise}",
 )

@@ -12,6 +12,90 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-39 halter-nach-katalogzeichnung-und-aus-datei (W-022 Punkt 3)
+
+### EINGELESEN
+- Manuel, 2026-10-16, im Browser bei Hoffmann angemeldet: „du kannst direkt die stl datein
+  runterladen !“, „wenn du eh schon dabei bist ... übernimm doch alle .. mit link“, dann: „aber du
+  hast recht über die zeichnung ists vll doch leichter .. von daher“, „vergleich mal die bild
+  zeichnung mit der stl die du hattest und schau ob die masse passen“.
+- Eine STEP-Datei geladen (GARANT 300470 32, ER32 an SK40, A = 70; 72,7 KB, mit seinem Häkchen
+  auf die CAD-Nutzungsbedingungen). Sie liegt nur auf seinem Rechner (`~/freecad_cam/halter_cad/`)
+  und kam nicht ins Repo. Gemessen mit `halter_datei.py`.
+- Verglichen mit der öffentlichen Vorschau der Maßzeichnung (`dxf_CAD_300470_32.jpg`), deren
+  türkise Kontur Spalte für Spalte gelesen wurde (Maßstab aus Flansch Ø 63,55). Ergebnis: auf
+  etwa 0,1 mm gleich. Gesamtlänge 138,38/138,4; Flansch ab 71,6; Rille 76,0 … 83,0, Grund Ø 56;
+  Körper Ø 48 bis 102,5/102,4; Kegel auf Ø 40 bis 106,4; Mutter ab 115,4; vorn Ø 50 → 38,5/38,2.
+  Nur die Mutter ist schwarz gezeichnet, ihr Ø steht als Maßzahl daneben.
+- Danach ohne weitere Downloads die Zeichnungen der Vorbilder gelesen: 300470 16/25/40,
+  302235 6/12 (Schrumpf), 300100 20 (Weldon), 302028 20 (Hydro), 301017 22 (Messerkopfaufnahme),
+  302540 1-13 (Bohrfutter), dazu für die Flansche 302760 32 (BT40) und 305390 32 (HSK-A63).
+- „Alle übernehmen“ nicht: Hoffmann nennt die Sammlung eine Datenbank (§ 87a UrhG). Nachgebaut
+  wird je Spannart ein Vorbild, mit Link darauf.
+
+### DATEIEN
+- `camaddon/halter_datei.py` (neu): Kontur eines Drehkörpers aus STEP/STL.
+  - Drehachse aus der Box.
+  - Je Stelle der größte Radius aus den Kanten des Netzes.
+  - Abschnitte nach Douglas-Peucker (0,1 mm); Stufen bleiben Stufen, gleich dicke Zylinder
+    hintereinander werden einer.
+  - `spindelseite`: die Seite mit einem geraden Kegel (mindestens 20 mm, 0,02 … 0,25 mm je mm),
+    hinter dem gleich der Flansch kommt; die Spindelnase ist sein Ende. An der echten Datei
+    300470 32: 69,3 statt der Bezugslinie 68,4 (A 69,1 statt 70).
+  - `halter_aus_datei(pfad, aufnahme)`: der Halter ab der Spindelnase, benannt nach der Datei.
+- `camaddon/halter.py`:
+  - `_FLANSCHFORM` gemessen je Familie, gestreckt auf Länge und Ø (`flanschfamilie`):
+    - steil (SK, CAT): 3,2 Luft (Kegel Ø 0,7 · D), Bund, V-Rille 3,4 tief, Bund – 19,1 bei SK40;
+    - BT: 1,9 Luft, Bund 9,9, Rille 5 tief – 27,0;
+    - HSK (auch Capto, KM): Bund 14,9, Rille weit hinten – 26,0.
+  - Spannmutter: vorn eine Fase unter 60° zur Achse, 6,5 % des Ø lang.
+  - `AUFNAHMEN`: SK30/40/50 und CAT40/50 jetzt 19,1 lang (DIN 69871: 3,2 + 15,9); SK40 Ø 63,55.
+    Alte Flansche (16 lang) werden weiter als Flansch erkannt (`_ALTE_FLANSCHE`).
+  - Vorlagen nach den Zeichnungen:
+    - ER16/25/32/40, A = 70: Rundung, Körper, Kegel, Hals, Mutter Ø 28/42/50/63;
+    - Schrumpf 6/12, A = 80: Kegel unter 4,5° auf Ø 21/24;
+    - Weldon 20, A = 63; Hydro 20, A = 64,3;
+    - Aufsteckdorn 22, A = 35 bis zum Bund Ø 48; Bohrfutter, A = 87,7.
+  - `Halter.link`; `VORBILD`, `SUCHE`, `katalog_link`: An SK40 führt der Link zur Seite des
+    Vorbilds, an einer anderen Aufnahme zur Suche nach der Art an ihr. Die Bezeichnung nennt das
+    Vorbild.
+- `camaddon/gui_halter.py`:
+  - die Zeile „Link“ mit „Öffnen“;
+  - „Neu → Aus Datei (STEP, STL) …“ (`aus_datei`), danach die Spanntiefe im Fokus. Ohne erkannte
+    Spindelseite sagt eine Meldung, was zu löschen ist.
+- `camaddon/werkzeuge.py`: `Bibliothek.halter_dazu`.
+- `translations/de.json`, `en.json`: `halter.vorbild`, `halter.vorbild_koerper`,
+  `halter.aus_datei`, `halter.datei_leer`, `hd.link*`, `hd.neu.datei*`, `hd.datei.*`.
+- `help/de|en/halter.html`: Die Vorlagen sind nach Katalogzeichnungen gebaut; das Feld Link;
+  „Aus Datei“.
+- `tests/test_halter_datei.py` (neu): ein selbst gebauter ER32/SK40-Drehkörper als STEP und STL,
+  längs Z und quer gedreht. Die Abschnitte auf 0,15 mm; rückwärts gelesen dieselben; die Stufe
+  bei 84; die Spindelseite bei 68, gespiegelt von der anderen Seite; ein Zylinder hat keine.
+- `tests/test_halter.py`: Maße nach der Zeichnung (ER32: Körper Ø 48, Hals Ø 40, Mutter Ø 50,
+  A = 70), Link und Bezeichnung, SK40- und HSK-Rille, Familien, alte SK40-Datei.
+- `tests/test_reichweite.py`: vorgeschlagener Halter an HSK-A63 jetzt 91,9 statt 95 mm.
+- `tests/gui/szenario_halter.py`: 6 Zeilen, Flansch 19,1 × 63,55, Link und „Öffnen“; „Aus
+  Datei“ mit einem selbst gebauten ER32/SK40-STEP: A 63,5, Ø 63, Name und Bezeichnung nach der
+  Datei.
+- `docs/OFFENE_FRAGEN.md`: Frage 5 beantwortet (über die Zeichnungen) und entfernt.
+
+### ERGEBNIS
+- Grün im Wochen-Build:
+  - `test_halter`, `test_halter_datei`, `test_reichweite`, `test_wegkippen`, `test_kollision`,
+    `test_kollision_verteilt`, `test_netzabstand`;
+  - `test_vierachs_bahn`, `test_vierachs_plan`, `test_vierachs_schlichten`,
+    `test_vierachs_schlichten_op`;
+  - `test_simultan_folge`, `test_simultan_bereiche`, `test_schraege_achse`, `test_schraeg_abtrag`,
+    `test_entgraten3d`;
+  - `test_einrichtblatt`, `test_beispielmaschine`, `test_job_schnittwerte`, `test_programmkopf`,
+    `test_sprache`, `test_hilfe`;
+  - `szenario_halter`.
+- Zum Ausprobieren: Werkzeugverwaltung → Halter → Neu → „Spannzangenfutter ER32 · SK40“. Im Bild
+  der Flansch mit V-Rille, die Rundung zum Körper, der Hals vor der Mutter, vorn die Fase. Unter
+  der Bezeichnung „Link“ → „Öffnen“ zeigt die Seite von 300470 32. „Neu → Aus Datei …“ mit der
+  STEP deines Halters: Die Abschnitte stehen in der Tabelle, die Spanntiefe ist leer zum
+  Eintragen.
+
 ## P-2026-10-16-38 halter-mit-greiferrille-und-mutter (W-022 Punkt 3)
 
 ### EINGELESEN

@@ -23,6 +23,7 @@ jedes Werkzeug nennt die Kennung seines Halters. Läuft ohne Oberfläche.
 """
 
 import math
+import re
 import uuid
 from dataclasses import dataclass, field
 
@@ -37,14 +38,14 @@ from .werkstoffe import mit_dezimalzeichen
 # Katalogwerte – wie die Vorlagen; „SK64“ gibt es nicht, gemeint ist wohl HSK-A63 (oder SK50).
 # Die VDI-Halter des Revolvers haben ihre eigene Größe (maschine.vdi_groesse).
 AUFNAHMEN = {
-    "SK30": ("DIN 69871 / ISO 7388-1", 50.0, 16.0),
-    "SK40": ("DIN 69871 / ISO 7388-1", 63.0, 16.0),
-    "SK50": ("DIN 69871 / ISO 7388-1", 97.5, 16.0),
+    "SK30": ("DIN 69871 / ISO 7388-1", 50.0, 19.1),
+    "SK40": ("DIN 69871 / ISO 7388-1", 63.55, 19.1),
+    "SK50": ("DIN 69871 / ISO 7388-1", 97.5, 19.1),
     "BT30": ("MAS 403 / JIS B 6339", 46.0, 20.0),
     "BT40": ("MAS 403 / JIS B 6339", 63.0, 27.0),
     "BT50": ("MAS 403 / JIS B 6339", 100.0, 38.0),
-    "CAT40": ("ASME B5.50", 63.5, 16.0),
-    "CAT50": ("ASME B5.50", 98.4, 16.0),
+    "CAT40": ("ASME B5.50", 63.5, 19.1),
+    "CAT50": ("ASME B5.50", 98.4, 19.1),
     "HSK-A32": ("DIN 69893 / ISO 12164", 32.0, 16.0),
     "HSK-A40": ("DIN 69893 / ISO 12164", 40.0, 20.0),
     "HSK-A50": ("DIN 69893 / ISO 12164", 50.0, 26.0),
@@ -75,33 +76,117 @@ VORGABE_AUFNAHME = "SK40"  # ohne eingetragene Aufnahme – so waren die Vorlage
 # (profil, form). Reichweite, Wegkippen und 4 Achsen rechnen weiter mit dem vollen Abschnitt
 # (radius_bei, groesster_durchmesser) – Rille und Fasen nehmen nur weg, das bleibt sicher.
 FLANSCH, MUTTER = "flansch", "mutter"
-# Die Greiferrille: 60° offen, so tief (Anteil am Ø, in mm begrenzt); an Steilkegeln (SK, BT,
-# CAT) spitz, an HSK, Capto und KM mit flachem Grund (Anteil an der Länge des Flanschs).
-RILLE_TIEFE, RILLE_MIN, RILLE_MAX = 0.055, 1.5, 6.0
-RILLE_WINKEL = 60.0  # Grad
-RILLE_BODEN = 0.12
-STEILKEGEL = ("SK", "BT", "CAT")
-FASE_FLANSCH = 1.0  # mm, höchstens
-FASE_MUTTER_HINTEN, FASE_MUTTER_VORN = 1.0, 1.5  # mm, höchstens
-_FLANSCH_SK40 = (16.0, 63.0, 63.0, FLANSCH)  # der erste Abschnitt der Vorlagen an der Spindel
+# Die Flansche, gemessen an den Katalogzeichnungen bei hoffmann-group.com (P-2026-10-16-39;
+# Manuel: „über die zeichnung ists vll doch leichter“): SK40 an 300470 und 302235 (Ø 63,55,
+# 19,1 ab der Spindelnase), BT40 an 302760 32 (Ø 63, 27,0), HSK-A63 an 305390 32 (Ø 63, 26,0).
+# Je Familie die Stücke ab der Spindelnase: (Länge in mm am gemessenen, Ø oben, Ø unten als
+# Anteil am Ø des Flanschs); für eine andere Länge oder einen anderen Ø gestreckt. Vor dem Flansch
+# von SK und BT steht der Kegel noch ein Stück aus der Spindel (Ø 44,45 an SK40).
+_FLANSCHFORM = {
+    "steil": (  # SK, CAT: Luft, Bund, V-Rille 3,4 tief, Bund
+        (3.2, 0.70, 0.70),
+        (5.0, 1.0, 1.0),
+        (1.7, 1.0, 0.8875),
+        (2.7, 0.8875, 0.8875),
+        (1.7, 0.8875, 1.0),
+        (4.8, 1.0, 1.0),
+    ),
+    "bt": (  # BT: Luft, breiter Bund, V-Rille 5 tief, Bund
+        (1.9, 0.70, 0.70),
+        (9.9, 1.0, 1.0),
+        (2.7, 1.0, 0.843),
+        (4.3, 0.843, 0.843),
+        (2.6, 0.843, 1.0),
+        (5.6, 1.0, 1.0),
+    ),
+    "hsk": (  # HSK (auch Capto, KM): Bund an der Plananlage, Rille weit hinten, Bund
+        (14.9, 1.0, 1.0),
+        (2.0, 1.0, 0.875),
+        (2.4, 0.875, 0.875),
+        (1.9, 0.875, 1.0),
+        (4.8, 1.0, 1.0),
+    ),
+}
+FLANSCH_MIN = 5.0  # mm – kürzer: ein Zylinder
+# Die Spannmutter: vorn eine Fase unter 60° zur Achse, so lang (Anteil am Ø; ER32: 3,4 mm von
+# Ø 50 auf 38,2), höchstens ein Drittel der Mutter.
+MUTTER_FASE = 0.065
+MUTTER_FASE_WINKEL = 60.0  # Grad zur Achse
+_FLANSCH_SK40 = (19.1, 63.55, 63.55, FLANSCH)  # der erste Abschnitt der Vorlagen an der Spindel
+# Flansche der Vorlagen bis 0.260.35 (SK und CAT 16 mm lang, SK40 Ø 63) – auch sie sind einer.
+_ALTE_FLANSCHE = {(16.0, 50.0), (16.0, 63.0), (16.0, 97.5), (16.0, 63.5), (16.0, 98.4)}
 
-# Vorlagen zum Anfangen: typische Maße an SK40 (Flansch Ø63 × 16 mm), keine
-# Katalogwerte – (Spanntiefe, Abschnitte (Länge, Ø oben, Ø unten[, Art])), alles mm. Mit einer
+# Vorlagen zum Anfangen, an SK40 nachgebaut nach den Katalogzeichnungen ihrer Vorbilder (VORBILD,
+# P-2026-10-16-39) – (Spanntiefe, Abschnitte (Länge, Ø oben, Ø unten[, Art])), alles mm, ab der
+# Spindelnase. Nach dem Flansch: die Rundung zum Körper, der Körper, beim Spannzangenfutter der
+# Kegel auf den Gewindehals und die Mutter; beim Schrumpffutter der Kegel unter 4,5°. Mit einer
 # anderen Aufnahme (AUFNAHMEN) bekommt eine Vorlage an der Spindel deren Flansch; der Körper
-# darunter hängt am Spannsystem (ER32, Schrumpf …), nicht an der Aufnahme. Die Spannmuttern ER16
-# Ø28, ER25 Ø42, ER32 Ø50, ER40 Ø63 (ER32 an SK40, A = 70: Außen-Ø 50 im Datenblatt GARANT
-# 300470 32).
+# darunter hängt am Spannsystem (ER32, Schrumpf …), nicht an der Aufnahme.
 _VORLAGEN = {
-    "er16": (20.0, (_FLANSCH_SK40, (34.0, 40.0, 32.0), (20.0, 28.0, 28.0, MUTTER))),
-    "er25": (28.0, (_FLANSCH_SK40, (34.0, 48.0, 42.0), (20.0, 42.0, 42.0, MUTTER))),
-    "er32": (40.0, (_FLANSCH_SK40, (31.5, 50.0, 50.0), (22.5, 50.0, 50.0, MUTTER))),
-    "er40": (45.0, (_FLANSCH_SK40, (38.5, 63.0, 63.0), (25.5, 63.0, 63.0, MUTTER))),
-    "schrumpf_6": (26.0, (_FLANSCH_SK40, (64.0, 27.0, 21.0))),
-    "schrumpf_12": (36.0, (_FLANSCH_SK40, (64.0, 32.0, 24.0))),
-    "weldon_20": (50.0, (_FLANSCH_SK40, (47.0, 50.0, 50.0))),
-    "hydro_20": (50.0, (_FLANSCH_SK40, (64.0, 50.0, 50.0))),
-    "aufsteck_22": (0.0, (_FLANSCH_SK40, (34.0, 48.0, 48.0))),
-    "bohrfutter": (30.0, (_FLANSCH_SK40, (84.0, 50.0, 45.0))),
+    "er16": (
+        20.0,
+        (
+            _FLANSCH_SK40,
+            (4.8, 35.5, 28.0),
+            (16.5, 28.0, 28.0),
+            (3.0, 28.0, 22.0),
+            (8.6, 22.0, 22.0),
+            (18.0, 28.0, 28.0, MUTTER),
+        ),
+    ),
+    "er25": (
+        28.0,
+        (
+            _FLANSCH_SK40,
+            (0.6, 43.7, 42.4),
+            (16.3, 42.4, 42.4),
+            (5.0, 42.4, 32.0),
+            (8.0, 32.0, 32.0),
+            (21.0, 42.0, 42.0, MUTTER),
+        ),
+    ),
+    "er32": (
+        40.0,
+        (
+            _FLANSCH_SK40,
+            (1.0, 49.4, 48.0),
+            (13.9, 48.0, 48.0),
+            (4.0, 48.0, 40.0),
+            (9.0, 40.0, 40.0),
+            (23.0, 50.0, 50.0, MUTTER),
+        ),
+    ),
+    "er40": (
+        45.0,
+        (
+            _FLANSCH_SK40,
+            (0.5, 49.3, 48.0),
+            (15.4, 48.0, 48.0),
+            (9.0, 50.0, 50.0),
+            (26.0, 63.0, 63.0, MUTTER),
+        ),
+    ),
+    "schrumpf_6": (
+        26.0,
+        (_FLANSCH_SK40, (2.0, 29.4, 27.1), (20.6, 27.1, 27.1), (38.3, 27.1, 21.0)),
+    ),
+    "schrumpf_12": (
+        36.0,
+        (_FLANSCH_SK40, (2.0, 34.4, 31.5), (11.3, 31.5, 31.5), (47.6, 31.5, 24.0)),
+    ),
+    "weldon_20": (
+        50.0,
+        (_FLANSCH_SK40, (0.3, 53.3, 52.5), (30.8, 52.5, 52.5), (12.8, 52.5, 40.3)),
+    ),
+    "hydro_20": (
+        50.0,
+        (_FLANSCH_SK40, (19.3, 49.8, 49.8), (16.4, 48.3, 48.3), (9.5, 48.3, 39.3)),
+    ),
+    "aufsteck_22": (0.0, (_FLANSCH_SK40, (15.9, 48.0, 48.0))),
+    "bohrfutter": (
+        30.0,
+        (_FLANSCH_SK40, (31.6, 43.0, 43.0), (29.0, 43.0, 22.0), (8.0, 22.0, 22.0)),
+    ),
     "vdi_er25": (28.0, ((40.0, 55.0, 55.0), (20.0, 42.0, 42.0, MUTTER))),
     # Angetrieben je Spannzange: zuerst der Körper, zuletzt die Spannmutter.
     "vdi_radial_er16": (20.0, ((35.0, 50.0, 50.0), (20.0, 28.0, 28.0, MUTTER))),
@@ -115,6 +200,35 @@ _VORLAGEN = {
     "winkelkopf_90": (25.0, ((30.0, 60.0, 60.0), (20.0, 32.0, 32.0))),
 }
 VORLAGEN = tuple(_VORLAGEN)  # in der Reihenfolge des Menüs
+# Die Vorbilder der Vorlagen an SK40 – Artikel bei hoffmann-group.com (Manuel, 2026-10-16: „man
+# kann ja auf das produkt verlinken“). An einer anderen Aufnahme verlinkt die Vorlage die Suche
+# nach ihrer Art an dieser Aufnahme (SUCHE).
+VORBILD = {
+    "er16": "300470-16",
+    "er25": "300470-25",
+    "er32": "300470-32",
+    "er40": "300470-40",
+    "schrumpf_6": "302235-6",
+    "schrumpf_12": "302235-12",
+    "weldon_20": "300100-20",
+    "hydro_20": "302028-20",
+    "aufsteck_22": "301017-22",
+    "bohrfutter": "302540-1-13",
+}
+SUCHE = {
+    "er16": "ER-Spannzangenfutter {aufnahme} ER16",
+    "er25": "ER-Spannzangenfutter {aufnahme} ER25",
+    "er32": "ER-Spannzangenfutter {aufnahme} ER32",
+    "er40": "ER-Spannzangenfutter {aufnahme} ER40",
+    "schrumpf_6": "Schrumpffutter {aufnahme} 6",
+    "schrumpf_12": "Schrumpffutter {aufnahme} 12",
+    "weldon_20": "Flächenspannfutter {aufnahme} 20",
+    "hydro_20": "Hydrodehnspannfutter {aufnahme} 20",
+    "aufsteck_22": "Messerkopfaufnahme {aufnahme} 22",
+    "bohrfutter": "Kurzbohrfutter {aufnahme}",
+}
+KATALOG_ARTIKEL = "https://www.hoffmann-group.com/DE/de/hom/p/{artikel}"
+KATALOG_SUCHE = "https://www.hoffmann-group.com/DE/de/hom/v2/search?search={begriff}"
 # Die angetriebenen VDI-Halter gibt es je Spannzange (Manuel, 2026-10-02: „warum bekomme ich bei
 # dem VDI angetrieben radial und axial nur ER16?“) – im Menü „Neu“ je ein Untermenü:
 # Gruppe → {Spannzange: Vorlage}.
@@ -252,6 +366,7 @@ class Halter:
     versatz: float = 0.0  # mm längs der Aufnahmeachse bis zur Werkzeugachse (gewinkelt)
     kopf_d: float = 0.0  # mm: Ø des Kopfs von der Aufnahme bis zum Bezugspunkt
     aufnahme: str = ""  # an der Spindel: „SK40“, „HSK-A63“ … (AUFNAHMEN); "" unbekannt
+    link: str = ""  # die Seite des Halters im Katalog (oder die Suche danach)
 
     @property
     def gewinkelt(self):
@@ -306,6 +421,7 @@ class Halter:
             "versatz": self.versatz,
             "kopf_d": self.kopf_d,
             "aufnahme": self.aufnahme,
+            "link": self.link,
         }
 
     @classmethod
@@ -328,29 +444,31 @@ class Halter:
         h.versatz = _zahl(daten.get("versatz"))
         h.kopf_d = _zahl(daten.get("kopf_d"))
         h.aufnahme = str(daten.get("aufnahme") or "")
+        h.link = str(daten.get("link") or "")
         return h
 
 
 def _flansch_erkennen(abschnitt):
     """Ein Abschnitt aus der Zeit vor Abschnitt.art: so lang und dick wie der Flansch einer
-    Aufnahme (AUFNAHMEN) – dann ist er einer."""
-    for _norm, d, laenge in AUFNAHMEN.values():
-        if (abschnitt.laenge, abschnitt.d_oben, abschnitt.d_unten) == (laenge, d, d):
-            abschnitt.art = FLANSCH
-            return
+    Aufnahme (AUFNAHMEN, oder einer der Vorlagen bis 0.260.35) – dann ist er einer."""
+    if abschnitt.d_oben != abschnitt.d_unten:
+        return
+    masse = (abschnitt.laenge, abschnitt.d_oben)
+    if masse in _ALTE_FLANSCHE or any(masse == (l_, d) for _n, d, l_ in AUFNAHMEN.values()):
+        abschnitt.art = FLANSCH
 
 
 def profil(halter):
     """Die Abschnitte, wie der Halter aussieht – (Länge, Ø oben, Ø unten) von oben nach unten:
     der Flansch (FLANSCH) mit seiner Greiferrille und Fasen, die Spannmutter (MUTTER) mit Fasen,
     die anderen wie eingetragen. Nie dicker als der Abschnitt."""
-    steil = aufnahme_oder_vorgabe(halter.aufnahme).startswith(STEILKEGEL)
+    form = _FLANSCHFORM[flanschfamilie(halter.aufnahme)]
     stuecke = []
     for a in halter.abschnitte:
         if a.laenge <= 0:
             continue
         if a.art == FLANSCH and a.d_oben == a.d_unten:
-            stuecke += _flansch_profil(a.laenge, a.d_oben, steil)
+            stuecke += _flansch_profil(a.laenge, a.d_oben, form)
         elif a.art == MUTTER and a.d_oben == a.d_unten:
             stuecke += _mutter_profil(a.laenge, a.d_oben)
         else:
@@ -358,30 +476,31 @@ def profil(halter):
     return stuecke
 
 
-def _flansch_profil(laenge, d, steil):
-    """Der Flansch: Fase, Bund, die Greiferrille in der Mitte (am Steilkegel spitz, sonst mit
-    flachem Grund), Bund, Fase. Zu kurz dafür: ein Zylinder."""
-    fase = min(FASE_FLANSCH, 0.06 * laenge, 0.02 * d)
-    tiefe = min(max(RILLE_TIEFE * d, RILLE_MIN), RILLE_MAX)
-    flanke = tiefe * math.tan(math.radians(RILLE_WINKEL / 2))
-    boden = 0.0 if steil else RILLE_BODEN * laenge
-    bund = (laenge - 2 * fase - 2 * flanke - boden) / 2
-    if bund < 0.5 or d - 2 * tiefe <= 0:
+def flanschfamilie(aufnahme):
+    """Welche Flanschform (_FLANSCHFORM) eine Aufnahme hat: „steil“ (SK, CAT – auch ohne
+    eingetragene), „bt“ oder „hsk“ (HSK, Capto, KM)."""
+    aufnahme = aufnahme_oder_vorgabe(aufnahme)
+    if aufnahme.startswith("BT"):
+        return "bt"
+    return "steil" if aufnahme.startswith(("SK", "CAT")) else "hsk"
+
+
+def _flansch_profil(laenge, d, form):
+    """Der Flansch in der Form seiner Familie (_FLANSCHFORM), auf seine Länge und seinen Ø
+    gestreckt. Zu kurz dafür: ein Zylinder."""
+    if laenge < FLANSCH_MIN:
         return [(laenge, d, d)]
-    grund = d - 2 * tiefe
-    stuecke = [(fase, d - 2 * fase, d), (bund, d, d), (flanke, d, grund)]
-    if boden > 0:
-        stuecke.append((boden, grund, grund))
-    return stuecke + [(flanke, grund, d), (bund, d, d), (fase, d, d - 2 * fase)]
+    faktor = laenge / sum(stueck[0] for stueck in form)
+    return [(lang * faktor, oben * d, unten * d) for lang, oben, unten in form]
 
 
 def _mutter_profil(laenge, d):
-    """Die Spannmutter: hinten und vorn eine Fase (vorn die größere), dazwischen ihr Ø."""
-    hinten = min(FASE_MUTTER_HINTEN, 0.05 * laenge, 0.05 * d)
-    vorn = min(FASE_MUTTER_VORN, 0.08 * laenge, 0.05 * d)
-    if laenge - hinten - vorn < 0.5:
+    """Die Spannmutter: ihr Ø, vorn die Fase unter MUTTER_FASE_WINKEL zur Achse."""
+    vorn = min(MUTTER_FASE * d, laenge / 3)
+    quer = vorn * math.tan(math.radians(MUTTER_FASE_WINKEL))
+    if d - 2 * quer <= 0:
         return [(laenge, d, d)]
-    return [(hinten, d - 2 * hinten, d), (laenge - hinten - vorn, d, d), (vorn, d, d - 2 * vorn)]
+    return [(laenge - vorn, d, d), (vorn, d, d - 2 * quer)]
 
 
 def lage(halter):
@@ -475,7 +594,8 @@ def aus_vorlage(schluessel, vdi=None, aufnahme=None):
     halter = Halter(
         name=vorlage_text(schluessel, vdi, aufnahme),
         aufnahme=aufnahme,
-        bezeichnung=tr("halter.beispielmasse"),
+        bezeichnung=_bezeichnung(schluessel, aufnahme),
+        link=katalog_link(schluessel, aufnahme),
         spanntiefe=spanntiefe,
         abschnitte=[_abschnitt(a, faktor) for a in abschnitte],
     )
@@ -487,6 +607,36 @@ def aus_vorlage(schluessel, vdi=None, aufnahme=None):
         halter.winkel, halter.drehung = winkel, drehung
         halter.versatz, halter.kopf_d = versatz * faktor, kopf_d * faktor
     return halter
+
+
+def _artikel_text(artikel):
+    """„300470 16“ – die Artikelnummer, wie der Katalog sie schreibt."""
+    return artikel.replace("-", " ", 1)
+
+
+def _bezeichnung(schluessel, aufnahme):
+    """Woher die Maße einer Vorlage kommen: an SK40 von ihrem Vorbild, sonst der Körper von ihm
+    und der Flansch der Aufnahme; ohne Vorbild Beispielmaße."""
+    artikel = VORBILD.get(schluessel)
+    if not artikel:
+        return tr("halter.beispielmasse")
+    if aufnahme == VORGABE_AUFNAHME:
+        return tr("halter.vorbild", artikel=_artikel_text(artikel))
+    return tr("halter.vorbild_koerper", artikel=_artikel_text(artikel), aufnahme=aufnahme)
+
+
+def katalog_link(schluessel, aufnahme):
+    """Der Link zum Vorbild einer Vorlage im Katalog – an einer anderen Aufnahme als SK40 die
+    Suche nach ihrer Art an dieser Aufnahme („ER-Spannzangenfutter HSK-A 63 ER32“). "" ohne."""
+    from urllib.parse import quote
+
+    artikel = VORBILD.get(schluessel)
+    if not artikel:
+        return ""
+    if aufnahme == VORGABE_AUFNAHME:
+        return KATALOG_ARTIKEL.format(artikel=artikel)
+    groesse = re.sub(r"(?<=[A-Za-z])(?=\d+$)", " ", aufnahme)  # „HSK-A63“ → „HSK-A 63“
+    return KATALOG_SUCHE.format(begriff=quote(SUCHE[schluessel].format(aufnahme=groesse)))
 
 
 def _abschnitt(vorlage, faktor=1.0):

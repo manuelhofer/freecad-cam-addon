@@ -111,6 +111,9 @@ class HalterDialog(QtGui.QDialog):
         self.knopf_neu.setAutoDefault(False)
         self.menue_neu = QtGui.QMenu(self.knopf_neu)
         self.menue_neu.addAction(tr("hd.neu.leer"), lambda: self.neu())
+        aus_datei = self.menue_neu.addAction(tr("hd.neu.datei"), lambda: self.aus_datei())
+        aus_datei.setToolTip(tr("hd.neu.datei.tooltip"))
+        self.menue_neu.setToolTipsVisible(True)
         self.menue_neu.addSeparator()
         vdi = _vdi_offener_maschinen()
         aufnahme = _aufnahme_offener_maschinen()
@@ -164,6 +167,19 @@ class HalterDialog(QtGui.QDialog):
         self.feld_bezeichnung.setPlaceholderText(tr("wv.bezeichnung.platzhalter"))
         self.feld_bezeichnung.setToolTip(tr("hd.bezeichnung.tooltip"))
         self.feld_bezeichnung.textEdited.connect(self._bezeichnung_geaendert)
+        # Der Link zur Katalogseite (die Vorlagen bringen den ihres Vorbilds mit) und „Öffnen“.
+        self.feld_link = QtGui.QLineEdit()
+        self.feld_link.setPlaceholderText(tr("hd.link.platzhalter"))
+        self.feld_link.setToolTip(tr("hd.link.tooltip"))
+        self.feld_link.textEdited.connect(self._link_geaendert)
+        self.knopf_link = QtGui.QPushButton(tr("hd.link.oeffnen"))
+        self.knopf_link.setToolTip(tr("hd.link.tooltip"))
+        self.knopf_link.clicked.connect(self.link_oeffnen)
+        zeile_link = QtGui.QWidget()
+        link_aufbau = QtGui.QHBoxLayout(zeile_link)
+        link_aufbau.setContentsMargins(0, 0, 0, 0)
+        link_aufbau.addWidget(self.feld_link, 1)
+        link_aufbau.addWidget(self.knopf_link)
         self.feld_spanntiefe = QtGui.QLineEdit()
         self.feld_spanntiefe.setValidator(Zahlenpruefer(self.feld_spanntiefe))
         self.feld_spanntiefe.setToolTip(tr("hd.spanntiefe.tooltip"))
@@ -194,6 +210,7 @@ class HalterDialog(QtGui.QDialog):
             (
                 (tr("hd.name"), self.feld_name),
                 (tr("hd.bezeichnung"), self.feld_bezeichnung),
+                (tr("hd.link"), zeile_link),
                 (tr("hd.spanntiefe"), mit_einheit(self.feld_spanntiefe, mm)),
                 (tr("hd.richtung"), self.wahl_richtung),
                 *gewinkelt,
@@ -202,7 +219,7 @@ class HalterDialog(QtGui.QDialog):
             beschriftung = QtGui.QLabel(text)
             gitter.addWidget(beschriftung, reihe, 0)
             gitter.addWidget(feld, reihe, 1)
-            if reihe >= 4:
+            if reihe >= 5:
                 self._zeilen_gewinkelt += [beschriftung, feld]
         innen.addLayout(gitter)
 
@@ -324,6 +341,37 @@ class HalterDialog(QtGui.QDialog):
             self.feld_name.setFocus()
         return halter
 
+    def aus_datei(self, pfad=None):
+        """Ein neuer Halter aus einer CAD-Datei (STEP, STL – etwa die Katalogdatei des eigenen
+        Halters): seine Kontur ab der Spindelnase (halter_datei). Erkennt es die Spindelseite
+        nicht, sagt es das."""
+        from . import halter_datei as hd
+
+        if pfad is None:
+            pfad, _filter = QtGui.QFileDialog.getOpenFileName(
+                self, tr("hd.datei.titel"), "", tr("hd.datei.filter")
+            )
+        if not pfad:
+            return None
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        try:
+            halter, erkannt = hd.halter_aus_datei(pfad, _aufnahme_offener_maschinen())
+        except Exception as fehler:  # unlesbar: sagen, nichts anlegen
+            halter, erkannt = None, str(fehler)
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+        if halter is None or not halter.abschnitte:
+            meldung = erkannt if isinstance(erkannt, str) else tr("halter.datei_leer")
+            QtGui.QMessageBox.warning(
+                self, tr("hd.titel"), tr("hd.datei.fehler", datei=pfad, fehler=meldung)
+            )
+            return None
+        self.waehle(self.bibliothek.halter_dazu(halter))
+        self.feld_spanntiefe.setFocus()
+        if not erkannt:
+            QtGui.QMessageBox.information(self, tr("hd.titel"), tr("hd.datei.ohne_spindel"))
+        return halter
+
     def kopieren(self):
         if self.gewaehlt is not None:
             self.waehle(self.bibliothek.kopiere_halter(self.gewaehlt))
@@ -364,6 +412,8 @@ class HalterDialog(QtGui.QDialog):
         self.feld_name.setText(h.name)
         self.feld_name.setPlaceholderText(hl.text(hl.Halter(abschnitte=h.abschnitte)))
         self.feld_bezeichnung.setText(h.bezeichnung)
+        self.feld_link.setText(h.link)
+        self.knopf_link.setEnabled(bool(h.link.strip()))
         self.feld_spanntiefe.setText(groesse_zeigen(h.spanntiefe, einheiten.LAENGE))
         self.wahl_richtung.setCurrentIndex(self.wahl_richtung.findData(h.richtung))
         for feld, eingabe in self.felder_gewinkelt.items():
@@ -471,6 +521,17 @@ class HalterDialog(QtGui.QDialog):
     def _bezeichnung_geaendert(self, text):
         if not self._fuellt and self.gewaehlt is not None:
             self.gewaehlt.bezeichnung = text
+
+    def _link_geaendert(self, text):
+        if not self._fuellt and self.gewaehlt is not None:
+            self.gewaehlt.link = text.strip()
+        self.knopf_link.setEnabled(bool(text.strip()))
+
+    def link_oeffnen(self):
+        """Zeigt die Katalogseite des Halters im Browser."""
+        h = self.gewaehlt
+        if h is not None and h.link.strip():
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(h.link.strip()))
 
     def _spanntiefe_uebernehmen(self):
         h = self.gewaehlt

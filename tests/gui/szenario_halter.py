@@ -2,8 +2,8 @@
 # Gesamtlänge; neben der Länge ab Spindelnase grau der vorgeschlagene Halter (D-23: Schaft
 # Ø 12 → ER25) und „Halter …“, im leeren Feld „leer: geschätzt 101 mit ER25“ (70 + Auskragung 26 + 5).
 # Das Fenster „Halter“ ist leer; „Neu“ → „Spannzangenfutter ER32 · SK40“: die
-# Kontur Flansch Ø63 × 16, Körper Ø50 × 54, „Länge 70,00 mm · größter Ø
-# 63,00 mm“, das Bild zeigt Halter und Werkzeug, über OK „OK: T1 bekommt den
+# Kontur nach der Katalogzeichnung (Flansch Ø63,55 × 19,1 … Mutter Ø50), der Link zum Vorbild,
+# „Länge 70,00 mm · größter Ø 63,55 mm“, das Bild zeigt Halter und Werkzeug, über OK „OK: T1 bekommt den
 # Halter …“. Ein Abschnitt dazu (10 mm, Ø 42) macht ihn 80 mm lang, wieder weg
 # 70 mm; Name „SK40 ER32 A70“. OK → das Werkzeug hat den Halter, im leeren Feld
 # steht grau „leer: geschätzt 113 mit Halter“ (70 + 83 − 40). Abbrechen im Halter-Fenster
@@ -76,17 +76,26 @@ def schritte(h):
     yield 300
     halter = f.gewaehlt
     h.pruefe(halter is not None and f.liste.count() == 1, "Vorlage legt keinen Halter an")
-    h.pruefe(f.tabelle.rowCount() == 3, f"Kontur: {f.tabelle.rowCount()} Abschnitte")
+    # Nach der Katalogzeichnung (P-2026-10-16-39): Flansch, Rundung, Körper, Kegel, Hals, Mutter.
+    h.pruefe(f.tabelle.rowCount() == 6, f"Kontur: {f.tabelle.rowCount()} Abschnitte")
     zellen = [f.tabelle.item(0, s).text() for s in range(3)]
-    h.pruefe(zellen == ["16", "63", "63"], f"Flansch: {zellen}")
-    # Flansch und Spannmutter je eine Zeile, gezeichnet mit Greiferrille und Fasen (W-022).
-    tipps = [f.tabelle.verticalHeaderItem(z).toolTip() for z in range(3)]
+    h.pruefe(zellen == ["19,1", "63,55", "63,55"], f"Flansch: {zellen}")
+    # Flansch und Spannmutter je eine Zeile, gezeichnet mit Greiferrille und Fase (W-022).
+    tipps = [f.tabelle.verticalHeaderItem(z).toolTip() for z in range(6)]
     h.pruefe(
-        tipps[0].startswith("Flansch") and not tipps[1] and tipps[2].startswith("Spannmutter"),
+        tipps[0].startswith("Flansch")
+        and not any(tipps[1:5])
+        and tipps[5].startswith("Spannmutter"),
         f"Art der Abschnitte: {tipps}",
     )
+    # Der Link zum Vorbild im Katalog; „Öffnen“ geht.
     h.pruefe(
-        f.zusammenfassung.text() == "Länge 70,00 mm · größter Ø 63,00 mm",
+        f.feld_link.text() == "https://www.hoffmann-group.com/DE/de/hom/p/300470-32"
+        and f.knopf_link.isEnabled(),
+        f"Link: {f.feld_link.text()!r}",
+    )
+    h.pruefe(
+        f.zusammenfassung.text() == "Länge 70,00 mm · größter Ø 63,55 mm",
         f"Zusammenfassung: {f.zusammenfassung.text()!r}",
     )
     h.pruefe(
@@ -103,7 +112,7 @@ def schritte(h):
     f.tabelle.item(2, 2).setText("42")
     yield 200
     h.pruefe(abs(halter.laenge - 80) < 1e-9, f"mit Abschnitt: {halter.laenge}")
-    h.pruefe(f.tabelle.item(2, 1).text() == "50", "neuer Abschnitt nicht so dick wie der davor")
+    h.pruefe(f.tabelle.item(2, 1).text() == "48", "neuer Abschnitt nicht so dick wie der davor")
     h.bild("3_abschnitt", f)
     f.tabelle.setCurrentCell(2, 0)
     f.abschnitt_weg()
@@ -199,3 +208,43 @@ def schritte(h):
     gespeichert = wz.Bibliothek.laden()
     h.pruefe(gespeichert.halter == [], "Halter nach Löschen noch gespeichert")
     h.pruefe(gespeichert.werkzeuge[0].halter == "", "T1 nennt den gelöschten Halter")
+
+    # --- Aus Datei (W-022): ein ER32-Futter an SK40 als STEP – die Kontur ab der Spindelnase ----
+    # (das Ende des Steilkegels bei 68), A = 63,5, Flansch Ø 63, Mutter mit Fase; die Bezeichnung
+    # nennt die Datei. Abbrechen verwirft ihn wieder.
+    import FreeCAD
+    import Part
+
+    umriss = [
+        (0, 0), (12, 0), (22, 68), (31.5, 68), (31.5, 74), (28, 76), (31.5, 78), (31.5, 84),
+        (25, 84), (25, 130), (23.5, 131.5), (0, 131.5), (0, 0),
+    ]  # fmt: skip
+    flaeche = Part.Face(Part.makePolygon([FreeCAD.Vector(r, 0, z) for r, z in umriss]))
+    datei = os.path.join(AUSGABE, "er32_sk40.step")
+    flaeche.revolve(FreeCAD.Vector(), FreeCAD.Vector(0, 0, 1), 360).exportStep(datei)
+    Gui.runCommand("CamAddon_Werkzeugverwaltung")
+    yield 800
+    d = gui_werkzeuge.WerkzeugDialog.offen
+    QtCore.QTimer.singleShot(0, d.knopf_halter.click)
+    yield 500
+    f = gui_halter.HalterDialog.offen
+    h.pruefe(f is not None, "Halter-Fenster für „Aus Datei“ fehlt")
+    if f is None:
+        return
+    halter = f.aus_datei(datei)
+    yield 300
+    h.pruefe(halter is not None and f.gewaehlt is halter, "Halter aus Datei nicht angelegt")
+    if halter is not None:
+        h.pruefe(abs(halter.laenge - 63.5) < 0.5, f"A aus Datei: {halter.laenge}")
+        h.pruefe(abs(halter.groesster_durchmesser - 63) < 0.1, f"Ø: {halter.groesster_durchmesser}")
+        h.pruefe(halter.name == "er32_sk40", f"Name: {halter.name!r}")
+        h.pruefe(
+            f.feld_bezeichnung.text().startswith("Gemessen aus der Datei er32_sk40.step"),
+            f"Bezeichnung: {f.feld_bezeichnung.text()!r}",
+        )
+        h.pruefe(f.tabelle.rowCount() >= 5, f"Abschnitte: {f.tabelle.rowCount()}")
+    h.bild("6_aus_datei", f)
+    f.knoepfe.button(QtGui.QDialogButtonBox.Cancel).click()
+    yield 300
+    d.knoepfe.button(QtGui.QDialogButtonBox.Cancel).click()
+    yield 300

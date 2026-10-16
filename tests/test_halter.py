@@ -37,12 +37,20 @@ sprache.setze_sprache("de")
 # --- Ein Halter: Länge, Radius, Kontur ---------------------------------------------------
 er32 = hl.aus_vorlage("er32")
 pruefe(er32.name == "Spannzangenfutter ER32 · SK40", f"Name: {er32.name}")
-pruefe(er32.bezeichnung == "Beispielmaße – nach Katalog prüfen", "Bezeichnung der Vorlage")
+pruefe(
+    er32.bezeichnung
+    == "Maße nach der Katalogzeichnung von Hoffmann 300470 32 – mit deinem Halter vergleichen",
+    f"Bezeichnung der Vorlage: {er32.bezeichnung}",
+)
+pruefe(er32.link == "https://www.hoffmann-group.com/DE/de/hom/p/300470-32", f"Link: {er32.link}")
+# Nach der Katalogzeichnung (P-2026-10-16-39): Flansch SK40 Ø 63,55 × 19,1 ab der Spindelnase,
+# Rundung, Körper Ø 48 bis 34, Kegel auf den Hals Ø 40 (38 … 47), Mutter Ø 50 × 23 – A = 70.
 pruefe(nahe(er32.laenge, 70) and nahe(er32.spanntiefe, 40), f"ER32: {er32.laenge}")
-pruefe(nahe(er32.groesster_durchmesser, 63), "größter Ø")
-pruefe(nahe(er32.radius_bei(0), 31.5) and nahe(er32.radius_bei(8), 31.5), "Flansch")
-pruefe(nahe(er32.radius_bei(16), 31.5), "an der Stufe gilt der größere Radius")
-pruefe(nahe(er32.radius_bei(40), 25) and nahe(er32.radius_bei(70), 25), "Körper")
+pruefe(nahe(er32.groesster_durchmesser, 63.55), "größter Ø")
+pruefe(nahe(er32.radius_bei(0), 31.775) and nahe(er32.radius_bei(8), 31.775), "Flansch")
+pruefe(nahe(er32.radius_bei(19.1), 31.775), "an der Stufe gilt der größere Radius")
+pruefe(nahe(er32.radius_bei(25), 24) and nahe(er32.radius_bei(42), 20), "Körper und Hals")
+pruefe(nahe(er32.radius_bei(60), 25) and nahe(er32.radius_bei(70), 25), "Mutter")
 pruefe(er32.radius_bei(70.1) == 0 and er32.radius_bei(-1) == 0, "außerhalb 0")
 pruefe(er32.aufnahme == "SK40", f"Aufnahme: {er32.aufnahme!r}")
 
@@ -52,40 +60,60 @@ pruefe(hsk.name == "Spannzangenfutter ER32 · HSK-A63", f"Name: {hsk.name}")
 pruefe(hsk.aufnahme == "HSK-A63", f"Aufnahme: {hsk.aufnahme!r}")
 flansch = hsk.abschnitte[0]
 pruefe(nahe(flansch.laenge, 26) and nahe(flansch.d_oben, 63), f"Flansch HSK-A63: {flansch}")
-pruefe(nahe(hsk.laenge, 26 + 54) and hsk.abschnitte[1:] == er32.abschnitte[1:], "Körper wie SK40")
+pruefe(nahe(hsk.laenge, 26 + 50.9) and hsk.abschnitte[1:] == er32.abschnitte[1:], "Körper")
+pruefe("300470 32 (SK40), Flansch HSK-A63" in hsk.bezeichnung, f"{hsk.bezeichnung}")
+pruefe(
+    hsk.link.endswith("search?search=ER-Spannzangenfutter%20HSK-A%2063%20ER32"),
+    f"an HSK die Suche: {hsk.link}",
+)
 bt50 = hl.aus_vorlage("schrumpf_12", aufnahme="BT50")
 pruefe(nahe(bt50.abschnitte[0].d_oben, 100) and nahe(bt50.abschnitte[0].laenge, 38), "BT50")
 pruefe(bt50.name == "Schrumpffutter Ø12 · BT50", f"Name: {bt50.name}")
 pruefe(hl.aus_vorlage("er16", aufnahme="gibt es nicht").aufnahme == "SK40", "unbekannt: SK40")
 vdi = hl.aus_vorlage("vdi_radial_er16", vdi=40, aufnahme="HSK-A63")
 pruefe(vdi.aufnahme == "" and "HSK" not in vdi.name, f"VDI ohne Aufnahme: {vdi.name}")
+pruefe(vdi.link == "" and vdi.bezeichnung == "Beispielmaße – nach Katalog prüfen", "VDI ohne Link")
 pruefe(hl.Halter.aus_dict(hsk.als_dict()).aufnahme == "HSK-A63", "Aufnahme nicht gespeichert")
+pruefe(hl.Halter.aus_dict(hsk.als_dict()).link == hsk.link, "Link nicht gespeichert")
 pruefe(hl.Halter.aus_dict({"name": "alt"}).aufnahme == "", "alte Datei ohne Aufnahme")
 pruefe(len(hl.AUFNAHMEN) >= 25 and "Capto C6" in hl.AUFNAHMEN and "KM63" in hl.AUFNAHMEN, "Liste")
-# Das Bild (W-022 Punkt 3): der Flansch mit Greiferrille, die Spannmutter mit Fasen – nie dicker
-# als der Abschnitt; radius_bei (Reichweite, Wegkippen) bleibt beim vollen.
+# Das Bild (W-022 Punkt 3): der Flansch in der gemessenen Form seiner Familie, die Spannmutter mit
+# der Fase vorn – nie dicker als der Abschnitt; radius_bei (Reichweite, Wegkippen) bleibt beim
+# vollen. SK40: vorn der Kegel (Ø 44,5), Rille mit Grund Ø 56,4; HSK-A63: Rille bei 16,9 … 19,3.
 kontur = er32.kontur()
-pruefe(nahe(kontur[-1][0], 70) and max(r for _a, r in kontur) <= 31.5 + 1e-9, f"{kontur}")
-rille = min(r for a, r in kontur if a < 16)
-pruefe(nahe(rille, 31.5 - 63 * hl.RILLE_TIEFE), f"Greiferrille SK40: {rille}")
-spitz = [a for a, r in kontur if nahe(r, rille)]
-pruefe(len(spitz) == 2 and nahe(spitz[0], spitz[1]) and 4 < spitz[0] < 12, f"spitz: {spitz}")
-pruefe(kontur[-1][1] < 25 and nahe(kontur[-2][1], 25), f"Mutter vorn mit Fase: {kontur[-2:]}")
-grund = [a for a, r in hsk.kontur() if nahe(r, 31.5 - 63 * hl.RILLE_TIEFE)]
-pruefe(len(grund) == 4 and grund[-1] - grund[0] > 1, f"HSK: Rille mit flachem Grund: {grund}")
-pruefe([a.art for a in er32.abschnitte] == [hl.FLANSCH, "", hl.MUTTER], "Arten der Vorlage")
+pruefe(nahe(kontur[-1][0], 70) and max(r for _a, r in kontur) <= 31.775 + 1e-9, f"{kontur}")
+pruefe(abs(kontur[0][1] - 22.24) < 0.01, f"SK40: vorn der Kegel: {kontur[0]}")
+rille = min(r for a, r in kontur if 3.2 < a < 19.0)
+pruefe(abs(rille - 28.2) < 0.01, f"Greiferrille SK40: {rille}")
+grund = [a for a, r in kontur if nahe(r, rille)]
+pruefe(len(grund) == 4 and abs(grund[-1] - grund[0] - 2.7) < 0.01, f"SK40-Rille: {grund}")
+pruefe(abs(kontur[-1][1] - 19.37) < 0.01 and nahe(kontur[-2][1], 25), f"Mutter: {kontur[-2:]}")
+hsk_grund = [a for a, r in hsk.kontur() if nahe(r, 0.875 * 31.5)]
+pruefe(
+    len(hsk_grund) == 4 and abs(hsk_grund[0] - 16.9) < 0.01 and abs(hsk_grund[-1] - 19.3) < 0.01,
+    f"HSK-A63: Rille {hsk_grund}",
+)
+pruefe(hl.flanschfamilie("BT40") == "bt" and hl.flanschfamilie("Capto C6") == "hsk", "Familien")
+arten = [a.art for a in er32.abschnitte]
+pruefe(arten == [hl.FLANSCH, "", "", "", "", hl.MUTTER], f"Arten der Vorlage: {arten}")
 wieder = hl.Halter.aus_dict(er32.als_dict())
-pruefe([a.art for a in wieder.abschnitte] == [hl.FLANSCH, "", hl.MUTTER], "Art gespeichert")
+pruefe([a.art for a in wieder.abschnitte] == arten, "Art gespeichert")
 alt = hl.Halter.aus_dict(
     {"abschnitte": [{"laenge": 26, "d_oben": 63, "d_unten": 63}, {"laenge": 9, "d_oben": 40}]}
 )
 pruefe([a.art for a in alt.abschnitte] == [hl.FLANSCH, ""], "alte Datei: Flansch erkannt")
+alt_sk40 = hl.Halter.aus_dict({"abschnitte": [{"laenge": 16, "d_oben": 63, "d_unten": 63}]})
+pruefe(alt_sk40.abschnitte[0].art == hl.FLANSCH, "alte Vorlage SK40 (16 × 63): Flansch")
 eigen = hl.Halter.aus_dict({"abschnitte": [{"laenge": 16, "d_oben": 63, "d_unten": 63, "art": ""}]})
 pruefe(eigen.abschnitte[0].art == "", "ausdrücklich ohne Art bleibt ohne")
 kurz = hl.Halter(abschnitte=[hl.Abschnitt(2, 63, 63, hl.FLANSCH)])
 pruefe(hl.profil(kurz) == [(2, 63, 63)], f"zu kurz für die Rille: {hl.profil(kurz)}")
 schrumpf = hl.aus_vorlage("schrumpf_12")
-pruefe(nahe(schrumpf.radius_bei(16 + 32), (32 + 24) / 4), "Kegel: in der Mitte der Mittelwert")
+pruefe(nahe(schrumpf.laenge, 80), f"Schrumpf A = 80: {schrumpf.laenge}")
+pruefe(nahe(schrumpf.radius_bei((32.4 + 80) / 2), (31.5 + 24) / 4), "Kegel: in der Mitte")
+for schluessel, a_soll in (("er16", 70), ("er25", 70), ("er40", 70), ("weldon_20", 63)):
+    h = hl.aus_vorlage(schluessel)
+    pruefe(abs(h.laenge - a_soll) < 1e-6 and h.link, f"{schluessel}: A {h.laenge}, {h.link}")
 for schluessel in hl.VORLAGEN:
     h = hl.aus_vorlage(schluessel)
     pruefe(h.laenge > 0 and h.name and h.abschnitte, f"Vorlage {schluessel}")
@@ -195,7 +223,7 @@ kopf = hl.aus_vorlage("winkelkopf_90")
 pruefe(kopf.gewinkelt and nahe(kopf.versatz, 110), f"Winkelkopf: {kopf}")
 # Seitlich über die Werkzeugachse (fürs Futter bei Rundum): der halbe größte Ø, beim
 # gewinkelten auch der Kopf – er endet um seinen Radius hinter der Werkzeugachse.
-for halter, soll in ((radial, 27.5), (kopf, 40.0), (er32, 31.5), (axial, 27.5), (None, 0.0)):
+for halter, soll in ((radial, 27.5), (kopf, 40.0), (er32, 31.775), (axial, 27.5), (None, 0.0)):
     pruefe(nahe(hl.seitlich(halter), soll), f"seitlich {halter and halter.name}: {soll}")
 # Die Länge ab Bezugspunkt geschätzt wie ab Spindelnase: Abgang + Gesamtlänge − Spanntiefe.
 fraeser = wz.Werkzeug(durchmesser=6, gesamtlaenge=57)

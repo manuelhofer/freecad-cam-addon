@@ -69,9 +69,20 @@ radial – the driven ones each with ER16, ER20, ER25 or ER32 (“New” → “
 driven radial” → “ER25”). They name no size: if a machine is open that knows its
 VDI size (turret, “New machine”), their diameters follow it and the name says so
 (“VDI40 …”); otherwise the dimensions are those for VDI 30. The collet nut keeps
-its size – it depends on the collet, not on the mount. Their dimensions are <b>typical values, not
-catalogue values</b>; the description says so. Enter your holder's dimensions
-from the catalogue.</p>
+its size – it depends on the collet, not on the mount.</p>
+<p>The templates at the spindle are rebuilt from the catalogue drawings of real holders
+(Hoffmann; the description names the article): the flange with its gripper groove as SK40, BT40
+and HSK-A63 have it, then body, neck and collet nut. The <b>Link</b> field leads to the model in
+the catalogue – on an interface other than SK40 to the search for this kind of holder on it.
+<b>Open</b> shows the page in the browser. Your own holder differs: enter its dimensions from the
+catalogue and its link. The VDI holders and the angle head still have <b>typical values</b>; the
+description says so.</p>
+<p><b>New → From file (STEP, STL) …</b> reads your own holder's CAD file (e.g. from the
+manufacturer): the add-on finds the axis of rotation and the side with the taper. From the taper's
+end, the spindle nose, it measures the contour to the nose, as sections to 0.1 mm. Then enter the
+clamping depth and compare the length with the A dimension in the catalogue. If it finds no
+taper, it says so – then the contour starts at one end of the file and you delete the sections
+up to the spindle nose. The file stays where it is.</p>
 
 <h3>Limits</h3>
 <ul>

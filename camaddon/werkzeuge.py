@@ -1660,6 +1660,13 @@ class Bibliothek:
         self.halter.append(halter)
         return halter
 
+    def halter_dazu(self, halter):
+        """Nimmt einen fertigen Halter auf (aus einer Datei gelesen); der Name bekommt eine
+        Nummer, wenn es ihn schon gibt."""
+        halter.name = self._freier_name(halter.name or hl.text(halter))
+        self.halter.append(halter)
+        return halter
+
     def kopiere_halter(self, halter):
         """Legt eine Kopie mit neuer Kennung an; der Name bekommt eine Nummer."""
         kopie = hl.Halter.aus_dict(halter.als_dict())

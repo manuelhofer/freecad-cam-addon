@@ -1271,8 +1271,14 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   CAD-Dateien, siehe unten). *Stufe 2 (P-2026-10-16-38):* Flansch mit Greiferrille (Steilkegel
   spitz, HSK/Capto/KM mit flachem Grund) und Spannmutter mit Fasen, je eine Zeile
   (`Abschnitt.art`), nach Norm und frei sichtbaren Katalogwerten; gerechnet wird weiter mit dem
-  vollen Abschnitt. Die genauen Konturen sollen aus Hoffmanns STEP-Dateien gemessen werden –
-  Manuel will das, die Downloads je mit Nachfrage (OFFENE_FRAGEN 5). Der vorgeschlagene Halter hat seit P-2026-10-16-30 die Aufnahme der
+  vollen Abschnitt. *Stufe 3 (P-2026-10-16-39):* Vorlagen und Flansche nach den öffentlichen
+  Katalogzeichnungen bei Hoffmann. Gegen eine STEP-Datei (300470 32) geprüft: auf 0,1 mm gleich.
+  Gelesen sind ER16 … ER40, Schrumpf 6/12, Weldon 20, Hydro 20, Messerkopfaufnahme 22 und
+  Bohrfutter an SK40, dazu die Flansche BT40 und HSK-A63. Jede Vorlage hat einen Link auf ihr
+  Vorbild (an anderen Aufnahmen die Suche). „Neu → Aus Datei (STEP, STL) …“ liest die Kontur
+  des eigenen Halters (`halter_datei.py`; die Spindelnase am Ende des Kegels, an 300470 32 auf
+  0,9 mm). Offen: Capto/KM-Flansche nach Zeichnung (heute wie HSK), VDI und Winkelkopf weiter
+  Beispielmaße. Der vorgeschlagene Halter hat seit P-2026-10-16-30 die Aufnahme der
   geprüften Maschine.
   *Die Meldung bei unpassender Aufnahme ist erledigt* (P-2026-10-16-29): „Auf der Maschine
   prüfen“ sagt „T1: Der Halter „…“ ist für HSK-A63, die Maschine hat SK40 …“.
