@@ -84,6 +84,12 @@ _FREMDE_FORMEN = (
 )
 
 
+# Was mit dem Addon kommt (Manuel, 2026-10-16: „übernehm das in die liste direkt wenn man es
+# gebrauchen kann“): Dateien in diesem Format, nach den eingebauten Reihen – etwa die Liste seines
+# lokalen Assistenten von hoffmann-group.com, mit den vc aus den Anwendertabellen ergänzt.
+MITGELIEFERT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "werkzeugkiste_daten")
+
+
 def ordner():
     """Der Ordner der eingelesenen Dateien beim Benutzer."""
     return os.path.join(os.path.dirname(wz.datei_pfad()), ORDNERNAME)
@@ -514,13 +520,36 @@ class _Index:
 # --- Der Ordner beim Benutzer ---------------------------------------------------------------
 
 _gelesen = {}  # Pfad → (Größe, Änderungszeit, [Reihe])
+_mitgeliefert = None  # die Reihen der mitgelieferten Dateien, einmal gelesen
+
+
+def mitgelieferte():
+    """Die Reihen der Dateien, die mit dem Addon kommen (MITGELIEFERT) – gegen die eingebauten
+    und die Dateien davor geprüft, einmal gelesen."""
+    global _mitgeliefert
+    if _mitgeliefert is None:
+        reihen = []
+        vorhandene = list(wk.eingebaute())
+        namen = sorted(os.listdir(MITGELIEFERT)) if os.path.isdir(MITGELIEFERT) else []
+        for name in namen:
+            if not name.lower().endswith(".json"):
+                continue
+            pruefung = lesen(os.path.join(MITGELIEFERT, name), vorhandene)
+            for satz in pruefung.fehler + pruefung.doppelt:
+                FreeCAD.Console.PrintWarning(f"CAM-Addon: {name}: {satz}\n")
+            reihen += pruefung.reihen
+            vorhandene += pruefung.reihen
+        _mitgeliefert = reihen
+    return _mitgeliefert
 
 
 def eingelesene():
-    """Die Reihen aller Dateien im Ordner – jede gegen die eingebauten und die Dateien davor
-    geprüft; was dabei herausfällt, sagt die Konsole. Gelesen wird nur, was sich geändert hat."""
+    """Die Reihen aller Dateien im Ordner – jede gegen die eingebauten, die mitgelieferten und
+    die Dateien davor geprüft; was dabei herausfällt, sagt die Konsole (was es schon gibt, in
+    einer Zeile je Datei – eine früher eingelesene Liste, die jetzt mitkommt, wäre sonst eine Zeile
+    je Reihe). Gelesen wird nur, was sich geändert hat."""
     ergebnis = []
-    vorhandene = list(wk.eingebaute())
+    vorhandene = list(wk.eingebaute()) + list(mitgelieferte())
     for pfad in dateien():
         try:
             stat = os.stat(pfad)
@@ -530,8 +559,19 @@ def eingelesene():
         gemerkt = _gelesen.get(pfad)
         if gemerkt is None or gemerkt[0] != stempel:
             pruefung = lesen(pfad, vorhandene)
-            for satz in pruefung.fehler + pruefung.doppelt:
+            for satz in pruefung.fehler:
                 FreeCAD.Console.PrintWarning(f"CAM-Addon: {pruefung.datei}: {satz}\n")
+            if pruefung.doppelt:
+                FreeCAD.Console.PrintWarning(
+                    "CAM-Addon: "
+                    + tr(
+                        "wd.doppelt_zusammen",
+                        datei=pruefung.datei,
+                        anzahl=len(pruefung.doppelt),
+                        ordner=ordner(),
+                    )
+                    + "\n"
+                )
             _gelesen[pfad] = (stempel, pruefung.reihen)
         reihen = _gelesen[pfad][1]
         ergebnis.extend(reihen)

@@ -1,0 +1,2712 @@
+{
+ "format": "camaddon-werkzeugkiste",
+ "version": 1,
+ "reihen": [
+  {
+   "kennung": "holex-202770",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "VHM-Schaftfräser HPC TiAlN, 4 Schneiden, e8 · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseiten 202770-6, 202770-16, 202770-20, abgerufen 2026-10-14; Rohtext unter .assistent/zwischenstand/werkzeugausgaben, Notizen .assistent/zwischenstand/quellen/202770_notizen_2026-10-15.md; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 202770-16, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/202770",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "schnittwerte": {
+    "K": {
+     "schruppen": {
+      "vc": 220
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30
+     }
+    },
+    "N1": {
+     "schruppen": {
+      "vc": 230
+     }
+    },
+    "P1": {
+     "schruppen": {
+      "vc": 200
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 150
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 80
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 6.0,
+     "name": "VHM-Schaftfräser HPC TiAlN Ø 6",
+     "artikel": "202770 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/202770-6",
+     "schneiden": 4,
+     "schneidenlaenge": 14.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 9.0,
+     "auskragung": 21.0
+    },
+    {
+     "durchmesser": 16.0,
+     "name": "VHM-Schaftfräser HPC TiAlN Ø 16",
+     "artikel": "202770 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/202770-16",
+     "schneiden": 4,
+     "schneidenlaenge": 36.0,
+     "gesamtlaenge": 92.0,
+     "schaft": 16.0,
+     "preis_netto": 96.4
+    },
+    {
+     "durchmesser": 20.0,
+     "name": "VHM-Schaftfräser HPC TiAlN Ø 20",
+     "artikel": "202770 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/202770-20",
+     "schneiden": 4,
+     "schneidenlaenge": 44.0,
+     "gesamtlaenge": 104.0,
+     "schaft": 20.0,
+     "preis_netto": 154.0
+    }
+   ]
+  },
+  {
+   "kennung": "garant-203057",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Steel VHM-Schaftfräser HPC TiAlN mit Hals, 4 Schneiden, f8, DIN 6527 · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseite (Standardansicht Ø 3) und Variantenseiten 203057-3, 203057-4, 203057-5, 203057-6, abgerufen 2026-10-15; Link je Größe ist die tatsächlich abgerufene Adresse (für Ø 3 die basale Produktseite, deren Standardansicht diese Größe zeigt); Rohtext unter .assistent/zwischenstand/werkzeugausgaben, Notizen .assistent/zwischenstand/quellen/203057_notizen_2026-10-15.md; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 203057-4, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/203057",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "schnittwerte": {
+    "K": {
+     "schruppen": {
+      "vc": 120
+     }
+    },
+    "P1": {
+     "schruppen": {
+      "vc": 200
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 160
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 70
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "name": "GARANT Steel VHM-Schaftfräser HPC TiAlN mit Hals Ø 3",
+     "artikel": "203057 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203057",
+     "schneiden": 4,
+     "schneidenlaenge": 8.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "hals_d": 2.8,
+     "preis_netto": 51.14
+    },
+    {
+     "durchmesser": 4.0,
+     "name": "GARANT Steel VHM-Schaftfräser HPC TiAlN mit Hals Ø 4",
+     "artikel": "203057 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203057-4",
+     "schneiden": 4,
+     "schneidenlaenge": 11.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "hals_d": 3.8,
+     "preis_netto": 51.14
+    },
+    {
+     "durchmesser": 5.0,
+     "name": "GARANT Steel VHM-Schaftfräser HPC TiAlN mit Hals Ø 5",
+     "artikel": "203057 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203057-5",
+     "schneiden": 4,
+     "schneidenlaenge": 13.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "hals_d": 4.8,
+     "preis_netto": 51.14
+    },
+    {
+     "durchmesser": 6.0,
+     "name": "GARANT Steel VHM-Schaftfräser HPC TiAlN mit Hals Ø 6",
+     "artikel": "203057 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203057-6",
+     "schneiden": 4,
+     "schneidenlaenge": 13.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "hals_d": 5.8,
+     "preis_netto": 51.14,
+     "auskragung": 20.0
+    }
+   ]
+  },
+  {
+   "kennung": "garant-203053",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Steel VHM-Schaftfräser HPC TiAlN kurz, 4 Schneiden, f8, DIN 6527 · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseite (Standardansicht Ø 3) und Variantenseiten 203053-3, 203053-4, 203053-5, abgerufen 2026-10-15; Link je Größe ist die tatsächlich abgerufene Adresse (für Ø 3 die basale Produktseite, deren Standardansicht diese Größe zeigt); Rohtext unter .assistent/zwischenstand/werkzeugausgaben, Notizen .assistent/zwischenstand/quellen/203053_notizen_2026-10-15.md; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 203053-4, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/203053",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "schnittwerte": {
+    "K": {
+     "schruppen": {
+      "vc": 120
+     }
+    },
+    "P1": {
+     "schruppen": {
+      "vc": 200
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 160
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 70
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "name": "GARANT Steel VHM-Schaftfräser HPC TiAlN kurz Ø 3",
+     "artikel": "203053 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203053",
+     "schneiden": 4,
+     "schneidenlaenge": 6.0,
+     "gesamtlaenge": 50.0,
+     "schaft": 6.0,
+     "preis_netto": 43.35,
+     "auskragung": 14.0
+    },
+    {
+     "durchmesser": 4.0,
+     "name": "GARANT Steel VHM-Schaftfräser HPC TiAlN kurz Ø 4",
+     "artikel": "203053 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203053-4",
+     "schneiden": 4,
+     "schneidenlaenge": 8.0,
+     "gesamtlaenge": 54.0,
+     "schaft": 6.0,
+     "preis_netto": 43.35,
+     "auskragung": 18.0
+    },
+    {
+     "durchmesser": 5.0,
+     "name": "GARANT Steel VHM-Schaftfräser HPC TiAlN kurz Ø 5",
+     "artikel": "203053 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203053-5",
+     "schneiden": 4,
+     "schneidenlaenge": 9.0,
+     "gesamtlaenge": 54.0,
+     "schaft": 6.0,
+     "preis_netto": 43.35,
+     "auskragung": 18.0
+    }
+   ]
+  },
+  {
+   "kennung": "garant-203055",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT GreenPlus VHM-Schaftfräser HPC TiAlN, 4 Schneiden, f8 · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseite (Standardansicht Ø 3) und Variantenseiten 203055-3, 203055-4, 203055-5, abgerufen 2026-10-15; Link je Größe ist die tatsächlich abgerufene Adresse (für Ø 3 die basale Produktseite, deren Standardansicht diese Größe zeigt); Rohtext unter .assistent/zwischenstand/werkzeugausgaben, Notizen .assistent/zwischenstand/quellen/203055_notizen_2026-10-15.md; ap und ae_max_d sind auf den Seiten je Größe nur einmal genannt (nicht je Werkstoffgruppe) – die Zuordnung zu P1 und M ist eine gekennzeichnete Konvention, nur fz ist über das Feld „Vorschub pro Zahn in“ (Stahl < 900 N/mm²; INOX > 900 N/mm²) gruppenweise belegt; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 203055-4, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/203055",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "schnittwerte": {
+    "K": {
+     "schruppen": {
+      "vc": 220
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 40
+     }
+    },
+    "P1": {
+     "schruppen": {
+      "vc": 230
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 180
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 100
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "name": "GARANT GreenPlus VHM-Schaftfräser HPC TiAlN Ø 3",
+     "artikel": "203055 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203055",
+     "schneiden": 4,
+     "schneidenlaenge": 8.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "hals_d": 2.8,
+     "preis_netto": 51.93,
+     "auskragung": 13.0
+    },
+    {
+     "durchmesser": 4.0,
+     "name": "GARANT GreenPlus VHM-Schaftfräser HPC TiAlN Ø 4",
+     "artikel": "203055 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203055-4",
+     "schneiden": 4,
+     "schneidenlaenge": 11.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "hals_d": 3.8,
+     "preis_netto": 51.93,
+     "auskragung": 17.0
+    },
+    {
+     "durchmesser": 5.0,
+     "name": "GARANT GreenPlus VHM-Schaftfräser HPC TiAlN Ø 5",
+     "artikel": "203055 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/203055-5",
+     "schneiden": 4,
+     "schneidenlaenge": 13.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "hals_d": 4.8,
+     "preis_netto": 51.93,
+     "auskragung": 19.0
+    }
+   ]
+  },
+  {
+   "kennung": "iscar-5620579",
+   "art": "kugelfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "ISCAR",
+   "titel": "ISCAR EB200A20-4C20 VHM-Kugelfräser, 4 Schneiden, kurze Ausführung, 30° Drallwinkel · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseite 5620579, abgerufen 2026-10-15 (Rohtext .assistent/zwischenstand/werkzeugausgaben/eb6ab2fc8755416e2f99069369431d697a8065e6763a161fd7c5e219f1203049.txt); Anwendertabelle/Schnittwerte auf der Seite nicht vorhanden; weitere Größen auf der Seite nicht belegt; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/5620579",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm"
+   },
+   "groessen": [
+    {
+     "durchmesser": 20.0,
+     "name": "ISCAR EB200A20-4C20 VHM-Kugelfräser Ø 20",
+     "artikel": "5620579",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/5620579",
+     "schneiden": 4,
+     "schneidenlaenge": 20.0,
+     "gesamtlaenge": 104.0,
+     "schaft": 20.0,
+     "eckradius": 10.0,
+     "preis_netto": 487.0
+    }
+   ]
+  },
+  {
+   "kennung": "iscar-5620578",
+   "art": "kugelfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "Iscar",
+   "titel": "Iscar EB160A16-4C16 IC900 Vollhartmetall Kugelfräser, 4 Schneiden, kurze Ausführung 30° Drallwinkel",
+   "quelle": "hoffmann-group.com, Produktseite 5620578, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/5620578",
+   "gemeinsam": {
+    "schneidstoff": "vhm",
+    "schneiden": 4
+   },
+   "groessen": [
+    {
+     "durchmesser": 16.0,
+     "artikel": "5620578",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/5620578",
+     "preis_netto": 297.0
+    }
+   ]
+  },
+  {
+   "kennung": "garant-206280",
+   "art": "torusfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Torusfräser TiAlN, 4 Schneiden · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseite 206280 1/0,2, abgerufen 2026-10-15; Rohtext .assistent/zwischenstand/werkzeugausgaben/71fd638e87206344e544b3d144922839d18695193f0573f4141e1bdbf55ff0a8.txt; Anwendertabelle nennt P 155, P 110, P 80, P 65 – ohne lesbare Spaltenzuordnung nicht zuordenbar, deshalb nicht übernommen; übernommen sind die eindeutigen Einzelwerte H 35, M 90, K 100 (vc). Anwendung „schlichten“ nach der Auftragsregel für Kopierfräsen; die Seite weist die Tabelle keiner Anwendung zu. fz und ap sind auf der Seite nicht genannt (nur „Korrekturfaktor fz 1,25“ und „Schnitttiefe max. L2 1,5 mm; 0,05 mm“ – mehrdeutig).; Größe 206280 2/0,2 am 2026-10-16 aus Rohtext .assistent/zwischenstand/werkzeugausgaben/4aa008fa72f9e2670547a11d8b9ab271671b318ae63e03c74d2daf4c68256e8e.txt (Netto 37.90 €; Seite nennt einen Nachfolgeartikel 206333 – der Sortimentssatz auf der Seite steht auch bei übernommenen Größen und ist deshalb kein Beleg für den Status dieser Größe); Größen 2/0,5, 3/0,5 und 3/1,0 am 2026-10-16 abgerufen (Rohtexte im Quellenindex, Notizen .assistent/zwischenstand/quellen/206280_notizen_2026-10-16.md); Schaftdurchmesser nennt die Seite für 2/0,5 und 3/0,5 nicht → nicht übernommen; „Schnitttiefe max. L2“ bleibt mehrdeutig (zwei Angaben ohne Zuordnung) → nicht übernommen.; Größen 4/0,5, 6/0,5, 8/0,5 und 10/0,5 am 2026-10-16 abgerufen (Rohtexte im Quellenindex, Notizen .assistent/zwischenstand/quellen/206280_notizen_2026-10-16.md). Eindeutige vc-Gruppen sind auf allen neun archivierten Seiten gleich (H 35, M 90, K 100).; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 206280-2/0,5, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/206280",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "schnittwerte": {
+    "H": {
+     "schlichten": {
+      "vc": 35
+     }
+    },
+    "M": {
+     "schlichten": {
+      "vc": 90
+     }
+    },
+    "K": {
+     "schlichten": {
+      "vc": 100
+     }
+    },
+    "P1": {
+     "schlichten": {
+      "vc": 155
+     }
+    },
+    "P2": {
+     "schlichten": {
+      "vc": 80
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 1 / R 0,2",
+     "artikel": "206280 1/0,2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280",
+     "schneiden": 4,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 50.0,
+     "eckradius": 0.2,
+     "preis_netto": 39.6,
+     "auskragung": 10.0,
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 2 / R 0,2",
+     "artikel": "206280 2/0,2",
+     "durchmesser": 2.0,
+     "eckradius": 0.2,
+     "schneidenlaenge": 2.5,
+     "gesamtlaenge": 50.0,
+     "auskragung": 12.0,
+     "schneiden": 4,
+     "schneidstoff": "vhm",
+     "beschichtung": "TiAlN",
+     "preis_netto": 37.9,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-2%402F0,2"
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 2 / R 0,5",
+     "artikel": "206280 2/0,5",
+     "durchmesser": 2.0,
+     "eckradius": 0.5,
+     "schneidenlaenge": 2.5,
+     "gesamtlaenge": 50.0,
+     "auskragung": 12.0,
+     "schneiden": 4.0,
+     "schneidstoff": "VHM",
+     "beschichtung": "TiAlN",
+     "preis_netto": 53.2,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-2%402F0,5",
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 3 / R 0,5",
+     "artikel": "206280 3/0,5",
+     "durchmesser": 3.0,
+     "eckradius": 0.5,
+     "schneidenlaenge": 4.0,
+     "gesamtlaenge": 50.0,
+     "auskragung": 14.0,
+     "schneiden": 4.0,
+     "schneidstoff": "VHM",
+     "beschichtung": "TiAlN",
+     "preis_netto": 34.9,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-3%402F0,5",
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 3 / R 1,0",
+     "artikel": "206280 3/1,0",
+     "durchmesser": 3.0,
+     "eckradius": 1.0,
+     "schneidenlaenge": 4.0,
+     "gesamtlaenge": 50.0,
+     "auskragung": 14.0,
+     "schneiden": 4.0,
+     "schneidstoff": "VHM",
+     "beschichtung": "TiAlN",
+     "preis_netto": 35.9,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-3%402F1,0",
+     "schaft": 3.0,
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 4 / R 0,5",
+     "artikel": "206280 4/0,5",
+     "durchmesser": 4.0,
+     "eckradius": 0.5,
+     "schneidenlaenge": 5.0,
+     "gesamtlaenge": 50.0,
+     "auskragung": 16.0,
+     "schneiden": 4.0,
+     "schneidstoff": "VHM",
+     "beschichtung": "TiAlN",
+     "preis_netto": 36.7,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-4%402F0,5",
+     "schaft": 4.0,
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 6 / R 0,5",
+     "artikel": "206280 6/0,5",
+     "durchmesser": 6.0,
+     "eckradius": 0.5,
+     "schneidenlaenge": 7.0,
+     "gesamtlaenge": 57.0,
+     "auskragung": 21.0,
+     "schneiden": 4.0,
+     "schneidstoff": "VHM",
+     "beschichtung": "TiAlN",
+     "preis_netto": 48.4,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-6%402F0,5",
+     "schaft": 6.0,
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 8 / R 0,5",
+     "artikel": "206280 8/0,5",
+     "durchmesser": 8.0,
+     "eckradius": 0.5,
+     "schneidenlaenge": 9.0,
+     "gesamtlaenge": 63.0,
+     "auskragung": 27.0,
+     "schneiden": 4.0,
+     "schneidstoff": "VHM",
+     "beschichtung": "TiAlN",
+     "preis_netto": 61.0,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-8%402F0,5",
+     "schaft": 8.0,
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    },
+    {
+     "name": "GARANT VHM-Torusfräser TiAlN Ø 10 / R 0,5",
+     "artikel": "206280 10/0,5",
+     "durchmesser": 10.0,
+     "eckradius": 0.5,
+     "schneidenlaenge": 11.0,
+     "gesamtlaenge": 72.0,
+     "auskragung": 32.0,
+     "schneiden": 4.0,
+     "schneidstoff": "VHM",
+     "beschichtung": "TiAlN",
+     "preis_netto": 80.3,
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206280-10%402F0,5",
+     "schnittwerte": {
+      "P1": {
+       "schlichten": {
+        "vc": 155.0
+       }
+      },
+      "P2": {
+       "schlichten": {
+        "vc": 80.0
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "garant-209755",
+   "art": "torusfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Torusfräser, Diamant, ⌀ e8 DC / R1: 3/0,3mm",
+   "quelle": "hoffmann-group.com, Produktseite 209755-3/0,3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/209755",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "Diamant (D)"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "gesamtlaenge": 50.0,
+     "schaft": 3.0,
+     "schneidenlaenge": 4.0,
+     "eckradius": 0.3,
+     "hals_d": 2.7,
+     "artikel": "209755-3/0,3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/209755",
+     "preis_netto": 94.84
+    }
+   ]
+  },
+  {
+   "kennung": "garant-209750",
+   "art": "torusfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Torusfräser, Diamant, ⌀ e8 DC / R1: 1/0,1mm",
+   "quelle": "hoffmann-group.com, Produktseite 209750-1/0,1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/209750",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "Diamant (D)"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "gesamtlaenge": 75.0,
+     "schaft": 3.0,
+     "schneidenlaenge": 1.2,
+     "eckradius": 0.1,
+     "hals_d": 0.95,
+     "artikel": "209750-1/0,1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/209750",
+     "preis_netto": 54.51
+    }
+   ]
+  },
+  {
+   "kennung": "garant-206250",
+   "art": "torusfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Torusfräser, DLC, ⌀ h6 DC / R1: 4/1,0mm",
+   "quelle": "hoffmann-group.com, Produktseite 206250-4/1,0, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/206250",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "vhm",
+    "beschichtung": "DLC"
+   },
+   "groessen": [
+    {
+     "durchmesser": 4.0,
+     "gesamtlaenge": 80.0,
+     "schaft": 6.0,
+     "schneidenlaenge": 6.5,
+     "eckradius": 1.0,
+     "hals_d": 3.7,
+     "artikel": "206250-4/1,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206250",
+     "preis_netto": 104.66
+    }
+   ]
+  },
+  {
+   "kennung": "mimatic-199352",
+   "art": "schwalbenschwanzfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "mimatic®",
+   "titel": "Schwalbenschwanz mit Schleppfase PolyMILL P1210 15°",
+   "quelle": "hoffmann-group.com, Produktseite 199352, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/199352",
+   "gemeinsam": {
+    "schneiden": 3,
+    "beschichtung": "Tinamatic"
+   },
+   "groessen": [
+    {
+     "durchmesser": 11.7,
+     "schneidenlaenge": 3.75,
+     "flankenwinkel": 15.0,
+     "artikel": "199352",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/199352",
+     "preis_netto": 50.22
+    }
+   ]
+  },
+  {
+   "kennung": "mimatic-199354",
+   "art": "schwalbenschwanzfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "mimatic®",
+   "titel": "Schwalbenschwanz mit Schleppfase PolyMILL P1210 30°",
+   "quelle": "hoffmann-group.com, Produktseite 199354, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/199354",
+   "gemeinsam": {
+    "schneiden": 3,
+    "beschichtung": "Tinamatic"
+   },
+   "groessen": [
+    {
+     "durchmesser": 11.7,
+     "schneidenlaenge": 3.75,
+     "flankenwinkel": 30.0,
+     "artikel": "199354",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/199354",
+     "preis_netto": 52.7
+    }
+   ]
+  },
+  {
+   "kennung": "mimatic-199361",
+   "art": "schwalbenschwanzfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "mimatic®",
+   "titel": "Schwalbenschwanz mit Schleppfase PolyMILL P1212 45°",
+   "quelle": "hoffmann-group.com, Produktseite 199361, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/199361",
+   "gemeinsam": {
+    "schneiden": 3,
+    "beschichtung": "Tinamatic"
+   },
+   "groessen": [
+    {
+     "durchmesser": 11.7,
+     "schneidenlaenge": 3.75,
+     "flankenwinkel": 45.0,
+     "artikel": "199361",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/199361",
+     "preis_netto": 55.3
+    }
+   ]
+  },
+  {
+   "kennung": "mimatic-199372",
+   "art": "schwalbenschwanzfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "mimatic®",
+   "titel": "Schwalbenschwanz mit Schleppfase PolyMILL P2020 15°",
+   "quelle": "hoffmann-group.com, Produktseite 199372, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/199372",
+   "gemeinsam": {
+    "schneiden": 6,
+    "beschichtung": "Tinamatic"
+   },
+   "groessen": [
+    {
+     "durchmesser": 20.0,
+     "schneidenlaenge": 5.65,
+     "flankenwinkel": 15.0,
+     "artikel": "199372",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/199372",
+     "preis_netto": 60.16
+    }
+   ]
+  },
+  {
+   "kennung": "mimatic-199375",
+   "art": "schwalbenschwanzfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "mimatic®",
+   "titel": "Schwalbenschwanz mit Schleppfase PolyMILL P2526 15°",
+   "quelle": "hoffmann-group.com, Produktseite 199375, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/199375",
+   "gemeinsam": {
+    "schneiden": 6,
+    "beschichtung": "Tinamatic"
+   },
+   "groessen": [
+    {
+     "durchmesser": 26.0,
+     "schneidenlaenge": 7.1,
+     "flankenwinkel": 15.0,
+     "artikel": "199375",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/199375",
+     "preis_netto": 80.35
+    }
+   ]
+  },
+  {
+   "kennung": "garant-208065",
+   "art": "fasenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Fasenfräser 60°, unbeschichtet · Schnittdaten unvollständig, Richtwerte prüfen",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208065",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet",
+    "spitzenwinkel": 60.0
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 3 mm",
+     "artikel": "208065 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-3",
+     "schneidenlaenge": 8.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22
+    },
+    {
+     "durchmesser": 4.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 4 mm",
+     "artikel": "208065 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-4",
+     "schneidenlaenge": 11.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22
+    },
+    {
+     "durchmesser": 6.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 6 mm",
+     "artikel": "208065 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-6",
+     "schneidenlaenge": 13.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22
+    },
+    {
+     "durchmesser": 5.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 5 mm",
+     "artikel": "208065 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-5",
+     "schneidenlaenge": 13.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22
+    },
+    {
+     "durchmesser": 8.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 8 mm",
+     "artikel": "208065 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-8",
+     "schneidenlaenge": 19.0,
+     "gesamtlaenge": 63.0,
+     "schaft": 8.0,
+     "preis_netto": 90.77
+    },
+    {
+     "durchmesser": 10.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 10 mm",
+     "artikel": "208065 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-10",
+     "schneidenlaenge": 22.0,
+     "gesamtlaenge": 72.0,
+     "schaft": 10.0,
+     "preis_netto": 131.5
+    },
+    {
+     "durchmesser": 12.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 12 mm",
+     "artikel": "208065 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-12",
+     "schneidenlaenge": 26.0,
+     "gesamtlaenge": 83.0,
+     "schaft": 12.0,
+     "preis_netto": 142.56
+    },
+    {
+     "durchmesser": 16.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 16 mm",
+     "artikel": "208065 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-16",
+     "schneidenlaenge": 32.0,
+     "gesamtlaenge": 92.0,
+     "schaft": 16.0,
+     "preis_netto": 395.64
+    },
+    {
+     "durchmesser": 20.0,
+     "name": "GARANT VHM-Fasenfräser 60°, unbeschichtet, Ø 20 mm",
+     "artikel": "208065 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208065-20",
+     "schneidenlaenge": 38.0,
+     "gesamtlaenge": 104.0,
+     "schaft": 20.0,
+     "preis_netto": 554.97
+    }
+   ],
+   "quelle": "hoffmann-group.com, Produktseiten je Größe (208065-3, 208065-4, 208065-6), abgerufen 2026-10-16; Rohtexte .assistent/zwischenstand/werkzeugausgaben/2fdea323ad7703abf1796e64c717de8de60e7c11fab3921004b066e8eacd295d.txt, .assistent/zwischenstand/werkzeugausgaben/9e22322c9b1d59cdcdbf3500e1be8733439ed09ac01f5ba3d0c6e2f0293c3540.txt, .assistent/zwischenstand/werkzeugausgaben/8c985a279dbd253ed496b71feb3fb38cdc314a79edde2d69141d38e41c18d49f.txt. Schnittwerte je Größe aus den Textfeldern 'Vorschub pro Zahn Besäumen fz', 'Schnitttiefe max., Besäumen' und 'Eingriffsbreite max. ae' (0,5×D); Klassenzuordnung P1 belegt durch das Feld 'Vorschub pro Zahn in' = 'Stahl < 900 N/mm2' (einträgig, keine INOX-/M-Zuordnung). Winkel 60° steht auf den Seiten als Feld 'Profilwinkel' und 'Eckenfasenwinkel'; im Bestand war der Winkel nur im Titel. Auf der Produktseite genannte weitere Größen: 5, 8, 10, 12, 16, 20 (noch nicht einzeln abgerufen). Preise je Größe 42,22 € netto, Abrufdatum 2026-10-16, Verfügbarkeit 'auf Anfrage'; alle drei Größen laut Seite im Sortiment.. Einsatz als `fasen` geführt, weil die Art Fasenfräser diesen Einsatz hat (Schema Abschnitt 6, Einsatzliste); die Seiten nennen die Werte unter „Vorschub pro Zahn Besäumen fz“ und „Schnitttiefe max., Besäumen“ – das ist die dokumentierte Zuordnung, kein zusätzlicher Wert. ; Größen 5 und 8 am 2026-10-16 abgerufen: 208065 5 (EAN 4045197859587, Lc 13 mm, L 57 mm, DS 6 mm, fz 0,02 mm, ap 13 mm, ae 0,5×D, Netto 42,22 €) und 208065 8 (EAN 4045197859600, Lc 19 mm, L 63 mm, DS 8 mm, fz 0,04 mm, ap 19 mm, ae 0,5×D, Netto 90,77 €); beide laut Seite im Sortiment, Verfügbarkeit 'auf Anfrage'. Gesamtlänge und Schaft-Ø sind je Größe unterschiedlich (Größe 8: L 63 mm, DS 8 mm) und stehen deshalb je Größe, nicht in `gemeinsam`. ; Gesamtlänge und Schaft-Ø stehen jetzt je Größe, weil sie sich zwischen den Größen unterscheiden (Größe 10: L 72 mm, DS 10 mm; Größe 12: L 83 mm, DS 12 mm) und deshalb nicht mehr als gemeinsame Werte der Reihe geführt werden können. ; Größen 16 und 20 am 2026-10-16 abgerufen: 208065 16 (EAN 4045197859631, Lc 32 mm, L 92 mm, LS 48 mm, DS 16 mm, fz 0,08 mm, ap 32 mm, ae 0,5×D, Netto 395,64 €) und 208065 20 (EAN 4045197859648, Lc 38 mm, L 104 mm, LS 50 mm, DS 20 mm, fz 0,1 mm, ap 38 mm, ae 0,5×D, Netto 554,97 €); beide im Sortiment, Verfügbarkeit 'auf Anfrage'. Damit sind alle auf der Seite genannten gängigen Größen belegt (3, 4, 5, 6, 8, 10, 12, 16, 20); die Bestandgröße war Ø 3.; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 208065-6, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "schnittwerte": {
+    "K": {
+     "fasen": {
+      "vc": 55
+     }
+    },
+    "M": {
+     "fasen": {
+      "vc": 40
+     }
+    },
+    "N3": {
+     "fasen": {
+      "vc": 180
+     }
+    },
+    "N1": {
+     "fasen": {
+      "vc": 140
+     }
+    },
+    "P1": {
+     "fasen": {
+      "vc": 60
+     }
+    },
+    "P2": {
+     "fasen": {
+      "vc": 35
+     }
+    }
+   }
+  },
+  {
+   "kennung": "garant-208080",
+   "art": "fasenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Fasenfräser 120°, unbeschichtet · Schnittdaten unvollständig, Richtwerte prüfen",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208080",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet",
+    "spitzenwinkel": 120.0
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 3 mm",
+     "artikel": "208080 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-3",
+     "schneidenlaenge": 8.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22,
+     "schnittwerte": {
+      "P1": {
+       "fasen": {
+        "vc": 60
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 4 mm",
+     "artikel": "208080 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-4",
+     "schneidenlaenge": 11.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22
+    },
+    {
+     "durchmesser": 6.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 6 mm",
+     "artikel": "208080 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-6",
+     "schneidenlaenge": 13.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22
+    },
+    {
+     "durchmesser": 5.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 5 mm",
+     "artikel": "208080 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-5",
+     "schneidenlaenge": 13.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "preis_netto": 42.22
+    },
+    {
+     "durchmesser": 8.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 8 mm",
+     "artikel": "208080 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-8",
+     "schneidenlaenge": 19.0,
+     "gesamtlaenge": 63.0,
+     "schaft": 8.0,
+     "preis_netto": 90.77
+    },
+    {
+     "durchmesser": 10.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 10 mm",
+     "artikel": "208080 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-10",
+     "schneidenlaenge": 22.0,
+     "gesamtlaenge": 72.0,
+     "schaft": 10.0,
+     "preis_netto": 131.5,
+     "schnittwerte": {
+      "P1": {
+       "fasen": {
+        "vc": 60.0
+       }
+      },
+      "P2": {
+       "fasen": {
+        "vc": 35.0
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 12 mm",
+     "artikel": "208080 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-12",
+     "schneidenlaenge": 26.0,
+     "gesamtlaenge": 83.0,
+     "schaft": 12.0,
+     "preis_netto": 142.56,
+     "schnittwerte": {
+      "P1": {
+       "fasen": {
+        "vc": 60.0
+       }
+      },
+      "P2": {
+       "fasen": {
+        "vc": 35.0
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 16.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 16 mm",
+     "artikel": "208080 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-16",
+     "schneidenlaenge": 32.0,
+     "gesamtlaenge": 92.0,
+     "schaft": 16.0,
+     "preis_netto": 395.64,
+     "schnittwerte": {
+      "P1": {
+       "fasen": {
+        "vc": 60.0
+       }
+      },
+      "P2": {
+       "fasen": {
+        "vc": 35.0
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 20.0,
+     "name": "GARANT VHM-Fasenfräser 120°, unbeschichtet, Ø 20 mm",
+     "artikel": "208080 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208080-20",
+     "schneidenlaenge": 38.0,
+     "gesamtlaenge": 104.0,
+     "schaft": 20.0,
+     "preis_netto": 554.97,
+     "schnittwerte": {
+      "P1": {
+       "fasen": {
+        "vc": 60.0
+       }
+      },
+      "P2": {
+       "fasen": {
+        "vc": 35.0
+       }
+      }
+     }
+    }
+   ],
+   "quelle": "hoffmann-group.com, Produktseiten 208080-3 … 208080-20, abgerufen 2026-10-16; Rohtexte unter .assistent/zwischenstand/werkzeugausgaben, Notizen .assistent/zwischenstand/quellen/garant_208080_notizen_2026-10-16.md; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; P1-vc für2080803 separat im zuvor tatsächlich gelesenen offiziellen Web-Seitenauszug belegt: .assistent/zwischenstand/quellen/208080-3_web_pruefauszug_2026-10-16.txt.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 208080-6, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "schnittwerte": {
+    "K": {
+     "fasen": {
+      "vc": 55
+     }
+    },
+    "M": {
+     "fasen": {
+      "vc": 40
+     }
+    },
+    "N3": {
+     "fasen": {
+      "vc": 180
+     }
+    },
+    "N1": {
+     "fasen": {
+      "vc": 140
+     }
+    },
+    "P1": {
+     "fasen": {
+      "vc": 60
+     }
+    },
+    "P2": {
+     "fasen": {
+      "vc": 35
+     }
+    }
+   }
+  },
+  {
+   "kennung": "garant-208070",
+   "art": "fasenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Fasenfräser 90°, unbeschichtet, ⌀ e8 DC: 3mm",
+   "quelle": "hoffmann-group.com, Produktseite 208070-3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208070",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "schneidenlaenge": 8.0,
+     "artikel": "208070-3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208070",
+     "preis_netto": 50.24
+    }
+   ]
+  },
+  {
+   "kennung": "garant-208071",
+   "art": "fasenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Fasenfräser 90°, unbeschichtet, ⌀ e8 DC: 3mm",
+   "quelle": "hoffmann-group.com, Produktseite 208071-3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208071",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "gesamtlaenge": 57.0,
+     "schaft": 6.0,
+     "schneidenlaenge": 8.0,
+     "artikel": "208071-3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208071",
+     "preis_netto": 50.24
+    }
+   ]
+  },
+  {
+   "kennung": "garant-207097",
+   "art": "radienfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Hochgenauigkeits-Vollradiusfräser, DLC, ⌀ DC: 3mm",
+   "quelle": "hoffmann-group.com, Produktseite 207097-3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/207097",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "DLC"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "gesamtlaenge": 50.0,
+     "schaft": 3.0,
+     "profilradius": 1.5,
+     "schneidenlaenge": 6.0,
+     "artikel": "207097-3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/207097",
+     "preis_netto": 85.92
+    }
+   ]
+  },
+  {
+   "kennung": "garant-207450",
+   "art": "radienfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Vollradiusfräser MTC, TiAlN, ⌀ f8 DC: 3mm",
+   "quelle": "hoffmann-group.com, Produktseite 207450-3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/207450",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "gesamtlaenge": 50.0,
+     "schaft": 3.0,
+     "profilradius": 1.5,
+     "schneidenlaenge": 5.0,
+     "artikel": "207450-3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/207450",
+     "preis_netto": 76.46
+    }
+   ]
+  },
+  {
+   "kennung": "garant-207460",
+   "art": "radienfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Vollradiusfräser MTC, TiAlN, ⌀ f8 DC: 3mm",
+   "quelle": "hoffmann-group.com, Produktseite 207460-3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/207460",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "gesamtlaenge": 75.0,
+     "schaft": 3.0,
+     "profilradius": 1.5,
+     "schneidenlaenge": 5.0,
+     "artikel": "207460-3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/207460",
+     "preis_netto": 89.15
+    }
+   ]
+  },
+  {
+   "kennung": "garant-207347",
+   "art": "radienfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Diabolo VHM-Hochgenauigkeits-Vollradiusfräser HPC, TiAlN, ⌀ DC / DS: 0,1mm",
+   "quelle": "hoffmann-group.com, Produktseite 207347-0,1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/207347",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.1,
+     "gesamtlaenge": 38.0,
+     "schaft": 3.0,
+     "profilradius": 0.05,
+     "schneidenlaenge": 0.1,
+     "artikel": "207347-0,1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/207347",
+     "preis_netto": 278.63
+    }
+   ]
+  },
+  {
+   "kennung": "garant-207135",
+   "art": "radienfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Vollradiusfräser, unbeschichtet, ⌀ f8 DC: 3mm",
+   "quelle": "hoffmann-group.com, Produktseite 207135, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/207135",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "gesamtlaenge": 60.0,
+     "schaft": 3.0,
+     "profilradius": 1.5,
+     "schneidenlaenge": 20.0,
+     "artikel": "207135",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/207135",
+     "preis_netto": 65.01
+    }
+   ]
+  },
+  {
+   "kennung": "garant-213300",
+   "art": "planfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "Garant",
+   "titel": "GARANT Planfräser 43° Octo mit Bohrung, für Wendeschneidplatten OF..",
+   "quelle": "hoffmann-group.com, Produktseite 213300, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/213300",
+   "gemeinsam": {
+    "schneiden": 3
+   },
+   "groessen": [
+    {
+     "durchmesser": 32.0,
+     "gesamtlaenge": 40.0,
+     "einstellwinkel": 43.0,
+     "schneidenlaenge": 3.5,
+     "artikel": "213300",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/213300",
+     "preis_netto": 384.37
+    }
+   ]
+  },
+  {
+   "kennung": "garant-213555",
+   "art": "planfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "Garant",
+   "titel": "GARANT Softcut 45° Hochleistungs-Planfräser, mit Bohrung, ⌀ D / Anzahl Schneiden Z: 32/3mm",
+   "quelle": "hoffmann-group.com, Produktseite 213555, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/213555",
+   "gemeinsam": {
+    "schneiden": 3
+   },
+   "groessen": [
+    {
+     "durchmesser": 32.0,
+     "gesamtlaenge": 40.0,
+     "einstellwinkel": 45.0,
+     "artikel": "213555",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/213555",
+     "preis_netto": 326.06
+    }
+   ]
+  },
+  {
+   "kennung": "garant-214200",
+   "art": "planfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "Garant",
+   "titel": "GARANT Planfräser 45° rechtsschneidend mit Bohrung, für Wendeschneidplatten SE..",
+   "quelle": "hoffmann-group.com, Produktseite 214200, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/214200",
+   "gemeinsam": {
+    "schneiden": 3
+   },
+   "groessen": [
+    {
+     "durchmesser": 32.0,
+     "gesamtlaenge": 40.0,
+     "einstellwinkel": 45.0,
+     "artikel": "214200",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/214200",
+     "preis_netto": 345.1
+    }
+   ]
+  },
+  {
+   "kennung": "garant-214515",
+   "art": "planfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "Garant",
+   "titel": "GARANT Aluking Plan- / Eckfräser 90° HPC mit Bohrung, für Wendeschneidplatten BG..",
+   "quelle": "hoffmann-group.com, Produktseite 214515, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/214515",
+   "gemeinsam": {
+    "schneiden": 2
+   },
+   "groessen": [
+    {
+     "durchmesser": 40.0,
+     "gesamtlaenge": 40.0,
+     "einstellwinkel": 90.0,
+     "artikel": "214515",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/214515",
+     "preis_netto": 525.98
+    }
+   ]
+  },
+  {
+   "kennung": "garant-214848",
+   "art": "planfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "Garant",
+   "titel": "GARANT Softcut HSI-Hochvorschubfräser, mit Bohrung, ⌀D / Anzahl Schneiden Z: 42/3mm",
+   "quelle": "hoffmann-group.com, Produktseite 214848, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/214848",
+   "gemeinsam": {
+    "schneiden": 3
+   },
+   "groessen": [
+    {
+     "durchmesser": 42.0,
+     "gesamtlaenge": 40.0,
+     "einstellwinkel": 15.0,
+     "schneidenlaenge": 2.8,
+     "artikel": "214848",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/214848",
+     "preis_netto": 449.82
+    }
+   ]
+  },
+  {
+   "kennung": "garant-208032",
+   "art": "nutenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-T-Nutenfräser, TiAlN, ⌀ DC × LC d11 × d11: 18X8mm",
+   "quelle": "hoffmann-group.com, Produktseite 208032-18X8, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208032-18X8",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 18.0,
+     "gesamtlaenge": 70.0,
+     "schaft": 12.0,
+     "schneidenbreite": 8.0,
+     "hals_d": 8.0,
+     "artikel": "208032-18X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208032-18X8",
+     "preis_netto": 810.39
+    }
+   ]
+  },
+  {
+   "kennung": "garant-208026",
+   "art": "nutenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-T-Nutenfräser, TiAlN, ⌀ DC × LC d11 × d11: 12,5X6mm",
+   "quelle": "hoffmann-group.com, Produktseite 208026-12,5X6, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208026",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 12.5,
+     "gesamtlaenge": 57.0,
+     "schaft": 10.0,
+     "schneidenbreite": 5.0,
+     "hals_d": 5.0,
+     "artikel": "208026-12,5X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208026",
+     "preis_netto": 712.06
+    }
+   ]
+  },
+  {
+   "kennung": "garant-208033",
+   "art": "nutenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Micro-Schlitzfräser, AlTiN, ⌀ DC × LC: 5,8X0,5mm",
+   "quelle": "hoffmann-group.com, Produktseite 208033-5,8X0,5, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208033",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "vhm",
+    "beschichtung": "AlTiN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 5.8,
+     "gesamtlaenge": 58.0,
+     "schaft": 6.0,
+     "schneidenbreite": 3.8,
+     "hals_d": 3.8,
+     "artikel": "208033-5,8X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208033",
+     "preis_netto": 72.86
+    }
+   ]
+  },
+  {
+   "kennung": "garant-208024",
+   "art": "nutenfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Schlitzfräser, TiAlN, ⌀ DC × LC h11 × e8: 10,5X2mm",
+   "quelle": "hoffmann-group.com, Produktseite 208024-10,5X2, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208024",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 10.5,
+     "gesamtlaenge": 50.0,
+     "schaft": 6.0,
+     "schneidenbreite": 4.0,
+     "hals_d": 4.0,
+     "artikel": "208024-10,5X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208024",
+     "preis_netto": 399.19
+    }
+   ]
+  },
+  {
+   "kennung": "garant-208028",
+   "art": "formfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-Winkelfräser Form C 45°, TiAlN, ⌀ js16 DC: 12mm",
+   "quelle": "hoffmann-group.com, Produktseite 208028-12, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/208028-12",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 12.0,
+     "gesamtlaenge": 55.0,
+     "schaft": 10.0,
+     "schneidenlaenge": 3.0,
+     "hals_d": 5.0,
+     "artikel": "208028-12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/208028-12",
+     "preis_netto": 562.24
+    }
+   ]
+  },
+  {
+   "kennung": "garant-194060",
+   "art": "formfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Winkelfräser Form C 60°, unbeschichtet, ⌀ js16 DC: 16mm",
+   "quelle": "hoffmann-group.com, Produktseite 194060-16, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/194060-16",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "hss-e",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 16.0,
+     "gesamtlaenge": 60.0,
+     "schaft": 12.0,
+     "schneidenlaenge": 6.3,
+     "hals_d": 6.0,
+     "artikel": "194060-16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/194060-16",
+     "preis_netto": 53.8
+    }
+   ]
+  },
+  {
+   "kennung": "garant-139631",
+   "art": "gewindefraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master TM VHM-Dreiprofil-Gewindefräser 2×D, AlTiN, G: G1/16",
+   "quelle": "hoffmann-group.com, Produktseite 139631-G1/16, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/139631",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "vhm",
+    "beschichtung": "AlTiN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 5.95,
+     "gesamtlaenge": 58.0,
+     "schaft": 6.0,
+     "steigung": 0.91,
+     "flankenwinkel": 55.0,
+     "schneidenlaenge": 2.72,
+     "artikel": "139631-G1/16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/139631",
+     "preis_netto": 185.4
+    }
+   ]
+  },
+  {
+   "kennung": "garant-139630",
+   "art": "gewindefraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master TM VHM-Dreiprofil-Gewindefräser 3×D, AlTiN, M: M3",
+   "quelle": "hoffmann-group.com, Produktseite 139630-M3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/139630",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "AlTiN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 2.33,
+     "gesamtlaenge": 58.0,
+     "schaft": 6.0,
+     "steigung": 0.5,
+     "flankenwinkel": 60.0,
+     "schneidenlaenge": 1.8,
+     "artikel": "139630-M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/139630",
+     "preis_netto": 169.28
+    }
+   ]
+  },
+  {
+   "kennung": "garant-139620",
+   "art": "gewindefraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master TM VHM-Einprofil-Gewindefräser 2×D, AlTiN, M: M1",
+   "quelle": "hoffmann-group.com, Produktseite 139620-M1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/139620",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "AlTiN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.69,
+     "gesamtlaenge": 58.0,
+     "schaft": 6.0,
+     "steigung": 0.25,
+     "flankenwinkel": 60.0,
+     "schneidenlaenge": 0.33,
+     "artikel": "139620-M1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/139620",
+     "preis_netto": 154.51
+    }
+   ]
+  },
+  {
+   "kennung": "garant-139625",
+   "art": "gewindefraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master TM VHM-Einprofil-Gewindefräser 3×D, AlTiN, M: M1",
+   "quelle": "hoffmann-group.com, Produktseite 139625-M1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/139625",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "AlTiN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.69,
+     "gesamtlaenge": 58.0,
+     "schaft": 6.0,
+     "steigung": 0.25,
+     "flankenwinkel": 60.0,
+     "schneidenlaenge": 0.33,
+     "artikel": "139625-M1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/139625",
+     "preis_netto": 163.91
+    }
+   ]
+  },
+  {
+   "kennung": "holex-122504",
+   "art": "bohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Pro Steel VHM-Bohrer zylindrischer Schaft DIN 6535 HA, TiAlN, ⌀ DC h7 (mm bzw. Zoll): 1",
+   "quelle": "hoffmann-group.com, Produktseite 122504, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/122504",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "gesamtlaenge": 45.0,
+     "schaft": 4.0,
+     "schneidenlaenge": 6.0,
+     "spitzenwinkel": 140.0,
+     "artikel": "122504",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/122504",
+     "preis_netto": 49.01
+    }
+   ]
+  },
+  {
+   "kennung": "holex-114020",
+   "art": "bohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Spiralbohrer HSS präzisionsrollgewalzt N, unbeschichtet, ⌀ DC h8: 1mm",
+   "quelle": "hoffmann-group.com, Produktseite 114020, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/114020",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "hss",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "gesamtlaenge": 34.0,
+     "schaft": 1.0,
+     "schneidenlaenge": 12.0,
+     "spitzenwinkel": 118.0,
+     "artikel": "114020",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/114020",
+     "preis_netto": 0.86
+    }
+   ]
+  },
+  {
+   "kennung": "holex-116320",
+   "art": "bohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Spiralbohrer HSS mit Morsekegelschaft",
+   "quelle": "hoffmann-group.com, Produktseite 116320-13, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/116320-13",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "hss",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 13.0,
+     "gesamtlaenge": 182.0,
+     "schneidenlaenge": 101.0,
+     "spitzenwinkel": 118.0,
+     "artikel": "116320-13",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/116320-13",
+     "preis_netto": 18.9
+    }
+   ]
+  },
+  {
+   "kennung": "garant-111520",
+   "art": "zentrierbohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Zentrierbohrer HSS B, unbeschichtet, Nenn-⌀ DC k12: 1mm",
+   "quelle": "hoffmann-group.com, Produktseite 111520-1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/111520",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "hss",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "gesamtlaenge": 35.0,
+     "schaft": 4.0,
+     "spitzenwinkel": 120.0,
+     "artikel": "111520-1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/111520",
+     "preis_netto": 8.21
+    }
+   ]
+  },
+  {
+   "kennung": "garant-111350",
+   "art": "zentrierbohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Zentrierbohrer HSS R, unbeschichtet, Nenn-⌀ DC k12: 0,5mm",
+   "quelle": "hoffmann-group.com, Produktseite 111350-0,5, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/111350",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "hss",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.5,
+     "gesamtlaenge": 25.0,
+     "schaft": 3.15,
+     "schneidenlaenge": 7.0,
+     "spitzenwinkel": 60.0,
+     "artikel": "111350-0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/111350",
+     "preis_netto": 5.95
+    }
+   ]
+  },
+  {
+   "kennung": "garant-121040",
+   "art": "nc_anbohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-NC-Anbohrer 90° spiralisiert, TiAlN, ⌀ DC h6: 2mm",
+   "quelle": "hoffmann-group.com, Produktseite 121040-2, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/121040",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 2.0,
+     "gesamtlaenge": 32.0,
+     "schaft": 2.0,
+     "schneidenlaenge": 6.0,
+     "spitzenwinkel": 90.0,
+     "artikel": "121040-2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/121040",
+     "preis_netto": 53.0
+    }
+   ]
+  },
+  {
+   "kennung": "garant-121019",
+   "art": "nc_anbohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-NC-Präzisions-Anbohrer 90°, unbeschichtet, ⌀ DC h6: 1mm",
+   "quelle": "hoffmann-group.com, Produktseite 121019-1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/121019",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "gesamtlaenge": 25.0,
+     "schaft": 1.0,
+     "schneidenlaenge": 4.0,
+     "spitzenwinkel": 90.0,
+     "artikel": "121019-1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/121019",
+     "preis_netto": 41.34
+    }
+   ]
+  },
+  {
+   "kennung": "garant-121068",
+   "art": "nc_anbohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-NC-Präzisions-Anbohrer 142°, unbeschichtet, ⌀ DC h6: 1mm",
+   "quelle": "hoffmann-group.com, Produktseite 121068-1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/121068",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "gesamtlaenge": 25.0,
+     "schaft": 1.0,
+     "schneidenlaenge": 4.0,
+     "spitzenwinkel": 142.0,
+     "artikel": "121068-1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/121068",
+     "preis_netto": 41.34
+    }
+   ]
+  },
+  {
+   "kennung": "garant-121070",
+   "art": "nc_anbohrer",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT VHM-NC-Anbohrer 142° spiralisiert, unbeschichtet, ⌀ DC h6: 2mm",
+   "quelle": "hoffmann-group.com, Produktseite 121070-2, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/121070",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 2.0,
+     "gesamtlaenge": 32.0,
+     "schaft": 2.0,
+     "schneidenlaenge": 6.0,
+     "spitzenwinkel": 142.0,
+     "artikel": "121070-2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/121070",
+     "preis_netto": 41.34
+    }
+   ]
+  },
+  {
+   "kennung": "garant-272171",
+   "art": "bohrstange",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Gewindebohrstange, rechts, Plattengröße L · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseiten /hom/p/272171-45%402F16, /hom/p/272171-16%402F6, /hom/p/272171-120%402F16, abgerufen 2026-10-15; Rohtexte .assistent/zwischenstand/werkzeugausgaben/a8ca2095a56ab5d164bca36eb958a1f6b6681c11bd52a676c4fe09c6df94ef6c.txt, .assistent/zwischenstand/werkzeugausgaben/124f105da6b8490a61fa8013e2d425f14865c12ef35177dc26a26fe21efb3a9a.txt, .assistent/zwischenstand/werkzeugausgaben/5da6687873e078765cbc6c489b7d071735e973615e8d4bea77ddc78d8fafd257.txt; keine Anwendertabelle auf den Seiten; Produktart laut Seite 'Bohrstange' (Titel: GARANT Gewindebohrstange, rechts) – Art nach Formattabelle Abschnitt 4 als bohrstange geführt, im Bestand stand gewindebohrer_rechts; durchmesser, schneiden und schneidenlaenge werden auf den Seiten nicht genannt; im Bestand stand Schaft 16 mm (Typangabe), die Herstellerseite nennt Ds 25 mm bzw. 20 mm – hier die Herstellerangaben; zusätzliche Größen 135/22 und 22/1 am 2026-10-16 abgerufen (Rohtexte .assistent/zwischenstand/werkzeugausgaben/ef46777efcaac7498f2779687d1d83d74d1636ac9dd73e8ccfb681349c6b91aa.txt und .assistent/zwischenstand/werkzeugausgaben/24a4dd55178a5a5d1c1ecbf5b2b4d6209f01853e40d4ce8835bd40d2c38c23bc.txt). Als ausgelaufen gekennzeichnet laut Seite: 45/16, 120/16, 135/22 („nicht mehr Teil des Sortiments“); 22/1 ist auf der 135/22-Seite als Alternativartikel genannt. Verfügbarkeit je Größe: „auf Anfrage“. Keine Schnittwerte, keine Anwendertabelle auf den Seiten; durchmesser/schneiden/schneidenlaenge werden nicht genannt. ; Größe 16/2 am 2026-10-16 abgerufen (Rohtext .assistent/zwischenstand/werkzeugausgaben/b5df482c9b8bfdb2ecd34c3e0038795f66d8d49aa2da2dd215908fe51e49e180.txt), laut Seite im Sortiment, Verfügbarkeit 'auf Anfrage'; Auskraglänge A wird auf dieser Seite nicht genannt ; Größe 11/1 am 2026-10-16 abgerufen (Rohtext .assistent/zwischenstand/werkzeugausgaben/922451ae70f2ba6b7ca7455f9f82c95022adb10de2c75d5234e5ee06cd08219a.txt), laut Seite im Sortiment, EAN 4069515113106, Ds 10 mm, D1 13 mm, L 100 mm, Mittenversatz L3 7,3 mm; Auskraglänge A auf dieser Seite nicht genannt; Verfügbarkeit 'auf Anfrage' ; Größe 9,3/1 am 2026-10-16 abgerufen (Rohtext .assistent/zwischenstand/werkzeugausgaben/e3c117766ffd0458378da9ab8e5ea54eaffce0d623cc47b78469ed57a2a3507e.txt), laut Seite im Sortiment, EAN 4069515113144, Ds 10 mm, D1 8 mm, L 87 mm, Innenkühlung nein, Verfügbarkeit 'auf Anfrage'; Auskraglänge A nicht genannt; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/272171",
+   "groessen": [
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 45/16",
+     "artikel": "272171 45/16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-45%402F16",
+     "gesamtlaenge": 200.0,
+     "schaft": 25.0,
+     "preis_netto": 173.0,
+     "auskragung": 45.0
+    },
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 16/6",
+     "artikel": "272171 16/6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-16%402F6",
+     "gesamtlaenge": 200.0,
+     "schaft": 25.0,
+     "preis_netto": 173.5
+    },
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 120/16",
+     "artikel": "272171 120/16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-120%402F16",
+     "gesamtlaenge": 180.0,
+     "schaft": 20.0,
+     "preis_netto": 163.0,
+     "auskragung": 120.0
+    },
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 135/22",
+     "artikel": "272171 135/22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-135%402F22",
+     "gesamtlaenge": 200.0,
+     "schaft": 25.0,
+     "auskragung": 135.0,
+     "preis_netto": 187.0
+    },
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 22/1",
+     "artikel": "272171 22/1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-22%402F1",
+     "gesamtlaenge": 200.0,
+     "schaft": 25.0,
+     "preis_netto": 186.5
+    },
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 16/2",
+     "artikel": "272171 16/2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-16%402F2",
+     "gesamtlaenge": 180.0,
+     "schaft": 20.0,
+     "preis_netto": 127.0
+    },
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 11/1",
+     "artikel": "272171 11/1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-11%402F1",
+     "gesamtlaenge": 100.0,
+     "schaft": 10.0,
+     "preis_netto": 127.0
+    },
+    {
+     "name": "GARANT Gewindebohrstange, rechts, Plattengröße L, Typ 9,3/1",
+     "artikel": "272171 9,3/1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272171-9%2C3%402F1",
+     "gesamtlaenge": 87.0,
+     "schaft": 10.0,
+     "preis_netto": 194.5
+    }
+   ]
+  },
+  {
+   "kennung": "iscar-3460706",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "Iscar",
+   "titel": "Iscar TPSN M-10X1.5-H HE HSS Rechte 40° Maschinen-Gewindebohrer mit spiralförmiger Spannut für metrische ISO-Grobgewinde DIN 13, für die Bearbeitung hoch hitzebeständiger Legierungen",
+   "quelle": "hoffmann-group.com, Produktseite 3460706, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/3460706",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hss"
+   },
+   "groessen": [
+    {
+     "durchmesser": 10.0,
+     "steigung": 1.5,
+     "schneidenlaenge": 39.0,
+     "artikel": "3460706",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/3460706",
+     "preis_netto": 56.3
+    }
+   ]
+  },
+  {
+   "kennung": "garant-136180",
+   "art": "gewindebohrer_links",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Maschinen-Gewindebohrer Linksgewinde HSS-E 6H, vaporisiert, M-LH: M5",
+   "quelle": "hoffmann-group.com, Produktseite 136180-M5, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/136180",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hss-e",
+    "beschichtung": "vaporisiert"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 70.0,
+     "schaft": 6.0,
+     "durchmesser": 5.0,
+     "steigung": 0.8,
+     "schneidenlaenge": 15.0,
+     "artikel": "136180-M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/136180",
+     "preis_netto": 27.01
+    }
+   ]
+  },
+  {
+   "kennung": "garant-132800",
+   "art": "gewindebohrer_links",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Maschinen-Gewindebohrer Linksgewinde HSS-E 6H, nitriert und vaporisiert · Schnittdaten unvollständig, Richtwerte prüfen",
+   "quelle": "hoffmann-group.com, Produktseiten /hom/p/132800 (M3), /hom/p/132800-M4, /hom/p/132800-M5, abgerufen 2026-10-15; Rohtexte .assistent/zwischenstand/werkzeugausgaben/a94f32bd7fa0331392c0da6cc2193be7f67653f4b8664c0ce8ebb72c1695c556.txt, e047f22d505632f27f4fdcb59e07f1a0674abc86551772749359f91667182833.txt, ef2f51ea1bf19a264b4f7ee1218c5ea71bc448fd359ce4f1aab58829a3316b27.txt; durchmesser ist der Nenn-Ø aus der Gewindebezeichnung (Formatdefinition, Abschnitt 3); Seite nennt keine Steigung und keine Maße; Anwendertabelle: M 6 als eindeutiger Einzelwert übernommen (Einsatz „gewindebohren“ gemäß Formattabelle Abschnitt 5 (Einsätze); die Anwendertabelle nennt je Klasse nur einen Wert, Tabelle nennt je Klasse nur einen Wert); P 15/15/15/6 mehrdeutig und offen, N 13 nicht übernehmbar (keine Formatklasse).; Korrektur 2026-10-16 verbindlich: zuvor zugeordnete Maximal-/Besäum-/Teilwerte sind zurückgestellt. Belege und Änderungsprotokoll: .assistent/zwischenstand/quellen/schnittdaten_korrektur_2026-10-16.json. Fehlende Angaben ergänzt der CAM-Importer mit Richtwerten; keine vollständige Freigabe.; vc je Werkstoffklasse aus der Anwendertabelle von hoffmann-group.com, Seite 132800-M4, gelesen 2026-10-16 (P1 Stahl < 750, P2 < 1100, M INOX < 900, K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC)",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132800",
+   "gemeinsam": {
+    "schneidstoff": "hss",
+    "beschichtung": "nitriert und vaporisiert"
+   },
+   "groessen": [
+    {
+     "durchmesser": 3.0,
+     "name": "GARANT Maschinen-Gewindebohrer Linksgewinde HSS-E 6H M3",
+     "artikel": "132800 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132800",
+     "preis_netto": 28.5
+    },
+    {
+     "durchmesser": 4.0,
+     "name": "GARANT Maschinen-Gewindebohrer Linksgewinde HSS-E 6H M4",
+     "artikel": "132800 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132800-M4",
+     "preis_netto": 30.0
+    },
+    {
+     "durchmesser": 5.0,
+     "name": "GARANT Maschinen-Gewindebohrer Linksgewinde HSS-E 6H M5",
+     "artikel": "132800 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132800-M5",
+     "preis_netto": 31.2
+    }
+   ],
+   "schnittwerte": {
+    "M": {
+     "gewindebohren": {
+      "vc": 6
+     }
+    },
+    "N1": {
+     "gewindebohren": {
+      "vc": 13
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 15
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 6
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 13
+     }
+    }
+   }
+  },
+  {
+   "kennung": "garant-136185",
+   "art": "gewindebohrer_links",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Vap Tap Maschinen-Gewindebohrer Linksgewinde HSS-E 6H, vaporisiert, M-LH: M3",
+   "quelle": "hoffmann-group.com, Produktseite 136185-M3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/136185",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hss-e",
+    "beschichtung": "vaporisiert"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 57.22,
+     "schaft": 3.5,
+     "durchmesser": 3.0,
+     "steigung": 0.5,
+     "schneidenlaenge": 7.5,
+     "artikel": "136185-M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/136185",
+     "preis_netto": 31.77
+    }
+   ]
+  },
+  {
+   "kennung": "garant-132802",
+   "art": "gewindebohrer_links",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Vap Tap Maschinen-Gewindebohrer Linksgewinde HSS-E 6H, vaporisiert, M-LH: M3",
+   "quelle": "hoffmann-group.com, Produktseite 132802-M3, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132802",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hss-e",
+    "beschichtung": "vaporisiert"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 57.2,
+     "schaft": 3.5,
+     "durchmesser": 3.0,
+     "steigung": 0.5,
+     "schneidenlaenge": 9.0,
+     "artikel": "132802-M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132802",
+     "preis_netto": 30.7
+    }
+   ]
+  },
+  {
+   "kennung": "bahco-4435",
+   "art": "kegelsenker",
+   "hersteller": "Hoffmann Group",
+   "marke": "Bahco®",
+   "titel": "Bahco® HSS-G-Senkbohrer für Metall - 12.4 mm x 56 mm",
+   "quelle": "hoffmann-group.com, Produktseite 4435-12.4-, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/4435-12.4-",
+   "gemeinsam": {
+    "schneidstoff": "hss"
+   },
+   "groessen": [
+    {
+     "durchmesser": 12.4,
+     "gesamtlaenge": 56.0,
+     "artikel": "4435-12.4-",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/4435-12.4-",
+     "preis_netto": 14.34
+    }
+   ]
+  },
+  {
+   "kennung": "garant-156020",
+   "art": "flachsenker",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT DIN-Flachsenker für Durchgangsloch, unbeschichtet, Senker-⌀ D1 × Zapfen-⌀ D2: 6,5X3,2mm",
+   "quelle": "hoffmann-group.com, Produktseite 156020-6,5X3,2, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/156020",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hss",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 6.5,
+     "gesamtlaenge": 71.0,
+     "schaft": 5.0,
+     "spitzen_d": 3.2,
+     "schneidenlaenge": 28.75,
+     "artikel": "156020-6,5X3,2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/156020",
+     "preis_netto": 23.68
+    }
+   ]
+  },
+  {
+   "kennung": "gfs-156730",
+   "art": "flachsenker",
+   "hersteller": "Hoffmann Group",
+   "marke": "GfS",
+   "titel": "GfS Kombi-Flach-Senker, Größe / Senker-⌀: 01/5mm",
+   "quelle": "hoffmann-group.com, Produktseite 156730-01/5, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/156730",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "hss",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 5.0,
+     "schaft": 7.0,
+     "schneidenlaenge": 8.0,
+     "artikel": "156730-01/5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/156730",
+     "preis_netto": 71.46
+    }
+   ]
+  },
+  {
+   "kennung": "garant-156220",
+   "art": "flachsenker",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT DIN-Flachsenker für Kernloch, unbeschichtet, Senker-⌀ D1 ×Zapfen-⌀ D2: 6,5X2,5mm",
+   "quelle": "hoffmann-group.com, Produktseite 156220-6,5X2,5, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/156220",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hss",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 6.5,
+     "gesamtlaenge": 71.0,
+     "schaft": 5.0,
+     "spitzen_d": 2.5,
+     "schneidenlaenge": 14.0,
+     "artikel": "156220-6,5X2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/156220",
+     "preis_netto": 25.11
+    }
+   ]
+  },
+  {
+   "kennung": "garant-164359",
+   "art": "reibahle",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT HSS-Hochleistungs-Reibahle HPC Grundloch, TiAlN, Nenn-⌀ DC: 6mm",
+   "quelle": "hoffmann-group.com, Produktseite 164359-6, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/164359",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "hss",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 6.0,
+     "gesamtlaenge": 100.0,
+     "schaft": 8.0,
+     "schneidenlaenge": 16.0,
+     "artikel": "164359-6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/164359",
+     "preis_netto": 136.85
+    }
+   ]
+  },
+  {
+   "kennung": "garant-164358",
+   "art": "reibahle",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT HSS-Hochleistungs-Reibahle HPC Durchgangsloch, TiAlN, Nenn-⌀ DC: 6mm",
+   "quelle": "hoffmann-group.com, Produktseite 164358-6, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/164358",
+   "gemeinsam": {
+    "schneiden": 6,
+    "schneidstoff": "hss",
+    "beschichtung": "TiAlN"
+   },
+   "groessen": [
+    {
+     "durchmesser": 6.0,
+     "gesamtlaenge": 100.0,
+     "schaft": 8.0,
+     "schneidenlaenge": 16.0,
+     "artikel": "164358-6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/164358",
+     "preis_netto": 149.94
+    }
+   ]
+  },
+  {
+   "kennung": "garant-164500",
+   "art": "reibahle",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT HM-Maschinen-Reibahle H7, unbeschichtet, Nenn-⌀ DC: 1mm",
+   "quelle": "hoffmann-group.com, Produktseite 164500-1, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/164500",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hm",
+    "beschichtung": "unbeschichtet"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.0,
+     "gesamtlaenge": 34.5,
+     "schaft": 1.0,
+     "schneidenlaenge": 6.0,
+     "artikel": "164500-1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/164500",
+     "preis_netto": 72.32
+    }
+   ]
+  },
+  {
+   "kennung": "garant-268702",
+   "art": "bohrstange",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT HSS-Bohrstange AH.. SCLDR, für Wendeschneidplatten CDCT, rechts",
+   "quelle": "hoffmann-group.com, Produktseite 268702-45/S4, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/268702",
+   "gemeinsam": {
+    "schneidstoff": "hss"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 65.0,
+     "schaft": 4.0,
+     "artikel": "268702-45/S4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/268702",
+     "preis_netto": 198.73
+    }
+   ]
+  },
+  {
+   "kennung": "garant-268706",
+   "art": "bohrstange",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT HSS-Bohrstange AH.. SCLDL, für Wendeschneidplatten CDCT, links",
+   "quelle": "hoffmann-group.com, Produktseite 268706-45/S4, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/268706",
+   "gemeinsam": {
+    "schneidstoff": "hss"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 65.0,
+     "schaft": 4.0,
+     "artikel": "268706-45/S4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/268706",
+     "preis_netto": 198.73
+    }
+   ]
+  },
+  {
+   "kennung": "garant-260922",
+   "art": "bohrstange",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT HSS-Bohrstange AH.. STFCR 90°, für Wendeschneidplatten TC.., rechts",
+   "quelle": "hoffmann-group.com, Produktseite 260922-10/11, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/260922",
+   "gemeinsam": {
+    "schneidstoff": "hss"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 125.0,
+     "schaft": 10.0,
+     "artikel": "260922-10/11",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/260922",
+     "preis_netto": 189.21
+    }
+   ]
+  },
+  {
+   "kennung": "garant-260333",
+   "art": "bohrstange",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT HSS-Bohrstange AH.. SDUCL 93°, für Wendeschneidplatten DC.., links",
+   "quelle": "hoffmann-group.com, Produktseite 260333-8/07, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/260333",
+   "gemeinsam": {
+    "schneidstoff": "hss"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 125.0,
+     "schaft": 8.0,
+     "artikel": "260333-8/07",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/260333",
+     "preis_netto": 189.21
+    }
+   ]
+  },
+  {
+   "kennung": "iscar-4550059",
+   "art": "ausspindelwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "Iscar",
+   "titel": "Iscar KIT BHF MB80-80 6-220 Schlicht-Ausspindel KIT.",
+   "quelle": "hoffmann-group.com, Produktseite 4550059, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/4550059",
+   "groessen": [
+    {
+     "artikel": "4550059",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/4550059",
+     "preis_netto": 3869.0
+    }
+   ]
+  },
+  {
+   "kennung": "holex-296100",
+   "art": "drehwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Drehmeißel rechts ähnlich DIN 4952, HSS E, Schaft-Vierkant: 12mm",
+   "quelle": "hoffmann-group.com, Produktseite 296100-12, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/296100",
+   "gemeinsam": {
+    "schneidstoff": "hss-e"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 110.0,
+     "durchmesser": 12.0,
+     "schaft": 12.0,
+     "artikel": "296100-12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/296100",
+     "preis_netto": 49.27
+    }
+   ]
+  },
+  {
+   "kennung": "holex-295040",
+   "art": "drehwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Gravierstichel, HSS Co 10, D×Länge: 2X40mm",
+   "quelle": "hoffmann-group.com, Produktseite 295040-2X40, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/295040",
+   "gemeinsam": {
+    "schneidstoff": "hss co 10"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 40.0,
+     "durchmesser": 2.0,
+     "artikel": "295040-2X40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/295040",
+     "preis_netto": 12.55
+    }
+   ]
+  },
+  {
+   "kennung": "holex-297000",
+   "art": "drehwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Stechdrehmeißel rechts ähnlich DIN 4961, HSS E, Schafthöhe: 12mm",
+   "quelle": "hoffmann-group.com, Produktseite 297000-12, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/297000",
+   "gemeinsam": {
+    "schneidstoff": "hss-e"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 110.0,
+     "durchmesser": 12.0,
+     "schaft": 8.0,
+     "artikel": "297000-12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/297000",
+     "preis_netto": 52.0
+    }
+   ]
+  },
+  {
+   "kennung": "holex-297120",
+   "art": "drehwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Hakendrehmeißel rechts ähnlich DIN 4963, HSS E, Schaft-⌀: 6mm",
+   "quelle": "hoffmann-group.com, Produktseite 297120-6, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/297120",
+   "gemeinsam": {
+    "schneidstoff": "hss-e"
+   },
+   "groessen": [
+    {
+     "gesamtlaenge": 125.0,
+     "durchmesser": 6.0,
+     "artikel": "297120-6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/297120",
+     "preis_netto": 57.36
+    }
+   ]
+  },
+  {
+   "kennung": "garant-270700",
+   "art": "gewindedrehwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Vollprofilplatte 60° außen rechts, HB7010, Steigung: 0,5mm",
+   "quelle": "hoffmann-group.com, Produktseite 270700-0,5, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/270700",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hm",
+    "beschichtung": "PVD"
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.5,
+     "steigung": 0.5,
+     "artikel": "270700-0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/270700",
+     "preis_netto": 30.25
+    }
+   ]
+  },
+  {
+   "kennung": "garant-270756",
+   "art": "gewindedrehwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Vollprofilplatte 60° innen rechts, HB7010, Steigung: 0,5mm",
+   "quelle": "hoffmann-group.com, Produktseite 270756-0,5, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/270756",
+   "gemeinsam": {
+    "schneiden": 3,
+    "schneidstoff": "hm",
+    "beschichtung": "PVD"
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.5,
+     "steigung": 0.5,
+     "artikel": "270756-0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/270756",
+     "preis_netto": 22.42
+    }
+   ]
+  },
+  {
+   "kennung": "garant-272001",
+   "art": "gewindedrehwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Klemmdrehhalter, rechts, Schaft- / Plattengröße L: 12/16mm",
+   "quelle": "hoffmann-group.com, Produktseite 272001-12/16, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/272001",
+   "groessen": [
+    {
+     "gesamtlaenge": 83.0,
+     "artikel": "272001-12/16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/272001",
+     "preis_netto": 124.95
+    }
+   ]
+  },
+  {
+   "kennung": "garant-359501",
+   "art": "taster",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT 3D-Taster digital mit Tasteinsatz (⌀ 4 mm), Schaft-⌀: 16",
+   "quelle": "hoffmann-group.com, Produktseite 359501-16, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/359501-16",
+   "groessen": [
+    {
+     "gesamtlaenge": 130.0,
+     "durchmesser": 4.0,
+     "schaft": 16.0,
+     "artikel": "359501-16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/359501-16",
+     "preis_netto": 700.91
+    }
+   ]
+  },
+  {
+   "kennung": "garant-359520",
+   "art": "taster",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT 3D-Taster analog mit Tasteinsatz (⌀ 4 mm)",
+   "quelle": "hoffmann-group.com, Produktseite 359520, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/359520",
+   "groessen": [
+    {
+     "gesamtlaenge": 134.0,
+     "durchmesser": 4.0,
+     "schaft": 16.0,
+     "artikel": "359520",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/359520",
+     "preis_netto": 366.0
+    }
+   ]
+  },
+  {
+   "kennung": "garant-273115",
+   "art": "einstechwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "Garant",
+   "titel": "Abstechplatte neutral, HB7130, Stechbreite w: 2,2mm",
+   "quelle": "hoffmann-group.com, Produktseite 273115, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/273115",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "hm",
+    "beschichtung": "PVD"
+   },
+   "groessen": [
+    {
+     "durchmesser": 2.2,
+     "schneidenbreite": 2.2,
+     "eckradius": 0.2,
+     "artikel": "273115",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/273115",
+     "preis_netto": 19.05
+    }
+   ]
+  },
+  {
+   "kennung": "garant-273700",
+   "art": "einstechwerkzeug",
+   "hersteller": "Hoffmann Group",
+   "marke": "Garant",
+   "titel": "Ab- / Einstechplatte, HB7020, Stechbreite w: 1,5mm",
+   "quelle": "hoffmann-group.com, Produktseite 273700, abgerufen 2026-10-07",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/273700",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schneidstoff": "hm",
+    "beschichtung": "PVD"
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.5,
+     "schneidenbreite": 1.5,
+     "eckradius": 0.2,
+     "artikel": "273700",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/273700",
+     "preis_netto": 33.59
+    }
+   ]
+  }
+ ]
+}

@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-48 werkzeugkiste-hoffmann-mitgeliefert (W-007)
+
+### EINGELESEN
+- Manuel, 2026-10-16 nachts: „der locale asistent hat glaube ich frische werkzeug daten schau dir
+  das auch mal an und übernehm das in die liste direkt wenn man es gebrauchen kann“.
+- Im Projekt seines lokalen Assistenten (`~/Applications/assistent/projekte/f8069d0d70ef/`) liegen
+  zwei Dateien im Importformat (`docs/werkzeugkiste_json.md`):
+  - `werkzeugkiste_hoffmann_2026-10-15.json`: 9 Reihen, bis 9 Größen je Reihe;
+  - `werkzeugkiste_holex_2026-10-15.json`: 1 Reihe, 3 Größen.
+  Dazu `QUALITAET_WERKZEUGDATEN.md`: Schnittdaten unvollständig, unsichere Zuordnungen hat er
+  zurückgestellt. Beide bestehen die Prüfung des Addons ohne Fehler.
+- Manuel hatte die ältere Liste vom 7.10. (79 Reihen, je eine Größe) als `file.json` eingelesen.
+- Stichprobe auf hoffmann-group.com (203057-4): Maße stimmen (Ø 4, Lc 11, L 57, Schaft 6).
+- Die Anwendertabellen nach Spalten gelesen (`.cuttingPilotCol`: Bild-Titel, ISO-Code, vc), je
+  Reihe eine Seite, mit Pausen dazwischen; Hoffmann hatte den Assistenten wegen zu vieler Abrufe
+  gesperrt (HTTP 429). Wo der Assistent schon vc hatte, stimmen sie überein.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/hoffmann.json` (neu): die Liste vom 7.10., ihre 10 Reihen durch die
+  neuen ersetzt.
+  - Dazu vc je Werkstoffklasse aus den Anwendertabellen: P1 Stahl < 750, P2 < 1100, M INOX < 900,
+    K GG(G), N1 Alu kurzspanend, N2 CuZn, N3 Alu/Kunststoffe, S Ti > 850, H < 55 HRC.
+  - Die zwei Senker-Sätze ohne Ø sind herausgenommen (fz wäre 0).
+  - 203053 heißt „kurz“, 203057 „mit Hals“; vorher hießen beide gleich.
+  - Ergebnis: 77 Reihen.
+- `beispiele/werkzeugkiste_hoffmann_2026-10-07.json` entfernt; sie lebt erneuert im Addon.
+- `camaddon/werkzeugkiste_datei.py`:
+  - `MITGELIEFERT` und `mitgelieferte()` lesen die mitgelieferten Dateien, geprüft gegen die
+    eingebauten Reihen.
+  - `eingelesene()` prüft auch gegen sie. Was es schon gibt, steht in der Konsole als eine Zeile
+    je Datei, mit dem Ordner zum Entfernen. Manuels `file.json` ist jetzt doppelt.
+- `camaddon/werkzeugkiste.py`: `reihen()` = eingebaute + mitgelieferte + eingelesene. Die
+  HOLEX-Kugel heißt „Katalogwerte fürs Kopierfräsen“ statt „Katalogwerte Kopieren“.
+- `translations/de.json`, `en.json`: `wd.doppelt_zusammen`.
+- `help/de|en/werkzeuge.html`, `docs/werkzeugkiste_json.md`: die mitgelieferte Liste.
+- `tests/test_werkzeugkiste_datei.py`: 77 Reihen, fehlerfrei, nichts doppelt; 208080 in P1
+  vc 60. Das Einlesen wird ohne die Liste geprüft.
+- `tests/gui/szenario_werkzeugkiste.py`:
+  - Die Liste steht ohne Einlesen im Baum.
+  - Eingelesen wird eine eigene Datei mit fünf Reihen (andere Kennungen und Artikelnummern);
+    noch einmal ersetzt sie sich selbst.
+  - Ein Artikel, den es schon gibt, bleibt draußen.
+  - Hinzufügen geht mit einer mitgelieferten Reihe.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_werkzeugkiste`, `test_werkzeugkiste_datei`, `test_beispiele`,
+  `test_sprache`, `test_hilfe`, `szenario_werkzeugkiste`.
+- Zum Ausprobieren:
+  1. Werkzeugverwaltung → „Werkzeuge der Hersteller …“. Die Hoffmann-Reihen stehen da ohne
+     Einlesen (z. B. „GARANT Steel … mit Hals“ mit 4 Größen).
+  2. Deine eingelesene `file.json` (die Liste vom 7.10.) ist jetzt doppelt. Die Konsole sagt es,
+     und die Datei kann aus `CamAddon/werkzeugkiste` weg.
+
 ## P-2026-10-16-46 halterstufe-nur-wo-sie-reicht (B-025)
 
 ### EINGELESEN

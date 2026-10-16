@@ -214,4 +214,4 @@ von D; fehlt vc oder fz, steht der Richtwert ein – vc nie über der höchsten,
 Klasse nennt. Eine Reihe ganz ohne Schnittwerte trägt „Richtwerte (geschätzt)“ in der Bezeichnung.
 Ein zweites Beispiel mit echten Daten, 79 Reihen ohne Schnittwerte, von einem KI-Agenten nach
 Abschnitt 6 zusammengestellt (Manuel, 2026-10-07):
-[`beispiele/werkzeugkiste_hoffmann_2026-10-07.json`](../beispiele/werkzeugkiste_hoffmann_2026-10-07.json).
+[`camaddon/werkzeugkiste_daten/hoffmann.json`](../camaddon/werkzeugkiste_daten/hoffmann.json) (kommt mit dem Addon, seit P-2026-10-16-48).

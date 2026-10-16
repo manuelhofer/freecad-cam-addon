@@ -516,6 +516,7 @@
     "wv.kiste.hinzufuegen": "Hinzufügen",
     "wv.kiste.bericht": "{neu} Werkzeuge hinzugefügt, {schon} gab es schon (gleicher Name, gleiche Artikelnummer oder exakt gleiche Maße). Gespeichert wird mit „OK“ oder „Übernehmen“.",
     "wd.fehler.json": "Die Datei ist kein lesbares JSON: {fehler}",
+    "wd.doppelt_zusammen": "{datei}: {anzahl} Größen gibt es schon (eingebaut, mit dem Addon oder aus einer Datei davor) – übersprungen. Ist es eine ältere Fassung einer mitgelieferten Liste, kann die Datei aus {ordner} weg.",
     "wd.fehler.format": "Die Datei hat nicht das Format „{format}“ (Feld „format“) – siehe docs/werkzeugkiste_json.md.",
     "wd.fehler.version": "Version {version} der Datei kennt das Addon nicht (bekannt bis {bekannt}).",
     "wd.fehler.reihen": "Die Datei hat keine Reihen (Feld „reihen“: eine Liste, mindestens eine Reihe).",

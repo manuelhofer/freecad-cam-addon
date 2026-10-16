@@ -527,7 +527,7 @@ def _holex_kugel():
         ),
         groessen=tuple(groessen),
         gemeinsam={"schneiden": 2, "schneidstoff": wz.VHM},
-        bezeichnung="HOLEX VHM-Vollradiusfräser TiAlN · Katalogwerte Kopieren, sonst Richtwerte",
+        bezeichnung="HOLEX VHM-Vollradiusfräser TiAlN · Katalogwerte fürs Kopierfräsen, sonst Richtwerte",
         katalogwerte=kw.holex_kugel_werte(),
     )
 
@@ -858,11 +858,11 @@ def eingebaute():
 
 
 def reihen():
-    """Alle Reihen: die eingebauten und die aus den eingelesenen Dateien des Benutzers
-    (werkzeugkiste_datei, T-007)."""
+    """Alle Reihen: die eingebauten, die mitgelieferten Dateien (werkzeugkiste_daten) und die
+    eingelesenen Dateien des Benutzers (werkzeugkiste_datei, T-007)."""
     from . import werkzeugkiste_datei as wd
 
-    return (*eingebaute(), *wd.eingelesene())
+    return (*eingebaute(), *wd.mitgelieferte(), *wd.eingelesene())
 
 
 def reihe(kennung):

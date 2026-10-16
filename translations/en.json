@@ -516,6 +516,7 @@
     "wv.kiste.hinzufuegen": "Add",
     "wv.kiste.bericht": "{neu} tools added, {schon} were already there (same name, same article number or exactly the same dimensions). They are saved with “OK” or “Apply”.",
     "wd.fehler.json": "The file is not readable JSON: {fehler}",
+    "wd.doppelt_zusammen": "{datei}: {anzahl} sizes already exist (built in, shipped with the add-on or from an earlier file) – skipped. If it is an older version of a shipped list, the file can be removed from {ordner}.",
     "wd.fehler.format": "The file does not have the format “{format}” (field “format”) – see docs/werkzeugkiste_json.md.",
     "wd.fehler.version": "The addon does not know version {version} of the file (known up to {bekannt}).",
     "wd.fehler.reihen": "The file has no series (field “reihen”: a list, at least one series).",

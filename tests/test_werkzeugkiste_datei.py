@@ -44,6 +44,20 @@ wd.ordner = lambda: os.path.join(tmp, "werkzeugkiste")
 wd.vergessen()
 eingebaut = len(wk.eingebaute())
 
+# --- Die mitgelieferte Liste (P-2026-10-16-48): fehlerfrei, nichts doppelt gegen die eingebaute
+# Kiste, jedes Werkzeug mit Ø, die nachgelesenen vc darin; in reihen() nach den eingebauten ---------
+mitgeliefert = wd.mitgelieferte()
+pruefe(len(mitgeliefert) == 77, f"mitgeliefert: {len(mitgeliefert)} Reihen")
+pruefe(len(wk.reihen()) == eingebaut + 77, f"reihen() mit der Liste: {len(wk.reihen())}")
+p = wd.lesen(os.path.join(wd.MITGELIEFERT, "hoffmann.json"), list(wk.eingebaute()))
+pruefe(not p.fehler and not p.doppelt, f"Liste: {p.fehler[:2]} {p.doppelt[:2]}")
+fasen = next((r for r in mitgeliefert if r.kennung == "garant-208080"), None)
+fasen_p1 = [e for w in (wk.werkzeuge(fasen) if fasen else []) for e in w.schnittwerte.get("P1", [])]
+pruefe(fasen_p1 and all(e.vc == 60 for e in fasen_p1), f"208080 in P1: {fasen_p1[:1]}")
+# Für die Prüfungen des Einlesens: ohne die Liste (sonst wäre vieles doppelt).
+wd.MITGELIEFERT = os.path.join(tmp, "ohne_liste")
+wd._mitgeliefert = None
+
 # --- Das Beispiel – gegen eine leere Kiste gelesen (die eingebaute hat es schon) -------------
 p = wd.lesen(wd.BEISPIEL, vorhandene=[])
 pruefe(not p.fehler and not p.doppelt, f"Beispiel: {p.fehler} {p.doppelt}")
