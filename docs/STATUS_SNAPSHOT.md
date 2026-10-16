@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis -68, 0.260.45 → 0.260.64):**
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis -68, 0.260.45 → 0.260.64):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -1361,6 +1361,16 @@ Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017
 B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; B-026 (am Drehteil meldete die Kollision „Plan indexiert … im Eilgang durch Rohteil, das dort noch steht – bis 1,53 mm tief“: der letzten Lage fehlte am Rand der Fläche ein Stück jeder Zeile, und das Modell der Stange kannte bei Querversatz die Flanke des Fräsers nicht) behoben in P-2026-10-16-57; nächste freie Nummer B-027.
 
 ## Offene Tasks
+
+- **T-015 Waagerechte Spindel (GROB G550): Grundstellung für Jobs ohne Ebene** (gefunden
+  2026-10-17 nachts, an Manuels Schwenkteil nachgespielt): Ein Job „von oben“ (die Tasche oben,
+  Räumen T1) läuft an der G550 mit A = 0 – „Auf der Maschine prüfen“: „Die Bahn ist für ein
+  Werkzeug längs Z gerechnet, T1 sitzt auf Spindel aber quer dazu – so gefahren, passt sie nicht
+  zum Teil“. Erst eine geschwenkte Ebene (P-54) stellt den Tisch an. Vorschlag: An einer Maschine,
+  deren Werkzeug in Grundstellung nicht längs Z des Jobs steht, kommt auch „oben“ in eine Ebene
+  (Normale +Z → A −90, `schwenken.lege_an(…, winkel=(0, 0))`), wie die schrägen Flächen – oder der
+  Job bekommt eine feste Grundstellung der Rundachsen (Prüfung, Programm, Abfahren). Größerer
+  Umbau, nicht ohne Manuel.
 
 - **T-013 Herbert im deutschen Thread** (Forum t=107911, 2026-10-11, herbk; 26.3.0RC1-AppImage auf
   CachyOS, Addon 0.213.66, dazu CfdOF, Curves, Fasteners, RobotCAD u. a.):
