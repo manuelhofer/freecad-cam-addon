@@ -101,6 +101,7 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
     while i < len(punkte) - 1:
         _unten_bleiben(punkte, i, quader, weite)
         _tiefer_im_eilgang(punkte, i, quader, float(form.radius))
+        _eilgang_nicht_hinein(punkte, i, quader, float(form.radius))
         von, nach = punkte[i], punkte[i + 1]
         i += 1
         sehnen = _sehnen(von, nach)
@@ -198,10 +199,10 @@ def _ohne_ausflug(punkte):
                 quer = abs(hin[0] * zu[1] - hin[1] * zu[0])
                 entlang = hin[0] * zu[0] + hin[1] * zu[1]
                 if laenge2 > GLEICH and quer <= GLEICH * math.sqrt(laenge2):
-                    if entlang <= GLEICH * math.sqrt(laenge2):
+                    if abs(entlang) <= GLEICH * math.sqrt(laenge2):
                         ergebnis.pop()  # ganz zurück zum Anfang: beide Stücke weg
                         continue
-                    if entlang < laenge2:
+                    if entlang < laenge2:  # auch über den Anfang zurück hinaus: von dort hin
                         ergebnis[-1] = p  # nur bis dorthin, wo es zurückkommt
                         continue
         ergebnis.append(p)
@@ -252,6 +253,37 @@ def _tiefer_im_eilgang(punkte, i, quader, radius):
     ziel = max(_hoechstes(quader, stelle, stelle, weite) + LINK_LUFT, ein.z)
     if ziel < oben.z - GLEICH:
         punkte.insert(i + 2, bn.Punkt(True, oben.x, oben.y, ziel))
+
+
+def _eilgang_nicht_hinein(punkte, i, quader, radius):
+    """Geht der Eilgang von Punkt i zu Punkt i + 1 senkrecht hinab und endet er im Material unter
+    der Stirn (`radius`): nur bis LINK_LUFT über das Material dort – oder gar nicht, wenn das
+    höher ist, als er beginnt (dann hinab im Vorschub). Das 3D-Schlichten fährt zwischen zwei
+    nahen Stücken im Eilgang bis 2 mm über die Hüllfläche hinab; ließ das Schruppen dort mehr
+    stehen (Treppen, Aufmaß), wäre das ein Eilgang ins Material."""
+    if i + 1 >= len(punkte):
+        return
+    von, hinab = punkte[i], punkte[i + 1]
+    if not hinab.eilgang or hinab.z >= von.z - GLEICH:
+        return
+    if math.hypot(hinab.x - von.x, hinab.y - von.y) > GLEICH:
+        return
+    if not (
+        quader.x[0] <= hinab.x - radius
+        and hinab.x + radius <= quader.x[-1]
+        and quader.y[0] <= hinab.y - radius
+        and hinab.y + radius <= quader.y[-1]
+    ):
+        return
+    stelle = (hinab.x, hinab.y, hinab.z)
+    material = _hoechstes(quader, stelle, stelle, radius)
+    if hinab.z >= material + GLEICH:
+        return
+    ziel = material + LINK_LUFT
+    if ziel >= von.z - GLEICH:
+        del punkte[i + 1]
+    else:
+        punkte[i + 1] = bn.Punkt(True, hinab.x, hinab.y, ziel)
 
 
 def _abheben(punkte, i):

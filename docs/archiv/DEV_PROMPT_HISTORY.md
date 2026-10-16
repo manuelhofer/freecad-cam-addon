@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-01 eilgang-nicht-ins-material
+
+### EINGELESEN
+- Durchsicht von P-2026-10-16-58/-67:
+  - Das 3D-Schlichten fährt zwischen zwei nahen Stücken im Eilgang bis 2 mm über die
+    Hüllfläche hinab. Die Hüllfläche ist das fertige Teil – ließ das Schruppen dort mehr stehen
+    (Treppen, Aufmaß), wäre das ein Eilgang ins Material.
+  - `_ohne_ausflug`: Kam der Rückweg über den Anfang hinaus zurück, fielen beide Stücke weg – der
+    Punkt dahinter mit; die nächste Fahrt begann am Anfang statt dort.
+
+### DATEIEN
+- `camaddon/freiwege.py`:
+  - `_eilgang_nicht_hinein`: Ein senkrechter Eilgang hinab, der im Material vor der Operation
+    endet (unter der Stirn), geht nur bis LINK_LUFT darüber – beginnt er tiefer, fällt er weg
+    (hinab im Vorschub). Für jede Strategie, die durch `freiwege` geht.
+  - `_ohne_ausflug`: nur ganz zurück zum Anfang fallen beide Stücke weg; darüber hinaus zurück
+    geht es vom Anfang dorthin.
+- `tests/test_freiwege.py`: hin und über den Anfang hinaus zurück; Eilgang hinab ins Rohteil
+  (bis 2 mm darüber, oder weg), über dem Material unverändert.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_freiwege`, `test_schlichten3d`, `szenario_testteil_freivorschub`.
+
 ## P-2026-10-16-70 einrichtblatt-gekippt-nullpunkt
 
 ### EINGELESEN

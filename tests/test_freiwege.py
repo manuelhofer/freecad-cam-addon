@@ -171,6 +171,28 @@ for von, nach in zip(neu, neu[1:], strict=False):
             abtrag += float((vor - q.h).clip(min=0).sum()) * zelle
 pruefe(abtrag < 1e-6, f"im Schnellen abgetragen: {abtrag:.3f} mm³")
 
+# --- Hin und über den Anfang hinaus zurück: der Punkt dahinter bleibt (_ohne_ausflug)
+hin_zurueck = [P(False, 0, 0, 5), P(False, 10, 0, 5, False, None, 3.0)]
+hin_zurueck.append(P(False, -3, 0, 5, False, None, 3.0))
+gebuegelt = [(p.x, p.y) for p in fw._ohne_ausflug(hin_zurueck)]
+pruefe(gebuegelt == [(0, 0), (-3, 0)], f"über den Anfang zurück: {gebuegelt}")
+ganz_zurueck = hin_zurueck[:2] + [P(False, 0, 0, 5, False, None, 3.0)]
+gebuegelt = [(p.x, p.y) for p in fw._ohne_ausflug(ganz_zurueck)]
+pruefe(gebuegelt == [(0, 0)], f"ganz zurück: {gebuegelt}")
+
+# --- Ein Eilgang hinab endet nie im Material (das 3D-Schlichten: bis 2 mm über die Hüllfläche,
+# das Rohteil steht dort bis z 10): nur bis LINK_LUFT darüber, der Rest im Vorschub; beginnt er
+# schon tiefer, fällt er weg.
+for start, soll in ((30.0, [30.0, 10.0 + fw.LINK_LUFT]), (11.0, [11.0])):
+    hinab = [P(True, 20, 20, start), P(True, 20, 20, 6), P(False, 20, 20, 5)]
+    neu, _weg = fw.schneller(hinab, form, quader(), VF)
+    eilgaenge = [round(p.z, 3) for p in neu if p.eilgang]
+    pruefe(eilgaenge == soll, f"Eilgang hinab von {start}: {eilgaenge} statt {soll}")
+    pruefe(neu[-1].z == 5 and not neu[-1].eilgang, f"hinab von {start}: Ende {neu[-1]}")
+frei = [P(True, 20, 20, 30), P(True, 20, 20, 12), P(False, 20, 20, 5)]
+neu, _weg = fw.schneller(frei, form, quader(), VF)
+pruefe([p.z for p in neu if p.eilgang] == [30, 12], f"über dem Material: {neu}")
+
 # --- Der Freivorschub aus der Maschine (Manuel: „wenn nichts drinnen steht .. dann halt 10 m/min“)
 from camaddon import PARAMETER_PFAD  # noqa: E402
 from camaddon import maschinenspeicher as msp  # noqa: E402
