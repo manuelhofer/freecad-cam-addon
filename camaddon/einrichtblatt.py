@@ -386,8 +386,12 @@ def spannung_text(job, tr):
     tiefe = spannung.gespannt(grundjob(job))
     if tiefe <= 0:
         return tr("eb.spannung.keine")
-    if spannung.rund(rohteil) is not None:
-        return tr("eb.spannung.futter", mm=_mm(), tiefe=_zahl(tiefe))
+    kreis = spannung.rund(rohteil)
+    if kreis is not None:
+        d, hoehe = spannung.futter_masse(kreis[2])
+        return tr(
+            "eb.spannung.futter", mm=_mm(), d=_zahl(d), hoehe=_zahl(hoehe), tiefe=_zahl(tiefe)
+        )
     return tr("eb.spannung.schraubstock", mm=_mm(), tiefe=_zahl(tiefe))
 
 

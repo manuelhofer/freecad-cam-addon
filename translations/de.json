@@ -871,7 +871,7 @@
     "eb.rohteil.koerper": "Körper „{name}“ aus dem Dokument",
     "eb.spannung.keine": "nicht eingetragen",
     "eb.spannung.schraubstock": "Schraubstock, {tiefe} {mm} von unten gespannt",
-    "eb.spannung.futter": "Dreibackenfutter, {tiefe} {mm} von unten gespannt",
+    "eb.spannung.futter": "Dreibackenfutter Ø {d} (hebt das Teil um {hoehe} {mm}), {tiefe} {mm} von unten gespannt",
     "eb.aufspannung": "Aufspannung {nummer} – {name}",
     "eb.ebene": "Ebene „{name}“ – {rundachsen}",
     "eb.ohne_ebene": "Ohne Schwenken",

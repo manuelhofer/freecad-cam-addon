@@ -31,6 +31,18 @@ BACKE = 20.0  # mm – so dick ist eine Backe des Schraubstocks im Bild und in d
 # (radial) und so breit wie hier.
 FUTTERBACKE_LANG = 25.0  # mm
 FUTTERBACKE_BREIT = 20.0  # mm
+# Das Futter darunter (W-021, Stufe 3: „er hebt das Teil über den Tisch“): ein übliches
+# Dreibackenfutter – (Ø, Höhe) in mm, wie die gängigen Größen; genommen wird das kleinste, in dem
+# die Backen um den Rohling Platz haben.
+FUTTER = (
+    (80.0, 50.0),
+    (100.0, 58.0),
+    (125.0, 66.0),
+    (160.0, 80.0),
+    (200.0, 92.0),
+    (250.0, 106.0),
+    (315.0, 120.0),
+)
 
 
 def rund(rohteil):
@@ -43,6 +55,31 @@ def rund(rohteil):
         return None
     radius = getattr(rohteil, "Radius", 0.0)
     return float(lage.Base.x), float(lage.Base.y), float(getattr(radius, "Value", radius))
+
+
+def futter_masse(radius):
+    """(Ø, Höhe) des Dreibackenfutters für einen runden Rohling mit `radius` (mm): das kleinste
+    aus FUTTER, über das die Backen nicht hinausragen; größer als alle: so breit wie nötig, so
+    hoch wie das größte."""
+    noetig = 2.0 * (radius + FUTTERBACKE_LANG)
+    for durchmesser, hoehe in FUTTER:
+        if durchmesser >= noetig - GENAU:
+            return durchmesser, hoehe
+    return noetig, FUTTER[-1][1]
+
+
+def futter_hoehe(job):
+    """So hoch hebt das Dreibackenfutter den runden Rohling des Jobs über die Spannfläche (mm) –
+    0 ohne runden Rohling oder wenn nichts gespannt ist. Eine Stange im Futter der Rundachse
+    (4 Achsen, vierachs_rohteil.spannlaenge) sitzt in der Maschine, nicht auf dem Tisch."""
+    from . import reichweite as rw
+    from . import vierachs_rohteil as vr
+
+    grund = rw.grundjob_von(job)
+    kreis = rund(getattr(grund, "Stock", None))
+    if kreis is None or gespannt(grund) <= 0 or vr.spannlaenge(grund) > 0:
+        return 0.0
+    return futter_masse(kreis[2])[1]
 
 
 class Befund(str):
@@ -105,12 +142,13 @@ def schraubstock(job):
 
 
 def _futter(kreis, z, tiefe):
-    """Die drei Backen des Dreibackenfutters am runden Rohling (Mitte, Radius) – von z an so hoch,
-    wie er gespannt ist."""
+    """Das Dreibackenfutter am runden Rohling (Mitte, Radius): darunter der Körper (futter_masse),
+    seine Oberseite bei z; darauf die drei Backen – von z an so hoch, wie er gespannt ist."""
     import Part
 
     x, y, radius = kreis
-    backen = []
+    durchmesser, hoehe = futter_masse(radius)
+    backen = [Part.makeCylinder(durchmesser / 2, hoehe, FreeCAD.Vector(x, y, z - hoehe))]
     for winkel in (90.0, 210.0, 330.0):
         backe = Part.makeBox(
             FUTTERBACKE_LANG,

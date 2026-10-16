@@ -289,8 +289,12 @@ def vorschlag_nullpunkt(job):
     """Wo der Nullpunkt des Jobs von der Werkstückaufnahme aus liegt, wenn nichts
     eingetragen ist: das Rohteil mittig auf der Aufnahme, die Unterseite auf der
     Spannfläche. Eine runde Stange längs Z sitzt genau auf ihrer Achse und steckt mit
-    ihrer Spannlänge im Futter (4-Achs-Bearbeitung an der Drehmaschine, W-003 V2c).
-    Ohne Rohteil der Ursprung. Für eine geschwenkte Ebene der ihres Grundjobs."""
+    ihrer Spannlänge im Futter (4-Achs-Bearbeitung an der Drehmaschine, W-003 V2c). Ein
+    runder Rohling im Dreibackenfutter auf dem Tisch (W-021) liegt um die Höhe des Futters höher
+    (spannung.futter_hoehe). Ohne Rohteil der Ursprung. Für eine geschwenkte Ebene der ihres
+    Grundjobs."""
+    from . import spannung
+
     job = grundjob_von(job)
     rohteil = getattr(job, "Stock", None)
     form = getattr(rohteil, "Shape", None)
@@ -298,7 +302,8 @@ def vorschlag_nullpunkt(job):
         return FreeCAD.Vector()
     stange = _stange_laengs_z(rohteil)
     if stange is not None:
-        return FreeCAD.Vector(-stange.x, -stange.y, -(stange.z + vr.spannlaenge(job)))
+        hoeher = spannung.futter_hoehe(job)
+        return FreeCAD.Vector(-stange.x, -stange.y, -(stange.z + vr.spannlaenge(job)) + hoeher)
     box = form.BoundBox
     return FreeCAD.Vector(-box.Center.x, -box.Center.y, -box.ZMin)
 

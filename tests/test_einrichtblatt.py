@@ -194,7 +194,8 @@ doc.removeObject(alt.Name)
 doc.recompute()
 pruefe(eb.rohteil_text(job, tr) == "Zylinder Ø 64 × 33 mm, stehend", f"{eb.rohteil_text(job, tr)}")
 pruefe(
-    eb.spannung_text(job, tr) == "Dreibackenfutter, 5 mm von unten gespannt",
+    eb.spannung_text(job, tr)
+    == "Dreibackenfutter Ø 125 (hebt das Teil um 66 mm), 5 mm von unten gespannt",
     f"{eb.spannung_text(job, tr)}",
 )
 FreeCAD.closeDocument(doc.Name)

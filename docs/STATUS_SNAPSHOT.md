@@ -1200,8 +1200,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   *Stufe 2 erledigt:* P-2026-10-16-18. Mit „von unten gespannt“ sitzen am runden Rohling drei
   Backen (je 120°) im Bild und in der Kollision. Die Prüfung misst am Kreis statt am Kasten und
   sagt „Dreibackenfutter“.
-  Offen: der Futterkörper unter dem Rohling (er hebt das Teil über den Tisch). Das Einrichtblatt
-  nennt „Dreibackenfutter, … von unten gespannt“ (P-2026-10-16-20).
+  *Stufe 3 erledigt:* P-2026-10-16-23. Unter dem Rohling steht das Futter: das kleinste übliche
+  (Ø 80 … 315), über das die Backen nicht hinausragen; am C-Ring Ø 125 × 66. Es steht im Bild
+  und in der Kollision, und der Nullpunkt-Vorschlag hebt das Teil um seine Höhe (C-Ring: Z 69).
+  Das Einrichtblatt nennt „Dreibackenfutter Ø 125 (hebt das Teil um 66 mm), … von unten
+  gespannt“. Damit ist W-021 fertig, bis Manuel etwas anderes sieht; offen ist nur noch, ob
+  die Futtergröße wählbar sein soll.
 - **W-022 Die Werkzeugaufnahme gehört in die Maschine; Halter in ihrer Größe** – Manuel, 2026-10-16,
   mit Bild (Menü „Neu“ im Fenster „Halter“, alle Vorlagen „· SK40“): „warum nur sk40 ?? es gibt auch
   sk64 glaub ich ?? ich denke die aufnahme an der maschine ... sollten wir in die maschine packen !

@@ -114,7 +114,9 @@ pruefe(spannung.pruefen(job) == [], "nach 0 noch Sätze")
 pruefe(spannung.schraubstock(job) is None, "nach 0 noch Backen")
 
 # --- Ein runder Rohling im Dreibackenfutter (W-021): ein Zylinder Ø 60 × 20 um eine Scheibe Ø 50,
-# 5 mm gespannt. Die Backen: drei, je 120° versetzt, innen am Umfang (r 30), 5 mm hoch. Eine Bahn
+# 5 mm gespannt. Die Backen: drei, je 120° versetzt, innen am Umfang (r 30), 5 mm hoch; darunter
+# das Futter Ø 125 × 66 (Ø 60 + 2 × 25 Backe passt nicht in Ø 100) – der Nullpunkt-Vorschlag hebt
+# den Rohling um 66 mm. Eine Bahn
 # in der Ecke des Kastens um den Zylinder bis Z 2 ragt über den Kreis – gemeldet als „im
 # Dreibackenfutter“ (nach dem Kasten läge sie drin); eine Bahn innen nicht.
 import Path.Main.Stock as PathStock  # noqa: E402
@@ -133,15 +135,29 @@ doc2.removeObject(alt_rohteil.Name)
 doc2.recompute()
 spannung.setze(job2, 5.0)
 backen2 = spannung.schraubstock(job2)
-pruefe(backen2 is not None and len(backen2.Solids) == 3, "nicht drei Backen")
+pruefe(backen2 is not None and len(backen2.Solids) == 4, "nicht Futter und drei Backen")
 if backen2 is not None:
     zylinder = Part.makeCylinder(30, 20)
+    futter, *drei = sorted(backen2.Solids, key=lambda k: -k.Volume)
     pruefe(
-        all(b.common(zylinder).Volume < 1e-3 and b.distToShape(zylinder)[0] < 1e-6
-            for b in backen2.Solids),
+        all(b.common(zylinder).Volume < 1e-3 and b.distToShape(zylinder)[0] < 1e-6 for b in drei),
         "Backen nicht am Umfang",
-    )  # fmt: skip
+    )
     pruefe(abs(backen2.BoundBox.ZMax - 5.0) < 1e-6, f"Backen {backen2.BoundBox}")
+    fb = futter.BoundBox
+    pruefe(
+        abs(fb.XLength - 125.0) < 1e-6 and abs(fb.ZMax) < 1e-6 and abs(fb.ZMin + 66.0) < 1e-6,
+        f"Futter {fb}",
+    )
+    pruefe(futter.common(zylinder).Volume < 1e-3, "Futter im Rohling")
+from camaddon import reichweite as rw  # noqa: E402
+
+pruefe(
+    abs(rw.vorschlag_nullpunkt(job2).z - 66.0) < 1e-6, f"Nullpunkt {rw.vorschlag_nullpunkt(job2)}"
+)
+pruefe(
+    spannung.futter_masse(10.0) == (80.0, 50.0) and spannung.futter_masse(200.0)[1] == 120.0, "Maße"
+)
 r2 = float(getattr(job2.Tools.Group[0].Tool.Diameter, "Value", 5.0)) / 2
 FreeCAD.setActiveDocument(doc2.Name)
 # In der Ecke des Kastens um den Zylinder (25, 25): draußen am Kreis – gemeldet; mitten drin nicht.

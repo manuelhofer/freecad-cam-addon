@@ -871,7 +871,7 @@
     "eb.rohteil.koerper": "Body “{name}” from the document",
     "eb.spannung.keine": "not entered",
     "eb.spannung.schraubstock": "Vise, clamped {tiefe} {mm} from below",
-    "eb.spannung.futter": "Three-jaw chuck, clamped {tiefe} {mm} from below",
+    "eb.spannung.futter": "Three-jaw chuck Ø {d} (lifts the part by {hoehe} {mm}), clamped {tiefe} {mm} from below",
     "eb.aufspannung": "Setup {nummer} – {name}",
     "eb.ebene": "Plane “{name}” – {rundachsen}",
     "eb.ohne_ebene": "Without tilting",

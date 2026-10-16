@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-23 futterkoerper (W-021, Stufe 3)
+
+### EINGELESEN
+- W-021, offen nach Stufe 2: Der Futterkörper fehlte unter dem runden Rohling. Er hebt das Teil
+  über den Tisch.
+
+### DATEIEN
+- `camaddon/spannung.py`:
+  - `FUTTER`: übliche Dreibackenfutter (Ø, Höhe) von 80 × 50 bis 315 × 120.
+  - `futter_masse(radius)`: das kleinste, über das die Backen nicht hinausragen.
+  - `futter_hoehe(job)`: 0 ohne runden Rohling, ohne Spannung oder bei einer Stange im Futter der
+    Rundachse.
+  - `_futter`: der Körper unter dem Rohling (Oberseite an seiner Unterseite), darauf die drei
+    Backen. So kommt er über `schraubstock()` ins Bild des Abfahrens und in die Kollision.
+- `camaddon/reichweite.py`: `vorschlag_nullpunkt` hebt einen runden Rohling im Futter um dessen
+  Höhe.
+- `camaddon/einrichtblatt.py`, `translations/de.json`, `en.json`: „Dreibackenfutter Ø 125 (hebt das
+  Teil um 66 mm), 5 mm von unten gespannt“.
+- `help/de|en/bearbeitung.html`: das Futter bei „Von unten gespannt“.
+- Tests:
+  - `tests/test_spannung.py`: Futter Ø 125 × 66 unter dem Rohling Ø 60, nicht im Rohling;
+    Nullpunkt-Vorschlag Z 66; Maße klein und groß.
+  - `tests/test_einrichtblatt.py`: der neue Satz.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_spannung`, `test_einrichtblatt`.
+- Gesehen im Szenario (C-Ring, Zylinder, 3 mm gespannt, „Auf der Maschine prüfen“): Das Futter
+  steht blau auf dem Tisch, der Ring obendrauf, Nullpunkt-Vorschlag Z 69.
+- Zum Ausprobieren: „Bearbeitung“ am C-Ring mit „Zylinder mit Aufmaß“ und „Von unten gespannt“ 3,
+  „Anlegen“, dann „Auf der Maschine prüfen“. Unter dem Ring steht das Futter; Z im Nullpunkt ist
+  um 66 höher als ohne.
+
 ## P-2026-10-16-22 einrichtblatt-halterbild (W-019)
 
 ### EINGELESEN
