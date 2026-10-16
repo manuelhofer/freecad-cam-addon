@@ -1100,15 +1100,19 @@ def planen(
                 noetig = ziel_a < vorige - vb.GLEICH
             hoehe = roh + zugabe
             lage_a = np.maximum(lage, ziel_a)  # schräg: die Lage, nie unter der Fläche
+            # Wo der Fräser in der Lage stehen darf: nichts höher als sie (mit Aufmaß und
+            # Toleranz) – oder nichts höher als die Fläche selbst. Am Rand der Fläche liegt die
+            # Oberkante der Nachbarfläche genau auf ihrer Höhe; mit der Toleranz galt sie als höher,
+            # und der letzten Lage fehlte dort ein Stück jeder Zeile – am Drehteil blieb vorn
+            # Rohteil stehen, durch das der Eilgang danach fuhr (B-026).
+            steht = (hoehe <= lage_a[None, :] + vb.GLEICH) | (roh <= ziel_a[None, :] + vb.GLEICH)
             # Zeilen, deren ebene Stirn in dieser Lage noch die Stange trifft.
             w_lage = math.sqrt(max(w.stange_radius**2 - lage * lage, 0.0))
             zeilen_da = np.abs(q_zeilen) - r_eben < w_lage - vb.GLEICH
-            drin = (
-                (hoehe <= lage_a[None, :] + vb.GLEICH) & frei & zeilen_da[:, None] & noetig[None, :]
-            )
+            drin = steht & frei & zeilen_da[:, None] & noetig[None, :]
             # Wo der Fräser in dieser Lage stehen darf, ohne ins Teil zu fahren, und darüber
             # nichts mehr steht (nach dem Schruppen): dort taucht er in der Luft ein.
-            luft = (hoehe <= lage_a[None, :] + vb.GLEICH) & frei & zeilen_da[:, None]
+            luft = steht & frei & zeilen_da[:, None]
             if not schlichtlage:
                 luft &= ~(oben_grob > lage_a[None, :] + vb.GLEICH)
             if not schlichtlage:  # nur, wo über der Lage noch Material steht
@@ -1122,8 +1126,9 @@ def planen(
                 continue
             mit_luecke = np.zeros((len(q_zeilen), anzahl + 2), dtype=bool)
             mit_luecke[:, 1:-1] = drin
-            erlaubt_zw = (roh_zw + zugabe <= lage_a[None, :] + vb.GLEICH) & (
-                ~ragt[None, :] | (roh_zw <= ziel_a[None, :] + vb.GLEICH)
+            auf_flaeche_zw = roh_zw <= ziel_a[None, :] + vb.GLEICH
+            erlaubt_zw = ((roh_zw + zugabe <= lage_a[None, :] + vb.GLEICH) | auf_flaeche_zw) & (
+                ~ragt[None, :] | auf_flaeche_zw
             )
             zwischen = np.ones((max(len(q_zeilen) - 1, 0), anzahl), dtype=bool)
             for k, m in enumerate(zw_von):
@@ -1230,7 +1235,7 @@ def planen(
                 warten = spaeter
                 # Wo der Fräser in dieser Lage stehen darf (nicht ins Teil) – für die Helix der
                 # Einfahrt (_helix_platz).
-                stehen = (hoehe <= lage_a[None, :] + vb.GLEICH) & frei & zeilen_da[:, None]
+                stehen = steht & frei & zeilen_da[:, None]
                 feld = (
                     np.asarray(q_zeilen, dtype=float),
                     a_von,

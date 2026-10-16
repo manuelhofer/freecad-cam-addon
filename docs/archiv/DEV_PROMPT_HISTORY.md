@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-57 plan-indexiert-rand-und-flanke (B-026)
+
+### EINGELESEN
+- Der volle Szenario-Lauf der Nacht: `szenario_vierachs_drehteil` rot (schon vor P-2026-10-16-01):
+  „In „Plan indexiert T1“ fährt die Schneide von T1 im Eilgang durch Rohteil, das dort noch steht –
+  bis 1,53 mm tief (Satz 43, bei X Ø 36, Y −4,98, Z 4,25, C 180)“.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: Der Fräser darf in der Lage auch stehen, wo nichts höher ist
+  als die Fläche selbst (`steht`, wie das Räumen). Am vorderen Rand der Abflachung liegt die
+  Oberkante der Stirnfläche genau auf der Zielhöhe 12; mit der Toleranz (0,01) galt sie als höher.
+  Der letzten Lage fehlte dort ein Stück jeder Zeile (Z 4,25 … −4,25): Die Zeile lief vorn bis
+  4,25, zog im Eilgang hoch, der Rest kam als eigene Fahrt mit Helix.
+- `camaddon/restmaterial.py`: Im Modell der Stange trifft ein Strahl einen Fräser mit Versatz quer
+  auch an seiner Flanke über der Spitze, nicht nur an der Ebene der Spitze. Die Spalten reichen
+  dafür bis zur Werkzeugachse. Ohne die Flanke stand neben einer versetzten Zeile im Modell noch
+  Material, das die Flanke längst weggenommen hatte – der Rückzug längs der Werkzeugachse fuhr
+  scheinbar hindurch (nachgestellt: 1,534 mm wie gemeldet, jetzt 0).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_vierachs_drehteil`, `szenario_vierachs_plan`,
+  `szenario_plan_gleichlauf`, `szenario_vierachs_sechskant`, `szenario_vierachs_mantelnut`,
+  `szenario_vierachs_nut`, `szenario_vierachs_querbohrung`, `szenario_pruefen_ausspannen`,
+  `szenario_pruefen_im_takt`, `szenario_vierachs_nocke`, `szenario_rundum_drehmaschine`,
+  `szenario_vierachs_radialbohren`, `szenario_vierachs_schruppen`; `test_vierachs_plan`,
+  `test_restmaterial`, `test_rest`, `test_vierachs_pruefen`, `test_schraeg_abtrag`.
+
 ## P-2026-10-16-56 wechselpunkt-oben-und-kehren-mit-ort
 
 ### EINGELESEN

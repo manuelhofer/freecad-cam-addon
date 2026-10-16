@@ -167,9 +167,10 @@ class Stange:
         if radius <= 0 or not drin.any():
             return
         a_t, r_t, phi_t, q_t = a_t[drin], np.maximum(r_t[drin], 1e-6), phi_t[drin], q_t[drin]
-        # Weiter weg trifft kein Strahl den Fräser: von q − R bis q + R quer.
-        von_winkel = np.arctan((q_t - radius) / r_t)
-        bis_winkel = np.arctan((q_t + radius) / r_t)
+        # Weiter weg trifft kein Strahl den Fräser: von q − R bis q + R quer – und, bei Versatz,
+        # bis zur Werkzeugachse hin: Dort trifft der Strahl über der Spitze die Flanke (_block).
+        von_winkel = np.minimum(np.arctan((q_t - radius) / r_t), 0.0)
+        bis_winkel = np.maximum(np.arctan((q_t + radius) / r_t), 0.0)
         zeilen = int(math.ceil(2 * radius / self._schritt_a)) + 2
         spalten = int(math.ceil(float((bis_winkel - von_winkel).max()) / self._schritt_phi)) + 3
         je = max(1, ZELLEN_JE_BLOCK // (zeilen * spalten))
@@ -205,11 +206,32 @@ class Stange:
         gueltig = zeile_da[:, :, None] & spalte_da[:, None, :]
         alle = self.r.reshape(-1)
         if form is None or form.eben:
-            # Wo der Strahl die Ebene der Spitze trifft, quer von der Werkzeugachse gemessen.
-            quer = np.abs(r_t[:, None] * np.tan(delta) - q_t[:, None])
-            seitlich = np.sqrt(np.maximum(radius * radius - d * d, 0.0))
-            trifft = quer[:, None, :] <= seitlich[:, :, None]
-            bis_hier = np.where(trifft, (r_t[:, None] / np.cos(delta))[:, None, :], np.inf)
+            # Wo der Strahl in den Fräser kommt: durch die Ebene der Spitze – oder, mit Versatz
+            # quer (Plan indexiert), darüber durch seine Flanke. Quer zur Werkzeugachse liegt der
+            # Fräser von q − s bis q + s (s: seine halbe Breite in der Zeile); der Strahl ist im
+            # Abstand t dort quer bei t · sin Δ und längs bei t · cos Δ, vor der Spitze nicht.
+            # Ohne die Flanke stand neben einer versetzten Zeile im Modell noch Material, das die
+            # Flanke längst weggenommen hatte – der Rückzug längs der Werkzeugachse fuhr dann
+            # scheinbar hindurch („im Eilgang durch Rohteil“ am Drehteil, B-026).
+            seitlich = np.sqrt(np.maximum(radius * radius - d * d, 0.0))[:, :, None]
+            sin = np.sin(delta)[:, None, :]
+            cos = np.cos(delta)[:, None, :]
+            q = q_t[:, None, None]
+            ab_spitze = r_t[:, None, None] / cos
+            with np.errstate(divide="ignore", invalid="ignore"):
+                grenze_1 = (q - seitlich) / sin
+                grenze_2 = (q + seitlich) / sin
+            klein = np.abs(sin) < 1e-12
+            # Fast genau längs der Werkzeugachse: quer bei 0 – drin, wenn 0 im Fräser liegt.
+            mitte_drin = (q - seitlich <= 0.0) & (q + seitlich >= 0.0)
+            von = np.where(
+                klein, np.where(mitte_drin, -np.inf, np.inf), np.minimum(grenze_1, grenze_2)
+            )
+            bis = np.where(
+                klein, np.where(mitte_drin, np.inf, -np.inf), np.maximum(grenze_1, grenze_2)
+            )
+            eintritt = np.maximum(ab_spitze, von)
+            bis_hier = np.where(eintritt <= bis + 1e-9, eintritt, np.inf)
         else:
             bis_hier = _stirn(form, r_t, d, delta, gueltig, alle[zelle], q_t)
         da = gueltig & np.isfinite(bis_hier)
