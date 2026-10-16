@@ -107,9 +107,12 @@ pruefe(
 )
 # Gegen die Hüllfläche rechnet das Teil ohne die Wände und ihre Nachbarn: hier alles.
 pruefe(len(kb.ohne_flaechen(teil, waende)) == 15, f"ohne: {kb.ohne_flaechen(teil, waende)}")
+# Eine Außenwand allein: dazu Ober- und Unterseite und die beiden Seiten an den Blockecken – dort
+# biegen sie von der freien Seite weg (Außenecken), der Fräser berührt sie höchstens an der Kante;
+# vorher hielt das Raster die Bahn r vor der Ecke an, das Wandende blieb stehen (P-2026-10-16-03).
 nur_eine = kb.waende(teil, ["Face2"])
 pruefe(
-    set(kb.ohne_flaechen(teil, nur_eine)) == {"Face2", "Face3", "Face5"},
+    set(kb.ohne_flaechen(teil, nur_eine)) == {"Face1", "Face2", "Face3", "Face5", "Face6"},
     f"ohne (eine Wand): {kb.ohne_flaechen(teil, nur_eine)}",
 )
 print("Waende ok")

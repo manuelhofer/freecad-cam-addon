@@ -421,9 +421,9 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    *Gemessen (2026-10-16, Kopie seines Jobs, frische 3-Achs-Fräse):* Planfräsen nur 8 % Luft – die
    19 min kommen vom Einsatz „Planen“ (ap 0,4) in den 4 mm tiefen Nuten (zehn Lagen); ob dort
    Räumen oder „Nut“ schneller wäre, erst messen und mit Bild zeigen (Strategiewahl). Kontur 46 %
-   Luft – *erledigt:* P-2026-10-16-02 (Materialstand je Wandzug: 8,6 → 5,5 min, 22 % Luft). Offen:
-   an den Wänden des Rings bleiben 115 von 1088 Proben 0,15 mm vor der Wand mit Material (schon
-   vorher so) – nachsehen, wo (Ecken der Schlitze? oben über −4?).
+   Luft – *erledigt:* P-2026-10-16-02 (Materialstand je Wandzug: 8,6 → 5,5 min, 22 % Luft). Die 115 von
+   1088 Wandproben mit Material (die Schlitzenden ohne Schlichtzug) – *erledigt:* P-2026-10-16-03
+   (Außenecken in `ohne_flaechen`): 0 von 1088.
 4. **B-020** „Konnte nicht anlegen: PropertyLink does not support external object“ (Bearbeitung,
    eine neue 3-Achs-Fräse als eigenes Dokument offen, ein halber Job „Body – Fräsen“ und ein loses
    „TC: 5mm Endmill“ im Baum) – nicht nachgestellt; beim nächsten Mal steht die Fehlerspur im

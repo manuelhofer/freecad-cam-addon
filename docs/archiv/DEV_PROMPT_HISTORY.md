@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-03 kontur-wandende-an-aussenecken
+
+### EINGELESEN
+- Weiter an Manuels Ring (Snapshot): Nach P-2026-10-16-02 blieben 115 von 1088 Proben 0,15 mm vor
+  den gewählten Wänden mit Material (schon vorher so). Nachgesehen: alle an den Enden der drei
+  Schlitze – dort hörte der Schlichtzug (Fräsermitte im Abstand R) gut 3 mm vor dem Wandende auf,
+  das Aufmaß 0,3 mm blieb über die ganze Höhe stehen.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `ohne_flaechen` blendet nahe der Wand auch die Flächen aus, die an
+  einer senkrechten Kante eine Außenecke bilden (`_aussenecke`: der Nachbar liegt von der Kante
+  aus hinter der Wand, weg von ihrer freien Seite – gemessen in halber Höhe). Ursache am Ring: Die
+  Schlitzwand stößt am Ende an die nicht gewählte Außenfläche (Face5, Oberkante z −1); im Raster
+  der Hüllfläche (0,5 mm, das Höchste von vier Knoten, Zugabe) lag diese Kante nur ein paar
+  Zehntel neben dem Schlichtzug, der sie im Abstand R gerade berührt – „nicht erlaubt“. Innere Ecken
+  (der Nachbar knickt zur Bahn hin) halten den Fräser weiter an. Auch das Entgraten nutzt
+  `ohne_flaechen`.
+- `tests/test_kontur.py`: Eine Außenwand des Blocks allein schließt jetzt auch die beiden Seiten an
+  den Blockecken aus (vorher blieb dort das Wandende stehen).
+- `package.xml` (0.260.3).
+
+### ERGEBNIS
+- Manuels Ring: 0 von 1088 Wandproben mit Material (vorher 115), Kontur 5,5 → 5,1 min, nirgends ins
+  Teil.
+- Grün im Wochen-Build: `test_kontur`, `test_pruefstand` (ohne neue Bestmarken), `test_materialstand`,
+  `test_testteil`, `test_rest`, `test_nut`, `test_nut_offen`, `test_raeumen`, `test_entgraten`,
+  `test_entgraten3d`, `test_vierachs_entgraten`, `test_bohrung`; Szenarien `kontur`,
+  `kontur_materialstand`. In 1.1.4: `test_kontur`, `test_pruefstand`.
+
 ## P-2026-10-16-02 kontur-materialstand-je-zug-und-last-beim-einfahren
 
 ### EINGELESEN

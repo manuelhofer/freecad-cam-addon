@@ -19,9 +19,10 @@ Ausfahren, Schruppen in Lagen mit Aufmaß und Schlichten in einem Zug.
   (EINFAHRT_ANTEIL · R) auf der freien Seite; passt das nicht (Hüllfläche, oder es käme einer
   Wand der Konturen näher als die Bahn darf – Radius plus Aufmaß), kürzer, zuletzt senkrecht. Im Material über die Rampe (vierachs_bahn._rampe) längs der Bahn, in der Luft
   senkrecht mit dem Eintauchvorschub.
-- Die Hüllfläche (hoehenfeld.je_zeile im Raster – das Teil ohne die Wände und ohne die Flächen
-  an ihren waagerechten Kanten, ohne_flaechen()) hält jede Bahn vor Absätzen und anderen Wänden
-  an; wo kein Rohteil liegt, fährt keine Bahn (Grundsatz 5); beim Austritt aus dem Rohteil
+- Die Hüllfläche (hoehenfeld.je_zeile im Raster – das Teil ohne die Wände, ohne die Flächen
+  an ihren waagerechten Kanten und ohne die, die an einer senkrechten Kante eine Außenecke
+  bilden, ohne_flaechen()) hält jede Bahn vor Absätzen und anderen Wänden an, die zur Bahn hin
+  abknicken; wo kein Rohteil liegt, fährt keine Bahn (Grundsatz 5); beim Austritt aus dem Rohteil
   langsamer.
 - Mit Materialstand (W-012, materialstand): Was die Operationen davor schon weggenommen haben,
   fräst sie nicht noch einmal. Zeigt er dort, wohin die Stirn kommt, nicht überall das ganze
@@ -224,10 +225,13 @@ def _wand(form, nummer):
 
 
 def ohne_flaechen(form, waende_):
-    """Die Namen der Flächen, gegen die die Hüllfläche nicht rechnet: die Wände selbst und die
-    Flächen an ihren waagerechten Kanten (Boden, Oberseite) – der Fräser fährt genau im Abstand
-    seines Radius an der Wand entlang und berührt deren Kanten; alles andere (Absätze, nicht
-    gewählte Wände) hält ihn an."""
+    """Die Namen der Flächen, gegen die die Hüllfläche nicht rechnet: die Wände selbst, die
+    Flächen an ihren waagerechten Kanten (Boden, Oberseite) und die an einer senkrechten Kante,
+    die dort eine Außenecke bilden – der Fräser fährt genau im Abstand seines Radius an der Wand
+    entlang und berührt deren Kanten und Ecken; alles andere (Absätze, nicht gewählte Wände,
+    die zur Bahn hin abknicken) hält ihn an. Ohne die Außenecken hielt das Raster den Schlichtzug
+    gut 3 mm vor dem Ende einer Wand an, wo sie an eine nicht gewählte Außenfläche stößt (Manuels
+    Ring: die Schlitzenden blieben mit dem Aufmaß stehen)."""
     import Part
 
     nummern = ft.nummern(form)
@@ -236,13 +240,45 @@ def ohne_flaechen(form, waende_):
         ergebnis.add(wand.name)
         for kante in wand.flaeche.Edges:
             zs = [v.Point.z for v in kante.Vertexes]
-            if max(zs) - min(zs) > NAH:
-                continue
+            senkrecht = max(zs) - min(zs) > NAH
             for nachbar in form.ancestorsOfType(kante, Part.Face):
                 i = nummern.get(nachbar.hashCode())
-                if i is not None:
-                    ergebnis.add(f"Face{i + 1}")
+                if i is None or (senkrecht and not _aussenecke(wand.flaeche, nachbar, kante)):
+                    continue
+                ergebnis.add(f"Face{i + 1}")
     return sorted(ergebnis, key=lambda n: int(n[4:]))
+
+
+def _aussenecke(wand, nachbar, kante):
+    """Bilden `wand` und `nachbar` an der (senkrechten) `kante` eine Außenecke – geht der Nachbar
+    von der Kante weg hinter die Wand, weg von ihrer freien Seite? Dann berührt der Fräser, der
+    vor der Wand entlangfährt, ihn höchstens an der Kante. Gemessen in halber Höhe: die Normale
+    der Wand dort (aus dem Material) gegen die Richtung, in der der Nachbar von der Kante weg
+    liegt."""
+    import Part
+
+    if nachbar.isSame(wand):
+        return False
+    try:
+        a, b = kante.ParameterRange
+        mitte = kante.valueAt(0.5 * (a + b))
+        u, v = wand.Surface.parameter(mitte)
+        normale = wand.normalAt(u, v)
+        un, vn = nachbar.Surface.parameter(mitte)
+        u0, u1, v0, v1 = nachbar.ParameterRange
+    except Exception:  # noqa: BLE001 – eine Fläche, die sich so nicht befragen lässt: nicht weg
+        return False
+    schritt_u, schritt_v = 1e-3 * max(u1 - u0, NAH), 1e-3 * max(v1 - v0, NAH)
+    for du, dv in ((schritt_u, 0.0), (-schritt_u, 0.0), (0.0, schritt_v), (0.0, -schritt_v)):
+        punkt = nachbar.valueAt(un + du, vn + dv)
+        richtung = punkt - mitte
+        richtung.z = 0.0
+        if richtung.Length < NAH or not nachbar.isInside(punkt, 1e-4, True):
+            continue
+        if kante.distToShape(Part.Vertex(punkt))[0] < NAH:
+            continue
+        return richtung.dot(normale) < -NAH * richtung.Length
+    return False
 
 
 def boeden_vor(form, namen):
