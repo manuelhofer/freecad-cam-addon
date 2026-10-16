@@ -46,3 +46,21 @@ beginnt an der Stufe (x 16, im Material) und läuft nach außen; andersherum, vo
 (x 61, Luft), käme sie ohne Eintauchen hinein (die Richtung legt
 `planfraesen_bahn._zellenfahrten` fest). – seit 2026-10-16
 
+**4. Soll Räumen Bohrung und Schlitz bis durch räumen, statt die Kontur sie ausfahren zu lassen?**
+Manuel am C-Ring: „bis zuur mitte die D's noch weiter fahren und dann mit den reisen rausfahren“.
+Bild mit Zahlen: [cring_schlitz_bohrung.png](bilder/vorschlaege/cring_schlitz_bohrung.png)
+(Beispiel-C-Ring, Mantel, Bohrung und Schlitz gewählt, Schaftfräser Ø 8, ap 16, ae 1).
+- Heute fährt dort die Kontur. Sie räumt die Bohrung allein aus: 7,1 min, Last bis 8,1 ae, 63 mm
+  im Vollschnitt, 27 Rampen, 42 % Luft.
+- Räumen bis durch (adaptiv, der Boden 0,5 mm unter dem Teil) fährt genau seinen Weg: D-Bögen
+  von außen durch den Schlitz, in der Bohrung von der Mündung aus größer werdende Bögen, nirgends
+  eintauchen. 4,2 min, Last bis 2,5 ae, kein Vollschnitt.
+- Mit Ø 12 passt kein Fräser durch den 11,7 mm breiten Schlitz; Räumen taucht dann in der Bohrung
+  mit der Helix ein (2,8 statt 5,35 min).
+
+*Warum nur Manuel:* Für Wände, die durch das Teil gehen, trat bisher nur die Kontur an. Räumen dort
+antreten zu lassen ist eine neue Strategiewahl.
+*Was die Antwort ändert:* Bei „ja“ tritt an gewählten durchgehenden Wänden Räumen bis durch gegen
+die Kontur an (die Zeit entscheidet), und „Schlichten danach“ macht die Wände fertig. Bei „nein“
+bleibt die Kontur, und ihre Last in der Bohrung bleibt ein eigener Punkt. – seit 2026-10-16
+
