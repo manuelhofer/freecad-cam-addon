@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-32 kein-entgraten-als-fertigmacher
+
+### EINGELESEN
+- Gesehen im Szenario `szenario_bearbeitung_drehmaschine`: An der Stirn einer Welle stand rot
+  „Nicht fertig: Face2 – … Dafür anhaken: „Entgraten 3D““. Entgraten bricht nur die Kanten, die
+  Fläche macht es nicht fertig.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `_unfertige`: Entgraten und Entgraten 3D sind kein Vorschlag mehr,
+  eine Fläche fertig zu machen. Angehakt zählen sie weiter (wer nur entgraten will, sieht keine
+  rote Zeile).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_bearbeitung_drehmaschine`, `szenario_flanke`,
+  `szenario_raeumen_schlichten`.
+- An der Welle steht jetzt „Nicht fertig: Face2 – … keine angebotene macht sie hier fertig.“
+
 ## P-2026-10-16-31 satz-drehmaschine
 
 ### EINGELESEN

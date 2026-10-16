@@ -6375,7 +6375,16 @@ class BearbeitungPanel:
         for name in self.gewaehlte:
             if name in fertig or not any(b.s.passt(form, name) for b in self.bloecke):
                 continue
-            koennten = [b for b in self.bloecke if not b.aktiv() and name in je_block.get(b, ())]
+            # Entgraten bricht nur die Kanten: Angehakt zählt die Fläche als bearbeitet, als
+            # Vorschlag, sie fertig zu machen, taugt es nicht (an der Stirn einer Welle stand
+            # sonst „Dafür anhaken: „Entgraten 3D““).
+            koennten = [
+                b
+                for b in self.bloecke
+                if not b.aktiv()
+                and name in je_block.get(b, ())
+                and b not in (self.entgraten, self.entgraten3d)
+            ]
             ergebnis.append((name, koennten))
         return ergebnis
 
