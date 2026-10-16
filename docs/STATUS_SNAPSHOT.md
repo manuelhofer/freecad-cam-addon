@@ -497,8 +497,10 @@ T1 Ø 12.
    die Bögen von der Schlitzmündung aus immer größer, bis der Kreis frei ist; die Rückwege laufen
    im Schnellvorschub quer. Unser Räumen fährt so ähnlich (adaptiv), sobald der Fräser durch den
    Schlitz passt: Am C-Ring mit Ø 6 ging es durch den Schlitz in die Bohrung. Mit Ø 12 tauchte es
-   in der Mitte mit einer Helix ein. Nachsehen, ob das mit dem passenden Fräser (P-2026-10-16-05)
-   schon so aussieht, und die Bögen in der Bohrung mit seinem Bild vergleichen.
+   in der Mitte mit einer Helix ein. *Nachgerechnet (2026-10-16, Bild und Zahlen: Frage 4 in
+   `OFFENE_FRAGEN.md`):* Räumen bis durch fährt mit Ø 8 genau seinen Weg (4,2 min, bis 2,5 ae,
+   keine Rampe); heute fährt dort die Kontur (7,1 min, bis 8,1 ae, 63 mm Vollschnitt). Ob Räumen
+   an durchgehenden Wänden antreten darf, ist Manuels Entscheidung.
 4. **„Anlegen“ schon in Schritt 1** (Bild: „Schritt 1 von 3 – Aufspannung“, oben „Anlegen“
    klickbar): „das anlegen sollte erst frei sein wenn alle angaben gemacht worden sind“.
    *Erledigt im Assistenten „Bearbeitung“:* P-2026-10-16-09. *Nachgesehen (2026-10-16):* Der
