@@ -894,6 +894,7 @@
     "eb.kuehlung.luft": "air",
     "eb.register": "Work offset",
     "eb.sp.kuehlung": "Coolant",
+    "eb.bilder_stand": "Pictures of the setups: {fertig} of {gesamt} …",
     "eb.fenster": "Setup sheet – {job}",
     "eb.kein_job": "Click a job first (or an object in it) – the document has no single one.",
     "eb.titel": "Setup sheet: {dokument}",

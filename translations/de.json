@@ -894,6 +894,7 @@
     "eb.kuehlung.luft": "Luft",
     "eb.register": "Nullpunkt-Register",
     "eb.sp.kuehlung": "Kühlung",
+    "eb.bilder_stand": "Bilder der Aufspannungen: {fertig} von {gesamt} …",
     "eb.fenster": "Einrichtblatt – {job}",
     "eb.kein_job": "Erst einen Job anklicken (oder ein Objekt in ihm) – im Dokument gibt es keinen eindeutigen.",
     "eb.titel": "Einrichtblatt: {dokument}",

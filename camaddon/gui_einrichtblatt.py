@@ -9,7 +9,7 @@ import tempfile
 
 import FreeCAD
 import FreeCADGui
-from PySide import QtGui
+from PySide import QtCore, QtGui
 
 from . import VERSION, einheiten, symbol
 from . import einrichtblatt as eb
@@ -47,12 +47,17 @@ class EinrichtblattDialog(QtGui.QDialog):
         self.job = job
         self.setWindowTitle(tr("eb.fenster", job=job.Label))
         self.blatt = eb.blatt(job, datetime.date.today().isoformat(), VERSION)
-        self._bilder_machen()
+        self._ordner = tempfile.mkdtemp(prefix="einrichtblatt_")
+        self._werkzeugbilder(self._ordner)
         self.text = eb.html(self.blatt, tr, _laenge, _minuten)
         aufbau = QtGui.QVBoxLayout(self)
         self.vorschau = QtGui.QTextBrowser()
         self.vorschau.setHtml(self.text)
         aufbau.addWidget(self.vorschau)
+        self.stand = QtGui.QLabel()
+        self.stand.setStyleSheet("color: gray;")
+        self.stand.hide()
+        aufbau.addWidget(self.stand)
         knoepfe = QtGui.QHBoxLayout()
         self.knopf_pdf = QtGui.QPushButton(tr("eb.pdf"))
         self.knopf_pdf.clicked.connect(lambda: self.als_pdf())
@@ -68,44 +73,106 @@ class EinrichtblattDialog(QtGui.QDialog):
         knoepfe.addWidget(schliessen)
         aufbau.addLayout(knoepfe)
         self.resize(820, 900)
+        # Die Bilder der Aufspannungen kommen nach und nach (je eins ~0,75 s; an einer 8-Kant-Kette
+        # stand das Fenster sonst 6 s, bevor es aufging): je Takt der Ereignisschleife eins.
+        self._ansicht = self._dokument_gui = None
+        self._wuerfel = self._geaendert = None
+        self._offen_bilder = self._bilder_liste()
+        self._gesamt = len(self._offen_bilder)
+        self.bilder_fertig = not self._offen_bilder
+        self._uhr = QtCore.QTimer(self)
+        self._uhr.setSingleShot(True)
+        self._uhr.timeout.connect(self._naechstes_bild)
+        if self._offen_bilder:
+            self._bilder_beginnen()
 
-    def _bilder_machen(self):
-        """Die Bilder der Werkzeuge (_werkzeugbilder) und je Aufspannung eins der 3D-Ansicht
-        (_bild_der_aufspannung). Der Navigationswürfel gehört nicht aufs Blatt: über die
-        Einstellung aus und wieder an – nicht über `ansicht.getViewer()`, das ließ FreeCAD 1.1.4
-        beim Schließen der Ansicht abstürzen (B-011)."""
-        ordner = tempfile.mkdtemp(prefix="einrichtblatt_")
-        self._werkzeugbilder(ordner)
-        dokument = ansicht = None
+    def _bilder_liste(self):
+        """[(Aufspannung, Lage oder None, Job, mit Backen, Pfad)] – je Aufspannung ihr Bild, je
+        geschwenkte Ebene (3+2) ihres: ihr Job, das Teil so gedreht, wie es die Ebene sieht, ohne
+        Backen (die stehen im Rahmen des Grundjobs)."""
+        liste = []
+        for i, aufspannung in enumerate(self.blatt.aufspannungen):
+            pfad = os.path.join(self._ordner, f"aufspannung_{i + 1}.png")
+            liste.append((aufspannung, None, aufspannung.job, True, pfad))
+            for k, (lage, ebene) in enumerate(aufspannung.ebenen.items(), 1):
+                pfad = os.path.join(self._ordner, f"aufspannung_{i + 1}_ebene_{k}.png")
+                liste.append((aufspannung, lage, ebene, False, pfad))
+        return liste
+
+    def _bilder_beginnen(self):
+        """Die 3D-Ansicht für die Bilder vorbereiten. Der Navigationswürfel gehört nicht aufs
+        Blatt: über die Einstellung aus (und am Ende wieder an) – nicht über `ansicht.getViewer()`,
+        das ließ FreeCAD 1.1.4 beim Schließen der Ansicht abstürzen (B-011)."""
         with _ignoriert():
-            dokument = FreeCADGui.getDocument(self.job.Document.Name)
-            ansicht = dokument.mdiViewsOfType("Gui::View3DInventor")[0]
-        if ansicht is None:
+            self._dokument_gui = FreeCADGui.getDocument(self.job.Document.Name)
+            self._ansicht = self._dokument_gui.mdiViewsOfType("Gui::View3DInventor")[0]
+        if self._ansicht is None:
+            self._offen_bilder = []
+            self.bilder_fertig = True
             return
-        ansicht_einstellungen = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/View")
-        wuerfel = ansicht_einstellungen.GetBool("ShowNaviCube", True)
-        geaendert = getattr(dokument, "Modified", None)
-        try:
-            if wuerfel:
-                ansicht_einstellungen.SetBool("ShowNaviCube", False)
-            for i, aufspannung in enumerate(self.blatt.aufspannungen):
-                pfad = os.path.join(ordner, f"aufspannung_{i + 1}.png")
-                with _ignoriert():
-                    if self._bild(ansicht, aufspannung.job, pfad):
-                        aufspannung.bild = pfad
-                # Je geschwenkte Ebene (3+2) ihr eigenes Bild: ihr Job, das Teil so gedreht, wie
-                # es die Ebene sieht – ohne Backen (die stehen im Rahmen des Grundjobs).
-                for k, (lage, ebene) in enumerate(aufspannung.ebenen.items(), 1):
-                    pfad = os.path.join(ordner, f"aufspannung_{i + 1}_ebene_{k}.png")
-                    with _ignoriert():
-                        if self._bild(ansicht, ebene, pfad, mit_backen=False):
-                            aufspannung.ebenen_bilder[lage] = pfad
-        finally:
-            if wuerfel:
-                ansicht_einstellungen.SetBool("ShowNaviCube", True)
-            if geaendert is False:  # nur gezeigt und versteckt: das Dokument bleibt ungeändert
-                with _ignoriert():
-                    dokument.Modified = False
+        einstellungen = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/View")
+        self._wuerfel = einstellungen.GetBool("ShowNaviCube", True)
+        if self._wuerfel:
+            einstellungen.SetBool("ShowNaviCube", False)
+        self._geaendert = getattr(self._dokument_gui, "Modified", None)
+        self._stand_zeigen()
+        self._uhr.start(0)
+
+    def _stand_zeigen(self):
+        fertig = self._gesamt - len(self._offen_bilder)
+        self.stand.setText(tr("eb.bilder_stand", fertig=fertig, gesamt=self._gesamt))
+        self.stand.setVisible(bool(self._offen_bilder))
+
+    def _naechstes_bild(self):
+        """Ein Bild, dann die Seite neu (an derselben Stelle) – und das nächste im nächsten Takt."""
+        if not self._offen_bilder:
+            return
+        self._ein_bild(self._offen_bilder.pop(0))
+        balken = self.vorschau.verticalScrollBar()
+        stelle = balken.value()
+        self.text = eb.html(self.blatt, tr, _laenge, _minuten)
+        self.vorschau.setHtml(self.text)
+        balken.setValue(stelle)
+        if self._offen_bilder:
+            self._stand_zeigen()
+            self._uhr.start(0)
+        else:
+            self._bilder_beenden()
+
+    def _ein_bild(self, eintrag):
+        aufspannung, lage, job, mit_backen, pfad = eintrag
+        with _ignoriert():
+            if self._bild(self._ansicht, job, pfad, mit_backen=mit_backen):
+                if lage is None:
+                    aufspannung.bild = pfad
+                else:
+                    aufspannung.ebenen_bilder[lage] = pfad
+
+    def _bilder_beenden(self):
+        """Würfel wieder an, das Dokument ungeändert (nur gezeigt und versteckt)."""
+        self._uhr.stop()
+        if self._wuerfel:
+            FreeCAD.ParamGet("User parameter:BaseApp/Preferences/View").SetBool(
+                "ShowNaviCube", True
+            )
+            self._wuerfel = None
+        if self._geaendert is False:
+            with _ignoriert():
+                self._dokument_gui.Modified = False
+        self._offen_bilder = []
+        self.bilder_fertig = True
+        self.stand.hide()
+
+    def _bilder_abschliessen(self):
+        """Vor dem Speichern oder Drucken: die übrigen Bilder gleich, dann die Seite neu."""
+        if self.bilder_fertig:
+            return
+        self._uhr.stop()
+        while self._offen_bilder:
+            self._ein_bild(self._offen_bilder.pop(0))
+        self.text = eb.html(self.blatt, tr, _laenge, _minuten)
+        self.vorschau.setHtml(self.text)
+        self._bilder_beenden()
 
     def _bild(self, ansicht, job, pfad, mit_backen=True):
         """Teil, Rohteil und Bahnen von `job`, schräg von oben – die anderen Jobs dafür
@@ -191,6 +258,7 @@ class EinrichtblattDialog(QtGui.QDialog):
             )
         if not pfad:
             return None
+        self._bilder_abschliessen()
         drucken = _drucken_modul()
         drucker = drucken.QPrinter(drucken.QPrinter.HighResolution)
         drucker.setOutputFormat(drucken.QPrinter.PdfFormat)
@@ -199,6 +267,7 @@ class EinrichtblattDialog(QtGui.QDialog):
         return pfad
 
     def drucken(self):
+        self._bilder_abschliessen()
         drucken = _drucken_modul()
         drucker = drucken.QPrinter(drucken.QPrinter.HighResolution)
         dialog = drucken.QPrintDialog(drucker, self)
@@ -215,6 +284,7 @@ class EinrichtblattDialog(QtGui.QDialog):
             )
         if not pfad:
             return None
+        self._bilder_abschliessen()
         with open(pfad, "w", encoding="utf-8") as datei:
             datei.write(self.text)
         return pfad
@@ -225,6 +295,8 @@ class EinrichtblattDialog(QtGui.QDialog):
         return dokument
 
     def done(self, ergebnis):
+        if not self.bilder_fertig:  # mitten im Bildermachen geschlossen
+            self._bilder_beenden()
         EinrichtblattDialog.offen = None
         super().done(ergebnis)
 

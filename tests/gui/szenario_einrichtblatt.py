@@ -8,6 +8,7 @@
 import os
 import shutil
 import tempfile
+import time
 
 import FreeCAD
 import FreeCADGui as Gui
@@ -61,6 +62,8 @@ def schritte(h):
     yield from h.warte_auf(lambda: gui_einrichtblatt.EinrichtblattDialog.offen is not None, 30000)
     yield 1000
     dialog = gui_einrichtblatt.EinrichtblattDialog.offen
+    if dialog is not None:  # die Bilder der Aufspannungen kommen nach und nach
+        yield from h.warte_auf(lambda: dialog.bilder_fertig, 60000)
     h.pruefe(dialog is not None, "kein Fenster")
     if dialog is None:
         return
@@ -94,7 +97,8 @@ def schritte(h):
     h.pruefe(gui_einrichtblatt.EinrichtblattDialog.offen is None, "Fenster nicht zu")
     FreeCAD.closeDocument(doc.Name)
 
-    # Eine 6-Kant-Stange (W-018) mit ihren sechs Aufspannungen: je Aufspannung ein Abschnitt mit
+    # Eine 6-Kant-Stange (W-018) mit ihren sechs Aufspannungen: Das Fenster geht sofort auf (die
+    # Bilder kommen nach und nach); je Aufspannung ein Abschnitt mit
     # eigenem Bild (die anderen Jobs ausgeblendet, die Backen am Ende der Stange darin); danach
     # ist alles wieder sichtbar wie vorher, das Dokument gilt nicht als geändert, und weder im
     # Rückgängig noch im Baum bleibt etwas.
@@ -118,10 +122,14 @@ def schritte(h):
     sichtbar = {o.Name: o.ViewObject.Visibility for o in stange_doc.Objects if o.ViewObject}
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(grund)
+    beginn = time.time()
     Gui.runCommand("CamAddon_Einrichtblatt")
+    h.pruefe(time.time() - beginn < 2.0, f"Fenster erst nach {time.time() - beginn:.1f} s")
     yield from h.warte_auf(lambda: gui_einrichtblatt.EinrichtblattDialog.offen is not None, 30000)
     yield 1000
     dialog = gui_einrichtblatt.EinrichtblattDialog.offen
+    if dialog is not None:  # die Bilder der Aufspannungen kommen nach und nach
+        yield from h.warte_auf(lambda: dialog.bilder_fertig, 60000)
     h.pruefe(dialog is not None, "kein Fenster für die Stange")
     if dialog is None:
         return
@@ -192,6 +200,8 @@ def schritte(h):
     yield from h.warte_auf(lambda: gui_einrichtblatt.EinrichtblattDialog.offen is not None, 30000)
     yield 1000
     dialog = gui_einrichtblatt.EinrichtblattDialog.offen
+    if dialog is not None:  # die Bilder der Aufspannungen kommen nach und nach
+        yield from h.warte_auf(lambda: dialog.bilder_fertig, 60000)
     h.pruefe(dialog is not None, "kein Fenster für das Schwenkteil")
     if dialog is None:
         return

@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-36 einrichtblatt-bilder-nach-und-nach (W-019)
+
+### EINGELESEN
+- W-019: An der 6-Kant-Stange (sechs Aufspannungen, je ein Bild) stand FreeCAD mehrere Sekunden,
+  bevor das Fenster aufging – die Bilder wurden alle vorher gerechnet. Manuel ist das Fenster
+  wichtig, das nie laggen darf.
+
+### DATEIEN
+- `camaddon/gui_einrichtblatt.py`:
+  - Das Fenster geht sofort auf, mit den Werkzeugbildern (schnell) und Platzhaltern für die
+    Bilder der Aufspannungen und Ebenen.
+  - Die Bilder kommen eins nach dem anderen über einen Zeitgeber (`_naechstes_bild`); dazwischen
+    bedient sich FreeCAD normal. Nach jedem Bild wird die Vorschau neu gesetzt, die Stelle, an
+    der man liest, bleibt.
+  - Eine Zeile über der Vorschau sagt „Bilder der Aufspannungen: 2 von 6 …“; sie verschwindet,
+    wenn alle da sind.
+  - PDF, Drucken und HTML rechnen fehlende Bilder vorher fertig (`_bilder_abschliessen`);
+    Schließen bricht ab und stellt Sichtbarkeit, Navigationswürfel und „geändert“ wieder her.
+- `translations/de.json`, `en.json`: `eb.bilder_stand`.
+- `tests/gui/szenario_einrichtblatt.py`: Das Fenster der 6-Kant-Stange muss in unter 2 s offen
+  sein; die Prüfungen danach warten auf `bilder_fertig`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_einrichtblatt`.
+- Zum Ausprobieren: 6-Kant-Stange, Grundjob anklicken, „CAM-Addon → Einrichtblatt …“. Das
+  Fenster ist gleich da; oben zählt „Bilder der Aufspannungen: … von 6“ hoch, die Bilder
+  erscheinen nacheinander in den Abschnitten.
+
 ## P-2026-10-16-35 einrichtblatt-werkstoff-register-kuehlung (W-019)
 
 ### EINGELESEN

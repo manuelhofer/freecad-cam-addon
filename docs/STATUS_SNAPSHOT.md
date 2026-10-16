@@ -1200,7 +1200,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   HTML. Je Werkzeug mit Halter ein Bild von Halter und Fräser mit der Ausspannlänge
   (P-2026-10-16-22, das Bild der Halterverwaltung). Je Aufspannung ein eigenes Bild mit den
   Backen, die anderen Jobs ausgeblendet (P-2026-10-16-24), je geschwenkte Ebene eins an ihrer
-  Zwischenzeile (P-2026-10-16-34).
+  Zwischenzeile (P-2026-10-16-34). Das Fenster geht sofort auf, die Bilder kommen nach und nach
+  (P-2026-10-16-36).
 - **W-020 Spannmittel, die am Rohteil anliegen** – Manuel, 2026-10-12: „spannwerkzeuge will ich
   auch noch machen .. aber auch so das sie sich bewegen können und somit immer an das rohteil auch
   wirklich anliegen ... also ein schraubstock der dann mit seinen backen auch wirklich am rohteil
