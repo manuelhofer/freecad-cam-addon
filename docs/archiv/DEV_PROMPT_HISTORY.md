@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-07 bogennut-in-wellen
+
+### EINGELESEN
+- Manuel am C-Ring (`3_achs_c_ring_nut_testteil.FCStd`): Die Ringnut ist 10 breit, zum Schlitz hin
+  offen. „die offene nut kann man volle tiefe mit D's abarbeiten .. oder beide richtungen“;
+  „seitlich volle tiefe mit D's rein fahren … in gleich und gegenlauf so das man kaum
+  schnellvorschub hat sondern meist schneidet .. und zum schluss … die ränder abfahren“.
+- Die Nut kannte nur gerade Langlöcher. Räumen erreichte die Ringnut mit Ø 6 nur zu 35–64 %, weil
+  der Streifen für die Fräsermitte im Raster zerfällt.
+- Beim Test im Quader-Rohteil fiel auf: Offene Nuten fahren draußen vor dem Ende im Eilgang
+  hinab und prüften dabei nur das Teil. Steht dort noch Rohteil (der Schlitz am C-Ring ist noch
+  nicht gefräst, oder das Rohteil reicht über den Rand), führe der Fräser im Eilgang ins
+  Material.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`:
+  - `Nut.bogen` (Mitte, r_m, Winkel A/B); `_kreis_der_kontur`, `_bogennut` (zwei Bögen um eine
+    Mitte, freie Seiten zueinander, an beiden Enden Luft – `_frei_am_bogen`, `_durch_bogen`).
+  - `_bogennut_bahn`: rechnet die gestreckte Nut mit `_nut` und legt sie mit `_auf_den_bogen` auf
+    den Bogen (Stücke ≤ 0,25 mm, Drehsinn bleibt); der Schritt um r_m/(r_m+r) kleiner.
+  - `_maske_um` für den Materialstand längs des Bogens.
+  - `Nutwerte.wellen`: In `_boegen` schneidet jeder zweite Bogen zurück (Gegenlauf), statt quer im
+    Schnellvorschub zurückzufahren.
+  - `_offen_im_stand`: Steht dort, wo der Fräser draußen hinabfährt, im Materialstand noch
+    Material über dem Grund, gilt das Ende als geschlossen (Helix).
+- `camaddon/nut.py`: Eigenschaft „Wellen“ (alte Operationen: aus); `bahn_fuer`, `lege_an`,
+  `aendere` mit `wellen`.
+- `camaddon/gui_bearbeitung.py`:
+  - Block „Nut“: Haken „Gleich- und Gegenlauf (Wellen)“, angehakt.
+  - `_unerreicht` misst ohne den Rand der Fläche (`zielzeit.innen`). Sonst kam Räumen am Grund
+    der offenen Nut 16 breit nur auf 88 %, weil das Raster dort auf eine Zelle ungenau misst.
+- `camaddon/zielzeit.py`: `innen`.
+- `translations/de|en.json`: `ba.nut.wellen`, `ba.nut.wellen.tooltip`, `nt.eigenschaft.wellen`.
+- `tests/test_nut_offen.py` (g): Ring Ø 84 mit Ringnut und Schlitz.
+  - Erkannt als Bogennut.
+  - D-Bögen und Wellen mit gefrästem Schlitz: nirgends ins Teil, kein Eintauchen, keine Rampe,
+    Grund leer, Last ≤ 1,3 ae.
+  - Wellen ohne Schnellvorschub und schneller (3,15 statt 3,98 min).
+  - Im vollen Quader: die Helix, im Eilgang nichts.
+- `tests/gui/szenario_nut.py`, `szenario_nut_offen.py`: Wellen angehakt, G3 und G2.
+- `package.xml` (0.260.6).
+
+### ERGEBNIS
+- C-Ring im Assistenten (Kopie, seine Werkzeugverwaltung, Face8): „Nut“ gewinnt mit T3 Ø 6:
+  1 Lage, 205 Bögen, etwa 1 min. Weil der Schlitz im Quader noch voll ist, beginnt sie mit der
+  Helix am Ende. Der Nutgrund ist ganz überstrichen (0 von 4988 Proben fehlen).
+- Grün im Wochen-Build: `test_nut`, `test_nut_offen`, `szenario_nut`, `szenario_nut_offen`.
+
 ## P-2026-10-16-06 sprachschluessel-woertlich
 
 ### EINGELESEN

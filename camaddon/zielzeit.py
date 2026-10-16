@@ -223,6 +223,18 @@ def ueberstrichen(material, strecken, radius):
     return _scheibe(feld, radius, material.sx, material.sy, np.maximum, 0.0) > 0
 
 
+def innen(maske):
+    """Die Zellen der Maske, deren acht Nachbarn auch dazugehören – ohne den Rand: Dort misst
+    das Raster auf eine Zelle ungenau (eine Wand mit Aufmaß, eine Kante halb in der Zelle)."""
+    m = np.pad(maske, 1, constant_values=False)
+    ergebnis = maske.copy()
+    for di in (-1, 0, 1):
+        for dj in (-1, 0, 1):
+            if di or dj:
+                ergebnis &= m[1 + di : m.shape[0] - 1 + di, 1 + dj : m.shape[1] - 1 + dj]
+    return ergebnis
+
+
 def anteil_frei(material, ueberstrichen, z, maske):
     """Welcher Anteil der Zellen `maske` (eine Fläche in Höhe `z`) frei ist: überstrichen
     (ueberstrichen()) oder schon vorher nicht höher als `z` (die Oberseite des Materials, der

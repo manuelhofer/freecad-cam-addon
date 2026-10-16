@@ -1377,6 +1377,9 @@ class _Nut(_Strategie):
         return (
             ("schlichten", tr("ba.wand_schlichten"), tr("ba.wand_schlichten.tooltip"), True),
             ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+            # Neu als Haken, angehakt (Manuel, 2026-10-16: „gleich und gegenlauf … kaum
+            # schnellvorschub … meist schneidet“).
+            ("wellen", tr("ba.nut.wellen"), tr("ba.nut.wellen.tooltip"), True),
         )
 
     def passt(self, form, name):
@@ -1423,6 +1426,7 @@ class _Nut(_Strategie):
             flaechen,
             schlichten=werte["schlichten"],
             gleichlauf=werte["gleichlauf"],
+            wellen=werte.get("wellen", False),
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
             eintauchwinkel=_eintauchwinkel(werkzeug),
             vorschub=werte.get("vorschub", 0.0),
@@ -1451,6 +1455,7 @@ class _Nut(_Strategie):
             flaechen=flaechen,
             eintauchwinkel=werte.get("eintauchwinkel"),
             eintauchstellen=werte.get("eintauchen_bei"),
+            wellen=werte.get("wellen", False),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -1465,6 +1470,7 @@ class _Nut(_Strategie):
             flaechen=flaechen,
             eintauchwinkel=werte.get("eintauchwinkel"),
             eintauchstellen=werte.get("eintauchen_bei"),
+            wellen=werte.get("wellen", False),
         )
 
     def ist(self, op):
@@ -1477,6 +1483,7 @@ class _Nut(_Strategie):
             "aufmass": float(op.Aufmass),
             "schlichten": bool(op.Schlichten),
             "gleichlauf": bool(op.Gleichlauf),
+            "wellen": bool(getattr(op, "Wellen", False)),
             "eintauchen_bei": nu.eintauchstellen(op),
         }
 
@@ -7325,7 +7332,10 @@ class BearbeitungPanel:
                     if not b.eilgang and a.z <= z + 0.05 and b.z <= z + 0.05
                 ]
                 ueber = zz.ueberstrichen(material, strecken, werkzeug.durchmesser / 2)
-                merk[2][name] = zz.anteil_frei(material, ueber, z, maske)
+                # Ohne den Rand der Fläche: An der Wand bleibt das Aufmaß, und dort misst das
+                # Raster auf eine Zelle ungenau (an der offenen Nut 16 breit sonst nur 88 %).
+                kern = zz.innen(maske)
+                merk[2][name] = zz.anteil_frei(material, ueber, z, kern if kern.any() else maske)
             if merk[2][name] < PASST:
                 ergebnis[name] = merk[2][name]
         return ergebnis

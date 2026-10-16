@@ -57,6 +57,7 @@ class Nut(PathOp.ObjectOp):
         obj.Aufmass = AUFMASS
         obj.Schlichten = True
         obj.Gleichlauf = True
+        obj.Wellen = False
         obj.Tiefer = nb.TIEFER
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.Eintauchwinkel = vb.EINTAUCHWINKEL
@@ -77,6 +78,7 @@ class Nut(PathOp.ObjectOp):
             ("App::PropertyLength", "Aufmass", tr("bo.eigenschaft.aufmass")),
             ("App::PropertyBool", "Schlichten", tr("nt.eigenschaft.schlichten")),
             ("App::PropertyBool", "Gleichlauf", tr("ra.eigenschaft.gleichlauf")),
+            ("App::PropertyBool", "Wellen", tr("nt.eigenschaft.wellen")),
             ("App::PropertyLength", "Tiefer", tr("nt.eigenschaft.tiefer")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("nt.eigenschaft.eintauchwinkel")),
@@ -142,6 +144,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vo.flaechen(obj),
         schlichten=bool(obj.Schlichten),
         gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
+        wellen=bool(getattr(obj, "Wellen", False)),
         tiefer=float(obj.Tiefer),
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
@@ -165,6 +168,7 @@ def bahn_fuer(
     flaechen=(),
     schlichten=True,
     gleichlauf=True,
+    wellen=False,
     tiefer=nb.TIEFER,
     schneidenlaenge=0.0,
     oben=None,
@@ -197,6 +201,7 @@ def bahn_fuer(
         aufmass=aufmass,
         schlichten=schlichten,
         gleichlauf=gleichlauf,
+        wellen=wellen,
         tiefer=tiefer,
         schneidenlaenge=schneidenlaenge,
         eintauchwinkel=eintauchwinkel,
@@ -227,6 +232,7 @@ def lege_an(
     flaechen=(),
     eintauchwinkel=None,
     eintauchstellen=None,
+    wellen=False,
 ):
     """Legt „Nut“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und Höhen
     wie FreeCADs Operationen; die Endtiefe ist der tiefste Grund. Gibt die Operation zurück."""
@@ -248,6 +254,7 @@ def lege_an(
     obj.Aufmass = aufmass
     obj.Schlichten = bool(schlichten)
     obj.Gleichlauf = bool(gleichlauf)
+    obj.Wellen = bool(wellen)
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:  # der Winkel am Fräser, wie in der Vorschau des Assistenten
         obj.Eintauchwinkel = float(eintauchwinkel)
@@ -286,6 +293,7 @@ def aendere(
     flaechen=None,
     eintauchwinkel=None,
     eintauchstellen=None,
+    wellen=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
@@ -299,6 +307,8 @@ def aendere(
     obj.Aufmass = aufmass
     obj.Schlichten = bool(schlichten)
     obj.Gleichlauf = bool(gleichlauf)
+    if wellen is not None:
+        obj.Wellen = bool(wellen)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
     if eintauchwinkel:

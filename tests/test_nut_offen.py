@@ -12,7 +12,8 @@
 # Bogen im Gleichlauf (G3) von Wand zu Wand, quer zurück im Schnellvorschub (3 × vf) – dabei nichts
 # abgetragen; der Schritt nach der Last (P-2026-10-02-56): im Mittel ae, in der Mitte der Bögen
 # höchstens 1,7 ae, über 1,25 ae nie länger als eine Fräserbreite. (f) Eine offene Nut 30 breit – früher „zu breit“ (ein Kern bliebe in den
-# Kreisen) – geht jetzt in Bögen, ebenso leer und nirgends ins Teil.
+# Kreisen) – geht jetzt in Bögen, ebenso leer und nirgends ins Teil. (g) Die Bogennut (eine Ringnut,
+# zum Schlitz offen) in D-Bögen und in Wellen.
 import os
 import sys
 
@@ -27,6 +28,7 @@ from camaddon import bahn as bn
 from camaddon import fraeserform as ff
 from camaddon import hoehenfeld as hf
 from camaddon import kontur_bahn as kb
+from camaddon import materialstand as mst
 from camaddon import nut_bahn as nb
 from camaddon import pruefstand as ps
 from camaddon import raeumen_bahn as rb
@@ -213,6 +215,67 @@ ringe = rb.planen(
 k_ringe = ps.messen([ps.Bahnlauf(ringe.punkte, VF, VF * 0.3)], ii, (0, 60, 0, 40), 20.0,
                     form, AE, 8.0, ebenen_z=[12.0], aufmass=0.3)  # fmt: skip
 pruefe(k_ringe.wirkungsgrad > 1.0, "Ringe in der Nut nicht in voller Breite?")
+
+# --- (g) Die Bogennut (Manuels C-Ring, 2026-10-16): Ring Ø 84 × 20, Bohrung Ø 36, oben eine Ringnut
+# zwischen Ø 44 und Ø 76, 8 tief, ein Schlitz 20 breit durch alles – die Nut zum Schlitz hin offen.
+# Erkannt vom Grund aus als Bogen um die Mitte, r_m 30, halbe Breite 8, an beiden Enden offen; die
+# Bahn von außen in D-Bögen, nirgends ins Teil, kein Eintauchen, keine Rampe, im Eilgang nichts, der
+# Grund leer – der Schlitz ist vorher gefräst (sonst wäre hinter den Enden noch Rohteil). Mit
+# Wellen (Manuel: „in gleich und gegenlauf so das man kaum schnellvorschub hat“) kein Rückweg im
+# Schnellvorschub, schneller, die Last gleich. Steht der Schlitz im Materialstand noch voll, sind
+# die Enden zu: hinein mit der Helix, im Eilgang nichts.
+ring = Part.makeCylinder(42, 20).cut(Part.makeCylinder(18, 20))
+ring = ring.cut(Part.makeCylinder(38, 8, V(0, 0, 12)).cut(Part.makeCylinder(22, 8, V(0, 0, 12))))
+ring = ring.cut(Part.makeBox(30, 20, 20, V(15, -10, 0))).removeSplitter()
+grund_c = [
+    f"Face{i + 1}"
+    for i, f in enumerate(ring.Faces)
+    if abs(f.BoundBox.ZMax - 12.0) < 1e-6 and f.BoundBox.ZMax - f.BoundBox.ZMin < 1e-6
+]
+c_nuten = nb.nuten(ring, grund_c)
+pruefe(len(c_nuten) == 1 and c_nuten[0].bogen is not None, f"C-Ring: {c_nuten}")
+if c_nuten and c_nuten[0].bogen is not None:
+    c = c_nuten[0]
+    pruefe(
+        c.offen_a and c.offen_b and abs(c.radius - 8.0) < 1e-6 and abs(c.bogen[2] - 30.0) < 1e-6,
+        f"C-Ring: {c}",
+    )
+    schlitz = [bn.Punkt(True, 50.0, -4.0, 25.0)]
+    for y in (-4.0, 0.0, 4.0):
+        schlitz += [bn.Punkt(True, 50.0, y, 11.5), bn.Punkt(False, 21.0, y, 11.5)]
+        schlitz += [bn.Punkt(True, 21.0, y, 25.0), bn.Punkt(True, 50.0, y, 25.0)]
+    gefraest = [ps.Bahnlauf(schlitz, VF, VF * 0.3)]
+    zeiten = {}
+    for wellen in (False, True):
+        w_c = werte()
+        w_c.wellen = wellen
+        bahn_c = nb.planen(w_c, [c])
+        k = ps.messen([ps.Bahnlauf(bahn_c.punkte, VF, VF * 0.3)], ring, (-42, 42, -42, 42), 20.0,
+                      form, AE, AP, ebenen_z=[12.0], aufmass=0.0, raster=0.25,
+                      vorher=gefraest)  # fmt: skip
+        name = "C-Ring Wellen" if wellen else "C-Ring D-Bögen"
+        print(ascii(f"{name}: {bahn_c.boegen} Bögen, {bahn_c.zeit:.2f} min | {ps.zeile(k)}"))
+        pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"{name}: ins Teil {k.einschnitt:.3f}")
+        pruefe(k.eilgang_abtrag <= 1e-9, f"{name}: im Eilgang {k.eilgang_abtrag:.1f} mm³")
+        pruefe(k.eintauchungen == 0 and k.rampen == 0, f"{name}: Eintauchen/Rampen")
+        pruefe(k.rest <= ps.REST_ZULAESSIG, f"{name}: Rest {k.rest:.2f} auf dem Grund")
+        pruefe(k.eingriff_max <= bn.LAST_KURZ * 1.1, f"{name}: Last {ps.zeile(k)}")
+        schnell = [p for p in bahn_c.punkte if p.anteil > 1.0]
+        pruefe(bool(schnell) != wellen, f"{name}: {len(schnell)} Sätze im Schnellvorschub")
+        zeiten[wellen] = bahn_c.zeit
+    pruefe(zeiten[True] < 0.9 * zeiten[False], f"C-Ring: Wellen nicht schneller {zeiten}")
+    # Der Schlitz noch voll (der Materialstand: der ganze Quader): beide Enden zu, die Helix.
+    quader = rm.Quader(-42, 42, -42, 42, 0, 20, 0.5)
+    voll = mst.Materialstand(quader, quader.h.copy())
+    w_c = werte()
+    w_c.wellen = True
+    bahn_c = nb.planen(w_c, [c], voll)
+    k = ps.messen([ps.Bahnlauf(bahn_c.punkte, VF, VF * 0.3)], ring, (-42, 42, -42, 42), 20.0,
+                  form, AE, AP, ebenen_z=[12.0], aufmass=0.0, raster=0.25)  # fmt: skip
+    print(ascii(f"C-Ring im Quader: {bahn_c.boegen} Bögen, {bahn_c.zeit:.2f} min | {ps.zeile(k)}"))
+    pruefe(k.eilgang_abtrag <= 1e-9, f"C-Ring im Quader: im Eilgang {k.eilgang_abtrag:.1f} mm³")
+    pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"C-Ring im Quader: ins Teil {k.einschnitt}")
+    pruefe(k.rest <= ps.REST_ZULAESSIG, f"C-Ring im Quader: Rest {k.rest:.2f}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

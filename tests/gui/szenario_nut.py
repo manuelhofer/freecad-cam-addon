@@ -158,7 +158,9 @@ def schritte(h):
         f"Eintauchwinkel {float(op.Eintauchwinkel)} statt {t1.eintauchwinkel}",
     )
     befehle = [c.Name for c in op.Path.Commands]
-    h.pruefe("G3" in befehle and "G2" not in befehle, "nicht im Gleichlauf (G3)")
+    # Mit „Gleich- und Gegenlauf (Wellen)“, angehakt (P-2026-10-16-07): hin G3, zurück G2.
+    h.pruefe(bool(op.Wellen), "Wellen nicht angehakt")
+    h.pruefe("G3" in befehle and "G2" in befehle, "nicht in Wellen (G3 und G2)")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800

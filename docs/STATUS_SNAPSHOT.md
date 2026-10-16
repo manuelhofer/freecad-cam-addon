@@ -485,6 +485,13 @@ T1 Ø 12.
    Weg: die D-Bögen auf voller Tiefe durch den Schlitz bis in die Bohrung weiterführen, dann die
    Bohrung von dort aus in Kreisen ausräumen, ohne eigenes Eintauchen. Das ist eine Strategiewahl,
    also erst als Bild mit Zahlen zeigen.
+   Manuels Bild dazu („so meinte ich das mit der mitte rausfahren vll war der 12 fräser zu gross
+   das kann sein“): D-Bögen von außen durch den Schlitz bis an die Bohrung. In der Bohrung werden
+   die Bögen von der Schlitzmündung aus immer größer, bis der Kreis frei ist; die Rückwege laufen
+   im Schnellvorschub quer. Unser Räumen fährt so ähnlich (adaptiv), sobald der Fräser durch den
+   Schlitz passt: Am C-Ring mit Ø 6 ging es durch den Schlitz in die Bohrung. Mit Ø 12 tauchte es
+   in der Mitte mit einer Helix ein. Nachsehen, ob das mit dem passenden Fräser (P-2026-10-16-05)
+   schon so aussieht, und die Bögen in der Bohrung mit seinem Bild vergleichen.
 4. **„Anlegen“ schon in Schritt 1** (Bild: „Schritt 1 von 3 – Aufspannung“, oben „Anlegen“
    klickbar): „das anlegen sollte erst frei sein wenn alle angaben gemacht worden sind“. Das
    Prüfen-Fenster des Assistenten „Bearbeitung“ bietet „Anlegen“ in jedem Schritt an. Künftig erst
@@ -533,6 +540,49 @@ T1 Ø 12.
    So arbeitet `nut_bahn` die gerade offene Nut schon („Bögen statt Kreisen“). Für die Ringnut
    kommt die Mittellinie als Bogen dazu: Die Bögen stehen quer zur Nut und rücken längs des Bogens
    vor.
+   Dazu Manuel mit einem Bild aus einem anderen CAM (Bögen in Lagen längs der Nut: „der ist genau
+   so wenig schlau“): „da wo das C offen ist seitlich volle tiefe mit D's rein fahren in die nut
+   und dann die volle tiefe erstmal rausarbeiten mit D's in beide schnittrichtungen also in gleich
+   und gegenlauf so das man kaum schnellvorschub hat sondarn meist schneidet .. und zum schluss zum
+   schlichten kann man dann die ränder abfahren“. „Beide Richtungen“ heißt: Der nächste Bogen
+   schneidet zurück, im Gegenlauf, statt quer im Schnellvorschub zurückzufahren. An der Wand geht
+   es um einen Schritt vor, dann der nächste Bogen im Gleichlauf. Am Ende werden die Wände
+   geschlichtet.
+   *Erledigt:* P-2026-10-16-07.
+   - Die Nut erkennt die Bogennut: zwei Wände als Bögen um eine Mitte, an beiden Enden offen.
+   - Die Bahn wird in einer gestreckten Nut gerechnet und auf den Bogen gelegt.
+   - Neu „Gleich- und Gegenlauf (Wellen)“, als Haken, angehakt: Am C-Ring braucht die Nut mit
+     Ø 6 2,95 statt 3,84 min, ohne Rückweg im Schnellvorschub.
+   - Draußen hinab nur, wo auch im Materialstand Luft ist. Ist der Schlitz noch voll, beginnt die
+     Nut mit der Helix im Ende.
+
+   Im Assistenten gewinnt am C-Ring jetzt die Nut (T3 Ø 6, 1,2 min). Räumen tritt nicht an, es
+   erreicht nur 43 %.
+
+**Manuel, 2026-10-16 nachmittags – aufschreiben:**
+1. **Alle Strategien auf Zickzack durchsehen**: „also so generell was wir hier besprochen haben ...
+   solltest du mal bei allen strategien prüfen ..das zickzack fahren is ja beängstigend“.
+   Je Strategie an seinen Testteilen (3-Achs-Testteil, Ring, C-Ring, Nase, Geist) zählen: Rampen,
+   Eintauchen, Rückwege im Eilgang. Die Regel aus Einfahren Punkt 4 und `spezifikation_strategien.md`
+   Abschnitt 5 gilt überall: von außen aus der Luft, sonst Helix, Zickzack nur in der zu schmalen
+   geschlossenen Nut. Bekannt sind Planfräsen (Rampe, wo kein Rand offen ist) und
+   `schlicht_anlauf`.
+2. **Das Update lädt zu viel**: „die fotos sind ja nicht im main mit dabei .. heist wenn ich addon
+   update drücke .. dauert das mitlerweile ganzschön lang … bilder fürs forum usw muss da nicht
+   dabei sein“. Nachgesehen: Manuels Addon kam als ZIP von GitHub (`…/archive/main.zip`, kein
+   `.git`). Das sind 15,6 MB je Update, davon `beispiele` 8,9 (Nase 5,2, Geist-STL 3,3,
+   Freiform-NC 2,8 unkomprimiert), `docs` 3,9, `tests` 1,0 und `camaddon` 1,3 MB.
+   *Erledigt:* P-2026-10-16-08 (`.gitattributes`: was zum Laufen nicht gebraucht wird, kommt
+   nicht ins ZIP).
+3. **Die Besprechungen gehören nicht ins Haupt-Repository**: „unsere konversationen im repo
+   [haben] nichts zusuchen … zumindest nicht im main repo .. gibts da einen alternativen weg“.
+   Mit P-2026-10-16-08 landen sie nicht mehr auf den Rechnern der Nutzer, auf GitHub stehen sie
+   aber weiter öffentlich, samt Verlauf. Ein eigenes privates Repository ist seine
+   Entscheidung: Frage 2 in `OFFENE_FRAGEN.md`.
+4. **„Anlegen“ heißt in Schritt 1 und 2 „Weiter“** (Bild, 0.260.5, Schritt 1): „auch in der 260.5
+   ist der anlegen button schon anklickbar obwohl noch zwei weitere auswahl felder kommen vll
+   sollte man das als "weiter" button deklarieren exakt wie den unten rechts“. Siehe C-Ring
+   Punkt 4.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
@@ -1071,6 +1121,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Kegel bzw. HSK-Bund, Körper, Mutter. Heute sind es Abschnitte aus Zylindern und Kegelstümpfen.
   Anmelden mit seinen Zugangsdaten darf Claude nicht. Lädt Manuel die STEP-Dateien selbst herunter
   (etwa nach `~/freecad_cam/halter_cad/`), liest Claude die Maße daraus und baut die Vorlagen nach.
+  Manuel ist im eigenen Browser bei Hoffmann angemeldet („weis nicht ob das reich für dich um dort
+  die … cad dateien zu besorgen“). Claudes Browser-Fenster in der App ist davon getrennt. Weg:
+  Manuel meldet sich dort selbst an, Claude sucht die Halter (HSK63, SK40, BT40, Capto C6 …) und
+  fragt vor jedem Download (Datei, Quelle, Größe). Die Dateien kommen in einen eigenen Ordner und
+  gelten als fremde Daten.
 
 ## Offene Bugs
 

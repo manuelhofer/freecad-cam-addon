@@ -98,10 +98,16 @@ class Nut:
     durch: bool  # unter dem Grund ist kein Material
     offen_a: bool = False  # das Ende A liegt am Rand: dahinter ist Luft, kein Halbkreis
     offen_b: bool = False
+    # Eine Bogennut (eine Ringnut, an beiden Enden offen): ihre Mittellinie ist ein Bogen um
+    # (mx, my) mit dem Radius r_m, von Winkel w_a (bei A) nach w_b (bei B), rad; None: gerade.
+    bogen: tuple = None
 
     @property
     def laenge(self):
-        """Der Abstand von A nach B (mm) – an jedem geschlossenen Ende kommt r dazu."""
+        """Der Abstand von A nach B (mm), bei der Bogennut längs ihrer Mittellinie – an jedem
+        geschlossenen Ende kommt r dazu."""
+        if self.bogen is not None:
+            return abs(self.bogen[4] - self.bogen[3]) * self.bogen[2]
         return math.hypot(self.b[0] - self.a[0], self.b[1] - self.a[1])
 
     @property
@@ -135,6 +141,10 @@ class Nutwerte:
     # Die gewählten Eintauchstellen (W-012 E1): je Nut (schluessel) der Anteil 0 … 1 von A nach
     # B; ohne Eintrag der Vorschlag.
     eintauchen_bei: dict = None
+    # Wellen (Manuel, 2026-10-16: „D's in beide schnittrichtungen also in gleich und gegenlauf so
+    # das man kaum schnellvorschub hat sondern meist schneidet“): Der nächste Bogen schneidet
+    # zurück, im Gegenlauf, statt quer über die freie Seite zurückzufahren (_boegen).
+    wellen: bool = False
 
 
 @dataclass
@@ -278,6 +288,7 @@ def _durch(form, a, b, r, z_unten):
 
 OFFEN_PRUEFEN = 0.5  # mm hinter einem offenen Ende wird nach Luft gesehen
 FREI_VOR = 1.0  # mm – so weit hinter einem offenen Ende bleibt der Rand des Fräsers
+BOGEN_STUECK = 0.25  # mm – in so kurzen Stücken liegt die Bahn der Bogennut auf ihrem Bogen
 
 
 def _waende_offen(form, nummer, index):
@@ -355,6 +366,9 @@ def _offene_nut(form, konturen):
     z_oben = max(float(k.z_oben) for k in konturen)
     waende = tuple(sorted({w for k in konturen for w in k.waende}, key=lambda n: int(n[4:])))
     if len(konturen) == 2:
+        bogennut = _bogennut(form, konturen, waende, z_unten, z_oben)
+        if bogennut is not None:
+            return bogennut
         g1, g2 = _gerade(konturen[0]), _gerade(konturen[1])
         if g1 is None or g2 is None:
             return None
@@ -452,6 +466,118 @@ def _offene_nut(form, konturen):
     return Nut(
         waende, (float(mitte[0]), float(mitte[1])), b, r, z_oben, z_unten, False, False, True
     )
+
+
+def _kreis_der_kontur(kontur):
+    """((mx, my), Radius, Winkel von, Winkel bis) – wenn alle Unterkanten der Kontur auf einem
+    Kreis liegen (auch in Stücken); bis > von, der Bogen dazwischen gegen den Uhrzeigersinn.
+    Sonst None."""
+    import Part
+
+    mitte = radius = None
+    for kante in kontur.draht.Edges:
+        kurve = kante.Curve
+        if not isinstance(kurve, Part.Circle):
+            return None
+        m = (float(kurve.Center.x), float(kurve.Center.y))
+        if mitte is None:
+            mitte, radius = m, float(kurve.Radius)
+        elif (
+            math.hypot(m[0] - mitte[0], m[1] - mitte[1]) > 1e-4 or abs(kurve.Radius - radius) > 1e-4
+        ):
+            return None
+    if mitte is None:
+        return None
+    # Längs der Kette, je Kante in Vierteln (so springt kein Schritt über 90°), entrollt.
+    winkel = []
+    ende = None
+    for kante in kontur.draht.OrderedEdges:
+        t0, t1 = kante.FirstParameter, kante.LastParameter
+        stellen = [kante.valueAt(t0 + (t1 - t0) * i / 4.0) for i in range(5)]
+        if ende is not None and (stellen[0] - ende).Length > (stellen[-1] - ende).Length:
+            stellen.reverse()
+        ende = stellen[-1]
+        for p in stellen if not winkel else stellen[1:]:
+            w = math.atan2(p.y - mitte[1], p.x - mitte[0])
+            if winkel:
+                w = winkel[-1] + (w - winkel[-1] + math.pi) % (2.0 * math.pi) - math.pi
+            winkel.append(w)
+    if abs(winkel[-1] - winkel[0]) < 1e-6:
+        return None
+    return mitte, radius, min(winkel[0], winkel[-1]), max(winkel[0], winkel[-1])
+
+
+def _bogennut(form, konturen, waende, z_unten, z_oben):
+    """Die offene Bogennut aus zwei Wänden, die Bögen um denselben Mittelpunkt sind – die äußere
+    mit der freien Seite nach innen, die innere nach außen, an beiden Enden Luft (Manuels C-Ring,
+    2026-10-16: eine Ringnut, zum Schlitz hin offen). Die Mittellinie läuft von dem Ende, an dem
+    die erste Wand beginnt, bis dorthin, wo die letzte aufhört. None, wenn es keine ist."""
+    kreise = [_kreis_der_kontur(k) for k in konturen]
+    if any(k is None for k in kreise):
+        return None
+    (m1, r1, a1, b1), (m2, r2, a2, b2) = kreise
+    if math.hypot(m1[0] - m2[0], m1[1] - m2[1]) > 1e-4 or abs(r1 - r2) < 1e-3:
+        return None
+    mitte = m1
+    # Die freien Seiten zueinander: außen nach innen, innen nach außen.
+    for k, r in zip(konturen, (r1, r2), strict=True):
+        nach_aussen = (k.stelle[0] - mitte[0], k.stelle[1] - mitte[1])
+        zeigt = k.normale[0] * nach_aussen[0] + k.normale[1] * nach_aussen[1]
+        if (zeigt > 0) != (r < max(r1, r2)):
+            return None
+    # Die Bereiche in denselben Umlauf, dann die Vereinigung.
+    verschoben = round(((a1 + b1) - (a2 + b2)) / (4.0 * math.pi)) * 2.0 * math.pi
+    a2, b2 = a2 + verschoben, b2 + verschoben
+    if min(b1, b2) - max(a1, a2) <= 0:
+        return None  # die Wände liegen nicht einander gegenüber
+    w_a, w_b = min(a1, a2), max(b1, b2)
+    if w_b - w_a >= 2.0 * math.pi - 1e-6:
+        return None  # rundum: keine offenen Enden
+    r_m = 0.5 * (r1 + r2)
+    radius = 0.5 * abs(r1 - r2)
+    a = (mitte[0] + r_m * math.cos(w_a), mitte[1] + r_m * math.sin(w_a))
+    b = (mitte[0] + r_m * math.cos(w_b), mitte[1] + r_m * math.sin(w_b))
+    bogen = (float(mitte[0]), float(mitte[1]), float(r_m), float(w_a), float(w_b))
+    if not (
+        _frei_am_bogen(form, bogen, w_a, -1.0, radius, z_unten, z_oben)
+        and _frei_am_bogen(form, bogen, w_b, 1.0, radius, z_unten, z_oben)
+    ):
+        return None
+    if _durch_bogen(form, bogen, radius, z_unten):
+        return None
+    return Nut(waende, a, b, radius, z_oben, z_unten, False, True, True, bogen)
+
+
+def _frei_am_bogen(form, bogen, winkel, richtung, r, z_unten, z_oben):
+    """Ist hinter dem Ende der Bogennut bei `winkel` (weiter in `richtung`, ±1) Luft – quer über
+    ihre Breite, knapp über dem Grund und unter der Oberkante?"""
+    import FreeCAD
+
+    mx, my, r_m = bogen[0], bogen[1], bogen[2]
+    w = winkel + richtung * OFFEN_PRUEFEN / r_m
+    for z in (z_unten + 0.1, (z_unten + z_oben) / 2, z_oben - 0.1):
+        for k in (-0.9, -0.5, 0.0, 0.5, 0.9):
+            x = mx + (r_m + k * r) * math.cos(w)
+            y = my + (r_m + k * r) * math.sin(w)
+            if form.isInside(FreeCAD.Vector(x, y, z), 1e-6, True):
+                return False
+    return True
+
+
+def _durch_bogen(form, bogen, r, z_unten):
+    """Ist unter dem Grund der Bogennut kein Material (wie _durch, längs des Bogens)?"""
+    import FreeCAD
+
+    mx, my, r_m, w_a, w_b = bogen
+    innen = max(r - min(0.02, 0.25 * r), 0.0)
+    z = z_unten - DURCH_PRUEFEN
+    for t in (0.02, 0.5, 0.98):
+        w = w_a + (w_b - w_a) * t
+        for q in (-innen, 0.0, innen):
+            p = FreeCAD.Vector(mx + (r_m + q) * math.cos(w), my + (r_m + q) * math.sin(w), z)
+            if form.isInside(p, 1e-6, True):
+                return False
+    return True
 
 
 _GEMERKT = {}  # (Form, Fläche) → Nut oder None – der Assistent fragt oft dieselbe Fläche
@@ -624,7 +750,9 @@ def _geschlossene_lagen(punkte, nut, w, r_l, oben, z_ende, uhr, bei=None):
         weg += _bogen(punkte, start, r_l, winkel, ende, z_vorher, z, uhr)
         rest = (drehung * (wand - winkel)) % (2 * math.pi)
         weg += _bogen(punkte, start, r_l, ende, ende + drehung * (2 * math.pi + rest), z, z, uhr)
-        stueck, n = _boegen(punkte, start, u, r_l, R, schritt, nut.laenge, z, uhr, s_anfang=0.0)
+        stueck, n = _boegen(
+            punkte, start, u, r_l, R, schritt, nut.laenge, z, uhr, s_anfang=0.0, wellen=w.wellen
+        )
         weg += stueck
         boegen += n
         z_vorher = z
@@ -681,7 +809,9 @@ def _lagen_bei(punkte, nut, w, r_l, oben, z_ende, uhr, bei):
                 wand = math.atan2(u[1], u[0]) + seite * math.pi / 2
                 ort = (p[0] + r_l * math.cos(wand), p[1] + r_l * math.sin(wand))
                 weg += _hin(punkte, ort[0], ort[1], z, anteil=RUECKWEG)
-            stueck, n = _boegen(punkte, p, u, r_l, R, schritt, laenge, z, uhr, s_anfang=0.0)
+            stueck, n = _boegen(
+                punkte, p, u, r_l, R, schritt, laenge, z, uhr, s_anfang=0.0, wellen=w.wellen
+            )
             weg += stueck
             boegen += n
             ende = ziel
@@ -812,7 +942,7 @@ def _bogenschritt(r_l, R, ae):
     return max(MIN_SCHRITT, schritt)
 
 
-def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr, s_anfang=None):
+def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr, s_anfang=None, wellen=False):
     """Die Bögen einer Lage vom Ende `start` in Richtung `u` bis zum Halbkreis um die Mitte bei
     s_bis (die Mitte des Fräsers r_l neben der Mittellinie an den Wänden): je Bogen im
     Gleichlauf von der einen Wand nach vorn durchs Material zur anderen, quer über die freie
@@ -821,8 +951,10 @@ def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr, s_anfang=None):
     vom geraden Rand zum Halbkreis: ihre Enden bei −R (der Fräser berührt den Rand gerade), ihre
     Mitte je Bogen um `schritt` weiter. Mit `s_anfang` (geschlossene Nut) ist der Kreis um die
     Mitte bei s_anfang schon frei (die Helix), der Fräser steht dort an der Wand, an der die
-    Bögen beginnen: gleich Halbkreise, der erste einen Schritt weiter. Gibt (Länge, Bögen)
-    zurück."""
+    Bögen beginnen: gleich Halbkreise, der erste einen Schritt weiter. Mit `wellen` schneidet
+    jeder zweite Bogen zurück – von der anderen Wand, im Gegenlauf –, statt dass der Fräser quer
+    über die freie Seite zurückfährt; an der Wand, an der er steht, rückt er vor. Gibt (Länge,
+    Bögen) zurück."""
     drehung = -1.0 if uhr else 1.0
     v = (-u[1], u[0])  # links der Fahrt
     seite = -drehung  # Gleichlauf (gegen den Uhrzeigersinn): von der Wand rechts nach links
@@ -845,22 +977,28 @@ def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr, s_anfang=None):
         weg = _hin(punkte, *ort(s_w, seite * r_l), z)  # an der Wand vor
         tiefen = [r_l]
     boegen = 0
+    an = seite  # an dieser Wand steht der Fräser (quer bei an · r_l)
     while True:
         for b in tiefen:
-            # Der Bogen durch die Enden an den Wänden und die Mitte b vor ihnen.
+            # Der Bogen durch die Enden an den Wänden und die Mitte b vor ihnen – von der Wand
+            # `seite` im Gleichlauf, von der anderen (Wellen) andersherum, im Gegenlauf.
             rho = (r_l * r_l + b * b) / (2.0 * b)
             mitte = ort(s_w + b - rho, 0.0)
-            winkel = math.atan2(seite * r_l, rho - b)
-            weg += _bogen(punkte, mitte, rho, richtung + winkel, richtung - winkel, z, z, uhr)
+            winkel = math.atan2(an * r_l, rho - b)
+            drehsinn = uhr if an == seite else not uhr
+            weg += _bogen(punkte, mitte, rho, richtung + winkel, richtung - winkel, z, z, drehsinn)
             boegen += 1
             if s_w >= s_bis - GLEICH and b >= r_l - GLEICH:
                 return weg, boegen
-            # Quer zurück über die freie Seite, im Schnellvorschub.
-            weg += _hin(punkte, *ort(s_w, seite * r_l), z, anteil=RUECKWEG)
+            if wellen:
+                an = -an  # der nächste Bogen schneidet zurück
+            else:
+                # Quer zurück über die freie Seite, im Schnellvorschub.
+                weg += _hin(punkte, *ort(s_w, seite * r_l), z, anteil=RUECKWEG)
         # Nur noch Halbkreise: an der Wand um `schritt` vor.
         tiefen = [r_l]
         s_w = min(s_w + schritt, s_bis) if s_w < s_bis - GLEICH else s_bis
-        weg += _hin(punkte, *ort(s_w, seite * r_l), z)
+        weg += _hin(punkte, *ort(s_w, an * r_l), z)
 
 
 def _offene_lagen(punkte, nut, w, vollnut, r_l, oben, z_ende, uhr, knapp):
@@ -894,7 +1032,9 @@ def _offene_lagen(punkte, nut, w, vollnut, r_l, oben, z_ende, uhr, knapp):
         if vollnut:
             weg += _hin(punkte, start[0], start[1], z, anteil=anteil)
         else:
-            stueck, n = _boegen(punkte, start, u, r_l, R, schritt, nut.laenge, z, uhr)
+            stueck, n = _boegen(
+                punkte, start, u, r_l, R, schritt, nut.laenge, z, uhr, wellen=w.wellen
+            )
             weg += stueck
             boegen += n
         if _offen_bei(nut, ziel):
@@ -1013,8 +1153,8 @@ def _maske(nut, w, stand):
     """Wo der Fräser in und an der Nut fährt – die Maske im Materialstand: die Nut selbst;
     an einer offenen Nut dazu der Weg draußen vor dem offenen Ende, wo er hinab fährt."""
     if not nut.offen:
-        return stand.maske_um(nut.a, nut.b, nut.radius)
-    return stand.maske_um(nut.a, nut.b, nut.radius + 2.0 * w.fraeser_radius + kb.NAH + 1.0)
+        return _maske_um(stand, nut, nut.radius)
+    return _maske_um(stand, nut, nut.radius + 2.0 * w.fraeser_radius + kb.NAH + 1.0)
 
 
 def _oben(nut, w, stand, z_ende):
@@ -1036,6 +1176,9 @@ def _nut(punkte, nut, w, stand=None, bei=None):
     dort ein; die Vollnut beginnt ihre Rampe am Ende, das ihr am nächsten liegt."""
     R = w.fraeser_radius
     aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
+    z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
+    if nut.offen and stand is not None:
+        nut = _offen_im_stand(nut, w, stand, z_ende)
     art = verfahren(nut, R, aufmass)
     breite = einheiten.text(2 * nut.radius, einheiten.LAENGE)
     if art == "zu_schmal":
@@ -1045,10 +1188,11 @@ def _nut(punkte, nut, w, stand=None, bei=None):
         raise ValueError(tr("nt.fehler.zu_breit", breite=breite))
     r_w = max(nut.radius - R, 0.0)  # die Mitte des Fräsers an der Wand
     r_l = nut.radius - R - aufmass  # … auf den Bögen
-    z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
     oben = _oben(nut, w, stand, z_ende)
     if oben <= z_ende + GLEICH:
         return 0.0, 0, 0, False, math.inf
+    if nut.bogen is not None:
+        return _bogennut_bahn(punkte, nut, w, oben)
     uhr = not w.gleichlauf  # Gleichlauf in der Nut: gegen den Uhrzeigersinn (G3)
     vollnut = art == "vollnut"
     knapp = min(w.sicher, oben + w.sicherheit)
@@ -1090,6 +1234,128 @@ def _nut(punkte, nut, w, stand=None, bei=None):
     return weg, lagen, boegen, vollnut, z_ende
 
 
+def _bogennut_bahn(punkte, nut, w, oben):
+    """Die Bogennut (Nut.bogen): gerechnet wie eine gerade Nut so lang wie ihre Mittellinie
+    (_nut) – offen: D-Bögen von außen auf voller Tiefe (Manuel, 2026-10-16: „die offene nut kann
+    man volle tiefe mit D's abarbeiten“); steht hinter einem Ende noch Rohteil
+    (_offen_im_stand), dort wie geschlossen mit der Helix –, dann auf den Bogen gelegt
+    (_auf_den_bogen). Die Lagen beginnen bei `oben` (_oben, mit dem Materialstand). Außen an der
+    Nut rücken die Bögen um (r_m + r) / r_m weiter vor als auf der Mittellinie: Der Schritt ist
+    um so viel kleiner, damit die Last nirgends über der der geraden Nut liegt. Gibt zurück wie
+    _nut()."""
+    r_m = nut.bogen[2]
+    gerade = replace(nut, a=(0.0, 0.0), b=(nut.laenge, 0.0), bogen=None)
+    w_gerade = replace(w, oben=oben, zeilenabstand=w.zeilenabstand * r_m / (r_m + nut.radius))
+    eigene = []
+    _weg, lagen, boegen, vollnut, z_min = _nut(eigene, gerade, w_gerade)
+    neu = _auf_den_bogen(eigene, nut)
+    weg = sum(bn.weg(a, b) for a, b in zip(neu, neu[1:], strict=False) if not b.eilgang)
+    punkte.extend(neu)
+    return weg, lagen, boegen, vollnut, z_min
+
+
+def _hinter_dem_ende(nut, ende, s, q):
+    """Die Stelle (x, y) `s` mm hinter dem Ende `ende` (A oder B), `q` quer zur Mittellinie –
+    bei der Bogennut längs ihres Bogens weiter."""
+    if nut.bogen is not None:
+        mx, my, r_m, w_a, w_b = nut.bogen
+        nach_b = 1.0 if w_b >= w_a else -1.0
+        winkel = w_a - nach_b * s / r_m if ende == nut.a else w_b + nach_b * s / r_m
+        return mx + (r_m + q) * math.cos(winkel), my + (r_m + q) * math.sin(winkel)
+    anderes = nut.b if ende == nut.a else nut.a
+    ux, uy = _richtung(anderes, ende)
+    return ende[0] + ux * s - uy * q, ende[1] + uy * s + ux * q
+
+
+def _offen_im_stand(nut, w, stand, z_ende):
+    """Die Nut mit den Enden, hinter denen auch im Materialstand Luft ist. Ein offenes Ende liegt
+    am Rand des Teils; draußen davor fährt der Fräser im Eilgang hinab (_vor_dem_ende). Steht
+    dort, wo er hinabfährt, noch Rohteil über dem Grund – am C-Ring ist der Schlitz noch nicht
+    gefräst –, führe er im Eilgang ins Material. Dann gilt das Ende als geschlossen: hinein mit
+    der Helix. Ein schmaler Rand des Rohteils zwischen Ende und Fräser (bis FREI_VOR) stört nicht:
+    Den nehmen die ersten Bögen mit."""
+    R = w.fraeser_radius
+    neu = {}
+    for ende, schluessel in ((nut.a, "offen_a"), (nut.b, "offen_b")):
+        if not getattr(nut, schluessel):
+            continue
+        x, y = _hinter_dem_ende(nut, ende, R + FREI_VOR, 0.0)
+        if stand.hoechste_bei(x, y, R) > z_ende + MATERIAL_SPIEL:
+            neu[schluessel] = False
+    return replace(nut, **neu) if neu else nut
+
+
+def _auf_den_bogen(punkte, nut):
+    """Die Bahn einer gestreckten Nut (A bei (0, 0), B bei (L, 0)) auf den Bogen der Bogennut
+    gelegt: x längs der Mittellinie, y quer (links der Fahrt von A nach B). Im Vorschub in Stücken
+    von höchstens BOGEN_STUECK – Bögen der gestreckten Bahn dazu aufgeteilt –, Eilgänge nur mit
+    ihren Enden (sie liegen über dem Material oder draußen). Die Abbildung erhält den Drehsinn:
+    Gleichlauf bleibt Gleichlauf."""
+    mx, my, r_m, w_a, w_b = nut.bogen
+    richtung = 1.0 if w_b >= w_a else -1.0
+
+    def ort(s, q):
+        winkel = w_a + richtung * s / r_m
+        rho = r_m - richtung * q
+        return mx + rho * math.cos(winkel), my + rho * math.sin(winkel)
+
+    ergebnis = []
+    vorher = None
+    for p in punkte:
+        if vorher is None or p.eilgang:
+            x, y = ort(p.x, p.y)
+            ergebnis.append(replace(p, x=x, y=y, bogen=None))
+            vorher = p
+            continue
+        if p.bogen is not None:
+            cx, cy, uhr = p.bogen
+            r = math.hypot(vorher.x - cx, vorher.y - cy)
+            w0 = math.atan2(vorher.y - cy, vorher.x - cx)
+            w1 = math.atan2(p.y - cy, p.x - cx)
+            if uhr and w1 > w0:
+                w1 -= 2.0 * math.pi
+            elif not uhr and w1 < w0:
+                w1 += 2.0 * math.pi
+            anzahl = max(1, int(math.ceil(abs(w1 - w0) * r / BOGEN_STUECK)))
+            stellen = [
+                (cx + r * math.cos(w0 + (w1 - w0) * i / anzahl),
+                 cy + r * math.sin(w0 + (w1 - w0) * i / anzahl))
+                for i in range(1, anzahl + 1)
+            ]  # fmt: skip
+        else:
+            laenge = math.hypot(p.x - vorher.x, p.y - vorher.y)
+            anzahl = max(1, int(math.ceil(laenge / BOGEN_STUECK)))
+            stellen = [
+                (vorher.x + (p.x - vorher.x) * i / anzahl, vorher.y + (p.y - vorher.y) * i / anzahl)
+                for i in range(1, anzahl + 1)
+            ]
+        for i, (sx, sy) in enumerate(stellen, 1):
+            x, y = ort(sx, sy)
+            z = vorher.z + (p.z - vorher.z) * i / anzahl
+            ergebnis.append(bn.Punkt(False, x, y, z, p.eintauchen, None, p.anteil))
+        vorher = p
+    return ergebnis
+
+
+def _maske_um(stand, nut, abstand):
+    """Die Zellen des Materialstands höchstens `abstand` von der Mittellinie – bei der Bogennut
+    aus Sehnen von höchstens 5° (bei r 22,5 weicht die Sehne 0,02 mm ab)."""
+    if nut.bogen is None:
+        return stand.maske_um(nut.a, nut.b, abstand)
+    mx, my, r_m, w_a, w_b = nut.bogen
+    anzahl = max(1, int(math.ceil(abs(w_b - w_a) / math.radians(5.0))))
+    stellen = [
+        (mx + r_m * math.cos(w_a + (w_b - w_a) * i / anzahl),
+         my + r_m * math.sin(w_a + (w_b - w_a) * i / anzahl))
+        for i in range(anzahl + 1)
+    ]  # fmt: skip
+    maske = None
+    for p, q in zip(stellen, stellen[1:], strict=False):
+        m = stand.maske_um(p, q, abstand)
+        maske = m if maske is None else (maske | m)
+    return maske
+
+
 def planen(werte, liste, stand=None):
     """Die Bahn „Nut“ (Nutbahn) für die Nuten `liste` ([Nut]) mit den Werten `werte`.
     `stand`: der Materialstand vor der Nut (W-012) – jede Nut beginnt dann, wo in ihr noch
@@ -1120,7 +1386,7 @@ def planen(werte, liste, stand=None):
     stellen = []
     for nut in folge:
         if stand is not None:
-            maske = stand.maske_um(nut.a, nut.b, nut.radius)
+            maske = _maske_um(stand, nut, nut.radius)
             grund = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
             n_noch, n_weg = stand.volumen(maske, grund)
             noch += n_noch
