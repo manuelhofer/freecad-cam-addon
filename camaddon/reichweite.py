@@ -1026,6 +1026,8 @@ class Pruefung:
             return ergebnis
         if nullpunkt_des_jobs is None:
             nullpunkt_des_jobs = nullpunkt(job)
+        if bibliothek is not None:  # der vorgeschlagene Halter an der Aufnahme dieser Maschine
+            bibliothek.aufnahme_vorschlag = m.werkzeugaufnahme(self.maschine)
         sammler = _Sammler(self, ergebnis)
         self._bestueckung_pruefen(job, bibliothek, sammler)
         for op, ebene in operationen_mit_ebene(job):

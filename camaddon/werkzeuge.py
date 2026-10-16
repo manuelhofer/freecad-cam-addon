@@ -1571,6 +1571,9 @@ class Bibliothek:
         # Ohne gewählten Halter prüfen Reichweite und Kollision mit dem vorgeschlagenen
         # (halter.vorschlag, D-23); aus nur in Prüfungen, die das Werkzeug allein meinen.
         self.halter_vorschlagen = True
+        # Die Werkzeugaufnahme der Maschine, an der gerade geprüft wird (W-022): der
+        # vorgeschlagene Halter bekommt ihren Flansch; "" – SK40.
+        self.aufnahme_vorschlag = ""
 
     # --- Werkzeuge --------------------------------------------------------------
 
@@ -1636,7 +1639,7 @@ class Bibliothek:
         halter = self.halter_von(werkzeug)
         if halter is not None or not self.halter_vorschlagen or werkzeug.durchmesser <= 0:
             return halter
-        return hl.vorschlag(schaft_fuer_cam(werkzeug))
+        return hl.vorschlag(schaft_fuer_cam(werkzeug), self.aufnahme_vorschlag)
 
     def laenge_ab_spindelnase(self, werkzeug):
         """Die Länge ab Spindelnase in mm: gemessen, sonst Halterlänge + Ausspannlänge, sonst mit

@@ -621,7 +621,9 @@ def einspannung(tc, bibliothek=None):
             bibliothek = None
     laenge = rw.werkzeuglaenge(tc, bibliothek)[0]
     masse = rw.werkzeugmasse(tc, bibliothek, laenge)
-    halter = rw.werkzeughalter(tc, bibliothek) or hl.vorschlag(masse.schaft or masse.durchmesser)
+    halter = rw.werkzeughalter(tc, bibliothek) or hl.vorschlag(
+        masse.schaft or masse.durchmesser, getattr(bibliothek, "aufnahme_vorschlag", "")
+    )
     if halter.gewinkelt:
         raise ValueError(tr("wk.fehler.gewinkelt"))
     schaft = (masse.schaft or masse.durchmesser) / 2
@@ -638,7 +640,10 @@ def einspannung_werkzeug(werkzeug, bibliothek):
 
     halter = bibliothek.halter_fuer_pruefung(werkzeug) if bibliothek is not None else None
     if halter is None:
-        halter = hl.vorschlag(wz.schaft_fuer_cam(werkzeug) or werkzeug.durchmesser)
+        halter = hl.vorschlag(
+            wz.schaft_fuer_cam(werkzeug) or werkzeug.durchmesser,
+            getattr(bibliothek, "aufnahme_vorschlag", ""),
+        )
     if halter.gewinkelt:
         return None
     if bibliothek is not None:

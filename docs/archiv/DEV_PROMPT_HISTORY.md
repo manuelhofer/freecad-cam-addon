@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-30 vorschlag-an-der-aufnahme (W-022)
+
+### EINGELESEN
+- W-022: Ist beim Werkzeug kein Halter gewählt, prüfte das Addon mit einem vorgeschlagenen
+  ER-Halter, immer an SK40. An einer Spindel mit HSK-A63 ist der Flansch 10 mm länger.
+
+### DATEIEN
+- `camaddon/halter.py`: `vorschlag(schaft_d, aufnahme)`.
+- `camaddon/werkzeuge.py`: `Bibliothek.aufnahme_vorschlag` (leer: SK40), genommen von
+  `halter_fuer_pruefung`.
+- `camaddon/reichweite.py`: `pruefe_job` setzt sie auf die Aufnahme der geprüften Maschine.
+- `camaddon/wegkippen.py`: die beiden Vorschläge ebenso.
+- `tests/test_reichweite.py`: An der Spindel mit HSK-A63 rechnet der Vorschlag mit 95 statt 85
+  mm, „Spannzangenfutter ER16 · HSK-A63“.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_reichweite`, `test_halter`, `test_kollision`, `test_wegkippen`.
+- Zum Ausprobieren: An einer 5-Achs-Beispielfräse (HSK-A63) ein Werkzeug ohne Halter, „Auf der
+  Maschine prüfen“. Der Hinweis nennt „… im vorgeschlagenen Halter Spannzangenfutter ER16 ·
+  HSK-A63“.
+
 ## P-2026-10-16-29 aufnahme-passt-nicht (W-022)
 
 ### EINGELESEN

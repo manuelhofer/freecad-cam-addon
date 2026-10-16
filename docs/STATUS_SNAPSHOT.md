@@ -1261,7 +1261,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   - Der Halter merkt sich seine Aufnahme (`Halter.aufnahme`).
 
   Offen bleiben Punkt 3 (dem echten Halter nachgebaut: Greiferrille, Kegel, Mutter – dafür die
-  CAD-Dateien, siehe unten) und der vorgeschlagene Halter (`halter.vorschlag`, heute immer SK40).
+  CAD-Dateien, siehe unten). Der vorgeschlagene Halter hat seit P-2026-10-16-30 die Aufnahme der
+  geprüften Maschine.
   *Die Meldung bei unpassender Aufnahme ist erledigt* (P-2026-10-16-29): „Auf der Maschine
   prüfen“ sagt „T1: Der Halter „…“ ist für HSK-A63, die Maschine hat SK40 …“.
   Manuel, 2026-10-16, mit Bild (ein HSK-Halter mit Greiferrille, Bund, Körper und Fräser): „wenn

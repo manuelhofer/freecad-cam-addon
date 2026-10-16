@@ -419,10 +419,11 @@ VORSCHLAG_ZUGABE = 5.0  # mm über die Auskragung hinaus
 VORSCHLAG_KENNUNG = "vorschlag:"
 
 
-def vorschlag(schaft_d):
-    """Der vorgeschlagene Halter für einen Schaft-Ø (mm) – eine Vorlage, nicht gespeichert."""
+def vorschlag(schaft_d, aufnahme=None):
+    """Der vorgeschlagene Halter für einen Schaft-Ø (mm) – eine Vorlage, nicht gespeichert; an
+    der Werkzeugaufnahme `aufnahme` der Maschine (W-022; ohne: SK40)."""
     schluessel = next((s for bis, s in VORSCHLAG_BIS if schaft_d <= bis + 1e-9), VORSCHLAG_SONST)
-    halter = aus_vorlage(schluessel)
+    halter = aus_vorlage(schluessel, aufnahme=aufnahme)
     halter.kennung = VORSCHLAG_KENNUNG + schluessel
     return halter
 
