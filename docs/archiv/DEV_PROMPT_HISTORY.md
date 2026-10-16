@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-41 einrichtblatt-halter-im-katalog (W-019, W-022)
+
+### EINGELESEN
+- Seit P-39 kennt jeder Halter seinen Link (die Vorlagen den ihres Vorbilds). Auf dem
+  Einrichtblatt hilft er dem Einrichter, den Halter im Lager oder beim Nachbestellen zu finden.
+
+### DATEIEN
+- `camaddon/einrichtblatt.py`: `Werkzeug.halter_link`. In der Spalte Halter steht „im Katalog“ als
+  Link (im PDF anklickbar).
+- `translations/de.json`, `en.json`: `eb.halter_katalog`.
+- `help/de|en/programm.html`: ein Satz dazu.
+- `tests/test_einrichtblatt.py`: Link des Schrumpffutters (302235 6) im Blatt und auf der Seite.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_einrichtblatt`, `test_sprache`, `test_hilfe`.
+- Zum Ausprobieren: ein Job mit einem Werkzeug, dessen Halter aus einer Vorlage stammt →
+  „CAM-Addon → Einrichtblatt …“. Unter den Maßen des Halters steht „im Katalog“ und führt zur Seite.
+
 ## P-2026-10-16-40 vdi-halter-nach-katalogzeichnung (W-022 Punkt 3)
 
 ### EINGELESEN

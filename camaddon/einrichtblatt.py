@@ -30,6 +30,7 @@ class Werkzeug:
     halter: str  # Name des Halters, "" ohne
     halter_masse: str  # „Ø 40 · 70 lang · Spanntiefe 30“, "" ohne
     geschaetzt: bool = False  # Länge nicht eingetragen, nur geschätzt
+    halter_link: str = ""  # die Katalogseite des Halters (halter.Halter.link), "" ohne
     bild: str = ""  # Pfad eines Bilds von Halter und Werkzeug (gui_einrichtblatt), "" ohne
     halter_objekt: object = field(default=None, repr=False)  # halter.Halter fürs Bild
     werkzeug_objekt: object = field(default=None, repr=False)  # werkzeuge.Werkzeug fürs Bild
@@ -230,6 +231,7 @@ def _werkzeug(tc, bibliothek):
         laenge=float(laenge) if halter is not None and not halter.gewinkelt else 0.0,
         halter=halter_name,
         halter_masse=masse_text,
+        halter_link=getattr(halter, "link", "") if halter is not None else "",
         geschaetzt=werkzeug is not None and quelle not in eingetragen,
         halter_objekt=halter,
         werkzeug_objekt=werkzeug,
@@ -536,6 +538,11 @@ def html(blatt, tr, laenge, minuten_text):
         halter = _e(w.halter or "–")
         if w.halter_masse:
             halter += f"<br><span class='klein'>{_e(w.halter_masse)}</span>"
+        if w.halter_link:  # zum Halter im Katalog – im PDF anklickbar
+            halter += (
+                f"<br><span class='klein'><a href='{_e(w.halter_link)}'>"
+                f"{_e(tr('eb.halter_katalog'))}</a></span>"
+            )
         if w.bild:
             halter += f"<br><img src='{_e(w.bild)}' width='100'>"
         schneide = laenge(w.schneidenlaenge) if w.schneidenlaenge > 0 else "–"

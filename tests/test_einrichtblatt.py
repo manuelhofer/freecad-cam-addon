@@ -106,6 +106,7 @@ if w is not None:
     pruefe(abs(w.ausspannlaenge - 27.0) < 1e-6, f"Ausspannlänge {w.ausspannlaenge}")
     pruefe(abs(w.laenge - (schrumpf.laenge + 27.0)) < 1e-6, f"Länge {w.laenge}")
     pruefe(w.halter == schrumpf.name and "Spanntiefe" in w.halter_masse, f"Halter: {w}")
+    pruefe(w.halter_link.endswith("/p/302235-6"), f"Link des Halters: {w.halter_link!r}")
     pruefe(not w.geschaetzt, "eingetragene Länge als geschätzt")
 pruefe(len(b.aufspannungen) == 1, f"Aufspannungen: {len(b.aufspannungen)}")
 a = b.aufspannungen[0]
@@ -137,7 +138,8 @@ pruefe(
 )
 seite = eb.html(b, tr, laenge, minuten_text)
 for text in ("T3", "Kugel 6", "<b>27</b>", "Mitte oben", "Lang", "Tief", "Summe", "G54",
-             "Werkstoff: nicht eingetragen", "Kühlung"):  # fmt: skip
+             "Werkstoff: nicht eingetragen", "Kühlung",
+             "<a href='https://www.hoffmann-group.com/DE/de/hom/p/302235-6'>im Katalog</a>"):  # fmt: skip
     pruefe(text in seite, f"„{text}“ fehlt auf der Seite")
 
 

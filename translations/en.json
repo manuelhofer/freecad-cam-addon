@@ -907,6 +907,7 @@
     "eb.sp.ausspannung": "Stick-out mm",
     "eb.sp.laenge": "Length from spindle nose mm",
     "eb.sp.halter": "Holder",
+    "eb.halter_katalog": "in the catalogue",
     "eb.geschaetzt": "(estimated)",
     "eb.rohteil": "Stock",
     "eb.spannung": "Workholding",
