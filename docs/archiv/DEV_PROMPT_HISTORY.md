@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-08 update-ohne-entwicklungsdateien
+
+### EINGELESEN
+- Manuel: Das Update „dauert … mittlerweile ganzschön lang … bilder fürs forum usw muss da nicht
+  dabei sein“; die Besprechungen sollen nicht auf jedem Rechner mit dem Addon liegen.
+- Nachgesehen: Sein Addon kam als ZIP von GitHub (`…/archive/main.zip`, ohne `.git`). FreeCADs
+  Addon-Manager nimmt Git nur für Addons, die es verlangen. 15,6 MB je Update; vom Code liest
+  zur Laufzeit nichts `docs/`, `tests/` oder `scripts/`.
+
+### DATEIEN
+- `.gitattributes`: `export-ignore` für `docs/`, `tests/`, `scripts/`, `AGENTS.md`, `CLAUDE.md`,
+  `CHATSTART.md`, `pyproject.toml` und das NC-Programm des Freiform-Beispiels (die
+  Vergleichsausgabe der Prüfung). Im Repository bleibt alles; GitHubs ZIP lässt sie weg.
+- `docs/OFFENE_FRAGEN.md`: Frage 2 (eigenes privates Repository für die Besprechungen?), Frage 3
+  (die großen Beispiele im Update?).
+
+### ERGEBNIS
+- Das ZIP (mit `git archive`, das wie GitHub `export-ignore` beachtet): 9,7 statt 15,6 MB. Darin:
+  `beispiele`, `camaddon`, `daten`, `help`, `resources`, `translations`, `InitGui.py`,
+  `installieren.py`, `LICENSE`, `package.xml`, `README.md`.
+
 ## P-2026-10-16-07 bogennut-in-wellen
 
 ### EINGELESEN

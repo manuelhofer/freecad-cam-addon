@@ -583,6 +583,11 @@ T1 Ø 12.
    ist der anlegen button schon anklickbar obwohl noch zwei weitere auswahl felder kommen vll
    sollte man das als "weiter" button deklarieren exakt wie den unten rechts“. Siehe C-Ring
    Punkt 4.
+5. **„Maschine transparent“ beim Abfahren** (Bild: „Auf der Maschine prüfen“, Abfahren „Räumen
+   T2“ am C-Ring; Spindel und Halter verdecken Teil und Bahn): „hier kann man nichs sehen oder
+   erkennen .. waäre gut wenn man einen hacken macht mit "maschine transparent"“. Ein Haken neben
+   „Bahn“ und „Teil“, der die Körper der Maschine (Spindel, Kopf, Tisch, Spannmittel)
+   durchsichtig macht.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach

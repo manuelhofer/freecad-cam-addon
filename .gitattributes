@@ -1,0 +1,15 @@
+# Was das Addon zum Laufen nicht braucht, kommt nicht in das ZIP, das FreeCADs Addon-Manager bei
+# jedem Update von GitHub lädt (…/archive/main.zip – export-ignore). Im Repository bleibt alles.
+# Manuel, 2026-10-16: „bilder fürs forum usw muss da nicht dabei sein“, „unsere konversationen …
+# nicht auf jedem rechner … der das addon hat“.
+docs/ export-ignore
+tests/ export-ignore
+scripts/ export-ignore
+AGENTS.md export-ignore
+CLAUDE.md export-ignore
+CHATSTART.md export-ignore
+pyproject.toml export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+# Das NC-Programm des Freiform-Beispiels ist die Vergleichsausgabe der Prüfung (2,8 MB).
+beispiele/grob_g550_freiform/freiform_5achs.mpf export-ignore
