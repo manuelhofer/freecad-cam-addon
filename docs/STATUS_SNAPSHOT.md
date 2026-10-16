@@ -443,7 +443,8 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    durch den ständer .. eher uncool“): 3-Achs-Fräse mit X ±650, Y −650 … 620, Z 0 … 600. Die
    Körper von `beispielmaschine.fraesmaschine` haben feste Maße (Tisch 700 × 280, Ständer bei
    y 650). Sie müssen mit den Wegen wachsen: Tisch, Sattel, Bett, Ständer und Kopf. Mit den
-   Vorgabewegen bleiben die Maße wie heute. Danach die Portalfräse und die 5-Achs-Bauarten auf
+   Vorgabewegen bleiben die Maße wie heute. *Erledigt für die 3-Achs-Fräse:* P-2026-10-16-04
+   (an allen acht Ecken keine Überschneidung). Offen: die Portalfräse und die 5-Achs-Bauarten auf
    dasselbe ansehen.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):

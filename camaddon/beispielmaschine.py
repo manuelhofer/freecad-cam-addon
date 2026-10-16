@@ -477,6 +477,62 @@ def _benenne(asm, ma, name):
         asm.Document.Label = name.strip().replace("/", "-").replace("\\", "-")
 
 
+# Die 3-Achs-Fräse ist um die Spindel gebaut: Spindelachse und Spannplatz bei x 400, y 350.
+MITTE_X, MITTE_Y = 400.0, 350.0
+NASE_GEBAUT = 130.0  # mm: so hoch steht die Spindelnase gebaut über dem Tisch (Z = 130)
+
+
+@dataclass
+class _FraesenGroessen:
+    """Die Maße der 3-Achs-Fräse, die mit den Wegen wachsen (mm)."""
+
+    tisch_x: float
+    tisch_y: float
+    sattel_x: float
+    sattel_y: float
+    staender_x: float
+    staender_vorn: float
+    staender_oben: float
+    kopf_x: float
+    bett_x: float
+    bett_vorn: float
+    bett_y: float
+
+
+def _fraesen_groessen(masse):
+    """Tisch, Sattel, Ständer, Kopf und Bett passend zu den Wegen – mit den Vorgabewegen genau das
+    Beispiel (Tisch 700 × 280, Ständer bei y 650). Manuel (2026-10-16): „wenn man die verfahrwege
+    auf ein reales mass einstellt … fährt der tisch durch den ständer“ – mit X ±650, Y −650 … 620,
+    Z 0 … 600. Der Tisch ist so lang wie der Weg in X und 200 mm dazu, so tief wie der Weg in Y
+    (+10); der Sattel trägt ihn (Rand 120 mm, 20 mm tiefer). +Y fährt den Tisch zum Ständer: Der
+    steht 20 mm hinter dem Sattel, wenn Y ganz vorn steht; vorn reicht das Bett 40 mm über den
+    Sattel bei Y ganz hinten. Der Ständer ragt 50 mm über den Kopf, wenn Z ganz oben steht."""
+    weg_x = masse.weg_x[1] - masse.weg_x[0]
+    weg_y = masse.weg_y[1] - masse.weg_y[0]
+    tisch_x = max(700.0, weg_x + 200.0)
+    tisch_y = max(280.0, weg_y + 10.0)
+    sattel_x = max(460.0, tisch_x - 240.0)
+    sattel_y = max(320.0, tisch_y + 40.0)
+    staender_x = max(260.0, 0.37 * tisch_x)
+    staender_vorn = max(650.0, MITTE_Y + sattel_y / 2 + masse.weg_y[1] + 20.0)
+    # Der Kopf (z 520 … 820 gebaut) fährt mit Z um so viel nach oben, wie Z über der Bauhöhe steht.
+    staender_oben = max(1120.0, 820.0 + masse.weg_z[1] - NASE_GEBAUT + 50.0)
+    bett_vorn = min(0.0, MITTE_Y - sattel_y / 2 + masse.weg_y[0] - 40.0)
+    return _FraesenGroessen(
+        tisch_x=tisch_x,
+        tisch_y=tisch_y,
+        sattel_x=sattel_x,
+        sattel_y=sattel_y,
+        staender_x=staender_x,
+        staender_vorn=staender_vorn,
+        staender_oben=staender_oben,
+        kopf_x=max(200.0, staender_x - 60.0),
+        bett_x=max(800.0, sattel_x + 340.0),
+        bett_vorn=bett_vorn,
+        bett_y=staender_vorn + 250.0 - bett_vorn,
+    )
+
+
 def fraesmaschine(masse=None, spanneisen=True):
     """3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z, Spindel S1.
 
@@ -493,16 +549,46 @@ def fraesmaschine(masse=None, spanneisen=True):
     Spanneisen weg. Gibt (Assembly, Maschine) zurück.
     """
     masse = masse or FraesenMasse()
+    g = _fraesen_groessen(masse)
     b = _neu(FRAESE_3)
-    bett = b.quader("Bett", 800, 900, 120, farbe=GUSS)
-    staender = b.quader("Staender", 260, 250, 1000, x=270, y=650, z=120, farbe=GUSS)
-    sattel = b.quader("Sattel", 460, 320, 70, x=170, y=190, z=120, farbe=SCHLITTEN)
+    bett = b.quader(
+        "Bett", g.bett_x, g.bett_y, 120, x=MITTE_X - g.bett_x / 2, y=g.bett_vorn, farbe=GUSS
+    )
+    staender = b.quader(
+        "Staender",
+        g.staender_x,
+        250,
+        g.staender_oben - 120,
+        x=MITTE_X - g.staender_x / 2,
+        y=g.staender_vorn,
+        z=120,
+        farbe=GUSS,
+    )
+    sattel = b.quader(
+        "Sattel",
+        g.sattel_x,
+        g.sattel_y,
+        70,
+        x=MITTE_X - g.sattel_x / 2,
+        y=MITTE_Y - g.sattel_y / 2,
+        z=120,
+        farbe=SCHLITTEN,
+    )
     tisch, spannplatz = b.bauteil(
         "Tisch",
-        b.quader("Tischplatte", 700, 280, 60, x=50, y=210, z=190, farbe=TISCH),
+        b.quader(
+            "Tischplatte",
+            g.tisch_x,
+            g.tisch_y,
+            60,
+            x=MITTE_X - g.tisch_x / 2,
+            y=MITTE_Y - g.tisch_y / 2,
+            z=190,
+            farbe=TISCH,
+        ),
         lcs_name="Spannplatz",
-        lcs_x=350,
-        lcs_y=140,
+        lcs_x=g.tisch_x / 2,
+        lcs_y=g.tisch_y / 2,
         lcs_hoehe=60,
     )
     eisen = []
@@ -528,10 +614,19 @@ def fraesmaschine(masse=None, spanneisen=True):
             ]
             teil, _lcs = b.bauteil(name, koerper)
             eisen.append((teil, koerper[0]))
-    kopf = b.quader("Fraeskopf", 200, 400, 300, x=300, y=250, z=520, farbe=KOPF)
+    kopf = b.quader(
+        "Fraeskopf",
+        g.kopf_x,
+        g.staender_vorn - 250,
+        300,
+        x=MITTE_X - g.kopf_x / 2,
+        y=250,
+        z=520,
+        farbe=KOPF,
+    )
     spindel, spindelnase = b.bauteil(
         "Spindel",
-        b.zylinder("Spindelkoerper", 45, 140, x=400, y=350, z=380, farbe=SPINDEL),
+        b.zylinder("Spindelkoerper", 45, 140, x=MITTE_X, y=MITTE_Y, z=380, farbe=SPINDEL),
         lcs_name="Spindelnase",
     )
 

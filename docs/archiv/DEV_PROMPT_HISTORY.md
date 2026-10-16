@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-04 fraese-waechst-mit-den-wegen
+
+### EINGELESEN
+- Manuel, 2026-10-16, mit Bild: „wenn man die verfahrwege auf ein reales mass einstellt was die
+  beispielsweise kao ming fähren kann .. fährt der tisch durch den ständer .. eher uncool“ –
+  3-Achs-Fräse mit X ±650, Y −650 … 620, Z 0 … 600. Nachgemessen: bei Y 620 stecken Tisch und
+  Sattel 1,6 dm³ tief im Ständer, bei Z 600 ragt der Kopf 170 mm über ihn; die Körper hatten feste
+  Maße (Tisch 700 × 280, Ständer bei y 650).
+- Dazu aufgeschrieben (Snapshot): runde Rohteile auf der Fräse (W-021, noch einmal am 2026-10-16),
+  die Werkzeugaufnahme in die Maschine mit Haltern in ihrer Größe (W-022, „warum nur sk40 ??“) und
+  das Werkzeug, das nicht in die Nuten des Rings passt (Ring Punkt 5).
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`: `_fraesen_groessen(masse)` – Tisch (Weg X + 200, Weg Y + 10),
+  Sattel, Bett, Ständer und Kopf wachsen mit den Wegen; der Ständer steht 20 mm hinter dem Sattel
+  bei Y ganz hinten (+Y fährt den Tisch zum Ständer), überragt den Kopf bei Z ganz oben um 50 mm,
+  das Bett reicht 40 mm vor den Sattel bei Y ganz vorn. Mit den Vorgabewegen genau die alten Maße
+  (alle Körper verglichen: gleich).
+- `camaddon/stl_anzeige.py`: `_knoten` fragt `RootNode` nur, wenn pivy schon geladen ist – FreeCAD
+  27.1 warf sonst „No SWIG wrapped library loaded“ (im Wochen-Build am Ring gesehen).
+- `tests/test_beispielmaschine.py`: die Kao-Ming-Wege – Tisch, Sattel und Kopf bei Y ganz hinten
+  nicht im Ständer, der Kopf bei Z ganz oben unter seiner Oberkante; der Vorgabetisch 700 × 280.
+- `help/de|en/neue_maschine.html`: ein Satz dazu.
+- `docs/STATUS_SNAPSHOT.md`: W-021 ergänzt, W-022 neu, Ring Punkte 5 und 6.
+- `package.xml` (0.260.4).
+
+### ERGEBNIS
+- Kao-Ming-Wege: an allen acht Ecken der Wege keine Überschneidung (Tisch, Sattel, Kopf, Spindel,
+  Spanneisen gegen Ständer, Bett, Tisch); Bild schräg und von der Seite bei Y ganz hinten.
+- Grün im Wochen-Build: `test_beispielmaschine`. Die Vorgabemaschine ist unverändert – die übrigen
+  Prüfungen mit ihr brauchen keinen Lauf.
+
 ## P-2026-10-16-03 kontur-wandende-an-aussenecken
 
 ### EINGELESEN

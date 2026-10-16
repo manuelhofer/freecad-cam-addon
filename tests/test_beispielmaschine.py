@@ -470,6 +470,50 @@ s1 = next(b for b in m.betriebsarten(ma) if b.NcName == "S1")
 pruefe(s1.Drehzahl == 8000, f"S1 der Fräse: {s1.Drehzahl}")
 pruefe(ma.Label == "Meine Fräse" and asm.Document.Label == "Meine Fräse", "Name der Fräse")
 App.closeDocument(asm.Document.Name)
+
+# Die Fräse wächst mit ihren Wegen (Manuel, 2026-10-16, Kao Ming: X ±650, Y −650 … 620, Z 0 … 600
+# – vorher fuhr der Tisch durch den Ständer): Y ganz hinten bleiben Tisch und Sattel vor dem
+# Ständer, Z ganz oben bleibt der Kopf unter seiner Oberkante. Mit den Vorgabewegen bleibt der
+# Tisch 700 × 280.
+masse = beispielmaschine.FraesenMasse(
+    weg_x=(-650.0, 650.0), weg_y=(-650.0, 620.0), weg_z=(0.0, 600.0)
+)
+asm, ma = beispielmaschine.fraesmaschine(masse)
+kette = kette_modul.lies_kette(asm)
+fahrt = vf.Verfahren(asm, kette)
+achse = {a.gelenk.Label: a for a in kette.achsen}
+
+
+def global_form(label):
+    objekt = asm.Document.getObjectsByLabel(label)[0]
+    form = objekt.Shape.copy()
+    form.Placement = objekt.getGlobalPlacement()
+    return form
+
+
+for x_ende, z_ende in ((-650.0, 0.0), (650.0, 600.0)):
+    fahrt.setze_alle({achse["X"]: x_ende, achse["Y"]: 620.0, achse["Z"]: z_ende})
+    asm.Document.recompute()
+    staender = global_form("Staender")
+    for koerper in ("Tischplatte", "Sattel", "Fraeskopf"):
+        schnitt = global_form(koerper).common(staender).Volume
+        pruefe(
+            schnitt < 1e-3,
+            f"Kao Ming X {x_ende} Z {z_ende}: {koerper} im Ständer ({schnitt:.0f} mm³)",
+        )
+    oben = global_form("Fraeskopf").BoundBox.ZMax
+    pruefe(
+        oben <= staender.BoundBox.ZMax + 1e-6,
+        f"Kao Ming Z {z_ende}: Kopf {oben:.0f} über dem Ständer",
+    )
+App.closeDocument(asm.Document.Name)
+asm, ma = beispielmaschine.fraesmaschine()
+tisch = asm.Document.getObjectsByLabel("Tischplatte")[0].Shape.BoundBox
+pruefe(
+    (tisch.XLength, tisch.YLength) == (700.0, 280.0),
+    f"Tisch der Vorgabe: {tisch.XLength} × {tisch.YLength}",
+)
+App.closeDocument(asm.Document.Name)
 pruefe(beispielmaschine.FraesenMasse().fehler() == [], "Vorgabe der Fräse ungültig")
 falsch = beispielmaschine.FraesenMasse(weg_y=(0.0, 0.0), drehzahl=0)
 felder = [feld for feld, _satz in falsch.fehler()]

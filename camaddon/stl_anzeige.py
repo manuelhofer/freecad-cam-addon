@@ -17,6 +17,7 @@ Netz wieder. Ohne Oberfläche tut das Modul nichts.
 """
 
 import contextlib
+import sys
 
 import FreeCAD
 
@@ -93,8 +94,16 @@ def _daten(koerper):
 
 
 def _knoten(ansicht):
-    """Der Netzknoten in der Anzeige `ansicht` (ViewObject) – oder None."""
-    wurzel = getattr(ansicht, "RootNode", None)
+    """Der Netzknoten in der Anzeige `ansicht` (ViewObject) – oder None. Ohne geladenes pivy gibt
+    es keinen (das Addon baut ihn mit pivy): Dann nicht nach RootNode fragen – FreeCAD 27.1 wirft
+    dort „No SWIG wrapped library loaded“, solange niemand pivy geladen hat, bei jeder Änderung
+    eines Objekts (2026-10-16, Wochen-Build vom 14.10.)."""
+    if "pivy.coin" not in sys.modules:
+        return None
+    try:
+        wurzel = getattr(ansicht, "RootNode", None)
+    except RuntimeError:
+        return None
     if wurzel is None:
         return None
     for i in range(wurzel.getNumChildren()):
