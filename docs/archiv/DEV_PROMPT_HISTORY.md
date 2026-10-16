@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-24 einrichtblatt-bild-je-aufspannung (W-019)
+
+### EINGELESEN
+- W-019: Nur die erste Aufspannung hatte ein Bild. Es zeigte alle Jobs übereinander, ohne Backen.
+- Gefunden beim Bauen:
+  - `saveImage` zeichnet nur Objekte des Dokuments. Ein Coin-Knoten wie im Abspieler erscheint
+    auf dem Bildschirm, im gespeicherten Bild nicht.
+  - Der Navigationswürfel wurde über `ansicht.getViewer()` abgeschaltet. Das ließ FreeCAD 1.1.4
+    beim Schließen abstürzen (B-011).
+
+### DATEIEN
+- `camaddon/gui_einrichtblatt.py`, `_bild_der_aufspannung`:
+  - Je Aufspannung ein Bild: nur Teil, Rohteil und Bahnen ihres Jobs, die anderen ausgeblendet.
+  - Die Backen (`spannung.schraubstock`) sind dafür kurz ein Objekt, in einer Transaktion, die
+    danach verworfen wird.
+  - Läuft schon eine Transaktion, kommt das Bild ohne Backen.
+  - Danach sind Sichtbarkeit und „geändert“ wie vorher.
+  - Den Navigationswürfel schaltet jetzt die Einstellung „ShowNaviCube“ aus und wieder an.
+- `tests/gui/szenario_einrichtblatt.py`: eine 6-Kant-Stange mit sechs Aufspannungen.
+  - Geprüft: sechs Abschnitte mit eigenem Bild, Bild 1 ≠ Bild 2, Rohteil, Spannmittel und
+    Nullpunkt-Satz der Stange.
+  - Danach dieselbe Sichtbarkeit, nicht geändert, kein Rückgängig-Schritt, kein Objekt mehr.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_einrichtblatt`. Im Bild steht die Stange, je Aufspannung
+  gedreht, mit den Backen am Ende.
+- Zum Ausprobieren: ein Job einer N-Kant-Stange, „CAM-Addon → Einrichtblatt …“. Jede Aufspannung
+  hat ihr Bild. Danach sieht der Baum aus wie vorher, und „Rückgängig“ bietet nichts Neues an.
+
 ## P-2026-10-16-23 futterkoerper (W-021, Stufe 3)
 
 ### EINGELESEN

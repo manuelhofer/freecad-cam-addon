@@ -93,3 +93,65 @@ def schritte(h):
     yield 500
     h.pruefe(gui_einrichtblatt.EinrichtblattDialog.offen is None, "Fenster nicht zu")
     FreeCAD.closeDocument(doc.Name)
+
+    # Eine 6-Kant-Stange (W-018) mit ihren sechs Aufspannungen: je Aufspannung ein Abschnitt mit
+    # eigenem Bild (die anderen Jobs ausgeblendet, die Backen am Ende der Stange darin); danach
+    # ist alles wieder sichtbar wie vorher, das Dokument gilt nicht als geändert, und weder im
+    # Rückgängig noch im Baum bleibt etwas.
+    import numpy as np
+    import Part
+
+    from camaddon import n_eck as ne
+
+    stange_doc = FreeCAD.newDocument("Sechskant")
+    teil = stange_doc.addObject("Part::Feature", "Teil")
+    teil.Shape = Part.makeCylinder(8, 30).fuse(Part.makeBox(30, 6, 6, FreeCAD.Vector(-15, -3, 24)))
+    stange_doc.recompute()
+    punkte = np.array([(v.X, v.Y, v.Z) for v in teil.Shape.Vertexes])
+    grund, _stange = ne.richte_ein(stange_doc, teil, punkte, n=6, achse="Z")
+    ne.aufspannungen_anlegen(grund)
+    stange_doc.recompute()
+    yield 1000
+    Gui.getDocument(stange_doc.Name).Modified = False
+    rueckgaengig = stange_doc.UndoCount
+    objekte = len(stange_doc.Objects)
+    sichtbar = {o.Name: o.ViewObject.Visibility for o in stange_doc.Objects if o.ViewObject}
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(grund)
+    Gui.runCommand("CamAddon_Einrichtblatt")
+    yield from h.warte_auf(lambda: gui_einrichtblatt.EinrichtblattDialog.offen is not None, 30000)
+    yield 1000
+    dialog = gui_einrichtblatt.EinrichtblattDialog.offen
+    h.pruefe(dialog is not None, "kein Fenster für die Stange")
+    if dialog is None:
+        return
+    auf = dialog.blatt.aufspannungen
+    h.pruefe(len(auf) == 6, f"{len(auf)} Aufspannungen statt 6")
+    h.pruefe(all(a.bild and os.path.exists(a.bild) for a in auf), "nicht je Aufspannung ein Bild")
+    if len(auf) >= 2 and all(a.bild for a in auf[:2]):
+        with open(auf[0].bild, "rb") as f1, open(auf[1].bild, "rb") as f2:
+            h.pruefe(f1.read() != f2.read(), "Aufspannung 1 und 2 im selben Bild")
+    h.pruefe(
+        all("6-Kant-Stange" in a.rohteil and "Schraubstock am Ende" in a.spannung for a in auf),
+        f"Stange: {auf[0].rohteil!r}, {auf[0].spannung!r}",
+    )
+    h.pruefe(
+        "Aufspannung 2 von 6" in auf[1].nullpunkt if len(auf) > 1 else False,
+        f"Nullpunkt 2: {auf[1].nullpunkt if len(auf) > 1 else ''!r}",
+    )
+    nachher = {o.Name: o.ViewObject.Visibility for o in stange_doc.Objects if o.ViewObject}
+    h.pruefe(nachher == sichtbar, "Sichtbarkeit nicht wiederhergestellt")
+    h.pruefe(not Gui.getDocument(stange_doc.Name).Modified, "Dokument gilt als geändert")
+    h.pruefe(
+        stange_doc.UndoCount == rueckgaengig and len(stange_doc.Objects) == objekte,
+        f"Spuren: Rückgängig {stange_doc.UndoCount}, Objekte {len(stange_doc.Objects)}",
+    )
+    dialog.vorschau.verticalScrollBar().setValue(700)
+    yield 300
+    h.bild("2_sechskant", dialog)
+    if os.environ.get("AUSGABE"):
+        for i, a in enumerate(auf[:2], 1):
+            shutil.copy(a.bild, os.path.join(os.environ["AUSGABE"], f"sechskant_{i}.png"))
+    dialog.reject()
+    yield 500
+    FreeCAD.closeDocument(stange_doc.Name)

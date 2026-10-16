@@ -70,35 +70,88 @@ class EinrichtblattDialog(QtGui.QDialog):
         self.resize(820, 900)
 
     def _bilder_machen(self):
-        """Die Bilder der Werkzeuge (_werkzeugbilder) und je Aufspannung eins der 3D-Ansicht: Teil
-        und Rohteil des Jobs, schräg von oben."""
+        """Die Bilder der Werkzeuge (_werkzeugbilder) und je Aufspannung eins der 3D-Ansicht
+        (_bild_der_aufspannung). Der Navigationswürfel gehört nicht aufs Blatt: über die
+        Einstellung aus und wieder an – nicht über `ansicht.getViewer()`, das ließ FreeCAD 1.1.4
+        beim Schließen der Ansicht abstürzen (B-011)."""
         ordner = tempfile.mkdtemp(prefix="einrichtblatt_")
         self._werkzeugbilder(ordner)
-        ansicht = None
+        dokument = ansicht = None
         with _ignoriert():
             dokument = FreeCADGui.getDocument(self.job.Document.Name)
             ansicht = dokument.mdiViewsOfType("Gui::View3DInventor")[0]
         if ansicht is None:
             return
-        for i, aufspannung in enumerate(self.blatt.aufspannungen):
-            if i:  # die weiteren Aufspannungen: noch ohne eigenes Bild
-                continue
-            pfad = os.path.join(ordner, f"aufspannung_{i + 1}.png")
-            wuerfel = None
-            with _ignoriert():
-                betrachter = ansicht.getViewer()
-                wuerfel = betrachter.isEnabledNaviCube()
-                betrachter.setEnabledNaviCube(
-                    False
-                )  # der Navigationswürfel gehört nicht aufs Blatt
-            with _ignoriert():
-                ansicht.viewIsometric()
-                ansicht.fitAll()
-                ansicht.saveImage(pfad, 840, 560, "White")
-                aufspannung.bild = pfad
+        ansicht_einstellungen = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/View")
+        wuerfel = ansicht_einstellungen.GetBool("ShowNaviCube", True)
+        geaendert = getattr(dokument, "Modified", None)
+        try:
             if wuerfel:
+                ansicht_einstellungen.SetBool("ShowNaviCube", False)
+            for i, aufspannung in enumerate(self.blatt.aufspannungen):
+                pfad = os.path.join(ordner, f"aufspannung_{i + 1}.png")
                 with _ignoriert():
-                    betrachter.setEnabledNaviCube(True)
+                    self._bild_der_aufspannung(ansicht, aufspannung, pfad)
+        finally:
+            if wuerfel:
+                ansicht_einstellungen.SetBool("ShowNaviCube", True)
+            if geaendert is False:  # nur gezeigt und versteckt: das Dokument bleibt ungeändert
+                with _ignoriert():
+                    dokument.Modified = False
+
+    def _bild_der_aufspannung(self, ansicht, aufspannung, pfad):
+        """Teil, Rohteil und Bahnen des Jobs der Aufspannung, schräg von oben – die anderen Jobs
+        dafür ausgeblendet –, dazu die Backen des Spannmittels (spannung.schraubstock). Das Bild
+        (saveImage) zeichnet nur Objekte des Dokuments: Die Backen sind dafür kurz eins, in einer
+        Transaktion, die danach verworfen wird – nichts bleibt, auch nicht im Rückgängig. Läuft
+        schon eine Transaktion (ein offenes Fenster), ohne Backen. Danach steht alles, wie es war.
+        """
+        from . import reichweite as rw
+        from . import spannung
+        from .gui_abfahren import SCHRAUBSTOCK
+
+        job = aufspannung.job
+        if job is None:
+            return
+        dok = job.Document
+        zeigen = {o.Name for o in getattr(job.Model, "Group", [])}
+        if getattr(job, "Stock", None) is not None:
+            zeigen.add(job.Stock.Name)
+        zeigen |= {op.Name for op, _ebene in rw.operationen_mit_ebene(job)}
+        backen = spannung.schraubstock(job)
+        transaktion = backen is not None and not dok.HasPendingTransaction
+        vorher = {}
+        try:
+            if transaktion:
+                dok.openTransaction("Einrichtblatt")
+                hilfe = dok.addObject("Part::Feature", "EinrichtblattBacken")
+                hilfe.Shape = backen
+                if getattr(hilfe, "ViewObject", None) is not None:
+                    hilfe.ViewObject.ShapeColor = SCHRAUBSTOCK
+                zeigen.add(hilfe.Name)
+            for o in dok.Objects:
+                ansicht_o = getattr(o, "ViewObject", None)
+                if (
+                    ansicht_o is None
+                    or hasattr(o, "Operations")
+                    or o.isDerivedFrom("App::DocumentObjectGroup")
+                ):
+                    continue  # Jobs und Gruppen bleiben – sie schalten ihren Inhalt mit
+                soll = o.Name in zeigen
+                if bool(ansicht_o.Visibility) != soll:
+                    vorher[o.Name] = ansicht_o.Visibility
+                    ansicht_o.Visibility = soll
+            ansicht.viewIsometric()
+            ansicht.fitAll()
+            ansicht.saveImage(pfad, 840, 560, "White")
+            aufspannung.bild = pfad
+        finally:
+            for name, sichtbar in vorher.items():
+                o = dok.getObject(name)
+                if o is not None and getattr(o, "ViewObject", None) is not None:
+                    o.ViewObject.Visibility = sichtbar
+            if transaktion:
+                dok.abortTransaction()
 
     def _werkzeugbilder(self, ordner):
         """Je Werkzeug mit Halter das Bild aus der Halterverwaltung (gui_halter.HalterBild):
