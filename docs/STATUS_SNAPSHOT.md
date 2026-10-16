@@ -473,7 +473,10 @@ T1 Ø 12.
    *Teilweise erledigt:* P-2026-10-16-05. Jetzt nehmen beide T3 Ø 6. Räumen erreicht damit nur
    35 % der Nut (siehe Punkt 7) und tritt nicht an; das Planfräsen erreicht sie, aber im Zickzack.
    Richtig wird es erst mit der Bogennut (Punkt 7).
-2. **Zickzack an den Rundungen**: „die vorschrupp bahnen sind rund .. und wenns zum fertig
+2. *Nachgemessen (2026-10-16): An runden Wänden ist der letzte Zug des Räumens exakt rund
+   (Tasche Ø 40, Zapfen Ø 20). Die eckigen Züge auf Manuels Bild lagen außen im Rohteil; seit
+   P-2026-10-16-12 räumt Räumen dort nicht mehr, wenn nur die Nut gewählt ist.*
+   **Zickzack an den Rundungen**: „die vorschrupp bahnen sind rund .. und wenns zum fertig
    schruppen kommt ists nen eck ??? … das selbe im inneren kreis“. Beim Räumen ist der letzte Zug
    außen um Ø 60 und innen in der Bohrung Ø 30 eckig und zackig, die Züge davor sind rund.
    Verdacht: Der letzte Zug folgt dem Rand aus dem Raster statt dem Kreis. Nachstellen und messen.
@@ -630,6 +633,13 @@ T1 Ø 12.
    werden“. Und zur Auswahl (Bild: der Außenmantel grün): „wenn ich den matel haben will ist das
    meine auswahl“; mit Außenmantel, Bohrung und Schlitzwänden grün: „und das wenn ich ausen alles
    bearbeiten will .. also da is halt ausen und innen zu bearbeiten alles was ausgeählt ist“.
+   *Nachgestellt (P-2026-10-16-15):*
+   - Mit diesen Wänden fuhr die Kontur außen herum, die Bohrung aber still gar nicht. Der Schlitz
+     ist außen 11,7 mm breit, Ø 12 mit Aufmaß kommt nicht durch, und von den zwei Schleifen des
+     Versatzes blieb nur die äußere.
+   - Jetzt fährt sie beide, jede von außen zur Wand. Am Prüfstand Rest 0, nichts ins Teil.
+   - Die Last ist hoch (bis 7,8 ae), wie bei jeder Kontur, die eine Tasche allein ausräumt. Das
+     gehört zum Zickzack-Punkt der Kontur.
    Daraus:
    - Ein gewählter Boden (Nut, Tasche, Absatz) heißt: das Material über ihm, nicht die ganze
      Ebene bis zum Rand des Rohteils.

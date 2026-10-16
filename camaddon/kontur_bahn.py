@@ -673,6 +673,111 @@ def _parallel(strecke, d):
     )
 
 
+def _versaetze(kontur, d, toleranz, schritt, material_rechts=True):
+    """[(Segmente, Proben)] – alle Schleifen des Versatzes um `d` auf der freien Seite, die nahe
+    der Kontur (_versatz) zuerst. Verengt sich die freie Seite (am C-Ring der Schlitz, schmaler
+    als der Fräser), zerfällt der Versatz: Außen um den Ring eine Schleife, in der Bohrung eine
+    zweite – bis P-2026-10-16-15 fiel die zweite still weg, und die Bohrung blieb voll."""
+    import FreeCAD
+
+    erste = _versatz(kontur, d, toleranz, schritt, material_rechts)
+    if erste is None or not kontur.geschlossen:
+        return [] if erste is None else [erste]
+    ziel = (kontur.stelle[0] + kontur.normale[0] * d, kontur.stelle[1] + kontur.normale[1] * d)
+    draht = kontur.draht.copy()
+    draht.translate(FreeCAD.Vector(0, 0, -kontur.z_unten))
+    ergebnis = [erste]
+    for vorzeichen in (1.0, -1.0):
+        try:
+            gerechnet = draht.makeOffset2D(vorzeichen * d, 0, False, False, False)
+        except Exception:  # OCC: „offset result has no wires“
+            continue
+        schleifen = []
+        for teil in gerechnet.Wires:
+            segmente = _segmente(teil, toleranz)
+            if segmente:
+                schleifen.append((segmente, _abtasten(segmente, schritt, True)))
+        if not any(
+            np.hypot(p.x - ziel[0], p.y - ziel[1]).min() <= max(schritt, 0.01 * d)
+            for _s, p in schleifen
+        ):
+            continue  # die andere Seite
+        for segmente, proben in schleifen:
+            if np.hypot(proben.x - ziel[0], proben.y - ziel[1]).min() <= max(schritt, 0.01 * d):
+                continue  # die erste
+            weg = _kette_abstand(kontur, proben)
+            if weg is None or abs(weg - d) > max(2 * schritt, 0.02 * d):
+                continue  # keine Bahn im Abstand d von der Kontur
+            ergebnis.append(
+                _in_fahrtrichtung(
+                    segmente, proben, 0, _normale_bei(kontur, proben, 0), schritt, True,
+                    material_rechts,
+                )
+            )  # fmt: skip
+        break
+    return ergebnis
+
+
+def _schleife_zu(zug, schrupp, weitere):
+    """Die Schruppbahnen (eine Schleife, _versaetze) zum Schlichtzug `zug` – die mit dem
+    nächsten Schwerpunkt; [] ohne."""
+    _d, _s, p = zug
+    mitte = (float(p.x.mean()), float(p.y.mean()))
+    kandidaten = [schleife for schleife in (schrupp, *weitere) if schleife]
+    if not kandidaten:
+        return []
+    return min(
+        kandidaten,
+        key=lambda schleife: math.hypot(
+            float(schleife[0][2].x.mean()) - mitte[0], float(schleife[0][2].y.mean()) - mitte[1]
+        ),
+    )
+
+
+def _zuordnen(weitere, d, schleifen):
+    """Hängt die Schleifen des Versatzes `d` an die weiteren Schleifen davor (je die mit dem
+    nächsten Schwerpunkt, höchstens gut zwei Schritte des Versatzes entfernt) – oder beginnt eine
+    neue."""
+    for segmente, proben in schleifen:
+        mitte = (float(proben.x.mean()), float(proben.y.mean()))
+        beste, abstand = None, math.inf
+        for schleife in weitere:
+            _d, _s, p = schleife[-1]
+            a = math.hypot(float(p.x.mean()) - mitte[0], float(p.y.mean()) - mitte[1])
+            if a < abstand and schleife[-1][0] < d:
+                beste, abstand = schleife, a
+        if beste is not None and abstand <= 2.0 * (d - beste[-1][0]) + 1.0:
+            beste.append((d, segmente, proben))
+        else:
+            weitere.append([(d, segmente, proben)])
+
+
+def _kette_abstand(kontur, proben):
+    """Der kleinste Abstand der Proben zur Kontur (ihre Unterkanten) – None ohne Kanten."""
+    import FreeCAD
+    import Part
+
+    try:
+        punkte = [FreeCAD.Vector(float(x), float(y), kontur.z_unten) for x, y in zip(
+            proben.x[:: max(1, len(proben.x) // 24)], proben.y[:: max(1, len(proben.y) // 24)],
+            strict=True,
+        )]  # fmt: skip
+        return min(kontur.draht.distToShape(Part.Vertex(p))[0] for p in punkte)
+    except Exception:  # OCC
+        return None
+
+
+def _normale_bei(kontur, proben, i):
+    """Die Richtung von der Kontur zur Probe `i` (waagerecht) – die freie Seite dort."""
+    import FreeCAD
+    import Part
+
+    p = FreeCAD.Vector(float(proben.x[i]), float(proben.y[i]), kontur.z_unten)
+    _d, paare, _info = kontur.draht.distToShape(Part.Vertex(p))
+    naechster = paare[0][0]
+    return _einheit(p.x - naechster.x, p.y - naechster.y)
+
+
 def _versatz(kontur, d, toleranz, schritt, material_rechts=True):
     """(Segmente, Proben) des Versatzes um `d` auf der freien Seite der Kontur, in Fahrtrichtung
     (Material rechts, `material_rechts` False: links); None, wenn es ihn nicht gibt (zu groß für
@@ -1100,21 +1205,37 @@ def _kontur(
             abstaende = []
     else:
         abstaende = [r + aufmass + i * w.zeilenabstand for i in range(HOECHSTENS_VERSAETZE)]
-    schrupp = []  # [(d, Segmente, Proben)] von der Wand nach außen
+    schrupp = []  # [(d, Segmente, Proben)] von der Wand nach außen – die erste Schleife
+    weitere = []  # [[(d, Segmente, Proben)] …] je weitere Schleife (_versaetze), ebenso
+    erste_aus = False  # die erste Schleife liegt nicht mehr im Rohteil
     for d in abstaende:
-        versatz = _versatz(k, d, toleranz, schritt, w.gleichlauf)
-        if versatz is None:
+        versaetze = _versaetze(k, d, toleranz, schritt, w.gleichlauf)
+        if not versaetze:
             break
-        segmente, proben = versatz
-        if not _im_rohteil(proben.x, proben.y, w.rohteil, r).any():
+        (segmente, proben), *andere = versaetze
+        if not erste_aus and _im_rohteil(proben.x, proben.y, w.rohteil, r).any():
+            schrupp.append((d, segmente, proben))
+        else:
+            erste_aus = True
+        andere = [v for v in andere if _im_rohteil(v[1].x, v[1].y, w.rohteil, r).any()]
+        _zuordnen(weitere, d, andere)
+        if erste_aus and not andere:
             break
-        schrupp.append((d, segmente, proben))
-    schlicht = None
+    schlicht, schlichte_weitere = None, []
     if w.schlichten:
-        versatz = _versatz(k, r, toleranz, schritt, w.gleichlauf)
-        if versatz is not None and _im_rohteil(versatz[1].x, versatz[1].y, w.rohteil, r).any():
-            schlicht = (r, versatz[0], versatz[1])
-    alle = schrupp + ([schlicht] if schlicht is not None else [])
+        versaetze = [
+            v for v in _versaetze(k, r, toleranz, schritt, w.gleichlauf)
+            if _im_rohteil(v[1].x, v[1].y, w.rohteil, r).any()
+        ]  # fmt: skip
+        if versaetze:
+            schlicht = (r, *versaetze[0])
+            schlichte_weitere = [(r, *v) for v in versaetze[1:]]
+    alle = (
+        schrupp
+        + [e for schleife in weitere for e in schleife]
+        + ([schlicht] if schlicht is not None else [])
+        + schlichte_weitere
+    )
     if not alle:
         return
     rand = r_ein + gerade + r + schritt
@@ -1137,7 +1258,13 @@ def _kontur(
     mit_stand, oben_schruppen, oben_schlichten = None, oben, oben
     if stand is not None:
         mit_stand, oben_schruppen, oben_schlichten = _mit_stand(
-            st, stand, schrupp, schlicht, oben, ziel, r
+            st,
+            stand,
+            schrupp + [e for schleife in weitere for e in schleife] + schlichte_weitere,
+            schlicht,
+            oben,
+            ziel,
+            r,
         )
     if mit_stand is not None:
         oben = oben_schruppen  # die Lagen beginnen am höchsten Material, das sie erreichen
@@ -1147,38 +1274,43 @@ def _kontur(
         lagen = []  # nichts mehr zu schruppen
     vorige = oben
     einmal = False  # der innerste Versatz ist schon ganz gefahren, in einer Lage bis aufs Ziel
+    schleifen = [schleife for schleife in (schrupp, *weitere) if schleife]
     for lage in lagen:
         lage = float(lage)
-        # (von, bis): so nah und so fern von der Wand ist diese Lage schon geräumt
-        geraeumt = (math.inf, 0.0)
         gefahren = False
-        masken = [None] * len(schrupp)
-        if mit_stand is not None and schrupp:
-            masken = mit_stand.trifft(lage, [p for _d, _s, p in schrupp])
-        for (d, segmente, proben), maske in zip(reversed(schrupp), reversed(masken), strict=True):
-            if _bahnen(
-                st,
-                k,
-                d,
-                segmente,
-                proben,
-                lage,
-                vorige,
-                geraeumt,
-                huelle,
-                ziel,
-                w,
-                r,
-                r_ein,
-                gerade,
-                schritt,
-                mit_stand,
-                maske,
+        for schleife in schleifen:  # je Schleife von außen zur Wand
+            # (von, bis): so nah und so fern von der Wand ist diese Lage schon geräumt
+            geraeumt = (math.inf, 0.0)
+            masken = [None] * len(schleife)
+            if mit_stand is not None:
+                masken = mit_stand.trifft(lage, [p for _d, _s, p in schleife])
+            for (d, segmente, proben), maske in zip(
+                reversed(schleife), reversed(masken), strict=True
             ):
-                gefahren = True
-                geraeumt = (min(geraeumt[0], d - r), max(geraeumt[1], d + r))
-                if proben is schrupp[0][2] and (maske is None or maske.all()):
-                    einmal = len(lagen) == 1
+                if _bahnen(
+                    st,
+                    k,
+                    d,
+                    segmente,
+                    proben,
+                    lage,
+                    vorige,
+                    geraeumt,
+                    huelle,
+                    ziel,
+                    w,
+                    r,
+                    r_ein,
+                    gerade,
+                    schritt,
+                    mit_stand,
+                    maske,
+                ):
+                    gefahren = True
+                    geraeumt = (min(geraeumt[0], d - r), max(geraeumt[1], d + r))
+                    innerster = schleife is schrupp and proben is schrupp[0][2]
+                    if innerster and (maske is None or maske.all()):
+                        einmal = len(lagen) == 1
         if gefahren:
             st.lagen += 1
             st.z_min = min(st.z_min, lage)
@@ -1187,17 +1319,18 @@ def _kontur(
     # schon ganz gefahren hat und die Schneide über die Höhe reicht (B-012: eine Runde Luft).
     hoehe = oben_schlichten - ziel
     doppelt = einmal and not 0 < w.schneidenlaenge < hoehe - GLEICH
-    if mit_stand is not None and schrupp and not doppelt:
+    if mit_stand is not None and not doppelt:
         # Einmal beim Aufmaß an der Wand ab (Manuel, 2026-10-02: „wenn's heißt 0,3 ist
         # Schlichtaufmaß .. fahr die Kontur zumindest einmal auf 0,3 einfach an der Kontur ab“).
+        for schleife in schleifen:
+            _ein_zug(
+                st, k, w, r, r_ein, gerade, schritt, schleife[0], schleife, oben_schlichten, ziel,
+                huelle, mit_stand,
+            )  # fmt: skip
+    for zug in ([schlicht] if schlicht is not None else []) + schlichte_weitere:
         _ein_zug(
-            st, k, w, r, r_ein, gerade, schritt, schrupp[0], schrupp, oben_schlichten, ziel, huelle,
-            mit_stand,
-        )  # fmt: skip
-    if schlicht is not None:
-        _ein_zug(
-            st, k, w, r, r_ein, gerade, schritt, schlicht, schrupp, oben_schlichten, ziel, huelle,
-            mit_stand,
+            st, k, w, r, r_ein, gerade, schritt, zug, _schleife_zu(zug, schrupp, weitere),
+            oben_schlichten, ziel, huelle, mit_stand,
         )  # fmt: skip
     if mit_stand is not None and st.bahnen == bahnen_vorher:
         st.konturen -= 1  # hier war nichts mehr zu tun

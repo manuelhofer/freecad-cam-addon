@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-15 kontur-alle-schleifen
+
+### EINGELESEN
+- Manuel (Bild, C-Ring, Außenmantel, Bohrung und Schlitzwände gewählt): „und das wenn ich ausen
+  alles bearbeiten will .. also da is halt ausen und innen zu bearbeiten alles was ausgeählt
+  ist“.
+- Nachgestellt: Die vier Wände bilden eine Kontur (den Umriss des „C“). Die Kontur fuhr außen
+  herum, in der Bohrung nichts, und es kam keine rote Zeile. Der Schlitz ist außen 11,7 mm breit;
+  der Versatz für Ø 12 mit Aufmaß kommt nicht durch und zerfällt in zwei Schleifen, und
+  `_versatz` behielt nur die an der längsten Kante.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`:
+  - `_versaetze`: alle Schleifen des Versatzes auf der freien Seite, die nahe der Kontur zuerst,
+    jede weitere nur, wenn sie im Abstand d von der Kontur liegt (`_kette_abstand`), in
+    Fahrtrichtung (`_normale_bei`).
+  - `_kontur` sammelt die weiteren Schleifen über die Abstände (`_zuordnen`, nach dem
+    Schwerpunkt). Je Lage fährt sie jede Schleife für sich von außen zur Wand, mit eigenem
+    „geräumt“. Der Zug beim Aufmaß und das Schlichten gehen je Schleife (`_schleife_zu`).
+  - Ohne weitere Schleife (der Normalfall) bleibt alles wie bisher.
+- `tests/test_kontur.py`: Ring Ø 80 mit Bohrung Ø 30 und Schlitz 11 breit, alle Wände gewählt.
+  Die Bohrung wird gefahren, nichts ins Teil, Rest 0.
+- `docs/STATUS_SNAPSHOT.md`: C-Ring Punkt 2 nachgemessen (der letzte Zug an runden Wänden ist
+  exakt rund).
+- `package.xml` (0.260.13).
+
+### ERGEBNIS
+- C-Ring (Kopie), vier Wände, Ø 12: 759 Punkte in der Bohrung (vorher 0). Prüfstand: Rest 0,00,
+  Einschnitt 0,00, Eingriff bis 7,8 ae (Kontur als Taschenräumer, wie an den Prüfstandstaschen).
+- Grün im Wochen-Build: `test_kontur`, `test_pruefstand` (Bestmarken gehalten),
+  `test_materialstand`, `test_testteil`.
+
 ## P-2026-10-16-14 beispiele-auf-wunsch
 
 ### EINGELESEN

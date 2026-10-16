@@ -26,6 +26,7 @@ from camaddon import hoehenfeld as hf
 from camaddon import job_schnittwerte as js
 from camaddon import kontur as ko
 from camaddon import kontur_bahn as kb
+from camaddon import pruefstand as ps
 from camaddon import spindel as sp
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
@@ -460,6 +461,36 @@ doc.recompute()
 pruefe(len(op.Path.Commands) == anzahl, f"nach dem Laden {len(op.Path.Commands)} statt {anzahl}")
 pruefe(op.getEditorMode("Lagen") == ["ReadOnly"], "Lagen nach dem Laden")
 print(ascii(f"Operation: {anzahl} Befehle"))
+
+# --- Der Schlitz schmaler als der Fräser (Manuels C-Ring, 2026-10-16): Ring Ø 80 × 10, Bohrung
+# Ø 30, ein Schlitz 11 breit von der Bohrung nach außen. Gewählt alle Wände: Sie bilden eine Kontur
+# (außen, Schlitz, Bohrung). Der Versatz für Ø 12 kommt nicht durch den Schlitz und zerfällt in
+# zwei Schleifen – auch die in der Bohrung wird gefahren (bis P-2026-10-16-15 blieb sie still
+# voll); im Quader nichts ins Teil, die Bohrung leer.
+ring = Part.makeCylinder(40, 10).cut(Part.makeCylinder(15, 10))
+ring = ring.cut(Part.makeBox(30, 11, 10, V(10, -5.5, 0))).removeSplitter()
+waende_ring = [f"Face{i + 1}" for i, f in enumerate(ring.Faces) if kb.ist_wand(f)]
+konturen_ring = kb.konturen(ring, waende_ring)
+netz_r, fern_r = hf.netze_ohne(
+    ring, [kb.ohne_flaechen(ring, kb.waende(ring, waende_ring)), waende_ring]
+)
+werte_ring = kb.Konturwerte(form, 25.0, 1.5, 0.3, True, 10.0, 15.0, (-41.0, 41.0, -41.0, 41.0))
+bahn_ring = kb.planen(netz_r, werte_ring, konturen_ring, netz_fern=fern_r)
+in_der_bohrung = [
+    p for p in bahn_ring.punkte if not p.eilgang and p.z < 9.0 and math.hypot(p.x, p.y) < 15.0 - R
+]
+k_ring = ps.messen([ps.Bahnlauf(bahn_ring.punkte, 902.0, 270.0)], ring, (-41.0, 41.0, -41.0, 41.0),
+                   10.0, form, 1.5, 25.0, raster=0.25)  # fmt: skip
+print(
+    ascii(
+        f"Ring mit engem Schlitz: {len(konturen_ring)} Kontur, {bahn_ring.bahnen} Bahnen | {ps.zeile(k_ring)}"
+    )
+)
+pruefe(
+    len(konturen_ring) == 1 and in_der_bohrung, f"Bohrung nicht gefahren ({len(in_der_bohrung)})"
+)
+pruefe(k_ring.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Ring: ins Teil {k_ring.einschnitt:.3f}")
+pruefe(k_ring.rest <= 0.5, f"Ring: Rest {k_ring.rest:.2f}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))
