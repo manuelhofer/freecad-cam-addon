@@ -265,6 +265,13 @@ class BefehlVierachs:
             wahl = (angebot, None)
         else:
             wahl = gewaehlte_flaeche(dokument)
+            if wahl is not None:  # ein Link in der Maschine (B-020): im Dokument des Teils
+                from .gui_bearbeitung import _aktivieren, teil_hinter_link
+
+                teil = teil_hinter_link(wahl[0])
+                if teil is not wahl[0]:
+                    wahl, dokument = (teil, wahl[1]), teil.Document
+                    _aktivieren(dokument)
         # Die Transaktion öffnet der Assistent, wenn er den Job anlegt (_neuer_job).
         FreeCADGui.Control.showDialog(VierachsPanel(dokument, wahl))
 

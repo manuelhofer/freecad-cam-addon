@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-43 vierachs-teil-im-eigenen-dokument (B-020)
+
+### EINGELESEN
+- P-42 behob B-020 im Assistenten „Bearbeitung“. „4-Achs-Bearbeitung“ beginnt genauso mit
+  `arbeitsdokument()` und der Auswahl. Mit einem Link in der Maschine hätte er den Job dort
+  angelegt.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: Beim Start wird ein gewählter Link in ein anderes Dokument
+  aufgelöst (`gui_bearbeitung.teil_hinter_link`); der Assistent öffnet im Dokument des Teils.
+- `tests/gui/szenario_teil_in_maschine.py`: „4-Achs-Bearbeitung“ mit der Fläche am Link – das
+  Fenster im Dokument „Teil“, in der Maschine kommt nichts dazu.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_teil_in_maschine`.
+
 ## P-2026-10-16-42 teil-im-eigenen-dokument (B-020)
 
 ### EINGELESEN

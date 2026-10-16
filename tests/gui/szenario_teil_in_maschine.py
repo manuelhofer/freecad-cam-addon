@@ -5,7 +5,8 @@
 # „Bearbeitung“: Der Assistent arbeitet im Dokument „Teil“ – der Job dort mit dem Block selbst, kein
 # roter Satz, in der Maschine kommt nichts dazu. Dann ohne Auswahl, die Maschine aktiv und ein
 # drittes Dokument offen (der Assistent beginnt in der Maschine): eine Fläche am Block in „Teil“
-# angeklickt – der Job entsteht in „Teil“.
+# angeklickt – der Job entsteht in „Teil“. „4-Achs-Bearbeitung“ mit der Fläche am Link ebenso im
+# Dokument „Teil“.
 import os
 
 import FreeCAD
@@ -68,6 +69,25 @@ def schritte(h):
     h.bild("1_link_in_der_maschine")
     panel.reject()
     yield 800
+
+    # Ebenso „4-Achs-Bearbeitung“ mit der Fläche am Link: im Dokument „Teil“.
+    from camaddon import gui_vierachs
+
+    FreeCAD.setActiveDocument(mdoc.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(mdoc.Name, link.Name, oben)
+    yield 300
+    Gui.runCommand("CamAddon_Vierachs")
+    yield from h.warte_auf(lambda: gui_vierachs.VierachsPanel.offen is not None, 10000)
+    yield 1000
+    vierachs = gui_vierachs.VierachsPanel.offen
+    h.pruefe(vierachs is not None, "„4-Achs-Bearbeitung“ öffnet nicht")
+    if vierachs is not None:
+        h.pruefe(vierachs.doc is doc, f"4 Achsen im Dokument {vierachs.doc.Name}")
+        dazu = sorted({o.Name for o in mdoc.Objects} - vorher)
+        h.pruefe(not dazu, f"4 Achsen: in der Maschine dazugekommen: {dazu}")
+        vierachs.reject()
+        yield 800
 
     # Ohne Auswahl, die Maschine aktiv, ein drittes Dokument offen: Der Assistent beginnt in der
     # Maschine; die Fläche am Block in „Teil“ angeklickt – der Job entsteht in „Teil“.
