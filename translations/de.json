@@ -1965,7 +1965,6 @@
     "ba.stl.keine": "Ein Teil aus einem STL: „Alles aus dieser Aufspannung“ wählt, was erreichbar ist – oder Dreiecke anklicken.",
     "ba.stl.nur_freiform": "Ein Teil aus einem STL hat keine Bohrungen, Wände oder Ebenen – nur Dreiecke: dafür 3D-Schruppen und 3D-Schlichten.",
     "ba.richtung.zeile": "{winkel}° geneigt: {anzahl} Flächen ({namen})",
-    "ba.richtung.knopf.tooltip": "Diese Richtung als eigene Ebene (3+2) anlegen – das Fenster „Ebene schwenken“ öffnet mit ihrer Fläche; darin fräst der Assistent wie von oben.",
     "ba.richtung.danach": "Nach „Anlegen“ legt das Addon diese Ebenen an und öffnet den Assistenten je Ebene, ihre Flächen schon gewählt.",
     "ba.folge.titel": "Ebenen aus der Aufspannung",
     "ba.folge.text": "Ebene {nummer} von {anzahl} aus der Aufspannung – {winkel}° geneigt. „Anlegen“ legt ihre Operationen an und öffnet die nächste; „Abbrechen“ hört hier auf, die Ebenen bleiben.",

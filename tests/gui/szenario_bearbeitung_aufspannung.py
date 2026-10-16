@@ -2,8 +2,8 @@
 # dem Spannmittel ist .. und dann wird bearbeitet“): das Schwenkteil, unten im Spannmittel, auf der
 # 5-Achs-Fräse Tisch/Tisch. Schritt 2, der Knopf: gewählt sind die 14 Flächen von oben, darunter je
 # eine Zeile für die 30°-Schräge (10 Flächen) und die 45°-Fase (3), nichts rot; am Teil in ihren
-# Farben, darunter grau, dass „Anlegen“ die Ebenen anlegt. „Ebene schwenken …“ der 30°-Zeile öffnet
-# das Fenster mit ihrer Fläche. Ohne Maschine (der
+# Farben, darunter grau, dass „Anlegen“ die Ebenen anlegt – ohne Knopf „Ebene schwenken …“ je Zeile
+# (seit 2026-10-16). Ohne Maschine (der
 # Assistent nimmt eine 3-Achs-Fräse an): nur von oben, 13 Flächen rot – „Die Maschine schwenkt nicht
 # so weit.“ Die Beschriftung in Schritt 1 heißt „Unten im Spannmittel“.
 import os
@@ -26,7 +26,7 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import beispielmaschine, gui_bearbeitung, gui_schwenken
+    from camaddon import beispielmaschine, gui_bearbeitung
     from camaddon import maschinenspeicher as ms
     from camaddon import werkzeuge as wz
 
@@ -88,23 +88,11 @@ def schritte(h):
     yield 500
     h.bild("1_schritt2_alles_aus_der_aufspannung")
     h.bild("2_fenster", panel.form)
+    # Kein Knopf „Ebene schwenken (3+2) …“ je Zeile mehr – „Anlegen“ legt die Ebenen an.
     knoepfe = [
         b for b in panel.richtungen_box.findChildren(QtGui.QPushButton) if b.isVisibleTo(panel.form)
     ]
-    h.pruefe(len(knoepfe) == 2, f"Knöpfe: {len(knoepfe)}")
-    if knoepfe:
-        knoepfe[0].click()
-        yield from h.warte_auf(lambda: gui_schwenken.SchwenkenPanel.offen is not None)
-        yield 1500
-        schwenk = gui_schwenken.SchwenkenPanel.offen
-        h.pruefe(
-            schwenk is not None and schwenk.flaeche == "Face3",
-            f"Ebene schwenken mit {getattr(schwenk, 'flaeche', None)!r}",
-        )
-        h.bild("3_ebene_schwenken_30")
-        if schwenk is not None:
-            schwenk.reject()
-        yield 800
+    h.pruefe(not knoepfe, f"Knöpfe in den Zeilen: {[b.text() for b in knoepfe]}")
     for dokument in list(FreeCAD.listDocuments().values()):
         FreeCAD.closeDocument(dokument.Name)
     yield 800

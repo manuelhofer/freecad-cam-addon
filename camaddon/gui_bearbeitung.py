@@ -553,12 +553,6 @@ def _n_eck_anlegen(dokument, teil, wahl):
 RICHTUNG_FARBEN = ("#e8962d", "#9b59b6", "#1f9e8f", "#b5651d", "#2e86c1")
 
 
-def _stirnflaeche(richtung):
-    """Die Fläche einer Richtung (zugang.Richtung), mit der „Ebene schwenken“ öffnet: die erste
-    ebene, deren Normale die Richtung ist – sonst die erste."""
-    return richtung.stirn or richtung.flaechen[0]
-
-
 def _schraeg(form, name):
     """Wie weit die ebene Fläche `name` gegen die Waagerechte geneigt ist (Grad) – None, wenn sie
     nicht eben ist, nach oben zeigt, eine senkrechte Wand ist (das fräst der Job ohne Schwenken)
@@ -6009,13 +6003,8 @@ class BearbeitungPanel:
             text.setWordWrap(True)
             text.setStyleSheet(f"color: {farbe};")
             aufbau.addWidget(text, 1)
-            aufbau.addWidget(
-                knopf(
-                    tr("ba.schwenken.knopf"),
-                    tr("ba.richtung.knopf.tooltip"),
-                    lambda _=False, r=r: self.ebene_schwenken(_stirnflaeche(r)),
-                )
-            )
+            # Kein Knopf „Ebene schwenken (3+2) …“ mehr je Zeile: „Anlegen“ legt die Ebenen selbst
+            # an (Manuel, 2026-10-16: „ich weis nicht für was das da sein soll“).
             self._richtungen_aufbau.addWidget(zeile)
         gruende = {}
         for name, grund in z.unerreichbar.items():

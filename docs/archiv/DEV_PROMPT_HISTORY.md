@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-64 richtungszeilen-ohne-knopf
+
+### EINGELESEN
+- Manuel (2026-10-16): „auch die geschichte mit dem schwenken ... ich weis nicht für was das da sein
+  soll“. In den Zeilen von „Alles aus dieser Aufspannung“ stand je Richtung noch der Knopf „Ebene
+  schwenken (3+2) …“, obwohl „Anlegen“ diese Ebenen selbst anlegt („Nach „Anlegen“ legt das Addon
+  diese Ebenen an …“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: die Zeilen ohne Knopf; `_stirnflaeche` entfällt.
+- `translations/de.json`, `en.json`: `ba.richtung.knopf.tooltip` entfällt.
+- `tests/gui/szenario_bearbeitung_aufspannung.py`: keine Knöpfe in den Zeilen.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_bearbeitung_aufspannung`,
+  `szenario_bearbeitung_aufspannung_folge`, `test_sprache`.
+
 ## P-2026-10-16-63 formularzeilen-spaeter-loeschen
 
 ### EINGELESEN

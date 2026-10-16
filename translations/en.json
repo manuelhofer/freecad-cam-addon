@@ -1965,7 +1965,6 @@
     "ba.stl.keine": "A part from an STL: “Everything from this setup” selects what is reachable – or click triangles.",
     "ba.stl.nur_freiform": "A part from an STL has no holes, walls or planes – only triangles: use 3D roughing and 3D finishing.",
     "ba.richtung.zeile": "Tilted {winkel}°: {anzahl} faces ({namen})",
-    "ba.richtung.knopf.tooltip": "Create this direction as a plane of its own (3+2) – the “Swivel plane” window opens with its face; there the assistant mills as from above.",
     "ba.richtung.danach": "After “Create”, the add-on creates these planes and opens the assistant for each plane, its faces already selected.",
     "ba.folge.titel": "Planes from the setup",
     "ba.folge.text": "Plane {nummer} of {anzahl} from the setup – tilted {winkel}°. “Create” creates its operations and opens the next one; “Cancel” stops here, the planes remain.",
