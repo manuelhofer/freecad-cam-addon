@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-03, 0.260.45 → 0.260.67):** (dazu T-015: G550 ohne Grundstellung)
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-06, 0.260.45 → 0.260.70):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -24,6 +24,9 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   - 4-Achs „Plan indexiert“ fährt über eine Helix hinein, 30 → 9 Kehren (P-53), an der schrägen
     Fläche senkrecht, wo kaum etwas darüber steht (→ 7, P-68). Übrig sind Nuten, die so breit
     sind wie der Fräser (wie die Vollnut in 3 Achsen), und eine Ecke neben einem Stift.
+  - 4-Achs-Schruppen mit gewählten Flächen: in die erste Zeile einer Lage über eine Helix statt
+    über die Rampe hin und her (P-2026-10-17-04; mit „nur Gleichlauf“ 2 → 0 Kehren). Grün auch
+    `szenario_vierachs_flaechen`, `_nocke`, `_schruppen`, `_nut`, `_mantelnut`.
   - Im vollen Szenario-Lauf übrig:
     - Testteil, Kontur T1: in der dreieckigen Tasche passt Ø 12 gerade so; die Mittelbahn ist ein
       Dreieck von 1 mm Umfang, dort wendelt er eng hinab – kein Hin und Her.
@@ -76,6 +79,13 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
     kommen vorn in eine laufende Kette (N-Eck), statt sie zu ersetzen; mit einer Kante dazu kein
     Planfräsen der ganzen Oberseite; ein Zapfen im Lochboden macht eine Tasche; nur Wände über
     der Schräge gehen mit in ihre Ebene.
+- Der dritte volle Lauf (Stand P-2026-10-17-03): 151 von 151 grün. In `kehren.txt` fiel das
+  Planfräsen am Block auf (4 Kehren, seit P-67): Das Bügeln von Hin-und-zurück nahm Höhen bis
+  0,05 mm als gleich und griff die flache Rampe an ihrer Wende an – behoben in P-2026-10-17-06,
+  zusammen mit dem, was eine zweite Durchsicht fand (Eilgang-Schutz mit der Fräserform und am
+  Rand, Helix im 4-Achs-Schruppen nur über Gefrästem, Taschenwände gegen jede angrenzende Fläche).
+- Der Knopf „Ebene schwenken (3+2) …“ im Assistenten ist weg (war seit P-54 immer versteckt), die
+  Hilfe beschreibt den neuen Weg (P-2026-10-17-05). Der Befehl in der Werkzeugleiste bleibt.
 
 **Der 16.10. abends (P-2026-10-16-36 bis -47, 0.260.33 → 0.260.44):**
 - Einrichtblatt: Das Fenster öffnet sofort, die Bilder kommen nach und nach; beim Halter ein Link
