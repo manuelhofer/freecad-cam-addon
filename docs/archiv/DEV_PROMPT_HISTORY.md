@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-56 wechselpunkt-oben-und-kehren-mit-ort
+
+### EINGELESEN
+- Der volle Szenario-Lauf der Nacht: `szenario_schwenkteil` rot („Es stößt etwas an“, Satz 0 jeder
+  Operation im Eilgang ins Teil). Nachgesucht: rot seit P-2026-10-16-01 (Z der 5-Achs-Fräsen zählt
+  ab dem Tisch, 40 … 450) – das Szenario setzte den Wechselpunkt noch auf Z 150, „ganz oben“ nach
+  der alten Zählung; jetzt steckte das Werkzeug dort im Teil.
+- Zur Zickzack-Durchsicht: Wo in einem Szenario eine Kehre ist, war nur die Zahl zu sehen.
+
+### DATEIEN
+- `tests/gui/szenario_schwenkteil.py`, `szenario_angestellt.py`: Wechselpunkt Z 450.
+- `camaddon/pruefstand.py`: `kehren_im_programm(befehle, orte)` – je Kehre, wo die Rampe begann.
+- `tests/gui/_lauf/szenario_lauf.py`: `kehren.txt` nennt die ersten drei Orte; das Programm einer
+  Operation mit Kehren liegt daneben (`<Dokument>_<Operation>.nc`).
+- `docs/STATUS_SNAPSHOT.md`: die Nacht, B-026; `docs/OFFENE_FRAGEN.md`: Fragen 5 und 6.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_schwenkteil`, `szenario_angestellt`, `szenario_testteil`,
+  `szenario_entgraten3d`, `test_pruefstand`.
+
 ## P-2026-10-16-55 beispiele-anfangs-leer
 
 ### EINGELESEN

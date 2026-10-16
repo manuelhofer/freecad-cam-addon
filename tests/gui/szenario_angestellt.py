@@ -40,7 +40,8 @@ def schritte(h):
     asm, maschine = beispielmaschine.lade(beispielmaschine.TISCH_TISCH)
     for ba in mm.betriebsarten(maschine):
         if ba.Art == mm.ART_LINEAR and ba.NcName == "Z1":
-            ba.Wechsel, ba.WechselAn = 150.0, True  # Z ganz oben
+            # Z ganz oben – seit P-2026-10-16-01 zählt Z ab dem Tisch (40 … 450, vorher bis 150).
+            ba.Wechsel, ba.WechselAn = 450.0, True
     pfad_maschine = os.path.join(ordner, "fuenfachs.FCStd")
     asm.Document.saveAs(pfad_maschine)
     yield 300

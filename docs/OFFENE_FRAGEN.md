@@ -63,3 +63,30 @@ antreten zu lassen ist eine neue Strategiewahl.
 *Was die Antwort ändert:* Bei „ja“ tritt an gewählten durchgehenden Wänden Räumen bis durch gegen
 die Kontur an (die Zeit entscheidet), und „Schlichten danach“ macht die Wände fertig. Bei „nein“
 bleibt die Kontur, und ihre Last in der Bohrung bleibt ein eigener Punkt. – seit 2026-10-16
+
+**5. Soll ein angeklickter Boden eines Lochs „Bohrung fräsen“ meinen (bis Ø 40)?**
+Seit P-2026-10-16-13 nimmt das Planfräsen keine Taschenböden mehr; das Räumen passt in ein Loch,
+das nur wenig größer ist als der Fräser, nicht hinein (FreeCADs Adaptiv-Kern: „Start point not
+found“; Ø 16 mit Ø 12, auch Ø 16 mit Ø 10 und 0,3 Aufmaß). Dann ging am Loch in der Schräge
+(`szenario_loch_schraeg`, Manuels „Ich will nur dass Loch da fräsen“) und am Lagerbock (Gründe der
+Senkungen Ø 14) gar nichts mehr. Seit P-2026-10-16-54 meint der Boden eines Lochs bis Ø 40 das Loch:
+„Bohrung fräsen“ nimmt ihn, das Räumen nicht. Größere runde Taschen (die Platte, Ø 45) räumt das
+Räumen wie bisher.
+*Warum nur Manuel:* Was das Addon ohne Vorgabe wählt, entscheidet er; die Grenze Ø 40 ist von mir.
+*Was die Antwort ändert:* Eine andere Grenze – oder die Grenze aus dem Fräser (z. B. Loch kleiner
+als 2 × Fräser-Ø: Bohrung fräsen, sonst Räumen). – seit 2026-10-17
+
+**6. Soll „3D-Schruppen“ nur über den gewählten Flächen schruppen (als Haken)?**
+Manuel am Schwenkteil: „dann wird ausen alles mit bearbeitet ... vll hab ich ausen das schon in
+einem anderen job und will einfach wirklich nur das was ich ausgewählt habe“ – zugleich „ich weis
+nicht klar soll das auch gemacht werden“. Am Schwenkteil selbst ist es seit P-2026-10-16-54 gelöst:
+Die schräge Tasche kommt in der geschwenkten Ebene dran, und dort räumt das Räumen nur sie. Für
+echte Freiform (eine Kuppel auf einer Platte) habe ich es gebaut und wieder zurückgenommen: Nur
+über der Kuppel ist der Bereich ringsum von Rohteil umgeben, wie eine Tasche. Die Ringe des
+3D-Schruppens kommen vom Rand her und gehen dort voll hinein (Eingriff bis 5 ae, 10 × senkrecht
+eintauchen; ganz: 1,9 ae). Richtig wäre es wie beim Räumen einer Tasche: in der Mitte per Helix
+hinein und von innen nach außen. Der Stand liegt in `~/freecad_cam/wip/nacht_2026-10-16/r3_nur_ueber.patch`.
+*Warum nur Manuel:* Was das 3D-Schruppen ohne Vorgabe wegnimmt, ist eine Strategiewahl.
+*Was die Antwort ändert:* Bei „ja“ baue ich es mit Helix und Ringen von innen, als Haken
+„Nur über den gewählten Flächen“ (vorbelegt an). Bei „nein“ bleibt es beim ganzen Rohteil. – seit 2026-10-17
+

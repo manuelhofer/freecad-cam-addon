@@ -16,6 +16,52 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis -56, 0.260.45 → 0.260.52):**
+- Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
+  - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
+  - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
+  - Jedes Szenario schreibt `kehren.txt` (P-52, mit Ort und Programm, wo eine Kehre ist).
+  - 4-Achs „Plan indexiert“ fährt über eine Helix hinein, 30 → 9 Kehren (P-53). Übrig sind Nuten,
+    die so breit sind wie der Fräser (wie die Vollnut in 3 Achsen), die schräge Fläche und eine
+    Ecke neben einem Stift.
+  - Im vollen Szenario-Lauf übrig:
+    - Testteil, Kontur T1: in der dreieckigen Tasche passt Ø 12 gerade so; die Mittelbahn ist ein
+      Dreieck von 1 mm Umfang, dort wendelt er eng hinab – kein Hin und Her.
+    - Geist (STL), 3D-Schlichten: 18 bzw. 58 Kehren unter 2214 bzw. 3561 Einfahrten – noch nicht
+      angesehen.
+- Schräge Flächen ohne Umweg (P-54, Manuel am Schwenkteil auf der G550):
+  - An der 5-Achs-Fräse legt „Anlegen“ die Ebene selbst an und macht dort weiter.
+  - An der 3-Achs-Fräse gibt es den Haken „Schräg gespannt fräsen“: eine Aufspannung, das Teil
+    gekippt; das Einrichtblatt nennt Winkel und Achse.
+  - Der Taschenboden heißt „Boden einer Tasche – Räumen“.
+  - Der Boden eines Lochs bis Ø 40 meint das Loch (Frage 5).
+- Weiter:
+  - Werkzeugkiste mit Hoffmann-Daten (77 Reihen, P-48).
+  - Gleiche Rundungen und Fasen auf einmal anwählen (P-49).
+  - Die Vorschau-Schruppbahn wird wiederverwendet (P-50; Geist 702 → 571 s).
+  - „Beispiele laden“ beginnt leer, mit „Alle anhaken/abhaken“ (P-55).
+- Rote Szenarien aus dem vollen Lauf:
+  - Behoben: `szenario_loch_schraeg`, `szenario_lagerbock`, `szenario_platte` (seit P-12/-13, in
+    P-54); `szenario_schwenkteil` (Wechselpunkt Z 150 lag seit P-01 im Teil, P-56).
+  - Offen: B-026 (`szenario_vierachs_drehteil`) und `szenario_mausrad`. Das Mausrad-Szenario
+    scheint am Prüfaufbau zu liegen: Rasten über XTest kommen in gamescope nicht an, die Nummer
+    mit Fokus rollt nicht.
+- 3D-Schruppen nur über den gewählten Flächen: gebaut und zurückgenommen (Frage 6).
+
+**Der 16.10. abends (P-2026-10-16-36 bis -47, 0.260.33 → 0.260.44):**
+- Einrichtblatt: Das Fenster öffnet sofort, die Bilder kommen nach und nach; beim Halter ein Link
+  „im Katalog“.
+- B-025 (Querachse, Schaftgrenze auf dem falschen Strahl) behoben, danach beschleunigt.
+- W-022 Punkt 3:
+  - Die Halter sind nach den öffentlichen Katalogzeichnungen nachgebaut (SK40, BT40, HSK-A63,
+    VDI30); gegen eine STEP-Datei geprüft: auf 0,1 mm gleich.
+  - Jede Vorlage verlinkt ihr Vorbild; ohne Link sucht der Knopf im Katalog.
+  - „Halter aus Datei (STEP, STL) …“ liest die Kontur des eigenen Halters.
+- B-020: Ein Teil als Link in der Maschine landet jetzt im eigenen Dokument, in beiden Assistenten.
+- Der volle Szenario-Lauf im Wochen-Build lief unterbrochen weiter. Rot waren nur
+  `szenario_erster_start` (18 Menüeinträge, behoben) und `szenario_vierachs_stl` (702 s;
+  `# ZEITLIMIT:` je Szenario).
+
 **Der 11.10. ab Mittag (P-2026-10-11-42 bis -58, 0.213.48 → 0.213.64):** Manuels Antworten zu
 Frage 10 und 11 gebaut („Plan indexiert“ rundum vorbelegt mit dem Schruppfräser, auch Face8 zur
 Achse; Seiten mit dem Schaft als Haken; „C dreht nicht zurück“ beim Schruppen); der 4-Achs-
@@ -1296,8 +1342,18 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
-B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; nächste freie Nummer B-026.
+- **B-026 „Plan indexiert“: Eilgang durchs Rohteil am Drehteil** (`szenario_vierachs_drehteil`, rot
+  schon vor P-2026-10-16-01, also nicht aus der Nacht; gefunden im vollen Lauf 16./17.10.): Die
+  Kollision meldet „fährt die Schneide von T1 im Eilgang durch Rohteil, das dort noch steht – bis
+  1,53 mm tief (bei X Ø 36, Y −4,98, Z 4,25, C 180)“. Im Programm fährt die zweite Lage (r 12)
+  je Zeile erst von Z 7 bis Z 4,25 (vor dem Teil) und zieht dort im Eilgang hoch; den Rest der
+  Zeile (Z −4,25 … −15,75) holt eine eigene Fahrt mit Helix nach. Vermutet: Die Stange ragt vorn
+  über das Teil, und zwischen Z 4,25 und −4,25 gilt die Zeile als „nicht nötig“ – die Kollision
+  sieht dort noch Rohteil. Nächster Schritt: `drin`/`noetig` in `vierachs_planbahn.planen` an
+  dieser Stelle ausgeben.
+
+Sonst kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
+B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; nächste freie Nummer B-027.
 
 ## Offene Tasks
 

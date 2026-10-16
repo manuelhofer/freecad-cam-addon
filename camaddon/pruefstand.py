@@ -358,12 +358,13 @@ def _skalar(a, b):
     return a[0] * b[0] + a[1] * b[1]
 
 
-def kehren_im_programm(befehle):
+def kehren_im_programm(befehle, orte=None):
     """(Kehren, Rampen) in den Befehlen einer Operation (Path.Command, absolut): Rampen sind die
     Einfahrten – nach einem Eilgang die Vorschubsätze, die Z senken, bis der erste nicht mehr
     senkt (was danach sinkt, folgt einer Fläche); eine Kehre ist eine Rampe, die dabei in XY
     umkehrt (Zickzack) – wie Kennzahlen.kehren, aber ohne Material. None, wenn eine Rundachse
-    (A, B, C) vorkommt: Dort sagt die Richtung in XY nichts."""
+    (A, B, C) vorkommt: Dort sagt die Richtung in XY nichts. `orte` (eine Liste): dazu je Kehre
+    (x, y, z), wo die Rampe begann."""
     x = y = z = 0.0
     kehren = rampen = 0
     einfahrt = in_rampe = gekehrt = False
@@ -397,12 +398,14 @@ def kehren_im_programm(befehle):
         nach = _punkt(x, y, z, bogen)
         if not in_rampe:
             rampen += 1
-            richtung, gekehrt = None, False
+            richtung, gekehrt, beginn = None, False, (von.x, von.y, von.z)
         anfang, ende = tangenten(von, nach)
         if anfang is not None:
             if richtung is not None and not gekehrt and _skalar(richtung, anfang) < -0.5:
                 kehren += 1
                 gekehrt = True
+                if orte is not None:
+                    orte.append(beginn)
             richtung = ende
         in_rampe = True
     return kehren, rampen

@@ -170,8 +170,9 @@ def _kehren_schreiben():
         return
     zeilen = []
     for name, bahn in sorted(bahnen.je_operation.items()):
+        orte = []
         try:
-            ergebnis = ps.kehren_im_programm(bahn.Commands)
+            ergebnis = ps.kehren_im_programm(bahn.Commands, orte)
         except Exception as fehler:  # noqa: BLE001
             zeilen.append((-1, f"{name}: nicht gezählt ({fehler})"))
             continue
@@ -179,7 +180,17 @@ def _kehren_schreiben():
             zeilen.append((-1, f"{name}: Rundachse – nicht gezählt"))
             continue
         kehren, rampen = ergebnis
-        zeilen.append((kehren, f"Kehren {kehren:3d}  Rampen {rampen:3d}  {name}"))
+        if kehren:  # zum Nachsehen: das Programm der Operation
+            datei_name = "".join(c if c.isalnum() else "_" for c in name) + ".nc"
+            with open(os.path.join(AUSGABE, datei_name), "w", encoding="utf-8") as programm:
+                programm.write(bahn.toGCode())
+        wo = "; ".join(f"X{x:.2f} Y{y:.2f} Z{z:.2f}" for x, y, z in orte[:3])
+        zeilen.append(
+            (
+                kehren,
+                f"Kehren {kehren:3d}  Rampen {rampen:3d}  {name}" + (f"  bei {wo}" if wo else ""),
+            )
+        )
     zeilen.sort(key=lambda z: -z[0])
     with open(os.path.join(AUSGABE, "kehren.txt"), "w", encoding="utf-8") as datei:
         datei.write("\n".join(z[1] for z in zeilen) + ("\n" if zeilen else ""))
