@@ -41,5 +41,7 @@ Prüfstand (`absatz/planfraesen`) gewinnt dort Planfräsen mit 2,1 min und einer
 *Warum nur Manuel:* Was Planfräsen heißt, entscheidet er; „Absätze“ hat er nicht genannt.
 *Was die Antwort ändert:* Bei „Räumen“ tritt Planfräsen nur noch für die Oberseite an (z0),
 bei „Planfräsen“ bleibt es so, und die Zickzack-Rampe am Absatz muss weg (von der offenen Seite
-her einfahren). – seit 2026-10-16
+her einfahren). Nachgesehen: Die erste Zeile jeder Lage beginnt an der Stufe (x 16, im Material)
+und läuft nach außen. Andersherum, vom offenen Ende (x 61, Luft), bräuchte sie keine Rampe; die
+Richtung legt `planfraesen_bahn._zellenfahrten` fest. – seit 2026-10-16
 
