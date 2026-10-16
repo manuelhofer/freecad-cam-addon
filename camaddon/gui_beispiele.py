@@ -53,6 +53,20 @@ class BeispieleDialog(QtGui.QDialog):
         text.setWordWrap(True)
         text.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         aufbau.addWidget(text)
+        # Zu Beginn nichts angehakt, darüber „Alle anhaken“ und „Alle abhaken“ wie in der
+        # Werkzeugkiste (Manuel, 2026-10-16: „hier erstmal alles nicht angeklickt .. und nen button
+        # wie in der werkzeuglsite ... alles anhacken und nichts anhacken“).
+        oben = QtGui.QHBoxLayout()
+        self.knopf_alle = QtGui.QPushButton(tr("bsp.alle"))
+        self.knopf_alle.setToolTip(tr("bsp.alle.tooltip"))
+        self.knopf_alle.clicked.connect(lambda: self.alle_setzen(True))
+        self.knopf_keine = QtGui.QPushButton(tr("bsp.keine"))
+        self.knopf_keine.setToolTip(tr("bsp.keine.tooltip"))
+        self.knopf_keine.clicked.connect(lambda: self.alle_setzen(False))
+        oben.addWidget(self.knopf_alle)
+        oben.addWidget(self.knopf_keine)
+        oben.addStretch()
+        aufbau.addLayout(oben)
         self.liste = QtGui.QListWidget()
         for beispiel in self.beispiele:
             zeile = f"{beispiel.name} – {_groesse(beispiel.bytes)}"
@@ -60,8 +74,9 @@ class BeispieleDialog(QtGui.QDialog):
                 zeile += " – " + tr("bsp.schon_da")
             eintrag = QtGui.QListWidgetItem(zeile)
             eintrag.setFlags(eintrag.flags() | QtCore.Qt.ItemIsUserCheckable)
-            eintrag.setCheckState(QtCore.Qt.Checked)
+            eintrag.setCheckState(QtCore.Qt.Unchecked)
             self.liste.addItem(eintrag)
+        self.liste.itemChanged.connect(lambda _eintrag: self._laden_freigeben())
         aufbau.addWidget(self.liste)
         self.stand = QtGui.QLabel()
         self.stand.setWordWrap(True)
@@ -85,6 +100,22 @@ class BeispieleDialog(QtGui.QDialog):
         self.uhr.setInterval(NACHSEHEN_MS)
         self.uhr.timeout.connect(uhren.aus_der_schleife(self.uhr, self._nachsehen))
         self.resize(560, 420)
+        self._laden_freigeben()
+
+    def alle_setzen(self, an):
+        """Hakt alle Dateien an (`an`) oder ab."""
+        zustand = QtCore.Qt.Checked if an else QtCore.Qt.Unchecked
+        for i in range(self.liste.count()):
+            self.liste.item(i).setCheckState(zustand)
+
+    def _laden_freigeben(self):
+        """„Laden“ geht, sobald etwas angehakt ist – und nicht, solange geladen wird."""
+        if not self.uhr_laeuft():
+            self.knopf_laden.setEnabled(bool(self.gewaehlt()))
+
+    def uhr_laeuft(self):
+        uhr = getattr(self, "uhr", None)
+        return uhr is not None and uhr.isActive()
 
     def gewaehlt(self):
         return [
@@ -132,7 +163,7 @@ class BeispieleDialog(QtGui.QDialog):
             namen = ", ".join(b.name if b is not None else "?" for b, _g in fehler[:3])
             satz += " " + tr("bsp.fehler", anzahl=len(fehler), namen=namen, grund=fehler[0][1])
         self.stand.setText(satz)
-        self.knopf_laden.setEnabled(True)
+        self._laden_freigeben()
         self.knopf_ordner.setEnabled(os.path.isdir(self.wohin))
 
     def ordner_oeffnen(self):

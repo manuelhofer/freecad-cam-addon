@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-55 beispiele-anfangs-leer
+
+### EINGELESEN
+- Manuel (2026-10-16 nachts, Bild „Beispiele laden“, alles angehakt): „hier erstmal alles nicht
+  angeklickt .. und nen button wie in der werkzeuglsite ... alles anhacken und nichts anhacken ..
+  also zwei button“.
+
+### DATEIEN
+- `camaddon/gui_beispiele.py`: Zu Beginn nichts angehakt; über der Liste „Alle anhaken“ und „Alle
+  abhaken“ (`alle_setzen`); „Laden“ grau, solange nichts angehakt ist (`_laden_freigeben`).
+- `translations/de.json`, `en.json`: `bsp.alle`, `bsp.keine` mit Tooltips.
+- `tests/gui/szenario_beispiele.py`: zu Beginn keiner, „Laden“ grau; die beiden Knöpfe.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_beispiele`, `test_sprache`.
+
 ## P-2026-10-16-54 schraege-flaeche-ohne-umweg
 
 ### EINGELESEN

@@ -1,6 +1,7 @@
 # „Beispiele laden …“ (gui_beispiele, Manuel 2026-10-16: alle Testteile im Repository, beim Laden
-# wählbar): Im Menü „CAM-Addon“ steht der Befehl. Das Fenster nennt jede Datei mit Größe, alle
-# angehakt; oben, wie viele es sind, wie groß zusammen und wohin sie kommen. Nur drei angehakt,
+# wählbar): Im Menü „CAM-Addon“ steht der Befehl. Das Fenster nennt jede Datei mit Größe, keine
+# angehakt („Laden“ grau), darüber „Alle anhaken“ und „Alle abhaken“ (Manuel, 2026-10-16); oben,
+# wie viele es sind, wie groß zusammen und wohin sie kommen. Nur drei angehakt,
 # „Laden“ (hier aus dem Repository statt von GitHub): „Fertig: 3 geladen, 0 waren schon da“, die
 # Dateien liegen im Ordner, „Ordner öffnen“ geht. Ein zweites Mal: „0 geladen, 3 waren schon da“.
 import os
@@ -47,13 +48,21 @@ def schritte(h):
     dialog.show()
     yield 500
     h.pruefe(dialog.liste.count() == len(bsp.liste()) > 30, f"Einträge: {dialog.liste.count()}")
-    h.pruefe(
-        all(
-            dialog.liste.item(i).checkState() == QtCore.Qt.Checked
+
+    def angehakt():
+        return [
+            i
             for i in range(dialog.liste.count())
-        ),
-        "nicht alle angehakt",
-    )
+            if dialog.liste.item(i).checkState() == QtCore.Qt.Checked
+        ]
+
+    h.pruefe(not angehakt(), f"zu Beginn angehakt: {angehakt()}")
+    h.pruefe(not dialog.knopf_laden.isEnabled(), "„Laden“ ohne Haken nicht grau")
+    dialog.knopf_alle.click()
+    h.pruefe(len(angehakt()) == dialog.liste.count(), "„Alle anhaken“ hakt nicht alle an")
+    h.pruefe(dialog.knopf_laden.isEnabled(), "„Laden“ mit Haken grau")
+    dialog.knopf_keine.click()
+    h.pruefe(not angehakt(), f"„Alle abhaken“: noch angehakt {angehakt()}")
     erste = dialog.liste.item(0).text()
     h.pruefe(" – " in erste and ("kB" in erste or "MB" in erste), f"Größe fehlt: {erste!r}")
     h.bild("1_fenster", dialog)
