@@ -225,6 +225,17 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.wahl_vdi.setToolTip(tr("neu.vdi.tooltip"))
         formular.addRow(tr("neu.vdi"), self.wahl_vdi)
 
+        # Die Werkzeugaufnahme der Frässpindel (W-022): die Halter-Vorlagen bekommen ihren
+        # Flansch. An der Drehmaschine zählt die VDI-Größe des Revolvers.
+        from . import halter as hl
+
+        self.wahl_aufnahme = QtGui.QComboBox()
+        for name, (norm, _d, _l) in hl.AUFNAHMEN.items():
+            self.wahl_aufnahme.addItem(f"{name} ({norm})", name)
+        self.wahl_aufnahme.setCurrentIndex(self.wahl_aufnahme.findData(hl.VORGABE_AUFNAHME))
+        self.wahl_aufnahme.setToolTip(tr("neu.aufnahme.tooltip"))
+        formular.addRow(tr("neu.aufnahme"), self.wahl_aufnahme)
+
         # Höchstdrehzahl der Hauptspindel und – an der Drehmaschine – der angetriebenen
         # Werkzeuge (Manuel, 2026-09-30: „höchstdrehzahl von was ?“).
         self.feld_drehzahl = _drehzahlfeld(vorgabe.drehzahl, tr("neu.drehzahl.tooltip"))
@@ -360,6 +371,12 @@ class NeueMaschineDialog(QtGui.QDialog):
             for feld in self._nur_drehmaschine:
                 feld.setVisible(drehmaschine)
                 self._formular.labelForField(feld).setVisible(drehmaschine)
+            self.wahl_aufnahme.setVisible(not drehmaschine)
+            self._formular.labelForField(self.wahl_aufnahme).setVisible(not drehmaschine)
+            if not drehmaschine:
+                index = self.wahl_aufnahme.findData(getattr(vorgabe, "werkzeugaufnahme", ""))
+                if index >= 0:
+                    self.wahl_aufnahme.setCurrentIndex(index)
             # Wovon die Wege zählen: bei der Drehmaschine wie an ihr, bei den Fräsen Z ab dem Tisch.
             fraese = art in _Z_OHNE_MINUS and not drehmaschine
             self.wege_drehmaschine.setText(
@@ -442,6 +459,7 @@ class NeueMaschineDialog(QtGui.QDialog):
                 weg_z=wege["Z"],
                 schwenk=schwenk,
                 drehzahl=float(self.feld_drehzahl.value()),
+                werkzeugaufnahme=self.wahl_aufnahme.currentData(),
             )
         if art in (beispielmaschine.FRAESE_3, beispielmaschine.PORTAL_3):
             return type(vorgabe)(
@@ -450,6 +468,7 @@ class NeueMaschineDialog(QtGui.QDialog):
                 weg_y=wege["Y"],
                 weg_z=wege["Z"],
                 drehzahl=float(self.feld_drehzahl.value()),
+                werkzeugaufnahme=self.wahl_aufnahme.currentData(),
             )
         return beispielmaschine.DrehmaschinenMasse(
             name=self.feld_name.text().strip(),

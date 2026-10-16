@@ -118,6 +118,14 @@ for art in beispielmaschine.ARTEN:
     pruefe(ma.Label == beispielmaschine.titel(art), f"{art}: Maschine heißt {ma.Label}")
     namen = sorted(b.NcName for b in m.betriebsarten(ma))
     pruefe(namen == ACHSEN[art], f"{art}: Betriebsarten {namen}")
+    # Die Werkzeugaufnahme der Spindel (W-022): 3-Achs-Fräse SK40, Portalfräse HSK-F63, die
+    # 5-Achs-Fräsen HSK-A63; an der Drehmaschine keine (der Revolver hat seine VDI-Größe).
+    soll = {
+        beispielmaschine.FRAESE_3: "SK40",
+        beispielmaschine.PORTAL_3: "HSK-F63",
+        beispielmaschine.DREHMASCHINE: "",
+    }.get(art, "HSK-A63")
+    pruefe(m.werkzeugaufnahme(ma) == soll, f"{art}: Werkzeugaufnahme {m.werkzeugaufnahme(ma)!r}")
     warnungen = [x.text for x in m.pruefe(ma) if x.schwere != HINWEIS]
     pruefe(not warnungen, f"{art}: Warnungen {warnungen}")
     arten = sorted(a.Art for a in m.aufnahmen(ma))

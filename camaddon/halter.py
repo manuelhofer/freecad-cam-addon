@@ -29,8 +29,49 @@ from . import einheiten
 from .sprache import tr
 from .werkstoffe import mit_dezimalzeichen
 
+# Die Werkzeugaufnahmen an der Spindel (W-022; Manuel, 2026-10-16: „die aufnahme an der maschine
+# ... sollten wir in die maschine packen … natürlich muss man vorher die vollständigkeit der
+# aufnahmen herstllen also nicht nur sk40 .. auch die anderen .. capto“): Name → (Norm, Ø des
+# Flanschs, seine Länge ab der Spindelnase), in mm. Typische Maße zum Anfangen, keine
+# Katalogwerte – wie die Vorlagen; „SK64“ gibt es nicht, gemeint ist wohl HSK-A63 (oder SK50).
+# Die VDI-Halter des Revolvers haben ihre eigene Größe (maschine.vdi_groesse).
+AUFNAHMEN = {
+    "SK30": ("DIN 69871 / ISO 7388-1", 50.0, 16.0),
+    "SK40": ("DIN 69871 / ISO 7388-1", 63.0, 16.0),
+    "SK50": ("DIN 69871 / ISO 7388-1", 97.5, 16.0),
+    "BT30": ("MAS 403 / JIS B 6339", 46.0, 20.0),
+    "BT40": ("MAS 403 / JIS B 6339", 63.0, 27.0),
+    "BT50": ("MAS 403 / JIS B 6339", 100.0, 38.0),
+    "CAT40": ("ASME B5.50", 63.5, 16.0),
+    "CAT50": ("ASME B5.50", 98.4, 16.0),
+    "HSK-A32": ("DIN 69893 / ISO 12164", 32.0, 16.0),
+    "HSK-A40": ("DIN 69893 / ISO 12164", 40.0, 20.0),
+    "HSK-A50": ("DIN 69893 / ISO 12164", 50.0, 26.0),
+    "HSK-A63": ("DIN 69893 / ISO 12164", 63.0, 26.0),
+    "HSK-A80": ("DIN 69893 / ISO 12164", 80.0, 26.0),
+    "HSK-A100": ("DIN 69893 / ISO 12164", 100.0, 29.0),
+    "HSK-E32": ("DIN 69893 / ISO 12164", 32.0, 16.0),
+    "HSK-E40": ("DIN 69893 / ISO 12164", 40.0, 20.0),
+    "HSK-E50": ("DIN 69893 / ISO 12164", 50.0, 26.0),
+    "HSK-F63": ("DIN 69893 / ISO 12164", 63.0, 26.0),
+    "Capto C3": ("ISO 26623", 32.0, 15.0),
+    "Capto C4": ("ISO 26623", 40.0, 18.0),
+    "Capto C5": ("ISO 26623", 50.0, 20.0),
+    "Capto C6": ("ISO 26623", 63.0, 22.0),
+    "Capto C8": ("ISO 26623", 80.0, 30.0),
+    "KM32": ("ISO 26622", 32.0, 15.0),
+    "KM40": ("ISO 26622", 40.0, 18.0),
+    "KM50": ("ISO 26622", 50.0, 20.0),
+    "KM63": ("ISO 26622", 63.0, 22.0),
+    "KM80": ("ISO 26622", 80.0, 30.0),
+}
+VORGABE_AUFNAHME = "SK40"  # ohne eingetragene Aufnahme – so waren die Vorlagen bis 0.260
+_FLANSCH_SK40 = (16.0, 63.0, 63.0)  # der erste Abschnitt der Vorlagen an der Spindel
+
 # Vorlagen zum Anfangen: typische Maße an SK40 (Flansch Ø63 × 16 mm), keine
-# Katalogwerte – (Spanntiefe, Abschnitte (Länge, Ø oben, Ø unten)), alles mm.
+# Katalogwerte – (Spanntiefe, Abschnitte (Länge, Ø oben, Ø unten)), alles mm. Mit einer anderen
+# Aufnahme (AUFNAHMEN) bekommt eine Vorlage an der Spindel deren Flansch; der Körper darunter
+# hängt am Spannsystem (ER32, Schrumpf …), nicht an der Aufnahme.
 _VORLAGEN = {
     "er16": (20.0, ((16.0, 63.0, 63.0), (34.0, 40.0, 32.0), (20.0, 28.0, 28.0))),
     "er25": (28.0, ((16.0, 63.0, 63.0), (34.0, 48.0, 42.0), (20.0, 42.0, 42.0))),
@@ -86,11 +127,17 @@ _OHNE_SPANNZANGE = {gruppe: vorlagen["ER16"] for gruppe, vorlagen in GRUPPEN.ite
 GERADE, GEWINKELT = "gerade", "gewinkelt"  # Halter.richtung
 
 
-def vorlage_text(schluessel, vdi=0):
-    """Name einer Vorlage: „Spannzangenfutter ER32 · SK40“ … Die VDI-Vorlagen nennen die Größe
-    `vdi` (mm), wenn eine bekannt ist: „VDI40 angetrieben radial · ER16“, sonst „VDI angetrieben
-    radial · ER16“."""
+def aufnahme_oder_vorgabe(aufnahme):
+    """Die Aufnahme, wenn sie bekannt ist (AUFNAHMEN) – sonst VORGABE_AUFNAHME."""
+    return aufnahme if aufnahme in AUFNAHMEN else VORGABE_AUFNAHME
+
+
+def vorlage_text(schluessel, vdi=0, aufnahme=None):
+    """Name einer Vorlage: „Spannzangenfutter ER32 · SK40“ – mit der Aufnahme `aufnahme`
+    (AUFNAHMEN; ohne: SK40). Die VDI-Vorlagen nennen die Größe `vdi` (mm), wenn eine bekannt ist:
+    „VDI40 angetrieben radial · ER16“, sonst „VDI angetrieben radial · ER16“."""
     schluessel, vdi = _vorlage(schluessel, vdi)
+    aufnahme = aufnahme_oder_vorgabe(aufnahme)
     groesse = f"{vdi:g}" if vdi else ""
     for gruppe, vorlagen in GRUPPEN.items():
         for er, vorlage in vorlagen.items():
@@ -100,18 +147,18 @@ def vorlage_text(schluessel, vdi=0):
                     "vdi_axial": tr("halter.vorlage.vdi_axial", groesse=groesse, er=er),
                 }[gruppe]
     return {
-        "er16": tr("halter.vorlage.er16"),
-        "er25": tr("halter.vorlage.er25"),
-        "er32": tr("halter.vorlage.er32"),
-        "er40": tr("halter.vorlage.er40"),
-        "schrumpf_6": tr("halter.vorlage.schrumpf_6"),
-        "schrumpf_12": tr("halter.vorlage.schrumpf_12"),
-        "weldon_20": tr("halter.vorlage.weldon_20"),
-        "hydro_20": tr("halter.vorlage.hydro_20"),
-        "aufsteck_22": tr("halter.vorlage.aufsteck_22"),
-        "bohrfutter": tr("halter.vorlage.bohrfutter"),
+        "er16": tr("halter.vorlage.er16", aufnahme=aufnahme),
+        "er25": tr("halter.vorlage.er25", aufnahme=aufnahme),
+        "er32": tr("halter.vorlage.er32", aufnahme=aufnahme),
+        "er40": tr("halter.vorlage.er40", aufnahme=aufnahme),
+        "schrumpf_6": tr("halter.vorlage.schrumpf_6", aufnahme=aufnahme),
+        "schrumpf_12": tr("halter.vorlage.schrumpf_12", aufnahme=aufnahme),
+        "weldon_20": tr("halter.vorlage.weldon_20", aufnahme=aufnahme),
+        "hydro_20": tr("halter.vorlage.hydro_20", aufnahme=aufnahme),
+        "aufsteck_22": tr("halter.vorlage.aufsteck_22", aufnahme=aufnahme),
+        "bohrfutter": tr("halter.vorlage.bohrfutter", aufnahme=aufnahme),
         "vdi_er25": tr("halter.vorlage.vdi_er25", groesse=groesse),
-        "winkelkopf_90": tr("halter.vorlage.winkelkopf_90"),
+        "winkelkopf_90": tr("halter.vorlage.winkelkopf_90", aufnahme=aufnahme),
     }[schluessel]
 
 
@@ -175,6 +222,7 @@ class Halter:
     drehung: float = 0.0  # Grad um die Aufnahmeachse, von ihrer Bezugsrichtung X aus
     versatz: float = 0.0  # mm längs der Aufnahmeachse bis zur Werkzeugachse (gewinkelt)
     kopf_d: float = 0.0  # mm: Ø des Kopfs von der Aufnahme bis zum Bezugspunkt
+    aufnahme: str = ""  # an der Spindel: „SK40“, „HSK-A63“ … (AUFNAHMEN); "" unbekannt
 
     @property
     def gewinkelt(self):
@@ -230,6 +278,7 @@ class Halter:
             "drehung": self.drehung,
             "versatz": self.versatz,
             "kopf_d": self.kopf_d,
+            "aufnahme": self.aufnahme,
         }
 
     @classmethod
@@ -248,6 +297,7 @@ class Halter:
         h.drehung = _winkel(daten.get("drehung"), 0.0)
         h.versatz = _zahl(daten.get("versatz"))
         h.kopf_d = _zahl(daten.get("kopf_d"))
+        h.aufnahme = str(daten.get("aufnahme") or "")
         return h
 
 
@@ -326,16 +376,23 @@ def _abschnitte_form(halter):
     return Part.makeCompound(teile) if teile else None
 
 
-def aus_vorlage(schluessel, vdi=None):
+def aus_vorlage(schluessel, vdi=None, aufnahme=None):
     """Ein neuer Halter aus einer Vorlage – mit Beispielmaßen, die die Bezeichnung nennt.
     `vdi`: die VDI-Größe der Maschine (mm) für die VDI-Vorlagen – die Ø des Körpers wachsen von
     VDI 30 aus mit (die Spannmutter nicht), der Name nennt sie; ohne Angabe die Maße für VDI 30
-    und ein Name ohne Größe."""
+    und ein Name ohne Größe. `aufnahme`: die Aufnahme der Spindel (AUFNAHMEN) für die anderen –
+    der Flansch statt dem von SK40, der Name nennt sie; ohne Angabe SK40."""
     schluessel, vdi = _vorlage(schluessel, vdi)
     spanntiefe, abschnitte = _VORLAGEN[schluessel]
     faktor = vdi / VDI_BEZUG if vdi else 1.0
+    an_der_spindel = schluessel not in VDI_VORLAGEN
+    aufnahme = aufnahme_oder_vorgabe(aufnahme) if an_der_spindel else ""
+    if an_der_spindel and abschnitte and tuple(abschnitte[0]) == _FLANSCH_SK40:
+        _norm, flansch_d, flansch_l = AUFNAHMEN[aufnahme]
+        abschnitte = ((flansch_l, flansch_d, flansch_d), *abschnitte[1:])
     halter = Halter(
-        name=vorlage_text(schluessel, vdi),
+        name=vorlage_text(schluessel, vdi, aufnahme),
+        aufnahme=aufnahme,
         bezeichnung=tr("halter.beispielmasse"),
         spanntiefe=spanntiefe,
         abschnitte=[

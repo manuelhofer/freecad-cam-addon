@@ -66,7 +66,16 @@ def schritte(h):
     )
     h.pruefe(d.masse() == beispielmaschine.FraesenMasse(), f"Vorbelegung Fräse: {d.masse()}")
     h.pruefe("Spanneisen" in d.beschreibung.text(), f"Spanneisen: {d.beschreibung.text()!r}")
+    # Die Werkzeugaufnahme der Spindel (W-022): an der Fräse da, vorbelegt SK40; gewählt BT40 →
+    # in den Maßen.
+    h.pruefe(
+        d.wahl_aufnahme.isVisible() and d.wahl_aufnahme.currentData() == "SK40",
+        f"Fräse: Aufnahme {d.wahl_aufnahme.currentData()!r}",
+    )
+    d.wahl_aufnahme.setCurrentIndex(d.wahl_aufnahme.findData("BT40"))
+    h.pruefe(d.masse().werkzeugaufnahme == "BT40", f"Aufnahme gewählt: {d.masse()}")
     h.bild("1_fraese_masse", d)
+    d.wahl_aufnahme.setCurrentIndex(d.wahl_aufnahme.findData("SK40"))
 
     # Die 5-Achs-Fräsen (D-26): Wege, Drehzahl und je Schwenkachse eine Zeile, vorbelegt wie
     # ihr Beispiel – Tisch/Tisch „Schwenken A: −120 bis 120“.
@@ -82,6 +91,7 @@ def schritte(h):
     h.pruefe(zeilen == [("Schwenken A:", 120.0)], f"Tisch/Tisch: {zeilen}")
     vorgabe = beispielmaschine.FuenfachsMasse.vorgabe(beispielmaschine.TISCH_TISCH)
     h.pruefe(d.masse() == vorgabe, f"Vorbelegung Tisch/Tisch: {d.masse()}")
+    h.pruefe(d.wahl_aufnahme.currentData() == "HSK-A63", "5-Achs: Aufnahme nicht HSK-A63")
     h.bild("1b_fuenfachs_masse", d)
     d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.KOPF_KOPF))
     yield 200
@@ -107,6 +117,7 @@ def schritte(h):
     h.pruefe(d.masse_bereich.isVisible() and not d.fest.isVisible(), "Drehmaschine: keine Maße")
     h.pruefe(d.feld_bett.isVisible() and d.feld_plaetze.isVisible(), "Drehmaschine: Felder fehlen")
     h.pruefe(d.masse() == beispielmaschine.DrehmaschinenMasse(), f"Vorbelegung: {d.masse()}")
+    h.pruefe(not d.wahl_aufnahme.isVisible(), "Drehmaschine: Werkzeugaufnahme sichtbar")
     # Höchstdrehzahl der Hauptspindel und der angetriebenen Werkzeuge (Manuel, 2026-09-30).
     h.pruefe(
         d.feld_drehzahl_werkzeuge.isVisible()

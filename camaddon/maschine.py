@@ -75,7 +75,12 @@ WERTE = {
         ("Beschleunigung", False),
         ("Ruck", False),
     ],
-    ART_SPINDEL: [("Drehzahl", True), ("Hochlaufzeit", False), ("Leistung", False)],
+    ART_SPINDEL: [
+        ("Drehzahl", True),
+        ("Hochlaufzeit", False),
+        ("Leistung", False),
+        ("Werkzeugaufnahme", False),
+    ],
     ART_REVOLVER: [("Schaltzeit", False), ("Vdi", False)],
 }
 
@@ -140,6 +145,7 @@ def wert_text(eigenschaft):
         "Leistung": tr("wert.leistung"),
         "Schaltzeit": tr("wert.schaltzeit"),
         "Vdi": tr("wert.vdi"),
+        "Werkzeugaufnahme": tr("wert.werkzeugaufnahme"),
     }[eigenschaft]
 
 
@@ -349,6 +355,9 @@ class Betriebsart(_Proxy):
                 ("App::PropertyFloat", "Wechsel", tr("eigenschaft.wechsel")),
                 # Nennleistung einer Spindel – für „Schruppwerte planen“ (Durchsicht D-20).
                 ("App::PropertyFloat", "Leistung", tr("eigenschaft.leistung")),
+                # Die Werkzeugaufnahme der Spindel (W-022): „SK40“, „HSK-A63“ … – die Halter-
+                # Vorlagen bekommen ihren Flansch (halter.AUFNAHMEN); leer: SK40.
+                ("App::PropertyString", "Werkzeugaufnahme", tr("eigenschaft.werkzeugaufnahme")),
             ],
         )
         # Zählt die Steuerung die Rundachse nach DIN 66217 (postprozessor: C der Rundum-Bahnen)?
@@ -677,6 +686,19 @@ def revolverplaetze(maschine, kette):
         if ba.Art == ART_REVOLVER
         for platz in plaetze(maschine, kette, ba)
     ]
+
+
+def werkzeugaufnahme(maschine):
+    """Die Werkzeugaufnahme der Spindeln (W-022): „SK40“, „HSK-A63“ … – die der ersten Spindel,
+    an der eine eingetragen ist; "" ohne."""
+    return next(
+        (
+            str(getattr(ba, "Werkzeugaufnahme", "") or "")
+            for ba in betriebsarten(maschine)
+            if ba.Art == ART_SPINDEL and getattr(ba, "Werkzeugaufnahme", "")
+        ),
+        "",
+    )
 
 
 def vdi_groesse(maschine):

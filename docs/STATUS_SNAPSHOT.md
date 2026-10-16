@@ -1249,6 +1249,20 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   4. Das Menü „Neu“ zeigt die Vorlagen für die Aufnahme der Maschine, wie heute bei VDI.
   Offen: Was wird aus Haltern in der Werkzeugverwaltung, deren Aufnahme nicht zur Maschine passt?
   Eine Meldung im Assistenten, wie bei der Ausspannlänge.
+  *Stufe 1 erledigt (P-2026-10-16-28), Punkte 1, 2 und 4:*
+  - Die Spindel hat den Kennwert „Werkzeugaufnahme“ (Kennwerte der Spindel, Dialog „Neue
+    Maschine“). Vorbelegt sind 3-Achs-Fräse SK40, Portalfräse HSK-F63, die 5-Achs-Fräsen und die
+    G550 HSK-A63.
+  - `halter.AUFNAHMEN` nennt 28 Aufnahmen mit Norm: SK30/40/50, BT30/40/50, CAT40/50, HSK-A32 …
+    A100, HSK-E32 … E50, HSK-F63, Capto C3 … C8, KM32 … KM80. Jede hat einen typischen Flansch
+    (Ø und Länge), keine Katalogwerte.
+  - Die Vorlagen an der Spindel bekommen den Flansch der Aufnahme der offenen Maschine und nennen
+    sie im Namen. „Neu → Für eine andere Aufnahme“ hat dieselben Vorlagen für jede andere.
+  - Der Halter merkt sich seine Aufnahme (`Halter.aufnahme`).
+
+  Offen bleiben Punkt 3 (dem echten Halter nachgebaut: Greiferrille, Kegel, Mutter – dafür die
+  CAD-Dateien, siehe unten), die Meldung bei unpassender Aufnahme und der vorgeschlagene Halter
+  (`halter.vorschlag`, heute immer SK40).
   Manuel, 2026-10-16, mit Bild (ein HSK-Halter mit Greiferrille, Bund, Körper und Fräser): „wenn
   die halter so ausschauen würden wäre cool .. also dem echten objekt nachempfunden … wenn ich
   mich irgendwo regestrieren soll oder du vom hoffman die login daten benötigst um die cad dateien

@@ -96,6 +96,20 @@ def schritte(h):
         for i, wert in enumerate(werte, start=1):
             if wert is not None:
                 tippen(panel.details.feld(i), wert)
+        if art == m.ART_SPINDEL:
+            # Die Werkzeugaufnahme (W-022): eine Auswahl, leer vorbelegt; gewählt HSK-A63, dann
+            # wieder leer.
+            aufnahme = panel.details.feld(4)
+            h.pruefe(
+                isinstance(aufnahme, QtGui.QComboBox) and aufnahme.currentData() == "",
+                f"Spindel: Werkzeugaufnahme {type(aufnahme).__name__}",
+            )
+            if isinstance(aufnahme, QtGui.QComboBox):
+                aufnahme.setCurrentIndex(aufnahme.findData("HSK-A63"))
+                spindel = next(b for b in m.betriebsarten(panel.maschine) if b.Art == art)
+                h.pruefe(m.werkzeugaufnahme(panel.maschine) == "HSK-A63", "Aufnahme nicht gesetzt")
+                h.pruefe(spindel.Werkzeugaufnahme == "HSK-A63", "an der Spindel nicht gesetzt")
+                aufnahme.setCurrentIndex(0)
         yield 100
 
     s4 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "S4")

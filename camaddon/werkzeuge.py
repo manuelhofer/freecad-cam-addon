@@ -1647,10 +1647,11 @@ class Bibliothek:
         halter = self.halter_von(werkzeug)
         return laenge_im_halter(werkzeug, halter) if halter is not None else 0.0
 
-    def neuer_halter(self, vorlage=None, vdi=None):
+    def neuer_halter(self, vorlage=None, vdi=None, aufnahme=None):
         """Legt einen Halter an – leer oder aus einer Vorlage (halter.VORLAGEN); `vdi`: die
-        VDI-Größe der Maschine für die VDI-Vorlagen (halter.aus_vorlage)."""
-        halter = hl.aus_vorlage(vorlage, vdi) if vorlage else hl.Halter()
+        VDI-Größe der Maschine für die VDI-Vorlagen, `aufnahme` die Aufnahme ihrer Spindel für die
+        anderen (halter.aus_vorlage)."""
+        halter = hl.aus_vorlage(vorlage, vdi, aufnahme) if vorlage else hl.Halter()
         if halter.name:
             halter.name = self._freier_name(halter.name)
         self.halter.append(halter)

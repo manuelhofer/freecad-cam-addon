@@ -108,6 +108,8 @@ class DetailKasten(QtGui.QFrame):
                 text += f" ({feste_einheiten[eigenschaft]})"
             if eigenschaft in ("Endlos", "NachDin", "Durchmesser"):
                 feld = self._schalter(ba, eigenschaft)
+            elif eigenschaft == "Werkzeugaufnahme":
+                feld = self._aufnahmeliste(ba, eigenschaft)
             else:
                 feld = self._zahlenfeld(ba, eigenschaft, pflicht, _vorgabe(eigenschaft, linear))
             feld.setToolTip(ba.getDocumentationOfProperty(eigenschaft))
@@ -366,6 +368,23 @@ class DetailKasten(QtGui.QFrame):
         feld.setChecked(bool(getattr(objekt, eigenschaft)))
         feld.toggled.connect(lambda an: self._setze(objekt, eigenschaft, bool(an)))
         return feld
+
+    def _aufnahmeliste(self, objekt, eigenschaft):
+        """Die Werkzeugaufnahme der Spindel (W-022): leer oder eine aus halter.AUFNAHMEN, mit
+        ihrer Norm daneben."""
+        from . import halter as hl
+
+        liste = QtGui.QComboBox()
+        liste.addItem(tr("dialog.aufnahme.keine", vorgabe=hl.VORGABE_AUFNAHME), "")
+        for name, (norm, _d, _l) in hl.AUFNAHMEN.items():
+            liste.addItem(f"{name} ({norm})", name)
+        jetzt = str(getattr(objekt, eigenschaft, "") or "")
+        index = liste.findData(jetzt)
+        liste.setCurrentIndex(index if index >= 0 else 0)
+        liste.currentIndexChanged.connect(
+            lambda _i: self._setze(objekt, eigenschaft, liste.currentData() or "")
+        )
+        return liste
 
     def _bezeichnungsfeld(self, aufnahme):
         feld = QtGui.QLineEdit(m.name_von(aufnahme))

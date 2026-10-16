@@ -337,9 +337,11 @@ def _positionieren(ma, gelenk, nc_name, geschwindigkeit, endlos=False):
     return achse
 
 
-def _spindel(ma, gelenk, nc_name, drehzahl, hochlaufzeit):
+def _spindel(ma, gelenk, nc_name, drehzahl, hochlaufzeit, werkzeugaufnahme=""):
     spindel = m.neue_betriebsart(ma, gelenk, m.ART_SPINDEL, nc_name)
     spindel.Drehzahl, spindel.Hochlaufzeit = drehzahl, hochlaufzeit
+    if werkzeugaufnahme and "Werkzeugaufnahme" in spindel.PropertiesList:
+        spindel.Werkzeugaufnahme = werkzeugaufnahme  # W-022: die Halter-Vorlagen nehmen sie
     return spindel
 
 
@@ -361,6 +363,7 @@ class FraesenMasse:
     weg_y: tuple = (-150.0, 120.0)
     weg_z: tuple = (30.0, 380.0)
     drehzahl: float = 12000.0  # U/min der Spindel
+    werkzeugaufnahme: str = "SK40"  # an der Spindel (W-022, halter.AUFNAHMEN)
 
     def fehler(self):
         """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
@@ -380,6 +383,7 @@ class PortalMasse(FraesenMasse):
     weg_y: tuple = (-350.0, 350.0)
     weg_z: tuple = (25.0, 175.0)
     drehzahl: float = 24000.0
+    werkzeugaufnahme: str = "HSK-F63"  # schnell drehend, wie an Portalfräsen üblich
 
 
 def _wege_fehler(masse, ohne_null=()):
@@ -448,6 +452,7 @@ class FuenfachsMasse:
     weg_z: tuple = (0.0, 0.0)
     schwenk: tuple = ()
     drehzahl: float = 0.0  # U/min der Spindel
+    werkzeugaufnahme: str = "HSK-A63"  # an der Spindel (W-022, halter.AUFNAHMEN)
 
     @classmethod
     def vorgabe(cls, art):
@@ -667,7 +672,7 @@ def fraesmaschine(masse=None, spanneisen=True):
     _linear(ma, x, "X1", 20000, 10000, 3)
     _linear(ma, y, "Y1", 20000, 10000, 3)
     _linear(ma, z, "Z1", 15000, 10000, 3, wechsel=masse.weg_z[1])  # ganz oben
-    s1 = _spindel(ma, s, "S1", masse.drehzahl, 1.5)
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 1.5, masse.werkzeugaufnahme)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
     _benenne(asm, ma, masse.name)
@@ -823,7 +828,7 @@ def portalfraese(masse=None):
     _linear(ma, y, "Y1", 15000, 10000, 1)
     # Z nicht langsamer: Der kleinste Höchstvorschub begrenzt das Planen der Schnittwerte.
     _linear(ma, z, "Z1", 10000, 10000, 1, wechsel=masse.weg_z[1])  # ganz oben
-    s1 = _spindel(ma, s, "S1", masse.drehzahl, 4)
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 4, masse.werkzeugaufnahme)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
     _benenne(asm, ma, masse.name)
@@ -906,13 +911,15 @@ def _fuenfachs_wege(b, masse, x, y, z, nase, platz, gespiegelt=(), **schwenk):
         b.begrenze(gelenk, unten, oben)
 
 
-def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, drehzahl, wechsel_z=None):
+def _fuenfachs_werte(
+    ma, x, y, z, s, spindelnase, spannplatz, drehzahl, wechsel_z=None, werkzeugaufnahme=""
+):
     """Was alle 5-Achs-Beispiele mit Rundtisch gleich haben: X1, Y1, Z1, S1 und die
     Aufnahmen."""
     _linear(ma, x, "X1", 30000, 15000, 5)
     _linear(ma, y, "Y1", 30000, 15000, 5)
     _linear(ma, z, "Z1", 30000, 15000, 5, wechsel=wechsel_z)
-    s1 = _spindel(ma, s, "S1", drehzahl, 2)
+    s1 = _spindel(ma, s, "S1", drehzahl, 2, werkzeugaufnahme)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
 
@@ -1068,7 +1075,7 @@ def grob_g550(masse=None, winkelaufnahme=False):
     _linear(ma, z, "Z1", 80000, 0, 0, wechsel=masse.weg_z[1])
     _positionieren(ma, a, "A1", 25)
     _positionieren(ma, dreh, "B1", 50, endlos=True)
-    s1 = _spindel(ma, s, "S1", masse.drehzahl, 0)
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 0, masse.werkzeugaufnahme)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
     _benenne(asm, ma, masse.name)
@@ -1140,7 +1147,16 @@ def fuenfachs_tisch_tisch(masse=None):
     _positionieren(ma, a, "A1", 25)
     _positionieren(ma, c, "C1", 50, endlos=True)
     _fuenfachs_werte(
-        ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl, wechsel_z=masse.weg_z[1]
+        ma,
+        x,
+        y,
+        z,
+        s,
+        spindelnase,
+        spannplatz,
+        masse.drehzahl,
+        wechsel_z=masse.weg_z[1],
+        werkzeugaufnahme=masse.werkzeugaufnahme,
     )
     _benenne(asm, ma, masse.name)
     asm.Document.recompute()
@@ -1188,7 +1204,16 @@ def fuenfachs_kopf_tisch(masse=None):
     _positionieren(ma, schwenk, "B1", 30)
     _positionieren(ma, c, "C1", 50, endlos=True)
     _fuenfachs_werte(
-        ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl, wechsel_z=masse.weg_z[1]
+        ma,
+        x,
+        y,
+        z,
+        s,
+        spindelnase,
+        spannplatz,
+        masse.drehzahl,
+        wechsel_z=masse.weg_z[1],
+        werkzeugaufnahme=masse.werkzeugaufnahme,
     )
     _benenne(asm, ma, masse.name)
     asm.Document.recompute()
@@ -1281,7 +1306,7 @@ def fuenfachs_kopf_kopf(masse=None):
     _linear(ma, z, "Z1", 30000, 15000, 4, wechsel=masse.weg_z[1])  # ganz oben
     _positionieren(ma, a, "A1", 30)
     _positionieren(ma, schwenk, "B1", 30)
-    s1 = _spindel(ma, s, "S1", masse.drehzahl, 2)
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 2, masse.werkzeugaufnahme)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
     _benenne(asm, ma, masse.name)

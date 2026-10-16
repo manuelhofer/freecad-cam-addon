@@ -6,7 +6,8 @@
 # Die Richtung (Stufe E, Manuel 2026-09-30): gerade ist die Lage die der Aufnahme;
 # „VDI30 angetrieben radial“ kippt das Werkzeug um 90° zur Bezugsrichtung X, 55 mm
 # unter der Aufnahme; Drehung und Winkel drehen die Richtung; der Körper hat Kopf und
-# Abgang; eine alte Datei ohne Richtung ist gerade.
+# Abgang; eine alte Datei ohne Richtung ist gerade. Vorlagen je Aufnahme (W-022): ER32 für HSK-A63
+# mit dessen Flansch (26 × Ø 63), Schrumpf Ø12 für BT50 (38 × Ø 100); VDI ohne Aufnahme.
 import os
 import sys
 import tempfile
@@ -43,6 +44,24 @@ pruefe(nahe(er32.radius_bei(0), 31.5) and nahe(er32.radius_bei(8), 31.5), "Flans
 pruefe(nahe(er32.radius_bei(16), 31.5), "an der Stufe gilt der größere Radius")
 pruefe(nahe(er32.radius_bei(40), 25) and nahe(er32.radius_bei(70), 25), "Körper")
 pruefe(er32.radius_bei(70.1) == 0 and er32.radius_bei(-1) == 0, "außerhalb 0")
+pruefe(er32.aufnahme == "SK40", f"Aufnahme: {er32.aufnahme!r}")
+
+# --- Vorlagen je Aufnahme (W-022): der Flansch der Aufnahme statt SK40, der Körper bleibt -------
+hsk = hl.aus_vorlage("er32", aufnahme="HSK-A63")
+pruefe(hsk.name == "Spannzangenfutter ER32 · HSK-A63", f"Name: {hsk.name}")
+pruefe(hsk.aufnahme == "HSK-A63", f"Aufnahme: {hsk.aufnahme!r}")
+flansch = hsk.abschnitte[0]
+pruefe(nahe(flansch.laenge, 26) and nahe(flansch.d_oben, 63), f"Flansch HSK-A63: {flansch}")
+pruefe(nahe(hsk.laenge, 26 + 54) and hsk.abschnitte[1:] == er32.abschnitte[1:], "Körper wie SK40")
+bt50 = hl.aus_vorlage("schrumpf_12", aufnahme="BT50")
+pruefe(nahe(bt50.abschnitte[0].d_oben, 100) and nahe(bt50.abschnitte[0].laenge, 38), "BT50")
+pruefe(bt50.name == "Schrumpffutter Ø12 · BT50", f"Name: {bt50.name}")
+pruefe(hl.aus_vorlage("er16", aufnahme="gibt es nicht").aufnahme == "SK40", "unbekannt: SK40")
+vdi = hl.aus_vorlage("vdi_radial_er16", vdi=40, aufnahme="HSK-A63")
+pruefe(vdi.aufnahme == "" and "HSK" not in vdi.name, f"VDI ohne Aufnahme: {vdi.name}")
+pruefe(hl.Halter.aus_dict(hsk.als_dict()).aufnahme == "HSK-A63", "Aufnahme nicht gespeichert")
+pruefe(hl.Halter.aus_dict({"name": "alt"}).aufnahme == "", "alte Datei ohne Aufnahme")
+pruefe(len(hl.AUFNAHMEN) >= 25 and "Capto C6" in hl.AUFNAHMEN and "KM63" in hl.AUFNAHMEN, "Liste")
 pruefe(er32.kontur() == [(0, 31.5), (16, 31.5), (16, 25), (70, 25)], f"{er32.kontur()}")
 schrumpf = hl.aus_vorlage("schrumpf_12")
 pruefe(nahe(schrumpf.radius_bei(16 + 32), (32 + 24) / 4), "Kegel: in der Mitte der Mittelwert")

@@ -113,18 +113,31 @@ class HalterDialog(QtGui.QDialog):
         self.menue_neu.addAction(tr("hd.neu.leer"), lambda: self.neu())
         self.menue_neu.addSeparator()
         vdi = _vdi_offener_maschinen()
+        aufnahme = _aufnahme_offener_maschinen()
         in_gruppe = {v: g for g, vorlagen in hl.GRUPPEN.items() for v in vorlagen.values()}
         for schluessel in hl.VORLAGEN:
             gruppe = in_gruppe.get(schluessel)
             if gruppe is None:
                 self.menue_neu.addAction(
-                    hl.vorlage_text(schluessel, vdi), lambda s=schluessel: self.neu(s)
+                    hl.vorlage_text(schluessel, vdi, aufnahme),
+                    lambda s=schluessel, a=aufnahme: self.neu(s, a),
                 )
             elif schluessel == next(iter(hl.GRUPPEN[gruppe].values())):
                 # Angetrieben je Spannzange: ein Untermenü „VDI angetrieben radial“ → ER16 …
                 untermenue = self.menue_neu.addMenu(hl.gruppe_text(gruppe, vdi))
                 for er, vorlage in hl.GRUPPEN[gruppe].items():
                     untermenue.addAction(er, lambda s=vorlage: self.neu(s))
+        # Die Vorlagen für jede andere Aufnahme (W-022): je eine ein Untermenü.
+        self.menue_neu.addSeparator()
+        andere = self.menue_neu.addMenu(tr("hd.neu.andere_aufnahme"))
+        an_der_spindel = [s for s in hl.VORLAGEN if s not in hl.VDI_VORLAGEN]
+        for name, (norm, _d, _l) in hl.AUFNAHMEN.items():
+            untermenue = andere.addMenu(f"{name} ({norm})")
+            for schluessel in an_der_spindel:
+                untermenue.addAction(
+                    hl.vorlage_text(schluessel, 0, name),
+                    lambda s=schluessel, a=name: self.neu(s, a),
+                )
         self.knopf_neu.setMenu(self.menue_neu)
         self.knopf_kopieren = knopf(tr("hd.kopieren"), tr("hd.kopieren.tooltip"), self.kopieren)
         self.knopf_loeschen = knopf(tr("hd.loeschen"), tr("hd.loeschen.tooltip"), self.loeschen)
@@ -299,9 +312,11 @@ class HalterDialog(QtGui.QDialog):
         self.suche.blockSignals(False)
         self._fuellen(auswahl=halter)
 
-    def neu(self, vorlage=None):
-        """Ein neuer Halter – leer oder aus einer Vorlage (halter.VORLAGEN)."""
-        halter = self.bibliothek.neuer_halter(vorlage, _vdi_offener_maschinen())
+    def neu(self, vorlage=None, aufnahme=None):
+        """Ein neuer Halter – leer oder aus einer Vorlage (halter.VORLAGEN), an der Spindel für
+        `aufnahme` (ohne: die der offenen Maschine, sonst SK40)."""
+        aufnahme = aufnahme or _aufnahme_offener_maschinen()
+        halter = self.bibliothek.neuer_halter(vorlage, _vdi_offener_maschinen(), aufnahme)
         if not halter.abschnitte:
             halter.abschnitte.append(hl.Abschnitt(NEUER_ABSCHNITT, 40.0, 40.0))
         self.waehle(halter)
@@ -692,6 +707,19 @@ class HalterBild(QtGui.QWidget):
                 int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter),
                 zahl,
             )
+
+
+def _aufnahme_offener_maschinen():
+    """Die Werkzeugaufnahme der offenen Fräsen (maschine.werkzeugaufnahme, die erste
+    eingetragene) – die Vorlagen an der Spindel bekommen ihren Flansch (W-022); "" ohne: SK40."""
+    from . import gui_reichweite
+    from . import maschine as m
+
+    try:
+        maschinen = gui_reichweite.offene_maschinen()
+    except Exception:  # ohne Dokumente oder Oberfläche: SK40
+        return ""
+    return next((a for a in (m.werkzeugaufnahme(ma) for _asm, ma in maschinen) if a), "")
 
 
 def _vdi_offener_maschinen():

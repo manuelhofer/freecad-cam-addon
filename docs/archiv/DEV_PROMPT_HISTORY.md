@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-28 werkzeugaufnahme (W-022, Stufe 1)
+
+### EINGELESEN
+- W-022, Manuel 2026-10-16: „warum nur sk40 ?? … ich denke die aufnahme an der maschine ...
+  sollten wir in die maschine packen … die halter haben dann eine andere größe … und dann je
+  nachdem was in der maschine dann eingestellt ist darstellen … nicht nur sk40 .. auch die
+  anderen .. capto“.
+- Diese Stufe braucht keine CAD-Dateien: Punkte 1, 2 und 4 der Liste im Snapshot.
+
+### DATEIEN
+- `camaddon/halter.py`:
+  - `AUFNAHMEN`: 28 Aufnahmen mit Norm, typischem Flansch-Ø und -Länge; `VORGABE_AUFNAHME`
+    SK40.
+  - `aus_vorlage(…, aufnahme)`: Die Vorlagen an der Spindel bekommen den Flansch der Aufnahme;
+    der Körper bleibt der des Spannsystems. Der Name nennt die Aufnahme.
+  - `Halter.aufnahme` wird mit dem Halter gespeichert.
+- `camaddon/werkzeuge.py`: `neuer_halter(…, aufnahme)`.
+- `camaddon/maschine.py`: Kennwert „Werkzeugaufnahme“ der Spindel; `werkzeugaufnahme(maschine)`.
+- `camaddon/gui_details.py`: In den Kennwerten der Spindel ist die Werkzeugaufnahme eine Auswahl
+  (leer wie SK40, oder eine aus der Liste mit Norm).
+- `camaddon/gui_neue_maschine.py`: Zeile „Werkzeugaufnahme“ für die Fräsen, vorbelegt wie das
+  Beispiel.
+- `camaddon/beispielmaschine.py`:
+  - Die Maße-Klassen tragen `werkzeugaufnahme`: 3-Achs SK40, Portal HSK-F63, 5-Achs und G550
+    HSK-A63.
+  - Die Spindel S1 bekommt sie.
+- `camaddon/gui_halter.py`:
+  - „Neu“ zeigt die Vorlagen für die Aufnahme der offenen Maschine.
+  - „Für eine andere Aufnahme“ hat je Aufnahme ein Untermenü.
+- `translations/de.json`, `en.json`: Die Namen der Vorlagen tragen `{aufnahme}`; neue Texte.
+- `help/de|en/halter.html`, `neue_maschine.html`.
+- Tests:
+  - `tests/test_halter.py`: ER32 an HSK-A63 (Flansch 26 × Ø 63, Körper wie SK40), Schrumpf Ø12
+    an BT50, unbekannte Aufnahme ergibt SK40, VDI ohne Aufnahme, Speichern/Laden, die Liste.
+  - `tests/test_beispielmaschine.py`: Aufnahme je Bauart.
+  - `tests/gui/szenario_neue_maschine.py`: Zeile an der Fräse (SK40, BT40 gewählt), an der
+    5-Achs HSK-A63, an der Drehmaschine nicht da.
+  - `tests/gui/szenario_maschine_bearbeiten.py`: Auswahl an der Spindel, HSK-A63 gesetzt.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_halter`, `test_beispielmaschine`, `test_sprache`, `test_hilfe`,
+  `szenario_neue_maschine`, `szenario_halter`, `szenario_maschine_bearbeiten`.
+- Zum Ausprobieren:
+  - „Neue Maschine“ → 3-Achs-Fräse: Unter den Wegen steht „Werkzeugaufnahme SK40 (DIN 69871 /
+    ISO 7388-1)“. Eine andere wählen, bauen.
+  - Danach Werkzeugverwaltung → Halter → „Neu“: Die Vorlagen heißen „… · BT40“, ihr Flansch hat
+    die Maße der Aufnahme. Unter „Für eine andere Aufnahme“ stehen alle anderen.
+
 ## P-2026-10-16-27 erreicht-mit-aufmass (B-023)
 
 ### EINGELESEN
