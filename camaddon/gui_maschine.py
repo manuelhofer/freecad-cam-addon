@@ -32,6 +32,7 @@ from . import (
     symbol,
     uhren,
 )
+from . import gui_details as gd
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_bericht import BerichtFenster
@@ -304,8 +305,10 @@ class MaschinenPanel:
         """Baut „Home und Werkzeugwechsel“ neu: der Bezug, dann je Linearachse ihre Zeile."""
         if self.geschlossen:
             return
-        while self.punkte_formular.rowCount():
-            self.punkte_formular.removeRow(0)
+        while self.punkte_formular.rowCount():  # später gelöscht, wie gui_details.leeren
+            zeile = self.punkte_formular.takeRow(0)
+            gd._spaeter_weg(zeile.labelItem)
+            gd._spaeter_weg(zeile.fieldItem)
         self.punkte_felder = {}
         self.wahl_wechsel_bezug = QtGui.QComboBox()
         for bezug, text in (

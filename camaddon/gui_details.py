@@ -74,9 +74,14 @@ class DetailKasten(QtGui.QFrame):
         self.hide()
 
     def leeren(self):
+        """Alle Zeilen heraus – ihre Felder erst später gelöscht (deleteLater): Löscht man ein
+        Feld, das gerade den Fokus abgibt oder ein Signal sendet, sofort, stürzte FreeCAD im
+        Szenario ab („double free or corruption“ beim Anlegen einer Aufnahme)."""
         self.titel.setText("")
         while self.formular.rowCount():
-            self.formular.removeRow(0)
+            zeile = self.formular.takeRow(0)
+            _spaeter_weg(zeile.labelItem)
+            _spaeter_weg(zeile.fieldItem)
         self.hide()
 
     def feld(self, zeile):
@@ -552,3 +557,19 @@ def _beschriftung(text, fett=False):
         schrift.setBold(True)
         beschriftung.setFont(schrift)
     return beschriftung
+
+
+def _spaeter_weg(eintrag):
+    """Ein Eintrag eines Layouts (Feld oder Unterlayout) – versteckt und später gelöscht."""
+    if eintrag is None:
+        return
+    feld = eintrag.widget()
+    if feld is not None:
+        feld.hide()
+        feld.deleteLater()
+        return
+    aufbau = eintrag.layout()
+    if aufbau is not None:
+        while aufbau.count():
+            _spaeter_weg(aufbau.takeAt(0))
+        aufbau.deleteLater()

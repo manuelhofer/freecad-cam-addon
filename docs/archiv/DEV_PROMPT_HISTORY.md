@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-63 formularzeilen-spaeter-loeschen
+
+### EINGELESEN
+- Voller Szenario-Lauf der Nacht: `szenario_maschine_bearbeiten` stürzte ab („double free or
+  corruption“) – in `gui_details.leeren`, beim Anlegen einer Aufnahme (`neu_aufbauen`). Im Lauf
+  davor war es grün: ein Absturz, der nicht jedes Mal kommt.
+
+### DATEIEN
+- `camaddon/gui_details.py`: `leeren` nimmt die Zeilen heraus (`takeRow`) und löscht ihre Felder
+  erst später (`deleteLater`, `_spaeter_weg`) – ein Feld, das gerade den Fokus abgibt oder ein Signal
+  sendet, wird nicht mehr sofort gelöscht.
+- `camaddon/gui_maschine.py`: „Home und Werkzeugwechsel“ baut seine Zeilen ebenso neu.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_maschine_bearbeiten` (zweimal), `szenario_maschinen`,
+  `szenario_mausrad`, `szenario_magazine`, `szenario_home`, `szenario_neue_maschine`.
+
 ## P-2026-10-16-62 hilfe-schraeg-und-mausrad-probe
 
 ### EINGELESEN
