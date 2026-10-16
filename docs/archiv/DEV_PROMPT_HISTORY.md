@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-06 sprachschluessel-woertlich
+
+### EINGELESEN
+- `test_sprache` war nach P-2026-10-16-05 rot: „ba.passt.getauscht“ und „…_beide“ wurden über
+  eine Variable gewählt, und die Prüfung findet nur Schlüssel, die wörtlich in `tr(…)` stehen.
+  Durchgerutscht ist das, weil das eigene Prüfskript nach einem Fehler trotzdem 0 meldete; es
+  meldet ihn jetzt.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_getauscht_text` mit beiden Schlüsseln wörtlich.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`. Sichtbar ändert sich nichts.
+
 ## P-2026-10-16-05 fraeser-passt-und-flaeche-erreicht
 
 ### EINGELESEN

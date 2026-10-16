@@ -7381,9 +7381,10 @@ class BearbeitungPanel:
             }
             if nachher is None:
                 saetze.append(tr("ba.passt.keiner", **werte))
+            elif len(titel) == 1:
+                saetze.append(tr("ba.passt.getauscht", neu=_ziel_werkzeug(nachher), **werte))
             else:
-                schluessel = "ba.passt.getauscht" if len(titel) == 1 else "ba.passt.getauscht_beide"
-                saetze.append(tr(schluessel, neu=_ziel_werkzeug(nachher), **werte))
+                saetze.append(tr("ba.passt.getauscht_beide", neu=_ziel_werkzeug(nachher), **werte))
         return " ".join(saetze)
 
     def _passt_angebot(self, form, angebot):
