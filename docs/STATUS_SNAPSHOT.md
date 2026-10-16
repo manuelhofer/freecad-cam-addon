@@ -1369,8 +1369,10 @@ B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den 
   zum Teil“. Erst eine geschwenkte Ebene (P-54) stellt den Tisch an. Vorschlag: An einer Maschine,
   deren Werkzeug in Grundstellung nicht längs Z des Jobs steht, kommt auch „oben“ in eine Ebene
   (Normale +Z → A −90, `schwenken.lege_an(…, winkel=(0, 0))`), wie die schrägen Flächen – oder der
-  Job bekommt eine feste Grundstellung der Rundachsen (Prüfung, Programm, Abfahren). Größerer
-  Umbau, nicht ohne Manuel.
+  Job bekommt eine feste Grundstellung der Rundachsen (Prüfung, Programm, Abfahren). Nachgespielt:
+  Dieselbe Tasche in einer Ebene „oben“ (`lege_an` mit der Fläche) heißt „… Ebene Face25 (A90
+  B0)“, die Maschine steht dabei auf A1 −90°, der Hinweis „quer“ ist weg. Größerer Umbau (auch
+  „Alles aus dieser Aufspannung“ und „ohne Wahl: die Oberseite“), nicht ohne Manuel.
 
 - **T-013 Herbert im deutschen Thread** (Forum t=107911, 2026-10-11, herbk; 26.3.0RC1-AppImage auf
   CachyOS, Addon 0.213.66, dazu CfdOF, Curves, Fasteners, RobotCAD u. a.):
