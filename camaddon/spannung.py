@@ -162,13 +162,16 @@ def pruefen(job):
             satz = tr("sn.unter", operation=op.Label, punkt=_xy(unter), unten=rw.weg_text(box.ZMin))
             saetze.append(Befund(satz, op.Label))
         elif neben is not None:
-            satz = tr(
-                "sn.neben_futter" if kreis is not None else "sn.neben",
-                operation=op.Label,
-                punkt=_xy(neben),
-                gespannt=rw.weg_text(tiefe),
-                oben=rw.weg_text(oben),
-            )
+            werte = {
+                "operation": op.Label,
+                "punkt": _xy(neben),
+                "gespannt": rw.weg_text(tiefe),
+                "oben": rw.weg_text(oben),
+            }
+            if kreis is not None:
+                satz = tr("sn.neben_futter", **werte)
+            else:
+                satz = tr("sn.neben", **werte)
             saetze.append(Befund(satz, op.Label))
     return saetze
 
