@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-06 durchsicht-zwei
+
+### EINGELESEN
+- Zweite Durchsicht (P-2026-10-17-01 bis -05) und der volle Szenario-Lauf (151 von 151 grün,
+  Stand P-2026-10-17-03). In `kehren.txt` neu: `szenario_bearbeitung`, Planfräsen T1 am Block mit
+  4 Kehren (in den Läufen vor P-2026-10-16-67 0) – auch auf dem Stand vor dieser Nacht-Hälfte
+  nachgespielt: seit P-67. `_ohne_ausflug` nahm Höhen bis 0,05 mm (`GLEICH`) als gleich; die
+  flache Rampe des Planfräsens sinkt je Satz 0,02 mm – an ihrer Wende fehlten zwei Sätze, sie sank
+  beim Umkehren.
+- Weiter aus der Durchsicht:
+  - Die Helix des 4-Achs-Schruppens (P-04) nahm nach jeder Lage an jeder Stelle die geplante
+    Tiefe an, auch außerhalb des Bereichs, wo nichts gefräst wurde – neben ungeschnittenem
+    Rohteil hätte sie dort im Eilgang zu tief angesetzt.
+  - Der Eilgang-Schutz (P-01) prüfte nur, wenn der ganze Fräser im Rohteil stand (am Rand nicht),
+    und rechnete jeden Fräser als flache Scheibe; endete die Bahn mit dem Eilgang hinab, hätte das
+    Löschen den letzten Satz genommen (IndexError).
+  - Die Wände einer Tasche in der Schräge (P-03): Waren Boden und Schräge darüber gewählt, hing
+    es an der Reihenfolge, ob sie mitgingen (geprüft nur gegen die erste Fläche).
+  - `bohrung_ueber_boden` merkte nach dem bloßen hashCode – nach dem Schließen eines Dokuments
+    kann eine neue Form denselben bekommen.
+  - Eine Kette, deren Job inzwischen gelöscht ist, lief beim nächsten Glied auf einen Fehler.
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_ohne_ausflug` nur auf wirklich gleicher Höhe (`_HOEHE_GLEICH`);
+  `_eilgang_nicht_hinein` mit `_tiefste_spitze` – je Zelle ihre Höhe weniger die Höhe des Fräsers
+  in ihrem Abstand (eine halbe Zelle näher), auch am Rand; am letzten Satz bleibt er oben.
+- `camaddon/vierachs_bahn.py`: nach jeder Lage `davor` nur im Bereich.
+- `camaddon/gui_bearbeitung.py`: `darueber` gegen jede angrenzende ebene Fläche der Richtung
+  (eine Ecke nur zwischen Wänden gilt wie diese); `_folge_weiter` überspringt verschwundene Jobs.
+- `camaddon/bohrung_bahn.py`: gemerkt mit der Form (`isSame`), höchstens 256.
+- `tests/test_freiwege.py`: flache Rampe bleibt; Eilgang am Rand des Rohteils; Kugel neben dem
+  Rohteil (bis 8,5 im Eilgang); am Ende der Bahn.
+- `tests/gui/szenario_schraeg_anlegen.py`: Boden, Wände und die Schräge darüber – eine Ebene.
+
+### ERGEBNIS
+- `szenario_bearbeitung`: Planfräsen T1 4 → 0 Kehren.
+- Grün im Wochen-Build: `test_freiwege`, `test_schlichten3d`, `test_vierachs_bahn`,
+  `test_bohrung`, `szenario_bearbeitung`, `szenario_plan_gleichlauf`,
+  `szenario_testteil_freivorschub`, `szenario_schraeg_anlegen`, `szenario_bearbeitung_n_eck`,
+  `szenario_vierachs_flaechen`.
+
 ## P-2026-10-17-05 schwenken-knopf-weg
 
 ### EINGELESEN

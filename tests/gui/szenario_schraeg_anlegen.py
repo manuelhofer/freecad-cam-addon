@@ -139,6 +139,22 @@ def schritte(h):
         f"Tasche mit Wänden: {[(round(r.neigung), r.flaechen) for r in gruppen]} – Wände {waende}",
     )
     h.pruefe(not panel.aktive_bloecke(), "mit den Wänden etwas im Grundjob angehakt")
+    # Dazu die Schräge um die Tasche (die größte 30°-Fläche): Die Wände stehen unter ihr, aber
+    # über dem Boden – sie bleiben in derselben Ebene, gleich welche Fläche zuerst kommt.
+    schraege_flaeche = max(
+        (f.Area, f"Face{i + 1}")
+        for i, f in enumerate(form.Faces)
+        if f.Surface.__class__.__name__ == "Plane"
+        and abs(math.degrees(math.acos(max(-1.0, min(1.0, f.normalAt(0, 0).z)))) - 30.0) < 0.5
+    )[1]
+    panel.flaeche_umschalten(schraege_flaeche)
+    yield 500
+    gruppen = panel._schraege_richtungen(form)
+    h.pruefe(
+        len(gruppen) == 1 and set(gruppen[0].flaechen) == {boden, schraege_flaeche, *waende},
+        f"mit der Schräge: {[(round(r.neigung), r.flaechen) for r in gruppen]}",
+    )
+    panel.flaeche_umschalten(schraege_flaeche)
     for name in waende:
         panel.flaeche_umschalten(name)
     yield 500

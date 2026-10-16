@@ -1507,7 +1507,9 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi,
             punkte.append(Punkt(True, float(a[-1]), sicher, float(phi[-1])))
             auf_zeile = m >= 0
             gefraest[m[auf_zeile], j[auf_zeile] % n] = True
-        davor = hoehe
+        # Was nach dieser Lage steht: nur, wo sie fräst – daneben (außerhalb des Bereichs) steht
+        # noch, was davor stand (die Helix der Einfahrt prüft es, _helix_frei).
+        davor = np.where(drin, hoehe, davor)
 
 
 def _schlichten_zeilen(

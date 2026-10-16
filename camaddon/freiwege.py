@@ -38,6 +38,7 @@ MINDEST = 5.0  # mm – kürzere freie Stücke lohnen das Beschleunigen nicht
 RAND = 1.0  # mm über den Radius hinaus muss es frei sein
 SEHNE = 1.0  # mm – so fein wird nachgesehen
 GLEICH = 0.05  # mm
+_HOEHE_GLEICH = 1e-6  # mm – so gleich müssen Höhen für _ohne_ausflug sein
 LINK_LUFT = (
     2.0  # mm – so hoch über dem höchsten Material fährt ein Weg, der nicht unten bleibt (wie der
 )
@@ -101,7 +102,7 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
     while i < len(punkte) - 1:
         _unten_bleiben(punkte, i, quader, weite)
         _tiefer_im_eilgang(punkte, i, quader, float(form.radius))
-        _eilgang_nicht_hinein(punkte, i, quader, float(form.radius))
+        _eilgang_nicht_hinein(punkte, i, quader, form)
         von, nach = punkte[i], punkte[i + 1]
         i += 1
         sehnen = _sehnen(von, nach)
@@ -192,7 +193,10 @@ def _ohne_ausflug(punkte):
     for p in punkte[1:]:
         if len(ergebnis) >= 2 and schnell(p) and schnell(ergebnis[-1]):
             a, b = ergebnis[-2], ergebnis[-1]
-            if abs(a.z - b.z) <= GLEICH and abs(p.z - b.z) <= GLEICH:
+            # Wirklich auf einer Höhe (nicht GLEICH): Eine flache Rampe sinkt je Satz um weniger
+            # als 0,05 mm – am Planfräsen fehlten an ihrer Wende zwei Sätze, sie sank beim
+            # Umkehren (eine Kehre).
+            if abs(a.z - b.z) <= _HOEHE_GLEICH and abs(p.z - b.z) <= _HOEHE_GLEICH:
                 hin = (b.x - a.x, b.y - a.y)
                 zu = (p.x - a.x, p.y - a.y)
                 laenge2 = hin[0] * hin[0] + hin[1] * hin[1]
@@ -255,12 +259,13 @@ def _tiefer_im_eilgang(punkte, i, quader, radius):
         punkte.insert(i + 2, bn.Punkt(True, oben.x, oben.y, ziel))
 
 
-def _eilgang_nicht_hinein(punkte, i, quader, radius):
+def _eilgang_nicht_hinein(punkte, i, quader, form):
     """Geht der Eilgang von Punkt i zu Punkt i + 1 senkrecht hinab und endet er im Material unter
-    der Stirn (`radius`): nur bis LINK_LUFT über das Material dort – oder gar nicht, wenn das
-    höher ist, als er beginnt (dann hinab im Vorschub). Das 3D-Schlichten fährt zwischen zwei
-    nahen Stücken im Eilgang bis 2 mm über die Hüllfläche hinab; ließ das Schruppen dort mehr
-    stehen (Treppen, Aufmaß), wäre das ein Eilgang ins Material."""
+    dem Fräser (`form`, fraeserform.Form – eine Kugel reicht am Rand höher hinauf als ihre
+    Spitze): nur bis LINK_LUFT darüber – oder gar nicht, wenn das höher ist, als er beginnt (dann
+    hinab im Vorschub). Das 3D-Schlichten fährt zwischen zwei nahen Stücken im Eilgang bis 2 mm
+    über die Hüllfläche hinab; ließ das Schruppen dort mehr stehen (Treppen, Aufmaß), wäre das ein
+    Eilgang ins Material. Auch am Rand des Rohteils (dort zählt nur, was im Quader steht)."""
     if i + 1 >= len(punkte):
         return
     von, hinab = punkte[i], punkte[i + 1]
@@ -268,22 +273,37 @@ def _eilgang_nicht_hinein(punkte, i, quader, radius):
         return
     if math.hypot(hinab.x - von.x, hinab.y - von.y) > GLEICH:
         return
-    if not (
-        quader.x[0] <= hinab.x - radius
-        and hinab.x + radius <= quader.x[-1]
-        and quader.y[0] <= hinab.y - radius
-        and hinab.y + radius <= quader.y[-1]
-    ):
+    grenze = _tiefste_spitze(quader, (hinab.x, hinab.y), form)
+    if hinab.z >= grenze + GLEICH:
         return
-    stelle = (hinab.x, hinab.y, hinab.z)
-    material = _hoechstes(quader, stelle, stelle, radius)
-    if hinab.z >= material + GLEICH:
-        return
-    ziel = material + LINK_LUFT
-    if ziel >= von.z - GLEICH:
-        del punkte[i + 1]
-    else:
+    ziel = grenze + LINK_LUFT
+    if ziel < von.z - GLEICH:
         punkte[i + 1] = bn.Punkt(True, hinab.x, hinab.y, ziel)
+    elif i + 2 < len(punkte):
+        del punkte[i + 1]  # hinab im Vorschub
+    else:
+        punkte[i + 1] = bn.Punkt(True, hinab.x, hinab.y, von.z)  # der letzte Punkt: oben bleiben
+
+
+def _tiefste_spitze(q, stelle, form):
+    """Wie tief die Spitze des Fräsers `form` über `stelle` (x, y) höchstens darf, ohne das
+    Material im Quader zu berühren (z) – −inf ohne Material darunter. Je Zelle ihre Höhe weniger
+    die Höhe des Fräsers in ihrem Abstand von der Achse (eine halbe Zelle näher gerechnet)."""
+    halb = 0.5 * float(q.x[1] - q.x[0])
+    radius = float(form.radius)
+    weite = radius + halb
+    x, y = stelle
+    i0, i1 = np.searchsorted(q.x, x - weite), np.searchsorted(q.x, x + weite, side="right")
+    j0, j1 = np.searchsorted(q.y, y - weite), np.searchsorted(q.y, y + weite, side="right")
+    if i1 <= i0 or j1 <= j0:
+        return -math.inf
+    gx, gy = np.meshgrid(q.x[i0:i1], q.y[j0:j1], indexing="ij")
+    abstand = np.hypot(gx - x, gy - y)
+    nah = abstand <= weite
+    if not nah.any():
+        return -math.inf
+    rho = np.clip(abstand[nah] - halb, 0.0, radius)
+    return float(np.max(q.h[i0:i1, j0:j1][nah] - form.hoehe(rho)))
 
 
 def _abheben(punkte, i):

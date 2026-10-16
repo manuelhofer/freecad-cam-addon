@@ -485,9 +485,15 @@ def _folge_weiter():
     """Der Assistent für die nächste Ebene der Kette – oder nichts mehr. Eine Aufspannung der
     N-Eck-Stange (W-018) kommt ohne gewählte Flächen („Alles aus dieser Aufspannung“ wählt sie)
     und nimmt die Maschine ihres Grundjobs."""
-    if not _FOLGE:
+    while _FOLGE:
+        job, flaechen, text = _FOLGE.pop(0)
+        try:
+            if job.Document is not None and job.Document.getObject(job.Name) is not None:
+                break
+        except Exception:  # noqa: BLE001 – gelöscht oder das Dokument zu: das nächste Glied
+            pass
+    else:
         return
-    job, flaechen, text = _FOLGE.pop(0)
     klon = vr.modell(job)
     grund = getattr(job, "Grundjob", None)
     datei = getattr(grund, rw.EIGENSCHAFT_MASCHINE, "") if grund is not None else ""
@@ -5877,14 +5883,33 @@ class BearbeitungPanel:
             return n is not None and abs(n.dot(achse)) < 1e-6
 
         def darueber(name, r):
-            """Steht die Wand über der Ebene ihrer schrägen Fläche (eine Tasche darin) – nicht
-            darunter wie die Seiten eines Keils, die zum Grundjob gehören?"""
+            """Steht die Wand über einer ebenen Fläche der Richtung, an die sie grenzt (dem Boden
+            einer Tasche darin) – nicht nur darunter wie die Seiten eines Keils unter der Schräge,
+            die zum Grundjob gehören? Grenzt sie an keine (eine Ecke zwischen zwei Wänden), gilt
+            sie wie diese. Gegen jede angrenzende, nicht gegen die erste Fläche: Sind Boden und
+            Schräge darüber gewählt, steht die Wand unter der Schräge, aber über dem Boden."""
+            achse = FreeCAD.Vector(*r.achse)
             try:
-                stirn = ft.flaeche(form, int(r.stirn[4:]) - 1).CenterOfMass
                 mitte = ft.flaeche(form, int(name[4:]) - 1).CenterOfMass
             except Exception:  # noqa: BLE001
                 return False
-            return (mitte - stirn).dot(FreeCAD.Vector(*r.achse)) > 1e-6
+            eben = []
+            for f in r.flaechen:
+                n = _aussennormale(form, f)
+                if n is None or (n - achse).Length >= zg.GLEICH:
+                    continue
+                if kanten.get(name, set()) & kanten.get(f, set()):
+                    eben.append(f)
+            if not eben:
+                return True
+            for f in eben:
+                try:
+                    unten = ft.flaeche(form, int(f[4:]) - 1).CenterOfMass
+                except Exception:  # noqa: BLE001
+                    continue
+                if (mitte - unten).dot(achse) > 1e-6:
+                    return True
+            return False
 
         def wand_von(name):
             return next(

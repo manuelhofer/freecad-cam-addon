@@ -176,6 +176,10 @@ hin_zurueck = [P(False, 0, 0, 5), P(False, 10, 0, 5, False, None, 3.0)]
 hin_zurueck.append(P(False, -3, 0, 5, False, None, 3.0))
 gebuegelt = [(p.x, p.y) for p in fw._ohne_ausflug(hin_zurueck)]
 pruefe(gebuegelt == [(0, 0), (-3, 0)], f"über den Anfang zurück: {gebuegelt}")
+# Eine flache Rampe (je Satz 0,02 mm hinab) an ihrer Wende bleibt, wie sie ist.
+rampe = [P(False, 0, 0, 5.04), P(False, 1, 0, 5.02, False, None, 3.0)]
+rampe.append(P(False, 0, 0, 5.0, False, None, 3.0))
+pruefe(len(fw._ohne_ausflug(rampe)) == 3, f"Rampe gebügelt: {fw._ohne_ausflug(rampe)}")
 ganz_zurueck = hin_zurueck[:2] + [P(False, 0, 0, 5, False, None, 3.0)]
 gebuegelt = [(p.x, p.y) for p in fw._ohne_ausflug(ganz_zurueck)]
 pruefe(gebuegelt == [(0, 0)], f"ganz zurück: {gebuegelt}")
@@ -192,6 +196,20 @@ for start, soll in ((30.0, [30.0, 10.0 + fw.LINK_LUFT]), (11.0, [11.0])):
 frei = [P(True, 20, 20, 30), P(True, 20, 20, 12), P(False, 20, 20, 5)]
 neu, _weg = fw.schneller(frei, form, quader(), VF)
 pruefe([p.z for p in neu if p.eilgang] == [30, 12], f"über dem Material: {neu}")
+# Am Rand des Rohteils (die Mitte 1 mm daneben, der Fräser reicht 4 mm hinein): ebenso.
+rand = [P(True, -1, 20, 30), P(True, -1, 20, 6), P(False, -1, 20, 5)]
+neu, _weg = fw.schneller(rand, form, quader(), VF)
+pruefe([round(p.z, 3) for p in neu if p.eilgang] == [30.0, 10.0 + fw.LINK_LUFT], f"am Rand: {neu}")
+# Eine Kugel R 5, deren Mitte 4 mm neben dem Rohteil steht: Sie berührt es erst, wenn ihre
+# Spitze 5 − 3 = 2 mm unter seiner Oberkante ist – bis 8,5 im Eilgang geht ohne Berührung.
+kugel = ff.kugel(5.0)
+neben = [P(True, -4, 20, 30), P(True, -4, 20, 8.5), P(False, -4, 20, 5)]
+neu, _weg = fw.schneller(neben, kugel, quader(), VF)
+pruefe([p.z for p in neu if p.eilgang] == [30, 8.5], f"Kugel neben dem Rohteil: {neu}")
+# Endet die Bahn mit dem Eilgang hinab ins Material, bleibt sie oben (kein Satz fehlt).
+ende = [P(True, 20, 20, 11), P(True, 20, 20, 6)]
+neu, _weg = fw.schneller(ende, form, quader(), VF)
+pruefe(len(neu) == 2 and neu[-1].z == 11, f"Eilgang hinab am Ende: {neu}")
 
 # --- Der Freivorschub aus der Maschine (Manuel: „wenn nichts drinnen steht .. dann halt 10 m/min“)
 from camaddon import PARAMETER_PFAD  # noqa: E402

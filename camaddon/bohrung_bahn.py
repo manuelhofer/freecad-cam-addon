@@ -219,11 +219,15 @@ def bohrung_ueber_boden(form, name):
         schluessel = (form.hashCode(), name)
     except Exception:  # noqa: BLE001
         return None
-    if schluessel in _BODEN_MERK:
-        return _BODEN_MERK[schluessel]
-    if len(_BODEN_MERK) > 2000:
+    gemerkt = _BODEN_MERK.get(schluessel)
+    # Mit der Form gemerkt: Sie bleibt so am Leben, ihr Speicher wird nicht für eine andere
+    # wiederverwendet (der hashCode allein wäre dann gleich).
+    if gemerkt is not None and gemerkt[0].isSame(form):
+        return gemerkt[1]
+    if len(_BODEN_MERK) > 256:
         _BODEN_MERK.clear()
-    ergebnis = _BODEN_MERK[schluessel] = _bohrung_ueber_boden(form, name)
+    ergebnis = _bohrung_ueber_boden(form, name)
+    _BODEN_MERK[schluessel] = (form, ergebnis)
     return ergebnis
 
 
