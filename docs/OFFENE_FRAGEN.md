@@ -110,3 +110,20 @@ Programm steht; du kennst die GROB und deine 840D.
 *Was die Antwort ändert:* (a) ist schnell gebaut (dieselbe Kette wie die Schrägen), (b) ist der
 saubere Weg für alle Strategien, aber ein größerer Umbau. – seit 2026-10-17
 
+
+**8. Soll das Planfräsen an der Wand ohne Hin und Her fahren?**
+Bei der Zickzack-Durchsicht gezählt (Programme des vollen Laufs, Rücksprünge unter 2 mm auf einer
+Höhe): Das Planfräsen fährt an einer Wand bei jeder zweiten Zeile 1,5 mm zur vorigen Zeile zurück
+und wieder vor – die „Wandfahrt“ (seit P-2026-10-01). Am Block 68-mal, an der Platte 17-mal, am
+Klotz 22-mal. Sie nimmt den Zwickel, der an der Wand zwischen zwei Zeilen stehen bliebe: beim
+Schaftfräser Ø 12 mit ae 1,5 rund ae² ÷ 8R = 0,05 mm (mit Eckenradius mehr). Mit der Kontur
+danach ist er ohnehin weg.
+Bild: [frage8_wandfahrt.png](bilder/vorschlaege/frage8_wandfahrt.png) – der Absatz, rot die
+14 Wendepunkte an der Wand.
+Wege: (a) so lassen; (b) statt der vielen kleinen Rückwege ein Zug an der Wand entlang am Ende
+der Lage, in einer Richtung (gleicher Weg, keine Wende); (c) beim Schaftfräser ohne Eckenradius
+weglassen, wenn die Wand gewählt ist und die Kontur sie danach fertig macht.
+*Warum nur Manuel:* Es ist eine Abwägung zwischen dem Zwickel an der Wand und dem Hin und Her –
+P-2026-10-16-67 hat es nur dort weggenommen, wo es durch die Luft ging.
+*Was die Antwort ändert:* Bei (b) oder (c) baue ich es um; der Prüfstand misst den Rest an der
+Wand mit. – seit 2026-10-17
