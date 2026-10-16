@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis -58, 0.260.45 → 0.260.54):**
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis -66, 0.260.45 → 0.260.62):**
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -45,10 +45,23 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   - Behoben: `szenario_loch_schraeg`, `szenario_lagerbock`, `szenario_platte` (seit P-12/-13, in
     P-54); `szenario_schwenkteil` (Wechselpunkt Z 150 lag seit P-01 im Teil, P-56).
   - B-026 (`szenario_vierachs_drehteil`) behoben in P-57.
-  - Offen: `szenario_mausrad`. Das Mausrad-Szenario
+  - `szenario_mausrad` prüft „mit Fokus“ nur noch, wenn die Rasten ankommen (P-62); grün. Das
+    Mausrad-Szenario
     scheint am Prüfaufbau zu liegen: Rasten über XTest kommen in gamescope nicht an, die Nummer
     mit Fokus rollt nicht.
-- 3D-Schruppen nur über den gewählten Flächen: gebaut und zurückgenommen (Frage 6).
+- 3D-Schruppen nur über den gewählten Flächen: gebaut und zurückgenommen (Frage 6, mit Bild).
+- Nachgezogen (P-59 … P-66):
+  - „Anlegen“ an der G550 nachgespielt (Ebene A60, keine Berührung, ohne falschen Hinweis
+    „Werkzeug quer“).
+  - Beim Anstellen sagt der Tooltip, warum es nur mit dem Kugelfräser geht.
+  - Die Zeilen von „Alles aus dieser Aufspannung“ haben keinen Knopf „Ebene schwenken“ mehr.
+  - Wände und Ecken einer Tasche in der Schräge kommen mit ihrem Boden in dieselbe Ebene.
+  - In der Ebene eines Lochs hakt sich das Räumen nicht mehr an (es räumte die ganze Schräge).
+  - B-026 (Drehteil) samt Folgefehler im Modell der Stange (P-61).
+  - Formularzeilen werden erst später gelöscht (der Absatz in „Maschine bearbeiten“).
+- Der zweite volle Lauf (nach P-62): 149 von 151 grün. `szenario_maschine_bearbeiten` stürzte ab
+  (behoben in P-63, danach zweimal grün); `szenario_rundum_drehmaschine` lief allein grün – im Lauf
+  rechneten nebenher weitere Szenarien.
 
 **Der 16.10. abends (P-2026-10-16-36 bis -47, 0.260.33 → 0.260.44):**
 - Einrichtblatt: Das Fenster öffnet sofort, die Bilder kommen nach und nach; beim Halter ein Link

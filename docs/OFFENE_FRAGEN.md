@@ -85,7 +85,9 @@ echte Freiform (eine Kuppel auf einer Platte) habe ich es gebaut und wieder zur�
 über der Kuppel ist der Bereich ringsum von Rohteil umgeben, wie eine Tasche. Die Ringe des
 3D-Schruppens kommen vom Rand her und gehen dort voll hinein (Eingriff bis 5 ae, 10 × senkrecht
 eintauchen; ganz: 1,9 ae). Richtig wäre es wie beim Räumen einer Tasche: in der Mitte per Helix
-hinein und von innen nach außen. Der Stand liegt in `~/freecad_cam/wip/nacht_2026-10-16/r3_nur_ueber.patch`.
+hinein und von innen nach außen.
+Bild mit Zahlen: [frage6_schruppen3d_nur_ueber.png](bilder/vorschlaege/frage6_schruppen3d_nur_ueber.png)
+(links heute, rechts der Versuch: die Ecken bleiben stehen, 6,1 → 4,3 min, aber Eingriff bis 5 ae). Der Stand liegt in `~/freecad_cam/wip/nacht_2026-10-16/r3_nur_ueber.patch`.
 *Warum nur Manuel:* Was das 3D-Schruppen ohne Vorgabe wegnimmt, ist eine Strategiewahl.
 *Was die Antwort ändert:* Bei „ja“ baue ich es mit Helix und Ringen von innen, als Haken
 „Nur über den gewählten Flächen“ (vorbelegt an). Bei „nein“ bleibt es beim ganzen Rohteil. – seit 2026-10-17
