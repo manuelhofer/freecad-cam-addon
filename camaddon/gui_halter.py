@@ -392,12 +392,22 @@ class HalterDialog(QtGui.QDialog):
         self.tabelle.blockSignals(True)
         self.tabelle.setRowCount(len(h.abschnitte))
         for zeile, abschnitt in enumerate(h.abschnitte):
+            # Flansch und Spannmutter sind eine Zeile; das Bild zeigt Greiferrille und Fasen.
+            art = {
+                hl.FLANSCH: tr("hd.art.flansch"),
+                hl.MUTTER: tr("hd.art.mutter"),
+            }.get(abschnitt.art, "")
             for spalte, feld in enumerate(FELDER):
                 zelle = QtGui.QTableWidgetItem(
                     groesse_zeigen(getattr(abschnitt, feld), einheiten.LAENGE)
                 )
                 zelle.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+                if art:
+                    zelle.setToolTip(art)
                 self.tabelle.setItem(zeile, spalte, zelle)
+            kopf = QtGui.QTableWidgetItem(str(zeile + 1))
+            kopf.setToolTip(art)
+            self.tabelle.setVerticalHeaderItem(zeile, kopf)
         self.tabelle.blockSignals(False)
         if h.abschnitte:
             self.tabelle.setCurrentCell(min(max(zeile_vorher, 0), len(h.abschnitte) - 1), LAENGE)

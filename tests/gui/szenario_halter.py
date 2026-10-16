@@ -76,9 +76,15 @@ def schritte(h):
     yield 300
     halter = f.gewaehlt
     h.pruefe(halter is not None and f.liste.count() == 1, "Vorlage legt keinen Halter an")
-    h.pruefe(f.tabelle.rowCount() == 2, f"Kontur: {f.tabelle.rowCount()} Abschnitte")
+    h.pruefe(f.tabelle.rowCount() == 3, f"Kontur: {f.tabelle.rowCount()} Abschnitte")
     zellen = [f.tabelle.item(0, s).text() for s in range(3)]
     h.pruefe(zellen == ["16", "63", "63"], f"Flansch: {zellen}")
+    # Flansch und Spannmutter je eine Zeile, gezeichnet mit Greiferrille und Fasen (W-022).
+    tipps = [f.tabelle.verticalHeaderItem(z).toolTip() for z in range(3)]
+    h.pruefe(
+        tipps[0].startswith("Flansch") and not tipps[1] and tipps[2].startswith("Spannmutter"),
+        f"Art der Abschnitte: {tipps}",
+    )
     h.pruefe(
         f.zusammenfassung.text() == "Länge 70,00 mm · größter Ø 63,00 mm",
         f"Zusammenfassung: {f.zusammenfassung.text()!r}",

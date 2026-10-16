@@ -62,7 +62,28 @@ pruefe(vdi.aufnahme == "" and "HSK" not in vdi.name, f"VDI ohne Aufnahme: {vdi.n
 pruefe(hl.Halter.aus_dict(hsk.als_dict()).aufnahme == "HSK-A63", "Aufnahme nicht gespeichert")
 pruefe(hl.Halter.aus_dict({"name": "alt"}).aufnahme == "", "alte Datei ohne Aufnahme")
 pruefe(len(hl.AUFNAHMEN) >= 25 and "Capto C6" in hl.AUFNAHMEN and "KM63" in hl.AUFNAHMEN, "Liste")
-pruefe(er32.kontur() == [(0, 31.5), (16, 31.5), (16, 25), (70, 25)], f"{er32.kontur()}")
+# Das Bild (W-022 Punkt 3): der Flansch mit Greiferrille, die Spannmutter mit Fasen – nie dicker
+# als der Abschnitt; radius_bei (Reichweite, Wegkippen) bleibt beim vollen.
+kontur = er32.kontur()
+pruefe(nahe(kontur[-1][0], 70) and max(r for _a, r in kontur) <= 31.5 + 1e-9, f"{kontur}")
+rille = min(r for a, r in kontur if a < 16)
+pruefe(nahe(rille, 31.5 - 63 * hl.RILLE_TIEFE), f"Greiferrille SK40: {rille}")
+spitz = [a for a, r in kontur if nahe(r, rille)]
+pruefe(len(spitz) == 2 and nahe(spitz[0], spitz[1]) and 4 < spitz[0] < 12, f"spitz: {spitz}")
+pruefe(kontur[-1][1] < 25 and nahe(kontur[-2][1], 25), f"Mutter vorn mit Fase: {kontur[-2:]}")
+grund = [a for a, r in hsk.kontur() if nahe(r, 31.5 - 63 * hl.RILLE_TIEFE)]
+pruefe(len(grund) == 4 and grund[-1] - grund[0] > 1, f"HSK: Rille mit flachem Grund: {grund}")
+pruefe([a.art for a in er32.abschnitte] == [hl.FLANSCH, "", hl.MUTTER], "Arten der Vorlage")
+wieder = hl.Halter.aus_dict(er32.als_dict())
+pruefe([a.art for a in wieder.abschnitte] == [hl.FLANSCH, "", hl.MUTTER], "Art gespeichert")
+alt = hl.Halter.aus_dict(
+    {"abschnitte": [{"laenge": 26, "d_oben": 63, "d_unten": 63}, {"laenge": 9, "d_oben": 40}]}
+)
+pruefe([a.art for a in alt.abschnitte] == [hl.FLANSCH, ""], "alte Datei: Flansch erkannt")
+eigen = hl.Halter.aus_dict({"abschnitte": [{"laenge": 16, "d_oben": 63, "d_unten": 63, "art": ""}]})
+pruefe(eigen.abschnitte[0].art == "", "ausdrücklich ohne Art bleibt ohne")
+kurz = hl.Halter(abschnitte=[hl.Abschnitt(2, 63, 63, hl.FLANSCH)])
+pruefe(hl.profil(kurz) == [(2, 63, 63)], f"zu kurz für die Rille: {hl.profil(kurz)}")
 schrumpf = hl.aus_vorlage("schrumpf_12")
 pruefe(nahe(schrumpf.radius_bei(16 + 32), (32 + 24) / 4), "Kegel: in der Mitte der Mittelwert")
 for schluessel in hl.VORLAGEN:

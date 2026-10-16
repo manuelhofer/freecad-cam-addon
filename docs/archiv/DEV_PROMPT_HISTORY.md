@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-38 halter-mit-greiferrille-und-mutter (W-022 Punkt 3)
+
+### EINGELESEN
+- W-022 Punkt 3. Manuel, 2026-10-16, zum Bild eines HSK-Halters: „wenn die halter so ausschauen
+  würden wäre cool .. also dem echten objekt nachempfunden“. Die Vorlagen waren nur Zylinder und
+  Kegel.
+- Zum Vergleich auf hoffmann-group.com öffentlich angesehen, ohne Download:
+  - Datenblatt GARANT 300470 32 (ER32, SK 40, A = 70, Außen-Ø 50);
+  - die Vorschau seiner Maßzeichnung. Sie zeigt einen Flansch mit V-Rille, einen Absatz, den
+    Körper und die Mutter mit Fase.
+- Hoffmanns „Nutzungsbedingungen für CAD-Daten“ (April 2020) gelesen: die Lizenz nur für CAD, CAM
+  und Werkzeugverwaltung beim Anwender. Ändern, Bearbeiten, Vervielfältigen und Weitergeben sind
+  verboten. Manuel will die Dateien trotzdem zum Messen nehmen lassen („wenn du die stl oder step
+  dateien nur zum messen nimmst und in freecad die halter nachbaust ... ist das effektv nichts
+  dagegen zu sagen !“). Die Downloads selbst kommen danach, je mit Nachfrage (OFFENE_FRAGEN 5).
+
+### DATEIEN
+- `camaddon/halter.py`:
+  - `Abschnitt.art`: `FLANSCH` oder `MUTTER`, sonst "". Gespeichert in `als_dict`; eine Datei vor
+    0.260.35 bekommt den Flansch, wenn der erste Abschnitt so lang und dick ist wie der einer
+    Aufnahme (`_flansch_erkennen`).
+  - `profil(halter)`: der Flansch mit Fasen und Greiferrille, 60° offen, Tiefe 5,5 % des Ø (1,5 …
+    6 mm). Am Steilkegel (SK, BT, CAT) ist die Rille spitz, an HSK, Capto und KM hat sie einen
+    flachen Grund. Die Spannmutter hat hinten und vorn eine Fase. Nie dicker als der Abschnitt.
+  - `kontur()` (das Bild) und `form()` (3D, Kollision) zeichnen das Profil. `radius_bei` und
+    `groesster_durchmesser` (Reichweite, Wegkippen, 4 Achsen) bleiben beim vollen Abschnitt.
+  - Vorlagen: Der Flansch ist `FLANSCH`, die Muttern sind `MUTTER`. ER32 ist geteilt in Körper
+    31,5 und Mutter 22,5 (A = 70 bleibt), ER40 in 38,5 und 25,5.
+- `camaddon/gui_halter.py`: Die Zeilen von Flansch und Mutter sagen es im Tooltip.
+- `translations/de.json`, `en.json`: `hd.art.flansch`, `hd.art.mutter`.
+- `help/de|en/halter.html`: ein Satz dazu.
+- `tests/test_halter.py`: Rille SK40 spitz in der Flanschmitte, HSK mit flachem Grund, Mutter vorn
+  mit Fase, Arten gespeichert, alte Datei erkannt, zu kurz für die Rille → Zylinder.
+- `tests/gui/szenario_halter.py`: ER32 hat 3 Zeilen; die Tooltips von Flansch und Mutter.
+- `tests/gui/szenario_erster_start.py`: Das Menü hat 18 Einträge (Einrichtblatt, Beispiele
+  laden). Rot im vollen Lauf seit „Beispiele laden“.
+- `docs/OFFENE_FRAGEN.md`: Frage 5 (CAD-Dateien von Hoffmann).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_halter`, `test_sprache`, `test_hilfe`, `test_kollision`,
+  `szenario_halter`, `szenario_erster_start`.
+- Zum Ausprobieren: Werkzeugverwaltung → Halter → Neu → „Spannzangenfutter ER32“. Rechts im Bild
+  hat der Flansch eine V-Rille, die Mutter einen Absatz zum Körper und vorn eine Fase. Über Zeile 1
+  sagt der Tooltip „Flansch an der Spindel …“.
+
 ## P-2026-10-16-37 schaft-grenze-in-der-stellung-des-fraesers (B-025)
 
 ### EINGELESEN

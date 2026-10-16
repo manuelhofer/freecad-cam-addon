@@ -5,7 +5,7 @@
 # (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
 # user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
 # Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich – mit den
-# zwölf Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle sechzehn: oben „So geht’s“
+# zwölf Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle achtzehn: oben „So geht’s“
 # (D-54), gleich darunter „Maschinen …“ (seit P-2026-10-02-58), unten „Nach
 # Updates suchen“ und „Über“ (D-13). „So geht’s“ öffnet
 # die Hilfeseite mit den sechs Schritten. Die Einstellungsseite ändert
@@ -123,10 +123,12 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 16
+            len(eintraege) == 18
             and eintraege[:2] == ["So geht’s", "Maschinen …"]
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
-            and "Schnittwerte in den Job" in eintraege,
+            and "Schnittwerte in den Job" in eintraege
+            and "Einrichtblatt …" in eintraege  # W-019
+            and "Beispiele laden …" in eintraege,
             f"Menü: {eintraege}",
         )
         menue.popup(FreeCADGui.getMainWindow().mapToGlobal(QtCore.QPoint(400, 60)))

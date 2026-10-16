@@ -1415,6 +1415,8 @@
     "hd.spanntiefe.tooltip": "Wie tief der Schaft des Werkzeugs im Halter steckt. Damit schätzt die Werkzeugverwaltung die Länge ab Spindelnase, solange sie niemand gemessen hat.",
     "hd.kontur": "Kontur ab Spindelnase:",
     "hd.kontur.tooltip": "Von der Spindelnase zum Werkzeug hin, Abschnitt für Abschnitt: gleiche Ø sind ein Zylinder, verschiedene ein Kegel. Was in der Spindel steckt, zählt nicht.",
+    "hd.art.flansch": "Flansch an der Spindel – im Bild und in der Kollision mit Greiferrille und Fasen, wie der echte.",
+    "hd.art.mutter": "Spannmutter – im Bild und in der Kollision mit Fasen vorn und hinten.",
     "hd.spalte.laenge": "Länge ({einheit})",
     "hd.spalte.d_oben": "Ø oben ({einheit})",
     "hd.spalte.d_unten": "Ø unten ({einheit})",

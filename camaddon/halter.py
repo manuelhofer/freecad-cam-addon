@@ -22,6 +22,7 @@ Die Halter stehen in der Werkzeugbibliothek (werkzeuge.Bibliothek.halter),
 jedes Werkzeug nennt die Kennung seines Halters. Läuft ohne Oberfläche.
 """
 
+import math
 import uuid
 from dataclasses import dataclass, field
 
@@ -66,33 +67,51 @@ AUFNAHMEN = {
     "KM80": ("ISO 26622", 80.0, 30.0),
 }
 VORGABE_AUFNAHME = "SK40"  # ohne eingetragene Aufnahme – so waren die Vorlagen bis 0.260
-_FLANSCH_SK40 = (16.0, 63.0, 63.0)  # der erste Abschnitt der Vorlagen an der Spindel
+
+# Wie ein Abschnitt aussieht (W-022 Punkt 3; Manuel, 2026-10-16, zum Bild eines HSK-Halters:
+# „wenn die halter so ausschauen würden wäre cool .. also dem echten objekt nachempfunden“):
+# FLANSCH der Flansch an der Spindel mit seiner Greiferrille, MUTTER die Spannmutter mit ihren
+# Fasen; "" ein Zylinder oder Kegel, wie eingetragen. So zeichnen ihn das Bild und der Körper
+# (profil, form). Reichweite, Wegkippen und 4 Achsen rechnen weiter mit dem vollen Abschnitt
+# (radius_bei, groesster_durchmesser) – Rille und Fasen nehmen nur weg, das bleibt sicher.
+FLANSCH, MUTTER = "flansch", "mutter"
+# Die Greiferrille: 60° offen, so tief (Anteil am Ø, in mm begrenzt); an Steilkegeln (SK, BT,
+# CAT) spitz, an HSK, Capto und KM mit flachem Grund (Anteil an der Länge des Flanschs).
+RILLE_TIEFE, RILLE_MIN, RILLE_MAX = 0.055, 1.5, 6.0
+RILLE_WINKEL = 60.0  # Grad
+RILLE_BODEN = 0.12
+STEILKEGEL = ("SK", "BT", "CAT")
+FASE_FLANSCH = 1.0  # mm, höchstens
+FASE_MUTTER_HINTEN, FASE_MUTTER_VORN = 1.0, 1.5  # mm, höchstens
+_FLANSCH_SK40 = (16.0, 63.0, 63.0, FLANSCH)  # der erste Abschnitt der Vorlagen an der Spindel
 
 # Vorlagen zum Anfangen: typische Maße an SK40 (Flansch Ø63 × 16 mm), keine
-# Katalogwerte – (Spanntiefe, Abschnitte (Länge, Ø oben, Ø unten)), alles mm. Mit einer anderen
-# Aufnahme (AUFNAHMEN) bekommt eine Vorlage an der Spindel deren Flansch; der Körper darunter
-# hängt am Spannsystem (ER32, Schrumpf …), nicht an der Aufnahme.
+# Katalogwerte – (Spanntiefe, Abschnitte (Länge, Ø oben, Ø unten[, Art])), alles mm. Mit einer
+# anderen Aufnahme (AUFNAHMEN) bekommt eine Vorlage an der Spindel deren Flansch; der Körper
+# darunter hängt am Spannsystem (ER32, Schrumpf …), nicht an der Aufnahme. Die Spannmuttern ER16
+# Ø28, ER25 Ø42, ER32 Ø50, ER40 Ø63 (ER32 an SK40, A = 70: Außen-Ø 50 im Datenblatt GARANT
+# 300470 32).
 _VORLAGEN = {
-    "er16": (20.0, ((16.0, 63.0, 63.0), (34.0, 40.0, 32.0), (20.0, 28.0, 28.0))),
-    "er25": (28.0, ((16.0, 63.0, 63.0), (34.0, 48.0, 42.0), (20.0, 42.0, 42.0))),
-    "er32": (40.0, ((16.0, 63.0, 63.0), (54.0, 50.0, 50.0))),
-    "er40": (45.0, ((16.0, 63.0, 63.0), (64.0, 63.0, 63.0))),
-    "schrumpf_6": (26.0, ((16.0, 63.0, 63.0), (64.0, 27.0, 21.0))),
-    "schrumpf_12": (36.0, ((16.0, 63.0, 63.0), (64.0, 32.0, 24.0))),
-    "weldon_20": (50.0, ((16.0, 63.0, 63.0), (47.0, 50.0, 50.0))),
-    "hydro_20": (50.0, ((16.0, 63.0, 63.0), (64.0, 50.0, 50.0))),
-    "aufsteck_22": (0.0, ((16.0, 63.0, 63.0), (34.0, 48.0, 48.0))),
-    "bohrfutter": (30.0, ((16.0, 63.0, 63.0), (84.0, 50.0, 45.0))),
-    "vdi_er25": (28.0, ((40.0, 55.0, 55.0), (20.0, 42.0, 42.0))),
+    "er16": (20.0, (_FLANSCH_SK40, (34.0, 40.0, 32.0), (20.0, 28.0, 28.0, MUTTER))),
+    "er25": (28.0, (_FLANSCH_SK40, (34.0, 48.0, 42.0), (20.0, 42.0, 42.0, MUTTER))),
+    "er32": (40.0, (_FLANSCH_SK40, (31.5, 50.0, 50.0), (22.5, 50.0, 50.0, MUTTER))),
+    "er40": (45.0, (_FLANSCH_SK40, (38.5, 63.0, 63.0), (25.5, 63.0, 63.0, MUTTER))),
+    "schrumpf_6": (26.0, (_FLANSCH_SK40, (64.0, 27.0, 21.0))),
+    "schrumpf_12": (36.0, (_FLANSCH_SK40, (64.0, 32.0, 24.0))),
+    "weldon_20": (50.0, (_FLANSCH_SK40, (47.0, 50.0, 50.0))),
+    "hydro_20": (50.0, (_FLANSCH_SK40, (64.0, 50.0, 50.0))),
+    "aufsteck_22": (0.0, (_FLANSCH_SK40, (34.0, 48.0, 48.0))),
+    "bohrfutter": (30.0, (_FLANSCH_SK40, (84.0, 50.0, 45.0))),
+    "vdi_er25": (28.0, ((40.0, 55.0, 55.0), (20.0, 42.0, 42.0, MUTTER))),
     # Angetrieben je Spannzange: zuerst der Körper, zuletzt die Spannmutter.
-    "vdi_radial_er16": (20.0, ((35.0, 50.0, 50.0), (20.0, 28.0, 28.0))),
-    "vdi_radial_er20": (24.0, ((35.0, 50.0, 50.0), (22.0, 34.0, 34.0))),
-    "vdi_radial_er25": (28.0, ((35.0, 50.0, 50.0), (24.0, 42.0, 42.0))),
-    "vdi_radial_er32": (40.0, ((35.0, 60.0, 60.0), (28.0, 50.0, 50.0))),
-    "vdi_axial_er16": (20.0, ((45.0, 55.0, 55.0), (25.0, 28.0, 28.0))),
-    "vdi_axial_er20": (24.0, ((45.0, 55.0, 55.0), (25.0, 34.0, 34.0))),
-    "vdi_axial_er25": (28.0, ((45.0, 55.0, 55.0), (27.0, 42.0, 42.0))),
-    "vdi_axial_er32": (40.0, ((45.0, 60.0, 60.0), (30.0, 50.0, 50.0))),
+    "vdi_radial_er16": (20.0, ((35.0, 50.0, 50.0), (20.0, 28.0, 28.0, MUTTER))),
+    "vdi_radial_er20": (24.0, ((35.0, 50.0, 50.0), (22.0, 34.0, 34.0, MUTTER))),
+    "vdi_radial_er25": (28.0, ((35.0, 50.0, 50.0), (24.0, 42.0, 42.0, MUTTER))),
+    "vdi_radial_er32": (40.0, ((35.0, 60.0, 60.0), (28.0, 50.0, 50.0, MUTTER))),
+    "vdi_axial_er16": (20.0, ((45.0, 55.0, 55.0), (25.0, 28.0, 28.0, MUTTER))),
+    "vdi_axial_er20": (24.0, ((45.0, 55.0, 55.0), (25.0, 34.0, 34.0, MUTTER))),
+    "vdi_axial_er25": (28.0, ((45.0, 55.0, 55.0), (27.0, 42.0, 42.0, MUTTER))),
+    "vdi_axial_er32": (40.0, ((45.0, 60.0, 60.0), (30.0, 50.0, 50.0, MUTTER))),
     "winkelkopf_90": (25.0, ((30.0, 60.0, 60.0), (20.0, 32.0, 32.0))),
 }
 VORLAGEN = tuple(_VORLAGEN)  # in der Reihenfolge des Menüs
@@ -196,14 +215,24 @@ class Abschnitt:
     laenge: float = 0.0  # entlang der Werkzeugachse
     d_oben: float = 0.0  # zur Spindel hin
     d_unten: float = 0.0  # zum Werkzeug hin
+    art: str = ""  # FLANSCH, MUTTER – so sieht er aus (profil); "" wie eingetragen
 
     def als_dict(self):
-        return {"laenge": self.laenge, "d_oben": self.d_oben, "d_unten": self.d_unten}
+        return {
+            "laenge": self.laenge,
+            "d_oben": self.d_oben,
+            "d_unten": self.d_unten,
+            "art": self.art,
+        }
 
     @classmethod
     def aus_dict(cls, daten):
+        art = daten.get("art")
         return cls(
-            _zahl(daten.get("laenge")), _zahl(daten.get("d_oben")), _zahl(daten.get("d_unten"))
+            _zahl(daten.get("laenge")),
+            _zahl(daten.get("d_oben")),
+            _zahl(daten.get("d_unten")),
+            art if art in (FLANSCH, MUTTER) else "",
         )
 
 
@@ -255,15 +284,13 @@ class Halter:
 
     def kontur(self):
         """Die Kontur als Punkte (Abstand unter der Spindelnase, Radius) von oben nach unten –
-        je Abschnitt Anfang und Ende; zum Zeichnen und für Drehkörper."""
+        je Stück des Profils (profil) Anfang und Ende; zum Zeichnen."""
         punkte = []
         oben = 0.0
-        for a in self.abschnitte:
-            if a.laenge <= 0:
-                continue
-            punkte.append((oben, a.d_oben / 2))
-            oben += a.laenge
-            punkte.append((oben, a.d_unten / 2))
+        for laenge, d_oben, d_unten in profil(self):
+            punkte.append((oben, d_oben / 2))
+            oben += laenge
+            punkte.append((oben, d_unten / 2))
         return punkte
 
     def als_dict(self):
@@ -291,7 +318,10 @@ class Halter:
         h.spanntiefe = _zahl(daten.get("spanntiefe"))
         abschnitte = daten.get("abschnitte")
         if isinstance(abschnitte, list):
-            h.abschnitte = [Abschnitt.aus_dict(a) for a in abschnitte if isinstance(a, dict)]
+            abschnitte = [a for a in abschnitte if isinstance(a, dict)]
+            h.abschnitte = [Abschnitt.aus_dict(a) for a in abschnitte]
+            if h.abschnitte and not any("art" in a for a in abschnitte):
+                _flansch_erkennen(h.abschnitte[0])  # gespeichert vor 0.260.35
         h.richtung = GEWINKELT if daten.get("richtung") == GEWINKELT else GERADE
         h.winkel = min(max(_winkel(daten.get("winkel"), 90.0), 0.0), 180.0)
         h.drehung = _winkel(daten.get("drehung"), 0.0)
@@ -299,6 +329,59 @@ class Halter:
         h.kopf_d = _zahl(daten.get("kopf_d"))
         h.aufnahme = str(daten.get("aufnahme") or "")
         return h
+
+
+def _flansch_erkennen(abschnitt):
+    """Ein Abschnitt aus der Zeit vor Abschnitt.art: so lang und dick wie der Flansch einer
+    Aufnahme (AUFNAHMEN) – dann ist er einer."""
+    for _norm, d, laenge in AUFNAHMEN.values():
+        if (abschnitt.laenge, abschnitt.d_oben, abschnitt.d_unten) == (laenge, d, d):
+            abschnitt.art = FLANSCH
+            return
+
+
+def profil(halter):
+    """Die Abschnitte, wie der Halter aussieht – (Länge, Ø oben, Ø unten) von oben nach unten:
+    der Flansch (FLANSCH) mit seiner Greiferrille und Fasen, die Spannmutter (MUTTER) mit Fasen,
+    die anderen wie eingetragen. Nie dicker als der Abschnitt."""
+    steil = aufnahme_oder_vorgabe(halter.aufnahme).startswith(STEILKEGEL)
+    stuecke = []
+    for a in halter.abschnitte:
+        if a.laenge <= 0:
+            continue
+        if a.art == FLANSCH and a.d_oben == a.d_unten:
+            stuecke += _flansch_profil(a.laenge, a.d_oben, steil)
+        elif a.art == MUTTER and a.d_oben == a.d_unten:
+            stuecke += _mutter_profil(a.laenge, a.d_oben)
+        else:
+            stuecke.append((a.laenge, a.d_oben, a.d_unten))
+    return stuecke
+
+
+def _flansch_profil(laenge, d, steil):
+    """Der Flansch: Fase, Bund, die Greiferrille in der Mitte (am Steilkegel spitz, sonst mit
+    flachem Grund), Bund, Fase. Zu kurz dafür: ein Zylinder."""
+    fase = min(FASE_FLANSCH, 0.06 * laenge, 0.02 * d)
+    tiefe = min(max(RILLE_TIEFE * d, RILLE_MIN), RILLE_MAX)
+    flanke = tiefe * math.tan(math.radians(RILLE_WINKEL / 2))
+    boden = 0.0 if steil else RILLE_BODEN * laenge
+    bund = (laenge - 2 * fase - 2 * flanke - boden) / 2
+    if bund < 0.5 or d - 2 * tiefe <= 0:
+        return [(laenge, d, d)]
+    grund = d - 2 * tiefe
+    stuecke = [(fase, d - 2 * fase, d), (bund, d, d), (flanke, d, grund)]
+    if boden > 0:
+        stuecke.append((boden, grund, grund))
+    return stuecke + [(flanke, grund, d), (bund, d, d), (fase, d, d - 2 * fase)]
+
+
+def _mutter_profil(laenge, d):
+    """Die Spannmutter: hinten und vorn eine Fase (vorn die größere), dazwischen ihr Ø."""
+    hinten = min(FASE_MUTTER_HINTEN, 0.05 * laenge, 0.05 * d)
+    vorn = min(FASE_MUTTER_VORN, 0.08 * laenge, 0.05 * d)
+    if laenge - hinten - vorn < 0.5:
+        return [(laenge, d, d)]
+    return [(hinten, d - 2 * hinten, d), (laenge - hinten - vorn, d, d), (vorn, d, d - 2 * vorn)]
 
 
 def lage(halter):
@@ -355,24 +438,23 @@ def form(halter):
 
 
 def _abschnitte_form(halter):
-    """Die Abschnitte als Körper: der Bezugspunkt bei Z = 0, das Werkzeug nach −Z."""
+    """Die Abschnitte als Körper, wie er aussieht (profil): der Bezugspunkt bei Z = 0, das
+    Werkzeug nach −Z."""
     import FreeCAD
     import Part
 
     teile = []
     oben = 0.0
     nach_unten = FreeCAD.Vector(0, 0, -1)
-    for abschnitt in halter.abschnitte:
-        if abschnitt.laenge <= 0:
-            continue
+    for laenge, d_oben, d_unten in profil(halter):
         basis = FreeCAD.Vector(0, 0, -oben)
-        r1, r2 = abschnitt.d_oben / 2, abschnitt.d_unten / 2
+        r1, r2 = d_oben / 2, d_unten / 2
         if abs(r1 - r2) < 1e-9:
             if r1 > 0:
-                teile.append(Part.makeCylinder(r1, abschnitt.laenge, basis, nach_unten))
+                teile.append(Part.makeCylinder(r1, laenge, basis, nach_unten))
         else:
-            teile.append(Part.makeCone(r1, r2, abschnitt.laenge, basis, nach_unten))
-        oben += abschnitt.laenge
+            teile.append(Part.makeCone(r1, r2, laenge, basis, nach_unten))
+        oben += laenge
     return Part.makeCompound(teile) if teile else None
 
 
@@ -389,25 +471,29 @@ def aus_vorlage(schluessel, vdi=None, aufnahme=None):
     aufnahme = aufnahme_oder_vorgabe(aufnahme) if an_der_spindel else ""
     if an_der_spindel and abschnitte and tuple(abschnitte[0]) == _FLANSCH_SK40:
         _norm, flansch_d, flansch_l = AUFNAHMEN[aufnahme]
-        abschnitte = ((flansch_l, flansch_d, flansch_d), *abschnitte[1:])
+        abschnitte = ((flansch_l, flansch_d, flansch_d, FLANSCH), *abschnitte[1:])
     halter = Halter(
         name=vorlage_text(schluessel, vdi, aufnahme),
         aufnahme=aufnahme,
         bezeichnung=tr("halter.beispielmasse"),
         spanntiefe=spanntiefe,
-        abschnitte=[
-            Abschnitt(laenge, oben * faktor, unten * faktor) for laenge, oben, unten in abschnitte
-        ],
+        abschnitte=[_abschnitt(a, faktor) for a in abschnitte],
     )
     if schluessel in VDI_VORLAGEN:  # die Spannmutter wächst nicht mit der Aufnahme
-        laenge, oben, unten = abschnitte[-1]
-        halter.abschnitte[-1] = Abschnitt(laenge, oben, unten)
+        halter.abschnitte[-1] = _abschnitt(abschnitte[-1])
     if schluessel in _GEWINKELT:
         halter.richtung = GEWINKELT
         winkel, drehung, versatz, kopf_d = _GEWINKELT[schluessel]
         halter.winkel, halter.drehung = winkel, drehung
         halter.versatz, halter.kopf_d = versatz * faktor, kopf_d * faktor
     return halter
+
+
+def _abschnitt(vorlage, faktor=1.0):
+    """Ein Abschnitt aus einer Zeile der Vorlagen (Länge, Ø oben, Ø unten[, Art]), die Ø mal
+    `faktor`."""
+    laenge, oben, unten, *art = vorlage
+    return Abschnitt(laenge, oben * faktor, unten * faktor, art[0] if art else "")
 
 
 # Der Halter, mit dem geprüft wird, solange beim Werkzeug keiner gewählt ist (D-23, Manuel

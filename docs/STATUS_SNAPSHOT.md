@@ -1268,7 +1268,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   - Der Halter merkt sich seine Aufnahme (`Halter.aufnahme`).
 
   Offen bleiben Punkt 3 (dem echten Halter nachgebaut: Greiferrille, Kegel, Mutter – dafür die
-  CAD-Dateien, siehe unten). Der vorgeschlagene Halter hat seit P-2026-10-16-30 die Aufnahme der
+  CAD-Dateien, siehe unten). *Stufe 2 (P-2026-10-16-38):* Flansch mit Greiferrille (Steilkegel
+  spitz, HSK/Capto/KM mit flachem Grund) und Spannmutter mit Fasen, je eine Zeile
+  (`Abschnitt.art`), nach Norm und frei sichtbaren Katalogwerten; gerechnet wird weiter mit dem
+  vollen Abschnitt. Die genauen Konturen sollen aus Hoffmanns STEP-Dateien gemessen werden –
+  Manuel will das, die Downloads je mit Nachfrage (OFFENE_FRAGEN 5). Der vorgeschlagene Halter hat seit P-2026-10-16-30 die Aufnahme der
   geprüften Maschine.
   *Die Meldung bei unpassender Aufnahme ist erledigt* (P-2026-10-16-29): „Auf der Maschine
   prüfen“ sagt „T1: Der Halter „…“ ist für HSK-A63, die Maschine hat SK40 …“.

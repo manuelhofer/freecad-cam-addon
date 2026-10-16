@@ -1415,6 +1415,8 @@
     "hd.spanntiefe.tooltip": "How deep the tool's shank sits in the holder. The tool manager uses it to estimate the gauge length until someone measures it.",
     "hd.kontur": "Contour from the spindle nose:",
     "hd.kontur.tooltip": "From the spindle nose towards the tool, section by section: equal diameters make a cylinder, different ones a cone. What sits inside the spindle does not count.",
+    "hd.art.flansch": "Flange at the spindle – in the picture and the collision check with its gripper groove and chamfers, like the real one.",
+    "hd.art.mutter": "Collet nut – in the picture and the collision check with chamfers front and back.",
     "hd.spalte.laenge": "Length ({einheit})",
     "hd.spalte.d_oben": "Ø top ({einheit})",
     "hd.spalte.d_unten": "Ø bottom ({einheit})",

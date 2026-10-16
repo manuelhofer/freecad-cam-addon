@@ -64,3 +64,19 @@ antreten zu lassen ist eine neue Strategiewahl.
 die Kontur an (die Zeit entscheidet), und „Schlichten danach“ macht die Wände fertig. Bei „nein“
 bleibt die Kontur, und ihre Last in der Bohrung bleibt ein eigener Punkt. – seit 2026-10-16
 
+
+**5. Sollen die Halter-Vorlagen aus Hoffmanns CAD-Dateien nachgebaut werden?**
+Manuel ist im Browser der App bei Hoffmann angemeldet und hat das Herunterladen von STL/STEP
+erlaubt (2026-10-16: „du kannst es dann ja nachbauen ... also ob du das nun von einer zeichnung
+nach baust oder von der stl ??“). Zum Herunterladen muss man die „Nutzungsbedingungen für
+CAD-Daten“ (Stand April 2020) anhaken. Danach gilt die Lizenz nur für CAD, CAM und
+Werkzeugverwaltung beim Anwender (Punkt 2). Verboten ist, die Daten „zu ändern, zu bearbeiten, zu
+vervielfältigen und/oder an Dritte herauszugeben“ (Punkt 4). Eine daraus nachgebaute Kontur im
+öffentlichen Addon wäre genau das. Seit P-2026-10-16-38 haben die Vorlagen einen Flansch mit
+Greiferrille und eine Spannmutter mit Fasen. Gebaut sind sie nach Normmaßen und den frei
+sichtbaren Katalogwerten (A, Außen-Ø), ohne CAD-Datei.
+*Warum nur Manuel:* Mit dem Häkchen stimmt sein Konto zu – das entscheidet nur er.
+*Was die Antwort ändert:* Bei „ja, trotzdem“ lädt Claude je Aufnahme ein Modell (Frage vor jedem
+Download mit Datei und Größe), und die Vorlagen bekommen dessen Kontur. Bei „nein“ bleiben die
+Vorlagen bei Norm und Katalog. Seine eigenen Halter liest dann „Halter aus Datei …“ (STEP/STL,
+in Arbeit): Er lädt sie selbst herunter, und sie bleiben auf seinem Rechner. – seit 2026-10-16
