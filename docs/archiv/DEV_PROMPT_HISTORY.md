@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-61 flanke-nur-wo-der-fraeser-breit-ist
+
+### EINGELESEN
+- Nach P-2026-10-16-57 war `test_vierachs_plan` rot: „Mantelnut: ins Teil −3,999“. Nachgesucht: Die
+  neue Rechnung der Flanke im Modell der Stange nahm am Rand der Breite des Fräsers (dort ist er
+  0 breit) einen Strahl genau längs der Achse als Treffer. Im Zwischenschritt mitten im Bogen
+  (φ genau 60°) traf das die Zelle an der Wand der Mantelnut (a −50) und nahm sie bis r 13,5 weg.
+  Die alte Rechnung tat das nicht.
+
+### DATEIEN
+- `camaddon/restmaterial.py`: „Genau längs der Werkzeugachse drin“ nur, wenn 0 echt im Fräser
+  liegt (q − s < 0 < q + s).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_plan`, `test_restmaterial`, `test_vierachs_pruefen`,
+  `test_schraeg_abtrag`, `test_rest`, `test_vierachs_bahn`, `test_kollision`. Der Rückzug am
+  Drehteil (B-026) nimmt weiter nichts weg; der nachgestellte Bogen ist wieder gleich wie vor
+  P-57.
+
 ## P-2026-10-16-60 schwenkteil-auf-der-g550
 
 ### EINGELESEN

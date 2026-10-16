@@ -222,8 +222,10 @@ class Stange:
                 grenze_1 = (q - seitlich) / sin
                 grenze_2 = (q + seitlich) / sin
             klein = np.abs(sin) < 1e-12
-            # Fast genau längs der Werkzeugachse: quer bei 0 – drin, wenn 0 im Fräser liegt.
-            mitte_drin = (q - seitlich <= 0.0) & (q + seitlich >= 0.0)
+            # Fast genau längs der Werkzeugachse: quer bei 0 – drin, wenn 0 im Fräser liegt (echt
+            # darin: Am Rand seiner Breite, wo die Zeile ihn nur streift, ist er 0 breit – dort
+            # nahm ein Strahl genau längs der Achse sonst die Wand einer Mantelnut mit).
+            mitte_drin = (q - seitlich < 0.0) & (q + seitlich > 0.0)
             von = np.where(
                 klein, np.where(mitte_drin, -np.inf, np.inf), np.minimum(grenze_1, grenze_2)
             )
