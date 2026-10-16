@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-35 einrichtblatt-werkstoff-register-kuehlung (W-019)
+
+### EINGELESEN
+- Zum Vergleich FreeCADs eigenes „Sanity“-Blatt im Wochen-Build angesehen. Es zeigt dazu
+  Werkstoff, Kühlung je Operation und die Nullpunkt-Register. Für den Einrichter gehören die aufs
+  Blatt.
+
+### DATEIEN
+- `camaddon/einrichtblatt.py`:
+  - `Blatt.werkstoff`: `job_schnittwerte.werkstoff_fuer` – der des Rohteils, sonst der zuletzt
+    benutzte, sonst „nicht eingetragen“.
+  - `Aufspannung.register`: die Fixtures des Jobs („G54“), als eigene Zeile.
+  - `Schritt.kuehlung`: Flut, Nebel, Luft (CoolantMode); eigene Spalte.
+  - Der Kopf nennt den Werkstoff.
+- `translations/de.json`, `en.json`: `eb.kopf` mit `{werkstoff}`, neue Texte.
+- `help/de|en/programm.html`: Abschnitt „Einrichtblatt“.
+- `tests/test_einrichtblatt.py`: Register G54; Kühlung „Flut“ an einem Schritt, leer am anderen;
+  Werkstoff „nicht eingetragen“; alles auf der Seite.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_einrichtblatt`, `test_sprache`, `test_hilfe`,
+  `szenario_einrichtblatt`.
+- Im PDF steht oben „Werkstoff: …“; unter dem Nullpunkt „Nullpunkt-Register G54“; die Schritte
+  haben eine Spalte „Kühlung“.
+
 ## P-2026-10-16-34 einrichtblatt-bild-je-ebene (W-019)
 
 ### EINGELESEN

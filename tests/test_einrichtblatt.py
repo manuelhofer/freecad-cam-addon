@@ -120,12 +120,24 @@ pruefe(
 )
 pruefe(a.spannung == "Schraubstock, 5 mm von unten gespannt", f"Spannung: {a.spannung}")
 pruefe(a.nullpunkt == "Mitte oben des Rohteils", f"Nullpunkt: {a.nullpunkt}")
+# Das Nullpunkt-Register des Jobs (CAM: Fixtures), die Kühlung je Schritt (ohne: leer), der
+# Werkstoff im Kopf (ohne Werkstoff am Rohteil: „nicht eingetragen“).
+pruefe(a.register == "G54", f"Register: {a.register!r}")
+job.Operations.Group[0].CoolantMode = "Flood"
+b2 = eb.blatt(job, "2026-10-16", "0.0.0", bibliothek)
+pruefe(
+    [s.kuehlung for s in b2.aufspannungen[0].schritte] == ["Flut", ""],
+    f"Kühlung: {[s.kuehlung for s in b2.aufspannungen[0].schritte]}",
+)
+job.Operations.Group[0].CoolantMode = "None"
+pruefe(b.werkstoff == "nicht eingetragen", f"Werkstoff: {b.werkstoff!r}")
 pruefe(
     any("„Tief“" in h and "knapp" not in h and "26" in h for h in b.hinweise),
     f"Hinweise: {b.hinweise}",
 )
 seite = eb.html(b, tr, laenge, minuten_text)
-for text in ("T3", "Kugel 6", "<b>27</b>", "Mitte oben", "Lang", "Tief", "Summe"):
+for text in ("T3", "Kugel 6", "<b>27</b>", "Mitte oben", "Lang", "Tief", "Summe", "G54",
+             "Werkstoff: nicht eingetragen", "Kühlung"):  # fmt: skip
     pruefe(text in seite, f"„{text}“ fehlt auf der Seite")
 
 

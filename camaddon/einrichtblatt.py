@@ -43,6 +43,7 @@ class Schritt:
     werte: str  # „S 8000 · F 1200 · ap 6 · ae 1,5“
     minuten: float  # 0: unbekannt
     lage: str = ""  # die Ebene (3+2), "" ohne Schwenken
+    kuehlung: str = ""  # „Flut“, „Nebel“ … (CoolantMode der Operation), "" ohne
 
 
 @dataclass
@@ -52,6 +53,7 @@ class Aufspannung:
     spannung: str
     nullpunkt: str
     schritte: list = field(default_factory=list)  # [Schritt]
+    register: str = ""  # das Nullpunkt-Register des Jobs (CAM: Fixtures), „G54“; "" ohne
     bild: str = ""  # Pfad eines Bilds der Aufspannung, "" ohne
     job: object = None  # der Job der Aufspannung (fürs Bild)
     ebenen: dict = field(default_factory=dict)  # Lage (Schritt.lage) → Job der Ebene (3+2)
@@ -65,6 +67,7 @@ class Blatt:
     datum: str
     version: str
     werkzeuge: list = field(default_factory=list)  # [Werkzeug]
+    werkstoff: str = ""  # der Werkstoff, mit dem gerechnet wird (job_schnittwerte.werkstoff_fuer)
     aufspannungen: list = field(default_factory=list)  # [Aufspannung]
     hinweise: list = field(default_factory=list)  # [str]
 
@@ -101,6 +104,7 @@ def blatt(job, datum, version, bibliothek=None):
     else:
         maschine = os.path.splitext(os.path.basename(pfad))[0] if pfad else "–"
     ergebnis = Blatt(dokument=grund.Document.Label, maschine=maschine, datum=datum, version=version)
+    ergebnis.werkstoff = _werkstoff_text(grund, bibliothek, tr)
     dynamik = msp.dynamik_des_jobs(grund)
     gesehen = {}
     nummer = 0
@@ -111,6 +115,7 @@ def blatt(job, datum, version, bibliothek=None):
             spannung=spannung_text(aufjob, tr),
             nullpunkt=nullpunkt_text(aufjob, tr),
             job=aufjob,
+            register=", ".join(str(r) for r in (getattr(aufjob, "Fixtures", None) or [])),
         )
         paare = rw.operationen_mit_ebene(aufjob)
         mit_ebenen = any(ebene is not None for _op, ebene in paare)
@@ -137,6 +142,7 @@ def blatt(job, datum, version, bibliothek=None):
                     werte=_werte(op, tc),
                     minuten=minuten(op, tc, dynamik),
                     lage=lage,
+                    kuehlung=_kuehlung_text(op, tr),
                 )
             )
             knapp = _knapp(aufjob, op, tc, bibliothek, ebene is not None)
@@ -148,6 +154,32 @@ def blatt(job, datum, version, bibliothek=None):
         if w.geschaetzt:
             ergebnis.hinweise.insert(0, tr("eb.hinweis.geschaetzt", nummer=w.nummer))
     return ergebnis
+
+
+def _werkstoff_text(job, bibliothek, tr):
+    """Der Werkstoff, mit dem die Schnittwerte gerechnet sind (job_schnittwerte.werkstoff_fuer:
+    der des Rohteils, sonst der zuletzt benutzte) – „nicht eingetragen“ ohne."""
+    from . import job_schnittwerte as js
+    from . import werkstoffe as ws
+
+    werkstoff = None
+    if bibliothek is not None:
+        try:
+            werkstoff, _gemerkt = js.werkstoff_fuer(job, bibliothek.alle_werkstoffe())
+        except Exception:  # noqa: BLE001 – ohne ihn steht „nicht eingetragen“
+            werkstoff = None
+    return ws.anzeige(werkstoff) if werkstoff is not None else tr("eb.werkstoff.keiner")
+
+
+def _kuehlung_text(op, tr):
+    """Die Kühlung der Operation in Worten – "" ohne (CAM: CoolantMode None)."""
+    art = str(getattr(op, "CoolantMode", "None") or "None")
+    texte = {
+        "Flood": tr("eb.kuehlung.flut"),
+        "Mist": tr("eb.kuehlung.nebel"),
+        "Air": tr("eb.kuehlung.luft"),
+    }
+    return texte.get(art, "" if art == "None" else art)
 
 
 def _werkzeug(tc, bibliothek):
@@ -479,7 +511,15 @@ def html(blatt, tr, laenge, minuten_text):
         "</style></head><body>",
         f"<h1>{_e(tr('eb.titel', dokument=blatt.dokument))}</h1>",
         "<p class='klein'>"
-        + _e(tr("eb.kopf", maschine=blatt.maschine, datum=blatt.datum, version=blatt.version))
+        + _e(
+            tr(
+                "eb.kopf",
+                maschine=blatt.maschine,
+                werkstoff=blatt.werkstoff or "–",
+                datum=blatt.datum,
+                version=blatt.version,
+            )
+        )
         + "</p>",
         f"<h2>{_e(tr('eb.werkzeuge'))}</h2><table><tr>",
     ]
@@ -507,36 +547,39 @@ def html(blatt, tr, laenge, minuten_text):
     teile.append("</table>")
     for a in blatt.aufspannungen:
         teile.append(f"<h2>{_e(a.titel)}</h2><table>")
-        for titel, wert in ((tr("eb.rohteil"), a.rohteil), (tr("eb.spannung"), a.spannung),
-                            (tr("eb.nullpunkt"), a.nullpunkt)):  # fmt: skip
+        zeilen = [(tr("eb.rohteil"), a.rohteil), (tr("eb.spannung"), a.spannung),
+                  (tr("eb.nullpunkt"), a.nullpunkt)]  # fmt: skip
+        if a.register:
+            zeilen.append((tr("eb.register"), a.register))
+        for titel, wert in zeilen:
             teile.append(f"<tr><th style='width:22%'>{_e(titel)}</th><td>{_e(wert)}</td></tr>")
         teile.append("</table>")
         if a.bild:
             teile.append(f"<p><img src='{_e(a.bild)}' width='420'></p>")
         teile.append(f"<p><b>{_e(tr('eb.schritte'))}</b></p><table><tr>")
         spalten = [tr("eb.sp.nr"), tr("eb.sp.schritt"), tr("eb.sp.werkzeug"), tr("eb.sp.werte"),
-                   tr("eb.sp.zeit")]  # fmt: skip
+                   tr("eb.sp.kuehlung"), tr("eb.sp.zeit")]  # fmt: skip
         teile.extend(f"<th>{_e(spalte)}</th>" for spalte in spalten)
         teile.append("</tr>")
         lage = None
         for s in a.schritte:
             if s.lage and s.lage != lage:
-                teile.append(f"<tr><td class='lage' colspan='5'>{_e(s.lage)}</td></tr>")
+                teile.append(f"<tr><td class='lage' colspan='6'>{_e(s.lage)}</td></tr>")
                 if a.ebenen_bilder.get(s.lage):
                     teile.append(
-                        f"<tr><td colspan='5'><img src='{_e(a.ebenen_bilder[s.lage])}' "
+                        f"<tr><td colspan='6'><img src='{_e(a.ebenen_bilder[s.lage])}' "
                         "width='300'></td></tr>"
                     )
             lage = s.lage
             zeit = minuten_text(s.minuten) if s.minuten > 0 else "–"
             teile.append(
                 f"<tr><td>{s.nummer}</td><td>{_e(s.name)}</td><td>{_e(s.werkzeug)}</td>"
-                f"<td>{_e(s.werte)}</td><td>{_e(zeit)}</td></tr>"
+                f"<td>{_e(s.werte)}</td><td>{_e(s.kuehlung or '–')}</td><td>{_e(zeit)}</td></tr>"
             )
         gesamt = sum(s.minuten for s in a.schritte)
         if gesamt > 0:
             teile.append(
-                f"<tr><td colspan='4' style='text-align:right'>{_e(tr('eb.summe'))}</td>"
+                f"<tr><td colspan='5' style='text-align:right'>{_e(tr('eb.summe'))}</td>"
                 f"<td><b>{_e(minuten_text(gesamt))}</b></td></tr>"
             )
         teile.append("</table>")
