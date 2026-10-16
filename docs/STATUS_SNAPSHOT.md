@@ -458,6 +458,10 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
 
    Diese Bauarten müssen genauso mit den Wegen wachsen. Lagerbock ∩ Zapfen (Tisch/Tisch) und
    Gabel ∩ Zapfen (Kopf/Kopf) sind gewollt: Das sind die Lager.
+   *Erledigt:* P-2026-10-16-16. Tisch/Tisch, Kopf/Tisch (fahrender Ständer) und die Portalfräse
+   wachsen mit den Wegen; mit den Vorgabewegen sind alle 58 Körper gleich. Mit doppelten Wegen
+   gibt es keine Überschneidung mehr außer den Lagern. Die G550 bleibt bei den Herstellerwegen
+   (800/1.020/970).
 
 **Manuels C-Ring (2026-10-16, mit vier Bildern) – aufschreiben:**
 `~/freecad_cam/testteile/3_achs_c_ring_nut_testteil.FCStd`. Manuel hatte es als `fraesteil.FCStd`

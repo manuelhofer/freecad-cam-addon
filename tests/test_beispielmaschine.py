@@ -507,6 +507,45 @@ for x_ende, z_ende in ((-650.0, 0.0), (650.0, 600.0)):
         f"Kao Ming Z {z_ende}: Kopf {oben:.0f} über dem Ständer",
     )
 App.closeDocument(asm.Document.Name)
+# Ebenso die 5-Achs-Fräsen mit fahrendem Ständer und die Portalfräse – mit doppelt so langen
+# Wegen wie im Beispiel: An den Ecken der Wege (Drehachsen auf 0) steckt kein Körper in einem
+# anderen, außer den Zapfen in ihren Lagern.
+for art in (beispielmaschine.TISCH_TISCH, beispielmaschine.KOPF_TISCH, beispielmaschine.PORTAL_3):
+    if art == beispielmaschine.PORTAL_3:
+        masse = beispielmaschine.PortalMasse()
+    else:
+        masse = beispielmaschine.FuenfachsMasse.vorgabe(art)
+    masse.weg_x = (2 * masse.weg_x[0], 2 * masse.weg_x[1])
+    masse.weg_y = (2 * masse.weg_y[0], 2 * masse.weg_y[1])
+    masse.weg_z = (masse.weg_z[0], masse.weg_z[0] + 2 * (masse.weg_z[1] - masse.weg_z[0]))
+    asm, ma = beispielmaschine.lade(art, masse)
+    kette = kette_modul.lies_kette(asm)
+    fahrt = vf.Verfahren(asm, kette)
+    linear = {a.gelenk.Label: a for a in kette.achsen if a.gelenk.JointType == "Slider"}
+    koerper = [
+        o for o in asm.Document.Objects
+        if o.TypeId.startswith("Part::") and hasattr(o, "Shape") and o.Shape.Volume > 1
+    ]  # fmt: skip
+    for ecke in ((0, 1, 0), (1, 1, 1), (1, 0, 0)):
+        ziele = {
+            linear[n]: (linear[n].minimum, linear[n].maximum)[e]
+            for n, e in zip(("X", "Y", "Z"), ecke, strict=True)
+        }
+        fahrt.setze_alle(ziele)
+        asm.Document.recompute()
+        formen = {}
+        for o in koerper:
+            form = o.Shape.copy()
+            form.Placement = o.getGlobalPlacement()
+            formen[o.Name] = form
+        for i, a in enumerate(koerper):
+            for b in koerper[i + 1 :]:
+                if kette.glied_von(a) is kette.glied_von(b) or "Zapfen" in a.Label + b.Label:
+                    continue
+                fa, fb = formen[a.Name], formen[b.Name]
+                if fa.BoundBox.intersect(fb.BoundBox) and fa.common(fb).Volume > 1:
+                    pruefe(False, f"{art} {ecke}: {a.Label} in {b.Label}")
+    App.closeDocument(asm.Document.Name)
 asm, ma = beispielmaschine.fraesmaschine()
 tisch = asm.Document.getObjectsByLabel("Tischplatte")[0].Shape.BoundBox
 pruefe(

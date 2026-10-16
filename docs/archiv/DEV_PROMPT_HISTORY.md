@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-16 fuenfachs-und-portal-wachsen-mit
+
+### EINGELESEN
+- Rest von Manuels Kao-Ming-Meldung („fährt der tisch durch den ständer“): Mit doppelt so langen
+  Wegen fuhren bei Tisch/Tisch und Kopf/Tisch Kopfschlitten und Spindel in den Ständer, und der
+  Kopf hob sich vom Stößel. An der Portalfräse fuhr das Portal über das Bett hinaus.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`:
+  - `_fahrstaender_groessen`: Bett, Ständer (weiter hinten, höher), Stößel (länger) und
+    Kopfschlitten (höher) passend zu den Wegen; `_fahrstaender` baut damit.
+  - `_portal_groessen`: Bett, Tisch, Traverse und Wangen (höher, Schlitten und Spindel mit) und
+    die Z-Platte passend zu den Wegen.
+  - Die G550 bleibt bei den Herstellerwegen.
+- `tests/test_beispielmaschine.py`: Tisch/Tisch, Kopf/Tisch und Portal mit doppelten Wegen. An
+  drei Ecken steckt kein Körper in einem anderen (außer den Zapfen in ihren Lagern).
+- `package.xml` (0.260.14).
+
+### ERGEBNIS
+- Mit den Vorgabewegen sind alle 58 Körper der fünf Bauarten gleich wie vorher (verglichen mit
+  dem Stand davor).
+- Mit doppelten Wegen gibt es keine Überschneidungen mehr außer den Lagern (vorher Ständer mit
+  Kopfschlitten und Spindel).
+- Grün im Wochen-Build: `test_beispielmaschine`.
+
 ## P-2026-10-16-15 kontur-alle-schleifen
 
 ### EINGELESEN

@@ -675,6 +675,50 @@ def fraesmaschine(masse=None, spanneisen=True):
     return asm, ma
 
 
+@dataclass
+class _PortalGroessen:
+    """Bett, Tisch, Portal und Z-Platte der Portalfräse – passend zu den Wegen (mm)."""
+
+    bett_x0: float
+    bett_x1: float
+    bett_y0: float
+    bett_y1: float
+    tisch_x: float
+    tisch_y: float
+    traverse_y0: float
+    traverse_y1: float
+    wange_h: float
+    zplatte_h: float
+
+
+def _portal_groessen(masse):
+    """Die Größen zu den Wegen – mit den Vorgabewegen genau das Beispiel (Bett 1500 × 900, Tisch
+    1150 × 750). Der Tisch ist 50 mm länger und breiter als die Wege, die Spindel (x 650, y 450)
+    steht über seiner Mitte; das Portal fährt auf dem Bett (225 mm Rand vorn, 25 hinten, wie
+    gebaut); die Traverse trägt den Y-Schlitten an beiden Enden mit 30 mm Rand und reicht über den
+    Tisch; unter ihr bleiben über Z ganz oben 80 mm (Wangen höher, Schlitten und Spindel mit); die
+    Z-Platte ist 70 mm länger als der Weg Z."""
+    x_min, x_max = masse.weg_x
+    y_min, y_max = masse.weg_y
+    z_min, z_max = masse.weg_z
+    tisch_x = max(1150.0, x_max - x_min + 50.0)
+    tisch_y = max(750.0, y_max - y_min + 50.0)
+    traverse_y0 = min(0.0, 380.0 + y_min - 30.0, 450.0 - tisch_y / 2 - 75.0)
+    traverse_y1 = max(900.0, 520.0 + y_max + 30.0, 450.0 + tisch_y / 2 + 75.0)
+    return _PortalGroessen(
+        bett_x0=min(0.0, 775.0 + x_min - 225.0, 650.0 - tisch_x / 2 - 75.0),
+        bett_x1=max(1500.0, 925.0 + x_max + 25.0, 650.0 + tisch_x / 2 + 275.0),
+        bett_y0=traverse_y0,
+        bett_y1=traverse_y1,
+        tisch_x=tisch_x,
+        tisch_y=tisch_y,
+        traverse_y0=traverse_y0,
+        traverse_y1=traverse_y1,
+        wange_h=max(280.0, z_max + 105.0),
+        zplatte_h=max(220.0, z_max - z_min + 70.0),
+    )
+
+
 def portalfraese(masse=None):
     """Portalfräse (Router), Herbert im Forum (2026-10-11): „Was ich bei den Maschinensetups
     vermisse, ist ein Router“. Der Tisch steht fest auf dem Bett; das Portal fährt auf den
@@ -687,36 +731,60 @@ def portalfraese(masse=None):
     der Kollisionsprüfung längs einer Linie. `masse` (PortalMasse) ändert Wege, Drehzahl und
     Name. Gibt (Assembly, Maschine) zurück."""
     masse = masse or PortalMasse()
+    g = _portal_groessen(masse)
     b = _neu(PORTAL_3)
-    bett = b.quader("Bett", 1500, 900, 100, farbe=GUSS)
+    bett = b.quader(
+        "Bett",
+        g.bett_x1 - g.bett_x0,
+        g.bett_y1 - g.bett_y0,
+        100,
+        x=g.bett_x0,
+        y=g.bett_y0,
+        farbe=GUSS,
+    )
     b.fixieren(bett)
     tisch, spannplatz = b.bauteil(
         "Tisch",
-        b.quader("Tischplatte", 1150, 750, 25, x=75, y=75, z=100, farbe=TISCH),
+        b.quader(
+            "Tischplatte",
+            g.tisch_x,
+            g.tisch_y,
+            25,
+            x=650 - g.tisch_x / 2,
+            y=450 - g.tisch_y / 2,
+            z=100,
+            farbe=TISCH,
+        ),
         lcs_name="Spannplatz",
-        lcs_x=575,
-        lcs_y=375,
+        lcs_x=g.tisch_x / 2,
+        lcs_y=g.tisch_y / 2,
         lcs_hoehe=25,
     )
+    lang = g.traverse_y1 - g.traverse_y0
     portal, _ = b.bauteil(
         "Portal",
         [
-            b.quader("WangeVorn", 150, 60, 280, x=775, y=0, z=100, farbe=GUSS),
-            b.quader("WangeHinten", 150, 60, 280, x=775, y=840, z=100, farbe=GUSS),
-            b.quader("Traverse", 150, 900, 150, x=775, y=0, z=380, farbe=GUSS),
+            b.quader("WangeVorn", 150, 60, g.wange_h, x=775, y=g.traverse_y0, z=100, farbe=GUSS),
+            b.quader(
+                "WangeHinten", 150, 60, g.wange_h, x=775, y=g.traverse_y1 - 60, z=100, farbe=GUSS
+            ),
+            b.quader(
+                "Traverse", 150, lang, 150, x=775, y=g.traverse_y0, z=100 + g.wange_h, farbe=GUSS
+            ),
         ],
     )
-    y_schlitten = b.quader("YSchlitten", 40, 140, 200, x=735, y=380, z=330, farbe=SCHLITTEN)
+    dz = g.wange_h - 280.0  # so viel höher als im Beispiel: Y- und Z-Schlitten, Spindel
+    y_schlitten = b.quader("YSchlitten", 40, 140, 200, x=735, y=380, z=330 + dz, farbe=SCHLITTEN)
     z_schlitten, _ = b.bauteil(
         "ZSchlitten",
         [
-            b.quader("ZPlatte", 40, 100, 220, x=695, y=400, z=300, farbe=KOPF),
-            b.quader("Spindelhalter", 85, 80, 60, x=610, y=410, z=500, farbe=KOPF),
+            b.quader("ZPlatte", 40, 100, g.zplatte_h, x=695, y=400, z=300 + dz, farbe=KOPF),
+            b.quader("Spindelhalter", 85, 80, 60, x=610, y=410, z=500 + dz, farbe=KOPF),
         ],
     )
     spindel, spindelnase = b.bauteil(
         "Spindel",
-        b.zylinder("Spindelkoerper", 40, 200, x=650, y=450, z=300, farbe=SPINDEL),
+        b.zylinder("Spindelkoerper", 40, 200, x=650, y=450, z=300 + dz, farbe=SPINDEL),
         lcs_name="Spindelnase",
     )
 
@@ -763,14 +831,58 @@ def portalfraese(masse=None):
     return asm, ma
 
 
-def _fahrstaender(b, bett):
+@dataclass
+class _FahrstaenderGroessen:
+    """Bett, Ständer, Stößel und Kopfschlitten der 5-Achs-Fräsen mit fahrendem Ständer – passend
+    zu den Wegen (mm)."""
+
+    bett_x0: float
+    bett_x: float
+    bett_y: float
+    staender_y: float
+    hoeher: float  # so viel höher stehen Ständer und Stößel als im Beispiel
+    stoessel_y: float
+    kopf_h: float
+
+
+def _fahrstaender_groessen(masse, nase_gebaut=300.0):
+    """Die Größen zu den Wegen – mit den Wegen der Beispiele (Tisch/Tisch, Kopf/Tisch) genau die
+    alten Maße; mit größeren wachsen sie wie an der 3-Achs-Fräse (Manuel, 2026-10-16: „fährt der
+    tisch durch den ständer“). +Y fährt den Kopf zum Ständer: Der steht 20 mm hinter dem Kopf bei Y
+    ganz hinten; der Stößel liegt bei Y ganz vorn noch 100 mm auf ihm. Z: Der Kopfschlitten bleibt
+    bei Z ganz oben 50 mm unter der Oberkante des Stößels (sonst stehen Ständer und Stößel höher),
+    bei Z ganz unten reicht er bis 20 mm unter dessen Unterkante – so war das Beispiel gebaut. Der
+    Ständer fährt auf dem Bett, 120 mm Rand an beiden Enden. `nase_gebaut`: Z, auf dem der Kopf
+    gebaut steht."""
+    x_min, x_max = masse.weg_x
+    y_min, y_max = masse.weg_y
+    d_min, d_max = masse.weg_z[0] - nase_gebaut, masse.weg_z[1] - nase_gebaut
+    staender_y = max(760.0, 380.0 + y_max + 20.0)
+    hoeher = max(0.0, 1000.0 + d_max + 50.0 - 1520.0)
+    bett_x0 = min(0.0, 440.0 + x_min - 120.0)
+    return _FahrstaenderGroessen(
+        bett_x0=bett_x0,
+        bett_x=max(1300.0, 860.0 + x_max + 120.0) - bett_x0,
+        bett_y=max(1200.0, staender_y + 420.0 + 20.0),
+        staender_y=staender_y,
+        hoeher=hoeher,
+        stoessel_y=max(700.0, staender_y + 100.0 - y_min - 380.0),
+        kopf_h=max(560.0, 1300.0 + hoeher - d_min - 20.0 - 1000.0),
+    )
+
+
+def _fahrstaender(b, bett, g):
     """Fahrender Ständer (X) mit Stößel (Y) und Kopfschlitten (Z): Alle drei
-    Linearachsen sitzen im Kopf, der Tisch bleibt für die Drehachsen frei.
-    Gibt (Kopfschlitten, X, Y, Z) zurück; die Wege begrenzt die Maschine
-    (_fuenfachs_wege)."""
-    staender = b.quader("Staender", 420, 420, 1050, x=440, y=760, z=250, farbe=GUSS)
-    stoessel = b.quader("Stoessel", 300, 700, 220, x=500, y=380, z=1300, farbe=SCHLITTEN)
-    kopf = b.quader("Kopfschlitten", 260, 200, 560, x=520, y=180, z=1000, farbe=KOPF)
+    Linearachsen sitzen im Kopf, der Tisch bleibt für die Drehachsen frei. `g`:
+    _FahrstaenderGroessen. Gibt (Kopfschlitten, X, Y, Z) zurück; die Wege begrenzt
+    die Maschine (_fuenfachs_wege)."""
+    staender = b.quader(
+        "Staender", 420, 420, 1050 + g.hoeher, x=440, y=g.staender_y, z=250, farbe=GUSS
+    )
+    stoessel = b.quader(
+        "Stoessel", 300, g.stoessel_y, 220, x=500, y=380, z=1300 + g.hoeher, farbe=SCHLITTEN
+    )
+    kopf = b.quader("Kopfschlitten", 260, 200, g.kopf_h, x=520, y=180, z=1000, farbe=KOPF)
     x = b.gelenk_wie_gebaut("X", "Slider", bett, "Face6", staender, "Face5", richtung=(1, 0, 0))
     y = b.gelenk_wie_gebaut("Y", "Slider", staender, "Face6", stoessel, "Face5", richtung=(0, 1, 0))
     z = b.gelenk_wie_gebaut("Z", "Slider", stoessel, "Face3", kopf, "Face4", richtung=(0, 0, 1))
@@ -970,9 +1082,10 @@ def fuenfachs_tisch_tisch(masse=None):
     Name. Gibt (Assembly, Maschine) zurück."""
     masse = masse or FuenfachsMasse.vorgabe(TISCH_TISCH)
     b = _neu(TISCH_TISCH)
-    bett = b.quader("Bett", 1300, 1200, 250, farbe=GUSS)
+    g = _fahrstaender_groessen(masse)
+    bett = b.quader("Bett", g.bett_x, g.bett_y, 250, x=g.bett_x0, farbe=GUSS)
     b.fixieren(bett)
-    kopf, x, y, z = _fahrstaender(b, bett)
+    kopf, x, y, z = _fahrstaender(b, bett, g)
     spindel, spindelnase = b.bauteil(
         "Spindel",
         b.zylinder("Spindelkoerper", 55, 160, x=650, y=280, z=840, farbe=SPINDEL),
@@ -1040,9 +1153,10 @@ def fuenfachs_kopf_tisch(masse=None):
     fuenfachs_tisch_tisch. Gibt (Assembly, Maschine) zurück."""
     masse = masse or FuenfachsMasse.vorgabe(KOPF_TISCH)
     b = _neu(KOPF_TISCH)
-    bett = b.quader("Bett", 1300, 1200, 250, farbe=GUSS)
+    g = _fahrstaender_groessen(masse)
+    bett = b.quader("Bett", g.bett_x, g.bett_y, 250, x=g.bett_x0, farbe=GUSS)
     b.fixieren(bett)
-    kopf, x, y, z = _fahrstaender(b, bett)
+    kopf, x, y, z = _fahrstaender(b, bett, g)
     schwenkkopf = b.quader("Schwenkkopf", 200, 180, 300, x=550, y=0, z=950, farbe=KOPF)
     spindel, spindelnase = b.bauteil(
         "Spindel",
