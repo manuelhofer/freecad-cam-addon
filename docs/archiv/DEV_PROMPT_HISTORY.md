@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-31 satz-drehmaschine
+
+### EINGELESEN
+- Manuel, 2026-10-12, am Ring-Teil: „ich wollte das teil eigentlich normal fräsen … aber da es
+  rund ist .. sagt mir der assistent .. hey das wird auf der 4 achs maschine bearbeitet .. hab ich
+  zwar nicht verstanden“.
+- Nachgesehen: Zum 4-Achs-Assistenten schickt „Bearbeitung“ nur bei einer Drehmaschine; sonst
+  geht das runde Teil seit W-021 als Zylinder auf der Fräse.
+
+### DATEIEN
+- `translations/de.json`, `en.json`, `ba.maschine.drehmaschine`: „Auf der Drehmaschine ist das
+  Rohteil eine Stange im Futter – gefräst wird dort im 4-Achs-Assistenten … Willst du das Teil
+  von oben fräsen, als Quader oder Zylinder auf dem Tisch, wähl oben eine Fräse – „Maschinen …“
+  nimmt eine auf, „Neue Maschine“ baut eine.“
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_bearbeitung_drehmaschine`, `test_sprache`.
+- Zum Ausprobieren: „Bearbeitung“ mit der CLX550 gewählt. Unter der Maschine steht der neue Satz,
+  darunter der Knopf „Weiter im 4-Achs-Assistenten →“.
+
 ## P-2026-10-16-30 vorschlag-an-der-aufnahme (W-022)
 
 ### EINGELESEN

@@ -369,6 +369,11 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
 (nach den Werkzeugwegen, Manuel: „aufschreiben, erstmal weitermachen“):
 - Der Assistent: Eine flache runde Scheibe (dünn längs, die Flächen stirnseitig) ist kein Teil für
   „Rundum“ – 3-Achs von vorn vorschlagen (oder beide, mit dem Grund in einem Satz).
+  *Teilweise erledigt:* Zum 4-Achs-Assistenten schickt „Bearbeitung“ nur, wenn die gewählte
+  Maschine eine Drehmaschine ist (Manuel hatte damals nur die CLX550). Ein rundes Teil geht auf
+  der Fräse als „Zylinder mit Aufmaß“ im Dreibackenfutter (W-021). Der Satz an der Drehmaschine
+  nennt jetzt beide Wege (P-2026-10-16-31). Offen: Fräsen an der Stirnseite der Drehmaschine
+  (W-016).
 - Die Bahn nachstellen: wo sie durch Luft fährt (hinter dem dünnen Teil die ganze Stange bis zum
   Futter?) und wo sie ins Teil geht (Bilder: Bahnen quer durch die Mitte, durch die Schlitze zur
   Bohrung; das Werkzeug steht im Teil) – mit „Bahn prüfen“ am Teil messen, dann beheben.
