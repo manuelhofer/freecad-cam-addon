@@ -501,8 +501,10 @@ T1 Ø 12.
    schon so aussieht, und die Bögen in der Bohrung mit seinem Bild vergleichen.
 4. **„Anlegen“ schon in Schritt 1** (Bild: „Schritt 1 von 3 – Aufspannung“, oben „Anlegen“
    klickbar): „das anlegen sollte erst frei sein wenn alle angaben gemacht worden sind“.
-   *Erledigt im Assistenten „Bearbeitung“:* P-2026-10-16-09. Die anderen Assistenten stehen
-   noch aus. Das
+   *Erledigt im Assistenten „Bearbeitung“:* P-2026-10-16-09. *Nachgesehen (2026-10-16):* Der
+   4-Achs-Assistent heißt in Schritt 1 schon „Weiter“ (zwei Schritte, `gui_vierachs`), „Ebene
+   schwenken“ (3+2) hat nur einen Schritt und gibt OK erst mit einer gültigen Richtung frei, ein
+   eigener Dreh-Assistent existiert nicht – dort ist nichts zu tun. Das
    Prüfen-Fenster des Assistenten „Bearbeitung“ bietet „Anlegen“ in jedem Schritt an. Künftig erst
    ab Schritt 3 (Flächen gewählt, Strategie angehakt), vorher grau. Der Hinweis sagt, was noch
    fehlt („Erst die Flächen wählen – Schritt 2“), so wie „Nächster Schritt als Knopf“ es verlangt:
@@ -589,8 +591,13 @@ T1 Ø 12.
 
    - Nut (Vollnut): Helix statt Zickzack, wo Platz ist (P-2026-10-16-21).
 
-   Noch nicht gezählt: Plan indexiert, Rundum schruppen, `schlicht_anlauf`. Die Nut auf dem
-   Mantel (4 Achsen, `vierachs_planbahn`, Rundachse dreht) fährt noch ihre eigene Rampe.
+   - Rundum schruppen und Rundum schlichten an der Nase (Beispiel, neu gerechnet 2026-10-16):
+     3 bzw. 1 Einfahrt nach einem Eilgang, keine mit Kehre; die beiden langen Abwärtsläufe mit
+     Richtungswechsel sind das Abfahren der Nasenspitze, keine Einfahrt.
+
+   Noch nicht gezählt: Plan indexiert (bei P-2026-10-12-161: 4 Rampen von 37, wo die Nase davor
+   steht), `schlicht_anlauf`. Die Nut auf dem Mantel (4 Achsen, `vierachs_planbahn`, Rundachse
+   dreht) fährt noch ihre eigene Rampe.
 2. **Das Update lädt zu viel**: „die fotos sind ja nicht im main mit dabei .. heist wenn ich addon
    update drücke .. dauert das mitlerweile ganzschön lang … bilder fürs forum usw muss da nicht
    dabei sein“. Nachgesehen: Manuels Addon kam als ZIP von GitHub (`…/archive/main.zip`, kein
