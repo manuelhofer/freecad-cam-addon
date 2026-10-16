@@ -229,3 +229,24 @@ def schritte(h):
             "30° gekippt um X" in zweite.spannung and zweite.schritte,
             f"zweite Aufspannung: {zweite.spannung!r}, {len(zweite.schritte)} Schritte",
         )
+    # Das Fenster „Einrichtblatt …“: die gekippte Aufspannung mit Satz und Bild.
+    from camaddon import gui_einrichtblatt
+
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(grundjob)
+    yield 300
+    Gui.runCommand("CamAddon_Einrichtblatt")
+    yield from h.warte_auf(lambda: gui_einrichtblatt.EinrichtblattDialog.offen is not None, 30000)
+    dialog = gui_einrichtblatt.EinrichtblattDialog.offen
+    h.pruefe(dialog is not None, "„Einrichtblatt …“ öffnet kein Fenster")
+    if dialog is not None:
+        yield from h.warte_auf(lambda: dialog.bilder_fertig, 60000)
+        text = dialog.vorschau.toPlainText()
+        h.pruefe("Aufspannung 2" in text and "30° gekippt um X" in text, f"Blatt: {text[:600]!r}")
+        zweite = dialog.blatt.aufspannungen[-1]
+        h.pruefe(bool(zweite.bild) and os.path.exists(zweite.bild), "kein Bild der Aufspannung 2")
+        h.bild("7_einrichtblatt", dialog)
+        dialog.als_pdf(os.path.join(os.environ["CAMADDON_AUSGABE"], "einrichtblatt.pdf"))
+        yield 500
+        dialog.reject()
+        yield 500

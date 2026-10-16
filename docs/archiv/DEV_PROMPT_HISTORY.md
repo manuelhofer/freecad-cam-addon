@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-70 einrichtblatt-gekippt-nullpunkt
+
+### EINGELESEN
+- Das Fenster „Einrichtblatt …“ für das Schwenkteil mit gekippter Aufspannung angesehen (als PDF):
+  Aufspannung 2 nennt „das Teil 30° gekippt um X, Face27 nach oben (Winkelstück, Sinus- oder
+  Schwenkschraubstock)“ und zeigt das gekippte Teil mit der Bahn – der Nullpunkt-Satz beschrieb
+  aber den Nullpunkt am Rohteil der ersten Aufspannung.
+
+### DATEIEN
+- `camaddon/einrichtblatt.py`: `nullpunkt_text` nimmt bei einer von Hand umgespannten Aufspannung
+  ihr eigenes (gedrehtes) Rohteil.
+- `tests/gui/szenario_schraeg_anlegen.py`: das Einrichtblatt des Grundjobs – zwei Aufspannungen,
+  die zweite gekippt mit Schritten; das Fenster „Einrichtblatt …“ mit Satz und Bild der zweiten,
+  dazu `einrichtblatt.pdf` im Ausgabeordner.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_schraeg_anlegen`, `szenario_einrichtblatt`, `test_einrichtblatt`.
+
 ## P-2026-10-16-69 umgespannt-zeigen-wie-es-liegt
 
 ### EINGELESEN

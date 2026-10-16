@@ -456,7 +456,10 @@ def nullpunkt_text(job, tr):
 
     if n_eck.ist_n_eck(job):
         return n_eck.einrichten_text(job)
-    rohteil = getattr(grundjob(job), "Stock", None)
+    from . import schwenken as sw
+
+    # Gekippt gespannt: Das Rohteil liegt in dieser Aufspannung anders – ihr eigenes (gedreht).
+    rohteil = getattr(job if sw.ist_umspannen(job) else grundjob(job), "Stock", None)
     if vr.spannlaenge(job) > 0 and hasattr(rohteil, "Radius"):
         return tr("eb.nullpunkt.stange")
     form = getattr(rohteil, "Shape", None)
