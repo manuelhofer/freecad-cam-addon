@@ -1546,7 +1546,9 @@ def _einfahrt(punkte, a, q, lage, phi, oben, offen, w, sicher, r_fahrt=None, fel
     wechsel = np.flatnonzero(np.abs(q - q0) > vb.GLEICH)  # wo die Fahrt quer rückt
     erste = int(wechsel[0]) - 1 if len(wechsel) else len(a) - 1  # das Ende der ersten Zeile
     laenge = abs(float(a[erste]) - a0)
-    if offen or laenge < vb.RAMPE_MINDESTENS or lage >= oben - vb.GLEICH:
+    # Steht über dem Anfang kaum etwas (auf der schrägen Fläche liegt der Anfang der Fahrt bis auf
+    # 0,02 mm unter der Lage davor), senkrecht hinein – eine Rampe dafür fuhr hin und her.
+    if offen or laenge < vb.RAMPE_MINDESTENS or lage >= oben - FLACH_HINEIN:
         if knapp < sicher:
             punkte.append(vb.Punkt(True, a0, knapp, phi, q=q0))
         punkte.append(vb.Punkt(False, a0, lage, phi, True, q0))
@@ -1568,6 +1570,8 @@ def _einfahrt(punkte, a, q, lage, phi, oben, offen, w, sicher, r_fahrt=None, fel
     for stelle_a, stelle_r, _phi in vb._rampe(a, r, winkel, 0, erste, oben, w):
         punkte.append(vb.Punkt(False, stelle_a, stelle_r, phi, q=q0))
 
+
+FLACH_HINEIN = 0.1  # mm – so wenig über dem Anfang: senkrecht hinein, ohne Rampe und Helix
 
 # Der Radius der Helix, als Anteil am Fräserradius: zuerst der große, wo der keinen Platz hat
 # der kleine (unter dem Fräser bleibt so oder so kein Zapfen stehen).

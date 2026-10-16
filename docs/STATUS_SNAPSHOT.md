@@ -16,14 +16,14 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis -66, 0.260.45 → 0.260.62):**
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis -68, 0.260.45 → 0.260.64):**
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
   - Jedes Szenario schreibt `kehren.txt` (P-52, mit Ort und Programm, wo eine Kehre ist).
-  - 4-Achs „Plan indexiert“ fährt über eine Helix hinein, 30 → 9 Kehren (P-53). Übrig sind Nuten,
-    die so breit sind wie der Fräser (wie die Vollnut in 3 Achsen), die schräge Fläche und eine
-    Ecke neben einem Stift.
+  - 4-Achs „Plan indexiert“ fährt über eine Helix hinein, 30 → 9 Kehren (P-53), an der schrägen
+    Fläche senkrecht, wo kaum etwas darüber steht (→ 7, P-68). Übrig sind Nuten, die so breit
+    sind wie der Fräser (wie die Vollnut in 3 Achsen), und eine Ecke neben einem Stift.
   - Im vollen Szenario-Lauf übrig:
     - Testteil, Kontur T1: in der dreieckigen Tasche passt Ø 12 gerade so; die Mittelbahn ist ein
       Dreieck von 1 mm Umfang, dort wendelt er eng hinab – kein Hin und Her.

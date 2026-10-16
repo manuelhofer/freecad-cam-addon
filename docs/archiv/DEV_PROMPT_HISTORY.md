@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-68 vierachs-plan-flach-hinein
+
+### EINGELESEN
+- Zickzack-Durchsicht, 4-Achs „Plan indexiert“ an der schrägen Fläche (10°, `test_vierachs_plan`):
+  zwei Kehren. Nachgesehen: Die Fahrten der tieferen Lagen beginnen dort, wo die Fläche über die
+  Lage steigt – nur 0,02 mm unter der Lage davor. Für die 0,02 mm fuhr die Rampe hin und her.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `FLACH_HINEIN = 0,1 mm` – steht über dem Anfang der Fahrt nicht
+  mehr, senkrecht hinein (wie bisher, wenn gar nichts darüber stand).
+
+### ERGEBNIS
+- Kehren beim 4-Achs-Planen an den Prüfbahnen 9 → 7; übrig die Nuten, die so breit sind wie der
+  Fräser (Passfedernut, Mantelnuten), und der Anfang in der Ecke neben dem Stift.
+- Grün im Wochen-Build: `test_vierachs_plan`, `szenario_vierachs_plan`,
+  `szenario_vierachs_drehteil`, `szenario_vierachs_sechskant`, `szenario_plan_gleichlauf`.
+
 ## P-2026-10-16-67 kein-ausflug-im-freivorschub
 
 ### EINGELESEN
