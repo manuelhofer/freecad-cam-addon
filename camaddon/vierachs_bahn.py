@@ -1323,6 +1323,129 @@ def _einfahrt(punkte, a, r, phi, oben, offen, w):
         punkte.append(Punkt(False, a0, r0, p0, True))
 
 
+# Die Helix der Einfahrt im Bereich (wie vierachs_planbahn, Manuel 2026-10-16: „das auch
+# wirklich alle zickzack fahrten weg sind“): ihr Radius als Anteil am Fräserradius – zuerst der
+# große, wo der keinen Platz hat der kleine –, Punkte je Umlauf, Mitten auf einem Kreis um den
+# Anfang der Fahrt und weiter längs (in Radien der Helix).
+HELIX_ANTEILE = (0.45, 0.25)
+HELIX_PUNKTE = 24
+HELIX_RICHTUNGEN = 16
+HELIX_WEITER = (1.0, 1.5, 2.0, 3.0, 4.0, 6.0)
+
+
+def _helix_drehen(w):
+    """+1, wenn die Helix mit wachsendem Winkel in (a, s = r · φ) so läuft, wie `w` es will
+    (Gleichlauf mit M3, spindel.fuer_m3), sonst −1. Im Rahmen (radial, φ, längs) wie
+    _schruppen_zeilen: beim Winkel 0 fährt sie längs φ, das Material liegt außen, längs a."""
+    steigend = sp.ist_gleichlauf((-1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
+    return 1.0 if steigend == bool(w.gleichlauf) else -1.0
+
+
+def _helix_frei(pa, pphi, r0, oben, w, feld):
+    """Darf die Helix durch die Punkte (a, φ in Grad)? Alle im Bereich, nirgends verlangt das
+    Teil die Spitze höher als `r0` (boden_bei), und in den Zeilen daneben steht nach der Lage
+    davor nichts über `oben`. `feld`: (a der Zeilen, was nach der Lage davor je Zeile und
+    Winkelschritt steht, boden_bei, Winkelschritte, Schritt in Grad)."""
+    zeilen_a, davor, boden_bei, n, schritt_phi = feld
+    pa = np.asarray(pa, dtype=float)
+    pphi = np.asarray(pphi, dtype=float)
+    if not w.bereich.bei(pa, np.radians(pphi)).all():
+        return False
+    j = np.floor(pphi / schritt_phi + 0.5 + 1e-6).astype(np.int64) % n
+    if np.any(boden_bei(pa, j) > r0 + BAHN_TOLERANZ):
+        return False  # (die Hüllfläche schwankt zwischen den Zeilen um Bruchteile eines µm)
+    reihe = np.argsort(zeilen_a)
+    za = np.asarray(zeilen_a, dtype=float)[reihe]
+    if np.any(pa < za[0] - GLEICH) or np.any(pa > za[-1] + GLEICH):
+        return False
+    rechts = np.clip(np.searchsorted(za, pa - GLEICH), 0, len(za) - 1)
+    links = np.clip(rechts - 1, 0, len(za) - 1)
+    hoch = np.maximum(davor[reihe[links], j], davor[reihe[rechts], j])
+    return not np.any(hoch > oben + GLEICH)
+
+
+def _helix_einfahrt(punkte, a, r, phi, oben, w, feld):
+    """Über eine Helix hinein statt über die Rampe längs der Fahrt (hin und wieder zurück, in
+    einer kurzen Zeile hin und her): ein Kreis neben dem Anfang der Fahrt, ganz im Bereich, wo
+    der Fräser in dieser Tiefe nichts vom Teil trifft und nichts über `oben` steht (_helix_frei)
+    – im Eilgang darüber, bis knapp über `oben`, mit dem Eintauchwinkel hinab, unten einmal
+    rundum, dann zum Anfang. False, wo keiner Platz hat oder keine Rampe nötig ist (dann
+    _einfahrt)."""
+    a0, r0, p0 = float(a[0]), float(r[0]), float(phi[0])
+    if getattr(w, "eintauchwinkel", None) is None or w.bereich is None or len(a) < 2:
+        return False
+    if r0 >= oben - GLEICH or r0 <= GLEICH:
+        return False
+    steil = math.tan(math.radians(w.eintauchwinkel if w.eintauchwinkel > 0 else EINTAUCHWINKEL))
+    rein = math.atan2(r0 * math.radians(float(phi[1]) - p0), float(a[1]) - a0)
+    winkel = np.linspace(0.0, 2 * math.pi, HELIX_PUNKTE, endpoint=False)
+    innen = winkel[::3]
+    richtungen = sorted(
+        np.linspace(0.0, 2 * math.pi, HELIX_RICHTUNGEN, endpoint=False),
+        key=lambda t: abs(math.remainder(t - rein, 2 * math.pi)),
+    )
+    laengs, quer = (math.cos(rein), math.sin(rein)), (-math.sin(rein), math.cos(rein))
+    for anteil in HELIX_ANTEILE:
+        rh = anteil * float(w.fraeser_radius)
+        if rh <= GLEICH:
+            continue
+        # Mitten in (a, s) – s in mm auf dem Umfang bei r0, vom Anfang aus.
+        kandidaten = [(a0 + rh * math.cos(t), rh * math.sin(t)) for t in richtungen]
+        weiter = [
+            (a0 + (laengs[0] * k + quer[0] * d) * rh, (laengs[1] * k + quer[1] * d) * rh)
+            for k in HELIX_WEITER
+            for d in (0.0, 1.0, -1.0, 2.0, -2.0)
+        ]
+        kandidaten += sorted(weiter, key=lambda m: math.hypot(m[0] - a0, m[1]))
+        for ma, ms in kandidaten:
+            abstand = math.hypot(a0 - ma, ms)
+            weg = np.linspace(0.0, max(abstand - rh, 0.0) / max(abstand, GLEICH), 6)
+            pa = np.concatenate(
+                (
+                    ma + rh * np.cos(winkel),
+                    ma + 0.5 * rh * np.cos(innen),
+                    [ma],
+                    a0 + (ma - a0) * weg,
+                )
+            )
+            ps = np.concatenate(
+                (ms + rh * np.sin(winkel), ms + 0.5 * rh * np.sin(innen), [ms], ms * weg)
+            )
+            if _helix_frei(pa, p0 + np.degrees(ps / r0), r0, oben, w, feld):
+                _helix(punkte, (ma, ms), rh, (a0, r0, p0), oben, steil, w)
+                return True
+    return False
+
+
+def _helix(punkte, mitte, rh, anfang, oben, steil, w):
+    """Die Helix um `mitte` (a, s) mit Radius `rh`: so begonnen, dass sie nach dem Hinab dort
+    ist, wo der Kreis dem Anfang (a, r, φ) am nächsten liegt, dann einmal rundum und zum
+    Anfang."""
+    a0, r0, p0 = anfang
+    drehen = _helix_drehen(w)
+    schritt = 2 * math.pi / HELIX_PUNKTE
+    bogen = rh * schritt
+    zum_anfang = math.atan2(-mitte[1], a0 - mitte[0])
+
+    def auf_dem_kreis(winkel):
+        s = mitte[1] + rh * math.sin(zum_anfang + winkel)
+        return mitte[0] + rh * math.cos(zum_anfang + winkel), p0 + math.degrees(s / r0)
+
+    hinab = max(1, math.ceil((oben - r0) / (steil * bogen) - 1e-9))
+    beginn = -(hinab % HELIX_PUNKTE)
+    sicher = w.stange_radius + w.sicherheit
+    knapp = min(sicher, oben + w.sicherheit)
+    a_k, phi_k = auf_dem_kreis(drehen * beginn * schritt)
+    _eilgang(punkte, a_k, sicher, phi_k)
+    if knapp < sicher:
+        punkte.append(Punkt(True, a_k, knapp, phi_k))
+    punkte.append(Punkt(False, a_k, oben, phi_k, True))  # bis ans Material
+    for k in range(1, hinab + HELIX_PUNKTE + 1):
+        a_k, phi_k = auf_dem_kreis(drehen * (beginn + k) * schritt)
+        punkte.append(Punkt(False, a_k, max(r0, oben - steil * bogen * k), phi_k))
+    punkte.append(Punkt(False, a0, r0, p0))
+
+
 def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi, vorn=None):
     """Die Lagen, wenn nur im Bereich gefräst wird (V4): Zeilen hin und her (_fahrten), jede Lage
     auf denselben Stellen – so steht über jeder höchstens die Tiefe der Lage davor. `boden`:
@@ -1370,7 +1493,9 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi,
                     j, m = np.concatenate([j[:1], j]), np.concatenate([[-1], m])
                     offen, oben = True, float(r[0])
             phi = _winkel(j, schritt_phi, punkte[-1].phi)
-            _einfahrt(punkte, a, r, phi, oben, offen, w)
+            feld = (zeilen_a, davor, boden_bei, n, schritt_phi)
+            if offen or not _helix_einfahrt(punkte, a, r, phi, oben, w, feld):
+                _einfahrt(punkte, a, r, phi, oben, offen, w)
             # Zusammengefasst mit dem Spiel wie die Spirale rundum; fest bleibt, wo a knickt
             # (ein Ring beginnt oder endet) und wo die Rundachse umkehrt (phi, hin und her).
             fest = (

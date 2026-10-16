@@ -524,6 +524,48 @@ rest_ecke = float((ecke - ebene).max())
 pruefe(rest_ecke < 1.3, f"in den Ecken der Abflachung bleiben {rest_ecke:.3f} mm")
 gegenueber = stange.r[:, np.abs(winkel) >= 120]
 pruefe(float(gegenueber.min()) == 12.0, f"gegenüber abgetragen: bis {float(gegenueber.min())}")
+
+
+def helix_im_gleichlauf(bahn):
+    """Je Helix der Einfahrt (hinab, dann einmal rundum auf einem Kreis): fräst sie mit M3 im
+    Gleichlauf? Gerechnet in 3D am Teil (C_LAENGS, C_RADIAL) – unabhängig von der Bahn."""
+    l_, u_ = np.array(C_LAENGS, dtype=float), np.array(C_RADIAL, dtype=float)
+    v_ = np.cross(l_, u_)
+
+    def ort(p):
+        f = math.radians(p.phi)
+        return l_ * p.a + (u_ * math.cos(f) + v_ * math.sin(f)) * p.r
+
+    ergebnis = []
+    for i, p in enumerate(bahn.punkte):
+        if p.eilgang or not p.eintauchen:
+            continue
+        folge = []
+        for q in bahn.punkte[i + 1 :]:
+            if q.eilgang:
+                break
+            folge.append(q)
+        unten = next((k for k in range(1, len(folge)) if folge[k].r >= folge[k - 1].r - 1e-9), None)
+        if unten is None or len(folge) < unten - 1 + vb.HELIX_PUNKTE:
+            continue
+        orte = [ort(q) for q in folge[unten - 1 : unten - 1 + vb.HELIX_PUNKTE]]
+        mitte = sum(orte) / len(orte)
+        abstaende = [np.linalg.norm(o - mitte) for o in orte]
+        if np.std(abstaende) > 0.05 * np.mean(abstaende):
+            continue  # kein Kreis: eine Rampe
+        stimmen = 0
+        for o0, o1 in zip(orte, orte[1:], strict=False):
+            radial = o0 - l_ * np.dot(o0, l_)
+            stimmen += 1 if sp.ist_gleichlauf(-radial, o1 - o0, o0 - mitte) else -1
+        ergebnis.append(stimmen > 0)
+    return ergebnis
+
+
+# Hinein über eine Helix neben dem Anfang statt über die Rampe hin und her (Manuel, 2026-10-16:
+# „das auch wirklich alle zickzack fahrten weg sind“) – mit M3 im Gleichlauf.
+pruefe(vb.kehren(flach_bahn.punkte)[0] == 0, f"Kehren: {vb.kehren(flach_bahn.punkte)}")
+helices = helix_im_gleichlauf(flach_bahn)
+pruefe(helices and all(helices), f"Helix im Gleichlauf: {helices}")
 # Nur im Gleichlauf (P-2026-10-02-26): jede Zeile für sich, mit M3 φ steigend (die Zeilen rücken
 # zum Futter, dort ist das Material), dazwischen abheben; M4 andersherum. Über der Abflachung
 # bleibt nicht mehr stehen als hin und her.
@@ -535,7 +577,7 @@ for gleichlauf, name in ((True, "M3"), (False, "M4")):
         replace(werte_flach, nur_gleichlauf=True, gleichlauf=gleichlauf),
     )
     # Je Fahrt (zwischen zwei Eilgängen) vom Anfang zum Ende: der Winkel in einer Richtung (die
-    # Rampe der ersten Zeile einer Lage fährt hin und her, am Ende steht sie wieder am Anfang).
+    # Helix der ersten Zeile einer Lage endet dort, wo die Zeile beginnt).
     fahrten_e, jetzt = [], []
     for p in einzeln.punkte:
         if p.eilgang:
@@ -551,6 +593,11 @@ for gleichlauf, name in ((True, "M3"), (False, "M4")):
         f"{[round(f[-1].phi - f[0].phi, 1) for f in fahrten_e]}",
     )
     pruefe(einzeln.lagen == flach_bahn.lagen, f"{name}: {einzeln.lagen} Lagen")
+    pruefe(vb.kehren(einzeln.punkte)[0] == 0, f"{name}: Kehren {vb.kehren(einzeln.punkte)}")
+    helices = helix_im_gleichlauf(einzeln)
+    pruefe(
+        helices and all(h == gleichlauf for h in helices), f"{name}: Helix im Gleichlauf {helices}"
+    )
 print(
     ascii(
         f"Abflachung: {flach_bahn.lagen} Lagen, {rampen} Rampen, {senkrechte} senkrecht, "

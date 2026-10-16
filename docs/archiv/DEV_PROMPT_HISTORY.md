@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-04 vierachs-schruppen-helix
+
+### EINGELESEN
+- Zickzack-Durchsicht (Manuel, 2026-10-16: „das auch wirklich alle zickzack fahrten weg sind“),
+  was übrig war: Das Schruppen 4 Achsen mit gewählten Flächen (Zeilen im Bereich) fuhr in die erste
+  Zeile einer Lage über die Rampe längs der Fahrt, hin und zurück; mit „nur Gleichlauf“ ist jede
+  Zeile eine Fahrt für sich, die Zeile über der Abflachung nur 13 mm lang – die Rampe lief darin
+  hin und her (`test_vierachs_bahn`: 1 Kehre).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `_helix_einfahrt` – wie im Planfräsen 4 Achsen (P-2026-10-16-53) ein
+  Kreis neben dem Anfang der Fahrt (Radius 0,45 R, sonst 0,25 R; Mitten rundum und weiter längs
+  der Fahrt), ganz im Bereich, wo die Spitze in dieser Tiefe nichts vom Teil trifft und in den
+  Zeilen daneben nichts über der Lage davor steht (`_helix_frei`); im Eilgang darüber, mit dem
+  Eintauchwinkel hinab, unten einmal rundum, dann zum Anfang. Der Drehsinn aus
+  `spindel.ist_gleichlauf` (`_helix_drehen`). Ohne Platz die Rampe wie bisher.
+- `tests/test_vierachs_bahn.py`: Abflachung hin und her und „nur Gleichlauf“ (M3, M4) ohne Kehre;
+  jede Helix fräst – in 3D am Teil nachgerechnet – mit M3 im Gleichlauf bzw. mit M4 andersherum.
+
+### ERGEBNIS
+- Kehren im Schruppen 4 Achsen (alle Bahnen aus `test_vierachs_bahn`, `_frei`, `_flaechen`): 2 → 0.
+- Grün im Wochen-Build: `test_vierachs_bahn`, `test_vierachs_flaechen`, `test_vierachs_operation`,
+  `szenario_vierachs_plan`.
+
 ## P-2026-10-17-03 schraeg-durchsicht
 
 ### EINGELESEN
