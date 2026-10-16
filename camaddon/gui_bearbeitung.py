@@ -307,25 +307,43 @@ ANALYTISCH = {"Plane", "Cylinder", "Cone"}
 _FOLGE = []
 
 
-def _ebenen_der_aufspannung(grundjob, richtungen):
-    """Nach „Anlegen“ mit „Alles aus dieser Aufspannung“ (Frage 14, Schritt 4): je weitere
-    Richtung die Ebene (schwenken.lege_an – ein Schritt Rückgängig für alle), dann der Assistent
-    für die erste, ihre Flächen gewählt; nach seinem „Anlegen“ die nächste (_folge_weiter). Die
-    Maschine des Jobs mit dem ersten Werkzeug rechnet die Rundachsen; ohne sie keine Ebene."""
+def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None):
+    """Nach „Anlegen“ mit „Alles aus dieser Aufspannung“ (Frage 14, Schritt 4) oder mit schrägen
+    Flächen an einer 5-Achs-Fräse: je weitere Richtung die Ebene (schwenken.lege_an – ein Schritt
+    Rückgängig für alle), dann der Assistent für die erste, ihre Flächen gewählt; nach seinem
+    „Anlegen“ die nächste (_folge_weiter). Die Maschine des Jobs mit dem ersten Werkzeug rechnet
+    die Rundachsen; hat der Grundjob noch keins (nur schräge Flächen gewählt), mit `werkzeug`
+    (wz.Werkzeug, übergeben) und `einsatz` – sein Controller nur dafür, danach wieder weg. Ohne
+    Maschine keine Ebene."""
     from . import schwenken as sw
     from .gui_schwenken import maschine_fuer
 
+    dokument = grundjob.Document
+    dokument.openTransaction(tr("ba.folge.titel"))
     controller = next(iter(js.werkzeug_controller(grundjob)), None)
+    hilfe = None
+    if controller is None and werkzeug is not None and einsatz is not None:
+        try:
+            hilfe = controller = js.controller_ohne_transaktion(
+                dokument, grundjob, werkzeug, einsatz
+            )
+        except Exception as fehler:  # noqa: BLE001 – dann ohne Maschine (die Meldung unten)
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Ebenen: {fehler}\n")
     maschine, _name = maschine_fuer(grundjob, controller) if controller is not None else (None, "")
+    if hilfe is not None:
+        js.controller_weg(dokument, [hilfe])
     if maschine is None:
+        dokument.abortTransaction()
         QtGui.QMessageBox.information(
             FreeCADGui.getMainWindow(), tr("ba.folge.titel"), tr("ba.folge.ohne_maschine")
         )
         return
-    dokument = grundjob.Document
-    dokument.openTransaction(tr("ba.folge.titel"))
     angelegt, fehler = [], []
     for r in richtungen:
+        vorhanden = _vorhandene_lage(grundjob, r, sw.ebenen_von(grundjob))
+        if vorhanden is not None:
+            angelegt.append((vorhanden, r))  # dieselbe Ebene gibt es schon: dort weiter
+            continue
         try:
             if r.stirn:
                 job = sw.lege_an(grundjob, r.stirn, maschine)
@@ -358,6 +376,98 @@ def _ebenen_der_aufspannung(grundjob, richtungen):
         for i, (job, r) in enumerate(angelegt)
     ]
     _folge_weiter()
+
+
+def _gekippt_anlegen(grundjob, richtungen):
+    """Nach „Anlegen“ mit schrägen Flächen an einer 3-Achs-Fräse, „Schräg gespannt fräsen“
+    angehakt (Manuel, 2026-10-16: „dann muss ich das ding schräg einspannen in den schraubstock
+    … sollen wir dafür die werkzeugwege erstellen und das im einstellblatt notieren ?“): je
+    Richtung eine Aufspannung, das Teil so gekippt, dass ihre Fläche nach oben zeigt
+    (schwenken.lege_an, von Hand umgespannt wie die N-Eck-Stange – ein Schritt Rückgängig für
+    alle); dann der Assistent für die erste, ihre Flächen gewählt, nach seinem „Anlegen“ die
+    nächste (_folge_weiter). Das Einrichtblatt nennt Winkel und Achse."""
+    from . import schwenken as sw
+
+    dokument = grundjob.Document
+    dokument.openTransaction(tr("ba.gekippt.titel"))
+    angelegt, fehler = [], []
+    for r in richtungen:
+        job = _vorhandene_lage(grundjob, r, sw.aufspannungen_von(grundjob))
+        if job is None:
+            try:
+                job = sw.lege_an(grundjob, r.stirn, None)
+            except ValueError as grund:
+                fehler.append(str(grund))
+                continue
+            sw.umspannen_setzen(job)
+            neigung, _achse = sw.kippung(sw.normale_der(FreeCAD.Placement(job.Ebene)))
+            job.Label = tr(
+                "ba.gekippt.job", job=grundjob.Label, flaeche=r.stirn, winkel=f"{neigung:.0f}"
+            )
+        neigung, achse = sw.kippung(sw.normale_der(FreeCAD.Placement(job.Ebene)))
+        angelegt.append((job, r, neigung, achse))
+    dokument.commitTransaction()
+    with uhren.still():
+        dokument.recompute()
+    if fehler:
+        QtGui.QMessageBox.information(
+            FreeCADGui.getMainWindow(),
+            tr("ba.gekippt.titel"),
+            tr("ba.folge.fehler", fehler="\n".join(fehler)),
+        )
+    _FOLGE[:] = [
+        (
+            job,
+            list(r.flaechen),
+            tr(
+                "ba.gekippt.folge",
+                nummer=i + 1,
+                anzahl=len(angelegt),
+                winkel=f"{neigung:.0f}",
+                achse=_achse_text(achse),
+            ),
+        )
+        for i, (job, r, neigung, achse) in enumerate(angelegt)
+    ]
+    _folge_weiter()
+
+
+def _vorhandene_lage(grundjob, richtung, jobs):
+    """Der Job aus `jobs` (Ebenen oder Aufspannungen von `grundjob`), dessen Werkzeugachse die der
+    Richtung ist (zugang.Richtung; ihre Stirn am Modell des Grundjobs, sonst ihre Achse) – eine
+    parallele Fläche liegt in derselben Ebene: kein zweiter Job (wie „Ebene schwenken“). None,
+    wenn es keinen gibt."""
+    from . import schwenken as sw
+
+    try:
+        if richtung.stirn:
+            lage = sw.ebene_aus_flaeche(vr.modell(grundjob).Shape, richtung.stirn)
+            normale = sw.normale_der(lage)
+        else:
+            normale = FreeCAD.Vector(*richtung.achse)
+    except ValueError:
+        return None
+    return next(
+        (j for j in jobs if sw.normale_der(FreeCAD.Placement(j.Ebene)).dot(normale) > 1.0 - 1e-9),
+        None,
+    )
+
+
+# mm – so hoch ist eine gezeichnete Fase höchstens, die das Entgraten macht; eine höhere Schräge
+# zwischen Oberseite und Wand wird geschwenkt bzw. gekippt gespannt gefräst (_schraege).
+FASE_HOECHSTENS = 5.0
+
+
+def _kleine_fase(form, name):
+    """Ist die Fläche eine gezeichnete Fase, klein genug fürs Entgraten?"""
+    if not eb.ist_fase(form, name):
+        return False
+    return ft.flaeche(form, int(name[4:]) - 1).BoundBox.ZLength <= FASE_HOECHSTENS
+
+
+def _achse_text(achse):
+    """„ um Y“, „ um X“ – oder nichts, wenn die Achse schräg liegt (schwenken.kippung)."""
+    return tr("ba.gekippt.um", achse=achse) if achse else ""
 
 
 def _folge_weiter():
@@ -1061,11 +1171,16 @@ class _Raeumen(_Strategie):
         return bool(hf.ebenen_oben(form, [name])) or bool(kb.waende(form, [name]))
 
     def flaechen_fuer(self, form, gewaehlte):
-        """Die ebenen Flächen nach oben – und die Böden der Taschen, deren Wände gewählt sind."""
-        ebenen = [name for name in gewaehlte if hf.ebenen_oben(form, [name])]
+        """Die ebenen Flächen nach oben – und die Böden der Taschen, deren Wände gewählt sind.
+        Nicht den Boden einer Bohrung: Den fräst „Bohrung fräsen“."""
+        ebenen = [
+            name
+            for name in gewaehlte
+            if hf.ebenen_oben(form, [name]) and bb.bohrung_ueber_boden(form, name) is None
+        ]
         waende = [name for name in gewaehlte if name not in ebenen and kb.waende(form, [name])]
         for boden in rb.taschenboeden(form, waende):
-            if boden not in ebenen:
+            if boden not in ebenen and bb.bohrung_ueber_boden(form, boden) is None:
                 ebenen.append(boden)
         return ebenen
 
@@ -1749,7 +1864,18 @@ class _Bohrung(_Strategie):
         )
 
     def passt(self, form, name):
-        return bb.ist_bohrung(form, name)
+        return bb.ist_bohrung(form, name) or bb.bohrung_ueber_boden(form, name) is not None
+
+    def flaechen_fuer(self, form, gewaehlte):
+        """Die gewählten Bohrungen – ein gewählter Boden meint die Bohrung über ihm (seit
+        P-2026-10-16-13 nimmt das Planfräsen ihn nicht mehr, und das Räumen passt in ein Loch
+        wenig größer als der Fräser nicht hinein: am Loch Ø 16 in der Schräge mit Ø 12)."""
+        namen = []
+        for name in gewaehlte:
+            wand = name if bb.ist_bohrung(form, name) else bb.bohrung_ueber_boden(form, name)
+            if wand is not None and wand not in namen:
+                namen.append(wand)
+        return namen
 
     def unmoeglich_text(self):
         return tr("ba.bohrung.keine")
@@ -4411,6 +4537,13 @@ class BearbeitungPanel:
             tr("ba.schwenken.knopf"), tr("ba.schwenken.knopf.tooltip"), self.ebene_schwenken
         )
         schwenken.addWidget(self.schwenken_knopf, 0, QtCore.Qt.AlignLeft)
+        # An einer 3-Achs-Fräse: schräg gespannt fräsen (Manuel, 2026-10-16) – als Haken,
+        # angehakt.
+        self.gekippt_haken = QtGui.QCheckBox(tr("ba.gekippt.haken"))
+        self.gekippt_haken.setToolTip(tr("ba.gekippt.haken.tooltip"))
+        self.gekippt_haken.setChecked(True)
+        self.gekippt_haken.toggled.connect(lambda _an: self._gekippt_umgeschaltet())
+        schwenken.addWidget(self.gekippt_haken)
         self.schwenken_zeile.hide()
         ziel[0].addWidget(self.schwenken_zeile)
         werkstoff = _Reihen()
@@ -4630,8 +4763,11 @@ class BearbeitungPanel:
 
     def _kann_anlegen(self):
         aktive = self.aktive_bloecke()
-        if not aktive or self.hinweis.text():
+        if self.hinweis.text():
             return False
+        if not aktive:
+            # Nur schräge Flächen gewählt: „Anlegen“ legt die Ebene bzw. Aufspannung dafür an.
+            return self.job is not None and self._nur_geschwenkt(vr.modell(self.job).Shape)
         return all(b.kann_anlegen() for b in aktive)
 
     def accept(self):
@@ -4681,19 +4817,41 @@ class BearbeitungPanel:
         with uhren.still():  # Qt baut das Fenster noch ab
             self.doc.recompute()
         if folge is not None:
-            uhren.gleich(lambda: _ebenen_der_aufspannung(*folge))
+            uhren.gleich(folge)
         elif self._folge:
             uhren.gleich(_folge_weiter)
         return True
 
     def _folge_vorbereiten(self):
-        """(Grundjob, [zugang.Richtung]) der weiteren Richtungen aus „Alles aus dieser
-        Aufspannung“ – an einer 5-Achs-Maschine; sonst None."""
+        """Was nach „Anlegen“ angelegt wird – eine Funktion ohne Argumente oder None: an einer
+        5-Achs-Maschine die Ebenen der weiteren Richtungen aus „Alles aus dieser Aufspannung“
+        und der gewählten schrägen Flächen (_ebenen_der_aufspannung); an einer 3-Achs-Fräse die
+        gekippten Aufspannungen der schrägen Flächen (_gekippt_anlegen)."""
+        grundjob = rw.grundjob_von(self.job)
+        schraege = self._schraege_richtungen(vr.modell(self.job).Shape)
+        if not self._fuenfachs():
+            return (lambda: _gekippt_anlegen(grundjob, schraege)) if schraege else None
         z = self._zugang
-        if z is None or not self._fuenfachs():
+        weitere = [r for r in z.richtungen if r.achse[2] <= 1 - 1e-6] if z is not None else []
+        for r in schraege:
+            gleich = next(
+                (
+                    w
+                    for w in weitere
+                    if (FreeCAD.Vector(*w.achse) - FreeCAD.Vector(*r.achse)).Length < zg.GLEICH
+                ),
+                None,
+            )
+            if gleich is None:
+                weitere.append(r)
+            else:
+                gleich.flaechen = sorted(
+                    set(gleich.flaechen) | set(r.flaechen), key=lambda n: int(n[4:])
+                )
+        if not weitere:
             return None
-        weitere = [r for r in z.richtungen if r.achse[2] <= 1 - 1e-6]
-        return (rw.grundjob_von(self.job), weitere) if weitere else None
+        werkzeug, einsatz = self.raeumen.fraeser(), self.raeumen.einsatz()
+        return lambda: _ebenen_der_aufspannung(grundjob, weitere, werkzeug, einsatz)
 
     def reject(self):
         if self._folge:
@@ -5620,9 +5778,75 @@ class BearbeitungPanel:
         """Was der Block bekommt: die gewählten Flächen – „Entgraten 3D“ dazu die Kanten."""
         if self._ist_stl() and block.s.kennung not in FREIFORM_STRATEGIEN:
             return []  # ein Teil aus einem STL: nur Freiform (W-017)
+        gewaehlte = self.gewaehlte
+        if self.job is not None and gewaehlte:
+            # Die schrägen Flächen kommen in einer eigenen Ebene oder Aufspannung dran.
+            weg = set(self._geschwenkt(vr.modell(self.job).Shape))
+            if weg:
+                gewaehlte = [n for n in gewaehlte if n not in weg]
         if getattr(block.s, "nimmt_kanten", False):
-            return list(self.gewaehlte) + list(self.kanten)
-        return self.gewaehlte
+            return list(gewaehlte) + list(self.kanten)
+        return gewaehlte
+
+    def _schraege(self, form):
+        """Die gewählten schrägen ebenen Flächen, die „Anlegen“ woanders hinbringt: an einer
+        5-Achs-Fräse in eine eigene Ebene (die Maschine schwenkt), an einer 3-Achs-Fräse in eine
+        gekippte Aufspannung (_geschwenkt: nur mit dem Haken). Nicht gezeichnete Fasen (die
+        macht das Entgraten), an der 5-Achs-Fräse nicht die schrägen Wände der Flanke; beim
+        Ändern einer Operation keine. Manuel, 2026-10-16: „das soll doch in der bearbeitung
+        anhand des rohteils … ausgerechnet werden das man das schwenken muss“."""
+        if self.job is None or self.zu_aendern is not None or not self.gewaehlte:
+            return []
+        if self._ist_stl():
+            return []
+        fuenf = self._fuenfachs()
+        schluessel = (id(self.job), tuple(self.gewaehlte), fuenf)
+        merk = getattr(self, "_schraege_merk", None)
+        if merk is not None and merk[0] == schluessel:
+            return list(merk[1])
+        namen = [
+            n for n in self.gewaehlte if _schraeg(form, n) is not None and not _kleine_fase(form, n)
+        ]
+        if fuenf:
+            namen = [n for n in namen if not self.flanke.s.passt(form, n)]
+        self._schraege_merk = (schluessel, namen)
+        return list(namen)
+
+    def _geschwenkt(self, form):
+        """Die schrägen Flächen (_schraege), die nach „Anlegen“ woanders drankommen – an der
+        3-Achs-Fräse nur mit „Schräg gespannt fräsen“."""
+        schraege = self._schraege(form)
+        if schraege and not self._fuenfachs() and not self.gekippt_haken.isChecked():
+            return []
+        return schraege
+
+    def _nur_geschwenkt(self, form):
+        """Kommen alle gewählten Flächen woanders dran? Dann legt „Anlegen“ hier nichts an."""
+        if not self.gewaehlte or self.kanten:
+            return False
+        return set(self.gewaehlte) <= set(self._geschwenkt(form))
+
+    def _schraege_richtungen(self, form):
+        """[zugang.Richtung] der Flächen aus _geschwenkt – je Normale eine, ihre erste Fläche die
+        Stirn."""
+        richtungen = []
+        for name in self._geschwenkt(form):
+            n = _aussennormale(form, name)
+            if n is None:
+                continue
+            r = next(
+                (r for r in richtungen if (FreeCAD.Vector(*r.achse) - n).Length < zg.GLEICH),
+                None,
+            )
+            if r is None:
+                richtungen.append(zg.Richtung(achse=(n.x, n.y, n.z), flaechen=[name], stirn=name))
+            else:
+                r.flaechen.append(name)
+        return richtungen
+
+    def _gekippt_umgeschaltet(self):
+        self._flaechen_zeigen()
+        self.vorschau_starten()
 
     def _ist_stl(self):
         """Ist das Teil im Job ein Körper aus einem STL (stl_teil.daten – je Form gemerkt)? Dann
@@ -5821,10 +6045,18 @@ class BearbeitungPanel:
             self._flaechen_zeigen_stl(form)
             return
         farben = {}
+        geschwenkt = set(self._geschwenkt(form))
         for name in self.gewaehlte:
             nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
             if nummer < 0 or nummer >= ft.anzahl(form):
                 text, farbe = tr("ba.flaeche.fehlt", name=name), ROT
+            elif name in geschwenkt:
+                winkel = f"{_schraeg(form, name):.0f}"
+                if self._fuenfachs():
+                    text = tr("ba.flaeche.geschwenkt", name=name, winkel=winkel)
+                else:
+                    text = tr("ba.flaeche.gekippt", name=name, winkel=winkel)
+                farbe = GRUEN
             elif self.nut.s.passt(form, name):
                 n = nb.nuten(form, [name])[0]
                 breite = groesse_zeigen(2 * n.radius, einheiten.LAENGE, 2) or "0"
@@ -5842,7 +6074,7 @@ class BearbeitungPanel:
                 z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE, 2) or "0"
                 text, farbe = tr("ba.flaeche.eben", name=name, z=z), GRUEN
             elif self.bohrung.s.passt(form, name):
-                b = bb.bohrungen(form, [name])[0]
+                b = bb.bohrungen(form, [bb.bohrung_ueber_boden(form, name) or name])[0]
                 d = groesse_zeigen(2 * b.radius, einheiten.LAENGE, 2) or "0"
                 if b.durch:
                     text = tr("ba.flaeche.bohrung_durch", name=name, d=d)
@@ -5880,6 +6112,10 @@ class BearbeitungPanel:
             elif _schraeg(form, name) is not None:
                 winkel = f"{_schraeg(form, name):.0f}"
                 text, farbe = tr("ba.flaeche.schraeg", name=name, winkel=winkel), ROT
+            elif hf.ebenen_oben(form, [name]):
+                # Der Boden einer Tasche oder Nut: Das Planfräsen nimmt ihn nicht, das Räumen schon.
+                z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE, 2) or "0"
+                text, farbe = tr("ba.flaeche.boden", name=name, z=z), GRUEN
             else:
                 text, farbe = tr("ba.flaeche.nichts", name=name), ROT
             eintrag = QtGui.QListWidgetItem(dezimal(text))
@@ -5953,18 +6189,26 @@ class BearbeitungPanel:
         self._haken_vorschlagen(form)
 
     def _schwenken_zeigen(self, form):
-        """Ist eine gewählte Fläche schräg, die Zeile „geschwenkt fräsen“ mit dem Knopf – auch
-        an einem neuen Job: Der Knopf legt ihn dann ohne Operationen an (P-2026-10-10-40)."""
-        schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
-        if self._fuenfachs():
-            # Schräge Wände aus Geraden fräst die Flanke (5 Achsen simultan) ohne Schwenken.
-            schraege = [n for n in schraege if not self.flanke.s.passt(form, n)]
+        """Ist eine gewählte Fläche schräg (_schraege), die Zeile darunter: an einer 5-Achs-Fräse,
+        dass „Anlegen“ die Ebene dafür anlegt und dort weitermacht; an einer 3-Achs-Fräse der
+        Haken „Schräg gespannt fräsen“ mit Winkel und Achse."""
+        from . import schwenken as sw
+
+        schraege = self._schraege(form)
+        self.schwenken_knopf.hide()  # Manuel: „ich weis nicht für was das da sein soll“
+        self.gekippt_haken.hide()
         if not schraege:
             return
         name = schraege[0]
         winkel = f"{_schraeg(form, name):.0f}"
-        self.schwenken_text.setText(tr("ba.schwenken.text", name=name, winkel=winkel))
-        self.schwenken_knopf.show()
+        if self._fuenfachs():
+            self.schwenken_text.setText(tr("ba.schwenken.automatisch", name=name, winkel=winkel))
+        else:
+            _neigung, achse = sw.kippung(_aussennormale(form, name))
+            self.schwenken_text.setText(
+                tr("ba.gekippt.text", name=name, winkel=winkel, achse=_achse_text(achse))
+            )
+            self.gekippt_haken.show()
         self.schwenken_zeile.show()
 
     def ebene_schwenken(self, flaeche=None):
@@ -6033,6 +6277,15 @@ class BearbeitungPanel:
             self._nutfraeser_waehlen(form)
             self._planeinsatz_waehlen(form)
             self._flaechenfraeser_waehlen(form)
+        nur_dort = None
+        self._alles_dort = False
+        if not stl and self._nur_geschwenkt(form):
+            self._alles_dort = True
+            # Alles Gewählte kommt in der Ebene (5 Achsen) bzw. gekippt gespannt dran.
+            if self._fuenfachs():
+                nur_dort = tr("ba.schwenken.alles_dort")
+            else:
+                nur_dort = tr("ba.gekippt.alles_dort")
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -6041,6 +6294,13 @@ class BearbeitungPanel:
                     block.haken.setEnabled(False)
                     block.haken.setChecked(False)
                     block.erklaerung.setText(tr("ba.stl.nur_freiform"))
+                    block.zustand_zeigen()
+                    continue
+                if nur_dort:
+                    block.moeglich = False
+                    block.haken.setEnabled(False)
+                    block.haken.setChecked(False)
+                    block.erklaerung.setText(nur_dort)
                     block.zustand_zeigen()
                     continue
                 moeglich = block.s.moeglich(form, self._wahl(block))
@@ -6105,9 +6365,10 @@ class BearbeitungPanel:
                 self._block_aufbau.insertWidget(self._block_anfang + i, widget)
             self._reihe = reihe
         self.passt_nicht.setVisible(bool(andere) and bool(passend))
-        self.nichts_angehakt.setVisible(not self.aktive_bloecke())
+        dort = getattr(self, "_alles_dort", False)  # alles kommt in der Ebene dran: keine Blöcke
+        self.nichts_angehakt.setVisible(not self.aktive_bloecke() and not dort)
         self.passt_nicht_knopf.setText(tr("ba.passt_nicht", anzahl=len(andere)))
-        offen = self.passt_nicht_knopf.isChecked() or not passend
+        offen = (self.passt_nicht_knopf.isChecked() or not passend) and not dort
         for widget in passend:
             widget.setVisible(True)
         for widget in andere:
@@ -6476,6 +6737,8 @@ class BearbeitungPanel:
             b: set(self._fertige_flaechen(b, form)) for b in self.bloecke if b.aktiv() or b.moeglich
         }
         fertig = set().union(*(je_block[b] for b in self.aktive_bloecke()))
+        fertig |= set(self._geschwenkt(form))  # die kommen in ihrer Ebene oder Aufspannung dran
+        fertig |= {n for n in self.gewaehlte if bb.bohrung_ueber_boden(form, n) in fertig}
         ergebnis = []
         for name in self.gewaehlte:
             if name in fertig or not any(b.s.passt(form, name) for b in self.bloecke):

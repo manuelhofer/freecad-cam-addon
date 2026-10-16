@@ -643,6 +643,23 @@ def text_rundachsen(rund, programm=False):
     return " ".join(teile)
 
 
+def kippung(normale):
+    """(Neigung in Grad, Achse „X“, „Y“ oder „“): so weit und um diese Achse des Grundjobs
+    gekippt gespannt zeigt die Fläche mit der Außennormalen `normale` nach oben – an einer
+    3-Achs-Fräse statt des Schwenkens (Manuel, 2026-10-16: „dann muss ich das ding schräg
+    einspannen in den schraubstock“). „“, wenn die Achse schräg in XY liegt (erst um Z drehen)."""
+    n = FreeCAD.Vector(normale)
+    n.normalize()
+    neigung = math.degrees(math.acos(max(-1.0, min(1.0, n.z))))
+    if abs(n.x) < 1e-6 and abs(n.y) < 1e-6:
+        return neigung, ""
+    if abs(n.y) < 1e-6:
+        return neigung, "Y"
+    if abs(n.x) < 1e-6:
+        return neigung, "X"
+    return neigung, ""
+
+
 def ist_ebene(job):
     """Ist der Job eine geschwenkte Ebene (hat er einen Grundjob)? Nicht eine Aufspannung einer
     N-Eck-Stange (ist_umspannen): Die wird von Hand umgespannt – für Maschine, Programm und

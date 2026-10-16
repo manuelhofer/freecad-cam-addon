@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-54 schraege-flaeche-ohne-umweg
+
+### EINGELESEN
+- Manuel (2026-10-16 nachts, Schwenkteil auf der GROB G550, nur Face27 – den Taschenboden in der
+  30°-Schräge – gewählt): 3D-Schruppen und -Schlichten wurden angeboten, das Schruppen räumte außen
+  alles mit; „auf der grob angestellt garkein problem is ja logisch ... tisch anstellen und
+  fräsen“. Dann: „auch die geschichte mit dem schwenken ... ich weis nicht für was das da sein
+  soll .. ?? das soll doch in der bearbeitung anhand des rohteils muss das schon irgendwie
+  ausgerechnet werden das man das schwenken muss ... klar kann ich die tasche auch auf einer 3 achs
+  maschine bearbeiten .. aber dann muss ich das ding schräg einspannen in den schraubstock auch
+  dafür müsste man etwas bauen ... sollen wir dafür die werkzeugwege erstellen und das im
+  einstellblatt notieren ?“ (Bild: im geschwenkten Job stand Face27 rot „weder eben nach oben
+  noch Wand – keine Bearbeitung dafür“, obwohl Räumen angehakt war.)
+- Der volle Szenario-Lauf der Nacht: `szenario_loch_schraeg`, `szenario_lagerbock` und
+  `szenario_platte` rot – nachgesucht: seit P-2026-10-16-12/-13 (Räumen nur über der Fläche,
+  Planfräsen nicht in Taschen).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`:
+  - `_schraege`/`_geschwenkt`: gewählte schräge ebene Flächen (ohne kleine gezeichnete Fasen bis
+    5 mm, an der 5-Achs-Fräse ohne die Wände der Flanke) gehen nicht an die Strategien dieses Jobs
+    (`_wahl`). Die Liste sagt „30° schräg – kommt in der geschwenkten Ebene dran“ bzw. „… gekippt
+    gespannt dran“; sind nur solche gewählt, stehen keine Blöcke da, „Anlegen“ geht trotzdem.
+  - 5 Achsen: „Anlegen“ legt die Ebene je Normale an (`_ebenen_der_aufspannung`, mit dem Fräser
+    des Räumens für die Rundachsen, wenn der Grundjob noch kein Werkzeug hat) und öffnet den
+    Assistenten dort mit den Flächen. Gibt es die Ebene schon (dieselbe Normale), dort weiter. Der
+    Knopf „Ebene schwenken (3+2) …“ in der Zeile entfällt.
+  - 3 Achsen: der Haken „Schräg gespannt fräsen“ (angehakt), „das Teil 30° gekippt um X
+    spannen“; „Anlegen“ legt eine Aufspannung an (`_gekippt_anlegen`: `schwenken.lege_an` ohne
+    Maschine, von Hand umgespannt) und öffnet den Assistenten dort.
+  - Der Boden einer Tasche heißt in der Liste „Boden einer Tasche, Höhe … – Räumen“ statt „weder
+    eben nach oben noch Wand“.
+  - Ein angeklickter Boden eines Lochs bis Ø 40 meint das Loch: „Bohrung fräsen“ nimmt ihn, das
+    Räumen nicht (auch nicht als Boden einer gewählten Wand).
+- `camaddon/bohrung_bahn.py`: `bohrung_ueber_boden`, `BODEN_LOCH_BIS = 40`.
+- `camaddon/schwenken.py`: `kippung(normale)` – Neigung und Achse („X“, „Y“) fürs gekippte Spannen.
+- `camaddon/einrichtblatt.py`: Spannung einer gekippten Aufspannung „… – das Teil 30° gekippt um
+  X, Face27 nach oben (Winkelstück, Sinus- oder Schwenkschraubstock)“.
+- `camaddon/vierachs_planbahn.py`: Der Eilgang zur Helix in der sicheren Höhe, und die Helix nur,
+  wo nach den Lagen davor nichts über `oben` steht (`stand` je Zeile und Stelle).
+- `translations/de.json`, `en.json`: die neuen Sätze; `ba.schwenken.text` entfällt.
+- `tests/gui/szenario_schraeg_anlegen.py` (neu): Schwenkteil, Taschenboden in der Schräge – 5 Achsen
+  über die Ebene, 3 Achsen gekippt gespannt, Einrichtblatt.
+- `tests/gui/szenario_loch_schraeg.py`, `szenario_schwenken.py`: „Anlegen“ statt des Knopfs.
+- `tests/gui/szenario_platte.py`: Welche Folge gewinnt, entscheidet die Zeit – seit P-12 ist
+  Planfräsen + Räumen des Bodens um 2 % vorn; geprüft wird, dass alles zur Siegerin passt.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_schraeg_anlegen`, `szenario_bearbeitung_aufspannung`,
+  `szenario_bearbeitung_aufspannung_folge`, `szenario_schwenken`, `szenario_loch_schraeg`,
+  `szenario_bohrung`, `szenario_loch_auffraesen`, `szenario_raeumen`, `szenario_lagerbock`,
+  `szenario_platte`, `test_sprache`, `test_vierachs_plan`.
+- Noch rot und nicht von heute Nacht: `szenario_vierachs_drehteil` (Eilgang durchs Rohteil bei
+  „Plan indexiert“, schon bei P-2026-10-16-16), `szenario_schwenkteil` (Kollision),
+  `szenario_mausrad`.
+
 ## P-2026-10-16-53 vierachs-plan-helix-statt-zickzack
 
 ### EINGELESEN

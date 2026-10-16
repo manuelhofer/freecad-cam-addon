@@ -1,10 +1,11 @@
 # Nur ein Loch in einer Schräge fräsen (P-2026-10-10-40; Manuel, 2026-10-10: „Ich will nur dass
 # Loch da fräsen“): ein Block 100 × 60 × 40 mit einer 30°-Schräge vorn oben und darin einer
 # Bohrung Ø 16, 8 tief, senkrecht zur Schräge; als Maschine nur die 5-Achs-Beispielmaschine
-# Tisch/Tisch. Der Boden der Bohrung angeklickt, „Bearbeitung“: Der Job ist neu, trotzdem steht
-# unter der Liste „… 30° schräg“ mit dem Knopf „Ebene schwenken (3+2) …“. Der Knopf behält den
-# Job ohne Operationen und öffnet „Ebene schwenken“ mit dem Boden; „OK“ legt die Ebene an, der
-# Assistent darin räumt das Loch, „Anlegen“ legt nur das an.
+# Tisch/Tisch. Der Boden der Bohrung angeklickt, „Bearbeitung“: Der Job ist neu, unter der Liste
+# steht „… 30° schräg: „Anlegen“ legt dafür eine Ebene an“ (seit 2026-10-16 ohne den Umweg über
+# „Ebene schwenken (3+2) …“), nichts angehakt. „Anlegen“ behält den Job ohne Operationen, legt die
+# Ebene an, der Assistent darin fräst das Loch („Bohrung fräsen“ – der Boden meint das Loch),
+# „Anlegen“ legt nur das an.
 import math
 import os
 import tempfile
@@ -25,7 +26,7 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import beispielmaschine, gui_bearbeitung, gui_schwenken
+    from camaddon import beispielmaschine, gui_bearbeitung
     from camaddon import maschinenspeicher as ms
     from camaddon import reichweite as rw
     from camaddon import schwenken as sw
@@ -90,32 +91,32 @@ def schritte(h):
     a.seite_zeigen(1)
     yield 800
 
-    # --- Neuer Job, schräge Fläche: der Knopf ist da ------------------------------------------
+    # --- Neuer Job, schräge Fläche: „Anlegen“ legt die Ebene an (Manuel, 2026-10-16) ----------
     h.pruefe(
-        not a.schwenken_zeile.isHidden() and not a.schwenken_knopf.isHidden(),
-        "neuer Job: keine Zeile mit „Ebene schwenken (3+2) …“",
+        not a.schwenken_zeile.isHidden() and a.schwenken_knopf.isHidden(),
+        "neuer Job: keine Zeile zur schrägen Fläche – oder noch der Knopf",
     )
     h.pruefe("30° schräg" in a.schwenken_text.text(), f"Zeile: {a.schwenken_text.text()!r}")
-    h.pruefe("Anlegen" not in a.schwenken_text.text(), "Zeile verlangt noch „Anlegen“")
+    h.pruefe(
+        "„Anlegen“ legt dafür eine Ebene an" in a.schwenken_text.text(),
+        f"Zeile: {a.schwenken_text.text()!r}",
+    )
+    h.pruefe(
+        not a.aktive_bloecke(), f"im Grundjob angehakt: {[b.s.kennung for b in a.aktive_bloecke()]}"
+    )
     Gui.SendMsgToActiveView("ViewFit")
     yield 300
     h.bild("1_assistent_neuer_job")
 
-    a.schwenken_knopf.click()
-    yield from h.warte_auf(lambda: gui_schwenken.SchwenkenPanel.offen is not None, 15000)
-    panel = gui_schwenken.SchwenkenPanel.offen
-    h.pruefe(panel is not None, "„Ebene schwenken“ öffnet nicht")
-    if panel is None:
-        return
+    # --- „Anlegen“: die Ebene, der Assistent darin räumt das Loch --------------------------------
+    h.pruefe(a.accept() is True, "„Anlegen“ im Grundjob ging nicht")
+    yield from h.warte_auf(
+        lambda: gui_bearbeitung.BearbeitungPanel.offen not in (None, a)
+        and gui_bearbeitung.BearbeitungPanel.offen.job is not None,
+        30000,
+    )
     h.pruefe(doc.getObject(job.Name) is job, "der Job ist wieder weg")
     h.pruefe(not job.Operations.Group, f"Operationen im Job: {len(job.Operations.Group)}")
-    h.pruefe(panel.grundjob is job and panel.flaeche == boden, f"Fenster: {panel.flaeche!r}")
-    h.pruefe("30° geschwenkt" in panel.ergebnis.text(), f"Ergebnis: {panel.ergebnis.text()!r}")
-    h.bild("2_ebene_schwenken")
-
-    # --- OK: die Ebene, der Assistent darin räumt das Loch -----------------------------------------
-    h.pruefe(panel.accept() is True, "„OK“ ging nicht")
-    yield from h.warte_auf(lambda: gui_bearbeitung.BearbeitungPanel.offen is not None, 15000)
     ebenen = sw.ebenen_von(job)
     h.pruefe(len(ebenen) == 1, f"Ebenen: {[e.Label for e in ebenen]}")
     if not ebenen:
@@ -137,7 +138,8 @@ def schritte(h):
     yield 500
     h.bild("3_assistent_in_der_ebene")
     hinweis = b.hinweis.text()  # nach „Anlegen“ ist das Fenster zu
-    h.pruefe(b.accept() is True, f"„Anlegen“ ging nicht ({hinweis!r})")
+    zustand = [(k.s.kennung, k.kann_anlegen(), k.vorschau is not None) for k in b.aktive_bloecke()]
+    h.pruefe(b.accept() is True, f"„Anlegen“ ging nicht ({hinweis!r}, {zustand})")
     yield 2000
     h.pruefe(ebene.Operations.Group, "keine Operation in der Ebene")
     h.pruefe(not job.Operations.Group, "im Grundjob ist doch etwas angelegt")

@@ -1082,6 +1082,10 @@ def planen(
             lagen.append(None)  # die Schlichtlage
         flaechen_gefraest += 1
         vorige = oben
+        # Was je Zeile und Stelle nach den Lagen davor noch steht – die Helix der Einfahrt nur, wo
+        # nichts über `vorige` steht (am Drehteil fuhr ihr Eilgang sonst neben der Zeile, wo die
+        # Stange noch rund stand, ins Material).
+        stand = np.array(oben_grob, dtype=float)
         for lage in lagen:
             schlichtlage = lage is None
             if schlichtlage:  # auf der Fläche, mit dem feinen Zeilenabstand
@@ -1227,7 +1231,14 @@ def planen(
                 # Wo der Fräser in dieser Lage stehen darf (nicht ins Teil) – für die Helix der
                 # Einfahrt (_helix_platz).
                 stehen = (hoehe <= lage_a[None, :] + vb.GLEICH) & frei & zeilen_da[:, None]
-                feld = (np.asarray(q_zeilen, dtype=float), a_von, schritt, stehen, zwischen)
+                feld = (
+                    np.asarray(q_zeilen, dtype=float),
+                    a_von,
+                    schritt,
+                    stehen,
+                    zwischen,
+                    None if schlichtlage else stand,
+                )
                 for a, q, m, offen in folge:
                     r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
                     ueber = vorige if not schlichtlage else float(r[0]) + aufmass + vb.GLEICH
@@ -1243,6 +1254,8 @@ def planen(
                     r_min = min(r_min, float(np.min(r)))
             lagen_gesamt += 1
             vorige = lage
+            if not schlichtlage:
+                stand = np.where(geraeumt, np.minimum(stand, lage_a[None, :]), stand)
     if flaechen_gefraest == 0:
         raise ValueError(tr("vp.fehler.nichts"))
     letzter = punkte[-1]
@@ -1525,23 +1538,25 @@ def _einfahrt(punkte, a, q, lage, phi, oben, offen, w, sicher, r_fahrt=None, fel
     a0, q0 = float(a[0]), float(q[0])
     _eilgang(punkte, a0, sicher, phi, q0)
     knapp = min(sicher, oben + w.sicherheit)
-    if knapp < sicher:
-        punkte.append(vb.Punkt(True, a0, knapp, phi, q=q0))
     wechsel = np.flatnonzero(np.abs(q - q0) > vb.GLEICH)  # wo die Fahrt quer rückt
     erste = int(wechsel[0]) - 1 if len(wechsel) else len(a) - 1  # das Ende der ersten Zeile
     laenge = abs(float(a[erste]) - a0)
     if offen or laenge < vb.RAMPE_MINDESTENS or lage >= oben - vb.GLEICH:
+        if knapp < sicher:
+            punkte.append(vb.Punkt(True, a0, knapp, phi, q=q0))
         punkte.append(vb.Punkt(False, a0, lage, phi, True, q0))
         return
     eben = r_fahrt is None or float(np.ptp(r_fahrt)) < vb.GLEICH  # die Fahrt auf einer Höhe
-    platz = _helix_platz(a, q, w, feld) if feld is not None and eben else None
+    platz = _helix_platz(a, q, w, feld, oben) if feld is not None and eben else None
     if platz is not None:
         # Eine Helix in der Ebene der Fläche (längs a, quer q – Plan indexiert hat die Querachse)
         # statt der Rampe hin und her längs der ersten Zeile (Manuel, 2026-10-16: „das auch
         # wirklich alle zickzack fahrten weg sind“): neben dem Anfang, im Feld der Zeilen.
-        _helix(punkte, *platz, (a0, q0), knapp, oben, lage, phi, w)
+        _helix(punkte, *platz, (a0, q0), sicher, knapp, oben, lage, phi, w)
         punkte.append(vb.Punkt(False, a0, lage, phi, q=q0))  # an den Anfang der Zeile
         return
+    if knapp < sicher:
+        punkte.append(vb.Punkt(True, a0, knapp, phi, q=q0))
     punkte.append(vb.Punkt(False, a0, oben, phi, True, q0))  # bis ans Material
     r = np.full(len(a), lage) if r_fahrt is None else np.asarray(r_fahrt, dtype=float)
     winkel = np.full(len(a), phi)
@@ -1564,12 +1579,13 @@ def _radius(w):
     return float(w.form.radius)
 
 
-def _helix_platz(a, q, w, feld):
+def _helix_platz(a, q, w, feld, oben):
     """(Mitte (a, q), Radius) einer Helix für die Einfahrt der Fahrt (a, q) – None, wo keine
     Platz hat. Zuerst Kreise durch den Anfang der Fahrt (die Helix endet dort), dann weiter längs
     in der Fahrt (von dort gerade zurück zum Anfang), zuerst mit dem großen Radius, dann
     mit dem kleinen. Jeder Punkt des Kreises, sein Inneres und der Weg zum Anfang müssen dort
-    liegen, wo der Fräser in dieser Lage stehen darf (_im_feld). Das Rechteck um die Zeilen reicht
+    liegen, wo der Fräser in dieser Lage stehen darf und nichts über `oben` steht (_im_feld).
+    Das Rechteck um die Zeilen reicht
     nicht: Steht im Feld ein Stift, weichen die Zeilen ihm aus, das Rechteck nicht (am Prüffall
     kam die Helix ihm auf 1,8 statt 3,6 mm nah)."""
     if len(a) < 2:
@@ -1613,18 +1629,19 @@ def _helix_platz(a, q, w, feld):
                     q0 + (mitte[1] - q0) * weg,
                 )
             )
-            if _im_feld(pa, pq, feld):
+            if _im_feld(pa, pq, feld, oben):
                 return mitte, rh
     return None
 
 
-def _im_feld(kreis_a, kreis_q, feld):
+def _im_feld(kreis_a, kreis_q, feld, oben):
     """Darf der Fräser an jedem Punkt (a, q) in dieser Lage stehen? `feld`: (q der Zeilen, a der
     ersten Stelle, Schritt längs, je Zeile und Stelle ob er dort stehen darf, je Zeilenpaar und
-    Stelle ob es dazwischen frei ist) – je Punkt die beiden Zeilen quer daneben und die beiden
-    Stellen längs davor und danach, und dazwischen frei."""
-    q_zeilen, a_von, schritt, stehen, zwischen = feld
-    if len(q_zeilen) == 0 or np.any(np.diff(q_zeilen) <= 0):
+    Stelle ob es dazwischen frei ist, je Zeile und Stelle was nach den Lagen davor noch steht –
+    None: keine Helix) – je Punkt die beiden Zeilen quer daneben und die beiden Stellen längs
+    davor und danach, dazwischen frei und nichts höher als `oben`."""
+    q_zeilen, a_von, schritt, stehen, zwischen, stand = feld
+    if stand is None or len(q_zeilen) == 0 or np.any(np.diff(q_zeilen) <= 0):
         return False  # nicht aufsteigend: dann lieber die Rampe
     anzahl = stehen.shape[1]
     for pa, pq in zip(kreis_a, kreis_q, strict=True):
@@ -1639,15 +1656,19 @@ def _im_feld(kreis_a, kreis_q, feld):
                 return False
             if not (stehen[links, stelle] and stehen[rechts, stelle]):
                 return False
+            if stand[links, stelle] > oben + vb.GLEICH or stand[rechts, stelle] > oben + vb.GLEICH:
+                return False
             if links != rechts and not zwischen[links, stelle]:
                 return False
     return True
 
 
-def _helix(punkte, mitte, rh, anfang, knapp, oben, lage, phi, w):
-    """Über dem Material auf den Kreis um `mitte` (a, q) mit Radius `rh`, wo er dem `anfang` (a, q)
-    der Fahrt am nächsten ist, bis ans Material, mit dem Eintauchwinkel im Kreis hinab bis `lage`,
-    unten einmal rundum – wieder an dieser Stelle."""
+def _helix(punkte, mitte, rh, anfang, sicher, knapp, oben, lage, phi, w):
+    """In der sicheren Höhe `sicher` über den Kreis um `mitte` (a, q) mit Radius `rh` (seitlich
+    knapp über dem Material fuhr der Eilgang am Drehteil durchs Rohteil, das neben dem Anfang
+    noch steht), bis `knapp`, bis ans Material, mit dem Eintauchwinkel im Kreis hinab bis `lage`,
+    unten einmal rundum – so begonnen, dass sie dort endet, wo der Kreis dem `anfang` (a, q) der
+    Fahrt am nächsten ist."""
     steil = math.tan(math.radians(w.eintauchwinkel if w.eintauchwinkel > 0 else vb.EINTAUCHWINKEL))
     drehen = 1.0 if w.gleichlauf else -1.0
     schritt = 2 * math.pi / HELIX_PUNKTE
@@ -1666,7 +1687,9 @@ def _helix(punkte, mitte, rh, anfang, knapp, oben, lage, phi, w):
     hinab = max(1, math.ceil((oben - lage) / (steil * bogen) - 1e-9))
     beginn = -(hinab % HELIX_PUNKTE)
     a_k, q_k = auf_dem_kreis(drehen * beginn * schritt)
-    punkte.append(vb.Punkt(True, a_k, knapp, phi, q=q_k))
+    punkte.append(vb.Punkt(True, a_k, sicher, phi, q=q_k))
+    if knapp < sicher:
+        punkte.append(vb.Punkt(True, a_k, knapp, phi, q=q_k))
     punkte.append(vb.Punkt(False, a_k, oben, phi, True, q_k))
     for k in range(1, hinab + HELIX_PUNKTE + 1):
         hoehe = max(lage, oben - steil * bogen * k)

@@ -205,9 +205,9 @@ def schritte(h):
     yield 500
     h.bild("4b_auf_der_maschine_nah")
 
-    # --- Im Assistenten des Grundjobs: die Schräge gewählt → „Ebene schwenken (3+2) …“ -----------
-    # Die Liste sagt „30° schräg“, darunter die Zeile mit dem Knopf; er schließt den Assistenten
-    # und öffnet „Ebene schwenken“ mit der Fläche.
+    # --- Im Assistenten des Grundjobs: die Schräge gewählt → „Anlegen“ ------------------------------
+    # Die Liste sagt „30° schräg“, darunter die Zeile „„Anlegen“ legt dafür eine Ebene an“; die
+    # Ebene gibt es schon – „Anlegen“ öffnet den Assistenten dort (Manuel, 2026-10-16).
     pruefung.reject()
     yield 800
     Gui.Control.showDialog(
@@ -223,8 +223,8 @@ def schritte(h):
     a.seite_zeigen(1)
     yield 800
     h.pruefe(
-        not a.schwenken_zeile.isHidden() and not a.schwenken_knopf.isHidden(),
-        "Assistent: keine Zeile „geschwenkt fräsen“",
+        not a.schwenken_zeile.isHidden() and a.schwenken_knopf.isHidden(),
+        "Assistent: keine Zeile „geschwenkt fräsen“ – oder noch der Knopf",
     )
     h.pruefe("30° schräg" in a.schwenken_text.text(), f"Assistent: {a.schwenken_text.text()!r}")
     # Im Grundjob nur sein Teil und seine Bahnen – die Ebene hat ihr Teil anders gedreht.
@@ -238,29 +238,23 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 300
     h.bild("5_assistent_schraeg")
-    a.schwenken_knopf.click()
-    yield from h.warte_auf(lambda: gui_schwenken.SchwenkenPanel.offen is not None, 15000)
-    zweites = gui_schwenken.SchwenkenPanel.offen
-    h.pruefe(
-        zweites is not None
-        and zweites.flaeche == schraege
-        and "A−30 C0" in zweites.ergebnis.text()
-        and "gibt es schon" in zweites.ergebnis.text()
-        and zweites.vorhanden is planjob,
-        "„Ebene schwenken“ aus dem Assistenten: "
-        + (zweites.ergebnis.text() if zweites is not None else "kein Fenster"),
+    # „Anlegen“ legt keinen zweiten Job an, sondern öffnet den Assistenten in der vorhandenen
+    # Ebene (dieselbe Normale).
+    ops_vorher = len(grundjob.Operations.Group)
+    h.pruefe(a.accept() is True, "„Anlegen“ im Grundjob ging nicht")
+    yield from h.warte_auf(
+        lambda: gui_bearbeitung.BearbeitungPanel.offen not in (None, a)
+        and gui_bearbeitung.BearbeitungPanel.offen.job is not None,
+        30000,
     )
-    h.bild("6_schwenken_aus_assistent")
-    # OK legt keinen zweiten Job an, sondern öffnet den Assistenten in der vorhandenen Ebene.
-    if zweites is not None:
-        zweites.accept()
-        yield from h.warte_auf(lambda: gui_bearbeitung.BearbeitungPanel.offen is not None, 15000)
-        h.pruefe(len(sw.ebenen_von(grundjob)) == 1, f"Ebenen: {len(sw.ebenen_von(grundjob))}")
-        dritter = gui_bearbeitung.BearbeitungPanel.offen
-        h.pruefe(dritter is not None and dritter.job is planjob, "Assistent nicht in der Ebene")
-        if dritter is not None:
-            dritter.reject()
-            yield 500
+    h.pruefe(len(sw.ebenen_von(grundjob)) == 1, f"Ebenen: {len(sw.ebenen_von(grundjob))}")
+    h.pruefe(len(grundjob.Operations.Group) == ops_vorher, "im Grundjob etwas angelegt")
+    dritter = gui_bearbeitung.BearbeitungPanel.offen
+    h.pruefe(dritter is not None and dritter.job is planjob, "Assistent nicht in der Ebene")
+    if dritter is not None and dritter is not a:
+        h.bild("6_assistent_in_der_ebene", dritter.form)
+        dritter.reject()
+        yield 500
 
     # --- Bestückung: Grundjob und Ebene sind eine Aufspannung, ein Programm ---------------------
     from camaddon import gui_bestueckung

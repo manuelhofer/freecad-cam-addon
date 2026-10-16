@@ -202,6 +202,40 @@ def ist_bohrung(form, name):
     return bool(bohrungen(form, [name]))
 
 
+# mm – bis zu diesem Durchmesser meint ein angeklickter Boden das Loch (bohrung_ueber_boden);
+# eine größere runde Tasche räumt das Räumen wie bisher.
+BODEN_LOCH_BIS = 40.0
+
+
+def bohrung_ueber_boden(form, name):
+    """Der Name der Bohrung („Face7“) bis Ø BODEN_LOCH_BIS, deren ebener Boden die Fläche `name`
+    ist – ihr Rand nur Kreisbögen, an denen eine Bohrung (bohrungen()) anschließt; None sonst. Wer
+    den Boden eines Lochs anklickt, meint das Loch (Manuel, 2026-10-10: „Ich will nur dass Loch
+    da fräsen“) – und das Räumen passt in ein Loch wenig größer als der Fräser nicht hinein."""
+    import Part
+
+    try:
+        flaeche = form.getElement(name)
+        kanten = flaeche.OuterWire.Edges
+    except Exception:  # noqa: BLE001 – kein Name einer Fläche, keine Fläche mit Rand
+        return None
+    if not isinstance(flaeche.Surface, Part.Plane) or not kanten:
+        return None
+    if not all(isinstance(k.Curve, Part.Circle) for k in kanten):
+        return None
+    for kante in kanten:
+        for nachbar in form.ancestorsOfType(kante, Part.Face):
+            if nachbar.isSame(flaeche) or not isinstance(nachbar.Surface, Part.Cylinder):
+                continue
+            for nummer, f in enumerate(form.Faces):
+                if f.isSame(nachbar):
+                    gefunden = bohrungen(form, [f"Face{nummer + 1}"])
+                    if gefunden and 2 * gefunden[0].radius <= BODEN_LOCH_BIS + 1e-9:
+                        return gefunden[0].name
+                    return None
+    return None
+
+
 # --- Bahn ---------------------------------------------------------------------------------
 
 

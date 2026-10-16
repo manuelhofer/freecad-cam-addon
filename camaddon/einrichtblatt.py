@@ -417,6 +417,20 @@ def spannung_text(job, tr):
 
     if n_eck.ist_n_eck(job):
         return tr("eb.spannung.n_eck", mm=_mm(), tiefe=_zahl(n_eck.spannlaenge(job)))
+    from . import schwenken as sw
+
+    if sw.ist_umspannen(job):
+        # Gekippt gespannt an der 3-Achs-Fräse (gui_bearbeitung._gekippt_anlegen).
+        import FreeCAD
+
+        neigung, achse = sw.kippung(sw.normale_der(FreeCAD.Placement(job.Ebene)))
+        return tr(
+            "eb.spannung.gekippt",
+            text=spannung_text(job.Grundjob, tr),
+            winkel=f"{neigung:.0f}",
+            achse=tr("ba.gekippt.um", achse=achse) if achse else "",
+            flaeche=getattr(job, "Flaeche", "") or "–",
+        )
     rohteil = getattr(grundjob(job), "Stock", None)
     if vr.spannlaenge(job) > 0 and hasattr(rohteil, "Radius"):
         return tr("eb.spannung.stange", mm=_mm(), tiefe=_zahl(vr.spannlaenge(job)))

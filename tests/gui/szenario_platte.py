@@ -3,9 +3,10 @@
 # Die Oberseite (z = 0) und die Wand der Tasche anklicken: Das Planfräsen könnte die Oberseite,
 # das Räumen die Oberseite und den Taschenboden, die Kontur die Taschenwand. Der Assistent rechnet
 # die Folgen (Grundsatz 0): Räumen über alles gegen Planfräsen plus Räumen nur des Bodens –
-# Räumen über alles ist schneller, behält den Haken, das Planfräsen verliert ihn; beide Zeilen
-# sagen, um wie viel. Die Kontur schlichtet nur noch das Aufmaß („Breite“ = Aufmaß des Räumens).
-# „Anlegen“: „Räumen T1“ über beide Flächen und „Kontur T1“ mit Breite 0,3. „Auf der Maschine
+# die schnellere behält die Haken, die Zeilen sagen, um wie viel (bis P-2026-10-16-12 Räumen über
+# alles, seitdem Planfräsen + Räumen des Bodens um 2 %). Die Kontur schlichtet nur noch das Aufmaß
+# („Breite“ = Aufmaß des Räumens). „Anlegen“: die Operationen der Siegerin, „Kontur T1“ mit
+# Breite 0,3. „Auf der Maschine
 # prüfen“: am Ende nirgends ins Teil.
 import FreeCAD
 import FreeCADGui as Gui
@@ -65,7 +66,11 @@ def schritte(h):
     )
     yield 500
     h.pruefe(not raeumen.hinweis.text(), f"rot: {raeumen.hinweis.text()!r}")
-    h.pruefe(raeumen.aktiv() and not plan.aktiv(), "Haken: Räumen an, Planfräsen aus")
+    # Welche Folge gewinnt, entscheidet die Zeit (Grundsatz 0): Räumen über alles war schneller,
+    # seit P-2026-10-16-12 (Räumen nur über der Fläche) ist Planfräsen + Räumen des Bodens um
+    # 2 % vorn. Geprüft wird, dass Haken, Sätze und Operationen zur Siegerin passen.
+    folge = plan.aktiv()
+    h.pruefe(raeumen.aktiv(), "Haken: Räumen aus")
     h.pruefe(kontur.aktiv(), "Haken: Kontur aus")
     # Die Tasche ist eine runde Sackbohrung – aber ihren Boden räumt das Räumen, die Kontur fährt
     # nur das Aufmaß: „Bohrung fräsen“ tritt dort nicht an.
@@ -74,33 +79,38 @@ def schritte(h):
         not panel.bohrung.ergebnis.text(), f"Bohrung fräsen: {panel.bohrung.ergebnis.text()!r}"
     )
     text = raeumen.ergebnis.text()
-    h.pruefe(text.startswith("→ 2 Flächen: 2 Lagen,"), f"Räumen: {text!r}")
-    h.pruefe("über alles die schnellste Folge" in text, f"Räumen: {text!r}")
     text_plan = plan.ergebnis.text()
-    h.pruefe("langsamer als Räumen über alles" in text_plan, f"Planfräsen: {text_plan!r}")
+    if folge:
+        h.pruefe("nur die Taschenböden" in text, f"Räumen: {text!r}")
+        h.pruefe("die schnellste Folge" in text_plan, f"Planfräsen: {text_plan!r}")
+    else:
+        h.pruefe(text.startswith("→ 2 Flächen: 2 Lagen,"), f"Räumen: {text!r}")
+        h.pruefe("über alles die schnellste Folge" in text, f"Räumen: {text!r}")
+        h.pruefe("langsamer als Räumen über alles" in text_plan, f"Planfräsen: {text_plan!r}")
     text_kontur = kontur.ergebnis.text()
     h.pruefe("nur das Aufmaß an den Wänden" in text_kontur, f"Kontur: {text_kontur!r}")
     h.bild("1_platte", panel.form)
 
-    # --- Anlegen: „Räumen T1“ und „Kontur T1“ ----------------------------------------------
+    # --- Anlegen: („Planfräsen T1“), „Räumen T1“ und „Kontur T1“ ------------------------------
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
     yield 3000
     ops = list(job.Operations.Group)
+    anzahl = 3 if folge else 2
     h.pruefe(
-        len(ops) == 2 and ra.ist_raeumen(ops[0]) and ko.ist_kontur(ops[1]),
+        len(ops) == anzahl and ra.ist_raeumen(ops[-2]) and ko.ist_kontur(ops[-1]),
         f"Operationen: {[o.Label for o in ops]}",
     )
-    if len(ops) < 2:
+    if len(ops) < anzahl:
         return
-    raeumen_op, kontur_op = ops
+    raeumen_op, kontur_op = ops[-2:]
     h.pruefe(
-        sorted(raeumen_op.Flaechen) != [] and len(raeumen_op.Flaechen) == 2,
-        f"Räumen: {list(raeumen_op.Flaechen)}",
+        len(raeumen_op.Flaechen) == (1 if folge else 2), f"Räumen: {list(raeumen_op.Flaechen)}"
     )
-    h.pruefe(
-        (raeumen_op.Ebenen, raeumen_op.Lagen) == (2, 2),
-        f"Räumen: {raeumen_op.Ebenen} Ebenen, {raeumen_op.Lagen} Lagen",
-    )
+    if not folge:
+        h.pruefe(
+            (raeumen_op.Ebenen, raeumen_op.Lagen) == (2, 2),
+            f"Räumen: {raeumen_op.Ebenen} Ebenen, {raeumen_op.Lagen} Lagen",
+        )
     h.pruefe(abs(float(kontur_op.Breite) - 0.3) < 1e-6, f"Kontur: Breite {float(kontur_op.Breite)}")
     h.pruefe(kontur_op.Bahnen == 1, f"Kontur: {kontur_op.Bahnen} Bahnen (nur Schlichten)")
     Gui.Selection.clearSelection()
