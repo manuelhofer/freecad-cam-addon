@@ -206,6 +206,10 @@ kugel = ff.kugel(5.0)
 neben = [P(True, -4, 20, 30), P(True, -4, 20, 8.5), P(False, -4, 20, 5)]
 neu, _weg = fw.schneller(neben, kugel, quader(), VF)
 pruefe([p.z for p in neu if p.eilgang] == [30, 8.5], f"Kugel neben dem Rohteil: {neu}")
+tiefer = [P(True, -4, 20, 30), P(True, -4, 20, 7.0), P(False, -4, 20, 5)]
+neu, _weg = fw.schneller(tiefer, kugel, quader(), VF)
+eilgaenge = [p.z for p in neu if p.eilgang]
+pruefe(len(eilgaenge) == 2 and eilgaenge[1] >= 9.0, f"Kugel bis 7 hinab: {eilgaenge}")
 # Endet die Bahn mit dem Eilgang hinab ins Material, bleibt sie oben (kein Satz fehlt).
 ende = [P(True, 20, 20, 11), P(True, 20, 20, 6)]
 neu, _weg = fw.schneller(ende, form, quader(), VF)

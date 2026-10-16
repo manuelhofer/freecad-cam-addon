@@ -288,7 +288,9 @@ def _eilgang_nicht_hinein(punkte, i, quader, form):
 def _tiefste_spitze(q, stelle, form):
     """Wie tief die Spitze des Fräsers `form` über `stelle` (x, y) höchstens darf, ohne das
     Material im Quader zu berühren (z) – −inf ohne Material darunter. Je Zelle ihre Höhe weniger
-    die Höhe des Fräsers in ihrem Abstand von der Achse (eine halbe Zelle näher gerechnet)."""
+    die Höhe des Fräsers im Abstand ihrer Mitte von der Achse; Zellen bis eine halbe Zelle über
+    den Rand hinaus mit der Höhe am Rand (eine halbe Zelle näher gerechnet machte die Kugel am
+    Rand 1,2 mm höher – am Geist 3 min mehr im Vorschub hinab, ohne dass etwas im Weg war)."""
     halb = 0.5 * float(q.x[1] - q.x[0])
     radius = float(form.radius)
     weite = radius + halb
@@ -302,7 +304,7 @@ def _tiefste_spitze(q, stelle, form):
     nah = abstand <= weite
     if not nah.any():
         return -math.inf
-    rho = np.clip(abstand[nah] - halb, 0.0, radius)
+    rho = np.clip(abstand[nah], 0.0, radius)
     return float(np.max(q.h[i0:i1, j0:j1][nah] - form.hoehe(rho)))
 
 

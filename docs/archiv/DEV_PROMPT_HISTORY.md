@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-07 eilgang-schutz-zellmitte
+
+### EINGELESEN
+- Geist (STL) nach P-2026-10-17-06 nachgemessen: 3D-Schlichten T2 55,4 (P-58) → 56,5 (P-01) →
+  58,3 min. Verglichen mit dem Programm nach P-01: 42 Eilgänge hinab weniger, senkrecht im Vorschub
+  hinab 2649 → 3863 mm. Das sind die Eilgänge am Rand des Rohteils, die P-01 nicht prüfte – nach
+  dem Materialstand nach dem 3D-Schruppen wären sie in die Treppen gefahren. Das bleibt so.
+- Dabei: `_tiefste_spitze` rechnete jede Zelle eine halbe Zelle näher an der Achse – an der Kugel
+  macht das am Rand 1,2 mm aus (R 3: 1,8 statt 3 mm hoch), unnötig vorsichtig.
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_tiefste_spitze` mit dem Abstand der Zellmitte; Zellen bis eine halbe
+  Zelle über den Rand hinaus mit der Höhe am Rand.
+- `tests/test_freiwege.py`: die Kugel neben dem Rohteil, bis 7 hinab – angehoben.
+
+### ERGEBNIS
+- Geist, 3D-Schlichten T2: 58,3 min (gleich – die Eilgänge, die wegfallen, liegen am Rand).
+- Grün im Wochen-Build: `test_freiwege`, `szenario_bearbeitung_stl`.
+
 ## P-2026-10-17-06 durchsicht-zwei
 
 ### EINGELESEN
