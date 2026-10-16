@@ -358,6 +358,53 @@ def _skalar(a, b):
     return a[0] * b[0] + a[1] * b[1]
 
 
+def kehren_im_programm(befehle):
+    """(Kehren, Rampen) in den Befehlen einer Operation (Path.Command, absolut): Rampen sind
+    Folgen von Vorschubsätzen, die Z senken; eine Kehre ist eine Rampe, die dabei in XY umkehrt
+    (Zickzack) – wie Kennzahlen.kehren, aber ohne Material. None, wenn eine Rundachse (A, B, C)
+    vorkommt: Dort sagt die Richtung in XY nichts."""
+    x = y = z = 0.0
+    kehren = rampen = 0
+    in_rampe = gekehrt = False
+    richtung = None
+    for befehl in befehle:
+        name = befehl.Name.upper()
+        werte = befehl.Parameters
+        if any(achse in werte for achse in ("A", "B", "C")):
+            return None
+        if name not in ("G0", "G00", "G1", "G01", "G2", "G02", "G3", "G03"):
+            continue
+        von = _punkt(x, y, z)
+        x, y, z = werte.get("X", x), werte.get("Y", y), werte.get("Z", z)
+        if name in ("G0", "G00") or z >= von.z - _NICHTS:
+            in_rampe = False
+            continue
+        bogen = None
+        if name in ("G2", "G02", "G3", "G03"):
+            bogen = (
+                von.x + werte.get("I", 0.0),
+                von.y + werte.get("J", 0.0),
+                name in ("G2", "G02"),
+            )
+        nach = _punkt(x, y, z, bogen)
+        if not in_rampe:
+            rampen += 1
+            richtung, gekehrt = None, False
+        anfang, ende = tangenten(von, nach)
+        if anfang is not None:
+            if richtung is not None and not gekehrt and _skalar(richtung, anfang) < -0.5:
+                kehren += 1
+                gekehrt = True
+            richtung = ende
+        in_rampe = True
+    return kehren, rampen
+
+
+def _punkt(x, y, z, bogen=None):
+    """Ein Punkt wie bahn.Punkt für tangenten()."""
+    return bn.Punkt(False, float(x), float(y), float(z), bogen=bogen)
+
+
 def zeile(k):
     """Die Kennzahlen in einer Zeile – für Berichte und die Prüfung."""
     return (

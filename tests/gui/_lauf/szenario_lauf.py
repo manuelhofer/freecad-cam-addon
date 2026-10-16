@@ -141,12 +141,57 @@ class _Sonde:
             datei.write("\n".join(zeilen) + "\n")
 
 
+class _Bahnen:
+    """Merkt sich die Bahn jeder CAM-Operation, die neu rechnet (eine Kopie, billig) – am Ende
+    zählt _kehren_schreiben darin die Rampen hin und her (Manuel, 2026-10-16: „schau dir alle
+    szenarien und bahngeneratoren nochmal genauer an das auch wirklich alle zickzack fahrten weg
+    sind“). Gezählt wird erst am Ende: Die Lag-Sonde soll davon nichts merken."""
+
+    def __init__(self):
+        self.je_operation = {}  # „Dokument/Label“ → Path.Path
+
+    def slotRecomputedObject(self, obj):
+        try:
+            if "Path" not in obj.PropertiesList or "ToolController" not in obj.PropertiesList:
+                return
+            self.je_operation[f"{obj.Document.Name}/{obj.Label}"] = obj.Path.copy()
+        except Exception:  # noqa: BLE001 – ein Objekt im Abbau
+            return
+
+
+def _kehren_schreiben():
+    """kehren.txt: je Operation Kehren und Rampen, die mit Kehren zuerst."""
+    bahnen = getattr(starten, "bahnen", None)
+    if bahnen is None:
+        return
+    try:
+        from camaddon import pruefstand as ps
+    except Exception:  # noqa: BLE001
+        return
+    zeilen = []
+    for name, bahn in sorted(bahnen.je_operation.items()):
+        try:
+            ergebnis = ps.kehren_im_programm(bahn.Commands)
+        except Exception as fehler:  # noqa: BLE001
+            zeilen.append((-1, f"{name}: nicht gezählt ({fehler})"))
+            continue
+        if ergebnis is None:
+            zeilen.append((-1, f"{name}: Rundachse – nicht gezählt"))
+            continue
+        kehren, rampen = ergebnis
+        zeilen.append((kehren, f"Kehren {kehren:3d}  Rampen {rampen:3d}  {name}"))
+    zeilen.sort(key=lambda z: -z[0])
+    with open(os.path.join(AUSGABE, "kehren.txt"), "w", encoding="utf-8") as datei:
+        datei.write("\n".join(z[1] for z in zeilen) + ("\n" if zeilen else ""))
+
+
 def _ende(helfer, fehler=None):
     if fehler:
         helfer.fehler.append(fehler)
     sonde = getattr(starten, "sonde", None)
     if sonde is not None:
         sonde.schreiben()
+    _kehren_schreiben()
     with open(os.path.join(AUSGABE, "ergebnis.txt"), "w", encoding="utf-8") as datei:
         datei.write("\n".join(helfer.fehler) if helfer.fehler else "OK")
     # Offene modale Dialoge zuerst schließen, sonst beendet quit() nicht.
@@ -187,6 +232,8 @@ def starten():
 
     sys.excepthook = ausnahme
     starten.sonde = _Sonde()
+    starten.bahnen = _Bahnen()
+    FreeCAD.addDocumentObserver(starten.bahnen)
 
     def weiter():
         # Mitten in einer Rechnung des Addons (FreeCAD 26.3 arbeitet in booleschen Operationen

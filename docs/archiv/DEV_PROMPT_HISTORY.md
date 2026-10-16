@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-52 zickzack-in-jedem-szenario-zaehlen
+
+### EINGELESEN
+- Manuels Auftrag (2026-10-16 nachts): alle Szenarien und Bahngeneratoren auf Zickzack durchsehen.
+  Der Prüfstand deckt die 2,5D-Strategien an seinen Teilen ab, die Szenarien alle Strategien an
+  den Testteilen (C-Ring, Nase, Ring, Geist, 3-Achs-Testteil …).
+
+### DATEIEN
+- `camaddon/pruefstand.py`: `kehren_im_programm(Befehle)` zählt Kehren und Rampen an den Befehlen
+  einer Operation (G0–G3 absolut, Bögen über I/J). Mit einer Rundachse gibt es None, weil die
+  Richtung in XY dort nichts sagt.
+- `tests/gui/_lauf/szenario_lauf.py`: Ein Beobachter (`_Bahnen`) merkt sich von jeder CAM-Operation,
+  die neu rechnet, eine Kopie der Bahn. Am Ende schreibt `_kehren_schreiben` `kehren.txt`, je
+  Operation Kehren und Rampen, die mit Kehren zuerst. Gezählt wird erst am Ende, damit die
+  Lag-Sonde nichts merkt.
+
+### ERGEBNIS
+- Selbst geprüft: Ein Zickzack hinab zählt 1 Kehre, eine Helix aus Halbkreisen 0. Die ersten
+  Szenarien des vollen Laufs schreiben ihre `kehren.txt`.
+
 ## P-2026-10-16-51 kontur-wendel-statt-zickzack
 
 ### EINGELESEN
