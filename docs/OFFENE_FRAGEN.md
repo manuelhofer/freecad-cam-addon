@@ -102,6 +102,9 @@ Wege: (a) An einer Maschine, deren Spindel in Grundstellung nicht längs Z des J
 alles „von oben“ in eine solche Ebene – wie seit P-54 die schrägen Flächen (der Grundjob bleibt
 leer, das Programm schwenkt einmal). (b) Der Job selbst bekommt eine feste Grundstellung der
 Rundachsen (A −90), Prüfung, Programm und Abfahren nehmen sie überall.
+Bild: [frage7_g550_oben.png](bilder/vorschlaege/frage7_g550_oben.png) – links der Job „von oben“
+(A1 0°, unten der Satz „passt sie nicht zum Teil“), rechts dieselbe Tasche in der Ebene „oben“
+(A1 −90°, im Programm „A90 B0“, kein Hinweis).
 *Warum nur Manuel:* Es ändert, wie Jobs an einer waagerechten Maschine aussehen und was im
 Programm steht; du kennst die GROB und deine 840D.
 *Was die Antwort ändert:* (a) ist schnell gebaut (dieselbe Kette wie die Schrägen), (b) ist der
