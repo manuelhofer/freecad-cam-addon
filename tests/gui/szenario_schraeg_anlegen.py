@@ -220,3 +220,12 @@ def schritte(h):
     )
     yield 1500
     h.pruefe(bool(list(gekippt.Operations.Group)), "in der Aufspannung nichts angelegt")
+    # Das Einrichtblatt des Grundjobs: zwei Aufspannungen, die zweite gekippt, mit ihren Schritten.
+    b = einrichtblatt.blatt(grundjob, "17.10.2026", "0")
+    h.pruefe(len(b.aufspannungen) == 2, f"Aufspannungen: {[a.titel for a in b.aufspannungen]}")
+    if len(b.aufspannungen) == 2:
+        zweite = b.aufspannungen[1]
+        h.pruefe(
+            "30° gekippt um X" in zweite.spannung and zweite.schritte,
+            f"zweite Aufspannung: {zweite.spannung!r}, {len(zweite.schritte)} Schritte",
+        )
