@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-21 vollnut-helix
+
+### EINGELESEN
+- Manuel, 2026-10-16, am C-Ring: „warum ? fahr doch einfach nen kreis“. Spezifikation Strategien,
+  Abschnitt 5 (Manuel, 2026-10-12): Zickzack nur in der geschlossenen Nut, „wobei selbst da würde
+  ich wenns irgendwie geht auf eine helix setzten“.
+- Nachgemessen am C-Ring (Face8):
+  - Ø 6: Räumen macht 13 Rampen rundum auf kleinen Ringen im schmalen Streifen. Dort gewinnt aber
+    die Nut (seit P-07).
+  - Ø 8 bis 9 bei vollem Schlitz: die Vollnut mit Zickzack-Rampe über den ganzen Bogen.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`:
+  - `_vollnut_helix`: je Lage (höchstens ap und D/2) am Ende die Helix um r − R − Aufmaß hinab,
+    unten rundum, dann in voller Breite geradeaus bis auf den Kreis am anderen Ende; die nächste
+    Lage dort.
+  - `mit_helix` und `VOLLNUT_HELIX = 0.1 × R`: Erst unter diesem Platz kommt die Zickzack-Rampe
+    (`_vollnut`).
+  - Ap und Anteil in voller Breite stehen in `_vollnut_ap` und `_vollnut_anteil`.
+- `camaddon/vierachs_planbahn.py`: Docstrings.
+- `translations/de.json`, `en.json`, `help/de|en/bearbeitung.html`:
+  - Die Vollnut ist „in voller Breite“, mit der Helix am Ende.
+  - Das Ergebnis heißt „→ 1 Nut in voller Breite, etwa …“, ohne „mit Rampe“.
+- `tests/test_nut.py`: Nut B (14 breit, Ø 12): 4 Lagen mit Helix um 0,7, keine Rampe. Mit Ø 13
+  die Zickzack-Rampe.
+- `tests/test_nut_offen.py`, Fall (h): C-Ring im vollen Quader mit Ø 13,6 ohne Kehrtwende beim
+  Hinabfahren; nicht ins Teil, Grund leer. Mit Ø 14,4 die Rampe, und die Zählung sieht sie.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_nut`, `test_nut_offen`.
+- C-Ring im Quader mit Ø 13,6: 1,47 statt 1,77 min, ohne Zickzack.
+- Zum Ausprobieren: eine geschlossene Nut mit einem Fräser, der kaum schmaler ist als sie (z. B.
+  Nut 10 breit, Fräser Ø 8), Block „Nut“. In der Bahn ist am Ende ein kleiner Kreis hinab zu
+  sehen, dann gerade Züge – keine Zickzack-Linien mehr.
+
 ## P-2026-10-16-20 einrichtblatt (W-019)
 
 ### EINGELESEN

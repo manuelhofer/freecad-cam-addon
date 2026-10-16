@@ -2,9 +2,10 @@
 # tief, Halbkreise um (25, 20) und (55, 20); B 14 breit, durchgehend, um (25, 45) und (75, 45).
 # Mit dem Standardfräser Ø 12 (ae 1,5, ap 25): A in Bögen (Radius 10 − 6 − 0,3, P-2026-10-02-53:
 # nach der Helix Halbkreise von Wand zu Wand, quer zurück im Schnellvorschub; der Schritt nach
-# der Last, P-2026-10-02-56: im Mittel ae, kurz bis 1,7 ae), B in voller Breite mit der
-# Zickzack-Rampe (je Fahrt höchstens 3 tiefer, der Vorschub für den dicken Span gesenkt), beide
-# zuletzt rundum an der Wand. Im Quader: die Nuten
+# der Last, P-2026-10-02-56: im Mittel ae, kurz bis 1,7 ae), B in voller Breite: je Lage (höchstens
+# 6 tief) am Ende die Helix um 0,7 hinab, dann geradeaus (Manuel, 2026-10-16: „fahr doch einfach
+# nen kreis“), der Vorschub für den dicken Span gesenkt; mit Ø 13 ist für die Helix kein Platz –
+# dann die Zickzack-Rampe (je Fahrt höchstens 3 tiefer). Beide zuletzt rundum an der Wand. Im Quader: die Nuten
 # leer bis zum Grund (B 0,5 tiefer), daneben nichts angeschnitten; die Bögen im Gleichlauf (G3).
 # Ein Fräser Ø 25 passt nicht, ein Ø 6 ist für A zu klein (ein Kern bliebe). Dann die Operation
 # im Job: „Nut T1“, Endtiefe −0,5 (B durch), Art „nut“.
@@ -223,21 +224,64 @@ for a, b in zip(punkte, punkte[1:], strict=False):
 voll = [m for m, w in um.items() if w > math.pi + 1e-6]
 pruefe(voll == [(25.0, 20.0)] and len(um) == boegen_a + 1, f"volle Kreise um {voll}, {len(um)}")
 
-# Vollnut B: je Fahrt höchstens 3 tiefer (min(ap, D/2) / 2), Vorschub für den dicken Span.
-rampe = [
+# Vollnut B: 4 Lagen (20,5 tief, je höchstens min(ap, D/2) = 6), je Lage die Helix um 0,7 an
+# einem Ende, dann eben geradeaus bis vor das andere; Vorschub für den dicken Span. Keine Rampe.
+anteil_voll = 2 * math.sqrt(0.125 * 0.875)
+pruefe(nb.mit_helix(nut_b, R, 0.3) and not nb.mit_helix(nut_b, 6.5, 0.3), "Platz für die Helix")
+gerade = [
     (a, b)
     for a, b in zip(punkte, punkte[1:], strict=False)
     if not b.eilgang
     and b.bogen is None
     and abs(a.y - 45) < 1e-9
     and abs(b.y - 45) < 1e-9
+    and abs(b.x - a.x) > 45
+]
+pruefe(
+    len(gerade) == 4 and all(abs(a.z - b.z) < 1e-9 for a, b in gerade),
+    f"Lagen geradeaus: {[(round(a.z, 2), round(b.z, 2)) for a, b in gerade]}",
+)
+tiefen = [20.0] + [b.z for _a, b in gerade]
+pruefe(
+    all(0 < x - y <= 6 + 1e-9 for x, y in zip(tiefen, tiefen[1:], strict=False)),
+    f"Lagen zu tief: {tiefen}",
+)
+pruefe(abs(tiefen[-1] + 0.5) < 1e-9, f"nicht bis −0,5: {tiefen}")
+pruefe(all(abs(b.anteil - anteil_voll) < 1e-9 for _a, b in gerade), "Anteil geradeaus")
+helix_b = [
+    b
+    for a, b in zip(punkte, punkte[1:], strict=False)
+    if b.bogen is not None and abs(b.bogen[1] - 45) < 1e-9 and b.z < a.z - 1e-9
+]
+pruefe(
+    helix_b
+    and {(round(b.bogen[0], 6), round(b.bogen[1], 6)) for b in helix_b}
+    == {(25.0, 45.0), (75.0, 45.0)}
+    and all(abs(math.hypot(b.x - b.bogen[0], b.y - b.bogen[1]) - 0.7) < 1e-6 for b in helix_b),
+    "Helix der Vollnut nicht um die Enden mit 0,7",
+)
+rampe_b = [
+    (a, b)
+    for a, b in zip(punkte, punkte[1:], strict=False)
+    if not b.eilgang and b.bogen is None and abs(b.y - 45) < 1e-9 and b.z < a.z - 1e-9
+    and abs(b.x - a.x) > 1
+]  # fmt: skip
+pruefe(not rampe_b, f"Rampe in B: {len(rampe_b)}")
+
+# Ohne Platz für die Helix (Ø 13: 0,2 zwischen Fräser und Wand): die Zickzack-Rampe, je Fahrt
+# höchstens 3,25 tiefer (min(ap, D/2) / 2).
+eng = nb.planen(werte(fraeser_radius=6.5), [nut_b]).punkte
+rampe = [
+    (a, b)
+    for a, b in zip(eng, eng[1:], strict=False)
+    if not b.eilgang
+    and b.bogen is None
+    and abs(a.y - 45) < 1e-9
+    and abs(b.y - 45) < 1e-9
     and abs(b.x - a.x) > 49
 ]
-pruefe(rampe and all(a.z - b.z <= 3 + 1e-9 for a, b in rampe), "Rampe zu steil")
-pruefe(
-    all(abs(b.anteil - 2 * math.sqrt(0.125 * 0.875)) < 1e-9 for _a, b in rampe),
-    f"Anteil {[b.anteil for _a, b in rampe][:2]}",
-)
+pruefe(rampe and all(a.z - b.z <= 3.25 + 1e-9 for a, b in rampe), "Rampe zu steil")
+pruefe(any(a.z - b.z > 1e-6 for a, b in rampe), "keine Rampe ohne Platz für die Helix")
 pruefe(min(b.z for _a, b in rampe) == -0.5, "Rampe nicht bis −0,5")
 
 

@@ -13,7 +13,9 @@
 # abgetragen; der Schritt nach der Last (P-2026-10-02-56): im Mittel ae, in der Mitte der Bögen
 # höchstens 1,7 ae, über 1,25 ae nie länger als eine Fräserbreite. (f) Eine offene Nut 30 breit – früher „zu breit“ (ein Kern bliebe in den
 # Kreisen) – geht jetzt in Bögen, ebenso leer und nirgends ins Teil. (g) Die Bogennut (eine Ringnut,
-# zum Schlitz offen) in D-Bögen und in Wellen.
+# zum Schlitz offen) in D-Bögen und in Wellen. (h) Dieselbe im vollen Quader als Vollnut: mit der
+# Helix, ohne Zickzack.
+import math
 import os
 import sys
 
@@ -67,6 +69,26 @@ def werte():
         fraeser_radius=R, zustellung=AP, zeilenabstand=AE, oben=20.0, sicher=25.0, aufmass=0.3,
         schneidenlaenge=26.0, eintauchwinkel=3.0, vorschub=VF, eintauchen=VF * 0.3,
     )  # fmt: skip
+
+
+def umkehren_hinab(punkte):
+    """Wie oft die Bahn beim Hinabfahren im Vorschub kehrtmacht (Zickzack-Rampe) – eine Helix
+    dreht nur, auch in Stücken (die Bogennut legt die Bahn in 0,25-mm-Stücken auf den Bogen)."""
+    umkehren = 0
+    vorher = None
+    for a, b in zip(punkte, punkte[1:], strict=False):
+        if b.eilgang or b.z > a.z + 1e-9:
+            vorher = None
+            continue
+        d = (b.x - a.x, b.y - a.y)
+        laenge = math.hypot(*d)
+        if laenge < 1e-9:
+            continue
+        d = (d[0] / laenge, d[1] / laenge)
+        if b.z < a.z - 1e-9 and vorher is not None and d[0] * vorher[0] + d[1] * vorher[1] < -0.5:
+            umkehren += 1
+        vorher = d if b.z < a.z - 1e-9 else None
+    return umkehren
 
 
 def pruefe_bahn(name, teil, nut, halb=8.0):
@@ -276,6 +298,27 @@ if c_nuten and c_nuten[0].bogen is not None:
     pruefe(k.eilgang_abtrag <= 1e-9, f"C-Ring im Quader: im Eilgang {k.eilgang_abtrag:.1f} mm³")
     pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"C-Ring im Quader: ins Teil {k.einschnitt}")
     pruefe(k.rest <= ps.REST_ZULAESSIG, f"C-Ring im Quader: Rest {k.rest:.2f}")
+    # (h) Dieselbe Nut im vollen Quader mit Ø 13,6 – kaum schmaler als die Nut (Vollnut): je Lage
+    # am Ende die Helix hinab, dann in voller Breite den Bogen entlang; keine Zickzack-Rampe
+    # (Manuel, 2026-10-16: „warum ? fahr doch einfach nen kreis“). Im Eilgang nichts, nicht ins
+    # Teil, der Grund leer.
+    r_v = 6.8
+    w_v = werte()
+    w_v.fraeser_radius = r_v
+    pruefe(nb.verfahren(c, r_v, 0.3) == "vollnut" and nb.mit_helix(c, r_v, 0.3), "C-Ring Ø 13,6")
+    bahn_v = nb.planen(w_v, [c], voll)
+    zickzack = umkehren_hinab(bahn_v.punkte)
+    k = ps.messen([ps.Bahnlauf(bahn_v.punkte, VF, VF * 0.3)], ring, (-42, 42, -42, 42), 20.0,
+                  ff.scheibe(r_v), AE, AP, ebenen_z=[12.0], aufmass=0.0, raster=0.25)  # fmt: skip
+    print(ascii(f"C-Ring Vollnut im Quader: {bahn_v.zeit:.2f} min | {ps.zeile(k)}"))
+    pruefe(not zickzack, f"C-Ring Vollnut: {zickzack}-mal kehrt beim Hinabfahren")
+    pruefe(k.eilgang_abtrag <= 1e-9, f"C-Ring Vollnut: im Eilgang {k.eilgang_abtrag:.1f} mm³")
+    pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"C-Ring Vollnut: ins Teil {k.einschnitt}")
+    pruefe(k.rest <= ps.REST_ZULAESSIG, f"C-Ring Vollnut: Rest {k.rest:.2f}")
+    # Gegenprobe: Ohne Platz für die Helix (Ø 14,4) die Zickzack-Rampe – die Zählung sieht sie.
+    w_v.fraeser_radius = 7.2
+    pruefe(not nb.mit_helix(c, 7.2, 0.3), "C-Ring Ø 14,4 mit Helix?")
+    pruefe(umkehren_hinab(nb.planen(w_v, [c], voll).punkte) > 0, "Zickzack nicht gezählt")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

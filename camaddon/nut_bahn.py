@@ -17,10 +17,15 @@ Bögen statt Vollschnitt.
   (_bogenschritt, unten). Bis P-2026-10-02-52 volle Kreise (Trochoide), die hinten durch schon
   freie Luft liefen: je Schritt gut ein Zehntel länger. Die nächste Lage zurück.
 - **Vollnut** (ist die Nut kaum breiter als der Fräser – die Bögen hätten einen Radius unter
-  VOLLNUT_ANTEIL · R): in einer Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben
-  hinüber. Je Fahrt höchstens so viel tiefer, dass der Fräser nie mehr als ap und nie mehr als
+  VOLLNUT_ANTEIL · R): je Lage (höchstens ap und VOLLNUT_AP · D) am Ende mit der Helix um r − R
+  − Aufmaß hinab, unten einmal rundum, dann in voller Breite geradeaus ans andere Ende; die
+  nächste Lage dort mit der Helix (Manuel, 2026-10-16, am C-Ring: „warum ? fahr doch einfach nen
+  kreis“; 2026-10-12: Zickzack nur in der geschlossenen Nut, „wobei selbst da würde ich wenns
+  irgendwie geht auf eine helix setzten“). Nur wo dafür kein Platz ist (r − R − Aufmaß unter
+  VOLLNUT_HELIX · R), in einer Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben
+  hinüber – je Fahrt höchstens so viel tiefer, dass der Fräser nie mehr als ap und nie mehr als
   VOLLNUT_AP · D in voller Breite schneidet (die Rampe hin und zurück schneidet zweimal die
-  Stufe); der Vorschub so, dass der Span so dick bleibt wie beim Einsatz mit ae (dünner Span
+  Stufe). Der Vorschub so, dass der Span so dick bleibt wie beim Einsatz mit ae (dünner Span
   bei kleinem ae – in voller Breite nicht).
 - **Schlichten**: zuletzt die Wand bei r − R einmal rundum im Gleichlauf, mit Halbkreisen aus
   der Mitte eines Endes hinein und wieder heraus – in Zügen von höchstens der Schneidenlänge.
@@ -68,6 +73,7 @@ TIEFER = 0.5  # mm – so weit unter den Grund einer durchgehenden Nut
 VOLLNUT_ANTEIL = 0.25  # × R: kleiner der Radius der Bögen, dann die Vollnut mit Rampe
 KERN_ANTEIL = 0.9  # × R: größer der Radius der Helix, dann bliebe in ihrer Mitte ein Kern
 VOLLNUT_AP = 0.5  # × D: so tief schneidet der Fräser in voller Breite höchstens
+VOLLNUT_HELIX = 0.1  # × R: so viel Platz (r − R − Aufmaß) braucht die Helix der Vollnut mindestens
 MIN_SCHRITT = 0.05  # mm – kürzer rücken die Bögen nicht vor
 MIN_STEIGUNG = 0.05  # mm je Umlauf – flacher wird keine Helix
 MIN_RAMPE = 0.01  # mm je Fahrt – flacher wird die Rampe der Vollnut nicht
@@ -819,20 +825,69 @@ def _lagen_bei(punkte, nut, w, r_l, oben, z_ende, uhr, bei):
     return weg, anzahl, boegen, ende
 
 
-def _vollnut(punkte, nut, w, oben, z_ende):
-    """Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben hinüber. Beginnt an A (der
-    Punkt davor liegt dort). Gibt (Länge, das Ende, an dem sie aufhört) zurück."""
+def _vollnut_ap(w):
+    """So tief schneidet die Vollnut je Lage höchstens: ap, VOLLNUT_AP · D, die Schneide."""
     R = w.fraeser_radius
     ap = w.zustellung if w.zustellung > GLEICH else 2 * R
     ap = min(ap, VOLLNUT_AP * 2 * R)
     if w.schneidenlaenge > 0:
         ap = min(ap, w.schneidenlaenge)
+    return ap
+
+
+def _vollnut_anteil(w):
+    """Der Anteil am Vorschub in voller Breite: der Span so dick wie beim Einsatz mit ae
+    (bahn.Punkt.anteil)."""
+    k = min(max(w.zeilenabstand, GLEICH) / (2 * w.fraeser_radius), 0.5)
+    return 2 * math.sqrt(k * (1 - k))
+
+
+def mit_helix(nut, fraeser_radius, aufmass=0.0):
+    """Taucht die geschlossene Vollnut mit der Helix ein (genug Platz für den Kreis) – sonst
+    mit der Zickzack-Rampe?"""
+    r_l = nut.radius - fraeser_radius - max(aufmass, 0.0)
+    return r_l >= VOLLNUT_HELIX * fraeser_radius - GLEICH
+
+
+def _vollnut_helix(punkte, nut, w, r_h, oben, z_ende, uhr):
+    """Die Vollnut in Lagen: am Ende die Helix um r_h hinab, unten einmal rundum, dann in voller
+    Breite geradeaus bis vor das andere Ende (auf dessen Kreis); die nächste Lage dort. Beginnt auf
+    dem Kreis um A, zur Nut hin (der Punkt davor liegt dort). Gibt (Länge, Lagen, das Ende, an dem
+    sie aufhört) zurück."""
+    ap = _vollnut_ap(w)
+    anteil = _vollnut_anteil(w)
+    tiefe = oben - z_ende
+    anzahl = max(1, int(math.ceil(tiefe / ap - 1e-9)))
+    drehung = -1.0 if uhr else 1.0
+    steigung = max(
+        2 * math.pi * r_h * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
+    )
+    weg = 0.0
+    start, ziel = nut.a, nut.b
+    z_vorher = oben
+    for lage in range(1, anzahl + 1):
+        z = oben - tiefe * lage / anzahl
+        ux, uy = _richtung(start, ziel)
+        winkel = math.atan2(uy, ux)
+        umlaeufe = max(1, int(math.ceil((z_vorher - z) / steigung - 1e-9)))
+        unten = winkel + drehung * 2 * math.pi * umlaeufe
+        weg += _bogen(punkte, start, r_h, winkel, unten, z_vorher, z, uhr, anteil)
+        weg += _bogen(punkte, start, r_h, unten, unten + drehung * 2 * math.pi, z, z, uhr, anteil)
+        weg += _hin(punkte, ziel[0] - r_h * ux, ziel[1] - r_h * uy, z, anteil=anteil)
+        z_vorher = z
+        start, ziel = ziel, start
+    return weg, anzahl, start
+
+
+def _vollnut(punkte, nut, w, oben, z_ende):
+    """Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben hinüber – nur, wo für die
+    Helix kein Platz ist (mit_helix). Beginnt an A (der Punkt davor liegt dort). Gibt (Länge, das
+    Ende, an dem sie aufhört) zurück."""
+    ap = _vollnut_ap(w)
     # Hin und zurück schneidet die Rampe zweimal die Stufe: je Fahrt höchstens ap / 2.
     stufe = min(nut.laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), ap / 2)
     stufe = max(stufe, MIN_RAMPE)
-    # Der Span in voller Breite so dick wie beim Einsatz mit ae (bahn.Punkt.anteil).
-    k = min(max(w.zeilenabstand, GLEICH) / (2 * R), 0.5)
-    anteil = 2 * math.sqrt(k * (1 - k))
+    anteil = _vollnut_anteil(w)
     z = oben
     dort = nut.b
     weg = 0.0
@@ -1209,7 +1264,11 @@ def _nut(punkte, nut, w, stand=None, bei=None):
         return weg, (1 if vollnut else lagen), boegen, vollnut, z_ende
     if vollnut and bei is not None and bei > 0.5:
         nut = replace(nut, a=nut.b, b=nut.a)  # die Rampe beginnt am Ende bei der Stelle
-    if vollnut:
+    helix = vollnut and mit_helix(nut, R, aufmass)
+    if helix:  # auf dem Kreis um A, zur Nut hin
+        ux, uy = _richtung(nut.a, nut.b)
+        start = (nut.a[0] + r_l * ux, nut.a[1] + r_l * uy)
+    elif vollnut:
         start = nut.a
     else:
         ux, uy = _richtung(nut.a, nut.b)
@@ -1219,7 +1278,10 @@ def _nut(punkte, nut, w, stand=None, bei=None):
     punkte.append(bn.Punkt(True, start[0], start[1], knapp))
     punkte.append(bn.Punkt(False, start[0], start[1], oben, True))
     weg = bn.weg(punkte[-2], punkte[-1])
-    if vollnut:
+    if helix:  # zählt wie jede Vollnut als eine Lage (wie die offene, _offene_lagen)
+        stueck, _lagen, ende = _vollnut_helix(punkte, nut, w, r_l, oben, z_ende, uhr)
+        lagen, boegen = 1, 0
+    elif vollnut:
         stueck, ende = _vollnut(punkte, nut, w, oben, z_ende)
         lagen, boegen = 1, 0
     else:

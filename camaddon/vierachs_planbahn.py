@@ -50,8 +50,8 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
 
 - **Nut** (Passfedernut, P-2026-10-02-05): Ist die Fläche der Grund eines Langlochs (zwei
   parallele Wände, an den Enden Halbkreise – nuten()), fräst sie die Bahn „Nut“ des Quaders
-  (nut_bahn: in voller Breite mit der Zickzack-Rampe, sonst in Bögen, zuletzt die Wand
-  rundum) – gerechnet im Rahmen der Fläche (x längs, z ihre Normale, y = z × x), zurück mit
+  (nut_bahn: in voller Breite mit der Helix am Ende – ohne Platz dafür mit der Zickzack-Rampe –,
+  sonst in Bögen, zuletzt die Wand rundum) – gerechnet im Rahmen der Fläche (x längs, z ihre Normale, y = z × x), zurück mit
   a = x, Höhe = z, Versatz = −y und der Rundachse fest. Mit Zeilen kam der Fräser nicht an die
   Enden (4 mm blieben stehen) und mit dem Fräser so breit wie die Nut gar nicht hinein.
 
@@ -865,8 +865,8 @@ def _eingeengt(nut, radius):
 
 def _nut_punkte(liste, ebene, w, oben, sicher):
     """([vierachs_bahn.Punkt], nut_bahn.Nutbahn) – die Nuten `liste` mit der Bahn „Nut“
-    (nut_bahn.planen: in voller Breite die Zickzack-Rampe, sonst in Bögen, zuletzt die Wand
-    rundum), zurück in den Rahmen der Stange: a = x, die Höhe = z, q = −y, die Rundachse fest
+    (nut_bahn.planen: in voller Breite mit der Helix am Ende – ohne Platz dafür die
+    Zickzack-Rampe –, sonst in Bögen, zuletzt die Wand rundum), zurück in den Rahmen der Stange: a = x, die Höhe = z, q = −y, die Rundachse fest
     auf der Ebene; Bögen in Sehnen."""
     from . import nut_bahn as nb
 

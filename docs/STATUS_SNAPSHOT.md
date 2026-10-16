@@ -587,7 +587,10 @@ T1 Ø 12.
      Offen ist, wie die Kontur dort von einer Helix aus in die erste Bahn kommt.
    - Räumen: 0.
 
-   Noch nicht gezählt: Plan indexiert, Rundum schruppen, `schlicht_anlauf`, Nut (Vollnut).
+   - Nut (Vollnut): Helix statt Zickzack, wo Platz ist (P-2026-10-16-21).
+
+   Noch nicht gezählt: Plan indexiert, Rundum schruppen, `schlicht_anlauf`. Die Nut auf dem
+   Mantel (4 Achsen, `vierachs_planbahn`, Rundachse dreht) fährt noch ihre eigene Rampe.
 2. **Das Update lädt zu viel**: „die fotos sind ja nicht im main mit dabei .. heist wenn ich addon
    update drücke .. dauert das mitlerweile ganzschön lang … bilder fürs forum usw muss da nicht
    dabei sein“. Nachgesehen: Manuels Addon kam als ZIP von GitHub (`…/archive/main.zip`, kein
@@ -662,7 +665,13 @@ T1 Ø 12.
    Zum Zickzack in der Nut („warum ? fahr doch einfach nen kreis“): Ist die Nut im Quader zu,
    fräst ein Fräser, der kaum schmaler ist als sie (`verfahren` → „vollnut“), mit der
    Zickzack-Rampe. Stattdessen am Ende mit der Helix (Kreis) hinab, dann geradeaus.
-   Nachmessen, mit welchem Fräser.
+   *Erledigt:* P-2026-10-16-21. Nachgemessen am C-Ring (Beispiel, Face8): Mit Ø 6 ist es das
+   Räumen – im 1,4 mm breiten Streifen für die Fräsermitte zerfällt der Raster in kleine Ringe,
+   jeder mit einer Rampe rundum (13), das sieht aus wie Zickzack. Dort gewinnt seit P-07 die Nut
+   (D-Bögen, ohne Rampe). Mit Ø 8 bis 9 und vollem Schlitz ist es die Vollnut: Sie taucht jetzt je
+   Lage am Ende mit der Helix ein und fährt dann geradeaus (am C-Ring im Quader mit Ø 13,6:
+   1,47 statt 1,77 min). Zickzack nur noch, wo zwischen Fräser und Wand weniger als 0,1 R Platz
+   ist.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach

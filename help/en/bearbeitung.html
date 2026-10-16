@@ -665,9 +665,13 @@ On every arc the engagement grows from the wall to the middle and falls again �
 briefly up to 1.7 ae, above 1.25 ae never for longer than one cutter width of path, and never
 more than half the cutter engaged. In the slot 20 wide with the Ø 12 and ae 1.5 that is
 0.97 mm per arc. If it is barely wider (the arcs would
-have a radius under a quarter of the cutter radius): down in a <b>zigzag ramp</b> along the slot, each pass at most so deep that
-at full width it never cuts more than ap and never more than half the diameter – with the
-feed lowered so the chip stays as thick as with the application's small ae.</li>
+have a radius under a quarter of the cutter radius): at <b>full width</b>, each layer at most ap
+and half the diameter deep – down at the end with a small <b>helix</b>, once round at the bottom,
+then straight to the other end, the next layer there. Only if there is no room for the helix
+either (less than a tenth of the cutter radius between cutter and wall), down in a <b>zigzag
+ramp</b> along the slot, each pass at most so deep that at full width it never cuts more than ap
+and never more than half the diameter. Both with the feed lowered so the chip stays as thick as
+with the application's small ae.</li>
 <li>Finally the <b>wall once all round</b> climb milling (counter-clockwise, G3), with
 semicircles in from the centre of one end and out again, in passes of at most the flute
 length. Through slots 0.5 mm deeper.</li>
@@ -675,8 +679,8 @@ length. Through slots 0.5 mm deeper.</li>
 spacing</b> (ae – it gives the step of the arcs), <b>allowance for finishing</b>, the ticks
 <b>finish the wall</b> and <b>climb milling</b>. If the cutter mills the slot at full width,
 the application “Full slot” is preselected when it has one.</li>
-<li>Grey below: “→ 1 slot, 1 layer, 31 arcs, about 1 min” or “→ 1 slot at full width
-with a ramp, about 1 min”. Red says why it does not work: the cutter is wider than the slot,
+<li>Grey below: “→ 1 slot, 1 layer, 31 arcs, about 1 min” or “→ 1 slot at full width,
+about 1 min”. Red says why it does not work: the cutter is wider than the slot,
 or a closed slot is wider than nearly two cutters – a core would stay in the middle of the
 helix (a larger cutter, or “Clearing”).</li>
 <li><b>Plunge at</b> (one row per closed slot): where the helix plunges – in every layer
@@ -685,7 +689,7 @@ crosses the slot; otherwise alternating at the ends – then there is no way bac
 <b>ends</b> and the <b>middle</b> with their coordinates at the origin, or <b>Pick in view …</b>
 and click a point on the floor of the slot. If the point is not at an end, the arcs run from it
 to one end, back through the cleared slot at rapid feed, and then to the other. The full-width
-slot (no room for a helix) starts its ramp at the end nearest to the point.</li>
+slot starts at the end nearest to the point.</li>
 <li><b>Only where material is left</b> (material state): the slot takes into account what the
 operations before it in the job have already removed – and the ticked strategies before it in
 the same window (face milling, clearing). A block already cleared around the boss down to −10,
