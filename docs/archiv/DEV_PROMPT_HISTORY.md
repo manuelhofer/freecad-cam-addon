@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-51 kontur-wendel-statt-zickzack
+
+### EINGELESEN
+- Manuel, 2026-10-16 nachts: „schau dir alle szenarien und bahngeneratoren nochmal genauer an das
+  auch wirklich alle zickzack fahrten weg sind !“
+- Der Prüfstand zählte Rampen, nicht ob sie hin und her fahren. Neu gezählt als „Kehren“ (siehe
+  unten): Zickzack fuhr nur noch die Kontur – Tasche 8, Platte (Tasche) 21, Bohrungen 66 Rampen
+  hin und her. Planfräsen, Räumen, Bohrung fräsen: 0.
+- Ursache: Fand die Kontur keinen Platz für eine Helix, fiel sie auf die Rampe längs der Bahn
+  zurück (`vierachs_bahn._rampe`), die am Ende des Stücks umkehrt. Bei einer geschlossenen Kontur
+  ist das unnötig.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`:
+  - `_lauf`: Ein geschlossener Lauf (Bohrung, Tasche, Platte rundum) geht auf der vorigen Lage an
+    die Kontur und mit `_wendel` hinab.
+  - `_wendel`: in Fahrtrichtung rundum mit dem Eintauchwinkel, nie zurück; unten weiter bis zum
+    Anfang. Je Segmentgrenze ein Satz; ein Bogen wird ein Bogen mit fallendem Z, keine Kette
+    kurzer Geraden – über die Abtastpunkte hielt die Maschine in kleinen Bohrungen an jeder Ecke
+    (2185 Halte).
+  - Unter 1 mm Umfang geht es senkrecht hinab.
+- `camaddon/pruefstand.py`: `Kennzahlen.kehren`. Rampen, die beim Absenken in XY umkehren, über die
+  Tangenten am Satzanfang und -ende; eine Helix aus Halbkreisen kehrt also nicht um.
+- `tests/test_pruefstand.py`: Jede Bahn muss 0 Kehren haben.
+- `tests/bestmarken_26.json`: Kontur in den Bohrungen 3,46 → 3,20 min, Platte (Tasche) 9,00 → 8,70.
+
+### ERGEBNIS
+- Prüfstand (Wochen-Build), Kontur:
+  - Bohrungen: Rampen 132 → 7, Kehren 66 → 0, Halte 1382 → 74, 3,46 → 3,20 min;
+  - Platte: Rampen 77 → 15, Kehren 21 → 0, 9,00 → 8,70 min;
+  - Tasche: Rampen 22 → 4, Kehren 8 → 0, 2,34 → 2,35 min.
+  Nirgends Eintauchen, Rest oder Einschnitt.
+- Grün: `test_pruefstand`, `test_kontur`, `szenario_kontur`, `szenario_kontur_materialstand`,
+  `szenario_testteil`.
+
 ## P-2026-10-16-50 vorschau-schruppbahn-wiederverwenden
 
 ### EINGELESEN

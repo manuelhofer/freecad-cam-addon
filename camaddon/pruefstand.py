@@ -82,6 +82,10 @@ class Kennzahlen:
     )
     eintauchungen: int = 0  # senkrechte Fahrten mit Eintauchvorschub, die Material trafen
     rampen: int = 0  # schräge Fahrten hinab im Vorschub, die Material trafen (Stücke)
+    # Rampen, die beim Absenken in XY umkehren – Zickzack (Manuel, 2026-10-16: „schau dir alle
+    # szenarien und bahngeneratoren nochmal genauer an das auch wirklich alle zickzack fahrten weg
+    # sind“). Eine Helix oder Wendel kehrt nie um.
+    kehren: int = 0
     halte: int = 0  # Stopps: Ecken ab 15°, um Eilgänge, am Anfang und Ende
     voll: float = 0.0  # mm Vorschub mit mehr als VOLL_ANTEIL · D im Eingriff (Vollschnitt)
     eingriff_max: float = 0.0  # die größte Breite im Eingriff, als Vielfaches von ae
@@ -196,6 +200,8 @@ def messen(
         k.zeit += bn.zeit(punkte, lauf.vorschub, lauf.eintauchen or None)
         k.halte += halte(punkte)
         in_rampe = False
+        richtung = None  # die Fahrtrichtung am Ende des letzten Stücks der Rampe
+        gekehrt = False
         for von, nach in zip(punkte, punkte[1:], strict=False):
             stuecke = _stuecke(von, nach)
             zaehlt = not (nach.eilgang or nach.eintauchen or nach.z < von.z - _NICHTS)
@@ -259,6 +265,13 @@ def messen(
             elif hinab and trifft:
                 if not in_rampe:
                     k.rampen += 1
+                    richtung, gekehrt = None, False
+                anfang, ende = tangenten(von, nach)
+                if anfang is not None:
+                    if richtung is not None and not gekehrt and _skalar(richtung, anfang) < -0.5:
+                        k.kehren += 1
+                        gekehrt = True
+                    richtung = ende
                 in_rampe = True
             else:
                 in_rampe = False
@@ -319,12 +332,39 @@ def urteile(k, sicher_nur=False):
     return saetze
 
 
+def tangenten(von, nach):
+    """Die Fahrtrichtung in XY am Anfang und am Ende des Satzes von `von` nach `nach` (je ein
+    Einheitsvektor) – (None, None), wenn er sich in XY nicht bewegt."""
+    if nach.bogen is None:
+        dx, dy = nach.x - von.x, nach.y - von.y
+        lang = math.hypot(dx, dy)
+        if lang < 1e-9:
+            return None, None
+        return (dx / lang, dy / lang), (dx / lang, dy / lang)
+    mx, my, uhr = nach.bogen
+    drehen = -1.0 if uhr else 1.0  # gegen den Uhrzeiger: Radius um +90° gedreht
+
+    def tangente(px, py):
+        rx, ry = px - mx, py - my
+        lang = math.hypot(rx, ry)
+        if lang < 1e-9:
+            return None
+        return (-drehen * ry / lang, drehen * rx / lang)
+
+    return tangente(von.x, von.y), tangente(nach.x, nach.y)
+
+
+def _skalar(a, b):
+    return a[0] * b[0] + a[1] * b[1]
+
+
 def zeile(k):
     """Die Kennzahlen in einer Zeile – für Berichte und die Prüfung."""
     return (
         f"{k.zeit:6.2f} min  Untergrenze {k.untergrenze:5.2f} ({k.wirkungsgrad * 100:3.0f} %)  "
         f"Luft {k.luftanteil * 100:3.0f} %  Eilgang {k.eilgangweg / 1000:5.2f} m  "
         f"Halte {k.halte:4d}  Eintauchen {k.eintauchungen:2d}  Rampen {k.rampen:2d}  "
+        f"Kehren {k.kehren:2d}  "
         f"Rest {k.rest:.2f}  Einschnitt {k.einschnitt:.2f}  "
         f"Eingriff bis {k.eingriff_max:.1f} ae, über {bn.LAST_DAUERND:g} ae {k.last_lang:.0f} mm "
         f"am Stück, voll {k.voll:.0f} mm"

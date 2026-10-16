@@ -10,7 +10,8 @@
 # Bahn darf langsamer werden als ihre Bestmarke in tests/bestmarken.json (mit dem Adaptiv-Kern von
 # 26.3: tests/bestmarken_26.json; schneller immer –
 # BESTMARKEN_SCHREIBEN=1 schreibt die Datei neu, der Verlauf sagt, warum). Die Tabelle am Ende
-# zeigt je Bahn Zeit, Untergrenze und Wirkungsgrad, Luft, Eilgang, Halte, Eintauchen, Rampen.
+# zeigt je Bahn Zeit, Untergrenze und Wirkungsgrad, Luft, Eilgang, Halte, Eintauchen, Rampen
+# und Kehren (Rampen hin und her – es darf keine geben).
 import json
 import os
 import sys
@@ -208,6 +209,9 @@ def messe(
     print(f"{schluessel:26} {ps.zeile(k)}  ({time.time() - anfang:.0f} s)")
     for satz in ps.urteile(k, sicher_nur=vergleich):
         pruefe(False, f"{schluessel}: {satz}")
+    # Keine Rampe hin und her (Manuel, 2026-10-16: „das auch wirklich alle zickzack fahrten weg
+    # sind“) – an jedem Teil, in jeder Variante; seit P-2026-10-16-51 auch die Kontur.
+    pruefe(k.kehren == 0, f"{schluessel}: {k.kehren} Rampen im Zickzack")
     return k
 
 

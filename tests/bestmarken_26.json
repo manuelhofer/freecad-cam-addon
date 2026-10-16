@@ -34,19 +34,19 @@
   },
   "bohrungen/kontur": {
     "eintauchen": 0,
-    "halte": 1382,
-    "luft": 0.212,
-    "rampen": 132,
-    "wirkungsgrad": 0.32,
-    "zeit": 3.463
+    "halte": 74,
+    "luft": 0.094,
+    "rampen": 7,
+    "wirkungsgrad": 0.347,
+    "zeit": 3.199
   },
   "platte/kontur tasche": {
     "eintauchen": 0,
-    "halte": 723,
-    "luft": 0.705,
-    "rampen": 77,
-    "wirkungsgrad": 0.13,
-    "zeit": 9.003
+    "halte": 129,
+    "luft": 0.664,
+    "rampen": 15,
+    "wirkungsgrad": 0.135,
+    "zeit": 8.698
   },
   "platte/kontur zapfen": {
     "eintauchen": 0,

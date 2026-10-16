@@ -1519,6 +1519,7 @@ def _lauf(
     so nah und so fern von der Wand haben die Bahnen davor diese Lage schon geräumt; mit
     `mit_stand` (Materialstand) dazu, was die Operationen davor weggenommen haben."""
     x, y = proben.x[stellen], proben.y[stellen]
+    geschlossen = len(stellen) > 2 and int(stellen[0]) == int(stellen[-1])
     p0 = (float(x[0]), float(y[0]))
     p1 = (float(x[-1]), float(y[-1]))
     t0 = _einheit(x[1] - x[0], y[1] - y[0])
@@ -1629,6 +1630,16 @@ def _lauf(
             punkt = bn.Punkt(False, start[0], start[1], lage)
             laenge += bn.weg(punkte[-1], punkt)
             punkte.append(punkt)
+    elif material and geschlossen:
+        # Eine geschlossene Kontur (Bohrung, Tasche, Platte rundum): auf der vorigen Lage an die
+        # Kontur, dann in Fahrtrichtung rundum hinab – eine Wendel längs der Kontur, nie hin und
+        # her (Manuel, 2026-10-16: „das auch wirklich alle zickzack fahrten weg sind“; am
+        # Prüfstand fuhr die Kontur in den Bohrungen 66, in der Tasche 8 Rampen im Zickzack).
+        punkte.append(bn.Punkt(False, start[0], start[1], vorige, True))
+        if ein is not None:
+            laenge += _anfahrt_punkte(punkte, ein, vorige, hinein=True)
+            ein = None  # schon auf der Kontur
+        laenge += _wendel(punkte, segmente, proben, stellen, lage, vorige, w)
     elif material:
         punkte.append(bn.Punkt(False, start[0], start[1], vorige, True))  # bis ans Material
         laenge += _rampe(punkte, ein, x, y, lage, vorige, w, schritt)
@@ -1835,6 +1846,49 @@ def _helix_hinab(punkte, mitte, radius, knapp, oben, lage, w):
     laenge += bn.weg(punkte[-1], punkt)
     punkte.append(punkt)
     return laenge
+
+
+WENDEL_MIN_UMFANG = 1.0  # mm – auf einer kürzeren Kontur geht es senkrecht hinab
+
+
+def _wendel(punkte, segmente, proben, stellen, lage, vorige, w):
+    """Hinab längs der geschlossenen Kontur (der Lauf `stellen`; die letzte Stelle ist die erste)
+    in ihrer Fahrtrichtung, mit dem Eintauchwinkel, rundum, bis die Lage erreicht ist – dann auf
+    ihr weiter bis zum Anfang. Nie zurück. Je Segmentgrenze ein Satz wie in _bahnpunkte, ein Bogen
+    als Bogen mit fallendem Z (eine Wendel): Über die Abtastpunkte als Geraden hielt die Maschine
+    in einer kleinen Bohrung an jeder Ecke (am Prüfstand 2185 Halte). Gibt die Länge zurück."""
+    steil = math.tan(math.radians(w.eintauchwinkel if w.eintauchwinkel > 0 else vb.EINTAUCHWINKEL))
+    x, y, seg = proben.x, proben.y, proben.segment
+    idx = [int(i) for i in stellen]
+    m = len(idx) - 1
+    stuecke = np.hypot(np.diff(x[idx]), np.diff(y[idx]))
+    laenge = 0.0
+    if m < 2 or float(stuecke.sum()) < WENDEL_MIN_UMFANG:
+        punkt = bn.Punkt(False, float(x[idx[0]]), float(y[idx[0]]), lage, True)  # senkrecht
+        laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
+        return laenge
+    hoehe = vorige
+    unten = False
+    pos = 0
+    while True:
+        weiter = pos + 1
+        h, i = idx[pos], idx[weiter]
+        satz = seg[i] != seg[h] or weiter == m  # eine Segmentgrenze oder der Anfang
+        if not unten:
+            hoehe -= steil * float(stuecke[pos])
+            if hoehe <= lage + GLEICH:
+                hoehe, unten, satz = lage, True, True  # unten: hier ein Satz
+        if satz:
+            punkt = bn.Punkt(
+                False, float(x[i]), float(y[i]), hoehe, bogen=segmente[int(seg[h])].bogen
+            )
+            if bn.weg(punkte[-1], punkt) > 1e-9:
+                laenge += bn.weg(punkte[-1], punkt)
+                punkte.append(punkt)
+        pos = weiter % m
+        if unten and pos == 0:
+            return laenge
 
 
 def _rampe(punkte, ein, x, y, lage, vorige, w, schritt):
