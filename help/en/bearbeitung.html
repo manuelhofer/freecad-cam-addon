@@ -104,12 +104,14 @@ removes all. If the part has more faces like the one clicked – fillets with th
 corner radii, chamfers with the same inclination or flat floors, each at the same height – a
 button below says e.g. “Add all 7 other fillets R 2 (height 20 … 22)” and adds them all at
 once.</li>
-<li>An <b>inclined flat face</b> (“Face3 is inclined 30° …”): on a 5-axis mill it can be done
-swivelled. The button <b>Swivel plane (3+2) …</b> below closes the assistant without creating
-operations and opens <a href="schwenken.html">Swivel plane</a> with this face – the plane becomes
-a job of its own, in which the assistant opens again. If the job has only just been made, it is
-kept, just without operations: that is how you mill, say, only a hole in an inclined face
-without creating anything on top first.</li>
+<li>An <b>inclined flat face</b> (“Face3 is inclined 30° …”): on a 5-axis mill it is done
+swivelled – <b>Create</b> makes the plane for it by itself (a job of its own; if it exists, it
+takes that one) and opens the assistant in it with the face selected; the walls and corners of a
+pocket in the slope come along. On a 3-axis mill the tick <b>Mill clamped at an angle</b> is
+there (ticked): <b>Create</b> makes a setup of its own, the part clamped tilted by the angle, the
+face on top; the setup sheet names angle and axis. If only inclined faces are selected,
+<b>Create</b> makes nothing in the base job: that is how you mill, say, only a hole in an
+inclined face. More under <a href="schwenken.html">Swivel plane</a>.</li>
 <li>The <b>ticks</b> of the blocks follow the selection: face milling and
 clearing as long as no face or a flat one is selected – and of the two only
 the faster (see “Time decides” below); contour as soon as a wall is among

@@ -4558,10 +4558,6 @@ class BearbeitungPanel:
         self.schwenken_text = QtGui.QLabel()
         self.schwenken_text.setWordWrap(True)
         schwenken.addWidget(self.schwenken_text)
-        self.schwenken_knopf = knopf(
-            tr("ba.schwenken.knopf"), tr("ba.schwenken.knopf.tooltip"), self.ebene_schwenken
-        )
-        schwenken.addWidget(self.schwenken_knopf, 0, QtCore.Qt.AlignLeft)
         # An einer 3-Achs-Fräse: schräg gespannt fräsen (Manuel, 2026-10-16) – als Haken,
         # angehakt.
         self.gekippt_haken = QtGui.QCheckBox(tr("ba.gekippt.haken"))
@@ -6289,7 +6285,6 @@ class BearbeitungPanel:
         from . import schwenken as sw
 
         schraege = self._schraege(form)
-        self.schwenken_knopf.hide()  # Manuel: „ich weis nicht für was das da sein soll“
         self.gekippt_haken.hide()
         if not schraege:
             return
@@ -6304,52 +6299,6 @@ class BearbeitungPanel:
             )
             self.gekippt_haken.show()
         self.schwenken_zeile.show()
-
-    def ebene_schwenken(self, flaeche=None):
-        """„Ebene schwenken (3+2) …“: Der Assistent schließt, ohne Operationen anzulegen, das
-        Fenster dafür öffnet mit der ersten schrägen Fläche (oder `flaeche`, aus einer Zeile von
-        „Alles aus dieser Aufspannung“) – im Grundjob dieses Jobs. Ist der
-        Job neu, bleibt er stehen, ohne Operationen: Vorher musste „Anlegen“ erst etwas anlegen,
-        das keiner wollte (Manuel, 2026-10-10, an einer Bohrung in einer 41°-Schräge: „Ich will
-        nur dass Loch da fräsen“)."""
-        if self.job is None:
-            return
-        form = vr.modell(self.job).Shape
-        if flaeche is None:
-            schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
-            if not schraege:
-                return
-            flaeche = schraege[0]
-        grundjob = rw.grundjob_von(self.job)
-        if self._job_offen:
-            self._job_ohne_operationen_behalten()
-        else:
-            self.reject()
-
-        def oeffnen():
-            from .gui_schwenken import SchwenkenPanel
-
-            FreeCADGui.Control.showDialog(SchwenkenPanel(grundjob, flaeche))
-
-        QtCore.QTimer.singleShot(0, oeffnen)
-
-    def _job_ohne_operationen_behalten(self):
-        """Schließt den Assistenten und behält den neuen Job – Teil, Maschine, Rohteil und
-        Nullpunkt wie bei „Anlegen“, ein Schritt Rückgängig –, nur ohne Operationen."""
-        if self._rohteil_uhr.isActive():
-            self._rohteil_uhr.stop()
-            self._rohteil_anwenden()
-        if self._nullpunkt_uhr.isActive():
-            self._nullpunkt_uhr.stop()
-            self._nullpunkt_anwenden()
-        self.doc.commitTransaction()
-        self._job_offen = False
-        self._vor_dem_schliessen()
-        if not self._aufspannung_fest():
-            nullpunkt_vorgeben(self.nullpunkt())
-        dialog_schliessen(self.doc)
-        with uhren.still():  # Qt baut das Fenster noch ab
-            self.doc.recompute()
 
     def _haken_vorschlagen(self, form):
         """Je Block: möglich mit dieser Wahl? Dann der Haken, wie die Wahl ihn nahelegt –

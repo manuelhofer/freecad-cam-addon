@@ -107,7 +107,6 @@ def schritte(h):
     h.pruefe(
         panel.schwenken_zeile.isVisible()
         and "„Anlegen“ legt dafür eine Ebene an" in panel.schwenken_text.text()
-        and not panel.schwenken_knopf.isVisible()
         and not panel.gekippt_haken.isVisible(),
         f"Zeile: {panel.schwenken_text.text()!r}",
     )

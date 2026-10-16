@@ -223,7 +223,7 @@ def schritte(h):
     a.seite_zeigen(1)
     yield 800
     h.pruefe(
-        not a.schwenken_zeile.isHidden() and a.schwenken_knopf.isHidden(),
+        not a.schwenken_zeile.isHidden(),
         "Assistent: keine Zeile „geschwenkt fräsen“ – oder noch der Knopf",
     )
     h.pruefe("30° schräg" in a.schwenken_text.text(), f"Assistent: {a.schwenken_text.text()!r}")

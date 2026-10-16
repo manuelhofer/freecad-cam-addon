@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-05 schwenken-knopf-weg
+
+### EINGELESEN
+- Manuel (2026-10-16): „auch die geschichte mit dem schwenken ... ich weis nicht für was das da
+  sein soll“. Seit P-2026-10-16-54 legt „Anlegen“ die Ebene bzw. die gekippte Aufspannung selbst
+  an; der Knopf „Ebene schwenken (3+2) …“ im Assistenten „Bearbeitung“ war seitdem immer
+  versteckt, sein Code (`ebene_schwenken`, `_job_ohne_operationen_behalten`) lief nie mehr. Die
+  Hilfe (Bearbeitung, So geht’s) beschrieb noch den Knopf.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Knopf, `ebene_schwenken` und `_job_ohne_operationen_behalten`
+  entfallen. Der Befehl „Ebene schwenken (3+2) …“ in der Werkzeugleiste bleibt.
+- `translations/de.json`, `en.json`: `ba.schwenken.knopf`, `ba.schwenken.knopf.tooltip` entfallen.
+- `help/de|en/bearbeitung.html`, `so_gehts.html`: schräge Fläche – „Anlegen“ legt die Ebene an
+  (5 Achsen) bzw. eine gekippte Aufspannung (3 Achsen, Haken „Schräg gespannt fräsen“).
+- `tests/gui/szenario_schraeg_anlegen.py`, `szenario_schraeg_g550.py`, `szenario_schwenken.py`,
+  `szenario_loch_schraeg.py`: ohne den Knopf.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`, `test_hilfe`, `szenario_schraeg_anlegen`,
+  `szenario_schraeg_g550`, `szenario_schwenken`, `szenario_loch_schraeg`.
+
 ## P-2026-10-17-04 vierachs-schruppen-helix
 
 ### EINGELESEN

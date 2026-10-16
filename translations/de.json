@@ -2084,8 +2084,6 @@
     "ba.flaeche.boden": "{name}  Boden einer Tasche, Höhe {z} – Räumen",
     "eb.spannung.gekippt": "{text} – das Teil {winkel}° gekippt{achse}, {flaeche} nach oben (Winkelstück, Sinus- oder Schwenkschraubstock)",
     "ba.flaeche.schraeg": "{name}  {winkel}° schräg – von oben nicht zu fräsen, geschwenkt schon (unten)",
-    "ba.schwenken.knopf": "Ebene schwenken (3+2) …",
-    "ba.schwenken.knopf.tooltip": "Schließt den Assistenten, ohne Operationen anzulegen – ein neuer Job im Quader bleibt dabei stehen –, und öffnet „Ebene schwenken“ mit dieser Fläche. Die Ebene wird ein eigener Job, darin öffnet der Assistent wieder.",
     "ba.flaeche.fehlt": "{name}  gibt es im Teil nicht mehr",
     "ba.planfraesen.eingeschlossen": "Planfräsen bringt offene Flächen auf Maß, etwa die Oberseite. Den Boden einer Tasche oder Nut räumt „Räumen“ oder „Nut“.",
     "ba.planfraesen": "Planfräsen",

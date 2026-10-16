@@ -93,7 +93,7 @@ def schritte(h):
 
     # --- Neuer Job, schräge Fläche: „Anlegen“ legt die Ebene an (Manuel, 2026-10-16) ----------
     h.pruefe(
-        not a.schwenken_zeile.isHidden() and a.schwenken_knopf.isHidden(),
+        not a.schwenken_zeile.isHidden(),
         "neuer Job: keine Zeile zur schrägen Fläche – oder noch der Knopf",
     )
     h.pruefe("30° schräg" in a.schwenken_text.text(), f"Zeile: {a.schwenken_text.text()!r}")
