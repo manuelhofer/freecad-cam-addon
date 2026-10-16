@@ -96,7 +96,7 @@ def schritte(h):
     masse = d.masse()
     h.pruefe(
         masse.schwenk == (("A", -100.0, 100.0), ("B", -30.0, 100.0))
-        and masse.weg_z == (-250.0, 280.0),
+        and masse.weg_z == (30.0, 280.0),  # Z ab dem Tisch, ohne Minus
         f"Kopf/Kopf getippt: {masse}",
     )
     h.bild("1c_kopf_kopf_masse", d)

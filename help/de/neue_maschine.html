@@ -29,8 +29,9 @@ eine Bearbeitung auf der Tischoberseite richtet <b>Ebene schwenken (3+2)</b> die
 waagerechten Spindel aus.</p>
 <p>Vorbelegt sind Wege X/Y/Z von 800/1.020/970 mm, ein Tischdurchmesser von 770 mm,
 A von −185 bis +45 Grad und eine Spindel mit 16.000 U/min. B dreht endlos.
-Die Körper und Abstände sind grob angenähert; die Weggrenzen zählen von der gebauten
-Stellung 0 und bilden keine konkrete G550 ab. Wege, A-Bereich, Drehzahl und Name sind
+Die Körper und Abstände sind grob angenähert; X und Y zählen von der gebauten Stellung 0, Z
+längs der Spindel ab der Tischscheibe (0: die Spindelnase liegt an ihr, gebaut steht sie 500 mm
+davor) – sie bilden keine konkrete G550 ab. Wege, A-Bereich, Drehzahl und Name sind
 einstellbar. Die tatsächlichen Maße und Kenndaten deiner Maschine trägst du danach in
 der Baugruppe und in <b>Maschine bearbeiten</b> ein.</p>
 
@@ -94,10 +95,14 @@ und „M1=3 S1=…“.</li>
 <h3>Die Maße der 3-Achs-Fräse und der Portalfräse</h3>
 <ul>
 <li><b>Name</b> – für Maschine und Dokument. Leer: der Name der Bauart.</li>
-<li><b>Weg X, Y, Z</b> – von … bis, gezählt ab der Stellung, in der die
+<li><b>Weg X, Y</b> – von … bis, gezählt ab der Stellung, in der die
 Maschine gebaut wird; 0 liegt dazwischen. „von“ zählt ins Minus – das Minus
-steht schon im Feld, du trägst nur die Zahl ein. Das werden die Grenzen der
-Gelenke – mit ihnen rechnet „Auf der Maschine prüfen“.</li>
+steht schon im Feld, du trägst nur die Zahl ein.</li>
+<li><b>Weg Z</b> – von … bis, gezählt ab der Spannfläche des Tischs: 0 heißt, die Spindelnase
+liegt auf dem Tisch (so zählt Z auch an vielen Maschinen); beide Enden ohne Minus. Das
+Werkzeug steht darunter – um wie viel, rechnet „Auf der Maschine prüfen“ mit der Länge ab
+Spindelnase aus.</li>
+<li>Die Wege werden die Grenzen der Gelenke – mit ihnen rechnet „Auf der Maschine prüfen“.</li>
 <li><b>Höchstdrehzahl</b> – der Spindel S1.</li>
 </ul>
 <h3>Die Maße der 5-Achs-Fräsen</h3>

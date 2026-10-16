@@ -283,6 +283,7 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | Das deutsche Zahlenformat hat Tausenderpunkte: „30.000“ | Zahlenfelder ohne Tausendertrennzeichen |
 | Enter in einem Feld löst im Aufgabenfenster „OK“ aus | der Dialog hält Enter an (`_EnterBleibtImDialog`) |
 | Beim Beenden fragt FreeCAD „Speichern?“ | Szenarien schließen ihre Dokumente |
+| FreeCAD 27.1 lädt beim Öffnen eines Dokuments nur Python-Module, deren Paket schon geladen ist oder die aus einem Addon-Ordner kommen („module not permitted“) | Skripte und Prüfungen importieren `camaddon` vor `openDocument` |
 | `Machine.from_dict` liest den Ursprung einer Linearachse als Richtung | Ursprung 0 übergeben (T-004) |
 | Die Knopfleiste macht OK beim Zeigen selbst zum Standardknopf – Enter in einem Feld schließt dann einen QDialog | `keyPressEvent` hält Enter an (Werkzeugverwaltung) |
 | Werkstoffnummern wie „1.0503“ sehen aus wie Kommazahlen | `dezimal()` nur auf Zahlentexte, nie auf Werkstoffnamen |

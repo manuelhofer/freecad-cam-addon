@@ -222,6 +222,16 @@ class Baukasten:
         self.bezug[name] = ziel
         return gelenk
 
+    def stellung_setzen(self, gelenk, stellung):
+        """Das schon angelegte Gelenk (gelenk_wie_gebaut) steht gebaut auf `stellung` – wie dort
+        mit `stellung`: Seite 1 um so viel längs der Achse zurück, die Teile bleiben."""
+        lagen = {o: App.Placement(o.Placement) for o in self._teile()}
+        # Der Versatz von Seite 1 endet in der Achse des Gelenks (ihr z): dort zurück.
+        gelenk.Offset1 = gelenk.Offset1.multiply(
+            App.Placement(App.Vector(0, 0, -stellung), App.Rotation())
+        )
+        self._zurueck(lagen)
+
     @staticmethod
     def _zurueck(lagen):
         for teil, lage in lagen.items():
@@ -393,28 +403,28 @@ _FUENFACHS = {
         # Wege um 0 ist eine Beispielstellung, keine belegte MKS-Lage (Spezifikation G550).
         "weg_x": (-400.0, 400.0),
         "weg_y": (-510.0, 510.0),
-        "weg_z": (-485.0, 485.0),
+        "weg_z": (15.0, 985.0),  # Z ab der Spannfläche (gebaut 500, P-2026-10-12-174)
         "schwenk": (("A", -185.0, 45.0),),
         "drehzahl": 16000.0,
     },
     TISCH_TISCH: {
         "weg_x": (-320.0, 320.0),
         "weg_y": (-200.0, 250.0),
-        "weg_z": (-260.0, 150.0),
+        "weg_z": (40.0, 450.0),  # Z ab der Spannfläche (gebaut 300)
         "schwenk": (("A", -120.0, 120.0),),
         "drehzahl": 18000.0,
     },
     KOPF_TISCH: {
         "weg_x": (-320.0, 320.0),
         "weg_y": (-150.0, 300.0),
-        "weg_z": (-280.0, 100.0),
+        "weg_z": (20.0, 400.0),  # Z ab der Spannfläche (gebaut 300)
         "schwenk": (("B", -110.0, 110.0),),
         "drehzahl": 18000.0,
     },
     KOPF_KOPF: {
         "weg_x": (-560.0, 560.0),
         "weg_y": (-650.0, 250.0),
-        "weg_z": (-250.0, 300.0),
+        "weg_z": (30.0, 580.0),  # Z ab der Spannfläche (gebaut 280)
         "schwenk": (("A", -100.0, 100.0), ("B", -100.0, 100.0)),
         "drehzahl": 24000.0,
     },
@@ -450,7 +460,7 @@ class FuenfachsMasse:
 
     def fehler(self):
         """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
-        ergebnis = _wege_fehler(self)
+        ergebnis = _wege_fehler(self, ohne_null=("weg_z",))
         for buchstabe, unten, oben in self.schwenk:
             if not -GROESSTER_SCHWENK <= unten <= 0 <= oben <= GROESSTER_SCHWENK or unten == oben:
                 ergebnis.append((f"schwenk_{buchstabe}", tr("neu.schwenk_bereich")))
@@ -672,11 +682,14 @@ def _fahrstaender(b, bett):
     return kopf, x, y, z
 
 
-def _fuenfachs_wege(b, masse, x, y, z, gespiegelt=(), **schwenk):
+def _fuenfachs_wege(b, masse, x, y, z, nase, platz, gespiegelt=(), **schwenk):
     """Die Grenzen der Gelenke aus den Maßen: X, Y, Z und die Schwenkachsen (Buchstabe =
     Gelenk). Die Schwenkbereiche zählen wie die Steuerung (Datenblatt); `gespiegelt`: die
     Schwenkachsen, deren Gelenk andersherum dreht – eine Achse im Tisch, deren Gelenk rechtsherum
-    um +X/+Y dreht, zählt nach DIN 66217 gegen das Gelenk (verfahren.programm_vorzeichen)."""
+    um +X/+Y dreht, zählt nach DIN 66217 gegen das Gelenk (verfahren.programm_vorzeichen). Z zählt
+    ab der Spannfläche: 0 heißt, die Spindelnase (`nase`) liegt auf ihr (`platz`) – wie an den
+    3-Achs-Fräsen (P-2026-10-12-173/174)."""
+    b.stellung_setzen(z, _nase_ueber_tisch(b, nase, platz))
     for gelenk, weg in ((x, masse.weg_x), (y, masse.weg_y), (z, masse.weg_z)):
         b.begrenze(gelenk, *weg)
     for buchstabe, gelenk in schwenk.items():
@@ -840,7 +853,7 @@ def grob_g550(masse=None, winkelaufnahme=False):
         "Tischscheibe.Face3",
         richtung=(0, 0, 1),
     )
-    _fuenfachs_wege(b, masse, x, y, z, gespiegelt=("A",), A=a)
+    _fuenfachs_wege(b, masse, x, y, z, spindelnase, spannplatz, gespiegelt=("A",), A=a)
     asm = b.fertig()
     ma = _maschine(asm, GROB_G550)
     _linear(ma, x, "X1", 65000, 0, 0)
@@ -901,7 +914,9 @@ def fuenfachs_tisch_tisch(masse=None):
     a = b.gelenk_wie_gebaut(
         "A", "Revolute", lager_l, "Face2", wiege, "ZapfenLinks.Face3", richtung=(1, 0, 0)
     )
-    _fuenfachs_wege(b, masse, x, y, z, gespiegelt=("A",), A=a)  # A dreht den Tisch
+    _fuenfachs_wege(
+        b, masse, x, y, z, spindelnase, spannplatz, gespiegelt=("A",), A=a
+    )  # A dreht den Tisch
     c = b.gelenk_wie_gebaut(
         "C",
         "Revolute",
@@ -950,7 +965,7 @@ def fuenfachs_kopf_tisch(masse=None):
     schwenk = b.gelenk_wie_gebaut(
         "B", "Revolute", kopf, "Face3", schwenkkopf, "Face4", richtung=(0, 1, 0)
     )
-    _fuenfachs_wege(b, masse, x, y, z, B=schwenk)
+    _fuenfachs_wege(b, masse, x, y, z, spindelnase, spannplatz, B=schwenk)
     s = b.gelenk_wie_gebaut(
         "Spindelachse", "Revolute", schwenkkopf, "Face5", spindel, "Spindelkoerper.Face2"
     )
@@ -1045,7 +1060,7 @@ def fuenfachs_kopf_kopf(masse=None):
     schwenk = b.gelenk_wie_gebaut(
         "B", "Revolute", a_kopf, "GabelVorn.Face4", b_kopf, "BZapfen.Face3", richtung=(0, 1, 0)
     )
-    _fuenfachs_wege(b, masse, x, y, z, A=a, B=schwenk)
+    _fuenfachs_wege(b, masse, x, y, z, spindelnase, spannplatz, A=a, B=schwenk)
     s = b.gelenk_wie_gebaut(
         "Spindelachse", "Revolute", b_kopf, "BGehaeuse.Face5", spindel, "Spindelkoerper.Face2"
     )
@@ -1410,11 +1425,12 @@ def drehmaschine(masse=None):
 
 
 def _nase_ueber_tisch(b, spindelnase, spannplatz):
-    """So hoch steht die Spindelnase gebaut über der Spannfläche des Tischs (mm, längs Z des
-    Rahmens) – die Stellung von Z, damit Z = 0 heißt: die Nase liegt auf dem Tisch."""
-    oben = b.rahmen.Rotation.multVec(App.Vector(0, 0, 1))
-    abstand = m.globale_platzierung(spindelnase).Base - m.globale_platzierung(spannplatz).Base
-    return float(abstand.dot(oben))
+    """So weit steht die Spindelnase gebaut von der Spannfläche weg (mm, längs der Werkzeugachse
+    – Z der Spindelnase, bei der waagrechten G550 quer) – die Stellung von Z, damit Z = 0 heißt:
+    die Nase liegt auf dem Tisch."""
+    nase = m.globale_platzierung(spindelnase)
+    achse = nase.Rotation.multVec(App.Vector(0, 0, 1))
+    return float((nase.Base - m.globale_platzierung(spannplatz).Base).dot(achse))
 
 
 def _in_die_wege(b, asm, wege):

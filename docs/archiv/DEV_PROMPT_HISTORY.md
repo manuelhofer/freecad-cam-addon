@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-01 z-null-fuenfachs-und-g550
+
+### EINGELESEN
+- Fortsetzung von P-2026-10-12-173 (Manuel: „bitte schau da bei allen Maschinen nach“), der Entwurf
+  lag in `~/freecad_cam/wip/fuenfachs_z_null_entwurf.diff`. Manuel, 2026-10-16: „mach mal weiter …
+  bis ich mich melde“, dazu „Immer mit den aktuellen weekly build!!!!“.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`: Die drei 5-Achs-Fräsen und die G550 zählen Z wie die 3-Achs-Fräsen
+  ab der Spannfläche – 0: die Spindelnase liegt auf dem Tisch. Das Gelenk Z steht gebaut auf dem
+  Abstand der Nase zur Spannfläche längs der Spindel (`Baukasten.stellung_setzen`,
+  `_nase_ueber_tisch` jetzt längs Z der Spindelnase – bei der waagrechten G550 quer: 500 statt −50);
+  Vorgaben Z: Tisch/Tisch 40 … 450, Kopf/Tisch 20 … 400, Kopf/Kopf 30 … 580, G550 15 … 985 –
+  dieselben Stellungen wie vorher. Z muss 0 nicht enthalten.
+- `camaddon/gui_neue_maschine.py`: Z ohne festes Minus, die graue Zeile und der Tooltip nun für alle
+  Fräsen („Z zählt ab der Spannfläche des Tischs, längs der Spindel – bei 0 liegt die Spindelnase
+  auf dem Tisch.“). Hilfe „Neue Maschine“: Weg Z ab der Spannfläche (die alte Beschreibung „0 liegt
+  dazwischen, Minus im Feld“ galt seit P-173 nicht mehr), G550 längs der Spindel.
+- `camaddon/nebenrechner_arbeiter.py`: Im Prüflauf (`CAMADDON_ARBEITER_GB`) bekommt ein Arbeiter
+  mindestens 6 GB Adressraum (`MINDEST_GB`). Mit 4 GB hingen alle Arbeiter schon beim Start
+  (futex_wait mit gehaltenem GIL, kein HALLO, auch der Wachhund stand), der Hauptprozess wartete
+  ewig in `nebenrechner.warten` – gefunden an `test_ebenen_auslassen`, danach 6 s.
+- Prüfungen: `test_beispielmaschine` (G550 Z 600/985 statt 100/485, ungültiges Z jetzt „bis“ unter
+  „von“), `tests/golden/raum_bahn.json` (die Grenzen weichen um höchstens 0,0005 mm ab, der Rest um
+  0,06 von 10 721 mm³ – dieselbe Bewegung, die Achswerte um 300 mm verschoben, daran hängt die
+  Feinunterteilung; Maschinen, Stücke, Intervalle gleich), `szenario_neue_maschine` (Kopf/Kopf Z
+  30 … 280), `szenario_grob_g550` (Z1 700 = 200 zurück).
+- `docs/aufbau.md`: Stolperstein FreeCAD 27.1 (Module beim Laden eines Dokuments).
+- `package.xml` (0.260.1).
+
+### ERGEBNIS
+- Grün im Wochen-Build weekly-2026.10.14 (FreeCAD 27.1.0 dev): `test_beispielmaschine`,
+  `test_raum_bahn`, `test_reichweite`, `test_zugang`, `test_schwenken`, `test_schwenken_maschinen`,
+  `test_rundachsen_din`, `test_maschinenspeicher`, `test_abfahren`, `test_ebenen_auslassen`,
+  `test_angestellt`, `test_entgraten3d`, `test_flanke`, `test_wegkippen`, `test_schraeg_abtrag`,
+  `test_schruppen3d_anlauf`, `test_simultan`, `test_simultan_planung`, `test_simultan_folge`,
+  `test_simultan_export_referenz`, `test_simultan_restbild`, `test_simultan_bereiche`,
+  `test_simultan_nc`, `test_raum_material`; Szenarien `neue_maschine`, `grob_g550`. In 1.1.4:
+  `test_beispielmaschine`, `test_raum_bahn`.
+- Zu sehen: „Neue Maschine …“ → eine 5-Achs-Fräse oder die G550 – bei Weg Z steht vor „von“ kein
+  Minus mehr, darunter grau „Z zählt ab der Spannfläche …“. Gespeicherte Maschinen behalten ihre
+  Gelenke (neu bauen, wer Z ab dem Tisch will).
+
 ## P-2026-10-12-173 z-null-nase-auf-dem-tisch
 
 ### EINGELESEN

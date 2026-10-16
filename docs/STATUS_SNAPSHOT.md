@@ -356,7 +356,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Manuel: „was heißt hier t3 ?? versteh die rote ansage da unten nicht“. Gemeint: T4 (Ø 4, beim
   Kopieren von T3 entstanden) trägt denselben Namen wie T3 (Ø 6). Klarer sagen, etwa: „Diesen Namen
   hat schon T3 (Ø 6) – der Name passt nicht zu Ø 4. Umbenennen, oder ist es dasselbe Werkzeug
-  zweimal im Magazin?“ – und den Widerspruch Name „D6“ ↔ Ø 4 selbst erkennen.
+  zweimal im Magazin?“ – und den Widerspruch Name „D6“ ↔ Ø 4 selbst erkennen. *Erledigt:*
+  P-2026-10-12-166 („Diesen Namen hat schon T3 (…)“, dazu „nennt einen anderen Durchmesser“).
 
 **Manuels Ring-Teil (2026-10-12, 19:46, mit drei Bildern):** `~/freecad_cam/testteile/4_achs_planbearbeitung_testteil.FCStd`
 – ein Ring Ø 65 × 8 mm (PartDesign: drei Segmente mit Schlitzen bis zur Bohrung, je eine Bohrung,
@@ -393,8 +394,9 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    da bei allen maschinen nach das dies nicht der fall ist“. Prüfen: wie Z der Maschine (Grenzen,
    „Was die Bahn braucht“) gerechnet wird – Spindelnase gegen Tisch, nicht die Spitze –, an allen
    Beispielmaschinen (3-Achs-Fräse, CLX550, 5-Achs, G550).
-   *Erledigt für 3-Achs- und Portalfräse:* P-2026-10-12-173 (Z = 0: Nase auf dem Tisch). Offen: die
-   5-Achs-Fräsen und die G550 – Entwurf in `~/freecad_cam/wip/fuenfachs_z_null_entwurf.diff`
+   *Erledigt:* P-2026-10-12-173 (3-Achs- und Portalfräse), P-2026-10-16-01 (die 5-Achs-Fräsen und
+   die G550; Z = 0: Nase auf dem Tisch). Offen nur noch: Manuels gespeicherte „3-Achs-Fräse“ neu
+   bauen (gespeicherte Maschinen behalten ihre Gelenke). Der Entwurf lag in `~/freecad_cam/wip/fuenfachs_z_null_entwurf.diff`
    (`_fuenfachs_wege` setzt Z gebaut auf die Nasenhöhe über der Spannfläche: Tisch/Tisch 300,
    Kopf/Kopf 280, Kopf/Tisch 300, G550 500 längs der Werkzeugachse; `stellung_setzen` verschiebt
    Offset1 längs der Gelenkachse; Vorgaben Z verschoben). Nachgemessen: Teile bleiben, +Z fährt weg.

@@ -361,7 +361,7 @@ class NeueMaschineDialog(QtGui.QDialog):
                 feld.setVisible(drehmaschine)
                 self._formular.labelForField(feld).setVisible(drehmaschine)
             # Wovon die Wege zählen: bei der Drehmaschine wie an ihr, bei den Fräsen Z ab dem Tisch.
-            fraese = art in (beispielmaschine.FRAESE_3, beispielmaschine.PORTAL_3)
+            fraese = art in _Z_OHNE_MINUS and not drehmaschine
             self.wege_drehmaschine.setText(
                 tr("neu.wege.drehmaschine") if drehmaschine else tr("neu.wege.fraese")
             )
@@ -386,7 +386,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             }
             for achse, zeile in self._weg_zeilen.items():
                 zeile.setToolTip(tooltips[achse] if drehmaschine else tr("neu.weg.tooltip"))
-            if art in (beispielmaschine.FRAESE_3, beispielmaschine.PORTAL_3):
+            if art in _Z_OHNE_MINUS and not drehmaschine:
                 self._weg_zeilen["Z"].setToolTip(tr("neu.weg_z.fraese.tooltip"))
         self.fehler.hide()
         # Mit den Zeilen der Drehmaschine braucht das Fenster mehr Höhe – es wächst mit, sonst
@@ -561,11 +561,17 @@ def _wert(feld, vorgabe, faktor=1.0, negativ=False):
     return vorzeichen * einheiten.metrisch(feld.value(), einheiten.LAENGE) / faktor
 
 
-# Bauarten, deren Z beide Enden ab 0 zählt (ohne festes Minus vor „von“).
+# Bauarten, deren Z beide Enden ab 0 zählt (ohne festes Minus vor „von“): die Drehmaschine ab
+# der Spindelnase, die Fräsen ab der Spannfläche (P-2026-10-12-173, die 5-Achs-Fräsen und die
+# G550 P-2026-10-16-01).
 _Z_OHNE_MINUS = (
     beispielmaschine.DREHMASCHINE,
     beispielmaschine.FRAESE_3,
     beispielmaschine.PORTAL_3,
+    beispielmaschine.TISCH_TISCH,
+    beispielmaschine.KOPF_TISCH,
+    beispielmaschine.KOPF_KOPF,
+    beispielmaschine.GROB_G550,
 )
 
 

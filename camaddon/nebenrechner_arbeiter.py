@@ -26,6 +26,7 @@ import traceback
 MELDEN_ALLE = 0.2  # s: so oft höchstens meldet eine Funktion ihren Fortschritt
 DOKUMENTE_OFFEN = 3  # so viele Dokumentkopien bleiben offen, die älteste geht zu (wie im Pool)
 WACHHUND_ALLE = 2.0  # s: so oft sieht der Arbeiter nach, ob sein Hauptprozess noch lebt
+MINDEST_GB = 6.0  # so viel Adressraum bekommt ein Arbeiter im Prüflauf mindestens
 
 
 def _verbinden(start):
@@ -197,12 +198,15 @@ def _adressraum_begrenzen():
     er darüber, scheitert die nächste Anforderung (MemoryError, std::bad_alloc) mit der Stelle –
     statt dass der Kernel ihn an der Speichergrenze des Laufs beendet, was bei Manuel ein Popup
     gibt und keine Spur (2026-10-12: ein Arbeiter mit 10,8 GB in szenario_aufspannung, nicht jedes
-    Mal). Die Stelle schreibt _speicher_fehler_merken nach CAMADDON_AUSGABE."""
+    Mal). Die Stelle schreibt _speicher_fehler_merken nach CAMADDON_AUSGABE. Nie unter
+    MINDEST_GB: Schon der Start (FreeCAD mit seinen Threads) reserviert gut 4 GB Adressraum –
+    mit 4 GB blieben die Arbeiter beim Start in futex_wait hängen, ohne HALLO, und der
+    Hauptprozess wartete ewig (2026-10-16)."""
     gb = os.environ.get("CAMADDON_ARBEITER_GB")
     if gb:
         import resource
 
-        grenze = int(float(gb) * 2**30)
+        grenze = int(max(float(gb), MINDEST_GB) * 2**30)
         resource.setrlimit(resource.RLIMIT_AS, (grenze, grenze))
 
 

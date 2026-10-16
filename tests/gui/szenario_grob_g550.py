@@ -60,7 +60,8 @@ def schritte(h):
     if fahren is None:
         return
     vorher = {n: App.Placement(doc.getObject(n).Placement) for n in ("Spindel", "Rundtisch")}
-    for name, wert in (("X1", 200), ("Z1", 200), ("Y1", -200)):
+    # Z zählt ab der Tischscheibe, gebaut steht es bei 500: Z 700 fährt die Spindel 200 zurück.
+    for name, wert in (("X1", 200), ("Z1", 700), ("Y1", -200)):
         fahren.zeilen[fahren.achse(name)][1].setValue(wert)
     spindel_weg = doc.getObject("Spindel").Placement.Base - vorher["Spindel"].Base
     tisch_weg = doc.getObject("Rundtisch").Placement.Base - vorher["Rundtisch"].Base

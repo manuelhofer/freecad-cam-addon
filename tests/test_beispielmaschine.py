@@ -207,7 +207,7 @@ pruefe(
 v = vf.Verfahren(asm, kette)
 TEILE_G550 = ("XSchlitten", "Spindelstock", "Spindel", "Saeule", "YSchlitten", "Wiege", "Rundtisch")
 gebaut = {n: App.Placement(doc.getObject(n).Placement) for n in TEILE_G550}
-v.setze_alle({achsen["X"]: 60, achsen["Z"]: 100, achsen["Y"]: 40})
+v.setze_alle({achsen["X"]: 60, achsen["Z"]: 600, achsen["Y"]: 40})  # gebaut Z 500 (Nase)
 for teil, soll in (
     ("XSchlitten", App.Vector(60, 0, 0)),
     ("Spindelstock", App.Vector(60, -100, 0)),
@@ -230,17 +230,17 @@ def _form(name):
 
 # Der Spindelschacht (GROB: „Tunnel-Konzept“ – die Motorspindel zieht sich mit dem Werkzeug ganz in
 # den Schacht zurück): Bei Z ganz zurück steht die Spindelnase hinter der Schachtfront.
-v.setze(achsen["Z"], 485)
+v.setze(achsen["Z"], 985)
 nase = doc.getObject("Spindelnase").getGlobalPlacement().Base
 front = _form("SchachtLinks").BoundBox.YMax
-pruefe(nase.y < front - 50, f"G550: Spindelnase bei Z +485 nicht im Schacht ({nase.y}, {front})")
+pruefe(nase.y < front - 50, f"G550: Spindelnase bei Z 985 nicht im Schacht ({nase.y}, {front})")
 v.grundstellung()
 pruefe(vf.programm_vorzeichen(achsen["A"], kette) == -1, "G550: A gegen DIN")
 # In keiner Endlage von X, Y, Z und A stößt ein Maschinenteil an ein anderes: der Spindelstock im
 # Schacht, der Tisch an Säule, Schwenkeinheit oder Bett, der Y-Schlitten am Bett.
 for x in (-400, 400):
     for y in (-510, 510):
-        for z in (-485, 485):
+        for z in (15, 985):
             for a_ in (-45, 0, 90, 185):  # die Stellungen des Gelenks (an der Steuerung gespiegelt)
                 v.setze_alle({achsen["X"]: x, achsen["Y"]: y, achsen["Z"]: z, achsen["A"]: a_})
                 for a_name, b_name in (
@@ -331,7 +331,9 @@ App.closeDocument(doc.Name)
 masse = beispielmaschine.PortalMasse(name="Meine Portalfräse", weg_x=(-400, 400), drehzahl=18000)
 pruefe(not masse.fehler(), f"Portal, gültige Maße: {masse.fehler()}")
 pruefe(beispielmaschine.PortalMasse(weg_z=(100, 50)).fehler(), "Portal: Z rückwärts gültig")
-pruefe(not beispielmaschine.PortalMasse(weg_z=(25, 175)).fehler(), "Portal: Z ab dem Tisch ungültig")
+pruefe(
+    not beispielmaschine.PortalMasse(weg_z=(25, 175)).fehler(), "Portal: Z ab dem Tisch ungültig"
+)
 asm, ma = beispielmaschine.lade(beispielmaschine.PORTAL_3, masse)
 achsen = {a.gelenk.Label: a for a in kette_modul.lies_kette(asm).achsen}
 pruefe((achsen["X"].minimum, achsen["X"].maximum) == (-400, 400), "Portal: eigener Weg X")
@@ -515,7 +517,7 @@ falsch = beispielmaschine.FuenfachsMasse(
     art=beispielmaschine.KOPF_KOPF,
     weg_x=(-10.0, 10.0),
     weg_y=(-10.0, 10.0),
-    weg_z=(5.0, 10.0),
+    weg_z=(10.0, 5.0),  # Z zählt ab dem Tisch (0 muss nicht im Weg liegen) – „bis“ unter „von“
     schwenk=(("A", 10.0, 90.0), ("B", -400.0, 0.0)),
 )
 felder = [feld for feld, _satz in falsch.fehler()]
