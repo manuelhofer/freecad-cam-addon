@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-67 kein-ausflug-im-freivorschub
+
+### EINGELESEN
+- Durchsicht aller Programme des vollen Laufs (je Operation jetzt neben `kehren.txt`): Das
+  Planfräsen fuhr am Ende einer Zeile vor einer Wand im Freivorschub bis an den Rand und auf
+  demselben Weg zurück (am Klotz in `szenario_raeumen_materialstand` 14,46 → 10,49 → 13,99), wo
+  vor der Operation nichts mehr stand. Manuel: „unnötige Bewegungen … kannst du auch ohne mich
+  einfach wegbügeln“.
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_ohne_ausflug` – fährt die Bahn im Freivorschub hinaus und auf
+  derselben Geraden zurück, geht sie geradewegs dorthin, wo sie zurückkommt (ganz zurück zum
+  Anfang: beide Stücke weg).
+
+### ERGEBNIS
+- Klotz: 5947 → 5933 mm im Vorschub, 2 Sätze weniger; Platte und der andere Klotz unverändert.
+- Grün im Wochen-Build: `test_freiwege`, `szenario_raeumen_materialstand`, `szenario_platte`,
+  `szenario_materialstand`, `szenario_testteil_freivorschub`.
+
 ## P-2026-10-16-66 raeumen-nicht-fuer-lochboden
 
 ### EINGELESEN

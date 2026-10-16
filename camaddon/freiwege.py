@@ -175,7 +175,37 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
             anteil = max(anteil_frei, float(nach.anteil)) if flags[i] else float(nach.anteil)
             neu.append(bn.Punkt(False, b[0], b[1], nach.z, False, None, anteil))
         schnell_weg += sum(e[2] for e, f in zip(eintraege, flags, strict=True) if f)
-    return neu, schnell_weg
+    return _ohne_ausflug(neu), schnell_weg
+
+
+def _ohne_ausflug(punkte):
+    """Fährt die Bahn im Freivorschub hinaus und auf demselben Weg zurück, fährt sie geradewegs
+    dorthin, wo sie zurückkommt – frei war der Weg vor der Operation schon (das Planfräsen ging am
+    Ende einer Zeile an der Wand entlang bis an den Rand, wo nichts mehr stand: bis 3,5 mm hin und
+    her, Manuel: „unnötige Bewegungen … kannst du auch ohne mich einfach wegbügeln“)."""
+
+    def schnell(p):
+        return not p.eilgang and not p.eintauchen and p.bogen is None and float(p.anteil) > 1.0
+
+    ergebnis = list(punkte[:1])
+    for p in punkte[1:]:
+        if len(ergebnis) >= 2 and schnell(p) and schnell(ergebnis[-1]):
+            a, b = ergebnis[-2], ergebnis[-1]
+            if abs(a.z - b.z) <= GLEICH and abs(p.z - b.z) <= GLEICH:
+                hin = (b.x - a.x, b.y - a.y)
+                zu = (p.x - a.x, p.y - a.y)
+                laenge2 = hin[0] * hin[0] + hin[1] * hin[1]
+                quer = abs(hin[0] * zu[1] - hin[1] * zu[0])
+                entlang = hin[0] * zu[0] + hin[1] * zu[1]
+                if laenge2 > GLEICH and quer <= GLEICH * math.sqrt(laenge2):
+                    if entlang <= GLEICH * math.sqrt(laenge2):
+                        ergebnis.pop()  # ganz zurück zum Anfang: beide Stücke weg
+                        continue
+                    if entlang < laenge2:
+                        ergebnis[-1] = p  # nur bis dorthin, wo es zurückkommt
+                        continue
+        ergebnis.append(p)
+    return ergebnis
 
 
 def _hoechstes(q, a, b, weite):
