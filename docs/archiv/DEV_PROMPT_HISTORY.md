@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-20 einrichtblatt (W-019)
+
+### EINGELESEN
+- W-019, Manuel 2026-10-12: ein Einrichtblatt zum Drucken oder als PDF mit „1. fräser und deren
+  ausspannlängen zum halter 2. der halter mit abmessungen 3. das spannwerkzeug 4. das rohteil 5.
+  der nullpunkt 6. die einzelnen arbeitsschritte“ – „für JEDE bearbeitung“ (3 Achsen, 4 Achsen,
+  3+2, N-Eck-Kette).
+
+### DATEIEN
+- `camaddon/einrichtblatt.py` (neu, ohne Oberfläche):
+  - `blatt(job)`: Werkzeuge über `wegkippen.einspannung` (Halter wie „Auf der Maschine prüfen“,
+    ohne gewählten der vorgeschlagene, so gekennzeichnet), Ausspannlänge = Länge − Halterlänge,
+    „geschätzt“, wenn die Länge nicht eingetragen ist.
+  - Je Aufspannung (Grundjob, dann jede N-Kant-Aufspannung) Rohteil, Spannmittel und Nullpunkt in
+    Worten; die Schritte in Programmreihenfolge, 3+2-Ebenen mit ihren Rundachsen als Lage.
+  - `minuten`: Zeit aus den Sätzen mit dem F jedes Satzes, Eilgang und Beschleunigung der Maschine
+    (`fahrzeit`), Rundachsen in Grad wie mm, G93 wie „Auf der Maschine prüfen“.
+  - Hinweise: geschätzte Längen, „steht nur … heraus“ wie im Kopf des Programms.
+  - `html(blatt)`: die Seite zum Drucken.
+- `camaddon/gui_einrichtblatt.py` (neu): Fenster mit Vorschau, „Als PDF speichern …“, „Drucken …“,
+  „Als HTML speichern …“; ein Bild der 3D-Ansicht (ohne Navigationswürfel).
+- `camaddon/gui_start.py`: Befehl `CamAddon_Einrichtblatt` im Menü nach „Programm schreiben“.
+- `translations/de.json`, `en.json`: Texte `eb.*`, `befehl.einrichtblatt.*`.
+- `help/de|en/programm.html`: Abschnitt „Einrichtblatt“.
+- `tests/test_einrichtblatt.py`, `tests/gui/szenario_einrichtblatt.py` (neu).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_einrichtblatt`, `test_sprache`, `test_hilfe`,
+  `szenario_einrichtblatt`.
+- Am C-Ring: T1 494W D12, „Quader 60,93 × 61,96 × 12 mm (Aufmaß oben 1, seitlich 1, unten 1
+  mm)“, Nullpunkt „X 30,46 mm von links · Y 30,96 mm von vorne · Z oben“, „Räumen T1“ 1,0 min.
+  Das PDF ist eine Seite.
+- Zum Ausprobieren: Job anklicken, Menü „CAM-Addon → Einrichtblatt …“. Zu sehen sind Werkzeuge,
+  Aufspannung mit Bild und Schritte; „Als PDF speichern …“ schreibt die Datei.
+
 ## P-2026-10-16-19 sprachschluessel-spannung
 
 ### EINGELESEN

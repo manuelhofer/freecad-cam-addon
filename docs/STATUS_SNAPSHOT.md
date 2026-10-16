@@ -707,8 +707,8 @@ T1 Ø 12.
    vorn)~~ (P-2026-10-12-165), `schlicht_anlauf`. Bleiben darf sie nur in `nut_bahn` (geschlossene Nut, zu schmal für
    eine Helix); überall sonst erst „von außen in der Luft“, dann Helix (`bohrung_bahn._helix` gibt
    es schon).
-5. **Einrichtblatt für jede Bearbeitung** (W-019, Frage 16) und **bewegliche Spannmittel** (W-020) –
-   siehe Wunschliste.
+5. ~~**Einrichtblatt für jede Bearbeitung** (W-019, Frage 16)~~ (P-2026-10-16-20, Rest siehe
+   Wunschliste) und **bewegliche Spannmittel** (W-020) – siehe Wunschliste.
 6. **„Kollision prüfen“ am Geist braucht über 12 GB** (2026-10-12 abends, 18:58): Geist auf der
    Beispiel-Drehmaschine (Szenario-Werte, 392.634 Stationen) – der Kernel beendete den Lauf an seiner
    12-GB-Grenze (Popup bei Manuel). Speicher der Kollision mit STL-Teil und Pool nachmessen und
@@ -1154,6 +1154,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   mit abmessungen 3. das spannwerkzeug 4. das rohteil 5. der nullpunkt 6. die einzelnen
   arbeitsschritte“, „generell soll das einrichtblatt für JEDE bearbeitung generiert werden
   können !!!!“ (3 Achsen, 4 Achsen, 3+2, N-Eck-Kette).
+  *Erledigt:* P-2026-10-16-20, Menü „CAM-Addon → Einrichtblatt …“ (`einrichtblatt.py`,
+  `gui_einrichtblatt.py`): Werkzeuge mit Ausspannlänge, Länge ab Spindelnase und Halter (Ø,
+  Länge, Spanntiefe; „(geschätzt)“ ohne eingetragene Länge), je Aufspannung Rohteil, Spannmittel,
+  Nullpunkt, ein Bild und die Schritte mit S, F, ap, ae und Zeit; 3+2-Ebenen als Zwischenzeilen in
+  der Aufspannung des Grundjobs, jede N-Kant-Aufspannung ein eigener Abschnitt. Als PDF, Drucken,
+  HTML. Offen: ein Bild je Aufspannung (jetzt nur die erste, aus der 3D-Ansicht, ohne die Backen),
+  Werkzeug- und Halterbild in der Tabelle (`gui_werkzeugbild.zeichne`).
 - **W-020 Spannmittel, die am Rohteil anliegen** – Manuel, 2026-10-12: „spannwerkzeuge will ich
   auch noch machen .. aber auch so das sie sich bewegen können und somit immer an das rohteil auch
   wirklich anliegen ... also ein schraubstock der dann mit seinen backen auch wirklich am rohteil
@@ -1176,8 +1183,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   *Stufe 2 erledigt:* P-2026-10-16-18. Mit „von unten gespannt“ sitzen am runden Rohling drei
   Backen (je 120°) im Bild und in der Kollision. Die Prüfung misst am Kreis statt am Kasten und
   sagt „Dreibackenfutter“.
-  Offen: der Futterkörper unter dem Rohling (er hebt das Teil über den Tisch) und das
-  Einrichtblatt (W-019).
+  Offen: der Futterkörper unter dem Rohling (er hebt das Teil über den Tisch). Das Einrichtblatt
+  nennt „Dreibackenfutter, … von unten gespannt“ (P-2026-10-16-20).
 - **W-022 Die Werkzeugaufnahme gehört in die Maschine; Halter in ihrer Größe** – Manuel, 2026-10-16,
   mit Bild (Menü „Neu“ im Fenster „Halter“, alle Vorlagen „· SK40“): „warum nur sk40 ?? es gibt auch
   sk64 glaub ich ?? ich denke die aufnahme an der maschine ... sollten wir in die maschine packen !

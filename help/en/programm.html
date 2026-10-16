@@ -334,6 +334,29 @@ move, speed and M3 before feed, F, the arcs, M30.</li>
 <p>Conversational is built here for milling machines; a lathe (CNC PILOT, MANUALplus) uses
 another language.</p>
 
+<a name="einrichtblatt"></a>
+<h3>Setup sheet</h3>
+<p><b>CAM-Addon → Setup sheet …</b> puts everything needed at the machine on one sheet – to print,
+as PDF or as an HTML page. Click the job first (or something in it); if the document has only
+one, it takes that.</p>
+<ul>
+<li><b>Tools:</b> number, name, Ø, cutting length, the <b>stick-out</b> (how far the tool sticks
+out of the holder), the length from the spindle nose and the holder with Ø, length and clamping
+depth – from the tool management, as in “Check on the machine”. Without an entered length it
+says “(estimated)” and a note below: measure before setting up. Without a chosen holder the
+suggested one is shown, marked as such.</li>
+<li><b>Per setup:</b> the stock (block with allowance, standing cylinder, round bar, n-sided bar,
+a body), the clamping device with its depth (vise, three-jaw chuck, chuck of the rotary axis)
+and the origin – named as in the wizard's choice (“centre top of the stock”), otherwise per axis
+with its distance from left, front, bottom. Plus a picture from the 3D view.</li>
+<li><b>The steps</b> in program order, with tool, speed, feed, depth of cut, stepover and the
+time (computed from the blocks with the machine's rapid and acceleration – “Check on the
+machine” computes it more exactly with all axes). Tilted planes (3+2) are listed in the setup of
+their base job, each with its rotary axes; every setup of an n-sided bar has its own section.</li>
+<li><b>Notes:</b> estimated lengths and tools that stick out too little (as in the program
+header).</li>
+</ul>
+
 <h3>Not yet</h3>
 <p>The add-on does not yet write the control's cylinder and polar transformation (TRACYL,
 TRANSMIT). It computes C itself – on the outside of the bar (4-axis machining) and on the face

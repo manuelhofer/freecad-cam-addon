@@ -345,6 +345,31 @@ Drehzahl und M3 vor dem Vorschub, F, die Kreise, M30.</li>
 <p>Klartext ist hier für Fräsmaschinen gebaut; an einer Drehmaschine (CNC PILOT, MANUALplus)
 gilt eine andere Sprache.</p>
 
+<a name="einrichtblatt"></a>
+<h3>Einrichtblatt</h3>
+<p>Im Menü <b>CAM-Addon → Einrichtblatt …</b> steht alles, was an der Maschine gebraucht wird, auf
+einem Blatt – zum Drucken, als PDF oder als HTML-Seite. Erst den Job anklicken (oder etwas in
+ihm); gibt es im Dokument nur einen, nimmt es den.</p>
+<ul>
+<li><b>Werkzeuge:</b> Nummer, Name, Ø, Schneidenlänge, die <b>Ausspannlänge</b> (wie weit das
+Werkzeug aus dem Halter heraussteht), die Länge ab Spindelnase und der Halter mit Ø, Länge und
+Spanntiefe – aus der Werkzeugverwaltung, wie bei „Auf der Maschine prüfen“. Ist dort keine Länge
+eingetragen, steht „(geschätzt)“ dabei und unten ein Hinweis: vor dem Einrichten messen. Ohne
+gewählten Halter steht der vorgeschlagene da, so gekennzeichnet.</li>
+<li><b>Je Aufspannung:</b> das Rohteil (Quader mit Aufmaß, stehender Zylinder, Rundstange,
+N-Kant-Stange, ein Körper), das Spannmittel mit der Spanntiefe (Schraubstock, Dreibackenfutter,
+Futter der Rundachse) und der Nullpunkt – so benannt wie bei der Wahl im Assistenten („Mitte
+oben des Rohteils“), sonst je Achse mit dem Abstand von links, vorne, unten. Dazu ein Bild aus
+der 3D-Ansicht.</li>
+<li><b>Die Arbeitsschritte</b> in der Reihenfolge des Programms, mit Werkzeug, Drehzahl, Vorschub,
+Zustellung, Zeilenabstand und der Zeit (aus den Sätzen gerechnet, mit Eilgang und
+Beschleunigung der Maschine – „Auf der Maschine prüfen“ rechnet mit allen Achsen genauer).
+Geschwenkte Ebenen (3+2) stehen in der Aufspannung ihres Grundjobs, je mit ihren Rundachsen;
+jede Aufspannung einer N-Kant-Stange hat ihren eigenen Abschnitt.</li>
+<li><b>Hinweise:</b> geschätzte Längen und Werkzeuge, die zu kurz herausstehen (wie im Kopf des
+Programms).</li>
+</ul>
+
 <h3>Noch nicht</h3>
 <p>Die Zylinder- und Polartransformation der Steuerung (TRACYL, TRANSMIT) schreibt das Addon
 noch nicht. Es rechnet C selbst – auf dem Mantel (4-Achs-Bearbeitung) und an der Stirnseite
