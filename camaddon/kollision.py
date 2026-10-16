@@ -900,6 +900,7 @@ def _abschliessen(ergebnis, befunde, abfahrt, job, rohteil, fortschritt, bibliot
     zwischendurch = (lambda: fortschritt(0.999)) if fortschritt is not None else None
     try:
         ausspannung(befunde, abfahrt, job, bibliothek, zwischendurch)
+        _ausspannung_aus_der_bahn(befunde, abfahrt, bibliothek)
     except Exception as fehler:  # noqa: BLE001 – ohne den Satz bleibt der Befund, wie er ist
         FreeCAD.Console.PrintLog(f"CAM-Addon: Ausspannung nicht gerechnet: {fehler}\n")
     # Berührungen zuerst, dann was nur näher kommt – je nach der Zeit.
@@ -1038,6 +1039,28 @@ def ausspannung(befunde, abfahrt, job, bibliothek=None, zwischendurch=None):
         befund.werkzeug = f"T{getattr(op.tc, 'ToolNumber', 0)}"
         befund.heraus = max(float(heraus), 0.0)
         befund.mindestens = befund.heraus + noetig
+
+
+def _ausspannung_aus_der_bahn(befunde, abfahrt, bibliothek=None):
+    """Der Halter kommt nur nah, stößt aber nicht an: Seit die Rundum-Schruppbahn Schaft und
+    Halter ausweicht (P-2026-10-12-170), bleibt dort Material, wo der Halter sie höher hielt – die
+    Bahn weiß, wie weit das Werkzeug dafür heraus müsste (OperationAbfahrt.anstoss). Das kommt
+    an den Befund wie aus ausspannung(), solange das Werkzeug jetzt kürzer heraussteht."""
+    for befund in befunde:
+        if befund.halter_am_teil < 0 or befund.mindestens > befund.heraus:
+            continue
+        op = abfahrt.operationen[befund.halter_am_teil]
+        anstoss = getattr(op, "anstoss", ())
+        halter = rw.werkzeughalter(op.tc, bibliothek) if anstoss else None
+        if halter is None or not halter.laenge:
+            continue
+        heraus = max(float(op.laenge - halter.laenge), 0.0)
+        mindestens = float(anstoss[1])
+        if heraus >= mindestens - 0.05:
+            continue
+        befund.werkzeug = f"T{getattr(op.tc, 'ToolNumber', 0)}"
+        befund.heraus = heraus
+        befund.mindestens = mindestens
 
 
 def _halter_stoesst(halter, weiter):

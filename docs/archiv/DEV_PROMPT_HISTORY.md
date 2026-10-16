@@ -12,6 +12,71 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-34 einrichtblatt-bild-je-ebene (W-019)
+
+### EINGELESEN
+- W-019: Geschwenkte Ebenen (3+2) standen als Zwischenzeile in der Aufspannung des Grundjobs,
+  ohne Bild. Wie das Teil nach dem Schwenken liegt, sah man nicht.
+
+### DATEIEN
+- `camaddon/einrichtblatt.py`:
+  - `Aufspannung.ebenen` (Lage → Job der Ebene) und `ebenen_bilder`.
+  - Das Bild steht in der Tabelle unter der Zwischenzeile seiner Ebene.
+- `camaddon/gui_einrichtblatt.py`:
+  - `_bild(ansicht, job, pfad, mit_backen)` für Aufspannung und Ebene; Bahnen nur des eigenen
+    Jobs.
+  - Je Ebene ein Bild ihres Jobs (das Teil so gedreht, wie die Ebene es sieht), ohne Backen.
+- `tests/gui/szenario_einrichtblatt.py`: ein Klotz mit Grundjob und einer Ebene „Seite vorn“
+  (das Teil darin gedreht). Geprüft: ein Bild der Aufspannung, eins der Ebene, beide verschieden,
+  beide auf der Seite.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_einrichtblatt`.
+- Zum Ausprobieren: ein 3+2-Job (Grundjob mit Ebenen), „CAM-Addon → Einrichtblatt …“. Unter
+  „Ebene „…“ – A… C…“ steht das Teil, wie es in dieser Ebene liegt.
+
+## P-2026-10-16-33 anstoss-des-halters (B-024)
+
+### EINGELESEN
+- Szenarien zu Haltern nachgefahren (nach W-022). Rot waren `szenario_vierachs_ausspannen` und
+  `szenario_pruefen_ausspannen`, auch am Stand vom 12.10. abends und in 26.3 RC1. Am 12.10. bei
+  P-143 waren sie grün.
+- Ursache: Seit P-2026-10-12-170 weicht die Rundum-Schruppbahn Schaft und Halter aus. Das ist
+  richtig gegen Kollisionen, aber der Halter stößt damit nie mehr an.
+  - Weder der 4-Achs-Assistent noch „Kollision prüfen“ sagten „… bräuchte mindestens … mm,
+    länger ausspannen“.
+  - Am Bund blieb still Material stehen.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`:
+  - `_anstoss` vergleicht je Stelle, wie weit der Halter (die Stufe mit der längsten
+    Ausspannung) die Spitze höher hält als die Schneide allein, über dem Teil.
+  - `Bahn.anstoss` = (heraus, mindestens, a von, a bis); `ANSTOSS_AB` 0,05 mm.
+- `camaddon/gui_vierachs.py`:
+  - `_halter_zeigen`: Findet die Prüfung längs der Bahn nichts, kommt beim Schruppen der Anstoß
+    der Bahn als gelbe Zeile mit „T1 auf … mm ausspannen“.
+  - `_anstoss_jetzt` vergleicht mit der Ausspannung, die das Werkzeug jetzt hat. Nach dem Klick
+    gilt die Vorschau noch mit der alten Länge.
+- `camaddon/vierachs_operation.py`: verborgene Eigenschaft `Anstoss` (gesetzt beim Rechnen),
+  `anstoss_von(obj)`.
+- `camaddon/abfahren.py`: `OperationAbfahrt.anstoss`.
+- `camaddon/kollision.py`, `_ausspannung_aus_der_bahn`: Kommt der Halter nur nah, hängt der
+  Anstoß der Operation an den Befund („– T1 steht 30 mm heraus, hier bräuchte es mindestens …“),
+  solange das Werkzeug kürzer heraussteht. Das Prüffenster bietet dann „ausspannen“ an.
+- `translations/de.json`, `en.json`: `vo.eigenschaft.anstoss`.
+- `tests/test_vierachs_bahn.py`: Welle mit Schlitz. Ohne Schaft kein Anstoß, mit Schaft Ø 6 ab 4
+  mm: heraus 4, mindestens 8 bei a −20.
+- `tests/gui/szenario_halter_richtung.py`: das Untermenü „Für eine andere Aufnahme“ (W-022)
+  zugelassen.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_bahn`, `test_vierachs_operation`, `test_kollision`,
+  `test_abfahren`, `test_sprache`, `szenario_vierachs_ausspannen`, `szenario_pruefen_ausspannen`,
+  `szenario_halter_richtung`.
+- Zum Ausprobieren: 4-Achs-Assistent, Welle mit Bund, ER32-Halter mit 30 mm Ausspannung. In
+  Schritt 2 steht gelb „… bräuchte mindestens 41 mm … T1 auf 42 mm ausspannen“; nach dem Klick
+  steht grau, was gesetzt ist.
+
 ## P-2026-10-16-32 kein-entgraten-als-fertigmacher
 
 ### EINGELESEN

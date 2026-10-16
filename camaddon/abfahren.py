@@ -78,11 +78,24 @@ class OperationAbfahrt:
     art: str = ""  # die Art der CAM-Operation: „Adaptive“, „Deburr“ … (js.operationsart)
     lage: object = None  # Lage des Bezugspunkts in der Aufnahme (halter.lage); None: gerade
     ebene: str = ""  # in einer geschwenkten Ebene (3+2): ihre Rundachsen („A−30 C0“)
+    # Hielt der Halter die Spitze höher als die Schneide allein (vierachs_operation.anstoss_von):
+    # (heraus, mindestens, a von, a bis) – für „Kollision prüfen“; leer sonst.
+    anstoss: tuple = ()
 
     @property
     def einspannung(self):
         """Wie das Werkzeug in der Aufnahme sitzt (reichweite.Einspannung)."""
         return rw.Einspannung(self.laenge, self.lage)
+
+
+def _anstoss(op):
+    """OperationAbfahrt.anstoss der Operation – leer, wenn sie keinen kennt."""
+    from . import vierachs_operation as vo
+
+    try:
+        return vo.anstoss_von(op)
+    except Exception:  # noqa: BLE001 – ohne ihn fehlt nur der Satz zum Ausspannen
+        return ()
 
 
 # Ab so vielen Stationen rechnen die Nebenrechner am_werkstueck() (P-2026-10-11-05).
@@ -466,6 +479,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 js.operationsart(op),
                 eingespannt.lage,
                 getattr(ebene, "Rundachsen", "") if geschwenkt else "",
+                _anstoss(op),
             )
         )
         if nummer == 0 and any(h is not None for h in home):

@@ -54,6 +54,8 @@ class Aufspannung:
     schritte: list = field(default_factory=list)  # [Schritt]
     bild: str = ""  # Pfad eines Bilds der Aufspannung, "" ohne
     job: object = None  # der Job der Aufspannung (fürs Bild)
+    ebenen: dict = field(default_factory=dict)  # Lage (Schritt.lage) → Job der Ebene (3+2)
+    ebenen_bilder: dict = field(default_factory=dict)  # Lage → Pfad eines Bilds der Ebene
 
 
 @dataclass
@@ -126,6 +128,7 @@ def blatt(job, datum, version, bibliothek=None):
                 if ebene is not None:
                     rund = getattr(ebene, "Rundachsen", "") or "–"
                     lage = tr("eb.ebene", name=ebene.Label, rundachsen=rund)
+                    aufspannung.ebenen.setdefault(lage, ebene)
             aufspannung.schritte.append(
                 Schritt(
                     nummer=nummer,
@@ -519,6 +522,11 @@ def html(blatt, tr, laenge, minuten_text):
         for s in a.schritte:
             if s.lage and s.lage != lage:
                 teile.append(f"<tr><td class='lage' colspan='5'>{_e(s.lage)}</td></tr>")
+                if a.ebenen_bilder.get(s.lage):
+                    teile.append(
+                        f"<tr><td colspan='5'><img src='{_e(a.ebenen_bilder[s.lage])}' "
+                        "width='300'></td></tr>"
+                    )
             lage = s.lage
             zeit = minuten_text(s.minuten) if s.minuten > 0 else "–"
             teile.append(

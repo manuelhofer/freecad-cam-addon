@@ -1199,7 +1199,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   der Aufspannung des Grundjobs, jede N-Kant-Aufspannung ein eigener Abschnitt. Als PDF, Drucken,
   HTML. Je Werkzeug mit Halter ein Bild von Halter und Fräser mit der Ausspannlänge
   (P-2026-10-16-22, das Bild der Halterverwaltung). Je Aufspannung ein eigenes Bild mit den
-  Backen, die anderen Jobs ausgeblendet (P-2026-10-16-24).
+  Backen, die anderen Jobs ausgeblendet (P-2026-10-16-24), je geschwenkte Ebene eins an ihrer
+  Zwischenzeile (P-2026-10-16-34).
 - **W-020 Spannmittel, die am Rohteil anliegen** – Manuel, 2026-10-12: „spannwerkzeuge will ich
   auch noch machen .. aber auch so das sie sich bewegen können und somit immer an das rohteil auch
   wirklich anliegen ... also ein schraubstock der dann mit seinen backen auch wirklich am rohteil
@@ -1286,7 +1287,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 ## Offene Bugs
 
 Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
-B-020 offen (siehe „Nächster Schritt“, Ring-Teil Punkt 4). B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; nächste freie Nummer B-024.
+B-020 offen (siehe „Nächster Schritt“, Ring-Teil Punkt 4). B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; nächste freie Nummer B-025.
 
 ## Offene Tasks
 

@@ -4028,6 +4028,7 @@ class VierachsPanel:
             werkzeuge[name] = werkzeug
         pool = nr.pool()
         if not bahnen or not pool.verfuegbar():
+            self._halter_zeigen({}, werkzeuge)  # was die Schruppbahn selbst weiß (anstoss)
             return
         achse = self.achse()
         nummer = self._vorschau_nummer
@@ -4042,6 +4043,7 @@ class VierachsPanel:
                 bahnen,
             )
         except nr.NichtVerfuegbar:
+            self._halter_zeigen({}, werkzeuge)
             return
         auftrag.bei_fertig = lambda a: self._halter_angekommen(nummer, a, werkzeuge)
         self._halter_auftrag = auftrag
@@ -4060,9 +4062,18 @@ class VierachsPanel:
             if not auftrag.abgebrochen:
                 FreeCAD.Console.PrintWarning(f"CAM-Addon: Halter prüfen: {auftrag.fehler}\n")
             return
+        self._halter_zeigen(auftrag.ergebnis or {}, werkzeuge)
+
+    def _halter_zeigen(self, befunde, werkzeuge):
+        """Die gelben Zeilen „Halter stößt an“: je Bearbeitung der Befund der Prüfung längs der
+        Bahn – beim Schruppen sonst, was die Bahn selbst weiß: Seit sie Schaft und Halter ausweicht
+        (P-2026-10-12-170), stößt der Halter nicht mehr an, hält die Spitze aber höher, und dort
+        bleibt Material (Bahn.anstoss)."""
         richtung = va.achsbuchstabe(FreeCAD.Vector(*self.achse().laengs)) or tr("va.rest.laengs")
         for name, etikett in self._halter_etiketten().items():
-            befund = (auftrag.ergebnis or {}).get(name)
+            befund = befunde.get(name)
+            if befund is None and name == SCHRUPPEN and getattr(self.vorschau, "anstoss", ()):
+                befund = self._anstoss_jetzt(werkzeuge.get(name))
             if befund is None or name not in werkzeuge:
                 continue
             _stellen, heraus, mindestens, a_von, a_bis = befund
@@ -4083,6 +4094,18 @@ class VierachsPanel:
                 + self._ausspannen_verweis(werkzeug, heraus, mindestens)
             )
             etikett.show()
+
+    def _anstoss_jetzt(self, werkzeug):
+        """Der Befund aus Bahn.anstoss der Schrupp-Vorschau mit der Ausspannung, die das Werkzeug
+        jetzt hat – None, wenn sie reicht (nach „T1 auf … ausspannen“ gilt die Vorschau noch mit
+        der alten). Wie weit es mindestens heraus muss, hängt nicht an der Ausspannung: Das sagt
+        der Abstand von Spitze und Teil, wo der Halter sie hielt."""
+        alt, mindestens, a_von, a_bis = self.vorschau.anstoss
+        stufen = vo.stufen_des_werkzeugs(werkzeug, self.bibliothek) if werkzeug else ()
+        jetzt = max((ab for _r, ab in stufen), default=alt)
+        if jetzt >= mindestens - vb.ANSTOSS_AB:
+            return None
+        return (None, jetzt, mindestens, a_von, a_bis)
 
     def _ausspannen_verweis(self, werkzeug, heraus, mindestens):
         """Der nächste Schritt zur gelben Zeile „Halter stößt an“ als Verweis (Manuel: die Meldung

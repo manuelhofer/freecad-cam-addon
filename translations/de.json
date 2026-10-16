@@ -1562,6 +1562,7 @@
     "vo.eigenschaft.halter_zum_futter": "Halter zum Futter: So weit reicht der Halter des Werkzeugs seitlich über die Werkzeugachse – der Assistent trägt ihn aus der Werkzeugverwaltung ein. Reicht er weiter als der Fräser, gilt der Abstand zum Futter von seinem Rand; 0: nur der Fräser.",
     "vo.eigenschaft.sicherheit": "Sicherheitsabstand über und vor der Stange für die Eilgänge.",
     "vo.eigenschaft.querachse": "Die Spirale mit der Querachse (bei C das Y): Die Werkzeugachse steht an jedem Punkt in Richtung der Flächennormalen. Auf einer ebenen Fläche steht die Rundachse still, und die Querachse fährt die Gerade. Je Lage geht es höchstens um die Zustellung tiefer in die Stange.",
+    "vo.eigenschaft.anstoss": "Hielt der Halter die Spitze höher als die Schneide allein (die Bahn weicht ihm aus), steht hier, wie weit das Werkzeug dafür heraus müsste – für „Kollision prüfen“.",
     "vo.eigenschaft.lagen": "So viele Lagen hat die Bahn (gerechnet).",
     "vo.eigenschaft.flaechen": "Die gewählten Flächen des Modells („Face3“ …): Gefräst wird nur dort, wo der Fräser eine von ihnen berührt; dazwischen hebt er ab. Leer: rundum.",
     "vo.eigenschaft.eintauchwinkel": "So steil taucht der Fräser zwischen gewählten Flächen ins Material ein: längs der Bahn hin und her, bis er unten ist (Vorschlag 5°).",

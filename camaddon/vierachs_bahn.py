@@ -437,6 +437,37 @@ class Bahn:
     lagen: int
     r_min: float  # so nah kommt die Spitze der Achse (mm)
     hinten_frei: float = 0.0  # so viel vom hinteren Ende des Teils erreicht der Fräser nicht
+    # Hält der Halter die Spitze höher als die Schneide allein (Schruppwerte.oben): (heraus,
+    # mindestens, a von, a bis) – so weit schaut das Werkzeug heraus, so weit müsste es, dort
+    # längs. Leer, wo er nichts ausmacht (P-2026-10-16-33: seit P-2026-10-12-170 weicht die Bahn
+    # dem Halter aus, und „Halter stößt an … länger ausspannen“ kam nicht mehr).
+    anstoss: tuple = ()
+
+
+ANSTOSS_AB = 0.05  # mm – so viel höher muss der Halter die Spitze halten, damit es zählt
+
+
+def _anstoss(stufen, je_stufe, unten, a_werte, stange_radius):
+    """(heraus, mindestens, a von, a bis) für Bahn.anstoss: wo der Halter – die Stufe, die am
+    weitesten über der Spitze beginnt – die Spitze höher hält als die Schneide allein, über dem
+    Teil (nicht, wo die Schneide nichts trifft). Mindestens: die heutige Ausspannung plus das
+    Meiste, das dort fehlt. Leer ohne Stufen oder ohne Anstoß."""
+    if not stufen or len(je_stufe) != len(stufen):
+        return ()
+    nummer = max(range(len(stufen)), key=lambda i: stufen[i][1])
+    heraus = float(stufen[nummer][1])
+    halt = je_stufe[nummer]
+    trifft = np.isfinite(unten.r) & np.isfinite(halt) & (unten.r < stange_radius - GLEICH)
+    fehlt = np.where(trifft, halt - unten.r, 0.0)
+    zeilen = np.flatnonzero((fehlt > ANSTOSS_AB).any(axis=1))
+    if not len(zeilen):
+        return ()
+    return (
+        heraus,
+        heraus + float(fehlt.max()),
+        float(a_werte[zeilen].min()),
+        float(a_werte[zeilen].max()),
+    )
 
 
 def _drehung(a_anfang, a_ende, gleichlauf):
@@ -500,15 +531,17 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     tiefe = w.stange_radius - float(tiefste.min()) if tiefste.size else 0.0
     stufen = [(r_s, ab) for r_s, ab in w.oben if ab > 0 and r_s > 0 and tiefe > ab - GLEICH]
 
-    def stufen_bei(stellen):
+    def stufen_bei(stellen, je_stufe=None):
         """So tief darf die Spitze, damit Schaft und Halter nicht ins Teil kommen (r je Stelle
-        und Winkel) – None ohne Stufen."""
+        und Winkel) – None ohne Stufen. `je_stufe`: eine Liste, in die je Stufe ihr r kommt."""
         ergebnis = None
         for r_s, ab in stufen:
             darueber = vh.schaftfraeser(
                 netz, laengs, radial, max(r_s, radius) + w.aufmass, stellen, phi_werte
             )
             r = darueber.r - ab
+            if je_stufe is not None:
+                je_stufe.append(r)
             ergebnis = r if ergebnis is None else np.maximum(ergebnis, r)
         return ergebnis
 
@@ -519,7 +552,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             ergebnis = vh.Huelle(ergebnis.a, ergebnis.phi, np.maximum(ergebnis.r, oben_r))
         return ergebnis
 
-    oben_r = stufen_bei(a_werte) if stufen else None
+    je_stufe = []
+    oben_r = stufen_bei(a_werte, je_stufe) if stufen else None
+    anstoss = _anstoss(stufen, je_stufe, unten, a_werte, w.stange_radius)
     # Für die Querachse dieselbe Grenze auf dem Strahl der Werkzeugachse (_schruppen_quer).
     oben_quer = vh.Huelle(a_werte, phi_werte, oben_r).sicher() if stufen else None
     huelle = _hinten_gerade(huelle_bei(a_werte, unten, oben_r).sicher(), teil_hinten)
@@ -616,7 +651,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             vorn = (a_anfang, stellen, np.maximum(weg, w.r_tiefste))
         _schruppen_zeilen(punkte, zeilen_a, boden_zeilen, boden_bei, lagen, w, schritt_phi, vorn)
         _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
-        return Bahn(punkte, lagen, r_min, hinten_frei)
+        return Bahn(punkte, lagen, r_min, hinten_frei, anstoss)
     if w.querachse:
         spirale_ = (a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte)
         rahmen_ = (a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher)
@@ -638,7 +673,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                 if weniger < gefahren:
                     punkte[:] = versuch
                     gefahren = weniger
-        return Bahn(punkte, gefahren, r_min, hinten_frei)
+        return Bahn(punkte, gefahren, r_min, hinten_frei, anstoss)
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     spiel = schrupp_spiel(w.aufmass)
@@ -689,7 +724,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         gefahren += 1
         if rest is not None and lage < lagen:
             rest.fahren(punkte, anfang_lage, w.form if w.form is not None else w.fraeser_radius)
-    return Bahn(punkte, gefahren, r_min, hinten_frei)
+    return Bahn(punkte, gefahren, r_min, hinten_frei, anstoss)
 
 
 def _quer_schrupp_frei(a, x, q, psi, radius, stange_radius, leer_auch=None):

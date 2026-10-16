@@ -668,6 +668,20 @@ for oben, soll in (((), (None, 5.0)), (((3.0, 4.0),), (10.0 - 4.0, None))):
     else:
         pruefe(tiefste <= soll[1], f"ohne Schaft im Schlitz nur bis r {tiefste:.2f}")
     print(ascii(f"Schlitz, oben {oben}: im Schlitz bis r {tiefste:.2f}, {b.lagen} Lagen"))
+    # Der Anstoß (P-2026-10-16-33): Ohne Schaft keiner; mit ihm hält er die Spitze im Schlitz
+    # höher – heraus 4; die Schneide käme bis r 2,3 (Schlitz bis r 2, Aufmaß 0,3), der Schaft hält
+    # sie bei 10,3 − 4 = 6,3: mindestens 8, dort längs (a −20).
+    if not oben:
+        pruefe(b.anstoss == (), f"Anstoß ohne Schaft: {b.anstoss}")
+    else:
+        pruefe(
+            len(b.anstoss) == 4
+            and abs(b.anstoss[0] - 4.0) < 1e-9
+            and 7.5 < b.anstoss[1] < 8.5
+            and b.anstoss[2] <= -20.0 <= b.anstoss[3]
+            and b.anstoss[3] - b.anstoss[2] < 3.0,
+            f"Anstoß mit Schaft: {b.anstoss}",
+        )
 
 # --- Schruppen mit der Querachse (V5e, P-2026-10-03-23) -----------------------------------
 # D-Profil: Welle Ø 40 mit einer Abflachung bei x = 6, Stange Ø 50, Schaftfräser Ø 12, ap 5,

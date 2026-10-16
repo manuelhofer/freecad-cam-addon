@@ -19,6 +19,7 @@ Läuft ohne Oberfläche.
 """
 
 import contextlib
+import json
 import math
 from collections import OrderedDict
 
@@ -123,6 +124,7 @@ class RundumSchruppen(PathOp.ObjectOp):
                 ("App::PropertyBool", "Stetig", tr("vo.eigenschaft.stetig")),
                 ("App::PropertyBool", "NurNoetig", tr("vo.eigenschaft.nur_noetig")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
+                ("App::PropertyString", "Anstoss", tr("vo.eigenschaft.anstoss")),
             ),
         )
         if "Stetig" in neu:
@@ -134,6 +136,8 @@ class RundumSchruppen(PathOp.ObjectOp):
     @staticmethod
     def _editormodi(obj):
         obj.setEditorMode("Lagen", 1)  # nur lesen: das Ergebnis
+        if "Anstoss" in obj.PropertiesList:  # für „Kollision prüfen“ (anstoss_von), verborgen
+            obj.setEditorMode("Anstoss", 2)
         if "Workplane" in obj.PropertiesList:  # Wochen-Build: die Bahn dreht selbst
             obj.setEditorMode("Workplane", 2)
 
@@ -149,6 +153,10 @@ class RundumSchruppen(PathOp.ObjectOp):
             self.commandlist.append(Path.Command(f"({_ascii(str(fehler))})"))
             return
         obj.Lagen = bahn.lagen
+        if "Anstoss" in obj.PropertiesList:
+            text = json.dumps([round(float(x), 3) for x in bahn.anstoss]) if bahn.anstoss else ""
+            if obj.Anstoss != text:
+                obj.Anstoss = text
         if bahn.hinten_frei > 0:
             from .reichweite import weg_text
 
@@ -168,6 +176,17 @@ class RundumSchruppen(PathOp.ObjectOp):
                 fraeser_radius=float(obj.OpToolDiameter) / 2,
             )
         )
+
+
+def anstoss_von(obj):
+    """(heraus, mindestens, a von, a bis) aus der letzten Bahn der Operation (Bahn.anstoss): Der
+    Halter hielt die Spitze höher als die Schneide allein – leer, wenn nicht oder unbekannt."""
+    text = getattr(obj, "Anstoss", "") or ""
+    try:
+        werte = json.loads(text) if text else []
+    except ValueError:
+        return ()
+    return tuple(float(x) for x in werte) if len(werte) == 4 else ()
 
 
 def eintauchvorschub(proxy):

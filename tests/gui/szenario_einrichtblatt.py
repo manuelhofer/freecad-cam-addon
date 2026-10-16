@@ -155,3 +155,61 @@ def schritte(h):
     dialog.reject()
     yield 500
     FreeCAD.closeDocument(stange_doc.Name)
+
+    # Eine geschwenkte Ebene (3+2, wie schwenken.lege_an sie anlegt: ein Job mit Grundjob, Ebene
+    # und Rundachsen, das Teil darin gedreht): In der Aufspannung des Grundjobs ein Bild von ihm und
+    # an der Zwischenzeile der Ebene ein eigenes, anderes.
+    import Path.Main.Job as PathJob
+    import Path.Op.Custom as PathCustom
+
+    from camaddon import schwenken as sw
+
+    eb_doc = FreeCAD.newDocument("Schwenkteil")
+    klotz = eb_doc.addObject("Part::Feature", "Klotz")
+    klotz.Shape = Part.makeBox(40, 30, 20).cut(Part.makeBox(10, 30, 8, FreeCAD.Vector(30, 0, 12)))
+    eb_doc.recompute()
+    grund_eb = PathJob.Create("Job", [klotz])
+    op_oben = PathCustom.Create("Oben", parentJob=grund_eb)
+    op_oben.Gcode = ["G0 X0 Y0 Z25", "G1 Z19 F10", "G1 X30 F10", "G0 Z25"]
+    ebene = PathJob.Create("Ebene", [klotz])
+    for name, art in (("Grundjob", "App::PropertyLink"), ("Ebene", "App::PropertyPlacement"),
+                      ("Rundachsen", "App::PropertyString")):  # fmt: skip
+        ebene.addProperty(art, name, "CAM-Addon")
+    ebene.Grundjob = grund_eb
+    ebene.Rundachsen = "A-90 C0"
+    ebene.Label = "Seite vorn"
+    ebene.Model.Group[0].Placement = FreeCAD.Placement(
+        FreeCAD.Vector(0, 0, 0), FreeCAD.Rotation(FreeCAD.Vector(1, 0, 0), 90)
+    )
+    op_seite = PathCustom.Create("Seite", parentJob=ebene)
+    op_seite.Gcode = ["G0 X0 Y0 Z35", "G1 Z29 F10", "G1 X30 F10", "G0 Z35"]
+    eb_doc.recompute()
+    yield 1000
+    h.pruefe(sw.ist_ebene(ebene), "Ebene nicht erkannt")
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(grund_eb)
+    Gui.runCommand("CamAddon_Einrichtblatt")
+    yield from h.warte_auf(lambda: gui_einrichtblatt.EinrichtblattDialog.offen is not None, 30000)
+    yield 1000
+    dialog = gui_einrichtblatt.EinrichtblattDialog.offen
+    h.pruefe(dialog is not None, "kein Fenster für das Schwenkteil")
+    if dialog is None:
+        return
+    auf = dialog.blatt.aufspannungen
+    bilder = list(auf[0].ebenen_bilder.values()) if auf else []
+    h.pruefe(
+        len(auf) == 1 and auf[0].bild and len(bilder) == 1 and os.path.exists(bilder[0]),
+        f"Schwenkteil: {len(auf)} Aufspannungen, Ebenen-Bilder {bilder}",
+    )
+    if auf and auf[0].bild and bilder:
+        with open(auf[0].bild, "rb") as f1, open(bilder[0], "rb") as f2:
+            h.pruefe(f1.read() != f2.read(), "Ebene im selben Bild wie der Grundjob")
+    h.pruefe(dialog.text.count("<img") >= 2, "die Seite zeigt nicht beide Bilder")
+    dialog.vorschau.verticalScrollBar().setValue(300)
+    yield 300
+    h.bild("3_schwenkteil", dialog)
+    if os.environ.get("AUSGABE") and bilder:
+        shutil.copy(bilder[0], os.path.join(os.environ["AUSGABE"], "ebene_seite_vorn.png"))
+    dialog.reject()
+    yield 500
+    FreeCAD.closeDocument(eb_doc.Name)

@@ -65,6 +65,8 @@ def schritte(h):
     # „warum bekomme ich bei dem VDI angetrieben radial und axial nur ER16?“).
     gruppen = {a.text(): a for a in f.menue_neu.actions() if a.menu() is not None}
     spannzangen = {text: [e.text() for e in a.menu().actions()] for text, a in gruppen.items()}
+    # Dazu die Vorlagen für jede andere Werkzeugaufnahme der Spindel (W-022), je ein Untermenü.
+    andere = spannzangen.pop("Für eine andere Aufnahme", [])
     h.pruefe(
         spannzangen
         == {
@@ -73,6 +75,7 @@ def schritte(h):
         },
         f"Untermenüs: {spannzangen}",
     )
+    h.pruefe(any(t.startswith("HSK-A63") for t in andere), f"andere Aufnahmen: {andere[:4]}")
     radial = gruppen.get("VDI angetrieben radial")
     if radial is None:
         return

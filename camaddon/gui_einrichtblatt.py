@@ -91,7 +91,15 @@ class EinrichtblattDialog(QtGui.QDialog):
             for i, aufspannung in enumerate(self.blatt.aufspannungen):
                 pfad = os.path.join(ordner, f"aufspannung_{i + 1}.png")
                 with _ignoriert():
-                    self._bild_der_aufspannung(ansicht, aufspannung, pfad)
+                    if self._bild(ansicht, aufspannung.job, pfad):
+                        aufspannung.bild = pfad
+                # Je geschwenkte Ebene (3+2) ihr eigenes Bild: ihr Job, das Teil so gedreht, wie
+                # es die Ebene sieht – ohne Backen (die stehen im Rahmen des Grundjobs).
+                for k, (lage, ebene) in enumerate(aufspannung.ebenen.items(), 1):
+                    pfad = os.path.join(ordner, f"aufspannung_{i + 1}_ebene_{k}.png")
+                    with _ignoriert():
+                        if self._bild(ansicht, ebene, pfad, mit_backen=False):
+                            aufspannung.ebenen_bilder[lage] = pfad
         finally:
             if wuerfel:
                 ansicht_einstellungen.SetBool("ShowNaviCube", True)
@@ -99,26 +107,25 @@ class EinrichtblattDialog(QtGui.QDialog):
                 with _ignoriert():
                     dokument.Modified = False
 
-    def _bild_der_aufspannung(self, ansicht, aufspannung, pfad):
-        """Teil, Rohteil und Bahnen des Jobs der Aufspannung, schräg von oben – die anderen Jobs
-        dafür ausgeblendet –, dazu die Backen des Spannmittels (spannung.schraubstock). Das Bild
-        (saveImage) zeichnet nur Objekte des Dokuments: Die Backen sind dafür kurz eins, in einer
-        Transaktion, die danach verworfen wird – nichts bleibt, auch nicht im Rückgängig. Läuft
-        schon eine Transaktion (ein offenes Fenster), ohne Backen. Danach steht alles, wie es war.
-        """
+    def _bild(self, ansicht, job, pfad, mit_backen=True):
+        """Teil, Rohteil und Bahnen von `job`, schräg von oben – die anderen Jobs dafür
+        ausgeblendet –, mit `mit_backen` dazu die Backen des Spannmittels (spannung.schraubstock).
+        Das Bild (saveImage) zeichnet nur Objekte des Dokuments: Die Backen sind dafür kurz eins, in
+        einer Transaktion, die danach verworfen wird – nichts bleibt, auch nicht im Rückgängig.
+        Läuft schon eine Transaktion (ein offenes Fenster), ohne Backen. Danach steht alles, wie es
+        war. Gibt zurück, ob das Bild gespeichert ist."""
         from . import reichweite as rw
         from . import spannung
         from .gui_abfahren import SCHRAUBSTOCK
 
-        job = aufspannung.job
         if job is None:
-            return
+            return False
         dok = job.Document
         zeigen = {o.Name for o in getattr(job.Model, "Group", [])}
         if getattr(job, "Stock", None) is not None:
             zeigen.add(job.Stock.Name)
-        zeigen |= {op.Name for op, _ebene in rw.operationen_mit_ebene(job)}
-        backen = spannung.schraubstock(job)
+        zeigen |= {op.Name for op in rw._operationen(job)}  # nur seine, nicht die der Ebenen
+        backen = spannung.schraubstock(job) if mit_backen else None
         transaktion = backen is not None and not dok.HasPendingTransaction
         vorher = {}
         try:
@@ -144,7 +151,7 @@ class EinrichtblattDialog(QtGui.QDialog):
             ansicht.viewIsometric()
             ansicht.fitAll()
             ansicht.saveImage(pfad, 840, 560, "White")
-            aufspannung.bild = pfad
+            return os.path.exists(pfad)
         finally:
             for name, sichtbar in vorher.items():
                 o = dok.getObject(name)
