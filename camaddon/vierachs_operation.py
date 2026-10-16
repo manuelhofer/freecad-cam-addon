@@ -429,10 +429,24 @@ def bahn_fuer(
         _BAHNEN.move_to_end(schluessel)
         return gemerkt
     bahn = vb.schruppen(netz, laengs, radial, werte, schritt_a, schritt_phi)
+    # Der Schlüssel reist mit der Bahn: Rechnet sie die Vorschau im Nebenrechner, merkt der
+    # Assistent sie hier (merke_bahn) – „Anlegen“ rechnet sie dann nicht noch einmal (am Geist
+    # dauerte „Anlegen“ nach der Vorschau 7,4 min).
+    bahn.schluessel = schluessel
+    merke_bahn(bahn)
+    return bahn
+
+
+def merke_bahn(bahn):
+    """Merkt eine Schruppbahn unter ihrem Schlüssel (bahn_fuer) – auch eine aus dem
+    Nebenrechner. Ohne Schlüssel nichts."""
+    schluessel = getattr(bahn, "schluessel", None)
+    if not schluessel:
+        return
     _BAHNEN[schluessel] = bahn
+    _BAHNEN.move_to_end(schluessel)
     while len(_BAHNEN) > _BAHNEN_HOECHSTENS:
         _BAHNEN.popitem(last=False)
-    return bahn
 
 
 _BAHNEN = OrderedDict()  # die zuletzt gerechneten Schruppbahnen (bahn_fuer)

@@ -47,15 +47,22 @@ for szenario in "$@"; do
         [ -f "$paket" ] || { echo "Theme nicht gefunden: $paket" >&2; exit 2; }
         cp "$paket" "$profil/user.cfg"
     fi
+    # Ein Szenario, das laenger rechnet, nennt sein Zeitlimit in einer Zeile "# ZEITLIMIT: <s>" -
+    # gilt, wenn es laenger ist als CAMADDON_ZEITLIMIT.
+    limit="$zeitlimit_s"
+    eigenes="$(sed -n 's/^# ZEITLIMIT: //p' "$szenario" | head -1)"
+    if [ -n "$eigenes" ] && [ "$eigenes" -gt "$limit" ] 2>/dev/null; then
+        limit="$eigenes"
+    fi
     # CAMADDON_OHNE_UPDATE: keine Update-Suche beim Start (kein Netz im Test).
     CAMADDON_OHNE_UPDATE=1 FREECAD_USER_HOME="$profil" CAMADDON_SZENARIO="$(cd "$(dirname "$szenario")" && pwd)/$(basename "$szenario")" \
         CAMADDON_AUSGABE="$ausgabe" \
-        timeout "$zeitlimit_s" xvfb-run -a -s "-screen 0 1280x800x24" "$fc" > "$ausgabe/freecad.log" 2>&1
+        timeout "$limit" xvfb-run -a -s "-screen 0 1280x800x24" "$fc" > "$ausgabe/freecad.log" 2>&1
     rueckgabe=$?
     if [ "$rueckgabe" -eq 124 ]; then
         # Greift das Zeitlimit, haengt etwas (z. B. eine offene Rueckfrage) -
         # auch wenn das Ergebnis OK war.
-        echo "FEHLER $name - FreeCAD hat sich nicht beendet (Zeitlimit $zeitlimit_s s)"
+        echo "FEHLER $name - FreeCAD hat sich nicht beendet (Zeitlimit $limit s)"
         fehler=1
     elif grep -A 30 "^Traceback" "$ausgabe/freecad.log" | grep -q 'File ".*camaddon/'; then
         # Ein Fehler im Addon, den Qt oder FreeCAD nur ins Log schreibt (etwa in

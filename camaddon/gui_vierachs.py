@@ -3965,6 +3965,8 @@ class VierachsPanel:
         """Die Ergebnisse und Gründe ins Fenster – wie die Operationen sie rechnen."""
         e, gruende = self._vorschau_ergebnisse, self._vorschau_gruende
         self.vorschau = e.get(SCHRUPPEN)
+        if self.vorschau is not None:  # aus dem Nebenrechner: „Anlegen“ nimmt sie wieder
+            vo.merke_bahn(self.vorschau)
         self.vorschau_schlichten = e.get(SCHLICHTEN)
         self.vorschau_plan = e.get(PLAN)
         self.vorschau_planbohren = e.get("planbohren")

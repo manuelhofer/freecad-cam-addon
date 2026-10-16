@@ -9,6 +9,7 @@
 # abgestochen)“). „Weiter“: „Plan indexiert“ und „Rundum entgraten“ sind aus, mit Grund (ein
 # STL hat nur Dreiecke); „Rundum schruppen“ und „Rundum schlichten“ angehakt → „Anlegen“: beide
 # Operationen mit Bahnen. Das Fenster steht dabei nie lange (pausen.txt).
+# ZEITLIMIT: 1200
 import os
 
 import FreeCAD

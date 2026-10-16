@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-50 vorschau-schruppbahn-wiederverwenden
+
+### EINGELESEN
+- `szenario_vierachs_stl` (Geist) lief im vollen Lauf zweimal über das Zeitlimit von 600 s. Allein
+  gemessen: 702 s; der Stand vor P-37 brauchte 623 s.
+- Im Geist-Lauf dauerte „Anlegen“ nach der Vorschau 7:26 min. Die Vorschau rechnet in den
+  Nebenrechnern, deren Schruppbahn kam nicht in den Merkspeicher des Hauptprozesses
+  (`vierachs_operation._BAHNEN`). „Anlegen“ rechnete sie deshalb noch einmal.
+
+### DATEIEN
+- `camaddon/vierachs_operation.py`: Die Schruppbahn trägt ihren Schlüssel (`bahn.schluessel`: alles,
+  wovon sie abhängt, auch der Fingerabdruck des Netzes); `merke_bahn` legt sie darunter ab.
+- `camaddon/gui_vierachs.py`: Kommt die Vorschau zurück, wird ihre Schruppbahn gemerkt. Ist der
+  Schlüssel beim Anlegen gleich, nimmt die Operation sie; sonst rechnet sie wie bisher.
+- `scripts/oberflaeche_testen.sh`: Ein Szenario kann sein Zeitlimit mit `# ZEITLIMIT: <s>` nennen;
+  es gilt, wenn es länger ist als `CAMADDON_ZEITLIMIT`.
+- `tests/gui/szenario_vierachs_stl.py`: `# ZEITLIMIT: 1200`.
+
+### ERGEBNIS
+- `szenario_vierachs_stl` grün in 571 s, Anlegen nach der Vorschau 5:58 statt 7:26 min. Ein Teil
+  des Gewinns kommt vom freien Speicher nach Manuels Neustart.
+- Zum Ausprobieren: 4-Achs-Assistent, Vorschau abwarten, „Anlegen“ – das Schruppen steht schneller
+  da als bisher.
+
 ## P-2026-10-16-49 gleiche-flaechen-auf-einmal
 
 ### EINGELESEN
