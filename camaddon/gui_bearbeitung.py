@@ -583,11 +583,36 @@ class BefehlBearbeitung:
                 return
             FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, (teil, None), angeklickt=teil))
             return
-        FreeCADGui.Control.showDialog(
-            BearbeitungPanel(
-                dokument, gewaehlte_flaeche(dokument), angeklickt=angeklicktes_teil(dokument)
-            )
-        )
+        wahl, angeklickt = gewaehlte_flaeche(dokument), angeklicktes_teil(dokument)
+        if wahl is not None:
+            teil = teil_hinter_link(wahl[0])
+            if teil is not wahl[0]:  # ein Link in der Maschine (B-020): im Dokument des Teils
+                wahl, angeklickt, dokument = (teil, wahl[1]), None, teil.Document
+                _aktivieren(dokument)
+        FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, wahl, angeklickt=angeklickt))
+
+
+def teil_hinter_link(teil):
+    """Das Teil hinter einem Link in ein anderes Dokument – etwa in die Baugruppe einer Maschine
+    eingelegt (B-020; Manuel, 2026-10-12: „Konnte nicht anlegen: PropertyLink does not support
+    external object“, im Baum der neuen 3-Achs-Fräse ein halber Job und ein loses „TC: 5mm
+    Endmill“). Der Job gehört ins Dokument des Teils. Sonst `teil` selbst."""
+    ziel = teil
+    for _ in range(10):  # ein Link auf einen Link …
+        weiter = getattr(ziel, "LinkedObject", None) if ziel.TypeId == "App::Link" else None
+        if weiter is None:
+            break
+        ziel = weiter
+    if ziel is not teil and getattr(ziel, "Document", None) is not teil.Document:
+        return ziel
+    return teil
+
+
+def _aktivieren(dokument):
+    """Macht `dokument` aktiv – auch in der Oberfläche: Dort öffnet sich das Aufgabenfenster."""
+    FreeCAD.setActiveDocument(dokument.Name)
+    if FreeCADGui.getDocument(dokument.Name) is not None:
+        FreeCADGui.setActiveDocument(dokument.Name)
 
 
 def gewaehlte_operation(dokument):
@@ -661,7 +686,7 @@ class _Beobachter:
         if not unterelement:
             return
         # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert das Dokument.
-        uhren.gleich(lambda: self.panel.angeklickt(objekt, unterelement, punkt))
+        uhren.gleich(lambda: self.panel.angeklickt(objekt, unterelement, punkt, _dokument))
 
 
 class _NurFlaechen:
@@ -4704,10 +4729,11 @@ class BearbeitungPanel:
 
     # --- Teil, Job, Rohteil ---------------------------------------------------------------
 
-    def angeklickt(self, objekt, unterelement, punkt=None):
-        """Eine angeklickte Fläche: ohne Job macht sie ihr Teil zum Teil des Jobs; mit Job nimmt
-        sie die Fläche dazu oder heraus – wartet „Im Bild wählen …“ auf eine Eintauchstelle der
-        Nut, ist der Punkt diese Stelle."""
+    def angeklickt(self, objekt, unterelement, punkt=None, dokument=None):
+        """Eine angeklickte Fläche: ohne Job macht sie ihr Teil zum Teil des Jobs – liegt es in
+        einem anderen Dokument (`dokument`, sein Name) oder hinter einem Link dorthin, öffnet sich
+        das Fenster dort neu (B-020); mit Job nimmt sie die Fläche dazu oder heraus – wartet „Im
+        Bild wählen …“ auf eine Eintauchstelle der Nut, ist der Punkt diese Stelle."""
         if self.geschlossen:
             return
         if self.nut.stelle_waehlt is not None and self.job is not None and punkt is not None:
@@ -4715,9 +4741,18 @@ class BearbeitungPanel:
             self.nut.stelle_angeklickt(punkt)
             return
         if self.job is None:
-            wahl = gewaehlte_flaeche(self.doc)
-            if wahl is not None:
-                self._beginnen(wahl, angeklicktes_teil(self.doc))
+            wo = self.doc
+            wahl = gewaehlte_flaeche(wo)
+            if wahl is None and dokument and dokument != self.doc.Name:
+                wo = FreeCAD.listDocuments().get(dokument)
+                wahl = gewaehlte_flaeche(wo) if wo is not None else None
+            if wahl is None:
+                return
+            teil = teil_hinter_link(wahl[0])
+            if teil.Document is not self.doc:
+                self._im_dokument_neu(teil, wahl[1])
+            else:
+                self._beginnen(wahl, angeklicktes_teil(wo))
             return
         weg = unterelement.split(".") if unterelement else []
         if weg and weg[-1].startswith("Edge"):
@@ -4865,6 +4900,18 @@ class BearbeitungPanel:
             for b in self.bloecke
             if not (analytisch and b.s.kennung in FREIFORM_STRATEGIEN)
         )
+
+    def _im_dokument_neu(self, teil, flaeche):
+        """Das Teil liegt in einem anderen Dokument als das Fenster: Es schließt und öffnet sich
+        dort neu, mit Teil und Fläche (ein Aufgabenfenster gehört zu seinem Dokument)."""
+        dokument, neu = teil.Document, self._neu
+        self.reject()
+
+        def oeffnen():
+            _aktivieren(dokument)
+            FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, (teil, flaeche), neu=neu))
+
+        QtCore.QTimer.singleShot(0, oeffnen)
 
     def neuer_job(self):
         """„Neuer Job …“: statt in den vorhandenen Job einen neuen anlegen – eine zweite

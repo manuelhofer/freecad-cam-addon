@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-42 teil-im-eigenen-dokument (B-020)
+
+### EINGELESEN
+- B-020 (Manuel, 2026-10-12): „Konnte nicht anlegen: PropertyLink does not support external
+  object“. Eine neue 3-Achs-Fräse war als eigenes Dokument offen; in ihrem Baum standen ein halber
+  Job „Body – Fräsen“ und ein loses „TC: 5mm Endmill“. Kurz davor wollte Manuel Bauteile in eine
+  Baugruppe einlegen (B-021).
+- Nachgestellt (`szenario_teil_in_maschine`):
+  - Ein Block in „Teil“, im Dokument der Beispiel-Fräse ein Link darauf, eine Fläche am Link
+    angeklickt, dann „Bearbeitung“. Der Assistent legte Job, Klon, Rohteil und „TC: 5mm Endmill“
+    in der Maschine an. Mit einem PartDesign-Körper scheitert genau das am Link über die
+    Dokumentgrenze.
+  - Zweiter Weg: die Maschine aktiv, ein drittes Dokument offen, nichts gewählt. Der Assistent
+    beginnt in der Maschine, und ein Klick auf das Teil in „Teil“ tat nichts.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`:
+  - `teil_hinter_link`: hinter einem Link in ein anderes Dokument das Teil selbst.
+  - Beim Start: Ist ein solcher Link gewählt, öffnet der Assistent im Dokument des Teils
+    (`_aktivieren`).
+  - Ohne Job: Liegt das angeklickte Teil (auch hinter einem Link) in einem anderen Dokument,
+    schließt das Fenster und öffnet sich dort neu, mit Teil und Fläche (`_im_dokument_neu`; ein
+    Aufgabenfenster gehört zu seinem Dokument, siehe `gui_hilfe.dialog_schliessen`). Der Beobachter
+    gibt dafür das Dokument des Klicks mit.
+- `tests/gui/szenario_teil_in_maschine.py` (neu): beide Wege. Danach steht der Job in „Teil“ mit dem
+  Block selbst, ohne roten Satz, und in der Maschine ist nichts dazugekommen.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_teil_in_maschine` (vor der Änderung rot: Job in der Maschine,
+  22 Objekte dazu), `szenario_arbeitsdokument`, `szenario_bearbeitung`.
+- Zum Ausprobieren: Teil und Maschine je als eigenes Dokument offen, das Teil als Link in die
+  Maschine eingelegt; dort eine Fläche anklicken, „Bearbeitung“. Der Reiter wechselt zum Teil, der
+  Job steht dort.
+
 ## P-2026-10-16-41 einrichtblatt-halter-im-katalog (W-019, W-022)
 
 ### EINGELESEN
