@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-19 sprachschluessel-spannung
+
+### EINGELESEN
+- Nach P-2026-10-16-18 war `test_sprache` rot: „sn.neben“ stand nur in einem bedingten Ausdruck
+  vor `tr()`, die Prüfung fand ihn nicht. Durchgerutscht, weil die Prüfung mit `;` statt `&&` vor
+  dem Commit stand.
+
+### DATEIEN
+- `camaddon/spannung.py`: beide Schlüssel wörtlich in `tr()`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`, `test_spannung`. Sichtbar ändert sich nichts.
+
 ## P-2026-10-16-18 dreibackenfutter (W-021, Stufe 2)
 
 ### EINGELESEN

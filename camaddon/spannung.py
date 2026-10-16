@@ -168,10 +168,7 @@ def pruefen(job):
                 "gespannt": rw.weg_text(tiefe),
                 "oben": rw.weg_text(oben),
             }
-            if kreis is not None:
-                satz = tr("sn.neben_futter", **werte)
-            else:
-                satz = tr("sn.neben", **werte)
+            satz = tr("sn.neben_futter", **werte) if kreis is not None else tr("sn.neben", **werte)
             saetze.append(Befund(satz, op.Label))
     return saetze
 
