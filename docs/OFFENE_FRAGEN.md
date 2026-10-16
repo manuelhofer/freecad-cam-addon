@@ -37,11 +37,12 @@ Seit 0.260.11 nimmt Planfräsen keine Böden von Taschen und Nuten mehr (an mind
 Vierteln des Rands steht eine Wand). Die räumt Räumen oder die Nut, wie Manuel am C-Ring sagte:
 „planfräsen ist auf z0 bringen würde ich behaupten oder seitlich eine seite auf 0 bringen“.
 Offen ist der Absatz: eine Stufe unter der Oberseite mit einer Wand und drei offenen Seiten. Im
-Prüfstand (`absatz/planfraesen`) gewinnt dort Planfräsen mit 2,1 min und einer Zickzack-Rampe.
+Prüfstand (`absatz/planfraesen`) gewinnt dort Planfräsen mit 2,1 min. Die Zickzack-Rampe dort ist
+seit 0.260.22 eine Helix (P-2026-10-16-25) – unabhängig von dieser Frage.
 *Warum nur Manuel:* Was Planfräsen heißt, entscheidet er; „Absätze“ hat er nicht genannt.
 *Was die Antwort ändert:* Bei „Räumen“ tritt Planfräsen nur noch für die Oberseite an (z0),
-bei „Planfräsen“ bleibt es so, und die Zickzack-Rampe am Absatz muss weg (von der offenen Seite
-her einfahren). Nachgesehen: Die erste Zeile jeder Lage beginnt an der Stufe (x 16, im Material)
-und läuft nach außen. Andersherum, vom offenen Ende (x 61, Luft), bräuchte sie keine Rampe; die
-Richtung legt `planfraesen_bahn._zellenfahrten` fest. – seit 2026-10-16
+bei „Planfräsen“ bleibt es so. Dann ließe sich noch die Helix sparen: Die erste Zeile jeder Lage
+beginnt an der Stufe (x 16, im Material) und läuft nach außen; andersherum, vom offenen Ende
+(x 61, Luft), käme sie ohne Eintauchen hinein (die Richtung legt
+`planfraesen_bahn._zellenfahrten` fest). – seit 2026-10-16
 
