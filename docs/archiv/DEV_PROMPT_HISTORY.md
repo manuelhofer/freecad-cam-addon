@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-66 raeumen-nicht-fuer-lochboden
+
+### EINGELESEN
+- Beim Durchsehen der Bilder aus dem vollen Lauf (`szenario_loch_schraeg`, „4_angelegt“): In der
+  Ebene des Lochs in der Schräge stand außer „Bohrung fräsen“ auch „Räumen“ angehakt und räumte die
+  ganze Schräge. Seit P-2026-10-16-54 nimmt das Räumen den Boden eines Lochs nicht mehr; ohne eigene
+  Fläche nahm es die Oberseite – angehakt hatte es sich trotzdem, weil der Boden eben nach oben ist.
+  Manuel: „Ich will nur dass Loch da fräsen“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_Raeumen.vorgeschlagen` – nicht für den Boden eines Lochs
+  (`bohrung_ueber_boden`). Von Hand anhaken geht weiter (dann die Oberseite).
+- `tests/gui/szenario_loch_schraeg.py`: In der Ebene nur „Bohrung fräsen“.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_loch_schraeg`, `szenario_lagerbock`, `szenario_bohrung`,
+  `szenario_raeumen`, `szenario_platte`, `szenario_loch_auffraesen`.
+
 ## P-2026-10-16-65 schraege-mit-ihren-waenden
 
 ### EINGELESEN

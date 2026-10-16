@@ -1184,8 +1184,13 @@ class _Raeumen(_Strategie):
 
     def vorgeschlagen(self, form, gewaehlte):
         # Von sich aus nur für ebene Flächen (die Oberseite ohne Wahl); für gewählte
-        # Taschenwände bleibt die Kontur der Vorschlag – Räumen lässt sich dazu anhaken.
-        return not gewaehlte or any(hf.ebenen_oben(form, [name]) for name in gewaehlte)
+        # Taschenwände bleibt die Kontur der Vorschlag – Räumen lässt sich dazu anhaken. Nicht
+        # für den Boden eines Lochs: Den fräst „Bohrung fräsen“, und das Räumen nähme ohne
+        # eigene Fläche die Oberseite – am Loch in der Schräge räumte es die ganze Schräge mit.
+        return not gewaehlte or any(
+            hf.ebenen_oben(form, [name]) and bb.bohrung_ueber_boden(form, name) is None
+            for name in gewaehlte
+        )
 
     def moeglich(self, form, gewaehlte):
         return True  # ohne ebene Fläche die Oberseite

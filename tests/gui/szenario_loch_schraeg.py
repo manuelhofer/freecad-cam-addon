@@ -142,6 +142,13 @@ def schritte(h):
     h.pruefe(b.accept() is True, f"„Anlegen“ ging nicht ({hinweis!r}, {zustand})")
     yield 2000
     h.pruefe(ebene.Operations.Group, "keine Operation in der Ebene")
+    # Nur das Loch, nicht die Schräge darum (Manuel: „Ich will nur dass Loch da fräsen“).
+    from camaddon import bohrung as bo
+
+    h.pruefe(
+        all(bo.ist_bohrungsfraesen(o) for o in ebene.Operations.Group),
+        f"in der Ebene: {[o.Label for o in ebene.Operations.Group]}",
+    )
     h.pruefe(not job.Operations.Group, "im Grundjob ist doch etwas angelegt")
     Gui.Selection.clearSelection()
     Gui.ActiveDocument.ActiveView.viewIsometric()
