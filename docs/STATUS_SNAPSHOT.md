@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis -68, 0.260.45 → 0.260.64):** (dazu T-015: G550 ohne Grundstellung)
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis -70, 0.260.45 → 0.260.66):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -59,6 +59,11 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   - In der Ebene eines Lochs hakt sich das Räumen nicht mehr an (es räumte die ganze Schräge).
   - B-026 (Drehteil) samt Folgefehler im Modell der Stange (P-61).
   - Formularzeilen werden erst später gelöscht (der Absatz in „Maschine bearbeiten“).
+  - Im Freivorschub kein Ausflug hin und zurück mehr (P-67).
+  - In einer gekippten Aufspannung zeigt das Fenster das gekippte Teil (P-69). Das Einrichtblatt
+    nennt Winkel, Achse und den Nullpunkt dieser Aufspannung (P-70).
+  - Manuels Klotz mit 45°-Fase (`schrägemitklotz.FCStd`, Kopie): 5 Achsen → Ebene A−45 → Räumen;
+    3 Achsen → gekippt 45° → Räumen.
 - Der zweite volle Lauf (nach P-62): 149 von 151 grün. `szenario_maschine_bearbeiten` stürzte ab
   (behoben in P-63, danach zweimal grün); `szenario_rundum_drehmaschine` lief allein grün – im Lauf
   rechneten nebenher weitere Szenarien.
