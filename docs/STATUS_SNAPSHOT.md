@@ -438,6 +438,10 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    passenden Fräser nehmen, wie `_nutfraeser_waehlen` es bei der Nut tut, mit einem Satz dazu. Die
    Fläche gilt dann nicht als fertig (`_fertige_flaechen`). Ob das Addon den Fräser selbst wechseln
    darf, ist eine Strategiewahl: erst in `OFFENE_FRAGEN.md`, mit Bild und Zahlen.
+   *Erledigt:* P-2026-10-16-05. Passt der Fräser nicht hinein, nehmen Planfräsen und Räumen den
+   größten passenden und sagen es in einem Satz (Frage 1 in `OFFENE_FRAGEN.md`). Erreicht eine
+   Bahn ihre Fläche nicht, steht sie rot als „Nicht fertig“ mit Anteil und tritt im Zeitvergleich
+   nicht an.
 6. **Der Tisch fährt durch den Ständer** (Manuel, 2026-10-16, mit Bild: „wenn man die verfahrwege
    auf ein reales mass einstellt was die beispielsweise kao ming fähren kann .. fährt der tisch
    durch den ständer .. eher uncool“): 3-Achs-Fräse mit X ±650, Y −650 … 620, Z 0 … 600. Die
@@ -466,6 +470,9 @@ T1 Ø 12.
    ist dieselbe wie beim Ring, Punkt 5: Ø 12 passt nicht in die 10 mm breite Nut, und das wird
    nicht gesagt. Es steht nur der allgemeine Satz „Ecken und Nuten, enger als er, bleiben für
    einen kleineren“. Damit ist Punkt 5 an zwei Teilen belegt und kommt als Nächstes.
+   *Teilweise erledigt:* P-2026-10-16-05. Jetzt nehmen beide T3 Ø 6. Räumen erreicht damit nur
+   35 % der Nut (siehe Punkt 7) und tritt nicht an; das Planfräsen erreicht sie, aber im Zickzack.
+   Richtig wird es erst mit der Bogennut (Punkt 7).
 2. **Zickzack an den Rundungen**: „die vorschrupp bahnen sind rund .. und wenns zum fertig
    schruppen kommt ists nen eck ??? … das selbe im inneren kreis“. Beim Räumen ist der letzte Zug
    außen um Ø 60 und innen in der Bohrung Ø 30 eckig und zackig, die Züge davor sind rund.
@@ -484,6 +491,48 @@ T1 Ø 12.
    ab Schritt 3 (Flächen gewählt, Strategie angehakt), vorher grau. Der Hinweis sagt, was noch
    fehlt („Erst die Flächen wählen – Schritt 2“), so wie „Nächster Schritt als Knopf“ es verlangt:
    nie grau ohne Grund. In den anderen Assistenten (4 Achsen, 3+2, Drehen) dasselbe ansehen.
+5. **Mit Aufmaß 0 schlägt er Planfräsen vor** (Bild: Aufmaß oben 0, seitlich 0, unten 6; Face8
+   gewählt; angehakt „Planfräsen → 1 Lage, 23 Zeilen, etwa 1 min · 2,27 × Ziel“, Räumen
+   „5,09 × Ziel“; „Ziel mit T1 Schaftfräser Ø 12: 0,2 min“). Manuel: „als vorschlag planfäsen ....
+   bei 0 aufmass“. Auch hier passt Ø 12 nicht in die 10 mm breite Nut. Planfräsen gewinnt, obwohl es
+   den Nutgrund nicht erreicht, und das Ziel rechnet mit einem Fräser, der gar nicht hineinkommt.
+   Gehört zu Punkt 1 und zu Ring Punkt 5.
+6. **Was Planfräsen ist** (Bild: die Planfräsen-Bahn mit Ø 12 an Face8 – Zickzack-Rampen außen
+   an den Ecken des Rohteils und in der Mitte, nichts in der Nut). Manuel: „das sehe ich nicht als
+   planfräsen an das gehört schon eher zum raeumen .. planfräsen ist auf z0 bringen würde ich
+   behaupten oder seitlich eine seite auf 0 bringen .. aber das is zickzack fahren obwohl wir
+   gesagt haben das ist keine sinnvolle strategie !!!“. Daraus folgt zweierlei:
+   - Planfräsen tritt nur für Flächen an, die oben offen liegen: die Oberseite auf Z 0, bei 3+2
+     die Seite, die zur Spindel zeigt. Einen Nut- oder Taschengrund mit Wänden ringsum räumt das
+     Räumen. Absätze, die zu einer Seite offen sind, gehören wohl auch zum Räumen, aber nicht
+     raten, sondern als Frage aufschreiben.
+   - Die Zickzack-Rampen im Planfräsen (`planfraesen_bahn`, Einfahren Punkt 4, Entwurf mit Helix
+     in `~/freecad_cam/wip/`) sind weiter offen: von außen aus der Luft einfahren, sonst Helix.
+7. **Zickzack in der offenen Nut** (Bild: Face8 mit kleinerem Fräser, in der ganzen Ringnut dicht
+   an dicht Zickzack-Rampen mit Abhebern). Manuel: „hier haben wir wieder zickzack fahren ... in
+   etwas was ne offene nut ist .. das geht garnicht .. die offene nut kann man volle tiefe mit D's
+   abarbeiten .. oder beide richtungen .. also sollte generell als auswahl vorhanden sein das man
+   gleich und gegenlauf fräst... und somit sozusagen wellen da rein fährt“. Daraus:
+   - Eine Nut, die zu einer Seite offen ist (hier zum Schlitz), wird vom offenen Ende her auf
+     voller Tiefe mit D-Bögen (trochoidal) abgearbeitet. Kein Eintauchen und keine Rampe.
+   - Als Auswahl, generell: Gleichlauf, Gegenlauf oder beides. Bei „beides“ fährt das Werkzeug
+     hin und zurück und ohne Leerweg, das sind Manuels „Wellen“.
+
+   Der Block „Nut“ kennt offene Nuten, aber nur gerade Langlöcher (`nut_bahn`, `test_nut_offen`).
+   Face8 nimmt er nicht an („Keine Nut gewählt“). Nachgemessen am C-Ring mit T3 Ø 6: Räumen
+   überstreicht nur 35–64 % des Nutgrunds, in allen Varianten (adaptiv, Ringe). Der erlaubte
+   Streifen für die Fräsermitte ist dort etwa 1,4 mm breit und zerfällt im 1-mm-Raster in Stücke.
+   Das Planfräsen erreicht ihn, aber im Zickzack. Nötig ist also die Nut entlang einer gebogenen
+   Mittellinie (Ringnut, Bogennut), mit D-Bögen von außen.
+   Manuels Bild dazu, wie „anständige D's“ aussehen („das gelbe ist schnellvorschub .. und das
+   blaue ist barbeitung und das grüne an den ecken ist einfahrt“):
+   - blau, schneidend: der D-Bogen, ein Halbkreis mit geradem Rücken;
+   - gelb, Schnellvorschub: zurück quer über die freie Seite;
+   - grün: an den Ecken der Einfahrt ein Bogen.
+
+   So arbeitet `nut_bahn` die gerade offene Nut schon („Bögen statt Kreisen“). Für die Ringnut
+   kommt die Mittellinie als Bogen dazu: Die Bögen stehen quer zur Nut und rücken längs des Bogens
+   vor.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
@@ -1015,6 +1064,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   4. Das Menü „Neu“ zeigt die Vorlagen für die Aufnahme der Maschine, wie heute bei VDI.
   Offen: Was wird aus Haltern in der Werkzeugverwaltung, deren Aufnahme nicht zur Maschine passt?
   Eine Meldung im Assistenten, wie bei der Ausspannlänge.
+  Manuel, 2026-10-16, mit Bild (ein HSK-Halter mit Greiferrille, Bund, Körper und Fräser): „wenn
+  die halter so ausschauen würden wäre cool .. also dem echten objekt nachempfunden … wenn ich
+  mich irgendwo regestrieren soll oder du vom hoffman die login daten benötigst um die cad dateien
+  zu bekommen kein problem“. Die Form soll also dem echten Halter folgen: Flansch mit Greiferrille,
+  Kegel bzw. HSK-Bund, Körper, Mutter. Heute sind es Abschnitte aus Zylindern und Kegelstümpfen.
+  Anmelden mit seinen Zugangsdaten darf Claude nicht. Lädt Manuel die STEP-Dateien selbst herunter
+  (etwa nach `~/freecad_cam/halter_cad/`), liest Claude die Maße daraus und baut die Vorlagen nach.
 
 ## Offene Bugs
 

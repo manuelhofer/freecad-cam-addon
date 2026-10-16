@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-05 fraeser-passt-und-flaeche-erreicht
+
+### EINGELESEN
+- Am Ring (Ring Punkt 5) und an Manuels neuem C-Ring (`3_achs_c_ring_nut_testteil.FCStd`, von
+  `fraesteil.FCStd` umbenannt, wie er wollte) kam T1 Ø 12 nicht in die 10 mm breiten Nuten.
+  Planfräsen gewann trotzdem, ohne ein Wort, und rechnete sein Ziel mit Ø 12. Nachgemessen am
+  C-Ring: Ø 12 erreicht 5 % des Nutgrunds, Ø 8 alles.
+- Mit T3 Ø 6 räumt das Räumen den Nutgrund trotzdem nur zu 35 %, in allen Varianten (adaptiv,
+  Ringe). Der Streifen für die Fräsermitte ist etwa 1,4 mm breit und zerfällt im 1-mm-Raster.
+  Trotzdem hieß es „die schnellste“.
+- Manuels Nachrichten dazu (Planfräsen ist „auf z0 bringen“, Zickzack in der offenen Nut, D-Bögen,
+  Gleich-/Gegenlauf, „Anlegen“ zu früh, Halter wie echt) stehen im Snapshot, C-Ring 1–7 und W-022.
+
+### DATEIEN
+- `camaddon/zielzeit.py`:
+  - `zellen_der_flaeche`: die Zellen einer ebenen Fläche im Raster der Zielzeit;
+  - `anteile_erreicht`: welchen Anteil die Stirn eines Fräsers erreicht (die Schließung, mit Luft
+    je Seite);
+  - `ueberstrichen`: welche Zellen eine Bahn mit der Stirn überstreicht;
+  - `anteil_frei`: überstrichen oder schon vorher frei (Materialstand);
+  - `stirn`.
+- `camaddon/gui_bearbeitung.py`:
+  - `_flaechenfraeser_waehlen`: Erreicht der Fräser von Planfräsen oder Räumen weniger als die
+    Hälfte einer gewählten ebenen Fläche, nehmen sie den größten ihrer Fräser, der mit 0,5 mm
+    Luft je Seite 90 % erreicht, wie die Nut.
+  - Der Satz dazu steht vorn in der Ziel-Zeile („… kommt nicht in Face8 – Planfräsen und Räumen
+    nehmen T3 Schaftfräser Ø 6.“).
+  - Angebote der Ziel-Zeile, deren Fräser nicht hineinpasst, fallen weg.
+  - `_unerreicht`: Fläche nicht erreicht = Fräser zu groß, oder die Vorschau überstreicht weniger
+    als 90 %.
+  - Solche Flächen zählen nicht als fertig. Die rote Zeile sagt „Räumen mit … erreicht von Face8
+    nur 35 %“, und im Zeitvergleich tritt der Block nicht an, wenn ein anderer sie erreicht.
+- `translations/de|en.json`: `ba.passt.*`, `ba.unfertig.erreicht`, `ba.wettbewerb.erreicht_nicht`.
+- `tests/test_zielzeit.py`: Nut 10 breit – Ø 12 kaum, Ø 8 ganz, mit Luft Ø 8 ja, Ø 10 nein; Bahn
+  längs der Mitte ganz, halb, zu schmal.
+- `docs/OFFENE_FRAGEN.md`: Frage 1 (darf er den Fräser selbst wechseln?).
+- `package.xml` (0.260.5).
+
+### ERGEBNIS
+- C-Ring, Face8 (Szenario auf einer Kopie, seine Werkzeugverwaltung):
+  - „T1 Schaftfräser Ø 12 kommt nicht in Face8 – Planfräsen und Räumen nehmen T3 Schaftfräser Ø 6.“
+  - Räumen: „erreicht von Face8 nur 35 %, tritt nicht an“.
+  - Planfräsen bekommt den Haken. Es erreicht die Nut, aber mit Zickzack-Rampen; die Bogennut mit
+    D-Bögen (C-Ring Punkt 7) steht noch aus.
+- Grün im Wochen-Build: `test_zielzeit`, `szenario_testteil` (Manuels 3-Achs-Testteil),
+  `szenario_raeumen`.
+
 ## P-2026-10-16-04 fraese-waechst-mit-den-wegen
 
 ### EINGELESEN

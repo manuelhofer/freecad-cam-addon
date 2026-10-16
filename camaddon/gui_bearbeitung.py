@@ -121,6 +121,12 @@ GEMERKT_RESTSCHRUPPFRAESER = "BaRestSchruppFraeser"  # … fürs Restschruppen
 # erstmal oben mittig bitte ausgewählt“).
 GEMERKT_NULLPUNKT = "BaNullpunkt"
 NULLPUNKT_VORGABE = (0, 0, 1)
+# Passt der Fräser des Planfräsens oder Räumens in eine gewählte ebene Fläche (eine Nut enger als
+# er)? Erreicht er weniger als ZU_ENG von ihr, kommt er nicht hinein; der Ersatz muss PASST
+# erreichen, mit PASST_SPIEL mm Luft je Seite (Manuel, 2026-10-16: Ø 12 in 10 mm breiten Nuten).
+ZU_ENG = 0.5
+PASST = 0.9
+PASST_SPIEL = 0.5
 REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 UHR_SCHRITT_MS = 30  # ein Schritt der Vorschau mitten in einer Rechnung: so viel später
@@ -5824,6 +5830,7 @@ class BearbeitungPanel:
             self._entgratfraeser_waehlen(form)
             self._nutfraeser_waehlen(form)
             self._planeinsatz_waehlen(form)
+            self._flaechenfraeser_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -6220,11 +6227,19 @@ class BearbeitungPanel:
         nur Ecken (Restmaterial), Kehlen (Bleistift) oder Anbohrungen (Zentrieren) macht."""
         werte = block.werte()
         if block is self.plan:
-            return self._flaechen(block, form) if not float(werte.get("aufmass", 0.0)) else []
+            if float(werte.get("aufmass", 0.0)):
+                return []
+            eng = set(self._unerreicht(block, form))
+            return [f for f in self._flaechen(block, form) if f not in eng]
         if block in (self.raeumen, self.restraeumen):
             if float(werte.get("aufmass_boden", 0.0)):
                 return []
-            return self._raeumt(form) if block is self.raeumen else self._flaechen(block, form)
+            if block is self.restraeumen:
+                return self._flaechen(block, form)
+            # Wohin sein Fräser oder seine Bahn nicht kommt (eine Nut enger als er), ist nicht
+            # fertig.
+            eng = set(self._unerreicht(block, form))
+            return [f for f in self._raeumt(form) if f not in eng]
         if block is self.schlichten_danach:
             zusatz = self._schlichten_danach_zusatz(form)
             flaechen = list(zusatz.get("boden_flaechen", ())) if werte.get("boden") else []
@@ -6286,6 +6301,20 @@ class BearbeitungPanel:
             text = tr("ba.unfertig", flaechen=flaechen, bloecke=titel)
         else:
             text = tr("ba.unfertig.keiner", flaechen=flaechen)
+        # Warum: Planfräsen oder Räumen ist angehakt, erreicht die Fläche aber nicht ganz.
+        for block in (self.plan, self.raeumen):
+            if not block.aktiv():
+                continue
+            unerreicht = {n: a for n, a in self._unerreicht(block, form).items() if n in namen}
+            if unerreicht:
+                name, anteil = min(unerreicht.items(), key=lambda e: e[1])
+                text += " " + tr(
+                    "ba.unfertig.erreicht",
+                    block=block.s.titel(),
+                    flaeche=name,
+                    anteil=int(round(100.0 * anteil)),
+                    werkzeug=_ziel_werkzeug(block.fraeser()),
+                )
         self.unfertig.setText(dezimal(text))
         self.unfertig.show()
 
@@ -6586,6 +6615,8 @@ class BearbeitungPanel:
         angebote = []
         if self.bibliothek is not None:
             angebote = zz.vergleiche(material, self.bibliothek.werkzeuge, self.werkstoff())
+            # Keiner, der nicht in die gewählten Flächen kommt (_flaechenfraeser_waehlen).
+            angebote = [a for a in angebote if self._passt_angebot(form, a)]
         if angebote:
             beste = angebote[0]
             vergleich = None
@@ -6614,6 +6645,9 @@ class BearbeitungPanel:
                 if self.zu_aendern is None:
                     self._schneller = beste
                     self.knopf_schneller.show()
+        getauscht = self._getauscht_text()
+        if getauscht:
+            saetze.insert(0, getauscht)
         self.ziel_text.setText(" ".join(saetze))
         self._ziel_je_block(form, material)
 
@@ -7206,6 +7240,158 @@ class BearbeitungPanel:
             block.s.tief = tief
             block.einsatz_fuellen(self.werkstoff())
 
+    def _flaechenzellen(self, form, namen):
+        """{Fläche: (z, Maske)} – die ebenen Flächen nach oben unter `namen` auf dem Raster der
+        Zielzeit (_ziel_material, zielzeit.zellen_der_flaeche), je Teil und Rohteil gemerkt."""
+        material = self._ziel_material(form)
+        if material is None:
+            return None, {}
+        gemerkt = getattr(self, "_zellen_gemerkt", None)
+        if gemerkt is None or gemerkt[0] is not material.boden:
+            gemerkt = (material.boden, {}, {})  # Boden, Zellen je Fläche, Stirn je Radius
+            self._zellen_gemerkt = gemerkt
+        zellen = gemerkt[1]
+        fehlen = [n for n in namen if n not in zellen]
+        if fehlen:
+            ebenen = {e.name: e for e in hf.ebenen_oben(form, fehlen)}
+            for name in fehlen:
+                ebene = ebenen.get(name)
+                if ebene is None:
+                    zellen[name] = None
+                    continue
+                try:
+                    flaeche = form.getElement(name)
+                    zellen[name] = (ebene.z, zz.zellen_der_flaeche(material, flaeche, ebene.z))
+                except Exception:  # eine Fläche, die sich nicht prüfen lässt: gilt als erreicht
+                    zellen[name] = None
+        return material, {n: zellen[n] for n in namen if zellen.get(n) is not None}
+
+    def _erreicht(self, form, namen, werkzeug, spiel=0.0):
+        """{Fläche: Anteil, den `werkzeug` von ihr erreicht} – für die ebenen Flächen nach oben
+        unter `namen` (zielzeit.anteile_erreicht); leer ohne Ziel-Material."""
+        if werkzeug is None or werkzeug.durchmesser <= 0:
+            return {}
+        material, zellen = self._flaechenzellen(form, list(namen))
+        if material is None or not zellen:
+            return {}
+        radius = werkzeug.durchmesser / 2 + spiel
+        stirnen = self._zellen_gemerkt[2]
+        if radius not in stirnen:
+            stirnen[radius] = zz.stirn(material, radius)
+        return zz.anteile_erreicht(material, radius, zellen, stirn=stirnen[radius])
+
+    def _zu_eng(self, block, form, werkzeug=None):
+        """Die Flächen des Blocks, in die sein Fräser (oder `werkzeug`) nicht hineinkommt: Er
+        erreicht weniger als ZU_ENG von ihnen – nur Planfräsen und Räumen."""
+        if block not in (self.plan, self.raeumen) or self.job is None:
+            return []
+        werkzeug = werkzeug or block.fraeser()
+        anteile = self._erreicht(form, self._flaechen(block, form), werkzeug)
+        return [name for name, anteil in anteile.items() if anteil < ZU_ENG]
+
+    def _unerreicht(self, block, form):
+        """{Fläche: Anteil, den der Block von ihr erreicht} für die gewählten ebenen Flächen, die
+        er nicht fertig macht – Planfräsen und Räumen: sein Fräser kommt nicht hinein (_zu_eng),
+        oder seine Bahn (die Vorschau) überstreicht in ihrer Höhe weniger als PASST von ihr; was
+        davor schon weg ist (der Materialstand), zählt als erreicht. Manuel (2026-10-16): Am
+        C-Ring räumte das Räumen mit Ø 6 nur zwei Drittel der 10 mm breiten Ringnut – im Raster
+        ist der Streifen für die Mitte keine zwei Zellen breit – und galt als „die schnellste“."""
+        if block not in (self.plan, self.raeumen) or self.job is None:
+            return {}
+        werkzeug = block.fraeser()
+        namen = self._flaechen(block, form)
+        ergebnis = {}
+        for name, anteil in self._erreicht(form, namen, werkzeug).items():
+            if anteil < ZU_ENG:
+                ergebnis[name] = anteil
+        vorschau = block.vorschau
+        punkte = getattr(vorschau, "punkte", None) if vorschau is not None else None
+        if not punkte or werkzeug is None:
+            return ergebnis
+        material, zellen = self._flaechenzellen(form, namen)
+        if material is None:
+            return ergebnis
+        merk = getattr(self, "_ueberstrichen_merk", None)
+        if merk is None or merk[0] is not vorschau or merk[1] is not material.boden:
+            merk = (vorschau, material.boden, {})
+            self._ueberstrichen_merk = merk
+        for name, (z, maske) in zellen.items():
+            if name in ergebnis or not maske.any():
+                continue
+            if name not in merk[2]:
+                strecken = [
+                    (a.x, a.y, b.x, b.y)
+                    for a, b in zip(punkte, punkte[1:], strict=False)
+                    if not b.eilgang and a.z <= z + 0.05 and b.z <= z + 0.05
+                ]
+                ueber = zz.ueberstrichen(material, strecken, werkzeug.durchmesser / 2)
+                merk[2][name] = zz.anteil_frei(material, ueber, z, maske)
+            if merk[2][name] < PASST:
+                ergebnis[name] = merk[2][name]
+        return ergebnis
+
+    def _flaechenfraeser_waehlen(self, form):
+        """Planfräsen und Räumen: Kommt ihr Fräser in eine gewählte ebene Fläche nicht hinein
+        (_zu_eng – eine Nut, enger als er), nehmen sie den größten ihrer Fräser, der mit
+        PASST_SPIEL Luft je Seite überall hinkommt, wie die Nut (_nutfraeser_waehlen). Manuel
+        (2026-10-16) an zwei Teilen: Ø 12 in 10 mm breiten Nuten – das Planfräsen gewann ohne ein
+        Wort, der Nutgrund blieb stehen. Merkt sich je Block, was getauscht wurde
+        (_getauscht) und was ganz ohne passenden Fräser bleibt."""
+        self._getauscht = {}
+        for block in (self.plan, self.raeumen):
+            jetzt = block.fraeser()
+            eng = self._zu_eng(block, form, jetzt)
+            if not eng:
+                continue
+            passen = []
+            for i, werkzeug in enumerate(block._fraeser):
+                if werkzeug.durchmesser >= jetzt.durchmesser:
+                    continue
+                anteile = self._erreicht(form, eng, werkzeug, PASST_SPIEL)
+                if anteile and min(anteile.values()) >= PASST:
+                    passen.append(i)
+            if not passen:
+                self._getauscht[block] = (jetzt, None, eng)
+                continue
+            wahl = max(passen, key=lambda i: (block._fraeser[i].durchmesser, -i))
+            self._getauscht[block] = (jetzt, block._fraeser[wahl], eng)
+            block.wahl_fraeser.setCurrentIndex(wahl)  # füllt die Einsätze neu
+
+    def _getauscht_text(self):
+        """Der Satz zur Ziel-Zeile, wenn ein Fräser nicht in die gewählten Flächen kam
+        (_flaechenfraeser_waehlen) – Planfräsen und Räumen mit demselben Tausch in einem Satz;
+        sonst ""."""
+        gruppen = {}
+        for block, (vorher, nachher, eng) in getattr(self, "_getauscht", {}).items():
+            if not block.aktiv() and not block.moeglich:
+                continue
+            schluessel = (vorher.kennung, nachher.kennung if nachher else None, tuple(eng))
+            gruppen.setdefault(schluessel, (vorher, nachher, eng, []))[3].append(block.s.titel())
+        saetze = []
+        for vorher, nachher, eng, titel in gruppen.values():
+            flaechen = ", ".join(eng[:3]) + (" …" if len(eng) > 3 else "")
+            werte = {
+                "werkzeug": _ziel_werkzeug(vorher),
+                "flaechen": flaechen,
+                "block": (
+                    tr("ba.passt.und", erster=titel[0], zweiter=titel[1])
+                    if len(titel) > 1
+                    else titel[0]
+                ),
+            }
+            if nachher is None:
+                saetze.append(tr("ba.passt.keiner", **werte))
+            else:
+                schluessel = "ba.passt.getauscht" if len(titel) == 1 else "ba.passt.getauscht_beide"
+                saetze.append(tr(schluessel, neu=_ziel_werkzeug(nachher), **werte))
+        return " ".join(saetze)
+
+    def _passt_angebot(self, form, angebot):
+        """Kommt der erste Fräser eines Angebots der Ziel-Zeile in die Flächen des Blocks, in den
+        „Übernehmen“ ihn setzt (ein Planfräser ins Planfräsen, sonst ins Räumen)?"""
+        block = self.plan if angebot.werkzeug.art == wz.PLANFRAESER else self.raeumen
+        return not self._zu_eng(block, form, angebot.werkzeug)
+
     def _nutfraeser_waehlen(self, form):
         """Wählt im Block Nut einen Fräser, der in die gewählten Nuten passt, wenn der gewählte es
         nicht tut – am liebsten den größten, der Bögen fährt, sonst den größten, der hineinpasst;
@@ -7421,6 +7607,24 @@ class BearbeitungPanel:
             for b in voll:
                 b.ergebnis.setText(tr("ba.wettbewerb.vollschnitt", text=b.ergebnis_basis))
             mit = [b for b in mit if b not in voll]
+        # Wer die Flächen nicht erreicht (_unerreicht: der Fräser passt nicht hinein, die Bahn
+        # überstreicht sie nicht), ist nur scheinbar schneller – er tritt nicht an, wenn ein
+        # anderer sie erreicht (Manuel, 2026-10-16, C-Ring: Räumen „die schnellste“ mit einem
+        # Drittel der Ringnut).
+        luecke = {b: self._unerreicht(b, form) for b in mit}
+        if any(luecke.values()) and not all(luecke.values()):
+            for b in [b for b in mit if luecke[b]]:
+                name, anteil = min(luecke[b].items(), key=lambda e: e[1])
+                b.ergebnis.setText(
+                    tr(
+                        "ba.wettbewerb.erreicht_nicht",
+                        text=b.ergebnis_basis,
+                        flaeche=name,
+                        anteil=int(round(100.0 * anteil)),
+                    )
+                )
+                voll.append(b)
+            mit = [b for b in mit if not luecke[b]]
         mit.sort(key=lambda b: b.zeit)
         rot = [
             b

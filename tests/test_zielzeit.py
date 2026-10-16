@@ -111,6 +111,36 @@ print(
     )
 )
 
+# --- Passt der Fräser in die Fläche? (Manuel, 2026-10-16: Ø 12 in 10 mm breiten Nuten) ---------
+# Eine Nut 10 breit, 5 tief, von Rand zu Rand im Block 60 × 40 × 20: Ø 12 erreicht ihren Grund
+# kaum, Ø 8 ganz (auch mit 0,5 Luft je Seite), Ø 10 ohne Luft. Eine Bahn längs der Mitte mit
+# Ø 10 überstreicht ihn ganz, eine halbe Bahn halb; mit Ø 6 bleiben an den Wänden je 2 mm (das
+# Raster misst auf eine halbe Zelle genau).
+nutblock = Part.makeBox(60, 40, 20).cut(Part.makeBox(60, 10, 5, V(0, 15, 15)))
+m = zz.material(nutblock, (0, 60, 0, 40), 21.0)
+grund = next(f for f in nutblock.Faces if abs(f.BoundBox.ZMax - 15) < 1e-6 and f.Area < 700)
+nut = {"grund": (15.0, zz.zellen_der_flaeche(m, grund, 15.0))}
+pruefe(int(nut["grund"][1].sum()) == 600, f"Nutgrund: {int(nut['grund'][1].sum())} Zellen")
+anteile = {d: zz.anteile_erreicht(m, d / 2, nut)["grund"] for d in (12, 10, 8)}
+pruefe(anteile[12] < 0.5 and anteile[8] == 1.0, f"Nutgrund erreicht: {anteile}")
+pruefe(
+    zz.anteile_erreicht(m, 4.0, nut, spiel=0.5)["grund"] == 1.0
+    and zz.anteile_erreicht(m, 5.0, nut, spiel=0.5)["grund"] < 0.5,
+    "Ø 8 mit Luft passt, Ø 10 mit Luft nicht",
+)
+ganz = zz.ueberstrichen(m, [(-5, 20, 65, 20)], 5.0)
+halb = zz.ueberstrichen(m, [(-5, 20, 30, 20)], 5.0)
+schmal = zz.ueberstrichen(m, [(-5, 20, 65, 20)], 3.0)
+pruefe(zz.anteil_frei(m, ganz, 15.0, nut["grund"][1]) == 1.0, "Bahn längs der Nut: nicht ganz")
+pruefe(
+    0.6 < zz.anteil_frei(m, schmal, 15.0, nut["grund"][1]) < 0.8,
+    f"Ø 6 längs der Mitte: {zz.anteil_frei(m, schmal, 15.0, nut['grund'][1]):.2f}",
+)
+pruefe(
+    0.45 < zz.anteil_frei(m, halb, 15.0, nut["grund"][1]) < 0.6,
+    f"halbe Bahn: {zz.anteil_frei(m, halb, 15.0, nut['grund'][1]):.2f}",
+)
+
 # --- Die Werkzeugkiste ------------------------------------------------------------------------
 # Auf der Platte 1000 × 1000 gewinnt der Planfräser Ø 50 (drei Lagen ap 1,67, ae 35) weit vor
 # dem Ø 12 (eine Lage ap 5, ae 1,5); in der Tasche räumt Ø 20 vor, Ø 12 macht die Ecken – oder

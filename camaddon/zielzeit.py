@@ -164,6 +164,80 @@ def ziel(material, radius, ae, ap, vf):
     )
 
 
+def zellen_der_flaeche(material, flaeche, z):
+    """Die Zellen von `material`, die die ebene Fläche `flaeche` (Part.Face, nach oben, in Höhe
+    `z`) von oben zeigt: ihr Boden liegt auf `z`, ihre Mitte in der Fläche. Eine Maske wie
+    material.boden."""
+    import FreeCAD as App
+
+    gx, gy = np.meshgrid(material.x, material.y, indexing="ij")
+    maske = np.abs(material.boden - z) < 0.05
+    kasten = flaeche.BoundBox
+    maske &= (gx >= kasten.XMin) & (gx <= kasten.XMax) & (gy >= kasten.YMin) & (gy <= kasten.YMax)
+    for i, j in np.argwhere(maske):
+        if not flaeche.isInside(App.Vector(float(gx[i, j]), float(gy[i, j]), z), 0.01, True):
+            maske[i, j] = False
+    return maske
+
+
+def anteile_erreicht(material, radius, flaechen, spiel=0.0, stirn=None):
+    """{Fläche: Anteil ihrer Zellen, den die Stirn eines Schaftfräsers mit `radius` erreicht}
+    (_schliessung) – `flaechen` ist {Fläche: (z, Maske)} (zellen_der_flaeche); mit `spiel` (mm je
+    Seite), als wäre er so viel größer; 1.0 für eine Fläche ohne Zellen. So sieht man, ob er in
+    eine Nut überhaupt hineinkommt: Ø 12 erreicht vom Grund einer 10 mm breiten Nut 5 %, Ø 8
+    alles. `stirn`: schon gerechnet (stirn()) – sonst hier."""
+    erreicht = stirn
+    ergebnis = {}
+    for name, (z, maske) in flaechen.items():
+        if not maske.any():
+            ergebnis[name] = 1.0
+            continue
+        if erreicht is None:
+            erreicht = _schliessung(material, radius + spiel)
+        ergebnis[name] = float((erreicht[maske] <= z + 0.05).mean())
+    return ergebnis
+
+
+def ueberstrichen(material, strecken, radius):
+    """Die Zellen von `material` (Maske wie material.boden), die die Stirn eines Fräsers mit
+    `radius` auf den Strecken `strecken` ((n, 4): x0, y0, x1, y1 der Mitte) überstreicht – auf
+    eine halbe Zelle genau (die Mitte springt im Raster bis dahin)."""
+    feld = np.zeros(material.boden.shape)
+    s = np.asarray(strecken, dtype=float).reshape(-1, 4)
+    if len(s):
+        schritt = 0.5 * min(material.sx, material.sy)
+        laenge = np.hypot(s[:, 2] - s[:, 0], s[:, 3] - s[:, 1])
+        anzahl = np.ceil(laenge / schritt).astype(int) + 1
+        welche = np.repeat(np.arange(len(s)), anzahl)
+        anfang = np.repeat(np.cumsum(anzahl) - anzahl, anzahl)
+        t = (np.arange(int(anzahl.sum())) - anfang) / np.maximum(np.repeat(anzahl, anzahl) - 1, 1)
+        x = s[welche, 0] + t * (s[welche, 2] - s[welche, 0])
+        y = s[welche, 1] + t * (s[welche, 3] - s[welche, 1])
+        i = np.floor((x - (material.x[0] - 0.5 * material.sx)) / material.sx).astype(int)
+        j = np.floor((y - (material.y[0] - 0.5 * material.sy)) / material.sy).astype(int)
+        drin = (i >= 0) & (i < feld.shape[0]) & (j >= 0) & (j < feld.shape[1])
+        feld[i[drin], j[drin]] = 1.0
+    if not feld.any():
+        return feld > 0
+    radius = radius + 0.5 * min(material.sx, material.sy)
+    return _scheibe(feld, radius, material.sx, material.sy, np.maximum, 0.0) > 0
+
+
+def anteil_frei(material, ueberstrichen, z, maske):
+    """Welcher Anteil der Zellen `maske` (eine Fläche in Höhe `z`) frei ist: überstrichen
+    (ueberstrichen()) oder schon vorher nicht höher als `z` (die Oberseite des Materials, der
+    Materialstand). 1.0 ohne Zellen."""
+    if not maske.any():
+        return 1.0
+    oben = np.broadcast_to(np.asarray(material.oben, dtype=float), maske.shape)
+    return float((ueberstrichen | (oben <= z + 0.05))[maske].mean())
+
+
+def stirn(material, radius):
+    """Je Zelle: so tief kommt die Stirn eines Schaftfräsers mit `radius` (_schliessung)."""
+    return _schliessung(material, radius)
+
+
 def _schliessung(material, radius):
     """So tief kommt die Stirn eines Schaftfräsers mit `radius` je Zelle: Die Spitze steht über
     jeder Stelle so tief, wie der höchste Boden unter ihrer Scheibe zulässt (Dehnung), und eine
