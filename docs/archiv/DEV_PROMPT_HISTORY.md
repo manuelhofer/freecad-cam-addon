@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-46 halterstufe-nur-wo-sie-reicht (B-025)
+
+### EINGELESEN
+- Seit P-37 rechnet „Rundum schruppen“ mit der Querachse je Lage die Grenze für Schaft und Halter
+  mit `je_stellung`, für alle Stellungen der Lage.
+- Der volle Szenario-Lauf: `szenario_vierachs_stl` (Geist, 68.242 Dreiecke, 34 Lagen mit der
+  Querachse) zweimal über dem Zeitlimit von 600 s.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: Gerechnet wird je Stufe nur für die Stellungen, an denen ihre Scheibe
+  das Teil erreichen kann. Die Scheibe liegt längs der Werkzeugachse x + ab von der Stangenachse,
+  jeder ihrer Punkte mindestens so weit; reicht das Teil nirgends so weit hinaus
+  (`vierachs_huelle.teil_aussen`), trifft sie nichts. Das Ergebnis bleibt gleich.
+- In `_anstoss` ist die Warnung „invalid value encountered in subtract“ (inf − inf, wo die Schneide
+  nichts trifft) weg: Subtrahiert wird nur, wo beide treffen.
+- `camaddon/vierachs_huelle.py`: `teil_aussen`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_frei` (39 statt 45 s), `test_vierachs_bahn`,
+  `szenario_vierachs_stl` (allein, Zeitlimit 1500 s: 702 s).
+
 ## P-2026-10-16-45 halter-im-katalog-suchen (W-022)
 
 ### EINGELESEN

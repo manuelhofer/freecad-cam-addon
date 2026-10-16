@@ -480,6 +480,13 @@ _VORRAETE = []  # (Netz, Rahmen, _Vorrat), der zuletzt gebrauchte vorn
 _VORRAETE_HOECHSTENS = 2
 
 
+def teil_aussen(netz, laengs, radial):
+    """Wie weit das Teil höchstens von der Stangenachse reicht (mm) – der größte Abstand seiner
+    Punkte."""
+    vorrat = _vorrat(netz, laengs, radial)
+    return float(np.hypot(vorrat.u, vorrat.v).max()) if len(vorrat.u) else 0.0
+
+
 def _vorrat(netz, laengs, radial):
     """Der _Vorrat zu Netz und Rahmen – im Nebenrechner ist das Netz bei jedem Stück dasselbe
     Objekt (nebenrechner.gemeinsam), hier bei jedem Durchgang einer Lage."""

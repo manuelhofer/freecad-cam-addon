@@ -458,7 +458,8 @@ def _anstoss(stufen, je_stufe, unten, a_werte, stange_radius):
     heraus = float(stufen[nummer][1])
     halt = je_stufe[nummer]
     trifft = np.isfinite(unten.r) & np.isfinite(halt) & (unten.r < stange_radius - GLEICH)
-    fehlt = np.where(trifft, halt - unten.r, 0.0)
+    fehlt = np.zeros(np.shape(halt))
+    np.subtract(halt, unten.r, out=fehlt, where=trifft)  # nur, wo beide treffen (sonst inf − inf)
     zeilen = np.flatnonzero((fehlt > ANSTOSS_AB).any(axis=1))
     if not len(zeilen):
         return ()
@@ -855,6 +856,7 @@ def _schruppen_quer(
             zeile = np.where(np.isfinite(gerade), gerade, zeile)
         ring_r.append(zeile)
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    aussen = vh.teil_aussen(netz, laengs, radial)  # so weit reicht das Teil von der Stangenachse
     kugelform = form.nur_kugel
     spiel = schrupp_spiel(w.aufmass)
 
@@ -893,9 +895,20 @@ def _schruppen_quer(
             stelle = np.clip(a_p, teil_hinten, teil_vorne)
             hoeher = np.zeros(len(x_p))
             for r_s, ab in stufen:
+                # Die Scheibe der Stufe liegt längs der Werkzeugachse x_s + ab von der
+                # Stangenachse – jeder ihrer Punkte mindestens so weit. Reicht das Teil nirgends
+                # so weit hinaus, berührt sie es nicht: nur die anderen rechnen (am Geist sonst
+                # je Lage alle Stellungen ein zweites Mal).
+                nah = np.flatnonzero(x_s + ab - zugabe < aussen)
+                if not len(nah):
+                    continue
                 geformt = ff.scheibe(max(r_s, radius) + zugabe)
-                hoehe = vh.je_stellung(netz, laengs, radial, geformt, richtung, q_s, stelle)
-                hoeher = np.maximum(hoeher, np.nan_to_num(hoehe + zugabe - ab - x_s, neginf=0.0))
+                hoehe = vh.je_stellung(
+                    netz, laengs, radial, geformt, richtung[nah], q_s[nah], stelle[nah]
+                )
+                hoeher[nah] = np.maximum(
+                    hoeher[nah], np.nan_to_num(hoehe + zugabe - ab - x_s[nah], neginf=0.0)
+                )
             x_p = x_p + hoeher
         x = np.maximum(np.maximum(x_p, grenze), w.r_tiefste)
         noch = bool(np.any(grenze > x_p + BAHN_TOLERANZ))
