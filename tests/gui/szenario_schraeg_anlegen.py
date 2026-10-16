@@ -107,7 +107,7 @@ def schritte(h):
     h.pruefe(panel.gewaehlte == [boden], f"gewählt: {panel.gewaehlte} statt {boden}")
     liste = zeilen(panel)
     h.pruefe(
-        len(liste) == 1 and "30° schräg – kommt in der geschwenkten Ebene dran" in liste[0],
+        len(liste) == 1 and "kommt in der um 30° geschwenkten Ebene dran" in liste[0],
         f"Liste: {liste}",
     )
     h.pruefe(
@@ -120,6 +120,29 @@ def schritte(h):
     h.pruefe(
         not panel.aktive_bloecke(), f"angehakt: {[b.s.kennung for b in panel.aktive_bloecke()]}"
     )
+    # Mit den Wänden und Ecken der Tasche: eine Ebene für alle, auch die im Grundjob senkrechten.
+    from camaddon import vierachs_rohteil as vr
+
+    form = vr.modell(panel.job).Shape
+    flaeche = form.Faces[int(boden[4:]) - 1]
+    kanten = {k.hashCode() for k in flaeche.Edges}
+    waende = [
+        f"Face{i + 1}"
+        for i, f in enumerate(form.Faces)
+        if f"Face{i + 1}" != boden and kanten & {k.hashCode() for k in f.Edges}
+    ]
+    for name in waende:
+        panel.flaeche_umschalten(name)
+    yield 500
+    gruppen = panel._schraege_richtungen(form)
+    h.pruefe(
+        len(gruppen) == 1 and set(gruppen[0].flaechen) == {boden, *waende},
+        f"Tasche mit Wänden: {[(round(r.neigung), r.flaechen) for r in gruppen]} – Wände {waende}",
+    )
+    h.pruefe(not panel.aktive_bloecke(), "mit den Wänden etwas im Grundjob angehakt")
+    for name in waende:
+        panel.flaeche_umschalten(name)
+    yield 500
     h.pruefe(panel._kann_anlegen(), "„Anlegen“ geht nicht")
     h.bild("1_fuenfachs_schritt2", panel.form)
     grundjob = panel.job
@@ -161,7 +184,7 @@ def schritte(h):
     h.pruefe(not panel._fuenfachs(), "eine 5-Achs-Fräse ohne Maschine?")
     liste = zeilen(panel)
     h.pruefe(
-        len(liste) == 1 and "30° schräg – kommt gekippt gespannt dran" in liste[0],
+        len(liste) == 1 and "kommt um 30° gekippt gespannt dran" in liste[0],
         f"Liste 3 Achsen: {liste}",
     )
     h.pruefe(

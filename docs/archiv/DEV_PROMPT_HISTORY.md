@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-65 schraege-mit-ihren-waenden
+
+### EINGELESEN
+- Weitergedacht zu P-2026-10-16-54: Wählt man den schrägen Taschenboden mitsamt den Wänden und
+  Ecken seiner Tasche, bekam jede schräge Wand ihre eigene Ebene; Wände, die im Grundjob senkrecht
+  stehen, und die Ecken blieben im Grundjob.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_schraege_gruppen` – die schrägen Flächen je Richtung, die
+  flachste zuerst; eine gewählte Fläche, die an eine Fläche der Richtung grenzt und quer zu ihr
+  steht (eben mit der Normalen senkrecht zur Richtung, ein Zylinder mit der Achse längs), ist eine
+  Wand dort – auch eine im Grundjob senkrechte (wie zugang: die Wand geht zu ihrer Tasche).
+  `_geschwenkt` und `_schraege_richtungen` nehmen die Gruppen. Die Liste sagt „… kommt in der um
+  30° geschwenkten Ebene dran“ (bzw. „… um 30° gekippt gespannt“) – mit dem Winkel der Ebene, auch
+  für ihre Wände.
+- `translations/de.json`, `en.json`: `ba.flaeche.geschwenkt`, `ba.flaeche.gekippt` neu gefasst.
+- `tests/gui/szenario_schraeg_anlegen.py`: Boden mit allen Nachbarflächen – eine Ebene für alle,
+  im Grundjob nichts angehakt. `szenario_schraeg_g550.py`: der neue Satz.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_schraeg_anlegen`, `szenario_schraeg_g550`, `test_sprache`.
+
 ## P-2026-10-16-64 richtungszeilen-ohne-knopf
 
 ### EINGELESEN

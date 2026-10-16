@@ -5821,12 +5821,76 @@ class BearbeitungPanel:
         return list(namen)
 
     def _geschwenkt(self, form):
-        """Die schrägen Flächen (_schraege), die nach „Anlegen“ woanders drankommen – an der
-        3-Achs-Fräse nur mit „Schräg gespannt fräsen“."""
-        schraege = self._schraege(form)
-        if schraege and not self._fuenfachs() and not self.gekippt_haken.isChecked():
+        """Die gewählten Flächen, die nach „Anlegen“ woanders drankommen (_schraege_gruppen) – an
+        der 3-Achs-Fräse nur mit „Schräg gespannt fräsen“."""
+        if not self._schraege(form):
             return []
-        return schraege
+        if not self._fuenfachs() and not self.gekippt_haken.isChecked():
+            return []
+        return [name for r in self._schraege_gruppen(form) for name in r.flaechen]
+
+    def _schraege_gruppen(self, form):
+        """[zugang.Richtung] – die schrägen Flächen (_schraege) je Richtung, die flachste zuerst,
+        mit den Wänden ihrer Tasche: Eine gewählte Fläche, die an eine Fläche der Richtung grenzt
+        und quer zu ihr steht (eben mit der Normalen senkrecht zur Richtung, ein Zylinder mit
+        der Achse längs – eine Ecke), ist eine Wand dort, auch wenn sie im Grundjob senkrecht
+        steht. Sonst bekäme jede schräge Wand der Tasche in der Schräge ihre eigene Ebene, und
+        die senkrechten blieben im Grundjob (wie zugang: die Wand geht zu ihrer Tasche)."""
+        schraege = self._schraege(form)
+        if not schraege:
+            return []
+        schluessel = (id(self.job), tuple(self.gewaehlte), tuple(schraege))
+        merk = getattr(self, "_gruppen_merk", None)
+        if merk is not None and merk[0] == schluessel:
+            return [zg.Richtung(r.achse, list(r.flaechen), r.stellung, r.stirn) for r in merk[1]]
+        kanten = {}
+        for name in self.gewaehlte:
+            nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
+            if 0 <= nummer < ft.anzahl(form):
+                kanten[name] = {k.hashCode() for k in ft.flaeche(form, nummer).Edges}
+
+        def grenzt(name, r):
+            return any(kanten.get(name, set()) & kanten.get(f, set()) for f in r.flaechen)
+
+        def quer(name, r):
+            achse = FreeCAD.Vector(*r.achse)
+            nummer = int(name[4:]) - 1
+            flaeche = ft.flaeche(form, nummer)
+            if type(flaeche.Surface).__name__ == "Cylinder":
+                return abs(abs(FreeCAD.Vector(flaeche.Surface.Axis).dot(achse)) - 1.0) < 1e-6
+            n = _aussennormale(form, name)
+            return n is not None and abs(n.dot(achse)) < 1e-6
+
+        richtungen = []
+        for name in sorted(schraege, key=lambda n: _schraeg(form, n)):
+            n = _aussennormale(form, name)
+            if n is None:
+                continue
+            gleich = next(
+                (r for r in richtungen if (FreeCAD.Vector(*r.achse) - n).Length < zg.GLEICH),
+                None,
+            )
+            wand = next((r for r in richtungen if quer(name, r) and grenzt(name, r)), None)
+            if gleich is not None:
+                gleich.flaechen.append(name)
+            elif wand is not None:
+                wand.flaechen.append(name)
+            else:
+                richtungen.append(zg.Richtung(achse=(n.x, n.y, n.z), flaechen=[name], stirn=name))
+        # Die übrigen gewählten Wände und Ecken der Taschen dazu – reihum, eine Ecke grenzt oft
+        # nur an Wände.
+        uebrig = [n for n in self.gewaehlte if n not in schraege and n in kanten]
+        weiter = True
+        while weiter:
+            weiter = False
+            for name in list(uebrig):
+                r = next((r for r in richtungen if quer(name, r) and grenzt(name, r)), None)
+                if r is not None:
+                    r.flaechen.append(name)
+                    uebrig.remove(name)
+                    weiter = True
+        self._gruppen_merk = (schluessel, richtungen)
+        return [zg.Richtung(r.achse, list(r.flaechen), r.stellung, r.stirn) for r in richtungen]
 
     def _nur_geschwenkt(self, form):
         """Kommen alle gewählten Flächen woanders dran? Dann legt „Anlegen“ hier nichts an."""
@@ -5835,22 +5899,9 @@ class BearbeitungPanel:
         return set(self.gewaehlte) <= set(self._geschwenkt(form))
 
     def _schraege_richtungen(self, form):
-        """[zugang.Richtung] der Flächen aus _geschwenkt – je Normale eine, ihre erste Fläche die
-        Stirn."""
-        richtungen = []
-        for name in self._geschwenkt(form):
-            n = _aussennormale(form, name)
-            if n is None:
-                continue
-            r = next(
-                (r for r in richtungen if (FreeCAD.Vector(*r.achse) - n).Length < zg.GLEICH),
-                None,
-            )
-            if r is None:
-                richtungen.append(zg.Richtung(achse=(n.x, n.y, n.z), flaechen=[name], stirn=name))
-            else:
-                r.flaechen.append(name)
-        return richtungen
+        """[zugang.Richtung] der Flächen aus _geschwenkt (_schraege_gruppen) – ihre erste Fläche
+        die Stirn; leer, wenn sie hier nicht woanders hingehen."""
+        return self._schraege_gruppen(form) if self._geschwenkt(form) else []
 
     def _gekippt_umgeschaltet(self):
         self._flaechen_zeigen()
@@ -6049,12 +6100,17 @@ class BearbeitungPanel:
             return
         farben = {}
         geschwenkt = set(self._geschwenkt(form))
+        neigung_von = {
+            f: r.neigung
+            for r in (self._schraege_gruppen(form) if geschwenkt else [])
+            for f in r.flaechen
+        }
         for name in self.gewaehlte:
             nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
             if nummer < 0 or nummer >= ft.anzahl(form):
                 text, farbe = tr("ba.flaeche.fehlt", name=name), ROT
             elif name in geschwenkt:
-                winkel = f"{_schraeg(form, name):.0f}"
+                winkel = f"{neigung_von.get(name, 0.0):.0f}"  # die der Ebene, auch für ihre Wände
                 if self._fuenfachs():
                     text = tr("ba.flaeche.geschwenkt", name=name, winkel=winkel)
                 else:

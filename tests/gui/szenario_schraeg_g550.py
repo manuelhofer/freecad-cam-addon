@@ -101,7 +101,7 @@ def schritte(h):
     h.pruefe(panel.gewaehlte == [boden], f"gewählt: {panel.gewaehlte} statt {boden}")
     liste = zeilen(panel)
     h.pruefe(
-        len(liste) == 1 and "30° schräg – kommt in der geschwenkten Ebene dran" in liste[0],
+        len(liste) == 1 and "kommt in der um 30° geschwenkten Ebene dran" in liste[0],
         f"Liste: {liste}",
     )
     h.pruefe(
