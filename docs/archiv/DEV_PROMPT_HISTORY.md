@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-14 beispiele-auf-wunsch
+
+### EINGELESEN
+- Manuel (Antwort auf Frage 3): „ich finde es sollten alle testteile im repo vorhanden sein ja
+  ... allerdings solte der benutzer auch irgendwie die möglichkeit haben sie nicht zu laden ..
+  vll kann man "mit beispiel datein" oder "ohne beispiel dateien" ... (maschinen sind immer dabei
+  geht nur um die dateien wie C-ring und die von dir aufgeführen .. )“.
+
+### DATEIEN
+- `beispiele/c_ring_nut_3achs.FCStd`, `beispiele/ring_4achs_planbearbeitung.FCStd`: Manuels C-Ring
+  und Ring (Kopien seiner Testteile). Das 5-Achs-Ausweichteil bleibt draußen, bis er es fertig
+  meldet.
+- `.gitattributes`: `beispiele/**` export-ignore. `beispiele/README.md` und
+  `beispiele/werkzeugkiste_*.json` bleiben im Update, weil die Hilfe sie nennt.
+- `daten/beispiele.json`, `scripts/beispiele_liste.py`: die Liste mit Größe und Prüfsumme.
+- `camaddon/beispiele.py`: Liste lesen, „schon da“, laden mit Prüfsumme (über `installieren.hole`,
+  wie das Update) nach `…/CamAddon/beispiele` in den Benutzerdaten. Nicht in den Addon-Ordner,
+  den ein Update ersetzt.
+- `camaddon/gui_beispiele.py`: Befehl „Beispiele laden …“ im Menü „CAM-Addon“.
+  - Das Fenster zeigt alle Dateien mit Größe, angehakt, „schon da“.
+  - „Laden“ arbeitet im Hintergrund und zeigt den Stand; danach „Ordner öffnen“.
+- `camaddon/gui_start.py`: der Befehl im Menü.
+- `translations/de|en.json`: `befehl.beispiele.*`, `bsp.*`.
+- `tests/test_beispiele.py`, `tests/gui/szenario_beispiele.py`.
+- `README.md`, `beispiele/README.md`.
+- `package.xml` (0.260.12).
+
+### ERGEBNIS
+- Das ZIP, das das Update lädt (`git archive` wie GitHub): 1,7 MB statt 9,7 MB (Morgen: 15,6).
+- Die Liste passt zu `beispiele/`: 36 Dateien, 13,3 MB. Laden aus dem Repository (statt GitHub):
+  3 geladen; beim zweiten Mal „3 waren schon da“; eine falsche Prüfsumme schreibt nichts.
+- Grün im Wochen-Build: `test_beispiele`, `szenario_beispiele`, `test_sprache`.
+
 ## P-2026-10-16-13 planfraesen-nicht-in-taschen
 
 ### EINGELESEN

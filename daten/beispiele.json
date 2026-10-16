@@ -1,0 +1,185 @@
+{
+ "hinweis": "geschrieben von scripts/beispiele_liste.py",
+ "dateien": [
+  {
+   "pfad": "beispiele/c_ring_nut_3achs.FCStd",
+   "bytes": 97184,
+   "sha256": "09e6f8f153855d170599769cf099be1eae0112d49980b687b6ae5f7a1fb6a207"
+  },
+  {
+   "pfad": "beispiele/geist_stl/Geist1_v2.stl",
+   "bytes": 3412184,
+   "sha256": "ddca2f8dea838ffa9b5a6312f4a8248afe18b4491a31b56089292b64d36d3f64"
+  },
+  {
+   "pfad": "beispiele/geist_stl/QUELLE.md",
+   "bytes": 425,
+   "sha256": "8998aab85e02a37e13fba74f938e51d9a418041eb129096e5ed51146693f21d6"
+  },
+  {
+   "pfad": "beispiele/grob_g550.FCStd",
+   "bytes": 64375,
+   "sha256": "cda5aa6b651fd1c0be8f3a7ff89d65c4e000748f566ae3b8efb98c0a145be989"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/README.md",
+   "bytes": 9601,
+   "sha256": "05349fc67b65ce0d352edd9c2bb9b5db1a3a0131bb26652acfb31f479ee7b406"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/anzeigen.FCMacro",
+   "bytes": 8423,
+   "sha256": "bd8b958e86af8fa3c0cf57de329f5d514ae9e94552c70cb05762320d7a7b9a62"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/assets/Tools/Bit/camaddon_freiform_kugel12.fctb",
+   "bytes": 1189,
+   "sha256": "58605f84413d8c6a87ccb7762043c2c9e214679acb0af0d4bd8980d947bf0772"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/assets/Tools/Bit/camaddon_freiform_kugel4.fctb",
+   "bytes": 1184,
+   "sha256": "9a84d67ec17fa65c129e61fac9cfec58edfda03d090ec678007973bf54a5ec7c"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/assets/Tools/Bit/camaddon_freiform_kugel6.fctb",
+   "bytes": 1184,
+   "sha256": "c17bc24ca69d63329120390e3343b8d85fe0cbe1714697739ec686f75a336cdc"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/assets/Tools/Bit/camaddon_freiform_standard12.fctb",
+   "bytes": 1193,
+   "sha256": "bf08a38a77e6219c7f1db4f83e8288af44e9c299b379e8ab21a9154385b285f6"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/assets/Tools/Library/camaddon.fctl",
+   "bytes": 360,
+   "sha256": "3e34e669aa30a0c317076d7e5f48dc6c9cf882d197b7ed219fc7afd121a8b2ce"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/beispiel_werkzeuge.json",
+   "bytes": 6733,
+   "sha256": "d6e037f716212847a44f26901c84a6acb7f6afe845052c70a29d5b312e12e12f"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/erstellen.py",
+   "bytes": 5997,
+   "sha256": "3ed8546721e88f81048aefc5da8608406b5520cc8b50d3fba32cbdde8b6090ac"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/freiform_5achs.FCStd",
+   "bytes": 690707,
+   "sha256": "7e4ed5bfb0e42e142838b3c4967598ee0822be9a11fc8c0aeb42993c75d0df4a"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/freiform_5achs.mpf",
+   "bytes": 2844922,
+   "sha256": "7f17eeae2e342bbbd3b8ffda4aeab49dcb61bd81bad0121214ca8e0a5e031cb0"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/g550_winkelaufnahme.FCStd",
+   "bytes": 36230,
+   "sha256": "8ec0d090673f802a2b2fd1528510e7bbb912bdbf204e3208d5dfa53f879fa4c0"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/nc_pruefung.json",
+   "bytes": 706,
+   "sha256": "b306d1e1e4ff8ef4718e1b85b07455a5fa91b7755d27923309f8e954f2bf0f31"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/pruefen.py",
+   "bytes": 5367,
+   "sha256": "7542ebe72caeda123157ae023e0e24ccf088564364821b85d601bd93a0cdc6a1"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/starten.sh",
+   "bytes": 1384,
+   "sha256": "45e84579846e7129e4315cabe77c119de6e4ae106b4743ea0f47c9d81f4e9682"
+  },
+  {
+   "pfad": "beispiele/grob_g550_freiform/vergleich.json",
+   "bytes": 4417,
+   "sha256": "fb2e97ca588faf31f7fa9f78fb5d054362ce79de1a634b09dfbb199615d5d00a"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/README.md",
+   "bytes": 4531,
+   "sha256": "1fce4b279d3b67fdf1cef1b46a9456898b37cdebdaf1c4faa40b6559d12d6f60"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/anzeigen.FCMacro",
+   "bytes": 6782,
+   "sha256": "2a9906a51b62d695e844bd2a18b44de43cc893284f79b48bdc2ad319271467e4"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/assets/Tools/Bit/camaddon_e1ec1a3dc846495d9ed1a610ca5bccc7.fctb",
+   "bytes": 1221,
+   "sha256": "5ccdc739f01535ea0cf423479650cbf9936221103a6b999f11fb357a94ea25bf"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/assets/Tools/Library/camaddon.fctl",
+   "bytes": 150,
+   "sha256": "9247357fcd3ec8e049d1e71693e48901d9d5559979ac3f70c16d057e57392085"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/beispiel_werkzeuge.json",
+   "bytes": 2265,
+   "sha256": "3a7d59afab80f2b9093d03a1884d3e3bd12774033c10d8263e632fd8fdae2f56"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/g550_simultan.FCStd",
+   "bytes": 49317,
+   "sha256": "dd15e758b7a1846e4ec07d0dfa34ece9190eb60ab84c35a5cabb57ef2d663e0e"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/g550_winkelaufnahme.FCStd",
+   "bytes": 36230,
+   "sha256": "8ec0d090673f802a2b2fd1528510e7bbb912bdbf204e3208d5dfa53f879fa4c0"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/messung.json",
+   "bytes": 684,
+   "sha256": "76bfbb7fcef82cc2eefe584caab9178d40fed4a91ec3ca1971224971127888ec"
+  },
+  {
+   "pfad": "beispiele/grob_g550_simultan/starten.sh",
+   "bytes": 713,
+   "sha256": "f31a60ce1c71d67116b8dd5b1a6e55b41a7d10b4f7f48b891e43eb9b13e356c1"
+  },
+  {
+   "pfad": "beispiele/platte_zapfen_tasche.FCStd",
+   "bytes": 268512,
+   "sha256": "f690cfd8775415dd61f47f3f357a51622a8755a959990b4e8849cdaf1b2b23b8"
+  },
+  {
+   "pfad": "beispiele/ring_4achs_planbearbeitung.FCStd",
+   "bytes": 277651,
+   "sha256": "f823c8b7dff6abc8de7e48ddce3662d8556c5f50da6ddc92d127b2e669757856"
+  },
+  {
+   "pfad": "beispiele/schwenkteil_5achs.FCStd",
+   "bytes": 8345,
+   "sha256": "994d416121c1832aeb7e152a7e13e3bf472cac34444112078cb157d081227364"
+  },
+  {
+   "pfad": "beispiele/tasche_formschraege.FCStd",
+   "bytes": 3560,
+   "sha256": "75a929a482db41d06be808d90272a18eb82c9847ffb9543f4e5be43f3e49104c"
+  },
+  {
+   "pfad": "beispiele/test4achsbearbeitung.FCStd",
+   "bytes": 27072,
+   "sha256": "b09b8476596162b6fa7f335693746d025578477bd6067ba46a3243855d9e88b8"
+  },
+  {
+   "pfad": "beispiele/testteil_3achs_fraese.FCStd",
+   "bytes": 103462,
+   "sha256": "3a2b64d618bb7f73f2550f079b75052f38579e51915c93c87d8867180a88adfe"
+  },
+  {
+   "pfad": "beispiele/testteil_4achs_nase.FCStd",
+   "bytes": 5284178,
+   "sha256": "be3320b90526bd3a153701aea2e4f6d76e5e46f8d5af1ac7032bc82430d3a741"
+  }
+ ]
+}

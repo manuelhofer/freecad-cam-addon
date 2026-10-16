@@ -1,10 +1,14 @@
 # Beispiele
 
 Teile zum Ausprobieren – die Prüfungen in `tests/` bauen ihre Teile selbst, hier
-liegen die echten.
+liegen die echten. Das Update des Addons lädt sie nicht mit (`.gitattributes`); in FreeCAD holt
+**CAM-Addon → Beispiele laden …** sie auf Wunsch (Liste: `daten/beispiele.json`, nach jeder
+Änderung hier `python3 scripts/beispiele_liste.py`).
 
 | Datei | Was es ist | Wofür |
 | --- | --- | --- |
+| `c_ring_nut_3achs.FCStd` | Manuels C-Ring (2026-10-16): Ring Ø 60 × 10, Bohrung Ø 30, ein Schlitz; oben eine Ringnut 10 breit, 5 tief, zum Schlitz hin offen; Job „Körper – Fräsen“ | Die Nut im Assistenten „Bearbeitung“ (3-Achs-Fräse): nur den Nutgrund anklicken – die Nut in D-Bögen und Wellen (Bogennut); Ø 12 passt nicht hinein, der Assistent nimmt einen kleineren |
+| `ring_4achs_planbearbeitung.FCStd` | Manuels Ring (2026-10-12): Ring Ø 65 × 8, drei Segmente mit Schlitzen bis zur Bohrung, Ringnuten 10,05 breit; Jobs „Body – 4 Achsen“ und „Body – Fräsen“ | Kontur und Planfräsen an Ringnuten und Schlitzen (Luft im Vorschub, Wandenden), 3 und 4 Achsen |
 | `geist_stl/Geist1_v2.stl` | „Helloween Geist ?“ von Glaschick (Thingiverse, thing:6265018, Lizenz CC0 – gemeinfrei): ein Geist als STL, 68.242 Dreiecke, geschlossen, 80,8 × 50,9 × 82,7 mm, unten eben; von Manuel als Testteil gewählt (2026-10-11) | STL im 4-Achs-Assistenten (W-017): in FreeCAD öffnen (Datei → Importieren), das Netz anklicken → „4-Achs-Bearbeitung“ → „Umwandeln“, die Standfläche anklicken – sie kommt ans Futter, der Kopf nach vorne; „Rundum schruppen“ und „Rundum schlichten“. `tests/gui/szenario_vierachs_stl.py` |
 | `grob_g550_freiform/` | Quader 50 × 40 × 30 → Freiformfläche mit Mulde, Sattel und Erhebung; Schruppen D12, danach geprüfte 5-Achs-Schlichtbahn mit Kugel Ø 4, aus 45 Kombinationen gewählt | `grob_g550_freiform/starten.sh` öffnet den Job im eigenen Profil auf dem zweiten Bildschirm; Vergleich, Grenzen und Messwerte in der Beschreibung und `vergleich.json` |
 | `grob_g550_simultan/` | Fertiger 5-Achs-Simultanjob auf der G550 mit Winkelaufnahme: D12 schlichtet die 10°-Wände einer vorgefrästen Tasche, alle fünf Achsen bewegen sich gemeinsam | `grob_g550_simultan/starten.sh` öffnet und prüft das Beispiel in einem eigenen Profil auf dem zweiten Bildschirm; Beschreibung und Messwerte in `grob_g550_simultan/README.md` |

@@ -18,6 +18,7 @@ from . import (
     aufraeumen,
     gui_aktualisierung,
     gui_bearbeitung,
+    gui_beispiele,
     gui_bestueckung,
     gui_hilfe,
     gui_job_schnittwerte,
@@ -83,6 +84,7 @@ MENUE = [
     "CamAddon_SimultanPlanen",
     "CamAddon_ProgrammSchreiben",
     "Separator",
+    "CamAddon_BeispieleLaden",
     "CamAddon_UpdateSuchen",
     "CamAddon_Ueber",
 ]
@@ -109,6 +111,7 @@ def starten():
             "CamAddon_ProgrammSchreiben": gui_programm.BefehlProgrammSchreiben(),
             "CamAddon_Ueber": BefehlUeber(),
             "CamAddon_UpdateSuchen": gui_aktualisierung.BefehlUpdateSuchen(),
+            "CamAddon_BeispieleLaden": gui_beispiele.BefehlBeispieleLaden(),
         }
     )
     for name, befehl in BEFEHLE.items():

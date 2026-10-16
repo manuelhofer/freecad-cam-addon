@@ -24,8 +24,9 @@ Für FreeCAD 1.1 und den Wochen-Build, auf jedem Betriebssystem.
   Heidenhain (iTNC 530, TNC 640). Rundachsen nach DIN 66217, einstellbar je Maschine.
 
 **Der Einstieg:** Menü **CAM-Addon → So geht’s** – der Weg vom Teil zum Programm in sechs
-Schritten. Jedes Fenster hat ein **?** mit Hilfe. Ein Beispielteil liegt in
-[beispiele/](beispiele/).
+Schritten. Jedes Fenster hat ein **?** mit Hilfe. Beispielteile liegen in
+[beispiele/](beispiele/). Das Update lädt sie nicht mit; **CAM-Addon → Beispiele laden …** holt
+sie, wenn du sie willst.
 
 ## Installieren
 

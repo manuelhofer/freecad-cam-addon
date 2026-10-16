@@ -11,5 +11,9 @@ CHATSTART.md export-ignore
 pyproject.toml export-ignore
 .gitignore export-ignore
 .gitattributes export-ignore
-# Das NC-Programm des Freiform-Beispiels ist die Vergleichsausgabe der Prüfung (2,8 MB).
-beispiele/grob_g550_freiform/freiform_5achs.mpf export-ignore
+# Die Beispiele (Testteile) lädt das Update nicht mit; „Beispiele laden …“ holt sie auf Wunsch
+# (Manuel, 2026-10-16: „solte der benutzer auch irgendwie die möglichkeit haben sie nicht zu
+# laden“). Die Werkzeugkisten-Dateien und die Beschreibung bleiben – die Hilfe nennt sie.
+beispiele/** export-ignore
+beispiele/README.md -export-ignore
+beispiele/werkzeugkiste_*.json -export-ignore

@@ -616,6 +616,11 @@ T1 Ø 12.
    - Im Addon ein Befehl „Beispiele laden …“, der sie auf Wunsch von GitHub holt (in einen
      eigenen Ordner, mit Größe vorher).
    - Die Maschinen entstehen im Code und sind immer dabei.
+
+   *Erledigt:* P-2026-10-16-14.
+   - Das Update-ZIP ist 1,7 MB groß (vorher 15,6).
+   - Die 36 Beispieldateien (13,3 MB, darunter C-Ring und Ring) holt „Beispiele laden …“ nach
+     `…/CamAddon/beispiele`, mit Größe, Prüfsumme und „schon da“.
 7. **Nur was angeklickt ist, wird bearbeitet** (Bilder: C-Ring, nur Face8 gewählt; die Bahn
    räumt auch außen um den Ring, die Bohrung und den Schlitz; in der Nut kleine Zickzack-Stücke):
    „ich hatte nur den inneren ring ausgewählt warum wird ausenrum alles gefahren und in der mitte
