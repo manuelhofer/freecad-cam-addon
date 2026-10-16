@@ -44,6 +44,7 @@ from . import fraeserform as ff
 from . import gewinde as gw
 from . import gewinde_bahn as gfb
 from . import gewindefraesen as gf
+from . import gleiche_flaechen as glf
 from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
@@ -90,7 +91,14 @@ from .gui_vierachs import (
     gewaehlte_flaeche,
     job_von,
 )
-from .gui_zahlen import Zahlenpruefer, dezimal, groesse_fest, groesse_lesen, groesse_zeigen
+from .gui_zahlen import (
+    Zahlenpruefer,
+    dezimal,
+    groesse_fest,
+    groesse_lesen,
+    groesse_zeigen,
+    zahl_zeigen,
+)
 from .sprache import tr
 
 AUFMASS_ROHTEIL = 1.0  # mm je Seite, wie FreeCADs Job
@@ -4378,6 +4386,13 @@ class BearbeitungPanel:
         )
         knoepfe.addStretch()
         ziel[0].addWidget(zeile)
+        # Nach einem Klick auf eine Rundung, Fase oder einen Boden: alle gleichen dazu (Manuel,
+        # 2026-10-16: „gibts auf gleicher höhe auch noch andere radien gleiche radien wenn ja fragen
+        # "alle anwählen"“) – ein Knopf, keine Rückfrage.
+        self._gleiche = []
+        self.gleiche_knopf = knopf("", tr("ba.gleiche.tooltip"), self.gleiche_dazu)
+        self.gleiche_knopf.hide()
+        ziel[0].addWidget(self.gleiche_knopf, 0, QtCore.Qt.AlignLeft)
         # „Alles aus dieser Aufspannung“: je weitere Richtung eine Zeile in ihrer Farbe mit „Ebene
         # schwenken …“, darunter rot, was in dieser Aufspannung nicht geht (Frage 14).
         self.richtungen_box = QtGui.QWidget()
@@ -5629,14 +5644,56 @@ class BearbeitungPanel:
             return
         if name in self.gewaehlte:
             self.gewaehlte.remove(name)
+            self._gleiche_anbieten(None)
         else:
             self.gewaehlte.append(name)
+            self._gleiche_anbieten(name)
+        self._flaechen_zeigen()
+        self.vorschau_starten()
+
+    def _gleiche_anbieten(self, name):
+        """Der Knopf „Alle N gleichen … dazu“ nach einem Klick auf `name` – wenn das Teil weitere
+        Flächen derselben Art, desselben Maßes auf derselben Höhe hat (gleiche_flaechen), die
+        noch nicht gewählt sind. None: weg."""
+        self._gleiche = []
+        self.gleiche_knopf.hide()
+        if name is None or self.job is None or self._ist_stl():
+            return
+        art, andere = glf.gleiche(vr.modell(self.job).Shape, name)
+        weitere = [n for n in andere if n not in self.gewaehlte]
+        if art is None or not weitere:
+            return
+        von = groesse_zeigen(art.unten, einheiten.LAENGE, 2) or "0"
+        bis = groesse_zeigen(art.oben, einheiten.LAENGE, 2) or "0"
+        mass = groesse_zeigen(art.mass, einheiten.LAENGE, 2) or "0"
+        anzahl = len(weitere)
+        if art.art == glf.RUNDUNG:
+            text = tr("ba.gleiche.rundung", anzahl=anzahl, radius=mass, von=von, bis=bis)
+        elif art.art == glf.ECKRADIUS:
+            text = tr("ba.gleiche.eckradius", anzahl=anzahl, radius=mass, von=von, bis=bis)
+        elif art.art == glf.FASE:
+            winkel = zahl_zeigen(round(art.mass, 1)) or "0"
+            text = tr("ba.gleiche.fase", anzahl=anzahl, winkel=winkel, von=von, bis=bis)
+        else:
+            text = tr("ba.gleiche.boden", anzahl=anzahl, hoehe=bis)
+        self._gleiche = weitere
+        self.gleiche_knopf.setText(text)
+        self.gleiche_knopf.show()
+
+    def gleiche_dazu(self):
+        """Nimmt die gleichen Flächen (_gleiche_anbieten) alle dazu."""
+        neue = [n for n in self._gleiche if n not in self.gewaehlte]
+        self._gleiche_anbieten(None)
+        if not neue or self.job is None:
+            return
+        self.gewaehlte.extend(neue)
         self._flaechen_zeigen()
         self.vorschau_starten()
 
     def oberseite_waehlen(self):
         if self.job is None:
             return
+        self._gleiche_anbieten(None)
         self._zugang = None
         self.gewaehlte = hf.oberseite(vr.modell(self.job).Shape)
         self._flaechen_zeigen()
@@ -5739,6 +5796,7 @@ class BearbeitungPanel:
         self.richtungen_box.setVisible(bool(weitere or gruende))
 
     def flaechen_leeren(self):
+        self._gleiche_anbieten(None)
         self._zugang = None
         self.gewaehlte = []
         self.kanten = []

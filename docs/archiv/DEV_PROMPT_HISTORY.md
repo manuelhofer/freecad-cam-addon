@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-49 gleiche-flaechen-auf-einmal
+
+### EINGELESEN
+- Manuel, 2026-10-16 nachts, mit Bild (Tasche mit gerundetem Boden, nur Face51 gewählt): „wenn ich
+  nun aber die radien unten auch mit gemacht haben will muss ich die alle anklicken .... was sehr
+  müsam ist .. vll anklicken und schauen ok was ist es ist es ein radius gibts auf gleicher höhe
+  auch noch andere radien gleiche radien wenn ja fragen "alle anwählen" das selbe für fasen oder
+  sowas“.
+
+### DATEIEN
+- `camaddon/gleiche_flaechen.py` (neu): `art(Fläche)` und `gleiche(Form, „FaceN“)`.
+  - Arten:
+    - RUNDUNG: liegender Zylinder oder Torus;
+    - ECKRADIUS: Zylinder mit senkrechter Achse;
+    - FASE: schräge Ebene 5 … 85° oder Kegel mit senkrechter Achse;
+    - BODEN: ebene Fläche nach oben.
+  - Gleich heißt: dieselbe Art, dasselbe Maß (0,01 mm bzw. 0,5°) und dieselbe Höhe von – bis.
+- `camaddon/gui_bearbeitung.py`: Nach dem Klick auf eine Fläche steht unter der Flächenliste ein
+  Knopf, z. B. „Alle 7 weiteren Rundungen R 2 dazu (Höhe 20 … 22)“. Ein Klick nimmt alle dazu. Er
+  verschwindet beim Herausnehmen, bei „Oberseite“ und bei „Auswahl leeren“. Keine Rückfrage.
+- `translations/de.json`, `en.json`: `ba.gleiche.*`.
+- `help/de|en/bearbeitung.html`: ein Satz dazu.
+- `tests/test_gleiche_flaechen.py` (neu): Klotz mit Tasche (Ecken R 6, Boden R 2) und oben 1 mm
+  Fase.
+  - Erkannt werden 8 Kehlen, 4 Eckradien, 4 Fasen und 2 Böden.
+  - Zu jeder Fläche kommen die gleichen; Kehle und Eckradius werden nicht verwechselt.
+  - Zwei Böden auf derselben Höhe gelten als gleich.
+- `tests/gui/szenario_gleiche_flaechen.py` (neu): Boden, dann eine Kehle; der Knopf bietet 7
+  weitere an, nach dem Klick sind alle 8 gewählt. Ein Eckradius bietet 3 weitere an; wieder
+  herausgenommen, ist der Knopf weg.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_gleiche_flaechen`, `szenario_gleiche_flaechen`, `test_sprache`,
+  `test_hilfe`.
+- Zum Ausprobieren: In „Bearbeitung“, Schritt 2, eine Bodenrundung der Tasche anklicken. Unter den
+  Knöpfen „Oberseite …“ steht „Alle N weiteren Rundungen R … dazu“; ein Klick, und alle sind grün.
+
 ## P-2026-10-16-48 werkzeugkiste-hoffmann-mitgeliefert (W-007)
 
 ### EINGELESEN
