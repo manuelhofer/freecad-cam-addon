@@ -428,6 +428,23 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    eine neue 3-Achs-Fräse als eigenes Dokument offen, ein halber Job „Body – Fräsen“ und ein loses
    „TC: 5mm Endmill“ im Baum) – nicht nachgestellt; beim nächsten Mal steht die Fehlerspur im
    Ausgabefenster (P-2026-10-12-168).
+5. **Das Werkzeug passt nicht in die Nuten** (gefunden 2026-10-16, Kopie seines Jobs, seine
+   Werkzeugverwaltung): Die drei Nutgründe (Face6, Face17, Face28) sind 10,05 mm breit. Planfräsen
+   und Räumen nehmen T1 Ø 12 – der kommt nicht hinein. Planfräsen lässt 97 % des Nutgrunds stehen
+   (bis 4 mm hoch), gewinnt den Zeitvergleich aber trotzdem, ohne rote Meldung. „Passt nicht“ gibt es
+   bisher nur beim Räumen geschlossener Taschen. Mit T4 Ø 4: Räumen schruppen 5,4 min,
+   Planfräsen 21,9 min. Plan: je Fläche die Reichweite des Fräsers prüfen (`zielzeit._schliessung`
+   auf dem Raster von `_ziel_material`). Bleibt mehr als die Hälfte unerreicht, den größten
+   passenden Fräser nehmen, wie `_nutfraeser_waehlen` es bei der Nut tut, mit einem Satz dazu. Die
+   Fläche gilt dann nicht als fertig (`_fertige_flaechen`). Ob das Addon den Fräser selbst wechseln
+   darf, ist eine Strategiewahl: erst in `OFFENE_FRAGEN.md`, mit Bild und Zahlen.
+6. **Der Tisch fährt durch den Ständer** (Manuel, 2026-10-16, mit Bild: „wenn man die verfahrwege
+   auf ein reales mass einstellt was die beispielsweise kao ming fähren kann .. fährt der tisch
+   durch den ständer .. eher uncool“): 3-Achs-Fräse mit X ±650, Y −650 … 620, Z 0 … 600. Die
+   Körper von `beispielmaschine.fraesmaschine` haben feste Maße (Tisch 700 × 280, Ständer bei
+   y 650). Sie müssen mit den Wegen wachsen: Tisch, Sattel, Bett, Ständer und Kopf. Mit den
+   Vorgabewegen bleiben die Maße wie heute. Danach die Portalfräse und die 5-Achs-Bauarten auf
+   dasselbe ansehen.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
@@ -930,6 +947,35 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Dreibackenfutter auf dem Tisch (Backen am Rohteil, wie W-020) – mit Bild, Kollision und
   Einrichtblatt (W-019). Hintergrund: Er hatte nur die CLX550 als Maschine, daher sagte der
   Assistent „Stange → 4-Achs-Assistent“ („achso ich hab keine 3ach maschine drinnen alles gut“).
+  Noch einmal am 2026-10-16, mit Bild (Ring im Assistenten „Bearbeitung“ auf der 3-Achs-Fräse;
+  angeboten wird nur ein Quader): „wie gesagt es gibt auch runde rohteile auf der fräse“ – erst
+  das Laufende fertig machen, dann dies.
+- **W-022 Die Werkzeugaufnahme gehört in die Maschine; Halter in ihrer Größe** – Manuel, 2026-10-16,
+  mit Bild (Menü „Neu“ im Fenster „Halter“, alle Vorlagen „· SK40“): „warum nur sk40 ?? es gibt auch
+  sk64 glaub ich ?? ich denke die aufnahme an der maschine ... sollten wir in die maschine packen !
+  … die halter haben dann eine andere größe vll kannst du ja ein paar standarthalter größen
+  raussuchen und nachbauen .. und dann je nachdem was in der maschine dann eingestellt ist darstellen
+  ... natürlich muss man vorher die vollständigkeit der aufnahmen herstllen also nicht nur sk40 ..
+  auch die anderen .. capto“. Heute haben alle Vorlagen in `halter._VORLAGEN` SK40-Maße (Flansch
+  Ø 63 × 16). Nur die VDI-Vorlagen wachsen schon mit der Größe der Maschine
+  (`maschine.vdi_groesse`). So soll es für alle Aufnahmen gehen:
+  1. Die Aufnahme an der Spindel wird ein Feld der Maschine (Dialog „Neue Maschine“ und die
+     Eigenschaften der Werkzeugaufnahme).
+  2. Vollständige Liste, mit Norm und Größen aus Herstellerkatalogen:
+     - SK30/40/50 (DIN 69871, ISO 7388-1);
+     - BT30/40/50 (MAS 403, JIS B 6339);
+     - CAT40/50;
+     - HSK-A/E/F 32 … 100 (DIN 69893, ISO 12164);
+     - Capto C3 … C8 (ISO 26623);
+     - KM;
+     - VDI 20 … 60 (DIN 69880, ISO 10889) und BMT an der Drehmaschine.
+     „SK64“ gibt es wohl nicht, gemeint ist vermutlich HSK63 (oder SK50). In der Liste nennen,
+     nicht nachfragen.
+  3. Die Vorlagen je Aufnahme mit typischen Maßen nachbauen: Flansch, Kegel, Länge bis zur
+     Spannzange.
+  4. Das Menü „Neu“ zeigt die Vorlagen für die Aufnahme der Maschine, wie heute bei VDI.
+  Offen: Was wird aus Haltern in der Werkzeugverwaltung, deren Aufnahme nicht zur Maschine passt?
+  Eine Meldung im Assistenten, wie bei der Ausspannlänge.
 
 ## Offene Bugs
 
