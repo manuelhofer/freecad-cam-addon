@@ -180,10 +180,10 @@ def _kehren_schreiben():
             zeilen.append((-1, f"{name}: Rundachse – nicht gezählt"))
             continue
         kehren, rampen = ergebnis
-        if kehren:  # zum Nachsehen: das Programm der Operation
-            datei_name = "".join(c if c.isalnum() else "_" for c in name) + ".nc"
-            with open(os.path.join(AUSGABE, datei_name), "w", encoding="utf-8") as programm:
-                programm.write(bahn.toGCode())
+        # Zum Nachsehen das Programm jeder Operation (Kehren, Luft im Vorschub).
+        datei_name = "".join(c if c.isalnum() else "_" for c in name) + ".nc"
+        with open(os.path.join(AUSGABE, datei_name), "w", encoding="utf-8") as programm:
+            programm.write(bahn.toGCode())
         wo = "; ".join(f"X{x:.2f} Y{y:.2f} Z{z:.2f}" for x, y, z in orte[:3])
         zeilen.append(
             (

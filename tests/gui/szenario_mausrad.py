@@ -102,11 +102,32 @@ def schritte(h):
         vorher = wert(feld)
         yield from maus.rad(feld)
         h.pruefe(wert(feld) == vorher, f"{type(feld).__name__} ohne Fokus verstellt")
-    # Nach einem Klick in die Nummer rollt das Rad sie wie gewohnt (T1 → T2).
+    # Nach einem Klick in die Nummer rollt das Rad sie wie gewohnt (T1 → T2) – wenn die Rasten
+    # über XTest überhaupt ankommen: Unter gamescope (Xwayland) kamen sie nicht an, dann rollte
+    # auch ein Drehfeld ohne unseren Filter nicht. Die Gegenprobe zeigt es.
+    probe_fenster = QtGui.QDialog()
+    probe = QtGui.QSpinBox(probe_fenster)
+    probe.setRange(0, 100)
+    probe.setValue(50)
+    probe.resize(120, 30)
+    probe_fenster.resize(200, 80)
+    probe_fenster.show()
+    yield 300
+    fokus(probe)
+    yield from maus.rad(probe, 1)
+    rad_kommt_an = probe.value() != 50
+    probe_fenster.close()
+    probe_fenster.deleteLater()
+    yield 200
     h.pruefe(fokus(d.feld_nummer), "Nummer: kein Fokus")
     vorher = d.feld_nummer.value()
     yield from maus.rad(d.feld_nummer, 1)
-    h.pruefe(d.feld_nummer.value() == vorher + 1, f"Nummer mit Fokus: {d.feld_nummer.value()}")
+    if rad_kommt_an:
+        h.pruefe(d.feld_nummer.value() == vorher + 1, f"Nummer mit Fokus: {d.feld_nummer.value()}")
+    else:
+        FreeCAD.Console.PrintWarning(
+            "szenario_mausrad: Das Rad kommt über XTest nicht an – „mit Fokus“ nicht geprüft\n"
+        )
     QtCore.QTimer.singleShot(0, d.reject)  # „Speichern?“ blockierte sonst
     yield 500
     frage = h.modal()

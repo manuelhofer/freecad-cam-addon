@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-62 hilfe-schraeg-und-mausrad-probe
+
+### EINGELESEN
+- Die Hilfe „Ebene schwenken (3+2)“ beschrieb noch den Knopf im Assistenten (seit P-54 legt
+  „Anlegen“ die Ebene selbst an; an der 3-Achs-Fräse „Schräg gespannt fräsen“).
+- `szenario_mausrad` rot im vollen Lauf: „Nummer mit Fokus: 1“. Unser Filter (`gui_teile`) ist seit
+  dem 10.10. unverändert; unter gamescope (Xwayland) kommen die Rasten über XTest nicht an.
+
+### DATEIEN
+- `help/de/schwenken.html`, `help/en/schwenken.html`: der Weg über „Bearbeitung“ ohne Knopf, und
+  „Schräg gespannt fräsen“ an der 3-Achs-Fräse.
+- `tests/gui/szenario_mausrad.py`: Eine Gegenprobe (ein Drehfeld ohne Filter, mit Fokus) zeigt, ob
+  das Rad über XTest ankommt; nur dann wird „mit Fokus rollt es“ geprüft, sonst steht ein Hinweis
+  im Log.
+- `tests/gui/_lauf/szenario_lauf.py`: Das Programm jeder Operation liegt neben `kehren.txt` (zum
+  Durchsehen auf Luft im Vorschub), nicht nur das mit Kehren.
+
+### ERGEBNIS
+- Nur Hilfe und Prüfaufbau; der volle Szenario-Lauf rechnet gerade.
+
 ## P-2026-10-16-61 flanke-nur-wo-der-fraeser-breit-ist
 
 ### EINGELESEN
