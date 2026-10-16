@@ -444,8 +444,46 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    Körper von `beispielmaschine.fraesmaschine` haben feste Maße (Tisch 700 × 280, Ständer bei
    y 650). Sie müssen mit den Wegen wachsen: Tisch, Sattel, Bett, Ständer und Kopf. Mit den
    Vorgabewegen bleiben die Maße wie heute. *Erledigt für die 3-Achs-Fräse:* P-2026-10-16-04
-   (an allen acht Ecken keine Überschneidung). Offen: die Portalfräse und die 5-Achs-Bauarten auf
-   dasselbe ansehen.
+   (an allen acht Ecken keine Überschneidung). *Nachgemessen (Wege doppelt so lang, Drehachsen
+   auf 0):*
+   - Tisch/Tisch: Ständer ∩ Kopfschlitten bei Y ganz hinten.
+   - Kopf/Tisch: Ständer ∩ Kopfschlitten und Schwenkkopf bei Y ganz hinten, Z unten.
+   - G550: Bett ∩ Tisch bei Y ganz hinten, Spindel ∩ Säule bei Z unten.
+   - Portalfräse: keine Überschneidung, aber das Portal fährt über das Bett hinaus.
+   - Kopf/Kopf: ohne Befund.
+
+   Diese Bauarten müssen genauso mit den Wegen wachsen. Lagerbock ∩ Zapfen (Tisch/Tisch) und
+   Gabel ∩ Zapfen (Kopf/Kopf) sind gewollt: Das sind die Lager.
+
+**Manuels C-Ring (2026-10-16, mit vier Bildern) – aufschreiben:**
+`~/freecad_cam/testteile/3_achs_c_ring_nut_testteil.FCStd`. Manuel hatte es als `fraesteil.FCStd`
+gespeichert: „bitte nenn es zu irgendwas sinnvollem um“. Das Teil ist ein Ring Ø 60 × 10 mit
+Bohrung Ø 30 und einem Schlitz. Oben liegt eine 5 mm tiefe Ringnut zwischen Ø 35 und Ø 55, also
+10 mm breit; ihr Grund ist Face8, sie ist zum Schlitz hin offen. Job „Körper – Fräsen“, Räumen mit
+T1 Ø 12.
+1. **Die grüne Fläche wird nicht bearbeitet.** Face8 ist gewählt, Räumen ist angehakt („1 Lage,
+   adaptiv, etwa 1 min“). Manuel: „wird die grüne fläche bearbeitet ???? neiiinnn“. Die Ursache
+   ist dieselbe wie beim Ring, Punkt 5: Ø 12 passt nicht in die 10 mm breite Nut, und das wird
+   nicht gesagt. Es steht nur der allgemeine Satz „Ecken und Nuten, enger als er, bleiben für
+   einen kleineren“. Damit ist Punkt 5 an zwei Teilen belegt und kommt als Nächstes.
+2. **Zickzack an den Rundungen**: „die vorschrupp bahnen sind rund .. und wenns zum fertig
+   schruppen kommt ists nen eck ??? … das selbe im inneren kreis“. Beim Räumen ist der letzte Zug
+   außen um Ø 60 und innen in der Bohrung Ø 30 eckig und zackig, die Züge davor sind rund.
+   Verdacht: Der letzte Zug folgt dem Rand aus dem Raster statt dem Kreis. Nachstellen und messen.
+3. **Durch den Schlitz weiter bis zur Mitte**: „wenn du schon in die öffnung reinfährst .. warum
+   dann nicht weiter fahren ist für den fräser schonender das auf volle tiefe raus zu arbeiten als
+   im kreis einzutauchen .. auch spähnevolumen technisch ists sinnvoller bis zuur mitte die D's
+   noch weiter fahren und dann mit den reisen rausfahren“. Heute arbeiten D-Bögen (trochoidal) im
+   Schlitz, und die Bohrung wird getrennt mit einer Helix angefahren und in Kreisen geräumt. Sein
+   Weg: die D-Bögen auf voller Tiefe durch den Schlitz bis in die Bohrung weiterführen, dann die
+   Bohrung von dort aus in Kreisen ausräumen, ohne eigenes Eintauchen. Das ist eine Strategiewahl,
+   also erst als Bild mit Zahlen zeigen.
+4. **„Anlegen“ schon in Schritt 1** (Bild: „Schritt 1 von 3 – Aufspannung“, oben „Anlegen“
+   klickbar): „das anlegen sollte erst frei sein wenn alle angaben gemacht worden sind“. Das
+   Prüfen-Fenster des Assistenten „Bearbeitung“ bietet „Anlegen“ in jedem Schritt an. Künftig erst
+   ab Schritt 3 (Flächen gewählt, Strategie angehakt), vorher grau. Der Hinweis sagt, was noch
+   fehlt („Erst die Flächen wählen – Schritt 2“), so wie „Nächster Schritt als Knopf“ es verlangt:
+   nie grau ohne Grund. In den anderen Assistenten (4 Achsen, 3+2, Drehen) dasselbe ansehen.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
