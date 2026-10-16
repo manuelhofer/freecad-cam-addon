@@ -604,8 +604,14 @@ T1 Ø 12.
      fährt sie nur, wenn dieser Schnitt kürzer ist als die Rampe. Eine Helix geht auf der
      3D-Fläche nicht; so bleibt es.
 
-   Noch nicht gezählt: Plan indexiert (bei P-2026-10-12-161: 4 Rampen von 37, wo die Nase davor
-   steht). Die Nut auf dem Mantel (4 Achsen, `vierachs_planbahn`, Rundachse
+   - Plan indexiert an der Nase: 0 Rampen seit P-2026-10-12-165 (die 4 von 37 aus P-161 fahren
+     quer aus der geräumten Zeile daneben hinein); `test_vierachs_plan` prüft es an Face4 und
+     Face6. Eine Rampe bleibt nur im geschlossenen Feld zwischen zwei Wänden, dort im Kreis hinab.
+
+   Damit ist jede Strategie gezählt (2026-10-16). Zickzack bleibt nur, wo für einen Kreis kein
+   Platz ist: Vollnut mit weniger als 0,1 R zwischen Fräser und Wand, Planfräsen in engen
+   Bohrungsböden (nimmt der Assistent nicht mehr), Räumen in sehr schmalen Streifen. Dazu kommt
+   die Kontur, die eine ganze Tasche allein räumt (verliert dort gegen Räumen). Die Nut auf dem Mantel (4 Achsen, `vierachs_planbahn`, Rundachse
    dreht) fährt noch ihre eigene Rampe.
 2. **Das Update lädt zu viel**: „die fotos sind ja nicht im main mit dabei .. heist wenn ich addon
    update drücke .. dauert das mitlerweile ganzschön lang … bilder fürs forum usw muss da nicht
