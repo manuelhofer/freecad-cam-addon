@@ -16,6 +16,9 @@ from . import einrichtblatt as eb
 from .gui_zahlen import dezimal, groesse_zeigen
 from .sprache import tr
 
+BILD_BREITE, BILD_HOEHE = 160, 280  # Pixel – das Bild von Halter und Werkzeug, doppelt so groß
+# wie in der Halterverwaltung, damit es gedruckt nicht verschwimmt
+
 
 def _drucken_modul():
     try:
@@ -67,14 +70,16 @@ class EinrichtblattDialog(QtGui.QDialog):
         self.resize(820, 900)
 
     def _bilder_machen(self):
-        """Je Aufspannung ein Bild der 3D-Ansicht: Teil und Rohteil des Jobs, schräg von oben."""
+        """Die Bilder der Werkzeuge (_werkzeugbilder) und je Aufspannung eins der 3D-Ansicht: Teil
+        und Rohteil des Jobs, schräg von oben."""
+        ordner = tempfile.mkdtemp(prefix="einrichtblatt_")
+        self._werkzeugbilder(ordner)
         ansicht = None
         with _ignoriert():
             dokument = FreeCADGui.getDocument(self.job.Document.Name)
             ansicht = dokument.mdiViewsOfType("Gui::View3DInventor")[0]
         if ansicht is None:
             return
-        ordner = tempfile.mkdtemp(prefix="einrichtblatt_")
         for i, aufspannung in enumerate(self.blatt.aufspannungen):
             if i:  # die weiteren Aufspannungen: noch ohne eigenes Bild
                 continue
@@ -94,6 +99,27 @@ class EinrichtblattDialog(QtGui.QDialog):
             if wuerfel:
                 with _ignoriert():
                     betrachter.setEnabledNaviCube(True)
+
+    def _werkzeugbilder(self, ordner):
+        """Je Werkzeug mit Halter das Bild aus der Halterverwaltung (gui_halter.HalterBild):
+        Halter und Werkzeug maßstäblich, daneben die Ausspannlänge – auf Weiß, auch im dunklen
+        Farbschema."""
+        from .gui_halter import HalterBild
+
+        for w in self.blatt.werkzeuge:
+            h, werkzeug = w.halter_objekt, w.werkzeug_objekt
+            if h is None or werkzeug is None or h.gewinkelt or w.laenge <= h.laenge:
+                continue
+            with _ignoriert():
+                bild = HalterBild()
+                bild.setFixedSize(BILD_BREITE, BILD_HOEHE)
+                farben = bild.palette()
+                farben.setColor(QtGui.QPalette.Base, QtGui.QColor("white"))
+                bild.setPalette(farben)
+                bild.zeige(h, werkzeug, w.laenge)
+                pfad = os.path.join(ordner, f"werkzeug_t{w.nummer}.png")
+                if bild.grab().save(pfad):
+                    w.bild = pfad
 
     def als_pdf(self, pfad=None):
         """Speichert das Blatt als PDF – ohne `pfad` fragt es, wohin. Gibt den Pfad zurück."""

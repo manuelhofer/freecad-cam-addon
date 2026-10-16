@@ -30,6 +30,9 @@ class Werkzeug:
     halter: str  # Name des Halters, "" ohne
     halter_masse: str  # „Ø 40 · 70 lang · Spanntiefe 30“, "" ohne
     geschaetzt: bool = False  # Länge nicht eingetragen, nur geschätzt
+    bild: str = ""  # Pfad eines Bilds von Halter und Werkzeug (gui_einrichtblatt), "" ohne
+    halter_objekt: object = field(default=None, repr=False)  # halter.Halter fürs Bild
+    werkzeug_objekt: object = field(default=None, repr=False)  # werkzeuge.Werkzeug fürs Bild
 
 
 @dataclass
@@ -193,6 +196,8 @@ def _werkzeug(tc, bibliothek):
         halter=halter_name,
         halter_masse=masse_text,
         geschaetzt=werkzeug is not None and quelle not in eingetragen,
+        halter_objekt=halter,
+        werkzeug_objekt=werkzeug,
     )
 
 
@@ -484,6 +489,8 @@ def html(blatt, tr, laenge, minuten_text):
         halter = _e(w.halter or "–")
         if w.halter_masse:
             halter += f"<br><span class='klein'>{_e(w.halter_masse)}</span>"
+        if w.bild:
+            halter += f"<br><img src='{_e(w.bild)}' width='100'>"
         schneide = laenge(w.schneidenlaenge) if w.schneidenlaenge > 0 else "–"
         teile.append(
             f"<tr><td>T{w.nummer}</td><td>{_e(w.name)}<br><span class='klein'>{_e(w.art)}"

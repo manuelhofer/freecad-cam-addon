@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-22 einrichtblatt-halterbild (W-019)
+
+### EINGELESEN
+- W-019, Punkt 2 aus Manuels Liste: „der halter mit abmessungen“. Im Blatt standen nur Zahlen.
+
+### DATEIEN
+- `camaddon/einrichtblatt.py`: Das Werkzeug des Blatts trägt Halter und Werkzeug der
+  Werkzeugverwaltung mit; in der Spalte „Halter“ steht unter den Maßen das Bild.
+- `camaddon/gui_einrichtblatt.py`, `_werkzeugbilder`:
+  - Je Werkzeug mit geradem Halter das Bild aus der Halterverwaltung (`gui_halter.HalterBild`):
+    Halter und Fräser maßstäblich, daneben die Ausspannlänge.
+  - Doppelt so groß gerendert, auf Weiß, auch im dunklen Farbschema.
+- `translations/de.json`: „Ausspann-länge“ mit weichem Trennstrich im Spaltenkopf.
+- `tests/gui/szenario_einrichtblatt.py`: eine Werkzeugverwaltung mit T1 Ø 12 im Schrumpffutter,
+  40 mm Ausspannlänge. Geprüft werden Ausspannlänge 40, Halter „Schrumpf…“ und das Bild.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_einrichtblatt`, `test_einrichtblatt`, `test_sprache`.
+- Im PDF steht bei T1 das Schrumpffutter mit Fräser und der „40“ daneben.
+- Zum Ausprobieren: ein Job, dessen Werkzeug in der Werkzeugverwaltung einen Halter hat, dann
+  „CAM-Addon → Einrichtblatt …“. In der Spalte „Halter“ steht das Bild.
+
 ## P-2026-10-16-21 vollnut-helix
 
 ### EINGELESEN
