@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-58 schlichten3d-heben-im-eilgang
+
+### EINGELESEN
+- Zickzack-Durchsicht, Geist (STL) im vollen Szenario-Lauf: 3D-Schlichten T2 mit 12 „Kehren“.
+  Nachgesehen im Programm (`kehren.txt` mit Ort, P-56): winzige Schleifen in engen Mulden, kein Hin
+  und Her – aber zwischen nahen Stücken (`_verbinden`, bis 2 R) hob die Bahn senkrecht im Vorschub
+  an, über einen Grat bis 13 mm, fuhr hinüber und senkte sich im Vorschub: 394-mal, zusammen
+  2771 mm hinauf. Manuel: unnötige, langsame Wege ohne Rückfrage weg, „im Freien mit
+  Maschinen-Eilgang“.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`: `_verbinden` – geht es zwischen zwei nahen Stücken mehr als
+  `HEBEN_EILGANG` (2 mm) hinauf, dann im Eilgang hinauf (längs der Werkzeugachse nach oben stößt
+  nichts an) und, ist es mehr als doppelt so hoch, im Eilgang hinab bis 2 mm über die Hüllfläche;
+  hinüber und die letzten 2 mm im Vorschub wie bisher.
+
+### ERGEBNIS
+- Geist, 3D-Schlichten T2: senkrecht im Vorschub hinauf 2771 → 245 mm, die Zeit (Eilgang mit
+  10 m/min gerechnet) etwa 62,4 → 55,4 min.
+- Grün im Wochen-Build: `test_schlichten3d`, `szenario_schlichten3d`, `szenario_restschlichten`,
+  `szenario_bleistift`, `szenario_bearbeitung_stl`.
+
 ## P-2026-10-16-57 plan-indexiert-rand-und-flanke (B-026)
 
 ### EINGELESEN

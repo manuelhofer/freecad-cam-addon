@@ -87,6 +87,9 @@ TOLERANZ_NETZ = 0.01  # mm – so fein wird das Teil vernetzt
 VORSCHAU_TOLERANZ = 0.05  # mm – im Assistenten
 MASKE = 0.002  # mm – so viel höher muss die Hüllfläche mit den gewählten Flächen liegen
 LUFT = 0.1  # mm – so hoch gleitet er zwischen zwei Zeilen über der Hüllfläche
+# mm – geht es zwischen zwei Stücken weiter hinauf, dann im Eilgang hinauf und bis so hoch über
+# die Hüllfläche hinab (wie freiwege.LINK_LUFT über dem Material)
+HEBEN_EILGANG = 2.0
 LUECKE_FAHREN = 10.0  # mm – kürzere Lücken in einer Zeile fährt er auf der Hüllfläche durch
 TOLERANZ_GERADE = 0.002  # mm – so weit darf ein ausgelassener Punkt von der Geraden liegen
 NACH_OBEN = 0.05  # so weit muss eine Normale nach oben zeigen (n_z) – sonst sieht er nichts
@@ -577,10 +580,25 @@ def _verbinden(punkte, x, y, z, w, raster=None):
         if np.all(np.isfinite(unter)):
             hoch = max(float(np.max(unter)), jetzt.z, z) + LUFT
             laenge = 0.0
-            for px, py, pz in ((jetzt.x, jetzt.y, hoch), (x, y, hoch), (x, y, z)):
-                punkt = bn.Punkt(False, px, py, pz)
+            # Weit hinauf im Eilgang: Längs der Werkzeugachse nach oben stößt nichts an, und
+            # hinab bis HEBEN_EILGANG über die Hüllfläche ist frei. Am Geist (STL) hob das
+            # 3D-Schlichten zwischen zwei nahen Stücken 394-mal senkrecht im Vorschub an, über
+            # einen Grat bis 13 mm, zusammen 2,8 m – rund 4 min Luft (Manuel: „im Freien mit
+            # Maschinen-Eilgang“).
+            if hoch - jetzt.z > HEBEN_EILGANG:
+                punkte.append(bn.Punkt(True, jetzt.x, jetzt.y, hoch))
+            else:
+                punkt = bn.Punkt(False, jetzt.x, jetzt.y, hoch)
                 laenge += bn.weg(punkte[-1], punkt)
                 punkte.append(punkt)
+            punkt = bn.Punkt(False, x, y, hoch)
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+            if hoch - z > 2 * HEBEN_EILGANG:
+                punkte.append(bn.Punkt(True, x, y, z + HEBEN_EILGANG))
+            punkt = bn.Punkt(False, x, y, z)
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
             return laenge
     punkte.append(bn.Punkt(True, jetzt.x, jetzt.y, w.sicher))
     punkte.append(bn.Punkt(True, x, y, w.sicher))

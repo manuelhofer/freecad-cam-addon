@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis -57, 0.260.45 → 0.260.53):**
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis -58, 0.260.45 → 0.260.54):**
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -27,8 +27,9 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   - Im vollen Szenario-Lauf übrig:
     - Testteil, Kontur T1: in der dreieckigen Tasche passt Ø 12 gerade so; die Mittelbahn ist ein
       Dreieck von 1 mm Umfang, dort wendelt er eng hinab – kein Hin und Her.
-    - Geist (STL), 3D-Schlichten: 18 bzw. 58 Kehren unter 2214 bzw. 3561 Einfahrten – noch nicht
-      angesehen.
+    - Geist (STL), 3D-Schlichten: Die „Kehren“ sind winzige Schleifen in engen Mulden, kein
+      Hin und Her. Dabei gefunden: Zwischen nahen Stücken hob es 394-mal senkrecht im Vorschub an
+      (2,8 m) – jetzt im Eilgang, etwa 62 → 55 min (P-58).
 - Schräge Flächen ohne Umweg (P-54, Manuel am Schwenkteil auf der G550):
   - An der 5-Achs-Fräse legt „Anlegen“ die Ebene selbst an und macht dort weiter.
   - An der 3-Achs-Fräse gibt es den Haken „Schräg gespannt fräsen“: eine Aufspannung, das Teil
