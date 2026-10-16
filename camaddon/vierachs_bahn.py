@@ -995,6 +995,47 @@ def _rampe(a, r, phi, von, bis, oben, w):
     return ergebnis
 
 
+def kehren(punkte):
+    """(Kehren, Rampen) einer Bahn ([Punkt]): Rampen sind die Einfahrten – nach einem Eilgang die
+    Vorschubsätze, die die Spitze zur Achse senken, bis der erste nicht mehr senkt (wo die Bahn
+    danach der Fläche folgt und dabei sinkt, ist das keine Einfahrt); eine Kehre ist eine Rampe,
+    die dabei umkehrt (Zickzack) – gerechnet abgewickelt: längs a, quer der Weg auf dem Umfang
+    r · φ plus der Versatz q (wie pruefstand.kehren_im_programm für 3 Achsen; Manuel,
+    2026-10-16: „das auch wirklich alle zickzack fahrten weg sind“)."""
+    anzahl_kehren = rampen = 0
+    einfahrt = in_rampe = gekehrt = False
+    richtung = None
+    for von, nach in zip(punkte, punkte[1:], strict=False):
+        if nach.eilgang:
+            einfahrt, in_rampe = True, False
+            continue
+        if not einfahrt:
+            continue
+        if nach.r >= von.r - GLEICH:
+            einfahrt = in_rampe = False  # unten: was jetzt sinkt, folgt der Fläche
+            continue
+        if nach.eintauchen and abs(nach.a - von.a) + abs(nach.phi - von.phi) < GLEICH:
+            continue  # senkrecht bis ans Material: noch keine Rampe
+        if not in_rampe:
+            rampen += 1
+            richtung, gekehrt = None, False
+        mitte = (von.r + nach.r) / 2
+        da = nach.a - von.a
+        dt = mitte * math.radians(nach.phi - von.phi) + (nach.q - von.q)
+        lang = math.hypot(da, dt)
+        if lang > GLEICH:
+            jetzt = (da / lang, dt / lang)
+            umgekehrt = (
+                jetzt[0] * richtung[0] + jetzt[1] * richtung[1] < -0.5 if richtung else False
+            )
+            if umgekehrt and not gekehrt:
+                anzahl_kehren += 1
+                gekehrt = True
+            richtung = jetzt
+        in_rampe = True
+    return anzahl_kehren, rampen
+
+
 def _laenge(a, r, phi, von, bis):
     """Wie lang das Stück von..bis der Bahn an der Spitze ist (mm)."""
     bogen = r[von:bis] * np.diff(np.radians(phi[von : bis + 1]))

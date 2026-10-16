@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-53 vierachs-plan-helix-statt-zickzack
+
+### EINGELESEN
+- Manuels Auftrag (2026-10-16 nachts): „schau dir alle szenarien und bahngeneratoren nochmal
+  genauer an das auch wirklich alle zickzack fahrten weg sind !“
+- 4-Achs „Plan indexiert“ fuhr in jede Lage über eine Rampe hin und her längs der ersten Zeile
+  (an den Prüfbahnen von test_vierachs_plan: 30 Kehren in 46 Einfahrten).
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `_einfahrt` fährt, wo die Fahrt auf einer Höhe liegt, über eine
+  Helix in der Ebene der Fläche hinein (längs a, quer q). `_helix_platz` sucht ihre Mitte: zuerst
+  Kreise durch den Anfang der Fahrt, dann weiter längs in der Fahrt und quer daneben, zuerst mit
+  0,45 × Fräserradius, dann mit 0,25 ×. Jeder Punkt des Kreises, sein Inneres und der Weg zum
+  Anfang müssen dort liegen, wo der Fräser in dieser Lage stehen darf (`_im_feld`, am Raster der
+  Zeilen, mit `zwischen`); das Rechteck um die Zeilen reichte nicht (ein Stift im Feld). `_helix`
+  beginnt so weit vor der Stelle am Anfang, dass sie nach einer Runde unten dort endet.
+- `camaddon/vierachs_bahn.py`: `kehren(punkte)` zählt Kehren und Rampen abgewickelt (a, r·φ+q).
+- `camaddon/pruefstand.py`: `kehren_im_programm` zählt nur die Einfahrten (nach einem Eilgang, bis
+  Z nicht mehr sinkt) – was danach sinkt, folgt beim Schlichten der Fläche.
+- `tests/test_vierachs_plan.py`: die Abflachung über die Helix hinein, im Feld, ohne Kehre.
+
+### ERGEBNIS
+- Kehren beim 4-Achs-Planen an den Prüfbahnen 30 → 9. Übrig: die Passfedernut und die Mantelnuten
+  (so breit wie der Fräser – wie die Vollnut in 3 Achsen, dort gibt es keinen Platz für eine
+  Helix), die schräge Fläche (die Höhe ändert sich längs) und ein Anfang in der Ecke neben dem
+  Stift.
+- test_vierachs_plan grün (Wochen-Build).
+
 ## P-2026-10-16-52 zickzack-in-jedem-szenario-zaehlen
 
 ### EINGELESEN

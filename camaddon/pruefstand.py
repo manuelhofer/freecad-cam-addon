@@ -359,13 +359,14 @@ def _skalar(a, b):
 
 
 def kehren_im_programm(befehle):
-    """(Kehren, Rampen) in den Befehlen einer Operation (Path.Command, absolut): Rampen sind
-    Folgen von Vorschubsätzen, die Z senken; eine Kehre ist eine Rampe, die dabei in XY umkehrt
-    (Zickzack) – wie Kennzahlen.kehren, aber ohne Material. None, wenn eine Rundachse (A, B, C)
-    vorkommt: Dort sagt die Richtung in XY nichts."""
+    """(Kehren, Rampen) in den Befehlen einer Operation (Path.Command, absolut): Rampen sind die
+    Einfahrten – nach einem Eilgang die Vorschubsätze, die Z senken, bis der erste nicht mehr
+    senkt (was danach sinkt, folgt einer Fläche); eine Kehre ist eine Rampe, die dabei in XY
+    umkehrt (Zickzack) – wie Kennzahlen.kehren, aber ohne Material. None, wenn eine Rundachse
+    (A, B, C) vorkommt: Dort sagt die Richtung in XY nichts."""
     x = y = z = 0.0
     kehren = rampen = 0
-    in_rampe = gekehrt = False
+    einfahrt = in_rampe = gekehrt = False
     richtung = None
     for befehl in befehle:
         name = befehl.Name.upper()
@@ -376,9 +377,16 @@ def kehren_im_programm(befehle):
             continue
         von = _punkt(x, y, z)
         x, y, z = werte.get("X", x), werte.get("Y", y), werte.get("Z", z)
-        if name in ("G0", "G00") or z >= von.z - _NICHTS:
-            in_rampe = False
+        if name in ("G0", "G00"):
+            einfahrt, in_rampe = True, False  # nach einem Eilgang: die Einfahrt
             continue
+        if not einfahrt:
+            continue  # was später sinkt, folgt der Fläche (3D) – keine Einfahrt
+        if z >= von.z - _NICHTS:
+            einfahrt = in_rampe = False
+            continue
+        if abs(x - von.x) + abs(y - von.y) < _NICHTS:
+            continue  # senkrecht hinab (bis ans Material): noch keine Rampe
         bogen = None
         if name in ("G2", "G02", "G3", "G03"):
             bogen = (

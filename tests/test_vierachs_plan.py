@@ -71,7 +71,7 @@ pruefe(vp.ebener_radius(ff.scheibe(3.0)) == 3.0, "ebener Radius der Scheibe")
 pruefe(vp.ebener_radius(ff.torus(3.0, 1.0)) == 2.0, "ebener Radius des Torus")
 pruefe(vp.ebener_radius(ff.kugel(3.0)) == 0.0, "ebener Radius der Kugel")
 
-# --- Die Bahn: zwei Lagen, drei Zeilen, vor den Wänden halt, über die Rampe hinein ----------
+# --- Die Bahn: zwei Lagen, drei Zeilen, vor den Wänden halt, über die Helix hinein ----------
 netz = vp.netz_ohne(flach_welle, [abflachung])
 werte = vp.Planwerte(
     form=ff.scheibe(3.0),
@@ -90,13 +90,29 @@ pruefe(
 pruefe(abs(bahn.r_min - 8.0) < 1e-9, f"tiefste Spitze {bahn.r_min}")
 start = bahn.punkte[0]
 pruefe(start.eilgang and start.a == 1.0 + 3.0 + 2.0 and start.r == 14.0, f"Start: {start}")
-vorschub = [p for p in bahn.punkte if not p.eilgang]
-pruefe(all(abs(p.phi) < 1e-9 for p in vorschub), "die Rundachse steht nicht auf 0°")
+vorschub_alle = [p for p in bahn.punkte if not p.eilgang]
+pruefe(all(abs(p.phi) < 1e-9 for p in vorschub_alle), "die Rundachse steht nicht auf 0°")
+# Die Zeilen auf ihren Versätzen (0, ± q_soll); die anderen Punkte sind die Helix der Einfahrt
+# (P-2026-10-16-53: statt der Rampe hin und her längs der ersten Zeile), im Feld der Zeilen und
+# ohne Kehre.
 q_soll = 6.0 - 3.0 - vb.TOLERANZ_SCHLICHTEN - vb.RAND - vp.LUFT
+
+
+def in_zeile(p):
+    return abs(p.q) < 1e-9 or abs(abs(p.q) - q_soll) < 1e-6
+
+
+vorschub = [p for p in vorschub_alle if in_zeile(p)]
+helix = [p for p in vorschub_alle if not in_zeile(p)]
 pruefe(
-    all(abs(p.q) < 1e-9 or abs(abs(p.q) - q_soll) < 1e-6 for p in vorschub),
+    {round(p.q, 3) for p in vorschub} == {0.0, round(q_soll, 3), round(-q_soll, 3)},
     f"Zeilen quer: {sorted({round(p.q, 3) for p in vorschub})}",
 )
+pruefe(
+    helix and all(abs(p.q) <= q_soll + 1e-6 and -27.0 - 1e-6 <= p.a <= -13.0 + 1e-6 for p in helix),
+    f"Helix: {len(helix)} Punkte, nicht im Feld",
+)
+pruefe(vb.kehren(bahn.punkte)[0] == 0, f"Kehren: {vb.kehren(bahn.punkte)}")
 pruefe(all(8.0 - 1e-9 <= p.r <= 12.0 + 1e-9 for p in vorschub), "Spitze außerhalb 8 … 12")
 pruefe(
     all(-27.0 - 1e-6 <= p.a <= -13.0 + 1e-6 for p in vorschub),
