@@ -2,7 +2,7 @@
 # Körpers kostete am Geist 1,7 s je Körper. Eine Kugel aus einem Netz (1.740 Dreiecke) als Körper:
 # Er erscheint als Netz, FreeCADs Anzeige bleibt aus. Sein Klon an anderer Stelle ebenso; ein Klick
 # auf ein Dreieck des Klons wählt in FreeCAD „FaceN“ des Klons, und das Netz zeigt die Auswahl
-# grün. Farben der Flächen zieht das Netz nach. „Abbrechen“ (Transaktion zurück) bringt ein
+# grün. Farben der Flächen zieht das Netz nach (farben_nachziehen). „Abbrechen“ (Transaktion zurück) bringt ein
 # ausgeblendetes Netz wieder. Blendet man den Klon in FreeCAD ein (wie mit der Leertaste), zeigt
 # FreeCAD ihn selbst, das Netz geht aus. Speichern, schließen, öffnen: das Netz ist wieder da,
 # FreeCADs Anzeige aus, das Dokument „unverändert“.
@@ -83,6 +83,9 @@ def schritte(h):
             farben = [(0.8, 0.8, 0.8, 0.0)] * anzahl
             farben[nummer] = (1.0, 0.0, 0.0, 0.0)
             klon.ViewObject.DiffuseColor = farben
+            # Von Hand an der Anzeige geändert, zieht das Netz erst auf Zuruf nach: Ein
+            # Beobachter der Anzeigen brach FreeCADs Assembly (P-2026-10-16-11).
+            sa.farben_nachziehen(klon)
             yield 200
             bindung = sa._knoten(klon.ViewObject).getChild(sa.BINDUNG)
             h.pruefe(

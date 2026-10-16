@@ -349,27 +349,32 @@ class _Auswahl:
             self._neu(dokument, name)
 
 
-class _Ansichten:
-    """Blendet man ein Teil mit Netz in FreeCAD ein (Leertaste), zeigt FreeCAD es selbst – das
-    Netz geht aus, sonst wäre es doppelt da. Ändern sich die Farben, zieht das Netz nach."""
-
-    def slotChangedObject(self, ansicht, eigenschaft):  # noqa: N802
-        if eigenschaft == "Visibility":
-            if getattr(ansicht, "Visibility", False) and _knoten(ansicht) is not None:
-                objekt = ansicht.Object
-                ansicht.RootNode.removeChild(_knoten(ansicht))
-                with contextlib.suppress(Exception):
-                    _merken(objekt, False)
-        elif (
-            eigenschaft in ("DiffuseColor", "ShapeAppearance", "Transparency")
-            and _knoten(ansicht) is not None
-        ):
-            farben_nachziehen(ansicht.Object)
-
-
 class _Dokumente:
     """Nach dem Öffnen und nach Rückgängig/Wiederholen: das Netz wieder an jedes Objekt, das es
-    zeigte (EIGENSCHAFT) – die Anzeige wurde neu gebaut, ohne den Knoten."""
+    zeigte (EIGENSCHAFT) – die Anzeige wurde neu gebaut, ohne den Knoten. Blendet man ein Teil mit
+    Netz in FreeCAD ein (Leertaste), zeigt FreeCAD es selbst – das Netz geht aus, sonst wäre es
+    doppelt da.
+
+    Bewusst ein Beobachter der Dokumente, nicht der Anzeigen (FreeCADGui.addDocumentObserver):
+    Einem solchen reicht FreeCAD jede Anzeige schon, während sie entsteht – die einer Assembly
+    bekam dabei ihr allgemeines Python-Gegenstück ohne „isInEditMode“, und FreeCADs Assembly
+    ging nicht mehr (Manuel, 2026-10-16, FreeCAD 27.1: „AttributeError: … isInEditMode“, „ich
+    kann leider auch keine bauteile einlegen“). Farben, die man von Hand an der Anzeige ändert,
+    kommen deshalb erst beim nächsten Zeigen ins Netz; die Assistenten färben es selbst
+    (flaechen_faerben)."""
+
+    def slotChangedObject(self, objekt, eigenschaft):  # noqa: N802
+        if eigenschaft != "Visibility" or not getattr(objekt, "Visibility", False):
+            return
+        if EIGENSCHAFT not in objekt.PropertiesList:
+            return
+        ansicht = getattr(objekt, "ViewObject", None)
+        knoten = _knoten(ansicht)
+        if knoten is None:
+            return
+        ansicht.RootNode.removeChild(knoten)
+        with contextlib.suppress(Exception):
+            _merken(objekt, False)
 
     def slotCreatedDocument(self, dokument):  # noqa: N802
         _spaeter(dokument.Name)
@@ -429,8 +434,7 @@ def beobachten():
         return
     import FreeCADGui
 
-    auswahl, ansichten, dokumente = _Auswahl(), _Ansichten(), _Dokumente()
-    _BEOBACHTER.extend([auswahl, ansichten, dokumente])
+    auswahl, dokumente = _Auswahl(), _Dokumente()
+    _BEOBACHTER.extend([auswahl, dokumente])
     FreeCADGui.Selection.addObserver(auswahl)
-    FreeCADGui.addDocumentObserver(ansichten)
     FreeCAD.addDocumentObserver(dokumente)

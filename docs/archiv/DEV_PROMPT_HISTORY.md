@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-11 assembly-wieder-bedienbar (B-021)
+
+### EINGELESEN
+- Manuel (Bild, FreeCAD 27.1.0dev, Assembly-Workbench, Rechtsklick): „AttributeError:
+  'Gui.ViewProviderGeometryObject' object has no attribute 'isInEditMode'“ in
+  `UtilsAssembly.activeAssembly`; „weis nich ob das was mit uns zutun hat“; „ich kann leider auch
+  keine bauteile einlegen“.
+- Nachgesehen im Wochen-Build: Ohne das Addon hat eine neue Assembly `isInEditMode`, mit dem
+  Addon nicht, auch wenn die Assembly-Workbench vorher aktiv war.
+- Die Ursache: `stl_anzeige` hängte einen Beobachter an die Anzeigen
+  (`FreeCADGui.addDocumentObserver` mit `slotChangedObject`). FreeCAD reicht ihm jede Anzeige
+  schon, während sie entsteht, und dabei bekam die Assembly ihr allgemeines Python-Gegenstück
+  ohne die Methoden der Assembly.
+
+### DATEIEN
+- `camaddon/stl_anzeige.py`: kein Beobachter der Anzeigen mehr. Das Einblenden mit der Leertaste
+  (Netz aus, FreeCAD zeigt das Teil) übernimmt `_Dokumente.slotChangedObject` an der Eigenschaft
+  „Visibility“ des Objekts. Farben, die man von Hand an der Anzeige ändert, kommen erst beim
+  nächsten Zeigen oder mit `farben_nachziehen` ins Netz; die Assistenten färben es ohnehin selbst.
+- `tests/gui/szenario_stl_anzeige.py`: Farben mit `farben_nachziehen`.
+- `docs/STATUS_SNAPSHOT.md`: B-021.
+- `package.xml` (0.260.9).
+
+### ERGEBNIS
+- Mit dem Addon: Assembly selbst angelegt, Beispielmaschine gebaut und gespeichert/geöffnet,
+  jedes Mal `AssemblyGui::ViewProviderAssembly` mit `isInEditMode`. Vorher fehlte es.
+- Grün im Wochen-Build: `szenario_stl_anzeige` (Netz, Auswahl, Farben, Leertaste, Öffnen).
+
 ## P-2026-10-16-10 maschine-durchsichtig-beim-abfahren
 
 ### EINGELESEN
