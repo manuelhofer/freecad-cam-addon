@@ -135,6 +135,30 @@ def schritte(h):
     h.bild("1b_werkstueck")
     h.bild("1c_fenster", panel.form)
 
+    # --- Die Maschine durchsichtig und ausgeblendet (Manuel, 2026-10-16: „maschine transparent …
+    # und ausblenden so das nur das werkzeug mit halter zu sehen ist“) -------------------------
+    from camaddon import gui_abfahren
+
+    koerper = [o for o in asm.Document.Objects if o.TypeId == "Part::Box"]
+    ansicht_vorher = {o.Name: (o.ViewObject.Transparency, o.ViewObject.Visibility) for o in koerper}
+    wahl = spieler.wahl_maschine
+    wahl.setCurrentIndex(wahl.findData(gui_abfahren.MASCHINE_DURCHSICHTIG))
+    yield 300
+    h.pruefe(
+        all(o.ViewObject.Transparency >= 80 and o.ViewObject.Visibility for o in koerper),
+        "Maschine nicht durchsichtig",
+    )
+    h.bild("1d_maschine_durchsichtig")
+    wahl.setCurrentIndex(wahl.findData(gui_abfahren.MASCHINE_AUS))
+    yield 300
+    h.pruefe(not any(o.ViewObject.Visibility for o in koerper), "Maschine nicht ausgeblendet")
+    h.pruefe(ansicht.getSceneGraph().findChild(panel.bild.wurzel) >= 0, "Werkzeug und Teil mit weg")
+    h.bild("1e_maschine_aus")
+    wahl.setCurrentIndex(wahl.findData(gui_abfahren.MASCHINE_ZEIGEN))
+    yield 300
+    jetzt = {o.Name: (o.ViewObject.Transparency, o.ViewObject.Visibility) for o in koerper}
+    h.pruefe(jetzt == ansicht_vorher, "„Maschine zeigen“ stellt nicht wieder her")
+
     # --- Mitten auf der zweiten Geraden: die Spitze sitzt auf der Bahn -----------------------
     abfahrt = spieler.abfahrt
     gerade = next(
@@ -252,11 +276,18 @@ def schritte(h):
     panel.felder_nullpunkt["X"].setText("")
     spieler.wahl_tempo.setCurrentIndex(spieler.wahl_tempo.findData(1))
     spieler.anfang()
+    wahl.setCurrentIndex(wahl.findData(gui_abfahren.MASCHINE_AUS))
     spieler.knopf_spielen.click()
     yield 200
     panel.reject()
     yield 800
     h.pruefe(gui_reichweite.PruefPanel.offen is None, "Fenster noch offen")
+    jetzt = {o.Name: (o.ViewObject.Transparency, o.ViewObject.Visibility) for o in koerper}
+    h.pruefe(
+        jetzt == ansicht_vorher,
+        f"Schließen zeigt die Maschine nicht wie vorher: "
+        f"{[(n, v, jetzt.get(n)) for n, v in ansicht_vorher.items() if jetzt.get(n) != v][:3]}",
+    )
     h.pruefe(ansicht.getSceneGraph().findChild(wurzel) < 0, "Körper nach dem Schließen noch da")
     h.pruefe(not bewegt(), f"Schließen fährt nicht zurück (oder es läuft weiter): {bewegt()}")
     for name in list(FreeCAD.listDocuments()):

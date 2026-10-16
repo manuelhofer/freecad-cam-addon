@@ -336,6 +336,9 @@ class PruefPanel:
         self.bild = None  # gui_abfahren.Bild: Werkzeug und Werkstück in der 3D-Ansicht
         self._bild_fuer = None  # (Job, Prüfung), für die das Bild gebaut ist
         self._bewegt = False  # hat das Fenster die Maschine verfahren?
+        # {Name: (Transparency, Visibility)} der Körper der Maschine, bevor die Auswahl „Maschine“
+        # im Abspieler sie durchsichtig machte oder ausblendete – beim Schließen zurück.
+        self._ansicht_vorher = {}
         self._marke_behalten = False  # die rote Kugel eines Befunds bleibt beim nächsten Fahren
         self._job = None  # der Job, dessen Nullpunkt in den Feldern steht
         self._werkzeugdialog = None  # die Werkzeugverwaltung, deren Speichern hier ankommt
@@ -369,6 +372,7 @@ class PruefPanel:
         self.abspieler.anhalten()
         self._zurueckfahren()
         self._bild_weg()
+        self._ansicht_zurueck()
         self._nullpunkt_merken()
         self._maschine_merken()
         FreeCADGui.Control.closeDialog()
@@ -499,6 +503,7 @@ class PruefPanel:
         self.abspieler.bei_station = self._abtragen
         self.abspieler.bei_bahn = self._bahn_zeigen
         self.abspieler.bei_teil = self._teil_zeigen
+        self.abspieler.bei_maschine = self._maschine_ansicht
         self.abspieler.bei_kollision = self._kollision_hin
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
@@ -865,6 +870,7 @@ class PruefPanel:
                 )
                 self.bild.zeige_bahn(self.abspieler.haken_bahn.isChecked())
                 self.bild.zeige_teil(self.abspieler.haken_teil.isChecked())
+                self._maschine_ansicht(self.abspieler.maschine_ansicht())
                 self._bild_fuer = (job, self.pruefung)
         elif self.bild is not None:
             self.bild.nullpunkt = FreeCAD.Vector(nullpunkt)
@@ -920,6 +926,54 @@ class PruefPanel:
         """Der Haken „Bahn“ im Abspieler: die Bahn in der 3D-Ansicht ein- oder ausblenden."""
         if self.bild is not None:
             self.bild.zeige_bahn(an)
+
+    def _maschine_ansicht(self, modus):
+        """Die Auswahl „Maschine“ im Abspieler: die Körper der Maschine wie gebaut, durchsichtig
+        oder ausgeblendet – Werkzeug und Halter (Knoten des Bilds) bleiben, ebenso Teil und
+        Rohteil. Wie sie vorher waren, merkt sich das Fenster und stellt es beim Schließen
+        wieder her (_ansicht_zurueck)."""
+        for objekt in self._maschinenkoerper():
+            sicht = objekt.ViewObject
+            if objekt.Name not in self._ansicht_vorher:
+                self._ansicht_vorher[objekt.Name] = (
+                    int(sicht.Transparency),
+                    bool(sicht.Visibility),
+                )
+            durchsicht, sichtbar = self._ansicht_vorher[objekt.Name]
+            if modus == gui_abfahren.MASCHINE_AUS:
+                sicht.Visibility = False
+                continue
+            sicht.Visibility = sichtbar
+            if modus == gui_abfahren.MASCHINE_DURCHSICHTIG:
+                sicht.Transparency = max(durchsicht, gui_abfahren.MASCHINE_DURCHSICHT)
+            else:
+                sicht.Transparency = durchsicht
+
+    def _maschinenkoerper(self):
+        """Die Körper der Maschine mit Ansicht – was in der Assembly eine Form zeigt."""
+        if not FreeCAD.GuiUp or self.assembly is None:
+            return []
+        try:
+            objekte = self.assembly.OutListRecursive
+        except Exception:  # die Maschine ist schon zu
+            return []
+        return [
+            o
+            for o in objekte
+            if o.TypeId.startswith("Part::")
+            and getattr(o, "ViewObject", None) is not None
+            and hasattr(o.ViewObject, "Transparency")
+        ]
+
+    def _ansicht_zurueck(self):
+        """Die Körper der Maschine wieder so, wie sie vor der Auswahl „Maschine“ waren."""
+        if not self._ansicht_vorher:
+            return
+        for objekt in self._maschinenkoerper():
+            vorher = self._ansicht_vorher.get(objekt.Name)
+            if vorher is not None:
+                objekt.ViewObject.Transparency, objekt.ViewObject.Visibility = vorher
+        self._ansicht_vorher = {}
 
     def _teil_zeigen(self, an):
         """Der Haken „Teil“ im Abspieler: das fertige Teil auch am Ende zeigen."""

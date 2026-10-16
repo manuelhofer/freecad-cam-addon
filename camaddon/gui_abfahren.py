@@ -69,6 +69,12 @@ REST_FARBEN = {
 STELLE_AUSSCHNITT = 400.0  # mm: so hoch zeigt die Ansicht höchstens, wenn sie auf eine Stelle geht
 BAHN_ZEIGEN = "AbfahrenBahnZeigen"  # der Haken „Bahn“ im Abspieler, gemerkt
 TEIL_ZEIGEN = "AbfahrenTeilZeigen"  # der Haken „Teil“ im Abspieler, gemerkt
+# Die Maschine beim Abfahren: wie sie ist, durchsichtig oder ausgeblendet – Werkzeug, Halter, Teil
+# und Rohteil bleiben (Manuel, 2026-10-16: „maschine transparent … und ausblenden so das nur das
+# werkzeug mit halter zu sehen ist“). Gemerkt fürs nächste Mal.
+MASCHINE_ANSICHT = "AbfahrenMaschine"
+MASCHINE_ZEIGEN, MASCHINE_DURCHSICHTIG, MASCHINE_AUS = "zeigen", "durchsichtig", "aus"
+MASCHINE_DURCHSICHT = 80  # % – so durchsichtig wird sie
 TEIL_AM_ENDE = (0.55, 0.55, 0.58)  # das fertige Teil am Ende, grau unter der Stange
 
 
@@ -682,6 +688,7 @@ class Abspieler(QtGui.QWidget):
         self.bei_station = None
         self.bei_bahn = None  # bekommt True/False, wenn jemand den Haken „Bahn“ setzt
         self.bei_teil = None  # dasselbe für den Haken „Teil“
+        self.bei_maschine = None  # bekommt MASCHINE_ZEIGEN, … aus der Auswahl „Maschine“
         # Die Berührungen aus „Kollision prüfen“ (kollision.Befund), nach der Zeit: Das Abspielen
         # hält an jeder an, der Knopf „Zur nächsten Kollision“ springt hin (Manuel, 2026-10-11:
         # „bis zu dem punkt fährt in der simulation und dort dann pausiert … vll einen knopf ‚zur
@@ -759,6 +766,18 @@ class Abspieler(QtGui.QWidget):
         kollision = QtGui.QHBoxLayout()
         kollision.addWidget(self.knopf_kollision)
         kollision.addStretch()
+        self.wahl_maschine = QtGui.QComboBox()
+        for modus, text in (
+            (MASCHINE_ZEIGEN, tr("ab.maschine.zeigen")),
+            (MASCHINE_DURCHSICHTIG, tr("ab.maschine.durchsichtig")),
+            (MASCHINE_AUS, tr("ab.maschine.aus")),
+        ):
+            self.wahl_maschine.addItem(text, modus)
+        gemerkt = _einstellungen().GetString(MASCHINE_ANSICHT, MASCHINE_ZEIGEN)
+        self.wahl_maschine.setCurrentIndex(max(self.wahl_maschine.findData(gemerkt), 0))
+        self.wahl_maschine.setToolTip(tr("ab.maschine.tooltip"))
+        self.wahl_maschine.currentIndexChanged.connect(self._maschine_umgeschaltet)
+        kollision.addWidget(self.wahl_maschine)
         aufbau.addLayout(kollision)
 
         self.schieber = QtGui.QSlider(QtCore.Qt.Horizontal)
@@ -799,6 +818,16 @@ class Abspieler(QtGui.QWidget):
         _einstellungen().SetBool(TEIL_ZEIGEN, bool(an))
         if self.bei_teil is not None:
             self.bei_teil(bool(an))
+
+    def maschine_ansicht(self):
+        """Wie die Maschine beim Abfahren zu sehen ist: MASCHINE_ZEIGEN, … (Auswahl „Maschine“)."""
+        return self.wahl_maschine.currentData() or MASCHINE_ZEIGEN
+
+    def _maschine_umgeschaltet(self, _index):
+        modus = self.maschine_ansicht()
+        _einstellungen().SetString(MASCHINE_ANSICHT, modus)
+        if self.bei_maschine is not None:
+            self.bei_maschine(modus)
 
     def _knopf(self, symbol, tooltip, aktion):
         knopf = QtGui.QToolButton()

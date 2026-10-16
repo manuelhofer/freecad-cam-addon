@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-10 maschine-durchsichtig-beim-abfahren
+
+### EINGELESEN
+- Manuel (Bild: Abfahren am C-Ring, Spindel und Kopf verdecken Teil und Bahn): „hier kann man
+  nichs sehen oder erkennen .. waäre gut wenn man einen hacken macht mit "maschine transparent"“;
+  „vll maschine ausblenden ... also beides .. transparent und ausblenden so das nur das werkzeug
+  mit halter zu sehen ist“.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`: Im Abspieler die Auswahl „Maschine zeigen / Maschine durchsichtig
+  / Maschine ausblenden“ (`MASCHINE_ANSICHT`, gemerkt), `bei_maschine`.
+- `camaddon/gui_reichweite.py`: `_maschine_ansicht` stellt Transparenz (80 %) bzw. Sichtbarkeit
+  der Körper der Maschine (`_maschinenkoerper`: was in der Assembly eine Form hat). Werkzeug und
+  Halter sind Knoten des Bilds und bleiben, ebenso Teil und Rohteil. Beim Schließen
+  (`_ansicht_zurueck`) wieder wie vorher; gilt gleich beim Öffnen, wenn gemerkt.
+- `translations/de|en.json`: `ab.maschine.*`.
+- `tests/gui/szenario_abfahren.py`: durchsichtig, ausgeblendet (Werkzeug und Teil bleiben),
+  wieder zeigen, beim Schließen wie vorher.
+- `package.xml` (0.260.8).
+
+### ERGEBNIS
+- Bilder: `1d_maschine_durchsichtig`, `1e_maschine_aus` (nur Werkzeug mit Halter, Rohteil, Bahn).
+- Grün im Wochen-Build: `szenario_abfahren`.
+
 ## P-2026-10-16-09 oben-weiter-bis-zum-letzten-schritt
 
 ### EINGELESEN

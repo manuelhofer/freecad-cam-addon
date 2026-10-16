@@ -591,7 +591,8 @@ T1 Ø 12.
    erkennen .. waäre gut wenn man einen hacken macht mit "maschine transparent"“. Ein Haken neben
    „Bahn“ und „Teil“, der die Körper der Maschine (Spindel, Kopf, Tisch, Spannmittel)
    durchsichtig macht. Dazu: „vll maschine ausblenden ... also beides .. transparent und
-   ausblenden so das nur das werkzeug mit halter zu sehen ist“.
+   ausblenden so das nur das werkzeug mit halter zu sehen ist“. *Erledigt:* P-2026-10-16-10
+   (Auswahl „Maschine zeigen / durchsichtig / ausblenden“ unter den Abspielknöpfen, gemerkt).
 6. **Beispiele: alle im Repository, im Update wählbar** (Antwort auf Frage 3): „ich finde es
    sollten alle testteile im repo vorhanden sein ja ... allerdings solte der benutzer auch
    irgendwie die möglichkeit haben sie nicht zu laden .. vll kann man "mit beispiel datein" oder
@@ -603,6 +604,29 @@ T1 Ø 12.
    - Im Addon ein Befehl „Beispiele laden …“, der sie auf Wunsch von GitHub holt (in einen
      eigenen Ordner, mit Größe vorher).
    - Die Maschinen entstehen im Code und sind immer dabei.
+7. **Nur was angeklickt ist, wird bearbeitet** (Bilder: C-Ring, nur Face8 gewählt; die Bahn
+   räumt auch außen um den Ring, die Bohrung und den Schlitz; in der Nut kleine Zickzack-Stücke):
+   „ich hatte nur den inneren ring ausgewählt warum wird ausenrum alles gefahren und in der mitte
+   ich wollte doch nur die nut bearbeitet haben .. da wo eh frei ist druchzufahen ist kein
+   problem .. nur das andere muss ja erstmal garnicht sein vll will ich das mit einem anderen
+   fräser machen … die nut finde ich so gut so sollte auch wirklich nur die nut bearbeitet
+   werden“. Und zur Auswahl (Bild: der Außenmantel grün): „wenn ich den matel haben will ist das
+   meine auswahl“; mit Außenmantel, Bohrung und Schlitzwänden grün: „und das wenn ich ausen alles
+   bearbeiten will .. also da is halt ausen und innen zu bearbeiten alles was ausgeählt ist“.
+   Daraus:
+   - Ein gewählter Boden (Nut, Tasche, Absatz) heißt: das Material über ihm, nicht die ganze
+     Ebene bis zum Rand des Rohteils.
+   - Außen herum, die Bohrung, der Schlitz: nur, wenn ihre Flächen angeklickt sind (der Mantel
+     für außen).
+   - Durchfahren, wo schon Luft ist, darf jede Bahn.
+
+   Heute räumt das Räumen eine offene Fläche vom Rand des Rohteils her (`raeumen_bahn`, Variante
+   „rohteil“/adaptiv). Das muss auf das Gebiet über den gewählten Flächen begrenzt werden.
+   Nachstellen, welcher Block bei ihm lief (Räumen neben der Nut?).
+   Zum Zickzack in der Nut („warum ? fahr doch einfach nen kreis“): Ist die Nut im Quader zu,
+   fräst ein Fräser, der kaum schmaler ist als sie (`verfahren` → „vollnut“), mit der
+   Zickzack-Rampe. Stattdessen am Ende mit der Helix (Kreis) hinab, dann geradeaus.
+   Nachmessen, mit welchem Fräser.
 
 **Aufträge aus Manuels Antworten vom 2026-10-12 abends** (zu den Fragen 16–20; in dieser Reihenfolge):
 1. **Die Nase zuerst mit dem Schaftfräser Ø 12** (Frage 18, Manuel: „die nase … wenn man sie … nach
