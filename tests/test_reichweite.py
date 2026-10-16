@@ -255,6 +255,15 @@ e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
 pruefe(
     e.geschaetzte_laengen() == [], f"Ausspannlänge gilt als geschätzt: {e.geschaetzte_laengen()}"
 )
+# Der Halter für eine andere Aufnahme (W-022): Die Fräse hat SK40, der ER16 ist für HSK-A63 –
+# ein Satz dazu; für SK40 keiner.
+pruefe(m.werkzeugaufnahme(ma) == "SK40", f"Aufnahme der Fräse: {m.werkzeugaufnahme(ma)!r}")
+pruefe(not any("ist für" in h for h in e.hinweise), f"Aufnahme passt doch: {e.hinweise}")
+hsk_halter = bibliothek.neuer_halter("er16", aufnahme="HSK-A63")
+w1.halter = hsk_halter.kennung
+e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
+passt_nicht = [h for h in e.hinweise if "ist für HSK-A63, die Maschine hat SK40" in h]
+pruefe(len(passt_nicht) == 1 and passt_nicht[0].werkzeug == 1, f"Aufnahme: {e.hinweise}")
 w1.ausspannlaenge = 0.0
 w1.laenge_spindelnase = 110.0
 pruefe(rw.werkzeuglaenge(op.ToolController, bibliothek)[0] == 110.0, "gemessen vor Halter")

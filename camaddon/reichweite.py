@@ -1173,6 +1173,7 @@ class Pruefung:
             return
         laenge, quelle = werkzeuglaenge(tc, bibliothek)
         sammler.laenge(tc, laenge, quelle, bibliothek)
+        sammler.aufnahme_pruefen(tc, bibliothek, m.werkzeugaufnahme(self.maschine))
         eingespannt = einspannung(tc, bibliothek)
 
         linear, drehachsen = self.achsen_fuer(aufnahme)
@@ -1350,6 +1351,26 @@ class _Sammler:
             self.hinweis(Hinweis(tr("rw.laenge_geschaetzt", **werte), nummer))
         elif quelle == LAENGE_CAM:
             self.hinweis(Hinweis(tr("rw.laenge_cam", **werte), nummer))
+
+    def aufnahme_pruefen(self, tc, bibliothek, an_der_maschine):
+        """Passt der gewählte Halter nicht zur Werkzeugaufnahme der Maschine (W-022) – ein Halter
+        für SK40 an einer Spindel mit HSK-A63 –, ein Satz dazu. Gerechnet wird trotzdem mit seinen
+        Maßen. Ohne Aufnahme an der Maschine oder am Halter (ältere Halter, VDI): nichts."""
+        if not an_der_maschine:
+            return
+        halter = werkzeughalter(tc, bibliothek)
+        if halter is None or hl.ist_vorschlag(halter) or not halter.aufnahme:
+            return
+        if halter.aufnahme == an_der_maschine:
+            return
+        nummer = getattr(tc, "ToolNumber", 0)
+        werte = {
+            "werkzeug": werkzeug_text(tc, bibliothek),
+            "halter": hl.text(halter),
+            "fuer": halter.aufnahme,
+            "maschine": an_der_maschine,
+        }
+        self.hinweis(Hinweis(tr("rw.aufnahme_passt_nicht", **werte), nummer))
 
     def rundachse_fehlt(self, buchstabe, vorhanden):
         """Das Programm dreht um `buchstabe`, die Maschine hat diese Rundachse nicht – die

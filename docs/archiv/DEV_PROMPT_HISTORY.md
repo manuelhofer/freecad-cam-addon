@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-29 aufnahme-passt-nicht (W-022)
+
+### EINGELESEN
+- W-022, offen nach Stufe 1: Ein Halter, dessen Aufnahme nicht zur Maschine passt, braucht eine
+  Meldung, wie bei der Ausspannlänge.
+
+### DATEIEN
+- `camaddon/reichweite.py`:
+  - `_Sammler.aufnahme_pruefen` meldet je Werkzeug „T1: Der Halter „…“ ist für HSK-A63, die
+    Maschine hat SK40. Gerechnet wird mit seinen Maßen – in der Werkzeugverwaltung einen Halter
+    für SK40 wählen …“.
+  - Nichts gemeldet wird ohne Aufnahme an Maschine oder Halter (ältere Halter, VDI) und beim
+    vorgeschlagenen Halter.
+- `translations/de.json`, `en.json`: `rw.aufnahme_passt_nicht`.
+- `tests/test_reichweite.py`: An der Fräse (SK40) steht der Satz nur beim Halter für HSK-A63,
+  mit Werkzeugnummer.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_reichweite`, `test_sprache`.
+- Zum Ausprobieren: An der 3-Achs-Fräse (SK40) ein Werkzeug mit einem Halter aus „Für eine andere
+  Aufnahme → HSK-A63“, dann „Auf der Maschine prüfen“. Unter den Hinweisen steht der Satz.
+
 ## P-2026-10-16-28 werkzeugaufnahme (W-022, Stufe 1)
 
 ### EINGELESEN

@@ -1257,6 +1257,7 @@
     "rw.werkzeug": "T{nummer} „{name}“",
     "rw.keine_werkstueckaufnahme": "Die Maschine hat keine Werkstückaufnahme mit LCS – ohne sie weiß die Prüfung nicht, wo der Job liegt.",
     "rw.keine_werkzeugaufnahme": "Die Maschine hat keine Werkzeugaufnahme mit LCS – ohne sie weiß die Prüfung nicht, wo das Werkzeug sitzt.",
+    "rw.aufnahme_passt_nicht": "{werkzeug}: Der Halter „{halter}“ ist für {fuer}, die Maschine hat {maschine}. Gerechnet wird mit seinen Maßen – in der Werkzeugverwaltung einen Halter für {maschine} wählen („Halter …“ → „Neu“ legt ihn mit ihrem Flansch an).",
     "rw.laenge_vorschlag": "{werkzeug}: gerechnet mit {laenge} im vorgeschlagenen Halter {halter} (Halterlänge + Auskragung + 5 mm). Den eigenen Halter wählst du beim Werkzeug in der Werkzeugverwaltung; genauer mit der gemessenen „Länge ab Spindelnase“.",
     "kb.halter_vorschlag": "{werkzeug}: mit dem vorgeschlagenen Halter {halter} geprüft (nach Schaft-Ø, Auskragung + 5 mm heraus) – den eigenen wählst du beim Werkzeug in der Werkzeugverwaltung.",
     "wv.halter.vorschlag": "Keiner gewählt – geprüft wird mit {halter}",

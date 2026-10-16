@@ -1257,6 +1257,7 @@
     "rw.werkzeug": "T{nummer} “{name}”",
     "rw.keine_werkstueckaufnahme": "The machine has no workpiece mount with an LCS – without one the check cannot tell where the job sits.",
     "rw.keine_werkzeugaufnahme": "The machine has no tool mount with an LCS – without one the check cannot tell where the tool sits.",
+    "rw.aufnahme_passt_nicht": "{werkzeug}: the holder “{halter}” is for {fuer}, the machine has {maschine}. It is checked with its dimensions – choose a holder for {maschine} in the tool management (“Holders …” → “New” creates one with its flange).",
     "rw.laenge_vorschlag": "{werkzeug}: calculated with {laenge} in the suggested holder {halter} (holder length + reach + 5 mm). Choose your own holder for the tool in the tool manager; more precise with the measured “gauge length”.",
     "kb.halter_vorschlag": "{werkzeug}: checked with the suggested holder {halter} (by shank Ø, reach + 5 mm out) – choose your own for the tool in the tool manager.",
     "wv.halter.vorschlag": "None chosen – checked with {halter}",
