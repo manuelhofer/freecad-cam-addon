@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-60 schwenkteil-auf-der-g550
+
+### EINGELESEN
+- Manuel (2026-10-16 nachts, Schwenkteil auf der GROB G550, nur Face27): „was dann die grob draus
+  macht ist auch wild .. keine kollsion erkannt ??? also nur als info das wäre auf der grob
+  angestellt garkein problem is ja logisch ... tisch anstellen und fräsen“.
+- Nachgespielt mit P-54: Face27 → „Anlegen“ → Ebene „… Face27 (A60 B0)“ → Räumen der Tasche →
+  „Auf der Maschine prüfen“. Achsen in den Grenzen, A steht die ganze Zeit auf −60°, nichts
+  berührt sich. Darunter stand aber grau: „Die Bahn ist für ein Werkzeug längs Z gerechnet, T1
+  sitzt auf Spindel aber quer dazu – so gefahren, passt sie nicht zum Teil“.
+
+### DATEIEN
+- `camaddon/reichweite.py`: Den Hinweis „Werkzeug quer“ gibt es nicht mehr für eine geschwenkte
+  Ebene (`ebene`): Die Rundachsen stellen das Teil so, dass das Werkzeug senkrecht auf ihr steht –
+  die Richtung der Aufnahme in Grundstellung sagt darüber nichts (wie bei Simultanbahnen, B-015).
+- `tests/gui/szenario_schraeg_g550.py` (neu): Manuels Fall auf der G550 mit Kollision und Bildern.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_schraeg_g550`, `szenario_schwenkteil`, `szenario_flanke`,
+  `test_reichweite`.
+- Bilder: `~/freecad_cam/forumbilder/2026-10-17_schraeg/g550_*.png`.
+
 ## P-2026-10-16-59 anstellen-warum-nur-kugel
 
 ### EINGELESEN

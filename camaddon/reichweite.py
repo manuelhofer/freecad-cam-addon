@@ -1201,9 +1201,16 @@ class Pruefung:
                     sammler.hinweis(tr("rw.werkzeug_radial_gerade", **werte))
                 else:
                     sammler.hinweis(tr("rw.werkzeug_radial", **werte))
-        elif self._werkzeug_quer(aufnahme, grundstellung, eingespannt) and not _simultan(op):
+        elif (
+            ebene is None
+            and self._werkzeug_quer(aufnahme, grundstellung, eingespannt)
+            and not _simultan(op)
+        ):
             # Eine Simultanbahn (Flanke, Entgraten 3D) hat je Satz ihre eigene Werkzeugachse – die
             # Richtung der Aufnahme in Grundstellung sagt nichts über sie (B-015, P-2026-10-10-21).
+            # Ebenso eine geschwenkte Ebene: Die Rundachsen stellen das Teil so, dass das Werkzeug
+            # auf ihr senkrecht steht – an der GROB G550 mit waagerechter Spindel stand sonst „so
+            # gefahren, passt sie nicht zum Teil“ unter einer Ebene, die ohne Berührung lief.
             sammler.hinweis(
                 tr(
                     "rw.werkzeug_quer",
