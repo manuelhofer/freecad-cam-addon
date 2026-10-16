@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-13 planfraesen-nicht-in-taschen
+
+### EINGELESEN
+- Manuel zur Planfräsen-Bahn in der Ringnut: „das sehe ich nicht als planfräsen an das gehört
+  schon eher zum raeumen .. planfräsen ist auf z0 bringen würde ich behaupten oder seitlich eine
+  seite auf 0 bringen .. aber das is zickzack fahren“. Und: „generell … solltest du mal bei allen
+  strategien prüfen ..das zickzack fahren is ja beängstigend“.
+- Gezählt an den Prüfstandsteilen: Planfräsen fährt Zickzack-Rampen vor allem in Taschen und
+  Bohrungen (5 und 4), weil dort jede Zeile im Material beginnt.
+
+### DATEIEN
+- `camaddon/hoehenfeld.py`: `eingeschlossen(form, name)`. Eine ebene Fläche gilt als Boden einer
+  Tasche oder Nut, wenn an mindestens 75 % ihres äußeren Rands eine Wand über ihr steht
+  (gemessen je Millimeter knapp außerhalb, 0,5 mm darüber, gemerkt).
+  - Taschenboden und Bohrungsgrund: ja.
+  - Nutgrund am C-Ring (93 %): ja. Die dreieckige Tasche im 3-Achs-Testteil: ja.
+  - Absatz, Oberseiten, die Fläche um den Zapfen: nein.
+- `camaddon/gui_bearbeitung.py`:
+  - Planfräsen nimmt eingeschlossene Böden nicht mehr. Sind nur solche gewählt, ist es nicht
+    möglich, mit einem Satz warum.
+  - `_folge_schritte`: Gehen die Böden allein mit dem Räumen nicht (am Testteil passt T1 nicht in
+    die dreieckige Tasche), gibt es keine Folge, und das Räumen nimmt alles. Vorher stand das
+    Räumen dann angehakt ohne Bahn da, und der Assistent wartete.
+- `translations/de|en.json`: `ba.planfraesen.eingeschlossen`.
+- `docs/OFFENE_FRAGEN.md`: Frage 3 (Absätze: Planfräsen oder Räumen?).
+- `package.xml` (0.260.11).
+
+### ERGEBNIS
+- C-Ring, Face8: Planfräsen tritt nicht an, die Nut gewinnt.
+- 3-Achs-Testteil: wie vorher. Räumen mit 3 Flächen, „Rest räumen“ für die dreieckige Tasche,
+  Planfräsen nicht angehakt.
+- Grün im Wochen-Build: `szenario_testteil`, `szenario_raeumen`, `szenario_planen`,
+  `szenario_bearbeitung`, `szenario_nut_offen`, `szenario_nut`, `test_sprache`.
+
 ## P-2026-10-16-12 raeumen-nur-ueber-der-flaeche
 
 ### EINGELESEN

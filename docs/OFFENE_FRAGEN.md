@@ -31,3 +31,15 @@ dem alten Verlauf auf GitHub verschwinden sie nur, wenn man die Geschichte umsch
 GitHub umzuschreiben ist nicht rückgängig zu machen.
 *Was die Antwort ändert:* Bei „ja“ zieht alles Besprochene um, und die Arbeitsregeln zeigen
 auf das neue Repository. – seit 2026-10-16
+
+**3. Ist ein Absatz, der zu einer Seite offen ist, Planfräsen oder Räumen?**
+Seit 0.260.11 nimmt Planfräsen keine Böden von Taschen und Nuten mehr (an mindestens drei
+Vierteln des Rands steht eine Wand). Die räumt Räumen oder die Nut, wie Manuel am C-Ring sagte:
+„planfräsen ist auf z0 bringen würde ich behaupten oder seitlich eine seite auf 0 bringen“.
+Offen ist der Absatz: eine Stufe unter der Oberseite mit einer Wand und drei offenen Seiten. Im
+Prüfstand (`absatz/planfraesen`) gewinnt dort Planfräsen mit 2,1 min und einer Zickzack-Rampe.
+*Warum nur Manuel:* Was Planfräsen heißt, entscheidet er; „Absätze“ hat er nicht genannt.
+*Was die Antwort ändert:* Bei „Räumen“ tritt Planfräsen nur noch für die Oberseite an (z0),
+bei „Planfräsen“ bleibt es so, und die Zickzack-Rampe am Absatz muss weg (von der offenen Seite
+her einfahren). – seit 2026-10-16
+

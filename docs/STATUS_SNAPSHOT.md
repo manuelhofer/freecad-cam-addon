@@ -515,6 +515,9 @@ T1 Ø 12.
      die Seite, die zur Spindel zeigt. Einen Nut- oder Taschengrund mit Wänden ringsum räumt das
      Räumen. Absätze, die zu einer Seite offen sind, gehören wohl auch zum Räumen, aber nicht
      raten, sondern als Frage aufschreiben.
+     *Erledigt für Taschen- und Nutgründe:* P-2026-10-16-13 (`hoehenfeld.eingeschlossen`: an
+     mindestens drei Vierteln des Rands eine Wand). Die Absätze sind Frage 3 in
+     `OFFENE_FRAGEN.md`.
    - Die Zickzack-Rampen im Planfräsen (`planfraesen_bahn`, Einfahren Punkt 4, Entwurf mit Helix
      in `~/freecad_cam/wip/`) sind weiter offen: von außen aus der Luft einfahren, sonst Helix.
 7. **Zickzack in der offenen Nut** (Bild: Face8 mit kleinerem Fräser, in der ganzen Ringnut dicht
@@ -569,6 +572,15 @@ T1 Ø 12.
    Abschnitt 5 gilt überall: von außen aus der Luft, sonst Helix, Zickzack nur in der zu schmalen
    geschlossenen Nut. Bekannt sind Planfräsen (Rampe, wo kein Rand offen ist) und
    `schlicht_anlauf`.
+   *Gezählt (P-2026-10-16-13, Prüfstandsteile, Einfahrten mit Hin und Her beim Absenken):*
+   - Planfräsen: Absatz 1, Tasche 5, Bohrungen 4. Die Taschen- und Bohrungsböden nimmt es seit
+     P-13 nicht mehr; am Absatz siehe Frage 3.
+   - Kontur: Tasche 6, Bohrungen 21, Platte 11. Das ist die Kontur, die eine ganze Tasche allein
+     ausräumt (sie verliert dort gegen Räumen): Eine Helix ginge nur mit Vollschnitt danach.
+     Offen ist, wie die Kontur dort von einer Helix aus in die erste Bahn kommt.
+   - Räumen: 0.
+
+   Noch nicht gezählt: Plan indexiert, Rundum schruppen, `schlicht_anlauf`, Nut (Vollnut).
 2. **Das Update lädt zu viel**: „die fotos sind ja nicht im main mit dabei .. heist wenn ich addon
    update drücke .. dauert das mitlerweile ganzschön lang … bilder fürs forum usw muss da nicht
    dabei sein“. Nachgesehen: Manuels Addon kam als ZIP von GitHub (`…/archive/main.zip`, kein

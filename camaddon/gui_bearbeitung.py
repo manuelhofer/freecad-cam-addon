@@ -887,13 +887,21 @@ class _Planfraesen(_Strategie):
         )
 
     def passt(self, form, name):
-        return bool(hf.ebenen_oben(form, [name]))
+        # Nicht den Boden einer Tasche oder Nut (Manuel, 2026-10-16: „das sehe ich nicht als
+        # planfräsen an das gehört schon eher zum raeumen“) – dort begänne jede Zeile im Material
+        # (Zickzack-Rampen).
+        return bool(hf.ebenen_oben(form, [name])) and not hf.eingeschlossen(form, name)
 
     def vorgeschlagen(self, form, gewaehlte):
         return not gewaehlte or bool(self.flaechen_fuer(form, gewaehlte))
 
     def moeglich(self, form, gewaehlte):
-        return True  # ohne ebene Fläche die Oberseite
+        # Ohne ebene Fläche die Oberseite; sind nur Böden von Taschen und Nuten gewählt, nicht.
+        ebene = [n for n in gewaehlte if hf.ebenen_oben(form, [n])]
+        return not ebene or bool(self.flaechen_fuer(form, gewaehlte))
+
+    def unmoeglich_text(self):
+        return tr("ba.planfraesen.eingeschlossen")
 
     def vorschlag(self, feld, werkzeug, einsatz):
         if feld == "zustellung":
@@ -7524,6 +7532,22 @@ class BearbeitungPanel:
         # Nur die Böden: Das Planfräsen fräst davor die ebenen Flächen – es gehört dazu.
         yield from raeumen.vorschau_schritte(self.job, boeden, mit_stand(boeden, (plan,)))
         nur = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
+        if nur[0] is None and alles[0] is not None:
+            # Die Böden allein gehen nicht (der Fräser passt nicht in die Tasche – am Testteil T1
+            # in der dreieckigen): keine Folge, das Räumen nimmt alles wie ohne sie. Sonst stand
+            # das Räumen angehakt ohne Bahn da, und der Assistent wartete auf sie.
+            if not plan.von_hand:
+                self._fuellt = True
+                try:
+                    plan.haken.setChecked(False)
+                    plan.zustand_zeigen()
+                finally:
+                    self._fuellt = False
+            raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, hinweis = alles
+            raeumen.ergebnis.setText(raeumen.ergebnis_basis)
+            raeumen.material.setText(_material_text(raeumen.vorschau))
+            raeumen.hinweis.setText(hinweis)
+            return
         zeiten = (plan.zeit, alles[1], nur[1])
         if not (plan.von_hand or raeumen.von_hand) and all(z and z > 0 for z in zeiten):
             folge_schneller = plan.zeit + nur[1] < alles[1]

@@ -1962,6 +1962,7 @@
     "ba.schwenken.knopf": "Ebene schwenken (3+2) …",
     "ba.schwenken.knopf.tooltip": "Schließt den Assistenten, ohne Operationen anzulegen – ein neuer Job im Quader bleibt dabei stehen –, und öffnet „Ebene schwenken“ mit dieser Fläche. Die Ebene wird ein eigener Job, darin öffnet der Assistent wieder.",
     "ba.flaeche.fehlt": "{name}  gibt es im Teil nicht mehr",
+    "ba.planfraesen.eingeschlossen": "Planfräsen bringt offene Flächen auf Maß, etwa die Oberseite. Den Boden einer Tasche oder Nut räumt „Räumen“ oder „Nut“.",
     "ba.planfraesen": "Planfräsen",
     "ba.planfraesen.text": "Fräst die ebenen Flächen, die nach oben zeigen. Zeilen hin und her, in Lagen bis auf die Fläche plus Aufmaß, mit Überlauf über den Rand. Vor Absätzen hält die Zeile an.",
     "ba.planfraeser.tooltip": "Ein Fräser mit ebener Stirn aus der Werkzeugverwaltung mit Schnittwerten: Schaft-, Torusfräser oder Messerkopf.",

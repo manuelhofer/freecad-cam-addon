@@ -93,6 +93,56 @@ def _ebenen_oben_stl(daten, nummern=None):
 
 
 _EBENE = {}  # (Prüfsumme der Form, Nummer, Toleranz) → Ebene oder None
+# So viel ihres äußeren Rands muss eine Wand über der Fläche stehen, damit sie als Boden einer
+# Tasche oder Nut gilt (eingeschlossen): Die Ringnut am C-Ring hat Wände an 93 % ihres Rands, ein
+# Absatz mit einer Wand an rund 40 %.
+EINGESCHLOSSEN = 0.75
+_EINGESCHLOSSEN = {}  # (Prüfsumme der Form, Fläche) → bool
+
+
+def eingeschlossen(form, name):
+    """Ist die ebene Fläche `name` (nach oben) der Boden einer Tasche oder Nut – steht an
+    mindestens EINGESCHLOSSEN ihres äußeren Rands eine Wand über ihr? Gemessen knapp außerhalb
+    des Rands, 0,5 mm über der Fläche, je Millimeter. Manuel (2026-10-16): Planfräsen ist „auf z0
+    bringen … oder seitlich eine seite auf 0 bringen“; der Grund einer Nut „gehört schon eher zum
+    raeumen“."""
+    from . import stl_teil
+
+    if stl_teil.daten(form) is not None:
+        return False
+    schluessel = (form.hashCode(), name)
+    if schluessel in _EINGESCHLOSSEN:
+        return _EINGESCHLOSSEN[schluessel]
+    ergebnis = False
+    try:
+        flaeche = form.getElement(name)
+        z = flaeche.BoundBox.ZMax
+        punkte = flaeche.OuterWire.discretize(Distance=1.0)
+    except Exception:  # eine Fläche ohne Rand oder Name: nicht eingeschlossen
+        punkte = []
+    wand = gezaehlt = 0
+    for p, q in zip(punkte, punkte[1:], strict=False):
+        dx, dy = q.x - p.x, q.y - p.y
+        laenge = (dx * dx + dy * dy) ** 0.5
+        if laenge < 1e-6:
+            continue
+        mx, my, nx, ny = (p.x + q.x) / 2, (p.y + q.y) / 2, -dy / laenge, dx / laenge
+        links = FreeCAD.Vector(mx + 0.3 * nx, my + 0.3 * ny, z)
+        rechts = FreeCAD.Vector(mx - 0.3 * nx, my - 0.3 * ny, z)
+        innen_links = flaeche.isInside(links, 0.01, True)
+        if innen_links == flaeche.isInside(rechts, 0.01, True):
+            continue  # an einer Ecke: unklar
+        aussen = rechts if innen_links else links
+        gezaehlt += 1
+        if form.isInside(FreeCAD.Vector(aussen.x, aussen.y, z + 0.5), 1e-6, True):
+            wand += 1
+    ergebnis = gezaehlt > 0 and wand >= EINGESCHLOSSEN * gezaehlt
+    if len(_EINGESCHLOSSEN) > 1024:
+        _EINGESCHLOSSEN.clear()
+    _EINGESCHLOSSEN[schluessel] = ergebnis
+    return ergebnis
+
+
 _EBENE_HOECHSTENS = 20000
 
 

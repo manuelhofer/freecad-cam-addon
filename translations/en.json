@@ -1962,6 +1962,7 @@
     "ba.schwenken.knopf": "Swivel plane (3+2) …",
     "ba.schwenken.knopf.tooltip": "Closes the assistant without creating operations – a new job in the stock is kept – and opens “Swivel plane” with this face. The plane becomes a job of its own, in which the assistant opens again.",
     "ba.flaeche.fehlt": "{name}  no longer exists in the part",
+    "ba.planfraesen.eingeschlossen": "Facing brings open faces to size, such as the top. The floor of a pocket or slot is cleared by “Clearing” or “Slot”.",
     "ba.planfraesen": "Face milling",
     "ba.planfraesen.text": "Mills the flat faces that face up. Rows back and forth, in layers down to the face plus allowance, with overrun past the edge. Before steps the row stops.",
     "ba.planfraeser.tooltip": "A cutter with a flat tip from the tool manager with cutting data: flat, torus or face mill.",
