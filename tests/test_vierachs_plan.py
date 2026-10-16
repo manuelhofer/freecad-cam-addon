@@ -113,6 +113,25 @@ pruefe(
     f"Helix: {len(helix)} Punkte, nicht im Feld",
 )
 pruefe(vb.kehren(bahn.punkte)[0] == 0, f"Kehren: {vb.kehren(bahn.punkte)}")
+
+
+def drehsinn(b):
+    """Wie die Helix dreht, von oben auf die Ebene gesehen (x = a, y = −q): Summe der
+    Kreuzprodukte zweier aufeinanderfolgender Schritte – positiv gegen den Uhrzeigersinn."""
+    summe = 0.0
+    for p0, p1, p2 in zip(b.punkte, b.punkte[1:], b.punkte[2:], strict=False):
+        if p0.eilgang or p1.eilgang or p2.eilgang or in_zeile(p0) or in_zeile(p2):
+            continue
+        d1 = (p1.a - p0.a, -(p1.q - p0.q))
+        d2 = (p2.a - p1.a, -(p2.q - p1.q))
+        summe += d1[0] * d2[1] - d1[1] * d2[0]
+    return summe
+
+
+# Im Gleichlauf (M3) dreht die Helix wie die Bohrung: gegen den Uhrzeigersinn; im Gegenlauf mit.
+pruefe(drehsinn(bahn) > 0, f"Helix im Gleichlauf: Drehsinn {drehsinn(bahn):.2f}")
+gegen = vp.planen(netz, LAENGS, RADIAL, dataclasses.replace(werte, gleichlauf=False), ebenen)
+pruefe(drehsinn(gegen) < 0, f"Helix im Gegenlauf: Drehsinn {drehsinn(gegen):.2f}")
 pruefe(all(8.0 - 1e-9 <= p.r <= 12.0 + 1e-9 for p in vorschub), "Spitze außerhalb 8 … 12")
 pruefe(
     all(-27.0 - 1e-6 <= p.a <= -13.0 + 1e-6 for p in vorschub),

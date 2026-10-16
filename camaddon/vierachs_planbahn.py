@@ -1243,6 +1243,7 @@ def planen(
                     stehen,
                     zwischen,
                     None if schlichtlage else stand,
+                    lage_a,
                 )
                 for a, q, m, offen in folge:
                     r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
@@ -1554,7 +1555,7 @@ def _einfahrt(punkte, a, q, lage, phi, oben, offen, w, sicher, r_fahrt=None, fel
         punkte.append(vb.Punkt(False, a0, lage, phi, True, q0))
         return
     eben = r_fahrt is None or float(np.ptp(r_fahrt)) < vb.GLEICH  # die Fahrt auf einer Höhe
-    platz = _helix_platz(a, q, w, feld, oben) if feld is not None and eben else None
+    platz = _helix_platz(a, q, w, feld, oben, lage) if feld is not None and eben else None
     if platz is not None:
         # Eine Helix in der Ebene der Fläche (längs a, quer q – Plan indexiert hat die Querachse)
         # statt der Rampe hin und her längs der ersten Zeile (Manuel, 2026-10-16: „das auch
@@ -1588,12 +1589,13 @@ def _radius(w):
     return float(w.form.radius)
 
 
-def _helix_platz(a, q, w, feld, oben):
+def _helix_platz(a, q, w, feld, oben, lage):
     """(Mitte (a, q), Radius) einer Helix für die Einfahrt der Fahrt (a, q) – None, wo keine
     Platz hat. Zuerst Kreise durch den Anfang der Fahrt (die Helix endet dort), dann weiter längs
     in der Fahrt (von dort gerade zurück zum Anfang), zuerst mit dem großen Radius, dann
     mit dem kleinen. Jeder Punkt des Kreises, sein Inneres und der Weg zum Anfang müssen dort
-    liegen, wo der Fräser in dieser Lage stehen darf und nichts über `oben` steht (_im_feld).
+    liegen, wo der Fräser in dieser Lage stehen darf, nichts über `oben` steht und die Fläche
+    nicht über `lage` liegt (_im_feld).
     Das Rechteck um die Zeilen reicht
     nicht: Steht im Feld ein Stift, weichen die Zeilen ihm aus, das Rechteck nicht (am Prüffall
     kam die Helix ihm auf 1,8 statt 3,6 mm nah)."""
@@ -1638,18 +1640,20 @@ def _helix_platz(a, q, w, feld, oben):
                     q0 + (mitte[1] - q0) * weg,
                 )
             )
-            if _im_feld(pa, pq, feld, oben):
+            if _im_feld(pa, pq, feld, oben, lage):
                 return mitte, rh
     return None
 
 
-def _im_feld(kreis_a, kreis_q, feld, oben):
+def _im_feld(kreis_a, kreis_q, feld, oben, lage):
     """Darf der Fräser an jedem Punkt (a, q) in dieser Lage stehen? `feld`: (q der Zeilen, a der
     ersten Stelle, Schritt längs, je Zeile und Stelle ob er dort stehen darf, je Zeilenpaar und
     Stelle ob es dazwischen frei ist, je Zeile und Stelle was nach den Lagen davor noch steht –
-    None: keine Helix) – je Punkt die beiden Zeilen quer daneben und die beiden Stellen längs
-    davor und danach, dazwischen frei und nichts höher als `oben`."""
-    q_zeilen, a_von, schritt, stehen, zwischen, stand = feld
+    None: keine Helix –, je Stelle die Höhe der Lage dort) – je Punkt die beiden Zeilen quer
+    daneben und die beiden Stellen längs davor und danach, dazwischen frei, nichts höher als
+    `oben` und die Lage dort nicht über `lage`: Die Helix geht bis `lage` hinab; wo eine schräge
+    Fläche höher liegt, schnitte sie hinein."""
+    q_zeilen, a_von, schritt, stehen, zwischen, stand, lage_a = feld
     if stand is None or len(q_zeilen) == 0 or np.any(np.diff(q_zeilen) <= 0):
         return False  # nicht aufsteigend: dann lieber die Rampe
     anzahl = stehen.shape[1]
@@ -1665,6 +1669,8 @@ def _im_feld(kreis_a, kreis_q, feld, oben):
                 return False
             if not (stehen[links, stelle] and stehen[rechts, stelle]):
                 return False
+            if lage_a[stelle] > lage + vb.GLEICH:
+                return False
             if stand[links, stelle] > oben + vb.GLEICH or stand[rechts, stelle] > oben + vb.GLEICH:
                 return False
             if links != rechts and not zwischen[links, stelle]:
@@ -1679,7 +1685,10 @@ def _helix(punkte, mitte, rh, anfang, sicher, knapp, oben, lage, phi, w):
     unten einmal rundum – so begonnen, dass sie dort endet, wo der Kreis dem `anfang` (a, q) der
     Fahrt am nächsten ist."""
     steil = math.tan(math.radians(w.eintauchwinkel if w.eintauchwinkel > 0 else vb.EINTAUCHWINKEL))
-    drehen = 1.0 if w.gleichlauf else -1.0
+    # Im Rahmen der Ebene ist q = −y, das Werkzeug kommt von +z: ein wachsender Winkel in (a, q)
+    # dreht von oben gesehen im Uhrzeigersinn – im Gleichlauf (M3) geht es um eine Bohrung
+    # gegen den Uhrzeigersinn (wie bohrung_bahn), also mit fallendem Winkel.
+    drehen = -1.0 if w.gleichlauf else 1.0
     schritt = 2 * math.pi / HELIX_PUNKTE
     bogen = rh * schritt  # mm je Schritt auf dem Kreis
 

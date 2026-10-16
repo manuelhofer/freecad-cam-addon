@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-02 vierachs-helix-gleichlauf
+
+### EINGELESEN
+- Durchsicht von P-2026-10-16-53/-57: Die Helix der Einfahrt im Planfräsen 4 Achsen drehte im
+  Gleichlauf falsch herum. Im Rahmen der Ebene ist q = −y, das Werkzeug kommt von +z – ein
+  wachsender Winkel in (a, q) ist von oben gesehen der Uhrzeigersinn, mit M3 um ein Loch der
+  Gegenlauf (die Bohrung fräst im Gleichlauf gegen den Uhrzeigersinn).
+- Die Helix geht bis zur Lage der Fahrt hinab; geprüft wurde ihr Kreis aber nur gegen die Höhe
+  der Lage an jeder Stelle – auf einer schrägen Fläche, wo die Fläche über der Lage liegt, hätte
+  sie hineingeschnitten.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `_helix` dreht im Gleichlauf mit fallendem Winkel;
+  `_helix_platz`/`_im_feld` bekommen die Lage, das Feld die Lage je Stelle – kein Kreis, wo die
+  Lage dort höher ist.
+- `tests/test_vierachs_plan.py`: der Drehsinn der Helix – im Gleichlauf gegen den Uhrzeigersinn,
+  im Gegenlauf mit ihm.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_plan`, `szenario_vierachs_plan`; Kehren im Planfräsen
+  4 Achsen (alle Bahnen aus `test_vierachs_plan`) unverändert 7.
+
 ## P-2026-10-17-01 eilgang-nicht-ins-material
 
 ### EINGELESEN
