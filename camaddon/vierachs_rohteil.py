@@ -326,6 +326,17 @@ def vermesse_achse(form, achse, umgedreht=False):
     )
 
 
+def zylinder_um(form, oben=0.0, seite=0.0, unten=0.0):
+    """(Mitte x, Mitte y, Radius, z unten, Höhe) des stehenden Zylinders um das Teil – der
+    kleinste Kreis um seinen Umriss von oben, mit Aufmaß `seite` am Umfang, `oben` und `unten` in
+    der Höhe (W-021; Manuel, 2026-10-12: „ich kann auch auf der fräsmaschine ein dreibacken futter
+    einspannen und somit runde rohteile haben“)."""
+    punkte = _punkte(form)
+    x, y, r = kleinster_kreis(konvexe_huelle([(p.x, p.y) for p in punkte]))
+    bb = form.BoundBox
+    return x, y, r + seite, bb.ZMin - unten, bb.ZLength + oben + unten
+
+
 def _punkte(form):
     """Punkte des Teils für Umriss und Länge: die Tessellierung mit Ecken und Kanten – für den
     Umriss reicht das. Ein Körper aus einem STL hat sie schon (stl_teil.netz_fuer): genau, ohne

@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-17 rohteil-zylinder (W-021, Stufe 1)
+
+### EINGELESEN
+- W-021, Manuel am 2026-10-12 („ich kann auch auf der fräsmaschine ein dreibacken futter
+  einspannen und somit runde rohteile haben .. das sollte unbedingt mit rein“) und noch einmal am
+  2026-10-16 („wie gesagt es gibt auch runde rohteile auf der fräse“).
+- Der Materialstand kannte andere Rohteile als den Quader schon (Höhenfeld aus dem Netz).
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py`: `zylinder_um(form, oben, seite, unten)`. Der kleinste Kreis um
+  den Umriss von oben (Welzl über die konvexe Hülle), mit Aufmaß am Umfang und in der Höhe.
+- `camaddon/gui_bearbeitung.py`, Schritt 1:
+  - Neu „Zylinder mit Aufmaß“ neben Quader und Teil. Das Rohteil des Jobs wird FreeCADs
+    Zylinder-Rohteil (`CreateCylinder`), stehend um das Teil, und die Felder ändern es gleich mit.
+  - Oben in Schritt 2 steht „Zylinder, Aufmaß oben …, Umfang …, unten …“.
+  - Ein vorhandener Job mit Zylinder zeigt ihn mit seinem Aufmaß.
+  - Kopfzeile „Teil im Quader oder Zylinder“.
+- `translations/de|en.json`, `help/de|en/bearbeitung.html`.
+- `tests/gui/szenario_bearbeitung_zylinder.py`: C-Ring, Aufmaß oben 1, Umfang 2, unten 3.
+  Zylinder r 32, Höhe 14, Achse in der Ringmitte. Planfräsen der Oberseite fährt nicht in den
+  leeren Ecken.
+- `package.xml` (0.260.15).
+
+### ERGEBNIS
+- Wie beschrieben im Szenario (Bild `1_zylinder`). Das Dreibackenfutter als Spannmittel fehlt
+  noch (W-021 Stufe 2).
+- Grün im Wochen-Build: `szenario_bearbeitung_zylinder`, `szenario_bearbeitung`,
+  `szenario_bearbeitung_aufspannung`, `test_sprache`, `test_hilfe`.
+
 ## P-2026-10-16-16 fuenfachs-und-portal-wachsen-mit
 
 ### EINGELESEN

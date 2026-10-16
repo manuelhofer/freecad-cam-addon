@@ -1168,6 +1168,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Noch einmal am 2026-10-16, mit Bild (Ring im Assistenten „Bearbeitung“ auf der 3-Achs-Fräse;
   angeboten wird nur ein Quader): „wie gesagt es gibt auch runde rohteile auf der fräse“ – erst
   das Laufende fertig machen, dann dies.
+  *Stufe 1 erledigt:* P-2026-10-16-17, „Zylinder mit Aufmaß“ in Schritt 1. Der Rohling steht um
+  das Teil (kleinster Kreis um den Umriss von oben); „seitlich“ ist das Aufmaß am Umfang. Die
+  Strategien räumen über den Materialstand nur, wo Rohteil ist, nicht in den Ecken des Kastens.
+  Offen: das Dreibackenfutter als Spannmittel (Backen am Rohling, wie W-020; statt der
+  Schraubstockbacken bei „von unten gespannt“), Kollision und Einrichtblatt.
 - **W-022 Die Werkzeugaufnahme gehört in die Maschine; Halter in ihrer Größe** – Manuel, 2026-10-16,
   mit Bild (Menü „Neu“ im Fenster „Halter“, alle Vorlagen „· SK40“): „warum nur sk40 ?? es gibt auch
   sk64 glaub ich ?? ich denke die aufnahme an der maschine ... sollten wir in die maschine packen !

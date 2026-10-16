@@ -4237,8 +4237,12 @@ class BearbeitungPanel:
         self.knopf_rohteil_quader.setToolTip(tr("ba.rohteil.text"))
         self.knopf_rohteil_teil = QtGui.QRadioButton(tr("ba.rohteil.teil"))
         self.knopf_rohteil_teil.setToolTip(tr("ba.rohteil.teil.tooltip"))
+        # Ein runder Rohling, stehend wie im Dreibackenfutter (W-021).
+        self.knopf_rohteil_zylinder = QtGui.QRadioButton(tr("ba.rohteil.zylinder"))
+        self.knopf_rohteil_zylinder.setToolTip(tr("ba.rohteil.zylinder.text"))
         self.knopf_rohteil_quader.setChecked(True)
         knoepfe.addWidget(self.knopf_rohteil_quader)
+        knoepfe.addWidget(self.knopf_rohteil_zylinder)
         knoepfe.addWidget(self.knopf_rohteil_teil)
         knoepfe.addStretch()
         ziel[0].addWidget(zeile)
@@ -4250,6 +4254,7 @@ class BearbeitungPanel:
         self.rohteil_koerper.setVisible(False)
         ziel[0].addWidget(self.rohteil_koerper)
         self.knopf_rohteil_teil.toggled.connect(lambda _an: self._rohteil_art_geaendert())
+        self.knopf_rohteil_zylinder.toggled.connect(lambda _an: self._rohteil_art_geaendert())
         self.wahl_rohteil.currentIndexChanged.connect(lambda _i: self._rohteil_geaendert())
         rohteil = _Reihen()
         self.felder_rohteil = {}
@@ -5133,7 +5138,12 @@ class BearbeitungPanel:
             self.knopf_rohteil_teil.blockSignals(False)
             self.rohteil_erklaerung.setText(tr("ba.rohteil.keine_teile"))
             return
-        self.rohteil_erklaerung.setText(tr("ba.rohteil.teil.text" if teil else "ba.rohteil.text"))
+        if teil:
+            self.rohteil_erklaerung.setText(tr("ba.rohteil.teil.text"))
+        elif self.knopf_rohteil_zylinder.isChecked():
+            self.rohteil_erklaerung.setText(tr("ba.rohteil.zylinder.text"))
+        else:
+            self.rohteil_erklaerung.setText(tr("ba.rohteil.text"))
         self.rohteil_koerper.setVisible(teil)
         self.rohteilfelder.setVisible(not teil)
         self._rohteil_geaendert()
@@ -5158,6 +5168,23 @@ class BearbeitungPanel:
         if koerper is not None and getattr(koerper, "ViewObject", None) is not None:
             self._rohteil_sichtbar_vorher = (koerper, koerper.ViewObject.Visibility)
             koerper.ViewObject.Visibility = False
+
+    def _zylinder_felder(self, rohteil):
+        """Das Aufmaß eines vorhandenen runden Rohteils in die Felder: am Umfang über dem
+        kleinsten Kreis um das Teil, oben und unten über seiner Höhe."""
+        with contextlib.suppress(Exception):
+            form = vr.modell(self.job).Shape
+            _x, _y, r, z, hoehe = vr.zylinder_um(form)
+            unten = z - float(rohteil.Placement.Base.z)
+            werte = {
+                "oben": float(rohteil.Placement.Base.z) + _mm(rohteil.Height) - (z + hoehe),
+                "seite": _mm(rohteil.Radius) - r,
+                "unten": unten,
+            }
+            for feld, wert in werte.items():
+                self.felder_rohteil[feld].setText(
+                    groesse_zeigen(max(wert, 0.0), einheiten.LAENGE) or "0"
+                )
 
     def _rohteil_ersetzen(self, job, neu):
         """Setzt `neu` als Rohteil des Jobs und löscht das alte (wie FreeCADs Job-Fenster)."""
@@ -5186,11 +5213,29 @@ class BearbeitungPanel:
                     klon.ViewObject.Visibility = True
                 self._rohteil_ersetzen(job, klon)
             return
+        werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
+        if self.knopf_rohteil_zylinder.isChecked():
+            # Stehend um das Teil, wie im Dreibackenfutter (W-021): der kleinste Kreis um den
+            # Umriss von oben, Aufmaß am Umfang und in der Höhe.
+            x, y, radius, z, hoehe = vr.zylinder_um(
+                vr.modell(job).Shape, werte["oben"], werte["seite"], werte["unten"]
+            )
+            lage = FreeCAD.Placement(FreeCAD.Vector(x, y, z), FreeCAD.Rotation())
+            if not hasattr(rohteil, "Radius") or not hasattr(rohteil, "Height"):
+                FreeCAD.setActiveDocument(self.doc.Name)
+                self._rohteil_ersetzen(job, PathStock.CreateCylinder(job, radius, hoehe, lage))
+                return
+            if abs(_mm(rohteil.Radius) - radius) > 1e-9:
+                rohteil.Radius = radius
+            if abs(_mm(rohteil.Height) - hoehe) > 1e-9:
+                rohteil.Height = hoehe
+            if not rohteil.Placement.isSame(lage, 1e-9):
+                rohteil.Placement = lage
+            return
         if rohteil is None or not hasattr(rohteil, "ExtZpos"):
             FreeCAD.setActiveDocument(self.doc.Name)
             self._rohteil_ersetzen(job, PathStock.CreateFromBase(job))
             rohteil = job.Stock
-        werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
         for name, wert in (
             ("ExtZpos", werte["oben"]),
             ("ExtZneg", werte["unten"]),
@@ -5218,8 +5263,13 @@ class BearbeitungPanel:
         werte = [self._rohteil_wert(feld) for feld in ROHTEIL_FELDER]
         zahlen = [groesse_zeigen(w, einheiten.LAENGE) or "0" for w in werte]
         koerper = self.rohteil_koerper_gewaehlt() if hasattr(self, "knopf_rohteil_teil") else None
+        zylinder = getattr(self, "knopf_rohteil_zylinder", None)
         if koerper is not None:
             aufmass = tr("ba.rohteil.kurz_teil", name=koerper.Label)
+        elif zylinder is not None and zylinder.isChecked():
+            aufmass = tr(
+                "ba.rohteil.kurz_zylinder", oben=zahlen[0], seite=zahlen[1], unten=zahlen[2], mm=mm
+            )
         elif len(set(zahlen)) == 1:
             aufmass = tr("ba.rohteil.kurz_rundum", wert=f"{zahlen[0]} {mm}")
         else:
@@ -5397,7 +5447,12 @@ class BearbeitungPanel:
                 self.knopf_rohteil_teil.setChecked(True)
                 self.rohteil_koerper.setVisible(True)
                 self.rohteilfelder.setVisible(False)
-            for knopf_art in (self.knopf_rohteil_quader, self.knopf_rohteil_teil):
+            elif rohteil is not None and hasattr(rohteil, "Radius") and hasattr(rohteil, "Height"):
+                self.knopf_rohteil_zylinder.setChecked(True)  # ein runder Rohling (W-021)
+                self._zylinder_felder(rohteil)
+            for knopf_art in (
+                self.knopf_rohteil_quader, self.knopf_rohteil_zylinder, self.knopf_rohteil_teil
+            ):  # fmt: skip
                 knopf_art.setEnabled(False)
             self.wahl_rohteil.setEnabled(False)
             if rohteil is not None and hasattr(rohteil, "ExtZpos"):
