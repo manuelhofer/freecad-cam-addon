@@ -92,3 +92,17 @@ Bild mit Zahlen: [frage6_schruppen3d_nur_ueber.png](bilder/vorschlaege/frage6_sc
 *Was die Antwort ändert:* Bei „ja“ baue ich es mit Helix und Ringen von innen, als Haken
 „Nur über den gewählten Flächen“ (vorbelegt an). Bei „nein“ bleibt es beim ganzen Rohteil. – seit 2026-10-17
 
+**7. Waagerechte Spindel (G550): Wie soll ein Job „von oben“ den Tisch anstellen?**
+Nachgespielt an deinem Schwenkteil auf der Beispiel-G550 (T-015): Die Tasche oben, „Bearbeitung“,
+Räumen T1 – „Auf der Maschine prüfen“ fährt mit A = 0, die waagerechte Spindel kommt von der Seite,
+und darunter steht „so gefahren, passt sie nicht zum Teil“. Legt man dieselbe Tasche in eine
+Ebene „oben“, stellt die Maschine den Tisch auf A1 −90° (im Programm „A90 B0“), und es passt. Zwei
+Wege: (a) An einer Maschine, deren Spindel in Grundstellung nicht längs Z des Jobs steht, kommt
+alles „von oben“ in eine solche Ebene – wie seit P-54 die schrägen Flächen (der Grundjob bleibt
+leer, das Programm schwenkt einmal). (b) Der Job selbst bekommt eine feste Grundstellung der
+Rundachsen (A −90), Prüfung, Programm und Abfahren nehmen sie überall.
+*Warum nur Manuel:* Es ändert, wie Jobs an einer waagerechten Maschine aussehen und was im
+Programm steht; du kennst die GROB und deine 840D.
+*Was die Antwort ändert:* (a) ist schnell gebaut (dieselbe Kette wie die Schrägen), (b) ist der
+saubere Weg für alle Strategien, aber ein größerer Umbau. – seit 2026-10-17
+
