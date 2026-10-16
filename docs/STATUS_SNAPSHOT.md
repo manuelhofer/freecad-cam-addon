@@ -527,8 +527,10 @@ T1 Ø 12.
      *Erledigt für Taschen- und Nutgründe:* P-2026-10-16-13 (`hoehenfeld.eingeschlossen`: an
      mindestens drei Vierteln des Rands eine Wand). Die Absätze sind Frage 3 in
      `OFFENE_FRAGEN.md`.
-   - Die Zickzack-Rampen im Planfräsen (`planfraesen_bahn`, Einfahren Punkt 4, Entwurf mit Helix
-     in `~/freecad_cam/wip/`) sind weiter offen: von außen aus der Luft einfahren, sonst Helix.
+   - Die Zickzack-Rampen im Planfräsen: *erledigt* P-2026-10-16-25. Beginnt eine Zeile im
+     Material, taucht sie mit der Helix ein (der Kreis auf der Zeile oder um einen Radius nach
+     innen versetzt, alles darin geprüft). Die Rampe gibt es nur noch, wo kein Kreis Platz hat.
+     Der Entwurf in `~/freecad_cam/wip/planfraesen_helix_entwurf.diff` ist damit überholt.
 7. **Zickzack in der offenen Nut** (Bild: Face8 mit kleinerem Fräser, in der ganzen Ringnut dicht
    an dicht Zickzack-Rampen mit Abhebern). Manuel: „hier haben wir wieder zickzack fahren ... in
    etwas was ne offene nut ist .. das geht garnicht .. die offene nut kann man volle tiefe mit D's
@@ -583,7 +585,9 @@ T1 Ø 12.
    `schlicht_anlauf`.
    *Gezählt (P-2026-10-16-13, Prüfstandsteile, Einfahrten mit Hin und Her beim Absenken):*
    - Planfräsen: Absatz 1, Tasche 5, Bohrungen 4. Die Taschen- und Bohrungsböden nimmt es seit
-     P-13 nicht mehr; am Absatz siehe Frage 3.
+     P-13 nicht mehr; am Absatz siehe Frage 3. Seit P-2026-10-16-25 sind Absatz und Tasche Helix
+     statt Zickzack; nicht ins Teil, kein Rest. In den Bohrungsböden passt kein Kreis, dort
+     bleiben die 4 Rampen.
    - Kontur: Tasche 6, Bohrungen 21, Platte 11. Das ist die Kontur, die eine ganze Tasche allein
      ausräumt (sie verliert dort gegen Räumen): Eine Helix ginge nur mit Vollschnitt danach.
      Offen ist, wie die Kontur dort von einer Helix aus in die erste Bahn kommt.
@@ -718,7 +722,7 @@ T1 Ø 12.
    (`vierachs_bahn._rampe`) ist der Einstieg überall, wo eine Bahn im Material beginnt. Noch
    durchzusehen, je mit Zählung an seinen Testteilen (3-Achs-Testteil, Nase, Geist):
    ~~`kontur_bahn._rampe` (Kontur)~~ (Helix, P-2026-10-12-162), ~~`raeumen_bahn` (Ringe/Stiche über `kontur_bahn._rampe`)~~ (Helix, P-2026-10-12-163),
-   `planfraesen_bahn` (Rampe, wo kein Rand offen ist – Entwurf einer Helix einen Radius weit in der Zeile in `~/freecad_cam/wip/planfraesen_helix_entwurf.diff`: 12 Helix statt Rampe in `test_planfraesen`, aber der Kreis reicht seitlich über die erste Zeile hinaus (y −6,10, die Wände dort ungeprüft) und der Test zählt seine Bögen als Wendebögen – noch nicht fertig), ~~`vierachs_bahn` (Rundum schruppen zwischen
+   ~~`planfraesen_bahn` (Rampe, wo kein Rand offen ist)~~ (Helix, P-2026-10-16-25), ~~`vierachs_bahn` (Rundum schruppen zwischen
    gewählten Flächen)~~ (von vorn aus der Luft, P-2026-10-12-164), ~~`vierachs_planbahn` (die 4 übrigen vor der Nase: von der Seite statt von
    vorn)~~ (P-2026-10-12-165), `schlicht_anlauf`. Bleiben darf sie nur in `nut_bahn` (geschlossene Nut, zu schmal für
    eine Helix); überall sonst erst „von außen in der Luft“, dann Helix (`bohrung_bahn._helix` gibt

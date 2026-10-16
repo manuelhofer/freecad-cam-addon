@@ -19,8 +19,10 @@ in Lagen vom Rohteil bis auf die Fläche plus Aufmaß.
 - Hinein: in der Luft (neben dem Rohteil) senkrecht mit dem Eintauchvorschub – beginnt die
   Zeile mit der Mitte der Stirn neben dem Rohteil, so weit daneben, dass der Fräser frei ist,
   und seitlich hinein; neben einer Zeile, die auf der Lage schon gefräst ist, senkrecht (nur
-  ihr Streifen ae steht unter der Stirn); sonst im Material über die Rampe mit dem
-  Eintauchwinkel längs der ersten Zeile (vierachs_bahn._rampe).
+  ihr Streifen ae steht unter der Stirn); sonst im Material mit der Helix am Anfang der Zeile
+  (_helix_platz: 0,9 R oder 0,45 R, die Mitte auf der Zeile oder einen Radius nach innen, alles
+  im Kreis erlaubt) und hinüber an ihren Anfang; nur ohne Platz für den Kreis über die Rampe mit
+  dem Eintauchwinkel längs der ersten Zeile (vierachs_bahn._rampe).
 - Beim Austritt aus dem Rohteil fährt die Zeile mit AUSTRITT_ANTEIL des Vorschubs (W-006 E6,
   erster Schritt: Grat beim Austritt).
 - Gleichlauf durchgehend (Grundsatz 4) kommt mit der Spirale von außen nach innen, sobald das
@@ -29,8 +31,8 @@ in Lagen vom Rohteil bis auf die Fläche plus Aufmaß.
   fräst es nicht noch einmal. Die Lagen beginnen am höchsten Material, das die Zeilen
   erreichen; je Lage fährt eine Zeile nur, wo ihre Stirn Material über der Lage trifft – über
   eine kurze Lücke im Vorschub hinweg (wie das Räumen). Senkrecht hinein, wo unter der Stirn
-  höchstens am Rand ein Streifen ae steht (wie neben der vorigen Zeile) – die Rampe nur, wo
-  Material unter ihrer Mitte steht; der Eilgang hinab endet über dem Material unter der Stirn.
+  höchstens am Rand ein Streifen ae steht (wie neben der vorigen Zeile) – Helix oder Rampe nur,
+  wo Material unter ihrer Mitte steht; der Eilgang hinab endet über dem Material unter der Stirn.
 
 Gerechnet in (u, v, z): u längs der Zeilen, v quer, z nach oben; die Punkte am Ende in x und
 y des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
@@ -892,8 +894,9 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
 def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
     """Über den Anfang der ersten Zeile im Eilgang, hinab bis knapp über das Material: in der
     Luft senkrecht mit dem Eintauchvorschub auf die Lage; im Rohteil senkrecht bis ans Material
-    und dann über die Rampe längs der Zeile – `nachbar` (neben der eben gefrästen Zeile, nur der
-    Streifen ae am Rand der Stirn) senkrecht. Gibt die Länge der Rampe zurück."""
+    und dann mit der Helix (_helix_platz), ohne Platz für sie über die Rampe längs der Zeile –
+    `nachbar` (neben der eben gefrästen Zeile, nur der Streifen ae am Rand der Stirn) senkrecht.
+    Gibt die Länge von Helix oder Rampe zurück."""
     u = r_.u_stellen[js]
     v = float(r_.v_zeilen[m])
     x0, y0 = r_.xy(u[0], v)
@@ -933,6 +936,31 @@ def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
     if luft or len(js) < 2 or vorige <= lage + GLEICH or nachbar:
         punkte.append(bn.Punkt(False, x0, y0, lage, True))
         return 0.0
+    helix = _helix_platz(r_, m, u, w)
+    if helix is not None:
+        # Eine Helix statt der Rampe längs der Zeile (Manuel, 2026-10-12: Zickzack nur in der
+        # geschlossenen Nut, „wobei selbst da … auf eine helix“; 2026-10-16 am Planfräsen: „das
+        # is zickzack fahren obwohl wir gesagt haben das ist keine sinnvolle strategie“) – um
+        # einen Punkt einen Radius weit in der Zeile (oder um einen Radius nach innen versetzt),
+        # dann hinüber an den Anfang der Zeile.
+        from . import kontur_bahn as kb
+
+        radius, (u_mitte, v_mitte) = helix
+        mitte = r_.xy(u_mitte, v_mitte)
+        oben_helix = oben
+        if r_.stand is not None:
+            winkel = np.linspace(0.0, 2 * math.pi, 8, endpoint=False)
+            kreis = [
+                (mitte[0] + radius * math.cos(t), mitte[1] + radius * math.sin(t)) for t in winkel
+            ]
+            hoch = max(r_.stand.hoechste_bei(x, y, r_.aussen) for x, y in [mitte, *kreis])
+            oben_helix = max(oben, min(hoch, vorige))
+        knapp_helix = min(w.sicher, oben_helix + w.sicherheit)
+        laenge = kb._helix_hinab(punkte, mitte, radius, knapp_helix, oben_helix, lage, w)
+        punkt = bn.Punkt(False, x0, y0, lage)
+        laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
+        return laenge
     punkte.append(bn.Punkt(False, x0, y0, vorige, True))  # bis ans Material
     tiefe = np.full(len(u), lage)
     still = np.zeros(len(u))
@@ -943,6 +971,44 @@ def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
         laenge += bn.weg(punkte[-1], punkt)
         punkte.append(punkt)
     return laenge
+
+
+def _helix_platz(r_, m, u, w):
+    """(Radius, (u, v) der Mitte) einer Helix am Anfang der Zeile m (Stellen `u` in
+    Fahrtrichtung) – 0,9 R, sonst 0,45 R (wie bohrung_bahn); die Mitte einen Radius weit in der
+    Zeile, sonst um einen Radius quer versetzt (am Rand der Fläche nach innen) –, wenn jede Stelle
+    der Zeilen und Zwischenräume, die der Kreis überdeckt, in dieser Lage erlaubt ist (nicht ins
+    Teil) und der Kreis im Raster liegt; sonst None (dann die Rampe)."""
+    from . import bohrung_bahn as bb
+
+    if len(u) < 2:
+        return None
+    richtung = 1.0 if float(u[-1]) > float(u[0]) else -1.0
+    v0 = float(r_.v_zeilen[m])
+    v_zeilen = r_.v_zeilen
+    u_min, u_max = float(r_.u_stellen.min()), float(r_.u_stellen.max())
+    for anteil in (bb.KERN_ANTEIL, bb.KERN_ANTEIL / 2):
+        radius = anteil * float(w.form.radius)
+        if abs(float(u[-1]) - float(u[0])) < radius - GLEICH:
+            continue  # die Zeile ist kürzer als der Weg zur Mitte
+        u_mitte = float(u[0]) + richtung * radius
+        if u_mitte - radius < u_min - GLEICH or u_mitte + radius > u_max + GLEICH:
+            continue  # der Kreis reicht längs über das Raster hinaus
+        stellen = np.flatnonzero(np.abs(r_.u_stellen - u_mitte) <= radius + GLEICH)
+        if not len(stellen):
+            continue
+        for v_mitte in (v0, v0 + radius, v0 - radius):
+            unten, oben = v_mitte - radius, v_mitte + radius
+            if unten < float(v_zeilen[0]) - GLEICH or oben > float(v_zeilen[-1]) + GLEICH:
+                continue  # quer über die äußeren Zeilen hinaus: dort ist nichts geprüft
+            # Die Zeilen, zwischen denen der Kreis liegt, mit ihnen die Zwischenräume.
+            von = int(np.flatnonzero(v_zeilen <= unten + GLEICH)[-1])
+            bis = int(np.flatnonzero(v_zeilen >= oben - GLEICH)[0])
+            zeilen_frei = bool(r_.erlaubt[von : bis + 1][:, stellen].all())
+            zwischen_frei = bis == von or bool(r_.zwischen[von:bis][:, stellen].all())
+            if zeilen_frei and zwischen_frei:
+                return radius, (u_mitte, v_mitte)
+    return None
 
 
 def _daneben(r_, u, w):

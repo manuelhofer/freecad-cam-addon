@@ -2,7 +2,7 @@
 # linken Seite (x 0 … 10), Rohteil mit 1 mm Aufmaß rundum (Oberkante 26), Manuels
 # Standardfräser Ø 12 (werkzeuge.standardwerkzeug: ae 1,5, ap 25). Die Hüllfläche je Zeile
 # (hoehenfeld) hält die Zeilen vor dem Absatz an; die Bahn: eine Lage auf 20 (6 mm bei ap 25),
-# 23 Zeilen längs x hin und her, Halbkreise am freien Ende, Rampe ins Material, beim Austritt
+# 23 Zeilen längs x hin und her, Halbkreise am freien Ende, Helix ins Material, beim Austritt
 # halber Vorschub; die Befehle mit G1, G2, G3 und F; die Zeit. Dann die CAM-Operation im Job:
 # angelegt (Tiefen und Höhen wie FreeCAD), gerechnet, geändert, auf den Absatz gestellt,
 # gespeichert und geladen. Nur im Gleichlauf (P-2026-10-02-24): jede Zeile in Richtung Gleichlauf,
@@ -120,7 +120,7 @@ pruefe(
 pruefe(abs(befehle[3].Parameters["F"] - 100.0 / 60.0) < 1e-9, "Eintauchvorschub")
 print("Bahn ok")
 
-# --- Planfräsen: eine Lage, Zeilen vor dem Absatz, Halbkreise, Rampe, Austritt ---------------
+# --- Planfräsen: eine Lage, Zeilen vor dem Absatz, Halbkreise, Helix, Austritt ---------------
 # Mit Manuels Werten (Einsatz Schruppen des Standardfräsers): ae 1,5 als Zeilenabstand, ap 25
 # als Zustellung – die 6 mm über der Fläche sind eine Lage. Den Einsatz Planen (ae 8,4, ap 1,2;
 # P-2026-10-02-54) prüft der Abschnitt danach.
@@ -175,7 +175,36 @@ pruefe(
     and abs(max(p.y for p in in_lage) - letzte_y) < 1e-6,
     f"y {min(p.y for p in in_lage)} … {max(p.y for p in in_lage)}",
 )
-boegen = [p for p in vorschub if p.bogen is not None]
+# Die Helix ins Material (statt der Rampe, P-2026-10-16-25): Bögen hinab um eine Mitte; die
+# übrigen Bögen sind die Halbkreise am freien Ende.
+paare = list(zip(bahn.punkte, bahn.punkte[1:], strict=False))
+helix_mitten = {
+    (round(b.bogen[0], 6), round(b.bogen[1], 6))
+    for a, b in paare
+    if not b.eilgang and b.bogen is not None and b.z < a.z - 1e-9
+}
+helix = [
+    p
+    for p in vorschub
+    if p.bogen is not None and (round(p.bogen[0], 6), round(p.bogen[1], 6)) in helix_mitten
+]
+boegen = [p for p in vorschub if p.bogen is not None and p not in helix]
+pruefe(len(helix_mitten) == 1, f"Helix: {len(helix_mitten)} Mitten")
+pruefe(
+    helix
+    and all(math.hypot(p.x - p.bogen[0], p.y - p.bogen[1]) <= 0.9 * R + 1e-6 for p in helix)
+    and all(erste_y - 1e-6 <= m[1] <= letzte_y + 1e-6 for m in helix_mitten),
+    f"Helix: {sorted(helix_mitten)}",
+)
+rampe = [
+    (a, b)
+    for a, b in paare
+    if not b.eilgang
+    and b.bogen is None
+    and b.z < a.z - 1e-9
+    and math.hypot(b.x - a.x, b.y - a.y) > 0.5
+]
+pruefe(not rampe, f"noch {len(rampe)} Sätze Rampe")
 pruefe(len(boegen) == anzahl_zeilen // 2, f"Bögen: {len(boegen)}")  # am freien Ende, jede zweite
 pruefe(all(abs(p.x - x_rechts) < 1e-6 for p in boegen), "Bogen nicht am freien Ende")
 abstand_zeilen = (letzte_y - erste_y) / (anzahl_zeilen - 1)
@@ -202,8 +231,8 @@ pruefe(
 )
 knick = [p for p in vorschub if abs(p.x - (61.0 - R)) < 1e-6]
 pruefe(len(knick) >= anzahl_zeilen // 2, f"der Punkt vor dem Austritt fehlt: {len(knick)}")
-# Rampe: die Lage beginnt in der Luft vor der Wand (x = 16) senkrecht; wo es im Material
-# anfängt, geht es über die Rampe.
+# Hinein: die Lage beginnt in der Luft vor der Wand (x = 16) senkrecht; wo es im Material
+# anfängt, mit der Helix (oben).
 eintauchen = [p for p in vorschub if p.eintauchen]
 pruefe(len(eintauchen) >= 1, f"Eintauchen: {len(eintauchen)}")
 start = bahn.punkte[0]

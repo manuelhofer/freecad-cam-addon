@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-25 planfraesen-helix
+
+### EINGELESEN
+- Manuel, 2026-10-16, zum Planfräsen am C-Ring: „das is zickzack fahren obwohl wir gesagt haben
+  das ist keine sinnvolle strategie !!!“. Spezifikation Strategien, Abschnitt 5: von außen,
+  sonst Helix, Zickzack nur in der geschlossenen Nut.
+- Gezählt (P-13, Prüfstandsteile): Planfräsen fuhr Zickzack am Absatz 1-mal, in der Tasche
+  5-mal, in den Bohrungen 4-mal. Der Entwurf vom 12.10. prüfte den Kreis quer nicht über die
+  äußere Zeile hinaus.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`:
+  - `_helix_platz`: eine Helix mit 0,9 R, sonst 0,45 R. Die Mitte liegt einen Radius weit in der
+    Zeile, sonst um einen Radius quer versetzt (am Rand nach innen).
+  - Genommen wird sie nur, wenn alle Zeilen und Zwischenräume, die der Kreis überdeckt, in der
+    Lage erlaubt sind und der Kreis im Raster liegt.
+  - `_einfahrt` fährt damit über `kontur_bahn._helix_hinab` ein, dann hinüber an den Anfang der
+    Zeile; mit Materialstand über dem höchsten Material auf dem Kreis.
+  - Ohne Platz für den Kreis bleibt die Rampe.
+- `tests/test_planfraesen.py`: Helix-Bögen und Wendebögen getrennt gezählt. Geprüft: eine Helix
+  (≤ 0,9 R, Mitte zwischen den Zeilen), keine Rampe, die Halbkreise am freien Ende wie bisher.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_planfraesen`, `test_pruefstand` (Absatz 2,10 min, nicht ins Teil,
+  kein Rest), `szenario_planen`.
+- Gemessen an den Prüfteilen:
+  - Absatz: 1 Zickzack → 1 Helix.
+  - Tasche: 5 → 5 Helix (3 % langsamer; Taschenböden nimmt der Assistent seit P-13 nicht).
+  - Bohrungsböden: 4 Rampen bleiben, dort hat kein Kreis Platz.
+  - Überall Einschnitt 0, Rest 0, im Eilgang nichts.
+- Zum Ausprobieren: Planfräsen auf einer Fläche, deren erste Zeile im Material beginnt (z. B.
+  ein Absatz neben einer Wand). In der Bahn steht am Anfang ein kleiner Kreis hinab statt
+  Zickzack-Linien.
+
 ## P-2026-10-16-24 einrichtblatt-bild-je-aufspannung (W-019)
 
 ### EINGELESEN
