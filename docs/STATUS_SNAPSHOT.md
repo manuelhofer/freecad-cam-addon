@@ -599,8 +599,13 @@ T1 Ø 12.
      3 bzw. 1 Einfahrt nach einem Eilgang, keine mit Kehre; die beiden langen Abwärtsläufe mit
      Richtungswechsel sind das Abfahren der Nasenspitze, keine Einfahrt.
 
+   - `schlicht_anlauf` (durchgesehen 2026-10-16): Die Rampe senkt nur um die Resthöhe + 0,1 mm
+     (nach dem Schruppen meist unter 1 mm), längs des ersten Schnitts auf der Fläche. Hin und her
+     fährt sie nur, wenn dieser Schnitt kürzer ist als die Rampe. Eine Helix geht auf der
+     3D-Fläche nicht; so bleibt es.
+
    Noch nicht gezählt: Plan indexiert (bei P-2026-10-12-161: 4 Rampen von 37, wo die Nase davor
-   steht), `schlicht_anlauf`. Die Nut auf dem Mantel (4 Achsen, `vierachs_planbahn`, Rundachse
+   steht). Die Nut auf dem Mantel (4 Achsen, `vierachs_planbahn`, Rundachse
    dreht) fährt noch ihre eigene Rampe.
 2. **Das Update lädt zu viel**: „die fotos sind ja nicht im main mit dabei .. heist wenn ich addon
    update drücke .. dauert das mitlerweile ganzschön lang … bilder fürs forum usw muss da nicht
