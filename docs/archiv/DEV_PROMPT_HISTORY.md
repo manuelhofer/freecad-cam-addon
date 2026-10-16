@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-37 schaft-grenze-in-der-stellung-des-fraesers (B-025)
+
+### EINGELESEN
+- Der volle Lauf der Prüfdateien im Wochen-Build: 118 grün, nur `test_vierachs_frei` rot – „Nase,
+  Rest für die Kugel: höchstens 16,8“ (erlaubt unter 10). Bisect: rot seit P-2026-10-12-170.
+- Ursache: Seit P-170 hält „Rundum schruppen“ die Spitze so hoch, dass Schaft und Halter nicht ins
+  Teil kommen. Für die Querachse wurde diese Grenze auf dem Strahl durch die Stangenachse
+  gerechnet (die Hüllfläche ohne Versatz). Der Fräser steht dort aber quer versetzt: Neben der
+  schmalen Nase traf der Strahl das Teil, der versetzte Schaft nicht. Die Spitze blieb zu Unrecht
+  oben, die Kugel danach hatte zu viel Rest.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`:
+  - `_schruppen_quer(…, stufen)` statt der Hüllfläche `oben`: je Stufe (Schaft, Halter) die Höhe
+    mit `vierachs_huelle.je_stellung` in der Stellung des Fräsers – Richtung und Versatz quer wie
+    der Fräser selbst (die Spitze in die nächste Rasterrichtung umgerechnet, wie
+    `vierachs_quer.stellungen`).
+  - Ein Schaft, der nicht dicker ist als ein Schaftfräser, wird für die Querachse nicht
+    gerechnet: Er hält nichts zurück, was die Schneide nicht schon hält.
+  - Rundum ohne Querachse bleibt, wie es war.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_frei`, `test_vierachs_bahn`,
+  `szenario_vierachs_schruppen`.
+- Zum Ausprobieren: Nase (Beispiele) mit „Rundum schruppen“ und Querachse, dann die Kugel – sie
+  hat wieder so wenig Rest wie vor P-170.
+
 ## P-2026-10-16-36 einrichtblatt-bilder-nach-und-nach (W-019)
 
 ### EINGELESEN
