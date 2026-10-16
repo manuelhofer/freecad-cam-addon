@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-27 erreicht-mit-aufmass (B-023)
+
+### EINGELESEN
+- Szenarien zu den heute geänderten Teilen nachgefahren (nach B-022). `szenario_raeumen_schlichten`
+  war rot: Klotz mit Zapfen, 0,5 mm Aufmaß am Boden im Räumen – angelegt wurde nur Planfräsen.
+- Ursache (P-2026-10-16-05): `_unerreicht` suchte die Bahn auf Höhe der Fläche (+0,05). Mit Aufmaß
+  am Boden fährt sie 0,5 höher, galt als „Fläche nicht erreicht“ und trat im Zeitvergleich nicht
+  an.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `_unerreicht`: rechnet das Bodenaufmaß des Blocks mit (Räumen:
+  „Aufmaß Boden“, Planfräsen: „Aufmaß“).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_raeumen_schlichten` (Räumen mit 0,5 am Boden, „Schlichten
+  danach“ mit Messstopp, am Ende nirgends ins Teil, nichts stehen geblieben).
+- Zum Ausprobieren: Klotz mit Zapfen, Oberseite um den Zapfen anklicken, im Räumen „Aufmaß Boden“
+  0,5. Räumen bleibt angehakt, „Schlichten danach“ macht den Boden fertig.
+
 ## P-2026-10-16-26 nut-offen-mit-aufmass (B-022)
 
 ### EINGELESEN

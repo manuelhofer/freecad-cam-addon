@@ -7397,6 +7397,12 @@ class BearbeitungPanel:
             return {}
         werkzeug = block.fraeser()
         namen = self._flaechen(block, form)
+        # Ein gewolltes Aufmaß am Boden: Die Bahn fährt um so viel höher – erreicht ist die Fläche
+        # trotzdem (szenario_raeumen_schlichten: 0,5 am Boden, „Schlichten danach“ macht ihn fertig).
+        werte = block.werte()
+        hoeher = float(
+            werte.get("aufmass_boden" if block is self.raeumen else "aufmass", 0.0) or 0.0
+        )
         ergebnis = {}
         for name, anteil in self._erreicht(form, namen, werkzeug).items():
             if anteil < ZU_ENG:
@@ -7419,7 +7425,7 @@ class BearbeitungPanel:
                 strecken = [
                     (a.x, a.y, b.x, b.y)
                     for a, b in zip(punkte, punkte[1:], strict=False)
-                    if not b.eilgang and a.z <= z + 0.05 and b.z <= z + 0.05
+                    if not b.eilgang and a.z <= z + hoeher + 0.05 and b.z <= z + hoeher + 0.05
                 ]
                 ueber = zz.ueberstrichen(material, strecken, werkzeug.durchmesser / 2)
                 # Ohne den Rand der Fläche: An der Wand bleibt das Aufmaß, und dort misst das
