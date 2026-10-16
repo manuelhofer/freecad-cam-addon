@@ -187,7 +187,9 @@ _VORLAGEN = {
         30.0,
         (_FLANSCH_SK40, (31.6, 43.0, 43.0), (29.0, 43.0, 22.0), (8.0, 22.0, 22.0)),
     ),
-    "vdi_er25": (28.0, ((40.0, 55.0, 55.0), (20.0, 42.0, 42.0, MUTTER))),
+    # VDI30 axial mit ER25 nach HOLEX 319512 25 (A = 57 ab der Plananlage am Revolver): Kopf,
+    # Hals, Mutter Ø 41,8.
+    "vdi_er25": (28.0, ((21.7, 68.4, 68.4), (14.8, 32.0, 32.0), (20.5, 41.8, 41.8, MUTTER))),
     # Angetrieben je Spannzange: zuerst der Körper, zuletzt die Spannmutter.
     "vdi_radial_er16": (20.0, ((35.0, 50.0, 50.0), (20.0, 28.0, 28.0, MUTTER))),
     "vdi_radial_er20": (24.0, ((35.0, 50.0, 50.0), (22.0, 34.0, 34.0, MUTTER))),
@@ -214,6 +216,7 @@ VORBILD = {
     "hydro_20": "302028-20",
     "aufsteck_22": "301017-22",
     "bohrfutter": "302540-1-13",
+    "vdi_er25": "319512-25",  # an VDI30
 }
 SUCHE = {
     "er16": "ER-Spannzangenfutter {aufnahme} ER16",
@@ -226,6 +229,7 @@ SUCHE = {
     "hydro_20": "Hydrodehnspannfutter {aufnahme} 20",
     "aufsteck_22": "Messerkopfaufnahme {aufnahme} 22",
     "bohrfutter": "Kurzbohrfutter {aufnahme}",
+    "vdi_er25": "ER-Spannzangenhalter {aufnahme} ER25",
 }
 KATALOG_ARTIKEL = "https://www.hoffmann-group.com/DE/de/hom/p/{artikel}"
 KATALOG_SUCHE = "https://www.hoffmann-group.com/DE/de/hom/v2/search?search={begriff}"
@@ -594,8 +598,8 @@ def aus_vorlage(schluessel, vdi=None, aufnahme=None):
     halter = Halter(
         name=vorlage_text(schluessel, vdi, aufnahme),
         aufnahme=aufnahme,
-        bezeichnung=_bezeichnung(schluessel, aufnahme),
-        link=katalog_link(schluessel, aufnahme),
+        bezeichnung=_bezeichnung(schluessel, aufnahme, vdi),
+        link=katalog_link(schluessel, aufnahme, vdi),
         spanntiefe=spanntiefe,
         abschnitte=[_abschnitt(a, faktor) for a in abschnitte],
     )
@@ -614,28 +618,37 @@ def _artikel_text(artikel):
     return artikel.replace("-", " ", 1)
 
 
-def _bezeichnung(schluessel, aufnahme):
-    """Woher die Maße einer Vorlage kommen: an SK40 von ihrem Vorbild, sonst der Körper von ihm
-    und der Flansch der Aufnahme; ohne Vorbild Beispielmaße."""
+def _bezeichnung(schluessel, aufnahme, vdi=0):
+    """Woher die Maße einer Vorlage kommen: an SK40 (VDI-Vorlagen: an VDI30) von ihrem Vorbild,
+    sonst der Körper von ihm und der Flansch der Aufnahme (VDI: auf die Größe `vdi` gestreckt);
+    ohne Vorbild Beispielmaße."""
     artikel = VORBILD.get(schluessel)
     if not artikel:
         return tr("halter.beispielmasse")
-    if aufnahme == VORGABE_AUFNAHME:
+    if schluessel in VDI_VORLAGEN and vdi and vdi != VDI_BEZUG:
+        return tr("halter.vorbild_vdi", artikel=_artikel_text(artikel), groesse=f"{vdi:g}")
+    if schluessel in VDI_VORLAGEN or aufnahme == VORGABE_AUFNAHME:
         return tr("halter.vorbild", artikel=_artikel_text(artikel))
     return tr("halter.vorbild_koerper", artikel=_artikel_text(artikel), aufnahme=aufnahme)
 
 
-def katalog_link(schluessel, aufnahme):
-    """Der Link zum Vorbild einer Vorlage im Katalog – an einer anderen Aufnahme als SK40 die
-    Suche nach ihrer Art an dieser Aufnahme („ER-Spannzangenfutter HSK-A 63 ER32“). "" ohne."""
+def katalog_link(schluessel, aufnahme, vdi=0):
+    """Der Link zum Vorbild einer Vorlage im Katalog – an einer anderen Aufnahme als SK40 (an
+    einer anderen VDI-Größe als 30) die Suche nach ihrer Art an dieser Aufnahme
+    („ER-Spannzangenfutter HSK-A 63 ER32“). "" ohne."""
     from urllib.parse import quote
 
     artikel = VORBILD.get(schluessel)
     if not artikel:
         return ""
-    if aufnahme == VORGABE_AUFNAHME:
+    if schluessel in VDI_VORLAGEN:
+        if not vdi or vdi == VDI_BEZUG:
+            return KATALOG_ARTIKEL.format(artikel=artikel)
+        groesse = f"VDI {vdi:g}"
+    elif aufnahme == VORGABE_AUFNAHME:
         return KATALOG_ARTIKEL.format(artikel=artikel)
-    groesse = re.sub(r"(?<=[A-Za-z])(?=\d+$)", " ", aufnahme)  # „HSK-A63“ → „HSK-A 63“
+    else:
+        groesse = re.sub(r"(?<=[A-Za-z])(?=\d+$)", " ", aufnahme)  # „HSK-A63“ → „HSK-A 63“
     return KATALOG_SUCHE.format(begriff=quote(SUCHE[schluessel].format(aufnahme=groesse)))
 
 

@@ -1394,6 +1394,7 @@
     "halter.gruppe.vdi_axial": "VDI{groesse} driven axial",
     "halter.vorlage.winkelkopf_90": "Angle head 90° · {aufnahme}",
     "halter.beispielmasse": "Example dimensions – check against the catalogue",
+    "halter.vorbild_vdi": "From the catalogue drawing of Hoffmann {artikel} (VDI30), stretched to VDI{groesse} – compare with your holder",
     "halter.aus_datei": "Measured from the file {datei} – enter the clamping depth",
     "halter.datei_leer": "The file contains no body.",
     "halter.vorbild": "Dimensions from the catalogue drawing of Hoffmann {artikel} – compare with your holder",

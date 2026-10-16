@@ -111,6 +111,16 @@ pruefe(hl.profil(kurz) == [(2, 63, 63)], f"zu kurz für die Rille: {hl.profil(ku
 schrumpf = hl.aus_vorlage("schrumpf_12")
 pruefe(nahe(schrumpf.laenge, 80), f"Schrumpf A = 80: {schrumpf.laenge}")
 pruefe(nahe(schrumpf.radius_bei((32.4 + 80) / 2), (31.5 + 24) / 4), "Kegel: in der Mitte")
+# VDI30 axial mit ER25 nach HOLEX 319512 25 (A = 57), an VDI40 gestreckt und die Suche verlinkt.
+vdi30 = hl.aus_vorlage("vdi_er25", vdi=30)
+pruefe(nahe(vdi30.laenge, 57) and vdi30.link.endswith("/p/319512-25"), f"VDI30: {vdi30.link}")
+vdi40 = hl.aus_vorlage("vdi_er25", vdi=40)
+pruefe(
+    vdi40.link.endswith("search=ER-Spannzangenhalter%20VDI%2040%20ER25")
+    and "auf VDI40 gestreckt" in vdi40.bezeichnung
+    and nahe(vdi40.abschnitte[-1].d_oben, 41.8),
+    f"VDI40: {vdi40.link} {vdi40.bezeichnung}",
+)
 for schluessel, a_soll in (("er16", 70), ("er25", 70), ("er40", 70), ("weldon_20", 63)):
     h = hl.aus_vorlage(schluessel)
     pruefe(abs(h.laenge - a_soll) < 1e-6 and h.link, f"{schluessel}: A {h.laenge}, {h.link}")

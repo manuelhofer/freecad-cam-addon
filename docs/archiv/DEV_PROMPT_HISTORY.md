@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-40 vdi-halter-nach-katalogzeichnung (W-022 Punkt 3)
+
+### EINGELESEN
+- Weiter mit den öffentlichen Katalogzeichnungen bei Hoffmann (wie P-39):
+  - HOLEX 319512 25 (ER-Spannzangenhalter Form E4, VDI 30, ER25): A = 57 ab der Plananlage, Kopf
+    etwa Ø 68 × 21,7, Hals Ø 32 × 14,8, Mutter Ø 41,8 × 20,5;
+  - HOLEX 319515 32 (VDI 40, ER32): A = 62,5, Kopf etwa Ø 83 × 22.
+- Capto C6 (Iscar 4561362) und angetriebene VDI-Halter: Bei Hoffmann gibt es keine Zeichnung.
+
+### DATEIEN
+- `camaddon/halter.py`: „VDI axial mit ER25“ nach 319512 25. An einer anderen VDI-Größe wird sie
+  gestreckt wie bisher, die Mutter bleibt. Link: an VDI30 das Vorbild, sonst die Suche
+  „ER-Spannzangenhalter VDI 40 ER25“. Die Bezeichnung sagt es (`halter.vorbild_vdi`).
+- `translations/de.json`, `en.json`: `halter.vorbild_vdi`.
+- `help/de|en/halter.html`: ein Satz dazu.
+- `tests/test_halter.py`: VDI30 A = 57 mit Link; VDI40 Suche, Bezeichnung, Mutter Ø 41,8.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_halter`, `test_sprache`, `test_hilfe`.
+- Zum Ausprobieren: An der Drehmaschine (VDI) Werkzeugverwaltung → Halter → Neu → „VDI40 axial
+  mit ER25“. Im Bild der Kopf, der Hals und die Mutter; „Link“ führt zur Suche bei Hoffmann.
+
 ## P-2026-10-16-39 halter-nach-katalogzeichnung-und-aus-datei (W-022 Punkt 3)
 
 ### EINGELESEN

@@ -1394,6 +1394,7 @@
     "halter.gruppe.vdi_axial": "VDI{groesse} angetrieben axial",
     "halter.vorlage.winkelkopf_90": "Winkelkopf 90° · {aufnahme}",
     "halter.beispielmasse": "Beispielmaße – nach Katalog prüfen",
+    "halter.vorbild_vdi": "Nach der Katalogzeichnung von Hoffmann {artikel} (VDI30), auf VDI{groesse} gestreckt – mit deinem Halter vergleichen",
     "halter.aus_datei": "Gemessen aus der Datei {datei} – Spanntiefe eintragen",
     "halter.datei_leer": "In der Datei ist kein Körper.",
     "halter.vorbild": "Maße nach der Katalogzeichnung von Hoffmann {artikel} – mit deinem Halter vergleichen",
