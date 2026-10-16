@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-45 halter-im-katalog-suchen (W-022)
+
+### EINGELESEN
+- Manuel, 2026-10-16: „man kann ja auf das produkt verlinken“. Die Vorlagen bringen ihren Link mit;
+  für die eigenen Halter fehlt ein schneller Weg zur Seite.
+
+### DATEIEN
+- `camaddon/gui_halter.py`: Ohne Link heißt der Knopf neben dem Feld „Im Katalog suchen“ und
+  öffnet die Suche bei Hoffmann mit dem Namen des Halters (`link_adresse`); mit Link „Öffnen“.
+- `translations/de.json`, `en.json`: `hd.link.suchen`, `hd.link.suchen.tooltip`.
+- `help/de|en/halter.html`: ein Satz dazu.
+- `tests/gui/szenario_halter.py`: der aus der Datei gelesene Halter (ohne Link) zeigt „Im Katalog
+  suchen“, die Adresse sucht nach „er32_sk40“.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_halter`, `test_sprache`, `test_hilfe`.
+- Zum Ausprobieren: einen eigenen Halter ohne Link wählen – „Im Katalog suchen“ öffnet die Suche
+  mit seinem Namen.
+
 ## P-2026-10-16-44 vierachs-klick-im-anderen-dokument (B-020)
 
 ### EINGELESEN

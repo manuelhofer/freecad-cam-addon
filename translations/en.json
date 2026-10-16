@@ -1427,6 +1427,8 @@
     "hd.link.tooltip": "The holder's page in the catalogue. “Open” shows it in the browser.",
     "hd.link.platzhalter": "https://… – the holder's catalogue page",
     "hd.link.oeffnen": "Open",
+    "hd.link.suchen": "Search the catalogue",
+    "hd.link.suchen.tooltip": "No link yet: searches for the holder by its name at Hoffmann. Copy the address of the right page into the field.",
     "hd.spanntiefe": "Clamping depth",
     "hd.spanntiefe.tooltip": "How deep the tool's shank sits in the holder. The tool manager uses it to estimate the gauge length until someone measures it.",
     "hd.kontur": "Contour from the spindle nose:",

@@ -1427,6 +1427,8 @@
     "hd.link.tooltip": "Die Seite des Halters im Katalog. „Öffnen“ zeigt sie im Browser.",
     "hd.link.platzhalter": "https://… – die Katalogseite des Halters",
     "hd.link.oeffnen": "Öffnen",
+    "hd.link.suchen": "Im Katalog suchen",
+    "hd.link.suchen.tooltip": "Noch kein Link: sucht den Halter mit seinem Namen bei Hoffmann. Die Adresse der passenden Seite kopierst du ins Feld.",
     "hd.spanntiefe": "Spanntiefe",
     "hd.spanntiefe.tooltip": "Wie tief der Schaft des Werkzeugs im Halter steckt. Damit schätzt die Werkzeugverwaltung die Länge ab Spindelnase, solange sie niemand gemessen hat.",
     "hd.kontur": "Kontur ab Spindelnase:",

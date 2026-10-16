@@ -243,6 +243,12 @@ def schritte(h):
             f"Bezeichnung: {f.feld_bezeichnung.text()!r}",
         )
         h.pruefe(f.tabelle.rowCount() >= 5, f"Abschnitte: {f.tabelle.rowCount()}")
+        # Ohne Link sucht der Knopf im Katalog nach dem Namen.
+        h.pruefe(
+            f.knopf_link.text() == "Im Katalog suchen"
+            and f.link_adresse().endswith("search?search=er32_sk40"),
+            f"ohne Link: {f.knopf_link.text()!r} {f.link_adresse()!r}",
+        )
     h.bild("6_aus_datei", f)
     f.knoepfe.button(QtGui.QDialogButtonBox.Cancel).click()
     yield 300

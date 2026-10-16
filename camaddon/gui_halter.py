@@ -413,7 +413,7 @@ class HalterDialog(QtGui.QDialog):
         self.feld_name.setPlaceholderText(hl.text(hl.Halter(abschnitte=h.abschnitte)))
         self.feld_bezeichnung.setText(h.bezeichnung)
         self.feld_link.setText(h.link)
-        self.knopf_link.setEnabled(bool(h.link.strip()))
+        self._link_knopf_zeigen(h)
         self.feld_spanntiefe.setText(groesse_zeigen(h.spanntiefe, einheiten.LAENGE))
         self.wahl_richtung.setCurrentIndex(self.wahl_richtung.findData(h.richtung))
         for feld, eingabe in self.felder_gewinkelt.items():
@@ -525,13 +525,33 @@ class HalterDialog(QtGui.QDialog):
     def _link_geaendert(self, text):
         if not self._fuellt and self.gewaehlt is not None:
             self.gewaehlt.link = text.strip()
-        self.knopf_link.setEnabled(bool(text.strip()))
+            self._link_knopf_zeigen(self.gewaehlt)
+
+    def _link_knopf_zeigen(self, h):
+        """Mit Link „Öffnen“; ohne „Im Katalog suchen“ – die Suche nach dem Namen des Halters
+        (Manuel, 2026-10-16: „man kann ja auf das produkt verlinken“)."""
+        mit = bool(h.link.strip())
+        self.knopf_link.setText(tr("hd.link.oeffnen") if mit else tr("hd.link.suchen"))
+        self.knopf_link.setToolTip(tr("hd.link.tooltip") if mit else tr("hd.link.suchen.tooltip"))
+        self.knopf_link.setEnabled(mit or bool(hl.text(h).strip()))
+
+    def link_adresse(self):
+        """Wohin „Öffnen“ führt: der Link des Halters – ohne die Suche im Katalog nach seinem
+        Namen."""
+        from urllib.parse import quote
+
+        h = self.gewaehlt
+        if h is None:
+            return ""
+        if h.link.strip():
+            return h.link.strip()
+        return hl.KATALOG_SUCHE.format(begriff=quote(hl.text(h).replace("·", " ")))
 
     def link_oeffnen(self):
-        """Zeigt die Katalogseite des Halters im Browser."""
-        h = self.gewaehlt
-        if h is not None and h.link.strip():
-            QtGui.QDesktopServices.openUrl(QtCore.QUrl(h.link.strip()))
+        """Zeigt die Katalogseite des Halters im Browser – ohne Link die Suche danach."""
+        adresse = self.link_adresse()
+        if adresse:
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(adresse))
 
     def _spanntiefe_uebernehmen(self):
         h = self.gewaehlt
