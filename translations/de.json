@@ -2168,6 +2168,7 @@
     "ba.s3.anstellen.tooltip": "Der Kugelfräser kippt um die Kugelmitte, mindestens 15° zwischen Achse und Fläche, damit er auf flachen Stellen nicht mit der Spitze schneidet (Schnittgeschwindigkeit 0). Gleiche Bahn, etwa 5 % länger.",
     "ba.s3.anstellen.ohne_maschine": "an einer 5-Achs-Maschine (oben wählen)",
     "ba.s3.anstellen.ohne_kugel": "mit einem Kugelfräser",
+    "ba.s3.anstellen.ohne_kugel.warum": "Warum nur mit dem Kugelfräser: Gekippt schneidet die Kugel nicht mit ihrer Spitze, wo die Schnittgeschwindigkeit 0 ist. Ein Schaft- oder Torusfräser schneidet mit der Stirn – ihm bringt das Kippen nichts. Eine schräge ebene Fläche fräst er an der 5-Achs-Fräse geschwenkt (3+2): „Anlegen“ legt die Ebene dafür an.",
     "ba.haken.gesperrt": "{text} – geht {grund}",
     "fl.fehler.fraeser": "Für die Flanke braucht es einen Schaftfräser mit Radius und Schneidenlänge.",
     "fl.fehler.keine": "Keine der Flächen ist eine schräge Wand aus Geraden (Ebene, Kegel, Regelfläche), 0,5° bis 45° aus der Senkrechten und nach oben offen.",

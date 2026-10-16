@@ -924,6 +924,10 @@ class _Strategie:
         """Warum der Haken `feld` hier nicht geht (ein kurzer Satz) – None, wenn er geht."""
         return None
 
+    def haken_gesperrt_warum(self, feld, block):
+        """Warum der Haken `feld` gesperrt ist, ausführlich – für den Tooltip; None: kein Satz."""
+        return None
+
     def haken_verborgen(self, feld, block):
         """Fehlt der Haken `feld` hier ganz (er hätte an dieser Maschine nie Sinn)?"""
         return False
@@ -2756,6 +2760,15 @@ class _Schlichten3D(_Strategie):
             return tr("ba.s3.anstellen.ohne_kugel")
         return None
 
+    def haken_gesperrt_warum(self, feld, block):
+        # Manuel, 2026-10-16: „warum das anstellen aber nur mit einem kugelfräser geht weis ich
+        # nun nicht ?“
+        if feld == "anstellen" and self.haken_gesperrt(feld, block) == tr(
+            "ba.s3.anstellen.ohne_kugel"
+        ):
+            return tr("ba.s3.anstellen.ohne_kugel.warum")
+        return None
+
     def werkzeug_passt(self, werkzeug):
         return werkzeug.art in self.ARTEN and ff.von_werkzeug(werkzeug) is not None
 
@@ -3500,7 +3513,8 @@ class _Block:
             kasten.setText(
                 text if grund is None else tr("ba.haken.gesperrt", text=text, grund=grund)
             )
-            kasten.setToolTip(tooltip)
+            warum = self.s.haken_gesperrt_warum(feld, self) if grund else None
+            kasten.setToolTip(f"{tooltip}\n\n{warum}" if warum else tooltip)
 
     def werte(self):
         werte = {feld: self.wert(feld) for feld in self.felder}

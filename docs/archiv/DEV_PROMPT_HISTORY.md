@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-59 anstellen-warum-nur-kugel
+
+### EINGELESEN
+- Manuel (2026-10-16 nachts, Schwenkteil): „warum das anstellen aber nur mit einem kugelfräser geht
+  weis ich nun nicht ?“ – am Haken stand grau nur „– geht mit einem Kugelfräser“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_Strategie.haken_gesperrt_warum` – ein ausführlicher Grund für
+  den Tooltip eines gesperrten Hakens; beim 3D-Schlichten für „Anstellen“ ohne Kugelfräser.
+- `translations/de.json`, `en.json`: `ba.s3.anstellen.ohne_kugel.warum` – gekippt schneidet die
+  Kugel nicht mit der Spitze (Schnittgeschwindigkeit 0); ein Schaft- oder Torusfräser schneidet mit
+  der Stirn, ihm bringt das nichts; eine schräge ebene Fläche kommt geschwenkt (3+2) dran.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_kugel_angestellt`, `test_sprache`.
+- Zu sehen: 3D-Schlichten an einer 5-Achs-Fräse mit einem Schaftfräser – die Maus auf „Anstellen
+  (5 Achsen simultan) – geht mit einem Kugelfräser“ zeigt den Grund.
+
 ## P-2026-10-16-58 schlichten3d-heben-im-eilgang
 
 ### EINGELESEN
