@@ -130,3 +130,33 @@ def schritte(h):
     h.bild("2_klick_im_anderen_dokument")
     panel.reject()
     yield 800
+
+    # „4-Achs-Bearbeitung“ ebenso: in der Maschine begonnen, die Fläche in „Teil“ angeklickt – das
+    # Fenster öffnet sich dort neu, mit Teil und Fläche.
+    FreeCAD.setActiveDocument(mdoc.Name)
+    Gui.Selection.clearSelection()
+    yield 300
+    Gui.runCommand("CamAddon_Vierachs")
+    yield from h.warte_auf(lambda: gui_vierachs.VierachsPanel.offen is not None, 10000)
+    yield 800
+    erstes = gui_vierachs.VierachsPanel.offen
+    h.pruefe(erstes is not None and erstes.doc is mdoc, "4 Achsen beginnt nicht in der Maschine")
+    Gui.Selection.addSelection(doc.Name, teil.Name, oben)
+    yield from h.warte_auf(
+        lambda: gui_vierachs.VierachsPanel.offen not in (None, erstes)
+        and gui_vierachs.VierachsPanel.offen.teil is not None,
+        10000,
+    )
+    yield 1000
+    vierachs = gui_vierachs.VierachsPanel.offen
+    h.pruefe(
+        vierachs is not None and vierachs is not erstes and vierachs.doc is doc,
+        f"4 Achsen nach dem Klick: {vierachs and vierachs.doc.Name}",
+    )
+    if vierachs is not None:
+        h.pruefe(vierachs.teil is teil, f"4 Achsen: Teil {vierachs.teil}")
+        dazu = sorted({o.Name for o in mdoc.Objects} - vorher)
+        h.pruefe(not dazu, f"4 Achsen: in der Maschine dazugekommen: {dazu}")
+        h.bild("3_vierachs_klick_im_anderen_dokument")
+        vierachs.reject()
+        yield 800

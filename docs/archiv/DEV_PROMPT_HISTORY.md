@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-44 vierachs-klick-im-anderen-dokument (B-020)
+
+### EINGELESEN
+- Wie in „Bearbeitung“ (P-42): Beginnt „4-Achs-Bearbeitung“ in der Maschine (nichts gewählt, mehr
+  als ein anderes Dokument offen), tat ein Klick auf das Teil in seinem Dokument nichts.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `auswahl_lesen` liest auch das Dokument, in dem geklickt wurde. Liegt
+  das Teil (auch hinter einem Link) in einem anderen Dokument und gibt es noch keinen Job, schließt
+  das Fenster und öffnet sich dort neu, mit Teil und Fläche (`_im_dokument_neu`); die Maschine aus
+  „Bearbeitung“ bleibt gewählt.
+- `tests/gui/szenario_teil_in_maschine.py`: der Fall für „4-Achs-Bearbeitung“.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_teil_in_maschine`, `szenario_arbeitsdokument`,
+  `szenario_vierachs_rohteil`.
+
 ## P-2026-10-16-43 vierachs-teil-im-eigenen-dokument (B-020)
 
 ### EINGELESEN

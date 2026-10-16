@@ -449,7 +449,7 @@ class _Beobachter:
         else:
             # Der Klickpunkt: An einer runden Fläche liegt das Ende vorne, an dem man klickt.
             angeklickt = FreeCAD.Vector(*punkt) if punkt else None
-            uhren.gleich(lambda: self.panel.auswahl_lesen(angeklickt))
+            uhren.gleich(lambda: self.panel.auswahl_lesen(angeklickt, _dokument))
 
 
 class _NurFlaechen:
@@ -1747,14 +1747,45 @@ class VierachsPanel:
 
     # --- Aktionen (auch für die Szenarien) --------------------------------------
 
-    def auswahl_lesen(self, punkt=None):
+    def auswahl_lesen(self, punkt=None, dokument=None):
         """Nimmt die angeklickte Fläche – aufgerufen, wenn man in der 3D-Ansicht klickt; nur
-        in Schritt 1. `punkt`: wo (Weltkoordinaten) – an einer runden Fläche das Ende vorne."""
+        in Schritt 1. `punkt`: wo (Weltkoordinaten) – an einer runden Fläche das Ende vorne.
+        Liegt das Teil (auch hinter einem Link) in einem anderen Dokument (`dokument`: wo
+        geklickt wurde), öffnet sich das Fenster dort neu, solange es noch keinen Job gibt
+        (B-020)."""
+        from .gui_bearbeitung import teil_hinter_link
+
         if self.geschlossen or self.seite != 1:
             return
         wahl = gewaehlte_flaeche(self.doc)
-        if wahl is not None and wahl[1] is not None and wahl != (self.teil, self.flaeche):
+        if wahl is None and dokument and dokument != self.doc.Name:
+            anderes = FreeCAD.listDocuments().get(dokument)
+            wahl = gewaehlte_flaeche(anderes) if anderes is not None else None
+        if wahl is None or wahl[1] is None:
+            return
+        teil = teil_hinter_link(wahl[0])
+        if teil.Document is not self.doc:
+            if self.job is None and self.zu_aendern is None:
+                self._im_dokument_neu(teil, wahl[1])
+            return
+        if wahl != (self.teil, self.flaeche):
             self.waehle_flaeche(*wahl, nahe=punkt)
+
+    def _im_dokument_neu(self, teil, flaeche):
+        """Das Teil liegt in einem anderen Dokument als das Fenster: Es schließt und öffnet sich
+        dort neu, mit Teil und Fläche (ein Aufgabenfenster gehört zu seinem Dokument)."""
+        from .gui_bearbeitung import _aktivieren
+
+        dokument, maschine = teil.Document, self._maschine_vorwahl
+        self.reject()
+
+        def oeffnen():
+            _aktivieren(dokument)
+            FreeCADGui.Control.showDialog(
+                VierachsPanel(dokument, (teil, flaeche), maschine=maschine)
+            )
+
+        QtCore.QTimer.singleShot(0, oeffnen)
 
     def waehle_teilachse(self, achse):
         """Legt das Teil aus einem STL mit seiner Achse `achse` („X“, „Y“, „Z“) längs der Stange,
