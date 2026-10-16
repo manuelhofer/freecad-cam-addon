@@ -4,8 +4,9 @@
 # längs X ganz durch; T1 der Standardfräser Ø 12 (ae 1,5, ap 25). Früher war sie „zu breit“ für
 # die Nut (in der Mitte der Kreise bliebe ein Kern); jetzt fräst die Nut sie in Bögen. Den Grund
 # anklicken: In der Liste „offene Nut 30 × 80, Grund 18“, die Nut ohne Rot, „→ 1 Nut, 1 Lage,
-# … Bögen, etwa …“. „Anlegen“: „Nut T1“ mit Bögen, im Gleichlauf (G3), zurück im
-# Schnellvorschub (3 × F). „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
+# … Bögen, etwa …“ – trotz 1 mm Aufmaß hinter den Enden offen (P-2026-10-16-26). „Anlegen“:
+# „Nut T1“ mit Bögen in Wellen (hin G3, zurück G2, P-2026-10-16-07). „Auf der Maschine prüfen“:
+# am Ende nirgends ins Teil.
 import re
 
 import FreeCAD
@@ -89,14 +90,10 @@ def schritte(h):
     h.pruefe(op.Boegen > 0, f"Bögen {op.Boegen}")
     befehle = list(op.Path.Commands)
     namen = [c.Name for c in befehle]
-    h.pruefe("G3" in namen and "G2" not in namen, "nicht im Gleichlauf (G3)")
-    # Der Rückweg mit 3 × F liegt unter den Vorschüben; darüber steht seit den Freiwegen
-    # (P-2026-10-04-39) der Vorschub durch die Luft.
-    vorschuebe = sorted({round(c.Parameters["F"], 3) for c in befehle if "F" in c.Parameters})
-    h.pruefe(
-        any(abs(b / a - 3.0) < 0.01 for a in vorschuebe for b in vorschuebe),
-        f"kein Rückweg mit 3 × F: {vorschuebe}",
-    )
+    # Mit „Gleich- und Gegenlauf (Wellen)“, angehakt (P-2026-10-16-07; Manuel: „in gleich und
+    # gegenlauf so das man kaum schnellvorschub hat“): hin G3, zurück G2 – kein Rückweg mit 3 × F.
+    h.pruefe(bool(op.Wellen), "Wellen nicht angehakt")
+    h.pruefe("G3" in namen and "G2" in namen, "nicht in Wellen (G3 und G2)")
     Gui.Selection.clearSelection()
     Gui.activeDocument().activeView().viewTop()
     Gui.SendMsgToActiveView("ViewFit")

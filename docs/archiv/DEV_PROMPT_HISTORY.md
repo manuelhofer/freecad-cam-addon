@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-26 nut-offen-mit-aufmass (B-022)
+
+### EINGELESEN
+- C-Ring im Assistenten nachgespielt: In der Flächenliste stand „Face8 offene Nut 10 ×
+  127,247636176, Grund -6“. Die Maße kamen ungerundet.
+- Dabei war `szenario_nut_durch` rot, auch ohne die Änderung (mit `git stash` gegengeprüft):
+  - Die Nut quer durch den Klotz (30 breit) galt als geschlossen und „zu breit“.
+  - Ursache: `_offen_im_stand` (P-2026-10-16-07) prüft die Scheibe des Fräsers hinter dem
+    offenen Ende. Ihr Rand lag genau auf der Kante des 1-mm-Aufmaßes, und das Raster zählte die
+    Randzelle als Material.
+  - Außerdem erwartete das Szenario noch nur G3 und den Rückweg mit 3 × F. Seit P-07 ist
+    „Wellen“ vorgewählt.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`, `_offen_im_stand`: geprüft mit R minus eine Rasterzelle, so wie der
+  Docstring es meint („ein schmaler Rand bis FREI_VOR stört nicht“).
+- `camaddon/gui_bearbeitung.py`: Die Maße in der Flächenliste sind auf zwei Stellen gerundet
+  (Nut, Bohrung, Höhen, Kanten).
+- `tests/gui/szenario_nut_durch.py`: prüft jetzt Wellen (G3 und G2, „Wellen“ angehakt) statt
+  „nur G3“ und „Rückweg mit 3 × F“.
+
+### ERGEBNIS
+- Grün im Wochen-Build:
+  - `szenario_nut_durch`: wieder „offene Nut 30 × 80, Grund 18“, in Bögen, am Ende nirgends ins
+    Teil.
+  - `test_nut_offen`: Der C-Ring im vollen Quader bleibt geschlossen, mit Helix.
+- Zum Ausprobieren: C-Ring, Face8 im Assistenten „Bearbeitung“. Die Liste zeigt „offene Nut 10 ×
+  127,25, Grund -6“.
+
 ## P-2026-10-16-25 planfraesen-helix
 
 ### EINGELESEN

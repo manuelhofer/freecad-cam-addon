@@ -5722,47 +5722,53 @@ class BearbeitungPanel:
                 text, farbe = tr("ba.flaeche.fehlt", name=name), ROT
             elif self.nut.s.passt(form, name):
                 n = nb.nuten(form, [name])[0]
-                breite = groesse_zeigen(2 * n.radius, einheiten.LAENGE) or "0"
-                laenge = groesse_zeigen(n.gesamtlaenge, einheiten.LAENGE) or "0"
+                breite = groesse_zeigen(2 * n.radius, einheiten.LAENGE, 2) or "0"
+                laenge = groesse_zeigen(n.gesamtlaenge, einheiten.LAENGE, 2) or "0"
                 if n.offen:
-                    z = groesse_zeigen(n.z_unten, einheiten.LAENGE) or "0"
+                    z = groesse_zeigen(n.z_unten, einheiten.LAENGE, 2) or "0"
                     text = tr("ba.flaeche.nut_offen", name=name, breite=breite, laenge=laenge, z=z)
                 elif n.durch:
                     text = tr("ba.flaeche.nut_durch", name=name, breite=breite, laenge=laenge)
                 else:
-                    z = groesse_zeigen(n.z_unten, einheiten.LAENGE) or "0"
+                    z = groesse_zeigen(n.z_unten, einheiten.LAENGE, 2) or "0"
                     text = tr("ba.flaeche.nut_grund", name=name, breite=breite, laenge=laenge, z=z)
                 farbe = GRUEN
             elif self.plan.s.passt(form, name):
-                z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE) or "0"
+                z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE, 2) or "0"
                 text, farbe = tr("ba.flaeche.eben", name=name, z=z), GRUEN
             elif self.bohrung.s.passt(form, name):
                 b = bb.bohrungen(form, [name])[0]
-                d = groesse_zeigen(2 * b.radius, einheiten.LAENGE) or "0"
+                d = groesse_zeigen(2 * b.radius, einheiten.LAENGE, 2) or "0"
                 if b.durch:
                     text = tr("ba.flaeche.bohrung_durch", name=name, d=d)
                 elif b.spitze > 0:
-                    z = groesse_zeigen(b.z_unten, einheiten.LAENGE) or "0"
+                    z = groesse_zeigen(b.z_unten, einheiten.LAENGE, 2) or "0"
                     text = tr(
                         "ba.flaeche.bohrung_spitze", name=name, d=d, z=z, winkel=f"{b.spitze:.0f}"
                     )
                 else:
-                    z = groesse_zeigen(b.z_unten, einheiten.LAENGE) or "0"
+                    z = groesse_zeigen(b.z_unten, einheiten.LAENGE, 2) or "0"
                     text = tr("ba.flaeche.bohrung_sack", name=name, d=d, z=z)
                 farbe = GRUEN
             elif self.kontur.s.passt(form, name):
-                z = groesse_zeigen(kb.waende(form, [name])[0].z_unten, einheiten.LAENGE) or "0"
+                z = groesse_zeigen(kb.waende(form, [name])[0].z_unten, einheiten.LAENGE, 2) or "0"
                 text, farbe = tr("ba.flaeche.wand", name=name, z=z), GRUEN
             elif self.senken.s.passt(form, name):
                 senkung = sk.senkungen(form, [name])[0]
-                d = groesse_zeigen(senkung.durchmesser, einheiten.LAENGE) or "0"
+                d = groesse_zeigen(senkung.durchmesser, einheiten.LAENGE, 2) or "0"
                 winkel = f"{round(senkung.winkel, 1):g}"
                 text, farbe = tr("ba.flaeche.senkung", name=name, d=d, winkel=winkel), GRUEN
             elif self.flanke.s.passt(form, name) and self._fuenfachs():
-                z = groesse_zeigen(ft.flaeche(form, nummer).BoundBox.ZMin, einheiten.LAENGE) or "0"
+                z = (
+                    groesse_zeigen(ft.flaeche(form, nummer).BoundBox.ZMin, einheiten.LAENGE, 2)
+                    or "0"
+                )
                 text, farbe = tr("ba.flaeche.flanke", name=name, z=z), GRUEN
             elif self.schlichten3d.s.passt(form, name):
-                z = groesse_zeigen(ft.flaeche(form, nummer).BoundBox.ZMin, einheiten.LAENGE) or "0"
+                z = (
+                    groesse_zeigen(ft.flaeche(form, nummer).BoundBox.ZMin, einheiten.LAENGE, 2)
+                    or "0"
+                )
                 text, farbe = tr("ba.flaeche.freiform", name=name, z=z), GRUEN
             elif eb.ist_fase(form, name):
                 text, farbe = tr("ba.flaeche.fase", name=name), GRUEN
@@ -5781,7 +5787,7 @@ class BearbeitungPanel:
         for name in self.kanten:
             nummer = int(name[4:]) - 1 if name[4:].isdigit() else -1
             if 0 <= nummer < form.countElement("Edge") and self.entgraten3d.s.passt(form, name):
-                laenge = groesse_zeigen(form.Edges[nummer].Length, einheiten.LAENGE) or "0"
+                laenge = groesse_zeigen(form.Edges[nummer].Length, einheiten.LAENGE, 2) or "0"
                 text, farbe = tr("ba.kante.fase", name=name, laenge=laenge), GRUEN
             else:
                 text, farbe = tr("ba.kante.nichts", name=name), ROT

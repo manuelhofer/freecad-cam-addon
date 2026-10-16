@@ -1263,7 +1263,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 ## Offene Bugs
 
 Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
-B-020 offen (siehe „Nächster Schritt“, Ring-Teil Punkt 4). B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; nächste freie Nummer B-022.
+B-020 offen (siehe „Nächster Schritt“, Ring-Teil Punkt 4). B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; nächste freie Nummer B-023.
 
 ## Offene Tasks
 

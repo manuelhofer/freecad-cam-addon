@@ -1337,12 +1337,16 @@ def _offen_im_stand(nut, w, stand, z_ende):
     der Helix. Ein schmaler Rand des Rohteils zwischen Ende und Fräser (bis FREI_VOR) stört nicht:
     Den nehmen die ersten Bögen mit."""
     R = w.fraeser_radius
+    # Eine Zelle des Rasters weniger: Die Zelle auf der Kante eines Aufmaßes von FREI_VOR zählte
+    # sonst als Material – eine Nut quer durch den Klotz (1 mm Aufmaß) galt so als geschlossen
+    # und „zu breit“ (szenario_nut_durch, seit P-2026-10-16-07).
+    pruefen = max(R - float(getattr(stand, "schritt", 0.0) or 0.0), 0.0)
     neu = {}
     for ende, schluessel in ((nut.a, "offen_a"), (nut.b, "offen_b")):
         if not getattr(nut, schluessel):
             continue
         x, y = _hinter_dem_ende(nut, ende, R + FREI_VOR, 0.0)
-        if stand.hoechste_bei(x, y, R) > z_ende + MATERIAL_SPIEL:
+        if stand.hoechste_bei(x, y, pruefen) > z_ende + MATERIAL_SPIEL:
             neu[schluessel] = False
     return replace(nut, **neu) if neu else nut
 
