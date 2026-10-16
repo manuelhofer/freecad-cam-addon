@@ -63,6 +63,7 @@ GLEICH = vb.GLEICH
 # Weggefrästen, so lang wie höchstens LUECKE Durchmesser (mindestens LUECKE_MIN), fährt die Bahn im
 # Vorschub durch, statt abzuheben und wieder einzufahren – wie beim Räumen.
 MATERIAL = 0.05  # mm
+BOGEN_SEHNE = 0.5  # mm – so lang sind die Sehnen, mit denen _abtragen einen Bogen abträgt
 LUECKE = 2.0
 LUECKE_MIN = 20.0  # mm
 
@@ -944,7 +945,13 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None, stand=None):
         else:
             waende.append((kx, ky, k.geschlossen, k.z_oben))
     st = _Stand()
-    for kontur, kette in ketten:
+    # Mehrere Wandzüge teilen sich oft eine Tasche (Manuels Ring: die Bögen der Öffnung und die
+    # Schlitzwände). Jeder sieht, was die davor schon geräumt haben – eine eigene Kopie des
+    # Materialstands, nach jedem Zug abgetragen; sonst schruppte der nächste dort durch Luft und
+    # tauchte mit der Helix durch das Geräumte (am Ring 46 % des Vorschubs in der Luft).
+    eigen = _eigener_stand(stand) if stand is not None and len(ketten) > 1 else stand
+    for nummer, (kontur, kette) in enumerate(ketten):
+        bis_hier = len(st.punkte)
         _kontur(
             st,
             kontur,
@@ -959,8 +966,10 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None, stand=None):
             schritt,
             kette,
             waende,
-            stand,
+            eigen,
         )
+        if eigen is not stand and nummer < len(ketten) - 1:
+            _abtragen(eigen, st.punkte[max(bis_hier - 1, 0) :], form)
     noch, weg, davor = 0.0, 0.0, []
     if stand is not None and st.bereich is not None:
         # Über dem Teil: An der Wand trifft die Stirn auch Zellen im Teil – sie zählen nicht.
@@ -986,6 +995,45 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None, stand=None):
         weg,
         davor,
     )
+
+
+def _eigener_stand(stand):
+    """Eine Kopie des Materialstands, deren Höhen die Kontur selbst senken darf (_abtragen) –
+    der Materialstand des Jobs bleibt, wie er ist."""
+    import copy
+    import dataclasses
+
+    quader = copy.copy(stand.quader)
+    quader.h = stand.quader.h.copy()
+    return dataclasses.replace(stand, quader=quader)
+
+
+def _abtragen(stand, punkte, form):
+    """Senkt im Materialstand, was die Vorschubsätze `punkte` (bahn.Punkt) wegnehmen – ein Bogen
+    in Sehnen von höchstens BOGEN_SEHNE mm; Eilgänge nehmen nichts."""
+    von, nach = [], []
+    for a, b in zip(punkte, punkte[1:], strict=False):
+        if b.eilgang:
+            continue
+        if b.bogen is None:
+            von.append((a.x, a.y, a.z))
+            nach.append((b.x, b.y, b.z))
+            continue
+        mx, my, uhr = b.bogen
+        bogen = bn.winkel(a, b)
+        a0 = math.atan2(a.y - my, a.x - mx)
+        rb = math.hypot(a.x - mx, a.y - my)
+        n = max(2, int(math.ceil(bn.weg(a, b) / BOGEN_SEHNE)))
+        vorher = (a.x, a.y, a.z)
+        for i in range(1, n + 1):
+            t = i / n
+            wi = a0 - t * bogen if uhr else a0 + t * bogen
+            jetzt = (mx + rb * math.cos(wi), my + rb * math.sin(wi), a.z + (b.z - a.z) * t)
+            von.append(vorher)
+            nach.append(jetzt)
+            vorher = jetzt
+    if von:
+        stand.quader.fahre_stuecke(von, nach, form)
 
 
 def _kontur(
@@ -1348,26 +1396,32 @@ def _lauf(
             material, oben_hier = False, lage
         else:
             oben_hier = max(oben_hier, ms.hoechste_bei(start[0], start[1], r))
+
+    def luft_bei(qx, qy, rand):
+        """Je Punkt: steht dort (die Stirn mit Radius `rand`) nichts mehr über der Lage?"""
+        luft = ~_im_rohteil(qx, qy, w.rohteil, max(rand, 2 * GLEICH))  # 0: der Punkt
+        dq = huelle.abstand_zur_wand(qx, qy, lage)
+        luft |= (dq - rand >= frei_von - GLEICH) & (dq + rand <= frei_bis + GLEICH)
+        if mit_stand is not None:
+            ms = mit_stand.stand
+            luft |= np.array(
+                [ms.hoechste_bei(x, y, rand + ms.schritt) <= lage + MATERIAL
+                 for x, y in zip(qx, qy, strict=True)]
+            )  # fmt: skip
+        return luft
+
     neben = None
     if material:
         # Steht die Stirn am Anfang nur zum Teil im Material (am Rand des Rohteils, neben dem
         # schon Geräumten): daneben in der Luft hinab und quer hinein – nicht im Kreis außerhalb
         # des Rohteils hinab (Manuel, 2026-10-12, am Ring: „du bist hier auserhalb vom rohteil
-        # ... warum zirkulierst du da nach unten“; T4 streifte das Rohteil dort mit 0,3 mm).
-        def luft_bei(qx, qy, rand):
-            """Je Punkt: steht dort (die Stirn mit Radius `rand`) nichts mehr über der Lage?"""
-            luft = ~_im_rohteil(qx, qy, w.rohteil, max(rand, 2 * GLEICH))  # 0: der Punkt
-            dq = huelle.abstand_zur_wand(qx, qy, lage)
-            luft |= (dq - rand >= frei_von - GLEICH) & (dq + rand <= frei_bis + GLEICH)
-            if mit_stand is not None:
-                ms = mit_stand.stand
-                luft |= np.array(
-                    [ms.hoechste_bei(x, y, rand + ms.schritt) <= lage + MATERIAL
-                     for x, y in zip(qx, qy, strict=True)]
-                )  # fmt: skip
-            return luft
-
+        # ... warum zirkulierst du da nach unten“; T4 streifte das Rohteil dort mit 0,3 mm) – nur,
+        # wenn der Weg quer hinein und das Einfahren die Last halten (_haelt_last).
         neben = _luft_daneben(start, r, frei, luft_bei)
+        if neben is not None and not _haelt_last(
+            _einfahrweg(neben, start, ein, (x, y), 2 * r), None, 0.0, r, w.zeilenabstand, luft_bei
+        ):
+            neben = None
         if neben is not None:
             material, oben_hier = False, lage
     hinab = neben if neben is not None else start
@@ -1379,10 +1433,19 @@ def _lauf(
     laenge = 0.0
     helix = _helix_radius(start, r, frei) if material else None
     mitte = start
-    if material and helix is None:  # am Anfang kein Platz: daneben, er liegt dann im Loch
-        daneben = _helix_daneben(start, r, frei)
-        if daneben is not None:
-            mitte, helix = daneben
+    if helix is not None and not _haelt_last(
+        _einfahrweg(mitte, start, ein, (x, y), 2 * r),
+        mitte,
+        helix + r,
+        r,
+        w.zeilenabstand,
+        luft_bei,
+    ):
+        # Nach der Helix fährt die Stirn auf der Lage zum Anfang und das Einfahren entlang; ginge
+        # das durch Material, das sie nicht gebohrt hat, schnitte sie dort in voller Breite
+        # (Prüfstand, Tasche: 12 mm, seit P-2026-10-12-162) – dann die Rampe längs der Bahn
+        # (Manuel: „wenns irgendwie geht auf eine Helix“; Grundsatz: nie in voller Breite).
+        helix, mitte = None, start
     if helix is not None:
         # Eine Helix statt der Rampe im Zickzack (Manuel, 2026-10-12: „selbst da würde ich wenns
         # irgendwie geht auf eine helix setzten“; Spezifikation Strategien, Abschnitt 5) – ab dem
@@ -1465,6 +1528,8 @@ def _anfahrt_punkte(punkte, an, lage, hinein):
 
 
 HELIX_PROBEN = 24  # so viele Punkte auf dem Kreis prüft _helix_radius
+LAST_PROBEN = 12  # so viele Punkte je Kreis prüft _haelt_last
+EINFAHRWEG_SCHRITT = 0.5  # mm – so dicht tastet _haelt_last den Einfahrweg ab
 LUFT_ANTEIL = 1 / 3  # so viel des Umfangs am Anfang muss in Luft sein für _luft_daneben
 
 
@@ -1485,24 +1550,62 @@ def _oben_unter_helix(mit_stand, mitte, radius, r, vorige, lage):
     return min(vorige, max(max(hoehen), lage + MATERIAL))
 
 
-def _helix_daneben(start, r, frei):
-    """(Mitte, Radius) einer Helix bis 0,9 Fräserradien neben `start` – so liegt der Anfang noch
-    im Loch, das sie bohrt (sein Rand 1,9 R um die Mitte), und der Weg dorthin schneidet nichts –,
-    deren Kreis frei ist (_helix_radius) und von deren Mitte der Weg zu `start` frei ist. None,
-    wenn keine passt."""
-    winkel = np.linspace(0.0, 2 * math.pi, HELIX_PROBEN, endpoint=False)
-    for anteil in (0.3, 0.6, 0.9):
-        weite = anteil * r
-        for t in winkel:
-            mitte = (start[0] + weite * math.cos(t), start[1] + weite * math.sin(t))
-            radius = _helix_radius(mitte, r, frei)
-            if radius is None or radius + weite > (1.0 + 0.9) * r - GLEICH:
-                continue
-            wx = np.linspace(mitte[0], start[0], 5)
-            wy = np.linspace(mitte[1], start[1], 5)
-            if frei(wx, wy):
-                return mitte, radius
-    return None
+def _einfahrweg(von, start, ein, bahn=None, weiter=0.0, schritt=EINFAHRWEG_SCHRITT):
+    """Die Punkte (x, y), über die die Mitte auf der Lage fährt: von `von` zum Anfang `start`,
+    dann das Einfahren `ein` (die Gerade, der Bogen) bis auf die Bahn und auf ihr (`bahn`: x, y)
+    noch `weiter` mm – je höchstens `schritt` mm auseinander."""
+    stuecke = [(von, start)]
+    if ein is not None:
+        stuecke.append((ein.aussen, ein.bogen_punkt))
+    xs, ys = [], []
+    for a, b in stuecke:
+        n = max(1, int(math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / schritt)))
+        for i in range(n + 1):
+            xs.append(a[0] + (b[0] - a[0]) * i / n)
+            ys.append(a[1] + (b[1] - a[1]) * i / n)
+    if ein is not None:
+        bogen = _Bogen(ein.bogen_punkt, ein.bahn_punkt, ein.mitte, ein.uhr)
+        n = max(1, int(math.ceil(bogen.laenge / schritt)))
+        for i in range(1, n + 1):
+            px, py = bogen.bei(i / n)
+            xs.append(px)
+            ys.append(py)
+    if bahn is not None and weiter > 0:
+        bx, by = bahn
+        gefahren = 0.0
+        for i in range(1, len(bx)):
+            a, b = (float(bx[i - 1]), float(by[i - 1])), (float(bx[i]), float(by[i]))
+            lang = math.hypot(b[0] - a[0], b[1] - a[1])
+            n = max(1, int(math.ceil(lang / schritt)))
+            for j in range(1, n + 1):
+                xs.append(a[0] + (b[0] - a[0]) * j / n)
+                ys.append(a[1] + (b[1] - a[1]) * j / n)
+            gefahren += lang
+            if gefahren >= weiter:
+                break
+    return np.array(xs), np.array(ys)
+
+
+def _haelt_last(weg, bohr_mitte, bohr_radius, r, ae, luft_bei):
+    """Hält die Stirn auf dem Weg (`weg`: x, y) die Last? Material darf sie nur in ihrem äußeren
+    Ring treffen, höchstens bahn.LAST_DAUERND · ae tief – innen nichts, außer im gebohrten Loch
+    (`bohr_mitte`, `bohr_radius`; None: keins) oder wo `luft_bei` Luft sagt."""
+    innen = r - bn.LAST_DAUERND * ae
+    if innen <= GLEICH:
+        return True
+    wx, wy = weg
+    winkel = np.linspace(0.0, 2 * math.pi, LAST_PROBEN, endpoint=False)
+    rx = np.concatenate(([0.0], innen * np.cos(winkel), 0.5 * innen * np.cos(winkel)))
+    ry = np.concatenate(([0.0], innen * np.sin(winkel), 0.5 * innen * np.sin(winkel)))
+    qx = (wx[:, None] + rx[None, :]).ravel()
+    qy = (wy[:, None] + ry[None, :]).ravel()
+    frei = np.zeros(len(qx), dtype=bool)
+    if bohr_mitte is not None:
+        frei |= np.hypot(qx - bohr_mitte[0], qy - bohr_mitte[1]) <= bohr_radius - GLEICH
+    rest = ~frei
+    if rest.any():
+        frei[rest] = luft_bei(qx[rest], qy[rest], 0.0)
+    return bool(frei.all())
 
 
 def _luft_daneben(start, r, frei, luft_bei):

@@ -543,6 +543,13 @@ ich wenns irgendwie geht auf eine helix setzten“). Für jede Strategie, in die
    Fräser, damit die Mitte nicht schneidet und die Späne nach oben können).
 3. **Zickzack-Rampe** – nur in einer geschlossenen Nut, die für eine Helix zu schmal ist.
 Gebaut für „Plan indexiert“ (P-2026-10-12-161); die anderen Strategien danach durchsehen.
+Über allem steht „nie in voller Breite“ (Abschnitt 12.1): Nach der Helix fährt der Fräser auf der
+Lage zur Bahn. Ginge das durch Material, das die Helix nicht gebohrt hat – beim ersten Umlauf einer
+geschlossenen Tasche, wo die Kontur allein räumt –, schnitte er dort mit dem ganzen Durchmesser.
+Dann gilt dort noch die Rampe längs der Bahn. Die Kontur prüft das je Einfahrt
+(`kontur_bahn._haelt_last`: innerhalb von R − 1,25 · ae nur Bohrloch, Luft oder Geräumtes, auch
+auf der ersten Fräserbreite der Bahn); ebenso das Hinab-daneben-und-quer-hinein
+(P-2026-10-16-02 – vorher, seit P-2026-10-12-162, am Prüfstand 12 mm Vollschnitt in der Tasche).
 
 0. **Die Zeit entscheidet** (Manuel, 2026-10-01: „Natürlich muss man immer
    den schnellsten Weg für das gewählte Werkzeug finden … nur muss halt auch

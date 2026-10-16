@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-02 kontur-materialstand-je-zug-und-last-beim-einfahren
+
+### EINGELESEN
+- Snapshot, Manuels Ring-Teil (2026-10-12): „Planfräsen fährt km in der Luft“, „komplette
+  anarchie“ – die Luftwege messen und beseitigen. Gemessen an einer Kopie seines Jobs „Body –
+  Fräsen“ (T4 Ø 4), neu gerechnet auf einer frisch gebauten 3-Achs-Fräse: Planfräsen 8 % Luft
+  (19,4 min: die drei Nuten auf z −4 mit dem Einsatz „Planen“, ap 0,4 – zehn Lagen; eine
+  Strategiefrage, nicht geändert), **Kontur 46 % Luft** (3,5 von 7,6 m Vorschub, 8,6 min).
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`:
+  - **Materialstand je Wandzug.** Die Kontur am Ring hat mehrere Wandzüge (die Bögen der Öffnung
+    Ø 35, die Schlitzwände), die sich eine Tasche teilen; jeder sah nur das Material vor der
+    Operation – der zweite schruppte durch die Öffnung, die der erste geräumt hatte, und tauchte
+    mit der Helix hinein. Jetzt hat die Kontur eine eigene Kopie des Materialstands
+    (`_eigener_stand`), nach jedem Zug trägt sie dessen Vorschubbahn darin ab (`_abtragen`, Bögen
+    in Sehnen von 0,5 mm). Der Materialstand des Jobs bleibt unberührt.
+  - **Nie in voller Breite beim Einfahren.** Der Prüfstand war seit P-2026-10-12-162 („Helix
+    statt Rampe“) rot – nach der Helix fuhr der Fräser auf der Lage waagrecht durch volles Material
+    zur Bahn: in der Tasche 12 mm in voller Breite, 80 mm über 1,25 ae am Stück. Jetzt prüft
+    `_haelt_last` den Weg von der Helix bzw. vom Hinab-daneben über das Einfahren bis eine
+    Fräserbreite auf der Bahn: Innerhalb von R − 1,25 · ae darf nur Bohrloch, Luft oder Geräumtes
+    liegen, sonst die Rampe längs der Bahn wie vor P-162. `_helix_daneben` (P-171) entfällt – sie
+    bohrte neben dem Start und fuhr durch das eigene Loch (am Prüfstand mehr Luft und Überlast).
+- `tests/bestmarken.json`, `tests/bestmarken_26.json`: nur die drei Kontur-Einträge neu (der
+  Schreibmodus hätte alle gesetzt, auch fremde, die um 0,3 % schwanken): tasche/kontur 3,60 →
+  2,34 min (Luft 24 → 25 %), bohrungen/kontur 5,05 → 3,46 min (Luft 22 → 21 %), platte/kontur
+  tasche 10,37 → 9,00 min (Luft 64 → 71 %: Die Helix bohrt die Mitte, der innerste Umlauf liegt
+  dann im Loch).
+- `docs/spezifikation_strategien.md`, Abschnitt 5: die Einfahrregel mit „nie in voller Breite“.
+- `package.xml` (0.260.2).
+
+### ERGEBNIS
+- Manuels Ring, Kontur T4: 8,6 → 5,5 min, Vorschub 7,6 → 4,7 m, Luft 46 → 22 %, Eilgang 6,6 →
+  4,5 m; nirgends ins Teil; an den Wänden dieselben 115 von 1088 Proben (0,15 mm vor der Wand,
+  Raster 0,1 mm) mit Material wie vorher – ein älterer Befund, im Snapshot.
+- `test_nut_offen` war seit P-171 rot (die Kontur „gewann“ in der offenen Nut mit 0,77 min durch
+  den Vollschnitt) – wieder grün.
+- Grün im Wochen-Build (27.1 dev): `test_pruefstand`, `test_kontur`, `test_materialstand`,
+  `test_rest`, `test_bohrung`, `test_nut`, `test_nut_offen`, `test_raeumen`, `test_testteil`,
+  `test_entgraten`; Szenarien `kontur`, `kontur_materialstand`. In 1.1.4: `test_pruefstand`,
+  `test_kontur`, `test_testteil`.
+
 ## P-2026-10-16-01 z-null-fuenfachs-und-g550
 
 ### EINGELESEN

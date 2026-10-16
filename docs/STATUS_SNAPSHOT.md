@@ -418,6 +418,12 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
    die Nuten für voll (47 % Luft, 1,9 m Helix durch Geräumtes). Der Z-Nullpunkt behebt beides.
    **Planfräsen fährt „km in der Luft“** (Bild: T4 Ø 4 weit über dem Teil; „Planfräsen T4“ 20 min,
    Kontur 9,1 min am kleinen Ring) – die Luftwege messen (Bahnen prüfen ohne Manuel) und beseitigen.
+   *Gemessen (2026-10-16, Kopie seines Jobs, frische 3-Achs-Fräse):* Planfräsen nur 8 % Luft – die
+   19 min kommen vom Einsatz „Planen“ (ap 0,4) in den 4 mm tiefen Nuten (zehn Lagen); ob dort
+   Räumen oder „Nut“ schneller wäre, erst messen und mit Bild zeigen (Strategiewahl). Kontur 46 %
+   Luft – *erledigt:* P-2026-10-16-02 (Materialstand je Wandzug: 8,6 → 5,5 min, 22 % Luft). Offen:
+   an den Wänden des Rings bleiben 115 von 1088 Proben 0,15 mm vor der Wand mit Material (schon
+   vorher so) – nachsehen, wo (Ecken der Schlitze? oben über −4?).
 4. **B-020** „Konnte nicht anlegen: PropertyLink does not support external object“ (Bearbeitung,
    eine neue 3-Achs-Fräse als eigenes Dokument offen, ein halber Job „Body – Fräsen“ und ein loses
    „TC: 5mm Endmill“ im Baum) – nicht nachgestellt; beim nächsten Mal steht die Fehlerspur im
