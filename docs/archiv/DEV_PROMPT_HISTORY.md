@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-69 umgespannt-zeigen-wie-es-liegt
+
+### EINGELESEN
+- Manuels Klotz mit der 45°-Fase (`~/freecad_cam/testteile/schrägemitklotz.FCStd`, als Kopie) durch
+  den neuen Weg gespielt: 5 Achsen → Ebene „Face3 (A−45 C0)“ → Räumen; 3 Achsen → Aufspannung
+  „Face3 gekippt 45°“ → Räumen. In der gekippten Aufspannung stand aber das ungekippte Teil im Bild
+  und die Bahn daneben – `zeige_job` kannte nur Ebenen, keine von Hand umgespannten Aufspannungen.
+
+### DATEIEN
+- `camaddon/gui_schwenken.py`: `zeige_job` nimmt auch die Aufspannungen eines Grundjobs (gekippt
+  gespannt, N-Eck-Stange) dazu – sichtbar ist nur das Teil und die Bahn des Jobs, in dem man
+  arbeitet.
+
+### ERGEBNIS
+- Klotz, 3 Achsen: im Assistenten der gekippten Aufspannung liegt die Fase oben, die Bahn darauf.
+- Grün im Wochen-Build: `szenario_bearbeitung_n_eck`, `szenario_schwenken`,
+  `szenario_bearbeitung_aufspannung_folge`, `szenario_schraeg_anlegen`.
+
 ## P-2026-10-16-68 vierachs-plan-flach-hinein
 
 ### EINGELESEN

@@ -427,6 +427,13 @@ def zeige_job(job):
     from . import bestueckung as bs
 
     jobs = bs.aufspannung(job)
+    # Von Hand umgespannt (gekippt gespannt, N-Eck-Stange): auch die anderen Aufspannungen – das
+    # Teil liegt in jeder anders, sonst stand in der gekippten Aufspannung das ungekippte Teil im
+    # Bild und die Bahn daneben.
+    grund = job.Grundjob if sw.ist_umspannen(job) else jobs[0]
+    for weiterer in [grund, *sw.aufspannungen_von(grund)]:
+        if weiterer not in jobs:
+            jobs.append(weiterer)
     vorher = []
     if len(jobs) < 2:
         return vorher
