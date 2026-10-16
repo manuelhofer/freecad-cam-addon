@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis -70, 0.260.45 → 0.260.66):** (dazu T-015: G550 ohne Grundstellung)
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-03, 0.260.45 → 0.260.67):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -67,6 +67,15 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
 - Der zweite volle Lauf (nach P-62): 149 von 151 grün. `szenario_maschine_bearbeiten` stürzte ab
   (behoben in P-63, danach zweimal grün); `szenario_rundum_drehmaschine` lief allein grün – im Lauf
   rechneten nebenher weitere Szenarien.
+- Die Patches der Nacht noch einmal am Code durchgesehen (P-2026-10-17-01 bis -03):
+  - Ein Eilgang hinab endet nie im Material vor der Operation (das 3D-Schlichten fuhr bis 2 mm
+    über das fertige Teil hinab – über Treppen vom Schruppen hinweg).
+  - Die Helix im Planfräsen 4 Achsen drehte im Gleichlauf falsch herum; an einer schrägen Fläche
+    keine Helix mehr, wo die Fläche höher liegt.
+  - Schräge Flächen je Lage gemerkt („unten“ geändert); neue Ebenen und gekippte Aufspannungen
+    kommen vorn in eine laufende Kette (N-Eck), statt sie zu ersetzen; mit einer Kante dazu kein
+    Planfräsen der ganzen Oberseite; ein Zapfen im Lochboden macht eine Tasche; nur Wände über
+    der Schräge gehen mit in ihre Ebene.
 
 **Der 16.10. abends (P-2026-10-16-36 bis -47, 0.260.33 → 0.260.44):**
 - Einrichtblatt: Das Fenster öffnet sofort, die Bilder kommen nach und nach; beim Halter ein Link

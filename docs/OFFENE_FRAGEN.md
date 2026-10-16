@@ -71,7 +71,8 @@ found“; Ø 16 mit Ø 12, auch Ø 16 mit Ø 10 und 0,3 Aufmaß). Dann ging am L
 (`szenario_loch_schraeg`, Manuels „Ich will nur dass Loch da fräsen“) und am Lagerbock (Gründe der
 Senkungen Ø 14) gar nichts mehr. Seit P-2026-10-16-54 meint der Boden eines Lochs bis Ø 40 das Loch:
 „Bohrung fräsen“ nimmt ihn, das Räumen nicht. Größere runde Taschen (die Platte, Ø 45) räumt das
-Räumen wie bisher.
+Räumen wie bisher, ebenso eine runde Tasche mit einem Zapfen im Boden (P-2026-10-17-03); der Boden
+einer Senkung über einer kleineren Bohrung meint die Senkung.
 *Warum nur Manuel:* Was das Addon ohne Vorgabe wählt, entscheidet er; die Grenze Ø 40 ist von mir.
 *Was die Antwort ändert:* Eine andere Grenze – oder die Grenze aus dem Fräser (z. B. Loch kleiner
 als 2 × Fräser-Ø: Bohrung fräsen, sonst Räumen). – seit 2026-10-17
