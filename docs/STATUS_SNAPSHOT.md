@@ -623,6 +623,11 @@ T1 Ø 12.
    Heute räumt das Räumen eine offene Fläche vom Rand des Rohteils her (`raeumen_bahn`, Variante
    „rohteil“/adaptiv). Das muss auf das Gebiet über den gewählten Flächen begrenzt werden.
    Nachstellen, welcher Block bei ihm lief (Räumen neben der Nut?).
+   *Erledigt fürs Räumen:* P-2026-10-16-12. Eine gewählte Fläche unter der Oberseite wird nur
+   über ihrem Umriss geräumt (einen Fräserradius darüber hinaus), durch Luft nur, soweit sie mit
+   der Fläche zusammenhängt. Am C-Ring: 0 Punkte außen, 0 in der Bohrung (vorher alles bis zum
+   Rand des Rohteils). Bei ihm lief „Räumen T2“; seine Werkzeugverwaltung (27.1) hat T1 Ø 12 und
+   T2 Ø 6. Planfräsen und Kontur sind noch nicht so durchgesehen.
    Zum Zickzack in der Nut („warum ? fahr doch einfach nen kreis“): Ist die Nut im Quader zu,
    fräst ein Fräser, der kaum schmaler ist als sie (`verfahren` → „vollnut“), mit der
    Zickzack-Rampe. Stattdessen am Ende mit der Helix (Kreis) hinab, dann geradeaus.

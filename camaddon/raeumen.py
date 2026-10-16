@@ -267,6 +267,13 @@ def bahn_fuer(
     if not ebenen:
         raise ValueError(tr("ra.fehler.keine_ebene"))
     dynamik = msp.dynamik_des_jobs(job)
+    # Gewählte Flächen unter der Oberseite (ein Nutgrund, ein Absatz): nur über ihnen räumen
+    # (Manuel, 2026-10-16). Über der Oberseite gehört alles Rohteil zu ihr, und ohne Wahl ist es
+    # die Oberseite: wie bisher vom Rand des Rohteils her.
+    nur_ueber = None
+    if flaechen:
+        hoechste = form_teil.BoundBox.ZMax - hf.TOLERANZ
+        nur_ueber = umrisse(form_teil, [e.name for e in ebenen if e.z < hoechste])
     werte = rb.Raeumwerte(
         form=form,
         zustellung=zustellung,
@@ -288,9 +295,31 @@ def bahn_fuer(
         freivorschub=freivorschub if schnell_frei else 0.0,
         eilgang=dynamik[0],
         beschleunigung=dynamik[1],
+        nur_ueber=nur_ueber,
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     return rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)
+
+
+UMRISSE_HOECHSTENS = 200  # mehr Flächen (ein Teil aus einem STL): ohne Umrisse, wie bisher
+
+
+def umrisse(form_teil, namen):
+    """{Fläche: [Schleife [(x, y) …] …]} – der Umriss jeder ebenen Fläche `namen` von oben, ihre
+    Drähte auf 0,05 mm genau (raeumen_bahn.Raeumwerte.nur_ueber). None bei zu vielen Flächen."""
+    if not namen or len(namen) > UMRISSE_HOECHSTENS:
+        return None
+    ergebnis = {}
+    for name in namen:
+        try:
+            flaeche = form_teil.getElement(name)
+            ergebnis[name] = [
+                [(float(p.x), float(p.y)) for p in draht.discretize(Deflection=0.05)]
+                for draht in flaeche.Wires
+            ]
+        except Exception:  # eine Fläche, deren Umriss sich nicht holen lässt: ohne Grenze
+            continue
+    return ergebnis or None
 
 
 def konturen_des_teils(form_teil):

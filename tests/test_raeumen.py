@@ -953,6 +953,38 @@ except ValueError:
 else:
     pruefe(False, "Freivorschub 0 akzeptiert")
 
+# --- Nur über der gewählten Fläche (Manuel, 2026-10-16, C-Ring: „ich wollte doch nur die nut
+# bearbeitet haben“): Ring Ø 84 × 20, Bohrung Ø 36, oben eine Ringnut zwischen Ø 44 und Ø 76,
+# 8 tief, ein Schlitz 20 breit; gewählt nur der Nutgrund. Das Räumen bleibt in der Nut – nicht
+# außen um den Ring, nicht in der Bohrung, nicht im Schlitz über die Nutenden hinaus.
+ring = Part.makeCylinder(42, 20).cut(Part.makeCylinder(18, 20))
+ring = ring.cut(Part.makeCylinder(38, 8, V(0, 0, 12)).cut(Part.makeCylinder(22, 8, V(0, 0, 12))))
+ring = ring.cut(Part.makeBox(30, 20, 20, V(15, -10, 0))).removeSplitter()
+doc = FreeCAD.newDocument("RaeumenRing")
+teil_ring = doc.addObject("Part::Feature", "Ring")
+teil_ring.Shape = ring
+doc.recompute()
+job_ring = PathJob.Create("Job", [teil_ring])
+doc.recompute()
+klon_ring = job_ring.Model.Group[0].Shape
+nutgrund = [e.name for e in hf.ebenen_oben(klon_ring) if abs(e.z - 12.0) < 1e-6]
+bahn_ring = ra.vorschau(
+    job_ring, job_ring.Model.Group, form, schruppen.ap, schruppen.ae, 0.3, nutgrund
+)
+daneben = [
+    (round(p.x, 1), round(p.y, 1))
+    for p in bahn_ring.punkte
+    if not p.eilgang
+    and p.z < 19.0
+    and not (22.0 - R - 0.5 <= math.hypot(p.x, p.y) <= 38.0 + R + 0.5)
+]
+pruefe(bahn_ring.ringe > 0 and not daneben, f"Ring: neben der Nut {len(daneben)} {daneben[:4]}")
+im_schlitz = [
+    p for p in bahn_ring.punkte if not p.eilgang and p.z < 19.0 and p.x > 15 and abs(p.y) < 4
+]
+pruefe(not im_schlitz, f"Ring: mitten im Schlitz {len(im_schlitz)}")
+print(ascii(f"Ring, nur der Nutgrund: {bahn_ring.variante}, {bahn_ring.zeit:.2f} min"))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

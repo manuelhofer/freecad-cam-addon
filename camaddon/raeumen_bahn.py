@@ -202,6 +202,9 @@ class Raeumwerte:
     # Wo der Adaptiv-Kern eng arbeitet (_Stand.eng) und die Last nicht hält: × ADAPTIV_SCHRITT
     # (planen misst und rechnet bei Bedarf enger).
     adaptiv_enger: float = 1.0
+    # Nur über den gewählten Flächen räumen: {Fläche: [Schleife [(x, y) …] …]} – ihr Umriss von
+    # oben (raeumen.umrisse). None: wie bisher, vom Rand des Rohteils her (_flaeche).
+    nur_ueber: dict = None
 
 
 @dataclass
@@ -2246,6 +2249,17 @@ def _flaeche(
         # räumte der Boden der kleinen Tasche rund um die Insel, 10 min und 29 Rampen statt
         # 15 s (P-2026-10-02-78).
         feld.nur = _im_vieleck(feld.xs, feld.ys, *kb._kette(tasche, toleranz, schritt))
+    ueber = None  # nur über der gewählten Fläche: wo die Spitze dafür hin muss
+    if tasche is None and w.nur_ueber and w.nur_ueber.get(ebene.name):
+        # Nur über der gewählten Fläche (Manuel, 2026-10-16, C-Ring: „ich wollte doch nur die nut
+        # bearbeitet haben .. da wo eh frei ist druchzufahen ist kein problem .. nur das andere
+        # muss ja erstmal garnicht sein“): die Spitze über ihr – bis einen Radius darüber hinaus,
+        # sonst bliebe ihr Rand stehen –, und wo kein Rohteil ist (draußen, in der Luft), je Lage
+        # dazu, was der Materialstand schon frei hat. Was davon nicht mit der Fläche
+        # zusammenhängt (draußen hinter der Ringwand am C-Ring), fällt je Lage weg (_verbunden).
+        ueber = feld.aufweiten(_ueber_der_flaeche(feld, w.nur_ueber[ebene.name]), r)
+        feld.nur = ueber | ~feld.rohteil_zellen
+    nur_ohne_stand = feld.nur if ueber is not None else None
     hoehe = naechste = None
     decke = w.oben
     if stand is not None or material is not None:
@@ -2269,7 +2283,13 @@ def _flaeche(
     w_flaeche = w
     for lage in lagen:
         lage = float(lage)
+        if nur_ohne_stand is not None and hoehe is not None:
+            feld.nur = nur_ohne_stand | (hoehe <= lage + GLEICH)  # schon frei: durchfahren
         erlaubt = feld.erlaubt_feld(lage, ziel)
+        if ueber is not None:
+            # Nur, was mit der Fläche zusammenhängt: Draußen hinter einer Wand fuhren die Ringe
+            # sonst in der Luft (am C-Ring um das ganze Rohteil).
+            erlaubt = _verbunden(erlaubt, ueber)
         if hoehe is not None and not feld.material_setzen(hoehe, naechste, lage, erlaubt):
             vorige = lage  # über der Lage nichts, was der Fräser hier wegnehmen kann
             continue
@@ -2337,6 +2357,32 @@ def _flaeche(
         st.flaechen += 1
     elif tasche is not None and _steht_in_der_tasche(feld, naechste, ziel):
         st.ausgelassen.append(ebene.name)  # Material, aber kein Ring: der Fräser passt nicht
+
+
+def _verbunden(maske, saat):
+    """Die Zellen der Maske, die über acht Nachbarn mit `saat` zusammenhängen (in der Maske)."""
+    jetzt = maske & saat
+    while True:
+        p = np.pad(jetzt, 1)
+        nachbarn = (
+            p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
+            | p[:-2, :-2] | p[2:, 2:] | p[:-2, 2:] | p[2:, :-2]
+        )  # fmt: skip
+        neu = jetzt | (maske & nachbarn)
+        if (neu == jetzt).all():
+            return neu
+        jetzt = neu
+
+
+def _ueber_der_flaeche(feld, schleifen):
+    """(nx, ny): liegt der Knoten über der Fläche mit den Umriss-Schleifen `schleifen`
+    ([(x, y) …] je Schleife: außen und Löcher) – gerade/ungerade, so zählt ein Loch heraus."""
+    maske = np.zeros((feld.nx, feld.ny), dtype=bool)
+    for schleife in schleifen:
+        if len(schleife) >= 3:
+            px, py = zip(*schleife, strict=True)
+            maske ^= _im_vieleck(feld.xs, feld.ys, px, py)
+    return maske
 
 
 def _steht_in_der_tasche(feld, naechste, ziel):

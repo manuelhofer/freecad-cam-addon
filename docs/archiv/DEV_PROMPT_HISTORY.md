@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-16-12 raeumen-nur-ueber-der-flaeche
+
+### EINGELESEN
+- Manuel (Bild, C-Ring, nur Face8 gewählt, „Räumen T2“): „ich hatte nur den inneren ring
+  ausgewählt warum wird ausenrum alles gefahren und in der mitte ich wollte doch nur die nut
+  bearbeitet haben .. da wo eh frei ist druchzufahen ist kein problem .. nur das andere muss ja
+  erstmal garnicht sein vll will ich das mit einem anderen fräser machen“; „wenn ich den matel
+  haben will ist das meine auswahl“.
+- Das Räumen räumte jede offene Fläche vom Rand des Rohteils her: alles über ihrer Höhe, auch
+  außen um den Ring, die Bohrung und den Schlitz.
+
+### DATEIEN
+- `camaddon/raeumen.py`: `umrisse` – die Drähte der gewählten ebenen Flächen von oben
+  (0,05 mm). Gilt nur für Flächen unter der Oberseite; ohne Wahl und an der Oberseite bleibt
+  alles wie bisher.
+- `camaddon/raeumen_bahn.py`:
+  - `Raeumwerte.nur_ueber`. In `_flaeche` darf die Spitze nur über dem Umriss stehen (um R
+    aufgeweitet, damit der Rand fertig wird) oder außerhalb des Rohteils bzw. dort, wo der
+    Materialstand schon frei ist.
+  - Je Lage bleibt nur, was mit der Fläche zusammenhängt (`_verbunden`). Sonst führen Ringe
+    draußen hinter der Ringwand durch die Luft.
+  - Taschen bleiben, wie sie waren (`feld.nur` ihrer Kontur).
+- `tests/test_raeumen.py`: Ring mit Ringnut und Schlitz, nur der Nutgrund gewählt. Nichts neben
+  der Nut, nichts mitten im Schlitz.
+- `package.xml` (0.260.10).
+
+### ERGEBNIS
+- C-Ring (Kopie, Face8, T3 Ø 6): 0 Punkte außerhalb r 30,5 und 0 in der Bohrung (vorher außen
+  herum und die Bohrung ganz). Die Nut selbst erreicht das Räumen weiter nur zu 64 %; dort
+  gewinnt die Nut (0.260.6).
+- Grün im Wochen-Build: `test_raeumen`, `szenario_raeumen`, `szenario_raeumen_materialstand`,
+  `szenario_testteil`.
+
 ## P-2026-10-16-11 assembly-wieder-bedienbar (B-021)
 
 ### EINGELESEN
