@@ -123,6 +123,8 @@ class RundumSchruppen(PathOp.ObjectOp):
                 ("App::PropertyBool", "Querachse", tr("vo.eigenschaft.querachse")),
                 ("App::PropertyBool", "Stetig", tr("vo.eigenschaft.stetig")),
                 ("App::PropertyBool", "NurNoetig", tr("vo.eigenschaft.nur_noetig")),
+                ("App::PropertyBool", "SektorenY", tr("vo.eigenschaft.sektoren_y")),
+                ("App::PropertyLength", "YWeg", tr("vo.eigenschaft.y_weg")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
                 ("App::PropertyString", "Anstoss", tr("vo.eigenschaft.anstoss")),
             ),
@@ -276,7 +278,16 @@ def rechne(obj, job, modell, fraeser_radius):
         schritt_a=au.wert(obj, vh.SCHRITT_A),
         schritt_phi=au.wert_rundum(obj, vh.SCHRITT_PHI),
         oben=ueber_der_schneide(obj.ToolController),
+        sektoren_y=bool(getattr(obj, "SektorenY", False)),
+        y_weg=y_weg_von(obj),
     )
+
+
+def y_weg_von(obj):
+    """So weit fährt die Querachse von der Mitte aus (Schruppwerte.y_weg): die Eigenschaft YWeg
+    der Operation, 0 oder ohne sie: unbegrenzt."""
+    wert = float(getattr(obj, "YWeg", 0.0) or 0.0)
+    return wert if wert > 0.0 else math.inf
 
 
 def ueber_der_schneide(tc):
@@ -347,6 +358,8 @@ def bahn_fuer(
     stetig=False,
     nur_noetig=False,
     oben=(),
+    sektoren_y=False,
+    y_weg=math.inf,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -356,7 +369,9 @@ def bahn_fuer(
     die Spirale im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `querachse`: die
     Spirale mit der Querachse (vierachs_bahn.Schruppwerte.querachse), `stetig`: C dreht dabei nie
     zurück (Schruppwerte.stetig), `nur_noetig`: Folgelagen nur, wo die davor über der Hüllfläche
-    blieb (Schruppwerte.nur_noetig). ValueError mit einem Satz, wenn es nicht geht."""
+    blieb (Schruppwerte.nur_noetig); `sektoren_y`: in Sektoren Zeilen mit Y bei stehender
+    Rundachse (Schruppwerte.sektoren_y, W-026), `y_weg`: so weit fährt Y von der Mitte aus
+    (Schruppwerte.y_weg). ValueError mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -389,6 +404,8 @@ def bahn_fuer(
         stetig=stetig,
         nur_noetig=nur_noetig,
         oben=tuple(oben),
+        sektoren_y=sektoren_y,
+        y_weg=y_weg,
     )
     uhren.atmen()  # beim Anlegen: die Wände am Geist (STL) 0,1–0,5 s – das Fenster zeichnet neu
     netz = vh.vernetze(teil)
@@ -422,6 +439,8 @@ def bahn_fuer(
                 "stetig",
                 "nur_noetig",
                 "oben",
+                "sektoren_y",
+                "y_weg",
             )
         ),
         schritt_a,
@@ -551,6 +570,8 @@ def lege_an(
     querachse=False,
     stetig=True,
     nur_noetig=True,
+    sektoren_y=False,
+    y_weg=0.0,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
@@ -589,6 +610,8 @@ def lege_an(
     obj.Querachse = bool(querachse)
     obj.Stetig = bool(stetig)
     obj.NurNoetig = bool(nur_noetig)
+    obj.SektorenY = bool(sektoren_y)
+    obj.YWeg = float(y_weg) if y_weg and math.isfinite(y_weg) else 0.0
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -638,6 +661,8 @@ def aendere(
     querachse=None,
     stetig=None,
     nur_noetig=None,
+    sektoren_y=None,
+    y_weg=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
@@ -666,6 +691,12 @@ def aendere(
         obj.Stetig = bool(stetig)
     if nur_noetig is not None and bool(nur_noetig) != bool(getattr(obj, "NurNoetig", True)):
         obj.NurNoetig = bool(nur_noetig)
+    if sektoren_y is not None and bool(sektoren_y) != bool(getattr(obj, "SektorenY", False)):
+        obj.SektorenY = bool(sektoren_y)
+    if y_weg is not None:
+        wert = float(y_weg) if y_weg and math.isfinite(y_weg) else 0.0
+        if abs(wert - float(getattr(obj, "YWeg", 0.0) or 0.0)) > 1e-9:
+            obj.YWeg = wert
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

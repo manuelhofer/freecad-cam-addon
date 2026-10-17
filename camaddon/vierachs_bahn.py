@@ -142,7 +142,11 @@ QUER_SPRUNG = 4
 QUER_SPRUNG_MITTE = 3.0
 QUER_UEBERGANG = 0.05  # mm
 QUER_UMGEBUNG = 3  # Schritte davor und danach
-QUER_MEHR_LAGEN = 3  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
+QUER_MEHR_LAGEN = 3
+# Grad – so weit darf ein Sektor-Stück mit Y um die Mitte reichen (Schruppwerte.sektoren_y): Die
+# Werkzeugachse bleibt parallel zum Strahl auf die Mitte, am Rand steht sie um so viel schräg zur
+# Fläche; weiter teilt sich der Sektor, die Rundachse dreht dazwischen.
+SEKTOR_Y_HALB = 45.0  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
 # Beim Zusammenfassen mit der Querachse (_zusammen_quer): so weit darf die Kugelmitte zwischen
 # zwei bleibenden Punkten nach innen (zum Teil) und seitlich (an eine andere Stelle derselben
 # Bahn) von den ausgelassenen Punkten abweichen; nach außen BAHN_TOLERANZ.
@@ -251,6 +255,16 @@ class Schruppwerte:
     # ins Teil kommt (Manuels Ring, 2026-10-12: durch die Schlitze 52 mm tief mit N 19 – der
     # Halter stand im Teil). Leer: nur die Schneide.
     oben: tuple = ()
+    # Mit der Querachse und „nur nötig“: Steht über einer Lage nur noch in Sektoren etwas (ein
+    # Ring mit Schlitzen), fährt sie dort Zeilen mit der Querachse bei stehender Rundachse –
+    # die Werkzeugachse parallel zum Strahl auf die Mitte des Sektors, Y quer über seine Breite,
+    # Zeilen längs der Stange (W-026; Manuel, 2026-10-17: „segmente, wo die y achse hinkommt, dann
+    # wegfährt und die c achse dreht … man [kann] die c achse sperren und muss nicht den riemen
+    # stressen“). Sonst die Spirale mit der Querachse auch dort.
+    sektoren_y: bool = False
+    # So weit fährt die Querachse von der Mitte aus (mm, ± – nach stirnseite.y_nutzen); reicht sie
+    # nicht über einen Sektor, teilt er sich: ein C-Schritt dazwischen. inf: unbegrenzt.
+    y_weg: float = math.inf
 
 
 @dataclass(frozen=True)
@@ -701,10 +715,10 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         Manuels Ring (drei Segmente mit Schlitzen): Die tiefen Lagen kreisten zu 70 … 90 %
         durch Luft. Dann fährt die Lage Zeilen in den Sektoren, wie mit gewählten Flächen (V4),
         statt der Spirale."""
-        # Nicht mit der Querachse: Zeilen mit dem radialen Fräser ließen der Kugel an der Nase
-        # das Doppelte stehen (22 statt 12 cm³, bis 58 mm² je mm) – die angestellte Spirale kommt
-        # näher an die schrägen Flächen. Zeilen in den Sektoren mit Anstellung: ein eigener Schritt.
-        if not w.nur_noetig or w.querachse or lage < 2:
+        # Mit der Querachse nur als Zeilen mit Y (sektoren_y, W-026): Zeilen mit dem radialen
+        # Fräser ließen der Kugel an der Nase das Doppelte stehen (22 statt 12 cm³, bis 58 mm² je
+        # mm) – die angestellte Spirale kommt näher an die schrägen Flächen.
+        if not w.nur_noetig or (w.querachse and not w.sektoren_y) or lage < 2:
             return None
         davor_r = w.stange_radius - (lage - 1) * w.zustellung
         noetig = (tiefe < davor_r - BAHN_TOLERANZ) & im_lauf[:, None] & bis_vorn
@@ -755,12 +769,186 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             rest.fahren(punkte, anfang_lage, w.form if w.form is not None else w.fraeser_radius)
         return gefahren
 
+    def sektor_lage_y(lage, noetig, davor_r, rest):
+        """Die Lage als Zeilen mit der Querachse in den Sektoren (Schruppwerte.sektoren_y, W-026):
+        Je Sektor steht die Rundachse auf seiner Mitte, die Werkzeugachse bleibt parallel zum
+        Strahl dorthin, die Querachse fährt über die Breite: Zeilen längs der Stange im Abstand
+        der Steigung, hin und her (nur im Gleichlauf: jede von vorn), die Spitze auf der
+        Hüllfläche des Fräsers in dieser Stellung (vierachs_huelle.je_stellung) und höchstens die
+        Zustellung unter der Stange (vierachs_quer.lagen_grenze). Reicht Y nicht über den Sektor
+        (w.y_weg), teilt er sich, die Rundachse dreht dazwischen. Die Stirnseite der Stange vor
+        dem Teil (das Planaufmaß, rundum) nimmt davor je Lage ein Ring mit der Flanke, wie die
+        Spirale. Gibt 1 zurück, wenn die Lage Punkte bekam."""
+        n_phi = noetig.shape[1]
+        ebene = davor_r - w.zustellung
+        gefahren = 0
+        # --- Vor dem Teil: die Stirnseite rundum, ein Ring je Lage -------------------------
+        vorn = huelle.a > teil_vorne + GLEICH
+        vorn_zeilen = np.flatnonzero(vorn & noetig.any(axis=1))
+        ringe_vorn = []
+        if len(vorn_zeilen):
+            # Von der vordersten nötigen Stelle aus nach hinten im Abstand der Steigung, solange
+            # die Flanke noch vor das Teil reicht – am Ring eine (die Flanke nimmt 2 R breit).
+            a_ring = float(huelle.a[vorn_zeilen].max())
+            while a_ring - radius >= teil_vorne - GLEICH:
+                ringe_vorn.append(a_ring)
+                a_ring -= w.steigung
+        for a_i in ringe_vorn:
+            # Nicht tiefer als die Hüllfläche dieser Stelle (die Scheibe streift die Vorderkante
+            # des Teils) – sonst schnitte der Ring in den Mantel.
+            i = int(np.argmin(np.abs(huelle.a - a_i)))
+            x_i = max(ebene, 0.0, w.r_tiefste, float(tiefe[i].max()))
+            if x_i >= w.stange_radius - LEER:
+                continue
+            steht = float(rest.stand(np.array([a_i]), n_phi, 360.0 / n_phi).max())
+            if steht <= x_i + BAHN_TOLERANZ:
+                continue  # die Ringe davor haben dort schon alles genommen
+            psi = punkte[-1].phi
+            punkte.append(Punkt(True, a_anfang, sicher, psi))
+            punkte.append(Punkt(True, a_anfang, x_i, psi))
+            punkte.append(Punkt(False, a_i, x_i, psi))
+            schritte = int(round(360.0 / HOECHSTENS_GRAD))
+            for s_ in range(1, schritte + 1):
+                punkte.append(Punkt(False, a_i, x_i, psi + drehung * 360.0 * s_ / schritte))
+            punkte.append(Punkt(True, a_i, sicher, punkte[-1].phi))
+            gefahren = 1
+        # --- Am Teil: die Sektoren als Zeilen mit Y -----------------------------------------
+        koerper = noetig & ~vorn[:, None]
+        spalten = np.flatnonzero(koerper.any(axis=0))
+        if not len(spalten):
+            return gefahren
+        form_ = w.form if w.form is not None else ff.scheibe(radius)
+        geformt = ff.scheibe(radius + zugabe) if form_.eben else form_.mit_aufmass(zugabe)
+        tiefer = lage * w.zustellung
+        grad = 360.0 / n_phi
+        # So weit darf ein Stück um seine Mitte reichen, dass Y bis an seinen Rand kommt (am
+        # Radius der Lage davor, dazu der Fräserradius) – und nie bis quer zur Werkzeugachse.
+        if math.isfinite(w.y_weg) and davor_r > GLEICH:
+            halb = math.degrees(math.asin(min(max(w.y_weg - radius, 0.0) / davor_r, 1.0)))
+            halb = min(max(halb, grad), SEKTOR_Y_HALB)  # mindestens eine Spalte
+        else:
+            halb = SEKTOR_Y_HALB
+        zeilen_abstand = max(w.steigung, GLEICH)
+        stellen_alle = huelle.a[im_lauf]
+        stellen_alle = stellen_alle[np.argsort(-stellen_alle)]  # von vorn nach hinten
+        for gruppe in _kreis_gruppen(spalten, n_phi):
+            breite = (len(gruppe) - 1) * grad
+            stuecke = max(1, int(math.ceil(breite / (2.0 * halb) - 1e-9)))
+            for stueck in np.array_split(np.asarray(gruppe), stuecke):
+                j_mitte = 0.5 * (stueck[0] + stueck[-1])  # fortlaufend, über die Naht hinweg
+                psi0 = j_mitte * grad
+                richtung = math.radians(psi0 % 360.0)
+                # Die Zellen des Stücks: nötig, mit ihrem Boden und dem Radius darüber (die Lage
+                # davor) – ihr Versatz quer von der Mitte aus liegt zwischen beiden.
+                j_s = np.asarray(stueck) % n_phi
+                i_z, jj = np.nonzero(koerper[:, j_s])
+                if not len(i_z):
+                    continue
+                delta = np.radians((np.asarray(stueck)[jj] - j_mitte) * grad)
+                boden_z = np.maximum(tiefe[i_z, j_s[jj]], ebene)
+                q_a, q_b = boden_z * np.sin(delta), davor_r * np.sin(delta)
+                q_von = float(min(q_a.min(), q_b.min())) - radius
+                q_bis = float(max(q_a.max(), q_b.max())) + radius
+                if math.isfinite(w.y_weg):
+                    q_von, q_bis = max(q_von, -w.y_weg), min(q_bis, w.y_weg)
+                if q_bis - q_von <= 2.0 * radius + GLEICH:
+                    reihen = np.array([0.5 * (q_von + q_bis)])
+                else:
+                    anzahl = int(math.ceil((q_bis - q_von - 2.0 * radius) / zeilen_abstand - 1e-9))
+                    reihen = np.linspace(q_von + radius, q_bis - radius, anzahl + 1)
+                # Längs: von vorn (aus der Luft) bis hinter die hinterste nötige Zelle.
+                a_hinten = float(huelle.a[i_z].min()) - radius
+                stellen = stellen_alle[stellen_alle >= a_hinten - GLEICH]
+                if not len(stellen):
+                    continue
+                m, n_s = len(reihen), len(stellen)
+                q_m = np.repeat(reihen, n_s)
+                a_m = np.tile(stellen, m)
+                stelle = np.clip(a_m, teil_hinten, teil_vorne)
+                richtung_m = np.full(m * n_s, richtung)
+                hoehe = vh.je_stellung(netz, laengs, radial, geformt, richtung_m, q_m, stelle)
+                x_h = np.where(np.isfinite(hoehe), hoehe + zugabe, -np.inf)
+                if stufen_quer:
+                    x_h = x_h + _stufen_hoeher(
+                        netz, laengs, radial, stufen_quer, richtung_m, q_m,
+                        np.maximum(x_h, w.r_tiefste), stelle, aussen_teil, zugabe, radius,
+                    )  # fmt: skip
+                grenze = vq.lagen_grenze(w.stange_radius, q_m, radius, tiefer)
+                davor_g = vq.lagen_grenze(w.stange_radius, q_m, radius, tiefer - w.zustellung)
+                x = np.maximum(np.maximum(x_h, grenze), w.r_tiefste)
+                leer = rest.leer(a_m, x, np.full(m * n_s, psi0), q_m, radius)
+                # Nötig, wo in der Stange (vor ihr ist Luft) unter der Lage davor noch etwas steht.
+                noetig_m = (
+                    (x < davor_g - BAHN_TOLERANZ) & ~leer & (a_m <= w.a_stange_vorne + GLEICH)
+                )
+                x, noetig_m, leer = (v.reshape(m, n_s) for v in (x, noetig_m, leer))
+                zeilen = [z for z in range(m) if noetig_m[z].any()]
+                if not zeilen:
+                    continue
+                # Alle Zeilen des Stücks gleich lang (bis zur hintersten nötigen Stelle): So geht
+                # es hinten nur quer zur nächsten Zeile, nicht schräg durchs Material.
+                bis = max(int(np.flatnonzero(noetig_m[z]).max()) for z in zeilen)
+                psi_jetzt = psi0 + 360.0 * round((punkte[-1].phi - psi0) / 360.0)
+                _eilgang(punkte, a_anfang, sicher, psi_jetzt)
+                hin = True
+                for nr, z in enumerate(zeilen):
+                    q = float(reihen[z])
+                    a_z, x_z = stellen[: bis + 1], x[z, : bis + 1]
+                    frei_z = _quer_schrupp_frei(
+                        a_z, x_z, np.full(bis + 1, q), np.full(bis + 1, psi_jetzt), radius,
+                        w.stange_radius, leer[z, : bis + 1],
+                    )  # fmt: skip
+                    if not hin:
+                        a_z, x_z, frei_z = a_z[::-1], x_z[::-1], frei_z[::-1]
+                    fest = np.flatnonzero(frei_z[:-1] != frei_z[1:]).tolist()
+                    bleibt = _zusammengefasst(
+                        x_z, max(BAHN_TOLERANZ, spiel), abstand, fest, innen=spiel
+                    )
+                    x_b = _gehoben(x_z, bleibt)
+                    if nr == 0 or w.nur_gleichlauf:
+                        # Von vorn aus der Luft: im Eilgang über den Anfang und hinab.
+                        punkte.append(Punkt(True, float(a_z[0]), sicher, psi_jetzt, q=q))
+                        punkte.append(Punkt(True, float(a_z[0]), float(x_b[0]), psi_jetzt, q=q))
+                        erster = 1
+                    else:
+                        erster = 0  # quer zur nächsten Zeile im Vorschub, hinten wie vorn
+                    for i, x_i in zip(bleibt[erster:], x_b[erster:], strict=True):
+                        punkte.append(
+                            Punkt(
+                                False,
+                                float(a_z[i]),
+                                float(x_i),
+                                psi_jetzt,
+                                q=q,
+                                frei=bool(frei_z[i]),
+                            )
+                        )
+                    if w.nur_gleichlauf:
+                        punkte.append(Punkt(True, float(a_z[-1]), sicher, psi_jetzt, q=q))
+                    else:
+                        hin = not hin
+                if not w.nur_gleichlauf:
+                    punkte.append(Punkt(True, punkte[-1].a, sicher, psi_jetzt, q=punkte[-1].q))
+                gefahren = 1
+        return gefahren
+
     if w.querachse:
         spirale_ = (a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte)
         rahmen_ = (a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher)
+        aussen_teil = vh.teil_aussen(netz, laengs, radial)
+        abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+        spiel = schrupp_spiel(w.aufmass)
+        sektor_y = None
+        if w.sektoren_y and w.nur_noetig:
+
+            def sektor_y(lage, rest):
+                sektor = sektoren(lage)
+                return None if sektor is None else sektor_lage_y(lage, *sektor, rest)
+
         gefahren = _schruppen_quer(
-            punkte, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi, stufen_quer
-        )
+            punkte, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi, stufen_quer,
+            sektor_y=sektor_y,
+        )  # fmt: skip
         if 0 < lagen < gefahren:
             # Neben dem Strahl hält die Grenze je Lage (vierachs_quer.lagen_grenze) höher als
             # auf ihm: Mit gleich tiefen Lagen bis genau ans Teil blieb seitlich ein dünner Rest
@@ -947,8 +1135,53 @@ class _Rest:
         return weit & drin & (hoechstes <= x + FREI_REST)
 
 
+def _stufen_hoeher(
+    netz, laengs, radial, stufen, richtung, q_s, x_s, stelle, aussen, zugabe, radius
+):
+    """Um so viel höher muss die Spitze je Stellung (Richtung rad, Versatz quer q_s, Spitze x_s,
+    Stelle längs), damit Schaft und Halter (`stufen`: ((Radius, ab der Spitze), …),
+    Schruppwerte.oben) nicht ins Teil kommen – je Stufe gerechnet in der Stellung des Fräsers
+    (P-2026-10-16-37). `aussen`: so weit reicht das Teil von der Stangenachse – reicht es nirgends
+    bis an die Stufe, berührt sie es nicht."""
+    hoeher = np.zeros(len(x_s))
+    for r_s, ab in stufen:
+        # Die Scheibe der Stufe liegt längs der Werkzeugachse x_s + ab von der Stangenachse –
+        # jeder ihrer Punkte mindestens so weit. Reicht das Teil nirgends so weit hinaus, berührt
+        # sie es nicht: nur die anderen rechnen (am Geist sonst je Lage alle Stellungen ein
+        # zweites Mal).
+        nah = np.flatnonzero(x_s + ab - zugabe < aussen)
+        if not len(nah):
+            continue
+        geformt = ff.scheibe(max(r_s, radius) + zugabe)
+        hoehe = vh.je_stellung(netz, laengs, radial, geformt, richtung[nah], q_s[nah], stelle[nah])
+        hoeher[nah] = np.maximum(
+            hoeher[nah], np.nan_to_num(hoehe + zugabe - ab - x_s[nah], neginf=0.0)
+        )
+    return hoeher
+
+
+def _kreis_gruppen(spalten, n):
+    """Die Spalten (aufsteigende Indizes 0 … n−1 rundum) in zusammenhängenden Gruppen, über die
+    Naht bei n hinweg (die Indizes dann fortlaufend ≥ n): [[j, j+1, …], …]."""
+    spalten = [int(j) for j in spalten]
+    if not spalten:
+        return []
+    gruppen, gruppe = [], [spalten[0]]
+    for j in spalten[1:]:
+        if j == gruppe[-1] + 1:
+            gruppe.append(j)
+        else:
+            gruppen.append(gruppe)
+            gruppe = [j]
+    gruppen.append(gruppe)
+    if len(gruppen) > 1 and gruppen[0][0] == 0 and gruppen[-1][-1] == n - 1:
+        erste = gruppen.pop(0)
+        gruppen[-1].extend(j + n for j in erste)
+    return gruppen
+
+
 def _schruppen_quer(
-    punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, schritt_phi, stufen=()
+    punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, schritt_phi, stufen=(), sektor_y=None
 ):
     """Die Lagen von „Rundum schruppen“ mit der Querachse (P-2026-10-03-23): je Lage der Plan
     einer Kugel mit dem Radius des Fräsers (_quer_plan auf ihrer Hüllfläche mit Aufmaß), die
@@ -959,7 +1192,10 @@ def _schruppen_quer(
     kommt, je Stufe gerechnet in der Stellung des Fräsers (Richtung, Versatz quer). Bis
     P-2026-10-16-37 auf dem Strahl durch die Stangenachse: Neben der schmalen Nase traf der das
     Teil, der versetzte Fräser nicht – der Schaft hielt die Spitze zu Unrecht oben, und die Kugel
-    nahm danach bis 16,8 mm² je mm. Gibt die Zahl der Lagen zurück."""
+    nahm danach bis 16,8 mm² je mm. `sektor_y(lage, rest)`: steht über der Lage nur noch in
+    Sektoren etwas, fährt es sie als Zeilen mit Y bei stehender Rundachse (sektor_lage_y, W-026)
+    und gibt zurück, ob sie Punkte bekam – sonst None, dann die Spirale. Gibt die Zahl der Lagen
+    zurück."""
     a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte = spirale
     a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher = rahmen_
     radius = w.fraeser_radius
@@ -1015,23 +1251,9 @@ def _schruppen_quer(
             q_s = x_p * np.sin(d) + q_p * np.cos(d)
             x_s = x_p * np.cos(d) - q_p * np.sin(d)
             stelle = np.clip(a_p, teil_hinten, teil_vorne)
-            hoeher = np.zeros(len(x_p))
-            for r_s, ab in stufen:
-                # Die Scheibe der Stufe liegt längs der Werkzeugachse x_s + ab von der
-                # Stangenachse – jeder ihrer Punkte mindestens so weit. Reicht das Teil nirgends
-                # so weit hinaus, berührt sie es nicht: nur die anderen rechnen (am Geist sonst
-                # je Lage alle Stellungen ein zweites Mal).
-                nah = np.flatnonzero(x_s + ab - zugabe < aussen)
-                if not len(nah):
-                    continue
-                geformt = ff.scheibe(max(r_s, radius) + zugabe)
-                hoehe = vh.je_stellung(
-                    netz, laengs, radial, geformt, richtung[nah], q_s[nah], stelle[nah]
-                )
-                hoeher[nah] = np.maximum(
-                    hoeher[nah], np.nan_to_num(hoehe + zugabe - ab - x_s[nah], neginf=0.0)
-                )
-            x_p = x_p + hoeher
+            x_p = x_p + _stufen_hoeher(
+                netz, laengs, radial, stufen, richtung, q_s, x_s, stelle, aussen, zugabe, radius
+            )
         x = np.maximum(np.maximum(x_p, grenze), w.r_tiefste)
         noch = bool(np.any(grenze > x_p + BAHN_TOLERANZ))
         return a_p, x, x_p, q_p, psi_p, fest, normale, noch
@@ -1041,6 +1263,17 @@ def _schruppen_quer(
     rest = _rest_neu(w)
     while True:
         lage += 1
+        if sektor_y is not None and lage >= 2:
+            anfang_lage = len(punkte)
+            im_sektor = sektor_y(lage, rest)
+            if im_sektor is not None:
+                # Die Lage fuhr Zeilen in den Sektoren; die Spirale danach beginnt, wo die
+                # Rundachse steht (_quer_ausgeben rechnet den Winkel fortlaufend).
+                gefahren += im_sektor
+                rest.fahren(punkte, anfang_lage, form)
+                if lage >= lagen + QUER_MEHR_LAGEN:
+                    return gefahren
+                continue
         a_p, x, x_p, q_p, psi_p, fest, normale, noch = lage_rechnen(versatz, lage * w.zustellung)
         if lage > 1 and w.nur_noetig:
             # Nur so weit, wie die Lage davor noch über der Hüllfläche blieb (P-2026-10-11-57):

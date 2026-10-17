@@ -755,8 +755,30 @@ Bohrung, von vorn eingefahren; vor dem Teil, wo die Stirn rundum nichts trifft, 
 Zeile, wenn ihre Flanke bis zur Stangenstirn reicht. Der Rest nach der Lage wird mitgeführt
 (`_Rest`), die nächste Lage beginnt, wo diese endete. Am Ring (drei Segmente mit Schlitzen, T Ø 4,
 ap 3, ae 1): 100 → 11 km Weg, 68 → 10 % Luft, 70 → 11 min; gleicher Abtrag (±0,5 cm³), nichts
-ins Teil. Mit Querachse bleibt die Spirale (Frage 1 in `OFFENE_FRAGEN.md`). Bild:
-`docs/bilder/vorschlaege/ring_sektoren.png`.
+ins Teil. Bild: `docs/bilder/vorschlaege/ring_sektoren.png`.
+
+**V3j – Sektoren als Zeilen mit Y, C steht** (W-026; Manuel, 2026-10-17 zu Frage 1: „segmente,
+wo die y achse hinkommt, dann wegfährt und die c achse dreht … man [kann] die c achse sperren
+und muss nicht den riemen stressen … aber nur beim schruppen“; P-2026-10-17-48): Mit der
+Querachse, „Folgelagen nur, wo nötig“ und dem Haken „Sektoren in Zeilen mit Y – C steht“
+(`Schruppwerte.sektoren_y`, Operation `SektorenY`, vorbelegt an) fährt eine Sektorlage je Sektor
+(`_kreis_gruppen` der nötigen Spalten, ohne die Stellen vor dem Teil) mit der Rundachse auf der
+Sektormitte ψ₀: die Werkzeugachse parallel zum Strahl dorthin, die Spitze je Zeile q (Abstand
+die Steigung, über die Breite der nötigen Zellen ± Fräserradius) auf der Hüllfläche des Fräsers
+in dieser Stellung (`vierachs_huelle.je_stellung`, Schaft und Halter `_stufen_hoeher`) und
+höchstens die Zustellung unter der Stange (`vierachs_quer.lagen_grenze`); nötig, wo in der Stange
+unter der Lage davor noch etwas steht (Rest `_Rest.leer`). Zeilen längs von vorn aus der Luft bis
+hinter die hinterste nötige Zelle, alle gleich lang, hin und her (nur im Gleichlauf: jede von
+vorn). Vor dem Teil je Lage ein Ring mit der Flanke für die Stirnseite der Stange (ab der
+vordersten nötigen Stelle, im Abstand der Steigung, solange die Flanke vor das Teil reicht, nie
+unter die Hüllfläche der Stelle). Reicht Y nicht über den Sektor (`Schruppwerte.y_weg`, aus den
+Grenzen der Y-Achse der Maschine nach `stirnseite.y_nutzen`; Operation `YWeg`, 0 = unbegrenzt),
+teilt er sich in Stücke bis 2·asin((y_weg − R)/r) Breite, höchstens 2·`SEKTOR_Y_HALB` (90°) – C
+dreht dazwischen. Am Ring mit Querachse: 151 → 11,4 km Weg, 88 → 12 % Luft, 105,6 → 11,4 min,
+nichts ins Teil (Voxel 0,5); mit Y auf ±5 mm begrenzt 11,6 min (drei Stücke je Schlitz). An der
+Nase: 12,1 statt 12,2 min, aber der Rest für die Kugel 20,7 statt 14,2 cm³ (bis 7,9 statt
+4,1 mm² je mm) – die angestellte Spirale folgt den schrägen Flächen, die Zeilen mit parallelem
+Fräser nicht; dort den Haken abwählen. Bild: `docs/bilder/vorschlaege/ring_sektoren_y.png`.
 
 **V4 – Flächen wählen** (bisher V3)
 

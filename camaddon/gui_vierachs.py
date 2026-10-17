@@ -639,6 +639,7 @@ class VierachsPanel:
         self._schlichten_selbst = False  # der Assistent setzt ihn gerade selbst
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
         self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
+        self._sektoren_y_von_hand = False  # „Sektoren in Zeilen mit Y“ von Hand gesetzt
         self._anstellen_von_hand = False  # der Haken „Kugel anstellen“ von Hand gesetzt
         self._stetig_von_hand = False  # der Haken „C dreht nicht zurück“ von Hand gesetzt
         self._querachse_schruppen_von_hand = False  # … beim Schruppen
@@ -929,6 +930,11 @@ class VierachsPanel:
             self._stetig_schruppen_vorschlagen()
             self.schruppen_noetig.setChecked(
                 self.schruppen_noetig.isEnabled() and bool(getattr(op, "NurNoetig", True))
+            )
+            self._sektoren_y_von_hand = True
+            self._sektoren_y_vorschlagen()
+            self.schruppen_sektoren_y.setChecked(
+                self.schruppen_sektoren_y.isEnabled() and bool(getattr(op, "SektorenY", False))
             )
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
         # Die Auflösung: nur ein gesetzter Wert (0 ist der Vorschlag und bleibt grau).
@@ -1460,6 +1466,13 @@ class VierachsPanel:
         self.schruppen_noetig.setToolTip(tr("va.nur_noetig.tooltip"))
         self.schruppen_noetig.toggled.connect(lambda _an: self._noetig_umgeschaltet())
         schruppen.ganz(self.schruppen_noetig)
+        # Steht nur noch in Sektoren etwas: Zeilen dort mit Y bei stehender Rundachse (W-026;
+        # Manuel, 2026-10-17: „man [kann] die c achse sperren … nur beim schruppen“) – mit der
+        # Querachse und „nur nötig“ frei, dann angehakt.
+        self.schruppen_sektoren_y = QtGui.QCheckBox(tr("va.sektoren_y"))
+        self.schruppen_sektoren_y.setToolTip(tr("va.sektoren_y.tooltip"))
+        self.schruppen_sektoren_y.toggled.connect(lambda _an: self._sektoren_y_umgeschaltet())
+        schruppen.ganz(self.schruppen_sektoren_y)
         self.schruppfelder = schruppen.widget
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
@@ -2442,6 +2455,48 @@ class VierachsPanel:
         self._haken_setzen(
             self.schruppen_noetig, not self.flaechen() or quer, self._noetig_von_hand
         )
+        self._sektoren_y_vorschlagen()
+
+    def _sektoren_y_vorschlagen(self):
+        """„Sektoren in Zeilen mit Y – C steht“: frei mit der Querachse und „Folgelagen nur, wo
+        nötig“ (die Sektoren gibt es nur so), dann angehakt, solange man ihn nicht von Hand
+        gesetzt hat."""
+        geht = self.querachse_schruppen() and self.nur_noetig() and not self.flaechen()
+        self._haken_setzen(self.schruppen_sektoren_y, geht, self._sektoren_y_von_hand)
+
+    def sektoren_y(self):
+        """Beim Schruppen mit der Querachse Sektoren als Zeilen mit Y (angehakt und möglich)?"""
+        return self.schruppen_sektoren_y.isEnabled() and self.schruppen_sektoren_y.isChecked()
+
+    def _sektoren_y_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._sektoren_y_von_hand = True
+        self._vorschau_starten()
+
+    def y_weg(self):
+        """So weit fährt die Querachse der gewählten Maschine von der Mitte aus (mm, ± – nach
+        ihrem Y-Anteil, stirnseite.y_nutzen): aus den Grenzen des Gelenks ihrer Y-Achse; ohne
+        Maschine oder Grenzen unbegrenzt (math.inf)."""
+        from . import kette as kt
+        from . import maschine as m
+        from . import stirnseite as st
+
+        wahl = self.maschinenwahl()
+        if not isinstance(wahl, va.Maschinenwahl):
+            return math.inf
+        for ba in m.betriebsarten(wahl.maschine):
+            if ba.Art != m.ART_LINEAR or m.programmname(ba).upper() != "Y":
+                continue
+            gelenk = getattr(ba, "Gelenk", None)
+            if gelenk is None:
+                return math.inf
+            unten, oben = kt._begrenzung(gelenk, kt.LINEAR)
+            if unten is None or oben is None:
+                return math.inf
+            weg = min(abs(unten), abs(oben)) * st.y_nutzen(wahl.maschine) / 100.0
+            return weg if weg > 0 else math.inf
+        return math.inf
 
     def stetig_schruppen(self):
         """Beim Schruppen mit der Querachse dreht C nicht zurück (angehakt und möglich)?"""
@@ -2461,6 +2516,7 @@ class VierachsPanel:
         if self._fuellt:
             return
         self._noetig_von_hand = True
+        self._sektoren_y_vorschlagen()
         self._vorschau_starten()
 
     def _querachse_umgeschaltet(self):
@@ -3937,6 +3993,8 @@ class VierachsPanel:
             "stetig": self.stetig_schruppen(),
             "nur_noetig": self.nur_noetig(),
             "oben": vo.stufen_des_werkzeugs(werkzeug, self.bibliothek),
+            "sektoren_y": self.sektoren_y(),
+            "y_weg": self.y_weg(),
         }
 
     @staticmethod
@@ -4935,6 +4993,8 @@ class VierachsPanel:
                         querachse=self.querachse_schruppen(),
                         stetig=self.stetig_schruppen(),
                         nur_noetig=self.nur_noetig(),
+                        sektoren_y=self.sektoren_y(),
+                        y_weg=self.y_weg(),
                     )
                     self._aufloesung_setzen(neu_schruppen)
                     angelegt.append(neu_schruppen)
@@ -5170,6 +5230,8 @@ class VierachsPanel:
                         querachse=self.querachse_schruppen(),
                         stetig=self.stetig_schruppen(),
                         nur_noetig=self.nur_noetig(),
+                        sektoren_y=self.sektoren_y(),
+                        y_weg=self.y_weg(),
                     )
                     self._aufloesung_setzen(op)
                 if schlichten_dazu:

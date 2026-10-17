@@ -77,7 +77,34 @@ def schritte(h):
     h.pruefe(panel.schruppen_noetig.isChecked(), "„Folgelagen nur, wo nötig“ nicht angehakt")
     if panel.mit_schlichten.isChecked():
         panel.mit_schlichten.setChecked(False)
+    # Mit der Querachse (die Beispiel-Drehmaschine hat Y): „Sektoren in Zeilen mit Y – C steht“
+    # ist frei und angehakt (W-026) – die Vorschau fährt auch so unter 25 km, in den Schlitzen
+    # steht C, Y fährt quer (bis dahin kreiste die Spirale mit Y alle Lagen rundum: 151 km).
     if panel.schruppen_querachse.isChecked():
+        h.pruefe(
+            panel.schruppen_sektoren_y.isEnabled() and panel.schruppen_sektoren_y.isChecked(),
+            "„Sektoren in Zeilen mit Y“ nicht angehakt",
+        )
+        yield 500
+        yield from h.warte_auf(lambda: not panel.rechnet_noch(), 180000)
+        yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+        bahn_y = panel.vorschau
+        weg_y = sum(
+            math.hypot(
+                math.hypot(n.a - p.a, n.r - p.r),
+                math.hypot(n.q - p.q, (p.r + n.r) / 2 * math.radians(n.phi - p.phi)),
+            )
+            for p, n in zip(bahn_y.punkte, bahn_y.punkte[1:], strict=False)
+            if not n.eilgang
+        )
+        stehend = sum(
+            1
+            for p, n in zip(bahn_y.punkte, bahn_y.punkte[1:], strict=False)
+            if not p.eilgang and not n.eilgang and abs(n.phi - p.phi) < 1e-9 and abs(n.q) > 0.5
+        )
+        h.pruefe(weg_y < 25000, f"mit Y: Weg im Vorschub {weg_y:.0f} mm – kreist die Spirale?")
+        h.pruefe(stehend > 50, f"mit Y: {stehend} Sätze mit stehendem C und Versatz quer")
+        h.bild("0_mit_y", panel.form)
         panel.schruppen_querachse.setChecked(False)
     yield 500
     yield from h.warte_auf(lambda: not panel.rechnet_noch(), 180000)

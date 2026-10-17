@@ -730,6 +730,67 @@ for oben, soll in (((), (None, 5.0)), (((3.0, 4.0),), (10.0 - 4.0, None))):
             f"Anstoß mit Schaft: {b.anstoss}",
         )
 
+# --- Sektoren als Zeilen mit Y, C steht (W-026, P-2026-10-17-48) --------------------------------
+# Dieselbe Welle mit dem Schlitz, mit Querachse und „nur nötig“: Ab der zweiten Lage steht nur noch
+# im Schlitz etwas – die Lage fährt Zeilen mit Y bei stehender Rundachse (die Werkzeugachse
+# parallel zum Strahl auf die Schlitzmitte), im Vorschub ändert sich der Winkel dort nicht, der
+# Versatz quer schon. Nie unter die Hüllfläche des Fräsers in dieser Stellung. Reicht Y nur
+# 1,5 mm, teilt sich der Schlitz: mehr Stellungen der Rundachse.
+from camaddon import fraeserform as ff  # noqa: E402
+
+y_werte = replace(
+    schlitz_werte, form=ff.scheibe(1.0), querachse=True, nur_noetig=True, sektoren_y=True
+)
+y_bahn = vb.schruppen(schlitz_netz, C_LAENGS, C_RADIAL, y_werte)
+y_laeufe, lauf = [], []
+for p in y_bahn.punkte + [vb.Punkt(True, 0.0, 0.0, 0.0)]:
+    if p.eilgang:
+        if len(lauf) > 1:
+            y_laeufe.append(lauf)
+        lauf = []
+    else:
+        lauf.append(p)
+y_sektor = [
+    lf
+    for lf in y_laeufe
+    if max(abs(p.phi - lf[0].phi) for p in lf) < 1e-9 and max(abs(p.q) for p in lf) > 0.5
+]
+pruefe(len(y_sektor) >= 2, f"Sektorzeilen mit Y: {len(y_sektor)} Läufe mit stehendem C")
+y_zeilen = sum(len({round(p.q, 3) for p in lf}) for lf in y_sektor)
+pruefe(y_zeilen >= 4, f"Sektorzeilen mit Y: {y_zeilen} Zeilen")
+y_punkte = [p for lf in y_sektor for p in lf if -21.0 <= p.a <= -19.0]
+if y_punkte:
+    y_huelle = vh.je_stellung(
+        schlitz_netz,
+        C_LAENGS,
+        C_RADIAL,
+        ff.scheibe(1.0),
+        np.radians([p.phi % 360.0 for p in y_punkte]),
+        np.array([p.q for p in y_punkte]),
+        np.array([p.a for p in y_punkte]),
+    )
+    y_tief = float(np.max(y_huelle + 0.3 - np.array([p.r for p in y_punkte])))
+    pruefe(y_tief < 0.02, f"Sektorzeilen mit Y: bis {y_tief:.3f} mm ins Aufmaß")
+    pruefe(
+        min(p.r for p in y_punkte) < 5.0,
+        f"Sektorzeilen mit Y: im Schlitz nur bis r {min(p.r for p in y_punkte):.2f}",
+    )
+y_eng = vb.schruppen(schlitz_netz, C_LAENGS, C_RADIAL, replace(y_werte, y_weg=1.5))
+stellungen = {round(p.phi % 360.0, 3) for p in y_eng.punkte if not p.eilgang and abs(p.q) > 1e-9}
+stellungen_weit = {
+    round(p.phi % 360.0, 3) for p in y_bahn.punkte if not p.eilgang and abs(p.q) > 1e-9
+}
+pruefe(
+    len(stellungen) > len(stellungen_weit),
+    f"Y bis 1,5 mm: {len(stellungen)} Stellungen, unbegrenzt {len(stellungen_weit)}",
+)
+print(
+    ascii(
+        f"Sektorzeilen mit Y: {len(y_sektor)} Läufe, {y_zeilen} Zeilen, {y_bahn.lagen} Lagen; "
+        f"Y bis 1,5 mm: {len(stellungen)} statt {len(stellungen_weit)} Stellungen"
+    )
+)
+
 # --- Schruppen mit der Querachse (V5e, P-2026-10-03-23) -----------------------------------
 # D-Profil: Welle Ø 40 mit einer Abflachung bei x = 6, Stange Ø 50, Schaftfräser Ø 12, ap 5,
 # 4 mm je Umdrehung, Aufmaß 0,3. Je Lage folgt die Spirale der Fläche: Die Werkzeugachse steht
@@ -737,7 +798,6 @@ for oben, soll in (((), (None, 5.0)), (((3.0, 4.0),), (10.0 - 4.0, None))):
 # ins Aufmaß – geprüft mit der genauen Hüllfläche des Fräsers in jeder Stellung, auch zwischen
 # den Punkten; je Lage höchstens die Zustellung unter die Stange (lagen_grenze); in der letzten
 # Lage liegt die Stirn auf der Abflachung bei 6 + Aufmaß.
-from camaddon import fraeserform as ff  # noqa: E402
 from camaddon import vierachs_quer as vq  # noqa: E402
 
 d_teil = Part.makeCylinder(20, 60, V(0, 0, -60)).cut(Part.makeBox(40, 60, 80, V(6, -30, -70)))
