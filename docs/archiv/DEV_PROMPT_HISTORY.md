@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-65 stange-auch-ohne-spannlaenge
+
+### EINGELESEN
+- Gegenleser zu P-62: `stangen_job` erkannte die Stange am Wert der Spannlänge (> 0). Ein Job, in
+  dem jemand Spannlänge 0 eingetragen hat, galt danach nicht mehr als Stange: Ein weiterer Lauf
+  von „Bearbeitung“ an der Fräse hätte 3-Achs-Operationen in den 4-Achs-Job legen können, an der
+  Drehmaschine stand der rote Satz statt „Stirnseite“, und die Rohteilfelder erschienen.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `stangen_job` fragt, ob der 4-Achs-Assistent die Spannlänge am Job
+  gemerkt hat (`vierachs_rohteil.EIGENSCHAFT_SPANNLAENGE` – `richte_ein` merkt sie immer, auch 0),
+  nicht nach ihrem Wert. Der „Zylinder mit Aufmaß“ auf der Fräse hat die Eigenschaft nicht.
+- `tests/gui/szenario_bearbeitung_drehmaschine.py`: der Job des Assistenten ist eine Stange, auch
+  mit Spannlänge 0.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_bearbeitung_drehmaschine`, `szenario_bearbeitung_zylinder`.
 ## P-2026-10-18-64 flaechen-kopie-vernetzen
 
 ### EINGELESEN

@@ -131,6 +131,14 @@ def schritte(h):
     h.pruefe(vierachs.buchstabe() == "C", f"Rundachse {vierachs.buchstabe()}")
     jobs = [o for o in doc.Objects if o.Name.startswith("Job")]
     h.pruefe(len(jobs) == 1, f"Jobs: {[o.Label for o in jobs]}")  # nur der des 4-Achs-Assistenten
+    # Gegenleser zu P-62: Eine Stange bleibt eine Stange, auch mit Spannlänge 0 – es zählt, dass
+    # der 4-Achs-Assistent sie am Job gemerkt hat, nicht ihr Wert.
+    stange_job = vierachs.job
+    h.pruefe(gui_bearbeitung.stangen_job(stange_job), "der Job des Assistenten: keine Stange")
+    spannlaenge = float(stange_job.CamAddonSpannlaenge)
+    stange_job.CamAddonSpannlaenge = 0.0
+    h.pruefe(gui_bearbeitung.stangen_job(stange_job), "Spannlänge 0: keine Stange mehr")
+    stange_job.CamAddonSpannlaenge = spannlaenge
     Gui.SendMsgToActiveView("ViewFit")
     yield 500
     h.bild("2_vierachs_mit_drehmaschine")
