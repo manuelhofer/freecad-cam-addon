@@ -3630,12 +3630,20 @@ def befehle(
     # Fährt die Bahn quer versetzt (Plan indexiert), steht die Querachse in jedem Satz.
     mit_quer = any(abs(p.q) > GLEICH for p in bahn.punkte)
 
-    def lage(punkt):
-        spitze = l_ * punkt.a + u_ * punkt.r + v_ * punkt.q
-        werte = {"XYZ"[i]: float(spitze[i]) for i in genutzt}
+    # Die Spitzen aller Punkte in einem Zug (P-2026-10-18-55: je Punkt kleine numpy-Rechnungen
+    # kosteten an der Nase 0,44 von 0,71 s) – elementweise dieselben Rechenschritte, dieselben Zahlen.
+    feld = np.array([(p.a, p.r, p.q) for p in bahn.punkte], dtype=float).reshape(-1, 3)
+    l_, u_, v_ = (np.asarray(e, dtype=float) for e in (l_, u_, v_))
+    spitzen = (
+        l_[None, :] * feld[:, 0:1] + u_[None, :] * feld[:, 1:2] + v_[None, :] * feld[:, 2:3]
+    ).tolist()
+
+    def lage(k):
+        spitze = spitzen[k]
+        werte = {"XYZ"[i]: spitze[i] for i in genutzt}
         if mit_quer:
-            werte.update({"XYZ"[i]: float(spitze[i]) for i in quer})
-        werte[buchstabe] = -drehsinn * punkt.phi
+            werte.update({"XYZ"[i]: spitze[i] for i in quer})
+        werte[buchstabe] = -drehsinn * bahn.punkte[k].phi
         return werte
 
     ergebnis = [
@@ -3649,25 +3657,30 @@ def befehle(
     start = bahn.punkte[0]
     spitze = l_ * start.a + u_ * start.r
     ergebnis.append(Path.Command("G0", {"XYZ"[i]: float(spitze[i]) for i in radial_achsen}))
-    anfang = lage(start)
+    anfang = lage(0)
     if quer_auf_null:
         anfang.update({"XYZ"[i]: 0.0 for i in quer})
     ergebnis.append(Path.Command("G0", anfang))
     ergebnis.append(Path.Command("G93"))
-    vorher = start
+    vorher, cs_vorher = start, _cos_sin(start.phi)
     f_vorher = None
-    for punkt in bahn.punkte[1:]:
+    for k in range(1, len(bahn.punkte)):
+        punkt = bahn.punkte[k]
+        cs = _cos_sin(punkt.phi)
         if punkt.eilgang:
-            ergebnis.append(Path.Command("G0", lage(punkt)))
+            ergebnis.append(Path.Command("G0", lage(k)))
         else:
-            weg = _weg_im_vorschub(vorher, punkt, fraeser_radius)
+            # Wie _weg_im_vorschub, mit (cos, sin) je Punkt einmal gerechnet.
+            weg = _weg_mit(vorher, punkt, cs_vorher, cs)
+            if fraeser_radius > 0.0:
+                weg = max(weg, fraeser_radius * abs(math.radians(punkt.phi - vorher.phi)))
             if weg < 1e-6:
                 continue
-            werte = lage(punkt)
+            werte = lage(k)
             f = _vorschub_zu(punkt, vorschub, eintauchen, freivorschub)
             werte["F"] = f_vorher = _anderes_f(f / weg / 60.0, f_vorher)
             ergebnis.append(Path.Command("G1", werte))
-        vorher = punkt
+        vorher, cs_vorher = punkt, cs
     ergebnis.append(Path.Command("G94"))
     return ergebnis
 
@@ -3689,6 +3702,17 @@ def _weg(von, nach):
     des Teils (die Spitze unter dem Winkel φ, quer um q versetzt), gestreckt zum Bogen, so weit
     die Rundachse dreht – dreht nur sie, ist es genau der Bogen; fährt nur die Querachse (ψ
     hält, V5e), genau die Gerade."""
+    return _weg_mit(von, nach, _cos_sin(von.phi), _cos_sin(nach.phi))
+
+
+def _cos_sin(phi):
+    """(cos, sin) des Winkels `phi` in Grad – wie _weg sie je Punkt braucht."""
+    return math.cos(math.radians(phi)), math.sin(math.radians(phi))
+
+
+def _weg_mit(von, nach, cs_von, cs_nach):
+    """_weg mit (cos, sin) der beiden Winkel schon gerechnet (_cos_sin) – befehle rechnet sie je
+    Punkt einmal, nicht für jeden Satz zweimal."""
     winkel = math.radians(nach.phi - von.phi)
     laengs = nach.a - von.a
     if abs(winkel) > math.pi / 2:  # ein weiter Bogen: Sehne und Bogen sagen nichts mehr
@@ -3696,8 +3720,8 @@ def _weg(von, nach):
         return math.sqrt(
             laengs * laengs + (nach.r - von.r) ** 2 + (nach.q - von.q) ** 2 + (r * winkel) ** 2
         )
-    c0, s0 = math.cos(math.radians(von.phi)), math.sin(math.radians(von.phi))
-    c1, s1 = math.cos(math.radians(nach.phi)), math.sin(math.radians(nach.phi))
+    c0, s0 = cs_von
+    c1, s1 = cs_nach
     dx = (nach.r * c1 - nach.q * s1) - (von.r * c0 - von.q * s0)
     dy = (nach.r * s1 + nach.q * c1) - (von.r * s0 + von.q * c0)
     sehne = math.hypot(dx, dy)

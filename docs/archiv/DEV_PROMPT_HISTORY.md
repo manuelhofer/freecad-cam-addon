@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-55 vierachs-befehle-schneller
+
+### EINGELESEN
+- Lag-Probe im STL-Szenario (Geist, 4 Achsen): Beim „Anlegen“ stand das Fenster siebenmal rund
+  1 s, jedes Mal in `vierachs_bahn.befehle` (`_weg`, `_weg_im_vorschub`) – die Bahn wird zu
+  Path-Befehlen.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `befehle` rechnet die Spitzen aller Punkte in einem Zug mit numpy
+  (elementweise dieselben Rechenschritte wie je Punkt) und (cos, sin) je Punkt einmal
+  (`_cos_sin`, `_weg_mit`; `_weg` ruft dieselbe Rechnung).
+
+### ERGEBNIS
+- Nase, Schlichtbahn mit 168 000 Punkten: 0,71 → 0,47 s; Schruppen 8 400 Punkte gleich schnell.
+  Alle Sätze bitgleich mit der Fassung davor (Name und Parameter, je mit und ohne „quer auf 0“,
+  `$S/tt/befehle_vergleich.py`). Was bleibt, ist das Anlegen der FreeCAD-Befehle selbst.
+- Grün im Wochen-Build: `test_goldene_bahnen`, `test_vierachs_operation`,
+  `test_vierachs_schlichten`.
 ## P-2026-10-18-54 messstopp-angetriebene-spindel
 
 ### EINGELESEN
