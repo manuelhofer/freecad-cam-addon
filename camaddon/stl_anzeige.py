@@ -191,6 +191,15 @@ def _merken(objekt, an):
             return
         objekt.addProperty("App::PropertyBool", EIGENSCHAFT, "CAM-Addon", "")
         objekt.setEditorMode(EIGENSCHAFT, 2)  # versteckt
+    # Nur eine Ausgabe: Sonst markierte jedes Umschalten das Objekt als geändert, und beim nächsten
+    # Neuberechnen rechneten der Klon (am Geist 68.242 Flächen) und alles daran neu – beim
+    # Umschalten der Aufspannungen (gui_schwenken.zeige_job) die Klone und Operationen aller.
+    try:
+        status = objekt.getPropertyStatus(EIGENSCHAFT)
+        if "Output" not in status or "NoRecompute" not in status:
+            objekt.setPropertyStatus(EIGENSCHAFT, ["Output", "NoRecompute"])
+    except Exception:  # noqa: BLE001 – ältere FreeCAD-Versionen: wie bisher
+        pass
     if bool(getattr(objekt, EIGENSCHAFT)) != bool(an):
         setattr(objekt, EIGENSCHAFT, bool(an))
 

@@ -410,10 +410,12 @@ def _zeigen(job):
     """Die Ebene zeigen, wie das Werkzeug sie sieht: ihr Modell (die Fläche oben) sichtbar, das
     Teil im Grundjob und das Original ausgeblendet – sonst lägen die Bahnen der Ebene neben
     einem anders gedrehten Teil."""
+    from . import stl_anzeige
+
     klon = vr.modell(job)
     original = vr.original(klon)
     if original.ViewObject is not None:
-        original.ViewObject.Visibility = False
+        stl_anzeige.zeigen(original, False)  # ein Teil aus einem STL: auch sein Netz aus
     zeige_job(job)
     if klon.ViewObject is not None:
         klon.ViewObject.Transparency = 0

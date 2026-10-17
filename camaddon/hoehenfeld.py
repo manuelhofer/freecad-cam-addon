@@ -97,7 +97,8 @@ _EBENE = {}  # (Prüfsumme der Form, Nummer, Toleranz) → Ebene oder None
 # Tasche oder Nut gilt (eingeschlossen): Die Ringnut am C-Ring hat Wände an 93 % ihres Rands, ein
 # Absatz mit einer Wand an rund 40 %.
 EINGESCHLOSSEN = 0.75
-_EINGESCHLOSSEN = {}  # (Prüfsumme der Form, Fläche) → (Form, bool)
+_EINGESCHLOSSEN = []  # [(Form, {Fläche: bool, („schnitt“, z): Drähte})] – die neueste vorn
+_EINGESCHLOSSEN_FORMEN = 4
 RAND_ABTASTEN = 0.005  # mm – so genau folgt das Vieleck dem Rand (in_draehten)
 
 
@@ -109,6 +110,8 @@ def in_draehten(draehte, x, y, abtasten=RAND_ABTASTEN):
     try:
         ecken = []
         for draht in draehte:
+            if not draht.isClosed():
+                return None  # ein offenes Stück (ein Schnitt, der nicht aufging): je Punkt
             punkte = draht.discretize(Deflection=abtasten)
             if len(punkte) < 3:
                 return None
@@ -142,19 +145,27 @@ def eingeschlossen(form, name):
 
     if stl_teil.daten(form) is not None:
         return False
-    schluessel = (form.hashCode(), name)
-    gemerkt = _EINGESCHLOSSEN.get(schluessel)
-    # Mit der Form gemerkt: Sie bleibt so am Leben, ihr Speicher wird nicht für eine andere
-    # wiederverwendet (der hashCode allein wäre dann gleich).
-    if gemerkt is not None and gemerkt[0].isSame(form):
-        return gemerkt[1]
-    ergebnis = _eingeschlossen_auf_einmal(form, name)
+    merk = _merk_der_form(form)
+    if name in merk:
+        return merk[name]
+    ergebnis = _eingeschlossen_auf_einmal(form, name, merk)
     if ergebnis is None:
         ergebnis = _eingeschlossen_je_punkt(form, name)
-    if len(_EINGESCHLOSSEN) > 1024:
-        _EINGESCHLOSSEN.clear()
-    _EINGESCHLOSSEN[schluessel] = (form, ergebnis)
+    merk[name] = ergebnis
     return ergebnis
+
+
+def _merk_der_form(form):
+    """Das Gemerkte zu `form` (isSame – die Form bleibt so am Leben, ihr Speicher wird nicht für
+    eine andere wiederverwendet); höchstens _EINGESCHLOSSEN_FORMEN Formen."""
+    for nummer, (gemerkt, merk) in enumerate(_EINGESCHLOSSEN):
+        if gemerkt.isSame(form):
+            if nummer:
+                _EINGESCHLOSSEN.insert(0, _EINGESCHLOSSEN.pop(nummer))
+            return merk
+    merk = {}
+    _EINGESCHLOSSEN[:] = [(form, merk)] + _EINGESCHLOSSEN[: _EINGESCHLOSSEN_FORMEN - 1]
+    return merk
 
 
 def _rand_proben(flaeche):
@@ -169,7 +180,7 @@ def _rand_proben(flaeche):
     return mitte, normale
 
 
-def _eingeschlossen_auf_einmal(form, name):
+def _eingeschlossen_auf_einmal(form, name, merk=None):
     """eingeschlossen, alle Proben auf einmal: die Seiten mit in_draehten über den Rand der
     Fläche, die Wand mit einem Schnitt durch den Körper 0,5 mm über ihr – None, wenn das nicht
     geht (dann je Punkt). Am Testteil 1 s weniger beim Öffnen des Assistenten."""
@@ -191,12 +202,19 @@ def _eingeschlossen_auf_einmal(form, name):
     if not gezaehlt:
         return False
     aussen = np.where(innen_links[:, None], rechts, links)[klar]
-    try:
-        schnitt = form.slice(FreeCAD.Vector(0, 0, 1), z + 0.5)
-    except Exception:  # noqa: BLE001
-        return None
+    schluessel = ("schnitt", round(z + 0.5, 6))
+    schnitt = merk.get(schluessel) if merk is not None else None
+    if schnitt is None:
+        try:
+            schnitt = form.slice(FreeCAD.Vector(0, 0, 1), z + 0.5)
+        except Exception:  # noqa: BLE001
+            return None
+        if merk is not None:
+            merk[schluessel] = schnitt
     if not schnitt:
-        return False
+        # Über dem Teil schneidet nichts mehr – sonst ging der Schnitt nicht auf (ein STEP mit
+        # Toleranzen): dann je Punkt.
+        return False if z + 0.5 >= form.BoundBox.ZMax - 1e-6 else None
     wand = in_draehten(schnitt, aussen[:, 0], aussen[:, 1])
     if wand is None:
         return None

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-12 durchsicht-drei
+
+### EINGELESEN
+- Dritte Durchsicht (P-2026-10-17-07 bis -10):
+  - P-07 rechnete den Eilgang-Schutz mit dem Abstand der Zellmitte. Der Materialstand kennt die
+    Höhe aber nur an seinen Rasterpunkten, eine Stufe kann bis eine Zelle näher liegen – ab einer
+    Kugel R 4,25 reichte LINK_LUFT dann nicht mehr. Am Geist kostete die halbe Zelle nachgemessen
+    nichts (58,3 min mit und ohne).
+  - `eingeschlossen` (P-10): Ein leerer Schnitt durch den Körper hieß „keine Wand“ – auch wenn der
+    Schnitt nur nicht aufging (STEP mit Toleranzen). `in_draehten` nahm offene Drähte als
+    geschlossen. Das Gemerkte hielt bis zu 1024 Formen am Leben.
+  - `stl_anzeige._merken` setzt eine eigene Eigenschaft – jedes Setzen markierte das Objekt als
+    geändert (nachgesehen: ja, in 1.1.4 und im Wochen-Build), beim nächsten Neuberechnen rechneten
+    der Klon und alles daran neu. Seit P-09 schaltet `zeige_job` so die Klone aller Aufspannungen.
+  - `gui_schwenken._zeigen` blendete das Original nur über `Visibility` aus – ein STL als Netz
+    blieb neben dem gedrehten Klon stehen.
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_tiefste_spitze` wieder eine halbe Zelle näher gerechnet.
+- `camaddon/hoehenfeld.py`: ein leerer Schnitt nur über dem Teil „keine Wand“, sonst je Punkt;
+  `in_draehten` mit einem offenen Draht: None (dann je Punkt); gemerkt je Form (höchstens vier,
+  isSame), dazu der Schnitt je Höhe.
+- `camaddon/stl_anzeige.py`: die Eigenschaft als Ausgabe (`Output`, `NoRecompute`).
+- `camaddon/gui_schwenken.py`: das Original über `stl_anzeige.zeigen` aus.
+
+### ERGEBNIS
+- `eingeschlossen` an den 15 Böden der Beispiele wie die alte Rechnung.
+- Grün im Wochen-Build: `test_freiwege`, `test_zielzeit`, `test_planfraesen`, `test_stl_teil`,
+  `szenario_bearbeitung_n_eck` (längste Pause 1,2 s), `szenario_bearbeitung_stl` (1,0 s),
+  `szenario_schwenken`, `szenario_stl_anzeige`, `szenario_testteil`, `szenario_schraeg_anlegen`,
+  `szenario_stl_angebot`. Alle 121 Prüfdateien davor auch in 1.1.4 grün.
+
 ## P-2026-10-17-11 wegkippen-atmet
 
 ### EINGELESEN
