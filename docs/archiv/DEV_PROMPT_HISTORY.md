@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-28 ring-szenario
+
+### EINGELESEN
+- Zu P-26: die Sektoren im 4-Achs-Assistenten nachgespielt, damit Manuel ein Bild aus FreeCAD
+  hat und der Weg über `vierachs_operation.rechne` (Haken, Auflösung aus der Operation) geprüft
+  ist.
+
+### DATEIEN
+- `tests/gui/szenario_ring_sektoren.py` (neu): Manuels Ring auf der Beispiel-Drehmaschine, T1
+  Ø 4 im Halter, ohne Querachse und ohne Schlichten – die Vorschau unter 25 km, „Anlegen“ legt
+  „Rundum schruppen T1“ mit „Folgelagen nur, wo nötig“ an, Bild der Bahn im 3D.
+
+### ERGEBNIS
+- 18 Lagen, 14,8 km im Vorschub (die Spirale 100 km); längste Pause 0,37 s. Grün im
+  Wochen-Build.
 ## P-2026-10-17-27 schlichtzug-gerechnet
 
 ### EINGELESEN
