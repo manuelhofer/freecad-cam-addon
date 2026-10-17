@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-31 durchsicht-p26
+
+### EINGELESEN
+- Durchsicht von P-26 bis P-30 (zweiter Agent, nur gelesen). Zwei echte Fehler in P-26, beide im
+  alten Zeilen-Modus mit gewählten Flächen (V4), den jeder trifft, der Flächen wählt:
+  - `_zeilen` hängte die Zusatzzeilen (`_uebersehene`) immer an. Das Schlichten in Zeilen
+    (`_schlichten_zeilen`) rechnet die Hüllfläche aber für gleich weite Zeilen (`vh.je_winkel`
+    ab `unten` in `weite`-Schritten) und paart sie 1:1 – mit einer Zeile mehr bekam jede Zeile
+    die Tiefe einer anderen Stelle: an einem Absatz im Bereich bis zu einer Schrittweite daneben.
+  - Beim Schruppen in Zeilen (V4) kamen am Rand eines geweiteten Bereichs bis zu acht Zeilen im
+    Raster 0,25 dazu, jede mit eigener Einfahrt.
+- Dazu klein: Nach einer Sektor-Lage stand die Rundachse am Ende der letzten Zeile, eine Spirale
+  danach begann beim alten Versatz – ihr erster Satz drehte im Vorschub bis zu einer Umdrehung in
+  der Luft; `rest.fahren` auch nach der letzten Lage.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `_zeilen(…, luecken=False)` – die Zusatzzeilen nur mit
+  `luecken`, das setzt allein `sektor_lage`; das Schlichten und das Schruppen mit gewählten
+  Flächen wie vor P-26. `_uebersehene` sagt im Docstring, was es tut (eine Zeile am hinteren
+  Ende jedes Stücks, in dessen Zelle). Nach einer Sektor-Lage `versatz` aus `punkte[-1].phi`;
+  `rest.fahren` nicht mehr nach der letzten Lage.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_bahn` (Ring unverändert 14,8 km), `test_vierachs_frei`,
+  `szenario_vierachs_schruppen`, `szenario_vierachs_schlichten`.
 ## P-2026-10-17-30 pruefstand-eintauchen-steil
 
 ### EINGELESEN

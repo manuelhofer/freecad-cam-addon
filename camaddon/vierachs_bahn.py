@@ -639,14 +639,15 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         ergebnis = np.where(nichts, np.where(stellen < teil_hinten, w.stange_radius, 0.0), ergebnis)
         return np.maximum(ergebnis, w.r_tiefste)
 
-    def zeilen_fuer(bereich):
+    def zeilen_fuer(bereich, luecken=False):
         """(Stellen der Zeilen, (Zeilen, N) wie tief die Spitze darf, `vorn`) für die Zeilen
-        im Bereich (_schruppen_zeilen). Von vorn aus der Luft (Manuel, 2026-10-12: Zickzack ins
+        im Bereich (_schruppen_zeilen); `luecken` wie bei _zeilen (die Sektoren). Von vorn aus
+        der Luft (Manuel, 2026-10-12: Zickzack ins
         Material nur in der geschlossenen Nut): Reicht der Bereich vorn bis ans Teil, fährt die
         erste Zeile einer Lage in ihrer Tiefe von vor der Stange längs hinein. Wie tief die
         Spitze auf dem Weg darf, eigens – die Hüllfläche des Bereichs reicht nicht bis vor das
         Teil."""
-        zeilen_a = _zeilen(bereich, a_ende, a_anfang, w.steigung, ringe)
+        zeilen_a = _zeilen(bereich, a_ende, a_anfang, w.steigung, ringe, luecken)
         boden_zeilen = np.array(
             [boden_bei(np.full(je_umdrehung, z), rundum) for z in zeilen_a]
         ).reshape(len(zeilen_a), je_umdrehung)
@@ -717,7 +718,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         # – 8,6 → 48 km. Was so an der Wand stehen bleibt, ist einen Winkelschritt schmal, am
         # Ring 59 mm³; das nimmt das Schlichten mit dem Aufmaß.)
         bereich = vf.Bereich(huelle.a, huelle.phi, drin)
-        zeilen_a, boden_zeilen, vorn = zeilen_fuer(bereich)
+        zeilen_a, boden_zeilen, vorn = zeilen_fuer(bereich, luecken=True)
         if not len(zeilen_a):
             return 0
         davor = np.maximum(boden_zeilen, davor_r)
@@ -729,7 +730,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             schritt_phi, vorn, erste=lage, davor=davor,
         )  # fmt: skip
         _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
-        if rest is not None:  # die nächste Lage beginnt ihre Einfahrten, wo diese endete
+        if rest is not None and lage < lagen:  # die nächste Lage beginnt, wo diese endete
             rest.fahren(punkte, anfang_lage, w.form if w.form is not None else w.fraeser_radius)
         return gefahren
 
@@ -764,6 +765,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         sektor = sektoren(lage)
         if sektor is not None:
             gefahren += sektor_lage(lage, *sektor, rest)
+            # Die Rundachse steht, wo die letzte Zeile endete: Eine Spirale danach beginnt dort
+            # (sonst drehte ihr erster Satz im Vorschub bis zu einer Umdrehung in der Luft).
+            versatz = int(round(punkte[-1].phi / (drehung * schritt_phi)))
             continue
         unten = boden(versatz)
         ende = len(a)
@@ -1175,10 +1179,12 @@ def _eilgang(punkte, a, r, phi):
 # die Rundachse dreht zurück. Abgehoben wird nur, wo die nächste Zeile nicht dort weitergeht.
 
 
-def _zeilen(bereich, a_von, a_bis, abstand, ringe=()):
+def _zeilen(bereich, a_von, a_bis, abstand, ringe=(), luecken=False):
     """Die Stellen längs der Zeilen im Bereich, von vorn nach hinten: gleich weit auseinander,
     höchstens `abstand`, die erste an seinem vorderen, die letzte an seinem hinteren Ende –
-    nur zwischen a_von und a_bis; dazu die Ringe vor den Wänden (`ringe`)."""
+    nur zwischen a_von und a_bis; dazu die Ringe vor den Wänden (`ringe`). Mit `luecken` dazu
+    je Stück des Bereichs ohne Zeile an seinem hinteren Ende eine (_uebersehene) – nur für die
+    Sektoren beim Schruppen; das Schlichten in Zeilen braucht sie gleich weit."""
     belegt = bereich.drin.any(axis=1)
     if not belegt.any():
         return np.zeros(0)
@@ -1189,7 +1195,8 @@ def _zeilen(bereich, a_von, a_bis, abstand, ringe=()):
     anzahl = max(1, int(math.ceil((oben - unten) / abstand - 1e-9)))
     stellen = list(oben - (oben - unten) * np.arange(anzahl + 1) / anzahl)
     stellen += [ring for ring in ringe if unten - GLEICH <= ring <= oben + GLEICH]
-    stellen += _uebersehene(bereich, stellen, unten, oben)
+    if luecken:
+        stellen += _uebersehene(bereich, stellen, unten, oben)
     ergebnis = []
     for stelle in sorted(stellen, reverse=True):
         if not ergebnis or ergebnis[-1] - stelle > 1e-6:
@@ -1199,8 +1206,9 @@ def _zeilen(bereich, a_von, a_bis, abstand, ringe=()):
 
 def _uebersehene(bereich, stellen, unten, oben):
     """Die Stellen, die zu den Zeilen `stellen` dazukommen, damit jedes Stück des Bereichs längs
-    eine Zeile bekommt: Je Winkel das Stück des Bereichs, in dem keine Zeile liegt, bekommt eine
-    an seinem hinteren Ende – von dort reicht die Stirn am weitesten nach hinten. An Manuels
+    eine Zeile an seinem hinteren Ende hat (in dessen Zelle): Je Winkel das Stück, dessen hinteres
+    Ende keine Zeile hat, bekommt dort eine – von dort reicht die Stirn am weitesten nach hinten.
+    An Manuels
     Ring ist die Stirnseite der Stange nur von einem 0,5 mm schmalen Band vor ihr aus zu
     erreichen (davor hält die Hüllfläche die Stirn über dem Teil); die gleich weiten Zeilen
     trafen es nicht, die Spirale schon."""
