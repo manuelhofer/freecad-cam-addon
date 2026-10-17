@@ -540,7 +540,12 @@ ich wenns irgendwie geht auf eine helix setzten“). Für jede Strategie, in die
    Stange, neben dem Rohteil, wo das Schruppen schon geräumt hat): senkrecht in der Luft hinab,
    dann seitlich hinein. Kein Eintauchen ins Material.
 2. **Helix** – wo es geschlossen ist und Platz für einen Kreis ist (Durchmesser größer als der
-   Fräser, damit die Mitte nicht schneidet und die Späne nach oben können).
+   Fräser, damit die Mitte nicht schneidet und die Späne nach oben können). Die Kontur fährt in
+   einer geschlossenen Kontur stattdessen die Wendel längs der Kontur – aber nur, wenn deren
+   Schleife im Radius wenigstens ein Zehntel des Fräserdurchmessers hat (`kontur_bahn.
+   WENDEL_MIN_ANTEIL`, P-2026-10-17-35): Auf einer kleineren Schleife ist die Wendel ein
+   Eintauchen mit Wackeln (am Testteil 57 Umläufe auf einem Dreieck von 0,35 mm) – dann senkrecht
+   hinab mit dem Eintauchvorschub.
 3. **Zickzack-Rampe** – nur in einer geschlossenen Nut, die für eine Helix zu schmal ist.
 Gebaut für „Plan indexiert“ (P-2026-10-12-161); die anderen Strategien danach durchsehen.
 Über allem steht „nie in voller Breite“ (Abschnitt 12.1): Nach der Helix fährt der Fräser auf der

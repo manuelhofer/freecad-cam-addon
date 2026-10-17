@@ -745,6 +745,19 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   Abspieler steht der Satz mit den Farben. Welle Ø 40 aus Ø 50 (Test): 0,2 s
   Abtrag, 0,1 s Vergleich, Rest 0,325 … 0,331 mm, alles grün.
 
+**V3i – Zeilen in den Sektoren** (Manuels Ring, 2026-10-12; P-2026-10-17-26, -32, -34): Mit
+„Folgelagen nur, wo nötig“ und ohne Querachse prüft jede Lage ab der zweiten, über welchem Anteil
+des Umfangs noch etwas steht (gemittelt über die Stellen längs, an denen etwas steht,
+`vierachs_bahn.SEKTOREN_AB` = ½). Ist es weniger, fährt die Lage Zeilen in diesen Sektoren wie
+mit gewählten Flächen (V4) statt der Spirale rundum – je Stück des Bereichs auch eine Zeile an
+seinem hinteren Ende (`_uebersehene`), die Zeilen unter der Achse durch einen Schlitz bis zur
+Bohrung, von vorn eingefahren; vor dem Teil, wo die Stirn rundum nichts trifft, nur die hinterste
+Zeile, wenn ihre Flanke bis zur Stangenstirn reicht. Der Rest nach der Lage wird mitgeführt
+(`_Rest`), die nächste Lage beginnt, wo diese endete. Am Ring (drei Segmente mit Schlitzen, T Ø 4,
+ap 3, ae 1): 100 → 11 km Weg, 68 → 10 % Luft, 70 → 11 min; gleicher Abtrag (±0,5 cm³), nichts
+ins Teil. Mit Querachse bleibt die Spirale (Frage 1 in `OFFENE_FRAGEN.md`). Bild:
+`docs/bilder/vorschlaege/ring_sektoren.png`.
+
 **V4 – Flächen wählen** (bisher V3)
 
 - Schritt „Flächen“ mit Punkt-Hüllfläche, Erreichbarkeit und Farben; ohne
