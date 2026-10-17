@@ -18,7 +18,9 @@ statt als Spirale rundum – am Ring 100 → 11 km Weg, 70 → 11 min (bei vf 10
 12 cm³, bis 58 mm² je mm) – die Zeilen müssen also angestellt werden wie die Spirale. Dann gilt
 dein „C dreht nicht zurück“ (Frage 11, 2026-10-11): Zwei Wege:
 - (a) Zeilen im Schlitz **hin und her** (C dreht je Zeile 40° zurück, wie „Zeilen hin und her“
-  mit gewählten Flächen) – am schnellsten, aber C pendelt.
+  mit gewählten Flächen) – am schnellsten, aber C pendelt. So fährt es **ohne** Querachse heute
+  schon: Die Zeilen eines Schlitzes hängen als Schlange zusammen (am Ring 482 Umkehrungen von C
+  im Vorschub, keine Rampe – die erste Zeile jeder Lage kommt von vorn aus der Luft).
 - (b) Jede Zeile in **derselben Richtung**; danach abheben und C im Eilgang 320° **vorwärts** zum
   Anfang drehen – ruhig, kostet je Zeile eine Drehung (am Ring rund 900 Zeilen: bei 30 U/min
   etwa 25 min nur Drehen).
