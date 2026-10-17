@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-16 beispiele-oeffnen
+
+### EINGELESEN
+- Manuel (2026-10-17, mit Bild von „Beispiele laden“): „die die schon da sind ... könnte man unten
+  auch einen button einfügen wenn man drüber ist mit "öffnen" der ausgegraut ist wenn das beispiel
+  noch nicht geladen ist !“
+
+### DATEIEN
+- `camaddon/gui_beispiele.py`: Knopf „Öffnen“ zwischen „Laden“ und „Ordner öffnen“ – für den
+  gewählten Eintrag, grau, solange er nicht geladen ist; ein Doppelklick tut dasselbe. Ein Teil
+  (FCStd) öffnet als Dokument (ist es schon offen, wird es das aktive), ein STL als Netz in einem
+  neuen Dokument, STEP/IGES/BREP über Part, Makros im Editor, alles andere (README, Werkzeug-
+  dateien) mit dem Programm des Systems. Nach dem Laden steht „schon da“ gleich an den neuen
+  Einträgen (vorher erst beim nächsten Öffnen des Fensters), dazu der Tooltip „Schon geladen –
+  Doppelklick oder „Öffnen“ öffnet sie.“
+- `translations/de.json`, `en.json`: `bsp.oeffnen`, `bsp.oeffnen.tooltip`, `bsp.eintrag.da`.
+- `tests/gui/szenario_beispiele.py`: „Öffnen“ grau für ein fehlendes Beispiel, frei für ein
+  geladenes; das Teil öffnet als Dokument.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`, `szenario_beispiele`.
+
 ## P-2026-10-17-15 gekippt-im-programm
 
 ### EINGELESEN

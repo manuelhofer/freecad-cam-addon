@@ -3,7 +3,8 @@
 # angehakt („Laden“ grau), darüber „Alle anhaken“ und „Alle abhaken“ (Manuel, 2026-10-16); oben,
 # wie viele es sind, wie groß zusammen und wohin sie kommen. Nur drei angehakt,
 # „Laden“ (hier aus dem Repository statt von GitHub): „Fertig: 3 geladen, 0 waren schon da“, die
-# Dateien liegen im Ordner, „Ordner öffnen“ geht. Ein zweites Mal: „0 geladen, 3 waren schon da“.
+# Dateien liegen im Ordner, „Ordner öffnen“ geht; „Öffnen“ ist für ein noch nicht geladenes grau,
+# für ein geladenes Teil öffnet es das Dokument. Ein zweites Mal: „0 geladen, 3 waren schon da“.
 import os
 import tempfile
 
@@ -81,7 +82,33 @@ def schritte(h):
         all(bsp.schon_da(dialog.beispiele[i], wohin) for i in kleine), "Dateien nicht im Ordner"
     )
     h.pruefe(dialog.knopf_ordner.isEnabled(), "„Ordner öffnen“ grau")
+    # „Öffnen“ (Manuel, 2026-10-17): grau für ein Beispiel, das noch nicht da ist; für ein
+    # geladenes geht es, und das Teil öffnet in FreeCAD.
+    fehlt = next(i for i in range(dialog.liste.count()) if i not in kleine)
+    dialog.liste.setCurrentRow(fehlt)
+    yield 200
+    h.pruefe(not dialog.knopf_oeffnen.isEnabled(), "„Öffnen“ für ein fehlendes nicht grau")
+    teil = next(
+        (i for i in kleine if dialog.beispiele[i].name.lower().endswith(".fcstd")), kleine[0]
+    )
+    dialog.liste.setCurrentRow(teil)
+    yield 200
+    h.pruefe(
+        dialog.knopf_oeffnen.isEnabled() and "schon da" in dialog.liste.item(teil).text(),
+        f"„Öffnen“ für ein geladenes: {dialog.liste.item(teil).text()!r}",
+    )
     h.bild("2_geladen", dialog)
+    if dialog.beispiele[teil].name.lower().endswith(".fcstd"):
+        import FreeCAD
+
+        vorher = set(FreeCAD.listDocuments())
+        pfad = dialog.oeffnen()
+        yield 1500
+        neu = set(FreeCAD.listDocuments()) - vorher
+        h.pruefe(bool(neu), f"„Öffnen“ öffnet {pfad} nicht")
+        for name in neu:
+            FreeCAD.closeDocument(name)
+        yield 300
     dialog.stand.setText("")
     dialog.knopf_laden.click()
     yield from h.warte_auf(
