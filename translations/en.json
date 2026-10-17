@@ -2941,7 +2941,7 @@
     "va.halter_stoesst": "The holder or shank of {werkzeug} hits the part here ({richtung} {von} … {bis} {e_laenge}): {werkzeug} sticks out {heraus} {e_laenge}, it would need at least {mindestens} {e_laenge}. Clamp it longer or use a longer tool. Angled holders are checked by “Check for collisions”.",
     "vo.eigenschaft.nur_noetig": "A layer only as far as the one before stayed above the surface – otherwise it would run the same surface again; if only sectors are left, rows there instead of the spiral.",
     "va.nur_noetig": "Further layers only where needed",
-    "va.nur_noetig.tooltip": "Ticked, a layer only runs where the one before stayed above the surface, instead of almost only through air. On the nose test part 11.1 instead of 15.3 min; the ball then has about 10 % more to remove. If above a layer material is left only in sectors (a ring with slots), it runs rows in the sectors instead of all round – on the ring an eighth of the path (without the cross axis).",
+    "va.nur_noetig.tooltip": "Ticked, a layer only runs where the one before stayed above the surface, instead of almost only through air. On the nose test part 11.1 instead of 15.3 min; the ball then has about 10 % more to remove. If above a layer material is left only in sectors (a ring with slots), it runs rows in the sectors instead of all round – on the ring a ninth of the path (without the cross axis).",
     "va.zur_bearbeitung": "Open “Machining” from the front …",
     "va.querachse.mit_flaechen": "With faces the spiral runs all round with the cross axis, over the other faces 2 mm higher at the free-run feed. Without the tick: rows back and forth, without Y.",
     "ab.abtrag_rechnet": "Calculating the removal …",
