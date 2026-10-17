@@ -149,14 +149,48 @@ class _Bahnen:
 
     def __init__(self):
         self.je_operation = {}  # „Dokument/Label“ → Path.Path
+        # „Dokument/Label“ → (längs, radial, Rundachse, Drehsinn) der 4-Achs-Operationen – so
+        # zählt _kehren_schreiben auch ihre Kehren (vierachs_bahn.kehren).
+        self.vierachs = {}
 
     def slotRecomputedObject(self, obj):
         try:
             if "Path" not in obj.PropertiesList or "ToolController" not in obj.PropertiesList:
                 return
-            self.je_operation[f"{obj.Document.Name}/{obj.Label}"] = obj.Path.copy()
+            name = f"{obj.Document.Name}/{obj.Label}"
+            self.je_operation[name] = obj.Path.copy()
+            if "Stangenachse" in obj.PropertiesList and "Rundachse" in obj.PropertiesList:
+                self.vierachs[name] = (
+                    tuple(obj.Stangenachse),
+                    tuple(obj.Werkzeugrichtung),
+                    str(obj.Rundachse),
+                    int(getattr(obj, "Drehsinn", 1) or 1),
+                )
         except Exception:  # noqa: BLE001 – ein Objekt im Abbau
             return
+
+
+def _vierachs_kehren(bahn, laengs, radial, buchstabe, drehsinn):
+    """(Kehren, Rampen) einer 4-Achs-Operation: die Sätze zurück in Bahnpunkte (a längs, r radial,
+    q quer, φ = −Rundachse ÷ Drehsinn – wie vierachs_bahn.befehle sie schreibt), gezählt mit
+    vierachs_bahn.kehren."""
+    from camaddon import vierachs_bahn as vb
+    from camaddon import vierachs_huelle as vh
+
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    stand = {"X": 0.0, "Y": 0.0, "Z": 0.0, buchstabe: 0.0}
+    punkte = []
+    for befehl in bahn.Commands:
+        if befehl.Name not in ("G0", "G1", "G00", "G01"):
+            continue
+        stand.update({k: float(v) for k, v in befehl.Parameters.items() if k in stand})
+        spitze = (stand["X"], stand["Y"], stand["Z"])
+        a = sum(s * e for s, e in zip(spitze, l_, strict=True))
+        r = sum(s * e for s, e in zip(spitze, u_, strict=True))
+        q = sum(s * e for s, e in zip(spitze, v_, strict=True))
+        phi = -stand[buchstabe] / (drehsinn or 1)
+        punkte.append(vb.Punkt(befehl.Name in ("G0", "G00"), a, r, phi, q=q))
+    return vb.kehren(punkte)
 
 
 def _kehren_schreiben():
@@ -176,6 +210,12 @@ def _kehren_schreiben():
         except Exception as fehler:  # noqa: BLE001
             zeilen.append((-1, f"{name}: nicht gezählt ({fehler})"))
             continue
+        if ergebnis is None and name in bahnen.vierachs:
+            try:
+                ergebnis = _vierachs_kehren(bahn, *bahnen.vierachs[name])
+            except Exception as fehler:  # noqa: BLE001
+                zeilen.append((-1, f"{name}: 4 Achsen nicht gezählt ({fehler})"))
+                continue
         if ergebnis is None:
             zeilen.append((-1, f"{name}: Rundachse – nicht gezählt"))
             continue

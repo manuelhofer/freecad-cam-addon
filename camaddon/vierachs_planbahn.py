@@ -604,8 +604,8 @@ def _mantelnut_punkte(nut, w, oben, sicher):
     ap = w.zustellung if w.zustellung > vb.GLEICH else 2 * radius
     ap = min(ap, nb.VOLLNUT_AP * 2 * radius)
     laenge = nut.radius * math.radians(max(f_bis - f_von, 0.0))
-    stufe = min(laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), ap / 2)
-    stufe = max(stufe, nb.MIN_RAMPE)
+    steil = laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1)))
+    stufe = max(min(steil, ap / 2), nb.MIN_RAMPE)
     k = min(max(w.zeilenabstand, vb.GLEICH) / (2 * radius), 0.5)
     anteil = 2 * math.sqrt(k * (1 - k))
     punkte = [
@@ -614,14 +614,26 @@ def _mantelnut_punkte(nut, w, oben, sicher):
         vb.Punkt(False, a_mitte, oben, f_von, True),  # bis ans Material, in der Luft
     ]
     z, dort, fahrten = oben, f_von, 0
-    while z > z_ende + vb.GLEICH:
-        z = max(z - stufe, z_ende)
+    if steil >= ap - vb.GLEICH:
+        # Lang genug, um am Eintauchwinkel in einer Fahrt eine ganze Zustellung tief zu kommen:
+        # je Lage die Rampe hin und eben zurück (die ebene Fahrt nimmt den Keil) – ohne Umkehr
+        # beim Hinabfahren, so viele Fahrten wie im Zickzack (wie nut_bahn._vollnut, P-29;
+        # P-2026-10-18-57, Manuel: „das auch wirklich alle zickzack fahrten weg sind“).
+        while z > z_ende + vb.GLEICH:
+            z = max(z - ap, z_ende)
+            for _ in range(2):  # die Rampe hinab, dann eben zurück
+                dort = f_bis if dort == f_von else f_von
+                punkte.append(vb.Punkt(False, a_mitte, z, dort, anteil=anteil))
+                fahrten += 1
+    else:
+        while z > z_ende + vb.GLEICH:
+            z = max(z - stufe, z_ende)
+            dort = f_bis if dort == f_von else f_von
+            punkte.append(vb.Punkt(False, a_mitte, z, dort, anteil=anteil))
+            fahrten += 1
         dort = f_bis if dort == f_von else f_von
-        punkte.append(vb.Punkt(False, a_mitte, z, dort, anteil=anteil))
+        punkte.append(vb.Punkt(False, a_mitte, z_ende, dort, anteil=anteil))
         fahrten += 1
-    dort = f_bis if dort == f_von else f_von
-    punkte.append(vb.Punkt(False, a_mitte, z_ende, dort, anteil=anteil))
-    fahrten += 1
 
     # Die Zeilen an den Wänden im Gleichlauf (P-2026-10-02-23): Liegt das Material längs vorn
     # (+), muss die Rundachse für M3 mit fallendem φ fahren, hinten mit steigendem – je Paar

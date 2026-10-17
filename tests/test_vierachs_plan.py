@@ -604,6 +604,33 @@ for nut in mantel:
 print(ascii(f"Mantelnut: {mb.mantelnuten} Nuten, {mb.lagen} Lagen, {mb.zeilen} Fahrten, "
             f"{vb.dauer(mb, 500.0):.2f} min, ins Teil {vergleich_m.kleinster:.3f}"))  # fmt: skip
 
+# Rampe in einer Richtung (P-2026-10-18-57, wie die Vollnut im Quader, P-29): Kommt die Rampe am
+# Eintauchwinkel auf der Länge der Nut eine ganze Zustellung tief (hier mit 15°: die kürzere, 11 mm
+# lang, · tan 15° ≥ 2 mm), je Lage hin hinab und eben zurück – keine Kehre, nicht mehr Fahrten als das Zickzack, nichts
+# ins Teil. Mit 5° bleibt es beim Zickzack (die Nut ist dafür zu kurz).
+mb_ein = vp.planen(
+    vp.netz_ohne(mantelwelle, []), LAENGS, RADIAL,
+    dataclasses.replace(w_mantel, eintauchwinkel=15.0), [], mantelnuten_=mantel,
+)  # fmt: skip
+kehren_ein, _rampen = vb.kehren(mb_ein.punkte)
+kehren_zz, _rampen = vb.kehren(mb.punkte)
+pruefe(kehren_ein == 0, f"Mantelnut mit 15°: {kehren_ein} Kehren")
+pruefe(kehren_zz > 0, f"Mantelnut mit 5°: {kehren_zz} Kehren – kein Zickzack mehr?")
+pruefe(mb_ein.zeilen <= mb.zeilen, f"Mantelnut einweg: {mb_ein.zeilen} statt {mb.zeilen} Fahrten")
+abtrag_e = rm.Stange(16.0, -120.0, 1.0)
+abtrag_e.fahre_stuecke(
+    [(p.a, p.r, p.phi, p.q) for p, n in zip(mb_ein.punkte, mb_ein.punkte[1:], strict=False) if not n.eilgang],
+    [(n.a, n.r, n.phi, n.q) for p, n in zip(mb_ein.punkte, mb_ein.punkte[1:], strict=False) if not n.eilgang],
+    ff.scheibe(4.0),
+)  # fmt: skip
+vergleich_e = rm.vergleiche(abtrag_e, rm.teilradien(netz_m, LAENGS, RADIAL, abtrag_e), 0.0, genau_m)
+pruefe(
+    vergleich_e.kleinster >= -rm.BLAU_AB, f"Mantelnut einweg: ins Teil {vergleich_e.kleinster:.3f}"
+)
+print(
+    ascii(f"Mantelnut einweg: {mb_ein.zeilen} Fahrten (Zickzack {mb.zeilen}), Kehren {kehren_ein}")
+)
+
 
 # Die Zeilen an den Wänden im Gleichlauf (P-2026-10-02-23): Liegt das Material vorn (die Zeile
 # längs vor der Mitte), fällt φ für M3, hinten steigt es; andersherum (M4) umgekehrt – gleich

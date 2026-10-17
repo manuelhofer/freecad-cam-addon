@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-57 mantelnut-rampe-einweg
+
+### EINGELESEN
+- Manuel (2026-10-16): „das auch wirklich alle zickzack fahrten weg sind“. Die Szenarien zählten
+  Kehren nur bei 3-Achs-Bahnen („Rundachse – nicht gezählt“); mitgezählt fand sich eine Kehre in
+  „Plan indexiert“ an der Mantelnut – die Pendelrampe in voller Breite. Für die Vollnut im Quader
+  gibt es seit P-29 die Rampe in einer Richtung, wenn die Nut lang genug ist.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `_mantelnut_punkte` – kommt die Rampe am Eintauchwinkel auf der
+  Länge der Nut eine ganze Zustellung tief, je Lage hin hinab und eben zurück; sonst das Zickzack
+  wie bisher (erlaubt in der geschlossenen Nut).
+- `tests/gui/_lauf/szenario_lauf.py`: `_vierachs_kehren` – die Sätze einer 4-Achs-Operation zurück
+  in Bahnpunkte (Stangenachse, Werkzeugrichtung, Rundachse, Drehsinn der Operation), gezählt mit
+  `vierachs_bahn.kehren`; `kehren.txt` nennt jetzt auch sie.
+- `tests/test_vierachs_plan.py`: Mantelnuten mit 15°: keine Kehre, 12 statt 14 Fahrten, nichts ins
+  Teil; mit 5° (zu kurz) weiter Zickzack.
+
+### ERGEBNIS
+- 4-Achs-Kehren in sechs Szenarien gezählt (Ring, Plan, Mantelnut, Nocke, Nase, Querbohrung): 0,
+  außer der Mantelnut (1 – die Nut ist für 5° zu kurz, das Zickzack bleibt dort).
+- Grün im Wochen-Build: `test_vierachs_plan`; die sechs Szenarien.
 ## P-2026-10-18-56 drehmaschine-ohne-y
 
 ### EINGELESEN
