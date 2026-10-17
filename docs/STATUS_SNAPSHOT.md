@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-06, 0.260.45 → 0.260.70):** (dazu T-015: G550 ohne Grundstellung)
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-07, 0.260.45 → 0.260.71):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -84,6 +84,12 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   0,05 mm als gleich und griff die flache Rampe an ihrer Wende an – behoben in P-2026-10-17-06,
   zusammen mit dem, was eine zweite Durchsicht fand (Eilgang-Schutz mit der Fräserform und am
   Rand, Helix im 4-Achs-Schruppen nur über Gefrästem, Taschenwände gegen jede angrenzende Fläche).
+- Danach (Stand P-2026-10-17-07): alle 121 Prüfdateien im Wochen-Build grün; in der Release 1.1.4
+  die Prüfdateien und Szenarien der Nacht (`test_freiwege`, `_vierachs_bahn`, `_vierachs_plan`,
+  `_bohrung`, `_gleiche_flaechen`, `_schlichten3d`; `szenario_schraeg_anlegen`, `_schraeg_g550`,
+  `_gleiche_flaechen`, `_beispiele`, `_loch_schraeg`, `_vierachs_plan`) grün. Geist, 3D-Schlichten:
+  58,3 min (55,4 nach P-58) – der Eilgang-Schutz nimmt 42 Eilgänge hinab ins Treppen-Restmaterial
+  am Rand des Rohteils (P-2026-10-17-07). Neu gefragt: Frage 8 (Wandfahrt des Planfräsens).
 - Der Knopf „Ebene schwenken (3+2) …“ im Assistenten ist weg (war seit P-54 immer versteckt), die
   Hilfe beschreibt den neuen Weg (P-2026-10-17-05). Der Befehl in der Werkzeugleiste bleibt.
 
