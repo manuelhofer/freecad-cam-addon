@@ -82,7 +82,8 @@ def schritte(h):
     hinweis = panel.maschine_hinweis.text()
     h.pruefe(
         panel.maschine_hinweis.isVisible()
-        and hinweis.startswith("Auf der Drehmaschine ist das Rohteil eine Stange"),
+        and hinweis.startswith("Auf der Drehmaschine ist das Rohteil eine Stange")
+        and "„„Bearbeitung“ von vorn öffnen …“" in hinweis,
         f"Hinweis: {hinweis!r}",
     )
     h.pruefe(panel.knopf_vierachs.isVisible(), "kein Knopf zum 4-Achs-Assistenten")

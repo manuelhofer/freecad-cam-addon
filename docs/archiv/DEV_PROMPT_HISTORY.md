@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-51 drehmaschine-weg-von-vorn
+
+### EINGELESEN
+- W-025 offen: „Bearbeitung“ auf einer Drehmaschine ohne Stangen-Job sagte nur „gefräst wird im
+  4-Achs-Assistenten (rundum, Plan indexiert)“ – nicht, wie man an die Stirnseite kommt (Erinnerung
+  „Nächster Schritt als Knopf“: der Knopf „Weiter im 4-Achs-Assistenten“ ist da, der Weg zurück
+  stand nirgends).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_drehmaschine_text(eintrag)` – mit Y oder C dazu der Weg: im
+  4-Achs-Assistenten die Stange einrichten, in Schritt 2 die Fläche an der Stirn, der Verweis
+  „„Bearbeitung“ von vorn öffnen …“ bringt mit der Stange zurück; Hinweis in Schritt 1 und Meldung
+  bei „Anlegen“ gleich.
+- Text `ba.maschine.drehmaschine_von_vorn` (de/en).
+- `tests/gui/szenario_bearbeitung_drehmaschine.py`: der Satz nennt den Verweis.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_bearbeitung_drehmaschine`, `szenario_bearbeitung_maschine`,
+  `test_sprache`.
 ## P-2026-10-17-50 stirnseite-polar-ohne-y
 
 ### EINGELESEN

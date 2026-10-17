@@ -909,6 +909,16 @@ def drehmaschine_stirn(job):
     )
 
 
+def _drehmaschine_text(eintrag):
+    """Der Satz zur Drehmaschine ohne Stangen-Job: gefräst wird im 4-Achs-Assistenten – mit Y oder
+    C dazu, wie die Stirnseite von vorn geht (W-025: Stange dort einrichten, die Stirnfläche, der
+    Verweis bringt zurück)."""
+    text = tr("ba.maschine.drehmaschine")
+    if eintrag is not None and {"Y", "C"} & set(getattr(eintrag, "achsen", ())):
+        text += " " + tr("ba.maschine.drehmaschine_von_vorn")
+    return text
+
+
 def stangen_job(job):
     """Hat der Job eine Stange als Rohteil (der 4-Achs-Assistent)?"""
     return hasattr(getattr(job, "Stock", None), "Radius")
@@ -5006,7 +5016,9 @@ class BearbeitungPanel:
         if self.job is None:
             return self.reject()
         if self.nur_vierachs():
-            QtGui.QMessageBox.information(self.form, tr("ba.titel"), tr("ba.maschine.drehmaschine"))
+            QtGui.QMessageBox.information(
+                self.form, tr("ba.titel"), _drehmaschine_text(self.maschine())
+            )
             return False
         if self._rohteil_uhr.isActive():
             self._rohteil_uhr.stop()
@@ -5476,7 +5488,7 @@ class BearbeitungPanel:
             self.maschine_hinweis.setText(tr("ba.maschine.drehmaschine_stirn"))
             self.maschine_hinweis.setStyleSheet(f"color: {GRAU_TEXT};")
         elif eintrag.art == msp.DREHMASCHINE:
-            self.maschine_hinweis.setText(tr("ba.maschine.drehmaschine"))
+            self.maschine_hinweis.setText(_drehmaschine_text(eintrag))
             self.maschine_hinweis.setStyleSheet(f"color: {ROT};")
         elif stange:
             self.maschine_hinweis.setText(tr("ba.maschine.rundachse"))
