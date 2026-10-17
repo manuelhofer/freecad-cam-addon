@@ -73,8 +73,11 @@ def schritte(h):
     h.pruefe(re.match(r"→ 1 Nut, 1 Lage, \d+ Bögen, etwa ", text), f"Nut: {text!r}")
     liste = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""
     h.pruefe(liste.endswith("offene Nut 30 × 80, Grund 18"), f"Liste: {liste!r}")
+    # Außer der Nut nur „Schlichten danach“ (mit Messstopp, P-2026-10-17-41).
     andere = [
-        (b.s.kennung, b.ergebnis.text()) for b in panel.bloecke if b.aktiv() and b is not nut_block
+        (b.s.kennung, b.ergebnis.text())
+        for b in panel.bloecke
+        if b.aktiv() and b is not nut_block and b.s.kennung != "schlichtendanach"
     ]
     h.pruefe(not andere, f"außer der Nut angehakt: {andere}")
     h.bild("1_grund", panel.form)

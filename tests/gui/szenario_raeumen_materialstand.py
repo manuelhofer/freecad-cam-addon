@@ -114,9 +114,12 @@ def schritte(h):
         vorher is not None and nachher is not None and 15.0 < vorher - nachher < 21.0,
         f"Weg müssen: vorher {vorher}, nachher {nachher}",
     )
+    # Die Nut bringt „Nut schlichten“ mit (P-2026-10-17-41): „… haben „Nut T1“ und „Nut
+    # schlichten T1“ schon weggenommen“.
     h.pruefe(
         material.startswith("noch ")
-        and material.endswith(f"hat „{nut_op.Label}“ schon weggenommen"),
+        and material.endswith("schon weggenommen")
+        and f"„{nut_op.Label}“" in material,
         f"Materialzeile: {material!r}",
     )
     h.bild("1_raeumen_kennt_die_nut", panel.form)

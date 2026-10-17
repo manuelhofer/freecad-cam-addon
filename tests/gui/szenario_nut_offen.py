@@ -26,7 +26,6 @@ def schritte(h):
     yield 500
 
     from camaddon import beispielmaschine, gui_bearbeitung, gui_reichweite
-    from camaddon import kontur as ko
     from camaddon import nut as nu
     from camaddon import raeumen as ra
     from camaddon import werkzeuge as wz
@@ -124,10 +123,11 @@ def schritte(h):
     yield 2500
     ops = list(job.Operations.Group)
     nuten = [o for o in ops if nu.ist_nut(o)]
+    # Dazu Messstopp und „Nut schlichten“ (P-2026-10-17-41), kein Räumen.
     h.pruefe(
         len(nuten) == 1
-        and nuten[0].Label == "Nut T1"
-        and not any(ko.ist_kontur(o) or ra.ist_raeumen(o) for o in ops),
+        and [o.Label for o in ops] == ["Nut T1", "Messstopp", "Nut schlichten T1"]
+        and not any(ra.ist_raeumen(o) for o in ops),
         f"Operationen: {[o.Label for o in ops]}",
     )
     if not nuten:
