@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-10, 0.260.45 → 0.260.74):** (dazu T-015: G550 ohne Grundstellung)
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-11, 0.260.45 → 0.260.75):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -95,9 +95,9 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   Geist (STL) 21,9 → 1,0 s und N-Eck-Kette 15,4 → 1,2 s (die Lochboden-Erkennung von P-54 holte
   jedes Dreieck mit `getElement`; das STL-Modell wird beim Umschalten der Aufspannung als Netz
   gezeigt); Öffnen am Testteil 3,2 → 1,3 s, Zielzeit 3,0 → 0,5 s (Punkt-in-Fläche für alle Zellen
-  auf einmal, dieselben Ergebnisse). Übrig über 1,5 s: „Anlegen“ mit Wegkippen (6 s, die
-  Operation rechnet im Fenster), der Vergleich beim Simultan-Planen (je Schritt bis 1,7 s), das
-  Anlegen eines Jobs in FreeCAD (1,7 s).
+  auf einmal, dieselben Ergebnisse); „Anlegen“ mit Wegkippen 6,2 → 0,8 s (die Rechnung atmet,
+  P-2026-10-17-11). Übrig über 1,5 s: der Vergleich beim Simultan-Planen (je Schritt bis 1,7 s),
+  das Anlegen eines Jobs in FreeCAD (1,7 s).
 - Vierter voller Lauf (Stand P-2026-10-17-10): 150 von 151 grün; `szenario_vierachs_schruppen`
   fand „Anlegen“ unter Volllast noch gesperrt (die Vorschau rechnete) und lief allein grün. Kehren
   wie im Lauf davor, nur das Planfräsen am Block wieder 0.
