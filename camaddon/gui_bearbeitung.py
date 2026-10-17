@@ -4622,6 +4622,21 @@ class BearbeitungPanel:
         # „dass man erstmal ein Ziel rechnet von der Zeit her“).
         self.ziel_text = grautext()
         self.ziel_text.setToolTip(tr("ba.ziel.tooltip"))
+        # Kommt der Fräser von Planfräsen oder Räumen nicht in eine gewählte Fläche: rot, welcher
+        # passt, und ein Knopf, ihn zu nehmen (Manuel, 2026-10-17: „ein hinweis an den anwender ..
+        # und dann mit einem klick kleinen fräser übernehmen klar !!“) – vorher tauschten sie selbst.
+        self.passt_text = QtGui.QLabel()
+        self.passt_text.setWordWrap(True)
+        self.passt_text.setStyleSheet(f"color: {ROT};")
+        self.passt_text.hide()
+        ziel[0].addWidget(self.passt_text)
+        self.knopf_passt = knopf("", tr("ba.passt.knopf.tooltip"), self.passenden_uebernehmen)
+        self.knopf_passt.hide()
+        zeile_passt = QtGui.QHBoxLayout()
+        zeile_passt.setContentsMargins(0, 0, 0, 0)
+        zeile_passt.addWidget(self.knopf_passt)
+        zeile_passt.addStretch()
+        ziel[0].addLayout(zeile_passt)
         # Der schnellere Fräser aus der Ziel-Zeile mit einem Klick – freiwillig (Manuel,
         # 2026-10-02: „ja, aber man muss nicht – wenn man es mit einem Fräser fräsen will, ist
         # das so“).
@@ -7229,9 +7244,7 @@ class BearbeitungPanel:
                 if self.zu_aendern is None:
                     self._schneller = beste
                     self.knopf_schneller.show()
-        getauscht = self._getauscht_text()
-        if getauscht:
-            saetze.insert(0, getauscht)
+        self._passt_zeigen()
         self.ziel_text.setText(" ".join(saetze))
         self._ziel_je_block(form, material)
 
@@ -7925,8 +7938,9 @@ class BearbeitungPanel:
 
     def _flaechenfraeser_waehlen(self, form):
         """Planfräsen und Räumen: Kommt ihr Fräser in eine gewählte ebene Fläche nicht hinein
-        (_zu_eng – eine Nut, enger als er), nehmen sie den größten ihrer Fräser, der mit
-        PASST_SPIEL Luft je Seite überall hinkommt, wie die Nut (_nutfraeser_waehlen). Manuel
+        (_zu_eng – eine Nut, enger als er), bieten sie den größten ihrer Fräser an, der mit
+        PASST_SPIEL Luft je Seite überall hinkommt (_passt_zeigen, „… übernehmen“) – genommen wird
+        er erst auf Klick (Manuel, 2026-10-17; bis dahin tauschten sie selbst). Manuel
         (2026-10-16) an zwei Teilen: Ø 12 in 10 mm breiten Nuten – das Planfräsen gewann ohne ein
         Wort, der Nutgrund blieb stehen. Merkt sich je Block, was getauscht wurde
         (_getauscht) und was ganz ohne passenden Fräser bleibt."""
@@ -7947,8 +7961,42 @@ class BearbeitungPanel:
                 self._getauscht[block] = (jetzt, None, eng)
                 continue
             wahl = max(passen, key=lambda i: (block._fraeser[i].durchmesser, -i))
-            self._getauscht[block] = (jetzt, block._fraeser[wahl], eng)
-            block.wahl_fraeser.setCurrentIndex(wahl)  # füllt die Einsätze neu
+            self._getauscht[block] = (jetzt, block._fraeser[wahl], eng)  # nur angeboten
+
+    def _passt_zeigen(self):
+        """Der rote Satz zu den Fräsern, die nicht hineinkommen (_getauscht_text), und der Knopf
+        „„T3 …“ übernehmen“, wenn ein kleinerer passt."""
+        text = self._getauscht_text() if self.zu_aendern is None else ""
+        self.passt_text.setText(text)
+        self.passt_text.setVisible(bool(text))
+        angebot = self._passendes_angebot()
+        if angebot is not None:
+            self.knopf_passt.setText(tr("ba.passt.knopf", werkzeug=_ziel_werkzeug(angebot)))
+        self.knopf_passt.setVisible(angebot is not None)
+
+    def _passendes_angebot(self):
+        """Der kleinere Fräser, der passt (bei Planfräsen und Räumen derselbe: der erste) – None."""
+        if self.zu_aendern is not None:
+            return None
+        for block, (_vorher, nachher, _eng) in getattr(self, "_getauscht", {}).items():
+            if nachher is not None and (block.aktiv() or block.moeglich):
+                return nachher
+        return None
+
+    def passenden_uebernehmen(self):
+        """„„T3 …“ übernehmen“: der angebotene Fräser in Planfräsen und Räumen, wo er dort steht.
+        Gibt zurück, ob sich etwas geändert hat."""
+        geaendert = False
+        for block, (_vorher, nachher, _eng) in list(getattr(self, "_getauscht", {}).items()):
+            if nachher is not None and block.fraeser_setzen(nachher):
+                geaendert = True
+        if geaendert:
+            self._getauscht = {}
+            self.passt_text.hide()
+            self.knopf_passt.hide()
+            self._flaechen_zeigen()
+            self.vorschau_starten()
+        return geaendert
 
     def _getauscht_text(self):
         """Der Satz zur Ziel-Zeile, wenn ein Fräser nicht in die gewählten Flächen kam
@@ -7974,10 +8022,8 @@ class BearbeitungPanel:
             }
             if nachher is None:
                 saetze.append(tr("ba.passt.keiner", **werte))
-            elif len(titel) == 1:
-                saetze.append(tr("ba.passt.getauscht", neu=_ziel_werkzeug(nachher), **werte))
             else:
-                saetze.append(tr("ba.passt.getauscht_beide", neu=_ziel_werkzeug(nachher), **werte))
+                saetze.append(tr("ba.passt.angebot", neu=_ziel_werkzeug(nachher), **werte))
         return " ".join(saetze)
 
     def _passt_angebot(self, form, angebot):

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-19 fraeser-passt-hinweis
+
+### EINGELESEN
+- Manuel (2026-10-17, Frage 1): Kommt der gewählte Fräser nicht in eine gewählte Fläche, nahmen
+  Planfräsen und Räumen seit 0.260.5 selbst den größten kleineren, der passt – „ein hinweis an den
+  anwender .. und dann mit einem klick kleinen fräser übernehmen klar !!“
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_flaechenfraeser_waehlen` tauscht nicht mehr, sondern merkt den
+  passenden Fräser als Angebot. Unter der Ziel-Zeile steht rot „T1 Schaftfräser Ø 12 kommt nicht in
+  Face11 – für Räumen passt T3 Schaftfräser Ø 6.“ (`_passt_zeigen`), darunter der Knopf „„T3
+  Schaftfräser Ø 6“ übernehmen“ (`passenden_uebernehmen`: in Planfräsen und Räumen). Ohne passenden
+  Fräser wie bisher „… und kein kleinerer Fräser der Werkzeugkiste passt“.
+- `translations/de.json`, `en.json`: `ba.passt.angebot`, `ba.passt.knopf`,
+  `ba.passt.knopf.tooltip`; `ba.passt.getauscht`, `ba.passt.getauscht_beide` entfallen.
+- `tests/gui/szenario_fraeser_passt.py` (neu): Nut 10 breit, T1 Ø 12 – Räumen behält T1, roter Satz
+  und Knopf; geklickt nimmt es T3, Satz und Knopf sind weg.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`, `szenario_fraeser_passt`, `szenario_nut`,
+  `szenario_nut_offen`, `szenario_nut_durch`, `szenario_raeumen`, `szenario_platte`,
+  `szenario_deckel`, `szenario_testteil`, `szenario_lagerbock`, `szenario_materialstand`,
+  `szenario_zielzeit`, `szenario_bearbeitung`, `szenario_zweiter_lauf`.
+
 ## P-2026-10-17-18 planfraesen-nur-offen
 
 ### EINGELESEN
