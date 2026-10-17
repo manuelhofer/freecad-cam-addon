@@ -1517,10 +1517,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Querachse wie die Operation (bis dahin ohne: „→ 5 Lagen“, angelegt sechs). Offen: die Zeilen
   längs fahren vor dem Teil ein kurzes Stück Luft im Vorschub (am Ring 4 mm je Zeile); Schlichten
   mit Sektoren bleibt die Spirale (Manuel: „beim Schlichten c und x oder nur y“).
-  Dazu T-006: Die 4-Achs-Vorschau läuft als Ganzes in einem Nebenrechner, der nicht weiter
-  verteilt (`nebenrechner.verfuegbar()` ist dort False) – ihre Hüllflächen rechnet ein Kern; beim
-  Anlegen und Neuberechnen im Hauptprozess sind sie verteilt. Nächster Schritt: die Vorschau in
-  Stücken (je Lage) an den Pool geben statt als ein Auftrag.
+  Kerne (P-2026-10-17-49): Die Hüllfläche je Stellung verteilte nach Richtungen, jede ganz – die
+  Y-Zeilen (eine Richtung je Sektor) gingen so am Ring auf höchstens drei Kerne; jetzt nach
+  Richtung, Band quer und Stelle längs in gleich große Stücke. (Die Notiz aus P-48, die Vorschau
+  rechne im Nebenrechner auf einem Kern, war falsch: Dort bestellt der Unterpool weiter,
+  P-2026-10-11-07.)
 - **W-027 Nase: der Assistent schlägt Plan indexiert + Kugel in Linien vor** – Manuel, 2026-10-17
   zu Frage 2: „ja die option soll so sein, wichtig ist, dass danach die kugel nicht nochmal alles
   das fährt, was schon weg ist“. Plan: Bei gewählten ebenen Flächen (Seiten, Spitze) hakt der

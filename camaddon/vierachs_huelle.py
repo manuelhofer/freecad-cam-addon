@@ -358,6 +358,7 @@ def je_stellung(netz, laengs, radial, form, phi, q, a):
 PARALLEL_AB_STELLUNGEN = 1000
 PARALLEL_AB_ARBEIT = 2_000_000
 STUECKE_JE_ARBEITER = 4
+MINDEST_JE_STUECK = 100  # so viele Stellungen mindestens je Stück – darunter lohnt das Senden nicht
 
 
 def kennung(netz):
@@ -371,9 +372,12 @@ def kennung(netz):
 
 
 def _je_stellung_verteilt(netz, laengs, radial, form, phi, q, a):
-    """je_stellung() auf den Nebenrechnern: die Richtungen der Reihe nach in Stücke mit etwa
-    gleich vielen Stellungen – jede Richtung ganz in einem Stück, sie rechnet ihre Stellungen in
-    einem Zug. None ohne Nebenrechner (dann rechnet der Aufrufer selbst)."""
+    """je_stellung() auf den Nebenrechnern: die Stellungen geordnet nach Richtung, Band quer
+    (wie je_stellung_stueck sie rechnet) und Stelle längs, in Stücke mit gleich vielen – so
+    rechnet ein Stück meist ganze Richtungen in einem Zug, und wenige Richtungen mit vielen
+    Stellungen gehen trotzdem auf alle Kerne. Bis P-2026-10-17-49 blieb jede Richtung ganz in einem
+    Stück: Die Zeilen mit Y in den Sektoren (eine Richtung je Sektor) rechneten am Ring auf drei
+    Kernen. None ohne Nebenrechner (dann rechnet der Aufrufer selbst)."""
     import FreeCAD
 
     from . import nebenrechner as nr
@@ -381,17 +385,13 @@ def _je_stellung_verteilt(netz, laengs, radial, form, phi, q, a):
     pool = nr.pool()
     if not pool.verfuegbar() or pool.anzahl < 2:
         return None
-    richtungen, welche = np.unique(phi, return_inverse=True)
-    stuecke = max(2, min(pool.anzahl * STUECKE_JE_ARBEITER, len(richtungen)))
-    bis = np.cumsum(np.bincount(welche, minlength=len(richtungen)))
-    # Je Richtung das Stück: nach der Zahl der Stellungen bis dahin.
-    stueck_je_richtung = np.minimum((bis - 1) * stuecke // len(a), stuecke - 1)
-    stueck = stueck_je_richtung[welche]
+    band = BAND_JE_RADIUS * max(form.aussen().radius, 1.0)
+    reihenfolge = np.lexsort((a, np.floor(q / band), phi))
+    stuecke = max(2, min(pool.anzahl * STUECKE_JE_ARBEITER, len(a) // MINDEST_JE_STUECK))
+    teile = [t for t in np.array_split(reihenfolge, stuecke) if len(t)]
     netz_gemeinsam = pool.gemeinsam("vh-netz-" + kennung(netz).hex(), netz)
     laengs = tuple(float(x) for x in laengs)
     radial = tuple(float(x) for x in radial)
-    teile = [np.flatnonzero(stueck == k) for k in range(stuecke)]
-    teile = [t for t in teile if len(t)]
     auftraege = [
         pool.auftrag(
             "vierachs_huelle",

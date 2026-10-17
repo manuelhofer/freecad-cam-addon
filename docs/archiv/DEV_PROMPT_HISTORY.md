@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-49 je-stellung-alle-kerne
+
+### EINGELESEN
+- Manuel (2026-10-17, zu den Sektorzeilen mit Y): „so gebaut, dass alle cpu threads genutzt
+  werden?“ – „wer hat das vorher berechnet? oder war das nur ein Kern?“
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py`: `_je_stellung_verteilt` teilt die Stellungen geordnet nach
+  Richtung, Band quer (wie `je_stellung_stueck` sie rechnet) und Stelle längs in gleich große
+  Stücke (`MINDEST_JE_STUECK` = 100) – bis dahin blieb jede Richtung ganz in einem Stück, die
+  Zeilen mit Y (eine Richtung je Sektor) gingen am Ring auf höchstens drei Kerne.
+- `tests/test_vierachs_huelle.py`: drei Richtungen mit 18 000 Stellungen → 96 Stücke, dasselbe
+  Ergebnis wie im Prozess.
+- `docs/STATUS_SNAPSHOT.md`: die Notiz aus P-48 berichtigt – die Vorschau im Nebenrechner
+  verteilt über den Unterpool weiter (P-2026-10-11-07), sie rechnet nicht auf einem Kern.
+
+### ERGEBNIS
+- Am Ring (3112 Dreiecke) gleich: 2970 Stellungen hier 0,03 s; 14 850 hier 0,11 s, verteilt
+  0,02 s in 96 Stücken, gleiches Ergebnis.
+- Grün im Wochen-Build: `test_vierachs_huelle`, `test_vierachs_bahn`, `test_vierachs_frei`.
 ## P-2026-10-17-48 sektoren-zeilen-mit-y
 
 ### EINGELESEN

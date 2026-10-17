@@ -173,6 +173,32 @@ pruefe(dauer < 10.0, f"zu langsam: {dauer:.1f} s")
 # Der Nocken reicht bis 36 mm von der Achse; unter ihm kommt die Stirn nicht tiefer.
 pruefe(36 - TOL <= float(np.max(h.r)) <= 36, f"höchste Stelle: {np.max(h.r)}")
 
+# Je Stellung auf den Nebenrechnern (P-2026-10-17-49): drei Richtungen mit vielen Stellungen – die
+# Zeilen mit Y in drei Sektoren – gehen in viele Stücke, nicht in drei, und es kommt dasselbe
+# heraus wie hier im Prozess.
+from camaddon import fraeserform as ff  # noqa: E402
+from camaddon import nebenrechner as nr  # noqa: E402
+
+pool = nr.pool()
+if pool.verfuegbar() and pool.anzahl >= 2:
+    netz_n = vh.vernetze(teil, TOL)
+    st = np.arange(-100.0, 0.0, 0.25)
+    phi_n = np.repeat(np.radians([30.0, 150.0, 270.0]), 15 * len(st))
+    q_n = np.tile(np.repeat(np.arange(-7.0, 7.01, 1.0), len(st)), 3)
+    a_n = np.tile(st, 45)
+    hier = vh.je_stellung_stueck(netz_n, LAENGS, RADIAL, ff.scheibe(R), phi_n, q_n, a_n)
+    verteilt = vh._je_stellung_verteilt(netz_n, LAENGS, RADIAL, ff.scheibe(R), phi_n, q_n, a_n)
+    pruefe(verteilt is not None, "je Stellung: nicht verteilt")
+    if verteilt is not None:
+        pruefe(
+            np.array_equal(np.isfinite(hier), np.isfinite(verteilt))
+            and np.allclose(hier[np.isfinite(hier)], verteilt[np.isfinite(verteilt)]),
+            "je Stellung verteilt: anders als hier",
+        )
+    stuecke = max(2, min(pool.anzahl * vh.STUECKE_JE_ARBEITER, len(a_n) // vh.MINDEST_JE_STUECK))
+    pruefe(stuecke > 3, f"je Stellung: nur {stuecke} Stücke für drei Richtungen")
+    print(ascii(f"Je Stellung verteilt: {len(a_n)} Stellungen, 3 Richtungen, {stuecke} Stücke"))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
