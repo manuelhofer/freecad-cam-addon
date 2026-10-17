@@ -1183,6 +1183,21 @@ def programm(
                         laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
                     continue
             gross = name_.upper()
+            if im_messstopp and gross in ("M5", "M05"):
+                # Spindel aus – die, die läuft: an der Drehmaschine mit angetriebenem Werkzeug
+                # dessen Befehl (Siemens „M3=5“), nicht M5 der Hauptspindel, die als C-Achse
+                # steht (P-2026-10-18-54).
+                if spindel_an is not None:
+                    zeilen.extend(_spindel_aus(s, spindel_an))
+                    spindel_an = None
+                else:
+                    zeilen.append("M5")
+                continue
+            if im_messstopp and gross in ("M3", "M03", "M4", "M04"):
+                # Nach dem Start: Die Spindel schaltet die nächste Bearbeitung selbst ein – mit
+                # ihrem Antrieb und ihrer Drehzahl (spindel_an ist dann None); roh hieße es an der
+                # Drehmaschine: die Hauptspindel an.
+                continue
             if im_messstopp and gross in ("M0", "M00"):
                 # Der Halt zum Messen: davor die Tür auf, danach zu – wie die Steuerung es sagt
                 # (Steuerung.tuer_auf/tuer_zu; leer: nur der Halt).

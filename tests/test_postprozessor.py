@@ -597,8 +597,10 @@ mit_wp = pp.Maschineninfo("Fräse")
 mit_wp.wechselpunkt = {"Z": 150.0}
 z_lcnc = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), mit_wp, "M").zeilen
 k = z_lcnc.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_lcnc else -1
+pruefe(z_lcnc[k + 1 : k + 5] == ["G53 G0 Z150.000", "M5", "M9", "M0"], f"Messstopp: {z_lcnc[k:]}")
+# Nach dem Halt kein rohes „M3“: Die Spindel schaltet die nächste Bearbeitung ein (P-2026-10-18-54).
 pruefe(
-    z_lcnc[k + 1 : k + 6] == ["G53 G0 Z150.000", "M5", "M9", "M0", "M3"], f"Messstopp: {z_lcnc[k:]}"
+    not any(x == "M3" or x.startswith("M3 ") for x in z_lcnc[k:]), f"Messstopp, M3: {z_lcnc[k:]}"
 )
 pruefe(ms.zeilen(25.0, 900.0, kuehlung="Flood")[-1] == "M8", "Messstopp: Kühlung wieder an")
 # Tür auf und zu je Steuerung (W-023; Manuel: „es muss variabel bleiben“): vor M0 auf, danach zu.
@@ -629,6 +631,28 @@ pruefe(sum(" D1" in x for x in z_d1) == 1, f"D1 zu oft: {[x for x in z_d1 if 'D1
 z_ohne = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), fraese, "M").zeilen
 k = z_ohne.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_ohne else -1
 pruefe(z_ohne[k + 1] == "G0 G43 H2 Z25.000", f"ohne Wechselpunkt: {z_ohne[k:]}")
+
+# An der Drehmaschine mit angetriebenem Werkzeug (Manuels CLX, Siemens): Der Messstopp schaltet
+# den Antrieb aus („M3=5“ der Spindel 3), nicht die Hauptspindel („M5“); nach dem Halt schaltet die
+# nächste Bearbeitung ihren Antrieb mit ihrer Drehzahl wieder ein (P-2026-10-18-54).
+messen_dreh = pp.Abschnitt(
+    "Messstopp", 1, 3000.0, False, "None", [C(z) for z in ms.zeilen(25.0, 2000.0)], "Fräser"
+)
+schlichten_dreh = dataclasses.replace(rundum, name="Rundum schlichten T1", drehzahl=2000.0)
+z_dreh = pp.programm(
+    [rundum, messen_dreh, schlichten_dreh], pp.steuerung("siemens"), dreh, "Welle"
+).zeilen
+k = z_dreh.index("; MESSSTOPP") if "; MESSSTOPP" in z_dreh else -1
+nach = z_dreh[k:]
+halt = nach.index("M0") if "M0" in nach else -1
+pruefe(
+    k >= 0 and "M3=5" in nach[:halt] and "M5" not in nach[:halt],
+    f"Drehmaschine Messstopp aus: {nach[:halt + 1]}",
+)
+pruefe(
+    halt >= 0 and "M3=3 S3=2000" in nach[halt:] and not any(x.startswith("M3 ") for x in nach),
+    f"Drehmaschine nach dem Halt: {nach[halt:halt + 8]}",
+)
 
 # --- Keine Dopplungen (P-2026-10-04-15): derselbe Eilgang zweimal hintereinander und „M5“ nach
 # „M5“ am Ende schreibt er nur einmal; zwei gleiche G1 bleiben (nicht angefasst).

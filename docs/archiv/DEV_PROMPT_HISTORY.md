@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-54 messstopp-angetriebene-spindel
+
+### EINGELESEN
+- Beim Nachsehen des Programms aus P-53 gefunden: Der Messstopp schrieb „M5“ und nach dem Halt
+  „M3 S…“ roh ins Programm. An der Drehmaschine mit angetriebenem Werkzeug (Manuels CLX, Siemens:
+  „M3=3 S3=…“ / „M3=5“) gilt „M5“ der Hauptspindel, die als C-Achse steht – das Werkzeug liefe beim
+  Messen weiter, und nach dem Start liefe die Hauptspindel an. Betrifft auch „Nut T1, Messstopp,
+  Nut schlichten T1“ von vorn auf der Drehmaschine (W-025).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: im Messstopp „M5“ → das Ausschalten der Spindel, die läuft
+  (`_spindel_aus`: angetrieben mit dessen Befehl), danach `spindel_an = None`; das rohe „M3/M4 S…“
+  fällt weg – die nächste Bearbeitung schaltet ihre Spindel mit ihrem Antrieb und ihrer Drehzahl
+  selbst ein.
+- `tests/test_postprozessor.py`: Fräse – nach dem Halt kein rohes M3; Drehmaschine (Siemens, T1
+  angetrieben an S3) – vor dem Halt „M3=5“, kein „M5“, danach „M3=3 S3=2000“ der nächsten
+  Bearbeitung, kein „M3 …“.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_postprozessor`, `szenario_programm`, `szenario_nut`.
 ## P-2026-10-18-53 vierachs-messstopp
 
 ### EINGELESEN
