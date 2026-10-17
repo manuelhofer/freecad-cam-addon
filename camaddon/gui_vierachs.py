@@ -1716,6 +1716,12 @@ class VierachsPanel:
         self.hinweis_bearbeitung = QtGui.QLabel()
         self.hinweis_bearbeitung.setWordWrap(True)
         self.hinweis_bearbeitung.setStyleSheet(f"color: {ROT};")
+        # Mit Verweis: Stirnflächen gehören in „Bearbeitung“ von vorn (_stirnseite_verweis).
+        self.hinweis_bearbeitung.setTextFormat(QtCore.Qt.RichText)
+        self.hinweis_bearbeitung.setTextInteractionFlags(
+            QtCore.Qt.TextSelectableByMouse | QtCore.Qt.LinksAccessibleByMouse
+        )
+        self.hinweis_bearbeitung.linkActivated.connect(self._werkzeug_oeffnen)
         aufbau.addWidget(self.hinweis_bearbeitung)
         self.knopf_zurueck = knopf(
             tr("va.zurueck"), tr("va.zurueck.tooltip"), lambda: self.zeige_seite(1)
@@ -3980,14 +3986,50 @@ class VierachsPanel:
             etikett.setText(text(e[name]) if e.get(name) is not None else "")
         self._rest_starten()
         self._halter_starten()
+        hinweis = " ".join(
+            gruende[name]
+            for name in (SCHRUPPEN, SCHLICHTEN, PLAN, "planbohren", ENTGRATEN)
+            if name in gruende
+        )
         self.hinweis_bearbeitung.setText(
-            " ".join(
-                gruende[name]
-                for name in (SCHRUPPEN, SCHLICHTEN, PLAN, "planbohren", ENTGRATEN)
-                if name in gruende
-            )
+            self._stirnseite_verweis(html.escape(hinweis, quote=False))
         )
         self._knoepfe_beschriften()
+
+    def _stirnseite_verweis(self, hinweis):
+        """Hinter den roten Satz zu Stirnflächen (vierachs_flaechen.stirnseitig – ein radialer
+        Fräser erreicht sie nie; Manuels Ring, 2026-10-12: die Ringnuten auf der Stirn „werden
+        garnicht bearbeitet“) der Verweis „„Bearbeitung“ von vorn öffnen …“ (zur_bearbeitung);
+        sonst der Satz, wie er ist."""
+        if not hinweis or self.job is None or not self.gewaehlte:
+            return hinweis
+        try:
+            achse = self.achse()
+            stirn = vf.stirnseitig(vr.modell(self.job).Shape, achse.laengs, self.gewaehlte)
+        except Exception:  # noqa: BLE001 – der Verweis ist ein Zusatz
+            return hinweis
+        if not stirn:
+            return hinweis
+        verweis = html.escape(tr("va.zur_bearbeitung"), quote=False)
+        return f'{hinweis} <a href="bearbeitung:{",".join(stirn)}">{verweis}</a>'
+
+    def zur_bearbeitung(self, namen):
+        """Stirnflächen (`namen`, „Face6“ …): Dieser Assistent schließt (der Job geht zurück), der
+        Assistent „Bearbeitung“ (3 Achsen, von vorn) öffnet sich mit dem Teil und diesen Flächen
+        – das Gegenstück zu gui_bearbeitung.BearbeitungPanel.zum_vierachs."""
+        from . import gui_bearbeitung
+
+        doc, teil = self.doc, self.teil
+        if teil is None or not namen:
+            return
+        self.reject()
+        FreeCAD.setActiveDocument(doc.Name)
+        QtCore.QTimer.singleShot(
+            0,
+            lambda: FreeCADGui.Control.showDialog(
+                gui_bearbeitung.BearbeitungPanel(doc, (teil, namen[0]), flaechen=list(namen))
+            ),
+        )
 
     def _vorschau_abwarten(self):
         """Wartet, bis die Nebenrechner mit der laufenden Vorschau fertig sind – das Fenster
@@ -4673,7 +4715,9 @@ class VierachsPanel:
         """„werkzeug:3“ im gelben Satz: die Werkzeugverwaltung bei T3 (D-41); „magazin:…“:
         das Werkzeug ins Magazin der Maschine (E3 a)."""
         art, wert = ziel.split(":", 1)
-        if art == "magazin":
+        if art == "bearbeitung":
+            self.zur_bearbeitung([n for n in wert.split(",") if n])
+        elif art == "magazin":
             self.ins_magazin(wert)
         elif art == "ausspannen":
             nummer, laenge, heraus = wert.split(":")

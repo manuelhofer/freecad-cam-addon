@@ -408,7 +408,42 @@ def bereich_fuer(form, laengs, radial, namen_, radius, toleranz=vh.TOLERANZ):
     rand = max(RAND, math.ceil(radius) + RAND)  # so kommt der Fräser über die Enden hinaus
     ergebnis = bereich(sicht_fuer(form, laengs, radial, rand, toleranz), gewaehlt, radius)
     if not ergebnis.drin.any():
+        stirn = stirnseitig(form, laengs, namen_)
+        if stirn:
+            # Manuels Ring (2026-10-12: Face28, Face6, Face17 – die Ringnuten auf der Stirn
+            # „werden garnicht bearbeitet“): sagen, dass sie längs der Achse schauen, und wohin.
+            raise ValueError(tr("vf.fehler.stirnseite", namen=", ".join(stirn)))
         raise ValueError(tr("vf.fehler.nicht_erreichbar"))
+    return ergebnis
+
+
+# So nah an 1 muss die Normale einer ebenen Fläche an der Stangenachse liegen (stirnseitig).
+STIRN_GENAU = 0.999
+
+
+def stirnseitig(form, laengs, namen_):
+    """Die Flächen unter `namen_` („Face3“ …), die längs der Stangenachse schauen – ebene
+    Flächen der Stirnseite (ihre Normale längs `laengs`, nach vorn oder zum Futter): Die
+    erreicht ein Fräser von außen (radial) nie; sie gehören in „Bearbeitung“ von vorn."""
+    import FreeCAD
+
+    from . import vierachs_rohteil as vr
+
+    achse = FreeCAD.Vector(laengs)
+    if achse.Length < 1e-9:
+        return []
+    achse.normalize()
+    anzahl = ft.anzahl(form)
+    ergebnis = []
+    for nummer in nummern(namen_):
+        if nummer >= anzahl:
+            continue
+        flaeche = ft.flaeche(form, nummer)
+        if not vr.ist_eben(flaeche):
+            continue
+        normale = vr.aussennormale(flaeche)
+        if normale is not None and abs(normale.dot(achse)) >= STIRN_GENAU:
+            ergebnis.append(f"Face{nummer + 1}")
     return ergebnis
 
 

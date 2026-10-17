@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-33 stirnseite-von-vorn
+
+### EINGELESEN
+- Manuel am Ring (2026-10-12): „die nuten in dem bauteil werden garnicht bearbeitet face 28
+  face 6 face 17“ – die Gründe der Ringnuten auf der Stirn. Der 4-Achs-Assistent sagte nur
+  „Keine der gewählten Flächen ist von außen erreichbar – … unter einem Überhang oder quer zur
+  Achse“, ohne Namen und ohne den nächsten Schritt (Snapshot: „das muss gesagt werden … und eine
+  Bearbeitung von vorn angeboten werden“; Manuels Regel: der nächste Schritt als Knopf).
+
+### DATEIEN
+- `camaddon/vierachs_flaechen.py`: `stirnseitig(form, laengs, namen)` – ebene Flächen, deren
+  Normale längs der Achse liegt (`STIRN_GENAU`); `bereich_fuer` nennt sie im Fehler
+  (`vf.fehler.stirnseite`), sonst der alte Satz.
+- `camaddon/gui_vierachs.py`: der rote Satz kann Verweise (RichText); `_stirnseite_verweis`
+  hängt „„Bearbeitung“ von vorn öffnen …“ an, `zur_bearbeitung` schließt den Assistenten (der
+  Job geht zurück) und öffnet `gui_bearbeitung.BearbeitungPanel` mit dem Teil und diesen Flächen
+  – das Gegenstück zu `zum_vierachs`.
+- Texte `vf.fehler.stirnseite`, `va.zur_bearbeitung` (de/en); `help/de|en/vierachs.html`.
+- `tests/gui/szenario_vierachs_stirnseite.py` (neu): der Ring, Face6 gewählt – der Satz mit
+  Namen und Verweis, „Anlegen“ gesperrt; der Verweis öffnet „Bearbeitung“ mit Face6.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_vierachs_stirnseite`, `test_sprache`.
 ## P-2026-10-17-32 sektoren-unter-der-achse
 
 ### EINGELESEN
