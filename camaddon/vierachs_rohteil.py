@@ -341,8 +341,20 @@ def _vernetzt(form):
     """(Punkte, Dreiecke) der Form mit TESSELLIERUNG – an einer Kopie: tessellate am Original
     hängt das feine Netz an das Teil, und wer es danach gröber vernetzt (Zugang, Voxel), bekäme
     dieses statt seines eigenen – je nachdem, was davor lief, ein anderes Ergebnis (wie die drei
-    Simultan-Tests nach P-2026-10-17-22, P-2026-10-18-68)."""
-    return form.copy(False, False).tessellate(TESSELLIERUNG)
+    Simultan-Tests nach P-2026-10-17-22, P-2026-10-18-68). Die letzten NETZE_GEMERKT gemerkt, je
+    Form (isSame: dieselbe Topologie, dieselbe Lage): Ein Klick im Assistenten vermisst das Teil
+    mehrmals (Gegenleser zu P-68, P-2026-10-18-70)."""
+    for gemerkt, netz in _NETZE:
+        if gemerkt.isSame(form):
+            return netz
+    netz = form.copy(False, False).tessellate(TESSELLIERUNG)
+    _NETZE.insert(0, (form, netz))  # die Form bleibt gehalten: ihre Topologie kommt nicht neu
+    del _NETZE[NETZE_GEMERKT:]
+    return netz
+
+
+NETZE_GEMERKT = 4
+_NETZE = []  # [(Form, (Punkte, Dreiecke))], das zuletzt gerechnete zuerst
 
 
 def _punkte(form):
@@ -576,7 +588,7 @@ def einstellung(job):
     """
     rohteil = getattr(job, "Stock", None)
     spann = spannlaenge(job)
-    if rohteil is None or not hasattr(rohteil, "Radius") or spann <= 0:
+    if not ist_stange(job, rohteil):
         return None
     try:
         klon = modell(job)
@@ -749,6 +761,15 @@ def _drehlage(platz, normale, laengs):
 def abstechbreite(job):
     """Die Abstechbreite des Jobs (mm) – ohne gemerkte die Vorgabe."""
     return float(getattr(job, EIGENSCHAFT_ABSTECHBREITE, ABSTECHBREITE) or ABSTECHBREITE)
+
+
+def ist_stange(job, rohteil=None):
+    """Hat der Job eine Stange aus dem Assistenten – ein Rohteil mit Radius (`rohteil`, ohne: das
+    des Jobs) und die gemerkte Spannlänge? Ob sie gemerkt ist, nicht ihr Wert: Auch Spannlänge 0
+    ist eine Stange (richte_ein merkt sie immer; P-2026-10-18-65/-70)."""
+    if rohteil is None:
+        rohteil = getattr(job, "Stock", None)
+    return hasattr(rohteil, "Radius") and hasattr(job, EIGENSCHAFT_SPANNLAENGE)
 
 
 def spannlaenge(job):

@@ -298,6 +298,23 @@ pruefe(
     and e.stange == vr.Stange(75.0, 0.5, 4.0, 25.0),
     f"Einstellung bei B, gedreht: {e and (e.mitte, e.drehlage, e.stange)}",
 )
+# Spannlänge 0 (das Feld nimmt sie an): weiter eine Stange, „Ändern“ findet die Einstellung
+# (Gegenleser zu P-65, P-2026-10-18-70).
+dok.openTransaction("ohne Spannlänge")
+vr.richte_ein(dok, teil, im_job, vr.Stange(75.0, 0.5, 4.0, 0.0), "B", job=job)
+dok.commitTransaction()
+e = vr.einstellung(job)
+pruefe(vr.ist_stange(job), "Spannlänge 0: keine Stange")
+pruefe(
+    e is not None and e.stange.spannlaenge == 0.0,
+    f"Spannlänge 0: Einstellung {e and e.stange}",
+)
+dok.undo()
+pruefe(vr.einstellung(job).stange.spannlaenge == 25.0, "Rückgängig: Spannlänge nicht wieder 25")
+# Das Netz fürs Vermessen: an einer Kopie, gemerkt je Form – das Teil selbst bleibt ohne.
+netz = vr._vernetzt(teil.Shape)
+pruefe(vr._vernetzt(teil.Shape) is netz, "dasselbe Teil zweimal vernetzt")
+pruefe(vr._vernetzt(Part.makeBox(5, 5, 5)) is not netz, "ein anderes Teil bekommt dasselbe Netz")
 # Auf eine andere Rundachse umgestellt (P-2026-10-12-138: der Job ohne Maschine auf B, die
 # Maschine dreht C): dieselbe Stange, Mitte und Drehlage, die Stange jetzt längs Z.
 from camaddon import vierachs_achsen as va  # noqa: E402

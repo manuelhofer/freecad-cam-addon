@@ -77,7 +77,7 @@ def futter_hoehe(job):
 
     grund = rw.grundjob_von(job)
     kreis = rund(getattr(grund, "Stock", None))
-    if kreis is None or gespannt(grund) <= 0 or vr.spannlaenge(grund) > 0:
+    if kreis is None or gespannt(grund) <= 0 or vr.ist_stange(grund):
         return 0.0
     return futter_masse(kreis[2])[1]
 

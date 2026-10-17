@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-70 stange-ueberall-gleich
+
+### EINGELESEN
+- Gegenleser zu P-64 … P-68: kein Fehler; zwei Hinweise.
+  - Seit P-68 vernetzt das Vermessen im 4-Achs-Assistenten bei jedem Aufruf eine Kopie neu – vorher
+    hing das Netz nach dem ersten Mal am Teil. Ein Klick vermisst mehrmals (`_ebene_am_futter`,
+    `vermesse`, `_runde_laengs`, `einstellung`).
+  - Seit P-65 ist eine Stange mit Spannlänge 0 in „Bearbeitung“ eine Stange, anderswo nicht:
+    `vierachs_rohteil.einstellung` gab None (der Assistent fand den Job zum Ändern nicht, das
+    Prüffenster blendete „Achse umstellen“ aus), das Einrichtblatt beschrieb sie nicht als Stange,
+    `spannung.futter_hoehe` zählte sie wie einen runden Rohling im Futter auf dem Tisch. Die
+    Spannlänge 0 nimmt das Feld im Assistenten an.
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py`: `ist_stange(job, rohteil=None)` – Rohteil mit Radius und gemerkte
+  Spannlänge (ob gemerkt, nicht ihr Wert); `einstellung` fragt danach. `_vernetzt` merkt sich die
+  letzten vier Netze je Form (`isSame`; die Form bleibt gehalten).
+- `camaddon/gui_bearbeitung.py` (`stangen_job`), `camaddon/einrichtblatt.py` (drei Stellen),
+  `camaddon/spannung.py` (`futter_hoehe`): `vr.ist_stange`.
+- `tests/test_vierachs_rohteil.py`: Spannlänge 0 – eine Stange, `einstellung` mit Spannlänge 0,
+  Rückgängig wieder 25; das Netz zweimal dasselbe, ein anderes Teil ein anderes.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_rohteil`, `test_einrichtblatt`, `test_spannung`,
+  `szenario_bearbeitung_drehmaschine`, `szenario_vierachs_aendern`.
 ## P-2026-10-18-69 abfahren-weniger-speicher
 
 ### EINGELESEN

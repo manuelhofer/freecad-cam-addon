@@ -375,7 +375,7 @@ def rohteil_text(job, tr):
             sw=_zahl(bb.YLength),
             l=_zahl(bb.XLength),
         )
-    if vr.spannlaenge(job) > 0 and hasattr(rohteil, "Radius"):
+    if vr.ist_stange(job, rohteil):
         import FreeCAD
 
         laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
@@ -436,7 +436,7 @@ def spannung_text(job, tr):
             flaeche=getattr(job, "Flaeche", "") or "–",
         )
     rohteil = getattr(grundjob(job), "Stock", None)
-    if vr.spannlaenge(job) > 0 and hasattr(rohteil, "Radius"):
+    if vr.ist_stange(job, rohteil):
         return tr("eb.spannung.stange", mm=_mm(), tiefe=_zahl(vr.spannlaenge(job)))
     tiefe = spannung.gespannt(grundjob(job))
     if tiefe <= 0:
@@ -464,7 +464,7 @@ def nullpunkt_text(job, tr):
 
     # Gekippt gespannt: Das Rohteil liegt in dieser Aufspannung anders – ihr eigenes (gedreht).
     rohteil = getattr(job if sw.ist_umspannen(job) else grundjob(job), "Stock", None)
-    if vr.spannlaenge(job) > 0 and hasattr(rohteil, "Radius"):
+    if vr.ist_stange(job, rohteil):
         return tr("eb.nullpunkt.stange")
     form = getattr(rohteil, "Shape", None)
     if form is None or form.isNull():
