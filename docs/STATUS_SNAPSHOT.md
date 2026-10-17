@@ -42,7 +42,7 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   geht an Räumen und Kontur (P-2026-10-17-18).
 - Dazu: „Beispiele laden“ bekam „Öffnen“ (P-2026-10-17-16).
 
-**Umgesetzt am 17.10. (0.260.80 → 0.260.86):**
+**Umgesetzt am 17.10. (0.260.80 → 0.260.87):**
 - P-17 Frage 9: Name der Ebene wie an der Steuerung („A−60 B0“).
 - P-18 Frage 3: Planfräsen nur offen; der Absatz → Räumen/Kontur.
 - P-19 Frage 1: roter Satz, welcher Fräser passt, mit Knopf „„T3 …“ übernehmen“.
@@ -53,7 +53,11 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
 - P-22 Frage 6: 3D-Schruppen-Haken „Nur über den gewählten Flächen – drumherum ist schon gefräst“
   (nicht angehakt – angehakt führe der Fräser bei vollem Rohteil drumherum ins Volle) und der
   Satz „Rings um die gewählten Flächen steht laut Rohteil noch … cm³ …“. Kuppel 6,1 → 3,9 min.
-- Offen: Frage 4 (Räumen bis durch gegen die Kontur) – in Arbeit.
+- P-23 Frage 4: Räumen bis durch an Wänden, die durch das Teil gehen (nur Wände gewählt, das
+  Gebiet nur von gewählten Wänden begrenzt, nicht ein einzelnes rundes Loch) – gegen die Kontur,
+  ein Schlichtzug zählt beim Räumen dazu; gewinnt es, ist „Schlichten danach“ angehakt. C-Ring
+  Ø 12: 2,7 statt 5,3 min. Szenario `szenario_raeumen_durch`.
+- Damit sind alle neun Fragen vom 16./17.10. umgesetzt.
 
 **Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-16, 0.260.45 → 0.260.80):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
