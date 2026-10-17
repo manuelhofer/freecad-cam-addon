@@ -1,0 +1,184 @@
+# Aufträge für Fable
+
+Geschrieben am 2026-10-17 von Claude (Opus 5.5) auf Manuels Wunsch („schreib du mal das für fable
+auf bitte“). Fünf Optimierungen, bei denen viel gleichzeitig stimmen muss. Manuels Linie dazu:
+„grosse Aufgaben für Fable sind optimierungsaufgaben! perfektion ist wichtig!“
+
+**Zuerst lesen:** `CHATSTART.md` (Einstieg), `CLAUDE.md` (Pushen, Prüfen, Screenshots) und
+`docs/arbeitsregeln.md`, Abschnitt 5 (Prüfen). Die Erinnerungen dieses Projekts
+(`~/.claude/projects/…freecad-cam-addon/memory/MEMORY.md`) gelten auch für dich.
+
+## Was für alle fünf gilt
+
+- **Strategie erst zeigen, dann bauen.** Was das Addon ohne Vorgabe wählt oder wie eine Bahn
+  grundsätzlich fährt, ändert sich nur mit Manuels Ja. Zuerst ein Bild mit Zahlen (heute gegen
+  Vorschlag: Zeit, Luft, Eingriff in ae, Kehren). Die Frage kommt mit Grund in
+  `docs/OFFENE_FRAGEN.md`.
+- **Unnötiges darf ohne Rückfrage weg:** Luftfräsen, überflüssige Rampen, Zickzack, langsame
+  Freiwege. Im Freien fährt die Maschine im Eilgang.
+- **Prüfen – Manuel ist davon gerade genervt** (2026-10-17: „das mit dem prüfen ne .. geht mir
+  langsam auf die nerven“):
+  - Je Änderung **eine** Prüfdatei und **ein** Szenario zum geänderten Teil, im neuesten
+    Wochen-Build.
+  - Ein voller Lauf höchstens einmal am Tag. Ein rotes Szenario erst im Code verstehen, nicht
+    mehrfach laufen lassen.
+  - Wie die Läufe auf Manuels Rechner gehen, steht in der Erinnerung
+    `lokal-pruefen-auf-manuels-rechner`: eigenes Profil, gamescope, Speichergrenze, höchstens zwei
+    schwere Läufe gleichzeitig.
+- **Manuels Dateien nie ändern:** `~/freecad_cam/testteile/…` nur als Kopie benutzen. Dasselbe
+  gilt für die Beispiele in `beispiele/`.
+- **Alle Kerne nutzen, das Fenster darf nie stehen.** Rechnungen von Anfang an in Stücke für die
+  Nebenrechner zerlegen (`camaddon/nebenrechner.py`), lange Rechnungen in Dialogen nie synchron.
+- **Bahnen ohne Manuel vermessen:** Wie das geht, steht in der Erinnerung
+  `bahnen-pruefen-ohne-manuel`.
+  - Den Weg immer mit allen Achsen zählen, auch q, die Querachse.
+  - Abstände zu den Strecken messen, nicht nur zu den Punkten.
+  - 3-Achs-Bahnen misst der Prüfstand (`camaddon/pruefstand.py`, `messen`, `zeile`).
+  - 4-Achs-Bahnen fährt `camaddon/voxelstange.py` nach.
+- **Je Patch:** ein Verlaufseintrag in `docs/archiv/DEV_PROMPT_HISTORY.md` mit einer höheren
+  Version in `package.xml`. Danach pushen und mit `git ls-remote` bei GitHub nachsehen.
+
+---
+
+## 1. Rundum schruppen: die tiefen Lagen kreisen durch Luft (Manuels Ring)
+
+**Manuel (2026-10-12)** zu seinem Ring: „warum fährt der da in der luft ??? … komplette anarchie“.
+
+**Das Teil:** `beispiele/ring_4achs_planbearbeitung.FCStd`, Job „Body – 4 Achsen“. Das Original
+liegt unter `~/freecad_cam/testteile/4_achs_planbearbeitung_testteil.FCStd` und wird nicht
+geändert.
+- Ein Ring Ø 65 × 8 aus drei Segmenten mit Schlitzen bis zur Bohrung, dazu Ringnuten.
+- Rohteil: Stange Ø 70.
+- Werkzeug: T4 Ø 4.
+
+**Befund aus dem Snapshot (2026-10-12, noch einmal nachmessen):**
+- 7 Lagen zu je ~5,9 mm, über den Segmenten stehen aber nur 2,5 mm.
+- Die tieferen Lagen fahren die ganze Spirale über den fertigen Ring, nur um in die Schlitze zu
+  kommen.
+- „Folgelagen nur, wo nötig“ (`nur_noetig`) kürzt die Spirale nur längs der Achse, nicht im
+  Winkel.
+- Die Stellen, an denen schon alles weg ist, markiert `_Rest.leer` als frei.
+
+**Code:** `camaddon/vierachs_bahn.py`
+- `schruppen()`: die Lagen-Schleife mit `nur_noetig`, `_rest_neu`/`_Rest`, `_frei`.
+- `_schruppen_quer()`: dasselbe mit der Querachse.
+- `_zeilen`/`_schruppen_zeilen`: Zeilen hin und her für gewählte Flächen (V4).
+
+**Idee (noch ohne Manuels Ja):** Eine Lage, die nur noch in schmalen Winkelbereichen Material
+findet, fährt dort Zeilen (wie V4) statt einer ganzen Umdrehung je Steigung.
+
+**Fertig, wenn:**
+- Die Luft im Vorschub der tiefen Lagen ist gemessen, und zwar vorher und nachher.
+- Manuel hat das Bild mit den Zahlen gesehen und Ja gesagt.
+- Danach ist es gebaut.
+- An der Nase (`beispiele/testteil_4achs_nase.FCStd`), an der Nocke und am Ring wird es nirgends
+  schlechter: Zeit, Rest, kein Schnitt ins Teil.
+
+## 2. Manuels Weg für die Nase (Schaft an der Flanke, Front quer)
+
+**Manuels Bild und Worte (2026-10-12, im Snapshot unter „Nächster Schritt“):**
+- Die Flanke:
+  - Der Schaftfräser beginnt seitlich neben der Stange hinten.
+  - Er schwenkt im Bogen an die Flosse und fährt mit dem Umfang an ihr entlang nach vorn und
+    vorn hinaus.
+  - Manuel: „einfach von außen einfahren und sozusagen mit dem schaft plan an der flosse vorbei
+    fahren“.
+- Die Front:
+  - Der Fräser kommt von oben, seitlich neben der Stange, und fährt quer in Y ganz hindurch.
+  - Manuel: „fährt im ap und mit dem ae einfach da plan entlang“.
+- Danach drehen und mit derselben Stellung „vorne die spitze … oben und unten fertig machen“.
+
+**Das Teil:** `beispiele/testteil_4achs_nase.FCStd`. Laut README lässt das Schruppen dort heute
+bis 47,6 mm stehen, und die ebenen Flächen der Nase schlichtet die Kugel mit.
+
+**Code:**
+- `camaddon/vierachs_plan.py` und `camaddon/vierachs_planbahn.py` („Plan indexiert“). `Schaft`
+  für die Seiten gibt es dort schon; es fehlt die Einfahrt im Bogen von der Seite.
+- Die Front quer mit dem Umfang ist neu.
+
+**Fertig, wenn:**
+- Manuel hat zuerst ein Bild mit Zahlen gesehen und Ja gesagt: heute gegen seinen Weg, mit Zeit,
+  Rest an der Nase und Eingriff.
+- Danach ist es gebaut und an der Nase nachgemessen.
+
+## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
+
+**Stand (P-2026-10-17-22):** Das 3D-Schruppen hat den Haken „Nur über den gewählten Flächen –
+drumherum ist schon gefräst“.
+- Die Hauptlagen fahren dann die Ringe vom Rand dessen, was noch steht
+  (`raeumen_bahn._Feld.material_setzen` mit der Variante „rohteil“).
+- An der Kuppel (`tests/test_schruppen3d.py`): 3,86 statt 6,08 min.
+- Rest des Problems: Am Rand des Bereichs bleibt ein Zwickel mit **2,6 ae auf 8 mm**. Die Prüfung
+  erlaubt dort deshalb `< 3.0`, sonst gilt `< 2.0`.
+
+**Dasselbe Muster an anderer Stelle:** Mit Materialstand (`stand`) fährt das 3D-Schruppen jede
+Lage wie eine Zwischenlage (`camaddon/schruppen3d_bahn.py`, `_schruppen`, `mit_stand`).
+- Eine tiefe Hauptlage geht dann am Rand des Materials per Helix hinab.
+- Gemessen an der Kuppel mit `zwischen=0`: als Zwischenlage 3,59 min, mit Ringen vom Rand
+  (`material_setzen`) 1,20 min.
+- Das gilt also auch für das 3D-Schruppen hinter einem Räumen und lohnt sich mehrfach.
+
+**Fertig, wenn:**
+- Der Zwickel ist verstanden und weg, die Grenze in der Prüfung wieder `< 2.0`.
+- Mit Materialstand fahren die Hauptlagen die Ringe vom Rand (oder es ist begründet, warum
+  nicht).
+- `tests/test_schruppen3d.py` und der Prüfstand (`tests/test_pruefstand.py`, Bestmarken) sind
+  grün.
+- Ändert sich eine Bestmarke, nur diesen einen Schlüssel neu schreiben.
+
+## 4. Räumen bis durch gegen die Kontur: fair vergleichen
+
+**Stand (P-2026-10-17-23, Frage 4, Manuel: „Ja, Räumen tritt an“):** An Wänden, die durch das Teil
+gehen, tritt das Räumen bis durch gegen die Kontur an (nur Wände gewählt).
+- Die Kontur schlichtet dabei schon, das Räumen nicht.
+- Deshalb zählt beim Räumen eine **Schätzung** des Schlichtzugs dazu
+  (`gui_bearbeitung.BearbeitungPanel._durch_schlichtzug`: Länge der Unterkanten durch den
+  Vorschub).
+- Gewinnt das Räumen, ist „Schlichten danach“ angehakt.
+- Zahlen am C-Ring (`tests/gui/szenario_raeumen_durch.py`, Ø 12):
+
+| Bahn | Zeit |
+|---|---|
+| Räumen | 2,25 min |
+| Schlichten danach, tatsächlich | 0,43 min |
+| Schlichten danach, geschätzt | ~0,32 min |
+| Kontur | 3,36 min |
+
+**Richtig wäre:** „Räumen + Schlichten danach“ als Folge gegen die Kontur rechnen.
+- Vorbild: die Folge Planfräsen + Räumen der Böden (`_folge`, `_nur_boeden`).
+- Der Haken darf dabei nicht hin und her springen. Ist das Räumen abgehakt, ist „Schlichten
+  danach“ nicht möglich und wird nicht gerechnet. Deshalb heute die Schätzung.
+
+**Code:** `camaddon/gui_bearbeitung.py`: `_wettbewerb_gruppe`, `_durch_schlichtzug`,
+`_schlichten_danach_einrichten`, `_schlichten_danach_zusatz`. Dazu `camaddon/raeumen.py`:
+`durch_gebiete`.
+
+**Fertig, wenn:**
+- Der Vergleich nimmt die gerechnete Zeit des Schlichtens, ohne Springen.
+- `tests/gui/szenario_raeumen_durch.py` ist grün.
+
+## 5. Die übrigen Zickzacks
+
+**Manuel (2026-10-16):** „das auch wirklich alle zickzack fahrten weg sind“.
+
+**Was noch übrig ist, mit Grund:**
+- **Vollnuten:** Ist die Nut kaum breiter als der Fräser, fährt `camaddon/nut_bahn.py` die
+  Vollnut mit Rampe (`VOLLNUT_ANTEIL`, `VOLLNUT_HELIX`). Dort geht heute nur Hin und Her.
+- **Die schmale Tasche im Schwenkteil** (`beispiele/schwenkteil_5achs.FCStd`): Ø 12 hat dort
+  1 mm Platz, also eine schmale Schleife.
+- **Winzige Ringe am Geist** (`beispiele/geist_stl/`, 3D-Schlichten): kein echtes Hin und Her.
+- **Wendepunkte im Adaptiv-Kern von FreeCAD.** Der Kern rechnet nie zweimal dasselbe (Erinnerung
+  `adaptiv-kern-streut`).
+
+**Messen:**
+- Der Prüfstand zählt `kehren`.
+- Jedes Szenario schreibt `kehren.txt` und je Operation ein `.nc`.
+- Eine neue Kehre gegenüber dem Lauf davor ist fast immer eine Regression.
+
+**Fertig, wenn:** Jede Stelle ist weg oder hat ein Bild mit Zahlen und einen Grund, warum es dort
+nicht anders geht, und Manuel hat es gesehen.
+
+---
+
+**Reihenfolge, wenn Manuel nichts anderes sagt:** 1 und 3 zuerst. Beide sind klar umrissen und
+messbar (Luft in %, Eingriff in ae). 2 braucht vorher sein Ja zum Bild.
