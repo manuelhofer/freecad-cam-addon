@@ -1853,9 +1853,10 @@ def _helix_hinab(punkte, mitte, radius, knapp, oben, lage, w):
 # ist, ist ein Eintauchen mit Wackeln – die Stirn innerhalb der Schleife schneidet voll, wie beim
 # Eintauchen, und es dauert länger. Am Testteil (Dreieckstasche, Ø 12 mit 0,2 mm Spiel) kreiste
 # die Kontur 57-mal auf einem Dreieck von 0,35 mm Seite 5 mm hinab (58 mm Weg, 4 s; der Prüfstand
-# zählte eine Kehre); senkrecht sind es 5 mm mit dem Eintauchvorschub (1 s). Wie bei der Helix
-# (_helix_radius: wenigstens bohrung_bahn.KERN_ANTEIL / 2 des Radius).
-WENDEL_MIN_ANTEIL = 0.45
+# zählte eine Kehre); senkrecht sind es 5 mm mit dem Eintauchvorschub (1 s). Die Schleife muss
+# wenigstens ein Zehntel des Fräserdurchmessers im Radius haben (das übliche Mindestmaß einer
+# Helix zum Einfahren) – in einer Bohrung Ø 14,4 mit Ø 12 noch die Wendel, in Ø 13 nicht mehr.
+WENDEL_MIN_ANTEIL = 0.2  # des Fräserradius, als Radius der Schleife (Umfang / 2π)
 
 
 def _wendel(punkte, segmente, proben, stellen, lage, vorige, w, r):

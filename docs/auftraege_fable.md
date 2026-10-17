@@ -241,8 +241,8 @@ nicht anders geht, und Manuel hat es gesehen.
     Flanke hinab- und darunter zurücklaufen (0,02 mm neben der Spur) – die Falte der Fläche, kein
     Zickzack (Bild `docs/bilder/vorschlaege/geist_kehren_kopf.png`).
   - Testteil: 1 Kehre, „Kontur T1“ in der Dreieckstasche – die Wendel auf einem Dreieck von
-    0,35 mm Seite, 57 Umläufe 5 mm hinab. **Weg (P-2026-10-17-35):** kürzer als 0,45 des
-    Fräserumfangs geht die Kontur senkrecht hinab.
+    0,35 mm Seite, 57 Umläufe 5 mm hinab. **Weg (P-2026-10-17-35):** hat die Schleife im Radius
+    weniger als ein Zehntel des Fräserdurchmessers, geht die Kontur senkrecht hinab.
   - Wendepunkte des Adaptiv-Kerns: bleiben (Erinnerung `adaptiv-kern-streut`).
 
 ---

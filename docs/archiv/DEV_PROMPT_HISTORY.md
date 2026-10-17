@@ -25,9 +25,10 @@ patch_naming:
   hinab: 58 mm Weg, 4 s, ein Eintauchen mit Wackeln.
 
 ### DATEIEN
-- `camaddon/kontur_bahn.py`: `WENDEL_MIN_ANTEIL` (0,45 des Fräserumfangs, wie die kleinste Helix
-  in `_helix_radius`) statt `WENDEL_MIN_UMFANG`; `_wendel(…, r)` – kürzere Konturen gehen
-  senkrecht hinab (Eintauchvorschub).
+- `camaddon/kontur_bahn.py`: `WENDEL_MIN_ANTEIL` statt `WENDEL_MIN_UMFANG` – die Schleife der
+  Kontur braucht im Radius (Umfang / 2π) ein Zehntel des Fräserdurchmessers (0,2 des Radius, das
+  übliche Mindestmaß einer Einfahr-Helix; Ø 12: Umfang 7,5 mm, in einer Bohrung Ø 14,4 noch die
+  Wendel); `_wendel(…, r)` – kürzere Konturen gehen senkrecht hinab (Eintauchvorschub).
 - Bilder `docs/bilder/vorschlaege/geist_kehren_kopf.png`, `schwenkteil_schraege_raeumen.png`.
 
 ### ERGEBNIS
