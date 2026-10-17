@@ -6259,10 +6259,11 @@ class BearbeitungPanel:
                 # Der Boden einer Tasche, einer Nut oder eines Absatzes: Das Planfräsen nimmt ihn
                 # nicht (es bringt nur rundum offene Flächen auf Maß), das Räumen schon.
                 z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE, 2) or "0"
-                schluessel = (
-                    "ba.flaeche.boden" if hf.eingeschlossen(form, name) else "ba.flaeche.absatz"
-                )
-                text, farbe = tr(schluessel, name=name, z=z), GRUEN
+                if hf.eingeschlossen(form, name):
+                    text = tr("ba.flaeche.boden", name=name, z=z)
+                else:
+                    text = tr("ba.flaeche.absatz", name=name, z=z)
+                farbe = GRUEN
             else:
                 text, farbe = tr("ba.flaeche.nichts", name=name), ROT
             eintrag = QtGui.QListWidgetItem(dezimal(text))
