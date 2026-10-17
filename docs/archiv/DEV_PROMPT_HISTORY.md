@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-36 volumen-aus-dem-netz
+
+### EINGELESEN
+- Lag-Sonde des Geist-Szenarios (`pausen.txt`): 1,0 s im Fenster in einem Vorschau-Schritt
+  (`_ziel_material` → `_volumen`) und beim Anlegen des Jobs (`form.Volume` für jeden Körper im
+  Dokument, Rohteil-Kandidaten). Gemessen am Geist (68 242 Dreiecke): `form.Volume` 0,81 s je
+  Aufruf, `form.Area` 0,93 s; das Volumen aus dem Netz (`stl_teil.netz_fuer`, numpy) 2 ms –
+  derselbe Wert (17 660,871 mm³). Manuel: das Fenster darf nie laggen.
+
+### DATEIEN
+- `camaddon/formteile.py`: `volumen(form)` – gemerkt je Form (isSame), für Körper aus einem STL
+  aus dem Netz (`_netz_volumen`), sonst `form.Volume`.
+- `camaddon/gui_bearbeitung.py`: `_volumen = ft.volumen`; die Rohteil-Kandidaten fragen es statt
+  `form.Volume`.
+- `camaddon/entgraten3d.py`: der Merkschlüssel je Fläche ohne `form.Area` (0,9 s am Geist), das
+  Volumen über `ft.volumen`.
+- `tests/test_stl_teil.py`: Volumen aus dem Netz = OpenCascade, gemerkt; ein Kasten 24 mm³.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_stl_teil`, `test_entgraten3d`, `szenario_bearbeitung_stl` – die
+  Pause im Vorschau-Schritt ist weg; was bleibt (0,97 s beim Anlegen des Jobs: `PathJob.Create`
+  mit dem Klon, die STL-Anzeige; 0,9 s bei „Anlegen“), sind einmalige Bedienschritte.
+
 ## P-2026-10-17-35 kontur-wendel-nicht-im-kleinen
 
 ### EINGELESEN

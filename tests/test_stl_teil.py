@@ -123,6 +123,16 @@ pruefe(stl_teil.aus_stl(teil) and not stl_teil.ist_netz(teil), "Körper nicht er
 pruefe(getattr(teil, stl_teil.EIGENSCHAFT_STL) is netzobjekt, "Verweis aufs Netz fehlt")
 pruefe("ReadOnly" in teil.getEditorMode(stl_teil.EIGENSCHAFT_STL), "Verweis änderbar")
 pruefe(teil.Label == "Figur (Körper)", f"Name {teil.Label!r}")
+# Das Volumen aus dem Netz (formteile.volumen, P-2026-10-17-36): derselbe Wert wie OpenCascade,
+# ohne dessen 0,8 s am Geist – und gemerkt.
+pruefe(ft._netz_volumen(teil.Shape) is not None, "Volumen nicht aus dem Netz")
+pruefe(
+    nahe(ft.volumen(teil.Shape), teil.Shape.Volume, 1e-6 * teil.Shape.Volume),
+    f"Volumen aus dem Netz {ft.volumen(teil.Shape)} statt {teil.Shape.Volume}",
+)
+pruefe(nahe(ft.volumen(Part.makeBox(2, 3, 4)), 24.0, 1e-9), "Volumen eines Kastens")
+ft.volumen(teil.Shape)
+pruefe(ft._VOLUMEN[0][0].isSame(teil.Shape), "volumen nicht gemerkt")
 
 # --- 4 Achsen: die Standfläche am Futter, vorne der Kopf; wiedergefunden im Job ------------------
 form = teil.Shape

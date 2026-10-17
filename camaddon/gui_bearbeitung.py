@@ -572,20 +572,7 @@ def _vorhandene_lage(grundjob, richtung, jobs):
 FASE_HOECHSTENS = 5.0
 
 
-_VOLUMEN = []  # [(Form, Volumen)] – die zuletzt gefragten, die neueste vorn
-
-
-def _volumen(form):
-    """`form.Volume`, für dieselbe Form (isSame) nur einmal gerechnet – am Geist (68.242
-    Dreiecke) knapp 1 s je Aufruf, mehrmals bei jeder Vorschau (Ziel, Merkschlüssel)."""
-    for nummer, (gemerkt, volumen) in enumerate(_VOLUMEN):
-        if gemerkt.isSame(form):
-            if nummer:
-                _VOLUMEN.insert(0, _VOLUMEN.pop(nummer))
-            return volumen
-    volumen = form.Volume
-    _VOLUMEN[:] = [(form, volumen)] + _VOLUMEN[:3]
-    return volumen
+_volumen = ft.volumen  # gemerkt, am Geist aus dem Netz (0,8 s → 2 ms je Aufruf)
 
 
 def _lage_von(form):
@@ -4307,7 +4294,7 @@ def rohteil_kandidaten(dokument, teil=None):
             continue
         try:
             form = objekt.Shape
-            fest = not form.isNull() and form.Volume > 1e-9 and form.isClosed()
+            fest = not form.isNull() and _volumen(form) > 1e-9 and form.isClosed()
         except Exception:  # eine kaputte Form: kein Rohteil
             fest = False
         if fest:

@@ -306,8 +306,7 @@ def passt(form, name):
         flaeche = form.getElement(name)
         schluessel = (
             form.hashCode(),
-            round(form.Volume, 6),
-            round(form.Area, 6),
+            round(ft.volumen(form), 6),  # (Volume und Area kosten am Geist je 0,8 s)
             ft.anzahl(form),
             name,
             flaeche.hashCode(),

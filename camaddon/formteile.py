@@ -76,3 +76,46 @@ def mit_namen(form, namen):
             gewaehlt.add(int(name[4:]) - 1)
     alle = anzahl(form) if gewaehlt else 0
     return [(n, flaeche(form, n)) for n in sorted(gewaehlt) if 0 <= n < alle]
+
+
+# [(Form, Volumen)] – die zuletzt gefragten, die neueste vorn (volumen).
+_VOLUMEN = []
+VOLUMEN_MERKEN = 4
+
+
+def volumen(form):
+    """`form.Volume`, für dieselbe Form (isSame) nur einmal gerechnet – und für einen Körper aus
+    einem STL aus seinem Netz (stl_teil.netz_fuer): OpenCascade braucht am Geist (68.242 Dreiecke)
+    0,8 s je Aufruf, das Netz 2 ms – derselbe Wert (17 660,871 mm³). Der Assistent „Bearbeitung“
+    fragt es je Vorschau mehrmals (Ziel, Merkschlüssel) und beim Anlegen des Jobs für jeden
+    Körper im Dokument."""
+    for nummer, (gemerkt, wert) in enumerate(_VOLUMEN):
+        if gemerkt.isSame(form):
+            if nummer:
+                _VOLUMEN.insert(0, _VOLUMEN.pop(nummer))
+            return wert
+    wert = _netz_volumen(form)
+    if wert is None:
+        wert = form.Volume
+    _VOLUMEN[:] = [(form, wert)] + _VOLUMEN[: VOLUMEN_MERKEN - 1]
+    return wert
+
+
+def _netz_volumen(form):
+    """Das Volumen aus dem Netz eines Körpers aus einem STL (die Dreiecke zeigen nach außen,
+    stl_teil.vorbereiten) – None für andere Formen."""
+    from . import stl_teil
+
+    try:
+        netz = stl_teil.netz_fuer(form)
+    except Exception:  # noqa: BLE001 – dann rechnet OpenCascade
+        return None
+    if netz is None:
+        return None
+    import numpy as np
+
+    punkte, dreiecke = netz[0], netz[1]
+    if not len(dreiecke):
+        return None
+    a, b, c = punkte[dreiecke[:, 0]], punkte[dreiecke[:, 1]], punkte[dreiecke[:, 2]]
+    return float(np.einsum("ij,ij->i", a, np.cross(b, c)).sum() / 6.0)
