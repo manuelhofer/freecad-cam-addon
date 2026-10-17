@@ -1,6 +1,6 @@
 # Manuels Fall (2026-10-16): das Schwenkteil auf der GROB G550 (waagerechte Spindel, Tisch A/B),
 # nur der Taschenboden in der 30°-Schräge gewählt (Face27). „Bearbeitung“: Schritt 2 sagt,
-# „Anlegen“ legt die Ebene an; „Anlegen“ – die Ebene (A60 B0 oder gleichwertig) entsteht, der
+# „Anlegen“ legt die Ebene an; „Anlegen“ – die Ebene („… (A−60 B0)“, wie die Steuerung) entsteht, der
 # Assistent dort räumt die Tasche; „Anlegen“. „Auf der Maschine prüfen“ am Grundjob: Achsen in
 # ihren Grenzen, „Kollision prüfen“ – nichts berührt sich; Bilder der Maschine mitten in der
 # Tasche und das Prüffenster, ohne „so gefahren, passt sie nicht zum Teil“ (Manuel: „was dann die
@@ -128,6 +128,8 @@ def schritte(h):
         return
     ebene = ebene_panel.job
     h.pruefe(sw.ist_ebene(ebene) and ebene.Grundjob == grundjob, f"keine Ebene: {ebene.Label}")
+    # Im Namen wie an der Steuerung (Manuel, 2026-10-17): „A−60 B0“ – wie im Programm.
+    h.pruefe(ebene.Label.endswith("(A−60 B0)"), f"Name der Ebene: {ebene.Label!r}")
     h.pruefe(bool(getattr(ebene, "Rundachsen", "")), "Ebene ohne Rundachsen")
     h.pruefe(ebene_panel.gewaehlte == [boden], f"in der Ebene gewählt: {ebene_panel.gewaehlte}")
     liste = zeilen(ebene_panel)

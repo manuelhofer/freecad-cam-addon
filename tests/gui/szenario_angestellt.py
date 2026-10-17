@@ -1,6 +1,6 @@
 # Kugelfräser angestellt als 3+2 (W-014/W-015, Spezifikation Strategien 16.3 S2): eine Platte
 # 60 × 60 × 10 mit Kuppel (Kugel R 25, oben z 20), gespannt im Grundjob auf der 5-Achs-Maschine
-# Tisch/Tisch. „Ebene schwenken“ ohne Fläche, „Oder Winkel“: 15° nach 90° → A15 C0. Darin das
+# Tisch/Tisch. „Ebene schwenken“ ohne Fläche, „Oder Winkel“: 15° nach 90° → A−15 C0 (wie die Steuerung zählt). Darin das
 # 3D-Schlichten der Kuppel mit einem Kugelfräser Ø 6 – dieselbe Fläche wie senkrecht, nur schneidet
 # die Kugel oben nicht mit der Spitze. „Auf der Maschine prüfen“: mitten in der Bahn, das Werkzeug
 # steht 15° schräg zur Kuppel; die Kollision prüft Werkzeug, Halter und Maschine.
@@ -80,7 +80,7 @@ def schritte(h):
     panel.feld_richtung.setValue(90.0)
     panel.winkel_nehmen()
     panel.haken_bearbeiten.setChecked(False)
-    h.pruefe(panel.ergebnis.text().endswith("A15 C0"), f"Ergebnis: {panel.ergebnis.text()!r}")
+    h.pruefe(panel.ergebnis.text().endswith("A−15 C0"), f"Ergebnis: {panel.ergebnis.text()!r}")
     h.pruefe(panel.accept() is True, "„OK“ ging nicht")
     yield 800
     ebenen = sw.ebenen_von(grundjob)

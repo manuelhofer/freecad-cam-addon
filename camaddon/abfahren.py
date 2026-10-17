@@ -478,7 +478,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 len(befehle),
                 js.operationsart(op),
                 eingespannt.lage,
-                getattr(ebene, "Rundachsen", "") if geschwenkt else "",
+                _ebene_text(ebene, pruefung, aufnahme) if geschwenkt else "",
                 _anstoss(op),
             )
         )
@@ -822,3 +822,25 @@ def _tempo(maschine, achsen):
             ba = eigene.get(m.ART_POSITIONIEREN)
             ergebnis.append(((ba.Geschwindigkeit if ba else 0) or DREH_ERSATZ) * 6.0)
     return ergebnis
+
+
+def _ebene_text(ebene, pruefung, aufnahme):
+    """Die Rundachsen der Ebene, wie die Steuerung sie zeigt („A−60 B0“, schwenken.text_steuerung)
+    – ohne Maschine wie im Job."""
+    from . import schwenken as sw
+
+    rund = sw.rundachsen_von(ebene)
+    try:
+        zeichen = {}
+        _linear, dreh = pruefung.achsen_fuer(aufnahme)
+        for achse in pruefung._dreh_wege(aufnahme, dreh, {}):
+            buchstabe = pruefung.programmbuchstabe(achse)
+            if buchstabe is not None:
+                from . import verfahren as vf
+
+                zeichen[buchstabe] = vf.programm_vorzeichen(achse, pruefung.verfahren.kette)
+        return (
+            sw.text_steuerung(rund, zeichen=zeichen) if rund else getattr(ebene, "Rundachsen", "")
+        )
+    except Exception:  # noqa: BLE001 – ohne Kette: wie im Job
+        return getattr(ebene, "Rundachsen", "")

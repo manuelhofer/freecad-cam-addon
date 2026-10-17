@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-17 rundachsen-wie-die-steuerung
+
+### EINGELESEN
+- Manuel (2026-10-17, Frage 9): Die geschwenkte Ebene hieß „… Face27 (A60 B0)“, die Steuerung
+  zeigt und das Programm schreibt „A−60“ – „Ja, wie an der Maschine“.
+
+### DATEIEN
+- `camaddon/schwenken.py`: `zeichen_der_steuerung` (je Rundachse ±1, verfahren.programm_vorzeichen;
+  ohne Maschine Tisch/Tisch A/C umgekehrt wie der Postprozessor), `text_steuerung`. Der Name der
+  Ebene (`lege_an`) und der Satz „… außerhalb der Grenzen“ nennen die Rundachsen wie die Steuerung;
+  `Job.Rundachsen` bleibt die Stellung der Gelenke (damit wird gerechnet).
+- `camaddon/gui_schwenken.py`: „Ebene schwenken“ – „Face12: 30° geschwenkt → A30 C0“ wie die
+  Steuerung.
+- `camaddon/abfahren.py`: in der Auswahl des Abspielers „… – Ebene A30 C0“ wie die Steuerung
+  (`_ebene_text`).
+- `help/de|en/schwenken.html`, `programm.html`: die Beispiele so, mit einem Satz dazu.
+- `tests/gui/szenario_schwenken.py`, `szenario_angestellt.py`, `szenario_schraeg_g550.py`: die
+  Werte wie die Steuerung (G550: „(A−60 B0)“).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_schwenken`, `test_abfahren`, `test_einrichtblatt`, `test_hilfe`,
+  `szenario_schwenken`, `szenario_schwenkteil`, `szenario_angestellt`, `szenario_schraeg_anlegen`,
+  `szenario_schraeg_g550`, `szenario_einrichtblatt`.
+
 ## P-2026-10-17-16 beispiele-oeffnen
 
 ### EINGELESEN

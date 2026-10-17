@@ -1,7 +1,7 @@
 # „Ebene schwenken (3+2) …“ (W-014 F5): ein Block 100 × 60 × 40 mit einer 30°-Schräge vorn
 # oben, gespannt im Grundjob, die 5-Achs-Beispielmaschine Tisch/Tisch gespeichert und am Job.
 # Die Schräge angeklickt, der Befehl: Das Fenster nennt Grundjob und Maschine und grün „Face…:
-# 30° geschwenkt → A−30 C0“. „OK“ legt den Job der Ebene an und öffnet den Assistenten
+# 30° geschwenkt → A30 C0“ (so zählt die Steuerung; im Job „Rundachsen“ A−30 C0, das Gelenk). „OK“ legt den Job der Ebene an und öffnet den Assistenten
 # „Bearbeitung“ darin, die Schräge gewählt; „Anlegen“ fräst sie. Das Programm des Grundjobs hat
 # die Ebene mit CYCLE800 (Siemens) und mit „G0 A-30.000 C0.000“ ohne Zyklus (LinuxCNC).
 import math
@@ -89,7 +89,7 @@ def schritte(h):
     h.pruefe("Tisch/Tisch" in panel.maschine_text.text() or "5-Achs" in panel.maschine_text.text(),
              f"Maschine: {panel.maschine_text.text()!r}")  # fmt: skip
     text = panel.ergebnis.text()
-    h.pruefe(text == f"{schraege}: 30° geschwenkt → A−30 C0", f"Ergebnis: {text!r}")
+    h.pruefe(text == f"{schraege}: 30° geschwenkt → A30 C0", f"Ergebnis: {text!r}")
     h.bild("1_fenster")
 
     # --- OK: der Job der Ebene, der Assistent darin ---------------------------------------------
@@ -178,12 +178,12 @@ def schritte(h):
         return
     yield 1000
     spieler = pruefung.abspieler
-    # In der Auswahl steht bei einer Operation der Ebene „… – Ebene A−30 C0“; gesucht wird nach
+    # In der Auswahl steht bei einer Operation der Ebene „… – Ebene A30 C0“ (wie die Steuerung); gesucht wird nach
     # dem Namen in der Abfahrt.
     namen = [o.name for o in spieler.abfahrt.operationen]
     texte = [spieler.wahl_operation.itemText(i) for i in range(spieler.wahl_operation.count())]
     h.pruefe(ops and ops[0].Label in namen, f"Operation der Ebene nicht im Abspieler: {namen}")
-    h.pruefe(ops and f"{ops[0].Label} – Ebene A−30 C0" in texte, f"Auswahl ohne die Ebene: {texte}")
+    h.pruefe(ops and f"{ops[0].Label} – Ebene A30 C0" in texte, f"Auswahl ohne die Ebene: {texte}")
     h.bild("4c_pruefen_fenster", pruefung.form)
     if ops and ops[0].Label in namen:
         spieler.springe_zu_operation(namen.index(ops[0].Label))
@@ -286,7 +286,7 @@ def schritte(h):
         w.winkel_nehmen()
         yield 300
         h.pruefe(
-            w.ergebnis.text() == "15° nach 90°: 15° geschwenkt → A15 C0",
+            w.ergebnis.text() == "15° nach 90°: 15° geschwenkt → A−15 C0",
             f"aus Winkeln: {w.ergebnis.text()!r}",
         )
         h.bild("8_aus_winkeln", w.form)

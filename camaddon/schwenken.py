@@ -629,6 +629,29 @@ def _bogen_punkte(anfang, ende, mitte, uhr):
 # --- Die Ebene als Job (F2) ------------------------------------------------------------------
 
 
+def zeichen_der_steuerung(maschine=None, rund=None):
+    """{Buchstabe: ±1} – so zählt die Steuerung jede Rundachse gegenüber dem Gelenk im Modell
+    (verfahren.programm_vorzeichen; DIN 66217). Ohne Maschine wie der Postprozessor bei einer
+    Ebene ohne Kette: Tisch/Tisch A/C umgekehrt (postprozessor._rund_umdrehen)."""
+    if maschine is not None:
+        from . import verfahren as vf
+
+        kette = maschine.pruefung.verfahren.kette
+        return {a.buchstabe: vf.programm_vorzeichen(a.achse, kette) for a in maschine.rundachsen}
+    if rund is not None and set(rund) == {"A", "C"}:
+        return {"A": -1, "C": -1}
+    return {}
+
+
+def text_steuerung(rund, maschine=None, zeichen=None):
+    """„A−60 B0“ – die Rundachsen, wie die Steuerung sie zeigt und das Programm sie schreibt
+    (Manuel, 2026-10-17: „Ja, wie an der Maschine“) – gerechnet wird weiter mit dem Gelenk
+    (`rund`, Job.Rundachsen)."""
+    if zeichen is None:
+        zeichen = zeichen_der_steuerung(maschine, rund)
+    return text_rundachsen({b: w * zeichen.get(b, 1) for b, w in rund.items()})
+
+
 def text_rundachsen(rund, programm=False):
     """„A−30 C0“ – die Rundachsen in der Reihenfolge A, B, C, ohne Nullen hinter dem Komma.
     `programm`: für einen Kommentar im Programm – Punkt und „-“, nur ASCII."""
@@ -769,7 +792,11 @@ def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None, winkel
         rund = loesungen[0]
         if not all(a.erlaubt(rund[a.buchstabe]) for a in maschine.rundachsen):
             raise ValueError(
-                tr("sw.fehler.grenze", flaeche=bezeichnung, rundachsen=text_rundachsen(rund))
+                tr(
+                    "sw.fehler.grenze",
+                    flaeche=bezeichnung,
+                    rundachsen=text_steuerung(rund, maschine),
+                )
             )
     else:
         rund = rundachsen_ohne_maschine(normale)
@@ -797,9 +824,9 @@ def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None, winkel
     job.Grundjob = grundjob
     job.Ebene = ebene_
     job.Flaeche = flaeche
-    job.Rundachsen = text_rundachsen(rund)
+    job.Rundachsen = text_rundachsen(rund)  # die Stellung der Gelenke – damit wird gerechnet
     job.Label = name or tr(
-        "sw.job", job=grundjob.Label, flaeche=bezeichnung, rundachsen=job.Rundachsen
+        "sw.job", job=grundjob.Label, flaeche=bezeichnung, rundachsen=text_steuerung(rund, maschine)
     )
     dokument.recompute()
     return job

@@ -314,13 +314,20 @@ class SchwenkenPanel:
                 return
             rund = loesungen[0]
             if not all(a.erlaubt(rund[a.buchstabe]) for a in self.maschine.rundachsen):
-                text = tr("sw.fehler.grenze", flaeche=flaeche, rundachsen=sw.text_rundachsen(rund))
+                text = tr(
+                    "sw.fehler.grenze",
+                    flaeche=flaeche,
+                    rundachsen=sw.text_steuerung(rund, self.maschine),
+                )
                 self._zeige(text, ROT)
                 return
         self.lage, self.rund = lage, rund
         grad = f"{winkel:.1f}".rstrip("0").rstrip(".")
         text = tr(
-            "sw.panel.ergebnis", flaeche=flaeche, winkel=grad, rundachsen=sw.text_rundachsen(rund)
+            "sw.panel.ergebnis",
+            flaeche=flaeche,
+            winkel=grad,
+            rundachsen=sw.text_steuerung(rund, self.maschine),
         )
         if not rund:
             text = tr("sw.panel.fest_erreichbar", flaeche=flaeche)
