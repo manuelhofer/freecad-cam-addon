@@ -97,7 +97,39 @@ _EBENE = {}  # (Prüfsumme der Form, Nummer, Toleranz) → Ebene oder None
 # Tasche oder Nut gilt (eingeschlossen): Die Ringnut am C-Ring hat Wände an 93 % ihres Rands, ein
 # Absatz mit einer Wand an rund 40 %.
 EINGESCHLOSSEN = 0.75
-_EINGESCHLOSSEN = {}  # (Prüfsumme der Form, Fläche) → bool
+_EINGESCHLOSSEN = {}  # (Prüfsumme der Form, Fläche) → (Form, bool)
+RAND_ABTASTEN = 0.005  # mm – so genau folgt das Vieleck dem Rand (in_draehten)
+
+
+def in_draehten(draehte, x, y, abtasten=RAND_ABTASTEN):
+    """Liegen die Punkte (x, y) innerhalb der geschlossenen Drähte `draehte` (waagerecht, von oben
+    gesehen) – gerade-ungerade über alle zusammen (der Rand einer Fläche mit Löchern, ein Schnitt
+    durch einen Körper), die Drähte auf `abtasten` mm als Vielecke? Auf einmal für alle Punkte
+    (numpy) statt `isInside` je Punkt. None, wenn sich ein Draht nicht abtasten lässt."""
+    try:
+        ecken = []
+        for draht in draehte:
+            punkte = draht.discretize(Deflection=abtasten)
+            if len(punkte) < 3:
+                return None
+            ecken.append(np.array([(p.x, p.y) for p in punkte], dtype=float))
+    except Exception:  # noqa: BLE001
+        return None
+    x = np.asarray(x, dtype=float).reshape(-1)[:, None]
+    y = np.asarray(y, dtype=float).reshape(-1)[:, None]
+    drin = np.zeros(x.shape[0], dtype=bool)
+    stueck = max(1, 2_000_000 // max(len(x), 1))  # so viele Kanten auf einmal
+    for vieleck in ecken:
+        x0, y0 = vieleck[:, 0], vieleck[:, 1]
+        x1, y1 = np.roll(x0, -1), np.roll(y0, -1)
+        for k in range(0, len(x0), stueck):
+            a0, b0 = x0[k : k + stueck], y0[k : k + stueck]
+            a1, b1 = x1[k : k + stueck], y1[k : k + stueck]
+            quer = (b0 > y) != (b1 > y)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                schnitt = a0 + (y - b0) * (a1 - a0) / (b1 - b0)
+            drin ^= (np.count_nonzero(quer & (x < schnitt), axis=1) % 2).astype(bool)
+    return drin
 
 
 def eingeschlossen(form, name):
@@ -111,8 +143,67 @@ def eingeschlossen(form, name):
     if stl_teil.daten(form) is not None:
         return False
     schluessel = (form.hashCode(), name)
-    if schluessel in _EINGESCHLOSSEN:
-        return _EINGESCHLOSSEN[schluessel]
+    gemerkt = _EINGESCHLOSSEN.get(schluessel)
+    # Mit der Form gemerkt: Sie bleibt so am Leben, ihr Speicher wird nicht für eine andere
+    # wiederverwendet (der hashCode allein wäre dann gleich).
+    if gemerkt is not None and gemerkt[0].isSame(form):
+        return gemerkt[1]
+    ergebnis = _eingeschlossen_auf_einmal(form, name)
+    if ergebnis is None:
+        ergebnis = _eingeschlossen_je_punkt(form, name)
+    if len(_EINGESCHLOSSEN) > 1024:
+        _EINGESCHLOSSEN.clear()
+    _EINGESCHLOSSEN[schluessel] = (form, ergebnis)
+    return ergebnis
+
+
+def _rand_proben(flaeche):
+    """(Mitten, Normalen) je Millimeter des äußeren Rands – numpy (n, 2)."""
+    punkte = flaeche.OuterWire.discretize(Distance=1.0)
+    p = np.array([(v.x, v.y) for v in punkte], dtype=float)
+    d = p[1:] - p[:-1]
+    laenge = np.hypot(d[:, 0], d[:, 1])
+    gut = laenge >= 1e-6
+    mitte = ((p[1:] + p[:-1]) / 2)[gut]
+    normale = np.column_stack((-d[gut, 1], d[gut, 0])) / laenge[gut][:, None]
+    return mitte, normale
+
+
+def _eingeschlossen_auf_einmal(form, name):
+    """eingeschlossen, alle Proben auf einmal: die Seiten mit in_draehten über den Rand der
+    Fläche, die Wand mit einem Schnitt durch den Körper 0,5 mm über ihr – None, wenn das nicht
+    geht (dann je Punkt). Am Testteil 1 s weniger beim Öffnen des Assistenten."""
+    try:
+        flaeche = form.getElement(name)
+        z = flaeche.BoundBox.ZMax
+        mitte, normale = _rand_proben(flaeche)
+    except Exception:  # noqa: BLE001 – eine Fläche ohne Rand oder Name: nicht eingeschlossen
+        return False
+    if not len(mitte):
+        return False
+    links, rechts = mitte + 0.3 * normale, mitte - 0.3 * normale
+    innen_links = in_draehten(flaeche.Wires, links[:, 0], links[:, 1])
+    innen_rechts = in_draehten(flaeche.Wires, rechts[:, 0], rechts[:, 1])
+    if innen_links is None or innen_rechts is None:
+        return None
+    klar = innen_links != innen_rechts  # an einer Ecke: unklar
+    gezaehlt = int(klar.sum())
+    if not gezaehlt:
+        return False
+    aussen = np.where(innen_links[:, None], rechts, links)[klar]
+    try:
+        schnitt = form.slice(FreeCAD.Vector(0, 0, 1), z + 0.5)
+    except Exception:  # noqa: BLE001
+        return None
+    if not schnitt:
+        return False
+    wand = in_draehten(schnitt, aussen[:, 0], aussen[:, 1])
+    if wand is None:
+        return None
+    return int(wand.sum()) >= EINGESCHLOSSEN * gezaehlt
+
+
+def _eingeschlossen_je_punkt(form, name):
     ergebnis = False
     try:
         flaeche = form.getElement(name)
@@ -137,9 +228,6 @@ def eingeschlossen(form, name):
         if form.isInside(FreeCAD.Vector(aussen.x, aussen.y, z + 0.5), 1e-6, True):
             wand += 1
     ergebnis = gezaehlt > 0 and wand >= EINGESCHLOSSEN * gezaehlt
-    if len(_EINGESCHLOSSEN) > 1024:
-        _EINGESCHLOSSEN.clear()
-    _EINGESCHLOSSEN[schluessel] = ergebnis
     return ergebnis
 
 

@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-10 flaechen-auf-einmal
+
+### EINGELESEN
+- Weiter in den Pausen des vollen Laufs: Beim Öffnen des Assistenten „Bearbeitung“ an Manuels
+  Testteil stand das Fenster 3,2 s (`szenario_testteil`, `_bearbeitung_im_takt`, `_zielzeit`
+  3,0–3,5 s – schon vor dieser Nacht). Fast alles in `zielzeit.zellen_der_flaeche` (je Rasterzelle
+  `isInside`, 2,7 s) und `hoehenfeld.eingeschlossen` (je Millimeter Rand zweimal `isInside` der
+  Fläche und einmal des ganzen Körpers). Dazu aus der zweiten Durchsicht: `eingeschlossen` merkte
+  nach dem bloßen hashCode (wie `bohrung_ueber_boden` vor P-06).
+
+### DATEIEN
+- `camaddon/hoehenfeld.py`: `in_draehten` – Punkte innerhalb geschlossener Drähte, gerade-ungerade
+  über die auf 0,005 mm abgetasteten Ränder, für alle Punkte auf einmal (numpy). `eingeschlossen`
+  rechnet damit (`_eingeschlossen_auf_einmal`): die Seiten über den Rand der Fläche, die Wand über
+  einen Schnitt durch den Körper 0,5 mm über ihr; wo das nicht geht, je Punkt wie bisher. Gemerkt
+  mit der Form (`isSame`).
+- `camaddon/zielzeit.py`: `zellen_der_flaeche` über `in_draehten`, sonst je Zelle wie bisher.
+
+### ERGEBNIS
+- Testteil, die Zellen der fünf Böden: dieselben 9.516 Zellen, 2,71 → 0,01 s. `eingeschlossen` an
+  15 Böden der Beispiele (C-Ring, Platte, Schwenkteil, Formschräge, Testteil, Absatz, Nut):
+  dasselbe Ergebnis, 1,65 → 0,14 s.
+- Längste Pause: `szenario_testteil` 3,2 → 1,3 s, `szenario_zielzeit` 3,0 → 0,5 s,
+  `szenario_bearbeitung_im_takt` 3,1 → 1,2 s.
+- Grün im Wochen-Build: `test_zielzeit`, `test_planfraesen`, `szenario_testteil`,
+  `szenario_platte`, `szenario_absatz`, `szenario_zielzeit`, `szenario_planen`, `szenario_nut`,
+  `szenario_nut_offen`, `szenario_plan_gleichlauf`, `szenario_bearbeitung`, `szenario_lagerbock`.
+
 ## P-2026-10-17-09 fenster-steht-nicht
 
 ### EINGELESEN

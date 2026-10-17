@@ -174,10 +174,28 @@ def zellen_der_flaeche(material, flaeche, z):
     maske = np.abs(material.boden - z) < 0.05
     kasten = flaeche.BoundBox
     maske &= (gx >= kasten.XMin) & (gx <= kasten.XMax) & (gy >= kasten.YMin) & (gy <= kasten.YMax)
-    for i, j in np.argwhere(maske):
+    stellen = np.argwhere(maske)
+    if not len(stellen):
+        return maske
+    drin = _in_der_flaeche(flaeche, gx[maske], gy[maske])
+    if drin is not None:
+        maske[maske] = drin
+        return maske
+    for i, j in stellen:  # ohne Ränder als Vielecke: Punkt für Punkt
         if not flaeche.isInside(App.Vector(float(gx[i, j]), float(gy[i, j]), z), 0.01, True):
             maske[i, j] = False
     return maske
+
+
+def _in_der_flaeche(flaeche, x, y):
+    """Liegen die Punkte (x, y) in der ebenen, waagerechten Fläche (hoehenfeld.in_draehten über
+    ihre Ränder)? Auf einmal statt `isInside` je Punkt: am Testteil stand das Fenster beim Öffnen
+    des Assistenten sonst 2,5 s. None, wenn sich ein Rand nicht abtasten lässt."""
+    try:
+        draehte = flaeche.Wires
+    except Exception:  # noqa: BLE001
+        return None
+    return hf.in_draehten(draehte, x, y)
 
 
 def anteile_erreicht(material, radius, flaechen, spiel=0.0, stirn=None):
