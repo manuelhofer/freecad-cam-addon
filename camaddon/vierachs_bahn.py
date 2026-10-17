@@ -657,7 +657,10 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                 max(teil_vorne - radius, float(zeilen_a[-1])), a_anfang, schritt_a
             )
             weg = huelle_bei(stellen).sicher().r + zugabe
-            weg = np.where(np.isfinite(weg), weg, 0.0)
+            # Trifft die Stirn nichts, darf die Spitze bis zur Achse – in den Sektoren auch
+            # darüber hinaus: Durch einen Schlitz bis zur Bohrung liegt die Zeile unter der
+            # Achse, und vor dem Teil ist dort Luft (sonst rampte sie von 0 im Zickzack hinab).
+            weg = np.where(np.isfinite(weg), weg, -np.inf if luecken else 0.0)
             vorn = (a_anfang, stellen, np.maximum(weg, w.r_tiefste))
         return zeilen_a, boden_zeilen, vorn
 
@@ -723,7 +726,10 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             return 0
         davor = np.maximum(boden_zeilen, davor_r)
         if rest is not None:
-            davor = np.maximum(davor, rest.stand(zeilen_a, je_umdrehung, schritt_phi))
+            # Der Rest kennt je Strahl einen Radius, nie weniger als 0: Steht dort nichts mehr
+            # (0), sagt er nichts über Zeilen unter der Achse – sonst begänne jede Einfahrt bei 0.
+            stand = rest.stand(zeilen_a, je_umdrehung, schritt_phi)
+            davor = np.maximum(davor, np.where(stand > GLEICH, stand, -np.inf))
         anfang_lage = len(punkte)
         gefahren = _schruppen_zeilen(
             punkte, zeilen_a, boden_zeilen, boden_bei, lage, replace(w, bereich=bereich),

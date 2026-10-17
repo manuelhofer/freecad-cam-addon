@@ -2940,7 +2940,7 @@
     "va.halter_stoesst": "Halter oder Schaft von {werkzeug} stoßen hier ans Teil ({richtung} {von} … {bis} {e_laenge}): {werkzeug} steht {heraus} {e_laenge} heraus, bräuchte mindestens {mindestens} {e_laenge}. Länger ausspannen oder ein längeres Werkzeug nehmen. Gewinkelte Halter prüft „Kollision prüfen“.",
     "vo.eigenschaft.nur_noetig": "Eine Lage nur so weit, wie die davor noch über der Fläche blieb – sonst führe sie dieselbe Fläche noch einmal ab; steht nur noch in Sektoren etwas, Zeilen dort statt der Spirale.",
     "va.nur_noetig": "Folgelagen nur, wo nötig",
-    "va.nur_noetig.tooltip": "Angehakt fährt eine Lage nur, wo die davor über der Fläche blieb, statt fast nur durch Luft. Am Nasen-Testteil 11,1 statt 15,3 min; die Kugel hat danach etwa 10 % mehr zu tun. Steht über einer Lage nur noch in Sektoren etwas (ein Ring mit Schlitzen), fährt sie Zeilen in den Sektoren statt rundum – am Ring ein Siebtel des Wegs (ohne Querachse).",
+    "va.nur_noetig.tooltip": "Angehakt fährt eine Lage nur, wo die davor über der Fläche blieb, statt fast nur durch Luft. Am Nasen-Testteil 11,1 statt 15,3 min; die Kugel hat danach etwa 10 % mehr zu tun. Steht über einer Lage nur noch in Sektoren etwas (ein Ring mit Schlitzen), fährt sie Zeilen in den Sektoren statt rundum – am Ring ein Achtel des Wegs (ohne Querachse).",
     "va.querachse.mit_flaechen": "Mit Flächen fährt die Spirale rundum mit der Querachse, über die übrigen Flächen 2 mm höher im Freivorschub. Ohne den Haken: Zeilen hin und her, ohne Y.",
     "ab.abtrag_rechnet": "Abtrag rechnet …",
     "va.halter_ausspannen": "{werkzeug} auf {heraus} {e_laenge} ausspannen",

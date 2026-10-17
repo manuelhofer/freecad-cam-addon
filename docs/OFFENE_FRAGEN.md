@@ -11,7 +11,7 @@ Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* –
 **1. Rundum schruppen mit der Querachse: Wie sollen die Sektoren gefahren werden?**
 Seit P-2026-10-17-26 fährt „Rundum schruppen“ **ohne** Querachse eine Lage, über der nur noch
 in Sektoren etwas steht (dein Ring: drei Segmente mit Schlitzen), als Zeilen in den Sektoren
-statt als Spirale rundum – am Ring 100 → 15 km Weg, 70 → 15 min (bei vf 1000). Bild:
+statt als Spirale rundum – am Ring 100 → 12 km Weg, 70 → 12 min (bei vf 1000). Bild:
 [ring_sektoren.png](bilder/vorschlaege/ring_sektoren.png).
 **Mit** Querachse (an der CLX mit Y vorbelegt an) bleibt die Spirale: am Ring 151 km, 88 % Luft,
 106 min. Zeilen mit dem radialen Fräser ließen der Kugel an der Nase das Doppelte stehen (22 statt

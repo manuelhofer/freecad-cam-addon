@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-32 sektoren-unter-der-achse
+
+### EINGELESEN
+- Zu P-26 (Auftrag 1): Die Lagen unter der Achse (durch die Schlitze bis zur Bohrung, Spitze bei
+  r < 0) fuhren am Ring zu 60 … 77 % durch Luft. Zwei Gründe: Der Rest (`_Rest`, ein Radius je
+  Strahl, nie unter 0) meldete dort 0 – jede Einfahrt begann bei r = 0 und rampte im Zickzack
+  bis 8 mm durch die Luft hinab; und von vorn durfte die Zeile nicht hinein, weil die Hüllfläche
+  vor dem Teil auf 0 geklemmt war („bis zur Achse reicht“ – für die Spirale richtig).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: in `sektor_lage` zählt der Rest nur, wo er über 0 steht; in
+  `zeilen_fuer` darf die Spitze vor dem Teil in den Sektoren (`luecken`) auch unter die Achse –
+  die Zeile fährt von vorn in ihrer Tiefe hinein. Mit gewählten Flächen (V4) wie bisher.
+- Hilfe, Tooltip, Frage 1: 12 statt 15 km.
+
+### ERGEBNIS
+- Ring: 14,8 → 12,4 km, Luft 31 → 19 %; Lagen 14–18 von 60 … 77 % auf 17 … 19 % Luft. Im Voxel
+  nichts ins Teil, Abtrag wie zuvor (die Spirale 0,45 cm³ mehr an den Schlitzwänden, die Zeilen
+  0,5 cm³ mehr an der Stirnseite). Grün: `test_vierachs_bahn`, `test_sprache`, `test_hilfe`.
 ## P-2026-10-17-31 durchsicht-p26
 
 ### EINGELESEN
