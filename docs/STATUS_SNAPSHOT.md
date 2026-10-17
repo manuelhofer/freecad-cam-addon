@@ -1484,6 +1484,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Werkzeugs aus der Werkzeugliste); Reichweite, Kollision, 4-Achs-Assistent und Einrichtblatt nehmen
   den Halter aus dem Magazin der Maschine, wenn dort einer steht – die Werkzeugliste behält ihren als
   Vorgabe. Die Aufnahme (SK40, HSK, VDI) prüft weiter `aufnahme_pruefen` gegen die Maschine.
+  *Gebaut (P-2026-10-17-42).*
 - **W-025 „Bearbeitung“ von vorn auf der Drehmaschine (axial angetriebenes Werkzeug)** – Manuel,
   2026-10-17: Nut im C-Ring auf der CLX „wie auf der 3-achsigen auch … leider klappt das nicht“.
   Heute lehnt „Bearbeitung“ Drehmaschinen ab, der 4-Achs-Assistent denkt radial. Plan: mit Y-Achse

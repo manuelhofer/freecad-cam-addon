@@ -180,6 +180,8 @@ class BestueckungsPanel:
         self.maschine = maschine
         self.zurueck_zu = job.Document if job.Document is not assembly.Document else None
         self.bibliothek = _bibliothek()
+        if self.bibliothek is not None:  # die Halter aus dem Magazin dieser Maschine (W-024)
+            mg.des_jobs(job, self.bibliothek, assembly)
         self.plaetze = m.revolverplaetze(maschine, kette_modul.lies_kette(assembly))
         self.eintraege = []  # bestueckung.Eintrag des Jobs, in der Reihenfolge der Auswahlen
         self.wahlen = {}  # Platz → QComboBox

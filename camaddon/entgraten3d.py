@@ -282,6 +282,10 @@ def vorschau(job, werkzeug, breite, flaechen, fuenf=True, vorschub=0.0, biblioth
             bibliothek = wz.Bibliothek.laden()
         except (wz.BeschaedigteDatei, OSError):
             bibliothek = None
+        if bibliothek is not None:
+            from . import magazin as mg
+
+            mg.des_jobs(job, bibliothek)  # der Halter aus dem Magazin der Maschine (W-024)
     form_teil = vs._teil(job.Model.Group)
     fraeser = fraeser_von(werkzeug)
     einspannung = wk.einspannung_werkzeug(werkzeug, bibliothek)

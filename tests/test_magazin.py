@@ -52,6 +52,29 @@ magazin.hinzufuegen(anbohrer, 1)  # an dieser Maschine ist T1 der Anbohrer
 magazin.hinzufuegen(fraeser12, 7)
 magazin.eintrag_von(fraeser12).platz = 4
 
+# Der Halter am Magazinplatz (W-024, P-2026-10-17-42): Steht einer im Eintrag, gilt er an dieser
+# Maschine für Prüfung und Länge; sonst der des Werkzeugs. Gespeichert wird er mit.
+hsk = bib.neuer_halter("weldon_20")  # irgendein Halter der Vorlagen
+vdi = bib.neuer_halter("vdi_axial_er20")
+fraeser12.halter = hsk.kennung
+pruefe(bib.halter_fuer_pruefung(fraeser12) is hsk, "ohne Magazin: der Halter des Werkzeugs")
+magazin.eintrag_von(fraeser12).halter = vdi.kennung
+bib.magazin_fuer_pruefung = magazin
+pruefe(bib.halter_im_magazin(fraeser12) is vdi, "Halter aus dem Magazin")
+pruefe(bib.halter_fuer_pruefung(fraeser12) is vdi, "Prüfung nicht mit dem Halter des Magazins")
+pruefe(bib.halter_im_magazin(anbohrer) is None, "Anbohrer: Halter aus dem Magazin ohne Eintrag")
+fraeser12.laenge_spindelnase = 123.0
+pruefe(
+    abs(bib.laenge_ab_spindelnase(fraeser12) - wz.laenge_im_halter(fraeser12, vdi)) < 1e-9,
+    "Länge nicht aus dem Halter des Magazins",
+)
+bib.magazin_fuer_pruefung = None
+pruefe(bib.laenge_ab_spindelnase(fraeser12) == 123.0, "ohne Magazin: das Maß ab Spindelnase")
+wieder = wz.MagazinEintrag.aus_dict(magazin.eintrag_von(fraeser12).als_dict())
+pruefe(wieder.halter == vdi.kennung, "Halter nicht gespeichert")
+magazin.eintrag_von(fraeser12).halter = ""
+fraeser12.laenge_spindelnase = 0.0
+
 # Fräse: die Nummer aus dem Magazin – nicht die aus der Werkzeugverwaltung.
 pruefe(mg.nummer(magazin, None, anbohrer) == 1, "Anbohrer nicht T1")
 pruefe(mg.nummer(magazin, None, fraeser12) == 7, "Fräser nicht T7")

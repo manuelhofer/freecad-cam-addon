@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-42 halter-am-magazinplatz
+
+### EINGELESEN
+- Manuel (2026-10-17, Magazin, Kugelfräser; W-024): „mit welchem halter … ich will den
+  kugelfräser in der 3-achs-fräse haben, da hat die nen anderen halter als in der clx
+  drehfräsmaschine, auch eine andere aufnahme … da müssen wir nochmal nachdenken und etwas anders
+  bauen.“ Bisher hing der Halter am Werkzeug (Werkzeugliste), an jeder Maschine derselbe.
+
+### DATEIEN
+- `camaddon/werkzeuge.py`: `MagazinEintrag.halter` (Kennung; leer: der des Werkzeugs),
+  gespeichert; `Bibliothek.magazin_fuer_pruefung`, `halter_mit`, `halter_im_magazin`;
+  `halter_fuer_pruefung` nimmt zuerst den Halter aus dem Magazin, `laenge_ab_spindelnase` die
+  Länge in dem (das Maß ab Spindelnase gilt im eigenen Halter).
+- `camaddon/magazin.py`: `des_jobs` merkt das Magazin an der Werkzeugverwaltung
+  (`magazin_fuer_pruefung`) und nimmt als `maschine` auch Maschine oder Assembly; so gilt der
+  Halter überall, wo das Magazin des Jobs gefragt wird (beide Assistenten, Postprozessor,
+  Bestückung, Kollision).
+- `camaddon/reichweite.py` (`pruefe_job_schritte`), `camaddon/kollision.py` (`vorbereiten`),
+  `camaddon/gui_reichweite.py`, `camaddon/gui_bestueckung.py`, `camaddon/einrichtblatt.py`:
+  das Magazin der Maschine vor dem Rechnen setzen; Operationen, die die Werkzeugverwaltung
+  selbst laden (`vierachs_operation.stufen_des_controllers`, `wegkippen`, `entgraten3d`), über
+  `magazin.fuer_controller` / `des_jobs` (`job_des_controllers`).
+- `camaddon/gui_magazine.py`: Spalte „Halter an dieser Maschine“ (Auswahl; „wie das Werkzeug
+  (…)“ vorbelegt); Texte `mg.spalte.halter`, `mg.halter.*` (de/en); `help/de|en/magazine.html`.
+- `tests/test_magazin.py`: Halter aus dem Magazin vor dem des Werkzeugs, Länge im Halter des
+  Magazins, gespeichert.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_magazin`, `test_werkzeuge`, `test_vierachs_halter`, `test_wegkippen`, `test_sprache`, `szenario_magazine`, `szenario_magazin_vierachs`.
+
 ## P-2026-10-17-41 nut-schlichten-danach-mit-messstopp
 
 ### EINGELESEN

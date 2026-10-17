@@ -293,6 +293,9 @@ def ueber_der_schneide(tc):
     with contextlib.suppress(Exception):  # ohne lesbare Werkzeugverwaltung: das ToolBit allein
         bibliothek = wz.Bibliothek.laden()
         werkzeug = js.werkzeug_von(tc, bibliothek)
+        from . import magazin as mg
+
+        mg.fuer_controller(tc, bibliothek)  # der Halter aus dem Magazin der Maschine (W-024)
     if werkzeug is None:
         werkzeug = vom_controller(tc) if tc is not None else None
     return stufen_des_werkzeugs(werkzeug, bibliothek)

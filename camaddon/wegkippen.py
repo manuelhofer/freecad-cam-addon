@@ -623,6 +623,10 @@ def einspannung(tc, bibliothek=None):
             bibliothek = wz.Bibliothek.laden()
         except (wz.BeschaedigteDatei, OSError):
             bibliothek = None
+        if bibliothek is not None:
+            from . import magazin as mg
+
+            mg.fuer_controller(tc, bibliothek)  # der Halter aus dem Magazin der Maschine (W-024)
     laenge = rw.werkzeuglaenge(tc, bibliothek)[0]
     masse = rw.werkzeugmasse(tc, bibliothek, laenge)
     halter = rw.werkzeughalter(tc, bibliothek) or hl.vorschlag(

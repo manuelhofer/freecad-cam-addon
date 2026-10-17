@@ -21,6 +21,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import farben
+from . import halter as hl
 from . import maschine as m
 from . import maschinenspeicher as msp
 from . import werkzeuge as wz
@@ -33,11 +34,11 @@ LISTE_BREITE = 260
 GROESSTE_NUMMER = 9999
 GROESSTE_PLATZ = 999
 ROT = farben.ROT
-SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ = range(4)
+SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ, SPALTE_HALTER = range(5)
 ROLLE = (
     QtCore.Qt.UserRole
 )  # an einer Zeile des Baums: ("maschine", Datei) oder ("magazin", Kennung)
-BREITEN = {SPALTE_T: 90, SPALTE_NAME: 190, SPALTE_PLATZ: 130}  # Pixel; das Werkzeug füllt den Rest
+BREITEN = {SPALTE_T: 90, SPALTE_NAME: 170, SPALTE_PLATZ: 120, SPALTE_HALTER: 220}  # Pixel
 
 
 def werkzeug_text(werkzeug):
@@ -212,13 +213,14 @@ class MagazinDialog(QtGui.QDialog):
         plaetze.addWidget(self.plaetze_text, 1)
         formular.addRow(tr("mg.plaetze"), plaetze)
         aufbau.addLayout(formular)
-        self.tabelle = QtGui.QTableWidget(0, 4)
+        self.tabelle = QtGui.QTableWidget(0, 5)
         self.tabelle.setHorizontalHeaderLabels(
             [
                 tr("mg.spalte.t"),
                 tr("mg.spalte.werkzeug"),
                 tr("mg.spalte.name"),
                 tr("mg.spalte.platz"),
+                tr("mg.spalte.halter"),
             ]
         )
         self.tabelle.horizontalHeader().setSectionResizeMode(
@@ -469,6 +471,22 @@ class MagazinDialog(QtGui.QDialog):
             platz.setToolTip(tr("mg.platz.tooltip"))
             platz.valueChanged.connect(lambda wert, e=eintrag: self._setze(e, "platz", wert))
             self.tabelle.setCellWidget(zeile, SPALTE_PLATZ, platz)
+            # Der Halter an dieser Maschine (W-024): leer heißt der des Werkzeugs.
+            halter = QtGui.QComboBox()
+            halter.setToolTip(tr("mg.halter.tooltip"))
+            werkzeug = self.bibliothek.werkzeug_mit_kennung(eintrag.werkzeug)
+            eigener = self.bibliothek.halter_von(werkzeug) if werkzeug is not None else None
+            halter.addItem(
+                tr("mg.halter.wie_werkzeug", halter=hl.text(eigener) if eigener else "–"), ""
+            )
+            for h in self.bibliothek.sortierte_halter():
+                halter.addItem(hl.text(h), h.kennung)
+            index = halter.findData(eintrag.halter) if eintrag.halter else 0
+            halter.setCurrentIndex(max(index, 0))
+            halter.currentIndexChanged.connect(
+                lambda _i, e=eintrag, w=halter: self._setze(e, "halter", w.currentData() or "")
+            )
+            self.tabelle.setCellWidget(zeile, SPALTE_HALTER, halter)
         for spalte, breite in BREITEN.items():
             self.tabelle.setColumnWidth(spalte, breite)
 

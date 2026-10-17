@@ -48,12 +48,41 @@ def bibliothek_laden():
 
 
 def des_jobs(job, bibliothek=None, maschine=None):
-    """Das Magazin, das für die Maschine des Jobs (oder `maschine`) gilt – None ohne."""
+    """Das Magazin, das für die Maschine des Jobs (oder `maschine`: ihre Datei, oder die Maschine
+    bzw. ihre Assembly mit Dokument) gilt – None ohne. Die Werkzeugverwaltung merkt es sich als
+    Magazin der Prüfung (Bibliothek.magazin_fuer_pruefung): Steht dort je Werkzeug ein Halter,
+    rechnen Reichweite, Kollision und die Assistenten mit dem (W-024)."""
+    if maschine is not None and not isinstance(maschine, str):
+        maschine = getattr(getattr(maschine, "Document", None), "FileName", "") or ""
     maschine = maschine or maschine_des_jobs(job)
     if not maschine:
         return None
     bibliothek = bibliothek if bibliothek is not None else bibliothek_laden()
-    return bibliothek.magazin_fuer(maschine) if bibliothek is not None else None
+    if bibliothek is None:
+        return None
+    magazin = bibliothek.magazin_fuer(maschine)
+    bibliothek.magazin_fuer_pruefung = magazin
+    return magazin
+
+
+def job_des_controllers(tc):
+    """Der Job, in dessen Werkzeugliste der Controller steht – None ohne."""
+    dokument = getattr(tc, "Document", None)
+    if dokument is None:
+        return None
+    from . import job_schnittwerte as js
+
+    for job in js.jobs(dokument):
+        if tc in list(getattr(getattr(job, "Tools", None), "Group", []) or []):
+            return job
+    return None
+
+
+def fuer_controller(tc, bibliothek):
+    """Das Magazin der Maschine des Jobs, zu dem der Controller gehört – und gemerkt als Magazin
+    der Prüfung (des_jobs): für Operationen, die die Werkzeugverwaltung selbst laden."""
+    job = job_des_controllers(tc)
+    return des_jobs(job, bibliothek) if job is not None else None
 
 
 def nummern_im_job(job, ausser=None):

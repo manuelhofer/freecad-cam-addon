@@ -97,6 +97,10 @@ def blatt(job, datum, version, bibliothek=None):
             bibliothek = wz.Bibliothek.laden()
         except Exception:  # noqa: BLE001 – ohne Werkzeugverwaltung: was CAM weiß
             bibliothek = None
+    if bibliothek is not None:
+        from . import magazin as mg
+
+        mg.des_jobs(job, bibliothek)  # die Halter aus dem Magazin der Maschine (W-024)
     grund = grundjob(job)
     pfad = magazin.maschine_von(grund)
     eintrag = msp.finde(msp.laden(), pfad) if pfad else None

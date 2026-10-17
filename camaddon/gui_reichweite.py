@@ -45,6 +45,7 @@ from . import (
     uhren,
 )
 from . import job_schnittwerte as js
+from . import magazin as mg
 from . import maschine as m
 from . import reichweite as rw
 from . import werkzeuge as wz
@@ -344,6 +345,8 @@ class PruefPanel:
         self._job = None  # der Job, dessen Nullpunkt in den Feldern steht
         self._werkzeugdialog = None  # die Werkzeugverwaltung, deren Speichern hier ankommt
         self.bibliothek = _bibliothek()
+        if self.bibliothek is not None:  # die Halter aus dem Magazin dieser Maschine (W-024)
+            mg.des_jobs(job, self.bibliothek, assembly)
         self.vergleiche = []  # js.Vergleich je Controller – Schnittwerte im Job (D-28)
         self.werkstueckaufnahmen = [
             a for a in m.aufnahmen(maschine) if a.Art == m.AUFNAHME_WERKSTUECK and a.Lcs is not None
@@ -1086,6 +1089,8 @@ class PruefPanel:
         if PruefPanel.offen is not self:
             return
         self.bibliothek = _bibliothek()
+        if self.bibliothek is not None:
+            mg.des_jobs(self.job(), self.bibliothek, self.assembly)
         self._bild_weg()  # Werkzeug und Halter in der Ansicht neu
         self.pruefe()
 

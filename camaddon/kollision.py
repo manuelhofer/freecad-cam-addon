@@ -759,8 +759,11 @@ class Maschinendaten:
 def vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt=None):
     """Die Daten für die Prüfung aus Job und Werkzeugverwaltung; Hinweise (kein Teil, ohne
     Halter geprüft) kommen in `ergebnis.hinweise`."""
+    from . import magazin as mg
     from . import spannung
 
+    if bibliothek is not None:
+        mg.des_jobs(job, bibliothek, abfahrt.pruefung.maschine)  # die Halter aus dem Magazin
     if nullpunkt is None:
         nullpunkt = abfahrt.nullpunkt
     from . import stl_teil

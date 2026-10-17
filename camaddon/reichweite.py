@@ -1027,7 +1027,10 @@ class Pruefung:
         if nullpunkt_des_jobs is None:
             nullpunkt_des_jobs = nullpunkt(job)
         if bibliothek is not None:  # der vorgeschlagene Halter an der Aufnahme dieser Maschine
+            from . import magazin as mg
+
             bibliothek.aufnahme_vorschlag = m.werkzeugaufnahme(self.maschine)
+            mg.des_jobs(job, bibliothek, self.maschine)  # die Halter aus dem Magazin (W-024)
         sammler = _Sammler(self, ergebnis)
         self._bestueckung_pruefen(job, bibliothek, sammler)
         for op, ebene in operationen_mit_ebene(job):

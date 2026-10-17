@@ -1477,6 +1477,10 @@ class MagazinEintrag:
     werkzeug: str  # Kennung des Werkzeugs in der Werkzeugverwaltung
     name: str = ""  # der Name an der Steuerung (Siemens T="…"); leer: keiner
     platz: int = 0  # beladen auf diesem Platz im Wechsler/Revolver; 0: nicht beladen
+    # Der Halter, in dem das Werkzeug an dieser Maschine steckt (Kennung in Bibliothek.halter);
+    # leer: der Halter des Werkzeugs aus der Werkzeugliste. Manuel, 2026-10-17 (W-024): „ich will
+    # den kugelfräser in der 3-achs-fräse haben, da hat die nen anderen halter als in der clx“.
+    halter: str = ""
 
     def als_dict(self):
         return dataclasses.asdict(self)
@@ -1488,6 +1492,7 @@ class MagazinEintrag:
             str(daten.get("werkzeug") or ""),
             str(daten.get("name") or ""),
             _zahl(daten.get("platz"), int, 0),
+            str(daten.get("halter") or ""),
         )
 
 
@@ -1574,6 +1579,9 @@ class Bibliothek:
         # Die Werkzeugaufnahme der Maschine, an der gerade geprüft wird (W-022): der
         # vorgeschlagene Halter bekommt ihren Flansch; "" – SK40.
         self.aufnahme_vorschlag = ""
+        # Das Magazin der Maschine, an der gerade geprüft oder angelegt wird (magazin.des_jobs):
+        # Steht dort je Werkzeug ein Halter, gilt der (W-024) – vor dem aus der Werkzeugliste.
+        self.magazin_fuer_pruefung = None
 
     # --- Werkzeuge --------------------------------------------------------------
 
@@ -1633,10 +1641,22 @@ class Bibliothek:
             return None
         return next((h for h in self.halter if h.kennung == werkzeug.halter), None)
 
+    def halter_mit(self, kennung):
+        """Der Halter mit dieser Kennung, oder None."""
+        return next((h for h in self.halter if h.kennung == kennung), None) if kennung else None
+
+    def halter_im_magazin(self, werkzeug):
+        """Der Halter, den das Magazin der Maschine (magazin_fuer_pruefung) dem Werkzeug gibt
+        (MagazinEintrag.halter, W-024) – None, wenn dort keiner steht."""
+        magazin = self.magazin_fuer_pruefung
+        eintrag = magazin.eintrag_von(werkzeug) if magazin is not None else None
+        return self.halter_mit(eintrag.halter) if eintrag is not None else None
+
     def halter_fuer_pruefung(self, werkzeug):
-        """Der gewählte Halter – sonst der vorgeschlagene nach Schaft-Ø (halter.vorschlag,
-        D-23) –, oder None (ohne Durchmesser, oder halter_vorschlagen aus)."""
-        halter = self.halter_von(werkzeug)
+        """Der Halter aus dem Magazin der Maschine (halter_im_magazin), sonst der gewählte –
+        sonst der vorgeschlagene nach Schaft-Ø (halter.vorschlag, D-23) –, oder None (ohne
+        Durchmesser, oder halter_vorschlagen aus)."""
+        halter = self.halter_im_magazin(werkzeug) or self.halter_von(werkzeug)
         if halter is not None or not self.halter_vorschlagen or werkzeug.durchmesser <= 0:
             return halter
         return hl.vorschlag(schaft_fuer_cam(werkzeug), self.aufnahme_vorschlag)
@@ -1644,7 +1664,12 @@ class Bibliothek:
     def laenge_ab_spindelnase(self, werkzeug):
         """Die Länge ab Spindelnase in mm: gemessen, sonst Halterlänge + Ausspannlänge, sonst mit
         Halter geschätzt (laenge_im_halter) – ohne Halter 0 (dann rechnet, wer sie braucht, mit
-        der Gesamtlänge)."""
+        der Gesamtlänge). Steckt das Werkzeug an der Maschine in einem anderen Halter
+        (halter_im_magazin), gilt die Länge in dem – das Maß ab Spindelnase wurde im eigenen
+        gemessen."""
+        im_magazin = self.halter_im_magazin(werkzeug)
+        if im_magazin is not None and im_magazin.kennung != werkzeug.halter:
+            return laenge_im_halter(werkzeug, im_magazin)
         if werkzeug.laenge_spindelnase:
             return werkzeug.laenge_spindelnase
         halter = self.halter_von(werkzeug)
