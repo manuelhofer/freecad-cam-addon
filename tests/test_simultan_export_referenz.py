@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import pathlib
+import shutil
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -25,7 +26,11 @@ def pruefen():
     assert profil.is_dir() and pathlib.Path(App.getUserAppDataDir()).resolve() == profil
     sprache.setze_sprache("de")
     out = ROOT / "beispiele/grob_g550_freiform"
-    user_asset_store.set_dir(out / "assets")
+    # Die Werkzeugablage als Kopie im Profil: speichern() schreibt die Werkzeuge hinein,
+    # FreeCAD in seinem Format – sonst änderte jeder Lauf das Beispiel im Repo.
+    ablage = profil / "beispiel_assets"
+    shutil.copytree(out / "assets", ablage, dirs_exist_ok=True)
+    user_asset_store.set_dir(ablage)
     bib = wz.Bibliothek.laden(str(out / "beispiel_werkzeuge.json"))
     bib.speichern()
     doc = App.openDocument(

@@ -17,6 +17,7 @@ import math
 import os
 import pathlib
 import re
+import shutil
 import sys
 from dataclasses import asdict
 
@@ -47,7 +48,11 @@ def pruefung():
     form = os.environ.get("SIMULTAN_TEST_FORM", "freiform")
     assert form in ("kuppel", "freiform"), form
     out = ROOT / "beispiele/grob_g550_freiform"
-    user_asset_store.set_dir(out / "assets")
+    # Die Werkzeugablage als Kopie im Profil: speichern() schreibt die Werkzeuge hinein,
+    # FreeCAD in seinem Format – sonst änderte jeder Lauf das Beispiel im Repo.
+    ablage = profil / "beispiel_assets"
+    shutil.copytree(out / "assets", ablage, dirs_exist_ok=True)
+    user_asset_store.set_dir(ablage)
     bib = wz.Bibliothek.laden(str(out / "beispiel_werkzeuge.json"))
     bib.speichern()
     doc = App.openDocument(

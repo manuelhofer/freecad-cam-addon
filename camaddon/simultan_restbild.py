@@ -96,13 +96,20 @@ def fuer(abfahrt, job, spitzen):
     punkte = np.asarray(spitzen, dtype=float).copy()
     gueltig = np.zeros(len(abfahrt.stationen), dtype=bool)
     nummern = np.array([s.operation for s in abfahrt.stationen], dtype=int)
+    # Die Richtung des Werkzeugs je Station: zur Spitze eines 1 mm längeren – je Operation für
+    # alle Stationen zugleich (je Station stand das Prüffenster am Beispiel 1 s still, P-66).
+    hinten = np.full((len(abfahrt.stationen), 3), np.nan)
+    gestellt = np.array([s.stellungen is not None for s in abfahrt.stationen], dtype=bool)
+    for i, kinematik in laenger.items():
+        auswahl = np.flatnonzero((nummern == i) & gestellt)
+        if len(auswahl):
+            hinten[auswahl] = kinematik.am_werkstueck_felder(abfahrt.stellungen_felder(auswahl))
     for k, s in enumerate(abfahrt.stationen):
         form = fraeser.get(s.operation)
         if form is None or s.stellungen is None:
             continue
         p = punkte[k].copy()
-        q = np.asarray(laenger[s.operation].am_werkstueck(abfahrt.stellungen_an(k)))
-        richtung = p - q
+        richtung = p - hinten[k]
         if not form.nur_kugel:
             # Schwenken über dem Rohteil schneidet nichts; dort darf die Richtung wechseln.
             # Einen schrägen Schaft im Material kann der Höhenquader nicht darstellen.

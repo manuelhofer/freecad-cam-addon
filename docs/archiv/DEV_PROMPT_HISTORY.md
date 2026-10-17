@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-66 bahn-am-werkstueck-im-takt
+
+### EINGELESEN
+- Manuel: das Fenster darf nie hängen, alle Kerne nutzen. Die Pausen des vollen Szenario-Laufs
+  vom Abend zeigten in „Auf der Maschine prüfen“ am Simultanbeispiel (G550, Freiform) 1,6 s am
+  Stück: Nach dem Abfahren rechnete das Bild die Bahn am Werkstück je Station mit Placements
+  (`Abfahrt.am_werkstueck`), und das Restmaterialbild der Simultanbahn je Station noch einmal die
+  Werkzeugrichtung. Ab 50 000 Stationen rechneten das die Nebenrechner (am Nasen-Testteil
+  330 000 Stationen).
+
+### DATEIEN
+- `camaddon/kinematik.py`: `Kinematik.am_werkstueck_felder({Achse: Feld})` – dieselben
+  Rechenschritte wie `am_werkstueck`, Achse für Achse mit numpy (Linearachse verschiebt, Rundachse
+  dreht um ihre Achse durch den Ursprung, `_gedreht`); NaN heißt Grundstellung.
+- `camaddon/abfahren.py`: `am_werkstueck_schritte()` – in Blöcken zu 20 000 Stationen
+  (`STATIONEN_AM_STUECK`), je Operation alle auf einmal; `am_werkstueck()` rechnet es am Stück.
+  `stellungen_felder(auswahl)`. Das Ende von `abfahrt_schritte` (Zeiten, `_fertig_schritte`) hält
+  ebenfalls je 20 000 Stationen an; eine Station mit allen Achsen übernimmt ihre Stellungen, wie sie
+  sind. Der Weg über die Nebenrechner (`_am_werkstueck_verteilt`,
+  `kollision.am_werkstueck_stueck`) entfällt.
+- `camaddon/gui_reichweite.py`: Das Prüffenster rechnet die Bahn am Werkstück im Takt, bevor es
+  das Bild baut.
+- `camaddon/simultan_restbild.py`: die Werkzeugrichtung je Operation für alle Stationen zugleich.
+- `tests/test_kinematik.py`: An Drehmaschine, 5-Achs Tisch/Tisch, Kopf/Tisch, Kopf/Kopf und G550
+  gibt `am_werkstueck_felder` an 40 zufälligen Stellungen (einige Achsen ohne) dasselbe wie
+  `am_werkstueck` (< 1e-9 mm; mit falscher Drehrichtung bis 1,7 m daneben – die Prüfung greift).
+- Fünf Prüfdateien (`test_simultan_restbild`, `test_simultan_nc`, `test_simultan_export_referenz`,
+  `test_schruppen3d_anlauf`, `szenario_simultan_restbild`) arbeiten mit einer Kopie der
+  Werkzeugablage im Profil: `Bibliothek.speichern()` schrieb die Werkzeuge im Format des
+  Wochen-Builds in `beispiele/grob_g550_freiform/assets` – jeder Lauf änderte das Beispiel im Repo.
+
+### ERGEBNIS
+| Messung | vorher | nachher |
+|---|---|---|
+| Ring-Welle (5 827 Stationen), Bahn am Werkstück | 0,080 s | 0,004 s (Abweichung 8e-13 mm) |
+| Simultanbeispiel, längste Pause im Prüffenster | 1,59 s | 0,35 s (der Sprachdialog beim ersten Start) |
+| Nasen-Testteil (330 000 Stationen), bis fertig | 7,2 s | 6,0 s |
+| Nasen-Testteil, Bahn am Werkstück | Nebenrechner | 0,44 s, längster Block 0,09 s |
+| Nasen-Testteil, letzter Schritt des Abfahrens | 0,40 s | 0,13 s |
+- Grün im Wochen-Build: `test_kinematik`, `test_vierachs_pruefen`, `test_abfahren`,
+  `test_simultan_restbild`, `test_simultan_nc`, `test_simultan_export_referenz`,
+  `test_schruppen3d_anlauf`, `szenario_simultan_restbild`, `szenario_pruefen_im_takt`.
 ## P-2026-10-18-65 stange-auch-ohne-spannlaenge
 
 ### EINGELESEN

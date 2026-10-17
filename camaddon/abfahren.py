@@ -98,8 +98,9 @@ def _anstoss(op):
         return ()
 
 
-# Ab so vielen Stationen rechnen die Nebenrechner am_werkstueck() (P-2026-10-11-05).
-AM_WERKSTUECK_PARALLEL_AB = 50000
+# So viele Stationen rechnen am_werkstueck_schritte und das Ende von abfahrt_schritte am Stück
+# (am Nasen-Testteil höchstens ~30 ms, P-2026-10-18-66).
+STATIONEN_AM_STUECK = 20000
 
 
 @dataclass
@@ -172,6 +173,15 @@ class Abfahrt:
         (None: noch keine)."""
         return self._wirksam[index]
 
+    def stellungen_felder(self, auswahl):
+        """{Achse: Feld der Stellungen} an den Stationen `auswahl` (Indizes), wie die Maschine
+        dort steht – NaN, wo eine Achse noch keine hat. Für Kinematik.am_werkstueck_felder."""
+        import numpy as np
+
+        zeilen = [self._wirksam[i] for i in np.asarray(auswahl).tolist()]
+        feld = np.array(zeilen, dtype=float).reshape(len(zeilen), len(self.achsen))  # None: NaN
+        return {a: feld[:, k] for k, a in enumerate(self.achsen)}
+
     def stellungen_an(self, index):
         """{Achse: Stellung} an Station `index`, wie die Maschine dort steht."""
         return {
@@ -220,77 +230,43 @@ class Abfahrt:
         """Je Station, wo die Spitze am Werkstück steht, in Koordinaten des Jobs: ihr Punkt –
         mit Rundachsen um sie gedreht (ohne TCPM, kinematik.Kinematik.am_werkstueck). So
         zeigt FreeCAD die Bahn: um das Teil herum, und sie dreht sich mit ihm. Einmal gerechnet
-        und gemerkt (an einem großen 4-Achs-Job 264 000 Stationen, 4 s) – das Bild, der Abtrag
-        und die Kollision fragen danach; nicht verändern."""
+        und gemerkt – das Bild, der Abtrag und die Kollision fragen danach; nicht verändern."""
+        return rw.zu_ende(self.am_werkstueck_schritte())
+
+    def am_werkstueck_schritte(self):
+        """am_werkstueck() als Schritte (ein Generator, das Ergebnis kommt mit StopIteration): je
+        STATIONEN_AM_STUECK Stationen hält es an – so rechnet das Prüffenster es im Takt. Im Block
+        je Operation alle Stationen auf einmal (Kinematik.am_werkstueck_felder): Je Station mit
+        Placements stand das Prüffenster am Simultanbeispiel 1,6 s still, am Nasen-Testteil
+        (330 000 Stationen) rechneten dafür die Nebenrechner; jetzt 0,4 s im Takt
+        (P-2026-10-18-66)."""
         if self._am_werkstueck is not None and len(self._am_werkstueck) == len(self.stationen):
             return self._am_werkstueck
-        ergebnis = None
-        if len(self.stationen) >= AM_WERKSTUECK_PARALLEL_AB:
-            ergebnis = self._am_werkstueck_verteilt()
-        if ergebnis is None:
-            ergebnis = []
-            for i, station in enumerate(self.stationen):
-                if not any(station.rund.values()) or station.stellungen is None:
-                    ergebnis.append(station.punkt)
-                    continue
-                kinematik = self.kinematik(station.operation)
-                ergebnis.append(kinematik.am_werkstueck(self.stellungen_an(i)))
+        import numpy as np
+
+        ergebnis = []
+        for anfang in range(0, len(self.stationen), STATIONEN_AM_STUECK):
+            block = self.stationen[anfang : anfang + STATIONEN_AM_STUECK]
+            punkte = [station.punkt for station in block]
+            dreht = [
+                i
+                for i, station in enumerate(block)
+                if station.stellungen is not None and any(station.rund.values())
+            ]
+            if dreht:
+                dreht = np.array(dreht)
+                nummern = np.array([block[i].operation for i in dreht.tolist()])
+                for nummer in np.unique(nummern).tolist():
+                    auswahl = dreht[nummern == nummer]
+                    gedreht = self.kinematik(nummer).am_werkstueck_felder(
+                        self.stellungen_felder(auswahl + anfang)
+                    )
+                    for i, punkt in zip(auswahl.tolist(), gedreht.tolist(), strict=True):
+                        punkte[i] = tuple(punkt)
+            ergebnis.extend(punkte)
+            yield
         self._am_werkstueck = ergebnis
         return ergebnis
-
-    def _am_werkstueck_verteilt(self):
-        """am_werkstueck() in Stücken auf den Nebenrechnern (kollision.am_werkstueck_stueck): je
-        Stück nur seine Stationen, die Maschine als Kopie wie für die Kollision. None ohne sie –
-        dann rechnet der Aufrufer selbst. Am 4-Achs-Testteil öffnete das Prüffenster 13 s, davon
-        rund 5 s für diese Umrechnung (P-2026-10-11-05)."""
-        import FreeCAD
-
-        from . import kollision as kb
-        from . import nebenrechner as nr
-
-        pool = nr.pool()
-        if not pool.verfuegbar() or pool.anzahl < 2:
-            return None
-        try:
-            kopie, maschine = kb._maschinendaten(pool, self.pruefung)
-        except kb.NichtTeilbar:
-            return None
-        kette = list(self.pruefung.kette.achsen)
-        operationen = [
-            (op.aufnahme.Name, op.laenge, kb.lage_als_daten(op.lage)) for op in self.operationen
-        ]
-        eintraege = [
-            (
-                s.operation,
-                self._wirksam[i],
-                bool(any(s.rund.values()) and s.stellungen is not None),
-                s.punkt,
-            )
-            for i, s in enumerate(self.stationen)
-        ]
-        bereiche = nr.stuecke(len(eintraege), pool.anzahl, je_arbeiter=2, mindestens=2000)
-        auftraege = [
-            pool.auftrag(
-                "kollision",
-                "am_werkstueck_stueck",
-                kopie,
-                maschine,
-                operationen,
-                tuple(self.nullpunkt),
-                [kette.index(a) for a in self.achsen],
-                eintraege[a:b],
-            )
-            for a, b in bereiche
-        ]
-        try:
-            teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
-        except nr.Fehler as fehler:
-            FreeCAD.Console.PrintWarning(
-                f"CAM-Addon: Bahn am Werkstück auf den Nebenrechnern gescheitert, rechne hier: "
-                f"{fehler}\n"
-            )
-            return None
-        return [punkt for teil in teile for punkt in teil]
 
     def spitze(self, index, stellungen):
         """Wo die Spitze bei `stellungen` ({Achse: Stellung}, etwa so, wie die Maschine an
@@ -304,16 +280,28 @@ class Abfahrt:
 
     def _fertig(self):
         """Zeiten für die Suche und die wirksamen Stellungen je Station."""
+        rw.zu_ende(self._fertig_schritte())
+
+    def _fertig_schritte(self):
+        """_fertig als Schritte: je STATIONEN_AM_STUECK Stationen hält es an. Eine Station mit
+        allen Achsen übernimmt ihre Stellungen, wie sie sind (am Nasen-Testteil 0,18 s am Stück,
+        P-2026-10-18-66)."""
         self._zeiten = [s.zeit for s in self.stationen]
         letzte = (None,) * len(self.achsen)
-        self._wirksam = []
-        for station in self.stationen:
-            if station.stellungen is not None:
-                letzte = tuple(
-                    alt if neu is None else neu
-                    for alt, neu in zip(letzte, station.stellungen, strict=True)
-                )
-            self._wirksam.append(letzte)
+        self._wirksam = wirksam = []
+        for i, station in enumerate(self.stationen, start=1):
+            stellungen = station.stellungen
+            if stellungen is not None:
+                if None in stellungen:
+                    letzte = tuple(
+                        alt if neu is None else neu
+                        for alt, neu in zip(letzte, stellungen, strict=True)
+                    )
+                else:
+                    letzte = tuple(stellungen)
+            wirksam.append(letzte)
+            if i % STATIONEN_AM_STUECK == 0:
+                yield
 
 
 def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
@@ -589,9 +577,11 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     ):
         zeit += dauer + (dauert if i in wechsel_vor else 0.0)
         station.zeit = zeit
+        if i % STATIONEN_AM_STUECK == 0:
+            yield
     ergebnis.werkzeugwechsel = len(gewechselt)
     ergebnis.wechselzeit, ergebnis.wechsel_vor = dauert, wechsel_vor
-    ergebnis._fertig()
+    yield from ergebnis._fertig_schritte()
     return ergebnis
 
 

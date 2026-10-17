@@ -3,6 +3,7 @@
 
 import json
 import os
+import shutil
 from pathlib import Path
 
 import FreeCAD as App
@@ -42,7 +43,11 @@ def schritte(h):
 
     sprache.setze_sprache("de")
     out = Path(__file__).resolve().parents[2] / "beispiele/grob_g550_freiform"
-    user_asset_store.set_dir(out / "assets")
+    # Die Werkzeugablage als Kopie im Profil: speichern() schreibt die Werkzeuge hinein,
+    # FreeCAD in seinem Format – sonst änderte jeder Lauf das Beispiel im Repo.
+    ablage = Path(App.getUserAppDataDir()) / "beispiel_assets"
+    shutil.copytree(out / "assets", ablage, dirs_exist_ok=True)
+    user_asset_store.set_dir(ablage)
     wz.Bibliothek.laden(str(out / "beispiel_werkzeuge.json")).speichern()
     md = App.openDocument(str(out / "g550_winkelaufnahme.FCStd"))
     doc = App.openDocument(str(out / "freiform_5achs.FCStd"))

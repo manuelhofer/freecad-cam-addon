@@ -805,6 +805,7 @@ class PruefPanel:
             )
             self._zeige()
             abfahrt = yield from ab.abfahrt_schritte(self.pruefung, job, nullpunkt, self.bibliothek)
+            yield from abfahrt.am_werkstueck_schritte()  # für das Bild, im Takt (P-66)
             self._abfahrt_zeigen(job, nullpunkt, abfahrt)
             self.kollision.veraltet()
         finally:

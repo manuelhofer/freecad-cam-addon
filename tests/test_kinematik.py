@@ -10,6 +10,7 @@ ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
 import FreeCAD
+import numpy as np
 
 from camaddon import beispielmaschine as bm
 from camaddon import kinematik as km
@@ -69,6 +70,44 @@ for punkt, c in [((30, 0, -10), 0.0), ((30, 0, -10), 90.0), ((22.5, 0, -40), -37
     rund = k.rundachsen(stellungen)
     pruefe(set(rund) == {"C"} and abs(rund["C"] - c) < 1e-9, f"Rundachsen: {rund}")
 FreeCAD.closeDocument(asm.Document.Name)
+
+# --- Viele Stationen zugleich (P-2026-10-18-66): am_werkstueck_felder wie am_werkstueck --------
+# An jeder Beispielmaschine mit Rundachsen, Stellungen zufällig in den Grenzen, einige Achsen
+# ohne Stellung (NaN: Grundstellung wie ein fehlender Schlüssel).
+zufall = np.random.default_rng(7)
+for bauen in (
+    bm.drehmaschine,
+    bm.fuenfachs_tisch_tisch,
+    bm.fuenfachs_kopf_tisch,
+    bm.fuenfachs_kopf_kopf,
+    bm.grob_g550,
+):
+    asm, ma = bauen()
+    p = rw.Pruefung(asm, ma)
+    aufnahme = p.werkzeugaufnahme(1)
+    k = km.Kinematik(p, aufnahme, 80, V(3, -2, 40))
+    achsen_ = p.gefahrene_achsen(aufnahme)
+    felder = {}
+    for achse in achsen_:
+        unten = achse.minimum if achse.minimum is not None else -180.0
+        oben = achse.maximum if achse.maximum is not None else 180.0
+        feld = zufall.uniform(unten, oben, 40)
+        feld[zufall.random(40) < 0.2] = np.nan
+        felder[achse] = feld
+    viele = k.am_werkstueck_felder(felder)
+    abweichung = max(
+        max(
+            abs(a - b)
+            for a, b in zip(
+                viele[i],
+                k.am_werkstueck({a: float(f[i]) for a, f in felder.items() if not np.isnan(f[i])}),
+                strict=True,
+            )
+        )
+        for i in range(40)
+    )
+    pruefe(abweichung < 1e-9, f"{bauen.__name__}: viele Stationen {abweichung:.2e} mm daneben")
+    FreeCAD.closeDocument(asm.Document.Name)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

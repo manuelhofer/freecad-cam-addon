@@ -30,6 +30,7 @@ Läuft ohne Oberfläche.
 """
 
 import FreeCAD
+import numpy as np
 
 from .kette import LINEAR
 
@@ -71,6 +72,62 @@ class Kinematik:
         Koordinaten des Jobs – so liegt die Bahn um das Teil."""
         return self._im_job(self._wege(stellungen, rundachsen=True))
 
+    def am_werkstueck_felder(self, stellungen):
+        """am_werkstueck für viele Stationen zugleich: `stellungen` {Achse: Feld der Stellungen}
+        – NaN (oder eine fehlende Achse) heißt Grundstellung wie ein fehlender Schlüssel in
+        am_werkstueck. Gibt ein Feld (n, 3) zurück. Dieselben Rechenschritte, Achse für Achse
+        mit numpy statt je Station mit Placements: Das Prüffenster stand am Simultanbeispiel
+        1,6 s still, am 4-Achs-Testteil rechneten dafür die Nebenrechner (P-2026-10-18-66)."""
+        p = self.pruefung
+        v = p.verfahren
+        anzahl = len(next(iter(stellungen.values()))) if stellungen else 0
+        grund = p._dreh_wege(self.aufnahme, self.drehachsen, {})
+
+        def weg(achse):
+            vorgabe = grund.get(achse, 0.0)
+            feld = stellungen.get(achse)
+            if feld is None:
+                return np.full(anzahl, vorgabe)
+            feld = np.asarray(feld, dtype=float)
+            return np.where(np.isnan(feld), vorgabe, v.weg_bei(achse, feld))
+
+        def bewege(punkte, glied, rueckwaerts):
+            # Vorwärts wie _glied_lage: B1·B2·…·Bn, also Bn zuerst; rückwärts die Umkehrung:
+            # B1⁻¹ zuerst, jede Achse um den negativen Weg.
+            pfad = v.pfad(glied)
+            for achse in pfad if rueckwaerts else reversed(pfad):
+                w = weg(achse)
+                if not w.any():
+                    continue
+                if rueckwaerts:
+                    w = -w
+                richtung, ursprung = v.achslage(achse)
+                if achse.art == LINEAR:
+                    punkte = punkte + w[:, None] * np.array(tuple(richtung), dtype=float)
+                else:
+                    punkte = _gedreht(punkte, richtung, ursprung, w)
+            return punkte
+
+        spitze_im_glied = p._lage(self.aufnahme).multVec(_einspannung(self.laenge).spitze())
+        spitze = np.tile(np.array(tuple(spitze_im_glied), dtype=float), (anzahl, 1))
+        spitze = bewege(spitze, p._glied(self.aufnahme), rueckwaerts=False)
+        am_glied = bewege(spitze, p._glied(p.werkstueckaufnahme), rueckwaerts=True)
+        # Vom Glied der Werkstückaufnahme in den Job: (Lage der Aufnahme · Nullpunkt)⁻¹.
+        zum_job = (
+            p._lage(p.werkstueckaufnahme)
+            .multiply(FreeCAD.Placement(self.nullpunkt, FreeCAD.Rotation()))
+            .inverse()
+            .toMatrix()
+        )
+        r = np.array(
+            [
+                [zum_job.A11, zum_job.A12, zum_job.A13],
+                [zum_job.A21, zum_job.A22, zum_job.A23],
+                [zum_job.A31, zum_job.A32, zum_job.A33],
+            ]
+        )
+        return am_glied @ r.T + np.array([zum_job.A14, zum_job.A24, zum_job.A34])
+
     def rundachsen(self, stellungen):
         """Die Rundachsen im Programm bei diesen Stellungen: {"C": Grad} – nur die, die
         positionieren (keine Spindel, kein Revolver)."""
@@ -97,3 +154,21 @@ class Kinematik:
         p = self.pruefung
         spitze = p._spitze(self.aufnahme, self.laenge, wege)
         return tuple(p._job_lage(self.nullpunkt, wege).inverse().multVec(spitze))
+
+
+def _einspannung(laenge):
+    from .reichweite import _einspannung as einspannung
+
+    return einspannung(laenge)
+
+
+def _gedreht(punkte, richtung, ursprung, grad):
+    """Die Punkte (n, 3) je um `grad` (Feld, Grad, rechtsherum um `richtung`) um die Achse durch
+    `ursprung` gedreht – wie FreeCAD.Placement(Vector(), Rotation(richtung, grad), ursprung)."""
+    k = np.array(tuple(richtung), dtype=float)
+    k = k / np.linalg.norm(k)
+    c = np.array(tuple(ursprung), dtype=float)
+    winkel = np.radians(grad)
+    cos, sin = np.cos(winkel)[:, None], np.sin(winkel)[:, None]
+    q = punkte - c
+    return c + q * cos + np.cross(k, q) * sin + k * (q @ k)[:, None] * (1.0 - cos)

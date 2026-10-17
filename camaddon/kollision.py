@@ -1329,37 +1329,6 @@ def _lage_aus_daten(daten):
     return FreeCAD.Placement(FreeCAD.Vector(*basis), FreeCAD.Rotation(*q))
 
 
-def am_werkstueck_stueck(dokument, maschine, operationen, nullpunkt, achsen, stationen):
-    """abfahren.Abfahrt.am_werkstueck für ein Stück Stationen – im Nebenrechner.
-    `operationen`: je Operation (Name der Aufnahme, Länge, Lage – lage_als_daten); `achsen`: die
-    Achsen der Abfahrt als Nummern in der Kette; `stationen`: [(Operation, wirksame Stellungen,
-    dreht eine Rundachse?, Punkt im Programm)]."""
-    from .kinematik import Kinematik
-
-    pruefung = _pruefung_fuer(dokument, maschine)
-    kette = pruefung.kette.achsen
-    achsen = [kette[i] for i in achsen]
-    kinematiken = {}
-    ergebnis = []
-    for operation, wirksam, dreht, punkt in stationen:
-        if not dreht:
-            ergebnis.append(punkt)
-            continue
-        kinematik = kinematiken.get(operation)
-        if kinematik is None:
-            aufnahme, laenge, lage = operationen[operation]
-            kinematik = Kinematik(
-                pruefung,
-                dokument.getObject(aufnahme),
-                rw.Einspannung(laenge, _lage_aus_daten(lage)),
-                FreeCAD.Vector(*nullpunkt),
-            )
-            kinematiken[operation] = kinematik
-        stellungen = {a: w for a, w in zip(achsen, wirksam, strict=True) if w is not None}
-        ergebnis.append(kinematik.am_werkstueck(stellungen))
-    return ergebnis
-
-
 def stueck(dokument, maschine, fahrt, daten, warnabstand, bereich, fortschritt=None, bekannt=None):
     """Prüft die Stationen `bereich` (von, bis) – im Nebenrechner. Gibt die Befunde je Paar,
     die Zahl der Stellen und die Hinweise zurück, als Daten ohne FreeCAD-Objekte. `bekannt`: was
