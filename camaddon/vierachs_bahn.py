@@ -149,6 +149,9 @@ ATMEN_JE_PUNKTE = 2000  # befehle(): so oft darf das Fenster dazwischen neu zeic
 # Werkzeugachse bleibt parallel zum Strahl auf die Mitte, am Rand steht sie um so viel schräg zur
 # Fläche; weiter teilt sich der Sektor, die Rundachse dreht dazwischen.
 SEKTOR_Y_HALB = 45.0
+# Grad – so breit darf jeder Sektor höchstens sein, damit die Lage Zeilen mit Y fährt (Schlitze,
+# Segmente; am Ring 13 … 19°); ist einer breiter, fährt sie die Spirale.
+SEKTOR_Y_BREIT = 120.0
 QUER_PROBE = 0.25  # mm – so dicht prüft der Schritt quer zwischen zwei Y-Zeilen die Hüllfläche
 VOR_STANGE = 0.5  # mm – so weit vor der Stirn der Stange steht die Flanke beim Eintauchen im Eilgang  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
 # Beim Zusammenfassen mit der Querachse (_zusammen_quer): so weit darf die Kugelmitte zwischen
@@ -779,7 +782,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             rest.fahren(punkte, anfang_lage, w.form if w.form is not None else w.fraeser_radius)
         return gefahren
 
-    def sektor_lage_y(lage, noetig, davor_r, rest):
+    def sektor_lage_y(lage, noetig, davor_r, rest, punkte):
         """Die Lage als Zeilen mit der Querachse in den Sektoren (Schruppwerte.sektoren_y, W-026):
         Je Sektor steht die Rundachse auf seiner Mitte, die Werkzeugachse bleibt parallel zum
         Strahl dorthin, die Querachse fährt über die Breite: Zeilen längs der Stange im Abstand
@@ -792,8 +795,16 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         n_phi = noetig.shape[1]
         ebene = davor_r - w.zustellung
         gefahren = 0
-        # --- Vor dem Teil: die Stirnseite rundum, ein Ring je Lage -------------------------
         vorn = huelle.a > teil_vorne + GLEICH
+        # Nur Sektoren wie Schlitze: Ist einer breiter als SEKTOR_Y_BREIT, ist es kein Segment –
+        # dann die Spirale (None). An der Nase umfasste der „Sektor“ den ganzen Umfang; die
+        # Zeilen mit parallelem Fräser ließen der Kugel dort 20,7 statt 14,2 cm³ (P-2026-10-18-62).
+        koerper = noetig & ~vorn[:, None]
+        spalten = np.flatnonzero(koerper.any(axis=0))
+        gruppen = _kreis_gruppen(spalten, n_phi)
+        if any(len(g) * 360.0 / n_phi > SEKTOR_Y_BREIT for g in gruppen):
+            return None
+        # --- Vor dem Teil: die Stirnseite rundum, ein Ring je Lage -------------------------
         vorn_zeilen = np.flatnonzero(vorn & noetig.any(axis=1))
         ringe_vorn = []
         if len(vorn_zeilen):
@@ -823,8 +834,6 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             punkte.append(Punkt(True, a_i, sicher, punkte[-1].phi))
             gefahren = 1
         # --- Am Teil: die Sektoren als Zeilen mit Y -----------------------------------------
-        koerper = noetig & ~vorn[:, None]
-        spalten = np.flatnonzero(koerper.any(axis=0))
         if not len(spalten):
             return gefahren
         form_ = w.form if w.form is not None else ff.scheibe(radius)
@@ -848,7 +857,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         # sie an die Nebenrechner – je Stück allein blieben sie unter vierachs_huelle.
         # PARALLEL_AB_STELLUNGEN auf einem Kern), dann die Zeilen ausgeben.
         stuecke_lage = []
-        for gruppe in _kreis_gruppen(spalten, n_phi):
+        for gruppe in gruppen:
             breite = (len(gruppe) - 1) * grad
             stuecke = max(1, int(math.ceil(breite / (2.0 * halb) - 1e-9)))
             for stueck in np.array_split(np.asarray(gruppe), stuecke):
@@ -974,6 +983,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                         punkte.append(Punkt(True, a_ein, sicher, psi_jetzt, q=q))
                         punkte.append(Punkt(True, a_ein, float(x_b[0]), psi_jetzt, q=q))
                         erster = 1 if a_ein <= float(a_z[0]) + GLEICH else 0
+                        taucht = False
                     else:
                         # Quer zur nächsten Zeile im Vorschub, hinten wie vorn – auf der Höhe,
                         # die die Hüllfläche dazwischen verlangt: erst hoch, dann quer, dann in
@@ -986,16 +996,22 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                         )
                         if hoehe > vorher.r + BAHN_TOLERANZ:
                             punkte.append(Punkt(False, vorher.a, hoehe, psi_jetzt, q=vorher.q))
-                        if hoehe > float(x_b[0]) + BAHN_TOLERANZ:
+                        # Von oben senkrecht in die Zeile: mit dem Eintauchvorschub (Gegenleser zu
+                        # P-59 – bis eine Zustellung tief in den ungeschnittenen Streifen).
+                        taucht = hoehe > float(x_b[0]) + BAHN_TOLERANZ
+                        if taucht:
                             punkte.append(Punkt(False, vorher.a, hoehe, psi_jetzt, q=q))
                         erster = 0
-                    for i, x_i in zip(bleibt[erster:], x_b[erster:], strict=True):
+                    for nr_p, (i, x_i) in enumerate(
+                        zip(bleibt[erster:], x_b[erster:], strict=True)
+                    ):
                         punkte.append(
                             Punkt(
                                 False,
                                 float(a_z[i]),
                                 float(x_i),
                                 psi_jetzt,
+                                eintauchen=taucht and nr_p == 0,
                                 q=q,
                                 frei=bool(frei_z[i]),
                             )
@@ -1016,23 +1032,24 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
         spiel = schrupp_spiel(w.aufmass)
         sektor_y = None
-        sektor_lagen = []  # die Lagen, die Zeilen mit Y fuhren
         if w.sektoren_y and w.nur_noetig:
 
-            def sektor_y(lage, rest):
+            def sektor_y(lage, rest, ziel):
+                # `ziel`: die Punktliste des Durchgangs - im zweiten mit tieferen Lagen eine
+                # andere als `punkte` (P-2026-10-18-63: sonst landeten die Zeilen in der
+                # falschen Liste, und die Lagen fehlten in der Bahn).
                 sektor = sektoren(lage)
                 if sektor is None:
                     return None
-                sektor_lagen.append(lage)
-                return sektor_lage_y(lage, *sektor, rest)
+                gefahren_y = sektor_lage_y(lage, *sektor, rest, ziel)
+                # Fuhr die Lage nichts, die Spirale – nie eine Lage still auslassen.
+                return gefahren_y or None
 
         gefahren = _schruppen_quer(
             punkte, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi, stufen_quer,
             sektor_y=sektor_y,
         )  # fmt: skip
-        if 0 < lagen < gefahren and not sektor_lagen:
-            # (Nicht, wenn Lagen Zeilen mit Y fuhren: Die sind billig, und die Zeilen rechnen
-            # mit der Zustellung aus `w` – der zweite Lauf ersetzte sie sonst durch die Spirale.)
+        if 0 < lagen < gefahren:
             # Neben dem Strahl hält die Grenze je Lage (vierachs_quer.lagen_grenze) höher als
             # auf ihm: Mit gleich tiefen Lagen bis genau ans Teil blieb seitlich ein dünner Rest
             # für eine Lage mehr (an einer Welle Ø 60 in Ø 80, ap 2: sechs statt fünf). Dann
@@ -1040,10 +1057,17 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             tiefer = min(ap, w.zustellung * gefahren / lagen)
             if tiefer > w.zustellung + GLEICH:
                 versuch = punkte[:1]
-                weniger = _schruppen_quer(
-                    versuch, netz, laengs, radial, replace(w, zustellung=tiefer), spirale_,
-                    rahmen_, lagen, schritt_phi, stufen_quer,
-                )  # fmt: skip
+                # Die Sektoren mit Y rechnen mit `w` aus diesem Rahmen (sektoren, sektor_lage_y)
+                # – für diesen Lauf mit der tieferen Zustellung (P-2026-10-18-63; P-59 ließ den
+                # Lauf mit Y-Zeilen aus: an einer Abflachung drei statt zwei Lagen).
+                w_vorher, w = w, replace(w, zustellung=tiefer)
+                try:
+                    weniger = _schruppen_quer(
+                        versuch, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi,
+                        stufen_quer, sektor_y=sektor_y,
+                    )  # fmt: skip
+                finally:
+                    w = w_vorher
                 if weniger < gefahren:
                     punkte[:] = versuch
                     gefahren = weniger
@@ -1275,7 +1299,7 @@ def _schruppen_quer(
     kommt, je Stufe gerechnet in der Stellung des Fräsers (Richtung, Versatz quer). Bis
     P-2026-10-16-37 auf dem Strahl durch die Stangenachse: Neben der schmalen Nase traf der das
     Teil, der versetzte Fräser nicht – der Schaft hielt die Spitze zu Unrecht oben, und die Kugel
-    nahm danach bis 16,8 mm² je mm. `sektor_y(lage, rest)`: steht über der Lage nur noch in
+    nahm danach bis 16,8 mm² je mm. `sektor_y(lage, rest, punkte)`: steht über der Lage nur noch in
     Sektoren etwas, fährt es sie als Zeilen mit Y bei stehender Rundachse (sektor_lage_y, W-026)
     und gibt zurück, ob sie Punkte bekam – sonst None, dann die Spirale. Gibt die Zahl der Lagen
     zurück."""
@@ -1348,7 +1372,7 @@ def _schruppen_quer(
         lage += 1
         if sektor_y is not None and lage >= 2:
             anfang_lage = len(punkte)
-            im_sektor = sektor_y(lage, rest)
+            im_sektor = sektor_y(lage, rest, punkte)
             if im_sektor is not None:
                 # Die Lage fuhr Zeilen in den Sektoren; die Spirale danach beginnt, wo die
                 # Rundachse steht (_quer_ausgeben rechnet den Winkel fortlaufend).

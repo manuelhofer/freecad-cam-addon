@@ -276,22 +276,27 @@ def drehung_fuer(rahmen, x, y, winkel, modus):
     raise ValueError(tr("st.nicht_erreichbar", x=f"{x:.3f}", y=f"{y:.3f}", radius=f"{rho:.3f}"))
 
 
-def befehle(befehle_, rahmen, modus=MIT, sicher_z=None):
+def befehle(befehle_, rahmen, modus=MIT, sicher_z=None, programm=False):
     """Die Sätze einer Operation an der Stirnseite, wie die Maschine sie fährt (siehe oben):
     Path-Befehle mit X, Y im Rahmen der Maschine und C. `sicher_z`: auf diese Höhe fährt das
     Werkzeug, bevor C in SCHRITTE dreht (ohne: die höchste Z der Bahn). Absolut (G90); ein G91
-    – ValueError."""
+    – ValueError. `programm`: für das NC-Programm – ohne Y-Achse dann ohne Y-Wort (Prüfung und
+    Abfahren lesen Y 0)."""
     import Path
 
-    return _Umrechnung(rahmen, modus, sicher_z, Path.Command).rechne(list(befehle_))
+    return _Umrechnung(rahmen, modus, sicher_z, Path.Command, programm).rechne(list(befehle_))
 
 
 class _Umrechnung:
-    def __init__(self, rahmen, modus, sicher_z, befehl):
+    def __init__(self, rahmen, modus, sicher_z, befehl, programm=False):
         self.r = rahmen
         self.modus = modus if modus in MODI else MIT
         if self.modus == SCHRITTE and rahmen.y_max - rahmen.y_min < SCHRITTE_AB_Y:
             self.modus = MIT  # ohne Y-Weg gibt es keine Schritte: polar mit X und C
+        # Ohne Y-Achse (Rahmen Y 0 bis 0) kein Y-Wort im Programm: Eine Steuerung ohne Y gibt
+        # sonst Alarm (Gegenleser zu P-50, P-2026-10-18-63). Nur fürs Programm – Prüfung und
+        # Abfahren lesen die Sätze mit Y 0 (ohne Y fänden sie keinen Punkt).
+        self.ohne_y = programm and abs(rahmen.y_min) < GENAU and abs(rahmen.y_max) < GENAU
         self.sicher_z = sicher_z
         self.befehl = befehl
         self.pos = [None, None, None]  # die Spitze im Programm (am Teil)
@@ -303,6 +308,10 @@ class _Umrechnung:
         self.c_steht = False  # C wurde schon geschrieben
 
     # --- Ausgabe ---------------------------------------------------------------------------
+
+    def _xy_woerter(self, x, y):
+        """{"X": x, "Y": y} – ohne Y-Achse nur X."""
+        return {"X": x} if self.ohne_y else {"X": x, "Y": y}
 
     def _c(self, winkel):
         return winkel * self.r.drehsinn
@@ -322,7 +331,7 @@ class _Umrechnung:
         werte = {}
         if x is not None and y is not None:
             mx, my = self._xy(x, y, winkel)
-            werte.update(X=mx, Y=my)
+            werte.update(self._xy_woerter(mx, my))
         if z is not None:
             werte["Z"] = z
         if not self.c_steht or abs(winkel - self.winkel) > GENAU:
@@ -336,7 +345,7 @@ class _Umrechnung:
         """Ein Satz im Vorschub zu (x, y, z) am Teil, das Teil um `winkel` gedreht. Dreht C,
         in G93 mit der Zeit aus `laenge` (mm am Teil)."""
         mx, my = self._xy(x, y, winkel)
-        werte = {"X": mx, "Y": my, "Z": z}
+        werte = {**self._xy_woerter(mx, my), "Z": z}
         dreht = abs(winkel - self.winkel) > GENAU
         if dreht or not self.c_steht:
             werte[self.r.buchstabe] = self._c(winkel)
@@ -561,7 +570,7 @@ class _Umrechnung:
             ex, ey = self._xy(x1, y1, self.winkel)
             c, s = math.cos(math.radians(self.winkel)), math.sin(math.radians(self.winkel))
             i, j = float(p.get("I", 0.0)), float(p.get("J", 0.0))
-            werte = {"X": ex, "Y": ey, "Z": z1, "I": c * i - s * j, "J": s * i + c * j}
+            werte = {**self._xy_woerter(ex, ey), "Z": z1, "I": c * i - s * j, "J": s * i + c * j}
             zurueck = self._g94()  # schreibt G94, wenn G93 noch gilt
             if (zurueck or f is not None) and (f or self.f):
                 werte["F"] = f if f is not None else self.f
@@ -590,7 +599,7 @@ class _Umrechnung:
             self.c_steht = True
             self.winkel = winkel
         mx, my = self._xy(x, y, winkel)
-        werte = dict(p)
-        werte.update(X=mx, Y=my)
+        werte = {k: v for k, v in p.items() if not (k == "Y" and self.ohne_y)}
+        werte.update(self._xy_woerter(mx, my))
         self.raus.append(self.befehl(name, werte))
         self.pos = [x, y, self.pos[2]]

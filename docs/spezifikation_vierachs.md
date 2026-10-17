@@ -775,10 +775,12 @@ unter die Hüllfläche der Stelle). Reicht Y nicht über den Sektor (`Schruppwer
 Grenzen der Y-Achse der Maschine nach `stirnseite.y_nutzen`; Operation `YWeg`, 0 = unbegrenzt),
 teilt er sich in Stücke bis 2·asin((y_weg − R)/r) Breite, höchstens 2·`SEKTOR_Y_HALB` (90°) – C
 dreht dazwischen. Am Ring mit Querachse: 151 → 11,4 km Weg, 88 → 12 % Luft, 105,6 → 11,4 min,
-nichts ins Teil (Voxel 0,5); mit Y auf ±5 mm begrenzt 11,6 min (drei Stücke je Schlitz). An der
-Nase: 12,1 statt 12,2 min, aber der Rest für die Kugel 20,7 statt 14,2 cm³ (bis 7,9 statt
-4,1 mm² je mm) – die angestellte Spirale folgt den schrägen Flächen, die Zeilen mit parallelem
-Fräser nicht; dort den Haken abwählen. Bild: `docs/bilder/vorschlaege/ring_sektoren_y.png`.
+nichts ins Teil (Voxel 0,5); mit Y auf ±5 mm begrenzt 11,6 min (drei Stücke je Schlitz). Nur wenn
+jeder Sektor höchstens `SEKTOR_Y_BREIT` (120°) breit ist – sonst die Spirale (P-2026-10-18-62): An
+der Nase umfasste der „Sektor“ den ganzen Umfang, die Zeilen mit parallelem Fräser ließen der
+Kugel 20,7 statt 14,2 cm³ (bis 7,9 statt 4,1 mm² je mm); jetzt dort die Spirale wie vorher (14,1
+cm³, 12,2 min). Am Ring sind die Sektoren 13 … 19° breit. Bild:
+`docs/bilder/vorschlaege/ring_sektoren_y.png`.
 Nachgezogen (P-2026-10-17-49 … P-2026-10-18-60): Die Hüllflächen aller Stücke einer Lage rechnen in
 einem Aufruf von `je_stellung`, verteilt nach Richtung, Band und Stelle (alle Kerne, auch bei drei
 Sektoren). Die Zeilen beginnen erst, wo die Flanke die Stirn der Stange erreicht, und tauchen im

@@ -920,8 +920,10 @@ def _drehmaschine_text(eintrag):
 
 
 def stangen_job(job):
-    """Hat der Job eine Stange als Rohteil (der 4-Achs-Assistent)?"""
-    return hasattr(getattr(job, "Stock", None), "Radius")
+    """Hat der Job eine Stange als Rohteil, eingerichtet vom 4-Achs-Assistenten? Er merkt sich die
+    Spannlänge am Job (vierachs_rohteil.spannlaenge) – ein „Zylinder mit Aufmaß“ auf der Fräse hat
+    auch einen Radius, aber keine (bis P-2026-10-18-62 hieß er „Stange … im Futter“)."""
+    return hasattr(getattr(job, "Stock", None), "Radius") and vr.spannlaenge(job) > 0
 
 
 def vorhandener_job(dokument, teil, angeklickt=None):

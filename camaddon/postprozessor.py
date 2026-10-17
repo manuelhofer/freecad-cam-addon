@@ -1057,7 +1057,7 @@ def programm(
             from . import stirnseite as st
 
             try:
-                befehle_roh = st.befehle(befehle_roh, info.stirn, *abschnitt.stirn)
+                befehle_roh = st.befehle(befehle_roh, info.stirn, *abschnitt.stirn, programm=True)
             except ValueError as grund:
                 hinweise.append(f"{abschnitt.name}: {grund}")
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))

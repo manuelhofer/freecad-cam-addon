@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-62 sektoren-y-nur-schlitze-voller-lauf
+
+### EINGELESEN
+- Zu P-48: An der Nase brachten die Y-Zeilen beim Schruppen nichts (12,1 statt 12,2 min), ließen
+  der Kugel aber 20,7 statt 14,2 cm³. Nachgemessen: Am Ring sind die Sektoren 13 … 19° breit, an
+  der Nase umfasste der „Sektor“ den ganzen Umfang (360°) – die Y-Zeilen ersetzten dort einfach
+  die angestellte Spirale. Segmente gibt es an der Nase nicht; das war nie gemeint (Manuel,
+  2026-10-17: „Segmente, wo die Y-Achse hinkommt …“). Die Frage, die ich dazu notiert hatte, ist
+  damit beantwortet und wieder heraus.
+- Der volle Szenario-Lauf (nach P-61) fand `szenario_bearbeitung_zylinder` rot: Seit P-43 hieß
+  der „Zylinder mit Aufmaß“ auf der Fräse in „Bearbeitung“ „Stange Ø 64 mm im Futter“ –
+  `stangen_job` fragte nur, ob das Rohteil einen Radius hat. Dazu rot: `szenario_raeumen_schlichten`
+  (erwartete die Zeilen des Messstopps ohne das „M9“ von P-41), `szenario_vierachs_flaechen` (rundum
+  3 statt 2 Lagen – nach Y-Zeilen fiel der zweite Durchgang mit gleich tiefen Lagen aus, P-59) und
+  `szenario_nut_eintauchen` (eigener Patch). 154 von 158 grün.
+- Ein zweiter Gegenleser hat P-55 bis P-61 gelesen: ohne Y-Achse schrieb das Programm an der
+  Stirnseite trotzdem „Y0.000“ (eine Steuerung ohne Y gibt Alarm); nach dem Querschritt zwischen zwei
+  Y-Zeilen ging es senkrecht im Schnittvorschub hinab. Sonst ohne Befund (`befehle` bitgleich an 168
+  Bahnen, `_umschlagen`, Eintauchen, `tiefe = inf`, Drehmaschine ohne Y).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `sektor_lage_y` – ist einer der Sektoren breiter als
+  `SEKTOR_Y_BREIT` (120°), gibt es None zurück, die Lage fährt die Spirale; der Rest wird erst
+  danach angefasst. `sektor_y` merkt die Lage nur, wenn sie Zeilen fuhr.
+- `camaddon/vierachs_bahn.py`, dazu: Der zweite Durchgang mit gleich tiefen Lagen rechnet die
+  Y-Zeilen mit (`w` für diesen Lauf tiefer, `sektor_y(lage, rest, ziel)` mit der Punktliste des
+  Durchgangs – beim ersten Versuch landeten die Zeilen in der äußeren Liste, die Lagen fehlten in der
+  Bahn; gefangen von `test_vierachs_bahn`); eine Y-Lage, die nichts fährt, fällt auf die Spirale
+  zurück (nie eine Lage still auslassen); nach dem Querschritt das senkrechte Hinab in die Zeile mit
+  dem Eintauchvorschub (`eintauchen`).
+- `camaddon/stirnseite.py`: `befehle(…, programm=True)` lässt ohne Y-Achse das Y-Wort weg
+  (`_xy_woerter`); Prüfung und Abfahren lesen weiter Y 0 (ohne Y fänden sie keinen Punkt);
+  `postprozessor.py` ruft es mit `programm=True`.
+- `camaddon/gui_bearbeitung.py`: `stangen_job` – nur mit der Spannlänge des 4-Achs-Assistenten
+  (`vierachs_rohteil.spannlaenge`). Dadurch findet ein zweiter Lauf „Bearbeitung“ auch einen Job
+  mit „Zylinder mit Aufmaß“ wieder (vor P-43 schloss `vorhandener_job` jeden runden aus).
+- Tests: `tests/test_vierachs_bahn.py` (die Y-Zeilen an einem echten Schlitz 4 × 6 mm, gezählt
+  an Läufen mit stehendem C), `tests/test_stirnseite.py` (ohne Y kein Y-Wort im Programm, `am_teil`
+  liest dann Y 0), `tests/gui/szenario_raeumen_schlichten.py` (Messstopp mit M9).
+- Tooltip `va.sektoren_y.tooltip`, `help/de|en/vierachs.html`, `docs/spezifikation_vierachs.md`
+  (V3j); `docs/OFFENE_FRAGEN.md` (Frage 2 heraus).
+
+### ERGEBNIS
+- Nase mit Y-Zeilen-Haken: 12,2 min, Rest für die Kugel 14,1 cm³ (wie die Spirale); Ring
+  unverändert 10,9 min.
+- Abflachung rundum mit Y-Zeilen: 2 Lagen (wie ohne); Ring 0 Voxel ins Teil.
+- Grün im Wochen-Build: `test_vierachs_bahn`, `test_stirnseite`, `test_postprozessor`;
+  `szenario_bearbeitung_zylinder`, `szenario_raeumen_schlichten`, `szenario_vierachs_flaechen`,
+  `szenario_ring_sektoren`, `szenario_ring_sektoren_y`, `szenario_vierachs_nase`,
+  `szenario_vierachs_schruppen`, `szenario_vierachs_stirnseite`.
 ## P-2026-10-18-61 stirnseite-messen-programm
 
 ### EINGELESEN

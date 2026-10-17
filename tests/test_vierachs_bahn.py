@@ -731,14 +731,15 @@ for oben, soll in (((), (None, 5.0)), (((3.0, 4.0),), (10.0 - 4.0, None))):
         )
 
 # --- Sektoren als Zeilen mit Y, C steht (W-026, P-2026-10-17-48) --------------------------------
-# Die Welle mit einem Schlitz 6 mm breit in einer Stange Ø 28, mit Querachse und „nur nötig“: Ab
-# der dritten Lage steht nur noch im Schlitz etwas – die Lage fährt Zeilen mit Y bei stehender Rundachse (die Werkzeugachse
+# Die Welle Ø 20 mit einem Schlitz 4 mm breit, 6 mm lang, bis 2 mm vor die Achse, in einer Stange
+# Ø 28, mit Querachse und „nur nötig“: Ab der zweiten Lage steht nur noch im Schlitz etwas (ein
+# Sektor unter 120°) – die Lage fährt Zeilen mit Y bei stehender Rundachse (die Werkzeugachse
 # parallel zum Strahl auf die Schlitzmitte), im Vorschub ändert sich der Winkel dort nicht, der
 # Versatz quer schon. Nie unter die Hüllfläche des Fräsers in dieser Stellung. Reicht Y nur
-# 1,5 mm, teilt sich der Schlitz: mehr Stellungen der Rundachse.
+# 1,2 mm, teilt sich der Schlitz: mehr Stellungen der Rundachse.
 from camaddon import fraeserform as ff  # noqa: E402
 
-y_welle = Part.makeCylinder(10, 40, V(0, 0, -40)).cut(Part.makeBox(12, 30, 6, V(2, -15, -23)))
+y_welle = Part.makeCylinder(10, 40, V(0, 0, -40)).cut(Part.makeBox(12, 4, 6, V(2, -2, -23)))
 y_netz = vh.vernetze(y_welle)
 y_werte = replace(
     schlitz_werte,
@@ -749,19 +750,26 @@ y_werte = replace(
     sektoren_y=True,
 )
 y_bahn = vb.schruppen(y_netz, C_LAENGS, C_RADIAL, y_werte)
-y_laeufe, lauf = [], []
-for p in y_bahn.punkte + [vb.Punkt(True, 0.0, 0.0, 0.0)]:
-    if p.eilgang:
-        if len(lauf) > 1:
-            y_laeufe.append(lauf)
-        lauf = []
-    else:
-        lauf.append(p)
-y_sektor = [
-    lf
-    for lf in y_laeufe
-    if max(abs(p.phi - lf[0].phi) for p in lf) < 1e-9 and max(abs(p.q) for p in lf) > 0.5
-]
+
+
+def stehende_laeufe(bahn):
+    """Die Läufe im Vorschub mit stehender Rundachse und Versatz quer (die Zeilen mit Y)."""
+    laeufe, lauf = [], []
+    for p in bahn.punkte + [vb.Punkt(True, 0.0, 0.0, 0.0)]:
+        if p.eilgang:
+            if len(lauf) > 1:
+                laeufe.append(lauf)
+            lauf = []
+        else:
+            lauf.append(p)
+    return [
+        lf
+        for lf in laeufe
+        if max(abs(p.phi - lf[0].phi) for p in lf) < 1e-9 and max(abs(p.q) for p in lf) > 0.1
+    ]
+
+
+y_sektor = stehende_laeufe(y_bahn)
 pruefe(len(y_sektor) >= 2, f"Sektorzeilen mit Y: {len(y_sektor)} Läufe mit stehendem C")
 y_zeilen = sum(len({round(p.q, 3) for p in lf}) for lf in y_sektor)
 pruefe(y_zeilen >= 4, f"Sektorzeilen mit Y: {y_zeilen} Zeilen")
@@ -782,19 +790,17 @@ if y_punkte:
         min(p.r for p in y_punkte) < 5.0,
         f"Sektorzeilen mit Y: im Schlitz nur bis r {min(p.r for p in y_punkte):.2f}",
     )
-y_eng = vb.schruppen(y_netz, C_LAENGS, C_RADIAL, replace(y_werte, y_weg=1.5))
-stellungen = {round(p.phi % 360.0, 3) for p in y_eng.punkte if not p.eilgang and abs(p.q) > 1e-9}
-stellungen_weit = {
-    round(p.phi % 360.0, 3) for p in y_bahn.punkte if not p.eilgang and abs(p.q) > 1e-9
-}
+y_eng = vb.schruppen(y_netz, C_LAENGS, C_RADIAL, replace(y_werte, y_weg=1.2))
+stellungen = {round(lf[0].phi % 360.0, 3) for lf in stehende_laeufe(y_eng)}
+stellungen_weit = {round(lf[0].phi % 360.0, 3) for lf in y_sektor}
 pruefe(
     len(stellungen) > len(stellungen_weit),
-    f"Y bis 1,5 mm: {len(stellungen)} Stellungen, unbegrenzt {len(stellungen_weit)}",
+    f"Y bis 1,2 mm: {len(stellungen)} Stellungen, unbegrenzt {len(stellungen_weit)}",
 )
 print(
     ascii(
         f"Sektorzeilen mit Y: {len(y_sektor)} Läufe, {y_zeilen} Zeilen, {y_bahn.lagen} Lagen; "
-        f"Y bis 1,5 mm: {len(stellungen)} statt {len(stellungen_weit)} Stellungen"
+        f"Y bis 1,2 mm: {len(stellungen)} statt {len(stellungen_weit)} Stellungen"
     )
 )
 

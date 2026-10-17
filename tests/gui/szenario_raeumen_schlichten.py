@@ -125,7 +125,7 @@ def schritte(h):
     h.pruefe(ms.ist_messstopp(halt), f"dann kein Messstopp: {halt.Label}")
     zeilen = list(halt.Gcode)
     h.pruefe(
-        zeilen[2:4] == ["M5", "M0"] and zeilen[1].startswith("G0 Z"),
+        zeilen[2:5] == ["M5", "M9", "M0"] and zeilen[1].startswith("G0 Z"),
         f"Messstopp: {zeilen}",
     )
     h.pruefe(halt.ToolController is roh.ToolController, "Messstopp mit einem anderen Controller")
@@ -150,8 +150,8 @@ def schritte(h):
         "Boden und Wände: nicht derselbe Controller „Schlichten“",
     )
     h.pruefe(
-        zeilen[4] == f"M3 S{round(float(fein.ToolController.SpindleSpeed))}",
-        f"Wiederanlauf: {zeilen[4:]}",
+        zeilen[5] == f"M3 S{round(float(fein.ToolController.SpindleSpeed))}",
+        f"Wiederanlauf: {zeilen[5:]}",
     )
     h.pruefe(fein.Label.startswith("Wände schlichten T1"), f"Name: {fein.Label!r}")
     # Im Programm: M0 zwischen Räumen und Schlichten, danach wieder M3.

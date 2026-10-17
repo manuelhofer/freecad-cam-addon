@@ -39,8 +39,10 @@ R = st.Rahmen(-15.0, 100.0, -51.0, 51.0)
 
 def am_teil(rahmen, befehle, dicht=1):
     """[(x, y, z)] am Teil, die Sätze im Vorschub zwischen den Endpunkten linear (X, Y, C) in
-    `dicht` Schritten abgetastet – wie die Maschine sie fährt."""
-    punkte, stand = [], {"X": None, "Y": None, "Z": None, "C": 0.0}
+    `dicht` Schritten abgetastet – wie die Maschine sie fährt. Ohne Y-Achse (Rahmen Y 0 bis 0)
+    steht kein Y im Programm: dann Y 0."""
+    ohne_y = abs(rahmen.y_min) < 1e-9 and abs(rahmen.y_max) < 1e-9
+    punkte, stand = [], {"X": None, "Y": 0.0 if ohne_y else None, "Z": None, "C": 0.0}
     for b in befehle:
         if b.Name not in ("G0", "G1"):
             continue
@@ -194,9 +196,9 @@ nut = [
     C("G1", {"X": 20.0, "Y": 10.0}),
     C("G0", {"Z": 5.0}),
 ]
-polar = st.befehle(nut, ohne_y, st.MIT)
-y_polar = [abs(float(b.Parameters["Y"])) for b in polar if "Y" in b.Parameters]
-pruefe(y_polar and max(y_polar) < 1e-9, f"ohne Y: Y bis {max(y_polar or [0]):.4f}")
+polar = st.befehle(nut, ohne_y, st.MIT, programm=True)  # fürs Programm: kein Y-Wort
+y_polar = [b for b in polar if "Y" in b.Parameters]
+pruefe(not y_polar, f"ohne Y: {len(y_polar)} Sätze mit Y (eine Steuerung ohne Y gäbe Alarm)")
 c_polar = [float(b.Parameters["C"]) for b in polar if "C" in b.Parameters]
 pruefe(max(c_polar) - min(c_polar) > 50.0, f"ohne Y: C dreht nur {c_polar}")
 abweichung = max(
@@ -412,7 +414,7 @@ programm_0 = pp.programm(pp.abschnitte(job), pp.steuerung("siemens"), info_0, "S
 y_0 = [float(w[1:]) for z in programm_0 for w in z.split() if w.startswith("Y")]
 c_0 = [z for z in programm_0 if " C" in z or z.startswith("C")]
 pruefe(
-    max((abs(y) for y in y_0), default=0.0) < 1e-3 and len(c_0) > 50,
+    not y_0 and len(c_0) > 50,
     f"ohne Y: Y {y_0[:5]}, C {len(c_0)}",
 )
 print(ascii(f"Ohne Y an der Beispiel-Drehmaschine: {len(am_0)} Stellen, {daneben_0:.4f} daneben"))
