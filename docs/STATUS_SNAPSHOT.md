@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-07, 0.260.45 → 0.260.71):** (dazu T-015: G550 ohne Grundstellung)
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-10, 0.260.45 → 0.260.74):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -91,6 +91,15 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   `_gleiche_flaechen`, `_beispiele`, `_loch_schraeg`, `_vierachs_plan`) grün. Geist, 3D-Schlichten:
   58,3 min (55,4 nach P-58) – der Eilgang-Schutz nimmt 42 Eilgänge hinab ins Treppen-Restmaterial
   am Rand des Rohteils (P-2026-10-17-07). Neu gefragt: Frage 8 (Wandfahrt des Planfräsens).
+- Das Fenster steht nicht mehr (Pausen aus `pausen.txt` des vollen Laufs, P-2026-10-17-09/-10):
+  Geist (STL) 21,9 → 1,0 s und N-Eck-Kette 15,4 → 1,2 s (die Lochboden-Erkennung von P-54 holte
+  jedes Dreieck mit `getElement`; das STL-Modell wird beim Umschalten der Aufspannung als Netz
+  gezeigt); Öffnen am Testteil 3,2 → 1,3 s, Zielzeit 3,0 → 0,5 s (Punkt-in-Fläche für alle Zellen
+  auf einmal, dieselben Ergebnisse). Übrig über 1,5 s: „Anlegen“ mit Wegkippen (6 s, die
+  Operation rechnet im Fenster), der Vergleich beim Simultan-Planen (je Schritt bis 1,7 s), das
+  Anlegen eines Jobs in FreeCAD (1,7 s).
+- Der 3-Achs-Hinweis wie von Manuel vorgeschlagen (P-2026-10-17-08); neu gefragt: 8 (Wandfahrt),
+  9 (Rundachsen im Namen der Ebene wie an der Steuerung?).
 - Der Knopf „Ebene schwenken (3+2) …“ im Assistenten ist weg (war seit P-54 immer versteckt), die
   Hilfe beschreibt den neuen Weg (P-2026-10-17-05). Der Befehl in der Werkzeugleiste bleibt.
 
