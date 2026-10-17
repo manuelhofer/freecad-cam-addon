@@ -58,6 +58,11 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   ein Schlichtzug zählt beim Räumen dazu; gewinnt es, ist „Schlichten danach“ angehakt. C-Ring
   Ø 12: 2,7 statt 5,3 min. Szenario `szenario_raeumen_durch`.
 - Damit sind alle neun Fragen vom 16./17.10. umgesetzt.
+- **Fable, 17.10. ab 7 Uhr (P-2026-10-17-26 bis -30, 0.260.90 → 0.260.94),** nach
+  `docs/auftraege_fable.md`: Auftrag 1 ohne Querachse gebaut (Rundum schruppen: Zeilen in den
+  Sektoren, Manuels Ring 100 → 15 km; mit Querachse Frage 1 in OFFENE_FRAGEN), Auftrag 3
+  gemessen (Zwickel verstanden, Materialstand-Ringe bringen nichts), Auftrag 4 gebaut (gerechnete
+  Schlichtzeit), Auftrag 5: Vollnut-Rampe einweg, Flanke war ein Zählfehler.
 - Voller Szenario-Lauf auf 0.260.87 (Worktree, Wochen-Build): 152 von 154 grün. Rot waren
   `szenario_entgraten3d` – ein echter Fehler aus P-21 (die Variable `quer` von der inneren Funktion
   verdeckt; P-24) – und `szenario_rundum_drehmaschine` (das Szenario prüfte „Anlegen“, bevor die

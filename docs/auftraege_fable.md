@@ -209,6 +209,13 @@ rechnen wie Planfräsen + Räumen (`_folge`) – die gemerkte Zeit reicht, der H
 **Fertig, wenn:** Jede Stelle ist weg oder hat ein Bild mit Zahlen und einen Grund, warum es dort
 nicht anders geht, und Manuel hat es gesehen.
 
+**Stand 2026-10-17:**
+- Vollnut ohne Helix-Platz: Rampe in einer Richtung, wenn die Nut lang genug ist
+  (P-2026-10-17-29); sonst Zickzack wie von Manuel erlaubt.
+- Flanke: war ein Zählfehler (steiler Abstieg längs der Achse), behoben (P-2026-10-17-30).
+- Übrig, mit Grund: die schmale Tasche im Schwenkteil (Räumen, 1 mm Platz), die Dreieckstasche
+  am Testteil (Kontur), winzige Schleifen am Geist, Wendepunkte des Adaptiv-Kerns.
+
 ---
 
 **Reihenfolge, wenn Manuel nichts anderes sagt:** 1 und 3 zuerst. Beide sind klar umrissen und
