@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-39 abspieler-schraeg-auf-den-nebenrechnern
+
+### EINGELESEN
+- Manuel (2026-10-17, mitten in der Arbeit): „bitte immer daran denken das alle rechenkerne auch
+  genutzt werden.“ Die Lag-Sonde des Schwenkteil-Szenarios: Ein Sprung im Abspieler
+  (`springe_zu_station`, ein Drittel in die Schräge) rechnete den Abtrag mit schräg stehendem
+  Werkzeug 0,8 s am Stück im Fenster, auf einem Kern (`schraeg_abtrag.SchraegAbtrag.bis_station`
+  – ohne `bis_station_schritte`, also auch nicht im Takt). Der senkrechte Abtrag lief schon in
+  Streifen auf den Nebenrechnern (`Quader.fahre_stuecke`), der schräge nicht.
+
+### DATEIEN
+- `camaddon/restmaterial.py`: `Quader.gitter()` (dasselbe Raster im Arbeiter);
+  `verteilt_abtragen(quader, start, index, modul, funktion, punkte, *felder)` – die Stationen in
+  Stücke (je Arbeiter STUECKE_JE_ARBEITER), jedes auf einem leeren Quader im Arbeiter, zurück das
+  Höhenfeld, hier das Minimum darüber (das Minimum je Zelle hängt nicht von der Reihenfolge ab).
+- `camaddon/schraeg_abtrag.py`: der Lauf als Modulfunktionen (`_abtragen`, `_schraeg`,
+  `stueck` für den Arbeiter); `SchraegAbtrag.bis_station_schritte` – ab
+  `VERTEILT_AB_STATIONEN` (300) auf den Nebenrechnern, sonst im Takt (je 500 Stationen ein
+  `yield`); `bis_station` darüber.
+- `tests/test_schraeg_abtrag.py`: verteilt dieselben Höhen wie allein, und die Nebenrechner haben
+  gerechnet.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_schraeg_abtrag`, `test_restmaterial`, `szenario_schwenkteil`.
+
 ## P-2026-10-17-38 einfahrt-senkrecht-bei-hundertsteln
 
 ### EINGELESEN

@@ -28,6 +28,7 @@ from camaddon import flanke as flop
 from camaddon import flanke_bahn as fb
 from camaddon import halter as hl
 from camaddon import job_schnittwerte as js
+from camaddon import nebenrechner as nr
 from camaddon import reichweite as rw
 from camaddon import restmaterial as rm
 from camaddon import schraeg_abtrag as sa
@@ -176,6 +177,21 @@ for schneide, lagen in ((35.0, 1), (12.0, 3)):
     pruefe(np.all(q.h == oben), "zurück an den Anfang: nicht das ganze Rohteil")
     abtrag.bis_station(abtrag.letzte())
     pruefe(np.array_equal(q.h, vorher), "noch einmal abgefahren: anders")
+    # Auf den Nebenrechnern in Stücken (P-2026-10-17-39): dieselben Höhen wie allein (das
+    # Minimum je Zelle hängt nicht von der Reihenfolge ab) – und sie haben wirklich gerechnet.
+    alt_ab = sa.VERTEILT_AB_STATIONEN
+    sa.VERTEILT_AB_STATIONEN = 1
+    try:
+        abtrag.bis_station(0)
+        abtrag.bis_station(abtrag.letzte())
+        pruefe(nr.pool().arbeiter > 0, "Stücke nicht auf den Nebenrechnern")
+        pruefe(np.allclose(q.h, vorher, atol=1e-9), "verteilt anders als allein")
+        sa.VERTEILT_AB_STATIONEN = 10**9
+        abtrag.bis_station(0)
+        abtrag.bis_station(abtrag.letzte())
+        pruefe(np.array_equal(q.h, vorher), "allein (im Takt) anders")
+    finally:
+        sa.VERTEILT_AB_STATIONEN = alt_ab
     vergleich = abtrag.vergleich()
     pruefe(vergleich is not None, "kein Vergleich am Ende")
     FreeCAD.closeDocument(doc.Name)

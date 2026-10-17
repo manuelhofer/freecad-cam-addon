@@ -28,6 +28,8 @@ from . import restmaterial as rm
 FLACHSTE_ACHSE = 0.2  # z-Anteil der Werkzeugachse (zur Spindel), flacher im Material: kein Bild
 SENKRECHT = 1e-9  # so wenig darf die Achse von +z abweichen, um senkrecht zu zählen
 SCHNEIDE_ERSATZ = 3.0  # ohne Schneidenlänge am Werkzeug: so viele Durchmesser
+VERTEILT_AB_STATIONEN = 300  # schräge Stationen sind teuer: ab so vielen die Nebenrechner
+STATIONEN_JE_SCHRITT = 500  # Stationen zwischen zwei yield in bis_station_schritte()
 
 
 def tiefste(xs, ys, spitze, achse, radius, laenge, kugel=False):
@@ -83,45 +85,86 @@ class SchraegAbtrag(rm.QuaderAbtrag):
 
     def bis_station(self, index):
         """Trägt ab bis einschließlich Station `index`; zurück rechnet es von vorn."""
+        for _ in self.bis_station_schritte(index):
+            pass
+
+    def bis_station_schritte(self, index, je=STATIONEN_JE_SCHRITT):
+        """bis_station() als Generator (der Abspieler rechnet im Takt): nach je `je` Stationen
+        ein `yield`. Viele Stationen auf einmal (ab VERTEILT_AB_STATIONEN) rechnen die
+        Nebenrechner in Stücken (stueck, restmaterial.verteilt_abtragen) – am Schwenkteil stand
+        der Sprung im Abspieler sonst 0,8 s auf einem Kern (Manuel, 2026-10-17: „immer daran
+        denken, dass alle Rechenkerne auch genutzt werden“)."""
         index = min(max(0, index), self.letzte())
         if index + 1 < self.bis:
             self.quader.zuruecksetzen()
             self.bis = 0
-        k = np.arange(max(self.bis, 1), index + 1)
-        k = k[self.gueltig[k - 1] & self.gueltig[k] & (self.operation[k - 1] == self.operation[k])]
-        senkrecht = (self.achsen[k - 1, 2] >= 1.0 - SENKRECHT) & (
-            self.achsen[k, 2] >= 1.0 - SENKRECHT
-        )
-        for nummer, fraeser in self.fraeser.items():
-            stuecke = k[senkrecht & (self.operation[k] == nummer)]
-            if len(stuecke):
-                self.quader.fahre_stuecke(self.punkte[stuecke - 1], self.punkte[stuecke], fraeser)
-        for i in k[~senkrecht]:
-            self._schraeg(i, self.koerper[int(self.operation[i])])
+        start = max(self.bis, 1)
+        if index + 1 - start >= VERTEILT_AB_STATIONEN and rm.verteilt_abtragen(
+            self.quader, start, index, "schraeg_abtrag", "stueck",
+            self.punkte, self.achsen, self.operation, self.gueltig, self.fraeser, self.koerper,
+        ):  # fmt: skip
+            self.bis = index + 1
+            return
+        while start <= index:
+            ende = min(index + 1, start + je)
+            _abtragen(
+                self.quader, self.punkte, self.achsen, self.operation, self.gueltig,
+                self.fraeser, self.koerper, np.arange(start, ende),
+            )  # fmt: skip
+            self.bis = max(self.bis, ende)
+            start = ende
+            yield
         self.bis = max(self.bis, index + 1)
 
-    def _schraeg(self, i, koerper):
-        """Das Stück von Station i − 1 nach i mit schräger Achse, in Teilschritten."""
-        radius, laenge, kugel = koerper
-        a, b = self.punkte[i - 1], self.punkte[i]
-        da, db = self.achsen[i - 1], self.achsen[i]
-        winkel = math.acos(float(np.clip(np.dot(da, db), -1.0, 1.0)))
-        schritte = max(1, math.ceil(max(np.linalg.norm(b - a), laenge * winkel) / rm.TEILSCHRITT))
-        q = self.quader
-        for t in np.arange(1, schritte + 1) / schritte:
-            spitze = a + t * (b - a)
-            achse = da + t * (db - da)
-            achse = achse / np.linalg.norm(achse)
-            ende = spitze + laenge * achse
-            x_von, x_bis = min(spitze[0], ende[0]) - radius, max(spitze[0], ende[0]) + radius
-            y_von, y_bis = min(spitze[1], ende[1]) - radius, max(spitze[1], ende[1]) + radius
-            ix = slice(np.searchsorted(q.x, x_von), np.searchsorted(q.x, x_bis, "right"))
-            iy = slice(np.searchsorted(q.y, y_von), np.searchsorted(q.y, y_bis, "right"))
-            if ix.start >= ix.stop or iy.start >= iy.stop:
-                continue
-            xs, ys = np.meshgrid(q.x[ix], q.y[iy], indexing="ij")
-            unten = tiefste(xs, ys, spitze, achse, radius, laenge, kugel)
-            np.minimum(q.h[ix, iy], np.maximum(q.z_von, unten), out=q.h[ix, iy])
+
+def stueck(gitter, punkte, achsen, operation, gueltig, fraeser, koerper):
+    """Auch im Nebenrechner: die Stationen 1 … n − 1 (`punkte` (n, 3), die erste nur als Anfang)
+    auf einem leeren Quader mit dem Raster `gitter` (restmaterial.Quader.gitter()) – gibt sein
+    Höhenfeld zurück (restmaterial.verteilt_abtragen)."""
+    q = rm.Quader(*gitter)
+    punkte = np.asarray(punkte, dtype=float).reshape(-1, 3)
+    achsen = np.asarray(achsen, dtype=float).reshape(-1, 3)
+    _abtragen(
+        q, punkte, achsen, np.asarray(operation), np.asarray(gueltig, dtype=bool), fraeser,
+        koerper, np.arange(1, len(punkte)),
+    )  # fmt: skip
+    return q.h
+
+
+def _abtragen(quader, punkte, achsen, operation, gueltig, fraeser, koerper, k):
+    """Die Stationen `k` (je von k − 1 nach k) auf `quader`: senkrechte Stücke mit der Form des
+    Fräsers (Quader.fahre_stuecke), schräge mit seinem Körper (_schraeg)."""
+    k = k[gueltig[k - 1] & gueltig[k] & (operation[k - 1] == operation[k])]
+    senkrecht = (achsen[k - 1, 2] >= 1.0 - SENKRECHT) & (achsen[k, 2] >= 1.0 - SENKRECHT)
+    for nummer, form in fraeser.items():
+        stuecke = k[senkrecht & (operation[k] == nummer)]
+        if len(stuecke):
+            quader.fahre_stuecke(punkte[stuecke - 1], punkte[stuecke], form)
+    for i in k[~senkrecht]:
+        _schraeg(quader, punkte, achsen, i, koerper[int(operation[i])])
+
+
+def _schraeg(q, punkte, achsen, i, koerper):
+    """Das Stück von Station i − 1 nach i mit schräger Achse, in Teilschritten."""
+    radius, laenge, kugel = koerper
+    a, b = punkte[i - 1], punkte[i]
+    da, db = achsen[i - 1], achsen[i]
+    winkel = math.acos(float(np.clip(np.dot(da, db), -1.0, 1.0)))
+    schritte = max(1, math.ceil(max(np.linalg.norm(b - a), laenge * winkel) / rm.TEILSCHRITT))
+    for t in np.arange(1, schritte + 1) / schritte:
+        spitze = a + t * (b - a)
+        achse = da + t * (db - da)
+        achse = achse / np.linalg.norm(achse)
+        ende = spitze + laenge * achse
+        x_von, x_bis = min(spitze[0], ende[0]) - radius, max(spitze[0], ende[0]) + radius
+        y_von, y_bis = min(spitze[1], ende[1]) - radius, max(spitze[1], ende[1]) + radius
+        ix = slice(np.searchsorted(q.x, x_von), np.searchsorted(q.x, x_bis, "right"))
+        iy = slice(np.searchsorted(q.y, y_von), np.searchsorted(q.y, y_bis, "right"))
+        if ix.start >= ix.stop or iy.start >= iy.stop:
+            continue
+        xs, ys = np.meshgrid(q.x[ix], q.y[iy], indexing="ij")
+        unten = tiefste(xs, ys, spitze, achse, radius, laenge, kugel)
+        np.minimum(q.h[ix, iy], np.maximum(q.z_von, unten), out=q.h[ix, iy])
 
 
 def koerper_von(tc):

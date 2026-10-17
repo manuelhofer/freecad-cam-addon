@@ -966,6 +966,52 @@ def _raster(von, bis, schritt):
     return von + schritt * np.arange(anzahl)
 
 
+STUECKE_JE_ARBEITER = (
+    2  # Stücke je Arbeiter (verteilt_abtragen) – wer früher fertig ist, nimmt das nächste
+)
+
+
+def verteilt_abtragen(quader, start, index, modul, funktion, punkte, *felder):
+    """Die Stationen start … index (die Station start − 1 ist der Anfang) auf den Nebenrechnern:
+    `camaddon.<modul>.<funktion>(gitter, punkte[von − 1 : bis], *felder[von − 1 : bis],
+    *konstanten)` je Stück, jedes auf einem leeren Quader mit demselben Raster; zurück kommt je
+    Stück sein Höhenfeld, hier das Minimum darüber in `quader.h`. `felder`: Arrays je Station
+    (werden mitgeschnitten) – und dahinter alles, was kein Array ist (Fräser, Körper), ganz.
+    True, wenn es gerechnet hat; False ohne Nebenrechner oder wenn sie scheitern – dann rechnet
+    der Aufrufer selbst (schraeg_abtrag.SchraegAbtrag.bis_station_schritte)."""
+    try:
+        from . import nebenrechner as nr
+    except ImportError:  # ohne FreeCAD
+        return False
+    if index < start:
+        return False
+    try:
+        pool = nr.pool()
+        if not pool.verfuegbar() or pool.anzahl < 2:
+            return False
+        anzahl = min(index + 1 - start, pool.anzahl * STUECKE_JE_ARBEITER)
+        grenzen = np.linspace(start, index + 1, anzahl + 1).astype(np.int64)
+        stuecke = [(int(v), int(b)) for v, b in zip(grenzen, grenzen[1:], strict=False) if b > v]
+        je_station = [f for f in felder if isinstance(f, np.ndarray) and len(f) == len(punkte)]
+        konstanten = [
+            f for f in felder if not (isinstance(f, np.ndarray) and len(f) == len(punkte))
+        ]
+        gitter = quader.gitter()
+        auftraege = [
+            pool.auftrag(
+                modul, funktion, gitter, punkte[von - 1 : bis],
+                *(f[von - 1 : bis] for f in je_station), *konstanten,
+            )  # fmt: skip
+            for von, bis in stuecke
+        ]
+        ergebnisse = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler:
+        return False
+    for h in ergebnisse:
+        np.minimum(quader.h, np.asarray(h, dtype=float), out=quader.h)
+    return True
+
+
 class Quader:
     """Die Höhen des Materials über (x, y) – anfangs der ganze Quader (das Rohteil als Kasten
     im Job: x_von … x_bis, y_von … y_bis, z_von … z_bis)."""
@@ -979,6 +1025,14 @@ class Quader:
 
     def zuruecksetzen(self):
         self.h.fill(self.z_bis)
+
+    def gitter(self):
+        """(x_von, x_bis, y_von, y_bis, z_von, z_bis, Schritt) – Quader(*gitter()) hat dasselbe
+        Raster (für die Nebenrechner, stueck_quader)."""
+        return (
+            float(self.x[0]), float(self.x[-1]), float(self.y[0]), float(self.y[-1]),
+            self.z_von, self.z_bis, self._schritt,
+        )  # fmt: skip
 
     def fahre(self, von, nach, fraeser):
         """Der Fräser fährt von `von` nach `nach` – je (x, y, z) der Spitze im Job – und nimmt
@@ -1268,7 +1322,8 @@ class QuaderAbtrag:
             pass
 
     def bis_station_schritte(self, index, je=STATIONEN_JE_SCHRITT):
-        """bis_station() als Generator – wie Abtrag.bis_station_schritte."""
+        """bis_station() als Generator – wie Abtrag.bis_station_schritte. (Die Nebenrechner
+        rechnen dabei schon mit: fahre_stuecke in Streifen, ab VERTEILT_AB_TEILSCHRITTE.)"""
         index = min(index, len(self.punkte) - 1)
         if index + 1 < self.bis:
             self.quader.zuruecksetzen()
