@@ -123,7 +123,8 @@ Bild: [frage8_wandfahrt.png](bilder/vorschlaege/frage8_wandfahrt.png) – der Ab
 Wege: (a) so lassen; (b) statt der vielen kleinen Rückwege ein Zug an der Wand entlang am Ende
 der Lage, in einer Richtung; (c) beim Schaftfräser ohne Eckenradius weglassen, wenn die Wand
 gewählt ist und die Kontur sie danach fertig macht.
-Versuch zu (b), im Prüfstand gemessen (Rest an der Wand in allen Fällen 0):
+Versuch zu (b), im Prüfstand gemessen (er fand in keinem Fall Rest – den 0,05-mm-Zwickel sieht
+sein Raster aber auch bei der heutigen Bahn nicht):
 [frage8_wandzug.png](bilder/vorschlaege/frage8_wandzug.png)
 - Absatz (eine Wand): Wendepunkte 14 → 0, Bahn 2,10 → 2,15 min.
 - Zwei Wände gegenüber: 28 → 0, 1,92 → 1,97 min (je Wand ein Zug, dazwischen auf der ersten
