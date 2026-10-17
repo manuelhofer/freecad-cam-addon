@@ -98,6 +98,9 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   auf einmal, dieselben Ergebnisse). Übrig über 1,5 s: „Anlegen“ mit Wegkippen (6 s, die
   Operation rechnet im Fenster), der Vergleich beim Simultan-Planen (je Schritt bis 1,7 s), das
   Anlegen eines Jobs in FreeCAD (1,7 s).
+- Vierter voller Lauf (Stand P-2026-10-17-10): 150 von 151 grün; `szenario_vierachs_schruppen`
+  fand „Anlegen“ unter Volllast noch gesperrt (die Vorschau rechnete) und lief allein grün. Kehren
+  wie im Lauf davor, nur das Planfräsen am Block wieder 0.
 - Der 3-Achs-Hinweis wie von Manuel vorgeschlagen (P-2026-10-17-08); neu gefragt: 8 (Wandfahrt),
   9 (Rundachsen im Namen der Ebene wie an der Steuerung?).
 - Der Knopf „Ebene schwenken (3+2) …“ im Assistenten ist weg (war seit P-54 immer versteckt), die
