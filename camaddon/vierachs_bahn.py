@@ -190,6 +190,10 @@ FEIN_KLEINSTER = 1.0 / 256  # so fein (in Punkten der Spirale) teilt _verfeinert
 RING_LUFT = 0.01
 EINTAUCHWINKEL = 5.0  # Grad – so steil taucht die Rampe ein, wenn das Werkzeug nichts sagt
 RAMPE_MINDESTENS = 0.5  # mm – ein kürzeres Stück hat keinen Platz für eine Rampe
+# mm – steht die Spitze am Anfang einer Zeile höchstens so weit unter dem, was dort noch steht,
+# geht es senkrecht hinein (Eintauchvorschub): Eine Rampe oder Helix für Hundertstel wäre ein
+# Zickzack von Bruchteilen eines Millimeters (an einer Abflachung: 0,02 mm unter der Lage davor).
+SENKRECHT_BIS = 0.1
 RAMPE_HOECHSTENS = 200  # so oft läuft eine Rampe höchstens hin und her
 # So viele Nachkommastellen behält FreeCAD von F, wenn es die Bahn im Dokument speichert.
 F_STELLEN = 6
@@ -1465,7 +1469,9 @@ def _einfahrt(punkte, a, r, phi, oben, offen, w):
     knapp = min(sicher, oben + w.sicherheit)
     if knapp < sicher:
         punkte.append(Punkt(True, a0, knapp, p0))
-    rampe = getattr(w, "eintauchwinkel", None) is not None and not offen and r0 < oben - GLEICH
+    rampe = (
+        getattr(w, "eintauchwinkel", None) is not None and not offen and r0 < oben - SENKRECHT_BIS
+    )
     if rampe and _laenge(a, r, phi, 0, len(a) - 1) >= RAMPE_MINDESTENS:
         punkte.append(Punkt(False, a0, oben, p0, True))  # bis ans Material
         punkte.extend(Punkt(False, *stelle) for stelle in _rampe(a, r, phi, 0, len(a) - 1, oben, w))
@@ -1511,7 +1517,10 @@ def _helix_frei(pa, pphi, r0, oben, w, feld):
     rechts = np.clip(np.searchsorted(za, pa - GLEICH), 0, len(za) - 1)
     links = np.clip(rechts - 1, 0, len(za) - 1)
     hoch = np.maximum(davor[reihe[links], j], davor[reihe[rechts], j])
-    return not np.any(hoch > oben + GLEICH)
+    # Mit dem Spiel beim Schruppen: Die Lage davor (die Spirale im Raster) ließ neben der Zeile
+    # um Hundertstel mehr stehen als an ihrem Anfang – daran scheiterte in einer Passfedernut
+    # jeder Kreis, und es blieb die Rampe hin und her.
+    return not np.any(hoch > oben + max(GLEICH, schrupp_spiel(w.aufmass)))
 
 
 def _helix_einfahrt(punkte, a, r, phi, oben, w, feld):
@@ -1524,7 +1533,7 @@ def _helix_einfahrt(punkte, a, r, phi, oben, w, feld):
     a0, r0, p0 = float(a[0]), float(r[0]), float(phi[0])
     if getattr(w, "eintauchwinkel", None) is None or w.bereich is None or len(a) < 2:
         return False
-    if r0 >= oben - GLEICH or r0 <= GLEICH:
+    if r0 >= oben - SENKRECHT_BIS or r0 <= GLEICH:
         return False
     steil = math.tan(math.radians(w.eintauchwinkel if w.eintauchwinkel > 0 else EINTAUCHWINKEL))
     rein = math.atan2(r0 * math.radians(float(phi[1]) - p0), float(a[1]) - a0)

@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-38 einfahrt-senkrecht-bei-hundertsteln
+
+### EINGELESEN
+- Die Sektoren (V3i) an einer Welle Ø 40 mit geschlossener Passfedernut (8 × 4 × 30) und einer
+  Abflachung nachgemessen (Stange Ø 44, T Ø 4, ap 3, ae 1): 13,1 statt 30 km, Luft 19 statt
+  53 %, nichts ins Teil, gleicher Rest. Dabei zwei Einfahrten gesehen, die Manuel nicht will:
+  - An der Abflachung stand die Spitze 0,02 mm unter dem, was die Lage davor ließ – dafür fuhr
+    die Rampe hin und her (ein Zickzack von Bruchteilen eines Millimeters).
+  - In der Nut passte der Kreis der Helix (Ø 4 in 8 breit), aber `_helix_frei` lehnte jeden ab:
+    Neben der Zeile ließ die Spirale der Lage davor um Hundertstel mehr stehen als am Anfang der
+    Zeile (`davor` aus `_Rest.stand`), verglichen mit `GLEICH` (1e−9) – es blieb die Rampe.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `SENKRECHT_BIS` (0,1 mm) – so wenig tiefer geht es senkrecht
+  hinein, ohne Rampe und ohne Helix (`_einfahrt`, `_helix_einfahrt`); `_helix_frei` lässt neben
+  der Zeile das Spiel beim Schruppen zu (`schrupp_spiel(aufmass)`).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_bahn` (Ring unverändert 11 052 mm), `szenario_vierachs_flaechen`.
+- Welle mit Nut: Einfahrten jetzt Helix (2), senkrecht um Hundertstel (2), offen (2) – keine
+  Rampe hin und her.
+
 ## P-2026-10-17-37 schaft-reicht-mit-hals
 
 ### EINGELESEN
