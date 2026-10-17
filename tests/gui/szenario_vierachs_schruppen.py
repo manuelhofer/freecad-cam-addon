@@ -108,6 +108,8 @@ def schritte(h):
         "Überlauf 3,5 + Halter über die Werkzeugachse 27,5 + Abstand zum Futter 5,0."
     )
     h.pruefe(panel.ausspannen.text() == soll, f"Ausspannen: {panel.ausspannen.text()!r}")
+    # Unter Last rechnet die Vorschau noch nach (dann ist „Anlegen“ kurz gesperrt) – abwarten.
+    yield from h.warte_auf(ok.isEnabled, 30000)
     h.pruefe(ok.isEnabled(), "„Anlegen“ gesperrt")
     h.pruefe(not panel.radius_hinweis.isHidden(), "Hinweis „X ist der Radius“ fehlt")
     # Die Beispiel-Drehmaschine zählt X im Durchmesser (P-2026-09-30-54): Der graue Satz sagt es
