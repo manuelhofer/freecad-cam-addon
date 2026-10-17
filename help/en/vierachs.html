@@ -298,6 +298,12 @@ axis it pauses for one revolution, as in roughing; in the corner only the
 fillet that the cutter's shape leaves remains (for a ball mill its
 radius).</p>
 <ul>
+<li><b>Measuring stop before finishing</b> – available when roughing and finishing are created
+together, unticked by default: a measuring stop comes in between – the tool moves away (to the
+change point if the machine has one), spindle and coolant off, M0, plus the door commands from
+“Write program”. After the start it continues with the speed and coolant of finishing. So you
+measure after roughing and adjust the allowance. In the job: “All-round roughing …”, “Measuring
+stop”, “All-round finishing …”.</li>
 <li><b>Cutter</b> – any from the tool manager whose shape the add-on knows:
 ball, torus, flat, tapered ball, lollipop, chamfer, slitting, face and
 dovetail mills; the radius mill is calculated with the chord of its profile

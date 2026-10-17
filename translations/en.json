@@ -1700,6 +1700,8 @@
     "va.radius": "In the program X is the radius, not the diameter – on a lathe switch the program header to radius (Siemens DIAMOF). Feed is given as G93 (1 ÷ time).",
     "va.radius_durchmesser": "X is in the program as a diameter (Ø), as on your control; the check window shows it that way. FreeCAD's own post processors write X as a radius – the help (?) says what to do then.",
     "va.schlichten": "All-round finishing",
+    "va.messstopp": "Measuring stop before finishing",
+    "va.messstopp.tooltip": "Ticked: between “All-round roughing” and “All-round finishing” comes a measuring stop – the tool moves away, spindle and coolant off, M0 (plus the door commands of the control from “Write program”); after the start it continues with the speed and coolant of finishing. So you can measure after roughing and adjust the allowance.",
     "va.schlichten.tooltip": "Creates the operation “All-round finishing”: after roughing, one spiral – or lines along the axis – on the part.",
     "va.schlichten.text": "After roughing, a spiral on the part, or lines along the axis where the faces do not go all round. Stepover: for ball and torus end mills from the cusp height, otherwise from the tool table.",
     "va.schlichtfraeser.tooltip": "A cutter from the tool manager with cutting data whose shape the add-on knows: ball, torus, flat, tapered ball, lollipop, chamfer, radius, slitting, face or dovetail mill.",

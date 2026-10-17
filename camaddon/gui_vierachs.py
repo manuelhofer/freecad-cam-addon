@@ -68,6 +68,7 @@ from . import halter as hl
 from . import job_schnittwerte as js
 from . import magazin as mg
 from . import maschine as m
+from . import messstopp as ms
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
@@ -1486,6 +1487,12 @@ class VierachsPanel:
         )
         self.erklaerung_schlichten = grau(tr("va.schlichten.text"))
         schlichten = _Reihen()
+        # Schruppen – messen – schlichten (Manuel, 2026-10-17: „ich will schruppen .. messen ..
+        # schlichten“): ein Messstopp zwischen beiden, wie „Schlichten danach“ in „Bearbeitung“.
+        # Frei, wenn beide angelegt werden; aus vorbelegt – er hält jedes Programm an.
+        self.schlichten_messstopp = QtGui.QCheckBox(tr("va.messstopp"))
+        self.schlichten_messstopp.setToolTip(tr("va.messstopp.tooltip"))
+        schlichten.ganz(self.schlichten_messstopp)
         self.wahl_schlichtfraeser = QtGui.QComboBox()
         self.wahl_schlichtfraeser.currentIndexChanged.connect(
             lambda _i: self._schlichtfraeser_gewaehlt()
@@ -3865,6 +3872,10 @@ class VierachsPanel:
         """Ein Haken ging an oder aus: die Abstände gelten, solange einer an ist; die Stange
         ragt so weit heraus, wie die angehakten Bearbeitungen es brauchen."""
         schruppen, schlichten = self._gewaehlt()
+        # Der Messstopp zwischen Schruppen und Schlichten: nur, wenn beide neu angelegt werden.
+        beide = schruppen and schlichten and self.zu_aendern is None
+        self.schlichten_messstopp.setEnabled(beide)
+        self.schlichten_messstopp.setVisible(self.zu_aendern is None)
         bearbeitung = schruppen or schlichten or self.plan_an() or self.entgraten_an()
         self.abstandsfelder.setEnabled(bearbeitung)
         self.hinweis_bearbeitung.setText("")
@@ -3876,6 +3887,10 @@ class VierachsPanel:
                 self._anwenden()
             self.ausspannen.setText(self._ausspannen_text())
         self._knoepfe_beschriften()
+
+    def messstopp(self):
+        """Ein Messstopp zwischen Schruppen und Schlichten (angehakt und möglich)?"""
+        return self.schlichten_messstopp.isEnabled() and self.schlichten_messstopp.isChecked()
 
     def _gewaehlt(self):
         """(Schruppen, Schlichten): welche Bearbeitungen angelegt bzw. geändert werden – beim
@@ -5003,6 +5018,7 @@ class VierachsPanel:
                     angelegt.append(neu_schruppen)
                     uhren.atmen()
                 if schlichten:
+                    tc_davor = tc if schruppen else None
                     tc = js.controller_ohne_transaktion(
                         self.doc,
                         self.job,
@@ -5012,6 +5028,10 @@ class VierachsPanel:
                         self._programmnummer(self.schlichtfraeser()),
                     )
                     uhren.atmen()
+                    if tc_davor is not None and self.messstopp():
+                        # Schruppen – messen – schlichten: der Messstopp mit dem Controller des
+                        # Schruppens, danach die Spindel mit der Drehzahl des Schlichtens.
+                        angelegt.append(ms.lege_an(self.job, tc_davor, tc))
                     neu_schlichten = vs.lege_an(
                         self.job,
                         tc,

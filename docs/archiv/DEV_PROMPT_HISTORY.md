@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-53 vierachs-messstopp
+
+### EINGELESEN
+- Manuel (2026-10-17, zum C-Ring): „ich will schruppen .. messen .. schlichten“ – in „Bearbeitung“
+  gebaut (P-41/44); der 4-Achs-Assistent hatte keinen Messstopp.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: Haken „Messstopp vor dem Schlichten“ (`schlichten_messstopp`,
+  `messstopp()`) im Abschnitt „Rundum schlichten“ – frei, wenn Schruppen und Schlichten neu
+  angelegt werden (`_umgeschaltet`), aus vorbelegt; `anlegen` legt dann zwischen beiden
+  `messstopp.lege_an(job, Controller des Schruppens, Controller des Schlichtens)` an.
+- Texte `va.messstopp`, `.tooltip` (de/en); `help/de|en/vierachs.html` (Rundum schlichten);
+  `docs/OFFENE_FRAGEN.md` Frage 1 (vorbelegt an?).
+- `tests/gui/szenario_vierachs_nocke.py`: Messstopp frei und aus, angehakt → im Job „Rundum
+  schruppen T1“, „Messstopp“, „Rundum schlichten T2“; „Auf der Maschine prüfen“, Kollision und
+  Abspieler laufen damit durch.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_vierachs_nocke`, `test_sprache`.
+- Der Messstopp fährt „G0 Z sicher“ (an der Drehmaschine längs der Stange vor ihre Stirn – die
+  Rundum-Bahnen enden außerhalb der Stange), mit Wechselpunkt an der Maschine schreibt der
+  Postprozessor die Fahrt dorthin.
 ## P-2026-10-18-52 reichweite-blockweise
 
 ### EINGELESEN

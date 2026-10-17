@@ -8,6 +8,13 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
-*(Zurzeit keine offene Frage – die Fragen 1 bis 4 vom 2026-10-17 hat Manuel am Nachmittag
-beantwortet; die Antworten stehen im Verlauf unter P-2026-10-17-45 und in den Wünschen W-023,
-W-025 bis W-027 im Snapshot.)*
+## Frage 1 – Messstopp im 4-Achs-Assistenten vorbelegt? (2026-10-18)
+
+Der 4-Achs-Assistent hat jetzt den Haken „Messstopp vor dem Schlichten“ (P-2026-10-18-53), frei,
+wenn „Rundum schruppen“ und „Rundum schlichten“ zusammen angelegt werden. **Soll er vorbelegt an
+sein?** In „Bearbeitung“ hakt er sich nur von selbst an, wenn die Nut das Aufmaß stehen lässt.
+
+*Warum nur Manuel:* Ein vorbelegter Messstopp hält jedes 4-Achs-Programm an (M0) – das ändert, was
+das Addon ohne Vorgabe ausgibt (Erinnerung „Strategiewahl erst besprechen“). Heute: aus.
+
+*Was die Antwort ändert:* Ja – angehakt, sobald beide angelegt werden; nein – bleibt aus.

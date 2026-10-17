@@ -6,6 +6,8 @@
 # Achse). Die Stirnfläche angeklickt, Stange Ø 60, „Weiter“: „Rundum schruppen“ und „Rundum
 # schlichten“ angehakt, T1 und T2 vorgewählt, die Vorschau „→ … Lagen“ und „→ … Umdrehungen,
 # etwa … min“ ohne roten Satz. „Anlegen“: „Rundum schruppen T1“ und „Rundum schlichten T2“.
+# Dazwischen „Messstopp vor dem Schlichten“ angehakt: im Job „Rundum schruppen T1“, „Messstopp“,
+# „Rundum schlichten T2“.
 # „Auf der Maschine prüfen“: „Alle Achsen bleiben in ihren Grenzen.“, „Kollision prüfen“ →
 # „Nichts berührt sich …“; am Ende „Am Ende bleiben …“ und „nirgends ins Teil“ – auch am
 # Nocken, wo C mit der Höhe der Kurve wechselt.
@@ -97,6 +99,12 @@ def schritte(h):
         f"Ergebnis Schlichten: {schlichten_text!r}",
     )
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
+    # Schruppen – messen – schlichten (Manuel, 2026-10-17): der Messstopp ist frei, aus vorbelegt.
+    h.pruefe(
+        panel.schlichten_messstopp.isEnabled() and not panel.schlichten_messstopp.isChecked(),
+        "„Messstopp vor dem Schlichten“ nicht frei oder schon angehakt",
+    )
+    panel.schlichten_messstopp.setChecked(True)
     h.bild("1_was_willst_du_machen", panel.form)
 
     # --- Anlegen -------------------------------------------------------------------------
@@ -104,9 +112,11 @@ def schritte(h):
     panel.accept()
     yield 2000
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster noch offen")
-    ops = [o for o in job.Operations.Group if vo.ist_rundum(o)]
-    namen = [o.Label for o in ops]
-    h.pruefe(namen == ["Rundum schruppen T1", "Rundum schlichten T2"], f"Operationen: {namen}")
+    namen = [o.Label for o in job.Operations.Group]
+    h.pruefe(
+        namen == ["Rundum schruppen T1", "Messstopp", "Rundum schlichten T2"],
+        f"Operationen: {namen}",
+    )
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 500

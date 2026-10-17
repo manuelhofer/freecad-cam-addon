@@ -1700,6 +1700,8 @@
     "va.radius": "Im Programm ist X der Radius, nicht der Durchmesser – an der Drehmaschine im Programmkopf auf Radius stellen (Siemens DIAMOF). Der Vorschub steht nach G93 (1 ÷ Zeit).",
     "va.radius_durchmesser": "X steht im Programm als Durchmesser (Ø), wie an deiner Steuerung; so zeigt es auch das Prüffenster. FreeCADs eigene Postprozessoren schreiben X als Radius – was dann zu tun ist, sagt die Hilfe (?).",
     "va.schlichten": "Rundum schlichten",
+    "va.messstopp": "Messstopp vor dem Schlichten",
+    "va.messstopp.tooltip": "Angehakt: Zwischen „Rundum schruppen“ und „Rundum schlichten“ kommt ein Messstopp – das Werkzeug fährt weg, Spindel und Kühlung aus, M0 (dazu die Türbefehle der Steuerung aus „Programm schreiben“); nach dem Start geht es mit Drehzahl und Kühlung des Schlichtens weiter. So kannst du nach dem Schruppen messen und das Aufmaß anpassen.",
     "va.schlichten.tooltip": "Legt die Operation „Rundum schlichten“ an: nach dem Schruppen eine Spirale – oder Linien längs – auf dem Teil.",
     "va.schlichten.text": "Nach dem Schruppen eine Spirale auf dem Teil, oder Linien längs, wo die Flächen nicht rundum gehen. Schrittweite: beim Kugel- und Torusfräser aus der Kammhöhe, sonst aus der Werkzeugtabelle.",
     "va.schlichtfraeser.tooltip": "Ein Fräser aus der Werkzeugverwaltung mit Schnittwerten, dessen Form das Addon kennt: Kugel-, Torus-, Schaft-, Konik-, Lollipop-, Fasen-, Radien-, Nuten-, Plan- oder Schwalbenschwanzfräser.",
