@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-63 nut-verliert-haken
+
+### EINGELESEN
+- Der volle Szenario-Lauf (nach P-61) fand `szenario_nut_eintauchen` rot: Nach der Wahl der
+  Eintauchstelle „Mitte“ kam keine Vorschau mehr – die Nut meldete „Hier ist nichts mehr zu tun –
+  das hat „Schlichten danach“ schon weggenommen“ und verlor den Haken. Seit P-41 hakt sich
+  „Schlichten danach“ hinter der Nut an; im Materialstand der Vorschau stand es aber vor ihr (die
+  Liste der Blöcke), nur beim Anlegen hinter ihr (P-44). Sobald „Schlichten danach“ seine Vorschau
+  hatte, verlor die Nut bei jeder Änderung (Eintauchstelle, Werte) den Haken.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_in_anlege_reihe(bloecke)` – die Reihenfolge, in der die Blöcke in
+  den Job kommen („Schlichten danach“ hinter der Nut und dem Räumen); `_anlegen` und
+  `_materialstand_schritte` benutzen sie.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_nut_eintauchen`, `szenario_nut`, `szenario_nut_offen`,
+  `szenario_nut_durch`, `szenario_raeumen_schlichten`, `szenario_raeumen_materialstand`,
+  `szenario_zweiter_lauf`, `szenario_vierachs_stirnseite`, `szenario_testteil`. Damit sind alle
+  vier Funde des vollen Laufs behoben.
 ## P-2026-10-18-62 sektoren-y-nur-schlitze-voller-lauf
 
 ### EINGELESEN

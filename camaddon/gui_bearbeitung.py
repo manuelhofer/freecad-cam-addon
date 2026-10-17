@@ -7696,6 +7696,26 @@ class BearbeitungPanel:
             text = tr("ba.kontur.nach_raeumen", text=self.kontur.ergebnis_basis)
         self.kontur.ergebnis.setText(text)
 
+    def _in_anlege_reihe(self, bloecke):
+        """`bloecke` in der Reihenfolge, in der sie in den Job kommen: „Schlichten danach“ hinter
+        der Nut gleich nach ihr (und nach dem Räumen, wenn es angehakt ist) – Nut, Messstopp, Nut
+        schlichten (P-2026-10-17-41). Dieselbe Reihenfolge gilt für den Materialstand der
+        Vorschau (P-2026-10-18-64: sonst stand „Schlichten danach“ vor der Nut, nahm ihr alles weg,
+        und die Nut verlor bei jeder Änderung den Haken – „Hier ist nichts mehr zu tun“)."""
+        reihe = list(bloecke)
+        danach = self.schlichten_danach
+        if (
+            danach in reihe
+            and self.nut in reihe
+            and danach.aktiv()
+            and self.nut.aktiv()
+            and self._nut_laesst_aufmass()
+        ):
+            reihe.remove(danach)
+            quellen = [b for b in (self.raeumen, self.nut) if b in reihe and b.aktiv()]
+            reihe.insert(max(reihe.index(b) for b in quellen) + 1, danach)
+        return reihe
+
     def _materialstand(self, block, form, flaechen=None, mit=()):
         """_materialstand_schritte am Stück."""
         return rw.zu_ende(self._materialstand_schritte(block, form, flaechen, mit))
@@ -7710,7 +7730,7 @@ class BearbeitungPanel:
             return (yield from mst.fuer_schritte(self.job, vor=self.zu_aendern))
         eigene = set(self._flaechen(block, form) if flaechen is None else flaechen)
         dazu = []
-        for anderer in self.bloecke:
+        for anderer in self._in_anlege_reihe(self.bloecke):
             if anderer is block:
                 break
             werkzeug = anderer.fraeser()
@@ -8700,14 +8720,7 @@ class BearbeitungPanel:
         Rückgängig, in einem Befehl (_im_befehl). Geht es nicht, steht der Grund rot im
         Fenster: False."""
         form = vr.modell(self.job).Shape
-        aktive = self.aktive_bloecke()
-        # „Schlichten danach“ hinter der Nut (ohne Räumen) kommt gleich nach ihr in den Job:
-        # Nut, Messstopp, Nut schlichten (P-2026-10-17-41).
-        danach = self.schlichten_danach
-        if danach in aktive and self.nut in aktive and self._nut_laesst_aufmass():
-            aktive.remove(danach)
-            quellen = [b for b in (self.raeumen, self.nut) if b in aktive]
-            aktive.insert(max(aktive.index(b) for b in quellen) + 1, danach)
+        aktive = self._in_anlege_reihe(self.aktive_bloecke())
 
         folge = []  # die weiteren Operationen eines Blocks (Schlichten danach: Boden und Wände)
 
