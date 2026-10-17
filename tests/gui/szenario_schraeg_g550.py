@@ -4,7 +4,8 @@
 # Assistent dort räumt die Tasche; „Anlegen“. „Auf der Maschine prüfen“ am Grundjob: Achsen in
 # ihren Grenzen, „Kollision prüfen“ – nichts berührt sich; Bilder der Maschine mitten in der
 # Tasche und das Prüffenster, ohne „so gefahren, passt sie nicht zum Teil“ (Manuel: „was dann die
-# grob draus macht ist auch wild .. keine kollsion erkannt ???“).
+# grob draus macht ist auch wild .. keine kollsion erkannt ???“). „Programm schreiben …“: ohne
+# Hinweis, der Tisch schwenkt vor der Tasche und am Ende zurück (programm.txt im Ausgabeordner).
 # ZEITLIMIT: 900
 import math
 import os
@@ -193,5 +194,21 @@ def schritte(h):
                 d.write(b.text() + "\n")
         h.bild("6_g550_kollision", pruefung.form)
         h.pruefe(urteil.startswith("Nichts berührt sich"), f"Kollision: {urteil}")
+    # Das Programm des Grundjobs mit seiner Ebene: Es schwenkt den Tisch für die Tasche.
+    dialog = pruefung.programm_schreiben()
+    yield 2000
+    programm = dialog._programm()
+    with open(os.path.join(os.environ["CAMADDON_AUSGABE"], "programm.txt"), "w") as d:
+        d.write(f"Steuerung: {dialog.steuerung().name}\nHinweise: {programm.hinweise}\n\n")
+        d.write(programm.text)
+    h.pruefe(not programm.hinweise, f"Hinweise zum Programm: {programm.hinweise}")
+    zeilen = programm.text.splitlines()
+    stellung = [z for z in zeilen if z.startswith("G0 A") or "CYCLE800(" in z]
+    h.pruefe(
+        len(stellung) >= 2 and stellung[-1].replace(" ", "").startswith(("G0A0.000", "CYCLE800()")),
+        f"Schwenken im Programm: {stellung}",
+    )
+    h.bild("7_g550_programm", dialog)
+    dialog.close()
     pruefung.reject()
     yield 500

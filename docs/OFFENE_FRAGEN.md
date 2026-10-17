@@ -127,3 +127,17 @@ weglassen, wenn die Wand gewählt ist und die Kontur sie danach fertig macht.
 P-2026-10-16-67 hat es nur dort weggenommen, wo es durch die Luft ging.
 *Was die Antwort ändert:* Bei (b) oder (c) baue ich es um; der Prüfstand misst den Rest an der
 Wand mit. – seit 2026-10-17
+
+**9. Soll der Name einer Ebene die Rundachsen so nennen, wie die Steuerung sie zeigt?**
+Am Schwenkteil auf der G550 heißt die Ebene „Schwenkteil – Fräsen – Ebene Face27 (A60 B0)“, das
+Fenster „Ebene schwenken“ sagt ebenso „→ A60 B0“. Im Programm steht aber „G0 A-60.000 B0.000“
+(Kommentar „Ebene geschwenkt: A-60 B0“), und „Auf der Maschine prüfen“ zeigt „A1 −60°“ – so,
+wie die Steuerung zählt (DIN 66217; das Gelenk der Beispiel-G550 dreht andersherum). Name und
+Schwenk-Fenster zeigen die Stellung des Gelenks im Modell, Prüffenster und Programm die der
+Steuerung; die Bahnen sind dieselben.
+*Warum nur Manuel:* Du liest den Namen und vergleichst mit dem, was die Maschine anzeigt; seit der
+CLX550 gilt „nur der Postprozessor dreht um“ – ob das auch für Namen und Fenster gelten soll,
+entscheidest du.
+*Was die Antwort ändert:* Bei „ja“ zeigen Name, „Ebene schwenken“ und „Alles aus dieser
+Aufspannung“ die Werte der Steuerung (A−60 B0); gerechnet wird weiter mit dem Gelenk. – seit
+2026-10-17
