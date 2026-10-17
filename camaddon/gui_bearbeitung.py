@@ -5996,14 +5996,16 @@ class BearbeitungPanel:
         """Was der Block bekommt: die gewählten Flächen – „Entgraten 3D“ dazu die Kanten."""
         if self._ist_stl() and block.s.kennung not in FREIFORM_STRATEGIEN:
             return []  # ein Teil aus einem STL: nur Freiform (W-017)
-        gewaehlte = self.gewaehlte
-        if self.job is not None and gewaehlte:
-            # Die schrägen Flächen kommen in einer eigenen Ebene oder Aufspannung dran.
+        gewaehlte, kanten = self.gewaehlte, self.kanten
+        if self.job is not None and (gewaehlte or kanten):
+            # Die schrägen Flächen kommen in einer eigenen Ebene oder Aufspannung dran – an einer
+            # Maschine mit waagerechter Spindel auch der Rest samt Kanten (Ebene „von oben“).
             weg = set(self._geschwenkt(vr.modell(self.job).Shape))
             if weg:
                 gewaehlte = [n for n in gewaehlte if n not in weg]
+                kanten = [k for k in kanten if k not in weg]
         if getattr(block.s, "nimmt_kanten", False):
-            return list(gewaehlte) + list(self.kanten)
+            return list(gewaehlte) + list(kanten)
         return gewaehlte
 
     def _schraege(self, form):
@@ -6995,8 +6997,10 @@ class BearbeitungPanel:
             if block is self.restraeumen:
                 return self._flaechen(block, form)
             # Wohin sein Fräser oder seine Bahn nicht kommt (eine Nut enger als er), ist nicht
-            # fertig.
+            # fertig – und Wände, unter denen es bis durch räumt, nur ohne Aufmaß an den Wänden.
             eng = set(self._unerreicht(block, form))
+            if float(werte.get("aufmass", 0.0)):
+                eng |= {f for f in self._raeumt(form) if ra.durchgehend(form, f)}
             return [f for f in self._raeumt(form) if f not in eng]
         if block is self.schlichten_danach:
             zusatz = self._schlichten_danach_zusatz(form)

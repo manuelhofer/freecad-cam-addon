@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-25 durchsicht-p21-p23
+
+### EINGELESEN
+- Durchsicht von P-21 bis P-23 (zweiter Agent, nur gelesen). Der verdeckte Name `quer` ist in P-24
+  behoben (damit auch der Absturz an der 3-Achs-Fräse mit „Bahnen dafür anlegen“: die Richtung
+  „von oben“ ohne Stirn ging an `lege_an`). Drei weitere echte Fehler:
+  - Bis durch, ein Flansch (Bohrung durch die Mitte), nur die Außenwände gewählt: Die Mitte des
+    Kastens des Gebiets um das Teil lag in der Bohrung – `raeumen_bahn._tasche_um` nahm das Gebiet
+    als Tasche der Bohrung, das Räumen räumte die (nicht gewählte) Bohrung statt außen herum.
+  - An der G550 kamen Kanten in die Ebene „von oben“ und blieben zugleich beim „Entgraten 3D“ im
+    Grundjob.
+  - Wände, unter denen das Räumen bis durch räumt, galten als fertig, obwohl es dort das Aufmaß
+    lässt – ohne „Schlichten danach“ kam keine Zeile „Nicht fertig“.
+
+### DATEIEN
+- `camaddon/raeumen.py`: `_punkt_im_gebiet` – ein Punkt im Gebiet, mindestens 0,5 mm vom Rand
+  (Gitter über den Kasten, von der Mitte nach außen, `isInside`); der Kasten des gedachten Bodens
+  ist dieser Punkt.
+- `camaddon/gui_bearbeitung.py`: `_wahl` nimmt auch die Kanten heraus, die woanders drankommen;
+  `_fertige_flaechen` zählt durchgehende Wände des Räumens nur ohne Aufmaß an den Wänden.
+- `tests/test_raeumen.py`: der Flansch – ein Gebiet, sein Punkt außerhalb des Teils, keine Bahn in
+  der Bohrung, aber außen herum.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_raeumen`, `szenario_raeumen_durch`, `szenario_entgraten3d`,
+  `szenario_kontur`, `szenario_raeumen`.
 ## P-2026-10-17-24 spindel-quer-schatten
 
 ### EINGELESEN

@@ -1030,6 +1030,42 @@ pruefe(
 )
 FreeCAD.closeDocument(cring.Name)
 
+# Ein Flansch: Platte 60 × 60 × 10 mit einer Bohrung Ø 20 durch die Mitte, nur die vier Außenwände
+# gewählt. Das Gebiet um das Teil ist keine Tasche der Bohrung (die Mitte seines Kastens läge in
+# ihr – raeumen_bahn._tasche_um): Die Bahn räumt außen herum bis auf 0, nicht in der Bohrung.
+flansch = Part.makeBox(60, 60, 10).cut(Part.makeCylinder(10, 10, V(30, 30, 0)))
+flansch_doc = FreeCAD.newDocument("Flansch")
+flansch_teil = flansch_doc.addObject("Part::Feature", "Flansch")
+flansch_teil.Shape = flansch
+flansch_doc.recompute()
+aussen = [
+    f"Face{i + 1}"
+    for i, f in enumerate(flansch.Faces)
+    if type(f.Surface).__name__ == "Plane" and f.BoundBox.ZLength > 1.0
+]
+fgebiete = ra.durch_gebiete(flansch, aussen, (-5.0, 65.0, -5.0, 65.0))
+pruefe(len(fgebiete) == 1, f"Flansch, Gebiete: {[(g[0].name, g[2]) for g in fgebiete]}")
+if fgebiete:
+    e = fgebiete[0][0]
+    mitte_f = ((e.x_von + e.x_bis) / 2, (e.y_von + e.y_bis) / 2)
+    pruefe(
+        not (0 <= mitte_f[0] <= 60 and 0 <= mitte_f[1] <= 60),
+        f"Flansch: Punkt des Gebiets {mitte_f} im Teil",
+    )
+    ebenen_f = [e]
+    netz_f = hf.netze_je_hoehe(flansch, ebenen_f)
+    werte_f = rb.Raeumwerte(form, 10.0, 1.5, 0.3, 11.0, 16.0, (-5.0, 65.0, -5.0, 65.0),
+                            nur_ueber={e.name: fgebiete[0][1]}, vorschub=902.0)  # fmt: skip
+    bahn_f = rb.planen(netz_f, werte_f, ebenen_f, ra.konturen_des_teils(flansch))
+    unten = [p for p in bahn_f.punkte if not p.eilgang and p.z < 1.0]
+    in_bohrung = [p for p in unten if math.hypot(p.x - 30, p.y - 30) < 10]
+    draussen = [p for p in unten if p.x < 0 or p.x > 60 or p.y < 0 or p.y > 60]
+    pruefe(
+        not in_bohrung and draussen,
+        f"Flansch: {len(in_bohrung)} in der Bohrung, {len(draussen)} außen",
+    )
+FreeCAD.closeDocument(flansch_doc.Name)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

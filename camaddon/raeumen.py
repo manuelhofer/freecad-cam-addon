@@ -324,6 +324,31 @@ def durchgehend(form_teil, name):
     return bool(waende) and waende[0].z_unten <= form_teil.BoundBox.ZMin + hf.HOEHE_GLEICH
 
 
+def _punkt_im_gebiet(gebiet, abstand=0.5):
+    """(x, y) eines Punkts in der ebenen Fläche `gebiet`, mindestens `abstand` von ihrem Rand –
+    auf einem Gitter über ihren Kasten gesucht, von der Mitte nach außen; None, wenn keiner."""
+    import Part
+
+    bb = gebiet.BoundBox
+    z = bb.ZMin
+    anzahl = 24
+    punkte = [
+        (bb.XMin + bb.XLength * (i + 0.5) / anzahl, bb.YMin + bb.YLength * (j + 0.5) / anzahl)
+        for i in range(anzahl)
+        for j in range(anzahl)
+    ]
+    mitte = (bb.Center.x, bb.Center.y)
+    punkte.sort(key=lambda p: (p[0] - mitte[0]) ** 2 + (p[1] - mitte[1]) ** 2)
+    rand = Part.Compound(gebiet.Wires)
+    for x, y in punkte:
+        punkt = FreeCAD.Vector(x, y, z)
+        if not gebiet.isInside(punkt, 1e-6, True):
+            continue
+        if rand.distToShape(Part.Vertex(punkt))[0] >= abstand:
+            return x, y
+    return None
+
+
 def durch_ebenen(form_teil, namen, rohteil):
     """([hoehenfeld.Ebene], {Name: Umriss-Schleifen}) aus durch_gebiete()."""
     gebiete = durch_gebiete(form_teil, namen, rohteil)
@@ -385,12 +410,17 @@ def durch_gebiete(form_teil, namen, rohteil):
         if not innen or None in innen:
             continue
         name = f"{DURCH}{len(ergebnis) + 1}"
-        bb = gebiet.BoundBox
+        punkt = _punkt_im_gebiet(gebiet)
+        if punkt is None:
+            continue
         schleifen = [
             [(float(p.x), float(p.y)) for p in draht.discretize(Deflection=0.05)]
             for draht in gebiet.Wires
         ]
-        ebene = hf.Ebene(name, float(z), bb.XMin, bb.XMax, bb.YMin, bb.YMax)
+        # Der Kasten der Ebene: ein Punkt im Gebiet. Seine Mitte sagt raeumen_bahn._tasche_um, ob
+        # die Fläche in einer Tasche liegt – die Mitte des ganzen Gebiets um das Teil läge in
+        # einer Bohrung in der Mitte (ein Flansch), und es räumte die Bohrung statt außen herum.
+        ebene = hf.Ebene(name, float(z), punkt[0], punkt[0], punkt[1], punkt[1])
         ergebnis.append((ebene, schleifen, sorted(set(innen), key=lambda n: int(n[4:]))))
     return ergebnis
 
