@@ -16,6 +16,7 @@ _Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; 
 """
 
 import contextlib
+import dataclasses
 import functools
 import html
 import math
@@ -377,7 +378,11 @@ def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None):
         (
             job,
             list(r.flaechen),
-            tr("ba.folge.text", nummer=i + 1, anzahl=len(angelegt), winkel=f"{r.neigung:.0f}"),
+            (
+                tr("ba.folge.text", nummer=i + 1, anzahl=len(angelegt), winkel=f"{r.neigung:.0f}")
+                if r.neigung >= 0.5
+                else tr("ba.folge.text_oben", nummer=i + 1, anzahl=len(angelegt))
+            ),
         )
         for i, (job, r) in enumerate(angelegt)
     ]
@@ -437,6 +442,48 @@ def _gekippt_anlegen(grundjob, richtungen):
         for i, (job, r, neigung, achse) in enumerate(angelegt)
     ]
     _folge_weiter()
+
+
+# Datei → Spindel quer? – für Maschinen, deren Eintrag das nicht hat und deren Datei sich nicht
+# lesen ließ: nur einmal versuchen.
+_SPINDEL = {}
+
+
+def _spindel_nachrechnen(eintrag):
+    """Ein Eintrag aus einer Liste von vorher, ohne „Spindel quer“: die Datei der Maschine einmal
+    öffnen (unsichtbar, wenn sie zu ist) und den Eintrag neu schreiben
+    (maschinenspeicher.merken_dokument). Gibt den neuen Eintrag zurück; ließ sie sich nicht
+    lesen, den alten mit False."""
+    if eintrag.datei in _SPINDEL:
+        return dataclasses.replace(eintrag, spindel_quer=_SPINDEL[eintrag.datei])
+    offen = next(
+        (
+            d
+            for d in FreeCAD.listDocuments().values()
+            if msp.gleiche_datei(d.FileName, eintrag.datei)
+        ),
+        None,
+    )
+    aktiv = FreeCAD.ActiveDocument
+    dokument = offen
+    try:
+        if dokument is None:
+            dokument = FreeCAD.openDocument(eintrag.datei, hidden=True)
+        msp.merken_dokument(dokument)
+    except Exception as fehler:  # noqa: BLE001 – dann wie eine Maschine mit stehender Spindel
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Spindel von {eintrag.name}: {fehler}\n")
+    finally:
+        if offen is None and dokument is not None:
+            with contextlib.suppress(Exception):
+                FreeCAD.closeDocument(dokument.Name)
+        if aktiv is not None and FreeCAD.ActiveDocument is not aktiv:
+            with contextlib.suppress(Exception):
+                FreeCAD.setActiveDocument(aktiv.Name)
+    neu = msp.finde(msp.laden(), eintrag.datei)
+    if neu is None or neu.spindel_quer is None:
+        neu = dataclasses.replace(eintrag, spindel_quer=False)
+    _SPINDEL[eintrag.datei] = neu.spindel_quer
+    return neu
 
 
 def _vorhandene_lage(grundjob, richtung, jobs):
@@ -5110,7 +5157,7 @@ class BearbeitungPanel:
         self.dazu_zeile.setVisible(True)
         form = vr.modell(job).Shape
         self.gewaehlte = self._vorwahl_nehmen(form, flaeche)
-        self.kanten = []
+        self.kanten = [n for n in self._vorwahl or () if n.startswith("Edge")]
         FreeCADGui.Selection.clearSelection()
         self._bearbeitung_fuellen()
         self._flaechen_zeigen()
@@ -5199,7 +5246,7 @@ class BearbeitungPanel:
             self._nullpunkt_setzen(self.job)
         form = vr.modell(self.job).Shape
         self.gewaehlte = self._vorwahl_nehmen(form, flaeche)
-        self.kanten = []
+        self.kanten = [n for n in self._vorwahl or () if n.startswith("Edge")]
         FreeCADGui.Selection.clearSelection()
         self._bearbeitung_fuellen()
         self._flaechen_zeigen()
@@ -5269,6 +5316,21 @@ class BearbeitungPanel:
         except AttributeError:  # die Wahl der Maschine gibt es noch nicht
             return False
         return eintrag is not None and eintrag.vorhanden and eintrag.art == msp.FRAESE_5
+
+    def _spindel_quer(self):
+        """Steht an der gewählten 5-Achs-Fräse die Spindel in der Grundstellung quer zu Z – waagerecht
+        wie an der GROB G550? Dann kommt auch, was von oben gefräst wird, in eine Ebene: Die
+        Maschine schwenkt das Teil zur Spindel, das Programm gibt den Schwenk aus (Manuel,
+        2026-10-17: „Automatisch Ebene A−90“, „aber im progromm muss das natürlich dann auch
+        ausgegeben werden“). Nicht in einer Ebene – die ist schon geschwenkt."""
+        from . import schwenken as sw
+
+        if self.job is None or not self._fuenfachs() or sw.ist_ebene(self.job):
+            return False
+        eintrag = self.maschine()
+        if eintrag.spindel_quer is None:
+            eintrag = _spindel_nachrechnen(eintrag)
+        return bool(eintrag.spindel_quer)
 
     def maschine(self):
         """Der Eintrag der gewählten Maschine (maschinenspeicher.Eintrag) – oder None."""
@@ -5887,7 +5949,7 @@ class BearbeitungPanel:
     def _geschwenkt(self, form):
         """Die gewählten Flächen, die nach „Anlegen“ woanders drankommen (_schraege_gruppen) – an
         der 3-Achs-Fräse nur mit „Bahnen dafür anlegen und im Einrichtblatt notieren“."""
-        if not self._schraege(form):
+        if not self._schraege(form) and not self._spindel_quer():
             return []
         if not self._fuenfachs() and not self.gekippt_haken.isChecked():
             return []
@@ -5901,9 +5963,17 @@ class BearbeitungPanel:
         steht. Sonst bekäme jede schräge Wand der Tasche in der Schräge ihre eigene Ebene, und
         die senkrechten blieben im Grundjob (wie zugang: die Wand geht zu ihrer Tasche)."""
         schraege = self._schraege(form)
-        if not schraege:
+        quer = self._spindel_quer()
+        if not schraege and not quer:
             return []
-        schluessel = (id(self.job), tuple(self.gewaehlte), tuple(schraege), _lage_von(form))
+        schluessel = (
+            id(self.job),
+            tuple(self.gewaehlte),
+            tuple(self.kanten),
+            tuple(schraege),
+            quer,
+            _lage_von(form),
+        )
         merk = getattr(self, "_gruppen_merk", None)
         if merk is not None and merk[0] == schluessel:
             return [zg.Richtung(r.achse, list(r.flaechen), r.stellung, r.stirn) for r in merk[1]]
@@ -5988,14 +6058,21 @@ class BearbeitungPanel:
                     r.flaechen.append(name)
                     uebrig.remove(name)
                     weiter = True
+        if quer:
+            # Die Spindel steht waagerecht: Auch was von oben gefräst wird, kommt in eine Ebene –
+            # ohne die Flächen der Flanke (die schwenkt simultan) und mit den Kanten.
+            oben = [n for n in uebrig if not self.flanke.s.passt(form, n)] + list(self.kanten)
+            if oben:
+                richtungen.insert(0, zg.Richtung(achse=(0.0, 0.0, 1.0), flaechen=oben))
         self._gruppen_merk = (schluessel, richtungen)
         return [zg.Richtung(r.achse, list(r.flaechen), r.stellung, r.stirn) for r in richtungen]
 
     def _nur_geschwenkt(self, form):
         """Kommen alle gewählten Flächen woanders dran? Dann legt „Anlegen“ hier nichts an."""
-        if not self.gewaehlte or self.kanten:
+        if not self.gewaehlte and not self.kanten:
             return False
-        return set(self.gewaehlte) <= set(self._geschwenkt(form))
+        dort = set(self._geschwenkt(form))
+        return set(self.gewaehlte) <= dort and set(self.kanten) <= dort
 
     def _schraege_richtungen(self, form):
         """[zugang.Richtung] der Flächen aus _geschwenkt (_schraege_gruppen) – ihre erste Fläche
@@ -6210,7 +6287,9 @@ class BearbeitungPanel:
                 text, farbe = tr("ba.flaeche.fehlt", name=name), ROT
             elif name in geschwenkt:
                 winkel = f"{neigung_von.get(name, 0.0):.0f}"  # die der Ebene, auch für ihre Wände
-                if self._fuenfachs():
+                if neigung_von.get(name, 0.0) < 0.5:  # von oben, die Spindel steht waagerecht
+                    text = tr("ba.flaeche.spindel_quer", name=name)
+                elif self._fuenfachs():
                     text = tr("ba.flaeche.geschwenkt", name=name, winkel=winkel)
                 else:
                     text = tr("ba.flaeche.gekippt", name=name, winkel=winkel)
@@ -6360,6 +6439,9 @@ class BearbeitungPanel:
         schraege = self._schraege(form)
         self.gekippt_haken.hide()
         if not schraege:
+            if self._geschwenkt(form):  # von oben, die Spindel steht waagerecht
+                self.schwenken_text.setText(tr("ba.schwenken.spindel_quer"))
+                self.schwenken_zeile.show()
             return
         name = schraege[0]
         winkel = f"{_schraeg(form, name):.0f}"
@@ -6398,7 +6480,9 @@ class BearbeitungPanel:
         if not stl and self._nur_geschwenkt(form):
             self._alles_dort = True
             # Alles Gewählte kommt in der Ebene (5 Achsen) bzw. gekippt gespannt dran.
-            if self._fuenfachs():
+            if self._fuenfachs() and not self._schraege(form):
+                nur_dort = tr("ba.schwenken.alles_oben")
+            elif self._fuenfachs():
                 nur_dort = tr("ba.schwenken.alles_dort")
             else:
                 nur_dort = tr("ba.gekippt.alles_dort")

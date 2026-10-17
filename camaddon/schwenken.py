@@ -135,8 +135,12 @@ def normale_aus_winkeln(neigung, richtung):
 
 
 def text_winkel(neigung, richtung):
-    """„15° nach 90°“ – eine Ebene ohne Fläche, aus ihren Winkeln."""
+    """„15° nach 90°“ – eine Ebene ohne Fläche, aus ihren Winkeln; „von oben“ ohne Neigung (an
+    einer Maschine mit waagerechter Spindel, Frage 7)."""
     from . import einheiten
+
+    if abs(float(neigung)) < 0.05:
+        return tr("sw.winkel.oben")
 
     zeichen = einheiten.gewaehltes_dezimalzeichen() or "."
 

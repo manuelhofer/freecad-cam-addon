@@ -64,6 +64,11 @@ class Eintrag:
     # kleinste Beschleunigung (m/s²) der Linearachsen – die langsamste Achse bremst; 0: unbekannt.
     eilgang: float = 0.0
     beschleunigung: float = 0.0
+    # Steht die Spindel in der Grundstellung (alle Rundachsen 0) quer zu Z der Werkstückaufnahme
+    # – eine waagerechte Spindel wie an der GROB G550? Dann fräst ein Job „von oben“ nur in einer
+    # geschwenkten Ebene (Manuel, 2026-10-17: „Automatisch Ebene A−90“). None: noch nicht
+    # gerechnet (eine Liste von vorher) – der Assistent rechnet es einmal nach.
+    spindel_quer: bool | None = None
 
     @property
     def vorhanden(self):
@@ -161,7 +166,30 @@ def beschreibe(assembly, maschine):
         eintrag.art = DREHMASCHINE
     else:
         eintrag.art = {0: FRAESE_3, 1: FRAESE_4}.get(len(eintrag.rundachsen), FRAESE_5)
+    eintrag.spindel_quer = eintrag.art == FRAESE_5 and _spindel_quer(assembly, maschine)
     return eintrag
+
+
+def _spindel_quer(assembly, maschine):
+    """Zeigt das Werkzeug der ersten Aufnahme in der Grundstellung (alle Rundachsen 0) quer zu Z
+    der Werkstückaufnahme (schwenken.Maschine.richtung)? False, wo sich das nicht rechnen lässt."""
+    try:
+        from . import reichweite as rw
+        from . import schwenken as sw
+
+        pruefung = rw.Pruefung(assembly, maschine)
+        aufnahme = next(
+            (a for a in (pruefung.werkzeugaufnahme(n) for n in range(1, 4)) if a is not None),
+            None,
+        )
+        if aufnahme is None:
+            return False
+        schwenk = sw.Maschine(pruefung, aufnahme, 100.0, FreeCAD.Vector())
+        achse = schwenk.richtung({a.buchstabe: 0.0 for a in schwenk.rundachsen})
+        return abs(float(achse.z)) < 0.99
+    except Exception as fehler:  # noqa: BLE001 – eine halb gebaute Maschine stört die Liste nicht
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Spindel von {maschine.Label}: {fehler}\n")
+        return False
 
 
 # Am Job, wenn ihm eine Maschine zugeordnet wird (reichweite.merke_maschine): ihr Eilgang und ihre

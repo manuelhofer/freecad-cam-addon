@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-21 g550-von-oben
+
+### EINGELESEN
+- Manuel (2026-10-17, Frage 7): „Automatisch Ebene A−90“ – an einer Maschine mit waagerechter
+  Spindel (GROB G550: A=0 heißt Tisch nach oben, die Spindel liegt quer) kommt alles „von oben“
+  in eine Ebene; „aber im progromm muss das natürlich dann auch ausgegeben werden.“
+
+### DATEIEN
+- `camaddon/maschinenspeicher.py`: `Eintrag.spindel_quer` – zeigt das Werkzeug der ersten
+  Aufnahme in der Grundstellung (alle Rundachsen 0) quer zu Z der Werkstückaufnahme
+  (`schwenken.Maschine.richtung`)? Nur an 5-Achs-Fräsen gerechnet; None in Listen von vorher.
+- `camaddon/gui_bearbeitung.py`: `_spindel_quer()` (nicht in einer Ebene); ein Eintrag von vorher
+  wird einmal nachgerechnet (`_spindel_nachrechnen`: die Datei unsichtbar öffnen, merken,
+  schließen, das aktive Dokument zurück). `_schraege_gruppen` stellt dann die übrigen gewählten
+  Flächen (ohne die der Flanke) und die Kanten als Richtung „von oben“ (0, 0, 1) vorn an;
+  `_nur_geschwenkt` zählt die Kanten mit, die Vorwahl einer Ebene nimmt sie mit. Eigene Sätze:
+  `ba.flaeche.spindel_quer`, `ba.schwenken.spindel_quer`, `ba.schwenken.alles_oben`,
+  `ba.folge.text_oben`.
+- `camaddon/schwenken.py`: `text_winkel` sagt ohne Neigung „von oben“ (`sw.winkel.oben`) – die
+  Ebene heißt „… Ebene von oben (A−90 B0)“ statt „Ebene 0° nach 0°“.
+- `help/de|en/schwenken.html`: Absatz zur waagerechten Spindel.
+- `tests/test_maschinenspeicher.py`: die drei 5-Achs-Fräsen mit stehender Spindel False, die
+  G550 aus `beispiele/grob_g550.FCStd` True.
+- `tests/gui/szenario_g550_von_oben.py` (neu): Block mit Tasche oben, Maschine G550 mit einem
+  Eintrag ohne „Spindel quer“; Schritt 2, „Anlegen“, die Ebene räumt, „Auf der Maschine prüfen“,
+  „Programm schreiben …“.
+
+### ERGEBNIS
+- Programm: `(Ebene geschwenkt: A-90 B0)`, `G0 A-90.000 B0.000` vor dem Räumen, am Ende
+  `G0 A0.000 B0.000`; keine Hinweise, die Achsen in ihren Grenzen.
+- Grün im Wochen-Build: `test_maschinenspeicher`, `test_schwenken`, `test_sprache`,
+  `szenario_g550_von_oben`, `szenario_schraeg_g550`.
 ## P-2026-10-17-20 wandzug
 
 ### EINGELESEN

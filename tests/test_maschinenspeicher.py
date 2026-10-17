@@ -75,6 +75,7 @@ for baue, name, art, rund, text in faelle:
     )
     pruefe(ms.art_text(eintrag) == text, f"{name}: {ms.art_text(eintrag)!r}")
     pruefe(eintrag.drehzahl > 0 and eintrag.plaetze >= 1, f"{name}: {eintrag}")
+    pruefe(eintrag.spindel_quer is False, f"{name}: Spindel quer? {eintrag}")
 
 # 4-Achs: die 5-Achs-Fräse Tisch/Tisch ohne ihre Achse A.
 asm, ma, vier = gespeichert(bm.fuenfachs_tisch_tisch, "vier")
@@ -159,6 +160,20 @@ pruefe(
 namen = [e.name for e in ms.laden(liste)]
 pruefe("Weg (tmp)" not in namen and "Weg (woanders)" in namen, "aufraeumen nahm das Falsche")
 pruefe(ms.aufraeumen(liste) == [], "aufraeumen nicht idempotent")
+
+# Die GROB G550 hat die Spindel waagerecht: „von oben“ geht dort nur in einer Ebene (A−90).
+g550 = FreeCAD.openDocument(
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "beispiele",
+                 "grob_g550.FCStd"),
+    hidden=True,
+)  # fmt: skip
+gefunden = [
+    ms.beschreibe(o, m.finde_maschine(o))
+    for o in g550.Objects
+    if o.TypeId == "Assembly::AssemblyObject" and m.finde_maschine(o) is not None
+]
+pruefe([e.spindel_quer for e in gefunden] == [True], f"G550: {gefunden}")
+FreeCAD.closeDocument(g550.Name)
 
 shutil.rmtree(ordner, ignore_errors=True)
 if fehler:
