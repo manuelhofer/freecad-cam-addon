@@ -4,7 +4,10 @@
 # und in „Bearbeitung“ von vorn gehört – mit dem Verweis „„Bearbeitung“ von vorn öffnen …“. Der
 # Verweis schließt den Assistenten, die Stange bleibt im Job (W-025, P-2026-10-17-43), und
 # „Bearbeitung“ öffnet sich auf diesem Job mit Face6 gewählt: graue Zeile „Von vorn an der Stange
-# der Drehmaschine …“, eine Strategie angehakt, „Anlegen“ legt die Operation in den Stangen-Job.
+# der Drehmaschine …“, eine Strategie angehakt, dazu „Schlichten danach“ mit Messstopp (wenn
+# angeboten); „Anlegen“ legt die Operationen in den Stangen-Job. Das Siemens-Programm der
+# Drehmaschine: Y im Rahmen, das angetriebene Werkzeug mit seinem Befehl, im Messstopp sein Antrieb
+# aus statt „M5“.
 # ZEITLIMIT: 600
 import os
 import shutil
@@ -113,6 +116,15 @@ def schritte(h):
     aktive = [b.s.kennung for b in dialog.aktive_bloecke()]
     print(ascii(f"aktiv auf der Stirnseite: {aktive}"))
     h.pruefe(bool(aktive), "keine Strategie für den Nutgrund angehakt")
+    # Schruppen – messen – schlichten auch von vorn (Manuel, 2026-10-17): „Schlichten danach“ mit
+    # Messstopp, wenn angeboten.
+    danach = dialog.schlichten_danach
+    yield from h.warte_auf(lambda: danach.vorschau is not None or not danach.moeglich, 120000)
+    if danach.moeglich and danach.vorschau is not None:
+        danach.haken.setChecked(True)
+        danach.haken_felder["messstopp"].setChecked(True)
+        yield 500
+        yield from h.warte_auf(lambda: not dialog.vorschau_laeuft(), 120000)
     h.bild("2_bearbeitung", dialog.form)
     if dialog.accept() is not True:
         h.pruefe(False, f"„Anlegen“ ging nicht: {dialog.hinweis.text()!r}")
@@ -121,3 +133,31 @@ def schritte(h):
     h.pruefe(bool(ops), f"keine Operation im Stangen-Job: {ops}")
     print(ascii(f"Operationen im Stangen-Job: {ops}"))
     h.bild("3_angelegt")
+
+    # --- Das Programm für die Drehmaschine (Siemens, angetriebenes Werkzeug) ------------------------
+    # Y im Rahmen der Maschine (±51 von ±60), das Werkzeug mit dem Befehl seines Antriebs; im
+    # Messstopp der Antrieb aus („M3=…5“), nicht „M5“ der Hauptspindel, und nach dem Halt kein
+    # rohes „M3“ (P-2026-10-18-54).
+    from camaddon import postprozessor as pp
+
+    info = pp.maschineninfo_dokument(asm.Document)
+    zeilen = pp.programm(pp.abschnitte(stange_job), pp.steuerung("siemens"), info, "Ring").zeilen
+    with open(os.path.join(os.environ["CAMADDON_AUSGABE"], "ring_siemens.mpf"), "w") as datei:
+        datei.write("\n".join(zeilen) + "\n")
+    y_werte = [float(w[1:]) for z in zeilen for w in z.split() if w.startswith("Y")]
+    h.pruefe(max((abs(y) for y in y_werte), default=0.0) <= 51.0005, f"Y bis {max(y_werte or [0])}")
+    h.pruefe(any("=3 S" in z for z in zeilen), f"kein angetriebenes Werkzeug: {zeilen[:30]}")
+    if "Messstopp" in ops:
+        k = zeilen.index("; MESSSTOPP") if "; MESSSTOPP" in zeilen else -1
+        halt = zeilen.index("M0", k) if k >= 0 and "M0" in zeilen[k:] else -1
+        h.pruefe(
+            k >= 0
+            and halt > k
+            and "M5" not in zeilen[k:halt]
+            and any(z.startswith("M") and z.endswith("=5") for z in zeilen[k:halt]),
+            f"Messstopp: {zeilen[k:halt + 1] if k >= 0 else zeilen[-20:]}",
+        )
+        h.pruefe(
+            not any(z == "M3" or z.startswith("M3 ") for z in zeilen[k:]),
+            "nach dem Messstopp ein rohes M3",
+        )

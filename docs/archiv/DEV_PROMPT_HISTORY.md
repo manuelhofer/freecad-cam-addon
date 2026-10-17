@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-61 stirnseite-messen-programm
+
+### EINGELESEN
+- Manuels Wunsch vom 17.10. (C-Ring auf der CLX): „schruppen … messen … schlichten“, von vorn mit
+  axialem Werkzeug. Der ganze Weg bis ins Programm war nicht durchgespielt – erst der Blick ins
+  Programm fand P-54.
+
+### DATEIEN
+- `tests/gui/szenario_vierachs_stirnseite.py`: in „Bearbeitung“ von vorn dazu „Schlichten danach“
+  mit Messstopp; im Stangen-Job „Räumen T1“, „Messstopp“, „Wände schlichten T1“; das
+  Siemens-Programm der Beispiel-Drehmaschine: Y im Rahmen (±51), das Werkzeug mit „M3=3 S3=…“,
+  im Messstopp der Wechselpunkt, „M3=5“ statt „M5“, „M9“, „M0“, danach kein rohes „M3“; das
+  Programm liegt als `ring_siemens.mpf` in der Ausgabe des Laufs.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_vierachs_stirnseite`.
 ## P-2026-10-18-60 ring-y-kollision
 
 ### EINGELESEN
