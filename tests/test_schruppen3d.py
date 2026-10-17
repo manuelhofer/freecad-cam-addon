@@ -151,8 +151,10 @@ k_nur = gemessen(teil, nur, 20.0, ringsum_gefraest)
 print(ascii(ps.zeile(k_nur)))
 pruefe(k_nur.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"nur darüber: ins Teil {k_nur.einschnitt:.3f}")
 pruefe(k_nur.eilgang_abtrag <= 1e-9, f"nur darüber: im Eilgang {k_nur.eilgang_abtrag:.1f} mm³")
-# Die Ringe vom Rand des Klotzes her (wie das Räumen mit Materialstand): an einer Stelle am Rand
-# des Bereichs ein Zwickel, 2,6 ae auf 8 mm – sonst wie ganz.
+# Die Ringe vom Rand des Klotzes her (wie das Räumen mit Materialstand): am letzten Ringschritt
+# 2,6 ae auf 2 mm – der Biss beim Schritt zum nächsten Ring (ein Kreisabschnitt 1,7 mm hoch, 85
+# mm³ bei 9,7 Tiefe), den jeder Ringschritt hat (70 mm³ bei 1,5); das 3-mm-Fenster des Prüfstands
+# sieht ihn nur hier, weil davor ein kurzer Satz steht statt eines langen, der ihn mittelt.
 pruefe(
     k_nur.eingriff_max < 3.0 and k_nur.last_lang <= 20.0 and k_nur.voll <= ps.BREIT_WEG,
     f"nur darüber: {ps.zeile(k_nur)}",

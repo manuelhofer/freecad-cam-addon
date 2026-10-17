@@ -155,8 +155,16 @@ Lage wie eine Zwischenlage (`camaddon/schruppen3d_bahn.py`, `_schruppen`, `mit_s
   Schritt zum nächsten Ring schräg über zwei Radien entlang des neuen Rings, der dort beginnt
   (`_Lage._lauf`, nur ganze Ringe, nur wenn der gerade Schritt durch Material ginge) – der Zwickel
   blieb bei 2,6 ae an derselben Stelle, und `test_raeumen` zählt beim Morph andere Anschlüsse.
-  Zurückgenommen. Die Ursache ist also nicht (nur) der Schritt; als Nächstes den Prüfstand an der
-  Stelle (3,5, 24) Satz für Satz ausgeben (Abtrag je Satz, welcher Ring) statt zu vermuten.
+  Zurückgenommen. *Satz für Satz nachgemessen (2026-10-17, nach P-34):* Es ist der Biss beim Schritt
+  zum nächsten Ring – die Stirn schiebt sich radial um den Ringabstand ins volle Band, ein
+  Kreisabschnitt 1,5 … 1,7 mm hoch (7 … 10 mm², 70 … 85 mm³ bei 9,7 Tiefe) –, und den hat
+  **jeder** Ringschritt der Hauptlage gleich (Sätze 43, 82: 68 und 70 mm³; Satz 126: 85 mm³).
+  Der Prüfstand sieht ihn nur bei Satz 126, weil davor ein Satz von 1,1 mm steht; bei 43 und 82
+  steht davor ein Satz von 5,6 mm, und das 3-mm-Fenster nimmt ganze Sätze – es mittelt den Biss
+  dort auf 0,7 ae. Der Zwickel ist also kein Fehler an dieser Stelle, sondern der gewöhnliche
+  Ringschritt. Weg bekäme ihn nur ein weicher Anschluss an jedem Ringschritt (Bogen oder die
+  Spirale des Morphs) – das ändert alle Ringbahnen und die Anschlüsse in `test_raeumen`; am Satz
+  126 kostet er 0,15 s. Nicht gebaut; die Grenze `< 3.0` bleibt mit dieser Begründung im Test.
 - *Materialstand, Hauptlagen mit Ringen vom Rand:* gebaut, gemessen, wieder zurückgenommen. Die
   Kuppel nach einem Räumen der Platte (Zwischenlagen 1 mm): alt 2,58 min, 6 % Luft; neu 2,58 min,
   12 % Luft – der erste Ring außerhalb in der Luft kostet, was die Helix kostete. Ohne
