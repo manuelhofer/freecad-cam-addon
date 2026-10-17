@@ -102,6 +102,12 @@ def schritte(h):
             for p, n in zip(bahn_y.punkte, bahn_y.punkte[1:], strict=False)
             if not p.eilgang and not n.eilgang and abs(n.phi - p.phi) < 1e-9 and abs(n.q) > 0.5
         )
+        with open(os.path.join(os.environ["CAMADDON_AUSGABE"], "bahn_y.txt"), "w") as d:
+            d.write(
+                f"sektoren_y {panel.sektoren_y()}, y_weg {panel.y_weg()}, Lagen {bahn_y.lagen}, "
+                f"Punkte {len(bahn_y.punkte)}, mit q {sum(1 for p in bahn_y.punkte if abs(p.q) > 0.5)}, "
+                f"stehend {stehend}, Weg {weg_y:.0f}\n"
+            )
         h.pruefe(weg_y < 25000, f"mit Y: Weg im Vorschub {weg_y:.0f} mm – kreist die Spirale?")
         h.pruefe(stehend > 50, f"mit Y: {stehend} Sätze mit stehendem C und Versatz quer")
         h.bild("0_mit_y", panel.form)

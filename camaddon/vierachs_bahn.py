@@ -831,6 +831,10 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         zeilen_abstand = max(w.steigung, GLEICH)
         stellen_alle = huelle.a[im_lauf]
         stellen_alle = stellen_alle[np.argsort(-stellen_alle)]  # von vorn nach hinten
+        # Erst alle Stücke der Lage sammeln, dann ihre Stellungen in einem Zug rechnen (so gehen
+        # sie an die Nebenrechner – je Stück allein blieben sie unter vierachs_huelle.
+        # PARALLEL_AB_STELLUNGEN auf einem Kern), dann die Zeilen ausgeben.
+        stuecke_lage = []
         for gruppe in _kreis_gruppen(spalten, n_phi):
             breite = (len(gruppe) - 1) * grad
             stuecke = max(1, int(math.ceil(breite / (2.0 * halb) - 1e-9)))
@@ -862,17 +866,34 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                 if not len(stellen):
                     continue
                 m, n_s = len(reihen), len(stellen)
-                q_m = np.repeat(reihen, n_s)
-                a_m = np.tile(stellen, m)
-                stelle = np.clip(a_m, teil_hinten, teil_vorne)
-                richtung_m = np.full(m * n_s, richtung)
-                hoehe = vh.je_stellung(netz, laengs, radial, geformt, richtung_m, q_m, stelle)
-                x_h = np.where(np.isfinite(hoehe), hoehe + zugabe, -np.inf)
-                if stufen_quer:
-                    x_h = x_h + _stufen_hoeher(
-                        netz, laengs, radial, stufen_quer, richtung_m, q_m,
-                        np.maximum(x_h, w.r_tiefste), stelle, aussen_teil, zugabe, radius,
-                    )  # fmt: skip
+                stuecke_lage.append((psi0, richtung, reihen, stellen, m, n_s))
+        if not stuecke_lage:
+            return gefahren
+        q_alle = np.concatenate(
+            [np.repeat(reihen, n_s) for _p, _r, reihen, _s, _m, n_s in stuecke_lage]
+        )
+        a_alle = np.concatenate(
+            [np.tile(stellen, m) for _p, _r, _re, stellen, m, _n in stuecke_lage]
+        )
+        richtung_alle = np.concatenate(
+            [np.full(m * n_s, richtung) for _p, richtung, _re, _s, m, n_s in stuecke_lage]
+        )
+        stelle_alle = np.clip(a_alle, teil_hinten, teil_vorne)
+        hoehe_alle = vh.je_stellung(
+            netz, laengs, radial, geformt, richtung_alle, q_alle, stelle_alle
+        )
+        x_alle = np.where(np.isfinite(hoehe_alle), hoehe_alle + zugabe, -np.inf)
+        if stufen_quer:
+            x_alle = x_alle + _stufen_hoeher(
+                netz, laengs, radial, stufen_quer, richtung_alle, q_alle,
+                np.maximum(x_alle, w.r_tiefste), stelle_alle, aussen_teil, zugabe, radius,
+            )  # fmt: skip
+        von = 0
+        for psi0, _richtung, reihen, stellen, m, n_s in stuecke_lage:
+            if True:  # (Einrückung wie die Sammelschleife – je Stück seine Zeilen)
+                q_m, a_m = q_alle[von : von + m * n_s], a_alle[von : von + m * n_s]
+                x_h = x_alle[von : von + m * n_s]
+                von += m * n_s
                 grenze = vq.lagen_grenze(w.stange_radius, q_m, radius, tiefer)
                 davor_g = vq.lagen_grenze(w.stange_radius, q_m, radius, tiefer - w.zustellung)
                 x = np.maximum(np.maximum(x_h, grenze), w.r_tiefste)
@@ -939,17 +960,23 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
         spiel = schrupp_spiel(w.aufmass)
         sektor_y = None
+        sektor_lagen = []  # die Lagen, die Zeilen mit Y fuhren
         if w.sektoren_y and w.nur_noetig:
 
             def sektor_y(lage, rest):
                 sektor = sektoren(lage)
-                return None if sektor is None else sektor_lage_y(lage, *sektor, rest)
+                if sektor is None:
+                    return None
+                sektor_lagen.append(lage)
+                return sektor_lage_y(lage, *sektor, rest)
 
         gefahren = _schruppen_quer(
             punkte, netz, laengs, radial, w, spirale_, rahmen_, lagen, schritt_phi, stufen_quer,
             sektor_y=sektor_y,
         )  # fmt: skip
-        if 0 < lagen < gefahren:
+        if 0 < lagen < gefahren and not sektor_lagen:
+            # (Nicht, wenn Lagen Zeilen mit Y fuhren: Die sind billig, und die Zeilen rechnen
+            # mit der Zustellung aus `w` – der zweite Lauf ersetzte sie sonst durch die Spirale.)
             # Neben dem Strahl hält die Grenze je Lage (vierachs_quer.lagen_grenze) höher als
             # auf ihm: Mit gleich tiefen Lagen bis genau ans Teil blieb seitlich ein dünner Rest
             # für eine Lage mehr (an einer Welle Ø 60 in Ø 80, ap 2: sechs statt fünf). Dann

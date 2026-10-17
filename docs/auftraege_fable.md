@@ -87,6 +87,13 @@ Einfahrten, die C nicht zurückdrehen (eine Rampe längs der Stange statt Helix)
 Querachse: 151 km, 88 % Luft. Dazu: Die Zeilen lassen an den Schlitzwänden Späne von einem
 Winkelschritt (0,48 cm³ am Ring); die Spirale nahm sie beim schrägen Aufstieg am Schlitzrand mit.
 
+**Stand 2026-10-17 (P-2026-10-17-48, W-026, Manuels Antwort zu Frage 1):** Mit Querachse gebaut –
+„Sektoren in Zeilen mit Y – C steht“ (Spezifikation V3j): am Ring 151 → 11,4 km, 88 → 12 % Luft,
+105,6 → 11,4 min, nichts ins Teil; Y begrenzt (±5): 11,6 min mit C-Schritten. An der Nase gleich
+schnell, aber die Kugel hat mehr Rest (20,7 statt 14,2 cm³) – dort den Haken abwählen (Tooltip).
+Bild `docs/bilder/vorschlaege/ring_sektoren_y.png`. Schlichten bleibt die Spirale (Manuel: „c und
+x oder nur y“).
+
 ## 2. Manuels Weg für die Nase (Schaft an der Flanke, Front quer)
 
 **Manuels Bild und Worte (2026-10-12, im Snapshot unter „Nächster Schritt“):**

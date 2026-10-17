@@ -3990,6 +3990,9 @@ class VierachsPanel:
         ), {
             "nur_gleichlauf": self.schruppen_nur_gleichlauf.isChecked(),
             "form": ff.von_werkzeug(werkzeug),
+            # Mit der Querachse wie die Operation (bis P-2026-10-17-48 rechnete die Vorschau ohne
+            # sie: „→ 5 Lagen“, angelegt wurden sechs; am Ring mit Y die Spirale statt der Zeilen).
+            "querachse": self.querachse_schruppen(),
             "stetig": self.stetig_schruppen(),
             "nur_noetig": self.nur_noetig(),
             "oben": vo.stufen_des_werkzeugs(werkzeug, self.bibliothek),

@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-48 sektoren-zeilen-mit-y
+
+### EINGELESEN
+- Manuel (2026-10-17) zu Frage 1 (Ring mit Querachse): „alle variationen … nur y achse … c und x
+  achse … oder eine kombi … segmente, wo die y achse hinkommt, dann wegfährt und die c achse
+  dreht … das hilft, da man die c achse sperren kann und man nicht den riemen stressen muss … aber
+  nur beim schruppen … beim schlichten c und x oder nur y, weil das sonst absätze gibt“ (W-026);
+  dazu: „so gebaut, dass alle cpu threads genutzt werden?“
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `Schruppwerte.sektoren_y`, `y_weg`; `sektor_lage_y` (Spezifikation
+  V3j) – je Lage zuerst die Stücke aller Sektoren sammeln, ihre Stellungen in einem Zug mit
+  `vierachs_huelle.je_stellung` (so gehen sie an die Nebenrechner; je Stück allein blieben sie unter
+  PARALLEL_AB_STELLUNGEN auf einem Kern), dann die Zeilen: Rundachse auf der Sektormitte,
+  Werkzeugachse parallel, Y quer, Zeilen längs hin und her, vor dem Teil je Lage ein Ring für die
+  Stirnseite (`_kreis_gruppen`, `_stufen_hoeher` aus `_schruppen_quer` herausgelöst,
+  `SEKTOR_Y_HALB`); `_schruppen_quer(…, sektor_y)` ruft sie ab Lage 2 und lässt mit ihr den zweiten
+  Lauf mit tieferen Lagen aus (der ersetzte sonst die Zeilen durch die Spirale – deshalb erst
+  „0 Läufe“ in der Prüfung).
+- `camaddon/vierachs_operation.py`: Eigenschaften `SektorenY`, `YWeg` (0 = unbegrenzt), `rechne`,
+  `bahn_fuer` (auch im Schlüssel), `lege_an`, `aendere`, `y_weg_von`.
+- `camaddon/gui_vierachs.py`: Haken „Sektoren in Zeilen mit Y – C steht“ unter „Folgelagen nur,
+  wo nötig“ – frei mit Querachse und „nur nötig“ rundum, dann angehakt (`_sektoren_y_vorschlagen`),
+  `y_weg()` aus den Grenzen der Y-Achse der gewählten Maschine (`kette._begrenzung`,
+  `stirnseite.y_nutzen`); Vorschau, Anlegen, Ändern. Dazu die Schruppvorschau mit `querachse` wie
+  die Operation (bis dahin ohne – Snapshot: „die Vorschau sagt 5, angelegt sechs“).
+- Texte `va.sektoren_y`, `.tooltip`, `vo.eigenschaft.sektoren_y`, `.y_weg` (de/en);
+  `help/de|en/vierachs.html`; `docs/spezifikation_vierachs.md` (V3j); `docs/STATUS_SNAPSHOT.md`
+  (W-026 gebaut); Bild `docs/bilder/vorschlaege/ring_sektoren_y.png`.
+- `tests/test_vierachs_bahn.py`: Welle mit 6 mm breiter Abflachung in Stange Ø 28, Querachse: ab
+  Lage 3 Läufe mit stehendem C und Versatz quer, nie ins Aufmaß (je_stellung je Punkt), mit Y bis
+  1,5 mm mehr Stellungen; `tests/gui/szenario_ring_sektoren.py`: mit Querachse Haken an, Vorschau
+  unter 25 km, Sätze mit stehendem C.
+
+### ERGEBNIS
+- Am Ring mit Querachse (`$S/ring/messen2.py`, QUER=1 SEKTOREN_Y=1): 11,4 statt 105,6 min, Weg
+  11,4 statt 151 km, Luft 12 statt 88 %, 0 Voxel ins Teil (h 0,5); Y auf ±5 mm: 11,6 min (drei
+  Stücke je Schlitz); Rechenzeit 2,3 s.
+- An der Nase (`$S/nase/sektoren_y.py`): 12,1 statt 12,2 min, Rest für die Kugel 20,7 statt
+  14,2 cm³ (bis 7,9 statt 4,1 mm²) – im Tooltip und in der Hilfe: dort abhaken.
+- Grün im Wochen-Build: `test_vierachs_bahn`, `test_sprache`, `szenario_ring_sektoren`,
+  `szenario_vierachs_schruppen` (Vorschau und Operation jetzt beide fünf Lagen),
+  `szenario_vierachs_plan`, `szenario_vierachs_schlichten`, `szenario_vierachs_nocke`.
+- Zu Manuels Frage nach den Kernen: Die Hüllflächen je Stellung gehen ab 1000 Stellungen an die
+  Nebenrechner (P-2026-10-10-57) – die Spirale mit Y war so schon verteilt, die Zeilen je
+  Sektorstück allein nicht; jetzt je Lage ein Aufruf. Offen (T-006): Die Vorschau im Assistenten
+  läuft als Ganzes in einem Nebenrechner, der nicht weiter verteilt – dort rechnet ein Kern.
 ## P-2026-10-17-47 nase-kugel-ohne-planflaechen
 
 ### EINGELESEN

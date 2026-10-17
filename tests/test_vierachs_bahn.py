@@ -731,17 +731,24 @@ for oben, soll in (((), (None, 5.0)), (((3.0, 4.0),), (10.0 - 4.0, None))):
         )
 
 # --- Sektoren als Zeilen mit Y, C steht (W-026, P-2026-10-17-48) --------------------------------
-# Dieselbe Welle mit dem Schlitz, mit Querachse und „nur nötig“: Ab der zweiten Lage steht nur noch
-# im Schlitz etwas – die Lage fährt Zeilen mit Y bei stehender Rundachse (die Werkzeugachse
+# Die Welle mit einem Schlitz 6 mm breit in einer Stange Ø 28, mit Querachse und „nur nötig“: Ab
+# der dritten Lage steht nur noch im Schlitz etwas – die Lage fährt Zeilen mit Y bei stehender Rundachse (die Werkzeugachse
 # parallel zum Strahl auf die Schlitzmitte), im Vorschub ändert sich der Winkel dort nicht, der
 # Versatz quer schon. Nie unter die Hüllfläche des Fräsers in dieser Stellung. Reicht Y nur
 # 1,5 mm, teilt sich der Schlitz: mehr Stellungen der Rundachse.
 from camaddon import fraeserform as ff  # noqa: E402
 
+y_welle = Part.makeCylinder(10, 40, V(0, 0, -40)).cut(Part.makeBox(12, 30, 6, V(2, -15, -23)))
+y_netz = vh.vernetze(y_welle)
 y_werte = replace(
-    schlitz_werte, form=ff.scheibe(1.0), querachse=True, nur_noetig=True, sektoren_y=True
+    schlitz_werte,
+    stange_radius=14.0,
+    form=ff.scheibe(1.0),
+    querachse=True,
+    nur_noetig=True,
+    sektoren_y=True,
 )
-y_bahn = vb.schruppen(schlitz_netz, C_LAENGS, C_RADIAL, y_werte)
+y_bahn = vb.schruppen(y_netz, C_LAENGS, C_RADIAL, y_werte)
 y_laeufe, lauf = [], []
 for p in y_bahn.punkte + [vb.Punkt(True, 0.0, 0.0, 0.0)]:
     if p.eilgang:
@@ -758,10 +765,10 @@ y_sektor = [
 pruefe(len(y_sektor) >= 2, f"Sektorzeilen mit Y: {len(y_sektor)} Läufe mit stehendem C")
 y_zeilen = sum(len({round(p.q, 3) for p in lf}) for lf in y_sektor)
 pruefe(y_zeilen >= 4, f"Sektorzeilen mit Y: {y_zeilen} Zeilen")
-y_punkte = [p for lf in y_sektor for p in lf if -21.0 <= p.a <= -19.0]
+y_punkte = [p for lf in y_sektor for p in lf if -22.5 <= p.a <= -17.5]
 if y_punkte:
     y_huelle = vh.je_stellung(
-        schlitz_netz,
+        y_netz,
         C_LAENGS,
         C_RADIAL,
         ff.scheibe(1.0),
@@ -775,7 +782,7 @@ if y_punkte:
         min(p.r for p in y_punkte) < 5.0,
         f"Sektorzeilen mit Y: im Schlitz nur bis r {min(p.r for p in y_punkte):.2f}",
     )
-y_eng = vb.schruppen(schlitz_netz, C_LAENGS, C_RADIAL, replace(y_werte, y_weg=1.5))
+y_eng = vb.schruppen(y_netz, C_LAENGS, C_RADIAL, replace(y_werte, y_weg=1.5))
 stellungen = {round(p.phi % 360.0, 3) for p in y_eng.punkte if not p.eilgang and abs(p.q) > 1e-9}
 stellungen_weit = {
     round(p.phi % 360.0, 3) for p in y_bahn.punkte if not p.eilgang and abs(p.q) > 1e-9

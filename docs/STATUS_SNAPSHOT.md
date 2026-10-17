@@ -1510,6 +1510,17 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (ψ fest auf der Sektormitte, q über die Breite; die Hüllfläche je Stellung aus
   `vierachs_quer.stellungen`), C steht; reicht Y nicht (Anteil wie `stirnseite.y_nutzen`), ein
   C-Schritt dazwischen (abheben, drehen, wieder anfahren). Schlichten: nie Segmente.
+  **Gebaut (P-2026-10-17-48):** `vierachs_bahn.sektor_lage_y` (Spezifikation V3j), Haken
+  „Sektoren in Zeilen mit Y – C steht“ (vorbelegt an), Operation `SektorenY`/`YWeg`. Am Ring mit
+  Querachse 11,4 statt 105,6 min, nichts ins Teil; an der Nase gleich schnell, aber mehr Rest für
+  die Kugel (dort abhaken – Tooltip, Hilfe). Dazu rechnet die Schruppvorschau jetzt mit der
+  Querachse wie die Operation (bis dahin ohne: „→ 5 Lagen“, angelegt sechs). Offen: die Zeilen
+  längs fahren vor dem Teil ein kurzes Stück Luft im Vorschub (am Ring 4 mm je Zeile); Schlichten
+  mit Sektoren bleibt die Spirale (Manuel: „beim Schlichten c und x oder nur y“).
+  Dazu T-006: Die 4-Achs-Vorschau läuft als Ganzes in einem Nebenrechner, der nicht weiter
+  verteilt (`nebenrechner.verfuegbar()` ist dort False) – ihre Hüllflächen rechnet ein Kern; beim
+  Anlegen und Neuberechnen im Hauptprozess sind sie verteilt. Nächster Schritt: die Vorschau in
+  Stücken (je Lage) an den Pool geben statt als ein Auftrag.
 - **W-027 Nase: der Assistent schlägt Plan indexiert + Kugel in Linien vor** – Manuel, 2026-10-17
   zu Frage 2: „ja die option soll so sein, wichtig ist, dass danach die kugel nicht nochmal alles
   das fährt, was schon weg ist“. Plan: Bei gewählten ebenen Flächen (Seiten, Spitze) hakt der
