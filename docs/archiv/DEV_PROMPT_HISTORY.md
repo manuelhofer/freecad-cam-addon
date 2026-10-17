@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-40 abspieler-stange-auf-den-nebenrechnern
+
+### EINGELESEN
+- Manuel (2026-10-17): „bitte immer daran denken das alle rechenkerne auch genutzt werden.“ Der
+  Abtrag der Stange im 4-Achs-Abspieler (`restmaterial.Abtrag`, am Nasen-Testteil ein Sprung ans
+  Ende 3 s) rechnete auf einem Kern, nur im Takt – anders als der Quader (Streifen) und seit P-39
+  der schräge Abtrag.
+
+### DATEIEN
+- `camaddon/restmaterial.py`: `Stange.gitter()`; `verteilt_abtragen` für Quader und Stange
+  (`feld`); `stueck_stange` im Arbeiter; `Abtrag.bis_station_schritte` ab
+  `VERTEILT_AB_STATIONEN` (2000) ohne Fasen auf den Nebenrechnern (Minimum der Radien).
+- `tests/test_restmaterial.py`: verteilt dieselben Radien wie allein, die Nebenrechner rechnen.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_restmaterial`. `szenario_vierachs_schruppen` lief beim Push noch
+  (Nutzungslimit erreicht) – als Erstes nachsehen.
+
 ## P-2026-10-17-39 abspieler-schraeg-auf-den-nebenrechnern
 
 ### EINGELESEN

@@ -104,6 +104,14 @@ class Stange:
     def zuruecksetzen(self):
         self.r.fill(self.radius)
 
+    def gitter(self):
+        """(Radius, a_von, a_bis, Schritt längs, Schritt rundum in Grad) – Stange(*gitter()) hat
+        dasselbe Raster (für die Nebenrechner, stueck_stange)."""
+        return (
+            self.radius, float(self.a[0]), float(self.a[-1]), self._schritt_a,
+            math.degrees(self._schritt_phi),
+        )  # fmt: skip
+
     def fahre(self, von, nach, fraeser):
         """Der Fräser fährt von `von` nach `nach` – je (a, r, φ in Grad am Teil) – und nimmt
         weg, was er dabei trifft (den Anfang nicht: der kam mit dem Stück davor). `fraeser`:
@@ -574,6 +582,20 @@ class Abtrag:
             self._erlaubt.fill(0.0)
             self.bis = 0
         start = max(self.bis, 1)
+        # Viele Stationen auf einmal rechnen die Nebenrechner in Stücken (stueck_stange, das
+        # Minimum der Radien) – ohne Fasen (deren Zellen merkt sich nur der Lauf der Reihe nach);
+        # am Nasen-Testteil stand der Sprung ans Ende sonst 3 s auf einem Kern (Manuel,
+        # 2026-10-17: „immer daran denken, dass alle Rechenkerne auch genutzt werden“).
+        if (
+            not self.fasen
+            and index + 1 - start >= VERTEILT_AB_STATIONEN
+            and verteilt_abtragen(
+                self.stange, start, index, "restmaterial", "stueck_stange",
+                self._punkte, self.operation, self.gueltig, self.fraeser, feld="r",
+            )  # fmt: skip
+        ):
+            self.bis = index + 1
+            return
         while start <= index:
             ende = min(index + 1, start + je)
             k = np.arange(start, ende)
@@ -969,16 +991,18 @@ def _raster(von, bis, schritt):
 STUECKE_JE_ARBEITER = (
     2  # Stücke je Arbeiter (verteilt_abtragen) – wer früher fertig ist, nimmt das nächste
 )
+VERTEILT_AB_STATIONEN = 2000  # Stationen der Stange auf einmal: ab so vielen die Nebenrechner
 
 
-def verteilt_abtragen(quader, start, index, modul, funktion, punkte, *felder):
+def verteilt_abtragen(traeger, start, index, modul, funktion, punkte, *felder, feld="h"):
     """Die Stationen start … index (die Station start − 1 ist der Anfang) auf den Nebenrechnern:
     `camaddon.<modul>.<funktion>(gitter, punkte[von − 1 : bis], *felder[von − 1 : bis],
-    *konstanten)` je Stück, jedes auf einem leeren Quader mit demselben Raster; zurück kommt je
-    Stück sein Höhenfeld, hier das Minimum darüber in `quader.h`. `felder`: Arrays je Station
-    (werden mitgeschnitten) – und dahinter alles, was kein Array ist (Fräser, Körper), ganz.
-    True, wenn es gerechnet hat; False ohne Nebenrechner oder wenn sie scheitern – dann rechnet
-    der Aufrufer selbst (schraeg_abtrag.SchraegAbtrag.bis_station_schritte)."""
+    *konstanten)` je Stück, jedes auf einem leeren Träger (Quader oder Stange, `gitter()`) mit
+    demselben Raster; zurück kommt je Stück sein Feld (die Höhen `h` oder die Radien `r`), hier
+    das Minimum darüber in `traeger.<feld>`. `felder`: Arrays je Station (werden mitgeschnitten)
+    – und dahinter alles, was kein Array ist (Fräser, Körper), ganz. True, wenn es gerechnet hat;
+    False ohne Nebenrechner oder wenn sie scheitern – dann rechnet der Aufrufer selbst
+    (Abtrag.bis_station_schritte, schraeg_abtrag.SchraegAbtrag.bis_station_schritte)."""
     try:
         from . import nebenrechner as nr
     except ImportError:  # ohne FreeCAD
@@ -996,7 +1020,7 @@ def verteilt_abtragen(quader, start, index, modul, funktion, punkte, *felder):
         konstanten = [
             f for f in felder if not (isinstance(f, np.ndarray) and len(f) == len(punkte))
         ]
-        gitter = quader.gitter()
+        gitter = traeger.gitter()
         auftraege = [
             pool.auftrag(
                 modul, funktion, gitter, punkte[von - 1 : bis],
@@ -1007,9 +1031,27 @@ def verteilt_abtragen(quader, start, index, modul, funktion, punkte, *felder):
         ergebnisse = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler:
         return False
-    for h in ergebnisse:
-        np.minimum(quader.h, np.asarray(h, dtype=float), out=quader.h)
+    ziel = getattr(traeger, feld)
+    for wert in ergebnisse:
+        np.minimum(ziel, np.asarray(wert, dtype=float), out=ziel)
     return True
+
+
+def stueck_stange(gitter, punkte, operation, gueltig, fraeser):
+    """Auch im Nebenrechner: die Stationen 1 … n − 1 (`punkte` (n, 4): a, r, φ, q – die erste nur
+    als Anfang) auf einer ganzen Stange mit dem Raster `gitter` (Stange.gitter()) – gibt ihre
+    Radien zurück (verteilt_abtragen, Abtrag.bis_station_schritte)."""
+    stange = Stange(*gitter)
+    punkte = np.asarray(punkte, dtype=float)
+    operation = np.asarray(operation)
+    gueltig = np.asarray(gueltig, dtype=bool)
+    k = np.arange(1, len(punkte))
+    k = k[gueltig[k - 1] & gueltig[k] & (operation[k - 1] == operation[k])]
+    for nummer, form in fraeser.items():
+        stuecke = k[operation[k] == nummer]
+        if len(stuecke):
+            stange.fahre_stuecke(punkte[stuecke - 1], punkte[stuecke], form)
+    return stange.r
 
 
 class Quader:

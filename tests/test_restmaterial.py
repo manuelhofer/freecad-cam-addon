@@ -186,6 +186,20 @@ if abtrag is not None:
             f"{vergleich.kleinster:.3f} … {vergleich.groesster:.3f} mm, grün {gruen:.0%}"
         )
     )
+    # Auf den Nebenrechnern in Stücken (P-2026-10-17-40): dieselben Radien wie allein – das
+    # Minimum je Zelle hängt nicht von der Reihenfolge ab –, und sie haben wirklich gerechnet.
+    allein_r = abtrag.stange.r.copy()
+    alt_stationen = rm.VERTEILT_AB_STATIONEN
+    rm.VERTEILT_AB_STATIONEN = 1
+    try:
+        abtrag.bis_station(1)
+        abtrag.bis_station(len(fahrt.stationen) - 1)
+        from camaddon import nebenrechner as nr_
+
+        pruefe(nr_.pool().arbeiter > 0, "Stücke der Stange nicht auf den Nebenrechnern")
+        pruefe(np.allclose(abtrag.stange.r, allein_r, atol=1e-9), "verteilt anders als allein")
+    finally:
+        rm.VERTEILT_AB_STATIONEN = alt_stationen
     # Zurück: von vorn gerechnet – vor dem ersten Schnitt ist die Stange ganz.
     abtrag.bis_station(1)
     pruefe(abtrag.stange.r.min() == 25.0, f"zurück am Anfang: {abtrag.stange.r.min()}")
