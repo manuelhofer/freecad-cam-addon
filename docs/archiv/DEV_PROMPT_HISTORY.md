@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-20 wandzug
+
+### EINGELESEN
+- Manuel (2026-10-17, Frage 8): „(b) Ein Zug am Ende“ – statt dass das Planfräsen an einer Wand
+  je zweite Zeile 1,5 mm zur vorigen zurück und wieder vor fährt (die Wandfahrt), am Ende der Lage
+  einmal an der Wand entlang. Der Versuch der Nacht (`~/freecad_cam/wip/…/wandzug_frage8.patch`)
+  zeigte am Zapfen noch 4 % mehr Zeit ohne eine Wende weniger: Um eine Insel enden die Zeilen
+  versetzt, dort fuhren sie nie zurück und vor.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`: `_wandzug_plan` – an einer geraden Wand quer zu den Zeilen, an
+  der alle Zeilen der Fahrt enden: zuerst an der Wand der letzten Zeile (endet sie im Freien, auf
+  ihr zurück an die Wand), hinter sie bis an den Rand, dann Zeile für Zeile bis zur ersten (vor ihr
+  bis an den Rand); an der Wand gegenüber, von der ersten Zeile hinüber, zurück. `_wandzug` fährt
+  das. `_schritt` fährt die Wandfahrt nur noch an Wänden ohne Zug; sonst (Inseln, versetzte
+  Enden) bleibt alles wie bisher.
+- `tests/bestmarken.json`, `bestmarken_26.json`: `absatz/planfraesen` neu (2,08 → 2,15 min, Luft
+  11 → 14 %) – nur diese Bestmarke, die anderen unverändert.
+
+### ERGEBNIS
+- Prüfstand: Absatz 14 → 0 Wendepunkte an der Wand, 2,10 → 2,15 min; zwei Wände 28 → 0,
+  1,92 → 1,97 min; Zapfen unverändert (3,29 min). Rest in allen Fällen 0.
+- Grün im Wochen-Build: `test_planfraesen`, `test_pruefstand`, `szenario_planen`,
+  `szenario_plan_gleichlauf`, `szenario_bearbeitung`, `szenario_platte`, `szenario_zapfen`.
+
 ## P-2026-10-17-19 fraeser-passt-hinweis
 
 ### EINGELESEN

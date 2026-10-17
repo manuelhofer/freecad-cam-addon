@@ -1,15 +1,15 @@
 {
   "absatz/planfraesen": {
     "eintauchen": 0,
-    "halte": 49,
-    "luft": 0.107,
+    "halte": 39,
+    "luft": 0.137,
     "rampen": 1,
     "varianten": {
       "andere": 4.716,
-      "gewaehlt": 2.079
+      "gewaehlt": 2.152
     },
-    "wirkungsgrad": 0.77,
-    "zeit": 2.079
+    "wirkungsgrad": 0.745,
+    "zeit": 2.152
   },
   "absatz/raeumen": {
     "eintauchen": 0,

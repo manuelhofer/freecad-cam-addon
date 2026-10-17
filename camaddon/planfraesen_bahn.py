@@ -793,13 +793,19 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None):
         if da and _wand(r_, m0, int(js0[0]), -richtung):
             laenge += _wandfahrt(punkte, r_, m0, int(js0[0]), lage, teile, 0)
             laenge += _ueber_die_letzte(punkte, r_, m0, int(js0[0]), lage)
+    # An einer Wand, an der alle Zeilen der Fahrt enden, am Ende ein Zug statt je zweiter Zeile
+    # zurück und vor (Manuel, 2026-10-17, Frage 8: „(b) Ein Zug am Ende“) – _wandzug_plan.
+    plan = _wandzug_plan(r_, teile)
+    mit_zug = {seite for seite, _kette in plan}
     for nummer, (art, m, js) in enumerate(teile):
         if art == "zeile":
             laenge += _zeile(punkte, r_, m, js, lage, w, nummer == 0)
             continue
-        laenge += _schritt(punkte, r_, m, js, lage, teile, nummer)
+        laenge += _schritt(punkte, r_, m, js, lage, teile, nummer, mit_zug)
     art, m, js = teile[-1]
-    if art == "zeile" and len(js) > 1 and _wand(r_, m, int(js[-1]), 1 if js[-1] > js[0] else -1):
+    if plan:
+        laenge += _wandzug(punkte, r_, plan, lage)
+    elif art == "zeile" and len(js) > 1 and _wand(r_, m, int(js[-1]), 1 if js[-1] > js[0] else -1):
         laenge += _wandfahrt(punkte, r_, m, int(js[-1]), lage, teile, len(teile), ende=True)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
@@ -1052,7 +1058,7 @@ def _zeile(punkte, r_, m, js, lage, w, erste):
     return laenge
 
 
-def _schritt(punkte, r_, m, j, lage, teile, nummer):
+def _schritt(punkte, r_, m, j, lage, teile, nummer, mit_zug=()):
     """Von Zeile m zur nächsten an der Stelle j: ein Halbkreis in Fahrtrichtung hinaus, wenn
     beide Zeilen dort und auf dem Bogen frei sind – sonst gerade quer, vor einer Wand erst
     noch an ihr entlang zur vorigen Zeile und zurück (_wandfahrt). Gibt die Länge
@@ -1089,13 +1095,128 @@ def _schritt(punkte, r_, m, j, lage, teile, nummer):
         uhr = bn.im_uhrzeigersinn(von, (x1, y1), durch)
         punkt = bn.Punkt(False, x1, y1, lage, bogen=(mx, my, uhr))
     else:
-        if _wand(r_, m, j, richtung):
+        if _wand(r_, m, j, richtung) and richtung not in mit_zug:
             laenge += _wandfahrt(punkte, r_, m, j, lage, teile, nummer)
         punkt = bn.Punkt(False, x1, y1, lage)
     laenge += bn.weg(punkte[-1], punkt)
     punkte.append(punkt)
-    if punkt.bogen is None and _wand(r_, m, j, richtung):
+    if punkt.bogen is None and _wand(r_, m, j, richtung) and richtung not in mit_zug:
         laenge += _ueber_die_letzte(punkte, r_, m + 1, j, lage)
+    return laenge
+
+
+def _wandenden(r_, teile):
+    """{Seite: {Zeile m: Stelle j}} – wo die Zeilen der Fahrt an einer Wand enden; Seite −1: die
+    Wand liegt bei kleineren Stellen, +1: bei größeren."""
+    enden = {-1: {}, 1: {}}
+    for art, m, js in teile:
+        if art != "zeile" or len(js) < 2:
+            continue
+        richtung = 1 if js[-1] > js[0] else -1
+        for j, seite in ((int(js[0]), -richtung), (int(js[-1]), richtung)):
+            if _wand(r_, m, j, seite):
+                enden[seite][m] = j
+    return enden
+
+
+def _wandzug_plan(r_, teile):
+    """[(Seite, [(Zeile, Stelle)])] – die Züge an den Wänden am Ende der Fahrt: zuerst an der Wand,
+    an der die letzte Zeile endet, von ihr Zeile für Zeile zur ersten; dann, von dort auf der Zeile
+    hinüber, an der Wand gegenüber zurück. Nur an einer geraden Wand quer zu den Zeilen, wenn der
+    Zug alle Zeilen erreicht, die dort enden, und dazwischen frei ist – sonst (eine Insel, ein
+    Zapfen, Zeilen, die nicht alle dort enden) bleibt es bei _wandfahrt. Leer: keiner."""
+    enden = _wandenden(r_, teile)
+    art, m_letzte, js = teile[-1]
+    if art != "zeile" or len(js) < 2:
+        return []
+
+    def kette(seite, m, schritt):
+        k = enden[seite][m]
+        folge = [(m, k)]
+        while m + schritt in enden[seite]:
+            k_neu = enden[seite][m + schritt]
+            unten = min(m, m + schritt)
+            if not bool(r_.zwischen[unten, min(k, k_neu) : max(k, k_neu) + 1].all()):
+                break
+            m, k = m + schritt, k_neu
+            folge.append((m, k))
+        return folge
+
+    # Zuerst die Wand, an der die letzte Zeile endet – endet sie im Freien, die an ihrem Anfang
+    # (dann auf ihr zurück an die Wand).
+    richtung = 1 if js[-1] > js[0] else -1
+    seite = next((s for s in (richtung, -richtung) if m_letzte in enden[s]), None)
+    if seite is None:
+        return []
+
+    def gerade(folge):
+        """Eine gerade Wand quer zu den Zeilen: alle Enden an derselben Stelle (um eine Insel
+        enden die Zeilen versetzt – dort fuhren sie nie zurück und vor, der Zug brächte nur Weg)."""
+        stellen = {k for _m, k in folge}
+        return max(stellen) - min(stellen) <= 1
+
+    erste = kette(seite, m_letzte, -1)
+    if len(erste) != len(enden[seite]) or len(erste) < 2 or not gerade(erste):
+        return []
+    plan = [(seite, erste)]
+    m_unten = erste[-1][0]
+    if m_unten in enden[-seite]:
+        zweite = kette(-seite, m_unten, 1)
+        if len(zweite) == len(enden[-seite]) and len(zweite) >= 2 and gerade(zweite):
+            plan.append((-seite, zweite))
+    return plan
+
+
+def _wandzug(punkte, r_, plan, lage):
+    """Die Züge an den Wänden (_wandzug_plan): an der Wand der letzten Zeile erst hinter sie bis an
+    den Rand der Fläche, dann an der Wand entlang bis zur ersten Zeile (und vor ihr bis an den
+    Rand); an der Wand gegenüber von der ersten Zeile zurück bis zur letzten (und hinter ihr bis an
+    den Rand). Was die Zeilen hin und her an der Wand stehen ließen, nimmt der Zug in einer
+    Richtung – vorher fuhr der Fräser je zweite Zeile zur vorigen zurück und wieder vor.
+    Gibt die Länge zurück."""
+    laenge = 0.0
+    letzte = len(r_.v_zeilen) - 1
+
+    def hin(x, y):
+        nonlocal laenge
+        hier = punkte[-1]
+        if abs(hier.x - x) < GLEICH and abs(hier.y - y) < GLEICH:
+            return
+        punkt = bn.Punkt(False, x, y, lage)
+        laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
+
+    def stelle(m, j):
+        return r_.xy(float(r_.u_stellen[j]), float(r_.v_zeilen[m]))
+
+    def rand(seite_v, m, j):
+        """Bis an den Rand der Fläche vor der ersten (0) bzw. hinter der letzten Zeile (1) – wo
+        es dort erlaubt ist; sonst None."""
+        if seite_v == 1:
+            gut = m == letzte and r_.vor(float(r_.v_zeilen[m]), r_.v_rand[1])
+        else:
+            gut = m == 0 and r_.vor(r_.v_rand[0], float(r_.v_zeilen[0]))
+        if gut and bool(r_.erlaubt_rand[seite_v, j]) and bool(r_.zum_rand[seite_v, j]):
+            return r_.xy(float(r_.u_stellen[j]), r_.v_rand[seite_v])
+        return None
+
+    for nummer, (_seite, kette) in enumerate(plan):
+        m0, j0 = kette[0]
+        hin(*stelle(m0, j0))  # auf der Zeile an diese Wand
+        weiter = nummer + 1 < len(plan)
+        if nummer == 0:
+            oben = rand(1, m0, j0)
+            if oben is not None:
+                hin(*oben)
+                hin(*stelle(m0, j0))
+        for m, k in kette[1:]:
+            hin(*stelle(m, k))
+        m_ende, k_ende = kette[-1]
+        ende = rand(0 if nummer == 0 else 1, m_ende, k_ende)
+        if ende is not None:
+            hin(*ende)
+            if weiter:
+                hin(*stelle(m_ende, k_ende))
     return laenge
 
 
