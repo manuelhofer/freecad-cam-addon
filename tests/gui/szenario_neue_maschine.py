@@ -10,7 +10,8 @@
 # 4000 U/min entsteht ein neues
 # Dokument; „Maschine bearbeiten“ öffnet sich mit der schrägen Achse
 # „Y1 – gleicht aus: X1, 30,0°“ und acht Revolverplätzen. Dann ein Sternrevolver: VDI am
-# Umfang, Scheibe Ø 400, VDI 40, acht Plätze.
+# Umfang, Scheibe Ø 400, VDI 40, acht Plätze, ohne Y-Achse („Mit Y-Achse“ abgehakt: Y-Weg und
+# Y-Winkel verschwinden, die Maschine hat X, Z und C, kein Y).
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
@@ -253,11 +254,18 @@ def schritte(h):
     d.wahl_vdi.setCurrentIndex(d.wahl_vdi.findData(40))
     d.feld_plaetze.setValue(8)
     d.feld_name.setText("Sternrevolver")
+    # Ohne Y-Achse (P-2026-10-18-56): Y-Weg und Y-Winkel verschwinden.
+    h.pruefe(d.haken_y.isVisible() and d.haken_y.isChecked(), "„Mit Y-Achse“ fehlt oder aus")
+    d.haken_y.setChecked(False)
     yield 200
+    h.pruefe(
+        not d._weg_zeilen["Y"].isVisible() and not d.feld_y_winkel.isVisible(),
+        "ohne Y: Y-Weg oder Y-Winkel noch zu sehen",
+    )
     masse = d.masse()
     h.pruefe(
-        (masse.revolver, masse.scheibe, masse.vdi, masse.plaetze)
-        == (beispielmaschine.REVOLVER_UMFANG, 400.0, 40, 8),
+        (masse.revolver, masse.scheibe, masse.vdi, masse.plaetze, masse.mit_y)
+        == (beispielmaschine.REVOLVER_UMFANG, 400.0, 40, 8, False),
         f"Maße: {masse}",
     )
     h.bild("6_sternrevolver_masse", d)
@@ -271,10 +279,15 @@ def schritte(h):
         return
     kopf = panel.aufnahmen.topLevelItem(0).text(0) if panel.aufnahmen.topLevelItemCount() else ""
     h.pruefe(kopf.endswith("8 Plätze"), f"Sternrevolver: {kopf!r}")
+    from camaddon import maschine as m
+
+    namen = sorted(m.programmname(b) for b in m.betriebsarten(panel.maschine))
+    h.pruefe("Y" not in namen and "X" in namen and "C" in namen, f"ohne Y: Achsen {namen}")
     Gui.ActiveDocument.ActiveView.viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")
     yield 300
     h.bild("7_sternrevolver_gebaut")
+    h.bild("7b_sternrevolver_achsen", panel.form)
     panel.reject()
     yield 500
     for name in list(FreeCAD.listDocuments()):

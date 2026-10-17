@@ -41,7 +41,7 @@ und Ansichten.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import FreeCAD as App
 
@@ -1386,15 +1386,20 @@ class DrehmaschinenMasse:
     # Werkzeuge“; an seiner Maschine S4/C4 die Hauptspindel, S1/C1 die angetriebenen Werkzeuge).
     hauptspindel: int = 1
     werkzeugantrieb: int = 3
+    # Ohne Y-Achse (P-2026-10-18-56; Manuel, 2026-10-17: „es geht um alle Maschinen“): Der
+    # Y-Schlitten steht fest, gefräst wird an der Stirnseite polar mit X und C.
+    mit_y: bool = True
 
     def fehler(self):
         """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
         ergebnis = []
         if not BETTNEIGUNG_BEREICH[0] <= self.bettneigung <= BETTNEIGUNG_BEREICH[1]:
             ergebnis.append(("bettneigung", tr("neu.bettneigung_bereich")))
-        if not Y_WINKEL_BEREICH[0] <= self.y_winkel <= Y_WINKEL_BEREICH[1]:
+        if self.mit_y and not Y_WINKEL_BEREICH[0] <= self.y_winkel <= Y_WINKEL_BEREICH[1]:
             ergebnis.append(("y_winkel", tr("neu.y_winkel_bereich")))
-        ergebnis += _wege_fehler(self, ohne_null=("weg_z",))
+        ergebnis += [
+            f for f in _wege_fehler(self, ohne_null=("weg_z",)) if self.mit_y or f[0] != "weg_y"
+        ]
         if not PLAETZE_BEREICH[0] <= self.plaetze <= PLAETZE_BEREICH[1]:
             ergebnis.append(("plaetze", tr("neu.plaetze_bereich")))
         if self.drehzahl <= 0:
@@ -1527,6 +1532,8 @@ def drehmaschine(masse=None):
     """
     masse = masse or DrehmaschinenMasse()
     b = _neu(DREHMASCHINE)
+    if not masse.mit_y and not masse.name.strip():
+        masse = replace(masse, name=tr("beispiel.drehmaschine_ohne_y"))
     fuss = b.quader("Maschinenfuss", 1700, 1400, 500, x=-100, y=-300, farbe=GUSS)
     rueckwand = b.quader("Rueckwand", 1700, 400, 450, x=-100, y=700, z=500, farbe=GUSS)
     b.fixieren(fuss)
@@ -1604,10 +1611,14 @@ def drehmaschine(masse=None):
         richtung=(0, 1, 0),
         stellung=abstand.dot(richtung_x),
     )
-    y = b.gelenk_wie_gebaut(
-        "Y", "Slider", x_schlitten, "Face3", y_schlitten, "Face4", richtung=(0, 0, 1)
-    )
-    b.begrenze(y, *masse.weg_y)
+    if masse.mit_y:
+        y = b.gelenk_wie_gebaut(
+            "Y", "Slider", x_schlitten, "Face3", y_schlitten, "Face4", richtung=(0, 0, 1)
+        )
+        b.begrenze(y, *masse.weg_y)
+    else:  # ohne Y: der Schlitten steht fest auf X
+        y = None
+        b.gelenk_wie_gebaut("Y_fest", "Fixed", x_schlitten, "Face3", y_schlitten, "Face4")
     revolverachse = b.gelenk_wie_gebaut(
         "Revolverachse",
         "Revolute",
@@ -1631,7 +1642,7 @@ def drehmaschine(masse=None):
     ma = _maschine(asm, DREHMASCHINE)
     x1 = _linear(ma, x, "X1", 30000, 10000, 6, wechsel=masse.weg_x[1])  # ganz außen
     x1.Durchmesser = bool(masse.x_durchmesser)
-    y1 = _linear(ma, y, "Y1", 12000, 5000, 4)
+    y1 = _linear(ma, y, "Y1", 12000, 5000, 4) if y is not None else None
     _linear(ma, z, "Z1", 30000, 10000, 6)
     h, w = int(masse.hauptspindel), int(masse.werkzeugantrieb)
     _spindel(ma, hauptspindel, f"S{h}", masse.drehzahl, 2.5)
@@ -1649,7 +1660,7 @@ def drehmaschine(masse=None):
         platz.Spindel = s3
     _benenne(asm, ma, masse.name)
     asm.Document.recompute()
-    if masse.y_winkel:
+    if masse.y_winkel and y1 is not None:
         # Die schräge Achse: Die Y-Führung dreht sich, der Revolver bleibt gerade.
         trafo = m.neue_schraege_achse(ma, y1, x1)
         kette = kette_modul.lies_kette(asm)

@@ -344,6 +344,53 @@ for modus in st.MODI:
         f"{modus}: nach DIN gelesen {weit_din:.4f} mm neben der Bahn",
     )
     print(ascii(f"{modus}: {len(programm)} Zeilen, Y bis {max(abs(y) for y in y_werte):.2f}"))
+
+# --- Die Beispiel-Drehmaschine ohne Y (P-2026-10-18-56; Manuel: „es geht um alle Maschinen“) ----
+# Der Y-Schlitten steht fest: keine Y-Achse in Kette und Betriebsarten, der Rahmen Y 0 bis 0. Die
+# Kontur Ø 140 fährt polar mit X und C – ohne Grenze, am Teil auf dem 72-Eck, im Programm kein Y
+# außer 0.
+from camaddon import maschine as m  # noqa: E402
+
+asm_0, ma_0 = bm.drehmaschine(bm.DrehmaschinenMasse(mit_y=False))
+pruefe(
+    not any(m.programmname(b) == "Y" for b in m.betriebsarten(ma_0)),
+    "ohne Y: eine Betriebsart Y",
+)
+p_0 = rw.Pruefung(asm_0, ma_0)
+rahmen_0 = st.rahmen(p_0, p_0.werkzeugaufnahme(1), 100.0)
+pruefe(
+    rahmen_0 is not None and abs(rahmen_0.y_min) < 1e-6 and abs(rahmen_0.y_max) < 1e-6,
+    f"ohne Y: Rahmen {rahmen_0}",
+)
+st.setze_modus(job, st.MIT)
+e_0 = p_0.pruefe_job(job, rw.nullpunkt(job))
+pruefe(not e_0.ueberschreitungen, f"ohne Y: {[u.text() for u in e_0.ueberschreitungen][:2]}")
+fahrt_0 = ab.abfahrt(p_0, job, rw.nullpunkt(job))
+am_0 = [
+    q
+    for q, station in zip(fahrt_0.am_werkstueck(), fahrt_0.stationen, strict=True)
+    if not station.eilgang and q[2] < -0.5
+]
+daneben_0 = (
+    max(
+        min(abstand_gerade(q, e0, e1) for e0, e1 in zip(ecken, ecken[1:], strict=False))
+        for q in am_0
+    )
+    if am_0
+    else math.inf
+)
+pruefe(len(am_0) > 50 and daneben_0 < 0.01, f"ohne Y: {len(am_0)} Stellen, {daneben_0:.4f} daneben")
+info_0 = pp.maschineninfo_dokument(asm_0.Document)
+programm_0 = pp.programm(pp.abschnitte(job), pp.steuerung("siemens"), info_0, "Stirn").zeilen
+y_0 = [float(w[1:]) for z in programm_0 for w in z.split() if w.startswith("Y")]
+c_0 = [z for z in programm_0 if " C" in z or z.startswith("C")]
+pruefe(
+    max((abs(y) for y in y_0), default=0.0) < 1e-3 and len(c_0) > 50,
+    f"ohne Y: Y {y_0[:5]}, C {len(c_0)}",
+)
+print(ascii(f"Ohne Y an der Beispiel-Drehmaschine: {len(am_0)} Stellen, {daneben_0:.4f} daneben"))
+FreeCAD.closeDocument(asm_0.Document.Name)
+
 FreeCAD.closeDocument(doc.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 

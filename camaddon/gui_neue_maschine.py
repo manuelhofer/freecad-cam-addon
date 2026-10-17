@@ -134,6 +134,13 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.feld_bett = _winkelfeld(vorgabe.bettneigung, beispielmaschine.BETTNEIGUNG_BEREICH)
         self.feld_bett.setToolTip(tr("neu.bettneigung.tooltip"))
         formular.addRow(tr("neu.bettneigung"), self.feld_bett)
+        # Viele Drehmaschinen haben keine Y-Achse (P-2026-10-18-56): ohne den Haken steht der
+        # Y-Schlitten fest, Y-Weg und Y-Winkel verschwinden.
+        self.haken_y = QtGui.QCheckBox(tr("neu.mit_y"))
+        self.haken_y.setChecked(True)
+        self.haken_y.setToolTip(tr("neu.mit_y.tooltip"))
+        self.haken_y.toggled.connect(lambda _an: self._y_zeigen())
+        formular.addRow(tr("neu.y_achse"), self.haken_y)
         self.feld_y_winkel = _winkelfeld(vorgabe.y_winkel, beispielmaschine.Y_WINKEL_BEREICH)
         self.feld_y_winkel.setToolTip(tr("neu.y_winkel.tooltip"))
         formular.addRow(tr("neu.y_winkel"), self.feld_y_winkel)
@@ -279,6 +286,7 @@ class NeueMaschineDialog(QtGui.QDialog):
 
         self._nur_drehmaschine = [
             self.feld_bett,
+            self.haken_y,
             self.feld_y_winkel,
             self.wahl_x,
             self.feld_plaetze,
@@ -405,10 +413,23 @@ class NeueMaschineDialog(QtGui.QDialog):
                 zeile.setToolTip(tooltips[achse] if drehmaschine else tr("neu.weg.tooltip"))
             if art in _Z_OHNE_MINUS and not drehmaschine:
                 self._weg_zeilen["Z"].setToolTip(tr("neu.weg_z.fraese.tooltip"))
+            self._y_zeigen()
         self.fehler.hide()
         # Mit den Zeilen der Drehmaschine braucht das Fenster mehr Höhe – es wächst mit, sonst
         # quetschte Qt die Zeilen übereinander (P-2026-09-30-52).
         QtCore.QTimer.singleShot(0, self._groesse_anpassen)
+
+    def _y_zeigen(self):
+        """Y-Weg und Y-Winkel nur mit Y-Achse – an der Drehmaschine wählbar, sonst immer da."""
+        art = self.gewaehlt()
+        drehmaschine = art == beispielmaschine.DREHMASCHINE
+        mit_y = not drehmaschine or self.haken_y.isChecked()
+        zeile = self._weg_zeilen["Y"]
+        zeile.setVisible(mit_y)
+        self._formular.labelForField(zeile).setVisible(mit_y)
+        if drehmaschine:
+            self.feld_y_winkel.setVisible(mit_y)
+            self._formular.labelForField(self.feld_y_winkel).setVisible(mit_y)
 
     def _groesse_anpassen(self):
         hinweis = self.sizeHint()
@@ -483,6 +504,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             revolver=self.wahl_revolver.currentData(),
             scheibe=_wert(self.feld_scheibe, vorgabe.scheibe),
             vdi=self.wahl_vdi.currentData(),
+            mit_y=self.haken_y.isChecked(),
             x_durchmesser=bool(self.wahl_x.currentData()),
             hauptspindel=self.feld_hauptspindel.value(),
             werkzeugantrieb=self.feld_werkzeugantrieb.value(),

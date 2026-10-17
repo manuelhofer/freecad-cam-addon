@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-56 drehmaschine-ohne-y
+
+### EINGELESEN
+- Manuel (2026-10-17): „es geht nicht um meine Maschinen, es geht um alle Maschinen“; zu Frage
+  1/4: auch „C und X“. P-50 machte die Stirnseite ohne Y möglich, eine Drehmaschine ohne Y ließ
+  sich aber nicht anlegen – und nicht durchprüfen.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`: `DrehmaschinenMasse.mit_y` (vorbelegt True) – ohne: der
+  Y-Schlitten fest auf X (Gelenk „Y_fest“), keine Betriebsart Y1, kein schräges Y, der Y-Weg wird
+  nicht geprüft, Name leer: „Drehmaschine ohne Y-Achse“.
+- `camaddon/gui_neue_maschine.py`: Haken „Mit Y-Achse“ (nur Drehmaschine); ohne ihn verschwinden
+  Y-Weg und Y-Winkel (`_y_zeigen`).
+- Texte `neu.y_achse`, `neu.mit_y`, `.tooltip`, `beispiel.drehmaschine_ohne_y` (de/en);
+  `help/de|en/neue_maschine.html`.
+- `tests/test_stirnseite.py`: Beispiel-Drehmaschine ohne Y – keine Betriebsart Y, Rahmen Y 0 bis
+  0, die Kontur Ø 140 ohne Grenze, 937 Stellen am Teil auf dem 72-Eck (0,0000 mm daneben), im
+  Siemens-Programm kein Y außer 0, über 50 Sätze mit C.
+- `tests/gui/szenario_neue_maschine.py`: der Sternrevolver ohne Y – Haken da und an, abgehakt
+  verschwinden Y-Weg und Y-Winkel, `masse().mit_y` False, die gebaute Maschine hat X und C, kein Y.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_stirnseite`, `test_beispielmaschine`, `test_sprache`,
+  `szenario_neue_maschine`.
 ## P-2026-10-18-55 vierachs-befehle-schneller
 
 ### EINGELESEN
