@@ -74,6 +74,16 @@ findet, fährt dort Zeilen (wie V4) statt einer ganzen Umdrehung je Steigung.
 - An der Nase (`beispiele/testteil_4achs_nase.FCStd`), an der Nocke und am Ring wird es nirgends
   schlechter: Zeit, Rest, kein Schnitt ins Teil.
 
+**Stand 2026-10-17 (P-2026-10-17-26):** Ohne Querachse gebaut – Zeilen in den Sektoren ab der
+Lage, über der weniger als die Hälfte des Umfangs steht (`vierachs_bahn.SEKTOREN_AB`): am Ring
+100 → 15 km, Bild `docs/bilder/vorschlaege/ring_sektoren.png`. **Offen:** mit Querachse. Zeilen
+mit dem radialen Fräser ließen der Kugel an der Nase das Doppelte (22 statt 12 cm³, bis 58 mm² je
+mm) – die Zeilen müssten wie die Spirale durch `_quer_plan` → `vierachs_quer.stellungen` →
+`_heben_vor_drehen` → `_nachsehen` → `_quer_ausgeben` (in `_schruppen_quer.lage_rechnen`), mit
+Einfahrten, die C nicht zurückdrehen (eine Rampe längs der Stange statt Helix). Am Ring mit
+Querachse: 151 km, 88 % Luft. Dazu: Die Zeilen lassen an den Schlitzwänden Späne von einem
+Winkelschritt (0,48 cm³ am Ring); die Spirale nahm sie beim schrägen Aufstieg am Schlitzrand mit.
+
 ## 2. Manuels Weg für die Nase (Schaft an der Flanke, Front quer)
 
 **Manuels Bild und Worte (2026-10-12, im Snapshot unter „Nächster Schritt“):**

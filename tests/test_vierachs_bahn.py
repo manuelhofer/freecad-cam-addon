@@ -816,6 +816,61 @@ pruefe(
     f"Querachse: zu tief {min(p.r for p in quer_letzte)}",
 )
 
+# Sektoren (Auftrag 1, 2026-10-17; Manuel am Ring: „warum fährt der da in der luft ???“): Manuels
+# Ring (beispiele/ring_4achs_planbearbeitung – drei Segmente mit Schlitzen bis zur Bohrung), in der
+# Stange Ø 70 (z −78,5 … 9, das Teil z 0 … 8), T4 Ø 4, ap 3, ae 1, „Folgelagen nur, wo nötig“. Ab
+# Lage 2 steht nur noch in den drei Schlitzen etwas: Zeilen dort statt der Spirale rundum – ein
+# Siebtel des Wegs (100 → 15 km), im Voxel nachgefahren nirgends ins Teil, und nicht mehr als
+# 0,5 cm³ weniger weggenommen (Späne an den Schlitzwänden, so breit wie ein Winkelschritt).
+from camaddon import vierachs_operation as vo  # noqa: E402
+from camaddon import voxelstange as vx  # noqa: E402
+
+ring_doc = FreeCAD.openDocument(
+    os.path.join(ADDON, "beispiele", "ring_4achs_planbearbeitung.FCStd"), hidden=True
+)
+ring = ring_doc.getObject("Body").Shape
+ring_laengs, ring_radial = V(0, 0, 1), V(1, 0, 0)
+ring_werte = vb.Schruppwerte(
+    fraeser_radius=2.0, stange_radius=35.0, zustellung=3.0, steigung=1.0, aufmass=0.3,
+    a_stange_vorne=9.0, a_futter=-48.5, waende=vo.waende(ring, ring_laengs),
+    form=ff.scheibe(2.0), stetig=True, nur_noetig=True,
+)  # fmt: skip
+ring_netz = vh.vernetze(ring)
+ring_bahnen = {}
+for name, ab in (("spirale", 0.0), ("sektoren", vb.SEKTOREN_AB)):
+    sektoren_ab = vb.SEKTOREN_AB
+    vb.SEKTOREN_AB = ab
+    try:
+        ring_bahnen[name] = vb.schruppen(ring_netz, ring_laengs, ring_radial, ring_werte)
+    finally:
+        vb.SEKTOREN_AB = sektoren_ab
+ring_weg = {
+    name: sum(
+        math.hypot(math.hypot(n.a - p.a, n.r - p.r), (p.r + n.r) / 2 * math.radians(n.phi - p.phi))
+        for p, n in zip(b.punkte, b.punkte[1:], strict=False)
+        if not n.eilgang
+    )
+    for name, b in ring_bahnen.items()
+}
+print(ascii(f"Ring: Spirale {ring_weg['spirale']:.0f} mm, Sektoren {ring_weg['sektoren']:.0f} mm"))
+pruefe(
+    ring_weg["sektoren"] < 0.25 * ring_weg["spirale"],
+    f"Ring: Sektoren {ring_weg['sektoren']:.0f} mm gegen Spirale {ring_weg['spirale']:.0f} mm",
+)
+ring_stangen = {}
+for name, b in ring_bahnen.items():
+    st = vx.Voxelstange(35.0, -8.5, 9.0, h=0.5)
+    st.fahre(b.punkte, 2.0, False, verteilt=False)
+    ring_stangen[name] = st
+ring_fertig = ring_stangen["spirale"].teil(ring, ring_laengs, ring_radial)
+for name, st in ring_stangen.items():
+    pruefe(bool(st.material[ring_fertig].all()), f"Ring, {name}: ins Teil")
+ring_mehr = (~ring_stangen["spirale"].material) & ring_stangen["sektoren"].material
+ring_mehr_mm3 = float(ring_mehr.sum()) * 0.5**3
+print(ascii(f"Ring: die Spirale nahm {ring_mehr_mm3:.0f} mm³ mehr"))
+pruefe(ring_mehr_mm3 < 600.0, f"Ring: Sektoren lassen {ring_mehr_mm3:.0f} mm³ mehr stehen")
+FreeCAD.closeDocument(ring_doc.Name)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

@@ -91,6 +91,7 @@ import numpy as np
 
 from . import fraeserform as ff
 from . import spindel as sp
+from . import vierachs_flaechen as vf
 from . import vierachs_huelle as vh
 from . import vierachs_quer as vq
 from .sprache import tr
@@ -112,6 +113,11 @@ FREI_RAND = 1.0  # mm
 # einer Flanke anliegt, liegt der Rest genau auf seiner Stirn – im Raster der Stange (0,5 mm × 1°)
 # um Hundertstel darüber oder darunter.
 FREI_REST = 0.05  # mm
+# Mit „Folgelagen nur, wo nötig“: Steht über einer Lage nur noch auf so viel des Umfangs Material
+# (gemittelt über die Stellen längs, an denen etwas steht), fährt sie Zeilen in den Sektoren (wie
+# mit gewählten Flächen, V4) statt der ganzen Spirale – an Manuels Ring (drei Segmente mit
+# Schlitzen) kreisten die tiefen Lagen zu 70 … 80 % durch Luft (Auftrag 1, 2026-10-17: 100 → 15 km).
+SEKTOREN_AB = 0.5
 # Mit Flächen und der Querachse (Frage 12, Manuel 2026-10-11: „Spirale, Flächen überspringen …
 # angehoben, Freivorschub“): Wo die Kugel nur noch Flächen berührte, die nicht gewählt sind (die
 # „Plan indexiert“ fertig macht), fährt sie so viel höher im Freivorschub darüber – mehr als das
@@ -621,29 +627,29 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         w = replace(w, zustellung=(w.stange_radius - r_min) / lagen)
     sicher = w.stange_radius + w.sicherheit
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
-    if w.bereich is not None:  # gewählte Flächen: Zeilen hin und her (V4)
-        zeilen_a = _zeilen(w.bereich, a_ende, a_anfang, w.steigung, ringe)
 
-        def boden_bei(stellen, j):
-            """Wie tief die Spitze an den Stellen längs beim Winkelschritt j darf – ein Ring
-            genau an seiner Stelle."""
-            j = np.broadcast_to(j, np.shape(stellen))
-            ergebnis = huelle.bei(stellen, j) + zugabe
-            for stelle, zeile in zip(ringe_spirale, ring_r, strict=True):
-                ergebnis = np.where(np.abs(stellen - stelle) < GLEICH, zeile[j] + zugabe, ergebnis)
-            nichts = ~np.isfinite(ergebnis)
-            ergebnis = np.where(
-                nichts, np.where(stellen < teil_hinten, w.stange_radius, 0.0), ergebnis
-            )
-            return np.maximum(ergebnis, w.r_tiefste)
+    def boden_bei(stellen, j):
+        """Wie tief die Spitze an den Stellen längs beim Winkelschritt j darf – ein Ring
+        genau an seiner Stelle."""
+        j = np.broadcast_to(j, np.shape(stellen))
+        ergebnis = huelle.bei(stellen, j) + zugabe
+        for stelle, zeile in zip(ringe_spirale, ring_r, strict=True):
+            ergebnis = np.where(np.abs(stellen - stelle) < GLEICH, zeile[j] + zugabe, ergebnis)
+        nichts = ~np.isfinite(ergebnis)
+        ergebnis = np.where(nichts, np.where(stellen < teil_hinten, w.stange_radius, 0.0), ergebnis)
+        return np.maximum(ergebnis, w.r_tiefste)
 
+    def zeilen_fuer(bereich):
+        """(Stellen der Zeilen, (Zeilen, N) wie tief die Spitze darf, `vorn`) für die Zeilen
+        im Bereich (_schruppen_zeilen). Von vorn aus der Luft (Manuel, 2026-10-12: Zickzack ins
+        Material nur in der geschlossenen Nut): Reicht der Bereich vorn bis ans Teil, fährt die
+        erste Zeile einer Lage in ihrer Tiefe von vor der Stange längs hinein. Wie tief die
+        Spitze auf dem Weg darf, eigens – die Hüllfläche des Bereichs reicht nicht bis vor das
+        Teil."""
+        zeilen_a = _zeilen(bereich, a_ende, a_anfang, w.steigung, ringe)
         boden_zeilen = np.array(
             [boden_bei(np.full(je_umdrehung, z), rundum) for z in zeilen_a]
         ).reshape(len(zeilen_a), je_umdrehung)
-        # Von vorn aus der Luft (Manuel, 2026-10-12: Zickzack ins Material nur in der geschlossenen
-        # Nut): Reicht der Bereich vorn bis ans Teil, fährt die erste Zeile einer Lage in ihrer
-        # Tiefe von vor der Stange längs hinein. Wie tief die Spitze auf dem Weg darf, eigens –
-        # die Hüllfläche des Bereichs reicht nicht bis vor das Teil.
         vorn = None
         if len(zeilen_a) and float(zeilen_a[0]) + radius >= teil_vorne - GLEICH:
             stellen = vh.raster_a(
@@ -652,9 +658,81 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             weg = huelle_bei(stellen).sicher().r + zugabe
             weg = np.where(np.isfinite(weg), weg, 0.0)
             vorn = (a_anfang, stellen, np.maximum(weg, w.r_tiefste))
+        return zeilen_a, boden_zeilen, vorn
+
+    if w.bereich is not None:  # gewählte Flächen: Zeilen hin und her (V4)
+        zeilen_a, boden_zeilen, vorn = zeilen_fuer(w.bereich)
         _schruppen_zeilen(punkte, zeilen_a, boden_zeilen, boden_bei, lagen, w, schritt_phi, vorn)
         _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
         return Bahn(punkte, lagen, r_min, hinten_frei, anstoss)
+    # Wie tief die Spitze je Stelle und Winkel darf (wie boden(), im Raster) – für die Sektoren.
+    tiefe = np.where(
+        np.isfinite(huelle.r),
+        huelle.r + zugabe,
+        np.where(huelle.a[:, None] < teil_hinten, w.stange_radius, 0.0),
+    )
+    tiefe = np.maximum(tiefe, w.r_tiefste)
+    im_lauf = (huelle.a >= a_ende) & (huelle.a <= a_anfang)
+    # Weiter vor der Stange als einen Radius steht die Stirn in der Luft; bis dahin nimmt sie die
+    # Stirnseite der Stange (dort trifft die Hüllfläche nichts: bis zur Achse).
+    bis_vorn = (huelle.a <= w.a_stange_vorne + radius + GLEICH)[:, None]
+
+    def sektoren(lage):
+        """Steht über Lage `lage` nur noch in Sektoren etwas – (nötig, Lage davor) oder None?
+        Manuels Ring (drei Segmente mit Schlitzen): Die tiefen Lagen kreisten zu 70 … 90 %
+        durch Luft. Dann fährt die Lage Zeilen in den Sektoren, wie mit gewählten Flächen (V4),
+        statt der Spirale."""
+        # Nicht mit der Querachse: Zeilen mit dem radialen Fräser ließen der Kugel an der Nase
+        # das Doppelte stehen (22 statt 12 cm³, bis 58 mm² je mm) – die angestellte Spirale kommt
+        # näher an die schrägen Flächen. Zeilen in den Sektoren mit Anstellung: ein eigener Schritt.
+        if not w.nur_noetig or w.querachse or lage < 2:
+            return None
+        davor_r = w.stange_radius - (lage - 1) * w.zustellung
+        noetig = (tiefe < davor_r - BAHN_TOLERANZ) & im_lauf[:, None] & bis_vorn
+        zeilen = noetig.any(axis=1)
+        if not zeilen.any():
+            return None
+        # Der Anteil am Umfang, gemittelt über die Stellen längs, an denen noch etwas steht –
+        # nicht über alle Zellen: Wie weit längs noch etwas steht, kürzt die Spirale schon
+        # selbst (bis_a); eine Welle mit einem Absatz bleibt Spirale.
+        anteil = float(noetig[zeilen].mean())
+        return (noetig, davor_r) if anteil <= SEKTOREN_AB else None
+
+    def sektor_lage(lage, noetig, davor_r, rest):
+        """Die Lage als Zeilen in den Sektoren; gibt 1 zurück, wenn sie Punkte bekam. `rest`: was
+        nach den Lagen davor noch steht (_Rest) – so hoch beginnen die Einfahrten; None: die
+        Lage davor überall."""
+        # So weit neben einer Zelle muss die Mitte des Fräsers noch stehen, damit seine Stirn sie
+        # nimmt: auf dem Radius dieser Lage – nicht auf dem der Hüllfläche darunter (in einem
+        # Schlitz bis über die Achse hinaus wäre das rundum).
+        ebene = max(davor_r - w.zustellung, GLEICH)
+        auf_ebene = vh.Huelle(huelle.a, huelle.phi, np.full(huelle.r.shape, ebene))
+        drin = vf.bereich_aus_maske(auf_ebene, noetig, radius).drin
+        # Aber nur, wo die Spitze auch unter die Lage davor kommt: Über dem Nachbarn eines
+        # Schlitzes hält die Hüllfläche sie oben – dort nähme sie nichts, die Zeile führe am Rand
+        # des Schlitzes auf das Teil hinauf und durch die Luft zurück.
+        drin &= (tiefe < davor_r - BAHN_TOLERANZ) & bis_vorn
+        # (Nicht eine Zelle weiter rundum, damit die Zeile wie die Spirale schräg auf die Wand
+        # des Schlitzes steigt: Das kostete am Ring je Zeilenende den Weg bis auf das Teil hinauf
+        # – 8,6 → 48 km. Was so an der Wand stehen bleibt, ist einen Winkelschritt schmal, am
+        # Ring 59 mm³; das nimmt das Schlichten mit dem Aufmaß.)
+        bereich = vf.Bereich(huelle.a, huelle.phi, drin)
+        zeilen_a, boden_zeilen, vorn = zeilen_fuer(bereich)
+        if not len(zeilen_a):
+            return 0
+        davor = np.maximum(boden_zeilen, davor_r)
+        if rest is not None:
+            davor = np.maximum(davor, rest.stand(zeilen_a, je_umdrehung, schritt_phi))
+        anfang_lage = len(punkte)
+        gefahren = _schruppen_zeilen(
+            punkte, zeilen_a, boden_zeilen, boden_bei, lage, replace(w, bereich=bereich),
+            schritt_phi, vorn, erste=lage, davor=davor,
+        )  # fmt: skip
+        _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
+        if rest is not None:  # die nächste Lage beginnt ihre Einfahrten, wo diese endete
+            rest.fahren(punkte, anfang_lage, w.form if w.form is not None else w.fraeser_radius)
+        return gefahren
+
     if w.querachse:
         spirale_ = (a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte)
         rahmen_ = (a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher)
@@ -683,6 +761,10 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     gefahren = 0
     rest = _rest_neu(w) if lagen > 1 else None
     for lage in range(1, lagen + 1):
+        sektor = sektoren(lage)
+        if sektor is not None:
+            gefahren += sektor_lage(lage, *sektor, rest)
+            continue
         unten = boden(versatz)
         ende = len(a)
         if lage > 1 and w.nur_noetig:
@@ -788,6 +870,21 @@ class _Rest:
             laengs[:-d] = np.maximum(laengs[:-d], r[d:])
         self._fenster = (halb, laengs)
         return laengs
+
+    def stand(self, zeilen_a, n, schritt_phi):
+        """(Zeilen, n): so hoch steht der Rest je Zeile (a) und Winkelschritt (n Schritte zu
+        `schritt_phi` Grad) – das Äußerste auf dem Strahl, nie weniger als da ist."""
+        st = self.stange
+        ia = np.clip(
+            np.rint((np.asarray(zeilen_a, dtype=float) - st.a[0]) / (st.a[1] - st.a[0])),
+            0,
+            len(st.a) - 1,
+        ).astype(np.int64)
+        j = (
+            np.rint(np.arange(n) * math.radians(schritt_phi) / st._schritt_phi).astype(np.int64)
+            % st.r.shape[1]
+        )
+        return st.r[ia][:, j]
 
     def leer(self, a, x, psi, q, radius):
         """Je Stellung (Spitze x längs der Werkzeugachse unter ψ Grad, quer um q, an der Stelle
@@ -1092,11 +1189,39 @@ def _zeilen(bereich, a_von, a_bis, abstand, ringe=()):
     anzahl = max(1, int(math.ceil((oben - unten) / abstand - 1e-9)))
     stellen = list(oben - (oben - unten) * np.arange(anzahl + 1) / anzahl)
     stellen += [ring for ring in ringe if unten - GLEICH <= ring <= oben + GLEICH]
+    stellen += _uebersehene(bereich, stellen, unten, oben)
     ergebnis = []
     for stelle in sorted(stellen, reverse=True):
         if not ergebnis or ergebnis[-1] - stelle > 1e-6:
             ergebnis.append(stelle)
     return np.array(ergebnis)
+
+
+def _uebersehene(bereich, stellen, unten, oben):
+    """Die Stellen, die zu den Zeilen `stellen` dazukommen, damit jedes Stück des Bereichs längs
+    eine Zeile bekommt: Je Winkel das Stück des Bereichs, in dem keine Zeile liegt, bekommt eine
+    an seinem hinteren Ende – von dort reicht die Stirn am weitesten nach hinten. An Manuels
+    Ring ist die Stirnseite der Stange nur von einem 0,5 mm schmalen Band vor ihr aus zu
+    erreichen (davor hält die Hüllfläche die Stirn über dem Teil); die gleich weiten Zeilen
+    trafen es nicht, die Spirale schon."""
+    a = bereich.a
+    if len(a) < 2:
+        return []
+    schritt = float(a[1] - a[0])
+    vorhanden = np.sort(np.asarray(stellen, dtype=float))
+    neu = set()
+    for spalte in bereich.drin.T:
+        if not spalte.any():
+            continue
+        for von, bis in _stuecke(spalte):
+            a_von, a_bis = float(a[von]), float(a[bis])
+            if a_bis < unten - GLEICH or a_von > oben + GLEICH:
+                continue
+            i = int(np.searchsorted(vorhanden, a_von - GLEICH))
+            if i < len(vorhanden) and vorhanden[i] <= min(a_von + schritt, a_bis) + GLEICH:
+                continue  # eine Zeile liegt am hinteren Ende des Stücks
+            neu.add(round(min(max(a_von, unten), oben), 6))
+    return sorted(neu)
 
 
 def _bereiche(drin):
@@ -1446,16 +1571,21 @@ def _helix(punkte, mitte, rh, anfang, oben, steil, w):
     punkte.append(Punkt(False, a0, r0, p0))
 
 
-def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi, vorn=None):
+def _schruppen_zeilen(
+    punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi, vorn=None, erste=1, davor=None
+):
     """Die Lagen, wenn nur im Bereich gefräst wird (V4): Zeilen hin und her (_fahrten), jede Lage
     auf denselben Stellen – so steht über jeder höchstens die Tiefe der Lage davor. `boden`:
     (Zeilen, N) wie tief die Spitze darf, `boden_bei(stellen, j)` dasselbe dazwischen. Senkrecht
     hinein geht es, wo die Zeile davor (höchstens einen Fräserradius weiter vorn) in dieser Lage
     schon fräste; sonst von vorn aus der Luft, wo `vorn` es erlaubt – (a vor der Stange,
     Stellen, (Stellen, N) wie tief die Spitze dort darf): in der Tiefe der Zeile längs bis zu
-    ihr, an jeder Stelle des Wegs darf die Spitze so tief –, und nur wo nicht, über die Rampe."""
+    ihr, an jeder Stelle des Wegs darf die Spitze so tief –, und nur wo nicht, über die Rampe.
+    Ab Lage `erste` (die davor fuhr die Spirale, Sektoren) mit `davor` (Zeilen, N): so hoch
+    steht das Material dann noch. Gibt zurück, wie viele Lagen Punkte bekamen."""
     if not len(zeilen_a):
-        return
+        return 0
+    gefahren = 0
     n = boden.shape[1]
     phi_werte = np.radians(schritt_phi * np.arange(n))
     drin = w.bereich.bei(zeilen_a[:, None], phi_werte[None, :])
@@ -1471,11 +1601,13 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi,
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     spiel = schrupp_spiel(w.aufmass)
     nah = np.concatenate([[False], np.diff(-zeilen_a) <= w.fraeser_radius + GLEICH])
-    davor = np.full(boden.shape, float(w.stange_radius))
-    for lage in range(1, lagen + 1):
+    if davor is None:
+        davor = np.full(boden.shape, float(w.stange_radius))
+    for lage in range(erste, lagen + 1):
         ebene = w.stange_radius - lage * w.zustellung
         hoehe = np.maximum(boden, ebene)
         gefraest = np.zeros(boden.shape, dtype=bool)
+        anfang_lage = len(punkte)
 
         def schritt_hoehe(_m, j, stellen, ebene=ebene):
             return np.maximum(boden_bei(stellen, j % n), ebene)
@@ -1510,6 +1642,9 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi,
         # Was nach dieser Lage steht: nur, wo sie fräst – daneben (außerhalb des Bereichs) steht
         # noch, was davor stand (die Helix der Einfahrt prüft es, _helix_frei).
         davor = np.where(drin, hoehe, davor)
+        if any(not p.eilgang for p in punkte[anfang_lage:]):
+            gefahren += 1
+    return gefahren
 
 
 def _schlichten_zeilen(

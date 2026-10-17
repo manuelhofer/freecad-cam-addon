@@ -300,6 +300,18 @@ def bereich(sicht_, gewaehlt, radius):
     return Bereich(sicht_.a, sicht_.phi, ergebnis)
 
 
+def bereich_aus_maske(sicht_, drin, radius):
+    """Der Bereich (Bereich) für einen Fräser mit `radius` über den Zellen `drin` (wie
+    `sicht_.r`: Stellen × Winkel) einer Hüllfläche oder Sicht – über ihnen und überall, wo seine
+    Stirn eine von ihnen berührt (_geweitet). Für die Sektoren beim Schruppen rundum
+    (vierachs_bahn.schruppen, SEKTOREN_AB)."""
+    drin = np.asarray(drin, dtype=bool)
+    ergebnis = drin.copy()
+    if radius > 0 and drin.any():
+        ergebnis |= _geweitet(drin, sicht_, radius)
+    return Bereich(sicht_.a, sicht_.phi, ergebnis)
+
+
 def _geweitet(drin, sicht_, radius):
     """Die Zellen, deren Fräser eine Zelle aus `drin` berührt. Es genügen die Zellen am Rand
     von `drin`: Der Fräser einer Zelle weiter innen reicht nicht weiter hinaus. Eine Zelle

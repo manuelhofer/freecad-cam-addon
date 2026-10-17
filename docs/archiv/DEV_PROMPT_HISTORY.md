@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-26 rundum-sektoren
+
+### EINGELESEN
+- Auftrag 1 (`docs/auftraege_fable.md`; Manuel am Ring, 2026-10-12: „warum fährt der da in der
+  luft ??? … komplette anarchie“). Gemessen am Beispiel-Ring (Ø 65 × 8, drei Segmente mit
+  Schlitzen bis zur Bohrung, Stange Ø 70, T4 Ø 4, ap 3, ae 1), die Bahn im Voxel nachgefahren:
+  Rundum schruppen ohne Querachse 100 km Weg, davon 68 % ohne Abtrag – ab Lage 2 stand nur noch in
+  den drei Schlitzen etwas (120° von 360°), die Spirale kreiste trotzdem; „Folgelagen nur, wo
+  nötig“ kürzt nur längs. Mit Querachse 151 km, 88 % Luft.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `SEKTOREN_AB` (0,5). In `schruppen()` je Lage `sektoren(lage)`:
+  der Anteil am Umfang, auf dem über der Lage noch etwas steht (gemittelt über die Stellen längs,
+  an denen etwas steht – nicht über alle Zellen, sonst griff es an einer Welle mit Absatz);
+  darunter fährt `sektor_lage` die Lage als Zeilen in den Sektoren (`_schruppen_zeilen`, wie V4):
+  der Bereich aus `vf.bereich_aus_maske` (um den Fräserradius auf dem Radius der Lage geweitet,
+  nicht auf dem der Hüllfläche – im Schlitz bis über die Achse wäre das rundum), nur Zellen,
+  unter die die Spitze kommt (sonst stiege die Zeile am Schlitzrand aufs Teil), bis einen Radius
+  vor die Stange (von dort nimmt die Stirn die Stirnseite); `davor` aus dem Rest (`_Rest.stand`),
+  der nach jeder Sektor-Lage nachgefahren wird. `_zeilen`: `_uebersehene` – je Winkel ein Stück
+  des Bereichs ohne Zeile bekommt eine an seinem hinteren Ende (die Stirnseite der Stange ist nur
+  aus einem 0,5 mm schmalen Band vor ihr zu erreichen). `_schruppen_zeilen(…, erste, davor)` ab
+  einer Lage mit dem Stand davor, gibt die gefahrenen Lagen zurück. `boden_bei` und `zeilen_fuer`
+  für beide Zweige. Nicht mit der Querachse (unten).
+- `camaddon/vierachs_flaechen.py`: `bereich_aus_maske`.
+- Texte: `va.nur_noetig.tooltip`, `vo.eigenschaft.nur_noetig`; `help/de|en/vierachs.html`.
+- `tests/test_vierachs_bahn.py`: der Ring – Sektoren unter einem Viertel des Wegs, nirgends ins
+  Teil, höchstens 0,6 cm³ weniger weggenommen.
+- Bild: `docs/bilder/vorschlaege/ring_sektoren.png` (abgewickelt, alle Lagen, rot = Luft).
+
+### ERGEBNIS
+- Ring ohne Querachse: 100 → 15 km, Luft 68 → 31 %, bei vf 1000 70 → 15 min; im Voxel nirgends
+  ins Teil; die Spirale nahm 0,48 cm³ mehr (Späne an den Schlitzwänden, einen Winkelschritt
+  breit: Die Spirale steigt am Schlitzrand schräg aufs Teil und nimmt den Keil mit; die Zeilen
+  eine Zelle weiter steigen zu lassen kostete 15 → 48 km), die Zeilen 0,5 cm³ mehr an der
+  Stirnseite.
+- Mit Querachse bleibt die Spirale: Zeilen mit dem radialen Fräser ließen der Kugel an der Nase
+  22 statt 12 cm³, bis 58 mm² je mm (`test_vierachs_frei`) – die angestellte Spirale kommt näher an
+  die schrägen Flächen. Zeilen in den Sektoren durch die Anstell-Rechnung (`_quer_plan`,
+  `vierachs_quer.stellungen`): offen, siehe `docs/auftraege_fable.md` Auftrag 1.
+- Erste Fassung griff über alle Zellen (eine Welle mit Absatz wurde länger, `test_vierachs_frei`
+  „gekürzt länger“) und drehte mit „C dreht nicht zurück“ 3113° zurück – beides weg.
+- Grün im Wochen-Build: `test_vierachs_bahn`, `test_vierachs_frei`, `test_sprache`,
+  `test_hilfe`, `szenario_vierachs_schruppen`.
 ## P-2026-10-17-25 durchsicht-p21-p23
 
 ### EINGELESEN
