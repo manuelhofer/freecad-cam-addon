@@ -63,6 +63,12 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   Sektoren, Manuels Ring 100 → 11 km; mit Querachse Frage 1 in OFFENE_FRAGEN), Auftrag 3
   gemessen (Zwickel verstanden, Materialstand-Ringe bringen nichts), Auftrag 4 gebaut (gerechnete
   Schlichtzeit), Auftrag 5: Vollnut-Rampe einweg, Flanke war ein Zählfehler.
+- **Fable, nachmittags (P-2026-10-17-31 bis -35, → 0.260.99):** Durchsicht P-26 (Zusatzzeilen nur
+  in den Sektoren), Zeilen unter der Achse, Stirnseite → Verweis in „Bearbeitung“, am Ring die
+  Luftzeile vor der Stange weg (12,4 → 11 km, 10 % Luft), Gegenleser-Funde (RichText-Fehlertexte,
+  `;` in NC-Kommentaren), der Zwickel am 3D-Schruppen ist der Biss jedes Ringschritts (nur der
+  Prüfstand sieht ihn an einer Stelle), die übrigen Kehren nachgemessen mit Bildern – die Kontur
+  wendelt nicht mehr auf einer Schleife kleiner als ein Zehntel des Fräserdurchmessers.
 - Voller Szenario-Lauf auf 0.260.87 (Worktree, Wochen-Build): 152 von 154 grün. Rot waren
   `szenario_entgraten3d` – ein echter Fehler aus P-21 (die Variable `quer` von der inneren Funktion
   verdeckt; P-24) – und `szenario_rundum_drehmaschine` (das Szenario prüfte „Anlegen“, bevor die
