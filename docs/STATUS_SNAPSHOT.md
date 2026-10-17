@@ -38,8 +38,22 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
 - Frage 9 (Rundachsen im Namen der Ebene): „Ja, wie an der Maschine“ – Name, „Ebene schwenken“
   und „Alles aus dieser Aufspannung“ zeigen die Werte der Steuerung (A−60), gerechnet wird weiter
   mit dem Gelenk.
-- Frage 3 bleibt offen – Testteil `~/freecad_cam/testteile/frage3_absatz.FCStd`.
+- Frage 3 (später beantwortet): Planfräsen nur für Flächen, deren Rand rundum offen ist; ein Absatz
+  geht an Räumen und Kontur (P-2026-10-17-18).
 - Dazu: „Beispiele laden“ bekam „Öffnen“ (P-2026-10-17-16).
+
+**Umgesetzt am 17.10. (0.260.80 → 0.260.86):**
+- P-17 Frage 9: Name der Ebene wie an der Steuerung („A−60 B0“).
+- P-18 Frage 3: Planfräsen nur offen; der Absatz → Räumen/Kontur.
+- P-19 Frage 1: roter Satz, welcher Fräser passt, mit Knopf „„T3 …“ übernehmen“.
+- P-20 Frage 8: Planfräsen mit einem Zug an der Wand am Ende (Absatz 14 → 0 Wendepunkte).
+- P-21 Frage 7: An einer Maschine mit waagerechter Spindel (G550, `Eintrag.spindel_quer`) kommt auch
+  „von oben“ in eine Ebene („… Ebene von oben (A−90 B0)“); das Programm schwenkt davor und am Ende
+  zurück. Szenario `szenario_g550_von_oben`.
+- P-22 Frage 6: 3D-Schruppen-Haken „Nur über den gewählten Flächen – drumherum ist schon gefräst“
+  (nicht angehakt – angehakt führe der Fräser bei vollem Rohteil drumherum ins Volle) und der
+  Satz „Rings um die gewählten Flächen steht laut Rohteil noch … cm³ …“. Kuppel 6,1 → 3,9 min.
+- Offen: Frage 4 (Räumen bis durch gegen die Kontur) – in Arbeit.
 
 **Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-16, 0.260.45 → 0.260.80):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
