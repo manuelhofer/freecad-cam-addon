@@ -490,6 +490,10 @@ def _von_oben_in_der_ebene(quader, ebene, davor, raeumlich=None):
         in_stand.append((ri, np.array([mi.A14, mi.A24, mi.A34]), stand))
     ergebnis = np.full(len(oben), -np.inf)
     offen = np.ones(len(oben), dtype=bool)
+    # Je Zelle das Höchste des Materials, so weit belegt() um einen Punkt sieht: Ein Punkt darüber
+    # trifft nichts und braucht belegt() nicht – von oben sind das fast alle (am Geist in der
+    # zweiten Aufspannung stand das Fenster dafür 1,1 s, P-2026-10-18-67).
+    oberstes = None if raeumlich is None else _oberstes_der_nachbarn(raeumlich)
     z_von = float(np.max(oben))
     anzahl = int(math.ceil((z_von - unten) / EBENE_SCHRITT)) + 1
     for k in range(anzahl):
@@ -502,7 +506,10 @@ def _von_oben_in_der_ebene(quader, ebene, davor, raeumlich=None):
         p_ebene = np.stack([xs[pruefen], ys[pruefen], np.full(pruefen.sum(), z)], axis=1)
         p_grund = p_ebene @ r.T + b
         if raeumlich is not None:
-            material = raeumlich.belegt(p_grund)
+            material = np.zeros(len(p_grund), dtype=bool)
+            moeglich = _unter_dem_obersten(raeumlich, oberstes, p_grund)
+            if moeglich.any():
+                material[moeglich] = raeumlich.belegt(p_grund[moeglich])
         else:
             material = np.ones(len(p_grund), dtype=bool)
             for ri, bi, stand in in_stand:
@@ -516,6 +523,31 @@ def _von_oben_in_der_ebene(quader, ebene, davor, raeumlich=None):
     h = np.full(h0.shape, -np.inf)
     h[drin] = ergebnis
     return h
+
+
+def _oberstes_der_nachbarn(raeumlich):
+    """(nx + 1, ny + 1): an [i + 1, j + 1] das Höchste des Materials der Strahlen i … i + 1,
+    j … j + 1 – die vier, die raum_material.Material.belegt() für einen Punkt in der Zelle (i, j)
+    fragt; −inf ohne Material."""
+    obere = raeumlich.grenzen[..., 1]
+    oben = np.where(np.isnan(obere), -np.inf, obere).max(axis=2)
+    nx, ny = oben.shape
+    rand = np.full((nx + 2, ny + 2), -np.inf)
+    rand[1 : nx + 1, 1 : ny + 1] = oben
+    return np.maximum.reduce([rand[:-1, :-1], rand[1:, :-1], rand[:-1, 1:], rand[1:, 1:]])
+
+
+def _unter_dem_obersten(raeumlich, oberstes, punkte):
+    """Je Punkt (n, 3): Kann belegt() dort Material finden – liegt er höchstens so hoch wie das
+    Oberste um ihn (_oberstes_der_nachbarn)?"""
+    from . import raum_material as raum
+
+    a = np.floor((punkte[:, 0] - raeumlich.x[0]) / raeumlich.dx).astype(int) + 1
+    b = np.floor((punkte[:, 1] - raeumlich.y[0]) / raeumlich.dy).astype(int) + 1
+    drin = (a >= 0) & (a < oberstes.shape[0]) & (b >= 0) & (b < oberstes.shape[1])
+    moeglich = np.zeros(len(punkte), dtype=bool)
+    moeglich[drin] = punkte[drin, 2] <= oberstes[a[drin], b[drin]] + raum.GENAU
+    return moeglich
 
 
 def _im_stand(stand, punkte):

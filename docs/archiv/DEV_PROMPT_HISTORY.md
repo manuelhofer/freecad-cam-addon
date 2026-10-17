@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-67 ebene-von-oben-vorpruefen
+
+### EINGELESEN
+- Pausen des vollen Szenario-Laufs: In `szenario_bearbeitung_n_eck` (Manuels Geist als 8-Eck-Stange)
+  stand das Fenster nach dem Anlegen zweimal 1,1 s, ohne dass jemand klickte – der Beobachter des
+  Materialstands rechnete die zweite Aufspannung nach. Fast alle Zeit in
+  `raum_material.Material.belegt`: `materialstand._von_oben_in_der_ebene` sucht in 0,25-mm-Schritten
+  von oben das erste Material und fragt dafür jeden noch offenen Punkt voll ab (vier Nachbarstrahlen,
+  alle Abschnitte) – von oben liegen fast alle Punkte über allem Material.
+
+### DATEIEN
+- `camaddon/materialstand.py`: `_oberstes_der_nachbarn` (je Zelle das Höchste der vier Strahlen,
+  die `belegt` fragt) und `_unter_dem_obersten`; `belegt` nur noch für die Punkte darunter. Das
+  Ergebnis ist dasselbe: Nachgeprüft an 400 000 Punkten eines Klotzes mit Bohrung, Absatz und Zapfen –
+  130 514 Treffer, keiner außerhalb der Vorprüfung; die Vorprüfung kostet ein Sechstel von `belegt`.
+
+### ERGEBNIS
+- `szenario_bearbeitung_n_eck`: die Pause beim Nachrechnen 1,13 → 0,81 s; `belegt` taucht nicht
+  mehr auf (der Rest ist das Neuberechnen der Operation).
+- Grün im Wochen-Build: `test_n_eck`, `szenario_bearbeitung_n_eck`.
 ## P-2026-10-18-66 bahn-am-werkstueck-im-takt
 
 ### EINGELESEN
