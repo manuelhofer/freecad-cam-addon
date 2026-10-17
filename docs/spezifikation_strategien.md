@@ -1637,6 +1637,10 @@ geht weiter mit Schlichten. Das muss noch rein.“
 - **Gebaut:** P-2026-10-02-44, 0.100.0 – „F_HOME“ und andere Unterprogramme kann FreeCADs
   G-Code nicht tragen („Badly formatted GCode command“): Sie schreibt erst der Postprozessor des
   Addons (W-005); bis dahin Kommentar (MESSSTOPP), Z hoch, M5, M0, M3 S….
+  **Nachgezogen (P-2026-10-17-41/-46):** M9 vor dem Halt, nach dem Start Spindel und Kühlung
+  wieder an; Tür auf/zu als Felder je Steuerung („Messstopp: Tür auf/zu“, leer: nichts – Manuel,
+  2026-10-17: „es geht um alle maschinen, es muss variabel bleiben“); „Schlichten danach“ auch
+  hinter der Nut.
   **Nachgezogen (P-2026-10-04-06):** Der Postprozessor des Addons schreibt im Messstopp statt
   „Z hoch“ den Weg zum Wechselpunkt der Maschine – den Befehl „Zum Wechselpunkt“ der Steuerung
   (Siemens vorbelegt `G0 SUPA D0 Z…`, zur Wahl `F_HOME`); ohne Wechselpunkt bleibt Z hoch. Dann

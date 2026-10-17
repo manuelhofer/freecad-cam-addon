@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-46 messstopp-tuer-je-steuerung
+
+### EINGELESEN
+- Manuel (2026-10-17) zu Frage 3 (Türen beim Messstopp): „es geht nicht um meine maschinen es
+  geht um alle maschinen es muss variabel bleiben!“
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `Steuerung.tuer_auf`, `tuer_zu` (leer vorbelegt), in
+  `BEFEHLSFELDER` und den Feldtexten („Messstopp: Tür auf/zu“, `pp.feld.tuer_*`, de/en) – so
+  ändert man sie je Steuerung in „Programm schreiben“ und sie bleiben gespeichert; im Messstopp
+  (am Kennzeichen oder am Kommentar erkannt) vor dem Halt M0 die Tür auf, danach zu.
+- Texte `ba.schlichten_danach.messstopp.tooltip`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md` (12.4).
+- `tests/test_postprozessor.py`: mit `tuer_auf`/`tuer_zu`: M5, M9, Tür auf, M0, Tür zu.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_postprozessor`, `test_sprache`, `szenario_programm`.
+
 ## P-2026-10-17-44 gegenleser-p41-bis-p43
 
 ### EINGELESEN

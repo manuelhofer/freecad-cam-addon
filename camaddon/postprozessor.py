@@ -119,6 +119,11 @@ class Steuerung:
     kuehlung_flut: str = "M8"
     kuehlung_nebel: str = "M7"
     kuehlung_aus: str = "M9"
+    # Beim Messstopp (W-010, W-023): die Tür auf vor dem Halt (M0) und zu nach dem Start – je
+    # Steuerung und Maschine ihre eigenen Befehle (Manuel, 2026-10-17: „es geht um alle maschinen,
+    # es muss variabel bleiben“); leer: nichts, der Bediener öffnet von Hand.
+    tuer_auf: str = ""
+    tuer_zu: str = ""
     # Zum Wechselpunkt der Maschine – {achsen}: „X200.000 Z300.000“; in MKS bzw. WKS.
     wechselpunkt_mks: str = "G53 G0 {achsen}"
     wechselpunkt_wks: str = "G0 {achsen}"
@@ -252,6 +257,8 @@ BEFEHLSFELDER = (
     "kuehlung_flut",
     "kuehlung_nebel",
     "kuehlung_aus",
+    "tuer_auf",
+    "tuer_zu",
     "schwenken",
     "schwenken_aus",
     "tcpm_ein",
@@ -678,6 +685,8 @@ def feld_text(feld):
         "kuehlung_flut": (tr("pp.feld.kuehlung_flut"), tr("pp.feld.kuehlung_flut.tooltip")),
         "kuehlung_nebel": (tr("pp.feld.kuehlung_nebel"), tr("pp.feld.kuehlung_nebel.tooltip")),
         "kuehlung_aus": (tr("pp.feld.kuehlung_aus"), tr("pp.feld.kuehlung_aus.tooltip")),
+        "tuer_auf": (tr("pp.feld.tuer_auf"), tr("pp.feld.tuer_auf.tooltip")),
+        "tuer_zu": (tr("pp.feld.tuer_zu"), tr("pp.feld.tuer_zu.tooltip")),
         "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
         "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
         "tcpm_ein": (tr("pp.feld.tcpm_ein"), tr("pp.feld.tcpm_ein.tooltip")),
@@ -1156,10 +1165,12 @@ def programm(
         if kuehlung:
             zeilen.append(kuehlung)
         messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
+        im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
         for name_, parameter in befehle:
             if name_.startswith("("):
                 notiz(name_.strip("()"))
                 messstopp = messstopp or name_ == ms.KOMMENTAR
+                im_messstopp = im_messstopp or name_ == ms.KOMMENTAR
                 continue
             if messstopp and name_.upper() in ("G0", "G00") and set(parameter) <= {"Z", "F"}:
                 # Zum Messen an den Wechselpunkt (Spezifikation Strategien 12.4: an Manuels
@@ -1172,6 +1183,15 @@ def programm(
                         laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
                     continue
             gross = name_.upper()
+            if im_messstopp and gross in ("M0", "M00"):
+                # Der Halt zum Messen: davor die Tür auf, danach zu – wie die Steuerung es sagt
+                # (Steuerung.tuer_auf/tuer_zu; leer: nur der Halt).
+                if s.tuer_auf:
+                    zeilen.extend(_zeilen(s.tuer_auf))
+                zeilen.append("M0")
+                if s.tuer_zu:
+                    zeilen.extend(_zeilen(s.tuer_zu))
+                continue
             if gross in (si.TCPM_EIN, si.TCPM_AUS):
                 ein = gross == si.TCPM_EIN
                 zeilen.extend(_zeilen(_fuellen(s.tcpm_ein if ein else s.tcpm_aus, t=werkzeug or 0)))

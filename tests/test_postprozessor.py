@@ -601,6 +601,14 @@ pruefe(
     z_lcnc[k + 1 : k + 6] == ["G53 G0 Z150.000", "M5", "M9", "M0", "M3"], f"Messstopp: {z_lcnc[k:]}"
 )
 pruefe(ms.zeilen(25.0, 900.0, kuehlung="Flood")[-1] == "M8", "Messstopp: Kühlung wieder an")
+# Tür auf und zu je Steuerung (W-023; Manuel: „es muss variabel bleiben“): vor M0 auf, danach zu.
+mit_tuer = pp.steuerung("linuxcnc", {"tuer_auf": "M80\nM81", "tuer_zu": "M82"})
+z_tuer = pp.programm([bohren, messen], mit_tuer, fraese, "M").zeilen
+k = z_tuer.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_tuer else -1
+pruefe(
+    z_tuer[k + 2 : k + 8] == ["M5", "M9", "M80", "M81", "M0", "M82"],
+    f"Messstopp Tür: {z_tuer[k:k + 9]}",
+)
 fhome = pp.steuerung("siemens", {"wechselpunkt_mks": "F_HOME"})
 z_sie = pp.programm([bohren, messen], fhome, mit_wp, "M").zeilen
 k = z_sie.index("; MESSSTOPP") if "; MESSSTOPP" in z_sie else -1

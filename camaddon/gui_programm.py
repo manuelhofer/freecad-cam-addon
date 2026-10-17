@@ -83,6 +83,8 @@ GRUPPEN = (
             "kuehlung_flut",
             "kuehlung_nebel",
             "kuehlung_aus",
+            "tuer_auf",
+            "tuer_zu",
         ),
     ),
     ("c_achse", "c_achse", ("c_achse", "c_ein", "c_aus")),
