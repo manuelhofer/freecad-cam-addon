@@ -1547,6 +1547,15 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   aus). Bild: `docs/bilder/vorschlaege/nase_assistent_fuenf_flaechen.png`. Offen: der Rest nach
   dem Schruppen auf den schrägen Flächen (bis 4 mm², gelber Satz) – Auftrag 2, Front quer mit dem
   Umfang.
+- **Nacht zum 18.10., zweite Hälfte (P-64 … P-69):** Voller Testlauf (121) fand drei
+  Simultan-Tests rot seit P-2026-10-17-22 – das 3D-Schruppen vernetzte die gewählten Flächen am
+  Original; daraus die Regel „nur Kopien vernetzen“ an allen Stellen (P-64, P-68: Vermessen im
+  4-Achs-Assistenten und Voxelmodell mit 0,01 mm, 3D-Entgraten, Zugang, Prüfbild). Stirnseite ohne
+  Y: auch die ersten Sätze ohne Y-Wort (P-64); Stangen-Job an der gemerkten Spannlänge erkannt,
+  nicht an ihrem Wert (P-65). Fenster: Die Bahn am Werkstück im Prüffenster je Operation mit numpy,
+  im Takt (Simultanbeispiel 1,6 → 0,35 s Pause; P-66); Materialstand in einer 3+2-Ebene mit
+  Vorprüfung (Geist als 8-Eck-Stange 1,13 → 0,81 s; P-67); Abfahren an der Nase 3,85 → 3,28 s
+  (P-69). Fünf Prüfdateien schreiben nicht mehr in `beispiele/grob_g550_freiform/assets`.
 
 ## Offene Bugs
 
