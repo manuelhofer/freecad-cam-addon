@@ -1517,6 +1517,15 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   übrigen Flächen in Linien (`Muster = Linien`, `Flaechen`); die Spirale über die ganze Welle nur
   auf Wunsch. Die Kugel fährt nicht, was Plan indexiert schon fertig hat (Materialstand / nur
   nötig). Zahlen: `docs/bilder/vorschlaege/nase_flosse_weg.png` (39 statt 127 min).
+  **Gebaut (P-2026-10-17-47):** `gui_vierachs._kugel_uebrig` – mit gewählten Flächen und „Plan
+  indexiert“ an bekommt „Rundum schlichten“ nur die Flächen, die Plan indexiert nicht fertig macht
+  (Ebenen, Bohrungen, Mantelnuten aus `_plan_ebenen`), das Muster kommt aus diesen Flächen
+  (Linien); bleibt keine, geht der Haken aus („Vorschlag: aus – …“, `_schlichten_vorschlagen`),
+  solange man ihn nicht von Hand setzt. `szenario_vierachs_nase` (fünf Flächen der Flosse: Plan
+  indexiert Seiten + Spitze, Kugel in Linien auf den schrägen; nur Seiten + Spitze: Schlichten
+  aus). Bild: `docs/bilder/vorschlaege/nase_assistent_fuenf_flaechen.png`. Offen: der Rest nach
+  dem Schruppen auf den schrägen Flächen (bis 4 mm², gelber Satz) – Auftrag 2, Front quer mit dem
+  Umfang.
 
 ## Offene Bugs
 

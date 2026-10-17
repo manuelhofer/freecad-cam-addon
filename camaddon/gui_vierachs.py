@@ -634,6 +634,9 @@ class VierachsPanel:
         self._schlichteinsaetze = []
         self.vorschau_schlichten = None  # die grobe Schlichtbahn (vierachs_bahn.Schlichtbahn)
         self._schlichten_vorgewaehlt = False  # der Haken „Rundum schlichten“ ist gesetzt
+        self._schlichten_vorschlag = False  # … und so war der Vorschlag (ein Fräser mit Einsatz)
+        self._schlichten_von_hand = False  # der Haken „Rundum schlichten“ wurde von Hand gesetzt
+        self._schlichten_selbst = False  # der Assistent setzt ihn gerade selbst
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
         self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
         self._anstellen_von_hand = False  # der Haken „Kugel anstellen“ von Hand gesetzt
@@ -2124,9 +2127,11 @@ class VierachsPanel:
         if self.zu_aendern is None and not self._schlichten_vorgewaehlt:
             self._schlichten_vorgewaehlt = True
             werkstoff = self.werkstoff()
-            self.mit_schlichten.setChecked(
-                any(self._hat_schlichten(w, werkstoff) for w in self._schlichtfraeser)
+            self._schlichten_vorschlag = any(
+                self._hat_schlichten(w, werkstoff) for w in self._schlichtfraeser
             )
+            self._schlichten_setzen(self._schlichten_vorschlag)
+        self._schlichten_vorschlagen()
 
     def werkstoff(self):
         """Kennung des gewählten Werkstoffs, oder wz.ALLE."""
@@ -2282,9 +2287,10 @@ class VierachsPanel:
 
     def _flaechen_geaendert(self):
         self._flaechen_zeigen()
-        self._muster_vorschlagen()
-        self._querachse_vorschlagen()
         self._plan_vorschlagen()
+        self._schlichten_vorschlagen()
+        self._muster_vorschlagen()  # nach dem Plan: es sieht auf die Flächen, die der Kugel bleiben
+        self._querachse_vorschlagen()
         self._entgraten_vorschlagen()
         self._vorschau_starten()
 
@@ -2296,7 +2302,9 @@ class VierachsPanel:
         if self.job is None:
             return
         muster, grund = vb.SPIRALE, tr("va.muster.vorschlag.spirale")
-        flaechen = self.flaechen()
+        # Mit Flächen ohne die, die „Plan indexiert“ fertig macht (W-027); rundum die Spirale –
+        # auch mit Plan indexiert, sie fährt über dessen Flächen angehoben.
+        flaechen = self._schlicht_flaechen() if self.flaechen() else []
         if flaechen:
             werkzeug = self.schlichtfraeser()
             radius = werkzeug.durchmesser / 2 if werkzeug is not None else 0.0
@@ -2997,17 +3005,60 @@ class VierachsPanel:
         ]
 
     def _schlicht_flaechen(self):
-        """Die Flächen für „Rundum schlichten“: die gewählten – rundum mit „Plan indexiert“ für
-        die ebenen Mantelflächen alle anderen Mantelflächen (sonst führe die Spirale die ebenen
-        noch einmal)."""
+        """Die Flächen für „Rundum schlichten“: die gewählten ohne die, die „Plan indexiert“
+        fertig macht (W-027; Manuel, 2026-10-17: „wichtig ist, dass danach die Kugel nicht
+        nochmal alles das fährt, was schon weg ist“) – bleibt keine, die gewählten (der Haken geht
+        dann aus, _schlichten_vorschlagen); rundum mit „Plan indexiert“ für die ebenen
+        Mantelflächen alle anderen Mantelflächen (sonst führe die Spirale die ebenen noch
+        einmal)."""
         flaechen = self.flaechen()
-        if flaechen or not self.plan_an() or self.job is None:
+        if not self.plan_an() or self.job is None:
             return flaechen
+        if flaechen:
+            return self._kugel_uebrig() or flaechen
         eben = set(self._plan_namen())
         if not eben:
             return flaechen
         mantel = vf.namen(vf.mantelflaechen(self._sicht()))
         return [f for f in mantel if f not in eben]
+
+    def _kugel_uebrig(self):
+        """Mit gewählten Flächen und „Plan indexiert“ an: die Flächen, die der Kugel bleiben –
+        ohne die ebenen, die Bohrungen und die Nuten auf dem Mantel, die Plan indexiert fertig
+        macht (an der Nase: die schrägen Flächen oben und unten; Seiten und Spitze nicht)."""
+        flaechen = self.flaechen()
+        if not flaechen or not self.plan_an() or self.job is None:
+            return flaechen
+        fertig = {e.name for e in self._plan_ebenen()}
+        return [f for f in flaechen if f not in fertig]
+
+    def _schlichten_vorschlagen(self):
+        """Der Haken „Rundum schlichten“ neben „Plan indexiert“ (W-027): Macht Plan indexiert
+        alle gewählten Flächen fertig, geht er aus – solange man ihn nicht von Hand gesetzt hat –
+        und der Satz darunter sagt es; bleiben Flächen für die Kugel, stehen sie darunter. Beim
+        Ändern einer Operation bleibt er, wie er ist."""
+        if self.job is None or self.zu_aendern is not None or not self._schlichten_vorgewaehlt:
+            return
+        flaechen = self.flaechen()
+        text, an = tr("va.schlichten.text"), self._schlichten_vorschlag
+        if flaechen and self.plan_an():
+            uebrig = self._kugel_uebrig()
+            fertig = ", ".join(f for f in flaechen if f not in uebrig)
+            if fertig and uebrig:
+                text += " " + tr("va.schlichten.ohne_plan", uebrig=", ".join(uebrig), fertig=fertig)
+            elif fertig:
+                text, an = tr("va.schlichten.plan_alles", flaechen=fertig), False
+        self.erklaerung_schlichten.setText(text)
+        if not self._schlichten_von_hand and self.mit_schlichten.isEnabled():
+            self._schlichten_setzen(an)
+
+    def _schlichten_setzen(self, an):
+        """Setzt den Haken „Rundum schlichten“ als Vorschlag – zählt nicht als von Hand."""
+        self._schlichten_selbst = True
+        try:
+            self.mit_schlichten.setChecked(bool(an))
+        finally:
+            self._schlichten_selbst = False
 
     def _plan_flaechen(self):
         """(Flächen für „Plan indexiert“, Flächen für den Bohrer daneben – oder None)."""
@@ -3106,6 +3157,8 @@ class VierachsPanel:
         if not self._fuellt:
             self._plan_von_hand = True
         if self.job is not None:
+            self._schlichten_vorschlagen()  # was Plan indexiert fertig macht, fährt die Kugel nicht
+            self._muster_vorschlagen()
             self._querachse_vorschlagen()  # rundum oder nur die übrigen Flächen (Frage 12)
         self.planfelder.setEnabled(an)
         self.planfelder.setVisible(an)
@@ -3745,6 +3798,8 @@ class VierachsPanel:
         self._umgeschaltet()
 
     def _schlichten_umgeschaltet(self, an):
+        if not self._fuellt and not self._schlichten_selbst and self._schlichten_vorgewaehlt:
+            self._schlichten_von_hand = True
         self.schlichtfelder.setEnabled(an)
         self.schlichtfelder.setVisible(an)
         self.ergebnis_schlichten.setVisible(an)

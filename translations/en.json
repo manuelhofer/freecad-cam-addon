@@ -1736,6 +1736,8 @@
     "va.abstaende": "Distances",
     "va.abstaende.tooltip": "Apply to roughing and finishing.",
     "va.ueberlauf.vorschlag": "Parting width + {zugabe}",
+    "va.schlichten.ohne_plan": "The ball mill only runs over {uebrig} – {fertig} is finished by “Indexed facing”, it does not run over that again.",
+    "va.schlichten.plan_alles": "Suggestion: off – “Indexed facing” finishes all selected faces ({flaechen}); “All-round finishing” would only run over them once more.",
     "va.schlichten.dazu": "Tick it: “Apply” adds “All-round finishing”.",
     "va.schlichten.schon": "The job already has “{name}” – double-click it to change it.",
     "va.plan": "Indexed facing",

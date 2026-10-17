@@ -117,6 +117,14 @@ def schritte(h):
         and abs(farben[nummer][0] - 0x4E / 255) < 0.01,
         f"Farbe im 3D: {farben[nummer] if len(farben) > nummer else farben}",
     )
+    # Für die Abflachung geht „Plan indexiert“ an – und „Rundum schlichten“ aus, die Kugel führe
+    # sie nur noch einmal (W-027). Hier geht es ums Schlichten: von Hand wieder an.
+    h.pruefe(panel.mit_plan.isChecked(), "Plan indexiert für die Abflachung nicht vorgeschlagen")
+    h.pruefe(not panel.mit_schlichten.isChecked(), "„Rundum schlichten“ neben Plan indexiert an")
+    text = panel.erklaerung_schlichten.text()
+    h.pruefe(text.startswith("Vorschlag: aus – „Plan indexiert“ macht"), f"Satz: {text!r}")
+    panel.mit_schlichten.setChecked(True)
+    yield 300
     yield from h.warte_auf(
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )
@@ -168,8 +176,9 @@ def schritte(h):
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )
     # Für die Abflachung schlägt der Assistent auch „Plan indexiert“ vor (V4c) – hier geht es um
-    # Schruppen und Schlichten: aus.
+    # Schruppen und Schlichten: aus. Das Schlichten bleibt an (von Hand gesetzt).
     h.pruefe(panel.mit_plan.isChecked(), "Plan indexiert für die Abflachung nicht vorgeschlagen")
+    h.pruefe(panel.mit_schlichten.isChecked(), "„Rundum schlichten“ nach dem Leeren aus")
     panel.mit_plan.setChecked(False)
     yield 300
     panel.accept()  # Anlegen

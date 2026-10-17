@@ -1736,6 +1736,8 @@
     "va.abstaende": "Abstände",
     "va.abstaende.tooltip": "Gelten für Schruppen und Schlichten.",
     "va.ueberlauf.vorschlag": "Abstechbreite + {zugabe}",
+    "va.schlichten.ohne_plan": "Die Kugel fährt nur {uebrig} – {fertig} macht „Plan indexiert“ fertig, das fährt sie nicht noch einmal.",
+    "va.schlichten.plan_alles": "Vorschlag: aus – „Plan indexiert“ macht alle gewählten Flächen fertig ({flaechen}); „Rundum schlichten“ führe sie nur noch einmal.",
     "va.schlichten.dazu": "Haken setzen: „Übernehmen“ legt „Rundum schlichten“ dazu an.",
     "va.schlichten.schon": "„{name}“ gibt es im Job schon – ein Doppelklick darauf ändert es.",
     "va.plan": "Plan indexiert",

@@ -1,8 +1,11 @@
 # „Plan indexiert“ im 4-Achs-Assistenten (W-003 Stufe V4c; W-006 S2). Welle Ø 20 × 40 mit
 # einer Abflachung auf x = 8 zwischen zwei Wänden, Stange Ø 24, T1 Schaftfräser Ø 6 (Einsätze
 # Planen und Schruppen), T2 Kugelfräser Ø 4 (Schlichten). Schritt 2 ohne Flächen: rundum
-# „Plan indexiert“ angehakt mit T1, dem Fräser des Schruppens, das Schlichten ohne die Ebene. Ein Klick auf die Abflachung: der Haken geht an
-# (Vorschlag mit Grund), die Vorschau sagt „→ 2 Lagen, 9 Zeilen“ (vom Rest nach dem Schruppen). „Anlegen“: drei Operationen,
+# „Plan indexiert“ angehakt mit T1, dem Fräser des Schruppens, das Schlichten ohne die Ebene. Ein
+# Klick auf die Abflachung: der Haken geht an, „Rundum schlichten“ aus (W-027: die Kugel führe
+# die Abflachung nur noch einmal)
+# (Vorschlag mit Grund), die Vorschau sagt „→ 2 Lagen, 9 Zeilen“ (vom Rest nach dem Schruppen).
+# „Anlegen“: zwei Operationen,
 # „Plan indexiert T1“ mit 2 Lagen und 6–9 Zeilen, die Sätze mit Y und festem C. Doppelklick
 # darauf öffnet den Assistenten mit ihren Werten; „Übernehmen“ mit 1 mm Zustellung rechnet
 # sie neu – vom Rest nach dem Schruppen aus, feiner.
@@ -107,6 +110,17 @@ def schritte(h):
     yield 500
     h.pruefe(panel.flaechen() == [abflachung], f"gewählt: {panel.flaechen()}")
     h.pruefe(panel.mit_plan.isEnabled() and panel.mit_plan.isChecked(), "Plan mit Abflachung aus")
+    # „Rundum schlichten“ geht aus: Plan indexiert macht die Abflachung fertig, die Kugel führe
+    # sie nur noch einmal (W-027; Manuel, 2026-10-17).
+    h.pruefe(not panel.mit_schlichten.isChecked(), "„Rundum schlichten“ neben Plan indexiert an")
+    text = panel.erklaerung_schlichten.text()
+    h.pruefe(
+        text
+        == "Vorschlag: aus – „Plan indexiert“ macht alle gewählten Flächen fertig ("
+        + abflachung
+        + "); „Rundum schlichten“ führe sie nur noch einmal.",
+        f"Satz unter „Rundum schlichten“: {text!r}",
+    )
     text = panel.plan_grund.text()
     h.pruefe(
         text.startswith("Vorschlag: an – eben längs der Stange: " + abflachung), f"Grund: {text!r}"
@@ -126,15 +140,13 @@ def schritte(h):
     yield 300
     h.bild("1_plan_vorgeschlagen", panel.form)
 
-    # --- Anlegen: drei Operationen, „Plan indexiert T1“ mit Y -------------------------------
-    yield from h.warte_auf(
-        lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
-    )
+    # --- Anlegen: zwei Operationen, „Plan indexiert T1“ mit Y – kein Schlichten (W-027) -----
+    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
     panel.accept()  # Anlegen
     yield 2500
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster nach „Anlegen“ offen")
     ops = [o for o in job.Operations.Group if vo.ist_rundum(o)]
-    h.pruefe(len(ops) == 3, f"Operationen: {[o.Label for o in ops]}")
+    h.pruefe(len(ops) == 2, f"Operationen: {[o.Label for o in ops]}")
     plan = next((o for o in ops if vplan.ist_plan(o)), None)
     h.pruefe(plan is not None and plan.Label == "Plan indexiert T1", f"Plan: {plan and plan.Label}")
     if plan is None:

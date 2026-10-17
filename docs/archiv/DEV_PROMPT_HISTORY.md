@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-47 nase-kugel-ohne-planflaechen
+
+### EINGELESEN
+- Manuel (2026-10-17) zu Frage 2 (die Nase: Plan indexiert für Seiten und Spitze, die Kugel nur
+  auf den schrägen Flächen): „ja die option soll so sein wichtig ist das danach die kugel nicht
+  nochmal alles das fährt was schon weg ist“ (W-027).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_kugel_uebrig()` – mit gewählten Flächen und „Plan indexiert“ an
+  die Flächen ohne die, die Plan indexiert fertig macht (`_plan_ebenen`: Ebenen, Bohrungen,
+  Mantelnuten); `_schlicht_flaechen()` gibt sie fürs Schlichten (bleibt keine: die gewählten);
+  `_muster_vorschlagen` sieht auf diese Flächen (Linien), rundum weiter die Spirale;
+  `_schlichten_vorschlagen()` setzt den Haken „Rundum schlichten“ aus, wenn nichts bleibt
+  („Vorschlag: aus – …“), sonst den Satz „Die Kugel fährt nur … – … macht Plan indexiert fertig“;
+  von Hand gesetzt bleibt er (`_schlichten_von_hand`, `_schlichten_selbst`). Aufrufe beim Wechsel
+  der Flächen und beim Umschalten von Plan indexiert.
+- Texte `va.schlichten.ohne_plan`, `va.schlichten.plan_alles` (de/en); `help/de|en/vierachs.html`
+  (Schritt 2: Plan indexiert); `docs/STATUS_SNAPSHOT.md` (W-027 gebaut), `docs/auftraege_fable.md`
+  (Auftrag 2, Stand).
+- `tests/gui/szenario_vierachs_nase.py` (neu): Welle Ø 60 mit der Flosse wie im Nasen-Testteil,
+  fünf Flächen angeklickt → Plan indexiert an (3 Flächen), Schlichten an mit den zwei schrägen
+  in Linien, Satz darunter; Plan aus → alle fünf; nur Seiten + Spitze → Schlichten aus mit
+  „Vorschlag: aus“; Anlegen → Schruppen, Plan indexiert, Schlichten (Flaechen = die schrägen,
+  Linien). `szenario_vierachs_flaechen`, `szenario_vierachs_plan` nachgezogen (mit der
+  Abflachung und Plan indexiert geht das Schlichten aus; dort von Hand wieder an bzw. zwei
+  Operationen).
+- Bild `docs/bilder/vorschlaege/nase_assistent_fuenf_flaechen.png`.
+
+### ERGEBNIS
+- Am Nasen-Testteil (gemessen heute früh, `vierachs_plan.bahn_fuer` + `vierachs_schlichten.rechne`):
+  Plan indexiert Seiten + Spitze 4,6 min, Kugel in Linien auf den schrägen Flächen 21,8 min –
+  statt 114,7 min Spirale über die ganze Welle. Im Szenario: Plan 3 Flächen 5 min, 55 Linien 4 min.
+- Rundum (keine Flächen) bleibt wie bisher: Spirale, über den Flächen von Plan indexiert angehoben.
+- Grün im Wochen-Build: `szenario_vierachs_nase`, `szenario_vierachs_flaechen`,
+  `szenario_vierachs_plan`, `szenario_vierachs_schlichten`, `test_sprache`.
+- Offen: der Rest nach dem Schruppen an der Flosse (bis 4 mm², der gelbe Satz) – Auftrag 2.
 ## P-2026-10-17-46 messstopp-tuer-je-steuerung
 
 ### EINGELESEN
