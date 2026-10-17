@@ -60,7 +60,7 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
 - Damit sind alle neun Fragen vom 16./17.10. umgesetzt.
 - **Fable, 17.10. ab 7 Uhr (P-2026-10-17-26 bis -30, 0.260.90 → 0.260.94),** nach
   `docs/auftraege_fable.md`: Auftrag 1 ohne Querachse gebaut (Rundum schruppen: Zeilen in den
-  Sektoren, Manuels Ring 100 → 12 km; mit Querachse Frage 1 in OFFENE_FRAGEN), Auftrag 3
+  Sektoren, Manuels Ring 100 → 11 km; mit Querachse Frage 1 in OFFENE_FRAGEN), Auftrag 3
   gemessen (Zwickel verstanden, Materialstand-Ringe bringen nichts), Auftrag 4 gebaut (gerechnete
   Schlichtzeit), Auftrag 5: Vollnut-Rampe einweg, Flanke war ein Zählfehler.
 - Voller Szenario-Lauf auf 0.260.87 (Worktree, Wochen-Build): 152 von 154 grün. Rot waren
@@ -545,7 +545,7 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
   die tieferen Lagen kreisen über dem fertigen Ring, nur um in die Schlitze zu gehen („nur nötig“
   greift da nicht); Idee: Lagen, die nur noch in schmalen Bereichen fräsen, als Zeilen dort (V4)
   statt der ganzen Spirale. *Erledigt ohne Querachse:* P-2026-10-17-26/-32 (Sektoren, am Ring
-  100 → 12 km); mit Querachse Frage 1 in OFFENE_FRAGEN. „Bahn prüfen“ ist am Ring blind (das
+  100 → 11 km); mit Querachse Frage 1 in OFFENE_FRAGEN. „Bahn prüfen“ ist am Ring blind (das
   Strahlenmodell sieht die Bohrung nicht, wie Hinterschnitte).
 - Face28, Face6, Face17 (die Nuten, stirnseitig): radial nicht erreichbar – das muss gesagt werden
   (nicht still weglassen) und eine Bearbeitung von vorn angeboten werden. *Erledigt:*

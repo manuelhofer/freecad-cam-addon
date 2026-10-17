@@ -76,7 +76,10 @@ findet, fährt dort Zeilen (wie V4) statt einer ganzen Umdrehung je Steigung.
 
 **Stand 2026-10-17 (P-2026-10-17-26):** Ohne Querachse gebaut – Zeilen in den Sektoren ab der
 Lage, über der weniger als die Hälfte des Umfangs steht (`vierachs_bahn.SEKTOREN_AB`): am Ring
-100 → 15 km, Bild `docs/bilder/vorschlaege/ring_sektoren.png`. **Offen:** mit Querachse. Zeilen
+100 → 15 km, Bild `docs/bilder/vorschlaege/ring_sektoren.png`; nach P-32/P-34 11 km mit 10 %
+Luft (die Zeile rundum, deren Flanke die Stangenstirn nur streifte, ist weg). Was an Luft bleibt:
+die Einfahrten von vorn und in Lage 13 die Zeilen unter der Achse, wo die Lage davor schon alles
+nahm (0,1 km). **Offen:** mit Querachse. Zeilen
 mit dem radialen Fräser ließen der Kugel an der Nase das Doppelte (22 statt 12 cm³, bis 58 mm² je
 mm) – die Zeilen müssten wie die Spirale durch `_quer_plan` → `vierachs_quer.stellungen` →
 `_heben_vor_drehen` → `_nachsehen` → `_quer_ausgeben` (in `_schruppen_quer.lage_rechnen`), mit
