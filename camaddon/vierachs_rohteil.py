@@ -337,6 +337,14 @@ def zylinder_um(form, oben=0.0, seite=0.0, unten=0.0):
     return x, y, r + seite, bb.ZMin - unten, bb.ZLength + oben + unten
 
 
+def _vernetzt(form):
+    """(Punkte, Dreiecke) der Form mit TESSELLIERUNG – an einer Kopie: tessellate am Original
+    hängt das feine Netz an das Teil, und wer es danach gröber vernetzt (Zugang, Voxel), bekäme
+    dieses statt seines eigenen – je nachdem, was davor lief, ein anderes Ergebnis (wie die drei
+    Simultan-Tests nach P-2026-10-17-22, P-2026-10-18-68)."""
+    return form.copy(False, False).tessellate(TESSELLIERUNG)
+
+
 def _punkte(form):
     """Punkte des Teils für Umriss und Länge: die Tessellierung mit Ecken und Kanten – für den
     Umriss reicht das. Ein Körper aus einem STL hat sie schon (stl_teil.netz_fuer): genau, ohne
@@ -346,14 +354,14 @@ def _punkte(form):
     aus_stl = stl_teil.netz_fuer(form)
     if aus_stl is not None:
         return [FreeCAD.Vector(*q) for q in aus_stl[0]]
-    punkte, _dreiecke = form.tessellate(TESSELLIERUNG)
+    punkte, _dreiecke = _vernetzt(form)
     return list(punkte) + [ecke.Point for ecke in form.Vertexes]
 
 
 def _vermesse_rund(form, flaeche, rund, nahe, umgedreht):
     """vermesse() für eine runde Fläche mit der Achse `rund` (Punkt, Richtung)."""
     auf_der_achse, achse = rund
-    punkte, _dreiecke = form.tessellate(TESSELLIERUNG)
+    punkte, _dreiecke = _vernetzt(form)
     punkte = list(punkte) + [ecke.Point for ecke in form.Vertexes]
     t = [(p - auf_der_achse).dot(achse) for p in punkte]
     bezug = FreeCAD.Vector(nahe) if nahe is not None else flaeche.CenterOfMass
@@ -366,7 +374,7 @@ def _vermesse_rund(form, flaeche, rund, nahe, umgedreht):
     mitte_flaeche = (auf_der_achse.dot(u), auf_der_achse.dot(v))
     x, y, r = kleinster_kreis(huelle)
     weitester = max(math.hypot(p[0] - mitte_flaeche[0], p[1] - mitte_flaeche[1]) for p in huelle)
-    eigene, _ = flaeche.tessellate(TESSELLIERUNG)
+    eigene, _ = _vernetzt(flaeche)
     radius = max(
         ((p - auf_der_achse) - normale * (p - auf_der_achse).dot(normale)).Length
         for p in list(eigene) + [ecke.Point for ecke in flaeche.Vertexes]
@@ -697,7 +705,7 @@ def _ebene_am_futter(form, platz, laengs):
     """(„FaceN“, Vermessung, True) der ebenen Fläche, die nach `platz` hinten am Futter liegt –
     Außennormale gegen die Stange, am hinteren Ende des Teils („Umdrehen“ an einer ebenen
     Fläche) –, oder None."""
-    punkte, _dreiecke = form.tessellate(TESSELLIERUNG)
+    punkte, _dreiecke = _vernetzt(form)
     hinten = min(platz.multVec(p).dot(laengs) for p in punkte)
     toleranz = 1e-6 * max(1.0, form.BoundBox.DiagonalLength)
     for nummer, flaeche in enumerate(form.Faces, start=1):

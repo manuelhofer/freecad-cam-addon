@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-68 nur-kopien-vernetzen
+
+### EINGELESEN
+- Nachgang zu P-64: `tessellate` an einer Form hängt das Netz an sie (an alle Kopien des
+  `Shape`, die dieselben Flächen teilen). Wer danach gröber vernetzt, bekommt das feinere Netz
+  zurück, nicht das bestellte – das Ergebnis hängt davon ab, was davor lief. So waren drei
+  Simultan-Tests seit P-2026-10-17-22 rot. Am Original vernetzten noch: der 4-Achs-Assistent beim
+  Vermessen (`vierachs_rohteil`, 0,01 mm), das Voxelmodell der Stange (`voxelstange.teil`, 0,01 mm),
+  das 3D-Entgraten (0,1 und 0,01 mm je Fläche), der Zugang (`zugang._Strahlen`, 0,05 mm) und das
+  Bild im Prüffenster (`gui_abfahren`). Nach einem Klick im 4-Achs-Assistenten rechnete der Zugang
+  also mit 0,01 statt 0,05 mm, ohne ihn mit 0,05.
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py` (`_vernetzt`), `camaddon/voxelstange.py`,
+  `camaddon/entgrat3d_bahn.py`, `camaddon/zugang.py`, `camaddon/gui_abfahren.py`: vernetzen
+  `form.copy(False, False)` – Topologie neu, Geometrie geteilt, ohne Netz (wie schon
+  `netzabstand`). Gemessen: Kopieren 0,4 … 1,5 ms, eine Kopie mit 0,01 mm vernetzen am 3-Achs-Testteil
+  0,09 s (das Original beim ersten Mal 0,08 s).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_entgraten3d`, `test_zugang`, `test_vierachs_rohteil`,
+  `test_vierachs_frei`, `test_vierachs_bahn`, `szenario_abfahren`, `szenario_vierachs_nase`.
 ## P-2026-10-18-67 ebene-von-oben-vorpruefen
 
 ### EINGELESEN

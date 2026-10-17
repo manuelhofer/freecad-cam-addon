@@ -163,7 +163,9 @@ class _Strahlen:
     """Das vernetzte Teil, gegen das Strahlen laufen (Möller-Trumbore, alle zugleich)."""
 
     def __init__(self, form):
-        punkte, dreiecke = form.tessellate(VERNETZUNG)
+        # Eine Kopie: ein feineres Netz am Original (etwa aus dem 4-Achs-Assistenten, 0,01 mm)
+        # gäbe sonst andere Strahlen als VERNETZUNG (P-2026-10-18-68).
+        punkte, dreiecke = form.copy(False, False).tessellate(VERNETZUNG)
         p = np.array([tuple(q) for q in punkte], dtype=float)
         d = np.array(dreiecke, dtype=int).reshape(-1, 3)
         self.a = p[d[:, 0]]

@@ -270,7 +270,7 @@ def _aussen(form, nummer, gemerkt):
 
     if nummer not in gemerkt:
         flaeche = ft.flaeche(form, nummer)
-        ecken, dreiecke = flaeche.tessellate(0.1)
+        ecken, dreiecke = flaeche.copy(False, False).tessellate(0.1)  # Kopie: P-2026-10-18-68
         if not dreiecke:
             gemerkt[nummer] = 1.0
         else:
@@ -463,7 +463,7 @@ def wolke(form, kanten_, reichweite, punktabstand=PUNKTABSTAND, raster=RASTER):
         )
         if not nah:
             continue
-        ecken, dreiecke = flaeche.tessellate(0.01)
+        ecken, dreiecke = flaeche.copy(False, False).tessellate(0.01)  # Kopie: P-2026-10-18-68
         if not dreiecke:
             continue
         e = np.array([[v.x, v.y, v.z] for v in ecken])

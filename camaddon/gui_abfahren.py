@@ -601,7 +601,7 @@ def flaechen(form, farbe, transparenz):
         index = index.tolist()
     else:
         genauigkeit = max(form.BoundBox.DiagonalLength / 300, 0.05)
-        punkte_, dreiecke_ = form.tessellate(genauigkeit)
+        punkte_, dreiecke_ = form.copy(False, False).tessellate(genauigkeit)  # Kopie: P-68
         punkte = [(p.x, p.y, p.z) for p in punkte_]
         index = []
         for a, b, c in dreiecke_:

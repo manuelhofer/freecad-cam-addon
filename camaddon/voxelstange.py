@@ -182,7 +182,9 @@ class Voxelstange:
         y = p·U, z = p·V (vierachs_huelle.rahmen). Gefüllt über das Netz der Form – je Spalte
         (y, z) ein Strahl längs: wo er durch die Dreiecke tritt, wechselt drinnen und draußen.
         In numpy über alle Dreiecke zugleich, Sekunden statt eines isInside je Voxel."""
-        punkte, dreiecke = form.tessellate(toleranz)
+        # Eine Kopie vernetzen: tessellate am Original hängt das Netz an die Form, und wer sie
+        # danach gröber vernetzt, bekäme dieses feine (P-2026-10-18-68).
+        punkte, dreiecke = form.copy(False, False).tessellate(toleranz)
         maske = np.zeros(self.material.shape, dtype=bool)
         if not dreiecke:
             return maske
