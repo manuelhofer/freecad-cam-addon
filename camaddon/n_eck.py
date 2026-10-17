@@ -273,8 +273,16 @@ def fraeser_bis(job, radius):
 
 
 def einrichten_text(job):
-    """Der Satz fürs Einrichten der Aufspannung des Jobs – leer, wenn er keine ist."""
+    """Der Satz fürs Einrichten der Aufspannung des Jobs – leer, wenn er keine ist. Auch für eine
+    gekippt gespannte Aufspannung (gui_bearbeitung._gekippt_anlegen): wie im Einrichtblatt – so
+    steht es auch oben im Programm (Manuel, 2026-10-16: „… und das im einstellblatt notieren“)."""
     if not ist_n_eck(job):
+        from . import schwenken as sw
+
+        if sw.ist_umspannen(job) and getattr(job, "Grundjob", None) is not None:
+            from . import einrichtblatt as eb
+
+            return tr("ne.einrichten_gekippt", spannung=eb.spannung_text(job, tr))
         return ""
     n = int(getattr(job, EIGENSCHAFT_N))
     k = int(getattr(job, EIGENSCHAFT_AUFSPANNUNG, 1))

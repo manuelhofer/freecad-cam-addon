@@ -2936,6 +2936,7 @@
     "ne.fehler.n": "Eine N-Eck-Stange braucht eine gerade Zahl von Flächen ab 4 – im Schraubstock liegen zwei gegenüber an den Backen ({n} geht nicht).",
     "ne.stange": "{n}-Eck-Stange SW {sw}",
     "ne.job": "{job} – Aufspannung {k} von {n}",
+    "ne.einrichten_gekippt": "Von Hand umgespannt: {spannung}.",
     "ne.einrichten": "Aufspannung {k} von {n}: Stange um {winkel}° gegen die erste gedreht, die Flächen {a} und {b} an den Backen. Nullpunkt: X an der Stirn, Y und Z in der Mitte der Stange.",
     "ne.eigenschaft.neck": "So viele Flächen hat die N-Eck-Stange (W-018).",
     "ne.eigenschaft.aufspannung": "Die wievielte Aufspannung der N-Eck-Stange dieser Job ist.",

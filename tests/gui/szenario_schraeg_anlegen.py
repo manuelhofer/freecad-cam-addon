@@ -237,6 +237,10 @@ def schritte(h):
     h.pruefe("30° gekippt um X spannen" in gekippt_panel._folge, f"Satz: {gekippt_panel._folge!r}")
     spannung = einrichtblatt.spannung_text(gekippt, tr)
     h.pruefe("30° gekippt um X" in spannung, f"Einrichtblatt: {spannung!r}")
+    from camaddon import n_eck
+
+    oben_im_programm = n_eck.einrichten_text(gekippt)  # steht als Kommentar oben im Programm
+    h.pruefe("30° gekippt um X" in oben_im_programm, f"Programm: {oben_im_programm!r}")
     h.bild("5_dreiachs_aufspannung", gekippt_panel.form)
     h.bild("6_dreiachs_aufspannung_3d")
     gekippt_panel.accept()

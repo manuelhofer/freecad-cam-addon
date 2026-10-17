@@ -2936,6 +2936,7 @@
     "ne.fehler.n": "A polygon bar needs an even number of faces, at least 4 – in the vise two opposite faces lie against the jaws ({n} does not work).",
     "ne.stange": "{n}-sided bar AF {sw}",
     "ne.job": "{job} – setup {k} of {n}",
+    "ne.einrichten_gekippt": "Re-clamped by hand: {spannung}.",
     "ne.einrichten": "Setup {k} of {n}: bar turned {winkel}° against the first, faces {a} and {b} against the jaws. Zero point: X at the end face, Y and Z in the middle of the bar.",
     "ne.eigenschaft.neck": "Number of faces of the polygon bar (W-018).",
     "ne.eigenschaft.aufspannung": "Which setup of the polygon bar this job is.",

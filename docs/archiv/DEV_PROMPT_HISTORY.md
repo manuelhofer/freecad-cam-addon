@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-15 gekippt-im-programm
+
+### EINGELESEN
+- Manuel (2026-10-16): „sollen wir dafür die werkzeugwege erstellen und das im einstellblatt
+  notieren ?“ – das Einrichtblatt nennt seit P-54/P-70 Winkel, Achse und Nullpunkt der gekippten
+  Aufspannung. Im Programm dieser Aufspannung stand oben aber nichts dazu; bei der N-Eck-Stange
+  steht dort, wie sie gespannt wird (`n_eck.einrichten_text`).
+
+### DATEIEN
+- `camaddon/n_eck.py`: `einrichten_text` auch für eine gekippt gespannte Aufspannung – „Von Hand
+  umgespannt: <Spannmittel> – das Teil 30° gekippt um X, Face27 nach oben (Winkelstück, Sinus-
+  oder Schwenkschraubstock).“ (der Satz des Einrichtblatts).
+- `translations/de.json`, `en.json`: `ne.einrichten_gekippt`.
+- `tests/gui/szenario_schraeg_anlegen.py`: der Satz oben im Programm der gekippten Aufspannung.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`, `test_einrichtblatt`, `test_n_eck`,
+  `szenario_schraeg_anlegen`, `szenario_bearbeitung_n_eck`, `szenario_einrichtblatt`.
+
 ## P-2026-10-17-14 simultan-planen-atmet
 
 ### EINGELESEN
