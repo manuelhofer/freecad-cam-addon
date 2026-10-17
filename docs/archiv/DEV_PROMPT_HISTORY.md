@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-13 siehe-unten
+
+### EINGELESEN
+- In der Liste der gewählten Flächen stand hinter einer schrägen Fläche „… kommt um 30° gekippt
+  gespannt dran (unten)“ – gemeint ist „siehe den Satz unter der Liste“, lesen kann man es aber
+  auch als „die Fläche liegt unten“.
+
+### DATEIEN
+- `translations/de.json`, `en.json`: `ba.flaeche.geschwenkt`, `ba.flaeche.gekippt`,
+  `ba.flaeche.schraeg` mit „(siehe unten)“ bzw. „(see below)“.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`, `szenario_schraeg_anlegen`, `szenario_schraeg_g550`,
+  `szenario_schwenken`.
+
 ## P-2026-10-17-12 durchsicht-drei
 
 ### EINGELESEN
