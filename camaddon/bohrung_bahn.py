@@ -213,12 +213,29 @@ def bohrung_ueber_boden(form, name):
     den Boden eines Lochs anklickt, meint das Loch (Manuel, 2026-10-10: „Ich will nur dass Loch
     da fräsen“) – und das Räumen passt in ein Loch wenig größer als der Fräser nicht hinein.
     Ein innerer Rand muss ebenfalls an eine Bohrung grenzen (die Senkung über einer kleineren
-    Bohrung); steht im Boden ein Zapfen, ist es eine Tasche – die Helix nähme ihn weg. Je Form
-    und Name gemerkt (der Assistent fragt bei jeder Änderung)."""
+    Bohrung); steht im Boden ein Zapfen, ist es eine Tasche – die Helix nähme ihn weg.
+    Die Flächen der Form einmal geholt (_flaechen_von – `getElement` geht je Aufruf alle Flächen
+    durch: am Geist mit 25.577 gewählten Dreiecken stand das Fenster 22 s); was keine ebene
+    Fläche mit Kreisbögen als Rand ist, gleich None; der Rest je Form und Name gemerkt."""
+    nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
     try:
-        schluessel = (form.hashCode(), name)
-    except Exception:  # noqa: BLE001
+        alle = _flaechen_von(form)
+    except Exception:  # noqa: BLE001 – keine Form
         return None
+    if not 0 <= nummer < len(alle):
+        return None
+    import Part
+
+    flaeche = alle[nummer]
+    try:
+        if not isinstance(flaeche.Surface, Part.Plane):
+            return None
+        kanten = flaeche.OuterWire.Edges
+    except Exception:  # noqa: BLE001 – keine Fläche mit Rand
+        return None
+    if not kanten or not all(isinstance(k.Curve, Part.Circle) for k in kanten):
+        return None
+    schluessel = (form.hashCode(), name)
     gemerkt = _BODEN_MERK.get(schluessel)
     # Mit der Form gemerkt: Sie bleibt so am Leben, ihr Speicher wird nicht für eine andere
     # wiederverwendet (der hashCode allein wäre dann gleich).
@@ -226,30 +243,32 @@ def bohrung_ueber_boden(form, name):
         return gemerkt[1]
     if len(_BODEN_MERK) > 256:
         _BODEN_MERK.clear()
-    ergebnis = _bohrung_ueber_boden(form, name)
+    ergebnis = _bohrung_ueber_boden(form, flaeche, alle)
     _BODEN_MERK[schluessel] = (form, ergebnis)
     return ergebnis
 
 
 _BODEN_MERK = {}
+_FLAECHEN = []  # [(Form, [Flächen])] – die zuletzt gefragte
 
 
-def _bohrung_ueber_boden(form, name):
+def _flaechen_von(form):
+    """`form.Faces`, für dieselbe Form (isSame) nur einmal ausgepackt."""
+    if _FLAECHEN and _FLAECHEN[0][0].isSame(form):
+        return _FLAECHEN[0][1]
+    alle = form.Faces
+    _FLAECHEN[:] = [(form, alle)]
+    return alle
+
+
+def _bohrung_ueber_boden(form, flaeche, alle):
     import Part
 
-    try:
-        flaeche = form.getElement(name)
-        aussen = flaeche.OuterWire
-        kanten = aussen.Edges
-    except Exception:  # noqa: BLE001 – kein Name einer Fläche, keine Fläche mit Rand
-        return None
-    if not isinstance(flaeche.Surface, Part.Plane) or not kanten:
-        return None
-    if not all(isinstance(k.Curve, Part.Circle) for k in kanten):
-        return None
+    aussen = flaeche.OuterWire
+    kanten = aussen.Edges
 
     def name_von(nachbar):
-        for nummer, f in enumerate(form.Faces):
+        for nummer, f in enumerate(alle):
             if f.isSame(nachbar):
                 return f"Face{nummer + 1}"
         return None

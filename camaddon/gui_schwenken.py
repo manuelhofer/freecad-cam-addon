@@ -437,22 +437,27 @@ def zeige_job(job):
     vorher = []
     if len(jobs) < 2:
         return vorher
+    from . import stl_anzeige
+
     for j in jobs:
         for objekt in (vr.modell(j), getattr(j, "Operations", None)):
-            ansicht = getattr(objekt, "ViewObject", None)
-            if ansicht is None:
+            if getattr(objekt, "ViewObject", None) is None:
                 continue
-            vorher.append((objekt, ansicht.Visibility))
-            ansicht.Visibility = j is job
+            # Ein Teil aus einem STL als Netz (stl_anzeige): FreeCAD baute seine Anzeige sonst
+            # Fläche für Fläche – je Aufspannung der N-Eck-Stange am Geist rund 2 s.
+            vorher.append((objekt, stl_anzeige.sichtbar(objekt)))
+            stl_anzeige.zeigen(objekt, j is job)
     return vorher
 
 
 def zeige_wieder(vorher):
     """Die Sichtbarkeit, wie zeige_job sie vorfand."""
+    from . import stl_anzeige
+
     for objekt, sichtbar in vorher:
         try:
             if objekt.ViewObject is not None:
-                objekt.ViewObject.Visibility = sichtbar
+                stl_anzeige.zeigen(objekt, sichtbar)
         except (ReferenceError, RuntimeError):  # inzwischen gelöscht
             pass
 

@@ -462,6 +462,22 @@ def _vorhandene_lage(grundjob, richtung, jobs):
 FASE_HOECHSTENS = 5.0
 
 
+_VOLUMEN = []  # [(Form, Volumen)] – die zuletzt gefragten, die neueste vorn
+
+
+def _volumen(form):
+    """`form.Volume`, für dieselbe Form (isSame) nur einmal gerechnet – am Geist (68.242
+    Dreiecke) knapp 1 s je Aufruf, mehrmals bei jeder Vorschau (Ziel, Merkschlüssel)."""
+    for nummer, (gemerkt, volumen) in enumerate(_VOLUMEN):
+        if gemerkt.isSame(form):
+            if nummer:
+                _VOLUMEN.insert(0, _VOLUMEN.pop(nummer))
+            return volumen
+    volumen = form.Volume
+    _VOLUMEN[:] = [(form, volumen)] + _VOLUMEN[:3]
+    return volumen
+
+
 def _lage_von(form):
     """Die Lage einer Form als Tupel (fürs Merken): ihre Placement-Matrix."""
     try:
@@ -4113,7 +4129,9 @@ def _merk_schluessel(kennung, job, werkzeug, einsatz, werte, flaechen):
                 continue
             bb = form.BoundBox
             huelle = (bb.XMin, bb.YMin, bb.ZMin, bb.XMax, bb.YMax, bb.ZMax)
-            teile.append((repr(objekt.Placement), huelle, round(form.Volume, 6), form.hashCode()))
+            teile.append(
+                (repr(objekt.Placement), huelle, round(_volumen(form), 6), form.hashCode())
+            )
         text = repr(
             (
                 kennung,
@@ -6811,7 +6829,12 @@ class BearbeitungPanel:
         }
         fertig = set().union(*(je_block[b] for b in self.aktive_bloecke()))
         fertig |= set(self._geschwenkt(form))  # die kommen in ihrer Ebene oder Aufspannung dran
-        fertig |= {n for n in self.gewaehlte if bb.bohrung_ueber_boden(form, n) in fertig}
+        if fertig and not self._ist_stl():  # ein STL hat keine Bohrungen (nur Dreiecke)
+            fertig |= {
+                n
+                for n in self.gewaehlte
+                if n not in fertig and bb.bohrung_ueber_boden(form, n) in fertig
+            }
         ergebnis = []
         for name in self.gewaehlte:
             if name in fertig or not any(b.s.passt(form, name) for b in self.bloecke):
@@ -7274,7 +7297,7 @@ class BearbeitungPanel:
         schluessel = tuple(
             round(w, 6)
             for w in (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax, kasten.ZMax)
-            + (teil.XMin, teil.XMax, teil.YMin, teil.YMax, teil.ZMin, teil.ZMax, form.Volume)
+            + (teil.XMin, teil.XMax, teil.YMin, teil.YMax, teil.ZMin, teil.ZMax, _volumen(form))
         )
         gemerkt = getattr(self, "_ziel_gemerkt", None)
         if gemerkt is not None and gemerkt[0] == schluessel:

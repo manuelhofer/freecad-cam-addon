@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-09 fenster-steht-nicht
+
+### EINGELESEN
+- Manuel: Das Fenster darf nie hängen (Ressourcen nutzen). Die Pausen des vollen Szenario-Laufs
+  (`pausen.txt` je Szenario) durchgesehen: `szenario_bearbeitung_stl` stand 21,9 s,
+  `szenario_bearbeitung_n_eck` 15,4 s – vor P-2026-10-16-54 je rund 2 s.
+  - `bohrung_bahn.bohrung_ueber_boden` (P-54) holte jede gewählte Fläche mit `getElement` – das
+    geht je Aufruf alle Flächen durch, am Geist (68.242 Dreiecke, 25.577 gewählt) quadratisch;
+    gerufen aus `_unfertige` für jede gewählte Fläche.
+  - `form.Volume` im Merkschlüssel von Ziel und Vorschau: am Geist knapp 1 s je Aufruf, mehrmals
+    je Vorschau.
+  - `gui_schwenken.zeige_job` (seit P-69 auch für umgespannte Aufspannungen, also auch die
+    N-Eck-Stange) setzte die Sichtbarkeit des Modells selbst – FreeCAD baut die Anzeige eines
+    STL-Körpers dann Fläche für Fläche (rund 2 s je Aufspannung) statt des Netzes.
+
+### DATEIEN
+- `camaddon/bohrung_bahn.py`: die Flächen der Form einmal ausgepackt (`_flaechen_von`); was keine
+  ebene Fläche mit Kreisbögen als Rand ist, gleich None – gemerkt wird nur der Rest.
+- `camaddon/gui_bearbeitung.py`: `_unfertige` fragt den Lochboden nur ohne STL und nur für
+  Flächen, die noch nicht fertig sind; `_volumen` merkt das Volumen der letzten vier Formen.
+- `camaddon/gui_schwenken.py`: `zeige_job`/`zeige_wieder` über `stl_anzeige.zeigen` (ein Teil
+  aus einem STL als Netz, alles andere wie bisher).
+
+### ERGEBNIS
+- Längste Pause: `szenario_bearbeitung_stl` 21,9 → 1,0 s, `szenario_bearbeitung_n_eck` 15,4 →
+  1,2 s; `szenario_bearbeitung` 0,5 s, `szenario_schwenken` 0,6 s.
+- Grün im Wochen-Build: `test_bohrung`, `szenario_bearbeitung_stl`, `szenario_bearbeitung_n_eck`,
+  `szenario_bearbeitung`, `szenario_schwenken`, `szenario_schraeg_anlegen`,
+  `szenario_stl_anzeige`, `szenario_loch_schraeg`, `szenario_lagerbock`, `szenario_zielzeit`.
+
 ## P-2026-10-17-08 gekippt-satz-wie-manuel
 
 ### EINGELESEN
