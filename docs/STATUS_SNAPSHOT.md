@@ -1690,7 +1690,8 @@ B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den 
   wird der erste Vektor des Gelenks (der Ursprung) für die Richtung gehalten (Befund und Beleg in
   P-2026-09-25-20). **Nicht behoben** (Manuel, 2026-10-10: „ist das im wochenbuild schon
   behoben“): im Wochen-Build vom 2026-09-16 da, im FreeCAD-Quelltext (main, 2026-10-10)
-  unverändert; FreeCAD 1.1.4 hat das Modul `Machine` gar nicht, nur der Wochen-Build. Solange er
+  unverändert, ebenso im Wochen-Build vom 2026-10-14 (`Machine/models/machine.py`, Zeile 1518 ff.,
+  nachgesehen 2026-10-18); FreeCAD 1.1.4 hat das Modul `Machine` gar nicht, nur der Wochen-Build. Solange er
   besteht, übergibt das Addon Linearachsen mit Ursprung 0 und ist nicht betroffen.
   **Der Bericht ist fertig zum Einreichen:** [freecad_fehler_T-004.md](freecad_fehler_T-004.md)
   – einreichen kann nur Manuel (GitHub-Konto).
