@@ -73,6 +73,14 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   2 ms je Vorschau), „Seiten mit dem Schaft“ rechnen mit Schneide + Hals (Auskragung N), und die
   Einfahrten der Zeilen gehen für Hundertstel senkrecht statt in die Rampe – der Helix-Kreis darf
   neben der Zeile das Spiel beim Schruppen höher sehen (Passfedernut: Helix statt Rampe).
+- **Fable, Mittag bis Nachmittag nach Manuels vier Punkten (P-2026-10-17-39 bis -43, → 0.260.109):**
+  Abspieler-Abtrag (schräg und Stange) auf den Nebenrechnern (Manuel: „alle Rechenkerne“); Nut:
+  Haken erklärt, Aufmaß bleibt, „Schlichten danach“ mit Messstopp (M5, M9, M0, dann Spindel und
+  Kühlung wieder an) als eigene Operationen (W-023); Halter am Magazinplatz (W-024); „Bearbeitung“
+  von vorn auf der Drehmaschine mit Y auf dem Stangen-Job, der Verweis aus dem 4-Achs-Assistenten
+  behält die Stange (W-025, nur mit Y). Die Wendel-Grenze der Kontur auf 0,5 mm Schleifenradius
+  korrigiert (der Prüfstand fand 12 statt 9 % Luft in Bohrungen). Danach 12 Szenarien quer durch
+  die Bereiche grün. Fragen 3 und 4 in OFFENE_FRAGEN.
 - Voller Szenario-Lauf auf 0.260.87 (Worktree, Wochen-Build): 152 von 154 grün. Rot waren
   `szenario_entgraten3d` – ein echter Fehler aus P-21 (die Variable `quer` von der inneren Funktion
   verdeckt; P-24) – und `szenario_rundum_drehmaschine` (das Szenario prüfte „Anlegen“, bevor die
