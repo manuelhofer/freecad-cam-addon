@@ -148,9 +148,12 @@ Lage wie eine Zwischenlage (`camaddon/schruppen3d_bahn.py`, `_schruppen`, `mit_s
   radial, `raeumen_bahn._Lage._lauf`, „angehängt“ bei einem Weg bis ae + Schritt) am Rand des
   Bereichs, wo das Band innen noch ungeschnitten und 10 mm hoch ist: Die Stirn schiebt sich dort
   über eine Sehne von ~8 mm ins Volle, das 3-mm-Fenster des Prüfstands mittelt das zu 2,6 ae.
-  Auf der ganzen Kuppel fällt derselbe Schritt nicht auf (1,9 ae). Abhilfe wäre, den Schritt
-  zwischen zwei Ringen nicht radial, sondern tangential-schräg (Bogen) zu fahren oder ihn dort zu
-  machen, wo das innere Band schon frei ist – noch nicht gebaut.
+  Auf der ganzen Kuppel fällt derselbe Schritt nicht auf (1,9 ae). *Versucht (2026-10-17):* der
+  Schritt zum nächsten Ring schräg über zwei Radien entlang des neuen Rings, der dort beginnt
+  (`_Lage._lauf`, nur ganze Ringe, nur wenn der gerade Schritt durch Material ginge) – der Zwickel
+  blieb bei 2,6 ae an derselben Stelle, und `test_raeumen` zählt beim Morph andere Anschlüsse.
+  Zurückgenommen. Die Ursache ist also nicht (nur) der Schritt; als Nächstes den Prüfstand an der
+  Stelle (3,5, 24) Satz für Satz ausgeben (Abtrag je Satz, welcher Ring) statt zu vermuten.
 - *Materialstand, Hauptlagen mit Ringen vom Rand:* gebaut, gemessen, wieder zurückgenommen. Die
   Kuppel nach einem Räumen der Platte (Zwischenlagen 1 mm): alt 2,58 min, 6 % Luft; neu 2,58 min,
   12 % Luft – der erste Ring außerhalb in der Luft kostet, was die Helix kostete. Ohne
