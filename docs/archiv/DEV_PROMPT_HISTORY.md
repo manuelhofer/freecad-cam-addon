@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-41 nut-schlichten-danach-mit-messstopp
+
+### EINGELESEN
+- Manuel (2026-10-17, C-Ring, Nut): „wir haben hier hacken für gleichlauf und für gleich und
+  gegenlauf … da müsste man schon hinschreiben das das eine fürs grobe rausschruppen ist“; „ich
+  will schruppen … messen … schlichten … ist meist der ablauf … wenn ich nicht schlichten als
+  option direkt habe is doof“; „mess pause … maschine fährt auf home macht türen auf drehzahl aus
+  wasser aus … und wenn man weiter drückt wieder alles an“. Bisher fräste die Nut mit „Wand
+  schlichten“ im selben Durchgang auf Maß (ohne Haken gleich auf Maß, kein Aufmaß); „Schlichten
+  danach“ (mit Messstopp, W-010) gab es nur hinter dem Räumen.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`: Das Aufmaß bleibt immer stehen (`aufmass`), `schlichten` (aus
+  vorbelegt) ist nur noch der Schlichtgang im selben Durchgang; die Vollnut fährt rundum bis aufs
+  Aufmaß, wenn er aus ist.
+- `camaddon/gui_bearbeitung.py`: `_nut_laesst_aufmass`; „Schlichten danach“ möglich hinter dem
+  Räumen oder der Nut (`_schlichten_danach_zusatz` mit den Wänden der Nut, `…_einrichten` hakt
+  es nach der Nut von selbst an, mit Messstopp), die Operation heißt „Nut schlichten T…“; im
+  Wettbewerb Nut gegen Kontur zählt die Zeit des Schlichtens zur Nut.
+- `camaddon/messstopp.py`: M9 vor M0, nach dem Start M8/M7 nach der Kühlung des Jobs.
+- Texte `ba.nut.wand_schlichten`, `ba.nut.gleichlauf`, `ba.nut.wellen`, `ba.nut.schlichten_name`,
+  `ba.schlichten_danach.text/.nicht/.messstopp.tooltip` (de/en); `help/de|en/bearbeitung.html`.
+- `tests/test_nut.py` (roh: das Aufmaß steht), `tests/test_postprozessor.py` (M9, M8),
+  `tests/gui/szenario_nut.py` (Nut T1, Messstopp, Nut schlichten T1).
+- `docs/OFFENE_FRAGEN.md`: Frage 3 (Türen beim Messstopp), Frage 4 (Nut auf der Drehmaschine:
+  nur mit Y oder auch polar); `docs/STATUS_SNAPSHOT.md`: W-023 (gebaut), W-024 (Halter am
+  Magazinplatz), W-025 („Bearbeitung“ von vorn auf der Drehmaschine).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_nut`, `test_postprozessor`, `test_sprache`, `szenario_nut`,
+  `szenario_raeumen_durch`.
+
 ## P-2026-10-17-40 abspieler-stange-auf-den-nebenrechnern
 
 ### EINGELESEN

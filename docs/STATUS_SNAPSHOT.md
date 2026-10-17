@@ -1469,6 +1469,27 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   fragt vor jedem Download (Datei, Quelle, Größe). Die Dateien kommen in einen eigenen Ordner und
   gelten als fremde Daten.
 
+- **W-023 Nut: Schlichten als eigener Schritt mit Messpause** – Manuel, 2026-10-17 (C-Ring, Nut):
+  „ich will schruppen … messen … schlichten … ist meist der ablauf … wenn ich nicht schlichten als
+  option direkt habe, is doof“; dazu „die hacken für gleichlauf und für gleich und gegenlauf … da
+  müsste man schon hinschreiben, das das eine fürs grobe rausschruppen ist“. *Gebaut
+  (P-2026-10-17-41):* Die Nut lässt das Aufmaß stehen (Haken „Wand gleich mitschlichten“ aus
+  vorbelegt), „Schlichten danach“ hakt sich nach der Nut von selbst an, mit Messstopp (M5, M9, M0,
+  danach Spindel und Kühlung wieder an); die Haken heißen „Gleichlauf (Bögen und Schlichtgang)“ und
+  „Grob ausräumen in Wellen“. Offen: Türen auf/zu (Frage 3 in OFFENE_FRAGEN).
+- **W-024 Der Halter gehört an den Magazinplatz** – Manuel, 2026-10-17 (Magazin, Kugelfräser):
+  „mit welchem halter … ich will den kugelfräser in der 3-achs-fräse haben, da hat die nen anderen
+  halter als in der clx … auch eine andere aufnahme … da müssen wir nochmal nachdenken und etwas
+  anders bauen“. Plan: Die Magazinzeile bekommt eine Spalte „Halter“ (vorbelegt: der Halter des
+  Werkzeugs aus der Werkzeugliste); Reichweite, Kollision, 4-Achs-Assistent und Einrichtblatt nehmen
+  den Halter aus dem Magazin der Maschine, wenn dort einer steht – die Werkzeugliste behält ihren als
+  Vorgabe. Die Aufnahme (SK40, HSK, VDI) prüft weiter `aufnahme_pruefen` gegen die Maschine.
+- **W-025 „Bearbeitung“ von vorn auf der Drehmaschine (axial angetriebenes Werkzeug)** – Manuel,
+  2026-10-17: Nut im C-Ring auf der CLX „wie auf der 3-achsigen auch … leider klappt das nicht“.
+  Heute lehnt „Bearbeitung“ Drehmaschinen ab, der 4-Achs-Assistent denkt radial. Plan: mit Y-Achse
+  und Halter „VDI axial“ die Stirnfläche als Ebene „von oben“ – Frage 4 in OFFENE_FRAGEN (nur mit
+  Y, oder auch polar ohne Y).
+
 ## Offene Bugs
 
 Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);

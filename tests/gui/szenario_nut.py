@@ -27,7 +27,6 @@ def schritte(h):
     yield 500
 
     from camaddon import beispielmaschine, gui_bearbeitung, gui_reichweite
-    from camaddon import kontur as ko
     from camaddon import nut as nu
     from camaddon import raeumen as ra
     from camaddon import werkzeuge as wz
@@ -137,15 +136,24 @@ def schritte(h):
         f"Grund: Nut {nut_block.aktiv()}, Kontur {kontur.aktiv()}, Räumen {raeumen.aktiv()}",
     )
 
-    # --- Anlegen ------------------------------------------------------------------------------
-    h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
+    # --- Anlegen: Nut (lässt das Aufmaß), Messstopp, „Nut schlichten“ (P-2026-10-17-41) ------------
+    yield from h.warte_auf(lambda: panel.schlichten_danach.vorschau is not None, 180000)
+    yield 800
+    h.pruefe(
+        panel.schlichten_danach.aktiv()
+        and panel.schlichten_danach.haken_felder["messstopp"].isChecked(),
+        "„Schlichten danach“ nach der Nut nicht angehakt (mit Messstopp)",
+    )
+    if panel.accept() is not True:
+        h.pruefe(False, f"„Anlegen“ ging nicht: {panel.hinweis.text()!r}")
     yield 2500
     ops = list(job.Operations.Group)
     nuten = [o for o in ops if nu.ist_nut(o)]
     h.pruefe(
         len(nuten) == 1
         and nuten[0].Label == "Nut T1"
-        and not any(ko.ist_kontur(o) or ra.ist_raeumen(o) for o in ops),
+        and [o.Label for o in ops] == ["Nut T1", "Messstopp", "Nut schlichten T1"]
+        and not any(ra.ist_raeumen(o) for o in ops),
         f"Operationen: {[o.Label for o in ops]}",
     )
     if not nuten:

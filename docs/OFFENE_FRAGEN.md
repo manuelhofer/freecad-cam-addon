@@ -50,3 +50,32 @@ der Kugel auf die übrigen Flächen in Linien beschränken – und die Welle aus
 *Was die Antwort ändert:* Bei Ja: Der Assistent schlägt das vor, wenn gewählte Flächen eben sind;
 die Spirale über die ganze Welle nur noch auf Wunsch. Dazu der Schaft an den Seiten in zwei Lagen
 (Schneide 26 bei 40 mm Höhe) als nächster Schritt. – seit 2026-10-17
+
+**3. Messstopp: Was soll die Maschine dabei genau tun – und mit welchen Befehlen?**
+Heute (seit W-010, P-2026-10-17-41 auch nach der Nut): Z hoch (mit Wechselpunkt dorthin, Siemens
+„F_HOME“), M5, M9, M0 – nach dem Start M3 (oder M4) mit der Drehzahl des Schlichtens und M8/M7, wenn
+der Job Kühlung hat. Du sagst (2026-10-17): „maschine fährt auf home, macht türen auf, drehzahl aus,
+wasser aus … und wenn man weiter drückt wieder alles an“. Für die **Türen** gibt es keinen
+allgemeinen Befehl – an deiner Siemens/Heidenhain wäre das ein M-Befehl der Maschine (oder gar
+keiner, wenn der Halt M0 reicht und du die Tür von Hand öffnest).
+*Warum nur Manuel:* Welche M-Befehle deine Maschinen für Tür auf/zu haben (und ob sie das
+überhaupt im Programm wollen), weißt nur du.
+*Was die Antwort ändert:* Mit Befehlen schreibe ich sie je Steuerung in den Postprozessor (wie
+„F_HOME“), sonst bleibt es bei M5, M9, M0. – seit 2026-10-17
+
+**4. Nut auf der Drehmaschine mit axial angetriebenem Werkzeug: nur mit Y-Achse, oder auch ohne Y
+über die C-Achse (polar)?**
+Dein C-Ring auf der CLX (2026-10-17): „ich würde die nut da gerne rausfräsen, wie auf der
+3-achsigen auch – leider klappt das nicht“. Heute lehnt „Bearbeitung“ Drehmaschinen ab („Weiter
+geht auf der Drehmaschine nicht“), und der 4-Achs-Assistent denkt radial. Plan (W-025): „Bearbeitung“
+von vorn auf der Drehmaschine – die Stirnfläche ist die Ebene „von oben“, das Werkzeug steht axial
+im Revolver (Halter „VDI axial“), Z ist die Spindelachse, C steht; mit **Y-Achse** fährt es die
+Bahnen in X/Y wie an der Fräse (deine CLX hat Y). Ohne Y müsste die Steuerung polar interpolieren
+(Siemens TRANSMIT, Heidenhain Zyklus 800/polar) – ein eigener Postprozessor-Teil, und die
+Reichweite/Kollision rechnet anders.
+*Warum nur Manuel:* Ob die CLX das mit Y fahren soll (einfach, exakt wie an der Fräse) oder ob
+auch Maschinen ohne Y das können müssen (polar), entscheidet den Umfang.
+*Was die Antwort ändert:* „Nur mit Y“: ich baue W-025 so, dass „Bearbeitung“ die Drehmaschine mit
+Y und axialem Halter annimmt – alles andere (Räumen, Nut, Kontur, Bohren, Messstopp) läuft dann wie
+an der Fräse. „Auch polar“: dazu der Postprozessor-Teil, später. – seit 2026-10-17
+

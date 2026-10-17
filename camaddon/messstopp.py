@@ -39,12 +39,17 @@ def sichere_hoehe(job):
     return oben + max(abstand, 0.0)
 
 
-def zeilen(sicher, drehzahl, rueckwaerts=False):
-    """Die Zeilen des Messstopps: Kommentar, Z hoch, M5, M0 – und mit Drehzahl die Spindel
-    wieder an (M3, rückwärts M4)."""
-    ergebnis = [KOMMENTAR, f"G0 Z{sicher:.3f}", "M5", "M0"]
+def zeilen(sicher, drehzahl, rueckwaerts=False, kuehlung=None):
+    """Die Zeilen des Messstopps: Kommentar, Z hoch, M5, Kühlung aus (M9), M0 – und mit Drehzahl
+    die Spindel wieder an (M3, rückwärts M4), dazu die Kühlung (`kuehlung`: "Flood" M8, "Mist"
+    M7 – FreeCADs Postprozessoren schreiben sie nur beim Werkzeugwechsel). Manuel, 2026-10-17:
+    „maschine fährt auf home, macht türen auf, drehzahl aus, wasser aus … und wenn man weiter
+    drückt wieder alles an“."""
+    ergebnis = [KOMMENTAR, f"G0 Z{sicher:.3f}", "M5", "M9", "M0"]
     if drehzahl > 0:
         ergebnis.append(f"{'M4' if rueckwaerts else 'M3'} S{round(drehzahl)}")
+    if kuehlung in ("Flood", "Mist"):
+        ergebnis.append("M8" if kuehlung == "Flood" else "M7")
     return ergebnis
 
 
@@ -60,7 +65,8 @@ def lege_an(job, tc, danach):
     op.ToolController = tc
     op.Source = "Text"
     drehzahl = float(getattr(danach, "SpindleSpeed", 0.0) or 0.0)
-    op.Gcode = zeilen(sichere_hoehe(job), drehzahl, spindel.rueckwaerts(danach))
+    kuehlung = str(getattr(getattr(job, "SetupSheet", None), "CoolantMode", "") or "")
+    op.Gcode = zeilen(sichere_hoehe(job), drehzahl, spindel.rueckwaerts(danach), kuehlung)
     return op
 
 

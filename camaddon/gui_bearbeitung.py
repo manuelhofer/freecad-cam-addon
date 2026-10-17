@@ -1680,8 +1680,16 @@ class _Nut(_Strategie):
 
     def haken(self):
         return (
-            ("schlichten", tr("ba.wand_schlichten"), tr("ba.wand_schlichten.tooltip"), True),
-            ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+            # Aus vorbelegt: Das Aufmaß bleibt stehen, „Schlichten danach“ (eigene Operation, mit
+            # Messstopp) macht die Wand fertig (Manuel, 2026-10-17: „schruppen, messen, schlichten
+            # … ist meist der Ablauf“).
+            (
+                "schlichten",
+                tr("ba.nut.wand_schlichten"),
+                tr("ba.nut.wand_schlichten.tooltip"),
+                False,
+            ),
+            ("gleichlauf", tr("ba.nut.gleichlauf"), tr("ba.nut.gleichlauf.tooltip"), True),
             # Neu als Haken, angehakt (Manuel, 2026-10-16: „gleich und gegenlauf … kaum
             # schnellvorschub … meist schneidet“).
             ("wellen", tr("ba.nut.wellen"), tr("ba.nut.wellen.tooltip"), True),
@@ -6609,8 +6617,9 @@ class BearbeitungPanel:
                 if block is self.senken:
                     moeglich = moeglich and self._senker_da(form)
                 if block is self.schlichten_danach:
-                    # Mit dem Räumen (es steht davor in der Liste) – ein Haken von Hand bleibt.
-                    moeglich = self.raeumen.aktiv()
+                    # Mit dem Räumen oder der Nut (sie stehen davor in der Liste) – ein Haken von
+                    # Hand bleibt.
+                    moeglich = self.raeumen.aktiv() or self._nut_laesst_aufmass()
                 if block is self.flanke and moeglich and not self._fuenfachs():
                     moeglich, grund = False, tr("ba.fl.ohne_maschine")
                 block.moeglich = moeglich
@@ -7108,7 +7117,7 @@ class BearbeitungPanel:
             self._restraeumen_einrichten(form)  # nach dem Räumen: was es ausließ
             dabei = block.aktiv() or self._im_wettbewerb(block)
         if block is self.schlichten_danach:
-            self._schlichten_danach_einrichten(form)  # nur mit dem Räumen
+            self._schlichten_danach_einrichten(form)  # mit dem Räumen oder der Nut
             dabei = block.aktiv()
         if not dabei:
             # Nach dem Wettbewerb bleibt stehen, was er dem Verlierer hingeschrieben hat – nur
@@ -7282,8 +7291,9 @@ class BearbeitungPanel:
         von Hand: Ob nach dem Räumen geschlichtet wird, entscheidet, wer fräst – außer das Räumen
         räumt bis durch, wo sonst die Kontur die Wände fertig gemacht hätte (Frage 4: „Schlichten
         danach“ macht die Wände)."""
-        block, gross = self.schlichten_danach, self.raeumen
-        moeglich = self.zu_aendern is None and gross.aktiv()
+        block = self.schlichten_danach
+        gross = self.raeumen if self.raeumen.aktiv() else self.nut
+        moeglich = self.zu_aendern is None and (self.raeumen.aktiv() or self._nut_laesst_aufmass())
         geaendert = moeglich != block.moeglich
         self._fuellt = self._ruhig = True
         try:
@@ -7301,6 +7311,12 @@ class BearbeitungPanel:
                 waende = set(self._schlichten_danach_zusatz(form).get("wand_flaechen", ()))
                 if waende & set(self._durch_waende(form)) and not block.haken.isChecked():
                     block.haken.setChecked(True)
+                    geaendert = True
+                if gross is self.nut and not block.haken.isChecked():
+                    # Nach der Nut von sich aus, mit Messstopp: Schruppen, messen, schlichten
+                    # (Manuel, 2026-10-17).
+                    block.haken.setChecked(True)
+                    block.haken_felder["messstopp"].setChecked(True)
                     geaendert = True
             block.zustand_zeigen()
         finally:
@@ -7358,12 +7374,33 @@ class BearbeitungPanel:
         laenge = sum(k.Length for w in kb.waende(form, durch) for k in w.kanten)
         return laenge / vorschub
 
+    def _nut_laesst_aufmass(self):
+        """Lässt die Nut an ihren Wänden das Aufmaß stehen (angehakt, Aufmaß, kein Schlichtgang
+        im selben Durchgang) – dann macht „Schlichten danach“ die Wände fertig?"""
+        nut = self.nut
+        if not nut.aktiv():
+            return False
+        werte = nut.werte()
+        return float(werte.get("aufmass") or 0.0) > 0 and not werte.get("schlichten")
+
     def _schlichten_danach_zusatz(self, form):
         """Was „Schlichten danach“ vom Räumen übernimmt: die Böden, die es räumt, die Wände um sie –
-        ohne die, die die Kontur schon fährt –, seine Aufmaße und den Gleichlauf."""
+        ohne die, die die Kontur schon fährt –, seine Aufmaße und den Gleichlauf. Ohne Räumen von
+        der Nut: ihre Wände mit ihrem Aufmaß (der Grund ist auf Tiefe)."""
         raeumen = self.raeumen
         if not raeumen.aktiv():
-            return {}
+            if not self._nut_laesst_aufmass():
+                return {}
+            werte = self.nut.werte()
+            nuten_ = nb.nuten(form, self._flaechen(self.nut, form))
+            waende = list(dict.fromkeys(w for n in nuten_ for w in n.waende))
+            return {
+                "boden_flaechen": [],
+                "wand_flaechen": waende,
+                "aufmass_wand": float(werte["aufmass"]),
+                "aufmass_boden": 0.0,
+                "gleichlauf": bool(werte["gleichlauf"]),
+            }
         werte = raeumen.werte()
         geraeumt = sorted(self._raeumt(form))
         # Wände, unter denen das Räumen bis durch räumt (raeumen.durch_ebenen): selbst Wände.
@@ -8267,7 +8304,7 @@ class BearbeitungPanel:
         if not liste:
             return
         block = self.nut
-        aufmass = block.wert("aufmass") if block.haken_felder["schlichten"].isChecked() else 0.0
+        aufmass = block.wert("aufmass")
 
         def arten(w):
             return {nb.verfahren(n, w.durchmesser / 2, aufmass) for n in liste}
@@ -8511,7 +8548,17 @@ class BearbeitungPanel:
         zusatz = 0.0
         if self.raeumen in mit and self.kontur in mit and self.kontur.werte().get("schlichten"):
             zusatz = self._schlichtzug_zeit(form)
-        zeit = {b: b.zeit + (zusatz if b is self.raeumen else 0.0) for b in mit}
+        zusatz_nut = 0.0
+        if self.nut in mit and self.kontur in mit and self.kontur.werte().get("schlichten"):
+            # Die Nut lässt das Aufmaß stehen, „Schlichten danach“ macht die Wand (P-2026-10-17-41)
+            # – gegen die Kontur, die gleich schlichtet, zählt seine Zeit dazu.
+            block = self.schlichten_danach
+            if not self.raeumen.aktiv() and block.aktiv() and block.vorschau is not None:
+                zusatz_nut = block.zeit
+        zeit = {
+            b: b.zeit + (zusatz if b is self.raeumen else zusatz_nut if b is self.nut else 0.0)
+            for b in mit
+        }
         mit.sort(key=lambda b: zeit[b])
         rot = [
             b
@@ -8582,6 +8629,12 @@ class BearbeitungPanel:
         Fenster: False."""
         form = vr.modell(self.job).Shape
         aktive = self.aktive_bloecke()
+        # „Schlichten danach“ hinter der Nut (ohne Räumen) kommt gleich nach ihr in den Job:
+        # Nut, Messstopp, Nut schlichten (P-2026-10-17-41).
+        danach = self.schlichten_danach
+        if danach in aktive and not self.raeumen.aktiv() and self.nut in aktive:
+            aktive.remove(danach)
+            aktive.insert(aktive.index(self.nut) + 1, danach)
 
         folge = []  # die weiteren Operationen eines Blocks (Schlichten danach: Boden und Wände)
 
@@ -8658,10 +8711,15 @@ class BearbeitungPanel:
             self.doc.recompute()  # die Wände rechnen mit dem fertigen Boden
         if getattr(bahn, "waende", None):
             aufmass = werte["aufmass_wand"]
+            name = (
+                tr("ba.raeumen.schlichten_name", werkzeug=werkzeug)
+                if self.raeumen.aktiv()
+                else tr("ba.nut.schlichten_name", werkzeug=werkzeug)
+            )
             ops.append(
                 ko.lege_an(
-                    self.job, tc, werte["zustellung"], aufmass, aufmass, True, aufmass,
-                    tr("ba.raeumen.schlichten_name", werkzeug=werkzeug), flaechen=bahn.waende,
+                    self.job, tc, werte["zustellung"], aufmass, aufmass, True, aufmass, name,
+                    flaechen=bahn.waende,
                 )  # fmt: skip
             )
         if not ops or (len(ops) == 1 and werte.get("messstopp")):

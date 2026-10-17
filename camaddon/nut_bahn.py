@@ -136,7 +136,11 @@ class Nutwerte:
     oben: float  # z, wo das Material beginnt (das Rohteil)
     sicher: float  # z für den Eilgang über allem
     aufmass: float = 0.0  # bleibt beim Schruppen an der Wand – fürs Schlichten
-    schlichten: bool = True  # danach die Wand einmal rundum
+    # Danach die Wand einmal rundum auf Maß (im selben Durchgang). Aus: Das Aufmaß bleibt stehen –
+    # für „Schlichten danach“ als eigene Operation, mit Messstopp (Manuel, 2026-10-17: „schruppen,
+    # messen, schlichten … ist meist der Ablauf“); bis P-2026-10-17-41 fräste es dann gleich auf
+    # Maß.
+    schlichten: bool = False
     gleichlauf: bool = True
     tiefer: float = TIEFER  # nur bei durchgehenden Nuten
     schneidenlaenge: float = 0.0  # 0: unbekannt
@@ -1242,7 +1246,7 @@ def _nut(punkte, nut, w, stand=None, bei=None):
     `bei`: die Eintauchstelle (Anteil von A nach B) – die geschlossene Nut taucht in jeder Lage
     dort ein; die Vollnut beginnt ihre Rampe am Ende, das ihr am nächsten liegt."""
     R = w.fraeser_radius
-    aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
+    aufmass = max(w.aufmass, 0.0)
     z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
     if nut.offen and stand is not None:
         nut = _offen_im_stand(nut, w, stand, z_ende)
@@ -1270,7 +1274,10 @@ def _nut(punkte, nut, w, stand=None, bei=None):
             punkte, nut, w, vollnut, r_l, oben, z_ende, uhr, knapp
         )
         if r_w > GLEICH and (w.schlichten or vollnut):
-            weg += _offen_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp)
+            # Die Vollnut fährt die Wand rundum immer (sie lässt mehr als das Aufmaß stehen) –
+            # ohne Schlichtgang nur bis aufs Aufmaß, für „Schlichten danach“.
+            r_s = r_w if w.schlichten else max(r_l, 0.0)
+            weg += _offen_schlichten(punkte, nut, w, r_s, oben, z_ende, uhr, knapp)
         letzter = punkte[-1]
         punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
         return weg, (1 if vollnut else lagen), boegen, vollnut, z_ende
@@ -1302,7 +1309,10 @@ def _nut(punkte, nut, w, stand=None, bei=None):
         )
     weg += stueck
     if r_w > GLEICH and (w.schlichten or vollnut):
-        weg += _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr)
+        r_s = (
+            r_w if w.schlichten else max(r_l, 0.0)
+        )  # die Vollnut: ohne Schlichtgang bis aufs Aufmaß
+        weg += _schlichten(punkte, nut, w, r_s, oben, z_ende, ende, uhr)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
     return weg, lagen, boegen, vollnut, z_ende
@@ -1502,6 +1512,6 @@ def _bei(nut, w, stand):
     gewaehlt = (w.eintauchen_bei or {}).get(schluessel(nut))
     if gewaehlt is not None:
         return min(1.0, max(0.0, float(gewaehlt))), False
-    aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
+    aufmass = max(w.aufmass, 0.0)
     r_l = nut.radius - w.fraeser_radius - aufmass
     return vorschlag_bei(nut, w, stand, max(r_l, 0.0)), True

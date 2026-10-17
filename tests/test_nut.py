@@ -121,6 +121,7 @@ def werte(**weiter):
         "eintauchwinkel": 3.0,
         "vorschub": 902.0,
         "eintauchen": 300.0,
+        "schlichten": True,  # die Wand im selben Durchgang auf Maß (seit P-2026-10-17-41 aus vorbelegt)
     }
     grund.update(weiter)
     return nb.Nutwerte(**grund)
@@ -366,6 +367,20 @@ for nut, grund in ((nut_a, 10.0), (nut_b, -0.5)):
     pruefe(np.all(q.h[wand] < grund + 1e-6), f"Nut {nut.radius}: Aufmaß an der Wand")
 aussen = (abstand_nut(nut_a) > 10.05) & (abstand_nut(nut_b) > 7.05)
 pruefe(np.all(q.h[aussen] >= 20.0 - 1e-9), "neben den Nuten angeschnitten")
+# Ohne „Wand gleich mitschlichten“ (P-2026-10-17-41, Manuel: „schruppen, messen, schlichten“) bleibt
+# das Aufmaß an der Wand stehen – für „Schlichten danach“ mit Messstopp.
+bahn_roh = nb.planen(werte(schlichten=False), [nut_a, nut_b])
+q_roh = rm.Quader(0, 100, 0, 60, -1, 20, schritt=0.25)
+q_roh.h[:] = 20.0
+fein_roh = fein(bahn_roh.punkte)
+for a, b in zip(fein_roh, fein_roh[1:], strict=False):
+    q_roh.fahre((a.x, a.y, a.z), (b.x, b.y, b.z), form)
+for nut, grund in ((nut_a, 10.0), (nut_b, -0.5)):
+    d = abstand_nut(nut)
+    innen = d < nut.radius - 0.3
+    pruefe(np.all(np.abs(q_roh.h[innen] - grund) < 1e-6), f"Nut {nut.radius} roh: nicht leer")
+    wand = (d > nut.radius - 0.2) & (d < nut.radius - 0.05)
+    pruefe(np.all(q_roh.h[wand] >= 20.0 - 1e-9), f"Nut {nut.radius} roh: Aufmaß weg")
 
 # --- Die Eintauchstelle gewählt (W-012 E1): in der Mitte, in jeder Lage dort --------------------
 mitte = nb.stelle(nut_a, 0.5)

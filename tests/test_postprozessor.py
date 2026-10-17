@@ -597,7 +597,10 @@ mit_wp = pp.Maschineninfo("Fräse")
 mit_wp.wechselpunkt = {"Z": 150.0}
 z_lcnc = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), mit_wp, "M").zeilen
 k = z_lcnc.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_lcnc else -1
-pruefe(z_lcnc[k + 1 : k + 5] == ["G53 G0 Z150.000", "M5", "M0", "M3"], f"Messstopp: {z_lcnc[k:]}")
+pruefe(
+    z_lcnc[k + 1 : k + 6] == ["G53 G0 Z150.000", "M5", "M9", "M0", "M3"], f"Messstopp: {z_lcnc[k:]}"
+)
+pruefe(ms.zeilen(25.0, 900.0, kuehlung="Flood")[-1] == "M8", "Messstopp: Kühlung wieder an")
 fhome = pp.steuerung("siemens", {"wechselpunkt_mks": "F_HOME"})
 z_sie = pp.programm([bohren, messen], fhome, mit_wp, "M").zeilen
 k = z_sie.index("; MESSSTOPP") if "; MESSSTOPP" in z_sie else -1

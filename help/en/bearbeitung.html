@@ -697,7 +697,12 @@ semicircles in from the centre of one end and out again, in passes of at most th
 length. Through slots 0.5 mm deeper.</li>
 <li>Fields as for “Hole milling”: <b>stepdown per layer</b> (ap of the arcs), <b>row
 spacing</b> (ae – it gives the step of the arcs), <b>allowance for finishing</b>, the ticks
-<b>finish the wall</b> and <b>climb milling</b>. If the cutter mills the slot at full width,
+<b>Finish the wall in the same pass (no measuring)</b> (off by default: the allowance stays on
+the wall, and <b>Finishing afterwards</b> finishes it as an operation of its own – with the
+<b>measuring stop</b> before it: spindle and coolant off, stop, on again after start; the usual
+order at the machine: rough, measure, finish), <b>Climb milling (arcs and finishing pass)</b>
+and <b>Rough out in waves</b> (rough clearing only: every second arc cuts back conventional
+instead of returning empty). If the cutter mills the slot at full width,
 the application “Full slot” is preselected when it has one.</li>
 <li>Grey below: “→ 1 slot, 1 layer, 31 arcs, about 1 min” or “→ 1 slot at full width,
 about 1 min”. Red says why it does not work: the cutter is wider than the slot,
