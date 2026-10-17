@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-24 spindel-quer-schatten
+
+### EINGELESEN
+- Voller Szenario-Lauf nach P-21 bis P-23: `szenario_entgraten3d` rot – „Entgraten 3D“ nicht frei.
+  An der 5-Achs-Fräse Tisch/Tisch (Spindel stehend) stand in der Liste „Face3 kommt in der Ebene
+  „von oben“ dran – die Spindel steht hier waagerecht“: Oberseite und Schräge gewählt, und auch die
+  Oberseite ging in eine Ebene.
+- Dazu die Lücke aus T-015: An der G550 ohne angeklickte Fläche nimmt der Assistent die Oberseite –
+  die blieb im Grundjob bei A = 0 (Manuel: „Automatisch Ebene A−90“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`:
+  - `_schraege_gruppen`: Die neue Variable hieß `quer` – wie die innere Funktion `quer(name, r)`
+    weiter unten (die Prüfung einer Wand). Python nahm bei `if quer:` die Funktion, immer wahr:
+    An jeder 5-Achs-Fräse kamen mit einer schrägen Fläche alle übrigen gewählten in eine Ebene
+    „von oben“. Jetzt `waagerecht`.
+  - Ohne Wahl an einer Maschine mit waagerechter Spindel: die Oberseite (`hf.oberseite`) als
+    Richtung „von oben“; `_nur_geschwenkt` gilt dann auch ohne Wahl.
+  - `_spindel_quer`: nicht beim Ändern einer Operation, nicht an einem Teil aus einem STL.
+- `tests/gui/szenario_g550_von_oben.py`: zweiter Teil – eine Platte, nichts angeklickt: der Satz
+  zur waagerechten Spindel, keine Blöcke, „Anlegen“ → in der Ebene die Oberseite gewählt und
+  angehakt, im Grundjob nichts.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_entgraten3d`, `szenario_schraeg_anlegen`,
+  `szenario_g550_von_oben`, `szenario_schraeg_g550`.
 ## P-2026-10-17-23 raeumen-bis-durch
 
 ### EINGELESEN

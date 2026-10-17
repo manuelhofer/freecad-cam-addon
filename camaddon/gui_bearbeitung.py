@@ -5409,8 +5409,10 @@ class BearbeitungPanel:
         ausgegeben werden“). Nicht in einer Ebene – die ist schon geschwenkt."""
         from . import schwenken as sw
 
-        if self.job is None or not self._fuenfachs() or sw.ist_ebene(self.job):
+        if self.job is None or self.zu_aendern is not None or sw.ist_ebene(self.job):
             return False
+        if not self._fuenfachs() or self._ist_stl():
+            return False  # ein Teil aus einem STL: je Dreieck eine Fläche – bleibt im Grundjob
         eintrag = self.maschine()
         if eintrag.spindel_quer is None:
             eintrag = _spindel_nachrechnen(eintrag)
@@ -6047,15 +6049,16 @@ class BearbeitungPanel:
         steht. Sonst bekäme jede schräge Wand der Tasche in der Schräge ihre eigene Ebene, und
         die senkrechten blieben im Grundjob (wie zugang: die Wand geht zu ihrer Tasche)."""
         schraege = self._schraege(form)
-        quer = self._spindel_quer()
-        if not schraege and not quer:
+        # Nicht „quer“: So heißt unten die Prüfung einer Wand (eine Funktion – immer wahr).
+        waagerecht = self._spindel_quer()
+        if not schraege and not waagerecht:
             return []
         schluessel = (
             id(self.job),
             tuple(self.gewaehlte),
             tuple(self.kanten),
             tuple(schraege),
-            quer,
+            waagerecht,
             _lage_von(form),
         )
         merk = getattr(self, "_gruppen_merk", None)
@@ -6142,19 +6145,23 @@ class BearbeitungPanel:
                     r.flaechen.append(name)
                     uebrig.remove(name)
                     weiter = True
-        if quer:
+        if waagerecht:
             # Die Spindel steht waagerecht: Auch was von oben gefräst wird, kommt in eine Ebene –
             # ohne die Flächen der Flanke (die schwenkt simultan) und mit den Kanten.
             oben = [n for n in uebrig if not self.flanke.s.passt(form, n)] + list(self.kanten)
+            if not self.gewaehlte and not self.kanten:
+                oben = hf.oberseite(form)  # nichts angeklickt: die Oberseite, wie die Blöcke
             if oben:
                 richtungen.insert(0, zg.Richtung(achse=(0.0, 0.0, 1.0), flaechen=oben))
         self._gruppen_merk = (schluessel, richtungen)
         return [zg.Richtung(r.achse, list(r.flaechen), r.stellung, r.stirn) for r in richtungen]
 
     def _nur_geschwenkt(self, form):
-        """Kommen alle gewählten Flächen woanders dran? Dann legt „Anlegen“ hier nichts an."""
+        """Kommen alle gewählten Flächen woanders dran? Dann legt „Anlegen“ hier nichts an. Ohne
+        Wahl nur an einer Maschine mit waagerechter Spindel: Die Oberseite kommt in die Ebene
+        „von oben“ (_schraege_gruppen)."""
         if not self.gewaehlte and not self.kanten:
-            return False
+            return self._spindel_quer() and bool(self._geschwenkt(form))
         dort = set(self._geschwenkt(form))
         return set(self.gewaehlte) <= dort and set(self.kanten) <= dort
 

@@ -169,3 +169,64 @@ def schritte(h):
     dialog.close()
     pruefung.reject()
     yield 500
+
+    # --- Nichts angeklickt: die Oberseite kommt auch in die Ebene „von oben“ --------------------
+    # Ohne Wahl nimmt der Assistent die Oberseite (Planfräsen); an der G550 geht auch sie in die
+    # Ebene: der Satz zur waagerechten Spindel, keine Blöcke angehakt, „Anlegen“ – in der Ebene ist
+    # die Oberseite gewählt und angehakt, im Grundjob nichts.
+    platte_doc = FreeCAD.newDocument("Platte")
+    platte = platte_doc.addObject("Part::Feature", "Platte")
+    platte.Shape = Part.makeBox(70, 50, 20)
+    platte_doc.recompute()
+    oben = [
+        f"Face{i + 1}"
+        for i, f in enumerate(platte.Shape.Faces)
+        if abs(f.BoundBox.ZMin - 20) < 1e-6 and abs(f.BoundBox.ZMax - 20) < 1e-6
+    ]
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(platte_doc.Name, platte.Name)
+    yield 300
+    Gui.runCommand("CamAddon_Bearbeitung")
+    yield from h.warte_auf(
+        lambda: getattr(gui_bearbeitung.BearbeitungPanel.offen, "job", None) is not None
+        and gui_bearbeitung.BearbeitungPanel.offen.doc is platte_doc,
+        20000,
+    )
+    yield 1000
+    ohne = gui_bearbeitung.BearbeitungPanel.offen
+    ohne.knopf_weiter.click()
+    yield 800
+    h.pruefe(not ohne.gewaehlte, f"ohne Wahl gewählt: {ohne.gewaehlte}")
+    h.pruefe(
+        ohne.schwenken_zeile.isVisible() and "waagerecht" in ohne.schwenken_text.text(),
+        f"ohne Wahl, Zeile: {ohne.schwenken_text.text()!r}",
+    )
+    h.pruefe(
+        not ohne.aktive_bloecke(),
+        f"ohne Wahl angehakt: {[b.s.kennung for b in ohne.aktive_bloecke()]}",
+    )
+    h.pruefe(ohne._kann_anlegen(), "ohne Wahl: „Anlegen“ geht nicht")
+    h.bild("5_ohne_wahl", ohne.form)
+    platte_grund = ohne.job
+    ohne.accept()
+    yield from h.warte_auf(
+        lambda: gui_bearbeitung.BearbeitungPanel.offen not in (None, ohne)
+        and gui_bearbeitung.BearbeitungPanel.offen.job is not None,
+        30000,
+    )
+    yield 1500
+    oben_panel = gui_bearbeitung.BearbeitungPanel.offen
+    if oben_panel is None or oben_panel is ohne:
+        h.pruefe(False, "ohne Wahl: kein Assistent in der Ebene")
+        return
+    h.pruefe(
+        sw.ist_ebene(oben_panel.job) and oben_panel.job.Label.endswith(("(A90 B0)", "(A−90 B0)")),
+        f"ohne Wahl, Ebene: {oben_panel.job.Label!r}",
+    )
+    h.pruefe(sorted(oben_panel.gewaehlte) == sorted(oben), f"in der Ebene: {oben_panel.gewaehlte}")
+    h.pruefe(bool(oben_panel.aktive_bloecke()), "in der Ebene nichts angehakt")
+    oben_panel.accept()
+    yield from h.warte_auf(lambda: gui_bearbeitung.BearbeitungPanel.offen is not oben_panel, 60000)
+    yield 1500
+    h.pruefe(bool(list(oben_panel.job.Operations.Group)), "ohne Wahl: in der Ebene nichts angelegt")
+    h.pruefe(not list(platte_grund.Operations.Group), "ohne Wahl: im Grundjob angelegt")
