@@ -16,7 +16,32 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-14, 0.260.45 → 0.260.78):** (dazu T-015: G550 ohne Grundstellung)
+**Manuels Antworten am 17.10. früh (auf die Fragen 1–9) – Aufträge:**
+- Frage 1 (kleinerer Fräser, wenn der gewählte nicht hineinpasst): „ein hinweis an den anwender
+  .. und dann mit einem klick kleinen fräser übernehmen klar !!“ – nicht mehr selbst tauschen,
+  sondern rot melden, welcher passt, mit Knopf „übernehmen“.
+- Frage 2 (privates Repository): „kann alles in der repo bleiben .. nur eben nicht verbreiten auf
+  die pcs“ – so ist es seit P-2026-10-16-08 (das Update lädt `docs/`, `tests/`, `scripts/` nicht);
+  erledigt.
+- Frage 4 (C-Ring, Bohrung und Schlitz): „Ja, Räumen tritt an“ – an durchgehenden Wänden tritt
+  Räumen bis durch gegen die Kontur an, die Zeit entscheidet; „Schlichten danach“ macht die Wände.
+- Frage 5 (Boden eines Lochs bis Ø 40 → Bohrung fräsen): ja, bleibt.
+- Frage 6 (3D-Schruppen nur über der Auswahl): „ja als hacken ist gut, aber vll auch so als
+  vorschlag .. "hey schau mal du das rohteil ist dort noch komplett voll mit material .. wir
+  müssen erst die schräge fläche wegplanen und dann können wir die tasche fräsen oder ist rohteil
+  schon fertig so das nurnoch die tasche zu fräsen ist" … versuch mal dir da was auszudenken“.
+- Frage 7 (G550 von oben): „das A=0 bedeutet das der tisch so steht das man von oben aufs teil
+  schaut ... also das der tisch … zur spindel schaut und man das teil wenns flach auf dem tisch
+  montiert ist von oben bearbeiten kann .. du kannst veruchen herrauszufinden wie es wirklich ist
+  aber nur so machts sinn !!“ – die Beispiel-G550 steht bei A = 0 anders (Tisch waagerecht).
+- Frage 8 (Wandfahrt des Planfräsens): (b) ein Zug an der Wand am Ende der Lage.
+- Frage 9 (Rundachsen im Namen der Ebene): „Ja, wie an der Maschine“ – Name, „Ebene schwenken“
+  und „Alles aus dieser Aufspannung“ zeigen die Werte der Steuerung (A−60), gerechnet wird weiter
+  mit dem Gelenk.
+- Frage 3 bleibt offen – Testteil `~/freecad_cam/testteile/frage3_absatz.FCStd`.
+- Dazu: „Beispiele laden“ bekam „Öffnen“ (P-2026-10-17-16).
+
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-16, 0.260.45 → 0.260.80):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
