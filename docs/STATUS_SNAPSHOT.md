@@ -544,10 +544,12 @@ anarchie“; „die nuten in dem bauteil werden garnicht bearbeitet face 28 face
   52 mm tief bei N 19). *Luft – offen:* 7 Lagen à ~5,9 mm, über den Segmenten aber nur 2,5 mm –
   die tieferen Lagen kreisen über dem fertigen Ring, nur um in die Schlitze zu gehen („nur nötig“
   greift da nicht); Idee: Lagen, die nur noch in schmalen Bereichen fräsen, als Zeilen dort (V4)
-  statt der ganzen Spirale. „Bahn prüfen“ ist am Ring blind (das Strahlenmodell sieht die Bohrung
-  nicht, wie Hinterschnitte).
+  statt der ganzen Spirale. *Erledigt ohne Querachse:* P-2026-10-17-26/-32 (Sektoren, am Ring
+  100 → 12 km); mit Querachse Frage 1 in OFFENE_FRAGEN. „Bahn prüfen“ ist am Ring blind (das
+  Strahlenmodell sieht die Bohrung nicht, wie Hinterschnitte).
 - Face28, Face6, Face17 (die Nuten, stirnseitig): radial nicht erreichbar – das muss gesagt werden
-  (nicht still weglassen) und eine Bearbeitung von vorn angeboten werden.
+  (nicht still weglassen) und eine Bearbeitung von vorn angeboten werden. *Erledigt:*
+  P-2026-10-17-33 (der Satz nennt sie, „„Bearbeitung“ von vorn öffnen …“ als Verweis).
 
 **Manuel am Ring-Teil in „Bearbeitung“ (3-Achs-Fräse, 2026-10-12 ~20:00, mit Bildern) – aufschreiben:**
 1. **Kreise nach unten außerhalb des Rohteils**: „du bist hier auserhalb vom rohteil ... warum
