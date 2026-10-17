@@ -16,7 +16,7 @@ was mit posts zutun hat … einfach nicht auf github … auser es werden bilder 
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.
 
-**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-11, 0.260.45 → 0.260.75):** (dazu T-015: G550 ohne Grundstellung)
+**Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-12, 0.260.45 → 0.260.76):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
   - Der Prüfstand zählt Kehren; alle 2,5D-Strategien dort 0.
   - Die Kontur fährt geschlossene Umläufe als Wendel hinab (P-51).
@@ -101,6 +101,10 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
 - Vierter voller Lauf (Stand P-2026-10-17-10): 150 von 151 grün; `szenario_vierachs_schruppen`
   fand „Anlegen“ unter Volllast noch gesperrt (die Vorschau rechnete) und lief allein grün. Kehren
   wie im Lauf davor, nur das Planfräsen am Block wieder 0.
+- Dritte Durchsicht (P-2026-10-17-12): Eilgang-Schutz wieder mit der halben Zelle, ein leerer
+  Schnitt und offene Drähte fallen in `eingeschlossen` auf die alte Rechnung zurück, die
+  Netz-Eigenschaft der STL-Anzeige markiert nichts mehr als geändert. Alle 121 Prüfdateien auch
+  in 1.1.4 grün.
 - Der 3-Achs-Hinweis wie von Manuel vorgeschlagen (P-2026-10-17-08); neu gefragt: 8 (Wandfahrt),
   9 (Rundachsen im Namen der Ebene wie an der Steuerung?).
 - Der Knopf „Ebene schwenken (3+2) …“ im Assistenten ist weg (war seit P-54 immer versteckt), die
