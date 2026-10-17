@@ -1050,7 +1050,7 @@
     "wv.schaft.platzhalter.geschaetzt": "estimated: {wert}",
     "beispiel.drehmaschine_ohne_y": "Lathe without Y axis",
     "beispiel.drehmaschine": "Lathe with Y axis",
-    "beispiel.drehmaschine.beschreibung": "Slant bed like a CLX. Main spindle S1/C1 – its axis is Z –, X, Y, Z and a turret T. Every station is a VDI mount on the tool drive S3/C3 – in the face of the disc or on its circumference; how a tool stands is up to its holder in the tool manager. Enter bed slant, X in diameter or radius, travels, stations, turret, an inclined Y axis and the spindle numbers below.",
+    "beispiel.drehmaschine.beschreibung": "Slant bed like a CLX. Main spindle S1/C1 – its axis is Z –, X, Y, Z and a turret T. Every station is a VDI mount on the tool drive S3/C3 – in the face of the disc or on its circumference; how a tool stands is up to its holder in the tool manager. Enter bed slant, with or without a Y axis, X in diameter or radius, travels, stations, turret, an inclined Y axis and the spindle numbers below.",
     "beispiel.drehmaschine.dokument": "Example lathe",
     "beispiel.fraese3": "3-axis mill",
     "beispiel.fraese3.beschreibung": "Cross table X/Y, milling head Z, spindle S1 – the simplest start. The table is empty: whatever stands on yours (vice, clamps) goes into the assembly as a body, fixed to the table – the collision check then takes it into account.",

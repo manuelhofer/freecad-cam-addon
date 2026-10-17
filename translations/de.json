@@ -1050,7 +1050,7 @@
     "wv.schaft.platzhalter.geschaetzt": "geschätzt: {wert}",
     "beispiel.drehmaschine_ohne_y": "Drehmaschine ohne Y-Achse",
     "beispiel.drehmaschine": "Drehmaschine mit Y-Achse",
-    "beispiel.drehmaschine.beschreibung": "Schrägbett wie eine CLX. Hauptspindel S1/C1 – ihre Achse ist Z –, X, Y, Z und ein Revolver T. Jeder Platz ist eine VDI-Aufnahme am Werkzeugantrieb S3/C3 – in der Stirn der Scheibe oder am Umfang; wie ein Werkzeug steht, sagt sein Halter in der Werkzeugverwaltung. Bettneigung, X im Durchmesser oder Radius, Wege, Plätze, Revolver, eine schräge Y-Achse und die Nummern der Spindeln trägst du unten ein.",
+    "beispiel.drehmaschine.beschreibung": "Schrägbett wie eine CLX. Hauptspindel S1/C1 – ihre Achse ist Z –, X, Y, Z und ein Revolver T. Jeder Platz ist eine VDI-Aufnahme am Werkzeugantrieb S3/C3 – in der Stirn der Scheibe oder am Umfang; wie ein Werkzeug steht, sagt sein Halter in der Werkzeugverwaltung. Bettneigung, mit oder ohne Y-Achse, X im Durchmesser oder Radius, Wege, Plätze, Revolver, eine schräge Y-Achse und die Nummern der Spindeln trägst du unten ein.",
     "beispiel.drehmaschine.dokument": "Beispiel Drehmaschine",
     "beispiel.fraese3": "3-Achs-Fräse",
     "beispiel.fraese3.beschreibung": "Kreuztisch X/Y, Fräskopf Z, Spindel S1 – der einfachste Einstieg. Der Tisch ist leer: Was bei dir darauf steht (Schraubstock, Spanneisen), kommt als Körper in die Baugruppe, fest mit dem Tisch verbunden – dann nimmt die Kollisionsprüfung es mit.",
