@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-29 vollnut-rampe-einweg
+
+### EINGELESEN
+- Auftrag 5 (`docs/auftraege_fable.md`, Manuel: „das auch wirklich alle zickzack fahrten weg
+  sind“): die geschlossene Vollnut ohne Platz für die Helix fuhr im Zickzack hinab (Manuel,
+  2026-10-12: Zickzack nur in der geschlossenen Nut). Eine Rampe in einer Richtung kostet nichts
+  mehr, wenn die Nut lang genug ist, in einer Fahrt eine ganze Zustellung tief zu kommen: je Lage
+  Rampe hin (ap tief) und eben zurück – die ebene Fahrt nimmt den Keil – sind so viele Fahrten
+  wie im Zickzack (je Fahrt ap/2, zweimal die Stufe).
+
+### DATEIEN
+- `camaddon/nut_bahn.py`: `_vollnut` – ist `laenge · tan(Eintauchwinkel) ≥ ap`, die Rampe in
+  einer Richtung; sonst das Zickzack wie bisher.
+- `tests/test_nut.py`: Nut B (50 mm, 3°) mit Ø 13 ohne Helix-Platz – ap 2: elf Rampen, keine
+  kehrt beim Hinabfahren um; ap 6: Zickzack wie bisher.
+- `help/de|en/bearbeitung.html`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_nut`, `szenario_nut`.
 ## P-2026-10-17-28 ring-szenario
 
 ### EINGELESEN

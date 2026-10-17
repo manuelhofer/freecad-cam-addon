@@ -268,6 +268,44 @@ rampe_b = [
 ]  # fmt: skip
 pruefe(not rampe_b, f"Rampe in B: {len(rampe_b)}")
 
+# Vollnut ohne Platz für die Helix (Ø 13 in der Nut 13,6 mit 0,3 Aufmaß): die Rampe längs der
+# Mittellinie. Ist die Nut lang genug, dass sie in einer Fahrt eine ganze Zustellung tief kommt
+# (B: 50 mm bei 3° sind 2,6 mm; ap 2), je Lage hinab und eben zurück – kein Zickzack; mit ap 6
+# (2,6 < 6) wie bisher hin und her, je Fahrt höchstens 3 tiefer.
+
+
+def rampen_fahrten(punkte_, umkehr):
+    """Die Fahrten längs B, die hinabführen: [(z von, z bis)]; `umkehr`: nur die, deren
+    Richtung gegen die Rampenfahrt davor läuft (Zickzack – die ebene Fahrt zurück zählt nicht)."""
+    fahrten, vorige = [], None  # `vorige`: die Richtung der Rampenfahrt davor
+    for a, b in zip(punkte_, punkte_[1:], strict=False):
+        if b.eilgang or b.bogen is not None or abs(b.y - 45) > 1e-9 or abs(b.x - a.x) < 1:
+            continue
+        if b.z >= a.z - 1e-9:
+            continue  # eben: keine Rampe
+        richtung = 1.0 if b.x > a.x else -1.0
+        if not umkehr or (vorige is not None and vorige != richtung):
+            fahrten.append((round(a.z, 3), round(b.z, 3)))
+        vorige = richtung
+    return fahrten
+
+
+for ap_v, zickzack in ((2.0, False), (6.0, True)):
+    bahn_v = nb.planen(werte(fraeser_radius=6.5, zustellung=ap_v), [nut_b])
+    hinab = rampen_fahrten(bahn_v.punkte, False)
+    kehrt = rampen_fahrten(bahn_v.punkte, True)
+    pruefe(hinab, f"Vollnut ap {ap_v}: keine Rampe")
+    pruefe(
+        all(x - y <= (ap_v if not zickzack else ap_v / 2) + 1e-9 for x, y in hinab),
+        f"Vollnut ap {ap_v}: zu steil {hinab[:4]}",
+    )
+    pruefe(
+        bool(kehrt) == zickzack,
+        f"Vollnut ap {ap_v}: {len(kehrt)} Fahrten kehren beim Hinabfahren um",
+    )
+    print(ascii(f"Vollnut ohne Helix, ap {ap_v}: {bahn_v.zeit:.2f} min, {len(hinab)} Rampenfahrten, "
+                f"{len(kehrt)} Umkehren"))  # fmt: skip
+
 # Ohne Platz für die Helix (Ø 13: 0,2 zwischen Fräser und Wand): die Zickzack-Rampe, je Fahrt
 # höchstens 3,25 tiefer (min(ap, D/2) / 2).
 eng = nb.planen(werte(fraeser_radius=6.5), [nut_b]).punkte

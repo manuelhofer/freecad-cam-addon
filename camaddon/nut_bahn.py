@@ -880,17 +880,29 @@ def _vollnut_helix(punkte, nut, w, r_h, oben, z_ende, uhr):
 
 
 def _vollnut(punkte, nut, w, oben, z_ende):
-    """Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben hinüber – nur, wo für die
-    Helix kein Platz ist (mit_helix). Beginnt an A (der Punkt davor liegt dort). Gibt (Länge, das
-    Ende, an dem sie aufhört) zurück."""
+    """Rampe längs der Mittellinie hinab, unten einmal eben hinüber – nur, wo für die Helix kein
+    Platz ist (mit_helix). Ist die Nut so lang, dass die Rampe am Eintauchwinkel in einer Fahrt
+    eine ganze Zustellung tief kommt, je Lage eine Rampe hin und eben zurück (die ebene Fahrt
+    nimmt den Keil unter der Rampe) – ohne Umkehr beim Hinabfahren, gleich viele Fahrten wie
+    das Zickzack. Sonst im Zickzack: hin und zurück schneidet die Rampe zweimal die Stufe, je
+    Fahrt höchstens ap / 2 (Manuel, 2026-10-12: Zickzack nur in der geschlossenen Nut). Beginnt
+    an A (der Punkt davor liegt dort). Gibt (Länge, das Ende, an dem sie aufhört) zurück."""
     ap = _vollnut_ap(w)
-    # Hin und zurück schneidet die Rampe zweimal die Stufe: je Fahrt höchstens ap / 2.
-    stufe = min(nut.laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), ap / 2)
-    stufe = max(stufe, MIN_RAMPE)
+    steil = nut.laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1)))
     anteil = _vollnut_anteil(w)
     z = oben
     dort = nut.b
     weg = 0.0
+    if steil >= ap - GLEICH:
+        dort = nut.a  # hier steht der Fräser
+        while z > z_ende + GLEICH:
+            z = max(z - ap, z_ende)
+            dort = nut.a if dort == nut.b else nut.b
+            weg += _hin(punkte, dort[0], dort[1], z, anteil=anteil)  # die Rampe hinab
+            dort = nut.a if dort == nut.b else nut.b
+            weg += _hin(punkte, dort[0], dort[1], z, anteil=anteil)  # eben zurück: der Keil
+        return weg, dort
+    stufe = max(min(steil, ap / 2), MIN_RAMPE)
     while z > z_ende + GLEICH:
         z = max(z - stufe, z_ende)
         weg += _hin(punkte, dort[0], dort[1], z, anteil=anteil)
