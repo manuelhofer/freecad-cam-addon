@@ -7328,6 +7328,34 @@ class BearbeitungPanel:
             return []
         return [f for f in self._eigene(self.raeumen, form) if ra.durchgehend(form, f)]
 
+    def _schlichtzug_zeit(self, form):
+        """Minuten, die „Schlichten danach“ an den Wänden braucht, unter denen das Räumen bis
+        durch räumt – gerechnet, sobald der Block seine Vorschau hat (Auftrag 4, Fable-Aufträge),
+        bis dahin geschätzt (_durch_schlichtzug). Gemerkt je Wände, Fräser und Aufmaß: Verliert
+        das Räumen mit der gerechneten Zeit, ist der Block nicht mehr möglich und hätte keine –
+        mit der Schätzung gewänne das Räumen wieder, der Haken spränge hin und her."""
+        durch = tuple(
+            sorted(f for f in self._eigene(self.raeumen, form) if ra.durchgehend(form, f))
+        )
+        werkzeug = self.raeumen.fraeser()
+        if not durch or werkzeug is None:
+            return 0.0
+        schluessel = (durch, werkzeug.kennung, float(self.raeumen.werte().get("aufmass") or 0.0))
+        merk = getattr(self, "_schlichtzug_merk", None)
+        if merk is None:
+            merk = self._schlichtzug_merk = {}
+        block = self.schlichten_danach
+        zeit = block.zeit if block.aktiv() and block.vorschau is not None else None
+        if zeit is not None and zeit > 0 and block.werte().get("waende"):
+            zusatz = self._schlichten_danach_zusatz(form)
+            waende = tuple(sorted(zusatz.get("wand_flaechen") or ()))
+            # Nur die Wände (ein Boden dazu zählte mit): dann ist es die Zeit dieser Wände.
+            if waende == durch and not zusatz.get("boden_flaechen"):
+                merk[schluessel] = float(zeit)
+        if schluessel in merk:
+            return merk[schluessel]
+        return self._durch_schlichtzug(form)
+
     def _durch_schlichtzug(self, form):
         """Minuten, die „Schlichten danach“ an den Wänden braucht, unter denen das Räumen bis
         durch räumt – geschätzt: ein Zug an jeder ihrer Unterkanten im Vorschub des Räumens. Im
@@ -8495,7 +8523,7 @@ class BearbeitungPanel:
             mit = [b for b in mit if not luecke[b]]
         zusatz = 0.0
         if self.raeumen in mit and self.kontur in mit and self.kontur.werte().get("schlichten"):
-            zusatz = self._durch_schlichtzug(form)
+            zusatz = self._schlichtzug_zeit(form)
         zeit = {b: b.zeit + (zusatz if b is self.raeumen else 0.0) for b in mit}
         mit.sort(key=lambda b: zeit[b])
         rot = [

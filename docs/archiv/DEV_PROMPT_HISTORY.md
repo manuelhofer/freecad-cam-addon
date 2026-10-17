@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-27 schlichtzug-gerechnet
+
+### EINGELESEN
+- Auftrag 4 (`docs/auftraege_fable.md`): Räumen bis durch gegen die Kontur fair vergleichen – bis
+  P-23 zählte beim Räumen eine Schätzung des Schlichtzugs dazu (Länge der Unterkanten durch den
+  Vorschub), am C-Ring 0,32 min; „Schlichten danach“ rechnet dort 0,43 min.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_schlichtzug_zeit` – die Zeit des Blocks „Schlichten danach“,
+  sobald er seine Vorschau hat und nur die durchgehenden Wände schlichtet (kein Boden dazu);
+  gemerkt je Wände, Fräser und Aufmaß (`_schlichtzug_merk`), damit der Haken nicht springt:
+  Verliert das Räumen mit der gerechneten Zeit, ist der Block nicht mehr möglich und hätte keine
+  – mit der Schätzung gewänne das Räumen wieder. Ohne gemerkte Zeit die Schätzung
+  (`_durch_schlichtzug`). `_wettbewerb_gruppe` ruft sie.
+- `help/de|en/bearbeitung.html`: der Satz dazu.
+
+### ERGEBNIS
+- C-Ring (`szenario_raeumen_durch`): Räumen 2,25 + Schlichten danach 0,43 min gegen Kontur
+  3,36 min – „Kontur wäre 25 % langsamer“ (vorher 31 % aus der Schätzung). Grün im Wochen-Build.
 ## P-2026-10-17-26 rundum-sektoren
 
 ### EINGELESEN

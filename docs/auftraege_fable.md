@@ -182,6 +182,12 @@ gehen, tritt das Räumen bis durch gegen die Kontur an (nur Wände gewählt).
 - Der Vergleich nimmt die gerechnete Zeit des Schlichtens, ohne Springen.
 - `tests/gui/szenario_raeumen_durch.py` ist grün.
 
+**Stand 2026-10-17 (P-2026-10-17-27):** gebaut – `_schlichtzug_zeit` nimmt die Zeit des Blocks
+„Schlichten danach“, sobald er seine Vorschau hat (nur Wände, kein Boden dazu), und merkt sie je
+Wände, Fräser und Aufmaß; sonst die Schätzung. Am C-Ring: „Kontur wäre 25 % langsamer“ (vorher
+31 % aus der Schätzung). Nicht gebaut: die Folge Räumen + Schlichten als Ganzes gegen die Kontur
+rechnen wie Planfräsen + Räumen (`_folge`) – die gemerkte Zeit reicht, der Haken springt nicht.
+
 ## 5. Die übrigen Zickzacks
 
 **Manuel (2026-10-16):** „das auch wirklich alle zickzack fahrten weg sind“.
