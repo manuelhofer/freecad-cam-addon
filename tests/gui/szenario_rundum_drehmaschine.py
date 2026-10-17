@@ -175,6 +175,8 @@ def schritte(h):
     # „Anlegen“ ist grau, solange gerechnet wird (Rest, Halter – P-2026-10-12-139): warten, bis
     # das Rad steht, wie man es am Bildschirm täte.
     yield from h.warte_auf(lambda: not panel.rechnet_noch(), 120000)
+    # Die Anzeige gibt „Anlegen“ erst mit ihrem nächsten Takt frei (gui_rechnet.TAKT_MS).
+    yield from h.warte_auf(lambda: panel.knopf_fertig.isEnabled(), 3000)
     h.pruefe(panel.knopf_fertig.isEnabled(), "„Anlegen“ unten gesperrt")
     panel.knopf_fertig.click()  # Anlegen, unten rechts
     yield 1500

@@ -42,7 +42,7 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   geht an Räumen und Kontur (P-2026-10-17-18).
 - Dazu: „Beispiele laden“ bekam „Öffnen“ (P-2026-10-17-16).
 
-**Umgesetzt am 17.10. (0.260.80 → 0.260.87):**
+**Umgesetzt am 17.10. (0.260.80 → 0.260.89):**
 - P-17 Frage 9: Name der Ebene wie an der Steuerung („A−60 B0“).
 - P-18 Frage 3: Planfräsen nur offen; der Absatz → Räumen/Kontur.
 - P-19 Frage 1: roter Satz, welcher Fräser passt, mit Knopf „„T3 …“ übernehmen“.
@@ -58,6 +58,11 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
   ein Schlichtzug zählt beim Räumen dazu; gewinnt es, ist „Schlichten danach“ angehakt. C-Ring
   Ø 12: 2,7 statt 5,3 min. Szenario `szenario_raeumen_durch`.
 - Damit sind alle neun Fragen vom 16./17.10. umgesetzt.
+- Voller Szenario-Lauf auf 0.260.87 (Worktree, Wochen-Build): 152 von 154 grün. Rot waren
+  `szenario_entgraten3d` – ein echter Fehler aus P-21 (die Variable `quer` von der inneren Funktion
+  verdeckt; P-24) – und `szenario_rundum_drehmaschine` (das Szenario prüfte „Anlegen“, bevor die
+  Anzeige „rechnet …“ ihren nächsten Takt hatte; jetzt wartet es darauf). Die Durchsicht durch
+  einen zweiten Agenten fand drei weitere Fehler (P-25). Alle betroffenen Szenarien wieder grün.
 
 **Die Nacht 16./17.10. (P-2026-10-16-48 bis P-2026-10-17-16, 0.260.45 → 0.260.80):** (dazu T-015: G550 ohne Grundstellung)
 - Zickzack-Durchsicht (Manuel: „das auch wirklich alle zickzack fahrten weg sind“):
