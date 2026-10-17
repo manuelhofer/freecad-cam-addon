@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-18 planfraesen-nur-offen
+
+### EINGELESEN
+- Manuel (2026-10-17, Frage 3, nach dem Testteil `frage3_absatz.FCStd`): „planfräsen ... ist für
+  mich wenn ich ein bauteil habe das in z 4 mm aufmass hat .. dann kann ich das planfräsen ... wenn
+  ich nun seitlich 4 mm aufmass habe und das schaut aus meinem schraubstock raus kann ich das auch
+  "planfräsen" halt nur seitlich mit nem schaftfräser ... wenn ich jett eine ausen kontuer habe ...
+  und will die mit einem messerkopf rausarbeiten .. ist das für mich nichtmehr planfräsen sondarn
+  kontur fräsen“.
+- Erst als „nur die Flächen ganz oben am Teil“ gebaut – das nahm auch der Platte mit Zapfen ihre
+  Oberseite (fünf Szenarien rot). Gemeint ist: eine Fläche auf Maß bringen, die rundum offen ist.
+
+### DATEIEN
+- `camaddon/hoehenfeld.py`: `wand_anteil` – welcher Anteil des äußeren Rands Wand über sich hat
+  (0: rundum offen, 1: Taschenboden); `eingeschlossen` darüber (≥ 0,75).
+- `camaddon/gui_bearbeitung.py`: Planfräsen nur für ebene Flächen nach oben, deren äußerer Rand
+  rundum offen ist (`wand_anteil` ≤ OFFEN_HOECHSTENS 0,05) – die Oberseite, auch mit Zapfen darauf;
+  ein Absatz (eine Wand an einer Seite) gehört zu Räumen bzw. Kontur. In der Liste „Face5 Absatz,
+  Höhe 20 – Räumen“ (`ba.flaeche.absatz`), der Taschenboden wie bisher.
+- `translations/de.json`, `en.json`: `ba.flaeche.absatz`; `ba.planfraesen.eingeschlossen` nennt
+  die Oberseite.
+- `help/de|en/bearbeitung.html`: Planfräsen nur für die Oberseite.
+- `tests/gui/szenario_absatz.py`: Planfräsen nimmt nur die Oberseite, der Absatz heißt „Absatz –
+  Räumen“; die schnellere Folge (hier Planfräsen der Oberseite und die Kontur, die den Absatz an der
+  Wand herausarbeitet) wird angelegt. `szenario_bearbeitung.py`: statt des Absatzes am Rand eine
+  Insel in der Fläche – das Planfräsen bleibt dort (50 statt 29 Zeilen).
+- `docs/OFFENE_FRAGEN.md`: Frage 3 beantwortet.
+
+### ERGEBNIS
+- `wand_anteil` an den Böden der Beispiele: Oberseiten 0, Absatz 0,22, Testteil-Stufe 0,25,
+  Taschenböden 1.
+- Grün im Wochen-Build: `test_sprache`, 28 Szenarien rund ums Planfräsen (`absatz`, `deckel`,
+  `bearbeitung`, `bearbeitung_zylinder`, `ecken`, `bedienung`, `flansch`, `formplatte`, `bohrung`,
+  `plan_gleichlauf`, `kontur`, `platte`, `flaechen_pruefen`, `materialstand`,
+  `programm_heidenhain`, `lagerbock`, `magazin_bearbeitung`, `planen`, `schraeg_anlegen`,
+  `rohteil_teil`, `raeumen`, `raeumen_materialstand`, `schlichten3d`, `zapfen`,
+  `schwenkdatensatz`, `testteil`, `zielzeit`, `zweiter_lauf`).
+
 ## P-2026-10-17-17 rundachsen-wie-die-steuerung
 
 ### EINGELESEN

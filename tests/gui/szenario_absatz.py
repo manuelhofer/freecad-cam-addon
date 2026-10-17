@@ -1,15 +1,10 @@
 # Ein Absatz auf der 3-Achs-Fräse (P-2026-10-02-17): Block 80 × 50 × 30, vorn ein Absatz 15
 # breit und 10 tief über die ganze Länge (offen an drei Seiten); T1 der Standardfräser Ø 12.
-# Oberseite, Absatzboden und Absatzwand anklicken: Planfräsen fräst Oberseite und Absatzboden,
-# die Kontur die Wand. Früher fuhr die Kontur dazu alle Bahnen vom Rohteil her (12 Bahnen,
-# etwa 2 min) – durch Luft, denn den Boden davor hatte das Planfräsen schon gefräst. Jetzt
-# „→ … Bahnen … – nur der Rest an den Wänden: den Boden davor fräst das Planfräsen“ mit
-# höchstens 3 Bahnen. „Anlegen“, „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
-# Seit 0.124.0 (Räumen über mehrere Höhen, P-2026-10-02-80) ist das Räumen hier so schnell wie
-# das Planfräsen (4,35 gegen 4,37 min; vorher 26 % langsamer) und bekommt als die Schnellere den
-# Haken – die Kontur nimmt dann nur das Aufmaß an der Wand. Das Planfräsen bekommt den Haken hier
-# deshalb von Hand.
-import re
+# Oberseite, Absatzboden und Absatzwand anklicken. Seit P-2026-10-17-18 (Manuel: Planfräsen
+# bringt die Oberseite auf Maß, eine Kontur herausarbeiten ist Konturfräsen) nimmt das Planfräsen
+# nur die Oberseite; der Absatzboden heißt „Absatz – Räumen“. Die schnellere Folge hat die Haken
+# (hier Planfräsen der Oberseite und die Kontur, die den Absatz an der Wand herausarbeitet).
+# „Anlegen“, „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
 
 import FreeCAD
 import FreeCADGui as Gui
@@ -31,6 +26,7 @@ def schritte(h):
     from camaddon import beispielmaschine, gui_bearbeitung, gui_reichweite
     from camaddon import kontur as ko
     from camaddon import planfraesen as pf
+    from camaddon import vierachs_rohteil as vr
     from camaddon import werkzeuge as wz
 
     wz.Bibliothek([wz.standardwerkzeug()]).speichern()
@@ -75,70 +71,45 @@ def schritte(h):
     )
     yield 3000
     plan, raeumen, kontur = panel.plan, panel.raeumen, panel.kontur
-    # Planfräsen gegen Räumen: Die Schnellere hat den Haken; das Räumen ist nicht mehr langsamer.
+    # Planfräsen bringt nur die Oberseite auf Maß (Manuel, 2026-10-17: „planfräsen ... ist für mich
+    # wenn ich ein bauteil habe das in z 4 mm aufmass hat“) – der Absatz hat an einer Seite eine
+    # Wand: Er heißt in der Liste „Absatz – Räumen“, das Planfräsen nimmt ihn nicht.
+    form = vr.modell(job).Shape
+    h.pruefe(
+        plan.s.flaechen_fuer(form, panel.gewaehlte) == [oben],
+        f"Planfräsen nimmt: {plan.s.flaechen_fuer(form, panel.gewaehlte)}",
+    )
+    liste = [panel.flaechen_liste.item(i).text() for i in range(panel.flaechen_liste.count())]
+    h.pruefe(any(boden in z and "Absatz" in z for z in liste), f"Liste: {liste}")
+    # Die schnellere Folge hat die Haken: Planfräsen der Oberseite und die Kontur, die den Absatz
+    # an der Wand herausarbeitet – oder Räumen über beides und die Kontur nur das Aufmaß.
     h.pruefe(plan.aktiv() != raeumen.aktiv(), "Planfräsen und Räumen: beide oder keins angehakt")
+    h.pruefe(kontur.aktiv(), "Kontur: kein Haken")
     zeiten = f"Planfräsen {plan.zeit} min, Räumen {raeumen.zeit} min"
     h.pruefe(bool(plan.zeit) and bool(raeumen.zeit), zeiten)
-    if plan.zeit and raeumen.zeit:
-        h.pruefe(raeumen.zeit < 1.05 * plan.zeit, zeiten)
-        h.pruefe(raeumen.aktiv() == (raeumen.zeit < plan.zeit), f"der Haken: {zeiten}")
-    h.pruefe(kontur.aktiv(), "Kontur: kein Haken")
-    if raeumen.aktiv():
-        text = kontur.ergebnis.text()
-        bahnen = re.search(r"(\d+) Bahn", text)
-        h.pruefe(
-            text.endswith("nur das Aufmaß an den Wänden: den Boden davor räumt das Räumen")
-            and bahnen is not None
-            and int(bahnen.group(1)) <= 3,
-            f"Kontur nach dem Räumen: {text!r}",
-        )
     panel.seite_zeigen(1)
     yield 300
-    h.bild("1a_vorschlag", panel.form)
-    # Von Hand: Planfräsen statt Räumen.
-    if not plan.aktiv():
-        plan.haken.click()
-        yield 300
-    if raeumen.aktiv():
-        raeumen.haken.click()
-    yield 1000
-    yield from h.warte_auf(
-        lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke),
-        300000,
-    )
-    yield 3000
-    h.pruefe(plan.aktiv() and not raeumen.aktiv(), "von Hand: Planfräsen statt Räumen")
-    rot = [(b.s.kennung, b.hinweis.text()) for b in panel.bloecke if b.aktiv() and b.hinweis.text()]
-    h.pruefe(not rot, f"rot angehakt: {rot}")
-    text = kontur.ergebnis.text()
-    bahnen = re.search(r"(\d+) Bahn", text)
-    h.pruefe(
-        text.endswith("nur der Rest an den Wänden: den Boden davor fräst das Planfräsen")
-        and bahnen is not None
-        and int(bahnen.group(1)) <= 3,
-        f"Kontur: {text!r}",
-    )
     h.bild("1_absatz", panel.form)
 
     # --- Anlegen ------------------------------------------------------------------------------
+    mit_plan = plan.aktiv()
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
     yield 4000
     ops = list(job.Operations.Group)
     namen = [o.Label for o in ops]
     planops = [o for o in ops if pf.ist_planfraesen(o)]
     konturen = [o for o in ops if ko.ist_kontur(o)]
+    if mit_plan:
+        h.pruefe(
+            len(planops) == 1 and list(planops[0].Flaechen) == [oben],
+            f"Planfräsen: {namen} {[list(o.Flaechen) for o in planops]}",
+        )
+    else:
+        h.pruefe(not planops, f"Planfräsen angelegt: {namen}")
     h.pruefe(
-        len(planops) == 1 and sorted(planops[0].Flaechen) == sorted([oben, boden]),
-        f"Planfräsen: {namen} {[list(o.Flaechen) for o in planops]}",
+        len(konturen) == 1 and list(konturen[0].Flaechen) == [wand],
+        f"Kontur: {namen} {[list(o.Flaechen) for o in konturen]}",
     )
-    h.pruefe(
-        len(konturen) == 1
-        and list(konturen[0].Flaechen) == [wand]
-        and 0 < float(konturen[0].Breite) < 3,
-        f"Kontur: {namen} {[(list(o.Flaechen), float(o.Breite)) for o in konturen]}",
-    )
-    h.pruefe(namen.index(planops[0].Label) < namen.index(konturen[0].Label), f"Folge: {namen}")
     Gui.Selection.clearSelection()
     Gui.activeDocument().activeView().viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")

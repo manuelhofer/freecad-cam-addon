@@ -302,6 +302,9 @@ FREIFORM_STRATEGIEN = {
     "bleistift",
 }
 ANALYTISCH = {"Plane", "Cylinder", "Cone"}
+# So viel des äußeren Rands einer Fläche darf eine Wand über sich haben, und sie gilt noch als
+# offen fürs Planfräsen (hoehenfeld.wand_anteil; eine Ecke, Rundungen am Rand).
+OFFEN_HOECHSTENS = 0.05
 
 # Die nächsten Ebenen aus „Alles aus dieser Aufspannung“: [(Job der Ebene, [Flächen], Satz)].
 _FOLGE = []
@@ -1063,10 +1066,16 @@ class _Planfraesen(_Strategie):
         )
 
     def passt(self, form, name):
-        # Nicht den Boden einer Tasche oder Nut (Manuel, 2026-10-16: „das sehe ich nicht als
-        # planfräsen an das gehört schon eher zum raeumen“) – dort begänne jede Zeile im Material
-        # (Zickzack-Rampen).
-        return bool(hf.ebenen_oben(form, [name])) and not hf.eingeschlossen(form, name)
+        # Nur die Oberseite – die ebenen Flächen ganz oben am Teil (Manuel, 2026-10-17:
+        # „planfräsen ... ist für mich wenn ich ein bauteil habe das in z 4 mm aufmass hat .. dann
+        # kann ich das planfräsen“; eine Kontur herausarbeiten ist Konturfräsen). Den Boden einer
+        # Tasche, einer Nut oder eines Absatzes räumt das Räumen (2026-10-16: „das gehört schon
+        # eher zum raeumen“).
+        if not hf.ebenen_oben(form, [name]):
+            return False
+        # Rundum offen: an ihrem äußeren Rand steht nirgends eine Wand über ihr – die Oberseite,
+        # auch mit einem Zapfen darauf (eine Insel); ein Absatz hat an einer Seite eine Wand.
+        return hf.wand_anteil(form, name) <= OFFEN_HOECHSTENS
 
     def vorgeschlagen(self, form, gewaehlte):
         return not gewaehlte or bool(self.flaechen_fuer(form, gewaehlte))
@@ -6247,9 +6256,13 @@ class BearbeitungPanel:
                 winkel = f"{_schraeg(form, name):.0f}"
                 text, farbe = tr("ba.flaeche.schraeg", name=name, winkel=winkel), ROT
             elif hf.ebenen_oben(form, [name]):
-                # Der Boden einer Tasche oder Nut: Das Planfräsen nimmt ihn nicht, das Räumen schon.
+                # Der Boden einer Tasche, einer Nut oder eines Absatzes: Das Planfräsen nimmt ihn
+                # nicht (es bringt nur rundum offene Flächen auf Maß), das Räumen schon.
                 z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE, 2) or "0"
-                text, farbe = tr("ba.flaeche.boden", name=name, z=z), GRUEN
+                schluessel = (
+                    "ba.flaeche.boden" if hf.eingeschlossen(form, name) else "ba.flaeche.absatz"
+                )
+                text, farbe = tr(schluessel, name=name, z=z), GRUEN
             else:
                 text, farbe = tr("ba.flaeche.nichts", name=name), ROT
             eintrag = QtGui.QListWidgetItem(dezimal(text))

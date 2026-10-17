@@ -141,10 +141,17 @@ def eingeschlossen(form, name):
     des Rands, 0,5 mm über der Fläche, je Millimeter. Manuel (2026-10-16): Planfräsen ist „auf z0
     bringen … oder seitlich eine seite auf 0 bringen“; der Grund einer Nut „gehört schon eher zum
     raeumen“."""
+    return wand_anteil(form, name) >= EINGESCHLOSSEN
+
+
+def wand_anteil(form, name):
+    """Welcher Anteil des äußeren Rands der ebenen Fläche `name` (nach oben) eine Wand über sich
+    hat – 0: rundum offen (die Oberseite, auch mit Zapfen darauf), 1: ringsum Wand (ein
+    Taschenboden). Gemessen wie eingeschlossen(); je Form und Fläche gemerkt."""
     from . import stl_teil
 
     if stl_teil.daten(form) is not None:
-        return False
+        return 0.0
     merk = _merk_der_form(form)
     if name in merk:
         return merk[name]
@@ -181,17 +188,17 @@ def _rand_proben(flaeche):
 
 
 def _eingeschlossen_auf_einmal(form, name, merk=None):
-    """eingeschlossen, alle Proben auf einmal: die Seiten mit in_draehten über den Rand der
+    """wand_anteil, alle Proben auf einmal: die Seiten mit in_draehten über den Rand der
     Fläche, die Wand mit einem Schnitt durch den Körper 0,5 mm über ihr – None, wenn das nicht
     geht (dann je Punkt). Am Testteil 1 s weniger beim Öffnen des Assistenten."""
     try:
         flaeche = form.getElement(name)
         z = flaeche.BoundBox.ZMax
         mitte, normale = _rand_proben(flaeche)
-    except Exception:  # noqa: BLE001 – eine Fläche ohne Rand oder Name: nicht eingeschlossen
-        return False
+    except Exception:  # noqa: BLE001 – eine Fläche ohne Rand oder Name: offen
+        return 0.0
     if not len(mitte):
-        return False
+        return 0.0
     links, rechts = mitte + 0.3 * normale, mitte - 0.3 * normale
     innen_links = in_draehten(flaeche.Wires, links[:, 0], links[:, 1])
     innen_rechts = in_draehten(flaeche.Wires, rechts[:, 0], rechts[:, 1])
@@ -200,7 +207,7 @@ def _eingeschlossen_auf_einmal(form, name, merk=None):
     klar = innen_links != innen_rechts  # an einer Ecke: unklar
     gezaehlt = int(klar.sum())
     if not gezaehlt:
-        return False
+        return 0.0
     aussen = np.where(innen_links[:, None], rechts, links)[klar]
     schluessel = ("schnitt", round(z + 0.5, 6))
     schnitt = merk.get(schluessel) if merk is not None else None
@@ -214,15 +221,15 @@ def _eingeschlossen_auf_einmal(form, name, merk=None):
     if not schnitt:
         # Über dem Teil schneidet nichts mehr – sonst ging der Schnitt nicht auf (ein STEP mit
         # Toleranzen): dann je Punkt.
-        return False if z + 0.5 >= form.BoundBox.ZMax - 1e-6 else None
+        return 0.0 if z + 0.5 >= form.BoundBox.ZMax - 1e-6 else None
     wand = in_draehten(schnitt, aussen[:, 0], aussen[:, 1])
     if wand is None:
         return None
-    return int(wand.sum()) >= EINGESCHLOSSEN * gezaehlt
+    return int(wand.sum()) / gezaehlt
 
 
 def _eingeschlossen_je_punkt(form, name):
-    ergebnis = False
+    """wand_anteil, je Probe mit isInside (wo _eingeschlossen_auf_einmal nicht geht)."""
     try:
         flaeche = form.getElement(name)
         z = flaeche.BoundBox.ZMax
@@ -245,8 +252,7 @@ def _eingeschlossen_je_punkt(form, name):
         gezaehlt += 1
         if form.isInside(FreeCAD.Vector(aussen.x, aussen.y, z + 0.5), 1e-6, True):
             wand += 1
-    ergebnis = gezaehlt > 0 and wand >= EINGESCHLOSSEN * gezaehlt
-    return ergebnis
+    return wand / gezaehlt if gezaehlt else 0.0
 
 
 _EBENE_HOECHSTENS = 20000
