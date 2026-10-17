@@ -1546,7 +1546,13 @@ B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den 
   (sortiert, `"Units": "Metric"`) – nach einem Lauf in 26.3 mit `git checkout` zurücksetzen.
   Offen: Manuel klickt die sichtbaren Funktionen in seinem RC1 einmal durch (Arbeitsregeln,
   Abschnitt 9).
-- **T-006 Alle Kerne nutzen** (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
+- **T-006 Alle Kerne nutzen** – *Stand 2026-10-17 (Manuel: „bitte immer daran denken das alle
+  rechenkerne auch genutzt werden“):* verteilt sind Kollision, Voxelstange, Hüllfläche, die
+  Vorschauen beider Assistenten, der senkrechte Abtrag (Streifen) und seit P-2026-10-17-39 der
+  schräge Abtrag im Abspieler. **Noch auf einem Kern:** die Reichweite-Prüfung (`reichweite.
+  Pruefung.pruefe_job`, am 4-Achs-Testteil 1,2 s beim Öffnen des Prüffensters – im Takt erst ab
+  20 000 Sätzen); sie in Stationsstücke zu teilen wie die Kollision braucht ein Zusammenführen
+  der `_Sammler`-Befunde je Stück – der nächste Schritt hier. (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
   … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
   das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je
   Station, ein Kern; seit P-2026-10-04-48 27,6 → 16,4 s. Seit P-2026-10-04-74 schätzt sie mit
