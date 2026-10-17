@@ -17,6 +17,31 @@ _NUMMERN = OrderedDict()
 NUMMERN_FORMEN = 8
 
 
+# Je (hashCode, Toleranz) einer Form: (die Form – festgehalten wie oben –, ihr Netz) (vernetzt).
+_NETZE = OrderedDict()
+NETZE_GEMERKT = 128
+
+
+def vernetzt(form, toleranz):
+    """(Punkte, Dreiecke) wie `form.tessellate(toleranz)` – aber an einer Kopie: tessellate am
+    Original hängt das Netz an die Form (an alle, die ihre Flächen teilen), und wer sie danach
+    gröber vernetzt, bekommt das feinere zurück; das Ergebnis hinge davon ab, was davor lief (drei
+    Simultan-Tests nach P-2026-10-17-22, P-2026-10-18-68). Je Form (`isSame`: dieselbe Topologie,
+    dieselbe Lage) und Toleranz die letzten NETZE_GEMERKT gemerkt – ein Klick im Assistenten
+    vernetzt dieselben Flächen mehrmals (P-2026-10-18-71). Die Listen nicht verändern."""
+    schluessel = (form.hashCode(), float(toleranz))
+    eintrag = _NETZE.get(schluessel)
+    if eintrag is not None and eintrag[0].isSame(form):
+        _NETZE.move_to_end(schluessel)
+        return eintrag[1]
+    netz = form.copy(False, False).tessellate(toleranz)
+    _NETZE[schluessel] = (form, netz)
+    _NETZE.move_to_end(schluessel)
+    while len(_NETZE) > NETZE_GEMERKT:
+        _NETZE.popitem(last=False)
+    return netz
+
+
 def flaeche(form, nummer):
     """Die Fläche `nummer` (0 ist „Face1“) – wie `form.Faces[nummer]`, ohne die anderen."""
     if nummer < 0:

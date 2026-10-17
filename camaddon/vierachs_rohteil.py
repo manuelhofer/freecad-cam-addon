@@ -37,6 +37,7 @@ from dataclasses import dataclass
 import FreeCAD
 import Part
 
+from . import formteile as ft
 from .sprache import tr
 
 # Rundachse ohne Maschine → (Stangenachse nach vorne, woher das Werkzeug
@@ -338,23 +339,9 @@ def zylinder_um(form, oben=0.0, seite=0.0, unten=0.0):
 
 
 def _vernetzt(form):
-    """(Punkte, Dreiecke) der Form mit TESSELLIERUNG – an einer Kopie: tessellate am Original
-    hängt das feine Netz an das Teil, und wer es danach gröber vernetzt (Zugang, Voxel), bekäme
-    dieses statt seines eigenen – je nachdem, was davor lief, ein anderes Ergebnis (wie die drei
-    Simultan-Tests nach P-2026-10-17-22, P-2026-10-18-68). Die letzten NETZE_GEMERKT gemerkt, je
-    Form (isSame: dieselbe Topologie, dieselbe Lage): Ein Klick im Assistenten vermisst das Teil
-    mehrmals (Gegenleser zu P-68, P-2026-10-18-70)."""
-    for gemerkt, netz in _NETZE:
-        if gemerkt.isSame(form):
-            return netz
-    netz = form.copy(False, False).tessellate(TESSELLIERUNG)
-    _NETZE.insert(0, (form, netz))  # die Form bleibt gehalten: ihre Topologie kommt nicht neu
-    del _NETZE[NETZE_GEMERKT:]
-    return netz
-
-
-NETZE_GEMERKT = 4
-_NETZE = []  # [(Form, (Punkte, Dreiecke))], das zuletzt gerechnete zuerst
+    """(Punkte, Dreiecke) der Form mit TESSELLIERUNG – an einer Kopie, gemerkt
+    (formteile.vernetzt; P-2026-10-18-68/-71)."""
+    return ft.vernetzt(form, TESSELLIERUNG)
 
 
 def _punkte(form):

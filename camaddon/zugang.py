@@ -165,7 +165,7 @@ class _Strahlen:
     def __init__(self, form):
         # Eine Kopie: ein feineres Netz am Original (etwa aus dem 4-Achs-Assistenten, 0,01 mm)
         # gäbe sonst andere Strahlen als VERNETZUNG (P-2026-10-18-68).
-        punkte, dreiecke = form.copy(False, False).tessellate(VERNETZUNG)
+        punkte, dreiecke = ft.vernetzt(form, VERNETZUNG)
         p = np.array([tuple(q) for q in punkte], dtype=float)
         d = np.array(dreiecke, dtype=int).reshape(-1, 3)
         self.a = p[d[:, 0]]

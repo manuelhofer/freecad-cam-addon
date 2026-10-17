@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-71 netze-merken
+
+### EINGELESEN
+- Nach P-68 (nur Kopien vernetzen) im vollen Szenario-Lauf: In `szenario_testteil` stand das Fenster
+  bei acht Flächenklicks 1,39 statt 1,21 s. Vorher hing das Netz nach dem ersten Mal am Teil und
+  kostete danach nichts; jetzt vernetzte jede Stelle bei jedem Klick eine Kopie neu – das
+  3D-Entgraten (`wolke`) jede nahe Fläche mit 0,01 mm.
+
+### DATEIEN
+- `camaddon/formteile.py`: `vernetzt(form, toleranz)` – eine Kopie vernetzen, je Form (`hashCode`,
+  geprüft mit `isSame`; die Form bleibt gehalten) und Toleranz die letzten 128 gemerkt.
+- `camaddon/vierachs_rohteil.py` (`_vernetzt`, der eigene Merker aus P-70 entfällt),
+  `camaddon/entgrat3d_bahn.py` (zwei Stellen), `camaddon/zugang.py`, `camaddon/voxelstange.py`:
+  `ft.vernetzt`.
+
+### ERGEBNIS
+- `szenario_testteil`: acht Flächenklicks 1,39 → 1,20 s am Stück. `test_entgraten3d` 44 → 37 s.
+- Grün im Wochen-Build: `test_entgraten3d`, `test_zugang`, `test_vierachs_rohteil`,
+  `szenario_testteil`.
 ## P-2026-10-18-70 stange-ueberall-gleich
 
 ### EINGELESEN

@@ -22,6 +22,8 @@ import math
 
 import numpy as np
 
+from . import formteile as ft
+
 TEIL_TOLERANZ = 0.01  # mm: so fein wird das Teil für teil() vernetzt
 _SCHIEF = (1.234567e-5, 2.345678e-5)  # mm: so weit liegen die Strahlen neben den Spaltenmitten
 JE_MM_STRECKE = 5.0  # mm Weg: darüber mittelt je_mm()
@@ -184,7 +186,7 @@ class Voxelstange:
         In numpy über alle Dreiecke zugleich, Sekunden statt eines isInside je Voxel."""
         # Eine Kopie vernetzen: tessellate am Original hängt das Netz an die Form, und wer sie
         # danach gröber vernetzt, bekäme dieses feine (P-2026-10-18-68).
-        punkte, dreiecke = form.copy(False, False).tessellate(toleranz)
+        punkte, dreiecke = ft.vernetzt(form, toleranz)
         maske = np.zeros(self.material.shape, dtype=bool)
         if not dreiecke:
             return maske
