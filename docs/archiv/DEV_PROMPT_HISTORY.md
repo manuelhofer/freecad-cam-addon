@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-58 vierachs-befehle-atmen
+
+### EINGELESEN
+- Lag-Probe im STL-Szenario nach P-55: Beim „Anlegen“ am Geist stand das Fenster weiter
+  siebenmal 1,0 … 1,3 s – die Umrechnung der langen Bahnen in Programmsätze rechnet im Hauptprozess
+  (`opExecute` ist zwar `atmend_rechnen`, aber in `befehle` rief niemand `uhren.atmen`).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `befehle` ruft alle `ATMEN_JE_PUNKTE` (2000) Punkte `uhren.atmen()`
+  – das Fenster zeichnet dazwischen neu (ohne Klicks); in den Nebenrechnern und Prüfdateien tut es
+  nichts.
+
+### ERGEBNIS
+- Geist (`szenario_vierachs_stl`): längste Pause 1,37 → 0,79 s, beim Anlegen 6 × 0,58 statt
+  7 × 1,29 s.
+- Grün im Wochen-Build: `szenario_vierachs_stl`, `test_vierachs_operation`.
 ## P-2026-10-18-57 mantelnut-rampe-einweg
 
 ### EINGELESEN

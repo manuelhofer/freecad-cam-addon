@@ -91,6 +91,7 @@ import numpy as np
 
 from . import fraeserform as ff
 from . import spindel as sp
+from . import uhren
 from . import vierachs_flaechen as vf
 from . import vierachs_huelle as vh
 from . import vierachs_quer as vq
@@ -143,6 +144,7 @@ QUER_SPRUNG_MITTE = 3.0
 QUER_UEBERGANG = 0.05  # mm
 QUER_UMGEBUNG = 3  # Schritte davor und danach
 QUER_MEHR_LAGEN = 3
+ATMEN_JE_PUNKTE = 2000  # befehle(): so oft darf das Fenster dazwischen neu zeichnen (uhren.atmen)
 # Grad – so weit darf ein Sektor-Stück mit Y um die Mitte reichen (Schruppwerte.sektoren_y): Die
 # Werkzeugachse bleibt parallel zum Strahl auf die Mitte, am Rand steht sie um so viel schräg zur
 # Fläche; weiter teilt sich der Sektor, die Rundachse dreht dazwischen.
@@ -3665,6 +3667,10 @@ def befehle(
     vorher, cs_vorher = start, _cos_sin(start.phi)
     f_vorher = None
     for k in range(1, len(bahn.punkte)):
+        if not k % ATMEN_JE_PUNKTE:
+            # Beim Anlegen im Assistenten zeichnet das Fenster dazwischen neu (uhren.atmen, ohne
+            # Klicks): am Geist (STL) stand es sonst je Operation über 1 s am Stück.
+            uhren.atmen()
         punkt = bahn.punkte[k]
         cs = _cos_sin(punkt.phi)
         if punkt.eilgang:
