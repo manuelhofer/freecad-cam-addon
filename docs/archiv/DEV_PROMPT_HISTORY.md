@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-35 kontur-wendel-nicht-im-kleinen
+
+### EINGELESEN
+- Auftrag 5 (Zickzack), die übrigen Stellen nachgemessen (`kehren.txt` der Szenarien): Schwenkteil
+  0 Kehren (die schmale Tasche ist eine Schleife 27 × 3 mm, Bild
+  `docs/bilder/vorschlaege/schwenkteil_schraege_raeumen.png`); Geist 3 Kehren in 58 669 Sätzen
+  des 3D-Schlichtens, am Kopf, wo die Zeilen die steile Flanke hinab und darunter zurücklaufen
+  (0,02 mm neben der Spur; Bild `geist_kehren_kopf.png`); Testteil 1 Kehre: „Kontur T1“ in der
+  Dreieckstasche. Dort hat der Ø 12 0,2 mm Spiel, die Kontur ist ein Dreieck mit 0,35 mm Seite
+  (Umfang 1,05 mm, knapp über `WENDEL_MIN_UMFANG` = 1 mm) – die Wendel kreiste 57-mal 5 mm
+  hinab: 58 mm Weg, 4 s, ein Eintauchen mit Wackeln.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `WENDEL_MIN_ANTEIL` (0,45 des Fräserumfangs, wie die kleinste Helix
+  in `_helix_radius`) statt `WENDEL_MIN_UMFANG`; `_wendel(…, r)` – kürzere Konturen gehen
+  senkrecht hinab (Eintauchvorschub).
+- Bilder `docs/bilder/vorschlaege/geist_kehren_kopf.png`, `schwenkteil_schraege_raeumen.png`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_kontur`, `szenario_testteil` (Kontur T1: 0 Kehren).
+
 ## P-2026-10-17-34 ring-stirnzeile-und-gegenleser
 
 ### EINGELESEN

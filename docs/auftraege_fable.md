@@ -234,8 +234,16 @@ nicht anders geht, und Manuel hat es gesehen.
 - Vollnut ohne Helix-Platz: Rampe in einer Richtung, wenn die Nut lang genug ist
   (P-2026-10-17-29); sonst Zickzack wie von Manuel erlaubt.
 - Flanke: war ein Zählfehler (steiler Abstieg längs der Achse), behoben (P-2026-10-17-30).
-- Übrig, mit Grund: die schmale Tasche im Schwenkteil (Räumen, 1 mm Platz), die Dreieckstasche
-  am Testteil (Kontur), winzige Schleifen am Geist, Wendepunkte des Adaptiv-Kerns.
+- Nachgemessen (`kehren.txt`, nach P-34):
+  - Schwenkteil: 0 Kehren. Die schmale Tasche ist eine Schleife 27 × 3 mm, kein Hin und Her
+    (Bild `docs/bilder/vorschlaege/schwenkteil_schraege_raeumen.png`).
+  - Geist, 3D-Schlichten: 3 Kehren in 58 669 Sätzen, oben am Kopf, wo die Zeilen die steile
+    Flanke hinab- und darunter zurücklaufen (0,02 mm neben der Spur) – die Falte der Fläche, kein
+    Zickzack (Bild `docs/bilder/vorschlaege/geist_kehren_kopf.png`).
+  - Testteil: 1 Kehre, „Kontur T1“ in der Dreieckstasche – die Wendel auf einem Dreieck von
+    0,35 mm Seite, 57 Umläufe 5 mm hinab. **Weg (P-2026-10-17-35):** kürzer als 0,45 des
+    Fräserumfangs geht die Kontur senkrecht hinab.
+  - Wendepunkte des Adaptiv-Kerns: bleiben (Erinnerung `adaptiv-kern-streut`).
 
 ---
 
