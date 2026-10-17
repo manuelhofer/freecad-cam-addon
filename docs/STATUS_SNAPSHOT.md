@@ -1465,6 +1465,9 @@ B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den 
   Dieselbe Tasche in einer Ebene „oben“ (`lege_an` mit der Fläche) heißt „… Ebene Face25 (A90
   B0)“, die Maschine steht dabei auf A1 −90°, der Hinweis „quer“ ist weg. Größerer Umbau (auch
   „Alles aus dieser Aufspannung“ und „ohne Wahl: die Oberseite“), nicht ohne Manuel.
+  *Erledigt:* Manuel, 2026-10-17: „Automatisch Ebene A−90“ – P-2026-10-17-21 (die gewählten
+  Flächen kommen in die Ebene „von oben“, das Programm schwenkt). Offen bleibt „ohne Wahl: die
+  Oberseite“ (nichts angeklickt) – dort gibt es keine Flächen, die in die Ebene gehen könnten.
 
 - **T-013 Herbert im deutschen Thread** (Forum t=107911, 2026-10-11, herbk; 26.3.0RC1-AppImage auf
   CachyOS, Addon 0.213.66, dazu CfdOF, Curves, Fasteners, RobotCAD u. a.):
