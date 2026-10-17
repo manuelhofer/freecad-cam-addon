@@ -1516,11 +1516,16 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   C-Schritt dazwischen (abheben, drehen, wieder anfahren). Schlichten: nie Segmente.
   **Gebaut (P-2026-10-17-48):** `vierachs_bahn.sektor_lage_y` (Spezifikation V3j), Haken
   „Sektoren in Zeilen mit Y – C steht“ (vorbelegt an), Operation `SektorenY`/`YWeg`. Am Ring mit
-  Querachse 11,4 statt 105,6 min, nichts ins Teil; an der Nase gleich schnell, aber mehr Rest für
-  die Kugel (dort abhaken – Tooltip, Hilfe). Dazu rechnet die Schruppvorschau jetzt mit der
-  Querachse wie die Operation (bis dahin ohne: „→ 5 Lagen“, angelegt sechs). Offen: die Zeilen
-  längs fahren vor dem Teil ein kurzes Stück Luft im Vorschub (am Ring 4 mm je Zeile); Schlichten
-  mit Sektoren bleibt die Spirale (Manuel: „beim Schlichten c und x oder nur y“).
+  Querachse 11,4 statt 105,6 min, nichts ins Teil. Dazu rechnet die Schruppvorschau jetzt mit der
+  Querachse wie die Operation (bis dahin ohne: „→ 5 Lagen“, angelegt sechs). Schlichten mit
+  Sektoren bleibt die Spirale (Manuel: „beim Schlichten c und x oder nur y“).
+  *Nachgezogen in der Nacht zum 18.10. (P-49 … P-63):* Zeilen erst ab der Stirn der Stange (Ring
+  10,8 min); Querschritt zwischen Zeilen über der Hüllfläche, danach Eintauchvorschub; Schaft und
+  Halter auch, wo die Schneide durchfällt; Y-Weg aus der Kinematik; nur Sektoren bis 120° (Ring
+  13 … 19°; an der Nase war der „Sektor“ der ganze Umfang – dort jetzt die Spirale, gleicher Rest
+  für die Kugel); der zweite Durchgang mit gleich tiefen Lagen rechnet die Y-Zeilen mit (eigene
+  Punktliste); eine Y-Lage ohne Zeilen fällt auf die Spirale zurück. Ring mit dem echten Halter
+  geprüft: nichts berührt sich (`szenario_ring_sektoren_y`), 10,9 min.
   Kerne (P-2026-10-17-49): Die Hüllfläche je Stellung verteilte nach Richtungen, jede ganz – die
   Y-Zeilen (eine Richtung je Sektor) gingen so am Ring auf höchstens drei Kerne; jetzt nach
   Richtung, Band quer und Stelle längs in gleich große Stücke. (Die Notiz aus P-48, die Vorschau
