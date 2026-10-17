@@ -1848,15 +1848,15 @@ def _helix_hinab(punkte, mitte, radius, knapp, oben, lage, w):
     return laenge
 
 
-# Kürzer als dieser Anteil des Fräserumfangs darf die Kontur für die Wendel nicht sein – sonst
-# geht es senkrecht hinab (Eintauchen): Die Wendel um eine Schleife, die klein gegen den Fräser
-# ist, ist ein Eintauchen mit Wackeln – die Stirn innerhalb der Schleife schneidet voll, wie beim
-# Eintauchen, und es dauert länger. Am Testteil (Dreieckstasche, Ø 12 mit 0,2 mm Spiel) kreiste
-# die Kontur 57-mal auf einem Dreieck von 0,35 mm Seite 5 mm hinab (58 mm Weg, 4 s; der Prüfstand
-# zählte eine Kehre); senkrecht sind es 5 mm mit dem Eintauchvorschub (1 s). Die Schleife muss
-# wenigstens ein Zehntel des Fräserdurchmessers im Radius haben (das übliche Mindestmaß einer
-# Helix zum Einfahren) – in einer Bohrung Ø 14,4 mit Ø 12 noch die Wendel, in Ø 13 nicht mehr.
-WENDEL_MIN_ANTEIL = 0.2  # des Fräserradius, als Radius der Schleife (Umfang / 2π)
+# So klein darf die Schleife der Kontur (ihr Radius: Umfang / 2π) für die Wendel höchstens sein
+# – sonst geht es senkrecht hinab (Eintauchen): Am Testteil (Dreieckstasche, Ø 12 mit 0,2 mm
+# Spiel) kreiste die Kontur 57-mal auf einem Dreieck von 0,35 mm Seite 5 mm hinab – ein Wackeln,
+# kein Weg (der Prüfstand zählte eine Kehre). Die Wendel selbst ist nicht langsamer, je kleiner
+# die Schleife: Ihr Weg ist Tiefe ÷ tan(Eintauchwinkel), und an der Wand einer Bohrung schneidet
+# sie dabei – darum nur ein kleines Maß (nicht ein Zehntel des Durchmessers: In Bohrungen bis
+# Ø 14,4 mit Ø 12 fuhr die Kontur dann durch das gebohrte Loch hinab, am Prüfstand 12 statt 9 %
+# Luft).
+WENDEL_MIN_RADIUS = 0.5  # mm
 
 
 def _wendel(punkte, segmente, proben, stellen, lage, vorige, w, r):
@@ -1871,7 +1871,7 @@ def _wendel(punkte, segmente, proben, stellen, lage, vorige, w, r):
     m = len(idx) - 1
     stuecke = np.hypot(np.diff(x[idx]), np.diff(y[idx]))
     laenge = 0.0
-    if m < 2 or float(stuecke.sum()) < WENDEL_MIN_ANTEIL * 2.0 * math.pi * r:
+    if m < 2 or float(stuecke.sum()) < WENDEL_MIN_RADIUS * 2.0 * math.pi:
         punkt = bn.Punkt(False, float(x[idx[0]]), float(y[idx[0]]), lage, True)  # senkrecht
         laenge += bn.weg(punkte[-1], punkt)
         punkte.append(punkt)

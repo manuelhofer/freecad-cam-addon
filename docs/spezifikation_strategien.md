@@ -542,10 +542,11 @@ ich wenns irgendwie geht auf eine helix setzten“). Für jede Strategie, in die
 2. **Helix** – wo es geschlossen ist und Platz für einen Kreis ist (Durchmesser größer als der
    Fräser, damit die Mitte nicht schneidet und die Späne nach oben können). Die Kontur fährt in
    einer geschlossenen Kontur stattdessen die Wendel längs der Kontur – aber nur, wenn deren
-   Schleife im Radius wenigstens ein Zehntel des Fräserdurchmessers hat (`kontur_bahn.
-   WENDEL_MIN_ANTEIL`, P-2026-10-17-35): Auf einer kleineren Schleife ist die Wendel ein
-   Eintauchen mit Wackeln (am Testteil 57 Umläufe auf einem Dreieck von 0,35 mm) – dann senkrecht
-   hinab mit dem Eintauchvorschub.
+   Schleife im Radius wenigstens einen halben Millimeter hat (`kontur_bahn.WENDEL_MIN_RADIUS`,
+   P-2026-10-17-35): Auf einer kleineren Schleife ist die Wendel ein Eintauchen mit Wackeln (am
+   Testteil 57 Umläufe auf einem Dreieck von 0,35 mm) – dann senkrecht hinab mit dem
+   Eintauchvorschub. Größer darf die Grenze nicht sein: In einer Bohrung schneidet die Wendel beim
+   Hinab die Wand, ihr Weg ist Tiefe ÷ tan(Eintauchwinkel), gleich für jede Schleife.
 3. **Zickzack-Rampe** – nur in einer geschlossenen Nut, die für eine Helix zu schmal ist.
 Gebaut für „Plan indexiert“ (P-2026-10-12-161); die anderen Strategien danach durchsehen.
 Über allem steht „nie in voller Breite“ (Abschnitt 12.1): Nach der Helix fährt der Fräser auf der

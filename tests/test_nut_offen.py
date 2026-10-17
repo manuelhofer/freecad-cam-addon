@@ -316,8 +316,12 @@ if c_nuten and c_nuten[0].bogen is not None:
     pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"C-Ring Vollnut: ins Teil {k.einschnitt}")
     pruefe(k.rest <= ps.REST_ZULAESSIG, f"C-Ring Vollnut: Rest {k.rest:.2f}")
     # Gegenprobe: Ohne Platz für die Helix (Ø 14,4) die Zickzack-Rampe – die Zählung sieht sie.
+    # Seit P-2026-10-17-29 rampt die lange Nut in einer Richtung, wenn ihre Länge für ap reicht;
+    # mit einer Zustellung, für die sie nicht reicht, bleibt das Hin und Her.
     w_v.fraeser_radius = 7.2
     pruefe(not nb.mit_helix(c, 7.2, 0.3), "C-Ring Ø 14,4 mit Helix?")
+    pruefe(umkehren_hinab(nb.planen(w_v, [c], voll).punkte) == 0, "lange Nut: Rampe nicht einweg")
+    w_v.eintauchwinkel = 0.02  # so flach reicht auch der lange Bogen nicht für ap: hin und her
     pruefe(umkehren_hinab(nb.planen(w_v, [c], voll).punkte) > 0, "Zickzack nicht gezählt")
 
 if fehler:
