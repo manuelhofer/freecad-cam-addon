@@ -8,7 +8,7 @@
 #   Knopf „Ebene schwenken“. „Anlegen“: Die Ebene entsteht (mit Rundachsen), der Assistent öffnet
 #   dort mit dem Boden – „Boden einer Tasche … – Räumen“, Räumen angehakt; „Anlegen“ räumt die
 #   Tasche in der Ebene.
-# - Ohne Maschine (3 Achsen): der Haken „Schräg gespannt fräsen“, angehakt, „30° gekippt um X“.
+# - Ohne Maschine (3 Achsen): der Haken „Bahnen dafür anlegen und im Einrichtblatt notieren“, angehakt, „30° gekippt um X“.
 #   Ohne den Haken wie bisher: Freiform (3D). „Anlegen“: eine Aufspannung, von Hand umgespannt,
 #   der Assistent dort mit dem Boden; das Einrichtblatt nennt „30° gekippt um X“.
 import math
@@ -215,7 +215,7 @@ def schritte(h):
     h.pruefe(
         panel.gekippt_haken.isVisible()
         and panel.gekippt_haken.isChecked()
-        and "30° gekippt um X spannen" in panel.schwenken_text.text(),
+        and "30° gekippt um X in den Schraubstock spannen" in panel.schwenken_text.text(),
         f"Haken/Zeile: {panel.schwenken_text.text()!r}",
     )
     h.bild("4_dreiachs_schritt2", panel.form)

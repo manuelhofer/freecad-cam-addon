@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-08 gekippt-satz-wie-manuel
+
+### EINGELESEN
+- Manuel (2026-10-16), wie es auf der 3-Achs-Fräse heißen soll: „hier um die fläche zu bearbeiten
+  mussu das teil nur x grad zur y achse gedreht in den schraubstock setzen .. sollen wir dafür die
+  werkzeugwege erstellen und das im einstellblatt notieren ?“ – „nicht genau mit disen worten
+  einfacher vor allem .. aber irgendwie so“. Bisher stand dort „Face27 ist 30° schräg – von oben
+  geht das nicht. Auf der 3-Achs-Fräse: das Teil 30° gekippt um X spannen, die Fläche nach oben.“
+  und der Haken „Schräg gespannt fräsen“ – die Frage nach Bahnen und Einrichtblatt fehlte.
+
+### DATEIEN
+- `translations/de.json`, `en.json`: `ba.gekippt.text` „Face27 ist 30° schräg: Dafür das Teil 30°
+  gekippt um X in den Schraubstock spannen, die Fläche nach oben.“; `ba.gekippt.haken` „Bahnen
+  dafür anlegen und im Einrichtblatt notieren“ (angehakt wie bisher).
+- `help/de|en/bearbeitung.html`, `schwenken.html`, `so_gehts.html`: der neue Haken.
+- `camaddon/gui_bearbeitung.py`: Docstrings.
+- `tests/gui/szenario_schraeg_anlegen.py`: der neue Satz.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_sprache`, `test_hilfe`, `szenario_schraeg_anlegen`.
+
 ## P-2026-10-17-07 eilgang-schutz-zellmitte
 
 ### EINGELESEN

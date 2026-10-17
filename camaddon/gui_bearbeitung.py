@@ -382,9 +382,10 @@ def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None):
 
 
 def _gekippt_anlegen(grundjob, richtungen):
-    """Nach „Anlegen“ mit schrägen Flächen an einer 3-Achs-Fräse, „Schräg gespannt fräsen“
-    angehakt (Manuel, 2026-10-16: „dann muss ich das ding schräg einspannen in den schraubstock
-    … sollen wir dafür die werkzeugwege erstellen und das im einstellblatt notieren ?“): je
+    """Nach „Anlegen“ mit schrägen Flächen an einer 3-Achs-Fräse, „Bahnen dafür anlegen und im
+    Einrichtblatt notieren“ angehakt (Manuel, 2026-10-16: „dann muss ich das ding schräg
+    einspannen in den schraubstock … sollen wir dafür die werkzeugwege erstellen und das im
+    einstellblatt notieren ?“): je
     Richtung eine Aufspannung, das Teil so gekippt, dass ihre Fläche nach oben zeigt
     (schwenken.lege_an, von Hand umgespannt wie die N-Eck-Stange – ein Schritt Rückgängig für
     alle); dann der Assistent für die erste, ihre Flächen gewählt, nach seinem „Anlegen“ die
@@ -5843,7 +5844,7 @@ class BearbeitungPanel:
 
     def _geschwenkt(self, form):
         """Die gewählten Flächen, die nach „Anlegen“ woanders drankommen (_schraege_gruppen) – an
-        der 3-Achs-Fräse nur mit „Schräg gespannt fräsen“."""
+        der 3-Achs-Fräse nur mit „Bahnen dafür anlegen und im Einrichtblatt notieren“."""
         if not self._schraege(form):
             return []
         if not self._fuenfachs() and not self.gekippt_haken.isChecked():
@@ -6306,7 +6307,7 @@ class BearbeitungPanel:
     def _schwenken_zeigen(self, form):
         """Ist eine gewählte Fläche schräg (_schraege), die Zeile darunter: an einer 5-Achs-Fräse,
         dass „Anlegen“ die Ebene dafür anlegt und dort weitermacht; an einer 3-Achs-Fräse der
-        Haken „Schräg gespannt fräsen“ mit Winkel und Achse."""
+        Haken „Bahnen dafür anlegen und im Einrichtblatt notieren“ mit Winkel und Achse."""
         from . import schwenken as sw
 
         schraege = self._schraege(form)
