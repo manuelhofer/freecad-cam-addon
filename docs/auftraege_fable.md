@@ -111,6 +111,13 @@ bis 47,6 mm stehen, und die ebenen Flächen der Nase schlichtet die Kugel mit.
   Rest an der Nase und Eingriff.
 - Danach ist es gebaut und an der Nase nachgemessen.
 
+**Stand 2026-10-17:** Bild mit Zahlen als Frage 2 in `docs/OFFENE_FRAGEN.md`
+(`docs/bilder/vorschlaege/nase_flosse_weg.png`): heute 12,2 + 114,7 min (Kugel-Spirale über die
+ganze Welle); mit dem, was das Addon kann – Plan indexiert Seiten + Spitze 4,6 min, Kugel in
+Linien nur auf den schrägen Flächen 21,8 min – 39 min. Gemessen mit `vierachs_plan.bahn_fuer`
+(Face4, Face6, Face8), `vierachs_schlichten.rechne` mit `Flaechen` und `Muster = Linien`.
+`mit_dem_schaft` greift am Beispiel nicht: 40 mm Flossenhöhe, 26 mm Schneide. Nicht gebaut.
+
 ## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
 
 **Stand (P-2026-10-17-22):** Das 3D-Schruppen hat den Haken „Nur über den gewählten Flächen –
