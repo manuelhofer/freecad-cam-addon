@@ -115,7 +115,13 @@ def schritte(h):
     yield 3000
     jobs = js.jobs(doc)
     ops = list(job.Operations.Group)
-    h.pruefe(len(jobs) == 1 and len(ops) == 2, f"Jobs {len(jobs)}, {[o.Label for o in ops]}")
+    # Die Nut bringt „Schlichten danach“ mit Messstopp mit (P-2026-10-17-41): vier Operationen.
+    h.pruefe(
+        len(jobs) == 1
+        and [o.Label for o in ops][:2] == ["Planfräsen T1", "Nut T1"]
+        and len(ops) == 4,
+        f"Jobs {len(jobs)}, {[o.Label for o in ops]}",
+    )
     nuten = [o for o in ops if nu.ist_nut(o)]
     if nuten:
         z = next(float(c.Parameters["Z"]) for c in nuten[0].Path.Commands
