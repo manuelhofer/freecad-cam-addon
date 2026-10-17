@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-34 ring-stirnzeile-und-gegenleser
+
+### EINGELESEN
+- Auftrag 1 am Ring, Rest nach P-26/-32: 12,4 km mit 19 % Luft. Die Luft der Lagen 2 … 12 war
+  fast genau je eine Zeile rundum (2π · Lagenradius): die Zelle genau einen Fräserradius vor der
+  Stange zählte zur Stirnseite (`bis_vorn`), dort streift die Flanke die Stangenstirn nur. Ohne
+  sie allein (erster Versuch) rückte die vorderste Zeile eine Viertelzelle nach hinten, und die
+  gleich weit verteilten Zeilen ließen 0,25 mm der Stirnseite stehen (1028 statt < 600 mm³ in
+  `test_vierachs_bahn`).
+- Gegenleser zu P-31 … -33: `test_vierachs_operation` erwartete noch den alten Satz; das
+  RichText-Label bekam Fehlertexte ungeschützt (ein „<“ in einer Ausnahme verschluckte den Rest,
+  Zeilenumbrüche fielen weg); `stirnseitig` las Flächen einzeln (`getElement`, bei STL
+  quadratisch). Dazu beim Nachziehen gefunden: `Path.Command` hält ein „;“ für einen
+  Kommentar-Anfang – der Satz zur Stirnseite kam im NC-Programm zerhackt an.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `bis_vorn` ohne die Zelle genau einen Radius vor der Stange; vor
+  dem Teil, wo die Stirn rundum nichts trifft, zählt nur die hinterste Stelle, wenn ihre Zeile mit
+  der Flanke bis zur Stangenstirn reicht – eine Zeile rundum je Lage statt zwei bis drei.
+  Ring: 12,4 → 11,05 km, Luft 19 → 10 %, Sektoren lassen 477 mm³ mehr stehen als die Spirale
+  (vorher ähnlich), nichts ins Teil.
+- `camaddon/gui_vierachs.py`: `_rot(text)` setzt den roten Satz mit `html.escape` und `<br>`;
+  alle Aufrufe ohne Verweis gehen darüber.
+- `camaddon/vierachs_flaechen.py`: `stirnseitig` über `ft.flaechen` (viele auf einmal).
+- `camaddon/vierachs_operation.py`: `_ascii` ersetzt „;“ durch „,“.
+- `tests/test_vierachs_operation.py`: die Stirnflächen der Welle erwarten `vf.fehler.stirnseite`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_bahn` (Ring 100 423 → 11 052 mm), `test_vierachs_operation`.
+
 ## P-2026-10-17-33 stirnseite-von-vorn
 
 ### EINGELESEN

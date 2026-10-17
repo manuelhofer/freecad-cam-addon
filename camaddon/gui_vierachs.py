@@ -2083,9 +2083,7 @@ class VierachsPanel:
             self.bibliothek = wz.Bibliothek.laden()
         except wz.BeschaedigteDatei as fehler:
             self.bibliothek = wz.Bibliothek()
-            self.hinweis_bearbeitung.setText(
-                tr("wv.fehler.laden", fehler=fehler, datei=fehler.beiseite)
-            )
+            self._rot(tr("wv.fehler.laden", fehler=fehler, datei=fehler.beiseite))
         self._fuellt = True
         try:
             werkstoffe_anbieten(self.wahl_werkstoff, self.bibliothek)
@@ -3808,19 +3806,19 @@ class VierachsPanel:
         self._rest_zurueck()
         self.hinweis_bearbeitung.setText("")
         if schruppen and (self.fraeser() is None or self.einsatz() is None):
-            self.hinweis_bearbeitung.setText(tr("va.fraeser.keiner"))
+            self._rot(tr("va.fraeser.keiner"))
             self._knoepfe_beschriften()
             return
         if schlichten and (self.schlichtfraeser() is None or self.schlichteinsatz() is None):
-            self.hinweis_bearbeitung.setText(tr("va.schlichtfraeser.keiner"))
+            self._rot(tr("va.schlichtfraeser.keiner"))
             self._knoepfe_beschriften()
             return
         if plan and (self.planfraeser() is None or self.planeinsatz() is None):
-            self.hinweis_bearbeitung.setText(tr("va.planfraeser.keiner"))
+            self._rot(tr("va.planfraeser.keiner"))
             self._knoepfe_beschriften()
             return
         if entgraten and (self.entgratfraeser() is None or self.entgrateinsatz() is None):
-            self.hinweis_bearbeitung.setText(tr("va.entgratfraeser.keiner"))
+            self._rot(tr("va.entgratfraeser.keiner"))
             self._knoepfe_beschriften()
             return
         if self.vermessung is not None and not _gleiche_stange(self.stange(), self._stange_jetzt):
@@ -3995,6 +3993,12 @@ class VierachsPanel:
             self._stirnseite_verweis(html.escape(hinweis, quote=False))
         )
         self._knoepfe_beschriften()
+
+    def _rot(self, text):
+        """Den roten Satz unter Schritt 2 als Text setzen: Das Label ist RichText (für den
+        Verweis zur Stirnseite, P-2026-10-17-33) – ein „<“ in einer Fehlermeldung wäre sonst ein
+        Tag, und Zeilenumbrüche fielen weg."""
+        self.hinweis_bearbeitung.setText(html.escape(text, quote=False).replace("\n", "<br>"))
 
     def _stirnseite_verweis(self, hinweis):
         """Hinter den roten Satz zu Stirnflächen (vierachs_flaechen.stirnseitig – ein radialer
@@ -4944,7 +4948,7 @@ class VierachsPanel:
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
             FreeCAD.Console.PrintError(f"4-Achs-Bearbeitung: {fehler}\n")
             self.operation = None
-            self.hinweis_bearbeitung.setText(tr("va.fehler.anlegen", fehler=str(fehler)))
+            self._rot(tr("va.fehler.anlegen", fehler=str(fehler)))
             self._knoepfe_beschriften()
             return False
         self.operation = angelegt[0] if angelegt else None
@@ -5170,7 +5174,7 @@ class VierachsPanel:
             _im_befehl(aendern)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
             FreeCAD.Console.PrintError(f"4-Achs-Bearbeitung: {fehler}\n")
-            self.hinweis_bearbeitung.setText(tr("va.fehler.aendern", fehler=str(fehler)))
+            self._rot(tr("va.fehler.aendern", fehler=str(fehler)))
             self._knoepfe_beschriften()
             return False
         return True

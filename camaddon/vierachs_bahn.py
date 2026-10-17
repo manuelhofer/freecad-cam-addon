@@ -677,9 +677,20 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     )
     tiefe = np.maximum(tiefe, w.r_tiefste)
     im_lauf = (huelle.a >= a_ende) & (huelle.a <= a_anfang)
-    # Weiter vor der Stange als einen Radius steht die Stirn in der Luft; bis dahin nimmt sie die
-    # Stirnseite der Stange (dort trifft die Hüllfläche nichts: bis zur Achse).
-    bis_vorn = (huelle.a <= w.a_stange_vorne + radius + GLEICH)[:, None]
+    # Einen Radius vor der Stange streift die Flanke ihre Stirnseite nur noch, weiter vorn steht
+    # sie in der Luft; davor nimmt sie die Stirnseite (dort trifft die Hüllfläche nichts: bis zur
+    # Achse). Vor dem Teil, wo die Stirn rundum nichts trifft, nimmt die Zeile an der hintersten
+    # Stelle mit der Flanke alles bis zur Stirnseite der Stange, wenn sie so weit reicht – die
+    # Stellen davor zählen dann nicht. Am Ring zählten sie: je Lage eine Zeile rundum (die Flanke
+    # genau an der Stirnseite der Stange, dann eine Viertelzelle dahinter), die nichts nahm – 1 km
+    # von 12,4.
+    bis_vorn = huelle.a < w.a_stange_vorne + radius - GLEICH
+    frei = bis_vorn & (huelle.a > teil_vorne + GLEICH) & ~np.isfinite(huelle.r).any(axis=1)
+    if frei.any():
+        hinterste = float(huelle.a[frei].min())
+        if hinterste + radius >= w.a_stange_vorne - GLEICH:
+            bis_vorn &= ~(frei & (huelle.a > hinterste + GLEICH))
+    bis_vorn = bis_vorn[:, None]
 
     def sektoren(lage):
         """Steht über Lage `lage` nur noch in Sektoren etwas – (nötig, Lage davor) oder None?

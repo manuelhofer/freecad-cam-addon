@@ -124,7 +124,8 @@ pruefe(vorne <= {round(luft_vorn, 6)}, f"nur Mantel: vorne bei {vorne}, vor der 
 pruefe(len(schnitte) > 100, "nur Mantel: keine Bahn")
 for flaechen_, satz in (
     (["Face99"], sprache.tr("vf.fehler.fehlt", namen="Face99")),
-    (stirnen, sprache.tr("vf.fehler.nicht_erreichbar")),
+    # Die Stirnflächen der Welle schauen längs der Achse: der Satz zur Stirnseite (P-2026-10-17-33)
+    (stirnen, sprache.tr("vf.fehler.stirnseite", namen=", ".join(stirnen))),
 ):
     op.Flaechen = flaechen_
     doc.recompute()

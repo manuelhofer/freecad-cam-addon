@@ -704,4 +704,6 @@ def _ascii(text):
     for alt, neu in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("Ä", "Ae"), ("Ö", "Oe")):
         text = text.replace(alt, neu)
     text = text.replace("Ü", "Ue").replace("ß", "ss").replace("–", "-")
-    return text.encode("ascii", "replace").decode("ascii").replace("(", "[").replace(")", "]")
+    # Ein „;“ beginnt für Path.Command einen Kommentar – der Satz zur Stirnseite kam zerhackt an.
+    text = text.encode("ascii", "replace").decode("ascii").replace(";", ",")
+    return text.replace("(", "[").replace(")", "]")

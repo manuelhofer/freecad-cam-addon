@@ -433,12 +433,8 @@ def stirnseitig(form, laengs, namen_):
     if achse.Length < 1e-9:
         return []
     achse.normalize()
-    anzahl = ft.anzahl(form)
     ergebnis = []
-    for nummer in nummern(namen_):
-        if nummer >= anzahl:
-            continue
-        flaeche = ft.flaeche(form, nummer)
+    for nummer, flaeche in ft.flaechen(form, nummern(namen_)):
         if not vr.ist_eben(flaeche):
             continue
         normale = vr.aussennormale(flaeche)
