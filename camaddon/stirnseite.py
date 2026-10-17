@@ -38,6 +38,13 @@ SCHRITT_MM = 0.5  # so dicht wird eine Strecke abgetastet, auf der C dreht
 SCHRITT_GRAD = 0.5  # höchstens so weit dreht C je Satz
 BOGEN_TOLERANZ = 0.002  # mm – Sehne eines Bogens, der in Strecken zerfällt
 GENAU = 1e-9
+# mm – so schmal darf der Y-Weg des Rahmens höchstens sein, dass „C in Schritten“ nicht geht: Jede
+# Stelle neben der Mittellinie läge außerhalb, es drehte endlos (P-2026-10-18-59) – dann „C dreht
+# mit“.
+SCHRITTE_AB_Y = 1.0
+# mm – so weit von der Drehachse dreht ein Umschlag von C (ein Sprung zwischen zwei benachbarten
+# Stellen) das Teil nicht mehr unter dem Werkzeug weg; weiter weg hebt es ab, dreht, taucht ein.
+UMSCHLAG_MITTE = 0.01
 KANTE = 1e-7  # mm – so genau liegt ein auf die Kante gedrehter Punkt auf ihr (Rundung)
 ZYKLEN = ("G73", "G81", "G82", "G83", "G84", "G85", "G86", "G89")
 
@@ -283,6 +290,8 @@ class _Umrechnung:
     def __init__(self, rahmen, modus, sicher_z, befehl):
         self.r = rahmen
         self.modus = modus if modus in MODI else MIT
+        if self.modus == SCHRITTE and rahmen.y_max - rahmen.y_min < SCHRITTE_AB_Y:
+            self.modus = MIT  # ohne Y-Weg gibt es keine Schritte: polar mit X und C
         self.sicher_z = sicher_z
         self.befehl = befehl
         self.pos = [None, None, None]  # die Spitze im Programm (am Teil)
@@ -448,15 +457,36 @@ class _Umrechnung:
                 if abs(neu - winkel) <= SCHRITT_GRAD + GENAU or (weiter - t) * laenge < 1e-4:
                     break
                 weiter = 0.5 * (t + weiter)
+            abstand = math.hypot(q[0] - self.r.mitte[0], q[1] - self.r.mitte[1])
+            if abs(neu - winkel) > SCHRITT_GRAD + GENAU and abstand > UMSCHLAG_MITTE:
+                # Ein Umschlag neben der Drehachse (ohne Y, X kommt nicht hinter die Mitte): Im
+                # selben Satz zöge die Spitze eine Schleife neben der Bahn durchs Teil
+                # (P-2026-10-18-59) – hoch, C drehen, an derselben Stelle wieder hinunter.
+                self._umschlagen(q, neu, f)
+                f = None
+                t, winkel, vorher = weiter, neu, q
+                continue
             # Die Zeit des Satzes: der Weg am Teil – mindestens der Bogen, den der Punkt um die
             # Achse zieht, so dreht C nicht schneller, als der Vorschub dort läuft.
             # Durch die Drehmitte, wenn X nicht dahinter kommt, dreht C dort um 180° – wenigstens
             # so langsam wie auf 1 mm Radius.
-            rho = max(1.0, math.hypot(q[0] - self.r.mitte[0], q[1] - self.r.mitte[1]))
+            rho = max(1.0, abstand)
             weg = max(math.dist(vorher, q), rho * abs(math.radians(neu - winkel)))
             self._g1(*q, neu, weg, f)
             f = None
             t, winkel, vorher = weiter, neu, q
+
+    def _umschlagen(self, q, winkel, f):
+        """Hoch auf die sichere Höhe, C auf `winkel`, über der Stelle `q` (am Teil) wieder
+        hinunter im Vorschub – wie „C in Schritten“ es beim Drehen tut."""
+        self._g94()
+        self.raus.append(self.befehl("G0", {"Z": self._sicher()}))
+        self._g0(q[0], q[1], None, winkel)
+        vorschub = f if f is not None else self.f
+        werte = {"Z": q[2]}
+        if vorschub:
+            werte["F"] = vorschub
+        self.raus.append(self.befehl("G1", werte))
 
     def _strecke_schritte(self, von, nach, laenge, f):
         n = max(1, int(math.ceil(laenge / SCHRITT_MM)))

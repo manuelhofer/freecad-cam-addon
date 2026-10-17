@@ -798,6 +798,62 @@ print(
     )
 )
 
+
+# Gegenleser zu P-48 (P-2026-10-18-59): zwischen den Punkten der Y-Zeilen nachgemessen, alle
+# 0,1 mm – der Schritt quer zwischen zwei verschieden hoch endenden Zeilen schnitt an einem schrägen
+# Schlitzende bis 0,62 mm ins Teil; und an einer Gabel mit durchgehendem Schlitz zählte der Schaft
+# nicht, wo die Schneide durch den Schlitz fiel (0,07 mm ins Teil).
+def y_zwischen(bahn, netz, form, ab=0.0, mindestens=0.0):
+    """Wie weit die Spitze (mit `ab`: die Stufe so weit darüber) zwischen den Punkten der Läufe mit
+    stehendem C unter der Hüllfläche von `form` plus `mindestens` liegt (positiv: zu tief)."""
+    tiefste = -math.inf
+    for p0, p1 in zip(bahn.punkte, bahn.punkte[1:], strict=False):
+        if p0.eilgang or p1.eilgang or abs(p1.phi - p0.phi) > 1e-9:
+            continue
+        n = max(2, int(math.ceil(max(abs(p1.q - p0.q), abs(p1.a - p0.a)) / 0.1)) + 1)
+        t = np.linspace(0.0, 1.0, n)
+        a_t, q_t = p0.a + t * (p1.a - p0.a), p0.q + t * (p1.q - p0.q)
+        x_t = p0.r + t * (p1.r - p0.r)
+        h = vh.je_stellung(
+            netz, C_LAENGS, C_RADIAL, form, np.full(n, math.radians(p0.phi % 360.0)), q_t, a_t
+        )
+        drin = np.isfinite(h)
+        if drin.any():
+            tiefste = max(tiefste, float(np.max(h[drin] + mindestens - (x_t[drin] + ab))))
+    return tiefste
+
+
+schraeg_teil = Part.makeCylinder(10, 40, V(0, 0, -40))
+schnitt = Part.Face(
+    Part.makePolygon([V(5, -11, 1), V(11, -11, 1), V(11, -11, -12), V(5, -11, -20), V(5, -11, 1)])
+).extrude(V(0, 22, 0))
+keil = Part.makeCylinder(12, 50, V(0, 0, -45), V(0, 0, 1), 80)
+keil.rotate(V(0, 0, 0), V(0, 0, 1), -40)
+schraeg_netz = vh.vernetze(schraeg_teil.cut(schnitt.common(keil)).removeSplitter())
+schraeg_werte = vb.Schruppwerte(
+    fraeser_radius=1.5, stange_radius=12.0, zustellung=2.0, steigung=2.5, aufmass=0.3,
+    a_stange_vorne=1.0, a_futter=-60.0, form=ff.scheibe(1.5), querachse=True, nur_noetig=True,
+    sektoren_y=True,
+)  # fmt: skip
+schraeg_bahn = vb.schruppen(schraeg_netz, C_LAENGS, C_RADIAL, schraeg_werte)
+tief_schraeg = y_zwischen(schraeg_bahn, schraeg_netz, ff.scheibe(1.5), mindestens=0.3)
+pruefe(
+    tief_schraeg < 0.02, f"schräges Schlitzende: zwischen den Punkten {tief_schraeg:.3f} zu tief"
+)
+gabel = Part.makeCylinder(10, 40, V(0, 0, -40)).cut(Part.makeBox(22, 6, 21, V(-11, -3, -20)))
+gabel_netz = vh.vernetze(gabel.removeSplitter())
+gabel_werte = replace(
+    schraeg_werte, fraeser_radius=1.0, steigung=1.5, form=ff.scheibe(1.0), oben=((4.0, 3.0),)
+)
+gabel_bahn = vb.schruppen(gabel_netz, C_LAENGS, C_RADIAL, gabel_werte)
+tief_schaft = y_zwischen(gabel_bahn, gabel_netz, ff.scheibe(4.0), ab=3.0)
+pruefe(tief_schaft < 0.02, f"Gabel: der Schaft {tief_schaft:.3f} mm ins Teil")
+print(
+    ascii(
+        f"Y-Zeilen zwischen den Punkten: schraeg {tief_schraeg:.3f}, Schaft Gabel {tief_schaft:.3f}"
+    )
+)
+
 # --- Schruppen mit der Querachse (V5e, P-2026-10-03-23) -----------------------------------
 # D-Profil: Welle Ø 40 mit einer Abflachung bei x = 6, Stange Ø 50, Schaftfräser Ø 12, ap 5,
 # 4 mm je Umdrehung, Aufmaß 0,3. Je Lage folgt die Spirale der Fläche: Die Werkzeugachse steht

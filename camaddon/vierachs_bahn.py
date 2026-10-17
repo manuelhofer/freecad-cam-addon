@@ -148,7 +148,9 @@ ATMEN_JE_PUNKTE = 2000  # befehle(): so oft darf das Fenster dazwischen neu zeic
 # Grad – so weit darf ein Sektor-Stück mit Y um die Mitte reichen (Schruppwerte.sektoren_y): Die
 # Werkzeugachse bleibt parallel zum Strahl auf die Mitte, am Rand steht sie um so viel schräg zur
 # Fläche; weiter teilt sich der Sektor, die Rundachse dreht dazwischen.
-SEKTOR_Y_HALB = 45.0  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
+SEKTOR_Y_HALB = 45.0
+QUER_PROBE = 0.25  # mm – so dicht prüft der Schritt quer zwischen zwei Y-Zeilen die Hüllfläche
+VOR_STANGE = 0.5  # mm – so weit vor der Stirn der Stange steht die Flanke beim Eintauchen im Eilgang  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
 # Beim Zusammenfassen mit der Querachse (_zusammen_quer): so weit darf die Kugelmitte zwischen
 # zwei bleibenden Punkten nach innen (zum Teil) und seitlich (an eine andere Stelle derselben
 # Bahn) von den ausgelassenen Punkten abweichen; nach außen BAHN_TOLERANZ.
@@ -556,6 +558,12 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     unten = schneide_bei(a_werte)
     tiefste = unten.r[np.isfinite(unten.r)]
     tiefe = w.stange_radius - float(tiefste.min()) if tiefste.size else 0.0
+    # Fällt die Schneide irgendwo im Teil durch (−∞: ein durchgehender Schlitz), geht die Spitze
+    # dort bis zur Achse – die Stufen zählen (P-2026-10-18-59: an einer Gabel lag die tiefste
+    # endliche Stelle 2 mm unter der Stange, der Schaft ab 3 mm fiel weg und ging 2 mm ins Teil).
+    im_teil = (a_werte >= teil_hinten) & (a_werte <= teil_vorne)
+    if im_teil.any() and not np.isfinite(unten.r[im_teil]).all():
+        tiefe = math.inf
     stufen = [(r_s, ab) for r_s, ab in w.oben if ab > 0 and r_s > 0 and tiefe > ab - GLEICH]
 
     def stufen_bei(stellen, je_stufe=None):
@@ -888,20 +896,48 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             netz, laengs, radial, geformt, richtung_alle, q_alle, stelle_alle
         )
         x_alle = np.where(np.isfinite(hoehe_alle), hoehe_alle + zugabe, -np.inf)
+        # Erst die Grenze der Lage, dann Schaft und Halter – trifft die Schneide nichts (durch einen
+        # Schlitz), stünde die Spitze sonst auf −∞ und die Stufen zählten nicht (Gegenleser zu
+        # P-48, P-2026-10-18-59: an einer Gabel 0,07 mm ins Teil).
+        x_alle = np.maximum(
+            np.maximum(x_alle, vq.lagen_grenze(w.stange_radius, q_alle, radius, tiefer)),
+            w.r_tiefste,
+        )
         if stufen_quer:
             x_alle = x_alle + _stufen_hoeher(
                 netz, laengs, radial, stufen_quer, richtung_alle, q_alle,
-                np.maximum(x_alle, w.r_tiefste), stelle_alle, aussen_teil, zugabe, radius,
+                x_alle, stelle_alle, aussen_teil, zugabe, radius,
             )  # fmt: skip
+
+        def quer_hoehe(richtung, a_stelle, q_von, q_bis):
+            """So hoch muss die Spitze beim Schritt quer von q_von nach q_bis an der Stelle
+            a_stelle stehen: die Hüllfläche (mit Schaft und Halter) alle QUER_PROBE mm
+            dazwischen – sonst schnitt der Schritt zwischen zwei verschieden hohen Zeilenenden
+            ins Teil (Gegenleser zu P-48: bis 0,62 mm an einem schrägen Schlitzende)."""
+            anzahl = max(2, int(math.ceil(abs(q_bis - q_von) / QUER_PROBE)) + 1)
+            q_p = np.linspace(q_von, q_bis, anzahl)
+            stelle_p = np.full(anzahl, min(max(a_stelle, teil_hinten), teil_vorne))
+            richtung_p = np.full(anzahl, richtung)
+            h = vh.je_stellung(netz, laengs, radial, geformt, richtung_p, q_p, stelle_p)
+            h = np.where(np.isfinite(h), h + zugabe, -np.inf)
+            h = np.maximum(
+                np.maximum(h, vq.lagen_grenze(w.stange_radius, q_p, radius, tiefer)), w.r_tiefste
+            )
+            if stufen_quer:
+                h = h + _stufen_hoeher(
+                    netz, laengs, radial, stufen_quer, richtung_p, q_p, h, stelle_p, aussen_teil,
+                    zugabe, radius,
+                )  # fmt: skip
+            return float(np.max(h))
+
+        luft_vorn = w.a_stange_vorne + radius + VOR_STANGE  # dort ist die Flanke vor der Stange
         von = 0
-        for psi0, _richtung, reihen, stellen, m, n_s in stuecke_lage:
+        for psi0, richtung, reihen, stellen, m, n_s in stuecke_lage:
             if True:  # (Einrückung wie die Sammelschleife – je Stück seine Zeilen)
                 q_m, a_m = q_alle[von : von + m * n_s], a_alle[von : von + m * n_s]
-                x_h = x_alle[von : von + m * n_s]
+                x = x_alle[von : von + m * n_s]
                 von += m * n_s
-                grenze = vq.lagen_grenze(w.stange_radius, q_m, radius, tiefer)
                 davor_g = vq.lagen_grenze(w.stange_radius, q_m, radius, tiefer - w.zustellung)
-                x = np.maximum(np.maximum(x_h, grenze), w.r_tiefste)
                 leer = rest.leer(a_m, x, np.full(m * n_s, psi0), q_m, radius)
                 # Nötig, wo in der Stange (vor ihr ist Luft) unter der Lage davor noch etwas steht.
                 noetig_m = (
@@ -932,12 +968,27 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                     )
                     x_b = _gehoben(x_z, bleibt)
                     if nr == 0 or w.nur_gleichlauf:
-                        # Von vorn aus der Luft: im Eilgang über den Anfang und hinab.
-                        punkte.append(Punkt(True, float(a_z[0]), sicher, psi_jetzt, q=q))
-                        punkte.append(Punkt(True, float(a_z[0]), float(x_b[0]), psi_jetzt, q=q))
-                        erster = 1
+                        # Von vorn aus der Luft: im Eilgang über den Anfang und hinab – nur, wo die
+                        # Flanke vor der Stirn der Stange steht (das Raster lag bis 0,25 mm dahinter).
+                        a_ein = max(float(a_z[0]), luft_vorn)
+                        punkte.append(Punkt(True, a_ein, sicher, psi_jetzt, q=q))
+                        punkte.append(Punkt(True, a_ein, float(x_b[0]), psi_jetzt, q=q))
+                        erster = 1 if a_ein <= float(a_z[0]) + GLEICH else 0
                     else:
-                        erster = 0  # quer zur nächsten Zeile im Vorschub, hinten wie vorn
+                        # Quer zur nächsten Zeile im Vorschub, hinten wie vorn – auf der Höhe,
+                        # die die Hüllfläche dazwischen verlangt: erst hoch, dann quer, dann in
+                        # die Zeile.
+                        vorher = punkte[-1]
+                        hoehe = max(
+                            vorher.r,
+                            float(x_b[0]),
+                            quer_hoehe(richtung, vorher.a, vorher.q, q),
+                        )
+                        if hoehe > vorher.r + BAHN_TOLERANZ:
+                            punkte.append(Punkt(False, vorher.a, hoehe, psi_jetzt, q=vorher.q))
+                        if hoehe > float(x_b[0]) + BAHN_TOLERANZ:
+                            punkte.append(Punkt(False, vorher.a, hoehe, psi_jetzt, q=q))
+                        erster = 0
                     for i, x_i in zip(bleibt[erster:], x_b[erster:], strict=True):
                         punkte.append(
                             Punkt(

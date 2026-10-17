@@ -641,6 +641,7 @@ class VierachsPanel:
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
         self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
         self._sektoren_y_von_hand = False  # „Sektoren in Zeilen mit Y“ von Hand gesetzt
+        self._y_weg_gemerkt = {}  # (Dokument, Maschine) → Weg der Querachse (y_weg)
         self._anstellen_von_hand = False  # der Haken „Kugel anstellen“ von Hand gesetzt
         self._stetig_von_hand = False  # der Haken „C dreht nicht zurück“ von Hand gesetzt
         self._querachse_schruppen_von_hand = False  # … beim Schruppen
@@ -2468,7 +2469,15 @@ class VierachsPanel:
         """„Sektoren in Zeilen mit Y – C steht“: frei mit der Querachse und „Folgelagen nur, wo
         nötig“ (die Sektoren gibt es nur so), dann angehakt, solange man ihn nicht von Hand
         gesetzt hat."""
-        geht = self.querachse_schruppen() and self.nur_noetig() and not self.flaechen()
+        # isEnabledTo: Solange „Rundum schruppen“ aus ist, sind seine Felder gesperrt – der Vorschlag
+        # gilt trotzdem (sonst blieb der Haken grau, Gegenleser zu P-48).
+        quer = self.schruppen_querachse.isChecked() and self.schruppen_querachse.isEnabledTo(
+            self.schruppfelder
+        )
+        noetig = self.schruppen_noetig.isChecked() and self.schruppen_noetig.isEnabledTo(
+            self.schruppfelder
+        )
+        geht = quer and noetig and not self.flaechen()
         self._haken_setzen(self.schruppen_sektoren_y, geht, self._sektoren_y_von_hand)
 
     def sektoren_y(self):
@@ -2483,15 +2492,36 @@ class VierachsPanel:
 
     def y_weg(self):
         """So weit fährt die Querachse der gewählten Maschine von der Mitte aus (mm, ± – nach
-        ihrem Y-Anteil, stirnseite.y_nutzen): aus den Grenzen des Gelenks ihrer Y-Achse; ohne
-        Maschine oder Grenzen unbegrenzt (math.inf)."""
-        from . import kette as kt
-        from . import maschine as m
-        from . import stirnseite as st
-
+        ihrem Y-Anteil, stirnseite.y_nutzen): an einer Drehmaschine mit C aus ihrer Kinematik
+        (stirnseite.rahmen, Y 0 auf der Drehachse; Gegenleser zu P-48), sonst aus den Grenzen des
+        Gelenks ihrer Y-Achse; ohne Maschine oder Grenzen unbegrenzt (math.inf). Je Maschine
+        einmal gerechnet."""
         wahl = self.maschinenwahl()
         if not isinstance(wahl, va.Maschinenwahl):
             return math.inf
+        schluessel = (wahl.assembly.Document.Name, wahl.maschine.Name)
+        if schluessel not in self._y_weg_gemerkt:
+            self._y_weg_gemerkt[schluessel] = self._y_weg_rechnen(wahl)
+        return self._y_weg_gemerkt[schluessel]
+
+    def _y_weg_rechnen(self, wahl):
+        from . import kette as kt
+        from . import maschine as m
+        from . import reichweite as rw
+        from . import stirnseite as st
+
+        try:
+            pruefung = rw.Pruefung(wahl.assembly, wahl.maschine)
+            werkzeug = self.fraeser()
+            aufnahme = pruefung.werkzeugaufnahme(werkzeug.nummer if werkzeug else 1)
+            if aufnahme is None and pruefung.werkzeugaufnahmen:
+                aufnahme = pruefung.werkzeugaufnahmen[0]
+            rahmen = st.rahmen(pruefung, aufnahme, 100.0) if aufnahme is not None else None
+        except Exception:  # noqa: BLE001 – ohne Kinematik: die Grenzen des Gelenks
+            rahmen = None
+        if rahmen is not None:
+            weg = min(-rahmen.y_min, rahmen.y_max)
+            return weg if weg > 0 else math.inf
         for ba in m.betriebsarten(wahl.maschine):
             if ba.Art != m.ART_LINEAR or m.programmname(ba).upper() != "Y":
                 continue

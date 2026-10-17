@@ -210,6 +210,33 @@ abweichung = max(
 pruefe(abweichung < 0.01, f"ohne Y: am Teil {abweichung:.4f} mm neben der Nut")
 print(ascii(f"Ohne Y: {len(polar)} Saetze, C {min(c_polar):.1f} ... {max(c_polar):.1f}"))
 
+# Gegenleser zu P-50 (P-2026-10-18-59): „C in Schritten“ ohne Y drehte endlos (jede Stelle neben
+# der Mittellinie lag außerhalb) – jetzt wie „C dreht mit“. Und eine Nut durch die Mitte, X ab −5:
+# Am Radius 5 muss C um 180° umschlagen; im selben Satz zog die Spitze eine Schleife bis 1,8 mm
+# neben die Nut – jetzt hoch, drehen, an derselben Stelle wieder hinunter.
+import time  # noqa: E402
+
+beginn = time.time()
+schritte_0 = st.befehle(
+    [C("G0", {"X": 20.0, "Y": 5.0, "Z": 5.0}), C("G1", {"Z": -1.0, "F": 10.0}),
+     C("G1", {"X": 10.0, "Y": 5.0}), C("G0", {"Z": 5.0})],
+    st.Rahmen(-2.0, 100.0, 0.0, 0.0), st.SCHRITTE, sicher_z=5.0,
+)  # fmt: skip
+pruefe(time.time() - beginn < 5.0 and len(schritte_0) < 2000, f"Schritte ohne Y: {len(schritte_0)}")
+mitte_5 = st.Rahmen(-5.0, 100.0, 0.0, 0.0)
+quer = [
+    C("G0", {"X": -10.0, "Y": 0.0, "Z": 5.0}),
+    C("G1", {"Z": -1.0, "F": 10.0}),
+    C("G1", {"X": 10.0, "Y": 0.0}),
+    C("G0", {"Z": 5.0}),
+]
+quer_raus = st.befehle(quer, mitte_5, st.MIT, sicher_z=5.0)
+am_quer = [q for q in am_teil(mitte_5, quer_raus, dicht=8) if q[2] < 0]
+neben = max((abs(q[1]) for q in am_quer), default=math.inf)
+hoch = sum(1 for b in quer_raus if b.Name == "G0" and set(b.Parameters) == {"Z"})
+pruefe(neben < 0.01 and hoch == 1, f"Nut durch die Mitte: {neben:.3f} mm daneben, {hoch}× hoch")
+print(ascii(f"Umschlag: {neben:.4f} mm neben der Nut, {hoch} x hoch, {len(quer_raus)} Saetze"))
+
 # --- Nicht erreichbar ---------------------------------------------------------------------------
 try:
     st.befehle([C("G0", {"X": 150.0, "Y": 0.0, "Z": 5.0})], R, st.MIT)

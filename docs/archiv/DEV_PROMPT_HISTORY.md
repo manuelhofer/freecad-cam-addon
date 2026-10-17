@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-59 gegenleser-p47-bis-p54
+
+### EINGELESEN
+- Ein zweiter Agent hat P-47 bis P-54 gegengelesen (Scripte ohne FreeCAD, Repo unverändert) –
+  sechs Befunde, alle nachgestellt und behoben:
+  1. Y-Zeilen in Sektoren: Der Schritt quer zwischen zwei Zeilen fuhr am hinteren Ende gerade von
+     einem Zeilenende zum nächsten – bei verschieden hohen Enden (schräges Schlitzende) bis 0,62 mm
+     ins Teil.
+  2. Y-Zeilen: Schaft und Halter zählten nicht, wo die Schneide durch einen Schlitz fiel (die
+     Spitze −∞ plus Stufe blieb −∞). Beim Nachstellen fand sich dahinter ein älterer Fehler: Ob die
+     Stufen überhaupt zählen, entschied die tiefste *endliche* Stelle der Hüllfläche – an einer
+     Gabel mit durchgehendem Schlitz 2 mm unter der Stange, der Schaft (ab 3 mm) fiel ganz weg und
+     ging auch mit der Spirale 2 mm ins Teil.
+  3. Stirnseite ohne Y, „C in Schritten“: drehte endlos (jede Stelle neben der Mittellinie lag
+     außerhalb), Prüffenster und Postprozessor hingen.
+  4. Stirnseite ohne Y, X ab unter 0: C schlug neben der Drehmitte in einem Satz um 180° um – die
+     Spitze zog eine Schleife bis 0,36 · |x_min| neben der Bahn (bei −5: 1,8 mm).
+  5. Der Haken „Sektoren in Zeilen mit Y“ blieb grau, wenn sein Vorschlag lief, während „Rundum
+     schruppen“ aus war (`isEnabled` statt `isEnabledTo`).
+  6. `y_weg()` las die Grenzen des Y-Gelenks roh, ohne Bezug auf Y 0 im Programm.
+  Dazu der „kleine Verdacht“: Die Zeilen tauchten im Eilgang an der vordersten Rasterstelle ein,
+  bis 0,25 mm hinter der Stirn der Stange.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `schruppen` – fällt die Schneide im Teil irgendwo durch, zählen die
+  Stufen immer; `sektor_lage_y` – erst die Lagengrenze, dann Schaft und Halter; `quer_hoehe` – der
+  Querschritt zwischen zwei Zeilen fährt auf der höchsten Stelle der Hüllfläche dazwischen (alle
+  `QUER_PROBE` = 0,25 mm, mit Stufen): erst hoch, dann quer, dann in die Zeile; Eintauchen im
+  Eilgang erst bei Stirn der Stange + Fräserradius + `VOR_STANGE` (0,5 mm).
+- `camaddon/stirnseite.py`: „C in Schritten“ bei weniger als `SCHRITTE_AB_Y` (1 mm) Y-Weg wie „C
+  dreht mit“; `_strecke_mit` – ein Umschlag von C neben der Drehmitte (`UMSCHLAG_MITTE`): hoch, C
+  drehen, an derselben Stelle wieder hinunter (`_umschlagen`).
+- `camaddon/gui_vierachs.py`: `_sektoren_y_vorschlagen` mit `isEnabledTo`; `y_weg()` über
+  `stirnseite.rahmen` (Kinematik), sonst die Gelenkgrenzen, je Maschine gemerkt.
+- `help/de|en/programm.html` (ohne Y: keine Schritte, Umschlag mit Abheben).
+- `tests/test_vierachs_bahn.py`: zwischen den Punkten alle 0,1 mm nachgemessen – schräges
+  Schlitzende (−0,025 mm, frei) und Gabel mit Schaft (−0,325 mm, frei);
+  `tests/test_stirnseite.py`: „C in Schritten“ ohne Y endet; eine Nut durch die Mitte bei X ab −5
+  liegt am Teil auf der Bahn, mit einem Abheben.
+
+### ERGEBNIS
+- Ring mit Y: 10,8 → 10,9 min (die Querschritte heben, wo nötig), 0 Voxel ins Teil; Y-Weg aus der
+  Kinematik 51,0 mm (wie vorher aus dem Gelenk – an der Beispiel-Drehmaschine liegt Y 0 auf der
+  Mitte).
+- Grün im Wochen-Build: `test_vierachs_bahn`, `test_vierachs_frei`, `test_stirnseite`;
+  `szenario_ring_sektoren`, `szenario_vierachs_schruppen`, `szenario_vierachs_nase`,
+  `szenario_vierachs_stirnseite`.
 ## P-2026-10-18-58 vierachs-befehle-atmen
 
 ### EINGELESEN
