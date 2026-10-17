@@ -39,6 +39,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import uhren
+
 RASTER = 0.5  # mm – das Höhenfeld des Teils
 TOLERANZ = 0.05  # mm – so fein wird das Teil vernetzt
 # mm – so weit bleiben Halter und Schaft vom Teil weg: die Vorgaben der Operation (Manuel,
@@ -267,6 +269,7 @@ def _basis(achsen):
 def stoesst(huelle, mitten, achsen, koerper_, kugel_radius, mit_schaft):
     """Je Stelle (Mitte der Kugel, Achse; je (n, 3)): stoßen der Halter – und, wo `mit_schaft`
     (bool je Stelle; None: nirgends), der Schaft – ans Teil? (n,) bool."""
+    uhren.atmen()  # beim Anlegen im Assistenten: das Fenster zeichnet sich zwischendurch neu
     n = len(mitten)
     ergebnis = np.zeros(n, dtype=bool)
     if n == 0:
@@ -394,6 +397,7 @@ def geglaettet(punkte, winkel, richtung, umkreis=GLAETTEN):
     vektoren = np.sin(np.radians(winkel))[:, None] * richtung
     neu_w, neu_r = winkel.copy(), richtung.copy()
     for i in range(len(punkte)):
+        uhren.atmen()
         a = np.searchsorted(weg, weg[i] - umkreis)
         b = np.searchsorted(weg, weg[i] + umkreis, "right")
         gewicht = np.maximum(0.0, 1.0 - np.abs(weg[a:b] - weg[i]) / umkreis)

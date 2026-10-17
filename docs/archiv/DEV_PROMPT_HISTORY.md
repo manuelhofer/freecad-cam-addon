@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-11 wegkippen-atmet
+
+### EINGELESEN
+- Pausen des vollen Laufs: `szenario_wegkippen` stand beim „Anlegen“ 6,2 s – das 3D-Schlichten
+  mit „Wegkippen“ rechnet seine Werkzeugachsen (wegkippen.achsen: viele Neigungen und Richtungen,
+  je `stoesst`) im Hauptprozess. Die Operationen rechnen dort in `uhren.atmend()`; die Rechnung
+  rief aber nie `uhren.atmen()` auf.
+
+### DATEIEN
+- `camaddon/wegkippen.py`: `stoesst` und die Glättung je Stelle rufen `uhren.atmen()` – das
+  Fenster zeichnet sich zwischendurch neu (ohne Klicks anzunehmen); in den Nebenrechnern und
+  Prüfdateien tut es nichts.
+
+### ERGEBNIS
+- Längste Pause in `szenario_wegkippen`: 6,2 → 0,8 s.
+- Grün im Wochen-Build: `test_wegkippen`, `szenario_wegkippen`.
+
 ## P-2026-10-17-10 flaechen-auf-einmal
 
 ### EINGELESEN
