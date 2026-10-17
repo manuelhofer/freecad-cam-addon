@@ -166,6 +166,7 @@ def messen(
     tiefe=None,
     vorher=(),
     raster=SCHRITT,
+    start=None,
 ):
     """Misst die Bahnen `laeufe` ([Bahnlauf], in dieser Reihenfolge) am Teil (Part-Form) im
     Rohteil (x_von, x_bis, y_von, y_bis bis `oben`) mit dem Fräser `form` (fraeserform.Form
@@ -176,11 +177,14 @@ def messen(
     in einer Tasche die Höhe ihrer Wände; `vorher`: Bahnen ([Bahnlauf]), die davor liefen –
     sie formen das Rohteil, zählen aber nicht (die Oberseite vor der Tasche); `raster`: so fein
     der Quader (mm) – feiner für die Breite im Eingriff bei kleinen Schritten (die Bögen der Nut
-    rücken weniger als eine Zelle vor)."""
+    rücken weniger als eine Zelle vor); `start(q)`: formt den Quader vor allem (ein Rohteil, das
+    schon anders aussieht – etwa ringsum gefräst)."""
     x_von, x_bis, y_von, y_bis = rohteil
     if unten is None:
         unten = teil.BoundBox.ZMin - 1.0
     q = rm.Quader(x_von, x_bis, y_von, y_bis, unten, oben, raster)
+    if start is not None:
+        start(q)
     zelle = raster * raster
     for lauf in vorher:
         for von, nach in zip(lauf.punkte, lauf.punkte[1:], strict=False):

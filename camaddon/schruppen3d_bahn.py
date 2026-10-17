@@ -78,6 +78,10 @@ class Schruppbahn:
     noch: float = 0.0
     weg: float = 0.0
     davor: list = field(default_factory=list)
+    # Was rings um die Flächen noch über dem Teil steht (mm³, _nur_ueber) – mit `nur_ueber` gilt
+    # es als schon gefräst, sonst nimmt die Bahn es mit weg.
+    drumherum: float = 0.0
+    nur_ueber: bool = False
 
 
 class _Lage3D(rb._Lage):
@@ -236,11 +240,15 @@ def _lagen(oben, ziel, zustellung, zwischen):
     return folge, (oben - ziel) / anzahl
 
 
-def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None, stand=None):
+def _schruppen(
+    st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None, stand=None, nur=None
+):
     """Alle Lagen in der Variante (die der Hauptlagen); gibt (Hauptlagen, Zwischenlagen) mit
     Schnitt zurück. Mit `davor` (Form des größeren Fräsers davor) nur der Rest: jede Lage wie
     eine Zwischenlage, das Material aus _nach_davor. Mit `stand` (Materialstand) ebenso, wenn
-    er nicht überall das volle Rohteil zeigt."""
+    er nicht überall das volle Rohteil zeigt. Mit `nur` (_Nur) zählt es, was rings um die Flächen
+    noch steht (`st.drumherum`), und gilt `nur.an`, dort schon als gefräst: nur über den Flächen,
+    jede Lage wie eine Zwischenlage."""
     aufmass = max(w.aufmass, 0.0)
     ziel = z_unten + aufmass
     oben = w.oben
@@ -283,6 +291,14 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None,
             return 0, 0  # über den Flächen steht nichts mehr, was der Fräser erreicht
         if mit_stand and variante != "rohteil":
             raise rb._KeinMorph()  # jede Lage wie eine Zwischenlage: keine Varianten
+    vom_material = False  # die Hauptlagen: Ringe vom Rand dessen her, was noch steht
+    if nur is not None:
+        hoehe, oben, vom_material = _nur_ueber(st, feld, nur, hoehe, oben, ziel, z_unten, zugabe, w)
+        if vom_material:
+            if oben <= ziel + MATERIAL:
+                return 0, 0
+            if variante != "rohteil":
+                raise rb._KeinMorph()
     aufweiten = _Aufweiten(feld)
     stempel = _scheibe(r, schritt)
     gx, gy = np.meshgrid(feld.xs, feld.ys, indexing="ij")
@@ -296,7 +312,7 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None,
         erlaubt = feld.erlaubt_feld(lage, z_unten)
         gesperrt = _breiter(~erlaubt)
         werte = w
-        # Der Rest (davor, Materialstand): nur, wo Material steht.
+        # Der Rest (davor, Materialstand, nur über den Flächen): nur, wo Material steht.
         ist_zwischen = zwischenlage or davor is not None or mit_stand
         if ist_zwischen:
             # Die Ringe nur für das, was über der Lage steht und der Fräser hier erreicht – eine
@@ -313,12 +329,21 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None,
             feld.rohteil_zellen = ueber & aufweiten(erlaubt, r - 0.01)
             feld.beruehrt = aufweiten(feld.rohteil_zellen, r)
             feld.eng = aufweiten(feld.rohteil_zellen, weiter + schritt)
+        elif vom_material:
+            # Nur über den Flächen, ringsum gefräst: ein Klotz im Freien. Die Ringe vom Rohteil
+            # her beginnen an seinem Rand, hinab geht es daneben, quer hinein mit vollem ap – wie
+            # das Räumen mit Materialstand (raeumen_bahn._Feld.material_setzen). Als Zwischenlage
+            # führe die Hauptlage per Helix am Rand hinab (Kuppel: 3,6 statt 3,4 min).
+            if not feld.material_setzen(hoehe, hoehe, lage, erlaubt):
+                continue
         else:
             feld.rohteil_zellen, feld.beruehrt, feld.eng = rechteck
         feld.frei[:] = False
         ablauf = _Lage3D(st, feld, werte, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben)
         ablauf.hoehe = hoehe
         ablauf.stempel = stempel
+        if vom_material and not ist_zwischen:
+            ablauf.stand_hoehe = hoehe
         if ist_zwischen:
             # Einfahren wie in der Hauptlage: unter der Stirn höchstens so viel Material wie im
             # Streifen ae der Hauptlage – nicht die breiteren Ringe der Zwischenlage.
@@ -346,6 +371,8 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None,
                 rb._ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, glatt, False)
         ablauf.reste_fahren()
         ablauf.heben()
+        if feld.mit_material:
+            feld.ganzes_rohteil()
         hoehe[feld.frei] = np.minimum(hoehe[feld.frei], lage)
         if st.ringe > vorher:
             if zwischenlage:
@@ -354,6 +381,88 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None,
                 haupt += 1
     feld.rohteil_zellen, feld.beruehrt, feld.eng = rechteck
     return haupt, zwischenlagen
+
+
+@dataclass
+class _Nur:
+    """Für _schruppen: die Form und die Freiformflächen (für den Bereich über ihnen) und ob dort
+    nur geschruppt wird („Nur über den gewählten Flächen“); `maske` merkt den Bereich für die
+    Varianten (dasselbe Raster)."""
+
+    form: object
+    flaechen: list
+    an: bool = False
+    maske: object = None
+
+
+# So viel Rohteil (mm³) muss rings um die Flächen stehen, damit der Assistent davon spricht.
+DRUMHERUM_AB = 1000.0
+
+
+def _nur_ueber(st, feld, nur, hoehe, oben, ziel, z_unten, zugabe, w):
+    """„Nur über den gewählten Flächen“ (Manuel, 2026-10-17, Frage 6: „hey schau mal du das
+    rohteil ist dort noch komplett voll mit material .. wir müssen erst die schräge fläche
+    wegplanen und dann können wir die tasche fräsen oder ist rohteil schon fertig so das nurnoch
+    die tasche zu fräsen ist“): Der Bereich über den Flächen, bis Radius und Zeilenabstand darüber
+    hinaus (sonst bliebe ihr Rand stehen, und am Fuß einer Kuppel hat ein Ring Platz). Was
+    außerhalb noch über dem Teil steht, zählt `st.drumherum` (mm³) – für den Satz im Assistenten.
+    Mit `nur.an` gilt es als schon gefräst (etwa in einem anderen Job): Die Höhen dort sind frei,
+    die Lagen beginnen am höchsten Material im Bereich. Gibt (Höhen, oben, ob nur dort) zurück."""
+    if nur.maske is None or nur.maske.shape != hoehe.shape:
+        nur.maske = feld.aufweiten(
+            _ueber_den_flaechen(feld, nur.form, nur.flaechen), feld.r + w.zeilenabstand
+        )
+    bereich = nur.maske
+    spitze = np.where(feld.roh <= z_unten + GLEICH, z_unten, feld.roh + zugabe)
+    boden = np.maximum(spitze, ziel)
+    draussen = feld.rohteil_zellen & ~bereich & (hoehe > boden + MATERIAL)
+    st.drumherum = float(np.sum((hoehe - boden)[draussen])) * feld.schritt * feld.schritt
+    if not nur.an:
+        return hoehe, oben, False
+    hoehe = np.where(bereich, hoehe, -np.inf)
+    tief = rb._kleinstes_um(spitze, int(max(feld.r - feld.schritt - 0.01, 0.0) / feld.schritt))
+    erreicht = bereich & (hoehe > np.maximum(tief, ziel) + MATERIAL)
+    if not erreicht.any():
+        return hoehe, ziel, True
+    return hoehe, min(oben, float(hoehe[erreicht].max())), True
+
+
+def _ueber_den_flaechen(feld, form_teil, namen):
+    """(nx, ny): Knoten, über denen von oben gesehen eine der Flächen `namen` liegt – aus ihrer
+    Vernetzung, je Dreieck die Knoten darin (und die nächsten an seinen Ecken: ein steiles,
+    schmales Dreieck trifft sonst keinen)."""
+    from . import vierachs_flaechen as vf
+
+    maske = np.zeros((feld.nx, feld.ny), dtype=bool)
+    xs, ys = np.asarray(feld.xs), np.asarray(feld.ys)
+    for nummer in vf.nummern(namen):
+        try:
+            punkte, dreiecke = ft.flaeche(form_teil, nummer).tessellate(max(feld.schritt, 0.05))
+        except Exception:  # noqa: BLE001 – eine Fläche ohne Netz: ohne sie
+            continue
+        if not punkte or not dreiecke:
+            continue
+        p = np.array([(q.x, q.y) for q in punkte], dtype=float)
+        i = np.clip(np.rint((p[:, 0] - xs[0]) / feld.schritt).astype(int), 0, feld.nx - 1)
+        j = np.clip(np.rint((p[:, 1] - ys[0]) / feld.schritt).astype(int), 0, feld.ny - 1)
+        maske[i, j] = True
+        for a, b, c in p[np.asarray(dreiecke, dtype=int)]:
+            i0, i1 = np.searchsorted(xs, min(a[0], b[0], c[0])), np.searchsorted(
+                xs, max(a[0], b[0], c[0]), side="right"
+            )
+            j0, j1 = np.searchsorted(ys, min(a[1], b[1], c[1])), np.searchsorted(
+                ys, max(a[1], b[1], c[1]), side="right"
+            )
+            if i0 >= i1 or j0 >= j1:
+                continue
+            gx, gy = np.meshgrid(xs[i0:i1], ys[j0:j1], indexing="ij")
+            d1 = (gx - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (gy - b[1])
+            d2 = (gx - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (gy - c[1])
+            d3 = (gx - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (gy - a[1])
+            negativ = (d1 < 0) | (d2 < 0) | (d3 < 0)
+            positiv = (d1 > 0) | (d2 > 0) | (d3 > 0)
+            maske[i0:i1, j0:j1] |= ~(negativ & positiv)
+    return maske
 
 
 def _mit_stand(st, feld, netz, stand, hoehe, oben, ziel, z_unten, zugabe):
@@ -411,12 +520,15 @@ def planen(
     davor=None,
     stand=None,
     nachbereiten=None,
+    nur_ueber=False,
 ):
     """Die Bahn „3D-Schruppen“ (Schruppbahn) über den Freiformflächen `namen` von `form_teil`
     mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten) – mit
     `davor` (Form des größeren Fräsers davor, ebene Stirn) nur der Rest, den er ließ; mit
-    `stand` (materialstand, W-012) nur, was die Operationen davor im Job übrig ließen.
-    ValueError mit einem Satz, wenn es nicht geht."""
+    `stand` (materialstand, W-012) nur, was die Operationen davor im Job übrig ließen; mit
+    `nur_ueber` gilt das Rohteil rings um die Freiformflächen als schon gefräst: nur über ihnen
+    (nicht an einem Teil aus einem STL, nicht im Rest). ValueError mit
+    einem Satz, wenn es nicht geht."""
     from . import vierachs_flaechen as vf
 
     w = werte
@@ -429,6 +541,12 @@ def planen(
         raise ValueError(tr("ra.fehler.zeilenabstand"))
     _flaechen, z_unten = bereich(form_teil, namen)
     netz = vf.vernetze(form_teil, toleranz).netz
+    from . import stl_teil
+
+    # Ein Teil aus einem STL: jedes Dreieck eine Fläche – ohne „nur über den Flächen“.
+    nur = None
+    if davor is None and stl_teil.daten(form_teil) is None:
+        nur = _Nur(form_teil, _flaechen, bool(nur_ueber))
     if davor is not None and vp.ebener_radius(davor) <= 0:
         raise ValueError(tr("ra.fehler.form"))
     varianten = (w.variante,) if w.variante in rb.VARIANTEN else rb.VARIANTEN
@@ -440,7 +558,7 @@ def planen(
         st = rb._Stand()
         try:
             haupt, zwischenlagen = _schruppen(
-                st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand
+                st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand, nur
             )
         except rb._KeinMorph:
             continue
@@ -462,6 +580,8 @@ def planen(
             noch=st.noch,
             weg=st.weg,
             davor=st.davor,
+            drumherum=getattr(st, "drumherum", 0.0),
+            nur_ueber=bool(nur is not None and nur.an),
         )
         if nachbereiten is not None:
             # Rampen und freie Verbindungen gehören zur gefahrenen Zeit: erst

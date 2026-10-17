@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-22 nur-ueber-den-flaechen
+
+### EINGELESEN
+- Manuel (2026-10-17, Frage 6): „ja als hacken ist gut, aber vll auch so als vorschlag .. "hey
+  schau mal du das rohteil ist dort noch komplett voll mit material .. wir müssen erst die schräge
+  fläche wegplanen und dann können wir die tasche fräsen oder ist rohteil schon fertig so das
+  nurnoch die tasche zu fräsen ist" … versuch mal dir da was auszudenken“.
+- Der Versuch der Nacht (`~/freecad_cam/wip/nacht_2026-10-16/r3_nur_ueber.patch`) ließ das Rohteil
+  drumherum stehen: Über der Kuppel war der Bereich dann eine Tasche im Vollen, die Ringe gingen
+  vom Rand voll hinein (bis 5 ae, 10 × senkrecht).
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`: `_Nur`, `_nur_ueber` – der Bereich über den Freiformflächen (bis
+  Radius und Zeilenabstand darüber hinaus, `_ueber_den_flaechen` aus ihrem Netz); was außerhalb
+  noch über dem Teil steht, zählt `Schruppbahn.drumherum` (mm³). Mit dem Haken gilt es als schon
+  gefräst: Die Hauptlagen fahren die Ringe vom Rand dessen her, was noch steht
+  (`_Feld.material_setzen`, wie das Räumen mit Materialstand), hinab daneben im Freien; die
+  Zwischenlagen wie bisher. Nicht im Rest (davor) und nicht am STL. `DRUMHERUM_AB` 1 cm³.
+- `camaddon/schruppen3d.py`: Eigenschaft `NurUeber`, `lege_an`/`aendere`/`rechne` reichen sie
+  durch.
+- `camaddon/gui_bearbeitung.py`: Haken „Nur über den gewählten Flächen – drumherum ist schon
+  gefräst“ beim 3D-Schruppen, nicht angehakt (angehakt führe der Fräser bei vollem Rohteil
+  drumherum ins Volle; das Vorgegebene bleibt, wie es war); nicht beim Restschruppen.
+  `_material_text` hängt `_drumherum_text` an: ohne Haken „Rings um die gewählten Flächen steht
+  laut Rohteil noch … – … Lage für Lage mit weg … Ist es dort schon gefräst …, anhaken“; mit Haken
+  die Erinnerung, dass er es als gefräst nimmt.
+- `camaddon/pruefstand.py`: `messen(..., start=)` formt den Quader vorher.
+- `help/de|en/bearbeitung.html`, Übersetzungen.
+- `tests/test_schruppen3d.py`: Kuppel nur darüber im ringsum gefrästen Quader;
+  `tests/gui/szenario_schlichten3d.py`: der Satz, Haken an (kürzer, Erinnerung), wieder aus.
+
+### ERGEBNIS
+- Kuppel (Prüfdatei): ganz 6,08 min, nur darüber 3,86 min; im ringsum gefrästen Quader nirgends
+  ins Teil, nichts im Eilgang, 0 Rampen, 0 Kehren, Eingriff bis 2,6 ae auf 8 mm (ein Zwickel am
+  Rand des Bereichs), um die Kuppel genau das Aufmaß.
+- Assistent an der Kuppel: „… noch 15,6 cm³ …“, angehakt 5 → 4 min.
+- Grün im Wochen-Build: `test_schruppen3d`, `test_sprache`, `test_hilfe`,
+  `szenario_schlichten3d`, `szenario_restschruppen`.
 ## P-2026-10-17-21 g550-von-oben
 
 ### EINGELESEN

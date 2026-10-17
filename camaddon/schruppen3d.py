@@ -92,6 +92,7 @@ class Schruppen3D(PathOp.ObjectOp):
             ("App::PropertyLength", "EckenradiusDavor", tr("r3.eigenschaft.eckenradius_davor")),
             ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
             ("App::PropertyBool", "Rampenanlauf", tr("s5p.eigenschaft.rampen")),
+            ("App::PropertyBool", "NurUeber", tr("r3.eigenschaft.nur_ueber")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -174,6 +175,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         stand=stand,
         nachbereiten=nachbereiten,
         schritt=au.wert(obj, sr.SCHRITT),
+        nur_ueber=bool(getattr(obj, "NurUeber", False)),
     )
     return bahn
 
@@ -210,11 +212,12 @@ def bahn_fuer(
     davor=None,
     stand=None,
     nachbereiten=None,
+    nur_ueber=False,
 ):
     """Die Bahn „3D-Schruppen“ über den Freiformflächen `flaechen` für Modell und Rohteil des
     Jobs – mit `davor` (Form des größeren Fräsers davor) nur der Rest; mit `stand` (der
-    Materialstand davor) nur, was die Operationen davor übrig ließen. ValueError mit einem
-    Satz, wenn es nicht geht."""
+    Materialstand davor) nur, was die Operationen davor übrig ließen; mit `nur_ueber` nur über den
+    Flächen. ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -242,7 +245,16 @@ def bahn_fuer(
         # Die N-Eck-Stange (W-018): Zeilen von der Stirn zum Schraubstock statt Ringe.
         return _in_der_stange(job, form_teil, werte, toleranz, schritt, stand)
     return sr.planen(
-        form_teil, list(flaechen), werte, zwischen, toleranz, schritt, davor, stand, nachbereiten
+        form_teil,
+        list(flaechen),
+        werte,
+        zwischen,
+        toleranz,
+        schritt,
+        davor,
+        stand,
+        nachbereiten,
+        nur_ueber=nur_ueber,
     )
 
 
@@ -291,10 +303,12 @@ def lege_an(
     name=None,
     flaechen=(),
     davor=(0.0, 0.0),
+    nur_ueber=False,
 ):
     """Legt „3D-Schruppen“ im Job an – mit `davor` (Ø, Eckenradius des Fräsers davor; Ø > 0)
-    als „Restschruppen“ – ohne eigene Transaktion, die hält der Aufrufer. Die Endtiefe ist der
-    tiefste Punkt der Flächen plus Aufmaß. Gibt die Operation zurück."""
+    als „Restschruppen“, mit `nur_ueber` nur über den Flächen – ohne eigene Transaktion, die
+    hält der Aufrufer. Die Endtiefe ist der tiefste Punkt der Flächen plus Aufmaß. Gibt die
+    Operation zurück."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "Schruppen3D")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -311,6 +325,7 @@ def lege_an(
     _werte(obj, zustellung, zeilenabstand, aufmass, zwischen, gleichlauf)
     obj.DurchmesserDavor, obj.EckenradiusDavor = (float(davor[0]), float(davor[1]))
     obj.Flaechen = list(flaechen)
+    obj.NurUeber = bool(nur_ueber)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc, float(davor[0])), obj)
     if FreeCAD.GuiUp:
@@ -349,10 +364,11 @@ def aendere(
     gleichlauf=True,
     flaechen=None,
     davor=None,
+    nur_ueber=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `flaechen` und `davor` ohne bleiben. Der Name folgt dem Werkzeug, solange es
-    der vorgeschlagene ist."""
+    Transaktion; `flaechen`, `davor` und `nur_ueber` ohne bleiben. Der Name folgt dem Werkzeug,
+    solange es der vorgeschlagene ist."""
     if davor is not None:
         obj.DurchmesserDavor, obj.EckenradiusDavor = (float(davor[0]), float(davor[1]))
     if _vorgeschlagener_name(obj.Label):
@@ -362,6 +378,8 @@ def aendere(
     _werte(obj, zustellung, zeilenabstand, aufmass, zwischen, gleichlauf)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
+    if nur_ueber is not None and "NurUeber" in obj.PropertiesList:
+        obj.NurUeber = bool(nur_ueber)
     job = getattr(obj.Proxy, "job", None)
     if job is not None:
         _endtiefe(obj, job)

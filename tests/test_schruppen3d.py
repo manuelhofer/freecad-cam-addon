@@ -69,9 +69,12 @@ def werte(oben, **weiter):
     return rb.Raeumwerte(**grund)
 
 
-def im_quader(teil, bahn, oben):
-    """(Quader nach der Bahn, Sollhöhe je Zelle, x, y) – das Rohteil bis `oben`."""
+def im_quader(teil, bahn, oben, start=None):
+    """(Quader nach der Bahn, Sollhöhe je Zelle, x, y) – das Rohteil bis `oben`, mit `start(q)`
+    vorher geformt."""
     q = rm.Quader(0, 60, 0, 60, teil.BoundBox.ZMin - 1.0, oben, 0.25)
+    if start is not None:
+        start(q)
     for von, nach in zip(bahn.punkte, bahn.punkte[1:], strict=False):
         stuecke = ps._stuecke(von, nach)
         q.fahre_stuecke([s[0] for s in stuecke], [s[1] for s in stuecke], form)
@@ -80,9 +83,9 @@ def im_quader(teil, bahn, oben):
     return q, soll, xs, ys
 
 
-def gemessen(teil, bahn, oben):
+def gemessen(teil, bahn, oben, start=None):
     k = ps.messen([ps.Bahnlauf(bahn.punkte, VF, EINTAUCHEN)], teil, (0, 60, 0, 60), oben, form,
-                  1.5, 25.0)  # fmt: skip
+                  1.5, 25.0, start=start)  # fmt: skip
     return k
 
 
@@ -120,6 +123,52 @@ flanke = kuppel & (r > 4.5)  # die Spitze bis r 3,9 liegt keine 0,3 unter dem Ro
 print(ascii(f"Kuppel senkrecht: {senkrecht[flanke].min():.3f} … {senkrecht[kuppel].max():.3f}"))
 pruefe(senkrecht[flanke].min() > 0.25, f"Kuppel: nur {senkrecht[flanke].min():.3f} stehen")
 pruefe(senkrecht[kuppel].max() < 1.7, f"Kuppel: Treppe {senkrecht[kuppel].max():.3f}")
+# Nur über der Kuppel (Frage 6; Manuel, 2026-10-17: „oder ist rohteil schon fertig so das nurnoch
+# die tasche zu fräsen ist“): Ganz gerechnet zählt die Bahn, was rings um die Kuppel steht (über Fuß
+# r 20, Fräserradius und Zeilenabstand hinaus: r 27,5). Mit dem Haken gilt es als gefräst – im
+# Quader ist es das (bis aufs Aufmaß): nirgends ins Teil, nichts im Eilgang, keine Helix am Rand
+# (hinab daneben im Freien); die Kuppel wie oben, und kürzer (3,9 statt 6,1 min).
+pruefe(
+    bahn.drumherum > r3.DRUMHERUM_AB and not bahn.nur_ueber,
+    f"ganz: drumherum {bahn.drumherum:.0f} mm³",
+)
+nur = r3.planen(teil, kugel, werte(20.0), nur_ueber=True)
+print(ascii(f"Kuppel, nur darüber: {nur.zeit:.2f} min (ganz {bahn.zeit:.2f}), {nur.ringe} Ringe, "
+            f"drumherum {nur.drumherum:.0f} mm³"))  # fmt: skip
+pruefe(nur.nur_ueber and abs(nur.drumherum - bahn.drumherum) < 1.0, f"nur: {nur.drumherum}")
+pruefe(nur.zeit < bahn.zeit, f"nur darüber nicht kürzer: {nur.zeit:.2f} min")
+netz_teil = vf.vernetze(teil, 0.005).netz
+
+
+def ringsum_gefraest(q):
+    soll_q = hf.hoehen(netz_teil, q.x, q.y)
+    gx, gy = np.meshgrid(q.x, q.y, indexing="ij")
+    aussen = (np.hypot(gx - 30, gy - 30) > 26.5) & np.isfinite(soll_q)
+    q.h[aussen] = np.minimum(q.h[aussen], soll_q[aussen] + 0.3)
+
+
+k_nur = gemessen(teil, nur, 20.0, ringsum_gefraest)
+print(ascii(ps.zeile(k_nur)))
+pruefe(k_nur.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"nur darüber: ins Teil {k_nur.einschnitt:.3f}")
+pruefe(k_nur.eilgang_abtrag <= 1e-9, f"nur darüber: im Eilgang {k_nur.eilgang_abtrag:.1f} mm³")
+# Die Ringe vom Rand des Klotzes her (wie das Räumen mit Materialstand): an einer Stelle am Rand
+# des Bereichs ein Zwickel, 2,6 ae auf 8 mm – sonst wie ganz.
+pruefe(
+    k_nur.eingriff_max < 3.0 and k_nur.last_lang <= 20.0 and k_nur.voll <= ps.BREIT_WEG,
+    f"nur darüber: {ps.zeile(k_nur)}",
+)
+pruefe(k_nur.rampen == 0 and k_nur.kehren == 0, f"nur darüber: {ps.zeile(k_nur)}")
+q_nur, soll_nur, xs_nur, ys_nur = im_quader(teil, nur, 20.0, ringsum_gefraest)
+r_nur = np.hypot(xs_nur - 30, ys_nur - 30)
+rest_nur = q_nur.h - soll_nur
+ring = (r_nur > 21.0) & (r_nur < 26.0)
+pruefe(
+    np.all(np.abs(rest_nur[ring] - 0.3) < 0.02),
+    f"nur darüber, um die Kuppel: {rest_nur[ring].min():.3f} … {rest_nur[ring].max():.3f}",
+)
+kuppel_nur = r_nur < 19.5
+senk_nur = np.sqrt((xs_nur - 30) ** 2 + (ys_nur - 30) ** 2 + (q_nur.h + 5) ** 2) - 25.0
+pruefe(senk_nur[kuppel_nur].max() < 1.7, f"nur darüber: Treppe {senk_nur[kuppel_nur].max():.3f}")
 ohne = r3.planen(teil, kugel, werte(20.0), zwischen=0.0)
 pruefe(ohne.zwischenlagen == 0, f"ohne Zwischenlagen: {ohne.zwischenlagen}")
 q0, _soll, _xs, _ys = im_quader(teil, ohne, 20.0)

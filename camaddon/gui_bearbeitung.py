@@ -219,7 +219,31 @@ def _eintauchwinkel(werkzeug):
 
 def _material_text(bahn):
     """„noch 5,6 cm³ – 11,1 cm³ hat „Räumen T1“ schon weggenommen“ – für eine Bahn mit
-    Materialstand (W-012), wenn die Operationen davor dort etwas weggenommen haben; sonst ""."""
+    Materialstand (W-012), wenn die Operationen davor dort etwas weggenommen haben; dazu beim
+    3D-Schruppen, was rings um die gewählten Flächen noch steht (_drumherum_text); sonst ""."""
+    saetze = [s for s in (_stand_text(bahn), _drumherum_text(bahn)) if s]
+    return "\n".join(saetze)
+
+
+def _drumherum_text(bahn):
+    """Steht rings um die gewählten Flächen laut Rohteil noch Material (schruppen3d_bahn,
+    `drumherum`)? Manuel, 2026-10-17, Frage 6: „hey schau mal du das rohteil ist dort noch
+    komplett voll mit material .. wir müssen erst die schräge fläche wegplanen und dann können
+    wir die tasche fräsen oder ist rohteil schon fertig so das nurnoch die tasche zu fräsen ist“ –
+    ohne den Haken „Nur über den gewählten Flächen“, dass es mit weggeht, und wann der Haken
+    passt; mit ihm, dass er es als gefräst nimmt. Sonst ""."""
+    drumherum = float(getattr(bahn, "drumherum", 0.0) or 0.0)
+    if drumherum <= r3b.DRUMHERUM_AB:
+        return ""
+    volumen = groesse_fest(drumherum / 1000.0, einheiten.VOLUMEN, 1)
+    volumen = f"{volumen} {einheiten.einheit(einheiten.VOLUMEN)}"
+    if getattr(bahn, "nur_ueber", False):
+        return tr("ba.r3.drumherum_nur", volumen=volumen)
+    return tr("ba.r3.drumherum", volumen=volumen)
+
+
+def _stand_text(bahn):
+    """Der Satz zum Materialstand aus _material_text."""
     weg, davor = getattr(bahn, "weg", 0.0), getattr(bahn, "davor", None)
     if not davor or weg <= 0:
         return ""
@@ -2569,7 +2593,13 @@ class _Schruppen3D(_Strategie):
         )
 
     def haken(self):
-        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
+        return (
+            ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+            # Nicht angehakt: Ob das Rohteil drumherum schon weg ist, weiß nur der Anwender –
+            # angehakt führe der Fräser dort sonst ins Volle; der Satz darunter fragt danach
+            # (_material_text, Frage 6).
+            ("nur_ueber", tr("ba.r3.nur_ueber"), tr("ba.r3.nur_ueber.tooltip"), False),
+        )
 
     def passt(self, form, name):
         return s3b.ist_freiform(form, name)
@@ -2604,6 +2634,7 @@ class _Schruppen3D(_Strategie):
             "vorschub": werte.get("vorschub", 0.0),
             "eintauchen": werte.get("eintauchen", 0.0),
             "stand": werte.get("materialstand"),
+            "nur_ueber": bool(werte.get("nur_ueber", False)),
         }
 
     def vorschau(self, job, werkzeug, werte, flaechen):
@@ -2641,6 +2672,7 @@ class _Schruppen3D(_Strategie):
             werte["zwischen"],
             werte["gleichlauf"],
             flaechen=flaechen,
+            nur_ueber=bool(werte.get("nur_ueber", False)),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -2653,6 +2685,7 @@ class _Schruppen3D(_Strategie):
             werte["zwischen"],
             werte["gleichlauf"],
             flaechen=flaechen,
+            nur_ueber=bool(werte.get("nur_ueber", False)),
         )
 
     def ist(self, op):
@@ -2665,6 +2698,7 @@ class _Schruppen3D(_Strategie):
             "aufmass": float(op.Aufmass),
             "zwischen": float(op.Zwischenlagen),
             "gleichlauf": bool(op.Gleichlauf),
+            "nur_ueber": bool(getattr(op, "NurUeber", False)),
         }
 
 
@@ -2712,6 +2746,10 @@ class _Restschruppen(_Schruppen3D):
         if durchmesser <= 0:
             raise ValueError(tr("ba.rr.davor.fehlt"))
         return durchmesser, float(werte.get("davor_eck") or 0.0)
+
+    def haken(self):
+        # Der Rest ist ohnehin nur, wo der größere Fräser davor stehen ließ.
+        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
 
     def _argumente(self, werkzeug, werte, flaechen):
         """(Argumente, Schlüsselwörter) für schruppen3d.vorschau – mit dem Fräser davor, ohne
@@ -2770,7 +2808,9 @@ class _Restschruppen(_Schruppen3D):
         return r3op.ist_restschruppen(op)
 
     def werte_von(self, op):
-        return dict(super().werte_von(op), davor=float(op.DurchmesserDavor))
+        werte = dict(super().werte_von(op), davor=float(op.DurchmesserDavor))
+        werte.pop("nur_ueber", None)  # den Haken hat das Restschruppen nicht
+        return werte
 
 
 def _kippachse(job):

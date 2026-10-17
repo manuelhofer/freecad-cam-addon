@@ -857,6 +857,13 @@ window have already removed. Then every layer runs like an intermediate layer �
 material the cutter reaches is left – starting at the highest such material. A second 3D
 roughing on the same dome thus only takes the steps (0.14 instead of 4.99 min); if nothing is
 left: red “Nothing left to do here …”.</li>
+<li><b>Only above the selected faces – the surroundings are already milled</b> (unticked): if,
+according to the stock, material still stands around the selected faces, the grey sentence below
+says so (“According to the stock, 15.6 cm³ still stand around the selected faces …”) – unticked,
+3D roughing takes it away layer by layer, then the faces. If it is already milled there (in
+another job, say), tick it: then it roughs only above the faces, up to one cutter radius beyond,
+goes down beside them in the open and enters from outside (on the dome 4 instead of 5 min). If
+that is not true, the cutter runs into solid material – the sentence reminds of it.</li>
 </ul>
 
 <h3>17. Pencil</h3>

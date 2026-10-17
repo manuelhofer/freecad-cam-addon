@@ -5,7 +5,9 @@
 # „3D-Schlichten“ angehakt mit T3 (der Kugelfräser ist vorgewählt), „→ N Kurven entlang der
 # Fläche, Abstand 0,49, etwa … min“ (die Breitenkreise der Kuppel: schneller als Höhenlinien mit
 # Spirale oder Zeilen);
-# Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schruppen T1“, dann „3D-Schlichten T3“. Die
+# Planfräsen und Räumen ohne Haken. Unter dem 3D-Schruppen der Satz, dass rings um die Kuppel noch
+# Rohteil steht (Frage 6); „Nur über den gewählten Flächen“ angehakt: kürzer, der Satz warnt;
+# wieder weg. „Anlegen“: „3D-Schruppen T1“, dann „3D-Schlichten T3“. Die
 # Richtung der Operation auf „aequidistant“: Ringe im gleichen Abstand. „Auf der Maschine prüfen“:
 # am Ende nirgends ins Teil.
 import FreeCAD
@@ -99,6 +101,38 @@ def schritte(h):
     h.pruefe(not schruppen.hinweis.text(), f"rot: {schruppen.hinweis.text()!r}")
     h.bild("1_kuppel", panel.form)
 
+    # --- Frage 6: rings um die Kuppel steht noch Rohteil ---------------------------------------
+    # Der Satz sagt es und nennt den Haken „Nur über den gewählten Flächen“ (nicht angehakt);
+    # angehakt gilt es als gefräst: Der Satz warnt, die Zeit sinkt. Wieder weg: wie vorher.
+    satz = schruppen.material.text()
+    h.pruefe("Rings um die gewählten Flächen" in satz and "anhaken" in satz, f"drumherum: {satz!r}")
+    nur = schruppen.haken_felder["nur_ueber"]
+    panel.knopf_weiter.click()
+    panel.knopf_weiter.click()  # Schritt 3, die Blöcke
+    yield 800
+    h.bild("1a_drumherum", panel.form)
+    h.pruefe(not nur.isChecked(), "„Nur über den gewählten Flächen“ vorgewählt")
+    zeit_ganz = schruppen.zeit
+    nur.setChecked(True)
+    yield 500
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 180000)
+    yield 800
+    h.pruefe(
+        getattr(schruppen.vorschau, "nur_ueber", False)
+        and "ins Volle" in schruppen.material.text(),
+        f"angehakt: {schruppen.material.text()!r}",
+    )
+    h.pruefe(
+        zeit_ganz is not None and schruppen.zeit is not None and schruppen.zeit < zeit_ganz,
+        f"Zeit nur darüber {schruppen.zeit} statt ganz {zeit_ganz}",
+    )
+    h.bild("1b_nur_ueber", panel.form)
+    nur.setChecked(False)
+    yield 500
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 180000)
+    yield 800
+    h.pruefe(not getattr(schruppen.vorschau, "nur_ueber", True), "Haken wieder weg: nur darüber")
+
     # --- Anlegen ------------------------------------------------------------------------------
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
     yield 3000
@@ -111,6 +145,7 @@ def schritte(h):
     if ops:
         h.pruefe(ops[-1].Zeilen >= 40, f"Kurven: {ops[-1].Zeilen}")
         h.pruefe(ops[0].Zwischen >= 7, f"Zwischenlagen: {ops[0].Zwischen}")
+        h.pruefe(not ops[0].NurUeber, "3D-Schruppen mit „Nur über den gewählten Flächen“")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800
