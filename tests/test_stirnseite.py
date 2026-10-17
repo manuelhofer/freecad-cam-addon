@@ -211,6 +211,18 @@ abweichung = max(
 )
 pruefe(abweichung < 0.01, f"ohne Y: am Teil {abweichung:.4f} mm neben der Nut")
 print(ascii(f"Ohne Y: {len(polar)} Saetze, C {min(c_polar):.1f} ... {max(c_polar):.1f}"))
+# Gegenleser zu P-62: Sätze, die unverändert durchgehen, solange X oder Y noch nicht bekannt sind
+# (Eilgang, Gerade, Bohrzyklus), schrieben ihr Y-Wort – ohne Y-Achse auch sie ohne Y.
+for erster in (
+    C("G0", {"Y": 0.0, "Z": 5.0}),
+    C("G1", {"Y": 0.0, "Z": 5.0, "F": 10.0}),
+    C("G81", {"Y": 0.0, "Z": -2.0, "R": 2.0, "F": 10.0}),
+):
+    roh = st.befehle([erster, *nut], ohne_y, st.MIT, programm=True)
+    mit_y = [b.toGCode() for b in roh if "Y" in b.Parameters]
+    pruefe(not mit_y, f"ohne Y, erster Satz {erster.Name}: {mit_y}")
+    vorn = st.befehle([erster], ohne_y, st.MIT)  # Prüfung und Abfahren: Y bleibt
+    pruefe("Y" in vorn[-1].Parameters, f"ohne Y, Prüfung: {[b.toGCode() for b in vorn]}")
 
 # Gegenleser zu P-50 (P-2026-10-18-59): „C in Schritten“ ohne Y drehte endlos (jede Stelle neben
 # der Mittellinie lag außerhalb) – jetzt wie „C dreht mit“. Und eine Nut durch die Mitte, X ab −5:

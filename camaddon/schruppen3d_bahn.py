@@ -437,7 +437,10 @@ def _ueber_den_flaechen(feld, form_teil, namen):
     xs, ys = np.asarray(feld.xs), np.asarray(feld.ys)
     for nummer in vf.nummern(namen):
         try:
-            punkte, dreiecke = ft.flaeche(form_teil, nummer).tessellate(max(feld.schritt, 0.05))
+            # Eine Kopie vernetzen: tessellate am Original ersetzt dessen Netz, und alles danach
+            # (Simultanschlichten, Materialstand) rechnete mit anderen Dreiecken (P-2026-10-18-64).
+            flaeche = ft.flaeche(form_teil, nummer).copy()
+            punkte, dreiecke = flaeche.tessellate(max(feld.schritt, 0.05))
         except Exception:  # noqa: BLE001 – eine Fläche ohne Netz: ohne sie
             continue
         if not punkte or not dreiecke:

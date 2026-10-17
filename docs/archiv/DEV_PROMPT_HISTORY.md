@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-64 flaechen-kopie-vernetzen
+
+### EINGELESEN
+- Der volle Testlauf der Nacht (Stand P-63) fand drei 5-Achs-Tests rot: `test_simultan_planung`
+  („Grathöhe nicht eingehalten“), `test_simultan_gesamt` und `test_simultan_folge` („Referenz
+  verändert: punkte“). Rot schon vor der Nacht, grün am 17.10. um 6 Uhr; `git bisect` fand
+  P-2026-10-17-22 („Nur über den gewählten Flächen“).
+- Ursache: `_ueber_den_flaechen` vernetzte jede gewählte Fläche am Original
+  (`ft.flaeche(form_teil, nummer).tessellate(...)`) – auch ohne den Haken, denn der Satz, wie viel
+  Rohteil ringsum steht, wird immer gerechnet. tessellate ersetzt das Netz, das an der Form hängt;
+  das Simultanschlichten nach einem 3D-Schruppen rechnete danach mit anderen Dreiecken. Alle
+  anderen Stellen im Addon vernetzen deshalb eine Kopie (vierachs_flaechen, vierachs_huelle,
+  hoehenfeld, vierachs_planbahn).
+- Gegenleser zu P-62: An einer Maschine ohne Y gingen Sätze, die unverändert durchlaufen, solange X
+  oder Y noch nicht bekannt sind (erster Eilgang, erste Gerade, Bohrzyklus), mit ihrem Y-Wort ins
+  Programm – etwa „G0 Y0 Z5“. Eine Steuerung ohne Y gibt dann Alarm.
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`: `_ueber_den_flaechen` vernetzt `ft.flaeche(...).copy()`.
+- `camaddon/stirnseite.py`: `_ohne_y_wort(werte)` – in `_eilgang`, `_gerade` und `_zyklus` auch für
+  die durchgehenden Sätze.
+- `tests/test_stirnseite.py`: drei erste Sätze mit Y ohne X (G0, G1, G81) – im Programm ohne Y,
+  in der Prüfung mit Y 0 (ohne die Änderung rot).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_simultan_planung`, `test_simultan_gesamt`, `test_simultan_folge`
+  (Referenz wieder getroffen, ohne sie neu zu schreiben), `test_schruppen3d`,
+  `szenario_schlichten3d`, `test_stirnseite`.
 ## P-2026-10-18-63 nut-verliert-haken
 
 ### EINGELESEN

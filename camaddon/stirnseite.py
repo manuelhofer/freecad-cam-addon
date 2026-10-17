@@ -313,6 +313,11 @@ class _Umrechnung:
         """{"X": x, "Y": y} – ohne Y-Achse nur X."""
         return {"X": x} if self.ohne_y else {"X": x, "Y": y}
 
+    def _ohne_y_wort(self, werte):
+        """Die Wörter `werte` – ohne Y-Achse ohne Y (auch in einem Satz, der unverändert
+        durchgeht, solange X oder Y noch nicht bekannt sind: Gegenleser zu P-62)."""
+        return {k: v for k, v in werte.items() if not (k == "Y" and self.ohne_y)}
+
     def _c(self, winkel):
         return winkel * self.r.drehsinn
 
@@ -408,7 +413,8 @@ class _Umrechnung:
         x, y, z = self._ziel(p)
         if x is None or y is None:  # noch keine Stelle in X, Y: nur Z
             self.pos = [x, y, z]
-            self.raus.append(self.befehl("G0", {k: v for k, v in p.items() if k in "XYZ"}))
+            werte = {k: v for k, v in p.items() if k in "XYZ"}
+            self.raus.append(self.befehl("G0", self._ohne_y_wort(werte)))
             return
         winkel = drehung_fuer(self.r, x, y, self.winkel, self.modus)
         if self.modus == SCHRITTE and abs(winkel - self.winkel) > GENAU and z is not None:
@@ -428,7 +434,7 @@ class _Umrechnung:
         if None in self.pos:
             self.pos = list(ziel)
             if None in ziel:
-                self.raus.append(self.befehl("G1", dict(p)))
+                self.raus.append(self.befehl("G1", self._ohne_y_wort(dict(p))))
                 return
             self._g1(*ziel, drehung_fuer(self.r, ziel[0], ziel[1], self.winkel, self.modus), f=f)
             return
@@ -591,7 +597,7 @@ class _Umrechnung:
         self._g94()
         x, y, z = self._ziel(p)
         if x is None or y is None:
-            self.raus.append(befehl)
+            self.raus.append(befehl if not self.ohne_y else self.befehl(name, self._ohne_y_wort(p)))
             return
         winkel = drehung_fuer(self.r, x, y, self.winkel, self.modus)
         if abs(winkel - self.winkel) > GENAU or not self.c_steht:
@@ -599,7 +605,7 @@ class _Umrechnung:
             self.c_steht = True
             self.winkel = winkel
         mx, my = self._xy(x, y, winkel)
-        werte = {k: v for k, v in p.items() if not (k == "Y" and self.ohne_y)}
+        werte = self._ohne_y_wort(p)
         werte.update(self._xy_woerter(mx, my))
         self.raus.append(self.befehl(name, werte))
         self.pos = [x, y, self.pos[2]]
