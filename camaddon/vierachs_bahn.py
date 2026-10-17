@@ -3704,12 +3704,18 @@ def befehle(
     genutzt = [i for i in range(3) if abs(l_[i]) > GLEICH or abs(u_[i]) > GLEICH]
     quer = [i for i in range(3) if i not in genutzt]
     radial_achsen = [i for i in range(3) if abs(u_[i]) > GLEICH]
-    # Fährt die Bahn quer versetzt (Plan indexiert), steht die Querachse in jedem Satz.
-    mit_quer = any(abs(p.q) > GLEICH for p in bahn.punkte)
-
     # Die Spitzen aller Punkte in einem Zug (P-2026-10-18-55: je Punkt kleine numpy-Rechnungen
     # kosteten an der Nase 0,44 von 0,71 s) – elementweise dieselben Rechenschritte, dieselben Zahlen.
-    feld = np.array([(p.a, p.r, p.q) for p in bahn.punkte], dtype=float).reshape(-1, 3)
+    # Das Feld in Blöcken, dazwischen atmet das Fenster: am Geist stand es davor beim Anlegen je
+    # Operation bis 1,3 s (P-2026-10-18-72).
+    bloecke = []
+    for anfang_ in range(0, len(bahn.punkte), ATMEN_JE_PUNKTE * 25):
+        stueck = bahn.punkte[anfang_ : anfang_ + ATMEN_JE_PUNKTE * 25]
+        bloecke.append(np.array([(p.a, p.r, p.q) for p in stueck], dtype=float).reshape(-1, 3))
+        uhren.atmen()
+    feld = np.concatenate(bloecke) if bloecke else np.zeros((0, 3))
+    # Fährt die Bahn quer versetzt (Plan indexiert), steht die Querachse in jedem Satz.
+    mit_quer = bool(np.any(np.abs(feld[:, 2]) > GLEICH))
     l_, u_, v_ = (np.asarray(e, dtype=float) for e in (l_, u_, v_))
     spitzen = (
         l_[None, :] * feld[:, 0:1] + u_[None, :] * feld[:, 1:2] + v_[None, :] * feld[:, 2:3]

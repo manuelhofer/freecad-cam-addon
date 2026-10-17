@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-72 anlegen-atmet-vorher
+
+### EINGELESEN
+- Voller Szenario-Lauf (Stand P-69), `szenario_vierachs_stl` (Manuels Geist im 4-Achs-Assistenten):
+  Beim „Anlegen“ stand das Fenster neunmal bis 1,32 s. `vierachs_bahn.befehle` atmet in der
+  Schleife alle 2000 Punkte (P-55), davor gingen aber zwei Durchgänge über alle Punkte am Stück:
+  `mit_quer` (jeder Punkt) und das Feld der Punkte für die Spitzen.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: Das Feld entsteht in Blöcken zu 50 000 Punkten, dazwischen
+  `uhren.atmen()`; `mit_quer` aus dem Feld (dieselbe Frage: |q| > GLEICH).
+
+### ERGEBNIS
+- `szenario_vierachs_stl`: längste Pause beim Anlegen 1,32 → 0,75 s.
+- Grün im Wochen-Build: `test_vierachs_bahn`, `szenario_vierachs_stl`.
 ## P-2026-10-18-71 netze-merken
 
 ### EINGELESEN
