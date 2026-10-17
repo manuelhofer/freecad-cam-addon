@@ -1956,6 +1956,8 @@
     "ba.rohteil.zylinder": "Zylinder mit Aufmaß",
     "ba.rohteil.zylinder.text": "Ein runder Rohling, stehend wie im Dreibackenfutter: der kleinste Kreis um das Teil von oben, mit Aufmaß am Umfang („seitlich“), oben und unten. Leer: 1 mm.",
     "ba.rohteil.kurz_zylinder": "Zylinder, Aufmaß oben {oben}, Umfang {seite}, unten {unten} {mm}",
+    "ba.rohteil.stange.text": "Die Stange {durchmesser} im Futter der Drehmaschine – vom 4-Achs-Assistenten eingerichtet (Lage, Länge, Nullpunkt). Hier nicht zu ändern: „Bearbeitung“ fräst ihre Stirnseite von vorn.",
+    "ba.rohteil.kurz_stange": "Stange {durchmesser} im Futter",
     "ba.rohteil.teil": "Teil aus dem Dokument",
     "ba.rohteil.teil.tooltip": "Ein Körper, den du als Rohteil konstruiert hast – vorgefräst, gegossen, geschweißt. Der Job nimmt ihn so, wie er im Modell zum Teil liegt.",
     "ba.rohteil.koerper": "Körper",

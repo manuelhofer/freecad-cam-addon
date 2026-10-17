@@ -5605,15 +5605,28 @@ class BearbeitungPanel:
             self.knopf_rohteil_teil.blockSignals(False)
             self.rohteil_erklaerung.setText(tr("ba.rohteil.keine_teile"))
             return
-        if teil:
+        stange = self.job is not None and stangen_job(self.job)
+        if stange:
+            # Der Stangen-Job der Drehmaschine (W-025): die Stange hat der 4-Achs-Assistent
+            # eingerichtet – hier nur gesagt, nicht zu ändern.
+            self.rohteil_erklaerung.setText(
+                tr("ba.rohteil.stange.text", durchmesser=self._stangen_text())
+            )
+        elif teil:
             self.rohteil_erklaerung.setText(tr("ba.rohteil.teil.text"))
         elif self.knopf_rohteil_zylinder.isChecked():
             self.rohteil_erklaerung.setText(tr("ba.rohteil.zylinder.text"))
         else:
             self.rohteil_erklaerung.setText(tr("ba.rohteil.text"))
-        self.rohteil_koerper.setVisible(teil)
-        self.rohteilfelder.setVisible(not teil)
+        self.rohteil_koerper.setVisible(teil and not stange)
+        self.rohteilfelder.setVisible(not teil and not stange)
         self._rohteil_geaendert()
+
+    def _stangen_text(self):
+        """„Ø 70 mm“ – die Stange des Jobs (Stock mit Radius)."""
+        radius = float(getattr(getattr(self.job, "Stock", None), "Radius", 0.0) or 0.0)
+        mm = einheiten.einheit(einheiten.LAENGE)
+        return f"Ø {groesse_zeigen(2 * radius, einheiten.LAENGE) or '0'} {mm}"
 
     def rohteil_koerper_gewaehlt(self):
         """Der Körper aus dem Dokument, der das Rohteil ist – None beim Quader mit Aufmaß."""
@@ -5731,7 +5744,9 @@ class BearbeitungPanel:
         zahlen = [groesse_zeigen(w, einheiten.LAENGE) or "0" for w in werte]
         koerper = self.rohteil_koerper_gewaehlt() if hasattr(self, "knopf_rohteil_teil") else None
         zylinder = getattr(self, "knopf_rohteil_zylinder", None)
-        if koerper is not None:
+        if self.job is not None and stangen_job(self.job):
+            aufmass = tr("ba.rohteil.kurz_stange", durchmesser=self._stangen_text())
+        elif koerper is not None:
             aufmass = tr("ba.rohteil.kurz_teil", name=koerper.Label)
         elif zylinder is not None and zylinder.isChecked():
             aufmass = tr(

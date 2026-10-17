@@ -1956,6 +1956,8 @@
     "ba.rohteil.zylinder": "Cylinder with allowance",
     "ba.rohteil.zylinder.text": "A round blank, standing as in a three-jaw chuck: the smallest circle around the part seen from above, with allowance on the circumference (“side”), top and bottom. Empty: 1 mm.",
     "ba.rohteil.kurz_zylinder": "Cylinder, allowance top {oben}, circumference {seite}, bottom {unten} {mm}",
+    "ba.rohteil.stange.text": "The bar {durchmesser} in the lathe's chuck – set up by the 4-axis assistant (position, length, origin). Not to be changed here: “Machining” mills its front face from the front.",
+    "ba.rohteil.kurz_stange": "Bar {durchmesser} in the chuck",
     "ba.rohteil.teil": "Part from the document",
     "ba.rohteil.teil.tooltip": "A body you modelled as the stock – pre-machined, cast, welded. The job takes it as it lies relative to the part in the model.",
     "ba.rohteil.koerper": "Body",

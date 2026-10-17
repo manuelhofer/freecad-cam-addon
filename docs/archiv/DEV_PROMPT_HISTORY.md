@@ -32,6 +32,9 @@ patch_naming:
   (`ba.maschine.drehmaschine_stirn`, de/en) statt rot.
 - `camaddon/gui_vierachs.py`: `zur_bearbeitung` behält die Stange (`_stange_behalten`: wie
   „Anlegen“ ohne Bearbeitungen) statt `reject`; beim Ändern bleibt der Job ohnehin.
+- Schritt 1 und die Kurzzeile in Schritt 2 nennen die Stange („Stange Ø 70 mm im Futter – vom
+  4-Achs-Assistenten eingerichtet“, `ba.rohteil.stange.text`, `ba.rohteil.kurz_stange`) statt
+  der Zylinder-Felder.
 - `tests/gui/szenario_vierachs_stirnseite.py`: nach dem Verweis steht der Stangen-Job noch,
   „Bearbeitung“ läuft darauf, Räumen angehakt, „Anlegen“ legt „Räumen T1“ in den Stangen-Job.
 
