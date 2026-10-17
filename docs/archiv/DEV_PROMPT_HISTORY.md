@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-23 raeumen-bis-durch
+
+### EINGELESEN
+- Manuel (2026-10-17, Frage 4): „Ja, Räumen tritt an“ – an Wänden, die durch das Teil gehen
+  (C-Ring: Mantel, Bohrung, Schlitz), tritt Räumen bis durch gegen die Kontur an, die Zeit
+  entscheidet; „Schlichten danach“ macht die Wände fertig. Sein Satz am C-Ring: „bis zuur mitte
+  die D's noch weiter fahren und dann mit den reisen rausfahren“.
+
+### DATEIEN
+- `camaddon/raeumen.py`: `durchgehend` (Unterkante der Wand = Unterkante des Teils),
+  `durch_gebiete` / `durch_ebenen` – je Gebiet neben dem Teil an seiner Unterkante (Rechteck des
+  Rohteils ohne den Fußabdruck aus einem Schnitt knapp darüber), das nur gewählte Wände (und der
+  Rand des Rohteils) begrenzen, ein gedachter Boden „Durch1“ … auf der Unterkante, sein Umriss als
+  `nur_ueber`; `bahn_fuer` räumt sie mit, `_endtiefe` nimmt die Unterkante; gedachte Böden nie in
+  `ausgelassen`.
+- `camaddon/gui_bearbeitung.py`:
+  - `_Raeumen.flaechen_fuer` nimmt die durchgehenden Wände, wenn nur Wände gewählt sind
+    (`_durch_gebiete`, je Form gemerkt; nicht ein Gebiet nur aus Bohrungen – das bleibt bei
+    „Bohrung fräsen“).
+  - Das Räumen steht auch in der Gruppe der Wände (Bohren, Bohrung fräsen, Kontur, Nut).
+  - Im Wettbewerb gegen eine Kontur, die schlichtet, zählt beim Räumen ein Zug an jeder dieser
+    Wände dazu (`_durch_schlichtzug`: Länge der Unterkanten / Vorschub).
+  - Gewinnt das Räumen, ist „Schlichten danach“ angehakt; seine Wände sind die durchgehenden
+    (`_schlichten_danach_zusatz`).
+- `help/de|en/bearbeitung.html`: Absatz „Wände, die durch das Teil gehen“.
+- `tests/test_raeumen.py`: C-Ring – Gebiet, ohne Mantel keins, Bahn bis −11 gegen die Kontur;
+  `tests/gui/szenario_raeumen_durch.py` (neu).
+
+### ERGEBNIS
+- C-Ring, Ø 12 (Prüfdatei): Räumen bis durch 2,69 min, Eingriff bis 5,7 ae auf 15 mm, kein
+  Vollschnitt; Kontur 5,27 min, bis 7,8 ae, 12 mm Vollschnitt. Mit Ø 8: 4,47 gegen 6,41 min.
+- Assistent am C-Ring (Beispiel mit seinem Job): Räumen 2,3 min „die schnellste; Kontur wäre 31 %
+  langsamer“, „Schlichten danach“ angehakt (4 Wände, 0,3 mm); angelegt bis −11.
+- Grün im Wochen-Build: `test_raeumen`, `test_hilfe`, `szenario_raeumen_durch` und die 19
+  Szenarien, die Kontur oder Räumen prüfen (`szenario_deckel` und `_flansch` nach der Eingrenzung
+  auf „nur Wände gewählt“).
 ## P-2026-10-17-22 nur-ueber-den-flaechen
 
 ### EINGELESEN

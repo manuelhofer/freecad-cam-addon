@@ -256,6 +256,42 @@ def _stand_text(bahn):
     return tr("ba.material.mehrere", noch=noch, weg=weg, wer=wer)
 
 
+def _durch_gebiete(form, waende):
+    """Die Wände unter `waende` (die durch das Teil gehen), unter denen das Räumen bis durch räumen
+    kann (raeumen.durch_gebiete – ein Gebiet nur von gewählten Wänden begrenzt). Nicht ein Gebiet
+    nur aus Bohrungen: Ein Loch fräst „Bohrung fräsen“ (Frage 5), dort tritt das Räumen nicht
+    an; am C-Ring gehört die Bohrung über den Schlitz zum Gebiet draußen und kommt mit. Je Form
+    gemerkt (Prüfsumme und Kasten, wie kontur_bahn._wand); das Rohteil zählt nicht – sein Rand
+    begrenzt nie."""
+    box = form.BoundBox
+    try:
+        kasten = tuple(
+            round(v, 6) for v in (box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax)
+        )
+        schluessel = (form.hashCode(), kasten, waende)
+    except Exception:  # noqa: BLE001 – eine Form ohne Prüfsumme: rechnen
+        schluessel = None
+    if schluessel is not None and schluessel in _DURCH_MERK:
+        return list(_DURCH_MERK[schluessel])
+    rand = 10.0
+    gebiete = ra.durch_gebiete(
+        form, list(waende), (box.XMin - rand, box.XMax + rand, box.YMin - rand, box.YMax + rand)
+    )
+    ergebnis = []
+    for _ebene, _schleifen, namen in gebiete:
+        if all(bb.ist_bohrung(form, n) for n in namen):
+            continue
+        ergebnis.extend(n for n in namen if n not in ergebnis)
+    if schluessel is not None:
+        _DURCH_MERK[schluessel] = list(ergebnis)
+    while len(_DURCH_MERK) > 64:
+        _DURCH_MERK.pop(next(iter(_DURCH_MERK)))
+    return ergebnis
+
+
+_DURCH_MERK = {}
+
+
 def _waende_um(form, boeden):
     """Die Wände des Teils, die unten an die Böden `boeden` stoßen – Zapfen und Inseln auf ihnen,
     Absätze davor: die nach dem Räumen das Aufmaß tragen (kontur_bahn.boeden_vor)."""
@@ -1285,7 +1321,10 @@ class _Raeumen(_Strategie):
 
     def flaechen_fuer(self, form, gewaehlte):
         """Die ebenen Flächen nach oben – und die Böden der Taschen, deren Wände gewählt sind.
-        Nicht den Boden einer Bohrung: Den fräst „Bohrung fräsen“."""
+        Nicht den Boden einer Bohrung: Den fräst „Bohrung fräsen“. Dazu die Wände, die durch das
+        Teil gehen, wenn nur Wände gewählt sind: Unter ihnen räumt es bis an die Unterkante
+        (raeumen.durch_ebenen; Manuel, 2026-10-17, Frage 4: „Ja, Räumen tritt an“ – gegen die
+        Kontur, die Zeit entscheidet)."""
         ebenen = [
             name
             for name in gewaehlte
@@ -1295,6 +1334,11 @@ class _Raeumen(_Strategie):
         for boden in rb.taschenboeden(form, waende):
             if boden not in ebenen and bb.bohrung_ueber_boden(form, boden) is None:
                 ebenen.append(boden)
+        # Nur Wände gewählt (wie am C-Ring): Sonst bleibt es dabei – das Räumen räumt die Böden,
+        # die Kontur fährt die Wände (am Deckel Oberseite und Außenwände).
+        durch = [name for name in waende if ra.durchgehend(form, name)]
+        if durch and not ebenen:
+            ebenen.extend(_durch_gebiete(form, tuple(durch)))
         return ebenen
 
     def vorgeschlagen(self, form, gewaehlte):
@@ -7237,7 +7281,9 @@ class BearbeitungPanel:
         """„Schlichten danach“ geht, sobald das Räumen angehakt ist und gerechnet hat (nicht beim
         Ändern). Wird es möglich, ist der Fräser des Räumens vorgewählt – mit seinem Einsatz
         „Schlichten“ (einsatz_reihenfolge); einen anderen wählt man von Hand. Angehakt wird es nur
-        von Hand: Ob nach dem Räumen geschlichtet wird, entscheidet, wer fräst."""
+        von Hand: Ob nach dem Räumen geschlichtet wird, entscheidet, wer fräst – außer das Räumen
+        räumt bis durch, wo sonst die Kontur die Wände fertig gemacht hätte (Frage 4: „Schlichten
+        danach“ macht die Wände)."""
         block, gross = self.schlichten_danach, self.raeumen
         moeglich = self.zu_aendern is None and gross.aktiv()
         geaendert = moeglich != block.moeglich
@@ -7254,11 +7300,37 @@ class BearbeitungPanel:
                     self._fuellt = False  # die Einsätze des Fräsers füllen
                     block.fraeser_setzen(gross.fraeser())
                     self._fuellt = True
+                waende = set(self._schlichten_danach_zusatz(form).get("wand_flaechen", ()))
+                if waende & set(self._durch_waende(form)) and not block.haken.isChecked():
+                    block.haken.setChecked(True)
+                    geaendert = True
             block.zustand_zeigen()
         finally:
             self._fuellt = self._ruhig = False
         if geaendert:
             self._bloecke_ordnen()
+
+    def _durch_waende(self, form):
+        """Die Wände, unter denen das Räumen bis durch räumt (raeumen.durch_ebenen) – leer, wenn
+        es nicht angehakt ist."""
+        if not self.raeumen.aktiv():
+            return []
+        return [f for f in self._eigene(self.raeumen, form) if ra.durchgehend(form, f)]
+
+    def _durch_schlichtzug(self, form):
+        """Minuten, die „Schlichten danach“ an den Wänden braucht, unter denen das Räumen bis
+        durch räumt – geschätzt: ein Zug an jeder ihrer Unterkanten im Vorschub des Räumens. Im
+        Wettbewerb gegen eine Kontur, die selbst schlichtet, kommt das zum Räumen dazu (sonst
+        verglich er Schruppen gegen Schruppen und Schlichten). 0 ohne solche Wände."""
+        durch = [f for f in self._eigene(self.raeumen, form) if ra.durchgehend(form, f)]
+        werkzeug, einsatz = self.raeumen.fraeser(), self.raeumen.einsatz()
+        if not durch or werkzeug is None or einsatz is None:
+            return 0.0
+        _n, vorschub, _senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
+        if vorschub <= 0:
+            return 0.0
+        laenge = sum(k.Length for w in kb.waende(form, durch) for k in w.kanten)
+        return laenge / vorschub
 
     def _schlichten_danach_zusatz(self, form):
         """Was „Schlichten danach“ vom Räumen übernimmt: die Böden, die es räumt, die Wände um sie –
@@ -7267,9 +7339,13 @@ class BearbeitungPanel:
         if not raeumen.aktiv():
             return {}
         werte = raeumen.werte()
-        boeden = sorted(self._raeumt(form))
+        geraeumt = sorted(self._raeumt(form))
+        # Wände, unter denen das Räumen bis durch räumt (raeumen.durch_ebenen): selbst Wände.
+        durch = [f for f in geraeumt if ra.durchgehend(form, f)]
+        boeden = [f for f in geraeumt if f not in durch]
         kontur = set(self._flaechen(self.kontur, form)) if self.kontur.aktiv() else set()
-        waende = [w for w in _waende_um(form, boeden) if w not in kontur]
+        waende = [w for w in _waende_um(form, boeden) + durch if w not in kontur]
+        waende = list(dict.fromkeys(waende))
         return {
             "boden_flaechen": boeden,
             "wand_flaechen": waende,
@@ -8308,11 +8384,12 @@ class BearbeitungPanel:
 
     def _gruppen(self):
         """Die Strategien, die dieselbe Aufgabe lösen: Planfräsen, Räumen und Nut auf ebenen
-        Flächen (dem Grund einer Nut); Bohren, Bohrung fräsen, Kontur und Nut an Wänden. Die Nut
-        steht in beiden – sie tritt dort an, wo ihre Flächen dieselben sind."""
+        Flächen (dem Grund einer Nut); Bohren, Bohrung fräsen, Kontur, Nut und Räumen an Wänden
+        (Räumen an solchen, die durch das Teil gehen: bis durch). Nut und Räumen stehen in beiden
+        – sie treten dort an, wo ihre Flächen dieselben sind."""
         return (
             (self.plan, self.raeumen, self.nut),
-            (self.bohren, self.bohrung, self.kontur, self.nut),
+            (self.bohren, self.bohrung, self.kontur, self.nut, self.raeumen),
             (self.schlichten3d, self.flanke),
         )
 
@@ -8405,7 +8482,11 @@ class BearbeitungPanel:
                 )
                 voll.append(b)
             mit = [b for b in mit if not luecke[b]]
-        mit.sort(key=lambda b: b.zeit)
+        zusatz = 0.0
+        if self.raeumen in mit and self.kontur in mit and self.kontur.werte().get("schlichten"):
+            zusatz = self._durch_schlichtzug(form)
+        zeit = {b: b.zeit + (zusatz if b is self.raeumen else 0.0) for b in mit}
+        mit.sort(key=lambda b: zeit[b])
         rot = [
             b
             for b in gruppe
@@ -8421,7 +8502,7 @@ class BearbeitungPanel:
         schnellste, zweite = mit[0], mit[1]
 
         def prozent(block):
-            return int(round((block.zeit / schnellste.zeit - 1.0) * 100.0))
+            return int(round((zeit[block] / zeit[schnellste] - 1.0) * 100.0))
 
         # Unter 1 % nicht „0 % langsamer“, sondern „weniger als 1 %“ – den Haken hat trotzdem die
         # schnellere (P-2026-10-02-53: die Nut in Bögen und die Kontur liegen oft gleichauf).

@@ -985,6 +985,51 @@ im_schlitz = [
 pruefe(not im_schlitz, f"Ring: mitten im Schlitz {len(im_schlitz)}")
 print(ascii(f"Ring, nur der Nutgrund: {bahn_ring.variante}, {bahn_ring.zeit:.2f} min"))
 
+# --- Bis durch (Frage 4; Manuel, 2026-10-17: „Ja, Räumen tritt an“) --------------------------------
+# Der Beispiel-C-Ring (Ø 60 × 10, unten z −11): Mantel, Bohrung und die zwei Wände des Schlitzes
+# gehen durch das Teil. Zusammen begrenzen sie ein Gebiet (draußen, durch den Schlitz in die
+# Bohrung) – der gedachte Boden auf −11. Ohne den Mantel stößt das Gebiet an eine nicht gewählte
+# Wand: keins. Die Bahn mit Ø 12 fährt bis −11, nirgends ins Teil, kein Vollschnitt, schneller
+# als die Kontur an denselben Wänden.
+from camaddon import kontur as ko  # noqa: E402
+from camaddon import vierachs_schlichten as vs  # noqa: E402
+
+cring = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", "c_ring_nut_3achs.FCStd"), True)
+cjob = next(o for o in cring.Objects if hasattr(o, "Operations"))
+cteil = vs._teil(cjob.Model.Group)
+kasten = cjob.Stock.Shape.BoundBox
+crohteil = (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax)
+WAENDE = ["Face1", "Face6", "Face3", "Face5"]  # Mantel, Bohrung, Schlitz
+pruefe(all(ra.durchgehend(cteil, n) for n in WAENDE), "C-Ring: Wände nicht durchgehend")
+pruefe(not ra.durchgehend(cteil, "Face7"), "C-Ring: die Wand der Ringnut gilt als durchgehend")
+gebiete = ra.durch_gebiete(cteil, WAENDE, crohteil)
+pruefe(
+    len(gebiete) == 1
+    and sorted(gebiete[0][2]) == sorted(WAENDE)
+    and abs(gebiete[0][0].z + 11.0) < 1e-6,
+    f"C-Ring, Gebiete: {[(g[0].name, g[0].z, g[2]) for g in gebiete]}",
+)
+pruefe(not ra.durch_gebiete(cteil, WAENDE[1:], crohteil), "C-Ring ohne Mantel: ein Gebiet")
+ap_c = 22.0
+durch = ra.bahn_fuer(
+    cjob, cjob.Model.Group, form, ap_c, 1.5, 0.3, WAENDE, schneidenlaenge=26.0, vorschub=902.0,
+    eintauchen=270.0,
+)  # fmt: skip
+k_durch = ps.messen([ps.Bahnlauf(durch.punkte, 902.0, 270.0)], cteil, crohteil, kasten.ZMax, form,
+                    1.5, ap_c, raster=0.25)  # fmt: skip
+print(ascii(f"C-Ring bis durch: {durch.variante}, {ps.zeile(k_durch)}"))
+pruefe(abs(durch.z_min + 11.0) < 1e-6, f"C-Ring bis durch: tiefste Spitze {durch.z_min}")
+pruefe(k_durch.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"C-Ring: ins Teil {k_durch.einschnitt:.3f}")
+pruefe(k_durch.voll <= ps.BREIT_WEG and k_durch.eilgang_abtrag <= 1e-9, ps.zeile(k_durch))
+kontur_c = ko.vorschau(cjob, cjob.Model.Group, form, ap_c, 1.5, 0.3, True, WAENDE)
+k_kontur = ps.messen([ps.Bahnlauf(kontur_c.punkte, 902.0, 270.0)], cteil, crohteil, kasten.ZMax,
+                     form, 1.5, ap_c, raster=0.25)  # fmt: skip
+print(ascii(f"C-Ring Kontur: {ps.zeile(k_kontur)}"))
+pruefe(
+    k_durch.zeit < k_kontur.zeit, f"bis durch {k_durch.zeit:.2f} gegen Kontur {k_kontur.zeit:.2f}"
+)
+FreeCAD.closeDocument(cring.Name)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

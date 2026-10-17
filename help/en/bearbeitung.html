@@ -341,6 +341,13 @@ takes only the rest it leaves at the wall (with face milling at most one stepove
 clearing its allowance): “… – only the rest at the walls: face milling mills the floor in
 front”, “… – only the allowance at the walls: clearing clears the floor in front”. At a <b>slot</b> the window also
 computes the slot – on its floor against clearing, at its walls against the contour.</p>
+<p><b>Walls that go through the part</b> (their lower edge is the bottom of the part): if the
+selected ones among them bound an area completely – on the C-ring the outer face, the bore and the
+slot –, clearing <b>through</b> competes with the contour. It clears there down to the bottom of
+the part, as deep as the contour, from outside through the slot into the bore, without plunging.
+Because the contour finishes as it goes, one pass along each of these walls is added to clearing.
+If clearing wins, “Finish afterwards” is ticked and finishes the walls. On the C-ring with Ø 12:
+clearing 2 min, the contour 31 % slower. A single round hole stays with “Hole milling”.</p>
 <p><b>Before time comes the part.</b> Roughing may approximate – raster, polygons, rings – but
 only behind the allowance; the last path on every selected face follows the drawing: walls and
 bosses the contour or “Finish afterwards” with the arcs of the model, floors without allowance,

@@ -264,6 +264,11 @@ def bahn_fuer(
         sicher = oben + sicherheit + 3.0
     namen = list(flaechen) or hf.oberseite(form_teil)
     ebenen = hf.ebenen_oben(form_teil, namen)
+    # Wände, die durch das Teil gehen: gedachte Böden an seiner Unterkante (Frage 4).
+    durch, durch_umrisse = durch_ebenen(
+        form_teil, [n for n in namen if durchgehend(form_teil, n)], (x_von, x_bis, y_von, y_bis)
+    )
+    ebenen = ebenen + durch
     if not ebenen:
         raise ValueError(tr("ra.fehler.keine_ebene"))
     dynamik = msp.dynamik_des_jobs(job)
@@ -273,7 +278,11 @@ def bahn_fuer(
     nur_ueber = None
     if flaechen:
         hoechste = form_teil.BoundBox.ZMax - hf.TOLERANZ
-        nur_ueber = umrisse(form_teil, [e.name for e in ebenen if e.z < hoechste])
+        nur_ueber = umrisse(
+            form_teil, [e.name for e in ebenen if e.z < hoechste and e not in durch]
+        )
+        if durch_umrisse:
+            nur_ueber = {**(nur_ueber or {}), **durch_umrisse}
     werte = rb.Raeumwerte(
         form=form,
         zustellung=zustellung,
@@ -298,7 +307,92 @@ def bahn_fuer(
         nur_ueber=nur_ueber,
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
-    return rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)
+    bahn = rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)
+    if durch:
+        # Ein gedachter Boden ist keine Fläche des Teils – „Rest räumen“ fände ihn nicht.
+        bahn.ausgelassen = [n for n in bahn.ausgelassen if not n.startswith(DURCH)]
+    return bahn
+
+
+DURCH = "Durch"  # so beginnen die Namen der gedachten Böden (durch_ebenen)
+
+
+def durchgehend(form_teil, name):
+    """Geht die Wand `name` durch das Teil – liegt ihre Unterkante auf seinem tiefsten Punkt? Dann
+    hat sie keinen Boden; das Räumen räumt bis an die Unterkante (durch_ebenen)."""
+    waende = kb.waende(form_teil, [name])
+    return bool(waende) and waende[0].z_unten <= form_teil.BoundBox.ZMin + hf.HOEHE_GLEICH
+
+
+def durch_ebenen(form_teil, namen, rohteil):
+    """([hoehenfeld.Ebene], {Name: Umriss-Schleifen}) aus durch_gebiete()."""
+    gebiete = durch_gebiete(form_teil, namen, rohteil)
+    return [g[0] for g in gebiete], {g[0].name: g[1] for g in gebiete}
+
+
+def durch_gebiete(form_teil, namen, rohteil):
+    """[(hoehenfeld.Ebene, Umriss-Schleifen, [Wände])] – die gedachten Böden unter den Wänden
+    `namen`, die durch das Teil gehen (Manuel, 2026-10-17, Frage 4: „Ja, Räumen tritt an“ – an
+    durchgehenden Wänden gegen die Kontur, am C-Ring 4,2 statt 7,1 min). Je Gebiet neben dem
+    Teil an seiner Unterkante (das Rechteck des Rohteils ohne den Fußabdruck), das an eine der
+    Wände stößt und nur von gewählten Wänden und dem Rand des Rohteils begrenzt ist – sonst
+    räumte das Räumen Wände mit, die niemand gewählt hat. Die Höhe: die Unterkante des Teils, so
+    tief wie die Kontur dort fährt; dazu je Gebiet die Wände, die es begrenzen. Leer ohne solche
+    Wände oder Gebiete."""
+    import Part
+
+    if not namen:
+        return []
+    z = form_teil.BoundBox.ZMin
+    gewaehlt = kb.waende(form_teil, namen)
+    waende = [w.flaeche for w in gewaehlt]
+    if not waende:
+        return []
+    hoehe = z + min(0.05, 0.5 * min(w.BoundBox.ZLength for w in waende))
+    try:
+        draehte = form_teil.slice(FreeCAD.Vector(0, 0, 1), hoehe)
+        fuss = Part.makeFace(draehte, "Part::FaceMakerBullseye")
+        x0, x1, y0, y1 = rohteil
+        rand = 1.0
+        rechteck = Part.makePlane(
+            x1 - x0 + 2 * rand, y1 - y0 + 2 * rand, FreeCAD.Vector(x0 - rand, y0 - rand, hoehe)
+        )
+        gebiete = rechteck.cut(fuss).Faces
+    except Exception as fehler:  # noqa: BLE001 – OCC: dann ohne gedachte Böden (die Kontur)
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Räumen bis durch: {fehler}\n")
+        return []
+
+    def am_rand(p):
+        return (
+            min(
+                abs(p.x - (x0 - rand)),
+                abs(p.x - (x1 + rand)),
+                abs(p.y - (y0 - rand)),
+                abs(p.y - (y1 + rand)),
+            )
+            < 1e-6
+        )
+
+    def wand_an(p):
+        """Der Name der gewählten Wand, auf der `p` liegt – oder None."""
+        punkt = Part.Vertex(p)
+        return next((w.name for w in gewaehlt if w.flaeche.distToShape(punkt)[0] < 0.02), None)
+
+    ergebnis = []
+    for gebiet in gebiete:
+        mitten = [k.valueAt(0.5 * (k.FirstParameter + k.LastParameter)) for k in gebiet.Edges]
+        innen = [wand_an(p) for p in mitten if not am_rand(p)]
+        if not innen or None in innen:
+            continue
+        name = f"{DURCH}{len(ergebnis) + 1}"
+        bb = gebiet.BoundBox
+        schleifen = [
+            [(float(p.x), float(p.y)) for p in draht.discretize(Deflection=0.05)]
+            for draht in gebiet.Wires
+        ]
+        ebene = hf.Ebene(name, float(z), bb.XMin, bb.XMax, bb.YMin, bb.YMax)
+        ergebnis.append((ebene, schleifen, sorted(set(innen), key=lambda n: int(n[4:]))))
+    return ergebnis
 
 
 UMRISSE_HOECHSTENS = 200  # mehr Flächen (ein Teil aus einem STL): ohne Umrisse, wie bisher
@@ -444,12 +538,14 @@ def _endtiefe(obj, job):
     try:
         form_teil = vs._teil(job.Model.Group)
         namen = list(obj.Flaechen) or hf.oberseite(form_teil)
-        ebenen = hf.ebenen_oben(form_teil, namen)
+        hoehen = [e.z for e in hf.ebenen_oben(form_teil, namen)]
+        if any(durchgehend(form_teil, n) for n in namen):
+            hoehen.append(form_teil.BoundBox.ZMin)  # bis durch (durch_ebenen)
     except ValueError:
-        ebenen = []
-    if ebenen:
+        hoehen = []
+    if hoehen:
         obj.setExpression("FinalDepth", None)
-        obj.FinalDepth = min(e.z for e in ebenen) + float(obj.AufmassBoden)
+        obj.FinalDepth = min(hoehen) + float(obj.AufmassBoden)
 
 
 def aendere(
