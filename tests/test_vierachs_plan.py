@@ -932,9 +932,19 @@ pruefe(
 # die Schneide schon fertig, am Hals ist Platz (P-2026-10-17-37).
 _T = types.SimpleNamespace
 pruefe(
-    abs(vplan.reicht_hinab(_T(Tool=_T(CuttingEdgeHeight=8.0, NeckHeight=4.0))) - 12.0) < 1e-9
+    abs(vplan.reicht_hinab(_T(Tool=_T(CuttingEdgeHeight=8.0, NeckHeight=4.0)), 2.0) - 12.0) < 1e-9
     and abs(vplan.schneidenlaenge(_T(Tool=_T(CuttingEdgeHeight=8.0, NeckHeight=4.0))) - 8.0) < 1e-9
-    and vplan.reicht_hinab(_T(Tool=None)) == 0.0,
+    and vplan.reicht_hinab(_T(Tool=None), 2.0) == 0.0
+    # Zustellung über die Schneide hinaus: zwischen den Lagen bliebe ein Band – nur die Schneide
+    and abs(vplan.reicht_hinab(_T(Tool=_T(CuttingEdgeHeight=8.0, NeckHeight=4.0)), 9.0) - 8.0)
+    < 1e-9
+    and abs(
+        vplan.reicht_werkzeug(
+            wz.Werkzeug(nummer=9, durchmesser=6, schneidenlaenge=8, hals_laenge=4), 2.0
+        )
+        - 12.0
+    )
+    < 1e-9,
     "reicht_hinab: Schneide und Hals",
 )
 pruefe(

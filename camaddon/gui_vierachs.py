@@ -3218,8 +3218,12 @@ class VierachsPanel:
                 lage = vp.schaft_lage(form, ebene, laengs, radial, radius)
                 if lage is not None:
                     seiten.append((ebene.name, lage[2]))
-        # So tief reicht er hinunter: Schneide und Hals (die Auskragung N, Werkzeug.auskragung)
-        schneide = float(getattr(werkzeug, "auskragung", 0.0) or 0.0)
+        # So tief reicht er hinunter: Schneide und Hals (die Auskragung N; vierachs_plan.reicht)
+        schneide = (
+            vplan.reicht_werkzeug(werkzeug, self._wert("zustellung_plan"))
+            if werkzeug is not None
+            else 0.0
+        )
         geht = [n for n, weg in seiten if schneide > 0 and weg <= schneide]
         zu_kurz = [(n, weg) for n, weg in seiten if not (schneide > 0 and weg <= schneide)]
         saetze = []
@@ -3307,7 +3311,7 @@ class VierachsPanel:
             "nur_gleichlauf": self.plan_nur_gleichlauf.isChecked(),
             "weg": self.plan_weg(),
             "schaft": self.plan_schaft_an() and not bohrer,
-            "schneide": float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0),
+            "schneide": vplan.reicht_werkzeug(werkzeug, self._wert("zustellung_plan")),
             "schrupp": self._plan_schrupp(),
         }
 

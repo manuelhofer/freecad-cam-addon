@@ -170,7 +170,7 @@ def rechne(obj, job, modell):
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         schaft=bool(getattr(obj, "Schaft", False)),
-        schneide=reicht_hinab(obj.ToolController),
+        schneide=reicht_hinab(obj.ToolController, float(obj.Zustellung)),
         weg=weg_der_operation(obj),
     )
 
@@ -193,13 +193,31 @@ def schneidenlaenge(tc):
     return _mass(tc, "CuttingEdgeHeight")
 
 
-def reicht_hinab(tc):
-    """So tief reicht das Werkzeug im Controller hinunter, ohne mit dem Schaft anzustoßen (mm):
-    Schneide und Hals – die Auskragung N der Werkzeugverwaltung (Werkzeug.auskragung; im ToolBit
-    CuttingEdgeHeight + NeckHeight). Für die Seiten mit dem Schaft (vierachs_planbahn.
-    mit_dem_schaft): Die Lagen darüber hat die Schneide schon fertig, am Hals ist Platz – nur der
-    Schaft darüber darf nicht an die Fläche. 0, wenn das ToolBit beides nicht kennt."""
-    return _mass(tc, "CuttingEdgeHeight") + _mass(tc, "NeckHeight")
+def reicht(schneide, hals, zustellung):
+    """So tief darf die Spitze für die Seiten mit dem Schaft (vierachs_planbahn.mit_dem_schaft)
+    unter die Stange (mm): Schneide und Hals – die Auskragung N der Werkzeugverwaltung –, denn die
+    Lagen darüber hat die Schneide schon fertig, bevor die Spitze tiefer geht, am Hals ist Platz,
+    nur der Schaft darüber darf nicht an die Fläche. Geht die Zustellung über die Schneide hinaus,
+    bliebe zwischen zwei Lagen ein Band stehen: dann nur die Schneide. 0 ohne Schneidenlänge."""
+    if schneide <= 0:
+        return 0.0
+    if zustellung > schneide + 1e-9:
+        return float(schneide)
+    return float(schneide) + max(float(hals), 0.0)
+
+
+def reicht_hinab(tc, zustellung):
+    """reicht() für das Werkzeug im Controller (ToolBit: CuttingEdgeHeight, NeckHeight)."""
+    return reicht(_mass(tc, "CuttingEdgeHeight"), _mass(tc, "NeckHeight"), zustellung)
+
+
+def reicht_werkzeug(werkzeug, zustellung):
+    """reicht() für ein Werkzeug der Werkzeugverwaltung (werkzeuge.Werkzeug)."""
+    return reicht(
+        float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0),
+        float(getattr(werkzeug, "hals_laenge", 0.0) or 0.0),
+        zustellung,
+    )
 
 
 def _mass(tc, name):

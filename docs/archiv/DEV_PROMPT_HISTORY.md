@@ -24,13 +24,17 @@ patch_naming:
   NeckHeight).
 
 ### DATEIEN
-- `camaddon/vierachs_plan.py`: `reicht_hinab(tc)` (Schneide + Hals) statt `schneidenlaenge(tc)`
-  für die Seiten mit dem Schaft; `schneidenlaenge` bleibt (kontur.py).
-- `camaddon/gui_vierachs.py`: `_schaft_zeigen` rechnet mit `Werkzeug.auskragung`.
+- `camaddon/vierachs_plan.py`: `reicht(schneide, hals, zustellung)` – Schneide + Hals; geht
+  die Zustellung über die Schneide hinaus (zwischen zwei Lagen bliebe ein Band), nur die
+  Schneide –, dazu `reicht_hinab(tc, zustellung)` (ToolBit) für die Operation und
+  `reicht_werkzeug(werkzeug, zustellung)` für den Assistenten; `schneidenlaenge` bleibt
+  (kontur.py).
+- `camaddon/gui_vierachs.py`: `_schaft_zeigen` und die Vorschau-Argumente (`_plan_argumente_mit`)
+  rechnen mit `reicht_werkzeug` – Vorschau und Operation gleich.
 - `camaddon/vierachs_planbahn.py`: `mit_dem_schaft` – Bedeutung von `schneide` im Text.
 - Texte `va.plan.schaft.tooltip`, `.zu_kurz`, `.ohne_schneide` (de/en); `help/de|en/vierachs.html`.
-- `tests/test_vierachs_plan.py`: `reicht_hinab` aus einem ToolBit (8 + 4), die Seite mit Schneide
-  8 und Hals 2 geht (braucht 10).
+- `tests/test_vierachs_plan.py`: `reicht_hinab` aus einem ToolBit (8 + 4 = 12; mit Zustellung 9
+  nur 8), `reicht_werkzeug`, die Seite mit Schneide 8 und Hals 2 geht (braucht 10).
 
 ### ERGEBNIS
 - Grün im Wochen-Build: `test_vierachs_plan`, `test_sprache`.
