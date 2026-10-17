@@ -830,6 +830,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             halb = SEKTOR_Y_HALB
         zeilen_abstand = max(w.steigung, GLEICH)
         stellen_alle = huelle.a[im_lauf]
+        # Nicht weiter vorn, als die Flanke die Stirn der Stange erreicht – davor ist Luft (am Ring
+        # fuhr jede Zeile 4 mm vor der Stange im Vorschub).
+        stellen_alle = stellen_alle[stellen_alle <= w.a_stange_vorne + radius + GLEICH]
         stellen_alle = stellen_alle[np.argsort(-stellen_alle)]  # von vorn nach hinten
         # Erst alle Stücke der Lage sammeln, dann ihre Stellungen in einem Zug rechnen (so gehen
         # sie an die Nebenrechner – je Stück allein blieben sie unter vierachs_huelle.

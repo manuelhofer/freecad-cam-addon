@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-52 reichweite-blockweise
+
+### EINGELESEN
+- T-006 (Manuel: „bitte immer daran denken, dass alle Rechenkerne auch genutzt werden“; das
+  Fenster darf nie laggen): Die Reichweite-Prüfung rechnete jeden Punkt einzeln in Python – an
+  der Nase 330 000 Schritte, 2,1 s; beim Öffnen des Prüffensters am 4-Achs-Schruppen-Szenario
+  0,95 s am Stück (Lag-Probe).
+- W-026 nachgezogen: Die Zeilen mit Y begannen 4 mm vor der Stange im Vorschub.
+
+### DATEIEN
+- `camaddon/reichweite.py`: `_Sammler.punkte` – Punkt-Schritte hintereinander in einem Zug mit
+  numpy (dieselben Rechenschritte je Punkt wie `punkt()`: Bereiche, unerreichbare Punkte mit dem
+  ersten, je Achse und Seite die weiteste Überschreitung); `Pruefung.dreh_felder` – die
+  Stellungen der Drehachsen als Felder (wie `_dreh_wege` und `stellung_bei`); `_pruefe_operation`
+  sammelt Punkte bis zum nächsten Bogen, die Lösung der Linearachsen ist je Operation fest.
+- `camaddon/vierachs_bahn.py`: `sektor_lage_y` – Stellen längs nur bis die Flanke die Stirn der
+  Stange erreicht.
+- `docs/STATUS_SNAPSHOT.md` (T-006).
+
+### ERGEBNIS
+- Nase (`$S/rw/vergleich.py`): blockweise 1,02 s gegen 2,1 s, Ergebnis gleich (Bereiche,
+  Überschreitungen, Hinweise, Punkte) wie Punkt für Punkt im selben Lauf.
+- Ring mit Y: 11,4 → 10,8 min, gleicher Abtrag, 0 Voxel ins Teil.
+- Grün im Wochen-Build: `test_reichweite`, `test_abfahren`, `test_spannung`, `test_flanke`,
+  `test_angestellt`, `test_vierachs_pruefen`, `test_stirnseite`, `test_schwenken`,
+  `test_entgraten3d`, `test_simultan_bereiche`, `test_vierachs_bahn`; dazu die 13 übrigen
+  4-Achs-Szenarien nach P-48 (Vorschau mit Querachse): aendern, ausspannen, drehteil, entgraten,
+  mantelnut, maschine, querbohrung, radialbohren, rohteil, sechskant, stl, magazin_vierachs, nut.
 ## P-2026-10-17-51 drehmaschine-weg-von-vorn
 
 ### EINGELESEN

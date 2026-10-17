@@ -34,6 +34,7 @@ import math
 from dataclasses import dataclass, field
 
 import FreeCAD
+import numpy as np
 
 from . import PARAMETER_PFAD, einheiten, maschinenspeicher, uhren
 from . import bestueckung as bs
@@ -984,6 +985,25 @@ class Pruefung:
 
         return loesung
 
+    def dreh_felder(self, werkzeugaufnahme, drehachsen, rund):
+        """Wie die Stellungen der Drehachsen aus loeser() – für viele Schritte zugleich: `rund`
+        {"A": Feld, "B": Feld, "C": Feld}, zurück {Achse: Feld} (der Revolver in
+        Arbeitsstellung, die Rundachsen aus `rund`). Dieselben Rechenschritte wie _dreh_wege und
+        stellung_bei, Feld für Feld (P-2026-10-18-52)."""
+        anzahl = len(next(iter(rund.values())))
+        ergebnis = {}
+        revolver = self._platzstellung.get(werkzeugaufnahme)
+        for achse in drehachsen:
+            if revolver is not None and achse is revolver[0]:
+                weg = self.verfahren.weg_bei(achse, revolver[1])
+                ergebnis[achse] = np.full(anzahl, self.verfahren.stellung_bei(achse, weg))
+                continue
+            buchstabe = self.programmbuchstabe(achse)
+            if buchstabe is not None:
+                weg = self.verfahren.weg_bei(achse, rund.get(buchstabe, np.zeros(anzahl)))
+                ergebnis[achse] = self.verfahren.stellung_bei(achse, weg)
+        return ergebnis
+
     def stellungen(self, punkt, werkzeugaufnahme, laenge, nullpunkt_des_jobs, rund=None):
         """{Achse: Stellung} für alle Achsen zwischen Werkzeug und Werkstück für den Bahnpunkt
         `punkt` (x, y, z im Job) mit den Rundachsen `rund` (wie {"A": Grad}) – ohne TCPM wie
@@ -1248,14 +1268,30 @@ class Pruefung:
             return
         # Je Schritt nur die Rundachsen, die die Maschine nicht hat (_bahn gibt A, B und C).
         fehlend = [b for b in RUNDACHSEN if b not in vorhanden]
+        # Die Lösung der Linearachsen ist je Operation dieselbe (ohne TCPM, loeser): Punkte
+        # hintereinander gehen in einem Zug durch den Sammler (_Sammler.punkte, P-2026-10-18-52 –
+        # am Nasen-Testteil 330 000 Schritte einzeln).
+        geloest_fest = loesung({})[0]
+
+        def punkte_pruefen(lauf):
+            if geloest_fest is None:
+                sammler.zu_viele(linear)
+                return
+            rund = {b: np.fromiter((s.rund[b] for s in lauf), float, len(lauf)) for b in RUNDACHSEN}
+            sammler.punkte(lauf, geloest_fest, self.dreh_felder(aufnahme, drehachsen, rund))
+
         for stueck in teile(self.schritte(befehle, sammler.unbekannt, rueckzug=False)):
+            lauf = []
             for schritt in stueck:
                 for b in fehlend:
                     if abs(schritt.rund[b]) > 1e-9:
                         fremd.add(b)
                 if schritt.art == "punkt":
-                    sammler.punkt(schritt.ort, schritt.rund, *loesung(schritt.rund))
+                    lauf.append(schritt)
                     continue
+                if lauf:  # in der Reihenfolge der Bahn: erst die Punkte davor
+                    punkte_pruefen(lauf)
+                    lauf = []
                 # Kreis: Punkte an den Umkehrstellen jeder Achse
                 geloest, dreh = loesung(schritt.rund)
                 if geloest is None:
@@ -1263,6 +1299,8 @@ class Pruefung:
                     continue
                 for punkt in schritt.ort.punkte(geloest.s):
                     sammler.punkt(punkt, schritt.rund, geloest, dreh)
+            if lauf:
+                punkte_pruefen(lauf)
             yield
         for buchstabe in sorted(fremd):
             sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
@@ -1448,6 +1486,66 @@ class _Sammler:
                 self._merke(achse, "min", achse.minimum, stellung, punkt, rund, werte, dreh)
             elif achse.maximum is not None and stellung > achse.maximum + 1e-6:
                 self._merke(achse, "max", achse.maximum, stellung, punkt, rund, werte, dreh)
+
+    def punkte(self, schritte, loesung, dreh):
+        """Wie punkt() für Punkt-Schritte hintereinander (_Schritt mit `ort` und `rund`), alle mit
+        derselben Lösung der Linearachsen `loesung`; `dreh` {Drehachse: Feld} je Schritt
+        (Pruefung.dreh_felder). Rechnet mit numpy, dieselben Rechenschritte je Punkt wie punkt():
+        Bereiche, unerreichbare Punkte (der erste zählt), je Achse und Seite die weiteste
+        Überschreitung (_merke behält ohnehin nur die)."""
+        if loesung is None:
+            self.zu_viele(self._linear)
+            return
+        anzahl = len(schritte)
+        x = np.fromiter((s.ort[0] for s in schritte), float, anzahl)
+        y = np.fromiter((s.ort[1] for s in schritte), float, anzahl)
+        z = np.fromiter((s.ort[2] for s in schritte), float, anzahl)
+        self._punkte_hier += anzahl
+        welche = None
+        if not loesung.voll:
+            rest = [loesung.rest0[i] + loesung.r[i][0] * x + loesung.r[i][1] * y + loesung.r[i][2] * z for i in range(3)]  # fmt: skip
+            gut = np.sqrt(rest[0] * rest[0] + rest[1] * rest[1] + rest[2] * rest[2])
+            gut = gut <= UNERREICHBAR_AB
+            if not gut.all():
+                schlecht = np.flatnonzero(~gut)
+                self._unerreichbar += len(schlecht)
+                if self._erster_unerreichbarer is None:
+                    erster = schritte[int(schlecht[0])]
+                    self._erster_unerreichbarer = _programmpunkt(erster.ort, erster.rund)
+                welche = np.flatnonzero(gut)
+                if not len(welche):
+                    return
+                x, y, z = x[welche], y[welche], z[welche]
+                dreh = {a: w[welche] for a, w in dreh.items()}
+        spalten = [
+            (achse, s0 + zeile[0] * x + zeile[1] * y + zeile[2] * z)
+            for achse, s0, zeile in zip(self._linear, loesung.s0, loesung.s, strict=True)
+        ]
+        spalten += [(achse, dreh[achse]) for achse in self._rund]
+        self.ergebnis.punkte += len(x)
+
+        def merke(achse, seite, grenze, i):
+            j = i if welche is None else int(welche[i])
+            schritt = schritte[j]
+            werte = [(a, float(w[i])) for a, w in spalten]
+            stellungen = {a: float(w[i]) for a, w in dreh.items()}
+            self._merke(
+                achse, seite, grenze, float(dict(spalten)[achse][i]), schritt.ort, schritt.rund,
+                werte, stellungen,
+            )  # fmt: skip
+
+        for achse, werte in spalten:
+            unten, oben = float(werte.min()), float(werte.max())
+            bereich = self._bereich.get(achse)
+            if bereich is None:
+                self._bereich[achse] = [unten, oben]
+            else:
+                bereich[0] = min(bereich[0], unten)
+                bereich[1] = max(bereich[1], oben)
+            if achse.minimum is not None and unten < achse.minimum - 1e-6:
+                merke(achse, "min", achse.minimum, int(np.argmin(werte)))
+            if achse.maximum is not None and oben > achse.maximum + 1e-6:
+                merke(achse, "max", achse.maximum, int(np.argmax(werte)))
 
     def _merke(self, achse, seite, grenze, stellung, punkt, rund, werte, dreh):
         """Eine Überschreitung – gemerkt, wenn sie in dieser Operation die weiteste ist."""

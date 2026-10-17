@@ -1625,8 +1625,11 @@ B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den 
   Vorschauen beider Assistenten, der senkrechte Abtrag (Streifen) und seit P-2026-10-17-39 der
   schräge Abtrag im Abspieler. **Noch auf einem Kern:** die Reichweite-Prüfung (`reichweite.
   Pruefung.pruefe_job`, am 4-Achs-Testteil 1,2 s beim Öffnen des Prüffensters – im Takt erst ab
-  20 000 Sätzen); sie in Stationsstücke zu teilen wie die Kollision braucht ein Zusammenführen
-  der `_Sammler`-Befunde je Stück – der nächste Schritt hier. (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
+  20 000 Sätzen); seit P-2026-10-18-52 blockweise mit numpy (`_Sammler.punkte`,
+  `Pruefung.dreh_felder`): an der Nase 2,1 → 1,0 s, gleiches Ergebnis – was bleibt, ist das
+  Lesen der Sätze (`_bahn`). Das Abfahren (`abfahren.abfahrt_schritte`, an der Nase gut 3 s)
+  erzeugt je Punkt eine Station für Abspieler und Kollision – blockweise nur mit einer anderen
+  Ablage der Stationen. (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
   … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
   das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je
   Station, ein Kern; seit P-2026-10-04-48 27,6 → 16,4 s. Seit P-2026-10-04-74 schätzt sie mit
