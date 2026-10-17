@@ -640,6 +640,8 @@ def _stellungen(geloest, dreh, punkt, linear, index):
 
 def _wirksam(vorher, stellungen, anzahl):
     """Wie die Maschine an dieser Station steht (siehe Abfahrt.wirksam)."""
+    if stellungen is not None and None not in stellungen:
+        return stellungen  # alle Achsen gestellt: wie sie sind (am Nasen-Testteil 330 000-mal)
     alt = vorher[2] if vorher is not None else (None,) * anzahl
     if stellungen is None:
         return alt

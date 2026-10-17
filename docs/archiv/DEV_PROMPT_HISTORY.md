@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-69 abfahren-weniger-speicher
+
+### EINGELESEN
+- Profil des Abfahrens am Nasen-Testteil (330 000 Stationen, 3,85 s, davon 0,82 s
+  Speicherbereinigung): `reichweite.Pruefung.loeser` merkte sich je Stellung der Rundachsen die
+  Stellungen – bei der Spirale „Rundum“ dreht C stetig, 323 000 Einträge ohne einen Treffer (~130 MB,
+  die die Speicherbereinigung jedes Mal durchlief). `abfahren._wirksam` baute je Station ein neues
+  Tupel, auch wenn alle Achsen gestellt waren (0,75 s).
+
+### DATEIEN
+- `camaddon/reichweite.py`: `DREHUNGEN_HOECHSTENS = 4096` – darüber beginnt der Speicher in
+  `loeser()` von vorn (an der Fräse und in 3+2 bleibt es bei wenigen Stellungen).
+- `camaddon/abfahren.py`: `_wirksam` gibt eine Station mit allen Achsen unverändert zurück.
+
+### ERGEBNIS
+- Nasen-Testteil ohne Oberfläche: Abfahren 3,85 → 3,28 s, Speicherbereinigung 0,82 → 0,64 s.
+- Grün im Wochen-Build: `test_abfahren`, `test_reichweite`, `test_vierachs_pruefen`,
+  `szenario_pruefen_im_takt`.
 ## P-2026-10-18-68 nur-kopien-vernetzen
 
 ### EINGELESEN

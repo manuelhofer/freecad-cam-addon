@@ -646,6 +646,7 @@ class _Loesung:
 
 
 TAKT_SCHRITTE = 4000  # so viele Schritte rechnen Reichweite und Abfahren am Stück (…_schritte)
+DREHUNGEN_HOECHSTENS = 4096  # so viele Stellungen der Rundachsen merkt sich loeser() je Operation
 
 
 def teile(folge, groesse=None):
@@ -977,6 +978,11 @@ class Pruefung:
             g = rund.get
             schluessel = (round(g("A", 0.0), 9), round(g("B", 0.0), 9), round(g("C", 0.0), 9))
             if schluessel not in drehungen:
+                if len(drehungen) >= DREHUNGEN_HOECHSTENS:
+                    # Dreht eine Rundachse stetig (die Spirale „Rundum“), kommt keine Stellung
+                    # wieder: am Nasen-Testteil 323 000 Einträge ohne Treffer, ~130 MB, und die
+                    # Speicherbereinigung lief jedes Mal durch sie (P-2026-10-18-69).
+                    drehungen.clear()
                 dreh_wege = self._dreh_wege(werkzeugaufnahme, drehachsen, rund)
                 drehungen[schluessel] = {
                     a: self.verfahren.stellung_bei(a, w) for a, w in dreh_wege.items()
