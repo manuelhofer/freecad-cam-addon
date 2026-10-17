@@ -136,6 +136,21 @@ Lage wie eine Zwischenlage (`camaddon/schruppen3d_bahn.py`, `_schruppen`, `mit_s
   grün.
 - Ändert sich eine Bestmarke, nur diesen einen Schlüssel neu schreiben.
 
+**Stand 2026-10-17:**
+- *Zwickel verstanden, noch nicht weg:* Es ist der Schritt von einem Ring zum nächsten (1,7 mm
+  radial, `raeumen_bahn._Lage._lauf`, „angehängt“ bei einem Weg bis ae + Schritt) am Rand des
+  Bereichs, wo das Band innen noch ungeschnitten und 10 mm hoch ist: Die Stirn schiebt sich dort
+  über eine Sehne von ~8 mm ins Volle, das 3-mm-Fenster des Prüfstands mittelt das zu 2,6 ae.
+  Auf der ganzen Kuppel fällt derselbe Schritt nicht auf (1,9 ae). Abhilfe wäre, den Schritt
+  zwischen zwei Ringen nicht radial, sondern tangential-schräg (Bogen) zu fahren oder ihn dort zu
+  machen, wo das innere Band schon frei ist – noch nicht gebaut.
+- *Materialstand, Hauptlagen mit Ringen vom Rand:* gebaut, gemessen, wieder zurückgenommen. Die
+  Kuppel nach einem Räumen der Platte (Zwischenlagen 1 mm): alt 2,58 min, 6 % Luft; neu 2,58 min,
+  12 % Luft – der erste Ring außerhalb in der Luft kostet, was die Helix kostete. Ohne
+  Zwischenlagen kann keine Lage die Kappe nehmen, beide Fassungen finden nichts. Der Gewinn aus
+  P-22 (6,1 → 3,9 min) gibt es nur „nur über den Flächen“, wo der Ring um den Fuß im Modell voll
+  ist.
+
 ## 4. Räumen bis durch gegen die Kontur: fair vergleichen
 
 **Stand (P-2026-10-17-23, Frage 4, Manuel: „Ja, Räumen tritt an“):** An Wänden, die durch das Teil
