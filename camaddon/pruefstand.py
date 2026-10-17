@@ -266,7 +266,8 @@ def messen(
                 if trifft and hinab:
                     k.eintauchungen += 1
                 in_rampe = False
-            elif hinab and trifft:
+            elif hinab and trifft and nach.z - von.z > -math.hypot(nach.x - von.x, nach.y - von.y):
+                # (flacher als 45°: steiler ist ein Eintauchen längs einer geneigten Achse)
                 if not in_rampe:
                     k.rampen += 1
                     richtung, gekehrt = None, False
@@ -392,6 +393,11 @@ def kehren_im_programm(befehle, orte=None):
             continue
         if abs(x - von.x) + abs(y - von.y) < _NICHTS:
             continue  # senkrecht hinab (bis ans Material): noch keine Rampe
+        if von.z - z > math.hypot(x - von.x, y - von.y):
+            # Steiler als 45°: ein Eintauchen längs einer geneigten Werkzeugachse (die Flanke
+            # fährt an ihrer Achse hinab, dann quer an die Wand) – keine Rampe, keine Kehre.
+            in_rampe = False
+            continue
         bogen = None
         if name in ("G2", "G02", "G3", "G03"):
             bogen = (

@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-30 pruefstand-eintauchen-steil
+
+### EINGELESEN
+- Auftrag 5: Der volle Lauf zählte an der Flanke (`szenario_flanke`) eine Kehre. Im Programm:
+  Der Fräser fährt an seiner um 10° geneigten Achse hinab (Z −21,8 bei Y +3,8 – 80° gegen die
+  Waagerechte), dann quer an die Wand (Y −2, dabei Z −0,35 auf der Normalen der schrägen Wand).
+  Der Zähler nahm den steilen Abstieg als Rampe und die Querfahrt als Umkehr – es ist keine.
+
+### DATEIEN
+- `camaddon/pruefstand.py`: `kehren_im_programm` und `messen` – ein Vorschubsatz, der steiler als
+  45° hinabführt, ist ein Eintauchen (längs einer Werkzeugachse), keine Rampe: Er beginnt keine
+  und beendet eine.
+
+### ERGEBNIS
+- `szenario_flanke`: Flanke 0 Kehren (vorher 1). Übrig im vollen Lauf: die schmale Tasche im
+  Schwenkteil (Räumen, Ø 12 mit 1 mm Platz) und die Dreieckstasche am Testteil (Kontur) – beide
+  enge Schleifen, kein Hin und Her; am Geist winzige Schleifen des 3D-Schlichtens.
+- Grün im Wochen-Build: `test_pruefstand`, `szenario_flanke`.
 ## P-2026-10-17-29 vollnut-rampe-einweg
 
 ### EINGELESEN
