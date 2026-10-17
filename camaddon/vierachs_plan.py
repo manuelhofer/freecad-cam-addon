@@ -170,7 +170,7 @@ def rechne(obj, job, modell):
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         schaft=bool(getattr(obj, "Schaft", False)),
-        schneide=schneidenlaenge(obj.ToolController),
+        schneide=reicht_hinab(obj.ToolController),
         weg=weg_der_operation(obj),
     )
 
@@ -190,7 +190,20 @@ def weg_der_operation(obj):
 
 def schneidenlaenge(tc):
     """Die Schneidenlänge des Werkzeugs im Controller (mm) – 0, wenn das ToolBit keine hat."""
-    wert = getattr(getattr(tc, "Tool", None), "CuttingEdgeHeight", None)
+    return _mass(tc, "CuttingEdgeHeight")
+
+
+def reicht_hinab(tc):
+    """So tief reicht das Werkzeug im Controller hinunter, ohne mit dem Schaft anzustoßen (mm):
+    Schneide und Hals – die Auskragung N der Werkzeugverwaltung (Werkzeug.auskragung; im ToolBit
+    CuttingEdgeHeight + NeckHeight). Für die Seiten mit dem Schaft (vierachs_planbahn.
+    mit_dem_schaft): Die Lagen darüber hat die Schneide schon fertig, am Hals ist Platz – nur der
+    Schaft darüber darf nicht an die Fläche. 0, wenn das ToolBit beides nicht kennt."""
+    return _mass(tc, "CuttingEdgeHeight") + _mass(tc, "NeckHeight")
+
+
+def _mass(tc, name):
+    wert = getattr(getattr(tc, "Tool", None), name, None)
     try:
         return max(0.0, float(getattr(wert, "Value", wert) or 0.0))
     except (TypeError, ValueError):
@@ -261,7 +274,8 @@ def bahn_fuer(
     `gleichlauf`: im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `nur_gleichlauf`:
     die Zeilen jede im Gleichlauf, dazwischen abheben (sonst hin und her); `zur_achse`: auch
     ebene Flächen, die zur Achse schauen, wenn der Weg dorthin frei ist (vierachs_planbahn.ebenen);
-    `schaft`: die Seiten mit dem Schaft, soweit die Schneide (`schneide`, mm) reicht
+    `schaft`: die Seiten mit dem Schaft, soweit der Fräser hinunterreicht (`schneide`, mm:
+    Schneide und Hals, reicht_hinab)
     (vierachs_planbahn.mit_dem_schaft), die anderen mit der Stirn; `weg`: über den ebenen Flächen
     Zeilen oder Stiche von der offenen Seite (vierachs_planbahn.WEG_…). ValueError mit einem Satz,
     wenn es nicht geht."""

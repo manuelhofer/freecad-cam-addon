@@ -3204,7 +3204,8 @@ class VierachsPanel:
 
     def _schaft_zeigen(self):
         """Der Haken „Seiten mit dem Schaft“: frei, wenn unter den Flächen von „Plan indexiert“
-        eine Seite ist, an die die Schneide des Fräsers reicht (vierachs_planbahn.schaft_lage);
+        eine Seite ist, bis zu deren Unterkante der Fräser hinunterreicht – Schneide und Hals
+        (vierachs_planbahn.schaft_lage, vierachs_plan.reicht_hinab);
         grau darunter, welche mit dem Schaft gehen und welche bei der Stirn bleiben."""
         werkzeug = self.planfraeser()
         seiten = []  # (Name, so lang muss die Schneide sein)
@@ -3217,7 +3218,8 @@ class VierachsPanel:
                 lage = vp.schaft_lage(form, ebene, laengs, radial, radius)
                 if lage is not None:
                     seiten.append((ebene.name, lage[2]))
-        schneide = float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0)
+        # So tief reicht er hinunter: Schneide und Hals (die Auskragung N, Werkzeug.auskragung)
+        schneide = float(getattr(werkzeug, "auskragung", 0.0) or 0.0)
         geht = [n for n, weg in seiten if schneide > 0 and weg <= schneide]
         zu_kurz = [(n, weg) for n, weg in seiten if not (schneide > 0 and weg <= schneide)]
         saetze = []

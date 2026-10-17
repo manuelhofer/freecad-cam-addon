@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-37 schaft-reicht-mit-hals
+
+### EINGELESEN
+- Auftrag 2 (die Nase): „Seiten mit dem Schaft“ verlangte, dass die **Schneide** bis zur
+  Unterkante der Seite reicht (an der Flosse 40 mm, T1 hat 26) – deshalb griff Manuels Weg mit dem
+  Schaft an der Flosse nicht. Nötig ist das nicht: Die Lagen darüber hat die Schneide schon
+  fertig, bevor die Spitze tiefer geht; am Hals ist Platz. Nur der Schaft darüber darf nicht an
+  die Fläche – das ist die Auskragung N der Werkzeugverwaltung (Manuel, 2026-10-03: „das N fehlt
+  uns … die Auskragung“; `Werkzeug.auskragung` = Schneide + Hals, im ToolBit CuttingEdgeHeight +
+  NeckHeight).
+
+### DATEIEN
+- `camaddon/vierachs_plan.py`: `reicht_hinab(tc)` (Schneide + Hals) statt `schneidenlaenge(tc)`
+  für die Seiten mit dem Schaft; `schneidenlaenge` bleibt (kontur.py).
+- `camaddon/gui_vierachs.py`: `_schaft_zeigen` rechnet mit `Werkzeug.auskragung`.
+- `camaddon/vierachs_planbahn.py`: `mit_dem_schaft` – Bedeutung von `schneide` im Text.
+- Texte `va.plan.schaft.tooltip`, `.zu_kurz`, `.ohne_schneide` (de/en); `help/de|en/vierachs.html`.
+- `tests/test_vierachs_plan.py`: `reicht_hinab` aus einem ToolBit (8 + 4), die Seite mit Schneide
+  8 und Hals 2 geht (braucht 10).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_plan`, `test_sprache`.
+- An der Nase hilft es erst, wenn T1 einen Hals von 14 mm oder mehr hat (N ≥ 40) – das steht in
+  der Werkzeugverwaltung.
+
 ## P-2026-10-17-36 volumen-aus-dem-netz
 
 ### EINGELESEN

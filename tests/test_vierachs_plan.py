@@ -13,6 +13,7 @@ import math
 import os
 import sys
 import tempfile
+import types
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -926,6 +927,20 @@ pruefe(
 pruefe(
     vp.mit_dem_schaft(nase, e_seite, LAENGS, RADIAL, 15.0, 3.0, 0.0, 8.0, vp.TOLERANZ) is None,
     "Schaft mit zu kurzer Schneide",
+)
+# So tief reicht der Fräser hinunter: Schneide und Hals (die Auskragung N) – die Lagen darüber hat
+# die Schneide schon fertig, am Hals ist Platz (P-2026-10-17-37).
+_T = types.SimpleNamespace
+pruefe(
+    abs(vplan.reicht_hinab(_T(Tool=_T(CuttingEdgeHeight=8.0, NeckHeight=4.0))) - 12.0) < 1e-9
+    and abs(vplan.schneidenlaenge(_T(Tool=_T(CuttingEdgeHeight=8.0, NeckHeight=4.0))) - 8.0) < 1e-9
+    and vplan.reicht_hinab(_T(Tool=None)) == 0.0,
+    "reicht_hinab: Schneide und Hals",
+)
+pruefe(
+    vp.mit_dem_schaft(nase, e_seite, LAENGS, RADIAL, 15.0, 3.0, 0.0, 8.0 + 2.0, vp.TOLERANZ)
+    is not None,
+    "Schaft mit Schneide 8 und Hals 2 (reicht 10)",
 )
 if virt is not None:
     sb = vp.planen(

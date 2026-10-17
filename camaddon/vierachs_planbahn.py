@@ -226,8 +226,10 @@ def mit_dem_schaft(
     Abstand Fräserradius + Aufmaß + Vernetzung vor der Fläche, ihre Tiefe die Unterkante längs der
     Werkzeugachse. Von den zwei Seiten, von denen das geht, die mit dem kürzeren Weg in die Stange.
     None, wenn `ebene` keine Seite ist (ihre Normale zeigt zur Achse hin oder von ihr weg – eine
-    Abflachung, die Unterseite einer Nase), längs schräg, oder die Schneide (`schneide`, mm; 0:
-    unbekannt) nicht bis zur Unterkante reicht – dann bleibt sie bei der Stirn."""
+    Abflachung, die Unterseite einer Nase), längs schräg, oder der Fräser (`schneide`, mm: so
+    tief reicht er hinunter, ohne mit dem Schaft anzustoßen – Schneide und Hals, die Auskragung N;
+    0: unbekannt) nicht bis zur Unterkante reicht – dann bleibt sie bei der Stirn. Die Lagen
+    darüber hat die Schneide schon fertig, bevor die Spitze tiefer geht; am Hals ist Platz."""
     lage = schaft_lage(form, ebene, laengs, radial, stange_radius)
     if lage is None or schneide <= 0 or lage[2] > schneide + GERADE:
         return None

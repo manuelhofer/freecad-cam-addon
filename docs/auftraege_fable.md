@@ -119,7 +119,7 @@ bis 47,6 mm stehen, und die ebenen Flächen der Nase schlichtet die Kugel mit.
 ganze Welle); mit dem, was das Addon kann – Plan indexiert Seiten + Spitze 4,6 min, Kugel in
 Linien nur auf den schrägen Flächen 21,8 min – 39 min. Gemessen mit `vierachs_plan.bahn_fuer`
 (Face4, Face6, Face8), `vierachs_schlichten.rechne` mit `Flaechen` und `Muster = Linien`.
-`mit_dem_schaft` greift am Beispiel nicht: 40 mm Flossenhöhe, 26 mm Schneide. Nicht gebaut.
+`mit_dem_schaft` greift am Beispiel nicht: 40 mm Flossenhöhe, 26 mm Schneide. Nicht gebaut. *P-2026-10-17-37:* Es zählt jetzt Schneide + Hals (die Auskragung N) – die Lagen darüber hat die Schneide schon fertig; mit einem Hals ≥ 14 mm an T1 ginge die Flosse mit dem Schaft.
 
 ## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
 
