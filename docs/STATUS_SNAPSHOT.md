@@ -35,7 +35,8 @@ Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freeca
       (2,8 m) – jetzt im Eilgang, etwa 62 → 55 min (P-58).
 - Schräge Flächen ohne Umweg (P-54, Manuel am Schwenkteil auf der G550):
   - An der 5-Achs-Fräse legt „Anlegen“ die Ebene selbst an und macht dort weiter.
-  - An der 3-Achs-Fräse gibt es den Haken „Schräg gespannt fräsen“: eine Aufspannung, das Teil
+  - An der 3-Achs-Fräse gibt es den Haken „Bahnen dafür anlegen und im Einrichtblatt notieren“
+    (bis P-2026-10-17-08 „Schräg gespannt fräsen“): eine Aufspannung, das Teil
     gekippt; das Einrichtblatt nennt Winkel und Achse.
   - Der Taschenboden heißt „Boden einer Tasche – Räumen“.
   - Der Boden eines Lochs bis Ø 40 meint das Loch (Frage 5).
