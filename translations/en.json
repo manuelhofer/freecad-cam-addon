@@ -1956,7 +1956,7 @@
     "ba.maschine.vierachs": "Continue in the 4-axis assistant →",
     "ba.maschine.vierachs.tooltip": "Closes this assistant (the job is taken back) and opens the 4-axis assistant with the part, the clicked face and this machine – there the stock is a bar.",
     "ba.maschine.drehmaschine": "On the lathe the stock is a bar in the chuck – milling there is done in the 4-axis assistant (all round, indexed plane): “Continue in the 4-axis assistant”. To mill the part from above, as a block or cylinder on the table, choose a mill above – “Machines …” adds one, “New machine” builds one.",
-    "ba.maschine.drehmaschine_stirn": "From the front on the lathe's bar: the tool stands axially in the turret, milling uses X, Y and Z like on a mill – Y up to the set share of its travel, beyond that the C axis helps (setting in “Write program”). All-round and on the circumference the 4-axis assistant mills.",
+    "ba.maschine.drehmaschine_stirn": "From the front on the lathe's bar: the tool stands axially in the turret, milling uses X, Y and Z like on a mill – Y up to the set share of its travel, beyond that the C axis helps (setting in “Write program”); without a Y axis polar with X and C. All-round and on the circumference the 4-axis assistant mills.",
     "ba.maschine.rundachse": "This mill has a rotary axis: for a round stock (bar) continue in the 4-axis assistant, for a block here.",
     "ba.rohteil.quader": "Block with allowance",
     "ba.rohteil.zylinder": "Cylinder with allowance",

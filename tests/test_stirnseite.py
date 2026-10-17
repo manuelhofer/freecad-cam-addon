@@ -183,6 +183,33 @@ pruefe(
     f"Bohrung: {davor} {zyklus}",
 )
 
+# --- Ohne Y (Drehmaschine nur mit C; Manuel, 2026-10-17: „c und x achse“) ----------------------
+# Der Rahmen hat Y 0 bis 0: „C dreht mit“ dreht jeden Punkt auf die X-Achse – polar mit X und C.
+# Eine Nut quer, 20 mm von der Mitte (X 20, Y −10 … 10): Y bleibt 0, C dreht, jeder Punkt am Teil
+# liegt auf der Geraden.
+ohne_y = st.Rahmen(-15.0, 100.0, 0.0, 0.0)
+nut = [
+    C("G0", {"X": 20.0, "Y": -10.0, "Z": 5.0}),
+    C("G1", {"Z": -1.0, "F": 10.0}),
+    C("G1", {"X": 20.0, "Y": 10.0}),
+    C("G0", {"Z": 5.0}),
+]
+polar = st.befehle(nut, ohne_y, st.MIT)
+y_polar = [abs(float(b.Parameters["Y"])) for b in polar if "Y" in b.Parameters]
+pruefe(y_polar and max(y_polar) < 1e-9, f"ohne Y: Y bis {max(y_polar or [0]):.4f}")
+c_polar = [float(b.Parameters["C"]) for b in polar if "C" in b.Parameters]
+pruefe(max(c_polar) - min(c_polar) > 50.0, f"ohne Y: C dreht nur {c_polar}")
+abweichung = max(
+    (
+        abstand_gerade(p, (20.0, -10.0), (20.0, 10.0))
+        for p in am_teil(ohne_y, polar, dicht=4)
+        if p[2] < 0
+    ),
+    default=math.inf,
+)
+pruefe(abweichung < 0.01, f"ohne Y: am Teil {abweichung:.4f} mm neben der Nut")
+print(ascii(f"Ohne Y: {len(polar)} Saetze, C {min(c_polar):.1f} ... {max(c_polar):.1f}"))
+
 # --- Nicht erreichbar ---------------------------------------------------------------------------
 try:
     st.befehle([C("G0", {"X": 150.0, "Y": 0.0, "Z": 5.0})], R, st.MIT)

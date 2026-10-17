@@ -38,6 +38,7 @@ SCHRITT_MM = 0.5  # so dicht wird eine Strecke abgetastet, auf der C dreht
 SCHRITT_GRAD = 0.5  # höchstens so weit dreht C je Satz
 BOGEN_TOLERANZ = 0.002  # mm – Sehne eines Bogens, der in Strecken zerfällt
 GENAU = 1e-9
+KANTE = 1e-7  # mm – so genau liegt ein auf die Kante gedrehter Punkt auf ihr (Rundung)
 ZYKLEN = ("G73", "G81", "G82", "G83", "G84", "G85", "G86", "G89")
 
 
@@ -57,8 +58,8 @@ class Rahmen:
 
     def enthaelt(self, x, y):
         return (
-            self.x_min - GENAU <= x <= self.x_max + GENAU
-            and self.y_min - GENAU <= y <= self.y_max + GENAU
+            self.x_min - KANTE <= x <= self.x_max + KANTE
+            and self.y_min - KANTE <= y <= self.y_max + KANTE
         )
 
 
@@ -227,19 +228,42 @@ def drehung_fuer(rahmen, x, y, winkel, modus):
         ziel += 360.0 * round((winkel - ziel) / 360.0)
         if erreichbar(rahmen, x, y, ziel):
             return ziel
-    # Die kleinste Drehung: in Schritten von 0,25° abtasten, dann die Grenze genau.
-    for k in range(1, 1441):
-        for vorzeichen in (1.0, -1.0):
-            versuch = winkel + vorzeichen * 0.25 * k
-            if erreichbar(rahmen, x, y, versuch):
-                innen, aussen = versuch, versuch - vorzeichen * 0.25
-                for _ in range(40):
-                    mitte = 0.5 * (innen + aussen)
-                    if erreichbar(rahmen, x, y, mitte):
-                        innen = mitte
-                    else:
-                        aussen = mitte
-                return innen
+    # Die kleinste Drehung legt den Punkt auf eine Kante des Rahmens (der jetzige Winkel liegt
+    # außerhalb): je Kante die Winkel, unter denen er auf ihr liegt (asin, acos), davon der nächste,
+    # an dem er im Rahmen ist. Genau – auch ohne Y (y_min = y_max: polar mit X und C; bis
+    # P-2026-10-17-50 tastete es in 0,25°-Schritten und traf eine Kante der Breite 0 nie).
+    beste = None
+    if rho > GENAU:
+        lagen = []
+        for kante, sinus in (
+            (rahmen.y_min, True),
+            (rahmen.y_max, True),
+            (rahmen.x_min, False),
+            (rahmen.x_max, False),
+        ):
+            anteil = ((kante - cy) if sinus else (kante - cx)) / rho
+            if abs(anteil) > 1.0 + 1e-12:
+                continue
+            anteil = max(-1.0, min(1.0, anteil))
+            if sinus:
+                t = math.degrees(math.asin(anteil))
+                lagen += [t, 180.0 - t]
+            else:
+                t = math.degrees(math.acos(anteil))
+                lagen += [t, -t]
+        for lage in lagen:
+            versuch = lage - alpha
+            versuch += 360.0 * round((winkel - versuch) / 360.0)
+            px, py = gedreht(rahmen, x, y, versuch)
+            if not (
+                rahmen.x_min - KANTE <= px <= rahmen.x_max + KANTE
+                and rahmen.y_min - KANTE <= py <= rahmen.y_max + KANTE
+            ):
+                continue
+            if beste is None or abs(versuch - winkel) < abs(beste - winkel):
+                beste = versuch
+    if beste is not None:
+        return beste
     from .sprache import tr
 
     raise ValueError(tr("st.nicht_erreichbar", x=f"{x:.3f}", y=f"{y:.3f}", radius=f"{rho:.3f}"))

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-50 stirnseite-polar-ohne-y
+
+### EINGELESEN
+- Manuel (2026-10-17) zu Frage 1 und 4 (Nut an der Stirn des C-Rings auf der Drehmaschine):
+  „alle Variationen … nur Y-Achse … C und X-Achse … oder eine Kombi“; „haben wir das nicht oben
+  schon geklärt??“ – also auch ohne Y, polar mit X und C.
+
+### DATEIEN
+- `camaddon/stirnseite.py`: `drehung_fuer` rechnet die kleinste Drehung exakt – je Kante des
+  Rahmens die Winkel, unter denen der Punkt auf ihr liegt (asin für Y, acos für X), davon der
+  nächste im Rahmen (`KANTE` = 1e-7 mm). Bis dahin tastete es in 0,25°-Schritten ab und halbierte:
+  Ohne Y (Rahmen Y 0 bis 0) traf es die Kante der Breite 0 nie – „an keiner Stellung von C
+  erreichbar“. `Rahmen.enthaelt` mit derselben Toleranz.
+- `camaddon/gui_bearbeitung.py`: `drehmaschine_mit_y` → `drehmaschine_stirn` – jede Drehmaschine
+  mit Y oder C; `vorhandener_job`, `gui_vierachs.zur_bearbeitung` damit.
+- Text `ba.maschine.drehmaschine_stirn` (de/en: „ohne Y-Achse polar mit X und C“),
+  `help/de|en/bearbeitung.html`, `docs/STATUS_SNAPSHOT.md` (W-025).
+- `tests/test_stirnseite.py`: ohne Y eine Nut quer 20 mm neben der Mitte – Y bleibt 0, C dreht
+  −26,6 … 26,6°, jeder Punkt am Teil (vier Zwischenpunkte je Satz) auf der Geraden.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_stirnseite`, `test_sprache`, `szenario_vierachs_stirnseite`.
+- Offen: Eine Beispiel-Drehmaschine ohne Y gibt es nicht – der Weg im Assistenten ohne Y ist nur
+  über die Umrechnung geprüft.
 ## P-2026-10-17-49 je-stellung-alle-kerne
 
 ### EINGELESEN

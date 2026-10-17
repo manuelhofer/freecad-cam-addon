@@ -1499,8 +1499,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   und Halter „VDI axial“ die Stirnfläche als Ebene „von oben“ – Frage 4 in OFFENE_FRAGEN (nur mit
   Y, oder auch polar ohne Y). *Gebaut mit Y (P-2026-10-17-43):* „Bearbeitung“ nimmt den
   Stangen-Job einer Drehmaschine mit Y an (Schritt 1 grau, Maschinenzeile „Von vorn an der Stange
-  …“); der Verweis aus dem 4-Achs-Assistenten behält die Stange. Offen: ohne vorhandenen
-  Stangen-Job legt „Bearbeitung“ noch keinen an; polar ohne Y.
+  …“); der Verweis aus dem 4-Achs-Assistenten behält die Stange. *Polar ohne Y (P-2026-10-17-50,
+  Manuels Antwort zu Frage 1/4):* `gui_bearbeitung.drehmaschine_stirn` nimmt jede Drehmaschine mit
+  Y oder C; `stirnseite.drehung_fuer` rechnet die kleinste Drehung exakt (Kanten des Rahmens,
+  asin/acos) – mit Y 0 bis 0 tastete sie in 0,25°-Schritten und meldete „nicht erreichbar“. Offen:
+  ohne vorhandenen Stangen-Job legt „Bearbeitung“ noch keinen an; eine Beispiel-Drehmaschine ohne
+  Y für ein Szenario.
 
 - **W-026 Sektorzeilen mit Y beim Rundum schruppen (CLX mit Y und C)** – Manuel, 2026-10-17 zu
   Frage 1: „alle variationen … nur y achse … c und x achse … oder eine kombi … segmente, wo die

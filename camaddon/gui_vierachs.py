@@ -4151,7 +4151,7 @@ class VierachsPanel:
         if (
             self.zu_aendern is None
             and self.job is not None
-            and gui_bearbeitung.drehmaschine_mit_y(self.job)
+            and gui_bearbeitung.drehmaschine_stirn(self.job)
         ):
             # Die Stange bleibt (ohne Bearbeitungen): „Bearbeitung“ fräst an ihrer Stirnseite
             # mit axialem Werkzeug (W-025) – sonst legte sie einen Quader-Job an, und die
