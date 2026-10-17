@@ -8,7 +8,7 @@ import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 
 from . import abfahren as ab
-from . import einheiten, symbol
+from . import einheiten, symbol, uhren
 from . import reichweite as rw
 from . import schlichten3d as s3
 from . import simultan_folge as sf
@@ -305,7 +305,10 @@ class SimultanPanel:
         if self.abbruch or self.laeufer is None:
             return
         try:
-            self.plan, variante = next(self.laeufer)
+            # Ein Schritt rechnet bis 1,7 s (die Randzüge Punkt für Punkt): darin atmet das
+            # Fenster (uhren.atmen), statt zu stehen.
+            with uhren.atmend():
+                self.plan, variante = next(self.laeufer)
             self.zeige(variante)
         except StopIteration:
             self.laeufer = None

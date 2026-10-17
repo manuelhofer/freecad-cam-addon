@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-14 simultan-planen-atmet
+
+### EINGELESEN
+- Pausen des vollen Laufs: `szenario_simultan_planung` stand je Schritt des Vergleichs bis 1,7 s
+  (23-mal) – `schlicht_rand._zuege_rechnen` prüft die Randzüge Punkt für Punkt (`isInside`,
+  `distToShape`), und der Schritt rechnete nicht in `uhren.atmend()`.
+
+### DATEIEN
+- `camaddon/gui_simultan_planung.py`: jeder Schritt in `uhren.atmend()`.
+- `camaddon/schlicht_rand.py`: die Schleife über die Randpunkte ruft `uhren.atmen()`.
+
+### ERGEBNIS
+- Längste Pause in `szenario_simultan_planung`: 1,7 → 0,9 s.
+- Grün im Wochen-Build: `test_simultan_planung`, `szenario_simultan_planung`.
+
 ## P-2026-10-17-13 siehe-unten
 
 ### EINGELESEN

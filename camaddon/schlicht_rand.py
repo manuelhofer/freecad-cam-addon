@@ -13,6 +13,7 @@ import math
 import Part
 
 from . import bahn as bn
+from . import uhren
 from .sprache import tr
 
 SCHRITT = 0.2
@@ -101,6 +102,7 @@ def _zuege_rechnen(form, namen, radius, aufmass, schritt):
                 if letzter_rand is not None and (orte[0] - letzter_rand).Length > 1e-5:
                     raise ValueError(tr("s5p.fehler.rand"))
                 for p in orte:
+                    uhren.atmen()
                     u, v = face.Surface.parameter(p)
                     n = face.normalAt(u, v)
                     if n.z < 0:
