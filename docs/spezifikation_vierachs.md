@@ -779,6 +779,20 @@ nichts ins Teil (Voxel 0,5); mit Y auf ±5 mm begrenzt 11,6 min (drei Stücke je
 Nase: 12,1 statt 12,2 min, aber der Rest für die Kugel 20,7 statt 14,2 cm³ (bis 7,9 statt
 4,1 mm² je mm) – die angestellte Spirale folgt den schrägen Flächen, die Zeilen mit parallelem
 Fräser nicht; dort den Haken abwählen. Bild: `docs/bilder/vorschlaege/ring_sektoren_y.png`.
+Nachgezogen (P-2026-10-17-49 … P-2026-10-18-60): Die Hüllflächen aller Stücke einer Lage rechnen in
+einem Aufruf von `je_stellung`, verteilt nach Richtung, Band und Stelle (alle Kerne, auch bei drei
+Sektoren). Die Zeilen beginnen erst, wo die Flanke die Stirn der Stange erreicht, und tauchen im
+Eilgang erst bei Stirn + Fräserradius + 0,5 mm (`VOR_STANGE`) ein. Der Schritt quer zwischen zwei
+Zeilen fährt auf der höchsten Stelle der Hüllfläche dazwischen (Proben alle `QUER_PROBE` = 0,25 mm,
+mit Schaft und Halter): erst hoch, dann quer, dann in die Zeile – an einem schrägen Schlitzende ging
+er sonst bis 0,62 mm ins Teil. Die Spitze steht erst auf der Lagengrenze, dann prüfen Schaft und
+Halter. Ring: 10,9 min; „Auf der Maschine prüfen“ und „Kollision prüfen“ am Ring mit dem echten
+VDI-Halter: nichts berührt sich (`szenario_ring_sektoren_y`).
+
+**Schaft und Halter, wenn die Schneide durchfällt** (P-2026-10-18-59, alle Rundum-Bahnen): Ob die
+Stufen (`Schruppwerte.oben`) zählen, entschied die tiefste Stelle, an der die Schneide das Teil
+trifft. Fällt sie irgendwo im Teil durch (ein durchgehender Schlitz, −∞), geht die Spitze dort bis
+zur Achse – dann zählen die Stufen immer. An einer Gabel ging der Schaft sonst 2 mm ins Teil.
 
 **V4 – Flächen wählen** (bisher V3)
 
