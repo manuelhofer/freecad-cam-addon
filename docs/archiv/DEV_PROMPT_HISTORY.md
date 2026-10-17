@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-60 ring-y-kollision
+
+### EINGELESEN
+- Zu W-026: Die Y-Zeilen waren an Bahn und Voxeln geprüft, nicht gegen die echte Geometrie von
+  Werkzeug und Halter (die Stufen beim Rechnen sind Scheiben).
+
+### DATEIEN
+- `tests/gui/szenario_ring_sektoren_y.py` (neu): Manuels Ring auf der Beispiel-Drehmaschine mit
+  Querachse und „Sektoren in Zeilen mit Y“ – über 50 Sätze mit Y bei stehendem C; „Auf der
+  Maschine prüfen“ (die Maschinenwahl: die Drehmaschine, im Beispiel ist auch eine 3-Achs-Fräse
+  offen): Achsen in den Grenzen, „Kollision prüfen“ → „Nichts berührt sich“, der Abspieler am
+  Ende „nirgends ins Teil“. Dazu zählt der Lauf jetzt auch die 4-Achs-Kehren (P-57): 0.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_ring_sektoren_y`. Rechnerisch 13 min (Vorschub 12, Eilgang
+  1,7), nichts kommt näher als 1 mm.
 ## P-2026-10-18-59 gegenleser-p47-bis-p54
 
 ### EINGELESEN
