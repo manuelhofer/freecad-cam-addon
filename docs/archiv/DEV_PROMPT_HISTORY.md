@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-43 bearbeitung-von-vorn-auf-der-drehmaschine
+
+### EINGELESEN
+- Manuel (2026-10-17, C-Ring auf der CLX; W-025): „ich würde die nut da gerne rausfräsen, wie auf
+  der 3-achsigen auch … leider klappt das nicht.“ Der Unterbau für die Stirnseite gab es seit dem
+  05.10. (`stirnseite.py`: Y bis zum eingestellten Anteil, dann hilft C – Reichweite und
+  Postprozessor), aber „Bearbeitung“ wies Drehmaschinen ab (W-016: „Weiter geht auf der
+  Drehmaschine nicht“), nahm einen Stangen-Job nie an, und der Verweis „„Bearbeitung“ von vorn
+  öffnen“ (P-33) warf den Stangen-Job weg. Probe ohne Oberfläche: ein Räumen am Nutgrund des
+  C-Rings im Stangen-Job der Beispiel-Drehmaschine mit axialem VDI-Halter – Reichweite „in
+  Grenzen“, Programm X/Y/Z.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `drehmaschine_mit_y(job)` (Maschine des Jobs aus dem
+  Maschinenspeicher, sonst eine offene Maschine), `stangen_job`; `vorhandener_job` nimmt den
+  Stangen-Job auf einer Drehmaschine mit Y an (Aufspannung fest, Schritt 1 grau); die
+  Maschinenzeile sagt dann grau „Von vorn an der Stange der Drehmaschine …“
+  (`ba.maschine.drehmaschine_stirn`, de/en) statt rot.
+- `camaddon/gui_vierachs.py`: `zur_bearbeitung` behält die Stange (`_stange_behalten`: wie
+  „Anlegen“ ohne Bearbeitungen) statt `reject`; beim Ändern bleibt der Job ohnehin.
+- `tests/gui/szenario_vierachs_stirnseite.py`: nach dem Verweis steht der Stangen-Job noch,
+  „Bearbeitung“ läuft darauf, Räumen angehakt, „Anlegen“ legt „Räumen T1“ in den Stangen-Job.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_vierachs_stirnseite`, `test_sprache`.
+- Offen (Frage 4): ohne Y polar über C; ohne vorhandenen Stangen-Job legt „Bearbeitung“ noch
+  keinen an (der Weg: erst der 4-Achs-Assistent, Schritt 1 – oder sein Verweis).
+
 ## P-2026-10-17-42 halter-am-magazinplatz
 
 ### EINGELESEN

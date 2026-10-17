@@ -887,18 +887,47 @@ def angeklicktes_teil(dokument):
     return None
 
 
+def drehmaschine_mit_y(job):
+    """Ist die Maschine des Jobs eine Drehmaschine mit Y-Achse? Dann fräst „Bearbeitung“ an der
+    Stirnseite der Stange mit axialem Werkzeug (W-025; stirnseite: Y bis zum eingestellten
+    Anteil, dann hilft C)."""
+    datei = mg.maschine_des_jobs(job)
+    try:
+        if datei:
+            eintraege = [msp.finde(msp.laden(), datei)]
+        else:
+            # Eine offene, noch ungespeicherte Maschine (die Beispiel-Drehmaschine): wie sie ist.
+            from .gui_reichweite import offene_maschinen
+
+            eintraege = [msp.beschreibe(a, m) for a, m in offene_maschinen(job.Document)]
+    except Exception:  # noqa: BLE001 – ohne Maschinenspeicher: wie ohne Maschine
+        return False
+    return any(
+        e is not None and e.art == msp.DREHMASCHINE and "Y" in list(e.achsen) for e in eintraege
+    )
+
+
+def stangen_job(job):
+    """Hat der Job eine Stange als Rohteil (der 4-Achs-Assistent)?"""
+    return hasattr(getattr(job, "Stock", None), "Radius")
+
+
 def vorhandener_job(dokument, teil, angeklickt=None):
     """Der Job, in den ein weiterer Lauf am Teil `teil` geht (W-012 M2; Manuel, 2026-10-02:
     „Frage 1. A“): der, dessen Teil man angeklickt hat (`angeklickt`: sein Modell-Klon), sonst
-    der zuletzt angelegte mit diesem Teil. Nur Jobs im Quader – einer mit Stange gehört dem
-    4-Achs-Assistenten. None, wenn das Teil noch keinen hat."""
+    der zuletzt angelegte mit diesem Teil. Jobs im Quader – einer mit Stange gehört dem
+    4-Achs-Assistenten, außer auf einer Drehmaschine mit Y-Achse: Dort fräst „Bearbeitung“ an der
+    Stirnseite der Stange (W-025; Manuel, 2026-10-17: die Nut im C-Ring „wie auf der 3-achsigen
+    auch“). None, wenn das Teil noch keinen hat."""
     passende = []
     for job in js.jobs(dokument):
         try:
             klon = vr.modell(job)
         except (AttributeError, IndexError):
             continue
-        if vr.original(klon) is not teil or hasattr(getattr(job, "Stock", None), "Radius"):
+        if vr.original(klon) is not teil:
+            continue
+        if stangen_job(job) and not drehmaschine_mit_y(job):
             continue
         if angeklickt is not None and angeklickt is klon:
             return job
@@ -5439,6 +5468,11 @@ class BearbeitungPanel:
         elif not eintrag.vorhanden:
             self.maschine_hinweis.setText(tr("ba.maschine.nicht_gefunden"))
             self.maschine_hinweis.setStyleSheet(f"color: {ROT};")
+        elif eintrag.art == msp.DREHMASCHINE and self.job is not None and stangen_job(self.job):
+            # Von vorn an der Stange der Drehmaschine mit Y (W-025): der 4-Achs-Assistent hat
+            # sie eingerichtet, hier kommen die Flächen der Stirnseite dran.
+            self.maschine_hinweis.setText(tr("ba.maschine.drehmaschine_stirn"))
+            self.maschine_hinweis.setStyleSheet(f"color: {GRAU_TEXT};")
         elif eintrag.art == msp.DREHMASCHINE:
             self.maschine_hinweis.setText(tr("ba.maschine.drehmaschine"))
             self.maschine_hinweis.setStyleSheet(f"color: {ROT};")

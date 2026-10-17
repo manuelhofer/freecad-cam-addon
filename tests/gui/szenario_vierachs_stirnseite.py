@@ -2,7 +2,9 @@
 # face 17“): der Grund einer Ringnut auf der Stirn (Face6) angeklickt, „4-Achs-Bearbeitung“ auf
 # der Beispiel-Drehmaschine, Schritt 2. Rot steht, dass Face6 längs der Achse schaut (Stirnseite)
 # und in „Bearbeitung“ von vorn gehört – mit dem Verweis „„Bearbeitung“ von vorn öffnen …“. Der
-# Verweis schließt den Assistenten und öffnet „Bearbeitung“ mit Face6 gewählt.
+# Verweis schließt den Assistenten, die Stange bleibt im Job (W-025, P-2026-10-17-43), und
+# „Bearbeitung“ öffnet sich auf diesem Job mit Face6 gewählt: graue Zeile „Von vorn an der Stange
+# der Drehmaschine …“, eine Strategie angehakt, „Anlegen“ legt die Operation in den Stangen-Job.
 # ZEITLIMIT: 600
 import os
 import shutil
@@ -91,13 +93,31 @@ def schritte(h):
     )
     yield 1000
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "4-Achs-Assistent noch offen")
-    h.pruefe(doc.getObject(job_name) is None, "der 4-Achs-Job blieb stehen")
+    stange_job = doc.getObject(job_name)
+    h.pruefe(stange_job is not None, "der 4-Achs-Job (die Stange) ist weg")
     dialog = gui_bearbeitung.BearbeitungPanel.offen
     h.pruefe(
         dialog is not None and dialog.gewaehlte == [nutgrund],
         f"„Bearbeitung“ gewählt: {getattr(dialog, 'gewaehlte', None)}",
     )
-    h.bild("2_bearbeitung", dialog.form if dialog is not None else None)
-    if dialog is not None:
-        dialog.reject()
-    yield 500
+    if dialog is None:
+        return
+    h.pruefe(dialog.job is stange_job, "„Bearbeitung“ nicht auf dem Stangen-Job")
+    if dialog.maschine() is not None:  # die Beispiel-Drehmaschine ist nicht gespeichert
+        h.pruefe(
+            "Von vorn an der Stange" in dialog.maschine_hinweis.text(),
+            f"Maschinenzeile: {dialog.maschine_hinweis.text()!r}",
+        )
+    yield from h.warte_auf(lambda: not dialog.vorschau_laeuft() and dialog.aktive_bloecke(), 180000)
+    yield 1000
+    aktive = [b.s.kennung for b in dialog.aktive_bloecke()]
+    print(ascii(f"aktiv auf der Stirnseite: {aktive}"))
+    h.pruefe(bool(aktive), "keine Strategie für den Nutgrund angehakt")
+    h.bild("2_bearbeitung", dialog.form)
+    if dialog.accept() is not True:
+        h.pruefe(False, f"„Anlegen“ ging nicht: {dialog.hinweis.text()!r}")
+    yield 2500
+    ops = [o.Label for o in stange_job.Operations.Group]
+    h.pruefe(bool(ops), f"keine Operation im Stangen-Job: {ops}")
+    print(ascii(f"Operationen im Stangen-Job: {ops}"))
+    h.bild("3_angelegt")

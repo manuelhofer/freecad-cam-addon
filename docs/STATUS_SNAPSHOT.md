@@ -1489,7 +1489,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   2026-10-17: Nut im C-Ring auf der CLX „wie auf der 3-achsigen auch … leider klappt das nicht“.
   Heute lehnt „Bearbeitung“ Drehmaschinen ab, der 4-Achs-Assistent denkt radial. Plan: mit Y-Achse
   und Halter „VDI axial“ die Stirnfläche als Ebene „von oben“ – Frage 4 in OFFENE_FRAGEN (nur mit
-  Y, oder auch polar ohne Y).
+  Y, oder auch polar ohne Y). *Gebaut mit Y (P-2026-10-17-43):* „Bearbeitung“ nimmt den
+  Stangen-Job einer Drehmaschine mit Y an (Schritt 1 grau, Maschinenzeile „Von vorn an der Stange
+  …“); der Verweis aus dem 4-Achs-Assistenten behält die Stange. Offen: ohne vorhandenen
+  Stangen-Job legt „Bearbeitung“ noch keinen an; polar ohne Y.
 
 ## Offene Bugs
 

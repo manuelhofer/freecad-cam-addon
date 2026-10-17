@@ -75,7 +75,10 @@ Bahnen in X/Y wie an der Fräse (deine CLX hat Y). Ohne Y müsste die Steuerung 
 Reichweite/Kollision rechnet anders.
 *Warum nur Manuel:* Ob die CLX das mit Y fahren soll (einfach, exakt wie an der Fräse) oder ob
 auch Maschinen ohne Y das können müssen (polar), entscheidet den Umfang.
-*Was die Antwort ändert:* „Nur mit Y“: ich baue W-025 so, dass „Bearbeitung“ die Drehmaschine mit
-Y und axialem Halter annimmt – alles andere (Räumen, Nut, Kontur, Bohren, Messstopp) läuft dann wie
-an der Fräse. „Auch polar“: dazu der Postprozessor-Teil, später. – seit 2026-10-17
+*Was die Antwort ändert:* „Nur mit Y“ ist gebaut (P-2026-10-17-43): „Bearbeitung“ nimmt den
+Stangen-Job der Drehmaschine mit Y an – aus dem 4-Achs-Assistenten über den Verweis an einer
+Stirnfläche, oder direkt am Teil, wenn der Stangen-Job schon da ist; Räumen, Nut, Kontur, Bohren,
+Messstopp laufen dann wie an der Fräse, das Programm nimmt Y bis zum eingestellten Anteil und
+dann C („Programm schreiben“). „Auch polar ohne Y“: dazu der Postprozessor-Teil, später. – seit
+2026-10-17
 

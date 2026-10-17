@@ -1950,6 +1950,7 @@
     "ba.maschine.vierachs": "Weiter im 4-Achs-Assistenten →",
     "ba.maschine.vierachs.tooltip": "Schließt diesen Assistenten (der Job geht zurück) und öffnet den 4-Achs-Assistenten mit dem Teil, der angeklickten Fläche und dieser Maschine – dort ist das Rohteil eine Stange.",
     "ba.maschine.drehmaschine": "Auf der Drehmaschine ist das Rohteil eine Stange im Futter – gefräst wird dort im 4-Achs-Assistenten (rundum, Plan indexiert): „Weiter im 4-Achs-Assistenten“. Willst du das Teil von oben fräsen, als Quader oder Zylinder auf dem Tisch, wähl oben eine Fräse – „Maschinen …“ nimmt eine auf, „Neue Maschine“ baut eine.",
+    "ba.maschine.drehmaschine_stirn": "Von vorn an der Stange der Drehmaschine: Das Werkzeug steht axial im Revolver, gefräst wird mit X, Y und Z wie an der Fräse – Y bis zum eingestellten Anteil ihres Wegs, weiter hilft die C-Achse (Einstellung in „Programm schreiben“). Rundum und auf dem Mantel fräst der 4-Achs-Assistent.",
     "ba.maschine.rundachse": "Diese Fräse hat eine Rundachse: Für ein rundes Rohteil (Stange) geht es im 4-Achs-Assistenten weiter, für einen Quader hier.",
     "ba.rohteil.quader": "Quader mit Aufmaß",
     "ba.rohteil.zylinder": "Zylinder mit Aufmaß",

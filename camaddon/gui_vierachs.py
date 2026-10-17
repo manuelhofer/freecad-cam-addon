@@ -4032,7 +4032,13 @@ class VierachsPanel:
         doc, teil = self.doc, self.teil
         if teil is None or not namen:
             return
-        self.reject()
+        if self.zu_aendern is None and self.job is not None:
+            # Die Stange bleibt (ohne Bearbeitungen): „Bearbeitung“ fräst an ihrer Stirnseite
+            # mit axialem Werkzeug (W-025) – sonst legte sie einen Quader-Job an, und die
+            # Drehmaschine wäre dort abgewiesen.
+            self._stange_behalten()
+        else:
+            self.reject()
         FreeCAD.setActiveDocument(doc.Name)
         QtCore.QTimer.singleShot(
             0,
@@ -4040,6 +4046,22 @@ class VierachsPanel:
                 gui_bearbeitung.BearbeitungPanel(doc, (teil, namen[0]), flaechen=list(namen))
             ),
         )
+
+    def _stange_behalten(self):
+        """Schließt wie „Anlegen“ ohne Bearbeitungen: Job und Stange bleiben (ein Schritt
+        Rückgängig), das Fenster geht zu – für zur_bearbeitung."""
+        if self._uhr.isActive():
+            self._uhr.stop()
+            self._anwenden()
+        self._anzeige_wie_in_cam()
+        self._maschine_merken()
+        self.doc.commitTransaction()
+        self._rohteil_fest = True
+        self._vor_dem_schliessen()
+        self._vorschlaege_merken()
+        dialog_schliessen(self.doc)
+        with uhren.still():
+            self.doc.recompute()
 
     def _vorschau_abwarten(self):
         """Wartet, bis die Nebenrechner mit der laufenden Vorschau fertig sind – das Fenster
