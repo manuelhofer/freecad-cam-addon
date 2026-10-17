@@ -1669,7 +1669,11 @@ class Bibliothek:
         gemessen."""
         im_magazin = self.halter_im_magazin(werkzeug)
         if im_magazin is not None and im_magazin.kennung != werkzeug.halter:
-            return laenge_im_halter(werkzeug, im_magazin)
+            # Nicht das gemessene Maß (das gilt im eigenen Halter): Halterlänge + Ausspannlänge,
+            # sonst geschätzt (Gegenleser zu P-42).
+            if werkzeug.ausspannlaenge:
+                return im_magazin.laenge + werkzeug.ausspannlaenge
+            return laenge_mit_halter(werkzeug, im_magazin)
         if werkzeug.laenge_spindelnase:
             return werkzeug.laenge_spindelnase
         halter = self.halter_von(werkzeug)

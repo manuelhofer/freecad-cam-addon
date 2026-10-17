@@ -7361,9 +7361,10 @@ class BearbeitungPanel:
                 if waende & set(self._durch_waende(form)) and not block.haken.isChecked():
                     block.haken.setChecked(True)
                     geaendert = True
-                if gross is self.nut and not block.haken.isChecked():
+                if self._nut_laesst_aufmass() and not block.haken.isChecked():
                     # Nach der Nut von sich aus, mit Messstopp: Schruppen, messen, schlichten
-                    # (Manuel, 2026-10-17).
+                    # (Manuel, 2026-10-17) – auch neben dem Räumen (sonst blieben die Nutwände
+                    # mit Aufmaß stehen, Gegenleser zu P-41).
                     block.haken.setChecked(True)
                     block.haken_felder["messstopp"].setChecked(True)
                     geaendert = True
@@ -7437,18 +7438,21 @@ class BearbeitungPanel:
         ohne die, die die Kontur schon fährt –, seine Aufmaße und den Gleichlauf. Ohne Räumen von
         der Nut: ihre Wände mit ihrem Aufmaß (der Grund ist auf Tiefe)."""
         raeumen = self.raeumen
-        if not raeumen.aktiv():
-            if not self._nut_laesst_aufmass():
-                return {}
-            werte = self.nut.werte()
+        nut_waende, nut_aufmass = [], 0.0
+        if self._nut_laesst_aufmass():
+            werte_nut = self.nut.werte()
             nuten_ = nb.nuten(form, self._flaechen(self.nut, form))
-            waende = list(dict.fromkeys(w for n in nuten_ for w in n.waende))
+            nut_waende = list(dict.fromkeys(w for n in nuten_ for w in n.waende))
+            nut_aufmass = float(werte_nut["aufmass"])
+        if not raeumen.aktiv():
+            if not nut_waende:
+                return {}
             return {
                 "boden_flaechen": [],
-                "wand_flaechen": waende,
-                "aufmass_wand": float(werte["aufmass"]),
+                "wand_flaechen": nut_waende,
+                "aufmass_wand": nut_aufmass,
                 "aufmass_boden": 0.0,
-                "gleichlauf": bool(werte["gleichlauf"]),
+                "gleichlauf": bool(self.nut.werte()["gleichlauf"]),
             }
         werte = raeumen.werte()
         geraeumt = sorted(self._raeumt(form))
@@ -7456,12 +7460,14 @@ class BearbeitungPanel:
         durch = [f for f in geraeumt if ra.durchgehend(form, f)]
         boeden = [f for f in geraeumt if f not in durch]
         kontur = set(self._flaechen(self.kontur, form)) if self.kontur.aktiv() else set()
-        waende = [w for w in _waende_um(form, boeden) + durch if w not in kontur]
+        # Räumen und Nut zusammen (Gegenleser zu P-41): die Wände der Nut dazu, das größere Aufmaß
+        # – die Kontur nimmt so viel weg und macht beide auf Maß.
+        waende = [w for w in _waende_um(form, boeden) + durch + nut_waende if w not in kontur]
         waende = list(dict.fromkeys(waende))
         return {
             "boden_flaechen": boeden,
             "wand_flaechen": waende,
-            "aufmass_wand": float(werte["aufmass"]),
+            "aufmass_wand": max(float(werte["aufmass"]), nut_aufmass),
             "aufmass_boden": float(werte["aufmass_boden"]),
             "gleichlauf": bool(werte["gleichlauf"]),
         }
@@ -8602,7 +8608,8 @@ class BearbeitungPanel:
             # Die Nut lässt das Aufmaß stehen, „Schlichten danach“ macht die Wand (P-2026-10-17-41)
             # – gegen die Kontur, die gleich schlichtet, zählt seine Zeit dazu.
             block = self.schlichten_danach
-            if not self.raeumen.aktiv() and block.aktiv() and block.vorschau is not None:
+            if block.aktiv() and block.vorschau is not None and self._nut_laesst_aufmass():
+                # Neben dem Räumen teilt die Nut sich den Block mit ihm: grob seine ganze Zeit.
                 zusatz_nut = block.zeit
         zeit = {
             b: b.zeit + (zusatz if b is self.raeumen else zusatz_nut if b is self.nut else 0.0)
@@ -8681,9 +8688,10 @@ class BearbeitungPanel:
         # „Schlichten danach“ hinter der Nut (ohne Räumen) kommt gleich nach ihr in den Job:
         # Nut, Messstopp, Nut schlichten (P-2026-10-17-41).
         danach = self.schlichten_danach
-        if danach in aktive and not self.raeumen.aktiv() and self.nut in aktive:
+        if danach in aktive and self.nut in aktive and self._nut_laesst_aufmass():
             aktive.remove(danach)
-            aktive.insert(aktive.index(self.nut) + 1, danach)
+            quellen = [b for b in (self.raeumen, self.nut) if b in aktive]
+            aktive.insert(max(aktive.index(b) for b in quellen) + 1, danach)
 
         folge = []  # die weiteren Operationen eines Blocks (Schlichten danach: Boden und Wände)
 

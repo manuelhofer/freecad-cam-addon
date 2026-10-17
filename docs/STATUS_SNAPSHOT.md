@@ -1502,6 +1502,22 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   …“); der Verweis aus dem 4-Achs-Assistenten behält die Stange. Offen: ohne vorhandenen
   Stangen-Job legt „Bearbeitung“ noch keinen an; polar ohne Y.
 
+- **W-026 Sektorzeilen mit Y beim Rundum schruppen (CLX mit Y und C)** – Manuel, 2026-10-17 zu
+  Frage 1: „alle variationen … nur y achse … c und x achse … oder eine kombi … segmente, wo die
+  y achse hinkommt, dann wegfährt und die c achse dreht … das hilft, da man die c achse sperren
+  kann und man nicht den riemen stressen muss … aber nur beim schruppen … beim schlichten c und x
+  oder nur y, weil das sonst absätze gibt“. Plan: Mit Querachse fährt die Sektorlage Zeilen in Y
+  (ψ fest auf der Sektormitte, q über die Breite; die Hüllfläche je Stellung aus
+  `vierachs_quer.stellungen`), C steht; reicht Y nicht (Anteil wie `stirnseite.y_nutzen`), ein
+  C-Schritt dazwischen (abheben, drehen, wieder anfahren). Schlichten: nie Segmente.
+- **W-027 Nase: der Assistent schlägt Plan indexiert + Kugel in Linien vor** – Manuel, 2026-10-17
+  zu Frage 2: „ja die option soll so sein, wichtig ist, dass danach die kugel nicht nochmal alles
+  das fährt, was schon weg ist“. Plan: Bei gewählten ebenen Flächen (Seiten, Spitze) hakt der
+  4-Achs-Assistent „Plan indexiert“ für sie an und „Rundum schlichten“ mit der Kugel nur auf den
+  übrigen Flächen in Linien (`Muster = Linien`, `Flaechen`); die Spirale über die ganze Welle nur
+  auf Wunsch. Die Kugel fährt nicht, was Plan indexiert schon fertig hat (Materialstand / nur
+  nötig). Zahlen: `docs/bilder/vorschlaege/nase_flosse_weg.png` (39 statt 127 min).
+
 ## Offene Bugs
 
 Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);

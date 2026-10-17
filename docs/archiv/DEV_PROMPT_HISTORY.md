@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-17-44 gegenleser-p41-bis-p43
+
+### EINGELESEN
+- Durchsicht von P-41 bis P-43 durch einen zweiten Agenten – vier echte Funde:
+  1. Räumen und Nut zusammen: „Schlichten danach“ gehörte nur einem Block; die Nut ließ ihr
+     Aufmaß stehen, und nichts machte ihre Wände fertig.
+  2. Der Verweis „„Bearbeitung“ von vorn öffnen“ behielt die Stange auch an einer Fräse oder
+     ohne Maschine – dort nimmt „Bearbeitung“ sie nicht, ein leerer Stangen-Job blieb zurück.
+  3. `laenge_ab_spindelnase` nahm im Halter des Magazins doch das gemessene Maß (das gilt im
+     eigenen Halter).
+  4. Vollnut ohne Schlichtgang in einer Nut kaum breiter als der Fräser: ein Pass auf r 0.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_schlichten_danach_zusatz` nimmt die Wände der Nut auch neben
+  dem Räumen (größeres Aufmaß), der Haken kommt dann von selbst (mit Messstopp), der Block steht
+  im Job hinter dem späteren von Räumen und Nut, die Schlichtzeit zählt im Wettbewerb zur Nut.
+- `camaddon/gui_vierachs.py`: `zur_bearbeitung` behält die Stange nur auf einer Drehmaschine
+  mit Y (`drehmaschine_mit_y`), sonst zurück wie bisher.
+- `camaddon/werkzeuge.py`: im Halter des Magazins Halterlänge + Ausspannlänge, sonst geschätzt –
+  nie das gemessene Maß des eigenen Halters.
+- `camaddon/nut_bahn.py`: der Pass bis aufs Aufmaß nur, wenn ein Radius bleibt (`r_s > GLEICH`).
+- `tests/test_magazin.py`: Länge im Halter des Magazins ohne das gemessene Maß, mit Ausspannlänge.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_nut`, `test_magazin`, `szenario_nut`, `szenario_vierachs_stirnseite`.
+
+## P-2026-10-17-45 manuels-antworten-nachmittag
+
+### EINGELESEN (Manuel, 2026-10-17 nachmittags, zu den Fragen 1–4)
+- **Frage 1, Ring mit Querachse (CLX mit Y und C):** „ich finde es sollten alle variationen
+  funktionieren .. also nur y achse ... c und x achse für die wellen oder eine kombi aus c y und
+  x achse so das man segmente fährt wo die y achse eben hinkommt dann wegfährt und die c achse
+  dreht und wieder anfährt und weiter mit der y achse arbeitet .. das hilft da man die c achse da
+  sperren kann und man nicht den riemen stressen muss .. aber nur beim schruppen ... beim
+  schlichten c und x oder nur y .. weil das würde sonst absätze geben!!“ → W-026: Sektorzeilen
+  beim Rundum schruppen mit Querachse als Zeilen in Y (C steht, gesperrt), mit C-Schritt, wo Y
+  nicht reicht (Anteil wie an der Stirnseite); Schlichten nie in Segmenten.
+- **Frage 2, Nase:** „ja die option soll so sein wichtig ist das danach die kugel nicht nochmal
+  alles das fährt was schon weg ist“ → W-027: der 4-Achs-Assistent schlägt bei ebenen Flächen
+  „Plan indexiert“ für Seiten und Spitze vor und die Kugel nur auf den übrigen Flächen in Linien;
+  die Kugel fährt nicht, was schon weg ist.
+- **Frage 3, Messstopp/Türen:** „es geht nicht um meine maschinen es geht um alle maschinen es
+  muss variabel bleiben!“ → Türbefehle als Felder je Steuerung (leer: nur M0), W-023.
+- **Frage 4, Nut auf der Drehmaschine:** „haben wir das nicht oben schon geklärt??“ – ja: Y, so
+  weit es reicht, sonst C (stirnseite); beides ist da. Zu.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (leer), `docs/STATUS_SNAPSHOT.md` (W-026, W-027).
+
 ## P-2026-10-17-43 bearbeitung-von-vorn-auf-der-drehmaschine
 
 ### EINGELESEN

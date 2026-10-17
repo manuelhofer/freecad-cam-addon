@@ -4032,10 +4032,15 @@ class VierachsPanel:
         doc, teil = self.doc, self.teil
         if teil is None or not namen:
             return
-        if self.zu_aendern is None and self.job is not None:
+        if (
+            self.zu_aendern is None
+            and self.job is not None
+            and gui_bearbeitung.drehmaschine_mit_y(self.job)
+        ):
             # Die Stange bleibt (ohne Bearbeitungen): „Bearbeitung“ fräst an ihrer Stirnseite
             # mit axialem Werkzeug (W-025) – sonst legte sie einen Quader-Job an, und die
-            # Drehmaschine wäre dort abgewiesen.
+            # Drehmaschine wäre dort abgewiesen. An einer Fräse oder ohne Maschine nimmt
+            # „Bearbeitung“ die Stange nicht: dann wie bisher zurück (Gegenleser zu P-43).
             self._stange_behalten()
         else:
             self.reject()

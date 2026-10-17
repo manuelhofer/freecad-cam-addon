@@ -1273,10 +1273,11 @@ def _nut(punkte, nut, w, stand=None, bei=None):
         weg, lagen, boegen, _ende = _offene_lagen(
             punkte, nut, w, vollnut, r_l, oben, z_ende, uhr, knapp
         )
-        if r_w > GLEICH and (w.schlichten or vollnut):
-            # Die Vollnut fährt die Wand rundum immer (sie lässt mehr als das Aufmaß stehen) –
-            # ohne Schlichtgang nur bis aufs Aufmaß, für „Schlichten danach“.
-            r_s = r_w if w.schlichten else max(r_l, 0.0)
+        # Die Vollnut fährt die Wand rundum immer (sie lässt mehr als das Aufmaß stehen) – ohne
+        # Schlichtgang nur bis aufs Aufmaß, für „Schlichten danach“; bleibt dann nichts (die Nut
+        # kaum breiter als der Fräser), kein Pass (Gegenleser zu P-41: einer auf r 0).
+        r_s = r_w if w.schlichten else max(r_l, 0.0)
+        if r_s > GLEICH and (w.schlichten or vollnut):
             weg += _offen_schlichten(punkte, nut, w, r_s, oben, z_ende, uhr, knapp)
         letzter = punkte[-1]
         punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
@@ -1308,10 +1309,8 @@ def _nut(punkte, nut, w, stand=None, bei=None):
             punkte, nut, w, r_l, oben, z_ende, uhr, bei
         )
     weg += stueck
-    if r_w > GLEICH and (w.schlichten or vollnut):
-        r_s = (
-            r_w if w.schlichten else max(r_l, 0.0)
-        )  # die Vollnut: ohne Schlichtgang bis aufs Aufmaß
+    r_s = r_w if w.schlichten else max(r_l, 0.0)  # die Vollnut: ohne Schlichtgang bis aufs Aufmaß
+    if r_s > GLEICH and (w.schlichten or vollnut):
         weg += _schlichten(punkte, nut, w, r_s, oben, z_ende, ende, uhr)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))

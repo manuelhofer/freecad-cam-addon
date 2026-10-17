@@ -63,11 +63,20 @@ bib.magazin_fuer_pruefung = magazin
 pruefe(bib.halter_im_magazin(fraeser12) is vdi, "Halter aus dem Magazin")
 pruefe(bib.halter_fuer_pruefung(fraeser12) is vdi, "Prüfung nicht mit dem Halter des Magazins")
 pruefe(bib.halter_im_magazin(anbohrer) is None, "Anbohrer: Halter aus dem Magazin ohne Eintrag")
-fraeser12.laenge_spindelnase = 123.0
+fraeser12.laenge_spindelnase = (
+    123.0  # gemessen im eigenen Halter – zählt im Halter des Magazins nicht
+)
 pruefe(
-    abs(bib.laenge_ab_spindelnase(fraeser12) - wz.laenge_im_halter(fraeser12, vdi)) < 1e-9,
+    abs(bib.laenge_ab_spindelnase(fraeser12) - wz.laenge_mit_halter(fraeser12, vdi)) < 1e-9
+    and bib.laenge_ab_spindelnase(fraeser12) != 123.0,
     "Länge nicht aus dem Halter des Magazins",
 )
+fraeser12.ausspannlaenge = 40.0
+pruefe(
+    abs(bib.laenge_ab_spindelnase(fraeser12) - (vdi.laenge + 40.0)) < 1e-9,
+    "Länge im Halter des Magazins nicht Halterlänge + Ausspannlänge",
+)
+fraeser12.ausspannlaenge = 0.0
 bib.magazin_fuer_pruefung = None
 pruefe(bib.laenge_ab_spindelnase(fraeser12) == 123.0, "ohne Magazin: das Maß ab Spindelnase")
 wieder = wz.MagazinEintrag.aus_dict(magazin.eintrag_von(fraeser12).als_dict())
