@@ -539,7 +539,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    geben und einspannlänge von unten ist auch wichtig“.
 4. *Nase, Kombination* (Auftrag 2 in `docs/auftraege_fable.md`): Face8 mit der Stirn und die
    Stirnseite der Welle mit dem Umfang in einer Stellung – als Wahl, mit Ausspann-Hinweis; ap und ae
-   aus den Schnittwerten des Fräsers.
+   aus den Schnittwerten des Fräsers. **Gebaut (P-2026-10-18-99, 0.270.0):** Haken „Stirnseite daneben mit dem
+   Umfang“ bei „Plan indexiert“ (vierachs_stirnkombi), vorbelegt an; der Ausspann-Hinweis kommt aus
+   der Halterprüfung des Assistenten.
 
 
 **Manuels Bilder vom 2026-10-12 spät (zu 0.259.6, Nase):**

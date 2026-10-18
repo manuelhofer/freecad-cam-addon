@@ -150,6 +150,17 @@ ausspannen“, wenn es nicht reicht; „wichtig ist das die züge die ap nicht �
 ... und halt auch die ae einhalten .. also das muss sich ja immer nach den werten richten die der
 fräser kann!“ – je Zug höchstens ap längs der Werkzeugachse, je Lage höchstens ae auf der Stirnseite,
 aus den Schnittwerten des Fräsers.
+*Gebaut (P-2026-10-18-99, 0.270.0):* „Plan indexiert“ mit dem Haken „Stirnseite daneben mit dem
+Umfang“ (vorbelegt an, zu sehen nur, wo es passt – `camaddon/vierachs_stirnkombi.py`): Reicht eine
+gewählte Ebene vorn bis an die Spitze des Teils und grenzt hinten eine breitere Stirnseite an,
+fährt der Fräser beide in einer Stellung – Lagen längs je höchstens ae, Bänder längs der
+Werkzeugachse je höchstens ap, Züge quer mit dem Y, die Stirn auf der Ebene, daneben die Monde
+tiefer; jeder Zug beginnt und endet neben dem Material (Eilgang hinab, Freivorschub bis ans
+Material). Ob der Halter an die Welle kommt, sagt die Halterprüfung des Assistenten gelb („T1 auf
+… mm ausspannen“): am Nasen-Testteil mindestens 58,2 mm. Gemessen am Nasen-Testteil (vom Rest
+nach dem Schruppen des Beispiels): mit ap 4, ae 3 1,43 min (Face8 allein 0,42 min); mit den
+Werten des Einsatzes „Planen“ von T1 (ap 2, ae 8) 2,3 statt 0,3 min – das Bild vom 2026-10-18
+rechnete die Bänder so hoch wie die Schneide (0,22 min), das hätte ap überschritten.
 
 ## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
 
