@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-84 c-ring-beispiel-nut
+
+### EINGELESEN
+- Manuel, 2026-10-18, am Beispiel `c_ring_nut_3achs` („Räumen T1“): „diese werkzeugwege schauen
+  grausam aus !! warum ist das so ?“ – „und sehe ich da zickzack ?“ – „da fährt man da wo frei is
+  rein und macht D's oder wellen hatten wir das nicht schon fertig ?“ – „das is einfach ne offene
+  nut ..“. Zum Bild, das der Assistent heute an dieser Fläche anlegt: „zum schruppen is das definitv
+  schöner .. so will ichs haben schlichten is dann ja nurnoch die wand nachfahren“.
+
+### DATEIEN
+- `beispiele/c_ring_nut_3achs.FCStd`: Das alte „Räumen T1“ (Ø 12 – die Nut ist nur 10 mm breit,
+  die Bahnen stammten aus einer alten Rechnung) ist weg; der Assistent „Bearbeitung“ hat an der
+  offenen Ringnut (Face8) angelegt, was er heute wählt: „Nut T3“ (Ø 6, von der offenen Seite am
+  Schlitz hinein, 433 D-Bögen, etwa 3 min), „Messstopp“, „Nut schlichten T3“ (die Wände entlang).
+  Der unbenutzte Controller T1 ist entfernt. `daten/beispiele.json` neu geschrieben.
+- `camaddon/einrichtblatt.py`: je Werkzeug eine Zeile – Schruppen und Schlichten mit demselben
+  Fräser (zwei Controller) standen zweimal da.
+- `tests/gui/szenario_einrichtblatt.py`: T3 Ø 6 im Schrumpffutter, 25 mm; Schritte „Nut T3“ und
+  „Nut schlichten T3“; eine Zeile für T3.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_einrichtblatt`, `szenario_bearbeitung_zylinder`,
+  `test_einrichtblatt`, `test_beispiele`.
 ## P-2026-10-18-83 wendel-schruppen
 
 ### EINGELESEN

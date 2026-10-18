@@ -157,7 +157,12 @@ def blatt(job, datum, version, bibliothek=None):
             if knapp and knapp not in ergebnis.hinweise:
                 ergebnis.hinweise.append(knapp)
         ergebnis.aufspannungen.append(aufspannung)
-    ergebnis.werkzeuge = sorted(gesehen.values(), key=lambda w: w.nummer)
+    # Je Werkzeug eine Zeile: Schruppen und Schlichten mit demselben Fräser sind zwei Controller,
+    # an der Maschine aber ein Werkzeug (am C-Ring stand T3 zweimal da).
+    einmal = {}
+    for w in sorted(gesehen.values(), key=lambda w: w.nummer):
+        einmal.setdefault((w.nummer, w.name, round(w.durchmesser, 6)), w)
+    ergebnis.werkzeuge = list(einmal.values())
     for w in ergebnis.werkzeuge:
         if w.geschaetzt:
             ergebnis.hinweise.insert(0, tr("eb.hinweis.geschaetzt", nummer=w.nummer))
