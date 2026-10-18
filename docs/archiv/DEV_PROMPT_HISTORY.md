@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-96 ring-von-vorn-szenario
+
+### EINGELESEN
+- W-033, Manuel, 2026-10-18: „das bearbeitet man doch von vorne ;)“ – der Ring aus drei
+  Segmenten mit Schlitzen und Bohrung (`beispiele/ring_4achs_planbearbeitung.FCStd`).
+
+### DATEIEN
+- `tests/gui/szenario_ring_vorn.py` (neu): Stirnfläche im 4-Achs-Assistenten, Verweis nach
+  „Bearbeitung“ von vorn auf dem Stangen-Job, „Alles aus dieser Aufspannung“ mit T1 Ø 4 radial und
+  T2 Ø 10 axial – angelegt: Räumen T2, Nut T2, Messstopp, Wände schlichten T2; in keiner
+  Operation eine Kehre beim Einfahren (`pruefstand.kehren_im_programm`).
+- `docs/bilder/vorschlaege/ring_von_vorn.png`, `docs/STATUS_SNAPSHOT.md` (W-033 gebaut).
+
+### ERGEBNIS
+- Am Ring etwa 9 min (Räumen 6, Nut 0,3, Wände schlichten 1,7) statt 35 min (Räumen der Böden mit
+  T1 und Kontur 28 min) – vorher radial mit Wellen 17 min.
+- Grün im Wochen-Build: `szenario_ring_vorn`.
+
 ## P-2026-10-18-95 stichproben-auch-im-fenster
 
 ### EINGELESEN

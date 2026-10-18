@@ -1711,6 +1711,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Operation, von der Stange her in Ringen, in den Schlitzen Wellen, der Kern über die Schlitze (sonst
   Helix + Morph-Spirale); die Kontur nur zum Schlichten; der axiale Fräser, der passt. Erst Bild mit
   Zeiten, dann Manuels Ja (Vorgabe ändert sich).
+  **Gebaut (0.266.1, 0.267.0, P-2026-10-18-96):** Von vorn nur Fräser im axialen Halter (ohne einen
+  sagt es rot an jedem Haken, mit dem Knopf „Werkzeugverwaltung …“); Räumen über alles bis durch –
+  Manuels allgemeine Regel aus Grundsatz 5 („das sollte eine generelle regel sein“), damit ist das
+  Ja zur Vorgabe da. Am Ring mit T2 Ø 10 axial: Räumen T2 (etwa 6 min: außen herum, Schlitze,
+  Bohrung), Nut T2 (die Ringnuten), Messstopp, Wände schlichten T2 (2 min) – zusammen etwa 9 statt
+  35 min, kein Zickzack. Bild `docs/bilder/vorschlaege/ring_von_vorn.png`; Prüfung
+  `tests/gui/szenario_ring_vorn.py`.
 - **W-031 Vorschlichten als Haken** – Manuel, 2026-10-18 (gelber Satz „Nach dem Schruppen greift die
   Kugel stellenweise …“): „das man hier vll noch die möglichkeit dann gibt "vorschlichten" als hacken
   anzubieten .. aber über dem schlichten das ganze ... zwischen schruppen und schlichten“. **Gebaut
