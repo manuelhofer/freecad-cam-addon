@@ -679,8 +679,9 @@ class VierachsPanel:
         # Aufträge für die Bahn und den Rest danach, und ob man den Haken selbst gesetzt hat.
         self._vorschlicht_bereich = None
         self.vorschau_vorschlichten = None
-        self._vor_auftrag = None
+        self._vor_auftrag = None  # {Name: Auftrag} – der Wendel nach in Blöcken
         self._vor_rest_auftrag = None
+        self._vor_teile = ({}, {}, [])  # Ergebnisse, Gründe, gescheiterte Blöcke
         self._vorschlichten_von_hand = False
         self._vorschlichten_vorgeschlagen = False
         self._halter_auftrag = None  # stößt der Halter an (vierachs_vorschau.halter, Frage 7)
@@ -4118,10 +4119,13 @@ class VierachsPanel:
     def _vorschlichten_zurueck(self):
         """Nimmt die Aufträge des Vorschlichtens zurück und leert seine Zeile."""
         for name in ("_vor_auftrag", "_vor_rest_auftrag"):
-            auftrag = getattr(self, name)
+            auftraege = getattr(self, name)
             setattr(self, name, None)
-            if auftrag is not None and not auftrag.erledigt:
-                auftrag.abbrechen()
+            if auftraege is None:
+                continue
+            for auftrag in auftraege.values() if isinstance(auftraege, dict) else [auftraege]:
+                if not auftrag.erledigt:
+                    auftrag.abbrechen()
         self.vorschau_vorschlichten = None
         self.ergebnis_vorschlichten.setText("")
         self.ergebnis_vorschlichten.hide()
@@ -4149,20 +4153,31 @@ class VierachsPanel:
             self._vorschlicht_satz(self._vorschlicht_text(None))
             return
         nummer = self._vorschau_nummer
+        # Der Wendel nach in Blöcken, je einer auf einem Nebenrechner (_wendel_teilen).
+        auftraege = self._wendel_teilen({"vor": (tuple(args), kwargs)}, name="vor")
+        laufend = {}
         try:
-            auftrag = pool.auftrag(
-                "vierachs_vorschau",
-                "schlichten",
-                pool.kopie(self.doc, wiederverwenden=True),
-                self.job.Name,
-                *args,
-                **kwargs,
-            )
+            kopie = pool.kopie(self.doc, wiederverwenden=True)
+            for name, (argumente, schluessel) in auftraege.items():
+                laufend[name] = pool.auftrag(
+                    "vierachs_vorschau",
+                    "schlichten",
+                    kopie,
+                    self.job.Name,
+                    *argumente,
+                    **schluessel,
+                )
         except nr.NichtVerfuegbar:
+            for auftrag in laufend.values():
+                auftrag.abbrechen()
             self._vorschlicht_satz(self._vorschlicht_text(None))
             return
-        auftrag.bei_fertig = lambda a: self._vorschlichten_angekommen(nummer, a)
-        self._vor_auftrag = auftrag
+        self._vor_auftrag = laufend
+        self._vor_teile = ({}, {}, [])
+        for name, auftrag in laufend.items():
+            auftrag.bei_fertig = lambda a, name=name: self._vorschlichten_angekommen(
+                nummer, name, a
+            )
 
     def _vorschlicht_satz(self, text, farbe=None):
         self.ergebnis_vorschlichten.setStyleSheet(f"color: {farbe or GRAU_TEXT};")
@@ -4216,18 +4231,38 @@ class VierachsPanel:
             menge = tr("va.schlichten.ergebnis", umdrehungen=f"{bahn.umdrehungen:.0f}", zeit=zeit)
         return f"{text} {menge.removeprefix('→ ')}."
 
-    def _vorschlichten_angekommen(self, nummer, auftrag):
-        if nummer != self._vorschau_nummer or self.geschlossen or auftrag is not self._vor_auftrag:
+    def _vorschlichten_angekommen(self, nummer, name, auftrag):
+        laufend = self._vor_auftrag
+        if (
+            nummer != self._vorschau_nummer
+            or self.geschlossen
+            or not isinstance(laufend, dict)
+            or laufend.get(name) is not auftrag
+        ):
+            return
+        ergebnisse, gruende, gescheitert = self._vor_teile
+        if auftrag.fehler is None:
+            ergebnisse[name] = auftrag.ergebnis
+        elif auftrag.fehlerart == "ValueError":
+            gruende[name] = auftrag.fehlersatz
+        else:
+            if not auftrag.abgebrochen:
+                FreeCAD.Console.PrintWarning(f"CAM-Addon: Vorschlichten: {auftrag.fehler}\n")
+            gescheitert.append(name)
+        if not all(a.erledigt for a in laufend.values()):
             return
         self._vor_auftrag = None
-        if auftrag.fehler is not None:
-            if auftrag.fehlerart == "ValueError":
-                self._vorschlicht_satz(auftrag.fehlersatz, ROT)
-            elif not auftrag.abgebrochen:
-                FreeCAD.Console.PrintWarning(f"CAM-Addon: Vorschlichten: {auftrag.fehler}\n")
-                self._vorschlicht_satz(self._vorschlicht_text(None))
+        if gescheitert:
+            self._vorschlicht_satz(self._vorschlicht_text(None))
             return
-        self.vorschau_vorschlichten = auftrag.ergebnis
+        self._wendel_zusammenfuegen(ergebnisse, gruende, name="vor")
+        if gruende:
+            self._vorschlicht_satz(next(iter(gruende.values())), ROT)
+            return
+        self.vorschau_vorschlichten = ergebnisse.get("vor")
+        if self.vorschau_vorschlichten is None:
+            self._vorschlicht_satz(self._vorschlicht_text(None))
+            return
         self._vorschlicht_satz(self._vorschlicht_text(self.vorschau_vorschlichten))
         self._vor_rest_starten()
 
@@ -4412,6 +4447,7 @@ class VierachsPanel:
                 auftraege.update(werte)
             else:
                 auftraege[name] = werte
+        auftraege = self._wendel_teilen(auftraege)
         if not self._vorschau_im_hintergrund(auftraege):
             for name, (args, kwargs) in auftraege.items():
                 try:
@@ -4465,7 +4501,9 @@ class VierachsPanel:
 
     @staticmethod
     def _vorschau_funktion(name):
-        """Die Funktion in vierachs_vorschau zum Namen des Auftrags."""
+        """Die Funktion in vierachs_vorschau zum Namen des Auftrags („schlichten#3“: ein Block der
+        Wendel, _wendel_teilen)."""
+        name = name.split("#")[0]
         return "plan" if name == "planbohren" else name
 
     def _vorschau_selbst(self, name, args, kwargs):
@@ -4501,9 +4539,54 @@ class VierachsPanel:
             self._vorschau_abbrechen()
             return False
         for name, etikett in self._vorschau_etiketten().items():
-            if name in auftraege:
+            if any(n.split("#")[0] == name for n in auftraege):
                 etikett.setText(tr("va.vorschau.rechnet"))
         return True
+
+    @staticmethod
+    def _wendel_bloecke():
+        """In so viele Blöcke teilt sich die Vorschau der Wendel – einer je Nebenrechner (1 ohne
+        sie: dann rechnet sie in einem Stück)."""
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        return pool.anzahl if pool.verfuegbar() and pool.anzahl >= 2 else 1
+
+    def _wendel_teilen(self, auftraege, name=SCHLICHTEN):
+        """Die Vorschau „der Wendel nach“ in Blöcke von Bahnen, je ein Auftrag (`name`#k, mit
+        wendel_teil=(k, n)): Ein Nebenrechner verteilt nicht weiter – rechnete einer alle Bahnen,
+        rechnete ein Kern (Manuel, 2026-10-18: „rechnet da gerade nur ein kern ??“)."""
+        if name not in auftraege:
+            return auftraege
+        args, kwargs = auftraege[name]
+        bloecke = self._wendel_bloecke()
+        if len(args) < 9 or args[8] != vb.WENDEL or bloecke < 2:
+            return auftraege
+        geteilt = {n: a for n, a in auftraege.items() if n != name}
+        for k in range(bloecke):
+            geteilt[f"{name}#{k}"] = (args, dict(kwargs, wendel_teil=(k, bloecke)))
+        return geteilt
+
+    @staticmethod
+    def _wendel_zusammenfuegen(ergebnisse, gruende, name=SCHLICHTEN):
+        """Die Blöcke `name`#k (_wendel_teilen) wieder zu einer Bahn unter `name` – mit dem Grund
+        eines Blocks, wenn einer nicht ging."""
+        teile = sorted(
+            (int(n.split("#")[1]), n)
+            for n in set(ergebnisse) | set(gruende)
+            if n.startswith(name + "#")
+        )
+        if not teile:
+            return
+        grund = next((gruende.pop(n) for _k, n in teile if n in gruende), None)
+        bahnen = [ergebnisse.pop(n, None) for _k, n in teile]
+        for _k, n in teile:
+            gruende.pop(n, None)
+        bahn = None if grund is not None else vb.wendel_zusammen(bahnen)
+        if bahn is None or not bahn.wendel_bahnen:
+            gruende[name] = grund or tr("vw.fehler.keine")
+        else:
+            ergebnisse[name] = bahn
 
     def _vorschau_etiketten(self):
         return {
@@ -4540,6 +4623,7 @@ class VierachsPanel:
     def _vorschau_abschliessen(self):
         """Die Ergebnisse und Gründe ins Fenster – wie die Operationen sie rechnen."""
         e, gruende = self._vorschau_ergebnisse, self._vorschau_gruende
+        self._wendel_zusammenfuegen(e, gruende)
         self.vorschau = e.get(SCHRUPPEN)
         if self.vorschau is not None:  # aus dem Nebenrechner: „Anlegen“ nimmt sie wieder
             vo.merke_bahn(self.vorschau)

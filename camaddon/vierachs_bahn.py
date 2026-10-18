@@ -317,6 +317,8 @@ class Schlichtwerte:
     laengs_bereich: tuple = None
     # Die Wendelnut (vierachs_wendel.Wendel) für das Muster WENDEL.
     wendel: object = None
+    # (k, n): nur den k-ten von n Blöcken der Bahnen der Wendel (die Vorschau verteilt selbst).
+    wendel_teil: tuple = None
 
 
 @dataclass
@@ -2426,7 +2428,39 @@ def _schlichten_wendel(
     des Schlichtens (Hüllfläche, Aufmaß, durchs Freie, mit der Querachse), nur so steil wie die
     Nut. C dreht dabei immer in dieselbe Richtung, die der Nut folgt; zwischen den Bahnen hebt der
     Fräser ab und fährt im Eilgang nach vorn, C weiter vor. Quer der Reihe nach so, dass das
-    Material auf der Seite der nächsten Bahn liegt, wie es der Gleichlauf will."""
+    Material auf der Seite der nächsten Bahn liegt, wie es der Gleichlauf will. Die Bahnen sind
+    voneinander unabhängig: in Blöcken auf den Nebenrechnern (_wendel_verteilt), oder – in der
+    Vorschau, die selbst schon auf einem läuft – nur der Block `w.wendel_teil`, den der Assistent
+    vergeben hat (wendel_zusammen fügt die Blöcke zusammen)."""
+    spuren, kammhoehe = _wendel_spuren(netz, laengs, radial, w, teil_vorne, teil_hinten)
+    argumente = (
+        netz,
+        laengs,
+        radial,
+        w,
+        a_anfang,
+        a_vorne,
+        a_ende,
+        teil_vorne,
+        teil_hinten,
+        hinten_frei,
+        schritt_phi,
+    )
+    if w.wendel_teil is not None:
+        k, n = w.wendel_teil
+        von, bis = round(k * len(spuren) / n), round((k + 1) * len(spuren) / n)
+        return wendel_stueck(*argumente, spuren[von:bis], kammhoehe)
+    bahn = _wendel_verteilt(argumente, spuren, kammhoehe)
+    if bahn is None:
+        bahn = wendel_stueck(*argumente, spuren, kammhoehe)
+    if not bahn.wendel_bahnen:
+        raise ValueError(tr("vw.fehler.keine"))
+    return bahn
+
+
+def _wendel_spuren(netz, laengs, radial, w, teil_vorne, teil_hinten):
+    """([(Gang, Versatz quer)] in der Reihenfolge der Bahnen, Kammhöhe) – das Profil quer über
+    die Nut bei φ = 0 mitten auf dem Teil, daraus die Versätze (vierachs_wendel.versaetze)."""
     from . import vierachs_wendel as vw
 
     wendel = w.wendel
@@ -2434,30 +2468,22 @@ def _schlichten_wendel(
         raise ValueError(tr("vw.fehler.keine"))
     form = w.form
     radius = form.radius
-    quer = bool(w.querachse)
-    plan = w if not quer or form.nur_kugel else replace(w, form=ff.kugel(radius))
-    plan = replace(plan, waende=())
+    plan = _wendel_plan(w)
     zugabe = w.aufmass + netz.toleranz
-    steigung = abs(wendel.steigung)
-    # Längs fällt a je Umdrehung um die Steigung: Der Winkel muss dann so laufen, wie die Nut.
-    drehung = -1 if wendel.steigung > 0 else 1
-    # Das Profil quer über die Nut bei φ = 0, mitten auf dem Teil.
     mitte = wendel.mitte_bei(0.5 * (teil_vorne + teil_hinten))
     weite = 0.5 * wendel.breite + radius + 1.0
     anzahl = int(math.ceil(2 * weite / vw.PROFIL_SCHRITT)) + 1
     u = -weite + vw.PROFIL_SCHRITT * np.arange(anzahl)
-    anfang = np.array([mitte - weite])
-    null = np.array([0.0])
     spitze = (
         vh.je_winkel(
             netz,
             laengs,
             radial,
             plan.form.mit_aufmass(zugabe),
-            anfang,
+            np.array([mitte - weite]),
             vw.PROFIL_SCHRITT,
             anzahl,
-            null,
+            np.array([0.0]),
         )[:, 0]
         + zugabe
     )
@@ -2467,90 +2493,119 @@ def _schlichten_wendel(
     )
     if not versaetze:
         raise ValueError(tr("vw.fehler.keine"))
+    drehung = _wendel_drehung(wendel)
     steigend = sp.ist_gleichlauf((-1.0, 0.0, 0.0), (0.0, float(drehung), 0.0), (0.0, 0.0, 1.0))
     if steigend != bool(w.gleichlauf):
         versaetze = versaetze[::-1]
+    return [(gang, float(v)) for gang in range(wendel.gaenge) for v in versaetze], kammhoehe
+
+
+def _wendel_drehung(wendel):
+    """Längs fällt a je Umdrehung um die Steigung: Der Winkel läuft dann so, wie die Nut."""
+    return -1 if wendel.steigung > 0 else 1
+
+
+def _wendel_plan(w):
+    """Die Werte, mit denen die Bahnen geplant werden: mit der Querachse eine Kugel mit dem Radius
+    des Fräsers (wie die Spirale), ohne Ringgänge vor Wänden."""
+    form = w.form
+    plan = w if not w.querachse or form.nur_kugel else replace(w, form=ff.kugel(form.radius))
+    return replace(plan, waende=())
+
+
+def wendel_stueck(
+    netz,
+    laengs,
+    radial,
+    w,
+    a_anfang,
+    a_vorne,
+    a_ende,
+    teil_vorne,
+    teil_hinten,
+    hinten_frei,
+    schritt_phi,
+    spuren,
+    kammhoehe,
+):
+    """Die Bahnen `spuren` ([(Gang, Versatz)]) der Wendel nach – eine Schlichtbahn mit Start und
+    Ende im Eilgang vor der Stange; auch für einen Nebenrechner (_wendel_verteilt)."""
+    wendel = w.wendel
+    form = w.form
+    radius = form.radius
+    quer = bool(w.querachse)
+    plan = _wendel_plan(w)
+    steigung = abs(wendel.steigung)
+    drehung = _wendel_drehung(wendel)
+    mitte = wendel.mitte_bei(0.5 * (teil_vorne + teil_hinten))
     sicher = w.stange_radius + w.sicherheit
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    je_umdrehung = int(round(360.0 / schritt_phi))
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     umdrehungen = 0.0
     r_min = math.inf
     rest_ueber = 0.0
     bahnen = 0
-    for gang in range(wendel.gaenge):
-        for versatz in versaetze:
-            # Die Bahn beginnt dort, wo sie `a_vorne` erreicht (auf einen Winkelschritt genau) –
-            # nicht bei φ = 0, das läge bis zu einer Umdrehung vor dem Teil.
-            basis = mitte + gang * wendel.teilung + versatz
-            je_umdrehung = int(round(360.0 / schritt_phi))
-            schritte = math.ceil((a_vorne - basis) / steigung * je_umdrehung - 1e-9)
-            start = basis + steigung * schritte / je_umdrehung
-            spalte0 = (int(math.copysign(1, wendel.steigung)) * schritte) % je_umdrehung
-            if start <= a_ende:
-                continue
-            a, r, winkel, anzahl_k, je_umdrehung, _d = _spirale_rechnen(
-                netz,
-                laengs,
-                radial,
-                plan,
-                steigung,
-                start,
-                a_ende,
-                teil_vorne,
-                teil_hinten,
+    zugabe = w.aufmass + netz.toleranz
+
+    def umrechnen(a_p, x_p, q_p, psi_p):
+        return vq.stellungen(
+            netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
+        )
+
+    for gang, versatz in spuren:
+        # Die Bahn beginnt dort, wo sie `a_vorne` erreicht (auf einen Winkelschritt genau) –
+        # nicht bei φ = 0, das läge bis zu einer Umdrehung vor dem Teil.
+        basis = mitte + gang * wendel.teilung + versatz
+        schritte = math.ceil((a_vorne - basis) / steigung * je_umdrehung - 1e-9)
+        start = basis + steigung * schritte / je_umdrehung
+        spalte0 = (int(math.copysign(1, wendel.steigung)) * schritte) % je_umdrehung
+        if start <= a_ende:
+            continue
+        a, r, winkel, anzahl_k, je_umdrehung_k, _d = _spirale_rechnen(
+            netz,
+            laengs,
+            radial,
+            plan,
+            steigung,
+            start,
+            a_ende,
+            teil_vorne,
+            teil_hinten,
+            schritt_phi,
+            drehung=drehung,
+            ende_ring=False,
+            spalte0=spalte0,
+        )
+        umdrehungen += anzahl_k / je_umdrehung_k
+        rest_ueber = max(rest_ueber, _rest_ueber(w, form, r, a, np.radians(winkel)))
+        if quer:
+            tiefste = _spirale_quer(
+                punkte,
+                a,
+                r,
+                winkel,
+                sicher,
+                abstand,
+                drehung,
+                radius,
                 schritt_phi,
-                drehung=drehung,
-                ende_ring=False,
-                spalte0=spalte0,
+                umrechnen,
+                form.nur_kugel,
+                w.anstellen if form.nur_kugel else 0.0,
+                material_oben=lambda a_k, winkel_k: _material_oben(w, form, a_k, winkel_k),
+                stetig=w.stetig,
             )
-            umdrehungen += anzahl_k / je_umdrehung
-            rest_ueber = max(rest_ueber, _rest_ueber(w, form, r, a, np.radians(winkel)))
-            if quer:
-                zugabe_q = w.aufmass + netz.toleranz
-
-                def umrechnen(a_p, x_p, q_p, psi_p, zugabe_q=zugabe_q):
-                    return vq.stellungen(
-                        netz,
-                        laengs,
-                        radial,
-                        form,
-                        zugabe_q,
-                        a_p,
-                        x_p,
-                        q_p,
-                        psi_p,
-                        teil_hinten,
-                        teil_vorne,
-                    )
-
-                tiefste = _spirale_quer(
-                    punkte,
-                    a,
-                    r,
-                    winkel,
-                    sicher,
-                    abstand,
-                    drehung,
-                    radius,
-                    schritt_phi,
-                    umrechnen,
-                    form.nur_kugel,
-                    w.anstellen if form.nur_kugel else 0.0,
-                    material_oben=lambda a_k, winkel_k: _material_oben(w, form, a_k, winkel_k),
-                    stetig=w.stetig,
-                )
-            else:
-                a, r, winkel, t, _ = _verfeinert(
-                    netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne
-                )
-                frei = _frei(a, r, winkel, r >= _material_oben(w, form, a, winkel) - LEER)
-                _spirale(punkte, a, r, winkel, 0, len(a) - 1, sicher, abstand, drehung, t, frei)
-                tiefste = float(np.min(r))
-            r_min = min(r_min, tiefste)
-            bahnen += 1
-            uhren.atmen()
-    if not bahnen:
-        raise ValueError(tr("vw.fehler.keine"))
+        else:
+            a, r, winkel, t, _ = _verfeinert(
+                netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne
+            )
+            frei = _frei(a, r, winkel, r >= _material_oben(w, form, a, winkel) - LEER)
+            _spirale(punkte, a, r, winkel, 0, len(a) - 1, sicher, abstand, drehung, t, frei)
+            tiefste = float(np.min(r))
+        r_min = min(r_min, tiefste)
+        bahnen += 1
+        uhren.atmen()
     punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
     return Schlichtbahn(
         punkte,
@@ -2561,6 +2616,91 @@ def _schlichten_wendel(
         rest_ueber,
         querachse=quer,
         wendel_bahnen=bahnen,
+    )
+
+
+WENDEL_SPUREN_JE_AUFTRAG = 2  # so viele Bahnen rechnet ein Nebenrechner mindestens
+
+
+def _wendel_verteilt(argumente, spuren, kammhoehe):
+    """Die Bahnen der Wendel in Blöcken auf den Nebenrechnern, zusammengefügt (wendel_zusammen)
+    – None ohne Nebenrechner (auch in einem Nebenrechner selbst) oder bei zu wenigen Bahnen."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2 or len(spuren) < 2 * WENDEL_SPUREN_JE_AUFTRAG:
+        return None
+    netz, laengs, radial, w = argumente[:4]
+    netz_gemeinsam = pool.gemeinsam("vh-netz-" + vh.kennung(netz).hex(), netz)
+    # Für den Nebenrechner nur Zahlen und numpy – kein FreeCAD.Vector (lässt sich nicht senden);
+    # die Wände braucht keine Bahn der Wendel (_wendel_plan).
+    gesendet = (
+        tuple(float(x) for x in laengs),
+        tuple(float(x) for x in radial),
+        replace(w, waende=()),
+        *argumente[4:],
+    )
+    bereiche = nr.stuecke(
+        len(spuren), pool.anzahl, je_arbeiter=1, mindestens=WENDEL_SPUREN_JE_AUFTRAG
+    )
+    try:
+        auftraege = [
+            pool.auftrag(
+                "vierachs_bahn",
+                "wendel_stueck",
+                netz_gemeinsam,
+                *gesendet,
+                spuren[von:bis],
+                kammhoehe,
+            )
+            for von, bis in bereiche
+        ]
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except (nr.Fehler, nr.NichtVerfuegbar) as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Wendel auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    return wendel_zusammen(teile)
+
+
+def wendel_zusammen(teile):
+    """Fügt Schlichtbahnen der Wendel (Blöcke von Bahnen, je mit Start und Ende) zu einer: Die
+    Winkel eines Blocks laufen um ganze Umdrehungen versetzt dort weiter, wo der vorige aufhörte
+    – C dreht weiter in dieselbe Richtung, nie zurück."""
+    teile = [t for t in teile if t is not None]
+    if not teile:
+        return None
+    punkte = list(teile[0].punkte[:-1])
+    for teil in teile[1:]:
+        stueck = teil.punkte[1:-1]
+        if not stueck:
+            continue
+        drehung = 1.0
+        for von, nach in zip(stueck, stueck[1:], strict=False):
+            if abs(nach.phi - von.phi) > 1e-9:
+                drehung = math.copysign(1.0, nach.phi - von.phi)
+                break
+        weiter = punkte[-1].phi
+        erster = stueck[0].phi
+        if drehung > 0:
+            versatz = 360.0 * math.ceil((weiter - erster) / 360.0 - 1e-9)
+        else:
+            versatz = -360.0 * math.ceil((erster - weiter) / 360.0 - 1e-9)
+        punkte.extend(replace(p, phi=p.phi + versatz) for p in stueck)
+    erster = teile[0]
+    punkte.append(replace(erster.punkte[-1], phi=punkte[-1].phi))
+    return Schlichtbahn(
+        punkte,
+        sum(t.umdrehungen for t in teile),
+        min(t.r_min for t in teile),
+        erster.kammhoehe,
+        erster.hinten_frei,
+        max(t.rest_ueber for t in teile),
+        querachse=erster.querachse,
+        wendel_bahnen=sum(t.wendel_bahnen for t in teile),
     )
 
 

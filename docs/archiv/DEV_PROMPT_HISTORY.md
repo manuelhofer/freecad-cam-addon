@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-82 wendel-auf-allen-kernen
+
+### EINGELESEN
+- Manuel, 2026-10-18, während das Schlichten der Wendel nach (P-81) rechnete: „rechnet da gerade
+  nur ein kern ??“ – „aber warum muss ich das jedesmal sagen ?? und warum baust du das nicht gleich
+  richtig ??? … das wäre doch viel weniger aufwand“. Die Regel stand schon in den Notizen; seitdem
+  Pflichtpunkt 5 im Pre-Flight-Gate (`docs/arbeitsregeln.md`, Abschnitt 2): jede neue Rechnung über
+  unabhängige Stücke gleich auf den Nebenrechnern.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: Die Bahnen der Wendel (`_wendel_spuren` → `wendel_stueck`) in
+  Blöcken auf den Nebenrechnern (`_wendel_verteilt`, je Arbeiter ein Block, gesendet nur Zahlen und
+  numpy), zusammengefügt mit `wendel_zusammen` (C läuft um ganze Umdrehungen versetzt weiter, nie
+  zurück); `Schlichtwerte.wendel_teil` für einen Block.
+- `camaddon/vierachs_schlichten.py`: `vorschau(…, wendel_teil=)`.
+- `camaddon/gui_vierachs.py`: Die Vorschau „der Wendel nach“ – und die des Vorschlichtens – geht
+  als ein Auftrag je Nebenrechner hinaus (`_wendel_teilen`) und kommt zusammengefügt zurück
+  (`_wendel_zusammenfuegen`): Ein Nebenrechner verteilt nicht weiter, vorher rechnete die ganze
+  Vorschau auf einem Kern.
+- `docs/arbeitsregeln.md`: Pflichtpunkt 5 „Alle Kerne, von Anfang an“.
+
+### ERGEBNIS
+- An Manuels Teil (Kopie): mit Y 6,7 → 1,7 s, ohne Y 9,5 → 2,2 s; dieselben 28 Bahnen, 11,6 min,
+  C nur in eine Richtung.
+- Grün im Wochen-Build: `test_vierachs_wendel`, `szenario_vierachs_wendel`,
+  `szenario_vierachs_vorschlichten`.
 ## P-2026-10-18-81 wendel-schlichten
 
 ### EINGELESEN

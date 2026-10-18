@@ -343,10 +343,13 @@ def vorschau(
     anstellen=True,
     stetig=False,
     laengs_bereich=None,
+    wendel_teil=None,
 ):
     """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
     die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
-    VORSCHAU_SCHRITT_PHI Grad ein Punkt. ValueError wie bahn_fuer()."""
+    VORSCHAU_SCHRITT_PHI Grad ein Punkt. `wendel_teil`: (k, n) – beim Muster „Wendel“ nur der
+    k-te von n Blöcken der Bahnen (der Assistent verteilt sie auf die Nebenrechner und fügt sie mit
+    vierachs_bahn.wendel_zusammen zusammen). ValueError wie bahn_fuer()."""
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
     werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter)
     form_teil = _teil(modell)
@@ -361,6 +364,7 @@ def vorschau(
         stetig=stetig,
         flaechen_netz=_flaechen_netz(form_teil, flaechen, querachse, VORSCHAU_TOLERANZ),
         laengs_bereich=laengs_bereich,
+        wendel_teil=wendel_teil,
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     werte = _mit_wendel(werte, teil, laengs, radial)

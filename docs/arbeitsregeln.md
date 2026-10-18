@@ -57,6 +57,14 @@ ein ASCII-Entwurf des Dialogs reicht.
    vorhandener Befehl, eine Vorlage. Dann ist die Antwort ein Hinweis, kein Code.
 4. **Task-Disziplin:** Umgesetzt wird nur, was im Snapshot steht oder
    ausdrücklich beauftragt wurde.
+5. **Alle Kerne, von Anfang an:** Jede neue Rechnung, die über unabhängige
+   Stücke läuft – Bahnen, Lagen, Winkel, Flächen, Stationen –, wird **gleich**
+   über `camaddon/nebenrechner.py` verteilt gebaut, nicht erst nachgerüstet; das
+   Fenster wartet nie darauf. Geht es nicht (zu klein, voneinander abhängig),
+   steht der Grund im Verlauf. Vor dem Push gezielt nachsehen: Rechnet die neue
+   Schleife auf allen Kernen? (Manuel, 2026-10-18: „aber warum muss ich das
+   jedesmal sagen ?? und warum baust du das nicht gleich richtig ??? … das wäre
+   doch viel weniger aufwand“.)
 
 ## 3. Zuschnitt einer Änderung
 
