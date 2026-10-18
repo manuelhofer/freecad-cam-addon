@@ -7,8 +7,8 @@
 # Linien längs – der Satz darunter sagt es. „Plan indexiert“ aus: die Kugel fährt alle fünf. Nur
 # Seiten und Spitze gewählt: „Rundum schlichten“ geht aus („Vorschlag: aus – Plan indexiert macht
 # alle gewählten Flächen fertig“); die schrägen wieder dazu: an. „Anlegen“: „Rundum schruppen
-# T1“, „Plan indexiert T1“ mit den drei ebenen, „Rundum schlichten T2“ mit den zwei schrägen in
-# Linien.
+# T1“, „Plan indexiert T1“ mit den drei ebenen und der Stirnseite der Welle neben der Spitze (mit
+# dem Umfang, Auftrag 2), „Rundum schlichten T2“ mit den zwei schrägen in Linien.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -128,6 +128,14 @@ def schritte(h):
         "Linien längs" in panel.ergebnis_schlichten.text(),
         f"Schlichten: {panel.ergebnis_schlichten.text()!r}",
     )
+    # Die Stirnseite der Welle neben der Spitze in derselben Stellung mit dem Umfang (Auftrag 2;
+    # Manuel, 2026-10-18: „So bauen, mit Ausspann-Hinweis“) – als Haken, vorbelegt an.
+    h.pruefe(
+        panel.plan_stirnseite.isVisible()
+        and panel.plan_stirnseite_an()
+        and "mit dem Umfang" in panel.plan_stirnseite_grund.text(),
+        f"Stirnseite: {panel.plan_stirnseite_grund.text()!r}",
+    )
     h.bild("1_fuenf_flaechen", panel.form)
     h.bild("1b_fuenf_flaechen_3d")
 
@@ -186,6 +194,10 @@ def schritte(h):
         alle = sorted(eben + schraeg, key=lambda n: int(n[4:]))
         h.pruefe(flaechen == alle, f"Plan indexiert: {flaechen}")
         h.pruefe(plan[0].Zeilen > 0, f"Plan indexiert: {plan[0].Zeilen} Zeilen")
+        h.pruefe(
+            plan[0].Stirnseite and plan[0].Ebenen == len(eben) + 1,
+            f"Plan indexiert: Stirnseite {plan[0].Stirnseite}, {plan[0].Ebenen} Flächen",
+        )
     if schlichten:
         flaechen = sorted(schlichten[0].Flaechen, key=lambda n: int(n[4:]))
         h.pruefe(flaechen == sorted(schraeg, key=lambda n: int(n[4:])), f"Schlichten: {flaechen}")

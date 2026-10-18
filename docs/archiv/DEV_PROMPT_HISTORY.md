@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-99 nase-stirnseite-mit-dem-umfang
+
+### EINGELESEN
+- Auftrag 2 (`docs/auftraege_fable.md`), Manuel, 2026-10-18: „die nase … hat eine schräge … dann
+  haben wir noch eine gerade fläche .. die zur drehmitte schaut .. diese fläche kann man mit der
+  stirn eines schaftfräsers bearbeiten sozusagen und klar gleichzeitig die stirnseite der welle ..
+  das ist eine kombination“; „ja auswählbar“; zum Bild mit Zahlen
+  (`docs/bilder/vorschlaege/nase_stirnseite_kombination.png`): „So bauen, mit Ausspann-Hinweis“ –
+  „wichtig ist das die züge die ap nicht überschreiten … und halt auch die ae einhalten .. also das
+  muss sich ja immer nach den werten richten die der fräser kann!“
+
+### DATEIEN
+- `camaddon/vierachs_stirnkombi.py` (neu): `stirnseiten` – die Stirnseite, die hinten an eine
+  Ebene grenzt, nach vorn schaut und quer breiter ist, wenn die Ebene vorn bis an die Spitze des
+  Teils reicht; `punkte` – Lagen längs der Stange vom Material über der Stirnseite (Stange oder
+  Rest nach dem Schruppen) bis auf sie plus Aufmaß, je höchstens ae; je Lage Bänder längs der
+  Werkzeugachse bis auf die Ebene (dort die Stirn) und daneben bis an den unteren Rand der
+  Stirnseite, je höchstens ap; je Band ein Zug quer, geteilt, wo die Hüllfläche des ganzen Teils
+  (je_versatz) den Fräser nicht hinunterlässt; hinein und hinaus neben dem Material in jeder Höhe
+  (Eilgang hinab, Freivorschub bis ans Material und dahinter), im Gleichlauf oder hin und her,
+  ein Stück an der Nase von der freien Seite. Die oberen Lagen nur, wo Material steht; die
+  Stirnseite selbst in der letzten.
+- `camaddon/vierachs_planbahn.py`: `Planwerte.stirnseite`; in `planen` fährt eine Ebene mit
+  Stirnseite die Kombination statt ihrer Zeilen.
+- `camaddon/vierachs_plan.py`: Eigenschaft „Stirnseite“; `rechne`, `bahn_fuer`, `vorschau`,
+  `lege_an`, `aendere`.
+- `camaddon/gui_vierachs.py`: Haken „Stirnseite daneben mit dem Umfang“ unter „Seiten mit dem
+  Schaft“, vorbelegt an, zu sehen nur mit einer solchen Stirnseite; grau „In einer Stellung: Face3
+  mit dem Umfang, Face8 mit der Stirn.“ Der Ausspann-Hinweis kommt aus der Halterprüfung
+  (vierachs_halter.pruefen) wie für jede Bahn.
+- `translations/de.json`, `en.json`; `help/de/vierachs.html`, `help/en/vierachs.html`.
+- `tests/test_vierachs_plan.py`: Nase mit Stirnseite (Face3 an Face8, keine an Face4; Lagen ≤ ae,
+  Bänder ≤ ap, bis zu den Monden; jeder Zug beginnt im Freien; kein Satz ins Teil).
+  `tests/gui/szenario_vierachs_nase.py`: Haken sichtbar und an, „Plan indexiert“ mit Stirnseite.
+- `docs/auftraege_fable.md`, `docs/STATUS_SNAPSHOT.md`; `package.xml`: 0.270.0.
+
+### ERGEBNIS
+- Nasen-Testteil, vom Rest nach dem Schruppen des Beispiels: ap 4, ae 3 – 1,43 min (Face8 allein
+  0,42); mit dem Einsatz „Planen“ von T1 (ap 2, ae 8) 2,3 statt 0,3 min. Das Bild vom Vormittag
+  rechnete Bänder so hoch wie die Schneide (0,22 min) – das hätte ap überschritten.
+- Halter: T1 40 mm heraus, Halter Ø 40 – 37 Stellen stoßen an, mindestens 58,2 mm; ab 65 mm frei.
+- Kein Vorschubsatz ins Teil (Netz 0,002 mm).
+- Grün im Wochen-Build: `test_vierachs_plan`, `test_vierachs_operation`, `test_hilfe`,
+  `test_sprache`, `szenario_vierachs_nase`, `szenario_vierachs_plan`.
+
 ## P-2026-10-18-98 ein-controller-je-werkzeug-und-einsatz
 
 ### EINGELESEN

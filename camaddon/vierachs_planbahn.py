@@ -377,6 +377,9 @@ class Planwerte:
     nur_gleichlauf: bool = False
     # Der Weg über den ebenen Flächen: WEG_ZEILEN, WEG_STICHE_GLEICHLAUF, WEG_STICHE_GEGENLAUF.
     weg: str = WEG_ZEILEN
+    # Die Stirnseite, die hinten an eine Ebene grenzt, in derselben Stellung mit dem Umfang – die
+    # Ebene mit der Stirn (vierachs_stirnkombi; Auftrag 2, an der Nase Face3 mit Face8).
+    stirnseite: bool = False
 
 
 @dataclass
@@ -996,6 +999,24 @@ def planen(
         zeilen_gesamt += fahrten
         r_min = min(r_min, nut.radius + w.aufmass)
     for ebene in sorted(flaechen, key=lambda e: e.phi):
+        if w.stirnseite and form_teil is not None and abs(ebene.steigung) < GERADE:
+            from . import vierachs_stirnkombi as vsk
+
+            stirnen = vsk.stirnseiten(form_teil, laengs, radial, ebene)
+            kombi = (
+                vsk.punkte(form_teil, laengs, radial, ebene, stirnen[0], w, sicher, netz.toleranz)
+                if stirnen
+                else None
+            )
+            if kombi is not None:
+                erster = kombi.punkte[0]
+                _eilgang(punkte, erster.a, sicher, ebene.phi, erster.q)
+                punkte.extend(kombi.punkte[1:])
+                flaechen_gefraest += 2  # die Ebene und die Stirnseite
+                lagen_gesamt += kombi.lagen
+                zeilen_gesamt += kombi.zuege
+                r_min = min(r_min, kombi.r_min)
+                continue
         # Das Aufmaß steht senkrecht auf der Fläche – längs der Werkzeugachse etwas mehr; auf
         # einer schrägen Fläche trägt die Stirn bergauf am Rand, die Spitze bleibt so viel höher.
         aufmass = w.aufmass * math.sqrt(1.0 + ebene.steigung**2) + _anheben(form, ebene.steigung)

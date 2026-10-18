@@ -35,6 +35,7 @@ from camaddon import vierachs_operation as vo
 from camaddon import vierachs_plan as vplan
 from camaddon import vierachs_planbahn as vp
 from camaddon import vierachs_rohteil as vr
+from camaddon import vierachs_schlichten as vs_
 from camaddon import werkzeuge as wz
 
 fehler = []
@@ -1143,6 +1144,69 @@ for seite in ("Face4", "Face6"):
             f"Nase {seite}: {nase_rampen} Rampen, kleinster Abstand {nase_vergleich.kleinster:.2f}"
         )
     )
+# Die Stirnseite der Welle neben der Spitze in derselben Stellung (Auftrag 2; Manuel,
+# 2026-10-18: „So bauen, mit Ausspann-Hinweis … wichtig ist das die züge die ap nicht
+# überschreiten … und halt auch die ae einhalten“): Face8 schaut zur Drehmitte, hinten grenzt die
+# Stirnseite Face3 an. Mit „Stirnseite“: zwei Flächen, Züge quer in Y bei festem C; je Lage
+# höchstens ae längs, je Band höchstens ap längs der Werkzeugachse; die Stirn auf Face8, die Monde
+# daneben tiefer; jeder Zug beginnt mit einem Eilgang hinab neben dem Material; kein Satz ins
+# Teil. Die Seiten (Face4) haben keine Stirnseite, die Wand hinter einer Abflachung auch nicht.
+from camaddon import vierachs_stirnkombi as vsk  # noqa: E402
+
+nase_teil = nase_job.Model.Group[0].Shape
+ebene8 = vp.ebenen(nase_teil, nase_l, nase_r, ["Face8"])[0]
+stirnen = vsk.stirnseiten(nase_teil, nase_l, nase_r, ebene8)
+pruefe(
+    [s_.name for s_ in stirnen] == ["Face3"], f"Stirnseite an Face8: {[s_.name for s_ in stirnen]}"
+)
+ebene4 = vp.ebenen(nase_teil, nase_l, nase_r, ["Face4"])[0]
+pruefe(not vsk.stirnseiten(nase_teil, nase_l, nase_r, ebene4), "Stirnseite an Face4")
+AP_S, AE_S = 4.0, 3.0
+kombi = vplan.bahn_fuer(
+    nase_job, nase_job.Model.Group, nase_l, nase_r, ff.scheibe(6.0), AP_S, AE_S, 0.0,
+    (2.0, 2.0, 2.0), vs_.schruppbahnen(nase_job, nase_job.Model.Group), 0.0, ["Face8"],
+    stirnseite=True,
+)  # fmt: skip
+ohne = vplan.bahn_fuer(
+    nase_job, nase_job.Model.Group, nase_l, nase_r, ff.scheibe(6.0), AP_S, AE_S, 0.0,
+    (2.0, 2.0, 2.0), vs_.schruppbahnen(nase_job, nase_job.Model.Group), 0.0, ["Face8"],
+)  # fmt: skip
+pruefe(kombi.flaechen == 2 and ohne.flaechen == 1, f"Flächen {kombi.flaechen} / {ohne.flaechen}")
+schnitte = [p for p in kombi.punkte[1:] if not p.eilgang]
+pruefe({round(p.phi, 6) for p in kombi.punkte} == {0.0}, "C dreht")
+lagen_a = sorted({round(p.a, 6) for p in schnitte}, reverse=True)
+stufen_a = np.diff([*lagen_a, 6.0]) if lagen_a else np.array([])
+pruefe(
+    len(lagen_a) >= 2 and abs(lagen_a[-1] - 6.0) < 1e-6 and (np.abs(stufen_a) <= AE_S + 1e-6).all(),
+    f"Lagen längs (Mitte des Fräsers): {lagen_a}",
+)
+hoehen = sorted({round(p.r, 6) for p in schnitte}, reverse=True)
+pruefe(
+    abs(min(hoehen) - (-14.457)) < 0.01 and any(abs(h - ebene8.tiefe) < 1e-6 for h in hoehen),
+    f"Bänder: {hoehen}",
+)
+pruefe((np.abs(np.diff(hoehen)) <= AP_S + 1e-6).all(), f"Bänder weiter als ap: {hoehen}")
+ein = [
+    (v, p)
+    for v, p in zip(kombi.punkte, kombi.punkte[1:], strict=False)
+    if v.eilgang and not p.eilgang
+]
+pruefe(all(p.frei for _v, p in ein), "ein Zug beginnt nicht im Freien")
+nase_fein = vh.vernetze(nase_teil, 0.005)
+tiefste = -math.inf
+for v, p in zip(kombi.punkte, kombi.punkte[1:], strict=False):
+    if p.eilgang:
+        continue
+    q_s = np.linspace(v.q, p.q, max(2, int(abs(p.q - v.q) / 0.25) + 1))
+    roh = vh.je_versatz(nase_fein, nase_l, nase_r, ff.scheibe(6.0), 0.0, p.a + 0.002, 1.0, 1, q_s)
+    tiefste = max(tiefste, float(np.max(np.where(np.isfinite(roh), roh - p.r, -math.inf))))
+pruefe(tiefste <= 0.005, f"Stirnseite: {tiefste:.3f} mm ins Teil")
+print(
+    ascii(
+        f"Nase mit Stirnseite: {kombi.lagen} Lagen, {kombi.zeilen} Züge, "
+        f"{vb.dauer(kombi, 955.0):.2f} min (ohne {vb.dauer(ohne, 955.0):.2f})"
+    )
+)
 FreeCAD.closeDocument(nase_doc.Name)
 
 if fehler:

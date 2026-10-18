@@ -94,6 +94,7 @@ class PlanIndexiert(PathOp.ObjectOp):
                 ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
                 ("App::PropertyEnumeration", "Weg", tr("vp.eigenschaft.weg")),
                 ("App::PropertyBool", "Schaft", tr("vp.eigenschaft.schaft")),
+                ("App::PropertyBool", "Stirnseite", tr("vp.eigenschaft.stirnseite")),
                 ("App::PropertyInteger", "Ebenen", tr("vp.eigenschaft.ebenen")),
                 ("App::PropertyInteger", "Lagen", tr("vp.eigenschaft.lagen")),
                 ("App::PropertyInteger", "Zeilen", tr("vp.eigenschaft.zeilen")),
@@ -172,6 +173,7 @@ def rechne(obj, job, modell):
         schaft=bool(getattr(obj, "Schaft", False)),
         schneide=reicht_hinab(obj.ToolController, float(obj.Zustellung)),
         weg=weg_der_operation(obj),
+        stirnseite=bool(getattr(obj, "Stirnseite", False)),
     )
 
 
@@ -281,6 +283,7 @@ def bahn_fuer(
     schaft=False,
     schneide=0.0,
     weg=vp.WEG_ZEILEN,
+    stirnseite=False,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
@@ -295,8 +298,9 @@ def bahn_fuer(
     `schaft`: die Seiten mit dem Schaft, soweit der Fräser hinunterreicht (`schneide`, mm:
     Schneide und Hals, reicht_hinab)
     (vierachs_planbahn.mit_dem_schaft), die anderen mit der Stirn; `weg`: über den ebenen Flächen
-    Zeilen oder Stiche von der offenen Seite (vierachs_planbahn.WEG_…). ValueError mit einem Satz,
-    wenn es nicht geht."""
+    Zeilen oder Stiche von der offenen Seite (vierachs_planbahn.WEG_…); `stirnseite`: die
+    Stirnseite hinten an einer Ebene mit dem Umfang, die Ebene mit der Stirn, in einer Stellung
+    (vierachs_stirnkombi). ValueError mit einem Satz, wenn es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen, zur_achse=zur_achse)
@@ -325,6 +329,7 @@ def bahn_fuer(
         gleichlauf=gleichlauf,
         nur_gleichlauf=nur_gleichlauf,
         weg=weg,
+        stirnseite=bool(stirnseite) and not bohrer,
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     nuten = vp.nuten(form_teil, laengs, radial, ebenen)
@@ -369,6 +374,7 @@ def vorschau(
     schneide=0.0,
     schruppen=(),
     weg=vp.WEG_ZEILEN,
+    stirnseite=False,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten, bevor es die
     Operationen gibt: gröber vernetzt, vom Rest nach den Schruppbahnen `schruppen` aus ([(Bahn,
@@ -394,6 +400,7 @@ def vorschau(
         schaft=schaft,
         schneide=schneide,
         weg=weg,
+        stirnseite=stirnseite,
     )
 
 
@@ -426,6 +433,7 @@ def lege_an(
     raster=0.0,
     schaft=False,
     weg=vp.WEG_ZEILEN,
+    stirnseite=False,
 ):
     """Legt „Plan indexiert“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
@@ -463,6 +471,7 @@ def lege_an(
     obj.NurGleichlauf = bool(nur_gleichlauf)
     obj.Weg = weg_wert(weg)
     obj.Schaft = bool(schaft)
+    obj.Stirnseite = bool(stirnseite)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -485,6 +494,7 @@ def aendere(
     raster=None,
     schaft=None,
     weg=None,
+    stirnseite=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `abstaende`, `halter`, `flaechen`, `eintauchwinkel`, `nur_gleichlauf` und
@@ -513,6 +523,8 @@ def aendere(
         obj.Schaft = bool(schaft)
     if weg is not None and weg != weg_der_operation(obj):
         obj.Weg = weg_wert(weg)
+    if stirnseite is not None and bool(stirnseite) != bool(getattr(obj, "Stirnseite", False)):
+        obj.Stirnseite = bool(stirnseite)
 
 
 def _name(tc):

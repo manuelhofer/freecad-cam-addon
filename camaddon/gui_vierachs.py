@@ -927,6 +927,7 @@ class VierachsPanel:
                 max(0, self.wahl_plan_weg.findData(vplan.weg_der_operation(op)))
             )
             self.plan_schaft.setChecked(bool(getattr(op, "Schaft", False)))
+            self.plan_stirnseite.setChecked(bool(getattr(op, "Stirnseite", False)))
         elif self._art == ENTGRATEN:
             paare = [("breite", op.Breite)]
         else:
@@ -1714,6 +1715,17 @@ class VierachsPanel:
         self.plan_schaft_grund = self._grau()
         self.plan_schaft_grund.setWordWrap(True)
         plan.ganz(self.plan_schaft_grund)
+        # Die Stirnseite hinten an einer Ebene mit dem Umfang, die Ebene mit der Stirn, in einer
+        # Stellung (Auftrag 2; Manuel, 2026-10-18: „ja auswählbar“, „So bauen, mit
+        # Ausspann-Hinweis“) – als Haken, vorbelegt an; nur, wo es so eine Stirnseite gibt.
+        self.plan_stirnseite = QtGui.QCheckBox(tr("va.plan.stirnseite"))
+        self.plan_stirnseite.setToolTip(tr("va.plan.stirnseite.tooltip"))
+        self.plan_stirnseite.setChecked(True)
+        self.plan_stirnseite.toggled.connect(lambda _an: self._vorschau_starten())
+        plan.ganz(self.plan_stirnseite)
+        self.plan_stirnseite_grund = self._grau()
+        self.plan_stirnseite_grund.setWordWrap(True)
+        plan.ganz(self.plan_stirnseite_grund)
         self.mit_planbohrer = QtGui.QCheckBox()
         self.mit_planbohrer.setToolTip(tr("va.plan.mit_bohrer.tooltip"))
         self.mit_planbohrer.toggled.connect(lambda _an: self._planbohrer_umgeschaltet())
@@ -2369,6 +2381,7 @@ class VierachsPanel:
     def _flaechen_geaendert(self):
         self._flaechen_zeigen()
         self._plan_vorschlagen()
+        self._stirnseite_zeigen()
         self._schlichten_vorschlagen()
         self._muster_vorschlagen()  # nach dem Plan: es sieht auf die Flächen, die der Kugel bleiben
         self._querachse_vorschlagen()
@@ -3447,6 +3460,7 @@ class VierachsPanel:
         werkzeug, einsatz = self.planfraeser(), self.planeinsatz()
         self.schnittwerte_plan.setText(self._schnittwerte_text(werkzeug, einsatz))
         self._schaft_zeigen()
+        self._stirnseite_zeigen()
         bohrer = vplan.bohrer_von(werkzeug)
         for feld, eingabe in self.felder_plan.items():
             eingabe.setPlaceholderText(
@@ -3559,6 +3573,7 @@ class VierachsPanel:
         self.planfelder.setVisible(self.plan_an())
         self.ergebnis_plan.setVisible(self.plan_an())
         self._schaft_zeigen()
+        self._stirnseite_zeigen()
         if self.plan_an() != war:
             self._umgeschaltet()
 
@@ -3626,6 +3641,35 @@ class VierachsPanel:
         """Die Seiten mit dem Schaft (angehakt und möglich)?"""
         return self.plan_schaft.isEnabled() and self.plan_schaft.isChecked()
 
+    def _stirnseite_zeigen(self):
+        """Der Haken „Stirnseite daneben mit dem Umfang“: sichtbar, wenn hinten an einer Ebene
+        von „Plan indexiert“ eine Stirnseite grenzt (vierachs_stirnkombi.stirnseiten); grau
+        darunter, welche mit dem Umfang und welche Ebene mit der Stirn."""
+        from . import vierachs_stirnkombi as vsk
+
+        werkzeug = self.planfraeser()
+        paare = []
+        if self.job is not None and werkzeug is not None and not vplan.bohrer_von(werkzeug):
+            achse = self.achse()
+            form = vr.modell(self.job).Shape
+            laengs, radial = achse.laengs, va.radial(achse)
+            for ebene in vp.ebenen(form, laengs, radial, self._plan_namen()):
+                if abs(ebene.steigung) >= vp.GERADE:
+                    continue
+                for stirn in vsk.stirnseiten(form, laengs, radial, ebene):
+                    paare.append((stirn.name, ebene.name))
+                    break
+        self.plan_stirnseite.setVisible(bool(paare))
+        self.plan_stirnseite_grund.setVisible(bool(paare))
+        self.plan_stirnseite_grund.setText(
+            " ".join(tr("va.plan.stirnseite.geht", stirn=s, ebene=e) for s, e in paare)
+        )
+        self._stirnseiten_da = bool(paare)
+
+    def plan_stirnseite_an(self):
+        """Die Stirnseite daneben mit dem Umfang (angehakt und eine da)?"""
+        return bool(getattr(self, "_stirnseiten_da", False)) and self.plan_stirnseite.isChecked()
+
     def plan_weg(self):
         """Der Weg über den ebenen Flächen (vierachs_planbahn.WEG_…)."""
         return self.wahl_plan_weg.currentData() or vp.WEG_ZEILEN
@@ -3671,6 +3715,7 @@ class VierachsPanel:
             "nur_gleichlauf": self.plan_nur_gleichlauf.isChecked(),
             "weg": self.plan_weg(),
             "schaft": self.plan_schaft_an() and not bohrer,
+            "stirnseite": self.plan_stirnseite_an() and not bohrer,
             "schneide": vplan.reicht_werkzeug(werkzeug, self._wert("zustellung_plan")),
             "schrupp": self._plan_schrupp(),
         }
@@ -5715,6 +5760,7 @@ class VierachsPanel:
                             schaft=self.plan_schaft_an(),
                             raster=self._aufloesung("aufloesung_plan"),
                             weg=self.plan_weg(),
+                            stirnseite=self.plan_stirnseite_an(),
                         )
                     )
                     if loecher:
@@ -5845,6 +5891,7 @@ class VierachsPanel:
                         schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
                         weg=self.plan_weg(),
+                        stirnseite=self.plan_stirnseite_an(),
                     )
                 elif self._art == ENTGRATEN:
                     tc = js.controller_fuer(
@@ -5949,6 +5996,7 @@ class VierachsPanel:
                         schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
                         weg=self.plan_weg(),
+                        stirnseite=self.plan_stirnseite_an(),
                     )
                     if loecher:
                         self._bohrer_dazu_anlegen(self.achse(), op.QuerAufNull, loecher)
