@@ -95,6 +95,7 @@ KAESTEN_HOECHSTENS = 2000  # Flächen: mehr hat ein Körper, dann ohne die Käst
 # berühren (_Welt._abstand_stl_netz) – die nächsten.
 BERUEHRT_DREIECKE = 8
 BERUEHRT_AB = 1e-7  # mm: so nah gilt als berührt – genauer rechnet distToShape ohnehin nicht
+STL_DREIECKE_JE_SCHRITT = 16  # so viele Dreiecke rechnet _abstand_stl je distToShape
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
 # mm: So tief darf die Schneide im Vorschub ins fertige Teil – Rundung der Bahn; tiefer ist
 # ein Befund („fährt ins fertige Teil“).
@@ -2110,11 +2111,26 @@ class _Welt:
             # Kapseln hätten die Schranke 0 – am Geist mit dem Halter Tausende, und OpenCascade
             # sammelte jeden Punkt der Schnittlinie: 36 s je Stelle (P-2026-10-18-73).
             return naechstes
-        kandidaten = dreiecke[schranke <= naechstes[0] + 1e-9]
+        kandidaten = np.flatnonzero(schranke <= naechstes[0] + 1e-9)
         if len(kandidaten) <= 1:
             return naechstes
-        alle = abstand_zu(kandidaten)
-        return alle if alle is not None and alle[0] <= naechstes[0] else naechstes
+        # In Stücken, die mit der kleinsten Schranke zuerst: Die Schranke ist nie mehr als der
+        # Abstand, also kann ein Dreieck, dessen Schranke schon über dem besten liegt, nicht
+        # näher sein – und berührt eins, ist es entschieden. Alle auf einmal gingen am Geist
+        # 2740 Dreiecke an OpenCascade, während der Halter das Teil durchdrang: 319 s für drei
+        # Stationen (P-2026-10-18-74).
+        reihe = kandidaten[np.argsort(schranke[kandidaten], kind="stable")]
+        bestes = naechstes
+        for anfang in range(0, len(reihe), STL_DREIECKE_JE_SCHRITT):
+            stueck = reihe[anfang : anfang + STL_DREIECKE_JE_SCHRITT]
+            if schranke[stueck[0]] > bestes[0] + 1e-9:
+                break
+            gefunden = abstand_zu(dreiecke[stueck])
+            if gefunden is not None and gefunden[0] < bestes[0]:
+                bestes = gefunden
+            if bestes[0] <= BERUEHRT_AB:
+                break
+        return bestes
 
     def _abstand_stl_netz(self, stl, anderer):
         """Der genaue Abstand eines Körpers ohne Kapseln (ein Maschinenteil) zu einem Teil aus

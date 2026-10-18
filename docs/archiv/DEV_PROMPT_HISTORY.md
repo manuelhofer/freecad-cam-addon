@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-74 kollision-dreiecke-in-stuecken
+
+### EINGELESEN
+- Nach P-73 blieben am Geist vier Stücke im Schlichten langsam. Profil von drei Stationen
+  (319,8 s): wieder `_abstand_stl`, diesmal ohne Berührung am nächsten Dreieck – der Halter von T2
+  (ER16) berührte es nicht, aber andere: 2740 Dreiecke mit der Schranke unter dem ersten Abstand gingen
+  auf einmal an OpenCascade, während der Halter das Teil durchdrang (jeder Punkt der Schnittlinie
+  eine Lösung).
+
+### DATEIEN
+- `camaddon/kollision.py`: `_abstand_stl` rechnet die Kandidaten in Stücken zu
+  `STL_DREIECKE_JE_SCHRITT` (16), die mit der kleinsten Schranke zuerst; hört auf, sobald eins
+  berührt oder die nächste Schranke über dem besten Abstand liegt (die Schranke ist nie mehr als
+  der Abstand – dasselbe Minimum).
+
+### ERGEBNIS
+| Messung | vorher | nachher |
+|---|---|---|
+| drei Stationen ab 311 000 (Halter von T2 im Teil) | 319,7 s | 0,5 s, dieselben 10 Stellen |
+| „Kollision prüfen“ am Geist, 381 711 Stationen, 16-GB-Grenze | nach 34 min nicht fertig | 7,3 min |
+- Am Geist mit den Szenario-Werten acht Befunde: Schneide, Schaft und Halter von T1 und T2 berühren das
+  Teil (der ER16 ist dafür zu dick), dazu ein Werkzeug im Revolver an der Spindel.
+- Grün im Wochen-Build: `test_stl_teil`, `test_kollision`, `test_kollision_verteilt`,
+  `szenario_kollision`.
 ## P-2026-10-18-73 kollision-beruehrt-schon
 
 ### EINGELESEN
