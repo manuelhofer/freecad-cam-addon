@@ -941,7 +941,9 @@ T1 Ø 12.
    radial) am Geist des Szenarios: 9,3 min, Speicher in einer 16-GB-Grenze; Befunde nur zu den
    Haltern (der Job des Szenarios ist ohne Halter gerechnet). Gegenprobe zu P-160 (Fräser unter den
    Armen): Schneide und Schaft von T1 und T2 berühren das Teil an keiner der 381 711 Stationen –
-   erledigt; offen bleibt nur, den Job mit dem Halter zu rechnen (dann weicht die Bahn ihm aus).
+   erledigt. Mit dem Halter in der Werkzeugverwaltung angelegt (VDI30 radial): an der Spindel
+   nichts mehr; der Assistent sagt gelb „T2 … bräuchte mindestens 33 mm“ (ohne den Kopf des
+   gewinkelten Halters), „Kollision prüfen“ mit dem Kopf 38 mm – vorn am Kopf des Geists.
 Frage 20 (Bereiche an einem STL wählen) entfällt: Ein STL wird immer rundum bearbeitet, angeklickt wird
 nur, wie es liegt (Manuel: „klar soll das immer rundum bearbeitet werden is ja ne stl“).
 
