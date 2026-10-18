@@ -6,10 +6,13 @@
 # unten 1). Beide Male: Das Räumen bleibt angehakt (es verlor den Haken mit dem Merker „schon weg“
 # aus dem zweiten Lauf seiner Folge), die Nut fräst die Ringnut mit T3 (der Ø 12 passt nicht
 # hinein, die Nut schlug sich neben anderen Flächen nicht vor – die Ringnut blieb liegen),
-# „Schlichten danach“ mit Messstopp davor. „Anlegen“: das Schruppen (Räumen, „Nut T3“, die
-# Kontur), dann Messstopp und „Wände schlichten T1“ zuletzt; beim Rundmaterial schlichtet niemand
-# den Mantel (davor steht kein Rohteil).
+# „Schlichten danach“ mit Messstopp davor. Das Räumen räumt über alles bis zur Unterkante
+# (Schlitz, Bohrung, außen herum – Grundsatz 5, Manuel: „keine luftfahrten … und wenn rohteil schon
+# fertigteil durchmesser hat ... dann muss man da auch nimmer drüber juckeln“), die Kontur hat
+# nichts zu tun. „Anlegen“: Räumen, „Nut T3“, Messstopp, „Wände schlichten T1“ – keine Kontur;
+# beim Rundmaterial schlichtet niemand den Mantel (davor steht kein Rohteil), bei der Platte schon.
 # ZEITLIMIT: 900
+import math
 import os
 import shutil
 import tempfile
@@ -83,6 +86,10 @@ def _ein_rohteil(h, ordner, name, rohteil_setzen):
         f"{name}: Schlichten danach {danach.aktiv()}, Messstopp "
         f"{danach.haken_felder['messstopp'].isChecked()}",
     )
+    h.pruefe(
+        not panel.kontur.aktiv() and "nichts zu tun" in panel.kontur.hinweis.text(),
+        f"{name}: Kontur {panel.kontur.aktiv()} {panel.kontur.hinweis.text()!r}",
+    )
     h.bild(f"1_{name}", panel.form)
     panel.knopf_weiter.click()
     yield 800
@@ -104,9 +111,33 @@ def _ein_rohteil(h, ordner, name, rohteil_setzen):
             f"{name}: Folge {namen}",
         )
     schlichten = next((o for o in neue if o.Label == "Wände schlichten T1"), None)
-    if name == "rund" and schlichten is not None:
+    h.pruefe(not any(n.startswith("Kontur") for n in namen), f"{name}: Kontur in {namen}")
+    if schlichten is not None:
         waende = list(getattr(schlichten, "Flaechen", []) or [])
-        h.pruefe("Face1" not in waende, f"rund: Mantel geschlichtet: {waende}")
+        print(ascii(f"{name}: Wände schlichten {waende}"))
+        h.pruefe(
+            ("Face1" in waende) == (name == "platte"),
+            f"{name}: Mantel beim Schlichten {'fehlt' if name == 'platte' else 'dabei'}: {waende}",
+        )
+    raeumen = next((o for o in neue if o.Label.startswith("Räumen")), None)
+    if name == "rund" and raeumen is not None:
+        # Keine Luft (Grundsatz 5): Der Fräser Ø 12 berührt die Stange Ø 60 nur bis R 36 – weiter
+        # draußen höchstens das Einfahren von außen in den Schlitz, kein Ring um den Mantel (am
+        # Raster gezackt, Manuel: „warum ist der werkeugweg der ausenrum geht so zackig“).
+        mantel = job.Model.Group[0].Shape.Faces[0].Surface
+        mitte, grenze = mantel.Center, mantel.Radius + 6.0 + 0.5
+        draussen = 0
+        for befehl in raeumen.Path.Commands:
+            werte = befehl.Parameters
+            if (
+                befehl.Name == "G1"
+                and "X" in werte
+                and "Y" in werte
+                and math.hypot(werte["X"] - mitte.x, werte["Y"] - mitte.y) > grenze
+            ):
+                draussen += 1
+        print(ascii(f"rund: {draussen} Sätze im Vorschub außerhalb R {grenze:.1f}"))
+        h.pruefe(draussen < 50, f"rund: {draussen} Sätze im Vorschub außerhalb R {grenze:.1f}")
     FreeCAD.closeDocument(doc.Name)
     yield 500
 

@@ -711,7 +711,20 @@ auf der ersten Fräserbreite der Bahn); ebenso das Hinab-daneben-und-quer-hinein
    um eine Abflachung herum bleibt es eine Fahrt. Die Zeilen hin und her wählbar
    (P-2026-10-02-24).
 5. **Keine Luftschnitte.** Bahn nur dort, wo Material steht (Abtrag) – bei
-   Zeilen, Lagen und Restbearbeitung.
+   Zeilen, Lagen und Restbearbeitung. **Eine allgemeine Regel für jede Strategie** (Manuel,
+   2026-10-18, zum C-Ring aus Rundmaterial, wo die Kontur den Mantel durch die Luft abfuhr: „das
+   sollte eine generelle regel sein ... wenn der fräser ... in der luft fährt .. ist das dumm ..
+   darum wollen wir das nicht !!!!! schreibs auf ... keine luftfahrten wenn luftfahren solten die
+   schnell passeieren !!! und wenn rohteil schon fertigteil durchmesser hat ... dann muss man da
+   auch nimmer drüber juckeln !“):
+   - Kein Vorschub durch die Luft. Muss der Fräser durch die Luft, dann schnell (Eilgang der
+     Maschine oder Freivorschub, `freiwege`), nicht im Arbeitsvorschub.
+   - Hat das Rohteil an einer Fläche schon das Fertigmaß (Rundmaterial Ø 60 am Ø-60-Mantel, ein
+     Quader ohne Aufmaß an der Seite), fährt dort niemand mehr drüber – weder Schruppen noch
+     Schlichten (`gui_bearbeitung.wand_ohne_rohteil`: 0,5 mm vor der Wand kein Rohteil).
+   - Sind Böden und Wände bis zur Unterkante gewählt, räumt das Räumen über alles von der Kante
+     des Rohteils her bis zur Unterkante (der Materialstand kennt das Rohteil); die Kontur
+     schruppt diese Wände nicht noch einmal, „Schlichten danach“ macht sie fertig (W-033/W-034).
 6. **Restmaterial kennen.** Ein Abtragsmodell je Job (Abschnitt 7): jede
    Operation weiß, was die vorige ließ; „Rest“ ist eine Strategie, keine
    Schätzung.

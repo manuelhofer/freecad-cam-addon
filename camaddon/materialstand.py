@@ -429,6 +429,21 @@ def _ist_quader(rohteil):
     return drehung is None or drehung.isIdentity()
 
 
+def _eingezogen(h):
+    """`h` (Höhen je Knoten, −inf außerhalb) um einen Knoten eingezogen: Wo ein Nachbar (auch
+    schräg, auch über den Rand des Rasters hinaus) außerhalb liegt, ist auch der Knoten außerhalb.
+    """
+    drin = np.isfinite(h)
+    rand = np.pad(drin, 1, constant_values=False)
+    bleibt = drin.copy()
+    nx, ny = drin.shape
+    for di in (-1, 0, 1):
+        for dj in (-1, 0, 1):
+            if di or dj:
+                bleibt &= rand[1 + di : 1 + di + nx, 1 + dj : 1 + dj + ny]
+    return np.where(bleibt, h, -np.inf)
+
+
 def _rohteil(job, kennung):
     """Der Stand ohne Operation: das Rohteil im Raster."""
     rohteil = job.Stock
@@ -441,7 +456,11 @@ def _rohteil(job, kennung):
         from . import vierachs_flaechen as vf
 
         netz = vf.vernetze(form, hf.VORSCHAU_TOLERANZ).netz
-        quader.h = hf.hoehen(netz, quader.x, quader.y)
+        # Um eine Zelle eingezogen: hoehen_an() sieht je Knoten das Höchste der Zellen um ihn
+        # (lieber Material, wo keins ist) – am Rand eines runden Rohteils stand so ein Saum bis
+        # eine Zelle außerhalb. Am C-Ring aus Rundmaterial Ø 60 räumte das Räumen ihn um den
+        # Ø-60-Mantel herum, gezackt am Raster, durch die Luft (Manuel, 2026-10-18; Grundsatz 5).
+        quader.h = _eingezogen(hf.hoehen(netz, quader.x, quader.y))
     davor = _ebene_davor(job)
     if davor:
         from . import raum_material as raum

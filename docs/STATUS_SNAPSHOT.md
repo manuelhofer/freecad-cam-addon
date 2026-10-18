@@ -1639,6 +1639,18 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   mit dem Fräser, der hineinpasst (T3); Wände mit „Schlichten danach“; die Kontur nicht mehr als
   Schruppen für durchgehende Wände, die das Räumen schon nimmt. Danach das Beispiel mit beiden
   Rohteilen (zwei Jobs).
+  **Gebaut (P-2026-10-18-88, -89):** Nut neben anderen Flächen, Räumen behält den Haken, Messstopp,
+  Schlichten nach allem Schruppen (0.266.2). Auf Manuels Antwort zur Frage „Räumen über alles
+  statt Kontur?“ – „das sollte eine generelle regel sein ... keine luftfahrten wenn luftfahren
+  solten die schnell passeieren !!! und wenn rohteil schon fertigteil durchmesser hat ... dann muss
+  man da auch nimmer drüber juckeln !“ (jetzt Grundsatz 5 in `spezifikation_strategien.md`):
+  Räumen über alles bis zur Unterkante auch neben Böden, die Kontur lässt diese Wände und die ohne
+  Rohteil davor aus; das runde Rohteil im Materialstand eine Zelle eingezogen; der Adaptiv-Kern
+  sieht Inseln nur in Reichweite von wegzunehmendem Material (sonst fuhr er gezackt um den Mantel
+  durch die Luft – Manuel: „warum ist der werkeugweg der ausenrum geht so zackig“). C-Ring:
+  Platte Räumen T1, Nut T3, Messstopp, Wände schlichten; Rundmaterial dasselbe ohne Mantel.
+  **Offen:** Im Schlitz-Keil (12–18 mm) fährt der Ø 12 noch hin und her – dort Wellen; das
+  Beispiel mit beiden Rohteilen (zwei Jobs).
 - **W-033 Ring von vorn statt radial** – Manuel, 2026-10-18, zum Bild mit dem radialen Fräser im
   Schlitz des Rings (`beispiele/ring_4achs_planbearbeitung.FCStd`, drei Segmente, Schlitze, Bohrung):
   „man könnte hier ja auch sozusagern von vorne reinfahren ? .. und auch her wellen bearbeiten aber

@@ -1409,11 +1409,13 @@ class _Raeumen(_Strategie):
         for boden in rb.taschenboeden(form, waende):
             if boden not in ebenen and bb.bohrung_ueber_boden(form, boden) is None:
                 ebenen.append(boden)
-        # Nur Wände gewählt (wie am C-Ring): Sonst bleibt es dabei – das Räumen räumt die Böden,
-        # die Kontur fährt die Wände (am Deckel Oberseite und Außenwände).
+        # Wände bis zur Unterkante: Darunter räumt es bis durch – auch neben Böden („Alles aus
+        # dieser Aufspannung“, ein Deckel mit Oberseite und Außenwänden). Manuel, 2026-10-18
+        # (W-033/W-034, Grundsatz 5): von außen über alles, keine Luft – die Kontur schruppt
+        # diese Wände nicht noch einmal (_flaechen), „Schlichten danach“ macht sie fertig.
         durch = [name for name in waende if ra.durchgehend(form, name)]
-        if durch and not ebenen:
-            ebenen.extend(_durch_gebiete(form, tuple(durch)))
+        if durch:
+            ebenen.extend(f for f in _durch_gebiete(form, tuple(durch)) if f not in ebenen)
         return ebenen
 
     def vorgeschlagen(self, form, gewaehlte):
@@ -7472,6 +7474,17 @@ class BearbeitungPanel:
         woraus = (tuple(flaechen), eigen, getattr(stand, "kennung", None))
         if nur_anders and gerechnet.get(block) == woraus:
             return False
+        if block is self.kontur and not flaechen and self._eigene(block, form):
+            # Ihre Wände räumt das Räumen bis durch, oder vor ihnen steht kein Rohteil – nichts zu
+            # tun: Sie gibt den Haken ab wie nach dem Materialstand (_schon_weg_abhaken).
+            block.leeren()
+            if set(self._eigene(block, form)) & set(self._durch_waende(form)):
+                block.hinweis.setText(tr("ba.kontur.beim_raeumen"))
+            else:
+                block.hinweis.setText(tr("ba.kontur.kein_rohteil"))
+            block.schon_weg = True
+            gerechnet[block] = woraus
+            return True
         yield from block.vorschau_schritte(self.job, flaechen, zusatz)
         gerechnet[block] = woraus
         if block is self.kontur:
@@ -8215,6 +8228,12 @@ class BearbeitungPanel:
             for anderer in (self.bohren, self.bohrung, self.nut):
                 if anderer.aktiv() and not self._gleiche_flaechen(block, form, anderer):
                     weg |= set(self._eigene(anderer, form))
+            # Die Wände, unter denen das Räumen bis durch räumt – außer es wetteifert mit ihr um
+            # genau dieselben Wände (nur Wände gewählt, Frage 4) –, und die, vor denen kein
+            # Rohteil steht (Grundsatz 5; W-033/W-034).
+            if self.raeumen.aktiv() and not self._gleiche_flaechen(block, form, self.raeumen):
+                weg |= set(self._durch_waende(form))
+            weg |= {f for f in flaechen if f not in weg and self._ohne_rohteil(form, f)}
             return [f for f in flaechen if f not in weg]
         if (
             block is self.schlichten3d

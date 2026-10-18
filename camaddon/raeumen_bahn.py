@@ -2941,7 +2941,14 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
         # (P-2026-10-10-43). Die Inseln – das Gesperrte im Maß der Schneide – zählen für ihn
         # deshalb als Material; nachgestellt am Kern hält er dann 6,05 statt 5,20 mm bei R 6.
         # Der Kern von 1.1 rechnet damit genauso wie ohne, er bekommt es nicht.
-        tiefe = np.maximum(tiefe, np.where(np.isfinite(D), -(D + r), -np.inf))
+        # Nur in Reichweite von Material, das wegzunehmen ist (das Rohteil ohne die Inseln): Sonst
+        # fuhr der Kern sein Profil um eine Insel, um die nichts steht – am C-Ring aus
+        # Rundmaterial Ø 60 rund um den Mantel durch die Luft, gezackt am Raster (Manuel,
+        # 2026-10-18: „warum ist der werkeugweg der ausenrum geht so zackig“; Grundsatz 5).
+        insel = np.where(np.isfinite(D), -(D + r), -np.inf)
+        weg = (tiefe > 0) & ~(insel > 0)
+        nahe = feld.aufweiten(weg, r + ae + feld.schritt)
+        tiefe = np.maximum(tiefe, np.where(nahe, insel, -np.inf))
     rand = np.zeros(tiefe.shape, dtype=bool)
     rand[0, :] = rand[-1, :] = rand[:, 0] = rand[:, -1] = True
     if (tiefe[rand] > 0).any():
@@ -3045,7 +3052,12 @@ def _adaptiv_gebiet(ablauf, feld, w, r, schritt, start, mitte, stuecke):
     for schneidet, frei, ecken in stuecke:
         if not schneidet:
             weg = np.vstack([[ort], ecken])
-            if unten and frei and _weg_frei(ablauf, feld, weg, schritt):
+            if (
+                unten
+                and frei
+                and not _umweg(ablauf, weg, r)
+                and _weg_frei(ablauf, feld, weg, schritt)
+            ):
                 # G1 hält den geprüften Weg auch auf Steuerungen mit achsparallelem G0.
                 # Ein vorgegebener Freivorschub gilt ausschließlich für diese vom Kern als
                 # frei bezeichneten und am Materialstand nachgeprüften Verbindungen.
@@ -3087,6 +3099,21 @@ def _adaptiv_gebiet(ablauf, feld, w, r, schritt, start, mitte, stuecke):
     st.laeufe += 1
     st.z_min = min(st.z_min, lage)
     return True
+
+
+def _umweg(ablauf, weg, r):
+    """Ist die Verbindung `weg` (m, 2) des Adaptiv-Kerns durchs Freie länger als Abheben, gerade
+    hinüber und wieder hinab (dazu ein Fräserdurchmesser)? Der Kern bleibt unten, wenn der gerade
+    Abstand unter keepToolDownDistRatio · D liegt – wie lang der Weg wird, den er dann sucht,
+    prüft er nicht: Am C-Ring aus Rundmaterial fuhr er vom Schlitz zur Bohrung 200 mm außen um
+    das Teil herum, gezackt am Raster (Manuel, 2026-10-18: „warum ist der werkeugweg der ausenrum
+    geht so zackig“; Grundsatz 5: keine Luftfahrten). Dann hebt er ab."""
+    if len(weg) < 2:
+        return False
+    lang = float(np.sum(np.hypot(*np.diff(np.asarray(weg, dtype=float), axis=0).T)))
+    gerade = math.dist(weg[0], weg[-1])
+    hub = max(float(ablauf.knapp) - float(ablauf.lage), 0.0)
+    return lang > 2.0 * hub + gerade + 2.0 * r
 
 
 def _weg_frei(ablauf, feld, ecken, schritt):

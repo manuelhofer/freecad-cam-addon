@@ -1767,6 +1767,8 @@
     "va.planfraeser.tooltip": "A cutter with a flat tip from the tool manager with cutting data: flat, torus or face mill.",
     "va.planeinsatz.tooltip": "Which cutting data of the cutter apply – “Facing” preselected. It gives speed, feed, stepdown (ap) and row spacing (ae).",
     "ba.von_vorn.nur_radial": "From the front on the bar only a cutter in an axial holder can mill – the fitting cutters sit radially and point at the bar axis. Give a cutter an axial holder in the tool manager (“Tool manager …”).",
+    "ba.kontur.beim_raeumen": "Nothing to do here – “Clearing” clears through along these walls, “Finish afterwards” brings them to size.",
+    "ba.kontur.kein_rohteil": "Nothing to do here – there is no stock in front of any of the walls.",
     "va.planfraeser.keiner": "The tool manager has no cutter with a flat tip and cutting data for this material – create one there (“Tool manager …”).",
     "va.zustellung_plan": "Stepdown per layer",
     "va.zustellung_plan.tooltip": "This deep per layer, perpendicular to the face. Empty: the grey suggestion, ap of the application from the tool table.",

@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-89 raeumen-ueber-alles-keine-luft
+
+### EINGELESEN
+- Manuel, 2026-10-18, zur Frage „Räumen über alles statt Kontur?“ (Bild
+  `docs/bilder/vorschlaege/cring_ueber_alles.png`): „das sollte eine generelle regel sein ... wenn
+  der fräser ... in der luft fährt .. ist das dumm .. darum wollen wir das nicht !!!!! schreibs auf
+  ... keine luftfahrten wenn luftfahren solten die schnell passeieren !!! und wenn rohteil schon
+  fertigteil durchmesser hat ... dann muss man da auch nimmer drüber juckeln !“
+- Zum Bild: „warum ist der werkeugweg der ausenrum geht so zackig sit das von der C bewegung ?“ –
+  keine C-Achse (3-Achs-Fräse): Der Adaptiv-Kern räumte auf der untersten Lage einen Saum um den
+  Ø-60-Mantel, den es nicht gibt, gezackt am Raster, durch die Luft.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md`: Grundsatz 5 als allgemeine Regel mit Manuels Worten.
+- `camaddon/gui_bearbeitung.py`: `_Raeumen.flaechen_fuer` – die Gebiete bis zur Unterkante auch
+  neben Böden; `_flaechen(kontur)` ohne die Wände, unter denen das Räumen bis durch räumt (außer
+  beide wetteifern um genau dieselben Wände, Frage 4) und ohne die, vor denen kein Rohteil steht;
+  bleibt der Kontur nichts, sagt sie warum und gibt den Haken ab (`ba.kontur.beim_raeumen`,
+  `ba.kontur.kein_rohteil`).
+- `camaddon/materialstand.py`: `_eingezogen` – ein Rohteil, das kein Quader ist, im Raster um einen
+  Knoten eingezogen (hoehen_an() sieht das Höchste der Nachbarn: am Rand stand ein Saum bis
+  R 30,4 um die Stange R 30).
+- `camaddon/raeumen_bahn.py`: Der Adaptiv-Kern (26.3/Wochen-Build) bekommt die Inseln als Material
+  nur in Reichweite von Material, das wegzunehmen ist (das Rohteil ohne die Inseln) – sonst fuhr
+  er sein Profil um den Mantel. `_umweg`: Eine Verbindung des Kerns durchs Freie, länger als
+  Abheben, hinüber und hinab, wird abgehoben.
+- `translations/*.json`, `tests/gui/szenario_bearbeitung_cring_alles.py` (keine Kontur, Mantel nur
+  bei der Platte geschlichtet, beim Rundmaterial kein Ring im Vorschub außerhalb R 36,5).
+- `docs/STATUS_SNAPSHOT.md` (W-034), `docs/OFFENE_FRAGEN.md` (Frage 1 beantwortet).
+
+### ERGEBNIS
+- C-Ring aus Rundmaterial: Räumen 1522 → 838 mm im Vorschub, außerhalb der Reichweite 449 → 15
+  Sätze (das Einfahren in den Schlitz von außen); keine Kontur mehr.
+- Grün im Wochen-Build: `test_raeumen`, `test_materialstand`, `szenario_bearbeitung_cring_alles`,
+  `szenario_bearbeitung_zylinder`, `szenario_bearbeitung`, `szenario_bearbeitung_aufspannung`,
+  `szenario_bearbeitung_stl`, `szenario_raeumen`, `szenario_raeumen_durch`,
+  `szenario_raeumen_schlichten`, `szenario_raeumen_materialstand`, `szenario_nut_offen`,
+  `szenario_zweiter_lauf`, `szenario_vierachs_stirnseite`.
 ## P-2026-10-18-88 cring-alles-aus-der-aufspannung
 
 ### EINGELESEN
