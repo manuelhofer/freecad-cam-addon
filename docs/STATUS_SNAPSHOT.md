@@ -1625,6 +1625,20 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Sektoren mit je fünf Zeilen) fahren damit Wellen. Der Kern radial in Ringen von außen ist
   **verworfen** – Manuel, 2026-10-18, zum Bild mit dem Fräser im Schlitz: „ja okgut wenn man das so
   bearbeitet .. was nicht der plan ist … das bearbeitet man doch von vorne ;)“ → W-033.
+- **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu
+  Frage 1 (Rohteil des Beispiels `c_ring_nut_3achs`: Platte 65 × 65 × 12 oder vorgedrehter Ring
+  Ø 60 × 10): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt welle d60 ist
+  muss man ausen nix machen ...“. **Stand:** „Bearbeitung“ ohne Job, „Alles aus dieser
+  Aufspannung“, Testkiste (T1 Ø 12, T2 Plan 50, T3 Ø 6, T4 Ø 20) – bei beiden Rohteilen (Quader
+  mit Maßen 65 × 65 × 12, Aufmaß oben 1; Zylinder Ø 60, oben 1, Umfang 0, unten 1) legt sie nur
+  „Kontur T1“ an: Oberseite nicht plan, Mantel nicht, die Ringnut nicht (Ø 12 passt nicht, „Nut“
+  rechnet gar nicht mit), Einfahrten außen in der Luft (Platte 4,7 m Eilgang, Rundmaterial fährt
+  trotzdem außen herum). Gleiche Ursache wie W-033. **Plan:** Oberseite plan; Räumen über alles –
+  Böden und die Gebiete bis zur Unterkante in einer Operation, vom Rand des Rohteils her (beim
+  Rundmaterial steht außen nichts, nur Schlitz und Bohrung); die Ringnut als offene Nut in D-Bögen
+  mit dem Fräser, der hineinpasst (T3); Wände mit „Schlichten danach“; die Kontur nicht mehr als
+  Schruppen für durchgehende Wände, die das Räumen schon nimmt. Danach das Beispiel mit beiden
+  Rohteilen (zwei Jobs).
 - **W-033 Ring von vorn statt radial** – Manuel, 2026-10-18, zum Bild mit dem radialen Fräser im
   Schlitz des Rings (`beispiele/ring_4achs_planbearbeitung.FCStd`, drei Segmente, Schlitze, Bohrung):
   „man könnte hier ja auch sozusagern von vorne reinfahren ? .. und auch her wellen bearbeiten aber
