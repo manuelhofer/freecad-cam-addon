@@ -1409,8 +1409,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   *Stufe 1 erledigt:* P-2026-10-16-17, „Zylinder mit Aufmaß“ in Schritt 1. Der Rohling steht um
   das Teil (kleinster Kreis um den Umriss von oben); „seitlich“ ist das Aufmaß am Umfang. Die
   Strategien räumen über den Materialstand nur, wo Rohteil ist, nicht in den Ecken des Kastens.
-  Offen: das Dreibackenfutter als Spannmittel (Backen am Rohling, wie W-020; statt der
-  Schraubstockbacken bei „von unten gespannt“), Kollision und Einrichtblatt.
+  Das Dreibackenfutter als Spannmittel (Backen am Rohling, wie W-020) – Stufe 2 unten; das
+  Einrichtblatt sagt „Dreibackenfutter Ø … von unten gespannt“ (`eb.spannung.futter`). Erledigt.
   *Stufe 2 erledigt:* P-2026-10-16-18. Mit „von unten gespannt“ sitzen am runden Rohling drei
   Backen (je 120°) im Bild und in der Kollision. Die Prüfung misst am Kreis statt am Kasten und
   sagt „Dreibackenfutter“.
