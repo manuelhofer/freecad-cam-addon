@@ -367,4 +367,5 @@ FreeCAD.closeDocument(dok.Name)
 
 if fehler:
     raise AssertionError("\n".join(fehler))
-print("OK test_stl_teil.py")
+print()  # FreeCADCmd 1.1 schreibt Fortschritt ohne Zeilenende davor
+print("OK test_stl_teil.py", flush=True)
