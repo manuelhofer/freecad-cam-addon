@@ -320,6 +320,18 @@ pruefe(vr.einstellung(job).stange.spannlaenge == 25.0, "Rückgängig: Spannläng
 netz = vr._vernetzt(teil.Shape)
 pruefe(vr._vernetzt(teil.Shape) is netz, "dasselbe Teil zweimal vernetzt")
 pruefe(vr._vernetzt(Part.makeBox(5, 5, 5)) is not netz, "ein anderes Teil bekommt dasselbe Netz")
+# Höchstens NETZE_DREIECKE zusammen (P-2026-10-18-76): Ein großes Netz verdrängt die älteren.
+from camaddon import formteile as ft  # noqa: E402
+
+grenze = ft.NETZE_DREIECKE
+try:
+    ft.NETZE_DREIECKE = len(netz[1])
+    zylinder = Part.makeCylinder(10, 30)
+    ft.vernetzt(zylinder, 0.01)
+    pruefe(vr._vernetzt(teil.Shape) is not netz, "über der Grenze blieb das alte Netz gemerkt")
+    pruefe(ft.vernetzt(zylinder, 0.01) is not None, "das neue Netz fehlt")
+finally:
+    ft.NETZE_DREIECKE = grenze
 # Auf eine andere Rundachse umgestellt (P-2026-10-12-138: der Job ohne Maschine auf B, die
 # Maschine dreht C): dieselbe Stange, Mitte und Drehlage, die Stange jetzt längs Z.
 from camaddon import vierachs_achsen as va  # noqa: E402

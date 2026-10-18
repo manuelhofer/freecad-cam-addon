@@ -20,6 +20,9 @@ NUMMERN_FORMEN = 8
 # Je (hashCode, Toleranz) einer Form: (die Form – festgehalten wie oben –, ihr Netz) (vernetzt).
 _NETZE = OrderedDict()
 NETZE_GEMERKT = 128
+# Höchstens so viele Dreiecke in allen gemerkten Netzen zusammen: Die Formen bleiben gehalten, auch
+# wenn ihr Dokument zu ist – ein großes Teil (der Geist: 68.242 Dreiecke) soll nicht 128-mal bleiben.
+NETZE_DREIECKE = 1_000_000
 
 
 def vernetzt(form, toleranz):
@@ -37,7 +40,9 @@ def vernetzt(form, toleranz):
     netz = form.copy(False, False).tessellate(toleranz)
     _NETZE[schluessel] = (form, netz)
     _NETZE.move_to_end(schluessel)
-    while len(_NETZE) > NETZE_GEMERKT:
+    while len(_NETZE) > 1 and (
+        len(_NETZE) > NETZE_GEMERKT or sum(len(e[1][1]) for e in _NETZE.values()) > NETZE_DREIECKE
+    ):
         _NETZE.popitem(last=False)
     return netz
 

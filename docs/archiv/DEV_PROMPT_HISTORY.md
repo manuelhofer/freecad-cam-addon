@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-76 netze-merken-begrenzt
+
+### EINGELESEN
+- Gegenleser zu P-69 … P-74, Hinweis zu P-71: `formteile.vernetzt` hält bis zu 128 Formen samt Netz,
+  auch wenn ihr Dokument geschlossen ist. Bei großen Teilen (Geist: 68.242 Dreiecke) bliebe in einer
+  langen Sitzung viel Speicher gebunden.
+
+### DATEIEN
+- `camaddon/formteile.py`: zusätzlich höchstens `NETZE_DREIECKE` (1 Million) Dreiecke in allen gemerkten
+  Netzen; darüber fallen die ältesten heraus (das neueste bleibt immer).
+- `tests/test_vierachs_rohteil.py`: Ein Netz über der Grenze verdrängt die älteren.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_rohteil`, `test_zugang`, `szenario_testteil`.
 ## P-2026-10-18-75 kollision-ehrlich-und-spannlaenge-null
 
 ### EINGELESEN
