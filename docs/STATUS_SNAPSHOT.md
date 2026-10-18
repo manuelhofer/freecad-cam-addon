@@ -1582,6 +1582,20 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   aus). Bild: `docs/bilder/vorschlaege/nase_assistent_fuenf_flaechen.png`. Offen: der Rest nach
   dem Schruppen auf den schrägen Flächen (bis 4 mm², gelber Satz) – Auftrag 2, Front quer mit dem
   Umfang.
+- **W-028 Rohteil-Maße statt Aufmaß** – Manuel, 2026-10-18: „rohteil quader 60.93x61.96 ist natürlich
+  quatsch“; Rohteilmaße eingeben, Vorschlag „Nullpunkt mittig oben“, das Teil um „Aufmaß oben“
+  darunter, ein Schalter für „Aufmaß unten“ statt oben, Warnung, wenn das Teil nicht hineinpasst,
+  Spanntiefe von unten bleibt (Wortlaut unter „Nächster Schritt“).
+- **W-029 Das Fertigteil einer Aufspannung als Rohteil der nächsten** – Manuel, 2026-10-18: „sagen wir
+  mal wir haben jetzt den C ring ... außen fertig bearbeitet .. und innen und die nut ist auch fertig
+  ... kann man dann generieren lassen ... ein neues teil im selben ordner mit dem namen ...
+  aufspannung 1 fertigteil ... so das man das dann nutzen kann als rohteil für die zweite aufspannung
+  ? also das man sozusagen eine datei hat wo das bauteil abbildet das gefräst wurde und das dann
+  weiter verwendet ? ist sowas möglich ?“ Plan: aus dem Materialstand nach der letzten Operation
+  (materialstand, für 3+2 raum_material) einen Körper bauen (Höhenfeld bzw. Strahlabschnitte → Netz →
+  Solid), als eigene Datei „<Teil> – Aufspannung 1 – Fertigteil.FCStd“ neben dem Teil speichern; die
+  zweite Aufspannung nimmt ihn als Rohteil (CAM „Vorhandener Körper“). Genau bis aufs Raster des
+  Materialstands; Kanten und Bohrungen, die das Raster nicht trifft, zeigen es. Noch nicht gebaut.
 - **Nacht zum 18.10., zweite Hälfte (P-64 … P-69):** Voller Testlauf (121) fand drei
   Simultan-Tests rot seit P-2026-10-17-22 – das 3D-Schruppen vernetzte die gewählten Flächen am
   Original; daraus die Regel „nur Kopien vernetzen“ an allen Stellen (P-64, P-68: Vermessen im
