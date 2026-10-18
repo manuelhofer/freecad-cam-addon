@@ -927,6 +927,32 @@ def _drehmaschine_text(eintrag):
     return text
 
 
+def wand_ohne_rohteil(form, name, rohteil, abstand=0.5):
+    """Steht vor der Wand `name` von `form` kein Rohteil – `abstand` mm vor 16 Punkten auf ihr,
+    in Richtung aus dem Teil heraus, liegt keiner in `rohteil` (einer Form)? Dann ist die Wand
+    schon fertig, „Schlichten danach“ fährt sie nicht ab: am C-Ring aus Rundmaterial Ø 60 der
+    Mantel (Manuel, 2026-10-18, W-034: „wenn rt welle d60 ist muss man ausen nix machen“)."""
+    nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
+    if rohteil is None or rohteil.isNull() or not 0 <= nummer < len(form.Faces):
+        return False
+    flaeche = form.Faces[nummer]
+    u0, u1, v0, v1 = flaeche.ParameterRange
+    proben = 0
+    for i in range(4):
+        for j in range(4):
+            u, v = u0 + (u1 - u0) * (i + 0.5) / 4, v0 + (v1 - v0) * (j + 0.5) / 4
+            punkt = flaeche.valueAt(u, v)
+            if not flaeche.isInside(punkt, 1e-6, True):
+                continue
+            normale = flaeche.normalAt(u, v)
+            if form.isInside(punkt + normale * 0.3, 1e-6, False):
+                normale = normale * -1  # ins Teil hinein gezeigt: umdrehen
+            proben += 1
+            if rohteil.isInside(punkt + normale * abstand, 1e-6, True):
+                return False
+    return proben > 0
+
+
 def von_vorn_moeglich(job, bibliothek, werkzeug):
     """Kann `werkzeug` im Job von vorn fräsen? An der Stange der Drehmaschine (W-025) nur im
     geraden (axialen) Halter – im gewinkelten (radialen) zeigt es auf die Achse der Stange, nicht
@@ -1767,9 +1793,14 @@ class _Nut(_Strategie):
 
     def vorgeschlagen(self, form, gewaehlte):
         """Von sich aus, wenn alle gewählten Flächen zu Nuten gehören – nur Gründe oder nur
-        Wände; beides zusammen ist die Folge Räumen und Kontur."""
-        if not gewaehlte or not all(self.passt(form, n) for n in gewaehlte):
+        Wände; beides zusammen ist die Folge Räumen und Kontur. Steht neben dem Grund einer Nut
+        auch anderes in der Wahl („Alles aus dieser Aufspannung“), fräst die Nut ihren Grund –
+        sonst blieb sie liegen, wenn der Fräser des Räumens nicht hineinpasst (W-034: die
+        Ringnut des C-Rings mit Ø 12 in 10 mm)."""
+        if not gewaehlte:
             return False
+        if not all(self.passt(form, n) for n in gewaehlte):
+            return any(self.passt(form, n) and nb.ist_grund(form, n) for n in gewaehlte)
         gruende = [n for n in gewaehlte if nb.ist_grund(form, n)]
         return not gruende or len(gruende) == len(gewaehlte)
 
@@ -7611,15 +7642,15 @@ class BearbeitungPanel:
                     block.fraeser_setzen(gross.fraeser())
                     self._fuellt = True
                 waende = set(self._schlichten_danach_zusatz(form).get("wand_flaechen", ()))
-                if waende & set(self._durch_waende(form)) and not block.haken.isChecked():
+                durch = bool(waende & set(self._durch_waende(form)))
+                nut = self._nut_laesst_aufmass()
+                if (durch or nut) and not block.haken.isChecked():
                     block.haken.setChecked(True)
-                    geaendert = True
-                if self._nut_laesst_aufmass() and not block.haken.isChecked():
-                    # Nach der Nut von sich aus, mit Messstopp: Schruppen, messen, schlichten
-                    # (Manuel, 2026-10-17) – auch neben dem Räumen (sonst blieben die Nutwände
-                    # mit Aufmaß stehen, Gegenleser zu P-41).
-                    block.haken.setChecked(True)
-                    block.haken_felder["messstopp"].setChecked(True)
+                    if nut:
+                        # Nach der Nut von sich aus mit Messstopp: Schruppen, messen, schlichten
+                        # (Manuel, 2026-10-17) – auch neben dem Räumen bis durch (sonst blieben
+                        # die Nutwände mit Aufmaß stehen, Gegenleser zu P-41; W-034).
+                        block.haken_felder["messstopp"].setChecked(True)
                     geaendert = True
             block.zustand_zeigen()
         finally:
@@ -7716,7 +7747,8 @@ class BearbeitungPanel:
         # Räumen und Nut zusammen (Gegenleser zu P-41): die Wände der Nut dazu, das größere Aufmaß
         # – die Kontur nimmt so viel weg und macht beide auf Maß.
         waende = [w for w in _waende_um(form, boeden) + durch + nut_waende if w not in kontur]
-        waende = list(dict.fromkeys(waende))
+        # Nicht die Wände, vor denen kein Rohteil steht (der Mantel im Rundmaterial, W-034).
+        waende = [w for w in dict.fromkeys(waende) if not self._ohne_rohteil(form, w)]
         return {
             "boden_flaechen": boeden,
             "wand_flaechen": waende,
@@ -7941,15 +7973,16 @@ class BearbeitungPanel:
         und die Nut verlor bei jeder Änderung den Haken – „Hier ist nichts mehr zu tun“)."""
         reihe = list(bloecke)
         danach = self.schlichten_danach
-        if (
-            danach in reihe
-            and self.nut in reihe
-            and danach.aktiv()
-            and self.nut.aktiv()
-            and self._nut_laesst_aufmass()
-        ):
+        if danach not in reihe or not danach.aktiv():
+            return reihe
+        # Schruppen – messen – schlichten (Manuel, 2026-10-17): hinter alles, was Wände schruppt –
+        # auch hinter die Kontur (am C-Ring kam sie nach Messstopp und Schlichten, W-034).
+        quellen = [self.raeumen, self.restraeumen, self.kontur]
+        if self.nut.aktiv() and self._nut_laesst_aufmass():
+            quellen.append(self.nut)
+        quellen = [b for b in quellen if b in reihe and b.aktiv()]
+        if quellen:
             reihe.remove(danach)
-            quellen = [b for b in (self.raeumen, self.nut) if b in reihe and b.aktiv()]
             reihe.insert(max(reihe.index(b) for b in quellen) + 1, danach)
         return reihe
 
@@ -8148,8 +8181,15 @@ class BearbeitungPanel:
         bohrt, wenn beide nicht um dieselben Bohrungen wetteifern (ein Flansch: der Bohrer die
         Lochkreisbohrungen, der Fräser die große in der Mitte; P-2026-10-02-12)."""
         flaechen = self._eigene(block, form)
-        if block is self.raeumen and self._raeumen_boeden is not None:
-            return list(self._raeumen_boeden)
+        if block is self.raeumen:
+            # Die Gründe der Nuten fräst die Nut, wenn sie angehakt ist und nicht um genau dieselben
+            # Flächen wetteifert (W-034, wie die Kontur ihre Wände auslässt).
+            weg = set()
+            if self.nut.aktiv() and not self._gleiche_flaechen(block, form, self.nut):
+                weg = {f for f in self._eigene(self.nut, form) if nb.ist_grund(form, f)}
+            if self._raeumen_boeden is not None:
+                return [f for f in self._raeumen_boeden if f not in weg]
+            return [f for f in flaechen if f not in weg]
         if block is self.restraeumen:
             # Nur die Taschen, die das Räumen ausließ (Raeumbahn.ausgelassen).
             if not self.raeumen.aktiv():
@@ -8185,6 +8225,23 @@ class BearbeitungPanel:
             flanke = set(self._eigene(self.flanke, form))
             return [f for f in flaechen if f not in flanke]
         return flaechen
+
+    def _ohne_rohteil(self, form, name):
+        """wand_ohne_rohteil mit dem Rohteil des Jobs – je Rohteil, Teil und Fläche gemerkt."""
+        rohteil = getattr(getattr(self.job, "Stock", None), "Shape", None)
+        if rohteil is None or rohteil.isNull():
+            return False
+        bb = rohteil.BoundBox
+        schluessel = (
+            name,
+            round(rohteil.Volume, 3),
+            tuple(round(w, 3) for w in (bb.XMin, bb.XMax, bb.YMin, bb.YMax, bb.ZMin, bb.ZMax)),
+            round(form.Volume, 3),
+        )
+        merk = self.__dict__.setdefault("_ohne_rohteil_merk", {})
+        if schluessel not in merk:
+            merk[schluessel] = wand_ohne_rohteil(form, name, rohteil)
+        return merk[schluessel]
 
     def _bohrer_da(self, form, gerieben=False):
         """Hat die Werkzeugverwaltung einen Bohrer, der wenigstens eine der gewählten Bohrungen
@@ -8718,11 +8775,16 @@ class BearbeitungPanel:
             )
             yield
         yield from raeumen.vorschau_schritte(self.job, flaechen, mit_stand(flaechen))
+        # Mit „schon weg“: Sonst behielte das Räumen den Merker des zweiten Laufs – am C-Ring
+        # („Alles aus dieser Aufspannung“, W-034) ging der mit dem Ø 12 nicht in die Ringnut, und
+        # _schon_weg_abhaken nahm dem Räumen über alles den Haken.
         alles = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
+        alles_weg = raeumen.schon_weg
         yield
         # Nur die Böden: Das Planfräsen fräst davor die ebenen Flächen – es gehört dazu.
         yield from raeumen.vorschau_schritte(self.job, boeden, mit_stand(boeden, (plan,)))
         nur = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
+        nur_weg = raeumen.schon_weg
         if nur[0] is None and alles[0] is not None:
             # Die Böden allein gehen nicht (der Fräser passt nicht in die Tasche – am Testteil T1
             # in der dreieckigen): keine Folge, das Räumen nimmt alles wie ohne sie. Sonst stand
@@ -8735,6 +8797,7 @@ class BearbeitungPanel:
                 finally:
                     self._fuellt = False
             raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, hinweis = alles
+            raeumen.schon_weg = alles_weg
             raeumen.ergebnis.setText(raeumen.ergebnis_basis)
             raeumen.material.setText(_material_text(raeumen.vorschau))
             raeumen.hinweis.setText(hinweis)
@@ -8753,8 +8816,10 @@ class BearbeitungPanel:
         if plan.aktiv():
             self._raeumen_boeden = list(boeden)
             raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, hinweis = nur
+            raeumen.schon_weg = nur_weg
         else:
             raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, hinweis = alles
+            raeumen.schon_weg = alles_weg
         raeumen.ergebnis.setText(raeumen.ergebnis_basis)
         raeumen.material.setText(_material_text(raeumen.vorschau))
         raeumen.hinweis.setText(hinweis)

@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-88 cring-alles-aus-der-aufspannung
+
+### EINGELESEN
+- Manuel, 2026-10-18, zu Frage 1 (Rohteil des C-Ring-Beispiels: Platte 65 × 65 × 12 oder
+  vorgedrehter Ring Ø 60): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt
+  welle d60 ist muss man ausen nix machen ...“ (W-034).
+- Nachgerechnet: „Bearbeitung“ am C-Ring ohne Job, Testkiste, „Alles aus dieser Aufspannung“ – bei
+  beiden Rohteilen nur „Kontur T1“: Oberseite nicht plan, die Ringnut gar nicht, beim
+  Rundmaterial die Kontur außen herum durch die Luft.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`:
+  - `_folge_schritte`: Das Räumen behält mit dem Ergebnis „über alles“ auch dessen Merker
+    `schon_weg` – bisher blieb der aus dem zweiten Lauf (nur die Böden, mit dem Ø 12 nicht in die
+    Ringnut), und `_schon_weg_abhaken` nahm dem Räumen den Haken.
+  - `_Nut.vorgeschlagen`: Steht neben dem Grund einer Nut auch anderes in der Wahl, schlägt sich
+    die Nut vor (sonst blieb die Ringnut liegen); `_flaechen(raeumen)` lässt die Gründe der
+    angehakten Nut aus (wie die Kontur ihre Wände).
+  - `_schlichten_danach_einrichten`: Messstopp nach der Nut auch, wenn „Schlichten danach“ schon
+    wegen durchgehender Wände angehakt ist.
+  - `wand_ohne_rohteil`, `_ohne_rohteil`: „Schlichten danach“ fährt keine Wand ab, vor der kein
+    Rohteil steht (der Mantel im Rundmaterial Ø 60).
+  - `_in_anlege_reihe`: „Schlichten danach“ hinter alles Schruppen der Wände, auch hinter die
+    Kontur (sie kam nach Messstopp und Schlichten).
+- `tests/gui/szenario_bearbeitung_cring_alles.py` (neu): beide Rohteile, „Alles aus dieser
+  Aufspannung“, die Folge der Operationen.
+- `docs/bilder/vorschlaege/cring_ueber_alles.png`: Bild zur Frage „Räumen über alles“.
+
+### ERGEBNIS
+- C-Ring, Platte: Räumen T1 (Oberseite), Nut T3 (D-Bögen, 2,9 min), Kontur T1, Messstopp, Wände
+  schlichten T1. Rundmaterial: dasselbe, ohne den Mantel beim Schlichten; die Kontur fährt außen
+  noch durch die Luft – das nimmt erst „Räumen über alles“ (Frage an Manuel).
+- Grün im Wochen-Build: `szenario_bearbeitung_cring_alles`, `szenario_bearbeitung`,
+  `szenario_magazin_bearbeitung`, `szenario_raeumen`, `szenario_raeumen_durch`,
+  `szenario_raeumen_schlichten`, `szenario_raeumen_materialstand`, `szenario_nut`,
+  `szenario_nut_offen`, `szenario_nut_durch`, `szenario_zweiter_lauf`.
 ## P-2026-10-18-87 von-vorn-nur-axial
 
 ### EINGELESEN
