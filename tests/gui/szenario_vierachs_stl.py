@@ -203,7 +203,12 @@ def schritte(h):
     )
     ops = [o for o in job.Operations.Group if vo.ist_rundum(o)]
     namen = [o.Label for o in ops]
-    h.pruefe(namen == ["Rundum schruppen T1", "Rundum schlichten T2"], f"Operationen: {namen}")
+    # Dazwischen „Rundum vorschlichten“ (W-031: angehakt, wenn die Kugel nach dem Schruppen viel
+    # nähme – am Geist der Fall).
+    h.pruefe(
+        namen == ["Rundum schruppen T1", "Rundum vorschlichten T2", "Rundum schlichten T2"],
+        f"Operationen: {namen}",
+    )
     for op in ops:
         saetze = [b for b in op.Path.Commands if b.Name in ("G1", "G2", "G3")]
         h.pruefe(len(saetze) > 100, f"{op.Label}: {len(saetze)} Sätze")

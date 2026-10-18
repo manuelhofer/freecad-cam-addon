@@ -175,7 +175,9 @@ def schritte(h):
     namen = [o.Label for o in ops]
     schruppen = [o for o in ops if vo.ist_schruppen(o)]
     plan = [o for o in ops if vplan.ist_plan(o)]
-    schlichten = [o for o in ops if vs.ist_schlichten(o)]
+    # Dazu „Rundum vorschlichten“, wenn die Kugel nach dem Schruppen viel nähme (W-031, seit
+    # P-2026-10-18-80 von sich aus angehakt).
+    schlichten = [o for o in ops if vs.ist_schlichten(o) and not vs.ist_vorschlichten(o)]
     h.pruefe(
         len(schruppen) == 1 and len(plan) == 1 and len(schlichten) == 1, f"Operationen: {namen}"
     )
