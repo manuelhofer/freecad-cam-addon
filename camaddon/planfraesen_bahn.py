@@ -179,6 +179,7 @@ def planen(netz, werte, ebenen, schritt=SCHRITT, stand=None):
     davor = []
     kandidaten = (True, False) if w.laengs is None else (bool(w.laengs),)
     fertig = []  # die Flächen darüber, schon in dieser Bahn
+    zu_schmal = []  # Flächen, zwischen deren Wänden der Fräser keine Zeile unterbringt
     for ebene in sorted(ebenen, key=lambda e: -e.z):
         # Liegt die Fläche ganz unter einer, die diese Bahn schon geplant hat (der Boden einer
         # Tasche unter der Oberseite), beginnen ihre Lagen dort – darüber ist weggeräumt, wie
@@ -206,7 +207,10 @@ def planen(netz, werte, ebenen, schritt=SCHRITT, stand=None):
                 tiefere,
                 stand,
             )
-            if e is not None:
+            if e == ZU_SCHMAL:
+                if ebene.name not in zu_schmal:
+                    zu_schmal.append(ebene.name)
+            elif e is not None:
                 ergebnisse.append(e)
         if stand is not None and ergebnisse:
             # Was über der Fläche noch steht und wer dort schon war – aus der ersten Richtung.
@@ -233,6 +237,18 @@ def planen(netz, werte, ebenen, schritt=SCHRITT, stand=None):
             from . import materialstand as mst  # erst hier: es bringt den Job mit
 
             raise mst.schon_weg(davor)
+        if zu_schmal:
+            # Manuels Messspitzenhalter (2026-10-18): Ringfläche 8 mm breit zwischen Bund und Rand,
+            # Fräser Ø 12 – „steht nichts“ hieß es, dabei kam er nur nicht hinein.
+            from .reichweite import weg_text
+
+            raise ValueError(
+                tr(
+                    "pf.fehler.zu_schmal",
+                    flaechen=", ".join(zu_schmal),
+                    d=weg_text(2 * form.radius),
+                )
+            )
         raise ValueError(tr("pf.fehler.nichts"))
     return Planbahn(
         punkte,
@@ -259,6 +275,9 @@ def _umfasst(oben, unten):
         and oben.y_von - GLEICH <= unten.y_von
         and unten.y_bis <= oben.y_bis + GLEICH
     )
+
+
+ZU_SCHMAL = "zu schmal"  # _ebene: der Fräser kommt mit keiner Zeile zwischen die Wände
 
 
 def _ebene(
@@ -363,7 +382,7 @@ def _ebene(
         (v_zeilen + r_eben > roh_v[0] + GLEICH) & (v_zeilen - r_eben < roh_v[1] - GLEICH)
     ]
     if not len(v_zeilen):
-        return None
+        return ZU_SCHMAL  # zwischen den Wänden kein Platz für eine Zeile (planen sagt es)
     huelle = hf.je_zeile(netz, geformt, v_zeilen, u0, schritt_u, anzahl, laengs_x)
     roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
     hoehe = roh + zugabe
@@ -403,6 +422,8 @@ def _ebene(
         reich = stand.maske_um_punkte(xx[frei_oben], yy[frei_oben], innen)
         voll = bool(reich.any()) and bool((stand.quader.h[reich] >= oben - GLEICH).all())
         if not voll:  # sonst steht überall noch das ganze Rohteil: wie ohne Materialstand
+            if not reich.any():
+                return ZU_SCHMAL  # die Stirn kommt nirgends auf die Lage: zu eng zwischen Wänden
             hoechste = stand.hoechste(reich)
             if hoechste is None or hoechste <= ziel + MATERIAL:
                 return _Ebene([], 0, 0, math.inf, 0.0, laengs_x, 0.0, noch, weg, davor)
@@ -504,6 +525,10 @@ def _ebene(
         eilgang=w.eilgang or None,
         beschleunigung=w.beschleunigung or None,
     )
+    if lagen_gesamt == 0:
+        # Über der Fläche steht etwas, Zeilen gäbe es – aber auf keiner Lage kommt die Stirn
+        # zwischen die Wände (Manuels Ringfläche 8 mm breit, Fräser Ø 12): planen() sagt es.
+        return ZU_SCHMAL
     return _Ebene(
         punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit, noch, weg, davor
     )

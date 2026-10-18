@@ -642,6 +642,12 @@ class VierachsPanel:
         self._schlichten_vorschlag = False  # … und so war der Vorschlag (ein Fräser mit Einsatz)
         self._schlichten_von_hand = False  # der Haken „Rundum schlichten“ wurde von Hand gesetzt
         self._schlichten_selbst = False  # der Assistent setzt ihn gerade selbst
+        self._schruppen_von_hand = False  # der Haken „Rundum schruppen“ wurde von Hand gesetzt
+        self._schruppen_selbst = False  # der Assistent setzt ihn gerade selbst
+        # Die Schruppbahn nimmt nur eine Scheibe vor einer Stirnfläche weg (Bahn.vor_stirn):
+        # Rundum ist dann keine Arbeit, der Assistent nahm die Haken selbst heraus.
+        self._rundum_umsonst = ""  # "" / "nichts" / "vor_stirn" (_rundum_umsonst_zeigen)
+        self._umsonst_bei = None  # … und woran das hing (_umsonst_schluessel), für den Rückweg
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
         # Die Wendelnut des Teils (vierachs_wendel.Wendel, W-030): erkannt für welches Modell, das
         # Ergebnis und der Auftrag dazu.
@@ -1456,6 +1462,8 @@ class VierachsPanel:
             tr("va.schruppen"), tr("va.schruppen.tooltip"), self._schruppen_umgeschaltet, an=True
         )
         self.erklaerung_schruppen = grau(tr("va.schruppen.text"))
+        self.erklaerung_schruppen.setTextFormat(QtCore.Qt.RichText)
+        self.erklaerung_schruppen.linkActivated.connect(self._werkzeug_oeffnen)
         self.hinweis_aendern = QtGui.QLabel()  # beim Ändern: der Fräser fehlt
         self.hinweis_aendern.setWordWrap(True)
         self.hinweis_aendern.setStyleSheet(f"color: {ROT};")
@@ -3389,7 +3397,10 @@ class VierachsPanel:
             return
         flaechen = self.flaechen()
         text, an = tr("va.schlichten.text"), self._schlichten_vorschlag
-        if flaechen and self.plan_an():
+        if self._rundum_umsonst:
+            # Der Mantel hat schon Fertigmaß – nichts zu schlichten (_rundum_umsonst_zeigen).
+            text, an = tr("va.schlichten.fertigmass"), False
+        elif flaechen and self.plan_an():
             uebrig = self._kugel_uebrig()
             fertig = ", ".join(f for f in flaechen if f not in uebrig)
             if fertig and uebrig:
@@ -3399,6 +3410,84 @@ class VierachsPanel:
         self.erklaerung_schlichten.setText(text)
         if not self._schlichten_von_hand and self.mit_schlichten.isEnabled():
             self._schlichten_setzen(an)
+
+    def _schruppen_setzen(self, an):
+        """Setzt den Haken „Rundum schruppen“ als Vorschlag – zählt nicht als von Hand."""
+        self._schruppen_selbst = True
+        try:
+            self.mit_schruppen.setChecked(bool(an))
+        finally:
+            self._schruppen_selbst = False
+
+    def _rundum_umsonst_zeigen(self):
+        """Nimmt die Schruppbahn rundum nichts weg (Bahn.nimmt_nichts) oder nur eine Scheibe
+        vor einer Stirnfläche (Bahn.vor_stirn) – Manuels Messspitzenhalter, 2026-10-18: Stange
+        Ø 33 = Teil Ø 33, vorn ein Bund 0,8 hoch hinter einem Rand: „was will er da rundum
+        schruppen ??? … das teil hat aussen durchmesser schon den richtigen“ –, gehen „Rundum
+        schruppen“ und „Rundum schlichten“ aus – solange man sie nicht von Hand gesetzt hat –,
+        und grau steht, warum, mit dem Verweis zu „Bearbeitung“ von vorn. Fällt der Grund weg
+        (eine dickere Stange), kommen die Haken zurück."""
+        bahn = self.vorschau
+        if bahn is None or self.zu_aendern is not None:
+            return
+        if getattr(bahn, "nimmt_nichts", False):
+            umsonst = "nichts"
+        elif getattr(bahn, "vor_stirn", False):
+            umsonst = "vor_stirn"
+        else:
+            umsonst = ""
+        if umsonst == self._rundum_umsonst:
+            return
+        if not umsonst:
+            self._rundum_zurueck()
+            return
+        self._rundum_umsonst, self._umsonst_bei = umsonst, self._umsonst_schluessel()
+        d = einheiten.text(self.stange().durchmesser, einheiten.LAENGE, 1)
+        if umsonst == "nichts":
+            fraeser = self.fraeser()
+            text = tr(
+                "va.rundum_nichts",
+                d=d,
+                fraeser=wz.kurz(fraeser) if fraeser is not None else tr("va.rundum_nichts.er"),
+            )
+        else:
+            text = tr("va.vor_stirn", d=d)
+        text = html.escape(text, quote=False)
+        if self.flaeche:
+            verweis = html.escape(tr("va.zur_bearbeitung"), quote=False)
+            text += f' <a href="bearbeitung:{self.flaeche}">{verweis}</a>'
+        self.erklaerung_schruppen.setText(text)
+        if not self._schruppen_von_hand:
+            self._schruppen_setzen(False)
+        self._schlichten_vorschlagen()
+        if not self._schlichten_von_hand:
+            self._schlichten_setzen(False)
+
+    def _rundum_zurueck(self):
+        """Der Grund für „Rundum umsonst“ ist weg oder kann es sein: der Satz wie sonst, die
+        Haken zurück, soweit sie nicht von Hand stehen (ein Haken an stößt die Vorschau an)."""
+        self._rundum_umsonst, self._umsonst_bei = "", None
+        self.erklaerung_schruppen.setText(tr("va.schruppen.text"))
+        if not self._schruppen_von_hand:
+            self._schruppen_setzen(True)
+        self._schlichten_vorschlagen()
+
+    def _umsonst_schluessel(self):
+        """Woran „Rundum umsonst“ hängt: Stange und Planaufmaß, der Schruppfräser mit Halter und
+        Stufen – ändert sich davon etwas, kann der Grund weg sein (_vorschau_rechnen)."""
+        stange = self.stange()
+        werkzeug = self.fraeser()
+        if werkzeug is None:
+            fraeser = None
+        else:
+            fraeser = (
+                getattr(werkzeug, "nummer", None),
+                getattr(werkzeug, "name", None),
+                round(float(getattr(werkzeug, "durchmesser", 0.0) or 0.0), 3),
+                round(float(self._halter_fuer(werkzeug)), 3),
+                tuple(vo.stufen_des_werkzeugs(werkzeug, self.bibliothek) or ()),
+            )
+        return (round(stange.durchmesser, 3), round(stange.planaufmass, 3), fraeser)
 
     def _schlichten_setzen(self, an):
         """Setzt den Haken „Rundum schlichten“ als Vorschlag – zählt nicht als von Hand."""
@@ -4177,6 +4266,10 @@ class VierachsPanel:
     def _schruppen_umgeschaltet(self, an):
         # Die Felder eines Abschnitts nur, solange er angehakt ist – sonst der Titel, die
         # Erklärung und warum (Manuel, 2026-10-02: „die Bedienung schön“).
+        if not self._fuellt and not self._schruppen_selbst:
+            self._schruppen_von_hand = True
+            if an and self._rundum_umsonst:
+                self.erklaerung_schruppen.setText(tr("va.schruppen.text"))
         self.schruppfelder.setEnabled(an)
         self.schruppfelder.setVisible(an)
         self.ergebnis.setVisible(an)
@@ -4519,6 +4612,18 @@ class VierachsPanel:
         if self.geschlossen or self.seite != 2:
             return
         self._lage_zeigen()
+        if (
+            self._rundum_umsonst
+            and not self._schruppen_von_hand
+            and self.zu_aendern is None
+            and self._umsonst_schluessel() != self._umsonst_bei
+        ):
+            # Stange, Planaufmaß oder Schruppfräser sind anders als damals: Der Grund kann weg
+            # sein – die Haken zurück, die Vorschau rechnet mit ihnen (und nimmt sie wieder
+            # heraus, steht er noch). Nicht erzwungen ohne Haken: Ohne sie ragt die Stange nur
+            # die Abstechbreite heraus, und der Halter des Fräsers fände hinten keinen Platz.
+            self._rundum_zurueck()
+            return
         if not (schruppen or schlichten or plan or entgraten):
             return
         self.vorschau = None
@@ -4772,6 +4877,7 @@ class VierachsPanel:
             (ENTGRATEN, self.ergebnis_entgraten, self._entgrat_text),
         ):
             etikett.setText(text(e[name]) if e.get(name) is not None else "")
+        self._rundum_umsonst_zeigen()
         self._rest_starten()
         self._halter_starten()
         hinweis = " ".join(
@@ -5607,7 +5713,11 @@ class VierachsPanel:
         from .reichweite import weg_text
 
         laenge = einheiten.LAENGE
-        if bahn.lagen == 0:
+        if getattr(bahn, "nimmt_nichts", False):
+            # Die Spirale fährt in der Luft (vierachs_flaechen.rundum_nichts) – nicht „→ 1 Lage
+            # (Ø 33,0 mm → Ø 15,6 mm)“, wie es die Hülle verspräche.
+            text = tr("va.lagen.nichts", von=groesse_fest(self.stange().durchmesser, laenge, 1))
+        elif bahn.lagen == 0:
             text = tr("va.lagen.keine")
         elif bahn.r_min < 0:
             # Unter die Mitte (eine Fläche zur Achse hin): ein Durchmesser sagte „Ø −61,8“.

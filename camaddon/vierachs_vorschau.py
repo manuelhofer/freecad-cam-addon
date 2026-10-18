@@ -36,9 +36,27 @@ def _job(dokument, name):
 def schruppen(dokument, job_name, laengs, radial, *args, **kwargs):
     """Die Schruppbahn (vierachs_bahn.Bahn) – vierachs_operation.bahn_fuer."""
     job = _job(dokument, job_name)
-    return vo.bahn_fuer(
+    bahn = vo.bahn_fuer(
         job, job.Model.Group, FreeCAD.Vector(*laengs), FreeCAD.Vector(*radial), *args, **kwargs
     )
+    # Nimmt sie nur eine Scheibe vor einer Stirnfläche weg (Manuel: „das teil hat aussen
+    # durchmesser schon den richtigen“), sagt es der Assistent und nimmt die Haken heraus.
+    try:
+        from . import vierachs_flaechen as vf
+
+        radius, _hinten, _vorne = vo.stange(job, FreeCAD.Vector(*laengs))
+        bahn.nimmt_nichts = vf.rundum_nichts(bahn, radius)
+        bahn.vor_stirn = not bahn.nimmt_nichts and vf.nur_vor_stirn(
+            vs._teil(job.Model.Group),
+            FreeCAD.Vector(*laengs),
+            FreeCAD.Vector(*radial),
+            bahn,
+            radius,
+        )
+    except Exception as fehler:  # noqa: BLE001 – ein Hinweis weniger, die Bahn gilt
+        FreeCAD.Console.PrintLog(f"CAM-Addon, Rundum vor der Stirn: {fehler!r}\n")
+        bahn.vor_stirn = bahn.nimmt_nichts = False
+    return bahn
 
 
 def schlichten(dokument, job_name, laengs, radial, *args, **kwargs):

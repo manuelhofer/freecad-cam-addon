@@ -419,6 +419,7 @@ def bereich_fuer(form, laengs, radial, namen_, radius, toleranz=vh.TOLERANZ):
 
 # So nah an 1 muss die Normale einer ebenen Fläche an der Stangenachse liegen (stirnseitig).
 STIRN_GENAU = 0.999
+STIRN_SPIEL = 0.05  # mm – so genau zählt nur_vor_stirn Stellen und Radien
 
 
 def stirnseitig(form, laengs, namen_):
@@ -441,6 +442,75 @@ def stirnseitig(form, laengs, namen_):
         if normale is not None and abs(normale.dot(achse)) >= STIRN_GENAU:
             ergebnis.append(f"Face{nummer + 1}")
     return ergebnis
+
+
+def rundum_nichts(bahn, stange_radius):
+    """Nimmt die Rundum-Schruppbahn `bahn` (vierachs_bahn.Bahn) nichts weg – kein Vorschubpunkt
+    unter dem Radius der Stange (bis aufs Spiel), die Spirale fährt die ganze Länge in der Luft?
+    Manuels Messspitzenhalter (2026-10-18): Stange Ø 33 = Teil Ø 33, vorn ein Bund 0,8 hoch und
+    ein Rand 0,3 hoch – der radiale Fräser Ø 12 kommt zwischen Bund und Rand nicht hinein, die
+    Hülle hält ihn überall auf dem Stangenradius („was will er da rundum schruppen ???“). Dann
+    gehört der Haken aus, nicht „→ 1 Lage (Ø 33,0 mm → Ø 15,6 mm)“ hin."""
+    return not any(
+        not p.eilgang
+        and not getattr(p, "frei", False)
+        and math.hypot(p.r, getattr(p, "q", 0.0)) < stange_radius - STIRN_SPIEL
+        for p in bahn.punkte
+    )
+
+
+def nur_vor_stirn(form, laengs, radial, bahn, stange_radius):
+    """Liegt alles, was die Rundum-Schruppbahn `bahn` (vierachs_bahn.Bahn) am Teil wegnimmt, nur
+    in einer Scheibe vor Stirnflächen – ebenen Flächen, die nach vorn schauen (Manuels
+    Messspitzenhalter, 2026-10-18: Stange Ø 33 = Teil Ø 33, vorn ein Bund 0,8 hoch; „was will er
+    da rundum schruppen ??? … das teil hat aussen durchmesser schon den richtigen“)? Dann ist es
+    keine Arbeit für den radialen Fräser: Was zur Stirn offen ist, fräst „Bearbeitung“ von vorn.
+    Eine Scheibe ist es, wenn die Schnitte längs dünner liegen, als sie radial breit sind – ein
+    langer Absatz hinter einer Schulter (10 mm lang, 6 mm tief) bleibt Rundum. Schnitte vor dem
+    Teil (die Spirale beginnt in der Luft) zählen nicht. False ohne Schnitt oder mit Schnitten
+    anderswo."""
+    import FreeCAD
+
+    from . import vierachs_huelle as vh
+    from . import vierachs_rohteil as vr
+
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    achse = FreeCAD.Vector(*l_)
+    teil_vorne = max((FreeCAD.Vector(p.X, p.Y, p.Z).dot(achse) for p in form.Vertexes), default=0.0)
+    schnitte = []
+    for p in bahn.punkte:
+        if p.eilgang or getattr(p, "frei", False):
+            continue
+        r = math.hypot(p.r, getattr(p, "q", 0.0))
+        if r < stange_radius - STIRN_SPIEL and p.a <= teil_vorne + STIRN_SPIEL:
+            schnitte.append((float(p.a), r))
+    if not schnitte:
+        return False
+    # Die Stirnflächen nach vorn: a der Ebene, radial von … bis (aus der Vernetzung).
+    scheiben = []
+    for flaeche in form.Faces:
+        if not vr.ist_eben(flaeche):
+            continue
+        normale = vr.aussennormale(flaeche)
+        if normale is None or normale.dot(achse) < STIRN_GENAU:
+            continue
+        punkte, _dreiecke = flaeche.copy().tessellate(0.1)
+        if not punkte:
+            continue
+        p = np.array([[q.x, q.y, q.z] for q in punkte], dtype=float)
+        radien = np.hypot(p @ u_, p @ v_)
+        scheiben.append((float(np.mean(p @ l_)), float(radien.min()), float(radien.max())))
+    if not scheiben:
+        return False
+    for a, r in schnitte:
+        if not any(
+            a >= a_f - STIRN_SPIEL and r_von - STIRN_SPIEL <= r <= r_bis + STIRN_SPIEL
+            for a_f, r_von, r_bis in scheiben
+        ):
+            return False  # ein Schnitt, vor dem keine Stirnfläche liegt: der Mantel
+    a_werte = [a for a, _r in schnitte]
+    r_werte = [r for _a, r in schnitte]
+    return (max(a_werte) - min(a_werte)) <= (max(r_werte) - min(r_werte)) + STIRN_SPIEL
 
 
 def beschreibung(flaeche, laengs):

@@ -12,6 +12,81 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-104 rundum-umsonst-planfraesen-zu-schmal-magazinspalten
+
+### EINGELESEN
+- Manuel, mit Bildern seines Messspitzenhalter-Oberteils (Drehteil Ø 33 auf der CLX550, Stange
+  Ø 33 = Fertigmaß, vorn ein Bund Ø 15 0,8 hoch hinter einem Rand 0,3 hoch, drei Löcher in der
+  Ringfläche): „also was will er da rundum schruppen ??? und schlichten ??? is doch quatsch das
+  teil hat ausen durchmesser schon den richtigen da muss nixmehr ausen bearbeitet werden“ –
+  „beim planfräsen kann ich irgendwie nicht auswählen welchen fräser ich nehmen möchte ... es
+  wird mir der 6er vorgeschlagen aber es is ja auch ein 12er im magazin ???“ – zu Schritt 3 der
+  „Bearbeitung“ von vorn („Über den gewählten Flächen steht nichts“): „eigentlich kann ich das
+  nicht bearbeiten dabei könnte man das doch ohne probleme rausfräsen auch an der drehbank mit
+  den vorhandenen werkzeugen“ – und zum Magazin-Fenster: „es sollte schon so sein das das
+  komplette fenster ausgefüllt wird wenn wir es von der größe her verziehen aber halt auch
+  einzlen“.
+- Nachgebaut (`szenario_stirn_bund`): Ohne den Rand ließ sich nichts davon nachstellen; mit dem
+  Rand 0,3 hoch genau sein Bild. Die Rundum-Schruppbahn fuhr die ganze Länge auf Ø 33,6 durch die
+  Luft (der radiale Ø 12 kommt zwischen Bund und Rand nicht hinein, die Hülle hält ihn überall
+  auf dem Stangenradius), die Vorschau meldete trotzdem „→ 1 Lage (Ø 33,0 mm → Ø 15,6 mm)“ – die
+  Lagen zählten von der Stange bis zum tiefsten Punkt der Hülle, nicht, was die Bahn wegnimmt.
+  Das Planfräsen zwischen Bund und Rand: Der Ø 12 hat dort keinen Platz für eine Zeile, die
+  Meldung sagte nur „steht nichts“; der Ø 6 passt (die Zeile „passt“ bot ihn an, „übernehmen“
+  ging).
+
+### DATEIEN
+- `camaddon/vierachs_flaechen.py`: `rundum_nichts(bahn, stange_radius)` – kein Vorschubpunkt
+  (ohne `frei`) unter dem Stangenradius: Die Spirale führe nur durch die Luft.
+  `nur_vor_stirn(form, laengs, radial, bahn, stange_radius)` – die Schnitte liegen nur in einer
+  Scheibe vor Stirnflächen nach vorn (längs dünner als radial breit; Schnitte in der Luft vor
+  dem Teil zählen nicht), `STIRN_SPIEL`.
+- `camaddon/vierachs_bahn.py`: `Bahn.nimmt_nichts`, `Bahn.vor_stirn`.
+- `camaddon/vierachs_vorschau.py`: `schruppen()` setzt beides (Fehler nur ins Log).
+- `camaddon/gui_vierachs.py`: `_rundum_umsonst_zeigen` (statt des erzwungenen Weiterrechnens):
+  nimmt die Bahn nichts weg oder nur die Scheibe vor der Stirn, gehen „Rundum schruppen“ und
+  „Rundum schlichten“ heraus – nicht, wenn von Hand gesetzt –, grau steht, warum
+  (`va.rundum_nichts` mit dem Fräser, `va.vor_stirn`, `va.schlichten.fertigmass`) mit dem Verweis
+  „„Bearbeitung“ von vorn öffnen …“ (`_werkzeug_oeffnen`). `_umsonst_schluessel` (Stange Ø,
+  Planaufmaß, Schruppfräser mit Halter und Stufen): ändert sich davon etwas, `_rundum_zurueck` –
+  die Haken zurück, die Vorschau rechnet mit ihnen und nimmt sie wieder heraus, steht der Grund
+  noch. Ohne Haken rechnet keine Vorschau mehr (ohne sie ragt die Stange nur die Abstechbreite,
+  der Halter fände hinten keinen Platz – „kein Platz für den Halter“ wäre die Folge gewesen).
+  `_lagen_text`: „→ nichts wegzunehmen: Der Fräser trifft rundum kein Material, Ø 33,0 mm
+  bleibt.“ (`va.lagen.nichts`), falls man den Haken von Hand setzt.
+  `_schruppen_umgeschaltet`: von Hand wieder an → der Satz wie sonst.
+- `camaddon/planfraesen_bahn.py`: `ZU_SCHMAL` – `_ebene` meldet es ohne Zeilen, ohne erreichbare
+  Zellen und ohne Lagen; `planen` sammelt die Flächen und sagt `pf.fehler.zu_schmal`: „Zwischen
+  den Wänden über {flaechen} hat der Fräser Ø {d} keinen Platz für eine Zeile – ein kleinerer
+  Fräser passt dort (die Zeile oben bietet ihn an), oder Räumen.“
+- `camaddon/gui_bearbeitung.py`: `_ziel_zeigen` – an der Stange der Drehmaschine nur die Fräser,
+  die von vorn gehen (`von_vorn_moeglich`, W-025).
+- `camaddon/werkzeuge.py`: `nummer_text` nimmt `magazin_nummer` (der 494W D12 heißt an Manuels
+  CLX550 T3, in der Werkzeugliste T1).
+- `camaddon/gui_magazine.py`: `_Spalten` – sechs Spalten füllen das Fenster (Anteile
+  `SPALTEN_ANTEILE`, gemerkt als Verhältnisse `MagazinSpalten3`), jede einzeln ziehbar
+  (Interactive, mindestens `SPALTE_MINDESTENS`); wird es breiter als das Fenster, schrumpfen die
+  Spalten rechts der gezogenen anteilig, zuletzt die gezogene; kein Rollbalken quer.
+- `translations/de.json`, `en.json`: `va.rundum_nichts`, `va.rundum_nichts.er`, `va.lagen.nichts`,
+  `va.vor_stirn`, `va.schlichten.fertigmass`, `pf.fehler.zu_schmal`.
+- `tests/gui/szenario_stirn_bund.py` (neu): sein Teil nachgebaut, 4-Achs-Assistent – Schritt 2
+  beide Haken aus, der graue Satz mit dem Verweis; Ø 40 → die Haken zurück, „1 Lage (Ø 40,0 mm →
+  Ø 15,6 mm)“; wieder Ø 33 → heraus; von Hand an bleibt an und sagt „nichts wegzunehmen“. Der
+  Verweis öffnet „Bearbeitung“ von vorn: Ringfläche, „T3 Schaftfräser Ø 12 kommt nicht in …
+  T4 Schaftfräser Ø 6“, „keinen Platz für eine Zeile“, „übernehmen“ → „Planfräsen T4“ bis
+  Z −0,8.
+- `tests/gui/szenario_magazine.py`: Spalten ziehen, Summe = Fenster, sechs Verhältnisse gemerkt.
+- `package.xml`: 0.274.1.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_stirn_bund`, `szenario_magazine`, `szenario_vierachs_schruppen`,
+  `szenario_magazin_vierachs`, `szenario_ring_vorn`, `szenario_vierachs_nase`,
+  `test_vierachs_bahn`, `test_vierachs_flaechen`, `test_vierachs_plan`, `test_planfraesen`.
+- Offen: Ob sein Teil wirklich den Rand außen hat – die Datei `messspitzenhalteroberteil.FCStd`
+  wäre der Beweis (Frage im Morgenbericht).
+
+---
+
 ## P-2026-10-18-103 heraus-je-platz-im-magazin
 
 ### EINGELESEN

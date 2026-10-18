@@ -1311,8 +1311,11 @@ def zeile(werkzeug):
 
 
 def nummer_text(werkzeug):
-    """„T3“ – oder „–“ für ein Werkzeug ohne Nummer (nicht geladen, W-002 F2)."""
-    return f"T{werkzeug.nummer}" if werkzeug.nummer > 0 else "–"
+    """„T3“ – oder „–“ für ein Werkzeug ohne Nummer (nicht geladen, W-002 F2); an seinem Platz im
+    Magazin der Maschine (magazin.je_platz) die Nummer dort (Manuels CLX550: der 494W D12 heißt
+    dort T3, in der Werkzeugliste T1)."""
+    nummer = getattr(werkzeug, "magazin_nummer", None) or werkzeug.nummer
+    return f"T{nummer}" if nummer > 0 else "–"
 
 
 def genannt(werkzeug):

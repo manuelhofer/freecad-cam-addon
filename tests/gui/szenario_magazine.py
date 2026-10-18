@@ -105,12 +105,24 @@ def schritte(h):
         ),
         "eine Spalte lässt sich nicht ziehen",
     )
-    kopf.resizeSection(gui_magazine.SPALTE_WERKZEUG, 400)
+    # … und zusammen füllen sie die Tabelle immer ganz: Wird die Spalte „Werkzeug“ gezogen, gibt
+    # die rechts davon ab, die Summe bleibt die Breite der Tabelle; gemerkt werden die Anteile.
+    vorher = [m.tabelle.columnWidth(i) for i in range(m.tabelle.columnCount())]
+    ziel = vorher[gui_magazine.SPALTE_WERKZEUG] + 60
+    kopf.resizeSection(gui_magazine.SPALTE_WERKZEUG, ziel)
     yield 200
-    breiten = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/CamAddon").GetString(
+    breiten = [m.tabelle.columnWidth(i) for i in range(m.tabelle.columnCount())]
+    h.pruefe(
+        abs(breiten[gui_magazine.SPALTE_WERKZEUG] - ziel) <= 2
+        and sum(breiten[gui_magazine.SPALTE_WERKZEUG + 1 :])
+        <= sum(vorher[gui_magazine.SPALTE_WERKZEUG + 1 :]) - 58
+        and abs(sum(breiten) - m.tabelle.viewport().width()) <= 2,
+        f"Spalten: {breiten}, Tabelle {m.tabelle.viewport().width()} breit",
+    )
+    anteile = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/CamAddon").GetString(
         gui_magazine.SPALTEN_GEMERKT, ""
     )
-    h.pruefe(breiten.split(",")[gui_magazine.SPALTE_WERKZEUG] == "400", f"gemerkt: {breiten!r}")
+    h.pruefe(len(anteile.split(",")) == m.tabelle.columnCount(), f"gemerkt: {anteile!r}")
     h.bild("1_magazin", m)
 
     # Der Baum links (Manuel, 2026-10-05: „dass erstmal die Maschine da steht … mit einem Plus

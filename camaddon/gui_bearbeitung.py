@@ -7936,7 +7936,9 @@ class BearbeitungPanel:
                 )
         angebote = []
         if self.bibliothek is not None:
-            angebote = zz.vergleiche(material, self.bibliothek.werkzeuge, self.werkstoff())
+            # An der Stange der Drehmaschine nur die Fräser, die von vorn gehen (axial, W-025).
+            werkzeuge = [w for w in self.bibliothek.werkzeuge if self.von_vorn_moeglich(w)]
+            angebote = zz.vergleiche(material, werkzeuge, self.werkstoff())
             # Keiner, der nicht in die gewählten Flächen kommt (_flaechenfraeser_waehlen).
             angebote = [a for a in angebote if self._passt_angebot(form, a)]
         if angebote:

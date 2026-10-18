@@ -14,6 +14,7 @@ wird mit dessen OK oder Übernehmen. Unten rot, was nicht zusammenpasst (eine Nu
 Platz zweimal, ein Platz über der Zahl der Plätze).
 """
 
+import math
 import os
 
 import FreeCAD
@@ -36,10 +37,12 @@ GROESSTE_NUMMER = 9999
 GROESSTE_PLATZ = 999
 ROT = farben.ROT
 SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ, SPALTE_HERAUS, SPALTE_HALTER = range(6)
-# Die Breiten der Spalten am Anfang (Pixel, ohne die letzte); mit der Maus ziehen, gemerkt in
-# SPALTEN_GEMERKT.
-SPALTEN_BREITEN = (90, 330, 170, 110, 170)
-SPALTEN_GEMERKT = "MagazinSpalten2"
+# Die Anteile der Spalten an der Breite der Tabelle am Anfang (sie füllen sie immer ganz, Manuel,
+# 2026-10-18: „das komplette fenster ausgefüllt wird wenn wir es von der größe her verziehen aber
+# halt auch einzeln“); mit der Maus ziehen, gemerkt in SPALTEN_GEMERKT.
+SPALTEN_ANTEILE = (90, 330, 170, 110, 170, 220)
+SPALTEN_GEMERKT = "MagazinSpalten3"
+SPALTE_MINDESTENS = 40  # Pixel – schmaler wird keine Spalte
 ROLLE = (
     QtCore.Qt.UserRole
 )  # an einer Zeile des Baums: ("maschine", Datei) oder ("magazin", Kennung)
@@ -229,15 +232,10 @@ class MagazinDialog(QtGui.QDialog):
             ]
         )
         # Jede Spalte mit der Maus breiter oder schmaler (Manuel, 2026-10-18: „warum kann ich die
-        # spalte Werkzeug oder generell eine spalte dort nicht in der länge … ziehen“) – die
-        # letzte füllt den Rest; die Breiten merkt sich das Fenster.
-        kopf = self.tabelle.horizontalHeader()
-        kopf.setSectionResizeMode(QtGui.QHeaderView.Interactive)
-        kopf.setStretchLastSection(True)
-        for spalte, breite in enumerate(SPALTEN_BREITEN):
-            self.tabelle.setColumnWidth(spalte, breite)
-        _spalten_laden(self.tabelle)
-        kopf.sectionResized.connect(lambda *_a: _spalten_merken(self.tabelle))
+        # spalte Werkzeug oder generell eine spalte dort nicht in der länge … ziehen“), und
+        # zusammen füllen sie die Tabelle immer ganz: Wird das Fenster verzogen, wachsen alle im
+        # Verhältnis; zieht man einen Trennstrich, gibt die Spalte rechts davon ab (_Spalten).
+        self.spalten = _Spalten(self.tabelle)
         self.tabelle.verticalHeader().setVisible(False)
         self.tabelle.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         aufbau.addWidget(self.tabelle, 1)
@@ -681,25 +679,98 @@ class MagazinDialog(QtGui.QDialog):
         super().reject()
 
 
-def _spalten_laden(tabelle):
-    """Die gemerkten Breiten der Spalten (SPALTEN_GEMERKT: „90,330,170,110“), ohne die letzte."""
-    from . import PARAMETER_PFAD
+class _Spalten(QtCore.QObject):
+    """Die Spalten einer Tabelle füllen ihre Breite immer ganz und lassen sich einzeln ziehen:
+    Beim Verziehen des Fensters wachsen und schrumpfen alle im Verhältnis (die Anteile), beim
+    Ziehen eines Trennstrichs gibt die Spalte rechts davon ab oder bekommt dazu – keine wird
+    schmaler als SPALTE_MINDESTENS. Die Anteile merkt sich das Fenster (SPALTEN_GEMERKT)."""
 
-    text = FreeCAD.ParamGet(PARAMETER_PFAD).GetString(SPALTEN_GEMERKT, "")
-    try:
-        breiten = [int(t) for t in text.split(",") if t.strip()]
-    except ValueError:
-        return
-    for spalte, breite in enumerate(breiten[: tabelle.columnCount() - 1]):
-        if breite > 20:
-            tabelle.setColumnWidth(spalte, breite)
+    def __init__(self, tabelle):
+        super().__init__(tabelle)
+        self.tabelle = tabelle
+        self._setzt = False
+        self.anteile = self._gemerkt() or self._normiert(SPALTEN_ANTEILE)
+        kopf = tabelle.horizontalHeader()
+        kopf.setSectionResizeMode(QtGui.QHeaderView.Interactive)
+        kopf.setMinimumSectionSize(SPALTE_MINDESTENS)
+        kopf.setStretchLastSection(True)  # die letzte füllt, was die anderen lassen
+        tabelle.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        kopf.sectionResized.connect(self._gezogen)
+        tabelle.viewport().installEventFilter(self)
+        self.anpassen()
 
+    def eventFilter(self, objekt, ereignis):
+        if ereignis.type() == QtCore.QEvent.Resize:
+            self.anpassen()
+        return False
 
-def _spalten_merken(tabelle):
-    from . import PARAMETER_PFAD
+    def _normiert(self, werte):
+        summe = float(sum(werte)) or 1.0
+        return [float(w) / summe for w in werte]
 
-    breiten = [str(tabelle.columnWidth(s)) for s in range(tabelle.columnCount() - 1)]
-    FreeCAD.ParamGet(PARAMETER_PFAD).SetString(SPALTEN_GEMERKT, ",".join(breiten))
+    def _gemerkt(self):
+        from . import PARAMETER_PFAD
+
+        text = FreeCAD.ParamGet(PARAMETER_PFAD).GetString(SPALTEN_GEMERKT, "")
+        try:
+            werte = [float(t) for t in text.split(",") if t.strip()]
+        except ValueError:
+            return None
+        if len(werte) != self.tabelle.columnCount() or min(werte) <= 0:
+            return None
+        return self._normiert(werte)
+
+    def _merken(self):
+        from . import PARAMETER_PFAD
+
+        text = ",".join(f"{a:.4f}" for a in self.anteile)
+        FreeCAD.ParamGet(PARAMETER_PFAD).SetString(SPALTEN_GEMERKT, text)
+
+    def anpassen(self):
+        """Die Breiten aus den Anteilen – zusammen genau die Breite der Tabelle."""
+        breite = self.tabelle.viewport().width()
+        n = self.tabelle.columnCount()
+        if breite <= 0 or n == 0:
+            return
+        breiten = [max(int(round(a * breite)), SPALTE_MINDESTENS) for a in self.anteile[: n - 1]]
+        self._setzt = True
+        try:
+            for spalte, b in enumerate(breiten):  # die letzte streckt Qt auf den Rest
+                if self.tabelle.columnWidth(spalte) != b:
+                    self.tabelle.setColumnWidth(spalte, b)
+        finally:
+            self._setzt = False
+
+    def _gezogen(self, spalte, alt, neu):
+        """Ein Trennstrich wurde gezogen: Die letzte Spalte gleicht es aus (sie streckt Qt) –
+        reicht sie nicht, geben die Spalten rechts vom Strich ab, zuletzt die gezogene selbst,
+        damit die Tabelle nie breiter wird als ihr Fenster. Die neuen Anteile merken."""
+        if self._setzt:
+            return
+        n = self.tabelle.columnCount()
+        kopf = self.tabelle.horizontalHeader()
+        ueber = kopf.length() - self.tabelle.viewport().width()
+        if spalte < n - 1 and ueber > 0:
+            rechts = list(range(spalte + 1, n - 1))
+            breiten = [self.tabelle.columnWidth(s) for s in rechts]
+            spiel = [max(b - SPALTE_MINDESTENS, 0) for b in breiten]
+            nehmen = min(ueber, sum(spiel))
+            self._setzt = True
+            try:
+                if nehmen > 0:
+                    for s, b, sp in zip(rechts, breiten, spiel, strict=True):
+                        self.tabelle.setColumnWidth(s, b - math.ceil(nehmen * sp / sum(spiel)))
+                rest = kopf.length() - self.tabelle.viewport().width()
+                if rest > 0:
+                    self.tabelle.setColumnWidth(
+                        spalte, max(self.tabelle.columnWidth(spalte) - rest, SPALTE_MINDESTENS)
+                    )
+            finally:
+                self._setzt = False
+        breite = self.tabelle.viewport().width()
+        if breite > 0:
+            self.anteile = self._normiert([self.tabelle.columnWidth(s) for s in range(n)])
+            self._merken()
 
 
 def oeffnen(werkzeugdialog):

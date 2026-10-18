@@ -492,6 +492,12 @@ class Bahn:
     # dem Halter aus, und „Halter stößt an … länger ausspannen“ kam nicht mehr).
     anstoss: tuple = ()
     wendel_bahnen: int = 0  # davon der Wendelnut nach (Schruppwerte.wendel): so viele Bahnen
+    # Alles, was sie wegnimmt, liegt nur in einer Scheibe vor einer Stirnfläche
+    # (vierachs_flaechen.nur_vor_stirn) – keine Arbeit für den radialen Fräser.
+    vor_stirn: bool = False
+    # Sie nimmt gar nichts weg (vierachs_flaechen.rundum_nichts): kein Punkt im Vorschub unter
+    # dem Stangenradius – der Fräser kommt nirgends hinein, die Spirale fährt in der Luft.
+    nimmt_nichts: bool = False
 
 
 ANSTOSS_AB = 0.05  # mm – so viel höher muss der Halter die Spitze halten, damit es zählt
