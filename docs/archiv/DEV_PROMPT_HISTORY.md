@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-98 ein-controller-je-werkzeug-und-einsatz
+
+### EINGELESEN
+- Beim C-Ring-Beispiel (P-2026-10-18-97) fiel auf: Räumen T3 und Nut T3 legten je einen
+  Controller „T3 VHM 6 – Schruppen“ an – dasselbe Werkzeug, derselbe Einsatz.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_anlegen`): Derselbe Fräser mit demselben Einsatz und Werkstoff
+  bekommt beim Anlegen einen Controller (keine Operation ändert die Werte ihres Controllers).
+- `tests/gui/szenario_bearbeitung_cring_alles.py`: ein Controller für T3.
+- `beispiele/c_ring_nut_3achs.FCStd` neu gebaut (je Job drei Controller statt vier),
+  `daten/beispiele.json`; `tests/gui/szenario_einrichtblatt.py` (Kommentar).
+- `package.xml`: 0.269.1.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_bearbeitung_cring_alles`, `szenario_bearbeitung`,
+  `szenario_testteil`, `szenario_einrichtblatt`, `szenario_raeumen_durch`, `test_beispiele`,
+  `test_raeumen`, `test_einrichtblatt`.
+
 ## P-2026-10-18-97 c-ring-beispiel-mit-zwei-rohteilen
 
 ### EINGELESEN

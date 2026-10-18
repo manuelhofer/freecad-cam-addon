@@ -9101,10 +9101,22 @@ class BearbeitungPanel:
                     fremde = js.unbenutzte_fremde_controller(self.job, self.bibliothek)
                     js.controller_weg(self.doc, fremde)
                 tc_davor = None
+                # Derselbe Fräser mit demselben Einsatz: ein Controller (am C-Ring legten Räumen T3
+                # und Nut T3 je einen „T3 VHM 6 – Schruppen“ an).
+                controller = {}
                 for block in aktive:
-                    tc = js.controller_ohne_transaktion(
-                        self.doc, self.job, block.fraeser(), block.einsatz(), self.werkstoff()
+                    schluessel = (
+                        getattr(block.fraeser(), "kennung", None),
+                        repr(block.einsatz()),
+                        self.werkstoff(),
                     )
+                    tc = controller.get(schluessel)
+                    if tc is None:
+                        tc = js.controller_ohne_transaktion(
+                            self.doc, self.job, block.fraeser(), block.einsatz(), self.werkstoff()
+                        )
+                        if schluessel[0] is not None:
+                            controller[schluessel] = tc
                     flaechen = self._flaechen(block, form)
                     werte = dict(block.werte(), **(self._zusatz(block, form) or {}))
                     werte["eintauchwinkel"] = _eintauchwinkel(block.fraeser())

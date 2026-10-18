@@ -121,6 +121,9 @@ def _ein_rohteil(h, ordner, name, rohteil_setzen):
             and namen.index("Wände schlichten T1") == len(namen) - 1,
             f"{name}: Folge {namen}",
         )
+    # Räumen T3 und Nut T3 mit demselben Einsatz: ein Controller für T3 (vorher je einer).
+    t3 = [tc for tc in job.Tools.Group if tc.ToolNumber == 3]
+    h.pruefe(len(t3) == 1, f"{name}: Controller für T3: {[tc.Label for tc in t3]}")
     schlichten = next((o for o in neue if o.Label == "Wände schlichten T1"), None)
     h.pruefe(not any(n.startswith("Kontur") for n in namen), f"{name}: Kontur in {namen}")
     if schlichten is not None:

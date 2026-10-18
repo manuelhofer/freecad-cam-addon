@@ -80,8 +80,7 @@ def schritte(h):
                  "Räumen T1", "Nut T3", "Wände schlichten T1", "min"):  # fmt: skip
         h.pruefe(soll in text, f"„{soll}“ fehlt: {text[:400]!r}")
     w1 = next((w for w in dialog.blatt.werkzeuge if w.nummer == 3), None)
-    # T1 und T3, je mit zwei Controllern (Schruppen, Schlichten bzw. Räumen und Nut) – auf dem
-    # Blatt je eine Zeile.
+    # T1 (Schruppen und Schlichten: zwei Controller) und T3 – auf dem Blatt je eine Zeile.
     h.pruefe(
         sorted(w.nummer for w in dialog.blatt.werkzeuge) == [1, 3],
         f"Werkzeuge: {dialog.blatt.werkzeuge}",

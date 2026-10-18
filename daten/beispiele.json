@@ -3,8 +3,8 @@
  "dateien": [
   {
    "pfad": "beispiele/c_ring_nut_3achs.FCStd",
-   "bytes": 627212,
-   "sha256": "763a2ae47437d13c7aa4a71a925eda8a557fb9029e83b15faf30f5edf4a81261"
+   "bytes": 628472,
+   "sha256": "b27fab6af4a25efbeecf0369973c18aba5238225192974f5a5fc8e2914861574"
   },
   {
    "pfad": "beispiele/geist_stl/Geist1_v2.stl",
