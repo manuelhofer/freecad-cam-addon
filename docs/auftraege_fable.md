@@ -142,6 +142,14 @@ kombination .. ja ..“. Also: Face8 (zeigt zur Drehmitte) mit der Stirn eines r
 und in derselben Stellung mit seinem Umfang die Stirnseite der Welle (Face3, z 120 rund um die Nase,
 dort geht Drehen nicht) – quer in Y, im ap längs der Werkzeugachse. Als Wahl, nicht vorbelegt; erst
 das Bild mit Zahlen gegen heute.
+*Bild mit Zahlen gezeigt (2026-10-18, `docs/bilder/vorschlaege/nase_stirnseite_kombination.png`):*
+T1 Ø 12 radial, fünf Züge quer in Y, 0,22 min (heute Face8 allein 0,71 min, die Stirnseite ohne
+eigenen Schritt); T1 müsste wegen der außermittigen Welle ≥ 49,3 mm heraus, für die Monde neben der
+Nase ≥ 57,6 mm. Manuel: „So bauen, mit Ausspann-Hinweis“ – alle Züge, gelb „T1 auf … mm
+ausspannen“, wenn es nicht reicht; „wichtig ist das die züge die ap nicht überschreiten is ja klar
+... und halt auch die ae einhalten .. also das muss sich ja immer nach den werten richten die der
+fräser kann!“ – je Zug höchstens ap längs der Werkzeugachse, je Lage höchstens ae auf der Stirnseite,
+aus den Schnittwerten des Fräsers.
 
 ## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
 
