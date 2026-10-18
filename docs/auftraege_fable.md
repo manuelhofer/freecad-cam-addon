@@ -161,6 +161,7 @@ Material). Ob der Halter an die Welle kommt, sagt die Halterprüfung des Assiste
 nach dem Schruppen des Beispiels): mit ap 4, ae 3 1,43 min (Face8 allein 0,42 min); mit den
 Werten des Einsatzes „Planen“ von T1 (ap 2, ae 8) 2,3 statt 0,3 min – das Bild vom 2026-10-18
 rechnete die Bänder so hoch wie die Schneide (0,22 min), das hätte ap überschritten.
+Bild: `docs/bilder/vorschlaege/nase_stirnseite_gebaut.png`.
 
 ## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
 
