@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-103 heraus-je-platz-im-magazin
+
+### EINGELESEN
+- Frage 1 (eine eigene Länge je Platz im Magazin?), Manuel, 2026-10-18: „ja der standartwerkt komtm
+  aus werkzeugliste aber im magazin extra dafür ein wert .. wobei in der werkzeugliste sollte als
+  standart drinnen stehen aber irgendwie markiert das es im magazin besser wäre ..“
+
+### DATEIEN
+- `camaddon/werkzeuge.py`: `MagazinEintrag.heraus` (mm, 0: wie in der Werkzeugliste; gespeichert);
+  `Bibliothek.heraus_im_magazin`, `am_platz` (Kopie mit der Ausspannlänge des Platzes);
+  `laenge_ab_spindelnase` damit.
+- `camaddon/reichweite.py`: `laenge_des_werkzeugs` mit dem Platz; `ausspannen_setzen` – steht das
+  Werkzeug im Magazin der Maschine, in den Platz; `ausspannen_ziel`, `ausspannen_lesen`,
+  `ausspannen_werkzeug`, `ausspannen_kennung` – der Verweis „T… auf … mm ausspannen“ trägt den
+  Platz (derselbe Fräser auf zwei Plätzen).
+- `camaddon/gui_vierachs.py`, `gui_bearbeitung.py`, `gui_kollision.py`, `gui_reichweite.py`: der
+  Verweis damit; die Befunde der Kollision je Platz.
+- `camaddon/gui_magazine.py`: Spalte „Schaut heraus“ (leer grau der Standard aus der
+  Werkzeugliste); die Breiten der Spalten bleiben beim Wechsel des Magazins (vorher setzte
+  `_tabelle_fuellen` sie zurück; gemerkt als „MagazinSpalten2“).
+- `camaddon/gui_werkzeuge.py`: „Schaut aus dem Halter (Standard)“; hat ein Platz einen eigenen
+  Wert, grau „– im Magazin genauer“, die Plätze mit ihren Werten im Tooltip.
+- `translations/de.json`, `en.json`; `help/de|en/werkzeuge.html`, `magazine.html`.
+- `tests/test_magazin.py` (gespeichert, Länge und Reichweite am Platz, ausspannen in den Platz,
+  Verweis mit Platz), `tests/gui/szenario_magazine.py` (Spalte), `szenario_pruefen_ausspannen.py`,
+  `szenario_vierachs_ausspannen.py` (Verweis mit fünf Teilen). `docs/OFFENE_FRAGEN.md`: Frage 1
+  beantwortet. `package.xml`: 0.274.0.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_magazin`, `test_werkzeuge`, `test_einrichtblatt`, `test_reichweite`,
+  `test_sprache`, `test_hilfe`, `szenario_magazine`, `szenario_magazin_vierachs`,
+  `szenario_halter`, `szenario_flanke_halter`, `szenario_pruefen_ausspannen`,
+  `szenario_vierachs_ausspannen`.
+
 ## P-2026-10-18-102 magazin-waehlbar-liste-je-platz
 
 ### EINGELESEN

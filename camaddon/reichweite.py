@@ -409,7 +409,10 @@ def werkzeuglaenge(tc, bibliothek):
 
 
 def laenge_des_werkzeugs(werkzeug, bibliothek):
-    """(Länge in mm, Quelle) eines Werkzeugs der Werkzeugverwaltung, wie werkzeuglaenge()."""
+    """(Länge in mm, Quelle) eines Werkzeugs der Werkzeugverwaltung, wie werkzeuglaenge() – steht
+    im Magazin der Maschine, wie weit es an seinem Platz herausschaut, mit diesem Wert
+    (Bibliothek.am_platz)."""
+    werkzeug = bibliothek.am_platz(werkzeug)
     if werkzeug.laenge_spindelnase:
         return werkzeug.laenge_spindelnase, LAENGE_SPINDELNASE
     halter = bibliothek.halter_fuer_pruefung(werkzeug)
@@ -444,14 +447,61 @@ def ausspannen_auf(werkzeug, bibliothek, heraus, mindestens):
     return ziel, laenge + (ziel - heraus)
 
 
-def ausspannen_setzen(werkzeug, laenge, heraus):
-    """„T1 auf … mm ausspannen“ in der Werkzeugverwaltung: Ist die Länge ab Spindelnase gemessen
-    eingetragen, wird sie `laenge` (mm) – sonst die Ausspannlänge `heraus` (mm), so wie man es
-    beim Einspannen misst (P-2026-10-12-113)."""
+def ausspannen_setzen(werkzeug, laenge, heraus, bibliothek=None):
+    """„T1 auf … mm ausspannen“: Steht das Werkzeug im Magazin der Maschine
+    (`bibliothek`.magazin_fuer_pruefung), schaut es an seinem Platz `heraus` mm heraus
+    (MagazinEintrag.heraus – dort ist es genauer, Manuel 2026-10-18). Sonst in der
+    Werkzeugverwaltung: Ist die Länge ab Spindelnase gemessen eingetragen, wird sie `laenge` (mm) –
+    sonst die Ausspannlänge `heraus` (mm), so wie man es beim Einspannen misst (P-2026-10-12-113).
+    """
+    magazin = getattr(bibliothek, "magazin_fuer_pruefung", None)
+    eintrag = magazin.eintrag_von(werkzeug) if magazin is not None else None
+    if eintrag is not None:
+        eintrag.heraus = round(float(heraus), 3)
+        return
     if werkzeug.laenge_spindelnase:
         werkzeug.laenge_spindelnase = round(float(laenge), 3)
     else:
         werkzeug.ausspannlaenge = round(float(heraus), 3)
+
+
+def ausspannen_ziel(werkzeug, laenge, heraus):
+    """Der Verweis „ausspannen:Nummer:Länge:heraus:Platz“ für „T1 auf … mm ausspannen“ – mit dem
+    Platz im Magazin (Werkzeug.magazin_nummer), wenn derselbe Fräser mehrmals darin steht."""
+    platz = getattr(werkzeug, "magazin_nummer", None)
+    return f"ausspannen:{werkzeug.nummer}:{float(laenge):.3f}:{heraus}:{platz or ''}"
+
+
+def ausspannen_lesen(ziel):
+    """(Nummer, Länge, heraus, Platz oder None) aus einem Verweis von ausspannen_ziel – auch aus
+    einem ohne Platz („ausspannen:1:111.000:41“)."""
+    teile = (ziel.split(":") + ["", "", "", ""])[1:5]
+    nummer, laenge, heraus, platz = teile
+    return (
+        int(nummer),
+        float(laenge),
+        float(heraus or 0.0),
+        int(platz) if platz.strip() else None,
+    )
+
+
+def ausspannen_werkzeug(bibliothek, nummer, platz=None):
+    """Das Werkzeug zu einem Verweis von ausspannen_ziel: mit Nummer aus der Werkzeugliste, mit
+    `platz` die Kopie für diesen Platz im Magazin (magazin.je_platz) – None, wenn es nicht da
+    ist."""
+    from . import magazin as mg
+
+    werkzeug = next((w for w in bibliothek.werkzeuge if w.nummer == nummer), None)
+    magazin = getattr(bibliothek, "magazin_fuer_pruefung", None)
+    if werkzeug is None or platz is None or magazin is None:
+        return werkzeug
+    kopien = mg.je_platz([werkzeug], magazin, bibliothek)
+    return next((k for k in kopien if k.magazin_nummer == platz), werkzeug)
+
+
+def ausspannen_kennung(werkzeug):
+    """„T3“ – wie der Verweis das Werkzeug nennt: am Platz im Magazin seine Nummer dort."""
+    return f"T{getattr(werkzeug, 'magazin_nummer', None) or werkzeug.nummer}"
 
 
 def ausgespannt_text(werkzeug, heraus, laenge):

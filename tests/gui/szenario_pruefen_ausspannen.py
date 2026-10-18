@@ -99,7 +99,7 @@ def schritte(h):
     h.bild("1_halter_stoesst", pruef.form)
     if verweis is None:
         return
-    _art, _nummer, laenge, heraus = verweis.group(1).split(":")
+    _art, _nummer, laenge, heraus = verweis.group(1).split(":")[:4]
 
     k.ausspannen_zeile.linkActivated.emit(verweis.group(1))
     yield 300

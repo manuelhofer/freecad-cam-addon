@@ -5019,7 +5019,7 @@ class VierachsPanel:
 
         if self.bibliothek is None:
             return ""
-        kennung = f"T{werkzeug.nummer}"
+        kennung = rw.ausspannen_kennung(werkzeug)
         auf = rw.ausspannen_auf(werkzeug, self.bibliothek, heraus, mindestens)
         if auf is None:
             satz = tr(
@@ -5034,26 +5034,23 @@ class VierachsPanel:
             werkzeug=kennung,
             heraus=einheiten.text(ziel, einheiten.LAENGE, 0),
         )
-        return f' · <a href="ausspannen:{werkzeug.nummer}:{neu:.3f}:{ziel}">{html.escape(text)}</a>'
+        verweis = rw.ausspannen_ziel(werkzeug, neu, ziel)
+        return f' · <a href="{verweis}">{html.escape(text)}</a>'
 
-    def werkzeug_ausspannen(self, nummer, laenge, heraus):
+    def werkzeug_ausspannen(self, nummer, laenge, heraus, platz=None):
         """„T1 auf 50 mm ausspannen“ (_ausspannen_verweis): die Länge ab Spindelnase von T`nummer`
         in der Werkzeugverwaltung auf `laenge` mm – so misst sie das Voreinstellgerät, wenn es
         `heraus` mm heraussteht –, gespeichert; grau darunter, was gesetzt ist, dann prüft es neu.
         Gibt das Werkzeug zurück – None, wenn es nicht (mehr) da ist."""
         from . import reichweite as rw
 
-        werkzeug = next(
-            (
-                w
-                for w in (self.bibliothek.werkzeuge if self.bibliothek else ())
-                if w.nummer == nummer
-            ),
-            None,
-        )
+        if self.bibliothek is None:
+            return None
+        self._magazin()  # das Magazin der Maschine: dort gilt der Wert des Platzes
+        werkzeug = rw.ausspannen_werkzeug(self.bibliothek, nummer, platz)
         if werkzeug is None:
             return None
-        rw.ausspannen_setzen(werkzeug, laenge, heraus)
+        rw.ausspannen_setzen(werkzeug, laenge, heraus, self.bibliothek)
         self.bibliothek.speichern()
         satz = rw.ausgespannt_text(werkzeug, heraus, laenge)
         # Grau dorthin, wo die gelbe Zeile mit diesem Verweis stand – nicht zu Bearbeitungen, die
@@ -5666,8 +5663,10 @@ class VierachsPanel:
         elif art == "magazin":
             self.ins_magazin(wert)
         elif art == "ausspannen":
-            nummer, laenge, heraus = wert.split(":")
-            self.werkzeug_ausspannen(int(nummer), float(laenge), int(heraus))
+            from . import reichweite as rw
+
+            nummer, laenge, heraus, platz = rw.ausspannen_lesen(ziel)
+            self.werkzeug_ausspannen(nummer, laenge, int(heraus), platz)
         else:
             self.werkzeugverwaltung(int(wert))
 

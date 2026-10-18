@@ -1095,15 +1095,16 @@ class PruefPanel:
         self._bild_weg()  # Werkzeug und Halter in der Ansicht neu
         self.pruefe()
 
-    def _werkzeug_ausspannen(self, nummer, laenge, heraus):
+    def _werkzeug_ausspannen(self, nummer, laenge, heraus, platz=None):
         """„T1 auf … mm ausspannen“ unter den Befunden (gui_kollision): T`nummer` in der
         Werkzeugverwaltung auf `laenge` mm ab Spindelnase (rw.ausspannen_setzen), gespeichert; das Fenster rechnet mit
         ihr neu (wie nach dem Speichern in der Werkzeugverwaltung). Gibt den Satz dazu zurück."""
-        werkzeuge = self.bibliothek.werkzeuge if self.bibliothek is not None else ()
-        werkzeug = next((w for w in werkzeuge if w.nummer == nummer), None)
+        if self.bibliothek is None:
+            return ""
+        werkzeug = rw.ausspannen_werkzeug(self.bibliothek, nummer, platz)
         if werkzeug is None:
             return ""
-        rw.ausspannen_setzen(werkzeug, laenge, heraus)
+        rw.ausspannen_setzen(werkzeug, laenge, heraus, self.bibliothek)
         self.bibliothek.speichern()
         satz = rw.ausgespannt_text(werkzeug, heraus, laenge) + " " + tr("kb.ausgespannt_pruefen")
         self._werkzeuge_gespeichert()

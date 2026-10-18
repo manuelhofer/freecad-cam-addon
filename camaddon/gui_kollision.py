@@ -241,11 +241,12 @@ class KollisionsBereich(QtGui.QWidget):
                 werkzeug = js.werkzeug_von(tc, bibliothek)
                 if werkzeug is None:
                     continue
-                bisher = je_werkzeug.get(werkzeug.nummer)
+                schluessel = (werkzeug.nummer, getattr(werkzeug, "magazin_nummer", None))
+                bisher = je_werkzeug.get(schluessel)
                 if bisher is None or befund.mindestens > bisher[2]:
-                    je_werkzeug[werkzeug.nummer] = (werkzeug, befund.heraus, befund.mindestens)
+                    je_werkzeug[schluessel] = (werkzeug, befund.heraus, befund.mindestens)
             for werkzeug, heraus, mindestens in je_werkzeug.values():
-                kennung = f"T{werkzeug.nummer}"
+                kennung = rw.ausspannen_kennung(werkzeug)
                 auf = rw.ausspannen_auf(werkzeug, bibliothek, heraus, mindestens)
                 if auf is None:
                     gesamt = einheiten.text(float(werkzeug.gesamtlaenge), einheiten.LAENGE, 0)
@@ -258,7 +259,7 @@ class KollisionsBereich(QtGui.QWidget):
                     werkzeug=kennung,
                     heraus=einheiten.text(ziel, einheiten.LAENGE, 0),
                 )
-                ziel_verweis = f"ausspannen:{werkzeug.nummer}:{laenge:.3f}:{ziel}"
+                ziel_verweis = rw.ausspannen_ziel(werkzeug, laenge, ziel)
                 verweise.append(f'<a href="{ziel_verweis}">{html.escape(text)}</a>')
         self.ausspannen_zeile.setText(" · ".join(verweise))
         self.ausspannen_zeile.setVisible(bool(verweise))
@@ -266,8 +267,8 @@ class KollisionsBereich(QtGui.QWidget):
     def _ausspannen_geklickt(self, ziel):
         """„ausspannen:1:111.000:41“: T1 so weit ausspannen (das Fenster setzt es und rechnet
         neu); grau darunter, was gesetzt ist."""
-        _art, nummer, laenge, heraus = ziel.split(":")
-        satz = self._ausspannen(int(nummer), float(laenge), int(heraus))
+        nummer, laenge, heraus, platz = rw.ausspannen_lesen(ziel)
+        satz = self._ausspannen(nummer, laenge, int(heraus), platz)
         if satz:
             self.notiz.setText(satz)
             self.notiz.show()

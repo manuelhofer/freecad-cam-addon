@@ -299,6 +299,42 @@ pruefe(
     and bs._schluessel(None, einmal[0]) == "wz:" + d12.kennung,
     f"einmal: {einmal}",
 )
+# Je Platz, wie weit er herausschaut (Manuel, 2026-10-18: „der standartwert kommt aus werkzeugliste
+# aber im magazin extra dafür ein wert“): der Standard 30 aus der Werkzeugliste, am Platz T1 45.
+d12.ausspannlaenge = 30.0
+erster.heraus = 45.0
+zwilling_bib.magazin_fuer_pruefung = zwilling
+gelesen = wz.MagazinEintrag.aus_dict(erster.als_dict())
+pruefe(gelesen.heraus == 45.0, f"gespeichert: {gelesen}")
+pruefe(wz.MagazinEintrag.aus_dict({"nummer": 1, "werkzeug": "x"}).heraus == 0.0, "alt ohne heraus")
+pruefe(zwilling_bib.heraus_im_magazin(d12) == 45.0, "heraus am Platz")
+pruefe(
+    abs(zwilling_bib.laenge_ab_spindelnase(d12) - (radial_h.laenge + 45.0)) < 1e-9,
+    f"Länge am Platz: {zwilling_bib.laenge_ab_spindelnase(d12)}",
+)
+from camaddon import reichweite as rw  # noqa: E402
+
+laenge_platz, quelle = rw.laenge_des_werkzeugs(d12, zwilling_bib)
+pruefe(
+    abs(laenge_platz - (radial_h.laenge + 45.0)) < 1e-9 and quelle == rw.LAENGE_AUSSPANN,
+    f"Reichweite: {laenge_platz} {quelle}",
+)
+pruefe(d12.ausspannlaenge == 30.0, "der Standard geändert")
+# „T1 auf 52 mm ausspannen“: in den Platz, nicht in die Werkzeugliste; der Verweis trägt den Platz.
+rw.ausspannen_setzen(d12, 0.0, 52.0, zwilling_bib)
+pruefe(erster.heraus == 52.0 and d12.ausspannlaenge == 30.0, f"ausspannen: {erster}")
+kopie_t1 = mg.je_platz([d12], zwilling, zwilling_bib)[0]
+ziel = rw.ausspannen_ziel(kopie_t1, 123.456, 55)
+pruefe(rw.ausspannen_lesen(ziel) == (1, 123.456, 55.0, 1), f"Verweis: {ziel}")
+pruefe(rw.ausspannen_lesen("ausspannen:1:111.000:41") == (1, 111.0, 41.0, None), "alter Verweis")
+pruefe(rw.ausspannen_werkzeug(zwilling_bib, 1, 1).magazin_nummer == 1, "Werkzeug zum Verweis")
+ohne_magazin = wz.Bibliothek()
+w_ohne = ohne_magazin.neues_werkzeug()
+w_ohne.ausspannlaenge = 30.0
+rw.ausspannen_setzen(w_ohne, 0.0, 41.0, ohne_magazin)
+pruefe(w_ohne.ausspannlaenge == 41.0, "ohne Magazin: in die Werkzeugliste")
+erster.heraus = 0.0
+
 # Mehrere Magazine einer Maschine (Standard-Beladungen): das am Job gewählte, sonst das geltende.
 zweites = zwilling_bib.neues_magazin("CLX550 Satz 2", "clx.FCStd")
 pruefe(not zweites.gilt and zwilling_bib.magazine_der_maschine("clx.FCStd")[0] is zwilling, "Folge")

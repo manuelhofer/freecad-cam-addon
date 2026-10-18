@@ -1489,6 +1489,11 @@ class MagazinEintrag:
     # leer: der Halter des Werkzeugs aus der Werkzeugliste. Manuel, 2026-10-17 (W-024): „ich will
     # den kugelfräser in der 3-achs-fräse haben, da hat die nen anderen halter als in der clx“.
     halter: str = ""
+    # So weit schaut das Werkzeug an diesem Platz aus seinem Halter (mm); 0: wie in der
+    # Werkzeugliste (Manuel, 2026-10-18: „der standartwert kommt aus werkzeugliste aber im magazin
+    # extra dafür ein wert“) – zwei Exemplare desselben Fräsers schauen meist verschieden weit
+    # heraus.
+    heraus: float = 0.0
 
     def als_dict(self):
         return dataclasses.asdict(self)
@@ -1501,6 +1506,7 @@ class MagazinEintrag:
             str(daten.get("name") or ""),
             _zahl(daten.get("platz"), int, 0),
             str(daten.get("halter") or ""),
+            max(_zahl(daten.get("heraus"), float, 0.0), 0.0),
         )
 
 
@@ -1673,6 +1679,26 @@ class Bibliothek:
         eintrag = magazin.eintrag_von(werkzeug) if magazin is not None else None
         return self.halter_mit(eintrag.halter) if eintrag is not None else None
 
+    def heraus_im_magazin(self, werkzeug):
+        """So weit schaut das Werkzeug an seinem Platz im Magazin der Maschine
+        (magazin_fuer_pruefung, MagazinEintrag.heraus) aus dem Halter – 0, wenn dort nichts
+        eingetragen ist (dann gilt die Werkzeugliste)."""
+        magazin = self.magazin_fuer_pruefung
+        eintrag = magazin.eintrag_von(werkzeug) if magazin is not None else None
+        return float(eintrag.heraus) if eintrag is not None and eintrag.heraus > 0 else 0.0
+
+    def am_platz(self, werkzeug):
+        """Das Werkzeug, wie es an seinem Platz im Magazin steckt: Steht dort, wie weit es
+        herausschaut (heraus_im_magazin), eine Kopie mit dieser Ausspannlänge und ohne die
+        gemessene Länge ab Spindelnase (die gilt für den Wert der Werkzeugliste) – sonst
+        `werkzeug`."""
+        heraus = self.heraus_im_magazin(werkzeug)
+        if heraus <= 0:
+            return werkzeug
+        kopie = copy.copy(werkzeug)
+        kopie.ausspannlaenge, kopie.laenge_spindelnase = heraus, 0.0
+        return kopie
+
     def halter_fuer_pruefung(self, werkzeug):
         """Der Halter aus dem Magazin der Maschine (halter_im_magazin), sonst der gewählte –
         sonst der vorgeschlagene nach Schaft-Ø (halter.vorschlag, D-23) –, oder None (ohne
@@ -1687,7 +1713,9 @@ class Bibliothek:
         Halter geschätzt (laenge_im_halter) – ohne Halter 0 (dann rechnet, wer sie braucht, mit
         der Gesamtlänge). Steckt das Werkzeug an der Maschine in einem anderen Halter
         (halter_im_magazin), gilt die Länge in dem – das Maß ab Spindelnase wurde im eigenen
-        gemessen."""
+        gemessen. Steht im Magazin, wie weit es an seinem Platz herausschaut, gilt das
+        (am_platz)."""
+        werkzeug = self.am_platz(werkzeug)
         im_magazin = self.halter_im_magazin(werkzeug)
         if im_magazin is not None and im_magazin.kennung != werkzeug.halter:
             # Nicht das gemessene Maß (das gilt im eigenen Halter): Halterlänge + Ausspannlänge,

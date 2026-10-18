@@ -20,13 +20,14 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import farben
+from . import einheiten, farben
 from . import halter as hl
 from . import maschine as m
 from . import maschinenspeicher as msp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, knopf, ruhiges_mausrad
+from .gui_zahlen import groesse_lesen, groesse_zeigen
 from .sprache import tr
 
 FENSTER_GROESSE = (1000, 620)
@@ -34,14 +35,14 @@ LISTE_BREITE = 260
 GROESSTE_NUMMER = 9999
 GROESSTE_PLATZ = 999
 ROT = farben.ROT
-SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ, SPALTE_HALTER = range(5)
-# Die Breiten der Spalten am Anfang (Pixel); mit der Maus ziehen, gemerkt in SPALTEN_GEMERKT.
-SPALTEN_BREITEN = (90, 330, 170, 110)
-SPALTEN_GEMERKT = "MagazinSpalten"
+SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ, SPALTE_HERAUS, SPALTE_HALTER = range(6)
+# Die Breiten der Spalten am Anfang (Pixel, ohne die letzte); mit der Maus ziehen, gemerkt in
+# SPALTEN_GEMERKT.
+SPALTEN_BREITEN = (90, 330, 170, 110, 170)
+SPALTEN_GEMERKT = "MagazinSpalten2"
 ROLLE = (
     QtCore.Qt.UserRole
 )  # an einer Zeile des Baums: ("maschine", Datei) oder ("magazin", Kennung)
-BREITEN = {SPALTE_T: 90, SPALTE_NAME: 170, SPALTE_PLATZ: 120, SPALTE_HALTER: 220}  # Pixel
 
 
 def werkzeug_text(werkzeug):
@@ -216,13 +217,14 @@ class MagazinDialog(QtGui.QDialog):
         plaetze.addWidget(self.plaetze_text, 1)
         formular.addRow(tr("mg.plaetze"), plaetze)
         aufbau.addLayout(formular)
-        self.tabelle = QtGui.QTableWidget(0, 5)
+        self.tabelle = QtGui.QTableWidget(0, 6)
         self.tabelle.setHorizontalHeaderLabels(
             [
                 tr("mg.spalte.t"),
                 tr("mg.spalte.werkzeug"),
                 tr("mg.spalte.name"),
                 tr("mg.spalte.platz"),
+                tr("mg.spalte.heraus"),
                 tr("mg.spalte.halter"),
             ]
         )
@@ -481,6 +483,16 @@ class MagazinDialog(QtGui.QDialog):
             platz.setToolTip(tr("mg.platz.tooltip"))
             platz.valueChanged.connect(lambda wert, e=eintrag: self._setze(e, "platz", wert))
             self.tabelle.setCellWidget(zeile, SPALTE_PLATZ, platz)
+            # So weit schaut es an diesem Platz heraus (Manuel, 2026-10-18: „im magazin extra
+            # dafür ein wert“); leer: der Standard aus der Werkzeugliste, grau.
+            werkzeug = self.bibliothek.werkzeug_mit_kennung(eintrag.werkzeug)
+            heraus = QtGui.QLineEdit(
+                groesse_zeigen(eintrag.heraus, einheiten.LAENGE) if eintrag.heraus > 0 else ""
+            )
+            heraus.setPlaceholderText(self._heraus_standard(werkzeug))
+            heraus.setToolTip(tr("mg.heraus.tooltip"))
+            heraus.textEdited.connect(lambda text, e=eintrag: self._heraus_gesetzt(e, text))
+            self.tabelle.setCellWidget(zeile, SPALTE_HERAUS, heraus)
             # Der Halter an dieser Maschine (W-024): leer heißt der des Werkzeugs.
             halter = QtGui.QComboBox()
             halter.setToolTip(tr("mg.halter.tooltip"))
@@ -497,8 +509,30 @@ class MagazinDialog(QtGui.QDialog):
                 lambda _i, e=eintrag, w=halter: self._setze(e, "halter", w.currentData() or "")
             )
             self.tabelle.setCellWidget(zeile, SPALTE_HALTER, halter)
-        for spalte, breite in BREITEN.items():
-            self.tabelle.setColumnWidth(spalte, breite)
+
+    def _heraus_standard(self, werkzeug):
+        """Grau im leeren Feld „Schaut heraus“: der Wert aus der Werkzeugliste – eingetragen,
+        oder aus der Länge ab Spindelnase und dem Halter; sonst „wie in der Werkzeugliste“."""
+        wert = 0.0
+        if werkzeug is not None:
+            halter = self.bibliothek.halter_von(werkzeug)
+            if werkzeug.ausspannlaenge:
+                wert = werkzeug.ausspannlaenge
+            elif werkzeug.laenge_spindelnase and halter is not None:
+                wert = max(werkzeug.laenge_spindelnase - halter.laenge, 0.0)
+        if wert > 0:
+            return tr("mg.heraus.platzhalter", wert=groesse_zeigen(wert, einheiten.LAENGE))
+        return tr("mg.heraus.wie_liste")
+
+    def _heraus_gesetzt(self, eintrag, text):
+        """„Schaut heraus“ geändert: der Wert des Platzes (leer: 0 – wie in der Werkzeugliste)."""
+        if self._fuellt:
+            return
+        try:
+            wert = groesse_lesen(text, einheiten.LAENGE) if text.strip() else 0.0
+        except ValueError:
+            return  # noch nicht fertig getippt
+        self._setze(eintrag, "heraus", max(float(wert), 0.0))
 
     def _setze(self, eintrag, feld, wert):
         if self._fuellt:

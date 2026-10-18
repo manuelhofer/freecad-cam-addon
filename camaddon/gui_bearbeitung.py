@@ -4173,7 +4173,7 @@ class _Block:
         if not ausspannen or werkzeug is None or bibliothek is None:
             return satz
         heraus, mindestens = ausspannen
-        kennung = f"T{werkzeug.nummer}"
+        kennung = rw.ausspannen_kennung(werkzeug)
         auf = rw.ausspannen_auf(werkzeug, bibliothek, heraus, mindestens)
         if auf is None:
             gesamt = einheiten.text(float(werkzeug.gesamtlaenge), einheiten.LAENGE, 0)
@@ -4185,21 +4185,22 @@ class _Block:
             werkzeug=kennung,
             heraus=einheiten.text(ziel, einheiten.LAENGE, 0),
         )
-        verweis = f"ausspannen:{werkzeug.nummer}:{laenge:.3f}:{ziel}"
+        verweis = rw.ausspannen_ziel(werkzeug, laenge, ziel)
         return f'{html.escape(satz, quote=False)} <a href="{verweis}">{html.escape(text)}</a>'
 
     def _hinweis_verweis(self, ziel):
         """„ausspannen:5:83.000:43“ im roten Satz: T5 in der Werkzeugverwaltung auf 83 mm ab
         Spindelnase, 43 mm heraus (rw.ausspannen_setzen), gespeichert; der Assistent liest es neu
         und rechnet die Vorschau."""
-        art, nummer, laenge, heraus = (ziel.split(":") + ["", "", ""])[:4]
         bibliothek = self.panel.bibliothek
-        if art != "ausspannen" or bibliothek is None:
+        if not ziel.startswith("ausspannen:") or bibliothek is None:
             return
-        werkzeug = next((w for w in bibliothek.werkzeuge if w.nummer == int(nummer)), None)
+        nummer, laenge, heraus, platz = rw.ausspannen_lesen(ziel)
+        self.panel.magazin()  # das Magazin der Maschine (dort gilt der Wert des Platzes)
+        werkzeug = rw.ausspannen_werkzeug(bibliothek, nummer, platz)
         if werkzeug is None:
             return
-        rw.ausspannen_setzen(werkzeug, float(laenge), float(heraus or 0.0))
+        rw.ausspannen_setzen(werkzeug, laenge, heraus, bibliothek)
         bibliothek.speichern()
         self.panel._werkzeuge_gespeichert()
 

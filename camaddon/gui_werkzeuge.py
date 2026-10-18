@@ -8,6 +8,7 @@ von FreeCAD: OK, Übernehmen, Abbrechen (fragt nach, wenn etwas geändert ist).
 Die Daten stehen in werkzeuge.py und werkstoffe.py.
 """
 
+import html
 import os
 
 import FreeCAD
@@ -859,6 +860,33 @@ class WerkzeugDialog(QtGui.QDialog):
         gitter.addWidget(self.hinweis, unten + 6, 0, 1, 4)
         gitter.addWidget(self.werkzeugbild, 0, 4, unten + 7, 1, QtCore.Qt.AlignTop)
 
+    def _ausspann_markieren(self, w):
+        """„Schaut aus dem Halter (Standard)“ – und steht im Magazin einer Maschine je Platz ein
+        eigener Wert (MagazinEintrag.heraus), grau dahinter „im Magazin genauer“; die Plätze mit
+        ihren Werten im Tooltip (Manuel, 2026-10-18: „in der werkzeugliste sollte als standart
+        drinnen stehen aber irgendwie markiert das es im magazin besser wäre“)."""
+        plaetze = []
+        if w is not None:
+            for magazin in self.bibliothek.magazine:
+                for eintrag in magazin.eintraege_von(w):
+                    if eintrag.heraus > 0:
+                        plaetze.append(
+                            tr(
+                                "wv.ausspannlaenge.platz",
+                                magazin=magazin.name or tr("mg.ohne_name"),
+                                nummer=eintrag.nummer,
+                                wert=groesse_zeigen(eintrag.heraus, einheiten.LAENGE),
+                            )
+                        )
+        text = html.escape(tr("wv.ausspannlaenge"), quote=False)
+        tooltip = tr("wv.ausspannlaenge.tooltip")
+        if plaetze:
+            genauer = html.escape(tr("wv.ausspannlaenge.genauer"), quote=False)
+            text += f' <span style="color: {GRAU.name()};">{genauer}</span>'
+            tooltip += "\n\n" + tr("wv.ausspannlaenge.plaetze", plaetze=", ".join(plaetze))
+        self.beschriftung_ausspannlaenge.setText(text)
+        self.beschriftung_ausspannlaenge.setToolTip(tooltip)
+
     @staticmethod
     def _ausspann_platzhalter(w, halter):
         """Grau im leeren Feld „Schaut aus dem Halter“: aus der gemessenen Länge ab Spindelnase
@@ -948,6 +976,7 @@ class WerkzeugDialog(QtGui.QDialog):
             platzhalter = tr("feld.unbekannt")
         self.feld_laenge_spindelnase.setPlaceholderText(platzhalter)
         self.feld_ausspannlaenge.setPlaceholderText(self._ausspann_platzhalter(w, halter))
+        self._ausspann_markieren(w)
         # Beim gewinkelten Halter zählt die Länge ab seinem Bezugspunkt (W-002 Stufe E).
         gewinkelt = halter is not None and halter.gewinkelt
         self.beschriftung_laenge_spindelnase.setText(

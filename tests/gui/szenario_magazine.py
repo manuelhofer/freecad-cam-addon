@@ -78,6 +78,18 @@ def schritte(h):
     yield 300
     h.pruefe(not m.probleme.text(), f"rot: {m.probleme.text()!r}")
     m.tabelle.cellWidget(0, gui_magazine.SPALTE_PLATZ).setValue(4)
+    # Je Platz, wie weit es herausschaut (Manuel, 2026-10-18): leer grau der Standard aus der
+    # Werkzeugliste; 45 eingetragen gilt am Platz.
+    heraus = m.tabelle.cellWidget(0, gui_magazine.SPALTE_HERAUS)
+    h.pruefe(
+        heraus.text() == "" and "Werkzeugliste" in heraus.placeholderText(),
+        f"Schaut heraus: {heraus.text()!r} / {heraus.placeholderText()!r}",
+    )
+    heraus.setText("45")
+    heraus.textEdited.emit("45")
+    yield 200
+    t1 = m.magazin.sortierte_eintraege()[0]
+    h.pruefe(t1.heraus == 45.0, f"heraus am Platz: {t1.heraus}")
     m.tabelle.cellWidget(1, gui_magazine.SPALTE_NAME).setText("ANBOHRER_D10")
     m.tabelle.cellWidget(1, gui_magazine.SPALTE_NAME).textEdited.emit("ANBOHRER_D10")
     yield 300

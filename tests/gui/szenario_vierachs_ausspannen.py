@@ -81,7 +81,7 @@ def schritte(h):
     h.bild("1_halter_stoesst", panel.form)
     if verweis is None:
         return
-    _art, _nummer, laenge, heraus = verweis.group(1).split(":")
+    _art, _nummer, laenge, heraus = verweis.group(1).split(":")[:4]
     h.pruefe(41 <= int(heraus) <= 45, f"ausspannen auf {heraus} mm")
 
     zeile.linkActivated.emit(verweis.group(1))
