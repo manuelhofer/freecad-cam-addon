@@ -447,7 +447,9 @@ def _je_zeile_verteilt(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
         for a, b in bereiche
     ]
     try:
-        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+        # Ohne Maus und Tastatur: Das läuft auch mitten in der Neuberechnung einer Operation, wo ein
+        # Klick ein Objekt träfe, das gerade gerechnet wird (P-2026-10-10-45; W-036).
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler as fehler:
         FreeCAD.Console.PrintWarning(
             f"CAM-Addon: Hüllfläche auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"

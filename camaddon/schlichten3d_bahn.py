@@ -873,7 +873,8 @@ class _Genau:
             for a, b in nr.stuecke(len(x), pool.anzahl, je_arbeiter=4, mindestens=16)
         ]
         try:
-            teile = pool.warten(auftraege, zwischendurch=nr.ereignisse)
+            # Ohne Maus und Tastatur – mitten in der Neuberechnung (P-2026-10-10-45; W-036).
+            teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
         except nr.Fehler as fehler:
             import FreeCAD
 

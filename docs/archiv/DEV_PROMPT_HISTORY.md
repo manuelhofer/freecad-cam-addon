@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-91 kein-zickzack-raeumen-keine-klicks-in-neuberechnung
+
+### EINGELESEN
+- Manuel, 2026-10-18: „Du und deine Tests... Schau lieber nebenher ob alles auf mehr CPUs rechnen
+  und alle Zickzack einfahren weg sind!!!“
+- Durchsicht mit zwei Such-Agenten (W-035 Zickzack, W-036 Kerne, beide in STATUS_SNAPSHOT) und
+  ein Zähler über die NC-Programme aller 69 „Bearbeitung“-Szenarien: 4 Zickzack-Einfahrten, alle
+  im Flansch, Räumen T1 – in den Ecken des Rohteils eine Rampe hin und her von 0 auf −16.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_von_aussen_laengs` – beginnt ein Lauf am Rand des Rohteils und passt
+  kein anderer Eingang, taucht der Fräser vor ihm in der Luft ein (rückwärts in Bahnrichtung, sonst
+  um 30/60/90° weggedreht, bis drei Radien; der Weg nicht ins Teil, gegen die Hüllfläche geprüft,
+  die letzten zwei Zellen vor dem genauen Ring an der Wand nicht) und fährt längs hinein – vor der
+  Rampe hin und her.
+- `camaddon/hoehenfeld.py`, `camaddon/schlichten3d_bahn.py`, `camaddon/gui_vierachs.py`: Warten auf
+  die Nebenrechner ohne Maus und Tastatur (`ereignisse_ohne_eingaben`) – sie liefen auch mitten in
+  der Neuberechnung einer Operation bzw. im „Anlegen“ (der Absturz von P-2026-10-10-45).
+  `camaddon/angestellt.py`: ohne Eingaben, außer ein Fortschritt mit „Abbrechen“ läuft mit.
+- `docs/STATUS_SNAPSHOT.md`: W-035, W-036.
+
+### ERGEBNIS
+- 146 NC-Programme der 69 Szenarien: 0 Zickzack-Einfahrten (vorher 4).
+- Grün im Wochen-Build: alle 69 Szenarien mit „Bearbeitung“ (6 Stapel), `test_raeumen`,
+  `test_materialstand`; nach der Änderung am Warten `szenario_schlichten3d`,
+  `szenario_vierachs_schruppen`, `szenario_bearbeitung`.
 ## P-2026-10-18-90 enge-gebiete-dem-kleineren-fraeser
 
 ### EINGELESEN

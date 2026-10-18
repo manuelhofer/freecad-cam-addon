@@ -4785,9 +4785,9 @@ class VierachsPanel:
             return
         # Was scheiterte, hat _vorschau_angekommen schon behandelt.
         with contextlib.suppress(nr.Fehler):
-            nr.pool().warten(
-                auftraege, zwischendurch=lambda: QtGui.QApplication.processEvents() or True
-            )
+            # Ohne Maus und Tastatur: Ein zweiter Klick auf „Anlegen“ oder „Schließen“ träfe den
+            # Assistenten mitten im Anlegen (W-036).
+            nr.pool().warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
 
     def _vorschau_abbrechen(self):
         """Nimmt die Aufträge einer laufenden Vorschau zurück (ihre Nebenrechner enden)."""

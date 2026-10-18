@@ -1625,6 +1625,33 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Sektoren mit je fünf Zeilen) fahren damit Wellen. Der Kern radial in Ringen von außen ist
   **verworfen** – Manuel, 2026-10-18, zum Bild mit dem Fräser im Schlitz: „ja okgut wenn man das so
   bearbeitet .. was nicht der plan ist … das bearbeitet man doch von vorne ;)“ → W-033.
+- **W-035 Kein Zickzack-Einfahren** – Manuel, 2026-10-18: „Schau lieber nebenher ob … alle Zickzack
+  einfahren weg sind!!!“ (Regel: Spezifikation Strategien Abschnitt 5 – nur in einer geschlossenen
+  Nut, zu schmal für eine Helix). Durchsicht (Such-Agent, 2026-10-18), wo es noch entstehen kann:
+  1. Räumen `_Lage._lauf` – Rampe hin und her, wenn kein Eingang passt (am Flansch in den Ecken
+     des Rohteils). **Behoben (P-2026-10-18-91):** `_von_aussen_laengs` – vor `p0` in der Luft
+     (rückwärts, sonst um bis 90° weggedreht) hinab und hinein. Erben: 3D-Schruppen, Stiche.
+  2. Planfräsen `planfraesen_bahn._einfahrt` – Zeile beginnt im Rohteil, für eine Helix zu kurz.
+  3. Kontur `kontur_bahn._rampe` – kurze Läufe ohne Helix und ohne Luft daneben.
+  4. 4-Achs-Schruppen in Zeilen `vierachs_bahn._einfahrt` – keine Helix im Gebiet.
+  5. Plan indexiert `vierachs_planbahn._einfahrt` – auf schrägen Flächen nie eine Helix.
+  6. Mantelnut `vierachs_planbahn._mantelnut_punkte` – weder Helix noch „geschlossen“ geprüft.
+  7. `schlicht_anlauf._rampe` (3D-Schruppen mit Rampenanlauf, 3D-Schlichten mit Grathöhe) – an jedem
+     Schnittanfang mit Material darüber.
+  In Ordnung: `nut_bahn._vollnut` (geschlossene Nut, zu schmal für die Helix). Nachzählen:
+  `pruefstand.kehren_im_programm`, `vierachs_bahn.kehren`.
+- **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
+  CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
+  bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte
+  (Hüllfläche, Räumen-Varianten zu dritt, Flanke, Normalen, Abtrag in Streifen) gehen an die
+  Nebenrechner; `freiwege.schneller` nach jeder Operation auf einem Kern; 3D-Schruppen: 3 Varianten
+  nacheinander; 3D-Schlichten: bis 6 Richtungen nacheinander; Räumen-Adaptiv-Kern je Fläche und Lage
+  nacheinander; `last()` reines Python. **Fehler:** `hoehenfeld._je_zeile_verteilt`,
+  `schlichten3d_bahn._Genau._verteilt`, `angestellt` und `gui_vierachs` (4788) warten in der
+  Neuberechnung mit `nr.ereignisse` (Maus und Tastatur) statt `ereignisse_ohne_eingaben` – der
+  Absturz von P-2026-10-10-45. Das Netz-Gedächtnis ist in den Nebenrechnern aus (jede Vorschau
+  vernetzt neu). Plan: der Fehler, dann 3D-Schruppen/-Schlichten verteilen, dann die Neuberechnung
+  der Operationen auf die Nebenrechner.
 - **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu
   Frage 1 (Rohteil des Beispiels `c_ring_nut_3achs`: Platte 65 × 65 × 12 oder vorgedrehter Ring
   Ø 60 × 10): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt welle d60 ist

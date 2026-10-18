@@ -214,8 +214,13 @@ def _normalen_verteilt(form, spitzen, radius, aufmass, kontakt, fortschritt):
     ]
 
     def zwischendurch():
+        # Mit Fortschritt (ein Fenster mit „Abbrechen“) Maus und Tastatur, sonst – mitten in der
+        # Neuberechnung einer Operation – ohne (P-2026-10-10-45; W-036).
+        if fortschritt is None:
+            nr.ereignisse_ohne_eingaben()
+            return True
         nr.ereignisse()
-        return fortschritt is None or fortschritt(nr.fortschritt_von(auftraege) * 0.99) is not False
+        return fortschritt(nr.fortschritt_von(auftraege) * 0.99) is not False
 
     try:
         teile = pool.warten(auftraege, zwischendurch)

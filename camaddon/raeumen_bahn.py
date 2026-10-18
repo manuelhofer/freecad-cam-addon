@@ -1177,6 +1177,19 @@ class _Lage:
                 laenge += bn.weg(punkte[-1], punkt)
                 punkte.append(punkt)
                 self.st.seitlich += 1
+            elif (laengs := self._von_aussen_laengs(p0, t0, ganz)) is not None:
+                # Der Lauf beginnt am Rand des Rohteils: rückwärts in Bahnrichtung verlängert liegt
+                # Luft – dort hinab und längs hinein, mit dem Eingriff der Bahn selbst (Grundsatz
+                # Einfahren 1; am Flansch fuhr das Räumen sonst in den Ecken des Rohteils eine
+                # Rampe hin und her, Manuel, 2026-10-18: „alle Zickzack einfahren weg“).
+                knapp = self._hinab(laengs, hoch)
+                punkte.append(bn.Punkt(True, laengs[0], laengs[1], hoch))
+                punkte.append(bn.Punkt(True, laengs[0], laengs[1], knapp))
+                punkte.append(bn.Punkt(False, laengs[0], laengs[1], self.lage, True))
+                punkt = bn.Punkt(False, p0[0], p0[1], self.lage)
+                laenge += bn.weg(punkte[-1], punkt)
+                punkte.append(punkt)
+                self.st.einfahrten += 1
             elif self._nichts_unter(p0):
                 # Unter der Stirn steht nichts (neben dem Rohteil, schon geräumt): senkrecht hinab
                 # – keine Helix, keine Rampe in der Luft (Manuel, 2026-10-12, am Ring: „du bist
@@ -1551,6 +1564,43 @@ class _Lage:
                 if not (
                     self.feld.im_raster(qx, qy).all() and self.feld.bei(self.erlaubt, qx, qy).all()
                 ):
+                    continue
+                if self._nichts_unter(q):
+                    return q
+        return None
+
+    def _von_aussen_laengs(self, p0, t0, ganz):
+        """Ein Punkt in der Luft vor `p0` – auf der Verlängerung des Laufs rückwärts (gegen `t0`),
+        sonst um 30, 60, 90° davon weggedreht, bis drei Radien weit –, unter dessen Stirn nichts
+        steht (im Raster nichts Ungeschnittenes, außerhalb: neben dem Rohteil) und der Weg von dort
+        nicht ins Teil geht; None, wenn keiner oder der Lauf ein ganzer Ring ist (der beginnt
+        nicht am Rand)."""
+        if ganz:
+            return None
+        feld = self.feld
+        # Nicht ins Teil: die Hüllfläche liegt unter der Lage (das Erlaubte des Laufs grenzt
+        # dazu auf das Gebiet über den gewählten Flächen ein – davor ist hier die Luft).
+        teil_frei = feld.roh + feld.zugabe <= self.lage + GLEICH
+        for grad in (0.0, 30.0, -30.0, 60.0, -60.0, 90.0, -90.0):
+            w_ = math.radians(grad)
+            rx = -(t0[0] * math.cos(w_) - t0[1] * math.sin(w_))
+            ry = -(t0[0] * math.sin(w_) + t0[1] * math.cos(w_))
+            for d in np.arange(self.schritt, 3.0 * self.r + self.schritt, self.schritt):
+                q = (p0[0] + rx * float(d), p0[1] + ry * float(d))
+                anzahl = max(2, int(math.ceil(float(d) / self.schritt)) + 1)
+                qx = np.linspace(q[0], p0[0], anzahl)
+                qy = np.linspace(q[1], p0[1], anzahl)
+                drin = feld.im_raster(qx, qy)
+                # Die letzten zwei Zellen vor p0 nicht: Der genaue Ring an der Wand liegt im
+                # Raster eine Zelle im Gesperrten (wie frei(ohne_sperre)).
+                weg = drin & (np.hypot(qx - p0[0], qy - p0[1]) > 2.0 * self.schritt)
+                if weg.any() and not feld.bei(teil_frei, qx[weg], qy[weg]).all():
+                    break  # in dieser Richtung ginge es ins Teil
+                if not drin[0]:
+                    # Außerhalb des Rasters ist Luft (es umfasst das Rohteil): weiter, bis die
+                    # Stirn neben dem Rohteil liegt.
+                    if self._aussen(q) > 0.0:
+                        return q
                     continue
                 if self._nichts_unter(q):
                     return q
