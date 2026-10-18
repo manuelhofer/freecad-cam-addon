@@ -32,8 +32,14 @@ patch_naming:
 |---|---|---|
 | drei Stationen ab 311 000 (Halter von T2 im Teil) | 319,7 s | 0,5 s, dieselben 10 Stellen |
 | „Kollision prüfen“ am Geist, 381 711 Stationen, 16-GB-Grenze | nach 34 min nicht fertig | 7,3 min |
-- Am Geist mit den Szenario-Werten acht Befunde: Schneide, Schaft und Halter von T1 und T2 berühren das
-  Teil (der ER16 ist dafür zu dick), dazu ein Werkzeug im Revolver an der Spindel.
+- Richtigstellung (nach dem Eintrag nachgemessen): Diese Messungen liefen mit T1 und T2 ohne Halter
+  in der Bibliothek – sie steckten axial im Revolver (Fräserfutter ER16 · SK40), wie schon am
+  2026-10-12 (Erinnerung „Kollision messen mit Job-Bibliothek“). Die acht Befunde dieser Läufe
+  („Schneide ins fertige Teil“, Schaft und Halter am Teil) und die 34 min gelten dieser falschen Lage,
+  nicht der Bahn. Richtig gespannt (VDI30 radial): 9,3 min, sechs Befunde – die Halter an der
+  Spindel und der Halter von T2 am Teil („steht 20 mm heraus, bräuchte mindestens 38 mm“); der Job
+  des Szenarios ist ohne Halter gerechnet. Die Änderung bleibt richtig: Sie trifft jede Stelle, an
+  der ein Körper ein Teil aus einem STL durchdringt.
 - Grün im Wochen-Build: `test_stl_teil`, `test_kollision`, `test_kollision_verteilt`,
   `szenario_kollision`.
 ## P-2026-10-18-73 kollision-beruehrt-schon
