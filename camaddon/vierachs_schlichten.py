@@ -552,19 +552,22 @@ def _im_vorschub(bahn, schritt_a, schritt_bogen):
     return np.array(a), np.array(r), np.array(phi), np.array(q)
 
 
-def schrittweite_vorschlag(werkzeug, einsatz, kammhoehe=None, angestellt=False):
+def schrittweite_vorschlag(werkzeug, einsatz, kammhoehe=None, angestellt=False, eingegeben=False):
     """Die Schrittweite, wenn nichts anderes gesagt ist. Mit `kammhoehe` (mm) und einer runden
     Stirn (Kugel, Torus): so weit, dass zwischen zwei Bahnen höchstens diese Kammhöhe stehen
     bleibt (Manuel, 2026-10-11, Frage 6: „kammhöhe sollte … unseren vorschlag beeinflussen“,
     Vorgabe KAMMHOEHE wie bei Gühring), höchstens „ae max“ des Einsatzes – außer die Kugel fährt
     angestellt (`angestellt`; Manuel: „wenn wir mit dem kugelfäser angestellt fahren .. sind die
-    0,4 hinfällig“). Sonst ae des Einsatzes aus der Werkzeugtabelle (Manuel, 2026-09-30), sonst
-    D/50 wie die Vorlage „Schlichten“ – höchstens der Durchmesser."""
+    0,4 hinfällig“) oder die Kammhöhe ist von Hand eingetragen (`eingegeben`; Manuel, 2026-10-18:
+    „selbst wenn ich die kammhöhe eingebe .. ändert sich die schrittweite und kammhöhe nicht ?? das
+    is so nicht richtig“ – über ae max sagt es das Fenster gelb). Sonst ae des Einsatzes aus der
+    Werkzeugtabelle (Manuel, 2026-09-30), sonst D/50 wie die Vorlage „Schlichten“ – höchstens der
+    Durchmesser."""
     durchmesser = werkzeug.durchmesser
     form = ff.von_werkzeug(werkzeug) if kammhoehe else None
     if form is not None and not form.eben and kammhoehe > 0:
         schritt = schrittweite_fuer_kammhoehe(form, kammhoehe)
-        if einsatz is not None and einsatz.ae_max > 0 and not angestellt:
+        if einsatz is not None and einsatz.ae_max > 0 and not (angestellt or eingegeben):
             schritt = min(schritt, einsatz.ae_max)
         return round(min(schritt, durchmesser), 3)
     if einsatz is not None and 0 < einsatz.ae <= durchmesser:

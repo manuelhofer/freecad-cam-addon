@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-78 kammhoehe-eingetragen-gilt
+
+### EINGELESEN
+- Manuel, 2026-10-18 (4-Achs-Assistent, Rundum schlichten mit der Kugel Ø 12 an seinem neuen
+  Wendel-Testteil): „selbst wenn ich die kammhöhe eingebe .. ändert sich die schrittweite und
+  kammhöhe nicht ?? das is so nicht richtig würd ich sagen“; „auch wenn ich die schrittweite eingebe
+  .. änder tsich an der kamhöhe nix“ (bei 0,15 stand „→ Kammhöhe 0,000 mm“); „warum kammhöhe 0 ?“
+  (Schaftfräser).
+
+### DATEIEN
+- `camaddon/vierachs_schlichten.py`: `schrittweite_vorschlag(…, eingegeben=False)` – eine von Hand
+  eingetragene Kammhöhe gilt ohne die Grenze „ae max“ des Einsatzes (vorher hielt ae max 0,6 die
+  Schrittweite fest, jede Kammhöhe über 0,0075 änderte nichts).
+- `camaddon/gui_vierachs.py`: `_kammhoehe_zeigen` – „→ Kammhöhe …“ gleich beim Tippen (Schrittweite
+  oder Kammhöhe), unter 0,01 mm mit vier Stellen (0,15 mit der Kugel Ø 12: 0,0005); mit flacher
+  Stirn „(auf ebenen Stellen – an Schrägen und Flanken bleibt mehr stehen)“; über ae max ohne
+  angestellte Kugel ein Satz in Gelb.
+- `translations/*.json` (Tooltip: Kammhöhe ≈ Schrittweite² / (8 × Radius)), `tests/test_vierachs_schlichten.py`,
+  `tests/gui/szenario_vierachs_schlichten.py`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_vierachs_schlichten`, `szenario_vierachs_schlichten`.
 ## P-2026-10-18-77 einrichtblatt-werte-und-nullpunkt
 
 ### EINGELESEN

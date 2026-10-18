@@ -1529,9 +1529,20 @@ class VierachsPanel:
             tr("va.schrittweite.tooltip"),
             schlichten,
         )
+        # Die Kammhöhe aus der Schrittweite gleich beim Tippen, nicht erst mit der Vorschau.
+        self.felder_schlichten["schrittweite"].textChanged.connect(
+            lambda _text: self._kammhoehe_zeigen()
+        )
         self.kammhoehe = self._grau()
         self.kammhoehe.hide()  # erst, wenn es eine Kammhöhe gibt
         schlichten.ganz(self.kammhoehe)
+        from .gui_kollision import GELB
+
+        self.kammhoehe_ae = self._grau()  # gelb: Schrittweite über „ae max“ des Einsatzes
+        self.kammhoehe_ae.setWordWrap(True)
+        self.kammhoehe_ae.setStyleSheet(f"color: {GELB};")
+        self.kammhoehe_ae.hide()
+        schlichten.ganz(self.kammhoehe_ae)
         aufloesungsfelder(self.felder_schlichten, schlichten, None, vb.SCHRITT_PHI_SCHLICHTEN)
         zahlenfeld(
             self.felder_schlichten,
@@ -2580,6 +2591,46 @@ class VierachsPanel:
             eingabe.setPlaceholderText(
                 groesse_zeigen(self._vorschlag("schrittweite"), einheiten.LAENGE) or "0"
             )
+        self._kammhoehe_zeigen()
+
+    def _kammhoehe_zeigen(self):
+        """„→ Kammhöhe …“ unter der Schrittweite – aus der eingetragenen oder vorgeschlagenen, so
+        genau, dass man sie sieht (0,15 mm mit der Kugel Ø 12: 0,0005 statt „0,000“; Manuel,
+        2026-10-18: „auch wenn ich die schrittweite eingebe .. ändert sich an der kammhöhe nix“).
+        Mit flacher Stirn gilt sie auf ebenen Stellen; liegt die Schrittweite über „ae max“ des
+        Einsatzes und die Kugel fährt nicht angestellt, ein Satz in Gelb."""
+        werkzeug = self.schlichtfraeser() if self.felder_schlichten else None
+        schrittweite = self._wert("schrittweite") if werkzeug is not None else 0.0
+        if werkzeug is None or not 0 < schrittweite <= werkzeug.durchmesser:
+            self.kammhoehe.hide()
+            self.kammhoehe_ae.hide()
+            return
+        form = ff.von_werkzeug(werkzeug)
+        hoehe = form.kammhoehe(schrittweite)
+        stellen = 3 if hoehe >= 0.01 or hoehe < 1e-5 else 4
+        text = tr("va.kammhoehe", hoehe=groesse_fest(hoehe, einheiten.LAENGE, stellen))
+        if form.eben:
+            text += " " + tr("va.kammhoehe.eben")
+        self.kammhoehe.setText(text)
+        self.kammhoehe.show()
+        einsatz = self.schlichteinsatz()
+        angestellt = self.querachse() and self.anstellen()
+        ueber = (
+            einsatz is not None
+            and einsatz.ae_max > 0
+            and schrittweite > einsatz.ae_max + 1e-9
+            and not form.eben
+            and not angestellt
+        )
+        if ueber:
+            self.kammhoehe_ae.setText(
+                tr(
+                    "va.kammhoehe.ueber_ae",
+                    schrittweite=groesse_zeigen(schrittweite, einheiten.LAENGE),
+                    ae=groesse_zeigen(einsatz.ae_max, einheiten.LAENGE),
+                )
+            )
+        self.kammhoehe_ae.setVisible(ueber)
 
     def _querachse_schruppen_umgeschaltet(self):
         if self._fuellt:
@@ -2858,10 +2909,7 @@ class VierachsPanel:
             raise ValueError(tr("vs.fehler.ohne_schruppen"))
         form = ff.von_werkzeug(werkzeug)
         schrittweite = self._wert("schrittweite")
-        if 0 < schrittweite <= werkzeug.durchmesser:
-            hoehe = groesse_fest(form.kammhoehe(schrittweite), einheiten.LAENGE, 3)
-            self.kammhoehe.setText(tr("va.kammhoehe", hoehe=hoehe))
-            self.kammhoehe.show()
+        self._kammhoehe_zeigen()
         achse = self.achse()
         return (
             tuple(achse.laengs),
@@ -3802,6 +3850,7 @@ class VierachsPanel:
                 self.schlichteinsatz(),
                 self._wert("kammhoehe_ziel"),
                 angestellt=self.querachse() and self.anstellen(),
+                eingegeben=bool(self._feld("kammhoehe_ziel").text().strip()),
             )
         if feld == "zustellung_plan":
             einsatz = self.planeinsatz()
@@ -3965,6 +4014,7 @@ class VierachsPanel:
         ):
             etikett.setText("")
         self.kammhoehe.hide()
+        self.kammhoehe_ae.hide()
         self._rest_zurueck()
         self.hinweis_bearbeitung.setText("")
         if schruppen and (self.fraeser() is None or self.einsatz() is None):

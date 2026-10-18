@@ -853,6 +853,9 @@ s_grenze = vs_.schrittweite_vorschlag(kugel8, einsatz_holex, vs_.KAMMHOEHE)
 pruefe(abs(s_grenze - 0.4) < 1e-9, f"ae max hält nicht: {s_grenze}")
 s_angestellt = vs_.schrittweite_vorschlag(kugel8, einsatz_holex, vs_.KAMMHOEHE, angestellt=True)
 pruefe(abs(s_angestellt - s_frei) < 1e-9, f"angestellt gilt ae max: {s_angestellt}")
+# Von Hand eingetragen gilt die Kammhöhe ohne die Grenze (Manuel, 2026-10-18).
+s_eingegeben = vs_.schrittweite_vorschlag(kugel8, einsatz_holex, vs_.KAMMHOEHE, eingegeben=True)
+pruefe(abs(s_eingegeben - s_frei) < 1e-9, f"eingetragene Kammhöhe: {s_eingegeben}")
 schaft8 = wz_.Werkzeug(art=wz_.SCHAFTFRAESER, durchmesser=8.0, schneiden=3)
 s_schaft = vs_.schrittweite_vorschlag(
     schaft8, wz_.Einsatz(art=wz_.SCHLICHTEN, ae=1.5), vs_.KAMMHOEHE

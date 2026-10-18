@@ -11,6 +11,8 @@
 # T2“, ein Schritt Rückgängig. Doppelklick auf „Rundum schlichten T2“: Kopf „„Rundum
 # schlichten T2“ ändern“, das Schruppen ist ausgeblendet; Schrittweite 0,5 → „Übernehmen“:
 # die Operation hat 0,5, ein Schritt Rückgängig „Rundum schlichten ändern“.
+import re
+
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -221,6 +223,11 @@ def schritte(h):
     h.pruefe(panel.schlichten_anstellen.isChecked(), "beim Ändern: Haken Anstellen weg")
     texte = {k: f.text() for k, f in panel.felder_schlichten.items()}
     h.pruefe(not any(texte.values()), f"Felder: {texte}")
+    # Die Kammhöhe folgt der Schrittweite gleich beim Tippen und so genau, dass man sie sieht
+    # (Manuel, 2026-10-18: bei 0,15 stand „0,000“).
+    panel.felder_schlichten["schrittweite"].setText("0,15")
+    kamm = panel.kammhoehe.text()
+    h.pruefe(re.fullmatch(r"→ Kammhöhe 0,0\d{3} mm", kamm) is not None, f"bei 0,15: {kamm!r}")
     panel.felder_schlichten["schrittweite"].setText("0,5")
     yield from h.warte_auf(lambda: panel.vorschau_schlichten is not None, 30000)
     h.pruefe(panel.kammhoehe.text() == "→ Kammhöhe 0,010 mm", f"{panel.kammhoehe.text()!r}")
