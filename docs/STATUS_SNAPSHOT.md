@@ -939,8 +939,9 @@ T1 Ø 12.
    überall, und `_abstand_stl` gab dann Tausende Dreiecke auf einmal an OpenCascade (bis 5 min für
    drei Stationen). Jetzt hört es bei Berührung auf und rechnet in Stücken. Richtig gespannt (VDI30
    radial) am Geist des Szenarios: 9,3 min, Speicher in einer 16-GB-Grenze; Befunde nur zu den
-   Haltern (der Job des Szenarios ist ohne Halter gerechnet). Die Gegenprobe zu P-160 (Fräser unter
-   den Armen) steht damit weiter aus – mit einem Job, der mit dem Halter gerechnet ist.
+   Haltern (der Job des Szenarios ist ohne Halter gerechnet). Gegenprobe zu P-160 (Fräser unter den
+   Armen): Schneide und Schaft von T1 und T2 berühren das Teil an keiner der 381 711 Stationen –
+   erledigt; offen bleibt nur, den Job mit dem Halter zu rechnen (dann weicht die Bahn ihm aus).
 Frage 20 (Bereiche an einem STL wählen) entfällt: Ein STL wird immer rundum bearbeitet, angeklickt wird
 nur, wie es liegt (Manuel: „klar soll das immer rundum bearbeitet werden is ja ne stl“).
 
