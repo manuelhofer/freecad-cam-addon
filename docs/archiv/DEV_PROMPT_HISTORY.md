@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-85 rohteil-mit-massen
+
+### EINGELESEN
+- Manuel, 2026-10-18 (W-028): „rohteil quader 60.93x61.96 ist natürlich quatsch ... aber ich hätte
+  auch gern die auswahlmöglichkeit .. relative größe oder sowas wo ich einfach die werte des rohteils
+  reinpacke ... und eben dann mit der auswahl wo mein 0 punkt ist sage was oben ist“; „es muss
+  komplett variabel sein ja ... voschalg muss erstmal sein "gut das sind die masse und nullpunkt ist
+  mittig oben ... unterm nullpunkt is das teil direkt wenn oben aufmass 0 ist .. wenn oben aufmass 1
+  ist liegts 1mm drunter ... und unten aufmass brauchts dann ja eigentlich nicht ... auser man will
+  es eingeben dann ergibt sich aber das obere aufmass durch die höhe .. also ein switch wäre gut ...
+  wenn das teil dann nicht ins rohteil past muss es eine warnung geben und einspannlänge von unten ist
+  auch wichtig“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: In Schritt 1 die Wahl „Quader mit Maßen“: Länge X, Breite Y, Höhe Z,
+  „In der Höhe: Aufmaß oben | Aufmaß unten“ und ein Aufmaß; das Teil in X und Y mittig. Leer gilt der
+  Vorschlag (Teil + 1 mm je Seite, auf ganze mm aufgerundet), beim Wechsel dorthin geht der Nullpunkt
+  von „wie im Modell“ auf „Mitte oben“. Passt das Teil nicht, rot „Das Teil passt nicht ins Rohteil:
+  Es braucht mindestens …“, das Rohteil wird nie kleiner als das Teil. Genau so groß wie eingetragen:
+  FreeCAD baut das Rohteil um den groben Hüllquader des Modells (vom angehängten Netz abhängig, am
+  C-Ring 0,04 mm daneben) – die Aufmaße gleichen das aus; gerechnet wird mit dem genauen
+  (`optimalBoundingBox`). Der Job merkt sich die Maße (`CamAddonRohteilMasse`), beim Ändern stehen
+  sie wieder da; oben in Schritt 2 „Rohteil 62 × 62 × 16 mm, Aufmaß unten 2 mm“. „Von unten gespannt“
+  bleibt. Die Aufmaße je Richtung (`_ausdehnung`) gelten auch für den Nullpunkt.
+- `camaddon/einrichtblatt.py`: mit Maßen „Quader 62 × 62 × 16 mm – das Teil mittig, seine Unterseite
+  2 mm über der des Rohteils“ (bzw. „Oberseite … unter der des Rohteils“).
+- `translations/*.json`, neu `tests/gui/szenario_bearbeitung_rohteilmasse.py`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_bearbeitung_rohteilmasse`, `szenario_bearbeitung_zylinder`,
+  `szenario_bearbeitung`, `test_einrichtblatt`.
 ## P-2026-10-18-84 c-ring-beispiel-nut
 
 ### EINGELESEN

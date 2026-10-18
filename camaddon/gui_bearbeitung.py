@@ -142,6 +142,14 @@ UHR_SCHRITT_MS = 30  # ein Schritt der Vorschau mitten in einer Rechnung: so vie
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 VORSCHAU_MERK = 60  # so viele Vorschauen merkt sich der Assistent (_Block.vorschau_rechnen)
 ROHTEIL_FELDER = ("oben", "seite", "unten")
+# Quader mit Maßen (W-028; Manuel, 2026-10-18: „wo ich einfach die werte des rohteils reinpacke …
+# unterm nullpunkt is das teil direkt wenn oben aufmass 0 ist .. wenn oben aufmass 1 ist liegts 1mm
+# drunter ... und unten aufmass brauchts dann ja eigentlich nicht ... auser man will es eingeben dann
+# ergibt sich aber das obere aufmass durch die höhe .. also ein switch wäre gut ... wenn das teil dann
+# nicht ins rohteil past muss es eine warnung geben“): Länge, Breite, Höhe; das Teil in X und Y
+# mittig, in der Höhe das Aufmaß oben – oder unten, dann ergibt sich das obere.
+MASSE_FELDER = ("x", "y", "z", "aufmass")
+ROHTEIL_MASSE = "CamAddonRohteilMasse"  # am Job: „x;y;z;oben|unten;Aufmaß“ (mm)
 VERSATZ_FELDER = ("x", "y", "z")  # der Nullpunkt, vom gewählten Punkt aus verschoben
 
 
@@ -4627,8 +4635,12 @@ class BearbeitungPanel:
         # Ein runder Rohling, stehend wie im Dreibackenfutter (W-021).
         self.knopf_rohteil_zylinder = QtGui.QRadioButton(tr("ba.rohteil.zylinder"))
         self.knopf_rohteil_zylinder.setToolTip(tr("ba.rohteil.zylinder.text"))
+        # Ein Quader mit eingegebenen Maßen (W-028).
+        self.knopf_rohteil_masse = QtGui.QRadioButton(tr("ba.rohteil.masse"))
+        self.knopf_rohteil_masse.setToolTip(tr("ba.rohteil.masse.text"))
         self.knopf_rohteil_quader.setChecked(True)
         knoepfe.addWidget(self.knopf_rohteil_quader)
+        knoepfe.addWidget(self.knopf_rohteil_masse)
         knoepfe.addWidget(self.knopf_rohteil_zylinder)
         knoepfe.addWidget(self.knopf_rohteil_teil)
         knoepfe.addStretch()
@@ -4642,6 +4654,7 @@ class BearbeitungPanel:
         ziel[0].addWidget(self.rohteil_koerper)
         self.knopf_rohteil_teil.toggled.connect(lambda _an: self._rohteil_art_geaendert())
         self.knopf_rohteil_zylinder.toggled.connect(lambda _an: self._rohteil_art_geaendert())
+        self.knopf_rohteil_masse.toggled.connect(lambda _an: self._rohteil_art_geaendert())
         self.wahl_rohteil.currentIndexChanged.connect(lambda _i: self._rohteil_geaendert())
         rohteil = _Reihen()
         self.felder_rohteil = {}
@@ -4656,6 +4669,38 @@ class BearbeitungPanel:
             eingabe.setPlaceholderText(groesse_zeigen(AUFMASS_ROHTEIL, einheiten.LAENGE) or "0")
         self.rohteilfelder = rohteil.widget
         ziel[0].addWidget(self.rohteilfelder)
+        masse = _Reihen()
+        self.felder_masse = {}
+        for feld, text, tooltip in (
+            ("x", tr("ba.rohteil.masse.x"), tr("ba.rohteil.masse.x.tooltip")),
+            ("y", tr("ba.rohteil.masse.y"), tr("ba.rohteil.masse.y.tooltip")),
+            ("z", tr("ba.rohteil.masse.z"), tr("ba.rohteil.masse.z.tooltip")),
+        ):
+            _zahlenfeld(self.felder_masse, feld, text, tooltip, masse, self._rohteil_geaendert)
+        self.wahl_masse_lage = QtGui.QComboBox()
+        self.wahl_masse_lage.addItem(tr("ba.rohteil.masse.oben"), "oben")
+        self.wahl_masse_lage.addItem(tr("ba.rohteil.masse.unten"), "unten")
+        self.wahl_masse_lage.setToolTip(tr("ba.rohteil.masse.lage.tooltip"))
+        self.wahl_masse_lage.currentIndexChanged.connect(lambda _i: self._rohteil_geaendert())
+        masse.reihe(
+            tr("ba.rohteil.masse.lage"), tr("ba.rohteil.masse.lage.tooltip"), self.wahl_masse_lage
+        )
+        _zahlenfeld(
+            self.felder_masse,
+            "aufmass",
+            tr("ba.rohteil.masse.aufmass"),
+            tr("ba.rohteil.masse.aufmass.tooltip"),
+            masse,
+            self._rohteil_geaendert,
+        ).setPlaceholderText(groesse_zeigen(AUFMASS_ROHTEIL, einheiten.LAENGE) or "0")
+        self.rohteilmasse = masse.widget
+        self.rohteilmasse.setVisible(False)
+        ziel[0].addWidget(self.rohteilmasse)
+        self.rohteil_warnung = QtGui.QLabel()
+        self.rohteil_warnung.setWordWrap(True)
+        self.rohteil_warnung.setStyleSheet(f"color: {ROT};")
+        self.rohteil_warnung.setVisible(False)
+        ziel[0].addWidget(self.rohteil_warnung)
         # Von unten gespannt (S3h, Manuel 2026-10-01): so viel steckt im Schraubstock – auch beim
         # Ändern einstellbar, es verschiebt nichts.
         reihen_spannung = _Reihen()
@@ -5613,6 +5658,7 @@ class BearbeitungPanel:
     def _rohteil_art_geaendert(self):
         """Quader oder Körper aus dem Dokument: die Felder dazu, die Liste der Körper."""
         teil = self.knopf_rohteil_teil.isChecked()
+        masse = self.knopf_rohteil_masse.isChecked()
         if teil and self.wahl_rohteil.count() == 0:
             self._rohteil_liste_fuellen()
         if teil and self.wahl_rohteil.count() == 0:
@@ -5632,10 +5678,29 @@ class BearbeitungPanel:
             self.rohteil_erklaerung.setText(tr("ba.rohteil.teil.text"))
         elif self.knopf_rohteil_zylinder.isChecked():
             self.rohteil_erklaerung.setText(tr("ba.rohteil.zylinder.text"))
+        elif masse:
+            self.rohteil_erklaerung.setText(tr("ba.rohteil.masse.text"))
         else:
             self.rohteil_erklaerung.setText(tr("ba.rohteil.text"))
         self.rohteil_koerper.setVisible(teil and not stange)
-        self.rohteilfelder.setVisible(not teil and not stange)
+        self.rohteilfelder.setVisible(not teil and not masse and not stange)
+        self.rohteilmasse.setVisible(masse and not stange)
+        if not masse:
+            self.rohteil_warnung.setVisible(False)
+        if masse and not self._fuellt:
+            self._masse_vorschlag_zeigen()
+            # Der Vorschlag dazu: der Nullpunkt Mitte oben (Manuel: „gut das sind die masse und
+            # nullpunkt ist mittig oben“) – nur, solange er „wie im Modell“ steht.
+            if not self.wahl_nullpunkt.currentData():
+                mitte_oben = next(
+                    (
+                        n
+                        for n, (_t, lage) in enumerate(self._nullpunkte, start=1)
+                        if lage == (0, 0, 1)
+                    ),
+                    0,
+                )
+                self.wahl_nullpunkt.setCurrentIndex(self.wahl_nullpunkt.findData(mitte_oben))
         self._rohteil_geaendert()
 
     def _stangen_text(self):
@@ -5732,16 +5797,31 @@ class BearbeitungPanel:
             FreeCAD.setActiveDocument(self.doc.Name)
             self._rohteil_ersetzen(job, PathStock.CreateFromBase(job))
             rohteil = job.Stock
-        for name, wert in (
-            ("ExtZpos", werte["oben"]),
-            ("ExtZneg", werte["unten"]),
-            ("ExtXneg", werte["seite"]),
-            ("ExtXpos", werte["seite"]),
-            ("ExtYneg", werte["seite"]),
-            ("ExtYpos", werte["seite"]),
-        ):
+        if self.knopf_rohteil_masse.isChecked():
+            # Mit Maßen genau: FreeCAD baut das Rohteil um den groben Hüllquader des Modells
+            # (Path.Main.Stock.shapeBoundBox, vom Netz abhängig) – die Aufmaße gleichen den
+            # Unterschied zum genauen aus, so ist es genau so groß wie eingetragen.
+            klon = vr.modell(job).Shape
+            genau, grob = klon.optimalBoundingBox(False, False), klon.BoundBox
+            ausdehnung, _warnung = self._ausdehnung(genau)
+            ausdehnung["ExtXneg"] -= genau.XMin - grob.XMin
+            ausdehnung["ExtXpos"] -= grob.XMax - genau.XMax
+            ausdehnung["ExtYneg"] -= genau.YMin - grob.YMin
+            ausdehnung["ExtYpos"] -= grob.YMax - genau.YMax
+            ausdehnung["ExtZneg"] -= genau.ZMin - grob.ZMin
+            ausdehnung["ExtZpos"] -= grob.ZMax - genau.ZMax
+        else:
+            ausdehnung = dict(
+                zip(
+                    ("ExtZpos", "ExtZneg", "ExtXneg", "ExtXpos", "ExtYneg", "ExtYpos"),
+                    (werte["oben"], werte["unten"], *[werte["seite"]] * 4),
+                    strict=True,
+                )
+            )
+        for name, wert in ausdehnung.items():
             if abs(_mm(getattr(rohteil, name)) - wert) > 1e-9:
                 setattr(rohteil, name, wert)
+        self._masse_merken(job)
 
     def _rohteil_wert(self, feld):
         """Wert eines Rohteil-Felds (mm); leer oder ungültig gilt 1 mm."""
@@ -5750,6 +5830,96 @@ class BearbeitungPanel:
             return groesse_lesen(text, einheiten.LAENGE) if text.strip() else AUFMASS_ROHTEIL
         except ValueError:
             return AUFMASS_ROHTEIL
+
+    def _teil_kasten(self, job=None):
+        """Der genaue Hüllquader des Teils, wie es auf dem Tisch liegt (mit der Aufspannung
+        gedreht; optimalBoundingBox ohne Netz – BoundBox hängt vom angehängten Netz ab und war am
+        C-Ring bis 0,04 mm größer) – None ohne Job."""
+        job = job if job is not None else self.job
+        if job is None:
+            return None
+        gedreht = vr.original(vr.modell(job)).Shape.copy()
+        gedreht.Placement = FreeCAD.Placement(FreeCAD.Vector(), self.aufspannung()).multiply(
+            gedreht.Placement
+        )
+        return gedreht.optimalBoundingBox(False, False)
+
+    @staticmethod
+    def _masse_vorschlag(kasten):
+        """(x, y, z) – das Teil mit AUFMASS_ROHTEIL je Seite, auf ganze mm aufgerundet."""
+        return tuple(
+            float(math.ceil(laenge + 2 * AUFMASS_ROHTEIL - 1e-6))
+            for laenge in (kasten.XLength, kasten.YLength, kasten.ZLength)
+        )
+
+    def _masse_vorschlag_zeigen(self):
+        """Der Vorschlag grau in den Feldern Länge, Breite, Höhe."""
+        kasten = self._teil_kasten()
+        if kasten is None:
+            return
+        for feld, wert in zip(("x", "y", "z"), self._masse_vorschlag(kasten), strict=True):
+            self.felder_masse[feld].setPlaceholderText(groesse_zeigen(wert, einheiten.LAENGE))
+
+    def _masse(self, kasten):
+        """(x, y, z, „oben“|„unten“, Aufmaß) des Quaders mit Maßen – leere Felder: der Vorschlag."""
+        werte = []
+        for feld, vorschlag in zip(("x", "y", "z"), self._masse_vorschlag(kasten), strict=True):
+            text = self.felder_masse[feld].text()
+            try:
+                werte.append(groesse_lesen(text, einheiten.LAENGE) if text.strip() else vorschlag)
+            except ValueError:
+                werte.append(vorschlag)
+        text = self.felder_masse["aufmass"].text()
+        try:
+            aufmass = groesse_lesen(text, einheiten.LAENGE) if text.strip() else AUFMASS_ROHTEIL
+        except ValueError:
+            aufmass = AUFMASS_ROHTEIL
+        return (*werte, self.wahl_masse_lage.currentData() or "oben", aufmass)
+
+    def _ausdehnung(self, kasten):
+        """({ExtXneg: …, …}, Warnung) – so weit reicht das Rohteil über den Hüllquader `kasten` des
+        Teils hinaus. Mit Maßen: in X und Y mittig, in der Höhe das Aufmaß oben oder unten, das
+        andere ergibt sich aus der Höhe; passt das Teil nicht hinein, der Satz dazu (und das
+        Rohteil nie kleiner als das Teil)."""
+        namen = ("ExtXneg", "ExtXpos", "ExtYneg", "ExtYpos", "ExtZneg", "ExtZpos")
+        if not self.knopf_rohteil_masse.isChecked():
+            werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
+            seite, unten, oben = werte["seite"], werte["unten"], werte["oben"]
+            return dict(zip(namen, (seite, seite, seite, seite, unten, oben), strict=True)), ""
+        x, y, z, lage, aufmass = self._masse(kasten)
+        seite_x = (x - kasten.XLength) / 2
+        seite_y = (y - kasten.YLength) / 2
+        rest = z - kasten.ZLength - aufmass
+        unten, oben = (aufmass, rest) if lage == "unten" else (rest, aufmass)
+        warnung = ""
+        if min(seite_x, seite_y, unten, oben) < -1e-6:
+            mm = einheiten.einheit(einheiten.LAENGE)
+            warnung = tr(
+                "ba.rohteil.masse.passt_nicht",
+                x=groesse_fest(kasten.XLength, einheiten.LAENGE, 2),
+                y=groesse_fest(kasten.YLength, einheiten.LAENGE, 2),
+                z=groesse_fest(kasten.ZLength + max(aufmass, 0.0), einheiten.LAENGE, 2),
+                lage=tr(f"ba.rohteil.masse.{lage}"),
+                aufmass=groesse_zeigen(aufmass, einheiten.LAENGE) or "0",
+                mm=mm,
+            )
+        werte = (seite_x, seite_x, seite_y, seite_y, unten, oben)
+        return dict(zip(namen, (max(w, 0.0) for w in werte), strict=True)), warnung
+
+    def _masse_merken(self, job):
+        """Am Job: die eingegebenen Maße (ROHTEIL_MASSE) – fürs Einrichtblatt und beim nächsten
+        Öffnen; ohne Maße leer."""
+        text = ""
+        if self.knopf_rohteil_masse.isChecked():
+            kasten = self._teil_kasten(job)
+            x, y, z, lage, aufmass = self._masse(kasten)
+            text = ";".join([f"{x:g}", f"{y:g}", f"{z:g}", lage, f"{aufmass:g}"])
+        if ROHTEIL_MASSE not in job.PropertiesList:
+            if not text:
+                return
+            job.addProperty("App::PropertyString", ROHTEIL_MASSE, "CAM-Addon", "", 4)
+        if getattr(job, ROHTEIL_MASSE) != text:
+            setattr(job, ROHTEIL_MASSE, text)
 
     def _rohteil_kurz_zeigen(self):
         """„Aufmaß 1 mm rundum · Nullpunkt: wie im Modell“ – oben in Schritt 2."""
@@ -5767,6 +5937,17 @@ class BearbeitungPanel:
         elif zylinder is not None and zylinder.isChecked():
             aufmass = tr(
                 "ba.rohteil.kurz_zylinder", oben=zahlen[0], seite=zahlen[1], unten=zahlen[2], mm=mm
+            )
+        elif self.knopf_rohteil_masse.isChecked() and self.job is not None:
+            x, y, z, lage, wert = self._masse(self._teil_kasten())
+            aufmass = tr(
+                "ba.rohteil.kurz_masse",
+                x=groesse_zeigen(x, einheiten.LAENGE),
+                y=groesse_zeigen(y, einheiten.LAENGE),
+                z=groesse_zeigen(z, einheiten.LAENGE),
+                mm=mm,
+                lage=tr(f"ba.rohteil.masse.{lage}"),
+                wert=groesse_zeigen(wert, einheiten.LAENGE) or "0",
             )
         elif len(set(zahlen)) == 1:
             aufmass = tr("ba.rohteil.kurz_rundum", wert=f"{zahlen[0]} {mm}")
@@ -5810,6 +5991,11 @@ class BearbeitungPanel:
             return
         self._rohteil_setzen(self.job)
         self.doc.recompute()
+        if self.knopf_rohteil_masse.isChecked():
+            self._masse_vorschlag_zeigen()
+            _ausdehnung, warnung = self._ausdehnung(self._teil_kasten())
+            self.rohteil_warnung.setText(warnung)
+            self.rohteil_warnung.setVisible(bool(warnung))
         self._nullpunkt_setzen(self.job)  # die Ecken des Rohteils sind gewandert
         # Mehr oder weniger über den Flächen: Planen oder Schruppen (P-2026-10-02-54).
         self._planeinsatz_waehlen(vr.modell(self.job).Shape)
@@ -5867,11 +6053,16 @@ class BearbeitungPanel:
             gedreht = (koerper if koerper is not None else teil).Shape.copy()
             gedreht.Placement = drehung.multiply(gedreht.Placement)
             bb = gedreht.BoundBox
-            werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
+            if koerper is None and self.knopf_rohteil_masse.isChecked():
+                bb = gedreht.optimalBoundingBox(False, False)  # wie _rohteil_setzen mit Maßen
             if koerper is not None:
-                werte = dict.fromkeys(ROHTEIL_FELDER, 0.0)
-            unten = (bb.XMin - werte["seite"], bb.YMin - werte["seite"], bb.ZMin - werte["unten"])
-            oben = (bb.XMax + werte["seite"], bb.YMax + werte["seite"], bb.ZMax + werte["oben"])
+                aus = dict.fromkeys(
+                    ("ExtXneg", "ExtXpos", "ExtYneg", "ExtYpos", "ExtZneg", "ExtZpos"), 0.0
+                )
+            else:
+                aus, _warnung = self._ausdehnung(bb)
+            unten = (bb.XMin - aus["ExtXneg"], bb.YMin - aus["ExtYneg"], bb.ZMin - aus["ExtZneg"])
+            oben = (bb.XMax + aus["ExtXpos"], bb.YMax + aus["ExtYpos"], bb.ZMax + aus["ExtZpos"])
             punkt = FreeCAD.Vector(
                 *(
                     (u + o) / 2 if s == 0 else (o if s > 0 else u)
@@ -5954,9 +6145,29 @@ class BearbeitungPanel:
             elif rohteil is not None and hasattr(rohteil, "Radius") and hasattr(rohteil, "Height"):
                 self.knopf_rohteil_zylinder.setChecked(True)  # ein runder Rohling (W-021)
                 self._zylinder_felder(rohteil)
+            masse_text = getattr(self.job, ROHTEIL_MASSE, "") if self.job is not None else ""
+            if masse_text and original is None:  # ein Quader mit Maßen (W-028)
+                teile = masse_text.split(";")
+                self.knopf_rohteil_masse.setChecked(True)
+                for feld, wert in zip(("x", "y", "z"), teile[:3], strict=False):
+                    self.felder_masse[feld].setText(
+                        groesse_zeigen(float(wert), einheiten.LAENGE) or "0"
+                    )
+                if len(teile) >= 5:
+                    self.wahl_masse_lage.setCurrentIndex(
+                        max(self.wahl_masse_lage.findData(teile[3]), 0)
+                    )
+                    self.felder_masse["aufmass"].setText(
+                        groesse_zeigen(float(teile[4]), einheiten.LAENGE) or "0"
+                    )
+                self.rohteilmasse.setVisible(True)
+                self.rohteilfelder.setVisible(False)
             for knopf_art in (
-                self.knopf_rohteil_quader, self.knopf_rohteil_zylinder, self.knopf_rohteil_teil
-            ):  # fmt: skip
+                self.knopf_rohteil_quader,
+                self.knopf_rohteil_masse,
+                self.knopf_rohteil_zylinder,
+                self.knopf_rohteil_teil,
+            ):
                 knopf_art.setEnabled(False)
             self.wahl_rohteil.setEnabled(False)
             if rohteil is not None and hasattr(rohteil, "ExtZpos"):
@@ -5970,6 +6181,7 @@ class BearbeitungPanel:
         finally:
             self._fuellt = False
         self.rohteilfelder.setEnabled(False)
+        self.rohteilmasse.setEnabled(False)
         # Die des Jobs – sie bleibt, wie sie im Job steht (ohne: „keine“).
         self._maschinen_fuellen(getattr(self.job, rw.EIGENSCHAFT_MASCHINE, ""))
         self.wahl_maschine.setEnabled(False)

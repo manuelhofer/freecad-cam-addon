@@ -460,6 +460,15 @@ def rohteil_text(job, tr):
     quader = tr(
         "eb.rohteil.quader", mm=_mm(), x=_zahl(bb.XLength), y=_zahl(bb.YLength), z=_zahl(bb.ZLength)
     )
+    masse = (getattr(job, "CamAddonRohteilMasse", "") or "").split(";")
+    if hasattr(rohteil, "ExtZpos") and len(masse) >= 5:
+        # Ein Quader mit eingegebenen Maßen (W-028): wo das Teil darin liegt.
+        return tr(
+            "eb.rohteil.masse.unten" if masse[3] == "unten" else "eb.rohteil.masse.oben",
+            rohteil=quader,
+            wert=_zahl(float(masse[4])),
+            mm=_mm(),
+        )
     if hasattr(rohteil, "ExtZpos"):
         werte = {n: float(getattr(rohteil, n).getValueAs("mm")) for n in
                  ("ExtXneg", "ExtXpos", "ExtYneg", "ExtYpos", "ExtZneg", "ExtZpos")}  # fmt: skip

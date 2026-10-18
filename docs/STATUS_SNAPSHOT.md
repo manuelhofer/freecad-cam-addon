@@ -1586,6 +1586,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   quatsch“; Rohteilmaße eingeben, Vorschlag „Nullpunkt mittig oben“, das Teil um „Aufmaß oben“
   darunter, ein Schalter für „Aufmaß unten“ statt oben, Warnung, wenn das Teil nicht hineinpasst,
   Spanntiefe von unten bleibt (Wortlaut unter „Nächster Schritt“).
+  **Gebaut (P-2026-10-18-85):** „Quader mit Maßen“ in Schritt 1 – Länge, Breite, Höhe, „In der
+  Höhe: Aufmaß oben | unten“ mit einem Wert (das andere ergibt sich aus der Höhe), das Teil in X und
+  Y mittig; leer der Vorschlag (Teil + 1 mm je Seite, auf ganze mm), dazu der Nullpunkt Mitte oben;
+  rot, wenn das Teil nicht hineinpasst (das Rohteil dann nie kleiner als das Teil). Genau so groß wie
+  eingetragen (gegen FreeCADs groben Hüllquader ausgeglichen). Der Job merkt sich die Maße
+  (`CamAddonRohteilMasse`), das Einrichtblatt schreibt „Quader 62 × 62 × 16 mm – das Teil mittig,
+  seine Unterseite 2 mm über der des Rohteils“.
 - **W-029 Das Fertigteil einer Aufspannung als Rohteil der nächsten** – Manuel, 2026-10-18: „sagen wir
   mal wir haben jetzt den C ring ... außen fertig bearbeitet .. und innen und die nut ist auch fertig
   ... kann man dann generieren lassen ... ein neues teil im selben ordner mit dem namen ...
