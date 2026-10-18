@@ -8,6 +8,7 @@
 import os
 import sys
 import tempfile
+import time
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -266,6 +267,18 @@ if stl_daten is not None:
             "schaft weit",
             FreeCAD.Placement(V(kasten.XMin + 20, kasten.YMax + 40, 0), FreeCAD.Rotation()),
         ),
+        # Ein Schaft im Teil (P-2026-10-18-73/-74): Abstand 0 – ohne alle Dreiecke in seiner
+        # Kapsel auf einmal an OpenCascade (am Geist 36 s und 319 s je Stelle).
+        (
+            "schaft durch",
+            FreeCAD.Placement(V(kasten.XMin + 20, kasten.YMax - 3, -2), FreeCAD.Rotation()),
+        ),
+        (
+            "schaft quer durch",
+            FreeCAD.Placement(
+                V(kasten.XMin + 20, kasten.YMax + 2, 0), FreeCAD.Rotation(V(1, 0, 0), 90)
+            ),
+        ),
     ):
         zylinder = Part.makeCylinder(2.0, 12.0)
         schaft = kb.Koerper(
@@ -274,8 +287,11 @@ if stl_daten is not None:
         )  # fmt: skip
         schaft.form.Placement = lage
         teil_k.form.Placement = FreeCAD.Placement()
+        beginn = time.perf_counter()
         ist, _stelle = kb._Welt._abstand(welt, teil_k, schaft)
+        dauer = time.perf_counter() - beginn
         wahr = verbund.distToShape(schaft.form)[0]
+        print(f"Kollision {name}: {ist:.4f} (wahr {wahr:.4f}) in {dauer:.2f} s")
         if name == "schaft weit":
             pruefe(kb.AUSSCHNITT_RAND <= ist <= wahr + 1e-9, f"{name}: {ist} (wahr {wahr})")
         else:
