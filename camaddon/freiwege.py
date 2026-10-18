@@ -22,7 +22,7 @@ Ende einer Lage berührt der Fräser die Wand), hebt sie nur LINK_LUFT über das
 Umkreis R + RAND des Weges ab, statt bis zur Sicherheitshöhe. Und: Folgt auf einen senkrechten
 Eilgang hinab ein senkrechtes Eintauchen, geht der Eilgang bis LINK_LUFT über das Material dort
 – die Bahn weiß nicht, was sie selbst schon geräumt hat (an der Platte tauchte das Räumen viermal
-23 mm durch die schon geräumte Tasche).
+23 mm durch die schon geräumte Tasche) –, auch am Rand und neben dem Rohteil.
 """
 
 import math
@@ -236,8 +236,11 @@ def _tiefer_im_eilgang(punkte, i, quader, radius):
     """Endet der Eilgang zu Punkt i + 1 über einem senkrechten Eintauchen (Punkt i + 2): ein
     Eilgang senkrecht hinab bis LINK_LUFT über das höchste Material unter der Stirn (`radius` und
     eine halbe Zelle des Rasters – senkrecht hinab streift der Fräser nur, was unter ihr liegt;
-    taucht er neben einer Wand mit Aufmaß ein, zählt sie nicht) – nur über dem Rohteil, nie
-    tiefer als das Eintauchen endet."""
+    taucht er neben einer Wand mit Aufmaß ein, zählt sie nicht), nie tiefer als das Eintauchen
+    endet. Auch am Rand und neben dem Rohteil (dort zählt nur, was im Quader steht): Stünden dort
+    Spannmittel, hülfe langsames Hinabfahren nicht (Manuel, 2026-10-18: „was hilft da langsames
+    fahren“) – wie tief jeder Fräser neben dem Rohteil fährt, sagt das Einrichtblatt
+    (spannung.neben_dem_rohteil)."""
     weite = radius + 0.5 * float(quader.x[1] - quader.x[0])
     if i + 2 >= len(punkte):
         return
@@ -245,13 +248,6 @@ def _tiefer_im_eilgang(punkte, i, quader, radius):
     if not oben.eilgang or ein.eilgang or ein.bogen is not None:
         return
     if math.hypot(ein.x - oben.x, ein.y - oben.y) > GLEICH or ein.z >= oben.z - GLEICH:
-        return
-    if not (
-        quader.x[0] <= oben.x - weite
-        and oben.x + weite <= quader.x[-1]
-        and quader.y[0] <= oben.y - weite
-        and oben.y + weite <= quader.y[-1]
-    ):
         return
     stelle = (oben.x, oben.y, oben.z)
     ziel = max(_hoechstes(quader, stelle, stelle, weite) + LINK_LUFT, ein.z)

@@ -124,6 +124,16 @@ pruefe(not any(p.eilgang and p.z == 20 and p.x == 25 for p in mitte), "flach: ni
 ganz_flach.h[:] = 5.0
 rand, _w = fw.schneller(abheben_bei(15.0, 25.0, y=2.0), form, ganz_flach, VF)
 pruefe(any(p.eilgang and p.z == 20 and p.x == 25 for p in rand), "neben dem Rohteil nicht hoch")
+# Hinab im Eilgang auch am Rand des Rohteils (Manuel, 2026-10-18: „was hilft da langsames
+# fahren“ – stünden dort Spannmittel, hülfe es nicht; das Einrichtblatt sagt, wie tief): die Mitte
+# 1 mm neben dem auf z 5 geräumten Rohteil, Eintauchen auf 4 – im Eilgang bis 5 + LINK_LUFT.
+ganz_flach.h[:] = 5.0
+am_rand = [P(True, -1, 20, 40), P(True, -1, 20, 30), P(False, -1, 20, 4, True)]
+am_rand, _w = fw.schneller(am_rand, form, ganz_flach, VF)
+pruefe(
+    [round(p.z, 3) for p in am_rand if p.eilgang] == [40.0, 30.0, 5.0 + fw.LINK_LUFT],
+    f"am Rand hinab: {[(p.eilgang, round(p.z, 3)) for p in am_rand]}",
+)
 pruefe(30.0 <= weg <= 50.0, f"schneller Weg {weg:.1f} mm")
 # Kurz (frei nur von x −10 bis −7, wo R + 1 mm bis ans Material reicht): bleibt langsam.
 kurz = [P(True, -10, 20, 20), P(True, -10, 20, 5), P(False, 10, 20, 5), P(True, 10, 20, 20)]

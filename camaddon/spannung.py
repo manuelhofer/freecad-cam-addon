@@ -211,6 +211,52 @@ def pruefen(job):
     return saetze
 
 
+NEBEN_LUFT = 1.0  # mm: so weit bleiben Spannmittel unter der tiefsten Stelle neben dem Rohteil
+
+
+def neben_dem_rohteil(job):
+    """[(Operation, z)] – je Operation des Jobs, deren Fräser über den Umriss des Rohteils
+    hinausragt, die tiefste Stelle der Spitze dort (im Grundjob, über der Unterkante des Rohteils
+    und unter seiner Oberkante): So tief dürfen daneben keine Spannmittel stehen. Gleich, ob
+    „gespannt“ eingetragen ist – fürs Einrichtblatt (Manuel, 2026-10-18: „was hilft da langsames
+    fahren .. wenn der bediener diesen wert nicht angibt … im einstellblatt muss natürlich vermerkt
+    werden maximal entfernung von z0 … ein wert für jeden fräser“). Leer an der Stange und am
+    N-Eck (dort spannt das Futter bzw. der Schraubstock am Ende)."""
+    from . import n_eck as ne
+    from . import reichweite as rw
+    from . import schwenken as sw
+
+    if ne.ist_n_eck(job):
+        return []
+    grundjob = rw.grundjob_von(job)
+    rohteil = getattr(getattr(grundjob, "Stock", None), "Shape", None)
+    if rohteil is None or rohteil.isNull():
+        return []
+    from . import vierachs_rohteil as vr
+
+    if vr.ist_stange(grundjob, getattr(grundjob, "Stock", None)):
+        return []
+    box = rohteil.BoundBox
+    kreis = rund(getattr(grundjob, "Stock", None))
+    ergebnis = []
+    for op, ebene in rw.operationen_mit_ebene(job):
+        lage = sw.ebene_von(ebene) if ebene is not None else None
+        radius = _radius(op)
+        tiefste = None
+        for punkt in _punkte(op.Path.Commands):
+            if lage is not None:
+                punkt = lage.multVec(punkt)
+            if (
+                box.ZMin - GENAU <= punkt.z < box.ZMax - GENAU
+                and _ragt_heraus(punkt, radius, box, kreis)
+                and (tiefste is None or punkt.z < tiefste)
+            ):
+                tiefste = punkt.z
+        if tiefste is not None:
+            ergebnis.append((op, float(tiefste)))
+    return ergebnis
+
+
 def _pruefen_stange(job):
     """pruefen() in der N-Eck-Stange (W-018): je Operation, deren Fräser unter dem oberen Rand
     der Backen über ihren vorderen Rand reicht, ein Satz – mit der Stelle, die am weitesten

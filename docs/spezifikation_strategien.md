@@ -2406,6 +2406,15 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   sie selbst schon geräumt hat: An der Platte (Räumen über Oberseite und Tasche in einer Bahn)
   tauchte sie viermal 23 mm mit 298 mm/min durch die schon geräumte Tasche – Eintauchen durch
   Luft 133 → 89 mm (an zwei Stellen ohne Aufmaß zur Wand bleibt es vorsichtig).
+  **Auch am Rand und neben dem Rohteil (P-2026-10-18-100):** Bis dahin nur ganz über dem Rohteil
+  („daneben könnten Spannmittel stehen“). Manuel, 2026-10-18: „was hilft da langsames fahren ..
+  wenn der bediener diesen wert nicht angibt .. ??? muss er es soweit ausspannen das man da fahren
+  kann ... im einstellblatt muss natürlich vermerkt werden maximal entfernung von z0 … ein wert
+  für jeden fräser“. Jetzt geht der Eilgang auch dort hinab; das Einrichtblatt nennt je
+  Aufspannung „Neben dem Rohteil: T1 bis Z … (… mm unter der Oberkante) – Spannmittel und Backen
+  dort höchstens bis Z …“ (`spannung.neben_dem_rohteil`, `einrichtblatt.neben_text`) und weist
+  darauf hin, wenn „gespannt“ höher eingetragen ist. Am Geist (3 Achsen, 3D-Schlichten): der
+  längste Abstieg im Vorschub 86 → 42,5 mm (der Rest ist Schneiden an steilen Wänden).
 - Gemessen: Testteil Räumen T1 10,27 → 9,59 min (2,8 m schnell); Zapfen Planfräsen 3,29 → 2,85
   min. Im Schnellen nichts abgetragen (nachgefahren, 0 mm³).
 

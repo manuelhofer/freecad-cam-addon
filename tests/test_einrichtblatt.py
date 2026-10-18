@@ -294,6 +294,14 @@ for datei in (
         pruefe(namen == erwartet, f"{datei}: Schritte {namen} statt {erwartet}")
         seite = eb.html(b, tr, laenge, minuten_text)
         pruefe(all(eb._e(n) in seite for n in namen), f"{datei}: Schritt fehlt auf der Seite")
+        if job.Label.startswith("C-Ring aus Platte"):
+            # Räumen über alles bis −11 (außen herum): neben dem Rohteil bis an die Unterkante –
+            # das Blatt sagt es je Fräser (Manuel, 2026-10-18: „ein wert für jeden fräser“).
+            neben = b.aufspannungen[0].neben
+            pruefe(
+                "T1 bis Z" in neben and "T3 bis Z" in neben and eb._e(neben) in seite,
+                f"C-Ring neben dem Rohteil: {neben!r}",
+            )
         ebenen = {s.lage for a in b.aufspannungen for s in a.schritte if s.lage}
         zeiten = [s.minuten for a in b.aufspannungen for s in a.schritte]
         print(

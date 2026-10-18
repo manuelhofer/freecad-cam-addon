@@ -100,7 +100,11 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
   Maschine (G1, kein G0, weil ein G0 auf vielen Steuerungen keine Gerade fährt). Die letzten 2 mm
   vor dem Material bleiben langsam (`freiwege`).
 - **Hinab im Eilgang bis knapp über das Material**, nicht im Vorschub von der Sicherheitshöhe:
-  - 3 Achsen: bis 2 mm über das höchste Material unter der Stirn (`freiwege`).
+  - 3 Achsen: bis 2 mm über das höchste Material unter der Stirn (`freiwege`) – auch am Rand und
+    neben dem Rohteil. Stünden dort Spannmittel, hülfe langsames Fahren nicht (Manuel,
+    2026-10-18: „was hilft da langsames fahren“); stattdessen sagt das Einrichtblatt je Fräser,
+    wie tief er neben dem Rohteil fährt und bis wohin Spannmittel dort höchstens stehen dürfen
+    (`spannung.neben_dem_rohteil`).
   - 4 Achsen vor der Stirn der Stange: ganz hinab, dort ist alles Luft.
   - 4 Achsen über dem Teil beim Schlichten: bis zur Sicherheit über den Rest nach dem Schruppen
     (`vierachs_bahn._vor_der_stange_hinab`, `_ueber_dem_rest_hinab`, 0.268.2).

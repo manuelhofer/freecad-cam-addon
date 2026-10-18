@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-100 neben-dem-rohteil-im-einrichtblatt
+
+### EINGELESEN
+- Manuel, 2026-10-18, zu „am Rand des Rohteils fährt der Fräser beim 3D-Schlichten langsam hinab,
+  weil das Addon ohne eingetragenes „gespannt“ nicht weiß, wie hoch die Backen reichen“: „und was
+  hilft da langsames fahren .. wenn der bediener diesen wert nicht angibt .. ??? muss er es soweit
+  ausspannen das man da fahren kann ... also im einstellblatt muss natürlich vermerkt werden maximal
+  entfernung von z0 ... wenn z0 oben ist ... hm .... na denk dir was aus is auf jedenfall ein wert
+  für jeden fräser der angegeben werden müsste ...“
+
+### DATEIEN
+- `camaddon/freiwege.py` (`_tiefer_im_eilgang`): der Eilgang hinab bis LINK_LUFT über das
+  Material auch am Rand und neben dem Rohteil (bis dahin nur ganz über ihm).
+- `camaddon/spannung.py`: `neben_dem_rohteil(job)` – je Operation die tiefste Stelle der Spitze, an
+  der der Fräser über den Umriss des Rohteils hinausragt (über seiner Unterkante, unter seiner
+  Oberkante), gleich ob „gespannt“ eingetragen ist; `NEBEN_LUFT` 1 mm.
+- `camaddon/einrichtblatt.py`: `Aufspannung.neben`, `neben_text` – Zeile „Neben dem Rohteil“: je
+  Fräser „T1 bis Z … (… mm unter der Oberkante)“, dazu „Spannmittel und Backen dort höchstens bis
+  Z … (… mm über der Unterkante des Rohteils)“ oder „bis an die Unterkante: neben dem Rohteil darf
+  nichts überstehen“; ein Hinweis, wenn „gespannt“ höher eingetragen ist.
+- `translations/de.json`, `en.json`: `eb.neben…`.
+- `tests/test_freiwege.py` (am Rand hinab im Eilgang), `tests/test_einrichtblatt.py` (C-Ring aus
+  Platte: T1 und T3 neben dem Rohteil).
+- `docs/regelwerk_bahnen.md`, `docs/spezifikation_strategien.md` (13b); `package.xml`: 0.271.0.
+
+### ERGEBNIS
+- Geist (3 Achsen, 3D-Schlichten T2): längster Abstieg im Vorschub 86 → 42,5 mm, senkrecht im
+  Vorschub 1816 → 1740 mm (der Rest schneidet das Aufmaß an steilen Wänden).
+- C-Ring aus Platte: „T1 bis Z −11 (11 mm unter der Oberkante), T3 bis Z −11 … – bis an die
+  Unterkante“; Platte mit Zapfen: „T1 bis Z 0 (20 mm unter der Oberkante) – … höchstens bis Z −1
+  (29 mm über der Unterkante)“.
+- Grün im Wochen-Build: `test_freiwege`, `test_einrichtblatt`, `test_spannung`, `test_sprache`,
+  `test_pruefstand`, `szenario_einrichtblatt`, `szenario_bearbeitung_stl`.
+
 ## P-2026-10-18-99 nase-stirnseite-mit-dem-umfang
 
 ### EINGELESEN

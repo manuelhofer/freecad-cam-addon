@@ -60,6 +60,9 @@ class Aufspannung:
     job: object = None  # der Job der Aufspannung (fürs Bild)
     ebenen: dict = field(default_factory=dict)  # Lage (Schritt.lage) → Job der Ebene (3+2)
     ebenen_bilder: dict = field(default_factory=dict)  # Lage → Pfad eines Bilds der Ebene
+    # Wie tief jeder Fräser neben dem Rohteil fährt und wie hoch Spannmittel dort höchstens
+    # stehen dürfen (neben_text), "" ohne
+    neben: str = ""
 
 
 @dataclass
@@ -156,6 +159,9 @@ def blatt(job, datum, version, bibliothek=None):
             knapp = _knapp(aufjob, op, tc, bibliothek, ebene is not None)
             if knapp and knapp not in ergebnis.hinweise:
                 ergebnis.hinweise.append(knapp)
+        aufspannung.neben, zu_hoch = neben_text(aufjob, gesehen, tr)
+        if zu_hoch and zu_hoch not in ergebnis.hinweise:
+            ergebnis.hinweise.append(zu_hoch)
         ergebnis.aufspannungen.append(aufspannung)
     # Je Werkzeug eine Zeile: Schruppen und Schlichten mit demselben Fräser sind zwei Controller,
     # an der Maschine aber ein Werkzeug (am C-Ring stand T3 zweimal da).
@@ -167,6 +173,45 @@ def blatt(job, datum, version, bibliothek=None):
         if w.geschaetzt:
             ergebnis.hinweise.insert(0, tr("eb.hinweis.geschaetzt", nummer=w.nummer))
     return ergebnis
+
+
+def neben_text(job, werkzeuge, tr):
+    """(Satz, Hinweis): je Fräser, wie tief er neben dem Rohteil fährt (spannung.neben_dem_rohteil
+    – Z und unter der Oberkante), und bis wohin Spannmittel dort höchstens stehen dürfen; der
+    Hinweis, wenn „gespannt“ höher eingetragen ist. ("", "") ohne. `werkzeuge`: {Name des
+    Controllers: Werkzeug} wie in blatt()."""
+    from . import spannung
+
+    try:
+        neben = spannung.neben_dem_rohteil(job)
+    except Exception:  # noqa: BLE001 – ein Satz weniger, das Blatt geht trotzdem
+        return "", ""
+    if not neben:
+        return "", ""
+    box = grundjob(job).Stock.Shape.BoundBox
+    je_werkzeug = {}
+    for op, z in neben:
+        tc = getattr(op, "ToolController", None)
+        w = werkzeuge.get(tc.Name) if tc is not None else None
+        nummer = w.nummer if w is not None else int(getattr(tc, "ToolNumber", 0) or 0)
+        je_werkzeug[nummer] = min(je_werkzeug.get(nummer, z), z)
+    liste = ", ".join(
+        tr("eb.neben.werkzeug", nummer=n, z=_zahl(z), unter=_zahl(box.ZMax - z), mm=_mm())
+        for n, z in sorted(je_werkzeug.items())
+    )
+    grenze = min(je_werkzeug.values()) - spannung.NEBEN_LUFT
+    hoehe = grenze - box.ZMin
+    if hoehe > 0:
+        satz = tr("eb.neben.grenze", liste=liste, z=_zahl(grenze), hoehe=_zahl(hoehe), mm=_mm())
+    else:
+        satz = tr("eb.neben.ganz", liste=liste)
+    hinweis = ""
+    gespannt = spannung.gespannt(grundjob(job))
+    if gespannt > 0 and gespannt > max(hoehe, 0.0) + 1e-6:
+        hinweis = tr(
+            "eb.neben.zu_hoch", gespannt=_zahl(gespannt), hoehe=_zahl(max(hoehe, 0.0)), mm=_mm()
+        )
+    return satz, hinweis
 
 
 def _werkstoff_text(job, bibliothek, tr):
@@ -742,6 +787,8 @@ def html(blatt, tr, laenge, minuten_text):
         teile.append(f"<h2>{_e(a.titel)}</h2><table>")
         zeilen = [(tr("eb.rohteil"), a.rohteil), (tr("eb.spannung"), a.spannung),
                   (tr("eb.nullpunkt"), a.nullpunkt)]  # fmt: skip
+        if a.neben:
+            zeilen.insert(2, (tr("eb.neben"), a.neben))
         if a.register:
             zeilen.append((tr("eb.register"), a.register))
         for titel, wert in zeilen:
