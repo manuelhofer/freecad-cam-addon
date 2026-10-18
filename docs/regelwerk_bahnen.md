@@ -130,6 +130,11 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
   2026-10-18: „ausen ist doch frei“).
 - **Einer Wendelnut nach**, wenn das Teil eine hat: Bahn neben Bahn mit ihrer Steigung, C dreht
   immer in dieselbe Richtung (W-030).
+- **In einer Stellung, was zusammen geht:** An der Nase fräst der radiale Schaftfräser die Fläche
+  zur Drehmitte mit seiner Stirn und die Stirnseite der Welle daneben mit seinem Umfang – Züge quer
+  in Y, je höchstens ap und ae aus seinen Schnittwerten, hinein neben dem Material. Muss er dafür
+  weiter heraus, sagt der Assistent gelb, wie weit (Manuel, 2026-10-18: „So bauen, mit
+  Ausspann-Hinweis“; `vierachs_stirnkombi`).
 - **Die Drehrichtung von C an der Maschine macht nur der Postprozessor.** Stimmt die Bahn in
   FreeCAD, wird nur die Ausgabe geändert, nie Modell oder Bahn (Manuels CLX550: +C nach DIN).
 
