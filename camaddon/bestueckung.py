@@ -63,7 +63,10 @@ def schluessel(tc, bibliothek):
 
 def _schluessel(tc, werkzeug):
     if werkzeug is not None:
-        return "wz:" + werkzeug.kennung
+        # Derselbe Fräser auf zwei Plätzen des Magazins (radial und axial) sind zwei Werkzeuge
+        # im Job (magazin.je_platz).
+        platz = getattr(werkzeug, "magazin_nummer", None)
+        return "wz:" + werkzeug.kennung + (f"@{platz}" if platz is not None else "")
     bit = getattr(tc, "Tool", None)
     return "cam:" + (bit.Name if bit is not None else tc.Name)
 
@@ -117,7 +120,7 @@ def doppelt(job, bibliothek):
 
 def eintrag_von(job, werkzeug, bibliothek):
     """Der Eintrag des Werkzeugs (werkzeuge.Werkzeug) im Job, oder None."""
-    schluessel = "wz:" + werkzeug.kennung
+    schluessel = _schluessel(None, werkzeug)
     return next((e for e in eintraege(job, bibliothek) if e.schluessel == schluessel), None)
 
 
@@ -165,7 +168,13 @@ def platz_fuer(job, werkzeug, bibliothek, nummern, vorgemerkt=None, maschine=Non
     if magazin is not None:
         eintrag = magazin.eintrag_von(werkzeug)
         wunsch = eintrag.platz if eintrag is not None else 0
-        beladen = {e.platz for e in magazin.eintraege if e.werkzeug != werkzeug.kennung}
+        # beladen mit anderen – auch mit demselben Fräser auf einem anderen Platz (je_platz)
+        beladen = {
+            e.platz
+            for e in magazin.eintraege
+            if e.werkzeug != werkzeug.kennung
+            or (getattr(werkzeug, "magazin_nummer", None) is not None and e is not eintrag)
+        }
     if wunsch in nummern and wunsch not in belegt:
         return wunsch
     frei = [n for n in sorted(nummern) if n not in belegt]

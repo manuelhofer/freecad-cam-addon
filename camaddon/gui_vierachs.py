@@ -610,6 +610,7 @@ class VierachsPanel:
         self._tc_vorher = operation.ToolController if operation is not None else None
         self._achse_fest = achse_der_operation(operation) if operation is not None else None
         self._vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation ("": keiner)
+        self._vorwahl_nummer = None  # … und die T-Nummer seines Controllers (der Platz, je_platz)
         self._vorwahl_schlichten = None  # dasselbe, wenn man „Rundum schlichten“ ändert
         self._art = SCHLICHTEN if vs.ist_schlichten(operation) else SCHRUPPEN
         if vplan.ist_plan(operation):
@@ -1452,6 +1453,13 @@ class VierachsPanel:
         self.wahl_fraeser = QtGui.QComboBox()
         self.wahl_fraeser.currentIndexChanged.connect(lambda _i: self._fraeser_gewaehlt())
         schruppen.reihe(tr("va.fraeser"), tr("va.fraeser.tooltip"), self.wahl_fraeser)
+        # Welche Fräser axial stecken und darum nicht in den Listen stehen (_axial_zeigen).
+        self.axial_hinweis = self._grau()
+        self.axial_hinweis.setWordWrap(True)
+        self.axial_hinweis.setTextFormat(QtCore.Qt.RichText)
+        self.axial_hinweis.linkActivated.connect(self._werkzeug_oeffnen)
+        self.axial_hinweis.hide()
+        schruppen.ganz(self.axial_hinweis)
         self.wahl_einsatz = QtGui.QComboBox()
         self.wahl_einsatz.currentIndexChanged.connect(lambda _i: self._einsatz_gewaehlt())
         schruppen.reihe(tr("va.einsatz"), tr("va.einsatz.tooltip"), self.wahl_einsatz)
@@ -2193,6 +2201,7 @@ class VierachsPanel:
         if self._tc_vorher is not None and self._vorwahl is None:
             werkzeug = js.werkzeug_von(self._tc_vorher, self.bibliothek)
             kennung = werkzeug.kennung if werkzeug is not None else ""
+            self._vorwahl_nummer = int(getattr(self._tc_vorher, "ToolNumber", 0) or 0) or None
             if self._art == SCHLICHTEN:
                 self._vorwahl, self._vorwahl_schlichten = "", kennung
             elif self._art == PLAN:
@@ -2255,9 +2264,9 @@ class VierachsPanel:
         kennungen = [w.kennung for w in self._fraeser]
         gemerkt = _parameter().GetString(GEMERKT_FRAESER, "")
         if vorher is not None and vorher.kennung in kennungen:
-            wahl = kennungen.index(vorher.kennung)
-        elif self._vorwahl in kennungen:  # beim Ändern: der Fräser der Operation
-            wahl = kennungen.index(self._vorwahl)
+            wahl = mg.index_von(self._fraeser, vorher)
+        elif self._vorwahl in kennungen:  # beim Ändern: der Fräser der Operation (sein Platz)
+            wahl = mg.index_von(self._fraeser, kennung=self._vorwahl, nummer=self._vorwahl_nummer)
         elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
@@ -2989,9 +2998,13 @@ class VierachsPanel:
         kennungen = [w.kennung for w in self._schlichtfraeser]
         gemerkt = _parameter().GetString(GEMERKT_SCHLICHTFRAESER, "")
         if vorher is not None and vorher.kennung in kennungen:
-            wahl = kennungen.index(vorher.kennung)
-        elif self._vorwahl_schlichten in kennungen:  # beim Ändern: der Fräser der Operation
-            wahl = kennungen.index(self._vorwahl_schlichten)
+            wahl = mg.index_von(self._schlichtfraeser, vorher)
+        elif (
+            self._vorwahl_schlichten in kennungen
+        ):  # beim Ändern: der Fräser der Operation (sein Platz)
+            wahl = mg.index_von(
+                self._schlichtfraeser, kennung=self._vorwahl_schlichten, nummer=self._vorwahl_nummer
+            )
         elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
@@ -3160,13 +3173,15 @@ class VierachsPanel:
         gemerkt = _parameter().GetString(GEMERKT_PLANFRAESER, "")
         schrupp = self.fraeser() if self.mit_schruppen.isChecked() else None
         if self._planfraeser_von_hand and vorher is not None and vorher.kennung in kennungen:
-            wahl = kennungen.index(vorher.kennung)
-        elif self._vorwahl_plan in kennungen:  # beim Ändern: der Fräser der Operation
-            wahl = kennungen.index(self._vorwahl_plan)
+            wahl = mg.index_von(self._planfraeser, vorher)
+        elif self._vorwahl_plan in kennungen:  # beim Ändern: der Fräser der Operation (sein Platz)
+            wahl = mg.index_von(
+                self._planfraeser, kennung=self._vorwahl_plan, nummer=self._vorwahl_nummer
+            )
         elif schrupp is not None and schrupp.kennung in kennungen and not vplan.bohrer_von(schrupp):
-            wahl = kennungen.index(schrupp.kennung)
+            wahl = mg.index_von(self._planfraeser, schrupp)
         elif vorher is not None and vorher.kennung in kennungen:
-            wahl = kennungen.index(vorher.kennung)
+            wahl = mg.index_von(self._planfraeser, vorher)
         elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
@@ -3833,9 +3848,13 @@ class VierachsPanel:
         kennungen = [w.kennung for w in self._entgratfraeser]
         gemerkt = _parameter().GetString(GEMERKT_ENTGRATFRAESER, "")
         if vorher is not None and vorher.kennung in kennungen:
-            wahl = kennungen.index(vorher.kennung)
-        elif self._vorwahl_entgraten in kennungen:  # beim Ändern: der Fräser der Operation
-            wahl = kennungen.index(self._vorwahl_entgraten)
+            wahl = mg.index_von(self._entgratfraeser, vorher)
+        elif (
+            self._vorwahl_entgraten in kennungen
+        ):  # beim Ändern: der Fräser der Operation (sein Platz)
+            wahl = mg.index_von(
+                self._entgratfraeser, kennung=self._vorwahl_entgraten, nummer=self._vorwahl_nummer
+            )
         elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
@@ -5266,8 +5285,55 @@ class VierachsPanel:
 
     def _sortiert(self):
         """Die Werkzeuge der Werkzeugverwaltung in der Reihenfolge der Listen (E7 a): mit
-        Magazin die beladenen vorn, dann die übrigen des Magazins, dann die anderen."""
-        return mg.sortiert(self.bibliothek.werkzeuge, self._magazin())
+        Magazin die beladenen vorn, dann die übrigen des Magazins, dann die anderen – je Platz
+        im Magazin einmal (magazin.je_platz). Ohne die, die an der Drehmaschine axial stecken
+        (_axial_am_revolver): Sie zeigen längs der Stange, rundum fräst nur ein radialer; die
+        graue Zeile unter dem Fräser des Schruppens nennt sie (_axial_zeigen)."""
+        alle = mg.sortiert(self.bibliothek.werkzeuge, self._magazin(), self.bibliothek)
+        axial = [w for w in alle if self._axial_am_revolver(w)]
+        self._axial_zeigen(axial)
+        return [w for w in alle if not any(w is a for a in axial)]
+
+    def _axial_am_revolver(self, werkzeug):
+        """Steckt `werkzeug` an der Drehmaschine (eine Maschine mit Revolver) in einem geraden,
+        axialen Halter (Manuel, 2026-10-18, CLX550: „VDI40 angetrieben axial“)? Dann zeigt es
+        längs der Stange auf ihre Stirn. Ohne bekannten Halter: nein."""
+        if self.bibliothek is None:
+            return False
+        pruefung = self._pruefung_fuer(self.maschinenwahl())
+        if pruefung is not None:
+            revolver = pruefung.mit_revolver()
+        else:
+            datei = self._maschinen_datei()
+            revolver = bool(datei) and mg.mit_revolver(datei)
+        if not revolver:
+            return False
+        halter = self.bibliothek.halter_fuer_pruefung(werkzeug)
+        return halter is not None and not halter.gewinkelt
+
+    def _axial_zeigen(self, axial):
+        """Die graue Zeile unter dem Fräser des Schruppens: welche Fräser axial stecken und darum
+        nicht in den Listen stehen – mit dem Verweis „„Bearbeitung“ von vorn öffnen …“
+        (zur_bearbeitung mit der Fläche vorn an der Stange)."""
+        etikett = getattr(self, "axial_hinweis", None)
+        if etikett is None:
+            return
+        if not axial:
+            etikett.setText("")
+            etikett.hide()
+            return
+        magazin = self._magazin()
+        namen = []
+        for w in axial:
+            name = f"{mg.genannt(w, magazin)} ({wz.kurz(w)})"
+            if name not in namen:
+                namen.append(name)
+        text = html.escape(tr("va.axial", werkzeuge=", ".join(namen)), quote=False)
+        if self.flaeche:
+            verweis = html.escape(tr("va.zur_bearbeitung"), quote=False)
+            text += f' <a href="bearbeitung:{self.flaeche}">{verweis}</a>'
+        etikett.setText(text)
+        etikett.show()
 
     def _zeile(self, werkzeug):
         """Die Listenzeile eines Werkzeugs: am Revolver vorn der Platz im Job (_platz_vorsatz),

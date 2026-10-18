@@ -243,6 +243,54 @@ pruefe(
     f"Hinweise: {fertig.hinweise}",
 )
 
+# Derselbe Fräser zweimal im Magazin (Manuel, 2026-10-18, CLX550: der 494W D12 als T1 im
+# radialen und als T3 im axialen Halter): je Platz eine Kopie (magazin.je_platz) – mit seinem
+# Eintrag, Halter, seiner Nummer und Zeile; die Bestückung im Job zählt sie getrennt.
+zwilling_bib = wz.Bibliothek()
+radial_h = zwilling_bib.neuer_halter("vdi30_radial")
+axial_h = zwilling_bib.neuer_halter("vdi30_axial")
+d12 = zwilling_bib.neues_werkzeug()
+d12.nummer, d12.durchmesser, d12.name = 1, 12.0, "494W D12"
+zwilling = zwilling_bib.neues_magazin("CLX550", "clx.FCStd")
+erster = zwilling.hinzufuegen(d12, 1)
+erster.platz, erster.halter = 1, radial_h.kennung
+# wie im Fenster „Magazine“: eine zweite Zeile mit demselben Werkzeug
+zweiter = wz.MagazinEintrag(3, d12.kennung, platz=4, halter=axial_h.kennung)
+zwilling.eintraege.append(zweiter)
+zwilling_bib.magazin_fuer_pruefung = zwilling
+kopien = mg.sortiert(zwilling_bib.werkzeuge, zwilling, zwilling_bib)
+pruefe(
+    [w.magazin_nummer for w in kopien] == [1, 3], f"je Platz: {[w.magazin_nummer for w in kopien]}"
+)
+pruefe(all(w.kennung == d12.kennung for w in kopien), "andere Kennung")
+pruefe(zwilling.eintrag_von(kopien[1]) is zweiter, "Eintrag der Kopie T3")
+pruefe(zwilling.eintrag_von(d12) is erster, "ohne Kopie nicht der erste Eintrag")
+pruefe(
+    zwilling_bib.halter_fuer_pruefung(kopien[1]) is axial_h
+    and zwilling_bib.halter_fuer_pruefung(kopien[0]) is radial_h,
+    "Halter je Platz",
+)
+pruefe(mg.nummer(zwilling, None, kopien[1]) == 3, f"Nummer: {mg.nummer(zwilling, None, kopien[1])}")
+zeilen = [mg.zeile(w, zwilling) for w in kopien]
+pruefe(
+    zeilen[1].startswith("T3 · P4") and axial_h.name in zeilen[1] and radial_h.name in zeilen[0],
+    f"Zeilen: {zeilen}",
+)
+pruefe(
+    mg.index_von(kopien, kopien[1]) == 1
+    and mg.index_von(kopien, kennung=d12.kennung, nummer=4) == 1
+    and mg.index_von(kopien, kennung=d12.kennung, nummer=1) == 0,
+    "index_von",
+)
+pruefe(
+    bs._schluessel(None, kopien[0]) != bs._schluessel(None, kopien[1])
+    and bs._schluessel(None, d12) == "wz:" + d12.kennung,
+    "Bestückung: ein Schlüssel für beide Plätze",
+)
+# Steht er nur einmal im Magazin: keine Kopie, wie bisher.
+zwilling.eintraege.remove(zweiter)
+pruefe(mg.sortiert(zwilling_bib.werkzeuge, zwilling, zwilling_bib) == [d12], "einmal: Kopie")
+
 sprache.setze_sprache(vorher)
 if fehler:
     raise AssertionError("\n".join(fehler))

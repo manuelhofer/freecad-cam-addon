@@ -253,7 +253,10 @@ def setze_werkstoff_am_rohteil(dokument, job, werkstoff):
 
 
 def werkzeug_von(tc, bibliothek):
-    """Das Werkzeug der Werkzeugverwaltung zu diesem TC, oder None."""
+    """Das Werkzeug der Werkzeugverwaltung zu diesem TC, oder None. Steht es mehrmals im Magazin
+    der Maschine (Bibliothek.magazin_fuer_pruefung – derselbe Fräser im radialen und im axialen
+    Halter), die Kopie für den Platz mit der T-Nummer des Controllers (magazin.je_platz): Halter,
+    Länge und Bestückung gelten dann für diesen Platz."""
     werkzeug = getattr(tc, "Tool", None)
     kennung = str(getattr(werkzeug, "ToolBitID", "") or "")
     if kennung.startswith(PRAEFIX):
@@ -261,7 +264,7 @@ def werkzeug_von(tc, bibliothek):
             (w for w in bibliothek.werkzeuge if w.kennung == kennung[len(PRAEFIX) :]), None
         )
         if gefunden is not None:
-            return gefunden
+            return _platz_des_controllers(gefunden, tc, bibliothek)
     durchmesser = _mm(getattr(werkzeug, "Diameter", None))
     for w in bibliothek.werkzeuge:
         if w.nummer == getattr(tc, "ToolNumber", -1) and abs(w.durchmesser - durchmesser) < (
@@ -269,6 +272,23 @@ def werkzeug_von(tc, bibliothek):
         ):
             return w
     return None
+
+
+def _platz_des_controllers(werkzeug, tc, bibliothek):
+    """`werkzeug`, oder – steht es mehrmals im Magazin der Prüfung – die Kopie für den Eintrag
+    mit der T-Nummer des Controllers (dort die Nummer, am Revolver der Platz)."""
+    from . import magazin as mg
+
+    magazin = getattr(bibliothek, "magazin_fuer_pruefung", None)
+    if magazin is None or len(magazin.eintraege_von(werkzeug)) < 2:
+        return werkzeug
+    nummer = int(getattr(tc, "ToolNumber", 0) or 0)
+    kopien = mg.je_platz([werkzeug], magazin, bibliothek)
+    i = mg.index_von(kopien, kennung=werkzeug.kennung, nummer=nummer)
+    genau = kopien[i] if i is not None else None
+    if genau is None or nummer not in (genau.magazin_nummer, genau.magazin_platz):
+        return werkzeug
+    return genau
 
 
 def _mm(wert):
@@ -558,6 +578,20 @@ def _aus_magazin(job, werkzeug):
     return mg.nummer(magazin, job, werkzeug)
 
 
+def _platz_im_magazin(job, werkzeug):
+    """Steht das Werkzeug mehrmals im Magazin und ist es die Kopie für einen Platz
+    (magazin.je_platz): am Revolver dieser Platz, sonst seine Nummer dort – None sonst."""
+    from . import magazin as mg
+
+    nummer = getattr(werkzeug, "magazin_nummer", None)
+    if nummer is None:
+        return None
+    platz = getattr(werkzeug, "magazin_platz", None)
+    if platz and mg.mit_revolver(mg.maschine_des_jobs(job)):
+        return platz
+    return nummer
+
+
 def controller_name(werkzeug, einsatz, nummer=None):
     """„T3 Schruppen dynamisch“, mit eingetragenem Namen „T3 Fräser VHM 12 – Schruppen dynamisch“.
 
@@ -600,6 +634,7 @@ def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff="", 
     from Path.Tool import Controller
     from Path.Tool.camassets import cam_assets
 
+    nummer = nummer or _platz_im_magazin(job, werkzeug)
     nummer = nummer or _aus_magazin(job, werkzeug) or werkzeug.nummer or freie_nummer(job)
     # Controller.Create legt im aktiven Dokument an.
     FreeCAD.setActiveDocument(dokument.Name)

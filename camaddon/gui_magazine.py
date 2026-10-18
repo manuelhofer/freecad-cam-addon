@@ -35,6 +35,9 @@ GROESSTE_NUMMER = 9999
 GROESSTE_PLATZ = 999
 ROT = farben.ROT
 SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ, SPALTE_HALTER = range(5)
+# Die Breiten der Spalten am Anfang (Pixel); mit der Maus ziehen, gemerkt in SPALTEN_GEMERKT.
+SPALTEN_BREITEN = (90, 330, 170, 110)
+SPALTEN_GEMERKT = "MagazinSpalten"
 ROLLE = (
     QtCore.Qt.UserRole
 )  # an einer Zeile des Baums: ("maschine", Datei) oder ("magazin", Kennung)
@@ -223,9 +226,16 @@ class MagazinDialog(QtGui.QDialog):
                 tr("mg.spalte.halter"),
             ]
         )
-        self.tabelle.horizontalHeader().setSectionResizeMode(
-            SPALTE_WERKZEUG, QtGui.QHeaderView.Stretch
-        )
+        # Jede Spalte mit der Maus breiter oder schmaler (Manuel, 2026-10-18: „warum kann ich die
+        # spalte Werkzeug oder generell eine spalte dort nicht in der länge … ziehen“) – die
+        # letzte füllt den Rest; die Breiten merkt sich das Fenster.
+        kopf = self.tabelle.horizontalHeader()
+        kopf.setSectionResizeMode(QtGui.QHeaderView.Interactive)
+        kopf.setStretchLastSection(True)
+        for spalte, breite in enumerate(SPALTEN_BREITEN):
+            self.tabelle.setColumnWidth(spalte, breite)
+        _spalten_laden(self.tabelle)
+        kopf.sectionResized.connect(lambda *_a: _spalten_merken(self.tabelle))
         self.tabelle.verticalHeader().setVisible(False)
         self.tabelle.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         aufbau.addWidget(self.tabelle, 1)
@@ -635,6 +645,27 @@ class MagazinDialog(QtGui.QDialog):
     def reject(self):
         MagazinDialog.offen = None
         super().reject()
+
+
+def _spalten_laden(tabelle):
+    """Die gemerkten Breiten der Spalten (SPALTEN_GEMERKT: „90,330,170,110“), ohne die letzte."""
+    from . import PARAMETER_PFAD
+
+    text = FreeCAD.ParamGet(PARAMETER_PFAD).GetString(SPALTEN_GEMERKT, "")
+    try:
+        breiten = [int(t) for t in text.split(",") if t.strip()]
+    except ValueError:
+        return
+    for spalte, breite in enumerate(breiten[: tabelle.columnCount() - 1]):
+        if breite > 20:
+            tabelle.setColumnWidth(spalte, breite)
+
+
+def _spalten_merken(tabelle):
+    from . import PARAMETER_PFAD
+
+    breiten = [str(tabelle.columnWidth(s)) for s in range(tabelle.columnCount() - 1)]
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetString(SPALTEN_GEMERKT, ",".join(breiten))
 
 
 def oeffnen(werkzeugdialog):

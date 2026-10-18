@@ -3967,7 +3967,7 @@ class _Block:
         kennungen = [w.kennung for w in self._fraeser]
         if werkzeug is None or werkzeug.kennung not in kennungen:
             return False
-        self.wahl_fraeser.setCurrentIndex(kennungen.index(werkzeug.kennung))
+        self.wahl_fraeser.setCurrentIndex(mg.index_von(self._fraeser, werkzeug))
         return True
 
     def fraeser_fuellen(self, bibliothek, werkstoff):
@@ -3980,7 +3980,7 @@ class _Block:
         magazin = self.panel.magazin()
         passende = [
             w
-            for w in mg.sortiert(bibliothek.werkzeuge, magazin)
+            for w in mg.sortiert(bibliothek.werkzeuge, magazin, bibliothek)
             if w.durchmesser > 0
             and self.s.werkzeug_passt(w)
             and self._passende_einsaetze(w, werkstoff)
@@ -3991,7 +3991,7 @@ class _Block:
         gemerkt = _parameter().GetString(self.s.gemerkt, "")
         erster = self.s.einsatz_reihenfolge[0] if self.s.einsatz_reihenfolge else None
         if vorher is not None and vorher.kennung in kennungen:
-            wahl = kennungen.index(vorher.kennung)
+            wahl = mg.index_von(self._fraeser, vorher)
         elif self.vorwahl in kennungen:
             wahl = kennungen.index(self.vorwahl)
         elif gemerkt in kennungen and (
@@ -9107,6 +9107,7 @@ class BearbeitungPanel:
                 for block in aktive:
                     schluessel = (
                         getattr(block.fraeser(), "kennung", None),
+                        getattr(block.fraeser(), "magazin_nummer", None),  # sein Platz (je_platz)
                         repr(block.einsatz()),
                         self.werkstoff(),
                     )

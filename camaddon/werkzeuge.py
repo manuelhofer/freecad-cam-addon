@@ -402,6 +402,13 @@ def vorlage(werkzeug, art):
 class Werkzeug:
     """Ein Fräser oder Bohrer mit seiner Geometrie und seinen Schnittwerten. 0 heißt „unbekannt“."""
 
+    # Steht das Werkzeug mehrmals im Magazin einer Maschine (derselbe Fräser im radialen und im
+    # axialen Halter), ist eine Kopie je Platz unterwegs (magazin.je_platz): ihre T-Nummer dort –
+    # Magazin.eintrag_von findet dann genau diesen Eintrag. Kein Feld: gespeichert wird es nicht.
+    magazin_nummer = None
+    magazin_platz = None  # … und ihr Platz dort
+    halter_text = ""  # … und der Name ihres Halters, für die Listen
+
     # Bleibt, auch wenn sich die T-Nummer ändert.
     kennung: str = field(default_factory=lambda: uuid.uuid4().hex)
     nummer: int = 1  # T-Nummer; 0: keine – nicht geladen (W-002 F2)
@@ -1509,9 +1516,22 @@ class Magazin:
     kennung: str = field(default_factory=lambda: uuid.uuid4().hex)
 
     def eintrag_von(self, werkzeug):
-        """Der Eintrag eines Werkzeugs (oder seiner Kennung), oder None."""
+        """Der Eintrag eines Werkzeugs (oder seiner Kennung), oder None – steht es mehrmals im
+        Magazin, der seiner Kopie (Werkzeug.magazin_nummer), sonst der erste."""
         kennung = getattr(werkzeug, "kennung", werkzeug)
-        return next((e for e in self.eintraege if e.werkzeug == kennung), None)
+        passende = [e for e in self.eintraege if e.werkzeug == kennung]
+        nummer = getattr(werkzeug, "magazin_nummer", None)
+        if nummer is not None:
+            genau = next((e for e in passende if e.nummer == nummer), None)
+            if genau is not None:
+                return genau
+        return passende[0] if passende else None
+
+    def eintraege_von(self, werkzeug):
+        """Alle Einträge eines Werkzeugs (oder seiner Kennung) – mehrere, wenn derselbe Fräser in
+        verschiedenen Haltern steckt."""
+        kennung = getattr(werkzeug, "kennung", werkzeug)
+        return [e for e in self.eintraege if e.werkzeug == kennung]
 
     def mit_nummer(self, nummer):
         return next((e for e in self.eintraege if e.nummer == nummer), None)

@@ -111,6 +111,8 @@ def nummer(magazin, job, werkzeug, vorgemerkt=None):
     Revolver sucht bestueckung.platz_fuer den Platz): die im Job schon, sonst die im Magazin,
     sonst (E3 a) die kleinste, die weder im Magazin noch im Job noch in `vorgemerkt`
     ({Nummer: Kennung} – Werkzeuge, die gleich mit dazukommen) vergeben ist."""
+    if getattr(werkzeug, "magazin_nummer", None) is not None:
+        return werkzeug.magazin_nummer  # ein Platz von mehreren: genau dieser (je_platz)
     schon = nummer_im_job(job, werkzeug) if job is not None else None
     if schon is not None:
         return schon
@@ -176,12 +178,69 @@ def rang(werkzeug, magazin):
     return BELADEN if eintrag.platz > 0 else IM_MAGAZIN
 
 
-def sortiert(werkzeuge, magazin):
+def je_platz(werkzeuge, magazin, bibliothek=None):
+    """Die Werkzeuge für die Listen: Steht eines mehrmals im Magazin – derselbe Fräser einmal im
+    radialen, einmal im axialen Halter (Manuel, 2026-10-18, CLX550: T1 und T3 sind beide der
+    494W D12) –, je Eintrag eine Kopie mit seiner T-Nummer (Werkzeug.magazin_nummer); so hat jede
+    ihren Halter, ihre Nummer und ihren Platz. Die anderen, wie sie sind. Mit `bibliothek`
+    trägt die Kopie den Namen ihres Halters für die Listenzeile (zeile)."""
+    import copy
+
+    if magazin is None:
+        return list(werkzeuge)
+    ergebnis = []
+    for werkzeug in werkzeuge:
+        eintraege = magazin.eintraege_von(werkzeug)
+        if len(eintraege) < 2:
+            ergebnis.append(werkzeug)
+            continue
+        for eintrag in eintraege:
+            kopie = copy.copy(werkzeug)
+            kopie.magazin_nummer = eintrag.nummer
+            kopie.magazin_platz = eintrag.platz
+            halter = bibliothek.halter_mit(eintrag.halter) if bibliothek is not None else None
+            kopie.halter_text = getattr(halter, "name", "") or ""
+            ergebnis.append(kopie)
+    return ergebnis
+
+
+def gleich(a, b):
+    """Dasselbe Werkzeug auf demselben Platz im Magazin (Kennung und Werkzeug.magazin_nummer)?"""
+    return (
+        a is not None
+        and b is not None
+        and a.kennung == b.kennung
+        and getattr(a, "magazin_nummer", None) == getattr(b, "magazin_nummer", None)
+    )
+
+
+def index_von(liste, werkzeug=None, kennung=None, nummer=None):
+    """Wo `werkzeug` in `liste` steht – dasselbe auf demselben Platz (gleich), sonst das erste
+    mit seiner Kennung; mit `kennung` und `nummer` (die T-Nummer eines Controllers: im Magazin
+    die Nummer oder am Revolver der Platz) das passende Werkzeug dazu. None, wenn keins."""
+    if werkzeug is not None:
+        kennung = werkzeug.kennung
+        for i, w in enumerate(liste):
+            if gleich(w, werkzeug):
+                return i
+    if nummer is not None:
+        for i, w in enumerate(liste):
+            if (
+                w.kennung == kennung
+                and getattr(w, "magazin_nummer", None) is not None
+                and nummer in (w.magazin_nummer, getattr(w, "magazin_platz", None))
+            ):
+                return i
+    return next((i for i, w in enumerate(liste) if w.kennung == kennung), None)
+
+
+def sortiert(werkzeuge, magazin, bibliothek=None):
     """Die Werkzeuge in der Reihenfolge der Listen: mit Magazin zuerst die beladenen, dann die
     übrigen des Magazins (je nach ihrer Nummer dort), dann die anderen (nach Nummer); ohne
-    Magazin nach Nummer."""
+    Magazin nach Nummer. Steht eines mehrmals im Magazin, je Platz einmal (je_platz)."""
     if magazin is None:
         return sorted(werkzeuge, key=wz.nach_nummer)
+    werkzeuge = je_platz(werkzeuge, magazin, bibliothek)
 
     def schluessel(w):
         eintrag = magazin.eintrag_von(w)
@@ -200,6 +259,9 @@ def zeile(werkzeug, magazin, platz=True):
     rest = wz.zeile_ohne_nummer(werkzeug)
     if eintrag is None:
         return f"–  {rest} – {tr('mg.nicht_im_magazin')}"
+    if getattr(werkzeug, "halter_text", ""):
+        # Derselbe Fräser mehrmals im Magazin: woran man die Plätze unterscheidet – der Halter.
+        rest = f"{rest} · {werkzeug.halter_text}"
     if platz and eintrag.platz > 0:
         return f"T{eintrag.nummer} · P{eintrag.platz}  {rest}"
     return f"T{eintrag.nummer}  {rest}"

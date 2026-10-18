@@ -5,6 +5,9 @@
 # (beladen, der Platz im Job vorn), dann „P1 · T12 …“, unten „P1 · – … – nicht im Magazin“ –
 # nicht auf P4, da ist der VHM 12 beladen. Den Ø 10 gewählt: gelb „… steht nicht im Magazin …“ mit dem Verweis „Ins
 # Magazin übernehmen“; angeklickt: Er steht als T1 im Magazin, der Satz zum Magazin ist weg.
+# Derselbe VHM 12 steht zusätzlich als T13 im axialen Halter auf P6: nicht in den Listen (er zeigt
+# längs der Stange), die graue Zeile nennt ihn; ihr Verweis öffnet „Bearbeitung“ von vorn, und dort
+# steht er als T13 – T11 (radial) nicht.
 import os
 import tempfile
 
@@ -49,6 +52,10 @@ def schritte(h):
     magazin = bibliothek.neues_magazin("CLX 550", pfad)
     magazin.hinzufuegen(vhm12, 11).platz = 4
     magazin.hinzufuegen(kugel, 12)
+    # Derselbe VHM 12 ein zweites Mal, im axialen Halter (Manuel, 2026-10-18, CLX550: T1 radial,
+    # T3 axial – beide der 494W D12): ein eigener Platz mit eigenem Halter (magazin.je_platz).
+    axial = bibliothek.neuer_halter("vdi30_axial")
+    magazin.eintraege.append(wz.MagazinEintrag(13, vhm12.kennung, platz=6, halter=axial.kennung))
     bibliothek.speichern()
 
     doc = FreeCAD.newDocument("Welle")
@@ -90,7 +97,22 @@ def schritte(h):
         and zeilen[2].endswith("nicht im Magazin"),
         f"Liste: {zeilen}",
     )
-    h.pruefe(panel.fraeser() is vhm12 or panel.fraeser().kennung == vhm12.kennung, "nicht VHM 12")
+    h.pruefe(
+        panel.fraeser() is not None
+        and panel.fraeser().kennung == vhm12.kennung
+        and panel.fraeser().magazin_nummer == 11,
+        "nicht VHM 12 als T11",
+    )
+    # T13 steckt axial: nicht in der Liste fürs Rundum-Fräsen, die graue Zeile nennt ihn – mit
+    # dem Verweis zu „Bearbeitung“ von vorn.
+    axial_text = panel.axial_hinweis.text()
+    h.pruefe(
+        not panel.axial_hinweis.isHidden()
+        and "T13" in axial_text
+        and "bearbeitung:" in axial_text
+        and not any(getattr(w, "magazin_nummer", None) == 13 for w in panel._fraeser),
+        f"axial: {axial_text!r}",
+    )
     yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
     h.pruefe("Magazin" not in panel.lage_schruppen.text(), panel.lage_schruppen.text())
 
@@ -117,7 +139,31 @@ def schritte(h):
         f"Zeile: {panel.wahl_fraeser.currentText()!r}",
     )
     h.bild("2_uebernommen", panel.form)
-    panel.reject()
-    yield 500
+    # Der Verweis: „Bearbeitung“ von vorn auf der Stange – dort steht der VHM 12 als T13 (axial),
+    # als T11 (radial) nicht (gui_bearbeitung.von_vorn_moeglich mit dem Halter seines Platzes).
+    from camaddon import gui_bearbeitung
+
+    link = panel.axial_hinweis.text().split('href="', 1)[1].split('"', 1)[0]
+    panel.axial_hinweis.linkActivated.emit(link)
+    yield from h.warte_auf(
+        lambda: getattr(gui_bearbeitung.BearbeitungPanel.offen, "job", None) is not None, 20000
+    )
+    yield 1500
+    dialog = gui_bearbeitung.BearbeitungPanel.offen
+    h.pruefe(dialog is not None, "„Bearbeitung“ nicht offen")
+    if dialog is not None:
+        nummern = sorted(
+            {
+                getattr(w, "magazin_nummer", None)
+                for b in dialog.bloecke
+                for w in getattr(b, "_fraeser", [])
+                if w.kennung == vhm12.kennung
+            },
+            key=str,
+        )
+        h.pruefe(nummern == [13], f"„Bearbeitung“ von vorn: VHM 12 als {nummern}")
+        h.bild("3_von_vorn", dialog.form)
+        dialog.reject()
+        yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300

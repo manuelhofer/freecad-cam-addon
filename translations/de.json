@@ -1660,6 +1660,7 @@
     "va.werkstoff.tooltip": "Für welchen Werkstoff die Schnittwerte gelten – vom Rohteil, wenn es einen hat, sonst der zuletzt benutzte.",
     "va.fraeser": "Fräser",
     "va.fraeser.tooltip": "Ein Fräser aus der Werkzeugverwaltung mit Schnittwerten: Schaft-, Torus-, Kugel-, Nutenfräser oder Messerkopf.",
+    "va.axial": "Nicht in den Listen: {werkzeuge} – axial gespannt, also längs der Stange auf ihre Stirn gerichtet; rundum fräst nur ein radialer Fräser.",
     "va.fraeser.keiner": "Die Werkzeugverwaltung hat keinen Fräser mit Schnittwerten für diesen Werkstoff – leg dort einen an („Werkzeugverwaltung …“).",
     "va.werkzeugverwaltung": "Werkzeugverwaltung …",
     "va.werkzeugverwaltung.tooltip": "Öffnet die Werkzeugverwaltung. Speicherst du dort, stehen die Fräser hier gleich zur Wahl.",

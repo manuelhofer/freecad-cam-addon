@@ -1660,6 +1660,7 @@
     "va.werkstoff.tooltip": "Which material the cutting data are for – the stock's if it has one, otherwise the one used last.",
     "va.fraeser": "Cutter",
     "va.fraeser.tooltip": "A cutter from the tool manager with cutting data: end, torus, ball, slot or face mill.",
+    "va.axial": "Not in the lists: {werkzeuge} – clamped axially, i.e. pointing along the bar at its end face; all round, only a radial cutter mills.",
     "va.fraeser.keiner": "The tool manager has no cutter with cutting data for this material – add one there (“Tool manager …”).",
     "va.werkzeugverwaltung": "Tool manager …",
     "va.werkzeugverwaltung.tooltip": "Opens the tool manager. Once you save there, its cutters are available here.",

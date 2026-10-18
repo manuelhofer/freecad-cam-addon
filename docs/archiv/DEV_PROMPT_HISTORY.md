@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-101 derselbe-fraeser-auf-zwei-plaetzen
+
+### EINGELESEN
+- Manuel, 2026-10-18, mit zwei Bildern (4-Achs-Assistent am Ring auf der CLX550, Magazin „3-Achs-
+  Fräse“ für die CLX550: T1 494W D12 auf P1 im radialen, T3 derselbe 494W D12 auf P4 im axialen
+  Halter, T4 494W D6 axial): „warum kann ich den axial angetriebenen 12er schaftfräser nicht fürs
+  schruppen auswählen ? warum kann ich die spalte Werkzeug oder generell eine spalte dort nicht in
+  der länge oben ziehen wenn ich auf den trennstich gehe ?“; „also wenn eine maschine ausgewählt
+  ist sollte schon das magazin der maschine genommen werden .. und die clx war ausgewählt“.
+- Befund: Das Magazin wurde genommen („P1 · T1“ …), aber `Magazin.eintrag_von` lieferte je Werkzeug
+  nur den ersten Eintrag – T3 kam nirgends an (Listen, Halter, Nummer, Bestückung). In „Bearbeitung“
+  von vorn fiel der 12er ganz weg (von_vorn_moeglich sah den radialen Halter von T1). Und der
+  axiale T4 stand in den Listen fürs Rundum-Fräsen.
+
+### DATEIEN
+- `camaddon/werkzeuge.py`: `Werkzeug.magazin_nummer`/`magazin_platz`/`halter_text` (keine Felder,
+  nicht gespeichert); `Magazin.eintrag_von` findet den Eintrag der Kopie, `eintraege_von`.
+- `camaddon/magazin.py`: `je_platz` – je Eintrag eine Kopie, wenn ein Werkzeug mehrmals im Magazin
+  steht; `sortiert` damit; `gleich`, `index_von` (die Wahl in den Listen bleibt beim Platz);
+  `zeile` mit dem Halter dahinter; `nummer` – die Nummer des Platzes.
+- `camaddon/job_schnittwerte.py`: `werkzeug_von` – vom Controller die Kopie für seinen Platz (T-Nummer
+  oder Platz am Revolver); `controller_ohne_transaktion` nimmt die Nummer des Platzes
+  (`_platz_im_magazin`).
+- `camaddon/bestueckung.py`: der Schlüssel im Job mit dem Platz; `platz_fuer`: der andere Platz
+  desselben Fräsers zählt als belegt.
+- `camaddon/gui_vierachs.py`: Listen je Platz; Fräser im axialen Halter an der Drehmaschine nicht in
+  den Listen (rundum fräst nur ein radialer), grau darunter welche – mit „„Bearbeitung“ von vorn
+  öffnen …“; die Wahl bleibt beim Platz, beim Ändern der Platz des Controllers.
+- `camaddon/gui_bearbeitung.py`: Listen je Platz; derselbe Fräser auf zwei Plätzen bekommt beim
+  Anlegen zwei Controller.
+- `camaddon/gui_magazine.py`: Spalten mit der Maus ziehbar (die letzte füllt den Rest), Breiten
+  gemerkt („MagazinSpalten“).
+- `translations/de.json`, `en.json` (`va.axial`); `help/de|en/magazine.html`, `vierachs.html`.
+- `tests/test_magazin.py` (Zwilling T1/T3), `tests/gui/szenario_magazin_vierachs.py` (T13 axial:
+  nicht in der Liste, grau genannt, Verweis öffnet „Bearbeitung“ von vorn mit T13),
+  `tests/gui/szenario_magazine.py` (Spalten ziehbar, gemerkt). `package.xml`: 0.272.0.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_magazin`, `test_bestueckung`, `test_job_schnittwerte`, `test_hilfe`,
+  `test_sprache`, `szenario_magazin_vierachs`, `szenario_magazine`, `szenario_bearbeitung`,
+  `szenario_testteil`, `szenario_ring_vorn`, `szenario_bearbeitung_cring_alles`,
+  `szenario_vierachs_schruppen`.
+
 ## P-2026-10-18-100 neben-dem-rohteil-im-einrichtblatt
 
 ### EINGELESEN

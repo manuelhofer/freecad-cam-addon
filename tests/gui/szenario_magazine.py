@@ -81,6 +81,24 @@ def schritte(h):
     m.tabelle.cellWidget(1, gui_magazine.SPALTE_NAME).setText("ANBOHRER_D10")
     m.tabelle.cellWidget(1, gui_magazine.SPALTE_NAME).textEdited.emit("ANBOHRER_D10")
     yield 300
+    # Jede Spalte lässt sich mit der Maus ziehen (Manuel, 2026-10-18: „warum kann ich die spalte
+    # Werkzeug … nicht in der länge … ziehen“), die Breite merkt sich das Fenster.
+    from PySide import QtGui as _qg
+
+    kopf = m.tabelle.horizontalHeader()
+    h.pruefe(
+        all(
+            kopf.sectionResizeMode(i) == _qg.QHeaderView.Interactive
+            for i in range(m.tabelle.columnCount())
+        ),
+        "eine Spalte lässt sich nicht ziehen",
+    )
+    kopf.resizeSection(gui_magazine.SPALTE_WERKZEUG, 400)
+    yield 200
+    breiten = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/CamAddon").GetString(
+        gui_magazine.SPALTEN_GEMERKT, ""
+    )
+    h.pruefe(breiten.split(",")[gui_magazine.SPALTE_WERKZEUG] == "400", f"gemerkt: {breiten!r}")
     h.bild("1_magazin", m)
 
     # Der Baum links (Manuel, 2026-10-05: „dass erstmal die Maschine da steht … mit einem Plus
