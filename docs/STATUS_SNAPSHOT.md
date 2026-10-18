@@ -1654,6 +1654,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   der Operationen auf die Nebenrechner.
   **Gebaut:** der Fehler (P-2026-10-18-91); 3D-Schruppen: die Varianten gleichzeitig auf den
   Nebenrechnern (P-2026-10-18-93).
+  **Gebaut (P-2026-10-18-94):** Die Hüllfläche des Schaftfräsers (`vierachs_huelle.schaftfraeser`,
+  für Schaft und Halter beim Schruppen) auf allen Kernen – am Geist rechnete sie 160 s auf einem.
+  Messen: `CAMADDON_AUFTRAEGE=<Datei>` (je Auftrag Beginn, Dauer, Funktion) und
+  `CAMADDON_PROBEN=<Ordner>` (Stapel der Nebenrechner alle 0,25 s). **Offen:** der Adaptiv-Kern
+  beim Räumen Lage für Lage (die Lagen hängen über den Materialstand voneinander ab – vorrechnen
+  auf Verdacht, Treffer über `_ADAPTIV`); 3D-Schlichten: die teuren Teile (Hüllfläche je Zeile,
+  genaue Höhen) laufen schon verteilt, die Richtungen nacheinander.
 - **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu
   Frage 1 (Rohteil des Beispiels `c_ring_nut_3achs`: Platte 65 × 65 × 12 oder vorgedrehter Ring
   Ø 60 × 10): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt welle d60 ist

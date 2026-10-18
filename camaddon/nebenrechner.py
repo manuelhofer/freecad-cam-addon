@@ -216,6 +216,30 @@ class Auftrag:
         return f"Auftrag({self.nummer}, {self.modul}.{self.funktion})"
 
 
+_MITSCHRIFT_ANFANG = time.monotonic()
+
+
+def _mitschreiben(auftrag):
+    """Mit CAMADDON_AUFTRAEGE=<Datei>: je erledigtem Auftrag eine Zeile – Beginn (s seit dem Start
+    des Pools), Dauer, Funktion und wer ihn bestellt hat. Für die Durchsicht, was auf einem Kern
+    rechnet (W-036)."""
+    pfad = os.environ.get("CAMADDON_AUFTRAEGE")
+    beginn = getattr(auftrag, "beginn", None)
+    if not pfad or beginn is None:
+        return
+    eltern = auftrag.eltern
+    zeile = (
+        f"{beginn - _MITSCHRIFT_ANFANG:8.2f} {time.monotonic() - beginn:7.2f} "
+        f"{auftrag.modul}.{auftrag.funktion}"
+        + (f" <- {eltern.modul}.{eltern.funktion}" if eltern is not None else "")
+    )
+    try:
+        with open(pfad, "a", encoding="utf-8") as datei:
+            datei.write(zeile + "\n")
+    except OSError:
+        pass
+
+
 def fortschritt_von(auftraege):
     """Der gemeinsame Fortschritt mehrerer Aufträge (0 … 1), nach ihrem Gewicht."""
     gesamt = sum(a.gewicht for a in auftraege)
@@ -966,6 +990,7 @@ class Nebenrechner:
         arbeiter.zuletzt = time.monotonic()
         self._kopien_merken(arbeiter, auftrag)
         auftrag.arbeiter = arbeiter
+        auftrag.beginn = time.monotonic()
         self._laufend[auftrag.nummer] = auftrag
         self.in_arbeit += 1
 
@@ -1016,6 +1041,7 @@ class Nebenrechner:
             auftrag.fehler = f"unbekannte Meldung {art!r}"
         del self._laufend[nummer]
         auftrag.arbeiter = None
+        _mitschreiben(auftrag)
         if auftrag in arbeiter.stapel:
             arbeiter.stapel.remove(auftrag)
         if self._speicher_knapp:

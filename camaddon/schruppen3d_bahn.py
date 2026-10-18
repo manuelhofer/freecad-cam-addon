@@ -539,13 +539,12 @@ def variante_rechnen(netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, 
 def _varianten_verteilt(argumente, varianten):
     """{Variante: was variante_rechnen ergab} – die Varianten je auf einem Nebenrechner,
     gleichzeitig (sie hängen nicht voneinander ab; vorher nacheinander im Fenster, W-036). Das
-    Fenster zeichnet beim Warten neu. Leer mit einer Variante, im Nebenrechner selbst oder ohne
-    Nebenrechner; was ein Arbeiter nicht lieferte, fehlt – das rechnet planen() selbst, mit genau
-    seinem Fehler."""
-    import os
+    Fenster zeichnet beim Warten neu; in einem Nebenrechner (die Vorschau) als Unteraufträge. Leer
+    mit einer Variante oder ohne Nebenrechner; was ein Arbeiter nicht lieferte, fehlt – das
+    rechnet planen() selbst, mit genau seinem Fehler."""
     import secrets
 
-    if len(varianten) < 2 or os.environ.get("CAMADDON_ARBEITER") == "1":
+    if len(varianten) < 2:
         return {}
     try:
         from . import nebenrechner as nr

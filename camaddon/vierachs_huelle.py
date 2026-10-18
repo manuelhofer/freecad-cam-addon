@@ -185,8 +185,68 @@ def schaftfraeser(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne=Fa
     geht durch den Nullpunkt des Jobs. `nur_vorne`: nur Kanten und Dreiecke, die
     (teils) vor der Achse liegen – so sieht der Strahl von der Achse nach außen das
     Teil, wie das Prüffenster es braucht (restmaterial.teilradien; bis P-2026-10-03-07
-    galt das für alle).
+    galt das für alle). Viele Winkel an einem großen Netz gehen in Stücken an die Nebenrechner
+    (_schaftfraeser_verteilt).
     """
+    a_werte = np.asarray(a_werte, dtype=float)
+    phi_werte = np.asarray(phi_werte, dtype=float)
+    r = None
+    if (
+        len(phi_werte) >= PARALLEL_AB_WINKEL
+        and len(phi_werte) * len(netz.dreiecke) >= PARALLEL_AB_WINKEL_ARBEIT
+    ):
+        r = _schaftfraeser_verteilt(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne)
+    if r is None:
+        r = schaftfraeser_stueck(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne)
+    return Huelle(a_werte, phi_werte, r)
+
+
+def _schaftfraeser_verteilt(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne):
+    """schaftfraeser() auf den Nebenrechnern: die Winkel in Stücken (wie _je_winkel_verteilt).
+    Am Geist (STL, 68 000 Dreiecke) rechnete die Hüllfläche für Schaft und Halter beim Schruppen
+    sonst 160 s auf einem Kern (W-036). None ohne Nebenrechner (dann rechnet der Aufrufer
+    selbst)."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    bereiche = nr.stuecke(len(phi_werte), pool.anzahl, je_arbeiter=2, mindestens=WINKEL_JE_STUECK)
+    if len(bereiche) < 2:
+        return None
+    netz_gemeinsam = pool.gemeinsam("vh-netz-" + kennung(netz).hex(), netz)
+    laengs = tuple(float(x) for x in laengs)
+    radial = tuple(float(x) for x in radial)
+    auftraege = [
+        pool.auftrag(
+            "vierachs_huelle",
+            "schaftfraeser_stueck",
+            netz_gemeinsam,
+            laengs,
+            radial,
+            float(radius),
+            a_werte,
+            phi_werte[von:bis],
+            nur_vorne,
+        )
+        for von, bis in bereiche
+    ]
+    try:
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Hüllfläche des Schaftfräsers auf den Nebenrechnern gescheitert, rechne "
+            f"hier: {fehler}\n"
+        )
+        return None
+    return np.concatenate(teile, axis=1)
+
+
+def schaftfraeser_stueck(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne=False):
+    """schaftfraeser() hier, Winkel für Winkel: r (Stellen, Winkel) – auch im Nebenrechner für
+    ein Stück der Winkel."""
     l_, u_, v_ = rahmen(laengs, radial)
     punkte = netz.punkte
     a = punkte @ l_
@@ -209,7 +269,7 @@ def schaftfraeser(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne=Fa
         _kanten_treffen(spalte, a, x, y, k, radius, a_werte[0], schritt)
         _dreiecke_treffen(spalte, a, x, y, d, radius, a_werte[0], schritt)
         r[:, j] = spalte
-    return Huelle(a_werte, np.asarray(phi_werte, dtype=float), r)
+    return r
 
 
 def fraeser(netz, laengs, radial, form, a_werte, phi_werte):

@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-94 schaftfraeser-huelle-auf-allen-kernen
+
+### EINGELESEN
+- Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr CPUs rechnen“ (W-036). Gemessen
+  mit einer Mitschrift je Auftrag und Stichproben in den Nebenrechnern: Am Geist (STL, 68 000
+  Dreiecke) rechnete 169 von 395 s genau ein Nebenrechner, die anderen standen – die
+  Schrupp-Vorschau in `stufen_bei`, der Hüllfläche des Schaftfräsers für Schaft und Halter
+  (`vierachs_huelle.schaftfraeser`, Winkel für Winkel).
+- Am Testteil (3 Achsen) rechnet das Fenster nur 4 s allein; die längsten Einzelstücke sind der
+  Adaptiv-Kern beim Räumen (Lage für Lage, je Aufruf ein Kern – die Lagen hängen über den
+  Materialstand voneinander ab).
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py`: `schaftfraeser` verteilt viele Winkel an einem großen Netz in
+  Stücken auf die Nebenrechner (`_schaftfraeser_verteilt`, `schaftfraeser_stueck`, wie
+  `je_winkel`) – auch aus einem Nebenrechner heraus als Unteraufträge.
+- `camaddon/schruppen3d_bahn.py`: die Varianten auch aus der Vorschau (in einem Nebenrechner)
+  als Unteraufträge.
+- `camaddon/nebenrechner.py`: mit `CAMADDON_AUFTRAEGE=<Datei>` je erledigtem Auftrag Beginn,
+  Dauer, Funktion und Besteller. `camaddon/nebenrechner_arbeiter.py`: mit
+  `CAMADDON_PROBEN=<Ordner>` alle 0,25 s der Stapel des Arbeiters – für die Durchsicht.
+- `docs/STATUS_SNAPSHOT.md` (W-036), `package.xml`: 0.268.4.
+
+### ERGEBNIS
+- Geist (`szenario_vierachs_stl`): 395 → 274 s; ein Nebenrechner allein 169 → 14 s; 8 und mehr
+  Kerne 162 → 218 s; die Schrupp-Vorschau 282 → 162 s. An einer Kugel mit Zapfen (24 000
+  Dreiecke) dieselbe Hüllfläche verteilt wie hier, 3,3 → 1,0 s.
+- Grün im Wochen-Build: `test_vierachs_huelle`, `test_vierachs_bahn`, `test_vierachs_wendel`,
+  `szenario_vierachs_stl`, `szenario_testteil`.
+
 ## P-2026-10-18-93 3d-schruppen-varianten-auf-den-nebenrechnern
 
 ### EINGELESEN

@@ -221,6 +221,34 @@ def _speicher_fehler_merken(fehler):
             datei.write(f"{type(fehler).__name__}: {fehler}\n{traceback.format_exc()}\n")
 
 
+def _proben_nehmen(ordner, nummer, alle=0.25):
+    """Mit CAMADDON_PROBEN=<Ordner>: alle `alle` s den Stapel des Hauptfadens in eine Datei je
+    Arbeiter – die Zeilen des Addons von außen nach innen. Für die Durchsicht, was auf einem Kern
+    rechnet (W-036)."""
+    import threading
+
+    haupt = threading.main_thread().ident
+    pfad = os.path.join(ordner, f"proben_{nummer}_{os.getpid()}.txt")
+
+    def nehmen():
+        with open(pfad, "a", encoding="utf-8") as datei:
+            while True:
+                time.sleep(alle)
+                rahmen = sys._current_frames().get(haupt)
+                stapel = []
+                while rahmen is not None:
+                    code = rahmen.f_code
+                    if "camaddon" in code.co_filename:
+                        name = os.path.basename(code.co_filename)
+                        stapel.append(f"{name}:{rahmen.f_lineno} {code.co_name}")
+                    rahmen = rahmen.f_back
+                if len(stapel) > 1:  # mehr als die Hauptschleife: er rechnet
+                    datei.write(" | ".join(reversed(stapel)) + "\n")
+                    datei.flush()
+
+    threading.Thread(target=nehmen, daemon=True).start()
+
+
 def hauptschleife():
     global _verbindung, _dokumente
     _wachhund(os.getppid())
@@ -239,6 +267,8 @@ def hauptschleife():
     _verbindung = _verbinden(start)
     nr.puffer_vergroessern(_verbindung)
     _verbindung.send((nr.HALLO, start["nummer"], os.getpid()))
+    if os.environ.get("CAMADDON_PROBEN"):
+        _proben_nehmen(os.environ["CAMADDON_PROBEN"], start["nummer"])
     _dokumente = _Dokumente()
     if start.get("unter"):
         # Was der Arbeiter rechnet, darf selbst verteilen – über den Pool des Hauptprozesses.
