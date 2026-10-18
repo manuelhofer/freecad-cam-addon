@@ -385,14 +385,38 @@ def _schruppen(
 
 @dataclass
 class _Nur:
-    """Für _schruppen: die Form und die Freiformflächen (für den Bereich über ihnen) und ob dort
-    nur geschruppt wird („Nur über den gewählten Flächen“); `maske` merkt den Bereich für die
-    Varianten (dasselbe Raster)."""
+    """Für _schruppen: die Freiformflächen als Dreiecke (_flaechen_netze – für den Bereich über
+    ihnen; eine Form ginge nicht an einen Nebenrechner) und ob dort nur geschruppt wird („Nur über
+    den gewählten Flächen“); `maske` merkt den Bereich für die Varianten (dasselbe Raster)."""
 
-    form: object
-    flaechen: list
+    netze: list
     an: bool = False
     maske: object = None
+
+
+def _flaechen_netze(form_teil, namen, schritt):
+    """[(Punkte (n, 2) in x, y, Dreiecke (m, 3))] je Fläche `namen` – vernetzt so fein wie das
+    Raster `schritt` (mindestens 0,05 mm); eine Fläche ohne Netz fehlt."""
+    from . import vierachs_flaechen as vf
+
+    netze = []
+    for nummer in vf.nummern(namen):
+        try:
+            # Eine Kopie vernetzen: tessellate am Original ersetzt dessen Netz, und alles danach
+            # (Simultanschlichten, Materialstand) rechnete mit anderen Dreiecken (P-2026-10-18-64).
+            flaeche = ft.flaeche(form_teil, nummer).copy()
+            punkte, dreiecke = flaeche.tessellate(max(schritt, 0.05))
+        except Exception:  # noqa: BLE001 – eine Fläche ohne Netz: ohne sie
+            continue
+        if not punkte or not dreiecke:
+            continue
+        netze.append(
+            (
+                np.array([(q.x, q.y) for q in punkte], dtype=float),
+                np.asarray(dreiecke, dtype=np.int64).reshape(-1, 3),
+            )
+        )
+    return netze
 
 
 # So viel Rohteil (mm³) muss rings um die Flächen stehen, damit der Assistent davon spricht.
@@ -409,9 +433,7 @@ def _nur_ueber(st, feld, nur, hoehe, oben, ziel, z_unten, zugabe, w):
     Mit `nur.an` gilt es als schon gefräst (etwa in einem anderen Job): Die Höhen dort sind frei,
     die Lagen beginnen am höchsten Material im Bereich. Gibt (Höhen, oben, ob nur dort) zurück."""
     if nur.maske is None or nur.maske.shape != hoehe.shape:
-        nur.maske = feld.aufweiten(
-            _ueber_den_flaechen(feld, nur.form, nur.flaechen), feld.r + w.zeilenabstand
-        )
+        nur.maske = feld.aufweiten(_ueber_den_flaechen(feld, nur.netze), feld.r + w.zeilenabstand)
     bereich = nur.maske
     spitze = np.where(feld.roh <= z_unten + GLEICH, z_unten, feld.roh + zugabe)
     boden = np.maximum(spitze, ziel)
@@ -427,29 +449,17 @@ def _nur_ueber(st, feld, nur, hoehe, oben, ziel, z_unten, zugabe, w):
     return hoehe, min(oben, float(hoehe[erreicht].max())), True
 
 
-def _ueber_den_flaechen(feld, form_teil, namen):
-    """(nx, ny): Knoten, über denen von oben gesehen eine der Flächen `namen` liegt – aus ihrer
-    Vernetzung, je Dreieck die Knoten darin (und die nächsten an seinen Ecken: ein steiles,
+def _ueber_den_flaechen(feld, netze):
+    """(nx, ny): Knoten, über denen von oben gesehen eine der Flächen liegt – aus ihren Netzen
+    (_flaechen_netze), je Dreieck die Knoten darin (und die nächsten an seinen Ecken: ein steiles,
     schmales Dreieck trifft sonst keinen)."""
-    from . import vierachs_flaechen as vf
-
     maske = np.zeros((feld.nx, feld.ny), dtype=bool)
     xs, ys = np.asarray(feld.xs), np.asarray(feld.ys)
-    for nummer in vf.nummern(namen):
-        try:
-            # Eine Kopie vernetzen: tessellate am Original ersetzt dessen Netz, und alles danach
-            # (Simultanschlichten, Materialstand) rechnete mit anderen Dreiecken (P-2026-10-18-64).
-            flaeche = ft.flaeche(form_teil, nummer).copy()
-            punkte, dreiecke = flaeche.tessellate(max(feld.schritt, 0.05))
-        except Exception:  # noqa: BLE001 – eine Fläche ohne Netz: ohne sie
-            continue
-        if not punkte or not dreiecke:
-            continue
-        p = np.array([(q.x, q.y) for q in punkte], dtype=float)
+    for p, dreiecke in netze:
         i = np.clip(np.rint((p[:, 0] - xs[0]) / feld.schritt).astype(int), 0, feld.nx - 1)
         j = np.clip(np.rint((p[:, 1] - ys[0]) / feld.schritt).astype(int), 0, feld.ny - 1)
         maske[i, j] = True
-        for a, b, c in p[np.asarray(dreiecke, dtype=int)]:
+        for a, b, c in p[dreiecke]:
             i0, i1 = np.searchsorted(xs, min(a[0], b[0], c[0])), np.searchsorted(
                 xs, max(a[0], b[0], c[0]), side="right"
             )
@@ -513,6 +523,78 @@ def bereich(form_teil, namen):
     return flaechen, z_unten
 
 
+def variante_rechnen(netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, variante):
+    """Auch im Nebenrechner: alle Lagen in einer Variante – (_Stand, Hauptlagen, Zwischenlagen),
+    None, wo es die Variante nicht gibt (_KeinMorph)."""
+    st = rb._Stand()
+    try:
+        haupt, zwischenlagen = _schruppen(
+            st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand, nur
+        )
+    except rb._KeinMorph:
+        return None
+    return st, haupt, zwischenlagen
+
+
+def _varianten_verteilt(argumente, varianten):
+    """{Variante: was variante_rechnen ergab} – die Varianten je auf einem Nebenrechner,
+    gleichzeitig (sie hängen nicht voneinander ab; vorher nacheinander im Fenster, W-036). Das
+    Fenster zeichnet beim Warten neu. Leer mit einer Variante, im Nebenrechner selbst oder ohne
+    Nebenrechner; was ein Arbeiter nicht lieferte, fehlt – das rechnet planen() selbst, mit genau
+    seinem Fehler."""
+    import os
+    import secrets
+
+    if len(varianten) < 2 or os.environ.get("CAMADDON_ARBEITER") == "1":
+        return {}
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return {}
+    netz, w, z_unten, r, schritt, zwischen, davor, stand, nur = argumente
+    auftraege, schluessel = {}, []
+    try:
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return {}
+        gemeinsam = []
+        for name, wert in (("netz", netz), ("stand", stand), ("nur", nur)):
+            if wert is None:
+                gemeinsam.append(None)
+                continue
+            kennung = f"schruppen3d-{name}-{secrets.token_hex(8)}"
+            schluessel.append(kennung)
+            gemeinsam.append(pool.gemeinsam(kennung, wert))
+        for v in varianten:
+            auftraege[v] = pool.auftrag(
+                "schruppen3d_bahn",
+                "variante_rechnen",
+                gemeinsam[0],
+                w,
+                z_unten,
+                r,
+                schritt,
+                zwischen,
+                davor,
+                gemeinsam[1],
+                gemeinsam[2],
+                v,
+            )
+        pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler:
+        for a in auftraege.values():  # was fertig ist, gilt; den Rest rechnet planen() selbst
+            if not a.fertig:
+                a.abbrechen()
+    finally:
+        for kennung in schluessel:
+            pool.vergessen(kennung)
+    return {
+        v: a.ergebnis
+        for v, a in auftraege.items()
+        if a.fertig and a.fehler is None and not a.abgebrochen
+    }
+
+
 def planen(
     form_teil,
     namen,
@@ -549,7 +631,7 @@ def planen(
     # Ein Teil aus einem STL: jedes Dreieck eine Fläche – ohne „nur über den Flächen“.
     nur = None
     if davor is None and stl_teil.daten(form_teil) is None:
-        nur = _Nur(form_teil, _flaechen, bool(nur_ueber))
+        nur = _Nur(_flaechen_netze(form_teil, _flaechen, schritt), bool(nur_ueber))
     if davor is not None and vp.ebener_radius(davor) <= 0:
         raise ValueError(tr("ra.fehler.form"))
     varianten = (w.variante,) if w.variante in rb.VARIANTEN else rb.VARIANTEN
@@ -557,14 +639,16 @@ def planen(
         varianten = ("rohteil",)  # jede Lage wie eine Zwischenlage: keine Varianten
     ergebnisse = {}
     wer_davor = []  # wer vorher dort weggenommen hat (für den Satz, wenn nichts zu tun ist)
+    argumente = (netz, w, z_unten, r, schritt, zwischen, davor, stand, nur)
+    verteilt = _varianten_verteilt(argumente, varianten)
     for variante in varianten:
-        st = rb._Stand()
-        try:
-            haupt, zwischenlagen = _schruppen(
-                st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand, nur
-            )
-        except rb._KeinMorph:
+        if variante in verteilt:
+            gerechnet = verteilt[variante]
+        else:
+            gerechnet = variante_rechnen(*argumente, variante)
+        if gerechnet is None:
             continue
+        st, haupt, zwischenlagen = gerechnet
         wer_davor = st.davor
         if st.ringe == 0:
             continue

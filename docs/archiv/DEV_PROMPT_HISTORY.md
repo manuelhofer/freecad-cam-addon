@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-93 3d-schruppen-varianten-auf-den-nebenrechnern
+
+### EINGELESEN
+- Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr CPUs rechnen“ – W-036, Schritt 1:
+  Das 3D-Schruppen rechnete seine Varianten („rohteil“, „morph“, „inseln“) nacheinander im
+  Fenster.
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`: `variante_rechnen` (auch im Nebenrechner) und
+  `_varianten_verteilt` – jede Variante auf einem Nebenrechner, gleichzeitig; Netz, Materialstand
+  und Flächen gehen einmal als gemeinsame Daten hin, das Fenster zeichnet beim Warten neu (ohne
+  Maus und Tastatur). Was ein Arbeiter nicht liefert, rechnet `planen` selbst. `_Nur` trägt statt
+  der Form die Dreiecke der Flächen (`_flaechen_netze`) – eine Form geht nicht an einen
+  Nebenrechner.
+- `package.xml`: 0.268.3.
+
+### ERGEBNIS
+- Kuppel (test_schruppen3d): 2,2 → 1,6 s, dieselben Zeiten je Variante. Testteil: das Programm
+  „3D-Schruppen T1“ Satz für Satz wie vorher.
+- Grün im Wochen-Build: `test_schruppen3d`, `test_schruppen3d_anlauf`, `szenario_testteil`.
+
 ## P-2026-10-18-92 rundum-hinab-im-eilgang-regelwerk
 
 ### EINGELESEN

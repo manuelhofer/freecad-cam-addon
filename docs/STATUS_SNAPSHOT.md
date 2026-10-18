@@ -1652,6 +1652,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Absturz von P-2026-10-10-45. Das Netz-Gedächtnis ist in den Nebenrechnern aus (jede Vorschau
   vernetzt neu). Plan: der Fehler, dann 3D-Schruppen/-Schlichten verteilen, dann die Neuberechnung
   der Operationen auf die Nebenrechner.
+  **Gebaut:** der Fehler (P-2026-10-18-91); 3D-Schruppen: die Varianten gleichzeitig auf den
+  Nebenrechnern (P-2026-10-18-93).
 - **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu
   Frage 1 (Rohteil des Beispiels `c_ring_nut_3achs`: Platte 65 × 65 × 12 oder vorgedrehter Ring
   Ø 60 × 10): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt welle d60 ist
