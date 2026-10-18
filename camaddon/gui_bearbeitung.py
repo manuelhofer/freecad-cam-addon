@@ -5853,6 +5853,12 @@ class BearbeitungPanel:
         klon = vr.modell(job)
         teil = vr.original(klon)
         lage = self.nullpunkt()
+        from . import einrichtblatt as eb
+
+        # Für das Einrichtblatt: „Mitte oben“, wie hier gewählt (Manuel, 2026-10-18).
+        eb.nullpunkt_merken(
+            job, lage, tuple(self._nullpunkt_versatz()) if lage is not None else (0, 0, 0)
+        )
         punkt = FreeCAD.Vector()
         drehung = FreeCAD.Placement(FreeCAD.Vector(), self.aufspannung())
         koerper = self.rohteil_koerper_gewaehlt()

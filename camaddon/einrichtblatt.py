@@ -40,7 +40,7 @@ class Werkzeug:
 class Schritt:
     nummer: int
     name: str
-    werkzeug: str  # „T1 Schaftfräser Ø 12“
+    werkzeug: str  # „T1“ – Name und Maße stehen oben in der Werkzeugliste
     werte: str  # „S 8000 · F 1200 · ap 6 · ae 1,5“
     minuten: float  # 0: unbekannt
     lage: str = ""  # die Ebene (3+2), "" ohne Schwenken
@@ -56,6 +56,7 @@ class Aufspannung:
     schritte: list = field(default_factory=list)  # [Schritt]
     register: str = ""  # das Nullpunkt-Register des Jobs (CAM: Fixtures), „G54“; "" ohne
     bild: str = ""  # Pfad eines Bilds der Aufspannung, "" ohne
+    bild_achsen: bool = False  # im Bild das Koordinatensystem am Nullpunkt (gui_einrichtblatt)
     job: object = None  # der Job der Aufspannung (fürs Bild)
     ebenen: dict = field(default_factory=dict)  # Lage (Schritt.lage) → Job der Ebene (3+2)
     ebenen_bilder: dict = field(default_factory=dict)  # Lage → Pfad eines Bilds der Ebene
@@ -143,7 +144,9 @@ def blatt(job, datum, version, bibliothek=None):
                 Schritt(
                     nummer=nummer,
                     name=op.Label,
-                    werkzeug=f"T{w.nummer} {w.name}" if w is not None else "–",
+                    # nur „T1“: Der Fräser steht oben schon mit allen Maßen – hier zählen die
+                    # Werte (Manuel, 2026-10-18: „sehr oft welches Werkzeug … sehr wenig Werte“)
+                    werkzeug=f"T{w.nummer}" if w is not None else "–",
                     werte=_werte(op, tc),
                     minuten=minuten(op, tc, dynamik),
                     lage=lage,
@@ -220,9 +223,11 @@ def _werkzeug(tc, bibliothek):
         halter_name = halter.name or halter.bezeichnung
         if hl.ist_vorschlag(halter):
             halter_name = tr("pp.kopf.halter_vorschlag", halter=halter_name)
-        masse_text = (
-            f"Ø {halter.groesster_durchmesser:g} · {halter.laenge:g} lang · "
-            f"Spanntiefe {halter.spanntiefe:g}"
+        masse_text = tr(
+            "eb.halter_masse",
+            d=_ohne_nullen(halter.groesster_durchmesser, 2),
+            laenge=_ohne_nullen(halter.laenge, 2),
+            tiefe=_ohne_nullen(halter.spanntiefe, 2),
         )
     eingetragen = (rw.LAENGE_SPINDELNASE, rw.LAENGE_AUSSPANN)
     return Werkzeug(
@@ -254,8 +259,11 @@ def _knapp(job, op, tc, bibliothek, geschwenkt):
 
 
 def _werte(op, tc):
-    """„S 8000 · F 1200 · ap 6 · ae 1,5“ – Drehzahl und Vorschub des Controllers, dazu, was die
-    Operation an Zustellung und Zeilenabstand trägt."""
+    """„S 8000 · F 1200 · vc 150 · fz 0,05 · ap 6 · ae 1,5 · Eintauchwinkel 3°“ – Drehzahl und
+    Vorschub des Controllers, daraus Schnittgeschwindigkeit und Vorschub je Zahn (mit Ø und
+    Schneidenzahl des Werkzeugs), dazu, was die Operation an Zustellung, Zeilenabstand und
+    Eintauchwinkel trägt – alles, was man an der Maschine einträgt (Manuel, 2026-10-18: „ich hätte
+    gern alle auch fz und vc ... auch eintauchwinkel wenn er vorhanden ist“)."""
     teile = []
     if tc is not None:
         drehzahl = float(getattr(tc, "SpindleSpeed", 0) or 0)
@@ -267,6 +275,7 @@ def _werte(op, tc):
             vorschub = 0.0
         if vorschub > 0:
             teile.append(f"F {vorschub:.0f}")
+        teile.extend(_vc_fz(tc, drehzahl, vorschub))
     for name, kurz in (("Zustellung", "ap"), ("StepDown", "ap"), ("Zeilenabstand", "ae")):
         wert = getattr(op, name, None)
         if wert is None or any(t.startswith(kurz) for t in teile):
@@ -277,7 +286,61 @@ def _werte(op, tc):
             zahl = float(wert or 0.0)
         if zahl > 0:
             teile.append(f"{kurz} {_zahl(zahl)}")
+    winkel = _grad(getattr(op, "Eintauchwinkel", None))
+    if winkel > 0:
+        teile.append(f"{_tr('eb.eintauchwinkel')} {_ohne_nullen(winkel, 1)}°")
     return " · ".join(teile) or "–"
+
+
+def _vc_fz(tc, drehzahl, vorschub):
+    """[„vc 150“, „fz 0,05“] aus Drehzahl, Vorschub, Ø und Schneidenzahl des Werkzeugs – leer,
+    wo eins fehlt. vc in m/min (im Zollsystem ft/min), fz in der Längeneinheit je Zahn."""
+    from . import einheiten
+
+    werkzeug = getattr(tc, "Tool", None)
+    try:
+        durchmesser = float(werkzeug.Diameter.getValueAs("mm"))
+    except AttributeError:
+        durchmesser = float(getattr(werkzeug, "Diameter", 0) or 0)
+    schneiden = int(float(getattr(werkzeug, "Flutes", 0) or 0))
+    teile = []
+    if drehzahl > 0 and durchmesser > 0:
+        vc = math.pi * durchmesser * drehzahl / 1000.0  # m/min
+        if einheiten.in_zoll():
+            teile.append(f"vc {vc / 0.3048:.0f} ft/min")
+        else:
+            teile.append(f"vc {vc:.0f}")
+    if drehzahl > 0 and vorschub > 0 and schneiden > 0:
+        teile.append(f"fz {einheiten.text(vorschub / (drehzahl * schneiden), einheiten.LAENGE, 3)}")
+    return teile
+
+
+def _grad(wert):
+    """Ein Winkel (Quantity oder Zahl) in Grad – 0 ohne."""
+    if wert is None:
+        return 0.0
+    try:
+        return float(wert.getValueAs("deg"))
+    except AttributeError:
+        try:
+            return float(wert)
+        except (TypeError, ValueError):
+            return 0.0
+
+
+def _ohne_nullen(wert, stellen):
+    """„3“, „2,5“ – mit dem gewählten Dezimalzeichen, ohne Nullen hinten."""
+    from . import einheiten
+    from .werkstoffe import mit_dezimalzeichen
+
+    text = f"{wert:.{stellen}f}".rstrip("0").rstrip(".")
+    return mit_dezimalzeichen(text, einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT)
+
+
+def _tr(schluessel):
+    from .sprache import tr
+
+    return tr(schluessel)
 
 
 def minuten(op, tc, dynamik=(0.0, 0.0)):
@@ -450,6 +513,51 @@ def spannung_text(job, tr):
     return tr("eb.spannung.schraubstock", mm=_mm(), tiefe=_zahl(tiefe))
 
 
+# Am Job gemerkt, welchen Punkt des Rohteils der Assistent „Bearbeitung“ als Nullpunkt gesetzt hat
+# („sx,sy,sz“ wie gui_bearbeitung.nullpunkte, „modell“: wie im Modell) und um wie viel verschoben.
+EIGENSCHAFT_NULLPUNKT = "CamAddonNullpunkt"
+EIGENSCHAFT_NULLPUNKT_VERSATZ = "CamAddonNullpunktVersatz"
+# mm: so nah muss der gewählte Punkt des Rohteils am Ursprung liegen, damit das Blatt ihn so nennt –
+# die Hüllbox gekrümmter Flächen ist nicht genauer (am C-Ring 0,02 mm daneben: aus „Mitte oben“
+# wurde „X 30,46 mm von links · Y 30,96 mm von vorne“).
+NULLPUNKT_GENAU = 0.05
+
+
+def nullpunkt_merken(job, lage, versatz=(0.0, 0.0, 0.0)):
+    """Merkt am Job den gewählten Punkt `lage` ((sx, sy, sz), None: wie im Modell) und den
+    Versatz (mm) – für nullpunkt_text. Ausgeblendete Eigenschaften, ohne eigene Transaktion."""
+    for name, art, wert in (
+        (EIGENSCHAFT_NULLPUNKT, "App::PropertyString",
+         "modell" if lage is None else ",".join(str(int(s)) for s in lage)),
+        (EIGENSCHAFT_NULLPUNKT_VERSATZ, "App::PropertyVector", tuple(float(v) for v in versatz)),
+    ):  # fmt: skip
+        if name not in job.PropertiesList:
+            job.addProperty(art, name, "CAM-Addon", "")
+            job.setEditorMode(name, 2)
+        if art == "App::PropertyVector":
+            import FreeCAD
+
+            wert = FreeCAD.Vector(*wert)
+            if (getattr(job, name) - wert).Length > 1e-9:
+                setattr(job, name, wert)
+        elif getattr(job, name) != wert:
+            setattr(job, name, wert)
+
+
+def gemerkter_nullpunkt(job):
+    """((sx, sy, sz) oder None für „wie im Modell“, Versatz (x, y, z)) – oder ("", …) ohne."""
+    text = str(getattr(job, EIGENSCHAFT_NULLPUNKT, "") or "")
+    versatz = getattr(job, EIGENSCHAFT_NULLPUNKT_VERSATZ, None)
+    versatz = (versatz.x, versatz.y, versatz.z) if versatz is not None else (0.0, 0.0, 0.0)
+    if text == "modell":
+        return None, versatz
+    try:
+        lage = tuple(int(s) for s in text.split(","))
+    except ValueError:
+        return "", versatz
+    return (lage if len(lage) == 3 else ""), versatz
+
+
 def nullpunkt_text(job, tr):
     """Wo X 0, Y 0, Z 0 am Rohteil liegt – mit den Worten der Nullpunkt-Wahl im Assistenten
     („Mitte oben“, „Ecke links vorne oben“, „Kante vorne oben, Mitte“); liegt er an keinem dieser
@@ -470,13 +578,20 @@ def nullpunkt_text(job, tr):
     if form is None or form.isNull():
         return "–"
     bb = form.BoundBox
+    gewaehlt = _gewaehlter_text(job, bb, tr)
+    if gewaehlt:
+        return gewaehlt
     lage = []
     for kleiner, mitte, groesser in (
         (bb.XMin, bb.Center.x, bb.XMax),
         (bb.YMin, bb.Center.y, bb.YMax),
         (bb.ZMin, bb.Center.z, bb.ZMax),
     ):
-        treffer = [s for s, wert in ((-1, kleiner), (0, mitte), (1, groesser)) if abs(wert) < 1e-3]
+        treffer = [
+            s
+            for s, wert in ((-1, kleiner), (0, mitte), (1, groesser))
+            if abs(wert) < NULLPUNKT_GENAU
+        ]
         lage.append(treffer[0] if treffer else None)
     punkt = _punktname(tuple(lage), tr) if None not in lage else ""
     if punkt:
@@ -498,6 +613,42 @@ def nullpunkt_text(job, tr):
         else:
             achsen.append(tr("eb.nullpunkt.von", wert=_zahl(abstand), mm=_mm(), seite=kleiner))
     return tr("eb.nullpunkt.achsen", x=achsen[0], y=achsen[1], z=achsen[2])
+
+
+def _gewaehlter_text(job, bb, tr):
+    """Der im Assistenten gewählte Nullpunkt („Mitte oben des Rohteils“, mit Versatz „…, um X 0 ·
+    Y 0 · Z −1 mm verschoben“) – "" ohne gemerkten, oder wenn das Rohteil inzwischen anders liegt
+    (dann rechnet nullpunkt_text ihn aus dem Rohteil)."""
+    for quelle in (job, grundjob(job)):
+        lage, versatz = gemerkter_nullpunkt(quelle)
+        if lage != "":
+            break
+    else:
+        return ""
+    if lage is None:
+        return tr("eb.nullpunkt.modell")
+    # Der Assistent legt den gewählten Punkt des Rohteils plus Versatz in den Ursprung.
+    am_rohteil = [
+        ((u + o) / 2 if s == 0 else (o if s > 0 else u))
+        for s, u, o in zip(lage, (bb.XMin, bb.YMin, bb.ZMin), (bb.XMax, bb.YMax, bb.ZMax),
+                           strict=True)
+    ]  # fmt: skip
+    if max(abs(p + v) for p, v in zip(am_rohteil, versatz, strict=True)) > NULLPUNKT_GENAU:
+        return ""
+    name = _punktname(lage, tr)
+    if not name:
+        return ""
+    text = tr("eb.nullpunkt.punkt", punkt=name)
+    if any(abs(v) > 1e-9 for v in versatz):
+        text = tr(
+            "eb.nullpunkt.versatz",
+            text=text,
+            x=_zahl(versatz[0]),
+            y=_zahl(versatz[1]),
+            z=_zahl(versatz[2]),
+            mm=_mm(),
+        )
+    return text
 
 
 def _punktname(lage, tr):
@@ -583,7 +734,10 @@ def html(blatt, tr, laenge, minuten_text):
             teile.append(f"<tr><th style='width:22%'>{_e(titel)}</th><td>{_e(wert)}</td></tr>")
         teile.append("</table>")
         if a.bild:
-            teile.append(f"<p><img src='{_e(a.bild)}' width='420'></p>")
+            teile.append(f"<p><img src='{_e(a.bild)}' width='420'>")
+            if a.bild_achsen:
+                teile.append(f"<br><span class='klein'>{_e(tr('eb.nullpunkt.bild'))}</span>")
+            teile.append("</p>")
         teile.append(f"<p><b>{_e(tr('eb.schritte'))}</b></p><table><tr>")
         spalten = [tr("eb.sp.nr"), tr("eb.sp.schritt"), tr("eb.sp.werkzeug"), tr("eb.sp.werte"),
                    tr("eb.sp.kuehlung"), tr("eb.sp.zeit")]  # fmt: skip

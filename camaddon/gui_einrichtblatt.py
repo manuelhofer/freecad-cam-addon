@@ -142,9 +142,13 @@ class EinrichtblattDialog(QtGui.QDialog):
     def _ein_bild(self, eintrag):
         aufspannung, lage, job, mit_backen, pfad = eintrag
         with _ignoriert():
-            if self._bild(self._ansicht, job, pfad, mit_backen=mit_backen):
+            # Das Bild der Aufspannung mit dem Koordinatensystem am Nullpunkt (Manuel,
+            # 2026-10-18: „ein bild von dem rohteil mit dem koordinatensystem am richtigen platz“).
+            achsen = lage is None
+            if self._bild(self._ansicht, job, pfad, mit_backen=mit_backen, mit_achsen=achsen):
                 if lage is None:
                     aufspannung.bild = pfad
+                    aufspannung.bild_achsen = self._achsen_gezeichnet
                 else:
                     aufspannung.ebenen_bilder[lage] = pfad
 
@@ -174,12 +178,14 @@ class EinrichtblattDialog(QtGui.QDialog):
         self.vorschau.setHtml(self.text)
         self._bilder_beenden()
 
-    def _bild(self, ansicht, job, pfad, mit_backen=True):
+    def _bild(self, ansicht, job, pfad, mit_backen=True, mit_achsen=False):
         """Teil, Rohteil und Bahnen von `job`, schräg von oben – die anderen Jobs dafür
         ausgeblendet –, mit `mit_backen` dazu die Backen des Spannmittels (spannung.schraubstock).
         Das Bild (saveImage) zeichnet nur Objekte des Dokuments: Die Backen sind dafür kurz eins, in
         einer Transaktion, die danach verworfen wird – nichts bleibt, auch nicht im Rückgängig.
-        Läuft schon eine Transaktion (ein offenes Fenster), ohne Backen. Danach steht alles, wie es
+        Läuft schon eine Transaktion (ein offenes Fenster), ohne Backen. Mit `mit_achsen` ebenso kurz
+        das Koordinatensystem des Jobs am Nullpunkt (_achsen_koerper: X rot, Y grün, Z blau) –
+        `self._achsen_gezeichnet` sagt danach, ob es im Bild ist. Danach steht alles, wie es
         war. Gibt zurück, ob das Bild gespeichert ist."""
         from . import reichweite as rw
         from . import spannung
@@ -193,16 +199,27 @@ class EinrichtblattDialog(QtGui.QDialog):
             zeigen.add(job.Stock.Name)
         zeigen |= {op.Name for op in rw._operationen(job)}  # nur seine, nicht die der Ebenen
         backen = spannung.schraubstock(job) if mit_backen else None
-        transaktion = backen is not None and not dok.HasPendingTransaction
+        achsen = _achsen_koerper(job) if mit_achsen else []
+        transaktion = (backen is not None or bool(achsen)) and not dok.HasPendingTransaction
+        self._achsen_gezeichnet = False
         vorher = {}
         try:
             if transaktion:
                 dok.openTransaction("Einrichtblatt")
-                hilfe = dok.addObject("Part::Feature", "EinrichtblattBacken")
-                hilfe.Shape = backen
-                if getattr(hilfe, "ViewObject", None) is not None:
-                    hilfe.ViewObject.ShapeColor = SCHRAUBSTOCK
-                zeigen.add(hilfe.Name)
+                if backen is not None:
+                    hilfe = dok.addObject("Part::Feature", "EinrichtblattBacken")
+                    hilfe.Shape = backen
+                    if getattr(hilfe, "ViewObject", None) is not None:
+                        hilfe.ViewObject.ShapeColor = SCHRAUBSTOCK
+                    zeigen.add(hilfe.Name)
+                for name, form, farbe in achsen:
+                    hilfe = dok.addObject("Part::Feature", name)
+                    hilfe.Shape = form
+                    if getattr(hilfe, "ViewObject", None) is not None:
+                        hilfe.ViewObject.ShapeColor = farbe
+                        hilfe.ViewObject.LineColor = farbe
+                    zeigen.add(hilfe.Name)
+                self._achsen_gezeichnet = bool(achsen)
             for o in dok.Objects:
                 ansicht_o = getattr(o, "ViewObject", None)
                 if (
@@ -348,3 +365,27 @@ class BefehlEinrichtblatt:
             )
             return
         EinrichtblattDialog(job).show()
+
+
+def _achsen_koerper(job):
+    """[(Name, Form, Farbe)] – drei Pfeile X, Y, Z vom Nullpunkt des Jobs (dem Ursprung, auf den der
+    Assistent den gewählten Punkt des Rohteils legt), so lang wie 0,4 Rohteildiagonalen (mindestens
+    15 mm – neben Backen und Spannmittel sonst kaum zu sehen); leer ohne Rohteil."""
+    import FreeCAD
+    import Part
+
+    rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
+    if rohteil is None or rohteil.isNull():
+        return []
+    laenge = max(15.0, rohteil.BoundBox.DiagonalLength * 0.4)
+    dicke = laenge / 30
+    ergebnis = []
+    for name, richtung, farbe in (
+        ("EinrichtblattX", FreeCAD.Vector(1, 0, 0), (0.85, 0.1, 0.1)),
+        ("EinrichtblattY", FreeCAD.Vector(0, 1, 0), (0.1, 0.65, 0.1)),
+        ("EinrichtblattZ", FreeCAD.Vector(0, 0, 1), (0.1, 0.25, 0.9)),
+    ):
+        schaft = Part.makeCylinder(dicke, laenge * 0.8, FreeCAD.Vector(), richtung)
+        spitze = Part.makeCone(dicke * 3, 0, laenge * 0.2, richtung * (laenge * 0.8), richtung)
+        ergebnis.append((name, schaft.fuse(spitze), farbe))
+    return ergebnis

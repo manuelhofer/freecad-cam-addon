@@ -111,10 +111,16 @@ if w is not None:
 pruefe(len(b.aufspannungen) == 1, f"Aufspannungen: {len(b.aufspannungen)}")
 a = b.aufspannungen[0]
 pruefe([s.name for s in a.schritte] == ["Lang", "Tief"], f"Schritte: {a.schritte}")
-pruefe(all(s.werkzeug == "T3 Kugel 6" and not s.lage for s in a.schritte), f"{a.schritte}")
+pruefe(all(s.werkzeug == "T3" and not s.lage for s in a.schritte), f"{a.schritte}")
 lang = a.schritte[0].minuten
 pruefe(1.67 < lang < 1.75, f"1000 mm in F 10 mm/s: {lang:.3f} min")
 pruefe(a.schritte[0].werte.startswith("S "), f"Werte: {a.schritte[0].werte}")
+# vc und fz aus S, F, Ø und Schneiden (Manuel, 2026-10-18: „alle auch fz und vc“): die Kugel mit
+# vc 150, fz 0,05 aus der Werkzeugverwaltung.
+pruefe(
+    "vc 150" in a.schritte[0].werte and any(f"fz 0{z}05" in a.schritte[0].werte for z in ".,"),
+    f"vc/fz fehlen: {a.schritte[0].werte}",
+)
 pruefe(
     a.rohteil == "Quader 54 × 44 × 33 mm (Aufmaß oben 0, seitlich 2, unten 3 mm)",
     f"Rohteil: {a.rohteil}",
@@ -161,6 +167,29 @@ for box, erwartet in (
 ):
     text = eb.nullpunkt_text(mit_rohteil(box), tr)
     pruefe(text.startswith(erwartet), f"Nullpunkt: {text!r} statt {erwartet!r}")
+
+
+# Der im Assistenten gewählte Nullpunkt, wie er heißt – auch wenn die Hüllbox (gekrümmte Flächen)
+# 0,02 mm daneben liegt (am C-Ring wurde sonst „X 30,46 mm von links“ daraus); mit Versatz dazu;
+# liegt das Rohteil inzwischen anders, rechnet es wie bisher (P-2026-10-18-77).
+def gewaehlt(box, lage, versatz=(0, 0, 0)):
+    job_ = mit_rohteil(box)
+    setattr(job_, eb.EIGENSCHAFT_NULLPUNKT, lage)
+    setattr(job_, eb.EIGENSCHAFT_NULLPUNKT_VERSATZ, FreeCAD.Vector(*versatz))
+    return eb.nullpunkt_text(job_, tr)
+
+
+for box, lage, versatz, erwartet in (
+    (Part.makeBox(60.93, 61.96, 15, FreeCAD.Vector(-30.445, -30.99, -15)), "0,0,1", (0, 0, 0),
+     "Mitte oben des Rohteils"),
+    (Part.makeBox(60, 60, 15, FreeCAD.Vector(-30, -30, -14)), "0,0,1", (0, 0, -1),
+     "Mitte oben des Rohteils, verschoben um X 0 · Y 0 · Z -1 mm"),
+    (Part.makeBox(60, 60, 15, FreeCAD.Vector(-10, -30, -15)), "0,0,1", (0, 0, 0),
+     "X 10 mm von links"),
+    (Part.makeBox(60, 60, 15), "modell", (0, 0, 0), "wie im Modell"),
+):  # fmt: skip
+    text = gewaehlt(box, lage, versatz)
+    pruefe(text.startswith(erwartet), f"gewählter Nullpunkt: {text!r} statt {erwartet!r}")
 
 # Eine geschwenkte Ebene (3+2) gehört zur Aufspannung des Grundjobs: ihre Schritte unter einer
 # Zwischenzeile mit den Rundachsen.

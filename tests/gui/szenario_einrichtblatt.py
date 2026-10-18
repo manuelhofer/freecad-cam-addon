@@ -80,6 +80,15 @@ def schritte(h):
     a = dialog.blatt.aufspannungen[0]
     h.pruefe(bool(a.bild) and os.path.exists(a.bild), f"kein Bild: {a.bild!r}")
     h.pruefe("," in a.rohteil, f"Dezimalkomma im Rohteil: {a.rohteil!r}")
+    # Werte für die Maschine (Manuel, 2026-10-18): vc und fz am Schritt; im Bild das
+    # Koordinatensystem am Nullpunkt, die Pfeile sind danach wieder aus dem Dokument.
+    for soll in ("vc ", "fz "):
+        h.pruefe(soll in text, f"„{soll}“ fehlt: {text[:600]!r}")
+    h.pruefe(a.bild_achsen, "Bild der Aufspannung ohne Koordinatensystem")
+    reste = [o.Name for o in doc.Objects if o.Name.startswith("Einrichtblatt")]
+    h.pruefe(not reste, f"Hilfskörper geblieben: {reste}")
+    if os.environ.get("AUSGABE"):
+        shutil.copy(a.bild, os.path.join(os.environ["AUSGABE"], "aufspannung_cring.png"))
     h.bild("1_einrichtblatt", dialog)
     pdf = dialog.als_pdf(os.path.join(ordner, "blatt.pdf"))
     yield 500

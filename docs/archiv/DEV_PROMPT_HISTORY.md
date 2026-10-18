@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-77 einrichtblatt-werte-und-nullpunkt
+
+### EINGELESEN
+- Manuel, 2026-10-18 morgens, zum Einrichtblatt des C-Rings: „den nullpunkt würde ich soo auf keinen
+  fall schreiben ... das was wir eintragen "mittig oben" ist sinnvoller .. und vll noch ein bild von
+  dem rohteil mit dem koordinatensystem am richtigen platz“; „man sieht sehr oft welches werkzeug
+  benutzt wird ... aber sehr wenig werte ... ich hätte gern alle auch fz und vc ... auch
+  eintauchwinkel wenn er vorhanden ist ... das man die werte in die maschine packen kann“.
+
+### DATEIEN
+- `camaddon/einrichtblatt.py`: Der Nullpunkt steht so, wie er im Assistenten „Bearbeitung“ gewählt
+  wurde („Mitte oben des Rohteils“, mit Versatz „verschoben um X … · Y … · Z …“), gemerkt am Job
+  (`nullpunkt_merken`, verborgene Eigenschaften) und nur, wenn der Rohteilpunkt noch am Ursprung
+  liegt (0,05 mm); sonst wie bisher aus dem Rohteil, „wie im Modell“ ohne Verschiebung. Je Schritt
+  vc (m/min, in Zoll ft/min) und fz neben S, F, ap, ae, dazu der Eintauchwinkel, wo die Operation
+  einen hat. In den Arbeitsschritten steht als Werkzeug nur noch „T1“ – Name und Maße stehen oben.
+  Halter-Maße mit Dezimalkomma und übersetzt.
+- `camaddon/gui_einrichtblatt.py`: Im Bild der Aufspannung das Koordinatensystem am Nullpunkt
+  (X rot, Y grün, Z blau, 0,4 Rohteildiagonalen lang), als Hilfskörper nur für das Bild.
+- `camaddon/gui_bearbeitung.py`: `_nullpunkt_setzen` merkt die Wahl für das Blatt.
+- `translations/*.json`, `tests/test_einrichtblatt.py`, `tests/gui/szenario_einrichtblatt.py`.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_einrichtblatt`, `szenario_einrichtblatt` (C-Ring: „Mitte oben des
+  Rohteils“, „S 5570 · F 1560 · vc 210 · fz 0,07 · ap 22,2 · ae 5,4 · Eintauchwinkel 5°“, Bild mit
+  Achsen, Hilfskörper danach wieder weg).
+- Offen (W-028): Das Rohteil steht noch als „Quader 60,93 × 61,96 × 12 mm (Aufmaß …)“ – die Maße
+  zum Eintragen kommen mit der Rohteil-Wahl im Assistenten.
 ## P-2026-10-18-76 netze-merken-begrenzt
 
 ### EINGELESEN
