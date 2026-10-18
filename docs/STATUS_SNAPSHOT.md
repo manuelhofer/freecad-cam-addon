@@ -1621,9 +1621,25 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   vorbelegt“. Zum Kern der Bohrung: „wenn … man von ausen einfahren kann mit einem fräser der klein
   genug ist kann man das von ausen rausarbeiten .. wenn man von ausen nicht rein kommt eine helix
   fahren und dann morpfspirealen rausfahen ?? so wie immer“. **Gebaut (P-2026-10-18-86):** Haken
-  „Schlitze in Wellen von außen“ (vorbelegt). **Offen:** im Sektor, wo keine Gasse ist (der Kern),
-  Morph-Ringe von außen statt Zeilen (`raeumen_bahn` im Rahmen des Sektors, wie
-  `vierachs_planbahn._stiche_punkte`); wo man nicht hineinkommt: Helix, dann Morph-Spiralen.
+  „Schlitze in Wellen von außen“ (vorbelegt). Alle Sektoren bis auf die letzte Lage (am Grund, drei
+  Sektoren mit je fünf Zeilen) fahren damit Wellen. Der Kern radial in Ringen von außen ist
+  **verworfen** – Manuel, 2026-10-18, zum Bild mit dem Fräser im Schlitz: „ja okgut wenn man das so
+  bearbeitet .. was nicht der plan ist … das bearbeitet man doch von vorne ;)“ → W-033.
+- **W-033 Ring von vorn statt radial** – Manuel, 2026-10-18, zum Bild mit dem radialen Fräser im
+  Schlitz des Rings (`beispiele/ring_4achs_planbearbeitung.FCStd`, drei Segmente, Schlitze, Bohrung):
+  „man könnte hier ja auch sozusagern von vorne reinfahren ? .. und auch her wellen bearbeiten aber
+  für was will man das so bearbeiten ? das bearbeitet man doch von vorne ;)“; dazu seine Regel „wenn
+  … man von ausen einfahren kann … von ausen rausarbeiten .. wenn man von ausen nicht rein kommt eine
+  helix fahren und dann morpfspirealen rausfahen“. **Stand heute** (Stangen-Job auf der
+  Beispiel-Drehmaschine, „Bearbeitung“ von vorn, „Alles aus dieser Aufspannung“, T1 Ø 4): Räumen nimmt
+  nur die vier Böden (7 min, Ringe über die Stirn, adaptiv in den Nuten), die Wände bis zur
+  Unterkante fährt die Kontur (28 min, 11 m Vorschub, 18 m Eilgang kreuz und quer) – zusammen 35
+  gegen 17 min radial mit Wellen; „Bohrung fräsen“ ist angehakt, obwohl Ø 4,2 nicht geht (der Grund
+  steht rot am Haken, „Anlegen“ tut nichts). Ein axialer T2 Ø 10 in der Kiste wird nicht gewählt.
+  **Plan:** Räumen über alles von vorn – Böden und die Gebiete bis zur Unterkante in einer
+  Operation, von der Stange her in Ringen, in den Schlitzen Wellen, der Kern über die Schlitze (sonst
+  Helix + Morph-Spirale); die Kontur nur zum Schlichten; der axiale Fräser, der passt. Erst Bild mit
+  Zeiten, dann Manuels Ja (Vorgabe ändert sich).
 - **W-031 Vorschlichten als Haken** – Manuel, 2026-10-18 (gelber Satz „Nach dem Schruppen greift die
   Kugel stellenweise …“): „das man hier vll noch die möglichkeit dann gibt "vorschlichten" als hacken
   anzubieten .. aber über dem schlichten das ganze ... zwischen schruppen und schlichten“. **Gebaut
