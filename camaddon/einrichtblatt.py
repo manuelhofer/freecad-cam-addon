@@ -293,7 +293,9 @@ def _werte(op, tc):
             teile.append(f"{kurz} {_zahl(zahl)}")
     winkel = _grad(getattr(op, "Eintauchwinkel", None))
     if winkel > 0:
-        teile.append(f"{_tr('eb.eintauchwinkel')} {_ohne_nullen(winkel, 1)}°")
+        from .sprache import tr
+
+        teile.append(f"{tr('eb.eintauchwinkel')} {_ohne_nullen(winkel, 1)}°")
     return " · ".join(teile) or "–"
 
 
@@ -463,12 +465,10 @@ def rohteil_text(job, tr):
     masse = (getattr(job, "CamAddonRohteilMasse", "") or "").split(";")
     if hasattr(rohteil, "ExtZpos") and len(masse) >= 5:
         # Ein Quader mit eingegebenen Maßen (W-028): wo das Teil darin liegt.
-        return tr(
-            "eb.rohteil.masse.unten" if masse[3] == "unten" else "eb.rohteil.masse.oben",
-            rohteil=quader,
-            wert=_zahl(float(masse[4])),
-            mm=_mm(),
-        )
+        werte = {"rohteil": quader, "wert": _zahl(float(masse[4])), "mm": _mm()}
+        if masse[3] == "unten":
+            return tr("eb.rohteil.masse.unten", **werte)
+        return tr("eb.rohteil.masse.oben", **werte)
     if hasattr(rohteil, "ExtZpos"):
         werte = {n: float(getattr(rohteil, n).getValueAs("mm")) for n in
                  ("ExtXneg", "ExtXpos", "ExtYneg", "ExtYpos", "ExtZneg", "ExtZpos")}  # fmt: skip

@@ -1766,6 +1766,7 @@
     "va.plan.text": "Mills selected flat faces along the bar (flat, wrench flat, slot floor): the rotary axis turns the face to the cutter, which runs rows in layers. Also slots on the outside of the bar and cross holes (helix or drill). Needs an axis across the bar (Y for C).",
     "va.planfraeser.tooltip": "A cutter with a flat tip from the tool manager with cutting data: flat, torus or face mill.",
     "va.planeinsatz.tooltip": "Which cutting data of the cutter apply – “Facing” preselected. It gives speed, feed, stepdown (ap) and row spacing (ae).",
+    "ba.von_vorn.nur_radial": "From the front on the bar only a cutter in an axial holder can mill – the fitting cutters sit radially and point at the bar axis. Give a cutter an axial holder in the tool manager (“Tool manager …”).",
     "va.planfraeser.keiner": "The tool manager has no cutter with a flat tip and cutting data for this material – create one there (“Tool manager …”).",
     "va.zustellung_plan": "Stepdown per layer",
     "va.zustellung_plan.tooltip": "This deep per layer, perpendicular to the face. Empty: the grey suggestion, ap of the application from the tool table.",

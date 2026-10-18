@@ -5,7 +5,9 @@
 # Verweis schließt den Assistenten, die Stange bleibt im Job (W-025, P-2026-10-17-43), und
 # „Bearbeitung“ öffnet sich auf diesem Job mit Face6 gewählt: graue Zeile „Von vorn an der Stange
 # der Drehmaschine …“, eine Strategie angehakt, dazu „Schlichten danach“ mit Messstopp (wenn
-# angeboten); „Anlegen“ legt die Operationen in den Stangen-Job. Das Siemens-Programm der
+# angeboten); „Anlegen“ legt die Operationen in den Stangen-Job. Von vorn fräst nur T2 im axialen
+# Halter – T1 sitzt radial und zeigt auf die Achse der Stange (Manuel, 2026-10-18: „das bearbeitet
+# man doch von vorne“); in keiner Fräserliste steht T1. Das Siemens-Programm der
 # Drehmaschine: Y im Rahmen, das angetriebene Werkzeug mit seinem Befehl, im Messstopp sein Antrieb
 # aus statt „M5“.
 # ZEITLIMIT: 600
@@ -38,6 +40,11 @@ def schritte(h):
     t1.nummer, t1.name, t1.durchmesser, t1.schneiden = 1, "VHM 4", 4.0, 3
     t1.schneidenlaenge, t1.laenge_spindelnase, t1.halter = 12.0, 110.0, halter.kennung
     t1.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1.0, ap=3, vc=120, fz=0.03)]
+    axial = bibliothek.neuer_halter("vdi30_axial")
+    t2 = bibliothek.neues_werkzeug()
+    t2.nummer, t2.name, t2.durchmesser, t2.schneiden = 2, "VHM 4 axial", 4.0, 3
+    t2.schneidenlaenge, t2.laenge_spindelnase, t2.halter = 12.0, 110.0, axial.kennung
+    t2.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1.0, ap=3, vc=120, fz=0.03)]
     bibliothek.speichern()
 
     asm, _maschine = beispielmaschine.lade(beispielmaschine.DREHMASCHINE)
@@ -116,6 +123,11 @@ def schritte(h):
     aktive = [b.s.kennung for b in dialog.aktive_bloecke()]
     print(ascii(f"aktiv auf der Stirnseite: {aktive}"))
     h.pruefe(bool(aktive), "keine Strategie für den Nutgrund angehakt")
+    h.pruefe(
+        all(getattr(b.fraeser(), "nummer", None) == 2 for b in dialog.aktive_bloecke())
+        and not any(w.nummer == 1 for b in dialog.bloecke for w in b._fraeser),
+        f"Fräser von vorn: {[(b.s.kennung, getattr(b.fraeser(), 'nummer', None)) for b in dialog.aktive_bloecke()]}",
+    )
     # Schruppen – messen – schlichten auch von vorn (Manuel, 2026-10-17): „Schlichten danach“ mit
     # Messstopp, wenn angeboten.
     danach = dialog.schlichten_danach

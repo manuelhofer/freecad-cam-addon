@@ -1766,6 +1766,7 @@
     "va.plan.text": "Fräst gewählte ebene Flächen längs der Stange (Abflachung, Schlüsselfläche, Nutboden): Die Rundachse dreht die Fläche zum Fräser, er fährt Zeilen in Lagen. Dazu Nuten auf dem Mantel und Querbohrungen (Helix oder Bohrer). Braucht eine Achse quer zur Stange (bei C das Y).",
     "va.planfraeser.tooltip": "Ein Fräser mit ebener Stirn aus der Werkzeugverwaltung mit Schnittwerten: Schaft-, Torusfräser oder Messerkopf.",
     "va.planeinsatz.tooltip": "Welche Schnittwerte des Fräsers gelten – vorgewählt „Planen“. Er gibt Drehzahl, Vorschub, Zustellung (ap) und Zeilenabstand (ae).",
+    "ba.von_vorn.nur_radial": "Von vorn an der Stange fräst nur ein Fräser im axialen Halter – die passenden Fräser sitzen radial und zeigen auf die Achse der Stange. In der Werkzeugverwaltung einem Fräser einen axialen Halter geben („Werkzeugverwaltung …“).",
     "va.planfraeser.keiner": "Die Werkzeugverwaltung hat keinen Fräser mit ebener Stirn und Schnittwerten für diesen Werkstoff – leg dort einen an („Werkzeugverwaltung …“).",
     "va.zustellung_plan": "Zustellung je Lage",
     "va.zustellung_plan.tooltip": "So tief je Lage, senkrecht auf die Fläche. Leer gilt der graue Vorschlag: ap des Einsatzes aus der Werkzeugtabelle.",

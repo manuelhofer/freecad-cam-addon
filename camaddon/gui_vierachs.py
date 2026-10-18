@@ -2437,7 +2437,7 @@ class VierachsPanel:
             "va.muster.vorschlag.wendel",
             steigung=groesse_zeigen(round(abs(wendel.steigung), 1), einheiten.LAENGE),
             gaenge=gaenge,
-            richtung=tr("va.wendel.rechts" if wendel.steigung > 0 else "va.wendel.links"),
+            richtung=tr("va.wendel.rechts") if wendel.steigung > 0 else tr("va.wendel.links"),
         )
 
     def _wendel_erkannt(self):
@@ -4383,11 +4383,11 @@ class VierachsPanel:
             return einheiten.text(wert, einheiten.QUERSCHNITT, 1 if wert >= 1 else 2)
 
         viel = e["hoechstens"] > REST_VIEL * soll
-        satz = tr(
-            "va.vorschlichten.danach_viel" if viel else "va.vorschlichten.danach",
-            menge=flaeche(e["hoechstens"]),
-            soll=flaeche(soll),
-        )
+        werte = {"menge": flaeche(e["hoechstens"]), "soll": flaeche(soll)}
+        if viel:
+            satz = tr("va.vorschlichten.danach_viel", **werte)
+        else:
+            satz = tr("va.vorschlichten.danach", **werte)
         self._vorschlicht_satz(f"{text} {satz}", GELB if viel else None)
 
     def _umgeschaltet(self):

@@ -927,6 +927,17 @@ def _drehmaschine_text(eintrag):
     return text
 
 
+def von_vorn_moeglich(job, bibliothek, werkzeug):
+    """Kann `werkzeug` im Job von vorn fräsen? An der Stange der Drehmaschine (W-025) nur im
+    geraden (axialen) Halter – im gewinkelten (radialen) zeigt es auf die Achse der Stange, nicht
+    auf ihre Stirn (Manuel, 2026-10-18, am Ring: „das bearbeitet man doch von vorne“). Ohne
+    bekannten Halter: ja."""
+    if job is None or not stangen_job(job):
+        return True
+    halter = bibliothek.halter_fuer_pruefung(werkzeug) if bibliothek is not None else None
+    return halter is None or not halter.gewinkelt
+
+
 def stangen_job(job):
     """Hat der Job eine Stange als Rohteil, eingerichtet vom 4-Achs-Assistenten
     (vierachs_rohteil.ist_stange)? Ein „Zylinder mit Aufmaß“ auf der Fräse hat auch einen Radius,
@@ -3928,13 +3939,15 @@ class _Block:
         vorher = self.fraeser()
         # Mit Magazin der Maschine (W-002 Stufe H2, E7 a) dessen Werkzeuge vorn, beladene zuerst.
         magazin = self.panel.magazin()
-        self._fraeser = [
+        passende = [
             w
             for w in mg.sortiert(bibliothek.werkzeuge, magazin)
             if w.durchmesser > 0
             and self.s.werkzeug_passt(w)
             and self._passende_einsaetze(w, werkstoff)
         ]
+        self._fraeser = [w for w in passende if self.panel.von_vorn_moeglich(w)]
+        self._nur_radial = bool(passende) and not self._fraeser
         kennungen = [w.kennung for w in self._fraeser]
         gemerkt = _parameter().GetString(self.s.gemerkt, "")
         erster = self.s.einsatz_reihenfolge[0] if self.s.einsatz_reihenfolge else None
@@ -4060,7 +4073,9 @@ class _Block:
         self.hinweis.setText("")
         werkzeug, einsatz = self.fraeser(), self.einsatz()
         if werkzeug is None or einsatz is None:
-            self.hinweis.setText(tr("va.planfraeser.keiner"))
+            nur_radial = getattr(self, "_nur_radial", False)
+            text = tr("ba.von_vorn.nur_radial") if nur_radial else tr("va.planfraeser.keiner")
+            self.hinweis.setText(text)
             return
         _n, vorschub, senkrecht = js.werte_im_job(werkzeug, einsatz, self.panel.job)
         werte = dict(self.werte(), vorschub=vorschub, eintauchen=senkrecht, **(zusatz or {}))
@@ -5515,6 +5530,10 @@ class BearbeitungPanel:
         if not datei or self.bibliothek is None:
             return None
         return mg.des_jobs(None, self.bibliothek, datei)
+
+    def von_vorn_moeglich(self, werkzeug):
+        """Kommt `werkzeug` in die Fräserlisten? (von_vorn_moeglich: an der Stange nur axial)"""
+        return von_vorn_moeglich(self.job, self.bibliothek, werkzeug)
 
     def _maschine_gewaehlt(self):
         """Die Wahl gilt: am Job gemerkt (und als zuletzt benutzt), der Satz darunter, die

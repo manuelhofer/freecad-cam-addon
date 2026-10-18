@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-87 von-vorn-nur-axial
+
+### EINGELESEN
+- Manuel, 2026-10-18, zum Bild mit dem radialen Fräser im Schlitz des Rings: „für mich schaut das so
+  aus als ob von oben der fräser kommen würde“; „man könnte hier ja auch sozusagern von vorne
+  reinfahren ? … das bearbeitet man doch von vorne ;)“ (W-033).
+- Beim Nachrechnen von vorn („Bearbeitung“ auf dem Stangen-Job, „Alles aus dieser Aufspannung“):
+  Die Fräserlisten boten T1 im radialen VDI-Halter an, und die Stirnseite wurde mit ihm geplant – er
+  zeigt auf die Achse der Stange, nicht auf ihre Stirn. Ein axialer T2 in der Kiste wurde nicht
+  gewählt (die Reihenfolge der Bibliothek entschied).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `von_vorn_moeglich` – an der Stange der Drehmaschine kommen nur
+  Fräser im geraden (axialen) Halter in die Listen (Halter aus Magazin oder Werkzeug, ohne bekannten
+  Halter wie bisher); bleibt keiner, sagt der Block „Von vorn an der Stange fräst nur ein Fräser im
+  axialen Halter …“ statt „keinen Fräser mit ebener Stirn“.
+- `translations/*.json`: `ba.von_vorn.nur_radial`.
+- `camaddon/einrichtblatt.py`, `camaddon/gui_vierachs.py`: vier Schlüssel als `tr("…")` geschrieben
+  (bedingt oder mit `_tr` fand `test_sprache` sie nicht – rot seit P-80/P-81/P-85).
+- `tests/gui/szenario_vierachs_stirnseite.py`: T2 Ø 4 im axialen Halter dazu; von vorn nimmt jeder
+  Block T2, T1 steht in keiner Liste.
+- `docs/STATUS_SNAPSHOT.md`: W-033 (Ring von vorn: Stand und Plan), W-032 (Kern radial verworfen);
+  `docs/OFFENE_FRAGEN.md`: Frage 1 (Rohteil des C-Ring-Beispiels).
+
+### ERGEBNIS
+- Ring von vorn heute (T1 Ø 4): Räumen der Böden 7 min + Kontur der durchgehenden Wände 28 min
+  (18 m Eilgang) gegen 17 min radial mit Wellen – W-033 baut „Räumen über alles“ von vorn.
+- Grün im Wochen-Build: `szenario_vierachs_stirnseite` (Räumen T2, Messstopp, Wände schlichten T2),
+  `szenario_bearbeitung_drehmaschine`, `test_sprache`, `test_einrichtblatt`.
 ## P-2026-10-18-86 ring-schlitze-in-wellen
 
 ### EINGELESEN
