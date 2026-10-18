@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-95 stichproben-auch-im-fenster
+
+### EINGELESEN
+- W-036 (alle Kerne): Am Geist rechnete das Fenster zwischen den Vorschauen und beim „Anlegen“
+  bis 90 % – was davon Rechnen ist und was Warten, zeigten die Stichproben der Nebenrechner nicht.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `proben_nehmen` (aus `nebenrechner_arbeiter` hierher) – mit
+  `CAMADDON_PROBEN=<Ordner>` auch im Hauptprozess, sobald der Pool startet
+  (`proben_haupt_<pid>.txt`).
+- `docs/STATUS_SNAPSHOT.md` (W-036): Befund.
+
+### ERGEBNIS
+- Geist: Das Fenster rechnet selbst etwa 10 s (Anlegen, Rohteil, Teilachse); sonst wartet es auf
+  die Nebenrechner – gut die Hälfte davon schläft es (`_ruhen`), der Rest ist das Verteilen von
+  9 500 Unteraufträgen (Lesen, Senden, `lebt`, Speicher je Arbeiter) und das Neuzeichnen (unter
+  Xvfb in Software). Kein großer Hebel; notiert: nur die Arbeiter lesen, die etwas geschickt haben.
+- `szenario_vierachs_stl` grün mit Stichproben in Fenster und Nebenrechnern.
+
 ## P-2026-10-18-94 schaftfraeser-huelle-auf-allen-kernen
 
 ### EINGELESEN

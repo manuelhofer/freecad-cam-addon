@@ -217,6 +217,36 @@ class Auftrag:
 
 
 _MITSCHRIFT_ANFANG = time.monotonic()
+_proben_im_hauptprozess = False  # proben_nehmen läuft schon für den Hauptprozess
+
+
+def proben_nehmen(ordner, name, alle=0.25):
+    """Mit CAMADDON_PROBEN=<Ordner>: alle `alle` s den Stapel des Hauptfadens in eine Datei je
+    Prozess (`name`: die Nummer des Arbeiters oder „haupt“) – die Zeilen des Addons von außen
+    nach innen, nur wenn er rechnet. Für die Durchsicht, was auf einem Kern rechnet (W-036)."""
+    import threading
+
+    haupt = threading.main_thread().ident
+    pfad = os.path.join(ordner, f"proben_{name}_{os.getpid()}.txt")
+
+    def nehmen():
+        with open(pfad, "a", encoding="utf-8") as datei:
+            while True:
+                time.sleep(alle)
+                rahmen = sys._current_frames().get(haupt)
+                stapel = []
+                while rahmen is not None:
+                    code = rahmen.f_code
+                    if "camaddon" in code.co_filename:
+                        stapel.append(
+                            f"{os.path.basename(code.co_filename)}:{rahmen.f_lineno} {code.co_name}"
+                        )
+                    rahmen = rahmen.f_back
+                if len(stapel) > 1:  # mehr als die Hauptschleife: er rechnet
+                    datei.write(" | ".join(reversed(stapel)) + "\n")
+                    datei.flush()
+
+    threading.Thread(target=nehmen, daemon=True).start()
 
 
 def _mitschreiben(auftrag):
@@ -362,6 +392,10 @@ class Nebenrechner:
     Arbeiter starten erst, wenn Aufträge da sind, und bleiben für die nächsten."""
 
     def __init__(self, anzahl=None):
+        global _proben_im_hauptprozess
+        if os.environ.get("CAMADDON_PROBEN") and not _proben_im_hauptprozess:
+            _proben_im_hauptprozess = True
+            proben_nehmen(os.environ["CAMADDON_PROBEN"], "haupt")
         self.anzahl = max(1, anzahl or gewuenschte_anzahl())
         self._freecadcmd = freecadcmd_pfad()
         self._arbeiter = []

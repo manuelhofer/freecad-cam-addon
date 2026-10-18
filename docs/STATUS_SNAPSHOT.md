@@ -1661,6 +1661,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   beim Räumen Lage für Lage (die Lagen hängen über den Materialstand voneinander ab – vorrechnen
   auf Verdacht, Treffer über `_ADAPTIV`); 3D-Schlichten: die teuren Teile (Hüllfläche je Zeile,
   genaue Höhen) laufen schon verteilt, die Richtungen nacheinander.
+  **Befund (P-2026-10-18-95):** Das Fenster rechnet am Geist selbst etwa 10 s; beim Warten
+  verteilt es 9 500 Unteraufträge (je Takt alle 24 Arbeiter lesen, `lebt`, Speicher) – möglich:
+  nur die lesen, die etwas geschickt haben (`connection.wait` liefert sie).
 - **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu
   Frage 1 (Rohteil des Beispiels `c_ring_nut_3achs`: Platte 65 × 65 × 12 oder vorgedrehter Ring
   Ø 60 × 10): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt welle d60 ist
