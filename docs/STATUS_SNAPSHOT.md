@@ -934,6 +934,13 @@ T1 Ø 12.
    12-GB-Grenze (Popup bei Manuel). Speicher der Kollision mit STL-Teil und Pool nachmessen und
    begrenzen (Speicherwächter, `kollision_parallel`); danach die Gegenprobe zu P-160: ob der Fräser
    unter den Armen wirklich nicht ins Teil geht. Der Sprung ans Ende steht jetzt 0,25 statt 1,5 s.
+   *Nachgemessen 2026-10-18 (P-73, P-74):* Die Messungen damals liefen mit axial gespanntem
+   Werkzeug (Erinnerung „Kollision messen mit Job-Bibliothek“) – der Halter durchdrang das Teil
+   überall, und `_abstand_stl` gab dann Tausende Dreiecke auf einmal an OpenCascade (bis 5 min für
+   drei Stationen). Jetzt hört es bei Berührung auf und rechnet in Stücken. Richtig gespannt (VDI30
+   radial) am Geist des Szenarios: 9,3 min, Speicher in einer 16-GB-Grenze; Befunde nur zu den
+   Haltern (der Job des Szenarios ist ohne Halter gerechnet). Die Gegenprobe zu P-160 (Fräser unter
+   den Armen) steht damit weiter aus – mit einem Job, der mit dem Halter gerechnet ist.
 Frage 20 (Bereiche an einem STL wählen) entfällt: Ein STL wird immer rundum bearbeitet, angeklickt wird
 nur, wie es liegt (Manuel: „klar soll das immer rundum bearbeitet werden is ja ne stl“).
 
