@@ -84,6 +84,7 @@ Läuft ohne Oberfläche.
 """
 
 import bisect
+import functools
 import math
 from dataclasses import dataclass, replace
 
@@ -531,6 +532,104 @@ def _drehung(a_anfang, a_ende, gleichlauf):
     return 1 if steigend == bool(gleichlauf) else -1
 
 
+def _vor_der_stange_hinab(punkte, a_stange_vorne, radius):
+    """Senkrecht hinab vor der Stirn der Stange im Eilgang (Grundsatz 5; Manuel, 2026-10-18:
+    „keine luftfahrten wenn luftfahren solten die schnell passeieren“): Folgt auf einen Eilgang ein
+    Satz im Vorschub nur radial hinab (a, φ und q bleiben), und steht die Flanke des Fräsers dabei
+    vor der Stirn der Stange, ist der ganze Weg Luft – dann ist der Satz selbst ein Eilgang. Jede
+    Lage der Spirale begann so im Vorschub von der Sicherheitshöhe: am Geist 35 mm je Lage, beim
+    Schlichten 44 mm."""
+    vorne = a_stange_vorne + VOR_STANGE - GLEICH
+    for i in range(len(punkte) - 1):
+        oben, hinab = punkte[i], punkte[i + 1]
+        if (
+            oben.eilgang
+            and not hinab.eilgang
+            and hinab.r < oben.r - GLEICH
+            and abs(hinab.a - oben.a) <= GLEICH
+            and abs(hinab.phi - oben.phi) <= GLEICH
+            and abs(hinab.q - oben.q) <= GLEICH
+            and min(oben.a, hinab.a) - radius >= vorne
+        ):
+            punkte[i + 1] = Punkt(True, hinab.a, hinab.r, hinab.phi, q=hinab.q)
+
+
+def _rest_oben(rest, a, phi, q, radius):
+    """So hoch steht der Rest nach dem Schruppen (Schlichtwerte.rest: a, φ in rad, r je Strahl)
+    höchstens unter der Stirn eines Fräsers mit `radius`, dessen Achse unter `phi` (Grad) um `q`
+    quer versetzt parallel zum Strahl steht, an der Stelle `a` – längs seiner Achse gemessen, die
+    Stirn eben gerechnet (eine Kugel berührt später). Auf jedem Strahl unter dem Winkel δ zur
+    Achse steht Material von der Achse bis ρ; unter der Stirn liegt davon, was quer (ρ' · sin δ)
+    höchstens `radius` neben q liegt, seine Höhe ρ' · cos δ. Längs und rundum je eine Zelle mehr.
+    −inf, wo dort nichts steht (vor der Stange); +inf, wo die Stirn hinter den Rest reicht (dort
+    ist das Futter)."""
+    rest_a, rest_phi, rest_r = rest
+    schritt_a = float(rest_a[1] - rest_a[0])
+    if a - radius - schritt_a < float(rest_a[0]):
+        return math.inf
+    i0 = int(np.searchsorted(rest_a, a - radius - schritt_a))
+    i1 = int(np.searchsorted(rest_a, a + radius + schritt_a, side="right"))
+    if i1 <= i0:
+        return -math.inf
+    rho = rest_r[i0:i1].max(axis=0)
+    rho = np.maximum(rho, np.maximum(np.roll(rho, 1), np.roll(rho, -1)))
+    delta = np.asarray(rest_phi, dtype=float) - math.radians(phi)
+    s, c = np.sin(delta), np.cos(delta)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        plus = np.where(s > 0, (q + radius) / s, (q - radius) / s)  # quer bis höchstens dort
+        minus = np.where(s > 0, (q - radius) / s, (q + radius) / s)  # und mindestens
+    flach = np.abs(s) < 1e-9
+    hoch = np.where(flach, np.where(abs(q) <= radius, rho, -math.inf), np.minimum(rho, plus))
+    tief = np.where(flach, 0.0, np.maximum(minus, 0.0))
+    hoehe = np.where((c > 0) & (hoch >= tief), hoch * c, -math.inf)
+    return float(hoehe.max())
+
+
+def _ueber_dem_rest_hinab(punkte, rest, radius, sicherheit):
+    """Wie _vor_der_stange_hinab über dem Teil beim Schlichten: Folgt auf einen Eilgang ein Satz
+    im Vorschub nur radial hinab, geht der Eilgang bis `sicherheit` über den Rest nach dem
+    Schruppen unter der Stirn (_rest_oben) – das Vorschlichten tauchte am Testteil 40 mm im
+    Vorschub von der Sicherheitshöhe hinab, nach dem Schruppen stand dort 6 mm über der Bahn."""
+    i = 0
+    while i < len(punkte) - 1:
+        oben, hinab = punkte[i], punkte[i + 1]
+        if (
+            oben.eilgang
+            and not hinab.eilgang
+            and hinab.r < oben.r - GLEICH
+            and abs(hinab.a - oben.a) <= GLEICH
+            and abs(hinab.phi - oben.phi) <= GLEICH
+            and abs(hinab.q - oben.q) <= GLEICH
+            and hinab.r >= 0.0  # unter der Achse läge der Rest hinter ihr höher (cos δ < 0)
+        ):
+            knapp = _rest_oben(rest, hinab.a, hinab.phi, hinab.q, radius) + sicherheit
+            if knapp <= hinab.r + GLEICH:
+                punkte[i + 1] = Punkt(True, hinab.a, hinab.r, hinab.phi, q=hinab.q)
+            elif knapp < oben.r - GLEICH:
+                punkte.insert(i + 1, Punkt(True, hinab.a, knapp, hinab.phi, q=hinab.q))
+                i += 1
+        i += 1
+
+
+def _ohne_luft_hinab(rechnen):
+    """schruppen() und schlichten(): danach _vor_der_stange_hinab über die ganze Bahn, beim
+    Schlichten mit dem Rest nach dem Schruppen auch _ueber_dem_rest_hinab."""
+
+    @functools.wraps(rechnen)
+    def ohne(netz, laengs, radial, werte, *args, **kwargs):
+        bahn = rechnen(netz, laengs, radial, werte, *args, **kwargs)
+        form = getattr(werte, "form", None)
+        radius = float(form.radius) if form is not None else float(werte.fraeser_radius)
+        _vor_der_stange_hinab(bahn.punkte, werte.a_stange_vorne, radius)
+        rest = getattr(werte, "rest", None)
+        if rest is not None:
+            _ueber_dem_rest_hinab(bahn.punkte, rest, radius, werte.sicherheit)
+        return bahn
+
+    return ohne
+
+
+@_ohne_luft_hinab
 def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=vh.SCHRITT_PHI):
     """Die Schruppbahn (Bahn) für `netz` (vierachs_huelle.vernetze, im Job) mit den
     Schruppwerten `werte`; `laengs` und `radial` wie in vierachs_huelle.
@@ -2163,6 +2262,7 @@ def _schlichten_zeilen(
     return Schlichtbahn(punkte, umdrehungen, r_min, form.kammhoehe(s), hinten_frei, rest_ueber)
 
 
+@_ohne_luft_hinab
 def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     """Die Schlichtbahn (Schlichtbahn) für `netz` (vierachs_huelle.vernetze, im Job, fein:
     TOLERANZ_SCHLICHTEN) mit den Schlichtwerten `werte`; `laengs` und `radial` wie in

@@ -532,6 +532,8 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
 
 ## 5. Was überall besser sein soll – die Grundsätze
 
+Kurzfassung aller Regeln für die Bahnen, mit Rangfolge: [regelwerk_bahnen.md](regelwerk_bahnen.md).
+
 **Einfahren – die Regel** (Manuel, 2026-10-12: „das einzige szenario wo zickzack fahren in
 fräser z richtung sinnvoll ist ... ist wenn du eine nut herstellen willst und die nicht von ausen
 zugänglich ist also eine geschlossene nut ... nur da und sonst nirgends .. wobei selbst da würde
@@ -729,6 +731,11 @@ auf der ersten Fräserbreite der Bahn); ebenso das Hinab-daneben-und-quer-hinein
    auch nimmer drüber juckeln !“):
    - Kein Vorschub durch die Luft. Muss der Fräser durch die Luft, dann schnell (Eilgang der
      Maschine oder Freivorschub, `freiwege`), nicht im Arbeitsvorschub.
+   - Hinab im Eilgang bis knapp über das Material: rundum vor der Stirn der Stange ganz hinab,
+     beim Schlichten bis zur Sicherheit über den Rest nach dem Schruppen
+     (`vierachs_bahn._vor_der_stange_hinab`, `_ueber_dem_rest_hinab`, P-2026-10-18-92 – vorher
+     tauchte jede Lage der Spirale im Vorschub von der Sicherheitshöhe hinab, am Geist 35 mm je
+     Lage, beim Schlichten 44 mm).
    - Hat das Rohteil an einer Fläche schon das Fertigmaß (Rundmaterial Ø 60 am Ø-60-Mantel, ein
      Quader ohne Aufmaß an der Seite), fährt dort niemand mehr drüber – weder Schruppen noch
      Schlichten (`gui_bearbeitung.wand_ohne_rohteil`: 0,5 mm vor der Wand kein Rohteil).

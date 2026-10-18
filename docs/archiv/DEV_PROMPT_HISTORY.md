@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-92 rundum-hinab-im-eilgang-regelwerk
+
+### EINGELESEN
+- Manuel, 2026-10-18: „Schau lieber nebenher ob … alle Zickzack einfahren weg sind!!!“ und
+  Grundsatz 5 („keine luftfahrten wenn luftfahren solten die schnell passeieren !!!“).
+- Ein Zähler über die 4-Achs-Programme der Szenarien (senkrechter Vorschub direkt nach einem
+  Eilgang): Jede Lage der Spirale begann im Vorschub von der Sicherheitshöhe – Geist Schruppen
+  19-mal bis 35 mm, Welle bis 16 mm; Schlichten und Vorschlichten am Anfang 40–44 mm, die Wendel
+  27-mal bis 15 mm.
+- Manuel, 2026-10-18: „Kannst du mir für die Bahn Findung ein Regelwerk aufschreiben nach dem du
+  arbeitest“.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `schruppen` und `schlichten` gehen danach über die Bahn
+  (`_ohne_luft_hinab`): Folgt auf einen Eilgang ein Satz im Vorschub nur radial hinab und steht die
+  Flanke dabei vor der Stirn der Stange, ist er ein Eilgang (`_vor_der_stange_hinab`). Beim
+  Schlichten mit dem Rest nach dem Schruppen geht der Eilgang bis zur Sicherheit über den Rest
+  unter der Stirn (`_rest_oben`: je Strahl, was quer unter der Stirn liegt, längs der
+  Werkzeugachse gemessen, auch quer versetzt; `_ueber_dem_rest_hinab`).
+- `tests/test_vierachs_bahn.py`: Die Lage beginnt mit dem Eilgang hinab vor der Stange; „von
+  vorn“ zählt das Hinab vor der Stange im Eilgang.
+- `docs/regelwerk_bahnen.md` (neu): das Regelwerk – Rangfolge (sicher, wie gezeichnet, Last,
+  Zeit), was gefräst wird, Wettbewerb, Last, Einfahren, keine Luft, Fahrtrichtung, rundum,
+  Genauigkeit, wie geprüft wird, Rechnen, Offenes. Verweise in `CHATSTART.md` und
+  `docs/spezifikation_strategien.md` (Abschnitt 5, mit der neuen Regel unter Grundsatz 5).
+- `package.xml`: 0.268.2.
+
+### ERGEBNIS
+- Senkrecht im Vorschub nach einem Eilgang: Geist Schruppen 19 × bis 35 mm → keine, Welle bis
+  16 mm → keine, Geist Schlichten 44 → 5,6 mm, Vorschlichten 40 → 7 mm, Wendel Schlichten 27 × bis
+  15 mm → 10 × bis 5,7 mm (der Rest: 2 mm Sicherheit und was das Schruppen dort stehen ließ).
+- Grün im Wochen-Build: `test_vierachs_bahn`, `szenario_vierachs_stl`, `szenario_vierachs_aendern`,
+  `szenario_vierachs_wendel`, `szenario_vierachs_schlichten`, `szenario_vierachs_vorschlichten`
+  (die letzten beiden fielen zu sechst parallel in ihre Wartezeit, allein grün).
+
 ## P-2026-10-18-91 kein-zickzack-raeumen-keine-klicks-in-neuberechnung
 
 ### EINGELESEN

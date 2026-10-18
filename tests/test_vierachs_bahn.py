@@ -126,19 +126,22 @@ im_ueberlauf = [p.r for p in letzte if p.a < -100 - 0.3]
 pruefe(im_ueberlauf and max(im_ueberlauf) < 30.4, f"im Überlauf: {im_ueberlauf[:3]}")
 pruefe(bahn.hinten_frei == 0, f"hinten frei: {bahn.hinten_frei}")
 pruefe(max(p.a for p in bahn.punkte) == start.a, "vorderes Ende")
-# Jede Lage: zuerst radial hinein vor der Stange, dann von vorne nach hinten, nie zurück.
+# Jede Lage: zuerst radial hinein vor der Stange – im Eilgang, dort ist alles Luft (Grundsatz 5,
+# _vor_der_stange_hinab) –, dann von vorne nach hinten, nie zurück.
 lage = []
-for p in bahn.punkte[1:]:
+for v, p in zip(bahn.punkte, bahn.punkte[1:], strict=False):
     if p.eilgang:
         if lage:
-            pruefe(lage[0].a == start.a, f"Lage beginnt bei {lage[0].a}")
+            pruefe(lage[0][0].a == start.a, f"Lage beginnt bei {lage[0][0].a}")
+            pruefe(lage[0][0].eilgang and lage[0][0].r < 40.0, f"vor der Lage: {lage[0][0]}")
+            lage = [p for _v, p in lage]
             pruefe(
                 all(b.a <= a.a and b.phi >= a.phi for a, b in zip(lage, lage[1:], strict=False)),
                 "Spirale läuft nicht stetig nach hinten",
             )
         lage = []
     else:
-        lage.append(p)
+        lage.append((v, p))
 # Ein Satz dreht höchstens 90° (FreeCAD 1.1.3 zeigt mehr als eine Gerade).
 grad = max(abs(b.phi - a.phi) for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False))
 pruefe(grad <= vb.HOECHSTENS_GRAD + 1e-9, f"ein Satz dreht {grad}°")
@@ -660,7 +663,14 @@ vor_der_stange = werte_flach.a_stange_vorne + werte_flach.fraeser_radius
 hinab = [
     (v, p) for v, p in zip(vorn_bahn.punkte, vorn_bahn.punkte[1:], strict=False) if p.eintauchen
 ]
-von_vorn = sum(1 for _v, p in hinab if p.a > vor_der_stange)
+# Vor der Stange senkrecht hinab im Eilgang (_vor_der_stange_hinab), dort ist alles Luft.
+von_vorn = sum(
+    1
+    for v, p in zip(vorn_bahn.punkte, vorn_bahn.punkte[1:], strict=False)
+    if p.a > vor_der_stange
+    and abs(p.a - v.a) < 1e-9
+    and p.r < min(v.r, werte_flach.stange_radius) - 1e-6
+)
 im_material = [
     (round(p.a, 2), round(v.r - p.r, 2))
     for v, p in hinab
