@@ -1614,6 +1614,16 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Richtung, C dreht nicht zurück), 27 → ≈ 15,5 min. **Manuels Ja: „vorgewählt bei Wendelnut“** –
   der Assistent erkennt die Wendelnut und schlägt das Muster „Wendel“ vor, Spirale bleibt wählbar.
   Noch nicht gebaut.
+- **W-032 Ring mit Y: Schlitze in Wellen, der Kern von außen** – Manuel, 2026-10-18, zum Bild der
+  Zeilen mit Y („was ist das ? .. da kann man nicht stolz drauf sein“; „auch hier einfach wellen
+  fahren .. ausen ist doch frei also fahr das doch in einer morph form“). Zum Vergleichsbild
+  (`docs/bilder/vorschlaege/ring_schlitze_wellen.png`, 13 gegen 17 min): „Wellen, als Haken
+  vorbelegt“. Zum Kern der Bohrung: „wenn … man von ausen einfahren kann mit einem fräser der klein
+  genug ist kann man das von ausen rausarbeiten .. wenn man von ausen nicht rein kommt eine helix
+  fahren und dann morpfspirealen rausfahen ?? so wie immer“. **Gebaut (P-2026-10-18-86):** Haken
+  „Schlitze in Wellen von außen“ (vorbelegt). **Offen:** im Sektor, wo keine Gasse ist (der Kern),
+  Morph-Ringe von außen statt Zeilen (`raeumen_bahn` im Rahmen des Sektors, wie
+  `vierachs_planbahn._stiche_punkte`); wo man nicht hineinkommt: Helix, dann Morph-Spiralen.
 - **W-031 Vorschlichten als Haken** – Manuel, 2026-10-18 (gelber Satz „Nach dem Schruppen greift die
   Kugel stellenweise …“): „das man hier vll noch die möglichkeit dann gibt "vorschlichten" als hacken
   anzubieten .. aber über dem schlichten das ganze ... zwischen schruppen und schlichten“. **Gebaut

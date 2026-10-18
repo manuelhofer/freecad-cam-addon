@@ -270,6 +270,10 @@ class Schruppwerte:
     # wegfährt und die c achse dreht … man [kann] die c achse sperren und muss nicht den riemen
     # stressen“). Sonst die Spirale mit der Querachse auch dort.
     sektoren_y: bool = False
+    # Ist ein Sektor in einer Lage eine Gasse (Wand links und rechts, vorn offen – ein Schlitz),
+    # fährt er als offene Nut in Wellen statt in Zeilen (_sektor_nut; Manuel, 2026-10-18: „Wellen,
+    # als Haken vorbelegt“).
+    sektor_wellen: bool = True
     # So weit fährt die Querachse von der Mitte aus (mm, ± – nach stirnseite.y_nutzen); reicht sie
     # nicht über einen Sektor, teilt er sich: ein C-Schritt dazwischen. inf: unbegrenzt.
     y_weg: float = math.inf
@@ -976,6 +980,19 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                 # es hinten nur quer zur nächsten Zeile, nicht schräg durchs Material.
                 bis = max(int(np.flatnonzero(noetig_m[z]).max()) for z in zeilen)
                 psi_jetzt = psi0 + 360.0 * round((punkte[-1].phi - psi0) / 360.0)
+                # Ist der Sektor in dieser Lage eine Gasse – Wand links und rechts, vorn offen –,
+                # fährt er als offene Nut: D-Bögen von vorn aus der Luft (Manuel, 2026-10-18 am
+                # Ring: „auch hier einfach wellen fahren .. ausen ist doch frei“).
+                als_nut = w.sektor_wellen and _sektor_nut(
+                    netz, laengs, radial, w, geformt, zugabe, richtung, psi_jetzt,
+                    float(reihen[0]) - radius, float(reihen[-1]) + radius, stellen, lage,
+                    teil_vorne, teil_hinten, a_ende, sicher, stufen_quer, aussen_teil,
+                )  # fmt: skip
+                if als_nut:
+                    _eilgang(punkte, a_anfang, sicher, psi_jetzt)
+                    punkte.extend(als_nut)
+                    gefahren = 1
+                    continue
                 _eilgang(punkte, a_anfang, sicher, psi_jetzt)
                 hin = True
                 for nr, z in enumerate(zeilen):
@@ -2691,6 +2708,124 @@ def wendel_zusammen(teile):
         querachse=erster.querachse,
         wendel_bahnen=sum(t.wendel_bahnen for t in teile),
     )
+
+
+SEKTOR_NUT_SCHRITT = 0.05  # mm – so fein wird die Breite einer Gasse im Sektor abgetastet
+
+
+def _sektor_nut(
+    netz,
+    laengs,
+    radial,
+    w,
+    geformt,
+    zugabe,
+    richtung,
+    psi,
+    q_von,
+    q_bis,
+    stellen,
+    lage,
+    teil_vorne,
+    teil_hinten,
+    a_ende,
+    sicher,
+    stufen_quer,
+    aussen_teil,
+):
+    """Ein Sektor in Lage `lage` als offene Nut – [Punkt] oder None (dann Zeilen). Im Rahmen des
+    Sektors (die Rundachse auf `psi`, die Werkzeugachse parallel zum Strahl `richtung`, quer q):
+    wo kommt die Spitze über die ganze Länge des Teils bis auf die Lage? Ist das eine Gasse mit
+    Wand auf beiden Seiten (der Ring: ein Schlitz zwischen zwei Segmenten), fährt die Lage sie wie
+    nut_bahn eine offene Nut (Manuel, 2026-10-18: „auch hier einfach wellen fahren .. ausen ist
+    doch frei also fahr das doch in einer morph form“): von vorn aus der Luft auf voller Tiefe, in
+    Wellen (D-Bögen in beide Richtungen, nut_bahn._boegen) bis hinter das Teil (a_ende), die
+    Breite aus der Hüllfläche je Lage (die Wände eines Schlitzes laufen nach innen zusammen).
+    Stießen Schaft oder Halter in der Gasse an (stufen_quer), None – die Zeilen rechnen sie mit."""
+    from types import SimpleNamespace
+
+    from . import bahn as bn
+    from . import nut_bahn as nb
+    from . import vierachs_planbahn as vplan
+
+    radius = w.fraeser_radius
+    z_vorher = w.stange_radius - (lage - 1) * w.zustellung
+    z_lage = max(w.stange_radius - lage * w.zustellung, w.r_tiefste)
+    im_teil = stellen[(stellen >= teil_hinten - GLEICH) & (stellen <= teil_vorne + GLEICH)]
+    if not len(im_teil) or q_bis - q_von < 2 * SEKTOR_NUT_SCHRITT:
+        return None
+    q = np.arange(q_von, q_bis + 1e-9, SEKTOR_NUT_SCHRITT)
+    n_q, n_a = len(q), len(im_teil)
+    hoch = vh.je_stellung(
+        netz,
+        laengs,
+        radial,
+        geformt,
+        np.full(n_q * n_a, richtung),
+        np.repeat(q, n_a),
+        np.tile(im_teil, n_q),
+    )
+    hoch = np.where(np.isfinite(hoch), hoch + zugabe, -np.inf).reshape(n_q, n_a).max(axis=1)
+    frei = hoch <= z_lage + BAHN_TOLERANZ
+    if not frei.any():
+        return None
+    # Die Gasse um die Mitte (q nahe 0) – reicht sie bis an den Rand des Sektors, ist dort keine
+    # Wand: keine Nut.
+    wechsel = np.flatnonzero(np.diff(frei.astype(np.int8)))
+    anfaenge = [0] + list(wechsel + 1)
+    laeufe = [(s, e) for s, e in zip(anfaenge, list(wechsel) + [n_q - 1], strict=True) if frei[s]]
+    mitte = int(np.argmin(np.abs(q)))
+    lauf = next(((s, e) for s, e in laeufe if s <= mitte <= e), None)
+    if lauf is None:
+        lauf = max(laeufe, key=lambda se: se[1] - se[0])
+    s, e = lauf
+    if s == 0 or e == n_q - 1:
+        return None
+    q_lo, q_hi = float(q[s]), float(q[e])
+    r_l = 0.5 * (q_hi - q_lo)
+    q_c = 0.5 * (q_hi + q_lo)
+    a_vorn = max(teil_vorne, w.a_stange_vorne)
+    if a_vorn - a_ende <= 2 * radius:
+        return None
+    if stufen_quer:
+        # Schaft und Halter auf der Lage an den Rändern und in der Mitte der Gasse.
+        q_p = np.repeat(np.array([q_lo, q_c, q_hi]), n_a)
+        a_p = np.tile(im_teil, 3)
+        x_p = np.full(len(q_p), z_lage)
+        mehr = _stufen_hoeher(
+            netz, laengs, radial, stufen_quer, np.full(len(q_p), richtung), q_p, x_p, a_p,
+            aussen_teil, zugabe, radius,
+        )  # fmt: skip
+        if np.max(mehr) > BAHN_TOLERANZ:
+            return None
+    # Hinten ein geschlossenes Ende: Die Bögen laufen dort um seine Mitte – die Mitte darum eine
+    # halbe Gasse vor a_ende, sonst reichte der Fräser (und der Halter) bis an das Futter.
+    a_hinten = a_ende + max(r_l, 0.0)
+    if a_vorn - a_hinten <= 2 * radius:
+        return None
+    nut = nb.Nut(
+        (), (a_vorn, -q_c), (a_hinten, -q_c), r_l + radius, z_vorher, z_lage, False, True, False
+    )
+    werte = nb.Nutwerte(
+        fraeser_radius=radius,
+        zustellung=max(z_vorher - z_lage, GLEICH),
+        zeilenabstand=w.steigung,
+        oben=z_vorher,
+        sicher=sicher,
+        gleichlauf=w.gleichlauf,
+        eintauchwinkel=w.eintauchwinkel,
+        sicherheit=w.sicherheit,
+        wellen=True,
+    )
+    lokal = []
+    vollnut = r_l < nb.MIN_SCHRITT
+    nb._offene_lagen(
+        lokal, nut, werte, vollnut, max(r_l, 0.0), z_vorher, z_lage, not w.gleichlauf, sicher
+    )
+    if not lokal:
+        return None
+    lokal.append(bn.Punkt(True, lokal[-1].x, lokal[-1].y, sicher))  # hinten hinauf
+    return vplan._zurueck(lokal, SimpleNamespace(phi=psi))
 
 
 WENDEL_VOLLNUT_AP = 0.5  # × D: so tief schneidet die erste Bahn einer Lage in voller Breite

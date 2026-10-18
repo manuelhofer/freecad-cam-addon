@@ -124,6 +124,7 @@ class RundumSchruppen(PathOp.ObjectOp):
                 ("App::PropertyBool", "Stetig", tr("vo.eigenschaft.stetig")),
                 ("App::PropertyBool", "NurNoetig", tr("vo.eigenschaft.nur_noetig")),
                 ("App::PropertyBool", "SektorenY", tr("vo.eigenschaft.sektoren_y")),
+                ("App::PropertyBool", "SektorWellen", tr("vo.eigenschaft.sektor_wellen")),
                 ("App::PropertyBool", "Wendel", tr("vo.eigenschaft.wendel")),
                 ("App::PropertyLength", "YWeg", tr("vo.eigenschaft.y_weg")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
@@ -134,6 +135,8 @@ class RundumSchruppen(PathOp.ObjectOp):
             obj.Stetig = True  # auch in älteren Operationen, wie beim Schlichten (P-2026-10-11-47)
         if "NurNoetig" in neu:
             obj.NurNoetig = True  # ebenso: Folgelagen nur, wo nötig (P-2026-10-11-57)
+        if "SektorWellen" in neu:
+            obj.SektorWellen = True  # ebenso: Schlitze in Wellen (Manuel: „als Haken vorbelegt“)
         return neu
 
     @staticmethod
@@ -282,6 +285,7 @@ def rechne(obj, job, modell, fraeser_radius):
         sektoren_y=bool(getattr(obj, "SektorenY", False)),
         y_weg=y_weg_von(obj),
         wendel=bool(getattr(obj, "Wendel", False)),
+        sektor_wellen=bool(getattr(obj, "SektorWellen", True)),
     )
 
 
@@ -363,6 +367,7 @@ def bahn_fuer(
     sektoren_y=False,
     y_weg=math.inf,
     wendel=False,
+    sektor_wellen=True,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -410,6 +415,7 @@ def bahn_fuer(
         oben=tuple(oben),
         sektoren_y=sektoren_y,
         y_weg=y_weg,
+        sektor_wellen=sektor_wellen,
     )
     uhren.atmen()  # beim Anlegen: die Wände am Geist (STL) 0,1–0,5 s – das Fenster zeichnet neu
     netz = vh.vernetze(teil)
@@ -455,6 +461,7 @@ def bahn_fuer(
                 "sektoren_y",
                 "y_weg",
                 "wendel",
+                "sektor_wellen",
             )
         ),
         schritt_a,
@@ -587,6 +594,7 @@ def lege_an(
     sektoren_y=False,
     y_weg=0.0,
     wendel=False,
+    sektor_wellen=True,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
@@ -628,6 +636,7 @@ def lege_an(
     obj.SektorenY = bool(sektoren_y)
     obj.YWeg = float(y_weg) if y_weg and math.isfinite(y_weg) else 0.0
     obj.Wendel = bool(wendel)
+    obj.SektorWellen = bool(sektor_wellen)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -680,6 +689,7 @@ def aendere(
     sektoren_y=None,
     y_weg=None,
     wendel=None,
+    sektor_wellen=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
@@ -716,6 +726,10 @@ def aendere(
             obj.YWeg = wert
     if wendel is not None and bool(wendel) != bool(getattr(obj, "Wendel", False)):
         obj.Wendel = bool(wendel)
+    if sektor_wellen is not None and bool(sektor_wellen) != bool(
+        getattr(obj, "SektorWellen", True)
+    ):
+        obj.SektorWellen = bool(sektor_wellen)
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

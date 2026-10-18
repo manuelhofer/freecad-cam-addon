@@ -1,7 +1,9 @@
 # Manuels Ring auf der Beispiel-Drehmaschine mit Y (W-026, P-2026-10-17-48; Manuel: „segmente, wo
 # die y achse hinkommt … man kann die c achse sperren“): „Rundum schruppen“ mit der Querachse und
-# „Sektoren in Zeilen mit Y – C steht“, T1 Schaftfräser Ø 4 im Halter „VDI30 angetrieben radial“,
-# ap 3, ae 1. „Anlegen“ → die Operation fährt in den Schlitzen bei stehendem C mit Y. „Auf der
+# „Sektoren in Zeilen mit Y – C steht“, darunter angehakt „Schlitze in Wellen von außen“ (Manuel,
+# 2026-10-18: „Wellen, als Haken vorbelegt“), T1 Schaftfräser Ø 4 im Halter „VDI30 angetrieben
+# radial“, ap 3, ae 1. „Anlegen“ → die Operation fährt in den Schlitzen bei stehendem C mit Y, dort
+# in Bögen (Sätze mit stehendem C, deren Versatz quer hin und her läuft, ohne Eilgang dazwischen). „Auf der
 # Maschine prüfen“: „Alle Achsen bleiben in ihren Grenzen.“, „Kollision prüfen“ → „Nichts berührt
 # sich“ – der echte Halter gegen die Segmente –, der Abspieler am Ende „nirgends ins Teil“.
 # ZEITLIMIT: 900
@@ -93,6 +95,9 @@ def schritte(h):
         return
     op = ops[0]
     h.pruefe(bool(op.Querachse) and bool(op.SektorenY), "Querachse/SektorenY an der Operation")
+    h.pruefe(
+        bool(getattr(op, "SektorWellen", False)), "„Schlitze in Wellen“ nicht an der Operation"
+    )
     stehend = 0
     c_vorher = y_vorher = None
     for befehl in op.Path.Commands:
@@ -101,6 +106,22 @@ def schritte(h):
         if befehl.Name == "G1" and c == c_vorher and y is not None and y != y_vorher:
             stehend += 1
         c_vorher, y_vorher = c, y
+    # Wellen: bei stehendem C wechselt Y die Richtung, ohne dass ein Eilgang dazwischen liegt.
+    wenden = 0
+    c_vorher = y_vorher = dy_vorher = None
+    for befehl in op.Path.Commands:
+        werte = befehl.Parameters
+        c, y = werte.get("C", c_vorher), werte.get("Y", y_vorher)
+        if befehl.Name == "G1" and c == c_vorher and y is not None and y_vorher is not None:
+            dy = y - y_vorher
+            if dy_vorher is not None and abs(dy) > 1e-6 and dy * dy_vorher < 0:
+                wenden += 1
+            if abs(dy) > 1e-6:
+                dy_vorher = dy
+        elif befehl.Name == "G0":
+            dy_vorher = None
+        c_vorher, y_vorher = c, y
+    h.pruefe(wenden > 50, f"{wenden} Wenden in Y bei stehendem C – fahren die Schlitze in Wellen?")
     h.pruefe(stehend > 50, f"{stehend} Sätze mit Y bei stehendem C")
 
     # --- Auf der Maschine prüfen, Kollision, Abspieler ----------------------------------------

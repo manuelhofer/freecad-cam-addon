@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-86 ring-schlitze-in-wellen
+
+### EINGELESEN
+- Manuel, 2026-10-18, zum Bild des Rings mit Y (Zeilen): „und was ist das ? .. da kann man nicht
+  stolz drauf sein“; „auch hier einfach wellen fahren .. ausen ist doch frei also fahr das doch in
+  einer morph form oder wie das heist“; „hatten wir doch jetzt schon so oft ...“.
+- Zum Vergleich (`docs/bilder/vorschlaege/ring_schlitze_wellen.png`: Zeilen 13 min, die erste Zeile
+  jeder Lage in voller Breite mit ap 3 bei Ø 4 – Wellen 17 min, nie in voller Breite): „Wellen, als
+  Haken vorbelegt“. Zum Kern der Bohrung: „wenn … man von ausen einfahren kann mit einem fräser der
+  klein genug ist kann man das von ausen rausarbeiten .. wenn man von ausen nicht rein kommt eine
+  helix fahren und dann morpfspirealen rausfahen ?? so wie immer“ – weiter von außen; Morph statt
+  Zeilen im Kern als nächster Schritt (W-032).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `_sektor_nut` – ist ein Sektor in einer Lage eine Gasse (aus der
+  Hüllfläche: über die ganze Länge des Teils frei bis auf die Lage, Wand links und rechts), fährt er
+  wie nut_bahn eine offene Nut: von vorn aus der Luft auf voller Tiefe in Wellen (D-Bögen in beide
+  Richtungen), die Breite je Lage aus der Hüllfläche, hinten ein geschlossenes Ende eine halbe Gasse
+  vor `a_ende` (sonst stieß der Halter an die Spindel); stießen Schaft oder Halter in der Gasse an,
+  Zeilen. `Schruppwerte.sektor_wellen`.
+- `camaddon/vierachs_operation.py`: Eigenschaft `SektorWellen` (auch ältere Operationen: an).
+- `camaddon/gui_vierachs.py`: Haken „Schlitze in Wellen von außen“ unter „Sektoren in Zeilen mit
+  Y“, vorbelegt an.
+- `translations/*.json`, `tests/gui/szenario_ring_sektoren_y.py` (Haken an der Operation, über 50
+  Wenden in Y bei stehendem C).
+- `docs/STATUS_SNAPSHOT.md`: W-032.
+
+### ERGEBNIS
+- Am Ring (Beispiel-Drehmaschine mit Y, T1 Ø 4, ap 3, ae 1): 17 statt 13 min, kein Anstoßen,
+  nirgends ins Teil.
+- Grün im Wochen-Build: `szenario_ring_sektoren_y`, `szenario_ring_sektoren`, `test_vierachs_bahn`.
+- Verteilt: Die Gassen rechnen in der Schleife der Sektoren wie die Zeilen; die Hüllfläche je Gasse
+  geht über vierachs_huelle.je_stellung (ab PARALLEL_AB_STELLUNGEN auf die Nebenrechner).
 ## P-2026-10-18-85 rohteil-mit-massen
 
 ### EINGELESEN

@@ -956,6 +956,8 @@ class VierachsPanel:
             self.schruppen_sektoren_y.setChecked(
                 self.schruppen_sektoren_y.isEnabled() and bool(getattr(op, "SektorenY", False))
             )
+            self.schruppen_sektor_wellen.setChecked(bool(getattr(op, "SektorWellen", True)))
+            self.schruppen_sektor_wellen.setEnabled(self.sektoren_y())
             self._schruppen_wendel_von_hand = True
             self.schruppen_wendel.setVisible(bool(getattr(op, "Wendel", False)))
             self.schruppen_wendel.setChecked(bool(getattr(op, "Wendel", False)))
@@ -1496,6 +1498,13 @@ class VierachsPanel:
         self.schruppen_sektoren_y.setToolTip(tr("va.sektoren_y.tooltip"))
         self.schruppen_sektoren_y.toggled.connect(lambda _an: self._sektoren_y_umgeschaltet())
         schruppen.ganz(self.schruppen_sektoren_y)
+        # Schlitze darin als offene Nut in Wellen (Manuel, 2026-10-18: „Wellen, als Haken
+        # vorbelegt“) – mit den Sektoren frei, angehakt.
+        self.schruppen_sektor_wellen = QtGui.QCheckBox(tr("va.sektor_wellen"))
+        self.schruppen_sektor_wellen.setToolTip(tr("va.sektor_wellen.tooltip"))
+        self.schruppen_sektor_wellen.setChecked(True)
+        self.schruppen_sektor_wellen.toggled.connect(lambda _an: self._sektor_wellen_umgeschaltet())
+        schruppen.ganz(self.schruppen_sektor_wellen)
         # Der Wendelnut nach (W-030; Manuel: „Schruppen, Vorschlichten und Schlichten der Nut
         # nach“ – „Ja, vorgewählt bei Wendelnut“): zu sehen, sobald eine erkannt ist.
         self.schruppen_wendel = QtGui.QCheckBox(tr("va.schruppen_wendel"))
@@ -2634,6 +2643,16 @@ class VierachsPanel:
         )
         geht = quer and noetig and not self.flaechen()
         self._haken_setzen(self.schruppen_sektoren_y, geht, self._sektoren_y_von_hand)
+        self.schruppen_sektor_wellen.setEnabled(self.sektoren_y())
+
+    def sektor_wellen(self):
+        """Schlitze in den Sektoren als offene Nut in Wellen (angehakt und möglich)?"""
+        return self.sektoren_y() and self.schruppen_sektor_wellen.isChecked()
+
+    def _sektor_wellen_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._vorschau_starten()
 
     def sektoren_y(self):
         """Beim Schruppen mit der Querachse Sektoren als Zeilen mit Y (angehakt und möglich)?"""
@@ -2643,6 +2662,7 @@ class VierachsPanel:
         if self._fuellt:
             return
         self._sektoren_y_von_hand = True
+        self.schruppen_sektor_wellen.setEnabled(self.sektoren_y())
         self._vorschau_starten()
 
     def y_weg(self):
@@ -4520,6 +4540,7 @@ class VierachsPanel:
             "sektoren_y": self.sektoren_y(),
             "y_weg": self.y_weg(),
             "wendel": self.schruppen_wendel_an(),
+            "sektor_wellen": self.sektor_wellen(),
         }
 
     @staticmethod
@@ -5594,6 +5615,7 @@ class VierachsPanel:
                         sektoren_y=self.sektoren_y(),
                         y_weg=self.y_weg(),
                         wendel=self.schruppen_wendel_an(),
+                        sektor_wellen=self.sektor_wellen(),
                     )
                     self._aufloesung_setzen(neu_schruppen)
                     angelegt.append(neu_schruppen)
@@ -5870,6 +5892,7 @@ class VierachsPanel:
                         sektoren_y=self.sektoren_y(),
                         y_weg=self.y_weg(),
                         wendel=self.schruppen_wendel_an(),
+                        sektor_wellen=self.sektor_wellen(),
                     )
                     self._aufloesung_setzen(op)
                 if schlichten_dazu:
