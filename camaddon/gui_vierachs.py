@@ -642,6 +642,11 @@ class VierachsPanel:
         self._schlichten_von_hand = False  # der Haken „Rundum schlichten“ wurde von Hand gesetzt
         self._schlichten_selbst = False  # der Assistent setzt ihn gerade selbst
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
+        # Die Wendelnut des Teils (vierachs_wendel.Wendel, W-030): erkannt für welches Modell, das
+        # Ergebnis und der Auftrag dazu.
+        self._wendel_schluessel = None
+        self._wendel = None
+        self._wendel_auftrag = None
         self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
         self._sektoren_y_von_hand = False  # „Sektoren in Zeilen mit Y“ von Hand gesetzt
         self._y_weg_gemerkt = {}  # (Dokument, Maschine) → Weg der Querachse (y_weg)
@@ -1568,6 +1573,7 @@ class VierachsPanel:
         for muster, text in (
             (vb.SPIRALE, tr("va.muster.spirale")),
             (vb.LINIEN, tr("va.muster.linien")),
+            (vb.WENDEL, tr("va.muster.wendel")),
         ):
             self.wahl_muster.addItem(text, muster)
         self.wahl_muster.currentIndexChanged.connect(lambda _i: self._muster_gewaehlt())
@@ -2359,6 +2365,7 @@ class VierachsPanel:
         # Mit Flächen ohne die, die „Plan indexiert“ fertig macht (W-027); rundum die Spirale –
         # auch mit Plan indexiert, sie fährt über dessen Flächen angehoben.
         flaechen = self._schlicht_flaechen() if self.flaechen() else []
+        wendel = self._wendel_erkannt()
         if flaechen:
             werkzeug = self.schlichtfraeser()
             radius = werkzeug.durchmesser / 2 if werkzeug is not None else 0.0
@@ -2366,9 +2373,88 @@ class VierachsPanel:
             belegt = bereich.drin[bereich.drin.any(axis=1)]
             if belegt.size and not belegt.all():
                 muster, grund = vb.LINIEN, tr("va.muster.vorschlag.linien")
+        elif wendel is not None:
+            # Eine Wendelnut: ihr nach (W-030; Manuel, 2026-10-18: „Ja, vorgewählt bei
+            # Wendelnut“).
+            muster, grund = vb.WENDEL, self._wendel_grund(wendel)
         self.muster_grund.setText(grund)
         if not self._muster_von_hand:
             self._muster_setzen(muster)
+
+    def _wendel_grund(self, wendel):
+        """„Vorschlag: der Wendel nach – die Nut läuft mit 60 mm Steigung um …“"""
+        gaenge = (
+            tr("va.wendel.eingaengig")
+            if wendel.gaenge == 1
+            else tr("va.wendel.mehrgaengig", gaenge=wendel.gaenge)
+        )
+        return tr(
+            "va.muster.vorschlag.wendel",
+            steigung=groesse_zeigen(round(abs(wendel.steigung), 1), einheiten.LAENGE),
+            gaenge=gaenge,
+            richtung=tr("va.wendel.rechts" if wendel.steigung > 0 else "va.wendel.links"),
+        )
+
+    def _wendel_erkannt(self):
+        """Die Wendelnut des Teils (vierachs_wendel.Wendel) oder None. Für ein neues Modell
+        beginnt das Erkennen auf einem Nebenrechner (ohne einen hier) – ist es da, schlägt
+        _wendel_angekommen das Muster noch einmal vor."""
+        from . import nebenrechner as nr
+
+        if self.job is None:
+            return None
+        try:
+            modell = vr.modell(self.job)
+            schluessel = (self.job.Name, vh.form_kennung(modell.Shape), tuple(self.achse().laengs))
+        except Exception:  # noqa: BLE001 – ohne Modell kein Vorschlag
+            return None
+        if schluessel == self._wendel_schluessel:
+            return self._wendel
+        if self._wendel_auftrag is not None and not self._wendel_auftrag.erledigt:
+            if getattr(self._wendel_auftrag, "_schluessel", None) == schluessel:
+                return None
+            self._wendel_auftrag.abbrechen()
+        self._wendel_auftrag = None
+        achse = self.achse()
+        argumente = (tuple(achse.laengs), tuple(va.radial(achse)))
+        pool = nr.pool()
+        if pool.verfuegbar():
+            try:
+                auftrag = pool.auftrag(
+                    "vierachs_vorschau",
+                    "wendel",
+                    pool.kopie(self.doc, wiederverwenden=True),
+                    self.job.Name,
+                    *argumente,
+                )
+            except nr.NichtVerfuegbar:
+                auftrag = None
+            if auftrag is not None:
+                auftrag._schluessel = schluessel
+                auftrag.bei_fertig = lambda a: self._wendel_angekommen(schluessel, a)
+                self._wendel_auftrag = auftrag
+                return None
+        try:
+            self._wendel = vv.wendel(self.doc, self.job.Name, *argumente)
+        except Exception as fehler:  # noqa: BLE001 – ohne Erkennen die Spirale
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Wendel erkennen: {fehler}\n")
+            self._wendel = None
+        self._wendel_schluessel = schluessel
+        return self._wendel
+
+    def _wendel_angekommen(self, schluessel, auftrag):
+        if self.geschlossen or auftrag is not self._wendel_auftrag:
+            return
+        self._wendel_auftrag = None
+        self._wendel = auftrag.ergebnis if auftrag.fehler is None else None
+        self._wendel_schluessel = schluessel
+        if self._wendel is None:
+            return
+        vorher = self.muster()
+        self._muster_vorschlagen()
+        self._querachse_vorschlagen()
+        if self.muster() != vorher:
+            self._vorschau_starten()
 
     def _muster_setzen(self, muster, von_hand=False):
         """Wählt `muster` (vierachs_bahn.SPIRALE, LINIEN) in der Liste – ohne dass es als von
@@ -2398,7 +2484,7 @@ class VierachsPanel:
         form = ff.von_werkzeug(werkzeug) if werkzeug is not None else None
         if not achse.quer:
             geht, grund = False, tr("va.querachse.keine", maschine=achse.maschine)
-        elif self.muster() != vb.SPIRALE:
+        elif self.muster() not in (vb.SPIRALE, vb.WENDEL):
             geht, grund = False, tr("va.querachse.nur_spirale")
         elif form is None:
             geht, grund = False, tr("va.querachse.ohne_form")
@@ -2976,6 +3062,8 @@ class VierachsPanel:
         )
         if bahn.linien:
             text = tr("va.schlichten.ergebnis_linien", linien=f"{bahn.linien}", zeit=zeit)
+        elif getattr(bahn, "wendel_bahnen", 0):
+            text = tr("va.schlichten.ergebnis_wendel", bahnen=f"{bahn.wendel_bahnen}", zeit=zeit)
         else:
             text = tr("va.schlichten.ergebnis", umdrehungen=f"{bahn.umdrehungen:.0f}", zeit=zeit)
         if bahn.hinten_frei > 0:
@@ -4122,6 +4210,8 @@ class VierachsPanel:
         )
         if bahn.linien:
             menge = tr("va.schlichten.ergebnis_linien", linien=f"{bahn.linien}", zeit=zeit)
+        elif getattr(bahn, "wendel_bahnen", 0):
+            menge = tr("va.schlichten.ergebnis_wendel", bahnen=f"{bahn.wendel_bahnen}", zeit=zeit)
         else:
             menge = tr("va.schlichten.ergebnis", umdrehungen=f"{bahn.umdrehungen:.0f}", zeit=zeit)
         return f"{text} {menge.removeprefix('→ ')}."

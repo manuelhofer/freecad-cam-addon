@@ -48,7 +48,7 @@ from .sprache import tr
 AUFMASS = 0.0  # mm – Schlichten macht fertig
 # Die Werte der Eigenschaft „Muster“ (Aufzählung, bleibt in jeder Datei) und das Muster der
 # Bahn dazu (vierachs_bahn.SPIRALE, LINIEN).
-MUSTER_WERTE = {"Spirale": vb.SPIRALE, "Linien": vb.LINIEN}
+MUSTER_WERTE = {"Spirale": vb.SPIRALE, "Linien": vb.LINIEN, "Wendel": vb.WENDEL}
 KAMMHOEHE = 0.02  # mm – ohne Vorgabe (Manuel, 2026-10-11: „mach gühring“; Gühring ≈ 0,02 bei Ø 8)
 SCHRITTWEITE_ANTEIL = 0.02  # ohne ae im Einsatz: D/50 – wie die Vorlage „Schlichten“
 # Die Vorschau im Assistenten rechnet grob: Umdrehungen, Zeit und ob es geht – schnell genug
@@ -118,6 +118,11 @@ class RundumSchlichten(PathOp.ObjectOp):
         )
         if "Muster" in neu:
             obj.Muster = list(MUSTER_WERTE)  # die Werte der Aufzählung; gewählt ist der erste
+        elif list(obj.getEnumerationsOfProperty("Muster")) != list(MUSTER_WERTE):
+            # Ältere Operationen kennen „Wendel“ noch nicht (W-030) – gewählt bleibt, was war.
+            gewaehlt = obj.Muster
+            obj.Muster = list(MUSTER_WERTE)
+            obj.Muster = gewaehlt
         if "Anstellen" in neu:
             obj.Anstellen = True  # auch in älteren Operationen (Manuel: „pauschal angehakt“)
         if "Stetig" in neu:
@@ -297,7 +302,17 @@ def bahn_fuer(
         laengs_bereich=laengs_bereich,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
+    werte = _mit_wendel(werte, teil, laengs, radial)
     return vb.schlichten(teil, laengs, radial, werte, schritt_phi)
+
+
+def _mit_wendel(werte, teil, laengs, radial):
+    """Mit dem Muster „Wendel“ die Wendelnut des Teils dazu (vierachs_wendel.erkennen, W-030)."""
+    if werte.muster != vb.WENDEL:
+        return werte
+    from . import vierachs_wendel as vw
+
+    return replace(werte, wendel=vw.erkennen(teil, laengs, radial))
 
 
 def _flaechen_netz(form_teil, flaechen, querachse, toleranz):
@@ -348,6 +363,7 @@ def vorschau(
         laengs_bereich=laengs_bereich,
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
+    werte = _mit_wendel(werte, teil, laengs, radial)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
 
 

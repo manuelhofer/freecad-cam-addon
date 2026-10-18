@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-81 wendel-schlichten
+
+### EINGELESEN
+- Manuel, 2026-10-18, an seinem neuen `4achs_testteil_wendel` (Ø 80 × 65, runde Nut R 11,
+  Steigung 60): „die wendel ist entgegen der drehrichtung ... da muss man sich was einfallen lassen
+  das das dennoch sauber herzustellen ist ... dann muss man vll mal hinten anfangen um die wendel zu
+  fahren ??“. Auf den Vorschlag mit Bild (`docs/bilder/vorschlaege/wendel_entlang.png`): „Ja,
+  vorgewählt bei Wendelnut“.
+
+### DATEIEN
+- Neu `camaddon/vierachs_wendel.py`: `erkennen` – die Wendelnut in der Hüllfläche eines dünnen
+  Stifts: je Winkel die Stücke Nut längs, Bänder über die Winkel verfolgt, Gerade hindurch
+  (Steigung auf Hundertstel), Gänge aus den Mitten bei φ = 0, Breite, Tiefe; Ringnut und glatte
+  Welle zählen nicht. `versaetze` – die Bahnen quer über die Nut so, dass zwischen zwei höchstens
+  die Kammhöhe stehen bleibt, gemessen gegen die Vereinigung aller fein gestuften Lagen der Kugel
+  (ohne Ableitung: das Profil aus dem Netz ist stufig); nur Lagen, deren Berührpunkt in der Nut
+  liegt.
+- `camaddon/vierachs_bahn.py`: Muster `WENDEL`, `_schlichten_wendel` – je Versatz eine Spirale mit
+  der Steigung der Nut (Hüllfläche, Aufmaß, durchs Freie, mit der Querachse), C immer in dieselbe
+  Richtung, zwischen den Bahnen im Eilgang nach vorn; jede beginnt dort, wo sie das Teil erreicht
+  (`_spirale_rechnen(…, drehung=, ende_ring=, spalte0=)`). `Schlichtbahn.wendel_bahnen`.
+- `camaddon/vierachs_schlichten.py`: Muster „Wendel“ (ältere Operationen bekommen den Wert dazu),
+  die Wendelnut beim Rechnen erkannt; `vb.fehler`-Satz `vw.fehler.keine`.
+- `camaddon/vierachs_vorschau.py`: `wendel()` für den Nebenrechner.
+- `camaddon/gui_vierachs.py`: Muster „Der Wendel nach“; erkannt im Hintergrund, bei einer
+  Wendelnut vorgeschlagen („Vorschlag: der Wendel nach – die Nut läuft eingängig und rechtsgängig
+  mit 60 mm Steigung um …“); „→ 27 Bahnen der Wendel nach, etwa 11 min“; die Querachse geht auch
+  mit der Wendel.
+- Neu `tests/test_vierachs_wendel.py`, neu `tests/gui/szenario_vierachs_wendel.py` (Wendelteil wie
+  Manuels in PartDesign – mit Part schneidet das Rohr der Wendel die Welle nicht).
+
+### ERGEBNIS
+- An Manuels Teil (Kopie, Kugel Ø 12, Kammhöhe 0,02, mit Y): Spirale 78 Umdrehungen 14,2 min mit
+  bis etwa 0,06 an den Flanken; der Wendel nach 28 Bahnen 11,6 min, überall 0,02.
+- Grün im Wochen-Build: `test_vierachs_wendel`, `szenario_vierachs_wendel`,
+  `test_vierachs_schlichten`, `szenario_vierachs_schlichten`.
+- Noch nicht: das Schruppen der Wendel nach; die Bahnen auf alle Kerne.
 ## P-2026-10-18-80 vorschlichten-als-haken
 
 ### EINGELESEN

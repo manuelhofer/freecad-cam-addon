@@ -78,6 +78,17 @@ def entgraten(dokument, job_name, laengs, radial, *args, **kwargs):
     )
 
 
+def wendel(dokument, job_name, laengs, radial):
+    """Die Wendelnut am Teil des Jobs (vierachs_wendel.Wendel) oder None – für den Vorschlag
+    „der Wendel nach“ im Assistenten (W-030)."""
+    from . import vierachs_huelle as vh
+    from . import vierachs_wendel as vw
+
+    job = _job(dokument, job_name)
+    netz = vh.vernetze(vs._teil(job.Model.Group), vs.VORSCHAU_TOLERANZ)
+    return vw.erkennen(netz, laengs, radial)
+
+
 def rest(
     dokument,
     job_name,
