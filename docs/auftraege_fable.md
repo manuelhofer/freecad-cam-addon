@@ -132,9 +132,16 @@ angeklickt: „Plan indexiert“ für Seiten und Spitze, „Rundum schlichten“
 den schrägen Flächen in Linien (der Satz darunter sagt, welche); Plan indexiert allein, wenn
 nichts für die Kugel bleibt. Offen bleibt der Rest nach dem Schruppen an der Flosse (4 mm²). *P-2026-10-17-37:* Es zählt jetzt Schneide + Hals (die Auskragung N) – die Lagen darüber hat die Schneide schon fertig; mit einem Hals ≥ 14 mm an T1 ginge die Flosse mit dem Schaft.
 
-**Stand 2026-10-18:** Was Manuel zum Bild bejaht hat, ist gebaut. Seine Front quer mit dem Umfang
-(statt mit der Stirn in „Plan indexiert“) ist Frage 2 in `docs/OFFENE_FRAGEN.md` – sie kann höchstens
-an den 4,6 min für Seiten und Spitze sparen.
+**Stand 2026-10-18:** Was Manuel zum Bild bejaht hat, ist gebaut. Zur Front (Frage 2) Manuel, 2026-10-18
+früh: „ja auswählbar“, und auf die Nachfrage, welche Fläche: „die nase … hat eine schräge … die
+sozusagen hoch ins dreieck geht .. das ist eine fläche dann hat sie seitlich zwei gleiche flächen
+… und vorne ganz vorne sozusagen die spitze ist vll auch eine klitzekleine fläche … und dann haben
+wir noch eine gerade fläche .. die zur drehmitte schaut .. diese fläche kann man mit der stirn eines
+schaftfräsers bearbeiten sozusagen und klar gleichzeitig die stirnseite der welle .. das ist eine
+kombination .. ja ..“. Also: Face8 (zeigt zur Drehmitte) mit der Stirn eines radialen Schaftfräsers
+und in derselben Stellung mit seinem Umfang die Stirnseite der Welle (Face3, z 120 rund um die Nase,
+dort geht Drehen nicht) – quer in Y, im ap längs der Werkzeugachse. Als Wahl, nicht vorbelegt; erst
+das Bild mit Zahlen gegen heute.
 
 ## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
 
