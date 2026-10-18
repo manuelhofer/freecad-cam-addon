@@ -94,6 +94,7 @@ KAESTEN_HOECHSTENS = 2000  # Flächen: mehr hat ein Körper, dann ohne die Käst
 # So viele Dreiecke eines Teils aus einem STL rechnet der genaue Abstand, wenn sich die Netze schon
 # berühren (_Welt._abstand_stl_netz) – die nächsten.
 BERUEHRT_DREIECKE = 8
+BERUEHRT_AB = 1e-7  # mm: so nah gilt als berührt – genauer rechnet distToShape ohnehin nicht
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
 # mm: So tief darf die Schneide im Vorschub ins fertige Teil – Rundung der Bahn; tiefer ist
 # ein Befund („fährt ins fertige Teil“).
@@ -2104,6 +2105,11 @@ class _Welt:
         naechstes = abstand_zu(dreiecke[[int(np.argmin(schranke))]])
         if naechstes is None:
             return None
+        if naechstes[0] <= BERUEHRT_AB:
+            # Schon dieses Dreieck berührt: Näher als 0 geht es nicht. Alle Dreiecke in den
+            # Kapseln hätten die Schranke 0 – am Geist mit dem Halter Tausende, und OpenCascade
+            # sammelte jeden Punkt der Schnittlinie: 36 s je Stelle (P-2026-10-18-73).
+            return naechstes
         kandidaten = dreiecke[schranke <= naechstes[0] + 1e-9]
         if len(kandidaten) <= 1:
             return naechstes

@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-73 kollision-beruehrt-schon
+
+### EINGELESEN
+- Offen seit 2026-10-12 (Stand, „Nächster Schritt“ Punkt 6): „Kollision prüfen“ am Geist auf der
+  Beispiel-Drehmaschine. Nachgemessen (Geist im 4-Achs-Assistenten wie `szenario_vierachs_stl`,
+  auf C umgestellt, 381 711 Stationen): Speicher in einer 16-GB-Grenze höchstens 11,3 GB – der
+  Speicherwächter hält die Nebenrechner darin –, aber nach 34 min noch nicht fertig.
+- Profil eines langsamen Stücks (fünf Stationen beim Schruppen, 146 s): fast alles in
+  `_Welt._abstand_stl` – vier `distToShape` des Halters gegen Dreiecke des Geists, 36 s je Aufruf.
+  Berührt schon das nächste Dreieck (Abstand 0), suchte es weiter unter allen Dreiecken, deren
+  Schranke 0 ist – alle in den Kapseln, Tausende –, und OpenCascade sammelt bei Berührung jeden Punkt
+  der Schnittlinie (wie in `_abstand_stl_netz`, dort schon begrenzt).
+- Nebenbei: Ohne Oberfläche geöffnet hat ein schwerer Modellklon keine Form (W-017,
+  `klone_speichern`: sie kommt nach dem Öffnen aus dem Vorbild – in der Oberfläche). Messungen
+  ohne Oberfläche rufen `klone_speichern.nach_dem_oeffnen` selbst.
+
+### DATEIEN
+- `camaddon/kollision.py`: `_abstand_stl` – ist der Abstand zum nächsten Dreieck schon höchstens
+  `BERUEHRT_AB` (1e-7 mm), ist er es; näher als 0 geht es nicht.
+
+### ERGEBNIS
+- Dieselben fünf Stationen 146 → 0,6 s, dieselbe Zahl Stellen. Der ganze Geist verteilt: 572 von 576
+  Stücken in 15 min (vorher nach 34 min nicht fertig); vier Stücke im Schlichten bleiben langsam –
+  der nächste Schritt.
+- Grün im Wochen-Build: `test_stl_teil`, `test_kollision`, `test_kollision_verteilt`,
+  `szenario_kollision`.
 ## P-2026-10-18-72 anlegen-atmet-vorher
 
 ### EINGELESEN
