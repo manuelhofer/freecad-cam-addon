@@ -341,7 +341,7 @@ def _stange(job, laengs):
         raise ValueError(tr("vo.fehler.achse"))
     laengs.normalize()
     radius, a_hinten, a_vorne = vo.stange(job, laengs)
-    return laengs, radius, a_vorne, a_hinten + (vr.spannlaenge(job) or vr.SPANNLAENGE)
+    return laengs, radius, a_vorne, a_hinten + vr.spannlaenge_fuer_bahn(job)
 
 
 def _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter):

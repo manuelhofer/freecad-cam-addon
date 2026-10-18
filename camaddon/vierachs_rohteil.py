@@ -759,6 +759,14 @@ def ist_stange(job, rohteil=None):
     return hasattr(rohteil, "Radius") and hasattr(job, EIGENSCHAFT_SPANNLAENGE)
 
 
+def spannlaenge_fuer_bahn(job):
+    """Wie tief die Stange im Futter steckt, für die Bahnen (mm): die gemerkte Spannlänge – auch 0 –,
+    nur ohne gemerkte (Jobs bis 2026-09-26) die Vorgabe SPANNLAENGE. Vorher galt 0 als „keine“ und
+    wurde 30 mm, während Einrichtblatt und Einstellung mit 0 rechneten (Gegenleser zu P-74,
+    P-2026-10-18-75)."""
+    return spannlaenge(job) if hasattr(job, EIGENSCHAFT_SPANNLAENGE) else SPANNLAENGE
+
+
 def spannlaenge(job):
     """Wie tief die Stange eines Jobs aus dem Assistenten im Futter steckt (mm), sonst 0."""
     return float(getattr(job, EIGENSCHAFT_SPANNLAENGE, 0.0) or 0.0)

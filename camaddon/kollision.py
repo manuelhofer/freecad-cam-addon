@@ -2106,6 +2106,13 @@ class _Welt:
         naechstes = abstand_zu(dreiecke[[int(np.argmin(schranke))]])
         if naechstes is None:
             return None
+        if naechstes[0] > AUSSCHNITT_RAND:
+            # `dreiecke` hat nur die mit der Schranke unter AUSSCHNITT_RAND (dreiecke_nah). Die
+            # runde Kappe einer Kapsel reicht unter einen flachen Halter: Ein Dreieck darunter hat
+            # die kleinste Schranke und ist doch weiter weg als eines daneben, das fehlt (Halter
+            # in einer Tasche: 20 mm zum Boden gemeldet, 12 mm zur Wand wahr). Sicher ist nur
+            # AUSSCHNITT_RAND (Gegenleser zu P-74, P-2026-10-18-75).
+            return AUSSCHNITT_RAND, None
         if naechstes[0] <= BERUEHRT_AB:
             # Schon dieses Dreieck berührt: Näher als 0 geht es nicht. Alle Dreiecke in den
             # Kapseln hätten die Schranke 0 – am Geist mit dem Halter Tausende, und OpenCascade

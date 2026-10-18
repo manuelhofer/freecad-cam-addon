@@ -305,6 +305,11 @@ vr.richte_ein(dok, teil, im_job, vr.Stange(75.0, 0.5, 4.0, 0.0), "B", job=job)
 dok.commitTransaction()
 e = vr.einstellung(job)
 pruefe(vr.ist_stange(job), "Spannlänge 0: keine Stange")
+pruefe(vr.spannlaenge_fuer_bahn(job) == 0.0, f"Bahn mit Spannlänge {vr.spannlaenge_fuer_bahn(job)}")
+pruefe(
+    vr.spannlaenge_fuer_bahn(object()) == vr.SPANNLAENGE,
+    "ohne gemerkte Spannlänge nicht die Vorgabe",
+)
 pruefe(
     e is not None and e.stange.spannlaenge == 0.0,
     f"Spannlänge 0: Einstellung {e and e.stange}",

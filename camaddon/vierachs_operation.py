@@ -388,7 +388,7 @@ def bahn_fuer(
         steigung=steigung,
         aufmass=aufmass,
         a_stange_vorne=a_vorne,
-        a_futter=a_hinten + (vr.spannlaenge(job) or vr.SPANNLAENGE),
+        a_futter=a_hinten + vr.spannlaenge_fuer_bahn(job),
         sicherheit=vb.SICHERHEIT if sicherheit is None else sicherheit,
         ueberlauf=ueberlauf,
         abstand_futter=vb.ABSTAND_FUTTER if abstand_futter is None else abstand_futter,

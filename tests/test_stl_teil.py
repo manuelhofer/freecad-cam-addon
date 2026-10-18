@@ -296,6 +296,36 @@ if stl_daten is not None:
             pruefe(kb.AUSSCHNITT_RAND <= ist <= wahr + 1e-9, f"{name}: {ist} (wahr {wahr})")
         else:
             pruefe(abs(ist - wahr) < 1e-6, f"{name}: {ist} statt {wahr}")
+    # Gegenleser zu P-74: Ein Halter (Kapsel R 25 mit runder Kappe) in einer Tasche, 20 mm über
+    # dem Boden, 12 mm neben den Wänden. Der Boden liegt in der Kappe (Schranke < 0), die Wände
+    # haben die Schranke 12 – über AUSSCHNITT_RAND, nicht in der Auswahl. Ehrlich ist dann
+    # höchstens AUSSCHNITT_RAND, nicht die 20 bis zum Boden (sonst führe die Kollision im Schritt
+    # bis 8 mm in die Wand).
+    tasche = Part.makeBox(100, 100, 40).cut(Part.makeBox(74, 74, 31, V(13, 13, 10)))
+    tasche_netz = MeshPart.meshFromShape(Shape=tasche, MaxLength=8.0)
+    dok_t = FreeCAD.newDocument("StlTasche")
+    netz_t = dok_t.addObject("Mesh::Feature", "Tasche")
+    netz_t.Mesh = tasche_netz
+    teil_t, _b = stl_teil.koerper_aus_netz(dok_t, netz_t)
+    dok_t.recompute()
+    verbund_t = Part.makeCompound([teil_t.Shape.copy()])
+    stl_t = stl_teil.flaechennetz_fuer(verbund_t)
+    pruefe(stl_t is not None, f"Tasche nicht als STL erkannt ({tasche_netz.CountFacets} Dreiecke)")
+    if stl_t is not None:
+        tasche_k = kb.Koerper("Tasche", kb.TEIL, verbund_t, None, FreeCAD.Placement(), stl=stl_t)
+        halter_k = kb.Koerper(
+            "Halter", kb.MASCHINE, Part.makeCylinder(25.0, 10.0), None, FreeCAD.Placement(),
+            kapseln=(((0.0, 0.0, 0.0), (0.0, 0.0, 10.0), 25.0, True),),
+        )  # fmt: skip
+        halter_k.form.Placement = FreeCAD.Placement(V(50, 50, 30), FreeCAD.Rotation())
+        ist, _stelle = kb._Welt._abstand(welt, tasche_k, halter_k)
+        wahr = verbund_t.distToShape(halter_k.form)[0]
+        print(f"Kollision Halter in der Tasche: {ist:.4f} (wahr {wahr:.4f})")
+        pruefe(
+            min(wahr, kb.AUSSCHNITT_RAND) - 1e-6 <= ist <= wahr + 1e-6,
+            f"Halter in der Tasche: {ist} (wahr {wahr}) – mehr als der wahre Abstand",
+        )
+    FreeCAD.closeDocument(dok_t.Name)
 
 # --- „Bearbeitung“ (P-2026-10-11-103): die Fragen je Fläche aus den Dreiecken ------------------
 # Gegen den gewöhnlichen Weg (Fläche für Fläche bei OpenCascade) an einer Kopie, deren Geometrie

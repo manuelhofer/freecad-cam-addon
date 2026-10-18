@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-75 kollision-ehrlich-und-spannlaenge-null
+
+### EINGELESEN
+- Gegenleser zu P-69 … P-74: kein Fehler in den Patches; zwei ältere Lücken.
+  - `kollision._Welt._abstand_stl` konnte den Abstand zu groß melden (seit P-2026-10-11-109):
+    `dreiecke_nah` gibt nur Dreiecke mit der Schranke unter AUSSCHNITT_RAND (10 mm). Die runde Kappe
+    der Kapsel reicht unter einen flachen Halter – ein Dreieck darunter hat die kleinste Schranke und
+    ist doch weiter weg als eines daneben, das fehlt. Nachgestellt: Halter R 25 in einer Tasche,
+    20 mm über dem Boden, 12 mm neben den Wänden – gemeldet 20 mm, wahr 12 mm. Mit diesem Wert
+    rechnet die Kollision ihren Schritt; der Halter konnte bis 8 mm in die Wand, ehe wieder genau
+    gerechnet wurde.
+  - Spannlänge 0: `vierachs_operation` und `vierachs_schlichten` lasen sie als „keine“ und rechneten
+    das Futter 30 mm weiter vorn; Einrichtblatt, Einstellung und Nullpunkt rechneten mit 0.
+
+### DATEIEN
+- `camaddon/kollision.py`: `_abstand_stl` – ist der Abstand zum Dreieck mit der kleinsten Schranke
+  größer als AUSSCHNITT_RAND, gilt AUSSCHNITT_RAND (wie ohne Dreieck in der Nähe; darunter ist er
+  genau).
+- `camaddon/vierachs_rohteil.py`: `spannlaenge_fuer_bahn(job)` – die gemerkte, auch 0; die Vorgabe nur
+  ohne gemerkte. `vierachs_operation.py`, `vierachs_schlichten.py` nehmen sie.
+- `tests/test_stl_teil.py`: die Tasche mit dem Halter (vorher rot: 20 statt höchstens 12).
+  `tests/test_vierachs_rohteil.py`: Spannlänge 0 für die Bahn 0, ohne gemerkte die Vorgabe.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_stl_teil`, `test_kollision`, `test_vierachs_rohteil`,
+  `test_vierachs_operation`, `test_vierachs_schlichten`, `szenario_kollision`,
+  `szenario_vierachs_schruppen`.
 ## P-2026-10-18-74 kollision-dreiecke-in-stuecken
 
 ### EINGELESEN
