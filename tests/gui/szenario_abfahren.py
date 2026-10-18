@@ -149,9 +149,20 @@ def schritte(h):
         "Maschine nicht durchsichtig",
     )
     h.bild("1d_maschine_durchsichtig")
+    # Wie durchsichtig, stellt man daneben ein (Manuel, 2026-10-18) – es gilt sofort.
+    h.pruefe(spieler.feld_durchsicht.isVisible(), "kein Feld für die Durchsicht")
+    spieler.feld_durchsicht.setValue(40)
+    yield 300
+    h.pruefe(
+        all(o.ViewObject.Transparency == 40 for o in koerper if ansicht_vorher[o.Name][0] < 40),
+        f"Durchsicht 40: {[o.ViewObject.Transparency for o in koerper]}",
+    )
+    spieler.feld_durchsicht.setValue(gui_abfahren.MASCHINE_DURCHSICHT)
+    yield 300
     wahl.setCurrentIndex(wahl.findData(gui_abfahren.MASCHINE_AUS))
     yield 300
     h.pruefe(not any(o.ViewObject.Visibility for o in koerper), "Maschine nicht ausgeblendet")
+    h.pruefe(not spieler.feld_durchsicht.isVisible(), "Feld Durchsicht bei „ausblenden“")
     h.pruefe(ansicht.getSceneGraph().findChild(panel.bild.wurzel) >= 0, "Werkzeug und Teil mit weg")
     h.bild("1e_maschine_aus")
     wahl.setCurrentIndex(wahl.findData(gui_abfahren.MASCHINE_ZEIGEN))

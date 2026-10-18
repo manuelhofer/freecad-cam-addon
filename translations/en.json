@@ -1400,6 +1400,7 @@
     "ab.maschine.durchsichtig": "Machine transparent",
     "ab.maschine.aus": "Hide machine",
     "ab.maschine.tooltip": "How the machine is shown while replaying: as built, transparent or hidden. Tool with holder, part and stock always stay visible. Closing restores it.",
+    "ab.maschine.durchsicht.tooltip": "How see-through “Machine transparent” makes the machine – 95 % almost invisible, 5 % almost opaque. Applies at once and is remembered; what is already more transparent on the machine (windows) stays so.",
     "ab.teil": "Part",
     "ab.teil.tooltip": "Shows the finished part at the end too: grey, with the bar above it half transparent in the colours of the comparison. Unchecked, the part disappears at the end and the bar is opaque.",
     "halter.vorlage.er16": "ER16 collet chuck · {aufnahme}",

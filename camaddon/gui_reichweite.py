@@ -950,7 +950,7 @@ class PruefPanel:
                 continue
             sicht.Visibility = sichtbar
             if modus == gui_abfahren.MASCHINE_DURCHSICHTIG:
-                sicht.Transparency = max(durchsicht, gui_abfahren.MASCHINE_DURCHSICHT)
+                sicht.Transparency = max(durchsicht, gui_abfahren.maschine_durchsicht())
             else:
                 sicht.Transparency = durchsicht
 

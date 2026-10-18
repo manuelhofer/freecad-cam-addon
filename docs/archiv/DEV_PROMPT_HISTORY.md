@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-79 maschine-durchsicht-einstellbar
+
+### EINGELESEN
+- Manuel, 2026-10-18 („Auf der Maschine prüfen“, Abspieler): „neue funktionen für den forum post
+  maschine ausblenden ... oder durchsichtig machen ... den grad an transparnez währ noch gut wenn man
+  den irgendwo einstellen könnte“.
+- Seine Antwort auf die Frage „Wendel entlang“ (Bild `docs/bilder/vorschlaege/wendel_entlang.png`,
+  27 → ≈ 15,5 min an seinem Wendel-Testteil): „Ja, vorgewählt bei Wendelnut“ – wird als Muster
+  „Wendel“ im 4-Achs-Assistenten gebaut (W-030).
+- Versionsnummern wieder nach der Regel (Manuel fragte „kannst du mir eigentlich mal unsere versions
+  nummern erklären ???“): neue Funktion zählt die mittlere Stelle, Korrektur die letzte, das Datum
+  jedes Mal mit.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`: neben „Maschine durchsichtig“ ein Feld 5 … 95 % (nur bei
+  „durchsichtig“ zu sehen), gilt sofort und bleibt gemerkt (`maschine_durchsicht()`).
+- `camaddon/gui_reichweite.py`: die Maschine so durchsichtig wie eingestellt; was schon
+  durchsichtiger ist (Scheiben), bleibt so.
+- `translations/*.json`, `tests/gui/szenario_abfahren.py` (40 % gilt sofort, bei „ausblenden“ kein
+  Feld), `docs/OFFENE_FRAGEN.md` (Frage zur Wendel beantwortet).
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_abfahren`.
 ## P-2026-10-18-78 kammhoehe-eingetragen-gilt
 
 ### EINGELESEN

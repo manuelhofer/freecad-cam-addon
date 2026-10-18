@@ -1400,6 +1400,7 @@
     "ab.maschine.durchsichtig": "Maschine durchsichtig",
     "ab.maschine.aus": "Maschine ausblenden",
     "ab.maschine.tooltip": "Wie die Maschine beim Abfahren zu sehen ist: wie gebaut, durchsichtig oder ausgeblendet. Werkzeug mit Halter, Teil und Rohteil bleiben immer sichtbar. Beim Schließen ist sie wieder wie vorher.",
+    "ab.maschine.durchsicht.tooltip": "So durchsichtig wird die Maschine bei „Maschine durchsichtig“ – 95 % fast unsichtbar, 5 % fast deckend. Gilt sofort und bleibt gemerkt; was an der Maschine schon durchsichtiger ist (Scheiben), bleibt so.",
     "ab.teil": "Teil",
     "ab.teil.tooltip": "Zeigt das fertige Teil auch am Ende: grau, die Stange darüber halb durchsichtig in den Farben des Vergleichs. Ohne Haken verschwindet das Teil am Ende, und die Stange ist deckend.",
     "halter.vorlage.er16": "Spannzangenfutter ER16 · {aufnahme}",

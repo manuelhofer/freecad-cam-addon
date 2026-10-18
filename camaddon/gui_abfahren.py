@@ -74,7 +74,8 @@ TEIL_ZEIGEN = "AbfahrenTeilZeigen"  # der Haken „Teil“ im Abspieler, gemerkt
 # werkzeug mit halter zu sehen ist“). Gemerkt fürs nächste Mal.
 MASCHINE_ANSICHT = "AbfahrenMaschine"
 MASCHINE_ZEIGEN, MASCHINE_DURCHSICHTIG, MASCHINE_AUS = "zeigen", "durchsichtig", "aus"
-MASCHINE_DURCHSICHT = 80  # % – so durchsichtig wird sie
+MASCHINE_DURCHSICHT = 80  # % – so durchsichtig wird sie, solange nichts anderes eingestellt ist
+MASCHINE_DURCHSICHT_GEMERKT = "AbfahrenMaschineDurchsicht"
 TEIL_AM_ENDE = (0.55, 0.55, 0.58)  # das fertige Teil am Ende, grau unter der Stange
 
 
@@ -82,6 +83,14 @@ def _einstellungen():
     from . import PARAMETER_PFAD
 
     return FreeCAD.ParamGet(PARAMETER_PFAD)
+
+
+def maschine_durchsicht():
+    """Wie durchsichtig „Maschine durchsichtig“ sie macht (%, 5 … 95) – eingestellt im Abspieler
+    (Manuel, 2026-10-18: „den grad an transparenz wär noch gut wenn man den irgendwo einstellen
+    könnte“), sonst MASCHINE_DURCHSICHT."""
+    wert = _einstellungen().GetInt(MASCHINE_DURCHSICHT_GEMERKT, MASCHINE_DURCHSICHT)
+    return min(max(int(wert), 5), 95)
 
 
 # --- Die Körper ---------------------------------------------------------------------------
@@ -778,6 +787,15 @@ class Abspieler(QtGui.QWidget):
         self.wahl_maschine.setToolTip(tr("ab.maschine.tooltip"))
         self.wahl_maschine.currentIndexChanged.connect(self._maschine_umgeschaltet)
         kollision.addWidget(self.wahl_maschine)
+        self.feld_durchsicht = QtGui.QSpinBox()  # wie durchsichtig, nur bei „durchsichtig“
+        self.feld_durchsicht.setRange(5, 95)
+        self.feld_durchsicht.setSingleStep(5)
+        self.feld_durchsicht.setSuffix(" %")
+        self.feld_durchsicht.setValue(maschine_durchsicht())
+        self.feld_durchsicht.setToolTip(tr("ab.maschine.durchsicht.tooltip"))
+        self.feld_durchsicht.setVisible(self.maschine_ansicht() == MASCHINE_DURCHSICHTIG)
+        self.feld_durchsicht.valueChanged.connect(self._durchsicht_geaendert)
+        kollision.addWidget(self.feld_durchsicht)
         aufbau.addLayout(kollision)
 
         self.schieber = QtGui.QSlider(QtCore.Qt.Horizontal)
@@ -826,8 +844,14 @@ class Abspieler(QtGui.QWidget):
     def _maschine_umgeschaltet(self, _index):
         modus = self.maschine_ansicht()
         _einstellungen().SetString(MASCHINE_ANSICHT, modus)
+        self.feld_durchsicht.setVisible(modus == MASCHINE_DURCHSICHTIG)
         if self.bei_maschine is not None:
             self.bei_maschine(modus)
+
+    def _durchsicht_geaendert(self, wert):
+        _einstellungen().SetInt(MASCHINE_DURCHSICHT_GEMERKT, int(wert))
+        if self.bei_maschine is not None and self.maschine_ansicht() == MASCHINE_DURCHSICHTIG:
+            self.bei_maschine(MASCHINE_DURCHSICHTIG)
 
     def _knopf(self, symbol, tooltip, aktion):
         knopf = QtGui.QToolButton()
