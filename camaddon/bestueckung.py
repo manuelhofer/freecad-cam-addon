@@ -66,7 +66,8 @@ def _schluessel(tc, werkzeug):
         # Derselbe Fräser auf zwei Plätzen des Magazins (radial und axial) sind zwei Werkzeuge
         # im Job (magazin.je_platz).
         platz = getattr(werkzeug, "magazin_nummer", None)
-        return "wz:" + werkzeug.kennung + (f"@{platz}" if platz is not None else "")
+        mehrfach = getattr(werkzeug, "magazin_mehrfach", False)
+        return "wz:" + werkzeug.kennung + (f"@{platz}" if mehrfach else "")
     bit = getattr(tc, "Tool", None)
     return "cam:" + (bit.Name if bit is not None else tc.Name)
 
@@ -173,7 +174,7 @@ def platz_fuer(job, werkzeug, bibliothek, nummern, vorgemerkt=None, maschine=Non
             e.platz
             for e in magazin.eintraege
             if e.werkzeug != werkzeug.kennung
-            or (getattr(werkzeug, "magazin_nummer", None) is not None and e is not eintrag)
+            or (getattr(werkzeug, "magazin_mehrfach", False) and e is not eintrag)
         }
     if wunsch in nummern and wunsch not in belegt:
         return wunsch

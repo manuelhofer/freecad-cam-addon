@@ -56,6 +56,10 @@ def schritte(h):
     # T3 axial – beide der 494W D12): ein eigener Platz mit eigenem Halter (magazin.je_platz).
     axial = bibliothek.neuer_halter("vdi30_axial")
     magazin.eintraege.append(wz.MagazinEintrag(13, vhm12.kennung, platz=6, halter=axial.kennung))
+    # Eine zweite Beladung derselben Maschine (Manuel, 2026-10-18: „verschiedene standart
+    # beladungen“): nur der Kugelfräser, als T21 auf P2.
+    satz2 = bibliothek.neues_magazin("CLX 550 Satz 2", pfad)
+    satz2.hinzufuegen(kugel, 21).platz = 2
     bibliothek.speichern()
 
     doc = FreeCAD.newDocument("Welle")
@@ -85,6 +89,14 @@ def schritte(h):
     panel.feld_stange.setText("60")
     yield from h.warte_auf(lambda: not panel._uhr.isActive(), 3000)
     yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 3000)
+    magazine = [panel.wahl_magazin.itemText(i) for i in range(panel.wahl_magazin.count())]
+    h.pruefe(
+        len(magazine) == 2
+        and magazine[0].startswith("CLX 550 (")
+        and magazine[0].endswith("gilt")
+        and panel.wahl_magazin.isEnabled(),
+        f"Magazine: {magazine}",
+    )
     panel.knopf_weiter.click()
     yield 500
     h.pruefe(panel._magazin() is not None, f"kein Magazin zu {panel._maschinen_datei()!r}")
@@ -139,6 +151,16 @@ def schritte(h):
         f"Zeile: {panel.wahl_fraeser.currentText()!r}",
     )
     h.bild("2_uebernommen", panel.form)
+    # Die zweite Beladung gewählt: die Liste sind ihre Plätze – der Kugelfräser als T21 auf P2.
+    panel.wahl_magazin.setCurrentIndex(1)
+    yield 500
+    zeilen2 = [panel.wahl_fraeser.itemText(i) for i in range(panel.wahl_fraeser.count())]
+    h.pruefe(
+        zeilen2 and zeilen2[0].startswith("P2 · T21  Kugelfräser"),
+        f"Satz 2: {zeilen2}",
+    )
+    panel.wahl_magazin.setCurrentIndex(0)
+    yield 500
     # Der Verweis: „Bearbeitung“ von vorn auf der Stange – dort steht der VHM 12 als T13 (axial),
     # als T11 (radial) nicht (gui_bearbeitung.von_vorn_moeglich mit dem Halter seines Platzes).
     from camaddon import gui_bearbeitung

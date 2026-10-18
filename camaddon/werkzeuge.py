@@ -408,6 +408,7 @@ class Werkzeug:
     magazin_nummer = None
     magazin_platz = None  # … und ihr Platz dort
     halter_text = ""  # … und der Name ihres Halters, für die Listen
+    magazin_mehrfach = False  # … und ob das Werkzeug noch auf einem anderen Platz steht
 
     # Bleibt, auch wenn sich die T-Nummer ändert.
     kennung: str = field(default_factory=lambda: uuid.uuid4().hex)
@@ -1757,6 +1758,19 @@ class Bibliothek:
 
         passende = [m for m in self.magazine if gleiche_datei(m.maschine, maschine)]
         return next((m for m in passende if m.gilt), passende[0] if passende else None)
+
+    def magazine_der_maschine(self, maschine):
+        """[Magazin] der Maschine (ihre Datei) – das geltende zuerst; leer ohne."""
+        if not maschine:
+            return []
+        from .maschinenspeicher import gleiche_datei
+
+        passende = [m for m in self.magazine if gleiche_datei(m.maschine, maschine)]
+        return sorted(passende, key=lambda m: not m.gilt)
+
+    def magazin_mit_kennung(self, kennung):
+        """Das Magazin mit dieser Kennung, oder None."""
+        return next((m for m in self.magazine if kennung and m.kennung == kennung), None)
 
     def magazin_gilt(self, magazin):
         """Lässt `magazin` für seine Maschine gelten – die anderen derselben Maschine nicht."""

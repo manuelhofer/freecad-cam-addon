@@ -4612,6 +4612,16 @@ class BearbeitungPanel:
         oben.reihe(tr("ba.maschine"), tr("ba.maschine.tooltip"), zeile)
         self.maschine_hinweis = _grau()
         oben.ganz(self.maschine_hinweis)
+        # Welches Magazin der Maschine gilt – verschiedene Standard-Beladungen (Manuel,
+        # 2026-10-18); die Fräserlisten sind seine Plätze (magazin.je_platz).
+        self.wahl_magazin = QtGui.QComboBox()
+        self.wahl_magazin.currentIndexChanged.connect(
+            lambda _i: (
+                None if getattr(self, "_magazine_fuellt", False) else self._magazin_gewaehlt()
+            )
+        )
+        oben.reihe(tr("mg.wahl"), tr("mg.wahl.tooltip"), self.wahl_magazin)
+        self.magazin_zeile = (oben._beschriftungen[-1], self.wahl_magazin)
         # Liegt die Datei nicht mehr dort: gleich hier weiter – wiederfinden oder aus der Liste
         # nehmen, statt über „Maschinen …“ (Manuel, 2026-10-10: im Flow bleiben).
         self.maschine_knoepfe = QtGui.QWidget()
@@ -5127,6 +5137,8 @@ class BearbeitungPanel:
         if self._nullpunkt_uhr.isActive():
             self._nullpunkt_uhr.stop()
             self._nullpunkt_anwenden()
+        magazin = self.magazin()  # die gewählte Beladung (nur wenn nicht die geltende)
+        mg.merken(self.job, None if magazin is None or magazin.gilt else magazin)
         # Rechnet die Vorschau noch (im Takt, oder gleich nach einer Eingabe): erst ganz fertig –
         # der Wettbewerb am Ende setzt noch Haken.
         if self.vorschau_laeuft() or any(b.vorschau is None for b in self.aktive_bloecke()):
@@ -5563,12 +5575,65 @@ class BearbeitungPanel:
         return msp.finde(msp.laden(), datei) if datei else None
 
     def magazin(self):
-        """Das Magazin, das für die gewählte Maschine gilt (W-002 Stufe H2) – None ohne."""
+        """Das gewählte Magazin der gewählten Maschine („Magazin“; sonst das am Job gemerkte,
+        sonst das, das gilt – W-002 Stufe H2) – None ohne."""
         wahl = getattr(self, "wahl_maschine", None)  # die Wahl der Maschine gibt es noch nicht
         datei = (wahl.currentData() or "") if wahl is not None else ""
         if not datei or self.bibliothek is None:
             return None
-        return mg.des_jobs(None, self.bibliothek, datei)
+        return mg.des_jobs(None, self.bibliothek, datei, kennung=self._magazin_kennung())
+
+    def _magazin_kennung(self):
+        wahl = getattr(self, "wahl_magazin", None)
+        kennung = (wahl.currentData() or "") if wahl is not None and wahl.count() else ""
+        return kennung or (mg.gewaehlt(self.job) if self.job is not None else "")
+
+    def _magazine_fuellen(self):
+        """Die Liste „Magazin“: die Magazine der gewählten Maschine, das geltende zuerst –
+        vorgewählt das bisher gewählte, sonst das am Job gemerkte, sonst das geltende; die Zeile
+        versteckt ohne Magazin, grau mit nur einem."""
+        wahl = getattr(self, "wahl_magazin", None)
+        if wahl is None:
+            return
+        vorher = (wahl.currentData() if wahl.count() else None) or (
+            mg.gewaehlt(self.job) if self.job is not None else ""
+        )
+        maschine = getattr(self, "wahl_maschine", None)
+        datei = (maschine.currentData() or "") if maschine is not None else ""
+        bibliothek = self.bibliothek if self.bibliothek is not None else mg.bibliothek_laden()
+        magazine = bibliothek.magazine_der_maschine(datei) if bibliothek and datei else []
+        self._magazine_fuellt = True
+        try:
+            wahl.clear()
+            for magazin in magazine:
+                text = tr(
+                    "mg.wahl.eintrag",
+                    name=magazin.name or tr("mg.ohne_name"),
+                    anzahl=len(magazin.eintraege),
+                )
+                if magazin.gilt:
+                    text += " – " + tr("mg.wahl.gilt")
+                wahl.addItem(text, magazin.kennung)
+            if magazine:
+                wahl.setCurrentIndex(max(0, wahl.findData(vorher)))
+        finally:
+            self._magazine_fuellt = False
+        wahl.setEnabled(len(magazine) > 1)
+        zeile = getattr(self, "magazin_zeile", None)
+        for teil in zeile if isinstance(zeile, (list, tuple)) else (wahl,):
+            teil.setVisible(bool(magazine))
+
+    def _magazin_gewaehlt(self):
+        """Eine andere Beladung: am Job gemerkt (nur, wenn es nicht die geltende ist), die
+        Fräserlisten neu – ihre Plätze."""
+        magazin = self.magazin()
+        if self.job is not None:  # die Beladung gilt für den Job – auch für einen fertigen
+            mg.merken(self.job, None if magazin is None or magazin.gilt else magazin)
+        for block in getattr(self, "bloecke", ()):
+            if self.bibliothek is not None:
+                block.fraeser_fuellen(self.bibliothek, self.werkstoff())
+        if self.job is not None and self.gewaehlte:
+            self.vorschau_starten()
 
     def von_vorn_moeglich(self, werkzeug):
         """Kommt `werkzeug` in die Fräserlisten? (von_vorn_moeglich: an der Stange nur axial)"""
@@ -5607,6 +5672,7 @@ class BearbeitungPanel:
             self.seite_zeigen(self._seite)  # „Weiter“ geht auf der Drehmaschine nicht
         if eintrag is not None and self.job is not None and not self._aufspannung_fest():
             rw.merke_maschine(self.job, eintrag.datei)
+        self._magazine_fuellen()
         for block in getattr(self, "bloecke", ()):
             block.haken_pruefen()  # Anstellen geht nur an einer 5-Achs-Maschine
             if self.bibliothek is not None:  # das Magazin der Maschine (W-002 Stufe H2)

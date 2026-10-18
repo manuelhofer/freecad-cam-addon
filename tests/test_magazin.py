@@ -287,9 +287,30 @@ pruefe(
     and bs._schluessel(None, d12) == "wz:" + d12.kennung,
     "Bestückung: ein Schlüssel für beide Plätze",
 )
-# Steht er nur einmal im Magazin: keine Kopie, wie bisher.
+# Steht er nur einmal im Magazin: auch eine Kopie (die Liste zeigt das Magazin: Platz, Halter),
+# im Job aber wie bisher – derselbe Schlüssel, die Nummer aus dem Magazin oder dem Job.
 zwilling.eintraege.remove(zweiter)
-pruefe(mg.sortiert(zwilling_bib.werkzeuge, zwilling, zwilling_bib) == [d12], "einmal: Kopie")
+einmal = mg.sortiert(zwilling_bib.werkzeuge, zwilling, zwilling_bib)
+pruefe(
+    len(einmal) == 1
+    and einmal[0].magazin_nummer == 1
+    and not einmal[0].magazin_mehrfach
+    and radial_h.name in mg.zeile(einmal[0], zwilling)
+    and bs._schluessel(None, einmal[0]) == "wz:" + d12.kennung,
+    f"einmal: {einmal}",
+)
+# Mehrere Magazine einer Maschine (Standard-Beladungen): das am Job gewählte, sonst das geltende.
+zweites = zwilling_bib.neues_magazin("CLX550 Satz 2", "clx.FCStd")
+pruefe(not zweites.gilt and zwilling_bib.magazine_der_maschine("clx.FCStd")[0] is zwilling, "Folge")
+pruefe(mg.des_jobs(None, zwilling_bib, "clx.FCStd") is zwilling, "ohne Wahl: das geltende")
+pruefe(
+    mg.des_jobs(None, zwilling_bib, "clx.FCStd", kennung=zweites.kennung) is zweites,
+    "gewählt: das zweite",
+)
+pruefe(
+    mg.des_jobs(None, zwilling_bib, "andere.FCStd", kennung=zweites.kennung) is None,
+    "das Magazin einer anderen Maschine",
+)
 
 sprache.setze_sprache(vorher)
 if fehler:

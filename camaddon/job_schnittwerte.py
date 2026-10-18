@@ -584,7 +584,7 @@ def _platz_im_magazin(job, werkzeug):
     from . import magazin as mg
 
     nummer = getattr(werkzeug, "magazin_nummer", None)
-    if nummer is None:
+    if nummer is None or not getattr(werkzeug, "magazin_mehrfach", False):
         return None
     platz = getattr(werkzeug, "magazin_platz", None)
     if platz and mg.mit_revolver(mg.maschine_des_jobs(job)):

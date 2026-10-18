@@ -1231,6 +1231,18 @@ class VierachsPanel:
         self.maschine_text.setWordWrap(True)
         raster.addWidget(self.maschine_text, zeile, 1, 1, 2)
         zeile += 1
+        # Welches Magazin der Maschine gilt – verschiedene Standard-Beladungen (Manuel,
+        # 2026-10-18: „das man von der maschine das magazin auswählen kann welches man haben
+        # will“); die Fräserlisten in Schritt 2 sind seine Plätze (magazin.je_platz).
+        self.wahl_magazin = QtGui.QComboBox()
+        self.wahl_magazin.setToolTip(tr("mg.wahl.tooltip"))
+        self.magazin_beschriftung = beschriftung(tr("mg.wahl"), tr("mg.wahl.tooltip"))
+        raster.addWidget(self.magazin_beschriftung, zeile, 0)
+        raster.addWidget(self.wahl_magazin, zeile, 1, 1, 2)
+        zeile += 1
+        self.wahl_magazin.currentIndexChanged.connect(
+            lambda _i: None if self._fuellt else self._magazin_gewaehlt()
+        )
         self.wahl_achse = QtGui.QComboBox()
         self.wahl_achse.setToolTip(tr("va.rundachse.tooltip"))
         raster.addWidget(beschriftung(tr("va.rundachse"), tr("va.rundachse.tooltip")), zeile, 0)
@@ -2089,6 +2101,7 @@ class VierachsPanel:
         Rundachsen für die Stange – oder ohne Maschine A, B und C (die zuletzt gewählte
         vor)."""
         eintrag = self.maschinenwahl()
+        self._magazine_fuellen()
         if isinstance(eintrag, va.Maschinenwahl):
             self._achsen = list(eintrag.achsen)
             self.maschine_text.setText(
@@ -5271,11 +5284,64 @@ class VierachsPanel:
         return ""
 
     def _magazin(self):
-        """Das Magazin, das für die gewählte Maschine gilt (W-002 Stufe H2) – None ohne."""
+        """Das gewählte Magazin der gewählten Maschine (wahl_magazin; sonst das, das gilt –
+        W-002 Stufe H2) – None ohne."""
         datei = self._maschinen_datei()
         if not datei or self.bibliothek is None:
             return None
-        return mg.des_jobs(None, self.bibliothek, datei)
+        return mg.des_jobs(None, self.bibliothek, datei, kennung=self._magazin_kennung())
+
+    def _magazin_kennung(self):
+        """Die Kennung des Magazins in „Magazin“ – sonst das am Job gewählte; "" ohne."""
+        wahl = getattr(self, "wahl_magazin", None)
+        kennung = (wahl.currentData() or "") if wahl is not None and wahl.count() else ""
+        return kennung or (mg.gewaehlt(self.job) if self.job is not None else "")
+
+    def _magazine_fuellen(self):
+        """Die Liste „Magazin“: die Magazine der gewählten Maschine, das geltende zuerst –
+        vorgewählt das bisher gewählte, sonst das am Job gemerkte, sonst das geltende; versteckt
+        ohne Magazin, grau mit nur einem."""
+        wahl = getattr(self, "wahl_magazin", None)
+        if wahl is None:
+            return
+        vorher = wahl.currentData() if wahl.count() else None
+        vorher = vorher or (mg.gewaehlt(self.job) if self.job is not None else "")
+        bibliothek = self.bibliothek if self.bibliothek is not None else mg.bibliothek_laden()
+        datei = self._maschinen_datei()
+        magazine = bibliothek.magazine_der_maschine(datei) if bibliothek and datei else []
+        alt, self._fuellt = self._fuellt, True
+        try:
+            wahl.clear()
+            for magazin in magazine:
+                text = tr(
+                    "mg.wahl.eintrag",
+                    name=magazin.name or tr("mg.ohne_name"),
+                    anzahl=len(magazin.eintraege),
+                )
+                if magazin.gilt:
+                    text += " – " + tr("mg.wahl.gilt")
+                wahl.addItem(text, magazin.kennung)
+            if magazine:
+                wahl.setCurrentIndex(max(0, wahl.findData(vorher)))
+        finally:
+            self._fuellt = alt
+        wahl.setEnabled(len(magazine) > 1)
+        wahl.setVisible(bool(magazine))
+        self.magazin_beschriftung.setVisible(bool(magazine))
+
+    def _magazin_gewaehlt(self):
+        """Eine andere Beladung: gleich am Job gemerkt (die Plätze im Job fragen dort nach,
+        bestueckung.platz_fuer) – nur wenn es nicht die geltende ist –, in Schritt 2 die
+        Fräserlisten neu: ihre Plätze."""
+        if self.job is not None:
+            bibliothek = self.bibliothek if self.bibliothek is not None else mg.bibliothek_laden()
+            magazin = (
+                bibliothek.magazin_mit_kennung(self._magazin_kennung()) if bibliothek else None
+            )
+            mg.merken(self.job, None if magazin is None or magazin.gilt else magazin)
+        if self.seite == 2 and self.bibliothek is not None:
+            self._bearbeitung_fuellen()
+            self._vorschau_starten()
 
     def _im_magazin(self, kennung):
         """Steht das Werkzeug mit `kennung` im Magazin der Maschine – oder gibt es keins? Der
@@ -6287,6 +6353,10 @@ class VierachsPanel:
         eintrag = self.maschinenwahl()
         if isinstance(eintrag, va.Maschinenwahl) and self.job is not None:
             rw.merke_maschine(self.job, eintrag.assembly.Document.FileName)
+            # Das gewählte Magazin – nur wenn es nicht das geltende ist (sonst folgt der Job der
+            # Werkzeugverwaltung).
+            magazin = self._magazin()
+            mg.merken(self.job, None if magazin is None or magazin.gilt else magazin)
 
     def _fraeser_merken(self):
         schruppen, schlichten = self._gewaehlt()

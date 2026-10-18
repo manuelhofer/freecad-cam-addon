@@ -47,11 +47,18 @@ def bibliothek_laden():
         return None
 
 
-def des_jobs(job, bibliothek=None, maschine=None):
-    """Das Magazin, das für die Maschine des Jobs (oder `maschine`: ihre Datei, oder die Maschine
-    bzw. ihre Assembly mit Dokument) gilt – None ohne. Die Werkzeugverwaltung merkt es sich als
-    Magazin der Prüfung (Bibliothek.magazin_fuer_pruefung): Steht dort je Werkzeug ein Halter,
-    rechnen Reichweite, Kollision und die Assistenten mit dem (W-024)."""
+# Am Job gemerkt, welches Magazin seiner Maschine gilt (die Kennung; leer: das, das in der
+# Werkzeugverwaltung gilt) – Manuel, 2026-10-18: „von der maschine das magazin auswählen …
+# so kann man sich verschiedene standart beladungen einrichten“.
+EIGENSCHAFT = "CamAddonMagazin"
+
+
+def des_jobs(job, bibliothek=None, maschine=None, kennung=None):
+    """Das Magazin für die Maschine des Jobs (oder `maschine`: ihre Datei, oder die Maschine
+    bzw. ihre Assembly mit Dokument) – das am Job gewählte (`kennung`, sonst gewaehlt(job)), wenn
+    es zu dieser Maschine gehört, sonst das, das für sie gilt; None ohne. Die Werkzeugverwaltung
+    merkt es sich als Magazin der Prüfung (Bibliothek.magazin_fuer_pruefung): Steht dort je
+    Werkzeug ein Halter, rechnen Reichweite, Kollision und die Assistenten mit dem (W-024)."""
     if maschine is not None and not isinstance(maschine, str):
         maschine = getattr(getattr(maschine, "Document", None), "FileName", "") or ""
     maschine = maschine or maschine_des_jobs(job)
@@ -60,9 +67,38 @@ def des_jobs(job, bibliothek=None, maschine=None):
     bibliothek = bibliothek if bibliothek is not None else bibliothek_laden()
     if bibliothek is None:
         return None
-    magazin = bibliothek.magazin_fuer(maschine)
+    magazin = None
+    kennung = kennung or (gewaehlt(job) if job is not None else "")
+    if kennung:
+        magazin = next(
+            (m for m in bibliothek.magazine_der_maschine(maschine) if m.kennung == kennung), None
+        )
+    magazin = magazin or bibliothek.magazin_fuer(maschine)
     bibliothek.magazin_fuer_pruefung = magazin
     return magazin
+
+
+def gewaehlt(job):
+    """Die Kennung des Magazins, das am Job (oder seinem Grundjob) gewählt ist – "" ohne."""
+    for j in (job, getattr(job, "Grundjob", None)):
+        kennung = str(getattr(j, EIGENSCHAFT, "") or "") if j is not None else ""
+        if kennung:
+            return kennung
+    return ""
+
+
+def merken(job, magazin):
+    """Merkt am Job, welches Magazin gilt (`magazin` None: keins gewählt – das geltende)."""
+    if job is None:
+        return
+    kennung = magazin.kennung if magazin is not None else ""
+    if EIGENSCHAFT not in job.PropertiesList:
+        if not kennung:
+            return
+        job.addProperty("App::PropertyString", EIGENSCHAFT, "CamAddon", tr("mg.eigenschaft"))
+        job.setEditorMode(EIGENSCHAFT, 2)
+    if getattr(job, EIGENSCHAFT, "") != kennung:
+        setattr(job, EIGENSCHAFT, kennung)
 
 
 def job_des_controllers(tc):
@@ -111,7 +147,7 @@ def nummer(magazin, job, werkzeug, vorgemerkt=None):
     Revolver sucht bestueckung.platz_fuer den Platz): die im Job schon, sonst die im Magazin,
     sonst (E3 a) die kleinste, die weder im Magazin noch im Job noch in `vorgemerkt`
     ({Nummer: Kennung} – Werkzeuge, die gleich mit dazukommen) vergeben ist."""
-    if getattr(werkzeug, "magazin_nummer", None) is not None:
+    if getattr(werkzeug, "magazin_mehrfach", False):
         return werkzeug.magazin_nummer  # ein Platz von mehreren: genau dieser (je_platz)
     schon = nummer_im_job(job, werkzeug) if job is not None else None
     if schon is not None:
@@ -179,11 +215,13 @@ def rang(werkzeug, magazin):
 
 
 def je_platz(werkzeuge, magazin, bibliothek=None):
-    """Die Werkzeuge für die Listen: Steht eines mehrmals im Magazin – derselbe Fräser einmal im
-    radialen, einmal im axialen Halter (Manuel, 2026-10-18, CLX550: T1 und T3 sind beide der
-    494W D12) –, je Eintrag eine Kopie mit seiner T-Nummer (Werkzeug.magazin_nummer); so hat jede
-    ihren Halter, ihre Nummer und ihren Platz. Die anderen, wie sie sind. Mit `bibliothek`
-    trägt die Kopie den Namen ihres Halters für die Listenzeile (zeile)."""
+    """Die Werkzeuge für die Listen, wie das Magazin sie hat: je Eintrag eine Kopie mit seiner
+    T-Nummer (Werkzeug.magazin_nummer) – so hat jede ihren Halter, ihre Nummer und ihren Platz
+    (Manuel, 2026-10-18: „ich kann ja den fräser auch … mal kaufen und an … verschiedenen plätzen
+    einsetzen … sollte schon so sein das das magazin angezeigt wird“). Werkzeuge, die nicht im
+    Magazin stehen, wie sie sind. `magazin_mehrfach`: das Werkzeug steht noch auf einem anderen
+    Platz – dann zählt es im Job als eigenes (Nummer, Bestückung). Mit `bibliothek` trägt die
+    Kopie den Namen ihres Halters für die Listenzeile (zeile)."""
     import copy
 
     if magazin is None:
@@ -191,13 +229,14 @@ def je_platz(werkzeuge, magazin, bibliothek=None):
     ergebnis = []
     for werkzeug in werkzeuge:
         eintraege = magazin.eintraege_von(werkzeug)
-        if len(eintraege) < 2:
+        if not eintraege:
             ergebnis.append(werkzeug)
             continue
         for eintrag in eintraege:
             kopie = copy.copy(werkzeug)
             kopie.magazin_nummer = eintrag.nummer
             kopie.magazin_platz = eintrag.platz
+            kopie.magazin_mehrfach = len(eintraege) > 1
             halter = bibliothek.halter_mit(eintrag.halter) if bibliothek is not None else None
             kopie.halter_text = getattr(halter, "name", "") or ""
             ergebnis.append(kopie)

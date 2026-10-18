@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-102 magazin-waehlbar-liste-je-platz
+
+### EINGELESEN
+- Manuel, 2026-10-18, zu „Steht ein Fräser mehrmals im Magazin, bekommt jeder Platz in den Listen
+  einen eigenen Eintrag …“: „naja aber ich kann ja den fräser auch 13283248 mal kaufen und an
+  23983247 verschiednen pläten einsätzern ... sollte schon so seindas das magazin angezeigt wird !
+  .. oder besser das man von der maschine das magazin auswählen kann welches man haben will ...
+  wäre vll auch ganz interessant so kann man sich verschiedene standart beladungen einrichten ...“
+
+### DATEIEN
+- `camaddon/magazin.py`: `je_platz` – je Eintrag des Magazins eine Kopie (nicht nur bei
+  Mehrfachen), `magazin_mehrfach`, wenn das Werkzeug noch auf einem anderen Platz steht (nur dann
+  eigene Nummer und eigener Bestückungsschlüssel); `des_jobs(…, kennung)` – das am Job gewählte
+  Magazin (Eigenschaft `CamAddonMagazin`), wenn es zur Maschine gehört, sonst das geltende;
+  `gewaehlt`, `merken`.
+- `camaddon/werkzeuge.py`: `Bibliothek.magazine_der_maschine`, `magazin_mit_kennung`;
+  `Werkzeug.magazin_mehrfach`.
+- `camaddon/job_schnittwerte.py`, `camaddon/bestueckung.py`: das Besondere je Platz nur für
+  Mehrfache.
+- `camaddon/gui_vierachs.py`: Zeile „Magazin“ unter der Maschine (Schritt 1) – die Magazine der
+  Maschine, das geltende zuerst („… – gilt“); die Wahl gleich am Job gemerkt (nur wenn nicht das
+  geltende), die Listen neu.
+- `camaddon/gui_bearbeitung.py`: dieselbe Zeile unter der Maschine; die Wahl am Job gemerkt (auch
+  beim Anlegen).
+- `translations/de.json`, `en.json` (`mg.wahl…`, `mg.eigenschaft`); `help/de|en/magazine.html`.
+- `tests/test_magazin.py` (ein Platz: Kopie mit Halter, im Job wie bisher; zwei Magazine einer
+  Maschine), `tests/gui/szenario_magazin_vierachs.py` (zwei Magazine in der Liste, das zweite
+  gewählt: seine Plätze). `package.xml`: 0.273.0.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `test_magazin`, `test_bestueckung`, `test_job_schnittwerte`,
+  `test_vierachs_pruefen`, `test_werkzeuge`, `test_sprache`, `test_hilfe`,
+  `szenario_magazin_vierachs`, `szenario_magazin_bearbeitung`, `szenario_magazine`,
+  `szenario_bearbeitung`, `szenario_testteil`, `szenario_ring_vorn`, `szenario_vierachs_schruppen`.
+
 ## P-2026-10-18-101 derselbe-fraeser-auf-zwei-plaetzen
 
 ### EINGELESEN
