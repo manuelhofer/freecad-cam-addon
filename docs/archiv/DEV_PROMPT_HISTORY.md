@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-97 c-ring-beispiel-mit-zwei-rohteilen
+
+### EINGELESEN
+- W-034, Manuel, 2026-10-18, zum Rohteil des C-Ring-Beispiels: „naja es muss beides
+  funktionieren .. und auswählbarsein ... wenn rt welle d60 ist muss man ausen nix machen ...“.
+
+### DATEIEN
+- `beispiele/c_ring_nut_3achs.FCStd`: zwei Jobs – „C-Ring aus Platte 65 × 65 × 12“ (Räumen T1,
+  Räumen T3, Nut T3, Messstopp, Wände schlichten T1) und „C-Ring aus Rundmaterial Ø 60“ (dasselbe,
+  ohne Mantel; ausgeblendet), je mit „Bearbeitung“ → „Alles aus dieser Aufspannung“ und der
+  Testkiste (T1, T3 im Schrumpffutter) gebaut; `daten/beispiele.json` (scripts/beispiele_liste.py),
+  `beispiele/README.md`.
+- `camaddon/gui_einrichtblatt.py`: Mehrere Jobs und keiner gewählt – das Einrichtblatt fragt, für
+  welchen (vorher nur „Erst einen Job anklicken“). `translations/de.json`, `en.json`:
+  `eb.job_waehlen`.
+- `tests/gui/szenario_einrichtblatt.py`: der Job aus Platte angeklickt; T1 und T3, „Räumen T1“,
+  „Nut T3“, „Wände schlichten T1“. `tests/gui/szenario_raeumen_durch.py`: nur der Job aus Platte,
+  ohne seine Operationen.
+- `package.xml`: 0.269.0.
+
+### ERGEBNIS
+- Notiert: Räumen T3 und Nut T3 legen je einen eigenen Controller für T3 an (gleiche Art); der
+  Job aus Rundmaterial hat den Nullpunkt unten (Vorgabe für runde Rohteile), der aus Platte oben.
+- Grün im Wochen-Build: `test_beispiele`, `test_einrichtblatt`, `test_raeumen`,
+  `szenario_einrichtblatt`, `szenario_raeumen_durch`, `szenario_bearbeitung_cring_alles`,
+  `szenario_bearbeitung_zylinder`, `szenario_bearbeitung_rohteilmasse`.
+
 ## P-2026-10-18-96 ring-von-vorn-szenario
 
 ### EINGELESEN

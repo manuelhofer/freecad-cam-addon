@@ -36,6 +36,21 @@ def schritte(h):
     datei = os.path.join(ordner, "cring.FCStd")
     shutil.copy(os.path.join(ADDON, "beispiele", "c_ring_nut_3achs.FCStd"), datei)
     doc = FreeCAD.openDocument(datei)
+    # Das Beispiel hat zwei Jobs (aus Platte, aus Rundmaterial, W-034): Hier gilt die Platte, noch
+    # ohne Operationen – der Job aus Rundmaterial fällt weg, die Operationen der Platte auch.
+    koerper = doc.getObject("Body")
+    bleibt = {koerper.Name, *(o.Name for o in koerper.OutListRecursive)}
+    for job in [o for o in doc.Objects if hasattr(o, "Operations")]:
+        if job.Label.startswith("C-Ring aus Platte"):
+            for op in list(job.Operations.Group):
+                doc.removeObject(op.Name)
+            continue
+        weg = [o.Name for o in job.OutListRecursive if o.Name not in bleibt]
+        doc.removeObject(job.Name)
+        for name in weg:
+            if doc.getObject(name) is not None:
+                doc.removeObject(name)
+    doc.recompute()
     Gui.activateWorkbench("CAMWorkbench")
     Gui.activeDocument().activeView().viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")

@@ -909,6 +909,7 @@
     "eb.bilder_stand": "Bilder der Aufspannungen: {fertig} von {gesamt} …",
     "eb.fenster": "Einrichtblatt – {job}",
     "eb.kein_job": "Erst einen Job anklicken (oder ein Objekt in ihm) – im Dokument gibt es keinen eindeutigen.",
+    "eb.job_waehlen": "Für welchen Job das Einrichtblatt?",
     "eb.titel": "Einrichtblatt: {dokument}",
     "eb.kopf": "Maschine: {maschine} · Werkstoff: {werkstoff} · {datum} · CAM-Addon {version}",
     "eb.werkzeuge": "Werkzeuge",

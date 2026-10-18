@@ -360,6 +360,27 @@ class BefehlEinrichtblatt:
     def Activated(self):
         job = _gewaehlter_job()
         if job is None:
+            # Mehrere Jobs und keiner gewählt (das C-Ring-Beispiel: aus Platte und aus Rundmaterial):
+            # fragen, welcher – statt nur zu sagen, dass man erst einen anklicken soll.
+            dokument = FreeCAD.ActiveDocument
+            jobs = [
+                o
+                for o in (dokument.Objects if dokument else [])
+                if hasattr(o, "Operations") and eb.grundjob(o) is o
+            ]
+            if len(jobs) > 1:
+                name, ok = QtGui.QInputDialog.getItem(
+                    FreeCADGui.getMainWindow(),
+                    tr("befehl.einrichtblatt.titel"),
+                    tr("eb.job_waehlen"),
+                    [j.Label for j in jobs],
+                    0,
+                    False,
+                )
+                if not ok:
+                    return
+                job = next(j for j in jobs if j.Label == name)
+        if job is None:
             QtGui.QMessageBox.information(
                 FreeCADGui.getMainWindow(), tr("befehl.einrichtblatt.titel"), tr("eb.kein_job")
             )

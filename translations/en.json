@@ -909,6 +909,7 @@
     "eb.bilder_stand": "Pictures of the setups: {fertig} of {gesamt} …",
     "eb.fenster": "Setup sheet – {job}",
     "eb.kein_job": "Click a job first (or an object in it) – the document has no single one.",
+    "eb.job_waehlen": "Setup sheet for which job?",
     "eb.titel": "Setup sheet: {dokument}",
     "eb.kopf": "Machine: {maschine} · Material: {werkstoff} · {datum} · CAM-Addon {version}",
     "eb.werkzeuge": "Tools",

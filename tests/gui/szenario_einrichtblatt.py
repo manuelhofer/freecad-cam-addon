@@ -1,9 +1,10 @@
 # „Einrichtblatt …“ (W-019; Manuel, 2026-10-12: „eine einrichtblatt zum drucken/als pdf“; „für
-# JEDE bearbeitung“): Manuels C-Ring mit seinem Job, im Menü „CAM-Addon“ steht „Einrichtblatt …“.
-# Ohne Auswahl nimmt es den einzigen Job. Das Fenster zeigt die Werkzeuge (T3 Ø 6 aus der
-# Werkzeugverwaltung im Schrumpffutter: Ausspannlänge 25, ein Bild von Halter und Fräser), die
-# Aufspannung mit Rohteil, Spannmittel und Nullpunkt, ein Bild des Teils und die Schritte „Nut T3“
-# (D-Bögen von der offenen Seite, seit P-2026-10-18-84 statt des alten „Räumen T1“) mit Zeit.
+# JEDE bearbeitung“): Manuels C-Ring mit seinen zwei Jobs (aus Platte und aus Rundmaterial, W-034),
+# im Menü „CAM-Addon“ steht „Einrichtblatt …“. Der Job aus Platte angeklickt (ohne Auswahl fragt es,
+# welcher). Das Fenster zeigt die Werkzeuge (T1 und T3 Ø 6 aus der Werkzeugverwaltung im
+# Schrumpffutter: Ausspannlänge 25, ein Bild von Halter und Fräser), die Aufspannung mit Rohteil,
+# Spannmittel und Nullpunkt, ein Bild des Teils und die Schritte „Räumen T1“, „Nut T3“ (D-Bögen von
+# der offenen Seite) und „Wände schlichten T1“ mit Zeit.
 # „Als PDF speichern“ schreibt eine PDF-Datei, „Als HTML speichern“ eine
 # Seite mit denselben Schritten.
 import os
@@ -48,6 +49,12 @@ def schritte(h):
     yield 1000
     Gui.activateWorkbench("CAMWorkbench")
     Gui.Selection.clearSelection()
+    platte = next(
+        o
+        for o in doc.Objects
+        if hasattr(o, "Operations") and o.Label.startswith("C-Ring aus Platte")
+    )
+    Gui.Selection.addSelection(doc.Name, platte.Name)
     yield 500
     menue = next(
         (
@@ -69,12 +76,16 @@ def schritte(h):
     if dialog is None:
         return
     text = dialog.vorschau.toPlainText()
-    for soll in ("Werkzeuge", "T3", "Aufspannung 1", "Rohteil", "Spannmittel", "Nullpunkt",
-                 "Nut T3", "Nut schlichten T3", "min"):  # fmt: skip
+    for soll in ("Werkzeuge", "T1", "T3", "Aufspannung 1", "Rohteil", "Spannmittel", "Nullpunkt",
+                 "Räumen T1", "Nut T3", "Wände schlichten T1", "min"):  # fmt: skip
         h.pruefe(soll in text, f"„{soll}“ fehlt: {text[:400]!r}")
-    w1 = dialog.blatt.werkzeuge[0] if dialog.blatt.werkzeuge else None
-    # T3 schruppt und schlichtet (zwei Controller) – auf dem Blatt eine Zeile.
-    h.pruefe(len(dialog.blatt.werkzeuge) == 1, f"Werkzeuge: {dialog.blatt.werkzeuge}")
+    w1 = next((w for w in dialog.blatt.werkzeuge if w.nummer == 3), None)
+    # T1 und T3, je mit zwei Controllern (Schruppen, Schlichten bzw. Räumen und Nut) – auf dem
+    # Blatt je eine Zeile.
+    h.pruefe(
+        sorted(w.nummer for w in dialog.blatt.werkzeuge) == [1, 3],
+        f"Werkzeuge: {dialog.blatt.werkzeuge}",
+    )
     h.pruefe(
         w1 is not None
         and w1.nummer == 3
