@@ -1492,7 +1492,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (P-2026-10-17-41):* Die Nut lässt das Aufmaß stehen (Haken „Wand gleich mitschlichten“ aus
   vorbelegt), „Schlichten danach“ hakt sich nach der Nut von selbst an, mit Messstopp (M5, M9, M0,
   danach Spindel und Kühlung wieder an); die Haken heißen „Gleichlauf (Bögen und Schlichtgang)“ und
-  „Grob ausräumen in Wellen“. Offen: Türen auf/zu (Frage 3 in OFFENE_FRAGEN).
+  „Grob ausräumen in Wellen“. Türen auf/zu: je Steuerung zwei Felder in „Programm schreiben“
+  („Messstopp: Tür auf/zu“, leer: nichts) – erledigt; im 4-Achs-Assistenten derselbe Messstopp
+  (P-2026-10-18-53), an der Drehmaschine schaltet er den Antrieb aus (P-2026-10-18-54).
 - **W-024 Der Halter gehört an den Magazinplatz** – Manuel, 2026-10-17 (Magazin, Kugelfräser):
   „mit welchem halter … ich will den kugelfräser in der 3-achs-fräse haben, da hat die nen anderen
   halter als in der clx … auch eine andere aufnahme … da müssen wir nochmal nachdenken und etwas
@@ -1510,9 +1512,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   …“); der Verweis aus dem 4-Achs-Assistenten behält die Stange. *Polar ohne Y (P-2026-10-17-50,
   Manuels Antwort zu Frage 1/4):* `gui_bearbeitung.drehmaschine_stirn` nimmt jede Drehmaschine mit
   Y oder C; `stirnseite.drehung_fuer` rechnet die kleinste Drehung exakt (Kanten des Rahmens,
-  asin/acos) – mit Y 0 bis 0 tastete sie in 0,25°-Schritten und meldete „nicht erreichbar“. Offen:
-  ohne vorhandenen Stangen-Job legt „Bearbeitung“ noch keinen an; eine Beispiel-Drehmaschine ohne
-  Y für ein Szenario.
+  asin/acos) – mit Y 0 bis 0 tastete sie in 0,25°-Schritten und meldete „nicht erreichbar“. Ohne
+  vorhandenen Stangen-Job sagt „Bearbeitung“ den Weg über den 4-Achs-Assistenten (P-2026-10-18-51);
+  die Beispiel-Drehmaschine ohne Y baut „Neue Maschine“ (P-2026-10-18-56). Erledigt.
 
 - **W-026 Sektorzeilen mit Y beim Rundum schruppen (CLX mit Y und C)** – Manuel, 2026-10-17 zu
   Frage 1: „alle variationen … nur y achse … c und x achse … oder eine kombi … segmente, wo die
