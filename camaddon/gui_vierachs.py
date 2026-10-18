@@ -141,6 +141,9 @@ SCHRUPPEN, SCHLICHTEN, PLAN, ENTGRATEN = "schruppen", "schlichten", "plan", "ent
 # 3,1 mm² gegen 2,4 mm²). Darunter steht grau, wie viel.
 REST_VIEL = 2.0
 REST_AUFMASS_MINDESTENS = 0.1  # mm: so viel Aufmaß rechnet der Vergleich mindestens
+# Vorschlichten (W-031): die Kammhöhe als Anteil seines Aufmaßes – was es zwischen den Bahnen
+# stehen lässt, kommt zum Aufmaß dazu, das die Kugel beim Schlichten nimmt.
+VORSCHLICHTEN_KAMM_ANTEIL = 1 / 3
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
 # Stirn als Scheibe – für jedes dieser Werkzeuge sicher (vierachs_huelle).
@@ -667,6 +670,14 @@ class VierachsPanel:
         self._vorschau_nummer = 0
         self._vorschau_auftraege = {}  # Name („schruppen“, „planbohren“ …) -> Auftrag
         self._rest_auftrag = None  # der Rest für die Kugel (vierachs_vorschau.rest)
+        # Vorschlichten (W-031): wo es fährt (a von, bis; None: das ganze Teil), seine Bahn, die
+        # Aufträge für die Bahn und den Rest danach, und ob man den Haken selbst gesetzt hat.
+        self._vorschlicht_bereich = None
+        self.vorschau_vorschlichten = None
+        self._vor_auftrag = None
+        self._vor_rest_auftrag = None
+        self._vorschlichten_von_hand = False
+        self._vorschlichten_vorgeschlagen = False
         self._halter_auftrag = None  # stößt der Halter an (vierachs_vorschau.halter, Frage 7)
         self._vorwaermen()
         self._vorschau_ergebnisse = {}
@@ -1601,6 +1612,17 @@ class VierachsPanel:
         self.rest_schlichten = grau()
         self.rest_schlichten.setToolTip(tr("va.rest.tooltip"))
         self.rest_schlichten.hide()
+        # Vorschlichten (W-031; Manuel, 2026-10-18: „das man hier vll noch die möglichkeit dann
+        # gibt "vorschlichten" als hacken anzubieten .. zwischen schruppen und schlichten“): die
+        # Kugel des Schlichtens auf das Aufmaß des Schruppens, nur wo sie viel nähme – als eigene
+        # Operation vor dem Schlichten.
+        self.vorschlichten = QtGui.QCheckBox(tr("va.vorschlichten"))
+        self.vorschlichten.setToolTip(tr("va.vorschlichten.tooltip"))
+        self.vorschlichten.toggled.connect(self._vorschlichten_umgeschaltet)
+        self.vorschlichten.hide()
+        aufbau.addWidget(self.vorschlichten)
+        self.ergebnis_vorschlichten = grau()
+        self.ergebnis_vorschlichten.hide()
         self.halter_schlichten = gelb()
         self.lage_schlichten = gelb()
         self.schlichtfelder.setEnabled(False)
@@ -3945,7 +3967,248 @@ class VierachsPanel:
         self.schlichtfelder.setEnabled(an)
         self.schlichtfelder.setVisible(an)
         self.ergebnis_schlichten.setVisible(an)
+        self._vorschlichten_zeigen()
         self._umgeschaltet()
+
+    # --- Vorschlichten (W-031) -------------------------------------------------------------
+
+    def _vorschlichten_zeigen(self):
+        """Der Haken „Vorschlichten“ steht unter dem Schlichten, solange es angehakt ist – nicht
+        beim Ändern einer Operation (die Operation dazu legt nur „Anlegen“ an)."""
+        sichtbar = self.mit_schlichten.isChecked() and self.zu_aendern is None
+        self.vorschlichten.setVisible(sichtbar)
+        self.ergebnis_vorschlichten.setVisible(
+            sichtbar and self.vorschlichten.isChecked() and bool(self.ergebnis_vorschlichten.text())
+        )
+
+    def vorschlichten_an(self):
+        """Wird mit „Anlegen“ vorgeschlichtet?"""
+        return (
+            self.mit_schlichten.isChecked()
+            and self.zu_aendern is None
+            and self.vorschlichten.isChecked()
+            and self.schlichtfraeser() is not None
+        )
+
+    def _vorschlichten_umgeschaltet(self, an):
+        if not self._fuellt and not self._vorschlichten_vorgeschlagen:
+            self._vorschlichten_von_hand = True
+        self._vorschlichten_zurueck()
+        self._vorschlichten_zeigen()
+        if an:
+            self._vorschlichten_starten()
+        self._knoepfe_beschriften()
+
+    def _vorschlicht_einsatz(self):
+        """Der Einsatz des Vorschlichtens: „Schruppen“ der Kugel, wenn die Werkzeugtabelle einen
+        hat (dafür sind ihre Werte), sonst der des Schlichtens."""
+        for einsatz in self._schlichteinsaetze:
+            if einsatz.art == wz.SCHRUPPEN:
+                return einsatz
+        return self.schlichteinsatz()
+
+    def _vorschlicht_aufmass(self):
+        """Das Aufmaß, auf das vorgeschlichtet wird: das des Schruppens (Manuel, 2026-10-12: „mit
+        der Kugel auf 0,3 mm“) – nie unter dem des Schlichtens."""
+        return max(self._wert("aufmass"), self._wert("aufmass_schlichten"))
+
+    def _vorschlicht_schrittweite(self):
+        """So weit, dass zwischen den Bahnen höchstens ein Drittel des Aufmaßes stehen bleibt
+        (VORSCHLICHTEN_KAMM_ANTEIL) – mit flacher Stirn ae des Einsatzes; höchstens ae des
+        Einsatzes „Schruppen“, wenn er einen hat (die Werte, die der Fräser kann)."""
+        werkzeug = self.schlichtfraeser()
+        einsatz = self._vorschlicht_einsatz()
+        form = ff.von_werkzeug(werkzeug)
+        if form.eben:
+            return vs.schrittweite_vorschlag(werkzeug, einsatz)
+        kamm = max(self._vorschlicht_aufmass() * VORSCHLICHTEN_KAMM_ANTEIL, 0.01)
+        schritt = vs.schrittweite_fuer_kammhoehe(form, kamm)
+        if einsatz is not None and einsatz.art == wz.SCHRUPPEN and einsatz.ae > 0:
+            schritt = min(schritt, einsatz.ae)
+        return round(min(schritt, werkzeug.durchmesser), 3)
+
+    def _vorschlichten_zurueck(self):
+        """Nimmt die Aufträge des Vorschlichtens zurück und leert seine Zeile."""
+        for name in ("_vor_auftrag", "_vor_rest_auftrag"):
+            auftrag = getattr(self, name)
+            setattr(self, name, None)
+            if auftrag is not None and not auftrag.erledigt:
+                auftrag.abbrechen()
+        self.vorschau_vorschlichten = None
+        self.ergebnis_vorschlichten.setText("")
+        self.ergebnis_vorschlichten.hide()
+
+    def _vorschlichten_starten(self):
+        """Die grobe Bahn des Vorschlichtens auf einem Nebenrechner (wie die Schlichtvorschau, mit
+        seinem Aufmaß, seiner Schrittweite und nur dem Stück längs) – danach der Rest für die Kugel
+        nach ihm (_vor_rest_starten). Ohne Nebenrechner nur der Satz, was angelegt wird."""
+        from . import nebenrechner as nr
+
+        if not self.vorschlichten_an() or self.job is None or self.geschlossen:
+            return
+        self._vorschlichten_zurueck()
+        try:
+            args, kwargs = self._schlicht_argumente()
+        except ValueError:
+            return
+        args = list(args)
+        args[3] = self._vorschlicht_schrittweite()
+        args[4] = self._vorschlicht_aufmass()
+        kwargs = dict(kwargs, laengs_bereich=self._vorschlicht_bereich)
+        self._vorschlicht_satz(tr("va.vorschau.rechnet"))
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            self._vorschlicht_satz(self._vorschlicht_text(None))
+            return
+        nummer = self._vorschau_nummer
+        try:
+            auftrag = pool.auftrag(
+                "vierachs_vorschau",
+                "schlichten",
+                pool.kopie(self.doc, wiederverwenden=True),
+                self.job.Name,
+                *args,
+                **kwargs,
+            )
+        except nr.NichtVerfuegbar:
+            self._vorschlicht_satz(self._vorschlicht_text(None))
+            return
+        auftrag.bei_fertig = lambda a: self._vorschlichten_angekommen(nummer, a)
+        self._vor_auftrag = auftrag
+
+    def _vorschlicht_satz(self, text, farbe=None):
+        self.ergebnis_vorschlichten.setStyleSheet(f"color: {farbe or GRAU_TEXT};")
+        self.ergebnis_vorschlichten.setText(text)
+        self._vorschlichten_zeigen()
+
+    def _vorschlicht_text(self, bahn):
+        """„→ Kugel T3 auf 0,3 Aufmaß, Schrittweite 2,19, Z −57 … 5: 34 Umdrehungen, etwa 3 min“ –
+        ohne Bahn ohne Umdrehungen und Zeit."""
+        werkzeug = self.schlichtfraeser()
+        bereich = self._vorschlicht_bereich
+        if bereich is not None:
+            richtung = va.achsbuchstabe(FreeCAD.Vector(*self.achse().laengs)) or tr(
+                "va.rest.laengs"
+            )
+            wo = tr(
+                "va.vorschlichten.wo",
+                richtung=richtung,
+                von=einheiten.text(bereich[0], einheiten.LAENGE, 0).replace("-", "−"),
+                bis=einheiten.text(bereich[1], einheiten.LAENGE, 0).replace("-", "−"),
+            )
+        else:
+            wo = tr("va.vorschlichten.ganz")
+        text = tr(
+            "va.vorschlichten.was",
+            werkzeug=f"T{werkzeug.nummer}",
+            aufmass=groesse_zeigen(self._vorschlicht_aufmass(), einheiten.LAENGE),
+            schrittweite=groesse_zeigen(self._vorschlicht_schrittweite(), einheiten.LAENGE),
+            wo=wo,
+        )
+        if bahn is None:
+            return text
+        _n, vorschub, _senkrecht = js.werte_im_job(werkzeug, self._vorschlicht_einsatz(), self.job)
+        zeit = (
+            _zeit_text(
+                vb.dauer(
+                    bahn,
+                    vorschub,
+                    freivorschub=self._freivorschub(),
+                    fraeser_radius=_radius(werkzeug),
+                )
+            )
+            if vorschub > 0
+            else "?"
+        )
+        if bahn.linien:
+            menge = tr("va.schlichten.ergebnis_linien", linien=f"{bahn.linien}", zeit=zeit)
+        else:
+            menge = tr("va.schlichten.ergebnis", umdrehungen=f"{bahn.umdrehungen:.0f}", zeit=zeit)
+        return f"{text} {menge.removeprefix('→ ')}."
+
+    def _vorschlichten_angekommen(self, nummer, auftrag):
+        if nummer != self._vorschau_nummer or self.geschlossen or auftrag is not self._vor_auftrag:
+            return
+        self._vor_auftrag = None
+        if auftrag.fehler is not None:
+            if auftrag.fehlerart == "ValueError":
+                self._vorschlicht_satz(auftrag.fehlersatz, ROT)
+            elif not auftrag.abgebrochen:
+                FreeCAD.Console.PrintWarning(f"CAM-Addon: Vorschlichten: {auftrag.fehler}\n")
+                self._vorschlicht_satz(self._vorschlicht_text(None))
+            return
+        self.vorschau_vorschlichten = auftrag.ergebnis
+        self._vorschlicht_satz(self._vorschlicht_text(self.vorschau_vorschlichten))
+        self._vor_rest_starten()
+
+    def _vor_rest_starten(self):
+        """Der Rest für die Kugel nach Schruppen und Vorschlichten (vierachs_vorschau.rest mit
+        `vor`) – ob es reicht, sagt _vor_rest_angekommen."""
+        from . import nebenrechner as nr
+        from . import voxelstange as vx
+
+        if (
+            self.vorschau is None
+            or self.vorschau_schlichten is None
+            or self.vorschau_vorschlichten is None
+        ):
+            return
+        schrupp_form = ff.von_werkzeug(self.fraeser())
+        schlicht_form = ff.von_werkzeug(self.schlichtfraeser())
+        soll = self._rest_soll()
+        if vx.fraeser(schrupp_form) is None or vx.fraeser(schlicht_form) is None or soll <= 0:
+            return
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return
+        nummer = self._vorschau_nummer
+        try:
+            auftrag = pool.auftrag(
+                "vierachs_vorschau",
+                "rest",
+                pool.kopie(self.doc, wiederverwenden=True),
+                self.job.Name,
+                tuple(self.achse().laengs),
+                _saetze(self.vorschau),
+                schrupp_form,
+                _saetze(self.vorschau_schlichten),
+                schlicht_form,
+                REST_VIEL * soll,
+                vor=_saetze(self.vorschau_vorschlichten),
+                vor_form=schlicht_form,
+            )
+        except nr.NichtVerfuegbar:
+            return
+        text = self.ergebnis_vorschlichten.text()
+        auftrag.bei_fertig = lambda a: self._vor_rest_angekommen(nummer, a, soll, text)
+        self._vor_rest_auftrag = auftrag
+
+    def _vor_rest_angekommen(self, nummer, auftrag, soll, text):
+        """Nach dem Vorschlichten: grau, wie viel die Kugel beim Schlichten höchstens nimmt; gelb,
+        wenn es noch mehr als REST_VIEL × `soll` ist."""
+        from .gui_kollision import GELB
+
+        if (
+            nummer != self._vorschau_nummer
+            or self.geschlossen
+            or auftrag is not self._vor_rest_auftrag
+        ):
+            return
+        self._vor_rest_auftrag = None
+        e = auftrag.ergebnis if auftrag.fehler is None else None
+        if not e:
+            return
+
+        def flaeche(wert):
+            return einheiten.text(wert, einheiten.QUERSCHNITT, 1 if wert >= 1 else 2)
+
+        viel = e["hoechstens"] > REST_VIEL * soll
+        satz = tr(
+            "va.vorschlichten.danach_viel" if viel else "va.vorschlichten.danach",
+            menge=flaeche(e["hoechstens"]),
+            soll=flaeche(soll),
+        )
+        self._vorschlicht_satz(f"{text} {satz}", GELB if viel else None)
 
     def _umgeschaltet(self):
         """Ein Haken ging an oder aus: die Abstände gelten, solange einer an ist; die Stange
@@ -4016,6 +4279,8 @@ class VierachsPanel:
         self.kammhoehe.hide()
         self.kammhoehe_ae.hide()
         self._rest_zurueck()
+        self._vorschlichten_zurueck()
+        self._vorschlichten_zeigen()
         self.hinweis_bearbeitung.setText("")
         if schruppen and (self.fraeser() is None or self.einsatz() is None):
             self._rot(tr("va.fraeser.keiner"))
@@ -4569,6 +4834,28 @@ class VierachsPanel:
         def stelle(wert):
             return einheiten.text(wert, einheiten.LAENGE, 0).replace("-", "−")
 
+        # Wo vorgeschlichtet wird: wo die Kugel viel nähme, einen Radius davor und dahinter (W-031).
+        radius = _radius(self.schlichtfraeser())
+        self._vorschlicht_bereich = (
+            (e["a_von"] - radius, e["a_bis"] + radius) if e["a_von"] is not None else None
+        )
+        vorgeschlagen = False
+        if (
+            self._vorschlicht_bereich is not None
+            and not self._vorschlichten_von_hand
+            and not self.vorschlichten.isChecked()
+            and self.vorschlichten.isVisible()
+        ):
+            # Wo die Kugel viel nähme, ist das Vorschlichten vorgeschlagen – angehakt, abwählbar
+            # (Manuel: Neues als Haken, vorbelegt an; „nur die Bereiche, wo die Kugel viel nähme“).
+            self._vorschlichten_vorgeschlagen = True
+            try:
+                self.vorschlichten.setChecked(True)  # rechnet es (_vorschlichten_umgeschaltet)
+            finally:
+                self._vorschlichten_vorgeschlagen = False
+            vorgeschlagen = True
+        elif self.vorschlichten_an():
+            self._vorschlichten_starten()
         if e["a_von"] is None:
             self.rest_schlichten.setStyleSheet(f"color: {GRAU_TEXT};")
             self.rest_schlichten.setText(
@@ -4596,6 +4883,7 @@ class VierachsPanel:
                     von=stelle(e["a_von"]),
                     bis=stelle(e["a_bis"]),
                 )
+                + (" " + tr("va.vorschlichten.vorgeschlagen") if vorgeschlagen else "")
             )
         self.rest_schlichten.show()
 
@@ -5099,6 +5387,39 @@ class VierachsPanel:
                     uhren.atmen()
                 if schlichten:
                     tc_davor = tc if schruppen else None
+                    if self.vorschlichten_an():
+                        # Vor dem Schlichten (und vor dem Messstopp) das Vorschlichten (W-031):
+                        # dieselbe Kugel mit dem Einsatz „Schruppen“, wenn sie einen hat.
+                        tc_vor = js.controller_ohne_transaktion(
+                            self.doc,
+                            self.job,
+                            self.schlichtfraeser(),
+                            self._vorschlicht_einsatz(),
+                            self.werkstoff(),
+                            self._programmnummer(self.schlichtfraeser()),
+                        )
+                        neu_vor = vs.lege_an(
+                            self.job,
+                            tc_vor,
+                            achse,
+                            self._vorschlicht_schrittweite(),
+                            self._vorschlicht_aufmass(),
+                            quer_auf_null=achse.quer,
+                            abstaende=schlicht_abstaende,
+                            halter=self._halter_fuer(self.schlichtfraeser()),
+                            flaechen=schlicht_flaechen,
+                            muster=muster,
+                            nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
+                            querachse=self.querachse(),
+                            anstellen=self.anstellen(),
+                            stetig=self.stetig(),
+                            name=tr("vs.name_vor", werkzeug=f"T{tc_vor.ToolNumber}"),
+                            laengs_bereich=self._vorschlicht_bereich,
+                        )
+                        self._aufloesung_setzen(neu_vor, schlichten=True)
+                        angelegt.append(neu_vor)
+                        tc_davor = tc_vor
+                        uhren.atmen()
                     tc = js.controller_ohne_transaktion(
                         self.doc,
                         self.job,

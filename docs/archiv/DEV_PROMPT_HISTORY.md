@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-80 vorschlichten-als-haken
+
+### EINGELESEN
+- Manuel, 2026-10-18, zum gelben Satz im 4-Achs-Assistenten („Nach dem Schruppen greift die Kugel
+  stellenweise mit bis zu 11,9 mm² ein …“): „das man hier vll noch die möglichkeit dann gibt
+  "vorschlichten" als hacken anzubieten .. aber über dem schlichten das ganze ... zwischen schruppen
+  und schlichten ...“. Dazu seine Sicht vom 2026-10-12: „nur die Bereiche, wo die Kugel viel nähme,
+  mit der Kugel auf 0,3 mm“, und vom 2026-10-18: „das muss sich ja immer nach den werten richten die
+  der fräser kann!“.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `Schlichtwerte.laengs_bereich` – nur ein Stück längs (Spirale,
+  Linien, Zeilen); `vb.fehler.stueck_leer`, wenn es nicht auf dem Teil liegt.
+- `camaddon/vierachs_schlichten.py`: Eigenschaften `NurStueck`, `StueckVon`, `StueckBis`;
+  `lege_an(…, laengs_bereich=)`, `bahn_fuer`/`vorschau` ebenso; `ist_vorschlichten`; Name „Rundum
+  vorschlichten T2“.
+- `camaddon/vierachs_vorschau.py`: `rest(…, vor=, vor_form=)` – das Vorschlichten zwischen Schruppen
+  und Schlichten im Voxelmodell, dazu was es selbst höchstens nimmt.
+- `camaddon/gui_vierachs.py`: Haken „Vorschlichten“ unter dem gelben Satz; ist der Satz gelb, wird
+  er angehakt („Vorschlichten ist darum angehakt.“), solange man ihn nicht selbst gesetzt hat. Die
+  Kugel des Schlichtens mit ihrem Einsatz „Schruppen“ (sonst „Schlichten“), Aufmaß des Schruppens,
+  Kammhöhe ein Drittel davon (höchstens ae des Einsatzes „Schruppen“), nur von a_von − R bis
+  a_bis + R. Vorschau auf einem Nebenrechner („→ Kugel T2 auf 0,3 Aufmaß, Schrittweite 1, X −18 …
+  17 mm: 34 Umdrehungen, etwa 14 min.“), danach der Rest nach dem Vorschlichten grau oder gelb.
+  „Anlegen“ legt „Rundum vorschlichten T2“ vor dem Messstopp und dem Schlichten an.
+- `translations/*.json`, neu `tests/gui/szenario_vierachs_vorschlichten.py` (Flosse der Nase:
+  gelb → angehakt → drei Operationen in der Reihenfolge, Stück längs, Aufmaß 0,3, Controller „T2
+  Schruppen“, die Bahn im Stück).
+- `docs/STATUS_SNAPSHOT.md`: W-030 (Wendel entlang, Manuels Ja) und W-031.
+
+### ERGEBNIS
+- Grün im Wochen-Build: `szenario_vierachs_vorschlichten`, `szenario_vierachs_schlichten`.
 ## P-2026-10-18-79 maschine-durchsicht-einstellbar
 
 ### EINGELESEN

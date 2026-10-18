@@ -88,6 +88,8 @@ def rest(
     schlicht_form,
     schwelle,
     h=REST_VOXEL,
+    vor=None,
+    vor_form=None,
 ):
     """Was nach dem Schruppen für die Kugel stehen bleibt (Manuel, 2026-10-11, Frage 8:
     „vorher sagen, wenn viel stehen bleibt“): die Stange als Voxel, erst die Schruppbahn, dann
@@ -96,8 +98,10 @@ def rest(
     echten (voxelstange.fraeser): Das Schruppen nimmt eher weniger, die Zahl hält nach oben.
     {hoechstens, a, a_von, a_bis, strecke, volumen}: das Meiste, was die Kugel je mm Weg nimmt
     (mm³/mm, über JE_MM_STRECKE gemittelt) und wo längs; von wo bis wo sie mehr als `schwelle`
-    nimmt und auf wie viel Weg (mm); was sie insgesamt nimmt (mm³). None, wenn ein Fräser nicht
-    ins Voxelmodell passt."""
+    nimmt und auf wie viel Weg (mm); was sie insgesamt nimmt (mm³). Mit `vor` (Sätze, Eilgänge)
+    und `vor_form` fährt dazwischen das Vorschlichten (W-031) – dann gilt das alles nach ihm, und
+    "vor_hoechstens" sagt, wie viel das Vorschlichten selbst höchstens nimmt (mm³/mm). None, wenn
+    ein Fräser nicht ins Voxelmodell passt."""
     job = _job(dokument, job_name)
     schrupp_fraeser, schlicht_fraeser = vx.fraeser(schrupp_form), vx.fraeser(schlicht_form)
     if schrupp_fraeser is None or schlicht_fraeser is None:
@@ -107,6 +111,15 @@ def rest(
     a_teil = [v.Point.dot(achse) for v in teil.Vertexes]
     stange = vx.Voxelstange(radius, min(a_teil) - h, max(a_teil) + h, h)
     stange.fahre(schruppen[0], *schrupp_fraeser, je_satz=False)
+    vor_hoechstens = None
+    if vor is not None:
+        vor_fraeser = vx.fraeser(vor_form)
+        if vor_fraeser is None:
+            return None
+        vor_saetze, vor_eilgang = vor
+        vor_weg = stange.fahre(vor_saetze, *vor_fraeser)
+        vor_last, _a = vx.je_mm(vor_saetze, vor_weg, h, vor_eilgang)
+        vor_hoechstens = float(vor_last.max()) if len(vor_last) else 0.0
     saetze, eilgang = schlichten
     weg = stange.fahre(saetze, *schlicht_fraeser)
     last, a = vx.je_mm(saetze, weg, h, eilgang)
@@ -124,6 +137,7 @@ def rest(
         "a_bis": float(a[viel].max()) if viel.any() else None,
         "strecke": float(laenge[viel].sum()),
         "volumen": float(np.sum(weg)) * h**3,
+        "vor_hoechstens": vor_hoechstens,
     }
 
 

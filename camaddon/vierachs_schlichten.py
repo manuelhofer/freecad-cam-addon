@@ -103,6 +103,9 @@ class RundumSchlichten(PathOp.ObjectOp):
                 ("App::PropertyBool", "Querachse", tr("vs.eigenschaft.querachse")),
                 ("App::PropertyBool", "Anstellen", tr("vs.eigenschaft.anstellen")),
                 ("App::PropertyBool", "Stetig", tr("vs.eigenschaft.stetig")),
+                ("App::PropertyBool", "NurStueck", tr("vs.eigenschaft.nur_stueck")),
+                ("App::PropertyDistance", "StueckVon", tr("vs.eigenschaft.stueck_von")),
+                ("App::PropertyDistance", "StueckBis", tr("vs.eigenschaft.stueck_bis")),
             )
             + vo.abstand_eigenschaften()
             + vo.flaechen_eigenschaften()
@@ -213,7 +216,16 @@ def rechne(obj, job, modell):
         anstellen=bool(getattr(obj, "Anstellen", True)),
         schritt_phi=au.wert_rundum(obj, vb.SCHRITT_PHI_SCHLICHTEN),
         stetig=bool(getattr(obj, "Stetig", True)),
+        laengs_bereich=laengs_bereich(obj),
     )
+
+
+def laengs_bereich(obj):
+    """(von, bis) – das Stück längs, auf dem die Operation fährt (NurStueck: das Vorschlichten
+    nur, wo die Kugel viel nähme, W-031), sonst None (das ganze Teil, auch ältere Operationen)."""
+    if not bool(getattr(obj, "NurStueck", False)):
+        return None
+    return float(obj.StueckVon), float(obj.StueckBis)
 
 
 def schruppbahnen(job, modell):
@@ -252,6 +264,7 @@ def bahn_fuer(
     anstellen=True,
     schritt_phi=vb.SCHRITT_PHI_SCHLICHTEN,
     stetig=False,
+    laengs_bereich=None,
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
@@ -262,7 +275,8 @@ def bahn_fuer(
     Gleichlauf statt hin und her (P-2026-10-02-28); `querachse`: die Spirale mit der Querachse
     (vierachs_bahn.Schlichtwerte.querachse, nur mit dem Kugelfräser); `anstellen`: die Kugel
     dabei vierachs_bahn.ANSTELLEN_QUER neben der Normalen; `stetig`: C dreht dabei nie zurück
-    (vierachs_bahn.Schlichtwerte.stetig). ValueError mit einem Satz, wenn es nicht geht."""
+    (vierachs_bahn.Schlichtwerte.stetig); `laengs_bereich`: (von, bis) nur dieses Stück längs
+    (vierachs_bahn.Schlichtwerte.laengs_bereich). ValueError mit einem Satz, wenn es nicht geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
@@ -280,6 +294,7 @@ def bahn_fuer(
         anstellen=vb.ANSTELLEN_QUER if anstellen else 0.0,
         stetig=stetig,
         flaechen_netz=_flaechen_netz(form_teil, flaechen, querachse, vb.TOLERANZ_SCHLICHTEN),
+        laengs_bereich=laengs_bereich,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte, schritt_phi)
@@ -312,6 +327,7 @@ def vorschau(
     querachse=False,
     anstellen=True,
     stetig=False,
+    laengs_bereich=None,
 ):
     """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
     die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
@@ -329,6 +345,7 @@ def vorschau(
         anstellen=vb.ANSTELLEN_QUER if anstellen else 0.0,
         stetig=stetig,
         flaechen_netz=_flaechen_netz(form_teil, flaechen, querachse, VORSCHAU_TOLERANZ),
+        laengs_bereich=laengs_bereich,
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
@@ -606,6 +623,7 @@ def lege_an(
     querachse=False,
     anstellen=True,
     stetig=True,
+    laengs_bereich=None,
 ):
     """Legt „Rundum schlichten“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
@@ -613,7 +631,8 @@ def lege_an(
     seitlich über die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen
     („Face3“ …), leer: rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN; `nur_gleichlauf`:
     Linien längs jede für sich im Gleichlauf (P-2026-10-02-28); `querachse`, `anstellen`, `stetig`
-    wie bei bahn_fuer. Gibt die Operation zurück. Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit
+    wie bei bahn_fuer; `laengs_bereich`: (von, bis) nur dieses Stück längs (das Vorschlichten,
+    W-031). Gibt die Operation zurück. Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit
     DoNotSetDefaultValues."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "RundumSchlichten")
@@ -642,6 +661,9 @@ def lege_an(
     obj.Querachse = bool(querachse)
     obj.Anstellen = bool(anstellen)
     obj.Stetig = bool(stetig)
+    obj.NurStueck = laengs_bereich is not None
+    if laengs_bereich is not None:
+        obj.StueckVon, obj.StueckBis = (float(w) for w in laengs_bereich)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vs.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -696,6 +718,14 @@ def aendere(
 def _vorgeschlagener_name(name):
     """Ist `name` einer, wie lege_an ihn vergibt („Rundum schlichten T2“) – auch mit „ (2)“ dahinter?"""
     return namen.nach_vorlage(name, tr("vs.name", werkzeug="\0"))
+
+
+def ist_vorschlichten(obj):
+    """Ist `obj` ein „Rundum vorschlichten“ (lege_an mit `laengs_bereich` oder dem Namen des
+    Vorschlichtens, W-031)?"""
+    return bool(getattr(obj, "NurStueck", False)) or namen.nach_vorlage(
+        getattr(obj, "Label", ""), tr("vs.name_vor", werkzeug="\0")
+    )
 
 
 def ist_schlichten(op):

@@ -310,6 +310,10 @@ class Schlichtwerte:
     # Querachse fährt die Spirale dann rundum und hebt über den übrigen ab (UEBERSPRINGEN) statt
     # Zeilen ohne Y zu fahren (Frage 12, P-2026-10-11-86).
     flaechen_netz: object = None
+    # (von, bis): a der Spitze – nur dieses Stück längs (das Vorschlichten nur, wo die Kugel nach
+    # dem Schruppen viel nähme, W-031; Manuel, 2026-10-12: „nur die Bereiche, wo die Kugel viel
+    # nähme“); None: das ganze Teil.
+    laengs_bereich: tuple = None
 
 
 @dataclass
@@ -2155,9 +2159,19 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     if a_ende >= teil_vorne + radius:
         raise ValueError(_kein_platz(radius, w))
     hinten_frei = max(0.0, a_ende - radius - teil_hinten)
+    a_vorne_bahn = a_anfang  # so weit vorn beginnen Linien und Zeilen
+    a_spirale_vorne = teil_vorne + radius + VORLAUF_SCHLICHTEN
+    if w.laengs_bereich is not None:
+        von, bis = w.laengs_bereich
+        a_ende = max(a_ende, float(von))
+        a_vorne_bahn = min(a_anfang, float(bis))
+        a_spirale_vorne = min(a_spirale_vorne, float(bis))
+        hinten_frei = 0.0  # was hinten bleibt, ist hier gewollt
+        if a_ende >= min(a_vorne_bahn, a_spirale_vorne):
+            raise ValueError(tr("vb.fehler.stueck_leer"))
     if w.muster == LINIEN:  # Linien längs (V4c)
         return _schlichten_linien(
-            netz, laengs, radial, w, a_anfang, a_ende, teil_vorne, teil_hinten, hinten_frei
+            netz, laengs, radial, w, a_vorne_bahn, a_ende, teil_vorne, teil_hinten, hinten_frei
         )
     ueberspringen = w.bereich is not None and bool(w.querachse) and w.flaechen_netz is not None
     if w.bereich is not None and not ueberspringen:  # gewählte Flächen: Zeilen hin und her (V4)
@@ -2166,7 +2180,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
             laengs,
             radial,
             w,
-            a_anfang,
+            a_vorne_bahn,
             a_ende,
             teil_vorne,
             teil_hinten,
@@ -2184,7 +2198,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     # Schlichten dort vier Umdrehungen, mit der Querachse 5323 Sätze Geraden und Kreise vor dem
     # Kopf, zuletzt im Vorschub 50 mm hinauf (Manuel, 2026-10-12: „die Werkzeugwege da vorne, die
     # bis ganz nach oben gehen … für mich keinen Grund“).
-    a_spirale = min(a_anfang, teil_vorne + radius + VORLAUF_SCHLICHTEN)
+    a_spirale = min(a_anfang, a_spirale_vorne)
     spirale = _spirale_rechnen(
         netz, laengs, radial, plan, s, a_spirale, a_ende, teil_vorne, teil_hinten, schritt_phi
     )

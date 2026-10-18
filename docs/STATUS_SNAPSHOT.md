@@ -1596,6 +1596,25 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Solid), als eigene Datei „<Teil> – Aufspannung 1 – Fertigteil.FCStd“ neben dem Teil speichern; die
   zweite Aufspannung nimmt ihn als Rohteil (CAM „Vorhandener Körper“). Genau bis aufs Raster des
   Materialstands; Kanten und Bohrungen, die das Raster nicht trifft, zeigen es. Noch nicht gebaut.
+- **W-030 Wendelnut entlang fahren** – Manuel, 2026-10-18, an seinem `4achs_testteil_wendel`
+  (Ø 80 × 65, runde Nut R 11, Steigung 60; liegt nur bei ihm in `~/freecad_cam/testteile`): „die
+  wendel ist entgegen der drehrichtung ... da muss man sich was einfallen lassen das das dennoch
+  sauber herzustellen ist ... dann muss man vll mal hinten anfangen um die wendel zu fahren ??“;
+  „das rohteil entspricht mit 80 exakt dem fertigteil .. warum muss das nochmal mit dem schrupper
+  abgefahren werden ??? is doch blödsinn“. Heute: Spirale rundum, Schruppen 85 % über dem fertigen
+  Ø 80, Schlichten T3 25 min. Vorschlag mit Bild `docs/bilder/vorschlaege/wendel_entlang.png`:
+  Schruppen, Vorschlichten und Schlichten der Nut nach (C und Z gekoppelt, alle Bahnen in einer
+  Richtung, C dreht nicht zurück), 27 → ≈ 15,5 min. **Manuels Ja: „vorgewählt bei Wendelnut“** –
+  der Assistent erkennt die Wendelnut und schlägt das Muster „Wendel“ vor, Spirale bleibt wählbar.
+  Noch nicht gebaut.
+- **W-031 Vorschlichten als Haken** – Manuel, 2026-10-18 (gelber Satz „Nach dem Schruppen greift die
+  Kugel stellenweise …“): „das man hier vll noch die möglichkeit dann gibt "vorschlichten" als hacken
+  anzubieten .. aber über dem schlichten das ganze ... zwischen schruppen und schlichten“. **Gebaut
+  (P-2026-10-18-80):** Haken „Vorschlichten“ unter dem gelben Satz, angehakt, sobald der Satz gelb
+  ist (abwählbar); die Kugel des Schlichtens mit ihrem Einsatz „Schruppen“ (sonst „Schlichten“) auf
+  das Aufmaß des Schruppens, Kammhöhe höchstens ein Drittel davon, nur das Stück längs, wo die Kugel
+  viel nähme (± Radius). „Anlegen“: „Rundum vorschlichten T2“ zwischen Schruppen und Schlichten (ein
+  Messstopp danach). Darunter grau, was die Kugel nach dem Vorschlichten noch höchstens nimmt.
 - **Nacht zum 18.10., zweite Hälfte (P-64 … P-69):** Voller Testlauf (121) fand drei
   Simultan-Tests rot seit P-2026-10-17-22 – das 3D-Schruppen vernetzte die gewählten Flächen am
   Original; daraus die Regel „nur Kopien vernetzen“ an allen Stellen (P-64, P-68: Vermessen im
