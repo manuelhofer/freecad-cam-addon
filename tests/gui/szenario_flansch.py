@@ -3,9 +3,10 @@
 # Außenwand, Mittelbohrung und alle sechs Lochkreisbohrungen anklicken. Früher bot der Assistent
 # „Bohren“ gar nicht an (der Bohrer bohrt die Ø 40 nicht), und „Bohrung fräsen“ stand rot („Ø 9
 # kleiner als der Fräser“) – „Anlegen“ ging nicht. Jetzt teilen sie sich die Bohrungen: „Bohren“
-# mit T2 die sechs Ø 9, „Bohrung fräsen“ mit T1 die Ø 40, die Kontur die Außenwand, Planfräsen oder
-# Räumen die Oberseite – kein roter Satz. „Anlegen“ legt sie alle an; „Auf der Maschine prüfen“:
-# am Ende nirgends ins Teil.
+# mit T2 die sechs Ø 9, „Bohrung fräsen“ mit T1 die Ø 40, das Räumen die Oberseite und über alles
+# um die Außenwand bis zur Unterkante, „Schlichten danach“ macht sie fertig – die Kontur hat nichts
+# zu tun (Grundsatz 5; Manuel, 2026-10-18: „keine luftfahrten …“, W-034); kein roter Satz.
+# „Anlegen“ legt sie alle an; „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
 import math
 
 import FreeCAD
@@ -30,7 +31,6 @@ def schritte(h):
     from camaddon import bohrung as bo
     from camaddon import bohrung_bahn as bb
     from camaddon import hoehenfeld as hf
-    from camaddon import kontur as ko
     from camaddon import werkzeuge as wz
 
     t2 = wz.Werkzeug(nummer=2, art=wz.BOHRER, durchmesser=9.0, schneiden=2, schneidenlaenge=60.0,
@@ -73,13 +73,19 @@ def schritte(h):
     yield 1000
     bohren, bohrung, kontur = panel.bohren, panel.bohrung, panel.kontur
     yield from h.warte_auf(
-        lambda: all(b.vorschau is not None for b in (bohren, bohrung, kontur)), 240000
+        lambda: all(b.vorschau is not None for b in (bohren, bohrung, panel.raeumen))
+        and not panel.vorschau_laeuft(),
+        240000,
     )
     yield 2000
     h.pruefe(bohren.aktiv() and bohren.fraeser().nummer == 2, "Bohren: kein Haken oder nicht T2")
     h.pruefe(bohrung.aktiv() and bohrung.fraeser().nummer == 1, "Bohrung fräsen: kein Haken")
-    h.pruefe(kontur.aktiv(), "Kontur: kein Haken")
-    h.pruefe(panel.plan.aktiv() or panel.raeumen.aktiv(), "Oberseite: kein Haken")
+    h.pruefe(
+        not kontur.aktiv() and "bis durch" in kontur.hinweis.text(),
+        f"Kontur: {kontur.aktiv()} {kontur.hinweis.text()!r}",
+    )
+    h.pruefe(panel.raeumen.aktiv(), "Räumen über alles: kein Haken")
+    h.pruefe(panel.schlichten_danach.aktiv(), "Schlichten danach: kein Haken")
     rot = [(b.s.kennung, b.hinweis.text()) for b in panel.bloecke if b.aktiv() and b.hinweis.text()]
     h.pruefe(not rot, f"rot: {rot}")
     text = bohren.ergebnis.text()
@@ -96,7 +102,12 @@ def schritte(h):
     h.pruefe(any(bh.ist_bohren(o) for o in ops), f"kein Bohren: {namen}")
     fraesen = [o for o in ops if bo.ist_bohrungsfraesen(o)]
     h.pruefe(fraesen and list(fraesen[0].Flaechen) == [mitte], f"Bohrung fräsen: {namen}")
-    h.pruefe(any(ko.ist_kontur(o) for o in ops), f"keine Kontur: {namen}")
+    schlichten = [o for o in ops if o.Label.startswith("Wände schlichten")]
+    h.pruefe(
+        schlichten and aussen in list(getattr(schlichten[0], "Flaechen", []) or []),
+        f"Außenwand nicht geschlichtet: {namen}",
+    )
+    h.pruefe(not any(o.Label.startswith("Kontur") for o in ops), f"Kontur angelegt: {namen}")
     Gui.Selection.clearSelection()
     Gui.activeDocument().activeView().viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")
