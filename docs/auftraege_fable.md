@@ -132,6 +132,10 @@ angeklickt: „Plan indexiert“ für Seiten und Spitze, „Rundum schlichten“
 den schrägen Flächen in Linien (der Satz darunter sagt, welche); Plan indexiert allein, wenn
 nichts für die Kugel bleibt. Offen bleibt der Rest nach dem Schruppen an der Flosse (4 mm²). *P-2026-10-17-37:* Es zählt jetzt Schneide + Hals (die Auskragung N) – die Lagen darüber hat die Schneide schon fertig; mit einem Hals ≥ 14 mm an T1 ginge die Flosse mit dem Schaft.
 
+**Stand 2026-10-18:** Was Manuel zum Bild bejaht hat, ist gebaut. Seine Front quer mit dem Umfang
+(statt mit der Stirn in „Plan indexiert“) ist Frage 2 in `docs/OFFENE_FRAGEN.md` – sie kann höchstens
+an den 4,6 min für Seiten und Spitze sparen.
+
 ## 3. Ringe vom Rand des Materials: Zwickel und Helix am Rand
 
 **Stand (P-2026-10-17-22):** Das 3D-Schruppen hat den Haken „Nur über den gewählten Flächen –
