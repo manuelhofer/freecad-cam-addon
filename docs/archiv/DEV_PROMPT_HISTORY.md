@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-90 enge-gebiete-dem-kleineren-fraeser
+
+### EINGELESEN
+- Manuel, 2026-10-18, zur Frage mit Bild (`docs/bilder/vorschlaege/cring_schlitz_fraeser.png`: am
+  C-Ring aus Rundmaterial räumt T1 Ø 12 Schlitz-Keil 12–18 mm und Bohrung Ø 30 mit Sägezahn und
+  Achtecken, T3 Ø 6 fährt von außen in Wellen hindurch): „Ja, dort der kleinere“. Seine Regel
+  dazu: „wenn … man von ausen einfahren kann mit einem fräser der klein genug ist kann man das von
+  ausen rausarbeiten .. wenn man von ausen nicht rein kommt eine helix fahren“.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_eng_von_aussen` – je Lage: von außen (aus der Luft am Rand des
+  Rasters) mit beliebig kleinem Fräser erreichbar, aber für die bequeme Mitte (ein Radius Spiel)
+  nur durch eine Engstelle: diese Gebiete (größer als r²; Ecken bleiben) sperrt das Räumen mit
+  `eng_lassen` und schreibt die Fläche in `ausgelassen`. `nur_eng` (Radius des größeren davor):
+  „Rest räumen“ nur dort, hinein durch die Luft, nicht neben Material außerhalb. `_zusammen`,
+  `_grosse_teile` (mit SciPy, sonst `_verbunden`).
+- `camaddon/raeumen.py`: Eigenschaften `EngLassen`, `NurEngVon`; ein ausgelassenes Gebiet bis durch
+  kommt als seine Wände in `ausgelassen` (darunter räumt „Rest räumen“ wieder bis durch).
+- `camaddon/gui_bearbeitung.py`: Räumen bekommt `eng_lassen`, wenn „Rest räumen“ einen Fräser von
+  höchstens drei Vierteln hat; „Rest räumen“ `nur_eng` und erst ein Fräser, der bequem hineinkommt;
+  ein eigener Satz „Hinter der Engstelle an … ist der Ø … zu breit – das räumt „Rest räumen“ mit …
+  von außen“.
+- `translations/*.json`, `tests/gui/szenario_bearbeitung_cring_alles.py` (Räumen T1 und T3, der
+  Satz zur Engstelle).
+- `docs/spezifikation_strategien.md` (Abschnitt 5, nach der Einfahr-Regel), `docs/STATUS_SNAPSHOT.md`
+  (W-034), `docs/OFFENE_FRAGEN.md` (Frage 1 beantwortet).
+
+### ERGEBNIS
+- C-Ring: Rundmaterial Räumen T1 (oben) 1,0 min + „Rest räumen“ T3 2,5 min in Wellen von außen
+  durch Schlitz und Bohrung; Platte 2,9 + 2,4 min, T3 nur Schlitz und Bohrung (kein Ring um den
+  Mantel).
+- Grün im Wochen-Build: alle 69 Szenarien mit „Bearbeitung“ (6 Stapel parallel), `test_raeumen`,
+  `test_materialstand`; angepasst: `szenario_raeumen_durch` (Räumen T1 und T3, beide bis −11),
+  `szenario_bearbeitung_cring_alles`.
 ## P-2026-10-18-89 raeumen-ueber-alles-keine-luft
 
 ### EINGELESEN

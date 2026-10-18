@@ -1459,6 +1459,8 @@ class _Raeumen(_Strategie):
             "stand": werte.get("materialstand"),
             "variante": werte.get("variante"),
             "freivorschub": werte.get("freivorschub", ra.FREIVORSCHUB),
+            "eng_lassen": bool(werte.get("eng_lassen", False)),
+            "nur_eng": float(werte.get("nur_eng", 0.0)),
         }
         return (
             ff.von_werkzeug(werkzeug),
@@ -1531,6 +1533,8 @@ class _Raeumen(_Strategie):
             flaechen=flaechen,
             variante=werte.get("variante", "automatisch"),
             freivorschub=werte.get("freivorschub", ra.FREIVORSCHUB),
+            eng_lassen=bool(werte.get("eng_lassen", False)),
+            nur_eng=float(werte.get("nur_eng", 0.0)),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -1545,6 +1549,8 @@ class _Raeumen(_Strategie):
             flaechen=flaechen,
             variante=werte.get("variante"),
             freivorschub=werte.get("freivorschub"),
+            eng_lassen=werte.get("eng_lassen"),
+            nur_eng=werte.get("nur_eng"),
         )
 
     def ist(self, op):
@@ -7520,6 +7526,16 @@ class BearbeitungPanel:
         d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
         flaechen = ", ".join(ausgelassen)
         rest = self.restraeumen
+        form = vr.modell(self.job).Shape if self.job is not None else None
+        if form is not None and not any(hf.ebenen_oben(form, [n]) for n in ausgelassen):
+            # Nur Wände: ein Gebiet bis durch hinter einer Engstelle (W-034), keine Tasche.
+            if rest.aktiv() and rest.vorschau is not None:
+                werkzeug = mg.genannt(rest.fraeser(), self.magazin())
+                neu = tr("ba.raeumen.eng.rest", text=text, flaechen=flaechen, d=d, t=werkzeug)
+            else:
+                neu = tr("ba.raeumen.eng", text=text, flaechen=flaechen, d=d)
+            block.ergebnis.setText(neu)
+            return
         if rest.aktiv() and rest.vorschau is not None:
             werkzeug = mg.genannt(rest.fraeser(), self.magazin())
             if len(ausgelassen) == 1:
@@ -7583,6 +7599,23 @@ class BearbeitungPanel:
         if geaendert:
             self._bloecke_ordnen()
 
+    def _nur_eng(self):
+        """Was „Rest räumen“ vom Räumen übernimmt: Lässt es enge Gebiete aus, nur sie –
+        {"nur_eng": Radius seines Fräsers}; sonst None (die ausgelassenen Taschen ganz)."""
+        gross = self.raeumen.fraeser()
+        if not self.raeumen.aktiv() or gross is None or not self._kleinerer_raeumfraeser():
+            return None
+        return {"nur_eng": float(gross.durchmesser) / 2.0}
+
+    def _kleinerer_raeumfraeser(self):
+        """Hat „Rest räumen“ einen Fräser, deutlich kleiner als der des Räumens (höchstens drei
+        Viertel)? Dann lässt das Räumen enge Gebiete aus (_zusatz, W-034)."""
+        gross = self.raeumen.fraeser()
+        if gross is None or float(gross.durchmesser) <= 0:
+            return False
+        grenze = 0.75 * float(gross.durchmesser) + 1e-6
+        return any(float(w.durchmesser) <= grenze for w in self.restraeumen._fraeser)
+
     def _restraeumfraeser(self, form, ausgelassen):
         """Der größte Fräser der Werkzeugverwaltung, kleiner als der des Räumens, der in alle
         Taschen passt, die es ausließ – None, wenn keiner. Probiert wird mit der Vorschau, vom
@@ -7602,30 +7635,37 @@ class BearbeitungPanel:
             return gemerkt[1]
         passend = None
         kleiner = [w for w in rest._fraeser if float(w.durchmesser) < gross_d - 1e-6]
-        for werkzeug in sorted(kleiner, key=lambda w: -float(w.durchmesser)):
-            einsaetze = rest._passende_einsaetze(werkzeug, self.werkstoff())
-            arten = [e.art for e in einsaetze]
-            einsatz = next(
-                (einsaetze[arten.index(a)] for a in rest.s.einsatz_reihenfolge if a in arten),
-                einsaetze[0] if einsaetze else None,
-            )
-            if einsatz is None:
-                continue
-            try:
-                bahn = ra.vorschau(
-                    self.job,
-                    self.job.Model.Group,
-                    ff.von_werkzeug(werkzeug),
-                    rest.s.vorschlag("zustellung", werkzeug, einsatz),
-                    rest.s.vorschlag("zeilenabstand", werkzeug, einsatz),
-                    float(werte["aufmass"]),
-                    ausgelassen,
-                    schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+        # Erst einer, der überall bequem hinkommt – ein Gebiet hinter einer Engstelle von außen
+        # mit höchstens halb so breitem Fräser (W-034) –, sonst der größte, der überhaupt passt.
+        for bequem in (True, False):
+            for werkzeug in sorted(kleiner, key=lambda w: -float(w.durchmesser)):
+                einsaetze = rest._passende_einsaetze(werkzeug, self.werkstoff())
+                arten = [e.art for e in einsaetze]
+                einsatz = next(
+                    (einsaetze[arten.index(a)] for a in rest.s.einsatz_reihenfolge if a in arten),
+                    einsaetze[0] if einsaetze else None,
                 )
-            except (ValueError, RuntimeError):
-                continue  # passt auch nicht
-            if not bahn.ausgelassen:
-                passend = werkzeug
+                if einsatz is None:
+                    continue
+                try:
+                    bahn = ra.vorschau(
+                        self.job,
+                        self.job.Model.Group,
+                        ff.von_werkzeug(werkzeug),
+                        rest.s.vorschlag("zustellung", werkzeug, einsatz),
+                        rest.s.vorschlag("zeilenabstand", werkzeug, einsatz),
+                        float(werte["aufmass"]),
+                        ausgelassen,
+                        schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+                        eng_lassen=bequem,
+                        nur_eng=(self._nur_eng() or {}).get("nur_eng", 0.0),
+                    )
+                except (ValueError, RuntimeError):
+                    continue  # passt auch nicht
+                if not bahn.ausgelassen:
+                    passend = werkzeug
+                    break
+            if passend is not None:
                 break
         self._restraeumfraeser_gemerkt = (schluessel, passend)
         return passend
@@ -8036,6 +8076,12 @@ class BearbeitungPanel:
         an der Wand (P-2026-10-02-17)."""
         if block is self.gewindefraesen:
             return {"werkzeug": block.fraeser()}  # Steigung und Zähne kennt CAM nicht
+        if block is self.raeumen:
+            # Enge Gebiete lässt es dem kleineren Fräser von „Rest räumen“ (W-034) – nur, wenn die
+            # Kiste einen hat; sonst räumt es sie selbst (wie bisher, mit Helix).
+            return {"eng_lassen": True} if self._kleinerer_raeumfraeser() else None
+        if block is self.restraeumen:
+            return self._nur_eng()
         if block is self.bohren:
             return {"reiben": True} if self._gerieben(form) else None
         if block is self.rest:
@@ -8782,7 +8828,8 @@ class BearbeitungPanel:
         flaechen = raeumen.s.flaechen_fuer(form, self.gewaehlte)
 
         def mit_stand(eigene, mit=()):  # der Materialstand vor dem Räumen dieser Flächen
-            return {"materialstand": self._materialstand(raeumen, form, eigene, mit)}
+            stand = self._materialstand(raeumen, form, eigene, mit)
+            return dict(self._zusatz(raeumen, form) or {}, materialstand=stand)
 
         if not plan.aktiv() and (plan.von_hand or not plan.moeglich):
             yield from raeumen.vorschau_schritte(self.job, flaechen, mit_stand(flaechen))

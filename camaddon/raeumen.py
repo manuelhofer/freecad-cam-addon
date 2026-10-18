@@ -95,6 +95,8 @@ class Raeumen(PathOp.ObjectOp):
             ("App::PropertyBool", "Gleichlauf", tr("ra.eigenschaft.gleichlauf")),
             ("App::PropertyEnumeration", "Variante", tr("ra.eigenschaft.variante")),
             ("App::PropertySpeed", "Freivorschub", tr("ra.eigenschaft.freivorschub")),
+            ("App::PropertyBool", "EngLassen", tr("ra.eigenschaft.eng_lassen")),
+            ("App::PropertyLength", "NurEngVon", tr("ra.eigenschaft.nur_eng")),
             ("App::PropertyLength", "Einfahrradius", tr("ko.eigenschaft.einfahrradius")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
@@ -218,6 +220,8 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         stand=stand,
         freivorschub=float(obj.Freivorschub) * 60.0,
         schritt=au.wert(obj, rb.SCHRITT),
+        eng_lassen=bool(getattr(obj, "EngLassen", False)),
+        nur_eng=float(getattr(obj, "NurEngVon", 0.0)),
     )
 
 
@@ -245,6 +249,8 @@ def bahn_fuer(
     eintauchen=0.0,
     stand=None,
     freivorschub=FREIVORSCHUB,
+    eng_lassen=False,
+    nur_eng=0.0,
 ):
     """Die Bahn „Räumen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – geräumt werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
@@ -265,9 +271,12 @@ def bahn_fuer(
     namen = list(flaechen) or hf.oberseite(form_teil)
     ebenen = hf.ebenen_oben(form_teil, namen)
     # Wände, die durch das Teil gehen: gedachte Böden an seiner Unterkante (Frage 4).
-    durch, durch_umrisse = durch_ebenen(
+    gebiete = durch_gebiete(
         form_teil, [n for n in namen if durchgehend(form_teil, n)], (x_von, x_bis, y_von, y_bis)
     )
+    durch = [g[0] for g in gebiete]
+    durch_umrisse = {g[0].name: g[1] for g in gebiete}
+    durch_waende = {g[0].name: list(g[2]) for g in gebiete}
     ebenen = ebenen + durch
     if not ebenen:
         raise ValueError(tr("ra.fehler.keine_ebene"))
@@ -305,12 +314,21 @@ def bahn_fuer(
         eilgang=dynamik[0],
         beschleunigung=dynamik[1],
         nur_ueber=nur_ueber,
+        eng_lassen=bool(eng_lassen),
+        nur_eng=float(nur_eng or 0.0),
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     bahn = rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)
     if durch:
-        # Ein gedachter Boden ist keine Fläche des Teils – „Rest räumen“ fände ihn nicht.
-        bahn.ausgelassen = [n for n in bahn.ausgelassen if not n.startswith(DURCH)]
+        # Ein gedachter Boden ist keine Fläche des Teils: „Rest räumen“ bekommt statt seiner die
+        # Wände, die ihn begrenzen – darunter räumt es wieder bis durch (W-034, ein enges Gebiet
+        # für den kleineren Fräser).
+        ausgelassen = []
+        for name in bahn.ausgelassen:
+            for flaeche in durch_waende.get(name, []) if name.startswith(DURCH) else [name]:
+                if flaeche not in ausgelassen:
+                    ausgelassen.append(flaeche)
+        bahn.ausgelassen = ausgelassen
     return bahn
 
 
@@ -471,6 +489,8 @@ def vorschau(
     stand=None,
     variante=None,
     freivorschub=FREIVORSCHUB,
+    eng_lassen=False,
+    nur_eng=0.0,
 ):
     """Die Bahn grob – für Lagen, Ringe, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     gröberes Raster. ValueError wie bahn_fuer()."""
@@ -492,6 +512,8 @@ def vorschau(
         stand=stand,
         variante=variante,
         freivorschub=freivorschub,
+        eng_lassen=eng_lassen,
+        nur_eng=nur_eng,
     )
 
 
@@ -526,6 +548,8 @@ def lege_an(
     flaechen=(),
     variante="automatisch",
     freivorschub=FREIVORSCHUB,
+    eng_lassen=False,
+    nur_eng=0.0,
 ):
     """Legt „Räumen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und
     Höhen wie FreeCADs Operationen (planfraesen._hoehen); die Endtiefe ist die tiefste Fläche
@@ -550,6 +574,8 @@ def lege_an(
     obj.Gleichlauf = bool(gleichlauf)
     obj.Variante = variante
     obj.Freivorschub = freivorschub / 60.0
+    obj.EngLassen = bool(eng_lassen)
+    obj.NurEngVon = float(nur_eng or 0.0)
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
@@ -589,6 +615,8 @@ def aendere(
     flaechen=None,
     variante=None,
     freivorschub=None,
+    eng_lassen=None,
+    nur_eng=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
@@ -606,6 +634,10 @@ def aendere(
         obj.Variante = variante
     if freivorschub is not None:
         obj.Freivorschub = freivorschub / 60.0
+    if eng_lassen is not None and "EngLassen" in obj.PropertiesList:
+        obj.EngLassen = bool(eng_lassen)
+    if nur_eng is not None and "NurEngVon" in obj.PropertiesList:
+        obj.NurEngVon = float(nur_eng)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
     job = getattr(obj.Proxy, "job", None)

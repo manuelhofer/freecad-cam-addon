@@ -1649,12 +1649,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   sieht Inseln nur in Reichweite von wegzunehmendem Material (sonst fuhr er gezackt um den Mantel
   durch die Luft – Manuel: „warum ist der werkeugweg der ausenrum geht so zackig“). C-Ring:
   Platte Räumen T1, Nut T3, Messstopp, Wände schlichten; Rundmaterial dasselbe ohne Mantel.
-  **Offen:** Im Schlitz-Keil (12–18 mm) fährt der Ø 12 noch hin und her (Sägezahn, Einfahrten bis
-  4 mm durch die Luft) – dort Wellen; in der Bohrung Ringe aus dem Abstandsfeld (Achtecke mit
-  Stufen des 0,5-mm-Rasters) statt Manuels „helix fahren und dann morpfspirealen rausfahen“ – die
-  Variante „morph“ bricht mit jedem Materialstand ab (`raeumen_bahn._flaeche`: `_KeinMorph`, „der
-  Morph fährt ganze Ringe – auch durch Weggefrästes“), und „Bearbeitung“ rechnet immer mit einem;
-  beim runden Rohteil steht schon in den Ecken des Kastens nichts. Das Beispiel mit beiden
+  **Gebaut (P-2026-10-18-90):** Zur Frage „Im engen Schlitz der kleinere Fräser?“ (Bild
+  `docs/bilder/vorschlaege/cring_schlitz_fraeser.png`): „Ja, dort der kleinere“. Räumen lässt
+  Gebiete hinter einer Engstelle schmaler als 2 D aus, wenn die Kiste einen kleineren Fräser hat;
+  „Rest räumen“ nimmt sie mit dem größten, der bequem hineinkommt, von außen in Wellen – nur sie.
+  C-Ring: Rundmaterial Räumen T1 (oben) 1,0 + Rest räumen T3 2,5 min; Platte 2,9 + 2,4 min.
+  **Offen:** Die Variante „morph“ bricht mit jedem Materialstand ab (`_KeinMorph`) – für eine
+  geschlossene Tasche Helix und Morph-Spirale (Manuel) gibt es so nicht; das Beispiel mit beiden
   Rohteilen (zwei Jobs).
 - **W-033 Ring von vorn statt radial** – Manuel, 2026-10-18, zum Bild mit dem radialen Fräser im
   Schlitz des Rings (`beispiele/ring_4achs_planbearbeitung.FCStd`, drei Segmente, Schlitze, Bohrung):

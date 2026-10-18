@@ -2,8 +2,10 @@
 # Kopie) Mantel, Bohrung und Schlitz anklicken – Wände, die durch das Teil gehen. „Bearbeitung“,
 # „Weiter“: Kontur und Räumen treten an; Räumen räumt bis an die Unterkante (z −11) und ist
 # schneller – es bekommt den Haken, die Kontur nicht, die Zeile sagt „die schnellste“.
-# „Schlichten danach“ macht die Wände fertig. „Anlegen“: „Räumen …“ mit den vier Wänden, Endtiefe
-# −11, und eine Bahn bis −11; das Schlichten danach mit den Wänden.
+# „Schlichten danach“ macht die Wände fertig. „Anlegen“: „Räumen T1“ mit den vier Wänden, Endtiefe
+# −11, und eine Bahn bis −11; Schlitz und Bohrung hinter dem Keil (12–18 mm) sind dem Ø 12 zu eng –
+# „Rest räumen“ (Räumen T3) nimmt sie von außen (W-034, Manuel: „Ja, dort der kleinere“), auch bis
+# −11; das Schlichten danach mit den Wänden.
 # ZEITLIMIT: 600
 import os
 import shutil
@@ -95,13 +97,18 @@ def schritte(h):
     neue = list(job.Operations.Group)[vorher:]
     h.pruefe(bool(neue), "nichts angelegt")
     geraeumt = [o for o in neue if ra.ist_raeumen(o)]
-    h.pruefe(len(geraeumt) == 1, f"Operationen: {[o.Label for o in neue]}")
-    if geraeumt:
-        op = geraeumt[0]
-        h.pruefe(sorted(op.Flaechen) == sorted(WAENDE), f"Flächen: {op.Flaechen}")
-        h.pruefe(abs(float(op.FinalDepth) + 11.0) < 1e-6, f"Endtiefe {op.FinalDepth}")
+    h.pruefe(
+        [o.Label for o in geraeumt] == ["Räumen T1", "Räumen T3"],
+        f"Operationen: {[o.Label for o in neue]}",
+    )
+    for op in geraeumt:
+        h.pruefe(sorted(op.Flaechen) == sorted(WAENDE), f"{op.Label}, Flächen: {op.Flaechen}")
+        h.pruefe(abs(float(op.FinalDepth) + 11.0) < 1e-6, f"{op.Label}, Endtiefe {op.FinalDepth}")
         zs = [c.Parameters["Z"] for c in op.Path.Commands if "Z" in c.Parameters]
-        h.pruefe(bool(zs) and abs(min(zs) + 11.0) < 0.01, f"tiefster Punkt {min(zs, default=None)}")
+        h.pruefe(
+            bool(zs) and abs(min(zs) + 11.0) < 0.01,
+            f"{op.Label}, tiefster Punkt {min(zs, default=None)}",
+        )
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800

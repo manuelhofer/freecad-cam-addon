@@ -205,6 +205,15 @@ class Raeumwerte:
     # Nur über den gewählten Flächen räumen: {Fläche: [Schleife [(x, y) …] …]} – ihr Umriss von
     # oben (raeumen.umrisse). None: wie bisher, vom Rand des Rohteils her (_flaeche).
     nur_ueber: dict = None
+    # Enge Gebiete einem kleineren Fräser lassen (_eng_von_aussen; Manuel, 2026-10-18: „wenn …
+    # man von ausen einfahren kann mit einem fräser der klein genug ist kann man das von ausen
+    # rausarbeiten“ – und zum C-Ring „Ja, dort der kleinere“): Was die Mitte nur durch eine
+    # Engstelle schmaler als 2 D erreicht, bleibt aus und steht in `ausgelassen`.
+    eng_lassen: bool = False
+    # „Rest räumen“ nach einem Räumen mit eng_lassen: nur, was der größere Fräser (dieser Radius)
+    # dort als eng ausließ – sonst führe es auch um alles, was er schon geräumt hat (am C-Ring aus
+    # der Platte einmal um den Mantel, wo im Raster ein Hauch stand). 0: alles.
+    nur_eng: float = 0.0
 
 
 @dataclass
@@ -2293,6 +2302,26 @@ def _flaeche(
         if hoehe is not None and not feld.material_setzen(hoehe, naechste, lage, erlaubt):
             vorige = lage  # über der Lage nichts, was der Fräser hier wegnehmen kann
             continue
+        if w.eng_lassen and tasche is None:
+            eng = _eng_von_aussen(feld, erlaubt, r, w.aufmass)
+            if eng is not None:
+                erlaubt = erlaubt & ~eng
+                if ebene.name not in st.ausgelassen:
+                    st.ausgelassen.append(ebene.name)
+        if w.nur_eng > r and tasche is None:
+            # Das Erlaubte des größeren Fräsers: das eigene um die Differenz der Radien enger.
+            erlaubt_gross = ~feld.aufweiten(~erlaubt, w.nur_eng - r)
+            eng = _eng_von_aussen(feld, erlaubt_gross, w.nur_eng, w.aufmass)
+            if eng is None:
+                vorige = lage  # hier räumte der größere alles
+                continue
+            # Das enge Gebiet – und hinein durch die Luft (von außen, Manuel: „von ausen
+            # rausarbeiten“), aber nicht neben Material außerhalb davon: dort stand im Raster ein
+            # Hauch, den der größere schon genommen hat.
+            gebiet = feld.aufweiten(eng, w.nur_eng + feld.schritt)
+            daneben = feld.rohteil_zellen & ~gebiet
+            luft = ~feld.rohteil_zellen & ~feld.aufweiten(daneben, r + feld.schritt)
+            erlaubt = erlaubt & (gebiet | luft)
         feld.frei[:] = False
         # Eine dünne Lage nimmt der Fräser breit, mit ae = R und dem Vorschub, bei dem der Span
         # so dick bleibt (bahn.DUENN): An Manuels Testteil ist der Millimeter über der oberen
@@ -2357,6 +2386,71 @@ def _flaeche(
         st.flaechen += 1
     elif tasche is not None and _steht_in_der_tasche(feld, naechste, ziel):
         st.ausgelassen.append(ebene.name)  # Material, aber kein Ring: der Fräser passt nicht
+
+
+def _zusammen(maske, saat):
+    """Die Zellen der Maske, die über acht Nachbarn mit `saat` zusammenhängen – mit SciPy in
+    einem Zug, sonst _verbunden."""
+    try:
+        from scipy import ndimage
+    except ImportError:
+        return _verbunden(maske, saat)
+    marken, _anzahl = ndimage.label(maske, structure=np.ones((3, 3), dtype=bool))
+    treffer = np.unique(marken[maske & saat])
+    return np.isin(marken, treffer[treffer > 0])
+
+
+def _grosse_teile(maske, mindest):
+    """Die zusammenhängenden Teile der Maske (acht Nachbarn) mit mindestens `mindest` Zellen."""
+    try:
+        from scipy import ndimage
+    except ImportError:
+        ndimage = None
+    if ndimage is not None:
+        marken, anzahl = ndimage.label(maske, structure=np.ones((3, 3), dtype=bool))
+        if not anzahl:
+            return np.zeros_like(maske)
+        groesse = np.bincount(marken.ravel())
+        gross = np.flatnonzero(groesse >= mindest)
+        return np.isin(marken, gross[gross > 0])
+    ergebnis = np.zeros_like(maske)
+    rest = maske.copy()
+    while rest.any():
+        saat = np.zeros_like(rest)
+        saat[np.unravel_index(int(np.argmax(rest)), rest.shape)] = True
+        teil = _verbunden(rest, saat)
+        if int(teil.sum()) >= mindest:
+            ergebnis |= teil
+        rest &= ~teil
+    return ergebnis
+
+
+def _eng_von_aussen(feld, erlaubt, r, aufmass):
+    """(nx, ny) – die Zellen, in die die Mitte des Fräsers (Radius `r`) von außen nur durch eine
+    Engstelle schmaler als 2 D kommt; None, wenn keine (W-034). Von außen heißt: aus der Luft am
+    Rand des Rasters, ohne eine Wand zu berühren, mit beliebig kleinem Fräser – was so nicht
+    erreichbar ist (eine geschlossene Tasche), bleibt beim Fräser (Helix). Bequem ist die Mitte
+    mit einem Radius Spiel (das Erlaubte um `r` eingezogen); was die bequeme Mitte von außen
+    erreicht, und was um einen Radius daneben liegt, nimmt dieser Fräser. Kleine Reste (Ecken, so
+    groß wie r² nicht) bleiben bei ihm."""
+    s = feld.schritt
+    rand = np.zeros(erlaubt.shape, dtype=bool)
+    rand[0, :] = rand[-1, :] = rand[:, 0] = rand[:, -1] = True
+    luft = ~feld.rohteil_zellen
+    saat = rand & erlaubt & luft
+    if not saat.any():
+        return None
+    frei = feld.aufweiten(erlaubt, max(r + aufmass - s, 0.0))  # außerhalb des Teils
+    aussen = _zusammen(frei, rand & frei & luft)
+    bequem = ~feld.aufweiten(~erlaubt, r)
+    hin = _zusammen(bequem, saat & bequem)
+    erreicht = erlaubt & feld.aufweiten(hin, r + s)
+    eng = _grosse_teile(erlaubt & aussen & ~erreicht, int(math.ceil(r * r / (s * s))))
+    if not eng.any():
+        return None
+    # Mit seiner Mündung: Sonst knabberte der große Fräser an ihr, im Sägezahn (am C-Ring vor dem
+    # Schlitz), und der kleinere fuhr sie danach noch einmal.
+    return erlaubt & feld.aufweiten(eng, r + s)
 
 
 def _verbunden(maske, saat):

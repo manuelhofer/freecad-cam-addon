@@ -548,6 +548,16 @@ ich wenns irgendwie geht auf eine helix setzten“). Für jede Strategie, in die
    Eintauchvorschub. Größer darf die Grenze nicht sein: In einer Bohrung schneidet die Wendel beim
    Hinab die Wand, ihr Weg ist Tiefe ÷ tan(Eintauchwinkel), gleich für jede Schleife.
 3. **Zickzack-Rampe** – nur in einer geschlossenen Nut, die für eine Helix zu schmal ist.
+
+**Von außen mit dem Fräser, der klein genug ist** (Manuel, 2026-10-18: „wenn … man von ausen
+einfahren kann mit einem fräser der klein genug ist kann man das von ausen rausarbeiten .. wenn man
+von ausen nicht rein kommt eine helix fahren und dann morpfspirealen rausfahen“; zum C-Ring, Bild
+`docs/bilder/vorschlaege/cring_schlitz_fraeser.png`: „Ja, dort der kleinere“): Ein Gebiet, in das
+die Mitte des Fräsers von außen nur durch eine Engstelle schmaler als 2 D kommt (am C-Ring Schlitz
+und Bohrung hinter dem Keil 12–18 mm für den Ø 12), lässt das Räumen aus, wenn die Kiste einen
+kleineren Fräser hat; „Rest räumen“ nimmt es mit dem größten, der bequem hineinkommt, von außen –
+und nur dieses Gebiet (`raeumen_bahn._eng_von_aussen`, `Raeumwerte.eng_lassen`, `nur_eng`).
+Was von außen gar nicht erreichbar ist (eine geschlossene Tasche), räumt der große Fräser mit Helix.
 Gebaut für „Plan indexiert“ (P-2026-10-12-161); die anderen Strategien danach durchsehen.
 Über allem steht „nie in voller Breite“ (Abschnitt 12.1): Nach der Helix fährt der Fräser auf der
 Lage zur Bahn. Ginge das durch Material, das die Helix nicht gebohrt hat – beim ersten Umlauf einer

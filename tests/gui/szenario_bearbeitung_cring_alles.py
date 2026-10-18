@@ -6,11 +6,12 @@
 # unten 1). Beide Male: Das Räumen bleibt angehakt (es verlor den Haken mit dem Merker „schon weg“
 # aus dem zweiten Lauf seiner Folge), die Nut fräst die Ringnut mit T3 (der Ø 12 passt nicht
 # hinein, die Nut schlug sich neben anderen Flächen nicht vor – die Ringnut blieb liegen),
-# „Schlichten danach“ mit Messstopp davor. Das Räumen räumt über alles bis zur Unterkante
-# (Schlitz, Bohrung, außen herum – Grundsatz 5, Manuel: „keine luftfahrten … und wenn rohteil schon
-# fertigteil durchmesser hat ... dann muss man da auch nimmer drüber juckeln“), die Kontur hat
-# nichts zu tun. „Anlegen“: Räumen, „Nut T3“, Messstopp, „Wände schlichten T1“ – keine Kontur;
-# beim Rundmaterial schlichtet niemand den Mantel (davor steht kein Rohteil), bei der Platte schon.
+# „Schlichten danach“ mit Messstopp davor. Das Räumen räumt über alles bis zur Unterkante (außen
+# herum – Grundsatz 5, Manuel: „keine luftfahrten … und wenn rohteil schon fertigteil durchmesser
+# hat ... dann muss man da auch nimmer drüber juckeln“), die Kontur hat nichts zu tun; Schlitz und
+# Bohrung hinter dem Keil sind für T1 zu eng – „Rest räumen“ mit T3 von außen in Wellen („Ja, dort
+# der kleinere“). „Anlegen“: Räumen T1, Räumen T3, „Nut T3“, Messstopp, „Wände schlichten T1“ –
+# keine Kontur; beim Rundmaterial schlichtet niemand den Mantel (davor steht kein Rohteil).
 # ZEITLIMIT: 900
 import math
 import os
@@ -90,6 +91,16 @@ def _ein_rohteil(h, ordner, name, rohteil_setzen):
         not panel.kontur.aktiv() and "nichts zu tun" in panel.kontur.hinweis.text(),
         f"{name}: Kontur {panel.kontur.aktiv()} {panel.kontur.hinweis.text()!r}",
     )
+    # Schlitz (Keil 12–18 mm) und Bohrung dahinter: zu eng für T1 Ø 12 – „Rest räumen“ mit T3 von
+    # außen in Wellen (Manuel, 2026-10-18: „Ja, dort der kleinere“).
+    rest = panel.restraeumen
+    h.pruefe(
+        "Engstelle" in panel.raeumen.ergebnis.text()
+        and rest.aktiv()
+        and getattr(rest.fraeser(), "nummer", None) == 3,
+        f"{name}: Räumen {panel.raeumen.ergebnis.text()!r}, Rest räumen {rest.aktiv()} "
+        f"T{getattr(rest.fraeser(), 'nummer', None)}",
+    )
     h.bild(f"1_{name}", panel.form)
     panel.knopf_weiter.click()
     yield 800
@@ -101,7 +112,7 @@ def _ein_rohteil(h, ordner, name, rohteil_setzen):
     namen = [o.Label for o in neue]
     print(ascii(f"{name}: {namen}"))
     h.pruefe(any(n.startswith("Räumen") for n in namen), f"{name}: kein Räumen in {namen}")
-    for soll in ("Nut T3", "Messstopp", "Wände schlichten T1"):
+    for soll in ("Räumen T1", "Räumen T3", "Nut T3", "Messstopp", "Wände schlichten T1"):
         h.pruefe(soll in namen, f"{name}: „{soll}“ fehlt in {namen}")
     if "Messstopp" in namen and "Wände schlichten T1" in namen:
         # Schruppen – messen – schlichten: alles Schruppen (auch die Kontur) vor dem Messstopp.
