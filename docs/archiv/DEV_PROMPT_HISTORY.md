@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-18-83 wendel-schruppen
+
+### EINGELESEN
+- Manuel, 2026-10-18, an seinem Wendel-Testteil (Rohteil Ø 80 = Teil): „das rohteil entspricht mit
+  80 exakt dem fertigteil .. warum muss das nochmal mit dem schrupper abgefahren werden ??? is doch
+  blödsinn“; zum Vorschlag „Schruppen, Vorschlichten und Schlichten der Nut nach“: „Ja, vorgewählt
+  bei Wendelnut“. Zum Bild der offenen Nut am C-Ring (D-Bögen): „zum schruppen is das definitv
+  schöner .. so will ichs haben“.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `Schruppwerte.wendel`, `_schruppen_wendel` – steht die Stange über
+  dem Außenradius des Teils, die Spirale wie sonst bis dorthin (r_tiefste); darunter die Nut in
+  Lagen der Wendel nach (`_wendel_schrupp_spuren`): Lagen gleich tief bis zur tiefsten Stelle, die
+  die Spitze erreicht, je Lage zuerst die tiefste Stelle in voller Breite (höchstens 0,5 · D tief,
+  der Vorschub so, dass der Span so dick ist wie mit ae), dann im Abstand ae abwechselnd nach beiden
+  Seiten, nur wo die Lage etwas nimmt; sonst durchs Freie. Die Bahnen in Blöcken auf den
+  Nebenrechnern (`wendel_schrupp_stueck`, `_wendel_schrupp_verteilt`), zusammengefügt mit
+  `_punkte_zusammen` (auch für das Schlichten). `Bahn.wendel_bahnen`.
+- `camaddon/vierachs_operation.py`: Eigenschaft `Wendel`; `bahn_fuer(…, wendel=)` erkennt die
+  Wendelnut (sonst ValueError), merkt sie im Schlüssel der Bahn; `lege_an`/`aendere`.
+- `camaddon/gui_vierachs.py`: Haken „Der Wendelnut nach“ beim Schruppen – zu sehen und angehakt,
+  sobald eine Wendelnut erkannt ist; „→ 2 Lagen (…) – davon 6 Bahnen der Wendelnut nach“.
+- `translations/*.json`, `tests/gui/szenario_vierachs_wendel.py` (Haken angehakt, die Operation mit
+  `Wendel`, das Schruppen nie über dem Ø 80, danach kein Vorschlichten nötig).
+
+### ERGEBNIS
+- An Manuels Teil (Kopie, T1 Ø 12, ap 22,2, ae 5,4): Spirale 3,84 m Vorschub, davon 3,11 m über dem
+  fertigen Ø 80, 1,71 min; der Wendelnut nach 2 Lagen, 6 Bahnen, 1,84 m, nichts in der Luft,
+  1,54 min, C nur in eine Richtung. Danach greift die Kugel höchstens mit 5,2 mm² ein (vorher 20,1)
+  – kein Vorschlichten mehr nötig.
+- Grün im Wochen-Build: `szenario_vierachs_wendel`, `test_vierachs_bahn`, `test_vierachs_wendel`.
+- Verteilt: In der Vorschau des Assistenten rechnet das Schruppen der Wendel in einem Nebenrechner
+  (der nicht weiter verteilt); an Manuels Teil 1,2 s für 6 Bahnen – zu klein, um es aufzuteilen.
+  Beim Anlegen und Neuberechnen gehen die Bahnen auf alle Nebenrechner.
 ## P-2026-10-18-82 wendel-auf-allen-kernen
 
 ### EINGELESEN

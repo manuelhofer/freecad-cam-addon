@@ -647,6 +647,7 @@ class VierachsPanel:
         self._wendel_schluessel = None
         self._wendel = None
         self._wendel_auftrag = None
+        self._schruppen_wendel_von_hand = False
         self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
         self._sektoren_y_von_hand = False  # „Sektoren in Zeilen mit Y“ von Hand gesetzt
         self._y_weg_gemerkt = {}  # (Dokument, Maschine) → Weg der Querachse (y_weg)
@@ -955,6 +956,9 @@ class VierachsPanel:
             self.schruppen_sektoren_y.setChecked(
                 self.schruppen_sektoren_y.isEnabled() and bool(getattr(op, "SektorenY", False))
             )
+            self._schruppen_wendel_von_hand = True
+            self.schruppen_wendel.setVisible(bool(getattr(op, "Wendel", False)))
+            self.schruppen_wendel.setChecked(bool(getattr(op, "Wendel", False)))
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
         # Die Auflösung: nur ein gesetzter Wert (0 ist der Vorschlag und bleibt grau).
         if self._art == SCHLICHTEN:
@@ -1492,6 +1496,13 @@ class VierachsPanel:
         self.schruppen_sektoren_y.setToolTip(tr("va.sektoren_y.tooltip"))
         self.schruppen_sektoren_y.toggled.connect(lambda _an: self._sektoren_y_umgeschaltet())
         schruppen.ganz(self.schruppen_sektoren_y)
+        # Der Wendelnut nach (W-030; Manuel: „Schruppen, Vorschlichten und Schlichten der Nut
+        # nach“ – „Ja, vorgewählt bei Wendelnut“): zu sehen, sobald eine erkannt ist.
+        self.schruppen_wendel = QtGui.QCheckBox(tr("va.schruppen_wendel"))
+        self.schruppen_wendel.setToolTip(tr("va.schruppen_wendel.tooltip"))
+        self.schruppen_wendel.toggled.connect(lambda _an: self._schruppen_wendel_umgeschaltet())
+        self.schruppen_wendel.hide()
+        schruppen.ganz(self.schruppen_wendel)
         self.schruppfelder = schruppen.widget
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
@@ -2379,8 +2390,32 @@ class VierachsPanel:
             # Wendelnut“).
             muster, grund = vb.WENDEL, self._wendel_grund(wendel)
         self.muster_grund.setText(grund)
+        self._schruppen_wendel_vorschlagen(wendel if not flaechen else None)
         if not self._muster_von_hand:
             self._muster_setzen(muster)
+
+    def _schruppen_wendel_vorschlagen(self, wendel):
+        """„Der Wendelnut nach“ beim Schruppen: zu sehen mit einer Wendelnut, dann angehakt,
+        solange man ihn nicht von Hand gesetzt hat; ohne Wendelnut weg."""
+        self.schruppen_wendel.setVisible(wendel is not None)
+        if self._schruppen_wendel_von_hand:
+            return
+        vorher = self._fuellt
+        self._fuellt = True
+        try:
+            self.schruppen_wendel.setChecked(wendel is not None)
+        finally:
+            self._fuellt = vorher
+
+    def schruppen_wendel_an(self):
+        """Schruppt das Schruppen die Wendelnut ihr nach?"""
+        return self.schruppen_wendel.isVisible() and self.schruppen_wendel.isChecked()
+
+    def _schruppen_wendel_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._schruppen_wendel_von_hand = True
+        self._vorschau_starten()
 
     def _wendel_grund(self, wendel):
         """„Vorschlag: der Wendel nach – die Nut läuft mit 60 mm Steigung um …“"""
@@ -2451,10 +2486,10 @@ class VierachsPanel:
         self._wendel_schluessel = schluessel
         if self._wendel is None:
             return
-        vorher = self.muster()
+        vorher = (self.muster(), self.schruppen_wendel.isChecked())
         self._muster_vorschlagen()
         self._querachse_vorschlagen()
-        if self.muster() != vorher:
+        if (self.muster(), self.schruppen_wendel.isChecked()) != vorher:
             self._vorschau_starten()
 
     def _muster_setzen(self, muster, von_hand=False):
@@ -4484,6 +4519,7 @@ class VierachsPanel:
             "oben": vo.stufen_des_werkzeugs(werkzeug, self.bibliothek),
             "sektoren_y": self.sektoren_y(),
             "y_weg": self.y_weg(),
+            "wendel": self.schruppen_wendel_an(),
         }
 
     @staticmethod
@@ -5393,6 +5429,8 @@ class VierachsPanel:
                 text = tr("va.lagen.eine", von=von, bis=bis)
             else:
                 text = tr("va.lagen", lagen=bahn.lagen, von=von, bis=bis)
+        if getattr(bahn, "wendel_bahnen", 0):
+            text += " " + tr("va.lagen.wendel", bahnen=bahn.wendel_bahnen)
         if bahn.hinten_frei > 0:
             text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
         return text
@@ -5555,6 +5593,7 @@ class VierachsPanel:
                         nur_noetig=self.nur_noetig(),
                         sektoren_y=self.sektoren_y(),
                         y_weg=self.y_weg(),
+                        wendel=self.schruppen_wendel_an(),
                     )
                     self._aufloesung_setzen(neu_schruppen)
                     angelegt.append(neu_schruppen)
@@ -5830,6 +5869,7 @@ class VierachsPanel:
                         nur_noetig=self.nur_noetig(),
                         sektoren_y=self.sektoren_y(),
                         y_weg=self.y_weg(),
+                        wendel=self.schruppen_wendel_an(),
                     )
                     self._aufloesung_setzen(op)
                 if schlichten_dazu:

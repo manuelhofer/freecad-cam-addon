@@ -273,6 +273,9 @@ class Schruppwerte:
     # So weit fährt die Querachse von der Mitte aus (mm, ± – nach stirnseite.y_nutzen); reicht sie
     # nicht über einen Sektor, teilt er sich: ein C-Schritt dazwischen. inf: unbegrenzt.
     y_weg: float = math.inf
+    # Die Wendelnut (vierachs_wendel.Wendel): bis zum Außenradius des Teils wie sonst, darunter
+    # in Lagen der Nut nach (W-030, _schruppen_wendel); None: wie sonst.
+    wendel: object = None
 
 
 @dataclass(frozen=True)
@@ -483,6 +486,7 @@ class Bahn:
     # längs. Leer, wo er nichts ausmacht (P-2026-10-16-33: seit P-2026-10-12-170 weicht die Bahn
     # dem Halter aus, und „Halter stößt an … länger ausspannen“ kam nicht mehr).
     anstoss: tuple = ()
+    wendel_bahnen: int = 0  # davon der Wendelnut nach (Schruppwerte.wendel): so viele Bahnen
 
 
 ANSTOSS_AB = 0.05  # mm – so viel höher muss der Halter die Spitze halten, damit es zählt
@@ -534,6 +538,8 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         raise ValueError(tr("vb.fehler.werte"))
     if w.steigung > 2 * w.fraeser_radius:
         raise ValueError(tr("vb.fehler.steigung"))
+    if w.wendel is not None:
+        return _schruppen_wendel(netz, laengs, radial, w, schritt_a, schritt_phi)
     l_, _u, _v = vh.rahmen(laengs, radial)
     a_teil = netz.punkte @ l_
     teil_vorne, teil_hinten = float(a_teil.max()), float(a_teil.min())
@@ -2669,13 +2675,265 @@ def _wendel_verteilt(argumente, spuren, kammhoehe):
 def wendel_zusammen(teile):
     """Fügt Schlichtbahnen der Wendel (Blöcke von Bahnen, je mit Start und Ende) zu einer: Die
     Winkel eines Blocks laufen um ganze Umdrehungen versetzt dort weiter, wo der vorige aufhörte
-    – C dreht weiter in dieselbe Richtung, nie zurück."""
+    – C dreht weiter in dieselbe Richtung, nie zurück (_punkte_zusammen)."""
     teile = [t for t in teile if t is not None]
     if not teile:
         return None
-    punkte = list(teile[0].punkte[:-1])
-    for teil in teile[1:]:
-        stueck = teil.punkte[1:-1]
+    punkte = _punkte_zusammen([t.punkte for t in teile])
+    erster = teile[0]
+    return Schlichtbahn(
+        punkte,
+        sum(t.umdrehungen for t in teile),
+        min(t.r_min for t in teile),
+        erster.kammhoehe,
+        erster.hinten_frei,
+        max(t.rest_ueber for t in teile),
+        querachse=erster.querachse,
+        wendel_bahnen=sum(t.wendel_bahnen for t in teile),
+    )
+
+
+WENDEL_VOLLNUT_AP = 0.5  # × D: so tief schneidet die erste Bahn einer Lage in voller Breite
+# höchstens (wie nut_bahn.VOLLNUT_AP)
+
+
+def _schruppen_wendel(netz, laengs, radial, w, schritt_a, schritt_phi):
+    """Schruppen der Wendelnut nach (W-030; Manuel, 2026-10-18: „das rohteil entspricht mit 80
+    exakt dem fertigteil .. warum muss das nochmal mit dem schrupper abgefahren werden ??? is doch
+    blödsinn“): Steht die Stange über dem Außenradius des Teils, nimmt die Spirale sie wie sonst ab –
+    nur bis dorthin (r_tiefste). Darunter die Nut in Lagen der Wendel nach (_wendel_schrupp_spuren):
+    je Lage zuerst die Mitte in voller Breite (darum höchstens WENDEL_VOLLNUT_AP · D tief, der
+    Vorschub so, dass der Span so dick ist wie beim Einsatz mit ae), dann nach außen im Abstand ae;
+    C dreht immer in dieselbe Richtung. Die Bahnen sind voneinander unabhängig: in Blöcken auf den
+    Nebenrechnern (_wendel_schrupp_verteilt)."""
+    wendel = w.wendel
+    radius = w.fraeser_radius
+    form = w.form if w.form is not None else ff.scheibe(radius)
+    l_, _u, _v = vh.rahmen(laengs, radial)
+    a_teil = netz.punkte @ l_
+    teil_vorne, teil_hinten = float(a_teil.max()), float(a_teil.min())
+    ueberlauf = ueberlauf_vorschlag(radius) if w.ueberlauf is None else w.ueberlauf
+    a_anfang = w.a_stange_vorne + radius + w.sicherheit
+    a_ende = _ende(teil_hinten, ueberlauf, radius, w)
+    if a_ende >= teil_vorne + radius:
+        raise ValueError(_kein_platz(radius, w))
+    hinten_frei = max(0.0, a_ende - radius - teil_hinten)
+    oben = wendel.r_aussen + w.aufmass
+    spirale = None
+    if w.stange_radius > oben + BAHN_TOLERANZ:
+        spirale = schruppen(
+            netz,
+            laengs,
+            radial,
+            replace(w, wendel=None, r_tiefste=max(w.r_tiefste, oben)),
+            schritt_a,
+            schritt_phi,
+        )
+    w = replace(w, form=form, waende=())
+    spuren = _wendel_schrupp_spuren(
+        netz, laengs, radial, w, min(w.stange_radius, oben), teil_vorne, teil_hinten
+    )
+    a_vorne = max(teil_vorne, w.a_stange_vorne) + radius + VORLAUF_SCHLICHTEN
+    argumente = (
+        netz,
+        laengs,
+        radial,
+        w,
+        a_anfang,
+        a_vorne,
+        a_ende,
+        teil_vorne,
+        teil_hinten,
+        schritt_phi,
+    )
+    stuecke = _wendel_schrupp_verteilt(argumente, spuren) if spuren else []
+    if stuecke is None:
+        stuecke = [wendel_schrupp_stueck(*argumente, spuren)]
+    listen = ([spirale.punkte] if spirale is not None else []) + [s[0] for s in stuecke]
+    if not listen:
+        raise ValueError(tr("vw.fehler.keine"))
+    r_werte = ([spirale.r_min] if spirale is not None else []) + [s[1] for s in stuecke]
+    return Bahn(
+        _punkte_zusammen(listen),
+        (spirale.lagen if spirale is not None else 0) + len({s[1] for s in spuren}),
+        min(r_werte),
+        hinten_frei,
+        spirale.anstoss if spirale is not None else (),
+        wendel_bahnen=sum(s[2] for s in stuecke),
+    )
+
+
+def _wendel_schrupp_spuren(netz, laengs, radial, w, r_oben, teil_vorne, teil_hinten):
+    """[(Gang, r der Lage, r der Lage davor, Versatz quer, Anteil am Vorschub)] – die Bahnen des
+    Schruppens in der Nut, Lage für Lage von außen nach innen: Die Lagen gleich tief bis zur
+    tiefsten Stelle, die die Spitze erreicht (Profil quer über die Nut wie beim Schlichten); je
+    Lage nur, wo sie etwas nimmt, zuerst an der tiefsten Stelle (volle Breite), dann im Abstand ae
+    abwechselnd nach beiden Seiten bis an den Rand dessen, was sie nimmt."""
+    from . import vierachs_wendel as vw
+
+    wendel = w.wendel
+    radius = w.fraeser_radius
+    zugabe = w.aufmass + netz.toleranz
+    mitte = wendel.mitte_bei(0.5 * (teil_vorne + teil_hinten))
+    weite = 0.5 * wendel.breite + radius + 1.0
+    anzahl = int(math.ceil(2 * weite / vw.PROFIL_SCHRITT)) + 1
+    u = -weite + vw.PROFIL_SCHRITT * np.arange(anzahl)
+    spitze = (
+        vh.je_winkel(
+            netz,
+            laengs,
+            radial,
+            w.form.mit_aufmass(zugabe),
+            np.array([mitte - weite]),
+            vw.PROFIL_SCHRITT,
+            anzahl,
+            np.array([0.0]),
+        )[:, 0]
+        + zugabe
+    )
+    spitze = np.where(np.isfinite(spitze), spitze, math.inf)
+    tief = max(float(np.min(spitze)), w.r_tiefste)
+    if not math.isfinite(tief) or tief >= r_oben - BAHN_TOLERANZ:
+        return []
+    ap = min(w.zustellung, WENDEL_VOLLNUT_AP * 2 * radius)
+    lagen = max(1, int(math.ceil((r_oben - tief) / ap - 1e-9)))
+    ap = (r_oben - tief) / lagen
+    ae = min(w.steigung, 2 * radius)
+    k = min(ae / (2 * radius), 0.5)
+    voll = 2 * math.sqrt(k * (1 - k))  # der Span so dick wie mit ae (nut_bahn._vollnut_anteil)
+    spuren = []
+    r_vorher = r_oben
+    for lage in range(1, lagen + 1):
+        r_lage = r_oben - lage * ap
+        nimmt = np.flatnonzero(spitze < r_vorher - BAHN_TOLERANZ)
+        if not len(nimmt):
+            break
+        u_lo, u_hi = float(u[nimmt[0]]), float(u[nimmt[-1]])
+        u_mitte = float(u[nimmt[np.argmin(spitze[nimmt])]])
+        lage_spuren = [(u_mitte, voll)]
+        rechts, links = u_mitte, u_mitte
+        while rechts < u_hi - 1e-9 or links > u_lo + 1e-9:
+            if rechts < u_hi - 1e-9:
+                rechts = min(rechts + ae, u_hi)
+                lage_spuren.append((rechts, 1.0))
+            if links > u_lo + 1e-9:
+                links = max(links - ae, u_lo)
+                lage_spuren.append((links, 1.0))
+        for gang in range(wendel.gaenge):
+            spuren.extend((gang, r_lage, r_vorher, v, anteil) for v, anteil in lage_spuren)
+        r_vorher = r_lage
+    return spuren
+
+
+def wendel_schrupp_stueck(
+    netz,
+    laengs,
+    radial,
+    w,
+    a_anfang,
+    a_vorne,
+    a_ende,
+    teil_vorne,
+    teil_hinten,
+    schritt_phi,
+    spuren,
+):
+    """Die Bahnen `spuren` (_wendel_schrupp_spuren) des Schruppens der Wendel nach: (Punkte mit
+    Start und Ende im Eilgang vor der Stange, tiefste Spitze, Anzahl) – auch für einen
+    Nebenrechner (_wendel_schrupp_verteilt). Jede Bahn wie eine Spirale mit der Steigung der Nut,
+    die Spitze nie unter ihrer Lage (r_tiefste); wo sie nicht unter die Lage davor kommt, fährt
+    sie durchs Freie."""
+    wendel = w.wendel
+    steigung = abs(wendel.steigung)
+    drehung = _wendel_drehung(wendel)
+    mitte = wendel.mitte_bei(0.5 * (teil_vorne + teil_hinten))
+    sicher = w.stange_radius + w.sicherheit
+    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    je_umdrehung = int(round(360.0 / schritt_phi))
+    punkte = [Punkt(True, a_anfang, sicher, 0.0)]
+    r_min = math.inf
+    bahnen = 0
+    for gang, r_lage, r_vorher, versatz, anteil in spuren:
+        basis = mitte + gang * wendel.teilung + versatz
+        schritte = math.ceil((a_vorne - basis) / steigung * je_umdrehung - 1e-9)
+        start = basis + steigung * schritte / je_umdrehung
+        spalte0 = (int(math.copysign(1, wendel.steigung)) * schritte) % je_umdrehung
+        if start <= a_ende:
+            continue
+        a, r, winkel, _anzahl, _je, _d = _spirale_rechnen(
+            netz,
+            laengs,
+            radial,
+            replace(w, r_tiefste=max(w.r_tiefste, r_lage)),
+            steigung,
+            start,
+            a_ende,
+            teil_vorne,
+            teil_hinten,
+            schritt_phi,
+            drehung=drehung,
+            ende_ring=False,
+            spalte0=spalte0,
+        )
+        frei = _frei(a, r, winkel, r >= r_vorher - LEER)
+        anfang = len(punkte)
+        _spirale(punkte, a, r, winkel, 0, len(a) - 1, sicher, abstand, drehung, None, frei)
+        if anteil < 1.0:
+            punkte[anfang:] = [
+                p if p.eilgang else replace(p, anteil=anteil) for p in punkte[anfang:]
+            ]
+        r_min = min(r_min, float(np.min(r)))
+        bahnen += 1
+        uhren.atmen()
+    punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
+    return punkte, r_min, bahnen
+
+
+def _wendel_schrupp_verteilt(argumente, spuren):
+    """Die Bahnen des Schruppens der Wendel nach in Blöcken auf den Nebenrechnern – [(Punkte,
+    tiefste Spitze, Anzahl)] je Block; None ohne Nebenrechner (auch in einem selbst) oder bei zu
+    wenigen Bahnen."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2 or len(spuren) < 2 * WENDEL_SPUREN_JE_AUFTRAG:
+        return None
+    netz, laengs, radial, w = argumente[:4]
+    gesendet = (
+        tuple(float(x) for x in laengs),
+        tuple(float(x) for x in radial),
+        w,
+        *argumente[4:],
+    )
+    netz_gemeinsam = pool.gemeinsam("vh-netz-" + vh.kennung(netz).hex(), netz)
+    bereiche = nr.stuecke(
+        len(spuren), pool.anzahl, je_arbeiter=1, mindestens=WENDEL_SPUREN_JE_AUFTRAG
+    )
+    try:
+        auftraege = [
+            pool.auftrag(
+                "vierachs_bahn", "wendel_schrupp_stueck", netz_gemeinsam, *gesendet, spuren[v:b]
+            )
+            for v, b in bereiche
+        ]
+        return pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except (nr.Fehler, nr.NichtVerfuegbar) as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Schruppen der Wendel auf den Nebenrechnern gescheitert, rechne hier: "
+            f"{fehler}\n"
+        )
+        return None
+
+
+def _punkte_zusammen(listen):
+    """Fügt Punktlisten (je mit Start und Ende im Eilgang vor der Stange) zu einer: Die Winkel
+    einer Liste laufen um ganze Umdrehungen versetzt dort weiter, wo die vorige aufhörte – in
+    ihrer eigenen Richtung, ohne eine Umdrehung zurück."""
+    punkte = list(listen[0][:-1])
+    for liste in listen[1:]:
+        stueck = liste[1:-1]
         if not stueck:
             continue
         drehung = 1.0
@@ -2690,18 +2948,8 @@ def wendel_zusammen(teile):
         else:
             versatz = -360.0 * math.ceil((erster - weiter) / 360.0 - 1e-9)
         punkte.extend(replace(p, phi=p.phi + versatz) for p in stueck)
-    erster = teile[0]
-    punkte.append(replace(erster.punkte[-1], phi=punkte[-1].phi))
-    return Schlichtbahn(
-        punkte,
-        sum(t.umdrehungen for t in teile),
-        min(t.r_min for t in teile),
-        erster.kammhoehe,
-        erster.hinten_frei,
-        max(t.rest_ueber for t in teile),
-        querachse=erster.querachse,
-        wendel_bahnen=sum(t.wendel_bahnen for t in teile),
-    )
+    punkte.append(replace(listen[0][-1], phi=punkte[-1].phi))
+    return punkte
 
 
 # --- Linien längs (V4c) ---------------------------------------------------------------------

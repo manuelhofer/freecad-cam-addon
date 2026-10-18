@@ -4,10 +4,11 @@
 # deren Mitte auf dem Umfang liegt, als Wendel mit 60 mm Steigung – wie sein Teil. Stange Ø 80,
 # T1 Schaftfräser Ø 12, T2 Kugelfräser Ø 12. Schritt 2: Das Muster ist „Der Wendel nach“, darunter
 # „Vorschlag: der Wendel nach – die Nut läuft eingängig und rechtsgängig mit 60 mm Steigung um …“;
-# die Vorschau sagt „→ … Bahnen der Wendel nach, etwa … min“. Die Kugel nähme nach dem Schruppen
-# in der Nut viel – das Vorschlichten ist angehakt. „Anlegen“: „Rundum schruppen T1“, „Rundum
-# vorschlichten T2“ und „Rundum schlichten T2“, die beiden mit dem Muster „Wendel“; im Schlichten
-# dreht C (hier A) im ganzen Programm nur in eine Richtung.
+# die Vorschau sagt „→ … Bahnen der Wendel nach, etwa … min“; das Schruppen ist „Der Wendelnut nach“
+# angehakt und fräst nur in der Nut, nie über dem Ø 80. Danach bleibt der Kugel wenig: der Satz
+# darunter grau, kein Vorschlichten. „Anlegen“: „Rundum schruppen T1“ (Wendel) und „Rundum
+# schlichten T2“ mit dem Muster „Wendel“; im Schlichten dreht C (hier A) im ganzen Programm nur in
+# eine Richtung.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -116,6 +117,12 @@ def schritte(h):
         f"Grund: {grund!r}",
     )
     h.pruefe(panel.schlichten_querachse.isEnabled(), "Querachse mit der Wendel gesperrt")
+    # Das Schruppen der Wendelnut nach: zu sehen und angehakt (Manuel: „zum schruppen is das
+    # definitv schöner .. so will ichs haben“).
+    h.pruefe(
+        panel.schruppen_wendel.isVisible() and panel.schruppen_wendel_an(),
+        "„Der Wendelnut nach“ beim Schruppen nicht angehakt",
+    )
     yield from h.warte_auf(lambda: panel.vorschau_schlichten is not None, 120000)
     ergebnis = panel.ergebnis_schlichten.text()
     print("Schlichten:", ergebnis)
@@ -126,6 +133,20 @@ def schritte(h):
         f"Ergebnis: {ergebnis!r}",
     )
     h.pruefe(10 <= bahnen <= 45, f"{bahnen} Bahnen")
+    h.pruefe(
+        "Bahnen der Wendelnut nach" in panel.ergebnis.text(),
+        f"Schruppen: {panel.ergebnis.text()!r}",
+    )
+    yield from h.warte_auf(lambda: panel._rest_auftrag is None, 120000)
+    yield from h.warte_auf(
+        lambda: panel._vor_auftrag is None and panel._vor_rest_auftrag is None, 120000
+    )
+    rest = panel.rest_schlichten.text()
+    h.pruefe(
+        rest.startswith("Rest für die Kugel nach dem Schruppen")
+        and not panel.vorschlichten.isChecked(),
+        f"Rest: {rest!r}",
+    )
     h.bild("1_wendel", panel.form)
 
     yield from h.warte_auf(lambda: panel.knopf_fertig.isEnabled(), 30000)
@@ -134,18 +155,26 @@ def schritte(h):
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster nach „Anlegen“ offen")
     ops = [o for o in job.Operations.Group if vo.ist_rundum(o)]
     namen = [o.Label for o in ops]
-    # Nach dem Schruppen nähme die Kugel in der Nut viel: das Vorschlichten ist angehakt (W-031).
-    h.pruefe(
-        namen == ["Rundum schruppen T1", "Rundum vorschlichten T2", "Rundum schlichten T2"],
-        f"Operationen: {namen}",
-    )
-    if len(ops) < 3:
+    # Der Wendelnut nach geschruppt bleibt der Kugel wenig (an Manuels Teil 5,2 statt 20,1 mm²):
+    # kein Vorschlichten.
+    h.pruefe(namen == ["Rundum schruppen T1", "Rundum schlichten T2"], f"Operationen: {namen}")
+    if len(ops) < 2:
         return
-    op = ops[2]
+    op = ops[1]
+    h.pruefe(op.Muster == "Wendel", f"Muster: {op.Muster}")
+    schrupp = ops[0]
+    h.pruefe(bool(getattr(schrupp, "Wendel", False)), "Rundum schruppen ohne „Wendel“")
+    # Die Stange ist Ø 80 wie das Teil: Das Schruppen fräst nur in der Nut, nie über dem Ø 80.
+    radius_x = [
+        b.Parameters["Z"]
+        for b in schrupp.Path.Commands
+        if b.Name == "G1" and "Z" in b.Parameters and b.Parameters.get("F", 1) > 0
+    ]
     h.pruefe(
-        op.Muster == "Wendel" and ops[1].Muster == "Wendel" and vs.ist_vorschlichten(ops[1]),
-        f"Muster: {ops[1].Muster}, {op.Muster}",
+        radius_x and max(radius_x) <= 40.0 + 0.3 + 0.05,
+        f"Schruppen über dem Ø 80: bis r {max(radius_x, default=0):.2f}",
     )
+    h.pruefe(not vs.ist_vorschlichten(op), "das Schlichten gilt als Vorschlichten")
     befehle = op.Path.Commands
     h.pruefe(sum(1 for b in befehle if b.Name == "G1") > 200, f"{len(befehle)} Befehle")
     # C (an dieser Stange A) dreht im ganzen Programm nur in eine Richtung – auch zwischen den

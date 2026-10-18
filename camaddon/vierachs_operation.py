@@ -124,6 +124,7 @@ class RundumSchruppen(PathOp.ObjectOp):
                 ("App::PropertyBool", "Stetig", tr("vo.eigenschaft.stetig")),
                 ("App::PropertyBool", "NurNoetig", tr("vo.eigenschaft.nur_noetig")),
                 ("App::PropertyBool", "SektorenY", tr("vo.eigenschaft.sektoren_y")),
+                ("App::PropertyBool", "Wendel", tr("vo.eigenschaft.wendel")),
                 ("App::PropertyLength", "YWeg", tr("vo.eigenschaft.y_weg")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
                 ("App::PropertyString", "Anstoss", tr("vo.eigenschaft.anstoss")),
@@ -280,6 +281,7 @@ def rechne(obj, job, modell, fraeser_radius):
         oben=ueber_der_schneide(obj.ToolController),
         sektoren_y=bool(getattr(obj, "SektorenY", False)),
         y_weg=y_weg_von(obj),
+        wendel=bool(getattr(obj, "Wendel", False)),
     )
 
 
@@ -360,6 +362,7 @@ def bahn_fuer(
     oben=(),
     sektoren_y=False,
     y_weg=math.inf,
+    wendel=False,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -371,7 +374,8 @@ def bahn_fuer(
     zurück (Schruppwerte.stetig), `nur_noetig`: Folgelagen nur, wo die davor über der Hüllfläche
     blieb (Schruppwerte.nur_noetig); `sektoren_y`: in Sektoren Zeilen mit Y bei stehender
     Rundachse (Schruppwerte.sektoren_y, W-026), `y_weg`: so weit fährt Y von der Mitte aus
-    (Schruppwerte.y_weg). ValueError mit einem Satz, wenn es nicht geht."""
+    (Schruppwerte.y_weg); `wendel`: die Wendelnut des Teils der Nut nach (Schruppwerte.wendel,
+    W-030). ValueError mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -409,6 +413,15 @@ def bahn_fuer(
     )
     uhren.atmen()  # beim Anlegen: die Wände am Geist (STL) 0,1–0,5 s – das Fenster zeichnet neu
     netz = vh.vernetze(teil)
+    if wendel:
+        from dataclasses import replace
+
+        from . import vierachs_wendel as vw
+
+        erkannt = vw.erkennen(netz, laengs, radial)
+        if erkannt is None:
+            raise ValueError(tr("vw.fehler.keine"))
+        werte = replace(werte, wendel=erkannt)
     # Dieselbe Schruppbahn rechnet „Rundum schlichten“ nach (für den Rest darüber) – gemerkt, nach
     # allem, wovon sie abhängt: am 4-Achs-Testteil 3,8 s je Neuberechnen weniger.
     schluessel = (
@@ -441,6 +454,7 @@ def bahn_fuer(
                 "oben",
                 "sektoren_y",
                 "y_weg",
+                "wendel",
             )
         ),
         schritt_a,
@@ -572,6 +586,7 @@ def lege_an(
     nur_noetig=True,
     sektoren_y=False,
     y_weg=0.0,
+    wendel=False,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
@@ -612,6 +627,7 @@ def lege_an(
     obj.NurNoetig = bool(nur_noetig)
     obj.SektorenY = bool(sektoren_y)
     obj.YWeg = float(y_weg) if y_weg and math.isfinite(y_weg) else 0.0
+    obj.Wendel = bool(wendel)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -663,6 +679,7 @@ def aendere(
     nur_noetig=None,
     sektoren_y=None,
     y_weg=None,
+    wendel=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
@@ -697,6 +714,8 @@ def aendere(
         wert = float(y_weg) if y_weg and math.isfinite(y_weg) else 0.0
         if abs(wert - float(getattr(obj, "YWeg", 0.0) or 0.0)) > 1e-9:
             obj.YWeg = wert
+    if wendel is not None and bool(wendel) != bool(getattr(obj, "Wendel", False)):
+        obj.Wendel = bool(wendel)
 
 
 def setze_achse(obj, achse, quer_auf_null=None):
