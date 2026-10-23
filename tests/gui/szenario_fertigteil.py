@@ -6,7 +6,8 @@
 # das Teil liegt (das Teil steckt ganz darin, das Rohteil ist größer), und als eigene Datei im
 # Ordner des Dokuments; „Bearbeitung“ bietet es als Rohteil an. Die Meldung nennt Datei und den
 # nächsten Schritt. Noch einmal gerechnet: dasselbe Objekt, keins dazu. Ein Job, dessen Rohteil
-# das Fertigteil ist, wäre Aufspannung 2.
+# das Fertigteil ist, wäre Aufspannung 2. Ohne Ordner bietet die Meldung „Dokument speichern …“
+# an.
 import os
 import shutil
 import tempfile
@@ -145,5 +146,38 @@ def schritte(h):
     h.pruefe(ft.aufspannung(rund) == 2, f"Aufspannung {ft.aufspannung(rund)}")
     h.pruefe("Aufspannung 2" in ft.name_fuer(rund), ft.name_fuer(rund))
     rund.Stock = alt
+
+    # Ohne Ordner (nie gespeichert) bietet die Meldung „Dokument speichern …“ an: Es fragt nach dem
+    # Ort (hier ersetzt), speichert und legt die Datei des Fertigteils daneben.
+    from camaddon import gui_fertigteil
+
+    neu_ordner = tempfile.mkdtemp()
+    ziel = os.path.join(neu_ordner, "neu.FCStd")
+    dialog_vorher = QtGui.QFileDialog.getSaveFileName
+    QtGui.QFileDialog.getSaveFileName = lambda *a, **k: (ziel, "")
+    try:
+        QtCore.QTimer.singleShot(0, lambda: gui_fertigteil._meldung("…", speichern=fertig))
+        yield from h.warte_auf(lambda: isinstance(h.modal(), QtGui.QMessageBox), 5000)
+        kasten = h.modal()
+        knoepfe = kasten.buttons() if isinstance(kasten, QtGui.QMessageBox) else []
+        sichern = next((b for b in knoepfe if b.text() == "Dokument speichern …"), None)
+        h.pruefe(sichern is not None, f"kein Knopf zum Speichern: {[b.text() for b in knoepfe]}")
+        if sichern is not None:
+            sichern.click()
+            yield from h.warte_auf(
+                lambda: isinstance(h.modal(), QtGui.QMessageBox) and h.modal() is not kasten, 10000
+            )
+            info = h.modal()
+            text = info.text() if isinstance(info, QtGui.QMessageBox) else ""
+            if isinstance(info, QtGui.QMessageBox):
+                info.accept()
+            yield 300
+            neben = os.path.join(neu_ordner, fertig.Label + ".FCStd")
+            h.pruefe(os.path.exists(ziel), f"Dokument nicht gespeichert: {os.listdir(neu_ordner)}")
+            h.pruefe(os.path.exists(neben) and neben in text, f"keine Datei daneben: {text!r}")
+        elif isinstance(kasten, QtGui.QMessageBox):
+            kasten.reject()
+    finally:
+        QtGui.QFileDialog.getSaveFileName = dialog_vorher
     Gui.getDocument(doc.Name).Modified = False
     FreeCAD.closeDocument(doc.Name)

@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-17 fertigteil-speichern-als-knopf
+
+### EINGELESEN
+- Manuels Regel (Notiz „Nächster Schritt als Knopf“): Eine Meldung „zuerst X“ bietet X als Knopf.
+  „Fertigteil als Rohteil“ sagte bei einem nie gespeicherten Dokument nur „Nach dem Speichern den
+  Befehl noch einmal“.
+
+### DATEIEN
+- `camaddon/gui_fertigteil.py`: `_meldung(…, speichern=)` mit dem Knopf „Dokument speichern …“,
+  `_speichern_und_datei` – fragt nach dem Ort, speichert das Dokument, legt die Datei des
+  Fertigteils daneben und sagt, wo.
+- `translations/de.json`, `en.json`: `ft.speichern`, `ft.ohne_datei` neu gefasst.
+- `tests/gui/szenario_fertigteil.py`: der Knopf erscheint, speichert (Dateidialog ersetzt), die
+  Datei liegt daneben.
+- `package.xml` 0.277.6.
+
+### ERGEBNIS
+- Grün: `szenario_fertigteil`, `test_sprache`; `test_fertigteil`, `test_schlicht_anlauf`,
+  `test_kontur` auch in FreeCAD 1.1.4.
 ## P-2026-10-23-16 alle-pruefdateien-gruen
 
 ### EINGELESEN

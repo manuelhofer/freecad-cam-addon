@@ -44,20 +44,48 @@ def _job_waehlen():
     return None
 
 
-def _meldung(text, bearbeitung=False, warnung=False):
+def _meldung(text, bearbeitung=False, warnung=False, speichern=None):
     """Eine Meldung; `bearbeitung`: Fehlt erst ein Job oder eine Operation, bietet sie
-    „Bearbeitung“ gleich als Knopf an."""
+    „Bearbeitung“ gleich als Knopf an; `speichern` (das Fertigteil): Fehlt die eigene Datei, weil
+    das Dokument nie gespeichert wurde, „Dokument speichern …“ (_speichern_und_datei; Manuel: der
+    nächste Schritt als Knopf)."""
     kasten = QtGui.QMessageBox(FreeCADGui.getMainWindow())
     kasten.setWindowTitle(tr("befehl.fertigteil.titel"))
     kasten.setIcon(QtGui.QMessageBox.Warning if warnung else QtGui.QMessageBox.Information)
     kasten.setText(text)
-    knopf = None
+    knopf = sichern = None
     if bearbeitung:
         knopf = kasten.addButton(tr("befehl.bearbeitung.titel"), QtGui.QMessageBox.AcceptRole)
-    kasten.addButton(QtGui.QMessageBox.Close if bearbeitung else QtGui.QMessageBox.Ok)
+    if speichern is not None:
+        sichern = kasten.addButton(tr("ft.speichern"), QtGui.QMessageBox.AcceptRole)
+    kasten.addButton(
+        QtGui.QMessageBox.Close if bearbeitung or speichern is not None else QtGui.QMessageBox.Ok
+    )
     kasten.exec()
     if knopf is not None and kasten.clickedButton() is knopf:
         FreeCADGui.runCommand("CamAddon_Bearbeitung")
+    if sichern is not None and kasten.clickedButton() is sichern:
+        _speichern_und_datei(speichern)
+
+
+def _speichern_und_datei(objekt):
+    """„Dokument speichern …“: fragt nach dem Ort, speichert das Dokument dort und dann die eigene
+    Datei des Fertigteils daneben (ft.datei_speichern) – und sagt, wo sie liegt."""
+    fenster = FreeCADGui.getMainWindow()
+    dokument = objekt.Document
+    vorschlag = (dokument.Label or "Dokument") + ".FCStd"
+    pfad, _filter = QtGui.QFileDialog.getSaveFileName(
+        fenster, tr("ft.speichern"), vorschlag, "FreeCAD (*.FCStd)"
+    )
+    if not pfad:
+        return
+    if not pfad.lower().endswith(".fcstd"):
+        pfad += ".FCStd"
+    dokument.saveAs(pfad)
+    datei = ft.datei_speichern(objekt)
+    QtGui.QMessageBox.information(
+        fenster, tr("befehl.fertigteil.titel"), tr("ft.datei", pfad=datei or "")
+    )
 
 
 def _im_hintergrund(x, y, h, unten, teil, anfang, rohteil):
@@ -155,4 +183,4 @@ class BefehlFertigteil:
         text += "\n\n" + tr("ft.weiter", name=objekt.Label)
         if ins_teil > 0:
             text = tr("ft.ins_teil", flaeche=dezimal(f"{ins_teil:.0f}")) + "\n\n" + text
-        _meldung(text, warnung=ins_teil > 0)
+        _meldung(text, warnung=ins_teil > 0, speichern=None if pfad else objekt)
