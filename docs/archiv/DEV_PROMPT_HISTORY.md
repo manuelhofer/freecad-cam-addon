@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-10 beispiele-auf-fehlschnitt-geprueft
+
+### EINGELESEN
+- Nach dem Fehlschnitt am C-Ring (P-2026-10-23-08): alle Beispiele mit Job mit derselben
+  Prüfung durchgesehen (fertigteil.im_teil: Zellen des Materialstands unter der Oberkante des
+  Teils, ohne Ränder und ohne das, was schon im Rohteil fehlte), je Datei ein Prozess.
+
+### DATEIEN
+- `beispiele/platte_zapfen_tasche.FCStd`: die Bahnen vom 01.10. neu gerechnet (in FreeCAD, mit
+  dem heutigen Stand) – „Planfräsen T1“ fuhr dort eine Gerade auf z 0, 5,02 mm neben dem Zapfen
+  Ø 20: 0,98 mm hinein. Neu: 0,016 mm Luft, 536 statt 23 270 Sätze; Kontur Tasche 299 statt 4355,
+  Kontur Zapfen 13 statt 963 (mit dem Materialstand bleibt dort nur das Schlichten).
+- `daten/beispiele.json`, `beispiele/README.md`, `package.xml` 0.277.2.
+
+### ERGEBNIS
+- Durchgesehen: `c_ring_nut_3achs` (beide Jobs 0), `ring_4achs_planbearbeitung` (0),
+  `platte_zapfen_tasche` (7 Zellen → nach dem Neurechnen 0); `testteil_4achs_nase` ohne
+  Materialstand (Rundachse); die übrigen Beispiele haben keinen Job.
+- Grün: `test_einrichtblatt`, `test_beispiele`.
 ## P-2026-10-23-09 fertigteil-genau
 
 ### EINGELESEN
