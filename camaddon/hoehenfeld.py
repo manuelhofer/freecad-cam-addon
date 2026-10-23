@@ -219,6 +219,8 @@ def _eingeschlossen_auf_einmal(form, name, merk=None):
     aussen = np.where(innen_links[:, None], rechts, links)[klar]
     wand = np.zeros(len(aussen), dtype=bool)
     for hoehe in (WAND_HOCH, WAND_NIEDRIG):
+        if wand.all():
+            break  # überall schon eine Wand: der zweite Schnitt brächte nichts (im Fenster)
         schluessel = ("schnitt", round(z + hoehe, 6))
         schnitt = merk.get(schluessel) if merk is not None else None
         if schnitt is None:

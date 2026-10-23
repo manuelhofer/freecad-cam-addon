@@ -228,7 +228,9 @@ def koerper(netz):
     except Part.OCCError:
         return huelle
     # Kein isValid(): am Geist (68.242 Dreiecke) 4 s – das Netz ist schon als geschlossen geprüft.
-    volumen = form.Volume
+    # Das Vorzeichen aus dem Netz (dieselben Dreiecke, dieselbe Richtung): am Geist 0,001 statt
+    # 0,7 s für form.Volume.
+    volumen = netz.Volume
     if volumen < 0:  # die Dreiecke zeigen nach innen
         form.reverse()
     return form if volumen != 0 else huelle
@@ -246,10 +248,8 @@ def koerper_und_bericht(netz, massstab=1.0):
 def flaechen_der_dreiecke(form, netz):
     """Je Dreieck des Netzes die Nummer seiner Fläche im Körper (0 ist „Face1“; −1: keine) –
     `makeShapeFromMesh` ordnet die Flächen anders als die Dreiecke. Zugeordnet über die Ecken
-    (auf 0,1 µm gerundet); am Geist 2,6 s, einmal beim Umwandeln."""
-    ecken = np.array(
-        [[(v.X, v.Y, v.Z) for v in flaeche.Vertexes] for flaeche in form.Faces], dtype=float
-    )
+    (auf 0,1 µm gerundet); am Geist 1,1 s (_ecken_der_flaechen), einmal beim Umwandeln."""
+    ecken = _ecken_der_flaechen(form)
     p, d = netz.Topology
     punkte = np.array([(q.x, q.y, q.z) for q in p], dtype=float).reshape(-1, 3)
     dreiecke = np.array(d, dtype=np.int64).reshape(-1, 3)
@@ -260,6 +260,37 @@ def flaechen_der_dreiecke(form, netz):
     for j, k in enumerate(_eckenschluessel(punkte[dreiecke])):
         zuordnung[j] = nummer.get(k, -1)
     return zuordnung
+
+
+def _ecken_der_flaechen(form):
+    """(n, 3, 3): je Fläche ihre drei Ecken – aus einer Vernetzung des ganzen Körpers auf einmal:
+    Jede Fläche ist ein ebenes Dreieck und gibt genau eins, in der Reihenfolge der Flächen (am
+    Geist 1,1 s; je Fläche `Vertexes` in Python 3,9 s auf einem Kern). Stimmt die Zahl nicht oder
+    eine Stichprobe nicht, je Fläche wie bisher."""
+    flaechen = form.Faces
+    try:
+        punkte, dreiecke = form.tessellate(1.0)
+    except Exception:  # noqa: BLE001 – OCC: dann je Fläche
+        dreiecke = ()
+    if len(dreiecke) == len(flaechen) and len(flaechen):
+        p = np.array([(q.x, q.y, q.z) for q in punkte], dtype=float).reshape(-1, 3)
+        ecken = p[np.array(dreiecke, dtype=np.int64).reshape(-1, 3)]
+        stichprobe = sorted({0, len(flaechen) // 3, len(flaechen) // 2, len(flaechen) - 1})
+        if all(
+            np.allclose(
+                np.sort(np.round(ecken[i], 4), axis=0),
+                np.sort(
+                    np.round(np.array([(v.X, v.Y, v.Z) for v in flaechen[i].Vertexes]), 4),
+                    axis=0,
+                ),
+            )
+            for i in stichprobe
+            if len(flaechen[i].Vertexes) == 3
+        ):
+            return ecken
+    return np.array(
+        [[(v.X, v.Y, v.Z) for v in flaeche.Vertexes] for flaeche in flaechen], dtype=float
+    )
 
 
 def _eckenschluessel(dreiecke):

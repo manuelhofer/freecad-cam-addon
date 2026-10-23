@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-04 freiwege-verteilt-stl-schneller
+
+### EINGELESEN
+- Manuel: „arbeite mal weiter bitte .. solange du kannst“ – nach „bitte immer darauf achten das
+  alle resourcen genutzt werden“. Gemessen mit CPU-Mitschnitt und Stichproben, was noch allein auf
+  einem Kern läuft: an Manuels Testteil beim „Anlegen“ `freiwege.schneller` (Räumen T1: 1,65 s),
+  am Geist „STL → Körper“ 9,3 s in einem Nebenrechner (davon 3,9 s nur die Zuordnung Fläche ↔
+  Dreieck, je Fläche `Vertexes` in Python, und 0,7 s `form.Volume` fürs Vorzeichen).
+- Bei den Prüfungen gefunden: `szenario_raeumen_materialstand` rot seit P-2026-10-18-104 – das
+  Planfräsen sagte auf schon geräumtem Boden „keinen Platz für eine Zeile“ statt „Hier ist nichts
+  mehr zu tun“.
+
+### DATEIEN
+- `camaddon/freiwege.py`: Schritt 1 von `schneller` als `_abfahren`; ab `VERTEILT_AB` Sehnen auf
+  den Nebenrechnern (`_abfahren_verteilt`): die Bahn an ruhigen Stellen geteilt (`_grenzen`: drei
+  Punkte im Vorschub hintereinander – keine Hilfe sieht über die Grenze), je Stück der Ausschnitt
+  des Materials, den es erreicht (`_fenster`); erst der Abtrag je Stück (`abtrag_stueck`), daraus
+  mit `np.minimum` der Stand vor jedem Stück, dann jedes Stück Satz für Satz
+  (`abfahren_stueck`) – alle gleichzeitig. Ohne Nebenrechner wie bisher.
+- `camaddon/stl_teil.py`: `_ecken_der_flaechen` – die Ecken aller Flächen aus einer Vernetzung
+  des ganzen Körpers (Stichprobe gegen die Flächen, sonst je Fläche wie bisher); das Vorzeichen des
+  Volumens aus dem Netz.
+- `camaddon/hoehenfeld.py`: der zweite Schnitt (WAND_NIEDRIG) nur, wenn der erste nicht schon
+  überall eine Wand fand (am Testteil 0,15 → 0,08 s je Flächenliste).
+- `camaddon/planfraesen_bahn.py`: „zu schmal“ nur ohne Operationen davor – sonst ist nur ihr
+  Aufmaß geblieben, planen() sagt „Hier ist nichts mehr zu tun“.
+- `package.xml` 0.276.0.
+
+### ERGEBNIS
+- Freiwege an den Operationen des Testteils der Reihe nach und verteilt Punkt für Punkt gleich;
+  Räumen T1 (12 725 Punkte) 1,65 → 0,28 s (warm; beim ersten Mal 0,96 s, die Nebenrechner laden),
+  3D-Schlichten T5 0,39 → 0,07 s.
+- STL → Körper am Geist 9,3 → 6,5 s (der Rest: OpenCascade näht 3,9 s); Zuordnung vollständig
+  und eindeutig.
+- Grün: `test_freiwege`, `test_raeumen`, `test_stl_teil`, `test_planfraesen`, `test_nut`;
+  `szenario_testteil`, `szenario_raeumen`, `szenario_planen`, `szenario_kontur`,
+  `szenario_schlichten3d`, `szenario_bearbeitung_stl`, `szenario_bearbeitung`,
+  `szenario_raeumen_materialstand`, `szenario_stirn_bund`, `szenario_plan_gleichlauf`.
+
+---
+
 ## P-2026-10-23-03 kerne-stirnregel-und-ringnut-am-stl
 
 ### EINGELESEN

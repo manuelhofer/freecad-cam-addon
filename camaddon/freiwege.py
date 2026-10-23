@@ -23,6 +23,13 @@ Umkreis R + RAND des Weges ab, statt bis zur Sicherheitshöhe. Und: Folgt auf ei
 Eilgang hinab ein senkrechtes Eintauchen, geht der Eilgang bis LINK_LUFT über das Material dort
 – die Bahn weiß nicht, was sie selbst schon geräumt hat (an der Platte tauchte das Räumen viermal
 23 mm durch die schon geräumte Tasche) –, auch am Rand und neben dem Rohteil.
+
+Auf allen Kernen (Manuel, 2026-10-23: „bitte immer darauf achten das alle resourcen genutzt
+werden“): Jeder Satz wird gegen das Material geprüft, das die Sätze davor ließen – der Reihe
+nach. Abtragen ist aber ein Minimum (Reihenfolge egal): Die Bahn geht in Stücken an die
+Nebenrechner, zuerst rechnet jedes nur seinen Abtrag (abtrag_stueck), daraus ergibt sich mit
+np.minimum der Stand vor jedem Stück; dann geht jedes Stück von seinem Stand aus Satz für Satz ab
+(abfahren_stueck) – alle gleichzeitig, je mit dem Ausschnitt des Materials, den es erreicht.
 """
 
 import math
@@ -43,6 +50,10 @@ LINK_LUFT = (
     2.0  # mm – so hoch über dem höchsten Material fährt ein Weg, der nicht unten bleibt (wie der
 )
 # Sicherheitsabstand der Strategien; das Raster des Materialstands ist 0,5 mm)
+# Sehnen (etwa): darunter geht schneller() die Bahn selbst ab – Senden und Starten kosteten mehr,
+# als die Nebenrechner sparen (am Testteil das Räumen: rund 1,8 s auf einem Kern beim „Anlegen“).
+VERTEILT_AB = 2000
+STUECKE_JE_ARBEITER = 2  # wer früher fertig ist, nimmt das nächste
 
 
 def _frei(q, a, b, weite):
@@ -88,37 +99,20 @@ def _sehnen(von, nach):
 
 def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
     """(Punkte, Weg in mm, der jetzt schnell fährt): die Bahn `punkte` mit dem Freivorschub
-    (mm/min) auf den freien Stücken – `quader` (restmaterial.Quader, wird verändert) ist das
-    Material vor der Operation, `vorschub` ihr Schnittvorschub (mm/min)."""
+    (mm/min) auf den freien Stücken – `quader` (restmaterial.Quader) ist das Material vor der
+    Operation (danach unbrauchbar: abgetragen oder nicht), `vorschub` ihr Schnittvorschub
+    (mm/min)."""
     if vorschub <= 0 or freivorschub <= vorschub * 1.01 or len(punkte) < 2:
         return list(punkte), 0.0
     anteil_frei = freivorschub / vorschub
     weite = float(form.radius) + RAND
     punkte = list(punkte)
-    # 1. Abfahren: je Satz seine Sehnen, je Sehne (Länge, frei, kommt in Frage). Davor, wo die
-    # Bahn unnötig abhebt, unten bleiben (_abheben) – gegen das Material genau an dieser Stelle.
-    saetze = []
-    i = 0
-    while i < len(punkte) - 1:
-        _unten_bleiben(punkte, i, quader, weite)
-        _tiefer_im_eilgang(punkte, i, quader, float(form.radius))
-        _eilgang_nicht_hinein(punkte, i, quader, form)
-        von, nach = punkte[i], punkte[i + 1]
-        i += 1
-        sehnen = _sehnen(von, nach)
-        frage = not nach.eilgang and not nach.eintauchen and abs(nach.z - von.z) <= GLEICH
-        # Schon schneller als der Vorschub (ein Rückweg durchs Freie, den die Strategie geprüft
-        # hat – raeumen_bahn, nut_bahn: RUECKWEG): frei.
-        schon = frage and float(nach.anteil) > 1.0 + 1e-9
-        # Je Satz gegen das Material vor ihm geprüft (was er selbst wegnimmt, zählt noch – das
-        # ist vorsichtiger), dann auf einmal abgetragen.
-        eintraege = [
-            [a, b, math.dist(a[:2], b[:2]), frage and (schon or _frei(quader, a, b, weite))]
-            for a, b in sehnen
-        ]
-        if not nach.eilgang and sehnen:
-            quader.fahre_stuecke([a for a, _b in sehnen], [b for _a, b in sehnen], form)
-        saetze.append((frage, eintraege))
+    # 1. Abfahren (_abfahren) – auf den Nebenrechnern, wenn es sich lohnt.
+    verteilt = _abfahren_verteilt(punkte, form, quader, weite)
+    if verteilt is not None:
+        punkte, saetze = verteilt
+    else:
+        saetze = _abfahren(punkte, form, quader, weite)
     # 2. Rückwärts: wie weit bis zum nächsten Material (ein Eilgang beendet die Fahrt); vorwärts:
     # wie lang das freie Stück ist, in dem eine Sehne liegt.
     flach = [e for _f, eintraege in saetze for e in eintraege]
@@ -178,6 +172,203 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
             neu.append(bn.Punkt(False, b[0], b[1], nach.z, False, None, anteil))
         schnell_weg += sum(e[2] for e, f in zip(eintraege, flags, strict=True) if f)
     return _ohne_ausflug(neu), schnell_weg
+
+
+def _abfahren(punkte, form, quader, weite, im_stueck=False):
+    """Schritt 1 von schneller(): je Satz seine Sehnen, je Sehne [a, b, Länge, frei] und ob der
+    Satz in Frage kommt – [(Frage, Einträge)]. Davor, wo die Bahn unnötig abhebt, unten bleiben
+    (_unten_bleiben, _tiefer_im_eilgang, _eilgang_nicht_hinein) – gegen das Material genau an
+    dieser Stelle; danach trägt der Satz ab. `punkte` und `quader` werden verändert. Mit
+    `im_stueck` (in einem Nebenrechner) verteilt das Abtragen nicht weiter."""
+    saetze = []
+    i = 0
+    while i < len(punkte) - 1:
+        _unten_bleiben(punkte, i, quader, weite)
+        _tiefer_im_eilgang(punkte, i, quader, float(form.radius))
+        _eilgang_nicht_hinein(punkte, i, quader, form)
+        von, nach = punkte[i], punkte[i + 1]
+        i += 1
+        sehnen = _sehnen(von, nach)
+        frage = not nach.eilgang and not nach.eintauchen and abs(nach.z - von.z) <= GLEICH
+        # Schon schneller als der Vorschub (ein Rückweg durchs Freie, den die Strategie geprüft
+        # hat – raeumen_bahn, nut_bahn: RUECKWEG): frei.
+        schon = frage and float(nach.anteil) > 1.0 + 1e-9
+        # Je Satz gegen das Material vor ihm geprüft (was er selbst wegnimmt, zählt noch – das
+        # ist vorsichtiger), dann auf einmal abgetragen.
+        eintraege = [
+            [a, b, math.dist(a[:2], b[:2]), frage and (schon or _frei(quader, a, b, weite))]
+            for a, b in sehnen
+        ]
+        if not nach.eilgang and sehnen:
+            von_s, nach_s = [a for a, _b in sehnen], [b for _a, b in sehnen]
+            if im_stueck:
+                _abtragen(quader, von_s, nach_s, form)
+            else:
+                quader.fahre_stuecke(von_s, nach_s, form)
+        saetze.append((frage, eintraege))
+    return saetze
+
+
+def _abtragen(quader, von, nach, form):
+    """Wie quader.fahre_stuecke – aber nicht weiter verteilt (in einem Nebenrechner ist das
+    Stück schon die Verteilung)."""
+    for _ in quader.fahre_stuecke_schritte(von, nach, form, verteilt=False):
+        pass
+
+
+def _grenzen(punkte, stuecke):
+    """[0, …, len − 1]: Wo die Bahn in `stuecke` etwa gleich lange Stücke geteilt wird – nur
+    mitten in Vorschubstrecken (drei Punkte im Vorschub hintereinander): Dort sieht keine der
+    Hilfen von _abfahren über die Grenze (sie schauen nur auf Eilgänge)."""
+    n = len(punkte)
+    laengen = np.array(
+        [
+            math.dist((a.x, a.y, a.z), (b.x, b.y, b.z))
+            for a, b in zip(punkte, punkte[1:], strict=False)
+        ]
+    )
+    bis = np.cumsum(laengen)  # bis[k]: der Weg bis Punkt k + 1
+    erlaubt = [
+        e
+        for e in range(1, n - 1)
+        if not punkte[e - 1].eilgang and not punkte[e].eilgang and not punkte[e + 1].eilgang
+    ]
+    if not erlaubt or bis[-1] <= 0:
+        return [0, n - 1]
+    erlaubt = np.array(erlaubt)
+    weg = bis[erlaubt - 1]
+    grenzen = [0]
+    for k in range(1, stuecke):
+        e = int(erlaubt[min(int(np.searchsorted(weg, bis[-1] * k / stuecke)), len(erlaubt) - 1)])
+        if e > grenzen[-1] and e < n - 1:
+            grenzen.append(e)
+    grenzen.append(n - 1)
+    return grenzen
+
+
+def _fenster(quader, teil, rand):
+    """(i0, i1, j0, j1): der Ausschnitt des Rasters um die Punkte `teil`, `rand` mm weiter."""
+    xs = [p.x for p in teil]
+    ys = [p.y for p in teil]
+    i0 = max(0, int(np.searchsorted(quader.x, min(xs) - rand)) - 1)
+    i1 = min(len(quader.x), int(np.searchsorted(quader.x, max(xs) + rand, side="right")) + 1)
+    j0 = max(0, int(np.searchsorted(quader.y, min(ys) - rand)) - 1)
+    j1 = min(len(quader.y), int(np.searchsorted(quader.y, max(ys) + rand, side="right")) + 1)
+    return i0, max(i1, i0 + 2), j0, max(j1, j0 + 2)
+
+
+def _ausschnitt(x, y, h, z, schritt):
+    """Ein Quader aus einem Ausschnitt des Rasters (x, y, h) – im Nebenrechner. `z`: (von, bis)."""
+    from . import restmaterial as rm
+
+    q = rm.Quader(float(x[0]), float(x[-1]), float(y[0]), float(y[-1]), z[0], z[1], schritt)
+    q.x = np.asarray(x, dtype=float)
+    q.y = np.asarray(y, dtype=float)
+    q.h = np.array(h, dtype=float)
+    return q
+
+
+def abtrag_stueck(x, y, h, z, schritt, punkte, form):
+    """Auf einem Nebenrechner: die Höhen des Ausschnitts (x, y, h) nach den Vorschubsätzen von
+    `punkte` (der erste ist der Anfang) – der erste Durchgang von _abfahren_verteilt."""
+    q = _ausschnitt(x, y, h, z, schritt)
+    von, nach = [], []
+    for a, b in zip(punkte, punkte[1:], strict=False):
+        if b.eilgang:
+            continue
+        for s, t in _sehnen(a, b):
+            von.append(s)
+            nach.append(t)
+    if von:
+        _abtragen(q, von, nach, form)
+    return q.h
+
+
+def abfahren_stueck(x, y, h, z, schritt, punkte, form, weite):
+    """Auf einem Nebenrechner: _abfahren für ein Stück der Bahn, vom Materialstand (x, y, h) vor
+    ihm aus – (seine Punkte, verändert, und seine Sätze)."""
+    q = _ausschnitt(x, y, h, z, schritt)
+    punkte = list(punkte)
+    saetze = _abfahren(punkte, form, q, weite, im_stueck=True)
+    return punkte, saetze
+
+
+def _abfahren_verteilt(punkte, form, quader, weite):
+    """_abfahren auf den Nebenrechnern: (Punkte, Sätze) – None ohne sie oder bei kurzen Bahnen
+    (dann rechnet der Aufrufer selbst). Zwei Durchgänge (siehe oben); der Stand vor einem Stück
+    ist das Minimum aus dem Material vor der Operation und dem Abtrag aller Stücke davor."""
+    from . import nebenrechner as nr
+
+    if len(punkte) < 4:
+        return None
+    sehnen = sum(
+        max(1, int(math.dist((a.x, a.y), (b.x, b.y)) / SEHNE))
+        for a, b in zip(punkte, punkte[1:], strict=False)
+    )
+    if sehnen < VERTEILT_AB:
+        return None
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    grenzen = _grenzen(punkte, pool.anzahl * STUECKE_JE_ARBEITER)
+    if len(grenzen) < 3:
+        return None
+    teile = [punkte[a : b + 1] for a, b in zip(grenzen, grenzen[1:], strict=False)]
+    rand = weite + float(form.radius) + 2.0 * float(quader.x[1] - quader.x[0])
+    fenster = [_fenster(quader, teil, rand) for teil in teile]
+    z = (float(quader.z_von), float(quader.z_bis))
+    schritt = float(quader._schritt)
+
+    def ausschnitt(h, f):
+        i0, i1, j0, j1 = f
+        return quader.x[i0:i1], quader.y[j0:j1], h[i0:i1, j0:j1]
+
+    try:
+        # Ohne Maus und Tastatur: Das läuft auch mitten in der Neuberechnung einer Operation.
+        abtraege = pool.warten(
+            [
+                pool.auftrag(
+                    "freiwege", "abtrag_stueck", *ausschnitt(quader.h, f), z, schritt, teil, form
+                )
+                for teil, f in zip(teile[:-1], fenster[:-1], strict=True)
+            ],
+            zwischendurch=nr.ereignisse_ohne_eingaben,
+        )
+        staende = [quader.h]
+        jetzt = quader.h
+        for (i0, i1, j0, j1), h in zip(fenster, abtraege, strict=False):
+            jetzt = jetzt.copy()
+            np.minimum(jetzt[i0:i1, j0:j1], h, out=jetzt[i0:i1, j0:j1])
+            staende.append(jetzt)
+        ergebnisse = pool.warten(
+            [
+                pool.auftrag(
+                    "freiwege",
+                    "abfahren_stueck",
+                    *ausschnitt(stand, f),
+                    z,
+                    schritt,
+                    teil,
+                    form,
+                    weite,
+                )
+                for stand, teil, f in zip(staende, teile, fenster, strict=True)
+            ],
+            zwischendurch=nr.ereignisse_ohne_eingaben,
+        )
+    except nr.Fehler as fehler:
+        import FreeCAD
+
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Freiwege auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    neu = [punkte[0]]
+    saetze = []
+    for teil_punkte, teil_saetze in ergebnisse:
+        neu.extend(teil_punkte[1:])
+        saetze.extend(teil_saetze)
+    return neu, saetze
 
 
 def _ohne_ausflug(punkte):

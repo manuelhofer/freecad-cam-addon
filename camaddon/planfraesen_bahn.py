@@ -525,9 +525,12 @@ def _ebene(
         eilgang=w.eilgang or None,
         beschleunigung=w.beschleunigung or None,
     )
-    if lagen_gesamt == 0:
+    if lagen_gesamt == 0 and not davor:
         # Über der Fläche steht etwas, Zeilen gäbe es – aber auf keiner Lage kommt die Stirn
         # zwischen die Wände (Manuels Ringfläche 8 mm breit, Fräser Ø 12): planen() sagt es.
+        # Waren Operationen davor dort (davor), ist nur ihr Aufmaß an den Wänden geblieben: „Hier
+        # ist nichts mehr zu tun“ (szenario_raeumen_materialstand, seit P-2026-10-18-104 falsch
+        # „keinen Platz für eine Zeile“).
         return ZU_SCHMAL
     return _Ebene(
         punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit, noch, weg, davor
