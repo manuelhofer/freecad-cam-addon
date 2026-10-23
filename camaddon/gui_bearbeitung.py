@@ -4531,6 +4531,7 @@ class BearbeitungPanel:
         self.schlichten_danach = next(b for b in self.bloecke if b.s.kennung == "schlichtendanach")
         self.nut = next(b for b in self.bloecke if b.s.kennung == "nut")
         self._raeumen_boeden = None  # nur diese Taschenböden räumen (_folge); None: alle
+        self._raeumen_bei_nut = False  # alle Gründe des Räumens fräst die Nut (_block_schritte)
         self.bohren = next(b for b in self.bloecke if b.s.kennung == "bohren")
         self.bohrung = next(b for b in self.bloecke if b.s.kennung == "bohrung")
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
@@ -6714,7 +6715,16 @@ class BearbeitungPanel:
         if self._ist_stl():  # die Freiform-Dreiecke alle auf einmal
             self.gewaehlte = s3b.freiformflaechen(form, namen)
         else:
-            self.gewaehlte = [n for n in namen if self._nimmt_eine(form, n)]
+            # Keine ebene Fläche nach oben, über der kein Rohteil steht (wand_ohne_rohteil): die
+            # Stirn mit Planaufmaß 0 – sonst stand an Manuels Messspitzenhalter (2026-10-23) das
+            # Planfräsen mit „steht nichts“ da, und „Anlegen“ ging nicht. Wände bleiben: An ihnen
+            # hängt das Räumen bis durch (der Mantel im Rundmaterial, W-034).
+            self.gewaehlte = [
+                n
+                for n in namen
+                if self._nimmt_eine(form, n)
+                and not (hf.ebenen_oben(form, [n]) and self._ohne_rohteil(form, n))
+            ]
         self.kanten = []
         self._flaechen_zeigen()
         self.vorschau_starten()
@@ -7392,6 +7402,7 @@ class BearbeitungPanel:
         Wettbewerb und vor jedem der letzten Teile ein `yield`."""
         form = vr.modell(self.job).Shape
         self._raeumen_boeden = None
+        self._raeumen_bei_nut = False  # alle Gründe des Räumens fräst die Nut (_block_schritte)
         boeden = self._nur_boeden(form)
         gerechnet = {}  # Block → woraus seine Vorschau gerechnet ist (_block_rechnen)
         for block in self.bloecke:
@@ -7592,6 +7603,21 @@ class BearbeitungPanel:
         woraus = (tuple(flaechen), eigen, getattr(stand, "kennung", None))
         if nur_anders and gerechnet.get(block) == woraus:
             return False
+        if (
+            block is self.raeumen
+            and not flaechen
+            and self.nut.aktiv()
+            and self._eigene(block, form)
+        ):
+            # Alle seine Gründe fräst die angehakte Nut (die Ringnut am Messspitzenhalter, „Alles
+            # aus dieser Aufspannung“): Ohne eigene Fläche räumte es sonst die Oberseite – „steht
+            # nichts“, und „Anlegen“ ging nicht. Es gibt den Haken ab (_schon_weg_abhaken).
+            block.leeren()
+            block.hinweis.setText(tr("ba.raeumen.bei_nut"))
+            block.schon_weg = True
+            self._raeumen_bei_nut = True
+            gerechnet[block] = woraus
+            return True
         if block is self.kontur and not flaechen and self._eigene(block, form):
             # Ihre Wände räumt das Räumen bis durch, oder vor ihnen steht kein Rohteil – nichts zu
             # tun: Sie gibt den Haken ab wie nach dem Materialstand (_schon_weg_abhaken).
@@ -7790,8 +7816,11 @@ class BearbeitungPanel:
         räumt bis durch, wo sonst die Kontur die Wände fertig gemacht hätte (Frage 4: „Schlichten
         danach“ macht die Wände)."""
         block = self.schlichten_danach
-        gross = self.raeumen if self.raeumen.aktiv() else self.nut
-        moeglich = self.zu_aendern is None and (self.raeumen.aktiv() or self._nut_laesst_aufmass())
+        # Gibt das Räumen der Nut alle Gründe ab, schlichtet es nach der Nut – mit ihrem Fräser
+        # (sonst blieb der Ø 12 des Räumens, der nicht in die Ringnut passt).
+        raeumt = self.raeumen.aktiv() and not getattr(self, "_raeumen_bei_nut", False)
+        gross = self.raeumen if raeumt else self.nut
+        moeglich = self.zu_aendern is None and (raeumt or self._nut_laesst_aufmass())
         geaendert = moeglich != block.moeglich
         self._fuellt = self._ruhig = True
         try:
@@ -7903,7 +7932,7 @@ class BearbeitungPanel:
                         nut_waende += [w for w in n.waende if w not in nut_waende]
             nut_aufmass = float(werte_nut["aufmass"])
         ring_zusatz = {"nut_ringe": ringe, "nut_ring_waende": ring_waende} if ringe else {}
-        if not raeumen.aktiv():
+        if not raeumen.aktiv() or getattr(self, "_raeumen_bei_nut", False):
             if not nut_waende and not ringe:
                 return {}
             return {
@@ -8892,6 +8921,13 @@ class BearbeitungPanel:
         """Kommt der erste Fräser eines Angebots der Ziel-Zeile in die Flächen des Blocks, in den
         „Übernehmen“ ihn setzt (ein Planfräser ins Planfräsen, sonst ins Räumen)?"""
         block = self.plan if angebot.werkzeug.art == wz.PLANFRAESER else self.raeumen
+        if (
+            block is self.raeumen
+            and self.nut.aktiv()
+            and self._eigene(block, form)
+            and not self._flaechen(block, form)
+        ):
+            return False  # die Nut nimmt dem Räumen alle Gründe: dort hätte er nichts zu tun
         return not self._zu_eng(block, form, angebot.werkzeug)
 
     def _nutfraeser_waehlen(self, form):

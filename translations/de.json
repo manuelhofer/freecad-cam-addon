@@ -1792,6 +1792,7 @@
     "va.planeinsatz.tooltip": "Welche Schnittwerte des Fräsers gelten – vorgewählt „Planen“. Er gibt Drehzahl, Vorschub, Zustellung (ap) und Zeilenabstand (ae).",
     "ba.von_vorn.nur_radial": "Von vorn an der Stange fräst nur ein Fräser im axialen Halter – die passenden Fräser sitzen radial und zeigen auf die Achse der Stange. In der Werkzeugverwaltung einem Fräser einen axialen Halter geben („Werkzeugverwaltung …“).",
     "ba.kontur.beim_raeumen": "Hier ist nichts zu tun – die Wände räumt „Räumen“ bis durch, „Schlichten danach“ macht sie fertig.",
+    "ba.raeumen.bei_nut": "Hier ist nichts zu tun – die Gründe fräst die „Nut“.",
     "ba.kontur.kein_rohteil": "Hier ist nichts zu tun – vor keiner der Wände steht Rohteil.",
     "va.planfraeser.keiner": "Die Werkzeugverwaltung hat keinen Fräser mit ebener Stirn und Schnittwerten für diesen Werkstoff – leg dort einen an („Werkzeugverwaltung …“).",
     "va.zustellung_plan": "Zustellung je Lage",

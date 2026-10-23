@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-02 alles-aus-der-aufspannung-an-der-stange
+
+### EINGELESEN
+- Nach P-2026-10-23-01 nachgesehen, was „Alles aus dieser Aufspannung“ an Manuels
+  Messspitzenhalter von vorn vorschlägt (T1–T4 wie an seiner CLX): Planfräsen, Räumen, 3D und
+  „Bohrung fräsen“ standen angehakt mit „steht nichts“ oder dem zu großen T3 da, „Schlichten
+  danach“ mit T3 („Die Nut ist 8,4 breit, der Fräser Ø 12“), oben nach „übernehmen“ wieder
+  „Schneller: T3 Ø 12“; „Anlegen“ ging nicht.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`:
+  - `aus_der_aufspannung`: keine ebene Fläche nach oben, über der kein Rohteil steht
+    (`_ohne_rohteil`) – die Bund-Stirn mit Planaufmaß 0. Wände bleiben gewählt: Den Mantel ohne
+    Rohteil davor auszulassen änderte am C-Ring aus Rundmaterial das Räumen bis durch
+    (`szenario_bearbeitung_cring_alles` rot: „Kontur T1“ statt „Räumen T3“) – verworfen.
+  - Nimmt die angehakte Nut dem Räumen alle seine Gründe ab, gibt es den Haken ab („Hier ist nichts
+    zu tun – die Gründe fräst die „Nut““, `ba.raeumen.bei_nut`, `_raeumen_bei_nut`); ohne eigene
+    Fläche räumte es sonst die Oberseite.
+  - „Schlichten danach“ folgt dann der Nut (ihr Fräser, ihre Wände) statt dem Räumen.
+  - `_passt_angebot`: kein „Schneller … übernehmen“ fürs Räumen, wenn die Nut ihm alle Gründe
+    nimmt.
+- `translations/de.json`, `en.json`: `ba.raeumen.bei_nut`.
+- `docs/STATUS_SNAPSHOT.md` W-037: was an „Alles“ an diesem Teil noch offen ist.
+- `package.xml` 0.275.1.
+
+### ERGEBNIS
+- Grün: `szenario_bearbeitung_cring_alles`, `szenario_bearbeitung_aufspannung`,
+  `szenario_bearbeitung_aufspannung_folge`, `szenario_bearbeitung_stl`,
+  `szenario_bearbeitung_n_eck`, `szenario_ring_vorn`, `szenario_stirn_bund`, `szenario_planen`,
+  `szenario_platte`, `szenario_nut`, `szenario_raeumen_schlichten`, `szenario_testteil`.
+- Nicht erreicht (W-037 offen): das Räumen bis durch am Mantel ohne Rohteil davor; „Bohrung
+  fräsen“ teilweise; die Fase (Frage 1). Die Abfolge mit der Ringfläche allein (Manuels Klickweg)
+  geht ganz.
+
+---
+
 ## P-2026-10-23-01 ringnut-rundum-abfahren-stange-von-vorn
 
 ### EINGELESEN
