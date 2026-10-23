@@ -29,7 +29,6 @@ def schritte(h):
     yield 500
 
     from camaddon import beispielmaschine, gui_reichweite, gui_vierachs
-    from camaddon import vierachs_operation as vo
     from camaddon import vierachs_rohteil as vr
     from camaddon import werkzeuge as wz
 
