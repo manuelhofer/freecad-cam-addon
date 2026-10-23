@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-07 raeumen-umsonst-bohrung-angebot
+
+### EINGELESEN
+- W-037 offen, „Alles aus dieser Aufspannung“ am Messspitzenhalter: Das Räumen blieb mit „steht
+  nichts“ angehakt (seine Flächen: der Mantel ohne Rohteil davor und der Ringgrund, den die Nut
+  fräst); „Bohrung fräsen“ hatte den T3 Ø 12, der in keine Bohrung passt – rot, ohne Weg.
+  Den Mantel aus dem Räumen zu nehmen geht nicht: Am C-Ring aus Rundmaterial hängt das Räumen
+  des Schlitzes an ihm (szenario_bearbeitung_cring_alles, schon in P-2026-10-23-02 gesehen).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`:
+  - `_raeumen_umsonst`: Sagt das Räumen „steht nichts“ und ist jede seiner Flächen ein Grund der
+    angehakten Nut oder eine Wand ohne Rohteil davor, gibt es den Haken ab (wie nach dem
+    Materialstand) – „Hier ist nichts zu tun – vor diesen Wänden steht kein Rohteil, die Gründe
+    fräst die „Nut““ (`ba.raeumen.umsonst`).
+  - `_bohrungsfraeser_anbieten`: Kommt der Fräser von „Bohrung fräsen“ in keine der gewählten
+    Bohrungen, bietet die Zeile wie bei Planfräsen und Räumen (Manuel, 2026-10-17: „mit einem klick
+    kleinen fräser übernehmen“) den größten, der in wenigstens eine passt.
+- `translations/de.json`, `en.json`: `ba.raeumen.umsonst`.
+- `package.xml` 0.276.3.
+
+### ERGEBNIS
+- Am Messspitzenhalter („Alles aus dieser Aufspannung“): Räumen ohne Haken mit Grund; „T3 … kommt
+  nicht in Face2, Face11, Face12 … – für Bohrung fräsen passt T4 Schaftfräser Ø 6“ mit Knopf; nach
+  dem Klick „→ 1 Bohrung … – kleiner als der Fräser, für den Bohrer: Face11, Face12, Face13“;
+  ohne die 3D-Blöcke an der Fase (Frage 1): „Anlegen“ → Nut T4, Messstopp, Nut schlichten T4,
+  Bohrung fräsen T4.
+- Grün: `szenario_bearbeitung_cring_alles`, `szenario_stirn_bund`, `szenario_raeumen`,
+  `szenario_deckel`, `szenario_fraeser_passt`, `szenario_bohrung`, `szenario_flansch`,
+  `szenario_lagerbock`.
+
+---
+
 ## P-2026-10-23-06 bohrung-fraesen-teilweise
 
 ### EINGELESEN

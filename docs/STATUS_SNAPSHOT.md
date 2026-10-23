@@ -1689,9 +1689,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   0,6 × 45° außen – Frage 1 in OFFENE_FRAGEN (Schaftfräser in Stufen, Fasenfräser oder drehen).
   „Alles aus dieser Aufspannung“ an diesem Teil (P-2026-10-23-02 nachgezogen: keine Stirn ohne
   Rohteil darüber, Räumen gibt der Nut ab, „Schlichten danach“ mit ihrem Fräser) – **noch offen:**
-  das Räumen bis durch am Mantel (vor ihm steht kein Rohteil: „steht nichts“, bleibt angehakt);
-  die 3D-Blöcke an der Fase (hängt an Frage 1). „Bohrung fräsen“ fräst seit P-2026-10-23-06 die
-  Ø 8,5 und nennt die Ø 2,5 für den Bohrer.
+  die 3D-Blöcke an der Fase (hängt an Frage 1). Seit P-2026-10-23-06/07: „Bohrung fräsen“ fräst
+  die Ø 8,5 und nennt die Ø 2,5 für den Bohrer, bietet den passenden Fräser an; das Räumen gibt den
+  Haken ab, wo vor den Wänden kein Rohteil steht und die Nut die Gründe fräst.
 - **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu
   Frage 1 (Rohteil des Beispiels `c_ring_nut_3achs`: Platte 65 × 65 × 12 oder vorgedrehter Ring
   Ø 60 × 10): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt welle d60 ist

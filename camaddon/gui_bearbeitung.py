@@ -7641,6 +7641,13 @@ class BearbeitungPanel:
             return True
         yield from block.vorschau_schritte(self.job, flaechen, zusatz)
         gerechnet[block] = woraus
+        if block is self.raeumen and block.vorschau is None and self._raeumen_umsonst(form):
+            # „Steht nichts“ – und alles, was es hätte, ist ein Grund der Nut oder eine Wand ohne
+            # Rohteil davor (der Mantel der Stange im Fertigmaß, Manuels Messspitzenhalter): Es
+            # gibt den Haken ab wie nach dem Materialstand, statt rot angehakt zu bleiben.
+            block.leeren()
+            block.hinweis.setText(tr("ba.raeumen.umsonst"))
+            block.schon_weg = True
         if block is self.kontur:
             self._kontur_text(form, eigen)
         if block is self.bohren and zusatz and block.ergebnis_basis:
@@ -8841,6 +8848,41 @@ class BearbeitungPanel:
                 continue
             wahl = max(passen, key=lambda i: (block._fraeser[i].durchmesser, -i))
             self._getauscht[block] = (jetzt, block._fraeser[wahl], eng)  # nur angeboten
+        self._bohrungsfraeser_anbieten(form)
+
+    def _bohrungsfraeser_anbieten(self, form):
+        """„Bohrung fräsen“: Kommt sein Fräser in keine der gewählten Bohrungen, bietet die Zeile
+        wie bei Planfräsen und Räumen den größten seiner Fräser an, der in wenigstens eine passt
+        („… übernehmen“) – die kleineren nennt seine Zeile dann für den Bohrer (Bohrbahn.zu_klein).
+        Manuels Messspitzenhalter (2026-10-23): T3 Ø 12 in der Ø 8,5 und den Ø 2,5 – rot, ohne
+        Weg; der T4 Ø 6 fräst die Ø 8,5."""
+        block = self.bohrung  # angehakt oder nicht: Das filtern _getauscht_text und das Angebot
+        jetzt = block.fraeser()
+        namen = self._flaechen(block, form)
+        liste = bb.bohrungen(form, namen) if namen and jetzt is not None else []
+        if not liste:
+            return
+        werte = block.werte()
+        aufmass = float(werte.get("aufmass", 0.0) or 0.0) if werte.get("schlichten") else 0.0
+
+        def passt_in(werkzeug, bohrung):
+            return bohrung.radius - werkzeug.durchmesser / 2 - aufmass >= -1e-3
+
+        if any(passt_in(jetzt, b) for b in liste):
+            return
+        eng = [b.name for b in liste]
+        passen = [
+            i
+            for i, w in enumerate(block._fraeser)
+            if w.durchmesser > 0
+            and w.durchmesser < jetzt.durchmesser
+            and any(passt_in(w, b) for b in liste)
+        ]
+        if not passen:
+            self._getauscht[block] = (jetzt, None, eng)
+            return
+        wahl = max(passen, key=lambda i: (block._fraeser[i].durchmesser, -i))
+        self._getauscht[block] = (jetzt, block._fraeser[wahl], eng)  # nur angeboten
 
     def _passt_zeigen(self):
         """Der rote Satz zu den Fräsern, die nicht hineinkommen (_getauscht_text), und der Knopf
@@ -8864,6 +8906,20 @@ class BearbeitungPanel:
             if nachher is not None and (block.aktiv() or block.moeglich):
                 return nachher
         return None
+
+    def _raeumen_umsonst(self, form):
+        """Hat das Räumen nichts zu tun, das nicht schon andere tun oder fertig ist: Jede seiner
+        Flächen ist ein Grund, den die angehakte Nut fräst, oder eine Wand ohne Rohteil davor
+        (wand_ohne_rohteil)? Nur, wenn sein Satz „steht nichts“ sagt."""
+        if tr("ra.fehler.nichts") not in self.raeumen.hinweis.text():
+            return False
+        eigene = self._eigene(self.raeumen, form)
+        if not eigene:
+            return False
+        nut = set()
+        if self.nut.aktiv():
+            nut = {f for f in self._eigene(self.nut, form) if nb.ist_grund(form, f)}
+        return all(f in nut or self._ohne_rohteil(form, f) for f in eigene)
 
     def _von_aktiven_bedeckt(self):
         """Die gewählten Flächen, die angehakte Blöcke schon nehmen – leer ohne Job."""
