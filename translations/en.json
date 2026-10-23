@@ -2524,6 +2524,7 @@
     "ba.wand_schlichten": "Finish the wall",
     "ba.wand_schlichten.tooltip": "After roughing, run along the wall once at final size. Without the tick the helix already mills to size.",
     "ba.ergebnis_bohrung": "→ {bohrungen}, {lagen}, {umlaeufe} turns, about {zeit}",
+    "ba.bohrung.zu_klein": "{text} – smaller than the cutter, for the drill: {flaechen}",
     "ba.zahl.bohrung": "1 hole",
     "ba.zahl.bohrungen": "{n} holes",
     "nt.name": "Slot {werkzeug}",

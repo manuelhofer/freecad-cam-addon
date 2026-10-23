@@ -270,6 +270,15 @@ for werte_falsch, liste, text in (
         pruefe(False, f"{text}: keine Fehlermeldung")
 print("Fehler ok")
 
+# --- Große und kleine zusammen (Manuels Messspitzenhalter, 2026-10-23): Die große fräst er, die
+# zu kleine bleibt dem Bohrer – kein Fehler für alle (bis 0.276.1 scheiterte das Ganze).
+gemischt = bb.planen(werte_fuer(), [durch, klein])
+pruefe(
+    gemischt.bohrungen == 1 and gemischt.zu_klein == (klein.name,),
+    f"gemischt: {gemischt.bohrungen} gefräst, zu klein {gemischt.zu_klein}",
+)
+print("gemischt ok")
+
 # --- Die CAM-Operation im Job ---------------------------------------------------------------
 import Path.Main.Job as PathJob
 

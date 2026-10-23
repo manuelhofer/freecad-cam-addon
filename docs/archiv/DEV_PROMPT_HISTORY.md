@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-06 bohrung-fraesen-teilweise
+
+### EINGELESEN
+- W-037 offen: „Alles aus dieser Aufspannung“ am Messspitzenhalter – „Bohrung fräsen“ scheiterte
+  ganz an den drei Ø 2,5 (kein Fräser passt), statt die Ø 8,5 mit dem Ø 6 zu fräsen.
+
+### DATEIEN
+- `camaddon/bohrung_bahn.py`: `planen` fräst die Bohrungen, in die der Fräser passt; die
+  kleineren stehen in `Bohrbahn.zu_klein` (ihre Flächen) – der Fehler „kleiner als der Fräser“ nur
+  noch, wenn keine passt.
+- `camaddon/gui_bearbeitung.py`: der Satz nennt sie („– kleiner als der Fräser, für den Bohrer:
+  Face11, Face12, Face13“, `ba.bohrung.zu_klein`); sie zählen nicht als fertig.
+- `translations/de.json`, `en.json`: `ba.bohrung.zu_klein`.
+- `tests/test_bohrung.py`: große und kleine zusammen.
+- `package.xml` 0.276.2.
+
+### ERGEBNIS
+- Grün: `test_bohrung`, `test_bohren`, `test_sprache`; `szenario_bohrung`, `szenario_lagerbock`,
+  `szenario_loch_schraeg`, `szenario_loch_auffraesen`, `szenario_flansch`, `szenario_bohren`.
+- Am Messspitzenhalter („Alles“, T4): „→ 1 Bohrung, 1 Lage, 40 Umläufe, etwa 1 min – kleiner als
+  der Fräser, für den Bohrer: Face11, Face12, Face13“.
+
+---
+
 ## P-2026-10-23-05 pool-verwaltung-leichter
 
 ### EINGELESEN

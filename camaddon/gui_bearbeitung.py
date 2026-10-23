@@ -2204,13 +2204,19 @@ class _Bohrung(_Strategie):
             else tr("ba.zahl.bohrungen", n=bahn.bohrungen)
         )
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
-        return tr(
+        text = tr(
             "ba.ergebnis_bohrung",
             bohrungen=bohrungen,
             lagen=lagen,
             umlaeufe=f"{bahn.umlaeufe:.0f}",
             zeit=zeit,
         )
+        zu_klein = list(getattr(bahn, "zu_klein", ()) or ())
+        if zu_klein:
+            # Die kleineren bleiben dem Bohrer – der Satz sagt, welche (sie zählen nicht als fertig).
+            namen = ", ".join(zu_klein[:4]) + (" …" if len(zu_klein) > 4 else "")
+            text = tr("ba.bohrung.zu_klein", text=text, flaechen=namen)
+        return text
 
     def lege_an(self, job, tc, werte, flaechen):
         return bo.lege_an(
@@ -7466,6 +7472,10 @@ class BearbeitungPanel:
             return flaechen
         if block in (self.nut, self.kontur, self.bohrung):
             if werte.get("schlichten") or not float(werte.get("aufmass", 0.0)):
+                if block is self.bohrung:
+                    # Nicht die, die kleiner sind als der Fräser (Bohrbahn.zu_klein).
+                    zu_klein = set(getattr(block.vorschau, "zu_klein", ()) or ())
+                    return [f for f in self._flaechen(block, form) if f not in zu_klein]
                 return self._flaechen(block, form)
             if block is self.nut:
                 # Das Aufmaß bleibt an den Wänden – der Grund ist auf Tiefe (an der Ringnut des

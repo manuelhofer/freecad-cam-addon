@@ -89,6 +89,10 @@ class Bohrbahn:
     z_min: float
     laenge: float  # mm im Vorschub
     zeit: float  # Minuten (bahn.zeit)
+    # Die Bohrungen, die kleiner sind als der Fräser (ihre Flächen): Sie bleiben dem Bohrer –
+    # die anderen fräst die Bahn trotzdem (Manuels Messspitzenhalter, 2026-10-23: die Ø 8,5 mit
+    # dem Ø 6, daneben drei Ø 2,5; bis dahin scheiterte das Ganze an der ersten kleinen).
+    zu_klein: tuple = ()
 
 
 def bohrungen(form, namen=None):
@@ -477,7 +481,12 @@ def planen(werte, liste):
     lagen = 0
     z_min = math.inf
     gefraest = 0
+    zu_klein = []
+    aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
     for b in folge:
+        if b.radius - r - aufmass < -GLEICH:
+            zu_klein.append(b)  # dem Bohrer (oder einem kleineren Fräser) – die anderen trotzdem
+            continue
         stueck, n_lagen, n_um, z = _bohrung(punkte, b, w, r)
         if n_lagen:
             gefraest += 1
@@ -486,6 +495,11 @@ def planen(werte, liste):
         umlaeufe += n_um
         z_min = min(z_min, z)
     if not gefraest:
+        if zu_klein:
+            durchmesser = einheiten.text(2 * zu_klein[0].radius, einheiten.LAENGE)
+            raise ValueError(tr("bo.fehler.zu_klein", durchmesser=durchmesser))
         raise ValueError(tr("bo.fehler.nichts"))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    return Bohrbahn(punkte, gefraest, lagen, umlaeufe, z_min, laenge, zeit)
+    return Bohrbahn(
+        punkte, gefraest, lagen, umlaeufe, z_min, laenge, zeit, tuple(b.name for b in zu_klein)
+    )
