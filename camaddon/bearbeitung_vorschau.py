@@ -12,6 +12,7 @@ im Prozess der Oberfläche nahm FreeCAD so lange keinen Klick an (P-2026-10-11-2
 Oberfläche.
 """
 
+import contextlib
 import importlib
 
 from . import freiwege as fw
@@ -36,6 +37,23 @@ def raeumen(dokument, job_name, form, zustellung, zeilenabstand, aufmass, flaech
         job, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter
     )
     return bahn, _frei(form, bahn, zeit)
+
+
+def raeumen_genau(dokument, job_name, form, zustellung, zeilenabstand, aufmass, flaechen, weiter):
+    """Die genaue Bahn des Räumens (raeumen.bahn_fuer, wie „Anlegen“ sie rechnet) schon während
+    der Vorschau, die adaptiv nur grob rechnet (W-036): Gibt die Ergebnisse des Adaptiv-Kerns
+    zurück, die sie brauchte ({Schlüssel: Gebiete}, raeumen_bahn.adaptiv_benutzt). Das Fenster
+    nimmt sie auf (raeumen_bahn.adaptiv_merken), und beim „Anlegen“ trifft das Räumen sie – am
+    Testteil rechnete der Kern dort 4 s auf einem Kern. Scheitert die Bahn, was bis dahin da ist."""
+    from . import raeumen_bahn as rb
+
+    job = _job(dokument, job_name)
+    rb.adaptiv_benutzt_beginnen()
+    with contextlib.suppress(ValueError):
+        ra.bahn_fuer(
+            job, job.Model.Group, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter
+        )
+    return rb.adaptiv_benutzt()
 
 
 def strategie(dokument, job_name, modul, argumente, weiter, zeit):

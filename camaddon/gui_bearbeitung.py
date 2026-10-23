@@ -141,6 +141,7 @@ VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rec
 UHR_SCHRITT_MS = 30  # ein Schritt der Vorschau mitten in einer Rechnung: so viel später
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 VORSCHAU_MERK = 60  # so viele Vorschauen merkt sich der Assistent (_Block.vorschau_rechnen)
+GENAU_JE_BLOCK = 4  # so viele genaue Bahnen des Räumens rechnen je Block vorab (_genau_starten)
 ROHTEIL_FELDER = ("oben", "seite", "unten")
 # Quader mit Maßen (W-028; Manuel, 2026-10-18: „wo ich einfach die werte des rohteils reinpacke …
 # unterm nullpunkt is das teil direkt wenn oben aufmass 0 ist .. wenn oben aufmass 1 ist liegts 1mm
@@ -3649,6 +3650,7 @@ class _Block:
         self.vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation
         self.tc_vorher = None  # beim Ändern: ihr Controller
         self.vorschau = None  # die grobe Bahn oder None
+        self.genau = []  # die genauen Bahnen des Räumens im Nebenrechner (_genau_starten, W-036)
         self.schon_weg = False  # „Hier ist nichts mehr zu tun“ (Materialstand, W-012)
         self.zeit = None  # Minuten der Vorschau (bahn.zeit) – für den Wettbewerb
         self.ergebnis_basis = ""  # die Ergebniszeile ohne den Vergleich
@@ -4224,7 +4226,36 @@ class _Block:
         self.material.setText(_material_text(self.vorschau))
         if self.s.kennung == "nut":
             self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
+        if isinstance(self.s, _Raeumen) and getattr(self.vorschau, "variante", None) == "adaptiv":
+            self._genau_starten(job, werkzeug, werte, flaechen)
         self._merken(merk, schluessel)
+
+    def _genau_starten(self, job, werkzeug, werte, flaechen):
+        """Die genaue Bahn des Räumens schon jetzt in einem Nebenrechner (W-036; Manuel,
+        2026-10-23: „bitte immer darauf achten das alle resourcen genutzt werden !“): Die Vorschau
+        rechnet adaptiv nur grob, „Anlegen“ dann genau – am Testteil 4 s, in denen nur der
+        Adaptiv-Kern rechnet, eine Fläche nach der anderen. So rechnet er, während man noch
+        schaut; „Anlegen“ holt die Ergebnisse ab (BearbeitungPanel._genau_abholen). Es bleiben
+        die letzten GENAU_JE_BLOCK; ein älterer, der noch wartet, fällt weg."""
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return
+        while len(self.genau) >= GENAU_JE_BLOCK:
+            alt = self.genau.pop(0)
+            if not alt.erledigt and getattr(alt, "arbeiter", None) is None:
+                pool.abbrechen(alt)
+        try:
+            *argumente, weiter = self.s._argumente(werkzeug, werte, flaechen)
+            kopie = pool.kopie(job.Document, wiederverwenden=True)
+            self.genau.append(
+                pool.auftrag(
+                    "bearbeitung_vorschau", "raeumen_genau", kopie, job.Name, *argumente, weiter
+                )
+            )
+        except Exception as fehler:  # noqa: BLE001 – dann rechnet „Anlegen“ wie bisher
+            FreeCAD.Console.PrintLog(f"CAM-Addon: genaue Bahn im Nebenrechner: {fehler}\n")
 
     def _fehler_text(self, satz, daten):
         """Der rote Satz zur Vorschau – stößt der Halter an (flanke.vorschau: Daten
@@ -5306,6 +5337,7 @@ class BearbeitungPanel:
         self.geschlossen = True
         self._rechnet.ende()
         self._vorschau_lauf_beenden()
+        self._genau_beenden()
         from .gui_reichweite import job_merken
 
         job_merken(self.job)  # Prüfen, Bestückung und Programm nehmen ihn ohne Auswahl
@@ -9384,10 +9416,43 @@ class BearbeitungPanel:
 
     # --- Anlegen und Ändern -----------------------------------------------------------------
 
+    def _genau_abholen(self, bloecke):
+        """Was die Nebenrechner für die angehakten Räumen-Blöcke schon genau gerechnet haben
+        (_Block._genau_starten): Rechnen sie noch, wartet es (das Fenster zeichnet dabei neu) –
+        so lange rechnete „Anlegen“ es sonst selbst; die Ergebnisse des Adaptiv-Kerns kommen in
+        dessen Merker (raeumen_bahn.adaptiv_merken), das Räumen trifft sie. Alle: Welcher passt,
+        weiß erst die Operation (am Testteil rechnete die Folge danach noch Planfräsen und Räumen
+        der Böden – angelegt wurde das Räumen über alles, der erste)."""
+        from . import nebenrechner as nr
+
+        auftraege = [a for b in bloecke for a in getattr(b, "genau", []) if not a.abgebrochen]
+        if not auftraege:
+            return
+        offen = [a for a in auftraege if not a.erledigt]
+        if offen:
+            with contextlib.suppress(nr.Fehler):
+                nr.pool().warten(offen, zwischendurch=nr.ereignisse_ohne_eingaben)
+        for auftrag in auftraege:
+            if auftrag.fertig and auftrag.fehler is None and not auftrag.abgebrochen:
+                rb.adaptiv_merken(auftrag.ergebnis)
+
+    def _genau_beenden(self):
+        """Beim Schließen: Was an genauen Bahnen (_Block._genau_starten) noch wartet, fällt weg;
+        was schon rechnet, rechnet zu Ende (abbrechen beendete seinen Arbeiter)."""
+        from . import nebenrechner as nr
+
+        for block in getattr(self, "bloecke", []):
+            for auftrag in getattr(block, "genau", []):
+                if not auftrag.erledigt and getattr(auftrag, "arbeiter", None) is None:
+                    with contextlib.suppress(Exception):
+                        nr.pool().abbrechen(auftrag)
+            block.genau = []
+
     def _anlegen(self):
         """Werkzeug-Controller und die angehakten Operationen in den Job – ein eigener Schritt
         Rückgängig, in einem Befehl (_im_befehl). Geht es nicht, steht der Grund rot im
         Fenster: False."""
+        self._genau_abholen(self.aktive_bloecke())
         form = vr.modell(self.job).Shape
         aktive = self._in_anlege_reihe(self.aktive_bloecke())
 
@@ -9531,6 +9596,7 @@ class BearbeitungPanel:
         Operation mehr benutzt. Geht es nicht, steht der Grund rot im Fenster: False."""
         op = self.zu_aendern
         block = self.block_zu_aendern
+        self._genau_abholen([block])
         form = vr.modell(self.job).Shape
         flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
         werte = block.werte()

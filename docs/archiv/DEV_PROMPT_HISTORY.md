@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-12 raeumen-genau-im-hintergrund
+
+### EINGELESEN
+- W-036, Manuel, 2026-10-23: „bitte immer darauf achten das alle resourcen genutzt werden !“.
+  Gemessen am Testteil („Alles“, dann „Anlegen“; `CAMADDON_PROBEN`, `CAMADDON_AUFTRAEGE`):
+  „Anlegen“ hält das Fenster 11 s, davon 4–5 s, in denen nur der Adaptiv-Kern von „Räumen T1“
+  rechnet, eine Fläche nach der anderen – die Vorschau hatte ihn nur grob gerechnet.
+
+### DATEIEN
+- `camaddon/bearbeitung_vorschau.py`: `raeumen_genau` – die genaue Bahn (raeumen.bahn_fuer) in
+  einem Nebenrechner, zurück kommen die Ergebnisse des Kerns, die sie brauchte.
+- `camaddon/raeumen_bahn.py`: `_BENUTZT`, `adaptiv_benutzt_beginnen`, `adaptiv_benutzt`,
+  `adaptiv_merken`.
+- `camaddon/gui_bearbeitung.py`: `_Block.genau`, `_genau_starten` (nach einer Räumen-Vorschau
+  mit „adaptiv“, je Block die letzten GENAU_JE_BLOCK = 4 – die Folge rechnet danach noch
+  Alternativen, angelegt wird oft die erste), `BearbeitungPanel._genau_abholen` (beim „Anlegen“
+  und „Ändern“; wartet, was noch rechnet), `_genau_beenden` (beim Schließen fällt weg, was
+  wartet).
+- `docs/STATUS_SNAPSHOT.md` (W-036), `package.xml` 0.277.3.
+
+### ERGEBNIS
+- Testteil: „Anlegen“ im Fenster 11,0 → 7,0 s; die drei Kernaufrufe von „Räumen T1“ getroffen
+  (Schlüssel geprüft), die sechs Programme Zeichen für Zeichen wie vorher.
+- Grün: `test_raeumen`, `szenario_testteil`, `szenario_raeumen`, `szenario_raeumen_schlichten`,
+  `szenario_raeumen_materialstand`, `szenario_raeumen_durch`, `szenario_bearbeitung_cring_alles`.
 ## P-2026-10-23-11 adaptiv-vorrechnen-verworfen
 
 ### EINGELESEN

@@ -151,6 +151,7 @@ RUECKWEG = 3.0  # × Vorschub: so schnell unten durchs Freie (G1, wie nut_bahn.R
 # die des Räumens, und „adaptiv_frei“ rechnete eine andere Bahn als die Vorschau davor.
 ADAPTIV_GEMERKT = 48
 _ADAPTIV = OrderedDict()  # Prüfsumme der Eingabe → [(Start, Mitte der Helix, Stücke)]
+_BENUTZT = None  # die Schlüssel, die ein Lauf brauchte (adaptiv_benutzt_beginnen) – sonst None
 FREI_ZULAESSIG = 0.02  # Anteil der Stirn, der auf dem Weg durchs Freie Rohteil treffen darf
 # Die Last einer Bahn (last): der Querschnitt, den der Fräser je mm Weg abträgt, durch
 # ae · Lagentiefe – über LAST_FENSTER mm gemittelt, in Stücken von LAST_SEHNE; LAST_SPIEL: so
@@ -2846,6 +2847,34 @@ def adaptiv_kern(material, grenzen, einstellungen):
     return gebiete
 
 
+def adaptiv_benutzt_beginnen():
+    """Ab jetzt merkt sich der Adaptiv-Kern, welche Ergebnisse gebraucht werden (adaptiv_benutzt)
+    – für die genaue Bahn des Räumens schon während der Vorschau (bearbeitung_vorschau
+    .raeumen_genau, W-036)."""
+    global _BENUTZT
+    _BENUTZT = set()
+
+
+def adaptiv_benutzt():
+    """{Schlüssel: Gebiete} – was seit adaptiv_benutzt_beginnen gebraucht wurde; danach merkt er
+    sich nichts mehr."""
+    global _BENUTZT
+    ergebnis = {k: _ADAPTIV[k] for k in (_BENUTZT or ()) if k in _ADAPTIV}
+    _BENUTZT = None
+    return ergebnis
+
+
+def adaptiv_merken(eintraege):
+    """Nimmt Ergebnisse des Adaptiv-Kerns aus einem Nebenrechner in _ADAPTIV auf (adaptiv_benutzt
+    dort): Rechnet das Räumen hier mit genau dieser Eingabe, trifft es sie – und fährt genau die
+    Bahn, die der Nebenrechner gerechnet hat (der Kern rechnet nie zweimal dasselbe)."""
+    for schluessel, gebiete in (eintraege or {}).items():
+        _ADAPTIV[schluessel] = gebiete
+        _ADAPTIV.move_to_end(schluessel)
+    while len(_ADAPTIV) > ADAPTIV_GEMERKT:
+        _ADAPTIV.popitem(last=False)
+
+
 def _adaptiv_gebiete(material, grenzen, einstellungen):
     """adaptiv_kern() – mit Oberfläche auf einem Nebenrechner, während das Fenster neu zeichnet:
     Der Kern rechnet am Stück und meldet sich kaum (am Schwenkteil 10 s, dreimal), das Fenster
@@ -3128,6 +3157,8 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
             )
         )
         schluessel = hashlib.blake2b(eingabe.encode("utf-8"), digest_size=16).hexdigest()
+        if _BENUTZT is not None:
+            _BENUTZT.add(schluessel)
         gebiete = _ADAPTIV.get(schluessel)
         if gebiete is not None:
             _ADAPTIV.move_to_end(schluessel)

@@ -1600,7 +1600,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Fertigteil“, N zählt die Fertigteile im Rohteil), dazu eine eigene Datei im Ordner des
   Dokuments; noch einmal gerechnet: dasselbe Objekt. Schneiden Bahnen ins Teil, warnt der Befehl
   – so fand er den Fehlschnitt am C-Ring (unten). Offen: 4-Achs- und 3+2-Jobs (Stange,
-  raum_material).
+  raum_material). Für die Stange rechnet den Abtrag nur „Auf der Maschine prüfen“
+  (restmaterial.fuer_rundum braucht die Abfahrt); der 4-Achs-Assistent nimmt als Rohteil nur
+  eine Stange. Weg dafür: im Prüffenster ein Knopf „Fertigteil als Rohteil“ aus dem Abtrag dort –
+  nutzbar als Rohteil in „Bearbeitung“ (zweite Aufspannung auf der Fräse).
 - **W-030 Wendelnut entlang fahren** – Manuel, 2026-10-18, an seinem `4achs_testteil_wendel`
   (Ø 80 × 65, runde Nut R 11, Steigung 60; liegt nur bei ihm in `~/freecad_cam/testteile`): „die
   wendel ist entgegen der drehrichtung ... da muss man sich was einfallen lassen das das dennoch
@@ -1674,6 +1677,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   getroffen, der teure 2,6-s-Aufruf nicht). Was helfen könnte: die genaue Bahn des Räumens schon
   während der Vorschau im Hintergrund rechnen (die Vorschau rechnet adaptiv nur grob) und beim
   „Anlegen“ übernehmen, wenn Materialstand und Werte gleich sind.
+  **Gebaut (P-2026-10-23-12, 0.277.3):** Nach einer Räumen-Vorschau mit „adaptiv“ rechnet ein
+  Nebenrechner die genaue Bahn (`bearbeitung_vorschau.raeumen_genau`, je Block die letzten vier)
+  und schickt die Ergebnisse des Kerns zurück (`raeumen_bahn.adaptiv_benutzt`); „Anlegen“ und
+  „Ändern“ holen sie ab (`_genau_abholen`, `adaptiv_merken`). Testteil: „Anlegen“ im Fenster
+  11,0 → 7,0 s, alle drei Kernaufrufe von Räumen T1 getroffen, die Programme gleich wie vorher.
+  Offen: das Räumen danach (T3) – sein Materialstand kommt im Assistenten aus der groben Bahn
+  davor, beim „Anlegen“ aus der genauen.
   **Befund (P-2026-10-18-95):** Das Fenster rechnet am Geist selbst etwa 10 s; beim Warten
   verteilt es 9 500 Unteraufträge (je Takt alle 24 Arbeiter lesen, `lebt`, Speicher) – möglich:
   nur die lesen, die etwas geschickt haben (`connection.wait` liefert sie).
