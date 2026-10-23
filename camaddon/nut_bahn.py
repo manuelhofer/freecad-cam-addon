@@ -728,9 +728,15 @@ def _ringnut(form, nummer, index):
     eine Fläche, die an seinem Rand von ihm aufsteigt (die Wand des Bunds, die Fase außen)."""
     import Part
 
+    from . import stl_teil
+
+    if stl_teil.daten(form) is not None:
+        return None  # die Dreiecke eines STL: keine Kreise (und je Dreieck zu teuer)
     flaeche = form.Faces[nummer]
     if _ist_boden(flaeche):
         return _ring_am_grund(form, nummer, index)
+    if not (kb.ist_wand(flaeche) or isinstance(flaeche.Surface, Part.Cone)):
+        return None  # vom Grund steigt eine Wand auf (der Bund) oder ein Kegel (die Fase)
     z = float(flaeche.BoundBox.ZMin)
     if not index:
         index.update(ft.nummern(form))

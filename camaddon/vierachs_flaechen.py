@@ -557,7 +557,16 @@ def nur_vor_stirn(form, laengs, radial, bahn, stange_radius):
 
     l_, u_, v_ = vh.rahmen(laengs, radial)
     achse = FreeCAD.Vector(*l_)
-    teil_vorne = max((FreeCAD.Vector(p.X, p.Y, p.Z).dot(achse) for p in form.Vertexes), default=0.0)
+    # Die Vorderkante des Teils über die Ecken seines Kastens – längs z genau, sonst eher weiter
+    # vorn (ein Schnitt in der Luft davor fiele dann bei den Flächen durch: nein). Je Eckpunkt
+    # des Teils kostete es am Geist 0,5 s.
+    kasten = form.BoundBox
+    teil_vorne = max(
+        FreeCAD.Vector(x, y, z).dot(achse)
+        for x in (kasten.XMin, kasten.XMax)
+        for y in (kasten.YMin, kasten.YMax)
+        for z in (kasten.ZMin, kasten.ZMax)
+    )
     schnitte = []
     for p in bahn.punkte:
         if p.eilgang or getattr(p, "frei", False):
@@ -567,6 +576,17 @@ def nur_vor_stirn(form, laengs, radial, bahn, stange_radius):
             schnitte.append((float(p.a), r))
     if not schnitte:
         return False
+    # Zuerst das Billige: Liegen die Schnitte überhaupt als Scheibe (längs dünner als radial
+    # breit)? Sonst ist es Rundum – ohne die Flächen anzusehen (_stirnstuecke vernetzt jede; am
+    # Geist, 68 242 Dreiecke, 9,2 s auf einem Kern je Vorschau).
+    a_werte = [a for a, _r in schnitte]
+    r_werte = [r for _a, r in schnitte]
+    if (max(a_werte) - min(a_werte)) > (max(r_werte) - min(r_werte)) + STIRN_SPIEL:
+        return False
+    from . import stl_teil
+
+    if stl_teil.daten(form) is not None:
+        return False  # ein Teil aus einem STL: Dreieck für Dreieck wäre zu teuer
     stuecke = _stirnstuecke(form, l_, u_, v_)
     if not stuecke:
         return False
@@ -578,9 +598,7 @@ def nur_vor_stirn(form, laengs, radial, bahn, stange_radius):
         vorn = gemerkt[schluessel]
         if vorn is None or a < vorn - STIRN_SPIEL:
             return False  # ein Schnitt, vor dem keine Stirnfläche liegt: der Mantel
-    a_werte = [a for a, _r in schnitte]
-    r_werte = [r for _a, r in schnitte]
-    return (max(a_werte) - min(a_werte)) <= (max(r_werte) - min(r_werte)) + STIRN_SPIEL
+    return True
 
 
 def beschreibung(flaeche, laengs):

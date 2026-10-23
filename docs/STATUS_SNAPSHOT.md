@@ -1663,9 +1663,20 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   beim Räumen Lage für Lage (die Lagen hängen über den Materialstand voneinander ab – vorrechnen
   auf Verdacht, Treffer über `_ADAPTIV`); 3D-Schlichten: die teuren Teile (Hüllfläche je Zeile,
   genaue Höhen) laufen schon verteilt, die Richtungen nacheinander.
+  **Gemessen (P-2026-10-23-03, Geist im 4-Achs-Assistenten, 294 s):** im Mittel 18,7 von 24
+  Kernen; allein auf einem Kern noch: STL → Körper 9 s in **einem** Nebenrechner
+  (`stl_teil.koerper_rechnen`, makeShapeFromMesh), danach gut 6 s im Fenster (die Form aus dem
+  Nebenrechner lesen – `nebenrechner.Form.form` –, `vermesse_achse`, `richte_ein`), beim „Anlegen“
+  gut 4 s (`opExecute` → `bahn_fuer`/`befehle` im Fenster). Messen: `cpu_mitschnitt.py` und
+  `cpu_auswerten.py` in `~/freecad_cam/wip/pruefhelfer/`.
   **Befund (P-2026-10-18-95):** Das Fenster rechnet am Geist selbst etwa 10 s; beim Warten
   verteilt es 9 500 Unteraufträge (je Takt alle 24 Arbeiter lesen, `lebt`, Speicher) – möglich:
   nur die lesen, die etwas geschickt haben (`connection.wait` liefert sie).
+- **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
+  testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
+  bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,
+  nicht im Repo): Block 80 × 80 × 93,3, Face1 eben oben bei Z 90, Face23 eben bei Z 40 (50 tief),
+  dazwischen 16 Freiformflächen (B-Spline). Noch nicht anfangen – er sagt, wann.
 - **W-037 Messspitzenhalter von vorn: Ringnut und Fase** – Manuel, 2026-10-18 (Bilder): Im Ring
   zwischen Bund Ø 15 und der Fase außen fuhr das Planfräsen mit dem 6er Zeilen („totaler
   scheissdreck … einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder

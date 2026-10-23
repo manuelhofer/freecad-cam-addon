@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-03 kerne-stirnregel-und-ringnut-am-stl
+
+### EINGELESEN
+- Manuel: „bei dem letzten was du gemacht hast hast du obacht gegeben das du auch alle rechner
+  kerne nutzt ?????? hat sich nicht so angehört … bitte immer darauf achten das alle resourcen
+  genutzt werden !“ – dazu ein neues 5-Achs-Testteil für später (W-038).
+- Nachgesehen (Pre-Flight-Gate Punkt 5, heute nicht abgearbeitet): `vierachs_flaechen.nur_vor_stirn`
+  vernetzte jede Fläche des Teils (`_stirnstuecke`) – am Geist (68 242 Dreiecke) 9,2 s auf einem
+  Kern je Rundum-Vorschau (schon seit P-2026-10-18-104 mit den ebenen Flächen), dazu 0,5 s für die
+  Vorderkante über alle Eckpunkte. Die Ringnut-Suche (`nut_bahn._ringnut`) hätte je Dreieck eines
+  STL Nachbarn gesucht.
+
+### DATEIEN
+- `camaddon/vierachs_flaechen.py`: `nur_vor_stirn` prüft zuerst billig, ob die Schnitte als
+  Scheibe liegen (längs dünner als radial breit), bei einem STL-Teil gar nicht weiter; die
+  Vorderkante über die Ecken des Kastens. Am Geist 9,7 s → 0,05 s.
+- `camaddon/nut_bahn.py`: `_ringnut` nicht an STL-Teilen und nur von Wänden oder Kegeln aus.
+- `docs/STATUS_SNAPSHOT.md`: W-038 (das neue 5-Achs-Testteil, für später); W-036 mit der Messung am
+  Geist (was noch auf einem Kern läuft).
+- `package.xml` 0.275.2.
+
+### ERGEBNIS
+- Gemessen mit CPU-Mitschnitt (je 0,5 s) und Stichproben (`CAMADDON_PROBEN`,
+  `CAMADDON_AUFTRAEGE`): Messspitzenhalter (`szenario_stirn_bund`) 37 s, das Fenster allein auf
+  einem Kern 0,5 s, die Vorschauen mit bis 21 Kernen, längste Pause 0,46 s. Geist im
+  4-Achs-Assistenten (`szenario_vierachs_stl`) 294 s, im Mittel 18,7 von 24 Kernen; was dort noch
+  auf einem Kern läuft, steht in W-036 (älter als heute).
+- Grün: `test_vierachs_flaechen`, `test_nut_offen`, `szenario_stirn_bund`, `szenario_vierachs_stl`.
+
+---
+
 ## P-2026-10-23-02 alles-aus-der-aufspannung-an-der-stange
 
 ### EINGELESEN
