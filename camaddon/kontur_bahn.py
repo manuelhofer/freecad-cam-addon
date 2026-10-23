@@ -58,6 +58,7 @@ NAH = 1e-5  # mm – so nah ist dieselbe Stelle
 WANDHOEHE_SCHRITT = 1.0  # mm – so dicht wird die Höhe einer Wand über ihrer Unterkante abgefragt
 HOECHSTENS_VERSAETZE = 200  # so viele Schruppbahnen je Kontur höchstens (vom Rohteil her)
 WAND_SPIEL = 0.05  # mm – so viel näher an eine Wand darf das Ein- und Ausfahren (Sehnen der Kette)
+KNICK = 1e-3  # rad – so weit muss ein Linienzug abknicken, damit der Punkt eine Ecke ist
 ABSTAND_STUECK = 2_000_000  # so viele Paare (Stelle, Ecke) rechnet _Huelle.zu_nah auf einmal
 REST_SPIEL = 0.02  # mm – so weit muss der kleine Fräser aus dem großen ragen, damit er dort fährt
 GLEICH = vb.GLEICH
@@ -1029,16 +1030,23 @@ def _abstand_polylinie(qx, qy, kx, ky, geschlossen):
 
 def _abstand_ohne_enden(qx, qy, kx, ky, geschlossen):
     """Wie _abstand_polylinie, an einem offenen Linienzug aber ohne seine beiden Enden: nur quer
-    zu einer Strecke (der Fußpunkt auf ihr) und zu den Ecken dazwischen. Am Ende geht die Wand um
-    eine Ecke weiter – eine andere Wand oder keine –, der Abstand zum Endpunkt sagt nicht, ob der
-    Fräser in sie fährt (am Testteil begann die Kontur T1 sonst 2 mm zu spät: 5,3 mm vom Ende der
-    Inselwand, die dort nach außen abbiegt)."""
+    zu einer Strecke (der Fußpunkt auf ihr) und zu den Ecken dazwischen, an denen er abknickt
+    (KNICK – die Punkte, mit denen eine gerade Wand abgetastet ist, sind keine Ecken). Am Ende
+    geht die Wand um eine Ecke weiter – eine andere Wand oder keine –, der Abstand zum Endpunkt
+    sagt nicht, ob der Fräser in sie fährt (am Testteil begann die Kontur T1 sonst 2 mm zu spät:
+    5,3 mm vom Ende der Inselwand, die dort nach außen abbiegt; an Manuels Ring von vorn maß sie
+    zum Punkt 1 mm vor dem Ende einer 3 mm kurzen Schlitzwand und zerlegte die Bahn um sie)."""
     ax, ay = np.asarray(kx, dtype=float), np.asarray(ky, dtype=float)
     bx, by = np.roll(ax, -1), np.roll(ay, -1)
-    ecken_x, ecken_y = ax, ay
+    vx, vy = np.roll(ax, 1), np.roll(ay, 1)  # die Punkte davor
+    knick = np.abs(np.arctan2((ax - vx) * (by - ay) - (ay - vy) * (bx - ax),
+                              (ax - vx) * (bx - ax) + (ay - vy) * (by - ay)))  # fmt: skip
+    ecke = knick > KNICK
+    if not geschlossen:
+        ecke[0] = ecke[-1] = False
+    ecken_x, ecken_y = ax[ecke], ay[ecke]
     if not geschlossen:
         ax, ay, bx, by = ax[:-1], ay[:-1], bx[:-1], by[:-1]
-        ecken_x, ecken_y = ecken_x[1:-1], ecken_y[1:-1]
     dx, dy = bx - ax, by - ay
     laenge2 = dx * dx + dy * dy
     qx = np.asarray(qx, dtype=float)[:, None]
@@ -1069,6 +1077,7 @@ class _Stand:
     bereich: object = None  # mit Materialstand: die Zellen, wohin die Stirn kommt
     ziel: float = math.inf  # die tiefste Unterkante dabei
     mit_material: bool = False  # eine Kontur fuhr nur, wo Material steht
+    ausgelassen: int = 0  # Läufe, die nur im Zickzack hineinkämen (_lauf)
 
 
 @dataclass(frozen=True)
@@ -1492,14 +1501,18 @@ def _bahnen(
     if n < 2:
         return 0
     erlaubt = huelle.erlaubt(x, y, lage, ziel)
-    # Nicht näher an eine Wand der Konturen, als die Bahn darf (beim Schruppen Radius + Aufmaß,
-    # beim Schlichten der Radius): Die Hüllfläche blendet alle gewählten Wände aus – stehen zwei
-    # einander enger gegenüber als der Fräser, führe die Bahn an der einen durch die andere (am
-    # C-Ring „Wände schlichten T1“ Ø 12 in der 8 mm breiten Nut: beide Stege 5 mm tief weg, vom
-    # Fertigteil gefunden, W-029). Spiel: die Sehnen der Kette (alle 2 · schritt) an einer runden
-    # Wand innen, höchstens (2 · schritt)² / 8r.
+    # Nicht näher an eine Wand der Konturen als den Radius: Die Hüllfläche blendet alle gewählten
+    # Wände aus – stehen zwei einander enger gegenüber als der Fräser, führe die Bahn an der einen
+    # durch die andere (am C-Ring „Wände schlichten T1“ Ø 12 in der 10 mm breiten Nut: beide Stege
+    # 5 mm tief weg, vom Fertigteil gefunden, W-029). Nur der Radius, nicht dazu das Aufmaß: Ein
+    # Schruppgang, der vom Aufmaß der Gegenwand nimmt, schneidet nicht ins Teil, ihr Schlichtgang
+    # kommt ohnehin – sonst zerfielen die Bahnen in Schlitzen knapp über 2 · (R + Aufmaß) in kurze
+    # Läufe, die im Zickzack einstiegen (Manuels Ring von vorn, T2 Ø 10, szenario_ring_vorn).
+    # Spiel: die Sehnen der Kette (alle 2 · schritt) an einer runden Wand innen, höchstens
+    # (2 · schritt)² / 8r.
     spiel = WAND_SPIEL + (2 * schritt) ** 2 / (8 * r)
-    erlaubt &= ~huelle.zu_nah(x, y, lage, min(d, r + max(w.aufmass, 0.0)) - spiel)
+    eng = huelle.zu_nah(x, y, lage, r - spiel)
+    erlaubt &= ~eng
     im_rohteil = _im_rohteil(x, y, w.rohteil, r)
     drin = erlaubt & im_rohteil
     if w.nur_wo is not None:
@@ -1530,6 +1543,11 @@ def _bahnen(
     for stellen, hinten in laeufe:
         if len(stellen) < 2:
             continue
+        # Grenzt der Lauf an eine Stelle, an der der Fräser nicht weiter passt (eng)?
+        vorn, danach = int(stellen[0]) - 1, int(stellen[-1]) + 1
+        if k.geschlossen:
+            vorn, danach = vorn % n, danach % n
+        am_engpass = bool((0 <= vorn < n and eng[vorn]) or (0 <= danach < n and eng[danach]))
         _lauf(
             st,
             d,
@@ -1548,6 +1566,7 @@ def _bahnen(
             gerade,
             schritt,
             mit_stand,
+            am_engpass,
         )
         anzahl += 1
     return anzahl
@@ -1576,6 +1595,7 @@ def _lauf(
     gerade,
     schritt,
     mit_stand=None,
+    am_engpass=False,
 ):
     """Ein Lauf: Eilgang über den Anfang, hinab – in der Luft senkrecht, im Material über die
     Rampe –, tangential hinein, die Bahn, tangential heraus, hinauf. `geraeumt`: (von, bis) –
@@ -1657,6 +1677,23 @@ def _lauf(
             neben = None
         if neben is not None:
             material, oben_hier = False, lage
+    helix = _helix_radius(start, r, frei) if material else None
+    if (
+        material
+        and am_engpass
+        and helix is None
+        and not geschlossen
+        and not _rampe_reicht(ein, x, y, vorige - lage, w)
+    ):
+        # Ins Material, ohne Platz für eine Helix, offen, zu kurz für eine Rampe in eine Richtung
+        # – die Rampe ginge im Zickzack hin und her (Manuel, 2026-10-18: „alle Zickzack einfahren
+        # weg“) –, und gleich daneben passt der Fräser nicht weiter (`am_engpass`, _Huelle
+        # .zu_nah): Dort steht, was schon das Schruppen nicht erreichte (an Manuels Ring von vorn
+        # die Kerben, die zur Bohrung hin schmaler werden als Ø 10). Der Lauf fällt weg; was
+        # stehen bleibt, zeigt das Abfahren. Ein Schrupplauf mitten im Material fällt nie weg:
+        # Sonst nähme der nächste mehr als ae.
+        st.ausgelassen += 1
+        return
     hinab = neben if neben is not None else start
     punkte = st.punkte
     punkte.append(bn.Punkt(True, hinab[0], hinab[1], w.sicher))
@@ -1664,7 +1701,6 @@ def _lauf(
     if knapp < w.sicher - GLEICH:
         punkte.append(bn.Punkt(True, hinab[0], hinab[1], knapp))
     laenge = 0.0
-    helix = _helix_radius(start, r, frei) if material else None
     mitte = start
     if helix is not None and not _haelt_last(
         _einfahrweg(mitte, start, ein, (x, y), 2 * r),
@@ -1960,6 +1996,19 @@ def _wendel(punkte, segmente, proben, stellen, lage, vorige, w, r):
         pos = weiter % m
         if unten and pos == 0:
             return laenge
+
+
+def _rampe_reicht(ein, x, y, tiefe, w):
+    """Kommt die Rampe (_rampe: längs des Einfahrens und der Bahn x, y) um `tiefe` hinab, ohne
+    umzukehren?"""
+    weg = 0.0
+    if ein is not None:
+        weg += math.hypot(ein.bogen_punkt[0] - ein.aussen[0], ein.bogen_punkt[1] - ein.aussen[1])
+        weg += _Bogen(ein.bogen_punkt, ein.bahn_punkt, ein.mitte, ein.uhr).laenge
+    xs, ys = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    weg += float(np.sum(np.hypot(np.diff(xs), np.diff(ys))))
+    winkel = w.eintauchwinkel if w.eintauchwinkel > 0 else vb.EINTAUCHWINKEL
+    return weg * math.tan(math.radians(winkel)) >= tiefe - GLEICH
 
 
 def _rampe(punkte, ein, x, y, lage, vorige, w, schritt):

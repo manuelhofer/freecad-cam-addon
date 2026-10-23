@@ -1659,6 +1659,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Strecke nicht für die Rampe, eine Helix durch den Anfang über der Hüllfläche des Teils
   (`schlicht_anlauf._helix`, `_hueller`), sonst wie bisher; mit flacher Stirn bleibt es beim
   Zickzack (dort gilt der Winkel gegen die Ebene, ungeprüft).
+  **P-2026-10-23-18 (0.277.7), Punkt 3 (Kontur):** Ein Lauf, der nur im Zickzack ins Material käme
+  (offen, keine Helix, zu kurz für die Rampe) und an eine Stelle grenzt, an der der Fräser nicht
+  weiter passt, fällt weg (`_lauf`, `am_engpass`). Szenario-Volllauf (165): Zickzack nur noch
+  beim 4-Achs-Schlichten am Geist (1).
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte

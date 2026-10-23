@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-18 kontur-engstellen-ohne-zickzack
+
+### EINGELESEN
+- Szenario-Volllauf (alle 165, die leichten zu sechst, die schweren zu zweit): 163 grün, rot
+  `szenario_erster_start` (das Menü hat jetzt 19 Einträge – nachgezogen) und
+  `szenario_ring_vorn`: „Wände schlichten T2“ mit 3 Zickzack-Einfahrten (am Tagesbeginn 0).
+- Nachgemessen: An Manuels Ring von vorn werden die Kerben zwischen den Schlitzwänden (15° und
+  45°) zur Bohrung hin 9,2 mm schmal; „Wände schlichten T2“ (Ø 10) fuhr bis 0.276.3 hinein,
+  4,42 mm von der Gegenwand – 0,58 mm Fehlschnitt. Die Wandabstands-Sicherung von
+  P-2026-10-23-08 hält die Bahn davor an; die Reststücke stiegen im Zickzack ein.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`:
+  - `_bahnen`: Abstand zu den Wänden der Konturen der Radius (nicht Radius + Aufmaß – ein
+    Schruppgang, der vom Aufmaß der Gegenwand nimmt, schneidet nicht ins Teil).
+  - `_abstand_ohne_enden`: Ecken sind nur Punkte, an denen der Linienzug abknickt (KNICK) – die
+    Abtastpunkte einer geraden Wand zählten als Ecken, gemessen wurde um ein Wandende herum.
+  - `_lauf`, `_rampe_reicht`, `_Stand.ausgelassen`: Ein Lauf, der nur im Zickzack ins Material
+    käme und an eine Engstelle grenzt (`am_engpass` aus `_bahnen`), fällt weg – dort steht, was
+    schon das Schruppen nicht erreichte; ein Schrupplauf mitten im Material fällt nie weg.
+- `tests/gui/szenario_erster_start.py`: 19 Einträge im Menü, „Fertigteil als Rohteil“.
+- `docs/STATUS_SNAPSHOT.md` (W-035), `package.xml` 0.277.7.
+
+### ERGEBNIS
+- `szenario_ring_vorn`: 9 Rampen, 0 Kehren, nichts mehr in die Kerbenwand.
+- Grün: `test_kontur`, `szenario_ring_vorn`, `szenario_kontur`, `szenario_kontur_materialstand`,
+  `szenario_testteil`, `szenario_bearbeitung_cring_alles`, `szenario_raeumen_schlichten`,
+  `szenario_stirn_bund`, `szenario_nut_offen`, `szenario_ecken`, `szenario_zapfen`,
+  `szenario_absatz`, `szenario_lagerbock`, `szenario_flansch`, `szenario_deckel`,
+  `szenario_raeumen`, `szenario_raeumen_durch`, `szenario_platte`, `szenario_bearbeitung`,
+  `szenario_rest`, `szenario_entgraten`, `szenario_erster_start`; `szenario_bohrung` stürzte
+  einmal beim Schließen eines Fensters ab (Qt/Shiboken, `~QWidget`), zweimal wiederholt grün.
 ## P-2026-10-23-17 fertigteil-speichern-als-knopf
 
 ### EINGELESEN
