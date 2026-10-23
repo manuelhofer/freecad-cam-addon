@@ -152,6 +152,35 @@ class _Bahnen:
         # „Dokument/Label“ → (längs, radial, Rundachse, Drehsinn) der 4-Achs-Operationen – so
         # zählt _kehren_schreiben auch ihre Kehren (vierachs_bahn.kehren).
         self.vierachs = {}
+        # „Dokument/Job“ → (Zellen, mm²) im Teil nach allen Operationen (fertigteil.im_teil) –
+        # gezählt, wenn das Dokument geschlossen wird; _im_teil_schreiben. Zwei Fehlschnitte kamen
+        # am 2026-10-23 nur durch Zufall ans Licht (C-Ring, Ring von vorn).
+        self.im_teil = {}
+
+    def slotDeletedDocument(self, doc):
+        try:
+            jobs = [o for o in doc.Objects if hasattr(o, "Operations") and hasattr(o, "Stock")]
+        except Exception:  # noqa: BLE001
+            return
+        for job in jobs:
+            name = f"{doc.Name}/{job.Label}"
+            try:
+                if not list(job.Operations.Group):
+                    continue
+                from camaddon import fertigteil as ft
+                from camaddon import materialstand as mst
+                from camaddon import vierachs_rohteil as vr
+
+                stand = mst.fuer(job)
+                if stand is None:
+                    continue
+                q = stand.quader
+                zellen = ft.im_teil(
+                    q.x, q.y, ft.hoehen(job, stand), vr.modell(job).Shape, ft.anfang_des_jobs(job)
+                )
+                self.im_teil[name] = (zellen, zellen * stand.schritt**2)
+            except Exception as fehler:  # noqa: BLE001 – nur ein Bericht
+                self.im_teil[name] = (-1, str(fehler)[:120])
 
     def slotRecomputedObject(self, obj):
         try:
@@ -236,6 +265,21 @@ def _kehren_schreiben():
         datei.write("\n".join(z[1] for z in zeilen) + ("\n" if zeilen else ""))
 
 
+def _im_teil_schreiben():
+    """im_teil.txt: je 3-Achs-Job, wie viele Zellen nach allen Operationen unter der Oberkante des
+    Teils liegen (fertigteil.im_teil) – die mit Fehlschnitt zuerst. Nur ein Bericht."""
+    bahnen = getattr(starten, "bahnen", None)
+    if bahnen is None or not bahnen.im_teil:
+        return
+    zeilen = sorted(bahnen.im_teil.items(), key=lambda e: -e[1][0])
+    with open(os.path.join(AUSGABE, "im_teil.txt"), "w", encoding="utf-8") as datei:
+        for name, (zellen, mm2) in zeilen:
+            if zellen < 0:
+                datei.write(f"nicht gezählt  {name}: {mm2}\n")
+            else:
+                datei.write(f"Im Teil {zellen:5d} Zellen ({mm2:7.1f} mm²)  {name}\n")
+
+
 def _ende(helfer, fehler=None):
     if fehler:
         helfer.fehler.append(fehler)
@@ -254,6 +298,7 @@ def _ende(helfer, fehler=None):
     FreeCADGui.Control.closeDialog()
     for name in list(FreeCAD.listDocuments()):
         FreeCAD.closeDocument(name)
+    _im_teil_schreiben()
     QtGui.QApplication.quit()
 
 
