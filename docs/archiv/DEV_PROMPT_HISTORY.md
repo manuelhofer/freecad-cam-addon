@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-15 adaptiv-inseln-wieder-ganz
+
+### EINGELESEN
+- Volle Durchsicht der Prüfdateien (nachdem sieben Referenzprüfungen unbemerkt rot waren):
+  `test_testteil` rot seit P-2026-10-18-89 (`git bisect`) – das Räumen über drei Höhen am Testteil
+  29-mal abgehoben (höchstens 10), die Last bis 2,43 ae, 8,3 mm am Stück über 1,25 ae; in der
+  Dreieck-Tasche rechnete „adaptiv“ gar nicht mehr. Getrennt nachgemessen: Es lag an „Inseln für
+  den Adaptiv-Kern nur in Reichweite von Material“, nicht an `_umweg`.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_ringe_adaptiv` – eine Insel zählt für den Kern als Material,
+  außer wo neben ihr vor der Operation nie Rohteil stand und kein Material in Reichweite ist (am
+  C-Ring aus Rundmaterial der Mantel – das, wofür P-89 die Regel gebaut hatte); wo eine Fläche
+  davor geräumt hat, zählt sie wieder. `_flaeche`: `feld.anfangs_hoehe` (der Materialstand vor der
+  Operation, ohne ihn das Rechteck des Rohteils).
+- `tests/test_testteil.py`: höchstens 15-mal abgehoben statt 10 – `_umweg` hebt lange Wege durchs
+  Freie ab (P-89, Grundsatz 5): 13 statt 6, und 10,35 statt 10,43 min.
+- `package.xml` 0.277.5.
+
+### ERGEBNIS
+- Testteil, Räumen über drei Höhen: 11,14 → 10,35 min, 29 → 13-mal abgehoben, Last 2,43 → 1,17 ae;
+  die Dreieck-Tasche rechnet „adaptiv“ wieder mit. Am C-Ring bleibt der Ring um den Mantel weg.
+- Grün: `test_testteil`, `test_raeumen`, `test_nut_offen`, `szenario_testteil`,
+  `szenario_raeumen`, `szenario_bearbeitung_cring_alles`; die übrigen 91 leichten Prüfdateien.
 ## P-2026-10-23-14 helix-statt-zickzack-im-anlauf
 
 ### EINGELESEN

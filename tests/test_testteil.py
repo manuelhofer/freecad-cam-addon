@@ -8,9 +8,10 @@
 # Stufe zuletzt; ohne Rest, nirgends ins Teil. Mit den Ringen 12,4 min (jede Fläche für sich vom
 # Rohteil her: 26 min), 56-mal abgehoben, und wo ein Ring an einer Wand beginnt, fährt der Fräser
 # quer in den Streifen – bis 5 ae. Ohne Vorgabe gewinnt deshalb die Variante „adaptiv“ (T5):
-# unter 11,5 min, höchstens 10-mal abgehoben, die Last gehalten (kurz höchstens 1,7 ae, über
-# 1,25 ae höchstens eine Fräserbreite am Stück). Manuels Räumen („stiche“, Spezifikation
-# Strategien 14) rechnet nur auf Vorgabe: 12,4 min (Manuel, 2026-10-03: „wir lassen adaptiv“).
+# unter 11,5 min, höchstens 15-mal abgehoben (lange Wege durchs Freie abgehoben, _umweg), die
+# Last gehalten (kurz höchstens 1,7 ae, über 1,25 ae höchstens eine Fräserbreite am Stück).
+# Manuels Räumen („stiche“, Spezifikation Strategien 14) rechnet nur auf Vorgabe: 12,4 min
+# (Manuel, 2026-10-03: „wir lassen adaptiv“).
 # Der Boden der kleinen Tasche: Der Ø 12 passt nicht hinein – ein Satz statt einer Bahn rund um die Insel (B-006); mit den anderen Flächen
 # zusammen fällt sie aus, und die Bahn nennt sie (B-007).
 import os
@@ -116,7 +117,10 @@ pruefe(
     and rb.STICHE not in bahn.zeiten,
     f"Räumen über drei Höhen: {bahn.variante}, {bahn.zeiten} – das Ziel sind 8 min",
 )
-pruefe(abgehoben(bahn) <= 10, f"Räumen über drei Höhen: {abgehoben(bahn)}-mal abgehoben")
+# Höchstens 15-mal: Eine Verbindung des Kerns durchs Freie, länger als Abheben, hinüber und
+# hinab, wird seit P-2026-10-18-89 abgehoben (raeumen_bahn._umweg, Grundsatz 5) – am Testteil
+# 13- statt 6-mal, und 10,35 statt 10,43 min.
+pruefe(abgehoben(bahn) <= 15, f"Räumen über drei Höhen: {abgehoben(bahn)}-mal abgehoben")
 groesste, lang = rb.last(bahn, werte_fuer())
 pruefe(
     groesste <= bn.LAST_KURZ * rb.LAST_SPIEL and lang <= 2 * R,

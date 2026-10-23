@@ -2303,6 +2303,13 @@ def _flaeche(
     if w.schneidenlaenge > 0:
         zustellung = min(zustellung, w.schneidenlaenge)
     feld, toleranz, zugabe = _feld_der_flaeche(netz, w, ebene, tasche, r, schritt, huellen)
+    # Wie hoch Rohteil stand, bevor die Operation begann (für den Adaptiv-Kern: wo neben einer
+    # Insel nie Rohteil war, _ringe_adaptiv) – ohne Materialstand das Rechteck des Rohteils.
+    feld.anfangs_hoehe = (
+        np.where(feld.rohteil_zellen, stand.hoehen_an(feld.xs, feld.ys), -np.inf)
+        if stand is not None
+        else None
+    )
     if tasche is not None:
         # Die Tasche endet an ihren Wänden: Liegt das Teil daneben tiefer als ihr Boden (eine
         # Tasche in einer Insel), dürfte die Spitze sonst auch dorthin – an Manuels Testteil
@@ -3114,14 +3121,23 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
         # (P-2026-10-10-43). Die Inseln – das Gesperrte im Maß der Schneide – zählen für ihn
         # deshalb als Material; nachgestellt am Kern hält er dann 6,05 statt 5,20 mm bei R 6.
         # Der Kern von 1.1 rechnet damit genauso wie ohne, er bekommt es nicht.
-        # Nur in Reichweite von Material, das wegzunehmen ist (das Rohteil ohne die Inseln): Sonst
-        # fuhr der Kern sein Profil um eine Insel, um die nichts steht – am C-Ring aus
-        # Rundmaterial Ø 60 rund um den Mantel durch die Luft, gezackt am Raster (Manuel,
-        # 2026-10-18: „warum ist der werkeugweg der ausenrum geht so zackig“; Grundsatz 5).
+        # Nicht dort, wo neben der Insel nie Rohteil stand (vor der Operation) und kein Material
+        # in Reichweite ist, das wegzunehmen wäre: Sonst fuhr der Kern sein Profil um eine Insel,
+        # um die nichts steht – am C-Ring aus Rundmaterial Ø 60 rund um den Mantel durch die
+        # Luft, gezackt am Raster (Manuel, 2026-10-18: „warum ist der werkeugweg der ausenrum
+        # geht so zackig“; Grundsatz 5). Wo eine Fläche davor geräumt hat, zählt die Insel: Nur
+        # in Reichweite des Materials (P-2026-10-18-89) hob der Kern am Testteil 29- statt 13-mal
+        # ab, und die Last stieg bis 2,4 ae (test_testteil).
         insel = np.where(np.isfinite(D), -(D + r), -np.inf)
-        weg = (tiefe > 0) & ~(insel > 0)
-        nahe = feld.aufweiten(weg, r + ae + feld.schritt)
-        tiefe = np.maximum(tiefe, np.where(nahe, insel, -np.inf))
+        ist_insel = insel > 0
+        weg = (tiefe > 0) & ~ist_insel
+        anfang = getattr(feld, "anfangs_hoehe", None)
+        # Ohne Materialstand: außerhalb des Rechtecks des Rohteils.
+        nie = ~feld._ganz[2] if anfang is None else anfang <= ablauf.lage + MATERIAL
+        luft = nie & ~ist_insel
+        reichweite = r + ae + feld.schritt
+        zaehlt = feld.aufweiten(weg, reichweite) | ~feld.aufweiten(luft, reichweite)
+        tiefe = np.maximum(tiefe, np.where(zaehlt, insel, -np.inf))
     rand = np.zeros(tiefe.shape, dtype=bool)
     rand[0, :] = rand[-1, :] = rand[:, 0] = rand[:, -1] = True
     if (tiefe[rand] > 0).any():
