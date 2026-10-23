@@ -50,7 +50,13 @@ and position are shown greyed out as they are in the job, and <b>Next</b> goes s
 should go?”. The new operations take into account what is already removed (see Slot). If the
 part has several jobs, it takes the one whose part you clicked in the view, otherwise the one
 created last. For a <b>second setup</b> – the part turned over – <b>New job …</b> creates a new
-one instead.</li>
+one instead. As its stock you take the finished part of the first: <b>CAM-Addon → Finished part as
+stock</b> computes, from the job of the first setup, the part as it stands after all operations, and
+puts it into the document (“… – Setup 1 – finished part”, where the part lies) and as a file of its own
+into the document’s folder. Here you then choose it under Stock with <b>Part from the document</b>.
+It is computed from the material on a 0.5 mm grid, united with the part: the finished faces are
+exact; where material remains, there are fine steps. If paths cut into the part, the command says
+so. So far for jobs with 3 axes from above.</li>
 <li><b>Machine</b> – at the very top: on which of your machines you mill the part, from the
 list in <a href="maschinen.html">Machines …</a> (the button next to it opens it). The one from
 last time is preselected; the job remembers the choice, and <b>Check on machine</b> then uses

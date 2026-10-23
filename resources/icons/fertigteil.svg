@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Fertigteil als Rohteil“: ein gefräster Block (Tasche, Stufe), ein Pfeil zum Block daneben – die nächste Aufspannung. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <path d="M4 40 V24 H14 V30 H22 V24 H30 V40 Z" fill="#babdb6" stroke="#555753" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M34 40 V24 H44 V30 H52 V24 H60 V40 Z" fill="#8ae234" stroke="#4e9a06" stroke-width="2" stroke-linejoin="round" transform="rotate(180 47 32)"/>
+  <path d="M18 50 Q32 60 46 50" fill="none" stroke="#204a87" stroke-width="3"/>
+  <path d="M48 46 l-1 8 l-7 -3 z" fill="#204a87"/>
+</svg>

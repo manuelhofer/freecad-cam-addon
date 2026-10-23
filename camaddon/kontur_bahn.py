@@ -58,6 +58,7 @@ NAH = 1e-5  # mm – so nah ist dieselbe Stelle
 WANDHOEHE_SCHRITT = 1.0  # mm – so dicht wird die Höhe einer Wand über ihrer Unterkante abgefragt
 HOECHSTENS_VERSAETZE = 200  # so viele Schruppbahnen je Kontur höchstens (vom Rohteil her)
 WAND_SPIEL = 0.05  # mm – so viel näher an eine Wand darf das Ein- und Ausfahren (Sehnen der Kette)
+ABSTAND_STUECK = 2_000_000  # so viele Paare (Stelle, Ecke) rechnet _Huelle.zu_nah auf einmal
 REST_SPIEL = 0.02  # mm – so weit muss der kleine Fräser aus dem großen ragen, damit er dort fährt
 GLEICH = vb.GLEICH
 # Mit Materialstand: So viel muss über einer Lage stehen, damit es als Material zählt. Eine Lücke im
@@ -942,6 +943,32 @@ class _Huelle:
         roh = self.roh_bei(x, y)
         return (roh + self.zugabe <= lage + GLEICH) | (roh <= ziel + GLEICH)
 
+    def zu_nah(self, x, y, lage, mindest):
+        """Je Stelle: liegt sie näher als `mindest` an einer Wand der Konturen, die über die Lage
+        hinaufreicht – quer zu ihr oder an einer ihrer inneren Ecken (_abstand_ohne_enden)?
+        Gerechnet nur nahe der Wand (ihr Umriss plus `mindest`) und in Stücken – eine lange
+        Kontur gäbe sonst eine Matrix aus Stellen mal Ecken."""
+        x = np.asarray(x, dtype=float)
+        y = np.asarray(y, dtype=float)
+        nah = np.zeros(len(x), dtype=bool)
+        for kx, ky, geschlossen, z_oben in self.waende:
+            if z_oben <= lage + GLEICH or len(kx) < 2:
+                continue
+            kx = np.asarray(kx, dtype=float)
+            ky = np.asarray(ky, dtype=float)
+            dort = np.flatnonzero(
+                ~nah
+                & (x > kx.min() - mindest)
+                & (x < kx.max() + mindest)
+                & (y > ky.min() - mindest)
+                & (y < ky.max() + mindest)
+            )
+            stueck = max(1, ABSTAND_STUECK // len(kx))
+            for von in range(0, len(dort), stueck):
+                i = dort[von : von + stueck]
+                nah[i] |= _abstand_ohne_enden(x[i], y[i], kx, ky, geschlossen) < mindest
+        return nah
+
     def abstand_zur_wand(self, x, y, lage):
         """So weit (mm) ist jede Stelle von der nächsten Wand der Konturen entfernt, die über
         die Lage hinaufreicht – unendlich, wo keine ist. Die Hüllfläche blendet diese Wände
@@ -998,6 +1025,34 @@ def _abstand_polylinie(qx, qy, kx, ky, geschlossen):
     t = ((qx - ax) * dx + (qy - ay) * dy) / np.where(laenge2 > 0, laenge2, 1.0)
     t = np.clip(t, 0.0, 1.0)
     return np.hypot(qx - (ax + t * dx), qy - (ay + t * dy)).min(axis=1)
+
+
+def _abstand_ohne_enden(qx, qy, kx, ky, geschlossen):
+    """Wie _abstand_polylinie, an einem offenen Linienzug aber ohne seine beiden Enden: nur quer
+    zu einer Strecke (der Fußpunkt auf ihr) und zu den Ecken dazwischen. Am Ende geht die Wand um
+    eine Ecke weiter – eine andere Wand oder keine –, der Abstand zum Endpunkt sagt nicht, ob der
+    Fräser in sie fährt (am Testteil begann die Kontur T1 sonst 2 mm zu spät: 5,3 mm vom Ende der
+    Inselwand, die dort nach außen abbiegt)."""
+    ax, ay = np.asarray(kx, dtype=float), np.asarray(ky, dtype=float)
+    bx, by = np.roll(ax, -1), np.roll(ay, -1)
+    ecken_x, ecken_y = ax, ay
+    if not geschlossen:
+        ax, ay, bx, by = ax[:-1], ay[:-1], bx[:-1], by[:-1]
+        ecken_x, ecken_y = ecken_x[1:-1], ecken_y[1:-1]
+    dx, dy = bx - ax, by - ay
+    laenge2 = dx * dx + dy * dy
+    qx = np.asarray(qx, dtype=float)[:, None]
+    qy = np.asarray(qy, dtype=float)[:, None]
+    t = ((qx - ax) * dx + (qy - ay) * dy) / np.where(laenge2 > 0, laenge2, 1.0)
+    quer = np.where(
+        (t >= 0.0) & (t <= 1.0) & (laenge2 > 0),
+        np.hypot(qx - (ax + t * dx), qy - (ay + t * dy)),
+        np.inf,
+    )
+    ergebnis = quer.min(axis=1) if quer.shape[1] else np.full(len(qx), np.inf)
+    if len(ecken_x):
+        ergebnis = np.minimum(ergebnis, np.hypot(qx - ecken_x, qy - ecken_y).min(axis=1))
+    return ergebnis
 
 
 # --- Die Bahn ---------------------------------------------------------------------------------
@@ -1437,6 +1492,14 @@ def _bahnen(
     if n < 2:
         return 0
     erlaubt = huelle.erlaubt(x, y, lage, ziel)
+    # Nicht näher an eine Wand der Konturen, als die Bahn darf (beim Schruppen Radius + Aufmaß,
+    # beim Schlichten der Radius): Die Hüllfläche blendet alle gewählten Wände aus – stehen zwei
+    # einander enger gegenüber als der Fräser, führe die Bahn an der einen durch die andere (am
+    # C-Ring „Wände schlichten T1“ Ø 12 in der 8 mm breiten Nut: beide Stege 5 mm tief weg, vom
+    # Fertigteil gefunden, W-029). Spiel: die Sehnen der Kette (alle 2 · schritt) an einer runden
+    # Wand innen, höchstens (2 · schritt)² / 8r.
+    spiel = WAND_SPIEL + (2 * schritt) ** 2 / (8 * r)
+    erlaubt &= ~huelle.zu_nah(x, y, lage, min(d, r + max(w.aufmass, 0.0)) - spiel)
     im_rohteil = _im_rohteil(x, y, w.rohteil, r)
     drin = erlaubt & im_rohteil
     if w.nur_wo is not None:

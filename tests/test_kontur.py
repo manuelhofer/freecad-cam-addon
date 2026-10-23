@@ -7,7 +7,8 @@
 # der Radius (mit Ø 12 gefunden, P-2026-10-01-23) –, Rampe im Material, Lagen und Bahnen,
 # eine Wand allein (offen) und eine Taschenwand allein (die Nachbarn halten die Bahn an),
 # Fehler mit einem Satz; dann die CAM-Operation im Job: angelegt (Tiefen und Höhen wie
-# FreeCAD), gerechnet, geändert, gespeichert und geladen.
+# FreeCAD), gerechnet, geändert, gespeichert und geladen. Zwei gewählte Wände enger als der
+# Fräser: nichts ins Teil.
 import dataclasses
 import math
 import os
@@ -491,6 +492,35 @@ pruefe(
 )
 pruefe(k_ring.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Ring: ins Teil {k_ring.einschnitt:.3f}")
 pruefe(k_ring.rest <= 0.5, f"Ring: Rest {k_ring.rest:.2f}")
+
+# --- Zwei gewählte Wände enger als der Fräser (W-029: am C-Ring fuhr „Wände schlichten T1“ Ø 12
+# in der 10 mm breiten Nut an der einen Wand durch die andere, beide Stege 5 mm tief weg): ein
+# Block mit einer Nut 10 breit, 5 tief, längs ganz durch; gewählt nur ihre beiden Wände. Die
+# Hüllfläche blendet beide aus – keine Bahn kommt trotzdem einer näher als der Radius, nichts
+# ins Teil (ohne _Huelle.zu_nah: 5 mm).
+nutblock = Part.makeBox(60, 40, 10).cut(Part.makeBox(60, 10, 5, V(0, 15, 5))).removeSplitter()
+nut_waende = [
+    f"Face{i + 1}"
+    for i, f in enumerate(nutblock.Faces)
+    if kb.ist_wand(f)
+    and abs(f.normalAt(0, 0).y) > 0.9
+    and 15 - 1e-6 <= f.CenterOfMass.y <= 25 + 1e-6
+]
+pruefe(len(nut_waende) == 2, f"Nut: Wände {nut_waende}")
+netz_n, fern_n = hf.netze_ohne(
+    nutblock, [kb.ohne_flaechen(nutblock, kb.waende(nutblock, nut_waende)), nut_waende]
+)
+werte_nut = kb.Konturwerte(form, 25.0, 1.5, 0.3, True, 10.0, 15.0, (-1.0, 61.0, -1.0, 41.0))
+try:
+    bahn_nut = kb.planen(netz_n, werte_nut, kb.konturen(nutblock, nut_waende), netz_fern=fern_n)
+    k_nut = ps.messen([ps.Bahnlauf(bahn_nut.punkte, 902.0, 270.0)], nutblock,
+                      (-1.0, 61.0, -1.0, 41.0), 10.0, form, 1.5, 25.0, raster=0.25)  # fmt: skip
+    pruefe(
+        k_nut.einschnitt > -ps.EINSCHNITT_ZULAESSIG,
+        f"Nut enger als der Fräser: ins Teil {k_nut.einschnitt:.3f}",
+    )
+except ValueError:
+    pass  # gar keine Bahn: auch richtig
 
 if fehler:
     raise AssertionError("\n".join(fehler))

@@ -10,8 +10,12 @@
 # herum – Grundsatz 5, Manuel: „keine luftfahrten … und wenn rohteil schon fertigteil durchmesser
 # hat ... dann muss man da auch nimmer drüber juckeln“), die Kontur hat nichts zu tun; Schlitz und
 # Bohrung hinter dem Keil sind für T1 zu eng – „Rest räumen“ mit T3 von außen in Wellen („Ja, dort
-# der kleinere“). „Anlegen“: Räumen T1, Räumen T3, „Nut T3“, Messstopp, „Wände schlichten T1“ –
-# keine Kontur; beim Rundmaterial schlichtet niemand den Mantel (davor steht kein Rohteil).
+# der kleinere“). „Anlegen“: Räumen T1, Räumen T3, „Nut T3“, Messstopp, „Wände schlichten T1“,
+# „Nut schlichten T3“ – keine Kontur; beim Rundmaterial schlichtet niemand den Mantel (davor steht
+# kein Rohteil). Der Ø 12 passt nicht in die 10 mm breite Nut: Ihre Wände schlichtet T3 mit
+# seinem Einsatz fürs Schlichten, nicht die Kontur (sie fuhr bis 0.276.3 an der einen Wand durch
+# die andere und nahm beide Stege 5 mm tief mit, W-029). Nach allen Operationen steht im
+# Materialstand überall das Teil.
 # ZEITLIMIT: 900
 import math
 import os
@@ -112,18 +116,52 @@ def _ein_rohteil(h, ordner, name, rohteil_setzen):
     namen = [o.Label for o in neue]
     print(ascii(f"{name}: {namen}"))
     h.pruefe(any(n.startswith("Räumen") for n in namen), f"{name}: kein Räumen in {namen}")
-    for soll in ("Räumen T1", "Räumen T3", "Nut T3", "Messstopp", "Wände schlichten T1"):
+    soll_namen = (
+        "Räumen T1", "Räumen T3", "Nut T3", "Messstopp", "Wände schlichten T1", "Nut schlichten T3"
+    )  # fmt: skip
+    for soll in soll_namen:
         h.pruefe(soll in namen, f"{name}: „{soll}“ fehlt in {namen}")
-    if "Messstopp" in namen and "Wände schlichten T1" in namen:
+    if all(n in namen for n in soll_namen):
         # Schruppen – messen – schlichten: alles Schruppen (auch die Kontur) vor dem Messstopp.
         h.pruefe(
-            namen.index("Messstopp") == namen.index("Wände schlichten T1") - 1
-            and namen.index("Wände schlichten T1") == len(namen) - 1,
+            namen[namen.index("Messstopp") :]
+            == ["Messstopp", "Wände schlichten T1", "Nut schlichten T3"],
             f"{name}: Folge {namen}",
         )
-    # Räumen T3 und Nut T3 mit demselben Einsatz: ein Controller für T3 (vorher je einer).
-    t3 = [tc for tc in job.Tools.Group if tc.ToolNumber == 3]
-    h.pruefe(len(t3) == 1, f"{name}: Controller für T3: {[tc.Label for tc in t3]}")
+    # Nichts im Teil (W-029 fand es im Beispiel vom 18.10.: „Wände schlichten T1“ Ø 12 fuhr in
+    # die 10 mm breite Nut und nahm die Stege mit): Nach allen Operationen steht im Raster des
+    # Materialstands überall mindestens das Teil – bis auf die Zellen am Rand des Teils (ihre
+    # Mitte liegt mal knapp drinnen, mal draußen) und die, die schon im Rohteil fehlten (der
+    # Materialstand zieht ein rundes Rohteil um eine Zelle ein, materialstand._eingezogen).
+    import numpy as np
+
+    from camaddon import hoehenfeld as hf
+    from camaddon import materialstand as mst
+    from camaddon import vierachs_huelle as vh
+
+    stand = mst.fuer(job)
+    q = stand.quader
+    anfang = mst.fuer(job, vor=job.Operations.Group[0]).quader.h
+    oben = hf.hoehen(vh.vernetze(job.Model.Group[0].Shape), q.x, q.y)
+    rest = np.where(np.isfinite(q.h), q.h, -1e9)
+    unter = (oben > -1e8) & (rest < oben - 0.05) & (anfang >= oben - 0.05)
+    innen = unter.copy()
+    innen[1:-1, 1:-1] &= (
+        (np.abs(oben[2:, 1:-1] - oben[1:-1, 1:-1]) < 0.05)
+        & (np.abs(oben[:-2, 1:-1] - oben[1:-1, 1:-1]) < 0.05)
+        & (np.abs(oben[1:-1, 2:] - oben[1:-1, 1:-1]) < 0.05)
+        & (np.abs(oben[1:-1, :-2] - oben[1:-1, 1:-1]) < 0.05)
+    )
+    print(
+        ascii(f"{name}: {int(unter.sum())} Zellen unter dem Teil, {int(innen.sum())} nicht am Rand")
+    )
+    h.pruefe(not innen.any(), f"{name}: {int(innen.sum())} Zellen unter der Oberkante des Teils")
+    # Räumen T3 und Nut T3 mit demselben Einsatz: ein Controller für T3 (vorher je einer); dazu
+    # einer fürs Schlichten der Nut.
+    t3 = sorted(tc.Label for tc in job.Tools.Group if tc.ToolNumber == 3)
+    h.pruefe(
+        t3 == ["T3 VHM 6 – Schlichten", "T3 VHM 6 – Schruppen"], f"{name}: Controller für T3: {t3}"
+    )
     schlichten = next((o for o in neue if o.Label == "Wände schlichten T1"), None)
     h.pruefe(not any(n.startswith("Kontur") for n in namen), f"{name}: Kontur in {namen}")
     if schlichten is not None:

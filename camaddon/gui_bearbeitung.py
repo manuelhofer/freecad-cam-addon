@@ -1602,7 +1602,17 @@ class _Schlichtbahn:
     Wände (kontur_bahn-Bahn oder None) hintereinander – `punkte` für Zeit und Materialstand."""
 
     def __init__(
-        self, boden, wand, waende, aufmass_boden, aufmass_wand, messstopp, ring=None, ringe=()
+        self,
+        boden,
+        wand,
+        waende,
+        aufmass_boden,
+        aufmass_wand,
+        messstopp,
+        ring=None,
+        ringe=(),
+        eng=None,
+        enge=(),
     ):
         self.boden = boden
         self.wand = wand
@@ -1612,6 +1622,11 @@ class _Schlichtbahn:
         # die Kontur führe nur die senkrechten (an Manuels Messspitzenhalter nicht die Fase).
         self.ring = ring
         self.ringe = list(ringe) if ring is not None else []
+        # Die Nuten, in die der Fräser des Schlichtens nicht passt (am C-Ring Ø 12 in der 10 mm
+        # breiten Nut – die Kontur führe an der einen Wand durch die andere, W-029): ihre Wände
+        # schlichtet eine Nut „nur schlichten“ mit dem Fräser der Nut.
+        self.eng = eng
+        self.enge = list(enge) if eng is not None else []
         self.aufmass_boden = aufmass_boden
         self.aufmass_wand = aufmass_wand
         self.messstopp = messstopp
@@ -1619,6 +1634,7 @@ class _Schlichtbahn:
             list(getattr(boden, "punkte", []))
             + list(getattr(wand, "punkte", []))
             + list(getattr(ring, "punkte", []))
+            + list(getattr(eng, "punkte", []))
         )
 
 
@@ -1731,14 +1747,29 @@ class _SchlichtenDanach(_Strategie):
                 )  # fmt: skip
             except mst.SchonWeg:
                 ring = None
-        if boden is None and wand is None and ring is None:
+        enge = list(werte.get("nut_eng") or [])
+        eng = None
+        if werte["waende"] and enge and aufmass_wand > 0:
+            r_eng = float(werte.get("nut_eng_radius") or 0.0)
+            try:
+                eng = nu.vorschau(
+                    job, job.Model.Group, r_eng, werte["zustellung"], r_eng, 0.0, enge,
+                    schlichten=True, nur_schlichten=True, gleichlauf=werte["gleichlauf"],
+                    schneidenlaenge=float(werte.get("nut_eng_schneide") or 0.0),
+                    vorschub=werte.get("vorschub", 0.0), stand=stand,
+                )  # fmt: skip
+            except mst.SchonWeg:
+                eng = None
+        if boden is None and wand is None and ring is None and eng is None:
             raise ValueError(tr("ba.schlichten_danach.nichts"))
         bahn = _Schlichtbahn(
-            boden, wand, waende, aufmass_boden, aufmass_wand, bool(werte["messstopp"]), ring, ringe
-        )
-        if ring is not None:
-            ring_waende = list(werte.get("nut_ring_waende") or [])
-            bahn.waende += [w for w in ring_waende if w not in bahn.waende]
+            boden, wand, waende, aufmass_boden, aufmass_wand, bool(werte["messstopp"]), ring, ringe,
+            eng, enge,
+        )  # fmt: skip
+        for da, schluessel in ((ring, "nut_ring_waende"), (eng, "nut_eng_waende")):
+            if da is not None:
+                dazu = list(werte.get(schluessel) or [])
+                bahn.waende += [w for w in dazu if w not in bahn.waende]
         return bahn
 
     def ergebnis_text(self, bahn, zeit):
@@ -7935,11 +7966,22 @@ class BearbeitungPanel:
         raeumen = self.raeumen
         nut_waende, nut_aufmass = [], 0.0
         ringe, ring_waende = [], []
+        enge, enge_waende = [], []
         if self._nut_laesst_aufmass():
             werte_nut = self.nut.werte()
+            schlicht = self.schlichten_danach.fraeser()
+            r_s = float(getattr(schlicht, "durchmesser", 0.0) or 0.0) / 2
             for name in self._flaechen(self.nut, form):
                 for n in nb.nuten(form, [name]):
-                    if n.ring:
+                    if r_s > 0 and nb.verfahren(n, r_s) == "zu_schmal":
+                        # Der Fräser des Schlichtens passt nicht hinein: Die Kontur führe an der
+                        # einen Wand durch die andere (am C-Ring Ø 12 in der 10 mm breiten Nut,
+                        # beide Stege 5 mm tief weg, W-029) – die Wände schlichtet eine Nut „nur
+                        # schlichten“ mit dem Fräser der Nut.
+                        if name not in enge:
+                            enge.append(name)
+                        enge_waende += [w for w in n.waende if w not in enge_waende]
+                    elif n.ring:
                         # Die Ringnut schlichtet eine Nut „nur schlichten“ – beide Wände, auch
                         # eine Fase außen (die Kontur führe nur die senkrechte).
                         if name not in ringe:
@@ -7949,8 +7991,16 @@ class BearbeitungPanel:
                         nut_waende += [w for w in n.waende if w not in nut_waende]
             nut_aufmass = float(werte_nut["aufmass"])
         ring_zusatz = {"nut_ringe": ringe, "nut_ring_waende": ring_waende} if ringe else {}
+        if enge:
+            nf = self.nut.fraeser()
+            ring_zusatz.update(
+                nut_eng=enge,
+                nut_eng_waende=enge_waende,
+                nut_eng_radius=float(nf.durchmesser) / 2,
+                nut_eng_schneide=float(getattr(nf, "schneidenlaenge", 0.0) or 0.0),
+            )
         if not raeumen.aktiv() or getattr(self, "_raeumen_bei_nut", False):
-            if not nut_waende and not ringe:
+            if not nut_waende and not ringe and not enge:
                 return {}
             return {
                 "boden_flaechen": [],
@@ -7971,7 +8021,7 @@ class BearbeitungPanel:
         waende = [w for w in _waende_um(form, boeden) + durch + nut_waende if w not in kontur]
         # Nicht die Wände, vor denen kein Rohteil steht (der Mantel im Rundmaterial, W-034).
         waende = [w for w in dict.fromkeys(waende) if not self._ohne_rohteil(form, w)]
-        waende = [w for w in waende if w not in ring_waende]
+        waende = [w for w in waende if w not in ring_waende and w not in enge_waende]
         return {
             "boden_flaechen": boeden,
             "wand_flaechen": waende,
@@ -9450,9 +9500,30 @@ class BearbeitungPanel:
                     flaechen=bahn.ringe, nur_schlichten=True,
                 )  # fmt: skip
             )
+        if getattr(bahn, "eng", None) is not None:
+            tc_eng = self._nut_schlichtcontroller()
+            ops.append(
+                nu.lege_an(
+                    self.job, tc_eng, werte["zustellung"], tc_eng.Tool.Diameter / 2, 0.0,
+                    schlichten=True, gleichlauf=werte["gleichlauf"],
+                    name=tr("ba.nut.schlichten_name", werkzeug=f"T{tc_eng.ToolNumber}"),
+                    flaechen=bahn.enge, nur_schlichten=True,
+                )  # fmt: skip
+            )
         if not ops or (len(ops) == 1 and werte.get("messstopp")):
             raise ValueError(tr("ba.schlichten_danach.nichts"))
         return ops
+
+    def _nut_schlichtcontroller(self):
+        """Der Controller für das Schlichten der engen Nuten (_Schlichtbahn.eng): der Fräser der
+        Nut mit seinem Einsatz fürs Schlichten – hat er keinen, mit dem der Nut. In der
+        Transaktion von _anlegen."""
+        werkzeug = self.nut.fraeser()
+        einsaetze = self.nut._passende_einsaetze(werkzeug, self.werkstoff())
+        einsatz = next((e for e in einsaetze if e.art == wz.SCHLICHTEN), None)
+        return js.controller_ohne_transaktion(
+            self.doc, self.job, werkzeug, einsatz or self.nut.einsatz(), self.werkstoff()
+        )
 
     def _aendern(self):
         """Die Operation bekommt Fräser, Einsatz, Werte und Flächen aus ihrem Block – ein

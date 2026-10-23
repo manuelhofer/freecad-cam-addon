@@ -519,30 +519,16 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Manuel am 2026-10-18 früh (nach der Nacht) – Aufträge, in dieser Reihenfolge:**
-1. *Forum-Post der Woche:* kurz (erledigt als Entwurf `~/freecad_cam/forum/post_181026_05_wochenupdate/`,
-   Bilder im Zweig „forum“). „die bilder mit den linien sind eher uninteressant“ – für den Ring mit
-   4 Achsen und die Nut auf der Stirn der Drehmaschine lieber die Werkzeugwege in 3D, auf der
-   Beispielmaschine.
-2. *Einrichtblatt:* „den nullpunkt würde ich soo auf keinen fall schreiben ... das was wir eintragen
-   "mittig oben" ist sinnvoller .. und vll noch ein bild von dem rohteil mit dem koordinatensystem am
-   richtigen platz“; zu den Werkzeugen „sehr wenig werte ... ich hätte gern alle auch fz und vc ...
-   auch eintauchwinkel wenn er vorhanden ist ... das man die werte in die maschine packen kann“. Die
-   Ausspannlänge im Werkzeugbild (die „40“) rechnet sich aus Länge ab Spindelnase minus Halter – sie
-   ändert sich mit.
-3. *Rohteil in „Bearbeitung“:* „rohteil quader 60.93x61.96 ist natürlich quatsch“ – neben den
-   Aufmaßen auch die Rohteilmaße eingeben: „komplett variabel … vorschlag muss erstmal sein "gut das
-   sind die masse und nullpunkt ist mittig oben ... unterm nullpunkt is das teil direkt wenn oben
-   aufmass 0 ist .. wenn oben aufmass 1 ist liegts 1mm drunter ... und unten aufmass brauchts dann ja
-   eigentlich nicht ... auser man will es eingeben dann ergibt sich aber das obere aufmass durch die
-   höhe .. also ein switch wäre gut ... wenn das teil dann nicht ins rohteil past muss es eine warnung
-   geben und einspannlänge von unten ist auch wichtig“.
-4. *Nase, Kombination* (Auftrag 2 in `docs/auftraege_fable.md`): Face8 mit der Stirn und die
-   Stirnseite der Welle mit dem Umfang in einer Stellung – als Wahl, mit Ausspann-Hinweis; ap und ae
-   aus den Schnittwerten des Fräsers. **Gebaut (P-2026-10-18-99, 0.270.0):** Haken „Stirnseite daneben mit dem
-   Umfang“ bei „Plan indexiert“ (vierachs_stirnkombi), vorbelegt an; der Ausspann-Hinweis kommt aus
-   der Halterprüfung des Assistenten.
+**Stand 2026-10-23 abends (0.277.0) – offen, in dieser Reihenfolge:**
+1. *Frage 1 in `docs/OFFENE_FRAGEN.md`* (die Fase am Messspitzenhalter: Schaftfräser in Stufen,
+   Fasenfräser oder drehen) – bis zur Antwort bleiben die 3D-Blöcke dort aus (W-037).
+2. *W-029 weiter:* das Fertigteil auch für 4-Achs-Jobs (Stange) und 3+2-Ebenen (raum_material).
+3. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
+   Hauptprozess, 4-Achs-Schlichten genau beim Anlegen.
+4. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
 
+Die Aufträge vom 2026-10-18 früh (Forum-Post, Einrichtblatt mit vc/fz und Koordinatensystem,
+Rohteilmaße in „Bearbeitung“, Nase/Kombination) sind erledigt (P-2026-10-18-84 … -99).
 
 **Manuels Bilder vom 2026-10-12 spät (zu 0.259.6, Nase):**
 - „das sind in version 259.6 ja noch mehr zickzack fahrten geworden“ – die Pakete saßen hinten an
@@ -1604,7 +1590,16 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (materialstand, für 3+2 raum_material) einen Körper bauen (Höhenfeld bzw. Strahlabschnitte → Netz →
   Solid), als eigene Datei „<Teil> – Aufspannung 1 – Fertigteil.FCStd“ neben dem Teil speichern; die
   zweite Aufspannung nimmt ihn als Rohteil (CAM „Vorhandener Körper“). Genau bis aufs Raster des
-  Materialstands; Kanten und Bohrungen, die das Raster nicht trifft, zeigen es. Noch nicht gebaut.
+  Materialstands; Kanten und Bohrungen, die das Raster nicht trifft, zeigen es.
+  **Gebaut (P-2026-10-23-08, 0.277.0), für 3 Achsen von oben:** Menü „CAM-Addon → Fertigteil als
+  Rohteil“ (`camaddon/fertigteil.py`, `gui_fertigteil.py`): aus dem Materialstand ein wasserdichter
+  Körper (Zellen nur über Eck angehoben, Netz vereinfacht bis aufs Volumen 0,02 %), mit dem Teil
+  vereinigt (fertige Flächen genau, Stufen nur im Restmaterial), auf einem Nebenrechner (Testteil
+  ≈ 9 s, C-Ring ≈ 2 s); im Dokument an der Stelle des Teils („<Teil> – Aufspannung N –
+  Fertigteil“, N zählt die Fertigteile im Rohteil), dazu eine eigene Datei im Ordner des
+  Dokuments; noch einmal gerechnet: dasselbe Objekt. Schneiden Bahnen ins Teil, warnt der Befehl
+  – so fand er den Fehlschnitt am C-Ring (unten). Offen: 4-Achs- und 3+2-Jobs (Stange,
+  raum_material).
 - **W-030 Wendelnut entlang fahren** – Manuel, 2026-10-18, an seinem `4achs_testteil_wendel`
   (Ø 80 × 65, runde Nut R 11, Steigung 60; liegt nur bei ihm in `~/freecad_cam/testteile`): „die
   wendel ist entgegen der drehrichtung ... da muss man sich was einfallen lassen das das dennoch

@@ -12,6 +12,64 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-08 fertigteil-als-rohteil-nut-schlichten
+
+### EINGELESEN
+- W-029, Manuel, 2026-10-18: „sagen wir mal wir haben jetzt den C ring ... außen fertig
+  bearbeitet .. und innen und die nut ist auch fertig ... kann man dann generieren lassen ... ein
+  neues teil im selben ordner mit dem namen ... aufspannung 1 fertigteil ... so das man das dann
+  nutzen kann als rohteil für die zweite aufspannung ?“
+- Manuel, 2026-10-23: „arbeite mal weiter bitte .. solange du kannst“.
+- Beim Bauen gefunden: Am C-Ring (Beispiel vom 18.10. und neu angelegt mit 0.276.3) fährt
+  „Wände schlichten T1“ (Ø 12) in der 10 mm breiten Nut an der einen Wand entlang und nimmt die
+  Stege 5 mm tief mit – im Materialstand 1586 Zellen (Platte) und 1484 (Rundmaterial) unter der
+  Oberkante des Teils.
+
+### DATEIEN
+- `camaddon/fertigteil.py` (neu): Materialstand → Körper. `netz_aus_hoehen` (wasserdicht, an
+  jeder Ecke an allen Höhen geteilt), `ohne_ueber_eck` (Zellen, die sich nur über Eck berühren,
+  angehoben – sonst nicht mannigfaltig, FreeCAD machte am C-Ring nur eine Hülle),
+  `koerper_aus_hoehen` (Mesh.decimate der Reihe nach 97/95/90 %, bis das Volumen auf 0,02 %
+  stimmt), `mit_teil` (mit dem Teil vereinigt: fertige Flächen genau), `hoehen` (der eingezogene
+  Saum eines runden Rohteils zurück), `im_teil` (Zellen, an denen die Bahnen ins Teil schneiden),
+  `koerper_rechnen` (Nebenrechner), `aufspannung`, `name_fuer` (unbenanntes Teil: der Name des
+  Dokuments), `vorhanden`, `anlegen` (AusJob, Aufspannung), `datei_speichern`.
+- `camaddon/gui_fertigteil.py` (neu): Befehl „Fertigteil als Rohteil“ – Job wählen (fragt bei
+  mehreren), Körper auf einem Nebenrechner, Transaktion, hellgrün durchscheinend, Datei, Meldung
+  mit dem nächsten Schritt; fehlt Job oder Operation, „Bearbeitung“ als Knopf; schneiden Bahnen
+  ins Teil, eine Warnung. `camaddon/gui_start.py`: im Menü nach „Einrichtblatt …“.
+  `resources/icons/fertigteil.svg`.
+- `camaddon/kontur_bahn.py`: `_Huelle.zu_nah`, `_abstand_ohne_enden` – keine Bahn näher an
+  eine gewählte Wand als Radius (+ Aufmaß beim Schruppen); die Hüllfläche blendet alle gewählten
+  Wände aus und sah die gegenüberliegende Nutwand nicht. Enden offener Wände zählen nicht (am
+  Testteil begann die Kontur T1 sonst 2 mm zu spät).
+- `camaddon/gui_bearbeitung.py`: „Schlichten danach“ – Nuten, in die sein Fräser nicht passt,
+  schlichtet eine Nut „nur schlichten“ mit dem Fräser der Nut (Einsatz Schlichten, wenn er einen
+  hat): `_Schlichtbahn.eng/enge`, `_schlichten_danach_zusatz` (`nut_eng…`),
+  `_schlichten_danach_anlegen`, `_nut_schlichtcontroller`.
+- `camaddon/nut_bahn.py`: `nur_schlichten` auch für gerade und offene Nuten (`_nur_schlichten`);
+  `oben` dann die Oberkante der Wände statt des Materialstands.
+- `beispiele/c_ring_nut_3achs.FCStd` neu gebaut (beide Jobs mit „Nut schlichten T3“),
+  `daten/beispiele.json`, `beispiele/README.md`.
+- `translations/de.json`, `en.json`: `befehl.fertigteil.*`, `ft.*`. `help/de|en/bearbeitung.html`:
+  zweite Aufspannung mit dem Fertigteil.
+- Prüfungen: `tests/test_fertigteil.py` (neu), `tests/test_kontur.py` (Nut enger als der
+  Fräser), `tests/gui/szenario_fertigteil.py` (neu), `szenario_bearbeitung_cring_alles.py`
+  (nichts im Teil, „Nut schlichten T3“, zwei Controller für T3).
+- `docs/STATUS_SNAPSHOT.md`: W-029 gebaut, „Nächster Schritt“ neu. `package.xml` 0.277.0.
+
+### ERGEBNIS
+- C-Ring „aus Platte“: Fertigteil 0,9 s Körper + 0,9 s Vereinigen, gültiges Solid, das Teil
+  ganz darin; Testteil ≈ 9 s auf einem Nebenrechner (5219 Flächen).
+- C-Ring neu angelegt: „Wände schlichten T1“ ohne die Nutwände, danach „Nut schlichten T3“; im
+  Materialstand keine Zelle mehr unter dem Teil (Platte und Rundmaterial). Testteil: alle sechs
+  Programme gleich wie mit 0.276.3.
+- Grün: `test_fertigteil`, `test_kontur`, `test_nut`, `test_nut_offen`, `test_beispiele`,
+  `szenario_fertigteil`, `szenario_bearbeitung_cring_alles`, `szenario_testteil`,
+  `szenario_einrichtblatt`, `szenario_raeumen_durch`, `szenario_kontur`,
+  `szenario_kontur_materialstand`, `szenario_raeumen_schlichten`, `szenario_stirn_bund`,
+  `szenario_nut_offen`, `szenario_ecken`, `szenario_zapfen`, `szenario_absatz`,
+  `szenario_lagerbock`, `szenario_flansch`, `szenario_deckel`.
 ## P-2026-10-23-07 raeumen-umsonst-bohrung-angebot
 
 ### EINGELESEN

@@ -171,9 +171,11 @@ class Nutwerte:
     # das man kaum schnellvorschub hat sondern meist schneidet“): Der nächste Bogen schneidet
     # zurück, im Gegenlauf, statt quer über die freie Seite zurückzufahren (_boegen).
     wellen: bool = False
-    # Nur die Wände auf Maß – die Nut ist schon geräumt („Schlichten danach“ an der Ringnut,
-    # nach dem Messstopp: Die Kontur fährt nur senkrechte Wände, die Fase außen am
-    # Messspitzenhalter ließe sie aus). Bisher nur an der Ringnut (_ring_gestreckt).
+    # Nur die Wände auf Maß – die Nut ist schon geräumt („Schlichten danach“ nach dem
+    # Messstopp): an der Ringnut (die Kontur fährt nur senkrechte Wände, die Fase außen am
+    # Messspitzenhalter ließe sie aus, _ring_gestreckt) und an jeder Nut, in die der Fräser des
+    # Schlichtens nicht passt (am C-Ring Ø 12 in der 10 mm breiten Nut, W-029): offen von außen
+    # hinein (_offen_schlichten), geschlossen auf der Mittellinie hinab und rundum (_schlichten).
     nur_schlichten: bool = False
 
 
@@ -1433,7 +1435,9 @@ def _nut(punkte, nut, w, stand=None, bei=None):
         raise ValueError(tr("nt.fehler.zu_breit", breite=breite))
     r_w = max(nut.radius - R, 0.0)  # die Mitte des Fräsers an der Wand
     r_l = nut.radius - R - aufmass  # … auf den Bögen
-    oben = _oben(nut, w, stand, z_ende)
+    # Nur schlichten: Die Nut ist geräumt – der Materialstand sähe über dem Grund nichts mehr;
+    # die Wände reichen bis zu ihrer Oberkante.
+    oben = min(w.oben, nut.z_oben) if w.nur_schlichten else _oben(nut, w, stand, z_ende)
     if oben <= z_ende + GLEICH:
         return 0.0, 0, 0, False, math.inf
     if nut.bogen is not None:
@@ -1441,6 +1445,8 @@ def _nut(punkte, nut, w, stand=None, bei=None):
     uhr = not w.gleichlauf  # Gleichlauf in der Nut: gegen den Uhrzeigersinn (G3)
     vollnut = art == "vollnut"
     knapp = min(w.sicher, oben + w.sicherheit)
+    if w.nur_schlichten:
+        return _nur_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp)
     if nut.offen:
         start = nut.a if nut.offen_a else nut.b
         punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
@@ -1489,6 +1495,26 @@ def _nut(punkte, nut, w, stand=None, bei=None):
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
     return weg, lagen, boegen, vollnut, z_ende
+
+
+def _nur_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp):
+    """Nur die Wände der geräumten geraden Nut auf Maß (Nutwerte.nur_schlichten): offen von
+    außen hinein und heraus (_offen_schlichten), geschlossen in der Mitte des Endes A hinab
+    (dort ist Luft) und rundum (_schlichten). Gibt zurück wie _nut()."""
+    if nut.offen:
+        start = nut.a if nut.offen_a else nut.b
+        punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
+        weg = _offen_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp)
+    else:
+        a = nut.a
+        punkte.append(bn.Punkt(True, a[0], a[1], w.sicher))
+        punkte.append(bn.Punkt(True, a[0], a[1], knapp))
+        punkte.append(bn.Punkt(False, a[0], a[1], oben, True))
+        weg = bn.weg(punkte[-2], punkte[-1])
+        weg += _schlichten(punkte, nut, w, r_w, oben, z_ende, a, uhr)
+    letzter = punkte[-1]
+    punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    return weg, 1, 0, False, z_ende
 
 
 def _bogennut_bahn(punkte, nut, w, oben):
