@@ -1614,7 +1614,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Schruppen, Vorschlichten und Schlichten der Nut nach (C und Z gekoppelt, alle Bahnen in einer
   Richtung, C dreht nicht zurück), 27 → ≈ 15,5 min. **Manuels Ja: „vorgewählt bei Wendelnut“** –
   der Assistent erkennt die Wendelnut und schlägt das Muster „Wendel“ vor, Spirale bleibt wählbar.
-  Noch nicht gebaut.
+  **Gebaut (P-2026-10-18-81 bis -83):** Erkennen (`vierachs_wendel`), Schlichten „Der Wendel nach“
+  vorgeschlagen (an Manuels Teil 28 Bahnen 11,6 min statt 14,2, überall 0,02), alle Kerne,
+  Schruppen mit Haken „Der Wendelnut nach“ (nie über dem fertigen Ø 80, danach kein
+  Vorschlichten nötig). Erledigt.
 - **W-032 Ring mit Y: Schlitze in Wellen, der Kern von außen** – Manuel, 2026-10-18, zum Bild der
   Zeilen mit Y („was ist das ? .. da kann man nicht stolz drauf sein“; „auch hier einfach wellen
   fahren .. ausen ist doch frei also fahr das doch in einer morph form“). Zum Vergleichsbild
