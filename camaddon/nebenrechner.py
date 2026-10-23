@@ -68,6 +68,7 @@ ARBEITER_SKRIPT = os.path.join(
 STARTZEIT = 60.0  # s: bis dahin muss sich ein Arbeiter gemeldet haben
 LEERLAUF = 600.0  # s: so lange bleibt ein Arbeiter ohne Auftrag, dann endet er
 TAKT = 0.02  # s: so oft sieht warten() nach den Arbeitern
+LEBT_ALLE = 0.5  # s: so oft sieht der Pool nach, ob der Prozess eines Arbeiters noch lebt
 UHR_MS = 30  # mit Oberfläche: so oft fragt der Pool die Arbeiter ab, solange etwas läuft
 AUFRAEUMEN_MS = 60000  # mit Oberfläche: so oft beendet er Arbeiter im Leerlauf
 KOPIEN_JE_DOKUMENT = 3  # so viele Kopien eines Dokuments bleiben liegen
@@ -202,6 +203,17 @@ class Auftrag:
         # geht das Ergebnis. Im Hauptprozess bestellt: beide None.
         self.eltern = None
         self.fuer = None
+        self._pfade = None  # _dokument_pfade seiner Argumente, einmal gesucht (pfade)
+
+    @property
+    def pfade(self):
+        """Die Pfade der Dokument-Kopien in seinen Argumenten – einmal gesucht: Der Pool fragt
+        je Takt (50-mal je Sekunde) für jeden wartenden Auftrag, und Argumente mit langen
+        Punktlisten (freiwege) gingen jedes Mal ganz durch (Manuel, 2026-10-23: das Fenster
+        rechnete beim Warten selbst einen Kern voll)."""
+        if self._pfade is None:
+            self._pfade = frozenset(_dokument_pfade((self.args, self.kwargs)))
+        return self._pfade
 
     @property
     def erledigt(self):
@@ -301,6 +313,7 @@ class _Arbeiter:
         self.leer = None  # Bytes belegt, zuletzt gemessen ohne Auftrag (_arbeit_messen)
         self.belegt = None  # Bytes belegt, zuletzt gemessen
         self.beim_lesen = None  # (Auftrag, Bytes gewachsen), als der Pool den Speicher las
+        self.lebt_geprueft = 0.0  # wann _lesen zuletzt nach dem Prozess sah (LEBT_ALLE)
 
     @property
     def auftrag(self):
@@ -863,18 +876,14 @@ class Nebenrechner:
     def _bedarf(self, auftrag, arbeiter):
         """Bytes, die `arbeiter` für die Kopien des Auftrags noch braucht (die er nicht offen
         hat)."""
-        return sum(
-            kopie_bedarf(pfad)
-            for pfad in _dokument_pfade((auftrag.args, auftrag.kwargs))
-            if pfad not in arbeiter.dokumente
-        )
+        return sum(kopie_bedarf(pfad) for pfad in auftrag.pfade if pfad not in arbeiter.dokumente)
 
     def _schon_offen(self, auftrag):
         """Hat ein Arbeiter jede Kopie des Auftrags offen (oder öffnet sie gerade)?"""
         jetzt = time.monotonic()
         offen = {p for a in self._arbeiter for p in a.dokumente}
         offen |= {p for t, p, _b in self._unterwegs if jetzt - t < UNTERWEGS_S}
-        return _dokument_pfade((auftrag.args, auftrag.kwargs)) <= offen
+        return auftrag.pfade <= offen
 
     def _speicher_fuer_kopien(self):
         """Bytes, die Arbeiter jetzt noch für Kopien brauchen dürfen – None: unbekannt, keine
@@ -946,7 +955,7 @@ class Nebenrechner:
         """Merkt die Kopien, die `arbeiter` für den Auftrag öffnet – wie er: höchstens
         DOKUMENTE_OFFEN, die älteste geht zu."""
         jetzt = time.monotonic()
-        for pfad in _dokument_pfade((auftrag.args, auftrag.kwargs)):
+        for pfad in auftrag.pfade:
             if pfad in arbeiter.dokumente:
                 arbeiter.dokumente.remove(pfad)
             else:
@@ -1036,14 +1045,20 @@ class Nebenrechner:
             except (EOFError, OSError):
                 self._gestorben(arbeiter, "die Verbindung ist weg")
                 return
-        if not arbeiter.lebt():
-            self._gestorben(arbeiter, f"beendet mit {arbeiter.prozess.returncode}")
-        elif arbeiter.verbindung is None and time.monotonic() - arbeiter.gestartet > STARTZEIT:
+        jetzt = time.monotonic()
+        # Nach dem Prozess nur alle LEBT_ALLE s (ein Systemaufruf je Arbeiter und Takt): Stirbt er
+        # mitten im Auftrag, reißt die Verbindung ab – das meldet poll() oben sofort.
+        if arbeiter.verbindung is None or jetzt - arbeiter.lebt_geprueft >= LEBT_ALLE:
+            arbeiter.lebt_geprueft = jetzt
+            if not arbeiter.lebt():
+                self._gestorben(arbeiter, f"beendet mit {arbeiter.prozess.returncode}")
+                return
+        if arbeiter.verbindung is None and jetzt - arbeiter.gestartet > STARTZEIT:
             self._gestorben(arbeiter, "meldet sich nicht")
         elif (
             arbeiter.auftrag is None
             and not self._warteschlange
-            and time.monotonic() - arbeiter.zuletzt > LEERLAUF
+            and jetzt - arbeiter.zuletzt > LEERLAUF
         ):
             self._entfernen(arbeiter)
 

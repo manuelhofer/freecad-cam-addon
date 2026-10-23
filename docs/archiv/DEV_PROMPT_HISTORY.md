@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-05 pool-verwaltung-leichter
+
+### EINGELESEN
+- Gemessen am Geist im 4-Achs-Assistenten (CPU-Mitschnitt, Stichproben im Fenster): Beim Warten auf
+  die Nebenrechner rechnete das Fenster selbst – 130 von 346 Stichproben waren Verwaltung des Pools
+  (50-mal je Sekunde je Arbeiter `lebt()` als Systemaufruf, je wartendem Auftrag seine Argumente nach
+  Dokument-Kopien durchsucht – bei Aufträgen mit langen Punktlisten jedes Mal ganz).
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `Auftrag.pfade` – die Dokument-Pfade seiner Argumente einmal gesucht
+  (statt je Takt in `_bedarf`, `_schon_offen`, `_kopien_merken`); `_lesen` sieht nach dem Prozess
+  eines Arbeiters nur alle `LEBT_ALLE` (0,5 s) – stirbt er im Auftrag, reißt die Verbindung ab, das
+  meldet `poll()` sofort.
+- `package.xml` 0.276.1.
+
+### ERGEBNIS
+- Geist im 4-Achs-Assistenten (294 s): Verwaltung im Fenster 130 → 88 Stichproben, das Fenster im
+  Mittel 0,39 → 0,34 Kerne, die Nebenrechner 18,9 von 24 Kernen; längstes Stocken 2,1 → 0,8 s.
+  Die übrigen 6 s allein im Fenster sind das Einfahren ins Futter (Anzeige).
+- Grün: `test_nebenrechner`, `szenario_vierachs_stl`.
+
+---
+
 ## P-2026-10-23-04 freiwege-verteilt-stl-schneller
 
 ### EINGELESEN
