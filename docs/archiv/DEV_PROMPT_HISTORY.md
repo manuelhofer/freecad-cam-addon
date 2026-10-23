@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-11 adaptiv-vorrechnen-verworfen
+
+### EINGELESEN
+- W-036 offen: „der Adaptiv-Kern beim Räumen Lage für Lage – vorrechnen auf Verdacht“. Gemessen
+  am Testteil (Auftragsprotokoll `CAMADDON_AUFTRAEGE`): beim „Anlegen“ 3,5 s, in denen nur der
+  Kern rechnet, nacheinander (Aufrufe 1,55 s und 2,6 s).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (W-036): das Ergebnis. Der Code (ein Vorlauf über alle Flächen und
+  Lagen einer Variante in `raeumen_bahn`, mit Ersatz-Pool in einer Probe nachgemessen) ist nicht
+  übernommen.
+
+### ERGEBNIS
+- Kein Gewinn: Gleiche Lagen teilen sich das Ergebnis schon über `_ADAPTIV` (eine Insel 30 hoch,
+  7 Lagen zu 5 mm: ein Kernaufruf). Die teuren Aufrufe am Testteil gehören zu zwei Flächen, die
+  zweite höher als die erste – ihr Material hängt an der Bahn der ersten (1 von 3 Schlüsseln
+  getroffen, der teure nicht). Ansatz für später: die genaue Bahn schon während der Vorschau im
+  Hintergrund rechnen und beim „Anlegen“ übernehmen.
 ## P-2026-10-23-10 beispiele-auf-fehlschnitt-geprueft
 
 ### EINGELESEN

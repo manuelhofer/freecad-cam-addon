@@ -1665,6 +1665,15 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Nebenrechner lesen – `nebenrechner.Form.form` –, `vermesse_achse`, `richte_ein`), beim „Anlegen“
   gut 4 s (`opExecute` → `bahn_fuer`/`befehle` im Fenster). Messen: `cpu_mitschnitt.py` und
   `cpu_auswerten.py` in `~/freecad_cam/wip/pruefhelfer/`.
+  **Geprüft und verworfen (2026-10-23, nach P-2026-10-23-10): den Adaptiv-Kern auf Verdacht
+  vorrechnen.** Gebaut als Vorlauf über alle Flächen und Lagen einer Variante (Schlüssel wie
+  `_ADAPTIV`), am Testteil gemessen: kein Gewinn. Gleiche Lagen teilen sich das Ergebnis schon
+  über `_ADAPTIV` (eine Insel 30 hoch, 7 Lagen zu 5 mm: ein einziger Kernaufruf); die teuren
+  Aufrufe am Testteil gehören zu verschiedenen Flächen, und die zweite liegt höher als die erste
+  – was die erste räumt, ändert Material und Gebiet der zweiten (Schlüssel geprüft: 1 von 3
+  getroffen, der teure 2,6-s-Aufruf nicht). Was helfen könnte: die genaue Bahn des Räumens schon
+  während der Vorschau im Hintergrund rechnen (die Vorschau rechnet adaptiv nur grob) und beim
+  „Anlegen“ übernehmen, wenn Materialstand und Werte gleich sind.
   **Befund (P-2026-10-18-95):** Das Fenster rechnet am Geist selbst etwa 10 s; beim Warten
   verteilt es 9 500 Unteraufträge (je Takt alle 24 Arbeiter lesen, `lebt`, Speicher) – möglich:
   nur die lesen, die etwas geschickt haben (`connection.wait` liefert sie).
