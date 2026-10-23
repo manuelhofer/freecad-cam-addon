@@ -60,7 +60,7 @@ def _meldung(text, bearbeitung=False, warnung=False):
         FreeCADGui.runCommand("CamAddon_Bearbeitung")
 
 
-def _im_hintergrund(x, y, h, unten, teil, anfang):
+def _im_hintergrund(x, y, h, unten, teil, anfang, rohteil):
     """(Körper, Zellen im Teil: ft.im_teil) vom Nebenrechner – None ohne Nebenrechner oder wenn
     er scheiterte (dann rechnet der Aufrufer hier, mit der Meldung von hier). ValueError mit dem
     Satz des Nebenrechners."""
@@ -71,8 +71,9 @@ def _im_hintergrund(x, y, h, unten, teil, anfang):
         return None
     try:
         auftrag = pool.auftrag(
-            "fertigteil", "koerper_rechnen", x, y, h, unten, nr.Form.von(teil), anfang
-        )
+            "fertigteil", "koerper_rechnen", x, y, h, unten, nr.Form.von(teil), anfang,
+            nr.Form.von(rohteil),
+        )  # fmt: skip
         ((form, zellen),) = pool.warten([auftrag], zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.NichtVerfuegbar:
         return None
@@ -91,11 +92,12 @@ def fertigteil_anlegen(job, speichern=True):
     q = stand.quader
     h = ft.hoehen(job, stand)
     teil = vr.modell(job).Shape  # in den Koordinaten des Jobs, wie das Raster
+    rohteil = job.Stock.Shape  # wie das Teil in den Koordinaten des Jobs
     anfang = ft.anfang_des_jobs(job)
-    gerechnet = _im_hintergrund(q.x, q.y, h, q.z_von, teil, anfang)
+    gerechnet = _im_hintergrund(q.x, q.y, h, q.z_von, teil, anfang, rohteil)
     if gerechnet is None:
         gerechnet = (
-            ft.koerper_aus_hoehen(q.x, q.y, h, q.z_von, teil),
+            ft.koerper_aus_hoehen(q.x, q.y, h, q.z_von, teil, rohteil),
             ft.im_teil(q.x, q.y, h, teil, anfang),
         )
     form, zellen = gerechnet

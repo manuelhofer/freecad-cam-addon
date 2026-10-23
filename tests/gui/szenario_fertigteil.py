@@ -100,6 +100,19 @@ def schritte(h):
         f"Volumen: Teil {teil.Shape.Volume:.0f}, Fertigteil {form.Volume:.0f}, Rohteil {rohteil:.0f}",
     )
     h.pruefe(fertig in rohteil_kandidaten(doc, teil), "nicht als Rohteil angeboten")
+    # Fürs Bild: nur das Teil und das Fertigteil darum, schräg von oben.
+    sichtbar = {o.Name: o.ViewObject.Visibility for o in doc.Objects if o.ViewObject}
+    for o in doc.Objects:
+        if o.ViewObject is not None:
+            o.ViewObject.Visibility = o in (teil, fertig)
+    h.pruefe(Gui.activeDocument() is not None, "nach dem Befehl kein aktives Dokument")
+    Gui.getDocument(doc.Name).activeView().viewIsometric()
+    Gui.SendMsgToActiveView("ViewFit")
+    Gui.Selection.clearSelection()
+    yield 800
+    h.bild("3_im_dokument")
+    for name, war in sichtbar.items():
+        doc.getObject(name).ViewObject.Visibility = war
     h.pruefe(fertig.Aufspannung == 1, f"Aufspannung {fertig.Aufspannung}")
     print(f"Fertigteil: {name}: {len(form.Faces)} Flächen, {form.Volume:.0f} mm³")
     andere = FreeCAD.openDocument(pfad)

@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-09 fertigteil-genau
+
+### EINGELESEN
+- Das Bild des Fertigteils am C-Ring (P-2026-10-23-08): an jeder fertigen Wand senkrechte Striche
+  – die halben Rasterzellen, deren Mitte gerade im Teil lag, standen bis 0,25 mm über; am Rand
+  des runden Rohteils eine Treppe; die eigene Datei ließ die Oberfläche ohne aktives Dokument.
+
+### DATEIEN
+- `camaddon/fertigteil.py`: `nur_rest` – wo eine Zelle das Teil trägt und nicht höher steht als
+  seine Oberkante, reicht sie nur bis zur Unterkante des Teils (gespiegelt gemessen); das Teil
+  kommt genau aus `mit_teil`. `im_rohteil` – zum Schluss aufs Rohteil beschnitten. `hoehen` – am
+  runden Rohteil dazu die Zellen gleich außerhalb (Höhe der Nachbarn), das Beschneiden macht den
+  Rand genau; `_hoechster_nachbar`. Ist nichts übrig als das Teil, ist das Fertigteil das Teil.
+  `datei_speichern`: das Dokument für die Datei unsichtbar (`hidden=True`).
+- `camaddon/gui_fertigteil.py`: das Rohteil geht mit zum Nebenrechner.
+- `tests/test_fertigteil.py`: mit Teil und Rohteil genau das Teil plus der stehen gebliebene
+  Streifen, ≤ 16 Flächen; `im_teil` zählt eine 1 mm zu tiefe Tasche, nicht ihre Ränder.
+  `tests/gui/szenario_fertigteil.py`: ein Bild in der 3D-Ansicht; danach ein aktives Dokument.
+- `docs/STATUS_SNAPSHOT.md` (W-029), `package.xml` 0.277.1.
+
+### ERGEBNIS
+- C-Ring aus Platte: 0,6 s, 15 Flächen, 16 846 mm³ = Teil 12 621 + Boden 65 × 65 × 1; aus
+  Rundmaterial 2,5 s, 89 Flächen; Testteil 1,7 s statt ≈ 9 s, 149 statt 5219 Flächen – das Teil
+  jeweils ganz darin, alles im Rohteil.
+- Grün: `test_fertigteil`, `szenario_fertigteil`.
 ## P-2026-10-23-08 fertigteil-als-rohteil-nut-schlichten
 
 ### EINGELESEN

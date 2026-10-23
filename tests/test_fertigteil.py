@@ -2,7 +2,9 @@
 # einer Tasche 4 tief, einem Absatz und einem Loch ganz durch – das Netz ist geschlossen, ohne
 # nicht-mannigfaltige Kanten, einheitlich ausgerichtet, sein Volumen das des Rasters; der Körper
 # ist ein gültiges Solid mit demselben Volumen (bis aufs Vereinfachen), mit wenigen Flächen.
-# Ohne Material: ValueError. Die Aufspannung: 1 ohne Fertigteil im Rohteil, sonst eins mehr.
+# Mit Teil und Rohteil: genau das Teil plus was stehen blieb; was ins Teil schneidet, zählt
+# im_teil. Ohne Material: ValueError. Die Aufspannung: 1 ohne Fertigteil im Rohteil, sonst eins
+# mehr.
 import os
 import sys
 
@@ -57,6 +59,31 @@ pruefe(
     abs(bb.XMin) < 1e-6 and abs(bb.XMax - 20) < 1e-6 and abs(bb.ZMax - 8) < 1e-6,
     f"Lage: {bb}",
 )
+
+# Mit dem Teil und dem Rohteil: Das Teil ist der Block mit der Tasche (ohne Absatz und Loch),
+# stehen geblieben ist über ihm ein Streifen 1 mm (x 18 … 20, bis 9) – das Fertigteil ist das
+# Teil plus dieser Streifen, genau (keine halben Zellen an den Wänden), mit wenigen Flächen, im
+# Rohteil 20 × 10 × 9. An keiner Stelle schneidet etwas ins Teil; fehlt in der Tasche 1 mm, sagt
+# im_teil es (die Ränder nicht mitgezählt).
+import FreeCAD  # noqa: E402
+import Part  # noqa: E402
+
+V = FreeCAD.Vector
+teil = Part.makeBox(20, 10, 8).cut(Part.makeBox(6, 6, 4, V(4, 2, 4))).removeSplitter()
+rohteil = Part.makeBox(20, 10, 9)
+h2 = np.full((40, 20), 8.0)
+h2[8:20, 4:16] = 4.0
+h2[36:40, :] = 9.0
+form2 = ft.koerper_aus_hoehen(x, y, h2, unten, teil, rohteil)
+soll2 = teil.Volume + 2 * 10 * 1
+pruefe(form2.isValid() and len(form2.Solids) == 1, f"mit Teil: {form2.ShapeType}")
+pruefe(abs(form2.Volume - soll2) < 1e-3 * soll2, f"mit Teil: Volumen {form2.Volume} statt {soll2}")
+pruefe(abs(teil.common(form2).Volume - teil.Volume) < 1e-6 * teil.Volume, "Teil nicht ganz darin")
+pruefe(len(form2.Faces) <= 16, f"mit Teil: {len(form2.Faces)} Flächen")
+pruefe(ft.im_teil(x, y, h2, teil) == 0, f"im Teil: {ft.im_teil(x, y, h2, teil)}")
+h3 = h2.copy()
+h3[10:18, 6:14] = 3.0  # die Tasche 1 mm zu tief
+pruefe(ft.im_teil(x, y, h3, teil) == 8 * 8, f"zu tief: {ft.im_teil(x, y, h3, teil)} Zellen")
 
 try:
     ft.koerper_aus_hoehen(x, y, np.full((40, 20), -np.inf), unten)

@@ -1593,9 +1593,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Materialstands; Kanten und Bohrungen, die das Raster nicht trifft, zeigen es.
   **Gebaut (P-2026-10-23-08, 0.277.0), für 3 Achsen von oben:** Menü „CAM-Addon → Fertigteil als
   Rohteil“ (`camaddon/fertigteil.py`, `gui_fertigteil.py`): aus dem Materialstand ein wasserdichter
-  Körper (Zellen nur über Eck angehoben, Netz vereinfacht bis aufs Volumen 0,02 %), mit dem Teil
-  vereinigt (fertige Flächen genau, Stufen nur im Restmaterial), auf einem Nebenrechner (Testteil
-  ≈ 9 s, C-Ring ≈ 2 s); im Dokument an der Stelle des Teils („<Teil> – Aufspannung N –
+  Körper (Zellen nur über Eck angehoben, Netz vereinfacht bis aufs Volumen 0,02 %); wo das Teil
+  fertig ist, nur bis zu seiner Unterkante, dann mit dem Teil vereinigt und aufs Rohteil
+  beschnitten (P-2026-10-23-09: fertige Flächen und Rand genau, Stufen nur im Restmaterial); auf
+  einem Nebenrechner (Testteil 1,7 s, 149 Flächen; C-Ring 0,6 s, 15 Flächen); im Dokument an der Stelle des Teils („<Teil> – Aufspannung N –
   Fertigteil“, N zählt die Fertigteile im Rohteil), dazu eine eigene Datei im Ordner des
   Dokuments; noch einmal gerechnet: dasselbe Objekt. Schneiden Bahnen ins Teil, warnt der Befehl
   – so fand er den Fehlschnitt am C-Ring (unten). Offen: 4-Achs- und 3+2-Jobs (Stange,

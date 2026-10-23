@@ -180,18 +180,26 @@ def netz_aus_hoehen(x, y, h, unten):
     return np.array(punkte, dtype=float).reshape(-1, 3), np.array(dreiecke, dtype=np.int64)
 
 
-def koerper_aus_hoehen(x, y, h, unten, teil=None):
+def koerper_aus_hoehen(x, y, h, unten, teil=None, rohteil=None):
     """Der Körper (Part.Shape, ein Solid wenn möglich) aus dem Raster wie netz_aus_hoehen –
     vereinfacht (VEREINFACHEN, bis aufs VOLUMEN_SPIEL), ebene Dreiecke zu Flächen
     zusammengefasst; mit `teil` (das Teil in denselben Koordinaten) mit ihm vereinigt
-    (mit_teil)."""
+    (mit_teil, nur_rest), mit `rohteil` aufs Rohteil beschnitten (im_rohteil)."""
+    if teil is not None:
+        h = nur_rest(x, y, h, teil)
+    punkte, dreiecke = netz_aus_hoehen(x, y, h, unten)
+    if not len(dreiecke):
+        if teil is not None:
+            return teil.Solids[0] if len(teil.Solids) == 1 else teil
+        raise ValueError(tr("ft.fehler.leer"))
+    return im_rohteil(_aus_dem_netz(punkte, dreiecke, teil), rohteil)
+
+
+def _aus_dem_netz(punkte, dreiecke, teil):
     import Mesh
 
     from . import stl_teil
 
-    punkte, dreiecke = netz_aus_hoehen(x, y, h, unten)
-    if not len(dreiecke):
-        raise ValueError(tr("ft.fehler.leer"))
     netz = Mesh.Mesh()
     netz.addFacets([[tuple(punkte[k]) for k in d] for d in dreiecke])
     voll = float(netz.Volume)
@@ -208,6 +216,43 @@ def koerper_aus_hoehen(x, y, h, unten, teil=None):
         if zusammen is not None and not zusammen.isNull():
             form = zusammen
     return mit_teil(form, teil) if teil is not None else form
+
+
+def im_rohteil(form, rohteil):
+    """Der Körper aufs Rohteil beschnitten: Das Raster reicht eine halbe Zelle über dessen Rand
+    hinaus (am runden Rohteil in Stufen) – danach ist der Rand genau. Geht es nicht (OCC), der
+    Körper, wie er war."""
+    if rohteil is None:
+        return form
+    with _ohne_fehler():
+        innen = form.common(rohteil).removeSplitter()
+        if len(innen.Solids) == 1 and innen.isValid():
+            return innen.Solids[0]
+    return form
+
+
+def nur_rest(x, y, h, teil):
+    """Die Höhen ohne das fertige Teil: Wo eine Zelle das Teil trägt und nicht höher steht als
+    seine Oberkante (bis IM_TEIL_SPIEL), reicht sie nur noch bis zur Unterkante des Teils dort –
+    das Teil selbst kommt aus mit_teil, genau. Sonst stünde an jeder fertigen Wand die halbe
+    Zelle über, deren Mitte gerade drinnen lag: am C-Ring lauter Stufen an den Wänden. Wo mehr
+    steht als das Teil (Aufmaß, noch nicht gefräst), bleibt die Zelle, wie sie ist."""
+    from . import hoehenfeld as hf
+    from . import vierachs_huelle as vh
+
+    oben = hf.hoehen(vh.vernetze(teil), x, y)
+    gespiegelt = teil.mirror(_vektor(0, 0, 0), _vektor(0, 0, 1))
+    unterkante = -hf.hoehen(vh.vernetze(gespiegelt), x, y)
+    h = np.array(h, dtype=float)
+    fertig = np.isfinite(oben) & np.isfinite(h) & (h <= oben + IM_TEIL_SPIEL)
+    h[fertig] = np.where(np.isfinite(unterkante[fertig]), unterkante[fertig], -np.inf)
+    return h
+
+
+def _vektor(x, y, z):
+    import FreeCAD
+
+    return FreeCAD.Vector(x, y, z)
 
 
 def mit_teil(form, teil):
@@ -261,12 +306,12 @@ class _ohne_fehler:
         return art is not None and issubclass(art, Exception)
 
 
-def koerper_rechnen(x, y, h, unten, teil=None, anfang=None):
+def koerper_rechnen(x, y, h, unten, teil=None, anfang=None, rohteil=None):
     """Auf einem Nebenrechner: (koerper_aus_hoehen() als nebenrechner.Form, im_teil()) – das
     Teil kommt als nebenrechner.Form und ist hier wieder eine Form."""
     from . import nebenrechner as nr
 
-    form = koerper_aus_hoehen(x, y, h, unten, teil)
+    form = koerper_aus_hoehen(x, y, h, unten, teil, rohteil)
     return nr.Form.von(form), (im_teil(x, y, h, teil, anfang) if teil is not None else 0)
 
 
@@ -294,12 +339,14 @@ def stand_des_jobs(job):
 
 
 def hoehen(job, stand):
-    """Die Höhen des Fertigteils im Raster des Materialstands: seine – dazu am Rand eines nicht
-    eckigen Rohteils der Saum, den der Materialstand einzieht (materialstand._eingezogen: dort
-    räumte es sonst durch die Luft). Als Rohteil der nächsten Aufspannung lieber mehr Material
-    als weniger: Am C-Ring aus Rundmaterial Ø 60 (Aufmaß 0) fehlte sonst rundum ein halber
-    Millimeter des Mantels. Der Saum bekommt die Höhe des Materials neben ihm, höchstens die des
-    Rohteils; wo daneben nichts mehr steht, bleibt er leer."""
+    """Die Höhen des Fertigteils im Raster des Materialstands: seine – am Rand eines nicht
+    eckigen Rohteils ergänzt. Der Materialstand zieht dort eine Zelle ein
+    (materialstand._eingezogen: sonst räumte es durch die Luft); als Rohteil der nächsten
+    Aufspannung lieber mehr Material als weniger – am C-Ring aus Rundmaterial Ø 60 (Aufmaß 0)
+    fehlte rundum ein halber Millimeter. Dieser Saum und die Zellen gleich außerhalb (ihre Mitte
+    liegt draußen, ihre Fläche reicht noch ins Rohteil) bekommen die Höhe des Materials neben
+    ihnen, höchstens die des Rohteils; beschnitten aufs Rohteil (im_rohteil) ist der Rand dann
+    genau. Wo daneben nichts mehr steht, bleiben sie leer."""
     from . import hoehenfeld as hf
     from . import materialstand as mst
     from . import vierachs_flaechen as vf
@@ -310,19 +357,27 @@ def hoehen(job, stand):
     if rohteil is None or mst._ist_quader(rohteil):
         return h
     voll = hf.hoehen(vf.vernetze(rohteil.Shape, hf.VORSCHAU_TOLERANZ).netz, q.x, q.y)
-    saum = np.isfinite(voll) & ~np.isfinite(mst._eingezogen(voll)) & ~np.isfinite(h)
-    if not saum.any():
-        return h
+    drin = np.isfinite(voll)
+    saum = drin & ~np.isfinite(mst._eingezogen(voll)) & ~np.isfinite(h)
+    daneben = _hoechster_nachbar(h)
+    saum &= np.isfinite(daneben)
+    h[saum] = np.minimum(daneben[saum], voll[saum])
+    daneben = _hoechster_nachbar(h)
+    draussen = ~drin & ~np.isfinite(h) & np.isfinite(daneben)
+    h[draussen] = daneben[draussen]
+    return h
+
+
+def _hoechster_nachbar(h):
+    """Je Zelle die höchste der acht Nachbarn (−inf am Rand des Rasters)."""
     n, m = h.shape
     rand = np.pad(h, 1, constant_values=-np.inf)
-    daneben = np.full_like(h, -np.inf)
+    ergebnis = np.full_like(h, -np.inf)
     for di in (-1, 0, 1):
         for dj in (-1, 0, 1):
             if di or dj:
-                daneben = np.maximum(daneben, rand[1 + di : 1 + di + n, 1 + dj : 1 + dj + m])
-    saum &= np.isfinite(daneben)
-    h[saum] = np.minimum(daneben[saum], voll[saum])
-    return h
+                ergebnis = np.maximum(ergebnis, rand[1 + di : 1 + di + n, 1 + dj : 1 + dj + m])
+    return ergebnis
 
 
 def lage(job):
@@ -402,7 +457,9 @@ def datei_speichern(objekt):
         return None
     pfad = os.path.join(ordner, _dateiname(objekt.Label) + ".FCStd")
     aktiv = FreeCAD.ActiveDocument
-    neu = FreeCAD.newDocument(_dateiname(objekt.Label).replace(" ", "_"))
+    # Unsichtbar (ohne Fenster): Sonst ginge kurz ein zweites auf und wieder zu, und danach
+    # hätte die Oberfläche kein aktives Dokument mehr.
+    neu = FreeCAD.newDocument(_dateiname(objekt.Label).replace(" ", "_"), hidden=True)
     try:
         kopie = neu.addObject("Part::Feature", "Fertigteil")
         kopie.Label = objekt.Label
