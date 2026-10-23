@@ -5477,7 +5477,10 @@ class VierachsPanel:
             revolver = bool(datei) and mg.mit_revolver(datei)
         if not revolver:
             return False
-        halter = self.bibliothek.halter_fuer_pruefung(werkzeug)
+        # Nur ein bekannter Halter (im Magazin oder gewählt) – nicht der vorgeschlagene nach dem
+        # Schaft (halter_fuer_pruefung): Der ist gerade, ein Fräser ohne Halter verschwand so aus
+        # den Listen (szenario_rundum_drehmaschine, seit P-2026-10-18-101).
+        halter = self.bibliothek.halter_im_magazin(werkzeug) or self.bibliothek.halter_von(werkzeug)
         return halter is not None and not halter.gewinkelt
 
     def _axial_zeigen(self, axial):

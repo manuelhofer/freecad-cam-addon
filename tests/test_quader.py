@@ -212,14 +212,28 @@ if isinstance(abtrag, rm.QuaderAbtrag):
     pruefe(bh.shape == (len(bx), len(by)) == abtrag.quader.h.shape, "Bild")
     pruefe(rm.farben_quader(vergleich).shape == abtrag.quader.h.shape, "Farben fürs Bild")
 
-# --- Ein Zylinder als Rohteil ist kein Quader --------------------------------------------------
+# --- Ein Zylinder als Rohteil: eine Scheibe von oben, keine Ecken ------------------------------
+# (bis 0.274.1 gar kein Abtrag; an der Drehmaschine von vorn blieb die Stange unberührt – Manuel,
+# 2026-10-18: „kein abtrag vom rohteil“). In der Mitte steht er bis oben, in den Ecken nichts.
 from Path.Main import Stock as PathStock
 
 zylinder = PathStock.CreateCylinder(job, radius=40.0, height=30.0)
 alt = job.Stock
 job.Stock = zylinder
 doc.recompute()
-pruefe(rm.fuer_quader(fahrt, job, fahrt.am_werkstueck()) is None, "Zylinder als Quader")
+scheibe = rm.fuer_quader(fahrt, job, fahrt.am_werkstueck())
+pruefe(scheibe is not None and scheibe.quader.anfang is not None, "Zylinder: kein Abtrag")
+if scheibe is not None:
+    q = scheibe.quader
+    mitte = zylinder.Placement.Base
+    i = int(np.argmin(abs(q.x - mitte.x)))
+    j = int(np.argmin(abs(q.y - mitte.y)))
+    pruefe(
+        abs(q.anfang[i, j] - q.z_bis) < 1e-6
+        and abs(q.anfang[0, 0] - q.z_von) < 1e-6
+        and abs(q.anfang[-1, -1] - q.z_von) < 1e-6,
+        f"Zylinder: Mitte {q.anfang[i, j]}, Ecken {q.anfang[0, 0]} {q.anfang[-1, -1]}",
+    )
 job.Stock = alt
 doc.recompute()
 

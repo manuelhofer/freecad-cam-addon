@@ -1,15 +1,17 @@
-# Manuels Messspitzenhalter-Oberteil (2026-10-18, abends, mit Bildern): Drehteil Ø 33 auf der
-# CLX550, vorn ein Bund Ø 15, 0,8 hoch, dahinter die Ringfläche mit drei Bohrungen und außen ein
-# schmaler Rand; Stange Ø 33 (= Fertigmaß), Planaufmaß 0. Manuel: „was will er da rundum schruppen
-# ??? und schlichten ??? is doch quatsch das teil hat aussen durchmesser schon den richtigen“ und
-# „beim planfräsen kann ich irgendwie nicht auswählen welchen fräser ich nehmen möchte ... es wird
-# mir der 6er vorgeschlagen aber es is ja auch ein 12er im magazin“ – dabei hieß es „Über den
-# gewählten Flächen steht nichts“.
+# Manuels Messspitzenhalter-Oberteil (2026-10-18, mit Bildern; nachgebaut nach
+# messpitzenhalteroberteill.FCStd): Drehteil Ø 33 auf der CLX550, vorn ein Bund Ø 15 0,8 hoch,
+# der Ringgrund bis Ø 31,8, außen eine Fase 45° bis Ø 33 bei 0,2 hinter dem Bund, drei
+# Senkbohrungen Ø 2,5 auf r 10; Stange Ø 33 (= Fertigmaß), Planaufmaß 0. Manuel: „was will er da
+# rundum schruppen ??? und schlichten ??? is doch quatsch das teil hat aussen durchmesser schon den
+# richtigen“ – und zum Planfräsen im Ring mit dem 6er: „totaler scheissdreck … einfahren wie in
+# eine nut und mit wellen rauskauen und dann noch die ränder schlichten“; im Abfahren „kein abtrag
+# vom rohteil“.
 # Soll: 4-Achs-Assistent, Schritt 2 – „Rundum schruppen“ und „Rundum schlichten“ gehen aus, grau
-# steht „Außen steht nichts: Die Stange hat schon Fertigmaß“ mit dem Verweis zu „Bearbeitung“ von
-# vorn; dort, die Ringfläche gewählt: der axiale Ø 12 (T3) kommt zwischen Bund und Rand nicht
-# hinein – der Satz sagt das (nicht „steht nichts“) und bietet T4 Ø 6 an; „übernehmen“: Planfräsen
-# oder Räumen mit T4 rechnet, „Anlegen“ geht, die Operation nimmt die 0,8 mm.
+# steht warum, mit dem Verweis zu „Bearbeitung“ von vorn (Ø 40: zurück; wieder Ø 33: aus; von
+# Hand an bleibt an). Von vorn, die Ringfläche gewählt: „Ringnut rundum 8,4 breit“, kein
+# Planfräsen, die Nut mit T4 Ø 6 (T3 Ø 12 passt nicht), kein Angebot fürs Räumen ohne Haken, kein
+# „Nicht fertig“; „Anlegen“: „Nut T4“, Messstopp, „Nut schlichten T4“ (beide Ränder: r 10,5 und
+# 12,9). Abfahren: Die Stange wird abgetragen – im Ring bis −0,8, der Bund bleibt.
 # ZEITLIMIT: 900
 import os
 import tempfile
@@ -67,19 +69,27 @@ def schritte(h):
 
     doc = FreeCAD.newDocument("Oberteil")
     V = FreeCAD.Vector
-    form = Part.makeCylinder(16.5, 19.2, V(0, 0, -20))
-    form = form.fuse(Part.makeCylinder(7.5, 0.8, V(0, 0, -0.8)))
-    # ein Rand außen, 0,3 hoch: die Ringfläche ist eingeschlossen (so sieht Manuels Teil aus)
-    rand = Part.makeCylinder(16.5, 0.3, V(0, 0, -0.8)).cut(
-        Part.makeCylinder(15.5, 0.3, V(0, 0, -0.8))
-    )
-    form = form.fuse(rand)
-    form = form.cut(Part.makeCylinder(4.0, 30, V(0, 0, -25)))
+    # Wie Manuels messpitzenhalteroberteill.FCStd, vorn oben: Bund Ø 15 0,8 hoch, Ringgrund bei
+    # Z −0,8 bis Ø 31,8, außen eine Fase 45° bis Ø 33 bei Z −0,2, Bohrung Ø 8,5, drei
+    # Senkbohrungen Ø 2,5 (Senkung Ø 4) auf r 10.
+    profil = [
+        (4.25, -20.2),
+        (16.5, -20.2),
+        (16.5, -0.2),
+        (15.9, -0.8),
+        (7.5, -0.8),
+        (7.5, 0.0),
+        (4.25, 0.0),
+        (4.25, -20.2),
+    ]
+    flaeche = Part.Face(Part.makePolygon([V(r, 0, z) for r, z in profil]))
+    form = Part.Solid(Part.Shell(flaeche.revolve(V(0, 0, 0), V(0, 0, 1), 360).Faces))
     import math
 
-    for k in range(3):
-        a = math.radians(90 + 120 * k)
-        form = form.cut(Part.makeCylinder(2.5, 12, V(11.5 * math.cos(a), 11.5 * math.sin(a), -12)))
+    for w in (90, 210, 330):
+        x, y = 10 * math.cos(math.radians(w)), 10 * math.sin(math.radians(w))
+        form = form.cut(Part.makeCylinder(1.25, 11, V(x, y, -11.8)))
+        form = form.cut(Part.makeCone(1.25, 2.0, 0.75, V(x, y, -1.55)))
     teil = doc.addObject("Part::Feature", "Oberteil")
     teil.Shape = form.removeSplitter()
     doc.recompute()
@@ -121,7 +131,8 @@ def schritte(h):
     yield from h.warte_auf(lambda: not panel.rechnet_noch(), 180000)
     yield 300
     print(ascii(f"umsonst: {panel._rundum_umsonst!r} bei {panel._umsonst_bei!r}"))
-    h.pruefe(panel._rundum_umsonst == "nichts", f"Grund: {panel._rundum_umsonst!r}")
+    # Der radiale Ø 12 nimmt nichts weg (oder nur eine Scheibe vor der Stirn).
+    h.pruefe(panel._rundum_umsonst in ("nichts", "vor_stirn"), f"Grund: {panel._rundum_umsonst!r}")
     h.pruefe(
         not panel.mit_schruppen.isChecked() and not panel.mit_schlichten.isChecked(),
         f"Rundum an: Schruppen {panel.mit_schruppen.isChecked()}, Schlichten {panel.mit_schlichten.isChecked()}",
@@ -175,18 +186,21 @@ def schritte(h):
     h.pruefe(
         not panel.mit_schruppen.isChecked()
         and not panel.mit_schlichten.isChecked()
-        and panel._rundum_umsonst == "nichts",
+        and panel._rundum_umsonst in ("nichts", "vor_stirn"),
         f"wieder Ø 33: Schruppen {panel.mit_schruppen.isChecked()}, Schlichten "
         f"{panel.mit_schlichten.isChecked()}, Grund {panel._rundum_umsonst!r}",
     )
-    # Von Hand wieder an: Der Assistent lässt den Haken (keine Bevormundung) – und die Zeile
-    # sagt „nichts wegzunehmen“, nicht „1 Lage (Ø 33,0 mm → Ø 15,6 mm)“.
+    # Von Hand wieder an: Der Assistent lässt den Haken (keine Bevormundung).
     panel.mit_schruppen.setChecked(True)
     yield 300
     yield from h.warte_auf(lambda: panel.vorschau is not None and not panel.rechnet_noch(), 180000)
     yield 300
     h.pruefe(panel.mit_schruppen.isChecked(), "von Hand angehakt – wieder weg")
-    h.pruefe("nichts wegzunehmen" in panel.ergebnis.text(), f"Lagen: {panel.ergebnis.text()!r}")
+    h.pruefe(
+        ("nichts wegzunehmen" if panel._rundum_umsonst == "nichts" else "Lage")
+        in panel.ergebnis.text(),
+        f"Lagen: {panel.ergebnis.text()!r}",
+    )
     panel.mit_schruppen.setChecked(False)
     yield 300
     print(ascii(f"Schruppen an: {panel.mit_schruppen.isChecked()} – {panel.ergebnis.text()!r}"))
@@ -238,36 +252,33 @@ def schritte(h):
                     f"   Liste: {[b.wahl_fraeser.itemText(i) for i in range(b.wahl_fraeser.count())]}"
                 )
             )
+    # Die Ringnut (Bund innen, Fase außen) ist kein Fall fürs Planfräsen (der niedrige Rand
+    # galt bis 0.274.1 nicht als Wand): Die Nut tritt an – mit T4 Ø 6, der T3 Ø 12 passt nicht
+    # in 8,4 mm. Kein Angebot „für Räumen passt T4 … übernehmen“ für das Räumen ohne Haken (die
+    # Nut nimmt die Fläche schon), kein „Nicht fertig: Face7“ (der Grund ist auf Tiefe).
     passt = dialog.passt_text.text()
-    h.pruefe(
-        "T3 Schaftfräser Ø 12 kommt nicht in" in passt and "T4 Schaftfräser Ø 6" in passt,
-        f"passt: {passt!r}",
-    )
-    h.pruefe(
-        "keinen Platz für eine Zeile" in dialog.plan.hinweis.text(),
-        f"Planfräsen: {dialog.plan.hinweis.text()!r}",
-    )
     print(ascii(f"passt: {passt!r}"))
+    print(ascii(f"Ziel: {dialog.ziel_text.text()!r}"))
+    print(ascii(f"unfertig: {dialog.unfertig.text() if dialog.unfertig.isVisible() else ''!r}"))
     print(ascii(f"hinweis: {dialog.hinweis.text()!r}"))
-    h.bild("3_bearbeitung_zu_eng", dialog.form)
-    # „T4 Schaftfräser Ø 6 übernehmen“: Planfräsen oder Räumen rechnet mit T4, „Anlegen“ geht.
-    h.pruefe(dialog.knopf_passt.isVisible(), "kein Knopf zum Übernehmen")
-    dialog.passenden_uebernehmen()
-    yield 500
-    yield from h.warte_auf(lambda: not dialog.vorschau_laeuft(), 300000)
-    yield 1500
-    yield from h.warte_auf(lambda: not dialog.vorschau_laeuft(), 300000)
+    h.bild("3_bearbeitung_ringnut", dialog.form)
+    h.pruefe(not dialog.plan.aktiv(), f"Planfräsen an: {dialog.plan.hinweis.text()!r}")
+    h.pruefe(
+        dialog.nut.aktiv() and getattr(dialog.nut.fraeser(), "durchmesser", None) == 6.0,
+        f"Nut {dialog.nut.aktiv()} mit {getattr(dialog.nut.fraeser(), 'name', None)}: "
+        f"{dialog.nut.hinweis.text()!r}",
+    )
+    h.pruefe(not dialog.knopf_passt.isVisible() and not passt, f"Angebot: {passt!r}")
+    h.pruefe("T4" in dialog.ziel_text.text(), f"Ziel: {dialog.ziel_text.text()!r}")
+    h.pruefe(not dialog.unfertig.isVisible(), f"unfertig: {dialog.unfertig.text()!r}")
     aktive = [b for b in dialog.bloecke if b.aktiv()]
     print(
         ascii(
-            f"nach Übernehmen: {[(b.s.kennung, getattr(b.fraeser(), 'nummer', None), b.ergebnis.text()[:120]) for b in aktive]}"
+            f"angehakt: {[(b.s.kennung, getattr(b.fraeser(), 'nummer', None), b.ergebnis.text()[:120]) for b in aktive]}"
         )
     )
     h.pruefe(
-        any(
-            b.s.kennung in ("planfraesen", "raeumen") and b.fraeser().durchmesser == 6.0 and b.zeit
-            for b in aktive
-        ),
+        any(b.s.kennung == "nut" and b.fraeser().durchmesser == 6.0 and b.zeit for b in aktive),
         f"mit T4: {[(b.s.kennung, b.zeit) for b in aktive]}",
     )
     if dialog.knopf_weiter.isEnabled() and dialog.knopf_weiter.isVisible():
@@ -281,32 +292,101 @@ def schritte(h):
     namen = [o.Label for o in neue]
     print(ascii(f"Operationen: {namen}"))
     h.pruefe(any("T4" in n for n in namen), f"keine Operation mit T4: {namen}")
+    # „Nut schlichten“: beide Ränder der Ringnut – der Bund (Mitte des Fräsers r 10,5) und der
+    # Fuß der Fase (r 12,9); die Kontur fuhr bis 0.274.1 nur den Bund.
+    import math as m_
+
+    schlichten_ = next((o for o in neue if o.Label.startswith("Nut schlichten")), None)
+    h.pruefe(schlichten_ is not None, f"kein „Nut schlichten“: {namen}")
+    if schlichten_ is not None:
+        radien_ = [
+            m_.hypot(c.Parameters["X"], c.Parameters["Y"])
+            for c in schlichten_.Path.Commands
+            if c.Name in ("G1", "G2", "G3")
+            and "X" in c.Parameters
+            and "Y" in c.Parameters
+            and abs(c.Parameters.get("Z", -0.8) + 0.8) < 0.01
+        ]
+        print(ascii(f"Nut schlichten: r {min(radien_):.3f}..{max(radien_):.3f}"))
+        h.pruefe(
+            radien_ and abs(min(radien_) - 10.5) < 0.02 and abs(max(radien_) - 12.9) < 0.02,
+            f"Nut schlichten: r {min(radien_) if radien_ else None}..{max(radien_) if radien_ else None}",
+        )
     for o in neue:
-        if o.Label.startswith(("Planfräsen", "Räumen")):
+        if o.Label.startswith(("Nut", "Räumen")):
             zs = [
                 c.Parameters["Z"] for c in o.Path.Commands if c.Name == "G1" and "Z" in c.Parameters
             ]
             h.pruefe(
                 zs and abs(min(zs) + 0.8) < 0.05, f"{o.Label}: tiefstes Z {min(zs) if zs else None}"
             )
-    from camaddon import materialstand as mst
+    # Abfahren: Die Stange wird von vorn abgetragen (bis 0.274.1 blieb sie unberührt, Manuel:
+    # „kein abtrag vom rohteil“) – im Ring bis −0,8, der Bund bleibt, außen steht nichts.
+    from PySide import QtCore
 
-    stand = mst.fuer(dialog.job)
-    if stand is not None:
-        import numpy as np
+    from camaddon import gui_reichweite
 
-        hh = stand.quader.h
-        print(
-            ascii(
-                f"Materialstand: z {stand.quader.z_von}..{stand.quader.z_bis}, h max {np.nanmax(hh[np.isfinite(hh)]) if np.isfinite(hh).any() else None}, Zellen mit Material {int(np.isfinite(hh).sum())}"
+    job = dialog.job
+    FreeCAD.setActiveDocument(job.Document.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
+    yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None, 60000)
+    pruef = gui_reichweite.PruefPanel.offen
+    h.pruefe(pruef is not None, "„Auf der Maschine prüfen“ öffnet kein Fenster")
+    if pruef is not None:
+        yield 800
+        abtrag = getattr(getattr(pruef, "bild", None), "abtrag", None)
+        h.pruefe(
+            abtrag is not None
+            and getattr(getattr(abtrag, "quader", None), "anfang", None) is not None,
+            f"Abtrag: {type(abtrag).__name__}",
+        )
+        spieler = pruef.abspieler
+        fahrt = spieler.abfahrt
+        stationen = [s_ for s_ in fahrt.stationen if not s_.eilgang]
+        if stationen:
+            spieler.setze_zeit(stationen[len(stationen) // 3].zeit)
+            yield from h.warte_auf(lambda: not pruef.bild.abtrag_rechnet(), 60000)
+            yield 500
+            h.bild("4_abfahren_mittendrin")
+        spieler.setze_zeit(fahrt.dauer)
+        yield from h.warte_auf(lambda: not pruef.bild.abtrag_rechnet(), 120000)
+        yield 800
+        rest = spieler.rest.text()
+        print(ascii(f"Abfahren am Ende: {rest!r}"))
+        if abtrag is not None and hasattr(abtrag, "quader"):
+            import numpy as np
+
+            q = abtrag.quader
+            X, Y = np.meshgrid(q.x, q.y, indexing="ij")
+            r = np.hypot(X, Y)
+            ring_ = (r > 9.0) & (r < 14.0) & (np.hypot(X, Y + 10.0) > 2.5)
+            ring_ &= np.hypot(X - 8.66, Y - 5.0) > 2.5
+            ring_ &= np.hypot(X + 8.66, Y - 5.0) > 2.5
+            bund_ = (r > 4.6) & (r < 7.0)
+            print(
+                ascii(
+                    f"Ring h {q.h[ring_].min():.3f}..{q.h[ring_].max():.3f}, Bund h "
+                    f"{q.h[bund_].min():.3f}..{q.h[bund_].max():.3f}, außen {q.h[r > 17].max():.1f}"
+                )
             )
-        )
-    else:
-        print("Materialstand: None")
-    rohteil = dialog.job.Stock
-    print(
-        ascii(
-            f"Rohteil: {rohteil.Name} {rohteil.TypeId} {rohteil.Shape.BoundBox} Placement {rohteil.Placement}"
-        )
-    )
-    print(ascii(f"Modell: {dialog.job.Model.Group[0].Shape.BoundBox}"))
+            vergleich_ = abtrag.vergleich()
+            np.savez(
+                os.path.join(os.environ["CAMADDON_AUSGABE"], "abfahren_ende.npz"),
+                x=q.x,
+                y=q.y,
+                h=q.h,
+                farbe=vergleich_.farbe,
+            )
+            h.pruefe(
+                abs(q.h[ring_].max() + 0.8) < 0.05 and abs(q.h[bund_].min()) < 0.05,
+                f"Ring h {q.h[ring_].min():.3f}..{q.h[ring_].max():.3f}, Bund {q.h[bund_].min():.3f}",
+            )
+        Gui.SendMsgToActiveView("ViewFit")
+        spieler.knopf_hinsehen.click()
+        yield 500
+        h.bild("5_abfahren_am_ende")
+        pruef.reject()
+        yield 500

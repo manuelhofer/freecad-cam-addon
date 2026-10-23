@@ -12,6 +12,86 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-01 ringnut-rundum-abfahren-stange-von-vorn
+
+### EINGELESEN
+- Manuel, mit zwei Bildern (Bahn des Planfräsens im Ring seines Messspitzenhalter-Oberteils,
+  „Auf der Maschine prüfen“ an der CLX550): „mit dem 6er fräser sind das die werkzeugwege .. ich
+  schau mir das mal an .. kein abtrag vom rohteil ... und das was der da rausfräst ist totaler
+  scheissdreck ... einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder
+  schlichten wo ist das problem ?“ – „und je nachdem ob die y achse ausreicht muss man auch hier
+  wieder c achse drehen und mit y weiter arbeiten oder einfach nur die c achse drehen lassen ..“
+- Seine Datei (Kopie aus der Liste zuletzt geöffneter Dateien, `messpitzenhalteroberteill.FCStd`,
+  nur gelesen): Bund Ø 15 0,8 hoch, Ringgrund bis Ø 31,8, außen **eine Fase 45°** bis Ø 33 bei 0,2
+  hinter dem Bund (kein senkrechter Rand, wie in P-2026-10-18-104 angenommen), drei
+  Senkbohrungen Ø 2,5 auf r 10.
+- Ursachen: (1) `hoehenfeld.wand_anteil` suchte die Wand 0,5 mm über der Fläche – Fase und
+  niedrige Ränder lagen darunter, die Ringfläche galt als rundum offen, Planfräsen trat an.
+  (2) Die „Nut“ kannte Langlöcher, offene Nuten und offene Bogennuten, keine Ringnut rundum.
+  (3) `restmaterial.fuer_quader` nahm kein Zylinder-Rohteil und keine drehende C – an der Stange
+  gab es beim Abfahren nur den Abtrag der Rundum-Operationen.
+
+### DATEIEN
+- `camaddon/hoehenfeld.py`: `wand_anteil` sucht die Wand `WAND_HOCH` (0,5) **und** `WAND_NIEDRIG`
+  (0,05) über der Fläche; eine Wand in einem der Schnitte zählt.
+- `camaddon/nut_bahn.py`: Ringnut rundum – `_ring_am_grund` (Grund: Kreisring, innen und außen
+  steigt das Teil an, Löcher im Grund gehen hinab), `_ringnut` (auch von der Wand des Bunds oder
+  der Fase aus), `Nut.ring`; Bahn gestreckt (`_ring_gestreckt`): `_ring_lagen` (je Lage Helix bei
+  +X – an der Drehmaschine Y 0 –, die Bögen/Wellen bis Runde − R), `_ring_vollnut` (Wendel längs
+  der Mittellinie, kein Zickzack), `_ring_schlichten` (äußere Wand im Gleichlauf gegen, innere mit
+  dem Uhrzeigersinn, Halbkreise hinein und heraus). `Nutwerte.nur_schlichten`. Keine
+  Eintauchstelle für die Ringnut.
+- `camaddon/nut.py`: Eigenschaft `NurSchlichten`, `bahn_fuer`/`lege_an` damit.
+- `camaddon/gui_bearbeitung.py`: Flächenliste „Ringnut rundum 8,4 breit, Ø 15 bis Ø 31,8, Grund
+  −0,8“; „Schlichten danach“ macht Ringnuten mit einer Nut „nur schlichten“ fertig (beide Ränder,
+  auch die Fase an ihrem Fuß; `_Schlichtbahn.kontur_waende` getrennt von allen Wänden); der Grund
+  der Nut zählt als fertig (kein „Nicht fertig: Face7“); die Ziel-Zeile rechnet mit dem Fräser der
+  angehakten Nut; kein Angebot „für Räumen passt …“ für einen Block ohne Haken, wenn angehakte die
+  Flächen schon nehmen (`_von_aktiven_bedeckt`).
+- `camaddon/restmaterial.py`: `fuer_quader` nimmt eine Stange längs z (Zylinder-Rohteil), C darf
+  drehen (von oben an erster und letzter Station geprüft); `Quader.anfang` – die Scheibe aus dem
+  Netz des Rohteils, außerhalb die Unterkante.
+- `camaddon/vierachs_flaechen.py`: `nur_vor_stirn` mit `_stirnstuecke`/`_vorn_bei` – vor der
+  vordersten Fläche nach vorn je Radius (Ebene quer, Kegel um die Achse bis 60°: die Fase), eine
+  volle Stirn reicht bis r 0 (gefunden mit der neuen Prüfung: die Netzpunkte einer Scheibe liegen nur
+  am Rand).
+- `camaddon/gui_vierachs.py`: `_axial_am_revolver` nur mit bekanntem Halter (im Magazin oder
+  gewählt) – mit dem vorgeschlagenen verschwand ein Fräser ohne Halter aus den Rundum-Listen
+  (`szenario_rundum_drehmaschine` rot seit P-2026-10-18-101).
+- `translations/de.json`, `en.json`: `ba.flaeche.ringnut`, `nt.eigenschaft.nur_schlichten`.
+- `help/de|en/bearbeitung.html` (Ringnut, von vorn), `help/de|en/reichweite.html` (Stange von vorn).
+- `tests/gui/szenario_stirn_bund.py`: Manuels Geometrie genau; 4-Achs: Rundum aus („nimmt
+  nichts“); von vorn: Ringnut, Nut mit T4, kein Planfräsen, kein Angebot, kein „Nicht fertig“;
+  „Nut T4“, Messstopp, „Nut schlichten T4“ (r 10,5 und 12,9); Abfahren: Ring −0,8, Bund 0.
+- `tests/test_nut_offen.py` (i): Ringnut erkannt (Grund, Bund, Fase – nicht Mantel), Bögen/Wellen
+  gemessen, Vollnut als Wendel, Schlichten und „nur schlichten“.
+- `tests/test_vierachs_flaechen.py`: vor der Stirn (Fase) ja, Nut im Mantel nein, Luft „nimmt nichts“.
+- `tests/test_quader.py`: Zylinder-Rohteil als Scheibe (Mitte oben, Ecken leer).
+- `docs/OFFENE_FRAGEN.md` Frage 1 (Fase) mit `docs/bilder/vorschlaege/messspitzenhalter_fase.png`;
+  `docs/STATUS_SNAPSHOT.md` W-037. `package.xml` 0.275.0.
+
+### ERGEBNIS
+- Ringnut mit T4 Ø 6: 1 Lage, 74–81 Bögen, etwa 0,4–1 min; nicht ins Teil, im Eilgang nichts,
+  der Grund leer; Wellen schneller (0,40 statt 0,51 min). Luft im Vorschub 11 % – die Bogenenden an
+  den Wänden, wie an den Bogennuten (C-Ring 11–17 %).
+- Y/C nachgerechnet (`stirnseite.befehle`): an der CLX550 (Y 85 % von ±51) C nie, |Y| bis 12,9; mit
+  Y ±5 dreht C mit oder in Schritten; ohne Y polar.
+- Grün im Wochen-Build 27.1 dev (weekly-2026.10.21, neu eingerichtet): `test_nut_offen`,
+  `test_nut`, `test_vierachs_flaechen`, `test_quader`, `test_planfraesen`, `test_raeumen`,
+  `test_materialstand`, `test_restmaterial`, `test_pruefstand`, `test_zielzeit`, `test_freiwege`,
+  `test_job_schnittwerte`, `test_varianten_maschine`, `test_vierachs_bahn`, `test_hilfe`,
+  `test_sprache`; Szenarien `szenario_stirn_bund`, `szenario_testteil`,
+  `szenario_bearbeitung_cring_alles`, `szenario_absatz`, `szenario_deckel`, `szenario_platte`,
+  `szenario_planen`, `szenario_lagerbock`, `szenario_formplatte`, `szenario_zapfen`,
+  `szenario_ecken`, `szenario_bearbeitung`, `szenario_raeumen`, `szenario_ring_vorn`,
+  `szenario_bearbeitung_drehmaschine`, `szenario_rundum_drehmaschine`,
+  `szenario_vierachs_schruppen`, `szenario_bearbeitung_zylinder`, `szenario_nut`,
+  `szenario_magazin_vierachs`.
+- Offen: die Fase außen (Frage 1); die drei Senkbohrungen bohrt „Bearbeitung“, wenn man sie wählt
+  (im Abfahren rot, 11 mm).
+
+---
+
 ## P-2026-10-18-104 rundum-umsonst-planfraesen-zu-schmal-magazinspalten
 
 ### EINGELESEN

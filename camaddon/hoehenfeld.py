@@ -97,6 +97,13 @@ _EBENE = {}  # (Prüfsumme der Form, Nummer, Toleranz) → Ebene oder None
 # Tasche oder Nut gilt (eingeschlossen): Die Ringnut am C-Ring hat Wände an 93 % ihres Rands, ein
 # Absatz mit einer Wand an rund 40 %.
 EINGESCHLOSSEN = 0.75
+# mm über der Fläche: dort sucht wand_anteil die Wand – 0,5 mm (eine Rundung unten an der Wand
+# liegt darunter) und knapp darüber, für niedrige Ränder: Manuels Messspitzenhalter (2026-10-18)
+# hat außen um die Ringfläche einen Rand von wenigen Zehnteln – 0,5 mm darüber war dort Luft, die
+# Fläche galt als rundum offen, das Planfräsen fuhr Zeilen zwischen Bund und Rand („totaler
+# scheissdreck … einfahren wie in eine nut und mit wellen rauskauen“).
+WAND_HOCH = 0.5
+WAND_NIEDRIG = 0.05
 _EINGESCHLOSSEN = []  # [(Form, {Fläche: bool, („schnitt“, z): Drähte})] – die neueste vorn
 _EINGESCHLOSSEN_FORMEN = 4
 RAND_ABTASTEN = 0.005  # mm – so genau folgt das Vieleck dem Rand (in_draehten)
@@ -138,7 +145,7 @@ def in_draehten(draehte, x, y, abtasten=RAND_ABTASTEN):
 def eingeschlossen(form, name):
     """Ist die ebene Fläche `name` (nach oben) der Boden einer Tasche oder Nut – steht an
     mindestens EINGESCHLOSSEN ihres äußeren Rands eine Wand über ihr? Gemessen knapp außerhalb
-    des Rands, 0,5 mm über der Fläche, je Millimeter. Manuel (2026-10-16): Planfräsen ist „auf z0
+    des Rands, WAND_HOCH und WAND_NIEDRIG über der Fläche, je Millimeter. Manuel (2026-10-16): Planfräsen ist „auf z0
     bringen … oder seitlich eine seite auf 0 bringen“; der Grund einer Nut „gehört schon eher zum
     raeumen“."""
     return wand_anteil(form, name) >= EINGESCHLOSSEN
@@ -189,8 +196,9 @@ def _rand_proben(flaeche):
 
 def _eingeschlossen_auf_einmal(form, name, merk=None):
     """wand_anteil, alle Proben auf einmal: die Seiten mit in_draehten über den Rand der
-    Fläche, die Wand mit einem Schnitt durch den Körper 0,5 mm über ihr – None, wenn das nicht
-    geht (dann je Punkt). Am Testteil 1 s weniger beim Öffnen des Assistenten."""
+    Fläche, die Wand mit Schnitten durch den Körper WAND_HOCH und WAND_NIEDRIG über ihr (eine
+    Wand in einem der beiden zählt) – None, wenn das nicht geht (dann je Punkt). Am Testteil 1 s weniger beim Öffnen des Assistenten.
+    """
     try:
         flaeche = form.getElement(name)
         z = flaeche.BoundBox.ZMax
@@ -209,22 +217,27 @@ def _eingeschlossen_auf_einmal(form, name, merk=None):
     if not gezaehlt:
         return 0.0
     aussen = np.where(innen_links[:, None], rechts, links)[klar]
-    schluessel = ("schnitt", round(z + 0.5, 6))
-    schnitt = merk.get(schluessel) if merk is not None else None
-    if schnitt is None:
-        try:
-            schnitt = form.slice(FreeCAD.Vector(0, 0, 1), z + 0.5)
-        except Exception:  # noqa: BLE001
+    wand = np.zeros(len(aussen), dtype=bool)
+    for hoehe in (WAND_HOCH, WAND_NIEDRIG):
+        schluessel = ("schnitt", round(z + hoehe, 6))
+        schnitt = merk.get(schluessel) if merk is not None else None
+        if schnitt is None:
+            try:
+                schnitt = form.slice(FreeCAD.Vector(0, 0, 1), z + hoehe)
+            except Exception:  # noqa: BLE001
+                return None
+            if merk is not None:
+                merk[schluessel] = schnitt
+        if not schnitt:
+            # Über dem Teil schneidet nichts mehr – sonst ging der Schnitt nicht auf (ein STEP
+            # mit Toleranzen): dann je Punkt.
+            if z + hoehe >= form.BoundBox.ZMax - 1e-6:
+                continue
             return None
-        if merk is not None:
-            merk[schluessel] = schnitt
-    if not schnitt:
-        # Über dem Teil schneidet nichts mehr – sonst ging der Schnitt nicht auf (ein STEP mit
-        # Toleranzen): dann je Punkt.
-        return 0.0 if z + 0.5 >= form.BoundBox.ZMax - 1e-6 else None
-    wand = in_draehten(schnitt, aussen[:, 0], aussen[:, 1])
-    if wand is None:
-        return None
+        hier = in_draehten(schnitt, aussen[:, 0], aussen[:, 1])
+        if hier is None:
+            return None
+        wand |= hier
     return int(wand.sum()) / gezaehlt
 
 
@@ -250,7 +263,10 @@ def _eingeschlossen_je_punkt(form, name):
             continue  # an einer Ecke: unklar
         aussen = rechts if innen_links else links
         gezaehlt += 1
-        if form.isInside(FreeCAD.Vector(aussen.x, aussen.y, z + 0.5), 1e-6, True):
+        if any(
+            form.isInside(FreeCAD.Vector(aussen.x, aussen.y, z + hoehe), 1e-6, True)
+            for hoehe in (WAND_HOCH, WAND_NIEDRIG)
+        ):
             wand += 1
     return wand / gezaehlt if gezaehlt else 0.0
 

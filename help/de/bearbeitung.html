@@ -19,7 +19,11 @@ den Verweis „„Bearbeitung“ von vorn öffnen …“ an einer Stirnfläche (
 anklicken, wenn der Job schon steht. Schritt 1 ist dann grau („Von vorn an der Stange der
 Drehmaschine …“). Das Programm fährt Y bis zum eingestellten Anteil ihres Wegs, weiter hilft die
 C-Achse – die Einstellung steht in „Programm schreiben“. Ohne Y-Achse fährt es polar: C dreht jede
-Stelle vor das Werkzeug auf die X-Achse, X und C fahren zusammen (am Teil genau auf der Bahn).</p>
+Stelle vor das Werkzeug auf die X-Achse, X und C fahren zusammen (am Teil genau auf der Bahn).
+Eine <b>Ringnut</b> um die Achse (am Messspitzenhalter zwischen Bund und Fase) fräst die „Nut“: die
+Helix bei +X (an der Drehmaschine Y 0), die Bögen einmal herum, nach dem Messstopp beide Ränder.
+Reicht Y für den Ring, dreht C dabei nicht; „Auf der Maschine prüfen“ trägt die Stange beim
+Abspielen von vorn ab.</p>
 <p>Für ein Teil, das in einem <b>Quader</b> auf einer Fräse liegt – die
 Werkzeugachse steht senkrecht. Der Knopf „Bearbeitung (Fräsen)“ öffnet das
 Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, oben steht, in welchem
@@ -767,6 +771,15 @@ darf darum beliebig breit sein. Die Wände schlichtet er im Gleichlauf: an der e
 außen (oder um den Halbkreis) hinüber, an der anderen heraus. Platte 60 × 40, Nut 16 breit, 8
 tief, ganz durch: 1,25 min (die Kontur an den Wänden 2,2). Die Zeile sagt „→ 1 Nut, 1 Lage,
 118 Bögen, etwa …“.</li>
+<li><b>Ringnuten rundum</b>: Der Grund ein Kreisring, innen steigt das Teil an (ein Bund),
+außen auch – eine Wand oder eine Fase, die nach oben weiter wird; Bohrungen im Grund stören
+nicht. Die Liste sagt „Ringnut rundum 8,4 breit, Ø 15 bis Ø 31,8, Grund −0,8“. Je Lage taucht
+der Fräser an derselben Stelle (+X) mit der Helix ein und fährt die Bögen (oder Wellen) einmal
+herum bis an ihren Kreis; ist der Ring kaum breiter als der Fräser, fährt er in voller Breite in
+einer Wendel längs der Mittellinie hinab – kein Zickzack. „Schlichten danach“ macht beide Ränder
+mit einer Nut „nur schlichten“ fertig, auch die Fase außen (an ihrem Fuß – die Kontur fährt nur
+senkrechte Wände). Ein Rand von wenigen Zehnteln zählt als Wand: Die Fläche gilt nicht als
+rundum offen, das Planfräsen tritt dort nicht an.</li>
 <li><b>Die Zeit entscheidet</b>: An den Wänden tritt die Nut gegen die Kontur an (in der Nut
 20 × 50, 10 tief, ist die Nut vorn – die Zeile der Kontur sagt „28 % langsamer als Nut“; in
 der offenen Nut 16 × 60 sind es 21 %). Auf dem Grund rechnen Räumen und Planfräsen mit, treten

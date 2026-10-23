@@ -79,6 +79,7 @@ class Nut(PathOp.ObjectOp):
             ("App::PropertyBool", "Schlichten", tr("nt.eigenschaft.schlichten")),
             ("App::PropertyBool", "Gleichlauf", tr("ra.eigenschaft.gleichlauf")),
             ("App::PropertyBool", "Wellen", tr("nt.eigenschaft.wellen")),
+            ("App::PropertyBool", "NurSchlichten", tr("nt.eigenschaft.nur_schlichten")),
             ("App::PropertyLength", "Tiefer", tr("nt.eigenschaft.tiefer")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("nt.eigenschaft.eintauchwinkel")),
@@ -145,6 +146,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         schlichten=bool(obj.Schlichten),
         gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
         wellen=bool(getattr(obj, "Wellen", False)),
+        nur_schlichten=bool(getattr(obj, "NurSchlichten", False)),
         tiefer=float(obj.Tiefer),
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
@@ -179,6 +181,7 @@ def bahn_fuer(
     eintauchen=0.0,
     stand=None,
     eintauchen_bei=None,
+    nur_schlichten=False,
 ):
     """Die Bahn „Nut“ für Modell und Rohteil des Jobs. `flaechen`: Wände oder Grund der Nuten
     („Face7“ …); `stand`: der Materialstand davor (materialstand) – die Lagen beginnen dann,
@@ -209,6 +212,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
         eintauchen_bei=eintauchen_bei or None,
+        nur_schlichten=bool(nur_schlichten),
     )
     return nb.planen(werte, liste, stand)
 
@@ -233,6 +237,7 @@ def lege_an(
     eintauchwinkel=None,
     eintauchstellen=None,
     wellen=False,
+    nur_schlichten=False,
 ):
     """Legt „Nut“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und Höhen
     wie FreeCADs Operationen; die Endtiefe ist der tiefste Grund. Gibt die Operation zurück."""
@@ -255,6 +260,7 @@ def lege_an(
     obj.Schlichten = bool(schlichten)
     obj.Gleichlauf = bool(gleichlauf)
     obj.Wellen = bool(wellen)
+    obj.NurSchlichten = bool(nur_schlichten)
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:  # der Winkel am Fräser, wie in der Vorschau des Assistenten
         obj.Eintauchwinkel = float(eintauchwinkel)

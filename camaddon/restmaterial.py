@@ -1064,9 +1064,15 @@ class Quader:
         self.z_von, self.z_bis = float(z_von), float(z_bis)
         self.h = np.full((len(self.x), len(self.y)), self.z_bis)
         self._schritt = float(schritt)
+        # Die Höhen am Anfang, wenn das Rohteil kein Kasten ist (die Stange von vorn,
+        # fuer_quader): zuruecksetzen() kehrt zu ihnen zurück; None: überall z_bis.
+        self.anfang = None
 
     def zuruecksetzen(self):
-        self.h.fill(self.z_bis)
+        if self.anfang is not None:
+            self.h[...] = self.anfang
+        else:
+            self.h.fill(self.z_bis)
 
     def gitter(self):
         """(x_von, x_bis, y_von, y_bis, z_von, z_bis, Schritt) – Quader(*gitter()) hat dasselbe
@@ -1442,19 +1448,22 @@ class QuaderAbtrag:
         return vergleiche_quader(self.quader, self._teil, self.aufmass, self._nur, erlaubt=erlaubt)
 
 
-def _werkzeug_von_oben(abfahrt, nummer):
+def _werkzeug_von_oben(abfahrt, nummer, letzte=False):
     """Kommt das Werkzeug der Operation `nummer` am Werkstück senkrecht von oben – die Spitze
-    unten, der Halter in +z des Jobs? Gelesen an der ersten erreichbaren Station: Wäre das
-    Werkzeug 1 mm länger, rückte die Spitze um 1 mm vom Halter weg – von oben nach −z."""
+    unten, der Halter in +z des Jobs? Gelesen an der ersten erreichbaren Station (mit `letzte`
+    an der letzten): Wäre das Werkzeug 1 mm länger, rückte die Spitze um 1 mm vom Halter weg –
+    von oben nach −z."""
     from . import reichweite as rw
     from .kinematik import Kinematik
 
     op = abfahrt.operationen[nummer]
+    reihe = range(len(abfahrt.stationen))
     index = next(
         (
             i
-            for i, s in enumerate(abfahrt.stationen)
-            if s.operation == nummer and s.stellungen is not None
+            for i in (reversed(reihe) if letzte else reihe)
+            if abfahrt.stationen[i].operation == nummer
+            and abfahrt.stationen[i].stellungen is not None
         ),
         None,
     )
@@ -1477,13 +1486,25 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     auf ihnen."""
     rohteil = getattr(job, "Stock", None)
     form = getattr(rohteil, "Shape", None)
-    if form is None or form.isNull() or hasattr(rohteil, "Radius"):
+    if form is None or form.isNull():
         return None
-    if not (hasattr(rohteil, "ExtZpos") or hasattr(rohteil, "Length")):
+    # Die Stange an der Drehmaschine, von vorn gefräst (W-025): ihre Achse längs z des Jobs, die
+    # Werkzeuge axial – wie von oben in einen Kasten, nur ist außerhalb des Kreises nichts
+    # (Manuel, 2026-10-18, am Messspitzenhalter: „kein abtrag vom rohteil“ – fuer_rundum kennt
+    # nur die Rundum-Operationen, bis 0.274.1 blieb die Stange beim Abfahren unberührt). C darf
+    # dabei drehen: um die Achse des Werkzeugs, es bleibt von oben.
+    stange = hasattr(rohteil, "Radius") and hasattr(rohteil, "Height")
+    if stange:
+        import FreeCAD
+
+        achse = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+        if abs(abs(achse.z) - 1.0) > 1e-6:
+            return None
+    elif not (hasattr(rohteil, "ExtZpos") or hasattr(rohteil, "Length")):
         return None
     if not abfahrt.stationen or not abfahrt.operationen:
         return None
-    if any(any(s.rund.values()) for s in abfahrt.stationen):
+    if not stange and any(any(s.rund.values()) for s in abfahrt.stationen):
         return None
     fraeser = {}
     for k, op in enumerate(abfahrt.operationen):
@@ -1493,7 +1514,9 @@ def fuer_quader(abfahrt, job, am_werkstueck):
             # Fährt nichts ab – ein Messstopp hebt nur Z – und trägt nichts ab. Bis 0.126.0 hieß
             # das „nicht von oben“: Mit einem Messstopp im Job blieb das Rohteil stehen.
             continue
-        if not _werkzeug_von_oben(abfahrt, k):
+        if not _werkzeug_von_oben(abfahrt, k) or (
+            stange and not _werkzeug_von_oben(abfahrt, k, letzte=True)
+        ):
             return None
         fraeser[k] = _fraeser(op.tc)
     if not fraeser:
@@ -1534,6 +1557,17 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     flaechen = set().union(*(vf.nummern(g) for g in gewaehlt)) if all(gewaehlt) else None
     box = form.BoundBox
     quader = Quader(box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax)
+    if stange:
+        # Je Zelle die Oberkante der Stange (aus ihrem Netz, am Rand lieber Material als keins –
+        # nicht eingezogen wie im Materialstand: Dort fehlte dem Vergleich der Saum am Mantel,
+        # „bis 52 mm im Teil“); außerhalb des Kreises ihre Unterkante – dort steht nichts.
+        from . import hoehenfeld as hf
+        from . import vierachs_flaechen as vf
+
+        netz = vf.vernetze(form, hf.VORSCHAU_TOLERANZ).netz
+        oben = hf.hoehen(netz, quader.x, quader.y)
+        quader.anfang = np.where(np.isfinite(oben), oben, quader.z_von)
+        quader.zuruecksetzen()
     from . import entgraten3d as e3op
     from .entgraten import eindringtiefe, ist_entgraten
     from .gewindefraesen import ist_gewindefraesen

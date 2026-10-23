@@ -1601,14 +1601,25 @@ class _Schlichtbahn:
     """Die Vorschau von „Schlichten danach“: der Boden (raeumen_bahn.Raeumbahn oder None) und die
     Wände (kontur_bahn-Bahn oder None) hintereinander – `punkte` für Zeit und Materialstand."""
 
-    def __init__(self, boden, wand, waende, aufmass_boden, aufmass_wand, messstopp):
+    def __init__(
+        self, boden, wand, waende, aufmass_boden, aufmass_wand, messstopp, ring=None, ringe=()
+    ):
         self.boden = boden
         self.wand = wand
-        self.waende = list(waende) if wand is not None else []
+        self.kontur_waende = list(waende) if wand is not None else []  # die fährt die Kontur
+        self.waende = list(self.kontur_waende)  # alle, die auf Maß kommen (für den Satz)
+        # Die Ringnuten: ihre Wände macht eine Nut „nur schlichten“ (nut_bahn.Nutwerte) auf Maß –
+        # die Kontur führe nur die senkrechten (an Manuels Messspitzenhalter nicht die Fase).
+        self.ring = ring
+        self.ringe = list(ringe) if ring is not None else []
         self.aufmass_boden = aufmass_boden
         self.aufmass_wand = aufmass_wand
         self.messstopp = messstopp
-        self.punkte = list(getattr(boden, "punkte", [])) + list(getattr(wand, "punkte", []))
+        self.punkte = (
+            list(getattr(boden, "punkte", []))
+            + list(getattr(wand, "punkte", []))
+            + list(getattr(ring, "punkte", []))
+        )
 
 
 class _SchlichtenDanach(_Strategie):
@@ -1707,11 +1718,28 @@ class _SchlichtenDanach(_Strategie):
                 )  # fmt: skip
             except mst.SchonWeg:
                 wand = None
-        if boden is None and wand is None:
+        ringe = list(werte.get("nut_ringe") or [])
+        ring = None
+        if werte["waende"] and ringe and aufmass_wand > 0:
+            try:
+                ring = nu.vorschau(
+                    job, job.Model.Group, float(form.radius), werte["zustellung"],
+                    werte["zeilenabstand"] or float(form.radius), 0.0, ringe, schlichten=True,
+                    nur_schlichten=True, gleichlauf=werte["gleichlauf"], schneidenlaenge=schneide,
+                    vorschub=werte.get("vorschub", 0.0), eintauchen=werte.get("eintauchen", 0.0),
+                    stand=stand,
+                )  # fmt: skip
+            except mst.SchonWeg:
+                ring = None
+        if boden is None and wand is None and ring is None:
             raise ValueError(tr("ba.schlichten_danach.nichts"))
-        return _Schlichtbahn(
-            boden, wand, waende, aufmass_boden, aufmass_wand, bool(werte["messstopp"])
+        bahn = _Schlichtbahn(
+            boden, wand, waende, aufmass_boden, aufmass_wand, bool(werte["messstopp"]), ring, ringe
         )
+        if ring is not None:
+            ring_waende = list(werte.get("nut_ring_waende") or [])
+            bahn.waende += [w for w in ring_waende if w not in bahn.waende]
+        return bahn
 
     def ergebnis_text(self, bahn, zeit):
         einheit = einheiten.einheit(einheiten.LAENGE)
@@ -6794,7 +6822,19 @@ class BearbeitungPanel:
                 n = nb.nuten(form, [name])[0]
                 breite = groesse_zeigen(2 * n.radius, einheiten.LAENGE, 2) or "0"
                 laenge = groesse_zeigen(n.gesamtlaenge, einheiten.LAENGE, 2) or "0"
-                if n.offen:
+                if n.ring:
+                    z = groesse_zeigen(n.z_unten, einheiten.LAENGE, 2) or "0"
+                    innen = groesse_zeigen(2 * (n.bogen[2] - n.radius), einheiten.LAENGE, 2) or "0"
+                    aussen = groesse_zeigen(2 * (n.bogen[2] + n.radius), einheiten.LAENGE, 2) or "0"
+                    text = tr(
+                        "ba.flaeche.ringnut",
+                        name=name,
+                        breite=breite,
+                        innen=innen,
+                        aussen=aussen,
+                        z=z,
+                    )
+                elif n.offen:
                     z = groesse_zeigen(n.z_unten, einheiten.LAENGE, 2) or "0"
                     text = tr("ba.flaeche.nut_offen", name=name, breite=breite, laenge=laenge, z=z)
                 elif n.durch:
@@ -7411,10 +7451,15 @@ class BearbeitungPanel:
             flaechen = list(zusatz.get("boden_flaechen", ())) if werte.get("boden") else []
             if werte.get("waende"):
                 flaechen += list(zusatz.get("wand_flaechen", ()))
+                flaechen += list(zusatz.get("nut_ring_waende", ()))
             return flaechen
         if block in (self.nut, self.kontur, self.bohrung):
             if werte.get("schlichten") or not float(werte.get("aufmass", 0.0)):
                 return self._flaechen(block, form)
+            if block is self.nut:
+                # Das Aufmaß bleibt an den Wänden – der Grund ist auf Tiefe (an der Ringnut des
+                # Messspitzenhalters hieß es sonst „Nicht fertig: Face7“).
+                return [f for f in self._flaechen(block, form) if nb.ist_grund(form, f)]
             return []
         if block in (
             self.bohren,
@@ -7843,13 +7888,23 @@ class BearbeitungPanel:
         der Nut: ihre Wände mit ihrem Aufmaß (der Grund ist auf Tiefe)."""
         raeumen = self.raeumen
         nut_waende, nut_aufmass = [], 0.0
+        ringe, ring_waende = [], []
         if self._nut_laesst_aufmass():
             werte_nut = self.nut.werte()
-            nuten_ = nb.nuten(form, self._flaechen(self.nut, form))
-            nut_waende = list(dict.fromkeys(w for n in nuten_ for w in n.waende))
+            for name in self._flaechen(self.nut, form):
+                for n in nb.nuten(form, [name]):
+                    if n.ring:
+                        # Die Ringnut schlichtet eine Nut „nur schlichten“ – beide Wände, auch
+                        # eine Fase außen (die Kontur führe nur die senkrechte).
+                        if name not in ringe:
+                            ringe.append(name)
+                        ring_waende += [w for w in n.waende if w not in ring_waende]
+                    else:
+                        nut_waende += [w for w in n.waende if w not in nut_waende]
             nut_aufmass = float(werte_nut["aufmass"])
+        ring_zusatz = {"nut_ringe": ringe, "nut_ring_waende": ring_waende} if ringe else {}
         if not raeumen.aktiv():
-            if not nut_waende:
+            if not nut_waende and not ringe:
                 return {}
             return {
                 "boden_flaechen": [],
@@ -7857,6 +7912,7 @@ class BearbeitungPanel:
                 "aufmass_wand": nut_aufmass,
                 "aufmass_boden": 0.0,
                 "gleichlauf": bool(self.nut.werte()["gleichlauf"]),
+                **ring_zusatz,
             }
         werte = raeumen.werte()
         geraeumt = sorted(self._raeumt(form))
@@ -7869,12 +7925,14 @@ class BearbeitungPanel:
         waende = [w for w in _waende_um(form, boeden) + durch + nut_waende if w not in kontur]
         # Nicht die Wände, vor denen kein Rohteil steht (der Mantel im Rundmaterial, W-034).
         waende = [w for w in dict.fromkeys(waende) if not self._ohne_rohteil(form, w)]
+        waende = [w for w in waende if w not in ring_waende]
         return {
             "boden_flaechen": boeden,
             "wand_flaechen": waende,
             "aufmass_wand": max(float(werte["aufmass"]), nut_aufmass),
             "aufmass_boden": float(werte["aufmass_boden"]),
             "gleichlauf": bool(werte["gleichlauf"]),
+            **ring_zusatz,
         }
 
     def _schon_weg_abhaken(self):
@@ -7910,7 +7968,7 @@ class BearbeitungPanel:
         eigene = None
         # Die angehakten zuerst: Nach „Übernehmen“ räumt oft das Planfräsen allein, und das
         # Räumen behält nur den Fräser für den Rest.
-        bloecke = (self.raeumen, self.plan, self.kontur)
+        bloecke = (self.raeumen, self.plan, self.kontur, self.nut)
         for block in sorted(bloecke, key=lambda b: not b.aktiv()):
             werkzeug, einsatz = block.fraeser(), block.einsatz()
             werte = zz.werte(werkzeug, einsatz) if werkzeug and einsatz else None
@@ -7950,7 +8008,7 @@ class BearbeitungPanel:
             # Schon in den angehakten Strategien (übernommen): kein Angebot mehr.
             genutzt = {
                 b.fraeser().kennung
-                for b in (self.plan, self.raeumen, self.kontur, self.rest)
+                for b in (self.plan, self.raeumen, self.kontur, self.rest, self.nut)
                 if b.aktiv() and b.fraeser() is not None
             }
             schon = beste.werkzeug.kennung in genutzt and (
@@ -8760,10 +8818,29 @@ class BearbeitungPanel:
         """Der kleinere Fräser, der passt (bei Planfräsen und Räumen derselbe: der erste) – None."""
         if self.zu_aendern is not None:
             return None
-        for block, (_vorher, nachher, _eng) in getattr(self, "_getauscht", {}).items():
+        bedeckt = self._von_aktiven_bedeckt()
+        for block, (_vorher, nachher, eng) in getattr(self, "_getauscht", {}).items():
+            if not block.aktiv() and eng and set(eng) <= bedeckt:
+                continue
             if nachher is not None and (block.aktiv() or block.moeglich):
                 return nachher
         return None
+
+    def _von_aktiven_bedeckt(self):
+        """Die gewählten Flächen, die angehakte Blöcke schon nehmen – leer ohne Job."""
+        if self.job is None:
+            return set()
+        try:
+            form = vr.modell(self.job).Shape
+        except (AttributeError, IndexError):
+            return set()
+        bedeckt = set()
+        for block in self.aktive_bloecke():
+            try:
+                bedeckt |= set(self._flaechen(block, form))
+            except Exception:  # noqa: BLE001 – ein Block ohne Flächen: nichts
+                continue
+        return bedeckt
 
     def passenden_uebernehmen(self):
         """„„T3 …“ übernehmen“: der angebotene Fräser in Planfräsen und Räumen, wo er dort steht.
@@ -8785,9 +8862,12 @@ class BearbeitungPanel:
         (_flaechenfraeser_waehlen) – Planfräsen und Räumen mit demselben Tausch in einem Satz;
         sonst ""."""
         gruppen = {}
+        bedeckt = self._von_aktiven_bedeckt()
         for block, (vorher, nachher, eng) in getattr(self, "_getauscht", {}).items():
             if not block.aktiv() and not block.moeglich:
                 continue
+            if not block.aktiv() and eng and set(eng) <= bedeckt:
+                continue  # angehakte nehmen die Flächen schon (die Ringnut: die Nut mit T4)
             schluessel = (vorher.kennung, nachher.kennung if nachher else None, tuple(eng))
             gruppen.setdefault(schluessel, (vorher, nachher, eng, []))[3].append(block.s.titel())
         saetze = []
@@ -9245,7 +9325,7 @@ class BearbeitungPanel:
                 )  # fmt: skip
             )
             self.doc.recompute()  # die Wände rechnen mit dem fertigen Boden
-        if getattr(bahn, "waende", None):
+        if getattr(bahn, "kontur_waende", None):
             aufmass = werte["aufmass_wand"]
             name = (
                 tr("ba.raeumen.schlichten_name", werkzeug=werkzeug)
@@ -9255,7 +9335,17 @@ class BearbeitungPanel:
             ops.append(
                 ko.lege_an(
                     self.job, tc, werte["zustellung"], aufmass, aufmass, True, aufmass, name,
-                    flaechen=bahn.waende,
+                    flaechen=bahn.kontur_waende,
+                )  # fmt: skip
+            )
+        if getattr(bahn, "ring", None) is not None:
+            ops.append(
+                nu.lege_an(
+                    self.job, tc, werte["zustellung"],
+                    werte["zeilenabstand"] or tc.Tool.Diameter / 2, 0.0, schlichten=True,
+                    gleichlauf=werte["gleichlauf"],
+                    name=tr("ba.nut.schlichten_name", werkzeug=werkzeug),
+                    flaechen=bahn.ringe, nur_schlichten=True,
                 )  # fmt: skip
             )
         if not ops or (len(ops) == 1 and werte.get("messstopp")):

@@ -32,6 +32,16 @@ Bögen statt Vollschnitt.
   Die Vollnut fährt diese Runde immer (sonst bliebe die Nut zu schmal).
 - Durchgehende Nuten um `tiefer` unter den Grund; mehrere in der Reihenfolge des kürzesten
   Wegs; die Zeit mit bahn.zeit.
+- **Ringnut rundum** (Nut.ring; Manuels Messspitzenhalter, 2026-10-18: zwischen dem Bund Ø 15
+  und einer Fase außen ein Ringgrund 0,8 tief – das Planfräsen fuhr dort Zeilen, „totaler
+  scheissdreck … einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder
+  schlichten“): der Grund ein Kreisring, innen steigt das Teil an (der Bund), außen auch (eine
+  Wand oder eine Fase, die nach oben weiter wird); Löcher im Grund gehen hinab. Gerechnet
+  gestreckt wie die Bogennut, aber ohne Enden (_ring_gestreckt): je Lage an derselben Stelle
+  (+X, an der Drehmaschine Y 0) die Helix hinab, dann die Bögen einmal herum bis an den Kreis
+  der Helix; die Vollnut in einer Wendel längs der Mittellinie hinab, unten eine Runde eben.
+  Geschlichtet werden beide Wände je einmal rundum im Gleichlauf: die äußere gegen den
+  Uhrzeigersinn, die innere (der Bund) mit ihm.
 - **Offene Nuten** (P-2026-10-01-47): zum Rand hin offen – an einem Ende (ein Halbkreis und
   zwei Geraden, die am Rand enden) oder an beiden (zwei parallele Wände, die freien Seiten
   zueinander, der Grund dazwischen). Hinter einem offenen Ende ist Luft (geprüft): Dort fährt
@@ -107,6 +117,9 @@ class Nut:
     # Eine Bogennut (eine Ringnut, an beiden Enden offen): ihre Mittellinie ist ein Bogen um
     # (mx, my) mit dem Radius r_m, von Winkel w_a (bei A) nach w_b (bei B), rad; None: gerade.
     bogen: tuple = None
+    # Eine Ringnut rundum (_ringnut): der Bogen geht einmal herum (w_b = w_a + 2π), A = B, sie hat
+    # keine Enden.
+    ring: bool = False
 
     @property
     def laenge(self):
@@ -118,7 +131,10 @@ class Nut:
 
     @property
     def gesamtlaenge(self):
-        """So lang ist die Nut über alles (mm): an geschlossenen Enden die Halbkreise dazu."""
+        """So lang ist die Nut über alles (mm): an geschlossenen Enden die Halbkreise dazu (die
+        Ringnut hat keine)."""
+        if self.ring:
+            return self.laenge
         return self.laenge + self.radius * ((not self.offen_a) + (not self.offen_b))
 
     @property
@@ -155,6 +171,10 @@ class Nutwerte:
     # das man kaum schnellvorschub hat sondern meist schneidet“): Der nächste Bogen schneidet
     # zurück, im Gegenlauf, statt quer über die freie Seite zurückzufahren (_boegen).
     wellen: bool = False
+    # Nur die Wände auf Maß – die Nut ist schon geräumt („Schlichten danach“ an der Ringnut,
+    # nach dem Messstopp: Die Kontur fährt nur senkrechte Wände, die Fase außen am
+    # Messspitzenhalter ließe sie aus). Bisher nur an der Ringnut (_ring_gestreckt).
+    nur_schlichten: bool = False
 
 
 @dataclass
@@ -299,6 +319,9 @@ def _durch(form, a, b, r, z_unten):
 OFFEN_PRUEFEN = 0.5  # mm hinter einem offenen Ende wird nach Luft gesehen
 FREI_VOR = 1.0  # mm – so weit hinter einem offenen Ende bleibt der Rand des Fräsers
 BOGEN_STUECK = 0.25  # mm – in so kurzen Stücken liegt die Bahn der Bogennut auf ihrem Bogen
+RING_PRUEFEN = 0.3  # mm neben dem Rand des Ringgrunds wird nach dem Anstieg des Teils gesehen …
+RING_HOEHE = 0.05  # … so hoch über ihm (eine Fase steigt dort erst wenig an)
+RING_PROBEN = 12  # so oft rundum
 
 
 def _waende_offen(form, nummer, index):
@@ -590,6 +613,143 @@ def _durch_bogen(form, bogen, r, z_unten):
     return True
 
 
+def _kreis_des_drahts(draht):
+    """((mx, my), Radius) – wenn der Draht geschlossen ist und alle seine Kanten auf einem
+    waagerechten Kreis liegen; sonst None."""
+    import Part
+
+    if not draht.isClosed():
+        return None
+    mitte = radius = None
+    for kante in draht.Edges:
+        kurve = kante.Curve
+        if not isinstance(kurve, Part.Circle) or abs(abs(kurve.Axis.z) - 1.0) > 1e-6:
+            return None
+        m = (float(kurve.Center.x), float(kurve.Center.y))
+        if mitte is None:
+            mitte, radius = m, float(kurve.Radius)
+        elif (
+            math.hypot(m[0] - mitte[0], m[1] - mitte[1]) > 1e-4 or abs(kurve.Radius - radius) > 1e-4
+        ):
+            return None
+    return (mitte, radius) if mitte is not None else None
+
+
+def _steigt(form, mitte, radius, z):
+    """Steht das Teil RING_HOEHE über `z` rundum auf dem Kreis um `mitte` mit `radius` (an
+    RING_PROBEN Stellen) – eine Wand, eine Fase, ein Bund?"""
+    import FreeCAD
+
+    for k in range(RING_PROBEN):
+        winkel = 2.0 * math.pi * (k + 0.37) / RING_PROBEN
+        p = FreeCAD.Vector(
+            mitte[0] + radius * math.cos(winkel), mitte[1] + radius * math.sin(winkel), z
+        )
+        if not form.isInside(p, 1e-6, True):
+            return False
+    return True
+
+
+def _ring_am_grund(form, nummer, index):
+    """Die Ringnut rundum (Nut.ring), deren Grund die Fläche `nummer` ist – oder None. Der Grund:
+    eben nach oben, außen ein Kreis, innen ein Kreis um dieselbe Mitte; an beiden steigt das Teil
+    an (_steigt: außen eine Wand oder eine Fase, innen der Bund). Weitere Löcher im Grund
+    (Bohrungen, Senkungen) gehen hinab – über sie fährt der Fräser hinweg; steht dort eine
+    Insel, ist es keine Ringnut."""
+    import FreeCAD
+    import Part
+
+    grund = form.Faces[nummer]
+    if not _ist_boden(grund):
+        return None
+    z = float(grund.BoundBox.ZMax)
+    aussen = _kreis_des_drahts(grund.OuterWire)
+    if aussen is None:
+        return None
+    mitte, r_a = aussen
+    r_i = None
+    innen_draht = None
+    for draht in grund.Wires:
+        if draht.isSame(grund.OuterWire):
+            continue
+        kreis = _kreis_des_drahts(draht)
+        if kreis is not None and math.hypot(kreis[0][0] - mitte[0], kreis[0][1] - mitte[1]) < 1e-4:
+            if r_i is not None:
+                return None
+            r_i, innen_draht = kreis[1], draht
+            continue
+        # Ein Loch im Grund: Geht es hinab (Luft knapp darüber, mitten im Loch), stört es nicht.
+        kasten = draht.BoundBox
+        probe = FreeCAD.Vector(kasten.Center.x, kasten.Center.y, z + RING_HOEHE)
+        if form.isInside(probe, 1e-6, True):
+            return None  # eine Insel im Grund: Räumen
+    if r_i is None or r_a - r_i <= 1e-3:
+        return None
+    hoehe = z + RING_HOEHE
+    if not _steigt(form, mitte, r_a + RING_PRUEFEN, hoehe):
+        return None
+    if not _steigt(form, mitte, max(r_i - RING_PRUEFEN, 0.5 * r_i), hoehe):
+        return None
+    # Die Wände: die Flächen an den beiden Kreisen, außer dem Grund.
+    if not index:
+        index.update(ft.nummern(form))
+    waende = []
+    z_oben = z
+    for draht in (grund.OuterWire, innen_draht):
+        for kante in draht.Edges:
+            for nachbar in form.ancestorsOfType(kante, Part.Face):
+                i = index.get(nachbar.hashCode())
+                if i is None or i == nummer or i in waende:
+                    continue
+                waende.append(i)
+                z_oben = max(z_oben, float(form.Faces[i].BoundBox.ZMax))
+    r_m = 0.5 * (r_a + r_i)
+    breite = 0.5 * (r_a - r_i)
+    # Durch? Unter dem Grund kein Material auf der Mittellinie (an drei Stellen).
+    durch = not any(
+        form.isInside(
+            FreeCAD.Vector(
+                mitte[0] + r_m * math.cos(w), mitte[1] + r_m * math.sin(w), z - DURCH_PRUEFEN
+            ),
+            1e-6,
+            True,
+        )
+        for w in (0.3, 2.4, 4.5)
+    )
+    # Die Helix bei +X: An der Drehmaschine liegt die Stelle dort bei Y 0 (stirnseite).
+    a = (mitte[0] + r_m, mitte[1])
+    bogen = (float(mitte[0]), float(mitte[1]), float(r_m), 0.0, 2.0 * math.pi)
+    namen = tuple(f"Face{i + 1}" for i in sorted(waende))
+    return Nut(namen, a, a, breite, z_oben, z, durch, False, False, bogen, True)
+
+
+def _ringnut(form, nummer, index):
+    """Die Ringnut rundum (_ring_am_grund), zu der die Fläche `nummer` gehört: ihr Grund – oder
+    eine Fläche, die an seinem Rand von ihm aufsteigt (die Wand des Bunds, die Fase außen)."""
+    import Part
+
+    flaeche = form.Faces[nummer]
+    if _ist_boden(flaeche):
+        return _ring_am_grund(form, nummer, index)
+    z = float(flaeche.BoundBox.ZMin)
+    if not index:
+        index.update(ft.nummern(form))
+    gesehen = set()
+    for kante in flaeche.Edges:
+        if any(abs(v.Point.z - z) > kb.NAH for v in kante.Vertexes):
+            continue
+        for nachbar in form.ancestorsOfType(kante, Part.Face):
+            i = index.get(nachbar.hashCode())
+            if i is None or i == nummer or i in gesehen:
+                continue
+            gesehen.add(i)
+            if abs(form.Faces[i].BoundBox.ZMax - z) <= kb.NAH:
+                nut = _ring_am_grund(form, i, index)
+                if nut is not None and f"Face{nummer + 1}" in nut.waende:
+                    return nut
+    return None
+
+
 _GEMERKT = {}  # (Form, Fläche) → Nut oder None – der Assistent fragt oft dieselbe Fläche
 _GEMERKT_HOECHSTENS = 1024
 
@@ -615,6 +775,14 @@ def _nut_der_flaeche(form, name, schluessel, index):
     if nummern and nummern[0] < ft.anzahl(form):
         if not index:
             index.update(ft.nummern(form))
+        # Zuerst die Ringnut: Ihr äußerer Rand ist ein Kreis – als Langloch gelesen wäre sie eine
+        # runde Tasche ohne den Bund in der Mitte.
+        gefunden = _ringnut(form, nummern[0], index)
+        if gefunden is not None:
+            if len(_GEMERKT) >= _GEMERKT_HOECHSTENS:
+                _GEMERKT.clear()
+            _GEMERKT[eintrag] = gefunden
+            return gefunden
         waende = _waende_der_nut(form, nummern[0], index)
     try:
         konturen = kb.konturen(form, [f"Face{i + 1}" for i in waende]) if waende else []
@@ -1330,11 +1498,158 @@ def _bogennut_bahn(punkte, nut, w, oben):
     gerade = replace(nut, a=(0.0, 0.0), b=(nut.laenge, 0.0), bogen=None)
     w_gerade = replace(w, oben=oben, zeilenabstand=w.zeilenabstand * r_m / (r_m + nut.radius))
     eigene = []
-    _weg, lagen, boegen, vollnut, z_min = _nut(eigene, gerade, w_gerade)
+    if nut.ring:
+        _weg, lagen, boegen, vollnut, z_min = _ring_gestreckt(eigene, gerade, w_gerade, oben)
+    else:
+        _weg, lagen, boegen, vollnut, z_min = _nut(eigene, gerade, w_gerade)
     neu = _auf_den_bogen(eigene, nut)
     weg = sum(bn.weg(a, b) for a, b in zip(neu, neu[1:], strict=False) if not b.eilgang)
     punkte.extend(neu)
     return weg, lagen, boegen, vollnut, z_min
+
+
+def _ring_gestreckt(punkte, nut, w, oben):
+    """Die Ringnut gestreckt (A bei s 0, eine Runde ist nut.laenge lang; _auf_den_bogen legt sie
+    auf den Kreis, s über eine Runde hinaus liegt wieder vorn): in Bögen (_ring_lagen) oder in
+    voller Breite (_ring_vollnut), dann – mit Schlichtgang, oder als Vollnut bis aufs Aufmaß –
+    beide Wände (_ring_schlichten). Gibt zurück wie _nut()."""
+    R = w.fraeser_radius
+    aufmass = max(w.aufmass, 0.0)
+    z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
+    runde = nut.laenge
+    r_w = max(nut.radius - R, 0.0)
+    r_l = nut.radius - R - aufmass
+    vollnut = verfahren(nut, R, aufmass) == "vollnut"
+    uhr = not w.gleichlauf
+    knapp = min(w.sicher, oben + w.sicherheit)
+    if w.nur_schlichten:
+        # Die Nut ist geräumt: auf der Mittellinie hinab, beide Wände auf Maß.
+        punkte.append(bn.Punkt(True, 0.0, 0.0, w.sicher))
+        punkte.append(bn.Punkt(True, 0.0, 0.0, knapp))
+        punkte.append(bn.Punkt(False, 0.0, 0.0, z_ende, True))
+        weg = bn.weg(punkte[-2], punkte[-1])
+        weg += _ring_schlichten(punkte, nut, w, r_w, oben, z_ende, 0.0, uhr)
+        letzter = punkte[-1]
+        punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+        return weg, 1, 0, False, z_ende
+    start = (0.0, 0.0) if vollnut else (-r_l, 0.0)  # die Wendel auf der Mittellinie, die Helix
+    punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
+    punkte.append(bn.Punkt(True, start[0], start[1], knapp))
+    punkte.append(bn.Punkt(False, start[0], start[1], oben, True))
+    weg = bn.weg(punkte[-2], punkte[-1])
+    if vollnut:
+        stueck, s_ende = _ring_vollnut(punkte, runde, w, oben, z_ende)
+        lagen, boegen = 1, 0
+    else:
+        stueck, lagen, boegen = _ring_lagen(punkte, runde, w, r_l, oben, z_ende, uhr)
+        s_ende = punkte[-1].x
+    weg += stueck
+    r_s = r_w if w.schlichten else max(r_l, 0.0)  # die Vollnut: ohne Schlichtgang bis aufs Aufmaß
+    if r_s > GLEICH and (w.schlichten or vollnut):
+        weg += _hin(punkte, s_ende, 0.0, punkte[-1].z)  # in der geräumten Nut auf die Mitte
+        weg += _ring_schlichten(punkte, nut, w, r_s, oben, z_ende, s_ende, uhr)
+    letzter = punkte[-1]
+    punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    return weg, lagen, boegen, vollnut, z_ende
+
+
+def _ring_lagen(punkte, runde, w, r_l, oben, z_ende, uhr):
+    """Die Lagen der Ringnut in Bögen, gestreckt: je Lage an derselben Stelle (s = Lage · Runde)
+    die Helix hinab, unten rundum und an die Wand, an der die Bögen beginnen, dann die Bögen
+    (_boegen) einmal herum bis an den Kreis der Helix (Runde − R: an den Wänden hat die Helix dort
+    schon geräumt). Zur nächsten Lage durch die geräumte Nut an den Kreis der nächsten Helix.
+    Beginnt hinten am Kreis um A (der Punkt davor liegt dort). Gibt (Länge, Lagen, Bögen)
+    zurück."""
+    R = w.fraeser_radius
+    ap = w.zustellung if w.zustellung > GLEICH else 2 * R
+    if w.schneidenlaenge > 0:
+        ap = min(ap, w.schneidenlaenge)
+    tiefe = oben - z_ende
+    anzahl = max(1, int(math.ceil(tiefe / ap - 1e-9)))
+    schritt = _bogenschritt(r_l, R, min(max(w.zeilenabstand, MIN_SCHRITT), R))
+    drehung = -1.0 if uhr else 1.0
+    seite = -drehung  # wie in _boegen: Gleichlauf beginnt an der Wand rechts der Fahrt
+    wand = seite * math.pi / 2
+    steigung = max(
+        2 * math.pi * r_l * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
+    )
+    weg = 0.0
+    boegen = 0
+    z_vorher = oben
+    for lage in range(anzahl):
+        z = oben - tiefe * (lage + 1) / anzahl
+        mitte = (lage * runde, 0.0)
+        if lage:  # durch die geräumte Nut hinten an den Kreis der nächsten Helix
+            weg += _hin(punkte, mitte[0] - r_l, 0.0, z_vorher, anteil=RUECKWEG)
+        jetzt = punkte[-1]
+        winkel = math.atan2(jetzt.y - mitte[1], jetzt.x - mitte[0])
+        umlaeufe = max(1, int(math.ceil((z_vorher - z) / steigung - 1e-9)))
+        ende = winkel + drehung * 2 * math.pi * umlaeufe
+        weg += _bogen(punkte, mitte, r_l, winkel, ende, z_vorher, z, uhr)
+        rest = (drehung * (wand - winkel)) % (2 * math.pi)
+        weg += _bogen(punkte, mitte, r_l, ende, ende + drehung * (2 * math.pi + rest), z, z, uhr)
+        stueck, n = _boegen(
+            punkte,
+            mitte,
+            (1.0, 0.0),
+            r_l,
+            R,
+            schritt,
+            max(runde - R, schritt),
+            z,
+            uhr,
+            s_anfang=0.0,
+            wellen=w.wellen,
+        )
+        weg += stueck
+        boegen += n
+        z_vorher = z
+    return weg, anzahl, boegen
+
+
+def _ring_vollnut(punkte, runde, w, oben, z_ende):
+    """Die Ringnut in voller Breite, gestreckt: längs der Mittellinie in einer Wendel hinab – je
+    Runde höchstens so tief, wie die Vollnut schneiden darf (_vollnut_ap) und der Eintauchwinkel
+    erlaubt –, unten eine Runde eben. Kein Zickzack und keine Umkehr: Die Runde schließt sich.
+    Beginnt auf der Mittellinie bei s 0. Gibt (Länge, s am Ende) zurück."""
+    ap = _vollnut_ap(w)
+    anteil = _vollnut_anteil(w)
+    je_runde = min(ap, max(runde * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_RAMPE))
+    s, z = 0.0, oben
+    weg = 0.0
+    while z > z_ende + GLEICH:
+        tiefer = min(je_runde, z - z_ende)
+        s += runde * tiefer / je_runde
+        z -= tiefer
+        weg += _hin(punkte, s, 0.0, z, anteil=anteil)
+    s += runde
+    weg += _hin(punkte, s, 0.0, z_ende, anteil=anteil)
+    return weg, s
+
+
+def _ring_schlichten(punkte, nut, w, r_s, oben, z_ende, s, uhr):
+    """Beide Wände der Ringnut je einmal rundum, die Mitte des Fräsers r_s neben der Mittellinie
+    – gestreckt: Die äußere liegt rechts der Fahrt nach +s (_auf_den_bogen), im Gleichlauf fährt
+    er sie nach +s, die innere (den Bund) nach −s; im Gegenlauf andersherum. Je Wand aus der
+    Mitte im Halbkreis an die Wand, eine Runde, im Halbkreis zurück; in Zügen von höchstens der
+    Schneidenlänge, von oben. Beginnt auf der Mittellinie bei s. Gibt die Länge zurück."""
+    runde = nut.laenge
+    hoehe = min(oben, nut.z_oben) - z_ende
+    anzahl = 1
+    if 0 < w.schneidenlaenge < hoehe - GLEICH:
+        anzahl = max(1, int(math.ceil(hoehe / w.schneidenlaenge - 1e-9)))
+    fahrt = -1.0 if uhr else 1.0  # so fährt er die äußere Wand
+    weg = 0.0
+    for i in range(1, anzahl + 1):
+        z = min(oben, nut.z_oben) - hoehe * i / anzahl
+        weg += _hin(punkte, s, 0.0, z)
+        for q, richtung in ((-r_s, fahrt), (r_s, -fahrt)):
+            mitte = (s, q / 2.0, uhr)
+            weg += _hin(punkte, s, q, z, bogen=mitte)  # im Halbkreis an die Wand
+            s += richtung * runde
+            weg += _hin(punkte, s, q, z)  # die Runde
+            weg += _hin(punkte, s, 0.0, z, bogen=(s, q / 2.0, uhr))  # im Halbkreis zurück
+    return weg
 
 
 def _hinter_dem_ende(nut, ende, s, q):
@@ -1480,7 +1795,7 @@ def planen(werte, liste, stand=None):
             weg += n_weg
             davor += [name for name in stand.wer(maske) if name not in davor]
         bei, vorgeschlagen = _bei(nut, w, stand)
-        if not nut.offen:
+        if not nut.offen and not nut.ring:
             stellen.append((schluessel(nut), bei, vorgeschlagen, nut.a, nut.b))
         stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w, stand, bei)
         if not n_lagen:
@@ -1506,7 +1821,7 @@ def planen(werte, liste, stand=None):
 def _bei(nut, w, stand):
     """(Anteil oder None, vorgeschlagen?) – die gewählte Eintauchstelle der Nut, sonst der
     Vorschlag; offene Nuten tauchen draußen ein (None)."""
-    if nut.offen:
+    if nut.offen or nut.ring:  # die Ringnut taucht an ihrer Stelle ein (+X, _ring_am_grund)
         return None, True
     gewaehlt = (w.eintauchen_bei or {}).get(schluessel(nut))
     if gewaehlt is not None:

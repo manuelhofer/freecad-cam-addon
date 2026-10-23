@@ -1666,6 +1666,16 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   **Befund (P-2026-10-18-95):** Das Fenster rechnet am Geist selbst etwa 10 s; beim Warten
   verteilt es 9 500 Unteraufträge (je Takt alle 24 Arbeiter lesen, `lebt`, Speicher) – möglich:
   nur die lesen, die etwas geschickt haben (`connection.wait` liefert sie).
+- **W-037 Messspitzenhalter von vorn: Ringnut und Fase** – Manuel, 2026-10-18 (Bilder): Im Ring
+  zwischen Bund Ø 15 und der Fase außen fuhr das Planfräsen mit dem 6er Zeilen („totaler
+  scheissdreck … einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder
+  schlichten“), das Abfahren trug die Stange nicht ab („kein abtrag vom rohteil“); „je nachdem ob
+  die y achse ausreicht … c achse drehen und mit y weiter arbeiten oder einfach nur die c achse
+  drehen lassen“. **Gebaut (P-2026-10-23-01):** Ringnut rundum in der „Nut“ (Helix bei +X, Bögen
+  oder Wellen einmal herum, Vollnut als Wendel; „Schlichten danach“ beide Ränder als Nut „nur
+  schlichten“), niedrige Ränder und Fasen zählen als Wand, Abfahren der Stange von vorn als
+  Scheibe; Y/C wie bisher (`stirnseite`: an der CLX reicht Y, C dreht nicht). **Offen:** die Fase
+  0,6 × 45° außen – Frage 1 in OFFENE_FRAGEN (Schaftfräser in Stufen, Fasenfräser oder drehen).
 - **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu
   Frage 1 (Rohteil des Beispiels `c_ring_nut_3achs`: Platte 65 × 65 × 12 oder vorgedrehter Ring
   Ø 60 × 10): „naja es muss beides funktionieren .. und auswählbarsein ... wenn rt welle d60 ist

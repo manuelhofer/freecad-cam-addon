@@ -181,6 +181,44 @@ pruefe(
     "quer",
 )
 
+# --- Rundum umsonst (Manuels Messspitzenhalter, 2026-10-18): vor der Stirn oder gar nichts ---
+# Vorn ein Bund Ø 15, Ringgrund 0,8 tief, außen eine Fase 45° bis Ø 33 bei a −0,2.
+profil = [(4.25, -20.2), (16.5, -20.2), (16.5, -0.2), (15.9, -0.8), (7.5, -0.8), (7.5, 0.0)]
+profil += [(4.25, 0.0), (4.25, -20.2)]
+halter = Part.Face(Part.makePolygon([V(r, 0, a) for r, a in profil]))
+halter = Part.Solid(Part.Shell(halter.revolve(V(0, 0, 0), V(0, 0, 1), 360).Faces))
+
+
+class _Punkt:
+    def __init__(self, a, r, eilgang=False, frei=False):
+        self.a, self.r, self.q, self.eilgang, self.frei, self.phi = a, r, 0.0, eilgang, frei, 0.0
+
+
+class _Bahn:
+    def __init__(self, punkte):
+        self.punkte = punkte
+
+
+# Die 0,2 mm vor der Fase und dem Ringgrund (a −0,2 … 0, r 7,6 … 16,4): vor der Stirn.
+vorn = _Bahn([_Punkt(8.0, 18.0, eilgang=True)] + [
+    _Punkt(a, r) for a in (-0.15, -0.05) for r in np.linspace(7.6, 16.4, 30)
+])  # fmt: skip
+pruefe(vf.nur_vor_stirn(halter, V(*LAENGS), V(*RADIAL), vorn, 16.5), "vor der Stirn: nein")
+pruefe(not vf.rundum_nichts(vorn, 16.5), "vor der Stirn: nimmt nichts")
+# Die Spirale nur in der Luft (r ≥ Stange): nimmt nichts.
+luft = _Bahn([_Punkt(8.0, 18.0, eilgang=True)] + [_Punkt(a, 16.52) for a in (0.0, -5.0, -15.0)])
+pruefe(vf.rundum_nichts(luft, 16.5), "in der Luft: nimmt doch etwas")
+# Eine Nut im Mantel (a −10 … −8, bis r 14): hinter ihr schaut eine Wand nach vorn, vor ihr liegt
+# aber das Teil – Rundum.
+welle_nut = Part.makeCylinder(16.5, 20.2, V(0, 0, -20.2)).cut(
+    Part.makeCylinder(16.5, 2.0, V(0, 0, -10)).cut(Part.makeCylinder(14.0, 2.0, V(0, 0, -10)))
+)
+mantel_nut = _Bahn([_Punkt(a, r) for a in (-9.5, -9.0, -8.5) for r in (14.2, 15.0, 16.0)])
+pruefe(
+    not vf.nur_vor_stirn(welle_nut, V(*LAENGS), V(*RADIAL), mantel_nut, 16.5),
+    "Nut im Mantel: vor der Stirn",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

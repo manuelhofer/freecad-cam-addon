@@ -420,6 +420,7 @@ def bereich_fuer(form, laengs, radial, namen_, radius, toleranz=vh.TOLERANZ):
 # So nah an 1 muss die Normale einer ebenen Fläche an der Stangenachse liegen (stirnseitig).
 STIRN_GENAU = 0.999
 STIRN_SPIEL = 0.05  # mm – so genau zählt nur_vor_stirn Stellen und Radien
+STIRN_SCHRAEG = 0.5  # cos 60°: so weit darf ein Kegel vor der Stirn von quer abweichen (Fase 45°)
 
 
 def stirnseitig(form, laengs, namen_):
@@ -459,20 +460,100 @@ def rundum_nichts(bahn, stange_radius):
     )
 
 
+def _stirnstuecke(form, l_, u_, v_):
+    """[(r von, r bis, a dort, a dort)] – die Flächen des Teils, die nach vorn schauen, je als
+    Stück, auf dem a linear mit dem Radius geht: eine Ebene quer zur Stange (a fest), ein Kegel um
+    die Achse, der höchstens STIRN_SCHRAEG von quer abweicht (eine Fase 45° außen: Manuels
+    Messspitzenhalter). Andere Flächen nach vorn (Rundungen, Senkungen neben der Achse) in kurzen
+    Stücken aus ihrer Vernetzung."""
+    import FreeCAD
+    import Part
+
+    from . import vierachs_rohteil as vr
+
+    achse = FreeCAD.Vector(*l_)
+    stuecke = []
+    for flaeche in form.Faces:
+        try:
+            punkte, _dreiecke = flaeche.copy().tessellate(0.02)
+        except Exception:  # noqa: BLE001 – eine Fläche ohne Netz: keine Stirn
+            continue
+        if not punkte:
+            continue
+        p = np.array([[q.x, q.y, q.z] for q in punkte], dtype=float)
+        a = p @ l_
+        r = np.hypot(p @ u_, p @ v_)
+        if vr.ist_eben(flaeche):
+            normale = vr.aussennormale(flaeche)
+            if normale is not None and normale.dot(achse) >= STIRN_GENAU:
+                mitte = float(a.mean())
+                # Die Punkte des Netzes liegen auf dem Rand: Geht die Achse durch die Fläche (eine
+                # volle Stirn), reicht sie bis r 0 – sonst hielte sie sich für einen Ring am Rand.
+                r_von = float(r.min())
+                if flaeche.isInside(achse * mitte, 1e-6, True):
+                    r_von = 0.0
+                stuecke.append((r_von, float(r.max()), mitte, mitte))
+            continue
+        kurve = flaeche.Surface
+        if isinstance(kurve, Part.Cone):
+            richtung = FreeCAD.Vector(kurve.Axis)
+            spitze = FreeCAD.Vector(kurve.Apex)
+            quer = spitze - achse * spitze.dot(achse)
+            if abs(abs(richtung.dot(achse)) - 1.0) < 1e-6 and quer.Length < 1e-4:
+                u0, u1, v0, v1 = flaeche.ParameterRange
+                normale = flaeche.normalAt((u0 + u1) / 2, (v0 + v1) / 2)
+                if normale.dot(achse) >= STIRN_SCHRAEG:
+                    i_von, i_bis = int(np.argmin(r)), int(np.argmax(r))
+                    stuecke.append(
+                        (float(r[i_von]), float(r[i_bis]), float(a[i_von]), float(a[i_bis]))
+                    )
+                continue
+        # Sonst je Punkt der Vernetzung (höchstens 400), mit der Normalen dort.
+        schritt = max(1, len(punkte) // 400)
+        for k in range(0, len(punkte), schritt):
+            try:
+                uv = kurve.parameter(punkte[k])
+                normale = flaeche.normalAt(*uv)
+            except Exception:  # noqa: BLE001
+                continue
+            if normale.dot(achse) >= STIRN_SCHRAEG:
+                stuecke.append(
+                    (float(r[k]) - STIRN_SPIEL, float(r[k]) + STIRN_SPIEL, float(a[k]), float(a[k]))
+                )
+    return stuecke
+
+
+def _vorn_bei(stuecke, r):
+    """a der vordersten Fläche nach vorn beim Radius r (_stirnstuecke) – None, wenn dort keine
+    liegt."""
+    vorn = None
+    for r_von, r_bis, a_von, a_bis in stuecke:
+        if not r_von - 1e-6 <= r <= r_bis + 1e-6:
+            continue
+        if r_bis - r_von > 1e-9:
+            t = min(max((r - r_von) / (r_bis - r_von), 0.0), 1.0)
+            a = a_von + (a_bis - a_von) * t
+        else:
+            a = max(a_von, a_bis)
+        vorn = a if vorn is None else max(vorn, a)
+    return vorn
+
+
 def nur_vor_stirn(form, laengs, radial, bahn, stange_radius):
     """Liegt alles, was die Rundum-Schruppbahn `bahn` (vierachs_bahn.Bahn) am Teil wegnimmt, nur
-    in einer Scheibe vor Stirnflächen – ebenen Flächen, die nach vorn schauen (Manuels
-    Messspitzenhalter, 2026-10-18: Stange Ø 33 = Teil Ø 33, vorn ein Bund 0,8 hoch; „was will er
-    da rundum schruppen ??? … das teil hat aussen durchmesser schon den richtigen“)? Dann ist es
-    keine Arbeit für den radialen Fräser: Was zur Stirn offen ist, fräst „Bearbeitung“ von vorn.
-    Eine Scheibe ist es, wenn die Schnitte längs dünner liegen, als sie radial breit sind – ein
-    langer Absatz hinter einer Schulter (10 mm lang, 6 mm tief) bleibt Rundum. Schnitte vor dem
-    Teil (die Spirale beginnt in der Luft) zählen nicht. False ohne Schnitt oder mit Schnitten
-    anderswo."""
+    in einer Scheibe vor der Stirn – vor der vordersten Fläche, die beim Radius des Schnitts nach
+    vorn schaut (_stirnstuecke: eine Ebene quer, eine Fase)? Manuels Messspitzenhalter
+    (2026-10-18): Stange Ø 33 = Teil Ø 33, vorn ein Bund 0,8 hoch, außen eine Fase bis 0,2 hinter
+    den Bund; „was will er da rundum schruppen ??? … das teil hat aussen durchmesser schon den
+    richtigen“. Dann ist es keine Arbeit für den radialen Fräser: Was zur Stirn offen ist, fräst
+    „Bearbeitung“ von vorn. Die vorderste Fläche zählt: Hinter einer Nut im Mantel schaut deren
+    Wand auch nach vorn, vor ihr liegt aber das Teil. Eine Scheibe ist es, wenn die Schnitte
+    längs dünner liegen, als sie radial breit sind – ein langer Absatz hinter einer Schulter
+    (10 mm lang, 6 mm tief) bleibt Rundum. Schnitte vor dem Teil (die Spirale beginnt in der
+    Luft) zählen nicht. False ohne Schnitt oder mit Schnitten anderswo."""
     import FreeCAD
 
     from . import vierachs_huelle as vh
-    from . import vierachs_rohteil as vr
 
     l_, u_, v_ = vh.rahmen(laengs, radial)
     achse = FreeCAD.Vector(*l_)
@@ -486,27 +567,16 @@ def nur_vor_stirn(form, laengs, radial, bahn, stange_radius):
             schnitte.append((float(p.a), r))
     if not schnitte:
         return False
-    # Die Stirnflächen nach vorn: a der Ebene, radial von … bis (aus der Vernetzung).
-    scheiben = []
-    for flaeche in form.Faces:
-        if not vr.ist_eben(flaeche):
-            continue
-        normale = vr.aussennormale(flaeche)
-        if normale is None or normale.dot(achse) < STIRN_GENAU:
-            continue
-        punkte, _dreiecke = flaeche.copy().tessellate(0.1)
-        if not punkte:
-            continue
-        p = np.array([[q.x, q.y, q.z] for q in punkte], dtype=float)
-        radien = np.hypot(p @ u_, p @ v_)
-        scheiben.append((float(np.mean(p @ l_)), float(radien.min()), float(radien.max())))
-    if not scheiben:
+    stuecke = _stirnstuecke(form, l_, u_, v_)
+    if not stuecke:
         return False
+    gemerkt = {}
     for a, r in schnitte:
-        if not any(
-            a >= a_f - STIRN_SPIEL and r_von - STIRN_SPIEL <= r <= r_bis + STIRN_SPIEL
-            for a_f, r_von, r_bis in scheiben
-        ):
+        schluessel = round(r, 3)
+        if schluessel not in gemerkt:
+            gemerkt[schluessel] = _vorn_bei(stuecke, r)
+        vorn = gemerkt[schluessel]
+        if vorn is None or a < vorn - STIRN_SPIEL:
             return False  # ein Schnitt, vor dem keine Stirnfläche liegt: der Mantel
     a_werte = [a for a, _r in schnitte]
     r_werte = [r for _a, r in schnitte]

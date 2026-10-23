@@ -324,6 +324,116 @@ if c_nuten and c_nuten[0].bogen is not None:
     w_v.eintauchwinkel = 0.02  # so flach reicht auch der lange Bogen nicht für ap: hin und her
     pruefe(umkehren_hinab(nb.planen(w_v, [c], voll).punkte) > 0, "Zickzack nicht gezählt")
 
+# --- (i) Die Ringnut rundum (Manuels Messspitzenhalter, 2026-10-18): Stange Ø 33, vorn (z 20) ein
+# Bund Ø 15, der Grund bei z 19,2 bis Ø 31,8, außen eine Fase 45° bis Ø 33 bei z 19,8; Bohrung Ø 8,5,
+# drei Senkbohrungen Ø 2,5 auf r 10. Planfräsen fuhr dort Zeilen („totaler scheissdreck …
+# einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder schlichten“). Erkannt
+# vom Grund, von der Wand des Bunds und von der Fase aus – nicht vom Mantel; mit Ø 6: die Helix bei
+# +X, die Bögen einmal herum, nicht ins Teil, im Eilgang nichts, der Grund leer, die Last gehalten;
+# mit Wellen schneller. Mit 0,5 Aufmaß die Vollnut: eine Wendel längs der Mittellinie, kein
+# Zickzack. Geschlichtet beide Ränder (Mitte des Fräsers r 10,5 und 12,9); „nur schlichten“ fährt
+# nur sie.
+profil = [(4.25, -0.2), (16.5, -0.2), (16.5, 19.8), (15.9, 19.2), (7.5, 19.2), (7.5, 20.0)]
+profil += [(4.25, 20.0), (4.25, -0.2)]
+halter = Part.Face(Part.makePolygon([V(r, 0, z) for r, z in profil]))
+halter = Part.Solid(Part.Shell(halter.revolve(V(0, 0, 0), V(0, 0, 1), 360).Faces))
+for winkel in (90, 210, 330):
+    mx, my = 10 * math.cos(math.radians(winkel)), 10 * math.sin(math.radians(winkel))
+    halter = halter.cut(Part.makeCylinder(1.25, 11, V(mx, my, 8.2)))
+    halter = halter.cut(Part.makeCone(1.25, 2.0, 0.75, V(mx, my, 18.45)))
+halter = halter.removeSplitter()
+grund_r = mantel_r = bund_r = fase_r = None
+for i, f in enumerate(halter.Faces):
+    bb = f.BoundBox
+    if abs(bb.ZMax - 19.2) < 1e-6 and bb.ZMax - bb.ZMin < 1e-6 and bb.XMax > 15:
+        grund_r = f"Face{i + 1}"
+    elif isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - 16.5) < 1e-6:
+        mantel_r = f"Face{i + 1}"
+    elif isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - 7.5) < 1e-6:
+        bund_r = f"Face{i + 1}"
+    elif isinstance(f.Surface, Part.Cone) and bb.XMax > 16:
+        fase_r = f"Face{i + 1}"
+ringe = nb.nuten(halter, [grund_r])
+pruefe(
+    len(ringe) == 1
+    and ringe[0].ring
+    and abs(ringe[0].radius - 4.2) < 1e-6
+    and abs(ringe[0].bogen[2] - 11.7) < 1e-6
+    and abs(ringe[0].z_unten - 19.2) < 1e-6,
+    f"Ringnut: {ringe}",
+)
+for name in (bund_r, fase_r):
+    gefunden = nb.nuten(halter, [name])
+    pruefe(gefunden and gefunden[0].ring, f"Ringnut von {name}: {gefunden}")
+pruefe(not any(n.ring for n in nb.nuten(halter, [mantel_r])), "Ringnut vom Mantel")
+if ringe and ringe[0].ring:
+    rn = ringe[0]
+    r_6, ae_6 = 3.0, 2.7
+    stange = (-16.5, 16.5, -16.5, 16.5)
+
+    def werte_ring(**weiter):
+        return nb.Nutwerte(
+            fraeser_radius=r_6, zustellung=11.0, zeilenabstand=ae_6, oben=20.0, sicher=25.0,
+            aufmass=0.2, schneidenlaenge=13.0, eintauchwinkel=3.0, vorschub=VF,
+            eintauchen=VF * 0.3, **weiter,
+        )  # fmt: skip
+
+    zeiten = {}
+    for wellen in (False, True):
+        bahn_r = nb.planen(werte_ring(wellen=wellen), [rn])
+        k = ps.messen([ps.Bahnlauf(bahn_r.punkte, VF, VF * 0.3)], halter, stange, 20.0,
+                      ff.scheibe(r_6), ae_6, 11.0, ebenen_z=[19.2], aufmass=0.0,
+                      raster=0.25)  # fmt: skip
+        name = "Ringnut Wellen" if wellen else "Ringnut D-Bögen"
+        print(ascii(f"{name}: {bahn_r.boegen} Bögen, {bahn_r.zeit:.2f} min | {ps.zeile(k)}"))
+        pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"{name}: ins Teil {k.einschnitt:.3f}")
+        pruefe(k.eilgang_abtrag <= 1e-9, f"{name}: im Eilgang {k.eilgang_abtrag:.1f} mm³")
+        pruefe(k.rest <= ps.REST_ZULAESSIG, f"{name}: Rest {k.rest:.2f} auf dem Grund")
+        pruefe(k.eingriff_max <= bn.LAST_KURZ * 1.1, f"{name}: Last {ps.zeile(k)}")
+        pruefe(umkehren_hinab(bahn_r.punkte) == 0, f"{name}: Zickzack beim Hinabfahren")
+        # Die Helix um A bei +X (an der Drehmaschine Y 0): Der Fräser taucht hinten an ihrem
+        # Kreis ein (r_l = 4,2 − 3 − 0,2 = 1 vor A, auf der Mittellinie).
+        erster = next(p for p in bahn_r.punkte if not p.eilgang)
+        pruefe(
+            abs(math.hypot(erster.x - 11.7, erster.y) - 1.0) < 0.01
+            and abs(math.hypot(erster.x, erster.y) - 11.7) < 1e-6,
+            f"{name}: Helix nicht bei +X ({erster.x:.3f}, {erster.y:.3f})",
+        )
+        zeiten[wellen] = bahn_r.zeit
+    pruefe(zeiten[True] < zeiten[False], f"Ringnut: Wellen nicht schneller {zeiten}")
+    # Mit 0,5 Aufmaß (Platz für die Bögen r 0,7 < 0,75 R): die Vollnut in einer Wendel.
+    pruefe(nb.verfahren(rn, r_6, 0.5) == "vollnut", "Ringnut 0,5: keine Vollnut")
+    w_voll = werte_ring()
+    w_voll.aufmass = 0.5
+    bahn_v = nb.planen(w_voll, [rn])
+    k = ps.messen([ps.Bahnlauf(bahn_v.punkte, VF, VF * 0.3)], halter, stange, 20.0,
+                  ff.scheibe(r_6), ae_6, 11.0, ebenen_z=[19.2], aufmass=0.0,
+                  raster=0.25)  # fmt: skip
+    print(ascii(f"Ringnut Vollnut: {bahn_v.zeit:.2f} min | {ps.zeile(k)}"))
+    pruefe(umkehren_hinab(bahn_v.punkte) == 0, "Ringnut Vollnut: Zickzack")
+    pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Ringnut Vollnut: ins Teil {k.einschnitt}")
+    pruefe(k.eilgang_abtrag <= 1e-9, f"Ringnut Vollnut: im Eilgang {k.eilgang_abtrag:.1f} mm³")
+
+    def radien_unten(bahn):
+        return [
+            math.hypot(p.x, p.y) for p in bahn.punkte if not p.eilgang and abs(p.z - 19.2) < 1e-6
+        ]
+
+    # Mit Schlichtgang beide Ränder; „nur schlichten“ (Schlichten danach) nur sie.
+    radien = radien_unten(nb.planen(werte_ring(schlichten=True), [rn]))
+    pruefe(
+        abs(min(radien) - 10.5) < 0.01 and abs(max(radien) - 12.9) < 0.01,
+        f"Ringnut schlichten: r {min(radien):.3f} … {max(radien):.3f}",
+    )
+    nur = nb.planen(werte_ring(schlichten=True, nur_schlichten=True), [rn])
+    radien = radien_unten(nur)
+    weit = sum(1 for r in radien if 10.6 < r < 12.8 and abs(r - 11.7) > 0.7)
+    pruefe(
+        abs(min(radien) - 10.5) < 0.01 and abs(max(radien) - 12.9) < 0.01 and nur.boegen == 0,
+        f"nur schlichten: r {min(radien):.3f} … {max(radien):.3f}, {nur.boegen} Bögen",
+    )
+    pruefe(weit <= 8, f"nur schlichten: {weit} Punkte zwischen den Rändern (Bögen?)")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
