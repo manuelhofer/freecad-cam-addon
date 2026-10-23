@@ -1604,6 +1604,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (restmaterial.fuer_rundum braucht die Abfahrt); der 4-Achs-Assistent nimmt als Rohteil nur
   eine Stange. Weg dafür: im Prüffenster ein Knopf „Fertigteil als Rohteil“ aus dem Abtrag dort –
   nutzbar als Rohteil in „Bearbeitung“ (zweite Aufspannung auf der Fräse).
+  **Nebenbei ein Netz gegen Fehlschnitte (P-2026-10-23-19):** Jedes Szenario schreibt
+  `im_teil.txt` – je 3-Achs-Job die Zellen im Teil nach allen Operationen (`fertigteil.im_teil`,
+  gezählt beim Schließen des Dokuments); Gewinde, Entgraten und fester G-Code der Szenarien stehen
+  als „erwartet“ da. Volllauf 2026-10-23 (alle 165 grün): 96 Jobs aus 79 Szenarien, kein
+  unerwarteter Schnitt ins Teil.
 - **W-030 Wendelnut entlang fahren** – Manuel, 2026-10-18, an seinem `4achs_testteil_wendel`
   (Ø 80 × 65, runde Nut R 11, Steigung 60; liegt nur bei ihm in `~/freecad_cam/testteile`): „die
   wendel ist entgegen der drehrichtung ... da muss man sich was einfallen lassen das das dennoch

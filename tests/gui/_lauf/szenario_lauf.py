@@ -178,9 +178,9 @@ class _Bahnen:
                 zellen = ft.im_teil(
                     q.x, q.y, ft.hoehen(job, stand), vr.modell(job).Shape, ft.anfang_des_jobs(job)
                 )
-                self.im_teil[name] = (zellen, zellen * stand.schritt**2)
+                self.im_teil[name] = (zellen, zellen * stand.schritt**2, _darf_ins_teil(job))
             except Exception as fehler:  # noqa: BLE001 – nur ein Bericht
-                self.im_teil[name] = (-1, str(fehler)[:120])
+                self.im_teil[name] = (-1, str(fehler)[:120], "")
 
     def slotRecomputedObject(self, obj):
         try:
@@ -265,19 +265,39 @@ def _kehren_schreiben():
         datei.write("\n".join(z[1] for z in zeilen) + ("\n" if zeilen else ""))
 
 
+# Operationen, die ins Teil schneiden dürfen: Gewinde (bis zum Außendurchmesser über die
+# Kernbohrung hinaus), Entgraten (die Fase an der scharfen Kante des Modells) – und eigener G-Code
+# der Szenarien (Path.Op.Custom, ein Path::Feature ohne Proxy), der nur Bilder oder Fahrten zeigt.
+DARF_INS_TEIL = ("gewinde", "gewindefraesen", "entgraten", "entgraten3d", "Path.Op.Custom")
+
+
+def _darf_ins_teil(job):
+    """Die Operationen des Jobs, die ins Teil schneiden dürfen (DARF_INS_TEIL) – als Text."""
+    namen = []
+    for op in job.Operations.Group:
+        proxy = getattr(op, "Proxy", None)
+        modul = type(proxy).__module__ if proxy is not None else "Path.Op.Custom"
+        if modul.rsplit(".", 1)[-1] in DARF_INS_TEIL or modul in DARF_INS_TEIL:
+            namen.append(op.Label)
+    return ", ".join(namen)
+
+
 def _im_teil_schreiben():
     """im_teil.txt: je 3-Achs-Job, wie viele Zellen nach allen Operationen unter der Oberkante des
-    Teils liegen (fertigteil.im_teil) – die mit Fehlschnitt zuerst. Nur ein Bericht."""
+    Teils liegen (fertigteil.im_teil) – unerwartete zuerst; „erwartet“, wo eine Operation das
+    darf (DARF_INS_TEIL). Nur ein Bericht. Stand 2026-10-23: 96 Jobs aus 79 Szenarien, kein
+    unerwarteter."""
     bahnen = getattr(starten, "bahnen", None)
     if bahnen is None or not bahnen.im_teil:
         return
-    zeilen = sorted(bahnen.im_teil.items(), key=lambda e: -e[1][0])
+    zeilen = sorted(bahnen.im_teil.items(), key=lambda e: (bool(e[1][2]), -e[1][0]))
     with open(os.path.join(AUSGABE, "im_teil.txt"), "w", encoding="utf-8") as datei:
-        for name, (zellen, mm2) in zeilen:
+        for name, (zellen, mm2, erwartet) in zeilen:
             if zellen < 0:
                 datei.write(f"nicht gezählt  {name}: {mm2}\n")
             else:
-                datei.write(f"Im Teil {zellen:5d} Zellen ({mm2:7.1f} mm²)  {name}\n")
+                dazu = f"  – erwartet: {erwartet}" if zellen and erwartet else ""
+                datei.write(f"Im Teil {zellen:5d} Zellen ({mm2:7.1f} mm²)  {name}{dazu}\n")
 
 
 def _ende(helfer, fehler=None):

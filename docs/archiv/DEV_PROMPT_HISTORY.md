@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-19 szenarien-zaehlen-schnitte-ins-teil
+
+### EINGELESEN
+- Zwei Fehlschnitte kamen am 2026-10-23 nur durch Zufall ans Licht (C-Ring: „Wände schlichten
+  T1“ in der Nut; Ring von vorn: in der Kerbenwand) – die meisten Szenarien prüfen nicht, ob
+  Bahnen ins Teil schneiden.
+
+### DATEIEN
+- `tests/gui/_lauf/szenario_lauf.py`: `_Bahnen.slotDeletedDocument` zählt beim Schließen eines
+  Dokuments je 3-Achs-Job die Zellen im Teil (`fertigteil.im_teil`, mit dem Materialstand vor der
+  ersten Operation); `_im_teil_schreiben` → `im_teil.txt`, unerwartete zuerst; „erwartet“, wo
+  der Job Gewinde, Entgraten oder eigenen G-Code (`Path.Op.Custom`) hat (`DARF_INS_TEIL`).
+- `docs/STATUS_SNAPSHOT.md` (W-029).
+
+### ERGEBNIS
+- Zweiter Volllauf aller 165 Szenarien: alle grün. `im_teil.txt`: 96 Jobs aus 79 Szenarien, elf
+  mit Zellen im Teil – acht Vorlagen mit festem G-Code (abfahren, einrichtblatt, home,
+  maschine_merken, reichweite, schnittwerte_pruefen, raum_material ×2), drei Gewinde/Entgraten;
+  kein Schnitt einer Bahn des Addons ins Teil.
 ## P-2026-10-23-18 kontur-engstellen-ohne-zickzack
 
 ### EINGELESEN
