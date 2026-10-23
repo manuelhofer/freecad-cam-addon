@@ -123,11 +123,12 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 18
+            len(eintraege) == 19
             and eintraege[:2] == ["So geht’s", "Maschinen …"]
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege
             and "Einrichtblatt …" in eintraege  # W-019
+            and "Fertigteil als Rohteil" in eintraege  # W-029
             and "Beispiele laden …" in eintraege,
             f"Menü: {eintraege}",
         )
