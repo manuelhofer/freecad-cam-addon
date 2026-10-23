@@ -1644,6 +1644,14 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
      Schnittanfang mit Material darüber.
   In Ordnung: `nut_bahn._vollnut` (geschlossene Nut, zu schmal für die Helix). Nachzählen:
   `pruefstand.kehren_im_programm`, `vierachs_bahn.kehren`.
+  **Nachgezählt 2026-10-23 (0.277.3, `kehren.txt` der 47 Szenarien, die an dem Tag liefen):**
+  Kehren nur noch am Geist (STL): „3D-Schlichten T2“ 3 von 63 Rampen (Punkt 7,
+  `schlicht_anlauf._rampe`: die erste Schnittstrecke ist kürzer als die Rampe, die Strecken dort
+  sind offen) und „Rundum schlichten T2“ 1. Ohne Kehre zu fahren braucht dort einen Weg abseits
+  der Schnittlinie – sicher nur mit der Hüllfläche, die `schlicht_anlauf` nicht hat (die
+  Schnittlinie selbst ist das Einzige, was dort als frei bekannt ist). Ansatz: die Hüllfläche
+  (oder das Netz) aus der Bahn mitgeben, dann eine Helix um den Anfang oder seitlich durch die
+  Luft hinein.
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte
