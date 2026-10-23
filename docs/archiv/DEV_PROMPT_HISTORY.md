@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-16 alle-pruefdateien-gruen
+
+### EINGELESEN
+- Volle Durchsicht der 124 Prüfdateien (sechs leichte gleichzeitig, die schweren zu zweit):
+  `test_simultan_gesamt` rot – das ausgeschriebene NC-Programm der ganz angestellten Kuppel wich
+  von der Referenz ab (dieselbe Ursache wie P-2026-10-23-13: der Weg ist seit P-2026-10-18-89 neu).
+
+### DATEIEN
+- `tests/golden/kuppel_simultan_gesamt_nc.json`: neu geschrieben (`GOLDENE_BAHNEN_SCHREIBEN=1`).
+
+### ERGEBNIS
+- Alle 124 Prüfdateien grün im Wochen-Build (27.1 dev vom 20.10.); dazu `test_goldene_bahnen` in
+  FreeCAD 1.1.4.
 ## P-2026-10-23-15 adaptiv-inseln-wieder-ganz
 
 ### EINGELESEN
