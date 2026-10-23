@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-13 goldene-bahnen-nachgezogen
+
+### EINGELESEN
+- Beim Prüfen der Zickzack-Einfahrten (W-035) lief `test_simultan_planung` rot: „Gespeicherte
+  Referenzbahn verändert“ – auch im Wochen-Build vom 14.10. und in FreeCAD 1.1.4, also nicht der
+  Build. Danach alle Prüfungen mit gespeicherten Referenzen durchgesehen.
+
+### DATEIEN
+- `tests/golden/kuppel_simultan.json`, `kuppel_simultan_gesamt.json`, `freiform_simultan.json`,
+  `freiform_simultan_gesamt.json`, `simultan_folge.json`: neu geschrieben – verändert seit
+  P-2026-10-18-89 (das runde Rohteil im Materialstand um eine Zelle eingezogen; per `git bisect`
+  gefunden, für die Folge vor/nach dem Commit nachgeprüft).
+- `tests/golden/welle_schruppen*.json`, `welle_absatz_schruppen*.json`,
+  `welle_absatz_schlichten*.json` (je OCC 7.9 in 1.1.4 und OCC 8.0 im Wochen-Build): neu
+  geschrieben – verändert seit P-2026-10-18-92 (Rundum im Eilgang hinab statt im Vorschub durch
+  die Luft; `git bisect`).
+
+### ERGEBNIS
+- Beide Änderungen waren gewollt, ihre Referenzen nicht nachgezogen. Neu geschrieben liefen die
+  Prüfungen danach ganz durch (dabei die Grathöhe im feineren Raster, Rest und Einschnitt).
+- Grün: `test_simultan_planung` (Kuppel, Kuppel ganz angestellt, Freiform, Freiform ganz
+  angestellt), `test_simultan_folge`, `test_goldene_bahnen` (Wochen-Build und 1.1.4),
+  `test_simultan_nc`, `test_simultan_bereiche`, `test_raum_material`, `test_raum_bahn`,
+  `test_simultan_export_referenz`.
 ## P-2026-10-23-12 raeumen-genau-im-hintergrund
 
 ### EINGELESEN

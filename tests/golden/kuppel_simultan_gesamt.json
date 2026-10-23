@@ -1,10 +1,10 @@
 {
   "punkte": 3539,
-  "sha256": "8a12124e4b26283a1e90b8a5bbd36a0204037d3bdbc8a1286aed1a543a68cadb",
-  "zeit_s": 74.43733688535306,
+  "sha256": "f162cd7f540ec7bfd5d78bd17d47d8b4fc968a222066e51c0fb61b29f7cae537",
+  "zeit_s": 73.31483004477715,
   "rest_mm": 0.017734135811949714,
   "befehle": 3607,
-  "befehle_sha256": "bc92c078c4c33bd550d6a22f5b80890747eb32a30fd29609883d4939db2a6934",
+  "befehle_sha256": "0832cb68430144b2ec2d3b702c9db8d45df1a60a1fdf4db716cefe4636b868f6",
   "stichprobe": [
     [
       -1.423424,
@@ -340,6 +340,6 @@
       0.0
     ]
   ],
-  "rechenzeit_s": 12.642933697999979,
+  "rechenzeit_s": 12.404021440001088,
   "spitzenspeicher_python_mb": null
 }
