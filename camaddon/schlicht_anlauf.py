@@ -1,9 +1,14 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """3D-Schnitte entlang der ersten Schnittstrecke anfahren, statt ins Material zu tauchen.
 
-Die Anfahrt folgt derselben geprüften Hüllfläche mit abnehmender Höhe. Wenn die
-erste Strecke kurz ist, fährt sie zurück und wieder vor. Am Ende zurück zum
-Anfang schlichten, damit auch unter der Rampe das fertige Teil entsteht.
+Die Anfahrt folgt derselben geprüften Hüllfläche mit abnehmender Höhe. Am Ende
+zurück zum Anfang schlichten, damit auch unter der Rampe das fertige Teil entsteht.
+Ist der Zug zu kurz für die Rampe, ging sie früher zurück und wieder vor – ein
+Zickzack (W-035; Manuel, 2026-10-18: „alle Zickzack einfahren weg“). Dann eine
+Helix: ein Kreis durch den Anfang, tangential zur ersten Strecke, über der
+Hüllfläche des Teils dort (_helix, die Hüllfläche aus dem Teil des Jobs im
+Fenster um den Anfang), zum Schluss eine Runde auf Tiefe. Fehlt die Hüllfläche,
+bleibt es beim Zickzack.
 Der unabhängige Materialprüfer kontrolliert danach auch diese Bewegungen.
 """
 
@@ -20,6 +25,10 @@ from . import materialstand as ms
 from . import simultan_abtrag as sa
 from . import werkzeuge as wz
 from .sprache import tr
+
+HELIX_ANTEIL = 0.5  # vom Fräserradius: der Radius der Helix (_helix)
+HELIX_SCHRITT = math.radians(10.0)  # so fein läuft die Helix um
+HUELLE_SCHRITT = 0.1  # mm – das Raster der Hüllfläche um den Anfang
 
 
 def ergaenzen(bahn, job, operation, radius, vorschub, eintauchen):
@@ -126,7 +135,11 @@ def ergaenzen(bahn, job, operation, radius, vorschub, eintauchen):
                     anteil=max(1.0, fw.freivorschub_fuer(job) / max(vorschub, 1e-9)),
                 )
             )
-            rampe, schon_geschnitten = _rampe(zug, hoch, winkel, toolform.eben)
+            rampe = None
+            if not toolform.eben and not _rampe_reicht(zug, hoch, winkel):
+                rampe = _helix(zug, hoch, winkel, toolform, _hueller(job, toolform))
+            if rampe is None:
+                rampe, schon_geschnitten = _rampe(zug, hoch, winkel, toolform.eben)
             if getattr(operation, "Rampenanlauf", False) and vorschub > 0:
                 markiert = []
                 a = ergebnis[-1]
@@ -188,6 +201,103 @@ def ergaenzen(bahn, job, operation, radius, vorschub, eintauchen):
     )
     bahn.zeit = bn.zeit(ergebnis, vorschub, eintauchen)
     return bahn
+
+
+def _rampe_reicht(zug, hoch, winkel):
+    """Kommt die Rampe auf dem Zug bis auf seine Höhe, ohne umzukehren (die Kugel: der Winkel
+    relativ zur Hüllfläche, so wie _rampe rechnet)?"""
+    tan = math.tan(math.radians(winkel))
+    return sum(bn.weg(a, b) for a, b in zip(zug, zug[1:], strict=False)) * tan >= hoch - 1e-9
+
+
+class _hueller:
+    """Die Hüllfläche des Teils im Job für die Form des Fräsers – je Anfang ein kleines Raster um
+    ihn, das Netz einmal (vierachs_flaechen.vernetze merkt es sich)."""
+
+    def __init__(self, job, form):
+        self.job = job
+        self.form = form
+        self._netz = None
+
+    def netz(self):
+        if self._netz is None:
+            from . import hoehenfeld as hf
+            from . import vierachs_flaechen as vf
+            from . import vierachs_rohteil as vr
+
+            self._netz = vf.vernetze(vr.modell(self.job).Shape, hf.TOLERANZ).netz
+        return self._netz
+
+    def fenster(self, x, y, halb):
+        """(bei(x, y) → z der Spitze, −inf ohne Teil darunter) über dem Quadrat ± halb um (x, y)
+        – je Stelle der höchste der vier Nachbarn im Raster, zur sicheren Seite."""
+        from . import hoehenfeld as hf
+
+        netz = self.netz()
+        geformt = self.form.mit_aufmass(netz.toleranz)
+        n = max(3, int(math.ceil(2 * halb / HUELLE_SCHRITT)) + 1)
+        x0, y0 = x - halb, y - halb
+        ys = y0 + HUELLE_SCHRITT * np.arange(n)
+        roh = hf.je_zeile(netz, geformt, ys, x0, HUELLE_SCHRITT, n, True)
+
+        def bei(px, py):
+            fx, fy = (px - x0) / HUELLE_SCHRITT, (py - y0) / HUELLE_SCHRITT
+            i0, j0 = int(math.floor(fx)), int(math.floor(fy))
+            if not (0 <= i0 < n - 1 and 0 <= j0 < n - 1):
+                return math.nan
+            return float(roh[i0 : i0 + 2, j0 : j0 + 2].max())
+
+        return bei
+
+
+def _helix(zug, hoch, winkel, form, hueller):
+    """Hinab auf einer Helix statt im Zickzack (W-035): ein Kreis mit dem Radius HELIX_ANTEIL · R
+    durch den Anfang des Zugs, gegen den Uhrzeigersinn, so dass er tangential in die erste
+    Strecke mündet; je Umlauf um 2π ρ · tan(Winkel) tiefer, über der Hüllfläche dort (so weit wie
+    der Zug am Anfang über ihr liegt – das Aufmaß), zum Schluss eine Runde auf Tiefe (darunter
+    entsteht das fertige Teil), am Anfang zu Ende. Die Punkte – oder None, wenn die Hüllfläche
+    dort nicht zu haben ist (dann _rampe)."""
+    erster = zug[0]
+    j = 1
+    while j < len(zug) and math.hypot(zug[j].x - erster.x, zug[j].y - erster.y) < 1e-9:
+        j += 1
+    if j >= len(zug):
+        return None
+    dx, dy = zug[j].x - erster.x, zug[j].y - erster.y
+    laenge = math.hypot(dx, dy)
+    dx, dy = dx / laenge, dy / laenge
+    rho = HELIX_ANTEIL * float(form.radius)
+    tan = math.tan(math.radians(winkel))
+    if rho <= 0 or tan <= 0:
+        return None
+    cx, cy = erster.x - dy * rho, erster.y + dx * rho  # links der Fahrt
+    theta0 = math.atan2(erster.y - cy, erster.x - cx)
+    try:
+        bei = hueller.fenster(erster.x, erster.y, 2.0 * rho + 2.0 * HUELLE_SCHRITT)
+    except Exception:  # noqa: BLE001 – ohne Hüllfläche das Zickzack wie bisher
+        return None
+    am_anfang = bei(erster.x, erster.y)
+    if not math.isfinite(am_anfang):
+        return None
+    versatz = erster.z - am_anfang  # das Aufmaß über der Hüllfläche
+    umlaeufe = max(1, int(math.ceil(hoch / (2.0 * math.pi * rho * tan) - 1e-9)))
+    gesamt = 2.0 * math.pi * (umlaeufe + 1)  # dazu die Runde auf Tiefe
+    hinab = 2.0 * math.pi * umlaeufe
+    schritte = max(8, int(math.ceil(gesamt / HELIX_SCHRITT)))
+    punkte = []
+    for k in range(1, schritte + 1):
+        t = gesamt * k / schritte
+        theta = theta0 - gesamt + t
+        x, y = cx + rho * math.cos(theta), cy + rho * math.sin(theta)
+        huelle = bei(x, y)
+        if math.isnan(huelle):
+            return None
+        if not math.isfinite(huelle):
+            huelle = am_anfang  # dort kein Teil darunter: so tief wie am Anfang ist frei
+        rest = hoch * max(0.0, 1.0 - t / hinab)
+        punkte.append(bn.Punkt(False, x, y, huelle + versatz + rest))
+    punkte[-1] = bn.Punkt(False, erster.x, erster.y, erster.z)
+    return punkte
 
 
 def _rampe(zug, hoch, winkel, eben):

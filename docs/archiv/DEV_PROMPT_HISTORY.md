@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-23-14 helix-statt-zickzack-im-anlauf
+
+### EINGELESEN
+- W-035, Manuel, 2026-10-18: „alle Zickzack einfahren weg sind!!!“ – Punkt 7 der Durchsicht:
+  `schlicht_anlauf._rampe` (3D-Schlichten mit Grathöhe, 3D-Schruppen mit Rampenanlauf) kehrt um,
+  wenn die erste Schnittstrecke für die Rampe zu kurz ist.
+
+### DATEIEN
+- `camaddon/schlicht_anlauf.py`: `_rampe_reicht`, `_helix`, `_hueller` – mit der Kugel statt des
+  Zickzacks eine Helix: ein Kreis (Radius HELIX_ANTEIL · R) durch den Anfang, gegen den
+  Uhrzeigersinn, tangential in die erste Strecke; je Umlauf 2π ρ · tan(Winkel) tiefer, über der
+  Hüllfläche des Teils (aus dem Teil des Jobs im Fenster um den Anfang, je Stelle der höchste der
+  vier Nachbarn) plus dem Aufmaß des Zugs; zum Schluss eine Runde auf Tiefe, am Anfang zu Ende.
+  Ohne Hüllfläche oder mit flacher Stirn wie bisher.
+- Neu `tests/test_schlicht_anlauf.py`: auf dem Kreis, nie darunter, nie zu steil, nie zurück,
+  die Zahl der Umläufe, die Runde auf Tiefe, tangential hinein; geneigte Hüllfläche; die echte
+  Hüllfläche eines Quaders.
+- `docs/STATUS_SNAPSHOT.md` (W-035: auch, dass die drei Kehren am Geist keine Einfahrten sind),
+  `package.xml` 0.277.4.
+
+### ERGEBNIS
+- Grün: `test_schlicht_anlauf`, `test_simultan_planung`, `test_simultan_folge`.
 ## P-2026-10-23-13 goldene-bahnen-nachgezogen
 
 ### EINGELESEN

@@ -1652,6 +1652,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Schnittlinie selbst ist das Einzige, was dort als frei bekannt ist). Ansatz: die Hüllfläche
   (oder das Netz) aus der Bahn mitgeben, dann eine Helix um den Anfang oder seitlich durch die
   Luft hinein.
+  **Nachgemessen:** Die drei am Geist kommen nicht aus `schlicht_anlauf` (der greift nur mit
+  Grathöhe) – das 3D-Schlichten hat keine eigene Rampe; dort folgt die Bahn nach einem Eilgang
+  der Fläche abwärts und wendet an einer schmalen Stelle, der Zähler nimmt das für eine
+  Einfahrt. **Gebaut (P-2026-10-23-14, 0.277.4):** Punkt 7 für die Kugel – reicht die erste
+  Strecke nicht für die Rampe, eine Helix durch den Anfang über der Hüllfläche des Teils
+  (`schlicht_anlauf._helix`, `_hueller`), sonst wie bisher; mit flacher Stirn bleibt es beim
+  Zickzack (dort gilt der Winkel gegen die Ebene, ungeprüft).
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte
