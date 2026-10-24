@@ -483,7 +483,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   `~/freecad_cam/wip/pruefhelfer/`). Sauber: Kuppel angestellt, Flanke, Simultan-Planung, Entgraten
   3D, 3+2. Behoben (P-2026-10-24-29): Zwischenpunkte mit gemittelter Werkzeugachse ließen A kurz
   abtauchen, und das Wegkippen kippte kurz vor und zurück – an der Kavität kurze Wenden von A
-  54 → 21, Sätze mit mehr als 20° Drehung 9 → 0.
+  54 → 1 (P-2026-10-25-06), Sätze mit mehr als 20° Drehung 9 → 0.
+  **4 Achsen gleich mit durchgesehen (alle 4-Achs-Programme des vollen Laufs):** keine kurzen
+  Wenden der Rundachse, außer am Geist (STL) – A wackelt dort um 0,05–0,09°, wo Y quer fährt
+  (Schruppen 43-mal in 110 000 Sätzen, Schlichten 6-mal in 93 000; vermutlich eingesetzte
+  Zwischenpunkte nach `vierachs_quer._halten`, nicht behoben) – und an der Nase, wo 1° breite
+  Sektorzeilen die Richtung wechseln (gewollt).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
