@@ -123,7 +123,8 @@ doc.removeObject("Viele")
 
 # Speicher (P-2026-10-11-100): Eine große Kopie öffnen nur so viele Arbeiter, wie der Speicher
 # trägt – einer hat sie schon offen, der Speicher reicht für einen zweiten; die übrigen Aufträge
-# warten auf diese beiden, der dritte Arbeiter öffnet sie nicht.
+# warten auf diese beiden, der dritte Arbeiter öffnet sie nicht. Je Auftrag 1 s: Mit 0,3 s schaffte
+# der erste unter Last (voller Lauf, Last 45) alle sechs, bevor der zweite drankam.
 frei = nr.speicher_frei()
 assert frei is None or frei < os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"), frei
 groesse = 100 * 2**20
@@ -133,7 +134,7 @@ pool.speicher = lambda: 1.5 * groesse
 pool.arbeit_unbekannt = 0  # hier zählt nur das Öffnen der Kopie
 try:
     auftraege = [
-        pool.auftrag("nebenrechner", "_probe_dokument", kopie6, "Kasten", dauer=0.3)
+        pool.auftrag("nebenrechner", "_probe_dokument", kopie6, "Kasten", dauer=1.0)
         for _ in range(6)
     ]
     assert [round(v, 9) for v in pool.warten(auftraege)] == [14.0] * 6
