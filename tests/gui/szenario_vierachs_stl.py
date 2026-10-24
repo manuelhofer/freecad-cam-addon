@@ -122,6 +122,30 @@ def schritte(h):
         "Klon im Job nicht als Netz",
     )
     h.pruefe(not stl_anzeige.sichtbar(teil), "Original neben dem Klon noch zu sehen")
+    # Die Einfahrbewegung bewegt nur die Anzeige: Im Dokument steht der Klon schon am Ziel, und die
+    # Bilder kommen im Takt (mit der Platzierung je Bild 4,2 s statt 1,4 s – die Element-Map des
+    # Klons zog mit).
+    einfahren = panel.einfahren
+    if einfahren is not None and einfahren.laeuft():
+        import time
+
+        from pivy import coin
+
+        ziel = FreeCAD.Placement(klon_.Placement)
+        bilder = gui_vierachs.SCHRITTE_FAHREN + gui_vierachs.SCHRITTE_DREHEN - einfahren.schritt
+        beginn = time.monotonic()
+        yield 200
+        h.pruefe(klon_.Placement == ziel, "der Klon bewegt sich im Dokument")
+        yield from h.warte_auf(lambda: not einfahren.laeuft(), 5000)
+        dauer = time.monotonic() - beginn
+        soll = bilder * gui_vierachs.TAKT_MS / 1000
+        h.pruefe(dauer < 1.5 * soll + 0.3, f"Einfahren {dauer:.2f} s statt {soll:.2f} s")
+        knoten = einfahren.transform
+        h.pruefe(
+            knoten is not None
+            and (knoten.translation.getValue() - coin.SbVec3f(*ziel.Base)).length() < 1e-3,
+            "die Anzeige steht danach nicht wie das Dokument",
+        )
     yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 5000)
 
     # --- Die Standfläche ans Futter -----------------------------------------------------------

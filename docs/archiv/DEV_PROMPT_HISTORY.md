@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-26 einfahren-nur-in-der-anzeige
+
+### EINGELESEN
+- Weiter am Mitschnitt des Geists: Nach dem Umwandeln rechnet das Fenster gut 6 s allein, davon
+  die Einfahrbewegung des Teils (70 Bilder zu 20 ms). Gemessen: je Bild 56 ms im Python, die
+  Bewegung 4,2 statt 1,4 s, das Fenster dabei zäh. Ursache: Die Platzierung des Modell-Klons
+  im Job kostet 50 ms – der Draft-Klon trägt eine Element-Map (FreeCADs Namensverfolgung) mit
+  204 722 Namen (alle Flächen, Kanten, Ecken des Geists), die mitzieht; am Körper selbst (ohne
+  Map) 0,0 ms.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_Einfahren` bewegt nur die Anzeige – den Transform-Knoten, den
+  FreeCAD aus der Platzierung setzt (`_transform`, `_zeige_lage`); das Dokument steht schon am
+  Ziel, beim Anhalten steht die Anzeige wieder wie das Dokument. Ohne den Knoten wie bisher.
+- `tests/gui/szenario_vierachs_stl.py`: Während der Bewegung bleibt der Klon im Dokument am
+  Ziel, die Bilder kommen im Takt, danach steht die Anzeige wie das Dokument.
+
+### ERGEBNIS
+- Geist: Einfahren 4,2 → 1,4 s, je Bild 0,2 statt 56 ms. Grün: `szenario_vierachs_stl`,
+  `szenario_vierachs_rohteil`, `szenario_vierachs_aendern`, `szenario_vierachs_schruppen`,
+  `szenario_vierachs_nase`, `szenario_rundum_drehmaschine`, `szenario_vierachs_drehteil`.
+
 ## P-2026-10-24-25 stl-koerper-ohne-naehen
 
 ### EINGELESEN

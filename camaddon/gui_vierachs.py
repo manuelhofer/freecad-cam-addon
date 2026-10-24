@@ -483,11 +483,15 @@ class _NurFlaechen:
 
 class _Einfahren:
     """Zeigt ohne Worte, was passiert: Das Teil fährt von seiner alten Lage in die
-    Stange und dreht sich einmal um die Stangenachse. Am Ende steht es exakt am Ziel."""
+    Stange und dreht sich einmal um die Stangenachse. Am Ende steht es exakt am Ziel.
+    Bewegt wird nur die Anzeige (_transform), das Dokument steht schon am Ziel: Eine Platzierung
+    kostete am Klon des Geists 50 ms je Bild – die Element-Map des Draft-Klons (204 722 Namen)
+    zieht mit –, die Bewegung dauerte 4,2 statt 1,4 s und das Fenster ruckelte."""
 
     def __init__(self, objekt, von, nach, achse):
         self.objekt, self.von, self.nach, self.achse = objekt, von, nach, achse
         self.schritt = 0
+        self.transform = _transform(objekt)
         self.uhr = QtCore.QTimer()
         self.uhr.setInterval(TAKT_MS)
         self.uhr.timeout.connect(uhren.aus_der_schleife(self.uhr, self._weiter))
@@ -507,21 +511,50 @@ class _Einfahren:
         if not self.uhr.isActive():
             return
         self.uhr.stop()
-        if self.objekt.Placement != self.nach:
+        if self.transform is not None:
+            _zeige_lage(self.transform, self.objekt.Placement)  # wieder wie im Dokument
+        elif self.objekt.Placement != self.nach:
             self.objekt.Placement = self.nach
+
+    def _setzen(self, lage):
+        if self.transform is not None:
+            _zeige_lage(self.transform, lage)
+        else:
+            self.objekt.Placement = lage
 
     def _weiter(self):
         self.schritt += 1
         if self.schritt < SCHRITTE_FAHREN:
             anteil = self.schritt / SCHRITTE_FAHREN
             # Langsam an, langsam aus.
-            self.objekt.Placement = self.von.sclerp(self.nach, 0.5 - 0.5 * _cos_pi(anteil))
+            self._setzen(self.von.sclerp(self.nach, 0.5 - 0.5 * _cos_pi(anteil)))
         elif self.schritt < SCHRITTE_FAHREN + SCHRITTE_DREHEN:
             anteil = (self.schritt - SCHRITTE_FAHREN) / SCHRITTE_DREHEN
             drehung = FreeCAD.Rotation(self.achse, 360.0 * (0.5 - 0.5 * _cos_pi(anteil)))
-            self.objekt.Placement = FreeCAD.Placement(FreeCAD.Vector(), drehung).multiply(self.nach)
+            self._setzen(FreeCAD.Placement(FreeCAD.Vector(), drehung).multiply(self.nach))
         else:
             self.stopp()  # läuft noch: steht danach exakt am Ziel
+
+
+def _transform(objekt):
+    """Der Transform-Knoten der Anzeige von `objekt` – das erste Kind von RootNode, das FreeCAD
+    aus der Platzierung setzt (ViewProvider: pcTransform); None ohne ihn."""
+    try:
+        from pivy import coin
+
+        wurzel = objekt.ViewObject.RootNode
+        kind = wurzel.getChild(0) if wurzel.getNumChildren() else None
+    except Exception:  # noqa: BLE001 – ohne Oberfläche oder pivy: das Dokument bewegt es
+        return None
+    if kind is None or not kind.isOfType(coin.SoTransform.getClassTypeId()):
+        return None
+    return kind
+
+
+def _zeige_lage(transform, lage):
+    """Setzt den Transform-Knoten wie FreeCAD für die Platzierung `lage`."""
+    transform.rotation.setValue(*lage.Rotation.Q)
+    transform.translation.setValue(lage.Base.x, lage.Base.y, lage.Base.z)
 
 
 def _cos_pi(anteil):
