@@ -197,6 +197,8 @@ def schritte(h):
     # kein Rohteil davor) und nicht die Wand der Ringnut.
     unfertig = dialog.unfertig.text() if dialog.unfertig.isVisible() else ""
     h.pruefe("Face3" not in unfertig and "Face6" not in unfertig, f"unfertig: {unfertig!r}")
+    # Kein „Schneller“ mit T3 fürs Räumen, das nichts zu tun hat (T3 passt nicht in die Ringnut).
+    h.pruefe(not dialog.knopf_schneller.isVisible(), f"Schneller: {dialog.ziel_text.text()!r}")
     kontur_satz = dialog.kontur.hinweis.text()
     h.pruefe("Räumen" not in kontur_satz, f"Kontur: {kontur_satz!r}")
     h.bild("1_alles_ohne_fase", dialog.form)

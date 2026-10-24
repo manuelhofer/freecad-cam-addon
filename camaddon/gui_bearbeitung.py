@@ -9459,10 +9459,14 @@ class BearbeitungPanel:
         if (
             block is self.raeumen
             and self.nut.aktiv()
-            and self._eigene(block, form)
-            and not self._flaechen(block, form)
+            and (
+                getattr(self, "_raeumen_bei_nut", False)
+                or (self._eigene(block, form) and not self._flaechen(block, form))
+            )
         ):
-            return False  # die Nut nimmt dem Räumen alle Gründe: dort hätte er nichts zu tun
+            # Die Nut nimmt dem Räumen alle Gründe (oder es gibt den Haken ab, weil vor den Wänden
+            # kein Rohteil steht): dort hätte er nichts zu tun.
+            return False
         return not self._zu_eng(block, form, angebot.werkzeug)
 
     def _nutfraeser_waehlen(self, form):

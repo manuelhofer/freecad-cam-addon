@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-12 kein-schneller-t3-am-messspitzenhalter
+
+### EINGELESEN
+- „Alles aus dieser Aufspannung“ am Messspitzenhalter bot weiter „Schneller aus der Werkzeugkiste:
+  T3 Schaftfräser Ø 12“ mit „Schnellere Fräser übernehmen“ an – fürs Räumen, das den Haken abgibt
+  (vor dem Mantel kein Rohteil, die Gründe fräst die Nut); T3 passt nicht in die Ringnut.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_passt_angebot` – auch kein Angebot, wenn das Räumen „umsonst“
+  abgibt und die Nut angehakt ist (`_raeumen_bei_nut`).
+- `tests/gui/szenario_fase_stufen.py`: kein Knopf „Schneller“ bei „Alles“.
+
+### ERGEBNIS
+- Grün: `szenario_fase_stufen`, `szenario_stirn_bund`, `szenario_bearbeitung_cring_alles`,
+  `szenario_zielzeit`, `szenario_ring_vorn`, `szenario_planen`.
 ## P-2026-10-24-11 alles-am-messspitzenhalter-schlichten-mit-t4
 
 ### EINGELESEN
