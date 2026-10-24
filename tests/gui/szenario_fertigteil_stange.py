@@ -160,4 +160,15 @@ def schritte(h):
         )
     pruef.reject()
     yield 800
+    if fertig is not None:
+        # Fürs Bild: nur die Welle und das Fertigteil darum, schräg von oben.
+        FreeCAD.setActiveDocument(doc.Name)
+        for o in doc.Objects:
+            if o.ViewObject is not None:
+                o.ViewObject.Visibility = o in (teil, fertig)
+        Gui.getDocument(doc.Name).activeView().viewIsometric()
+        Gui.SendMsgToActiveView("ViewFit")
+        Gui.Selection.clearSelection()
+        yield 800
+        h.bild("4_fertigteil_3d")
     del gui_fertigteil
