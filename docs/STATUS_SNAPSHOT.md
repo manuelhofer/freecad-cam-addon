@@ -532,7 +532,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    Entwurf für die Forum-Threads (`~/freecad_cam/forum/post_241026_15_klarstellung`, postet
    Manuel); ein Fehlerbericht an CAM (TestCAMGui scheitert am deutschen Dezimalkomma) nur mit
    seinem Ja.
-3. *W-029 weiter:* das Fertigteil auch für 4-Achs-Jobs (Stange) und 3+2-Ebenen (raum_material).
+3. *W-029 weiter:* Stange erledigt (P-2026-10-24-09: im Prüffenster am Ende „Fertigteil als
+   Rohteil …“); offen noch 3+2-Ebenen (raum_material).
 4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
    Hauptprozess, 4-Achs-Schlichten genau beim Anlegen.
 5. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
@@ -1614,6 +1615,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (restmaterial.fuer_rundum braucht die Abfahrt); der 4-Achs-Assistent nimmt als Rohteil nur
   eine Stange. Weg dafür: im Prüffenster ein Knopf „Fertigteil als Rohteil“ aus dem Abtrag dort –
   nutzbar als Rohteil in „Bearbeitung“ (zweite Aufspannung auf der Fräse).
+  **Gebaut (P-2026-10-24-09, 0.279.0):** Im Prüffenster am Ende des Abspielens der Knopf
+  „Fertigteil als Rohteil …“: bei der Stange aus den Radien des Abtrags
+  (`fertigteil.koerper_aus_radien`, `netz_aus_radien`, `nur_rest_radien`; vereinfacht bis aufs
+  Volumen 0,1 % – rund hält es 0,02 % nie), an der Rückseite des Teils abgestochen gedacht
+  (`erste_stelle`), mit dem Teil vereinigt, auf einem Nebenrechner (`radien_rechnen`); beim Quader
+  wie der Befehl. Der Befehl im Menü verweist für einen Job an der Stange aufs Prüffenster (Knopf).
+  Prüfteil Welle Ø 40 in Stange Ø 44: 51.675 mm³ (Welle 48.696), 1.675 Flächen.
   **Nebenbei ein Netz gegen Fehlschnitte (P-2026-10-23-19):** Jedes Szenario schreibt
   `im_teil.txt` – je 3-Achs-Job die Zellen im Teil nach allen Operationen (`fertigteil.im_teil`,
   gezählt beim Schließen des Dokuments); Gewinde, Entgraten und fester G-Code der Szenarien stehen

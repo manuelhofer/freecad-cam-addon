@@ -22,6 +22,13 @@ Aufspannung als „Teil aus dem Dokument“, und sein Klon wandert wie das Teil
 gerechnet, bekommt es die neue Form; der Job, dessen Rohteil es ist, heißt Aufspannung 2.
 
 Der Körper rechnet auf einem Nebenrechner (koerper_rechnen) – am C-Ring rund 17 000 Zellen.
+
+**Die Stange** (4 Achsen, Rundachse): Ihr Abtrag steht im Fenster „Auf der Maschine prüfen“ als
+Radien je Stelle längs und Winkel rundum (restmaterial.Stange, Raster 0,5 mm und 1°). Daraus ein
+Netz um die Achse mit je einer Scheibe hinten und vorn (netz_aus_radien), wo das Teil fertig ist
+unter seine Oberfläche gerückt (nur_rest_radien), vereinfacht bis aufs Volumen 0,1 % – rund
+hält es 0,02 % nie –, mit dem Teil vereinigt und auf die Stange beschnitten (koerper_aus_radien,
+auf einem Nebenrechner radien_rechnen).
 Läuft ohne Oberfläche.
 """
 
@@ -195,7 +202,9 @@ def koerper_aus_hoehen(x, y, h, unten, teil=None, rohteil=None):
     return im_rohteil(_aus_dem_netz(punkte, dreiecke, teil), rohteil)
 
 
-def _aus_dem_netz(punkte, dreiecke, teil):
+def _aus_dem_netz(punkte, dreiecke, teil, spiel=None):
+    """Der Körper aus dem Netz – vereinfacht, bis das Volumen höchstens `spiel` (Anteil; ohne:
+    VOLUMEN_SPIEL) abweicht, ebene Dreiecke zu Flächen, mit `teil` vereinigt."""
     import Mesh
 
     from . import stl_teil
@@ -207,7 +216,7 @@ def _aus_dem_netz(punkte, dreiecke, teil):
         kopie = netz.copy()
         with _ohne_fehler():
             kopie.decimate(0.001, anteil)
-            if abs(float(kopie.Volume) - voll) <= VOLUMEN_SPIEL * abs(voll):
+            if abs(float(kopie.Volume) - voll) <= (spiel or VOLUMEN_SPIEL) * abs(voll):
                 netz = kopie
                 break
     form = stl_teil.koerper(netz)
@@ -313,6 +322,109 @@ def koerper_rechnen(x, y, h, unten, teil=None, anfang=None, rohteil=None):
 
     form = koerper_aus_hoehen(x, y, h, unten, teil, rohteil)
     return nr.Form.von(form), (im_teil(x, y, h, teil, anfang) if teil is not None else 0)
+
+
+# --- Die Stange (4 Achsen) ---------------------------------------------------------------------
+
+R_MINDESTENS = 0.2  # mm – kleiner wird kein Radius im Netz (an der Achse träfen sich die Dreiecke)
+EINZUG = 1.0  # mm – so weit unter das fertige Teil rückt ein Radius, wo es fertig ist
+# Vereinfachen am runden Netz: Mit 0,02 % behielt es am Prüfteil alle 58.320 Dreiecke, und die
+# Vereinigung mit dem Teil rechnete Minuten; mit 0,1 % blieben 2.916 – 2,4 s.
+VOLUMEN_SPIEL_STANGE = 1e-3
+
+
+def netz_aus_radien(a, phi, r, laengs, radial):
+    """(Punkte, Dreiecke) des Netzes um die Stange: je Stelle längs a[i] und Winkel phi[j] (rad,
+    cos φ · U + sin φ · V wie vierachs_huelle.rahmen) der Punkt im Abstand r[i, j] von der Achse
+    (nie unter R_MINDESTENS), dazu hinten und vorn je eine Scheibe um die Achse. Geschlossen und
+    nach außen gerichtet."""
+    from . import vierachs_huelle as vh
+
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    a = np.asarray(a, dtype=float)
+    phi = np.asarray(phi, dtype=float)
+    r = np.asarray(r, dtype=float)
+    r = np.maximum(np.where(np.isfinite(r), r, R_MINDESTENS), R_MINDESTENS)
+    na, nphi = r.shape
+    richtung = np.cos(phi)[:, None] * u_ + np.sin(phi)[:, None] * v_
+    punkte = (a[:, None, None] * l_ + r[:, :, None] * richtung[None, :, :]).reshape(-1, 3)
+    hinten, vorn = len(punkte), len(punkte) + 1
+    punkte = np.vstack([punkte, a[0] * l_, a[-1] * l_])
+
+    def k(i, j):
+        return i * nphi + (j % nphi)
+
+    i, j = np.meshgrid(np.arange(na - 1), np.arange(nphi), indexing="ij")
+    i, j = i.ravel(), j.ravel()
+    p00, p01, p11, p10 = k(i, j), k(i, j + 1), k(i + 1, j + 1), k(i + 1, j)
+    # Nach außen: (i, j) → (i, j+1) → (i+1, j+1) – längs mal rundum zeigte zur Achse.
+    mantel = np.concatenate([np.stack([p00, p01, p11], axis=1), np.stack([p00, p11, p10], axis=1)])
+    jj = np.arange(nphi)
+    scheibe_hinten = np.stack([np.full(nphi, hinten), k(0, jj + 1), k(0, jj)], axis=1)
+    scheibe_vorn = np.stack([np.full(nphi, vorn), k(na - 1, jj), k(na - 1, jj + 1)], axis=1)
+    return punkte, np.vstack([mantel, scheibe_hinten, scheibe_vorn]).astype(np.int64)
+
+
+def nur_rest_radien(r, teil_r, spiel=IM_TEIL_SPIEL):
+    """Die Radien ohne das fertige Teil (wie nur_rest): Wo ein Strahl das Teil vor der Achse trägt
+    (`teil_r`, restmaterial.teilradien) und nicht weiter draußen endet als das Teil (bis `spiel`),
+    rückt er EINZUG darunter – das Teil selbst kommt aus mit_teil, genau. Wo mehr steht (Aufmaß,
+    noch nicht gefräst), bleibt er."""
+    r = np.array(r, dtype=float)
+    teil_r = np.asarray(teil_r, dtype=float)
+    with np.errstate(invalid="ignore"):
+        fertig = np.isfinite(teil_r) & (teil_r > 0) & (r <= teil_r + spiel)
+    r[fertig] = np.maximum(teil_r[fertig] - EINZUG, R_MINDESTENS)
+    return r
+
+
+def koerper_aus_radien(a, phi, r, laengs, radial, teil=None, teil_r=None, rohteil=None):
+    """Der Körper aus den Radien der Stange (netz_aus_radien) – vereinfacht bis aufs
+    VOLUMEN_SPIEL_STANGE; mit `teil` und `teil_r` (seine Radien auf denselben Strahlen) nur der
+    Rest (nur_rest_radien) und mit dem Teil vereinigt, mit `rohteil` auf die Stange beschnitten."""
+    if teil is not None and teil_r is not None:
+        r = nur_rest_radien(r, teil_r)
+    punkte, dreiecke = netz_aus_radien(a, phi, r, laengs, radial)
+    form = _aus_dem_netz(punkte, dreiecke, teil, VOLUMEN_SPIEL_STANGE)
+    return im_rohteil(form, rohteil)
+
+
+def erste_stelle(a, teil, laengs):
+    """Der Index der ersten Stelle längs (a, aufsteigend), die nicht hinter dem Teil liegt – dort
+    wird die Stange abgestochen gedacht (die Rückseite des Teils, eine Stelle des Rasters davor,
+    wenn sie zwischen zwei Stellen fällt)."""
+    from . import vierachs_huelle as vh
+
+    l_ = np.asarray(laengs, dtype=float)
+    l_ = l_ / np.linalg.norm(l_)
+    punkte = vh.vernetze(teil).punkte
+    hinten = float(np.min(np.asarray(punkte, dtype=float) @ l_))
+    a = np.asarray(a, dtype=float)
+    return max(0, int(np.searchsorted(a, hinten + 1e-6, side="right")) - 1)
+
+
+def im_teil_radien(a, phi, r, teil_r):
+    """Die Fläche (mm², auf dem Teil gemessen), auf der die Stange tiefer als das Teil liegt –
+    mehr als IM_TEIL_SPIEL (wie im_teil)."""
+    a = np.asarray(a, dtype=float)
+    teil_r = np.asarray(teil_r, dtype=float)
+    with np.errstate(invalid="ignore"):
+        tief = np.isfinite(teil_r) & (teil_r > 0) & (np.asarray(r) < teil_r - IM_TEIL_SPIEL)
+    if not tief.any() or len(a) < 2 or len(phi) < 2:
+        return 0.0
+    schritt_a = float(a[1] - a[0])
+    schritt_phi = float(phi[1] - phi[0])
+    return float(np.sum(teil_r[tief]) * schritt_a * schritt_phi)
+
+
+def radien_rechnen(a, phi, r, laengs, radial, teil=None, teil_r=None, rohteil=None):
+    """Auf einem Nebenrechner: (koerper_aus_radien() als nebenrechner.Form, im_teil_radien()) –
+    Teil und Stange kommen als nebenrechner.Form."""
+    from . import nebenrechner as nr
+
+    form = koerper_aus_radien(a, phi, r, laengs, radial, teil, teil_r, rohteil)
+    flaeche = im_teil_radien(a, phi, r, teil_r) if teil_r is not None else 0.0
+    return nr.Form.von(form), flaeche
 
 
 def anfang_des_jobs(job):

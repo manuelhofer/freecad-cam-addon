@@ -4,7 +4,9 @@
 # ist ein gültiges Solid mit demselben Volumen (bis aufs Vereinfachen), mit wenigen Flächen.
 # Mit Teil und Rohteil: genau das Teil plus was stehen blieb; was ins Teil schneidet, zählt
 # im_teil. Ohne Material: ValueError. Die Aufspannung: 1 ohne Fertigteil im Rohteil, sonst eins
-# mehr.
+# mehr. Dazu die Stange (4 Achsen): aus den Radien ihres Abtrags ein geschlossenes Netz, der Körper
+# mit dem Teil vereinigt und auf die Stange beschnitten (unten).
+import math
 import os
 import sys
 
@@ -103,6 +105,56 @@ fertig1 = _Ding(Aufspannung=1)
 pruefe(ft.aufspannung(_Ding(Stock=_Ding(Objects=[fertig1]))) == 2, "nach Aufspannung 1")
 pruefe(ft.aufspannung(_Ding(Stock=_Ding(Objects=[_Ding()]))) == 1, "ein anderer Körper")
 pruefe(ft._dateiname('Ring: "A/B" – Aufspannung 1.') == "Ring_ _A_B_ – Aufspannung 1", "Dateiname")
+
+# --- Die Stange (4 Achsen): aus den Radien des Abtrags ------------------------------------------
+# Stange Ø 20 längs X (0 … 40), das Teil mit einer Nut 6 breit bei 15 … 21 auf r 7 rundum und einer
+# Abflachung 7 von der Achse ab 30; die Stange genau aufs Teil gefräst (je Strahl sein Radius). Das Netz ist geschlossen und mannigfaltig, das
+# Volumen das der Radien; der Körper mit dem Teil vereinigt und auf die Stange beschnitten ist
+# gültig, das Teil liegt ganz darin, kaum mehr als das Teil (Raster), wenige Flächen, schnell.
+# Nirgends ins Teil; 1 mm zu tief in der Nut zeigt im_teil_radien.
+import time  # noqa: E402
+
+from camaddon import restmaterial as rm  # noqa: E402
+from camaddon import vierachs_huelle as vh  # noqa: E402
+
+stange = rm.Stange(10.0, 0.0, 40.0)
+a, phi = stange.a, stange.phi
+laengs, radial = (1, 0, 0), (0, 0, 1)
+welle = Part.makeCylinder(10, 40, V(0, 0, 0), V(1, 0, 0))
+nut = Part.makeCylinder(10, 6, V(15, 0, 0), V(1, 0, 0)).cut(
+    Part.makeCylinder(7, 6, V(15, 0, 0), V(1, 0, 0))
+)
+welle = welle.cut(nut).cut(Part.makeBox(10, 30, 30, V(30, -15, 7)))
+stange_form = Part.makeCylinder(10, 40, V(0, 0, 0), V(1, 0, 0))
+teil_r = rm.teilradien(vh.vernetze(welle), laengs, radial, stange, rm.GENAU)
+# Genau aufs Teil gefräst: je Strahl der Radius des Teils.
+r = np.where(np.isfinite(teil_r) & (teil_r > 0), teil_r, 10.0)
+punkte, dreiecke = ft.netz_aus_radien(a, phi, r, laengs, radial)
+netz_r = Mesh.Mesh()
+netz_r.addFacets([[tuple(punkte[k]) for k in d] for d in dreiecke])
+pruefe(netz_r.isSolid() and not netz_r.hasNonManifolds(), "Stangennetz nicht geschlossen")
+pruefe(netz_r.Volume > 0, f"Stangennetz nach innen gerichtet: {netz_r.Volume}")
+start = time.time()
+koerper = ft.koerper_aus_radien(a, phi, r, laengs, radial, welle, teil_r, stange_form)
+dauer = time.time() - start
+pruefe(koerper.isValid() and len(koerper.Solids) == 1, f"Stange: {koerper.ShapeType}")
+pruefe(
+    abs(welle.common(koerper).Volume - welle.Volume) < 1e-4 * welle.Volume, "Welle nicht ganz darin"
+)
+pruefe(
+    welle.Volume <= koerper.Volume < 1.005 * welle.Volume,
+    f"Stange: {koerper.Volume:.0f} statt {welle.Volume:.0f} mm³",
+)
+pruefe(len(koerper.Faces) < 1000, f"Stange: {len(koerper.Faces)} Flächen")
+pruefe(dauer < 30, f"Stange: {dauer:.1f} s")
+pruefe(ft.im_teil_radien(a, phi, r, teil_r) == 0, "Stange: ins Teil")
+tiefer = r.copy()
+tiefer[(a > 16) & (a < 20), :] = 6.0
+flaeche = ft.im_teil_radien(a, phi, tiefer, teil_r)
+pruefe(
+    abs(flaeche - 2 * math.pi * 7 * 3.5) < 0.1 * 2 * math.pi * 7 * 3.5,
+    f"zu tief: {flaeche:.0f} mm²",
+)
 
 assert not fehler, "\n".join(fehler)
 print("OK", os.path.basename(__file__))

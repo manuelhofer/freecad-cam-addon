@@ -4,8 +4,12 @@ im Dokument dort, wo das Teil liegt, und als eigene Datei im Ordner des Dokument
 nächsten Aufspannung nimmt „Bearbeitung“ ihn als Rohteil („Teil aus dem Dokument“).
 
 Den Körper rechnet ein Nebenrechner (fertigteil.koerper_rechnen, am Testteil 3,5 s) – das Fenster
-zeichnet sich dabei weiter; ohne Nebenrechner rechnet es hier.
+zeichnet sich dabei weiter; ohne Nebenrechner rechnet es hier. Für die Stange (4 Achsen) rechnet
+erst „Auf der Maschine prüfen“ den Abtrag: Dort am Ende der Knopf „Fertigteil als Rohteil …“
+(fertigteil.radien_rechnen); der Befehl im Menü verweist für einen solchen Job dorthin.
 """
+
+import math
 
 import FreeCAD
 import FreeCADGui
@@ -44,7 +48,7 @@ def _job_waehlen():
     return None
 
 
-def _meldung(text, bearbeitung=False, warnung=False, speichern=None):
+def _meldung(text, bearbeitung=False, warnung=False, speichern=None, pruefen=None):
     """Eine Meldung; `bearbeitung`: Fehlt erst ein Job oder eine Operation, bietet sie
     „Bearbeitung“ gleich als Knopf an; `speichern` (das Fertigteil): Fehlt die eigene Datei, weil
     das Dokument nie gespeichert wurde, „Dokument speichern …“ (_speichern_und_datei; Manuel: der
@@ -53,15 +57,20 @@ def _meldung(text, bearbeitung=False, warnung=False, speichern=None):
     kasten.setWindowTitle(tr("befehl.fertigteil.titel"))
     kasten.setIcon(QtGui.QMessageBox.Warning if warnung else QtGui.QMessageBox.Information)
     kasten.setText(text)
-    knopf = sichern = None
+    knopf = sichern = zum_pruefen = None
+    if pruefen is not None:
+        zum_pruefen = kasten.addButton(tr("befehl.reichweite.titel"), QtGui.QMessageBox.AcceptRole)
     if bearbeitung:
         knopf = kasten.addButton(tr("befehl.bearbeitung.titel"), QtGui.QMessageBox.AcceptRole)
     if speichern is not None:
         sichern = kasten.addButton(tr("ft.speichern"), QtGui.QMessageBox.AcceptRole)
-    kasten.addButton(
-        QtGui.QMessageBox.Close if bearbeitung or speichern is not None else QtGui.QMessageBox.Ok
-    )
+    mit_knopf = bearbeitung or speichern is not None or pruefen is not None
+    kasten.addButton(QtGui.QMessageBox.Close if mit_knopf else QtGui.QMessageBox.Ok)
     kasten.exec()
+    if zum_pruefen is not None and kasten.clickedButton() is zum_pruefen:
+        FreeCADGui.Selection.clearSelection()
+        FreeCADGui.Selection.addSelection(pruefen)
+        QtCore.QTimer.singleShot(0, lambda: FreeCADGui.runCommand("CamAddon_AufMaschinePruefen"))
     if knopf is not None and kasten.clickedButton() is knopf:
         FreeCADGui.runCommand("CamAddon_Bearbeitung")
     if sichern is not None and kasten.clickedButton() is sichern:
@@ -112,6 +121,92 @@ def _im_hintergrund(x, y, h, unten, teil, anfang, rohteil):
     return form.form(), zellen
 
 
+def _stange_im_hintergrund(a, phi, r, laengs, radial, teil, teil_r, rohteil):
+    """(Körper, Fläche ins Teil in mm²) der Stange vom Nebenrechner – None ohne Nebenrechner oder
+    wenn er scheiterte (dann rechnet der Aufrufer hier)."""
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar():
+        return None
+    try:
+        auftrag = pool.auftrag(
+            "fertigteil", "radien_rechnen", a, phi, r, laengs, radial, nr.Form.von(teil), teil_r,
+            nr.Form.von(rohteil),
+        )  # fmt: skip
+        ((form, flaeche),) = pool.warten([auftrag], zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.NichtVerfuegbar:
+        return None
+    except nr.Fehler as fehler:
+        if fehler.art == "ValueError":
+            raise ValueError(fehler.satz or str(fehler)) from fehler
+        return None
+    return form.form(), flaeche
+
+
+def _ablegen(job, form, speichern):
+    """Legt den Körper als Fertigteil ins Dokument (eine Transaktion), färbt ihn und speichert die
+    eigene Datei – (Objekt, Pfad oder None)."""
+    dokument = job.Document
+    dokument.openTransaction(tr("befehl.fertigteil.titel"))
+    try:
+        objekt = ft.anlegen(job, form)
+        dokument.recompute()
+    except Exception:
+        dokument.abortTransaction()
+        raise
+    dokument.commitTransaction()
+    ansicht = getattr(objekt, "ViewObject", None)
+    if ansicht is not None:
+        ansicht.ShapeColor = FARBE
+        ansicht.Transparency = DURCHSCHEINEND
+    return objekt, (ft.datei_speichern(objekt) if speichern else None)
+
+
+def fertigteil_aus_stange(job, abtrag, speichern=True):
+    """Das Fertigteil eines Jobs an der Stange aus ihrem Abtrag im Prüffenster
+    (restmaterial.Abtrag, am Ende): (Objekt, Pfad oder None, Raster als Text, Fläche ins Teil)."""
+    if abtrag._teil is None:
+        abtrag.vergleich()  # die Radien des Teils auf den Strahlen
+    teil_r = abtrag._teil[1]
+    stange = abtrag.stange
+    laengs = tuple(float(c) for c in abtrag.laengs)
+    radial = tuple(float(c) for c in abtrag.radial)
+    teil = vr.modell(job).Shape
+    rohteil = job.Stock.Shape
+    # An der Rückseite des Teils abgestochen gedacht: Was davor im Futter steckt, gehört nicht zum
+    # Rohteil der nächsten Aufspannung (die Stange war am Prüfteil 107 lang, die Welle 40).
+    von = ft.erste_stelle(stange.a, teil, laengs)
+    werte = (
+        stange.a[von:],
+        stange.phi,
+        stange.r[von:].copy(),
+        laengs,
+        radial,
+        teil,
+        teil_r[von:],
+        rohteil,
+    )
+    gerechnet = _stange_im_hintergrund(*werte)
+    if gerechnet is None:
+        gerechnet = ft.koerper_aus_radien(*werte), ft.im_teil_radien(*werte[:3], teil_r)
+    form, flaeche = gerechnet
+    objekt, pfad = _ablegen(job, form, speichern)
+    schritt_a = float(stange.a[1] - stange.a[0]) if len(stange.a) > 1 else 0.0
+    grad = math.degrees(float(stange.phi[1] - stange.phi[0])) if len(stange.phi) > 1 else 0.0
+    raster = tr(
+        "ft.raster_stange", schritt=dezimal(f"{schritt_a:g}"), grad=dezimal(f"{round(grad, 2):g}")
+    )
+    return objekt, pfad, raster, flaeche
+
+
+def _ist_stange(job):
+    """Fräst der Job rundum an der Stange (eine Operation dreht die Rundachse)?"""
+    from . import vierachs_operation as vo
+
+    return any(vo.ist_rundum(op) for op in (job.Operations.Group or []))
+
+
 def fertigteil_anlegen(job, speichern=True):
     """Rechnet das Fertigteil des Jobs, legt es ins Dokument (eine Transaktion) und speichert es
     als eigene Datei – (Objekt, Pfad oder None, Raster in mm, Fläche in mm², auf der die Bahnen
@@ -129,21 +224,42 @@ def fertigteil_anlegen(job, speichern=True):
             ft.im_teil(q.x, q.y, h, teil, anfang),
         )
     form, zellen = gerechnet
-    dokument = job.Document
-    dokument.openTransaction(tr("befehl.fertigteil.titel"))
-    try:
-        objekt = ft.anlegen(job, form)
-        dokument.recompute()
-    except Exception:
-        dokument.abortTransaction()
-        raise
-    dokument.commitTransaction()
-    ansicht = getattr(objekt, "ViewObject", None)
-    if ansicht is not None:
-        ansicht.ShapeColor = FARBE
-        ansicht.Transparency = DURCHSCHEINEND
-    pfad = ft.datei_speichern(objekt) if speichern else None
+    objekt, pfad = _ablegen(job, form, speichern)
     return objekt, pfad, stand.schritt, zellen * stand.schritt**2
+
+
+def ausfuehren(job, abtrag=None):
+    """Das Fertigteil des Jobs rechnen, ablegen und melden – aus dem Abtrag der Stange
+    (`abtrag`, aus dem Prüffenster), sonst aus dem Materialstand. Ein Job an der Stange ohne
+    Abtrag: der Verweis aufs Prüffenster, als Knopf."""
+    if abtrag is None and _ist_stange(job):
+        _meldung(tr("ft.stange_pruefen"), pruefen=job)
+        return
+    QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+    statuszeile = FreeCADGui.getMainWindow().statusBar()
+    statuszeile.showMessage(tr("ft.rechnet", job=job.Label))
+    try:
+        if abtrag is not None:
+            objekt, pfad, raster, ins_teil = fertigteil_aus_stange(job, abtrag)
+        else:
+            objekt, pfad, schritt, ins_teil = fertigteil_anlegen(job)
+            raster = tr("ft.raster", schritt=dezimal(f"{schritt:g}"))
+    except (ValueError, RuntimeError) as fehler:
+        QtGui.QApplication.restoreOverrideCursor()
+        statuszeile.clearMessage()
+        ohne = not list(job.Operations.Group or [])
+        _meldung(str(fehler), bearbeitung=ohne, warnung=not ohne)
+        return
+    QtGui.QApplication.restoreOverrideCursor()
+    statuszeile.clearMessage()
+    FreeCADGui.Selection.clearSelection()
+    FreeCADGui.Selection.addSelection(objekt)
+    text = tr("ft.fertig", name=objekt.Label, raster=raster)
+    text += "\n\n" + (tr("ft.datei", pfad=pfad) if pfad else tr("ft.ohne_datei"))
+    text += "\n\n" + tr("ft.weiter", name=objekt.Label)
+    if ins_teil > 0:
+        text = tr("ft.ins_teil", flaeche=dezimal(f"{ins_teil:.0f}")) + "\n\n" + text
+    _meldung(text, warnung=ins_teil > 0, speichern=None if pfad else objekt)
 
 
 class BefehlFertigteil:
@@ -163,24 +279,4 @@ class BefehlFertigteil:
         job = _job_waehlen()
         if job is None:
             return
-        fenster = FreeCADGui.getMainWindow()
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        fenster.statusBar().showMessage(tr("ft.rechnet", job=job.Label))
-        try:
-            objekt, pfad, schritt, ins_teil = fertigteil_anlegen(job)
-        except (ValueError, RuntimeError) as fehler:
-            QtGui.QApplication.restoreOverrideCursor()
-            fenster.statusBar().clearMessage()
-            ohne = not list(job.Operations.Group or [])
-            _meldung(str(fehler), bearbeitung=ohne, warnung=not ohne)
-            return
-        QtGui.QApplication.restoreOverrideCursor()
-        fenster.statusBar().clearMessage()
-        FreeCADGui.Selection.clearSelection()
-        FreeCADGui.Selection.addSelection(objekt)
-        text = tr("ft.fertig", name=objekt.Label, schritt=dezimal(f"{schritt:g}"))
-        text += "\n\n" + (tr("ft.datei", pfad=pfad) if pfad else tr("ft.ohne_datei"))
-        text += "\n\n" + tr("ft.weiter", name=objekt.Label)
-        if ins_teil > 0:
-            text = tr("ft.ins_teil", flaeche=dezimal(f"{ins_teil:.0f}")) + "\n\n" + text
-        _meldung(text, warnung=ins_teil > 0, speichern=None if pfad else objekt)
+        ausfuehren(job)

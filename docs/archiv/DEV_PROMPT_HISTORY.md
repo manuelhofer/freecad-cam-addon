@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-09 fertigteil-aus-der-stange
+
+### EINGELESEN
+- W-029 (Manuel, 2026-10-18: das Fertigteil einer Aufspannung als Rohteil der nächsten) – bisher nur
+  3 Achsen von oben; für die Stange (4 Achsen) kennt nur „Auf der Maschine prüfen“ den Abtrag.
+
+### DATEIEN
+- `camaddon/fertigteil.py`: `netz_aus_radien` (geschlossenes Netz um die Achse aus den Radien der
+  Stange, Scheiben hinten und vorn), `nur_rest_radien` (fertig: unter das Teil), `koerper_aus_radien`
+  (vereinfacht bis 0,1 % – am runden Netz hielt es 0,02 % nie, behielt 58.320 Dreiecke, und die
+  Vereinigung mit dem Teil rechnete Minuten; mit 0,1 %: 2.916, 2,4 s), `erste_stelle` (an der
+  Rückseite des Teils abgestochen – die Stange war am Prüfteil 107 lang, die Welle 40),
+  `im_teil_radien`, `radien_rechnen` (Nebenrechner); `_aus_dem_netz` mit eigenem Spiel.
+- `camaddon/gui_fertigteil.py`: `ausfuehren(job, abtrag)` für Menü und Prüffenster,
+  `fertigteil_aus_stange`, `_ablegen`; ein Job an der Stange ohne Abtrag: Verweis mit Knopf „Auf der
+  Maschine prüfen“.
+- `camaddon/gui_abfahren.py`, `camaddon/gui_reichweite.py`: der Knopf „Fertigteil als Rohteil …“
+  unter dem Satz am Ende des Abspielens (Stange und Quader).
+- `translations/de.json`, `en.json`; `help/de|en/bearbeitung.html`, `reichweite.html`.
+- `tests/test_fertigteil.py` (die Stange), `tests/gui/szenario_fertigteil_stange.py` (neu).
+- `docs/STATUS_SNAPSHOT.md`, `docs/aufbau.md`.
+
+### ERGEBNIS
+- Welle Ø 40 × 40 mit Abflachung in Stange Ø 44, „Rundum schruppen“: Fertigteil 51.675 mm³ (Welle
+  48.696), 1.675 Flächen, gültig, die Welle ganz darin, über der Abflachung frei, an der Welle
+  abgestochen. `szenario_fertigteil` (3 Achsen) weiter grün.
 ## P-2026-10-24-08 voller-lauf-fase-aendern
 
 ### EINGELESEN

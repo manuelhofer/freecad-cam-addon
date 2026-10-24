@@ -704,6 +704,8 @@ class Abspieler(QtGui.QWidget):
         # nächsten kollision fahren‘“). `bei_kollision(befund)` zeigt die Stelle (rote Kugel).
         self.kollisionen = []
         self.bei_kollision = None
+        # „Fertigteil als Rohteil“ am Ende (W-029): das Fenster rechnet es aus dem Abtrag.
+        self.bei_fertigteil = None
         self._uhr = QtCore.QTimer(self)
         self._uhr.setInterval(TAKT)
         self._uhr.timeout.connect(uhren.aus_der_schleife(self._uhr, self._takt))
@@ -825,6 +827,15 @@ class Abspieler(QtGui.QWidget):
         self.rest.setWordWrap(True)
         self.rest.setVisible(False)
         aufbau.addWidget(self.rest)
+        # Am Ende: das Teil, wie es dasteht, als Rohteil der nächsten Aufspannung (W-029).
+        self.knopf_fertigteil = QtGui.QPushButton(tr("ab.fertigteil"))
+        self.knopf_fertigteil.setAutoDefault(False)
+        self.knopf_fertigteil.setToolTip(tr("ab.fertigteil.tooltip"))
+        self.knopf_fertigteil.clicked.connect(
+            lambda: self.bei_fertigteil() if self.bei_fertigteil is not None else None
+        )
+        self.knopf_fertigteil.hide()
+        aufbau.addWidget(self.knopf_fertigteil, 0, QtCore.Qt.AlignLeft)
         self._knopf_zeigen()
 
     def _bahn_umgeschaltet(self, an):

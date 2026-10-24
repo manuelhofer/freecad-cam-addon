@@ -509,6 +509,7 @@ class PruefPanel:
         self.abspieler.bei_teil = self._teil_zeigen
         self.abspieler.bei_maschine = self._maschine_ansicht
         self.abspieler.bei_kollision = self._kollision_hin
+        self.abspieler.bei_fertigteil = self._fertigteil
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
             self._kollision_daten,
@@ -917,7 +918,10 @@ class PruefPanel:
         hat)."""
         if self.bild is None:
             return ""
-        return self.bild.abtragen(station, fertig=self._abtrag_angekommen)
+        satz = self.bild.abtragen(station, fertig=self._abtrag_angekommen)
+        if self.abspieler is not None:
+            self.abspieler.knopf_fertigteil.setVisible(self._fertigteil_moeglich())
+        return satz
 
     def _abtrag_angekommen(self, satz):
         """Der Abtrag im Takt ist gerechnet (Bild.abtragen): sein Satz unter den Abspieler – nicht
@@ -926,6 +930,28 @@ class PruefPanel:
             return
         self.abspieler.rest.setText(satz)
         self.abspieler.rest.setVisible(bool(satz))
+        self.abspieler.knopf_fertigteil.setVisible(self._fertigteil_moeglich())
+
+    def _fertigteil_moeglich(self):
+        """Am Ende des Abspielens: Geht aus dem Abtrag ein Fertigteil – die Stange (4 Achsen) oder
+        der Quader von oben (3 Achsen; dort rechnet es wie der Befehl aus dem Materialstand)?"""
+        from . import restmaterial as rm
+
+        bild = self.bild
+        abtrag = getattr(bild, "abtrag", None) if bild is not None else None
+        return bool(getattr(bild, "_am_ende", False)) and type(abtrag) in (
+            rm.Abtrag,
+            rm.QuaderAbtrag,
+        )
+
+    def _fertigteil(self):
+        """„Fertigteil als Rohteil“ (W-029): aus dem Abtrag des Jobs – die Stange aus ihren Radien,
+        sonst wie der Befehl im Menü."""
+        from . import gui_fertigteil
+        from . import restmaterial as rm
+
+        abtrag = getattr(self.bild, "abtrag", None)
+        gui_fertigteil.ausfuehren(self.job(), abtrag if type(abtrag) is rm.Abtrag else None)
 
     def _bahn_zeigen(self, an):
         """Der Haken „Bahn“ im Abspieler: die Bahn in der 3D-Ansicht ein- oder ausblenden."""
