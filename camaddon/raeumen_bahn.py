@@ -184,6 +184,10 @@ class Raeumwerte:
     # „rohteil“, „morph“, „inseln“, „adaptiv“ – oder „ringe“ (RINGE): die schnellste der Ringe;
     # None: alle rechnen, die schnellste, die die Last hält.
     variante: str = None
+    # In einer Tasche mit „morph“ die Morph-Spirale (_ringe_morph_tasche): Helix um die Mitte,
+    # dann von innen bis an die Wand. Aus, bis Manuel das Bild gesehen hat (Frage in
+    # OFFENE_FRAGEN; Strategien ändern sich nur mit seinem Ja) – sonst fahren Taschen die Ringe.
+    morph_tasche: bool = False
     einfahrradius: float = None  # der Viertelkreis hinein und heraus; None: der Vorschlag
     schneidenlaenge: float = 0.0  # 0: unbekannt – sonst höchstens so tief je Lage
     sicherheit: float = vb.SICHERHEIT  # so weit über dem Material endet der Eilgang hinab
@@ -1836,6 +1840,10 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         # Nur Taschen: Die Ringe haben dort eine Art, von innen nach außen.
         ringe = w.variante == RINGE or w.variante in VARIANTEN
         varianten = ("inseln",) if ringe else ("inseln", "adaptiv")
+        if w.morph_tasche and w.variante == "morph":
+            varianten = ("morph",)
+        elif w.morph_tasche and w.variante in (None, RINGE):
+            varianten = (*varianten, "morph")  # die Morph-Spirale (_ringe_morph_tasche) dazu
     huellen = {}  # je Fläche die Hüllfläche im Raster – für jede Variante dieselbe
     ergebnisse = {}
     davor = []  # wer vorher an den Flächen weggenommen hat (für den Satz, wenn nichts zu tun ist)
@@ -2128,7 +2136,9 @@ def _variante(netz, w, folge, konturen, r, schritt, stand, huellen, variante, me
         lauf = (hf.netz_fuer(netz, ebene), w, ebene, tasche, konturen)
         try:
             _flaeche(teil, *lauf, variante, r, schritt, stand, material, huellen)
-            eigen |= variante == "adaptiv" or (variante == "morph" and tasche is None)
+            eigen |= variante == "adaptiv" or (
+                variante == "morph" and (tasche is None or w.morph_tasche)
+            )
         except (_KeinMorph, _KeinAdaptiv):
             # Passt nicht zu dieser Fläche: für sie die Ringe vom Rohteil her (in der Tasche
             # die von innen nach außen).
@@ -2293,10 +2303,14 @@ def _flaeche(
     Flächen davor schon weggenommen haben (_Material). `huellen`: {Fläche: Hüllfläche im Raster}
     – jede Variante rechnet auf derselben, sie wird nur einmal gerechnet (an Manuels Testteil
     0,8 s je Fläche und Variante)."""
-    if tasche is not None and variante != "adaptiv":
+    if (
+        tasche is not None
+        and variante != "adaptiv"
+        and not (variante == "morph" and w.morph_tasche)
+    ):
         # In der Tasche gibt es von den Ringen nur die von innen nach außen – in jeder Variante,
         # damit alle dieselbe Arbeit tun (sonst „gewann“ eine, die die Tasche ausließ;
-        # P-2026-10-01-26).
+        # P-2026-10-01-26). Die Morph-Spirale (morph_tasche) hat ihre eigene Art.
         variante = "inseln"
     ziel = ebene.z + max(w.aufmass_boden, 0.0)
     # Die Lagen beginnen am Rohteil – ob eine andere Operation es über der Fläche schon
@@ -2428,6 +2442,8 @@ def _flaeche(
         elif tasche is None and variante == "morph":
             _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
+        elif tasche is not None and variante == "morph" and w.morph_tasche:
+            _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
         elif tasche is None and variante == STICHE:
             _ringe_stiche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
         else:
@@ -4100,6 +4116,128 @@ def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genau
         return
     for nummer, stufe in enumerate(stufen):
         _naechster_zuerst(ablauf, list(stufe), False, f"morph {nummer}", luft=True)
+
+
+def _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue=()):
+    """Die Morph-Spirale in der Tasche (Manuel, 2026-10-18: „wenn man von ausen nicht rein kommt
+    eine helix fahren und dann morpfspirealen rausfahen … so wie immer“): eine Helix um die
+    Stelle, die am weitesten von den Wänden liegt, dann vom Kreis der Helix bis an die Wand in
+    einer Spirale – die Höhenlinien des Feldes u mit Δu = 0, u = 0 im Kreis, 1 an der Wand (wie
+    _ringe_morph, nur von innen nach außen): rund am Anfang, von Ring zu Ring mehr wie die
+    Tasche. Wie weit der nächste Ring nach außen rückt, sagt der Eingriff (MORPH_EINGRIFF) – in
+    den Ecken, wohin die Ringe von innen spitz zulaufen, enger. Der letzte Ring ist der genaue
+    Versatz der Wand. Eine Insel in der Tasche, kein Platz für die Helix oder eine lang gestreckte
+    Tasche (MORPH_VERHAELTNIS): kein Morph."""
+    from . import bohrung_bahn as bb
+
+    ae = w.zeilenabstand
+    erlaubt = np.isfinite(D) & (D > 0.0)
+    if not erlaubt.any():
+        raise _KeinMorph()
+    an_der_wand = [g for _p, g in _hoehenlinien(D, feld.xs, feld.ys, 0.0) if g]
+    if len(an_der_wand) != 1:
+        raise _KeinMorph()  # eine Insel in der Tasche: zwei Wände
+    # Die Mitte: von den Stellen am weitesten von den Wänden (bis eine Zelle weniger) die nächste
+    # am Schwerpunkt der Tasche – im Rechteck die Mitte, nicht ein Ende der Mittellinie.
+    gx, gy = np.meshgrid(feld.xs, feld.ys, indexing="ij")
+    weit = np.where(erlaubt, D, -np.inf)
+    beste = weit >= float(weit.max()) - feld.schritt
+    sx, sy = float(gx[erlaubt].mean()), float(gy[erlaubt].mean())
+    k = int(np.argmin(np.where(beste, np.hypot(gx - sx, gy - sy), np.inf)))
+    i, j = np.unravel_index(k, D.shape)
+    mx, my = float(feld.xs[i]), float(feld.ys[j])
+    platz = float(D[i, j]) - 2.0 * feld.schritt
+    rh = next((a * r for a in (bb.KERN_ANTEIL, bb.KERN_ANTEIL / 2) if a * r <= platz), None)
+    if rh is None:
+        raise _KeinMorph()  # zu eng für die Helix
+    rho = np.hypot(gx - mx, gy - my)
+    wand_x, wand_y = _kreuzpunkte(D, feld.xs, feld.ys, 0.0)
+    bis_wand = np.hypot(wand_x - mx, wand_y - my)
+    if not len(bis_wand) or float(bis_wand.min()) < MORPH_VERHAELTNIS * float(bis_wand.max()):
+        # Lang gestreckt (ein L, eine Nut): In den Armen bleibt u fast 1, die Spirale käme nicht
+        # bis in ihre Enden, und der Ring an der Wand nähme dort zu viel – wie beim Morph außen.
+        raise _KeinMorph()
+    kreis = rho <= rh
+    nah = np.maximum(np.where(np.isfinite(D), D, 0.0), 0.0)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        start = np.where(rho + nah > GLEICH, (rho - rh) / (rho - rh + nah), 0.0)
+    u = _harmonisch(np.where(kreis, 0.0, 1.0), erlaubt & ~kreis, np.clip(start, 0.0, 1.0))
+    winkel = np.linspace(0.0, 2.0 * math.pi, max(16, int(math.ceil(2 * math.pi * rh / schritt))))
+    punkte = np.column_stack([mx + rh * np.cos(winkel[:-1]), my + rh * np.sin(winkel[:-1])])
+    erster = _ring_aus_linie(
+        punkte, True, material_links, feld, 0.0, rho, schritt, toleranz, material_hoch=True
+    )
+    if erster is None:
+        raise _KeinMorph()
+    frei_vorher = feld.frei.copy()
+    feld.merke(erster.proben.x, erster.proben.y)
+    grenze = _abschnitt(r, min(ae * MORPH_EINGRIFF, r)) / (math.pi * r * r)
+    wx, wy = wand_x, wand_y
+    # Bis fast an u = 1: Berührt ein Ring die nächste Wand, laufen die nächsten an ihr entlang und
+    # rücken auf der fernen Seite weiter vor – sonst nähme der Ring an der Wand dort einen
+    # breiten Streifen auf einmal.
+    u_wand = 1.0 - 1e-3
+    stufen = []
+    niveau = float(_bilinear(u, feld, erster.proben.x, erster.proben.y).max())
+    ohne_fortschritt = 0
+    for _nummer in range(1, 100000):
+        eingriff = feld.eingriff()
+        if float(_bilinear(eingriff, feld, wx, wy).max()) <= grenze + 1e-9:
+            break  # der Ring an der Wand ist dran
+        if ohne_fortschritt >= MORPH_OHNE_FORTSCHRITT or niveau >= u_wand - 1e-9:
+            break
+        unten, oben_ = niveau, u_wand
+        for _ in range(MORPH_SCHRITTE):
+            mitte = 0.5 * (unten + oben_)
+            px, py = _kreuzpunkte(u, feld.xs, feld.ys, mitte)
+            if not len(px) or float(_bilinear(eingriff, feld, px, py).max()) <= grenze + 1e-9:
+                unten = mitte
+            else:
+                oben_ = mitte
+        if unten <= niveau + 1e-9:
+            unten = niveau + 0.25 * (u_wand - niveau)  # kein Fortschritt: ein Viertel weiter
+            ohne_fortschritt += 1
+        else:
+            ohne_fortschritt = 0
+        niveau = unten
+        ringe = []
+        for linie, geschlossen in _hoehenlinien(u, feld.xs, feld.ys, niveau):
+            if len(linie) < 3:
+                continue
+            ring = _ring_aus_linie(
+                linie, geschlossen, material_links, feld, niveau, u, schritt, toleranz, True
+            )
+            if ring is not None:
+                ringe.append(ring)
+                feld.merke(ring.proben.x, ring.proben.y)
+        if ringe:
+            stufen.append(ringe)
+    letzte = []
+    for linie, geschlossen in _hoehenlinien(D, feld.xs, feld.ys, 0.0):
+        if len(linie) < 3:
+            continue
+        ring = _ring_aus_linie(linie, geschlossen, material_links, feld, 0.0, D, schritt, toleranz)
+        if ring is not None:
+            letzte.append(_genau(ring, genaue, schritt) if geschlossen else ring)
+    feld.frei[:] = frei_vorher  # gefahren und gemerkt wird jetzt, der Reihe nach
+    ablauf.ring(erster, kennung="morph helix")  # geschlossen: die Rampe rundum, eine Helix
+    if letzte:
+        stufen.append(letzte)
+    einzeln = all(len(stufe) == 1 and stufe[0].geschlossen for stufe in stufen)
+    if einzeln and len(stufen) >= 2:
+        # Eine Spirale vom Kreis der Helix bis vor die Wand, der Ring an der Wand schließt an.
+        ringe = [stufe[0] for stufe in stufen]
+        vorher = ablauf.st.ringe
+        zug = _spirale(ringe, 2.0 * r, schritt)
+        if len(zug) >= 2:
+            segmente = _segmente_aus(zug, False)
+            spirale = _Ring(segmente, kb._abtasten(segmente, schritt, False), False)
+            ablauf.ring(spirale, kennung="morph")
+        ablauf.ring(ringe[-1], kennung="morph wand")
+        ablauf.st.ringe = vorher + len(ringe)  # die Umläufe der Spirale zählen als Ringe
+        return
+    for nummer, stufe in enumerate(stufen):
+        _naechster_zuerst(ablauf, list(stufe), False, f"morph {nummer}")
 
 
 def _teilstuecke(ablauf, feld, w, D, material_links, schritt, toleranz, j):

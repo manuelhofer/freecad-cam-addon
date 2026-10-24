@@ -432,6 +432,37 @@ pruefe(bahn_c.zeit < zeit_kontur, f"Tasche: Räumen {bahn_c.zeit} min, Kontur {z
 print(f"Tasche: Raeumen {bahn_c.zeit:.2f} min, Kontur (ohne Schlichten) {zeit_kontur:.2f} min")
 print("Tasche ok")
 
+# Die Morph-Spirale in der Tasche (morph_tasche, P-2026-10-24-18 – aus, bis Manuel sie will): eine
+# Helix je Lage um die Mitte, dann nach außen bis an die Wand; nichts bleibt stehen, nichts ins
+# Teil. In einer lang gestreckten Tasche (ein L) gibt es sie nicht – dort die Ringe.
+import dataclasses  # noqa: E402
+
+werte_mt = dataclasses.replace(werte_fuer(rohteil_c, 21.0, variante="morph"), morph_tasche=True)
+bahn_mt = raeumen(teil_c, 5.0, werte_mt)
+pruefe(bahn_mt.variante == "morph", f"Morph-Tasche: {bahn_mt.variante} {bahn_mt.zeiten}")
+pruefe(
+    bahn_mt.rampen <= bahn_mt.lagen, f"Morph-Tasche: {bahn_mt.rampen} Rampen, {bahn_mt.lagen} Lagen"
+)
+rest, einschnitt = simuliert(bahn_mt, teil_c, rohteil_c, 21.0, 5.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Morph-Tasche: Rest {rest}, Einschnitt {einschnitt}")
+schenkel = (
+    Part.Face(rund_rechteck(15, 15, 75, 35, 6, 5))
+    .fuse(Part.Face(rund_rechteck(15, 15, 35, 55, 6, 5)))
+    .removeSplitter()
+)
+teil_l = Part.makeBox(90, 70, 20).cut(schenkel.extrude(V(0, 0, 20))).removeSplitter()
+bahn_l = raeumen(
+    teil_l,
+    5.0,
+    dataclasses.replace(
+        werte_fuer((-1.0, 91.0, -1.0, 71.0), 21.0, variante="morph"), morph_tasche=True
+    ),
+)
+pruefe(bahn_l.variante != "morph", f"L: {bahn_l.variante} – lang gestreckt, kein Morph")
+print(
+    ascii(f"Morph-Tasche: {bahn_mt.zeit:.2f} min, {bahn_mt.ringe} Ringe; Ringe {bahn_c.zeit:.2f}")
+)
+
 # --- (d) Manuels Platte: Räumen schlägt das Planfräsen, die Tasche die Kontur -------------------
 platte = Part.makeBox(200, 200, 30, V(-100, -100, -30))
 zapfen = Part.makeCylinder(10, 20, V(50, 50, 0))

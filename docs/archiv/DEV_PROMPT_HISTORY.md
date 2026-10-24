@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-18 morph-spirale-in-der-tasche-frage-2
+
+### EINGELESEN
+- Manuels Regel (W-032, 2026-10-18): „wenn man von ausen nicht rein kommt eine helix fahren und
+  dann morpfspirealen rausfahen ?? so wie immer“. In Taschen fahren bisher nur die Ringe von innen
+  nach außen (oder Adaptiv).
+- Nachgemessen an einer Rechteck- und einer L-Tasche (T1 Ø 12, ae 4,8, ap 5): Die Automatik nimmt
+  Adaptiv (1,79 / 2,32 min), weil die Ringe beim ersten Rechnen die Last nicht halten (2,35 ae) –
+  fein gerechnet hielten sie sie (1,49 / 1,24 ae) mit 0,96 / 0,92 min; feiner gerechnet wird nur,
+  wenn keine Variante hält. Das ändert die Wahl – Frage 2 an Manuel mit Bild.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_ringe_morph_tasche` – Helix um die Mitte (unter den Stellen am
+  weitesten von den Wänden die am Schwerpunkt), dann das harmonische Feld vom Kreis der Helix bis
+  an die Wand, die Ringe nach dem Eingriff, als Spirale, zuletzt der Ring an der Wand; nicht mit
+  Insel, ohne Platz für die Helix oder lang gestreckt (MORPH_VERHAELTNIS). Hinter
+  `Raeumwerte.morph_tasche` (aus): `_flaeche` lässt dann „morph“ in der Tasche zu, `planen`
+  rechnet die Variante bei Taschen mit.
+- `tests/test_raeumen.py`: Tasche 40 × 30 R 6 mit der Morph-Spirale – Morph, eine Rampe je Lage,
+  kein Rest, kein Einschnitt; das L ohne Morph.
+- `docs/OFFENE_FRAGEN.md`: Frage 2 (A: die schnellste, die die Last hält, auch fein gerechnet;
+  B: dazu die Morph-Spirale; C: so lassen), Bild `docs/bilder/vorschlaege/tasche_ringe_morph.png`.
+
+### ERGEBNIS
+- Grün: `test_raeumen`. Ohne Manuels Antwort ändert sich an den Bahnen nichts.
+
 ## P-2026-10-24-17 morph-nach-dem-planen
 
 ### EINGELESEN

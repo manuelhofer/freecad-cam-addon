@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.279.7) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.279.8) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1828,6 +1828,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Materialstand, wenn das Material überall, wohin der Fräser kommt, noch bis zur ersten Lage
   steht (nach dem Planfräsen davor) – Zapfen 2,70 min wie ohne Stand. Wo davor schon etwas
   herausgefräst ist, bleibt er gesperrt.
+  **P-2026-10-24-18 (0.279.8):** Die Morph-Spirale in der Tasche gebaut (`_ringe_morph_tasche`,
+  hinter `morph_tasche`, aus). Dabei gefunden: In Taschen wählt das Räumen Adaptiv, obwohl die
+  Ringe fein gerechnet die Last halten und halb so lang brauchen – **Frage 2** (OFFENE_FRAGEN,
+  Bild `docs/bilder/vorschlaege/tasche_ringe_morph.png`).
 - **W-033 Ring von vorn statt radial** – Manuel, 2026-10-18, zum Bild mit dem radialen Fräser im
   Schlitz des Rings (`beispiele/ring_4achs_planbearbeitung.FCStd`, drei Segmente, Schlitze, Bohrung):
   „man könnte hier ja auch sozusagern von vorne reinfahren ? .. und auch her wellen bearbeiten aber
