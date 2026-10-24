@@ -23,3 +23,7 @@ Runde glatt, etwa 10 s – er steht aber nicht in deinem Magazin der CLX550.
 *Warum nur Manuel:* Es ist eine neue Strategie und ändert, was „Bearbeitung“ ohne Vorgabe an
 einer Fase anbietet. *Was die Antwort ändert:* ob die Fase (und überhaupt jede Fase von vorn
 ohne Fasenfräser) eine Operation bekommt, und welche. – seit 2026-10-23.
+**Teilantwort (Manuel, 2026-10-24):** „A wenns einen gibt“ – mit Fasenfräser A. Offen: ohne
+Fasenfräser B oder C? Seine Rückfrage „ist das eine fläche die angeklickt wurde ?“: nein –
+angeklickt war der Ringgrund; die Fase kam erst mit „Alles aus dieser Aufspannung“ dazu.
+Möglich wäre also auch: angeklickt → B, nur über „Alles“ → C.
