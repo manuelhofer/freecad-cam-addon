@@ -1702,6 +1702,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   mit Hals, Lollipop, Schwalbenschwanz). **Offen:** hinab schneller – frei gilt bei 4 Achsen nur
   über der Stange (P-2026-10-11-27, das Schrupp-Modell war keine sichere Obergrenze); dafür
   bräuchte es einen sicheren Materialstand für 4 Achsen (Voxel wie `voxelstange`).
+  **Abgewogen (2026-10-24):** `voxelstange` nach dem Schruppen gäbe ihn (der Fräser des Modells
+  liegt im echten, das Schruppen nimmt dort eher weniger – sicher). Am Geist kostete das beim
+  Anlegen je Schlichtoperation etwa 30 s Rechnen und spart an der Maschine zusammen gut 2 min
+  (Schlichten 71 Wege hinab, 114 s; Vorschlichten 39 s) – vorerst nicht.
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte
@@ -1924,6 +1928,12 @@ B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den 
   Achsen simultan; 3+2 schreibt für Siemens noch CYCLE800, Bohren die Bohrzyklen). Im RC1: die
   Maschine erklärt DWO (G54.2/G254) oder TWP (G68.2/G268/PLANE SPATIAL), kein CYCLE800;
   POST_TRANSFORM (selbst umrechnen) ist vorgesehen, wird aber noch nicht geschrieben.
+  **Wochen-Build 27.1 dev (2026.10.20) nachgesehen (2026-10-24):** geschwenkte Ebene
+  (`Path/Post/TiltedWorkPlane.py`) für G68.2 (Fanuc und Nachbauten), G268 (Haas) und PLANE SPATIAL
+  (Heidenhain) – **kein CYCLE800**, und unter den Postprozessoren keiner für Siemens: Für Manuels
+  840D und die CLX 550 bleibt der eigene. Eine Spannmittel-Bibliothek ist noch nicht drin. Neu
+  (nur Prüfungen gesehen): ein Generator für Verbindungswege (`TestLinkingGenerator`) und einer für
+  Flächennetze (`TestSurfaceMeshGenerator`).
 - **T-011 Versionscheck 26.3** – Manuel arbeitet mit FreeCAD 26.3.0RC1 (Windows); dort brach schon
   der Adaptiv-Kern (P-2026-10-10-39): voller Lauf im Wochen-Build 26.3, was er findet, sofort
   beheben (Arbeitsregeln, Abschnitt 9). Behoben: Kern-Aufruf (-39), Bohren-Namen (-41), dunkles
