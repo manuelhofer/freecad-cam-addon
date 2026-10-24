@@ -1752,7 +1752,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Speicher, gingen je Takt alle freien Arbeiter die ganze Warteschlange durch, dazu je Verteilen
   `_ausfuehrbar` und je fertigem Auftrag `_nachkommen_abbrechen` über alle. 2 000 kleine Aufträge:
   9,0 → 0,8 s im Fenster; Geist 115 → 100 s Fenster-CPU. Was das Fenster am Geist sonst rechnet,
-  ist noch offen (Proben `CAMADDON_PROBEN`, „haupt“).
+  ist noch offen. Proben („haupt“, Geist, 906 je 0,25 s): 727 warten in `_ruhen` (keine
+  CPU), 27 in `_belegt_von` (/proc/<pid>/statm je Arbeiter, `_arbeit_messen`) – als Nächstes
+  nachsehen; der Rest des Fensters (100 s CPU) liegt außerhalb des Addons (Zeichnen, C++).
 - **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
   testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
   bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,
