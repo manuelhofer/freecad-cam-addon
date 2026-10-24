@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-31 vierachs-eilgang-ohne-bewegung-weg
+
+### EINGELESEN
+- Durchsicht der 4-Achs-Programme (Nase, Geist) mit demselben Auswerter wie bei 5 Achsen:
+  Rundum ohne kurze Wenden von A, aber „Plan indexiert“ an der Nase schrieb nach jeder Zeile an
+  der Stirnseite (A −180°) einen G0 auf den Punkt, den das G1 davor schon erreicht hatte – 52
+  Sätze ohne Bewegung. (Seine Zeilen im Gleichlauf heben dazwischen bis zur Sicherheit ab und
+  fahren im Eilgang zurück – schnell; ein tieferer Rückweg brächte nur Sekunden.)
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`befehle`): Eilgänge ohne Bewegung auslassen, wie schon die
+  Vorschubsätze ohne Weg.
+
+### ERGEBNIS
+- Nase „Plan indexiert T1“: 774 → 722 Sätze, keine doppelten mehr, Wege gleich. Grün:
+  `test_vierachs_plan`, `test_goldene_bahnen`, `test_vierachs_bahn`, `szenario_vierachs_nase`.
+- Zurückgenommen (ohne Patch): Hinab an den Ecken der Querbahn im Freivorschub über dem Rest – im
+  Voxelmodell am Geist 12 freie Sätze mit Material (STATUS, W-035).
+
 ## P-2026-10-24-30 lange-er-futter
 
 ### EINGELESEN

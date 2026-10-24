@@ -4630,6 +4630,13 @@ def befehle(
         punkt = bahn.punkte[k]
         cs = _cos_sin(punkt.phi)
         if punkt.eilgang:
+            if (
+                abs(punkt.a - vorher.a) <= GLEICH
+                and abs(punkt.r - vorher.r) <= GLEICH
+                and abs(punkt.q - vorher.q) <= GLEICH
+                and abs(punkt.phi - vorher.phi) <= GLEICH
+            ):
+                continue  # ohne Bewegung (an der Stirnseite der Nase nach jeder Zeile, 52-mal)
             ergebnis.append(Path.Command("G0", lage(k)))
         else:
             # Wie _weg_im_vorschub, mit (cos, sin) je Punkt einmal gerechnet.
