@@ -4601,6 +4601,18 @@ def _abwarten(schritt):
             nr.pool().warten([schritt], zwischendurch=nr.ereignisse_ohne_eingaben)
 
 
+def _wartende_zurueck(auftraege):
+    """Nimmt die Aufträge zurück, die noch auf einen Nebenrechner warten – laufende rechnen zu
+    Ende (ihr Arbeiter endete sonst und müsste neu starten)."""
+    from . import nebenrechner as nr
+
+    for auftrag in auftraege:
+        if auftrag is None or auftrag.erledigt or getattr(auftrag, "arbeiter", None) is not None:
+            continue
+        with contextlib.suppress(Exception):
+            nr.pool().abbrechen(auftrag)
+
+
 def _aus_dem_hintergrund(auftrag):
     """Was ein Nebenrechner für die Vorschau gerechnet hat: ("ok", (Bahn, Zeit im Freien)),
     ("fehler", Satz, schon weg?, Daten der Ausnahme) für einen Grund, den die Strategie selbst nennt (ValueError,
@@ -7927,7 +7939,7 @@ class BearbeitungPanel:
             yield from self._folge_schritte(form, boeden)  # setzt die Haken selbst
             return False
         if block is self.restraeumen:
-            self._restraeumen_einrichten(form)  # nach dem Räumen: was es ausließ
+            yield from self._restraeumen_schritte(form)  # nach dem Räumen: was es ausließ
             dabei = block.aktiv() or self._im_wettbewerb(block)
         if block is self.schlichten_danach:
             self._schlichten_danach_einrichten(form)  # mit dem Räumen oder der Nut
@@ -8054,17 +8066,25 @@ class BearbeitungPanel:
         block.ergebnis.setText(neu)
 
     def _restraeumen_einrichten(self, form):
+        """_restraeumen_schritte am Stück (wartet auf die Nebenrechner)."""
+        for schritt in self._restraeumen_schritte(form):
+            _abwarten(schritt)
+
+    def _restraeumen_schritte(self, form):
         """„Rest räumen“ nach der Vorschau des Räumens (W-013 T3; Manuel: „auch mit mehreren
         Arbeitsschritten“): Lässt das Räumen eine Tasche aus, weil sein Fräser nicht hineinpasst,
         und passt ein kleinerer aus der Werkzeugverwaltung, wird der Block möglich, bekommt den
         größten, der passt, und – solange niemand ihn von Hand gesetzt hat – den Haken. Sonst
         steht er bei dem, was nicht zur Wahl passt. Fährt die Kontur die Wände einer solchen
-        Tasche, bekommt auch „Restmaterial“ den Haken: Ihr Fräser kommt dort nicht überall hin."""
+        Tasche, bekommt auch „Restmaterial“ den Haken: Ihr Fräser kommt dort nicht überall hin.
+        Ein Generator wie _block_schritte: Er liefert die Aufträge, auf die er wartet."""
         rest, gross = self.restraeumen, self.raeumen
         ausgelassen = []
         if gross.aktiv() and gross.fraeser() is not None and self.zu_aendern is None:
             ausgelassen = list(getattr(gross.vorschau, "ausgelassen", None) or [])
-        passend = self._restraeumfraeser(form, ausgelassen) if ausgelassen else None
+        passend = None
+        if ausgelassen:
+            passend = yield from self._restraeumfraeser_schritte(form, ausgelassen)
         moeglich = passend is not None
         geaendert = moeglich != rest.moeglich
         self._fuellt = self._ruhig = True
@@ -8116,10 +8136,12 @@ class BearbeitungPanel:
         grenze = 0.75 * float(gross.durchmesser) + 1e-6
         return any(float(w.durchmesser) <= grenze for w in self.restraeumen._fraeser)
 
-    def _restraeumfraeser(self, form, ausgelassen):
+    def _restraeumfraeser_schritte(self, form, ausgelassen):
         """Der größte Fräser der Werkzeugverwaltung, kleiner als der des Räumens, der in alle
-        Taschen passt, die es ausließ – None, wenn keiner. Probiert wird mit der Vorschau, vom
-        größten her; das Ergebnis je Wahl gemerkt."""
+        Taschen passt, die es ausließ – None, wenn keiner (ein Generator: Er liefert die Aufträge,
+        auf die er wartet). Probiert wird mit der Vorschau, vom größten her; das Ergebnis je Wahl
+        gemerkt. Die Vorschauen der Kandidaten rechnen gleichzeitig auf den Nebenrechnern (am
+        C-Ring stand das Fenster sonst 1,8 s, unter Last 3,8 s); gewählt wird wie nacheinander."""
         rest, gross = self.restraeumen, self.raeumen
         gross_d = float(gross.fraeser().durchmesser)
         werte = gross.werte()
@@ -8133,42 +8155,91 @@ class BearbeitungPanel:
         gemerkt = getattr(self, "_restraeumfraeser_gemerkt", None)
         if gemerkt is not None and gemerkt[0] == schluessel:
             return gemerkt[1]
+        kandidaten = []
+        for werkzeug in sorted(
+            (w for w in rest._fraeser if float(w.durchmesser) < gross_d - 1e-6),
+            key=lambda w: -float(w.durchmesser),
+        ):
+            einsaetze = rest._passende_einsaetze(werkzeug, self.werkstoff())
+            arten = [e.art for e in einsaetze]
+            einsatz = next(
+                (einsaetze[arten.index(a)] for a in rest.s.einsatz_reihenfolge if a in arten),
+                einsaetze[0] if einsaetze else None,
+            )
+            if einsatz is not None:
+                kandidaten.append((werkzeug, einsatz))
         passend = None
-        kleiner = [w for w in rest._fraeser if float(w.durchmesser) < gross_d - 1e-6]
         # Erst einer, der überall bequem hinkommt – ein Gebiet hinter einer Engstelle von außen
         # mit höchstens halb so breitem Fräser (W-034) –, sonst der größte, der überhaupt passt.
         for bequem in (True, False):
-            for werkzeug in sorted(kleiner, key=lambda w: -float(w.durchmesser)):
-                einsaetze = rest._passende_einsaetze(werkzeug, self.werkstoff())
-                arten = [e.art for e in einsaetze]
-                einsatz = next(
-                    (einsaetze[arten.index(a)] for a in rest.s.einsatz_reihenfolge if a in arten),
-                    einsaetze[0] if einsaetze else None,
-                )
-                if einsatz is None:
-                    continue
-                try:
-                    bahn = ra.vorschau(
-                        self.job,
-                        self.job.Model.Group,
-                        ff.von_werkzeug(werkzeug),
-                        rest.s.vorschlag("zustellung", werkzeug, einsatz),
-                        rest.s.vorschlag("zeilenabstand", werkzeug, einsatz),
-                        float(werte["aufmass"]),
-                        ausgelassen,
-                        schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
-                        eng_lassen=bequem,
-                        nur_eng=(self._nur_eng() or {}).get("nur_eng", 0.0),
-                    )
-                except (ValueError, RuntimeError):
-                    continue  # passt auch nicht
-                if not bahn.ausgelassen:
-                    passend = werkzeug
-                    break
+            argumente = [
+                self._restraeumen_argumente(werkzeug, einsatz, ausgelassen, bequem, werte)
+                for werkzeug, einsatz in kandidaten
+            ]
+            auftraege = [self._restraeumen_auftrag(*a) for a in argumente]
+            try:
+                for (werkzeug, _einsatz), a, auftrag in zip(
+                    kandidaten, argumente, auftraege, strict=True
+                ):
+                    bahn = None
+                    if auftrag is not None:
+                        yield auftrag
+                        ergebnis = _aus_dem_hintergrund(auftrag)
+                        if ergebnis is not None and ergebnis[0] == "fehler":
+                            continue  # passt auch nicht
+                        if ergebnis is not None:
+                            bahn = ergebnis[1][0]
+                    if bahn is None:
+                        try:
+                            bahn = ra.vorschau(self.job, self.job.Model.Group, *a[0], **a[1])
+                        except (ValueError, RuntimeError):
+                            continue  # passt auch nicht
+                    if not bahn.ausgelassen:
+                        passend = werkzeug
+                        break
+            finally:
+                _wartende_zurueck(auftraege)
             if passend is not None:
                 break
         self._restraeumfraeser_gemerkt = (schluessel, passend)
         return passend
+
+    def _restraeumen_argumente(self, werkzeug, einsatz, ausgelassen, bequem, werte):
+        """(Argumente, Schlüsselwörter) für raeumen.vorschau nach Job und Modell – ein Kandidat
+        für „Rest räumen“ (_restraeumfraeser_schritte)."""
+        rest = self.restraeumen
+        return (
+            (
+                ff.von_werkzeug(werkzeug),
+                rest.s.vorschlag("zustellung", werkzeug, einsatz),
+                rest.s.vorschlag("zeilenabstand", werkzeug, einsatz),
+                float(werte["aufmass"]),
+                list(ausgelassen),
+            ),
+            {
+                "schneidenlaenge": float(werkzeug.schneidenlaenge or 0.0),
+                "eng_lassen": bequem,
+                "nur_eng": (self._nur_eng() or {}).get("nur_eng", 0.0),
+            },
+        )
+
+    def _restraeumen_auftrag(self, argumente, weiter):
+        """Die Vorschau eines Kandidaten für „Rest räumen“ als Auftrag an einen Nebenrechner
+        (bearbeitung_vorschau.strategie) – None ohne Nebenrechner, dann rechnet sie hier."""
+        from . import nebenrechner as nr
+
+        try:
+            pool = nr.pool()
+            if not pool.verfuegbar():
+                return None
+            kopie = pool.kopie(self.job.Document, wiederverwenden=True)
+            return pool.auftrag(
+                "bearbeitung_vorschau", "strategie", kopie, self.job.Name, "raeumen",
+                argumente, weiter, None,
+            )  # fmt: skip
+        except Exception as fehler:  # noqa: BLE001 – dann rechnet sie hier, wie bisher
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Rest räumen im Nebenrechner: {fehler}\n")
+            return None
 
     def _schlichten_danach_einrichten(self, form):
         """„Schlichten danach“ geht, sobald das Räumen angehakt ist und gerechnet hat (nicht beim

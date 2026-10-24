@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-02 rest-raeumen-kandidaten-auf-allen-kernen
+
+### EINGELESEN
+- Voller Lauf (P-2026-10-25-01), längste Pausen gegen den Lauf davor: am C-Ring („Alles“) stand
+  das Fenster in einem Schritt der Vorschau 3,8 s (allein 1,76 s). Darin `_restraeumfraeser`:
+  Für die Wahl des Fräsers zu „Rest räumen“ rechnete das Fenster die Räumen-Vorschau jedes
+  kleineren Fräsers selbst, nacheinander, samt Lastmessung – auf einem Kern.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_restraeumen_schritte` / `_restraeumfraeser_schritte` als
+  Generator wie `_block_schritte` – die Vorschauen aller Kandidaten gleichzeitig als Aufträge an
+  die Nebenrechner (`bearbeitung_vorschau.strategie`, `_restraeumen_auftrag`), gewählt in derselben
+  Reihenfolge wie bisher; was noch wartet, wenn einer passt, zurück (`_wartende_zurueck`), laufende
+  rechnen zu Ende. Ohne Nebenrechner wie bisher hier. `_restraeumen_einrichten` bleibt als
+  Fassung am Stück.
+
+### ERGEBNIS
+- C-Ring „Alles“: längste Pause 1,76 → 0,67 s. Grün: `szenario_bearbeitung_cring_alles`,
+  `szenario_testteil` („Rest räumen“ mit T3 wie vorher).
+
 ## P-2026-10-25-01 voller-lauf-0.281.2-referenzen
 
 ### EINGELESEN
