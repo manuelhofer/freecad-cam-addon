@@ -1732,6 +1732,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   der Querbahn (Freivorschub bis Sicherheit über den Rest) – am Geist im Voxelmodell 12 neue freie
   Sätze mit Material (105 Voxel à 0,5 mm). An den Ecken unterschätzt das Restmodell, was das
   Schruppen stehen ließ; schneller hinab dort nur mit einem echten 3D-Materialstand.
+  **Gemessen (2026-10-24 nachts):** Was mit einem echten 3D-Materialstand (Voxel 0,5 mm nach dem
+  Schruppen, Fräser + 1 mm) im Schnittvorschub frei fahren könnte: Geist Schlichten 2,0 m von
+  26,5 m (dazu 2,1 m schon frei), Vorschlichten 0,5 m – zusammen gut 3 min; Nase 0. Dafür bräuchte
+  jedes „Anlegen“ das Voxelmodell (am Geist rund 30 s je Operation) – vorerst nicht.
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte
