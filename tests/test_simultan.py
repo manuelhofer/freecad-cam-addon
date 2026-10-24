@@ -196,6 +196,26 @@ for bauplan in (
         len(dicht) > 2 and schlimmste <= si.TOLERANZ + 1e-6,
         f"{name}: verdichtet {len(dicht)} Punkte, bis {schlimmste:.4f} mm daneben",
     )
+    # Gleich stark gekippt, die Richtung um 60° gedreht: Die eingesetzten Punkte liegen auf dem
+    # Weg, den die Maschine zwischen den Sätzen fährt (die Rundachsen linear) – keine Rundachse
+    # wendet (bis 0.280.9 mit der gemittelten Werkzeugachse: dort weniger gekippt, A tauchte ab).
+    gedreht = [
+        si.Punkt((10.0, 20.0, 45.0), (s40, 0.0, c40), vorschub=10.0),
+        si.Punkt(
+            (30.0, 20.0, 45.0),
+            (s40 * math.cos(math.radians(60)), s40 * math.sin(math.radians(60)), c40),
+            vorschub=10.0,
+        ),
+    ]
+    rund_g = si.rundachsen_entlang(maschine, [b.achse for b in gedreht])
+    _dicht_g, dicht_rund_g = si.verdichtet(maschine, gedreht, rund_g)
+    for buchstabe in rund_g[0]:
+        werte = [r[buchstabe] for r in dicht_rund_g]
+        schritte = [b - a for a, b in zip(werte, werte[1:], strict=False) if abs(b - a) > 1e-9]
+        pruefe(
+            all(s > 0 for s in schritte) or all(s < 0 for s in schritte),
+            f"{name}: {buchstabe} wendet beim Verdichten: {[round(w, 3) for w in werte]}",
+        )
     FreeCAD.closeDocument(asm.Document.Name)
 
 # Ein Punkt, den die Maschine nicht treffen kann (unter den Tisch): der Satz, warum.
