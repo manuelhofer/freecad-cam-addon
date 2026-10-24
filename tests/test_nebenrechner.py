@@ -179,6 +179,20 @@ finally:
     pool.speicher = nr.speicher_frei
     pool.arbeit_unbekannt = nr.ARBEIT_UNBEKANNT
 
+# Viele kleine Aufträge, der Speicher reicht nur für wenige (eine Art, die der Pool noch nicht
+# gemessen hat, zählt ARBEIT_UNBEKANNT): Seit P-2026-10-24-14 verteilt der Pool nur neu, wenn sich
+# etwas geändert hat (oder alle SPEICHER_ALLE s), und hört nach dem ersten freien Arbeiter auf, den
+# der Speicher abweist – trotzdem kommen alle durch, keiner bleibt liegen.
+pool.speicher = lambda: 2.5 * nr.ARBEIT_UNBEKANNT
+try:
+    cpu = time.process_time()
+    viele = pool.warten([pool.auftrag("nebenrechner", "_probe", k) for k in range(1500)])
+    cpu = time.process_time() - cpu
+    assert viele == [k * k for k in range(1500)], "viele: falsche Ergebnisse"
+finally:
+    pool.speicher = nr.speicher_frei
+print(f"1500 kleine Aufträge bei knappem Speicher: {cpu:.2f} s im Hauptprozess")
+
 # Gemeinsame Daten: einmal je Arbeiter, in Argumenten auch verschachtelt.
 zahlen = pool.gemeinsam("zahlen", list(range(1000)))
 auftraege = [pool.auftrag("nebenrechner", "_probe_summe", zahlen, faktor=k) for k in (1, 2, 3)]

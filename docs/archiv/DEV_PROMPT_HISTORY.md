@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-14 nebenrechner-verteilen-ohne-leerlauf
+
+### EINGELESEN
+- W-036, Befund P-2026-10-18-95 („beim Warten … je Takt alle 24 Arbeiter lesen“) nachgemessen:
+  2 000 kleine Aufträge kosteten das Fenster 9,0 s CPU (4,5 ms je Auftrag). Ursachen: Reicht der
+  Speicher nicht (eine noch nicht gemessene Art zählt 1 GB), ging je Takt jeder freie Arbeiter die
+  ganze Warteschlange durch (`_naechster`, 4,6 Mio. `_bedarf`); `_ausfuehrbar` zählte bei jedem
+  Verteilen die ganze Warteschlange; je fertigem Auftrag suchte `_nachkommen_abbrechen` dessen
+  Unteraufträge in der ganzen Warteschlange.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `_verteilen` – nichts, wenn sich seit dem letzten Mal nichts
+  geändert hat (`_verteil_stand`: neue Aufträge, Länge der Warteschlange, je Arbeiter Stapel,
+  Warten, Verbindung, offene Kopien) und der Speicher nicht neu gelesen wird (SPEICHER_ALLE); nach
+  dem ersten freien Arbeiter, den nur Gruppe oder Rechenspeicher abweisen, keine weiteren
+  (`_eigen_abgelehnt`); `_ausfuehrbar` zählt höchstens so weit, wie Arbeiter starten dürften.
+  `Auftrag.kinder`: ohne Unteraufträge sucht `_nachkommen_abbrechen` nichts.
+- `tests/test_nebenrechner.py`: 1 500 kleine Aufträge bei knappem Speicher kommen alle durch.
+
+### ERGEBNIS
+- 2 000 kleine Aufträge: 9,0 → 0,8 s im Fenster. Geist im 4-Achs-Assistenten (A/B, je allein):
+  Fenster 115 → 100 s CPU, 426 → 420 s.
+- Grün: `test_nebenrechner`, `test_nebenrechner_systeme`; Szenarien `szenario_vierachs_stl`,
+  `szenario_testteil`, `szenario_kollision`, `szenario_vierachs_nase`.
+
 ## P-2026-10-24-13 rundum-hinauf-im-freivorschub
 
 ### EINGELESEN

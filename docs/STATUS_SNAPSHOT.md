@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.279.4) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.279.5) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1748,6 +1748,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   **Befund (P-2026-10-18-95):** Das Fenster rechnet am Geist selbst etwa 10 s; beim Warten
   verteilt es 9 500 Unteraufträge (je Takt alle 24 Arbeiter lesen, `lebt`, Speicher) – möglich:
   nur die lesen, die etwas geschickt haben (`connection.wait` liefert sie).
+  **Gebaut (P-2026-10-24-14, 0.279.5):** Nachgemessen lag es woanders – wartete ein Auftrag auf
+  Speicher, gingen je Takt alle freien Arbeiter die ganze Warteschlange durch, dazu je Verteilen
+  `_ausfuehrbar` und je fertigem Auftrag `_nachkommen_abbrechen` über alle. 2 000 kleine Aufträge:
+  9,0 → 0,8 s im Fenster; Geist 115 → 100 s Fenster-CPU. Was das Fenster am Geist sonst rechnet,
+  ist noch offen (Proben `CAMADDON_PROBEN`, „haupt“).
 - **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
   testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
   bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,

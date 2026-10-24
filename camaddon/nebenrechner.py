@@ -203,6 +203,7 @@ class Auftrag:
         # geht das Ergebnis. Im Hauptprozess bestellt: beide None.
         self.eltern = None
         self.fuer = None
+        self.kinder = 0  # so viele Unteraufträge wurden unter ihm bestellt (_nachkommen_abbrechen)
         self._pfade = None  # _dokument_pfade seiner Argumente, einmal gesucht (pfade)
 
     @property
@@ -449,6 +450,9 @@ class Nebenrechner:
         self._arbeit = {}  # (Modul, Funktion) -> Bytes: so viel belegte ein Auftrag höchstens
         self._arbeit_gemessen = 0.0
         self._speicher_knapp = False  # _verteilen: ein Auftrag wartete auf Speicher
+        self._eingereiht = 0  # so viele Aufträge kamen je in die Warteschlange (_verteil_stand)
+        self._verteilt = (None, 0.0)  # (_verteil_stand, Zeit) nach dem letzten Verteilen
+        self._eigen_abgelehnt = False  # _naechster: abgewiesen wegen der Kopien dieses Arbeiters
         self.in_arbeit = 0  # so viele Aufträge liefen bisher in Arbeitern (für Prüfungen)
 
     # --- Nach außen ------------------------------------------------------------------
@@ -470,6 +474,7 @@ class Nebenrechner:
         auftrag = Auftrag(self, self._zaehler, modul, funktion, args, kwargs)
         auftrag.gruppe, auftrag.gleichzeitig = getattr(self, "_gruppe", (None, None))
         self._warteschlange.append(auftrag)
+        self._eingereiht += 1
         self._verteilen()
         self._uhren()
         return auftrag
@@ -813,8 +818,17 @@ class Nebenrechner:
         """Gibt wartende Aufträge an freie Arbeiter – je Gruppe höchstens so viele zugleich, wie
         sie darf (Auftrag.gleichzeitig); startet, was an Arbeitern fehlt. Ein Arbeiter, der auf
         seine Unteraufträge wartet, nimmt selbst welche davon (nur seine: So hängt nie ein
-        Auftrag an Arbeitern, die alle warten)."""
+        Auftrag an Arbeitern, die alle warten).
+
+        Hat sich seit dem letzten Mal nichts geändert (_verteil_stand) und liest es den Speicher
+        nicht neu (SPEICHER_ALLE), käme dasselbe heraus – dann nichts: Wartete ein Auftrag auf
+        Speicher, gingen sonst je Takt alle freien Arbeiter die ganze Warteschlange durch (2 000
+        kleine Aufträge: 9 s im Fenster, P-2026-10-24-14)."""
         self._arbeit_messen()
+        jetzt = time.monotonic()
+        stand = self._verteil_stand()
+        if stand == self._verteilt[0] and jetzt - self._verteilt[1] < SPEICHER_ALLE:
+            return
         self._speicher_knapp = False
         laufend = {}
         for arbeiter in self._arbeiter:
@@ -836,21 +850,40 @@ class Nebenrechner:
             )
             if auftrag is not None:
                 self._senden(arbeiter, auftrag)
+            elif not arbeiter.stapel and not self._eigen_abgelehnt:
+                break  # was diesen Freien abwies (Gruppe voll, Speicher fürs Rechnen), weist alle ab
         startend = sum(1 for a in self._arbeiter if a.verbindung is None)
-        fehlend = min(self._ausfuehrbar(laufend) - startend, self.anzahl - len(self._arbeiter))
+        platz = self.anzahl - len(self._arbeiter)
+        fehlend = min(self._ausfuehrbar(laufend, platz + startend) - startend, platz)
         if self._speicher_knapp:
             fehlend = 0  # ein neuer Arbeiter bekäme auch keine Arbeit
         for _ in range(max(0, fehlend)):
             if self._fehlgeschlagen:
                 break
             self._starten()
+        self._verteilt = (self._verteil_stand(), jetzt)
+
+    def _verteil_stand(self):
+        """Wovon das Verteilen abhängt, außer dem Speicher: neue Aufträge, die Länge der
+        Warteschlange, je Arbeiter Stapel, Warten, Verbindung und offene Kopien."""
+        return (
+            self._eingereiht,
+            len(self._warteschlange),
+            tuple(
+                (a.nummer, len(a.stapel), a.wartet, a.verbindung is not None, len(a.dokumente))
+                for a in self._arbeiter
+            ),
+        )
 
     def _naechster(self, laufend, von=None, arbeiter=None, frei=None):
         """Der erste wartende Auftrag, dessen Gruppe noch einen frei hat – aus der Warteschlange
         genommen und in `laufend` gezählt; None, wenn keiner darf. Mit `von` nur einer, der
         darunter bestellt wurde (_stammt_von). Mit `arbeiter` und `frei` ([Bytes] oder [None]):
         nur einer, dessen Kopien der Arbeiter offen hat oder für die der Speicher reicht (`frei`
-        sinkt dann um ihren Bedarf) – oder die noch keiner offen hat (sonst rechnete keiner)."""
+        sinkt dann um ihren Bedarf) – oder die noch keiner offen hat (sonst rechnete keiner).
+        _eigen_abgelehnt danach: Wies es einen ab, weil diesem Arbeiter Kopien fehlten? Sonst
+        weist es jeden anderen freien Arbeiter genauso ab."""
+        self._eigen_abgelehnt = False
         for k, auftrag in enumerate(self._warteschlange):
             if von is not None and not _stammt_von(auftrag, von):
                 continue
@@ -871,6 +904,7 @@ class Nebenrechner:
                 frei[0] = self._speicher_fuer_kopien()
             if bedarf and frei and frei[0] is not None:
                 if bedarf > frei[0]:
+                    self._eigen_abgelehnt = self._eigen_abgelehnt or bool(kopien)
                     if kopien and self._schon_offen(auftrag):
                         continue  # wartet auf einen Arbeiter, der die Kopie offen hat
                     if arbeit and any(a.stapel for a in self._arbeiter):
@@ -974,11 +1008,14 @@ class Nebenrechner:
             arbeiter.dokumente.append(pfad)
         del arbeiter.dokumente[:-DOKUMENTE_OFFEN]
 
-    def _ausfuehrbar(self, laufend):
-        """So viele wartende Aufträge dürften jetzt sofort rechnen (ihre Gruppe hat Platz)."""
+    def _ausfuehrbar(self, laufend, genug=None):
+        """So viele wartende Aufträge dürften jetzt sofort rechnen (ihre Gruppe hat Platz) –
+        höchstens `genug` gezählt (mehr Arbeiter startet der Pool ohnehin nicht)."""
         frei = {}
         anzahl = 0
         for auftrag in self._warteschlange:
+            if genug is not None and anzahl >= genug:
+                break
             gruppe = auftrag.gruppe
             if gruppe is None or auftrag.gleichzeitig is None:
                 anzahl += 1
@@ -1137,11 +1174,14 @@ class Nebenrechner:
             auftrag.gruppe, auftrag.gleichzeitig = gruppe, gleichzeitig
             auftrag.fuer = (arbeiter, nummer)
             auftrag.eltern = arbeiter.stapel[-1] if arbeiter.stapel else None
+            if auftrag.eltern is not None:
+                auftrag.eltern.kinder += 1
             if auftrag.eltern is None or auftrag.eltern.erledigt:
                 auftrag.abgebrochen = True
                 self._zurueck(auftrag)
             else:
                 self._warteschlange.append(auftrag)
+                self._eingereiht += 1
         elif art == "gemeinsam":
             self._gemeinsam.setdefault(nachricht[1], nachricht[2])
             self._gemeinsam.move_to_end(nachricht[1])
@@ -1208,7 +1248,10 @@ class Nebenrechner:
         self._nachkommen_abbrechen(auftrag)
 
     def _nachkommen_abbrechen(self, auftrag):
-        """Alles, was unter `auftrag` bestellt wurde und noch aussteht, fällt weg."""
+        """Alles, was unter `auftrag` bestellt wurde und noch aussteht, fällt weg – ohne Kinder
+        nichts zu suchen (je fertigem Auftrag ging es sonst die ganze Warteschlange durch)."""
+        if not auftrag.kinder:
+            return
         for kind in self._warteschlange + list(self._laufend.values()):
             if not kind.erledigt and _stammt_von(kind, auftrag):
                 self._weich_abbrechen(kind)
