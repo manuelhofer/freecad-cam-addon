@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.280.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.280.1) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1798,6 +1798,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   „Alles aus dieser Aufspannung“ an diesem Teil (P-2026-10-23-02 nachgezogen: keine Stirn ohne
   Rohteil darüber, Räumen gibt der Nut ab, „Schlichten danach“ mit ihrem Fräser) – **noch offen:**
   die 3D-Blöcke an der Fase – *erledigt P-2026-10-24-01* (Fasen nimmt nur der Block „Fase“).
+  Die drei Senkungen ohne Kegelsenker: *P-2026-10-24-20* – unter „Nicht fertig“ das Angebot, sie mit
+  einem Fasenfräser ihres Winkels zu senken (Knopf „T… nehmen“), wenn seine Spitze in die Bohrung
+  passt.
   Seit P-2026-10-23-06/07: „Bohrung fräsen“ fräst
   die Ø 8,5 und nennt die Ø 2,5 für den Bohrer, bietet den passenden Fräser an; das Räumen gibt den
   Haken ab, wo vor den Wänden kein Rohteil steht und die Nut die Gründe fräst.

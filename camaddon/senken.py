@@ -9,7 +9,8 @@ Senkungen, die das Modell hat.
   Hat die Bohrung oben eine Senkung, zählt deren Oberkante: Beim Zentrieren ist sie noch zu.
 - Senken: gewählt ist die Kegelfläche einer Senkung (senkungen(): ganz herum, nach oben
   offen, das Material außen, darunter die Bohrung); der Kegelsenker mit ihrem Winkel geht so
-  tief, dass sein Kegel oben ihren Ø hat.
+  tief, dass sein Kegel oben ihren Ø hat – oder, angeboten, wo keiner da ist, ein Fasenfräser
+  mit ihrem Winkel, dessen Spitze in die Bohrung passt (dieselbe Rechnung).
 - Die Spitze steht (D − d) / 2 / tan(α/2) unter der Kante – D der Kreis oben, d die Spitze des
   Werkzeugs, α sein Spitzenwinkel. Je Tiefe eine Operation (FreeCAD fährt alle Löcher einer
   Operation bis zu ihrer einen Endtiefe); Basis sind die Bohrungen, R 3 mm über dem Rohteil.
@@ -46,6 +47,7 @@ class Senkung:
     z_oben: float
     winkel: float  # Grad – der ganze Winkel des Kegels
     bohrung: str  # die Zylinderfläche darunter – Basis für FreeCADs Bohren
+    unten: float = 0.0  # Ø unten, an der Bohrung – so dick darf die Spitze des Werkzeugs sein
 
 
 @dataclass
@@ -111,6 +113,7 @@ def senkungen(form, namen=None):
                 float(kasten.ZMax),
                 winkel,
                 bohrung,
+                2 * float(r_unten),
             )
         )
     return ergebnis
@@ -139,9 +142,10 @@ def zentrierstellen(form, namen, durchmesser, spitzenwinkel):
     return ergebnis
 
 
-def passende_senkungen(form, namen, durchmesser, spitzenwinkel):
-    """[Senkung] – die gewählten Senkungen, die ein Kegelsenker mit `durchmesser` und
-    `spitzenwinkel` kann. ValueError mit einem Satz, wenn eine nicht passt."""
+def passende_senkungen(form, namen, durchmesser, spitzenwinkel, spitze=0.0):
+    """[Senkung] – die gewählten Senkungen, die ein Kegelsenker (oder Fasenfräser) mit
+    `durchmesser`, `spitzenwinkel` und der Spitze Ø `spitze` kann – die Spitze muss in die
+    Bohrung passen. ValueError mit einem Satz, wenn eine nicht passt."""
     liste = senkungen(form, list(namen) or None)
     if not liste:
         raise ValueError(tr("sk.fehler.keine"))
@@ -160,6 +164,14 @@ def passende_senkungen(form, namen, durchmesser, spitzenwinkel):
                     "sk.fehler.durchmesser",
                     senker=einheiten.text(durchmesser, einheiten.LAENGE),
                     senkung=einheiten.text(s.durchmesser, einheiten.LAENGE),
+                )
+            )
+        if s.unten > 0 and spitze > s.unten + GLEICH_D:
+            raise ValueError(
+                tr(
+                    "sk.fehler.spitze",
+                    spitze=einheiten.text(spitze, einheiten.LAENGE),
+                    bohrung=einheiten.text(s.unten, einheiten.LAENGE),
                 )
             )
     return liste
@@ -221,7 +233,7 @@ def vorschau_senken(job, werkzeug, flaechen, vorschub):
     winkel = float(werkzeug.spitzenwinkel or SPITZENWINKEL)
     spitze = float(werkzeug.spitzen_d or 0.0)
     liste = passende_senkungen(
-        vs._teil(job.Model.Group), flaechen, float(werkzeug.durchmesser), winkel
+        vs._teil(job.Model.Group), flaechen, float(werkzeug.durchmesser), winkel, spitze
     )
     oben, sicher = _oben_sicher(job)
     stellen = [
@@ -267,7 +279,7 @@ def senken_anlegen(job, tc, flaechen, name=None):
     from . import vierachs_schlichten as vs
 
     durchmesser, winkel, spitze = _werkzeug(tc)
-    liste = passende_senkungen(vs._teil(job.Model.Group), flaechen, durchmesser, winkel)
+    liste = passende_senkungen(vs._teil(job.Model.Group), flaechen, durchmesser, winkel, spitze)
     z_von = {s.name: s.z_oben - tiefe_fuer(s.durchmesser, winkel, spitze) for s in liste}
     gruppen = gw.je_tiefe(liste, lambda s: z_von[s.name])
     titel = name or tr("sk.name", werkzeug=f"T{tc.ToolNumber}")

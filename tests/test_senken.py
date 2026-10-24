@@ -105,6 +105,16 @@ if senkung is not None:
             pruefe(satzteil in str(grund), f"{d}/{winkel}: {grund}")
         else:
             pruefe(False, f"{d}/{winkel}: keine Fehlermeldung")
+    # Ein Fasenfräser senkt wie ein Kegelsenker – seine Spitze muss in die Bohrung passen
+    # (P-2026-10-24-20): Ø 0,5 ja, Ø 8 nicht (die Bohrung unter der Senkung hat Ø 6,6).
+    pruefe(abs(senkung.unten - 6.6) < 1e-6, f"unten Ø {senkung.unten}")
+    pruefe(len(sk.passende_senkungen(teil, [senkung.name], 16.0, 90.0, 0.5)) == 1, "Spitze Ø 0,5")
+    try:
+        sk.passende_senkungen(teil, [senkung.name], 20.0, 90.0, 8.0)
+    except ValueError as grund:
+        pruefe("Spitze" in str(grund), f"Spitze Ø 8: {grund}")
+    else:
+        pruefe(False, "Spitze Ø 8: keine Fehlermeldung")
 
 # --- Bewegungen und Zeit --------------------------------------------------------------------
 bahn = sk.planen([(25.0, 30.0, 10.0, 6.5), (60.0, 30.0, 10.0, 5.55)], 11.0, 16.0, 300.0)

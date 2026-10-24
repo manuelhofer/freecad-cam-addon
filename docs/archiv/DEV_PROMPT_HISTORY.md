@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-20 senken-mit-dem-fasenfraeser
+
+### EINGELESEN
+- Am Messspitzenhalter blieben bei „Alles aus dieser Aufspannung“ nur die drei Senkungen „nicht
+  fertig“: In der Werkzeugverwaltung steht kein Kegelsenker. Ein Fasenfräser mit dem Winkel der
+  Senkung senkt sie mit derselben Rechnung, wenn seine Spitze in die Bohrung passt. Manuels Regel
+  dazu (bei der Fase): „wenn in der werkzeugverwaltung einfasenfräser ist .. sollte man fragen ..
+  hey willst du den haben ?“ – also als Angebot mit Knopf, nicht von selbst.
+
+### DATEIEN
+- `camaddon/senken.py`: `Senkung.unten` (Ø an der Bohrung); `passende_senkungen(…, spitze)` –
+  `sk.fehler.spitze`, wenn die Spitze dicker ist als die Bohrung; Vorschau und Anlegen geben sie mit.
+- `camaddon/gui_bearbeitung.py`: `_Senken.mit_fasenfraeser` (erst nach dem Knopf), Einsatz
+  „Senken“, sonst „Fasen“, vorgezogen der Kegelsenker; `_senker_passt` mit der Spitze;
+  `_senken_angebot` unter „Nicht fertig“ (eigene Zeile mit Satz und Knopf), `_senken_mit_fasenfraeser`;
+  die rote Zeile ohne „keine angebotene macht sie fertig“, wenn das Angebot darunter steht.
+- `translations/*.json`: `ba.senken.angebot`, `sk.fehler.spitze`, `ba.unfertig.mit_angebot`,
+  `ba.senken.text`. `help/*/bearbeitung.html`: Senken mit dem Fasenfräser.
+- `tests/test_senken.py`: Spitze Ø 0,5 passt, Ø 8 nicht; `tests/gui/szenario_senken_fasenfraeser.py`
+  (neu).
+
+### ERGEBNIS
+- Grün: `test_senken`; Szenarien `szenario_senken_fasenfraeser`, `szenario_senken`,
+  `szenario_lagerbock`, `szenario_stirn_bund`, `szenario_fase_stufen`.
+
 ## P-2026-10-24-19 fertigteil-3plus2
 
 ### EINGELESEN

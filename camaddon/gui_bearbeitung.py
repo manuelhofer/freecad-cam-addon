@@ -3685,7 +3685,12 @@ class _Senken(_Strategie):
 
     kennung = "senken"
     gemerkt = GEMERKT_SENKER
-    einsatz_reihenfolge = (wz.SENKEN,)
+    einsatz_reihenfolge = (wz.SENKEN, wz.FASEN)
+    bevorzugt = wz.KEGELSENKER
+    # Auch ein Fasenfräser mit dem Winkel der Senkung – erst, wenn man ihn unter „Nicht fertig“
+    # nimmt (Panel._senken_angebot; Manuel zur Fase: „wenn in der werkzeugverwaltung
+    # einfasenfräser ist .. sollte man fragen .. hey willst du den haben ?“).
+    mit_fasenfraeser = False
 
     def titel(self):
         return tr("ba.senken")
@@ -3700,7 +3705,9 @@ class _Senken(_Strategie):
         return tr("ba.senken_einsatz.tooltip")
 
     def werkzeug_passt(self, werkzeug):
-        return werkzeug.art == wz.KEGELSENKER
+        return werkzeug.art == wz.KEGELSENKER or (
+            self.mit_fasenfraeser and werkzeug.art == wz.FASENFRAESER
+        )
 
     def passt(self, form, name):
         return sk.ist_senkung(form, name)
@@ -5252,6 +5259,18 @@ class BearbeitungPanel:
         self.unfertig.setStyleSheet(f"color: {ROT};")
         self.unfertig.hide()
         aufbau.addWidget(self.unfertig)
+        # Darunter, was die Fläche doch fertig macht, als Knopf (_senken_angebot).
+        self.unfertig_angebot = QtGui.QWidget()
+        reihe = QtGui.QHBoxLayout(self.unfertig_angebot)
+        reihe.setContentsMargins(0, 0, 0, 0)
+        self.unfertig_satz = QtGui.QLabel()
+        self.unfertig_satz.setWordWrap(True)
+        reihe.addWidget(self.unfertig_satz, 1)
+        self.unfertig_knopf = knopf("", "", self._unfertig_angebot_nehmen)
+        reihe.addWidget(self.unfertig_knopf)
+        self.unfertig_angebot.hide()
+        aufbau.addWidget(self.unfertig_angebot)
+        self._unfertig_aktion = None
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet(f"color: {ROT};")
@@ -7844,8 +7863,18 @@ class BearbeitungPanel:
         unfertig = self._unfertige(form) if self.job is not None else []
         if not unfertig:
             self.unfertig.hide()
+            self.unfertig_angebot.hide()
             return
         namen = [name for name, _k in unfertig]
+        angebot = self._senken_angebot(form, namen)
+        if angebot is None:
+            self._unfertig_aktion = None
+            self.unfertig_angebot.hide()
+        else:
+            satz, knopf_text, self._unfertig_aktion = angebot
+            self.unfertig_satz.setText(satz)
+            self.unfertig_knopf.setText(knopf_text)
+            self.unfertig_angebot.show()
         flaechen = ", ".join(namen[:4]) + (" …" if len(namen) > 4 else "")
         bloecke = []
         for _name, koennten in unfertig:
@@ -7855,6 +7884,8 @@ class BearbeitungPanel:
         if bloecke:
             titel = ", ".join(f"„{b.s.titel()}“" for b in bloecke)
             text = tr("ba.unfertig", flaechen=flaechen, bloecke=titel)
+        elif angebot is not None:
+            text = tr("ba.unfertig.mit_angebot", flaechen=flaechen)  # der Knopf darunter
         else:
             text = tr("ba.unfertig.keiner", flaechen=flaechen)
         # Warum: Planfräsen oder Räumen ist angehakt, erreicht die Fläche aber nicht ganz.
@@ -9124,11 +9155,60 @@ class BearbeitungPanel:
 
     def _senker_passt(self, werkzeug, liste):
         winkel = float(werkzeug.spitzenwinkel or sk.SPITZENWINKEL)
+        spitze = float(werkzeug.spitzen_d or 0.0)
         return all(
             abs(s.winkel - winkel) <= sk.GLEICH_WINKEL
             and s.durchmesser <= werkzeug.durchmesser + sk.GLEICH_D
+            and (s.unten <= 0 or spitze <= s.unten + sk.GLEICH_D)
             for s in liste
         )
+
+    def _senken_angebot(self, form, namen):
+        """(Satz, Knopf, Aktion) unter „Nicht fertig“ – oder None: Sind darunter Senkungen, für die
+        kein Kegelsenker in der Werkzeugverwaltung steht, aber ein Fasenfräser mit ihrem Winkel,
+        dessen Spitze in die Bohrung passt (_senker_passt): „… T6 kann sie senken. Nehmen?“."""
+        block = self.senken
+        if block.s.mit_fasenfraeser or self.bibliothek is None:
+            return None
+        senkungen = [n for n in namen if sk.ist_senkung(form, n)]
+        if not senkungen or self._senker_da(form):
+            return None
+        liste = sk.senkungen(form, senkungen)
+        werkstoff = self.werkstoff()
+        passende = [
+            w
+            for w in mg.sortiert(self.bibliothek.werkzeuge, self.magazin(), self.bibliothek)
+            if w.art == wz.FASENFRAESER
+            and self._senker_passt(w, liste)
+            and block._passende_einsaetze(w, werkstoff)
+        ]
+        if not passende:
+            return None
+        werkzeug = passende[0]
+        satz = tr(
+            "ba.senken.angebot",
+            werkzeug=_ziel_werkzeug(werkzeug),
+            winkel=f"{float(werkzeug.spitzenwinkel or sk.SPITZENWINKEL):g}",
+        )
+        knopf_text = tr("ba.fase.angebot.knopf", nummer=wz.nummer_text(werkzeug))
+        return dezimal(satz), knopf_text, lambda: self._senken_mit_fasenfraeser(werkzeug)
+
+    def _senken_mit_fasenfraeser(self, werkzeug):
+        """„T6 nehmen“: der Block „Senken“ nimmt auch Fasenfräser, dieser ist gewählt, der Haken
+        an – dann rechnet die Vorschau neu."""
+        block = self.senken
+        block.s.mit_fasenfraeser = True
+        block.fraeser_fuellen(self.bibliothek, self.werkstoff())
+        if block.fraeser_setzen(werkzeug):
+            block.fraeser_von_hand = True
+        self.unfertig_angebot.hide()
+        if self.job is not None:
+            self._haken_vorschlagen(vr.modell(self.job).Shape)
+        self.vorschau_starten()
+
+    def _unfertig_angebot_nehmen(self):
+        if self._unfertig_aktion is not None:
+            self._unfertig_aktion()
 
     def _senker_da(self, form):
         """Hat die Werkzeugverwaltung einen Kegelsenker für alle gewählten Senkungen – ihr
