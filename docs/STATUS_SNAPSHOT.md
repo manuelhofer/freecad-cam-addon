@@ -1406,6 +1406,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   der erste Klick 0,8 statt 1,9 s; im Baum stehen sie grau. Mit P-157/-158 (Prüffenster aus dem
   Netz, CAMs Tiefen ohne Modell) steht das Fenster im ganzen 4-Achs-Ablauf höchstens 1 s. Bereiche wählen braucht es nicht (Manuel: ein STL immer rundum) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
+  **Lücke (gesehen 2026-10-24 nachts):** Ein STL aus mehreren getrennten Körpern gibt einen
+  ungültigen Körper (bis 0.280.5 ein Solid mit zwei Schalen, seit P-2026-10-24-25 eine
+  unzusammenhängende Schale), das Volumen stimmt. Richtig wäre je Körper ein Solid (Compound) –
+  dann müssten die Stellen mit „ein Solid“ das auch nehmen.
 - **W-018 STL aus der N-Eck-Stange im Schraubstock** – Manuels Wunsch vom 2026-10-12: an der
   3-Achs-Fräse eine gerade N-Eck-Stange waagerecht längs X oder Y, ein Ende 20 mm im Schraubstock,
   je Aufspannung um 360°/N weitergedreht, von oben 3D-Schruppen und -Schlichten mit Restmaterial;
