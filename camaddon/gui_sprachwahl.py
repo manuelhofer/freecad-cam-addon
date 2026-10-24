@@ -205,10 +205,27 @@ class Einstellungsseite:
         self.klone_hinweis.setWordWrap(True)
         _mit_satz(dateien, dateien_aufbau, self.klone_hinweis)
 
+        # Wie viele Nebenrechner (nebenrechner) – vorgegeben alle Kerne (Manuel, 2026-10-24: „alle
+        # cpus müssen genutzt werden!“); weniger für den, dessen Rechner nebenbei anderes tut.
+        from . import nebenrechner
+
+        rechnen = QtGui.QGroupBox(tr("einstellungen.rechnen.gruppe"))
+        self.wahl_nebenrechner = QtGui.QSpinBox()
+        self.wahl_nebenrechner.setRange(0, 512)
+        self.wahl_nebenrechner.setSpecialValueText(
+            tr("einstellungen.rechnen.alle", anzahl=nebenrechner.anzahl_kerne())
+        )
+        rechnen_aufbau = QtGui.QFormLayout()
+        rechnen_aufbau.addRow(tr("einstellungen.rechnen.feld"), self.wahl_nebenrechner)
+        self.rechnen_hinweis = QtGui.QLabel(tr("einstellungen.rechnen.hinweis"))
+        self.rechnen_hinweis.setWordWrap(True)
+        _mit_satz(rechnen, rechnen_aufbau, self.rechnen_hinweis)
+
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
         aufbau.addWidget(zahlen)
         aufbau.addWidget(dateien)
+        aufbau.addWidget(rechnen)
         aufbau.addWidget(self.gruppe_updates)
         aufbau.addStretch()
         ruhiges_mausrad(self.form)  # FreeCADs Einstellungen blättern
@@ -222,6 +239,11 @@ class Einstellungsseite:
         index = self.wahl_dezimalzeichen.findData(dezimalzeichen())
         self.wahl_dezimalzeichen.setCurrentIndex(max(index, 0))
         self.klone_einmal.setChecked(klone_speichern.an())
+        from . import PARAMETER_PFAD, nebenrechner
+
+        self.wahl_nebenrechner.setValue(
+            FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nebenrechner.EINSTELLUNG_ANZAHL, 0)
+        )
         gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
@@ -231,6 +253,9 @@ class Einstellungsseite:
             self.wahl_dezimalzeichen.currentData(),
         )
         klone_speichern.setzen(self.klone_einmal.isChecked())
+        from . import nebenrechner
+
+        nebenrechner.anzahl_setzen(self.wahl_nebenrechner.value())
         gui_aktualisierung.einstellungen_speichern(self)
 
 

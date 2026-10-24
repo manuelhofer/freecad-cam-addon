@@ -375,6 +375,15 @@ def gewuenschte_anzahl():
     return anzahl if anzahl > 0 else anzahl_kerne()
 
 
+def anzahl_setzen(anzahl):
+    """Schreibt die Zahl der Arbeiter (EINSTELLUNG_ANZAHL; 0 = so viele wie Kerne) – der laufende
+    Pool nimmt sie gleich: Mehr starten beim nächsten Bedarf, überzählige enden im Leerlauf."""
+    anzahl = max(0, int(anzahl))
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetInt(EINSTELLUNG_ANZAHL, anzahl)
+    if _pool is not None:
+        _pool.anzahl = max(1, anzahl or anzahl_kerne())
+
+
 def freecadcmd_pfad():
     """Der Pfad zu FreeCADCmd dieser FreeCAD-Installation, oder None. Zuerst neben FreeCAD
     (BinPath, der Ordner des laufenden Programms), zuletzt im PATH – dort könnte ein anderes

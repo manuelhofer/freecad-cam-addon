@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-04 werkstatt-addon-klar-sagen
+
+### EINGELESEN
+- Kritik der CAM-Entwickler im Discord (sliptonic, Connor, 2026-10-23): Addons und Forks neben der
+  Roadmap, Code soll testbar, plattformübergreifend, lizenzverträglich und gepflegt sein. Manuel
+  (2026-10-24): kein Beitritt – „ich will ja etwas bauen was für meine werkstatt passt … ich will
+  dafür ja kein geld .. vll gibts aber leute die testen wollen“; dann: „ja mach das alles so das
+  alle zufriden sind .. wichtig .. alle cpus müssen genutzt werden!“
+
+### DATEIEN
+- `README.md`: was das Addon ist (Werkstatt-Addon auf CAM, nicht von den CAM-Entwicklern, kein
+  Geld), geprüft nur unter Linux, „Gut zu wissen“ (Dokumente brauchen das Addon, alle Kerne,
+  Daten Dritter mit Quellen), „Testen und Fehler melden“, englische Kurzfassung.
+- `.github/ISSUE_TEMPLATE/` (neu): Fehler und Wunsch, zweisprachig; Verweise auf die Forum-Threads.
+- `package.xml`: Beschreibung „A workshop add-on built on FreeCAD CAM (not made by the CAM
+  developers)“.
+- `camaddon/gui_sprachwahl.py`, `camaddon/nebenrechner.py` (`anzahl_setzen`): Einstellungen →
+  CAM-Addon → „Rechnen“: Zahl der Nebenrechner, vorgegeben „alle Kerne (24)“, gilt sofort.
+- `translations/de.json`, `en.json`; `tests/gui/szenario_erster_start.py` (das Feld, 3 und zurück).
+- `docs/OFFENE_FRAGEN.md`: Frage 1 – ein eigener Name (nur, was man sieht).
+- Außerhalb des Repos: Entwurf für beide Forum-Threads in
+  `~/freecad_cam/forum/post_241026_15_klarstellung/` (nicht gepostet – das macht Manuel).
+
+### ERGEBNIS
+- `szenario_erster_start`, `test_sprache`, `test_hilfe` grün; die Einstellungsseite im Bild mit
+  der neuen Gruppe „Rechnen“.
 ## P-2026-10-24-03 nebenrechner-windows-macos
 
 ### EINGELESEN

@@ -167,7 +167,7 @@ def schritte(h):
     h.pruefe(
         seite.liste.currentData() == "de", "Einstellungsseite zeigt nicht die gewählte Sprache"
     )
-    seite.form.resize(500, 520)
+    seite.form.resize(500, 680)
     seite.form.show()
     yield 300
     h.bild("5_einstellungsseite", seite.form)
@@ -195,6 +195,25 @@ def schritte(h):
     h.pruefe(
         satz.height() >= satz.heightForWidth(satz.width()),
         f"Satz unter „Dateien“ ist {satz.height()} hoch, braucht {satz.heightForWidth(satz.width())}",
+    )
+    # „Nebenrechner“: vorgegeben alle Kerne (0 – Manuel: „alle cpus müssen genutzt werden!“);
+    # eine Zahl gilt gleich für den laufenden Pool, 0 wieder für alle.
+    from camaddon import PARAMETER_PFAD
+    from camaddon import nebenrechner as nr_
+
+    feld = seite.wahl_nebenrechner
+    h.pruefe(
+        feld.value() == 0 and feld.text() == f"alle Kerne ({nr_.anzahl_kerne()})",
+        f"Nebenrechner: {feld.value()} {feld.text()!r}",
+    )
+    feld.setValue(3)
+    seite.saveSettings()
+    gemerkt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nr_.EINSTELLUNG_ANZAHL, -1)
+    h.pruefe(gemerkt == 3 and nr_.pool().anzahl == 3, f"3 Nebenrechner: {gemerkt}, {nr_.pool().anzahl}")
+    feld.setValue(0)
+    seite.saveSettings()
+    h.pruefe(
+        nr_.pool().anzahl == nr_.anzahl_kerne(), f"wieder alle Kerne: {nr_.pool().anzahl}"
     )
     seite.klone_einmal.setChecked(False)
     seite.saveSettings()
