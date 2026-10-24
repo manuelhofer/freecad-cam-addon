@@ -44,6 +44,8 @@ from .sprache import tr
 # mit 99 % das Volumen um 0,4 % zu, mit 95 % um 0,006 %); keine passt: das Netz, wie es ist.
 VEREINFACHEN = (0.97, 0.95, 0.9)
 VOLUMEN_SPIEL = 2e-4  # Anteil
+# Die würfelige Hülle im Raum (blockflaechen) ist fast überall eben: Sie verträgt viel mehr.
+VEREINFACHEN_RAUM = (0.995, 0.99, 0.98, 0.95, 0.9)
 GLEICH = 1e-6  # mm – so gleich gelten zwei Höhen
 UEBER_ECK_RUNDEN = 100  # so oft höchstens wird angehoben (ohne_ueber_eck)
 IM_TEIL_SPIEL = 0.05  # mm – so viel tiefer als das Teil zählt noch nicht als „ins Teil“ (im_teil)
@@ -202,9 +204,10 @@ def koerper_aus_hoehen(x, y, h, unten, teil=None, rohteil=None):
     return im_rohteil(_aus_dem_netz(punkte, dreiecke, teil), rohteil)
 
 
-def _aus_dem_netz(punkte, dreiecke, teil, spiel=None):
-    """Der Körper aus dem Netz – vereinfacht, bis das Volumen höchstens `spiel` (Anteil; ohne:
-    VOLUMEN_SPIEL) abweicht, ebene Dreiecke zu Flächen, mit `teil` vereinigt."""
+def _aus_dem_netz(punkte, dreiecke, teil, spiel=None, stufen=None):
+    """Der Körper aus dem Netz – vereinfacht (der Reihe nach `stufen`, ohne: VEREINFACHEN), bis das
+    Volumen höchstens `spiel` (Anteil; ohne: VOLUMEN_SPIEL) abweicht und das Netz geschlossen
+    bleibt, ebene Dreiecke zu Flächen, mit `teil` vereinigt."""
     import Mesh
 
     from . import stl_teil
@@ -212,11 +215,17 @@ def _aus_dem_netz(punkte, dreiecke, teil, spiel=None):
     netz = Mesh.Mesh()
     netz.addFacets([[tuple(punkte[k]) for k in d] for d in dreiecke])
     voll = float(netz.Volume)
-    for anteil in VEREINFACHEN:
+    for anteil in stufen or VEREINFACHEN:
         kopie = netz.copy()
         with _ohne_fehler():
             kopie.decimate(0.001, anteil)
-            if abs(float(kopie.Volume) - voll) <= (spiel or VOLUMEN_SPIEL) * abs(voll):
+            # Auch geschlossen und mannigfaltig: An einer dünnen Haut (1 mm Rohteil über dem
+            # Schwenkteil) ließ 97 % das Volumen stehen, aber das Netz war offen – kein Körper.
+            if (
+                abs(float(kopie.Volume) - voll) <= (spiel or VOLUMEN_SPIEL) * abs(voll)
+                and kopie.isSolid()
+                and not kopie.hasNonManifolds()
+            ):
                 netz = kopie
                 break
     form = stl_teil.koerper(netz)
@@ -431,10 +440,9 @@ def radien_rechnen(a, phi, r, laengs, radial, teil=None, teil_r=None, rohteil=No
 #
 # Der Rest nach allen Ebenen einer Aufspannung als Abschnitte auf senkrechten Strahlen
 # (raum_material.Material.grenzen, je Strahl mehrere – unter einem Überhang): daraus Voxel in
-# Schichten so dick wie das Raster, die Hülle mit Surface Nets (je Würfel zwischen acht Mitten ein
-# Punkt, je Kante mit Wechsel ein Viereck – dicht, jede Kante an genau zwei Dreiecken), längs z am
-# Ende des Abschnitts genau. Wo das Teil fertig ist, rückt die Hülle EINZUG unter seine Oberfläche
-# (nur_rest_raum), dann vereinfacht, mit dem Teil vereinigt und aufs Rohteil beschnitten.
+# Schichten so dick wie das Raster, ihre würfelige Hülle (blockflaechen: dicht, jede Kante an zwei
+# Dreiecken). Wo das Teil fertig ist, rückt sie EINZUG unter seine Oberfläche (nur_rest_raum), dann
+# vereinfacht (VEREINFACHEN_RAUM), mit dem Teil vereinigt und aufs Rohteil beschnitten.
 
 
 def schichten(z_von, z_bis, schritt):
@@ -452,81 +460,55 @@ def belegung_raum(grenzen, z):
         return ((z >= unten) & (z <= oben)).any(axis=2)
 
 
-def _genaue_z(grenzen, i, j, z0, z1):
-    """Je Kante längs z (Strahl i, j zwischen den Mitten z0 und z1): das Ende eines Abschnitts
-    dazwischen, das der Mitte am nächsten liegt – sonst die Mitte."""
-    enden = grenzen[i, j].reshape(len(i), -1)
-    mitte = (z0 + z1) / 2
-    with np.errstate(invalid="ignore"):
-        drin = (enden > z0[:, None]) & (enden < z1[:, None])
-    abstand = np.where(drin, np.abs(enden - mitte[:, None]), np.inf)
-    k = np.argmin(abstand, axis=1)
-    wert = enden[np.arange(len(i)), k]
-    return np.where(np.isfinite(abstand[np.arange(len(i)), k]), wert, mitte)
+def blockflaechen(voll, x, y, z):
+    """(Punkte (m, 3), Dreiecke (t, 3)) der würfeligen Hülle der vollen Voxel mit den Mitten x, y,
+    z: je Grenze zwischen vollem und leerem Voxel ein Viereck auf den Zellgrenzen, nach außen
+    gerichtet, mit gemeinsamen Ecken – dicht. Ebene Bereiche fasst das Vereinfachen fast ohne
+    Volumenfehler zusammen, removeSplitter danach zu großen Flächen: am Schwenkteil (332 000
+    Dreiecke) 99,5 % weniger, der Körper in 0,1 s, mit dem Teil vereinigt in 0,2 s – die runde Hülle
+    (Surface Nets, P-2026-10-24-19) brauchte 55 s, und stark vereinfacht war sie nicht mehr dicht.
+    """
 
+    def grenzen(c):
+        h = float(c[1] - c[0]) if len(c) > 1 else 1.0
+        innen = (c[:-1] + c[1:]) / 2
+        aussen = np.concatenate([[c[0] - h / 2], innen, [c[-1] + h / 2]])
+        return np.concatenate([[aussen[0] - h], aussen, [aussen[-1] + h]])  # dazu der Rand
 
-def surface_nets(voll, x, y, z, grenzen=None):
-    """(Punkte (m, 3), Dreiecke (t, 3)) der Hülle der vollen Voxel mit den Mitten x, y, z: je
-    Würfel zwischen acht Mitten mit gemischter Belegung ein Punkt – das Mittel der Kreuzungen auf
-    seinen Kanten (längs z mit `grenzen` am Ende des Abschnitts, _genaue_z) –, je Kante mit Wechsel
-    ein Viereck aus den vier Würfeln um sie, nach außen gerichtet."""
+    xs, ys, zs = grenzen(np.asarray(x)), grenzen(np.asarray(y)), grenzen(np.asarray(z))
     v = np.pad(voll, 1)
-    xs, ys, zs = (
-        np.concatenate([[c[0] - (c[1] - c[0])], c, [c[-1] + (c[1] - c[0])]]) for c in (x, y, z)
-    )
     nx, ny, nz = v.shape
-    wuerfel = (nx - 1, ny - 1, nz - 1)
-    summe = np.zeros((*wuerfel, 3))
-    zahl = np.zeros(wuerfel)
-    kanten = []
+
+    def nummer(i, j, k):  # die Ecke (i, j, k) bei xs[i], ys[j], zs[k]
+        return (i * (ny + 1) + j) * (nz + 1) + k
+
+    vierecke = []
     for achse in range(3):
         a = [slice(None)] * 3
         b = [slice(None)] * 3
         a[achse], b[achse] = slice(None, -1), slice(1, None)
         va, vb = v[tuple(a)], v[tuple(b)]
         i, j, k = np.nonzero(va != vb)
-        innen = va[i, j, k]  # innen am Anfang der Kante: außen liegt in +achse
-        px, py, pz = xs[i], ys[j], zs[k]
+        innen = va[i, j, k]  # innen am Anfang: außen liegt in +achse
         if achse == 0:
-            px = (xs[i] + xs[i + 1]) / 2
+            g = i + 1
+            q = (nummer(g, j, k), nummer(g, j + 1, k), nummer(g, j + 1, k + 1), nummer(g, j, k + 1))
         elif achse == 1:
-            py = (ys[j] + ys[j + 1]) / 2
+            g = j + 1
+            q = (nummer(i, g, k), nummer(i, g, k + 1), nummer(i + 1, g, k + 1), nummer(i + 1, g, k))
         else:
-            pz = (zs[k] + zs[k + 1]) / 2
-            if grenzen is not None:
-                drin = (i >= 1) & (i <= nx - 2) & (j >= 1) & (j <= ny - 2)
-                pz[drin] = _genaue_z(
-                    grenzen, i[drin] - 1, j[drin] - 1, zs[k[drin]], zs[k[drin] + 1]
-                )
-        punkt = np.stack([px, py, pz], axis=1)
-        andere = [q for q in range(3) if q != achse]
-        stelle = np.stack([i, j, k], axis=1)
-        for d0 in (0, 1):
-            for d1 in (0, 1):
-                c = stelle.copy()
-                c[:, andere[0]] -= d0
-                c[:, andere[1]] -= d1
-                ok = (c >= 0).all(axis=1) & (c < np.array(wuerfel)).all(axis=1)
-                np.add.at(summe, (c[ok, 0], c[ok, 1], c[ok, 2]), punkt[ok])
-                np.add.at(zahl, (c[ok, 0], c[ok, 1], c[ok, 2]), 1.0)
-        kanten.append((achse, i, j, k, innen))
-    nummer = -np.ones(wuerfel, dtype=np.int64)
-    belegt = zahl > 0
-    nummer[belegt] = np.arange(int(belegt.sum()))
-    punkte = summe[belegt] / zahl[belegt][:, None]
-    dreiecke = []
-    for achse, i, j, k, innen in kanten:
-        # Die vier Würfel um die Kante, im Umlauf so, dass die Normale längs +achse zeigt.
-        if achse == 0:
-            ecken = ((i, j - 1, k - 1), (i, j, k - 1), (i, j, k), (i, j - 1, k))
-        elif achse == 1:
-            ecken = ((i - 1, j, k - 1), (i - 1, j, k), (i, j, k), (i, j, k - 1))
-        else:
-            ecken = ((i - 1, j - 1, k), (i, j - 1, k), (i, j, k), (i - 1, j, k))
-        q = np.stack([nummer[e] for e in ecken], axis=1)
-        q = np.where(innen[:, None], q, q[:, ::-1])
-        dreiecke += [q[:, [0, 1, 2]], q[:, [0, 2, 3]]]
-    return punkte, (np.concatenate(dreiecke) if dreiecke else np.zeros((0, 3), dtype=np.int64))
+            g = k + 1
+            q = (nummer(i, j, g), nummer(i + 1, j, g), nummer(i + 1, j + 1, g), nummer(i, j + 1, g))
+        q = np.stack(q, axis=1)
+        vierecke.append(np.where(innen[:, None], q, q[:, ::-1]))
+    q = np.concatenate(vierecke) if vierecke else np.zeros((0, 4), dtype=np.int64)
+    benutzt, neu = np.unique(q.ravel(), return_inverse=True)
+    q = neu.reshape(-1, 4)
+    k = benutzt % (nz + 1)
+    j = (benutzt // (nz + 1)) % (ny + 1)
+    i = benutzt // ((nz + 1) * (ny + 1))
+    punkte = np.stack([xs[i], ys[j], zs[k]], axis=1)
+    return punkte, np.concatenate([q[:, [0, 1, 2]], q[:, [0, 2, 3]]])
 
 
 def _nachbarn(maske, n, wachsen):
@@ -615,8 +597,8 @@ def koerper_aus_abschnitten(
         im_teil = belegung_raum(teil_grenzen, z)
         flaeche = raum_im_teil(voll, im_teil, schritt, x, y)
         voll = nur_rest_raum(voll, im_teil, schritt)
-    punkte, dreiecke = surface_nets(gut_verbunden(voll), x, y, z, grenzen)
-    form = _aus_dem_netz(punkte, dreiecke, teil, VOLUMEN_SPIEL_STANGE)
+    punkte, dreiecke = blockflaechen(gut_verbunden(voll), x, y, z)
+    form = _aus_dem_netz(punkte, dreiecke, teil, VOLUMEN_SPIEL_STANGE, VEREINFACHEN_RAUM)
     return im_rohteil(form, rohteil), flaeche
 
 

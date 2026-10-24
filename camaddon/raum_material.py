@@ -216,6 +216,20 @@ def _bewegungen(op, ort, form):
     )
 
 
+def rueckzuege_wie_vorschub(bewegungen, achse):
+    """Die Bewegungen (_bewegungen), ein Eilgang nur längs der Werkzeugachse zur Spindel hin wie
+    im Vorschub (mit dem Körper innen, ohne die Prüfung der Eilgänge): Er fährt nur dorthin, wo
+    das Werkzeug eben war. Mit „aussen“ – dem vollen Zylinder ab der Spitze – streifte er den
+    kegeligen Grund, den ein Bohrer eben gebohrt hat, nahm ihn weg und machte den Rest unsicher
+    (P-2026-10-24-22)."""
+    eilgang, von, nach, quer = bewegungen
+    weg = nach - von
+    laenge = np.linalg.norm(weg, axis=1)
+    entlang = weg @ np.asarray(achse, dtype=float)
+    zurueck = eilgang & (laenge > GENAU) & (entlang >= laenge * (1.0 - 1e-9))
+    return (eilgang & ~zurueck, von, nach, quer)
+
+
 def bewegungen_abtragen(material, bewegungen, achse, innen, aussen, fortschritt=None):
     """Trägt die Bewegungen (_bewegungen) am Material ab – im Vorschub gesammelt (_Stapel) mit
     den Teilen `innen`, ein Eilgang am Material, wie es dann steht, mit `aussen`. Gibt je Eilgang
@@ -927,7 +941,7 @@ def _kennungen(job, schritt=0.5, simultane=None, jobs=None):
                 (
                     op.Name,
                     ms._kennung_op(op),
-                    str(getattr(tc.Tool, "CuttingEdgeHeight", "")),
+                    str(_schneidenlaenge(tc)),
                     tuple(tuple(a) for a in getattr(op, "Werkzeugachsen", ())),
                     bool(getattr(op, "Anstellen", False)),
                     bool(getattr(op, "Wegkippen", False)),
@@ -1009,6 +1023,31 @@ def _merken(schluessel, material):
     _GEMERKT.move_to_end(schluessel)
     while len(_GEMERKT) > GEMERKT_HOECHSTENS:
         _GEMERKT.popitem(last=False)
+
+
+def _form_des_werkzeugs(tc):
+    """Die Form des Werkzeugs am Controller (fraeserform.Form): die des Fräsers – oder, für
+    Bohrer, NC-Anbohrer und Kegelsenker, ihr Kegel mit der Spitze (restmaterial._kegel). Ohne sie
+    galt jede Aufspannung mit einer Bohrung als nicht nachzurechnen (am Schwenkteil: kein Rest
+    nach der zweiten Ebene, kein Fertigteil; P-2026-10-24-22). None für andere Werkzeuge."""
+    from . import restmaterial as rm
+    from . import vierachs_schlichten as vs
+
+    form = vs.form_des_controllers(tc)
+    return form if form is not None else rm._kegel(tc)
+
+
+def _schneidenlaenge(tc):
+    """So lang schneidet das Werkzeug (mm): CuttingEdgeHeight – ein Bohrer hat oft nur Length
+    (er ist auf seiner ganzen Länge so dick wie seine Schneide)."""
+    for name in ("CuttingEdgeHeight", "Length"):
+        wert = getattr(tc.Tool, name, None)
+        if wert is None:
+            continue
+        wert = float(wert.getValueAs("mm")) if hasattr(wert, "getValueAs") else float(wert)
+        if wert > 0:
+            return wert
+    return 0.0
 
 
 def fuer_ebene(job, schritt=0.5, fortschritt=None, jobs=None):
@@ -1097,8 +1136,8 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None, jobs=None):
                 )
                 continue
             tc = op.ToolController
-            form = vs.form_des_controllers(tc)
-            laenge = float(getattr(tc.Tool, "CuttingEdgeHeight", 0))
+            form = _form_des_werkzeugs(tc)
+            laenge = _schneidenlaenge(tc)
             if (
                 form is None
                 or not math.isfinite(laenge)
@@ -1111,6 +1150,7 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None, jobs=None):
                 return None
             stapel.leeren()
             u = np.asarray(achse, dtype=float)
+            bewegungen = rueckzuege_wie_vorschub(bewegungen, u)
             volumina = _abtragen_verteilt(material, bewegungen, u, innen, aussen, fortschritt)
             if volumina is None:
                 volumina = bewegungen_abtragen(material, bewegungen, u, innen, aussen, fortschritt)

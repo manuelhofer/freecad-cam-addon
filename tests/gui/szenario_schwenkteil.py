@@ -13,6 +13,7 @@ import tempfile
 
 import FreeCAD
 import FreeCADGui as Gui
+from PySide import QtCore, QtGui
 
 V = FreeCAD.Vector
 
@@ -27,7 +28,6 @@ def schritte(h):
     yield 500
 
     import Path.Main.Job as PathJob
-    from PySide import QtCore
 
     from camaddon import beispielmaschine, gui_reichweite
     from camaddon import bohren as bh
@@ -270,3 +270,33 @@ def schritte(h):
         h.bild("5_kollision", pruefung.form)
         h.pruefe(urteil.startswith("Nichts berührt sich"), f"Kollision: {urteil}")
         del gui_kollision
+    # „Fertigteil als Rohteil“ der ganzen Aufspannung (W-029, 3+2, P-2026-10-24-22): räumlich nach
+    # allen Ebenen, auch nach der Bohrung (der Bohrer als Kegel) – ein gültiger Körper, das Teil
+    # ganz darin, dazu der Rest (das Rohteil 1 mm über dem Teil, das Aufmaß).
+    import time
+
+    from camaddon import fertigteil as ft
+    from camaddon import gui_fertigteil
+
+    if pruefung is not None:
+        pruefung.reject()
+        yield 500
+    beginn = time.time()
+    QtCore.QTimer.singleShot(0, lambda: gui_fertigteil.ausfuehren(ebene2))
+    yield from h.warte_auf(lambda: isinstance(h.modal(), QtGui.QMessageBox), 300000)
+    dauer = time.time() - beginn
+    meldung = h.modal()
+    text = meldung.text() if isinstance(meldung, QtGui.QMessageBox) else ""
+    h.pruefe("räumlich nach allen Ebenen" in text, f"Fertigteil: {text[:300]!r}")
+    if isinstance(meldung, QtGui.QMessageBox):
+        meldung.accept()
+    yield 500
+    fertig = ft.vorhanden(grundjob)
+    h.pruefe(fertig is not None, "kein Fertigteil")
+    if fertig is not None:
+        form = fertig.Shape
+        innen = teil.Shape.common(form).Volume
+        h.pruefe(form.isValid() and len(form.Solids) == 1, f"Fertigteil: {form.ShapeType}")
+        h.pruefe(innen > 0.999 * teil.Shape.Volume, f"Teil nicht ganz darin: {innen:.0f}")
+        h.pruefe(form.Volume > teil.Shape.Volume, f"kein Rest: {form.Volume:.0f}")
+        print(ascii(f"Fertigteil: {form.Volume:.0f} mm³, {len(form.Faces)} Flächen, {dauer:.1f} s"))

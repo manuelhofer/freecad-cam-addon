@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.280.2) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.280.3) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1631,6 +1631,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   aufs Rohteil beschnitten – auf einem Nebenrechner (`abschnitte_rechnen`). Prüfteil Quader mit
   Tasche und Tunnel: 20 809 mm³ (Teil 20 789, der Rest in den Taschenecken), 0,5 s;
   `szenario_fertigteil_raum` (Langloch von links): genau das Teil, 12 Flächen.
+  **P-2026-10-24-22 (0.280.3):** statt Surface Nets die würfelige Hülle (`blockflaechen`, am
+  Schwenkteil 55 s → 4,9 s, und gültig); Bohrer, Anbohrer und Senker zählen im räumlichen Rest (als
+  Kegel), ein Rückzug längs der Werkzeugachse wie Vorschub – vorher gab es nach einer Bohrung keinen
+  Rest mehr (auch nicht für spätere Ebenen).
   **Nebenbei ein Netz gegen Fehlschnitte (P-2026-10-23-19):** Jedes Szenario schreibt
   `im_teil.txt` – je 3-Achs-Job die Zellen im Teil nach allen Operationen (`fertigteil.im_teil`,
   gezählt beim Schließen des Dokuments); Gewinde, Entgraten und fester G-Code der Szenarien stehen

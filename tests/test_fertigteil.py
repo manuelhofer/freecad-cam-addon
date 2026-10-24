@@ -158,8 +158,8 @@ pruefe(
 
 # Räumlich (3+2, raum_material): Ein Quader 40 × 30 × 20, von oben eine Tasche 20 × 10, 6 tief, von
 # der Seite (Werkzeug längs −X) ein Tunnel Ø 8 bei z 8 quer durch – ein Hinterschnitt, unter dem
-# Material steht. Surface Nets: dicht, jede Kante an zwei Dreiecken, einheitlich ausgerichtet, das
-# Volumen das der Voxel. Mit dem Teil (der Quader ohne Tasche, ohne Tunnel): ein gültiges Solid, das
+# Material steht. Die würfelige Hülle: dicht, jede Kante an zwei Dreiecken, einheitlich ausgerichtet,
+# das Volumen genau das der Voxel. Mit dem Teil (der Quader ohne Tasche, ohne Tunnel): ein gültiges Solid, das
 # Teil ganz darin, kaum größer; ohne das Teil auch unter dem Tunnel Material. Was die Fräser nicht
 # erreichen (die runden Ecken der Tasche), steht dabei.
 import FreeCAD  # noqa: E402
@@ -180,16 +180,17 @@ teil_r = (
 )
 z = ft.schichten(material.z_von, material.z_bis, material.schritt)
 voll = ft.belegung_raum(material.grenzen, z)
-punkte, dreiecke = ft.surface_nets(voll, material.x, material.y, z, material.grenzen)
+punkte, dreiecke = ft.blockflaechen(voll, material.x, material.y, z)
 kanten = np.concatenate([dreiecke[:, [0, 1]], dreiecke[:, [1, 2]], dreiecke[:, [2, 0]]])
 _k, anzahl = np.unique(np.sort(kanten, axis=1), axis=0, return_counts=True)
 _g, gerichtet = np.unique(kanten, axis=0, return_counts=True)
 pruefe((anzahl == 2).all() and (gerichtet == 1).all(), "räumlich: Netz nicht dicht oder verdreht")
 a_, b_, c_ = punkte[dreiecke[:, 0]], punkte[dreiecke[:, 1]], punkte[dreiecke[:, 2]]
 vol_netz = float(np.einsum("ij,ij->i", a_, np.cross(b_, c_)).sum() / 6.0)
+voxel = float(voll.sum()) * material.dx * material.dy * float(z[1] - z[0])
 pruefe(
-    abs(vol_netz - material.volumen) < 0.01 * material.volumen,
-    f"räumlich: Netz {vol_netz:.0f} statt {material.volumen:.0f}",
+    abs(vol_netz - voxel) < 1e-6 * voxel and abs(vol_netz - material.volumen) < 0.02 * voxel,
+    f"räumlich: Netz {vol_netz:.0f}, Voxel {voxel:.0f}, Rest {material.volumen:.0f}",
 )
 teil_g = raum.abschnitte(teil_r, material)
 t0 = time.time()

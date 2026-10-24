@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-22 fertigteil-3plus2-schnell-und-mit-bohrung
+
+### EINGELESEN
+- Manuel, 2026-10-24 abends: „denk dran ... alle cpus benutzen das tust du schon lang nicht mehr“.
+  Zu der Zeit rechnete ein Prüflauf seit 13 min auf einem Kern (Last 1,4) – das Netz des
+  Fertigteils am Schwenkteil (332 000 Dreiecke) zum Körper. Beendet.
+- Am Schwenkteil (3+2, drei Ebenen, eine Bohrung) gab es kein Fertigteil: Der Bohrer hatte keine
+  Form, und der Rückzug aus dem Bohrloch galt als „Eilgang schneidet“ (der volle Zylinder ab der
+  Spitze streifte den kegeligen Grund) – der Rest nach der zweiten Ebene war damit unbekannt.
+  Danach: Surface Nets, auf 97 % vereinfacht, nicht mehr dicht – ein Compound ohne Körper.
+- Sieben Stufen des Vereinfachens gleichzeitig gemessen (je ein Prozess): Surface Nets 95 % gültig
+  in 55 s (Körper 8,5 s, Vereinigen 46 s), 80 % 382 s; die würfelige Hülle 99,5 %: 1 660
+  Dreiecke, Körper 0,1 s, Vereinigen 0,2 s.
+
+### DATEIEN
+- `camaddon/raum_material.py`: `_form_des_werkzeugs` (Bohrer, Anbohrer, Kegelsenker als Kegel,
+  restmaterial._kegel), `_schneidenlaenge` (CuttingEdgeHeight, sonst Length; auch im Schlüssel),
+  `rueckzuege_wie_vorschub` (ein Eilgang nur längs der Werkzeugachse zur Spindel wie Vorschub).
+- `camaddon/fertigteil.py`: `blockflaechen` statt `surface_nets`/`_genaue_z` (die würfelige Hülle);
+  `VEREINFACHEN_RAUM`; `_aus_dem_netz` nimmt eine Stufe nur, wenn das Netz geschlossen und
+  mannigfaltig bleibt (gilt auch für 3 Achsen und die Stange), Stufen als Parameter.
+- `tests/test_raum_material.py`: eine G81-Bohrung in der Ebene – der Rest danach ist da;
+  `tests/test_fertigteil.py`: die würfelige Hülle, Volumen genau das der Voxel;
+  `tests/gui/szenario_schwenkteil.py`: am Ende das Fertigteil der Aufspannung.
+
+### ERGEBNIS
+- Schwenkteil: Fertigteil 393 147 mm³ (Teil 368 980, Rest 24 140), 494 Flächen, 4,9 s.
+- Grün: `test_fertigteil`, `test_raum_material`; Szenarien `szenario_schwenkteil`,
+  `szenario_fertigteil_raum`, `szenario_raum_material`.
+
 ## P-2026-10-24-21 senken-was-fehlt
 
 ### EINGELESEN

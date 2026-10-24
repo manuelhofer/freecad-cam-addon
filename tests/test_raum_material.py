@@ -268,6 +268,36 @@ def pruefen():
     assert not mit_torus.belegt([[10, 13, 10]]).any(), "der Torusfräser hat nichts abgetragen"
     op.ToolController = tc
     doc.recompute()
+    # Eine Bohrung in der Ebene (G81, Bohrer Ø 5, 118°): Der Rest danach ist räumlich nachzulesen
+    # (P-2026-10-24-22; bis dahin hatte ein Bohrer keine Form, und nichts danach war sicher).
+    bohrer = wz.Werkzeug(
+        nummer=3, name="Bohrer 5", art=wz.BOHRER, durchmesser=5.0, schneiden=2,
+        schneidenlaenge=40.0, spitzenwinkel=118.0,
+    )  # fmt: skip
+    bohrer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25.0, fz=0.08)]
+    ue.uebergeben(wz.Bibliothek([standard, bohrer]))
+    tc_bohrer = js.controller_ohne_transaktion(doc, erster, bohrer, bohrer.schnittwerte[wz.ALLE][0])
+    oben_p, unten_p = inv.multVec(v(0, 20, 16)), inv.multVec(v(10, 20, 16))
+    bohren = doc.addObject("Path::Feature", "Bohrung")
+    bohren.addProperty("App::PropertyLink", "ToolController")
+    bohren.ToolController = tc_bohrer
+    bohren.addProperty("App::PropertyBool", "Active")
+    bohren.Active = True
+    bohren.Path = Path.Path(
+        [
+            Path.Command("G0", {"X": oben_p.x, "Y": oben_p.y, "Z": oben_p.z + 8}),
+            Path.Command("G81", {"X": oben_p.x, "Y": oben_p.y, "Z": unten_p.z, "R": oben_p.z + 3}),
+            Path.Command("G80"),
+        ]
+    )
+    erster.Operations.Group = [op, bohren]
+    doc.recompute()
+    gebohrt = raum.fuer_ebene(naechster)
+    assert gebohrt is not None, "nach einer Bohrung kein räumlicher Materialstand"
+    assert gebohrt.belegt([[5, 20, 16], [12, 20, 16]]).tolist() == [False, True], "Bohrung"
+    erster.Operations.Group = [op]
+    doc.removeObject(bohren.Name)
+    doc.recompute()
     doc.saveAs(str(profil / "raeumlicher_materialstand.FCStd"))
     info = {
         "restvolumen_mm3": q.volumen,
