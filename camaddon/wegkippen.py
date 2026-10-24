@@ -52,6 +52,10 @@ WINKEL_SCHRITT = 1.0  # Grad
 RICHTUNGEN = 8  # so viele Richtungen ringsum, wenn die Steigung nicht reicht
 ZUGABE = 1.0  # mm – so viel mehr als die kürzeste Auskragung zeigt der Assistent (bedarf)
 GLAETTEN = 5.0  # mm – im Umkreis entlang der Bahn gilt die größte Neigung
+# Nach dem Nachprüfen (ohne_zappeln): Täler bis so tief (Grad) im Umkreis (mm Weg) aufgefüllt – die
+# Achse kippte an der Kavität sonst 360-mal kurz vor und zurück (Rundachse A: 1000 Wenden).
+ZAPPEL_HUB = 2.0
+ZAPPEL_UMKREIS = 10.0
 RING_ABSTAND = 2.0  # mm – so dicht liegen die Punkte auf Halter und Schaft
 BEWEGUNG = ("G0", "G00", "G1", "G01")
 EILGANG = ("G0", "G00")
@@ -523,6 +527,28 @@ def pruefen(huelle, mitten, koerper_, kugel_radius, winkel, richtung, roh, winke
     return winkel, richtung, geht
 
 
+def wenden(winkel):
+    """Wie oft die Neigung entlang der Bahn von steigend auf fallend wechselt oder umgekehrt."""
+    d = np.diff(np.asarray(winkel, dtype=float))
+    d = d[np.abs(d) > 1e-9]
+    return int(np.count_nonzero(np.sign(d[1:]) != np.sign(d[:-1]))) if len(d) > 1 else 0
+
+
+def ohne_zappeln(huelle, mitten, koerper_, kugel_radius, winkel, richtung, geht, roh, winkel_max):
+    """(Neigung, Richtung, geht) nach pruefen(): Täler der Neigung, höchstens ZAPPEL_HUB tief, im
+    Umkreis ZAPPEL_UMKREIS (mm Weg) aufgefüllt – die Achse kippt ein Stück weiter, statt kurz
+    zurück und wieder vor (pruefen() kippt anstoßende Stellen einzeln weiter). Dann alles noch
+    einmal nachgeprüft; bringt es nichts oder stößt mehr an, bleibt es wie es war."""
+    hoeher, _ = geglaettet(mitten, winkel, richtung, ZAPPEL_UMKREIS)
+    ziel = np.minimum(hoeher, winkel + ZAPPEL_HUB)
+    if not (ziel > winkel + 1e-9).any():
+        return winkel, richtung, geht
+    neu = pruefen(huelle, mitten, koerper_, kugel_radius, ziel, richtung, roh, winkel_max)
+    if wenden(neu[0]) >= wenden(winkel) or np.count_nonzero(~neu[2]) > np.count_nonzero(~geht):
+        return winkel, richtung, geht
+    return neu
+
+
 def _ab(huelle, mitte, richtung, von, koerper_, kugel_radius, winkel_max):
     """Die kleinste Neigung ab `von` in `richtung` (je eine Stelle), bei der nichts anstößt – inf,
     wenn keine bis `winkel_max` geht."""
@@ -589,6 +615,9 @@ def achsen(
     winkel, richtung = geglaettet(mitten, roh[0], roh[1])
     winkel, richtung, geht = pruefen(
         huelle, mitten, koerper_, kugel_radius, winkel, richtung, roh, winkel_max
+    )
+    winkel, richtung, geht = ohne_zappeln(
+        huelle, mitten, koerper_, kugel_radius, winkel, richtung, geht, roh, winkel_max
     )
     je_satz = {
         i: tuple(a) for (i, _p, _e), a in zip(vorschub, _gekippt(richtung, winkel), strict=True)

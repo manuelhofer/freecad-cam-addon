@@ -199,19 +199,26 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=F
             neu_punkte.append(nach)
             neu_rund.append(r_nach)
             return
-        achse = [(u + v) / 2 for u, v in zip(von.achse, nach.achse, strict=True)]
-        n = FreeCAD.Vector(*achse)
-        if n.Length < 1e-9:
-            neu_punkte.append(nach)
-            neu_rund.append(r_nach)
-            return
-        n.normalize()
-        werte = _nachfuehren(maschine, n, [r_von[b] for b in buchstaben])
-        if werte is None:
-            neu_punkte.append(nach)
-            neu_rund.append(r_nach)
-            return
-        r_mitte = {b: sw._rund(w) for b, w in zip(buchstaben, werte, strict=True)}
+        # Die Rundachsen in der Mitte gemittelt – so dreht die Maschine zwischen zwei Sätzen ohnehin.
+        # Bis 0.280.9 die Werkzeugachsen gemittelt: Zwischen zwei gleich stark gekippten Achsen
+        # ist ihr Mittel weniger gekippt, A tauchte kurz ab und kam zurück (Wegkippen an der
+        # Kavität: 1000 Wenden von A, wo die Neigung 292-mal wendet).
+        r_mitte = {b: sw._rund((r_von[b] + r_nach[b]) / 2) for b in buchstaben}
+        n = _richtung(maschine, r_mitte)
+        if n is None:
+            achse = [(u + v) / 2 for u, v in zip(von.achse, nach.achse, strict=True)]
+            n = FreeCAD.Vector(*achse)
+            if n.Length < 1e-9:
+                neu_punkte.append(nach)
+                neu_rund.append(r_nach)
+                return
+            n.normalize()
+            werte = _nachfuehren(maschine, n, [r_von[b] for b in buchstaben])
+            if werte is None:
+                neu_punkte.append(nach)
+                neu_rund.append(r_nach)
+                return
+            r_mitte = {b: sw._rund(w) for b, w in zip(buchstaben, werte, strict=True)}
         bezug_mitte = [
             (u + v) / 2
             for u, v in zip(bezugspunkt(von, bezug), bezugspunkt(nach, bezug), strict=True)
@@ -238,6 +245,19 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=F
         else:
             halbieren(punkte[i - 1], punkte[i], rund[i - 1], rund[i], 0)
     return neu_punkte, neu_rund
+
+
+def _richtung(maschine, rund):
+    """Die Werkzeugachse am Werkstück (normiert) bei den Rundachsen `rund` – None, wenn die
+    Maschine dort keine hat."""
+    try:
+        n = FreeCAD.Vector(maschine.richtung(rund))
+    except Exception:  # noqa: BLE001 – keine Abbildung an dieser Stellung
+        return None
+    if n.Length < 1e-9:
+        return None
+    n.normalize()
+    return n
 
 
 def drehgeschwindigkeiten(maschine, anteil=DREHANTEIL):

@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-29 fuenfachs-ohne-zappeln
+
+### EINGELESEN
+- Manuel: „schau das die werkzeugwege sinnvoll sind vor allem im 5 achs bereich“. Die
+  Maschinensätze (A, C an der Tisch/Tisch-Maschine) des Szenarios „Wegkippen“ (Kavität,
+  3D-Schlichten T3) mitgeschrieben und durchgesehen: A wendete 54-mal kurz (1–2° hin und zurück
+  in höchstens sechs Sätzen), 9 Schnittsätze drehten über 20° (bis 72° auf 32 mm).
+- Zwei Ursachen: (1) `simultan.verdichtet` setzte Zwischenpunkte mit der gemittelten
+  Werkzeugachse – zwischen zwei gleich stark gekippten Achsen ist das Mittel weniger gekippt, A
+  tauchte kurz ab; die Maschine selbst fährt zwischen zwei Sätzen A und C linear. (2)
+  `wegkippen.pruefen` kippt anstoßende Stellen einzeln weiter – die Neigung wendet danach wieder
+  öfter (Wenden 254 → 360).
+
+### DATEIEN
+- `camaddon/simultan.py`: Zwischenpunkte mit dem Mittel der Rundachsen (`_richtung` über
+  `maschine.richtung`); ohne Abbildung dort wie bisher.
+- `camaddon/wegkippen.py`: `ohne_zappeln` – nach dem Nachprüfen Täler der Neigung bis ZAPPEL_HUB
+  (2°) im Umkreis ZAPPEL_UMKREIS (10 mm) auffüllen, alles noch einmal nachprüfen; nur übernommen,
+  wenn es weniger wendet und nicht mehr anstößt. `wenden` zählt.
+- `tests/golden/kuppel_simultan.json`: der Prüfwert der Maschinensätze (gleiche Zahl, gleiche Zeit).
+
+### ERGEBNIS
+- Kavität (Wegkippen), Maschinensätze vorher/nachher: kurze Wenden von A 54 → 21, A dreht im
+  Vorschub 3 457° → 3 019°, Sätze mit mehr als 20° Drehung 9 → 0, Maschinenweg im Vorschub
+  6 441 → 5 768 mm; C wendet kurz 1-mal (wie vorher). Kuppel angestellt und Flanke: keine Sprünge,
+  keine kurzen Wenden.
+- Grün: `test_simultan`, `test_angestellt`, `test_wegkippen`, `test_simultan_planung` (Referenz
+  neu geschrieben); Szenarien `szenario_wegkippen`, `szenario_kugel_angestellt`,
+  `szenario_angestellt`, `szenario_flanke`, `szenario_simultan_bereiche`.
+
 ## P-2026-10-24-28 raeumen-eilgang-direkt-zum-einfahrpunkt
 
 ### EINGELESEN

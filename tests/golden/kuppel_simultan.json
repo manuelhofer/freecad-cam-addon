@@ -4,7 +4,7 @@
   "zeit_s": 73.31471136011677,
   "rest_mm": 0.017734135811949714,
   "befehle": 3597,
-  "befehle_sha256": "2fb9a21dc551fe25895ca45e1f0109a63a608dc93c914337dd3aa3a9f6e0cee7",
+  "befehle_sha256": "aae39c375997fbee35c0e3dca3978ca1d4a79a85261d759041d2be7131850d18",
   "stichprobe": [
     [
       -1.401825,
@@ -340,6 +340,6 @@
       0.0
     ]
   ],
-  "rechenzeit_s": 16.676063380000414,
+  "rechenzeit_s": 10.85661431999688,
   "spitzenspeicher_python_mb": null
 }
