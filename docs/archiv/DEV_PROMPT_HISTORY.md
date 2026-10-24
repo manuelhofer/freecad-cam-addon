@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-02 raeumen-helix-statt-rampe-am-zipfel
+
+### EINGELESEN
+- W-035 (Manuel, 2026-10-18: „alle Zickzack einfahren weg!!!“): Im Volllauf vom 23.10. kehrten
+  noch Rampen um – „Räumen T2“ am Ring von vorn viermal, „Räumen T1“ an den Schwenkteilen je einmal.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: Ein ganzer geschlossener Ring, der selbst umkehrt (ein schmaler
+  Zipfel, `_kehrt_um`: zwei Richtungen um mehr als 120°, wie `pruefstand` zählt), taucht nicht mehr
+  mit der Rampe rundum ein, sondern mit der Helix (`_helix_radius`), wenn eine passt.
+
+### ERGEBNIS
+- `szenario_vierachs_stirnseite`: Kehren 4 → 0 (Helix R 1,8 statt der Rampe um den Zipfel);
+  `szenario_schraeg_anlegen`: 1 → 0 je Teil; im Teil 0 Zellen. `test_raeumen`, `test_testteil`,
+  `test_goldene_bahnen` grün.
 ## P-2026-10-24-01 fase-angeklickt-in-stufen
 
 ### EINGELESEN

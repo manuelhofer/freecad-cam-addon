@@ -1204,7 +1204,14 @@ class _Lage:
                 # und her.
                 oben_hier = self.vorige
                 knapp = min(hoch, self._material_oben(p0) + w.sicherheit)
-                helix = None if ganz else self._helix_radius(p0)
+                # Ein ganzer Ring rundum hinab – außer er kehrt um (ein schmaler Zipfel: die Rampe
+                # rundum wäre dort das Zickzack, am Ring von vorn viermal; Manuel, 2026-10-18:
+                # „alle Zickzack einfahren weg“), dann die Helix, wenn eine passt.
+                helix = (
+                    None
+                    if ganz and not _kehrt_um(proben.x[stellen], proben.y[stellen])
+                    else self._helix_radius(p0)
+                )
                 if helix is not None:
                     # Eine Helix statt der Rampe hin und her (Manuel, 2026-10-12; Spezifikation
                     # Strategien, Abschnitt 5) – über dem höchsten Material auf dem Kreis.
@@ -2780,6 +2787,21 @@ def neuer_adaptiv_kern():
         return not hasattr(area.Adaptive2d(), "helixRampDiameter")
     except Exception:  # ein FreeCAD ohne den Kern
         return False
+
+
+KEHRE = -0.5  # so weit kehrt eine Richtung um (Skalarprodukt; > 120°), wie pruefstand sie zählt
+
+
+def _kehrt_um(x, y):
+    """Kehrt der Linienzug (x, y) irgendwo um – zwei aufeinanderfolgende Richtungen um mehr als
+    120° (wie pruefstand.kehren_im_programm)?"""
+    dx, dy = np.diff(np.asarray(x, dtype=float)), np.diff(np.asarray(y, dtype=float))
+    laenge = np.hypot(dx, dy)
+    da = laenge > _WINZIG
+    if da.sum() < 2:
+        return False
+    ux, uy = dx[da] / laenge[da], dy[da] / laenge[da]
+    return bool((ux[:-1] * ux[1:] + uy[:-1] * uy[1:] < KEHRE).any())
 
 
 def _helix_setzen(kern, durchmesser):

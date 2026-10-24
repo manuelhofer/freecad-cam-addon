@@ -1659,6 +1659,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Schnittlinie selbst ist das Einzige, was dort als frei bekannt ist). Ansatz: die Hüllfläche
   (oder das Netz) aus der Bahn mitgeben, dann eine Helix um den Anfang oder seitlich durch die
   Luft hinein.
+  **P-2026-10-24-02:** Räumen auf einem geschlossenen Ring, der selbst umkehrt (ein Zipfel), mit
+  der Helix statt der Rampe rundum – Ring von vorn 4 → 0 Kehren, Schwenkteile 1 → 0. Offen: Plan
+  indexiert (Drehteil, Mantelnut, Passfeder je 1), Geist (3D-Schlichten 3, Rundum schlichten 1).
   **Nachgemessen:** Die drei am Geist kommen nicht aus `schlicht_anlauf` (der greift nur mit
   Grathöhe) – das 3D-Schlichten hat keine eigene Rampe; dort folgt die Bahn nach einem Eilgang
   der Fläche abwärts und wendet an einer schmalen Stelle, der Zähler nimmt das für eine
