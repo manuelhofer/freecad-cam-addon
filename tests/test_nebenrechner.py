@@ -103,7 +103,7 @@ viele = doc.addObject("Part::Feature", "Viele")
 viele.Shape = Part.makeCompound(
     [Part.makeBox(1, 1, 1, FreeCAD.Vector(2 * i, 0, 0)) for i in range(nr.KLON_SCHWER_AB // 6 + 1)]
 )
-klon = Draft.clone(viele)
+klon = Draft.make_clone(viele)
 klon.Placement = FreeCAD.Placement(FreeCAD.Vector(0, 50, 7), FreeCAD.Rotation(30, 0, 0))
 doc.recompute()
 soll = klon.Shape.BoundBox
