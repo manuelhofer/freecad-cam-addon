@@ -4,8 +4,8 @@
   "anstellung": "frei",
   "sekunden": 39.04301405655266,
   "punkte": 4906,
-  "nc_sha256": "9c6c4e21d414615a89274cdd5508849acdf79bcd4b74b1ebad10e55d2690904b",
+  "nc_sha256": "b5c859b1eae9b2369b7575d3e3517063e146f020eeb2b4e6eaa56fa62bdbf84f",
   "nc_saetze": 5119,
-  "laufzeit_s": 43.29905530600081,
-  "spitzenspeicher_python_mb": 64.2506914138794
+  "laufzeit_s": 41.73796465600026,
+  "spitzenspeicher_python_mb": 64.24876689910889
 }

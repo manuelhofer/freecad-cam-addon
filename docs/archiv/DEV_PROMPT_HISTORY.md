@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-01 voller-lauf-0.281.2-referenzen
+
+### EINGELESEN
+- Ein voller Lauf über die Änderungen der Nacht (0.280.6 bis 0.281.2: STL-Körper, Einfahren,
+  Räumen-Eilgang, 5-Achs-Zwischenpunkte, Wegkippen, lange Halter, 4-Achs-Sätze).
+
+### DATEIEN
+- `tests/golden/freiform_simultan_nc.json`, `kuppel_simultan_gesamt.json`,
+  `kuppel_simultan_gesamt_nc.json`, `simultan_folge.json`: neu geschrieben – nach P-2026-10-24-29
+  haben die eingesetzten Zwischenpunkte die gemittelten Rundachsen; nur die Prüfwerte der Sätze
+  ändern sich (gleiche Satzzahl, gleiche Zeit, Material und Einschnitt geprüft wie vorher).
+
+### ERGEBNIS
+- 171 Szenarien grün, 128 Prüfdateien grün (16,6 min, alles gleichzeitig; Last bis 45).
+  `test_nebenrechner` war im Lauf rot (unter Last öffnete nur einer von drei Arbeitern die große
+  Kopie rechtzeitig), allein grün.
+
 ## P-2026-10-24-31 vierachs-eilgang-ohne-bewegung-weg
 
 ### EINGELESEN
