@@ -174,6 +174,51 @@ _VORLAGEN = {
         36.0,
         (_FLANSCH_SK40, (2.0, 34.4, 31.5), (11.3, 31.5, 31.5), (47.6, 31.5, 24.0)),
     ),
+    # Lang und schlank (Manuel, 2026-10-24: „such auch nach neuen haltern von fräsern die schön
+    # lang sind“) – für tiefe Stellen und 5 Achsen; nach den Zeichnungen ihrer Vorbilder. Die Kehle
+    # nach dem Bund (gewölbt) in Sehnen, die außen liegen; die Nase der Schrumpffutter unter 4,5°
+    # wie bei den kurzen. Die Spanntiefe wie bei den kurzen (Schrumpf) und bei ER16 (Spannzange) –
+    # die Seiten nennen keine.
+    "schrumpf_6_lang": (
+        26.0,
+        (
+            _FLANSCH_SK40,
+            (1.7, 46.3, 41.9),
+            (5.8, 41.9, 41.9),
+            (4.2, 37.3, 37.3),
+            (10.0, 37.3, 33.2),
+            (10.0, 33.2, 30.1),
+            (10.0, 30.1, 28.4),
+            (11.0, 28.4, 27.1),
+            (89.9, 27.1, 27.1),
+            (38.3, 27.1, 21.0),
+        ),
+    ),
+    "schrumpf_12_lang": (
+        36.0,
+        (
+            _FLANSCH_SK40,
+            (1.7, 43.5, 40.9),
+            (6.0, 40.9, 40.9),
+            (3.0, 40.0, 40.0),
+            (11.0, 40.0, 35.6),
+            (10.0, 35.6, 34.0),
+            (10.0, 34.0, 32.9),
+            (14.0, 32.9, 32.1),
+            (74.4, 32.1, 32.1),
+            (50.8, 32.1, 24.0),
+        ),
+    ),
+    "spannzange_schlank": (
+        20.0,
+        (
+            _FLANSCH_SK40,
+            (0.5, 63.55, 35.4),
+            (4.0, 35.4, 27.3),
+            (135.3, 27.3, 12.9),
+            (1.1, 12.9, 12.9),
+        ),
+    ),
     "weldon_20": (
         50.0,
         (_FLANSCH_SK40, (0.3, 53.3, 52.5), (30.8, 52.5, 52.5), (12.8, 52.5, 40.3)),
@@ -212,6 +257,9 @@ VORBILD = {
     "er40": "300470-40",
     "schrumpf_6": "302235-6",
     "schrumpf_12": "302235-12",
+    "schrumpf_6_lang": "302278-6",
+    "schrumpf_12_lang": "302278-12",
+    "spannzange_schlank": "300784-2-6",
     "weldon_20": "300100-20",
     "hydro_20": "302028-20",
     "aufsteck_22": "301017-22",
@@ -225,6 +273,9 @@ SUCHE = {
     "er40": "ER-Spannzangenfutter {aufnahme} ER40",
     "schrumpf_6": "Schrumpffutter {aufnahme} 6",
     "schrumpf_12": "Schrumpffutter {aufnahme} 12",
+    "schrumpf_6_lang": "Schrumpffutter {aufnahme} A = 200 6",
+    "schrumpf_12_lang": "Schrumpffutter {aufnahme} A = 200 12",
+    "spannzange_schlank": "Spannzangenfutter extra schlank {aufnahme}",
     "weldon_20": "Flächenspannfutter {aufnahme} 20",
     "hydro_20": "Hydrodehnspannfutter {aufnahme} 20",
     "aufsteck_22": "Messerkopfaufnahme {aufnahme} 22",
@@ -290,6 +341,9 @@ def vorlage_text(schluessel, vdi=0, aufnahme=None):
         "er40": tr("halter.vorlage.er40", aufnahme=aufnahme),
         "schrumpf_6": tr("halter.vorlage.schrumpf_6", aufnahme=aufnahme),
         "schrumpf_12": tr("halter.vorlage.schrumpf_12", aufnahme=aufnahme),
+        "schrumpf_6_lang": tr("halter.vorlage.schrumpf_6_lang", aufnahme=aufnahme),
+        "schrumpf_12_lang": tr("halter.vorlage.schrumpf_12_lang", aufnahme=aufnahme),
+        "spannzange_schlank": tr("halter.vorlage.spannzange_schlank", aufnahme=aufnahme),
         "weldon_20": tr("halter.vorlage.weldon_20", aufnahme=aufnahme),
         "hydro_20": tr("halter.vorlage.hydro_20", aufnahme=aufnahme),
         "aufsteck_22": tr("halter.vorlage.aufsteck_22", aufnahme=aufnahme),

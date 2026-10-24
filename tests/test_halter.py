@@ -124,6 +124,17 @@ pruefe(
 for schluessel, a_soll in (("er16", 70), ("er25", 70), ("er40", 70), ("weldon_20", 63)):
     h = hl.aus_vorlage(schluessel)
     pruefe(abs(h.laenge - a_soll) < 1e-6 and h.link, f"{schluessel}: A {h.laenge}, {h.link}")
+# Lang und schlank (2026-10-24): so weit reichen sie, vorn so dünn wie das Vorbild.
+for schluessel, a_soll, vorn in (
+    ("schrumpf_6_lang", 200, 21.0),
+    ("schrumpf_12_lang", 200, 24.0),
+    ("spannzange_schlank", 160, 12.9),
+):
+    h = hl.aus_vorlage(schluessel)
+    pruefe(
+        abs(h.laenge - a_soll) < 1e-6 and nahe(h.abschnitte[-1].d_unten, vorn) and h.link,
+        f"{schluessel}: A {h.laenge}, vorn {h.abschnitte[-1].d_unten}, {h.link}",
+    )
 for schluessel in hl.VORLAGEN:
     h = hl.aus_vorlage(schluessel)
     pruefe(h.laenge > 0 and h.name and h.abschnitte, f"Vorlage {schluessel}")

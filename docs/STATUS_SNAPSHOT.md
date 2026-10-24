@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.280.6) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.280.8) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1725,6 +1725,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   liegt im echten, das Schruppen nimmt dort eher weniger – sicher). Am Geist kostete das beim
   Anlegen je Schlichtoperation etwa 30 s Rechnen und spart an der Maschine zusammen gut 2 min
   (Schlichten 71 Wege hinab, 114 s; Vorschlichten 39 s) – vorerst nicht.
+  **Nachgesehen (P-2026-10-24-27):** Die Eilgänge hinab über dem Rest (`_ueber_dem_rest_hinab`)
+  nutzen das Restmodell, das P-2026-10-11-27 als nicht sicher fand – im Voxelmodell an Nase und
+  Geist nachgefahren: kein Eilgang, kein freier Satz nimmt Material.
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte

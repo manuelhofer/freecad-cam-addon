@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-27 lange-halter
+
+### EINGELESEN
+- Manuel, 2026-10-24 spät: „such auch nach neuen haltern von fräsern die schön lang sind“ – „die
+  dann auch direkt mit eingepflegt werden können!“; „schau das die werkzeugwege sinnvoll sind vor
+  allem im 5 achs bereich“.
+- Bei Hoffmann (SK40): Schrumpffutter A = 120 und A = 200 (302256, 302278), Spannzangenfutter
+  „extra schlank“ A = 120/160 (300782, 300784, 2–6 mm, vorn Ø 13), Hydrodehnspannfutter „lang,
+  schlank“ (302085, vorn Ø 49,5 – nicht schlank). Je Spannart ein Vorbild, das längste.
+
+### DATEIEN
+- `camaddon/halter.py`: drei Vorlagen nach den Katalogzeichnungen (dxf_CAD-Vorschau, Kontur je
+  Spalte, Maßstab am Flansch Ø 63,55): `schrumpf_6_lang` (302278-6: Körper Ø 41,9, Kehle auf Ø 27,
+  Ø 27 bis vorn, Nase 4,5° auf Ø 21), `schrumpf_12_lang` (302278-12: Ø 40,9 → Ø 32, Nase auf
+  Ø 24), `spannzange_schlank` (300784-2-6: Kehle auf Ø 27,3, ein Kegel über 135 mm bis Ø 12,9).
+  Die gewölbte Kehle in Sehnen, die außen liegen (sicher für Kollision); Spanntiefe wie die kurzen
+  bzw. ER16 (die Seiten nennen keine). Vorbild-Link und Suche je Aufnahme wie bei den anderen.
+- `translations/de.json`, `en.json`: ihre Namen; `help/de|en/halter.html`: in der Liste.
+- `tests/test_halter.py`: Länge und Ø vorn der drei.
+
+### ERGEBNIS
+- Im Menü „Neu“ der Halter unter den Schrumpffuttern, an jeder Aufnahme. Grün: `test_halter`.
+- Nebenbei nachgesehen (W-035): Die Eilgänge hinab über dem Rest nach dem Schruppen
+  (`_ueber_dem_rest_hinab`, P-2026-10-18-92) stützen sich auf das Restmodell, das P-2026-10-11-27
+  als nicht sichere Obergrenze fand. Im Voxelmodell (0,5 mm, das Schruppen nimmt darin eher
+  weniger) nachgefahren: Nase (Vorschlichten, Schlichten) und Geist (Vorschlichten, Schlichten,
+  2 236 freie Sätze) – kein Eilgang und kein freier Satz nimmt Material.
+
 ## P-2026-10-24-26 einfahren-nur-in-der-anzeige
 
 ### EINGELESEN
