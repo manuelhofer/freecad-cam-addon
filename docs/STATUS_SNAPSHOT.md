@@ -520,8 +520,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-23 abends (0.277.0) – offen, in dieser Reihenfolge:**
-1. *Frage 1 in `docs/OFFENE_FRAGEN.md`* (die Fase am Messspitzenhalter: Schaftfräser in Stufen,
-   Fasenfräser oder drehen) – bis zur Antwort bleiben die 3D-Blöcke dort aus (W-037).
+1. *Fasen (W-037), Manuels Antwort auf Frage 1 (2026-10-24):* „genau wenn sie angeklickt ist und
+   man nur einen schaftfräser hat dann muss der das in stufen machen ... wenn nicht wird sie nicht
+   gemacht .. wenn in der werkzeugverwaltung einfasenfräser ist .. sollte man fragen .. hey willst
+   du den haben ?“ (davor: „A wenns einen gibt“). Also: angeklickt + nur Schaftfräser → in Stufen
+   (Stufe einstellbar, vorbelegt 0,05); nur über „Alles aus dieser Aufspannung“ → nicht gemacht,
+   gesagt; ein Fasenfräser in der Werkzeugverwaltung → als Knopf angeboten.
 2. *W-029 weiter:* das Fertigteil auch für 4-Achs-Jobs (Stange) und 3+2-Ebenen (raum_material).
 3. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
    Hauptprozess, 4-Achs-Schlichten genau beim Anlegen.
