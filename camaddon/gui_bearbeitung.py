@@ -6847,7 +6847,9 @@ class BearbeitungPanel:
         if waagerecht:
             # Die Spindel steht waagerecht: Auch was von oben gefräst wird, kommt in eine Ebene –
             # ohne die Flächen der Flanke (die schwenkt simultan) und mit den Kanten.
-            oben = [n for n in uebrig if not self.flanke.s.passt(form, n)] + list(self.kanten)
+            fuenf = self._fuenfachs()  # die Flanke gibt es nur an der 5-Achs-Fräse
+            oben = [n for n in uebrig if not (fuenf and self.flanke.s.passt(form, n))]
+            oben += list(self.kanten)
             if not self.gewaehlte and not self.kanten:
                 oben = hf.oberseite(form)  # nichts angeklickt: die Oberseite, wie die Blöcke
             if oben:
@@ -7177,7 +7179,7 @@ class BearbeitungPanel:
                 d = groesse_zeigen(senkung.durchmesser, einheiten.LAENGE, 2) or "0"
                 winkel = f"{round(senkung.winkel, 1):g}"
                 text, farbe = tr("ba.flaeche.senkung", name=name, d=d, winkel=winkel), GRUEN
-            elif self.flanke.s.passt(form, name) and self._fuenfachs():
+            elif self._fuenfachs() and self.flanke.s.passt(form, name):
                 z = (
                     groesse_zeigen(ft.flaeche(form, nummer).BoundBox.ZMin, einheiten.LAENGE, 2)
                     or "0"
@@ -7335,6 +7337,7 @@ class BearbeitungPanel:
         # gekippt gespannt); sonst schlügen Planfräsen und Räumen die ganze Oberseite vor.
         weg = set(self._geschwenkt(form)) if self.gewaehlte and not stl else set()
         nur_kanten = bool(self.kanten) and not [n for n in self.gewaehlte if n not in weg]
+        fuenfachs = self._fuenfachs()
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -7350,6 +7353,15 @@ class BearbeitungPanel:
                     block.haken.setEnabled(False)
                     block.haken.setChecked(False)
                     block.erklaerung.setText(nur_dort)
+                    block.zustand_zeigen()
+                    continue
+                if block is self.flanke and not fuenfachs:
+                    # Ohne 5-Achs-Maschine geht die Flanke nie – ihre Mantellinien je Fläche nicht
+                    # erst rechnen (am Testteil 1,4 s, in denen das Fenster stand).
+                    block.moeglich = False
+                    block.haken.setEnabled(False)
+                    block.haken.setChecked(False)
+                    block.erklaerung.setText(tr("ba.fl.ohne_maschine"))
                     block.zustand_zeigen()
                     continue
                 moeglich = block.s.moeglich(form, self._wahl(block))
@@ -7377,8 +7389,6 @@ class BearbeitungPanel:
                     # Mit dem Räumen oder der Nut (sie stehen davor in der Liste) – ein Haken von
                     # Hand bleibt.
                     moeglich = self.raeumen.aktiv() or self._nut_laesst_aufmass()
-                if block is self.flanke and moeglich and not self._fuenfachs():
-                    moeglich, grund = False, tr("ba.fl.ohne_maschine")
                 block.moeglich = moeglich
                 block.haken.setEnabled(moeglich)
                 block.erklaerung.setText(

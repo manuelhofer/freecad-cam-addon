@@ -38,6 +38,7 @@ Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
 import math
+from collections import OrderedDict
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -262,10 +263,28 @@ def _rundung_radius(flaeche):
     return 0.0
 
 
+_FASEN = OrderedDict()  # (Form, Nummer) → _fase(): Der Assistent fragt je angeklickter Fläche nach
+# allen Fasen an ihren Kanten, bei jeder Wahl von vorn (am Testteil stand das Fenster dafür 1 s).
+_FASEN_HOECHSTENS = 4096
+
+
 def _fase(form, nummer, index):
     """Die Fläche `nummer` als gezeichnete Fase (Fase) – schräg nach oben (eben oder Kegel), oder
     als gezeichnete Rundung (Zylinder, Torus); unten an Wänden, oben an einer ebenen Fläche nach
-    oben. None, wenn sie keins von beiden ist."""
+    oben. None, wenn sie keins von beiden ist. Je Form und Fläche gemerkt."""
+    try:
+        schluessel = (form.hashCode(), int(nummer))
+    except Exception:  # noqa: BLE001 – keine Form von FreeCAD: ohne Merken
+        return _fase_rechnen(form, nummer, index)
+    if schluessel not in _FASEN:
+        _FASEN[schluessel] = _fase_rechnen(form, nummer, index)
+        while len(_FASEN) > _FASEN_HOECHSTENS:
+            _FASEN.popitem(last=False)
+    return _FASEN[schluessel]
+
+
+def _fase_rechnen(form, nummer, index):
+    """_fase() ohne Merken."""
     import Part
 
     flaeche = ft.flaeche(form, nummer)

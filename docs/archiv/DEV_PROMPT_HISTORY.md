@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-06 fenster-ohne-flanke-an-3-achs
+
+### EINGELESEN
+- Manuel, 2026-10-24: „und immer daran denken alle cpus zu nutzen“ – und das Fenster darf nie
+  stehen. `pausen.txt` des Testteils: 1,37 s beim Anklicken der Flächen, darin
+  `flanke_bahn.mantellinie` – die Flanke (nur an der 5-Achs-Fräse) rechnete ihre Mantellinien je
+  Fläche auch an der 3-Achs-Fräse.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Ohne 5-Achs-Maschine ist die Flanke gleich „nicht möglich“ (Satz
+  wie bisher), ohne ihre Flächen zu prüfen; Liste und Ebenen fragen sie nur an der 5-Achs-Fräse.
+- `camaddon/entgrat_bahn.py`: `_fase` (gezeichnete Fase an einer Fläche) je Form und Fläche
+  gemerkt – das Entgraten fragte bei jeder Wahl alle Nachbarn neu.
+
+### ERGEBNIS
+- Testteil: längste Pause 1,37 → 1,19 s, ohne Flanke und Fasensuche; was bleibt, ist das Szenario
+  selbst (22 Flächen ohne Pause umgeschaltet, etwa 55 ms je Klick). `szenario_flanke`,
+  `szenario_flanke_halter`, `szenario_fase`, `szenario_entgraten`, `szenario_rundung`,
+  `test_fase`, `test_entgraten` grün.
 ## P-2026-10-24-05 fase-am-echten-teil-und-cam-pruefungen
 
 ### EINGELESEN
