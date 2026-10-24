@@ -526,6 +526,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 (0.281.5) – offen, in dieser Reihenfolge:**
+0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
+   Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
+   A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz
+   vor und zurück); „Rest räumen“ am C-Ring (das Fenster steht nicht mehr beim Einrichten).
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
