@@ -1755,6 +1755,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   ist noch offen. Proben („haupt“, Geist, 906 je 0,25 s): 727 warten in `_ruhen` (keine
   CPU), 27 in `_belegt_von` (/proc/<pid>/statm je Arbeiter, `_arbeit_messen`) – als Nächstes
   nachsehen; der Rest des Fensters (100 s CPU) liegt außerhalb des Addons (Zeichnen, C++).
+  **Nachgesehen (2026-10-24):** `_belegt_von` kostet 5 µs je Lesen (0,5 ms je s) – die Proben
+  fallen dort nur hin, weil das Lesen die GIL freigibt. **Kerne am Geist:** mit 10 GB (Szenario)
+  13,4 Kerne im Mittel, 421 s; mit 26 GB 19,5 Kerne, 433 s – die Summe der Auftragszeit wächst mit
+  (`je_stellung_stueck` 3 174 → 4 770 s, 21 048 Aufträge). 12 echte Kerne sind dort ausgelastet;
+  schneller nur mit weniger Arbeit (die Hüllfläche je Stellung für das Schlichten mit Y).
 - **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
   testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
   bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,
