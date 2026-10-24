@@ -107,7 +107,11 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
     (`spannung.neben_dem_rohteil`).
   - 4 Achsen vor der Stirn der Stange: ganz hinab, dort ist alles Luft.
   - 4 Achsen über dem Teil beim Schlichten: bis zur Sicherheit über den Rest nach dem Schruppen
-    (`vierachs_bahn._vor_der_stange_hinab`, `_ueber_dem_rest_hinab`, 0.268.2).
+    (`vierachs_bahn._vor_der_stange_hinab`, `_ueber_dem_rest_hinab`, 0.268.2) – im Voxelmodell
+    nach dem Schruppen an Nase und Geist nachgefahren: kein Eilgang trifft Material
+    (2026-10-24). An den Ecken der Querbahn (oben drehen, dann hinab) bleibt es beim Vorschub:
+    Dort unterschätzt das Restmodell, was das Schruppen stehen ließ (im Voxelmodell 12 Sätze mit
+    Material).
 - **Unten bleiben statt abheben**, wenn der Weg hinüber frei ist. Sonst nur 2 mm über das
   höchste Material im Umkreis abheben, nicht bis zur Sicherheitshöhe. Beides nur ganz über dem
   Rohteil, denn daneben können Spannmittel stehen.
@@ -142,6 +146,20 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
 - **Die Drehrichtung von C an der Maschine macht nur der Postprozessor.** Stimmt die Bahn in
   FreeCAD, wird nur die Ausgabe geändert, nie Modell oder Bahn (Manuels CLX550: +C nach DIN).
 
+## 7a. 5 Achsen
+
+- **Kippen nur, wo es nötig ist – aber ohne Zappeln.** Das Wegkippen kippt die Achse nur so weit,
+  wie Halter und Schaft es verlangen; kleine Täler der Neigung (bis 3° in 15 mm) füllt es auf,
+  statt kurz zurück und wieder vor zu kippen (`wegkippen.ohne_zappeln`). Alles danach noch
+  einmal gegen Halter und Schaft geprüft (Manuel, 2026-10-24: „schau das die werkzeugwege
+  sinnvoll sind vor allem im 5 achs bereich“).
+- **Zwischen zwei Sätzen fährt die Maschine die Rundachsen linear.** Punkte, die das Programm
+  für die Genauigkeit der Spitze einsetzt, liegen auf genau diesem Weg – mit dem Mittel der
+  Rundachsen, nicht dem der Werkzeugachsen (das kippte A dort kurz weniger; `simultan.verdichtet`).
+- **Kein Sprung im Schnitt:** Kein Satz im Vorschub dreht eine Rundachse um mehr als 20°.
+- **Eilgänge längs einer schrägen Achse kurz halten:** Ein G0 fährt auf vielen Steuerungen keine
+  Gerade – dicht an einer Wand wird daraus kein langer schräger Eilgang.
+
 ## 8. Genau genug
 
 - **Grathöhe statt Schrittweite:** Schlichten fragt „wie glatt“, die Schrittweite folgt aus
@@ -158,6 +176,9 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
 - **Szenarien** spielen den Assistenten durch und schreiben je Operation, wie oft gekehrt und
   wie oft rampt wird (`kehren.txt`). An Manuels Teilen suche ich im Programm nach Zickzack,
   Vorschub durch die Luft (F mitgezählt), F0 und doppelten Sätzen.
+- **5 Achsen:** Die Maschinensätze (A, B, C) werden mitgeschrieben und auf Zappler der
+  Rundachsen (Wenden in höchstens sechs Sätzen), Sprünge im Schnitt, Schwenken auf der Stelle und
+  Eilgang-Umwege durchgesehen (`~/freecad_cam/wip/pruefhelfer/nc5.py`, `umweg.py`).
 - **Maßstab** sind Manuels Teile: die Platte, das Testteil 3-Achs, der C-Ring, die Nase, der
   Geist (STL), der Ring aus drei Segmenten.
 - **Was ich nicht gesehen habe, nenne ich nicht „funktioniert“.** Ob ein Dialog verständlich
@@ -168,10 +189,10 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
 - **Alle Kerne:** Varianten, Vorschauen, Hüllen und Kollisionen rechnen auf den Nebenrechnern,
   einer je Kern. Das Fenster darf dabei nie hängen.
 
-## Offen (Stand 2026-10-18)
+## Offen (Stand 2026-10-25)
 
-- Zickzack: Einige Stellen können die Einfahr-Regel noch verletzen und werden durchgesehen –
-  die Einfahrten der 4-Achs-Zeilen, „Plan indexiert“ auf schrägen Flächen, die Mantelnut ohne
-  Helix-Prüfung, der Anlauf beim Schlichten und kurze Läufe der Kontur (W-035).
-- Alle Kerne: 3D-Schruppen (Varianten), 3D-Schlichten (Richtungen) und das Neuberechnen einer
-  Operation laufen noch auf einem Kern (W-036).
+- Zickzack (W-035): nachgezählt in allen Szenarien – Kehren nur noch, wo sie erlaubt sind (eine
+  geschlossene Nut, so breit wie der Fräser). Hinab an den Ecken der 4-Achs-Querbahn schneller
+  nur mit einem echten 3D-Materialstand (am Geist gut 3 min, Nase 0).
+- Alle Kerne (W-036): Was noch auf einem Kern läuft, ist FreeCADs eigenes Anlegen des Jobs, das
+  Zeichnen und OpenCascade-Schritte, die sich nicht teilen lassen (STL → Körper).
