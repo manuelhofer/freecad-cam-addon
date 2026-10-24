@@ -19,6 +19,7 @@ sie nur aus der Liste, die Datei bleibt.
 Läuft ohne Oberfläche.
 """
 
+import copy
 import json
 import os
 import tempfile
@@ -88,9 +89,30 @@ def gleiche_datei(a, b):
     return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
 
 
+# Je Datei (Änderungszeit, Größe) und ihre Einträge (laden): Ein Klick auf eine Fläche im Assistenten
+# fragt die Liste gut 120-mal – sie von der Platte zu lesen, kostete unter Last spürbar.
+_GELADEN = {}
+
+
 def laden(pfad=None):
-    """[Eintrag] – leer, wenn es die Datei nicht gibt oder sie nicht lesbar ist."""
+    """[Eintrag] – leer, wenn es die Datei nicht gibt oder sie nicht lesbar ist. Je Datei gemerkt,
+    solange sie sich nicht ändert; jeder bekommt eine eigene Kopie."""
     pfad = pfad or datei_pfad()
+    try:
+        stand = os.stat(pfad)
+    except OSError:
+        return []
+    kennung = (stand.st_mtime_ns, stand.st_size)
+    gemerkt = _GELADEN.get(pfad)
+    if gemerkt is not None and gemerkt[0] == kennung:
+        return copy.deepcopy(gemerkt[1])
+    eintraege = _lesen(pfad)
+    _GELADEN[pfad] = (kennung, eintraege)
+    return copy.deepcopy(eintraege)
+
+
+def _lesen(pfad):
+    """laden() ohne das Merken."""
     try:
         with open(pfad, encoding="utf-8") as datei:
             daten = json.load(datei)
@@ -111,6 +133,7 @@ def laden(pfad=None):
 def speichern(eintraege, pfad=None):
     """Schreibt die Liste."""
     pfad = pfad or datei_pfad()
+    _GELADEN.pop(pfad, None)  # auch bei gleicher Größe und gleichem Zeitstempel neu lesen
     os.makedirs(os.path.dirname(pfad), exist_ok=True)
     daten = {"format": FORMAT, "maschinen": [asdict(e) for e in eintraege]}
     with open(pfad, "w", encoding="utf-8") as datei:

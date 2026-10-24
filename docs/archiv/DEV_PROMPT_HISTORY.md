@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-05 maschinenliste-gemerkt
+
+### EINGELESEN
+- Im vollen Lauf stand das Fenster beim Wegkippen 0,8 s in `maschinenspeicher.laden` (unter
+  Last). Nachgemessen: Sieben Klicks auf Flächen lasen die Maschinenliste 854-mal von der Platte
+  (gut 120-mal je Klick, allein zusammen 24 ms; unter Last bremst jeder Dateizugriff).
+
+### DATEIEN
+- `camaddon/maschinenspeicher.py`: `laden` merkt sich die Einträge je Datei nach Änderungszeit
+  und Größe und gibt jedem eine eigene Kopie; `speichern` vergisst sie.
+
+### ERGEBNIS
+- Grün: `test_maschinenspeicher`, `test_magazin`, Szenarien `szenario_maschinen`,
+  `szenario_neue_maschine`, `szenario_magazine`, `szenario_schwenken_maschinenwahl`.
+
 ## P-2026-10-25-04 flanke-ohne-doppelten-satz
 
 ### EINGELESEN
