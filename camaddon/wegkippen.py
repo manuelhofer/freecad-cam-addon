@@ -53,9 +53,10 @@ RICHTUNGEN = 8  # so viele Richtungen ringsum, wenn die Steigung nicht reicht
 ZUGABE = 1.0  # mm – so viel mehr als die kürzeste Auskragung zeigt der Assistent (bedarf)
 GLAETTEN = 5.0  # mm – im Umkreis entlang der Bahn gilt die größte Neigung
 # Nach dem Nachprüfen (ohne_zappeln): Täler bis so tief (Grad) im Umkreis (mm Weg) aufgefüllt – die
-# Achse kippte an der Kavität sonst 360-mal kurz vor und zurück (Rundachse A: 1000 Wenden).
-ZAPPEL_HUB = 2.0
-ZAPPEL_UMKREIS = 10.0
+# Achse kippte an der Kavität sonst kurz vor und zurück (Rundachse A in höchstens sechs Sätzen:
+# 54-mal; mit 2°/10 mm 21, mit 3°/15 mm 9; 4°/20 mm lehnt die Nachprüfung ab).
+ZAPPEL_HUB = 3.0
+ZAPPEL_UMKREIS = 15.0
 RING_ABSTAND = 2.0  # mm – so dicht liegen die Punkte auf Halter und Schaft
 BEWEGUNG = ("G0", "G00", "G1", "G01")
 EILGANG = ("G0", "G00")

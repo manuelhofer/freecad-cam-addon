@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-03 wegkippen-taeler-3-grad
+
+### EINGELESEN
+- Nach P-2026-10-24-29 blieben beim Wegkippen an der Kavität 21 kurze Wenden von A. Versucht:
+  Täler bis 3° im Umkreis 15 mm und bis 4° im Umkreis 20 mm aufzufüllen (je ein Lauf mit den
+  mitgeschriebenen Maschinensätzen, gleichzeitig).
+
+### DATEIEN
+- `camaddon/wegkippen.py`: ZAPPEL_HUB 2 → 3°, ZAPPEL_UMKREIS 10 → 15 mm.
+
+### ERGEBNIS
+- Kavität: kurze Wenden von A 21 → 9, A dreht im Vorschub 3 019° → 2 813°, Maschinenweg im
+  Vorschub 5 768 → 5 605 mm, keine Stelle stößt mehr an als vorher (sonst nähme ohne_zappeln es
+  nicht). 4°/20 mm lehnt die Nachprüfung ab (es bliebe beim Ausgangsstand). Grün:
+  `test_wegkippen`, `szenario_wegkippen`.
+
 ## P-2026-10-25-02 rest-raeumen-kandidaten-auf-allen-kernen
 
 ### EINGELESEN
