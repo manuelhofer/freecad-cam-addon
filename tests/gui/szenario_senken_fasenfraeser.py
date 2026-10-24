@@ -51,7 +51,7 @@ def schritte(h):
         schneidstoff=wz.VHM,
     )
     t7.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.FASEN, vc=80.0, fz=0.04)]
-    wz.Bibliothek([t1, t2, t7]).speichern()
+    wz.Bibliothek([t1, t2]).speichern()  # erst ohne T7
 
     doc = FreeCAD.newDocument("SenkenFase")
     doc.UndoMode = 1
@@ -85,6 +85,22 @@ def schritte(h):
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 60000)
     yield 800
     h.pruefe(not senken.moeglich and not senken.aktiv(), "Senken ohne Kegelsenker möglich")
+    # Ohne Fasenfräser: was fehlt, und der Knopf zur Werkzeugverwaltung.
+    satz = panel.unfertig_satz.text()
+    h.pruefe(
+        panel.unfertig_angebot.isVisible()
+        and "Kegelsenker 90° ab Ø 12,4" in satz
+        and "Spitze bis Ø 6,6" in satz
+        and panel.unfertig_knopf.text() == "Werkzeugverwaltung …",
+        f"fehlt: {satz!r} / {panel.unfertig_knopf.text()!r}",
+    )
+    h.bild("0_was_fehlt", panel.form)
+    # T7 kommt dazu – wie nach „Speichern“ in der Werkzeugverwaltung.
+    wz.Bibliothek([t1, t2, t7]).speichern()
+    panel._werkzeuge_gespeichert()
+    yield 500
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 60000)
+    yield 800
     unfertig = panel.unfertig.text() if panel.unfertig.isVisible() else ""
     h.pruefe(
         senkung in unfertig and "keine angebotene" not in unfertig, f"nicht fertig: {unfertig!r}"

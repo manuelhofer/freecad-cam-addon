@@ -2840,6 +2840,7 @@
     "ba.senken.text": "Senkt mit einem Kegelsenker aus der Werkzeugverwaltung die Senkungen, die das Modell hat – so tief, dass sein Kegel oben den Ø der Senkung hat; ohne Kegelsenker auf Nachfrage mit einem Fasenfräser ihres Winkels. FreeCADs Bohren (G81), nach dem Bohren.",
     "ba.senken.nicht": "Für Senkungen (die kegelige Fläche über einer Bohrung), mit einem Kegelsenker mit ihrem Winkel aus der Werkzeugverwaltung.",
     "ba.senken.angebot": "Für die Senkungen steht kein Kegelsenker mit ihrem Winkel in der Werkzeugverwaltung – {werkzeug} ({winkel}°) kann sie senken: Seine Spitze passt in die Bohrung, sein Kegel ist groß genug. Nehmen?",
+    "ba.senken.fehlt": "Für die Senkung Ø {d} ({winkel}°) fehlt in der Werkzeugverwaltung ein Kegelsenker {winkel}° ab Ø {d} – oder ein Fasenfräser {winkel}° ab Ø {d} mit einer Spitze bis Ø {spitze}.",
     "ba.senker.tooltip": "Ein Kegelsenker aus der Werkzeugverwaltung – vorgewählt der mit dem Winkel der Senkung.",
     "ba.senken_einsatz.tooltip": "Die Schnittwerte – vorgewählt „Senken“.",
     "ba.ergebnis_kegel": "→ {stellen}, {tiefe} tief, etwa {zeit}",

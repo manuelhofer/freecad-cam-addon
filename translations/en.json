@@ -2840,6 +2840,7 @@
     "ba.senken.text": "Countersinks with a countersink tool from the tool management the countersinks the model has – so deep that its cone has the Ø of the countersink on top; without one, on request with a chamfer mill of their angle. FreeCAD's Drilling (G81), after drilling.",
     "ba.senken.nicht": "For countersinks (the conical face above a hole), with a countersink tool of their angle from the tool management.",
     "ba.senken.angebot": "The tool manager has no countersink with their angle – {werkzeug} ({winkel}°) can countersink them: its tip fits into the hole, its cone is big enough. Take it?",
+    "ba.senken.fehlt": "For the countersink Ø {d} ({winkel}°) the tool manager lacks a countersink tool {winkel}° from Ø {d} – or a chamfer mill {winkel}° from Ø {d} with a tip up to Ø {spitze}.",
     "ba.senker.tooltip": "A countersink tool from the tool management – preselected the one with the angle of the countersink.",
     "ba.senken_einsatz.tooltip": "The cutting data – “Countersinking” preselected.",
     "ba.ergebnis_kegel": "→ {stellen}, {tiefe} deep, about {zeit}",

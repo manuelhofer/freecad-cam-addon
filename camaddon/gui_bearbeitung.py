@@ -9183,7 +9183,17 @@ class BearbeitungPanel:
             and block._passende_einsaetze(w, werkstoff)
         ]
         if not passende:
-            return None
+            # Auch kein Fasenfräser: sagen, was fehlt, mit dem Knopf dorthin (Manuel: der nächste
+            # Schritt als Knopf) – an seinem Messspitzenhalter stand nur „nicht fertig“.
+            satz = tr(
+                "ba.senken.fehlt",
+                d=groesse_zeigen(max(x.durchmesser for x in liste), einheiten.LAENGE),
+                winkel=f"{round(liste[0].winkel, 1):g}",
+                spitze=groesse_zeigen(
+                    min((x.unten for x in liste if x.unten > 0), default=0.0), einheiten.LAENGE
+                ),
+            )
+            return dezimal(satz), tr("va.werkzeugverwaltung"), self.werkzeugverwaltung
         werkzeug = passende[0]
         satz = tr(
             "ba.senken.angebot",

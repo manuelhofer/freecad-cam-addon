@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-21 senken-was-fehlt
+
+### EINGELESEN
+- Manuels Werkzeugverwaltung auf diesem Rechner (nur gelesen): zwei bis vier Fräser, Schaft und
+  Kugel – weder Kegelsenker noch Fasenfräser. Das Angebot aus P-20 käme bei ihm nicht; unter
+  „Nicht fertig“ stand nur, dass nichts die Senkung fertig macht.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_senken_angebot` – auch ohne Fasenfräser: was fehlt
+  (`ba.senken.fehlt`: Kegelsenker mit dem Winkel ab dem Ø der Senkung oder Fasenfräser mit
+  Spitze bis zum Ø der Bohrung), Knopf „Werkzeugverwaltung …“.
+- `tests/gui/szenario_senken_fasenfraeser.py`: erst ohne T7 (was fehlt), dann mit T7 wie nach
+  dem Speichern in der Werkzeugverwaltung.
+
+### ERGEBNIS
+- Grün: `szenario_senken_fasenfraeser`, `szenario_fase_stufen`, `szenario_stirn_bund`,
+  `szenario_senken`.
+
 ## P-2026-10-24-20 senken-mit-dem-fasenfraeser
 
 ### EINGELESEN
