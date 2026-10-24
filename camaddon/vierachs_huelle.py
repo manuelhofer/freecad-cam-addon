@@ -375,7 +375,58 @@ def je_versatz(netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte):
     kommt – die Rundachse steht –, mit der Werkzeugachse um q_werte[j] (mm) quer versetzt:
     r[k, j] die Höhe der Spitze längs dieser Richtung an den Stellen a0 + k · schritt;
     KEIN_TREFFER, wo er das Teil nicht trifft („Plan indexiert“, V4c). Wie je_winkel(), nur
-    ist hier je Spalte der Versatz anders, nicht der Winkel."""
+    ist hier je Spalte der Versatz anders, nicht der Winkel – und wie dort gehen viele Versätze
+    an einem großen Netz in Stücken an die Nebenrechner (am Sechskant stand das Fenster beim
+    Anlegen sonst 5,4 s; P-2026-10-24-24)."""
+    q_werte = np.asarray(q_werte, dtype=float)
+    if (
+        len(q_werte) >= PARALLEL_AB_WINKEL
+        and len(q_werte) * len(netz.dreiecke) >= PARALLEL_AB_WINKEL_ARBEIT
+    ):
+        ergebnis = _je_versatz_verteilt(
+            netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte
+        )
+        if ergebnis is not None:
+            return ergebnis
+    return je_versatz_stueck(netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte)
+
+
+def _je_versatz_verteilt(netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte):
+    """je_versatz() auf den Nebenrechnern: die Versätze der Reihe nach in Stücken. None ohne
+    Nebenrechner (dann rechnet der Aufrufer selbst)."""
+    import FreeCAD
+
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return None
+    bereiche = nr.stuecke(len(q_werte), pool.anzahl, je_arbeiter=2, mindestens=WINKEL_JE_STUECK)
+    if len(bereiche) < 2:
+        return None
+    netz_gemeinsam = pool.gemeinsam("vh-netz-" + kennung(netz).hex(), netz)
+    laengs = tuple(float(x) for x in laengs)
+    radial = tuple(float(x) for x in radial)
+    auftraege = [
+        pool.auftrag(
+            "vierachs_huelle", "je_versatz_stueck", netz_gemeinsam, laengs, radial, form,
+            float(phi0), float(a0), schritt, anzahl, q_werte[von:bis],
+        )  # fmt: skip
+        for von, bis in bereiche
+    ]
+    try:
+        teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler as fehler:
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Hüllfläche je Versatz auf den Nebenrechnern gescheitert, rechne hier: "
+            f"{fehler}\n"
+        )
+        return None
+    return np.concatenate(teile, axis=1)
+
+
+def je_versatz_stueck(netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte):
+    """je_versatz() hier, Versatz für Versatz – auch im Nebenrechner für ein Stück davon."""
     l_, u_, v_ = rahmen(laengs, radial)
     punkte = netz.punkte
     a = punkte @ l_
@@ -387,6 +438,7 @@ def je_versatz(netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte):
     kanten = _kanten(netz.dreiecke)
     r = np.full((anzahl, len(q_werte)), KEIN_TREFFER)
     for j, q in enumerate(q_werte):
+        uhren.atmen()  # nur in uhren.atmend(): das Fenster zeichnet neu
         spalte = np.full(anzahl, KEIN_TREFFER)
         _form_treffen(spalte, a, x, y - float(q), kanten, netz.dreiecke, form, float(a0), schritt)
         r[:, j] = spalte

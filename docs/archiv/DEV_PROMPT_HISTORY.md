@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-24 plan-indexiert-je-versatz-auf-allen-kernen
+
+### EINGELESEN
+- Nächste lange Pause des vollen Laufs: beim „Anlegen“ am Sechskant 5,4 s in
+  `vierachs_huelle._kanten_suchen` – über `je_versatz` (die Hüllfläche je Versatz quer bei
+  stehender Rundachse, „Plan indexiert“), Spalte für Spalte im Fenster. `je_winkel`,
+  `je_stellung` und der Schaftfräser waren schon verteilt, `je_versatz` nicht.
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py`: `je_versatz` verteilt ab PARALLEL_AB_WINKEL Versätzen und genug
+  Arbeit (`_je_versatz_verteilt`, `je_versatz_stueck`, wie bei je_winkel); im Stück `uhren.atmen`.
+
+### ERGEBNIS
+- Längste Pause: Sechskant 5,4 → 0,65 s, Stirnseite 1,87 → 0,59 s. Grün: `test_vierachs_huelle`,
+  `test_vierachs_plan`; Szenarien `szenario_vierachs_sechskant`, `szenario_vierachs_nase`,
+  `szenario_vierachs_stirnseite`.
+
 ## P-2026-10-24-23 wegkippen-auf-allen-kernen
 
 ### EINGELESEN
