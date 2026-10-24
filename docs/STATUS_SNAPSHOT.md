@@ -486,9 +486,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   54 → 1 (P-2026-10-25-06), Sätze mit mehr als 20° Drehung 9 → 0.
   **4 Achsen gleich mit durchgesehen (alle 4-Achs-Programme des vollen Laufs):** keine kurzen
   Wenden der Rundachse, außer am Geist (STL) – A wackelt dort um 0,05–0,09°, wo Y quer fährt
-  (Schruppen 43-mal in 110 000 Sätzen, Schlichten 6-mal in 93 000; vermutlich eingesetzte
-  Zwischenpunkte nach `vierachs_quer._halten`, nicht behoben) – und an der Nase, wo 1° breite
-  Sektorzeilen die Richtung wechseln (gewollt).
+  (Schruppen 43-mal in 110 000 Sätzen, Schlichten 6-mal in 93 000) – behoben P-2026-10-25-07
+  (eingesetzte Zwischenpunkte rasteten für sich auf einen anderen ψ) –, und an der Nase, wo 1°
+  breite Sektorzeilen die Richtung wechseln (gewollt).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
@@ -530,7 +530,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.281.7) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.281.8) – offen, in dieser Reihenfolge:**
 0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
    Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
    A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz

@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-07 querachse-ohne-wackeln
+
+### EINGELESEN
+- Durchsicht aller 4-Achs-Programme des vollen Laufs auf kurze Wenden der Rundachse: nur am
+  Geist (STL) – A wackelte dort um 0,05–0,09° hin und her, während Y quer fuhr (Schruppen 43-mal,
+  Schlichten 6-mal, Vorschlichten 1-mal). An deiner CLX hieße das Umkehrspiel mitten im Schnitt.
+- Ursache: `vierachs_quer.stellungen` hält ψ fest, wo es über sechs Punkte um weniger als 0,1°
+  rauscht (`_halten`), und rastet es dann ein. Dieselbe Umrechnung bekamen auch nur die
+  eingesetzten Zwischenpunkte (`vierachs_bahn._nachsehen`, die Übergänge der Kugel) – für sich
+  gehalten rasteten sie auf einen anderen Wert (13,75°) als die Punkte daneben (13,69°).
+
+### DATEIEN
+- `camaddon/vierachs_quer.py`: `stellungen(…, halten=True)` – ohne `halten` ψ genau wie gegeben.
+- `camaddon/vierachs_bahn.py`: die drei `umrechnen` reichen `halten` durch; `_nachsehen` und die
+  Übergänge der Kugel in `_spirale_quer` rechnen ihre Teilmengen ohne Festhalten.
+
+### ERGEBNIS
+- Geist: kurze Wenden von A beim Schruppen 43 → 0, Schlichten 6 → 0, Vorschlichten 1 → 0.
+  Grün: `test_vierachs_bahn`, `test_goldene_bahnen`, `test_vierachs_schlichten`, Szenarien
+  `szenario_vierachs_stl`, `szenario_vierachs_nase`, `szenario_ring_sektoren_y`,
+  `szenario_vierachs_schlichten`, `szenario_vierachs_vorschlichten`.
+
 ## P-2026-10-25-06 wegkippen-mehrere-runden
 
 ### EINGELESEN

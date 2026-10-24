@@ -1511,10 +1511,11 @@ def _schruppen_quer(
         )
         a_p, x_p, q_p, psi_p, fest, normale = _heben_vor_drehen(a_p, x_p, q_p, psi_p, fest, normale)
 
-        def umrechnen(a_m, x_m, q_m, psi_m):
+        def umrechnen(a_m, x_m, q_m, psi_m, halten=True):
             return vq.stellungen(
-                netz, laengs, radial, form, zugabe, a_m, x_m, q_m, psi_m, teil_hinten, teil_vorne
-            )
+                netz, laengs, radial, form, zugabe, a_m, x_m, q_m, psi_m, teil_hinten, teil_vorne,
+                halten=halten,
+            )  # fmt: skip
 
         a_p, x_p, q_p, psi_p, fest, normale = _nachsehen(
             a_p, x_p, q_p, psi_p, fest, normale, umrechnen
@@ -2401,10 +2402,11 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         # Fräsers (vierachs_quer).
         zugabe = w.aufmass + netz.toleranz
 
-        def umrechnen(a_p, x_p, q_p, psi_p):
+        def umrechnen(a_p, x_p, q_p, psi_p, halten=True):
             return vq.stellungen(
-                netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
-            )
+                netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne,
+                halten=halten,
+            )  # fmt: skip
 
         ueber = None
         if ueberspringen:
@@ -2715,10 +2717,11 @@ def wendel_stueck(
     bahnen = 0
     zugabe = w.aufmass + netz.toleranz
 
-    def umrechnen(a_p, x_p, q_p, psi_p):
+    def umrechnen(a_p, x_p, q_p, psi_p, halten=True):
         return vq.stellungen(
-            netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
-        )
+            netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne,
+            halten=halten,
+        )  # fmt: skip
 
     for gang, versatz in spuren:
         # Die Bahn beginnt dort, wo sie `a_vorne` erreicht (auf einen Winkelschritt genau) –
@@ -3646,7 +3649,7 @@ def _spirale_quer(
         )
     elif eingefuegt.any():  # die Kugel: ihr Plan liegt auf der Hüllfläche, die Übergänge nicht
         w = np.flatnonzero(eingefuegt)
-        psi_w, x_w, q_w = umrechnen(a_p[w], x_p[w], q_p[w], psi_p[w])
+        psi_w, x_w, q_w = umrechnen(a_p[w], x_p[w], q_p[w], psi_p[w], halten=False)
         psi_p, x_p, q_p = psi_p.copy(), x_p.copy(), q_p.copy()
         psi_p[w], x_p[w], q_p[w] = psi_w, x_w, q_w
     tiefste = float(np.min(x_p))
@@ -3973,7 +3976,9 @@ def _nachsehen(a, x, q, psi, fest, normale, umrechnen, toleranz=BAHN_TOLERANZ):
         a_m, x_m, q_m, psi_m, n_m = (
             (v[pruefen] + v[pruefen + 1]) / 2 for v in (a, x, q, psi, normale)
         )
-        psi_s, x_s, q_s = (np.asarray(v, dtype=float) for v in umrechnen(a_m, x_m, q_m, psi_m))
+        psi_s, x_s, q_s = (
+            np.asarray(v, dtype=float) for v in umrechnen(a_m, x_m, q_m, psi_m, halten=False)
+        )
         tief = np.flatnonzero(x_m < x_s - toleranz)
         if not len(tief):
             break

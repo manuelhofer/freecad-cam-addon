@@ -52,6 +52,7 @@ def stellungen(
     a_von,
     a_bis,
     psi_raster=PSI_RASTER,
+    halten=True,
 ):
     """Die Stellungen des Fräsers `form` (fraeserform.Form) zum Plan einer Kugel mit seinem
     Radius: je Punkt die Spitze der Kugel x_kugel und der Versatz ihrer Mitte q_kugel in der
@@ -61,10 +62,13 @@ def stellungen(
     vierachs_bahn._spirale_rechnen). Längs rechnet sie
     zwischen a_von und a_bis (das Teil): davor und dahinter wie an seinem Ende – gerade weiter
     (wie _auffuellen). Wo der Fräser in seiner Stellung nichts trifft, steht die Spitze dort, wo
-    die der Kugel stünde."""
+    die der Kugel stünde. Ohne `halten` ψ genau wie gegeben – für einzelne eingesetzte Punkte
+    zwischen schon gehaltenen (vierachs_bahn._nachsehen): Für sich gehalten rasteten sie auf
+    einen anderen Wert als ihre Nachbarn, und die Rundachse wackelte am Geist Satz um Satz um
+    0,06° hin und her."""
     radius = form.radius
     psi_plan = np.asarray(psi, dtype=float)  # der Rahmen, in dem die Mitte gegeben ist
-    psi = _halten(psi_plan, psi_raster)
+    psi = _halten(psi_plan, psi_raster) if halten else psi_plan.copy()
     mitte_x = np.asarray(x_kugel, dtype=float) + radius
     mitte_q = np.asarray(q_kugel, dtype=float)
     stelle = np.clip(np.asarray(a, dtype=float), a_von, a_bis)
