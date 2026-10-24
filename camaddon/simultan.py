@@ -345,6 +345,7 @@ def programm_ohne_tcpm(
     eil_dreh = drehgeschwindigkeiten(maschine, 1.0) if g93 else {}
     eil_linear = eilganggeschwindigkeit(maschine) if g93 else 0.0
     abbildungen = {}  # je Stellung einmal gerechnet – die meisten Punkte teilen sie
+    lage_davor = None
     for punkt, stellung in zip(punkte, rund, strict=True):
         schluessel = tuple(sorted(stellung.items()))
         if schluessel not in abbildungen:
@@ -356,6 +357,10 @@ def programm_ohne_tcpm(
         werte.update(stellung)
         if punkt.vorschub > 0:
             vorschub = float(punkt.vorschub)
+        lage = tuple(round(float(werte[k]), 6) for k in sorted(werte))
+        if lage == lage_davor:
+            continue  # dieselbe Lage aller Achsen – nichts zu fahren (am Übergang zweier Bahnen)
+        lage_davor = lage
         if not punkt.eilgang and vorschub > 0:
             if g93:
                 zeit = 0.0

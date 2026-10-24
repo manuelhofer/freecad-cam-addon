@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-10 5achs-doppelte-saetze-weg
+
+### EINGELESEN
+- Durchsicht der 5-Achs-Programme ohne TCPM (Freiform 5 Achsen, Simultan-Dialog, Flanke an der
+  Formschräge): je Programm ein Eilgang zweimal hintereinander, am Übergang zweier Bahnen.
+
+### DATEIEN
+- `camaddon/simultan.py` (`programm_ohne_tcpm`): ein Punkt, an dem alle Achsen der Maschine
+  stehen wie im Satz davor, gibt keinen Satz (wie schon mit TCPM); Materialdaten und
+  Verbindungen bleiben Satz für Satz passend.
+- `tests/test_simultan.py`: derselbe Punkt zweimal → dieselben Sätze und Materialdaten wie einmal.
+
+### ERGEBNIS
+- Keine doppelten Sätze mehr in den 5-Achs-Programmen. Grün: `test_simultan`,
+  `test_goldene_bahnen`, `test_simultan_folge`, `test_simultan_gesamt`,
+  `test_simultan_export_referenz`.
+
 ## P-2026-10-25-09 stl-mehrere-koerper
 
 ### EINGELESEN

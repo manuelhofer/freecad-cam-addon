@@ -92,6 +92,14 @@ for bauplan in (
         "Materialdaten ändern NC-Befehle",
     )
     pruefe(len(markiert) == len(materialdaten), "Materialdaten passen nicht zu NC-Sätzen")
+    # Derselbe Punkt zweimal (Übergang zweier Bahnen): ein Satz, die Materialdaten passend.
+    doppelt = []
+    einmal = si.programm_ohne_tcpm(maschine, probe[:2] + probe[1:], g93=True, materialdaten=doppelt)
+    pruefe(
+        [c.toGCode() for c in einmal] == [c.toGCode() for c in markiert]
+        and doppelt == materialdaten,
+        f"{name}: doppelter Punkt {[c.toGCode() for c in einmal]}",
+    )
     pruefe(
         any(c.Name == "G1" and daten[0] for c, daten in zip(markiert, materialdaten, strict=True)),
         "Umgeschriebener Eilgang nicht erhalten",
