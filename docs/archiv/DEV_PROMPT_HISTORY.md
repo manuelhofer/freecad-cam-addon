@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-06 wegkippen-mehrere-runden
+
+### EINGELESEN
+- Beim Absichern von P-2026-10-24-29 mit einer Prüfung: Im Prüffall (rechte Seite der Kavität)
+  wendete die Neigung nach dem Auffüllen seltener (23 → 18), aber zweimal kurz – das Nachprüfen
+  danach kippt anstoßende Stellen einzeln weiter, das gibt Spitzen.
+
+### DATEIEN
+- `camaddon/wegkippen.py`: `ohne_zappeln` füllt bis zu ZAPPEL_RUNDEN (3) Mal auf und prüft nach
+  – eine Spitze der Runde davor wird in der nächsten zum Plateau; genommen wird der Stand mit den
+  wenigsten kurzen Wenden (`kurze_wenden`, neu), dann den wenigsten überhaupt, nie einer, an dem
+  mehr anstößt.
+- `tests/test_wegkippen.py`: keine kurze Wende, höchstens 15 Wenden.
+
+### ERGEBNIS
+- Prüffall: 0 kurze Wenden, 10 statt 23 Wenden, 255° statt 301° gekippt. Ganze Kavität,
+  Maschinensätze: kurze Wenden von A 9 → 1 (vor P-29: 54), A dreht im Vorschub 2 473° (vor
+  P-29: 3 457°), Maschinenweg im Vorschub 5 336 mm (6 441). Grün: `test_wegkippen`,
+  `szenario_wegkippen`.
+
 ## P-2026-10-25-05 maschinenliste-gemerkt
 
 ### EINGELESEN

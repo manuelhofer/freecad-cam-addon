@@ -147,6 +147,22 @@ print(
 pruefe(len(achsen) == len(op.Path.Commands), "Achsen je Satz")
 pruefe((neigung > 0.5).sum() > 20 and neigung.max() <= 30.0 + 1e-6, f"Neigung bis {neigung.max()}")
 
+
+zappeln = wk.kurze_wenden(neigung)
+gekippt_zusammen = float(np.abs(np.diff(neigung)).sum())
+print(
+    ascii(
+        f"Wegkippen: {zappeln} kurze Wenden der Neigung, alle Wenden {wk.wenden(neigung)}, "
+        f"zusammen {gekippt_zusammen:.0f} Grad gekippt"
+    )
+)
+# Ohne Zappeln (P-2026-10-24-29, P-2026-10-25-06): nie kurz vor und zurück, und seltener
+# hin und her als nur nachgeprüft (dort 23 Wenden, 301° gekippt; jetzt 10 und 255°).
+pruefe(
+    zappeln == 0 and wk.wenden(neigung) <= 15,
+    f"Wegkippen zappelt: {zappeln} kurze Wenden, {wk.wenden(neigung)} insgesamt",
+)
+
 asm, ma = beispielmaschine.fuenfachs_tisch_tisch()
 pruefung = rw.Pruefung(asm, ma)
 null = rw.nullpunkt(job)

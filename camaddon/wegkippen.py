@@ -57,6 +57,8 @@ GLAETTEN = 5.0  # mm – im Umkreis entlang der Bahn gilt die größte Neigung
 # 54-mal; mit 2°/10 mm 21, mit 3°/15 mm 9; 4°/20 mm lehnt die Nachprüfung ab).
 ZAPPEL_HUB = 3.0
 ZAPPEL_UMKREIS = 15.0
+ZAPPEL_RUNDEN = 3  # so oft höchstens: Das Nachprüfen kippt einzelne Stellen weiter – die Spitze
+# füllt die nächste Runde auf.
 RING_ABSTAND = 2.0  # mm – so dicht liegen die Punkte auf Halter und Schaft
 BEWEGUNG = ("G0", "G00", "G1", "G01")
 EILGANG = ("G0", "G00")
@@ -535,19 +537,44 @@ def wenden(winkel):
     return int(np.count_nonzero(np.sign(d[1:]) != np.sign(d[:-1]))) if len(d) > 1 else 0
 
 
+def kurze_wenden(winkel, stellen=6, hub=2.0):
+    """Wie oft die Neigung in höchstens `stellen` Schritten um weniger als `hub` Grad hin und
+    zurück geht – das kurze Vor und Zurück (Schritte unter 0,01° zählen nicht)."""
+    werte = np.asarray(winkel, dtype=float)
+    zahl, richtung, wende_i, wende_w = 0, 0, 0, float(werte[0]) if len(werte) else 0.0
+    for i in range(len(werte) - 1):
+        d = float(werte[i + 1] - werte[i])
+        if abs(d) < 0.01:
+            continue
+        vz = 1 if d > 0 else -1
+        if richtung and vz != richtung:
+            if i - wende_i <= stellen and 0.05 < abs(float(werte[i]) - wende_w) < hub:
+                zahl += 1
+            wende_i, wende_w = i, float(werte[i])
+        richtung = vz
+    return zahl
+
+
 def ohne_zappeln(huelle, mitten, koerper_, kugel_radius, winkel, richtung, geht, roh, winkel_max):
     """(Neigung, Richtung, geht) nach pruefen(): Täler der Neigung, höchstens ZAPPEL_HUB tief, im
     Umkreis ZAPPEL_UMKREIS (mm Weg) aufgefüllt – die Achse kippt ein Stück weiter, statt kurz
-    zurück und wieder vor (pruefen() kippt anstoßende Stellen einzeln weiter). Dann alles noch
-    einmal nachgeprüft; bringt es nichts oder stößt mehr an, bleibt es wie es war."""
-    hoeher, _ = geglaettet(mitten, winkel, richtung, ZAPPEL_UMKREIS)
-    ziel = np.minimum(hoeher, winkel + ZAPPEL_HUB)
-    if not (ziel > winkel + 1e-9).any():
-        return winkel, richtung, geht
-    neu = pruefen(huelle, mitten, koerper_, kugel_radius, ziel, richtung, roh, winkel_max)
-    if wenden(neu[0]) >= wenden(winkel) or np.count_nonzero(~neu[2]) > np.count_nonzero(~geht):
-        return winkel, richtung, geht
-    return neu
+    zurück und wieder vor. Dann alles noch einmal nachgeprüft; pruefen() kippt anstoßende Stellen
+    einzeln weiter, die Spitze füllt die nächste Runde auf (höchstens ZAPPEL_RUNDEN). Am Ende der
+    Stand mit den wenigsten kurzen Wenden (kurze_wenden), dann den wenigsten überhaupt – nur
+    unter denen, an denen nichts mehr anstößt als vorher."""
+    anstoss = np.count_nonzero(~geht)
+    staende = [(winkel, richtung, geht)]
+    for _runde in range(ZAPPEL_RUNDEN):
+        hoeher, _ = geglaettet(mitten, winkel, richtung, ZAPPEL_UMKREIS)
+        ziel = np.minimum(hoeher, winkel + ZAPPEL_HUB)
+        if not (ziel > winkel + 1e-9).any():
+            break
+        neu = pruefen(huelle, mitten, koerper_, kugel_radius, ziel, richtung, roh, winkel_max)
+        if np.count_nonzero(~neu[2]) > anstoss:
+            break
+        staende.append(neu)
+        winkel, richtung, geht = neu
+    return min(staende, key=lambda st: (kurze_wenden(st[0]), wenden(st[0])))
 
 
 def _ab(huelle, mitte, richtung, von, koerper_, kugel_radius, winkel_max):
