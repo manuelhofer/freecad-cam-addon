@@ -3,8 +3,8 @@
 # 2026-10-24: „mach das alles so das alle zufriden sind“). Erst der Arbeitsbereich CAM mit der
 # Werkzeugleiste des Addons, ein Fenster des Addons geöffnet und geschlossen (Auswahl-Beobachter
 # und -Filter kommen und gehen), dann die Prüfungen. Was dabei scheitert, steht in
-# cam_pruefungen.txt; scheitern darf nur, was ohne Addon genauso scheitert (BEKANNT – mit
-# freecadcmd ohne Addon nachgesehen). TestCAMGui (37) läuft hier nicht: In diesem Szenario-Werkzeug
+# cam_pruefungen.txt; scheitern darf nur, was ohne Addon genauso scheitert (BEKANNT_JE_VERSION – mit
+# freecadcmd ohne Addon nachgesehen, je Version). TestCAMGui (37) läuft hier nicht: In diesem Szenario-Werkzeug
 # stürzt FreeCAD danach in einem Timer ab – auch ohne ein Fenster des Addons, in FreeCAD mit Addon
 # ohne das Werkzeug nicht (2026-10-24: 37 grün, danach weiter bedienbar).
 # ZEITLIMIT: 1500
@@ -14,9 +14,23 @@ import unittest
 import FreeCAD
 import FreeCADGui as Gui
 
-# Ohne Addon genauso rot (Wochen-Build 27.1 dev vom 21.10., freecadcmd -t TestCAMApp): leer, solange
-# keiner gefunden ist.
-BEKANNT = set()
+# Ohne Addon genauso rot (freecadcmd -t TestCAMApp, ohne Addon nachgesehen): im Wochen-Build 27.1 dev
+# vom 21.10. keine; in FreeCAD 1.1.4 test46 und test47 von TestPathOpUtil („BRep_API: command not
+# done“ in offsetWire – OpenCascade 7.9).
+BEKANNT_JE_VERSION = {
+    (1, 1): {
+        "CAMTests.TestPathOpUtil.TestPathOpUtil.test46",
+        "CAMTests.TestPathOpUtil.TestPathOpUtil.test47",
+    },
+}
+
+
+def _bekannt():
+    try:
+        version = tuple(int(x) for x in FreeCAD.Version()[:2])
+    except (ValueError, IndexError):
+        return set()
+    return BEKANNT_JE_VERSION.get(version, set())
 
 
 def _ergebnis(name, modul):
@@ -65,7 +79,7 @@ def schritte(h):
         except Exception as fehler:  # noqa: BLE001 – die Prüfung selbst lädt nicht
             h.pruefe(False, f"{name} lädt nicht: {fehler}")
             continue
-        neu = sorted(set(gescheitert) - BEKANNT)
+        neu = sorted(set(gescheitert) - _bekannt())
         zeilen.append(f"{name}: {anzahl} Prüfungen, gescheitert {len(gescheitert)}")
         zeilen += [f"  {t}" for t in gescheitert]
         print(ascii(f"{name}: {anzahl} Prüfungen, gescheitert {len(gescheitert)}"))

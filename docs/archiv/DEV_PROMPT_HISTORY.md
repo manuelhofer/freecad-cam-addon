@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-07 cam-pruefungen-auch-in-1-1-4
+
+### EINGELESEN
+- FreeCAD-Versionen regelmäßig prüfen: Wochen-Build und Release 1.1.4. Die eigenen Prüfungen von
+  CAM mit dem Addon auch in 1.1.4 laufen lassen.
+- Messung „alle Kerne“ am Geist im 4-Achs-Assistenten (272 s, Kernmitschnitt und Proben des
+  Fensters): im Mittel 13,6 Kerne; die längste Strecke des Fensters allein (7 s) ist das
+  Einfahren des Teils in die Stange (jede Zwischenlage zeichnet 68.242 Flächen) und das Anlegen des
+  Jobs in FreeCAD (C++) – nichts, was sich verteilen ließe. „Anlegen“ am Testteil: 6,1 s, im Mittel
+  etwa 7 Kerne, gut 1 s das Fenster allein. Die Form des Geists aus dem Nebenrechner lesen: 0,3 s
+  (binär 0,2 s – lohnt nicht).
+
+### DATEIEN
+- `tests/gui/szenario_cam_eigene_pruefungen.py`: Was ohne Addon genauso scheitert, je Version
+  (`BEKANNT_JE_VERSION`): in 1.1.4 test46/test47 von TestPathOpUtil (OpenCascade 7.9).
+
+### ERGEBNIS
+- 1.1.4: TestCAMApp 731 Prüfungen, mit Addon nur test47 rot – ohne Addon test46 und test47; das
+  Szenario grün. Wochen-Build: 2093 grün.
 ## P-2026-10-24-06 fenster-ohne-flanke-an-3-achs
 
 ### EINGELESEN
