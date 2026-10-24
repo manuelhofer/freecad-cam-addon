@@ -41,6 +41,9 @@ Enden der Schenkel, dort gäbe es sie nicht.
    (hier nicht: 1,06 gegen 0,96 min). Ihr Vorteil ist der runde Lauf ohne Ecken.
 3. **C – so lassen:** Adaptiv hat den gleichmäßigsten Eingriff (Last unter 1 ae), braucht aber
    etwa doppelt so lange.
+An deinem Testteil ändert A nichts: Dort ist Adaptiv mit 10,35 min ohnehin am schnellsten (die
+Ringe 11,63 min). A liegt fertig und geprüft auf dem Zweig `frage2-a` (nur bei mir, nicht auf
+GitHub).
 *Warum nur Manuel:* Es ändert, was das Addon in jeder Tasche von sich aus wählt. *Was die Antwort
 ändert:* die Wahl der Variante beim Räumen (`raeumen_bahn.planen`), mit B auch die Morph-Spirale
 (`_ringe_morph_tasche`, bis dahin aus). – seit 2026-10-24.
