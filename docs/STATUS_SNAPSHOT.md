@@ -1819,6 +1819,13 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Kernen (im Szenario mit 10 GB; jeder Arbeiter hält das Netz). Reihum verteilt: 222 s
   (`netz.kapseln` fragt je Block den ganzen Bereich ab, 3,4-mal so viel Rechenzeit); kleinere
   Stücke (8 je Arbeiter, ab 100): 70,8 s – kein Gewinn.
+  **Wo die Rechenzeit am Geist hingeht (gemessen 2026-10-25 nachts, `CAMADDON_AUFTRAEGE`):** die
+  Schrupp-Vorschau mit Sektorzeilen und Y – `je_stellung_stueck` 2 052 von gut 3 100 CPU-s (116 s
+  Wanduhr auf allen Kernen), 2,98 Mio. Stellungen in 219 Aufrufen; doppelt nur 6 % (innerhalb eines
+  Aufrufs), über die Lagen nichts, weil die Zeilen quer je Lage anders liegen. Danach
+  Schaftfräser-Hülle 722 s und Halterprüfung 587 s. Weniger Arbeit nur mit Zeilen auf einem festen
+  Raster (dann je Stelle einmal für alle Lagen) oder längs angepasster Dichte – beides ändert die
+  Bahnen; nicht ohne Bild für Manuel.
   **P-2026-10-24-25 (0.280.6):** STL → Körper ohne Nähen (`stl_teil._schale`): am Geist 7,2 →
   4,7 s im einen Nebenrechner am Anfang. Danach rechnet das Fenster gut 6 s allein: die Form
   lesen, `richte_ein` und die Einfahrbewegung des Teils (70 Bilder mit dem Netz des Geists) –
