@@ -129,6 +129,8 @@ for schluessel, a_soll, vorn in (
     ("schrumpf_6_lang", 200, 21.0),
     ("schrumpf_12_lang", 200, 24.0),
     ("spannzange_schlank", 160, 12.9),
+    ("er16_lang", 160, 28.0),
+    ("er25_lang", 160, 42.0),
 ):
     h = hl.aus_vorlage(schluessel)
     pruefe(

@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-30 lange-er-futter
+
+### EINGELESEN
+- Zu den langen Haltern (P-2026-10-24-27): Manuel spannt viel in ER-Zangen, das „extra schlanke“
+  braucht eigene. Bei Hoffmann zur Reihe der vorhandenen ER-Vorlagen (GARANT 300470, A = 70) die
+  lange: GARANT 300530, ER-Spannzangenfutter Form ADB SK 40 A = 160 (ER16 vorn Ø 28, ER25 Ø 42).
+
+### DATEIEN
+- `camaddon/halter.py`: `er16_lang` (Körper nach der Kehle Ø 28,3, gewölbte Kehle in Sehnen
+  0,2 mm außen) und `er25_lang` (Ø 42,4 bis vor die Mutter), Kegel, Gewindehals und Mutter wie
+  bei den kurzen (die Zeichnung zeigt die Mutter schwarz); Vorbild und Suche.
+- `translations/de.json`, `en.json`, `help/de|en/halter.html`, `tests/test_halter.py`.
+
+### ERGEBNIS
+- Grün: `test_halter` (Länge 160, vorn Ø 28 bzw. 42).
+
 ## P-2026-10-24-29 fuenfachs-ohne-zappeln
 
 ### EINGELESEN

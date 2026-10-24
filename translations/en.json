@@ -1428,6 +1428,8 @@
     "halter.vorlage.er25": "ER25 collet chuck · {aufnahme}",
     "halter.vorlage.er32": "ER32 collet chuck · {aufnahme}",
     "halter.vorlage.er40": "ER40 collet chuck · {aufnahme}",
+    "halter.vorlage.er16_lang": "Collet chuck ER16 long (A 160) · {aufnahme}",
+    "halter.vorlage.er25_lang": "Collet chuck ER25 long (A 160) · {aufnahme}",
     "halter.vorlage.schrumpf_6": "Shrink-fit chuck Ø6 · {aufnahme}",
     "halter.vorlage.schrumpf_12": "Shrink-fit chuck Ø12 · {aufnahme}",
     "halter.vorlage.schrumpf_6_lang": "Shrink-fit chuck Ø6 long (A 200) · {aufnahme}",

@@ -176,9 +176,40 @@ _VORLAGEN = {
     ),
     # Lang und schlank (Manuel, 2026-10-24: „such auch nach neuen haltern von fräsern die schön
     # lang sind“) – für tiefe Stellen und 5 Achsen; nach den Zeichnungen ihrer Vorbilder. Die Kehle
-    # nach dem Bund (gewölbt) in Sehnen, die außen liegen; die Nase der Schrumpffutter unter 4,5°
-    # wie bei den kurzen. Die Spanntiefe wie bei den kurzen (Schrumpf) und bei ER16 (Spannzange) –
-    # die Seiten nennen keine.
+    # nach dem Bund (gewölbt) in Sehnen, die außen liegen (an ER16 0,2 mm darüber); die Nase der
+    # Schrumpffutter unter 4,5° und die Spannmutter der ER-Futter wie bei den kurzen (die
+    # Zeichnung zeigt sie schwarz). Die Spanntiefe wie bei den kurzen und bei ER16 (das extra
+    # schlanke) – die Seiten nennen keine.
+    "er16_lang": (
+        20.0,
+        (
+            _FLANSCH_SK40,
+            (0.6, 43.5, 40.5),
+            (2.0, 40.5, 36.6),
+            (2.0, 36.6, 35.1),
+            (4.0, 35.1, 34.2),
+            (8.0, 34.2, 32.4),
+            (8.0, 32.4, 30.8),
+            (8.0, 30.8, 29.6),
+            (8.0, 29.6, 28.8),
+            (8.0, 28.8, 28.3),
+            (62.7, 28.3, 28.3),
+            (3.0, 28.3, 22.0),
+            (8.6, 22.0, 22.0),
+            (18.0, 28.0, 28.0, MUTTER),
+        ),
+    ),
+    "er25_lang": (
+        28.0,
+        (
+            _FLANSCH_SK40,
+            (0.6, 44.0, 42.4),
+            (106.3, 42.4, 42.4),
+            (5.0, 42.4, 32.0),
+            (8.0, 32.0, 32.0),
+            (21.0, 42.0, 42.0, MUTTER),
+        ),
+    ),
     "schrumpf_6_lang": (
         26.0,
         (
@@ -257,6 +288,8 @@ VORBILD = {
     "er40": "300470-40",
     "schrumpf_6": "302235-6",
     "schrumpf_12": "302235-12",
+    "er16_lang": "300530-16",
+    "er25_lang": "300530-25",
     "schrumpf_6_lang": "302278-6",
     "schrumpf_12_lang": "302278-12",
     "spannzange_schlank": "300784-2-6",
@@ -273,6 +306,8 @@ SUCHE = {
     "er40": "ER-Spannzangenfutter {aufnahme} ER40",
     "schrumpf_6": "Schrumpffutter {aufnahme} 6",
     "schrumpf_12": "Schrumpffutter {aufnahme} 12",
+    "er16_lang": "ER-Spannzangenfutter {aufnahme} A = 160 ER16",
+    "er25_lang": "ER-Spannzangenfutter {aufnahme} A = 160 ER25",
     "schrumpf_6_lang": "Schrumpffutter {aufnahme} A = 200 6",
     "schrumpf_12_lang": "Schrumpffutter {aufnahme} A = 200 12",
     "spannzange_schlank": "Spannzangenfutter extra schlank {aufnahme}",
@@ -341,6 +376,8 @@ def vorlage_text(schluessel, vdi=0, aufnahme=None):
         "er40": tr("halter.vorlage.er40", aufnahme=aufnahme),
         "schrumpf_6": tr("halter.vorlage.schrumpf_6", aufnahme=aufnahme),
         "schrumpf_12": tr("halter.vorlage.schrumpf_12", aufnahme=aufnahme),
+        "er16_lang": tr("halter.vorlage.er16_lang", aufnahme=aufnahme),
+        "er25_lang": tr("halter.vorlage.er25_lang", aufnahme=aufnahme),
         "schrumpf_6_lang": tr("halter.vorlage.schrumpf_6_lang", aufnahme=aufnahme),
         "schrumpf_12_lang": tr("halter.vorlage.schrumpf_12_lang", aufnahme=aufnahme),
         "spannzange_schlank": tr("halter.vorlage.spannzange_schlank", aufnahme=aufnahme),
