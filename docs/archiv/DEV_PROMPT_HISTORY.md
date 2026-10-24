@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-23 wegkippen-auf-allen-kernen
+
+### EINGELESEN
+- Manuel: „alle cpus benutzen“. Die längsten Pausen des Fensters im vollen Lauf (pausen.txt):
+  beim „Anlegen“ im Szenario Wegkippen 5,0 s in `wegkippen.hoehe` (über `noetig`: je Stelle die
+  kleinste Neigung, bei der Halter und Schaft frei sind) – auf einem Kern, im Fenster.
+
+### DATEIEN
+- `camaddon/wegkippen.py`: `_noetig_verteilt` – ab NOETIG_VERTEILT_AB Stellen in Stücken auf den
+  Nebenrechnern (je Stelle unabhängig; Höhenfeld und Körper gemeinsam, danach vergessen); `achsen`
+  nimmt es, sonst wie bisher.
+
+### ERGEBNIS
+- `szenario_wegkippen`: längste Pause 5,0 → 0,54 s. Grün: `test_wegkippen`, `szenario_wegkippen`.
+
 ## P-2026-10-24-22 fertigteil-3plus2-schnell-und-mit-bohrung
 
 ### EINGELESEN

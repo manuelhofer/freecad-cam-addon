@@ -387,6 +387,61 @@ def noetig(huelle, mitten, koerper_, kugel_radius, halter_radius, winkel_max=WIN
     return winkel, richtung, geht
 
 
+NOETIG_VERTEILT_AB = 2000  # Stellen: ab so vielen rechnet noetig() auf den Nebenrechnern
+NOETIG_STUECKE_JE_ARBEITER = 3
+
+
+def _noetig_verteilt(huelle, mitten, koerper_, kugel_radius, halter_radius, winkel_max):
+    """noetig() in Stücken der Stellen auf den Nebenrechnern – je Stelle unabhängig; das Höhenfeld
+    und die Körper gehen einmal an jeden Arbeiter. None ohne Nebenrechner, bei wenigen Stellen oder
+    wenn sie scheitern (dann rechnet der Aufrufer selbst). Am Szenario „Wegkippen“ stand das
+    Fenster beim Anlegen 5 s auf einem Kern (P-2026-10-24-23)."""
+    import hashlib
+
+    if len(mitten) < NOETIG_VERTEILT_AB:
+        return None
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return None
+    try:
+        pool = nr.pool()
+        if not pool.verfuegbar() or pool.anzahl < 2:
+            return None
+        kennung_h = (
+            "wk-huelle-" + hashlib.sha1(np.ascontiguousarray(huelle.z).tobytes()).hexdigest()
+        )
+        inhalt = (
+            np.ascontiguousarray(koerper_.halter).tobytes()
+            + np.ascontiguousarray(koerper_.schaft).tobytes()
+            + repr((koerper_.auskragung, koerper_.spiel_halter, koerper_.spiel_schaft)).encode()
+        )
+        kennung_k = "wk-koerper-" + hashlib.sha1(inhalt).hexdigest()
+        h = pool.gemeinsam(kennung_h, huelle)
+        k = pool.gemeinsam(kennung_k, koerper_)
+        anzahl = min(pool.anzahl * NOETIG_STUECKE_JE_ARBEITER, len(mitten) // 200)
+        teile = [t for t in np.array_split(np.arange(len(mitten)), max(2, anzahl)) if len(t)]
+        auftraege = [
+            pool.auftrag(
+                "wegkippen", "noetig", h, mitten[t], k, kugel_radius, halter_radius, winkel_max
+            )
+            for t in teile
+        ]
+        try:
+            ergebnisse = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
+        finally:
+            pool.vergessen(kennung_h)
+            pool.vergessen(kennung_k)
+    except nr.Fehler:
+        return None
+    winkel = np.zeros(len(mitten))
+    richtung = np.zeros((len(mitten), 2))
+    geht = np.zeros(len(mitten), dtype=bool)
+    for t, (w, r, g) in zip(teile, ergebnisse, strict=True):
+        winkel[t], richtung[t], geht[t] = w, r, g
+    return winkel, richtung, geht
+
+
 def geglaettet(punkte, winkel, richtung, umkreis=GLAETTEN):
     """(Neigung, Richtung) entlang der Bahn geglättet: je Stelle die größte Neigung im Umkreis
     `umkreis` (mm Weg), die Richtung gemittelt über die Kippvektoren dort (sin Neigung ·
@@ -528,7 +583,9 @@ def achsen(
         halter, schaft_radius, kugel_radius, auskragung, bis, spiel_halter, spiel_schaft
     )
     nase = halter.abschnitte[-1].d_unten / 2 if halter.abschnitte else halter_radius
-    roh = noetig(huelle, mitten, koerper_, kugel_radius, nase, winkel_max)
+    roh = _noetig_verteilt(huelle, mitten, koerper_, kugel_radius, nase, winkel_max)
+    if roh is None:
+        roh = noetig(huelle, mitten, koerper_, kugel_radius, nase, winkel_max)
     winkel, richtung = geglaettet(mitten, roh[0], roh[1])
     winkel, richtung, geht = pruefen(
         huelle, mitten, koerper_, kugel_radius, winkel, richtung, roh, winkel_max
