@@ -1728,6 +1728,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   **Nachgesehen (P-2026-10-24-27):** Die Eilgänge hinab über dem Rest (`_ueber_dem_rest_hinab`)
   nutzen das Restmodell, das P-2026-10-11-27 als nicht sicher fand – im Voxelmodell an Nase und
   Geist nachgefahren: kein Eilgang, kein freier Satz nimmt Material.
+  **Versucht und zurückgenommen (2026-10-24 nachts):** dieselbe Regel für das Hinab an den Ecken
+  der Querbahn (Freivorschub bis Sicherheit über den Rest) – am Geist im Voxelmodell 12 neue freie
+  Sätze mit Material (105 Voxel à 0,5 mm). An den Ecken unterschätzt das Restmodell, was das
+  Schruppen stehen ließ; schneller hinab dort nur mit einem echten 3D-Materialstand.
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte
