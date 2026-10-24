@@ -25,6 +25,7 @@ from camaddon import fraeserform as ff
 from camaddon import hoehenfeld as hf
 from camaddon import job_schnittwerte as js
 from camaddon import kontur_bahn as kb
+from camaddon import materialstand as mst
 from camaddon import planfraesen_bahn as pb
 from camaddon import pruefstand as ps
 from camaddon import raeumen as ra
@@ -179,6 +180,37 @@ pruefe(
 pruefe(bahn_m.zeit < bahn_a.zeit * 1.15, f"morph: {bahn_m.zeit} min, rohteil {bahn_a.zeit}")
 rest, einschnitt = simuliert(bahn_m, teil_a, rohteil_a, 30.0, 20.0, 0.3)
 pruefe(rest <= 0.05 and einschnitt >= -0.05, f"morph: Rest {rest}, Einschnitt {einschnitt}")
+
+
+# Mit Materialstand (P-2026-10-24-17): Das Rohteil 2 mm höher, eben auf die Oberkante geplant –
+# der Morph gilt weiter (bis dahin sperrte ihn jeder Stand); mit einer Nut davor, 5 tief quer über
+# die Fläche, nicht (seine Ringe führen durch sie hindurch).
+def _stand_geplant(nut=False):
+    quader = rm.Quader(*rohteil_a, 0.0, 32.0, mst.SCHRITT)
+    quader.h[...] = 30.0
+    if nut:
+        quader.h[:, (quader.y > 10.0) & (quader.y < 14.0)] = 25.0
+    return mst.Materialstand(quader, np.full_like(quader.h, 32.0))
+
+
+def _raeumen_mit(stand):
+    ebenen = [e for e in hf.ebenen_oben(teil_a) if abs(e.z - 20.0) < 1e-6]
+    netz = hf.netz_ohne(teil_a, [e.name for e in ebenen])
+    werte = werte_fuer(rohteil_a, 32.0)
+    return rb.planen(netz, werte, ebenen, ra.konturen_des_teils(teil_a), stand=stand)
+
+
+bahn_g = _raeumen_mit(_stand_geplant())
+pruefe(bahn_g.variante == "morph", f"geplant: Variante {bahn_g.variante} {bahn_g.zeiten}")
+pruefe(
+    abs(bahn_g.zeit - bahn_a.zeit) < 0.1 * bahn_a.zeit,
+    f"geplant: {bahn_g.zeit} statt {bahn_a.zeit}",
+)
+rest, einschnitt = simuliert(bahn_g, teil_a, rohteil_a, 30.0, 20.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"geplant: Rest {rest}, Einschnitt {einschnitt}")
+bahn_n = _raeumen_mit(_stand_geplant(nut=True))
+pruefe("morph" not in bahn_n.zeiten, f"mit Nut: Varianten {bahn_n.zeiten}")
+print(ascii(f"Zapfen geplant: {bahn_g.variante} {bahn_g.zeit:.2f} min; mit Nut {bahn_n.variante}"))
 # Vom Rand des Rohteils her bis an den Zapfen: etwa 15 Umläufe – die Spirale in einem Zug, dann
 # der Ring um den Zapfen, der ohne Absatz anschließt.
 pruefe(

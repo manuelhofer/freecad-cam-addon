@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-17 morph-nach-dem-planen
+
+### EINGELESEN
+- STATUS, offen bei W-032: „Die Variante „morph“ bricht mit jedem Materialstand ab
+  (`_KeinMorph`)“. Nachgesehen: Der Morph ist die Variante für offene Flächen mit einem Zapfen
+  (Ringe vom Rohteilrand, die zum Kreis um den Zapfen werden) – an Manuels 50 × 50 mit Zapfen die
+  schnellste (2,70 gegen 3,03 min). Jeder Materialstand sperrte ihn, auch der nach einem
+  Planfräsen davor, das die Oberkante nur eben tiefer legt.
+- Gemessen und verworfen (W-036): die Halterprüfung am Geist reihum statt am Stück verteilt
+  (222 statt 73 s, `netz.kapseln` fragt je Block den ganzen Bereich ab) und in kleineren Stücken
+  (70,8 s, kein Gewinn – im Szenario hält der Speicher die Arbeiter auf etwa 9).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_ueberall_bis` – der Morph gilt mit Materialstand, wenn das
+  Material überall, wohin der Fräser auf der Fläche kommt, noch bis zur ersten Lage steht.
+- `tests/test_raeumen.py`: Zapfen, Rohteil 2 mm höher und eben geplant – Morph 2,70 min, kein
+  Rest, kein Einschnitt; mit einer Nut davor nicht.
+- `tests/test_vierachs_halter.py`: auf den Nebenrechnern dasselbe wie in einem Zug.
+
+### ERGEBNIS
+- Grün: `test_raeumen`, `test_testteil`, `test_goldene_bahnen`, `test_simultan_planung`,
+  `test_materialstand`, `test_vierachs_halter`; Szenarien `szenario_testteil`,
+  `szenario_zielzeit`, `szenario_planen`, `szenario_ring_vorn`, `szenario_bearbeitung_cring_alles`,
+  `szenario_stirn_bund`, `szenario_zapfen`.
+
 ## P-2026-10-24-15 vorschau-schruppbahn-wieder-uebernommen
 
 ### EINGELESEN

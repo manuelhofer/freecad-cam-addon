@@ -2344,7 +2344,7 @@ def _flaeche(
             if tasche is not None and _steht_in_der_tasche(feld, naechste, ziel):
                 st.ausgelassen.append(ebene.name)
             return
-        if hoehe is not None and variante == "morph":
+        if hoehe is not None and variante == "morph" and not _ueberall_bis(feld, hoehe, oben, ziel):
             raise _KeinMorph()  # der Morph fährt ganze Ringe – auch durch Weggefrästes
     anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / zustellung)))
     lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
@@ -2617,6 +2617,16 @@ def _mit_stand(st, feld, stand, material, oben, ziel, zugabe, w):
     endlich = rohteil & np.isfinite(hoehe)
     decke = min(w.oben, float(hoehe[endlich].max()))
     return hoehe, naechste, min(oben, float(naechste[erreicht].max())), decke
+
+
+def _ueberall_bis(feld, hoehe, oben, ziel):
+    """Steht das Material überall, wohin der Fräser auf der Fläche kommt, noch mindestens bis
+    `oben` (die erste Lage) – nur eben tiefer, nirgends schon etwas herausgefräst? Dann fährt
+    der Morph mit seinen ganzen Ringen nirgends durch die Luft: nach dem Planfräsen davor etwa
+    (P-2026-10-24-17; bis dahin sperrte jeder Materialstand den Morph – an Manuels 50 × 50 mit
+    Zapfen der schnellste)."""
+    bereich = feld.rohteil_zellen & feld.aufweiten(feld.erlaubt_feld(ziel, ziel), feld.r)
+    return bool(bereich.any()) and bool((hoehe[bereich] >= oben - GLEICH).all())
 
 
 def _kleinstes_um(werte, k):
