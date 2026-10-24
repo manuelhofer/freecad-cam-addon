@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-08 3achs-eilgang-ohne-bewegung-weg
+
+### EINGELESEN
+- Durchsicht aller 249 Programme des vollen Laufs auf doppelte Sätze: 32, die meisten im
+  3D-Schruppen der Kuppeln (13) – oben der Eilgang zum Einfahrpunkt auf die sichere Höhe, dann
+  „hinab“ auf knapp über das Material, wo das Material bis oben reicht: derselbe Punkt zweimal.
+
+### DATEIEN
+- `camaddon/bahn.py` (`befehle`): Eilgänge ohne Bewegung auslassen, wie schon die Vorschubsätze
+  ohne Weg (gilt für alle 3-Achs-Operationen des Addons).
+- `tests/golden/kuppel_simultan.json`, `kuppel_simultan_gesamt.json`,
+  `kuppel_simultan_gesamt_nc.json`, `simultan_folge.json`: je ein Punkt weniger (der doppelte
+  Eilgang), Zeit und Rest gleich.
+
+### ERGEBNIS
+- Kuppeln „3D-Schruppen T1“: keine doppelten Sätze mehr. Grün: `test_goldene_bahnen`,
+  `test_schruppen3d`, `test_raeumen`, `test_pruefstand`, `test_testteil`, die Simultan-Prüfungen
+  (Referenzen neu), `szenario_restschruppen`.
+
 ## P-2026-10-25-07 querachse-ohne-wackeln
 
 ### EINGELESEN

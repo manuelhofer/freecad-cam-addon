@@ -3,9 +3,9 @@
   "richtung": "x",
   "anstellung": "frei",
   "sekunden": 39.04301405655266,
-  "punkte": 4906,
+  "punkte": 4905,
   "nc_sha256": "b5c859b1eae9b2369b7575d3e3517063e146f020eeb2b4e6eaa56fa62bdbf84f",
   "nc_saetze": 5119,
-  "laufzeit_s": 41.73796465600026,
-  "spitzenspeicher_python_mb": 64.24876689910889
+  "laufzeit_s": 42.01174699800322,
+  "spitzenspeicher_python_mb": 64.24975490570068
 }

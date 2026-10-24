@@ -157,6 +157,8 @@ def befehle(punkte, vorschub, eintauchen=None, kommentar=None):
     for punkt in punkte[1:]:
         werte = {"X": float(punkt.x), "Y": float(punkt.y), "Z": float(punkt.z)}
         if punkt.eilgang:
+            if weg(vorher, punkt) < 1e-6:
+                continue  # ohne Bewegung (hinab auf „knapp“, wo knapp oben ist: 3D-Schruppen)
             ergebnis.append(Path.Command("G0", werte))
         else:
             if weg(vorher, punkt) < 1e-6:
