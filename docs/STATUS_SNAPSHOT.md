@@ -1660,8 +1660,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (oder das Netz) aus der Bahn mitgeben, dann eine Helix um den Anfang oder seitlich durch die
   Luft hinein.
   **P-2026-10-24-02:** Räumen auf einem geschlossenen Ring, der selbst umkehrt (ein Zipfel), mit
-  der Helix statt der Rampe rundum – Ring von vorn 4 → 0 Kehren, Schwenkteile 1 → 0. Offen: Plan
-  indexiert (Drehteil, Mantelnut, Passfeder je 1), Geist (3D-Schlichten 3, Rundum schlichten 1).
+  der Helix statt der Rampe rundum – Ring von vorn 4 → 0 Kehren, Schwenkteile 1 → 0. Die übrigen
+  sind keine verbotenen: „Plan indexiert“ an Drehteil, Mantelnut und Passfeder pendelt in einer
+  geschlossenen Nut auf dem Mantel, so breit wie der Fräser (erlaubt, Abschnitt 5); die drei am
+  Geist („3D-Schlichten T2“) sind Zeilenwenden auf der abfallenden Fläche – die Zeile endet und
+  läuft 0,03 mm daneben zurück, die ganze Zeit fallend, also hält `kehren_im_programm` sie für eine
+  Rampe (Programm ab Satz 51003). Offen nur „Rundum schlichten T2“ am Geist (1, nicht angesehen).
   **Nachgemessen:** Die drei am Geist kommen nicht aus `schlicht_anlauf` (der greift nur mit
   Grathöhe) – das 3D-Schlichten hat keine eigene Rampe; dort folgt die Bahn nach einem Eilgang
   der Fläche abwärts und wendet an einer schmalen Stelle, der Zähler nimmt das für eine
