@@ -1627,11 +1627,90 @@ def _gewachsen(arbeiter):
 
 
 def _belegt_von(pid):
-    """Bytes, die der Prozess `pid` belegt (RSS) – None, wo es sich nicht lesen lässt."""
+    """Bytes, die der Prozess `pid` belegt (RSS; unter Windows der Working Set) – None, wo es sich
+    nicht lesen lässt. Linux aus /proc, Windows und macOS über ihre Systemaufrufe (_belegt_windows,
+    _belegt_mac): Ohne diese Zahl gab der Pool dort jedem freien Arbeiter Arbeit, auch wenn der
+    Speicher nicht mehr reichte."""
     try:
         with open(f"/proc/{pid}/statm", "rb") as datei:
             return int(datei.read().split()[1]) * os.sysconf("SC_PAGE_SIZE")
     except (OSError, ValueError, IndexError, AttributeError):
+        pass
+    if sys.platform == "win32":
+        return _belegt_windows(pid)
+    if sys.platform == "darwin":
+        return _belegt_mac(pid)
+    return None
+
+
+def _belegt_windows(pid):
+    """Der Working Set des Prozesses `pid` unter Windows (K32GetProcessMemoryInfo) – None ohne."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class Zaehler(ctypes.Structure):  # PROCESS_MEMORY_COUNTERS
+            _fields_ = [
+                ("cb", wintypes.DWORD),
+                ("PageFaultCount", wintypes.DWORD),
+                ("PeakWorkingSetSize", ctypes.c_size_t),
+                ("WorkingSetSize", ctypes.c_size_t),
+                ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                ("PagefileUsage", ctypes.c_size_t),
+                ("PeakPagefileUsage", ctypes.c_size_t),
+            ]
+
+        k32 = ctypes.windll.kernel32
+        k32.OpenProcess.restype = wintypes.HANDLE
+        k32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+        k32.CloseHandle.argtypes = (wintypes.HANDLE,)
+        k32.K32GetProcessMemoryInfo.argtypes = (
+            wintypes.HANDLE,
+            ctypes.POINTER(Zaehler),
+            wintypes.DWORD,
+        )
+        griff = k32.OpenProcess(_WIN_NUR_ABFRAGEN, False, int(pid))
+        if not griff:
+            return None
+        try:
+            zaehler = Zaehler()
+            zaehler.cb = ctypes.sizeof(Zaehler)
+            if not k32.K32GetProcessMemoryInfo(griff, ctypes.byref(zaehler), zaehler.cb):
+                return None
+            return int(zaehler.WorkingSetSize)
+        finally:
+            k32.CloseHandle(griff)
+    except Exception:  # noqa: BLE001 – kein Windows, oder der Aufruf fehlt: ohne Zahl
+        return None
+
+
+_WIN_NUR_ABFRAGEN = 0x1000  # PROCESS_QUERY_LIMITED_INFORMATION
+_MAC_TASKINFO = 4  # PROC_PIDTASKINFO
+_MAC_TASKINFO_BYTES = 96  # sizeof(struct proc_taskinfo): 6 × uint64, 12 × int32
+
+
+def _belegt_mac(pid):
+    """Der residente Speicher des Prozesses `pid` unter macOS (libproc: proc_pidinfo,
+    PROC_PIDTASKINFO – pti_resident_size, der zweite uint64) – None ohne."""
+    try:
+        import ctypes
+
+        libproc = ctypes.CDLL("/usr/lib/libproc.dylib")
+        puffer = ctypes.create_string_buffer(_MAC_TASKINFO_BYTES)
+        gelesen = libproc.proc_pidinfo(
+            ctypes.c_int(int(pid)),
+            ctypes.c_int(_MAC_TASKINFO),
+            ctypes.c_uint64(0),
+            puffer,
+            ctypes.c_int(_MAC_TASKINFO_BYTES),
+        )
+        if gelesen < 16:
+            return None
+        return int(ctypes.c_uint64.from_buffer_copy(puffer.raw[8:16]).value)
+    except Exception:  # noqa: BLE001 – kein macOS, oder libproc fehlt: ohne Zahl
         return None
 
 
@@ -1649,7 +1728,7 @@ def speicher_frei():
     """Bytes, die Arbeiter noch belegen dürfen: was das System frei hat (MemAvailable) – in einer
     Speichergrenze (cgroup v2, etwa systemd-run -p MemoryMax) höchstens, was darin frei ist –,
     weniger die Reserve (RESERVE_ANTEIL, RESERVE_MINDESTENS). None, wo sich das nicht lesen lässt
-    (nicht Linux): dann keine Grenze, wie bisher."""
+    (weder Linux noch Windows noch macOS): dann keine Grenze."""
     try:
         werte = {}
         with open("/proc/meminfo", encoding="ascii") as datei:
@@ -1658,11 +1737,82 @@ def speicher_frei():
                 werte[name] = int(rest.split()[0]) * 1024
         gesamt, frei = werte["MemTotal"], werte["MemAvailable"]
     except (OSError, KeyError, ValueError, IndexError):
-        return None
+        system = (
+            _speicher_windows()
+            if sys.platform == "win32"
+            else _speicher_mac() if sys.platform == "darwin" else None
+        )
+        if system is None:
+            return None
+        gesamt, frei = system
     grenze = _cgroup_frei()
     if grenze is not None:
         gesamt, frei = min(gesamt, grenze[0]), min(frei, grenze[1])
     return frei - max(RESERVE_MINDESTENS, RESERVE_ANTEIL * gesamt)
+
+
+def _speicher_windows():
+    """(gesamt, verfügbar) in Bytes unter Windows (GlobalMemoryStatusEx) – None ohne."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class Status(ctypes.Structure):  # MEMORYSTATUSEX
+            _fields_ = [
+                ("dwLength", wintypes.DWORD),
+                ("dwMemoryLoad", wintypes.DWORD),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        status = Status()
+        status.dwLength = ctypes.sizeof(Status)
+        if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+            return None
+        return int(status.ullTotalPhys), int(status.ullAvailPhys)
+    except Exception:  # noqa: BLE001 – kein Windows: ohne Zahl
+        return None
+
+
+def _speicher_mac():
+    """(gesamt, verfügbar) in Bytes unter macOS: gesamt aus sysctl hw.memsize, verfügbar aus
+    vm_stat (frei, inaktiv, spekulativ, löschbar) – None ohne."""
+    try:
+        import ctypes
+
+        libc = ctypes.CDLL("/usr/lib/libc.dylib")
+        gesamt = ctypes.c_uint64(0)
+        groesse = ctypes.c_size_t(ctypes.sizeof(gesamt))
+        if libc.sysctlbyname(b"hw.memsize", ctypes.byref(gesamt), ctypes.byref(groesse), None, 0):
+            return None
+        ausgabe = subprocess.run(
+            ["/usr/bin/vm_stat"], capture_output=True, text=True, timeout=2, check=True
+        ).stdout
+        verfuegbar = _vm_stat_verfuegbar(ausgabe)
+        return (int(gesamt.value), verfuegbar) if verfuegbar is not None else None
+    except Exception:  # noqa: BLE001 – kein macOS, oder vm_stat fehlt: ohne Zahl
+        return None
+
+
+def _vm_stat_verfuegbar(ausgabe):
+    """Bytes, die laut der Ausgabe von macOS' vm_stat verfügbar sind: frei, inaktiv, spekulativ und
+    löschbar, mal der Seitengröße aus der Kopfzeile – None, wenn sie keine hat."""
+    import re
+
+    seite = re.search(r"page size of (\d+) bytes", ausgabe)
+    if seite is None:
+        return None
+    seiten = 0
+    for name in ("Pages free", "Pages inactive", "Pages speculative", "Pages purgeable"):
+        treffer = re.search(re.escape(name) + r":\s+(\d+)", ausgabe)
+        if treffer:
+            seiten += int(treffer.group(1))
+    return seiten * int(seite.group(1))
 
 
 def _cgroup_frei():
@@ -1878,14 +2028,10 @@ _nach_rueckgabe = 0.0  # MB belegt nach der letzten Rückgabe
 
 
 def belegt_mb():
-    """So viel Speicher (MB) belegt dieser Prozess (RSS, Linux) – None, wenn es sich nicht
+    """So viel Speicher (MB) belegt dieser Prozess (RSS; _belegt_von) – None, wenn es sich nicht
     lesen lässt."""
-    try:
-        with open("/proc/self/statm") as datei:
-            seiten = int(datei.read().split()[1])
-        return seiten * os.sysconf("SC_PAGE_SIZE") / 2**20
-    except (OSError, ValueError, IndexError, AttributeError):
-        return None
+    belegt = _belegt_von(os.getpid())
+    return belegt / 2**20 if belegt is not None else None
 
 
 def speicher_zurueckgeben():

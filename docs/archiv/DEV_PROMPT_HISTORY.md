@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-03 nebenrechner-windows-macos
+
+### EINGELESEN
+- Manuel, 2026-10-24 (nach der Kritik der CAM-Entwickler im Discord: Code soll auf allen Systemen
+  laufen): „mach das alles so das alle zufriden sind .. wichtig .. alle cpus müssen genutzt
+  werden!“
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: Speicher eines Arbeiters (`_belegt_von`) und freier Speicher
+  (`speicher_frei`) auch unter Windows (Working Set über K32GetProcessMemoryInfo,
+  GlobalMemoryStatusEx) und macOS (libproc proc_pidinfo, sysctl hw.memsize, vm_stat –
+  `_vm_stat_verfuegbar`); `belegt_mb` über `_belegt_von`. Bis dahin las der Pool nur /proc: Auf
+  Windows und macOS gab er jedem freien Arbeiter Arbeit, auch wenn der Speicher nicht reichte.
+- `camaddon/nebenrechner_arbeiter.py`: Der Wachhund fragt unter Windows den Griff des
+  Hauptprozesses (`_eltern_lebt_windows`) – dort bekommt ein Kind keinen neuen Elternprozess, nach
+  einem Absturz von FreeCAD rechneten die Arbeiter weiter.
+- `tests/test_nebenrechner_systeme.py` (neu).
+
+### ERGEBNIS
+- Unter Linux unverändert (Prüfung: dieselben Zahlen aus /proc); die Wege für Windows und macOS
+  scheitern hier still (None) – geprüft werden kann dort nur von Testern.
 ## P-2026-10-24-02 raeumen-helix-statt-rampe-am-zipfel
 
 ### EINGELESEN

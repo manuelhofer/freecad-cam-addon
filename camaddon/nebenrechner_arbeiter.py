@@ -184,13 +184,42 @@ def _wachhund(eltern, alle=WACHHUND_ALLE):
     (P-2026-10-11-109)."""
     import threading
 
+    # Unter Windows bekommt ein Prozess keinen neuen Elternprozess, wenn seiner endet – os.getppid()
+    # bliebe gleich, und der Arbeiter rechnete nach einem Absturz weiter. Dort fragt er den Griff
+    # des Hauptprozesses (_eltern_lebt_windows).
+    lebt = _eltern_lebt_windows(eltern) if sys.platform == "win32" else None
+
     def wachen():
         while True:
             time.sleep(alle)
-            if os.getppid() != eltern:
+            if (lebt is not None and not lebt()) or (lebt is None and os.getppid() != eltern):
                 os._exit(3)
 
     threading.Thread(target=wachen, daemon=True).start()
+
+
+_WIN_SYNCHRONIZE = 0x00100000
+_WIN_WAIT_TIMEOUT = 0x102  # WaitForSingleObject: läuft noch
+
+
+def _eltern_lebt_windows(eltern):
+    """Unter Windows: eine Funktion, die sagt, ob der Prozess `eltern` noch läuft
+    (WaitForSingleObject auf seinen Griff, ohne zu warten) – None, wo es nicht geht."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        k32 = ctypes.windll.kernel32
+        k32.OpenProcess.restype = wintypes.HANDLE
+        k32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+        k32.WaitForSingleObject.argtypes = (wintypes.HANDLE, wintypes.DWORD)
+        k32.WaitForSingleObject.restype = wintypes.DWORD
+        griff = k32.OpenProcess(_WIN_SYNCHRONIZE, False, int(eltern))
+        if not griff:
+            return None
+    except Exception:  # noqa: BLE001 – kein Windows: der Wachhund fragt os.getppid()
+        return None
+    return lambda: k32.WaitForSingleObject(griff, 0) == _WIN_WAIT_TIMEOUT
 
 
 def _adressraum_begrenzen():
