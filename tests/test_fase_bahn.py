@@ -10,6 +10,7 @@
 # An einem Quader mit gefaster Oberkante (vier ebene Fasen) läuft die Bahn außen herum, Ecken als
 # Bögen, die Stirn streift oben die Oberseite. lagen(): oben je Zustellung, auf der Fase je Stufe.
 # fraeser_passt(): Ø 6 kommt neben dem Bund an die Fase, Ø 12 nicht; außen am Quader auch Ø 12.
+# Die Spitze einer Sackbohrung ist keine Fase.
 import math
 import os
 import sys
@@ -213,6 +214,16 @@ for p in auf_halb:
     dx = max(0.5 - p.x, p.x - 19.5, 0.0)
     dy = max(0.5 - p.y, p.y - 9.5, 0.0)
     pruefe(math.hypot(dx, dy) >= 3.0 - 0.02, f"zu nah an der Fase: {p}")
+
+# Die Spitze einer Sackbohrung (ein Kegel bis in die Spitze) ist keine Fase – an Manuels echtem
+# Messspitzenhalter hielt der Block die Spitzen der Ø 2,5 dafür (die Spitze zählte als Kante).
+platte = Part.makeBox(20, 20, 10)
+bohrung = Part.makeCylinder(1.25, 6, V(10, 10, 5)).fuse(
+    Part.makeCone(0, 1.25, 0.455, V(10, 10, 4.545))
+)
+platte = platte.cut(bohrung)
+spitze = [f"Face{i + 1}" for i, f in enumerate(platte.Faces) if isinstance(f.Surface, Part.Cone)]
+pruefe(spitze and not any(fb.ist_fase(platte, n) for n in spitze), f"Bohrspitze als Fase: {spitze}")
 
 assert not fehler, "\n".join(fehler)
 print("OK", os.path.basename(__file__))

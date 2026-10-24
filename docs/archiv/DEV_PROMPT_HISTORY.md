@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-05 fase-am-echten-teil-und-cam-pruefungen
+
+### EINGELESEN
+- Die Fase an Manuels echtem Messspitzenhalter geprüft (eine Kopie von
+  `messpitzenhalteroberteill.FCStd`, die Stirn nach oben gedreht): Face10 (Kegel 45°, 0,6 breit)
+  ist die Fase, T4 kommt hin, T3 nicht – aber nur 12 von 13 Lagen, und die Spitzen der drei
+  Sackbohrungen Ø 2,5 (Face32–34) galten auch als Fasen.
+- „CAM nicht kaputt machen“ (Manuel, 2026-10-24: „mach das alles so das alle zufriden sind“).
+
+### DATEIEN
+- `camaddon/fase_bahn.py`: Eine Kante ohne Länge (die Spitze eines Kegels, PartDesign-Bohrung mit
+  Spitze) zählt nicht als Unter- oder Oberkante – die Bohrspitze ist keine Fase mehr (sonst hätte
+  „Alles aus dieser Aufspannung“ sie als Fase ausgelassen). Die Fase wird SCHNITT_INNEN (0,0001 mm)
+  innerhalb ihrer Kanten geschnitten (`_schnitthoehen`): Genau auf der Oberkante gab OpenCascade
+  an Manuels Teil zwei Bögen (an der Naht geteilt), der Versatz scheiterte, die oberste Lage fehlte.
+- `tests/test_fase_bahn.py`: die Spitze einer Sackbohrung (ohne die Korrektur rot).
+- `tests/gui/szenario_cam_eigene_pruefungen.py` (neu): FreeCADs eigene Prüfung TestCAMApp im
+  selben FreeCAD wie das Addon, nach einem geöffneten und geschlossenen Fenster des Addons.
+
+### ERGEBNIS
+- Manuels Teil: 13 Lagen, Bohrspitzen keine Fasen, Senkungen bleiben bei „Senken“.
+- TestCAMApp mit Addon: 2093 Prüfungen, 0 gescheitert (ohne Addon ebenso). TestCAMGui (37): mit
+  Addon in FreeCAD grün und danach bedienbar; ohne Addon in reinem FreeCAD 2 rot – am deutschen
+  Dezimalkomma (CAM selbst: „3,175 mm“ statt „3.175“). Im Szenario-Werkzeug stürzt FreeCAD nach
+  TestCAMGui in einem Qt-Timer ab, auch ohne ein Fenster des Addons – darum läuft dort nur
+  TestCAMApp.
 ## P-2026-10-24-04 werkstatt-addon-klar-sagen
 
 ### EINGELESEN

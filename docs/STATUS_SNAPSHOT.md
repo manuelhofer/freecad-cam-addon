@@ -519,15 +519,23 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.278.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.278.4) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
    darunter bietet „Fasen dazu“ an. Manuel soll es an seinem Messspitzenhalter ansehen.
-2. *W-029 weiter:* das Fertigteil auch für 4-Achs-Jobs (Stange) und 3+2-Ebenen (raum_material).
-3. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
+2. *Neben CAM (2026-10-24, nach der Kritik der CAM-Entwickler im Discord):* Manuel bleibt
+   eigenständig (Werkstatt-Addon, kein Geld, Tester willkommen). Erledigt: README sagt, was das
+   Addon ist, Fehlervorlagen auf GitHub, Daten Dritter mit Quellen, Nebenrechner unter Windows und
+   macOS mit Speichergrenze und Wachhund, ihre Zahl in den Einstellungen (vorgegeben alle Kerne),
+   `szenario_cam_eigene_pruefungen` (TestCAMApp mit Addon: 2093 grün). Offen: Frage 1 (Name), der
+   Entwurf für die Forum-Threads (`~/freecad_cam/forum/post_241026_15_klarstellung`, postet
+   Manuel); ein Fehlerbericht an CAM (TestCAMGui scheitert am deutschen Dezimalkomma) nur mit
+   seinem Ja.
+3. *W-029 weiter:* das Fertigteil auch für 4-Achs-Jobs (Stange) und 3+2-Ebenen (raum_material).
+4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
    Hauptprozess, 4-Achs-Schlichten genau beim Anlegen.
-4. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
+5. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
 
 Die Aufträge vom 2026-10-18 früh (Forum-Post, Einrichtblatt mit vc/fz und Koordinatensystem,
 Rohteilmaße in „Bearbeitung“, Nase/Kombination) sind erledigt (P-2026-10-18-84 … -99).

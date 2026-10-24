@@ -7,7 +7,7 @@ in der werkzeugverwaltung ein fasenfräser ist .. sollte man fragen .. hey wills
 
 - Fasen (ist_fase()): eben oder ein Kegel mit senkrechter Achse, keine Wand, schräg nach oben
   (die Normale 0,02 < n.z < 0,98), höchstens GROESSE hoch und breit, mit waagerechter Unter- und
-  Oberkante. Gleich, woran sie anschließt: oben an einer Wand (wie beim Entgraten) oder unten am
+  Oberkante – die Spitze einer Bohrung (ein Kegel bis in die Spitze) nicht. Gleich, woran sie anschließt: oben an einer Wand (wie beim Entgraten) oder unten am
   Grund einer Nut (am Messspitzenhalter steigt sie vom Ringgrund hinauf zum Mantel). Fasen
   gleicher Höhe und gleichen Winkels, die aneinander hängen, sind eine Kette (_gruppen).
 - Mit dem Schaftfräser in Stufen: je Lage – alle `stufe` mm von der Oberkante der Fase bis zur
@@ -53,6 +53,10 @@ VORSCHAU_SCHRITT = kb.VORSCHAU_SCHRITT
 FASE_WINKEL = eb.FASE_WINKEL  # Grad – so genau muss der Kegel des Fasenfräsers zur Fase passen
 MINDEST_ABSTAND = eb.MINDEST_ABSTAND  # mm – so nah höchstens fährt die Achse an der Kante
 MATERIAL = 0.05  # mm – so viel muss über einer Lage stehen, damit es als Material zählt
+# mm – so weit innerhalb der Fase wird sie geschnitten: Genau auf ihrer Ober- oder Unterkante gibt
+# OpenCascade die Kanten des Modells zurück, an Manuels Messspitzenhalter in zwei Bögen an der Naht
+# geteilt – daran scheiterte der Versatz, die oberste Lage fehlte.
+SCHNITT_INNEN = 1e-4
 GLEICH = kb.GLEICH
 
 
@@ -147,6 +151,8 @@ def _fase(form, nummer, index=None, mit_nachbarn=True):
         kbb = kante.BoundBox
         if kbb.ZMax - kbb.ZMin > kb.NAH:
             continue  # eine schräge Kante: das Ende der Fase
+        if kante.Length <= kb.NAH:
+            continue  # die Spitze eines Kegels (die Spitze einer Bohrung): keine Kante
         if abs(kbb.ZMax - bb.ZMin) <= kb.NAH:
             unten.append(kante)
         elif abs(kbb.ZMin - bb.ZMax) <= kb.NAH:
@@ -291,7 +297,7 @@ def fraeser_passt(form, fasen_, radius):
         except Exception:  # noqa: BLE001 – OCC: kein Schnitt, dann nichts im Weg
             schnitt = []
         teil = Part.Compound(schnitt) if schnitt else None
-        for kontur in _schnitte(form, gruppe, gruppe[0].z_unten):
+        for kontur in _schnitte(form, gruppe, _schnitthoehen(gruppe[0])[1]):
             versatz = kb._versatz(kontur, radius, 0.01, max(radius / 4, 0.1))
             if versatz is None:
                 ergebnis = False
@@ -382,8 +388,9 @@ def planen(form, netz_nah, netz_fern, werte, fasen_, schritt=SCHRITT, stand=None
     st = _Stand()
     for gruppe in _gruppen(fasen_):
         f0 = gruppe[0]
-        oben_konturen = _schnitte(form, gruppe, f0.z_oben)
-        unten_konturen = _schnitte(form, gruppe, f0.z_unten)
+        z_oben_schnitt, z_unten_schnitt = _schnitthoehen(f0)
+        oben_konturen = _schnitte(form, gruppe, z_oben_schnitt)
+        unten_konturen = _schnitte(form, gruppe, z_unten_schnitt)
         if not oben_konturen or not unten_konturen:
             st.ausgelassen += 1
             continue
@@ -400,11 +407,11 @@ def planen(form, netz_nah, netz_fern, werte, fasen_, schritt=SCHRITT, stand=None
                 stufen = lagen(f0.z_unten, f0.z_oben, z_material, w.stufe, w.zustellung)
             zuege = []
             for lage in stufen:
-                z_schnitt = min(max(lage, f0.z_unten), f0.z_oben)
+                z_schnitt = min(max(lage, z_unten_schnitt), z_oben_schnitt)
                 if fasenfraeser:
-                    z_schnitt = f0.z_unten
+                    z_schnitt = z_unten_schnitt
                 kontur = _naechste(
-                    (unten_konturen if abs(z_schnitt - f0.z_unten) <= GLEICH else None)
+                    (unten_konturen if abs(z_schnitt - z_unten_schnitt) <= GLEICH else None)
                     or _schnitte(form, gruppe, z_schnitt),
                     mitte,
                 )
@@ -438,6 +445,13 @@ def planen(form, netz_nah, netz_fern, werte, fasen_, schritt=SCHRITT, stand=None
         st.laenge,
         tuple(sorted(st.winkel)),
     )
+
+
+def _schnitthoehen(fase):
+    """(oben, unten): die Höhen, auf denen die Fase für die oberste und unterste Lage geschnitten
+    wird – SCHNITT_INNEN innerhalb ihrer Kanten."""
+    innen = min(SCHNITT_INNEN, (fase.z_oben - fase.z_unten) / 4)
+    return fase.z_oben - innen, fase.z_unten + innen
 
 
 def _mitte(kontur):
