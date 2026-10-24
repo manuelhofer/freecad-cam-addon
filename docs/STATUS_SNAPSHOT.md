@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.280.5) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.280.6) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1789,6 +1789,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Kernen (im Szenario mit 10 GB; jeder Arbeiter hält das Netz). Reihum verteilt: 222 s
   (`netz.kapseln` fragt je Block den ganzen Bereich ab, 3,4-mal so viel Rechenzeit); kleinere
   Stücke (8 je Arbeiter, ab 100): 70,8 s – kein Gewinn.
+  **P-2026-10-24-25 (0.280.6):** STL → Körper ohne Nähen (`stl_teil._schale`): am Geist 7,2 →
+  4,7 s im einen Nebenrechner am Anfang. Danach rechnet das Fenster gut 6 s allein: die Form
+  lesen, `richte_ein` und die Einfahrbewegung des Teils (70 Bilder mit dem Netz des Geists) –
+  Zeichnen, nicht verteilbar.
 - **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
   testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
   bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,

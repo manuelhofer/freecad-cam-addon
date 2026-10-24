@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-25 stl-koerper-ohne-naehen
+
+### EINGELESEN
+- Manuel: „alle cpus benutzen“. Mitschnitt am Geist (4-Achs-Assistent): am Anfang rechnet 10 s
+  lang nur ein Nebenrechner – STL → Körper (`stl_teil.koerper_rechnen`): `makeShapeFromMesh` mit
+  Nähen 3,7 s, `makeSolid` 0,6 s, danach `flaechen_der_dreiecke` 1,7 s (das Nähen ordnet die
+  Flächen um, die Zuordnung je Dreieck wurde über die Ecken gesucht). OpenCascade ist dort ein
+  Kern, teilen lässt es sich nicht – also weniger Arbeit.
+- Die 1,1 s Pause beim Anklicken der Flächen am 3-Achs-Testteil sind 18 Klicks des Szenarios am
+  Stück: je Klick 68 ms, verteilt auf die ersten Prüfungen der neuen Fläche (danach gemerkt) –
+  kein Umbau.
+
+### DATEIEN
+- `camaddon/stl_teil.py`: `_schale` – ein geschlossenes Netz ohne Nähen (`makeShapeFromMesh(…,
+  False)` teilt Ecken und Kanten schon über die Punktnummern und legt Fläche i auf Dreieck i, gibt
+  aber nur einen Verbund); im BRep-Text wird der Verbund zur Schale (`Part.Shell` aus den Flächen
+  bräuchte 30 s für die Namen der Elemente). Geprüft: Schale, so viele Flächen wie Dreiecke,
+  geschlossen aus den Kanten – sonst wie bisher genäht. `koerper_und_bericht` nimmt dann die
+  Zuordnung der Reihe nach (an vier Flächen nachgesehen) statt sie zu suchen.
+- `tests/test_stl_teil.py`: ohne Nähen gültig und in der Reihenfolge der Dreiecke (wie die Suche),
+  offen weiter genäht; über die Datei dieselbe Zuordnung wie gesucht.
+
+### ERGEBNIS
+- Geist STL → Körper 7,2 → 4,7 s, dasselbe Volumen (17 660,871 mm³), gültig. 456 000 Dreiecke
+  (würfelige Kugel): 27 s – genäht nach 6 min noch nicht fertig (abgebrochen). Gleich in FreeCAD
+  1.1.4, 26.3 RC2 und 27.1. Grün: `test_stl_teil` (27.1 und 1.1.4), `test_fertigteil`; Szenarien
+  `szenario_bearbeitung_stl`, `szenario_stl_angebot`, `szenario_stl_anzeige`,
+  `szenario_vierachs_stl`.
+
 ## P-2026-10-24-24 plan-indexiert-je-versatz-auf-allen-kernen
 
 ### EINGELESEN

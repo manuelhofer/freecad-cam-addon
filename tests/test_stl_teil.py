@@ -95,6 +95,14 @@ innen.flipNormals()
 gedreht = stl_teil.koerper(innen)
 pruefe(gedreht.ShapeType == "Solid" and gedreht.Volume > 0, f"nach innen: {gedreht.Volume}")
 pruefe(stl_teil.koerper(offen).ShapeType != "Solid", "offenes Netz als Solid")
+# Geschlossen ohne Nähen (_schale): gültig, Fläche i auf Dreieck i – wie die Suche über die Ecken.
+form_, der_reihe_nach = stl_teil._koerper(netz)
+pruefe(der_reihe_nach and form_.isValid(), f"ohne Nähen: {der_reihe_nach}, {form_.isValid()}")
+pruefe(
+    list(stl_teil.flaechen_der_dreiecke(form_, netz)) == list(range(netz.CountFacets)),
+    "ohne Nähen nicht in der Reihenfolge der Dreiecke",
+)
+pruefe(not stl_teil._koerper(offen)[1], "offen ohne Nähen")
 # vorbereiten() dreht ein Netz, dessen Dreiecke einheitlich nach innen zeigen, nach außen.
 pruefe(stl_teil._volumen(innen) < 0 < stl_teil._volumen(netz), "Volumen ohne Vorzeichen")
 pruefe(stl_teil._volumen(stl_teil.vorbereiten(innen)[0]) > 0, "nach innen bleibt nach innen")
@@ -112,6 +120,10 @@ pruefe(uebertragen.ShapeType == "Solid", "über die Datei kein Solid")
 pruefe(nahe(uebertragen.Volume, form.Volume, 1e-6 * form.Volume), "über die Datei ein anderes")
 pruefe(bericht.dreiecke == netz.CountFacets and bericht.geschlossen, f"Bericht {bericht}")
 pruefe(sorted(zuordnung) == list(range(netz.CountFacets)), "Fläche je Dreieck: nicht jede einmal")
+pruefe(
+    zuordnung == list(stl_teil.flaechen_der_dreiecke(uebertragen, netz)),
+    "Fläche je Dreieck anders als gesucht",
+)
 
 # --- Im Dokument: Körper verweist aufs Netz, Name, nur lesen -------------------------------------
 dok = FreeCAD.newDocument("StlTeil")

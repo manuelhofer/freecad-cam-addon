@@ -24,6 +24,7 @@ Oberfläche; das Fenster dazu in gui_stl.
 """
 
 import math
+import re
 from collections import OrderedDict
 from dataclasses import dataclass
 
@@ -219,30 +220,95 @@ def _punkt_dreieck(q, a, b, c):
 def koerper(netz):
     """Der Körper aus genau den Dreiecken des Netzes (Mesh.Mesh) – ein Solid, wenn das Netz
     geschlossen ist, sonst die Hülle."""
-    huelle = Part.Shape()
-    huelle.makeShapeFromMesh(netz.Topology, NAEHEN)
+    return _koerper(netz)[0]
+
+
+def _koerper(netz):
+    """(koerper(), liegt Fläche i auf Dreieck i?) – geschlossen ohne Nähen (_schale), sonst
+    genäht: Das Nähen ordnet die Flächen um."""
+    schale = _schale(netz) if netz.isSolid() else None
+    if schale is None:
+        huelle = Part.Shape()
+        huelle.makeShapeFromMesh(netz.Topology, NAEHEN)
+    else:
+        huelle = schale
     if not netz.isSolid():  # offen: nur die Hülle (ein Solid daraus wäre keiner)
-        return huelle
+        return huelle, False
     try:
         form = Part.makeSolid(huelle)
     except Part.OCCError:
-        return huelle
+        return huelle, False
     # Kein isValid(): am Geist (68.242 Dreiecke) 4 s – das Netz ist schon als geschlossen geprüft.
     # Das Vorzeichen aus dem Netz (dieselben Dreiecke, dieselbe Richtung): am Geist 0,001 statt
     # 0,7 s für form.Volume.
     volumen = netz.Volume
     if volumen < 0:  # die Dreiecke zeigen nach innen
         form.reverse()
-    return form if volumen != 0 else huelle
+    return (form, schale is not None) if volumen != 0 else (huelle, False)
+
+
+# Der Verbund im BRep-Text: „Co“, eine leere Zeile, die sieben Merkmale (frei, geändert,
+# geprüft, orientierbar, geschlossen, unendlich, konvex).
+_VERBUND = re.compile(r"\nCo\n\n([01]{7})\n")
+
+
+def _schale(netz):
+    """Die Schale eines geschlossenen Netzes ohne Nähen – None, wenn es so nicht geht.
+    `makeShapeFromMesh` ohne Nähen teilt Ecken und Kanten schon über die Nummern der Punkte und
+    legt Fläche i auf Dreieck i, gibt aber nur einen Verbund der Flächen; im BRep-Text wird er
+    zur Schale. Am Geist (68.242 Dreiecke) 2,1 + 1,0 s statt 3,7 s fürs Nähen und 1,7 s, die
+    flaechen_der_dreiecke danach suchte; `Part.Shell` aus den Flächen braucht dort 30 s (die
+    Namen der Elemente). Gleich in FreeCAD 1.1.4, 26.3 und 27.1."""
+    try:
+        verbund = Part.Shape()
+        verbund.makeShapeFromMesh(netz.Topology, NAEHEN, False)
+        text = verbund.exportBrepToString()
+    except Exception:  # noqa: BLE001 – ältere Fassung ohne den dritten Wert, OCC: genäht
+        return None
+    treffer = list(_VERBUND.finditer(text))
+    if len(treffer) != 1:
+        return None
+    merkmale = treffer[0].group(1)
+    merkmale = merkmale[:3] + "11" + merkmale[5:]  # orientierbar, geschlossen
+    text = f"{text[: treffer[0].start()]}\nSh\n\n{merkmale}\n{text[treffer[0].end() :]}"
+    schale = Part.Shape()
+    try:
+        schale.importBrepFromString(text, False)
+    except Exception:  # noqa: BLE001 – OCC
+        return None
+    if (
+        schale.ShapeType != "Shell"
+        or schale.countElement("Face") != netz.CountFacets
+        or not schale.isClosed()  # aus den Kanten, nicht aus dem Merkmal
+    ):
+        return None
+    return schale
 
 
 def koerper_und_bericht(netz, massstab=1.0):
     """(Form, vorbereitetes Netz, Bericht, Fläche je Dreieck): vorbereiten(), koerper() und
     flaechen_der_dreiecke() in einem."""
     netz, bericht = vorbereiten(netz, massstab)
-    form = koerper(netz)
+    form, der_reihe_nach = _koerper(netz)
     bericht.geschlossen = form.ShapeType == "Solid"
+    if der_reihe_nach and _stichprobe_der_reihe_nach(form, netz):
+        return form, netz, bericht, np.arange(netz.CountFacets, dtype=np.int64)
     return form, netz, bericht, flaechen_der_dreiecke(form, netz)
+
+
+def _stichprobe_der_reihe_nach(form, netz):
+    """Liegt Fläche i auf Dreieck i – nachgesehen an einigen (_schale legt sie so)?"""
+    punkte, dreiecke = netz.Topology
+    n = len(dreiecke)
+    for i in sorted({0, n // 3, n // 2, n - 1}):
+        ecken = form.getElement(f"Face{i + 1}").Vertexes
+        soll = np.array([(punkte[k].x, punkte[k].y, punkte[k].z) for k in dreiecke[i]])
+        ist = np.array([(v.X, v.Y, v.Z) for v in ecken])
+        if ist.shape != (3, 3) or not np.allclose(
+            np.sort(np.round(ist, 4), axis=0), np.sort(np.round(soll, 4), axis=0)
+        ):
+            return False
+    return True
 
 
 def flaechen_der_dreiecke(form, netz):
@@ -305,7 +371,7 @@ def koerper_rechnen(datei, massstab=1.0):
     """Auf einem Nebenrechner: (nebenrechner.Form, Bericht, Fläche je Dreieck als Liste) zum Netz
     in der STL-Datei `datei` – koerper_und_bericht(); das vorbereitete Netz steht danach in
     `datei` (FreeCAD hält Netze in float32 wie das STL, nichts geht verloren). Am Geist (68.242
-    Dreiecke) 8 s, die das Fenster sonst stünde."""
+    Dreiecke) 5 s, die das Fenster sonst stünde (bis 0.280.5 mit dem Nähen 7 s)."""
     import Mesh
 
     from . import nebenrechner as nr
