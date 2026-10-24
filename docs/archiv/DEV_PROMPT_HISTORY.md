@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-09 stl-mehrere-koerper
+
+### EINGELESEN
+- Lücke aus W-017: Ein STL mit zwei getrennten Teilen gab einen ungültigen Körper – bis 0.280.5
+  ein Solid mit zwei Schalen, seit P-2026-10-24-25 eine unzusammenhängende Schale.
+
+### DATEIEN
+- `camaddon/stl_teil.py`: `_koerper` zerlegt ein geschlossenes Netz mit mehreren Komponenten
+  (`getSeparateComponents`) und baut je eine ein Solid, zusammen ein Verbund; neu `geschlossen(form)`
+  (Solid oder Verbund nur aus Solids) für `bericht.geschlossen`.
+- `tests/test_stl_teil.py`: zwei Würfel in einem Netz → Verbund aus zwei gültigen Solids,
+  Volumen 2000, geschlossen, Zuordnung Fläche → Dreieck vollständig.
+
+### ERGEBNIS
+- Zwei Halbkugeln in einem STL: Verbund aus zwei Solids, 7199,6 mm³; der Assistent
+  „Bearbeitung“ zeigt Flächen, Aufmaß und Zeit. Grün: `test_stl_teil` (27.1 und 1.1.4),
+  `test_fertigteil`, `szenario_bearbeitung_stl`, `szenario_stl_angebot`, `szenario_stl_anzeige`.
+
 ## P-2026-10-25-08 3achs-eilgang-ohne-bewegung-weg
 
 ### EINGELESEN

@@ -14,6 +14,7 @@ ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
 import FreeCAD
+import Mesh
 import MeshPart
 import Part
 
@@ -103,6 +104,20 @@ pruefe(
     "ohne Nähen nicht in der Reihenfolge der Dreiecke",
 )
 pruefe(not stl_teil._koerper(offen)[1], "offen ohne Nähen")
+# Zwei getrennte Körper in einem Netz: je ein gültiges Solid, zusammen ein Verbund (bis 0.281.9
+# ein ungültiges Solid mit zwei Schalen bzw. eine unzusammenhängende Schale).
+zwei = Mesh.Mesh()
+zwei.addMesh(Mesh.Mesh(Part.makeBox(10, 10, 10).tessellate(0.1)))
+zwei.addMesh(Mesh.Mesh(Part.makeBox(10, 10, 10, FreeCAD.Vector(20, 0, 0)).tessellate(0.1)))
+beide = stl_teil.koerper(zwei)
+pruefe(
+    beide.ShapeType == "Compound" and len(beide.Solids) == 2 and beide.isValid(),
+    f"zwei Körper: {beide.ShapeType}, {len(beide.Solids)} Solids, gültig {beide.isValid()}",
+)
+pruefe(nahe(beide.Volume, 2000.0, 1e-6) and stl_teil.geschlossen(beide), f"Volumen {beide.Volume}")
+_f, _n, bericht_zwei, zuordnung_zwei = stl_teil.koerper_und_bericht(zwei)
+pruefe(bericht_zwei.geschlossen, "zwei Körper: nicht geschlossen")
+pruefe(sorted(zuordnung_zwei) == list(range(_n.CountFacets)), "zwei Körper: Fläche je Dreieck")
 # vorbereiten() dreht ein Netz, dessen Dreiecke einheitlich nach innen zeigen, nach außen.
 pruefe(stl_teil._volumen(innen) < 0 < stl_teil._volumen(netz), "Volumen ohne Vorzeichen")
 pruefe(stl_teil._volumen(stl_teil.vorbereiten(innen)[0]) > 0, "nach innen bleibt nach innen")

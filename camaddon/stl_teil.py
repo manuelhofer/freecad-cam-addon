@@ -219,13 +219,30 @@ def _punkt_dreieck(q, a, b, c):
 
 def koerper(netz):
     """Der Körper aus genau den Dreiecken des Netzes (Mesh.Mesh) – ein Solid, wenn das Netz
-    geschlossen ist, sonst die Hülle."""
+    geschlossen ist (zerfällt es in mehrere, je eins, zusammen ein Verbund), sonst die Hülle."""
     return _koerper(netz)[0]
+
+
+def geschlossen(form):
+    """Ist der Körper aus koerper() geschlossen – ein Solid oder ein Verbund nur aus Solids?"""
+    if form.ShapeType == "Solid":
+        return True
+    return (
+        form.ShapeType == "Compound"
+        and all(t.ShapeType == "Solid" for t in form.childShapes())
+        and bool(form.childShapes())
+    )
 
 
 def _koerper(netz):
     """(koerper(), liegt Fläche i auf Dreieck i?) – geschlossen ohne Nähen (_schale), sonst
-    genäht: Das Nähen ordnet die Flächen um."""
+    genäht: Das Nähen ordnet die Flächen um. Aus mehreren getrennten Körpern (zwei Teile in einem
+    STL) je ein Solid – sonst gäbe es eines mit zwei Schalen oder eine unzusammenhängende Schale,
+    beides ungültig."""
+    if netz.isSolid() and netz.countComponents() > 1:
+        teile = [_koerper(teil)[0] for teil in netz.getSeparateComponents()]
+        if all(t.ShapeType == "Solid" for t in teile):
+            return Part.makeCompound(teile), False
     schale = _schale(netz) if netz.isSolid() else None
     if schale is None:
         huelle = Part.Shape()
@@ -290,7 +307,7 @@ def koerper_und_bericht(netz, massstab=1.0):
     flaechen_der_dreiecke() in einem."""
     netz, bericht = vorbereiten(netz, massstab)
     form, der_reihe_nach = _koerper(netz)
-    bericht.geschlossen = form.ShapeType == "Solid"
+    bericht.geschlossen = geschlossen(form)
     if der_reihe_nach and _stichprobe_der_reihe_nach(form, netz):
         return form, netz, bericht, np.arange(netz.CountFacets, dtype=np.int64)
     return form, netz, bericht, flaechen_der_dreiecke(form, netz)
