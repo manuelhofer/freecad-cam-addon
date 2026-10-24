@@ -63,6 +63,33 @@ pruefe(
     "der Schaft wie die Schneide zählt",
 )
 
+# Auf den Nebenrechnern, die Stellen reihum verteilt (P-2026-10-24-16): eine Spirale von a −38 bis
+# −6, acht Umdrehungen – nahe am Bund stößt der Halter an, weiter vorn nicht. Dieselben Stellen und
+# dieselben Längen wie in einem Zug gerechnet.
+from camaddon import flanke_bahn as fb  # noqa: E402
+from camaddon import netzabstand as na  # noqa: E402
+
+phi_s = np.arange(0.0, 8 * 360.0, 2.0)
+saetze_s = np.column_stack(
+    [-38.0 + 32.0 * phi_s / phi_s[-1], np.full(len(phi_s), 20.0), np.zeros(len(phi_s)), phi_s]
+)
+sp, ac, _a = vhalter.stellen(saetze_s, [False] * len(phi_s), LAENGS, RADIAL)
+w = fb.ausgewaehlt(sp)
+sp, ac = sp[w], ac[w]
+teile = fb.dickere_koerper(koerper, 3.0)
+verteilt = vhalter._verteilt(bund, sp, ac, teile)
+pruefe(len(sp) >= vhalter.VERTEILT_AB and verteilt is not None, f"nicht verteilt: {len(sp)} Stellen")
+if verteilt is not None:
+    an_v, weiter_v = verteilt
+    an_e, weiter_e = fb.noetig_weiter(na.Netz(bund, fb.HALTER_NETZ), sp, ac, teile)
+    ordnung = np.argsort(an_v)
+    pruefe(
+        0 < len(an_e) < len(sp) and np.array_equal(an_v[ordnung], an_e),
+        f"anstoßend verteilt {len(an_v)}, in einem Zug {len(an_e)} von {len(sp)}",
+    )
+    pruefe(np.allclose(weiter_v[ordnung], weiter_e), "weiter verteilt anders")
+    print(f"verteilt: {len(an_v)} von {len(sp)} Stellen stoßen an")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

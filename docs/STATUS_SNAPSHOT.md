@@ -1762,6 +1762,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   schneller nur mit weniger Arbeit (die Hüllfläche je Stellung für das Schlichten mit Y).
   **P-2026-10-24-15 (0.279.6):** „Anlegen“ rechnete die Schruppbahn der Vorschau neu – seit 0.279.4
   fehlte der Vorschau `hinauf_frei` im Schlüssel. Geist 421 → 270 s; das Szenario prüft es jetzt.
+  **Verworfen (2026-10-24): die Halterprüfung anders verteilen.** Am Geist 72,6 s auf etwa 9
+  Kernen (im Szenario mit 10 GB; jeder Arbeiter hält das Netz). Reihum verteilt: 222 s
+  (`netz.kapseln` fragt je Block den ganzen Bereich ab, 3,4-mal so viel Rechenzeit); kleinere
+  Stücke (8 je Arbeiter, ab 100): 70,8 s – kein Gewinn.
 - **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
   testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
   bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,
