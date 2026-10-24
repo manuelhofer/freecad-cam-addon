@@ -7823,6 +7823,8 @@ class BearbeitungPanel:
         for name in self.gewaehlte:
             if name in fertig or not any(b.s.passt(form, name) for b in self.bloecke):
                 continue
+            if kb.waende(form, [name]) and self._ohne_rohteil(form, name):
+                continue  # kein Rohteil vor der Wand: schon fertig (die Stange im Fertigmaß)
             # Entgraten bricht nur die Kanten: Angehakt zählt die Fläche als bearbeitet, als
             # Vorschlag, sie fertig zu machen, taugt es nicht (an der Stirn einer Welle stand
             # sonst „Dafür anhaken: „Entgraten 3D““).
@@ -7954,6 +7956,12 @@ class BearbeitungPanel:
             block.leeren()
             block.hinweis.setText(tr("ba.raeumen.umsonst"))
             block.schon_weg = True
+            if self.nut.aktiv():
+                # Dann schlichtet „Schlichten danach“ nach der Nut, mit ihrem Fräser – sonst folgte
+                # es dem Räumen, bis es den Haken abgab, und blieb mit dessen Ø 12 stehen
+                # („Alles aus dieser Aufspannung“ am Messspitzenhalter; die Wände der Ringnut
+                # blieben mit Aufmaß).
+                self._raeumen_bei_nut = True
         if block is self.kontur:
             self._kontur_text(form, eigen)
         if block is self.bohren and zusatz and block.ergebnis_basis:
@@ -8178,8 +8186,8 @@ class BearbeitungPanel:
     def _durch_waende(self, form):
         """Die Wände, unter denen das Räumen bis durch räumt (raeumen.durch_ebenen) – leer, wenn
         es nicht angehakt ist."""
-        if not self.raeumen.aktiv():
-            return []
+        if not self.raeumen.aktiv() or self.raeumen.schon_weg:
+            return []  # ohne Räumen – oder es gibt den Haken ab (nichts zu tun)
         return [f for f in self._eigene(self.raeumen, form) if ra.durchgehend(form, f)]
 
     def _schlichtzug_zeit(self, form):

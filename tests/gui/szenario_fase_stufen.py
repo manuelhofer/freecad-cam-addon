@@ -187,6 +187,18 @@ def schritte(h):
     )
     h.pruefe(not ({"schruppen3d", "schlichten3d", "fase"} & set(aktiv)), f"Alles angehakt: {aktiv}")
     h.pruefe(aktiv.get("nut", (None,))[0] == 4, f"Nut: {aktiv.get('nut')}")
+    # „Schlichten danach“ folgt der Nut, mit T4 (bis 0.279.1 mit dem Ø 12 des Räumens, das den
+    # Haken abgab – die Wände der Ringnut blieben mit Aufmaß).
+    h.pruefe(
+        aktiv.get("schlichtendanach", (None,))[0] == 4,
+        f"Schlichten danach: {aktiv.get('schlichtendanach')}",
+    )
+    # Nicht fertig sind nur die Senkungen (kein Senker da) – nicht der Mantel (Stange im Fertigmaß,
+    # kein Rohteil davor) und nicht die Wand der Ringnut.
+    unfertig = dialog.unfertig.text() if dialog.unfertig.isVisible() else ""
+    h.pruefe("Face3" not in unfertig and "Face6" not in unfertig, f"unfertig: {unfertig!r}")
+    kontur_satz = dialog.kontur.hinweis.text()
+    h.pruefe("Räumen" not in kontur_satz, f"Kontur: {kontur_satz!r}")
     h.bild("1_alles_ohne_fase", dialog.form)
 
     # 2. „Fasen dazu“: der Block „Fase“ mit T4 in Stufen, die Frage nach T6.

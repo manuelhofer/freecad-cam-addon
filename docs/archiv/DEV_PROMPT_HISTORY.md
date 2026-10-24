@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-11 alles-am-messspitzenhalter-schlichten-mit-t4
+
+### EINGELESEN
+- „Alles aus dieser Aufspannung“ an Manuels Messspitzenhalter: „Schlichten danach“ mit T3 Ø 12
+  statt dem T4 der Nut – die Wände der Ringnut blieben mit Aufmaß („Nicht fertig: Face6“); dazu
+  „Nicht fertig: Face3“ für den Mantel (die Stange im Fertigmaß) und „Kontur: die Wände räumt
+  Räumen bis durch“, obwohl das Räumen den Haken abgab. Schon vor dem 24.10. so (Probe am Morgen).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Gibt das Räumen „umsonst“ ab (alles ein Grund der Nut oder eine
+  Wand ohne Rohteil davor) und ist die Nut angehakt, folgt „Schlichten danach“ der Nut
+  (`_raeumen_bei_nut`) – vorher nur, wenn das Räumen gar keine eigene Fläche hatte.
+  `_durch_waende`: leer, wenn das Räumen den Haken abgibt. `_unfertige`: eine Wand ohne Rohteil
+  davor ist fertig.
+- `tests/gui/szenario_fase_stufen.py`: bei „Alles“ „Schlichten danach“ mit T4, nicht fertig weder
+  Mantel noch Ringnut, die Kontur ohne „Räumen“.
+
+### ERGEBNIS
+- Messspitzenhalter, „Alles“: Schlichten danach T4 (beide Ränder der Ringnut), „Nicht fertig“ nur
+  noch die drei Senkungen (kein Senker in der Werkzeugverwaltung). Grün: `szenario_fase_stufen`,
+  `szenario_stirn_bund`, `szenario_bearbeitung_cring_alles`, `szenario_raeumen_schlichten`,
+  `szenario_bearbeitung_aufspannung`, `szenario_deckel`, `szenario_testteil`, `szenario_kontur`.
 ## P-2026-10-24-10 fase-an-der-fraese-fertig
 
 ### EINGELESEN
