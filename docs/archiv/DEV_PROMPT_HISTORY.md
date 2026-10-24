@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-28 raeumen-eilgang-direkt-zum-einfahrpunkt
+
+### EINGELESEN
+- Manuel, 2026-10-24 spät: „schau das die werkzeugwege sinnvoll sind vor allem im 5 achs
+  bereich“. Durchgesehen: die Programme von elf 5-Achs-Szenarien (Simultan, Kuppel angestellt,
+  Flanke, Wegkippen, Schwenkteil), die Maschinensätze (A, C) der Kuppel und der Flanke an der
+  Tisch/Tisch-Maschine – auf Zappler der Rundachsen, Sprünge im Schnitt, Schwenken auf der
+  Stelle, doppelte Sätze, Eilgang-Umwege.
+- Befund: Die Rundachsen laufen sauber (Flanke: C stetig 360°, A steht; Kuppel: A wendet nur an
+  den Zeilenenden des Zickzacks, keine Sprünge). Aber beim Räumen (auch 3D-Schruppen) fuhr der
+  Eilgang oben vor dem Einfahren „von außen“ erst über den Anfang des Laufs und dann zum Punkt
+  daneben, wo es hinabgeht – an der Formschräge drei Umwege (47 mm), an der Kuppel fünf; in der
+  3D-Ansicht die roten Kreuzlinien in der Tasche.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`_Lage._lauf`): den Einfahrpunkt „von außen“ und „von außen
+  längs“ zuerst bestimmen und oben gleich dorthin fahren.
+
+### ERGEBNIS
+- Formschräge „3D-Schruppen T5“: Umwege 3 → 0, Eilgang 616 → 569 mm, Schnitte unverändert.
+  Grün: `test_raeumen`, `test_goldene_bahnen`, `szenario_flanke`.
+- Angesehen und gelassen: Die Flanke taucht über dem Anfang längs ihrer schrägen Achse im
+  Eintauchvorschub von 2 mm über dem Rohteil bis auf Tiefe (Formschräge 21,8 mm, gut 5 s). Ein
+  Eilgang ginge nur 0,5 mm tiefer – oben reichen die Stufen des Schruppens bis in den
+  Fräserradius; darunter wäre Freivorschub nötig, und ein langer G0 längs einer schrägen Achse
+  dicht an der Wand ist auf Steuerungen ohne gerade Eilgänge riskant.
+
 ## P-2026-10-24-27 lange-halter
 
 ### EINGELESEN

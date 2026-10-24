@@ -1138,10 +1138,24 @@ class _Lage:
                 self.reste.append((ring, stellen[: m + 1]))
                 self.st.nachgeholt += 1
                 return self._lauf(ring, stellen[m:], hinten, False)
+        aussen = laengs = None
+        if not angehaengt and ein is None and seitlich is None:
+            aussen = self._von_aussen(p0)
+            if aussen is None:
+                laengs = self._von_aussen_laengs(p0, t0, ganz)
         if not angehaengt:
             # Senkrecht hinauf (knapp über das Rohteil), hin, hinab bis knapp über die Lage –
-            # oder, bei Manuels Räumen, unten außen um das Rohteil herum (_rueckweg_aussen).
-            start = ein.aussen if ein is not None else (seitlich if seitlich is not None else p0)
+            # oder, bei Manuels Räumen, unten außen um das Rohteil herum (_rueckweg_aussen). Oben
+            # gleich dorthin, wo es hinabgeht – bis 0.280.8 erst über den Anfang des Laufs, dann
+            # daneben (an der Formschräge zwölf Umwege in der Tasche).
+            start = next(
+                (
+                    q
+                    for q in (ein.aussen if ein is not None else None, seitlich, aussen, laengs)
+                    if q is not None
+                ),
+                p0,
+            )
             unten_hin = (
                 self.eckenboegen and (ein is not None or seitlich is not None)
             ) and self._rueckweg_aussen(start)
@@ -1169,26 +1183,24 @@ class _Lage:
                 laenge += bn.weg(punkte[-1], punkt)
                 punkte.append(punkt)
                 self.st.seitlich += 1
-            elif (aussen := self._von_aussen(p0)) is not None:
+            elif aussen is not None:
                 # Daneben steht nichts (der Rand des Rohteils, schon Geräumtes): dort hinab und
                 # quer hinein – mit vollem ap von außen statt Helix oder Rampe (Manuel,
                 # 2026-10-12, am Ring: „du bist hier auserhalb vom rohteil ... warum zirkulierst
                 # du da nach unten“; Spezifikation Strategien, Abschnitt 5).
                 knapp = self._hinab(aussen, hoch)
-                punkte.append(bn.Punkt(True, aussen[0], aussen[1], hoch))
                 punkte.append(bn.Punkt(True, aussen[0], aussen[1], knapp))
                 punkte.append(bn.Punkt(False, aussen[0], aussen[1], self.lage, True))
                 punkt = bn.Punkt(False, p0[0], p0[1], self.lage)
                 laenge += bn.weg(punkte[-1], punkt)
                 punkte.append(punkt)
                 self.st.seitlich += 1
-            elif (laengs := self._von_aussen_laengs(p0, t0, ganz)) is not None:
+            elif laengs is not None:
                 # Der Lauf beginnt am Rand des Rohteils: rückwärts in Bahnrichtung verlängert liegt
                 # Luft – dort hinab und längs hinein, mit dem Eingriff der Bahn selbst (Grundsatz
                 # Einfahren 1; am Flansch fuhr das Räumen sonst in den Ecken des Rohteils eine
                 # Rampe hin und her, Manuel, 2026-10-18: „alle Zickzack einfahren weg“).
                 knapp = self._hinab(laengs, hoch)
-                punkte.append(bn.Punkt(True, laengs[0], laengs[1], hoch))
                 punkte.append(bn.Punkt(True, laengs[0], laengs[1], knapp))
                 punkte.append(bn.Punkt(False, laengs[0], laengs[1], self.lage, True))
                 punkt = bn.Punkt(False, p0[0], p0[1], self.lage)
