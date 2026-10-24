@@ -478,6 +478,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   „nicht nur auf den 45-Grad-Fräser“, „auch auf einer Dreiachs-Maschine“): Operation „Entgraten
   3D“ – 5 Achsen mit Fasenfräser oder Fräser mit ebener Stirn, 3 Achsen mit Fasenfräser senkrecht;
   im Assistenten der Block „Entgraten 3D“ (P-2026-10-04-66).
+  **Durchgesehen 2026-10-24 nachts (Manuel: „schau das die werkzeugwege sinnvoll sind vor allem
+  im 5 achs bereich“):** die Maschinensätze aller 5-Achs-Szenarien (Vorlage zum Mitschreiben in
+  `~/freecad_cam/wip/pruefhelfer/`). Sauber: Kuppel angestellt, Flanke, Simultan-Planung, Entgraten
+  3D, 3+2. Behoben (P-2026-10-24-29): Zwischenpunkte mit gemittelter Werkzeugachse ließen A kurz
+  abtauchen, und das Wegkippen kippte kurz vor und zurück – an der Kavität kurze Wenden von A
+  54 → 21, Sätze mit mehr als 20° Drehung 9 → 0.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
@@ -1514,6 +1520,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Manuel meldet sich dort selbst an, Claude sucht die Halter (HSK63, SK40, BT40, Capto C6 …) und
   fragt vor jedem Download (Datei, Quelle, Größe). Die Dateien kommen in einen eigenen Ordner und
   gelten als fremde Daten.
+  **Lange Halter (P-2026-10-24-27, -30; Manuel, 2026-10-24: „such auch nach neuen haltern von
+  fräsern die schön lang sind … die dann auch direkt mit eingepflegt werden können“):**
+  Schrumpffutter Ø 6/Ø 12 A = 200 (GARANT 302278), Spannzangenfutter ER16/ER25 A = 160 (GARANT
+  300530), extra schlankes Spannzangenfutter 2–6 mm A = 160 (GARANT 300784) als Vorlagen, nach
+  den Zeichnungsvorschauen; Bild `~/freecad_cam/forumbilder/lange_halter_2026-10-24.png`.
 
 - **W-023 Nut: Schlichten als eigener Schritt mit Messpause** – Manuel, 2026-10-17 (C-Ring, Nut):
   „ich will schruppen … messen … schlichten … ist meist der ablauf … wenn ich nicht schlichten als
