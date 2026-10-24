@@ -281,6 +281,9 @@ class Schruppwerte:
     # Die Wendelnut (vierachs_wendel.Wendel): bis zum Außenradius des Teils wie sonst, darunter
     # in Lagen der Nut nach (W-030, _schruppen_wendel); None: wie sonst.
     wendel: object = None
+    # Wird über der Schneide nichts schmaler (kein Hals, kein Lollipop – vierachs_operation.
+    # hinauf_frei), fährt der Fräser längs seiner Achse hinauf im Freivorschub (_hinauf_frei).
+    hinauf_frei: bool = False
 
 
 @dataclass(frozen=True)
@@ -327,6 +330,7 @@ class Schlichtwerte:
     wendel: object = None
     # (k, n): nur den k-ten von n Blöcken der Bahnen der Wendel (die Vorschau verteilt selbst).
     wendel_teil: tuple = None
+    hinauf_frei: bool = False  # wie bei Schruppwerte
 
 
 @dataclass
@@ -617,9 +621,37 @@ def _ueber_dem_rest_hinab(punkte, rest, radius, sicherheit):
         i += 1
 
 
+def _hinauf_frei(punkte):
+    """Fährt die Bahn im Vorschub nur längs der Werkzeugachse hinauf (a, φ und q bleiben, die
+    Spitze steigt), dann mit dem Freivorschub (Punkt.frei) – wenn das Stück mindestens
+    freiwege.MINDEST lang ist oder in ein freies übergeht: Der Fräser kommt dabei nur dorthin, wo
+    eben noch sein Schaft stand, und wird über der Schneide nichts schmaler
+    (Schruppwerte.hinauf_frei), steht dort kein Material. Hinab nicht: Was unter ihm steht, weiß
+    nur die Stange (_material_oben). Am Geist (STL) fuhr „Rundum schlichten“ 78 solche Stücke,
+    zusammen gut 1 m, im Schnittvorschub hinauf (90 s)."""
+    from . import freiwege as fw
+
+    for i in range(len(punkte) - 1):
+        von, nach = punkte[i], punkte[i + 1]
+        if (
+            nach.eilgang
+            or nach.frei
+            or nach.r <= von.r + GLEICH
+            or abs(nach.a - von.a) > GLEICH
+            or abs(nach.phi - von.phi) > GLEICH
+            or abs(nach.q - von.q) > GLEICH
+        ):
+            continue
+        danach = punkte[i + 2] if i + 2 < len(punkte) else None
+        weiter_frei = danach is not None and (danach.eilgang or danach.frei)
+        if nach.r - von.r >= fw.MINDEST or weiter_frei:
+            punkte[i + 1] = replace(nach, frei=True)
+
+
 def _ohne_luft_hinab(rechnen):
     """schruppen() und schlichten(): danach _vor_der_stange_hinab über die ganze Bahn, beim
-    Schlichten mit dem Rest nach dem Schruppen auch _ueber_dem_rest_hinab."""
+    Schlichten mit dem Rest nach dem Schruppen auch _ueber_dem_rest_hinab; darf der Fräser längs
+    seiner Achse frei hinauf (hinauf_frei), _hinauf_frei."""
 
     @functools.wraps(rechnen)
     def ohne(netz, laengs, radial, werte, *args, **kwargs):
@@ -630,6 +662,8 @@ def _ohne_luft_hinab(rechnen):
         rest = getattr(werte, "rest", None)
         if rest is not None:
             _ueber_dem_rest_hinab(bahn.punkte, rest, radius, werte.sicherheit)
+        if getattr(werte, "hinauf_frei", False):
+            _hinauf_frei(bahn.punkte)
         return bahn
 
     return ohne
@@ -1611,7 +1645,11 @@ def kehren(punkte):
             continue
         if not einfahrt:
             continue
-        if nach.r >= von.r - GLEICH:
+        dphi = math.radians(nach.phi - von.phi)
+        # Gegen das Teil längs der Werkzeugachse: Steht die Spitze quer versetzt (q), schiebt das
+        # Drehen sie auch längs der Achse (−q · Δφ). Am Geist dreht „Rundum schlichten“ so um den
+        # Berührpunkt (r fällt, die Spitze bleibt am Teil) – das ist keine Einfahrt.
+        if nach.r - von.r - (von.q + nach.q) / 2 * dphi >= -GLEICH:
             einfahrt = in_rampe = False  # unten: was jetzt sinkt, folgt der Fläche
             continue
         if nach.eintauchen and abs(nach.a - von.a) + abs(nach.phi - von.phi) < GLEICH:
@@ -1621,7 +1659,7 @@ def kehren(punkte):
             richtung, gekehrt = None, False
         mitte = (von.r + nach.r) / 2
         da = nach.a - von.a
-        dt = mitte * math.radians(nach.phi - von.phi) + (nach.q - von.q)
+        dt = mitte * dphi + (nach.q - von.q)
         lang = math.hypot(da, dt)
         if lang > GLEICH:
             jetzt = (da / lang, dt / lang)

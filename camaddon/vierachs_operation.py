@@ -286,6 +286,7 @@ def rechne(obj, job, modell, fraeser_radius):
         y_weg=y_weg_von(obj),
         wendel=bool(getattr(obj, "Wendel", False)),
         sektor_wellen=bool(getattr(obj, "SektorWellen", True)),
+        hinauf_frei=hinauf_frei(obj.ToolController),
     )
 
 
@@ -316,6 +317,35 @@ def ueber_der_schneide(tc):
     if werkzeug is None:
         werkzeug = vom_controller(tc) if tc is not None else None
     return stufen_des_werkzeugs(werkzeug, bibliothek)
+
+
+def hinauf_frei(tc):
+    """Ob der Fräser des Controllers längs seiner Achse im Freivorschub hinauf darf
+    (vierachs_bahn.Schruppwerte.hinauf_frei): nur, wenn über der Schneide nichts schmaler wird –
+    kein Lollipop, kein Schwalbenschwanz, kein Hals oder Schaft dünner als die Schneide. Dann fährt
+    er nur dorthin, wo eben noch sein Schaft stand. Unbekannt: nein."""
+    from . import job_schnittwerte as js
+    from . import werkzeuge as wz
+    from .werkzeuge_aus_cam import vom_controller
+
+    werkzeug = None
+    with contextlib.suppress(Exception):  # ohne lesbare Werkzeugverwaltung: das ToolBit allein
+        werkzeug = js.werkzeug_von(tc, wz.Bibliothek.laden())
+    if werkzeug is None and tc is not None:
+        with contextlib.suppress(Exception):
+            werkzeug = vom_controller(tc)
+    return oben_nicht_schmaler(werkzeug)
+
+
+def oben_nicht_schmaler(werkzeug):
+    """hinauf_frei() für ein Werkzeug der Werkzeugverwaltung (None: nein)."""
+    from . import werkzeuge as wz
+
+    if werkzeug is None or werkzeug.art in (wz.LOLLIPOPFRAESER, wz.SCHWALBENSCHWANZFRAESER):
+        return False
+    durchmesser = float(werkzeug.durchmesser or 0.0)
+    schmaler = [float(d or 0.0) for d in (werkzeug.hals_d, werkzeug.schaft)]
+    return durchmesser > 0.0 and all(d <= 0.0 or d >= durchmesser - GERADE for d in schmaler)
 
 
 def stufen_des_werkzeugs(werkzeug, bibliothek):
@@ -368,6 +398,7 @@ def bahn_fuer(
     y_weg=math.inf,
     wendel=False,
     sektor_wellen=True,
+    hinauf_frei=False,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -380,7 +411,8 @@ def bahn_fuer(
     blieb (Schruppwerte.nur_noetig); `sektoren_y`: in Sektoren Zeilen mit Y bei stehender
     Rundachse (Schruppwerte.sektoren_y, W-026), `y_weg`: so weit fährt Y von der Mitte aus
     (Schruppwerte.y_weg); `wendel`: die Wendelnut des Teils der Nut nach (Schruppwerte.wendel,
-    W-030). ValueError mit einem Satz, wenn es nicht geht."""
+    W-030); `hinauf_frei`: längs der Werkzeugachse hinauf im Freivorschub (hinauf_frei()).
+    ValueError mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -416,6 +448,7 @@ def bahn_fuer(
         sektoren_y=sektoren_y,
         y_weg=y_weg,
         sektor_wellen=sektor_wellen,
+        hinauf_frei=hinauf_frei,
     )
     uhren.atmen()  # beim Anlegen: die Wände am Geist (STL) 0,1–0,5 s – das Fenster zeichnet neu
     netz = vh.vernetze(teil)
@@ -462,6 +495,7 @@ def bahn_fuer(
                 "y_weg",
                 "wendel",
                 "sektor_wellen",
+                "hinauf_frei",
             )
         ),
         schritt_a,

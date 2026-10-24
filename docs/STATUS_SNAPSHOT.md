@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.278.4) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.279.4) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1693,6 +1693,15 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (offen, keine Helix, zu kurz für die Rampe) und an eine Stelle grenzt, an der der Fräser nicht
   weiter passt, fällt weg (`_lauf`, `am_engpass`). Szenario-Volllauf (165): Zickzack nur noch
   beim 4-Achs-Schlichten am Geist (1).
+  **P-2026-10-24-13 (0.279.4):** Die am Geist ist keine – die Spitze steht quer versetzt
+  (q = −11,5), die Rundachse dreht am Anfang 32° um den Berührpunkt, r fällt, gegen das Teil
+  bewegt sich die Spitze 0,03–0,1 mm je Satz. `vierachs_bahn.kehren` zählt als Sinken jetzt
+  Δr − q·Δφ. **Dabei gefunden:** An den Ecken der Querbahn (hinauf, oben drehen, hinab) fuhr der
+  Fräser längs seiner Achse im Schnittvorschub – am Geist beim Schlichten 78 Stücke hinauf
+  (1,06 m, 89 s) und 74 hinab (1,38 m, 115 s). Hinauf jetzt im Freivorschub (`_hinauf_frei`; nicht
+  mit Hals, Lollipop, Schwalbenschwanz). **Offen:** hinab schneller – frei gilt bei 4 Achsen nur
+  über der Stange (P-2026-10-11-27, das Schrupp-Modell war keine sichere Obergrenze); dafür
+  bräuchte es einen sicheren Materialstand für 4 Achsen (Voxel wie `voxelstange`).
 - **W-036 Alle Kerne – Durchsicht** – Manuel, 2026-10-18: „Schau lieber nebenher ob alles auf mehr
   CPUs rechnen“. Befund (Such-Agent): Rechnet FreeCAD eine Operation neu (`opExecute` → `rechne`,
   bei „Anlegen“ und jeder Änderung), läuft die Bahn im Hauptprozess auf einem Kern – nur Teilschritte

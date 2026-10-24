@@ -222,6 +222,7 @@ def rechne(obj, job, modell):
         schritt_phi=au.wert_rundum(obj, vb.SCHRITT_PHI_SCHLICHTEN),
         stetig=bool(getattr(obj, "Stetig", True)),
         laengs_bereich=laengs_bereich(obj),
+        hinauf_frei=vo.hinauf_frei(obj.ToolController),
     )
 
 
@@ -270,6 +271,7 @@ def bahn_fuer(
     schritt_phi=vb.SCHRITT_PHI_SCHLICHTEN,
     stetig=False,
     laengs_bereich=None,
+    hinauf_frei=False,
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
@@ -281,7 +283,8 @@ def bahn_fuer(
     (vierachs_bahn.Schlichtwerte.querachse, nur mit dem Kugelfräser); `anstellen`: die Kugel
     dabei vierachs_bahn.ANSTELLEN_QUER neben der Normalen; `stetig`: C dreht dabei nie zurück
     (vierachs_bahn.Schlichtwerte.stetig); `laengs_bereich`: (von, bis) nur dieses Stück längs
-    (vierachs_bahn.Schlichtwerte.laengs_bereich). ValueError mit einem Satz, wenn es nicht geht."""
+    (vierachs_bahn.Schlichtwerte.laengs_bereich); `hinauf_frei`: längs der Werkzeugachse hinauf im
+    Freivorschub (vierachs_operation.hinauf_frei). ValueError mit einem Satz, wenn es nicht geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
@@ -300,6 +303,7 @@ def bahn_fuer(
         stetig=stetig,
         flaechen_netz=_flaechen_netz(form_teil, flaechen, querachse, vb.TOLERANZ_SCHLICHTEN),
         laengs_bereich=laengs_bereich,
+        hinauf_frei=hinauf_frei,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     werte = _mit_wendel(werte, teil, laengs, radial)

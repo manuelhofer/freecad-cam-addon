@@ -168,10 +168,13 @@ def schritte(h):
         yield 300
     yield 500
     h.pruefe(panel.mit_schlichten.isChecked(), "„Rundum schlichten“ mit den schrägen wieder an")
+    # Bis alles gerechnet ist – auch der Rest für die Kugel, der das Vorschlichten vorschlägt: So
+    # lange ist „Anlegen“ grau; vorher angelegt, fehlte es je nach Last (P-2026-10-24-13).
     yield from h.warte_auf(
         lambda: panel.vorschau is not None
         and panel.vorschau_schlichten is not None
-        and panel.vorschau_plan is not None,
+        and panel.vorschau_plan is not None
+        and not panel.rechnet_noch(),
         90000,
     )
 
@@ -186,8 +189,10 @@ def schritte(h):
     # Dazu „Rundum vorschlichten“, wenn die Kugel nach dem Schruppen viel nähme (W-031, seit
     # P-2026-10-18-80 von sich aus angehakt).
     schlichten = [o for o in ops if vs.ist_schlichten(o) and not vs.ist_vorschlichten(o)]
+    vorschlichten = [o for o in ops if vs.ist_vorschlichten(o)]
     h.pruefe(
-        len(schruppen) == 1 and len(plan) == 1 and len(schlichten) == 1, f"Operationen: {namen}"
+        len(schruppen) == 1 and len(plan) == 1 and len(schlichten) == 1 and len(vorschlichten) == 1,
+        f"Operationen: {namen}",
     )
     if plan:  # die Operation trägt die Wahl, die ebenen sucht sie sich selbst heraus
         flaechen = sorted(plan[0].Flaechen, key=lambda n: int(n[4:]))

@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-13 rundum-hinauf-im-freivorschub
+
+### EINGELESEN
+- Die letzte Kehre aus dem vollen Lauf: „Rundum schlichten T2“ am Geist, 1. Nachgesehen im
+  Programm: keine – die Spitze steht quer versetzt (q = −11,5), die Rundachse dreht am Anfang 32°
+  um den Berührpunkt, r fällt dabei, gegen das Teil bewegt sich die Spitze nur 0,03–0,1 mm je Satz.
+  Der Zähler nahm das fallende r für eine Einfahrt und die quer kippende Richtung für eine Kehre.
+- Dabei gefunden: An den Ecken der Querbahn (hinauf, oben drehen, hinab) fährt der Fräser längs
+  seiner Achse hinauf und hinab im Schnittvorschub – am Geist beim Schlichten 78 Stücke hinauf
+  (1,06 m, 89 s) und 74 hinab (1,38 m, 115 s), beim Vorschlichten 39/22, beim Schruppen 115/88.
+  Frei gilt bei 4 Achsen nur, was über der Stange liegt (P-2026-10-11-27) – das trifft auf diese
+  Stücke nie zu.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`: `_hinauf_frei` – nur längs der Werkzeugachse hinauf (a, φ, q
+  bleiben), mindestens freiwege.MINDEST oder in ein freies Stück hinein: im Freivorschub; der
+  Fräser kommt dabei nur dorthin, wo eben sein Schaft stand. Hinab bleibt im Vorschub. Neues Feld
+  `hinauf_frei` in Schrupp- und Schlichtwerten, angewandt in `_ohne_luft_hinab`. `kehren`: als
+  Sinken zählt Δr − q·Δφ (gegen das Teil längs der Werkzeugachse).
+- `camaddon/vierachs_operation.py`: `hinauf_frei(tc)`, `oben_nicht_schmaler(werkzeug)` – nicht
+  bei Lollipop, Schwalbenschwanz, Hals oder Schaft dünner als die Schneide, nicht bei unbekanntem
+  Werkzeug; `bahn_fuer(…, hinauf_frei)`, im Schlüssel der gemerkten Bahnen; `rechne` gibt es mit.
+- `camaddon/vierachs_schlichten.py`: `bahn_fuer(…, hinauf_frei)`, die Operation gibt es mit.
+- `tests/test_vierachs_hinauf.py` (neu).
+- `tests/gui/szenario_vierachs_nase.py`: wartet vor „Anlegen“, bis nichts mehr rechnet (auch der
+  Rest für die Kugel) – vorher fehlte „Rundum vorschlichten“ je nach Last (der echte Knopf ist so
+  lange grau); jetzt geprüft, dass es dabei ist.
+
+### ERGEBNIS
+- Grün: `test_vierachs_hinauf`, `test_vierachs_bahn`, `test_vierachs_frei`,
+  `test_vierachs_operation`, `test_vierachs_schlichten`, `test_vierachs_schlichten_op`,
+  `test_vierachs_plan`; Szenarien `szenario_vierachs_stl`, `szenario_vierachs_schlichten`,
+  `szenario_vierachs_vorschlichten`, `szenario_vierachs_nase`.
+- Geist: Schlichten 2316 → 2235 s, Schruppen 7179 → 7083 s, Vorschlichten 437 → 400 s (zusammen
+  3,6 min weniger), Kehren 1 → 0. Szenario Vorschlichten: 78 s weniger. Welle und Nase: gleich
+  (keine langen Wege hinauf).
+
 ## P-2026-10-24-12 kein-schneller-t3-am-messspitzenhalter
 
 ### EINGELESEN
