@@ -1127,6 +1127,23 @@ if fgebiete:
         not in_bohrung and draussen,
         f"Flansch: {len(in_bohrung)} in der Bohrung, {len(draussen)} außen",
     )
+    # Oben gleich zum Einfahrpunkt (P-2026-10-24-28): Über allen Schnitten gehen zwei Eilgänge auf
+    # einer Höhe nacheinander nie mehr als 1 mm um (bis 0.280.8 erst über den Anfang des Laufs,
+    # dann daneben). Unten darf der Rückweg um das Rohteil herumführen (_rueckweg_aussen).
+    for name_b, bahn_b in (("Flansch", bahn_f), ("schmale Tasche", bahn_s), ("drei Höhen", bahn_h)):
+        oben_b = max(p.z for p in bahn_b.punkte if not p.eilgang) + 0.5
+        umwege = [
+            (p, q, r)
+            for p, q, r in zip(bahn_b.punkte, bahn_b.punkte[1:], bahn_b.punkte[2:], strict=False)
+            if q.eilgang
+            and r.eilgang
+            and p.z > oben_b
+            and abs(p.z - q.z) < 1e-9
+            and abs(q.z - r.z) < 1e-9
+            and math.hypot(q.x - p.x, q.y - p.y) + math.hypot(r.x - q.x, r.y - q.y)
+            > math.hypot(r.x - p.x, r.y - p.y) + 1.0
+        ]
+        pruefe(not umwege, f"{name_b}: {len(umwege)} Eilgang-Umwege oben")
 FreeCAD.closeDocument(flansch_doc.Name)
 
 if fehler:

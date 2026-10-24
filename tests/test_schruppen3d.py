@@ -9,6 +9,7 @@
 # bleibt unter der ebenen Stirn mehr stehen (der Bogen unter dem Fräser, 0,7 mm) – bis 2,5.
 # (c) Ohne Freiformfläche ein Satz. (d) Die Operation im Job: „3D-Schruppen T1“, Art
 # „schruppen3d“ mit dem Einsatz „Schruppen“.
+import math
 import os
 import pathlib
 import sys
@@ -109,6 +110,27 @@ print(ascii(ps.zeile(k)))
 pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Kuppel: ins Teil {k.einschnitt:.3f}")
 pruefe(k.eingriff_max < 2.0 and k.voll <= ps.BREIT_WEG, f"Kuppel: Eingriff {ps.zeile(k)}")
 pruefe(k.eilgang_abtrag <= 1e-9, f"Kuppel: im Eilgang {k.eilgang_abtrag:.1f} mm³")
+
+
+def umwege_oben(b):
+    """Zwei Eilgänge auf einer Höhe über allen Schnitten nacheinander, die mehr als 1 mm umgehen
+    – vor dem Einfahren „von außen“ fuhr das Räumen bis 0.280.8 oben erst über den Anfang des
+    Laufs, dann daneben (P-2026-10-24-28; an dieser Kuppel fünfmal)."""
+    oben = max(p.z for p in b.punkte if not p.eilgang) + 0.5
+    return [
+        (p, q, r)
+        for p, q, r in zip(b.punkte, b.punkte[1:], b.punkte[2:], strict=False)
+        if q.eilgang
+        and r.eilgang
+        and p.z > oben
+        and abs(p.z - q.z) < 1e-9
+        and abs(q.z - r.z) < 1e-9
+        and math.hypot(q.x - p.x, q.y - p.y) + math.hypot(r.x - q.x, r.y - q.y)
+        > math.hypot(r.x - p.x, r.y - p.y) + 1.0
+    ]
+
+
+pruefe(not umwege_oben(bahn), f"Kuppel: {len(umwege_oben(bahn))} Eilgang-Umwege oben")
 q, soll, xs, ys = im_quader(teil, bahn, 20.0)
 r = np.hypot(xs - 30, ys - 30)
 rest = q.h - soll
