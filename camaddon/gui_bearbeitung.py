@@ -7793,6 +7793,7 @@ class BearbeitungPanel:
             self.gewindefraesen,
             self.entgraten,
             self.entgraten3d,
+            self.fase,
             self.senken,
             self.reiben,
             self.schlichten3d,

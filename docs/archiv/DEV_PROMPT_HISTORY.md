@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-10 fase-an-der-fraese-fertig
+
+### EINGELESEN
+- Der Block „Fase“ an der 3-Achs-Fräse in der Oberfläche geprüft (Platte mit gefastem Zapfen,
+  die vier Fasen angeklickt): rot stand „Nicht fertig: Face3, Face6, Face8, Face14“, obwohl der
+  Block sie fräst.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_fertige_flaechen` – der Block „Fase“ macht seine Flächen
+  fertig.
+- `tests/gui/szenario_fase_quader.py` (neu): Liste „Fase 45°, 1 breit, Fuß 19“, T1 in 21 Lagen,
+  kein Entgraten, kein „Nicht fertig“, die Frage nur nach T3 (90°), „T3 nehmen“ eine Lage,
+  „Anlegen“: „Fase T3“ mit der Spitze auf 19.
+
+### ERGEBNIS
+- `szenario_fase_quader`, `szenario_fase_stufen`, `szenario_stirn_bund` grün; im Teil 0 Zellen,
+  keine Kehre.
 ## P-2026-10-24-09 fertigteil-aus-der-stange
 
 ### EINGELESEN
