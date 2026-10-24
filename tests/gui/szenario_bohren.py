@@ -98,8 +98,13 @@ def schritte(h):
     # Die Sackbohrung dazu: Bohren bleibt für die durchgehende, Bohrung fräsen bekommt den Haken
     # für die Sackbohrung, die Kontur nicht.
     panel.flaeche_umschalten(sack)
+    # Erst wenn alle Vorschauen und der Wettbewerb durch sind, stehen die Haken (unter Last dauert
+    # das länger als die beiden Vorschauen).
     yield from h.warte_auf(
-        lambda: bohrung.vorschau is not None and bohren.vorschau is not None, 60000
+        lambda: bohrung.vorschau is not None
+        and bohren.vorschau is not None
+        and not panel.vorschau_laeuft(),
+        60000,
     )
     yield 300
     h.pruefe(bohren.moeglich and bohren.aktiv(), "mit Sackbohrung: Bohren ohne Haken")

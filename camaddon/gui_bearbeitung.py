@@ -8710,10 +8710,12 @@ class BearbeitungPanel:
         Steht ein Fasenfräser ihres Winkels im Magazin der Maschine, ist er gewählt – eine Runde.
         Sonst ein Schaftfräser in Stufen, der an die Fase herankommt (_fase_schaftfraeser); steht
         ein Fasenfräser nur in der Werkzeugverwaltung, fragt der Satz darunter, ob man ihn will.
-        Von Hand gewählt bleibt, was gewählt ist."""
+        Von Hand gewählt bleibt, was gewählt ist, beim Ändern der der Operation."""
         block = self.fase
         passende = self._fase_fasenfraeser(form) if block.aktiv() else []
-        if block.aktiv() and not block.fraeser_von_hand:
+        # Beim Ändern bleibt der Fräser der Operation (er stand nicht im Magazin – der Assistent
+        # hätte den Fasenfräser sonst gegen einen Schaftfräser getauscht).
+        if block.aktiv() and not block.fraeser_von_hand and self.zu_aendern is None:
             magazin = self.magazin() if passende else None
             im_magazin = [
                 w

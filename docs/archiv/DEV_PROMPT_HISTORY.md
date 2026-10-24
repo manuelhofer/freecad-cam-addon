@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-08 voller-lauf-fase-aendern
+
+### EINGELESEN
+- Viel geändert am 24.10. (Fase, Nut, Entgraten, 3D, Flanke, Räumen-Helix, Nebenrechner) – ein
+  voller Lauf aller 167 Szenarien auf allen Kernen (leichte zu sechst, schwere zu zweit).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Beim Ändern einer „Fase“ wählt der Assistent den Fräser nicht
+  neu – er hätte einen Fasenfräser, der nicht im Magazin steht, gegen den Schaftfräser getauscht.
+- `tests/test_fase_op.py` (neu): die Operation im Job – Name, Fasen, Lagen (Stufe 0,05 und 0,25),
+  Endtiefe, Fasenfräser 90° eine Lage, 60° ein Satz, Kugel- und Torusfräser nicht.
+- `tests/gui/szenario_fase_stufen.py`: zum Ändern geöffnet bleibt T6.
+- `tests/gui/szenario_bohren.py`, `tests/gui/szenario_simultan_restbild.py`: warten auf das Ende
+  von Vorschau bzw. Abtrag – unter Volllast reichten die festen Pausen nicht.
+- `tests/gui/_lauf/szenario_lauf.py`: Mit `CAMADDON_IM_TEIL_AUS` zählt der Lauf keine Schnitte ins
+  Teil (die Testjobs von CAMs eigenen Prüfungen schneiden absichtlich hinein).
+
+### ERGEBNIS
+- Voller Lauf: 165 von 167 grün, die zwei roten waren die festen Pausen (danach grün). Kein
+  Schnitt einer Bahn des Addons ins Teil; Kehren nur die bekannten (Vollnut auf dem Mantel,
+  Zeilenwenden am Geist, „Rundum schlichten“ am Geist 1).
 ## P-2026-10-24-07 cam-pruefungen-auch-in-1-1-4
 
 ### EINGELESEN

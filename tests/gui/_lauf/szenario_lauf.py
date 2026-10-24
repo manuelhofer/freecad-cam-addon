@@ -158,6 +158,8 @@ class _Bahnen:
         self.im_teil = {}
 
     def slotDeletedDocument(self, doc):
+        if os.environ.get("CAMADDON_IM_TEIL_AUS"):
+            return  # Testjobs fremder Prüfungen (szenario_cam_eigene_pruefungen) – nicht zählen
         try:
             jobs = [o for o in doc.Objects if hasattr(o, "Operations") and hasattr(o, "Stock")]
         except Exception:  # noqa: BLE001

@@ -73,6 +73,8 @@ def schritte(h):
     FreeCAD.closeDocument(doc.Name)
     yield 500
     zeilen = []
+    # Die Testjobs von CAM schneiden absichtlich ins Teil – nicht als Schnitte des Addons zählen.
+    os.environ["CAMADDON_IM_TEIL_AUS"] = "1"
     for name, modul in (("TestCAMApp", "TestCAMApp"),):
         try:
             anzahl, gescheitert = _ergebnis(name, modul)
@@ -95,3 +97,4 @@ def schritte(h):
         Gui.getDocument(name).Modified = False
         FreeCAD.closeDocument(name)
     yield 500
+    os.environ.pop("CAMADDON_IM_TEIL_AUS", None)

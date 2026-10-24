@@ -12,7 +12,7 @@
 # Nut bleibt mit T4. Nur die Fase angeklickt: keine Nut, kein 3D; der Block „Fase“ mit T4 (T3 Ø 12
 # kommt neben dem Bund nicht heran), 13 Lagen. Ring und Fase, „T6
 # nehmen“: eine Lage. „Anlegen“: „Fase T6“ hinter der Nut – die Spitze auf −0,8, die Achse auf
-# r 15,65 (Kegel 90° auf der Fase).
+# r 15,65 (Kegel 90° auf der Fase). Zum Ändern geöffnet bleibt T6.
 # ZEITLIMIT: 900
 import math
 import os
@@ -168,7 +168,9 @@ def schritte(h):
     yield from rechnen()
     aktiv = _bloecke(dialog)
     print(ascii(f"Alles: {dialog.gewaehlte} – {aktiv}"))
-    h.pruefe(fase not in dialog.gewaehlte and ring in dialog.gewaehlte, f"Alles: {dialog.gewaehlte}")
+    h.pruefe(
+        fase not in dialog.gewaehlte and ring in dialog.gewaehlte, f"Alles: {dialog.gewaehlte}"
+    )
     zeilen = [
         w.text()
         for w in dialog.richtungen_box.findChildren(gui_bearbeitung.QtGui.QLabel)
@@ -183,9 +185,7 @@ def schritte(h):
         any("Ohne die Fasen" in z and fase in z for z in zeilen) and knoepfe,
         f"keine Zeile zur Fase: {zeilen}",
     )
-    h.pruefe(
-        not ({"schruppen3d", "schlichten3d", "fase"} & set(aktiv)), f"Alles angehakt: {aktiv}"
-    )
+    h.pruefe(not ({"schruppen3d", "schlichten3d", "fase"} & set(aktiv)), f"Alles angehakt: {aktiv}")
     h.pruefe(aktiv.get("nut", (None,))[0] == 4, f"Nut: {aktiv.get('nut')}")
     h.bild("1_alles_ohne_fase", dialog.form)
 
@@ -265,7 +265,8 @@ def schritte(h):
     op = next((o for o in neue if o.Label.startswith("Fase")), None)
     h.pruefe(op is not None and op.Label == "Fase T6", f"keine „Fase T6“: {namen}")
     h.pruefe(
-        op is not None and namen.index(op.Label) > max(i for i, n in enumerate(namen) if n.startswith("Nut")),
+        op is not None
+        and namen.index(op.Label) > max(i for i, n in enumerate(namen) if n.startswith("Nut")),
         f"Fase nicht hinter der Nut: {namen}",
     )
     if op is not None:
@@ -278,9 +279,15 @@ def schritte(h):
             and abs(c.Parameters.get("Z", 99) + 0.8) < 0.01
         ]
         zs = [c.Parameters["Z"] for c in op.Path.Commands if c.Name == "G1" and "Z" in c.Parameters]
-        print(ascii(f"Fase T6: r {min(tief or [0]):.3f}..{max(tief or [0]):.3f}, Z {min(zs or [0]):.3f}"))
+        print(
+            ascii(
+                f"Fase T6: r {min(tief or [0]):.3f}..{max(tief or [0]):.3f}, Z {min(zs or [0]):.3f}"
+            )
+        )
         h.pruefe(zs and abs(min(zs) + 0.8) < 0.01, f"tiefstes Z {min(zs) if zs else None}")
-        h.pruefe(tief and abs(max(tief) - 15.65) < 0.02, f"Achse nicht auf r 15,65: {max(tief or [0])}")
+        h.pruefe(
+            tief and abs(max(tief) - 15.65) < 0.02, f"Achse nicht auf r 15,65: {max(tief or [0])}"
+        )
     Gui.Selection.clearSelection()
     for o in doc.Objects:
         if o.ViewObject is not None:
@@ -291,3 +298,25 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 800
     h.bild("5_fase_t6_bahn")
+
+    # Zum Ändern geöffnet: Der Block „Fase“ behält T6 – auch wenn T6 nicht im Magazin steht (sonst
+    # tauschte der Assistent ihn gegen den Schaftfräser).
+    if op is not None:
+        gui_bearbeitung.bearbeiten(op)
+        yield 1500
+        aendern = gui_bearbeitung.BearbeitungPanel.offen
+        h.pruefe(aendern is not None, "„Fase T6“ öffnet nicht zum Ändern")
+        if aendern is not None:
+            yield from h.warte_auf(lambda: aendern.fase.vorschau is not None, 120000)
+            yield 800
+            werkzeug = aendern.fase.fraeser()
+            h.pruefe(
+                getattr(werkzeug, "nummer", None) == 6,
+                f"beim Ändern: {getattr(werkzeug, 'nummer', None)}",
+            )
+            h.pruefe(
+                "1 Lage" in aendern.fase.ergebnis.text(),
+                f"beim Ändern: {aendern.fase.ergebnis.text()!r}",
+            )
+            aendern.reject()
+            yield 800

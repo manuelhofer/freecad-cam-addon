@@ -91,6 +91,8 @@ def schritte(h):
                         "Bahn enthält eine andere Operation",
                     )
     panel.abspieler.springe_zu_station(len(panel.abfahrt.stationen) - 1)
+    # Der Abtrag rechnet im Takt weiter – unter Last länger als eine halbe Sekunde.
+    yield from h.warte_auf(lambda: not panel.bild.abtrag_rechnet() and panel.bild._am_ende, 120000)
     yield 500
     bild = panel.bild
     bild.hinsehen()
