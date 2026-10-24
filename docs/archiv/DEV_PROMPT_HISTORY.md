@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-15 vorschau-schruppbahn-wieder-uebernommen
+
+### EINGELESEN
+- W-036 am Geist nachgemessen (Auftragsliste, CPU-Mitschnitt): Nach der Vorschau rechnete
+  „Anlegen“ die Schruppbahn mit Querachse ganz neu – dasselbe Muster an Aufträgen
+  (`je_stellung_stueck`, 10 481 Aufträge, 1 282 s Rechenzeit, etwa 130 s). Der Schlüssel der
+  Vorschau (P-2026-10-16-50, `merke_bahn`) passte nicht mehr: Seit 0.279.4 gibt die Operation
+  `hinauf_frei` mit, die Vorschau nicht.
+- Nebenbei: `_belegt_von` kostet 5 µs je Lesen (die vielen Proben dort: das Lesen gibt die GIL
+  frei); mit 26 statt 10 GB rechneten am Geist 19,5 statt 13,4 Kerne, aber nicht schneller
+  (433 statt 421 s) – 12 echte Kerne.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_schrupp_argumente` gibt `hinauf_frei` mit wie die Operation.
+- `tests/gui/szenario_vierachs_stl.py`: „Anlegen“ rechnet keine neue Schruppbahn.
+
+### ERGEBNIS
+- Geist: Szenario 421 → 270 s; „Anlegen“ rechnet nur noch das Schlichten (933 Aufträge).
+- Grün: `szenario_vierachs_stl`, `szenario_vierachs_schlichten`, `szenario_vierachs_nase`,
+  `szenario_vierachs_vorschlichten`, `szenario_vierachs_wendel`, `szenario_vierachs_flaechen`,
+  `szenario_vierachs_nocke`.
+
 ## P-2026-10-24-14 nebenrechner-verteilen-ohne-leerlauf
 
 ### EINGELESEN

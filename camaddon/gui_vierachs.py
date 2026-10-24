@@ -4723,6 +4723,10 @@ class VierachsPanel:
             "y_weg": self.y_weg(),
             "wendel": self.schruppen_wendel_an(),
             "sektor_wellen": self.sektor_wellen(),
+            # Wie die Operation (vierachs_operation.hinauf_frei): Sonst passt der Schlüssel nicht,
+            # und „Anlegen“ rechnet die Bahn der Vorschau noch einmal (P-2026-10-24-15: am Geist
+            # 130 s, seit 0.279.4).
+            "hinauf_frei": vo.oben_nicht_schmaler(werkzeug),
         }
 
     @staticmethod

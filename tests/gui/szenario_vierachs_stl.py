@@ -193,8 +193,16 @@ def schritte(h):
     h.pruefe(panel.vorschau_schlichten is not None, "keine Vorschau Schlichten")
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
     h.bild("4_schruppen_schlichten", panel.form)
+    vorschau_schluessel = getattr(panel.vorschau, "schluessel", None)
+    vorher = set(vo._BAHNEN)
     panel.accept()  # Anlegen
     yield from h.warte_auf(lambda: gui_vierachs.VierachsPanel.offen is None, 240000)
+    # „Anlegen“ nimmt die Schruppbahn der Vorschau (vierachs_operation.merke_bahn) – rechnete es
+    # sie neu, fehlte der Vorschau ein Wert der Operation (P-2026-10-24-15: hinauf_frei, 130 s).
+    h.pruefe(
+        vorschau_schluessel in vorher and set(vo._BAHNEN) <= vorher,
+        f"„Anlegen“ rechnete die Schruppbahn neu: {len(set(vo._BAHNEN) - vorher)} neue",
+    )
     # Der Geist bleibt, wie er lag: Die Einfahr-Bewegung (nach „X“) setzte ihn beim Anlegen auf ihr
     # altes Ziel zurück – nach den Bahnen (Manuel, 2026-10-12: „der Geist da falsch drinnen“).
     h.pruefe(

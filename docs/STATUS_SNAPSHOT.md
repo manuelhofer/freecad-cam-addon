@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.279.5) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.279.6) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1760,6 +1760,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   13,4 Kerne im Mittel, 421 s; mit 26 GB 19,5 Kerne, 433 s – die Summe der Auftragszeit wächst mit
   (`je_stellung_stueck` 3 174 → 4 770 s, 21 048 Aufträge). 12 echte Kerne sind dort ausgelastet;
   schneller nur mit weniger Arbeit (die Hüllfläche je Stellung für das Schlichten mit Y).
+  **P-2026-10-24-15 (0.279.6):** „Anlegen“ rechnete die Schruppbahn der Vorschau neu – seit 0.279.4
+  fehlte der Vorschau `hinauf_frei` im Schlüssel. Geist 421 → 270 s; das Szenario prüft es jetzt.
 - **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
   testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
   bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,
