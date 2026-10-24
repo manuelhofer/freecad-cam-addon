@@ -36,7 +36,8 @@ works from every step – with what is suggested. The machinings: <b>Face millin
 up; <b>Contour</b> and <b>Rest material</b> for walls; <b>Slot</b> for elongated holes;
 <b>Drilling</b>, <b>Hole milling</b>, <b>Reaming</b>, <b>Spot drilling</b> and
 <b>Countersinking</b> at holes; <b>Tapping</b> and <b>Thread milling</b> in core holes;
-<b>Deburr</b> on top edges and <b>Deburr 3D</b> on edges in space; for freeform faces
+<b>Chamfer</b> for clicked modelled chamfers; <b>Deburr</b> on top edges and <b>Deburr 3D</b> on
+edges in space; for freeform faces
 <b>3D roughing</b>, <b>3D finishing</b>, <b>Pencil</b>, <b>Rest roughing</b> and <b>Rest
 finishing</b>, on a 5-axis machine also <b>Flank</b>. “Create” creates all ticked ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
@@ -92,7 +93,7 @@ stock (pre-machined, cast, welded): choose “Part from the document” and belo
 its corners, and part and stock move together. The paths use its outline and its top –
 where it is already free, they still run through the air for now. Step 2 then says
 “Stock: …”.</li>
-<li><b>Clamped face (down)</b> – which face of the part sits down in the workholding (vice, clamps, on the table); in step 2 “Everything from this setup” then selects everything that can be reached from above and shows one row per further direction with “Swivel plane (3+2) …” – in the same colour on the part –, in red what cannot be machined in this setup; on a 5-axis machine “Create” then creates the planes and opens the assistant for each plane with its faces already selected (“Cancel” stops, the planes remain): “as modelled”, or
+<li><b>Clamped face (down)</b> – which face of the part sits down in the workholding (vice, clamps, on the table); in step 2 “Everything from this setup” then selects everything that can be reached from above (without modelled chamfers – see “Chamfer”) and shows one row per further direction with “Swivel plane (3+2) …” – in the same colour on the part –, in red what cannot be machined in this setup; on a 5-axis machine “Create” then creates the planes and opens the assistant for each plane with its faces already selected (“Cancel” stops, the planes remain): “as modelled”, or
 <b>Click a face …</b> and then a flat face in 3D – the part in the job turns so that it faces
 down; the model itself stays as it is. Without the button a click adds the face for
 machining, the part then never turns. “As modelled” turns it back.</li>
@@ -557,11 +558,11 @@ chamfer, its edge is left out – the line then says so.</li>
 <li>Grey below: “→ 1 edge run, about 1 min”. Red says why it does not work (no chamfer
 mill, the chamfer is wider than its cone cuts).</li>
 <li><b>Modelled chamfers</b>: if the model already has the chamfer (a sloped face at the top
-edge, as FreeCAD's “Chamfer” makes it), click the chamfer – or the face on top, then all
-chamfers at its edges come along. Width and angle come from the model, the field “Chamfer
-width” does not apply there; the cutter moves so that its cone lies exactly on the chamfer.
-The tick is proposed – the model says the chamfer comes. The chamfer mill needs its angle (a
-45° chamfer: 90°); otherwise red says which one.</li>
+edge, as FreeCAD's “Chamfer” makes it), the block <b>Chamfer</b> (below) machines it when you click
+it. Deburr takes it only when you set its tick yourself – on the chamfer or on the face on top,
+then all chamfers at its edges come along. Width and angle come from the model, the field
+“Chamfer width” does not apply there; the cutter moves so that its cone lies exactly on the
+chamfer. The chamfer mill needs its angle (a 45° chamfer: 90°); otherwise red says which one.</li>
 <li><b>Rounding</b> with a <b>corner rounding mill</b> (application “Rounding”): its tip stands
 exactly one radius below the edge, its axis half the pilot beside the wall – so it rounds a sharp
 edge with its radius. <b>Modelled roundings</b> (FreeCAD's “Fillet” at the top edge) the window
@@ -571,6 +572,30 @@ radius) – otherwise a step would remain on top. Chamfer width and “tip deepe
 the rounding mill.</li>
 <li>The operation is called “Deburr T3”. “Check on the machine” does not report the chamfer as a cut into the part:
 there it may go into the part as deep as the tip stands.</li>
+</ul>
+
+<h4>Chamfer</h4>
+<p>A modelled chamfer – a sloped face pointing up, flat or a cone, at most 3 mm high and wide – is
+machined by the block <b>Chamfer</b> when you <b>click</b> it. No matter what it joins: a wall at
+the top (the edge of a boss) or the floor of a groove at the bottom (on the probe holder it rises
+from the ring floor up to the rim). The list says “Face5 chamfer 45°, 0.6 wide, foot −0.8”.
+“Everything from this setup” does <b>not</b> take chamfers along; below it says “Without the
+chamfers Face5 – “Machining” mills chamfers only when you click them” with the button <b>Add the
+chamfers</b>.</p>
+<ul>
+<li><b>With an end mill in steps</b>: per layer the corner of the end on the chamfer, the next
+layer one <b>Step</b> deeper (empty: 0.05 mm – the steps stay this high). If material still stands
+above the chamfer, first layers at its upper rim, each at most the <b>Depth of cut above</b>
+(empty: the ap of the application). All round in one go, climb milling, tangentially in and out;
+from layer to layer a small step down. Preselected is the cutter of a ticked block before it – on
+the probe holder the one of the slot, no tool change. If it cannot get at the chamfer, the line
+below offers the next smaller one (“Take T4”).</li>
+<li><b>With a chamfer mill</b> of its angle (a 45° chamfer: 90°): one pass – the tip at the foot
+of the chamfer, the cone lies on it. If it is in the machine's magazine, it is preselected; if it
+is only in the tool manager, the block asks: “The tool manager has T6 … – it makes the chamfer
+smooth in one pass instead of in steps. Take it?” with the button <b>Take T6</b>.</li>
+<li>Grey below: “→ 1 chamfer, 13 layers, about 1 min”. The operation is called “Chamfer T4” and
+comes after slot and clearing.</li>
 </ul>
 
 <h4>Deburr 3D</h4>

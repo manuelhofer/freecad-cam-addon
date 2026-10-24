@@ -1,8 +1,10 @@
 # „Bearbeitung (Fräsen)“ an gezeichneten Fasen: Platte 70 × 40 × 10 mit einem Zapfen 20 × 20 × 10
 # bei (10…30, 10…30), oben rundum eine Fase 1 × 45° gezeichnet. T1 der Standardfräser Ø 12, T3 ein
-# Fasenfräser Ø 10 mit 90°. Die Oberseite des Zapfens anklicken: Entgraten mit T3 bekommt von
-# selbst den Haken (das Modell hat die Fase) – „→ 1 Kantenzug, etwa … – die Fase wie gezeichnet:
-# 1 mm breit“. Ein Fasenfräser mit 60° gewählt: rot „braucht einen Fasenfräser mit 90°“.
+# Fasenfräser Ø 10 mit 90°. Die Oberseite des Zapfens anklicken: Entgraten geht, den Haken setzt
+# man selbst (gezeichnete Fasen fräst „Bearbeitung“ von sich aus nur angeklickt, im Block „Fase“ –
+# Manuel, 2026-10-24); der Block „Fase“ passt nicht (die Fase ist nicht angeklickt). Angehakt: T3,
+# „→ 1 Kantenzug, etwa … – die Fase wie gezeichnet: 1 mm breit“. Ein Fasenfräser mit 60° gewählt:
+# rot „braucht einen Fasenfräser mit 90°“.
 # „Anlegen“: unter den Operationen „Entgraten T3“ mit Endtiefe 18,5 (Fase 1 + 0,5 tiefer). „Auf
 # der Maschine prüfen“: am Ende nirgends ins Teil.
 import FreeCAD
@@ -83,9 +85,16 @@ def schritte(h):
         return
     job = panel.job
     entgraten = panel.entgraten
+    yield 1500
+    h.pruefe(
+        entgraten.moeglich and not entgraten.aktiv(),
+        f"Entgraten: möglich {entgraten.moeglich}, angehakt {entgraten.aktiv()}",
+    )
+    h.pruefe(not panel.fase.moeglich, "der Block „Fase“ passt zur Oberseite")
+    entgraten.haken.setChecked(True)
     yield from h.warte_auf(lambda: entgraten.vorschau is not None, 120000)
     yield 1000
-    h.pruefe(entgraten.aktiv(), "Entgraten ohne Haken – die Fase ist gezeichnet")
+    h.pruefe(entgraten.aktiv(), "Entgraten ohne Haken")
     h.pruefe(entgraten.fraeser() is not None and entgraten.fraeser().nummer == 3, "nicht T3")
     text = entgraten.ergebnis.text()
     h.pruefe(

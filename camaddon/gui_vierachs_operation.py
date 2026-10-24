@@ -13,13 +13,14 @@ from . import symbol
 
 
 def _ist_eben(objekt):
-    """Eine Operation im Quader (Planfräsen, Räumen, Nut, Bohrung fräsen, Kontur, Entgraten,
+    """Eine Operation im Quader (Planfräsen, Räumen, Nut, Bohrung fräsen, Kontur, Fase, Entgraten,
     Gewinde fräsen, 3D-Schruppen, 3D-Schlichten, Bleistift) – ihr Assistent ist „Bearbeitung
     (Fräsen)“."""
     from . import bleistift as bst
     from . import bohrung as bo
     from . import entgraten as eg
     from . import entgraten3d as e3op
+    from . import fase as fa
     from . import flanke as fl
     from . import gewindefraesen as gf
     from . import kontur as ko
@@ -41,6 +42,7 @@ def _ist_eben(objekt):
         or bo.ist_bohrungsfraesen(objekt)
         or eg.ist_entgraten(objekt)
         or e3op.ist_entgraten3d(objekt)
+        or fa.ist_fase_op(objekt)
         or gf.ist_gewindefraesen(objekt)
     )
 

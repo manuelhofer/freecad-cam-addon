@@ -36,8 +36,8 @@ Bearbeitungen: <b>Planfräsen</b> und <b>Räumen</b> (mit <b>Rest räumen</b> un
 danach</b>) für ebene Flächen nach oben; <b>Kontur</b> und <b>Restmaterial</b> für Wände;
 <b>Nut</b> für Langlöcher; <b>Bohren</b>, <b>Bohrung fräsen</b>, <b>Reiben</b>,
 <b>Zentrieren</b> und <b>Senken</b> an Bohrungen; <b>Gewinde bohren</b> und <b>Gewinde
-fräsen</b> in Kernlöchern; <b>Entgraten</b> an Oberkanten und <b>Entgraten 3D</b> an Kanten im
-Raum; für Freiformflächen <b>3D-Schruppen</b>, <b>3D-Schlichten</b>, <b>Bleistift</b>,
+fräsen</b> in Kernlöchern; <b>Fase</b> für angeklickte gezeichnete Fasen; <b>Entgraten</b> an
+Oberkanten und <b>Entgraten 3D</b> an Kanten im Raum; für Freiformflächen <b>3D-Schruppen</b>, <b>3D-Schlichten</b>, <b>Bleistift</b>,
 <b>Restschruppen</b> und <b>Restschlichten</b>, an einer 5-Achs-Maschine dazu <b>Flanke</b>.
 „Anlegen“ legt alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
@@ -96,7 +96,7 @@ darunter den <b>Körper</b> wählen. Der Job nimmt ihn so, wie er im Modell zum 
 der Nullpunkt rechnet mit seinen Ecken, und Teil und Rohteil wandern zusammen. Die Bahnen
 rechnen mit seinem Umriss und seiner Oberkante – wo er schon frei ist, fahren sie heute
 noch durch die Luft. In Schritt 2 steht dann „Rohteil: …“.</li>
-<li><b>Unten im Spannmittel</b> – welche Fläche des Teils unten im Spannmittel liegt (Schraubstock, Pratzen, auf dem Tisch); in Schritt 2 wählt „Alles aus dieser Aufspannung“ danach alles, was von oben geht, und zeigt je weitere Richtung eine Zeile mit „Ebene schwenken (3+2) …“ – am Teil in derselben Farbe –, rot, was in dieser Aufspannung nicht geht; an einer 5-Achs-Maschine legt „Anlegen“ danach die Ebenen an und öffnet den Assistenten je Ebene, ihre Flächen schon gewählt („Abbrechen“ hört auf, die Ebenen bleiben): „wie modelliert“, oder
+<li><b>Unten im Spannmittel</b> – welche Fläche des Teils unten im Spannmittel liegt (Schraubstock, Pratzen, auf dem Tisch); in Schritt 2 wählt „Alles aus dieser Aufspannung“ danach alles, was von oben geht (ohne gezeichnete Fasen – siehe „Fase“), und zeigt je weitere Richtung eine Zeile mit „Ebene schwenken (3+2) …“ – am Teil in derselben Farbe –, rot, was in dieser Aufspannung nicht geht; an einer 5-Achs-Maschine legt „Anlegen“ danach die Ebenen an und öffnet den Assistenten je Ebene, ihre Flächen schon gewählt („Abbrechen“ hört auf, die Ebenen bleiben): „wie modelliert“, oder
 <b>Fläche anklicken …</b> und dann eine ebene Fläche im 3D – das Teil im Job dreht sich so,
 dass sie nach unten zeigt; das Modell selbst bleibt, wie es ist. Ohne den Knopf nimmt ein
 Klick die Fläche zur Bearbeitung dazu, das Teil dreht sich dann nie. „Wie modelliert“ dreht
@@ -573,11 +573,11 @@ niedriger als die Fase, bleibt ihre Kante aus – das steht dann in der Zeile.</
 <li>Grau darunter: „→ 1 Kantenzug, etwa 1 min“. Rot steht, warum es nicht geht (kein
 Fasenfräser, die Fase ist breiter, als sein Kegel schneidet).</li>
 <li><b>Gezeichnete Fasen</b>: Hat das Modell die Fase schon (eine schräge Fläche an der
-Oberkante, wie FreeCADs „Fase“ sie macht), klick die Fase an – oder die Fläche oben, dann kommen
-alle Fasen an ihren Kanten mit. Breite und Winkel kommen aus dem Modell, das Feld
-„Fasenbreite“ gilt dort nicht; der Fräser fährt so, dass sein Kegel genau auf der Fase liegt.
-Der Haken ist vorgeschlagen – das Modell sagt, dass die Fase kommt. Der Fasenfräser braucht
-ihren Winkel (eine 45°-Fase: 90°); sonst steht rot, welchen.</li>
+Oberkante, wie FreeCADs „Fase“ sie macht), fräst sie der Block <b>Fase</b> (unten), wenn du sie
+anklickst. Entgraten nimmt sie nur, wenn du seinen Haken selbst setzt – an der Fase oder an der
+Fläche oben, dann kommen alle Fasen an ihren Kanten mit. Breite und Winkel kommen aus dem Modell,
+das Feld „Fasenbreite“ gilt dort nicht; der Fräser fährt so, dass sein Kegel genau auf der Fase
+liegt. Der Fasenfräser braucht ihren Winkel (eine 45°-Fase: 90°); sonst steht rot, welchen.</li>
 <li><b>Verrunden</b> mit einem <b>Radienfräser</b> (Einsatz „Verrunden“): Seine Spitze steht
 genau einen Radius unter der Kante, seine Achse die halbe Führung neben der Wand – so rundet er
 eine scharfe Kante mit seinem Radius. <b>Gezeichnete Rundungen</b> (FreeCADs „Verrundung“ an
@@ -587,6 +587,31 @@ Viertelkreis sein (Führung = Ø − 2 × Radius) – sonst bliebe oben eine Stu
 „Spitze tiefer“ gelten beim Radienfräser nicht.</li>
 <li>Die Operation heißt „Entgraten T3“. „Auf der Maschine prüfen“ meldet die Fase nicht als Schnitt ins Teil:
 Dort darf es so tief ins Teil gehen, wie die Spitze steht.</li>
+</ul>
+
+<h4>Fase</h4>
+<p>Eine gezeichnete Fase – eine schräge Fläche nach oben, eben oder ein Kegel, höchstens 3 mm
+hoch und breit – fräst der Block <b>Fase</b>, wenn du sie <b>anklickst</b>. Gleich, woran sie
+anschließt: oben an einer Wand (die Kante eines Zapfens) oder unten am Grund einer Nut (am
+Messspitzenhalter steigt sie vom Ringgrund hinauf zum Rand). In der Liste steht „Face5 Fase 45°,
+0,6 breit, Fuß −0,8“. „Alles aus dieser Aufspannung“ nimmt Fasen <b>nicht</b> mit; darunter steht
+„Ohne die Fasen Face5 – „Bearbeitung“ fräst Fasen nur, wenn man sie anklickt“ mit dem Knopf
+<b>Fasen dazu</b>.</p>
+<ul>
+<li><b>Mit dem Schaftfräser in Stufen</b>: je Lage die Ecke der Stirn auf der Fase, die nächste
+Lage um die <b>Stufe</b> tiefer (leer: 0,05 mm – so hoch bleibt die Treppe stehen). Steht über der
+Fase noch Material, erst Lagen am oberen Rand der Fase, je höchstens die <b>Zustellung darüber</b>
+(leer: das ap des Einsatzes). Rundum in einem Zug, im Gleichlauf, tangential hinein und heraus;
+von Lage zu Lage ein kleiner Schritt hinab. Vorgewählt ist der Fräser eines angehakten Blocks
+davor – am Messspitzenhalter der der Nut, kein Werkzeugwechsel. Kommt er nicht an die Fase heran,
+bietet der Satz darunter den nächstkleineren an („T4 nehmen“).</li>
+<li><b>Mit einem Fasenfräser</b> ihres Winkels (eine 45°-Fase: 90°): eine Runde – die Spitze am
+Fuß der Fase, der Kegel liegt auf ihr. Steht er im Magazin der Maschine, ist er vorgewählt; steht
+er nur in der Werkzeugverwaltung, fragt der Satz im Block: „In der Werkzeugverwaltung steht T6 …, 90°
+– damit wird die Fase in einer Runde glatt statt in Stufen. Nehmen?“ mit dem Knopf <b>T6
+nehmen</b>.</li>
+<li>Grau darunter: „→ 1 Fase, 13 Lagen, etwa 1 min“. Die Operation heißt „Fase T4“ und kommt
+hinter Nut und Räumen.</li>
 </ul>
 
 <h4>Entgraten 3D</h4>

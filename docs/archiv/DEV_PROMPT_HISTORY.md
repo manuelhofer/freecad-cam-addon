@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-01 fase-angeklickt-in-stufen
+
+### EINGELESEN
+- Manuel, 2026-10-24, zu Frage 1 (die Fase 0,6 × 45° außen am Messspitzenhalter): „A wenns einen
+  gibt“, dann: „genau wenn sie angeklickt ist und man nur einen schaftfräser hat dann muss der das
+  in stufen machen ... wenn nicht wird sie nicht gemacht .. wenn in der werkzeugverwaltung
+  einfasenfräser ist .. sollte man fragen .. hey willst du den haben ?“
+
+### DATEIEN
+- `camaddon/fase_bahn.py` (neu): Fasen erkennen (`ist_fase`, `fasen`: eben oder Kegel um Z,
+  schräg nach oben, höchstens 3 mm hoch und breit – auch vom Grund einer Nut aufsteigend),
+  `lagen()`, `planen()` (Schaftfräser: je Lage der Schnitt der Fase um den Radius versetzt,
+  geschlossen in einem Zug mit kleinem Schritt hinab; Fasenfräser ihres Winkels: eine Runde, die
+  Spitze am Fuß), `netze()`, `fraeser_passt()` (schnelle Probe für die Wahl des Fräsers). Die
+  Fase selbst fährt sie immer – der Materialstand (Raster 0,5) zeigte nach der Nut dort nichts
+  mehr.
+- `camaddon/fase.py` (neu): Operation „Fase“ (Stufe, Zustellung, Materialstand).
+- `camaddon/gui_bearbeitung.py`: Block „Fase“ (`_Fase`, vor dem Entgraten); Fräser:
+  Fasenfräser ihres Winkels aus dem Magazin, sonst der größte Schaftfräser der Blöcke davor, der
+  hinkommt (`_fase_fraeser_waehlen`); der Satz mit Knöpfen (`_Angebot`, `_fase_angebot`): „In der
+  Werkzeugverwaltung steht T6 … Nehmen?“ / „… kommt nicht an die Fase heran – mit T4 versuchen?“;
+  „Alles aus dieser Aufspannung“ ohne Fasen, darunter „Ohne die Fasen …“ mit „Fasen dazu“; Nut und
+  3D nehmen keine Fase mehr; Entgraten schlägt gezeichnete Fasen nicht mehr von sich aus vor
+  (Rundungen weiter); die Liste: „Face5 Fase 45°, 0,6 breit, Fuß −0,8“.
+- `camaddon/gui_vierachs_operation.py`, `camaddon/job_schnittwerte.py` („fase“: Schlichten, Fasen).
+- `translations/de.json`, `en.json`; `help/de|en/bearbeitung.html` (Abschnitt „Fase“).
+- `tests/test_fase_bahn.py` (neu), `tests/gui/szenario_fase_stufen.py` (neu),
+  `tests/gui/szenario_fase.py` (Entgraten an der Oberseite jetzt von Hand angehakt).
+- `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md` (W-037 erledigt).
+
+### ERGEBNIS
+- Messspitzenhalter: „Alles“ ohne die Fase, kein 3D-Block mehr rot; „Fasen dazu“ → „Fase“ mit T4
+  (dem Fräser der Nut), 13 Lagen, etwa 1 min, die Frage nach T6; nur die Fase angeklickt → T4
+  (T3 Ø 12 kommt neben dem Bund nicht heran); „T6 nehmen“ → eine Runde; „Anlegen“: Nut T4,
+  Messstopp, Nut schlichten T4, Fase T6 (Spitze −0,8, Achse r 15,65). Im Teil 0 Zellen, 0 Kehren.
 ## P-2026-10-23-19 szenarien-zaehlen-schnitte-ins-teil
 
 ### EINGELESEN

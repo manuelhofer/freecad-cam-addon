@@ -519,13 +519,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-23 abends (0.277.0) – offen, in dieser Reihenfolge:**
-1. *Fasen (W-037), Manuels Antwort auf Frage 1 (2026-10-24):* „genau wenn sie angeklickt ist und
-   man nur einen schaftfräser hat dann muss der das in stufen machen ... wenn nicht wird sie nicht
-   gemacht .. wenn in der werkzeugverwaltung einfasenfräser ist .. sollte man fragen .. hey willst
-   du den haben ?“ (davor: „A wenns einen gibt“). Also: angeklickt + nur Schaftfräser → in Stufen
-   (Stufe einstellbar, vorbelegt 0,05); nur über „Alles aus dieser Aufspannung“ → nicht gemacht,
-   gesagt; ein Fasenfräser in der Werkzeugverwaltung → als Knopf angeboten.
+**Stand 2026-10-24 (0.278.0) – offen, in dieser Reihenfolge:**
+1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
+   „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
+   Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
+   darunter bietet „Fasen dazu“ an. Manuel soll es an seinem Messspitzenhalter ansehen.
 2. *W-029 weiter:* das Fertigteil auch für 4-Achs-Jobs (Stange) und 3+2-Ebenen (raum_material).
 3. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
    Hauptprozess, 4-Achs-Schlichten genau beim Anlegen.
@@ -1732,10 +1730,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   oder Wellen einmal herum, Vollnut als Wendel; „Schlichten danach“ beide Ränder als Nut „nur
   schlichten“), niedrige Ränder und Fasen zählen als Wand, Abfahren der Stange von vorn als
   Scheibe; Y/C wie bisher (`stirnseite`: an der CLX reicht Y, C dreht nicht). **Offen:** die Fase
-  0,6 × 45° außen – Frage 1 in OFFENE_FRAGEN (Schaftfräser in Stufen, Fasenfräser oder drehen).
+  0,6 × 45° außen – *erledigt P-2026-10-24-01:* der Block „Fase“ (angeklickt: Schaftfräser in
+  Stufen, Fasenfräser auf Frage; über „Alles“ nicht).
   „Alles aus dieser Aufspannung“ an diesem Teil (P-2026-10-23-02 nachgezogen: keine Stirn ohne
   Rohteil darüber, Räumen gibt der Nut ab, „Schlichten danach“ mit ihrem Fräser) – **noch offen:**
-  die 3D-Blöcke an der Fase (hängt an Frage 1). Seit P-2026-10-23-06/07: „Bohrung fräsen“ fräst
+  die 3D-Blöcke an der Fase – *erledigt P-2026-10-24-01* (Fasen nimmt nur der Block „Fase“).
+  Seit P-2026-10-23-06/07: „Bohrung fräsen“ fräst
   die Ø 8,5 und nennt die Ø 2,5 für den Bohrer, bietet den passenden Fräser an; das Räumen gibt den
   Haken ab, wo vor den Wänden kein Rohteil steht und die Nut die Gründe fräst.
 - **W-034 C-Ring aus Platte oder aus Rundmaterial – beides, wählbar** – Manuel, 2026-10-18, zu

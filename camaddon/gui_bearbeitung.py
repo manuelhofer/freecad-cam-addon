@@ -38,6 +38,8 @@ from . import bohrung_bahn as bb
 from . import entgrat_bahn as eb
 from . import entgraten as eg
 from . import entgraten3d as e3op
+from . import fase as fa
+from . import fase_bahn as fb
 from . import flanke as flop
 from . import flanke_bahn as flb
 from . import formteile as ft
@@ -118,6 +120,7 @@ GEMERKT_REIBAHLE = "BaReibahle"  # … fürs Reiben
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_GEWINDEFRAESER = "BaGewindefraeser"  # … fürs Gewindefräsen
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
+GEMERKT_FASE = "BaFase"  # … für die Fase (W-037)
 GEMERKT_ENTGRATEN3D = "BaEntgraten3D"  # … fürs Entgraten 3D
 GEMERKT_ANBOHRER = "BaAnbohrer"  # … fürs Zentrieren
 GEMERKT_SENKER = "BaSenker"  # … fürs Senken
@@ -217,6 +220,73 @@ class _Satz(QtGui.QLabel):
         leer = not self.text()
         self.setVisible(self._erlaubt and not leer)
         self.spiegel.setVisible(not leer)
+
+
+class _Angebot:
+    """Ein Satz mit Knöpfen (höchstens KNOEPFE), der etwas anbietet – wie _Satz an zwei Stellen:
+    im Überblick (nur, wenn die Strategie zur Wahl passt) und bei den Einstellungen. Leer nimmt
+    er keinen Platz."""
+
+    KNOEPFE = 2
+
+    def __init__(self):
+        self._aktionen = []
+        self._erlaubt = True
+        self.zeilen = []  # [(Zeile, Satz, [Knopf])] – Überblick, Einstellungen
+        for _stelle in range(2):
+            zeile = QtGui.QWidget()
+            aufbau = QtGui.QVBoxLayout(zeile)
+            aufbau.setContentsMargins(0, 0, 0, 0)
+            satz = QtGui.QLabel()
+            satz.setWordWrap(True)
+            aufbau.addWidget(satz)
+            reihe = QtGui.QHBoxLayout()
+            reihe.setContentsMargins(0, 0, 0, 0)
+            knoepfe = []
+            for i in range(self.KNOEPFE):
+                k = knopf("", "", lambda i=i: self._geklickt(i))
+                reihe.addWidget(k)
+                knoepfe.append(k)
+            reihe.addStretch(1)
+            aufbau.addLayout(reihe)
+            zeile.hide()
+            self.zeilen.append((zeile, satz, knoepfe))
+
+    def zeigen(self, text, knoepfe):
+        """`knoepfe`: [(Beschriftung, Aktion)]."""
+        self._aktionen = [aktion for _text, aktion in knoepfe[: self.KNOEPFE]]
+        for _zeile, satz, eigene in self.zeilen:
+            satz.setText(text)
+            for i, k in enumerate(eigene):
+                k.setVisible(i < len(self._aktionen))
+                k.setText(knoepfe[i][0] if i < len(self._aktionen) else "")
+        self._sichtbarkeit()
+
+    def leeren(self):
+        self._aktionen = []
+        for _zeile, satz, _knoepfe in self.zeilen:
+            satz.setText("")
+        self._sichtbarkeit()
+
+    def text(self):
+        return self.zeilen[0][1].text()
+
+    def knoepfe(self):
+        """Die sichtbaren Knöpfe im Überblick."""
+        return self.zeilen[0][2][: len(self._aktionen)]
+
+    def erlauben(self, an):
+        self._erlaubt = bool(an)
+        self._sichtbarkeit()
+
+    def _sichtbarkeit(self):
+        da = bool(self.text())
+        self.zeilen[0][0].setVisible(da and self._erlaubt)
+        self.zeilen[1][0].setVisible(da)
+
+    def _geklickt(self, i):
+        if i < len(self._aktionen):
+            self._aktionen[i]()
 
 
 def _eintauchwinkel(werkzeug):
@@ -593,10 +663,19 @@ def _lage_von(form):
 
 
 def _kleine_fase(form, name):
-    """Ist die Fläche eine gezeichnete Fase, klein genug fürs Entgraten?"""
+    """Ist die Fläche eine gezeichnete Fase, klein genug fürs Entgraten – oder eine Fase für den
+    Block „Fase“ (auch eine, die vom Grund einer Nut aufsteigt)?"""
+    if fb.ist_fase(form, name):
+        return True
     if not eb.ist_fase(form, name):
         return False
     return ft.flaeche(form, int(name[4:]) - 1).BoundBox.ZLength <= FASE_HOECHSTENS
+
+
+def _fase_fuer_block(form, name):
+    """Fräst der Block „Fase“ die Fläche – eine Fase (fase_bahn.ist_fase), keine Senkung über
+    einer Bohrung (die senkt „Senken“)?"""
+    return fb.ist_fase(form, name) and not sk.ist_senkung(form, name)
 
 
 def _achse_text(achse):
@@ -782,6 +861,7 @@ def ist_bearbeitung(op):
         or bo.ist_bohrungsfraesen(op)
         or ko.ist_kontur(op)
         or eg.ist_entgraten(op)
+        or fa.ist_fase_op(op)
         or gf.ist_gewindefraesen(op)
     )
 
@@ -1852,7 +1932,9 @@ class _Nut(_Strategie):
         )
 
     def passt(self, form, name):
-        return nb.ist_nut(form, name)
+        # Eine Fase an der Nut (am Messspitzenhalter außen am Ringgrund) fräst der Block „Fase“ –
+        # angeklickt allein holte sie sonst die ganze Ringnut (W-037).
+        return nb.ist_nut(form, name) and not _fase_fuer_block(form, name)
 
     def flaechen_fuer(self, form, gewaehlte):
         """Der Grund, wie gewählt – eine Wand aber meint die ganze Nut: alle ihre Wände (so
@@ -2422,6 +2504,90 @@ class _Gewindefraesen(_Strategie):
         return {"gleichlauf": bool(op.Gleichlauf)}
 
 
+class _Fase(_Strategie):
+    """Angeklickte Fasen (fase, W-037): der Schaftfräser in Stufen, ein Fasenfräser ihres Winkels
+    in einer Runde – gegen keine Strategie im Wettbewerb, vor dem Entgraten. Den Haken setzt eine
+    angeklickte Fase; „Alles aus dieser Aufspannung“ nimmt sie nicht mit (Manuel, 2026-10-24: „genau
+    wenn sie angeklickt ist und man nur einen schaftfräser hat dann muss der das in stufen machen
+    ... wenn nicht wird sie nicht gemacht“)."""
+
+    kennung = "fase"
+    aufloesung = fb.SCHRITT
+    gemerkt = GEMERKT_FASE
+    einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN, wz.FASEN)
+
+    def titel(self):
+        return tr("ba.fase")
+
+    def text(self):
+        return tr("ba.fase.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.fase.fraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.fase.einsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("stufe", tr("ba.fase.stufe"), tr("ba.fase.stufe.tooltip")),
+            ("zustellung", tr("ba.fase.zustellung"), tr("ba.fase.zustellung.tooltip")),
+        )
+
+    def werkzeug_passt(self, werkzeug):
+        return fa.werkzeug_passt(werkzeug)
+
+    def passt(self, form, name):
+        return _fase_fuer_block(form, name)
+
+    def unmoeglich_text(self):
+        return tr("ba.fase.nicht")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "stufe":
+            return fb.STUFE
+        if feld == "zustellung":
+            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else fb.ZUSTELLUNG
+        return 0.0
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return fa.vorschau(
+            job,
+            werkzeug,
+            werte["stufe"],
+            werte["zustellung"],
+            flaechen,
+            stand=werte.get("materialstand"),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        def fasen(n):
+            return tr("ba.zahl.fase") if n == 1 else tr("ba.zahl.fasen", n=n)
+
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        if bahn.ausgelassen:
+            return tr(
+                "ba.ergebnis_fase_ausgelassen",
+                fasen=fasen(bahn.fasen),
+                lagen=lagen,
+                zeit=zeit,
+                ausgelassen=fasen(bahn.ausgelassen),
+            )
+        return tr("ba.ergebnis_fase", fasen=fasen(bahn.fasen), lagen=lagen, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return fa.lege_an(job, tc, werte["stufe"], werte["zustellung"], flaechen=flaechen)
+
+    def aendere(self, op, tc, werte, flaechen):
+        fa.aendere(op, tc, werte["stufe"], werte["zustellung"], flaechen=flaechen)
+
+    def ist(self, op):
+        return fa.ist_fase_op(op)
+
+    def werte_von(self, op):
+        return {"stufe": float(op.Stufe), "zustellung": float(op.Zustellung)}
+
+
 class _Entgraten(_Strategie):
     """Ein Fasenfräser bricht die Oberkanten der gewählten Wände (entgraten) – zuletzt, gegen
     keine Strategie im Wettbewerb; den Haken setzt man selbst."""
@@ -2457,9 +2623,12 @@ class _Entgraten(_Strategie):
 
     def vorgeschlagen(self, form, gewaehlte):
         # Eine scharfe Kante: ob sie eine Fase bekommt, sagt die Zeichnung. Eine gezeichnete
-        # Fase sagt das Modell – außer einer Senkung über einer Bohrung (die senkt „Senken“).
+        # Rundung sagt das Modell – außer einer Senkung über einer Bohrung (die senkt „Senken“).
+        # Gezeichnete Fasen fräst der Block „Fase“, und nur angeklickt (Manuel, 2026-10-24: „wenn
+        # sie angeklickt ist … wenn nicht wird sie nicht gemacht“); den Haken hier setzt man selbst.
         return any(
             not sk.ist_senkung(form, f"Face{f.nummer + 1}")
+            and not fb.ist_fase(form, f"Face{f.nummer + 1}")
             for f in eb._gewaehlte_fasen(form, gewaehlte)
         )
 
@@ -3624,6 +3793,7 @@ STRATEGIEN = (
     _Reiben,
     _Gewinde,
     _Gewindefraesen,
+    _Fase,
     _Entgraten,
     _Entgraten3D,
 )
@@ -3656,6 +3826,8 @@ class _Block:
         self.ergebnis_basis = ""  # die Ergebniszeile ohne den Vergleich
         self.operation = None  # die angelegte Operation
         self.von_hand = False  # der Haken ist von Hand gesetzt – kein Vorschlag mehr
+        self.fraeser_von_hand = False  # den Fräser hat man selbst gewählt (der Block „Fase“)
+        self._setzt_selbst = False  # der Assistent wählt gerade den Fräser
         self.moeglich = True  # die Strategie geht mit der Wahl der Flächen
         # Schritt 2, der Überblick: der Haken mit dem Titel, das Ergebnis, rot was fehlt – oder,
         # passt die Strategie nicht zur Wahl, eine Zeile „Titel – was man anklicken muss“.
@@ -3683,6 +3855,9 @@ class _Block:
         for etikett in (self.hinweis, self.hinweis.spiegel):
             etikett.linkActivated.connect(self._hinweis_verweis)
         aufbau.addWidget(self.hinweis)
+        # Ein Angebot mit Knopf (der Block „Fase“: der Fasenfräser aus der Werkzeugverwaltung).
+        self.angebot = _Angebot()
+        aufbau.addWidget(self.angebot.zeilen[0][0])
         # Schritt 3, die Einstellungen – nur solange angehakt: der Titel, die Erklärung, Fräser,
         # Einsatz, Felder und Haken, darunter dasselbe Ergebnis.
         self.einstellungen = QtGui.QWidget()
@@ -3785,6 +3960,7 @@ class _Block:
         unten.addWidget(self.ergebnis.spiegel)
         unten.addWidget(self.material.spiegel)
         unten.addWidget(self.hinweis.spiegel)
+        unten.addWidget(self.angebot.zeilen[1][0])
 
     # --- Zustand ---
 
@@ -3802,6 +3978,7 @@ class _Block:
         self.ergebnis.erlauben(self.moeglich)
         self.material.erlauben(self.moeglich)
         self.hinweis.erlauben(self.moeglich)
+        self.angebot.erlauben(self.moeglich)
         self.kurz.setVisible(not self.moeglich)
         self.einstellungen.setVisible(self.aktiv())
         if not self.moeglich:
@@ -4095,8 +4272,12 @@ class _Block:
     def _fraeser_gewaehlt(self):
         self.haken_pruefen()
         if not self.panel._fuellt:
+            if not self._setzt_selbst:
+                self.fraeser_von_hand = True
             self.magazin_pruefen()
             self.einsatz_fuellen(self.panel.werkstoff())
+            if self.s.kennung == "fase":
+                self.panel._fase_angebot()
 
     def magazin_pruefen(self):
         """Der gelbe Satz, wenn der gewählte Fräser nicht im Magazin der Maschine steht (E3 a):
@@ -4371,6 +4552,7 @@ IM_FREIEN_SCHNELL = {
     "restraeumen",
     "nut",
     "kontur",
+    "fase",
     "entgraten",
     "schruppen3d",
     "restschruppen",
@@ -4606,6 +4788,7 @@ class BearbeitungPanel:
         self.gewinde = next(b for b in self.bloecke if b.s.kennung == "gewinde")
         self.gewindefraesen = next(b for b in self.bloecke if b.s.kennung == "gewindefraesen")
         self.entgraten = next(b for b in self.bloecke if b.s.kennung == "entgraten")
+        self.fase = next(b for b in self.bloecke if b.s.kennung == "fase")
         self.entgraten3d = next(b for b in self.bloecke if b.s.kennung == "entgraten3d")
         self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
@@ -6505,6 +6688,19 @@ class BearbeitungPanel:
             if weg:
                 gewaehlte = [n for n in gewaehlte if n not in weg]
                 kanten = [k for k in kanten if k not in weg]
+        fase = getattr(self, "fase", None)
+        if (
+            block.s.kennung in FREIFORM_STRATEGIEN
+            and gewaehlte
+            and fase is not None
+            and fase._fraeser
+            and self.job is not None
+            and not self._ist_stl()
+        ):
+            # Fasen fräst der Block „Fase“ (W-037) – 3D nicht noch einmal (am Messspitzenhalter
+            # standen 3D-Schruppen und -Schlichten mit Ø 12 rot an der Fase).
+            form = vr.modell(self.job).Shape
+            gewaehlte = [n for n in gewaehlte if not _fase_fuer_block(form, n)]
         if getattr(block.s, "nimmt_kanten", False):
             return list(gewaehlte) + list(kanten)
         return gewaehlte
@@ -6788,12 +6984,16 @@ class BearbeitungPanel:
             # Stirn mit Planaufmaß 0 – sonst stand an Manuels Messspitzenhalter (2026-10-23) das
             # Planfräsen mit „steht nichts“ da, und „Anlegen“ ging nicht. Wände bleiben: An ihnen
             # hängt das Räumen bis durch (der Mantel im Rundmaterial, W-034).
-            self.gewaehlte = [
+            gewaehlte = [
                 n
                 for n in namen
                 if self._nimmt_eine(form, n)
                 and not (hf.ebenen_oben(form, [n]) and self._ohne_rohteil(form, n))
             ]
+            # Fasen nur angeklickt (Manuel, 2026-10-24, Frage 1: „wenn sie angeklickt ist … wenn
+            # nicht wird sie nicht gemacht“) – die Zeile unter der Liste bietet sie an.
+            self._ohne_fasen = [n for n in gewaehlte if _fase_fuer_block(form, n)]
+            self.gewaehlte = [n for n in gewaehlte if n not in self._ohne_fasen]
         self.kanten = []
         self._flaechen_zeigen()
         self.vorschau_starten()
@@ -6850,11 +7050,31 @@ class BearbeitungPanel:
             self._richtungen_aufbau.addWidget(text)
         if weitere and self._fuenfachs():
             self._richtungen_aufbau.addWidget(_grau(tr("ba.richtung.danach")))
-        self.richtungen_box.setVisible(bool(weitere or gruende))
+        fasen = [n for n in getattr(self, "_ohne_fasen", []) if n not in gewaehlt]
+        if fasen:
+            zeile = QtGui.QWidget()
+            aufbau = QtGui.QVBoxLayout(zeile)
+            aufbau.setContentsMargins(0, 0, 0, 0)
+            aufbau.addWidget(_grau(tr("ba.alles.ohne_fasen", namen=_namen_kurz(fasen))))
+            aufbau.addWidget(
+                knopf(tr("ba.alles.fasen_dazu"), "", self.fasen_dazu), 0, QtCore.Qt.AlignLeft
+            )
+            self._richtungen_aufbau.addWidget(zeile)
+        self.richtungen_box.setVisible(bool(weitere or gruende or fasen))
+
+    def fasen_dazu(self):
+        """„Fasen dazu“: die Fasen, die „Alles aus dieser Aufspannung“ ausließ, in die Wahl."""
+        dazu = [n for n in getattr(self, "_ohne_fasen", []) if n not in self.gewaehlte]
+        if not dazu:
+            return
+        self.gewaehlte = list(self.gewaehlte) + dazu
+        self._flaechen_zeigen()
+        self.vorschau_starten()
 
     def flaechen_leeren(self):
         self._gleiche_anbieten(None)
         self._zugang = None
+        self._ohne_fasen = []
         self.gewaehlte = []
         self.kanten = []
         self._flaechen_zeigen()
@@ -6896,6 +7116,16 @@ class BearbeitungPanel:
                     text = tr("ba.flaeche.geschwenkt", name=name, winkel=winkel)
                 else:
                     text = tr("ba.flaeche.gekippt", name=name, winkel=winkel)
+                farbe = GRUEN
+            elif self.fase.s.passt(form, name):
+                fase = fb.fasen(form, [name])[0]
+                text = tr(
+                    "ba.flaeche.fase_mass",
+                    name=name,
+                    winkel=f"{90.0 - fase.winkel:.0f}",
+                    breite=groesse_zeigen(fase.breite, einheiten.LAENGE, 2) or "0",
+                    z=groesse_zeigen(fase.z_unten, einheiten.LAENGE, 2) or "0",
+                )
                 farbe = GRUEN
             elif self.nut.s.passt(form, name):
                 n = nb.nuten(form, [name])[0]
@@ -7169,6 +7399,7 @@ class BearbeitungPanel:
         self._restfraeser_waehlen()
         self._rest_vorschlagen(form)
         self._restschlichtfraeser_waehlen()
+        self._fase_fraeser_waehlen(form)
         self._bloecke_ordnen()
 
     def _bloecke_ordnen(self):
@@ -7500,6 +7731,7 @@ class BearbeitungPanel:
         yield
         self._raeumen_ausgelassen_zeigen()
         self._unfertig_zeigen(form)
+        self._fase_angebot()
         self._knoepfe_beschriften()
 
     # --- Das Teil muss herauskommen (Grundsatz 0) -------------------------------------------
@@ -7665,7 +7897,7 @@ class BearbeitungPanel:
             return False
         eigen = zusatz = self._zusatz(block, form)
         stand = None
-        if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d):
+        if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d, self.fase):
             stand = yield from self._materialstand_schritte(block, form)
             zusatz = dict(zusatz or {}, materialstand=stand)
         elif block in (self.restraeumen, self.schlichten_danach):
@@ -8446,6 +8678,140 @@ class BearbeitungPanel:
             ]
             if kleiner:
                 rest.wahl_fraeser.setCurrentIndex(max(kleiner)[1])
+
+    def _fase_fasenfraeser(self, form):
+        """[Fasenfräser] in der Auswahl des Blocks „Fase“, deren Kegel zu allen angeklickten
+        Fasen passt."""
+        block = self.fase
+        if not block.moeglich:
+            return []
+        fasen = fb.fasen(form, block.s.flaechen_fuer(form, self._wahl(block)))
+        if not fasen:
+            return []
+        return [
+            w
+            for w in block._fraeser
+            if w.art == wz.FASENFRAESER and all(fb.kegel_passt(f, wf.kegel(w)[2]) for f in fasen)
+        ]
+
+    def _fase_fraeser_waehlen(self, form):
+        """Der Fräser im Block „Fase“ (W-037; Manuel, 2026-10-24: „A wenns einen gibt … wenn in der
+        werkzeugverwaltung ein fasenfräser ist .. sollte man fragen .. hey willst du den haben ?“):
+        Steht ein Fasenfräser ihres Winkels im Magazin der Maschine, ist er gewählt – eine Runde.
+        Sonst ein Schaftfräser in Stufen, der an die Fase herankommt (_fase_schaftfraeser); steht
+        ein Fasenfräser nur in der Werkzeugverwaltung, fragt der Satz darunter, ob man ihn will.
+        Von Hand gewählt bleibt, was gewählt ist."""
+        block = self.fase
+        passende = self._fase_fasenfraeser(form) if block.aktiv() else []
+        if block.aktiv() and not block.fraeser_von_hand:
+            magazin = self.magazin() if passende else None
+            im_magazin = [
+                w
+                for w in (passende if magazin is not None else [])
+                if mg.rang(w, magazin) != mg.NICHT_IM_MAGAZIN
+            ]
+            ziel = im_magazin[0] if im_magazin else self._fase_schaftfraeser(form)
+            jetzt = block.fraeser()
+            if ziel is not None and (jetzt is None or ziel.kennung != jetzt.kennung):
+                block._setzt_selbst = True
+                try:
+                    block.fraeser_setzen(ziel)
+                finally:
+                    block._setzt_selbst = False
+        self._fase_angebot(passende)
+
+    def _fase_schaftfraeser(self, form):
+        """Der Schaftfräser für die Fase: von den Fräsern der angehakten Blöcke davor der größte,
+        der an sie herankommt (fase_bahn.fraeser_passt – am Messspitzenhalter der der Nut, kein
+        Werkzeugwechsel); sonst der vorgewählte, wenn er passt; sonst der größte, der passt. None,
+        wenn keiner passt (dann bleibt der vorgewählte, und der Satz bietet den kleineren an)."""
+        block = self.fase
+        fasen = fb.fasen(form, block.s.flaechen_fuer(form, self._wahl(block)))
+        schaft = [w for w in block._fraeser if w.art != wz.FASENFRAESER]
+        if not fasen or not schaft:
+            return None
+        kennungen = {w.kennung for w in schaft}
+        im_job = {}
+        for anderer in self._in_anlege_reihe(self.bloecke):
+            if anderer is block:
+                break
+            werkzeug = anderer.fraeser() if anderer.aktiv() else None
+            if werkzeug is not None and werkzeug.kennung in kennungen:
+                im_job[werkzeug.kennung] = werkzeug
+
+        def passt(w):
+            return fb.fraeser_passt(form, fasen, float(w.durchmesser) / 2)
+
+        jetzt = block.fraeser()
+        reihe = sorted(im_job.values(), key=lambda w: -w.durchmesser)
+        if jetzt is not None and jetzt.art != wz.FASENFRAESER:
+            reihe.append(jetzt)
+        reihe += sorted(schaft, key=lambda w: -w.durchmesser)
+        return next((w for w in reihe if passt(w)), None)
+
+    def _fase_angebot(self, passende=None):
+        """Der Satz mit Knöpfen im Block „Fase“: Kommt der Schaftfräser nicht an die Fase (die
+        Vorschau sagt es rot), der nächstkleinere – „T4 nehmen“ (genommen erst auf Klick, wie bei
+        Planfräsen und Räumen); steht ein passender Fasenfräser in der Werkzeugverwaltung und ist
+        nicht schon einer gewählt, „In der Werkzeugverwaltung steht T6 … Nehmen?“."""
+        block = self.fase
+        if passende is None:
+            if self.job is None or not block.aktiv():
+                passende = []
+            else:
+                passende = self._fase_fasenfraeser(vr.modell(self.job).Shape)
+        jetzt = block.fraeser()
+        saetze, knoepfe = [], []
+        gescheitert = (
+            block.aktiv()
+            and block.vorschau is None
+            and not block.schon_weg
+            and bool(block.hinweis.text())
+        )
+        if gescheitert and jetzt is not None and jetzt.art != wz.FASENFRAESER:
+            kleinere = [
+                w
+                for w in block._fraeser
+                if w.art != wz.FASENFRAESER and w.durchmesser < jetzt.durchmesser - 1e-6
+            ]
+            if kleinere:
+                kleiner = max(kleinere, key=lambda w: w.durchmesser)
+                saetze.append(
+                    tr(
+                        "ba.fase.kleiner",
+                        werkzeug=_ziel_werkzeug(jetzt),
+                        kleiner=_ziel_werkzeug(kleiner),
+                    )
+                )
+                knoepfe.append(
+                    (
+                        tr("ba.fase.angebot.knopf", nummer=wz.nummer_text(kleiner)),
+                        lambda: self._fase_fraeser_nehmen(kleiner),
+                    )
+                )
+        if passende and (jetzt is None or jetzt.art != wz.FASENFRAESER):
+            werkzeug = passende[0]
+            winkel = f"{round(wf.kegel(werkzeug)[2], 1):g}"
+            saetze.append(tr("ba.fase.angebot", werkzeug=_ziel_werkzeug(werkzeug), winkel=winkel))
+            knoepfe.append(
+                (
+                    tr("ba.fase.angebot.knopf", nummer=wz.nummer_text(werkzeug)),
+                    lambda: self._fase_fraeser_nehmen(werkzeug),
+                )
+            )
+        if saetze:
+            block.angebot.zeigen(dezimal(" ".join(saetze)), knoepfe)
+        else:
+            block.angebot.leeren()
+
+    def _fase_fraeser_nehmen(self, werkzeug):
+        """„T6 nehmen“: dieser Fräser im Block „Fase“ – der Fasenfräser (eine Runde statt der
+        Stufen) oder der kleinere Schaftfräser."""
+        block = self.fase
+        if block.fraeser_setzen(werkzeug):
+            block.fraeser_von_hand = True
+            block.angebot.leeren()
+            self.vorschau_starten()
 
     def _restfraeser_waehlen(self):
         """Wählt im Block Restmaterial den größten Fräser, der kleiner ist als der davor – wenn
