@@ -534,9 +534,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    seinem Ja.
 3. *W-029 erledigt:* Stange (P-2026-10-24-09, im Prüffenster am Ende „Fertigteil als Rohteil …“)
    und 3+2 (P-2026-10-24-19, räumlich nach allen Ebenen).
-4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
-   Hauptprozess, 4-Achs-Schlichten genau beim Anlegen.
-5. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
+4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen (verworfen, siehe W-036), das
+   Neuberechnen beim Anlegen im Hauptprozess, 4-Achs-Schlichten genau beim Anlegen. Gebaut am
+   2026-10-24 abends: Verteilen ohne Leerlauf (P-14), Vorschau-Schruppbahn wieder übernommen (P-15),
+   Wegkippen (P-23) und Plan indexiert je Versatz (P-24) auf allen Kernen – die längsten Pausen
+   des Fensters beim Anlegen 5,0/5,4 s → 0,5/0,65 s. Am Geist sind die 12 echten Kerne voll
+   (mehr Arbeiter bringen nichts).
+5. *Frage 2 (Taschen):* A liegt fertig auf dem Zweig `frage2-a`; die Morph-Spirale in der Tasche
+   (`morph_tasche`) gebaut, aus.
+6. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
 
 Die Aufträge vom 2026-10-18 früh (Forum-Post, Einrichtblatt mit vc/fz und Koordinatensystem,
 Rohteilmaße in „Bearbeitung“, Nase/Kombination) sind erledigt (P-2026-10-18-84 … -99).
