@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-04 flanke-ohne-doppelten-satz
+
+### EINGELESEN
+- Aus der Durchsicht der 5-Achs-Programme: „Flanke“ schrieb am Ende eines geschlossenen Umlaufs
+  den Anfangspunkt ein zweites Mal (gleiche Spitze, gleiche Achse, bis auf Rundungsreste).
+
+### DATEIEN
+- `camaddon/flanke.py` (`opExecute`): eine Stelle, die der vorigen gleicht (Spitze und Achse auf
+  1e-9 mm), fällt weg – Satz und Werkzeugachse zusammen.
+
+### ERGEBNIS
+- Formschräge „Flanke T5“: 240 → 239 Sätze, keiner doppelt. Grün: `test_flanke`,
+  `szenario_flanke`.
+- Dazu `tests/test_nebenrechner.py` unter Last robuster (Aufträge 1 s; im vollen Lauf öffnete
+  sonst nur einer von drei Arbeitern die große Kopie rechtzeitig).
+
 ## P-2026-10-25-03 wegkippen-taeler-3-grad
 
 ### EINGELESEN

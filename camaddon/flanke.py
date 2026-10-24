@@ -108,7 +108,16 @@ class Flanke(PathOp.ObjectOp):
         obj.Schneide = round(float(schneide), 4)
         vorschub = self.horizFeed
         eintauchen = vo.eintauchvorschub(self) / 60.0 or vorschub
+        vorige = None
         for stelle in ergebnis.punkte:
+            if vorige is not None and all(
+                abs(float(u) - float(v)) <= 1e-9
+                for u, v in zip(
+                    (*stelle.spitze, *stelle.achse), (*vorige.spitze, *vorige.achse), strict=True
+                )
+            ):
+                continue  # ohne Bewegung (das Ende eines geschlossenen Umlaufs)
+            vorige = stelle
             werte = dict(zip("XYZ", (float(x) for x in stelle.spitze), strict=True))
             if stelle.eilgang:
                 self.commandlist.append(Path.Command("G0", werte))
