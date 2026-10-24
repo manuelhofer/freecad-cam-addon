@@ -9,6 +9,7 @@
 import math
 import os
 import sys
+import time
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -112,7 +113,6 @@ pruefe(ft._dateiname('Ring: "A/B" – Aufspannung 1.') == "Ring_ _A_B_ – Aufsp
 # Volumen das der Radien; der Körper mit dem Teil vereinigt und auf die Stange beschnitten ist
 # gültig, das Teil liegt ganz darin, kaum mehr als das Teil (Raster), wenige Flächen, schnell.
 # Nirgends ins Teil; 1 mm zu tief in der Nut zeigt im_teil_radien.
-import time  # noqa: E402
 
 from camaddon import restmaterial as rm  # noqa: E402
 from camaddon import vierachs_huelle as vh  # noqa: E402
@@ -154,6 +154,67 @@ flaeche = ft.im_teil_radien(a, phi, tiefer, teil_r)
 pruefe(
     abs(flaeche - 2 * math.pi * 7 * 3.5) < 0.1 * 2 * math.pi * 7 * 3.5,
     f"zu tief: {flaeche:.0f} mm²",
+)
+
+# Räumlich (3+2, raum_material): Ein Quader 40 × 30 × 20, von oben eine Tasche 20 × 10, 6 tief, von
+# der Seite (Werkzeug längs −X) ein Tunnel Ø 8 bei z 8 quer durch – ein Hinterschnitt, unter dem
+# Material steht. Surface Nets: dicht, jede Kante an zwei Dreiecken, einheitlich ausgerichtet, das
+# Volumen das der Voxel. Mit dem Teil (der Quader ohne Tasche, ohne Tunnel): ein gültiges Solid, das
+# Teil ganz darin, kaum größer; ohne das Teil auch unter dem Tunnel Material. Was die Fräser nicht
+# erreichen (die runden Ecken der Tasche), steht dabei.
+import FreeCAD  # noqa: E402
+import Part  # noqa: E402
+
+from camaddon import raum_material as raum  # noqa: E402
+
+V = FreeCAD.Vector
+rohteil_r = Part.makeBox(40, 30, 20)
+material = raum.Material(rohteil_r, 0.5)
+for y in np.arange(12.0, 18.01, 2.0):  # die Tasche: Schaft Ø 4, Zeilen längs X
+    material.schaft((12.0, y, 14.0), (28.0, y, 14.0), (0, 0, 1), 2.0, 30.0)
+material.schaft((44.0, 15.0, 8.0), (44.0, 15.0, 8.0), (-1, 0, 0), 4.0, 50.0)  # der Tunnel
+teil_r = (
+    rohteil_r.cut(Part.makeBox(20, 10, 6, V(10, 10, 14)))
+    .cut(Part.makeCylinder(4.0, 40, V(0, 15, 8), V(1, 0, 0)))
+    .removeSplitter()
+)
+z = ft.schichten(material.z_von, material.z_bis, material.schritt)
+voll = ft.belegung_raum(material.grenzen, z)
+punkte, dreiecke = ft.surface_nets(voll, material.x, material.y, z, material.grenzen)
+kanten = np.concatenate([dreiecke[:, [0, 1]], dreiecke[:, [1, 2]], dreiecke[:, [2, 0]]])
+_k, anzahl = np.unique(np.sort(kanten, axis=1), axis=0, return_counts=True)
+_g, gerichtet = np.unique(kanten, axis=0, return_counts=True)
+pruefe((anzahl == 2).all() and (gerichtet == 1).all(), "räumlich: Netz nicht dicht oder verdreht")
+a_, b_, c_ = punkte[dreiecke[:, 0]], punkte[dreiecke[:, 1]], punkte[dreiecke[:, 2]]
+vol_netz = float(np.einsum("ij,ij->i", a_, np.cross(b_, c_)).sum() / 6.0)
+pruefe(
+    abs(vol_netz - material.volumen) < 0.01 * material.volumen,
+    f"räumlich: Netz {vol_netz:.0f} statt {material.volumen:.0f}",
+)
+teil_g = raum.abschnitte(teil_r, material)
+t0 = time.time()
+koerper_r, flaeche_r = ft.koerper_aus_abschnitten(
+    material.grenzen, material.x, material.y, material.z_von, material.z_bis, material.schritt,
+    teil_g, teil_r, rohteil_r,
+)  # fmt: skip
+dauer_r = time.time() - t0
+pruefe(koerper_r.isValid() and len(koerper_r.Solids) == 1, f"räumlich: {koerper_r.ShapeType}")
+innen = teil_r.common(koerper_r).Volume
+pruefe(
+    innen > 0.999 * teil_r.Volume,
+    f"räumlich: Teil nicht ganz darin ({innen:.0f} von {teil_r.Volume:.0f})",
+)
+pruefe(
+    teil_r.Volume < koerper_r.Volume < teil_r.Volume + 60.0,
+    f"räumlich: {koerper_r.Volume:.0f} statt {teil_r.Volume:.0f} mm³",
+)
+pruefe(flaeche_r == 0.0, f"räumlich: ins Teil {flaeche_r} mm²")
+pruefe(not koerper_r.isInside(V(20, 15, 8), 0.01, True), "räumlich: der Tunnel ist zu")
+pruefe(koerper_r.isInside(V(20, 15, 2), 0.01, True), "räumlich: unter dem Tunnel fehlt Material")
+print(
+    ascii(
+        f"räumlich: {koerper_r.Volume:.0f} mm³ (Teil {teil_r.Volume:.0f}), {len(koerper_r.Faces)} Flächen, {dauer_r:.1f} s"
+    )
 )
 
 assert not fehler, "\n".join(fehler)

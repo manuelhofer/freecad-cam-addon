@@ -427,6 +427,211 @@ def radien_rechnen(a, phi, r, laengs, radial, teil=None, teil_r=None, rohteil=No
     return nr.Form.von(form), flaeche
 
 
+# --- Räumlich (3+2, raum_material) -------------------------------------------------------------
+#
+# Der Rest nach allen Ebenen einer Aufspannung als Abschnitte auf senkrechten Strahlen
+# (raum_material.Material.grenzen, je Strahl mehrere – unter einem Überhang): daraus Voxel in
+# Schichten so dick wie das Raster, die Hülle mit Surface Nets (je Würfel zwischen acht Mitten ein
+# Punkt, je Kante mit Wechsel ein Viereck – dicht, jede Kante an genau zwei Dreiecken), längs z am
+# Ende des Abschnitts genau. Wo das Teil fertig ist, rückt die Hülle EINZUG unter seine Oberfläche
+# (nur_rest_raum), dann vereinfacht, mit dem Teil vereinigt und aufs Rohteil beschnitten.
+
+
+def schichten(z_von, z_bis, schritt):
+    """Die Mitten der Schichten von z_von bis z_bis, je `schritt` dick."""
+    anzahl = max(1, int(math.ceil((z_bis - z_von) / schritt - 1e-9)))
+    dz = (z_bis - z_von) / anzahl
+    return z_von + (np.arange(anzahl) + 0.5) * dz
+
+
+def belegung_raum(grenzen, z):
+    """(nx, ny, nz) bool: steht auf dem Strahl an der Höhe z (Mitte der Schicht) Material?"""
+    unten = grenzen[..., 0][..., None]
+    oben = grenzen[..., 1][..., None]
+    with np.errstate(invalid="ignore"):
+        return ((z >= unten) & (z <= oben)).any(axis=2)
+
+
+def _genaue_z(grenzen, i, j, z0, z1):
+    """Je Kante längs z (Strahl i, j zwischen den Mitten z0 und z1): das Ende eines Abschnitts
+    dazwischen, das der Mitte am nächsten liegt – sonst die Mitte."""
+    enden = grenzen[i, j].reshape(len(i), -1)
+    mitte = (z0 + z1) / 2
+    with np.errstate(invalid="ignore"):
+        drin = (enden > z0[:, None]) & (enden < z1[:, None])
+    abstand = np.where(drin, np.abs(enden - mitte[:, None]), np.inf)
+    k = np.argmin(abstand, axis=1)
+    wert = enden[np.arange(len(i)), k]
+    return np.where(np.isfinite(abstand[np.arange(len(i)), k]), wert, mitte)
+
+
+def surface_nets(voll, x, y, z, grenzen=None):
+    """(Punkte (m, 3), Dreiecke (t, 3)) der Hülle der vollen Voxel mit den Mitten x, y, z: je
+    Würfel zwischen acht Mitten mit gemischter Belegung ein Punkt – das Mittel der Kreuzungen auf
+    seinen Kanten (längs z mit `grenzen` am Ende des Abschnitts, _genaue_z) –, je Kante mit Wechsel
+    ein Viereck aus den vier Würfeln um sie, nach außen gerichtet."""
+    v = np.pad(voll, 1)
+    xs, ys, zs = (
+        np.concatenate([[c[0] - (c[1] - c[0])], c, [c[-1] + (c[1] - c[0])]]) for c in (x, y, z)
+    )
+    nx, ny, nz = v.shape
+    wuerfel = (nx - 1, ny - 1, nz - 1)
+    summe = np.zeros((*wuerfel, 3))
+    zahl = np.zeros(wuerfel)
+    kanten = []
+    for achse in range(3):
+        a = [slice(None)] * 3
+        b = [slice(None)] * 3
+        a[achse], b[achse] = slice(None, -1), slice(1, None)
+        va, vb = v[tuple(a)], v[tuple(b)]
+        i, j, k = np.nonzero(va != vb)
+        innen = va[i, j, k]  # innen am Anfang der Kante: außen liegt in +achse
+        px, py, pz = xs[i], ys[j], zs[k]
+        if achse == 0:
+            px = (xs[i] + xs[i + 1]) / 2
+        elif achse == 1:
+            py = (ys[j] + ys[j + 1]) / 2
+        else:
+            pz = (zs[k] + zs[k + 1]) / 2
+            if grenzen is not None:
+                drin = (i >= 1) & (i <= nx - 2) & (j >= 1) & (j <= ny - 2)
+                pz[drin] = _genaue_z(
+                    grenzen, i[drin] - 1, j[drin] - 1, zs[k[drin]], zs[k[drin] + 1]
+                )
+        punkt = np.stack([px, py, pz], axis=1)
+        andere = [q for q in range(3) if q != achse]
+        stelle = np.stack([i, j, k], axis=1)
+        for d0 in (0, 1):
+            for d1 in (0, 1):
+                c = stelle.copy()
+                c[:, andere[0]] -= d0
+                c[:, andere[1]] -= d1
+                ok = (c >= 0).all(axis=1) & (c < np.array(wuerfel)).all(axis=1)
+                np.add.at(summe, (c[ok, 0], c[ok, 1], c[ok, 2]), punkt[ok])
+                np.add.at(zahl, (c[ok, 0], c[ok, 1], c[ok, 2]), 1.0)
+        kanten.append((achse, i, j, k, innen))
+    nummer = -np.ones(wuerfel, dtype=np.int64)
+    belegt = zahl > 0
+    nummer[belegt] = np.arange(int(belegt.sum()))
+    punkte = summe[belegt] / zahl[belegt][:, None]
+    dreiecke = []
+    for achse, i, j, k, innen in kanten:
+        # Die vier Würfel um die Kante, im Umlauf so, dass die Normale längs +achse zeigt.
+        if achse == 0:
+            ecken = ((i, j - 1, k - 1), (i, j, k - 1), (i, j, k), (i, j - 1, k))
+        elif achse == 1:
+            ecken = ((i - 1, j, k - 1), (i - 1, j, k), (i, j, k), (i, j, k - 1))
+        else:
+            ecken = ((i - 1, j - 1, k), (i, j - 1, k), (i, j, k), (i - 1, j, k))
+        q = np.stack([nummer[e] for e in ecken], axis=1)
+        q = np.where(innen[:, None], q, q[:, ::-1])
+        dreiecke += [q[:, [0, 1, 2]], q[:, [0, 2, 3]]]
+    return punkte, (np.concatenate(dreiecke) if dreiecke else np.zeros((0, 3), dtype=np.int64))
+
+
+def _nachbarn(maske, n, wachsen):
+    """Die Maske n Voxel weiter (wachsen) bzw. enger – je Schritt über die sechs Nachbarn."""
+    m = maske.copy()
+    for _ in range(max(0, int(n))):
+        p = np.pad(m, 1, constant_values=not wachsen)
+        teile = (
+            p[2:, 1:-1, 1:-1], p[:-2, 1:-1, 1:-1], p[1:-1, 2:, 1:-1],
+            p[1:-1, :-2, 1:-1], p[1:-1, 1:-1, 2:], p[1:-1, 1:-1, :-2],
+        )  # fmt: skip
+        for t in teile:
+            m = (m | t) if wachsen else (m & t)
+    return m
+
+
+GUT_VERBUNDEN_RUNDEN = 20  # so oft höchstens füllt gut_verbunden() nach
+
+
+def gut_verbunden(voll):
+    """Die Voxel ohne Stellen, an denen sich zwei nur an einer Kante oder Ecke berühren: Dort
+    gäben Surface Nets eine Kante an vier Dreiecken (nicht mannigfaltig, kein Solid). Je
+    2 × 2-Quadrat mit nur einem diagonalen Paar kommt ein Voxel dazu, je 2 × 2 × 2-Würfel mit nur
+    zwei gegenüberliegenden Ecken ebenso – lieber Material, wo keins ist (wie hoehen()). Gefunden
+    am Rest in den runden Ecken einer Tasche, nachdem nur_rest_raum die Schale geleert hatte."""
+    v = voll.copy()
+    for _ in range(GUT_VERBUNDEN_RUNDEN):
+        dazu = False
+        for p, q in ((0, 1), (0, 2), (1, 2)):
+            w = np.moveaxis(v, (p, q), (0, 1))  # eine Sicht: was hier gesetzt wird, steht in v
+            a, b, c, d = w[:-1, :-1], w[1:, :-1], w[:-1, 1:], w[1:, 1:]
+            eins = a & d & ~b & ~c
+            zwei = b & c & ~a & ~d
+            if eins.any() or zwei.any():
+                dazu = True
+                w[1:, :-1] |= eins
+                w[:-1, :-1] |= zwei
+        e = [v[i : v.shape[0] - 1 + i, j : v.shape[1] - 1 + j, k : v.shape[2] - 1 + k]
+             for i in (0, 1) for j in (0, 1) for k in (0, 1)]  # fmt: skip
+        gesetzt = sum(x.astype(np.int8) for x in e)
+        for m, n in ((0, 7), (1, 6), (2, 5), (3, 4)):  # die vier Raumdiagonalen
+            nur = (gesetzt == 2) & e[m] & e[n]
+            if nur.any():
+                dazu = True
+                nachbar = m ^ 4  # die Ecke daneben längs x
+                v[nachbar >> 2 : v.shape[0] - 1 + (nachbar >> 2),
+                  (nachbar >> 1) & 1 : v.shape[1] - 1 + ((nachbar >> 1) & 1),
+                  nachbar & 1 : v.shape[2] - 1 + (nachbar & 1)] |= nur  # fmt: skip
+        if not dazu:
+            break
+    return v
+
+
+def nur_rest_raum(voll, im_teil, schritt):
+    """Die Voxel ohne das fertige Teil: im Teil bis EINZUG unter seiner Oberfläche leer – außer,
+    wo daneben Rest steht (Aufmaß, nicht gefräst); das Teil selbst kommt aus mit_teil, genau.
+    Sonst stünde an jeder fertigen Fläche die halbe Schicht über (wie nur_rest)."""
+    n = max(1, int(math.ceil(EINZUG / schritt)))
+    rest = voll & ~im_teil
+    schale = im_teil & ~_nachbarn(im_teil, n, False)
+    nah = _nachbarn(rest, n + 1, True)
+    return voll & ~(schale & ~nah)
+
+
+def raum_im_teil(voll, im_teil, schritt, x, y):
+    """Die Fläche (mm², von oben), unter der Voxel im Teil fehlen – tiefer als eine Schicht unter
+    seiner Oberfläche (wie im_teil): Die Bahnen schnitten ins Teil."""
+    innen = _nachbarn(im_teil, 1, False)
+    fehlt = (innen & ~voll).any(axis=2)
+    return float(fehlt.sum()) * float(x[1] - x[0]) * float(y[1] - y[0])
+
+
+def koerper_aus_abschnitten(
+    grenzen, x, y, z_von, z_bis, schritt, teil_grenzen=None, teil=None, rohteil=None
+):
+    """(Körper, Fläche ins Teil in mm²) aus dem räumlichen Rest (raum_material.Material.grenzen auf
+    den Strahlen x, y): Voxel, Surface Nets, vereinfacht bis aufs Volumen VOLUMEN_SPIEL_STANGE; mit
+    `teil_grenzen` (das Teil auf denselben Strahlen, raum_material.abschnitte) und `teil` unter das
+    fertige Teil gerückt und mit ihm vereinigt, aufs Rohteil beschnitten. ValueError ohne Rest."""
+    z = schichten(z_von, z_bis, schritt)
+    voll = belegung_raum(grenzen, z)
+    if not voll.any():
+        raise ValueError(tr("ft.fehler.keine_operation"))
+    flaeche = 0.0
+    if teil_grenzen is not None:
+        im_teil = belegung_raum(teil_grenzen, z)
+        flaeche = raum_im_teil(voll, im_teil, schritt, x, y)
+        voll = nur_rest_raum(voll, im_teil, schritt)
+    punkte, dreiecke = surface_nets(gut_verbunden(voll), x, y, z, grenzen)
+    form = _aus_dem_netz(punkte, dreiecke, teil, VOLUMEN_SPIEL_STANGE)
+    return im_rohteil(form, rohteil), flaeche
+
+
+def abschnitte_rechnen(
+    grenzen, x, y, z_von, z_bis, schritt, teil_grenzen=None, teil=None, rohteil=None
+):
+    """Auf einem Nebenrechner: koerper_aus_abschnitten(), der Körper als nebenrechner.Form."""
+    from . import nebenrechner as nr
+
+    form, flaeche = koerper_aus_abschnitten(
+        grenzen, x, y, z_von, z_bis, schritt, teil_grenzen, teil, rohteil
+    )
+    return nr.Form.von(form), flaeche
+
+
 def anfang_des_jobs(job):
     """Die Höhen des Rohteils im Materialstand (vor der ersten Operation) – für im_teil."""
     from . import materialstand as mst

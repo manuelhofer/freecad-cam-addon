@@ -144,6 +144,29 @@ def _stange_im_hintergrund(a, phi, r, laengs, radial, teil, teil_r, rohteil):
     return form.form(), flaeche
 
 
+def _raum_im_hintergrund(grenzen, x, y, z_von, z_bis, schritt, teil_grenzen, teil, rohteil):
+    """(Körper, Fläche ins Teil in mm²) aus dem räumlichen Rest vom Nebenrechner – None ohne
+    Nebenrechner oder wenn er scheiterte (dann rechnet der Aufrufer hier)."""
+    from . import nebenrechner as nr
+
+    pool = nr.pool()
+    if not pool.verfuegbar():
+        return None
+    try:
+        auftrag = pool.auftrag(
+            "fertigteil", "abschnitte_rechnen", grenzen, x, y, z_von, z_bis, schritt,
+            teil_grenzen, nr.Form.von(teil), nr.Form.von(rohteil),
+        )  # fmt: skip
+        ((form, flaeche),) = pool.warten([auftrag], zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.NichtVerfuegbar:
+        return None
+    except nr.Fehler as fehler:
+        if fehler.art == "ValueError":
+            raise ValueError(fehler.satz or str(fehler)) from fehler
+        return None
+    return form.form(), flaeche
+
+
 def _ablegen(job, form, speichern):
     """Legt den Körper als Fertigteil ins Dokument (eine Transaktion), färbt ihn und speichert die
     eigene Datei – (Objekt, Pfad oder None)."""
@@ -200,6 +223,46 @@ def fertigteil_aus_stange(job, abtrag, speichern=True):
     return objekt, pfad, raster, flaeche
 
 
+def _ist_raum(job):
+    """Gehört der Job zu einer Aufspannung mit Ebenen (3+2) – der Grundjob oder eine Ebene?"""
+    from . import raum_material as raum
+
+    return bool(raum.folge_der_aufspannung(job))
+
+
+def fertigteil_raum(job, speichern=True):
+    """Das Fertigteil einer Aufspannung mit Ebenen (3+2) aus dem räumlichen Rest nach allen Ebenen
+    (raum_material.nach_allen) – auf den Grundjob: (Objekt, Pfad oder None, Raster als Text,
+    Fläche ins Teil). ValueError, wenn sich der Rest nicht sicher nachrechnen lässt."""
+    from . import materialstand as mst
+    from . import raum_material as raum
+
+    grundjob = raum.folge_der_aufspannung(job)[0]
+    material = raum.nach_allen(grundjob, mst.SCHRITT)
+    if material is None:
+        raise ValueError(tr("ft.fehler.raum"))
+    teil = vr.modell(grundjob).Shape  # in den Koordinaten des Grundjobs, wie der Rest
+    rohteil = grundjob.Stock.Shape
+    werte = (
+        material.grenzen,
+        material.x,
+        material.y,
+        material.z_von,
+        material.z_bis,
+        material.schritt,
+        raum.abschnitte(teil, material),
+        teil,
+        rohteil,
+    )
+    gerechnet = _raum_im_hintergrund(*werte)
+    if gerechnet is None:
+        gerechnet = ft.koerper_aus_abschnitten(*werte)
+    form, flaeche = gerechnet
+    objekt, pfad = _ablegen(grundjob, form, speichern)
+    raster = tr("ft.raster_raum", schritt=dezimal(f"{round(material.schritt, 3):g}"))
+    return objekt, pfad, raster, flaeche
+
+
 def _ist_stange(job):
     """Fräst der Job rundum an der Stange (eine Operation dreht die Rundachse)?"""
     from . import vierachs_operation as vo
@@ -241,6 +304,8 @@ def ausfuehren(job, abtrag=None):
     try:
         if abtrag is not None:
             objekt, pfad, raster, ins_teil = fertigteil_aus_stange(job, abtrag)
+        elif _ist_raum(job):
+            objekt, pfad, raster, ins_teil = fertigteil_raum(job)
         else:
             objekt, pfad, schritt, ins_teil = fertigteil_anlegen(job)
             raster = tr("ft.raster", schritt=dezimal(f"{schritt:g}"))

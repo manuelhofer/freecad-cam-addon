@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-24-19 fertigteil-3plus2
+
+### EINGELESEN
+- W-029, offen: „4-Achs- und 3+2-Jobs (Stange, raum_material)“ – die Stange ist gebaut
+  (P-2026-10-24-09), 3+2 nicht. Bei Ebenen-Jobs projiziert der Materialstand den räumlichen
+  Rest in die Ebene (von oben gesehen) – ein Fertigteil daraus verlöre, was andere Ebenen von der
+  Seite gefräst haben.
+
+### DATEIEN
+- `camaddon/raum_material.py`: `fuer_ebene`, `_kennungen`, `_simultane_vorbereiten` mit der Folge
+  der Jobs als Parameter; `folge_der_aufspannung`, `nach_allen` (der Rest nach allen Ebenen),
+  `abschnitte` (ein Körper auf den Strahlen des Rests, verteilt).
+- `camaddon/fertigteil.py`: `schichten`, `belegung_raum`, `surface_nets` (je Würfel ein Punkt,
+  je Kante mit Wechsel ein Viereck; längs z am Ende des Abschnitts genau), `gut_verbunden`
+  (diagonale Paare aufgefüllt – sonst nicht mannigfaltig), `nur_rest_raum`, `raum_im_teil`,
+  `koerper_aus_abschnitten`, `abschnitte_rechnen` (Nebenrechner).
+- `camaddon/gui_fertigteil.py`: `_ist_raum`, `fertigteil_raum`, `_raum_im_hintergrund`;
+  `ausfuehren` nimmt bei 3+2 den räumlichen Weg.
+- `translations/*.json`: `ft.raster_raum`, `ft.fehler.raum`; Tooltip des Befehls.
+- `help/*/bearbeitung.html`: 3+2.
+- `tests/test_fertigteil.py`: Quader mit Tasche und Tunnel (Hinterschnitt); `tests/gui/
+  szenario_fertigteil_raum.py` (neu): Langloch von links in einer Ebene.
+
+### ERGEBNIS
+- Grün: `test_fertigteil`, `test_raum_material`, `test_ebenen_auslassen`, `test_raum_bahn`,
+  `test_materialstand`, `test_schwenken`; Szenarien `szenario_fertigteil_raum`,
+  `szenario_raum_material`, `szenario_schwenkteil`, `szenario_bearbeitung_aufspannung_folge`.
+- Voller Lauf davor (0.279.8): 169 von 169 grün in 19 min, kein Schnitt ins Teil.
+
 ## P-2026-10-24-18 morph-spirale-in-der-tasche-frage-2
 
 ### EINGELESEN

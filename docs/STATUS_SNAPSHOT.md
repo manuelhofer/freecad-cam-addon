@@ -519,7 +519,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-24 (0.279.8) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-24 (0.280.0) – offen, in dieser Reihenfolge:**
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -532,8 +532,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    Entwurf für die Forum-Threads (`~/freecad_cam/forum/post_241026_15_klarstellung`, postet
    Manuel); ein Fehlerbericht an CAM (TestCAMGui scheitert am deutschen Dezimalkomma) nur mit
    seinem Ja.
-3. *W-029 weiter:* Stange erledigt (P-2026-10-24-09: im Prüffenster am Ende „Fertigteil als
-   Rohteil …“); offen noch 3+2-Ebenen (raum_material).
+3. *W-029 erledigt:* Stange (P-2026-10-24-09, im Prüffenster am Ende „Fertigteil als Rohteil …“)
+   und 3+2 (P-2026-10-24-19, räumlich nach allen Ebenen).
 4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen, das Neuberechnen beim Anlegen im
    Hauptprozess, 4-Achs-Schlichten genau beim Anlegen.
 5. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
@@ -1622,6 +1622,15 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   (`erste_stelle`), mit dem Teil vereinigt, auf einem Nebenrechner (`radien_rechnen`); beim Quader
   wie der Befehl. Der Befehl im Menü verweist für einen Job an der Stange aufs Prüffenster (Knopf).
   Prüfteil Welle Ø 40 in Stange Ø 44: 51.675 mm³ (Welle 48.696), 1.675 Flächen.
+  **Gebaut (P-2026-10-24-19, 0.280.0): 3+2.** Für einen Grundjob mit Ebenen (oder eine seiner Ebenen)
+  rechnet der Befehl den räumlichen Rest nach allen Ebenen (`raum_material.nach_allen`), legt das
+  Teil auf dieselben Strahlen (`abschnitte`) und baut daraus den Körper (`fertigteil.
+  koerper_aus_abschnitten`): Voxel in Schichten des Rasters, wo das Teil fertig ist EINZUG darunter
+  (`nur_rest_raum`), Stellen nur über Kante oder Ecke aufgefüllt (`gut_verbunden`), Surface Nets
+  (dicht, mannigfaltig; längs z am Ende des Abschnitts genau), vereinfacht, mit dem Teil vereinigt,
+  aufs Rohteil beschnitten – auf einem Nebenrechner (`abschnitte_rechnen`). Prüfteil Quader mit
+  Tasche und Tunnel: 20 809 mm³ (Teil 20 789, der Rest in den Taschenecken), 0,5 s;
+  `szenario_fertigteil_raum` (Langloch von links): genau das Teil, 12 Flächen.
   **Nebenbei ein Netz gegen Fehlschnitte (P-2026-10-23-19):** Jedes Szenario schreibt
   `im_teil.txt` – je 3-Achs-Job die Zellen im Teil nach allen Operationen (`fertigteil.im_teil`,
   gezählt beim Schließen des Dokuments); Gewinde, Entgraten und fester G-Code der Szenarien stehen

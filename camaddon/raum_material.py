@@ -874,8 +874,9 @@ def _jobs_vor(job):
     return folge
 
 
-def _simultane_vorbereiten(job):
-    """Wirkliche NC und Kinematik der Simultanvorgänger, einmal pro Materialanfrage."""
+def _simultane_vorbereiten(job, jobs=None):
+    """Wirkliche NC und Kinematik der Simultanvorgänger, einmal pro Materialanfrage. `jobs`: die
+    Folge der Jobs (ohne: die vor `job`, _jobs_vor)."""
     from . import maschinenzugang as mz
     from . import materialstand as ms
     from . import simultan_operation as so
@@ -884,7 +885,7 @@ def _simultane_vorbereiten(job):
 
     result = {}
     bib = None
-    for davor in _jobs_vor(job):
+    for davor in jobs or _jobs_vor(job):
         for op in ms.operationen_vor(davor):
             if not so.ist_simultan(op):
                 continue
@@ -904,7 +905,7 @@ def _simultane_vorbereiten(job):
     return result
 
 
-def _kennungen(job, schritt=0.5, simultane=None):
+def _kennungen(job, schritt=0.5, simultane=None, jobs=None):
     """Je Stand vor `job` ein Schlüssel: [das Rohteil, nach dem Grundjob, nach der ersten Ebene,
     …] – Rohteil, Richtungen, Werkzeugkörper und vollständige aktive Vorgängerpfade, jeder Schlüssel
     über alles bis dahin. So fängt die nächste Ebene beim Stand der vorigen an (fuer_ebene)."""
@@ -912,11 +913,12 @@ def _kennungen(job, schritt=0.5, simultane=None):
     from . import materialstand as ms
     from . import schwenken as sw
 
+    jobs = jobs or _jobs_vor(job)
     if simultane is None:
-        simultane = _simultane_vorbereiten(job)
-    summe = hashlib.sha256(repr([job.Grundjob.Stock.Shape.exportBrepToString(), schritt]).encode())
+        simultane = _simultane_vorbereiten(job, jobs)
+    summe = hashlib.sha256(repr([jobs[0].Stock.Shape.exportBrepToString(), schritt]).encode())
     ergebnis = [summe.hexdigest()]
-    for davor in _jobs_vor(job):
+    for davor in jobs:
         lage = sw.lage_im_grundjob(davor)
         daten = [tuple(lage.toMatrix().A) if lage is not None else None]
         for op in ms.operationen_vor(davor):
@@ -960,6 +962,44 @@ def kennung(job, schritt=0.5, simultane=None):
     )
 
 
+def folge_der_aufspannung(job):
+    """[Grundjob, alle Ebenen bzw. Aufspannungen] der Aufspannung, zu der `job` gehört (der
+    Grundjob selbst oder eine seiner Ebenen) – leer, wenn er weder Ebenen hat noch eine ist."""
+    from . import schwenken as sw
+
+    grundjob = getattr(job, "Grundjob", None) or job
+    folge = sw.ebenen_von(grundjob) or sw.aufspannungen_von(grundjob)
+    return [grundjob, *folge] if folge else []
+
+
+def nach_allen(job, schritt=0.5, fortschritt=None):
+    """Der räumliche Rest nach allen Jobs der Aufspannung (folge_der_aufspannung) – für das
+    Fertigteil (W-029); None, wie fuer_ebene, wenn eine Bearbeitung nicht sicher nachzulesen ist,
+    oder ohne Ebenen."""
+    jobs = folge_der_aufspannung(job)
+    if not jobs:
+        return None
+    return fuer_ebene(jobs[0], schritt, fortschritt, jobs=jobs)
+
+
+def abschnitte(form, material, fortschritt=None):
+    """(nx, ny, k, 2): die Abschnitte der senkrechten Strahlen von `material` (seinem Raster) im
+    Körper `form` – das Teil im Raster des Rests, aus dem BRep-Schnitt, auf den Nebenrechnern."""
+    nx, ny = len(material.x), len(material.y)
+    ziel = object.__new__(Material)
+    ziel.x, ziel.y = material.x, material.y
+    ziel.grenzen = np.full((nx, ny, 1, 2), np.nan)
+    bloecke = [(start, min(nx * ny, start + BLOCK)) for start in range(0, nx * ny, BLOCK)]
+    args = (material.x, material.y, material.z_von, material.z_bis, material.dx, material.dy)
+    stuecke = _verteilt(form, args, bloecke, fortschritt) if len(bloecke) >= VERTEILT_AB else None
+    if stuecke is None:
+        stuecke = [strahlen_stueck(form, *args, start, ende) for start, ende in bloecke]
+    for stueck in stuecke:
+        for i, j, unten, oben in stueck:
+            ziel._eintragen(i, j, unten, oben)
+    return ziel.grenzen
+
+
 # So viele Stände merkt sich fuer_ebene (auch die Zwischenstände nach jeder Ebene und das Rohteil).
 GEMERKT_HOECHSTENS = 6
 
@@ -971,8 +1011,9 @@ def _merken(schluessel, material):
         _GEMERKT.popitem(last=False)
 
 
-def fuer_ebene(job, schritt=0.5, fortschritt=None):
+def fuer_ebene(job, schritt=0.5, fortschritt=None, jobs=None):
     """Gemeinsamer Rest vor einer 3+2-Ebene; None bei nicht sicher nachlesbarer Bearbeitung.
+    `jobs`: nach diesen Jobs (der Grundjob zuerst; ohne: die vor `job`, _jobs_vor).
 
     Die Ausgabe ist nur zum Lesen. Ein unbekannter Schnitt darf niemals freie Räume
     vortäuschen. Daher bleiben solche Ebenen beim vollständigen ursprünglichen Rohteil.
@@ -983,19 +1024,19 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
     from . import simultan_operation as so
     from . import vierachs_schlichten as vs
 
-    simultane = _simultane_vorbereiten(job)
-    kennungen = _kennungen(job, schritt, simultane)
+    jobs = jobs or _jobs_vor(job)
+    simultane = _simultane_vorbereiten(job, jobs)
+    kennungen = _kennungen(job, schritt, simultane, jobs)
     key = kennungen[-1]
     if key in _GEMERKT:
         _GEMERKT.move_to_end(key)
         return _GEMERKT[key]
     # Beim letzten gemerkten Stand weiter (dem Rohteil oder nach einer Ebene davor): Jede Ebene
     # fuhr sonst alle Ebenen vor ihr noch einmal ab, und das Rohteil schnitt jede neu.
-    jobs = _jobs_vor(job)
     beginn = next((n for n in range(len(jobs) - 1, -1, -1) if kennungen[n] in _GEMERKT), None)
     if beginn is None:
         beginn = 0
-        material = Material(job.Grundjob.Stock.Shape, schritt, fortschritt)
+        material = Material(jobs[0].Stock.Shape, schritt, fortschritt)
         _merken(kennungen[0], material.kopie())
     else:
         _GEMERKT.move_to_end(kennungen[beginn])
