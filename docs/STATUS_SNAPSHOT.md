@@ -530,7 +530,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.281.22) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.283.4) – offen, in dieser Reihenfolge:**
 0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
    Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
    A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz
@@ -570,7 +570,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    der Assistent ein Paar aus Fräser und Halter, auch außerhalb des Magazins, mit „So einrichten“
    (0.281.25, `empfehlung.py`; mit T3, wie er ist: Schrumpffutter Ø12 · A 80, 33 mm heraus). Für
    die engen Ecken nennt er die Kugel (bis Ø 7) und das Restschlichten unter dem Rand (0.282.0),
-   und gibt es keine, schlägt er einen Kugelfräser mit Halter vor und legt ihn an (0.283.0). An der G550 legt der Grundjob nur
+   und gibt es keine, schlägt er einen Kugelfräser mit Halter vor und legt ihn an (0.283.0). Die
+   Empfehlung rechnet im eigenen Auftrag nach der Vorschau (0.283.1 – bei Manuel hatte sie die
+   Vorschau blockiert); unter dem Rand Ecke für Ecke, im Freien mit Freivorschub (Restschlichten
+   25 → 1 min, 0.283.2); die Flanke ohne Umläufe durch Luft in der oberen Lage (64 → 48, 0.283.4).
+   Offen: Frage 4 (ganze Abfolgen vorschlagen); der Wochenpost wartet auf Manuels Screenshot. An der G550 legt der Grundjob nur
    noch simultane Strategien an (das „3D-Schruppen T1“ ohne Schwenk ist weg). Offen: die engen
    Ecken der Tasche (Radius kleiner als die Kugel) für eine kleinere Kugel; im Grundjob an der
    G550 ein 3D-Schlichten ganz ohne gekippte Achse (alle Kipphaken aus) prüft es nicht.
