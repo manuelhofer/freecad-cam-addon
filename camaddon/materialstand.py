@@ -683,7 +683,10 @@ def _bahn_summe(op):
     einer Operation zu schreiben kostet (am Geist das 3D-Schlichten, 58.000 Sätze, gut 0,5 s), und
     jede Vorschau und jede Prüfung des Materialstands fragte neu – in der Kette der Ebenen stand das
     Fenster so 18-mal rund eine Sekunde."""
-    beobachter = _Bahnen.beobachten()
+    # Nur ein echtes Objekt: Eine Ansicht (simultan_planung._Ansicht) trägt eine eigene Bahn unter
+    # Namen und Dokument des echten – ihre Summe gemerkt, bekam jede Variante der Zwischenlagen die
+    # der echten Bahn (test_simultan_folge, seit 0.281.14 rot).
+    beobachter = _Bahnen.beobachten() if _echtes_objekt(op) else None
     schluessel = objekt_schluessel(op)
     if beobachter is not None and schluessel in beobachter.summen:
         return beobachter.summen[schluessel]
@@ -691,6 +694,16 @@ def _bahn_summe(op):
     if beobachter is not None:
         beobachter.summen[schluessel] = summe
     return summe
+
+
+def _echtes_objekt(op):
+    """Ist `op` ein Objekt eines FreeCAD-Dokuments (keine Ansicht darauf)?"""
+    try:
+        import FreeCAD
+
+        return isinstance(op, FreeCAD.DocumentObject)
+    except Exception:  # noqa: BLE001 – ohne FreeCAD: nichts merken
+        return False
 
 
 class _Bahnen:

@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-33 pruefsumme-nur-echter-objekte
+
+### EINGELESEN
+- test_simultan_folge war seit 0.281.14 rot („Referenz verändert: zwischenlagen_mm“). Mit
+  git bisect gefunden: P-2026-10-25-13 (Prüfsumme der Bahn je Operation gemerkt).
+
+### DATEIEN
+- `camaddon/materialstand.py`: `_bahn_summe` merkt die Summe nur für echte Objekte eines
+  Dokuments (`_echtes_objekt`). Der Vergleich der Zwischenlagen rechnet mit einer Ansicht
+  (`simultan_planung._Ansicht`): eigene Bahn, aber Name und Dokument der echten Operation – jede
+  Variante bekam die Summe der echten Bahn, der Materialstand der 2-mm-Variante war falsch
+  („trägt im Freivorschub Material ab“), 1 mm gewann mit 50,7 statt 39,0 s.
+
+### ERGEBNIS
+- test_simultan_folge wieder grün (2 mm, 39,04 s wie die Referenz), test_materialstand grün.
+
 ## P-2026-10-25-32 g550-zurueck-laengs-der-spindel
 
 ### EINGELESEN
