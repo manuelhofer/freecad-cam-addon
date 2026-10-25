@@ -63,8 +63,8 @@ pruefe(any(p.x > 46 and math.isclose(p.anteil, SCHNELL) for p in neu), f"dahinte
 # Unten bleiben (P-2026-10-04-59): In einer schon auf z 5 geräumten Tasche (x, y 5 … 35) hebt die
 # Bahn bei x 15 ab, fährt nach x 25 und taucht auf z 4 ein – sie bleibt unten (der Weg auf z 5 ist
 # frei), taucht nur noch 1 mm. Mit einer stehen gebliebenen Rippe bei x 20 (oben z 10) hebt sie
-# nur bis 2 mm über die Rippe ab (LINK_LUFT), statt bis z 20; neben dem Rohteil wie bisher (dort
-# könnten Spannmittel stehen).
+# nur bis 2 mm über die Rippe ab (LINK_LUFT), statt bis z 20; am Rand des Rohteils ebenso (seit
+# 0.281.13 – wie tief der Fräser daneben fährt, sagt das Einrichtblatt).
 def tasche(rippe=False):
     q = quader()
     gx, gy = q.x[:, None], q.y[None, :]
@@ -123,7 +123,7 @@ mitte, _w = fw.schneller(abheben_bei(15.0, 25.0), form, ganz_flach, VF)
 pruefe(not any(p.eilgang and p.z == 20 and p.x == 25 for p in mitte), "flach: nicht unten")
 ganz_flach.h[:] = 5.0
 rand, _w = fw.schneller(abheben_bei(15.0, 25.0, y=2.0), form, ganz_flach, VF)
-pruefe(any(p.eilgang and p.z == 20 and p.x == 25 for p in rand), "neben dem Rohteil nicht hoch")
+pruefe(not any(p.eilgang and p.z == 20 and p.x == 25 for p in rand), "am Rand: nicht unten")
 # Hinab im Eilgang auch am Rand des Rohteils (Manuel, 2026-10-18: „was hilft da langsames
 # fahren“ – stünden dort Spannmittel, hülfe es nicht; das Einrichtblatt sagt, wie tief): die Mitte
 # 1 mm neben dem auf z 5 geräumten Rohteil, Eintauchen auf 4 – im Eilgang bis 5 + LINK_LUFT.

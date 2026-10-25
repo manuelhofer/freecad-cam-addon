@@ -16,8 +16,8 @@ Unten bleiben (unnoetiges Abheben weg, Manuel: „unnötige Bewegungen … kanns
 einfach wegbügeln“): Hebt die Bahn am Ende eines Laufs im Eilgang ab, fährt hinüber und taucht
 an einem Punkt auf derselben Höhe oder tiefer wieder ein (am Testteil beim 3D-Schruppen jeder
 Lagenwechsel in der Mulde: 15–23 mm hinauf und wieder hinab für 3–10 mm hinüber), fährt sie
-stattdessen auf ihrer Höhe hinüber – wenn der gerade Weg dort im Umkreis R + RAND frei ist und
-ganz über dem Rohteil liegt (daneben könnten Spannmittel stehen). Ist er dort nicht frei (am
+stattdessen auf ihrer Höhe hinüber – wenn der gerade Weg dort im Umkreis R + RAND frei ist, auch
+am Rand des Rohteils (wie tief daneben, sagt das Einrichtblatt). Ist er dort nicht frei (am
 Ende einer Lage berührt der Fräser die Wand), hebt sie nur LINK_LUFT über das höchste Material im
 Umkreis R + RAND des Weges ab, statt bis zur Sicherheitshöhe. Und: Folgt auf einen senkrechten
 Eilgang hinab ein senkrechtes Eintauchen, geht der Eilgang bis LINK_LUFT über das Material dort
@@ -521,16 +521,18 @@ def _abheben(punkte, i):
 
 def _unten_bleiben(punkte, i, quader, weite):
     """Ersetzt in `punkte` ein unnötiges Abheben nach Punkt i (_abheben) durch den Weg auf seiner
-    Höhe – wenn der frei ist und ganz über dem Rohteil liegt (`quader`: das Material genau hier)."""
+    Höhe – wenn der frei ist (`quader`: das Material genau hier). Auch am Rand des Rohteils, wo
+    der Fräser hinausragt (dort zählt nur, was im Quader steht), wie _tiefer_im_eilgang: Ragt der
+    Weg hinaus, ragt schon sein Anfang oder sein Ende hinaus (das Rohteil ist ein Quader oder ein
+    Zylinder) – auf dieser Höhe, und wie tief jeder Fräser neben dem Rohteil fährt, sagt das
+    Einrichtblatt (spannung.neben_dem_rohteil; Manuel, 2026-10-18: „was hilft da langsames
+    fahren“). Bis 0.281.12 nur ganz über dem Rohteil: Am Geist hob das 3D-Schruppen so 495-mal
+    aus der Tiefe bis über das Rohteil ab und wieder hinab (45 m), meist für ein paar Zentimeter."""
     j = _abheben(punkte, i)
     if j is None:
         return
     a, b = punkte[i], punkte[j]
     von, nach = (a.x, a.y, a.z), (b.x, b.y, a.z)
-    x0, x1 = min(von[0], nach[0]) - weite, max(von[0], nach[0]) + weite
-    y0, y1 = min(von[1], nach[1]) - weite, max(von[1], nach[1]) + weite
-    if x0 < quader.x[0] or x1 > quader.x[-1] or y0 < quader.y[0] or y1 > quader.y[-1]:
-        return  # nicht ganz über dem Rohteil
     if _frei(quader, von, nach, weite):
         ersatz = [bn.Punkt(False, b.x, b.y, a.z)]
         if b.z < a.z - GLEICH:

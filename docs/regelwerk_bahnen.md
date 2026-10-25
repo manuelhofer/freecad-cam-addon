@@ -113,8 +113,8 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
     Dort unterschätzt das Restmodell, was das Schruppen stehen ließ (im Voxelmodell 12 Sätze mit
     Material).
 - **Unten bleiben statt abheben**, wenn der Weg hinüber frei ist. Sonst nur 2 mm über das
-  höchste Material im Umkreis abheben, nicht bis zur Sicherheitshöhe. Beides nur ganz über dem
-  Rohteil, denn daneben können Spannmittel stehen.
+  höchste Material im Umkreis abheben, nicht bis zur Sicherheitshöhe. Beides auch am Rand des
+  Rohteils: Wie tief jeder Fräser daneben fährt, steht im Einrichtblatt (Manuel, 2026-10-18).
 - **Keine Lage und keine Zeile, die nichts nimmt:** Folgelagen nur, wo die Lage davor noch etwas
   stehen ließ. Rest-Strategien nehmen nur den Rest.
 

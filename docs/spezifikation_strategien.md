@@ -2415,6 +2415,10 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   dort höchstens bis Z …“ (`spannung.neben_dem_rohteil`, `einrichtblatt.neben_text`) und weist
   darauf hin, wenn „gespannt“ höher eingetragen ist. Am Geist (3 Achsen, 3D-Schlichten): der
   längste Abstieg im Vorschub 86 → 42,5 mm (der Rest ist Schneiden an steilen Wänden).
+  **Unten bleiben auch am Rand (P-2026-10-25-12):** Ein Weg hinüber auf derselben Höhe ragt nur
+  über den Rand, wenn sein Anfang oder sein Ende schon hinausragt (Quader, Zylinder) – deren Tiefe
+  steht schon im Einrichtblatt. Am Geist beim 3D-Schruppen von oben: 495 Abheben bis über das
+  Rohteil fielen so weg, Hub 45,4 → 23,7 m, Eilgang 69,3 → 45,7 m.
 - Gemessen: Testteil Räumen T1 10,27 → 9,59 min (2,8 m schnell); Zapfen Planfräsen 3,29 → 2,85
   min. Im Schnellen nichts abgetragen (nachgefahren, 0 mm³).
 

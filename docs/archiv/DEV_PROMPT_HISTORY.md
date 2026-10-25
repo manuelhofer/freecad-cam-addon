@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-12 unten-bleiben-auch-am-rand
+
+### EINGELESEN
+- Die 3+2-Programme des Geists (`szenario_geist_fuenfachs`) durchgesehen. Das 3D-Schruppen von
+  oben hob 534-mal ab, und fast jedes Mal bis über das Rohteil (Z 85,7), auch aus 0,4 mm Tiefe für
+  8 mm hinüber. Zusammen waren das 24,5 m hinauf und ebenso viel hinab, bei 28,8 m Schnitt.
+- Ursache: `freiwege._unten_bleiben` blieb nur unten, wenn der Weg samt Fräser ganz über dem
+  Rohteil lag („daneben könnten Spannmittel stehen“). Bei 495 von 498 Wegen ragte der Fräser am
+  Rand um Radius plus 1 mm hinaus.
+- Manuel, 2026-10-18, zum Eilgang hinab neben dem Rohteil: „was hilft da langsames fahren …“. Das
+  Einrichtblatt nennt seitdem je Fräser, wie tief er neben dem Rohteil fährt
+  (`spannung.neben_dem_rohteil`, über alle Punkte der Bahn).
+
+### DATEIEN
+- `camaddon/freiwege.py` (`_unten_bleiben`): auch am Rand des Rohteils, dort zählt nur, was im
+  Quader steht. Ein gerader Weg auf einer Höhe ragt nur hinaus, wenn sein Anfang oder sein Ende
+  hinausragt (Quader, Zylinder). Deren Tiefe steht also schon im Einrichtblatt.
+- `tests/test_freiwege.py`: am Rand bleibt die Bahn unten wie in der Mitte.
+- `docs/regelwerk_bahnen.md`, `docs/spezifikation_strategien.md`.
+
+### ERGEBNIS
+- Geist, 3D-Schruppen von oben: Hub 45,4 → 23,7 m, Eilgang 69,3 → 45,7 m. Was bleibt, sind Wege
+  quer über den Körper, die wirklich über das Teil müssen. Ebene 1: Eilgang 16,7 → 14,1 m.
+- Grün: `test_freiwege`, `test_pruefstand` (nichts ins Teil, nichts im Eilgang abgetragen),
+  `test_goldene_bahnen`, `test_testteil`, `szenario_geist_fuenfachs`.
+
 ## P-2026-10-25-11 ebenen-rechnen-mit-dem-rest
 
 ### EINGELESEN
