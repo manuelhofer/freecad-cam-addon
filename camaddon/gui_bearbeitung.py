@@ -3314,6 +3314,14 @@ class _Schlichten3D(_Strategie):
             "vorschub": werte.get("vorschub", 0.0),
             "eintauchen": werte.get("eintauchen", 0.0),
         }
+        weiter.update(self._unter_dem_rand(werkzeug, werte, form))
+        return (form, werte["grathoehe"], list(flaechen)), weiter
+
+    @staticmethod
+    def _unter_dem_rand(werkzeug, werte, form):
+        """Die Schlüsselwörter für schlichten3d.vorschau mit „Unter dem Rand“ (angehakt, eine
+        Kugel): die Richtung, Halter und Schaft, die Empfehlung – sonst keine."""
+        weiter = {}
         if werte.get("hinterschnitt") and form.nur_kugel:
             weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
             # Stößt etwas an: ein anderer Halter, ein längerer Fräser (empfehlung.py; Manuel,
@@ -3333,7 +3341,7 @@ class _Schlichten3D(_Strategie):
                     masse, laenge, bibliothek.halter_fuer_pruefung(werkzeug)
                 )
                 weiter["schneide"] = float(masse.schneide)
-        return (form, werte["grathoehe"], list(flaechen)), weiter
+        return weiter
 
     def _wegkippen(self, werkzeug, werte):
         """Rechnet die Vorschau den Bedarf zum Wegkippen mit (wegkippen.Bedarf)?"""
@@ -3386,7 +3394,10 @@ class _Schlichten3D(_Strategie):
                 zeit=zeit,
             )
             ecken = bahn.weggelassen - bahn.anstoesse
-            if ecken:
+            if ecken and getattr(bahn, "ecken_radius", 0.0) > 0:
+                d = groesse_zeigen(2.0 * bahn.ecken_radius, einheiten.LAENGE, 1) or "0"
+                text += ". " + tr("ba.ergebnis_s3_unter.ecken_d", n=ecken, d=d)
+            elif ecken:
                 text += ". " + tr("ba.ergebnis_s3_unter.ecken", n=ecken)
             if bahn.anstoesse:
                 text += (" " if ecken else ". ") + tr(
@@ -3623,6 +3634,7 @@ class _Restschlichten(_Schlichten3D):
             "vorschub": werte.get("vorschub", 0.0),
             "eintauchen": werte.get("eintauchen", 0.0),
             "davor": ff.torus(durchmesser / 2, min(eckenradius, durchmesser / 2)),
+            **self._unter_dem_rand(werkzeug, werte, form),
         }
 
     def vorschau(self, job, werkzeug, werte, flaechen):
@@ -3644,6 +3656,7 @@ class _Restschlichten(_Schlichten3D):
         )
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
+        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False))
         return op
 
     def aendere(self, op, tc, werte, flaechen):
@@ -3652,6 +3665,7 @@ class _Restschlichten(_Schlichten3D):
         )
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
+        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False))
 
     def ist(self, op):
         return s3op.ist_restschlichten(op)
@@ -3663,6 +3677,7 @@ class _Restschlichten(_Schlichten3D):
             "aufmass": float(op.Aufmass),
             "anstellen": bool(getattr(op, "Anstellen", False)),
             "wegkippen": bool(getattr(op, "Wegkippen", False)),
+            "hinterschnitt": str(getattr(op, "Richtung", "")) == s3op.hb.HINTERSCHNITT,
         }
 
 
@@ -4120,7 +4135,7 @@ class _Block:
     def werte(self):
         werte = {feld: self.wert(feld) for feld in self.felder}
         werte.update({feld: kasten.isChecked() for feld, kasten in self.haken_felder.items()})
-        if self.s.kennung == "schlichten3d":
+        if self.s.kennung in ("schlichten3d", "restschlichten"):
             werte["aufnahme"] = self.panel.werkzeugaufnahme()  # für eine Empfehlung
         if self.s.kennung == "nut":
             werte["eintauchen_bei"] = dict(self.eintauchen)
@@ -4491,8 +4506,9 @@ class _Block:
                 else _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
             )
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
-        self.ergebnis_basis = self._mit_ausspannen(
-            self.s.ergebnis_text(self.vorschau, zeit), self.vorschau
+        self.ergebnis_basis = self._mit_ecken(
+            self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
+            self.vorschau,
         )
         self.ergebnis.setText(self.ergebnis_basis)
         self.material.setText(_material_text(self.vorschau))
@@ -4612,6 +4628,28 @@ class _Block:
         verweis = rw.ausspannen_ziel(werkzeug, laenge, ziel)
         return f'<a href="{verweis}">{html.escape(text)}</a>'
 
+    def _mit_ecken(self, text, bahn):
+        """Hinter der Ergebniszeile unter dem Rand: Bleiben Ecken, für die eine kleinere Kugel
+        passte (hinterschnitt_bahn.Bahn.ecken_radius), die größte solche aus der
+        Werkzeugverwaltung mit „Restschlichten mit T… anhaken“ (Verweis „restschlichten:“) –
+        oder, dass sie fehlt (Manuel: Empfehlungen auch, wenn es das Werkzeug nicht gibt)."""
+        radius = float(getattr(bahn, "ecken_radius", 0.0) or 0.0)
+        bibliothek = self.panel.bibliothek
+        if radius <= 0 or bibliothek is None or self.s.kennung != "schlichten3d":
+            return text
+        kugeln = [
+            w
+            for w in bibliothek.werkzeuge
+            if w.art == wz.KUGELFRAESER and 0 < float(w.durchmesser) <= 2.0 * radius + 1e-6
+        ]
+        d = groesse_zeigen(2.0 * radius, einheiten.LAENGE, 1) or "0"
+        if not kugeln:
+            dazu = html.escape(tr("ba.s3.unter.ecken_fehlt", d=d), quote=False)
+            return f"{text} {dazu}"
+        kugel = max(kugeln, key=lambda w: float(w.durchmesser))
+        knopf = html.escape(tr("ba.s3.unter.ecken_rest", werkzeug=f"T{kugel.nummer}"))
+        return f'{text} <a href="restschlichten:{kugel.kennung}">{knopf}</a>'
+
     def _mit_ausspannen(self, text, bahn):
         """Die Ergebniszeile – stößt die Bahn stellenweise an (hinterschnitt_bahn.Bahn.ausspannen),
         dahinter „T… auf … mm ausspannen“ (Manuel: der nächste Schritt als Knopf)."""
@@ -4629,10 +4667,16 @@ class _Block:
         Spindelnase, 43 mm heraus (rw.ausspannen_setzen), gespeichert; der Assistent liest es neu
         und rechnet die Vorschau."""
         bibliothek = self.panel.bibliothek
-        if not ziel.startswith(("ausspannen:", "empfehlung:")) or bibliothek is None:
+        if (
+            not ziel.startswith(("ausspannen:", "empfehlung:", "restschlichten:"))
+            or bibliothek is None
+        ):
             return
         if ziel.startswith("empfehlung:"):
             self._empfehlung_einrichten()
+            return
+        if ziel.startswith("restschlichten:"):
+            self.panel.restschlichten_mit(ziel.split(":", 1)[1])
             return
         nummer, laenge, heraus, platz = rw.ausspannen_lesen(ziel)
         self.panel.magazin()  # das Magazin der Maschine (dort gilt der Wert des Platzes)
@@ -6038,6 +6082,21 @@ class BearbeitungPanel:
         except AttributeError:  # die Wahl der Maschine gibt es noch nicht
             return False
         return eintrag is not None and eintrag.vorhanden and eintrag.art == msp.FRAESE_5
+
+    def restschlichten_mit(self, kennung):
+        """„Restschlichten mit T… anhaken“: der Block Restschlichten angehakt, mit dem Fräser
+        `kennung`, unter dem Rand wie das 3D-Schlichten."""
+        block = self.restschlichten
+        kennungen = [w.kennung for w in getattr(block, "_fraeser", [])]
+        block.haken.setChecked(True)
+        block.von_hand = True
+        if kennung in kennungen:
+            block.wahl_fraeser.setCurrentIndex(kennungen.index(kennung))
+            block.fraeser_von_hand = True
+        kasten = block.haken_felder.get("hinterschnitt")
+        if kasten is not None and kasten.isEnabled():
+            kasten.setChecked(True)
+        self.vorschau_starten()
 
     def werkzeugaufnahme(self):
         """Die Werkzeugaufnahme der Spindel der gewählten Maschine („SK40“ …; maschine.

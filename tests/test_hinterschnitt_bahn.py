@@ -130,6 +130,31 @@ try:
 except ValueError as grund:
     pruefe("Keine Fläche" in str(grund), f"ohne Flächen: {grund}")
 
+# --- Ecken und Restschlichten: eine Kugel R 8 passt oben nicht in die Ecken R 6 und nicht unten
+# an die scharfe Kante zum Boden; empfohlen die Kugel, die in drei von vier Lücken passt --------
+gross = hb.planen(teil, waende, hb.Werte(radius=8.0, sicher=40.0, grathoehe=0.01, schritt=1.0))
+print(ascii(f"R 8: {gross.weggelassen} weg, Ecken bis R {gross.ecken_radius}"))
+pruefe(3.0 <= gross.ecken_radius <= 7.0, f"Ecken bis R {gross.ecken_radius}")
+klein = hb.planen(
+    teil, waende, hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, schritt=1.0, davor_radius=8.0)
+)
+voll = hb.planen(teil, waende, hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, schritt=1.0))
+im_vorschub_k = [p for p in klein.punkte if not p.eilgang]
+ecke_oder_boden = [
+    p
+    for p in im_vorschub_k
+    if p.z < 10.0 + 8.0 + 1.0  # unten, wo die Kugel R 8 nicht an die Wand kam
+    or min(abs(p.x - 20.0), abs(p.x - 60.0)) < 12.0
+    and min(abs(p.y - 18.0), abs(p.y - 42.0)) < 12.0
+]
+print(ascii(f"Rest mit R 3 nach R 8: {len(im_vorschub_k)} statt {len(voll.punkte)} Punkte"))
+pruefe(len(im_vorschub_k) < 0.8 * len(voll.punkte), "Restschlichten fährt fast alles")
+pruefe(len(ecke_oder_boden) == len(im_vorschub_k), "Restschlichten außerhalb der Ecken")
+try:
+    hb.planen(teil, waende, hb.Werte(radius=R, sicher=40.0, schritt=1.0, davor_radius=2.0))
+    pruefe(False, "davor kleiner: kein Fehler")
+except ValueError:
+    pass  # die Kugel davor (R 2) passt überall, wo R 3 hinkommt – nichts bleibt
 # --- Der Halter in Stücken: ein langes Schrumpffutter Ø12, das Werkzeug 27 mm heraus -------------
 from camaddon import halter as hl
 

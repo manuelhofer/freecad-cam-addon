@@ -3209,5 +3209,9 @@
     "emp.halter_neu": "den Halter gibt es in deiner Werkzeugverwaltung noch nicht (Normreihe, typische Maße)",
     "emp.nicht_im_magazin": "der Fräser steht nicht im Magazin",
     "emp.einrichten": "So einrichten",
-    "emp.keine": "Auch mit anderen Haltern (deinen und den Normreihen) und längeren Fräsern derselben Form geht es hier nicht."
+    "emp.keine": "Auch mit anderen Haltern (deinen und den Normreihen) und längeren Fräsern derselben Form geht es hier nicht.",
+    "hs.fehler.kein_rest": "Die Kugel davor kam unter dem Rand überall hin – hier bleibt nichts für die kleinere.",
+    "ba.ergebnis_s3_unter.ecken_d": "An {n} Stellen in engen Ecken passt die Kugel nicht hinein – dort bleibt Material für eine Kugel bis Ø {d} (Restschlichten).",
+    "ba.s3.unter.ecken_fehlt": "In deiner Werkzeugverwaltung ist keine so kleine Kugel – dafür fehlt ein Kugelfräser bis Ø {d}.",
+    "ba.s3.unter.ecken_rest": "Restschlichten mit {werkzeug} anhaken"
 }

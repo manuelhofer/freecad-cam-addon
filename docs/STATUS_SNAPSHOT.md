@@ -568,7 +568,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    mit dem neuen „Schrumpffutter Ø12 · A 160 lang“ (Normreihen, 0.281.24) 29 statt 27 mm, der
    Knopf „T3 auf 30 mm ausspannen“ steht unter der Vorschau. Reicht Ausspannen nicht, empfiehlt
    der Assistent ein Paar aus Fräser und Halter, auch außerhalb des Magazins, mit „So einrichten“
-   (0.281.25, `empfehlung.py`; mit T3, wie er ist: Schrumpffutter Ø12 · A 80, 33 mm heraus). An der G550 legt der Grundjob nur
+   (0.281.25, `empfehlung.py`; mit T3, wie er ist: Schrumpffutter Ø12 · A 80, 33 mm heraus). Für
+   die engen Ecken nennt er die Kugel (bis Ø 7) und das Restschlichten unter dem Rand (0.282.0). An der G550 legt der Grundjob nur
    noch simultane Strategien an (das „3D-Schruppen T1“ ohne Schwenk ist weg). Offen: die engen
    Ecken der Tasche (Radius kleiner als die Kugel) für eine kleinere Kugel; im Grundjob an der
    G550 ein 3D-Schlichten ganz ohne gekippte Achse (alle Kipphaken aus) prüft es nicht.

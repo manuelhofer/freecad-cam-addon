@@ -451,7 +451,7 @@ def bahn_fuer(
     if sicher is None:
         sicher = oben + sicherheit + 3.0
     if richtung == hb.HINTERSCHNITT:
-        if davor is None and hb.ueberdeckte(form_teil, flaechen):
+        if hb.ueberdeckte(form_teil, flaechen):
             if not form.nur_kugel:
                 raise ValueError(tr("hs.fehler.kugel"))
             werte_h = hb.Werte(
@@ -466,6 +466,9 @@ def bahn_fuer(
                 koerper=tuple(tuple(k) for k in (koerper or ())),
                 schneide=float(schneide or 0.0),
                 oben=float(oben),
+                # Restschlichten: nur, wo die Kugel davor nicht hinkam (davor ein Torus: sein
+                # Außenradius – lieber zu viel Rest)
+                davor_radius=float(davor.radius) if davor is not None else 0.0,
             )
             return hb.planen(form_teil, [n for n in flaechen if str(n).startswith("Face")], werte_h)
         richtung = "auto"

@@ -52,6 +52,10 @@ VORSCHAU_SCHRITT = 1.0  # mm – so dicht liegen die Punkte einer Linie in der V
 PROBEN_JE_FLAECHE = 4  # je Richtung so viele Stellen fragt ueberdeckt()
 FLAECHEN_HOECHSTENS = 400  # mehr gewählte Flächen: ueberdeckte() fragt nicht (ein STL)
 HALTER_STUECK = 5.0  # mm – so lang sind die Stücke des Halters für die Prüfung
+RAND_REST = 1.5  # mm – so weit fährt das Restschlichten über die Lücke der Kugel davor hinaus
+ECKE_KLEINSTE = 0.5  # mm Radius – kleiner: eine scharfe Kante, dort passt keine Kugel
+ECKE_HALBIEREN = 8
+ECKE_ANTEIL = 0.75  # in so viele der Lücken soll die empfohlene Kugel passen
 # Die Achse: je Stelle die kleinste Neigung, bei der Schneide über der Kugel, Schaft und Halter um
 # ihr Spiel vom Teil bleiben (Manuels tiefe Tasche: in der Wandmitte 10°, in den Ecken hängen zwei
 # Wände über – dort kippt sie schräg in die Ecke).
@@ -215,6 +219,9 @@ class Werte:
     koerper: tuple = ()
     schneide: float = 0.0
     oben: float = None  # z der Oberkante des Rohteils – bis darüber im Eilgang; None: des Teils
+    davor_radius: float = (
+        0.0  # Restschlichten: der Radius der Kugel davor – nur, wo sie nicht hinkam
+    )
 
 
 @dataclass
@@ -245,6 +252,9 @@ class Bahn:
     # Für Empfehlungen (empfehlung.py): {"mitten": [(x, y, z)], "mitte": (x, y), "radius": R} –
     # Stellen, die anstoßen, und einige, die frei sind; None, wenn nichts anstößt.
     pruefung: dict = None
+    # Die größte Kugel (Radius, mm), die in die Lücken der Ecken passte – 0: keine Lücke oder nur
+    # scharfe Kanten (dort passt keine).
+    ecken_radius: float = 0.0
 
 
 def _richtung_zur_luft(form, flaeche):
@@ -321,6 +331,10 @@ def planen(form, namen, w):
 
     if w.radius <= 0:
         raise ValueError(tr("hs.fehler.kugel"))
+    if 0 < float(w.davor_radius or 0.0) <= w.radius + 1e-9:
+        from . import materialstand as mst
+
+        raise mst.SchonWeg(tr("hs.fehler.kein_rest"))  # die kleinere Kugel davor kam überall hin
     flaechen = _flaechen(form, namen)
     if not flaechen:
         raise ValueError(tr("hs.fehler.keine"))
@@ -329,8 +343,9 @@ def planen(form, namen, w):
     abstand = math.sqrt(8.0 * w.radius * max(w.grathoehe, 1e-4))
     abstand = min(abstand, w.radius)
     halb = w.radius + max(w.aufmass, 0.0)
-    # Weiter als eine Zelle sieht das Netz nicht: die Zelle größer als die Kugel.
-    netz = na.Netz(form, toleranz=NETZ_TOLERANZ, zelle=halb + 1.0)
+    davor = float(w.davor_radius or 0.0) + max(w.aufmass, 0.0)  # Restschlichten: die Kugel davor
+    # Weiter als eine Zelle sieht das Netz nicht: die Zelle größer als die Kugel (auch die davor).
+    netz = na.Netz(form, toleranz=NETZ_TOLERANZ, zelle=max(halb, davor) + 1.0)
     linien = []  # [[[(Mitte, Normale)]]] – je Höhe die Ringe
     namen = [n for _f, _v, n in flaechen]
     for je_hoehe in _verteilt_schneiden(form, namen, _hoehen(flaechen, bb, abstand), w.schritt):
@@ -357,6 +372,10 @@ def planen(form, namen, w):
         frei[knapp] = _in_stuecken(
             form, netz, "genau", (alle[knapp],), (halb - SPIEL,), VERTEILT_AB // 4
         )
+    normalen_alle = np.array(
+        [[n.x, n.y, n.z] for ringe in linien for ring in ringe for _c, n in ring]
+    )
+    rest = _rest(netz, alle, normalen_alle, halb, davor, linien, w) if davor > halb else None
     k = 0
     luecken = []
     stuecke = []  # [[(Mitte, Normale)]] – an weggelassenen Stellen geteilt
@@ -364,10 +383,11 @@ def planen(form, namen, w):
         for ring in ringe:
             stueck = []
             for c, n in ring:
-                if frei[k]:
+                if frei[k] and (rest is None or rest[k]):
                     stueck.append((c, n))
                 else:
-                    luecken.append((c.x, c.y, c.z))
+                    if not frei[k]:
+                        luecken.append((c.x, c.y, c.z))
                     if len(stueck) >= 2:
                         stuecke.append(stueck)
                     stueck = []
@@ -375,7 +395,13 @@ def planen(form, namen, w):
             if len(stueck) >= 2:
                 stuecke.append(stueck)
     if not stuecke:
+        if rest is not None:
+            from . import materialstand as mst
+
+            raise mst.SchonWeg(tr("hs.fehler.kein_rest"))
         raise ValueError(tr("hs.fehler.nichts"))
+    # Wie groß eine Kugel in den Lücken höchstens sein dürfte (für die Ecken: Restschlichten).
+    ecken_radius = _ecken_radius(netz, alle[~frei], normalen_alle[~frei], halb, w)
 
     # Die Achse je Stelle: so wenig gekippt, dass Schaft und Halter frei bleiben (_achsen).
     # Ganz lang: Wie weit ein Körper unter die Oberkante des Teils reicht, rechnet frei_stueck je
@@ -427,6 +453,7 @@ def planen(form, namen, w):
         anstoesse=len(anstoesse),
         ausspannen=ausspannen,
         pruefung=pruefung,
+        ecken_radius=ecken_radius,
     )
 
 
@@ -606,6 +633,71 @@ def _noetig_heraus(form, netz, anstoesse, teile, w, mitte):
         else:
             unten = mitte_
     return heraus, heraus + oben
+
+
+def _rest(netz, mitten, normalen, halb, davor, linien, w):
+    """(n,) bool: Wo die Kugel davor (Radius + Aufmaß `davor`) nicht hinkam – ihre Mitte an der
+    Stelle der Fläche lag dem Teil zu nah –, und RAND_REST davor und danach längs der Linie (die
+    kleine Kugel fährt ein Stück in die schon geschlichtete Fläche hinein)."""
+    punkte = mitten - normalen * halb  # die Stellen auf der Fläche
+    weit = np.concatenate(
+        [
+            netz.abstand(punkte[i : i + JE_ABFRAGE] + normalen[i : i + JE_ABFRAGE] * davor)
+            for i in range(0, len(punkte), JE_ABFRAGE)
+        ]
+    )
+    rest = weit < davor - SPIEL - 3.0 * NETZ_TOLERANZ
+    breite = max(1, int(math.ceil(RAND_REST / max(w.schritt, 1e-3))))
+    ergebnis = rest.copy()
+    k = 0
+    for ringe in linien:
+        for ring in ringe:
+            teil = rest[k : k + len(ring)]
+            if teil.any():
+                weit_ = (
+                    np.convolve(teil.astype(int), np.ones(2 * breite + 1, dtype=int), "same") > 0
+                )
+                ergebnis[k : k + len(ring)] = weit_
+            k += len(ring)
+    return ergebnis
+
+
+def _ecken_radius(netz, mitten, normalen, halb, w):
+    """Der Radius (auf 0,5 mm abgerundet), mit dem eine Kugel an ECKE_ANTEIL der Lücken
+    (Kugelmitten und Normalen, wo die Kugel nicht hinpasste) an der Fläche anläge, ohne ins Teil zu
+    schneiden – je Stelle der größte, halbiert. Lücken, an die keine Kugel ab ECKE_KLEINSTE passt
+    (eine scharfe Kante), zählen nicht; 0 ohne andere."""
+    if not len(mitten):
+        return 0.0
+    punkte = mitten - normalen * halb
+    aufmass = max(w.aufmass, 0.0)
+    unten = np.full(len(punkte), 0.0)
+    oben = np.full(len(punkte), float(w.radius))
+
+    def passt(r):
+        abstand = np.concatenate(
+            [
+                netz.abstand(
+                    punkte[i : i + JE_ABFRAGE]
+                    + normalen[i : i + JE_ABFRAGE] * (r[i : i + JE_ABFRAGE, None] + aufmass)
+                )
+                for i in range(0, len(punkte), JE_ABFRAGE)
+            ]
+        )
+        return abstand >= r + aufmass - SPIEL - 3.0 * NETZ_TOLERANZ
+
+    for _ in range(ECKE_HALBIEREN):
+        mitte = (unten + oben) / 2
+        geht = passt(mitte)
+        unten = np.where(geht, mitte, unten)
+        oben = np.where(geht, oben, mitte)
+    echt = unten >= ECKE_KLEINSTE
+    if not echt.any():
+        return 0.0
+    # Nicht die kleinste: An einer scharfen Kante zum Boden wird der Radius gegen 0 immer kleiner –
+    # die Kugel, die in ECKE_ANTEIL der Lücken passt.
+    radius = float(np.quantile(unten[echt], 1.0 - ECKE_ANTEIL))
+    return float(math.floor(radius * 2.0) / 2.0)
 
 
 def _ohne_doppelte(linien, abstand):

@@ -3209,5 +3209,9 @@
     "emp.halter_neu": "the holder is not yet in your tool library (standard series, typical dimensions)",
     "emp.nicht_im_magazin": "the cutter is not in the magazine",
     "emp.einrichten": "Set it up",
-    "emp.keine": "Even with other holders (yours and the standard series) and longer cutters of the same shape it doesn't work here."
+    "emp.keine": "Even with other holders (yours and the standard series) and longer cutters of the same shape it doesn't work here.",
+    "hs.fehler.kein_rest": "The ball before reached everywhere under the rim – nothing is left for the smaller one.",
+    "ba.ergebnis_s3_unter.ecken_d": "At {n} spots in tight corners the ball does not fit – material stays there for a ball up to Ø {d} (rest finishing).",
+    "ba.s3.unter.ecken_fehlt": "Your tool library has no ball that small – a ball end mill up to Ø {d} is missing for it.",
+    "ba.s3.unter.ecken_rest": "Check rest finishing with {werkzeug}"
 }

@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-25 restschlichten-unter-dem-rand
+
+### EINGELESEN
+- Nach der Empfehlung bleiben an Manuels tiefer Tasche 525 Stellen in den engen Ecken, an denen
+  die Kugel Ø 12 nicht hinpasst. Zu „komplett bearbeiten“ (Manuel) gehört, zu sagen, womit es dort
+  ginge, auch wenn es den Fräser nicht gibt.
+- Manuel: „die versions nummern sind auch schon wieder komisch ..“. Seit 0.281.18 hatte ich auch
+  neue Funktionen in der letzten Stelle gezählt, gegen die Regel (`docs/arbeitsregeln.md`: neue
+  Funktion → mittlere Stelle, Korrektur → letzte). Dieser Stand ist deshalb 0.282.0.
+
+### DATEIEN
+- `camaddon/hinterschnitt_bahn.py`: `Werte.davor_radius`. Das Restschlichten unter dem Rand fährt
+  nur, wo die Kugel davor nicht an die Fläche kam (`_rest`), 1,5 mm darüber hinaus. Mit kleinerer
+  Kugel davor ist nichts zu tun (`SchonWeg`). `Bahn.ecken_radius` (`_ecken_radius`) ist die Kugel,
+  die in drei von vier Lücken passt; scharfe Kanten zählen nicht.
+- `camaddon/schlichten3d.py`: auch mit dem Fräser davor (Restschlichten) unter dem Rand.
+- `camaddon/gui_bearbeitung.py`: Das Restschlichten hat den Haken „Unter dem Rand“ wie das
+  3D-Schlichten (`_unter_dem_rand`). Hinter der Ergebniszeile steht „… dort bleibt Material für
+  eine Kugel bis Ø 7 (Restschlichten)“. Gibt es so eine Kugel in der Werkzeugverwaltung, kommt
+  der Knopf „Restschlichten mit T… anhaken“ (`restschlichten_mit`), sonst, dass sie fehlt.
+- `translations/*.json`; `tests/test_hinterschnitt_bahn.py`: R 8 lässt Ecken für eine Kugel bis
+  R 3,5. Das Restschlichten mit R 3 nach R 8 fährt nur Ecken und Boden (3561 statt 4827 Punkte).
+  Mit kleinerer Kugel davor bleibt nichts.
+
+### ERGEBNIS
+- Manuels Tasche (Kopie), nach „So einrichten“: „An 525 Stellen in engen Ecken passt die Kugel
+  nicht hinein – dort bleibt Material für eine Kugel bis Ø 7 (Restschlichten). In deiner
+  Werkzeugverwaltung ist keine so kleine Kugel – dafür fehlt ein Kugelfräser bis Ø 7.“
+
 ## P-2026-10-25-24 empfehlung-halter-fraeser
 
 ### EINGELESEN
