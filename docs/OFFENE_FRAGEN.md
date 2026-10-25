@@ -28,7 +28,9 @@ die Spirale beschrieben („mit halt einer spirale nach unten … wenn es ecken 
 anstellen“) – gebaut (0.285.0), Bild `docs/bilder/vorschlaege/spirale_unter_dem_rand.png`. Heute
 hakt der Assistent an deiner Tasche weiter die Flanke an (48 Umläufe in 2 Lagen, etwa 5 min) und
 danach das 3D-Schlichten als Spirale (etwa 5 min). In der unteren Lage der Flanke liegt der Schaft
-von T1 an der schon fertigen Wand an (Kollision prüfen: Satz 7684).
+von T1 an der schon fertigen Wand an (Kollision prüfen: Satz 7684) – Bild:
+`docs/bilder/vorschlaege/frage7_flanke_schaft.png` (T1: Schneide 26, Hals Ø 11,2 auf 10 mm, dann
+Schaft Ø 12; oben in der Tasche, z 83 … 90, liegt er an).
 1. **Die Flanke bleibt fürs Grobe** (den Keil unter dem Rand), die Spirale macht die Wand fertig –
    so ist es jetzt; die Flanke dafür mit Aufmaß, damit der Schaft nicht an der fertigen Wand
    reibt (mein Vorschlag).
