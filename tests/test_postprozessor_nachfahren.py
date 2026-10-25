@@ -403,6 +403,14 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             programm = pp.programm(abschnitte, pp.steuerung(kennung), fraese, job.Label)
             unterschied = im_klartext(soll, klartext_punkte(programm.text))
             pruefe(not unterschied, f"{datei} {job.Label} {kennung}: {unterschied}")
+            # Die Werkzeuge in derselben Folge (TOOL CALL n; derselbe n hintereinander zählt einmal).
+
+            def folge(nummern):
+                return [n for i, n in enumerate(nummern) if i == 0 or n != nummern[i - 1]]
+
+            gerufen = folge([int(n) for n in re.findall(r"TOOL CALL (\d+) ", programm.text)])
+            soll_w = folge([int(a.werkzeug) for a in abschnitte if a.werkzeug])
+            pruefe(gerufen == soll_w, f"{datei} {kennung}: Werkzeuge {gerufen} statt {soll_w}")
         print(ascii(f"{job.Label}: {len(soll)} Vorschubsaetze je Steuerung gleich"))
         if datei.startswith("platte"):
             # Jeder Haken einzeln umgeschaltet, an jeder Steuerung (außer woodWOP): nachgelesen
