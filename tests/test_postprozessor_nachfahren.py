@@ -46,6 +46,7 @@ def vorschubsaetze_job(abschnitte, info, spindel=None, werkzeuge=None):
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUND)
+    g93 = False
     for abschnitt in abschnitte:
         f = None
         umdrehen = pp._rund_umdrehen(abschnitt, info)
@@ -53,6 +54,8 @@ def vorschubsaetze_job(abschnitte, info, spindel=None, werkzeuge=None):
             name, werte = (befehl.Name, befehl.Parameters) if hasattr(befehl, "Name") else befehl
             name = name.upper().replace("G0", "G", 1) if re.fullmatch(r"G0\d", name) else name
             name = {"G": "G0"}.get(name, name)
+            if name in ("G93", "G94"):
+                g93 = name == "G93"
             if "F" in werte and float(werte["F"]) > 0:
                 f = float(werte["F"]) * 60.0
             if name not in ("G0", "G1", "G2", "G3"):
@@ -83,7 +86,7 @@ def vorschubsaetze_job(abschnitte, info, spindel=None, werkzeuge=None):
                 kuehl = abschnitt.kuehlung in ("Flood", "Mist")
                 spindel.append((round(abschnitt.drehzahl), bool(abschnitt.rueckwaerts), kuehl))
             if werkzeuge is not None:
-                werkzeuge.append(int(abschnitt.werkzeug))
+                werkzeuge.append((int(abschnitt.werkzeug), g93))
     return aus
 
 
@@ -100,7 +103,7 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None, werkzeuge=None):
     rund = dict.fromkeys(RUND)
     art, f, maschine = "G0", None, False
     drehzahl, links, laeuft, kuehl = 0, False, False, False
-    t_aktiv, h_aktiv = None, 0
+    t_aktiv, h_aktiv, g93 = None, 0, False
     for zeile in text.splitlines():
         zeile = re.sub(r"\([^)]*\)", "", zeile)
         zeile = zeile.split(";", 1)[0].strip().upper()
@@ -133,6 +136,8 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None, werkzeuge=None):
                 kuehl = False
         if 49.0 in g:
             h_aktiv = 0
+        if 93.0 in g or 94.0 in g:
+            g93 = 93.0 in g
         maschine = 53.0 in g
         for code in g:
             if code in (0.0, 1.0, 2.0, 3.0):
@@ -156,7 +161,7 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None, werkzeuge=None):
         if spindel is not None:
             spindel.append((drehzahl if laeuft else 0, links, kuehl))
         if werkzeuge is not None:
-            werkzeuge.append((t_aktiv, h_aktiv))
+            werkzeuge.append((t_aktiv, h_aktiv, g93))
     return aus
 
 
@@ -372,7 +377,8 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                     (
                         (i, w, ist)
                         for i, (w, ist) in enumerate(zip(werkzeug_soll, werkzeug_ist, strict=True))
-                        if kennung != "grbl" and (ist[0] != w or (mit_h and ist[1] != w))
+                        if ist[2] != w[1]  # G93 (1 ÷ Zeit) oder G94 (mm/min) wie im Job
+                        or (kennung != "grbl" and (ist[0] != w[0] or (mit_h and ist[1] != w[0])))
                     ),
                     None,
                 )
@@ -463,7 +469,8 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             w_ist = []
             vorschubsaetze_programm(falsches_h, False, None, w_ist)
             pruefe(
-                any(i[1] != w for w, i in zip(w_soll, w_ist, strict=True)), "falsches H übersehen"
+                any(i[1] != w[0] for w, i in zip(w_soll, w_ist, strict=True)),
+                "falsches H übersehen",
             )
             ohne_m3 = re.sub(r"^M3 S\d+\n", "", text, count=1, flags=re.M)
             spindel_ohne = []
