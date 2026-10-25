@@ -67,3 +67,15 @@ EXTCALL in den Maschinendaten), sieht man nur an ihr.
 *Was die Antwort ändert:* Mit ja ein Haken „Je Bearbeitung ein Unterprogramm (EXTCALL)“ für
 Siemens; sonst bleibt es ein Programm.
 Seit 2026-10-25.
+
+**Frage 6 – Am 5-Achs-Teil „tief“: soll „Anlegen“ gehen, wenn das 3D-Schlichten rot ist?**
+Wählst du die Taschenflächen, ist das 3D-Schlichten angehakt und meldet „Schaft oder Halter stoßen
+überall an … T3 ist dafür zu kurz“ mit dem Knopf „So einrichten“ (Halter Schrumpffutter Ø12 –
+A 80). „Anlegen“ ist dann grau, bis du einrichtest oder das 3D-Schlichten abhakst. Gestern früh
+legte derselbe Ablauf noch an, mit einem 3D-Schlichten, das überall anstieß.
+*Warum nur Manuel:* Ob ein roter Block „Anlegen“ sperren oder nur warnen soll, ist eine Frage, wie
+du arbeiten willst (deine Regel: kein Befehl grau, weil etwas fehlt; der Knopf zum nächsten
+Schritt ist da).
+*Was die Antwort ändert:* Mit „sperren“ bleibt es; mit „warnen“ legt „Anlegen“ alles an und lässt
+den roten Block weg (mit Meldung).
+Seit 2026-10-26.
