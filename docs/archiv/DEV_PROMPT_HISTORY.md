@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-49 bohren-mehrere-bohrer
+
+### EINGELESEN
+- Die Taster-Teile (Kopien) umgedreht, die Oberseite im Schraubstock, „Alles aus dieser
+  Aufspannung“: Federhalter und Messspitzenhalter blieben gesperrt – „Bohrung fräsen“ rot („Ø 6,5
+  / Ø 2,5 kleiner als der Fräser“), kein Angebot. Von unten sind die Bohrungen Sacklöcher mit
+  140°-Spitze (darüber geht es enger weiter); „Bohren“ hat genau einen Bohrer, der Knopf bot nur
+  118° an.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_nebenbohrer` – Bohrungen, die der Bohrer von „Bohren“ nicht
+  bohrt, in die der Fräser von „Bohrung fräsen“ nicht kommt und die ein anderer Bohrer des Blocks
+  bohrt; sie gehören zu „Bohren“ (Vorschau je Bohrer zusammen, Text „– dazu T5: 3 Bohrungen“, je
+  Bohrer eine Operation: `_nebenbohrer_anlegen`). `_bohrer_waehlen` zählt mit ihnen.
+  `_fehlende_bohrer` mit der Spitze der Sackbohrung, ab 130° VHM (`_vorbohrer_anlegen(…, winkel)`).
+  `_unerreicht`: die Bohrungen, die „Bohrung fräsen“ dem Bohrer lässt, zählen im Wettbewerb als
+  nicht erreicht. Der Satz „vorgebohrt fürs Reiben“ nur noch, wenn gerieben wird.
+- `translations/de.json`, `en.json`: `ba.bohren.dazu`; `docs/spezifikation_strategien.md` 12.9.
+
+### ERGEBNIS
+- Szenario umgedreht: Federhalter „Bohrer Ø 3,2, Ø 6,5 140° anlegen“ → Bohren T5 (3) und T6 (6);
+  Messspitzenhalter „Bohrer Ø 2,5 140° anlegen“ → Bohren T22 (Ø 8,5) und T5 (3 × Ø 2,5), vorher
+  gewann „Bohrung fräsen“ ohne die Ø 2,5. Von oben unverändert (Messspitzenhalter T22, Stifthalter
+  T5). Überall „Anlegen“ frei.
+- Prüfungen: szenario_bohren, _deckel, _flansch, _lagerbock grün; test_sprache grün.
+
 ## P-2026-10-25-48 modell-rechnet-nicht
 
 ### EINGELESEN

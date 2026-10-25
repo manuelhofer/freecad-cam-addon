@@ -2145,6 +2145,17 @@ wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?“
   Spitze in die Bohrung passt (`KEGELSENKER_REIHE`, `_senker_fuer`); „Senken“ hakt sich an. An
   vier Teilen: Klemmung (Ø 4,2), Federhalter und Stifthalter (Ø 3,2, Senkung Ø 4 → Ø 6,3),
   Messspitzenhalter (Senkung Ø 7,2 → Ø 8,3) – überall „Anlegen“ frei, alle Operationen mit Bahn.
+- **„Bohren“ mit mehreren Bohrern; die Spitze der Sackbohrung (P-2026-10-25-49):** Dieselben Teile
+  umgedreht (die Oberseite im Schraubstock): Am Federhalter Ø 3,2 durchgehend und Ø 6,5 als
+  Sackbohrung mit 140°-Spitze, am Messspitzenhalter Ø 8,5 und Ø 2,5 mit 140°. „Bohren“ hatte genau
+  einen Bohrer – die anderen blieben rot bei „Bohrung fräsen“. Jetzt bohrt „Bohren“ dazu, was sein
+  Bohrer nicht bohrt, aber ein anderer des Blocks, wenn der Fräser von „Bohrung fräsen“ nicht
+  hineinkommt (`_nebenbohrer`; wo er hineinkommt, bleibt es beim Wettbewerb) – je Bohrer eine
+  Operation, im Text „– dazu T5: 3 Bohrungen“; der Hauptbohrer ist der, der mit den anderen die
+  meisten bohrt. Der Knopf „Bohrer … anlegen“ nimmt die Spitze der Sackbohrung („Ø 6,5 140°“, ab
+  130° als VHM), ein Bohrer gilt nur als da, wenn auch seine Spitze passt (`bohren.kann`). Im
+  Wettbewerb zählen die Bohrungen, die „Bohrung fräsen“ dem Bohrer lässt, als nicht erreicht –
+  sonst war es „9 % schneller“, weil es die Ø 2,5 liegen ließ, und sie bekamen keine Operation.
 
 ## 13. Manuels Testteil für die 3-Achs-Fräse (W-013, 2026-10-02)
 

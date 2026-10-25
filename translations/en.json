@@ -2755,6 +2755,7 @@
     "ba.bohren.hub": "Depth per peck",
     "ba.bohren.hub.tooltip": "This deep per peck, then back to R to break the chip (G83). Empty: deeper than 3 × D 1 × D each, shallower in one go (G81).",
     "ba.bohren.hub.leer": "automatic",
+    "ba.bohren.dazu": "{text} – plus {liste}",
     "ba.ergebnis_bohren": "→ {bohrungen}, {hube}, about {zeit}",
     "ba.zahl.hub": "1 peck",
     "ba.zahl.hube": "{n} pecks",

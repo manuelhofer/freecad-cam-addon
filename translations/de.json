@@ -2755,6 +2755,7 @@
     "ba.bohren.hub": "Tiefe je Hub",
     "ba.bohren.hub.tooltip": "So tief bohrt er je Hub, dann zurück auf R zum Spanbruch (G83). Leer: tiefer als 3 × D je 1 × D, flacher in einem Zug (G81).",
     "ba.bohren.hub.leer": "automatisch",
+    "ba.bohren.dazu": "{text} – dazu {liste}",
     "ba.ergebnis_bohren": "→ {bohrungen}, {hube}, etwa {zeit}",
     "ba.zahl.hub": "1 Hub",
     "ba.zahl.hube": "{n} Hübe",

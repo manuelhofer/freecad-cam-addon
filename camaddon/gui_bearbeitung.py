@@ -2291,14 +2291,33 @@ class _Bohren(_Strategie):
         return tr("ba.bohren.hub.leer")
 
     def vorschau(self, job, werkzeug, werte, flaechen):
-        return bh.vorschau(
+        """Die Bohrungen seines Bohrers – und die der weiteren Bohrer (`nebenbohrer`,
+        _nebenbohrer) dazu: eine Bahn, die Zeiten zusammen, `dazu` [(T-Nummer, Bohrungen)]."""
+        neben = werte.get("nebenbohrer") or []
+        andere = {n for gruppe in neben for n in gruppe["flaechen"]}
+        bahn = bh.vorschau(
             job,
             werkzeug,
-            flaechen,
+            [f for f in flaechen if f not in andere],
             werte.get("vorschub", 0.0),
             werte["hub"],
             reiben=werte.get("reiben", False),
         )
+        dazu = []
+        for gruppe in neben:
+            weitere = bh.vorschau(
+                job, gruppe["werkzeug"], gruppe["flaechen"], gruppe["vorschub"], werte["hub"]
+            )
+            bahn = bh.Bohrbahn(
+                punkte=bahn.punkte + weitere.punkte,
+                bohrungen=bahn.bohrungen + weitere.bohrungen,
+                hube=bahn.hube + weitere.hube,
+                z_min=min(bahn.z_min, weitere.z_min),
+                zeit=bahn.zeit + weitere.zeit,
+            )
+            dazu.append((wz.nummer_text(gruppe["werkzeug"]), weitere.bohrungen))
+        bahn.dazu = dazu
+        return bahn
 
     def ergebnis_text(self, bahn, zeit):
         bohrungen = (
@@ -2307,10 +2326,21 @@ class _Bohren(_Strategie):
             else tr("ba.zahl.bohrungen", n=bahn.bohrungen)
         )
         hube = tr("ba.zahl.hub") if bahn.hube == 1 else tr("ba.zahl.hube", n=bahn.hube)
-        return tr("ba.ergebnis_bohren", bohrungen=bohrungen, hube=hube, zeit=zeit)
+        text = tr("ba.ergebnis_bohren", bohrungen=bohrungen, hube=hube, zeit=zeit)
+        dazu = getattr(bahn, "dazu", None)
+        if dazu:
+            liste = ", ".join(
+                f"{nummer}: {tr('ba.zahl.bohrung') if n == 1 else tr('ba.zahl.bohrungen', n=n)}"
+                for nummer, n in dazu
+            )
+            text = tr("ba.bohren.dazu", text=text, liste=liste)
+        return text
 
     def lege_an(self, job, tc, werte, flaechen):
-        return bh.lege_an(job, tc, flaechen, werte["hub"])
+        """Die Bohrungen seines Bohrers; die der weiteren Bohrer legt
+        BearbeitungPanel._nebenbohrer_anlegen danach an."""
+        andere = {n for gruppe in werte.get("nebenbohrer") or [] for n in gruppe["flaechen"]}
+        return bh.lege_an(job, tc, [f for f in flaechen if f not in andere], werte["hub"])
 
     def ist(self, op):
         return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
@@ -4985,9 +5015,11 @@ class _Block:
         if not fehlend:
             self.angebot.leeren()
             return
-        namen = [n for _d, _t, liste in fehlend for n in liste]
+        namen = [n for _d, _w, _t, liste in fehlend for n in liste]
         durchmesser = [
-            f"Ø {groesse_zeigen(d, einheiten.LAENGE, 2) or '0'}" for d, _t, _n in fehlend
+            f"Ø {groesse_zeigen(d, einheiten.LAENGE, 2) or '0'}"
+            + ("" if abs(winkel - bh.SPITZENWINKEL) <= bh.GLEICH_WINKEL else f" {winkel:g}°")
+            for d, winkel, _t, _n in fehlend
         ]
         text = tr(
             "ba.bohrung.bohrer_fehlt",
@@ -8683,7 +8715,7 @@ class BearbeitungPanel:
                 self._raeumen_bei_nut = True
         if block is self.kontur:
             self._kontur_text(form, eigen)
-        if block is self.bohren and zusatz and block.ergebnis_basis:
+        if block is self.bohren and (zusatz or {}).get("reiben") and block.ergebnis_basis:
             d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
             block.ergebnis.setText(tr("ba.bohren.vorbohren", text=block.ergebnis_basis, d=d))
         return True
@@ -9375,7 +9407,11 @@ class BearbeitungPanel:
         if block is self.restraeumen:
             return self._nur_eng()
         if block is self.bohren:
-            return {"reiben": True} if self._gerieben(form) else None
+            zusatz = {"reiben": True} if self._gerieben(form) else {}
+            neben = self._nebenbohrer_zusatz(form)
+            if neben:
+                zusatz["nebenbohrer"] = neben
+            return zusatz or None
         if block is self.rest:
             if self.rest.felder["davor"].text().strip():
                 return None  # von Hand eingetragen
@@ -9758,11 +9794,78 @@ class BearbeitungPanel:
                 ergebnis.append(name)
         return ergebnis
 
+    def _nebenbohrer(self, form, haupt=None):
+        """{Fläche: Bohrer} – gewählte Bohrungen, die der Bohrer von „Bohren“ nicht bohrt, in die
+        der Fräser von „Bohrung fräsen“ nicht kommt, und die ein anderer Bohrer des Blocks bohrt
+        (der mit dem nächsten Ø). Sonst blieben sie rot bei „Bohrung fräsen“ stehen, und
+        „Anlegen“ ging nicht (Manuels Federhalter umgedreht: Ø 3,2 mit T5, die Ø 6,5 mit T21 aus
+        der Werkzeugverwaltung). Wo der Fräser hineinkommt, bleibt es beim Wettbewerb. `haupt`:
+        statt des Bohrers im Block (_bohrer_waehlen zählt so je Bohrer)."""
+        haupt = haupt or self.bohren.fraeser()
+        if haupt is None or not self.gewaehlte:
+            return {}
+        fraeser = self.bohrung.fraeser()
+        werte = self.bohrung.werte()
+        aufmass = float(werte.get("aufmass", 0.0) or 0.0) if werte.get("schlichten") else 0.0
+        schluessel = (
+            id(form),
+            tuple(self.gewaehlte),
+            haupt.kennung,
+            getattr(fraeser, "kennung", None),
+            aufmass,
+            tuple(w.kennung for w in self.bohren._fraeser),
+        )
+        merk = self.__dict__.setdefault("_nebenbohrer_merk", {})
+        if schluessel in merk:
+            return dict(merk[schluessel])
+        ergebnis = {}
+        eigene = set(self._bohrbare(form, haupt, gerieben=self._gerieben(form)))
+        andere = [w for w in self.bohren._fraeser if w.kennung != haupt.kennung]
+        for name in self.gewaehlte if eigene and andere else ():
+            if name in eigene or not bb.ist_bohrung(form, name):
+                continue
+            liste = bb.bohrungen(form, [name])
+            if not liste:
+                continue
+            if fraeser is not None and any(
+                b.radius - fraeser.durchmesser / 2 - aufmass >= -1e-3 for b in liste
+            ):
+                continue  # die fräst „Bohrung fräsen“ (oder der Wettbewerb entscheidet)
+            passende = [
+                w
+                for w in andere
+                if all(
+                    bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL, False)
+                    for b in liste
+                )
+            ]
+            if passende:
+                d = 2.0 * liste[0].radius
+                ergebnis[name] = min(passende, key=lambda w, d=d: abs(w.durchmesser - d))
+        if len(merk) > 32:
+            merk.clear()
+        merk[schluessel] = dict(ergebnis)
+        return ergebnis
+
+    def _nebenbohrer_zusatz(self, form):
+        """Für die Vorschau von „Bohren“: [{werkzeug, vorschub, flaechen}] je weiterem Bohrer."""
+        gruppen = {}
+        for name, werkzeug in self._nebenbohrer(form).items():
+            gruppe = gruppen.get(werkzeug.kennung)
+            if gruppe is None:
+                einsaetze = self.bohren._passende_einsaetze(werkzeug, self.werkstoff())
+                vorschub = float(js.werte(werkzeug, einsaetze[0])[1]) if einsaetze else 0.0
+                gruppe = {"werkzeug": werkzeug, "vorschub": vorschub, "flaechen": []}
+                gruppen[werkzeug.kennung] = gruppe
+            gruppe["flaechen"].append(name)
+        return list(gruppen.values())
+
     def _eigene(self, block, form):
         """Die Flächen, mit denen der Block bei dieser Wahl arbeitet: beim Bohren nur die
         Bohrungen, die sein Bohrer bohrt, sonst alle, mit denen er etwas anfangen kann."""
         if block is self.bohren:
-            return self._bohrbare(form, gerieben=self._gerieben(form))
+            eigene = self._bohrbare(form, gerieben=self._gerieben(form))
+            return eigene + [n for n in self._nebenbohrer(form) if n not in eigene]
         merk = getattr(self, "_flaechen_merk", None)
         if merk is None:
             return block.s.flaechen_fuer(form, self._wahl(block))
@@ -10045,11 +10148,15 @@ class BearbeitungPanel:
     def _bohrer_waehlen(self, form, gerieben=False):
         """Wählt im Block Bohren den Bohrer mit dem Durchmesser der gewählten Bohrungen – wenn
         der gewählte nicht passt; `gerieben`: den größten, der um die Reibzugabe kleiner ist."""
-        anzahl = [len(self._bohrbare(form, w, gerieben)) for w in self.bohren._fraeser]
+
+        def bohrt(w):  # mit den weiteren Bohrern dazu (_nebenbohrer)
+            return len(self._bohrbare(form, w, gerieben)) + len(self._nebenbohrer(form, w))
+
+        anzahl = [bohrt(w) for w in self.bohren._fraeser]
         if not anzahl or max(anzahl) == 0:
             return
         jetzt = self.bohren.fraeser()
-        if jetzt is not None and len(self._bohrbare(form, jetzt, gerieben)) == max(anzahl):
+        if jetzt is not None and bohrt(jetzt) == max(anzahl):
             return
         passend = [i for i, n in enumerate(anzahl) if n == max(anzahl)]
         wahl = max(passend, key=lambda i: self.bohren._fraeser[i].durchmesser)
@@ -10136,7 +10243,13 @@ class BearbeitungPanel:
         oder seine Bahn (die Vorschau) überstreicht in ihrer Höhe weniger als PASST von ihr; was
         davor schon weg ist (der Materialstand), zählt als erreicht. Manuel (2026-10-16): Am
         C-Ring räumte das Räumen mit Ø 6 nur zwei Drittel der 10 mm breiten Ringnut – im Raster
-        ist der Streifen für die Mitte keine zwei Zellen breit – und galt als „die schnellste“."""
+        ist der Streifen für die Mitte keine zwei Zellen breit – und galt als „die schnellste“.
+        „Bohrung fräsen“: die Bohrungen, in die sein Fräser nicht kommt (Bohrbahn.zu_klein) – es
+        war nur schneller, weil es sie liegen ließ (Manuels Messspitzenhalter von unten: die Ø 2,5
+        bekamen gar keine Operation)."""
+        if block is self.bohrung:
+            zu_klein = getattr(block.vorschau, "zu_klein", None) if block.vorschau else None
+            return dict.fromkeys(zu_klein or (), 0.0)
         if block not in (self.plan, self.raeumen) or self.job is None:
             return {}
         werkzeug = block.fraeser()
@@ -10296,10 +10409,11 @@ class BearbeitungPanel:
         return bedeckt
 
     def _fehlende_bohrer(self, block, flaechen):
-        """[(Ø, Tiefe, [Flächen])] der Bohrungen unter `flaechen`, in die der Fräser von `block`
-        („Bohrung fräsen“) nicht hineinkommt (wie _bohrungsfraeser_anbieten) und für die die
-        Werkzeugverwaltung keinen Bohrer ihres Durchmessers hat – durchgehend oder mit der Spitze
-        eines Bohrers; je Durchmesser einmal, die tiefste zählt."""
+        """[(Ø, Spitzenwinkel, Tiefe, [Flächen])] der Bohrungen unter `flaechen`, in die der
+        Fräser von `block` („Bohrung fräsen“) nicht hineinkommt (wie _bohrungsfraeser_anbieten)
+        und die kein Bohrer der Werkzeugverwaltung bohrt (bohren.kann: Ø, bei einer Sackbohrung
+        auch die Spitze – Manuels Federhalter von unten: Ø 6,5 mit 140°); je Ø und Winkel einmal,
+        die tiefste zählt. Ein ebener Grund braucht keinen Bohrer."""
         fraeser = block.fraeser()
         if fraeser is None or not flaechen or self.bibliothek is None or self.job is None:
             return []
@@ -10309,27 +10423,34 @@ class BearbeitungPanel:
             return []
         werte = block.werte()
         aufmass = float(werte.get("aufmass", 0.0) or 0.0) if werte.get("schlichten") else 0.0
-        bohrer = [float(w.durchmesser) for w in self.bibliothek.werkzeuge if w.art == wz.BOHRER]
+        bohrer = [
+            (float(w.durchmesser), float(w.spitzenwinkel or bh.SPITZENWINKEL))
+            for w in self.bibliothek.werkzeuge
+            if w.art == wz.BOHRER
+        ]
         fehlend = {}
         for b in liste:
             if b.radius - fraeser.durchmesser / 2 - aufmass >= -1e-3:
                 continue  # die fräst er
-            if not b.durch and abs(b.spitze - bh.SPITZENWINKEL) > bh.GLEICH_WINKEL:
-                continue  # ein ebener Grund oder eine andere Spitze: kein Bohrer
-            if any(bh.passt_durchmesser(b, d) for d in bohrer):
+            if not b.durch and b.spitze <= 0:
+                continue  # ein ebener Grund: kein Bohrer
+            if any(bh.kann(b, d, winkel) for d, winkel in bohrer):
                 continue
             d = round(2.0 * b.radius, 3)
-            tiefe = b.z_oben - b.z_unten + bh.spitze(d)
-            vorher = fehlend.get(d, (0.0, []))
-            fehlend[d] = (max(vorher[0], tiefe), [*vorher[1], b.name])
-        return [(d, tiefe, namen) for d, (tiefe, namen) in sorted(fehlend.items())]
+            winkel = float(bh.SPITZENWINKEL if b.durch else round(b.spitze))
+            tiefe = b.z_oben - b.z_unten + bh.spitze(d, winkel)
+            vorher = fehlend.get((d, winkel), (0.0, []))
+            fehlend[(d, winkel)] = (max(vorher[0], tiefe), [*vorher[1], b.name])
+        return [
+            (d, winkel, tiefe, namen) for (d, winkel), (tiefe, namen) in sorted(fehlend.items())
+        ]
 
     def _bohrer_anlegen(self, fehlend):
         """„Bohrer Ø … anlegen“ unter „Bohrung fräsen“: je Durchmesser aus _fehlende_bohrer ein
         Bohrer wie fürs Vorbohren (_vorbohrer_anlegen); dann die Haken neu – „Bohren“ übernimmt
         die Bohrungen (wie „T6 nehmen“)."""
-        for d, tiefe, _namen in fehlend:
-            self._vorbohrer_anlegen(d, tiefe)
+        for d, winkel, tiefe, _namen in fehlend:
+            self._vorbohrer_anlegen(d, tiefe, winkel)
         if self.job is not None:
             self._haken_vorschlagen(vr.modell(self.job).Shape)
         self.vorschau_starten()
@@ -10816,6 +10937,8 @@ class BearbeitungPanel:
                         neue_op = block.s.lege_an(self.job, tc, werte, flaechen)
                         au.setze(neue_op, werte.get("aufloesung", 0.0))
                         ops.append(neue_op)
+                        if block is self.bohren:
+                            folge.extend(self._nebenbohrer_anlegen(werte))
                     tc_davor = tc
                     uhren.atmen()
                     # Gleich rechnen: Die nächste rechnet mit dem Material, das diese lässt
@@ -10842,6 +10965,20 @@ class BearbeitungPanel:
         self.operation = self.operationen[0] if self.operationen else None
         self.operationen += folge
         return True
+
+    def _nebenbohrer_anlegen(self, werte):
+        """Nach „Bohren“ die Bohrungen der weiteren Bohrer (_nebenbohrer): je Bohrer FreeCADs
+        Bohren mit eigenem Controller. In der Transaktion von _anlegen; gibt die neuen
+        Operationen zurück."""
+        ops = []
+        for gruppe in werte.get("nebenbohrer") or []:
+            werkzeug = gruppe["werkzeug"]
+            einsaetze = self.bohren._passende_einsaetze(werkzeug, self.werkstoff())
+            tc = js.controller_ohne_transaktion(
+                self.doc, self.job, werkzeug, einsaetze[0] if einsaetze else None, self.werkstoff()
+            )
+            ops.append(bh.lege_an(self.job, tc, gruppe["flaechen"], werte["hub"]))
+        return ops
 
     def _vorbohren_anlegen(self, block, werte):
         """Vor dem Räumen oder der Nut das Vorbohren: FreeCADs Bohren an den Stellen, an denen ihre
@@ -10900,22 +11037,28 @@ class BearbeitungPanel:
                 )
         return sorted(liste, key=lambda b: b["durchmesser"])
 
-    def _vorbohrer_anlegen(self, durchmesser, tiefe):
+    def _vorbohrer_anlegen(self, durchmesser, tiefe, winkel=None):
         """„Bohrer Ø … anlegen und vorbohren“: ein Bohrer (HSS, 118°, Schneide mindestens 8 × D und
         5 mm mehr als `tiefe`) mit Richtwerten in die Werkzeugverwaltung – steht eine Maschine mit
         Magazin da, auch ins Magazin –, gespeichert; der Assistent liest es neu, das Vorbohren
         geht."""
         if self.bibliothek is None:
             return
+        # Eine andere Spitze als 118° (`winkel`, eine Sackbohrung): ab 130° ein VHM-Bohrer – 140°
+        # ist ihre übliche Spitze.
+        winkel = float(winkel or wz.SPITZENWINKEL_BOHRER)
+        name = tr("ba.raeumen.vorbohren.bohrer_name", d=f"{durchmesser:g}")
+        if abs(winkel - wz.SPITZENWINKEL_BOHRER) > bh.GLEICH_WINKEL:
+            name = f"{name} {winkel:g}°"
         bohrer = wz.Werkzeug(
             nummer=self.bibliothek.naechste_nummer(),
-            name=tr("ba.raeumen.vorbohren.bohrer_name", d=f"{durchmesser:g}"),
+            name=name,
             art=wz.BOHRER,
             durchmesser=float(durchmesser),
             schneiden=2,
             schneidenlaenge=float(math.ceil(max(8.0 * durchmesser, tiefe + 5.0))),
-            spitzenwinkel=wz.SPITZENWINKEL_BOHRER,
-            schneidstoff=wz.HSS,
+            spitzenwinkel=winkel,
+            schneidstoff=wz.VHM if winkel >= 130.0 else wz.HSS,
         )
         self._werkzeug_anlegen(bohrer)
 
