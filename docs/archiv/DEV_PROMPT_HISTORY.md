@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-01 anlegen-ohne-leere-operationen
+
+### EINGELESEN
+- W-038 / Manuels Regel „Unnötiges ohne Rückfrage weg“: Was nach dem Anlegen nichts fräst, hat im
+  Job nichts verloren (seit 0.311.3 kostet es im Programm nichts mehr).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_anlegen`): nach dem letzten Rechnen jede neu angelegte
+  Operation ohne Arbeit wieder entfernen, die Namen in den Meldungen (`ba.leer_weg`).
+- `camaddon/postprozessor.py`: `ohne_arbeit(op)` – ein Messstopp arbeitet, eine
+  Simultan-Operation zählt nie als leer (ihre Sätze rechnet erst das Programm).
+- `translations/*.json`, `tests/test_postprozessor_nachfahren.py`, `docs/STATUS_SNAPSHOT.md`
+  (W-038).
+
+### ERGEBNIS
+- Grün: test_postprozessor_nachfahren; szenario_bearbeitung, _bearbeitung_cring_alles,
+  _testteil, _raeumen, _schlichten3d, _restschruppen, _g550_von_oben, _schraeg_g550, _flanke,
+  _kugel_angestellt, _angestellt, _frage_reihenfolge – keine Operation entfernt.
+- Am 5-Achs-Teil „tief“ (Kopie) kam das Szenario nicht bis zum Anlegen (Halter zu kurz für das
+  3D-Schlichten) – offen bei W-038; das alte „leere“ 3D-Schruppen hatte Vorschubsätze, trifft
+  diese Regel also nicht.
+
 ## P-2026-10-25-91 operationen-ohne-arbeit-im-programm
 
 ### EINGELESEN

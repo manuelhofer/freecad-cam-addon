@@ -453,6 +453,10 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             leer.Source = "Text"
             leer.Gcode = ["G0 X0 Y0 Z20", "G0 Z30"]
             doc.recompute()
+            pruefe(
+                pp.ohne_arbeit(leer) and not pp.ohne_arbeit(job.Operations.Group[0]),
+                "ohne_arbeit",
+            )
             mit_leer = pp.abschnitte(job)
             p_leer = pp.programm(mit_leer, pp.steuerung("fanuc"), fraese, "L")
             pruefe(

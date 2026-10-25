@@ -2043,6 +2043,7 @@
     "ra.fehler.nichts": "Nothing stands above the selected faces, or the cutter does not fit – the stock ends on the face, or the pocket is narrower than the cutter.",
     "befehl.bearbeitung.titel": "Machining (milling)",
     "befehl.bearbeitung.tooltip": "Mills a part in a block or cylinder in three steps: click the face you want to machine – the add-on creates the job with the stock –, then choose the strategies and their cutters; “Create” creates the ticked operations. If such an operation is selected, the window opens for changing it.",
+    "ba.leer_weg": "Machining: {namen} cuts nothing – not created.",
     "ba.titel": "Machining (milling)",
     "ba.kopf": "Machining: part in a block or cylinder",
     "ba.anleitung": "Click the face you want to machine – then the add-on creates the job with the stock (“Cancel” removes it again).",

@@ -2293,6 +2293,15 @@ def _arbeitet(befehle):
     return False
 
 
+def ohne_arbeit(op):
+    """Fräst die Operation nichts – ihre Bahn nur Eilgänge und Kommentare (_arbeitet)? Ein
+    Messstopp arbeitet (M5, M9, M0); eine Simultan-Operation zählt nie als leer."""
+    if so.ist_simultan(op):
+        return False  # ihre Sätze rechnet erst das Programm (_simultan)
+    bahn = getattr(op, "Path", None)
+    return bahn is not None and not _arbeitet(list(bahn.Commands))
+
+
 def _ohne_y(info):
     """Eine Drehmaschine, deren Modell X und Z kennt, aber kein Y? Nur dann fällt „Y0“ weg –
     sonst (eine Fräse, ein Modell mit anders benannten Achsen) bleibt jede Adresse."""

@@ -61,6 +61,7 @@ from . import nut as nu
 from . import nut_bahn as nb
 from . import planfraesen as pf
 from . import planfraesen_bahn as pfb
+from . import postprozessor as pp
 from . import raeumen as ra
 from . import raeumen_bahn as rb
 from . import reiben as rbn
@@ -11798,12 +11799,22 @@ class BearbeitungPanel:
                     # (Materialstand, W-012) – FreeCAD rechnete sie sonst in beliebiger Folge.
                     self.doc.recompute()
                 self.doc.recompute()
+                # Was nach dem Rechnen nichts fräst – ein 3D-Schruppen, dem das genaue Räumen
+                # keinen Rest ließ (W-038) –, kommt nicht in den Job: Unnötiges weg.
+                for liste in (ops, folge):
+                    for k, op in enumerate(liste):
+                        if op is not None and pp.ohne_arbeit(op):
+                            weg.append(op.Label)
+                            self.doc.removeObject(op.Name)
+                            liste[k] = None
+                folge[:] = [op for op in folge if op is not None]
             except Exception:
                 self.doc.abortTransaction()
                 raise
             self.doc.commitTransaction()
             return ops
 
+        weg = []  # die Operationen, die nichts fräsen – wieder entfernt
         try:
             self.operationen = _im_befehl(anlegen)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
@@ -11815,8 +11826,11 @@ class BearbeitungPanel:
             return False
         for block, op in zip(aktive, self.operationen, strict=False):
             block.operation = op
+        self.operationen = [op for op in self.operationen if op is not None]
         self.operation = self.operationen[0] if self.operationen else None
         self.operationen += folge
+        if weg:
+            FreeCAD.Console.PrintMessage(tr("ba.leer_weg", namen=", ".join(weg)) + "\n")
         return True
 
     def _nebenbohrer_anlegen(self, werte):

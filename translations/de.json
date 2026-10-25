@@ -2043,6 +2043,7 @@
     "ra.fehler.nichts": "Über den gewählten Flächen steht nichts, oder der Fräser passt nicht hinein – das Rohteil endet auf der Fläche, oder die Tasche ist schmaler als der Fräser.",
     "befehl.bearbeitung.titel": "Bearbeitung (Fräsen)",
     "befehl.bearbeitung.tooltip": "Fräst ein Teil im Quader oder Zylinder in drei Schritten: Die Fläche anklicken, die du bearbeiten willst – das Addon legt den Job mit dem Rohteil an –, dann die Strategien und ihre Fräser wählen; „Anlegen“ legt die angehakten Operationen an. Ist eine solche Operation gewählt, öffnet sich das Fenster zum Ändern.",
+    "ba.leer_weg": "Bearbeitung: {namen} fräst nichts – nicht angelegt.",
     "ba.titel": "Bearbeitung (Fräsen)",
     "ba.kopf": "Bearbeitung: Teil im Quader oder Zylinder",
     "ba.anleitung": "Klick die Fläche an, die du bearbeiten willst – dann legt das Addon den Job mit dem Rohteil an („Abbrechen“ nimmt ihn wieder weg).",

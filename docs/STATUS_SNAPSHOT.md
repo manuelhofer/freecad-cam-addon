@@ -1994,8 +1994,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Umläufe, 6 min; an der G550 die Flanke nach der Ebene „von oben“). **In Arbeit:** die Kugel
   unter dem Rand (`hinterschnitt_bahn.py`: Höhenlinien, Achse um Wandneigung + 4° gekippt).
   **Offen:** ein leeres „3D-Schruppen T1“, das der Assistent anlegt (die Vorschau sieht mehr
-  Rest als das genaue Räumen lässt). Im Programm kostet es seit 0.311.3 nichts mehr (kein
-  Werkzeugwechsel, ein Hinweis); im Assistenten noch offen.
+  Rest als das genaue Räumen lässt). Seit 0.311.3/0.311.4: Eine Operation nur aus Eilgängen
+  bekommt im Programm keinen Werkzeugwechsel und wird beim „Anlegen“ gar nicht erst behalten.
+  **Aber:** Das alte „3D-Schruppen T1“ hatte 1115 Sätze – „leer“ hieß dort wohl Fräsen in Luft;
+  das trifft diese Regel nicht. Am 2026-10-26 nachts kam `szenario_tief` (Kopie) nicht mehr bis
+  zum Anlegen: 3D-Schlichten meldet „Schaft oder Halter stoßen überall an … T3 ist dafür zu
+  kurz“ – mit Manuel ansehen (die Kugel ist hier „in Arbeit“).
 - **W-037 Messspitzenhalter von vorn: Ringnut und Fase** – Manuel, 2026-10-18 (Bilder): Im Ring
   zwischen Bund Ø 15 und der Fase außen fuhr das Planfräsen mit dem 6er Zeilen („totaler
   scheissdreck … einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder
