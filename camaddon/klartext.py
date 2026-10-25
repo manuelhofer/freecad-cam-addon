@@ -498,6 +498,8 @@ class _Uebersetzer:
             abs(abs(winkel) - 2 * math.pi) < 1e-9
         ):
             return False  # ein winziger Bogen, kein Umlauf
+        if abs(math.degrees(winkel)) < 0.01:
+            return False  # kaum Drehung: „CP IPA+0“ nähme die TNC nicht – eine Gerade
         ipa = q_zahl(math.degrees(winkel))
         iz = zahl(ende[2] - anfang[2], self.stellen)
         pol = max(self.stellen, 4)

@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-84 winzige-boegen-nicht-als-vollkreis
+
+### EINGELESEN
+- Beim Absichern der neuen Heidenhain-Schraube (CP) gegen „IPA+0“: Ein Bogen über 0,005° (Sehne
+  0,0004 mm) stand nach dem Runden auf drei Stellen mit Anfang = Ende im Programm – Fanuc,
+  Siemens, LinuxCNC … fahren dann einen Vollkreis, Heidenhain schrieb zwei Halbkreise bzw.
+  CP IPA-360.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `_winziger_bogen` – gerundet gleiche Enden, kein (fast) voller
+  Kreis → G1 zum Ende; `camaddon/klartext.py`: Schraube unter 0,01° als Gerade.
+- `tests/test_postprozessor.py` (0,005° → G1, 359,995° → G2), `docs/spezifikation_steuerung.md` 25.
+
+### ERGEBNIS
+- 0,005°: „G1 X20.000 Y5.000“; 359,995° im Uhrzeigersinn: der Vollkreis bleibt. Manuels
+  Taster-Teile (Kopien, 3600 Bögen): kein solcher Bogen, Programme unverändert.
+- Grün: test_postprozessor, _nachfahren, _grbl, test_programm_pruefen, test_mpr.
+
 ## P-2026-10-25-83 programm-im-einrichtblatt
 
 ### EINGELESEN

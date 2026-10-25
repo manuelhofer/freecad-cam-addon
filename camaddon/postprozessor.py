@@ -40,6 +40,7 @@ maschineninfo() holen sie aus FreeCAD. Läuft ohne Oberfläche.
 """
 
 import dataclasses
+import math
 import re
 from dataclasses import dataclass, field
 
@@ -1781,6 +1782,10 @@ def programm(
                 # FreeCADs Brennschneiden (26.3) zündet mit „G1 F0“ an der Stelle, wo es steht –
                 # nichts zu fahren, und F0 lehnen Mach3 und LinuxCNC ab (Forum, t=107926).
                 continue
+            if gross in BOGEN and _winziger_bogen(gross, parameter, stand, ebene, stellen, info):
+                # Gerundet stünden Anfang und Ende gleich – jede Steuerung führe einen Vollkreis.
+                gross = "G1"
+                parameter = {a: w for a, w in parameter.items() if a not in ("I", "J", "K", "R")}
             woerter = [s.gewinde_g[GEWINDE.index(gross)] if gross in GEWINDE else gross]
             bewegung = gross in BEWEGUNG
             if laenge_offen and bewegung and ("Z" in parameter or info.drehmaschine):
@@ -2106,6 +2111,41 @@ def _schwenken_aus(s, schwenkung, zyklus, oben=False, info=None, auf_null=True):
     if woerter:
         zeilen.append(" ".join(["G0", *woerter]))
     return zeilen
+
+
+# Die Ebene der Bögen: (u, v, Mitte u, Mitte v) so, dass u → v um die dritte Achse positiv dreht –
+# G2 ist in jeder im Uhrzeigersinn (wie klartext._in_geraden).
+_BOGENACHSEN = {
+    "G17": ("X", "Y", "I", "J"),
+    "G18": ("Z", "X", "K", "I"),
+    "G19": ("Y", "Z", "J", "K"),
+}
+
+
+def _winziger_bogen(gross, parameter, stand, ebene, stellen=STELLEN, info=None):
+    """Ist der Bogen so kurz, dass Anfang und Ende auf `stellen` gerundet gleich im Programm
+    stünden – und ist er kein (fast) voller Kreis, sondern einer über wenige Tausendstel Grad?
+    Dann eine Gerade (höchstens seine Bogenhöhe daneben, unter der letzten Stelle). Ein Bogen fast
+    ganz herum bleibt: gerundet ist der Vollkreis ihm am nächsten."""
+    u, v, iu, iv = _BOGENACHSEN.get(ebene, _BOGENACHSEN["G17"])
+    if stand.get(u) is None or stand.get(v) is None or "R" in parameter:
+        return False
+    ende = {a: float(parameter.get(a, stand[a])) for a in (u, v)}
+    faktor = {
+        a: 2.0 if a == "X" and info is not None and info.x_durchmesser else 1.0 for a in (u, v)
+    }
+    if any(
+        _zahl(ende[a] * faktor[a], stellen) != _zahl(stand[a] * faktor[a], stellen) for a in (u, v)
+    ):
+        return False
+    if math.hypot(ende[u] - stand[u], ende[v] - stand[v]) < 1e-9:
+        return False  # wirklich ein Vollkreis
+    mu, mv = stand[u] + float(parameter.get(iu, 0.0)), stand[v] + float(parameter.get(iv, 0.0))
+    a0 = math.atan2(stand[v] - mv, stand[u] - mu)
+    d = math.atan2(ende[v] - mv, ende[u] - mu) - a0
+    d = (d + math.pi) % (2 * math.pi) - math.pi
+    uhrzeiger = gross in ("G2", "G02")
+    return (d < 0) if uhrzeiger else (d > 0)
 
 
 def _steht(stand, parameter):

@@ -8,6 +8,7 @@
 # Ausführen: freecadcmd tests/test_postprozessor.py
 
 import dataclasses
+import math
 import os
 import pathlib
 import re
@@ -749,6 +750,28 @@ pruefe(
     not any("Bogen" in h for h in p_hh.hinweise),
     f"Schraube trotzdem in Geraden: {p_hh.hinweise}",
 )
+# Ein Bogen über 0,005° (Sehne 0,0004 mm): gerundet stünden Anfang und Ende gleich – jede
+# Steuerung führe einen Vollkreis. Er wird eine Gerade; ein Bogen über 359,995° bleibt der
+# Vollkreis, der ihm am nächsten ist.
+for grad, soll_g in ((0.005, "G1"), (-0.005, "G2")):  # −0,005°: im Uhrzeigersinn 359,995°
+    a_w = math.radians(180.0 - grad)
+    bogen_w = pp.Abschnitt(
+        "W", 1, 1000.0, False, "None",
+        [C("G0", {"X": 20.0, "Y": 5.0, "Z": 5.0}), C("G1", {"Z": -2.0, "F": 5.0}),
+         C("G2", {"X": 25.0 + 5.0 * math.cos(a_w), "Y": 5.0 + 5.0 * math.sin(a_w), "I": 5.0, "J": 0.0})],
+    )  # fmt: skip
+    z_bw = pp.programm([bogen_w], pp.steuerung("fanuc"), None, "W").zeilen
+    letzter = next(x for x in reversed(z_bw) if x.startswith(("G1 X", "G2 ", "G1 Y")))
+    pruefe(letzter.startswith(soll_g), f"Bogen {grad}°: {letzter!r}")
+# Eine Schraube mit kaum Drehung (0,005°) ist eine Gerade, kein „CP IPA+0“.
+winzig = dataclasses.replace(
+    kreise,
+    befehle=[C("G0", {"X": 20.0, "Y": 5.0, "Z": 15.0}), C("G1", {"Z": -2.0, "F": 5.0}),
+             C("G2", {"X": 20.0 - 5.0 * (1 - math.cos(math.radians(0.005))),
+                      "Y": 5.0 + 5.0 * math.sin(math.radians(0.005)), "Z": -2.1, "I": 5.0, "J": 0.0})],
+)  # fmt: skip
+z_w = [re.sub(r"^\d+ ", "", x) for x in pp.programm([winzig], hh, wp, "W").zeilen]
+pruefe(not any(x.startswith("CP ") for x in z_w), f"winzige Schraube: {z_w[-8:]}")
 # Die Bohrzyklen als Zyklen der TNC (P-2026-10-25-65): G81 → 200 (eine Zustellung, Q204 zurück
 # auf 5), G83 → 200 mit Q202 = 5, G85 → 201 (heraus im Vorschub, G99: Q204 0); je Loch M99.
 

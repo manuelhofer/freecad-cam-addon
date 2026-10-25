@@ -845,3 +845,14 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   weg – FreeCADs Bohren schreibt Y0 –, sonst bleibt sie (die Steuerung hält an, statt an der
   falschen Stelle zu bohren) mit Hinweis `pp.hinweis.achse_fehlt` (P-2026-10-25-81).
 
+## 25. Winzige Bögen (P-2026-10-25-84)
+
+- Ein Bogen, dessen Anfang und Ende auf die Stellen des Programms gerundet gleich stünden, liest
+  jede Steuerung als Vollkreis (G2 X20.000 Y5.000 I5.000 J0.000 – eine ganze Runde statt
+  0,005°). `_winziger_bogen`: ist er keiner über fast 360° (der Drehsinn entscheidet – das Ende
+  liegt in Fahrtrichtung knapp hinter dem Anfang), wird er eine Gerade zum Ende (höchstens die
+  Bogenhöhe daneben, unter der letzten Stelle). Fast volle Bögen und echte Vollkreise bleiben.
+- Klartext: eine Schraube mit unter 0,01° Drehung als Gerade, kein „CP IPA+0“.
+- An Manuels Taster-Teilen (3600 Bögen) kam keiner vor; FreeCADs eigene Operationen können solche
+  Bögen aus der Geometrie erzeugen.
+
