@@ -185,9 +185,9 @@ class Raeumwerte:
     # None: alle rechnen, die schnellste, die die Last hält.
     variante: str = None
     # In einer Tasche mit „morph“ die Morph-Spirale (_ringe_morph_tasche): Helix um die Mitte,
-    # dann von innen bis an die Wand. Aus, bis Manuel das Bild gesehen hat (Frage in
-    # OFFENE_FRAGEN; Strategien ändern sich nur mit seinem Ja) – sonst fahren Taschen die Ringe.
-    morph_tasche: bool = False
+    # dann von innen bis an die Wand – im Wettbewerb mit den Ringen (Frage 2, B; Manuel,
+    # 2026-10-25: „in einer helix soweit es geht … dann mit morphkreisen von da aus rauskaut“).
+    morph_tasche: bool = True
     einfahrradius: float = None  # der Viertelkreis hinein und heraus; None: der Vorschlag
     schneidenlaenge: float = 0.0  # 0: unbekannt – sonst höchstens so tief je Lage
     sicherheit: float = vb.SICHERHEIT  # so weit über dem Material endet der Eilgang hinab
@@ -1996,12 +1996,18 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         return None
 
     gebremst = 0
-    if not haelt:
-        # Hält keine die Last: die schnellste, die sie feiner gerechnet hält – oder, wo auch das
-        # nicht reicht, mit gesenktem Vorschub in den Sätzen, die sie sprengen (_gebremst).
-        # Beides macht eine Variante nur langsamer: Ist eine schon so schneller, bleibt es dabei.
-        # Hält auch so keine, bleibt die Bahn, wie sie war, und sagt es.
+    # Schnellere, die die Last nicht hielten, feiner gerechnet (Frage 2, Antwort A: „das was
+    # schneller ist ... gewinnt“): In einer Tasche nahm es sonst Adaptiv, obwohl die Ringe fein
+    # gerechnet die Last hielten und halb so lang brauchten (Rechteck 1,79 → 0,96 min).
+    schneller = [v for v in ueberlastet if ergebnisse[v][1] < ergebnisse[variante][1]]
+    if not haelt or schneller:
+        # Die schnellste, die die Last feiner gerechnet hält – oder, wo auch das nicht reicht, mit
+        # gesenktem Vorschub in den Sätzen, die sie sprengen (_gebremst). Beides macht eine
+        # Variante nur langsamer: Ist eine schon so schneller, bleibt es dabei. Hält auch so
+        # keine, bleibt die Bahn, wie sie war, und sagt es.
         beste = None  # (Zeit, Variante, _Stand, Teilung, gebremste Sätze)
+        if haelt:
+            beste = (ergebnisse[variante][1], variante, ergebnisse[variante][0], 1, 0)
         for v in sorted(ueberlastet, key=lambda v: ergebnisse[v][1]):
             if beste is not None and ergebnisse[v][1] >= beste[0]:
                 break
@@ -2017,7 +2023,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
                 zeit_v = zeit_von(st_v)
                 if beste is None or zeit_v < beste[0]:
                     beste = (zeit_v, v, st_v, 1, langsamer[1])
-        if beste is not None:
+        if beste is not None and (not haelt or beste[1] != variante):
             zeit_b, variante, st_b, verdichtet, gebremst = beste
             ergebnisse[variante] = (st_b, zeit_b)
             haelt = True

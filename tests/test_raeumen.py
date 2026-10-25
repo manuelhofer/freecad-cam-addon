@@ -369,7 +369,13 @@ pruefe(
 aussen_c = [w.name for w in kb.waende(teil_c, namen_c) if abs(w.z_unten) < 1e-6]
 pruefe(rb.taschenboeden(teil_c, aussen_c) == [], "Außenwände sind keine Tasche")
 bahn_c = raeumen(teil_c, 5.0, werte_fuer(rohteil_c, 21.0))
-pruefe(bahn_c.variante == "inseln" and set(bahn_c.zeiten) == {"inseln"}, f"Tasche: {bahn_c.zeiten}")
+# In der Tasche treten seit Frage 2 (B, Manuel 2026-10-25: „in einer helix … dann mit
+# morphkreisen von da aus rauskaut“) die Ringe gegen die Morph-Spirale an; hier sind die Ringe
+# schneller.
+pruefe(
+    bahn_c.variante == "inseln" and set(bahn_c.zeiten) == {"inseln", "morph"},
+    f"Tasche: {bahn_c.zeiten}",
+)
 # Die Lagen beginnen an der Oberkante der Wände (20), nicht am Rohteil (21): 15 mm, eine Lage.
 pruefe(
     bahn_c.lagen == 1 and abs(bahn_c.z_min - 5.0) < 1e-9,
@@ -505,8 +511,10 @@ rest, einschnitt = simuliert(bahn_d, teil_d, rohteil_d, 20.0, 0.0, 0.3)
 pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Platte: Rest {rest}, Einschnitt {einschnitt}")
 # Die Tasche allein: vom Rohteil (20) bis −20, zwei Lagen, je eine Rampe rundum.
 bahn_e = raeumen(teil_d, -20.0, werte_fuer(rohteil_d, 20.0))
+# Ringe und Morph-Spirale fast gleich schnell (2,63 / 2,62 min): die Morph-Spirale, je Lage eine
+# Helix statt der Rampe rundum.
 pruefe(
-    bahn_e.variante == "inseln" and bahn_e.lagen == 2 and bahn_e.rampen == 2,
+    bahn_e.variante == "morph" and bahn_e.lagen == 2 and set(bahn_e.zeiten) == {"inseln", "morph"},
     f"Platte Tasche: {bahn_e.zeiten}, {bahn_e.lagen} Lagen, {bahn_e.rampen} Rampen",
 )
 pruefe(bahn_e.zeit < 3.0, f"Platte Tasche: {bahn_e.zeit} min")
@@ -744,17 +752,27 @@ print(
     f"Zapfen adaptiv: {bahn_h.zeit:.2f} min, Last bis {last_h:.2f} ae, "
     f"{abgehoben(bahn_h)}-mal abgehoben; Morph Last bis {last_a:.2f} ae"
 )
-# Die Tasche 40 × 30: Die Ringe wären schneller, halten die Last aber nicht.
-werte_ht = werte_fuer(rohteil_c, 21.0, variante=None)
+# Die Tasche 40 × 30 ohne Vorgabe: Die Ringe wären schneller, halten die Last aber nicht; die
+# Morph-Spirale (Helix, dann nach außen) hält sie und ist schneller als Adaptiv (Frage 2, B).
+werte_hm = werte_fuer(rohteil_c, 21.0, variante=None)
+bahn_hm = raeumen(teil_c, 5.0, werte_hm)
+pruefe(
+    bahn_hm.variante == "morph"
+    and bahn_hm.zeiten["inseln"] < bahn_hm.zeiten["morph"] < bahn_hm.zeiten["adaptiv"],
+    f"Tasche, ohne Vorgabe: {bahn_hm.variante} {bahn_hm.zeiten}",
+)
+pruefe(
+    bahn_hm.ueberlastet.get("inseln", 0.0) > 2.0,
+    f"Tasche: die Ringe überlasten nicht? {bahn_hm.ueberlastet}",
+)
+last_hm, _lang_hm = rb.last(bahn_hm, werte_hm)
+pruefe(last_hm <= bn.LAST_KURZ * rb.LAST_SPIEL, f"Tasche, Morph: Last bis {last_hm:.2f} ae")
+rest, einschnitt = simuliert(bahn_hm, teil_c, rohteil_c, 21.0, 5.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Tasche Morph: Rest {rest}, Einschnitt {einschnitt}")
+# Adaptiv in derselben Tasche (vorgegeben): eine Helix hinein, die Last hält.
+werte_ht = werte_fuer(rohteil_c, 21.0, variante="adaptiv")
 bahn_ht = raeumen(teil_c, 5.0, werte_ht)
-pruefe(
-    bahn_ht.variante == "adaptiv" and bahn_ht.zeiten["inseln"] < bahn_ht.zeiten["adaptiv"],
-    f"Tasche, ohne Vorgabe: {bahn_ht.variante} {bahn_ht.zeiten}",
-)
-pruefe(
-    bahn_ht.ueberlastet.get("inseln", 0.0) > 2.0,
-    f"Tasche: die Ringe überlasten nicht? {bahn_ht.ueberlastet}",
-)
+pruefe(bahn_ht.variante == "adaptiv", f"Tasche adaptiv: {bahn_ht.variante}")
 pruefe(bahn_ht.rampen == 1, f"Tasche adaptiv: {bahn_ht.rampen} Rampen (die Helix)")
 rest, einschnitt = simuliert(bahn_ht, teil_c, rohteil_c, 21.0, 5.0, 0.3)
 pruefe(
@@ -766,8 +784,9 @@ pruefe(
     f"Tasche adaptiv: Last bis {last_ht:.2f} ae, {lang_ht:.1f} mm am Stück",
 )
 print(
-    f"Tasche adaptiv: {bahn_ht.zeit:.2f} min, Last bis {last_ht:.2f} ae; die Ringe "
-    f"{bahn_ht.zeiten['inseln']:.2f} min, Last bis {bahn_ht.ueberlastet.get('inseln', 0):.2f} ae"
+    f"Tasche adaptiv: {bahn_ht.zeit:.2f} min, Last bis {last_ht:.2f} ae; Morph "
+    f"{bahn_hm.zeiten['morph']:.2f} min, Last bis {last_hm:.2f} ae; die Ringe "
+    f"{bahn_hm.zeiten['inseln']:.2f} min, Last bis {bahn_hm.ueberlastet.get('inseln', 0):.2f} ae"
 )
 
 # --- (j) Manuels Räumen: Stiche und Ringe (Spezifikation Strategien 14, 2026-10-03) ------------

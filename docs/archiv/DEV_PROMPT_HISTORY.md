@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-19 taschen-morph-spirale-an
+
+### EINGELESEN
+- Manuel, 2026-10-25 03:40, zu seiner tiefen Tasche (Frage 3), zugleich die Antwort auf Frage 2:
+  „ich will das so bearbeitet haben das es 1. oben angefangen mit einem werkzeug eintaucht ... in
+  einer helix soweit es geht oder halt die angegbenen ap dann mit morphkreisen von da aus
+  rauskaut ... mit dem schruppwerkzeug .. und an den kanten muss man halt anstellen ... solange
+  bis mit dem schruppwerkzeug erstmal alles weg ist .. und dann muss mit einem kurgelfräser die
+  wand geschlichtet werden .. wie immer ?“ Für Frage 2 heißt das B: wie A, dazu in Taschen die
+  Morph-Spirale (Helix in der Mitte, dann nach außen).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `morph_tasche` ist an. In einer Tasche treten die Ringe, Adaptiv
+  und die Morph-Spirale gegeneinander an. Dazu Antwort A vom Zweig `frage2-a`: Schnellere
+  Varianten, die die Last nicht halten, werden feiner gerechnet, bevor eine langsamere gewinnt.
+- `tests/test_raeumen.py`: In der Tasche 40 × 30 gewinnt ohne Vorgabe die Morph-Spirale (1,18
+  statt Adaptiv 1,51 min, Last bis 1,80 ae, nichts bleibt stehen). Adaptiv wird dort jetzt
+  vorgegeben geprüft. In der Platte gewinnt sie knapp (2,62 statt 2,63 min).
+- `docs/OFFENE_FRAGEN.md`: Fragen 2 und 3 beantwortet, raus.
+
+### ERGEBNIS
+- Grün: `test_raeumen`, `test_goldene_bahnen`, `test_testteil`, `test_pruefstand`,
+  `szenario_raeumen`, `szenario_bearbeitung`.
+- Offen für W-038 (Plan nach Manuels Worten): Schruppen der tiefen Tasche von oben mit Helix und
+  Morph-Spirale (ihre Wände hängen über, sie gilt dem Räumen noch nicht als Tasche), dann an den
+  Kanten angestellt weiterschruppen, bis alles weg ist (die Flanke für überhängende Wände liegt
+  auf dem Zweig `hinterschnitt`), dann die Wand mit dem Kugelfräser schlichten. Dazu an der G550
+  (Spindel waagerecht) die Folge: Die Flanke im Grundjob käme vor dem Räumen der Ebene.
+
 ## P-2026-10-25-18 halter-abschnitt-im-bild
 
 ### EINGELESEN
