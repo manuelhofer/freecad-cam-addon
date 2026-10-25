@@ -2091,6 +2091,32 @@ geht … und an einer von mir aus wählbaren Position in der Nut … aber natür
 - **Fertig, wenn:** In Manuels Klotz die Helix der Nut an einer angeklickten Stelle in der Mitte
   eintaucht, in jeder Lage dort, und die Nut im Prüffenster ohne Rest fertig ist.
 
+### 12.9 Vorbohren, wo das Räumen ins Volle eintaucht (P-2026-10-25-37)
+
+Manuel, 2026-10-25, Frage 4: „wenn in dem magazin ein passender bohrer vorhanden ist kann man doch
+vorbohren ... kein problem .. zumidnest sollte man es erfragen“ – „bei egal welchem teil immer
+wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?“
+
+- **Wo:** Das Räumen merkt sich jede Stelle, an der es ins volle Material eintaucht – Helix oder
+  Rampe der Ringe, die Helix des Adaptiv-Kerns um ihre Mitte (`Raeumbahn.eintauchen`: x, y, z der
+  Lage). `raeumen.vorbohr_stellen` legt Stellen näher als 1 mm zusammen, je Stelle die tiefste
+  Lage.
+- **Der Bohrer:** im Magazin der Maschine (ohne Magazin aus der Werkzeugverwaltung), mit
+  Schnittwerten, Ø zwischen dem Fräser und 1,6 mal ihm (größer passte er nicht in den Kreis der
+  Helix); am liebsten 0,5 mm größer als der Fräser, dann der kleinste (`_vorbohrer`).
+- **Im Assistenten:** im Räumen der Haken „Vorbohren, wo es ins Volle eintaucht“, vorbelegt an;
+  ohne Bohrer grau mit „Kein Bohrer Ø … bis … im Magazin“. Die Vorschau rechnet das Räumen einmal
+  ohne, bohrt an den Stellen (im Materialstand der volle Durchmesser bis zur Tiefe) und rechnet
+  es mit den Löchern noch einmal; der Text sagt „Vorgebohrt: 1 Loch Ø 13, 16 tief, etwa 0,2 min“
+  und ob das Räumen dort senkrecht eintaucht (die Ringe) oder die Helix des Adaptiv-Kerns nur noch
+  den Ring um das Loch nimmt (der Kern braucht seinen Kreis von 1,8 R frei und fährt sie weiter).
+- **Angelegt:** vor dem Räumen FreeCADs „Bohren“ an den Stellen (Locations), je Tiefe eine
+  Operation, die Spitze darunter („Drill Tip“), Hübe ab 3 × D (`bohren.an_stellen_anlegen`); das
+  Räumen rechnet danach mit den Löchern im Materialstand.
+- **Gemessen:** geschlossene Tasche 40 × 30 × 15, Fräser Ø 12, Bohrer Ø 13 (`test_raeumen`):
+  Ringe 3-mal ins Volle → 0-mal; `szenario` im Assistenten: „Vorbohren T5“ vor „Räumen T1“, G81
+  an der Stelle der Helix.
+
 ## 13. Manuels Testteil für die 3-Achs-Fräse (W-013, 2026-10-02)
 
 Manuel: „dies ist ein testteil .. für fräsmaschinen ... 3 achs... das muss sinnvoll bearbeitet

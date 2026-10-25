@@ -257,6 +257,9 @@ class Raeumbahn:
     ecken: int = 0  # Ecken mit Eckenbögen (Manuels Räumen, _ringe_stiche)
     verdichtet: int = 1  # so viele Schritte zwischen zwei Ringen, wo die Last es verlangte
     gebremst: int = 0  # Sätze mit gesenktem Vorschub, wo sonst nichts die Last hielt
+    # Wo es ins Volle eintaucht (Helix oder Rampe): [(x, y, z der Lage)] – dort lässt sich
+    # vorbohren (raeumen.vorbohr_stellen; Manuel, 2026-10-25, Frage 4).
+    eintauchen: list = field(default_factory=list)
 
 
 # --- Das Raster: Hüllfläche, Rohteil, Freies ---------------------------------------------------
@@ -855,6 +858,7 @@ class _Stand:
     tiefen: dict = field(default_factory=dict)  # {z der Lage: so tief schneidet sie} – für last()
     breit: dict = field(default_factory=dict)  # {z einer dünnen Lage: ihr ae} – für last()
     eng: bool = False  # der Adaptiv-Kern hatte kaum Platz (_ringe_adaptiv) – nachmessen
+    eintauchen: list = field(default_factory=list)  # [(x, y, z der Lage)] – ins Volle
 
     def dazu(self, teil):
         """Hängt die Bahn einer Fläche (`teil`, ein eigener _Stand) an."""
@@ -864,6 +868,7 @@ class _Stand:
             self.tiefen[z] = max(self.tiefen.get(z, 0.0), tiefe)
         self.breit.update(teil.breit)
         self.rampen_bei += teil.rampen_bei
+        self.eintauchen += teil.eintauchen
         self.ausgelassen += teil.ausgelassen
         self.davor += [name for name in teil.davor if name not in self.davor]
         self.z_min = min(self.z_min, teil.z_min)
@@ -1220,6 +1225,7 @@ class _Lage:
                 # und her.
                 oben_hier = self.vorige
                 knapp = min(hoch, self._material_oben(p0) + w.sicherheit)
+                self.st.eintauchen.append((float(p0[0]), float(p0[1]), float(self.lage)))
                 # Ein ganzer Ring rundum hinab – außer er kehrt um (ein schmaler Zipfel: die Rampe
                 # rundum wäre dort das Zickzack, am Ring von vorn viermal; Manuel, 2026-10-18:
                 # „alle Zickzack einfahren weg“), dann die Helix, wenn eine passt.
@@ -2056,6 +2062,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         st.ecken,
         verdichtet,
         gebremst,
+        list(st.eintauchen),
     )
 
 
@@ -3291,6 +3298,7 @@ def _adaptiv_gebiet(ablauf, feld, w, r, schritt, start, mitte, stuecke):
     radius = math.hypot(start[0] - mitte[0], start[1] - mitte[1])
     if radius > 0.01:
         laenge += _adaptiv_helix(ablauf, feld, w, start, mitte, radius, richtung, hoch, schritt)
+        st.eintauchen.append((float(mitte[0]), float(mitte[1]), float(lage)))
         st.rampen += 1
         st.rampen_bei.append(("adaptiv", 0))
     else:

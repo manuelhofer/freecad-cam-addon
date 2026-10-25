@@ -19,6 +19,7 @@ Läuft ohne Oberfläche.
 """
 
 import math
+from dataclasses import dataclass
 
 import FreeCAD
 import Path
@@ -49,6 +50,7 @@ AUFMASS = 0.3  # mm – bleibt an Wänden und Inseln stehen
 AUSTRITT = 50  # % des Vorschubs beim Austritt aus dem Rohteil
 ADAPTIV_FREI = "adaptiv_frei"  # nur auf Wahl; die bisherige automatische Auswahl bleibt gleich
 FREIVORSCHUB = fz.EILGANG  # mm/min, einstellbare Obergrenze für die freien G1-Verbindungen
+VORBOHREN_NAH = 1.0  # mm – Eintauchstellen näher beieinander: ein Loch
 VARIANTEN = ("automatisch", rb.RINGE) + rb.ALLE_VARIANTEN + (ADAPTIV_FREI,)
 
 
@@ -619,23 +621,107 @@ def vorschau(
     )
 
 
+@dataclass
+class Vorbohren:
+    """Was das Vorbohren fürs Räumen bringt (vorschau_fuer_assistent mit `vorbohren`)."""
+
+    stellen: list  # [(x, y, z)] – je Loch, z: so tief mit vollem Durchmesser
+    durchmesser: float
+    zeit: float  # Minuten Bohren
+    ohne: float  # Minuten Räumen ohne Vorbohren
+    hube: int
+    tiefe: float  # mm – das tiefste Loch ab der Oberkante des Rohteils
+    zu_kurz: bool = False  # tiefer als die Schneide des Bohrers
+    geholfen: int = 0  # so viele Eintauchstellen ins Volle weniger
+
+
+def vorbohr_stellen(bahn, nah=VORBOHREN_NAH):
+    """[(x, y, z)] – wo das Räumen ins Volle eintaucht (raeumen_bahn.Raeumbahn.eintauchen), je
+    Stelle die tiefste Lage: Dort vorgebohrt, taucht es senkrecht ein (Manuel, 2026-10-25, Frage 4:
+    „bei egal welchem teil immer wenn man eintauchen muss ists gut wenn vorgebohrt ist“)."""
+    stellen = []
+    for x, y, z in getattr(bahn, "eintauchen", ()) or ():
+        for i, (sx, sy, sz) in enumerate(stellen):
+            if math.hypot(x - sx, y - sy) <= nah:
+                stellen[i] = (sx, sy, min(sz, z))
+                break
+        else:
+            stellen.append((x, y, z))
+    return stellen
+
+
+def vorbohr_bahn(stellen, durchmesser, spitzenwinkel, oben, sicher, vorschub):
+    """Die Bewegungen des Bohrens an den `stellen` (bohren.planen) – für die Zeit."""
+    from . import bohren as bh
+    from . import bohrung_bahn as bb
+
+    liste = [
+        bb.Bohrung("", (x, y), durchmesser / 2.0, oben, z, False, spitzenwinkel)
+        for x, y, z in stellen
+    ]
+    return bh.planen(liste, durchmesser, spitzenwinkel, oben, sicher, vorschub)
+
+
 def vorschau_fuer_assistent(
-    job, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter
+    job, form, zustellung, zeilenabstand, aufmass, flaechen, vorbohren=None, **weiter
 ):  # fmt: skip
     """Die Vorschau im Assistenten „Bearbeitung“ (gui_bearbeitung, auch im Nebenrechner:
     bearbeitung_vorschau): grob (vorschau()) – mit Ringen die genaue Bahn (bahn_fuer()), denn die
     grobe rechnet eine etwas andere und kann die Last unterschätzen: Am Testteil maß sie in der
     dreieckigen Tasche (Ø 6) 1,7 ae, die genaue Bahn, die die Maschine fährt, 4,5 ae
     (Werkzeugbruch; Manuel, 2026-10-04). Adaptiv hält die Last nach seiner Bauart, „ringe“ ohne
-    Blick auf sie. `weiter`: die Schlüsselwörter von vorschau()."""
+    Blick auf sie. `weiter`: die Schlüsselwörter von vorschau(). Mit `vorbohren` ({durchmesser,
+    spitzenwinkel, vorschub, schneidenlaenge} des Bohrers) dort vorgebohrt, wo es ins Volle
+    eintaucht (vorbohr_stellen): die Bahn mit den Löchern im Materialstand gerechnet, dazu
+    `bahn.vorbohren` (Vorbohren)."""
     argumente = (job, job.Model.Group, form, zustellung, zeilenabstand, aufmass, flaechen)
-    bahn = vorschau(*argumente, **weiter)
-    if bahn.variante == "adaptiv" or weiter.get("variante") == rb.RINGE:
+
+    def rechnen(weiter):
+        bahn = vorschau(*argumente, **weiter)
+        if bahn.variante == "adaptiv" or weiter.get("variante") == rb.RINGE:
+            return bahn
+        try:
+            return bahn_fuer(*argumente, **weiter)
+        except ValueError:
+            return bahn
+
+    bahn = rechnen(weiter)
+    stand = weiter.get("stand")
+    stellen = vorbohr_stellen(bahn) if vorbohren and stand is not None else []
+    if not stellen:
         return bahn
-    try:
-        return bahn_fuer(*argumente, **weiter)
-    except ValueError:
-        return bahn
+    from . import fraeserform as ff
+
+    durchmesser = float(vorbohren["durchmesser"])
+    *_rohteil, oben = pf.rohteil_von_oben(job)
+    bohrung = vorbohr_bahn(
+        stellen,
+        durchmesser,
+        float(vorbohren.get("spitzenwinkel") or 118.0),
+        oben,
+        oben + 5.0,
+        float(vorbohren.get("vorschub") or 0.0),
+    )
+    # Im Materialstand: je Loch der volle Durchmesser bis zur Tiefe (die Spitze darunter zählt
+    # fürs Räumen nicht).
+    loecher = []
+    for x, y, z in stellen:
+        loecher += [bn.Punkt(True, x, y, oben + 5.0), bn.Punkt(False, x, y, z, True)]
+        loecher.append(bn.Punkt(True, x, y, oben + 5.0))
+    mit = mst.mit_bahn(stand, tr("ra.vorbohren.name"), loecher, ff.scheibe(durchmesser / 2.0))
+    neu = rechnen(dict(weiter, stand=mit))
+    tiefe = max(oben - z for _x, _y, z in stellen)
+    neu.vorbohren = Vorbohren(
+        stellen,
+        durchmesser,
+        bohrung.zeit,
+        bahn.zeit,
+        bohrung.hube,
+        tiefe,
+        zu_kurz=0 < float(vorbohren.get("schneidenlaenge") or 0.0) < tiefe,
+        geholfen=len(vorbohr_stellen(bahn)) - len(vorbohr_stellen(neu)),
+    )
+    return neu
 
 
 def lege_an(

@@ -48,6 +48,7 @@ def raeumen_genau(dokument, job_name, form, zustellung, zeilenabstand, aufmass, 
     from . import raeumen_bahn as rb
 
     job = _job(dokument, job_name)
+    weiter = {k: v for k, v in weiter.items() if k != "vorbohren"}  # das rechnet die Vorschau
     rb.adaptiv_benutzt_beginnen()
     with contextlib.suppress(ValueError):
         ra.bahn_fuer(

@@ -21,6 +21,7 @@ import numpy as np
 import Part
 
 from camaddon import bahn as bn
+from camaddon import bohren as bh
 from camaddon import fraeserform as ff
 from camaddon import hoehenfeld as hf
 from camaddon import job_schnittwerte as js
@@ -1196,6 +1197,72 @@ for name_u, teil_u, erwartet in (
             and rb.ist_tasche(k_u, rb.kontur_flaeche(k_u)),
             f"{name_u}: z {k_u.z_unten}, {bb_u.XLength:.2f} breit",
         )
+
+# --- Vorbohren (Manuel, 2026-10-25, Frage 4): wo das Räumen ins Volle eintaucht, ein Loch davor --
+# Eine geschlossene Tasche 40 × 30, 15 tief: Ohne Loch taucht das Räumen über eine Helix ein. Mit
+# dem Bohrer (Ø des Fräsers + 1) an der Stelle der Helix, bis zur tiefsten Lage: Die Bahn rechnet
+# mit dem Loch im Materialstand und taucht dort senkrecht ein – keine Helix mehr ins Volle.
+teil_v = Part.makeBox(80, 80, 30).cut(Part.makeBox(40, 30, 15, V(20, 25, 15)))
+doc_v = FreeCAD.newDocument("Vorbohren")
+objekt_v = doc_v.addObject("Part::Feature", "TeilVorbohren")
+objekt_v.Shape = teil_v
+doc_v.recompute()
+job_v = PathJob.Create("JobVorbohren", [objekt_v])
+job_v.Stock.ExtZpos = 0.0
+doc_v.recompute()
+boden_v = next(e.name for e in hf.ebenen_oben(job_v.Model.Group[0].Shape) if abs(e.z - 15.0) < 1e-6)
+stand_v = mst.fuer(job_v)
+ohne_v = ra.vorschau_fuer_assistent(
+    job_v, form, 5.0, R / 2, 0.3, [boden_v], stand=stand_v, variante="rohteil"
+)
+stellen_v = ra.vorbohr_stellen(ohne_v)
+d_v = 2 * R + 1.0
+mit_v = ra.vorschau_fuer_assistent(
+    job_v,
+    form,
+    5.0,
+    R / 2,
+    0.3,
+    [boden_v],
+    stand=stand_v,
+    variante="rohteil",
+    vorbohren={"durchmesser": d_v, "spitzenwinkel": 118.0, "vorschub": 200.0},
+)
+vb_v = getattr(mit_v, "vorbohren", None)
+print(
+    ascii(
+        f"Vorbohren: {len(stellen_v)} Stellen {stellen_v}, ohne {len(ohne_v.eintauchen)}-mal ins "
+        f"Volle, mit {len(mit_v.eintauchen)}-mal, Bohren {vb_v.zeit if vb_v else 0:.2f} min"
+    )
+)
+pruefe(stellen_v and ohne_v.eintauchen, f"Vorbohren: keine Eintauchstelle ({ohne_v.rampen})")
+pruefe(
+    vb_v is not None and vb_v.stellen == stellen_v and vb_v.zeit > 0 and vb_v.geholfen > 0,
+    f"Vorbohren: {vb_v}",
+)
+pruefe(
+    all(abs(z - min(z_ for _x, _y, z_ in stellen_v)) < 1e-6 for _x, _y, z in stellen_v)
+    and min(z for _x, _y, z in stellen_v) <= 15.0 + 0.3 + 1e-6,
+    f"Vorbohren: Tiefen {stellen_v}",
+)
+pruefe(not mit_v.eintauchen, f"Vorbohren: noch {len(mit_v.eintauchen)}-mal ins Volle")
+# Angelegt: FreeCADs Bohren an den Stellen (Locations), mit der Spitze unter der Tiefe.
+bohrer_v = wz.Werkzeug(
+    nummer=5, name="HSS", art=wz.BOHRER, durchmesser=d_v, schneiden=2, schneidenlaenge=60.0,
+    spitzenwinkel=118.0, schneidstoff=wz.HSS,
+)  # fmt: skip
+bohrer_v.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25.0, fz=0.1)]
+ue.uebergeben(wz.Bibliothek([werkzeug, bohrer_v]))
+tc_v = js.controller_ohne_transaktion(doc_v, job_v, bohrer_v, bohrer_v.schnittwerte[wz.ALLE][0])
+ops_v = bh.an_stellen_anlegen(job_v, tc_v, stellen_v, "Vorbohren T5")
+doc_v.recompute()
+zyklen = [b for o in ops_v for b in o.Path.Commands if b.Name in ("G81", "G83")]
+pruefe(
+    len(ops_v) == 1
+    and len(zyklen) == len(stellen_v)
+    and all(abs(b.Parameters["Z"] - (stellen_v[0][2] - bh.spitze(d_v))) < 0.01 for b in zyklen),
+    f"Bohren: {len(ops_v)} Operationen, Zyklen {[(b.Name, b.Parameters) for b in zyklen]}",
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

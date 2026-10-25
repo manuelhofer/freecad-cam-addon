@@ -312,6 +312,19 @@ def fuer_schritte(job, vor=None, dazu=()):
     return stand
 
 
+def mit_bahn(stand, name, punkte, fraeser):
+    """Ein neuer Stand: `stand` und darin die Bahn `punkte` ([bahn.Punkt]) mit `fraeser` gefahren
+    (fraeserform) – wie die Vorschau eines Blocks davor (fuer: `dazu`). Etwa die Löcher des
+    Vorbohrens fürs Räumen (raeumen.vorschau_fuer_assistent)."""
+    neu = _kopie(stand)
+    vorher = neu.quader.h.copy()
+    _fahre_punkte(neu.quader, punkte, _grosszuegig(fraeser))
+    neu.namen = neu.namen + [name]
+    neu.gesenkt = neu.gesenkt + [neu.quader.h < vorher - 1e-9]
+    neu.kennung = neu.kennung + (_kennung_bahn(name, punkte, fraeser),)
+    return neu
+
+
 def kennung_vor(job, vor):
     """Woraus der Materialstand vor `vor` gerechnet würde – das Rohteil und je Operation davor
     Name, Fräser und Bahn; zum Vergleich mit der Kennung, die eine Operation sich gemerkt hat.

@@ -210,12 +210,39 @@ def _lege_eine_an(job, tc, gruppe, hub, name):
     )
 
 
-def bohrzyklus(job, tc, flaechen, endtiefe, name, extra="None", hub=0.0, heraus_im_vorschub=False):
+def an_stellen_anlegen(job, tc, stellen, name):
+    """Legt FreeCADs „Bohren“ an freien Stellen an (Vorbohren fürs Räumen, raeumen.vorbohr_stellen)
+    – je Tiefe eine Operation: `stellen` [(x, y, z)], z so tief mit vollem Durchmesser (die Spitze
+    darunter, „Drill Tip“), Hübe wie hub_fuer(). Ohne eigene Transaktion; gibt die Operationen
+    zurück."""
+    from . import planfraesen as pf
+
+    *_rohteil, oben = pf.rohteil_von_oben(job)
+    durchmesser = float(tc.Tool.Diameter)
+    je_tiefe = {}
+    for x, y, z in stellen:
+        je_tiefe.setdefault(round(float(z), 3), []).append((float(x), float(y)))
+    ops = []
+    for z, orte in sorted(je_tiefe.items(), reverse=True):
+        tiefe = oben - (z - spitze(durchmesser))
+        ops.append(
+            bohrzyklus(
+                job, tc, (), z, name, extra="Drill Tip",
+                hub=hub_fuer(tiefe, durchmesser), orte=orte,
+            )  # fmt: skip
+        )
+    return ops
+
+
+def bohrzyklus(
+    job, tc, flaechen, endtiefe, name, extra="None", hub=0.0, heraus_im_vorschub=False, orte=None
+):
     """Legt FreeCADs Bohr-Operation (Path.Op.Drilling) an – ohne FreeCADs Vorgaben (die suchen
     einen Controller und fragen bei mehreren nach) und ohne eigene Transaktion: die Bohrungen
     `flaechen` (ihre Zylinderflächen) als Basis, Endtiefe `endtiefe` (mit `extra` „Drill Tip“ die
     Spitze darunter), R 3 mm über dem Rohteil, Hübe `hub` (0: in einem Zug), G98, ohne
-    Verweilen; `heraus_im_vorschub`: G85 – heraus mit Vorschub (Reiben). Gibt sie zurück."""
+    Verweilen; `heraus_im_vorschub`: G85 – heraus mit Vorschub (Reiben); `orte` [(x, y)]: an
+    diesen Stellen statt an Bohrungen (FreeCADs „Locations“). Gibt sie zurück."""
     import FreeCAD
     import Path.Op.Drilling as PathDrilling
 
@@ -235,7 +262,11 @@ def bohrzyklus(job, tc, flaechen, endtiefe, name, extra="None", hub=0.0, heraus_
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
-    obj.Base = [(vr.modell(job), tuple(flaechen))]
+    if orte:
+        obj.Base = []
+        obj.Locations = [FreeCAD.Vector(x, y, 0.0) for x, y in orte]
+    else:
+        obj.Base = [(vr.modell(job), tuple(flaechen))]
     *_rohteil, oben = pf.rohteil_von_oben(job)
     obj.setExpression("FinalDepth", None)
     obj.FinalDepth = endtiefe

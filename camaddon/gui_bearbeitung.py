@@ -1472,8 +1472,27 @@ class _Raeumen(_Strategie):
 
     def haken(self):
         # Schlichten und Messstopp danach hat der eigene Block „Schlichten danach“
-        # (_SchlichtenDanach; bis 0.126.0 zwei Haken hier).
-        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
+        # (_SchlichtenDanach; bis 0.126.0 zwei Haken hier). Vorbohren: Manuel, 2026-10-25,
+        # Frage 4: „wenn in dem magazin ein passender bohrer vorhanden ist kann man doch vorbohren
+        # ... kein problem .. zumidnest sollte man es erfragen“ – vorbelegt an, nur mit Bohrer.
+        return (
+            ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+            ("vorbohren", tr("ba.raeumen.vorbohren"), tr("ba.raeumen.vorbohren.tooltip"), True),
+        )
+
+    def haken_gesperrt(self, feld, block):
+        if feld != "vorbohren":
+            return None
+        fraeser = block.fraeser()
+        if fraeser is None or block.panel._vorbohrer(fraeser) is not None:
+            return None
+        return tr(
+            "ba.raeumen.vorbohren.kein_bohrer",
+            von=groesse_zeigen(fraeser.durchmesser, einheiten.LAENGE, 1) or "0",
+            bis=groesse_zeigen(
+                fraeser.durchmesser * VORBOHRER_HOECHSTENS, einheiten.LAENGE, 1
+            ) or "0",
+        )  # fmt: skip
 
     def passt(self, form, name):
         return bool(hf.ebenen_oben(form, [name])) or bool(kb.waende(form, [name]))
@@ -1546,6 +1565,8 @@ class _Raeumen(_Strategie):
             "eng_lassen": bool(werte.get("eng_lassen", False)),
             "nur_eng": float(werte.get("nur_eng", 0.0)),
         }
+        if werte.get("vorbohren") and werte.get("vorbohrer"):
+            weiter["vorbohren"] = werte["vorbohrer"]  # raeumen.vorschau_fuer_assistent
         return (
             ff.von_werkzeug(werkzeug),
             werte["zustellung"],
@@ -1603,6 +1624,26 @@ class _Raeumen(_Strategie):
                 saetze=bahn.gebremst,
                 prozent=int(round(langsam * 100.0)),
             )
+        vorbohren = getattr(bahn, "vorbohren", None)
+        if vorbohren is not None:
+            werte = {
+                "n": len(vorbohren.stellen),
+                "d": groesse_zeigen(vorbohren.durchmesser, einheiten.LAENGE, 1) or "0",
+                "tiefe": groesse_zeigen(vorbohren.tiefe, einheiten.LAENGE, 0) or "0",
+                "zeit": dezimal(f"{vorbohren.zeit:.1f}"),
+            }
+            if len(vorbohren.stellen) == 1:
+                text += ". " + tr("ba.raeumen.vorbohren.ein_loch", **werte)
+            else:
+                text += ". " + tr("ba.raeumen.vorbohren.loecher", **werte)
+            # Adaptiv braucht seinen Kreis für die Helix (1,8 R) frei und fährt sie trotzdem – das
+            # Loch nimmt ihr nur die Mitte ab; die Ringe tauchen ins Loch senkrecht ein.
+            if vorbohren.geholfen > 0:
+                text += " " + tr("ba.raeumen.vorbohren.senkrecht")
+            else:
+                text += " " + tr("ba.raeumen.vorbohren.helix")
+            if vorbohren.zu_kurz:
+                text += " " + tr("ba.raeumen.vorbohren.zu_kurz")
         return text
 
     def lege_an(self, job, tc, werte, flaechen):
@@ -3215,6 +3256,10 @@ def _job_der(op):
 
 
 KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt", "spirale")  # 3D-Schlichten: 5 Achsen
+# Vorbohren fürs Räumen: der Bohrer zwischen dem Fräser und so viel mal ihm – größer passte er
+# nicht mehr in den Kreis, den das Räumen für die Helix braucht (raeumen_bahn.ADAPTIV_HELIX).
+VORBOHRER_HOECHSTENS = 1.6
+VORBOHRER_LUFT = 0.5  # mm – am liebsten so viel größer als der Fräser, damit er frei hineinfällt
 # Was im Grundjob einer Maschine mit waagerechter Spindel bleibt: die Strategien mit Achse je Satz.
 SIMULTAN_IM_GRUNDJOB = ("flanke", "schlichten3d", "restschlichten", "entgraten3d")
 
@@ -9168,8 +9213,13 @@ class BearbeitungPanel:
             return {"werkzeug": block.fraeser()}  # Steigung und Zähne kennt CAM nicht
         if block is self.raeumen:
             # Enge Gebiete lässt es dem kleineren Fräser von „Rest räumen“ (W-034) – nur, wenn die
-            # Kiste einen hat; sonst räumt es sie selbst (wie bisher, mit Helix).
-            return {"eng_lassen": True} if self._kleinerer_raeumfraeser() else None
+            # Kiste einen hat; sonst räumt es sie selbst (wie bisher, mit Helix). Dazu der Bohrer
+            # fürs Vorbohren, wenn einer passt (_vorbohrer).
+            zusatz = {"eng_lassen": True} if self._kleinerer_raeumfraeser() else {}
+            bohrer = self._vorbohrer(block.fraeser())
+            if bohrer is not None:
+                zusatz["vorbohrer"] = bohrer
+            return zusatz or None
         if block is self.restraeumen:
             return self._nur_eng()
         if block is self.bohren:
@@ -10526,6 +10576,8 @@ class BearbeitungPanel:
                         ops.append(neue[0])
                         folge.extend(neue[1:])
                     else:
+                        if block is self.raeumen:
+                            folge.extend(self._vorbohren_anlegen(werte))
                         neue_op = block.s.lege_an(self.job, tc, werte, flaechen)
                         au.setze(neue_op, werte.get("aufloesung", 0.0))
                         ops.append(neue_op)
@@ -10555,6 +10607,65 @@ class BearbeitungPanel:
         self.operation = self.operationen[0] if self.operationen else None
         self.operationen += folge
         return True
+
+    def _vorbohren_anlegen(self, werte):
+        """Vor dem Räumen das Vorbohren (raeumen.vorbohr_stellen): FreeCADs Bohren an den Stellen,
+        an denen die Vorschau des Räumens ins Volle eintauchte – mit dem Bohrer aus _vorbohrer.
+        Das Räumen rechnet danach mit den Löchern (Materialstand) und taucht dort senkrecht ein.
+        In der Transaktion von _anlegen; gibt die neuen Operationen zurück."""
+        vorbohren = getattr(self.raeumen.vorschau, "vorbohren", None)
+        bohrer = werte.get("vorbohrer")
+        if not werte.get("vorbohren") or vorbohren is None or not bohrer:
+            return []
+        werkzeug = next(
+            (w for w in self.bibliothek.werkzeuge if w.kennung == bohrer["kennung"]), None
+        )
+        if werkzeug is None:
+            return []
+        einsaetze = self.bohren._passende_einsaetze(werkzeug, self.werkstoff())
+        tc = js.controller_ohne_transaktion(
+            self.doc, self.job, werkzeug, einsaetze[0] if einsaetze else None, self.werkstoff()
+        )
+        ops = bh.an_stellen_anlegen(
+            self.job,
+            tc,
+            vorbohren.stellen,
+            tr("ba.raeumen.vorbohren.name", werkzeug=f"T{tc.ToolNumber}"),
+        )
+        self.doc.recompute()  # das Räumen rechnet mit den Löchern
+        return ops
+
+    def _vorbohrer(self, fraeser):
+        """Der Bohrer fürs Vorbohren zum Räumfräser `fraeser` – {kennung, durchmesser,
+        spitzenwinkel, schneidenlaenge, vorschub} – oder None: ein Bohrer zwischen dem Fräser und
+        VORBOHRER_HOECHSTENS mal ihm, im Magazin der Maschine (ohne Magazin aus der
+        Werkzeugverwaltung), mit Schnittwerten; am liebsten VORBOHRER_LUFT größer, dann der
+        kleinste."""
+        if fraeser is None or self.bibliothek is None or fraeser.durchmesser <= 0:
+            return None
+        d = float(fraeser.durchmesser)
+        magazin = self.magazin()
+        kandidaten = []
+        for w in self.bibliothek.werkzeuge:
+            if w.art != wz.BOHRER or not d - 1e-6 <= w.durchmesser <= d * VORBOHRER_HOECHSTENS:
+                continue
+            if magazin is not None and mg.rang(w, magazin) == mg.NICHT_IM_MAGAZIN:
+                continue
+            einsaetze = self.bohren._passende_einsaetze(w, self.werkstoff())
+            if einsaetze:
+                kandidaten.append((w, js.werte(w, einsaetze[0])[1]))
+        if not kandidaten:
+            return None
+        w, vorschub = min(
+            kandidaten, key=lambda k: (k[0].durchmesser < d + VORBOHRER_LUFT, k[0].durchmesser)
+        )
+        return {
+            "kennung": w.kennung,
+            "durchmesser": float(w.durchmesser),
+            "spitzenwinkel": float(w.spitzenwinkel or wz.SPITZENWINKEL_BOHRER),
+            "schneidenlaenge": float(w.schneidenlaenge or 0.0),
+            "vorschub": float(vorschub),
+        }
 
     def _schlichten_danach_anlegen(self, tc, tc_davor, werte):
         """Die Operationen von „Schlichten danach“ – auf Wunsch der Messstopp (mit dem Controller

@@ -8,59 +8,33 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
-**Frage 1 – Ein eigener Name fürs Addon?** „CAM-Addon“ (im Addon-Manager „CAM Addon“, das Menü
-„CAM-Addon“) klingt nach einem Teil von FreeCAD CAM – genau das stört die CAM-Entwickler (Discord,
-2026-10-23: „at least 3 forks or addons competing“). Ein eigener Name machte von selbst klar, dass
-es ein Werkstatt-Addon neben CAM ist. Umbenannt würde nur, was man sieht (Name im Addon-Manager,
-Menü, Fenstertitel, Hilfe); die Adresse auf GitHub, der Ordner und die Module bleiben – sonst
-fänden „Nach Updates suchen“ und gespeicherte Dateien nichts mehr. Vorschläge:
-1. **Werkstatt-CAM** (englisch „Shop Floor CAM“) – sagt, wofür es ist.
-2. **CAM-Werkstatt** („CAM Workshop“).
-3. **Zerspaner-Assistent** („Machinist's Assistant“) – sagt, für wen.
-4. Ein Name, den du dir ausdenkst.
-5. So lassen.
-*Warum nur Manuel:* Es ist dein Addon und dein Name nach außen. *Was die Antwort ändert:* Name im
-Addon-Manager, Menü und Hilfe (de/en), README; nichts an Bahnen oder Dateien. – seit 2026-10-24.
+**Frage 6 – Am Anfang fragen, wie du vorgehen willst?** Manuel, 2026-10-25, zu Frage 4: „oder vll
+generell das system umbauen .. auf "hey wie willst du vorgehen sollen wir erst vorborhren … und dann
+weiter machen oder sollen wir alles rausschruppen und dann schlichten usw usw usw..“. Gebaut ist
+das Vorbohren als Haken im Räumen (0.286.0). Ein Schritt davor im Assistenten könnte so aussehen –
+eine Zeile je Weg, mit der Zeit, die er an deinem Teil braucht, der schnellste vorgewählt:
+1. **Wie bisher:** je Strategie die schnellste, du hakst an und ab.
+2. **Erst vorbohren, dann räumen, dann schlichten** (wo eingetaucht wird).
+3. **Alles schruppen, dann alles schlichten** (erst alle Schrupp-, dann alle Schlichtschritte,
+   Werkzeugwechsel in dieser Folge).
+4. **Du sagst, welche Wege** in deiner Werkstatt vorkommen – dann baue ich genau die.
+*Warum nur Manuel:* Welche Folgen in Frage kommen und wie sie heißen sollen, ist deine Werkstatt;
+nach „Strategiewahl erst besprechen“ wähle ich nichts davon selbst vor. *Was die Antwort ändert:*
+ob Schritt 2 des Assistenten eine Wahl des Vorgehens bekommt und welche. – seit 2026-10-25.
 
 
-**Frage 4 – Ganze Abfolgen vorschlagen, damit es schneller geht?** Manuel, 2026-10-25, an seiner
-tiefen Tasche: „man könnte nun hier auch damit es schneller geht erstmal bohren .. oder
-rausschruppen mit nem größeren fräser gerade .. oder oder oder es gibt ja viele möglichkeiten“ –
-„lass uns mal drüber reden“. Heute empfiehlt das Addon nur Halter und Auskragung (und einen Fräser
-für die Ecken). Eine Stufe höher hieße: ganze Abfolgen nach Zeit vergleichen und die schnellste
-vorschlagen, auch mit Werkzeugen, die man nicht hat. Mein Vorschlag zum Anfangen, an deiner Tasche,
-mit Bild und Zahlen:
-1. **Räumen T1** wie jetzt (Ringe von innen, 2 min),
-2. **erst bohren** (ein Bohrer Ø 30 … 40 in die Mitte, dann Räumen),
-3. **erst ein großer Schaftfräser** (Ø 25 … 32, kurz und steif), dann T1 nur, was er stehen lässt,
-4. du nennst, welche Wege du in der Werkstatt gehst.
-**Gemessen (0.283.3, deine Tasche an der G550, Kopie):** Räumen T1 von oben ≈ 2 min, Flanke T1
-≈ 6 min (4 Umläufe je Wand für den Keil 6,5 mm bei „quer“ 2,4, in 2 Lagen; seit 0.283.4 oben nur
-die nötigen: 48 statt 64 Umläufe, gut ein Fünftel weniger), 3D-Schlichten T3 der
-Rundungen ≈ 5 min (Grathöhe 0,01; mit 0,02 4 min), Restschlichten der Ecken Ø 6 ≈ 1 min –
-zusammen ≈ 14 min. Vorbohren und ein größerer Fräser sparen nur am Räumen (2 von 14 min); mehr
-brächte die Flanke (weniger Umläufe am Keil).
-*Warum nur Manuel:* Welche Abfolgen in Frage kommen und was „schneller“ wert ist (Werkzeugwechsel,
-Rüsten, Kauf), ist deine Werkstatt. Nach der Regel „Strategiewahl erst besprechen“ wähle ich nichts
-davon selbst vor. *Was die Antwort ändert:* Welche Abfolgen das Addon rechnet und als Empfehlung
-zeigt (wie „So einrichten“). – seit 2026-10-25.
-
-
-**Frage 5 – Flanke in zwei Lagen: der Schaft reibt an der fertigen Wand darüber.** An deiner
-tiefen Tasche (50 mm Wand) fräst T1 (494W D12: Schneide 26 mm, Hals Ø 11,2 auf 10 mm, dann Schaft
-Ø 12) die Flanke in zwei Lagen. In der unteren Lage liegt der Schaft genau an der Wand an, die die
-obere Lage schon fertig gefräst hat: Er ist so dick wie die Schneide, und die Wand ist eine Gerade
-längs der Achse. „Kollision prüfen“ meldet das an einer Ecke („berühren sich der Schaft von T1 und
-das Teil“, Satz 7684). In echt ist der Schaft (h6) meist ein paar Hundertstel dicker als die
-Schneide (e8) – er würde die Wand dort polieren oder anfressen. Frei kommt es nur, wenn das
-Werkzeug über die ganze Wand schneidet oder freigeschliffen ist (Schneide ≥ 50 mm, oder Hals bis
-über die Wand).
-1. **Warnen und empfehlen** (mein Vorschlag): Die Flanke prüft in unteren Lagen auch den Schaft
-   und sagt wie bei Halter und Auskragung, womit es ginge (längere Schneide oder langer Hals), mit
-   „So einrichten“.
-2. **Die untere Lage dem 3D-Schlichten lassen:** Die Flanke fräst nur so tief, wie Schneide und
-   Hals reichen; darunter die Kugel.
-3. **So lassen** – an der Maschine nimmt man dafür ohnehin ein passendes Werkzeug.
-*Warum nur Manuel:* Ob der Schaft dort stört und welches Werkzeug man dafür nimmt, ist
-Werkstattwissen. *Was die Antwort ändert:* ob die Flanke Lagen mit diesem Werkzeug anbietet, warnt
-oder kürzt. – seit 2026-10-25.
+**Frage 7 – Die Wände der tiefen Tasche: Spirale statt Flanke in zwei Lagen?** Zu Frage 5 hast du
+die Spirale beschrieben („mit halt einer spirale nach unten … wenn es ecken gibt … eben anders
+anstellen“) – gebaut (0.285.0), Bild `docs/bilder/vorschlaege/spirale_unter_dem_rand.png`. Heute
+hakt der Assistent an deiner Tasche weiter die Flanke an (48 Umläufe in 2 Lagen, etwa 5 min) und
+danach das 3D-Schlichten als Spirale (etwa 5 min). In der unteren Lage der Flanke liegt der Schaft
+von T1 an der schon fertigen Wand an (Kollision prüfen: Satz 7684).
+1. **Die Flanke bleibt fürs Grobe** (den Keil unter dem Rand), die Spirale macht die Wand fertig –
+   so ist es jetzt; die Flanke dafür mit Aufmaß, damit der Schaft nicht an der fertigen Wand
+   reibt (mein Vorschlag).
+2. **Ohne Flanke:** den Keil schruppt die Kugel vor (Vorschlichten, wo zu viel steht), dann die
+   Spirale.
+3. **So lassen.**
+*Warum nur Manuel:* Welche Strategie das Addon ohne Vorgabe wählt, entscheidest du
+(„Strategiewahl erst besprechen“). *Was die Antwort ändert:* was an überhängenden Wänden
+vorgeschlagen und angehakt ist. – seit 2026-10-25.

@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-37 vorbohren-fuers-raeumen
+
+### EINGELESEN
+- Manuel, 2026-10-25, zu den offenen Fragen:
+  - Frage 1 (Name): „ok der name sollte englisch aber ich finde halt das es eben ein aufsatz ist
+    auf das cam modul von freecad und daher schon passend ??“ – der Name bleibt „CAM Addon“
+    (englisch ist er schon); Frage 1 geschlossen.
+  - Frage 4: „wenn in dem magazin ein passender bohrer vorhanden ist kann man doch vorbohren ...
+    kein problem .. zumidnest sollte man es erfragen .. oder vll generell das system umbauen ..
+    auf "hey wie willst du vorgehen sollen wir erst vorborhren (bei egal welchem teil immer wenn
+    man eintauchen muss ists gut wenn vorgebohrt ist oder?) und dann weiter machen oder sollen wir
+    alles rausschruppen und dann schlichten usw usw usw..“ – Vorbohren gebaut; das Vorgehen am
+    Anfang als Frage 6.
+  - Frage 5: die Spirale (P-35); was das für die Flanke heißt: Frage 7.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `Raeumbahn.eintauchen` – wo es ins Volle eintaucht (Helix oder
+  Rampe der Ringe, Helix des Adaptiv-Kerns um ihre Mitte).
+- `camaddon/raeumen.py`: `vorbohr_stellen`, `vorbohr_bahn`, `Vorbohren`;
+  `vorschau_fuer_assistent(vorbohren=…)` rechnet mit den Löchern im Materialstand noch einmal.
+- `camaddon/materialstand.py`: `mit_bahn` – ein Stand mit einer Bahn dazu.
+- `camaddon/bohren.py`: `an_stellen_anlegen`, `bohrzyklus(orte=…)` – FreeCADs Bohren an freien
+  Stellen (Locations), je Tiefe eine Operation.
+- `camaddon/gui_bearbeitung.py`: Haken „Vorbohren, wo es ins Volle eintaucht“ im Räumen (vorbelegt
+  an, grau ohne Bohrer), `_vorbohrer` (Magazin, Ø Fräser bis 1,6 × Fräser, am liebsten +0,5),
+  `_vorbohren_anlegen` vor dem Räumen, Text „Vorgebohrt: …“.
+- `camaddon/bearbeitung_vorschau.py`: `raeumen_genau` ohne Vorbohren.
+- `translations/de.json`, `en.json`; `tests/test_raeumen.py`; `docs/spezifikation_strategien.md`
+  12.9; `docs/OFFENE_FRAGEN.md`: Fragen 1, 4, 5 raus, 6 und 7 neu.
+
+### ERGEBNIS
+- Tasche 40 × 30 × 15, Fräser Ø 12, Bohrer Ø 13: Ringe 3-mal ins Volle → 0-mal; im Assistenten
+  (Szenario) „Vorbohren T5“ vor „Räumen T1“, G81 an der Stelle der Helix. Wählt das Räumen
+  Adaptiv, bleibt dessen Helix (der Kern braucht seinen Kreis frei) – das Loch nimmt ihr die Mitte
+  ab, der Text sagt es.
+- Prüfungen: test_raeumen, test_bohren, test_materialstand, test_sprache, szenario_bearbeitung,
+  szenario_bearbeitung_cring_alles grün.
+
 ## P-2026-10-25-36 sprachpruefung-woertliche-schluessel
 
 ### EINGELESEN
