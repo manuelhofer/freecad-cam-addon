@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-42 kurze-ringe-in-teilstuecken
+
+### EINGELESEN
+- Das Vorbohren an Manuels Gehäuse-Oberteil (Kopie, `gehauseoberteil.FCStd`, Taschen bei z 5
+  und 20): Die Vorschau zeigte „Vorgebohrt: 6 Löcher Ø 12,5“, das angelegte „Räumen T1“ hatte
+  3 Sätze – „operands could not be broadcast together with shapes (5,) (3,) (5,)“.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_teilstuecke` – die Maske „nur hier fahren“ um `breit` Proben
+  verbreitert mit Umlauf-Index (geschlossen) bzw. Nullen (offen) und `np.convolve(…, "valid")`.
+  Mit „same“ kam an Ringen mit weniger Proben als das Fenster eine andere Länge heraus; die
+  Löcher im Materialstand ließen solche kurzen Ringe entstehen.
+
+### ERGEBNIS
+- Gehäuse-Oberteil: „Vorbohren T2“ (6 Löcher), „Räumen T1“ 698 Sätze, keine Helix.
+- Prüfungen: test_raeumen, test_goldene_bahnen, test_testteil, test_pruefstand grün.
+
 ## P-2026-10-25-41 materialstand-spitze-auf-der-achse
 
 ### EINGELESEN

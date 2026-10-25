@@ -4297,11 +4297,16 @@ def _teilstuecke(ablauf, feld, w, D, material_links, schritt, toleranz, j):
             nah = abstand <= bereich
             if not nah.any():
                 continue
+            # Um `breit` Proben nach beiden Seiten verbreitert – auch an Ringen mit weniger Proben
+            # als das Fenster (bis 0.288.0 kam dort eine andere Länge heraus: „operands could not
+            # be broadcast“, am Gehäuse mit vorgebohrten Löchern).
             if geschlossen:
-                kern = np.concatenate([nah[-breit:], nah, nah[:breit]])
-                nah = np.convolve(kern, np.ones(2 * breit + 1), "same")[breit:-breit] > 0
+                kern = np.take(nah, np.arange(-breit, len(nah) + breit), mode="wrap")
             else:
-                nah = np.convolve(nah, np.ones(2 * breit + 1), "same") > 0
+                kern = np.concatenate(
+                    [np.zeros(breit, dtype=bool), nah, np.zeros(breit, dtype=bool)]
+                )
+            nah = np.convolve(kern, np.ones(2 * breit + 1), "valid") > 0
             nur[id(ring)] = nah
             ringe.append(ring)
         if ringe:
