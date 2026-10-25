@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-13 bahn-pruefsumme-gemerkt
+
+### EINGELESEN
+- Pausen-Mitschrift der Geist-Kette (`szenario_geist_fuenfachs`): Das Fenster stand 18-mal etwa
+  1 s in `materialstand._kennung_op_rechnen`. Für die Kennung einer Operation schrieb es jedes
+  Mal ihre ganze Bahn als G-Code und hashte sie, beim 3D-Schlichten des Geists 58.000 Sätze. Das
+  geschah bei jeder Vorschau und bei jeder Prüfung des Materialstands (`gui_materialstand`).
+
+### DATEIEN
+- `camaddon/materialstand.py`: `_bahn_summe` merkt die Prüfsumme je Operation. Der Beobachter
+  `_Bahnen` (`FreeCAD.addDocumentObserver`) vergisst sie, wenn sich „Path“ ändert, die Operation
+  wegfällt, Rückgängig oder Wiederholen ihr Dokument ändert oder es zugeht. Der Fräser zählt wie
+  bisher jedes Mal frisch.
+- `tests/test_materialstand.py`: dieselbe Kennung ohne Änderung, eine andere nach einer neuen
+  Bahn, die alte wieder mit der alten Bahn.
+
+### ERGEBNIS
+- Geist-Kette: keine Pause mehr in `_kennung_op_rechnen`, die längste ist 0,98 statt 1,35 s.
+  Grün: `test_materialstand`, `szenario_geist_fuenfachs`.
+
 ## P-2026-10-25-12 unten-bleiben-auch-am-rand
 
 ### EINGELESEN

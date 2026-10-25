@@ -664,8 +664,72 @@ def _kennung_op_rechnen(op):
         fraeser = repr(rm._fraeser(tc))
     except Exception:  # ein Werkzeug ohne Maße
         fraeser = "?"
-    bahn = hashlib.blake2b(op.Path.toGCode().encode("utf-8"), digest_size=12).hexdigest()
-    return f"{op.Name} {fraeser} {bahn}"
+    return f"{op.Name} {fraeser} {_bahn_summe(op)}"
+
+
+def _bahn_summe(op):
+    """Die Prüfsumme der Bahn von `op` – gemerkt, bis sich ihre Bahn ändert (_Bahnen): Den G-Code
+    einer Operation zu schreiben kostet (am Geist das 3D-Schlichten, 58.000 Sätze, gut 0,5 s), und
+    jede Vorschau und jede Prüfung des Materialstands fragte neu – in der Kette der Ebenen stand das
+    Fenster so 18-mal rund eine Sekunde."""
+    beobachter = _Bahnen.beobachten()
+    schluessel = objekt_schluessel(op)
+    if beobachter is not None and schluessel in beobachter.summen:
+        return beobachter.summen[schluessel]
+    summe = hashlib.blake2b(op.Path.toGCode().encode("utf-8"), digest_size=12).hexdigest()
+    if beobachter is not None:
+        beobachter.summen[schluessel] = summe
+    return summe
+
+
+class _Bahnen:
+    """Ein Beobachter der Dokumente (FreeCAD.addDocumentObserver): je Operation die Prüfsumme ihrer
+    Bahn (_bahn_summe), bis sich ihre Eigenschaft „Path“ ändert, sie wegfällt, Rückgängig oder
+    Wiederholen ihr Dokument ändert oder es zugeht."""
+
+    _einer = None
+
+    @classmethod
+    def beobachten(cls):
+        """Der eine Beobachter (beim ersten Bedarf angemeldet); None, wenn FreeCAD keinen nimmt."""
+        if cls._einer is None:
+            try:
+                import FreeCAD
+
+                einer = cls()
+                FreeCAD.addDocumentObserver(einer)
+            except Exception:  # noqa: BLE001 – ohne Beobachter wird jedes Mal gerechnet
+                return None
+            cls._einer = einer
+        return cls._einer
+
+    def __init__(self):
+        self.summen = {}  # (Dokument, Name) -> Prüfsumme der Bahn
+
+    def _weg(self, obj):
+        try:
+            self.summen.pop(objekt_schluessel(obj), None)
+        except Exception:  # noqa: BLE001 – lässt sich nicht zuordnen: alle neu
+            self.summen.clear()
+
+    def slotChangedObject(self, obj, prop):  # noqa: N802 – FreeCADs Name
+        if prop == "Path":
+            self._weg(obj)
+
+    def slotDeletedObject(self, obj):  # noqa: N802
+        self._weg(obj)
+
+    def _dokument(self, dokument, *_):
+        try:
+            name = dokument.Name
+        except Exception:  # noqa: BLE001
+            self.summen.clear()
+            return
+        for schluessel in [k for k in self.summen if k[0] == name]:
+            del self.summen[schluessel]
+
+    slotUndoDocument = slotRedoDocument = slotDeletedDocument = _dokument  # noqa: N815
+    slotRelabelDocument = _dokument  # noqa: N815
 
 
 def _kennung_bahn(name, punkte, fraeser):

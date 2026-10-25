@@ -27,6 +27,7 @@ sys.path.insert(0, ADDON)
 
 import FreeCAD
 import Part
+import Path
 import Path.Main.Job as PathJob
 import Path.Main.Stock as PathStock
 from Path.Tool.camassets import user_asset_store
@@ -339,6 +340,18 @@ except ValueError as grund_text:
     pruefe("nichts mehr zu tun" in str(grund_text), f"zweites 3D-Schruppen: {grund_text}")
 pruefe(zweites.Materialstand == mst.kennung_vor(job3, zweites), "3D: Kennung nicht gemerkt")
 print(ascii(f"3D-Schruppen: {bahn_3d.zeit:.2f} min, das zweite danach {zeit_rest:.2f} min"))
+
+# Die Prüfsumme der Bahn bleibt gemerkt, bis sich die Bahn ändert (_Bahnen): ohne G-Code neu zu
+# schreiben dieselbe Kennung; nach einer neuen Bahn eine neue, und wieder die alte, wenn sie zurück ist.
+gemerkt = mst._kennung_op_rechnen(erstes)
+pruefe(mst._kennung_op_rechnen(erstes) == gemerkt, "Kennung ohne Änderung anders")
+bahn_vorher = erstes.Path
+erstes.Path = Path.Path(list(bahn_vorher.Commands)[:-1])
+pruefe(mst._kennung_op_rechnen(erstes) != gemerkt, "Kennung nach neuer Bahn noch die alte")
+erstes.Path = bahn_vorher
+pruefe(
+    mst._kennung_op_rechnen(erstes) == gemerkt, "Kennung nach der alten Bahn nicht wieder die alte"
+)
 
 print(ascii(f"Kontur nach dem Räumen: {kontur_zeit(kontur_mit):.2f} statt "
             f"{kontur_zeit(kontur_ohne):.2f} min"))  # fmt: skip
