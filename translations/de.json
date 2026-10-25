@@ -88,6 +88,7 @@
     "pp.feld.nullpunkt.tooltip": "{g}: G54 … G59 wie im Job, {nr}: seine Nummer (G54 = 1, G59.1 = 7), {nn}: zweistellig. Gilt für die ersten Nullpunkte (Siemens: G54–G57; Heidenhain alle) – die übrigen mit „Weitere Nullpunkte“.",
     "pp.feld.nullpunkt_weitere": "Weitere Nullpunkte",
     "pp.feld.nullpunkt_weitere.tooltip": "Für die Nullpunkte nach G59 (Siemens nach G57): {e} die Nummer nach G59 (G59.1 und G54.1 P1 = 1), {nr} die ganze Nummer (G59.1 = 7), {nn} zweistellig. LinuxCNC G59.{e}, Fanuc und Mazak G54.1 P{e}, Haas G154 P{e}, Mach G59 P{nr}, Siemens G5{nn}. Leer: die Steuerung kennt keine weiteren – ein Hinweis.",
+    "pp.hinweis.zahl_zu_gross": "{steuerung} liest höchstens ±{max} – im Programm steht {adresse}{wert}, dort hält sie mit Alarm an. Meist ist es eine Rundachse, die im langen Rundum-Bearbeiten fortlaufend weiterzählt: an der Maschine als Moduloachse einrichten (Fanuc: Parameter 1008, ROA) oder die Bearbeitung teilen.",
     "pp.hinweis.nullpunkt_fehlt": "Den Nullpunkt „{register}“ aus dem Job kann {steuerung} so nicht anwählen – das Programm setzt keinen; an der Maschine anwählen oder unter „Weitere Nullpunkte“ den Befehl eintragen.",
     "pp.hinweis.nullpunkte_mehrere": "Der Job nennt mehrere Nullpunkte ({alle}) – das Programm wählt nur {register}; je Teil auf dem Tisch ein Job oder das Programm noch einmal mit dem anderen Nullpunkt.",
     "pp.kopf.nullpunkt": "Nullpunkt: {register}",

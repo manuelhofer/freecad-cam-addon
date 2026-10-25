@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-75 fanuc-acht-ziffern
+
+### EINGELESEN
+- Durchsicht an der 4-Achs-Nase mit Manuels CLX550 (Kopie der Maschinendatei): Siemens schreibt
+  C als Moduloachse (ACP/ACN), Fanuc, Haas, LinuxCNC fortlaufend – im „Rundum schlichten“ bis
+  C127276.671. Fanuc und Mazak lesen höchstens acht Ziffern (±99999.999), darüber Alarm. Ein
+  Zurücksetzen der Achse im Programm hinge an Maschinenparametern (Rollover ROA/RAB, G92/G50) –
+  nicht geraten.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `Steuerung.zahl_max` (Fanuc, Mazak 99999.999), Hinweis
+  `pp.hinweis.zahl_zu_gross` beim ersten Wert darüber; `translations/*.json`,
+  `tests/test_postprozessor.py`.
+
+### ERGEBNIS
+- 4-Achs-Nase an der CLX550 mit Fanuc: Hinweis „Fanuc liest höchstens ±99999.999 – im Programm
+  steht C100000.841 …“ mit dem Rat Moduloachse (Parameter 1008, ROA) oder Bearbeitung teilen.
+- Grün: test_postprozessor, _nachfahren, test_sprache.
+
 ## P-2026-10-25-74 g94-im-kopf
 
 ### EINGELESEN

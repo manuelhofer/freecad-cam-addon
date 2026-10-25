@@ -159,6 +159,10 @@ class Steuerung:
     # Die höchste Satznummer – Fanuc, Haas, Mazak: fünf Stellen (eine sechste ist ein Alarm);
     # darüber geht es wieder bei N10 los (Satznummern dürfen sich wiederholen, Marken nicht).
     satznummer_max: int = 99999
+    # Die größte Zahl, die die Steuerung liest – Fanuc und Mazak: acht Ziffern (±99999.999, sonst
+    # Alarm „zu viele Ziffern“). Eine Rundachse, die fortlaufend zählt, kommt im langen Rundum-
+    # Schlichten darüber; 0: ohne Grenze.
+    zahl_max: float = 0.0
     kuehlung: bool = True  # M8/M7 und M9 wie an der Operation
     wechselpunkt: bool = True  # vor jedem Werkzeugwechsel und am Ende zum Wechselpunkt
     # Je Bearbeitung eine Sprungmarke und danach ein vollständiger Einstieg – Wechselpunkt,
@@ -538,6 +542,7 @@ STEUERUNGEN = {
         "G98",
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
+        zahl_max=99999.999,
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme P1 … P48
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         vom_hersteller=("angetrieben_ein", "angetrieben_aus", "c_ein", "c_aus"),
@@ -592,6 +597,7 @@ STEUERUNGEN = {
         verweilen="G4 X{sek}",  # „G04 X5. … Dwell time = 5.0 sec“ (Handbuch 8-1)
         vorwahl="T{t}",
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme (wie Fanuc)
+        zahl_max=99999.999,
         gewinde_g=("G84.2", "G84.3"),
         gewinde_f_steigung=True,
         # Mit Ausgleichsfutter: G84 (G74 links) asynchron – H0 („h0 = 0 … Asynchronous tapping“),
@@ -1738,6 +1744,17 @@ def programm(
                         gesehen.add("modulo_weit")
                         hinweise.append(tr("pp.hinweis.modulo_weit", achse=adresse))
                     continue
+                if s.zahl_max and abs(wert) > s.zahl_max and "zahl_max" not in gesehen:
+                    gesehen.add("zahl_max")
+                    hinweise.append(
+                        tr(
+                            "pp.hinweis.zahl_zu_gross",
+                            adresse=adresse,
+                            wert=_zahl(wert, stellen),
+                            steuerung=s.name,
+                            max=_zahl(s.zahl_max, 3),
+                        )
+                    )
                 woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert, stellen)))
             zeile = " ".join(woerter)
             if gross in ("G0", "G00") and zeilen and zeilen[-1] == zeile:

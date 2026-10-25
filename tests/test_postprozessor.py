@@ -363,6 +363,19 @@ pruefe(
     10 not in nummern and 20 in nummern and max(nummern) <= 200 and nummern.count(30) >= 2,
     f"Satznummern neben Marken, bis 200: {nummern[:40]}",
 )
+# Fanuc liest höchstens acht Ziffern (±99999.999): eine fortlaufend gezählte Rundachse darüber –
+# ein Hinweis; LinuxCNC kennt keine Grenze.
+weit_rund = pp.Abschnitt(
+    "Rund", 1, 1000.0, False, "None", [C("G1", {"X": 1.0, "A": 120000.0, "F": 1.0})]
+)
+p_weit = pp.programm([weit_rund], pp.steuerung("fanuc"), None, "W")
+pruefe(any("A120000.000" in h for h in p_weit.hinweise), f"Fanuc A120000: {p_weit.hinweise}")
+pruefe(
+    not any(
+        "99999" in h for h in pp.programm([weit_rund], pp.steuerung("linuxcnc"), None, "W").hinweise
+    ),
+    "LinuxCNC: Hinweis Ziffern",
+)
 # Ohne G93 (S5): F in mm/min, so dass die Zeit stimmt – von X42 Z3 C0 nach X38 Z0 C90 in
 # 1/3 min: √(4² + 3² + 90²) · 3 = 270,416 mm/min; kein G93, kein G94.
 ohne_g93 = pp.programm([rundum], pp.steuerung("siemens", {"g93": False}), dreh, "Welle").zeilen

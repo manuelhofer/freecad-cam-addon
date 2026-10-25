@@ -88,6 +88,7 @@
     "pp.feld.nullpunkt.tooltip": "{g}: G54 … G59 as in the job, {nr}: its number (G54 = 1, G59.1 = 7), {nn}: two digits. For the first work offsets (Siemens: G54–G57; Heidenhain all) – the others with “Further work offsets”.",
     "pp.feld.nullpunkt_weitere": "Further work offsets",
     "pp.feld.nullpunkt_weitere.tooltip": "For the work offsets after G59 (Siemens after G57): {e} the number after G59 (G59.1 and G54.1 P1 = 1), {nr} the full number (G59.1 = 7), {nn} two digits. LinuxCNC G59.{e}, Fanuc and Mazak G54.1 P{e}, Haas G154 P{e}, Mach G59 P{nr}, Siemens G5{nn}. Empty: the control knows no further ones – a note.",
+    "pp.hinweis.zahl_zu_gross": "{steuerung} reads at most ±{max} – the program has {adresse}{wert}, it stops with an alarm there. Usually a rotary axis that keeps counting during a long rotary operation: set it up as a modulo axis on the machine (Fanuc: parameter 1008, ROA) or split the operation.",
     "pp.hinweis.nullpunkt_fehlt": "{steuerung} cannot select the job's work offset “{register}” this way – the program sets none; select it on the machine or enter the command under “Further work offsets”.",
     "pp.hinweis.nullpunkte_mehrere": "The job names several work offsets ({alle}) – the program selects only {register}; one job per part on the table, or the program once more with the other work offset.",
     "pp.kopf.nullpunkt": "Work offset: {register}",
