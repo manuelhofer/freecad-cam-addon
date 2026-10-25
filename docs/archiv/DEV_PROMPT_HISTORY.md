@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-14 ebenen-kennung-ohne-hoehenfeld
+
+### EINGELESEN
+- Pausen-Mitschrift der Geist-Kette: `gui_materialstand._pruefen` stand 11-mal fast 1 s in
+  `_von_oben_in_der_ebene`. Für die Kennung des Rohteils einer Ebene rechnete
+  `_rohteil_kennung_rechnen` über `_ebene_davor` den ganzen Stand jeder Ebene davor, also deren
+  Höhenfeld. Gebraucht wurde davon nur die Kennung. Auch der Stand einer Ebene (`_rohteil`)
+  rechnete diese Stände zuerst, obwohl er seit dem räumlichen Rest nur diesen nimmt.
+
+### DATEIEN
+- `camaddon/materialstand.py`: Die Kennung des Rohteils einer Ebene nimmt je Job davor
+  `kennung_vor(d, None)`, also woraus sein Stand gerechnet würde, ohne ihn zu rechnen. `_rohteil`
+  geht gleich zum räumlichen Rest. `_ebene_davor` fällt weg.
+
+### ERGEBNIS
+- Geist-Kette: Die Prüfung des Materialstands steht 6-mal kurz statt 11-mal knapp 1 s. Die längste
+  Pause der Kette ist 1,05 s (FreeCAD legt den Job an).
+- Grün: `test_materialstand`, `test_ebenen_auslassen`, `test_raum_material`,
+  `szenario_geist_fuenfachs`, `szenario_bearbeitung_aufspannung_folge`.
+
 ## P-2026-10-25-13 bahn-pruefsumme-gemerkt
 
 ### EINGELESEN

@@ -364,8 +364,8 @@ def _traegt(op, vor):
 
 def _rohteil_kennung(job):
     """Die Kennung des Rohteils: seine Art und Maße – bei einer geschwenkten Ebene (3+2) dazu
-    die Ebene und woraus der Stand ihres Grundjobs und der Ebenen davor gerechnet ist
-    (_ebene_davor). ValueError ohne Rohteil."""
+    die Ebene und woraus der Stand ihres Grundjobs und der Ebenen davor gerechnet würde
+    (kennung_vor, ohne ihn zu rechnen). ValueError ohne Rohteil."""
     with _durchgang():
         return im_durchgang(
             "rohteil", objekt_schluessel(job), lambda: _rohteil_kennung_rechnen(job)
@@ -381,13 +381,19 @@ def _rohteil_kennung_rechnen(job):
     werte = (bb.XMin, bb.XMax, bb.YMin, bb.YMax, bb.ZMin, bb.ZMax)
     art = "quader" if _ist_quader(rohteil) else f"form {form.Volume:.3f}"
     kennung = f"{art} " + " ".join(f"{w:.4f}" for w in werte)
-    davor = _ebene_davor(job)
-    if davor:
-        from . import raum_material as raum
-        from . import schwenken as sw
+    from . import schwenken as sw
 
+    folge = sw.folge_vor(job)  # Grundjob, Ebenen oder Aufspannungen davor (W-018)
+    if folge:
+        from . import raum_material as raum
+
+        # Woraus der Stand davor gerechnet würde – nicht der Stand selbst: Ihn zu rechnen (das
+        # Höhenfeld jeder Ebene davor) kostete in der Kette der Ebenen am Geist je Prüfung des
+        # Materialstands knapp 1 s im Fenster, und gebraucht wurde nur seine Kennung.
         teile = [kennung, _placement_text(sw.lage_im_grundjob(job))]
-        teile += [f"{_placement_text(e)} {s.kennung if s else None}" for e, s in davor]
+        teile += [
+            f"{_placement_text(sw.lage_im_grundjob(d))} {kennung_vor(d, None)}" for d in folge
+        ]
         kennung += " ebene " + hashlib.sha1(" | ".join(map(str, teile)).encode()).hexdigest()
         kennung += " raum " + raum.kennung(job, SCHRITT)
     return kennung
@@ -398,24 +404,6 @@ def _placement_text(placement):
         return "grund"
     m = placement.toMatrix()
     return " ".join(f"{v:.6f}" for v in m.A[:12])
-
-
-def _ebene_davor(job):
-    """Bei einer geschwenkten Ebene (3+2, schwenken): [(Placement Ebene → Grundjob oder None für
-    den Grundjob selbst, sein Materialstand nach allen Operationen oder None)] – der Grundjob und
-    die Ebenen, die vor dieser im Dokument stehen. Leer bei einem anderen Job."""
-    from . import schwenken as sw
-
-    folge = sw.folge_vor(job)  # Grundjob, Ebenen oder Aufspannungen davor (W-018)
-    if not folge:
-        return []
-    return [
-        (
-            sw.lage_im_grundjob(davor),
-            im_durchgang("stand", objekt_schluessel(davor), lambda d=davor: fuer(d)),
-        )
-        for davor in folge
-    ]
 
 
 def _ist_quader(rohteil):
@@ -461,14 +449,15 @@ def _rohteil(job, kennung):
         # eine Zelle außerhalb. Am C-Ring aus Rundmaterial Ø 60 räumte das Räumen ihn um den
         # Ø-60-Mantel herum, gezackt am Raster, durch die Luft (Manuel, 2026-10-18; Grundsatz 5).
         quader.h = _eingezogen(hf.hoehen(netz, quader.x, quader.y))
-    davor = _ebene_davor(job)
-    if davor:
-        from . import raum_material as raum
-        from . import schwenken as sw
+    from . import schwenken as sw
 
+    if sw.folge_vor(job):
+        from . import raum_material as raum
+
+        # Nur aus dem räumlichen Rest – die Höhenfelder der Stände davor braucht es dafür nicht.
         stand = raum.fuer_ebene(job, SCHRITT)
         if stand is not None:
-            quader.h = _von_oben_in_der_ebene(quader, sw.lage_im_grundjob(job), davor, stand)
+            quader.h = _von_oben_in_der_ebene(quader, sw.lage_im_grundjob(job), [], stand)
     return Materialstand(quader, quader.h.copy(), kennung=(kennung,))
 
 
