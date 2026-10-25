@@ -51,6 +51,7 @@ HINTERSCHNITT = "hinterschnitt"  # die Richtung des 3D-Schlichtens dafür (schli
 VORSCHAU_SCHRITT = 1.0  # mm – so dicht liegen die Punkte einer Linie in der Vorschau
 PROBEN_JE_FLAECHE = 4  # je Richtung so viele Stellen fragt ueberdeckt()
 FLAECHEN_HOECHSTENS = 400  # mehr gewählte Flächen: ueberdeckte() fragt nicht (ein STL)
+STRAHL_TOLERANZ = 0.02  # mm – so fein das Netz für ueberdeckt (die Stelle liegt 0,1 mm davor)
 HALTER_STUECK = 5.0  # mm – so lang sind die Stücke des Halters für die Prüfung
 RAND_REST = 1.5  # mm – so weit fährt das Restschlichten über die Lücke der Kugel davor hinaus
 ECKE_KLEINSTE = 0.5  # mm Radius – kleiner: eine scharfe Kante, dort passt keine Kugel
@@ -121,39 +122,98 @@ def koerper_des_werkzeugs(masse, laenge, halter):
     return teile + [(laenge - z1, laenge - z0, r) for z0, z1, r in stuecke]
 
 
-def ueberdeckt(form, name):
-    """Liegt die Fläche `name` unter dem Rand – trifft von einer ihrer Stellen ein Strahl
-    senkrecht nach oben das Teil? Dann kommt von oben kein senkrechter Fräser hin (eine Wand, die
-    überhängt, die Rundung am Boden unter ihr)."""
-    import Part
-
+def ueberdeckt(form, name, ecken=None):
+    """Liegt die Fläche `name` unter dem Rand – trifft von einer ihrer Stellen (etwas vor ihr, zur
+    Luft hin) ein Strahl senkrecht nach oben das Teil? Dann kommt von oben kein senkrechter Fräser
+    hin (eine Wand, die überhängt, die Rundung am Boden unter ihr). Gefragt das Netz des Teils
+    (`ecken`, ohne: _dreiecke_von) – OpenCascade brauchte an Manuels Tasche 2 s im Fenster."""
     try:
         flaeche = form.getElement(name)
     except Exception:  # noqa: BLE001 – keine Fläche dieses Namens
         return False
     if not hasattr(flaeche, "Surface"):
         return False
-    oben = form.BoundBox.ZMax + 1.0
-    vorzeichen = _richtung_zur_luft(form, flaeche)
-    u0, u1, v0, v1 = flaeche.ParameterRange
+    ecken = _dreiecke_von(form) if ecken is None else ecken
+    vorzeichen = _zur_luft_im_netz(flaeche, ecken)
     n = PROBEN_JE_FLAECHE
+    u0, u1, v0, v1 = flaeche.ParameterRange
     for i in range(n):
         for j in range(n):
             u = u0 + (u1 - u0) * (i + 0.5) / n
             v = v0 + (v1 - v0) * (j + 0.5) / n
-            p = flaeche.valueAt(u, v)
-            if not flaeche.isInside(p, 1e-4, True):
-                continue
-            p = p + flaeche.normalAt(u, v) * (0.1 * vorzeichen)
-            if p.z >= oben:
-                continue
             try:
-                strahl = Part.LineSegment(p, FreeCAD.Vector(p.x, p.y, oben)).toShape()
-                if strahl.common(form).Length > 1e-6:
-                    return True
-            except Exception:  # noqa: BLE001 – OCC: lieber nicht überdeckt
+                p = flaeche.valueAt(u, v)
+                if not flaeche.isInside(p, 1e-4, True):
+                    continue
+                p = p + flaeche.normalAt(u, v) * (0.1 * vorzeichen)
+            except Exception:  # noqa: BLE001 – OCC
                 continue
+            if _treffer(ecken, np.array([p.x, p.y, p.z]), _OBEN, senkrecht=True):
+                return True
     return False
+
+
+_OBEN = np.array([0.0, 0.0, 1.0])
+_SCHRAEG = np.array([0.1234, 0.0567, 1.0]) / np.linalg.norm([0.1234, 0.0567, 1.0])
+_DREIECKE = {}  # (Form) → Dreiecke des Netzes (m, 3, 3)
+
+
+def _dreiecke_von(form):
+    """Das Netz des Teils (netzabstand.dreiecke, STRAHL_TOLERANZ), gemerkt je Form."""
+    from . import netzabstand as na
+
+    try:
+        schluessel = (form.hashCode(), round(float(form.Volume), 3))
+    except Exception:  # noqa: BLE001
+        schluessel = None
+    if schluessel is not None and schluessel in _DREIECKE:
+        return _DREIECKE[schluessel]
+    ecken = np.asarray(na.dreiecke(form, STRAHL_TOLERANZ), dtype=float).reshape(-1, 3, 3)
+    if schluessel is not None:
+        _DREIECKE.clear()
+        _DREIECKE[schluessel] = ecken
+    return ecken
+
+
+def _treffer(ecken, ursprung, richtung, senkrecht=False):
+    """Wie oft trifft der Strahl ab `ursprung` in `richtung` die Dreiecke (Möller–Trumbore)?
+    `senkrecht`: der Strahl nach oben – nur die Dreiecke über dem Punkt, deren Grundriss ihn
+    enthält."""
+    if senkrecht and len(ecken):
+        lo, hi = ecken.min(axis=1), ecken.max(axis=1)
+        x, y, z = ursprung
+        wahl = (
+            (lo[:, 0] <= x) & (x <= hi[:, 0]) & (lo[:, 1] <= y) & (y <= hi[:, 1]) & (hi[:, 2] > z)
+        )
+        ecken = ecken[wahl]
+    if not len(ecken):
+        return 0
+    a = ecken[:, 0]
+    e1, e2 = ecken[:, 1] - a, ecken[:, 2] - a
+    h = np.cross(richtung, e2)
+    det = np.einsum("ij,ij->i", e1, h)
+    gut = np.abs(det) > 1e-12
+    f = np.where(gut, 1.0 / np.where(gut, det, 1.0), 0.0)
+    abstand = ursprung - a
+    u = f * np.einsum("ij,ij->i", abstand, h)
+    q = np.cross(abstand, e1)
+    v = f * (q @ richtung)
+    t = f * np.einsum("ij,ij->i", e2, q)
+    return int(np.count_nonzero(gut & (u >= 0) & (v >= 0) & (u + v <= 1) & (t > 1e-6)))
+
+
+def _zur_luft_im_netz(flaeche, ecken):
+    """+1, wenn die Normale der Fläche (normalAt) in ihrer Mitte zur Luft zeigt, sonst −1: ein
+    Punkt 0,05 mm davor liegt im Teil, wenn ein schräger Strahl von ihm das Netz ungerade oft
+    trifft."""
+    u0, u1, v0, v1 = flaeche.ParameterRange
+    um, vm = (u0 + u1) / 2, (v0 + v1) / 2
+    try:
+        p, n = flaeche.valueAt(um, vm), flaeche.normalAt(um, vm)
+    except Exception:  # noqa: BLE001 – OCC
+        return 1.0
+    q = np.array([p.x + 0.05 * n.x, p.y + 0.05 * n.y, p.z + 0.05 * n.z])
+    return -1.0 if _treffer(ecken, q, _SCHRAEG) % 2 else 1.0
 
 
 def ueberdeckte(form, namen):
@@ -178,9 +238,10 @@ def ueberdeckte(form, namen):
             flaeche = form.getElement(name)
             if hasattr(flaeche, "Surface"):
                 flaechen[name] = flaeche
+    ecken = _dreiecke_von(form)
     haengen = set()
     for name, flaeche in flaechen.items():
-        vorzeichen = _richtung_zur_luft(form, flaeche)
+        vorzeichen = _zur_luft_im_netz(flaeche, ecken)
         u0, u1, v0, v1 = flaeche.ParameterRange
         for i in range(PROBEN_JE_FLAECHE + 1):
             for j in range(PROBEN_JE_FLAECHE + 1):
@@ -191,7 +252,7 @@ def ueberdeckte(form, namen):
                         haengen.add(name)
     kanten = {n: {k.hashCode() for k in f.Edges} for n, f in flaechen.items()}
     nachbarn = {n for n in flaechen if any(kanten[n] & kanten[h] for h in haengen)}
-    ergebnis = frozenset(n for n in sorted(haengen | nachbarn) if ueberdeckt(form, n))
+    ergebnis = frozenset(n for n in sorted(haengen | nachbarn) if ueberdeckt(form, n, ecken))
     if schluessel is not None:
         if len(_UEBERDECKT) > 16:
             _UEBERDECKT.clear()
@@ -255,6 +316,9 @@ class Bahn:
     # Die größte Kugel (Radius, mm), die in die Lücken der Ecken passte – 0: keine Lücke oder nur
     # scharfe Kanten (dort passt keine).
     ecken_radius: float = 0.0
+    # Für einen Fräser dorthin (empfehlung.neue_kugel): {"punkte", "normalen" (je bis PRUEF_AN, auf
+    # der Fläche, wo eine Kugel mit ecken_radius anläge), "radius", "aufmass", "mitte"}; None ohne.
+    ecken: dict = None
 
 
 def _richtung_zur_luft(form, flaeche):
@@ -401,7 +465,9 @@ def planen(form, namen, w):
             raise mst.SchonWeg(tr("hs.fehler.kein_rest"))
         raise ValueError(tr("hs.fehler.nichts"))
     # Wie groß eine Kugel in den Lücken höchstens sein dürfte (für die Ecken: Restschlichten).
-    ecken_radius = _ecken_radius(netz, alle[~frei], normalen_alle[~frei], halb, w)
+    ecken_radius, ecken = _ecken_radius(netz, alle[~frei], normalen_alle[~frei], halb, w)
+    if ecken is not None:
+        ecken["mitte"] = (float(mitte.x), float(mitte.y))
 
     # Die Achse je Stelle: so wenig gekippt, dass Schaft und Halter frei bleiben (_achsen).
     # Ganz lang: Wie weit ein Körper unter die Oberkante des Teils reicht, rechnet frei_stueck je
@@ -454,6 +520,7 @@ def planen(form, namen, w):
         ausspannen=ausspannen,
         pruefung=pruefung,
         ecken_radius=ecken_radius,
+        ecken=ecken,
     )
 
 
@@ -654,21 +721,21 @@ def _rest(netz, mitten, normalen, halb, davor, linien, w):
         for ring in ringe:
             teil = rest[k : k + len(ring)]
             if teil.any():
-                weit_ = (
-                    np.convolve(teil.astype(int), np.ones(2 * breite + 1, dtype=int), "same") > 0
-                )
-                ergebnis[k : k + len(ring)] = weit_
+                # „full“ und mittig ausgeschnitten: auch für Ringe kürzer als das Fenster
+                voll = np.convolve(teil.astype(int), np.ones(2 * breite + 1, dtype=int), "full")
+                ergebnis[k : k + len(ring)] = voll[breite : breite + len(ring)] > 0
             k += len(ring)
     return ergebnis
 
 
 def _ecken_radius(netz, mitten, normalen, halb, w):
-    """Der Radius (auf 0,5 mm abgerundet), mit dem eine Kugel an ECKE_ANTEIL der Lücken
+    """(Radius, Ecken) – der Radius (auf 0,5 mm abgerundet), mit dem eine Kugel an ECKE_ANTEIL der Lücken
     (Kugelmitten und Normalen, wo die Kugel nicht hinpasste) an der Fläche anläge, ohne ins Teil zu
     schneiden – je Stelle der größte, halbiert. Lücken, an die keine Kugel ab ECKE_KLEINSTE passt
-    (eine scharfe Kante), zählen nicht; 0 ohne andere."""
+    (eine scharfe Kante), zählen nicht; 0 ohne andere. Ecken: die Stellen, an die sie passt (für
+    Bahn.ecken), None ohne."""
     if not len(mitten):
-        return 0.0
+        return 0.0, None
     punkte = mitten - normalen * halb
     aufmass = max(w.aufmass, 0.0)
     unten = np.full(len(punkte), 0.0)
@@ -693,11 +760,19 @@ def _ecken_radius(netz, mitten, normalen, halb, w):
         oben = np.where(geht, oben, mitte)
     echt = unten >= ECKE_KLEINSTE
     if not echt.any():
-        return 0.0
+        return 0.0, None
     # Nicht die kleinste: An einer scharfen Kante zum Boden wird der Radius gegen 0 immer kleiner –
     # die Kugel, die in ECKE_ANTEIL der Lücken passt.
-    radius = float(np.quantile(unten[echt], 1.0 - ECKE_ANTEIL))
-    return float(math.floor(radius * 2.0) / 2.0)
+    radius = float(math.floor(float(np.quantile(unten[echt], 1.0 - ECKE_ANTEIL)) * 2.0) / 2.0)
+    passt = np.flatnonzero(unten >= max(radius, ECKE_KLEINSTE))
+    wahl = passt[np.unique(np.linspace(0, len(passt) - 1, min(len(passt), PRUEF_AN)).astype(int))]
+    ecken = {
+        "punkte": [tuple(float(x) for x in punkte[i]) for i in wahl],
+        "normalen": [tuple(float(x) for x in normalen[i]) for i in wahl],
+        "radius": radius,
+        "aufmass": aufmass,
+    }
+    return radius, ecken
 
 
 def _ohne_doppelte(linien, abstand):

@@ -128,6 +128,41 @@ if isinstance(empfehlung, em.Empfehlung):
     em.einrichten(empfehlung, bib)
     pruefe(len(bib.halter) == vorher, "Halter doppelt")
 
+# Ein Fräser, den es noch nicht gibt: Eine Kugel Ø 16 lässt unten an der Kante zum Boden Lücken –
+# vorgeschlagen ein kleinerer Kugelfräser (Vorschlag) mit Halter; einrichten legt ihn an.
+gross = wz.Werkzeug(
+    nummer=6,
+    name="Kugel 16",
+    art=wz.KUGELFRAESER,
+    durchmesser=16.0,
+    schneidenlaenge=24.0,
+    gesamtlaenge=120.0,
+    schneidstoff=wz.VHM,
+)
+gross.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.4, ap=0.4, vc=200.0, fz=0.1)]
+bib.werkzeuge.append(gross)
+bahn16 = hb.planen(teil, waende, hb.Werte(radius=8.0, sicher=60.0, grathoehe=0.02, schritt=1.0))
+print(ascii(f"Kugel 16: Ecken bis R {bahn16.ecken_radius}, {bahn16.weggelassen} weg"))
+pruefe(bahn16.ecken is not None and 0 < bahn16.ecken_radius < 8.0, f"Ecken {bahn16.ecken_radius}")
+neu = em.neue_kugel(teil, bahn16.ecken, gross, bib, "SK40")
+pruefe(isinstance(neu, em.Empfehlung) and neu.werkzeug_neu, f"neue Kugel: {neu}")
+if isinstance(neu, em.Empfehlung):
+    d = float(neu.werkzeug_neu["durchmesser"])
+    print(ascii(f"neu: {neu.werkzeug_text} in {neu.halter.name}, {neu.heraus:.0f} mm heraus"))
+    pruefe(d <= 2.0 * bahn16.ecken_radius + 1e-6 and "(Vorschlag)" in neu.werkzeug_text, f"Ø {d}")
+    pruefe(all(w.durchmesser != d for w in bib.werkzeuge), "die Kopie trug ihn schon ein")
+    angelegt = em.einrichten(neu, bib)
+    pruefe(
+        angelegt is not None
+        and angelegt in bib.werkzeuge
+        and angelegt.nummer not in (4, 6)
+        and bib.halter_von(angelegt) is not None
+        and abs(angelegt.ausspannlaenge - neu.heraus) < 1e-6,
+        f"angelegt: {angelegt}",
+    )
+    einsatz = angelegt.schnittwerte[wz.ALLE][0]
+    pruefe(abs(einsatz.fz - 0.1 * d / 16.0) < 1e-9, f"fz {einsatz.fz}")
+
 # Ein Halter, mit dem nichts geht, wird nicht empfohlen: ohne Normreihen und eigene Halter KEINE.
 leer = wz.Bibliothek()
 fest = wz.Werkzeug(nummer=5, art=wz.KUGELFRAESER, durchmesser=7.0, gesamtlaenge=20.0)

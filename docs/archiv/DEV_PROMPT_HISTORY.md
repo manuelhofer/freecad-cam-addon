@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-26 fraeser-vorschlag-fuer-die-ecken
+
+### EINGELESEN
+- Manuel: Empfehlungen „auch wenn werkzeuge und halter nicht im magazin vorhanden sind“ – „das muss
+  mit rein“. In seiner Werkzeugverwaltung gibt es nur die Kugel Ø 12 (T3). Für die Ecken der
+  tiefen Tasche fehlt eine kleinere.
+
+### DATEIEN
+- `camaddon/empfehlung.py`: `neue_kugel` nimmt den größten üblichen Kugelfräser, der in die Ecken
+  passt (`KUGEL_DURCHMESSER`), in der kürzesten von 60/80/100/150 mm, mit der es geht. Die
+  Schneide ist 1,5 · Ø, unter Ø 6 kommt ein Schaft Ø 6 mit Hals dazu. Die Schnittwerte sind vom
+  Kugelfräser davor, fz/ae/ap auf den Ø umgerechnet. Halter und Auskragung kommen wie bei
+  `empfehlen`. `Empfehlung.werkzeug_neu`: `einrichten` legt den Fräser mit der nächsten freien
+  Nummer an, Name „Kugelfräser Ø6 × 60 (Vorschlag)“.
+- `camaddon/hinterschnitt_bahn.py`: `Bahn.ecken` – die Stellen, an die die empfohlene Kugel passt.
+  `ueberdeckt`/`ueberdeckte` fragen jetzt das Netz des Teils: senkrechte Strahlen gegen die
+  Dreiecke, die Seite zur Luft über die Zahl der Treffer eines schrägen Strahls. An Manuels Tasche
+  stand das Fenster an der G550 dafür 5 s (OpenCascade), jetzt sind es 0,23 s. `_rest` stürzte bei
+  Linienstücken kürzer als 1,5 mm ab („could not broadcast (5,) into (4,)“); behoben.
+- `camaddon/schlichten3d.py`: `_ecken_empfehlung`, nur wenn die Werkzeugverwaltung keinen
+  passenden Kugelfräser hat.
+- `camaddon/gui_bearbeitung.py`: „So ginge es: … (Vorschlag) im Halter …, 35 mm heraus. In der
+  Werkzeugverwaltung anlegen und Restschlichten anhaken“ (`_ecken_werkzeug_anlegen`). Das
+  Restschlichten gilt an der G550 im Grundjob als simultan.
+- `tests/test_empfehlung.py`: Kugel Ø 16 → „Kugelfräser Ø4 × 60 (Vorschlag)“ im ER11. Angelegt
+  mit freier Nummer, Halter, Auskragung und fz · 4/16.
+
+### ERGEBNIS
+- Manuels tiefe Tasche (Kopie), G550, T3 wie eingetragen:
+  1. „So einrichten“ (Schrumpffutter Ø12 · A 80, 33 mm heraus) – nichts stößt mehr an.
+  2. Für die Ecken: „So ginge es: Kugelfräser Ø6 × 60 (Vorschlag) im Halter „Spannzangenfutter
+     ER11 · A 70 · SK40“, 35 mm heraus“.
+  3. Der Knopf legt ihn als T4 an und hakt das Restschlichten an: 23 Höhenlinien nur in den Ecken,
+     etwa 25 min. Danach bleiben 228 Stellen für eine Kugel bis Ø 4.
+- Angelegt: Räumen T1 (Ebene von oben), 3D-Schlichten T3, Flanke T1, Restschlichten T4 – alle
+  unter dem Rand mit A und B.
+- Prüfungen: test_hinterschnitt_bahn, test_empfehlung grün; Szenario an der G550 mit der Kopie.
+
 ## P-2026-10-25-25 restschlichten-unter-dem-rand
 
 ### EINGELESEN

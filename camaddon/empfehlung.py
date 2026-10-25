@@ -55,6 +55,9 @@ class Empfehlung:
     laenge: float  # mm ab der Spindelnase
     im_magazin: bool  # der Fräser steht im Magazin der Maschine
     anderes_werkzeug: bool  # nicht der gewählte Fräser
+    # Ein Fräser, den es noch nicht gibt (neue_kugel): seine Daten (Werkzeug.als_dict) – einrichten
+    # legt ihn in der Werkzeugverwaltung an; None: er steht schon dort.
+    werkzeug_neu: dict = None
 
 
 def _schaft(werkzeug):
@@ -260,14 +263,78 @@ def _rechnen(form, toleranz, zelle, auftraege):
         return [paar_stueck(form, toleranz, zelle, *a) for a in auftraege]
 
 
+# Ein Kugelfräser, den es noch nicht gibt (neue_kugel): die üblichen Ø und Gesamtlängen, die
+# Schneide 1,5 · Ø, unter Ø 6 ein Schaft Ø 6 mit Hals.
+KUGEL_DURCHMESSER = (1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0, 16.0, 20.0)
+KUGEL_LAENGEN = (60.0, 80.0, 100.0, 150.0)
+SCHAFT_KLEINSTER = 6.0
+
+
+def neue_kugel(form, ecken, vorbild, bibliothek, aufnahme="", magazin=None):
+    """Empfehlung mit `werkzeug_neu` – für die Ecken unter dem Rand (hinterschnitt_bahn.Bahn.ecken):
+    der größte übliche Kugelfräser, der hineinpasst, in der kürzesten der KUGEL_LAENGEN, mit der
+    es geht, im besten Halter (empfehlen). Seine Schnittwerte vom Kugelfräser `vorbild`, fz auf den
+    Ø umgerechnet. KEINE, wenn keiner geht; None ohne Ecken."""
+    from . import werkzeuge as wz
+
+    if not ecken or not ecken.get("punkte") or vorbild is None or bibliothek is None:
+        return None
+    d = max((k for k in KUGEL_DURCHMESSER if k <= 2.0 * float(ecken["radius"]) + 1e-6), default=0)
+    if d <= 0:
+        return KEINE
+    probe = wz.Bibliothek.aus_dict(bibliothek.als_dict())  # eine Kopie: nichts eintragen
+    neue = []
+    for laenge in KUGEL_LAENGEN:
+        if laenge < 6.0 * d:
+            continue
+        w = probe.kopiere(next(v for v in probe.werkzeuge if v.kennung == vorbild.kennung))
+        faktor = d / float(vorbild.durchmesser or d)
+        w.durchmesser, w.schneidenlaenge, w.gesamtlaenge = d, 1.5 * d, laenge
+        w.schaft = max(d, SCHAFT_KLEINSTER) if d < SCHAFT_KLEINSTER else d
+        w.hals_d, w.hals_laenge = (d - 0.1, 3.0 * d) if d < SCHAFT_KLEINSTER else (0.0, 0.0)
+        w.halter, w.ausspannlaenge, w.laenge_spindelnase = "", 0.0, 0.0
+        w.name = f"Kugelfräser Ø{d:g} × {laenge:g} (Vorschlag)"
+        for einsaetze in w.schnittwerte.values():
+            for e in einsaetze:
+                e.fz, e.ae, e.ap = e.fz * faktor, e.ae * faktor, e.ap * faktor
+        neue.append(w)
+    if not neue:
+        return KEINE
+    r = d / 2.0
+    punkte = np.asarray(ecken["punkte"], dtype=float).reshape(-1, 3)
+    normalen = np.asarray(ecken["normalen"], dtype=float).reshape(-1, 3)
+    mitten = punkte + normalen * (r + float(ecken.get("aufmass", 0.0)))
+    pruefung = {
+        "an": [tuple(m) for m in mitten],
+        "frei": [],
+        "mitten": [tuple(m) for m in mitten],
+        "mitte": tuple(ecken["mitte"]),
+        "radius": r,
+    }
+    ergebnis = empfehlen(form, pruefung, neue[0], probe, aufnahme, None)
+    if not isinstance(ergebnis, Empfehlung):
+        return ergebnis
+    gewaehlt = next(w for w in neue if w.kennung == ergebnis.werkzeug)
+    ergebnis.werkzeug_neu = gewaehlt.als_dict()
+    ergebnis.werkzeug_text = gewaehlt.name
+    ergebnis.im_magazin = False
+    ergebnis.anderes_werkzeug = True
+    return ergebnis
+
+
 def einrichten(empfehlung, bibliothek):
     """Richtet die Empfehlung in der Werkzeugverwaltung ein: einen neuen Halter (eine Normreihe)
     dazu, beim Fräser (im Magazin an seinem Platz) der Halter und wie weit er heraussteht
     (reichweite.ausspannen_setzen).
     Gibt das Werkzeug zurück – None, wenn es nicht mehr da ist. Speichert nicht."""
     from . import reichweite as rw
+    from . import werkzeuge as wz
 
     werkzeug = next((w for w in bibliothek.werkzeuge if w.kennung == empfehlung.werkzeug), None)
+    if werkzeug is None and empfehlung.werkzeug_neu:
+        werkzeug = wz.Werkzeug.aus_dict(empfehlung.werkzeug_neu)  # der vorgeschlagene Fräser
+        werkzeug.nummer = bibliothek.naechste_nummer()
+        bibliothek.werkzeuge.append(werkzeug)
     if werkzeug is None:
         return None
     halter = empfehlung.halter

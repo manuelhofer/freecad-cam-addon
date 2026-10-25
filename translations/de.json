@@ -3203,7 +3203,7 @@
     "halter.reihe.bezeichnung": "Typische Maße nach {norm}, keine Katalogwerte – mit deinem Halter vergleichen",
     "hd.neu.reihen": "Normreihen (alle Größen und Längen)",
     "hd.neu.reihen.tooltip": "Halter nach Norm in jeder Größe und Länge, bis „extra lang“ – die Kontur aus typischen Maßen gerechnet. Nach dem Anlegen mit dem eigenen Halter vergleichen.",
-    "ba.waagerecht.nur_simultan": "An dieser Maschine steht die Spindel waagerecht: Hier im Grundjob fräst nur, was 5 Achsen simultan fährt (Flanke, 3D-Schlichten gekippt, Entgraten 3D). Alles von oben kommt nach „Anlegen“ in der Ebene „von oben“ dran.",
+    "ba.waagerecht.nur_simultan": "An dieser Maschine steht die Spindel waagerecht: Hier im Grundjob fräst nur, was 5 Achsen simultan fährt (Flanke, 3D-Schlichten und Restschlichten gekippt, Entgraten 3D). Alles von oben kommt nach „Anlegen“ in der Ebene „von oben“ dran.",
     "emp.text": "Mit dem Magazin, wie es ist, geht es hier nicht ganz – so ginge es: {werkzeug} im Halter „{halter}“, {heraus} mm heraus ({laenge} mm ab Spindelnase).",
     "emp.dazu": "Dazu: {dazu}.",
     "emp.halter_neu": "den Halter gibt es in deiner Werkzeugverwaltung noch nicht (Normreihe, typische Maße)",
@@ -3213,5 +3213,7 @@
     "hs.fehler.kein_rest": "Die Kugel davor kam unter dem Rand überall hin – hier bleibt nichts für die kleinere.",
     "ba.ergebnis_s3_unter.ecken_d": "An {n} Stellen in engen Ecken passt die Kugel nicht hinein – dort bleibt Material für eine Kugel bis Ø {d} (Restschlichten).",
     "ba.s3.unter.ecken_fehlt": "In deiner Werkzeugverwaltung ist keine so kleine Kugel – dafür fehlt ein Kugelfräser bis Ø {d}.",
-    "ba.s3.unter.ecken_rest": "Restschlichten mit {werkzeug} anhaken"
+    "ba.s3.unter.ecken_rest": "Restschlichten mit {werkzeug} anhaken",
+    "ba.s3.unter.ecken_neu": "So ginge es: {werkzeug} im Halter „{halter}“, {heraus} mm heraus.",
+    "ba.s3.unter.ecken_anlegen": "In der Werkzeugverwaltung anlegen und Restschlichten anhaken"
 }

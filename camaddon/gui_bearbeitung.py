@@ -3216,7 +3216,7 @@ def _job_der(op):
 
 KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt")  # 3D-Schlichten: nur mit 5 Achsen
 # Was im Grundjob einer Maschine mit waagerechter Spindel bleibt: die Strategien mit Achse je Satz.
-SIMULTAN_IM_GRUNDJOB = ("flanke", "schlichten3d", "entgraten3d")
+SIMULTAN_IM_GRUNDJOB = ("flanke", "schlichten3d", "restschlichten", "entgraten3d")
 
 
 class _Schlichten3D(_Strategie):
@@ -4583,6 +4583,24 @@ class _Block:
         knopf = html.escape(tr("emp.einrichten"))
         return f'{html.escape(text, quote=False)} <a href="empfehlung:">{knopf}</a>'
 
+    def _ecken_werkzeug_anlegen(self):
+        """„In der Werkzeugverwaltung anlegen und Restschlichten anhaken“: der vorgeschlagene
+        Kugelfräser für die Ecken (mit Halter und Auskragung, empfehlung.einrichten), gespeichert,
+        das Restschlichten mit ihm angehakt."""
+        from . import empfehlung as em
+
+        empfehlung = getattr(self, "_ecken_empfehlung", None)
+        bibliothek = self.panel.bibliothek
+        if empfehlung is None or bibliothek is None:
+            return
+        self.panel.magazin()
+        werkzeug = em.einrichten(empfehlung, bibliothek)
+        if werkzeug is None:
+            return
+        bibliothek.speichern()
+        self.panel._werkzeuge_gespeichert()
+        self.panel.restschlichten_mit(werkzeug.kennung)
+
     def _empfehlung_einrichten(self):
         """„So einrichten“: die Empfehlung in die Werkzeugverwaltung (empfehlung.einrichten),
         gespeichert; ein anderer Fräser wird gewählt; der Assistent rechnet neu."""
@@ -4644,7 +4662,23 @@ class _Block:
         ]
         d = groesse_zeigen(2.0 * radius, einheiten.LAENGE, 1) or "0"
         if not kugeln:
+            from . import empfehlung as em
+
             dazu = html.escape(tr("ba.s3.unter.ecken_fehlt", d=d), quote=False)
+            neu = getattr(bahn, "ecken_empfehlung", None)
+            if isinstance(neu, em.Empfehlung):  # ein Fräser, den es noch nicht gibt
+                self._ecken_empfehlung = neu
+                vorschlag = tr(
+                    "ba.s3.unter.ecken_neu",
+                    werkzeug=neu.werkzeug_text,
+                    halter=neu.halter.name,
+                    heraus=einheiten.text(neu.heraus, einheiten.LAENGE, 0),
+                )
+                knopf = html.escape(tr("ba.s3.unter.ecken_anlegen"))
+                return (
+                    f"{text} {dazu} {html.escape(vorschlag, quote=False)} "
+                    f'<a href="eckenwerkzeug:">{knopf}</a>'
+                )
             return f"{text} {dazu}"
         kugel = max(kugeln, key=lambda w: float(w.durchmesser))
         knopf = html.escape(tr("ba.s3.unter.ecken_rest", werkzeug=f"T{kugel.nummer}"))
@@ -4668,7 +4702,7 @@ class _Block:
         und rechnet die Vorschau."""
         bibliothek = self.panel.bibliothek
         if (
-            not ziel.startswith(("ausspannen:", "empfehlung:", "restschlichten:"))
+            not ziel.startswith(("ausspannen:", "empfehlung:", "restschlichten:", "eckenwerkzeug:"))
             or bibliothek is None
         ):
             return
@@ -4677,6 +4711,9 @@ class _Block:
             return
         if ziel.startswith("restschlichten:"):
             self.panel.restschlichten_mit(ziel.split(":", 1)[1])
+            return
+        if ziel.startswith("eckenwerkzeug:"):
+            self._ecken_werkzeug_anlegen()
             return
         nummer, laenge, heraus, platz = rw.ausspannen_lesen(ziel)
         self.panel.magazin()  # das Magazin der Maschine (dort gilt der Wert des Platzes)
