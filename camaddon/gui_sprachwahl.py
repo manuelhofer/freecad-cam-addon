@@ -206,15 +206,18 @@ class Einstellungsseite:
         _mit_satz(dateien, dateien_aufbau, self.klone_hinweis)
 
         # Wie viele Nebenrechner (nebenrechner) – vorgegeben alle Kerne (Manuel, 2026-10-24: „alle
-        # cpus müssen genutzt werden!“); weniger für den, dessen Rechner nebenbei anderes tut.
+        # cpus müssen genutzt werden!“); weniger für den, dessen Rechner nebenbei anderes tut. Von
+        # 1 bis zu den Kernen, die der Rechner hat, anfangs alle (Manuel, 2026-10-25: „0 als alle
+        # kerne ist doof was ist wenn ich 255 eintragen würde ? … schreib anfangs immer die
+        # maximal ermittelte anzahl rein“).
         from . import nebenrechner
 
+        kerne = nebenrechner.anzahl_kerne()
         rechnen = QtGui.QGroupBox(tr("einstellungen.rechnen.gruppe"))
         self.wahl_nebenrechner = QtGui.QSpinBox()
-        self.wahl_nebenrechner.setRange(0, 512)
-        self.wahl_nebenrechner.setSpecialValueText(
-            tr("einstellungen.rechnen.alle", anzahl=nebenrechner.anzahl_kerne())
-        )
+        self.wahl_nebenrechner.setRange(1, kerne)
+        self.wahl_nebenrechner.setValue(kerne)
+        self.wahl_nebenrechner.setSuffix(tr("einstellungen.rechnen.von", kerne=kerne))
         rechnen_aufbau = QtGui.QFormLayout()
         rechnen_aufbau.addRow(tr("einstellungen.rechnen.feld"), self.wahl_nebenrechner)
         self.rechnen_hinweis = QtGui.QLabel(tr("einstellungen.rechnen.hinweis"))
@@ -242,7 +245,7 @@ class Einstellungsseite:
         from . import nebenrechner
 
         kerne = nebenrechner.anzahl_kerne()
-        if 0 < anzahl < kerne:
+        if anzahl < kerne:
             self.rechnen_weniger.setText(
                 tr("einstellungen.rechnen.weniger", anzahl=anzahl, kerne=kerne)
             )
@@ -260,11 +263,10 @@ class Einstellungsseite:
         index = self.wahl_dezimalzeichen.findData(dezimalzeichen())
         self.wahl_dezimalzeichen.setCurrentIndex(max(index, 0))
         self.klone_einmal.setChecked(klone_speichern.an())
-        from . import PARAMETER_PFAD, nebenrechner
+        from . import nebenrechner
 
-        self.wahl_nebenrechner.setValue(
-            FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nebenrechner.EINSTELLUNG_ANZAHL, 0)
-        )
+        # Gespeichert heißt 0 „alle“ (ein Rechner mit mehr Kernen nimmt dann alle seine).
+        self.wahl_nebenrechner.setValue(nebenrechner.gewuenschte_anzahl())
         self._weniger_kerne_zeigen(self.wahl_nebenrechner.value())
         gui_aktualisierung.einstellungen_laden(self)
 
@@ -277,7 +279,8 @@ class Einstellungsseite:
         klone_speichern.setzen(self.klone_einmal.isChecked())
         from . import nebenrechner
 
-        nebenrechner.anzahl_setzen(self.wahl_nebenrechner.value())
+        anzahl = self.wahl_nebenrechner.value()
+        nebenrechner.anzahl_setzen(0 if anzahl >= nebenrechner.anzahl_kerne() else anzahl)
         gui_aktualisierung.einstellungen_speichern(self)
 
 

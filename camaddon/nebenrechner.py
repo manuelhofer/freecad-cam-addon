@@ -371,9 +371,9 @@ def physische_kerne():
 
 def gewuenschte_anzahl():
     """So viele Arbeiter darf der Pool haben: die Einstellung (EINSTELLUNG_ANZAHL im
-    Parameter-System, 0 = selbst wählen), sonst so viele wie Kerne."""
+    Parameter-System, 0 = alle), höchstens so viele wie Kerne – mehr bringen nichts."""
     anzahl = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(EINSTELLUNG_ANZAHL, 0)
-    return anzahl if anzahl > 0 else anzahl_kerne()
+    return min(anzahl, anzahl_kerne()) if anzahl > 0 else anzahl_kerne()
 
 
 def weniger_kerne_text():
@@ -396,7 +396,7 @@ def anzahl_setzen(anzahl):
     anzahl = max(0, int(anzahl))
     FreeCAD.ParamGet(PARAMETER_PFAD).SetInt(EINSTELLUNG_ANZAHL, anzahl)
     if _pool is not None:
-        _pool.anzahl = max(1, anzahl or anzahl_kerne())
+        _pool.anzahl = gewuenschte_anzahl()
 
 
 def freecadcmd_pfad():

@@ -201,19 +201,26 @@ def schritte(h):
     from camaddon import PARAMETER_PFAD
     from camaddon import nebenrechner as nr_
 
+    # Anfangs alle Kerne als Zahl, mehr geht nicht (Manuel, 2026-10-25: „was ist wenn ich 255
+    # eintragen würde ?“); ganz oben heißt gespeichert wieder 0 = alle.
+    kerne = nr_.anzahl_kerne()
     feld = seite.wahl_nebenrechner
     h.pruefe(
-        feld.value() == 0 and feld.text() == f"alle Kerne ({nr_.anzahl_kerne()})",
+        feld.value() == kerne and feld.text() == f"{kerne} von {kerne} Kernen",
         f"Nebenrechner: {feld.value()} {feld.text()!r}",
     )
+    feld.setValue(255)
+    h.pruefe(feld.value() == kerne, f"255 eingetragen: {feld.value()}")
     feld.setValue(3)
     seite.saveSettings()
     gemerkt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nr_.EINSTELLUNG_ANZAHL, -1)
     h.pruefe(gemerkt == 3 and nr_.pool().anzahl == 3, f"3 Nebenrechner: {gemerkt}, {nr_.pool().anzahl}")
-    feld.setValue(0)
+    feld.setValue(kerne)
     seite.saveSettings()
+    gemerkt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nr_.EINSTELLUNG_ANZAHL, -1)
     h.pruefe(
-        nr_.pool().anzahl == nr_.anzahl_kerne(), f"wieder alle Kerne: {nr_.pool().anzahl}"
+        gemerkt == 0 and nr_.pool().anzahl == kerne,
+        f"wieder alle Kerne: {gemerkt}, {nr_.pool().anzahl}",
     )
     seite.klone_einmal.setChecked(False)
     seite.saveSettings()

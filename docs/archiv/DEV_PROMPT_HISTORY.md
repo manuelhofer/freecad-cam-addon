@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-51 kerne-als-zahl
+
+### EINGELESEN
+- Manuel, 2026-10-25: „0 als alle kerne ist doof was ist wenn ich 255 eintragen würde ? ... mach
+  so nen klick kästchen draus wo man die zaheln hoch und runter klicken kan mit pfeilen … und
+  schreib anfangs immer die maximal ermittelte anzahl rein !“
+
+### DATEIEN
+- `camaddon/gui_sprachwahl.py`: Nebenrechner von 1 bis zu den Kernen des Rechners, anfangs alle
+  („24 von 24 Kernen“); ganz oben wird als 0 = alle gespeichert (ein Rechner mit mehr Kernen
+  nimmt dann alle seine).
+- `camaddon/nebenrechner.py`: `gewuenschte_anzahl` höchstens so viele wie Kerne.
+- `translations/de.json`, `en.json`; `tests/gui/szenario_erster_start.py`.
+
+### ERGEBNIS
+- Einstellungen: „4 von 24 Kernen“ mit Pfeilen, darunter der gelbe Hinweis; 255 eingetragen
+  bleibt 24.
+- Prüfungen: szenario_erster_start grün.
+
 ## P-2026-10-25-50 senkung-bis-31
 
 ### EINGELESEN
