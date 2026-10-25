@@ -22,6 +22,27 @@ fänden „Nach Updates suchen“ und gespeicherte Dateien nichts mehr. Vorschl�
 *Warum nur Manuel:* Es ist dein Addon und dein Name nach außen. *Was die Antwort ändert:* Name im
 Addon-Manager, Menü und Hilfe (de/en), README; nichts an Bahnen oder Dateien. – seit 2026-10-24.
 
+**Frage 3 – Deine tiefe Tasche (testteil5achstief): Wie soll die Flanke den Keil unter dem Rand
+nehmen?** Bild: [`bilder/vorschlaege/tiefe_tasche_hinterschnitt.png`](bilder/vorschlaege/tiefe_tasche_hinterschnitt.png).
+Deine Tasche ist unten weiter als oben: Die Wände hängen 8,5° über (oben Y ±30, unten ±36,5),
+50 mm tief. Von oben räumt das Räumen nur bis unter den Rand (3 Lagen, etwa 3 min). Unter dem Rand
+bleibt ein Keil stehen, oben 0, unten 6,5 mm dick. Die Flanke kann die Wand mit dem um 8,5°
+gekippten T1 Ø 12 fräsen (gebaut, auf einem Zweig, noch nicht bei dir): 16 Umläufe in 2 Lagen,
+etwa 2 min. Dein „Extra lang“ bleibt dabei 11 mm über dem Rand, mit 54 statt 48 mm ausgespannt
+(das bietet der Assistent als Link an). Nur nähme sie den Keil heute **in einem Umlauf**: unten
+bis 6,5 mm seitlich (55 % vom Ø), je Lage gut 20 mm tief, mit 54 mm draußen.
+1. **A – erst Umläufe davor, je ae deines Schruppeinsatzes, von innen nach außen, dann einer auf
+   Maß** (im Bild gestrichelt 4 und 2 mm davor). Etwa 3–4 statt 1 Umlauf je Lage. Mein Vorschlag.
+2. **B – ein Umlauf, aber mit weniger Vorschub**, so dass die Spandicke stimmt.
+3. **C – den Keil mit einem anderen, kürzeren Fräser** (welcher?).
+*Warum nur Manuel:* Wie viel ein langer Ø 12 seitlich verträgt, weißt du von deiner Maschine.
+*Was die Antwort ändert:* wie die Flanke an Hinterschnitten zustellt. Erst danach kommt sie auf
+main. – seit 2026-10-25.
+Dazu, ohne Frage: An deiner G550 (Spindel waagerecht) käme die Flanke im Programm **vor** dem
+Räumen der Ebene „von oben“. Das ist ein Fehler, auch bei normalen Formschrägen, und den behebe
+ich. Die Rundungen R 7 am Boden unter dem Rand erreicht die Flanke nicht. Dafür baue ich danach
+etwas.
+
 **Frage 2 – Taschen: die schnellste Bahn, die die Last hält – auch fein gerechnet?** Bild:
 [`bilder/vorschlaege/tasche_ringe_morph.png`](bilder/vorschlaege/tasche_ringe_morph.png) (Tasche
 10 tief, T1 Ø 12, ae 4,8, ap 5; oben ein Rechteck 50 × 30, unten ein L). Heute nimmt das Räumen in
