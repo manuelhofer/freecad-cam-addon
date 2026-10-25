@@ -3014,7 +3014,7 @@
     "pp.feld.kopf_drehmaschine.tooltip": "The start of the program on a lathe instead of the one for a mill – empty: the same. On Fanuc and Haas lathes G90 is the turning cycle (not “absolute”) and there is no G49; hence a start of its own.",
     "pp.hinweis.g91_drehen": "{operation}: moves incrementally (G91) – on this lathe that is U and W; the control stops at that block with an alarm.",
     "pp.hinweis.klartext_drehen": "Heidenhain conversational is built here for milling machines – a lathe (CNC PILOT, MANUALplus) uses another language; check the program carefully before running it.",
-    "pp.hinweis.klartext_schrauben": "{anzahl} times an arc that conversational does not know like this (helix or plane XZ/YZ) – written as lines (at most 0.002 mm off).",
+    "pp.hinweis.klartext_schrauben": "{anzahl} times an arc that conversational does not know like this (plane XZ/YZ, or a helix whose start and end lie at different distances from the centre) – written as lines (at most 0.002 mm off).",
     "pp.hinweis.ohne_gewinde": "{operation}: {steuerung} cannot tap (spindle and Z do not run synchronised there) – the threads are missing from the program.",
     "pp.hinweis.ohne_rundachsen": "{operation}: {steuerung} only moves X, Y and Z – the rotary axes are still in the program; that needs a controller with rotary axes (grblHAL, LinuxCNC).",
     "pp.hinweis.mpr_vorschub": "woodWOP: a contour has only one feed – on {anzahl} contours it changed (plunging slower than milling), the lower one applies there. In woodWOP it can be changed per contour.",

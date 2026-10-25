@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-73 klartext-schraubenlinie-cp
+
+### EINGELESEN
+- Durchsicht aller Programme an einem Taster-Teil von Manuel (Kopie, Job per Szenario angelegt:
+  Räumen, Bohren, Bohrung fräsen, Kontur, Senken): Heidenhain schrieb jede Schraube (Helix beim
+  Eintauchen, Bohrung fräsen) in Geraden – 1812 Bögen, 8172 Sätze statt rund 2600 bei G-Code.
+- iTNC 530: die Schraubenlinie als CP um den Pol (CC) mit IPA (Winkel) und IZ. Die TNC hält den
+  Abstand zum Pol; mit Anfang, Ende und Mitte auf 0,001 mm gerundet käme sie bis 0,0016 mm neben
+  dem Ende an.
+
+### DATEIEN
+- `camaddon/klartext.py`: `_schraube` – Pol auf die Mittelsenkrechte von Anfang und Ende, mit
+  vier Stellen, dann „CP IPA… IZ… DR± R0“; in Geraden nur noch XZ/YZ und Schrauben, deren Radius
+  sich ändert. Der Pol nur, wenn er sich ändert (gilt bis zum nächsten; nach Marke, TOOL CALL,
+  Zyklus neu). `pruefe` fährt CP nach (DOPPELT zählt dort nicht: CP ist inkrementell).
+- `tests/test_postprozessor.py` („CC X+25.0000 Y+5.0000“, „CP IPA-90 IZ-2.000 DR- R0“),
+  `tests/test_postprozessor_nachfahren.py` (Gegenprobe fährt CC/CP nach),
+  `translations/*.json` (Hinweis), `help/*/programm.html`, `docs/spezifikation_steuerung.md`.
+
+### ERGEBNIS
+- Taster-Teil: 4343 statt 8172 Sätze, das Ende jeder Schraube höchstens 0,0001 mm neben dem
+  Soll (vorher bis 0,0016 mm), nachgelesen ohne Befund; Platte mit Zapfen, C-Ring: die
+  Gegenprobe findet jeden Vorschubsatz.
+- Grün: test_postprozessor, _nachfahren, test_programm_pruefen; szenario_programm_heidenhain.
+
 ## P-2026-10-25-72 satznummern-fuenf-stellen-und-marken
 
 ### EINGELESEN

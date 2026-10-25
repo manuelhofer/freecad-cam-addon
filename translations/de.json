@@ -3014,7 +3014,7 @@
     "pp.feld.kopf_drehmaschine.tooltip": "Der Anfang des Programms an der Drehmaschine statt des Anfangs für die Fräse – leer: derselbe. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzyklus (nicht „absolut“) und G49 gibt es dort nicht; darum ein eigener Anfang.",
     "pp.hinweis.g91_drehen": "{operation}: fährt inkrementell (G91) – an dieser Drehmaschine heißt das U und W; die Steuerung hält an dem Satz mit Alarm an.",
     "pp.hinweis.klartext_drehen": "Heidenhain-Klartext ist hier für Fräsmaschinen gebaut – an einer Drehmaschine (CNC PILOT, MANUALplus) gilt eine andere Sprache; das Programm vor dem Lauf genau ansehen.",
-    "pp.hinweis.klartext_schrauben": "{anzahl}-mal ein Bogen, den der Klartext so nicht kennt (Schraube oder Ebene XZ/YZ) – in Geraden geschrieben (höchstens 0,002 mm daneben).",
+    "pp.hinweis.klartext_schrauben": "{anzahl}-mal ein Bogen, den der Klartext so nicht kennt (Ebene XZ/YZ oder eine Schraube, deren Anfang und Ende verschieden weit von der Mitte liegen) – in Geraden geschrieben (höchstens 0,002 mm daneben).",
     "pp.hinweis.ohne_gewinde": "{operation}: {steuerung} kann kein Gewinde bohren (Spindel und Z laufen dort nicht synchron) – die Gewinde fehlen im Programm.",
     "pp.hinweis.ohne_rundachsen": "{operation}: {steuerung} fährt nur X, Y und Z – die Rundachsen stehen trotzdem im Programm; dafür braucht es eine Steuerung mit Rundachsen (grblHAL, LinuxCNC).",
     "pp.hinweis.mpr_vorschub": "woodWOP: Eine Kontur hat nur einen Vorschub – an {anzahl} Konturen wechselte er (Eintauchen langsamer als Fräsen), dort gilt der kleinere. In woodWOP lässt er sich je Kontur ändern.",

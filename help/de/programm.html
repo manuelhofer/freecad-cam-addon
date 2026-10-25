@@ -371,8 +371,9 @@ die Länge kommt mit TOOL CALL aus der Werkzeugtabelle der Steuerung (dort muss 
 Eine andere Drehzahl mit demselben Werkzeug: TOOL CALL noch einmal.</li>
 <li>Geraden als <b>L X+… Y+… Z+… R0 F…</b>, Eilgang mit <b>FMAX</b>, jede Zahl mit Vorzeichen;
 Kreise in XY als <b>CC</b> (Mitte) und <b>C … DR-</b> (im Uhrzeigersinn) bzw. <b>DR+</b>, ein
-Vollkreis in zwei Hälften. Eine Schraube oder ein Bogen in XZ/YZ wird in Geraden geschrieben
-(höchstens 0,002 mm daneben) – ein Hinweis sagt es.</li>
+Vollkreis in zwei Hälften. Eine Schraube (Helix, etwa beim Eintauchen) als <b>CC</b> und
+<b>CP IPA-90 IZ-0.250 DR-</b>: der Winkel um die Mitte und Z dazu. Ein Bogen in XZ/YZ wird in
+Geraden geschrieben (höchstens 0,002 mm daneben) – ein Hinweis sagt es.</li>
 <li>Zum Wechselpunkt in Maschinenkoordinaten mit <b>M91</b> („L Z+0 R0 FMAX M91“); M92 (vom
 Maschinenhersteller festgelegter Punkt) steht zur Wahl.</li>
 <li>Die Bohrzyklen als Zyklen der TNC (Haken „Bohrzyklen der TNC“, vorbelegt an): Bohren und

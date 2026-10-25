@@ -12,7 +12,8 @@ Y+20 Z-3“, Kommentare „;…“, „TOOL CALL 10 Z S5000 F2000“, „M3“ a
 Übersetzt:
 - G0 → „L … R0 FMAX“, G1 → „L … R0 F…“ (F nur, wenn er sich ändert); jede Zahl mit Vorzeichen.
 - G2/G3 in der Ebene XY → „CC“ (Mitte) und „C … DR-“ bzw. „DR+“; ein Vollkreis in zwei Hälften.
-  Eine Schraube (Z ändert sich) oder ein Bogen in XZ/YZ in Geraden (SEHNE).
+  Eine Schraube (Z ändert sich) als „CC“ und „CP IPA… IZ… DR±“; ein Bogen in XZ/YZ und eine
+  Schraube mit verschiedenem Abstand von Anfang und Ende zur Mitte in Geraden (SEHNE).
 - Werkzeugwechsel „TOOL CALL n Z“, die Drehzahl kommt dazu („TOOL CALL n Z S…“), M3/M4 allein.
   Eine andere Drehzahl mit demselben Werkzeug: „TOOL CALL n Z S…“ noch einmal (so ändert die
   TNC sie). Die Länge nimmt TOOL CALL mit – kein G43.
@@ -211,8 +212,16 @@ class _Uebersetzer:
         self.wechsel_offen = None  # Index des TOOL CALL, dem die Drehzahl noch fehlt
         self.saetze = 0
         self.schrauben = 0
+        # Der Pol (CC), zuletzt geschrieben – er gilt, bis ein neuer kommt; nach einer Marke, einem
+        # TOOL CALL oder einem Zyklus wieder, damit jeder Einstieg ihn selbst setzt.
+        self.pol = None
 
     # --- Ausgabe ----------------------------------------------------------------------------
+
+    def _pol(self, cc):
+        if cc != self.pol:
+            self.aus.append(cc)
+            self.pol = cc
 
     def kommentar(self, text):
         text = text.strip()
@@ -258,6 +267,8 @@ class _Uebersetzer:
         roh = roh.strip()
         if not roh:
             return
+        if roh.startswith(("TOOL CALL", "CYCL DEF", "PLANE", "*")):
+            self.pol = None
         if roh.startswith(";"):
             self.kommentar(roh[1:])
             return
@@ -334,6 +345,7 @@ class _Uebersetzer:
                 self.aus.append(text.format(s=f"{sekunden:g}"))
             return
         if "T" in werte and 6 in m:
+            self.pol = None
             self.werkzeug = int(werte["T"])
             self.aus.append(f"TOOL CALL {self.werkzeug} Z")
             self.wechsel_offen = len(self.aus) - 1
@@ -416,6 +428,11 @@ class _Uebersetzer:
             if abs(z1 - z0) < 1e-9 and mitte is not None:
                 self._kreis_xy(mitte, (x0, y0), (x1, y1), uhrzeiger, ziel)
                 return
+            if mitte is not None and self._schraube(mitte, (x0, y0, z0), (x1, y1, z1), uhrzeiger):
+                for achse in ("A", "B", "C"):
+                    if ziel.get(achse) is not None:
+                        self.gerade({achse: ziel[achse]}, False)
+                return
         self._in_geraden(ziel, werte, uhrzeiger)
 
     @staticmethod
@@ -441,7 +458,7 @@ class _Uebersetzer:
         if voll:  # ein Vollkreis: zwei Hälften
             punkte = [(2 * mitte[0] - anfang[0], 2 * mitte[1] - anfang[1]), ende]
         for px, py in punkte:
-            self.aus.append(cc)
+            self._pol(cc)
             self.aus.append(
                 f"C X{zahl(px, self.stellen)} Y{zahl(py, self.stellen)} {richtung} R0{self._f()}"
             )
@@ -451,6 +468,50 @@ class _Uebersetzer:
             if ziel.get(achse) is not None:
                 self.gerade({achse: ziel[achse]}, False)
         self.wechsel_offen = None
+
+    def _schraube(self, mitte, anfang, ende, uhrzeiger):
+        """Eine Schraubenlinie in der Ebene XY: der Pol CC, dann „CP IPA… IZ… DR±“ – der Winkel um
+        den Pol ab dem Anfang, Z inkrementell (iTNC 530, „Schraubenlinie“). Die TNC hält den
+        Abstand zum Pol: Sind Anfang und Ende verschieden weit weg, False (dann in Geraden)."""
+        r0 = math.hypot(anfang[0] - mitte[0], anfang[1] - mitte[1])
+        r1 = math.hypot(ende[0] - mitte[0], ende[1] - mitte[1])
+        if r0 < 1e-6 or abs(r0 - r1) > SEHNE:
+            return False
+        # Anfang, Ende und Mitte stehen auf 0,001 mm gerundet im Programm – die TNC käme bis
+        # 0,0016 mm neben dem Ende an. Der Pol auf die Mittelsenkrechte von Anfang und Ende (mit
+        # vier Stellen): beide gleich weit weg, die Schraube endet, wo sie soll.
+        sx, sy = ende[0] - anfang[0], ende[1] - anfang[1]
+        sehne = math.hypot(sx, sy)
+        if sehne > 1e-9:
+            nx, ny = -sy / sehne, sx / sehne
+            mx, my = (anfang[0] + ende[0]) / 2, (anfang[1] + ende[1]) / 2
+            abstand = (mitte[0] - mx) * nx + (mitte[1] - my) * ny
+            mitte = (round(mx + abstand * nx, 4), round(my + abstand * ny, 4))
+        r0 = math.hypot(anfang[0] - mitte[0], anfang[1] - mitte[1])
+        w0 = math.atan2(anfang[1] - mitte[1], anfang[0] - mitte[0])
+        winkel = math.atan2(ende[1] - mitte[1], ende[0] - mitte[0]) - w0
+        if uhrzeiger:
+            winkel = winkel - 2 * math.pi if winkel > -1e-12 else winkel
+        else:
+            winkel = winkel + 2 * math.pi if winkel < 1e-12 else winkel
+        if math.hypot(ende[0] - anfang[0], ende[1] - anfang[1]) > 1e-6 and (
+            abs(abs(winkel) - 2 * math.pi) < 1e-9
+        ):
+            return False  # ein winziger Bogen, kein Umlauf
+        ipa = q_zahl(math.degrees(winkel))
+        iz = zahl(ende[2] - anfang[2], self.stellen)
+        pol = max(self.stellen, 4)
+        self._pol(f"CC X{zahl(mitte[0], pol)} Y{zahl(mitte[1], pol)}")
+        richtung = "DR-" if uhrzeiger else "DR+"
+        self.aus.append(f"CP IPA{ipa} IZ{iz} {richtung} R0{self._f()}")
+        self.saetze += 1
+        # Wo die TNC ankommt: um den gerundeten Winkel gedreht, Z um das gerundete IZ.
+        w1 = w0 + math.radians(float(ipa))
+        self.pos["X"] = mitte[0] + r0 * math.cos(w1)
+        self.pos["Y"] = mitte[1] + r0 * math.sin(w1)
+        self.pos["Z"] = anfang[2] + float(iz)
+        self.wechsel_offen = None
+        return True
 
     def _in_geraden(self, ziel, werte, uhrzeiger):
         """Ein Bogen, den der Klartext so nicht kennt (Schraube, Ebene XZ/YZ): in Geraden."""
@@ -757,9 +818,33 @@ def pruefe(text):
             continue
         ist_l = satz.startswith("L ") or satz == "L"
         ist_c = satz.startswith("C ")
-        if not (ist_l or ist_c):
+        ist_cp = satz.startswith("CP ")
+        if not (ist_l or ist_c or ist_cp):
             continue
         werte = {a: float(w) for a, w in re.findall(r"\b([XYZABC])([-+]\d+\.?\d*)", satz)}
+        if ist_cp:
+            # Die Schraubenlinie um den Pol: das Ende aus dem Winkel IPA und IZ.
+            ipa = re.search(r"\bIPA([-+]\d+\.?\d*)", satz)
+            iz = re.search(r"\bIZ([-+]\d+\.?\d*)", satz)
+            werte = {}
+            if (
+                not mitte
+                or "X" not in mitte
+                or "Y" not in mitte
+                or None
+                in (
+                    pos["X"],
+                    pos["Y"],
+                    pos["Z"],
+                )
+            ):
+                befund(prp.KREIS, i, satz)
+            elif ipa:
+                w = math.atan2(pos["Y"] - mitte["Y"], pos["X"] - mitte["X"])
+                w += math.radians(float(ipa.group(1)))
+                r = math.hypot(pos["X"] - mitte["X"], pos["Y"] - mitte["Y"])
+                werte = {"X": mitte["X"] + r * math.cos(w), "Y": mitte["Y"] + r * math.sin(w)}
+                werte["Z"] = pos["Z"] + (float(iz.group(1)) if iz else 0.0)
         maschine = bool(re.search(r"\bM9[12]\b", satz))
         eilgang = "FMAX" in satz
         f_wert = re.search(r"\bF(\d+\.?\d*)\b", satz)
@@ -771,7 +856,7 @@ def pruefe(text):
                 befund(prp.SPINDEL, i, satz)
             if not f:
                 befund(prp.VORSCHUB, i, satz)
-            if satz == vorher:
+            if satz == vorher and not ist_cp:  # CP zählt ab dem Stand – gleich ist nicht doppelt
                 befund(prp.DOPPELT, i, satz)
         elif ist_l:
             pruefung.saetze += 1

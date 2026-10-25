@@ -534,7 +534,8 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   als Dialekt (`Steuerung.dialekt = "klartext"`): Der Postprozessor schreibt wie für jede
   Steuerung, `klartext.uebersetzen` macht am Schluss Klartext – G0 → `L … R0 FMAX`, G1 → `L … R0
   F…` (F nur bei Änderung), G2/G3 in XY → `CC` + `C … DR-`/`DR+` (Vollkreis in zwei Hälften),
-  Schraube und XZ/YZ in Geraden (0,002 mm), `G53` → `M91`, Bohrzyklen G81/82/83/73/85
+  Schraube als `CC` + `CP IPA… IZ… DR±` (P-2026-10-25-73; nur mit gleichem Abstand von Anfang
+  und Ende zur Mitte), XZ/YZ in Geraden (0,002 mm), `G53` → `M91`, Bohrzyklen G81/82/83/73/85
   ausgeschrieben (G98/G99), Verweilen mit Zyklus 9, die Drehzahl in den TOOL CALL, Satznummern,
   BEGIN/END PGM mit dem Dateinamen (nur Buchstaben, Ziffern, „_“), BLK FORM aus dem Rohteil des
   Jobs. Die Befehle der Steuerung schon als Klartext: Wechsel `TOOL CALL {t} Z`, Wechselpunkt

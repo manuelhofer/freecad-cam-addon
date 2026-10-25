@@ -677,8 +677,15 @@ for satz in (
     "CC X+15.000 Y+5.000",
     "C X+20.000 Y+5.000 DR- R0 F600",
     "C X+10.000 Y+5.000 DR+ R0",  # der Vollkreis in zwei Hälften
+    # Die Schraube um den Pol (P-2026-10-25-73): von X20 Y5 um −90° nach X25 Y10, Z −2 → −4.
+    "CC X+25.0000 Y+5.0000",
+    "CP IPA-90 IZ-2.000 DR- R0",
 ):
     pruefe(satz in saetze_hh, f"Heidenhain fehlt „{satz}“")
+pruefe(
+    not any("Bogen" in h for h in p_hh.hinweise),
+    f"Schraube trotzdem in Geraden: {p_hh.hinweise}",
+)
 # Die Bohrzyklen als Zyklen der TNC (P-2026-10-25-65): G81 → 200 (eine Zustellung, Q204 zurück
 # auf 5), G83 → 200 mit Q202 = 5, G85 → 201 (heraus im Vorschub, G99: Q204 0); je Loch M99.
 
@@ -736,9 +743,8 @@ pruefe(
     ),
     "Heidenhain: G-Code übrig",
 )
-pruefe(any("Schraube" in h for h in p_hh.hinweise), f"Schraube: {p_hh.hinweise}")
 befunde, saetze = pp.nachlesen(p_hh, hh, wp)
-pruefe(not befunde and saetze > 20, f"Heidenhain nachgelesen: {[(b.art, b.satz) for b in befunde]}")
+pruefe(not befunde and saetze > 10, f"Heidenhain nachgelesen: {[(b.art, b.satz) for b in befunde]}")
 pruefe(
     pp.dateiname(job, hh).endswith(".h") and pp.dateiname(job, pp.steuerung("heidenhain_tnc640")).endswith(".h"),
     "Heidenhain Endung",

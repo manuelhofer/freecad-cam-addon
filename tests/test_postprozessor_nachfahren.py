@@ -128,10 +128,26 @@ def klartext_punkte(text):
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
     f = None
+    pol = None
     for zeile in text.splitlines():
         if zeile.startswith("  "):
             continue
         satz = re.sub(r"^\d+ ", "", zeile).strip()
+        if satz.startswith("CC "):
+            pol = [float(w) for _a, w in re.findall(r"\b([XY])([-+]\d+\.?\d*)", satz)]
+            continue
+        if satz.startswith("CP "):
+            # Die Schraubenlinie: um IPA um den Pol gedreht, Z um IZ.
+            ipa = float(re.search(r"IPA([-+]\d+\.?\d*)", satz).group(1))
+            iz = re.search(r"IZ([-+]\d+\.?\d*)", satz)
+            r = math.hypot(pos["X"] - pol[0], pos["Y"] - pol[1])
+            w = math.atan2(pos["Y"] - pol[1], pos["X"] - pol[0]) + math.radians(ipa)
+            pos["X"], pos["Y"] = pol[0] + r * math.cos(w), pol[1] + r * math.sin(w)
+            pos["Z"] += float(iz.group(1)) if iz else 0.0
+            m = re.search(r"\bF(\d+\.?\d*)", satz)
+            f = float(m.group(1)) if m else f
+            aus.append((pos["X"], pos["Y"], pos["Z"], f))
+            continue
         if not satz.startswith(("L ", "C ")):
             continue
         for a, w in re.findall(r"\b([XYZ])([-+]\d+\.?\d*)", satz):

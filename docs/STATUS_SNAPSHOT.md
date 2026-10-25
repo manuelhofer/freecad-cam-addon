@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.303.0):* Heidenhain schreibt Schrauben als CC + CP IPA/IZ statt in Geraden (am
+  Taster-Teil 4343 statt 8172 Sätze); Satznummern höchstens fünf Stellen (0.302.1).
 - *Neu (0.302.0):* Haken „Nullpunkt aus dem Job (G54 …)“, vorbelegt aus – je Steuerung ihr
   Befehl (Siemens G505 ab dem fünften, Fanuc G54.1 P, Haas G154 P, Heidenhain Zyklus 247);
   OFFENE_FRAGEN Frage 3: vorbelegt an?
