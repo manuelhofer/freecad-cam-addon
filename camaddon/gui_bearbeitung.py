@@ -4571,15 +4571,13 @@ class _Block:
                 else _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
             )
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
-        self.ergebnis_basis = self._mit_vorbohrer(
-            self._mit_ecken(
-                self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
-                self.vorschau,
-            ),
+        self.ergebnis_basis = self._mit_ecken(
+            self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
             self.vorschau,
         )
         self.ergebnis.setText(self.ergebnis_basis)
         self.material.setText(_material_text(self.vorschau))
+        self._vorbohrer_angebot()
         self._empfehlung_anstossen(job, werkzeug, flaechen, ("bahn", zeit, self.vorschau))
         if self.s.kennung == "nut":
             self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
@@ -4888,38 +4886,35 @@ class _Block:
         knopf = html.escape(tr("ba.s3.unter.ecken_rest", werkzeug=f"T{kugel.nummer}"))
         return f'{text} <a href="restschlichten:{kugel.kennung}">{knopf}</a>'
 
-    def _mit_vorbohrer(self, text, bahn):
-        """Hinter der Ergebniszeile des Räumens: Taucht es ins Volle ein und fehlt fürs Vorbohren
-        ein Bohrer im Magazin (_vorbohrer), der Satz dazu mit „Bohrer Ø … anlegen und vorbohren“
-        (Verweis „vorbohrer:Ø:Tiefe“; Manuel: Empfehlungen auch, wenn es das Werkzeug nicht gibt –
-        der nächste Schritt als Knopf)."""
-        if self.s.kennung != "raeumen" or not getattr(bahn, "eintauchen", None):
-            return text
-        if getattr(bahn, "vorbohren", None) is not None:
-            return text
+    def _vorbohrer_angebot(self):
+        """Unter dem Räumen: Taucht es ins Volle ein und fehlt fürs Vorbohren ein Bohrer im
+        Magazin (_vorbohrer), das Angebot „Bohrer Ø … anlegen und vorbohren“ (Manuel: Empfehlungen
+        auch, wenn es das Werkzeug nicht gibt – der nächste Schritt als Knopf); sonst leer."""
+        if self.s.kennung != "raeumen":
+            return
+        bahn = self.vorschau
         fraeser = self.fraeser()
-        if fraeser is None or self.panel._vorbohrer(fraeser) is not None:
-            return text
+        if (
+            bahn is None
+            or not getattr(bahn, "eintauchen", None)
+            or getattr(bahn, "vorbohren", None) is not None
+            or fraeser is None
+            or self.panel.job is None
+            or self.panel._vorbohrer(fraeser) is not None
+        ):
+            self.angebot.leeren()
+            return
         d = math.ceil((float(fraeser.durchmesser) + VORBOHRER_LUFT) * 2.0 - 1e-9) / 2.0
         *_rohteil, oben = pf.rohteil_von_oben(self.panel.job)
         tiefe = max(oben - z for _x, _y, z in bahn.eintauchen)
-        dazu = html.escape(
-            tr(
-                "ba.raeumen.vorbohren.fehlt",
-                von=groesse_zeigen(fraeser.durchmesser, einheiten.LAENGE, 1) or "0",
-                bis=groesse_zeigen(
-                    fraeser.durchmesser * VORBOHRER_HOECHSTENS, einheiten.LAENGE, 1
-                ) or "0",
-            ),
-            quote=False,
-        )  # fmt: skip
-        knopf = html.escape(
-            tr("ba.raeumen.vorbohren.anlegen", d=groesse_zeigen(d, einheiten.LAENGE, 1) or "0")
+        text = tr(
+            "ba.raeumen.vorbohren.fehlt",
+            von=groesse_zeigen(fraeser.durchmesser, einheiten.LAENGE, 1) or "0",
+            bis=groesse_zeigen(fraeser.durchmesser * VORBOHRER_HOECHSTENS, einheiten.LAENGE, 1)
+            or "0",
         )
-        if "<a " not in text:
-            text = html.escape(text, quote=False)
-        punkt = "" if text.rstrip().endswith((".", ">")) else "."
-        return f'{text}{punkt} {dazu} <a href="vorbohrer:{d:g}:{tiefe:.1f}">{knopf}</a>'
+        knopf_ = tr("ba.raeumen.vorbohren.anlegen", d=groesse_zeigen(d, einheiten.LAENGE, 1) or "0")
+        self.angebot.zeigen(text, [(knopf_, lambda: self.panel._vorbohrer_anlegen(d, tiefe))])
 
     def _mit_ausspannen(self, text, bahn):
         """Die Ergebniszeile – stößt die Bahn stellenweise an (hinterschnitt_bahn.Bahn.ausspannen),
@@ -4939,15 +4934,9 @@ class _Block:
         und rechnet die Vorschau."""
         bibliothek = self.panel.bibliothek
         if (
-            not ziel.startswith(
-                ("ausspannen:", "empfehlung:", "restschlichten:", "eckenwerkzeug:", "vorbohrer:")
-            )
+            not ziel.startswith(("ausspannen:", "empfehlung:", "restschlichten:", "eckenwerkzeug:"))
             or bibliothek is None
         ):
-            return
-        if ziel.startswith("vorbohrer:"):
-            _art, d, tiefe = ziel.split(":")
-            self.panel._vorbohrer_anlegen(float(d), float(tiefe))
             return
         if ziel.startswith("empfehlung:"):
             self._empfehlung_einrichten()
@@ -5017,6 +5006,7 @@ class _Block:
         self.ergebnis.setText(basis)
         self.material.setText(material)
         self.hinweis.setText(hinweis)
+        self._vorbohrer_angebot()
         if self.s.kennung == "nut" and vorschau is not None:
             self.stellen_zeigen(getattr(vorschau, "stellen", None))
 
@@ -5028,6 +5018,8 @@ class _Block:
         self.ergebnis.setText("")
         self.material.setText("")
         self.hinweis.setText("")
+        if self.s.kennung == "raeumen":
+            self.angebot.leeren()  # das Angebot des Bohrers (_vorbohrer_angebot)
 
 
 # Die Blöcke, deren Operationen im Freien mit dem Freivorschub fahren (freiwege) – ihre Zeit im

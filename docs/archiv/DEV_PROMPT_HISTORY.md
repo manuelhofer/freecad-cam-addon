@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-39 vorbohrer-als-angebot
+
+### EINGELESEN
+- An Manuels Tasche (G550, Ebene von oben) stand der Knopf „Bohrer Ø 12,5 anlegen und vorbohren“
+  mitten im Satz: Hinter die Ergebniszeile hängt der Assistent danach noch den Vergleich („– die
+  schnellste; Planfräsen wäre …“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_vorbohrer_angebot` – der fehlende Bohrer als eigene Zeile mit
+  Knopf (`_Angebot`, wie beim Fasenfräser) unter dem Räumen, auch aus dem Gemerkten; leer, wenn
+  das Räumen nicht ins Volle eintaucht, schon vorgebohrt wird oder ein Bohrer da ist.
+
+### ERGEBNIS
+- Szenario: „Zum Vorbohren fehlt ein Bohrer Ø 12 bis 19,2 im Magazin.“ mit Knopf darunter;
+  geklickt: Bohrer T2 Ø 12,5 angelegt, „Vorgebohrt: …“, das Angebot weg, „Vorbohren T2“ vor
+  „Räumen T1“.
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-38 vorbohrer-anlegen
 
 ### EINGELESEN
