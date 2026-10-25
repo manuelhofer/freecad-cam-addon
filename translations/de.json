@@ -2436,7 +2436,7 @@
     "pp.haken.schwenkzyklus": "Mit dem Schwenkzyklus der Steuerung",
     "pp.haken.schwenkzyklus.erklaerung": "Eine geschwenkte Ebene (ein Job mit Ebene): die Steuerung schwenkt mit ihrem Zyklus und rechnet Rundachsen und Werkzeuglänge selbst; die Sätze stehen in Koordinaten der Ebene. Aus (oder ohne Befehl): Die Rundachsen stehen im Programm, X, Y und Z sind für die gedrehte Maschine gerechnet – vorher zum Wechselpunkt, danach die Rundachsen auf 0.",
     "pp.feld.schwenken": "Ebene schwenken",
-    "pp.feld.schwenken.tooltip": "Vor den Operationen einer geschwenkten Ebene. {x0} {y0} {z0}: der Ursprung der Ebene im Grundjob; {a} {b} {c}: ihre Winkel achsweise in der Reihenfolge Z, Y, X – {a} um Z, {b} um Y, {c} um X. Siemens: CYCLE800 im Modus 27 mit Freifahren Z, dem Schwenkdatensatz zwischen den Anführungszeichen (leer: der einzige) und Richtung −1.",
+    "pp.feld.schwenken.tooltip": "Vor den Operationen einer geschwenkten Ebene. {x0} {y0} {z0}: der Ursprung der Ebene im Grundjob; {a} {b} {c}: ihre Winkel achsweise in der Reihenfolge Z, Y, X – {a} um Z, {b} um Y, {c} um X; {i} {j} {k}: dieselbe Drehung als Eulerwinkel Z, X', Z'' (Fanuc G68.2). Siemens: CYCLE800 im Modus 27 mit Freifahren Z, dem Schwenkdatensatz zwischen den Anführungszeichen (leer: der einzige) und Richtung −1.",
     "pp.feld.schwenken_aus": "Ebene zurück",
     "pp.feld.schwenken_aus.tooltip": "Nach der letzten Operation einer geschwenkten Ebene und am Programmende.",
     "pp.hinweis.ebene_ohne_kette": "Für die Ebenen fehlt eine lesbare tatsächliche Maschine; diese Bereiche bleiben unbearbeitet. Wähle die dem Job zugeordnete Maschine.",

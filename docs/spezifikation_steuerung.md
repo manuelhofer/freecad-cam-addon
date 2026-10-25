@@ -794,3 +794,17 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   leer – mit Makro-Option ginge `#3006=1 ({text})` (hält selbst an, steht im Tooltip).
 - Reihenfolge am Halt: Tür auf, Meldung, M0, Meldung weg, Tür zu.
 
+## 21. Fanuc G68.2 (P-2026-10-25-77; W-041)
+
+- `schwenken` „G68.2 X{x0} Y{y0} Z{z0} I{i} J{j} K{k}“ + „G53.1“, `schwenken_aus` „G69“, Haken
+  `schwenkzyklus` an Fanuc **vorbelegt aus** („Tilted Working Plane“ ist eine Option; ohne sie
+  rechnet das Programm die Rundachsen wie bisher). {i} {j} {k}: Eulerwinkel mit
+  R = Rz(i) · Rx(j) · Rz(k) (`schwenken.euler_zxz`; β 0 oder 180°: α allein).
+- `Steuerung.schwenken_aus_zuerst` (Fanuc): G69 vor Nullpunkt, Wechselpunkt (G53), Messstopp,
+  Programmende und jeder neuen Ebene; dann – G69 dreht nicht zurück, G53.1 fährt nicht frei – oben
+  die Rundachsen auf 0 (`_schwenken_aus` ohne Zyklus), erst danach G68.2 der nächsten Ebene; ein
+  Wechsel der Ebene ohne Werkzeugwechsel fährt dafür zum Wechselpunkt.
+- Mazak (EIA) kennt laut Handbuch kein G68.2 (dort G68 mit Achse und Winkel), Haas G268 ohne
+  gesicherte Syntax: beide ohne Zyklus. `programm_pruefen` zählt G4, G10, G52, G68, G68.2, G68.5
+  nicht als Bewegung.
+

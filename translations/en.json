@@ -2436,7 +2436,7 @@
     "pp.haken.schwenkzyklus": "With the control's swivel cycle",
     "pp.haken.schwenkzyklus.erklaerung": "A swivelled plane (a job with a plane): the control swivels with its cycle and computes rotary axes and tool length itself; the blocks are in plane coordinates. Off (or without command): the rotary axes are in the program, X, Y and Z computed for the rotated machine – first to the change point, afterwards the rotary axes to 0.",
     "pp.feld.schwenken": "Swivel plane",
-    "pp.feld.schwenken.tooltip": "Before the operations of a swivelled plane. {x0} {y0} {z0}: the plane's origin in the base job; {a} {b} {c}: its angles axis by axis in the order Z, Y, X – {a} about Z, {b} about Y, {c} about X. Siemens: CYCLE800 in mode 27 with retract Z, the swivel data set between the quotes (empty: the only one) and direction −1.",
+    "pp.feld.schwenken.tooltip": "Before the operations of a swivelled plane. {x0} {y0} {z0}: the plane's origin in the base job; {a} {b} {c}: its angles axis by axis in the order Z, Y, X – {a} about Z, {b} about Y, {c} about X; {i} {j} {k}: the same rotation as Euler angles Z, X', Z'' (Fanuc G68.2). Siemens: CYCLE800 in mode 27 with retract Z, the swivel data set between the quotes (empty: the only one) and direction −1.",
     "pp.feld.schwenken_aus": "Plane back",
     "pp.feld.schwenken_aus.tooltip": "After the last operation of a swivelled plane and at the end of the program.",
     "pp.hinweis.ebene_ohne_kette": "A readable actual machine is required for the planes; these areas remain unmachined. Select the machine assigned to the job.",

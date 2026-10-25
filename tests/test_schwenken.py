@@ -6,6 +6,7 @@
 import dataclasses
 import math
 import os
+import re
 import sys
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -113,6 +114,28 @@ pruefe(
 seite = sw.ebene(V(1, 0, 0), V(100, 0, 0))
 pruefe(nahe_v(seite.Rotation.multVec(V(1, 0, 0)), (0, 1, 0)), "Seite: X der Ebene nicht Y")
 pruefe(nahe_v(seite.Base, (100, 0, 0)), f"Seite: Ursprung {seite.Base}")
+
+# --- Fanuc G68.2: Eulerwinkel Z, X', Z'' – Rz(α)·Rx(β)·Rz(γ) gibt die Drehung zurück, auch
+# schief, kopfüber und waagerecht (β 0: α allein).
+for drehung in (
+    FreeCAD.Rotation(35.0, -20.0, 70.0),
+    FreeCAD.Rotation(-120.0, 10.0, 170.0),
+    FreeCAD.Rotation(V(0, 0, 1), 25.0),
+    FreeCAD.Rotation(V(1, 0, 0), 180.0),
+):
+    _p, (al, be, ga) = sw.euler_zxz(FreeCAD.Placement(V(1, 2, 3), drehung))
+    zurueck = (
+        FreeCAD.Rotation(V(0, 0, 1), al)
+        .multiply(FreeCAD.Rotation(V(1, 0, 0), be))
+        .multiply(FreeCAD.Rotation(V(0, 0, 1), ga))
+    )
+    pruefe(
+        all(
+            (zurueck.multVec(a) - drehung.multVec(a)).Length < 1e-6
+            for a in (V(1, 0, 0), V(0, 1, 0))
+        ),
+        f"Euler ZXZ {drehung.toEuler()} → {(al, be, ga)}",
+    )
 
 # --- CYCLE800: achsweise Z, Y, X -------------------------------------------------------------
 punkt, winkel = sw.zyklus_winkel(e)
@@ -512,6 +535,40 @@ for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": Fa
         any(z.startswith("G1") and f"X{soll[0]:.3f}" in z for z in zeilen),
         f"{s.name}: erster Satz nicht gerechnet ({soll})",
     )
+# Fanuc mit „Tilted Working Plane“ (Haken an; vorbelegt aus, eine Option): G68.2 mit dem Ursprung
+# der Ebene und den Eulerwinkeln I, J, K – Rz(I)·Rx(J)·Rz(K) ist die Drehung der Ebene –, dann
+# G53.1; am Ende G69 vor dem Wechselpunkt, danach die Rundachsen oben auf 0.
+fanuc_aus = pp.programm(teile, pp.steuerung("fanuc"), info, "Block").zeilen
+pruefe(not any("G68.2" in z for z in fanuc_aus), "Fanuc G68.2 ohne Haken")
+oben_f = pp.Maschineninfo("5-Achs")
+oben_f.wechselpunkt = {"Z": 150.0}
+programm_f = pp.programm(teile, pp.steuerung("fanuc", {"schwenkzyklus": True}), oben_f, "Block")
+fanuc = programm_f.zeilen
+g682 = [z for z in fanuc if z.startswith("G68.2 ")]
+pruefe(len(g682) == 1, f"Fanuc G68.2: {g682}")
+if g682:
+    k = fanuc.index(g682[0])
+    w = {a: float(v) for a, v in re.findall(r"([XYZIJK])(-?\d+\.\d+)", g682[0])}
+    r = (
+        FreeCAD.Rotation(V(0, 0, 1), w["I"])
+        .multiply(FreeCAD.Rotation(V(1, 0, 0), w["J"]))
+        .multiply(FreeCAD.Rotation(V(0, 0, 1), w["K"]))
+    )
+    gleich = all(
+        (r.multVec(a) - e.Rotation.multVec(a)).Length < 1e-4 for a in (V(1, 0, 0), V(0, 0, 1))
+    )
+    pruefe(
+        gleich and fanuc[k + 1] == "G53.1" and abs(w["X"] - e.Base.x) < 1e-3,
+        f"Fanuc {g682[0]!r} {fanuc[k + 1]!r}: Drehung {r} statt {e.Rotation}",
+    )
+    ende = fanuc[k:]
+    i69 = ende.index("G69") if "G69" in ende else -1
+    pruefe(
+        i69 > 0 and ende[i69 + 1] == "G53 G0 Z150.000" and "G0 A0.000 C0.000" in ende[i69:],
+        f"Fanuc zurück: {ende[-12:]}",
+    )
+    befunde_f = pp.nachlesen(programm_f, pp.steuerung("fanuc", {"schwenkzyklus": True}), oben_f)[0]
+    pruefe(not befunde_f, f"Fanuc G68.2 nachgelesen: {[(b.art, b.satz) for b in befunde_f[:4]]}")
 # Heidenhain (iTNC 530, TNC 640): PLANE SPATIAL – der Nullpunkt auf den Ursprung der Ebene
 # (Zyklus 7), die Raumwinkel SPA/SPB/SPC um X, Y, Z maschinenfest; Rz(SPC)·Ry(SPB)·Rx(SPA)·Z ist
 # die Normale der Ebene. Am Ende PLANE RESET und der Nullpunkt zurück; nachgelesen ohne Befund.

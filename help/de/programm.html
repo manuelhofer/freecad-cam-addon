@@ -265,9 +265,15 @@ An <b>Heidenhain</b> (iTNC 530, TNC 640/620/320) ebenso vorbelegt: der Nullpunkt
 der Ebene („CYCL DEF 7.0 NULLPUNKT“, „7.1 X…“ bis „7.3 Z…“), dann „PLANE SPATIAL SPA… SPB… SPC…
 TURN MB MAX FMAX SEQ±“ – die Raumwinkel um X, Y, Z der Maschine, dieselben wie bei CYCLE800,
 „MB MAX“ zieht vor dem Schwenken ganz zurück, „SEQ“ wählt die Stellung wie <code>_DIR</code>.
-Zurück mit „PLANE RESET TURN MB MAX FMAX“ und dem Nullpunkt auf 0.</li>
+Zurück mit „PLANE RESET TURN MB MAX FMAX“ und dem Nullpunkt auf 0.<br>
+An <b>Fanuc</b> mit der Option „Tilted Working Plane“ (Haken an; vorbelegt aus):
+„G68.2 X0 Y0 Z0 I… J… K…“ – der Ursprung der Ebene und die Eulerwinkel erst um Z, dann um die
+gedrehte X-Achse, dann um die gedrehte Z-Achse –, danach „G53.1“: Die Steuerung stellt das
+Werkzeug senkrecht auf die Ebene. Vor dem Wechselpunkt, dem Nullpunkt und jeder neuen Ebene
+„G69“; G53.1 fährt nicht frei und G69 dreht nicht zurück – darum oben die Rundachsen auf 0, dann
+erst G68.2 der nächsten Ebene.</li>
 <li><b>Ohne Zyklus</b> (Haken aus, oder die Steuerung hat keinen Befehl dafür: LinuxCNC, Mach,
-Fanuc, Haas) – vorher zum Wechselpunkt und auf die <b>Schwenkhöhe</b> (über dem Raum, den das
+Haas, Mazak; Fanuc ohne die Option) – vorher zum Wechselpunkt und auf die <b>Schwenkhöhe</b> (über dem Raum, den das
 Rohteil beim Schwenken überstreicht, + 20 mm), dann „G0 A… C…“, über den ersten Punkt und die
 Werkzeugachse entlang hinunter; die Sätze mit X, Y, Z für die gedrehte Maschine gerechnet,
 danach zurück auf die Schwenkhöhe und die Rundachsen auf 0. Gerechnet aus der <b>gewählten

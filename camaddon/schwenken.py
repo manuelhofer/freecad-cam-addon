@@ -169,6 +169,20 @@ def zyklus_winkel(ebene_):
     return tuple(ebene_.Base), (gier, nick, roll)
 
 
+def euler_zxz(ebene_):
+    """(Bezugspunkt (x, y, z), (α, β, γ)) – die Ebene als Eulerwinkel: erst um Z, dann um die
+    gedrehte X-Achse, dann um die gedrehte Z-Achse – R = Rz(α) · Rx(β) · Rz(γ), wie Fanuc G68.2
+    I, J, K. Steht die Ebene waagerecht (β 0 oder 180°), dreht α allein."""
+    m = ebene_.Rotation.toMatrix()
+    beta = math.degrees(math.acos(max(-1.0, min(1.0, m.A33))))
+    if abs(math.sin(math.radians(beta))) < 1e-9:
+        alpha, gamma = math.degrees(math.atan2(m.A21, m.A11)), 0.0
+    else:
+        alpha = math.degrees(math.atan2(m.A13, -m.A23))
+        gamma = math.degrees(math.atan2(m.A31, m.A32))
+    return tuple(ebene_.Base), (_rund(alpha), _rund(beta), _rund(gamma))
+
+
 # --- Rundachsen ----------------------------------------------------------------------------
 
 

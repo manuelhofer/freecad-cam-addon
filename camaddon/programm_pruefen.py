@@ -65,6 +65,8 @@ _D_AUS = re.compile(r"\bD0\b")
 _D_EIN = re.compile(r"\bD[1-9]\d*\b")
 _T_MIT_D = re.compile(r"T\S*\s+D[1-9]")
 _MASCHINENKOORDINATEN = re.compile(r"\bG53\b|\bSUPA\b|\bG75\b|\bG28\b")
+# G-Codes, deren X, Y, Z keine Bewegung sind: Verweilen, Daten setzen, Verschiebung, Ebene drehen.
+_OHNE_WEG = {"4", "04", "10", "52", "68", "68.2", "68.5"}
 
 
 def _ohne_kommentar(zeile, siemens):
@@ -163,6 +165,8 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False, nu
             laenge = True  # Drehmaschine: „T1 D1“
         if _MASCHINENKOORDINATEN.search(gross):
             continue  # Maschinenkoordinaten: ohne Länge gefahren, ändert den Stand im WKS nicht
+        if any(c in _OHNE_WEG for c in g):
+            continue  # X, Y, Z ohne Weg: Verweilen (Fanuc „G4 X2.0“), Ebene (G68.2), Daten (G10)
         achsen = {k: v for k, v in werte.items() if k[0] in "XYZABCUVW" and len(k) <= 2}
         if not achsen or bewegung is None:
             continue

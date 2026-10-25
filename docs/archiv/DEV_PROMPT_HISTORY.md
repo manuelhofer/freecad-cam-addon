@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-77 fanuc-g68-2
+
+### EINGELESEN
+- W-041 nannte für Fanuc/Haas „G68.2“: 3+2 mit dem Zyklus der Steuerung statt gerechneter
+  Rundachsen. Mazak-Handbuch (H740PB0030E): kein G68.2, sondern G68 mit Achse und Winkel – nicht
+  gebaut; Haas G268: Syntax nicht gesichert – nicht gebaut.
+
+### DATEIEN
+- `camaddon/schwenken.py`: `euler_zxz` (Rz(α) · Rx(β) · Rz(γ)).
+- `camaddon/postprozessor.py`: Platzhalter {i} {j} {k}; Fanuc `schwenken` G68.2 + G53.1,
+  `schwenken_aus` G69, `schwenkzyklus` vorbelegt aus; `schwenken_aus_zuerst`: G69 vor Nullpunkt,
+  Wechselpunkt, Messstopp, Ende und jeder neuen Ebene, danach oben die Rundachsen auf 0.
+- `camaddon/programm_pruefen.py`: G4, G10, G52, G68, G68.2, G68.5 sind keine Bewegung.
+- `tests/test_schwenken.py` (Euler hin und zurück an vier Drehungen; Fanuc an der Schräge),
+  `translations/*.json`, `help/*/programm.html`, `docs/spezifikation_steuerung.md` 21.
+
+### ERGEBNIS
+- Schräge A30: „G68.2 X0.000 Y-10.825 Z18.750 I0.000 J30.000 K0.000“ / „G53.1“; am Ende „G69“,
+  „G53 G0 Z150.000“, „G0 A0.000 C0.000“; nachgelesen ohne Befund. Ohne Haken wie bisher.
+- Grün: test_schwenken, test_programm_pruefen, test_postprozessor, _nachfahren, test_sprache.
+
 ## P-2026-10-25-76 meldung-beim-messstopp
 
 ### EINGELESEN

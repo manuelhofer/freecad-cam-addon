@@ -210,6 +210,10 @@ class Steuerung:
     schwenken: str = ""
     schwenken_aus: str = ""
     schwenkzyklus: bool = True
+    # Fanuc G68.2: vor dem Wechselpunkt (G53), dem Nullpunkt und einer neuen Ebene erst zurück
+    # (G69) – und G53.1 fährt nicht frei, G69 die Rundachsen nicht zurück: dazwischen hoch und die
+    # Rundachsen auf 0.
+    schwenken_aus_zuerst: bool = False
     # 5 Achsen simultan mit TCPM (Manuel, 2026-10-03: „TCPM bleibt aus … später als Haken“): die
     # Steuerung führt die Spitze – im Programm die Spitze im Werkstück und die Rundachsen je
     # Punkt, F in mm/min statt G93 ({t}: Werkzeugnummer). Aus oder leer: ohne TCPM, die
@@ -568,6 +572,13 @@ STEUERUNGEN = {
         # G43.4: Werkzeugspitzensteuerung Typ 1 (Rundachsen im Satz); G49 schaltet sie ab.
         tcpm_ein="G43.4 H{t}",
         tcpm_aus="G49",
+        # 3+2 mit „Tilted Working Plane“ (eine Option): G68.2 mit dem Ursprung der Ebene und den
+        # Eulerwinkeln Z, X', Z'' ({i} {j} {k}), G53.1 stellt das Werkzeug senkrecht darauf; G69
+        # zurück. Vorbelegt aus – ohne die Option rechnet das Programm die Rundachsen selbst.
+        schwenken="G68.2 X{x0} Y{y0} Z{z0} I{i} J{j} K{k}\nG53.1",
+        schwenken_aus="G69",
+        schwenkzyklus=False,
+        schwenken_aus_zuerst=True,
         g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
@@ -1439,9 +1450,15 @@ def programm(
             if spindel_an is not None:
                 zeilen.extend(_spindel_aus(s, spindel_an))
                 spindel_an = None
+            zurueck = None
+            if s.schwenken_aus_zuerst and zyklus and geschwenkt is not None:
+                zeilen.extend(_zeilen(s.schwenken_aus))  # Fanuc G69 vor G54 und G53
+                zurueck, geschwenkt = geschwenkt, None
             zeilen.extend(nullpunkt)
             nullpunkt = []
             zeilen.extend(_zum_wechselpunkt(s, info))
+            if zurueck is not None:  # die Rundachsen oben auf 0
+                zeilen.extend(_schwenken_aus(s, zurueck, False, _wechselpunkt_oben(s, info)))
             if geschwenkt is not None and not sw.gleiche(geschwenkt, abschnitt.schwenkung):
                 zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
                 geschwenkt = None
@@ -1492,12 +1509,18 @@ def programm(
         ):
             # Eine andere Ebene (oder dieselbe nach der Marke neu): erst weg vom Teil (ohne
             # Zyklus; CYCLE800 fährt selbst frei).
-            if not gewechselt and not zyklus:
+            if not gewechselt and (not zyklus or s.schwenken_aus_zuerst):
                 if spindel_an is not None:
                     zeilen.extend(_spindel_aus(s, spindel_an))
                     spindel_an = None
+                zurueck = None
+                if zyklus and geschwenkt is not None:  # Fanuc: G69, hoch, Rundachsen auf 0
+                    zeilen.extend(_zeilen(s.schwenken_aus))
+                    zurueck, geschwenkt = geschwenkt, None
                 weg = _zum_wechselpunkt(s, info)
                 zeilen.extend(weg)
+                if zurueck is not None:
+                    zeilen.extend(_schwenken_aus(s, zurueck, False, _wechselpunkt_oben(s, info)))
                 if weg and s.laenge_wieder and werkzeug:
                     laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
             if geschwenkt is not None and abschnitt.schwenkung is None:
@@ -1578,7 +1601,14 @@ def programm(
                 messstopp = False
                 weg = _zum_wechselpunkt(s, info)
                 if weg:
+                    zurueck = None
+                    if s.schwenken_aus_zuerst and zyklus and geschwenkt is not None:
+                        zeilen.extend(_zeilen(s.schwenken_aus))  # Fanuc G69 vor G53
+                        zurueck, geschwenkt = geschwenkt, None
                     zeilen.extend(weg)
+                    if zurueck is not None:
+                        oben = _wechselpunkt_oben(s, info)
+                        zeilen.extend(_schwenken_aus(s, zurueck, False, oben))
                     if s.laenge_wieder and werkzeug:
                         laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
                     continue
@@ -1786,8 +1816,16 @@ def programm(
             zeilen.append(s.kuehlung_aus)
     if spindel_an is not None:
         zeilen.extend(_spindel_aus(s, spindel_an))
+    zurueck = None
+    if s.schwenken_aus_zuerst and zyklus and geschwenkt is not None:
+        zeilen.extend(_zeilen(s.schwenken_aus))  # Fanuc G69 vor G53
+        zurueck, geschwenkt = geschwenkt, None
     if werkzeug is not None:
         zeilen.extend(_zum_wechselpunkt(s, info))
+    if zurueck is not None:  # die Rundachsen oben auf 0
+        zeilen.extend(
+            _schwenken_aus(s, zurueck, False, werkzeug is not None and _wechselpunkt_oben(s, info))
+        )
     if geschwenkt is not None:
         oben = werkzeug is not None and _wechselpunkt_oben(s, info)
         zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben))
@@ -1948,7 +1986,8 @@ def _schwenken_ein(s, schwenkung, info=None, umgekehrt=()):
     das Programm umgekehrt schreibt – zählt die Bezugsrundachse der Vorzugsrichtung so, ist der
     kleinere Wert an der Steuerung der größere."""
     (x0, y0, z0), (a, b, c) = sw.zyklus_winkel(schwenkung.ebene)
-    werte = {"x0": x0, "y0": y0, "z0": z0, "a": a, "b": b, "c": c}
+    _ursprung, (i, j, k) = sw.euler_zxz(schwenkung.ebene)
+    werte = {"x0": x0, "y0": y0, "z0": z0, "a": a, "b": b, "c": c, "i": i, "j": j, "k": k}
     werte = {k: _zahl(v) for k, v in werte.items()}
     # D-1, D-2: der Schwenkdatensatz der Maschine und die Vorzugsrichtung, mit der die Steuerung
     # die geprüfte Stellung nimmt.
