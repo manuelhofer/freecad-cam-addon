@@ -32,13 +32,19 @@ def pruefe(bedingung, text):
         print("FEHLER:", text)
 
 
-def vorschubsaetze_job(abschnitte):
-    """[(G, X, Y, Z, Mitte X, Mitte Y, F in mm/min)] der Vorschubsätze im Job – modal wie FreeCAD
-    (F in mm/s)."""
+RUND = ("A", "B", "C")
+
+
+def vorschubsaetze_job(abschnitte, info):
+    """[(G, X, Y, Z, Mitte X, Mitte Y, F je Minute, A, B, C)] der Vorschubsätze im Job – modal wie
+    FreeCAD (F je Sekunde; in G93 1 ÷ Zeit). Rundachsen, die der Postprozessor mit dem anderen
+    Vorzeichen schreibt (Rundum-Bahnen nach DIN: postprozessor._rund_umdrehen), umgedreht."""
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
+    rund = dict.fromkeys(RUND)
     for abschnitt in abschnitte:
         f = None
+        umdrehen = pp._rund_umdrehen(abschnitt, info)
         for befehl in abschnitt.befehle:
             name, werte = (befehl.Name, befehl.Parameters) if hasattr(befehl, "Name") else befehl
             name = name.upper().replace("G0", "G", 1) if re.fullmatch(r"G0\d", name) else name
@@ -47,13 +53,20 @@ def vorschubsaetze_job(abschnitte):
                 f = float(werte["F"]) * 60.0
             if name not in ("G0", "G1", "G2", "G3"):
                 continue
-            start = dict(pos)
+            start, start_rund = dict(pos), dict(rund)
             for a in pos:
                 if a in werte:
                     pos[a] = float(werte[a])
+            for a in RUND:
+                if a in werte:
+                    rund[a] = -float(werte[a]) if a in umdrehen else float(werte[a])
             if name == "G0" or None in pos.values():
                 continue
-            if name == "G1" and all(abs(pos[a] - start[a]) < 1e-9 for a in pos):
+            if (
+                name == "G1"
+                and all(abs(pos[a] - start[a]) < 1e-9 for a in pos)
+                and rund == start_rund
+            ):
                 continue  # nichts zu fahren – der Postprozessor lässt es weg
             mitte = (None, None)
             if name in ("G2", "G3"):
@@ -61,7 +74,7 @@ def vorschubsaetze_job(abschnitte):
                     start["X"] + float(werte.get("I", 0.0)),
                     start["Y"] + float(werte.get("J", 0.0)),
                 )
-            aus.append((name, pos["X"], pos["Y"], pos["Z"], *mitte, f))
+            aus.append((name, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
     return aus
 
 
@@ -72,10 +85,12 @@ def vorschubsaetze_programm(text, siemens=False):
     """Dasselbe aus dem Programmtext, wie eine Steuerung ihn liest."""
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
+    rund = dict.fromkeys(RUND)
     art, f, maschine = "G0", None, False
     for zeile in text.splitlines():
         zeile = re.sub(r"\([^)]*\)", "", zeile)
         zeile = zeile.split(";", 1)[0].strip().upper()
+        zeile = re.sub(r"\b([ABC])=", r"\1", zeile)  # Siemens: „A=12.5“
         if not zeile or zeile.startswith(("%", "O")):
             continue
         zeile = re.sub(r"^N\d+\s*", "", zeile)
@@ -94,12 +109,16 @@ def vorschubsaetze_programm(text, siemens=False):
         for a in pos:
             if a in werte:
                 pos[a] = None if maschine else werte[a]
-        if maschine or art == "G0" or not any(a in werte for a in pos) or None in pos.values():
+        for a in RUND:
+            if a in werte:
+                rund[a] = werte[a]
+        bewegt = any(a in werte for a in (*pos, *RUND))
+        if maschine or art == "G0" or not bewegt or None in pos.values():
             continue
         mitte = (None, None)
         if art in ("G2", "G3"):
             mitte = (start["X"] + werte.get("I", 0.0), start["Y"] + werte.get("J", 0.0))
-        aus.append((art, pos["X"], pos["Y"], pos["Z"], *mitte, f))
+        aus.append((art, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
     return aus
 
 
@@ -153,7 +172,7 @@ def vergleichen(job_saetze, prog_saetze):
     for i, (soll, ist) in enumerate(zip(job_saetze, prog_saetze, strict=True)):
         gleich = soll[0] == ist[0] and all(
             (a is None and b is None) or (a is not None and b is not None and abs(a - b) <= GENAU)
-            for a, b in zip(soll[1:6], ist[1:6], strict=True)
+            for a, b in zip((*soll[1:6], *soll[7:]), (*ist[1:6], *ist[7:]), strict=True)
         )
         f_gleich = (
             soll[6] is not None
@@ -167,20 +186,22 @@ def vergleichen(job_saetze, prog_saetze):
 
 sprache.setze_sprache("de")
 fraese = pp.Maschineninfo("Fräse", wechselpunkt={"Z": 250.0})
-for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd"):
+for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_4achs_nase.FCStd"):
     doc = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", datei))
     for job in [o for o in doc.Objects if hasattr(o, "Operations")]:
         abschnitte = pp.abschnitte(job)
-        soll = vorschubsaetze_job(abschnitte)
+        soll = vorschubsaetze_job(abschnitte, fraese)
         pruefe(len(soll) > 20, f"{job.Label}: nur {len(soll)} Vorschubsätze")
-        for kennung in ("linuxcnc", "fanuc", "haas", "mach", "mazak", "grbl", "siemens"):
+        rundum = any(w is not None for s in soll for w in s[7:])
+        steuerungen = ("linuxcnc", "fanuc", "haas", "mach", "mazak", "grbl", "siemens")
+        for kennung in [k for k in steuerungen if not (rundum and k == "grbl")]:
             for aenderung in ({}, {"satznummern": True}, {"marken": False}):
                 s = pp.steuerung(kennung, aenderung)
                 programm = pp.programm(abschnitte, s, fraese, job.Label)
                 ist = vorschubsaetze_programm(programm.text, siemens=kennung == "siemens")
                 unterschied = vergleichen(soll, ist)
                 pruefe(not unterschied, f"{datei} {job.Label} {kennung} {aenderung}: {unterschied}")
-        for kennung in ("heidenhain", "heidenhain_tnc640"):
+        for kennung in () if rundum else ("heidenhain", "heidenhain_tnc640"):
             programm = pp.programm(abschnitte, pp.steuerung(kennung), fraese, job.Label)
             unterschied = im_klartext(soll, klartext_punkte(programm.text))
             pruefe(not unterschied, f"{datei} {job.Label} {kennung}: {unterschied}")
