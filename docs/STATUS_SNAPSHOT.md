@@ -537,9 +537,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   nur für echte Objekte). „Kollision prüfen“ an Manuels Tasche: 20 → 6 Befunde, nur noch
   Annäherungen – bis auf einen Hauch am Schaft von T1 in einer Ecke, während B schnell dreht: In
   der unteren Lage läuft der Schaft (so dick wie die Schneide) genau an der fertigen Wand darüber
-  entlang; zwischen zwei Sätzen weicht er dort um Mikrometer ab (`simultan.verdichtet` hält nur
-  Spitze und Ende der Schneide auf der Geraden). Offen: auch den Schaft beim Verdichten prüfen
-  oder einen Fräser mit Hals verlangen.
+  entlang (am Netz der Ecke gemessen, nicht beim Verdichten – ein dritter Bezug für den Schaft
+  änderte nichts). Offen: Frage 5 (warnen und Werkzeug empfehlen, untere Lage dem 3D-Schlichten
+  lassen oder so lassen).
 0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
    Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
    A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz

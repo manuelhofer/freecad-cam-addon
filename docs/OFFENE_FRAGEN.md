@@ -44,3 +44,23 @@ brächte die Flanke (weniger Umläufe am Keil).
 Rüsten, Kauf), ist deine Werkstatt. Nach der Regel „Strategiewahl erst besprechen“ wähle ich nichts
 davon selbst vor. *Was die Antwort ändert:* Welche Abfolgen das Addon rechnet und als Empfehlung
 zeigt (wie „So einrichten“). – seit 2026-10-25.
+
+
+**Frage 5 – Flanke in zwei Lagen: der Schaft reibt an der fertigen Wand darüber.** An deiner
+tiefen Tasche (50 mm Wand) fräst T1 (494W D12: Schneide 26 mm, Hals Ø 11,2 auf 10 mm, dann Schaft
+Ø 12) die Flanke in zwei Lagen. In der unteren Lage liegt der Schaft genau an der Wand an, die die
+obere Lage schon fertig gefräst hat: Er ist so dick wie die Schneide, und die Wand ist eine Gerade
+längs der Achse. „Kollision prüfen“ meldet das an einer Ecke („berühren sich der Schaft von T1 und
+das Teil“, Satz 7684). In echt ist der Schaft (h6) meist ein paar Hundertstel dicker als die
+Schneide (e8) – er würde die Wand dort polieren oder anfressen. Frei kommt es nur, wenn das
+Werkzeug über die ganze Wand schneidet oder freigeschliffen ist (Schneide ≥ 50 mm, oder Hals bis
+über die Wand).
+1. **Warnen und empfehlen** (mein Vorschlag): Die Flanke prüft in unteren Lagen auch den Schaft
+   und sagt wie bei Halter und Auskragung, womit es ginge (längere Schneide oder langer Hals), mit
+   „So einrichten“.
+2. **Die untere Lage dem 3D-Schlichten lassen:** Die Flanke fräst nur so tief, wie Schneide und
+   Hals reichen; darunter die Kugel.
+3. **So lassen** – an der Maschine nimmt man dafür ohnehin ein passendes Werkzeug.
+*Warum nur Manuel:* Ob der Schaft dort stört und welches Werkzeug man dafür nimmt, ist
+Werkstattwissen. *Was die Antwort ändert:* ob die Flanke Lagen mit diesem Werkzeug anbietet, warnt
+oder kürzt. – seit 2026-10-25.
