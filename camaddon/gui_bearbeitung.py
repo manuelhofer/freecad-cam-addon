@@ -4571,8 +4571,11 @@ class _Block:
                 else _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
             )
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
-        self.ergebnis_basis = self._mit_ecken(
-            self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
+        self.ergebnis_basis = self._mit_vorbohrer(
+            self._mit_ecken(
+                self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
+                self.vorschau,
+            ),
             self.vorschau,
         )
         self.ergebnis.setText(self.ergebnis_basis)
@@ -4885,6 +4888,39 @@ class _Block:
         knopf = html.escape(tr("ba.s3.unter.ecken_rest", werkzeug=f"T{kugel.nummer}"))
         return f'{text} <a href="restschlichten:{kugel.kennung}">{knopf}</a>'
 
+    def _mit_vorbohrer(self, text, bahn):
+        """Hinter der Ergebniszeile des Räumens: Taucht es ins Volle ein und fehlt fürs Vorbohren
+        ein Bohrer im Magazin (_vorbohrer), der Satz dazu mit „Bohrer Ø … anlegen und vorbohren“
+        (Verweis „vorbohrer:Ø:Tiefe“; Manuel: Empfehlungen auch, wenn es das Werkzeug nicht gibt –
+        der nächste Schritt als Knopf)."""
+        if self.s.kennung != "raeumen" or not getattr(bahn, "eintauchen", None):
+            return text
+        if getattr(bahn, "vorbohren", None) is not None:
+            return text
+        fraeser = self.fraeser()
+        if fraeser is None or self.panel._vorbohrer(fraeser) is not None:
+            return text
+        d = math.ceil((float(fraeser.durchmesser) + VORBOHRER_LUFT) * 2.0 - 1e-9) / 2.0
+        *_rohteil, oben = pf.rohteil_von_oben(self.panel.job)
+        tiefe = max(oben - z for _x, _y, z in bahn.eintauchen)
+        dazu = html.escape(
+            tr(
+                "ba.raeumen.vorbohren.fehlt",
+                von=groesse_zeigen(fraeser.durchmesser, einheiten.LAENGE, 1) or "0",
+                bis=groesse_zeigen(
+                    fraeser.durchmesser * VORBOHRER_HOECHSTENS, einheiten.LAENGE, 1
+                ) or "0",
+            ),
+            quote=False,
+        )  # fmt: skip
+        knopf = html.escape(
+            tr("ba.raeumen.vorbohren.anlegen", d=groesse_zeigen(d, einheiten.LAENGE, 1) or "0")
+        )
+        if "<a " not in text:
+            text = html.escape(text, quote=False)
+        punkt = "" if text.rstrip().endswith((".", ">")) else "."
+        return f'{text}{punkt} {dazu} <a href="vorbohrer:{d:g}:{tiefe:.1f}">{knopf}</a>'
+
     def _mit_ausspannen(self, text, bahn):
         """Die Ergebniszeile – stößt die Bahn stellenweise an (hinterschnitt_bahn.Bahn.ausspannen),
         dahinter „T… auf … mm ausspannen“ (Manuel: der nächste Schritt als Knopf)."""
@@ -4903,9 +4939,15 @@ class _Block:
         und rechnet die Vorschau."""
         bibliothek = self.panel.bibliothek
         if (
-            not ziel.startswith(("ausspannen:", "empfehlung:", "restschlichten:", "eckenwerkzeug:"))
+            not ziel.startswith(
+                ("ausspannen:", "empfehlung:", "restschlichten:", "eckenwerkzeug:", "vorbohrer:")
+            )
             or bibliothek is None
         ):
+            return
+        if ziel.startswith("vorbohrer:"):
+            _art, d, tiefe = ziel.split(":")
+            self.panel._vorbohrer_anlegen(float(d), float(tiefe))
             return
         if ziel.startswith("empfehlung:"):
             self._empfehlung_einrichten()
@@ -10634,6 +10676,34 @@ class BearbeitungPanel:
         )
         self.doc.recompute()  # das Räumen rechnet mit den Löchern
         return ops
+
+    def _vorbohrer_anlegen(self, durchmesser, tiefe):
+        """„Bohrer Ø … anlegen und vorbohren“: ein Bohrer (HSS, 118°, Schneide mindestens 8 × D und
+        5 mm mehr als `tiefe`) mit Richtwerten in die Werkzeugverwaltung – steht eine Maschine mit
+        Magazin da, auch ins Magazin –, gespeichert; der Assistent liest es neu, das Vorbohren
+        geht."""
+        from . import werkzeugkiste as wk
+
+        if self.bibliothek is None:
+            return
+        bohrer = wz.Werkzeug(
+            nummer=self.bibliothek.naechste_nummer(),
+            name=tr("ba.raeumen.vorbohren.bohrer_name", d=f"{durchmesser:g}"),
+            art=wz.BOHRER,
+            durchmesser=float(durchmesser),
+            schneiden=2,
+            schneidenlaenge=float(math.ceil(max(8.0 * durchmesser, tiefe + 5.0))),
+            spitzenwinkel=wz.SPITZENWINKEL_BOHRER,
+            schneidstoff=wz.HSS,
+        )
+        wk.richtwerte_eintragen(bohrer)
+        self.bibliothek.werkzeuge.append(bohrer)
+        magazin = self.magazin()
+        if magazin is not None:
+            mg.uebernehmen(self.bibliothek, magazin, bohrer, self.job)  # speichert
+        else:
+            self.bibliothek.speichern()
+        self._werkzeuge_gespeichert()
 
     def _vorbohrer(self, fraeser):
         """Der Bohrer fürs Vorbohren zum Räumfräser `fraeser` – {kennung, durchmesser,

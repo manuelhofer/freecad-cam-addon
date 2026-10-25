@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-38 vorbohrer-anlegen
+
+### EINGELESEN
+- Manuels Werkzeugverwaltungen (Kopien, 1.1, 26.3, 27.1) haben keinen Bohrer: Der Haken
+  „Vorbohren“ stünde bei ihm nur grau da. Regel: Empfehlungen auch, wenn es das Werkzeug nicht
+  gibt; der nächste Schritt als Knopf.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_mit_vorbohrer` – taucht das Räumen ins Volle ein und fehlt
+  ein Bohrer, hinter der Ergebniszeile „Zum Vorbohren fehlt ein Bohrer Ø … bis … im Magazin.
+  Bohrer Ø … anlegen und vorbohren“ (Verweis `vorbohrer:Ø:Tiefe`, Ø auf 0,5 mm über Fräser + 0,5);
+  `_vorbohrer_anlegen` – HSS, 118°, Schneide mindestens 8 × D und 5 mm über der Tiefe, Richtwerte
+  (werkzeugkiste.richtwerte_eintragen), mit Magazin auch dort hinein (magazin.uebernehmen),
+  gespeichert; der Haken kommt zurück.
+- `translations/de.json`, `en.json`.
+
+### ERGEBNIS
+- Szenario (Tasche 40 × 30 × 15, nur T1 Ø 12): der Satz mit dem Knopf; geklickt: T2 Bohrer
+  Ø 12,5 (Schneide 100), „Vorgebohrt: 1 Loch Ø 12,5, 16 tief …“, angelegt „Vorbohren T2“ vor
+  „Räumen T1“.
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-37 vorbohren-fuers-raeumen
 
 ### EINGELESEN
