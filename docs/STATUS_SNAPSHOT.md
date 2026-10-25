@@ -530,7 +530,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-26 nachts (0.306.3) – offen, in dieser Reihenfolge:**
 - *Korrektur (0.306.3):* Klartext immer in ASCII; die Gegenprobe schaltet an der Platte jeden
   Haken jeder Steuerung einzeln um (0 Befunde). 0.306.2: Drehmaschine ohne Y – Y0 fällt weg.
 - *Korrektur (0.306.1):* Bohren an der Drehmaschine ausgeschrieben (Siemens G81 nur im
@@ -1947,6 +1947,14 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Heidenhain TNC 640 (Zyklen 200 ff., PLANE, M128), Fanuc/Haas (G68.2, G43.4, G81–G89), dazu
   neue: Okuma OSP, Mazak (EIA/ISO), Brother, GRBL. Ohne Maschine nicht prüfbar – nach den
   Handbüchern, beim Nachlesen geprüft (programm_pruefen).
+  **Stand 2026-10-26 nachts:** gebaut GRBL, Mazak, Werkzeugliste und Sprungmarken im Kopf bei
+  jeder Steuerung, Gewindebohren synchron/mit Ausgleichsfutter, Werkzeugvorwahl, Hochlauf,
+  Nullpunkt aus dem Job (Haken aus, Frage 3), Satznummern ≤ 5 Stellen, Heidenhain-Schraube als CP,
+  G94 im Kopf, Meldung beim Messstopp, Fanuc G68.2 (Haken aus), Rundachsen nach CYCLE800() auf 0,
+  Programmnummer je Job, Bohren an der Drehmaschine ausgeschrieben, Drehmaschine ohne Y; die
+  Gegenprobe (Vorschub, Eilgänge, jeder Haken jeder Steuerung). **Offen:** Okuma und Brother (kein
+  Handbuch, Frage 2), Haas G268 (Vorzeichen der UMC ungeprüft), Gewindebohren an der Drehmaschine
+  (Siemens G331/G332 oder CYCLE84 mit Bohrachse – Hinweis statt Satz), TRANSMIT/TRACYL (Frage 1).
 - **W-039 Der Assistent fragt, wie man vorgehen will** – Manuel, 2026-10-25 (Antwort auf Frage 6,
   die aus seinem Vorschlag zu Frage 4 kam: „hey wie willst du vorgehen sollen wir erst vorbohren …
   oder sollen wir alles rausschruppen und dann schlichten“): „ja irgendwie mehr abfragen wie der
