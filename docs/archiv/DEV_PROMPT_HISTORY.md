@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-52 woodwop-mpr
+
+### EINGELESEN
+- Herbert im Forum fräst an einer Homag unter woodWOP. Manuel, 2026-10-25: „es gibt mit
+  sicherheit unterlagen und ich bin mir auch sehr sicher das du einen guten wenn nicht sogar
+  perfekten post prozessor bauen kannst ... mach das einfach .. generell ... finde ich du solltest
+  auch für die bekantesten steuerungen einen post prozessor bauen der perfetkt ist ..“
+- Quellen: HOMAGs „woodWOP FILE-Description (MPR-Format)“ 4.x (Abschrift im Netz), die Ausgabe
+  eines WoodWOP-5-Postprozessors für eine Homag BOF 211 (nur das Format gelesen), Foren zu
+  `ZA="@0"` (die Höhe aus der Kontur, ohne Radiuskorrektur).
+
+### DATEIEN
+- `camaddon/mpr.py` (neu): `uebersetzen` – Kopf, Werkstück aus dem Rohteil, je Zug im Vorschub
+  eine Kontur (KP/KL/KA mit R und DS, Vollkreis in zwei Hälften, Schrauben in Geraden), X/Y ab
+  der Ecke, Z vom Boden; je Kontur Konturfräsen (SEN an/ab, NOWRK, ZA="@0", TNO, F_ m/min,
+  S_A), Bohrzyklen als BohrVert (TI ab Oberseite); erst die Konturen, dann die Bearbeitungen;
+  Kommentar, „!“; `pruefe` liest nach.
+- `camaddon/postprozessor.py`: Steuerungen „Homag woodWOP (MPR)“ und „Weeke woodWOP (MPR)“
+  (Dialekt „mpr“, ohne Wechselpunkt, Kühlung, Marken, G93); Hinweise (ein Vorschub je Kontur,
+  Rundachsen, zerlegte Bögen, ohne Rohteil); Nachlesen.
+- `camaddon/gui_programm.py`: `.mpr` mit CR LF.
+- `translations/de.json`, `en.json`; `docs/spezifikation_steuerung.md` 12;
+  `tests/test_mpr.py` (neu), `tests/test_postprozessor.py`.
+
+### ERGEBNIS
+- test_mpr: Kopf, Werkstück, Kontur mit Versatz, Bögen, Vollkreis, Vorschub in m/min (der
+  kleinere mit Hinweis), BohrVert, Reihenfolge, ASCII, CR LF, Nachlesen (auch an kaputten).
+  Nicht an einer Homag ausprobiert – Herbert soll eine Datei in woodWOP öffnen.
+- Prüfungen: test_mpr, test_postprozessor grün.
+
 ## P-2026-10-25-53 kerne-einmal-alle
 
 ### EINGELESEN

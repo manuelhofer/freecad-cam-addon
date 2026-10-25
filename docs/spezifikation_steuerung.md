@@ -577,6 +577,32 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   `_DIR` (+ die Stellung mit dem größeren Wert der ersten Rundachse). Zurück `PLANE RESET TURN MB
   MAX FMAX` und Zyklus 7 auf 0. Die Vorzeichen setzt `klartext.uebersetzen`. Nicht an einer
   Heidenhain-Steuerung ausprobiert – vor dem ersten Lauf in ihrer Simulation ansehen.
+- **P-2026-10-25-52 – Homag und Weeke: woodWOP (MPR):** Manuel (2026-10-25), zu Herbert im Forum,
+  der an einer Homag unter woodWOP fräst: „es gibt mit sicherheit unterlagen … mach das einfach
+  .. generell ... finde ich du solltest auch für die bekantesten steuerungen einen post prozessor
+  bauen der perfetkt ist“. woodWOP liest kein G-Code, sondern MPR: Konturen und Bearbeitungen.
+  Steuerungen „Homag woodWOP (MPR)“ und „Weeke woodWOP (MPR)“ (Endung `.mpr`, nur `MAT` im Kopf
+  verschieden). Der Postprozessor schreibt die Bahn wie sonst, `mpr.uebersetzen` macht daraus:
+  - Kopf `[H` (VERSION 4.0, MAT, INCH 0), Variablen L, B, D aus dem Rohteil, `<100 \Werkstck\`.
+  - Je Zug im Vorschub eine Kontur `]n` – `$E0 KP` dort, wo der Eilgang endete, `KL` für G1,
+    `KA` mit `R` und `DS` (0/1 bis 180° im/gegen den Uhrzeigersinn, 2/3 darüber) für Bögen in XY;
+    ein Vollkreis in zwei Hälften; Schrauben und Bögen in XZ/YZ in Geraden (0,002 mm). X/Y ab der
+    Ecke des Rohteils, Z vom Boden (woodWOP: Z = D ist oben).
+  - Je Kontur `<105 \Konturfraesen\` mit `MDA="SEN"`/`MDE="SEN_AB"` (senkrecht an und ab),
+    `RK="NOWRK"` (die Mittelbahn – so ist sie gerechnet), `ZA="@0"` (die Höhe aus der Kontur),
+    `TNO`, `F_` in m/min, `SM="1"` und `S_A` (U/min). Eine Kontur hat nur einen Vorschub:
+    Wechselt er (Eintauchen langsamer), gilt der kleinere, das Programm sagt, an wie vielen.
+  - Bohrzyklen G81 ff. als `<102 \BohrVert\` (XA, YA, TI ab Oberseite, TNO, F_).
+  - Erst alle Konturen, dann die Bearbeitungen in ihrer Folge; die Kommentare als
+    `<101 \Kommentar\` (ASCII, je Zeile 80 Zeichen); `!` am Ende; CR LF.
+  - Kein Wechselpunkt, keine Kühlung, keine Marken, kein G93 – woodWOP fährt selbst frei und kennt
+    die Werkzeuge der Maschine. Rundachsen kann diese Ausgabe nicht (Hinweis).
+  - Nachgelesen (`mpr.pruefe`): `[H` … `!`, Bögen mit Radius bis zur Sehne, Vorschub > 0, jede
+    Kontur und jedes Element, auf das ein Konturfräsen zeigt, nur ASCII.
+  Quellen: HOMAGs „woodWOP FILE-Description (MPR-Format)“ 4.x (eine Abschrift im Netz) und die
+  Ausgabe eines WoodWOP-5-Postprozessors, die an einer Homag BOF 211 lief (nur das Format gelesen,
+  kein Code übernommen). **Nicht an einer Homag ausprobiert** – Herbert ist gefragt, eine Datei in
+  woodWOP zu öffnen.
 
 
 ## 13. Theme im Programmfenster (P-2026-10-08-13)

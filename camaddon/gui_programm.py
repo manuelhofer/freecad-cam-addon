@@ -1026,8 +1026,10 @@ class ProgrammDialog(QtGui.QDialog):
         """Schreibt die Zeilen in die Datei und sagt im Fenster, was gespeichert und was beim
         Nachlesen aufgefallen ist; gibt den Pfad zurück (None, wenn es nicht ging)."""
         try:
+            # woodWOP (MPR) läuft unter Windows: dort CR LF.
+            ende = "\r\n" if pfad.lower().endswith(".mpr") else "\n"
             with open(pfad, "w", encoding="utf-8", newline="\n") as datei:
-                datei.write("\n".join(zeilen) + "\n")
+                datei.write(ende.join(zeilen) + ende)
         except OSError as fehler:
             self.ergebnis.setText(tr("pp.fehler.speichern", fehler=str(fehler)))
             self.ergebnis.setStyleSheet(f"color: {farben.ROT};")

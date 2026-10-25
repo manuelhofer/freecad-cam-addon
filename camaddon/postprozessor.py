@@ -551,6 +551,37 @@ STEUERUNGEN["heidenhain_tnc640"] = Steuerung(
     tcpm_aus="FUNCTION RESET TCPM",
     **_HEIDENHAIN,
 )
+# woodWOP (Homag, Weeke; Manuel, 2026-10-25: „mach das einfach“): kein G-Code, sondern MPR – der
+# Postprozessor schreibt die Bahn wie sonst, mpr.uebersetzen macht Konturen und Bearbeitungen
+# daraus. Wechselpunkt, Kühlung, Marken, Glätten und G93 gibt es dort nicht (woodWOP fährt selbst
+# frei, die Maschine kennt ihre Werkzeuge).
+_WOODWOP = {
+    "endung": ".mpr",
+    "kommentar": "(",
+    "kopf": "",
+    "ende": "",
+    "kopf_drehen": "",
+    "wechsel_fraesen": "T{t} M6",
+    "wechsel_drehen": "T{t} M6",
+    "spindel_ein": "M{m} S{s}",
+    "spindel_aus": "M5",
+    "angetrieben_ein": "",
+    "angetrieben_aus": "",
+    "c_ein": "",
+    "c_aus": "",
+    "vorschub_zeit": "",
+    "vorschub_minute": "",
+    "vorschub_minute_drehen": "",
+    "g93": False,
+    "kuehlung": False,
+    "wechselpunkt": False,
+    "marken": False,
+    "rohteil": False,
+    "schwenkzyklus": False,
+    "dialekt": "mpr",
+}
+STEUERUNGEN["woodwop"] = Steuerung("woodwop", "Homag woodWOP (MPR)", **_WOODWOP)
+STEUERUNGEN["woodwop_weeke"] = Steuerung("woodwop_weeke", "Weeke woodWOP (MPR)", **_WOODWOP)
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
 
 
@@ -966,6 +997,9 @@ def programm(
             hinweise.append(tr("pp.hinweis.klartext_drehen"))
         s = s.ersetzt(g93=False, satznummern=False)
         fertig = _klartext_fertig(s, name, datei, rohteil, hinweise, koordinatenstellen)
+    elif s.dialekt == "mpr":
+        s = s.ersetzt(g93=False, satznummern=False, wechselpunkt=False, marken=False)
+        fertig = _mpr_fertig(s, name, rohteil, hinweise)
     else:
 
         def fertig(zeilen_, saetze_):
@@ -1353,6 +1387,31 @@ def _klartext_fertig(s, name, datei, rohteil, hinweise, stellen=STELLEN):
             else:
                 hinweise.append(tr("pp.hinweis.klartext_unbekannt", saetze=" | ".join(wert)))
         return Programm(uebersetzt.zeilen, hinweise, saetze)
+
+    return fertig
+
+
+def _mpr_fertig(s, name, rohteil, hinweise):
+    """Für woodWOP: eine Funktion, die die Zeilen übersetzt (mpr.uebersetzen) und das Programm
+    gibt – das Werkstück aus dem Rohteil, der Maschinentyp aus der Steuerung."""
+    from . import mpr
+
+    typ = "WEEKE" if s.kennung == "woodwop_weeke" else "HOMAG"
+
+    def fertig(zeilen, saetze):
+        uebersetzt = mpr.uebersetzen(zeilen, name, rohteil, typ)
+        for art, wert in uebersetzt.hinweise:
+            if art == "vorschub":
+                hinweise.append(tr("pp.hinweis.mpr_vorschub", anzahl=wert))
+            elif art == "rundachsen":
+                hinweise.append(tr("pp.hinweis.mpr_rundachsen"))
+            elif art == "zerlegt":
+                hinweise.append(tr("pp.hinweis.mpr_zerlegt", anzahl=wert))
+            elif art == "ohne_rohteil":
+                hinweise.append(tr("pp.hinweis.mpr_ohne_rohteil"))
+            else:
+                hinweise.append(tr("pp.hinweis.klartext_unbekannt", saetze=" | ".join(wert)))
+        return Programm(uebersetzt.zeilen, hinweise, uebersetzt.saetze)
 
     return fertig
 
@@ -1933,6 +1992,11 @@ def nachlesen(programm, s, info=None):
         from . import klartext as kt
 
         pruefung = kt.pruefe(programm.text)
+        return pruefung.befunde, pruefung.saetze
+    if s.dialekt == "mpr":
+        from . import mpr
+
+        pruefung = mpr.pruefe(programm.text)
         return pruefung.befunde, pruefung.saetze
     info = info or Maschineninfo()
     laenge = s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein

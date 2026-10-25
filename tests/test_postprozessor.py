@@ -423,8 +423,8 @@ print(ascii(f"Job: {p_job.saetze} Saetze, {len(p_job.zeilen)} Zeilen"))
 # Haas kein G90 (dort an der Drehmaschine der Längsdrehzyklus) – auch nicht aus der Bahn.
 for kennung in pp.STEUERUNGEN:
     s = pp.steuerung(kennung)
-    if s.dialekt == "klartext":
-        continue  # Heidenhain-Klartext nur an der Fräse – unten eigens
+    if s.dialekt in ("klartext", "mpr"):
+        continue  # Heidenhain-Klartext und woodWOP nur an der Fräse – eigens (test_mpr)
     p_k = pp.programm(teile, s, dreh, job.Label)
     befunde, _saetze = pp.nachlesen(p_k, s, dreh)
     pruefe(not befunde, f"Job {kennung}: {[(b.art, b.satz) for b in befunde[:3]]}")
