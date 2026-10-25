@@ -223,6 +223,24 @@ class _Satz(QtGui.QLabel):
         self.spiegel.setVisible(not leer)
 
 
+def _bibliothek_der_pruefung():
+    """Die Werkzeugverwaltung, mit der eine Vorschau Halter und Schaft prüft: die des offenen
+    Assistenten mit dem Magazin seiner Maschine (Bibliothek.magazin_fuer_pruefung – der Halter und
+    wie weit das Werkzeug an seinem Platz herausschaut). Manuel, 2026-10-25, an seiner tiefen
+    Tasche: „T1 auf 54 mm ausspannen“ und „So einrichten“ schrieben in den Platz, die Vorschau
+    las frisch die Werkzeugliste – „läst sich bei mir immer noch nicht klicken“. Ohne Fenster
+    frisch geladen."""
+    panel = BearbeitungPanel.offen
+    bibliothek = getattr(panel, "bibliothek", None) if panel is not None else None
+    if bibliothek is not None:
+        panel.magazin()  # hängt das Magazin an (magazin.des_jobs)
+        return bibliothek
+    try:
+        return wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        return None
+
+
 class _Angebot:
     """Ein Satz mit Knöpfen (höchstens KNOEPFE), der etwas anbietet – wie _Satz an zwei Stellen:
     im Überblick (nur, wenn die Strategie zur Wahl passt) und bei den Einstellungen. Leer nimmt
@@ -3454,11 +3472,9 @@ class _Schlichten3D(_Strategie):
         if werte.get("hinterschnitt") and form.nur_kugel:
             weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
             weiter["spirale"] = bool(werte.get("spirale", True))
-            # Schaft und Halter aus der Werkzeugverwaltung (der Halter in Stücken, Kegel genau).
-            try:
-                bibliothek = wz.Bibliothek.laden()
-            except (wz.BeschaedigteDatei, OSError):
-                bibliothek = None
+            # Schaft und Halter aus der Werkzeugverwaltung (der Halter in Stücken, Kegel genau) –
+            # wie sie im Magazin der Maschine stecken.
+            bibliothek = _bibliothek_der_pruefung()
             if bibliothek is not None:
                 masse = rw.masse_des_werkzeugs(werkzeug)
                 laenge = rw.laenge_des_werkzeugs(werkzeug, bibliothek)[0]
@@ -3654,10 +3670,7 @@ class _Flanke(_Strategie):
             raise ValueError(tr("fl.fehler.fraeser"))
         radius = float(form.radius)
         schneide = float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0) or 4.0 * radius
-        try:
-            bibliothek = wz.Bibliothek.laden()
-        except (wz.BeschaedigteDatei, OSError):
-            bibliothek = None
+        bibliothek = _bibliothek_der_pruefung()
         return (form, radius, schneide, list(flaechen)), {
             "aufmass": werte["aufmass"],
             "vorschub": werte.get("vorschub", 0.0),

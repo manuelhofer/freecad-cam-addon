@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-54 vorschau-mit-magazin
+
+### EINGELESEN
+- Manuel (Bild seiner tiefen Tasche an der G550, 0.291.2): „läst sich bei mir immer noch nicht
+  klciken“ – gemeint die Links „So einrichten“ (3D-Schlichten) und „T1 auf 54 mm ausspannen“
+  (Flanke). In seinem Magazin standen danach Platz 1 mit 54 mm und die Kugel im Schrumpffutter
+  A 80 mit 33 mm – die Klicks hatten gewirkt, die roten Sätze blieben („steht 48 mm heraus“).
+- Nachgestellt mit einer Kopie seiner Werkzeugverwaltung und dem Magazin: Flanke und
+  3D-Schlichten luden für die Vorschau die Werkzeugverwaltung frisch – ohne Magazin, also mit
+  Halter und Ausspannlänge der Werkzeugliste. Ein echter Mausklick auf den Link kam an.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_bibliothek_der_pruefung` – die Werkzeugverwaltung des offenen
+  Assistenten mit dem Magazin seiner Maschine; Flanke und „Unter dem Rand“ nehmen sie.
+
+### ERGEBNIS
+- Szenario mit seinen Daten: vorher rot („48 mm heraus“, „45 mm heraus“), jetzt Flanke „48 Umläufe
+  in 2 Lagen, etwa 5 min“ und 3D-Schlichten „14 Höhenlinien … als Spirale, etwa 5 min“.
+
 ## P-2026-10-25-52 woodwop-mpr
 
 ### EINGELESEN
