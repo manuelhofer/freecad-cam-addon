@@ -99,6 +99,8 @@ def vorschubsaetze_programm(text, siemens=False):
             continue  # Wechselpunkt in Maschinenkoordinaten, Zyklen, Marken
         woerter = _WORT.findall(zeile)
         g = [float(z) for b, z in woerter if b == "G"]
+        if 4.0 in g:
+            continue  # Verweilen: X/P ist die Zeit (Fanuc „G4 X1.000“), keine Lage
         werte = {b: float(z) for b, z in woerter if b not in ("G", "M", "N", "T", "S", "H", "D")}
         maschine = 53.0 in g
         for code in g:
@@ -177,6 +179,8 @@ def eilgaenge_programm(text, siemens=False):
             continue
         woerter = _WORT.findall(zeile)
         g = [float(z) for b, z in woerter if b == "G"]
+        if 4.0 in g:
+            continue  # Verweilen: X/P ist die Zeit (Fanuc „G4 X1.000“), keine Lage
         werte = {b: float(z) for b, z in woerter if b not in ("G", "M", "N", "T", "S", "H", "D")}
         if 53.0 in g:
             for a in pos:
@@ -330,6 +334,29 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             pruefe(not unterschied, f"{datei} {job.Label} {kennung}: {unterschied}")
         print(ascii(f"{job.Label}: {len(soll)} Vorschubsaetze je Steuerung gleich"))
         if datei.startswith("platte"):
+            # Jeder Haken einzeln umgeschaltet, an jeder Steuerung (außer woodWOP): nachgelesen
+            # ohne Befund, Vorschub und Eilgänge wie im Job (Klartext: jeder Endpunkt).
+            mit = pp.Maschineninfo("Fräse", wechselpunkt={"Z": 250.0})
+            mit.hochlauf = {"haupt": 1.0}
+            eil = eilgaenge_job(abschnitte, mit)
+            for kennung, s0 in pp.STEUERUNGEN.items():
+                if s0.dialekt == "mpr":
+                    continue
+                for haken in (h for h in pp.HAKEN if hasattr(s0, h)):
+                    s = s0.ersetzt(**{haken: not getattr(s0, haken)})
+                    p_h = pp.programm(abschnitte, s, mit, job.Label, nummer=12)
+                    befunde = pp.nachlesen(p_h, s, mit)[0]
+                    if s.dialekt == "klartext":
+                        u = im_klartext(soll, klartext_punkte(p_h.text))
+                    else:
+                        siemens = kennung == "siemens"
+                        u = vergleichen(
+                            soll, vorschubsaetze_programm(p_h.text, siemens)
+                        ) or in_folge(eil, eilgaenge_programm(p_h.text, siemens))
+                    pruefe(
+                        not befunde and not u,
+                        f"{kennung} {haken}={getattr(s, haken)}: {u} {[b.art for b in befunde[:3]]}",
+                    )
             # Die Gegenprobe merkt es: ein Satz 0,01 mm daneben, ein Vorschub anders.
             text = pp.programm(abschnitte, pp.steuerung("fanuc"), fraese, "P").text
             z = re.search(r"^G1 [^\n]*Z(-?\d+\.\d+)", text, re.M)

@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-82 klartext-immer-ascii, gegenprobe-je-haken
+
+### EINGELESEN
+- Robustheitsprobe: jede Steuerung, jeder Haken einzeln umgeschaltet, an Platte, C-Ring und zwei
+  Taster-Teilen von Manuel (Kopien). Kein Absturz. Echter Befund: Heidenhain mit „Kommentare nur in
+  ASCII“ aus schrieb Umlaute – die eigene Prüfung des Klartexts meldet sie als Zeichen, die die TNC
+  nicht nimmt. Sonst nur Lücken der Gegenprobe („G4 X1.000“ las sie als Lage; GRBL und Klartext
+  ohne TNC-Zyklen schreiben das Bohren aus – mehr Vorschubsätze, richtig so).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Klartext immer ASCII; `camaddon/gui_programm.py`: der Haken nicht
+  im Klartext.
+- `tests/test_postprozessor_nachfahren.py`: G4 ist keine Lage; an der Platte jede Steuerung mit
+  jedem Haken umgeschaltet – nachgelesen, Vorschub und Eilgänge.
+
+### ERGEBNIS
+- Platte und C-Ring: 0 Befunde über alle Steuerungen × Haken. Grün: test_postprozessor,
+  _nachfahren, test_programm_pruefen; szenario_programm_heidenhain.
+
 ## P-2026-10-25-81 drehmaschine-ohne-y
 
 ### EINGELESEN

@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Korrektur (0.306.3):* Klartext immer in ASCII; die Gegenprobe schaltet an der Platte jeden
+  Haken jeder Steuerung einzeln um (0 Befunde). 0.306.2: Drehmaschine ohne Y – Y0 fällt weg.
 - *Korrektur (0.306.1):* Bohren an der Drehmaschine ausgeschrieben (Siemens G81 nur im
   ISO-Modus, Fanuc-Drehmaschinen ohne G81, LinuxCNC in G18 längs Y); Gewinde dort mit Hinweis.
 - *Neu (0.306.0):* Programmnummer je Job (Fanuc, Mazak „O1234“, Haas „O01234“) im Fenster

@@ -162,6 +162,7 @@ NUR_FRAESEN = {
 # Was es im Heidenhain-Klartext nicht gibt (die Satznummern schreibt er immer, die Länge nimmt
 # TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst) – nicht gezeigt.
 NUR_GCODE = {
+    "nur_ascii",  # Klartext immer in ASCII
     "rohteil",
     "rohteil_fraesen",
     "rohteil_drehen",

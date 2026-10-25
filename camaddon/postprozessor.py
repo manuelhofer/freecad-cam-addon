@@ -1312,7 +1312,8 @@ def programm(
     if s.dialekt == "klartext":
         if info.drehmaschine:
             hinweise.append(tr("pp.hinweis.klartext_drehen"))
-        s = s.ersetzt(g93=False, satznummern=False)
+        # Klartext immer in ASCII: die TNC nimmt in Kommentaren keine Umlaute (klartext.pruefe).
+        s = s.ersetzt(g93=False, satznummern=False, nur_ascii=True)
         fertig = _klartext_fertig(s, name, datei, rohteil, hinweise, koordinatenstellen)
     elif s.dialekt == "mpr":
         s = s.ersetzt(g93=False, satznummern=False, wechselpunkt=False, marken=False)
