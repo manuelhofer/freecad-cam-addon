@@ -37,11 +37,12 @@ def pruefe(bedingung, text):
 RUND = ("A", "B", "C")
 
 
-def vorschubsaetze_job(abschnitte, info, spindel=None):
+def vorschubsaetze_job(abschnitte, info, spindel=None, werkzeuge=None):
     """[(G, X, Y, Z, Mitte X, Mitte Y, F je Minute, A, B, C)] der Vorschubsätze im Job – modal wie
     FreeCAD (F je Sekunde; in G93 1 ÷ Zeit). Rundachsen, die der Postprozessor mit dem anderen
     Vorzeichen schreibt (Rundum-Bahnen nach DIN: postprozessor._rund_umdrehen), umgedreht.
-    `spindel` (eine Liste): je Satz dazu (Drehzahl, links) der Operation."""
+    `spindel` (eine Liste): je Satz dazu (Drehzahl, links, Kühlung) der Operation; `werkzeuge`:
+    ihre Werkzeugnummer."""
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUND)
@@ -81,20 +82,25 @@ def vorschubsaetze_job(abschnitte, info, spindel=None):
             if spindel is not None:
                 kuehl = abschnitt.kuehlung in ("Flood", "Mist")
                 spindel.append((round(abschnitt.drehzahl), bool(abschnitt.rueckwaerts), kuehl))
+            if werkzeuge is not None:
+                werkzeuge.append(int(abschnitt.werkzeug))
     return aus
 
 
 _WORT = re.compile(r"([A-Z])\s*([-+]?(?:\d+\.?\d*|\.\d+))")
 
 
-def vorschubsaetze_programm(text, siemens=False, spindel=None):
+def vorschubsaetze_programm(text, siemens=False, spindel=None, werkzeuge=None):
     """Dasselbe aus dem Programmtext, wie eine Steuerung ihn liest. `spindel` (eine Liste): je Satz
-    dazu (Drehzahl, links), wie die Spindel da läuft (0: sie steht)."""
+    dazu (Drehzahl, links, Kühlung), wie die Spindel da läuft (0: sie steht); `werkzeuge`: je Satz
+    (T, H) – das gewechselte Werkzeug (T mit M6; eine Vorwahl ohne M6 zählt nicht) und die
+    eingeschaltete Länge (G43 H, G49: 0)."""
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUND)
     art, f, maschine = "G0", None, False
     drehzahl, links, laeuft, kuehl = 0, False, False, False
+    t_aktiv, h_aktiv = None, 0
     for zeile in text.splitlines():
         zeile = re.sub(r"\([^)]*\)", "", zeile)
         zeile = zeile.split(";", 1)[0].strip().upper()
@@ -109,8 +115,13 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None):
         if 4.0 in g:
             continue  # Verweilen: X/P ist die Zeit (Fanuc „G4 X1.000“), keine Lage
         werte = {b: float(z) for b, z in woerter if b not in ("G", "M", "N", "T", "S", "H", "D")}
+        m6 = any(b == "M" and float(z) == 6.0 for b, z in woerter)
         for b, z in woerter:
-            if b == "S":
+            if b == "T" and m6:
+                t_aktiv = round(float(z))
+            elif b == "H" and 43.0 in g:
+                h_aktiv = round(float(z))
+            elif b == "S":
                 drehzahl = round(float(z))
             elif b == "M" and float(z) in (3.0, 4.0):
                 laeuft, links = True, float(z) == 4.0
@@ -120,6 +131,8 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None):
                 kuehl = True
             elif b == "M" and float(z) == 9.0:
                 kuehl = False
+        if 49.0 in g:
+            h_aktiv = 0
         maschine = 53.0 in g
         for code in g:
             if code in (0.0, 1.0, 2.0, 3.0):
@@ -142,6 +155,8 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None):
         aus.append((art, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
         if spindel is not None:
             spindel.append((drehzahl if laeuft else 0, links, kuehl))
+        if werkzeuge is not None:
+            werkzeuge.append((t_aktiv, h_aktiv))
     return aus
 
 
@@ -324,8 +339,8 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
     doc = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", datei))
     for job in [o for o in doc.Objects if hasattr(o, "Operations")]:
         abschnitte = pp.abschnitte(job)
-        spindel_soll = []
-        soll = vorschubsaetze_job(abschnitte, fraese, spindel_soll)
+        spindel_soll, werkzeug_soll = [], []
+        soll = vorschubsaetze_job(abschnitte, fraese, spindel_soll, werkzeug_soll)
         pruefe(len(soll) > 20, f"{job.Label}: nur {len(soll)} Vorschubsätze")
         pruefe(
             all(a.nullpunkte == tuple(job.Fixtures) for a in abschnitte),
@@ -347,8 +362,23 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 # Bei jedem Vorschubsatz läuft die Spindel mit Drehzahl und Drehsinn der Operation,
                 # die Kühlung wie an ihr – auch nach Messstopp, Wechsel und Einstieg hinter einer
                 # Marke.
-                spindel_ist = []
-                vorschubsaetze_programm(programm.text, kennung == "siemens", spindel_ist)
+                spindel_ist, werkzeug_ist = [], []
+                vorschubsaetze_programm(
+                    programm.text, kennung == "siemens", spindel_ist, werkzeug_ist
+                )
+                # Das gewechselte Werkzeug und – wo die Steuerung G43 H braucht – seine Länge.
+                mit_h = bool(pp.steuerung(kennung).laenge_ein)
+                falsch_w = next(
+                    (
+                        (i, w, ist)
+                        for i, (w, ist) in enumerate(zip(werkzeug_soll, werkzeug_ist, strict=True))
+                        if kennung != "grbl" and (ist[0] != w or (mit_h and ist[1] != w))
+                    ),
+                    None,
+                )
+                pruefe(
+                    not falsch_w, f"{datei} {job.Label} {kennung} {aenderung}: Werkzeug {falsch_w}"
+                )
                 falsch = next(
                     (
                         (i, a, b)
@@ -425,6 +455,16 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                         None,
                     )
                     pruefe(not falsch, f"gemischt {kennung} {aenderung}: {falsch}")
+            # Die Länge des vorigen Werkzeugs (G43 H mit der falschen Nummer) fällt auf.
+            w_soll = []
+            vorschubsaetze_job(abschnitte, fraese, None, w_soll)
+            letztes_h = re.findall(r"G43 H(\d+)", text)[-1]
+            falsches_h = text[::-1].replace(f"G43 H{letztes_h}"[::-1], "G43 H99"[::-1], 1)[::-1]
+            w_ist = []
+            vorschubsaetze_programm(falsches_h, False, None, w_ist)
+            pruefe(
+                any(i[1] != w for w, i in zip(w_soll, w_ist, strict=True)), "falsches H übersehen"
+            )
             ohne_m3 = re.sub(r"^M3 S\d+\n", "", text, count=1, flags=re.M)
             spindel_ohne = []
             vorschubsaetze_programm(ohne_m3, False, spindel_ohne)
