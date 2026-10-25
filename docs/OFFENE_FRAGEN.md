@@ -43,3 +43,15 @@ Programm ihn setzen soll, ist Gewohnheit der Bediener – falsch vorbelegt fähr
 falschen Nullpunkt.
 *Was die Antwort ändert:* Mit ja ist der Haken vorbelegt an (je Steuerung oder für alle).
 Seit 2026-10-25.
+
+**Frage 4 – Gewindebohren an der CLX550: wie machst du das heute?** An der Drehmaschine schreibt
+das Programm seit 0.306.1 jedes Bohren ausgeschrieben (G0/G1 längs Z) – nur Gewindebohren nicht,
+dort steht ein Hinweis. Die Siemens kann es auf zwei Arten: in der Mitte mit stehendem
+Gewindebohrer und der Hauptspindel in Lageregelung (`SPOS`, dann `G331 Z… K…` / `G332`), oder an
+der Stirn mit angetriebenem Werkzeug (`CYCLE84`, die Masterspindel ist dann der Antrieb). Welche
+Art nutzt du, und schreibst du sie in ShopTurn oder im G-Code?
+*Warum nur Manuel:* Welche Spindel an seiner Maschine Masterspindel ist und wie er Gewinde dort
+bohrt, steht nur an der Maschine – falsch geraten bricht der Gewindebohrer.
+*Was die Antwort ändert:* Danach schreibt der Postprozessor das Gewinde an der Drehmaschine als
+Satz statt als Hinweis.
+Seit 2026-10-26.
