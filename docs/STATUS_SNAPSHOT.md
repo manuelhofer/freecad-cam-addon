@@ -530,7 +530,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-26 nachts (0.306.3) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 nachts (0.307.0) – offen, in dieser Reihenfolge:**
 - *Neu (0.307.0):* Im Einrichtblatt je Aufspannung das gespeicherte Programm („W.nc · O1234 ·
   Fanuc“).
 - *Korrektur (0.306.3):* Klartext immer in ASCII; die Gegenprobe schaltet an der Platte jeden
@@ -1949,7 +1949,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Heidenhain TNC 640 (Zyklen 200 ff., PLANE, M128), Fanuc/Haas (G68.2, G43.4, G81–G89), dazu
   neue: Okuma OSP, Mazak (EIA/ISO), Brother, GRBL. Ohne Maschine nicht prüfbar – nach den
   Handbüchern, beim Nachlesen geprüft (programm_pruefen).
-  **Stand 2026-10-26 nachts:** gebaut GRBL, Mazak, Werkzeugliste und Sprungmarken im Kopf bei
+  **Stand 2026-10-25 nachts:** gebaut GRBL, Mazak, Werkzeugliste und Sprungmarken im Kopf bei
   jeder Steuerung, Gewindebohren synchron/mit Ausgleichsfutter, Werkzeugvorwahl, Hochlauf,
   Nullpunkt aus dem Job (Haken aus, Frage 3), Satznummern ≤ 5 Stellen, Heidenhain-Schraube als CP,
   G94 im Kopf, Meldung beim Messstopp, Fanuc G68.2 (Haken aus), Rundachsen nach CYCLE800() auf 0,

@@ -54,7 +54,7 @@ Art nutzt du, und schreibst du sie in ShopTurn oder im G-Code?
 bohrt, steht nur an der Maschine – falsch geraten bricht der Gewindebohrer.
 *Was die Antwort ändert:* Danach schreibt der Postprozessor das Gewinde an der Drehmaschine als
 Satz statt als Hinweis.
-Seit 2026-10-26.
+Seit 2026-10-25.
 
 **Frage 5 – Große Programme an der alten 840D: aus dem NC-Speicher oder „von extern“?** Ein
 5-Achs-Simultanprogramm hat schnell Millionen Sätze (du schriebst von „14834834 Zeilen“). Im
@@ -66,4 +66,4 @@ mit `EXTCALL "…"` aufruft (Werkzeugwechsel im Hauptprogramm, die Bahn in den U
 EXTCALL in den Maschinendaten), sieht man nur an ihr.
 *Was die Antwort ändert:* Mit ja ein Haken „Je Bearbeitung ein Unterprogramm (EXTCALL)“ für
 Siemens; sonst bleibt es ein Programm.
-Seit 2026-10-26.
+Seit 2026-10-25.
