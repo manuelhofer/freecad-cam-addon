@@ -28,8 +28,9 @@ chosen one is in a file, the job remembers it. Below it says what the postproces
 lathe or mill, X as diameter, the main spindle and its C axis (“main spindle S4, C axis C4”),
 which stations are driven (“T1…T12 → S1 (C1)”). Without a machine it writes as for a
 mill.</li>
-<li><b>Control</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4 or Heidenhain
-conversational – iTNC 530 or TNC 640/620/320 (<a href="#heidenhain">below</a>). The job remembers the
+<li><b>Control</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4, GRBL 1.1, Homag/Weeke
+woodWOP (MPR) or Heidenhain conversational – iTNC 530 or TNC 640/620/320
+(<a href="#heidenhain">below</a>). The job remembers the
 choice, so does the machine – for the next job on it, it is preselected.</li>
 <li><b>Settings on the left, preview on the right</b> with the first blocks – you see every
 change right away.</li>
@@ -68,6 +69,14 @@ with a <a href="magazine.html">magazine</a> the “name in the control” where 
 <li><b>Comments</b> – before each section the name of the operation and the tool (“; Rotary
 roughing T1”), at the start the name of the job. Off: blocks only – some controls dislike long
 comments.</li>
+<li><b>Tool list in the header</b> – at the top of the program per tool its number and name,
+below it Ø, stick-out, length from the spindle nose and holder (from the tool manager and the
+machine's magazine; estimated values marked “approx.”), and “for:” the jump labels of the
+operations that use it. Before that the list of jump labels with operation and tool – on Fanuc
+and Haas with their block number (“N3 = RAEUMEN_T1”). At the very start the label <b>ANFANG</b>:
+in a long program you search for a label's name to get there, and for ANFANG to get back to the
+top (Siemens “ANFANG:”, Heidenhain “* - ANFANG”, otherwise as a comment; controls without labels
+have each operation's label name in a comment).</li>
 <li><b>Blank for the simulation</b> (Siemens) – the job's stock as WORKPIECE in the header,
 so the simulation on the control shows the right blank: on the mill a box
 “WORKPIECE(,"",,"BOX",240,Z top,Z bottom,ZB,X0,Y0,X1,Y1)”, on the lathe the bar
@@ -274,6 +283,12 @@ safety distance 0, depth absolute, for deep drilling the first depth R − Q and
 Source: Siemens programming manual job planning 10/2015, pp. 651–663; fundamentals 03/2010,
 p. 535. The commands are under “Drilling cycles” to change; empty keeps the G-code. On a lathe
 it stays G81 etc.</p>
+<p><b>Tapping</b> (G84 right-hand, G74 left-hand): FreeCAD writes the pitch into F, the
+postprocessor turns it into the feed pitch · speed. Siemens gets <b>CYCLE84</b> (rigid tapping,
+pitch as PIT, the spindle turns on as before afterwards), Fanuc <b>M29 S…</b> before the first
+G84 (rigid), Heidenhain cycle <b>207</b>. Haas, LinuxCNC and Mach keep G84 with the correct F.</p>
+<p><b>GRBL</b> has no drilling cycles: there they are written out – over the hole, rapid to R,
+feed in (G83 in pecks), G4 for dwell, back. GRBL cannot tap (a note says so).</p>
 <p><b>Before the first run</b> look in the control's simulation at how CYCLE83 feeds in.</p>
 
 <a name="glaetten"></a>
@@ -320,8 +335,11 @@ two halves. A helix or an arc in XZ/YZ is written as lines (at most 0.002 mm off
 so.</li>
 <li>To the tool change point in machine coordinates with <b>M91</b> (“L Z+0 R0 FMAX M91”); M92
 (a point set by the machine builder) is offered.</li>
-<li>Drilling cycles are written out – drilling, peck drilling with retract, chip breaking,
-reaming as L blocks, dwell with cycle 9.</li>
+<li>Drilling cycles as TNC cycles (tick “TNC drilling cycles”, on by default): drilling and
+peck drilling as <b>200 DRILLING</b>, chip breaking as <b>203 UNIVERSAL DRILLING</b>, reaming as
+<b>201 REAMING</b>, tapping as <b>207</b> – per hole “L X… Y… R0 FMAX M99”. Depth and feed can be
+changed in the cycle at the control. Tick off: written out as L blocks, dwell with cycle 9
+(tapping stays cycle 207).</li>
 <li>The jump labels are <b>structure blocks</b> (“* - RAEUMEN_T1”): in the control's structure
 view you jump to an operation, with mid-program startup you start there.</li>
 <li>Smoothing with <b>cycle 32 tolerance</b>; 5-axis simultaneous with TCPM on the iTNC 530 with

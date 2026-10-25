@@ -102,9 +102,23 @@ pruefe(
     "; Sprungmarken" in text and ";   FLACH – Flach" in text and ";   TIEF – Tief" in text,
     "Marken im Kopf",
 )
+# Je Werkzeug Name, dann Ø, Auskragung, Länge ab Spindelnase und Halter, dann seine Marken
+# (Manuel, 2026-10-25: „werkzeugliste am anfang mit ausspannlängen, durchmesser, und länge von
+# spindelnase … welches werkzeug für welche bearbeitung“); vorn die Marke ANFANG.
+k = zeilen.index(";   T3 Kugel 6") if ";   T3 Kugel 6" in zeilen else -1
 pruefe(
-    any("T3 Kugel 6 – Auskragung 27 mm, Schrumpffutter" in z for z in zeilen),
-    f"Werkzeug im Kopf: {[z for z in zeilen if z.startswith(';   T')]}",
+    k > 0
+    and zeilen[k + 1].startswith(";      Ø 6 mm · Auskragung 27 mm · ab Spindelnase ")
+    and "Schrumpffutter" in zeilen[k + 1]
+    and zeilen[k + 2] == ";      für: FLACH, TIEF"
+    and ";   ANFANG – Programmanfang – hierher zurück" in zeilen
+    and zeilen.index("ANFANG:") < zeilen.index("FLACH:"),
+    f"Werkzeug im Kopf: {zeilen[:20]}",
+)
+ohne = pp.programm(teile, pp.steuerung("siemens", {"werkzeugliste": False}), info, "Kopf").zeilen
+pruefe(
+    "; Werkzeuge:" not in ohne and ";   ANFANG – Programmanfang – hierher zurück" in ohne,
+    f"ohne Werkzeugliste: {ohne[:12]}",
 )
 knapp = [z for z in zeilen if "knapp" in z]
 pruefe(len(knapp) == 1 and "„Tief“" in knapp[0] and "26.0" in knapp[0], f"knapp: {knapp}")

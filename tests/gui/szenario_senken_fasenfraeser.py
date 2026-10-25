@@ -85,13 +85,14 @@ def schritte(h):
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 60000)
     yield 800
     h.pruefe(not senken.moeglich and not senken.aktiv(), "Senken ohne Kegelsenker möglich")
-    # Ohne Fasenfräser: was fehlt, und der Knopf zur Werkzeugverwaltung.
+    # Ohne Fasenfräser: was fehlt, und der Knopf, der ihn anlegt (seit 0.290.0 – Manuel: der
+    # nächste Schritt als Knopf, auch wenn das Werkzeug fehlt).
     satz = panel.unfertig_satz.text()
     h.pruefe(
         panel.unfertig_angebot.isVisible()
         and "Kegelsenker 90° ab Ø 12,4" in satz
         and "Spitze bis Ø 6,6" in satz
-        and panel.unfertig_knopf.text() == "Werkzeugverwaltung …",
+        and panel.unfertig_knopf.text() == "Kegelsenker 90° Ø 12,4 anlegen",
         f"fehlt: {satz!r} / {panel.unfertig_knopf.text()!r}",
     )
     h.bild("0_was_fehlt", panel.form)

@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-66/-67 grbl, programmkopf-werkzeugliste, ausspannen-vor-empfehlung
+
+### EINGELESEN
+- W-041 (Manuel: „alle !“): GRBL 1.1 nach dem README („List of Supported G-Codes“).
+- Manuel, nachts: „werkzeugliste am anfang mit ausspannlängen, durchmesser, und länge von
+  spindelnase wäre gut oben einzufügen und welches werkzeug für welche bearbeitung benutzt wird
+  und eben auch die sprung namen damit man danach suchen kann … auch am anfang ein Anfang
+  sprungpunkt“ – „und das bei jedem post prozessor !!!“; „ich hör meinen pc nicht fauchen“.
+- Der große Lauf (131 Prüfdateien 6-fach, 144 Szenarien 5-fach parallel) fand: test_sprache (zwei
+  zusammengesetzte Schlüssel), die Simultan-Referenzen (neuer Kopf, 10 s Werkzeugwechsel aus
+  W-040), zwei Szenarien mit überholter Erwartung (Normreihe im Halter-Menü, Knopf „Kegelsenker …
+  anlegen“), szenario_flanke_halter: die Empfehlung eines anderen Halters verdrängte „T5 auf
+  43 mm ausspannen“ und sagte „mit dem Magazin geht es nicht“; test_nut_offen (siehe ERGEBNIS).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Steuerung „grbl“ (`zyklen_ausschreiben`, `rundachsen`,
+  `einstieg_je_marke`), `_zyklus_ausgeschrieben`; der Kopf (`_kopfzeilen`, `MARKE_ANFANG`,
+  `_suchtext`, Haken `werkzeugliste`), `Abschnitt.masse`, `_einspannung_des_controllers` (je Lauf
+  gemerkt); mehrzeilige Werkzeugwechsel.
+- `camaddon/gui_bearbeitung.py`: `_ausspannen_oder_empfehlung` – Ausspannen zuerst, die
+  Empfehlung als „Oder: …“; Schlüssel der Fragen ausgeschrieben.
+- `camaddon/gui_programm.py`, `translations/de.json`, `en.json`, `help/*/programm.html`.
+- `tests/test_postprozessor_grbl.py` (neu), `test_programmkopf.py`, `test_mpr.py`,
+  `tests/gui/szenario_halter_richtung.py`, `szenario_senken_fasenfraeser.py`; `tests/golden/*`
+  (Simultan: `sha256` des Programms und `zeit_s`/`sekunden` +10 s – die Bahnen unverändert,
+  45 176 Sätze ohne Kommentare gleich; die Freiform-Zeiten +10 s als obere Grenze, ihr Lauf dauert
+  über eine Stunde; `freiform_simultan_gesamt_nc.json` aus demselben Grund nicht neu).
+- `docs/spezifikation_steuerung.md` 15, 16.
+
+### ERGEBNIS
+- Kopf an Siemens: „ANFANG – Programmanfang – hierher zurück“, „FLACH – Flach – T3“, „T3 Kugel 6“ /
+  „Ø 6 mm · Auskragung 27 mm · ab Spindelnase 107 mm · Schrumpffutter …“ / „für: FLACH, TIEF“,
+  dann `ANFANG:`; Fanuc „N1 = …“, LinuxCNC/GRBL die Namen im Kommentar, woodWOP in KM-Zeilen.
+- GRBL: kein M6/G43/G49/G81 ff./G98/G99/M7; G83 in Zustellungen; Gewinde und Rundachsen mit
+  Hinweis; nachgelesen ohne Befund.
+- Flanke am Halter: „T5 auf 43 mm ausspannen“ und „Oder: T5 VHM 10 kurz im Halter …“.
+- test_nut_offen rot seit P-2026-10-25-19 (0.281.20, bisect): Räumen in der Nut nimmt „inseln“
+  feiner gerechnet (0,55 min); der Prüfstand misst bis 6,6 ae, 116 mm über 1,25 ae. Im
+  Assistenten gewinnt die Nut (Räumen ohne Adaptiv zählt dort als Vollschnitt). Offen.
+- Prüfungen: alle Prüfdateien außer test_nut_offen grün (Simultan, Nebenrechner einzeln), die
+  Szenarien zu Programm, Einrichtblatt, Magazin, Fragen, Flanke am Halter grün.
+
 ## P-2026-10-25-65 heidenhain-bohrzyklen
 
 ### EINGELESEN

@@ -685,3 +685,39 @@ Kapitel 3:
   oder R (G99); neu definiert nur, wenn sich ein Wert ändert; je Loch `L X… Y… R0 FMAX M99`.
 - Die Zahlen wie im Handbuch („Q201=-15“, „Q211=0.1“), die Fortsetzungszeilen mit „~“.
 - Aus: ausgeschrieben wie bisher. Gewindebohren bleibt Zyklus 207 (ausgeschrieben ginge es nicht).
+
+## 15. GRBL 1.1 (P-2026-10-25-66, W-041)
+
+Nach dem README „List of Supported G-Codes in Grbl v1.1“: kein M6, keine Bohrzyklen G81–G89, kein
+G98/G99, keine Länge je Werkzeug (nur G43.1), kein G64, keine Rundachsen; M7 ist meist nicht
+einkompiliert.
+- Werkzeugwechsel: `M0` (Halt) nach dem Kommentar mit dem Werkzeug – einsetzen, Z antasten,
+  weiter. Kopf ohne `%` und ohne G49, Nebel als M8.
+- Bohrzyklen ausgeschrieben (`Steuerung.zyklen_ausschreiben`, `_zyklus_ausgeschrieben`): über das
+  Loch, im Eilgang auf R, im Vorschub hinein – G83 in Zustellungen mit Rückzug auf R (0,5 mm
+  darüber wieder im Vorschub), G73 mit Spanbruch, G82 mit G4, G85 heraus im Vorschub –, zurück
+  auf die Höhe davor (G98) oder R (G99).
+- Gewindebohren geht nicht (kein Gleichlauf): Hinweis, keine Bewegung. Rundachsen im Programm:
+  Hinweis (`Steuerung.rundachsen`).
+- Marken als Namen im Kommentar ohne vollständigen Einstieg (`einstieg_je_marke` aus – sonst je
+  Bearbeitung ein Halt).
+- Geprüft: `tests/test_postprozessor_grbl.py`.
+
+## 16. Der Programmkopf: Werkzeugliste, Sprungmarken, ANFANG (P-2026-10-25-66)
+
+Manuel, 2026-10-25 nachts: „werkzeugliste am anfang mit ausspannlängen, durchmesser, und länge
+von spindelnase … welches werkzeug für welche bearbeitung benutzt wird und eben auch die sprung
+namen damit man danach suchen kann und bei einem 14834834 zeilen programm schnell von a nach b
+kommt auch am anfang ein Anfang sprungpunkt“ – „und das bei jedem post prozessor !!!“.
+- Sprungmarken: vorn `ANFANG – Programmanfang – hierher zurück`, dann je Bearbeitung ihr Suchtext
+  (der Name; bei Fanuc/Haas „N3 = RAEUMEN_T1“), die Bearbeitung und ihr Werkzeug.
+- Werkzeuge (Haken „Werkzeugliste im Kopf“, vorbelegt an): je Werkzeug „T3 Kugel 6“, darunter
+  „Ø 6 mm · Auskragung 27 mm · ab Spindelnase 107 mm · Schrumpffutter …“ (aus der
+  Werkzeugverwaltung und dem Magazin – `reichweite.werkzeuglaenge`; geschätzt mit „ca.“ und
+  „Länge geschätzt – in der Werkzeugverwaltung eintragen“; ohne Werkzeugverwaltung nur der Ø),
+  dann „für: FLACH, TIEF“ (je Zeile höchstens 4).
+- Die Marke ANFANG im Programm: Siemens `ANFANG:`, Heidenhain `* - ANFANG`, sonst `(ANFANG)`;
+  Steuerungen ohne Marken mit Namen (LinuxCNC, Mach, Fanuc, Haas, GRBL) schreiben je Bearbeitung
+  „(RAEUMEN_T1 – Räumen T1)“ – so findet die Suche den Namen.
+- Für jede Steuerung derselbe Kopf; woodWOP trägt ihn in den Kommentarblock (KM-Zeilen).
+- Geprüft: `tests/test_programmkopf.py`, `test_postprozessor_grbl.py`, `test_mpr.py`.

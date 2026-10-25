@@ -124,6 +124,12 @@ for soll in ('XA="100"', 'YA="100"', 'TI="12"', 'TNO="5"', 'F_="0.12"', 'S_A="30
     pruefe(soll in b1, f"BohrVert ohne {soll}: {b1}")
 pruefe('XA="120"' in makro(z, "BohrVert", 1), "zweite Bohrung")
 pruefe(z[-1] == "!" and "<101 \\Kommentar\\" in z and 'KM="Platte"' in z, f"Ende: {z[-6:]}")
+# Die Werkzeugliste vom Programmkopf im Kommentar (Manuel, 2026-10-25: „bei jedem post
+# prozessor“): je Werkzeug Nummer und Name, für welche Bearbeitung.
+pruefe(
+    'KM="Werkzeuge:"' in z and 'KM="T3 Fraeser D 12"' in z and 'KM="fuer: Tasche"' in z,
+    f"Werkzeugliste: {[x for x in z if x.startswith('KM=')]}",
+)
 pruefe(all(x.isascii() for x in z), "nur ASCII")
 pruefe(
     any("woodWOP: Eine Kontur hat nur einen Vorschub – an 1 Konturen" in h for h in prog.hinweise),

@@ -318,6 +318,13 @@ class _Frage:
             zeigen.blockSignals(False)
 
 
+def _keine_empfehlung():
+    """empfehlung.KEINE – „auch mit anderen Haltern geht es nicht“."""
+    from . import empfehlung as em
+
+    return em.KEINE
+
+
 def _bohrer_von(gebohrt):
     """Die Bohrer eines Vorbohrens (raeumen.Vorbohren) – ihre Kennungen in ihrer Folge; leer
     ohne."""
@@ -4890,16 +4897,25 @@ class _Block:
         Werkzeug dafür zu kurz ist (reichweite.ausspannen_auf; wie im 4-Achs-Assistenten)."""
         ausspannen = daten.get("ausspannen") if isinstance(daten, dict) else None
         empfehlung = daten.get("empfehlung") if isinstance(daten, dict) else None
-        if empfehlung is not None:  # ein anderer Halter, ein anderer Fräser (empfehlung.py)
-            return f"{html.escape(satz, quote=False)} {self._empfehlung_text(empfehlung)}"
-        if not ausspannen:
-            return satz
-        dazu = self._ausspannen_verweis(*ausspannen)
-        return f"{html.escape(satz, quote=False)} {dazu}" if dazu else satz
+        return self._ausspannen_oder_empfehlung(satz, ausspannen, empfehlung) or satz
 
-    def _empfehlung_text(self, empfehlung):
+    def _ausspannen_oder_empfehlung(self, satz, ausspannen, empfehlung):
+        """`satz` und der nächste Schritt: „T5 auf … mm ausspannen“, wenn das Werkzeug dafür lang
+        genug ist – eine Empfehlung (empfehlung.py: ein anderer Halter, ein anderer Fräser) dann
+        als „Oder: …“; sonst die Empfehlung allein (bis P-2026-10-25-67 verdrängte sie das
+        Ausspannen und sagte „mit dem Magazin geht es nicht“, obwohl T5 nur weiter heraus musste).
+        "" ohne beides."""
+        dazu = self._ausspannen_verweis(*ausspannen) if ausspannen else ""
+        geht = dazu.startswith("<a ")
+        if empfehlung is not None and not (geht and empfehlung == _keine_empfehlung()):
+            # Nach „T5 ist dafür zu kurz“ bzw. „… ausspannen“ – sonst allein.
+            dazu = f"{dazu} {self._empfehlung_text(empfehlung, oder=geht)}".strip()
+        return f"{html.escape(satz, quote=False)} {dazu}" if dazu else ""
+
+    def _empfehlung_text(self, empfehlung, oder=False):
         """Der Satz zur Empfehlung (empfehlung.Empfehlung) mit „So einrichten“ dahinter (Verweis
-        „empfehlung:“, _hinweis_verweis) – oder, dass auch nichts anderes ginge (KEINE)."""
+        „empfehlung:“, _hinweis_verweis) – oder, dass auch nichts anderes ginge (KEINE). `oder`:
+        nach „… ausspannen“ – „Oder: …“."""
         from . import empfehlung as em
 
         if empfehlung == em.KEINE:
@@ -4910,13 +4926,13 @@ class _Block:
             dazu.append(tr("emp.halter_neu"))
         if not empfehlung.im_magazin:
             dazu.append(tr("emp.nicht_im_magazin"))
-        text = tr(
-            "emp.text",
-            werkzeug=empfehlung.werkzeug_text,
-            halter=empfehlung.halter.name,
-            heraus=einheiten.text(empfehlung.heraus, einheiten.LAENGE, 0),
-            laenge=einheiten.text(empfehlung.laenge, einheiten.LAENGE, 0),
-        )
+        werte = {
+            "werkzeug": empfehlung.werkzeug_text,
+            "halter": empfehlung.halter.name,
+            "heraus": einheiten.text(empfehlung.heraus, einheiten.LAENGE, 0),
+            "laenge": einheiten.text(empfehlung.laenge, einheiten.LAENGE, 0),
+        }
+        text = tr("emp.oder", **werte) if oder else tr("emp.text", **werte)
         if dazu:
             text += " " + tr("emp.dazu", dazu="; ".join(dazu))
         knopf = html.escape(tr("emp.einrichten"))
@@ -5252,14 +5268,13 @@ class _Block:
     def _mit_ausspannen(self, text, bahn):
         """Die Ergebniszeile – stößt die Bahn stellenweise an (hinterschnitt_bahn.Bahn.ausspannen),
         dahinter „T… auf … mm ausspannen“ (Manuel: der nächste Schritt als Knopf)."""
-        empfehlung = getattr(bahn, "empfehlung", None)
-        if empfehlung is not None and getattr(bahn, "anstoesse", 0):
-            return f"{html.escape(text, quote=False)} {self._empfehlung_text(empfehlung)}"
-        ausspannen = getattr(bahn, "ausspannen", None)
-        if not ausspannen or not getattr(bahn, "anstoesse", 0) or ausspannen[1] is None:
+        if not getattr(bahn, "anstoesse", 0):
             return text
-        dazu = self._ausspannen_verweis(*ausspannen)
-        return f"{html.escape(text, quote=False)} {dazu}" if dazu else text
+        ausspannen = getattr(bahn, "ausspannen", None)
+        if ausspannen and ausspannen[1] is None:
+            ausspannen = None
+        empfehlung = getattr(bahn, "empfehlung", None)
+        return self._ausspannen_oder_empfehlung(text, ausspannen, empfehlung) or text
 
     def _hinweis_verweis(self, ziel):
         """„ausspannen:5:83.000:43“ im roten Satz: T5 in der Werkzeugverwaltung auf 83 mm ab
@@ -8902,18 +8917,19 @@ class BearbeitungPanel:
         for weg, reihe in reihen.items():
             frage.zeit_setzen(weg, self._gesamt(0.0, reihe=reihe))
             wechsel = _wechsel_zahl(self._werkzeugfolge(reihe))
-            frage.satz_setzen(
-                weg,
-                tr(
-                    f"ba.frage.reihenfolge.{weg}.satz",
-                    folge=self._folge_text(reihe),
-                    wechsel=(
-                        tr("ba.frage.wechsel.eins")
-                        if wechsel == 1
-                        else tr("ba.frage.wechsel", n=wechsel)
-                    ),
+            werte = {
+                "folge": self._folge_text(reihe),
+                "wechsel": (
+                    tr("ba.frage.wechsel.eins")
+                    if wechsel == 1
+                    else tr("ba.frage.wechsel", n=wechsel)
                 ),
-            )
+            }
+            if weg == "schruppen":
+                satz = tr("ba.frage.reihenfolge.schruppen.satz", **werte)
+            else:
+                satz = tr("ba.frage.reihenfolge.vorgeschlagen.satz", **werte)
+            frage.satz_setzen(weg, satz)
 
     def _folge_text(self, reihe):
         """Die Folge als Text: „Planfräsen T1 → Vorbohren T24 → Räumen T1 → …“."""
@@ -9213,8 +9229,10 @@ class BearbeitungPanel:
             "d": durchmesser,
             "tiefe": groesse_zeigen(max(g.tiefe for g in gebohrt), einheiten.LAENGE, 0) or "0",
         }
-        schluessel = "ein_loch" if len(loecher) == 1 else "loecher"
-        satz = tr(f"ba.frage.eintauchen.vorbohren.{schluessel}", **werte)
+        if len(loecher) == 1:
+            satz = tr("ba.frage.eintauchen.vorbohren.ein_loch", **werte)
+        else:
+            satz = tr("ba.frage.eintauchen.vorbohren.loecher", **werte)
         if any(not g.loecher and g.geholfen <= 0 for g in gebohrt):  # das Räumen, adaptiv
             satz += " " + tr("ba.frage.eintauchen.vorbohren.adaptiv")
         if any(g.zu_kurz for g in gebohrt):

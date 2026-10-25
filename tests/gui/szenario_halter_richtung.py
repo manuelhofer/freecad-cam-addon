@@ -67,6 +67,7 @@ def schritte(h):
     spannzangen = {text: [e.text() for e in a.menu().actions()] for text, a in gruppen.items()}
     # Dazu die Vorlagen für jede andere Werkzeugaufnahme der Spindel (W-022), je ein Untermenü.
     andere = spannzangen.pop("Für eine andere Aufnahme", [])
+    spannzangen.pop("Normreihen (alle Größen und Längen)", None)  # die Normreihe, eigenes Szenario
     h.pruefe(
         spannzangen
         == {

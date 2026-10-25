@@ -30,8 +30,9 @@ die gewählte in einer Datei, merkt sich der Job sie. Darunter steht, was der Po
 ihr weiß: Drehmaschine oder Fräse, X im Durchmesser, die Hauptspindel und ihre C-Achse
 („Hauptspindel S4, C-Achse C4“), welche Plätze angetrieben sind („T1…T12 → S1 (C1)“). Ohne
 Maschine schreibt er wie für eine Fräse.</li>
-<li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4 oder Heidenhain im
-Klartext – iTNC 530 oder TNC 640/620/320 (<a href="#heidenhain">unten</a>). Der Job merkt sich
+<li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4, GRBL 1.1, Homag/Weeke
+woodWOP (MPR) oder Heidenhain im Klartext – iTNC 530 oder TNC 640/620/320
+(<a href="#heidenhain">unten</a>). Der Job merkt sich
 die Wahl, ebenso die Maschine – beim nächsten Job auf ihr ist sie vorgewählt.</li>
 <li><b>Links die Einstellungen, rechts die Vorschau</b> mit den ersten Sätzen – jede Änderung
 siehst du sofort.</li>
@@ -70,6 +71,14 @@ der Werkzeugliste der Steuerung genauso heißen – mit <a href="magazine.html">
 <li><b>Kommentare</b> – vor jedem Abschnitt der Name der Operation und des Werkzeugs
 („; Rundum schruppen T1“), am Anfang der Name des Jobs. Aus: nur Sätze – manche Steuerungen
 mögen keine langen Kommentare.</li>
+<li><b>Werkzeugliste im Kopf</b> – oben im Programm je Werkzeug Nummer und Name, darunter Ø,
+Auskragung, Länge ab Spindelnase und Halter (aus der Werkzeugverwaltung und dem Magazin der
+Maschine; geschätzte Werte mit „ca.“), und „für:“ die Sprungmarken der Bearbeitungen, die es
+braucht. Davor die Liste der Sprungmarken mit Bearbeitung und Werkzeug – bei Fanuc und Haas mit
+ihrer Satznummer („N3 = RAEUMEN_T1“). Ganz vorn die Marke <b>ANFANG</b>: Im langen Programm
+suchst du nach dem Namen einer Marke und bist dort, nach ANFANG und bist wieder oben (Siemens
+„ANFANG:“, Heidenhain „* - ANFANG“, sonst als Kommentar; Steuerungen ohne Marken haben den Namen
+jeder Bearbeitung im Kommentar).</li>
 <li><b>Kommentare nur in ASCII</b> – Umlaute und Zeichen wie Ø, –, · in den Kommentaren
 ersetzt (ä → ae, Ø → D, – → -). Fanuc, Haas und Mach lesen Programme im ASCII-Zeichensatz und
 brechen bei anderen Zeichen mit „Illegal character“ ab; an LinuxCNC vorsichtshalber ebenso. An
@@ -285,6 +294,14 @@ absolut, beim Tiefbohren die erste Tiefe R − Q und gleich große Zustellungen.
 Siemens-Programmierhandbuch Arbeitsvorbereitung 10/2015, S. 651–663; Grundlagen 03/2010,
 S. 535. Die Befehle stehen unter „Bohrzyklen“ zum Ändern; leer bleibt der G-Code. An der
 Drehmaschine bleibt es bei G81 ff.</p>
+<p><b>Gewindebohren</b> (G84 rechts, G74 links): FreeCAD schreibt in F die Steigung, der
+Postprozessor daraus den Vorschub Steigung · Drehzahl. Siemens bekommt <b>CYCLE84</b>
+(Gewindebohren ohne Ausgleichsfutter, die Steigung als PIT, danach dreht die Spindel weiter wie
+vorher), Fanuc <b>M29 S…</b> vor dem ersten G84 (ohne Ausgleichsfutter), Heidenhain Zyklus
+<b>207</b>. Haas, LinuxCNC und Mach behalten G84 mit dem richtigen F.</p>
+<p><b>GRBL</b> kennt keine Bohrzyklen: Dort stehen sie ausgeschrieben – über das Loch, im
+Eilgang auf R, im Vorschub hinein (G83 in Zustellungen), G4 zum Verweilen, zurück. Gewinde bohren
+kann GRBL nicht (ein Hinweis sagt es).</p>
 <p><b>Vor dem ersten Lauf</b> in der Simulation der Steuerung ansehen, wie CYCLE83 zustellt.</p>
 
 <a name="glaetten"></a>
@@ -331,8 +348,11 @@ Vollkreis in zwei Hälften. Eine Schraube oder ein Bogen in XZ/YZ wird in Gerade
 (höchstens 0,002 mm daneben) – ein Hinweis sagt es.</li>
 <li>Zum Wechselpunkt in Maschinenkoordinaten mit <b>M91</b> („L Z+0 R0 FMAX M91“); M92 (vom
 Maschinenhersteller festgelegter Punkt) steht zur Wahl.</li>
-<li>Die Bohrzyklen sind ausgeschrieben – Bohren, Tiefbohren mit Rückzug, Spanbrechen, Reiben
-in L-Sätzen, Verweilen mit Zyklus 9.</li>
+<li>Die Bohrzyklen als Zyklen der TNC (Haken „Bohrzyklen der TNC“, vorbelegt an): Bohren und
+Tiefbohren als <b>200 BOHREN</b>, Spanbrechen als <b>203 UNIVERSAL-BOHREN</b>, Reiben als
+<b>201 REIBEN</b>, Gewindebohren als <b>207</b> – je Loch „L X… Y… R0 FMAX M99“. Tiefe und Vorschub
+änderst du an der Steuerung im Zyklus. Haken aus: ausgeschrieben in L-Sätzen, Verweilen mit
+Zyklus 9 (Gewinde bleibt Zyklus 207).</li>
 <li>Die Sprungmarken sind <b>Gliederungssätze</b> („* - RAEUMEN_T1“): In der Gliederung der
 Steuerung springst du zu einer Bearbeitung, mit Satzvorlauf startest du dort.</li>
 <li>Glätten mit <b>Zyklus 32 Toleranz</b>; 5 Achsen simultan mit TCPM an der iTNC 530 mit

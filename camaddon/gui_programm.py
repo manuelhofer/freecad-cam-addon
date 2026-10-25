@@ -44,6 +44,7 @@ GRUPPEN = (
         "programm",
         (
             "kommentare",
+            "werkzeugliste",
             "nur_ascii",
             "satznummern",
             "kopf",

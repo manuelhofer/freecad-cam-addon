@@ -162,6 +162,12 @@ class Steuerung:
     # Werkzeug, Spindel, Kühlung, Ebene –, so dass man sie direkt anspringen kann (D-4, Manuel
     # 2026-10-04: „Ja, jede Marke vollständig“); im Kopf die Marken und die Werkzeuge.
     marken: bool = True
+    # Hinter jeder Marke ein vollständiger Einstieg (Werkzeug neu) – nein bei GRBL: Dort ist der
+    # Wechsel ein Halt (M0); die Marken stehen als Namen im Kommentar zum Suchen.
+    einstieg_je_marke: bool = True
+    # Im Kopf die Werkzeugliste: je Werkzeug Name, Ø, Auskragung, Länge ab Spindelnase, Halter und
+    # seine Bearbeitungen (Manuel, 2026-10-25) – mit `kommentare`.
+    werkzeugliste: bool = True
     c_achse: bool = True  # Drehmaschine: C-Achse ein und aus
     g93: bool = True  # Bahnen mit Rundachse in G93; aus: F in mm/min, Zeit wie G93 (S5)
     glaetten: tuple = None  # Kennungen der eingeschalteten Glaetten; None: die vorbelegten
@@ -221,6 +227,11 @@ class Steuerung:
     # Heidenhain: die Bohrzyklen als Zyklen der TNC (200, 201, 203, Gewinde 207) – aus: G81 ff. in
     # L-Sätzen ausgeschrieben, wie bis P-2026-10-25-65 (Gewinde gibt es nur als Zyklus).
     bohrzyklen: bool = True
+    # Eine Steuerung ohne Bohrzyklen (GRBL): G81, G82, G83, G73, G85 in G0/G1/G4 ausgeschrieben,
+    # G80/G98/G99 entfallen, Gewindebohren geht nicht (Hinweis).
+    zyklen_ausschreiben: bool = False
+    # Fährt die Steuerung Rundachsen? Nein (GRBL: X, Y, Z): ein Hinweis, wenn eine im Programm steht.
+    rundachsen: bool = True
 
     def ersetzt(self, **werte):
         """Eine Kopie mit geänderten Befehlen."""
@@ -294,6 +305,7 @@ ZYKLUS_FELDER = {
     "G74": "gewinde",
 }
 GEWINDE = ("G84", "G74")  # Gewindebohren rechts, links
+AUSGESCHRIEBEN = ("G81", "G82", "G83", "G73", "G85")  # was zyklen_ausschreiben in G0/G1 schreibt
 
 # Die Haken – (Name, Typ) wie in Steuerung; im Fenster je eine Zeile mit Erklärung.
 HAKEN = (
@@ -304,6 +316,7 @@ HAKEN = (
     "kuehlung",
     "wechselpunkt",
     "marken",
+    "werkzeugliste",
     "c_achse",
     "g93",
     "schwenkzyklus",
@@ -492,6 +505,37 @@ STEUERUNGEN = {
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
         kopf_drehmaschine="%\nO00001 {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
+    # GRBL 1.1 (README „List of Supported G-Codes in Grbl v1.1“): kein M6, keine Bohrzyklen, kein
+    # G98/G99, kein G43 H, kein G64, keine Rundachsen, M7 meist nicht einkompiliert. Der Wechsel
+    # ist ein Halt (M0) – der Kommentar davor nennt das Werkzeug, danach Z neu antasten.
+    "grbl": Steuerung(
+        "grbl",
+        "GRBL 1.1",
+        ".nc",
+        "(",
+        # Ohne G49: GRBL kennt keine Länge je Werkzeug (nur G43.1) – Z wird je Werkzeug angetastet.
+        "{kommentar_name}\nG17 G21 G40 G80 G90",
+        "M5\nM9\nM30",
+        "G18",
+        "M0",
+        "M0",
+        "M{m} S{s}",
+        "M5",
+        "M{m} S{s}",
+        "M5",
+        "",
+        "",
+        "G93",
+        "G94",
+        "G94",
+        kuehlung_nebel="M8",
+        wechselpunkt_vorschlaege=_MKS,
+        # Die Marken als Namen im Kommentar (suchen, ANFANG) – ohne vollständigen Einstieg, der hieße
+        # je Bearbeitung ein Halt.
+        einstieg_je_marke=False,
+        zyklen_ausschreiben=True,
+        rundachsen=False,
+    ),
     "mach": Steuerung(
         "mach",
         "Mach3/Mach4",
@@ -679,6 +723,11 @@ class Abschnitt:
     # C rechnet das Programm sie um (stirnseite.befehle).
     stirn: tuple = ()
     koordinatenstellen: int = STELLEN  # fein geprüfte Simultanbahnen reservieren 6 Stellen
+    # Für die Werkzeugliste im Kopf (Manuel, 2026-10-25: „werkzeugliste am anfang mit
+    # ausspannlängen, durchmesser, und länge von spindelnase“): {"name", "d", "auskragung",
+    # "nase", "halter", "geschaetzt"} – leer, wenn das Werkzeug nicht in der Werkzeugverwaltung
+    # steht (dann wären Länge und Halter geraten).
+    masse: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -770,6 +819,7 @@ def haken_text(feld):
         "kuehlung": (tr("pp.haken.kuehlung"), tr("pp.haken.kuehlung.erklaerung")),
         "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
         "marken": (tr("pp.haken.marken"), tr("pp.haken.marken.erklaerung")),
+        "werkzeugliste": (tr("pp.haken.werkzeugliste"), tr("pp.haken.werkzeugliste.erklaerung")),
         "c_achse": (tr("pp.haken.c_achse"), tr("pp.haken.c_achse.erklaerung")),
         "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
         "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
@@ -1062,6 +1112,13 @@ def programm(
     marken = [markenname(a.name, vergeben) for a in abschnitte] if s.marken else []
     if s.kommentare:
         zeilen.extend(_kopfzeilen(s, abschnitte, marken))
+    if marken:
+        # Zurück an den Anfang: eine Marke, wo die Steuerung Namen kennt, sonst der Name als
+        # Kommentar – suchen nach ANFANG (Manuel, 2026-10-25).
+        if s.marke and "{n}" not in s.marke:
+            zeilen.append(_fuellen(s.marke, marke=MARKE_ANFANG, n=0))
+        else:
+            notiz(MARKE_ANFANG)
     ebene = "G17"  # die Ebene der Bögen: was der Kopf setzt, danach was die Bahn setzt
     for zeile in zeilen:
         for treffer in _EBENE.finditer(zeile.upper()):
@@ -1075,6 +1132,7 @@ def programm(
     gesehen = set()
     auf_r = False  # G99: Bohrzyklen ziehen auf R zurück, sonst (G98) auf die Höhe davor
     gewinde_folge = False  # G84/G74 schon in diesem Zyklus (Fanuc: M29 nur vor dem ersten)
+    wechsel_zahl = 0  # so viele Werkzeugwechsel
     # Nur an der Fräse – an der Drehmaschine bohrte CYCLE83 ohne _AXN entlang der falschen Achse.
     zyklen_als_befehl = not info.drehmaschine and any(getattr(s, f) for f in ZYKLUS_FELDER.values())
     geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
@@ -1084,10 +1142,16 @@ def programm(
         stellen = abschnitt.koordinatenstellen
         # Jede Bearbeitung ein vollständiger Einstieg hinter ihrer Marke (D-4): Wechselpunkt,
         # Werkzeug, Spindel, Kühlung und Ebene neu – auch mit demselben Werkzeug wie davor.
-        einstieg = bool(s.marken and abschnitt.werkzeug and not abschnitt.messstopp)
+        einstieg = bool(
+            s.marken and s.einstieg_je_marke and abschnitt.werkzeug and not abschnitt.messstopp
+        )
         if s.marken and s.marke:
             zeilen.append(_fuellen(s.marke, marke=marken[nummer_ab], n=nummer_ab + 1))
-        notiz(abschnitt.name)
+        if marken and (not s.marke or "{n}" in s.marke):
+            # Ohne Marke mit Namen: der Name im Kommentar – so findet die Suche ihn.
+            notiz(f"{marken[nummer_ab]} – {abschnitt.name}")
+        else:
+            notiz(abschnitt.name)
         if abschnitt.hinweis:
             hinweise.append(f"{abschnitt.name}: {abschnitt.hinweis}")
             if s.kommentare:
@@ -1143,15 +1207,18 @@ def programm(
             if abschnitt.werkzeugname:
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
-            zeilen.append(
-                _fuellen(
-                    vorlage,
-                    t=int(abschnitt.werkzeug),
-                    werkzeug=_werkzeugname(
-                        abschnitt.name_steuerung or abschnitt.werkzeugname, abschnitt.werkzeug
-                    ),
+            zeilen.extend(
+                _zeilen(
+                    _fuellen(
+                        vorlage,
+                        t=int(abschnitt.werkzeug),
+                        werkzeug=_werkzeugname(
+                            abschnitt.name_steuerung or abschnitt.werkzeugname, abschnitt.werkzeug
+                        ),
+                    )
                 )
             )
+            wechsel_zahl += 1
             # Ohne Befehl bringt der Wechsel die Länge mit (Siemens D1, Fanuc T0101).
             laenge_offen = _fuellen(
                 s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein,
@@ -1311,6 +1378,23 @@ def programm(
                 auf_r = gross == "G99"
             if zyklen_als_befehl and gross in ("G80", "G98", "G99"):
                 continue  # die Zyklen der Steuerung kennen sie nicht (Siemens: ISO-Modus)
+            if s.zyklen_ausschreiben and not info.drehmaschine:
+                if gross in ("G80", "G98", "G99"):
+                    continue  # GRBL kennt G98/G99 nicht, G80 braucht es ohne Zyklus nicht
+                if gross in AUSGESCHRIEBEN:
+                    zeilen.extend(
+                        _zyklus_ausgeschrieben(s, gross, parameter, stand, auf_r, faktor, stellen)
+                    )
+                    saetze += 1
+                    continue
+                if gross in GEWINDE:
+                    hinweis = tr(
+                        "pp.hinweis.ohne_gewinde", operation=abschnitt.name, steuerung=s.name
+                    )
+                    if hinweis not in hinweise:
+                        hinweise.append(hinweis)
+                        notiz(hinweis)
+                    continue
             if laenge_offen and gross not in BEWEGUNG and "Z" in parameter:
                 # Ein Bohrzyklus als erster Satz mit Z: die Länge davor in einer eigenen Zeile.
                 zeilen.append(laenge_offen)
@@ -1345,6 +1429,12 @@ def programm(
             davor = dict(stand)  # fortlaufend – für die Drehrichtung einer Moduloachse
             if bewegung:
                 stand.update({a: float(parameter[a]) for a in WEG_ADRESSEN if a in parameter})
+            if not s.rundachsen and bewegung and any(a in parameter for a in ROTATION):
+                hinweis = tr(
+                    "pp.hinweis.ohne_rundachsen", steuerung=s.name, operation=abschnitt.name
+                )
+                if hinweis not in hinweise:
+                    hinweise.append(hinweis)
             for adresse in ADRESSEN:
                 if adresse not in parameter:
                     continue
@@ -1503,6 +1593,52 @@ def _zyklus_als_befehl(
     zeilen.extend(_zeilen(_fuellen(vorlage, **werte)))
     stand.update({a: float(parameter[a]) for a in lage})
     stand["Z"] = rtp
+    return zeilen
+
+
+def _zyklus_ausgeschrieben(s, gross, parameter, stand, auf_r, faktor, stellen=STELLEN):
+    """Ein Bohrzyklus in G0/G1/G4 – für eine Steuerung ohne Zyklen (GRBL): über das Loch, im
+    Eilgang auf R, im Vorschub auf die Tiefe – G83 in Zustellungen Q mit Rückzug auf R, G73 mit
+    Spanbruch, G82 mit Verweilen P, G85 heraus im Vorschub –, dann zurück auf die Höhe davor
+    (G98) oder R (G99). Wie klartext._bohren. `stand` folgt."""
+    from . import klartext as kt
+
+    zeilen = []
+
+    def z(befehl, wert, f=None):
+        satz = f"{befehl} {_wort(s, 'Z', _zahl(wert, stellen))}"
+        zeilen.append(satz + (f" {_wort(s, 'F', _zahl(f))}" if f else ""))
+
+    lage = [a for a in ("X", "Y") if a in parameter]
+    if any(stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9 for a in lage):
+        woerter = (_wort(s, a, _zahl(float(parameter[a]), stellen)) for a in lage)
+        zeilen.append(" ".join(["G0", *woerter]))
+    davor = stand.get("Z")
+    tief = float(parameter.get("Z", davor if davor is not None else 0.0))
+    r = float(parameter.get("R", davor if davor is not None else tief))
+    rueck = r if auf_r or davor is None else max(davor, r)
+    f = float(parameter.get("F", 0.0)) * 60.0 * faktor
+    z("G0", r)
+    q = float(parameter.get("Q", 0.0))
+    if gross in ("G83", "G73") and q > 1e-9:
+        jetzt = r
+        while jetzt - q > tief + 1e-9:
+            jetzt -= q
+            if gross == "G83" and jetzt + q < r - 1e-9:
+                z("G0", jetzt + q + kt.PECK_LUFT)
+            z("G1", jetzt, f)
+            f = None  # modal
+            z("G0", r if gross == "G83" else jetzt + kt.SPAN_BRECHEN)
+        if gross == "G83" and jetzt < r - 1e-9:
+            z("G0", jetzt + kt.PECK_LUFT)
+    z("G1", tief, f)
+    if gross == "G82" and float(parameter.get("P", 0.0)) > 0:
+        zeilen.append(f"G4 {_wort(s, 'P', _zahl(float(parameter['P'])))}")
+    if gross == "G85":
+        z("G1", r)
+    z("G0", rueck)
+    stand.update({a: float(parameter[a]) for a in lage})
+    stand["Z"] = rueck
     return zeilen
 
 
@@ -1700,6 +1836,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
     from . import vierachs_operation as vo
 
     ergebnis = []
+    merk = {}  # je Controller: Einspannung und Maße (_einspannung_und_knapp)
     geschwenkt = sw.ist_ebene(job)
     gerechnet = {}  # id(Maschine) → (Maschine, Schwenkung): je Werkzeug einmal
     for op in getattr(getattr(job, "Operations", None), "Group", []):
@@ -1773,6 +1910,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
         stirn = ()
         if not geschwenkt and st.ist_stirn(op, befehle):
             stirn = (st.modus(job), st.sicher_z(op))
+        einspannung = _einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt, merk)
         ergebnis.append(
             Abschnitt(
                 op.Label,
@@ -1784,7 +1922,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 getattr(werkzeug, "Label", "") if werkzeug is not None else "",
                 schwenkung,
                 hinweis,
-                *_einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt),
+                *einspannung[:2],
                 ms.ist_messstopp(op),
                 befehle_tcpm,
                 name_steuerung,
@@ -1793,6 +1931,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 (rundachse, int(drehsinn)) if rundum else (),
                 stirn,
                 koordinatenstellen=6 if float(getattr(op, "BahnGrathoehe", 0.0)) > 0 else STELLEN,
+                masse=einspannung[2],
             )
         )
     return ergebnis
@@ -1801,33 +1940,21 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
 SPIEL_KNAPP = 2.0  # mm – so viel muss der Fräser mehr herausstehen, als er tief fräst
 
 
-def _einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt):
-    """(Einspannung, Knapp) für den Kopf des Programms (D-4): „Schaftfräser Ø 12 – Auskragung
-    35 mm, Spannzangenfutter ER25“; und wenn die Operation tiefer fräst, als der Fräser
-    abzüglich SPIEL_KNAPP heraussteht, ein Satz dazu – nur ohne Rundachsen und Ebene (dann
-    zählt die Tiefe nicht längs Z)."""
+def _einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt, merk=None):
+    """(Einspannung, Knapp, Maße) für den Kopf des Programms (D-4): „Schaftfräser Ø 12 –
+    Auskragung 35 mm, Spannzangenfutter ER25“; wenn die Operation tiefer fräst, als der Fräser
+    abzüglich SPIEL_KNAPP heraussteht, ein Satz dazu – nur ohne Rundachsen und Ebene (dann zählt
+    die Tiefe nicht längs Z); die Maße für die Werkzeugliste (Abschnitt.masse). In `merk` ({}
+    eines Laufs) je Controller gemerkt – viele Operationen teilen ein Werkzeug."""
     if tc is None or not nummer:
-        return "", ""
-    from . import halter as hl
-    from . import job_schnittwerte as js
-    from . import wegkippen as wk
-    from . import werkzeuge as wz
-
-    try:
-        halter, _schaft, auskragung = wk.einspannung(tc, bibliothek)
-    except Exception:
-        return "", ""
-    werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
-    name = wz.anzeigename(werkzeug) if werkzeug is not None else getattr(tc.Tool, "Label", "")
-    if werkzeug is None or auskragung <= 0:
-        # Nicht aus der Werkzeugverwaltung: Länge und Halter wären geraten – nur der Name.
-        return name, ""
-    halter_text = halter.name or halter.bezeichnung
-    if hl.ist_vorschlag(halter):
-        halter_text = tr("pp.kopf.halter_vorschlag", halter=halter_text)
-    einspannung = tr(
-        "pp.kopf.einspannung", werkzeug=name, auskragung=f"{auskragung:.0f}", halter=halter_text
-    )
+        return "", "", {}
+    merk = {} if merk is None else merk
+    schluessel = getattr(tc, "Name", "")
+    if schluessel not in merk:
+        merk[schluessel] = _einspannung_des_controllers(tc, bibliothek)
+    name, einspannung, auskragung, masse = merk[schluessel]
+    if not einspannung:
+        return name, "", dict(masse)
     knapp = ""
     rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
     befehle = list(getattr(getattr(op, "Path", None), "Commands", []) or [])
@@ -1848,7 +1975,49 @@ def _einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt):
                     tiefe=f"{tiefe:.1f}",
                     auskragung=f"{auskragung:.1f}",
                 )
-    return einspannung, knapp
+    return einspannung, knapp, dict(masse)
+
+
+def _einspannung_des_controllers(tc, bibliothek):
+    """(Name, Einspannung, Auskragung, Maße) des Werkzeugs am Controller – Einspannung leer, wenn
+    es nicht aus der Werkzeugverwaltung kommt oder sich nicht lesen lässt (dann Name leer, in den
+    Maßen nur der Ø von FreeCAD)."""
+    from . import halter as hl
+    from . import job_schnittwerte as js
+    from . import reichweite as rw
+    from . import wegkippen as wk
+    from . import werkzeuge as wz
+
+    try:
+        d = float(getattr(tc.Tool, "Diameter", 0.0))
+    except (TypeError, ValueError):
+        d = 0.0
+    nur_d = {"d": d} if d > 0 else {}
+    try:
+        halter, _schaft, auskragung = wk.einspannung(tc, bibliothek)
+    except Exception:
+        return "", "", 0.0, nur_d
+    werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
+    name = wz.anzeigename(werkzeug) if werkzeug is not None else getattr(tc.Tool, "Label", "")
+    if werkzeug is None or auskragung <= 0:
+        # Nicht aus der Werkzeugverwaltung: Länge und Halter wären geraten – nur der Ø.
+        return name, "", 0.0, nur_d
+    halter_text = halter.name or halter.bezeichnung
+    if hl.ist_vorschlag(halter):
+        halter_text = tr("pp.kopf.halter_vorschlag", halter=halter_text)
+    einspannung = tr(
+        "pp.kopf.einspannung", werkzeug=name, auskragung=f"{auskragung:.0f}", halter=halter_text
+    )
+    nase, quelle = rw.werkzeuglaenge(tc, bibliothek)
+    masse = {
+        "name": name,
+        "d": float(werkzeug.durchmesser or 0.0),
+        "auskragung": float(auskragung),
+        "nase": float(nase),
+        "halter": halter_text,
+        "geschaetzt": quelle not in (rw.LAENGE_SPINDELNASE, rw.LAENGE_AUSSPANN),
+    }
+    return name, einspannung, float(auskragung), masse
 
 
 def _simultan(op, maschine):
@@ -2153,27 +2322,71 @@ def _ruest_hinweise(abschnitte):
     return saetze
 
 
+MARKE_ANFANG = "ANFANG"  # die Marke am Programmanfang – zurück an den Anfang (Manuel, 2026-10-25)
+NAMEN_JE_ZEILE = 4  # so viele Bearbeitungen je Kommentarzeile „für:“ in der Werkzeugliste
+
+
+def _suchtext(s, marke, n):
+    """Wonach man im Programm sucht, um an die Bearbeitung mit der Marke `marke` zu kommen: der
+    Name – als Marke (Siemens „RAEUMEN_T1:“, Heidenhain „* - RAEUMEN_T1“) oder als Kommentar
+    (Steuerungen ohne Marken) –, mit Nummer (Fanuc, Haas „N3“) „N3 = RAEUMEN_T1“."""
+    if s.marke and "{n}" in s.marke:
+        return f"{_fuellen(s.marke, marke=marke, n=n).strip()} = {marke}"
+    return marke
+
+
+def _mm(wert):
+    """„27“, „27.5“ – Maße im Kopf ohne Nullen am Ende."""
+    return f"{float(wert):.1f}".rstrip("0").rstrip(".")
+
+
 def _kopfzeilen(s, abschnitte, marken):
-    """Der Kopf des Programms (D-4, als Kommentare): die Sprungmarken mit ihrer Bearbeitung, die
-    Werkzeuge mit Auskragung und Halter, und wo es knapp wird."""
+    """Der Kopf des Programms (D-4, als Kommentare; Manuel, 2026-10-25: „werkzeugliste am anfang
+    mit ausspannlängen, durchmesser, und länge von spindelnase … welches werkzeug für welche
+    bearbeitung … die sprung namen damit man danach suchen kann … auch am anfang ein Anfang
+    sprungpunkt“): die Sprungmarken mit ihrer Bearbeitung und ihrem Werkzeug, vorn ANFANG; je
+    Werkzeug sein Name, Ø, Auskragung, Länge ab Spindelnase und Halter, und für welche
+    Bearbeitungen (ihre Marken); wo es knapp wird."""
     zeilen = []
     if marken:
         zeilen.append(_kommentar(s, tr("pp.kopf.marken")))
-        for marke, abschnitt in zip(marken, abschnitte, strict=True):
-            zeilen.append(_kommentar(s, f"  {marke} – {abschnitt.name}"))
-    werkzeuge = {}
-    for abschnitt in abschnitte:
-        if abschnitt.werkzeug and abschnitt.werkzeug not in werkzeuge:
-            werkzeuge[abschnitt.werkzeug] = abschnitt
-    if werkzeuge:
+        zeilen.append(_kommentar(s, f"  {MARKE_ANFANG} – {tr('pp.kopf.anfang')}"))
+        for n, (marke, abschnitt) in enumerate(zip(marken, abschnitte, strict=True), start=1):
+            mit = f" – T{abschnitt.werkzeug}" if abschnitt.werkzeug else ""
+            zeilen.append(_kommentar(s, f"  {_suchtext(s, marke, n)} – {abschnitt.name}{mit}"))
+    je_werkzeug = {}
+    for i, abschnitt in enumerate(abschnitte):
+        if abschnitt.werkzeug and s.werkzeugliste:
+            je_werkzeug.setdefault(abschnitt.werkzeug, []).append(i)
+    if je_werkzeug:
         zeilen.append(_kommentar(s, tr("pp.kopf.werkzeuge")))
-        for nummer, abschnitt in werkzeuge.items():
-            text = abschnitt.einspannung or abschnitt.werkzeugname
+        for nummer, stellen in je_werkzeug.items():
+            abschnitt = abschnitte[stellen[0]]
+            masse = abschnitt.masse or {}
+            text = masse.get("name") or abschnitt.einspannung or abschnitt.werkzeugname
             if abschnitt.name_steuerung:
                 text = f'"{abschnitt.name_steuerung}" {text}'
             if abschnitt.ruesten:  # die Rüstliste (W-002 Stufe H3)
                 text = f"{text} – {abschnitt.ruesten}"
             zeilen.append(_kommentar(s, f"  T{nummer} {text}".rstrip()))
+            teile = []
+            ca = tr("pp.kopf.ca") if masse.get("geschaetzt") else ""
+            if masse.get("d"):
+                teile.append(f"Ø {_mm(masse['d'])} mm")
+            if masse.get("auskragung"):
+                teile.append(tr("pp.kopf.auskragung", ca=ca, mm=_mm(masse["auskragung"])))
+            if masse.get("nase"):
+                teile.append(tr("pp.kopf.nase", ca=ca, mm=_mm(masse["nase"])))
+            if masse.get("halter"):
+                teile.append(masse["halter"])
+            if ca:
+                teile.append(tr("pp.kopf.geschaetzt"))
+            if teile:
+                zeilen.append(_kommentar(s, "     " + " · ".join(teile)))
+            namen = [marken[i] if marken else abschnitte[i].name for i in stellen]
+            for k in range(0, len(namen), NAMEN_JE_ZEILE):
+                teil = ", ".join(namen[k : k + NAMEN_JE_ZEILE])
+                zeilen.append(_kommentar(s, "     " + tr("pp.kopf.fuer", bearbeitungen=teil)))
     for abschnitt in abschnitte:
         if abschnitt.knapp:
             zeilen.append(_kommentar(s, tr("pp.kopf.knapp", text=abschnitt.knapp)))

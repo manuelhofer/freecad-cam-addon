@@ -531,6 +531,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.298.0):* GRBL 1.1; der Programmkopf mit Werkzeugliste (Ø, Auskragung, ab Spindelnase,
+  Halter, für welche Bearbeitungen), Sprungmarken mit Werkzeug und ANFANG – bei jeder Steuerung
+  (Manuel, nachts); „ausspannen“ vor einer Empfehlung, die einen anderen Halter will; die
+  Simultan-Referenzen mit 10 s Werkzeugwechsel und neuem Kopf. Offen: Räumen in der Nut nimmt
+  seit 0.281.20 „inseln“ (feiner gerechnet), der Prüfstand misst dort bis 6,6 ae
+  (test_nut_offen rot) – im Assistenten gewinnt die Nut, Räumen allein überlastet.
 - *Neu (0.297.0):* Heidenhain: Bohrzyklen als Zyklen der TNC (200, 201, 203; Haken „Bohrzyklen der
   TNC“, vorbelegt an). Weiter mit W-041: GRBL, Okuma, Mazak, Brother; Fanuc/Haas G68.2.
 - *Korrektur (0.296.1):* Gewindebohren – F war die Steigung als mm/s (M10 × 1,5: F90 statt
