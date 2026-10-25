@@ -490,19 +490,65 @@ def bahn_fuer(
     return sb.planen(form_teil, list(flaechen), werte, toleranz)
 
 
-def vorschau(job, modell, form, grathoehe, flaechen, **weiter):
-    """Die Bahn für den Assistenten: gröber abgetastet und vernetzt."""
-    return bahn_fuer(
-        job,
-        modell,
-        form,
-        grathoehe,
-        flaechen,
-        schritt=sb.VORSCHAU_SCHRITT,
-        toleranz=sb.VORSCHAU_TOLERANZ,
-        raster=sb.VORSCHAU_RASTER,
-        **weiter,
-    )
+def vorschau(job, modell, form, grathoehe, flaechen, empfehlen=None, aufnahme="", **weiter):
+    """Die Bahn für den Assistenten: gröber abgetastet und vernetzt. Mit `empfehlen` (Kennung des
+    Fräsers in der Werkzeugverwaltung) unter dem Rand: Stößt etwas an und reicht Ausspannen mit
+    seinem Halter nicht, die Empfehlung (empfehlung.empfehlen; Halter für die Werkzeugaufnahme
+    `aufnahme` der Maschine) – an der Bahn `empfehlung`, beim Fehler in seinen Daten."""
+    try:
+        bahn = bahn_fuer(
+            job,
+            modell,
+            form,
+            grathoehe,
+            flaechen,
+            schritt=sb.VORSCHAU_SCHRITT,
+            toleranz=sb.VORSCHAU_TOLERANZ,
+            raster=sb.VORSCHAU_RASTER,
+            **weiter,
+        )
+    except ValueError as fehler:
+        daten = getattr(fehler, "daten", None)
+        if empfehlen and isinstance(daten, dict) and daten.get("pruefung"):
+            daten["empfehlung"] = _empfehlung(job, modell, daten, empfehlen, aufnahme)
+        raise
+    if empfehlen and getattr(bahn, "anstoesse", 0) and bahn.pruefung:
+        daten = {"pruefung": bahn.pruefung, "ausspannen": bahn.ausspannen}
+        bahn.empfehlung = _empfehlung(job, modell, daten, empfehlen, aufnahme)
+    return bahn
+
+
+def _empfehlung(job, modell, daten, kennung, aufnahme=""):
+    """empfehlung.empfehlen für den Fräser `kennung` – None, wenn Ausspannen mit seinem Halter
+    reicht (reichweite.ausspannen_auf) oder es nichts zu empfehlen gibt."""
+    from . import empfehlung as em
+    from . import magazin as mg
+    from . import reichweite as rw
+    from . import werkzeuge as wz
+
+    try:
+        bibliothek = wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        return None
+    werkzeug = next((w for w in bibliothek.werkzeuge if w.kennung == kennung), None)
+    if werkzeug is None:
+        return None
+    magazin = mg.des_jobs(job, bibliothek)
+    ausspannen = daten.get("ausspannen")
+    if (
+        ausspannen
+        and ausspannen[1] is not None
+        and rw.ausspannen_auf(werkzeug, bibliothek, *ausspannen) is not None
+    ):
+        return None  # „T… auf … mm ausspannen“ genügt
+    aufnahme = aufnahme or getattr(bibliothek, "aufnahme_vorschlag", "") or ""
+    try:
+        return em.empfehlen(
+            vs._teil(modell), daten["pruefung"], werkzeug, bibliothek, aufnahme, magazin
+        )
+    except Exception as fehler:  # noqa: BLE001 – eine Empfehlung darf die Vorschau nicht stören
+        FreeCAD.Console.PrintWarning(f"CAM-Addon: Empfehlung: {fehler}\n")
+        return None
 
 
 def lege_an(job, tc, grathoehe, aufmass=0.0, name=None, flaechen=(), davor=(0.0, 0.0)):

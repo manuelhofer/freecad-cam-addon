@@ -4028,3 +4028,26 @@ Wandmitte 14°, in den Ecken bis 20°, 21,7 s mit drei Nebenrechnern (vorher 138
 Gegenprobe gegen das echte Teil: Schaft mindestens 0,37 mm frei, kein Halterzylinder im Teil (187
 geprüft). T3 steht 45 mm heraus – unten in der Tasche stößt sein Halter auch bis 40° gekippt an
 den Rand; es bräuchte mindestens 64 mm. Die Rundungen allein gehen mit 45 mm gar nicht.
+
+**Empfehlung, wenn das Magazin nicht reicht (P-2026-10-25-24).** Manuel, 2026-10-25: „hey mit dem
+aktuellen magazin sehe ich keine changse das komplett zu bearbeiten .. aber wenn du diese aufnahme /
+halter nimmst und diesen fräser soweit ausspannst .. dann klapts“ – „das muss mit rein“.
+Stößt unter dem Rand etwas an und reicht Ausspannen mit dem Halter des Fräsers nicht
+(`reichweite.ausspannen_auf`), sucht `empfehlung.empfehlen` ein Paar aus Fräser und Halter – auch
+was nicht im Magazin steht und Halter, die es in der Werkzeugverwaltung noch nicht gibt:
+- **Fräser:** der gewählte und die derselben Art und desselben Ø, die länger sind.
+- **Halter:** die geraden Halter der Werkzeugverwaltung an der Aufnahme der Maschine, dazu die
+  Normreihen für den Schaft, in jeder Länge: Schrumpffutter, Hydrodehn und die zwei kleinsten
+  ER-Größen, die ihn fassen.
+- **Je Paar die kürzeste Auskragung,** bei der an den Stellen der Prüfung eine gekippte Achse frei
+  bleibt. Die Prüfung nimmt bis 200 anstoßende und 60 freie Stellen. Erst rechnet eine grobe Runde
+  alle Paare (60 Stellen), dann die besten drei mit allen Stellen, dazu 2 mm Reserve. Jedes Paar
+  ist ein Auftrag für die Nebenrechner.
+- **Empfohlen wird das kürzeste Paar ab Spindelnase,** am steifsten. Ein Paar, das es schon gibt,
+  zählt 5 mm kürzer.
+
+Im Assistenten steht dann: „Mit dem Magazin, wie es ist, geht es hier nicht ganz – so ginge es: T3
+im Halter „…“, 30 mm heraus (… ab Spindelnase). Dazu: den Halter gibt es in deiner
+Werkzeugverwaltung noch nicht …“, dahinter der Knopf **„So einrichten“**. Er legt den Halter an,
+setzt ihn beim Fräser (im Magazin an seinem Platz), trägt die Auskragung ein und rechnet neu. Geht
+gar nichts, sagt er das auch.

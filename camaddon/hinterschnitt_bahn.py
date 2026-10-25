@@ -65,6 +65,7 @@ GLAETTEN = 5.0  # mm – im Umkreis gilt die größte Neigung
 JE_KAPSEL = 16  # so viele Stellen fragt frei_stueck auf einmal (nah beieinander)
 VERTEILT_AB = 2000  # Stellen: ab so vielen rechnen die Nebenrechner
 NOETIG_PROBEN = 40  # so viele anstoßende Stellen fragt _noetig_heraus
+PRUEF_AN, PRUEF_FREI = 200, 60  # so viele anstoßende und freie Stellen bekommt eine Empfehlung
 NOETIG_HALBIEREN = 8  # so oft halbiert es (HALTER_LAENGER / 256: auf 0,6 mm)
 HALTER_LAENGER = 150.0  # mm – weiter heraus sucht _noetig_heraus nicht
 HOEHEN_RASTER = 40  # je Fläche so viele Proben je Richtung für die Höhen (_hoehen)
@@ -241,6 +242,9 @@ class Bahn:
     # (heraus, mindestens) in mm, wenn etwas anstößt: so weit steht das Werkzeug heraus (bis zum
     # Halter), so weit müsste es, damit es überall ginge (None: auch HALTER_LAENGER mehr nicht).
     ausspannen: tuple = None
+    # Für Empfehlungen (empfehlung.py): {"mitten": [(x, y, z)], "mitte": (x, y), "radius": R} –
+    # Stellen, die anstoßen, und einige, die frei sind; None, wenn nichts anstößt.
+    pruefung: dict = None
 
 
 def _richtung_zur_luft(form, flaeche):
@@ -383,6 +387,7 @@ def planen(form, namen, w):
     anstoesse += weg
     luecken += anstoesse
     ausspannen = _noetig_heraus(form, netz, anstoesse, teile, w, mitte) if anstoesse else None
+    pruefung = _pruefung(anstoesse, zuege, mitte, w) if anstoesse else None
     if not punkte:
         if ausspannen is not None and ausspannen[1] is not None:
             fehler = ValueError(
@@ -393,8 +398,11 @@ def planen(form, namen, w):
                 )
             )
             fehler.daten = {"ausspannen": ausspannen}  # „T3 auf … mm ausspannen“ im Assistenten
-            raise fehler
-        raise ValueError(tr("hs.fehler.anstoss"))
+        else:
+            fehler = ValueError(tr("hs.fehler.anstoss"))
+            fehler.daten = {}
+        fehler.daten["pruefung"] = pruefung  # für eine Empfehlung (empfehlung.py)
+        raise fehler
     laenge = sum(
         math.dist((a.x, a.y, a.z), (b.x, b.y, b.z))
         for a, b in zip(punkte, punkte[1:], strict=False)
@@ -418,6 +426,7 @@ def planen(form, namen, w):
         umlaeufe=len(linien),
         anstoesse=len(anstoesse),
         ausspannen=ausspannen,
+        pruefung=pruefung,
     )
 
 
@@ -542,6 +551,20 @@ def genau_stueck(form, mitten, mindestens):
 def genau_stueck_form(form, _toleranz, _zelle, mitten, mindestens):
     """genau_stueck für _verteilt (dort mit Toleranz und Zelle des Netzes)."""
     return genau_stueck(form, mitten, mindestens)
+
+
+def _pruefung(anstoesse, zuege, mitte, w):
+    """Die Stellen für eine Empfehlung (Bahn.pruefung): bis PRUEF_AN, die anstoßen („an“), und bis
+    PRUEF_FREI, die frei sind („frei“ – ein anderer Halter darf dort nicht neu anstoßen); „mitten“
+    beide."""
+    an = np.asarray(anstoesse, dtype=float).reshape(-1, 3)
+    frei = np.array([[c.x, c.y, c.z] for z in zuege for c, _a, _n in z]).reshape(-1, 3)
+    ergebnis = {"mitte": (float(mitte.x), float(mitte.y)), "radius": float(w.radius)}
+    for name, feld, anzahl in (("an", an, PRUEF_AN), ("frei", frei, PRUEF_FREI)):
+        k = np.unique(np.linspace(0, len(feld) - 1, min(len(feld), anzahl)).astype(int))
+        ergebnis[name] = [tuple(float(x) for x in feld[i]) for i in k] if len(feld) else []
+    ergebnis["mitten"] = ergebnis["an"] + ergebnis["frei"]
+    return ergebnis
 
 
 def _noetig_heraus(form, netz, anstoesse, teile, w, mitte):

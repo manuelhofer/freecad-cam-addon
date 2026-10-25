@@ -3316,6 +3316,11 @@ class _Schlichten3D(_Strategie):
         }
         if werte.get("hinterschnitt") and form.nur_kugel:
             weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
+            # Stößt etwas an: ein anderer Halter, ein längerer Fräser (empfehlung.py; Manuel,
+            # 2026-10-25: „wenn du diese aufnahme / halter nimmst und diesen fräser soweit
+            # ausspannst .. dann klapts“).
+            weiter["empfehlen"] = werkzeug.kennung
+            weiter["aufnahme"] = werte.get("aufnahme", "")
             # Schaft und Halter aus der Werkzeugverwaltung (der Halter in Stücken, Kegel genau).
             try:
                 bibliothek = wz.Bibliothek.laden()
@@ -4115,6 +4120,8 @@ class _Block:
     def werte(self):
         werte = {feld: self.wert(feld) for feld in self.felder}
         werte.update({feld: kasten.isChecked() for feld, kasten in self.haken_felder.items()})
+        if self.s.kennung == "schlichten3d":
+            werte["aufnahme"] = self.panel.werkzeugaufnahme()  # für eine Empfehlung
         if self.s.kennung == "nut":
             werte["eintauchen_bei"] = dict(self.eintauchen)
         elif self.s.kennung == "raeumen":
@@ -4527,10 +4534,58 @@ class _Block:
         „ausspannen“), mit dem nächsten Schritt dahinter: „T5 auf … mm ausspannen“, oder dass das
         Werkzeug dafür zu kurz ist (reichweite.ausspannen_auf; wie im 4-Achs-Assistenten)."""
         ausspannen = daten.get("ausspannen") if isinstance(daten, dict) else None
+        empfehlung = daten.get("empfehlung") if isinstance(daten, dict) else None
+        if empfehlung is not None:  # ein anderer Halter, ein anderer Fräser (empfehlung.py)
+            return f"{html.escape(satz, quote=False)} {self._empfehlung_text(empfehlung)}"
         if not ausspannen:
             return satz
         dazu = self._ausspannen_verweis(*ausspannen)
         return f"{html.escape(satz, quote=False)} {dazu}" if dazu else satz
+
+    def _empfehlung_text(self, empfehlung):
+        """Der Satz zur Empfehlung (empfehlung.Empfehlung) mit „So einrichten“ dahinter (Verweis
+        „empfehlung:“, _hinweis_verweis) – oder, dass auch nichts anderes ginge (KEINE)."""
+        from . import empfehlung as em
+
+        if empfehlung == em.KEINE:
+            return html.escape(tr("emp.keine"), quote=False)
+        self._empfehlung = empfehlung
+        dazu = []
+        if empfehlung.halter_neu:
+            dazu.append(tr("emp.halter_neu"))
+        if not empfehlung.im_magazin:
+            dazu.append(tr("emp.nicht_im_magazin"))
+        text = tr(
+            "emp.text",
+            werkzeug=empfehlung.werkzeug_text,
+            halter=empfehlung.halter.name,
+            heraus=einheiten.text(empfehlung.heraus, einheiten.LAENGE, 0),
+            laenge=einheiten.text(empfehlung.laenge, einheiten.LAENGE, 0),
+        )
+        if dazu:
+            text += " " + tr("emp.dazu", dazu="; ".join(dazu))
+        knopf = html.escape(tr("emp.einrichten"))
+        return f'{html.escape(text, quote=False)} <a href="empfehlung:">{knopf}</a>'
+
+    def _empfehlung_einrichten(self):
+        """„So einrichten“: die Empfehlung in die Werkzeugverwaltung (empfehlung.einrichten),
+        gespeichert; ein anderer Fräser wird gewählt; der Assistent rechnet neu."""
+        from . import empfehlung as em
+
+        empfehlung = getattr(self, "_empfehlung", None)
+        bibliothek = self.panel.bibliothek
+        if empfehlung is None or bibliothek is None:
+            return
+        self.panel.magazin()  # das Magazin der Maschine (dort gilt der Halter des Platzes)
+        werkzeug = em.einrichten(empfehlung, bibliothek)
+        if werkzeug is None:
+            return
+        bibliothek.speichern()
+        self.panel._werkzeuge_gespeichert()
+        kennungen = [w.kennung for w in self._fraeser]
+        if empfehlung.anderes_werkzeug and werkzeug.kennung in kennungen:
+            self.wahl_fraeser.setCurrentIndex(kennungen.index(werkzeug.kennung))
+            self.fraeser_von_hand = True
 
     def _ausspannen_verweis(self, heraus, mindestens):
         """„T5 auf … mm ausspannen“ als Verweis (_hinweis_verweis) – oder, dass das Werkzeug dafür
@@ -4560,6 +4615,9 @@ class _Block:
     def _mit_ausspannen(self, text, bahn):
         """Die Ergebniszeile – stößt die Bahn stellenweise an (hinterschnitt_bahn.Bahn.ausspannen),
         dahinter „T… auf … mm ausspannen“ (Manuel: der nächste Schritt als Knopf)."""
+        empfehlung = getattr(bahn, "empfehlung", None)
+        if empfehlung is not None and getattr(bahn, "anstoesse", 0):
+            return f"{html.escape(text, quote=False)} {self._empfehlung_text(empfehlung)}"
         ausspannen = getattr(bahn, "ausspannen", None)
         if not ausspannen or not getattr(bahn, "anstoesse", 0) or ausspannen[1] is None:
             return text
@@ -4571,7 +4629,10 @@ class _Block:
         Spindelnase, 43 mm heraus (rw.ausspannen_setzen), gespeichert; der Assistent liest es neu
         und rechnet die Vorschau."""
         bibliothek = self.panel.bibliothek
-        if not ziel.startswith("ausspannen:") or bibliothek is None:
+        if not ziel.startswith(("ausspannen:", "empfehlung:")) or bibliothek is None:
+            return
+        if ziel.startswith("empfehlung:"):
+            self._empfehlung_einrichten()
             return
         nummer, laenge, heraus, platz = rw.ausspannen_lesen(ziel)
         self.panel.magazin()  # das Magazin der Maschine (dort gilt der Wert des Platzes)
@@ -5977,6 +6038,28 @@ class BearbeitungPanel:
         except AttributeError:  # die Wahl der Maschine gibt es noch nicht
             return False
         return eintrag is not None and eintrag.vorhanden and eintrag.art == msp.FRAESE_5
+
+    def werkzeugaufnahme(self):
+        """Die Werkzeugaufnahme der Spindel der gewählten Maschine („SK40“ …; maschine.
+        werkzeugaufnahme) aus ihrem offenen Dokument, gemerkt je Maschine; "" ohne (dann SK40)."""
+        from . import gui_reichweite
+        from . import maschine as m
+
+        eintrag = self.maschine() if hasattr(self, "wahl_maschine") else None
+        datei = os.path.abspath(getattr(eintrag, "datei", "") or "") if eintrag else ""
+        gemerkt = getattr(self, "_aufnahme_merk", None)
+        if gemerkt is not None and gemerkt[0] == datei:
+            return gemerkt[1]
+        aufnahme = ""
+        try:
+            for assembly, maschine in gui_reichweite.offene_maschinen():
+                if datei and os.path.abspath(assembly.Document.FileName or "") == datei:
+                    aufnahme = m.werkzeugaufnahme(maschine)
+                    break
+        except Exception:  # noqa: BLE001 – ohne Dokumente: SK40
+            aufnahme = ""
+        self._aufnahme_merk = (datei, aufnahme)
+        return aufnahme
 
     def _spindel_quer(self):
         """Steht an der gewählten 5-Achs-Fräse die Spindel in der Grundstellung quer zu Z – waagerecht

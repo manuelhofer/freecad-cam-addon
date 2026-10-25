@@ -3203,5 +3203,11 @@
     "halter.reihe.bezeichnung": "Typische Maße nach {norm}, keine Katalogwerte – mit deinem Halter vergleichen",
     "hd.neu.reihen": "Normreihen (alle Größen und Längen)",
     "hd.neu.reihen.tooltip": "Halter nach Norm in jeder Größe und Länge, bis „extra lang“ – die Kontur aus typischen Maßen gerechnet. Nach dem Anlegen mit dem eigenen Halter vergleichen.",
-    "ba.waagerecht.nur_simultan": "An dieser Maschine steht die Spindel waagerecht: Hier im Grundjob fräst nur, was 5 Achsen simultan fährt (Flanke, 3D-Schlichten gekippt, Entgraten 3D). Alles von oben kommt nach „Anlegen“ in der Ebene „von oben“ dran."
+    "ba.waagerecht.nur_simultan": "An dieser Maschine steht die Spindel waagerecht: Hier im Grundjob fräst nur, was 5 Achsen simultan fährt (Flanke, 3D-Schlichten gekippt, Entgraten 3D). Alles von oben kommt nach „Anlegen“ in der Ebene „von oben“ dran.",
+    "emp.text": "Mit dem Magazin, wie es ist, geht es hier nicht ganz – so ginge es: {werkzeug} im Halter „{halter}“, {heraus} mm heraus ({laenge} mm ab Spindelnase).",
+    "emp.dazu": "Dazu: {dazu}.",
+    "emp.halter_neu": "den Halter gibt es in deiner Werkzeugverwaltung noch nicht (Normreihe, typische Maße)",
+    "emp.nicht_im_magazin": "der Fräser steht nicht im Magazin",
+    "emp.einrichten": "So einrichten",
+    "emp.keine": "Auch mit anderen Haltern (deinen und den Normreihen) und längeren Fräsern derselben Form geht es hier nicht."
 }

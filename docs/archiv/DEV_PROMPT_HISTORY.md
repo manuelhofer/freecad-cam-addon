@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-24 empfehlung-halter-fraeser
+
+### EINGELESEN
+- Manuel, 2026-10-25 früh: „ich hätte jetzt gerne das das addon für die herstellung ..
+  empfehlungen gibt auch wenn werkzeuge und halter nicht im magazin vorhanden sind .. einfach das
+  du sagst "hey mit dem aktuellen magazin sehe ich keine changse das komplett zu bearbeiten .. aber
+  wenn du dieseeaufnahme / halter nimmst und diesen fräser soweit ausspannst .. dann klapts"“ –
+  „das muss mit rein...“.
+
+### DATEIEN
+- `camaddon/empfehlung.py` (neu): `empfehlen` – Paare aus Fräser (der gewählte, längere derselben
+  Form) und Halter (die der Werkzeugverwaltung an der Aufnahme, die Normreihen für den Schaft).
+  Je Paar sucht es die kürzeste Auskragung, bei der an den Stellen der Prüfung eine gekippte
+  Achse frei bleibt (`paar_stueck`, je Paar ein Auftrag für die Nebenrechner). Das geht in zwei
+  Runden mit 2 mm Reserve. Empfohlen wird das kürzeste Paar ab Spindelnase (`Empfehlung`, `KEINE`).
+  `einrichten` legt den Halter an, setzt ihn beim Fräser bzw. im Magazin an seinem Platz und
+  trägt die Auskragung ein.
+- `camaddon/hinterschnitt_bahn.py`: `Bahn.pruefung` (`_pruefung`: bis 200 anstoßende und 60 freie
+  Stellen), auch in den Daten des Fehlers.
+- `camaddon/schlichten3d.py`: `vorschau(…, empfehlen, aufnahme)` rechnet die Empfehlung, wenn
+  Ausspannen mit dem eigenen Halter nicht reicht (`_empfehlung`).
+- `camaddon/gui_bearbeitung.py`: der Satz mit „So einrichten“ (`_empfehlung_text`,
+  `_empfehlung_einrichten`, Verweis „empfehlung:“) im roten Satz und hinter der Ergebniszeile;
+  `werkzeugaufnahme()` liest die Aufnahme der gewählten Maschine aus ihrem offenen Dokument.
+- `docs/spezifikation_strategien.md` 16.20, `translations/*.json` (`emp.*`).
+- `tests/test_empfehlung.py` (neu): Kugel Ø 6 im ER32 in einer Tasche 30 tief. Die Empfehlung ist
+  „Spannzangenfutter ER11 · A 70“ mit 38 mm heraus; eingerichtet stößt nichts mehr an. Ohne
+  passende Halter sagt sie `KEINE`.
+
+### ERGEBNIS
+- Manuels tiefe Tasche (Kopie), G550, T3 wie in seiner Werkzeugverwaltung (45 mm heraus, Halter
+  mit Bund Ø 73): Im Assistenten steht rot „… bräuchte es mindestens 64 mm … Mit dem Magazin, wie
+  es ist, geht es hier nicht ganz – so ginge es: T3 207125 D12 im Halter „Schrumpffutter Ø12 · A
+  80 · SK40“, 33 mm heraus (113 mm ab Spindelnase). Dazu: den Halter gibt es in deiner
+  Werkzeugverwaltung noch nicht …“ und der Knopf „So einrichten“.
+- Nach dem Klick hat T3 den neuen Halter mit 33 mm heraus, und es stößt nichts mehr an: 14
+  Höhenlinien, etwa 10 min. Angelegt sind Räumen T1 (Ebene von oben), 3D-Schlichten T3 (7797
+  Sätze mit A und B) und Flanke T1.
+
 ## P-2026-10-25-23 normreihen-halter
 
 ### EINGELESEN

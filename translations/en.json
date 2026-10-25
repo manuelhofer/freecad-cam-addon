@@ -3203,5 +3203,11 @@
     "halter.reihe.bezeichnung": "Typical dimensions per {norm}, not catalog values – compare with your holder",
     "hd.neu.reihen": "Standard series (all sizes and lengths)",
     "hd.neu.reihen.tooltip": "Holders per standard in every size and length, up to “extra long” – the contour computed from typical dimensions. After creating, compare with your own holder.",
-    "ba.waagerecht.nur_simultan": "On this machine the spindle is horizontal: here in the base job only 5-axis simultaneous strategies cut (flank, tilted 3D finishing, 3D deburring). Everything from above comes in the plane “from above” after “Create”."
+    "ba.waagerecht.nur_simultan": "On this machine the spindle is horizontal: here in the base job only 5-axis simultaneous strategies cut (flank, tilted 3D finishing, 3D deburring). Everything from above comes in the plane “from above” after “Create”.",
+    "emp.text": "With the magazine as it is, this doesn't fully work – this would: {werkzeug} in the holder “{halter}”, sticking out {heraus} mm ({laenge} mm from the spindle nose).",
+    "emp.dazu": "Also: {dazu}.",
+    "emp.halter_neu": "the holder is not yet in your tool library (standard series, typical dimensions)",
+    "emp.nicht_im_magazin": "the cutter is not in the magazine",
+    "emp.einrichten": "Set it up",
+    "emp.keine": "Even with other holders (yours and the standard series) and longer cutters of the same shape it doesn't work here."
 }

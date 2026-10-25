@@ -1,0 +1,142 @@
+# Prüft die Empfehlung (empfehlung.py; Manuel, 2026-10-25: „wenn du diese aufnahme / halter nimmst
+# und diesen fräser soweit ausspannst .. dann klapts“): Block 80 × 60 × 40, darin eine Tasche
+# 30 tief, unten weiter als oben (10°). Ein Kugelfräser Ø 6 (60 lang, Schneide 12) steckt in einem
+# ER32-Futter (Mutter Ø 50) – unten in der Tasche stößt die Mutter an den Rand, auch bis 40°
+# gekippt, und Ausspannen geht nicht weit genug. Die Empfehlung: ein anderer Halter (eine
+# Normreihe, die Ø 6 fasst), so weit heraus, dass an allen Stellen der Prüfung eine Achse frei
+# bleibt – das kürzeste Paar ab Spindelnase.
+# „So einrichten“ (einrichten): der Halter in der Werkzeugverwaltung, beim Fräser gewählt, die
+# Ausspannlänge gesetzt – danach stößt die Bahn nirgends mehr an.
+import math
+import os
+import sys
+
+ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ADDON)
+
+import FreeCAD
+import Part
+
+from camaddon import empfehlung as em
+from camaddon import halter as hl
+from camaddon import hinterschnitt_bahn as hb
+from camaddon import reichweite as rw
+from camaddon import sprache
+from camaddon import werkzeuge as wz
+
+fehler = []
+
+
+def pruefe(bedingung, text):
+    if not bedingung:
+        fehler.append(text)
+
+
+V = FreeCAD.Vector
+sprache.setze_sprache("de")
+R = 3.0
+D = 30 * math.tan(math.radians(10))
+
+
+def rechteck(b, h, z, mx=40.0, my=30.0):
+    x0, x1, y0, y1 = mx - b / 2, mx + b / 2, my - h / 2, my + h / 2
+    return Part.makePolygon([V(x0, y0, z), V(x1, y0, z), V(x1, y1, z), V(x0, y1, z), V(x0, y0, z)])
+
+
+unten = rechteck(44 + 2 * D, 30 + 2 * D, 10.0)
+oben = rechteck(44, 30, 40.0)
+teil = Part.makeBox(80, 60, 40).cut(Part.makeLoft([unten, oben], True, True)).removeSplitter()
+waende = [
+    f"Face{i + 1}"
+    for i, f in enumerate(teil.Faces)
+    if f.BoundBox.ZMin < 10.5
+    and f.BoundBox.ZMax > 39.5
+    and 1 < f.BoundBox.XMin < f.BoundBox.XMax < 79
+]
+pruefe(len(waende) == 4, f"{len(waende)} Wände")
+
+bib = wz.Bibliothek()
+kugel = wz.Werkzeug(
+    nummer=4,
+    name="Kugel 6",
+    art=wz.KUGELFRAESER,
+    durchmesser=6.0,
+    schneiden=2,
+    schneidenlaenge=12.0,
+    gesamtlaenge=60.0,
+    schneidstoff=wz.VHM,
+)
+bib.werkzeuge.append(kugel)
+er32 = bib.neuer_halter("er32", None, "SK40")
+kugel.halter = er32.kennung
+
+
+def werte(werkzeug):
+    laenge = rw.laenge_des_werkzeugs(werkzeug, bib)[0]
+    halter = bib.halter_fuer_pruefung(werkzeug)
+    koerper = hb.koerper_des_werkzeugs(rw.masse_des_werkzeugs(werkzeug), laenge, halter)
+    return (
+        hb.Werte(
+            radius=R,
+            sicher=60.0,
+            grathoehe=0.02,
+            vorschub=1500.0,
+            schritt=1.0,
+            koerper=tuple(koerper),
+            schneide=12.0,
+            oben=40.0,
+        ),
+        laenge - halter.laenge,
+    )
+
+
+w, heraus = werte(kugel)
+try:
+    bahn = hb.planen(teil, waende, w)
+    pruefung, anstoesse = bahn.pruefung, bahn.anstoesse
+except ValueError as grund:
+    pruefung, anstoesse = getattr(grund, "daten", {}).get("pruefung"), -1
+print(ascii(f"ER32, {heraus:.0f} mm heraus: {anstoesse} Anstoesse"))
+pruefe(pruefung is not None and anstoesse != 0, f"mit ER32 stößt nichts an ({anstoesse})")
+
+empfehlung = em.empfehlen(teil, pruefung, kugel, bib, "SK40")
+pruefe(isinstance(empfehlung, em.Empfehlung), f"keine Empfehlung: {empfehlung}")
+if isinstance(empfehlung, em.Empfehlung):
+    print(
+        ascii(
+            f"Empfehlung: {empfehlung.werkzeug_text} in {empfehlung.halter.name}, "
+            f"{empfehlung.heraus:.0f} mm heraus, {empfehlung.laenge:.0f} ab Spindelnase"
+        )
+    )
+    pruefe(empfehlung.halter_neu and "· SK40" in empfehlung.halter.name, empfehlung.halter.name)
+    pruefe(12.0 < empfehlung.heraus <= 54.0, f"heraus {empfehlung.heraus}")
+    werkzeug = em.einrichten(empfehlung, bib)
+    pruefe(werkzeug is kugel and kugel.halter != er32.kennung, "nicht eingerichtet")
+    neu = bib.halter_von(kugel)
+    pruefe(neu is not None and neu.name == empfehlung.halter.name, f"Halter {neu}")
+    pruefe(abs(kugel.ausspannlaenge - empfehlung.heraus) < 1e-6, f"{kugel.ausspannlaenge}")
+    w2, heraus2 = werte(kugel)
+    bahn2 = hb.planen(teil, waende, w2)
+    print(
+        ascii(
+            f"danach: {heraus2:.0f} mm heraus, {bahn2.anstoesse} Anstoesse, {bahn2.neigung:.0f} Grad"
+        )
+    )
+    pruefe(bahn2.anstoesse == 0, f"danach {bahn2.anstoesse} Anstöße")
+    # Noch einmal einrichten legt den Halter nicht doppelt an.
+    vorher = len(bib.halter)
+    em.einrichten(empfehlung, bib)
+    pruefe(len(bib.halter) == vorher, "Halter doppelt")
+
+# Ein Halter, mit dem nichts geht, wird nicht empfohlen: ohne Normreihen und eigene Halter KEINE.
+leer = wz.Bibliothek()
+fest = wz.Werkzeug(nummer=5, art=wz.KUGELFRAESER, durchmesser=7.0, gesamtlaenge=20.0)
+leer.werkzeuge.append(fest)
+pruefe(em.empfehlen(teil, pruefung, fest, leer, "SK40") == em.KEINE, "Ø7 kurz: doch etwas")
+print(ascii(f"Normhalter fuer 6: {len(em._normhalter(6.0, 'SK40'))}"))
+pruefe(hl.aus_vorlage(hl.reihe(hl.SCHRUMPF, 6, 80)).name.startswith("Schrumpffutter Ø6"), "Name")
+
+if fehler:
+    raise AssertionError("\n".join(fehler))
+print()
+print("OK", os.path.basename(__file__))
