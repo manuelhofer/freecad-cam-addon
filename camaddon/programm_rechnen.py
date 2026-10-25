@@ -104,6 +104,13 @@ def maschine_je_operation(job, dok):
         FreeCAD.Console.PrintLog(f"CAM-Addon: Programm: {fehler}\n")
         return None
     werkzeuge = bibliothek()
+    if werkzeuge is not None:
+        # Mit dem Magazin der Maschine: die Länge, wie das Werkzeug an seinem Platz steckt – so
+        # rechnen auch Vorschau und „Kollision prüfen“ (Manuels Kugel: im Magazin 113 mm ab
+        # Spindelnase, in der Werkzeugliste anders).
+        from . import magazin as mg
+
+        mg.des_jobs(job, werkzeuge, gefunden[0])
     nullpunkt = rw.nullpunkt(job)
     je_nummer = {}
 

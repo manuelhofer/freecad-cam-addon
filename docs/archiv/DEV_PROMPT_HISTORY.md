@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-58/-59/-60 schneide-ueber-der-kugel, magazin-im-programm, raeumen-neben-der-nut
+
+### EINGELESEN
+- „Kollision prüfen“ an Manuels tiefer Tasche (Kopie, Weg „Flanke grob, Spirale fertig“): „In
+  ‚3D-Schlichten T2‘ fährt die Schneide von T2 ins fertige Teil (Satz 57)“. Die Kugel blieb frei
+  (an allen 41.788 Befehlen nachgemessen), Lage und Achse der Prüfung stimmten mit der Bahn
+  (Kinematik: Spitze 24,074 / −24,909 / 83,118, Achse 0 / 0,139 / 0,990). Genau gerechnet
+  (OpenCascade): Der Zylinder der Schneide gleich über der Kugel lief oben über die Kante der
+  Öffnung, 0,07 mm ins Teil – die Planung unter dem Rand prüfte die Schneide erst ab 1,5 R.
+- Dabei: Programm (Maschine je Werkzeug) und Ebenenzugang nahmen die Werkzeuglänge ohne Magazin,
+  „Kollision prüfen“ mit (hier ohne Folge – die G550 dreht im Tisch).
+- Manuels Klemmung (Kopie): „Räumen T3“ legte eine leere Operation an („Hier ist nichts mehr zu
+  tun“). Die drei schmalen Taschen sind Nuten, die Nut fräst sie; die Folge „Planfräsen +
+  Räumen der Taschenböden“ rechnete sie trotzdem vor, und Planfräsen und Räumen traten auf
+  denselben ebenen Flächen nicht gegeneinander an.
+
+### DATEIEN
+- `camaddon/hinterschnitt_bahn.py`: die Schneide vom Äquator bis 1,5 R mit geprüft – anliegen
+  darf sie, hinein nicht mehr als „Kollision prüfen“ zulässt (`SPIEL_UEBER_KUGEL` −0,05 mm).
+- `camaddon/programm_rechnen.py`, `camaddon/maschinenzugang.py`: mit dem Magazin der Maschine.
+- `camaddon/gui_bearbeitung.py`: `_nur_boeden` ohne die Gründe der angehakten Nut;
+  `_wettbewerb_flaechen` (das Räumen tritt mit den Flächen an, die es räumt); ohne Fläche legt das
+  Räumen keine Operation an.
+
+### ERGEBNIS
+- Tasche: die Schneide über der Kugel höchstens 0,03 mm am Teil (vorher 0,07). Prüfteil des Tests
+  wie vorher: 20° Neigung, kein Anstoß, weggelassen nur am Boden.
+- Klemmung: Planfräsen „die schnellste; Räumen wäre 350 % langsamer“, keine leere Operation.
+- Prüfungen: test_hinterschnitt_bahn, test_bahnzugang; szenario_bearbeitung_cring_alles,
+  _nut, _nut_offen, _raeumen_materialstand grün.
+
 ## P-2026-10-25-57 vorschau-je-strategie
 
 ### EINGELESEN

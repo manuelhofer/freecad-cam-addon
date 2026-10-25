@@ -10924,7 +10924,14 @@ class BearbeitungPanel:
         alle = self.raeumen.s.flaechen_fuer(form, self.gewaehlte)
         if not flach or not set(flach) < set(alle):
             return None
-        return [f for f in alle if f not in flach]
+        # Die Gründe, die die angehakte Nut fräst, nicht: An Manuels Klemmung waren alle drei
+        # Taschen Nuten – das Räumen rechnete sie trotzdem vor („3 Lagen, etwa 6 min“) und legte
+        # dann eine leere Operation an („Hier ist nichts mehr zu tun“).
+        nut = set()
+        if self.nut.aktiv():
+            nut = {f for f in self._eigene(self.nut, form) if nb.ist_grund(form, f)}
+        boeden = [f for f in alle if f not in flach and f not in nut]
+        return boeden or None
 
     def _folge(self, form, boeden):
         """Ebene Flächen und Taschenböden gewählt: Entweder räumt das Räumen alles, oder das
@@ -11064,6 +11071,19 @@ class BearbeitungPanel:
                 continue
             self._wettbewerb_gruppe(form, gruppe)
 
+    def _wettbewerb_flaechen(self, block, form):
+        """Die Flächen, um die der Block antritt: seine eigenen – beim Räumen ohne die Gründe, die
+        die angehakte Nut fräst (die räumt es nicht; Manuels Klemmung: sonst traten Planfräsen
+        und Räumen auf denselben ebenen Flächen nicht gegeneinander an, beide blieben angehakt,
+        und das Räumen legte eine leere Operation an)."""
+        eigene = self._eigene(block, form)
+        if block is not self.raeumen or not self.nut.aktiv():
+            return eigene
+        if self._gleiche_flaechen(block, form, self.nut):
+            return eigene
+        nut = {f for f in self._eigene(self.nut, form) if nb.ist_grund(form, f)}
+        return [f for f in eigene if f not in nut] or eigene
+
     def _wettbewerb_gruppe(self, form, gruppe):
         """Die schnellste der Gruppe bekommt den Haken; wer nicht geht (rot), verliert ihn, wenn
         eine andere auf denselben Flächen geht – sonst ginge „Anlegen“ nicht (ein Ø 12 passt
@@ -11073,7 +11093,7 @@ class BearbeitungPanel:
             return
         teile = {}
         for b in gruppe:
-            eigene = frozenset(self._eigene(b, form))
+            eigene = frozenset(self._wettbewerb_flaechen(b, form))
             if eigene:
                 teile.setdefault(eigene, []).append(b)
         if len(teile) > 1:
@@ -11235,6 +11255,10 @@ class BearbeitungPanel:
         self._genau_abholen(self.aktive_bloecke())
         form = vr.modell(self.job).Shape
         aktive = self._in_anlege_reihe(self.aktive_bloecke())
+        if self.raeumen in aktive and not self._flaechen(self.raeumen, form):
+            # Alle seine Flächen nimmt schon ein anderer (die Gründe der Nut) – ohne Fläche
+            # räumte die Operation das ganze Teil.
+            aktive.remove(self.raeumen)
 
         folge = []  # die weiteren Operationen eines Blocks (Schlichten danach: Boden und Wände)
 

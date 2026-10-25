@@ -65,6 +65,12 @@ ECKE_ANTEIL = 0.75  # in so viele der Lücken soll die empfohlene Kugel passen
 # Wände über – dort kippt sie schräg in die Ecke).
 SPIEL_SCHAFT = 0.2  # mm – Schneide und Schaft (so dick wie die Kugel oder dünner)
 SPIEL_HALTER = 1.0  # mm – was dicker ist als die Kugel
+# mm – die Schneide gleich über der Kugel (Äquator bis 1,5 R) darf an einer Wand anliegen wie die
+# Kugel selbst, nur nicht hinein: so viel, wie „Kollision prüfen“ noch nicht als „ins fertige
+# Teil“ zählt (kollision.EINDRINGEN). An Manuels tiefer Tasche lief sie oben über die Kante der
+# Öffnung, 0,07 mm ins Teil. Strenger fand die Suche in Schritten in einer Ecke zweier
+# überhängender Wände (die Achse muss längs ihrer Kante stehen) oft keine Neigung.
+SPIEL_UEBER_KUGEL = -0.05
 NEIGUNG_MAX = 40.0  # Grad
 NEIGUNG_GROB = 8.0  # Grad – so grob sucht die Neigung zuerst
 NEIGUNG_SCHRITT = 2.0  # Grad – dann so fein
@@ -810,12 +816,13 @@ def _alle_nah(punkte, andere, weite):
 
 
 def _koerper(w, laenge):
-    """[(von, bis, Radius, Spiel)] längs der Achse ab der Spitze: die Schneide über der Kugel (ab
-    1,5 R – darunter liegt die Kugel selbst an), dann was `w.koerper` darüber nennt (Hals, Schaft,
-    Halter; ohne: ein Schaft wie die Kugel), nichts weiter als `laenge` (darüber steht nichts)."""
+    """[(von, bis, Radius, Spiel)] längs der Achse ab der Spitze: die Schneide gleich über der Kugel
+    (Äquator bis 1,5 R) – sie darf anliegen wie die Kugel, nicht hinein (SPIEL_UEBER_KUGEL) –,
+    darüber mit Spiel (ab 1,5 R), dann was `w.koerper` darüber nennt (Hals, Schaft, Halter; ohne:
+    ein Schaft wie die Kugel), nichts weiter als `laenge` (darüber steht nichts)."""
     r = w.radius
     unten = 1.5 * r
-    teile = []
+    teile = [(r, min(unten, laenge), r, SPIEL_UEBER_KUGEL)]
     if w.koerper:
         schneide = max(float(w.schneide or 0.0), unten)
         if schneide > unten:
@@ -825,7 +832,7 @@ def _koerper(w, laenge):
             if bis > von + 1e-6 and radius > 0:
                 spiel = SPIEL_HALTER if radius > r + 1e-3 else SPIEL_SCHAFT
                 teile.append((von, bis, float(radius), spiel))
-    if not teile:
+    if len(teile) == 1:
         teile.append((unten, max(laenge, unten + 1.0), r, SPIEL_SCHAFT))
     return teile
 

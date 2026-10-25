@@ -57,7 +57,11 @@ def _maschine(job, operation):
         aufnahme = p.werkzeugaufnahme(int(tc.ToolNumber))
         if aufnahme is None:
             return False
-        ein = rw.einspannung(tc, wz.Bibliothek.laden())
+        from . import magazin as mg
+
+        bibliothek = wz.Bibliothek.laden()
+        mg.des_jobs(grund, bibliothek)  # die Länge am Platz im Magazin der Maschine
+        ein = rw.einspannung(tc, bibliothek)
         return sw.Maschine(p, aufnahme, ein, rw.nullpunkt(grund))
     except Exception as fehler:
         FreeCAD.Console.PrintLog(f"CAM-Addon: Ebenenzugang: {fehler}\n")
