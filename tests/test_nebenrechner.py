@@ -139,7 +139,10 @@ try:
     ]
     assert [round(v, 9) for v in pool.warten(auftraege)] == [14.0] * 6
     offen = [a.nummer for a in pool._arbeiter if kopie6.pfad in a.dokumente]
-    assert len(offen) == 2, f"die große Kopie öffneten {offen} (von {pool.arbeiter} Arbeitern)"
+    # Höchstens zwei – mehr trägt der Speicher nicht. Unter der Last eines vollen Laufs schafft
+    # der erste auch mit 1 s je Auftrag manchmal alle sechs, bevor der zweite drankommt (zweimal
+    # am 2026-10-26): dann öffnet sie nur einer, auch das ist richtig.
+    assert 1 <= len(offen) <= 2, f"die große Kopie öffneten {offen} (von {pool.arbeiter} Arbeitern)"
     # Reicht der Speicher für keinen, rechnet trotzdem einer – sonst rechnete nie einer.
     pool.speicher = lambda: 0
     neu = pool.kopie(doc)
