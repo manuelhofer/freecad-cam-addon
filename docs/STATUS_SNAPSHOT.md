@@ -530,7 +530,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.281.12) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.281.13) – offen, in dieser Reihenfolge:**
 0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
    Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
    A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz
