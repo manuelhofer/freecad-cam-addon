@@ -433,6 +433,79 @@ def rueckzug_z(maschine, hoehe):
     return ergebnis
 
 
+def _spindel_rueckzug(maschine, stellung, spitze):
+    """(Buchstabe, Wert) – steht die Spindel nicht längs Z des Programms (die GROB G550: längs Y),
+    fährt die Spitze vor und nach einem Schwenk längs der Spindel zurück: auf dieser Programmachse
+    bis an die Grenze ihrer Achse (wie rueckzug_z, RUECKZUG_RAND davor). Bis 0.283.4 fuhr sie in
+    Z – an der G550 quer zur Spindel –, und der Eilgang zum ersten Punkt danach strich 600 mm
+    quer am Teil und am Rundtisch vorbei („Kollision prüfen“ an Manuels tiefer Tasche). None:
+    längs Z (dann wie bisher) oder schräg zu den Achsen."""
+    abbildung = maschine.abbildung(stellung)
+    if abbildung is None:
+        return None
+    achse = maschine.richtung(stellung)
+    p = FreeCAD.Vector(*(float(v) for v in spitze))
+    q0 = [float(v) for v in abbildung.punkt(p)]
+    q1 = [float(v) for v in abbildung.punkt(p + achse)]
+    d = [b - a for a, b in zip(q0, q1, strict=True)]
+    k = max(range(3), key=lambda i: abs(d[i]))
+    if k == 2 or abs(d[k]) < 0.999:
+        return None
+    try:
+        loesung, _ = maschine.pruefung.loeser(
+            maschine.aufnahme, maschine.laenge, maschine.nullpunkt
+        )({})
+    except (AttributeError, TypeError, ValueError):
+        return None
+    if loesung is None:
+        return None
+    s0 = loesung.werte(*q0)
+    s1 = loesung.werte(*(a + b for a, b in zip(q0, d, strict=True)))
+    weit = None
+    for linear, v0, v1 in zip(maschine.linear, s0, s1, strict=True):
+        steigung = v1 - v0
+        if abs(steigung) < 1e-9:
+            continue
+        minimum, maximum = maschine.pruefung.verfahren.grenzen(linear)
+        grenze = maximum if steigung > 0 else minimum
+        if grenze is None:
+            continue
+        t = (grenze - v0) / steigung - RUECKZUG_RAND
+        weit = t if weit is None else min(weit, t)
+    if weit is None or weit <= 0:
+        return None
+    return "XYZ"[k], q0[k] + d[k] * weit
+
+
+def _laengs_der_spindel(maschine, punkte, rund_anfang, rund_ende, erster):
+    """(davor, danach) für eine Spindel nicht längs Z (_spindel_rueckzug): zurück längs der
+    Spindel, schwenken, die beiden anderen Achsen auf den ersten Punkt (der erste Satz fährt dann
+    längs der Spindel hinein); danach längs der Spindel zurück und die Rundachsen in die
+    Grundstellung. None, wenn die Spindel längs Z steht."""
+    import Path
+
+    vorn = _spindel_rueckzug(maschine, rund_anfang, punkte[0].spitze)
+    if vorn is None:
+        return None
+    buchstabe, wert = vorn
+    davor = [
+        Path.Command("G0", {buchstabe: wert}),
+        Path.Command("G0", dict(rund_anfang)),
+        Path.Command("G0", {b: float(erster[b]) for b in "XYZ" if b != buchstabe}),
+    ]
+    danach = []
+    hinten = _spindel_rueckzug(maschine, rund_ende, punkte[-1].spitze)
+    if hinten is not None:
+        danach.append(Path.Command("G0", {hinten[0]: hinten[1]}))
+    danach.append(
+        Path.Command(
+            "G0",
+            {a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe]) for a in maschine.rundachsen},
+        )
+    )
+    return davor, danach
+
+
 def befehle_auf_maschine(
     maschine,
     punkte,
@@ -470,28 +543,35 @@ def befehle_auf_maschine(
     rundachsen = [a.buchstabe for a in maschine.rundachsen]
     rund_anfang = {b: float(erster[b]) for b in rundachsen}
     rund_ende = {b: float(letzter[b]) for b in rundachsen}
-    hoehe = None
-    if rohteil is not None and not rohteil.isNull():
-        hoehe = max(
-            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_anfang),
-            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
+    spindel = _laengs_der_spindel(maschine, punkte, rund_anfang, rund_ende, erster)
+    if spindel is not None:  # die Spindel nicht längs Z (die G550): längs ihrer zurück und hinein
+        davor, danach = spindel
+    else:
+        hoehe = None
+        if rohteil is not None and not rohteil.isNull():
+            hoehe = max(
+                sw.schwenkhoehe(rohteil, maschine.abbildung, rund_anfang),
+                sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
+            )
+        hoehe = rueckzug_z(maschine, hoehe)  # vor jedem Schwenk bis an die Achsgrenze (B-015)
+        davor = []
+        if hoehe is not None:
+            davor.append(Path.Command("G0", {"Z": max(hoehe, float(erster["Z"]))}))
+        davor.append(Path.Command("G0", dict(rund_anfang)))
+        if hoehe is not None:
+            davor.append(Path.Command("G0", {"X": float(erster["X"]), "Y": float(erster["Y"])}))
+        danach = []
+        if hoehe is not None:
+            danach.append(Path.Command("G0", {"Z": max(hoehe, float(letzter["Z"]))}))
+        danach.append(
+            Path.Command(
+                "G0",
+                {
+                    a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe])
+                    for a in maschine.rundachsen
+                },
+            )
         )
-    hoehe = rueckzug_z(maschine, hoehe)  # vor jedem Schwenk bis an die Achsgrenze (B-015)
-    davor = []
-    if hoehe is not None:
-        davor.append(Path.Command("G0", {"Z": max(hoehe, float(erster["Z"]))}))
-    davor.append(Path.Command("G0", dict(rund_anfang)))
-    if hoehe is not None:
-        davor.append(Path.Command("G0", {"X": float(erster["X"]), "Y": float(erster["Y"])}))
-    danach = []
-    if hoehe is not None:
-        danach.append(Path.Command("G0", {"Z": max(hoehe, float(letzter["Z"]))}))
-    danach.append(
-        Path.Command(
-            "G0",
-            {a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe]) for a in maschine.rundachsen},
-        )
-    )
     if materialdaten is not None:
         materialdaten[:] = [(True, 0.0)] * len(davor) + materialdaten + [(True, 0.0)] * len(danach)
     if verbindungen is not None:
@@ -571,21 +651,31 @@ def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERAN
         start = dict(saetze[0].Parameters)
         start["F"] = eil
         saetze[0] = Path.Command("G1", start)  # unter TCPM hinab und auf die Stellung
+    spindel = None
+    if not bei_null:  # die Spindel nicht längs Z (die G550): längs ihrer zurück und hinein
+        erster_d = dict(zip("XYZ", erster, strict=True))
+        spindel = _laengs_der_spindel(maschine, punkte, rund_anfang, rund_ende, erster_d)
+    if spindel is not None:
+        davor, danach = spindel
     else:
+        if not bei_null:
+            if hoehe is not None:
+                davor.append(Path.Command("G0", {"Z": max(hoehe, erster[2])}))
+            davor.append(Path.Command("G0", dict(rund_anfang)))
+            if hoehe is not None:
+                davor.append(Path.Command("G0", {"X": erster[0], "Y": erster[1]}))
+        danach = []
         if hoehe is not None:
-            davor.append(Path.Command("G0", {"Z": max(hoehe, erster[2])}))
-        davor.append(Path.Command("G0", dict(rund_anfang)))
-        if hoehe is not None:
-            davor.append(Path.Command("G0", {"X": erster[0], "Y": erster[1]}))
-    danach = []
-    if hoehe is not None:
-        danach.append(Path.Command("G0", {"Z": max(hoehe, letzter[2])}))
-    danach.append(
-        Path.Command(
-            "G0",
-            {a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe]) for a in maschine.rundachsen},
+            danach.append(Path.Command("G0", {"Z": max(hoehe, letzter[2])}))
+        danach.append(
+            Path.Command(
+                "G0",
+                {
+                    a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe])
+                    for a in maschine.rundachsen
+                },
+            )
         )
-    )
     # Die Marken als (Name, Werte) – ein Path.Command nimmt nur G-Code; der Postprozessor liest
     # beides (postprozessor._befehl).
     return davor + [(TCPM_EIN, {})] + saetze + [(TCPM_AUS, {})] + danach

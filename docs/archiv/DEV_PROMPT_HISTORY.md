@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-32 g550-zurueck-laengs-der-spindel
+
+### EINGELESEN
+- „Kollision prüfen“ an Manuels tiefer Tasche (Kopie, GROB G550) fand in Satz 5 jeder
+  Simultan-Operation Spindel, Halter und Fräser im Rundtisch und im Teil. Der Postprozessor fuhr
+  vor dem Schwenk in Z zurück – an der G550 quer zur Spindel – und der Eilgang zum ersten Punkt
+  strich danach 600 mm quer am Teil vorbei.
+
+### DATEIEN
+- `camaddon/simultan.py`: `_spindel_rueckzug` – steht die Spindel längs einer anderen
+  Programmachse als Z, fährt die Spitze vor und nach dem Schwenk längs der Spindel bis vor die
+  Grenze ihrer Achse zurück. `_laengs_der_spindel` baut davor (zurück, schwenken, die beiden
+  anderen Achsen auf den ersten Punkt; der erste Satz fährt längs der Spindel hinein) und danach
+  (zurück, Rundachsen in die Grundstellung). In `befehle_auf_maschine` und `befehle_mit_tcpm`;
+  Spindel längs Z wie bisher.
+
+### ERGEBNIS
+- Szenario an der Tasche mit Kollisionsprüfung: 20 → 7 Befunde, keiner mehr in Satz 5. Übrig:
+  Flanke Satz 2780/3048 (eigene Sache, folgt) und drei Annäherungen beim Räumen (0,3–0,7 mm).
+- Prüfungen: test_postprozessor, test_simultan_maschinen, test_simultan_nc grün.
+
+## P-2026-10-25-31 empfehlung-fuer-die-flanke
+
+### EINGELESEN
+- Manuel zu seiner Tasche: Bei der Flanke stand nur „Halter oder Schaft führen hier in die Wand
+  … T1 auf 54 mm ausspannen“ – auch wenn der Fräser dafür zu kurz ist. Wie beim 3D-Schlichten
+  soll der Assistent sagen, womit es ginge.
+
+### DATEIEN
+- `camaddon/empfehlung.py`: `empfehlen_flanke`, `flanke_paar_stueck`, `_flanke_netz` – Paare aus
+  Halter und Fräser für die Stellen der Flanke, kürzeste Auskragung je Paar. Halter der
+  Werkzeugverwaltung zählen nur, wenn ihr Name zum Schaft passt (`_fasst`: ER-Größe,
+  Schrumpf/Hydro/Weldon-Ø) – vorher wurde für einen Ø-10-Schaft ein ER11 empfohlen.
+- `camaddon/flanke.py`: die Vorschau gibt die Stellen für die Empfehlung mit
+  (`_stellen_fuer_empfehlung`, höchstens 300).
+- `camaddon/bearbeitung_vorschau.py`, `camaddon/gui_bearbeitung.py`: Empfehlung je Strategie
+  (Flanke oder 3D-Schlichten) im eigenen Auftrag, „So einrichten“ wie beim 3D-Schlichten.
+- `tests/test_empfehlung.py`: Flanke mit 45 mm: keine; mit 60 mm: ER16 A 70, 42 mm heraus.
+
+### ERGEBNIS
+- Neue Funktion → 0.284.0.
+- Prüfungen: test_empfehlung, test_flanke grün.
+
 ## P-2026-10-25-30 flanke-ohne-luft-in-der-oberen-lage
 
 ### EINGELESEN
