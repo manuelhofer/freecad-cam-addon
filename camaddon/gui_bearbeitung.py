@@ -450,14 +450,15 @@ OFFEN_HOECHSTENS = 0.05
 _FOLGE = []
 
 
-def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None):
+def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None, waagerecht=False):
     """Nach „Anlegen“ mit „Alles aus dieser Aufspannung“ (Frage 14, Schritt 4) oder mit schrägen
     Flächen an einer 5-Achs-Fräse: je weitere Richtung die Ebene (schwenken.lege_an – ein Schritt
     Rückgängig für alle), dann der Assistent für die erste, ihre Flächen gewählt; nach seinem
     „Anlegen“ die nächste (_folge_weiter). Die Maschine des Jobs mit dem ersten Werkzeug rechnet
     die Rundachsen; hat der Grundjob noch keins (nur schräge Flächen gewählt), mit `werkzeug`
     (wz.Werkzeug, übergeben) und `einsatz` – sein Controller nur dafür, danach wieder weg. Ohne
-    Maschine keine Ebene."""
+    Maschine keine Ebene. `waagerecht` (die Spindel der Maschine): Mit der Ebene „von oben“
+    kommt der Grundjob – dann nur noch die Flanke – nach den Ebenen (schwenken.nach_den_ebenen)."""
     from . import schwenken as sw
     from .gui_schwenken import maschine_fuer
 
@@ -502,6 +503,8 @@ def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None):
             fehler.append(str(grund))
             continue
         angelegt.append((job, r))
+    if waagerecht and any(abs(float(r.achse[2]) - 1.0) < 1e-9 for _job, r in angelegt):
+        sw.grundjob_zuletzt(grundjob)
     dokument.commitTransaction()
     with uhren.still():
         dokument.recompute()
@@ -3417,7 +3420,10 @@ class _Flanke(_Strategie):
         return tr("ba.s3.einsatz.tooltip")
 
     def felder(self):
-        return (("aufmass", tr("ba.aufmass"), tr("ba.fl.aufmass.tooltip")),)
+        return (
+            ("aufmass", tr("ba.aufmass"), tr("ba.fl.aufmass.tooltip")),
+            ("quer", tr("ba.fl.quer"), tr("ba.fl.quer.tooltip")),
+        )
 
     def passt(self, form, name):
         return flb.ist_wand(form, name)
@@ -3429,6 +3435,15 @@ class _Flanke(_Strategie):
         return tr("ba.fl.keine")
 
     def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "quer":
+            # Am Keil unter einem überhängenden Rand mit voller Flanke: ein schmales ae – das des
+            # dynamischen Einsatzes (Manuels T1: 2,4 bei ap 24,7) oder des Schruppens, sonst 20 %.
+            durchmesser = float(getattr(werkzeug, "durchmesser", 0.0) or 0.0)
+            if einsatz is not None and einsatz.art in (wz.DYNAMISCH, wz.SCHRUPPEN) and einsatz.ae:
+                return (
+                    min(float(einsatz.ae), 0.5 * durchmesser) if durchmesser else float(einsatz.ae)
+                )
+            return round(0.2 * durchmesser, 2)
         return 0.0
 
     def _argumente(self, werkzeug, werte, flaechen):
@@ -3448,6 +3463,7 @@ class _Flanke(_Strategie):
             "vorschub": werte.get("vorschub", 0.0),
             "eintauchen": werte.get("eintauchen", 0.0),
             "koerper": flop.koerper_ueber_der_schneide(werkzeug, bibliothek),
+            "quer": werte.get("quer", 0.0),
         }
 
     def vorschau(self, job, werkzeug, werte, flaechen):
@@ -3472,16 +3488,18 @@ class _Flanke(_Strategie):
         return tr("ba.ergebnis_fl", **werte)
 
     def lege_an(self, job, tc, werte, flaechen):
-        return flop.lege_an(job, tc, werte["aufmass"], flaechen=flaechen)
+        return flop.lege_an(
+            job, tc, werte["aufmass"], flaechen=flaechen, quer=werte.get("quer", 0.0)
+        )
 
     def aendere(self, op, tc, werte, flaechen):
-        flop.aendere(op, tc, werte["aufmass"], flaechen=flaechen)
+        flop.aendere(op, tc, werte["aufmass"], flaechen=flaechen, quer=werte.get("quer", 0.0))
 
     def ist(self, op):
         return flop.ist_flanke(op)
 
     def werte_von(self, op):
-        return {"aufmass": float(op.Aufmass)}
+        return {"aufmass": float(op.Aufmass), "quer": float(getattr(op, "Quer", 0.0))}
 
 
 class _Restschlichten(_Schlichten3D):
@@ -5533,7 +5551,8 @@ class BearbeitungPanel:
         if not weitere:
             return None
         werkzeug, einsatz = self.raeumen.fraeser(), self.raeumen.einsatz()
-        return lambda: _ebenen_der_aufspannung(grundjob, weitere, werkzeug, einsatz)
+        waagerecht = self._spindel_quer()
+        return lambda: _ebenen_der_aufspannung(grundjob, weitere, werkzeug, einsatz, waagerecht)
 
     def reject(self):
         if self._folge:

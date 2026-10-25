@@ -66,6 +66,7 @@ class Flanke(PathOp.ObjectOp):
         for typ, name, gruppe, text in (
             ("App::PropertyStringList", "Flaechen", GRUPPE, tr("fl.eigenschaft.flaechen")),
             ("App::PropertyLength", "Aufmass", GRUPPE, tr("fl.eigenschaft.aufmass")),
+            ("App::PropertyLength", "Quer", GRUPPE, tr("fl.eigenschaft.quer")),
             ("App::PropertyLength", "Sicherheitsabstand", GRUPPE, tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Umlaeufe", GRUPPE, tr("fl.eigenschaft.umlaeufe")),
             ("App::PropertyInteger", "Lagen", GRUPPE, tr("fl.eigenschaft.lagen")),
@@ -150,6 +151,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
             schneide,
             vo.flaechen(obj),
             aufmass=float(obj.Aufmass),
+            quer=float(getattr(obj, "Quer", 0.0)),
             oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
             sicher=float(obj.SafeHeight),
             sicherheit=float(obj.Sicherheitsabstand),
@@ -190,6 +192,7 @@ def bahn_fuer(
     gleichlauf=True,
     schritt=fb.SCHRITT,
     koerper=None,
+    quer=0.0,
 ):
     """Die Bahn „Flanke“ an den Wänden `flaechen` des Modells; `schritt`: so dicht liegen die
     Stellen an gekrümmten Kanten (mm); `koerper` (koerper_ueber_der_schneide): mit ihnen sieht
@@ -212,6 +215,7 @@ def bahn_fuer(
         sicherheit=sicherheit,
         gleichlauf=gleichlauf,
         schritt=schritt,
+        quer=float(quer or 0.0),
     )
     bahn = fb.planen(form_teil, list(flaechen), werte)
     if koerper:
@@ -230,6 +234,7 @@ def vorschau(
     vorschub=0.0,
     eintauchen=0.0,
     koerper=(),
+    quer=0.0,
 ):
     """Die Bahn der Flanke für den Assistenten (gui_bearbeitung, auch in einem Nebenrechner über
     bearbeitung_vorschau.strategie; `form` ist dort die Form des Fräsers): bahn_fuer – und stoßen
@@ -248,6 +253,7 @@ def vorschau(
         vorschub=vorschub,
         eintauchen=eintauchen,
         koerper=list(koerper),
+        quer=quer,
     )
     if bahn.anstoss is not None:
         fehler = ValueError(
@@ -285,7 +291,7 @@ def koerper_ueber_der_schneide(werkzeug, bibliothek):
     ]
 
 
-def lege_an(job, tc, aufmass=0.0, name=None, flaechen=()):
+def lege_an(job, tc, aufmass=0.0, name=None, flaechen=(), quer=0.0):
     """Legt „Flanke“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Gibt die
     Operation zurück."""
     dokument = job.Document
@@ -302,6 +308,7 @@ def lege_an(job, tc, aufmass=0.0, name=None, flaechen=()):
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
     obj.Aufmass = aufmass
+    obj.Quer = quer
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
@@ -329,7 +336,7 @@ def _name(tc):
     return tr("fl.name", werkzeug=f"T{tc.ToolNumber}")
 
 
-def aendere(obj, tc, aufmass=0.0, flaechen=None):
+def aendere(obj, tc, aufmass=0.0, flaechen=None, quer=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleiben. Der Name folgt dem Werkzeug, solange es der
     vorgeschlagene ist."""
@@ -338,6 +345,8 @@ def aendere(obj, tc, aufmass=0.0, flaechen=None):
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Aufmass = aufmass
+    if quer is not None:
+        obj.Quer = quer
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
     job = getattr(obj.Proxy, "job", None)

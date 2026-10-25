@@ -280,9 +280,9 @@ def operationen_mit_ebene(job):
 
     if sw.ist_ebene(job):
         return [(op, job) for op in _operationen(job)]
-    ergebnis = [(op, None) for op in _operationen(job)]
-    for ebene in sw.ebenen_von(job):
-        ergebnis += [(op, ebene) for op in _operationen(ebene)]
+    ergebnis = []
+    for teil in sw.aufspannung_der_reihe_nach(job):  # der Grundjob zuerst, an der G550 zuletzt
+        ergebnis += [(op, None if teil is job else teil) for op in _operationen(teil)]
     return ergebnis
 
 

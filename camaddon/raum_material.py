@@ -887,6 +887,13 @@ def schaftschnitt(xs, ys, von, nach, achse, radius, laenge):
     return unten, oben
 
 
+def _rohteil_der(jobs):
+    """Die Form des Rohteils, mit der die Folge `jobs` beginnt – das des Grundjobs, auch wenn er
+    nicht vorn steht (schwenken.nach_den_ebenen: an der G550 kommt er zuletzt)."""
+    erster = jobs[0]
+    return (getattr(erster, "Grundjob", None) or erster).Stock.Shape
+
+
 def _jobs_vor(job):
     from . import schwenken as sw
 
@@ -938,7 +945,7 @@ def _kennungen(job, schritt=0.5, simultane=None, jobs=None):
     jobs = jobs or _jobs_vor(job)
     if simultane is None:
         simultane = _simultane_vorbereiten(job, jobs)
-    summe = hashlib.sha256(repr([jobs[0].Stock.Shape.exportBrepToString(), schritt]).encode())
+    summe = hashlib.sha256(repr([_rohteil_der(jobs).exportBrepToString(), schritt]).encode())
     ergebnis = [summe.hexdigest()]
     for davor in jobs:
         lage = sw.lage_im_grundjob(davor)
@@ -990,7 +997,9 @@ def folge_der_aufspannung(job):
     from . import schwenken as sw
 
     grundjob = getattr(job, "Grundjob", None) or job
-    folge = sw.ebenen_von(grundjob) or sw.aufspannungen_von(grundjob)
+    if sw.ebenen_von(grundjob):
+        return sw.aufspannung_der_reihe_nach(grundjob)  # an der G550 der Grundjob zuletzt
+    folge = sw.aufspannungen_von(grundjob)
     return [grundjob, *folge] if folge else []
 
 
@@ -1083,7 +1092,7 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None, jobs=None):
     beginn = next((n for n in range(len(jobs) - 1, -1, -1) if kennungen[n] in _GEMERKT), None)
     if beginn is None:
         beginn = 0
-        material = Material(jobs[0].Stock.Shape, schritt, fortschritt)
+        material = Material(_rohteil_der(jobs), schritt, fortschritt)
         _merken(kennungen[0], material.kopie())
     else:
         _GEMERKT.move_to_end(kennungen[beginn])

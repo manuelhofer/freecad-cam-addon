@@ -726,14 +726,48 @@ def lage_im_grundjob(job):
 
 def folge_vor(job):
     """[Grundjob, Ebenen bzw. Aufspannungen davor] – die Jobs, deren Operationen vor `job` am
-    Material waren; leer für einen anderen Job."""
+    Material waren; leer für einen anderen Job. Kommt der Grundjob nach seinen Ebenen
+    (nach_den_ebenen), nur die Ebenen davor."""
     if ist_ebene(job):
         folge = ebenen_von(job.Grundjob)
     elif ist_umspannen(job):
         folge = aufspannungen_von(job.Grundjob)
     else:
         return []
-    return [job.Grundjob, *folge[: folge.index(job)]] if job in folge else [job.Grundjob, *folge]
+    davor = folge[: folge.index(job)] if job in folge else list(folge)
+    if ist_ebene(job) and nach_den_ebenen(job.Grundjob):
+        return davor
+    return [job.Grundjob, *davor]
+
+
+NACH_DEN_EBENEN = "NachDenEbenen"  # Eigenschaft des Grundjobs (nach_den_ebenen)
+
+
+def nach_den_ebenen(grundjob):
+    """Kommen die Operationen des Grundjobs erst nach denen seiner Ebenen? An einer Maschine mit
+    waagerechter Spindel (die GROB G550) legt der Assistent alles, was von oben gefräst wird, in
+    die Ebene „von oben“; im Grundjob bleibt nur, was simultan schwenkt – die Flanke an den
+    Wänden. Sie schlichtet, was das Räumen der Ebene davor freigelegt hat, und kam bis 0.281.21
+    im Programm vor ihm (Manuel, 2026-10-25, seine tiefe Tasche an der G550). Gesetzt mit
+    grundjob_zuletzt."""
+    return bool(grundjob is not None and getattr(grundjob, NACH_DEN_EBENEN, False))
+
+
+def grundjob_zuletzt(grundjob):
+    """Merkt am Grundjob, dass seine Operationen nach denen seiner Ebenen kommen
+    (nach_den_ebenen) – ohne eigene Transaktion."""
+    if NACH_DEN_EBENEN not in grundjob.PropertiesList:
+        grundjob.addProperty(
+            "App::PropertyBool", NACH_DEN_EBENEN, "5-Achs", tr("sw.eigenschaft.nach_den_ebenen")
+        )
+    setattr(grundjob, NACH_DEN_EBENEN, True)
+
+
+def aufspannung_der_reihe_nach(grundjob):
+    """[Job] – der Grundjob und seine Ebenen in der Folge, in der sie fräsen (nach_den_ebenen:
+    der Grundjob zuletzt)."""
+    ebenen = ebenen_von(grundjob)
+    return [*ebenen, grundjob] if nach_den_ebenen(grundjob) else [grundjob, *ebenen]
 
 
 def ebene_von(job):

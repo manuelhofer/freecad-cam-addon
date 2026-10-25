@@ -173,6 +173,15 @@ def pruefen():
     doc.recompute()
     s = ms.fuer(naechster)
     assert s.hoehen_an([punkt.x], [punkt.y], naechste=True)[0, 0] == h
+    # Kommt der Grundjob nach seinen Ebenen (an der G550 – sw.grundjob_zuletzt): Vor der zweiten
+    # Ebene steht nur die erste, und das Programm fräst die Ebenen zuerst.
+    sw.grundjob_zuletzt(grund)
+    assert sw.folge_vor(naechster) == [erster], sw.folge_vor(naechster)
+    assert sw.aufspannung_der_reihe_nach(grund) == [erster, naechster, grund]
+    assert raum.folge_der_aufspannung(naechster) == [erster, naechster, grund]
+    assert raum.fuer_ebene(naechster) is not None
+    setattr(grund, sw.NACH_DEN_EBENEN, False)
+    assert sw.folge_vor(naechster) == [grund, erster]
     # Ohne Änderung des Pfads muss eine neue Rohteilgeometrie die Kennung ändern.
     vorher = ms.kennung_vor(naechster, None)
     roh.Shape = Part.makeBox(60, 26, 20).cut(Part.makeBox(20, 26, 8, v(21, 0, 6)))

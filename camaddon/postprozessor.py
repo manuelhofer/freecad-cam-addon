@@ -1567,10 +1567,11 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
     datei = mg.maschine_von(job)
     magazin = mg.des_jobs(None, bibliothek, datei) if bibliothek is not None and datei else None
     revolver = magazin is not None and mg.mit_revolver(datei)
-    ergebnis = _abschnitte_des_jobs(job, maschine, bibliothek, magazin, revolver)
-    if mit_ebenen and not sw.ist_ebene(job):
-        for ebene in sw.ebenen_von(job):
-            ergebnis += _abschnitte_des_jobs(ebene, maschine, bibliothek, magazin, revolver)
+    if not mit_ebenen or sw.ist_ebene(job):
+        return _abschnitte_des_jobs(job, maschine, bibliothek, magazin, revolver)
+    ergebnis = []
+    for teil in sw.aufspannung_der_reihe_nach(job):  # der Grundjob zuerst, an der G550 zuletzt
+        ergebnis += _abschnitte_des_jobs(teil, maschine, bibliothek, magazin, revolver)
     return ergebnis
 
 

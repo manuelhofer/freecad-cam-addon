@@ -79,7 +79,7 @@ def aufspannung(job):
 
     grund = getattr(job, "Grundjob", None) if sw.ist_ebene(job) else None
     grund = grund or job
-    return [grund] + [e for e in sw.ebenen_von(grund) if e is not grund]
+    return sw.aufspannung_der_reihe_nach(grund)
 
 
 def eintraege(job, bibliothek):

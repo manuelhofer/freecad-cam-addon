@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-21 flanke-am-hinterschnitt
+
+### EINGELESEN
+- W-038, Schritt 2 nach Manuels Plan („an den kanten muss man halt anstellen ... solange bis
+  mit dem schruppwerkzeug erstmal alles weg ist“). An seiner tiefen Tasche hängen die Wände
+  8,5–10° über. Die Flanke nahm nur Wände, die nach oben aufgehen, also schickte der Assistent
+  die überhängenden in 99°-Ebenen, wo kein Fräser hinkommt.
+- Dabei gesehen: An einer Maschine mit waagerechter Spindel (GROB G550) legt der Assistent alles,
+  was von oben gefräst wird, in die Ebene „von oben“; die Flanke bleibt im Grundjob. Das Programm
+  fuhr den Grundjob zuerst, also die Flanke vor dem Räumen. Das galt auch für jede Formschräge.
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `ist_wand` nimmt auch überhängende Wände. Neu `Flankenwerte.quer`:
+  An einer überhängenden Wand erst Umläufe davor, je `quer` von innen an die Wand
+  (`_versaetze`, `_versetzt`), so viele, wie der Keil unter dem Rand dick ist (Länge · sin
+  Neigung). Die Seite der Luft wird jetzt in der Mitte der Fläche bestimmt (`_zum_teil`); an der
+  unteren Kante lag der Prüfpunkt einer überhängenden Wand an einer scharfen Bodenkante sonst im
+  Boden. An- und Abfahren an überhängenden Wänden geht waagerecht von der Wand weg (`_weg`),
+  sonst tauchte die gekippte Stirn in den Boden.
+- `camaddon/flanke.py`, `camaddon/gui_bearbeitung.py`, `translations/*.json`: Eigenschaft
+  „Quer“ und Feld „Hinterschnitt quer“. Der Vorschlag ist das ae des dynamischen oder
+  Schrupp-Einsatzes, sonst 20 % vom Ø (Manuels T1: 2,4).
+- `camaddon/schwenken.py`: `nach_den_ebenen`, `grundjob_zuletzt` (Eigenschaft
+  „NachDenEbenen“), `aufspannung_der_reihe_nach`; `folge_vor` lässt dann den Grundjob vor den
+  Ebenen weg. Der Assistent setzt den Merker, wenn er an einer Maschine mit waagerechter Spindel
+  die Ebene „von oben“ anlegt (`_ebenen_der_aufspannung(…, waagerecht)`).
+- In dieser Folge rechnen jetzt Programm (`postprozessor.abschnitte`), Prüffenster und
+  Einrichtblatt (`reichweite.operationen_mit_ebene`), Bestückung, der räumliche Rest
+  (`raum_material`, das Rohteil immer vom Grundjob: `_rohteil_der`) und das Fertigteil.
+- `tests/test_flanke.py`: Loft-Tasche, unten 3,5 mm weiter. Acht Wände; ein Umlauf ohne
+  `quer`, vier mit 1 mm, nirgends im Teil. `tests/test_raum_material.py`: die Folge mit dem
+  Merker.
+
+### ERGEBNIS
+- Manuels tiefe Tasche (Kopie), Tisch/Tisch und G550: Räumen T1 von oben, dann Flanke T1 mit
+  64 Umläufen (16 × 4, je 2,4 mm) in 2 Lagen, angestellt bis 12°, etwa 6 min. An der G550 im
+  Programm erst die Ebene „von oben“ (3+2), dann die Flanke mit A und B je Satz.
+- Noch offen: die Wand mit dem Kugelfräser schlichten (Manuels Schritt 3); die Rundungen R 7 am
+  Boden unter dem Rand; ein leeres „3D-Schruppen T1“, das die Vorschau anlegt, weil sie mehr
+  Rest sieht als das genaue Räumen lässt.
+- Grün: `test_flanke`, `test_raum_material`, `test_raum_bahn`, `test_ebenen_auslassen`,
+  `test_postprozessor`, `szenario_flanke`, `szenario_flanke_halter`, `szenario_schraeg_g550`,
+  `szenario_bearbeitung_aufspannung_folge`, `szenario_geist_fuenfachs`.
+
 ## P-2026-10-25-20 tasche-unter-der-oeffnung
 
 ### EINGELESEN

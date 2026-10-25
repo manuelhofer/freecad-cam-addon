@@ -7,6 +7,7 @@
 # 12 mm Schneide zwei Lagen. Die Operation im Job: je Satz eine Achse; auf der 5-Achs-Maschine
 # Tisch/Tisch steht A auf −10°, C dreht einmal herum, unter einer Minute; an der 3-Achs-Fräse ein
 # Satz, dass es nicht geht; „Programm schreiben“ ohne Maschine schreibt sie nicht.
+import dataclasses
 import math
 import os
 import pathlib
@@ -345,6 +346,32 @@ for kennung, ein, aus in (
         print(ascii(f"Flanke: {ohne_tcpm.saetze} Saetze ohne TCPM, {p_t.saetze} mit"))
         # Gerade Wände, die Achse hält: ohne TCPM war nichts zu verdichten – nicht mehr Sätze.
         pruefe(p_t.saetze <= ohne_tcpm.saetze, f"TCPM {p_t.saetze} Sätze, ohne {ohne_tcpm.saetze}")
+
+# --- Hinterschnitt: dieselbe Tasche, unten weiter als oben (Manuels tiefe Tasche, 2026-10-25) --
+# Auch überhängende Wände fräst die Flanke, gekippt längs der Wand. Mit `quer` erst Umläufe davor,
+# von innen an die Wand: Der Keil unter dem Rand ist unten 20 · tan 10° = 3,5 mm dick – bei 1 mm
+# je Umlauf vier Umläufe (3, 2, 1, 0 mm davor). Nirgends im Teil.
+unten_h = rundrechteck(40 + 2 * D, 24 + 2 * D, 6 + D, 10.0)
+oben_h = rundrechteck(40, 24, 6, 30.0)
+teil_h = Part.makeBox(80, 60, 30).cut(Part.makeLoft([unten_h, oben_h], True, True)).removeSplitter()
+namen_h = waende(teil_h)
+pruefe(len(namen_h) == 8, f"Hinterschnitt: {len(namen_h)} Wände")
+werte_h = fb.Flankenwerte(
+    radius=R, schneide=30.0, oben=30.0, sicher=40.0, vorschub=1000.0, eintauchen=300.0
+)
+einmal = fb.planen(teil_h, namen_h, werte_h)
+im_h = im_teil(teil_h, einmal)
+pruefe(
+    einmal.umlaeufe == 1 and im_h == 0,
+    f"Hinterschnitt: {einmal.umlaeufe} Umläufe, {einmal.lagen} Lagen, {im_h} im Teil, "
+    f"{einmal.weggelassen} weggelassen",
+)
+viermal = fb.planen(teil_h, namen_h, dataclasses.replace(werte_h, quer=1.0))
+pruefe(
+    viermal.umlaeufe == 4 and im_teil(teil_h, viermal) == 0 and viermal.zeit > einmal.zeit,
+    f"Hinterschnitt quer 1: {viermal.umlaeufe} Umläufe, {viermal.zeit:.2f} min",
+)
+print(ascii(f"Hinterschnitt: {einmal.zeit:.2f} min, mit quer 1 mm {viermal.zeit:.2f} min"))
 
 FreeCAD.closeDocument(doc.Name)
 if fehler:

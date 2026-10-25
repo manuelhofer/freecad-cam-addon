@@ -9,8 +9,8 @@ Ebene ist die Mantellinie die Fallinie, am Kegel die Linie zur Spitze, an andere
 gerade Parameterlinie.
 
 - **Welche Wände** (`ist_wand`): Ebene, Kegel, schräger Zylinder oder eine Fläche mit geraden
-  Parameterlinien, die nach oben offen ist und um 0,5° bis 45° von der Senkrechten abweicht –
-  senkrechte Wände fräst die Kontur, flachere das 3D-Schlichten.
+  Parameterlinien, die um 0,5° bis 45° von der Senkrechten abweicht – nach oben offen oder
+  überhängend (Hinterschnitt) – senkrechte Wände fräst die Kontur, flachere das 3D-Schlichten.
 - **Umläufe:** Die unteren Kanten der gewählten Wände hängen sich zu Zügen zusammen; je Zug ein
   Umlauf im Gleichlauf (das Material rechts, M3). Stoßen zwei Wände in einer scharfen Kante
   aneinander (die Normalen mehr als KNICK auseinander), endet der Umlauf dort und beginnt an der
@@ -34,7 +34,7 @@ Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import FreeCAD
 import numpy as np
@@ -77,6 +77,9 @@ class Flankenwerte:
     sicherheit: float = SICHERHEIT
     gleichlauf: bool = True
     schritt: float = SCHRITT  # so dicht liegen die Stellen an gekrümmten Kanten (T-009)
+    # Am Hinterschnitt (die Wand hängt über): so weit je Umlauf von innen an die Wand – den Keil
+    # unter dem Rand, den das Räumen von oben stehen lässt (_versaetze); 0: ein Umlauf.
+    quer: float = 0.0
 
 
 @dataclass
@@ -144,7 +147,7 @@ def mantellinie(form, flaeche, punkt):
     flaeche_typ = flaeche.Surface
     u, v = flaeche_typ.parameter(punkt)
     n = flaeche.normalAt(u, v)
-    if form.isInside(punkt + n * 0.05, 1e-6, False):
+    if _zum_teil(form, flaeche):
         n = -n
     if _eben(flaeche):
         z = FreeCAD.Vector(0, 0, 1)
@@ -190,6 +193,18 @@ def mantellinie(form, flaeche, punkt):
     return ende(-achse), ende(achse), achse, n
 
 
+def _zum_teil(form, flaeche):
+    """Zeigt die Normale der Fläche (normalAt) ins Teil? In der Mitte der Fläche nachgesehen: An
+    ihrem Rand läge der Prüfpunkt einer überhängenden Wand – die Normale zeigt schräg nach unten –
+    an einer scharfen Bodenkante im Boden, und die Normale wäre falsch herum."""
+    u0, u1, v0, v1 = flaeche.ParameterRange
+    mitte = flaeche.valueAt((u0 + u1) / 2, (v0 + v1) / 2)
+    if not flaeche.isInside(mitte, 1e-4, True):
+        mitte = flaeche.Surface.value(*flaeche.Surface.parameter(flaeche.CenterOfMass))
+    u, v = flaeche.Surface.parameter(mitte)
+    return bool(form.isInside(mitte + flaeche.normalAt(u, v) * 0.05, 1e-6, False))
+
+
 def _eben(flaeche):
     """Ist die Fläche eben – auch als B-Spline (ein Loft zwischen zwei Rechtecken)? Dann ist jede
     Gerade in ihr eine Mantellinie; die Flanke nimmt die Fallinie."""
@@ -204,8 +219,10 @@ def _eben(flaeche):
 
 
 def ist_wand(form, name):
-    """Kann die Flanke die Fläche `name` fräsen? Eine Wand aus Geraden, nach oben offen,
-    NEIGUNG_MIN … NEIGUNG_MAX von der Senkrechten (Modul-Text)."""
+    """Kann die Flanke die Fläche `name` fräsen? Eine Wand aus Geraden, NEIGUNG_MIN …
+    NEIGUNG_MAX von der Senkrechten (Modul-Text) – nach oben offen oder überhängend (ein
+    Hinterschnitt: die Tasche unten weiter als oben; Manuel, 2026-10-25, seine tiefe Tasche an
+    der G550: Von oben kommt kein Fräser unter den Rand, gekippt längs der Wand schon)."""
     try:
         flaeche = form.getElement(name)
     except Exception:  # keine Fläche dieses Namens
@@ -222,7 +239,7 @@ def ist_wand(form, name):
         return False
     fuss, kopf, achse, normale = linie
     neigung = math.degrees(math.acos(max(-1.0, min(1.0, achse.z))))
-    return NEIGUNG_MIN <= neigung <= NEIGUNG_MAX and normale.z > 0 and (kopf - fuss).Length > 1e-3
+    return NEIGUNG_MIN <= neigung <= NEIGUNG_MAX and (kopf - fuss).Length > 1e-3
 
 
 def wandflaechen(form, namen):
@@ -335,6 +352,40 @@ def _stelle(form, flaeche, punkt, w):
     return (spitze, achse, normale, punkt, (kopf - fuss).Length, flaeche)
 
 
+def _versetzt(stelle, versatz, w):
+    """Die Stelle (_stelle) um `versatz` weiter von der Wand weg – wie _stelle mit so viel mehr
+    Aufmaß gerechnet, ohne die Mantellinie neu zu suchen."""
+    if versatz <= 0.0:
+        return stelle
+    _spitze, achse, normale, punkt, laenge, flaeche = stelle
+    spitze = punkt + normale * (w.radius + max(w.aufmass, 0.0) + versatz)
+    tiefster = spitze.z - w.radius * math.sqrt(max(0.0, 1.0 - achse.z**2))
+    if tiefster < punkt.z - 1e-9:
+        spitze = spitze + achse * ((punkt.z - tiefster) / max(achse.z, 1e-6))
+    return (spitze, achse, normale, punkt, laenge, flaeche)
+
+
+def _versaetze(stuecke, w):
+    """[Versatz] der Umläufe eines Zugs, von innen nach außen, der letzte 0: An einer Wand, die
+    überhängt, steht nach dem Räumen von oben ein Keil davor – so dick, wie die Wand auf ihrer
+    Länge nach außen geht (Länge · sin Neigung). Je Umlauf höchstens `w.quer` davon (Manuel,
+    2026-10-25, seine tiefe Tasche: „an den kanten muss man halt anstellen ... solange bis mit
+    dem schruppwerkzeug erstmal alles weg ist“)."""
+    if w.quer <= 0.0:
+        return [0.0]
+    dicke = max(
+        (
+            st[4] * math.sqrt(max(0.0, 1.0 - st[1].z ** 2))
+            for stueck in stuecke
+            for st in stueck
+            if st[2].z < -1e-6
+        ),
+        default=0.0,
+    )
+    anzahl = int(math.ceil(dicke / w.quer - 1e-9))
+    return [k * w.quer for k in range(anzahl - 1, 0, -1)] + [0.0]
+
+
 def _stellen_des_zugs(form, zug, w):
     """[[Stelle als Tupel (_stelle)]] – die Stellen eines Zugs, an scharfen Kanten in Stücke
     geteilt."""
@@ -403,24 +454,35 @@ def planen(form, namen, werte):
         lagen_max = max(lagen_max, lagen)
         hoehe = wand / lagen
         namen_je_zug.append(sorted({n for _k, n, _u in zug}))
-        # Erst für alle Stellen und Lagen, ob der Fräser dort geht – auf einmal, verteilt.
+        versaetze = _versaetze(stuecke, w)
+        umlauf_stuecke = {
+            v: [[_versetzt(st, v, w) for st in s] for s in stuecke] for v in versaetze
+        }
+        # Erst für alle Stellen, Lagen und Umläufe, ob der Fräser dort geht – auf einmal, verteilt.
         gehen = iter(
             _gehen(
                 form,
-                [(stelle, lage) for lage in range(lagen) for st in stuecke for stelle in st],
+                [
+                    (stelle, lage)
+                    for lage in range(lagen)
+                    for v in versaetze
+                    for st in umlauf_stuecke[v]
+                    for stelle in st
+                ],
                 hoehe,
                 w,
             )
         )
-        for lage in range(lagen):
-            for stueck in stuecke:
+        for lage, v in ((lage, v) for lage in range(lagen) for v in versaetze):
+            w_v = replace(w, aufmass=w.aufmass + v)  # für _grenze: die Stellen dazwischen
+            for stueck in umlauf_stuecke[v]:
                 teile, aus = [], []
                 davor = None  # (Stelle, geht) der Stelle davor
                 for stelle in stueck:
                     geht = next(gehen)
                     if davor is not None and davor[1] != geht:
                         # Wo es von „geht“ auf „schneidet“ wechselt: die Grenze genauer.
-                        grenze = _grenze(form, davor[0], stelle, davor[1], lage, hoehe, w)
+                        grenze = _grenze(form, davor[0], stelle, davor[1], lage, hoehe, w_v)
                         if grenze is not None:
                             if davor[1]:
                                 aus.append(grenze)
@@ -630,11 +692,21 @@ def _gerichtet(stueck, gleichlauf):
     return stueck
 
 
+def _weg(normale):
+    """Wohin es zum An- und Abfahren von der Wand weg geht: die Normale – an einer überhängenden
+    Wand (sie zeigt nach unten) waagerecht, sonst tauchte die gekippte Stirn vor der Wand in den
+    Boden."""
+    if normale.z >= 0.0:
+        return normale
+    waagerecht = FreeCAD.Vector(normale.x, normale.y, 0.0)
+    return waagerecht.normalize() if waagerecht.Length > 1e-9 else normale
+
+
 def _umlauf(teil, w):
     """[Stelle] – ein Umlauf mit An- und Abfahren."""
     ergebnis = []
     s0, a0, n0 = teil[0]
-    frei = s0 + n0 * ABSTAND
+    frei = s0 + _weg(n0) * ABSTAND
     oben = w.oben + w.sicherheit
     for hoehe, eilgang in ((w.sicher, True), (oben, True)):
         lam = max(0.0, (hoehe - frei.z) / max(a0.z, 1e-6))
@@ -643,7 +715,7 @@ def _umlauf(teil, w):
     for s, a, _n in teil:
         ergebnis.append(Stelle(tuple(s), tuple(a)))
     s1, a1, n1 = teil[-1]
-    weg = s1 + n1 * ABSTAND
+    weg = s1 + _weg(n1) * ABSTAND
     ergebnis.append(Stelle(tuple(weg), tuple(a1)))
     lam = max(0.0, (w.sicher - weg.z) / max(a1.z, 1e-6))
     ergebnis.append(Stelle(tuple(weg + a1 * lam), tuple(a1), eilgang=True))
