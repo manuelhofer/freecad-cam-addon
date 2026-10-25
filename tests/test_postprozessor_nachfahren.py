@@ -36,10 +36,11 @@ def pruefe(bedingung, text):
 RUND = ("A", "B", "C")
 
 
-def vorschubsaetze_job(abschnitte, info):
+def vorschubsaetze_job(abschnitte, info, spindel=None):
     """[(G, X, Y, Z, Mitte X, Mitte Y, F je Minute, A, B, C)] der Vorschubsätze im Job – modal wie
     FreeCAD (F je Sekunde; in G93 1 ÷ Zeit). Rundachsen, die der Postprozessor mit dem anderen
-    Vorzeichen schreibt (Rundum-Bahnen nach DIN: postprozessor._rund_umdrehen), umgedreht."""
+    Vorzeichen schreibt (Rundum-Bahnen nach DIN: postprozessor._rund_umdrehen), umgedreht.
+    `spindel` (eine Liste): je Satz dazu (Drehzahl, links) der Operation."""
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUND)
@@ -76,18 +77,22 @@ def vorschubsaetze_job(abschnitte, info):
                     start["Y"] + float(werte.get("J", 0.0)),
                 )
             aus.append((name, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
+            if spindel is not None:
+                spindel.append((round(abschnitt.drehzahl), bool(abschnitt.rueckwaerts)))
     return aus
 
 
 _WORT = re.compile(r"([A-Z])\s*([-+]?(?:\d+\.?\d*|\.\d+))")
 
 
-def vorschubsaetze_programm(text, siemens=False):
-    """Dasselbe aus dem Programmtext, wie eine Steuerung ihn liest."""
+def vorschubsaetze_programm(text, siemens=False, spindel=None):
+    """Dasselbe aus dem Programmtext, wie eine Steuerung ihn liest. `spindel` (eine Liste): je Satz
+    dazu (Drehzahl, links), wie die Spindel da läuft (0: sie steht)."""
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUND)
     art, f, maschine = "G0", None, False
+    drehzahl, links, laeuft = 0, False, False
     for zeile in text.splitlines():
         zeile = re.sub(r"\([^)]*\)", "", zeile)
         zeile = zeile.split(";", 1)[0].strip().upper()
@@ -102,6 +107,13 @@ def vorschubsaetze_programm(text, siemens=False):
         if 4.0 in g:
             continue  # Verweilen: X/P ist die Zeit (Fanuc „G4 X1.000“), keine Lage
         werte = {b: float(z) for b, z in woerter if b not in ("G", "M", "N", "T", "S", "H", "D")}
+        for b, z in woerter:
+            if b == "S":
+                drehzahl = round(float(z))
+            elif b == "M" and float(z) in (3.0, 4.0):
+                laeuft, links = True, float(z) == 4.0
+            elif b == "M" and float(z) == 5.0:
+                laeuft = False
         maschine = 53.0 in g
         for code in g:
             if code in (0.0, 1.0, 2.0, 3.0):
@@ -122,6 +134,8 @@ def vorschubsaetze_programm(text, siemens=False):
         if art in ("G2", "G3"):
             mitte = (start["X"] + werte.get("I", 0.0), start["Y"] + werte.get("J", 0.0))
         aus.append((art, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
+        if spindel is not None:
+            spindel.append((drehzahl if laeuft else 0, links))
     return aus
 
 
@@ -304,7 +318,8 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
     doc = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", datei))
     for job in [o for o in doc.Objects if hasattr(o, "Operations")]:
         abschnitte = pp.abschnitte(job)
-        soll = vorschubsaetze_job(abschnitte, fraese)
+        spindel_soll = []
+        soll = vorschubsaetze_job(abschnitte, fraese, spindel_soll)
         pruefe(len(soll) > 20, f"{job.Label}: nur {len(soll)} Vorschubsätze")
         pruefe(
             all(a.nullpunkte == tuple(job.Fixtures) for a in abschnitte),
@@ -323,6 +338,19 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 ist = vorschubsaetze_programm(programm.text, siemens=kennung == "siemens")
                 unterschied = vergleichen(soll, ist)
                 pruefe(not unterschied, f"{datei} {job.Label} {kennung} {aenderung}: {unterschied}")
+                # Bei jedem Vorschubsatz läuft die Spindel mit Drehzahl und Drehsinn der Operation
+                # – auch nach Messstopp, Wechsel und Einstieg hinter einer Marke.
+                spindel_ist = []
+                vorschubsaetze_programm(programm.text, kennung == "siemens", spindel_ist)
+                falsch = next(
+                    (
+                        (i, a, b)
+                        for i, (a, b) in enumerate(zip(spindel_soll, spindel_ist, strict=True))
+                        if a[0] > 0 and a != b
+                    ),
+                    None,
+                )
+                pruefe(not falsch, f"{datei} {job.Label} {kennung} {aenderung}: Spindel {falsch}")
                 fehlt = in_folge(
                     eilgaenge_job(abschnitte, fraese),
                     eilgaenge_programm(programm.text, siemens=kennung == "siemens"),
@@ -365,6 +393,13 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             f = re.search(r"F(\d+\.\d+)", text)
             anders = text[: f.start(1)] + f"{float(f.group(1)) * 1.01:.3f}" + text[f.end(1) :]
             pruefe(vergleichen(soll, vorschubsaetze_programm(anders)), "anderes F übersehen")
+            ohne_m3 = re.sub(r"^M3 S\d+\n", "", text, count=1, flags=re.M)
+            spindel_ohne = []
+            vorschubsaetze_programm(ohne_m3, False, spindel_ohne)
+            pruefe(
+                any(a[0] > 0 and a != b for a, b in zip(spindel_soll, spindel_ohne, strict=True)),
+                "fehlendes M3 übersehen",
+            )
             g0 = re.search(r"^G0 X[^\n]*Y(-?\d+\.\d+)", text, re.M)
             daneben = text[: g0.start(1)] + f"{float(g0.group(1)) + 0.01:.3f}" + text[g0.end(1) :]
             pruefe(
