@@ -376,6 +376,20 @@ def gewuenschte_anzahl():
     return anzahl if anzahl > 0 else anzahl_kerne()
 
 
+def weniger_kerne_text():
+    """„mit 4 von 24 Kernen – dauert länger als mit allen …“, wenn in den Einstellungen weniger
+    Nebenrechner stehen, als der Rechner Kerne hat – sonst "" (Manuel, 2026-10-25, zu Herberts
+    Wunsch im Forum: „grundsätzlich sollten immer alle rechnen … und ein hinweis solle erscheinen
+    das es länger dauert da nur die eingestellte … anzahl kerne genommen wird“)."""
+    from .sprache import tr
+
+    eingestellt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(EINSTELLUNG_ANZAHL, 0)
+    kerne = anzahl_kerne()
+    if eingestellt <= 0 or eingestellt >= kerne:
+        return ""
+    return tr("re.weniger_kerne", anzahl=eingestellt, kerne=kerne)
+
+
 def anzahl_setzen(anzahl):
     """Schreibt die Zahl der Arbeiter (EINSTELLUNG_ANZAHL; 0 = so viele wie Kerne) – der laufende
     Pool nimmt sie gleich: Mehr starten beim nächsten Bedarf, überzählige enden im Leerlauf."""

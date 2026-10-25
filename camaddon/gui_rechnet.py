@@ -87,8 +87,12 @@ class Anzeige:
             an = False
         self._seit = self._seit + TAKT_MS if an else 0
         if an and self._seit >= ERST_NACH_MS:
+            from . import nebenrechner
+
             self._zeichen = (self._zeichen + 1) % len(ZEICHEN)
-            self.etikett.setText(f"{ZEICHEN[self._zeichen]}  {tr('re.rechnet')}")
+            weniger = nebenrechner.weniger_kerne_text()  # weniger Kerne eingestellt: es dauert
+            text = f"{ZEICHEN[self._zeichen]}  {tr('re.rechnet')}"
+            self.etikett.setText(f"{text}  {weniger}" if weniger else text)
             self.etikett.setToolTip(tr("re.rechnet.tooltip"))
             self.etikett.show()
             for rad in self._raeder:

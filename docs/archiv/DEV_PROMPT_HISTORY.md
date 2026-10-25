@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-44 hinweis-weniger-kerne
+
+### EINGELESEN
+- Herbert im deutschen Thread (2026-10-25): „Verwendest Du automatisch alle Kerne? Wenn ja: Ich
+  fände es besser wenn man einstellen könnte wie viele Kerne verwendet werden.“ Manuel dazu:
+  „also sein vorschlag das ma einstellen kann wieviele kerne find ich gut .. aber grundsätzlich
+  sollten immer alle rechnen .. also wenn nix eingestellt ist alle rechnen und ein hinweis solle
+  erscheinen das es länger dauert da nur die eingestellte und nciht die maximale (wenn die
+  eingestellte nicht die maximale anzahl kerne ist) anzahl kerne genommen wird...“
+- Die Einstellung gibt es seit 0.278.3 (Nebenrechner, 0 = alle Kerne); der Hinweis fehlte.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: `weniger_kerne_text` – „– mit 4 von 24 Kernen, das dauert länger
+  als mit allen (Einstellungen → Rechnen)“, wenn weniger eingestellt sind als Kerne da sind.
+- `camaddon/gui_rechnet.py`: in der Zeile „rechnet …“ der Assistenten „Bearbeitung“ und
+  „4-Achs-Bearbeitung“ dahinter.
+- `camaddon/gui_sprachwahl.py`: in den Einstellungen unter dem Feld (gelb), sobald weniger
+  gewählt sind.
+- `translations/de.json`, `en.json`.
+
+### ERGEBNIS
+- Szenario: mit 4 Nebenrechnern auf 24 Kernen beide Hinweise, mit 0 keiner.
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-43 verbreitert-ueberall
 
 ### EINGELESEN

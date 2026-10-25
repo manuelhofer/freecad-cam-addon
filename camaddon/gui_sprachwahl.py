@@ -13,7 +13,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import einheiten, gui_aktualisierung, klone_speichern, sprache
+from . import einheiten, farben, gui_aktualisierung, klone_speichern, sprache
 from .gui_teile import ruhiges_mausrad
 from .gui_zahlen import dezimalzeichen
 from .sprache import tr
@@ -219,6 +219,12 @@ class Einstellungsseite:
         rechnen_aufbau.addRow(tr("einstellungen.rechnen.feld"), self.wahl_nebenrechner)
         self.rechnen_hinweis = QtGui.QLabel(tr("einstellungen.rechnen.hinweis"))
         self.rechnen_hinweis.setWordWrap(True)
+        # Weniger als alle Kerne: gleich darunter, dass es dann länger dauert (Manuel, 2026-10-25).
+        self.rechnen_weniger = QtGui.QLabel()
+        self.rechnen_weniger.setWordWrap(True)
+        self.rechnen_weniger.setStyleSheet(f"color: {farben.GELB};")
+        rechnen_aufbau.addRow(self.rechnen_weniger)
+        self.wahl_nebenrechner.valueChanged.connect(self._weniger_kerne_zeigen)
         _mit_satz(rechnen, rechnen_aufbau, self.rechnen_hinweis)
 
         aufbau = QtGui.QVBoxLayout(self.form)
@@ -229,6 +235,21 @@ class Einstellungsseite:
         aufbau.addWidget(self.gruppe_updates)
         aufbau.addStretch()
         ruhiges_mausrad(self.form)  # FreeCADs Einstellungen blättern
+
+    def _weniger_kerne_zeigen(self, anzahl):
+        """Unter dem Feld: Stehen weniger Nebenrechner da, als der Rechner Kerne hat, dass es
+        länger dauert – sonst nichts."""
+        from . import nebenrechner
+
+        kerne = nebenrechner.anzahl_kerne()
+        if 0 < anzahl < kerne:
+            self.rechnen_weniger.setText(
+                tr("einstellungen.rechnen.weniger", anzahl=anzahl, kerne=kerne)
+            )
+            self.rechnen_weniger.show()
+        else:
+            self.rechnen_weniger.clear()
+            self.rechnen_weniger.hide()
 
     # loadSettings und saveSettings ruft FreeCAD beim Öffnen und bei OK auf.
     def loadSettings(self):
@@ -244,6 +265,7 @@ class Einstellungsseite:
         self.wahl_nebenrechner.setValue(
             FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nebenrechner.EINSTELLUNG_ANZAHL, 0)
         )
+        self._weniger_kerne_zeigen(self.wahl_nebenrechner.value())
         gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
