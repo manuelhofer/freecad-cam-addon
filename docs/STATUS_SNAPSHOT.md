@@ -531,6 +531,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 nachts (0.307.0) – offen, in dieser Reihenfolge:**
+- *Korrektur (0.311.3):* Eine Operation ohne Arbeit (nur Eilgänge) bekommt im Programm keinen
+  Werkzeugwechsel mehr, sondern einen Hinweis; 0.311.2: der Achsfilter nur an der Drehmaschine
+  ohne Y; 0.311.1: Klartext startet ein angetriebenes Werkzeug.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde
   (G33.1 längs Z, X im Durchmesser).
 - *Neu (0.310.0):* Kommentare in Großbuchstaben (Fanuc, Mazak an); Klartext ohne Sätze unter der
@@ -1990,7 +1993,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Umläufe, 6 min; an der G550 die Flanke nach der Ebene „von oben“). **In Arbeit:** die Kugel
   unter dem Rand (`hinterschnitt_bahn.py`: Höhenlinien, Achse um Wandneigung + 4° gekippt).
   **Offen:** ein leeres „3D-Schruppen T1“, das der Assistent anlegt (die Vorschau sieht mehr
-  Rest als das genaue Räumen lässt).
+  Rest als das genaue Räumen lässt). Im Programm kostet es seit 0.311.3 nichts mehr (kein
+  Werkzeugwechsel, ein Hinweis); im Assistenten noch offen.
 - **W-037 Messspitzenhalter von vorn: Ringnut und Fase** – Manuel, 2026-10-18 (Bilder): Im Ring
   zwischen Bund Ø 15 und der Fase außen fuhr das Planfräsen mit dem 6er Zeilen („totaler
   scheissdreck … einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder
