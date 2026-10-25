@@ -34,6 +34,11 @@ mit Bild und Zahlen:
 2. **erst bohren** (ein Bohrer Ø 30 … 40 in die Mitte, dann Räumen),
 3. **erst ein großer Schaftfräser** (Ø 25 … 32, kurz und steif), dann T1 nur, was er stehen lässt,
 4. du nennst, welche Wege du in der Werkstatt gehst.
+**Gemessen (0.283.3, deine Tasche an der G550, Kopie):** Räumen T1 von oben ≈ 2 min, Flanke T1
+≈ 6 min (4 Umläufe je Wand für den Keil 6,5 mm bei „quer“ 2,4, in 2 Lagen), 3D-Schlichten T3 der
+Rundungen ≈ 5 min (Grathöhe 0,01; mit 0,02 4 min), Restschlichten der Ecken Ø 6 ≈ 1 min –
+zusammen ≈ 14 min. Vorbohren und ein größerer Fräser sparen nur am Räumen (2 von 14 min); mehr
+brächte die Flanke (weniger Umläufe am Keil).
 *Warum nur Manuel:* Welche Abfolgen in Frage kommen und was „schneller“ wert ist (Werkzeugwechsel,
 Rüsten, Kauf), ist deine Werkstatt. Nach der Regel „Strategiewahl erst besprechen“ wähle ich nichts
 davon selbst vor. *Was die Antwort ändert:* Welche Abfolgen das Addon rechnet und als Empfehlung
