@@ -679,6 +679,52 @@ z_m = pp.programm([links], pp.steuerung("mazak"), fraese, "G").zeilen
 pruefe("G84.3 X60.000 Y30.000 Z6.500 R24.000 F1.5000" in z_m, f"Mazak G84.3: {z_m}")
 z_g = pp.programm([links], pp.steuerung("siemens"), fraese, "G").zeilen
 pruefe("CYCLE84(24.000,24.000,0,6.500,,0.000,4,,-1.500,0,255,255)" in z_g, f"links: {z_g}")
+# „Gewindebohren synchron“ aus – für ein Ausgleichsfutter: Siemens CYCLE840, Fanuc ohne M29, Mazak
+# G84 … H0 mit F = Steigung · Drehzahl, Heidenhain Zyklus 206 (danach kein M3: Er kehrt die
+# Drehrichtung selbst um); LinuxCNC mit dem Haken an: G33.1 – G81 behält dabei G98.
+aus = {"gewinde_synchron": False}
+z_g = pp.programm([rechts], pp.steuerung("siemens", aus), fraese, "G").zeilen
+pruefe("CYCLE840(24.000,24.000,0,6.500,,0.000,0,3,1,,1.500)" in z_g, f"Siemens CYCLE840: {z_g}")
+z_g = pp.programm([rechts], pp.steuerung("fanuc", aus), fraese, "G").zeilen
+pruefe(g84 in z_g and not any(x.startswith("M29") for x in z_g), f"Fanuc ohne M29: {z_g}")
+z_g = pp.programm([rechts, links], pp.steuerung("mazak", aus), fraese, "G").zeilen
+pruefe(
+    "G84 Z6.500 R24.000 F382.500 H0" in z_g and "G74 Z6.500 R24.000 F382.500 H0" in z_g,
+    f"Mazak mit Ausgleichsfutter: {z_g}",
+)
+z_g = pp.programm(
+    [rechts, bohren], pp.steuerung("linuxcnc", {"gewinde_synchron": True}), fraese, "G"
+).zeilen
+k = z_g.index("G33.1 Z6.500 K1.500") if "G33.1 Z6.500 K1.500" in z_g else -1
+pruefe(
+    k > 0
+    and z_g[k - 1] == "G0 Z24.000"
+    and z_g[k + 1] == "G0 Z24.000"
+    and "G98" in z_g
+    and any(x.startswith("G81 ") for x in z_g),
+    f"LinuxCNC G33.1: {z_g}",
+)
+pruefe(
+    not pp.steuerung("haas").gewinde_waehlbar() and pp.steuerung("mazak").gewinde_waehlbar(),
+    "Haken nur, wo er etwas ändert",
+)
+p_g = pp.programm([rechts], pp.steuerung("heidenhain", aus), fraese, "G")
+saetze_g = [re.sub(r"^\d+ ", "", x) for x in p_g.zeilen]
+k = (
+    saetze_g.index("CYCL DEF 206 GEWINDEBOHREN NEU ~")
+    if "CYCL DEF 206 GEWINDEBOHREN NEU ~" in saetze_g
+    else -1
+)
+pruefe(
+    k > 0
+    and "  Q206=+382.5 ;VORSCHUB TIEFENZUST. ~" in saetze_g[k : k + 7]
+    and saetze_g[k + 7] == "CYCL CALL"
+    and saetze_g[k + 8] != "M3",
+    f"Heidenhain 206: {saetze_g[k : k + 10]}",
+)
+pruefe(
+    not pp.nachlesen(p_g, pp.steuerung("heidenhain", aus), fraese)[0], "Heidenhain 206 nachgelesen"
+)
 langsam = pp.Maschineninfo("Fräse")
 langsam.drehzahl_max = 200.0  # über der Höchstdrehzahl: S und F im selben Maß
 z_g = pp.programm([rechts], pp.steuerung("linuxcnc"), langsam, "G").zeilen

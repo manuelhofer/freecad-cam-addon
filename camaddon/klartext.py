@@ -76,6 +76,15 @@ TEXTE = {
             "KOOR. OBERFLAECHE",
             "2. SICHERHEITS-ABST.",
         ),
+        "gewinde_ausgleich": (
+            "CYCL DEF 206 GEWINDEBOHREN NEU",
+            "SICHERHEITS-ABST.",
+            "GEWINDETIEFE",
+            "VORSCHUB TIEFENZUST.",
+            "VERWEILZEIT UNTEN",
+            "KOOR. OBERFLAECHE",
+            "2. SICHERHEITS-ABST.",
+        ),
     },
     False: {
         "verweil": ("CYCL DEF 9.0 DWELL TIME", "CYCL DEF 9.1 DWELL {s}"),
@@ -84,6 +93,15 @@ TEXTE = {
             "SET-UP CLEARANCE",
             "DEPTH",
             "THREAD PITCH",
+            "SURFACE COORDINATE",
+            "2ND SET-UP CLEARANCE",
+        ),
+        "gewinde_ausgleich": (
+            "CYCL DEF 206 TAPPING NEW",
+            "SET-UP CLEARANCE",
+            "DEPTH OF THREAD",
+            "FEED RATE FOR PLNGNG",
+            "DWELL TIME AT DEPTH",
             "SURFACE COORDINATE",
             "2ND SET-UP CLEARANCE",
         ),
@@ -168,8 +186,9 @@ def _woerter(zeile):
 
 
 class _Uebersetzer:
-    def __init__(self, deutsch, stellen=STELLEN, zyklen=True):
+    def __init__(self, deutsch, stellen=STELLEN, zyklen=True, gewinde_synchron=True):
         self.stellen = stellen
+        self.gewinde_synchron = gewinde_synchron  # Zyklus 207, sonst 206 (Ausgleichsfutter)
         self.deutsch = bool(deutsch)
         self.zyklen = zyklen  # Bohrzyklen als Zyklen der TNC, sonst in L-Sätzen
         self.aus = []
@@ -587,16 +606,32 @@ class _Uebersetzer:
             return
         steigung = self.f_satz / self.drehzahl * (-1.0 if code == 74 else 1.0)
         rueck = r if self.rueckzug_r or z_vorher is None else max(z_vorher, r)
-        definition = tuple(round(w, 6) for w in (tiefe - r, steigung, r, rueck - r))
+        verweil = werte.get("P", 0.0)
+        definition = tuple(
+            round(w, 6) for w in (tiefe - r, steigung, r, rueck - r, verweil, self.f_satz)
+        )
         if definition != self.gewinde_def:
-            texte = self.texte["gewinde"]
-            q = (
-                ("Q200", 0.0, texte[1]),
-                ("Q201", tiefe - r, texte[2]),
-                ("Q239", steigung, texte[3]),
-                ("Q203", r, texte[4]),
-                ("Q204", rueck - r, texte[5]),
-            )
+            if self.gewinde_synchron:
+                texte = self.texte["gewinde"]
+                q = (
+                    ("Q200", 0.0, texte[1]),
+                    ("Q201", tiefe - r, texte[2]),
+                    ("Q239", steigung, texte[3]),
+                    ("Q203", r, texte[4]),
+                    ("Q204", rueck - r, texte[5]),
+                )
+            else:
+                # Mit Ausgleichsfutter (Zyklus 206): der Vorschub statt der Steigung, die
+                # Drehrichtung aus M3/M4 – am Ende kehrt die TNC sie selbst wieder um.
+                texte = self.texte["gewinde_ausgleich"]
+                q = (
+                    ("Q200", 0.0, texte[1]),
+                    ("Q201", tiefe - r, texte[2]),
+                    ("Q206", self.f_satz, texte[3]),
+                    ("Q211", verweil, texte[4]),
+                    ("Q203", r, texte[5]),
+                    ("Q204", rueck - r, texte[6]),
+                )
             self.aus.append(texte[0] + " ~")
             for k, (name, wert, text) in enumerate(q):
                 ende = "" if k == len(q) - 1 else " ~"
@@ -605,17 +640,21 @@ class _Uebersetzer:
             self.wechsel_offen = None
         self._zyklus_rufen(ziel)
         self.pos["Z"] = rueck
-        self.aus.append(f"M{self.spindel_m}")  # „Am Zyklusende steht die Spindel“
+        if self.gewinde_synchron:
+            self.aus.append(f"M{self.spindel_m}")  # „Am Zyklusende steht die Spindel“
 
 
-def uebersetzen(zeilen, pgm, rohteil=None, deutsch=True, stellen=STELLEN, zyklen=True):
+def uebersetzen(
+    zeilen, pgm, rohteil=None, deutsch=True, stellen=STELLEN, zyklen=True, gewinde_synchron=True
+):
     """Uebersetzt: die Zeilen des Programms (wie postprozessor.programm sie ohne Satznummern
     schreibt) als Klartext mit Nummern, BEGIN/END PGM `pgm` und – mit `rohteil` ((xmin, ymin,
     zmin), (xmax, ymax, zmax)) – BLK FORM; `deutsch`: die Texte der Zyklen wie an einer deutschen
     Steuerung; `stellen`: Genauigkeit der Koordinaten, auch für fein geprüfte Bahnen; `zyklen`:
-    die Bohrzyklen als Zyklen der TNC (sonst in L-Sätzen)."""
+    die Bohrzyklen als Zyklen der TNC (sonst in L-Sätzen); `gewinde_synchron`: Gewindebohren als
+    Zyklus 207, sonst 206 (mit Ausgleichsfutter)."""
     name = pgm_name(pgm)
-    u = _Uebersetzer(deutsch, stellen, zyklen)
+    u = _Uebersetzer(deutsch, stellen, zyklen, gewinde_synchron)
     u.aus.append(f"BEGIN PGM {name} MM")
     if rohteil is not None:
         (x0, y0, z0), (x1, y1, z1) = rohteil

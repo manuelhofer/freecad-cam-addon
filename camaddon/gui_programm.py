@@ -103,8 +103,10 @@ GRUPPEN = (
             "tiefbohren",
             "spaenebrechen",
             "reiben",
+            "gewinde_synchron",
             "gewinde",
             "gewinde_vorher",
+            "gewinde_ausgleich",
         ),
     ),
     ("glaetten", "glaetten", ()),
@@ -143,6 +145,7 @@ NUR_FRAESEN = {
     "reiben",
     "gewinde",
     "gewinde_vorher",
+    "gewinde_ausgleich",
 }
 # Was es im Heidenhain-Klartext nicht gibt (die Satznummern schreibt er immer, die Länge nimmt
 # TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst) – nicht gezeigt.
@@ -166,6 +169,7 @@ NUR_GCODE = {
     "reiben",
     "gewinde",
     "gewinde_vorher",
+    "gewinde_ausgleich",
 }
 # Was es nur im Heidenhain-Klartext gibt.
 NUR_KLARTEXT = {"bohrzyklen"}
@@ -690,6 +694,9 @@ class ProgrammDialog(QtGui.QDialog):
             return False
         if feld in NUR_KLARTEXT and self.steuerung().dialekt != "klartext":
             return False
+        if feld in ("gewinde_synchron", "gewinde_ausgleich"):
+            # Nur, wo synchron und mit Ausgleichsfutter verschieden geschrieben wird (Haas nicht).
+            return self.steuerung().gewinde_waehlbar()
         if feld == "wechselpunkt_mks":
             return not self.info.wechsel_wks
         if feld == "wechselpunkt_wks":

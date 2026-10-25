@@ -212,6 +212,11 @@ class Steuerung:
     # Vorschubs Steigung · Drehzahl.
     gewinde_g: tuple = ("G84", "G74")
     gewinde_f_steigung: bool = False
+    # Gewindebohren synchron – ohne Ausgleichsfutter (die Spindel führt Z; `gewinde`,
+    # `gewinde_vorher`, `gewinde_g`, `gewinde_f_steigung`) – oder mit Ausgleichsfutter: dann
+    # `gewinde_ausgleich` (leer: G84/G74 mit F = Steigung · Drehzahl), ohne `gewinde_vorher`.
+    gewinde_synchron: bool = True
+    gewinde_ausgleich: str = ""
     # Eine endlos drehende Rundachse als Moduloachse (0 … unter 360°; Manuel, 2026-10-05, Siemens:
     # „Fehler 16830 … falsche Position bei Achse/Spindel C4 programmiert“): {wert} die Position
     # im Bereich, je nach Drehrichtung der Bahn (Siemens ACP/ACN). Leer: der Winkel fortlaufend,
@@ -241,6 +246,27 @@ class Steuerung:
     def ersetzt(self, **werte):
         """Eine Kopie mit geänderten Befehlen."""
         return dataclasses.replace(self, **werte)
+
+    def gewinde_waehlbar(self):
+        """Schreibt die Steuerung synchrones Gewindebohren anders als mit Ausgleichsfutter? Sonst
+        braucht es den Haken nicht (Haas: G84 ist immer synchron)."""
+        return self.dialekt == "klartext" or bool(
+            self.gewinde != self.gewinde_ausgleich
+            or self.gewinde_vorher
+            or tuple(self.gewinde_g) != GEWINDE
+            or self.gewinde_f_steigung
+        )
+
+    def wirksam(self):
+        """Die Befehle, wie sie gelten: ohne „Gewindebohren synchron“ die mit Ausgleichsfutter."""
+        if self.gewinde_synchron or self.dialekt == "klartext":
+            return self
+        return self.ersetzt(
+            gewinde=self.gewinde_ausgleich,
+            gewinde_vorher="",
+            gewinde_g=GEWINDE,
+            gewinde_f_steigung=False,
+        )
 
     def glaetten_an(self):
         """Die eingeschalteten Glaetten, in der Reihenfolge des Angebots."""
@@ -297,6 +323,7 @@ BEFEHLSFELDER = (
     "reiben",
     "gewinde",
     "gewinde_vorher",
+    "gewinde_ausgleich",
 )
 
 # Welcher Befehl der Steuerung für welchen Bohrzyklus steht.
@@ -327,6 +354,7 @@ HAKEN = (
     "schwenkzyklus",
     "tcpm",
     "bohrzyklen",
+    "gewinde_synchron",
 )
 
 _KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90"
@@ -360,6 +388,11 @@ STEUERUNGEN = {
         laenge_ein_drehen="G43 H{t}",
         durchmesser_ein="G7",
         radius_ein="G8",
+        # Synchron mit G33.1 (spindelsynchron hinein und zurück, K die Steigung – braucht einen
+        # Drehgeber); vorbelegt aus: G84 mit F = Steigung · Drehzahl (ohne Gleichlauf, für ein
+        # Ausgleichsfutter; LinuxCNC-Handbuch: „G84 does not use synchronized motion“).
+        gewinde="G0 Z{rfp}\nG33.1 Z{dp} K{pit_abs}\nG0 Z{rtp}",
+        gewinde_synchron=False,
     ),
     "siemens": Steuerung(
         "siemens",
@@ -437,6 +470,10 @@ STEUERUNGEN = {
         # als Wert (PIT, das Vorzeichen die Drehrichtung im Gewinde), SDAC wie vorher, SST und
         # SST1 die Drehzahl hinein und heraus.
         gewinde="CYCLE84({rtp},{rfp},0,{dp},,{dtb},{sdac},,{pit},0,{s},{s})",
+        # Mit Ausgleichsfutter (S. 6-66): CYCLE840(RTP, RFP, SDIS, DP, DPR, DTB, SDR, SDAC, ENC,
+        # MPIT, PIT) – SDR 0: die Drehrichtung kehrt sich selbst um, ENC 1: ohne Geber, mit dem F
+        # davor (Steigung · Drehzahl).
+        gewinde_ausgleich="CYCLE840({rtp},{rfp},0,{dp},,{dtb},0,{sdac},1,,{pit})",
     ),
     "fanuc": Steuerung(
         "fanuc",
@@ -509,6 +546,9 @@ STEUERUNGEN = {
         tcpm_aus="G49",
         gewinde_g=("G84.2", "G84.3"),
         gewinde_f_steigung=True,
+        # Mit Ausgleichsfutter: G84 (G74 links) asynchron – H0 („h0 = 0 … Asynchronous tapping“),
+        # F der Vorschub. Ohne H entschiede Parameter F94.
+        gewinde_ausgleich="{g} Z{dp} R{rfp} F{f} H0",
         g90_drehen=False,
         kopf_drehmaschine="%\nO0001 {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
@@ -846,6 +886,10 @@ def feld_text(feld):
         "reiben": (tr("pp.feld.reiben"), tr("pp.feld.reiben.tooltip")),
         "gewinde": (tr("pp.feld.gewinde"), tr("pp.feld.gewinde.tooltip")),
         "gewinde_vorher": (tr("pp.feld.gewinde_vorher"), tr("pp.feld.gewinde_vorher.tooltip")),
+        "gewinde_ausgleich": (
+            tr("pp.feld.gewinde_ausgleich"),
+            tr("pp.feld.gewinde_ausgleich.tooltip"),
+        ),
     }.get(feld, (feld, ""))
 
 
@@ -865,6 +909,10 @@ def haken_text(feld):
         "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
         "tcpm": (tr("pp.haken.tcpm"), tr("pp.haken.tcpm.erklaerung")),
         "bohrzyklen": (tr("pp.haken.bohrzyklen"), tr("pp.haken.bohrzyklen.erklaerung")),
+        "gewinde_synchron": (
+            tr("pp.haken.gewinde_synchron"),
+            tr("pp.haken.gewinde_synchron.erklaerung"),
+        ),
     }.get(feld, (feld, ""))
 
 
@@ -1105,6 +1153,7 @@ def programm(
     einrichtet (die Aufspannung einer N-Eck-Stange, n_eck.einrichten_text) – als Kommentar im
     Kopf und als Hinweis."""
     info = info or Maschineninfo()
+    s = s.wirksam()  # ohne „Gewindebohren synchron“ die Befehle mit Ausgleichsfutter
     koordinatenstellen = max((a.koordinatenstellen for a in abschnitte), default=STELLEN)
     if koordinatenstellen > STELLEN:
         # Fein geprüfte Bahnen haben nur einen kleinen Vorrat für die Steuerungsglättung.
@@ -1174,7 +1223,13 @@ def programm(
     gewinde_folge = False  # G84/G74 schon in diesem Zyklus (Fanuc: M29 nur vor dem ersten)
     wechsel_zahl = 0  # so viele Werkzeugwechsel
     # Nur an der Fräse – an der Drehmaschine bohrte CYCLE83 ohne _AXN entlang der falschen Achse.
-    zyklen_als_befehl = not info.drehmaschine and any(getattr(s, f) for f in ZYKLUS_FELDER.values())
+    # Mit allen Bohrzyklen als Befehl entfallen G80/G98/G99 (Siemens: nur im ISO-Modus); hat nur
+    # das Gewinde eine Vorlage (LinuxCNC G33.1), bleiben sie für die anderen.
+    zyklen_als_befehl = not info.drehmaschine and all(
+        getattr(s, f)
+        for f in ("bohren", "bohren_verweilen", "tiefbohren", "spaenebrechen", "reiben")
+    )
+    gewinde_als_befehl = not info.drehmaschine and bool(s.gewinde)
     geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
     zyklus = bool(s.schwenkzyklus and s.schwenken)
     laenge_offen = ""  # die Werkzeuglänge – kommt in den ersten Satz nach dem Wechsel mit Z
@@ -1440,6 +1495,8 @@ def programm(
                 zeilen.append(laenge_offen)
                 laenge_offen = ""
             vorlage = getattr(s, ZYKLUS_FELDER.get(gross, ""), "") if zyklen_als_befehl else ""
+            if gross in GEWINDE:
+                vorlage = s.gewinde if gewinde_als_befehl else ""
             if vorlage:
                 zeilen.extend(
                     _zyklus_als_befehl(
@@ -1562,7 +1619,13 @@ def _klartext_fertig(s, name, datei, rohteil, hinweise, stellen=STELLEN):
 
     def fertig(zeilen, saetze):
         uebersetzt = kt.uebersetzen(
-            zeilen, pgm, rohteil, aktuelle_sprache() == "de", stellen, s.bohrzyklen
+            zeilen,
+            pgm,
+            rohteil,
+            aktuelle_sprache() == "de",
+            stellen,
+            s.bohrzyklen,
+            s.gewinde_synchron,
         )
         for art, wert in uebersetzt.hinweise:
             if art == "schrauben":
@@ -1630,9 +1693,12 @@ def _zyklus_als_befehl(
         "f": f,
         "pit": steigung or 0.0,
     }
+    werte["pit_abs"] = abs(steigung or 0.0)
     werte = {k: _zahl(v) for k, v in werte.items()}
     werte["s"] = f"{drehzahl:.0f}"
-    werte["sdac"] = "4" if steigung is not None and steigung < 0 else "3"
+    links = steigung is not None and steigung < 0
+    werte["sdac"] = "4" if links else "3"
+    werte["g"] = "G74" if links else "G84"
     zeilen.extend(_zeilen(_fuellen(vorlage, **werte)))
     stand.update({a: float(parameter[a]) for a in lage})
     stand["Z"] = rtp

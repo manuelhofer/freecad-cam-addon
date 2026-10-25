@@ -298,7 +298,14 @@ Drehmaschine bleibt es bei G81 ff.</p>
 Postprozessor daraus den Vorschub Steigung · Drehzahl. Siemens bekommt <b>CYCLE84</b>
 (Gewindebohren ohne Ausgleichsfutter, die Steigung als PIT, danach dreht die Spindel weiter wie
 vorher), Fanuc <b>M29 S…</b> vor dem ersten G84 (ohne Ausgleichsfutter), Heidenhain Zyklus
-<b>207</b>. Haas, LinuxCNC und Mach behalten G84 mit dem richtigen F.</p>
+<b>207</b>. Haas, LinuxCNC und Mach behalten G84 mit dem richtigen F. Mazak schreibt
+<b>G84.2</b>/<b>G84.3</b> (synchron) mit F = Steigung.</p>
+<p><b>Gewindebohren synchron (ohne Ausgleichsfutter)</b> – der Haken sagt, wie der
+Gewindebohrer gespannt ist: An, wenn er fest im Halter sitzt und die Spindel Z führt; aus für ein
+Ausgleichsfutter. Aus schreibt Siemens <b>CYCLE840</b>, Heidenhain Zyklus <b>206</b>, Fanuc G84 ohne
+M29, Mazak G84 … H0. LinuxCNC ist vorbelegt aus (G84, ohne Gleichlauf); an schreibt es
+<b>G33.1</b> – dafür braucht die Spindel einen Drehgeber. Falsch gewählt bricht der Gewindebohrer
+oder das Gewinde reißt.</p>
 <p><b>GRBL</b> kennt keine Bohrzyklen: Dort stehen sie ausgeschrieben – über das Loch, im
 Eilgang auf R, im Vorschub hinein (G83 in Zustellungen), G4 zum Verweilen, zurück. Gewinde bohren
 kann GRBL nicht (ein Hinweis sagt es).</p>

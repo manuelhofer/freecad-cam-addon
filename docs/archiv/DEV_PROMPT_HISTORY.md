@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-69 gewinde-synchron-oder-ausgleichsfutter
+
+### EINGELESEN
+- Manuel, nachts: „bei den post prozessoren auf jeden fall darauf achten das die auch wirlich
+  alles richtig ausgeben und einstell möglichkeiten haben“. Gewindebohren hängt an der Maschine:
+  fest gespannt (synchron) oder im Ausgleichsfutter – falsch gewählt bricht der Gewindebohrer.
+- Quellen: Siemens Kurzanleitung 10.00 (CYCLE840 S. 6-66, ENC 0/1), Heidenhain iTNC 530 Zyklen
+  4.2 (Zyklus 206: „Auf Sicherheits-Abstand wird die Spindeldrehrichtung erneut umgekehrt“),
+  Mazak H740PB0030E 14-5-21 („h0 = 0 … Asynchronous tapping“), LinuxCNC G33.1/G84.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Haken `gewinde_synchron`, Feld `gewinde_ausgleich`,
+  `Steuerung.gewinde_waehlbar()`, `wirksam()`; Platzhalter `{pit_abs}`, `{g}`; G80/G98/G99
+  entfallen nur mit allen Bohrzyklen als Befehl (`gewinde_als_befehl` getrennt).
+- `camaddon/klartext.py`: Zyklus 206 ohne „synchron“.
+- `camaddon/gui_programm.py`, `translations/de.json`, `en.json`, `help/*/programm.html`.
+- `tests/test_postprozessor.py`; `docs/spezifikation_steuerung.md` 14.2.
+- `tests/test_postprozessor_nachfahren.py` (Commit davor): jedes Programm wieder eingelesen.
+
+### ERGEBNIS
+- Aus: Siemens `CYCLE840(24.000,24.000,0,6.500,,0.000,0,3,1,,1.500)`, Fanuc G84 ohne M29, Mazak
+  `G84 Z6.500 R24.000 F382.500 H0` (links G74), Heidenhain `CYCL DEF 206 GEWINDEBOHREN NEU` mit
+  Q206=+382.5 und kein M3 danach; LinuxCNC an: `G0 Z24.000` / `G33.1 Z6.500 K1.500` /
+  `G0 Z24.000`, G81 behält G98. Haas zeigt den Haken nicht.
+- Prüfungen: test_postprozessor, _grbl, _nachfahren, test_programm_pruefen, test_programmkopf,
+  test_sprache, test_mpr; szenario_programm, _programm_heidenhain grün.
+
 ## P-2026-10-25-68 mazak
 
 ### EINGELESEN

@@ -733,3 +733,21 @@ dazu:
 - 5 Achsen mit TCPM: G43.4 H… / G49 (Tabelle der G-Codes: „Tool tip point control (Type 1) ON“).
 - Endung `.eia`. Okuma (OSP) und Brother: die Handbücher waren nicht erreichbar (Seiten mit
   Bot-Prüfung bzw. abgelaufenem Zertifikat) – nicht gebaut, bis eins vorliegt.
+
+### 14.2 Gewindebohren synchron oder mit Ausgleichsfutter (P-2026-10-25-69)
+
+Haken „Gewindebohren synchron (ohne Ausgleichsfutter)“ (`Steuerung.gewinde_synchron`) – nur bei
+Steuerungen, die beides verschieden schreiben (`gewinde_waehlbar`; Haas nicht: G84 ist dort immer
+synchron):
+
+| Steuerung | an | aus |
+|---|---|---|
+| Siemens | CYCLE84 | CYCLE840(…, SDR 0, SDAC, ENC 1, , PIT) – Kurzanleitung S. 6-66 |
+| Heidenhain | Zyklus 207 (danach M3/M4) | Zyklus 206, Q206 = F (kehrt selbst um) |
+| Fanuc | M29 S… vor G84 | G84 |
+| Mazak | G84.2/G84.3, F = Steigung | `{g} Z… R… F… H0` (asynchron, Handbuch 14-5-21) |
+| LinuxCNC | `G0 Z{rfp}` / `G33.1 Z{dp} K{pit_abs}` / `G0 Z{rtp}` (Drehgeber) | G84 – vorbelegt aus |
+
+Dazu: G80/G98/G99 entfallen nur, wenn **alle** Bohrzyklen eine Vorlage haben – hat nur das
+Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzhalter `{pit_abs}`,
+`{g}`; `Steuerung.wirksam()` setzt bei „aus“ die Befehle mit Ausgleichsfutter ein.

@@ -286,7 +286,13 @@ it stays G81 etc.</p>
 <p><b>Tapping</b> (G84 right-hand, G74 left-hand): FreeCAD writes the pitch into F, the
 postprocessor turns it into the feed pitch · speed. Siemens gets <b>CYCLE84</b> (rigid tapping,
 pitch as PIT, the spindle turns on as before afterwards), Fanuc <b>M29 S…</b> before the first
-G84 (rigid), Heidenhain cycle <b>207</b>. Haas, LinuxCNC and Mach keep G84 with the correct F.</p>
+G84 (rigid), Heidenhain cycle <b>207</b>. Haas, LinuxCNC and Mach keep G84 with the correct F. Mazak writes
+<b>G84.2</b>/<b>G84.3</b> (synchronous) with F = pitch.</p>
+<p><b>Rigid tapping (no compensating chuck)</b> – the tick says how the tap is held: on when it
+sits rigidly in the holder and the spindle drives Z; off for a compensating (floating) chuck. Off
+writes Siemens <b>CYCLE840</b>, Heidenhain cycle <b>206</b>, Fanuc G84 without M29, Mazak G84 … H0.
+LinuxCNC is off by default (G84, not synchronised); on writes <b>G33.1</b> – the spindle needs an
+encoder for that. The wrong choice breaks the tap or strips the thread.</p>
 <p><b>GRBL</b> has no drilling cycles: there they are written out – over the hole, rapid to R,
 feed in (G83 in pecks), G4 for dwell, back. GRBL cannot tap (a note says so).</p>
 <p><b>Before the first run</b> look in the control's simulation at how CYCLE83 feeds in.</p>
