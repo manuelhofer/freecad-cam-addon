@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 nachts (0.307.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde
+  (G33.1 längs Z, X im Durchmesser).
 - *Neu (0.310.0):* Kommentare in Großbuchstaben (Fanuc, Mazak an); Klartext ohne Sätze unter der
   letzten Stelle. Voller Lauf danach: 134/134 Prüfungen, 144/144 Szenarien grün.
 - *Neu (0.309.0):* Eigene Befehle vor und nach dem Werkzeugwechsel (leer vorbelegt).
