@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-22 kugel-unter-dem-rand
+
+### EINGELESEN
+- W-038, Schritt 3 nach Manuels Plan („und dann muss mit einem kurgelfräser die wand geschlichtet
+  werden .. wie immer ?“). An seiner tiefen Tasche hängen die Wände über, unten läuft eine Rundung
+  R ≈ 6 zum Boden. Von oben kommt kein senkrechter Fräser an Wand und Rundung.
+- Erst gerechnet mit einer Neigung für alles (die steilste Wand + 4°). Die Gegenprobe zeigte: In
+  der Wandmitte reichen 10°, in den Ecken hängen zwei Wände über, und der Schaft streifte. Mit
+  Manuels T3 (Kugel D12, 45 mm heraus) stößt unten der Halter an den Rand. Gekippt taucht auch der
+  Bund Ø 73 ab 72 mm unter die Oberkante.
+
+### DATEIEN
+- `camaddon/hinterschnitt_bahn.py` (neu): Höhenlinien an den gewählten Flächen, von oben nach
+  unten. Die Höhen stehen vorher fest (Raster je Fläche, `_hoehen`), die Schnitte rechnen die
+  Nebenrechner (`schneiden_stueck`). Höhen, die nur die Höhe davor wiederholen, fallen weg
+  (`_ohne_doppelte`). Die Kugelmitte wird gegen das ganze Teil geprüft, knappe Stellen genau mit
+  OpenCascade (`genau_stueck`). Die Achse je Stelle ist die kleinste Neigung, bei der Schneide,
+  Schaft und Halter um ihr Spiel frei bleiben (`suchen_stueck`, `frei_stueck` mit
+  `netzabstand.kapseln`, je Körper nur bis unter die Oberkante). Gesucht wird an Stützstellen alle
+  3 mm, erst grob, dann fein: von der Wand weg, zur Mitte, dazwischen. Dazwischen wird gemittelt,
+  dann jede Stelle nachgeprüft. Hinein und hinaus geht es längs der Achse (`_zugang`), im Eilgang
+  nur über dem Rohteil. Stößt etwas an, rechnet `_noetig_heraus`, wie weit das Werkzeug
+  herausstehen müsste. `ueberdeckte` sagt, welche Flächen unter dem Rand liegen. Gefragt werden
+  dabei nur überhängende Flächen und ihre Nachbarn, gemerkt, höchstens 400 Flächen.
+- `camaddon/schlichten3d.py`: Richtung „hinterschnitt“. Die Bahn bringt ihre Achse je Punkt mit,
+  `execute` ordnet sie den Sätzen zu (`_achsen_unter_dem_rand`). Halter und Schaft kommen vom
+  Controller (`_koerper_des_controllers`), dazu `unter_dem_rand(op, an)`.
+- `camaddon/angestellt.py`: `ist_angestellt` gilt auch für „hinterschnitt“ (Programm, Prüfung,
+  Materialstand wie beim Anstellen).
+- `camaddon/gui_bearbeitung.py`: im 3D-Schlichten der Haken „Unter dem Rand mit gekippter Kugel
+  (5 Achsen simultan)“ (nur an 5 Achsen, nur mit Kugel, vorbelegt an). Er gibt Halter und Schaft
+  aus der Werkzeugverwaltung mit. Unter der Vorschau steht der Text mit Linien, Neigung, Ecken und
+  Anstößen; geht gar nichts, steht rot da, wie weit das Werkzeug heraus müsste (mit „T… auf … mm
+  ausspannen“). An der G550 bleiben die Flächen unter dem Rand im Grundjob.
+- `camaddon/bearbeitung_vorschau.py`: das Wegkippen rechnet keinen Bedarf für diese Bahn.
+- `docs/spezifikation_strategien.md` 16.20, `docs/regelwerk_bahnen.md` 7a (hinein und hinaus
+  längs der Achse; Schaft und Halter frei).
+- `tests/test_hinterschnitt_bahn.py` (neu): Loft-Tasche, die Wände 10° über. Kugel R 3 bis
+  −0,0000 an der Wand, Schaft ab 1,5 R 0,78 mm frei, die Achse bis 20° (Ecken), nur am Boden weg,
+  kein Eilgang in der Tasche. Die Operation hat je Satz eine Achse, auf Tisch/Tisch schwenkt das
+  Programm, ohne den Haken keine Achsen.
+
+### ERGEBNIS
+- Manuels tiefe Tasche (Kopie, alle 16 Flächen, T3 mit seinem Halter, Vorschau 1 mm): 79
+  Höhenlinien, die Achse 14° in der Wandmitte, bis 20° in den Ecken. 21,7 s mit 3 Nebenrechnern
+  (vorher 138 s auf einem Kern). Gegenprobe gegen das echte Teil: Schaft mindestens 0,37 mm frei,
+  kein Halterzylinder im Teil (187 geprüft).
+- Unten in der Tasche stößt der Halter von T3 an: Es bräuchte mindestens 64 mm heraus statt 45.
+  Die Rundungen allein gehen mit T3 gar nicht. Der Assistent sagt an der G550 rot: „… bräuchte es
+  mindestens 64 mm … T3 ist dafür zu kurz (Gesamtlänge 73 mm)“.
+- Prüfungen: test_hinterschnitt_bahn, test_schlichten3d, test_angestellt grün; Szenario an der G550
+  mit der Kopie (Bild).
+
 ## P-2026-10-25-21 flanke-am-hinterschnitt
 
 ### EINGELESEN

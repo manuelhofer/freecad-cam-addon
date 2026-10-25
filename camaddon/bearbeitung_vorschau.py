@@ -74,7 +74,8 @@ def schlichten3d_wegkippen(dokument, job_name, werkzeug, argumente, weiter, zeit
 
     job = _job(dokument, job_name)
     bahn = schlichten3d.vorschau(job, job.Model.Group, *argumente, **weiter)
-    bahn.wegkippen = wk.bedarf_fuer_bahn(job, werkzeug, bahn, argumente[0])
+    if not getattr(bahn, "hinterschnitt", False):  # unter dem Rand kippt die Bahn selbst
+        bahn.wegkippen = wk.bedarf_fuer_bahn(job, werkzeug, bahn, argumente[0])
     return bahn, _frei(argumente[0], bahn, zeit)
 
 

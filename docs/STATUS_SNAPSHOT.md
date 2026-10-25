@@ -562,8 +562,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 5. *Frage 2 (Taschen):* A liegt fertig auf dem Zweig `frage2-a`; die Morph-Spirale in der Tasche
    (`morph_tasche`) gebaut, aus.
 6. *W-038* (`testteil5achstief`): angefangen am 2026-10-25 nach Manuels Plan (Schruppen von oben
-   mit Helix/Kreisen, an den Kanten angestellt, dann die Wand mit der Kugel). Schritte 1 und 2
-   fertig (0.281.21/0.281.22), Schritt 3 (Kugel unter dem Rand) in Arbeit.
+   mit Helix/Kreisen, an den Kanten angestellt, dann die Wand mit der Kugel). Schritte 1–3 gebaut
+   (0.281.21–0.281.23; Schritt 3: 3D-Schlichten „Unter dem Rand mit gekippter Kugel“, Halter und
+   Schaft frei je Stelle). Mit T3 (45 mm heraus) stößt unten der Halter an – es bräuchte 64 mm;
+   dafür lange, schlanke Halter in der Halterdatenbank (offen, Manuel 02:27: „richtig richtig
+   dolle erweitern“). Offen noch: das leere „3D-Schruppen T1“ in der Tasche.
 
 Die Aufträge vom 2026-10-18 früh (Forum-Post, Einrichtblatt mit vc/fz und Koordinatensystem,
 Rohteilmaße in „Bearbeitung“, Nase/Kombination) sind erledigt (P-2026-10-18-84 … -99).

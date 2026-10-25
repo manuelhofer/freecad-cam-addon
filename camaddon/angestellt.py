@@ -357,8 +357,12 @@ def kippachse(maschine):
 
 def ist_angestellt(op):
     """Hat die Operation Werkzeugachsen (eine Bahn mit angestelltem oder weggekipptem
-    Kugelfräser, wegkippen.py)?"""
-    gekippt = getattr(op, "Anstellen", False) or getattr(op, "Wegkippen", False)
+    Kugelfräser, wegkippen.py, oder unter dem Rand, hinterschnitt_bahn)?"""
+    gekippt = (
+        getattr(op, "Anstellen", False)
+        or getattr(op, "Wegkippen", False)
+        or str(getattr(op, "Richtung", "")) == "hinterschnitt"
+    )
     return bool(gekippt) and bool(getattr(op, "Werkzeugachsen", None))
 
 

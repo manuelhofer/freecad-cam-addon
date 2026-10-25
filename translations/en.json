@@ -3177,5 +3177,16 @@
     "ba.nut.wand_schlichten": "Finish the wall in the same pass (no measuring)",
     "ba.nut.wand_schlichten.tooltip": "On: at the end of the same pass, run along the wall once at final size – no pause for measuring. Off (default): the allowance stays, “Finishing afterwards” finishes the wall as an operation of its own – with the measuring stop before it. Allowance 0: the arcs mill to size right away.",
     "ba.nut.gleichlauf": "Climb milling (arcs and finishing pass)",
-    "ba.nut.gleichlauf.tooltip": "On: the arcs of the roughing and the finishing pass along the wall climb, the material to the right of the direction of travel (with M3) – gentle on edge and surface. Off: conventional. “Reverse” (M4) on the tool controller turns the path around."
+    "ba.nut.gleichlauf.tooltip": "On: the arcs of the roughing and the finishing pass along the wall climb, the material to the right of the direction of travel (with M3) – gentle on edge and surface. Off: conventional. “Reverse” (M4) on the tool controller turns the path around.",
+    "ba.ergebnis_s3_unter": "→ {n} contours under the rim, axis tilted {neigung}°, spacing {abstand}, about {zeit}",
+    "ba.ergebnis_s3_unter.ecken": "At {n} spots in tight corners the ball does not fit – material stays there for a smaller ball.",
+    "ba.s3.unter": "Under the rim with tilted ball (5-axis simultaneous)",
+    "ba.s3.unter.tooltip": "If selected faces lie under an overhanging rim, the ball runs them in contours from top to bottom, the axis tilted far enough that the shank stays clear of the rim. Faces without overhang are finished as usual.",
+    "hs.fehler.keine": "No face selected – click the walls and fillets under the rim in 3D.",
+    "hs.fehler.kugel": "The wall under the rim needs a ball end mill.",
+    "hs.fehler.nichts": "There is no spot on the selected faces where the ball fits without cutting into the part.",
+    "hs.fehler.anstoss": "Shank or holder hit the part everywhere, even tilted up to 40° – a longer tool or a slimmer holder.",
+    "hs.fehler.anstoss_mindestens": "Shank or holder hit the part everywhere, even tilted up to 40°: the tool sticks out {heraus} mm, under the rim it would need at least {mindestens} mm – or a slimmer, longer holder.",
+    "ba.ergebnis_s3_unter.anstoss": "At {n} spots shank or holder hit the part, even tilted up to 40° – material stays there.",
+    "ba.ergebnis_s3_unter.mindestens": "Sticking out at least {mindestens} mm (now {heraus} mm), the ball would reach everywhere."
 }

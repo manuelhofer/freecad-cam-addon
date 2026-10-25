@@ -30,6 +30,7 @@ from . import bahn as bn
 from . import formteile as ft
 from . import fraeserform as ff
 from . import freiwege as fw
+from . import hinterschnitt_bahn as hb
 from . import namen, uhren
 from . import planfraesen as pf
 from . import schlichten3d_bahn as sb
@@ -42,7 +43,9 @@ from .sprache import tr
 
 GRUPPE = "Fräsen"
 GRUPPE_5ACHS = "5-Achs"
-RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche", "aequidistant", "winkel")
+# „hinterschnitt“: liegen gewählte Flächen unter dem Rand (hinterschnitt_bahn.ueberdeckt), an
+# einer 5-Achs-Maschine Höhenlinien mit gekippter Kugel; sonst wie „auto“.
+RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche", "aequidistant", "winkel", hb.HINTERSCHNITT)
 
 
 class Schlichten3D(PathOp.ObjectOp):
@@ -165,7 +168,10 @@ class Schlichten3D(PathOp.ObjectOp):
         FreeCAD vorn und hinten anfügt."""
         ergebnis = super().execute(obj)
         achsen = []
-        if _gekippt(obj) and obj.Active and getattr(obj, "Path", None):
+        unter = getattr(self, "_unter_dem_rand", None)  # opExecute: die Achsen der Bahn
+        if unter and obj.Active and getattr(obj, "Path", None):
+            achsen = _achsen_unter_dem_rand(obj.Path.Commands, unter)
+        elif _gekippt(obj) and obj.Active and getattr(obj, "Path", None):
             achsen = self._achsen(obj)
         obj.Werkzeugachsen = [FreeCAD.Vector(*a) for a in achsen]
         return ergebnis
@@ -242,6 +248,17 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Umlaeufe = ergebnis.umlaeufe
         obj.Abstand = round(float(ergebnis.abstand), 4)
         punkte = ergebnis.punkte
+        self._unter_dem_rand = None
+        if getattr(ergebnis, "hinterschnitt", False):
+            # Unter dem Rand: die Achse je Punkt steht schon fest (hinterschnitt_bahn) – nach dem
+            # Schreiben ordnet execute sie den Sätzen zu.
+            self._unter_dem_rand = {
+                _schluessel(p.x, p.y, p.z): a for p, a in zip(punkte, ergebnis.achsen, strict=True)
+            }
+            self.commandlist.extend(
+                bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
+            )
+            return
         if _gekippt(obj):
             punkte = an.gerade(punkte)  # eine Achse je Satz: Bögen als Geraden, kurze Sätze
         else:
@@ -251,6 +268,34 @@ class Schlichten3D(PathOp.ObjectOp):
         self.commandlist.extend(
             bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )
+
+
+def _schluessel(x, y, z):
+    return (round(float(x), 4), round(float(y), 4), round(float(z), 4))
+
+
+def _achsen_unter_dem_rand(befehle, achsen):
+    """Je Satz die Werkzeugachse aus der Bahn unter dem Rand (`achsen`: Punkt → Achse); Sätze, die
+    FreeCAD davor oder dahinter setzt (der Weg zur Sicherheitshöhe), mit der Achse des nächsten
+    bzw. letzten Punkts der Bahn – so schwenkt die Achse nicht erst in der Tasche."""
+    ergebnis, ort = [], {"X": 0.0, "Y": 0.0, "Z": 0.0}
+    for befehl in befehle:
+        for k in "XYZ":
+            if k in befehl.Parameters:
+                ort[k] = float(befehl.Parameters[k])
+        ergebnis.append(achsen.get(_schluessel(ort["X"], ort["Y"], ort["Z"])))
+    erste = next((a for a in ergebnis if a is not None), (0.0, 0.0, 1.0))
+    letzte = erste
+    for i, a in enumerate(ergebnis):
+        if a is None:
+            ergebnis[i] = letzte
+        else:
+            letzte = a
+    for i, a in enumerate(ergebnis):  # vor dem ersten Punkt der Bahn: schon wie dort
+        if a is erste:
+            break
+        ergebnis[i] = erste
+    return ergebnis
 
 
 def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
@@ -283,7 +328,14 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         davor=form_davor(obj),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         **weiter,
+        **(
+            _koerper_des_controllers(obj.ToolController)
+            if str(obj.Richtung) == hb.HINTERSCHNITT
+            else {}
+        ),
     )
+    if getattr(bahn, "hinterschnitt", False):
+        return bahn  # Randgang und Anlauf gehören zur senkrechten Bahn
     if getattr(obj, "Randgang", False):
         from . import schlicht_rand
 
@@ -311,6 +363,45 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
 
         schlicht_anlauf.ergaenzen(bahn, job, obj, form.radius, vorschub, eintauchen)
     return bahn
+
+
+def _koerper_des_controllers(tc):
+    """{"koerper": [(von, bis, Radius)], "schneide": mm} – Hals, Schaft und Halter über der
+    Schneide des Werkzeugs am Controller, wie „Kollision prüfen“ sie sieht (kollision.
+    werkzeugkapseln; der Halter aus dem Magazin, gewählt oder vorgeschlagen); leer, wenn es nicht
+    geht (dann ein Schaft wie die Kugel)."""
+    from . import halter as hl
+    from . import kollision as kb
+    from . import magazin as mg
+    from . import reichweite as rw
+    from . import werkzeuge as wz
+
+    try:
+        try:
+            bibliothek = wz.Bibliothek.laden()
+        except (wz.BeschaedigteDatei, OSError):
+            bibliothek = None
+        if bibliothek is not None:
+            mg.fuer_controller(tc, bibliothek)
+        laenge = rw.werkzeuglaenge(tc, bibliothek)[0]
+        masse = rw.werkzeugmasse(tc, bibliothek, laenge)
+        halter = rw.werkzeughalter(tc, bibliothek) or hl.vorschlag(
+            masse.schaft or masse.durchmesser, getattr(bibliothek, "aufnahme_vorschlag", "")
+        )
+        if halter.gewinkelt:
+            return {}
+        kapseln = kb.werkzeugkapseln(masse, laenge, halter)
+    except (AttributeError, TypeError, ValueError) as grund:
+        FreeCAD.Console.PrintWarning(f"{getattr(tc, 'Label', tc)}: {grund}\n")
+        return {}
+    return {
+        "koerper": [
+            (p0[2] + laenge, p1[2] + laenge, r)
+            for art in (kb.HALS, kb.SCHAFT, kb.HALTER)
+            for p0, p1, r, _flach in kapseln.get(art, ())
+        ],
+        "schneide": float(masse.schneide),
+    }
 
 
 def form_davor(obj):
@@ -352,9 +443,14 @@ def bahn_fuer(
     raster=sb.RASTER,
     davor=None,
     gleichlauf=True,
+    koerper=None,
+    schneide=0.0,
 ):
     """Die Bahn „3D-Schlichten“ über die Flächen `flaechen` des Modells – mit `davor` (Form des
     Fräsers davor) nur der Rest; `gleichlauf` False: die Höhenlinien mit dem Material links (M4).
+    Mit `richtung` „hinterschnitt“ und Flächen unter dem Rand die Höhenlinien mit gekippter Kugel
+    (hinterschnitt_bahn.Bahn), Schaft und Halter frei – `koerper` [(von, bis, Radius)] über der
+    Schneide (`schneide` lang); None: die des Werkzeugs nicht bekannt, ein Schaft wie die Kugel.
     ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
@@ -362,6 +458,25 @@ def bahn_fuer(
         oben = z_oben
     if sicher is None:
         sicher = oben + sicherheit + 3.0
+    if richtung == hb.HINTERSCHNITT:
+        if davor is None and hb.ueberdeckte(form_teil, flaechen):
+            if not form.nur_kugel:
+                raise ValueError(tr("hs.fehler.kugel"))
+            werte_h = hb.Werte(
+                radius=float(form.radius),
+                sicher=sicher,
+                grathoehe=grathoehe,
+                aufmass=aufmass,
+                vorschub=vorschub,
+                eintauchen=eintauchen,
+                schritt=hb.VORSCHAU_SCHRITT if schritt >= sb.VORSCHAU_SCHRITT else hb.SCHRITT,
+                gleichlauf=gleichlauf,
+                koerper=tuple(tuple(k) for k in (koerper or ())),
+                schneide=float(schneide or 0.0),
+                oben=float(oben),
+            )
+            return hb.planen(form_teil, [n for n in flaechen if str(n).startswith("Face")], werte_h)
+        richtung = "auto"
     werte = sb.Schlichtwerte(
         form=form,
         oben=oben,
@@ -477,6 +592,15 @@ def aendere(obj, tc, grathoehe, aufmass=0.0, flaechen=None, davor=None):
 def _gekippt(obj):
     """Kippt die Achse – angestellt oder weggekippt?"""
     return bool(getattr(obj, "Anstellen", False) or getattr(obj, "Wegkippen", False))
+
+
+def unter_dem_rand(obj, an_):
+    """Setzt die Richtung „hinterschnitt“ (an) oder „auto“ (aus, wenn sie es war) – ohne eigene
+    Transaktion."""
+    if an_:
+        obj.Richtung = hb.HINTERSCHNITT
+    elif str(obj.Richtung) == hb.HINTERSCHNITT:
+        obj.Richtung = "auto"
 
 
 def stelle_an(obj, anstellen, kippachse=None):

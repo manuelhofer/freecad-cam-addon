@@ -163,6 +163,15 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
   Geist jede Ebene das ganze Rohteil noch einmal.
 - **Eilgänge längs einer schrägen Achse kurz halten:** Ein G0 fährt auf vielen Steuerungen keine
   Gerade – dicht an einer Wand wird daraus kein langer schräger Eilgang.
+- **Unter dem Rand hinein und hinaus längs der Achse:** Eine Kugel, die unter einem überhängenden
+  Rand schlichtet, kommt und geht längs ihrer eigenen Achse – im Eilgang nur über dem Teil, darunter
+  im Vorschub. Über die Mitte der Tasche stieße eine stark gekippte Achse drüben an den Rand
+  (`hinterschnitt_bahn._zugang`, Manuels tiefe Tasche 2026-10-25).
+- **Schaft und Halter frei, nicht nur die Kugel:** Die Achse kippt je Stelle so wenig wie möglich,
+  aber so weit, dass Schneide über der Kugel, Schaft und Halter aus der Werkzeugverwaltung um ihr
+  Spiel vom ganzen Teil bleiben; in einer Ecke, wo zwei Wände überhängen, schräg in die Ecke. Wo
+  es nicht geht, fällt die Stelle weg, und der Assistent sagt, wie weit das Werkzeug herausstehen
+  müsste.
 
 ## 8. Genau genug
 

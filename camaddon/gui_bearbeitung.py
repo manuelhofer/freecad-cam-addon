@@ -3214,6 +3214,9 @@ def _job_der(op):
     return next((j for j in js.jobs(op.Document) if op in js.operationen(j)), None)
 
 
+KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt")  # 3D-Schlichten: nur mit 5 Achsen
+
+
 class _Schlichten3D(_Strategie):
     """Freiformflächen in parallelen Zeilen auf der Hüllfläche des ganzen Teils
     (schlichten3d_bahn) – am liebsten mit dem Kugelfräser; gegen keine Strategie im Wettbewerb."""
@@ -3245,17 +3248,22 @@ class _Schlichten3D(_Strategie):
 
     def haken(self):
         # 5 Achsen simultan S2 (angestellt.py; Manuel, 2026-10-04: „Ja, so bauen“) – ohne Vorgabe.
+        # Unter dem Rand (hinterschnitt_bahn; Manuel, 2026-10-25: „und dann muss mit einem
+        # kurgelfräser die wand geschlichtet werden“) – vorbelegt an, wirkt nur auf überdeckte
+        # Flächen.
         return (
             ("anstellen", tr("ba.s3.anstellen"), tr("ba.s3.anstellen.tooltip"), False),
             ("wegkippen", tr("ba.s3.wegkippen"), tr("ba.s3.wegkippen.tooltip"), False),
+            ("hinterschnitt", tr("ba.s3.unter"), tr("ba.s3.unter.tooltip"), True),
         )
 
     def haken_verborgen(self, feld, block):
-        # Anstellen und Wegkippen nur an einer 5-Achs-Maschine – sonst wären sie nur Rauschen.
-        return feld in ("anstellen", "wegkippen") and not block.panel._fuenfachs()
+        # Anstellen, Wegkippen und unter dem Rand nur an einer 5-Achs-Maschine – sonst wären sie
+        # nur Rauschen.
+        return feld in KIPPHAKEN and not block.panel._fuenfachs()
 
     def haken_gesperrt(self, feld, block):
-        if feld not in ("anstellen", "wegkippen"):
+        if feld not in KIPPHAKEN:
             return None
         try:
             eintrag = block.panel.maschine()
@@ -3271,7 +3279,7 @@ class _Schlichten3D(_Strategie):
     def haken_gesperrt_warum(self, feld, block):
         # Manuel, 2026-10-16: „warum das anstellen aber nur mit einem kugelfräser geht weis ich
         # nun nicht ?“
-        if feld == "anstellen" and self.haken_gesperrt(feld, block) == tr(
+        if feld in ("anstellen", "hinterschnitt") and self.haken_gesperrt(feld, block) == tr(
             "ba.s3.anstellen.ohne_kugel"
         ):
             return tr("ba.s3.anstellen.ohne_kugel.warum")
@@ -3299,11 +3307,21 @@ class _Schlichten3D(_Strategie):
         form = ff.von_werkzeug(werkzeug)
         if form is None:
             raise ValueError(tr("s3.fehler.form"))
-        return (form, werte["grathoehe"], list(flaechen)), {
+        weiter = {
             "aufmass": werte["aufmass"],
             "vorschub": werte.get("vorschub", 0.0),
             "eintauchen": werte.get("eintauchen", 0.0),
         }
+        if werte.get("hinterschnitt") and form.nur_kugel:
+            weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
+            # Schaft und Halter aus der Werkzeugverwaltung, wie die Flanke sie sieht.
+            try:
+                bibliothek = wz.Bibliothek.laden()
+            except (wz.BeschaedigteDatei, OSError):
+                bibliothek = None
+            weiter["koerper"] = flop.koerper_ueber_der_schneide(werkzeug, bibliothek)
+            weiter["schneide"] = float(rw.masse_des_werkzeugs(werkzeug).schneide)
+        return (form, werte["grathoehe"], list(flaechen)), weiter
 
     def _wegkippen(self, werkzeug, werte):
         """Rechnet die Vorschau den Bedarf zum Wegkippen mit (wegkippen.Bedarf)?"""
@@ -3313,9 +3331,14 @@ class _Schlichten3D(_Strategie):
     def vorschau(self, job, werkzeug, werte, flaechen):
         argumente, weiter = self._argumente(werkzeug, werte, flaechen)
         bahn = s3op.vorschau(job, job.Model.Group, *argumente, **weiter)
-        if self._wegkippen(werkzeug, werte):
+        if self._wegkippen(werkzeug, werte) and not getattr(bahn, "hinterschnitt", False):
             bahn.wegkippen = _wegkippen_bedarf(job, werkzeug, bahn, argumente[0])
         return bahn
+
+    def zeit(self, bahn, vorschub, eintauchen):
+        if getattr(bahn, "hinterschnitt", False):
+            return bahn.zeit  # schon mit dem Vorschub (hinterschnitt_bahn)
+        return super().zeit(bahn, vorschub, eintauchen)
 
     def hintergrund(self, werkzeug, werte, flaechen):
         """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.strategie) – mit dem
@@ -3342,6 +3365,26 @@ class _Schlichten3D(_Strategie):
         return tr("ba.s3.wegkippen.bedarf", **werte)
 
     def _ergebnis_text(self, bahn, zeit):
+        if getattr(bahn, "hinterschnitt", False):
+            text = tr(
+                "ba.ergebnis_s3_unter",
+                n=bahn.linien,
+                neigung=f"{bahn.neigung:.0f}",
+                abstand=groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
+                zeit=zeit,
+            )
+            ecken = bahn.weggelassen - bahn.anstoesse
+            if ecken:
+                text += " " + tr("ba.ergebnis_s3_unter.ecken", n=ecken)
+            if bahn.anstoesse:
+                text += " " + tr("ba.ergebnis_s3_unter.anstoss", n=bahn.anstoesse)
+                if bahn.ausspannen is not None and bahn.ausspannen[1] is not None:
+                    text += " " + tr(
+                        "ba.ergebnis_s3_unter.mindestens",
+                        heraus=f"{bahn.ausspannen[0]:.0f}",
+                        mindestens=f"{math.ceil(bahn.ausspannen[1]):.0f}",
+                    )
+            return text
         zeilen = tr("ba.zahl.zeile") if bahn.zeilen == 1 else tr("ba.zahl.zeilen", n=bahn.zeilen)
         werte = {
             "zeilen": zeilen,
@@ -3374,12 +3417,14 @@ class _Schlichten3D(_Strategie):
         op = s3op.lege_an(job, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
+        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False))
         return op
 
     def aendere(self, op, tc, werte, flaechen):
         s3op.aendere(op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
+        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False))
 
     def ist(self, op):
         return s3op.ist_schlichten3d(op) and not s3op.ist_restschlichten(op)
@@ -3390,6 +3435,7 @@ class _Schlichten3D(_Strategie):
             "aufmass": float(op.Aufmass),
             "anstellen": bool(getattr(op, "Anstellen", False)),
             "wegkippen": bool(getattr(op, "Wegkippen", False)),
+            "hinterschnitt": str(getattr(op, "Richtung", "")) == s3op.hb.HINTERSCHNITT,
         }
 
 
@@ -6808,6 +6854,12 @@ class BearbeitungPanel:
             return []
         return [name for r in self._schraege_gruppen(form) for name in r.flaechen]
 
+    def _unter_dem_rand_an(self):
+        """Ist im 3D-Schlichten „Unter dem Rand“ angehakt?"""
+        kasten = getattr(self, "schlichten3d", None)
+        kasten = kasten.haken_felder.get("hinterschnitt") if kasten is not None else None
+        return kasten is not None and kasten.isChecked()
+
     def _schraege_gruppen(self, form):
         """[zugang.Richtung] – die schrägen Flächen (_schraege) je Richtung, die flachste zuerst,
         mit den Wänden ihrer Tasche: Eine gewählte Fläche, die an eine Fläche der Richtung grenzt
@@ -6827,6 +6879,7 @@ class BearbeitungPanel:
             tuple(schraege),
             waagerecht,
             _lage_von(form),
+            self._unter_dem_rand_an(),
         )
         merk = getattr(self, "_gruppen_merk", None)
         if merk is not None and merk[0] == schluessel:
@@ -6916,7 +6969,11 @@ class BearbeitungPanel:
             # Die Spindel steht waagerecht: Auch was von oben gefräst wird, kommt in eine Ebene –
             # ohne die Flächen der Flanke (die schwenkt simultan) und mit den Kanten.
             fuenf = self._fuenfachs()  # die Flanke gibt es nur an der 5-Achs-Fräse
-            oben = [n for n in uebrig if not (fuenf and self.flanke.s.passt(form, n))]
+            # Ebenso die Flächen unter dem Rand, wenn die Kugel sie gekippt schlichtet.
+            unter = s3op.hb.ueberdeckte(form, uebrig) if fuenf and self._unter_dem_rand_an() else ()
+            oben = [
+                n for n in uebrig if not (fuenf and (self.flanke.s.passt(form, n) or n in unter))
+            ]
             oben += list(self.kanten)
             if not self.gewaehlte and not self.kanten:
                 oben = hf.oberseite(form)  # nichts angeklickt: die Oberseite, wie die Blöcke

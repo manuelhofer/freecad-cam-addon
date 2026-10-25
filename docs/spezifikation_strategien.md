@@ -3988,3 +3988,43 @@ der festen Zeit-/Speichergrenzen. Feine Zulassung, tatsächlicher Export,
 Übernahme/Undo/Abbruch und G550-Kaltexport bestanden. Keine vorhandene Referenz
 neu geschrieben. Eigene Profile und Speicherdeckel; persönlicher Werkzeugbestand
 seit Manuels Änderung unverändert. Kein Push, Manuels Klickprüfung steht aus.
+
+### 16.20 Die Wand unter dem Rand mit der Kugel (W-038, P-2026-10-25-22)
+
+Manuel, 2026-10-25, zu seiner tiefen Tasche (`testteil5achstief`, die Wände hängen gut 8° über,
+unten eine Rundung R ≈ 6 zum Boden): „… und dann muss mit einem kurgelfräser die wand geschlichtet
+werden .. wie immer ?“ – nach dem Schruppen von oben und der Flanke an den Kanten.
+
+**Was es ist:** Im 3D-Schlichten der Haken „Unter dem Rand mit gekippter Kugel (5 Achsen
+simultan)“ – an einer 5-Achs-Maschine, mit einem Kugelfräser, vorbelegt an (die Operation:
+`Richtung` „hinterschnitt“). Er wirkt nur, wenn eine gewählte Fläche unter dem Rand liegt (ein
+Strahl senkrecht nach oben trifft das Teil, `hinterschnitt_bahn.ueberdeckt`); sonst schlichtet das
+3D-Schlichten wie immer. An einer Maschine mit waagerechter Spindel bleiben diese Flächen im
+Grundjob (simultan) wie die der Flanke.
+
+**Die Bahn** (`hinterschnitt_bahn.planen`):
+- Höhenlinien von oben nach unten, der Abstand längs der Fläche aus der Grathöhe; die Höhen
+  stehen vorher fest (aus einem Raster je Fläche), die Schnitte rechnen die Nebenrechner.
+- Die Kugelmitte Radius + Aufmaß vor der Fläche, gegen das ganze Teil geprüft (Netz, knappe Stellen
+  genau mit OpenCascade). Höhen, deren Kugelmitten alle schon die Höhe davor fuhr, fallen weg – in
+  der Rundung mit dem Radius der Kugel liegt sie in jeder Höhe gleich (an Manuels Tasche 13 → 1).
+- **Die Achse je Stelle:** die kleinste Neigung (bis 40°), bei der Schneide über der Kugel, Schaft
+  und Halter um ihr Spiel (0,2 / 1,0 mm) vom Teil bleiben – Halter und Schaft aus der
+  Werkzeugverwaltung wie bei „Kollision prüfen“. Gesucht an Stützstellen alle 3 mm, erst in
+  8°-Schritten, dann in 2°: erst von der Wand weg, dann zur Mitte der Tasche, dann dazwischen –
+  in einer Ecke hängen zwei Wände über, dort kippt sie schräg hinein. Dazwischen gemittelt, die
+  größte Neigung im Umkreis von 5 mm; dann jede Stelle nachgeprüft. Wo auch 40° nicht reichen,
+  fällt die Stelle weg und zählt als „stößt an“.
+- **Hinein und hinaus längs der Achse:** über die Mitte der Tasche stieße eine stark gekippte
+  Achse drüben an den Rand. Eilgang nur bis über das Teil (Rohteil), dann im Vorschub längs der
+  Achse bis 2 mm vor die Wand, eintauchen, an die Wand. Von Zug zu Zug auf der Geraden, wenn Kugel,
+  Schaft und Halter dort frei bleiben, sonst hinaus und wieder hinein.
+- **Stößt etwas an:** wie weit das Werkzeug heraussteht und wie weit es müsste (Halbierung an
+  40 der Stellen); geht gar nichts, sagt es der Assistent rot mit „T… auf … mm ausspannen“.
+
+**Gemessen an einer Kopie von Manuels Tasche** (alle 16 Flächen, Kugel D12 = T3 aus seiner
+Werkzeugliste mit Halter, Grathöhe 0,01, Vorschau-Schritt 1 mm): 79 Höhenlinien, die Achse in der
+Wandmitte 14°, in den Ecken bis 20°, 21,7 s mit drei Nebenrechnern (vorher 138 s auf einem Kern);
+Gegenprobe gegen das echte Teil: Schaft mindestens 0,37 mm frei, kein Halterzylinder im Teil (187
+geprüft). T3 steht 45 mm heraus – unten in der Tasche stößt sein Halter auch bis 40° gekippt an
+den Rand; es bräuchte mindestens 64 mm. Die Rundungen allein gehen mit 45 mm gar nicht.

@@ -3177,5 +3177,16 @@
     "ba.nut.wand_schlichten": "Wand gleich mitschlichten (ohne Messen)",
     "ba.nut.wand_schlichten.tooltip": "An: Im selben Durchgang zuletzt die Wand einmal auf Maß – ohne Pause zum Messen. Aus (vorbelegt): Das Aufmaß bleibt stehen, „Schlichten danach“ macht die Wand als eigene Operation fertig – davor der Messstopp. Aufmaß 0: Die Bögen fräsen gleich auf Maß.",
     "ba.nut.gleichlauf": "Gleichlauf (Bögen und Schlichtgang)",
-    "ba.nut.gleichlauf.tooltip": "An: Die Bögen beim Ausräumen und der Schlichtgang an der Wand im Gleichlauf, das Material rechts der Fahrtrichtung (bei M3) – schont Schneide und Oberfläche. Aus: Gegenlauf. „Reverse“ (M4) am Werkzeug-Controller dreht die Bahn um."
+    "ba.nut.gleichlauf.tooltip": "An: Die Bögen beim Ausräumen und der Schlichtgang an der Wand im Gleichlauf, das Material rechts der Fahrtrichtung (bei M3) – schont Schneide und Oberfläche. Aus: Gegenlauf. „Reverse“ (M4) am Werkzeug-Controller dreht die Bahn um.",
+    "ba.ergebnis_s3_unter": "→ {n} Höhenlinien unter dem Rand, die Achse {neigung}° gekippt, Abstand {abstand}, etwa {zeit}",
+    "ba.ergebnis_s3_unter.ecken": "An {n} Stellen in engen Ecken passt die Kugel nicht hinein – dort bleibt Material für eine kleinere Kugel.",
+    "ba.s3.unter": "Unter dem Rand mit gekippter Kugel (5 Achsen simultan)",
+    "ba.s3.unter.tooltip": "Liegen gewählte Flächen unter einem überhängenden Rand, fährt die Kugel sie in Höhenlinien von oben nach unten ab, die Achse so weit gekippt, dass der Schaft vom Rand wegsteht. Flächen ohne Überhang werden wie sonst geschlichtet.",
+    "hs.fehler.keine": "Keine Fläche gewählt – die Wände und Rundungen unter dem Rand im 3D anklicken.",
+    "hs.fehler.kugel": "Für die Wand unter dem Rand braucht es einen Kugelfräser.",
+    "hs.fehler.nichts": "An keiner Stelle der gewählten Flächen passt die Kugel hin, ohne ins Teil zu schneiden.",
+    "hs.fehler.anstoss": "Schaft oder Halter stoßen an jeder Stelle ans Teil, auch bis 40° gekippt – ein längeres Werkzeug oder ein schlankerer Halter.",
+    "hs.fehler.anstoss_mindestens": "Schaft oder Halter stoßen überall an, auch bis 40° gekippt: Das Werkzeug steht {heraus} mm heraus, unter dem Rand bräuchte es mindestens {mindestens} mm – oder einen schlankeren, längeren Halter.",
+    "ba.ergebnis_s3_unter.anstoss": "An {n} Stellen stoßen Schaft oder Halter an, auch bis 40° gekippt – dort bleibt Material.",
+    "ba.ergebnis_s3_unter.mindestens": "Mit mindestens {mindestens} mm heraus (jetzt {heraus} mm) käme die Kugel überall hin."
 }
