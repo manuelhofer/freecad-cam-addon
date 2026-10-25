@@ -93,6 +93,8 @@ GRUPPEN = (
             "kuehlung_aus",
             "tuer_auf",
             "tuer_zu",
+            "meldung",
+            "meldung_aus",
         ),
     ),
     ("c_achse", "c_achse", ("c_achse", "c_ein", "c_aus")),

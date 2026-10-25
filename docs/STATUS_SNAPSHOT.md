@@ -531,6 +531,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.304.0):* Meldung beim Messstopp (Siemens MSG, LinuxCNC (MSG, …)); G94 im Kopf
+  (0.303.1), Hinweis bei mehr als acht Ziffern an Fanuc/Mazak (0.303.2); die Gegenprobe prüft
+  auch die Eilgänge.
 - *Neu (0.303.0):* Heidenhain schreibt Schrauben als CC + CP IPA/IZ statt in Geraden (am
   Taster-Teil 4343 statt 8172 Sätze); Satznummern höchstens fünf Stellen (0.302.1).
 - *Neu (0.302.0):* Haken „Nullpunkt aus dem Job (G54 …)“, vorbelegt aus – je Steuerung ihr

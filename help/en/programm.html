@@ -166,6 +166,12 @@ says so.</li>
 <li><b>Driven tool</b> – on a lathe M3 turns the part: a driven tool gets the command of its
 drive with the drive's number from the machine – Siemens “M1=3 S1=…” (drive S1), Haas
 “M133 P…”, LinuxCNC “M3 $1 S…”.</li>
+<li><b>Door open, door close</b> – at the measuring stop before the stop (M0) and after the
+start, as your machine wants it (e.g. M80/M81); empty: the operator opens by hand.</li>
+<li><b>Message at the measuring stop</b> – before the stop “Measuring stop: measure, then cycle
+start” for the operator: Siemens MSG("…") in the message line, after the start “Clear message”
+MSG(); LinuxCNC “(MSG, …)”. Fanuc and Haas can do it with a macro (#3006=1 (…), stops by
+itself) if the macro option is there – enter it there.</li>
 <li><b>Coolant</b> – as set at the operation: flood M8, mist M7, then M9. Off if you switch it
 by hand at the machine.</li>
 </ul>

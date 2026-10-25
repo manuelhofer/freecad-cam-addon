@@ -124,6 +124,10 @@ class Steuerung:
     # es muss variabel bleiben“); leer: nichts, der Bediener öffnet von Hand.
     tuer_auf: str = ""
     tuer_zu: str = ""
+    # … und eine Meldung für den Bediener vor dem Halt ({text}: „Messstopp: messen, dann
+    # NC-Start“), nach dem Start wieder weg – Siemens MSG, LinuxCNC „(MSG, …)“; leer: keine.
+    meldung: str = ""
+    meldung_aus: str = ""
     # Zum Wechselpunkt der Maschine – {achsen}: „X200.000 Z300.000“; in MKS bzw. WKS.
     wechselpunkt_mks: str = "G53 G0 {achsen}"
     wechselpunkt_wks: str = "G0 {achsen}"
@@ -343,6 +347,8 @@ BEFEHLSFELDER = (
     "kuehlung_aus",
     "tuer_auf",
     "tuer_zu",
+    "meldung",
+    "meldung_aus",
     "schwenken",
     "schwenken_aus",
     "tcpm_ein",
@@ -421,6 +427,7 @@ STEUERUNGEN = {
         hochlauf_warten=True,  # LinuxCNC wartet nicht von selbst (ohne „spindle at speed“)
         vorwahl="T{t}",  # das nächste Werkzeug vorbereiten (T ohne M6)
         nullpunkt_weitere="G59.{e}",  # G59.1 … G59.3 (LinuxCNC: neun Nullpunkte)
+        meldung="(MSG, {text})",  # LinuxCNC zeigt „(MSG, …)“ in der Oberfläche
         glaetten_angebot=(Glaetten("g64", "G64 P{toleranz} Q{toleranz}", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
@@ -453,6 +460,8 @@ STEUERUNGEN = {
         "G94",
         "G94",
         verweilen="G4 F{sek}",  # Siemens: G4 F – Sekunden (G4 S: Umdrehungen)
+        meldung='MSG("{text}")',  # in der Meldezeile, bis MSG() sie löscht
+        meldung_aus="MSG()",
         satznummer_max=99999999,
         vorwahl="T{t}",  # vorwählen; „T{t} M6“ wechselt (mit Werkzeugverwaltung: T="{werkzeug}")
         # Einstellbare Nullpunkte G54 … G57, ab dem fünften G505 … G599 – G58 und G59 sind an der
@@ -948,6 +957,8 @@ def feld_text(feld):
         "kuehlung_aus": (tr("pp.feld.kuehlung_aus"), tr("pp.feld.kuehlung_aus.tooltip")),
         "tuer_auf": (tr("pp.feld.tuer_auf"), tr("pp.feld.tuer_auf.tooltip")),
         "tuer_zu": (tr("pp.feld.tuer_zu"), tr("pp.feld.tuer_zu.tooltip")),
+        "meldung": (tr("pp.feld.meldung"), tr("pp.feld.meldung.tooltip")),
+        "meldung_aus": (tr("pp.feld.meldung_aus"), tr("pp.feld.meldung_aus.tooltip")),
         "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
         "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
         "tcpm_ein": (tr("pp.feld.tcpm_ein"), tr("pp.feld.tcpm_ein.tooltip")),
@@ -1603,7 +1614,13 @@ def programm(
                 # (Steuerung.tuer_auf/tuer_zu; leer: nur der Halt).
                 if s.tuer_auf:
                     zeilen.extend(_zeilen(s.tuer_auf))
+                if s.meldung:
+                    text = tr("pp.meldung.messstopp").replace('"', "")
+                    text = ascii_text(text) if s.nur_ascii else text
+                    zeilen.extend(_zeilen(_fuellen(s.meldung, text=text)))
                 zeilen.append("M0")
+                if s.meldung_aus:
+                    zeilen.extend(_zeilen(s.meldung_aus))
                 if s.tuer_zu:
                     zeilen.extend(_zeilen(s.tuer_zu))
                 continue

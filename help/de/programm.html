@@ -171,6 +171,12 @@ Werkzeug bekommt den Befehl seines Antriebs mit dessen Nummer aus der Maschine �
 „M1=3 S1=…“ (Antrieb S1), Haas „M133 P…“, LinuxCNC „M3 $1 S…“.</li>
 <li><b>Kühlung</b> – wie an der Operation eingestellt: Flut M8, Nebel M7, danach M9. Aus,
 wenn du sie an der Maschine von Hand schaltest.</li>
+<li><b>Tür auf, Tür zu</b> – beim Messstopp vor dem Halt (M0) und nach dem Start, wie deine
+Maschine es will (etwa M80/M81); leer: der Bediener öffnet von Hand.</li>
+<li><b>Meldung beim Messstopp</b> – vor dem Halt „Messstopp: messen, dann NC-Start“ für den
+Bediener: Siemens MSG("…") in der Meldezeile, nach dem Start „Meldung weg“ MSG(); LinuxCNC
+„(MSG, …)“. Fanuc und Haas können es mit einem Makro (#3006=1 (…), hält selbst an), wenn die
+Makro-Option da ist – dann dort eintragen.</li>
 </ul>
 <p><b>Hauptspindel und angetriebene Werkzeuge.</b> Eine Drehmaschine mit angetriebenen
 Werkzeugen hat zwei Spindeln, jede mit einem S und einem C: Die Hauptspindel dreht das Teil

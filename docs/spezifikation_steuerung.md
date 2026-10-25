@@ -785,3 +785,12 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Mazak G54.1 P{e}, Haas G154 P{e}, Mach G59 P{nr}, Heidenhain `CYCL DEF 247 BEZUGSPUNKT SETZEN`
   mit Q339=+{nr}, GRBL nur G54 … G59, woodWOP keiner. Ohne Befehl und bei mehreren Nullpunkten
   ein Hinweis (das Programm wählt den ersten).
+
+## 20. Meldung beim Messstopp (P-2026-10-25-76)
+
+- Felder `meldung` ({text}) und `meldung_aus`: vor dem Halt (M0) des Messstopps eine Meldung für
+  den Bediener, „Messstopp: messen, dann NC-Start“ (`pp.meldung.messstopp`), nach dem Start weg.
+  Siemens `MSG("{text}")` / `MSG()` (Meldezeile), LinuxCNC `(MSG, {text})`; Fanuc, Haas, Mazak
+  leer – mit Makro-Option ginge `#3006=1 ({text})` (hält selbst an, steht im Tooltip).
+- Reihenfolge am Halt: Tür auf, Meldung, M0, Meldung weg, Tür zu.
+

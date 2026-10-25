@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-76 meldung-beim-messstopp
+
+### EINGELESEN
+- Manuel, 2026-10-17, zum Messstopp: „maschine fährt auf home, macht türen auf, drehzahl aus,
+  wasser aus … und wenn man weiter drückt wieder alles an“. Am Halt stand an der Steuerung nur
+  ein Kommentar – an der Siemens sieht der Bediener ihn nicht in der Meldezeile.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Felder `meldung`/`meldung_aus` (Siemens MSG, LinuxCNC (MSG, …)),
+  vor und nach dem M0 des Messstopps; `camaddon/gui_programm.py` (Gruppe Spindel und Kühlung,
+  bei Tür auf/zu), `translations/*.json`, `help/*/programm.html` (auch Tür auf/zu erklärt),
+  `docs/spezifikation_steuerung.md` 20, `tests/test_postprozessor.py`.
+
+### ERGEBNIS
+- C-Ring an Siemens: `MSG("Messstopp: messen, dann NC-Start")` / `M0` / `MSG()`; LinuxCNC
+  `(MSG, Messstopp: messen, dann NC-Start)` vor M0; Mach, Fanuc, Haas wie bisher. Nachgelesen
+  ohne Befund.
+- Grün: test_postprozessor, _nachfahren, test_programm_pruefen, test_programmkopf, test_sprache.
+
 ## P-2026-10-25-75 fanuc-acht-ziffern
 
 ### EINGELESEN

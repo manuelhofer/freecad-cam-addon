@@ -926,7 +926,10 @@ mit_wp = pp.Maschineninfo("Fräse")
 mit_wp.wechselpunkt = {"Z": 150.0}
 z_lcnc = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), mit_wp, "M").zeilen
 k = z_lcnc.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_lcnc else -1
-pruefe(z_lcnc[k + 1 : k + 5] == ["G53 G0 Z150.000", "M5", "M9", "M0"], f"Messstopp: {z_lcnc[k:]}")
+MSG = "(MSG, Messstopp: messen, dann NC-Start)"  # LinuxCNC zeigt die Meldung in der Oberfläche
+pruefe(
+    z_lcnc[k + 1 : k + 6] == ["G53 G0 Z150.000", "M5", "M9", MSG, "M0"], f"Messstopp: {z_lcnc[k:]}"
+)
 # Nach dem Halt kein rohes „M3“: Die Spindel schaltet die nächste Bearbeitung ein (P-2026-10-18-54).
 pruefe(
     not any(x == "M3" or x.startswith("M3 ") for x in z_lcnc[k:]), f"Messstopp, M3: {z_lcnc[k:]}"
@@ -937,13 +940,19 @@ mit_tuer = pp.steuerung("linuxcnc", {"tuer_auf": "M80\nM81", "tuer_zu": "M82"})
 z_tuer = pp.programm([bohren, messen], mit_tuer, fraese, "M").zeilen
 k = z_tuer.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_tuer else -1
 pruefe(
-    z_tuer[k + 2 : k + 8] == ["M5", "M9", "M80", "M81", "M0", "M82"],
+    z_tuer[k + 2 : k + 9] == ["M5", "M9", "M80", "M81", MSG, "M0", "M82"],
     f"Messstopp Tür: {z_tuer[k:k + 9]}",
 )
 fhome = pp.steuerung("siemens", {"wechselpunkt_mks": "F_HOME"})
 z_sie = pp.programm([bohren, messen], fhome, mit_wp, "M").zeilen
 k = z_sie.index("; MESSSTOPP") if "; MESSSTOPP" in z_sie else -1
 pruefe(z_sie[k + 1 : k + 3] == ["F_HOME", "M5"], f"Siemens F_HOME: {z_sie[k:]}")
+# Siemens: die Meldung in der Meldezeile vor dem Halt, nach dem Start weg.
+k = z_sie.index("M0") if "M0" in z_sie else -1
+pruefe(
+    z_sie[k - 1 : k + 2] == ['MSG("Messstopp: messen, dann NC-Start")', "M0", "MSG()"],
+    f"Siemens MSG: {z_sie[k - 2 : k + 3]}",
+)
 # Siemens fährt den Wechselpunkt mit „SUPA D0“ – D0 schaltet die Korrektur ab: Folgt kein Wechsel
 # (Sprungmarken aus, dasselbe Werkzeug fräst weiter), schaltet der nächste Satz mit Z „D1“ wieder
 # ein (P-2026-10-04-51); mit Wechsel kommt D1 mit M6, kein „D1“ dazu.
