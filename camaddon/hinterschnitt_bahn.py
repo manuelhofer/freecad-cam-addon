@@ -78,7 +78,7 @@ def koerper_des_werkzeugs(masse, laenge, halter):
     """[(von, bis, Radius)] längs der Achse ab der Spitze über der Schneide: Hals und Schaft wie
     „Kollision prüfen“ (kollision.werkzeugkapseln), der Halter in Stücken von höchstens
     HALTER_STUECK mm, je Stück der größte Radius darin (halter.radius_bei an seinen Enden und an
-    jedem Absatz dazwischen). Als eine Kapsel mit dem größeren Radius wäre ein Kegel viel zu dick –
+    jedem Absatz dazwischen); gleich dicke Nachbarn (ein Zylinder) wieder ein Stück. Als eine Kapsel mit dem größeren Radius wäre ein Kegel viel zu dick –
     an der Nase eines Schrumpffutters Ø 32 statt Ø 24. `masse` (reichweite.Werkzeugmasse), `laenge`
     von der Spindelnase bis zur Spitze; ein gewinkelter Halter: leer."""
     from . import kollision as kb
@@ -102,13 +102,18 @@ def koerper_des_werkzeugs(masse, laenge, halter):
         marken.add(min(oben, halter.laenge))
     marken |= set(np.arange(0.0, halter.laenge, HALTER_STUECK).tolist())
     marken = sorted(marken)
-    for z0, z1 in zip(marken, marken[1:], strict=False):  # unter der Spindelnase
+    stuecke = []  # (unter der Spindelnase von, bis, Radius) – gleich dicke Nachbarn zusammen
+    for z0, z1 in zip(marken, marken[1:], strict=False):
         if z1 - z0 < 1e-6:
             continue
         r = max(halter.radius_bei(z0 + 1e-6), halter.radius_bei(z1 - 1e-6))
-        if r > 0:
-            teile.append((laenge - z1, laenge - z0, r))
-    return teile
+        if r <= 0:
+            continue
+        if stuecke and abs(stuecke[-1][2] - r) < 1e-6 and abs(stuecke[-1][1] - z0) < 1e-6:
+            stuecke[-1] = (stuecke[-1][0], z1, r)
+        else:
+            stuecke.append((z0, z1, r))
+    return teile + [(laenge - z1, laenge - z0, r) for z0, z1, r in stuecke]
 
 
 def ueberdeckt(form, name):

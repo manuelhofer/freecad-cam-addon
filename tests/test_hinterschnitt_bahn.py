@@ -139,7 +139,15 @@ masse = rw.Werkzeugmasse(
 )
 koerper = hb.koerper_des_werkzeugs(masse, 160.0 + 27.0, h160)
 am_halter = [k for k in koerper if k[0] >= 27.0 - 1e-6]
-pruefe(all(b - a <= hb.HALTER_STUECK + 1e-6 for a, b, _r in am_halter), "Stücke länger als 5 mm")
+# Kegel in Stücken bis 5 mm, ein Zylinder bleibt eins
+pruefe(
+    all(b - a <= hb.HALTER_STUECK + 1e-6 for a, b, r in am_halter if r < 15.9),
+    "Stücke der Nase länger als 5 mm",
+)
+pruefe(
+    all(abs(k[2] - m[2]) > 1e-6 for k, m in zip(am_halter, am_halter[1:], strict=False)),
+    f"gleich dicke Stücke nicht zusammen: {am_halter}",
+)
 nase = min(am_halter, key=lambda k: k[0])
 pruefe(abs(nase[0] - 27.0) < 1e-6 and nase[2] < 12.5, f"die Nase: {nase}")  # Ø 24, nicht 32
 pruefe(abs(max(b for _a, b, _r in am_halter) - 187.0) < 1e-6, "bis zur Spindelnase")
