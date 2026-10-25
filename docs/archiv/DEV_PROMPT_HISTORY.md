@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-15 ebenen-stand-in-schritten
+
+### EINGELESEN
+- Nach P-14 stand in der Geist-Kette noch jede Vorschau einer Ebene 8-mal bis 0,84 s am Stück.
+  Grund war `materialstand._von_oben_in_der_ebene`: Es sucht das Material im räumlichen Rest
+  Stufe für Stufe von oben (je 0,25 mm), ohne dem Fenster dazwischen eine Pause zu lassen.
+
+### DATEIEN
+- `camaddon/materialstand.py`: `_von_oben_in_der_ebene_schritte` und `_rohteil_schritte` sind
+  Generatoren mit einem `yield` je 16 Stufen. `fuer_schritte` geht mit `yield from` hindurch, wie
+  schon beim Abfahren der Bahnen. `_rohteil` und `_von_oben_in_der_ebene` rechnen sie zu Ende
+  (`reichweite.zu_ende`).
+
+### ERGEBNIS
+- Geist-Kette: Die Vorschau-Schritte der Ebenen stehen höchstens 0,47 statt 0,84 s, die längste
+  Pause ist 0,96 s (FreeCAD legt den Job an). Grün: `test_materialstand`,
+  `test_ebenen_auslassen`, `test_raum_material`, `szenario_geist_fuenfachs`.
+
 ## P-2026-10-25-14 ebenen-kennung-ohne-hoehenfeld
 
 ### EINGELESEN

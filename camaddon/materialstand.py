@@ -279,7 +279,8 @@ def fuer_schritte(job, vor=None, dazu=()):
             stand, fertig = gemerkt, n - 1
             break
     if stand is None:
-        stand, fertig = _rohteil(job, anfang), 0
+        stand = yield from _rohteil_schritte(job, anfang)
+        fertig = 0
         if stand is None:
             return None
         _merken(stand)
@@ -434,6 +435,15 @@ def _eingezogen(h):
 
 def _rohteil(job, kennung):
     """Der Stand ohne Operation: das Rohteil im Raster."""
+    from . import reichweite as rw_
+
+    return rw_.zu_ende(_rohteil_schritte(job, kennung))
+
+
+def _rohteil_schritte(job, kennung):
+    """_rohteil als Generator (das Ergebnis ist sein Rückgabewert): In einer Ebene sucht es das
+    Material Stufe für Stufe von oben – dazwischen ein `yield` (am Geist stand das Fenster dafür
+    in der Vorschau jeder Ebene knapp 1 s am Stück)."""
     rohteil = job.Stock
     form = rohteil.Shape
     bb = form.BoundBox
@@ -457,14 +467,24 @@ def _rohteil(job, kennung):
         # Nur aus dem räumlichen Rest – die Höhenfelder der Stände davor braucht es dafür nicht.
         stand = raum.fuer_ebene(job, SCHRITT)
         if stand is not None:
-            quader.h = _von_oben_in_der_ebene(quader, sw.lage_im_grundjob(job), [], stand)
+            quader.h = yield from _von_oben_in_der_ebene_schritte(
+                quader, sw.lage_im_grundjob(job), [], stand
+            )
     return Materialstand(quader, quader.h.copy(), kennung=(kennung,))
 
 
 EBENE_SCHRITT = 0.25  # mm – so fein sucht es in einer Ebene von oben das Material
+EBENE_STUFEN_JE_SCHRITT = 16  # so viele Stufen, dann ein `yield` (_von_oben_in_der_ebene_schritte)
 
 
 def _von_oben_in_der_ebene(quader, ebene, davor, raeumlich=None):
+    """_von_oben_in_der_ebene_schritte bis zum Ende."""
+    from . import reichweite as rw_
+
+    return rw_.zu_ende(_von_oben_in_der_ebene_schritte(quader, ebene, davor, raeumlich))
+
+
+def _von_oben_in_der_ebene_schritte(quader, ebene, davor, raeumlich=None):
     """Die Oberkante in einer 3+2-Ebene aus dem gemeinsamen räumlichen Rest.
 
     Von der Rohteiloberkante hinab bis zum ersten Materialabschnitt, einschließlich
@@ -528,6 +548,8 @@ def _von_oben_in_der_ebene(quader, ebene, davor, raeumlich=None):
         offen[treffer] = False
         if z < unten:
             break
+        if k % EBENE_STUFEN_JE_SCHRITT == EBENE_STUFEN_JE_SCHRITT - 1:
+            yield
     h = np.full(h0.shape, -np.inf)
     h[drin] = ergebnis
     return h
