@@ -2276,6 +2276,23 @@ def _ohne_leerzeichen(zeilen, s):
     return ergebnis
 
 
+# Was ohne Arbeit ist: Eilgang, Kommentare, Ebene, Maße, Vorschubart, Zyklus aus, Rückzugsebene.
+_OHNE_ARBEIT = {"G0", "G00", "G17", "G18", "G19", "G20", "G21", "G40", "G49", "G80", "G90", "G91",
+                "G93", "G94", "G98", "G99"}  # fmt: skip
+
+
+def _arbeitet(befehle):
+    """Tut die Operation etwas – ein Satz im Vorschub, ein Bohrzyklus, Antasten, ein M-Befehl
+    (der Halt des Messstopps, Kühlung …)? Nur Eilgänge und Kommentare: nein."""
+    for befehl in befehle:
+        name = befehl.Name if hasattr(befehl, "Name") else befehl[0]
+        name = str(name).upper()
+        if name.startswith("(") or name in _OHNE_ARBEIT:
+            continue
+        return True
+    return False
+
+
 def _ohne_y(info):
     """Eine Drehmaschine, deren Modell X und Z kennt, aber kein Y? Nur dann fällt „Y0“ weg –
     sonst (eine Fräse, ein Modell mit anders benannten Achsen) bleibt jede Adresse."""
@@ -2465,6 +2482,13 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
             if grund:
                 befehle, schwenkung, befehle_tcpm = [], None, None
                 hinweis = tr("pp.hinweis.simultan_ausgelassen", grund=grund)
+        if not hinweis and not _arbeitet(befehle):
+            # Nichts zu fräsen (ein „3D-Schruppen“ ohne Rest): kein Werkzeugwechsel dafür – nur
+            # der Hinweis, damit man die leere Operation im Job findet.
+            ergebnis.append(
+                Abschnitt(op.Label, 0, 0.0, False, hinweis=tr("pp.hinweis.leer", name=op.Label))
+            )
+            continue
         tc = getattr(op, "ToolController", None)
         nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
         drehzahl = float(getattr(tc, "SpindleSpeed", 0.0) or 0.0) if tc is not None else 0.0

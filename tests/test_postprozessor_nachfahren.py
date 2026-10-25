@@ -444,6 +444,26 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             f = re.search(r"F(\d+\.\d+)", text)
             anders = text[: f.start(1)] + f"{float(f.group(1)) * 1.01:.3f}" + text[f.end(1) :]
             pruefe(vergleichen(soll, vorschubsaetze_programm(anders)), "anderes F übersehen")
+            # Eine Operation, die nichts fräst (nur Eilgänge): kein Werkzeugwechsel dafür, ein
+            # Hinweis; ein Messstopp (nur M-Befehle) bleibt.
+            from Path.Op import Custom
+
+            leer = Custom.Create("Leer", parentJob=job)
+            leer.ToolController = job.Operations.Group[0].ToolController
+            leer.Source = "Text"
+            leer.Gcode = ["G0 X0 Y0 Z20", "G0 Z30"]
+            doc.recompute()
+            mit_leer = pp.abschnitte(job)
+            p_leer = pp.programm(mit_leer, pp.steuerung("fanuc"), fraese, "L")
+            pruefe(
+                mit_leer[-1].werkzeug == 0
+                and p_leer.text.count(" M6")
+                == pp.programm(abschnitte, pp.steuerung("fanuc"), fraese, "L").text.count(" M6")
+                and any("fräst nichts" in h for h in p_leer.hinweise),
+                f"leere Operation: {mit_leer[-1]} {p_leer.hinweise}",
+            )
+            doc.removeObject(leer.Name)
+            doc.recompute()
             # Gemischt: Flut mit Linkslauf, Nebel, ohne Kühlung mit anderer Drehzahl – Spindel und
             # Kühlung bei jedem Vorschubsatz wie an der Operation.
             arten = (("Flood", True, 1800.0), ("Mist", False, 2255.0), ("None", False, 3100.0))

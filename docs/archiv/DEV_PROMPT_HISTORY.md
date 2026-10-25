@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-91 operationen-ohne-arbeit-im-programm
+
+### EINGELESEN
+- W-038 offen: Der Assistent legt am 5-Achs-Testteil „tief“ ein leeres „3D-Schruppen T1“ an. Im
+  Programm hieß das: Werkzeugwechsel, Spindel, Kühlung – für nichts (Manuels Regel: Unnötiges
+  ohne Rückfrage weg).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `_arbeitet`; eine Operation nur aus Eilgängen und Kommentaren wird
+  ein Abschnitt ohne Werkzeug mit Hinweis `pp.hinweis.leer` – kein Wechsel. `translations/*.json`,
+  `docs/spezifikation_steuerung.md` 29, `tests/test_postprozessor_nachfahren.py` (eigene Operation
+  mit zwei Eilgängen an der Platte).
+
+### ERGEBNIS
+- Platte mit leerer Operation: so viele M6 wie ohne, Hinweis „… fräst nichts …“. Manuels
+  Taster-Teile (Kopien): keine leere Operation, Programme unverändert.
+- Grün: test_postprozessor, _nachfahren, test_programmkopf, test_einrichtblatt,
+  test_simultan_export_referenz, test_sprache; szenario_programm, _programm_heidenhain,
+  _magazin_bearbeitung, _einrichtblatt, _bearbeitung_cring_alles.
+
 ## P-2026-10-25-90 achsfilter-nur-drehmaschine-ohne-y
 
 ### EINGELESEN

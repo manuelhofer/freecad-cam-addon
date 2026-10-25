@@ -883,3 +883,12 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - LinuxCNC mit „Gewindebohren synchron“ (`gewinde_drehen`): an der Drehmaschine G33.1 längs Z
   (die Vorlage gilt in jeder Ebene), X im Durchmesser (P-2026-10-25-88).
 
+## 29. Operationen ohne Arbeit (P-2026-10-25-91)
+
+- Eine Operation, deren Bahn nur Eilgänge und Kommentare hat (`_arbeitet`: kein Vorschub, kein
+  Bohrzyklus, kein Antasten, kein M-Befehl), bekommt keinen Abschnitt mit Werkzeugwechsel, Spindel
+  und Kühlung mehr, sondern einen ohne Werkzeug mit Hinweis `pp.hinweis.leer` (W-038: der
+  Assistent legte am 5-Achs-Testteil „tief“ ein leeres „3D-Schruppen T1“ an – das Programm
+  wechselte dafür das Werkzeug). Ein Messstopp (M5, M9, M0) und eigene Operationen mit M-Befehlen
+  bleiben.
+
