@@ -233,8 +233,11 @@ class _Uebersetzer:
         """Ein L-Satz zum Punkt `ziel` ({Achse: Wert}, absolut) – nur, was sich ändert."""
         teile = []
         for achse in ACHSEN:
+            # Nur, was sich gerundet ändert – sonst stünde derselbe Satz zweimal (Bögen in XZ/YZ
+            # in Geraden mit Punkten unter der letzten Stelle).
             if ziel.get(achse) is not None and (
-                self.pos[achse] is None or abs(self.pos[achse] - ziel[achse]) > 1e-9
+                self.pos[achse] is None
+                or zahl(self.pos[achse], self.stellen) != zahl(ziel[achse], self.stellen)
             ):
                 teile.append(f"{achse}{zahl(ziel[achse], self.stellen)}")
         if not teile and m is None:

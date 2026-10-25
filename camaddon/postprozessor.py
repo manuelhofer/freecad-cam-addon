@@ -160,6 +160,9 @@ class Steuerung:
     # Kommentare nur in ASCII (ä → ae, Ø → D, – → -): Fanuc, Haas und Mach lesen Programme im
     # ASCII-Zeichensatz und brechen bei anderen Zeichen mit „Illegal character“ ab.
     nur_ascii: bool = True
+    # Kommentare in Großbuchstaben: ältere Fanuc-Steuerungen nehmen in Kommentaren keine kleinen
+    # (Fanuc, Mazak vorbelegt an).
+    grossbuchstaben: bool = False
     satznummern: bool = False  # N10, N20 … vor jedem Satz
     # Die Wörter mit Leerzeichen trennen („G1 X10.000“); aus: „G1X10.000“ – die Datei rund 10 %
     # kleiner (kleiner Programmspeicher, DNC). Nur, wo jedes Wort ein Buchstabe mit Zahl ist
@@ -403,6 +406,7 @@ AUSGESCHRIEBEN = ("G81", "G82", "G83", "G73", "G85")  # was zyklen_ausschreiben 
 HAKEN = (
     "kommentare",
     "nur_ascii",
+    "grossbuchstaben",
     "satznummern",
     "leerzeichen",
     "rohteil",
@@ -577,6 +581,7 @@ STEUERUNGEN = {
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
         programmnummer_max=9999,  # O0001 … O9999
+        grossbuchstaben=True,
         ohne_leerzeichen_moeglich=True,
         zahl_max=99999.999,
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme P1 … P48
@@ -641,6 +646,7 @@ STEUERUNGEN = {
         vorwahl="T{t}",
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme (wie Fanuc)
         programmnummer_max=9999,
+        grossbuchstaben=True,
         ohne_leerzeichen_moeglich=True,
         zahl_max=99999.999,
         gewinde_g=("G84.2", "G84.3"),
@@ -1052,6 +1058,10 @@ def haken_text(feld):
     return {
         "kommentare": (tr("pp.haken.kommentare"), tr("pp.haken.kommentare.erklaerung")),
         "nur_ascii": (tr("pp.haken.nur_ascii"), tr("pp.haken.nur_ascii.erklaerung")),
+        "grossbuchstaben": (
+            tr("pp.haken.grossbuchstaben"),
+            tr("pp.haken.grossbuchstaben.erklaerung"),
+        ),
         "satznummern": (tr("pp.haken.satznummern"), tr("pp.haken.satznummern.erklaerung")),
         "leerzeichen": (tr("pp.haken.leerzeichen"), tr("pp.haken.leerzeichen.erklaerung")),
         "rohteil": (tr("pp.haken.rohteil"), tr("pp.haken.rohteil.erklaerung")),
@@ -1185,6 +1195,8 @@ def _kommentar(s, text):
     text = text.replace("(", "[").replace(")", "]")
     if s.nur_ascii:
         text = ascii_text(text)
+    if s.grossbuchstaben:
+        text = text.upper()
     return f"; {text}" if s.kommentar.strip() == ";" else f"({text})"
 
 

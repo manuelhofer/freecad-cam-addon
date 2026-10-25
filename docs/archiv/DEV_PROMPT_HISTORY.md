@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-87 kommentare-gross, klartext-ohne-nullsaetze
+
+### EINGELESEN
+- Ältere Fanuc-Steuerungen nehmen in Kommentaren keine Kleinbuchstaben; andere CAM-Postprozessoren
+  für Fanuc lassen dort nur Großbuchstaben zu.
+- Die Zufallsprobe (mit dem neuen Haken anders gemischt) fand im Klartext dreimal denselben Satz
+  „L Y+14.774 R0“: ein kleiner Bogen in YZ, in Geraden zerlegt, Punkte unter der letzten Stelle.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Haken `grossbuchstaben` (Fanuc, Mazak an); `camaddon/klartext.py`:
+  `gerade` schreibt nur gerundet geänderte Achsen; `camaddon/gui_programm.py`,
+  `translations/*.json`, `help/*/programm.html`, `docs/spezifikation_steuerung.md` 28,
+  `tests/test_programm_pruefen.py` (Fanuc schreibt „FRAESER D 12“).
+
+### ERGEBNIS
+- Fanuc, Mazak: Kommentare groß; andere wie bisher. Klartext: keine doppelten Sätze mehr in der
+  Zufallsprobe.
+- Grün: test_postprozessor, _nachfahren, _zufall, test_programm_pruefen, test_programmkopf,
+  test_schwenken; szenario_programm, _programm_heidenhain, _magazin_bearbeitung.
+
 ## P-2026-10-25-86 befehle-vor-und-nach-dem-wechsel
 
 ### EINGELESEN

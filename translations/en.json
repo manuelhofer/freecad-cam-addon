@@ -107,6 +107,8 @@
     "pp.hinweis.nullpunkte_mehrere": "The job names several work offsets ({alle}) – the program selects only {register}; one job per part on the table, or the program once more with the other work offset.",
     "pp.kopf.nullpunkt": "Work offset: {register}",
     "pp.kopf.nullpunkt_befehl": "Work offset: {register} – in the program {befehl}",
+    "pp.haken.grossbuchstaben": "Comments in capitals",
+    "pp.haken.grossbuchstaben.erklaerung": "“(RAEUMEN T1)” instead of “(Raeumen T1)” – older Fanuc controls do not take lowercase letters in comments. On by default for Fanuc and Mazak.",
     "pp.haken.leerzeichen": "Separate words with spaces",
     "pp.haken.leerzeichen.erklaerung": "“G1 X10.000 Y5.000”. Off: “G1X10.000Y5.000” – the file about 10 % smaller when program memory is tight or the program is drip-fed (DNC). Comments stay as they are. Only for controls whose words are all a letter with a number (not Siemens: there “SUPA D0” would become “SUPAD0”).",
     "pp.haken.werkzeugliste": "Tool list in the header",

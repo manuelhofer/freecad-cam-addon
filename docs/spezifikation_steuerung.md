@@ -870,3 +870,12 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   und der Vorwahl), {t} und {werkzeug}, vorbelegt leer – etwa „M1“ davor, an GRBL das Antasten mit
   der Tastplatte danach (G38.2, G10 L20).
 
+## 28. Kommentare in Großbuchstaben; Klartext ohne Sätze unter der letzten Stelle (P-2026-10-25-87)
+
+- Haken `grossbuchstaben` (Fanuc, Mazak an): jeder Kommentar (`_kommentar`) groß – ältere
+  Fanuc-Steuerungen nehmen in Kommentaren keine Kleinbuchstaben (andere CAM-Postprozessoren für
+  Fanuc lassen ebenso nur Großbuchstaben zu).
+- Klartext (`gerade`): eine Achse nur, wenn sich ihr gerundeter Wert ändert, sonst kein Satz –
+  die Zufallsprobe fand „L Y+14.774 R0“ dreimal hintereinander (ein kleiner Bogen in YZ in
+  Geraden).
+

@@ -96,6 +96,8 @@ aktiv ist – wähl ihn dort an.</li>
 ersetzt (ä → ae, Ø → D, – → -). Fanuc, Haas und Mach lesen Programme im ASCII-Zeichensatz und
 brechen bei anderen Zeichen mit „Illegal character“ ab; an LinuxCNC vorsichtshalber ebenso. An
 Siemens aus – SINUMERIK Operate zeigt Umlaute.</li>
+<li><b>Kommentare in Großbuchstaben</b> – „(RAEUMEN T1)“: ältere Fanuc-Steuerungen nehmen in
+Kommentaren keine Kleinbuchstaben. Vorbelegt an bei Fanuc und Mazak.</li>
 <li><b>Satznummern</b> – N10, N20 … vor jedem Satz, nicht vor „%“, der Programmnummer und
 Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm. Höchstens fünf
 Stellen (Fanuc, Haas und Mazak geben bei N100000 einen Alarm; Siemens acht) – danach geht es

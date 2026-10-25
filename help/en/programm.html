@@ -102,6 +102,8 @@ control and compare the line it writes with the add-on's – if it differs, ente
 replaced (ä → ae, Ø → D, – → -). Fanuc, Haas and Mach read programs in the ASCII character set
 and stop with “Illegal character” on others; on LinuxCNC as a precaution as well. Off on Siemens –
 SINUMERIK Operate shows umlauts.</li>
+<li><b>Comments in capitals</b> – “(RAEUMEN T1)”: older Fanuc controls do not take lowercase
+letters in comments. On by default for Fanuc and Mazak.</li>
 <li><b>Block numbers</b> – N10, N20 … before each block, not before “%”, the program number and
 comments. They are not needed; some operators use them to jump in the program. At most five
 digits (Fanuc, Haas and Mazak alarm at N100000; Siemens eight) – then they start again at N10.

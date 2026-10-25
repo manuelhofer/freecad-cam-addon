@@ -220,7 +220,7 @@ for kennung in pp.STEUERUNGEN:
         pruefe(nicht_ascii, "Siemens: Umlaute ersetzt")
     else:
         pruefe(
-            not nicht_ascii and any("Fraeser D 12" in x for x in p_a.zeilen),
+            not nicht_ascii and any("fraeser d 12" in x.lower() for x in p_a.zeilen),
             f"{kennung}: {nicht_ascii}",
         )
     befunde, _saetze = pp.nachlesen(p_a, s, fraese)

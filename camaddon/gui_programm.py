@@ -47,6 +47,7 @@ GRUPPEN = (
             "kommentare",
             "werkzeugliste",
             "nur_ascii",
+            "grossbuchstaben",
             "satznummern",
             "leerzeichen",
             "kopf",
@@ -166,6 +167,7 @@ NUR_FRAESEN = {
 # TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst) – nicht gezeigt.
 NUR_GCODE = {
     "nur_ascii",  # Klartext immer in ASCII
+    "grossbuchstaben",
     "rohteil",
     "rohteil_fraesen",
     "rohteil_drehen",

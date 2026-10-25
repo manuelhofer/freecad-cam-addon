@@ -107,6 +107,8 @@
     "pp.hinweis.nullpunkte_mehrere": "Der Job nennt mehrere Nullpunkte ({alle}) – das Programm wählt nur {register}; je Teil auf dem Tisch ein Job oder das Programm noch einmal mit dem anderen Nullpunkt.",
     "pp.kopf.nullpunkt": "Nullpunkt: {register}",
     "pp.kopf.nullpunkt_befehl": "Nullpunkt: {register} – im Programm {befehl}",
+    "pp.haken.grossbuchstaben": "Kommentare in Großbuchstaben",
+    "pp.haken.grossbuchstaben.erklaerung": "„(RAEUMEN T1)“ statt „(Raeumen T1)“ – ältere Fanuc-Steuerungen nehmen in Kommentaren keine Kleinbuchstaben. Vorbelegt an bei Fanuc und Mazak.",
     "pp.haken.leerzeichen": "Wörter mit Leerzeichen trennen",
     "pp.haken.leerzeichen.erklaerung": "„G1 X10.000 Y5.000“. Aus: „G1X10.000Y5.000“ – die Datei rund 10 % kleiner, wenn der Programmspeicher knapp ist oder über DNC eingespeist wird. Kommentare bleiben, wie sie sind. Nur bei Steuerungen, deren Wörter alle ein Buchstabe mit Zahl sind (nicht Siemens: dort hieße „SUPA D0“ sonst „SUPAD0“).",
     "pp.haken.werkzeugliste": "Werkzeugliste im Kopf",
