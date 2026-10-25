@@ -2311,6 +2311,7 @@
     "ba.frage.waende.flanke.satz": "The flank finishes the walls, the ball only the faces under the rim – faster; in the lower layer the shank runs along the already finished wall.",
     "ba.frage.waende.spirale": "Flank roughs, spiral finishes",
     "ba.frage.waende.spirale.satz": "The flank roughs with {aufmass} mm stock left, the ball finishes all walls as a spiral – cleaner, takes longer.",
+    "ba.block.vorschau.tooltip": "Shows the tool paths of this strategy in 3D – roughly computed like the preview, rapids grey. Another click removes them.",
     "ba.frage.vorschau": "Preview",
     "ba.frage.vorschau.tooltip": "Shows the tool paths of this way in 3D – roughly computed like the preview, one colour per operation, rapids grey. Another click removes them.",
     "ba.frage.geht_nicht": "not possible here",

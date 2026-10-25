@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-57 vorschau-je-strategie
+
+### EINGELESEN
+- W-039 (Manuel, Frage 6): „mehr abfragen wie der benutzer das teil bearbeiten wollen würde …
+  "weg 1 ist so und so [vorschau button] weg 2 ist so und so [vorschau button]"“; „die vorschau
+  muss die werkzeugwege halt nur sehr schnell berechnen grob“. Wo der Assistent zwischen
+  Strategien wählt (Wettbewerb), hat er die Bahn jeder schon gerechnet.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: neben jedem Haken im Überblick „Vorschau“ (nur mit Punkten in
+  der Vorschau) – die Werkzeugwege des Blocks im 3D, gemeinsam mit den Wegen der Fragen: gedrückt
+  ist nur, was zu sehen ist; nach neuem Rechnen frisch wieder.
+- `translations/de.json`, `en.json`.
+
+### ERGEBNIS
+- Szenario Stifthalter: „Vorschau“ bei Räumen, Bohren, Bohrung fräsen, Kontur, Senken; Räumen und
+  Kontur im 3D am Teil, noch ein Klick nimmt sie weg.
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-55/-56 frage-waende-vorschau, merker-und-restschlichten
 
 ### EINGELESEN

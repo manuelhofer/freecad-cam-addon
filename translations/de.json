@@ -2311,6 +2311,7 @@
     "ba.frage.waende.flanke.satz": "Die Flanke macht die Wände fertig, die Kugel nur die Flächen unter dem Rand – schneller; in der unteren Lage läuft der Schaft an der schon fertigen Wand entlang.",
     "ba.frage.waende.spirale": "Flanke grob, Spirale fertig",
     "ba.frage.waende.spirale.satz": "Die Flanke schruppt mit {aufmass} mm Aufmaß, die Kugel macht alle Wände als Spirale fertig – sauberer, dauert länger.",
+    "ba.block.vorschau.tooltip": "Zeigt die Werkzeugwege dieser Strategie im 3D – grob gerechnet wie die Vorschau, der Eilgang grau. Noch ein Klick nimmt sie weg.",
     "ba.frage.vorschau": "Vorschau",
     "ba.frage.vorschau.tooltip": "Zeigt die Werkzeugwege dieses Wegs im 3D – grob gerechnet wie die Vorschau, je Operation eine Farbe, der Eilgang grau. Noch ein Klick nimmt sie weg.",
     "ba.frage.geht_nicht": "geht hier nicht",

@@ -4147,7 +4147,20 @@ class _Block:
         schrift.setBold(True)
         self.haken.setFont(schrift)
         self.haken.toggled.connect(lambda _an: self.panel.haken_geklickt(self))
-        aufbau.addWidget(self.haken)
+        # Daneben „Vorschau“: die Werkzeugwege des Blocks im 3D (W-039; Manuel: „weg 1 ist so
+        # und so [vorschau button]“) – nur, wenn seine Vorschau Punkte hat.
+        kopfzeile = QtGui.QHBoxLayout()
+        kopfzeile.setContentsMargins(0, 0, 0, 0)
+        kopfzeile.addWidget(self.haken, 1)
+        self.knopf_vorschau = knopf(
+            tr("ba.frage.vorschau"),
+            tr("ba.block.vorschau.tooltip"),
+            lambda: self.panel._block_zeigen(self),
+        )
+        self.knopf_vorschau.setCheckable(True)
+        self.knopf_vorschau.hide()
+        kopfzeile.addWidget(self.knopf_vorschau)
+        aufbau.addLayout(kopfzeile)
         self.kurz = _grau()
         self.kurz.setTextFormat(QtCore.Qt.RichText)
         self.kurz.hide()
@@ -4739,6 +4752,7 @@ class _Block:
         )
         self.ergebnis.setText(self.ergebnis_basis)
         self.material.setText(_material_text(self.vorschau))
+        self._vorschau_knopf_zeigen()
         self._vorbohrer_angebot()
         self._empfehlung_anstossen(job, werkzeug, flaechen, ("bahn", zeit, self.vorschau))
         if self.s.kennung == "nut":
@@ -5222,6 +5236,12 @@ class _Block:
         while len(merk) > VORSCHAU_MERK:
             merk.popitem(last=False)
 
+    def _vorschau_knopf_zeigen(self):
+        """„Vorschau“ neben dem Haken, wenn die Vorschau des Blocks Punkte hat."""
+        knopf_ = getattr(self, "knopf_vorschau", None)
+        if knopf_ is not None:
+            knopf_.setVisible(bool(getattr(self.vorschau, "punkte", None)))
+
     def _gemerkt_zeigen(self, gemerkt):
         vorschau, zeit, schon_weg, basis, material, hinweis = gemerkt
         self.vorschau, self.zeit, self.schon_weg = vorschau, zeit, schon_weg
@@ -5235,6 +5255,7 @@ class _Block:
         self.ergebnis.setText(basis)
         self.material.setText(material)
         self.hinweis.setText(hinweis)
+        self._vorschau_knopf_zeigen()
         self._vorbohrer_angebot()
         if self.s.kennung == "nut" and vorschau is not None:
             self.stellen_zeigen(getattr(vorschau, "stellen", None))
@@ -5247,6 +5268,7 @@ class _Block:
         self.ergebnis.setText("")
         self.material.setText("")
         self.hinweis.setText("")
+        self._vorschau_knopf_zeigen()
         if self.s.kennung in ("raeumen", "nut", "bohrung"):
             self.angebot.leeren()  # das Angebot des Bohrers (_vorbohrer_angebot)
 
@@ -8594,6 +8616,20 @@ class BearbeitungPanel:
         self._fase_angebot()
         self._knoepfe_beschriften()
         yield from self._fragen_schritte(form)
+        self._gezeigten_block_erneuern()
+
+    def _gezeigten_block_erneuern(self):
+        """Nach dem Rechnen: Zeigte das 3D die Wege eines Blocks, die neuen – hat er keine mehr,
+        keine."""
+        gezeigt = getattr(self._bahnvorschau, "kennung", None)
+        if gezeigt is None or gezeigt[0] != "block":
+            return
+        block = next((b for b in self.bloecke if b.s.kennung == gezeigt[1]), None)
+        if block is None or block.vorschau is None:
+            self._bahnvorschau.weg()
+        else:
+            self._bahnvorschau.zeigen(gezeigt, [block.vorschau], self._job_zum_teil())
+        self._vorschau_knoepfe_setzen()
 
     # --- Fragen: wie willst du vorgehen? (W-039) ----------------------------------------------
 
@@ -8602,6 +8638,29 @@ class BearbeitungPanel:
             return
         self._weg[frage] = weg
         self.vorschau_starten()
+
+    def _block_zeigen(self, block):
+        """„Vorschau“ neben einem Haken: die Werkzeugwege des Blocks im 3D – noch ein Klick nimmt
+        sie weg."""
+        from . import gui_bahnvorschau as gb
+
+        if self._bahnvorschau is None:
+            self._bahnvorschau = gb.Bahnvorschau(self.doc)
+        kennung = ("block", block.s.kennung)
+        if self._bahnvorschau.kennung == kennung or block.vorschau is None:
+            self._bahnvorschau.weg()
+        else:
+            self._bahnvorschau.zeigen(kennung, [block.vorschau], self._job_zum_teil())
+        self._vorschau_knoepfe_setzen()
+
+    def _vorschau_knoepfe_setzen(self):
+        """Gedrückt ist nur der Knopf „Vorschau“ dessen, was gerade im 3D zu sehen ist."""
+        gezeigt = getattr(self._bahnvorschau, "kennung", None)
+        for block in self.bloecke:
+            block.knopf_vorschau.blockSignals(True)
+            block.knopf_vorschau.setChecked(gezeigt == ("block", block.s.kennung))
+            block.knopf_vorschau.blockSignals(False)
+        self.frage_waende.gezeigt(gezeigt[1] if gezeigt and gezeigt[0] == "waende" else None)
 
     def _weg_zeigen(self, frage, weg):
         """„Vorschau“: die Werkzeugwege des Wegs im 3D – noch ein Klick nimmt sie weg. Rechnet er
@@ -8612,16 +8671,14 @@ class BearbeitungPanel:
             self._bahnvorschau = gb.Bahnvorschau(self.doc)
         if self._bahnvorschau.kennung == (frage, weg):
             self._bahnvorschau.weg()
-            self.frage_waende.gezeigt(None)
-            return
-        eintrag = self._wege.get((frage, weg))
-        if eintrag is None:
-            self._bahnvorschau.weg()
-            self._bahnvorschau.kennung = (frage, weg)  # kommt nach dem Rechnen
-            self.frage_waende.gezeigt(weg)
-            return
-        self._bahnvorschau.zeigen((frage, weg), eintrag[1], self._job_zum_teil())
-        self.frage_waende.gezeigt(weg)
+        else:
+            eintrag = self._wege.get((frage, weg))
+            if eintrag is None or not eintrag[1]:
+                self._bahnvorschau.weg()
+                self._bahnvorschau.kennung = (frage, weg)  # kommt nach dem Rechnen
+            else:
+                self._bahnvorschau.zeigen((frage, weg), eintrag[1], self._job_zum_teil())
+        self._vorschau_knoepfe_setzen()
 
     def _job_zum_teil(self):
         """Die Lage, die Punkte im Job ans Teil bringt, wie es in der Ansicht liegt: Der Klon im
@@ -8675,7 +8732,7 @@ class BearbeitungPanel:
         gezeigt = getattr(self._bahnvorschau, "kennung", None)
         if gezeigt is not None and gezeigt[0] == "waende":
             eintrag = self._wege.get(gezeigt)
-            if eintrag is not None and eintrag[2] == woraus:
+            if eintrag is not None and eintrag[2] == woraus and eintrag[1]:
                 self._bahnvorschau.zeigen(gezeigt, eintrag[1], self._job_zum_teil())
 
     def _weg_rechnen(self, form, frage, weg):
