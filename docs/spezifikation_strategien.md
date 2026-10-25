@@ -4191,5 +4191,23 @@ immer wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?) und dann weit
   den Weg mit Vorbohren dazu (mit dem Materialstand und dem Bohrer, die der Block zuletzt bekam,
   `zusatz_zuletzt`). Der Weg mit Vorbohren zählt die Bohrzeit mit, Werkzeugwechsel noch nicht.
 - **Vorschau:** die Löcher als senkrechte Linien (`_Bohrlinien`), dazu die Bahnen.
-- **Nächste Frage:** „Erst alles schruppen, dann alles schlichten“ – Manuel, 2026-10-25 abends:
-  Bohren, Senken und Gewinde zwischen Schruppen und Schlichten.
+- **Zeiten aller Fragen** (seit P-2026-10-25-63): alles Angehakte mit seinem Vorbohren, dazu je
+  Werkzeugwechsel der Folge im Job die Wechselzeit der Maschine (`_gesamt`, W-040) – beim Weg
+  „vorbohren“ mit den Bohrern vor dem Block.
+
+### 16.23 In welcher Reihenfolge – erst alles schruppen, dann schlichten? (W-039, P-2026-10-25-63)
+
+Manuel, 2026-10-25: „oder sollen wir alles rausschruppen und dann schlichten usw“; abends auf die
+Frage, wohin Bohren, Senken und Gewinde gehören: „Zwischen Schruppen/Schlichten“.
+
+- **Die Frage** über den anderen, wenn „Erst alles schruppen“ eine andere Folge ergäbe als die
+  vorgeschlagene: „Wie vorgeschlagen“ (vorbelegt – die Folge aus `STRATEGIEN`, „Schlichten
+  danach“ gleich hinter dem, was die Wände schruppt) und „Erst alles schruppen, dann schlichten“.
+  Je Weg die Folge als Satz („Planfräsen T1 → Vorbohren T5 → Räumen T1 → …, 2
+  Werkzeugwechsel“) und die Zeit für alles mit den Wechseln dieser Folge; keine Vorschau – die
+  Bahnen sind dieselben.
+- **Schruppen zuerst** (`SCHRUPPEN_ZUERST`): Planfräsen, Räumen, Rest räumen, Nut, Kontur,
+  3D-Schruppen, Restschruppen; dann Zentrieren, Bohren, Bohrung fräsen, Senken, Reiben, Gewinde,
+  Gewindefräsen; dann Schlichten danach, Restmaterial, 3D-Schlichten, Flanke, Restschlichten,
+  Bleistift; zuletzt Fase und Entgraten. Innerhalb eines Abschnitts die Folge aus `STRATEGIEN`.
+  Dieselbe Folge gilt für den Materialstand der Vorschau (`_in_anlege_reihe`).

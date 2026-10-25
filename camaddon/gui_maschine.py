@@ -324,9 +324,13 @@ class MaschinenPanel:
         ruhiges_mausrad(self.wahl_wechsel_bezug)
         self.punkte_formular.addRow(tr("dialog.wechsel_bezug"), self.wahl_wechsel_bezug)
         # Wie lange der Wechsel selbst dauert – „Auf der Maschine prüfen“ zählt es je Wechsel.
-        self.feld_wechselzeit = QtGui.QLineEdit(zahl_zeigen(m.wechselzeit(self.maschine)))
+        eingetragen = m.wechselzeit_eingetragen(self.maschine)
+        self.feld_wechselzeit = QtGui.QLineEdit(
+            zahl_zeigen(eingetragen) if eingetragen is not None else ""
+        )
         self.feld_wechselzeit.setValidator(Zahlenpruefer(self.feld_wechselzeit))
-        self.feld_wechselzeit.setPlaceholderText("0")
+        # Leer: die Vorgabe (W-040) – grau im Feld, wie sie gilt.
+        self.feld_wechselzeit.setPlaceholderText(zahl_zeigen(m.wechselzeit(self.maschine)))
         self.feld_wechselzeit.setToolTip(tr("dialog.wechselzeit.tooltip"))
         self.feld_wechselzeit.editingFinished.connect(self._wechselzeit_gesetzt)
         zeile_zeit = QtGui.QWidget()
@@ -448,9 +452,11 @@ class MaschinenPanel:
             self._details_zeigen(art, objekt)
 
     def _wechselzeit_gesetzt(self):
-        """„Werkzeugwechsel dauert“: übernehmen (leer: 0 – nicht gezählt)."""
+        """„Werkzeugwechsel dauert“: übernehmen (leer: die Vorgabe, m.wechselzeit; 0: nicht
+        gezählt)."""
+        text = self.feld_wechselzeit.text().strip()
         try:
-            wert = max(0.0, zahl_lesen(self.feld_wechselzeit.text()))
+            wert = max(0.0, zahl_lesen(text)) if text else m.OHNE_WECHSELZEIT
         except ValueError:  # nur „,“: bleibt wie es war
             return
         if "Wechselzeit" not in self.maschine.PropertiesList:

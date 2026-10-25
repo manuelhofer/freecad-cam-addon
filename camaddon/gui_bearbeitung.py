@@ -248,7 +248,7 @@ class _Frage:
     button] weg 2 ist so und so [vorschau button]"“): ihr Satz, je Weg ein Auswahlknopf mit
     kurzem Titel, darunter grau sein Satz, rechts seine Zeit und „Vorschau“ (die Werkzeugwege im
     3D). `wege`: [(Kennung, Titel, Satz)]; `gewechselt(kennung)` beim Wählen, `vorschau(kennung)`
-    beim Klick auf „Vorschau“. Versteckt, solange sie nicht passt."""
+    beim Klick auf „Vorschau“ (None: kein Knopf). Versteckt, solange sie nicht passt."""
 
     def __init__(self, titel, wege, gewaehlt, gewechselt, vorschau):
         self.widget = QtGui.QWidget()
@@ -270,13 +270,15 @@ class _Frage:
             zeit = _grau()
             zeit.setToolTip(tr("ba.frage.zeit.tooltip"))
             zeile.addWidget(zeit)
-            zeigen = knopf(
-                tr("ba.frage.vorschau"),
-                tr("ba.frage.vorschau.tooltip"),
-                lambda k=kennung: vorschau(k),
-            )
-            zeigen.setCheckable(True)
-            zeile.addWidget(zeigen)
+            if vorschau is not None:  # ohne: die Wege sind dieselben (die Reihenfolge)
+                zeigen = knopf(
+                    tr("ba.frage.vorschau"),
+                    tr("ba.frage.vorschau.tooltip"),
+                    lambda k=kennung: vorschau(k),
+                )
+                zeigen.setCheckable(True)
+                zeile.addWidget(zeigen)
+                self.vorschau_knoepfe[kennung] = zeigen
             aufbau.addLayout(zeile)
             erklaerung = _grau(satz)
             erklaerung.setWordWrap(True)
@@ -284,7 +286,6 @@ class _Frage:
             aufbau.addWidget(erklaerung)
             self.knoepfe[kennung] = auswahl
             self.zeiten[kennung] = zeit
-            self.vorschau_knoepfe[kennung] = zeigen
             self.saetze[kennung] = erklaerung
 
     def satz_setzen(self, kennung, satz):
@@ -317,20 +318,26 @@ class _Frage:
             zeigen.blockSignals(False)
 
 
-def _mit_anderen(minuten, andere):
-    """Die Zeit eines Wegs (`minuten`, None: rechnet, False: geht nicht) mit der der anderen
-    angehakten Blöcke."""
-    if minuten is None or isinstance(minuten, bool):
-        return minuten
-    return minuten + andere
+def _bohrer_von(gebohrt):
+    """Die Bohrer eines Vorbohrens (raeumen.Vorbohren) – ihre Kennungen in ihrer Folge; leer
+    ohne."""
+    if gebohrt is None:
+        return []
+    return list(dict.fromkeys(str(lo[4]) for lo in gebohrt.je_loch()))
+
+
+def _wechsel_zahl(folge):
+    """Wie oft in der Folge der Werkzeuge (Kennungen) das Werkzeug wechselt."""
+    return sum(1 for a, b in zip(folge, folge[1:], strict=False) if a != b)
 
 
 class _Bohrlinien:
     """Die Löcher des Vorbohrens (raeumen.Vorbohren) als Bahn für die Vorschau im 3D: je Loch aus
-    5 mm über dem Rohteil senkrecht hinab und wieder hinauf."""
+    5 mm über dem Rohteil senkrecht hinab und wieder hinauf. `block`: für wen sie vorbohren."""
 
-    def __init__(self, gebohrt):
+    def __init__(self, gebohrt, block=None):
         self.gebohrt = gebohrt
+        self.block = block
         loecher = gebohrt.je_loch()
         oben = gebohrt.tiefe + min(float(lo[2]) for lo in loecher) + 5.0
         self.punkte = []
@@ -4146,6 +4153,39 @@ STRATEGIEN = (
 )
 
 
+# „Erst alles schruppen, dann alles schlichten“ (W-039; Manuel, 2026-10-25: „oder sollen wir
+# alles rausschruppen und dann schlichten“; abends: Bohren, Senken und Gewinde zwischen Schruppen
+# und Schlichten): je Strategie ihr Abschnitt – schruppen, Löcher, schlichten, Kanten; innerhalb
+# eines Abschnitts die Folge aus STRATEGIEN. Bohrung fräsen gehört zu den Löchern (danach senkt
+# und schneidet es dort); Nut und Kontur zum Schruppen (sie nehmen das meiste weg; fertig macht
+# ihre Wände „Schlichten danach“, wenn es angehakt ist).
+SCHRUPPEN_ZUERST = {
+    "planfraesen": 0,
+    "raeumen": 0,
+    "restraeumen": 0,
+    "nut": 0,
+    "kontur": 0,
+    "schruppen3d": 0,
+    "restschruppen": 0,
+    "zentrieren": 1,
+    "bohren": 1,
+    "bohrung": 1,
+    "senken": 1,
+    "reiben": 1,
+    "gewinde": 1,
+    "gewindefraesen": 1,
+    "schlichtendanach": 2,
+    "rest": 2,
+    "schlichten3d": 2,
+    "flanke": 2,
+    "restschlichten": 2,
+    "bleistift": 2,
+    "fase": 3,
+    "entgraten": 3,
+    "entgraten3d": 3,
+}
+
+
 def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
     eingabe = QtGui.QLineEdit()
     eingabe.setValidator(Zahlenpruefer(eingabe))
@@ -6007,7 +6047,8 @@ class BearbeitungPanel:
         zeile_schneller.addStretch()
         ziel[0].addLayout(zeile_schneller)
         # Fragen, wie man vorgehen will (W-039): je Weg ein Satz, seine Zeit und „Vorschau“.
-        self._weg = {"waende": "flanke"}  # vorbelegt der schnellere (wie bisher)
+        # Vorbelegt, was der Assistent bisher tat: die Flanke fertig, die Folge wie vorgeschlagen.
+        self._weg = {"waende": "flanke", "reihenfolge": "vorgeschlagen"}
         self._wege = {}  # (Frage, Weg) → (Minuten, [Vorschau je Block], woraus gerechnet)
         self._bahnvorschau = None  # gui_bahnvorschau.Bahnvorschau
         self.frage_waende = _Frage(
@@ -6046,6 +6087,20 @@ class BearbeitungPanel:
             lambda weg: self._weg_zeigen("eintauchen", weg),
         )
         self.frage_eintauchen.widget.hide()
+        # Erst alles schruppen, dann alles schlichten? (Manuel, 2026-10-25: „oder sollen wir alles
+        # rausschruppen und dann schlichten“; abends: Bohren, Senken und Gewinde dazwischen.)
+        self.frage_reihenfolge = _Frage(
+            tr("ba.frage.reihenfolge"),
+            [
+                ("vorgeschlagen", tr("ba.frage.reihenfolge.vorgeschlagen"), ""),
+                ("schruppen", tr("ba.frage.reihenfolge.schruppen"), ""),
+            ],
+            "vorgeschlagen",
+            lambda weg: self._weg_waehlen("reihenfolge", weg),
+            None,
+        )
+        self.frage_reihenfolge.widget.hide()
+        ziel[0].addWidget(self.frage_reihenfolge.widget)
         ziel[0].addWidget(self.frage_eintauchen.widget)
         ziel[0].addWidget(self.frage_waende.widget)
         # Je Strategie ein Haken mit ihrem Ergebnis – was zur Wahl passt oben, darunter
@@ -8778,9 +8833,107 @@ class BearbeitungPanel:
 
     def _fragen_schritte(self, form):
         """Die Fragen (W-039) nach dem Rechnen der Blöcke: „Eintauchen“, „Wände unter dem
-        Rand“."""
+        Rand“, „Reihenfolge“."""
         yield from self._eintauchen_schritte(form)
         yield from self._waende_schritte(form)
+        self._reihenfolge_zeigen(form)
+
+    # Die Zeit eines Wegs: alles, was angehakt ist, und die Werkzeugwechsel seiner Folge (W-040).
+
+    def _werkzeugfolge(self, reihe, bohrer=None):
+        """Die Werkzeuge der Blöcke in `reihe` nacheinander (Kennungen); vor einem Block die
+        Bohrer, die für ihn vorbohren – aus `bohrer` ({Block: [Kennung]}), sonst aus seiner
+        Vorschau."""
+        bohrer = bohrer or {}
+        folge = []
+        for block in reihe:
+            if block in bohrer:
+                folge += bohrer[block]
+            else:
+                folge += _bohrer_von(getattr(block.vorschau, "vorbohren", None))
+            folge.append(getattr(block.fraeser(), "kennung", None))
+        return folge
+
+    def _reihe_mit(self, form, frage, weg):
+        """Die Folge der angehakten Blöcke im Job, wäre in der Frage `frage` der Weg `weg`
+        gewählt."""
+        alt, self._weg[frage] = self._weg.get(frage), weg
+        try:
+            return self._in_anlege_reihe(self.aktive_bloecke(), form)
+        finally:
+            self._weg[frage] = alt
+
+    def _gesamt(self, teil, bloecke=(), bohrer=None, reihe=None):
+        """Die Zeit für alles, was angehakt ist (min), mit dem Weg einer Frage: `teil` die Zeit
+        ihrer `bloecke` (mit ihrem Vorbohren), die anderen mit ihrer Zeit und der ihres
+        Vorbohrens, dazu je Werkzeugwechsel der Folge (`reihe`, ohne: die im Job; `bohrer` wie
+        bei _werkzeugfolge) die Wechselzeit. So zeigen die Fragen je Weg, was am Ende dauert –
+        auch wenn ein Weg den Wettbewerb verschiebt (ohne Vorbohren nahm das Räumen am
+        Gehäuseunterteil dem Planfräsen die Oberseite ab: nur Räumen gezählt 11 statt 13 min).
+        `teil` None (rechnet) und False (geht nicht) bleiben."""
+        if teil is None or isinstance(teil, bool):
+            return teil
+        zeit = teil
+        for block in self.aktive_bloecke():
+            if block in bloecke or block.zeit is None:
+                continue
+            zeit += block.zeit
+            gebohrt = getattr(block.vorschau, "vorbohren", None)
+            if gebohrt is not None:
+                zeit += gebohrt.zeit
+        if reihe is None:
+            reihe = self._in_anlege_reihe(self.aktive_bloecke(), self._form_im_job())
+        return zeit + _wechsel_zahl(self._werkzeugfolge(reihe, bohrer)) * self._wechsel_minuten()
+
+    def _form_im_job(self):
+        return vr.modell(self.job).Shape if self.job is not None else None
+
+    def _reihenfolge_zeigen(self, form):
+        """Die Frage „Reihenfolge“: zeigen, wenn „Erst alles schruppen“ eine andere Folge ergäbe
+        als die vorgeschlagene; je Weg die Folge als Satz (die Bahnen sind dieselben – keine
+        Vorschau), die Zeit mit den Werkzeugwechseln dieser Folge."""
+        frage = self.frage_reihenfolge
+        reihen = {weg: self._reihe_mit(form, "reihenfolge", weg) for weg in frage.knoepfe}
+        passt = self.zu_aendern is None and reihen["vorgeschlagen"] != reihen["schruppen"]
+        self._frage_passt("reihenfolge", frage, passt)
+        if not passt:
+            return
+        frage.waehlen(self._weg["reihenfolge"])
+        for weg, reihe in reihen.items():
+            frage.zeit_setzen(weg, self._gesamt(0.0, reihe=reihe))
+            wechsel = _wechsel_zahl(self._werkzeugfolge(reihe))
+            frage.satz_setzen(
+                weg,
+                tr(
+                    f"ba.frage.reihenfolge.{weg}.satz",
+                    folge=self._folge_text(reihe),
+                    wechsel=(
+                        tr("ba.frage.wechsel.eins")
+                        if wechsel == 1
+                        else tr("ba.frage.wechsel", n=wechsel)
+                    ),
+                ),
+            )
+
+    def _folge_text(self, reihe):
+        """Die Folge als Text: „Planfräsen T1 → Vorbohren T24 → Räumen T1 → …“."""
+        teile = []
+        for block in reihe:
+            for kennung in _bohrer_von(getattr(block.vorschau, "vorbohren", None)):
+                bohrer = next(
+                    (w for w in getattr(self.bibliothek, "werkzeuge", []) if w.kennung == kennung),
+                    None,
+                )
+                teile.append(tr("ba.frage.reihenfolge.vorbohren", t=self._nummer(bohrer)))
+            teile.append(f"{block.s.titel()} {self._nummer(block.fraeser())}".strip())
+        return " → ".join(teile)
+
+    def _nummer(self, werkzeug):
+        """„T3“ – die Nummer im Magazin der Maschine, sonst in der Werkzeugverwaltung."""
+        if werkzeug is None:
+            return ""
+        magazin = self.magazin()
+        return mg.genannt(werkzeug, magazin) if magazin else wz.nummer_text(werkzeug)
 
     def _frage_passt(self, frage, widget, passt):
         """Zeigt die Frage, wenn sie passt – sonst weg, mit ihrer Vorschau im 3D."""
@@ -8810,7 +8963,7 @@ class BearbeitungPanel:
         woraus = self._waende_woraus()
         jetzt = self._weg["waende"]
         bloecke = (self.flanke, self.schlichten3d)
-        andere = self._zeit_ohne(bloecke)
+        reihen = {weg: self._reihe_mit(form, "waende", weg) for weg in frage.knoepfe}
         if all(b.vorschau is not None and b.zeit is not None for b in bloecke):
             zeit = sum(b.zeit for b in bloecke)
             self._wege[("waende", jetzt)] = (zeit, [b.vorschau for b in bloecke], woraus)
@@ -8819,7 +8972,8 @@ class BearbeitungPanel:
         for weg in frage.knoepfe:
             eintrag = self._wege.get(("waende", weg))
             gilt = eintrag is not None and eintrag[2] == woraus
-            frage.zeit_setzen(weg, _mit_anderen(eintrag[0], andere) if gilt else None)
+            gesamt = self._gesamt(eintrag[0], bloecke, reihe=reihen[weg]) if gilt else None
+            frage.zeit_setzen(weg, gesamt)
         for weg in frage.knoepfe:
             eintrag = self._wege.get(("waende", weg))
             if weg == jetzt or (eintrag is not None and eintrag[2] == woraus):
@@ -8828,15 +8982,8 @@ class BearbeitungPanel:
             if gerechnet is None:
                 gerechnet = (False, [])
             self._wege[("waende", weg)] = (*gerechnet, woraus)
-            frage.zeit_setzen(weg, _mit_anderen(gerechnet[0], andere))
+            frage.zeit_setzen(weg, self._gesamt(gerechnet[0], bloecke, reihe=reihen[weg]))
         self._gezeigten_weg_erneuern("waende", woraus)
-
-    def _zeit_ohne(self, bloecke):
-        """Die Zeit aller angehakten Blöcke außer `bloecke` (min): Die Fragen zeigen je Weg die
-        Zeit für alles, was angehakt ist – sonst täuschten sie, wenn ein Weg den Wettbewerb
-        verschiebt (ohne Vorbohren nahm das Räumen am Gehäuseunterteil dem Planfräsen die
-        Oberseite ab: 11 min statt 13)."""
-        return sum(b.zeit for b in self.aktive_bloecke() if b not in bloecke and b.zeit is not None)
 
     def _weg_rechnen(self, form, frage, weg):
         """(Minuten, [Vorschau je Block]) der Blöcke der Frage, gerechnet, als wäre `weg` gewählt
@@ -8944,7 +9091,6 @@ class BearbeitungPanel:
         an = any(b.haken_felder["vorbohren"].isChecked() for b in bloecke)
         frage.waehlen("vorbohren" if an else "helix")
         woraus = self._eintauchen_woraus(bloecke, form)
-        andere = self._zeit_ohne(bloecke)
         zeit, bahnen = 0.0, []
         for block in bloecke:
             gebohrt = getattr(block.vorschau, "vorbohren", None)
@@ -8962,18 +9108,27 @@ class BearbeitungPanel:
             zeit, bahnen = 0.0, []
             for block in bloecke:
                 zeit += block.zeit + block.vorschau.vorbohren.zeit
-                bahnen += [_Bohrlinien(block.vorschau.vorbohren), block.vorschau]
+                bahnen += [_Bohrlinien(block.vorschau.vorbohren, block), block.vorschau]
             self._wege[("eintauchen", "vorbohren")] = (zeit, bahnen, woraus)
-        for weg in frage.knoepfe:
+
+        def gesamt(weg):
             eintrag = self._wege.get(("eintauchen", weg))
-            gilt = eintrag is not None and eintrag[2] == woraus
-            frage.zeit_setzen(weg, _mit_anderen(eintrag[0], andere) if gilt else None)
+            if eintrag is None or eintrag[2] != woraus:
+                return None
+            bohrer = {b: [] for b in bloecke}
+            for bahn in eintrag[1]:
+                if isinstance(bahn, _Bohrlinien) and bahn.block in bohrer:
+                    bohrer[bahn.block] += _bohrer_von(bahn.gebohrt)
+            return self._gesamt(eintrag[0], bloecke, bohrer)
+
+        for weg in frage.knoepfe:
+            frage.zeit_setzen(weg, gesamt(weg))
         eintrag = self._wege.get(("eintauchen", "vorbohren"))
         if eintrag is None or eintrag[2] != woraus:
             gerechnet = yield from self._vorgebohrt_rechnen(form, bloecke)
             eintrag = (*(gerechnet or (False, [])), woraus)
             self._wege[("eintauchen", "vorbohren")] = eintrag
-            frage.zeit_setzen("vorbohren", _mit_anderen(eintrag[0], andere))
+            frage.zeit_setzen("vorbohren", gesamt("vorbohren"))
         frage.satz_setzen("vorbohren", self._vorbohren_satz(eintrag[1]))
         self._gezeigten_weg_erneuern("eintauchen", woraus)
 
@@ -9015,12 +9170,32 @@ class BearbeitungPanel:
             gebohrt = getattr(bahn, "vorbohren", None)
             if gebohrt is not None:
                 minuten += gebohrt.zeit
-                bahnen.append(_Bohrlinien(gebohrt))
+                bahnen.append(_Bohrlinien(gebohrt, block))
             zeit += minuten
             bahnen.append(bahn)
         if not any(isinstance(b, _Bohrlinien) for b in bahnen):
             return None
         return zeit, bahnen
+
+    def _wechsel_minuten(self):
+        """Ein Werkzeugwechsel an der gewählten Maschine (min) – ohne Angabe die Vorgabe
+        (W-040; Manuel, 2026-10-25: „Je Maschine, vorbelegt 10 s“)."""
+        return msp.wechselzeit_von(self.maschine()) / 60.0
+
+    def _wechsel_dazu(self, block, gruppe):
+        """Der Werkzeugwechsel, den der Block in den Job bringt (min) – keiner, wenn sein Werkzeug
+        schon ein anderer angehakter Block außerhalb der `gruppe` nimmt (W-040: der Wettbewerb
+        zählt die Wechsel mit)."""
+        werkzeug = block.fraeser()
+        if werkzeug is None:
+            return 0.0
+        for anderer in self.aktive_bloecke():
+            if anderer in gruppe:
+                continue
+            w = anderer.fraeser()
+            if w is not None and w.kennung == werkzeug.kennung:
+                return 0.0
+        return self._wechsel_minuten()
 
     def _vorbohren_satz(self, bahnen):
         """Der Satz zum Weg „vorbohren“: wie viele Löcher, welcher Ø, wie tief – ohne gerechnete
@@ -9919,8 +10094,12 @@ class BearbeitungPanel:
         und die Nut verlor bei jeder Änderung den Haken – „Hier ist nichts mehr zu tun“). Bei
         „Flanke grob, Spirale fertig“ (W-039, mit `form`) die Flanke vor das 3D-Schlichten – in
         STRATEGIEN steht es davor, und die Spirale schlichtete die Wände, bevor die Flanke sie
-        schruppt (P-2026-10-25-61)."""
+        schruppt (P-2026-10-25-61). In der Frage „Reihenfolge“ „Erst alles schruppen“ gewählt: je
+        Block sein Abschnitt (SCHRUPPEN_ZUERST)."""
         reihe = list(bloecke)
+        schruppen_zuerst = self._weg.get("reihenfolge") == "schruppen"
+        if schruppen_zuerst:  # stabil: in jedem Abschnitt die Folge von vorher
+            reihe.sort(key=lambda b: SCHRUPPEN_ZUERST.get(b.s.kennung, 2))
         if (
             form is not None
             and self.flanke in reihe
@@ -9930,8 +10109,8 @@ class BearbeitungPanel:
             reihe.remove(self.flanke)
             reihe.insert(reihe.index(self.schlichten3d), self.flanke)
         danach = self.schlichten_danach
-        if danach not in reihe or not danach.aktiv():
-            return reihe
+        if danach not in reihe or not danach.aktiv() or schruppen_zuerst:
+            return reihe  # schruppen zuerst: es steht schon am Anfang des Schlichtens
         # Schruppen – messen – schlichten (Manuel, 2026-10-17): hinter alles, was Wände schruppt –
         # auch hinter die Kontur (am C-Ring kam sie nach Messstopp und Schlichten, W-034).
         quellen = [self.raeumen, self.restraeumen, self.kontur]
@@ -11274,8 +11453,13 @@ class BearbeitungPanel:
             raeumen.hinweis.setText(hinweis)
             return
         zeiten = (plan.zeit, alles[1], nur[1])
+        # Bringt das Planfräsen ein eigenes Werkzeug, zählt sein Wechsel zur Folge (W-040).
+        gleich = getattr(plan.fraeser(), "kennung", None) == getattr(
+            raeumen.fraeser(), "kennung", None
+        )
+        wechsel = 0.0 if gleich else self._wechsel_dazu(plan, (plan, raeumen))
         if not (plan.von_hand or raeumen.von_hand) and all(z and z > 0 for z in zeiten):
-            folge_schneller = plan.zeit + nur[1] < alles[1]
+            folge_schneller = plan.zeit + nur[1] + wechsel < alles[1]
             self._fuellt = True
             try:
                 plan.haken.setChecked(folge_schneller)
@@ -11296,7 +11480,7 @@ class BearbeitungPanel:
         raeumen.hinweis.setText(hinweis)
         if not all(z and z > 0 for z in zeiten):
             return
-        folge, ganz = plan.zeit + nur[1], alles[1]
+        folge, ganz = plan.zeit + nur[1] + wechsel, alles[1]
         prozent = int(round((max(folge, ganz) / min(folge, ganz) - 1.0) * 100.0))
         if plan.aktiv():
             plan.ergebnis.setText(
@@ -11434,7 +11618,9 @@ class BearbeitungPanel:
                 # Neben dem Räumen teilt die Nut sich den Block mit ihm: grob seine ganze Zeit.
                 zusatz_nut = block.zeit
         zeit = {
-            b: b.zeit + (zusatz if b is self.raeumen else zusatz_nut if b is self.nut else 0.0)
+            b: b.zeit
+            + (zusatz if b is self.raeumen else zusatz_nut if b is self.nut else 0.0)
+            + self._wechsel_dazu(b, gruppe)
             for b in mit
         }
         mit.sort(key=lambda b: zeit[b])

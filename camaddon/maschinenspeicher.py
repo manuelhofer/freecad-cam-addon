@@ -70,6 +70,9 @@ class Eintrag:
     # geschwenkten Ebene (Manuel, 2026-10-17: „Automatisch Ebene A−90“). None: noch nicht
     # gerechnet (eine Liste von vorher) – der Assistent rechnet es einmal nach.
     spindel_quer: bool | None = None
+    # Wie lange ein Werkzeugwechsel dauert (s, maschine.wechselzeit) – für die Zeiten im
+    # Assistenten (W-040). None: eine Liste von vorher (wechselzeit_von).
+    wechselzeit: float | None = None
 
     @property
     def vorhanden(self):
@@ -165,6 +168,7 @@ def beschreibe(assembly, maschine):
     eintrag.achsen = sorted(namen, key=_reihenfolge)
     eintrag.rundachsen = [n for n in eintrag.achsen if n in ("A", "B", "C")]
     eintrag.revolver = any(ba.Art == m.ART_REVOLVER for ba in arten)
+    eintrag.wechselzeit = m.wechselzeit(maschine)
     eintrag.plaetze = sum(1 for a in m.aufnahmen(maschine) if a.Art == m.AUFNAHME_WERKZEUG)
     drehzahlen = [
         float(getattr(ba, "Drehzahl", 0.0) or 0.0) for ba in arten if ba.Art == m.ART_SPINDEL
@@ -249,6 +253,16 @@ def dynamik_des_jobs(job):
     eilgang = float(getattr(job, EIGENSCHAFT_EILGANG, 0.0) or 0.0)
     beschleunigung = float(getattr(job, EIGENSCHAFT_BESCHLEUNIGUNG, 0.0) or 0.0)
     return eilgang, beschleunigung * 1000.0
+
+
+def wechselzeit_von(eintrag):
+    """Wie lange ein Werkzeugwechsel an der Maschine des Eintrags dauert (s) – ohne Eintrag oder
+    aus einer Liste von vorher die Vorgabe (maschine.wechselzeit)."""
+    if eintrag is None:
+        return m.VORGABE_WECHSELZEIT
+    if eintrag.wechselzeit is not None and eintrag.wechselzeit >= 0.0:
+        return float(eintrag.wechselzeit)
+    return 0.0 if eintrag.revolver else m.VORGABE_WECHSELZEIT
 
 
 def _reihenfolge(name):

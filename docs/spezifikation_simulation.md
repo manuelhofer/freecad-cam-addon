@@ -511,6 +511,11 @@ Werkzeugwechselpunkt … damit auch die Simulation korrekt ablaufen kann.“
   Zeit und Kollision zählen die Wege mit; der Abspieler sagt „Home-Punkt“ bzw. „zum
   Werkzeugwechsel“. Der Messstopp fährt seit P-2026-10-04-06 zum Wechselpunkt (wie im
   Programm), die Operation danach kommt von dort. Die Zeit des Wechsels selbst seit
-  P-2026-10-04-07: „Werkzeugwechsel dauert … s“ in „Maschine bearbeiten“ (`Wechselzeit`,
-  Vorgabe 0 – nicht gezählt); das Abfahren zählt sie je Wechsel (andere Werkzeugnummer), die
-  Zeile „Zeit“ nennt sie getrennt („…, Werkzeugwechsel 1 × 8 s“).
+  P-2026-10-04-07: „Werkzeugwechsel dauert … s“ in „Maschine bearbeiten“ (`Wechselzeit`); das
+  Abfahren zählt sie je Wechsel (andere Werkzeugnummer), die Zeile „Zeit“ nennt sie getrennt
+  („…, Werkzeugwechsel 1 × 8 s“). Seit P-2026-10-25-63 (W-040; Manuel: „Je Maschine, vorbelegt
+  10 s“): leer (−1) heißt 10 s, an einer Maschine mit Revolver 0 (dort zählt seine Schaltzeit);
+  0 eingetragen: nicht gezählt. Ältere Maschinen mit der alten Vorgabe 0 einmal auf „leer“
+  (`WechselzeitVorgabe`). Die Liste der Maschinen trägt sie mit (`maschinenspeicher.Eintrag
+  .wechselzeit`), so zählt auch der Assistent „Bearbeitung“ die Wechsel: in seinen Fragen und im
+  Wettbewerb (ein Block, dessen Werkzeug sonst niemand nimmt, bringt einen Wechsel mit).

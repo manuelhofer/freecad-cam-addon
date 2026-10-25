@@ -381,13 +381,21 @@ def schritte(h):
         yield 300
     h.pruefe(not z1.WechselAn, "Z1 Wechsel lässt sich nicht löschen")
     # Wie lange der Wechsel selbst dauert (Spezifikation Simulation 13): „8“ getippt → 8 s an der
-    # Maschine; leer → 0.
+    # Maschine; leer → die Vorgabe (W-040: 10 s, mit Revolver 0); 0 → nicht gezählt.
+    vorgabe = m.wechselzeit(panel.maschine)
     tippen(panel.feld_wechselzeit, "8")
     yield 200
     h.pruefe(m.wechselzeit(panel.maschine) == 8.0, f"Wechselzeit {m.wechselzeit(panel.maschine)}")
+    tippen(panel.feld_wechselzeit, "0")
+    yield 200
+    h.pruefe(m.wechselzeit(panel.maschine) == 0.0, "Wechselzeit 0 nicht übernommen")
     tippen(panel.feld_wechselzeit, "")
     yield 200
-    h.pruefe(m.wechselzeit(panel.maschine) == 0.0, "Wechselzeit lässt sich nicht löschen")
+    h.pruefe(
+        m.wechselzeit(panel.maschine) == vorgabe
+        and m.wechselzeit_eingetragen(panel.maschine) is None,
+        f"Wechselzeit nach dem Löschen: {m.wechselzeit(panel.maschine)}",
+    )
 
     # Ein Fehler: S4 ohne größte Drehzahl -> Hinweis erscheint, Klick springt zur Spindel. (Der
     # Eilgang hat seit D-14 eine graue Vorgabe und fehlt nie.)

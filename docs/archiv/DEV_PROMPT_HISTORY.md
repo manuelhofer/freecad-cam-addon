@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-63 werkzeugwechsel-zeit, frage-reihenfolge
+
+### EINGELESEN
+- Manuel, abends (W-040): Werkzeugwechsel „Je Maschine, vorbelegt 10 s“ – die Fragen und der
+  Wettbewerb zählen die Wechsel mit.
+- W-039, Manuel: „oder sollen wir alles rausschruppen und dann schlichten“; abends: Bohren,
+  Senken und Gewinde „Zwischen Schruppen/Schlichten“.
+
+### DATEIEN
+- `camaddon/maschine.py`: `VORGABE_WECHSELZEIT` 10 s, `OHNE_WECHSELZEIT` −1 (leer),
+  `wechselzeit()` ohne Angabe 10 s, mit Revolver 0; `wechselzeit_eingetragen()`; ältere Maschinen
+  mit der alten Vorgabe 0 einmal auf leer (`WechselzeitVorgabe`).
+- `camaddon/gui_maschine.py`: „Werkzeugwechsel dauert“ leer = die Vorgabe (grau im Feld).
+- `camaddon/maschinenspeicher.py`: `Eintrag.wechselzeit`, `wechselzeit_von()`.
+- `camaddon/gui_bearbeitung.py`: `_gesamt` – die Zeit je Weg für alles Angehakte mit den
+  Werkzeugwechseln der Folge (`_werkzeugfolge`, `_wechsel_zahl`, `_reihe_mit`); `_wechsel_dazu`
+  im Wettbewerb und in der Folge Planfräsen/Räumen; die Frage „Reihenfolge“
+  (`frage_reihenfolge`, `SCHRUPPEN_ZUERST`, `_reihenfolge_zeigen`, `_folge_text`); `_Frage` auch
+  ohne „Vorschau“.
+- `translations/de.json`, `en.json`; `tests/test_abfahren.py`,
+  `tests/gui/szenario_maschine_bearbeiten.py` (Vorgabe 10 s, 0 nicht gezählt);
+  `tests/gui/szenario_frage_reihenfolge.py` (neu).
+
+### ERGEBNIS
+- Klotz mit Tasche und Bohrung Ø 16 („Alles aus dieser Aufspannung“): die Frage, vorgeschlagen
+  „… Räumen T1 → Bohrung fräsen T1 → Kontur T1 → Schlichten danach T1. 2 Werkzeugwechsel“,
+  schruppen zuerst „… Räumen T1 → Kontur T1 → Bohrung fräsen T1 → …“, je 8 min; gewählt und
+  angelegt: Kontur vor Bohrung fräsen.
+- Manuels sieben Taster-Teile (Kopien) mit 10 s je Wechsel: dieselben Operationen wie vorher, alle
+  bis „Anlegen“.
+- Prüfungen: test_abfahren; szenario_maschine_bearbeiten, _frage_eintauchen, _frage_reihenfolge,
+  _bohren, _bohrung, _bearbeitung, _bearbeitung_cring_alles grün.
+
 ## P-2026-10-25-61/-62 flanke-vor-der-spirale, frage-erst-vorbohren
 
 ### EINGELESEN

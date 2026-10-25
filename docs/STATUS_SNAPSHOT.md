@@ -530,7 +530,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 abends (0.295.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.296.0):* W-040 Werkzeugwechsel 10 s je Maschine vorbelegt (leer; am Revolver 0), der
+  Assistent zählt sie in Fragen und Wettbewerb; W-039 die Frage „Reihenfolge – erst alles
+  schruppen, dann schlichten?“ (Bohren, Senken, Gewinde dazwischen). Als Nächstes W-041
+  Postprozessoren.
 - *Neu (0.294.0–0.295.0):* „Vorschau“ neben jedem Haken; die Schneide über der Kugel geprüft
   (Spirale an Manuels Tasche: „Kollision prüfen“ meldet nichts mehr ins Teil, nur den Schaft
   0,62 mm nah); Werkzeuglänge aus dem Magazin auch im Programm; Räumen neben der Nut ohne leere
@@ -1905,8 +1909,6 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Heidenhain TNC 640 (Zyklen 200 ff., PLANE, M128), Fanuc/Haas (G68.2, G43.4, G81–G89), dazu
   neue: Okuma OSP, Mazak (EIA/ISO), Brother, GRBL. Ohne Maschine nicht prüfbar – nach den
   Handbüchern, beim Nachlesen geprüft (programm_pruefen).
-- **W-040 Werkzeugwechsel in der Zeit** – Manuel, 2026-10-25 abends: je Maschine eintragbar,
-  vorbelegt 10 s; die Fragen (W-039) und der Wettbewerb zählen die Wechsel mit.
 - **W-039 Der Assistent fragt, wie man vorgehen will** – Manuel, 2026-10-25 (Antwort auf Frage 6,
   die aus seinem Vorschlag zu Frage 4 kam: „hey wie willst du vorgehen sollen wir erst vorbohren …
   oder sollen wir alles rausschruppen und dann schlichten“): „ja irgendwie mehr abfragen wie der

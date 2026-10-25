@@ -201,6 +201,9 @@ FreeCAD.closeDocument(asm.Document.Name)
 # hinunter; vor dem Werkzeugwechsel erst Z zum Wechselpunkt, dann X und Y; am Ende zurück
 # zum Home-Punkt, wieder Z zuerst. Ohne Home-Punkt bleibt alles wie zuvor.
 asm, ma = beispielmaschine.fraesmaschine()
+# Ohne eingetragene Wechselzeit 10 s je Wechsel (W-040); hier erst eingetragen 0 – nicht gezählt.
+pruefe(m.wechselzeit(ma) == m.VORGABE_WECHSELZEIT, f"Vorgabe Wechselzeit: {m.wechselzeit(ma)}")
+ma.Wechselzeit = 0.0
 p = rw.Pruefung(asm, ma)
 heim = {"X1": 100.0, "Y1": 50.0, "Z1": 130.0}  # Z1: die Nase über dem Tisch
 for ba in m.betriebsarten(ma):

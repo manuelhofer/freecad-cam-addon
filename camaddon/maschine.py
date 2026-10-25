@@ -214,13 +214,27 @@ class Maschine(_Proxy):
             objekt.WechselBezug = list(WECHSEL_BEZUEGE)
             objekt.WechselBezug = WECHSEL_MKS
         # Wie lange ein Werkzeugwechsel selbst dauert (s; Spezifikation Simulation 13) – 0: nicht
-        # gezählt, wie bisher.
+        # gezählt; ohne Angabe (−1) die Vorgabe (wechselzeit()).
         if "Wechselzeit" not in objekt.PropertiesList:
             objekt.addProperty(
                 "App::PropertyFloat", "Wechselzeit", "Maschine", tr("eigenschaft.wechselzeit")
             )
-            objekt.Wechselzeit = 0.0
+            objekt.Wechselzeit = OHNE_WECHSELZEIT
+        # Bis 0.295 stand 0 vor (nicht gezählt) – einmal auf „ohne Angabe“, also die Vorgabe
+        # (Manuel, 2026-10-25, W-040: „Je Maschine, vorbelegt 10 s“); wer danach 0 einträgt,
+        # zählt den Wechsel nicht.
+        if "WechselzeitVorgabe" not in objekt.PropertiesList:
+            objekt.addProperty("App::PropertyBool", "WechselzeitVorgabe", "Maschine", "")
+            if float(objekt.Wechselzeit) == 0.0:
+                objekt.Wechselzeit = OHNE_WECHSELZEIT
+            objekt.WechselzeitVorgabe = True
+        objekt.setEditorMode("WechselzeitVorgabe", _AUSGEBLENDET)
 
+
+# Ein Werkzeugwechsel ohne eingetragene Zeit (W-040; Manuel, 2026-10-25: „Je Maschine, vorbelegt
+# 10 s“) – am Revolver 0: seine Schaltzeit zählt das Abfahren schon.
+VORGABE_WECHSELZEIT = 10.0  # s
+OHNE_WECHSELZEIT = -1.0  # die Eigenschaft „Wechselzeit“ ohne Angabe
 
 # Worin Home- und Wechselpunkt zählen (gespeichert, deshalb ASCII): MKS – Maschinenkoordinaten,
 # wie der Verfahrweg; WKS – Werkstückkoordinaten, ab dem Nullpunkt des Jobs, die Spitze des
@@ -270,8 +284,22 @@ def setze_schwenkdaten(maschine, datensatz, bezug):
 
 
 def wechselzeit(maschine):
-    """Wie lange ein Werkzeugwechsel dauert (s) – 0 ohne Angabe."""
-    return max(0.0, float(getattr(maschine, "Wechselzeit", 0.0) or 0.0))
+    """Wie lange ein Werkzeugwechsel dauert (s): eingetragen (0: nicht gezählt) – ohne Angabe
+    VORGABE_WECHSELZEIT, an einer Maschine mit Revolver 0."""
+    eingetragen = wechselzeit_eingetragen(maschine)
+    if eingetragen is not None:
+        return eingetragen
+    revolver = any(ba.Art == ART_REVOLVER for ba in betriebsarten(maschine))
+    return 0.0 if revolver else VORGABE_WECHSELZEIT
+
+
+def wechselzeit_eingetragen(maschine):
+    """Die eingetragene Wechselzeit (s) – None ohne Angabe."""
+    try:
+        wert = float(getattr(maschine, "Wechselzeit", OHNE_WECHSELZEIT))
+    except (TypeError, ValueError):
+        return None
+    return wert if wert >= 0.0 else None
 
 
 def wechsel_bezug(maschine):
