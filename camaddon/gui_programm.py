@@ -32,9 +32,9 @@ from .gui_teile import fenster_merken, knopf, ruhiges_mausrad
 from .gui_zahlen import zahlenformat
 from .sprache import tr
 
-EIGENSCHAFT_STEUERUNG = "CamAddonSteuerung"  # am Job: die Kennung der Steuerung
-EIGENSCHAFT_DATEI = "CamAddonProgrammdatei"  # am Job: wohin sein Programm zuletzt kam
-EIGENSCHAFT_NUMMER = "CamAddonProgrammnummer"  # am Job: seine Programmnummer (Fanuc „O1234“)
+EIGENSCHAFT_STEUERUNG = pp.EIGENSCHAFT_STEUERUNG  # am Job: die Kennung der Steuerung
+EIGENSCHAFT_DATEI = pp.EIGENSCHAFT_DATEI  # am Job: wohin sein Programm zuletzt kam
+EIGENSCHAFT_NUMMER = pp.EIGENSCHAFT_NUMMER  # am Job: seine Programmnummer (Fanuc „O1234“)
 VORSCHAU_SAETZE = 300  # so viele Bewegungssätze zeigt die Vorschau
 GELB = farben.GELB
 

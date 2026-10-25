@@ -130,6 +130,22 @@ pruefe(a.nullpunkt == "Mitte oben des Rohteils", f"Nullpunkt: {a.nullpunkt}")
 # Das Nullpunkt-Register des Jobs (CAM: Fixtures), die Kühlung je Schritt (ohne: leer), der
 # Werkstoff im Kopf (ohne Werkstoff am Rohteil: „nicht eingetragen“).
 pruefe(a.register == "G54", f"Register: {a.register!r}")
+# Das Programm, das „Programm schreiben“ für den Job gespeichert hat: Datei, Nummer, Steuerung.
+from camaddon import postprozessor as pp  # noqa: E402
+
+pruefe(not a.programm, f"Programm ohne Speichern: {a.programm!r}")
+for art, name, wert in (
+    ("App::PropertyString", pp.EIGENSCHAFT_DATEI, "/tmp/x/W.nc"),
+    ("App::PropertyString", pp.EIGENSCHAFT_STEUERUNG, "fanuc"),
+    ("App::PropertyInteger", pp.EIGENSCHAFT_NUMMER, 1234),
+):
+    job.addProperty(art, name, "CAM-Addon")
+    setattr(job, name, wert)
+b_p = eb.blatt(job, "2026-10-16", "0.0.0", bibliothek)
+pruefe(
+    b_p.aufspannungen[0].programm == "W.nc · O1234 · Fanuc",
+    f"Programm: {b_p.aufspannungen[0].programm!r}",
+)
 job.Operations.Group[0].CoolantMode = "Flood"
 b2 = eb.blatt(job, "2026-10-16", "0.0.0", bibliothek)
 pruefe(
@@ -143,6 +159,7 @@ pruefe(
     f"Hinweise: {b.hinweise}",
 )
 seite = eb.html(b, tr, laenge, minuten_text)
+pruefe("W.nc · O1234 · Fanuc" in eb.html(b_p, tr, laenge, minuten_text), "Programm im Blatt")
 for text in ("T3", "Kugel 6", "<b>27</b>", "Mitte oben", "Lang", "Tief", "Summe", "G54",
              "Werkstoff: nicht eingetragen", "Kühlung",
              "<a href='https://www.hoffmann-group.com/DE/de/hom/p/302235-6'>im Katalog</a>"):  # fmt: skip

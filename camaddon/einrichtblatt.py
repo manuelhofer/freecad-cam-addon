@@ -55,6 +55,7 @@ class Aufspannung:
     nullpunkt: str
     schritte: list = field(default_factory=list)  # [Schritt]
     register: str = ""  # das Nullpunkt-Register des Jobs (CAM: Fixtures), „G54“; "" ohne
+    programm: str = ""  # „W.nc · O1234 · Fanuc“ (postprozessor.programm_des_jobs); "" ohne
     bild: str = ""  # Pfad eines Bilds der Aufspannung, "" ohne
     bild_achsen: bool = False  # im Bild das Koordinatensystem am Nullpunkt (gui_einrichtblatt)
     job: object = None  # der Job der Aufspannung (fürs Bild)
@@ -91,6 +92,7 @@ def blatt(job, datum, version, bibliothek=None):
     """Das Einrichtblatt zu `job` (zu einer Ebene oder Aufspannung: das ihres Grundjobs)."""
     from . import magazin
     from . import maschinenspeicher as msp
+    from . import postprozessor as pp
     from . import reichweite as rw
     from . import schwenken as sw
     from . import werkzeuge as wz
@@ -125,6 +127,7 @@ def blatt(job, datum, version, bibliothek=None):
             nullpunkt=nullpunkt_text(aufjob, tr),
             job=aufjob,
             register=", ".join(str(r) for r in (getattr(aufjob, "Fixtures", None) or [])),
+            programm=pp.programm_des_jobs(aufjob),
         )
         paare = rw.operationen_mit_ebene(aufjob)
         mit_ebenen = any(ebene is not None for _op, ebene in paare)
@@ -791,6 +794,8 @@ def html(blatt, tr, laenge, minuten_text):
             zeilen.insert(2, (tr("eb.neben"), a.neben))
         if a.register:
             zeilen.append((tr("eb.register"), a.register))
+        if a.programm:
+            zeilen.append((tr("eb.programm"), a.programm))
         for titel, wert in zeilen:
             teile.append(f"<tr><th style='width:22%'>{_e(titel)}</th><td>{_e(wert)}</td></tr>")
         teile.append("</table>")

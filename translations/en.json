@@ -963,6 +963,7 @@
     "eb.kuehlung.flut": "flood",
     "eb.kuehlung.nebel": "mist",
     "eb.kuehlung.luft": "air",
+    "eb.programm": "Program",
     "eb.register": "Work offset",
     "eb.sp.kuehlung": "Coolant",
     "eb.bilder_stand": "Pictures of the setups: {fertig} of {gesamt} …",

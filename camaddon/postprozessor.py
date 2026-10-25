@@ -828,6 +828,28 @@ _WOODWOP = {
 STEUERUNGEN["woodwop"] = Steuerung("woodwop", "Homag woodWOP (MPR)", **_WOODWOP)
 STEUERUNGEN["woodwop_weeke"] = Steuerung("woodwop_weeke", "Weeke woodWOP (MPR)", **_WOODWOP)
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
+# Am Job, gemerkt von „Programm schreiben“ (gui_programm), gelesen auch vom Einrichtblatt:
+EIGENSCHAFT_STEUERUNG = "CamAddonSteuerung"  # die Kennung der Steuerung
+EIGENSCHAFT_DATEI = "CamAddonProgrammdatei"  # wohin sein Programm zuletzt kam
+EIGENSCHAFT_NUMMER = "CamAddonProgrammnummer"  # seine Programmnummer (Fanuc „O1234“)
+
+
+def programm_des_jobs(job):
+    """„W.nc · O1234 · Fanuc“ – das Programm, das „Programm schreiben“ für den Job zuletzt
+    gespeichert hat (Datei, Programmnummer, wo die Steuerung eine hat, Steuerung); "" ohne."""
+    import os
+
+    datei = str(getattr(job, EIGENSCHAFT_DATEI, "") or "")
+    if not datei:
+        return ""
+    teile = [os.path.basename(datei)]
+    s = STEUERUNGEN.get(str(getattr(job, EIGENSCHAFT_STEUERUNG, "") or ""))
+    if s is not None and s.programmnummer_max and "{nummer" in s.kopf:
+        nummer = min(max(1, int(getattr(job, EIGENSCHAFT_NUMMER, 1) or 1)), s.programmnummer_max)
+        teile.append(f"O{nummer:0{len(str(s.programmnummer_max))}d}")
+    if s is not None:
+        teile.append(s.name)
+    return " · ".join(teile)
 
 
 @dataclass

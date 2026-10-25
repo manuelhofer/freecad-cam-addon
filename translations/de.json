@@ -963,6 +963,7 @@
     "eb.kuehlung.flut": "Flut",
     "eb.kuehlung.nebel": "Nebel",
     "eb.kuehlung.luft": "Luft",
+    "eb.programm": "Programm",
     "eb.register": "Nullpunkt-Register",
     "eb.sp.kuehlung": "Kühlung",
     "eb.bilder_stand": "Bilder der Aufspannungen: {fertig} von {gesamt} …",

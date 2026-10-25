@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-26 nachts (0.306.3) – offen, in dieser Reihenfolge:**
+- *Neu (0.307.0):* Im Einrichtblatt je Aufspannung das gespeicherte Programm („W.nc · O1234 ·
+  Fanuc“).
 - *Korrektur (0.306.3):* Klartext immer in ASCII; die Gegenprobe schaltet an der Platte jeden
   Haken jeder Steuerung einzeln um (0 Befunde). 0.306.2: Drehmaschine ohne Y – Y0 fällt weg.
 - *Korrektur (0.306.1):* Bohren an der Drehmaschine ausgeschrieben (Siemens G81 nur im

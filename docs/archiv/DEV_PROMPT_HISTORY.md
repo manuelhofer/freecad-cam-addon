@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-01 programm-im-einrichtblatt
+
+### EINGELESEN
+- Mit Programmnummer je Job (0.306.0) und gemerkter Datei weiß der Job, welches Programm zu ihm
+  gehört – das Einrichtblatt an der Maschine sagte es nicht.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `EIGENSCHAFT_STEUERUNG/_DATEI/_NUMMER` (aus gui_programm hierher,
+  ohne Oberfläche lesbar), `programm_des_jobs` („W.nc · O1234 · Fanuc“).
+- `camaddon/einrichtblatt.py`: `Aufspannung.programm`, Zeile „Programm“; `camaddon/gui_programm.py`
+  nimmt die Namen von dort; `translations/*.json`, `help/*/programm.html`,
+  `tests/test_einrichtblatt.py`.
+
+### ERGEBNIS
+- Job mit gespeichertem Programm (Fanuc, Nummer 1234): im Blatt „Programm: W.nc · O1234 · Fanuc“;
+  ohne gespeichertes Programm keine Zeile.
+- Grün: test_einrichtblatt, test_postprozessor, test_sprache; szenario_einrichtblatt,
+  _programm.
+
 ## P-2026-10-25-82 klartext-immer-ascii, gegenprobe-je-haken
 
 ### EINGELESEN
