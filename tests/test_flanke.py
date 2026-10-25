@@ -380,6 +380,59 @@ pruefe(
     f"Hinterschnitt in 2 Lagen: {zwei.lagen} Lagen, {zwei.umlaeufe} Umläufe",
 )
 
+
+# Scharfe Ecken: je Wand ein Umlauf, er endet vor der Ecke. Taucht der Fräser in der unteren Lage
+# dort die Achse entlang ein, streift er oben die Nachbarwand, die weiter hereinhängt (Manuels
+# tiefe Tasche, „Kollision prüfen“: Flanke Satz 2780). Er taucht an der ersten freien Stelle ein
+# und fährt vor der Wand zum Anfang zurück – am Ende ebenso. In der unteren Lage prüft er auch
+# Hals und Schaft bis über die Wand (25 mm), nicht nur die Schneide.
+def rechteck(b, h, z, mx=40.0, my=30.0):
+    ecken = [V(mx - b / 2, my - h / 2, z), V(mx + b / 2, my - h / 2, z)]
+    ecken += [V(mx + b / 2, my + h / 2, z), V(mx - b / 2, my + h / 2, z)]
+    return Part.makePolygon(ecken + ecken[:1])
+
+
+def wege_im_teil(teil, bahn, schneide):
+    """Wie oft der Fräser beim Ein- oder Austauchen die Achse entlang das Teil berührt: Sein
+    Zylinder überstreicht dabei einen längeren Zylinder ab der unteren Spitze."""
+    zahl = 0
+    for p, q in zip(bahn.punkte, bahn.punkte[1:], strict=False):
+        if not (q.eintauchen or (q.eilgang and not p.eilgang)):
+            continue
+        unten = q if q.eintauchen else p
+        weg = (V(*q.spitze) - V(*p.spitze)).Length
+        zylinder = Part.makeCylinder(R - 0.003, weg + schneide, V(*unten.spitze), V(*unten.achse))
+        zahl += teil.distToShape(zylinder)[0] < 1e-9
+    return zahl
+
+
+teil_s = Part.makeBox(80, 60, 30).cut(
+    Part.makeLoft([rechteck(40 + 2 * D, 24 + 2 * D, 10.0), rechteck(40, 24, 30.0)], True, True)
+)
+namen_s = waende(teil_s)
+werte_s = dataclasses.replace(werte_h, schneide=12.0)
+# Vorher (bis 0.284.0): nur die Schneide geprüft, eingetaucht am Anfang des Stücks.
+alt_zugaenge, alt_laenge = fb._zugaenge, fb._pruef_laenge
+fb._zugaenge = lambda form, teile, w: [(0, len(t) - 1) for t in teile]
+fb._pruef_laenge = lambda stelle, lage, hoehe, w: min(w.schneide, stelle[4] + 1.0)
+vorher_s = fb.planen(teil_s, namen_s, werte_s)
+fb._zugaenge, fb._pruef_laenge = alt_zugaenge, alt_laenge
+scharf = fb.planen(teil_s, namen_s, werte_s)
+pruefe(
+    len(namen_s) == 4 and wege_im_teil(teil_s, vorher_s, 12.0) > 0,
+    f"Scharfe Ecken: {len(namen_s)} Wände, vorher {wege_im_teil(teil_s, vorher_s, 12.0)} "
+    "Wege durchs Teil – der Fall soll anstoßen",
+)
+pruefe(
+    scharf.umlaeufe == vorher_s.umlaeufe
+    and wege_im_teil(teil_s, scharf, 12.0) == 0
+    and im_teil(teil_s, scharf, 25.0) == 0,
+    f"Scharfe Ecken: {scharf.umlaeufe} Umläufe (vorher {vorher_s.umlaeufe}), "
+    f"{wege_im_teil(teil_s, scharf, 12.0)} Wege durchs Teil, "
+    f"{im_teil(teil_s, scharf, 25.0)} mit dem Schaft im Teil",
+)
+print(ascii(f"Scharfe Ecken: {vorher_s.zeit:.2f} -> {scharf.zeit:.2f} min"))
+
 FreeCAD.closeDocument(doc.Name)
 if fehler:
     raise AssertionError("\n".join(fehler))

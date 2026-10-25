@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-34 flanke-frei-an-der-ecke
+
+### EINGELESEN
+- „Kollision prüfen“ an Manuels tiefer Tasche (Kopie, G550), nach P-32: Die Flanke fuhr in Satz
+  2780 mit Schneide, Hals und Schaft ins fertige Teil. Ursache: Jedes Wandstück beginnt dort, wo
+  der Fräser in seiner Lage gerade noch frei ist – dicht an der Ecke. `_geht` prüfte nur die
+  Schneide. In der unteren Lage hängt oben die Nachbarwand weiter herein; beim Eintauchen die
+  Achse entlang strich der Fräser bis 2,5 mm durch sie, im Umlauf Hals und Schaft an ihr.
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `_pruef_laenge` – in einer unteren Lage prüft `_geht` den Fräser
+  bis über das obere Ende der Wand, nicht nur die Schneide. `_zugaenge` – je Umlauf, wo er
+  ein- und austaucht: die Achse entlang mit ZUGANG_SPIEL 0,5 mm Luft (ab ZUGANG_HUB 1 mm über dem
+  Ende, darunter steht die gekippte Stirn auf dem Fuß der Wand); versperrt, dann an der ersten
+  freien Stelle (`_erste_freie`, verdoppeln und halbieren) und ABSTAND vor der Wand zurück zum
+  Anfang, am Ende ebenso (`_umlauf(teil, w, anfang, ende)`). Erst alle Enden auf einmal, ab 200
+  auf den Nebenrechnern.
+- `tests/test_flanke.py`: Tasche mit überhängenden Wänden und scharfen Ecken in zwei Lagen –
+  vorher (alte Prüflänge, alter Zugang) Wege durchs Teil, jetzt keine, mit dem Schaft (25 mm)
+  nirgends im Teil, gleich viele Umläufe.
+- `docs/spezifikation_strategien.md`: Flanke, An- und Abfahren.
+
+### ERGEBNIS
+- Tasche: die Befunde in Satz 2780 (Schneide 2,5 mm im Teil, Hals, Schaft) weg; der Eilgang,
+  der 0,04 mm an der Wand vorbeistrich, mit 0,5 mm Luft. Übrig bleibt ein Hauch am Schaft in
+  einer Ecke, während B schnell dreht – siehe STATUS.
+- Prüfungen: test_flanke grün.
+
 ## P-2026-10-25-33 pruefsumme-nur-echter-objekte
 
 ### EINGELESEN

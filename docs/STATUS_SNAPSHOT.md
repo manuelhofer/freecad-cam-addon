@@ -530,7 +530,16 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.283.4) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.284.1) – offen, in dieser Reihenfolge:**
+- *Neu (0.284.0/0.284.1):* Empfehlung auch für die Flanke; an der G550 vor und nach dem Schwenk
+  längs der Spindel zurück; die Flanke taucht nur ein, wo der Weg nach oben frei ist, und prüft in
+  unteren Lagen den Fräser bis über die Wand; test_simultan_folge wieder grün (gemerkte Prüfsumme
+  nur für echte Objekte). „Kollision prüfen“ an Manuels Tasche: 20 → 6 Befunde, nur noch
+  Annäherungen – bis auf einen Hauch am Schaft von T1 in einer Ecke, während B schnell dreht: In
+  der unteren Lage läuft der Schaft (so dick wie die Schneide) genau an der fertigen Wand darüber
+  entlang; zwischen zwei Sätzen weicht er dort um Mikrometer ab (`simultan.verdichtet` hält nur
+  Spitze und Ende der Schneide auf der Geraden). Offen: auch den Schaft beim Verdichten prüfen
+  oder einen Fräser mit Hals verlangen.
 0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
    Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
    A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz
@@ -547,10 +556,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    eigenständig (Werkstatt-Addon, kein Geld, Tester willkommen). Erledigt: README sagt, was das
    Addon ist, Fehlervorlagen auf GitHub, Daten Dritter mit Quellen, Nebenrechner unter Windows und
    macOS mit Speichergrenze und Wachhund, ihre Zahl in den Einstellungen (vorgegeben alle Kerne),
-   `szenario_cam_eigene_pruefungen` (TestCAMApp mit Addon: 2093 grün). Offen: Frage 1 (Name), der
-   Entwurf für die Forum-Threads (`~/freecad_cam/forum/post_241026_15_klarstellung`, postet
-   Manuel); ein Fehlerbericht an CAM (TestCAMGui scheitert am deutschen Dezimalkomma) nur mit
-   seinem Ja.
+   `szenario_cam_eigene_pruefungen` (TestCAMApp mit Addon: 2093 grün). Offen: Frage 1 (Name); der
+   neue Startpost für beide Threads mit der Antwort auf die Discord-Kritik und Bildern je Funktion
+   (`~/freecad_cam/forum/post_251026_09_startpost_neu`, Manuel: „find ich gut“, postet er) und das
+   Wochen-Update (`post_251026_06_wochenupdate`); ein Fehlerbericht an CAM (TestCAMGui scheitert am
+   deutschen Dezimalkomma) nur mit seinem Ja.
 3. *W-029 erledigt:* Stange (P-2026-10-24-09, im Prüffenster am Ende „Fertigteil als Rohteil …“)
    und 3+2 (P-2026-10-24-19, räumlich nach allen Ebenen).
 4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen (verworfen, siehe W-036), das

@@ -27,7 +27,10 @@ gerade Parameterlinie.
   Kegel; Manuel, 2026-10-11: „es hilft nichts wenn der halter dann in den kegel reinballert“) –
   und wie weit das Werkzeug mindestens herausstehen müsste.
 - **An- und Abfahren:** im Eilgang über dem Anfang die Achse entlang hinab, im Eintauchvorschub
-  bis ABSTAND vor der Wand, quer an die Wand; am Ende quer weg und die Achse entlang hinauf.
+  bis ABSTAND vor der Wand, quer an die Wand; am Ende quer weg und die Achse entlang hinauf. Ist
+  der Weg die Achse entlang dort nicht frei (unter einem Rand hängt an der Ecke die Nachbarwand
+  über), taucht der Fräser an der ersten freien Stelle ein und fährt ABSTAND vor der Wand zurück
+  zum Anfang – am Ende ebenso (_zugaenge).
 
 Gerechnet in x, y, z des Jobs; je Punkt die Spitze und die Werkzeugachse (von der Spitze weg).
 Läuft ohne Oberfläche.
@@ -47,6 +50,8 @@ SCHRITT = 0.2  # mm – so dicht liegen die Stellen an gekrümmten Kanten
 SCHRITT_EBEN = 2.0  # mm – an geraden Kanten einer Ebene (die Achse bleibt; dazwischen halbiert)
 KNICK = 1.0  # Grad – mehr zwischen den Normalen zweier Wände: eine scharfe Kante
 ABSTAND = 2.0  # mm – so weit vor der Wand beginnt und endet ein Umlauf
+ZUGANG_SPIEL = 0.5  # mm – so viel Luft hat der Fräser beim Ein- und Austauchen (_zugaenge)
+ZUGANG_HUB = 1.0  # mm – ab so weit über dem Ende des Eintauchens gilt das Spiel (_hinauf)
 GERADE = 1e-4  # mm je mm – so weit darf eine Parameterlinie von der Sehne abweichen
 TOLERANZ = 0.002  # mm – so viel näher als der Radius darf eine andere Fläche der Achse kommen
 SICHERHEIT = 2.0  # mm über dem Rohteil
@@ -468,7 +473,7 @@ def planen(form, namen, werte):
     waende = wandflaechen(form, namen)
     if not waende:
         raise ValueError(tr("fl.fehler.keine"))
-    punkte = []
+    punkte, alle_teile = [], []
     umlaeufe = lagen_max = weggelassen = 0
     neigung = 0.0
     namen_je_zug = []
@@ -541,10 +546,13 @@ def planen(form, namen, werte):
                     davor = (stelle, geht)
                 if aus:
                     teile.append(aus)
-                for teil in teile:
-                    if len(teil) >= 2:
-                        punkte.extend(_umlauf(teil, w))
-                        umlaeufe += 1
+                alle_teile.extend(teil for teil in teile if len(teil) >= 2)
+    for teil, (anfang, ende) in zip(alle_teile, _zugaenge(form, alle_teile, w), strict=True):
+        if anfang is None:
+            weggelassen += len(teil)  # nirgends frei hinein: dort bleibt Material
+            continue
+        punkte.extend(_umlauf(teil, w, anfang, ende))
+        umlaeufe += 1
     if not punkte:
         raise ValueError(tr("fl.fehler.nichts"))
     laenge, zeit = _laenge_und_zeit(punkte, w)
@@ -640,10 +648,18 @@ def _lage(stelle, lage, hoehe):
     return (spitze + achse * max(0.0, laenge - (lage + 1) * hoehe), achse, normale)
 
 
+def _pruef_laenge(stelle, lage, hoehe, w):
+    """So lang (mm ab der Spitze) ist der Zylinder, den _geht prüft: die Schneide – in einer
+    unteren Lage auch Hals und Schaft bis über die Wand. Unter einem Rand hängt dort an der Ecke
+    die Nachbarwand herein (Manuels tiefe Tasche, „Kollision prüfen“: Schaft und Hals im Teil)."""
+    laenge = stelle[4]
+    return max(min(w.schneide, laenge + 1.0), min(laenge, (lage + 1) * hoehe) + 1.0)
+
+
 def _geht(form, stelle, lage, hoehe, w):
     """Schneidet der Fräser an der Stelle in dieser Lage nirgends ins Teil?"""
     spitze, achse, _normale = _lage(stelle, lage, hoehe)
-    return not _schneidet(form, spitze, achse, min(w.schneide, stelle[4] + 1.0), w.radius)
+    return not _schneidet(form, spitze, achse, _pruef_laenge(stelle, lage, hoehe, w), w.radius)
 
 
 def _gehen(form, paare, hoehe, w):
@@ -652,7 +668,7 @@ def _gehen(form, paare, hoehe, w):
     fragen = []
     for stelle, lage in paare:
         spitze, achse, _normale = _lage(stelle, lage, hoehe)
-        fragen.append((tuple(spitze), tuple(achse), min(w.schneide, stelle[4] + 1.0)))
+        fragen.append((tuple(spitze), tuple(achse), _pruef_laenge(stelle, lage, hoehe, w)))
     if len(fragen) >= PARALLEL_AB:
         verteilt = _gehen_verteilt(form, fragen, w.radius)
         if verteilt is not None:
@@ -744,21 +760,101 @@ def _weg(normale):
     return waagerecht.normalize() if waagerecht.Length > 1e-9 else normale
 
 
-def _umlauf(teil, w):
-    """[Stelle] – ein Umlauf mit An- und Abfahren."""
+def _vor_der_wand(punkt):
+    """(Spitze, Achse) ABSTAND vor der Wand – wo ein Umlauf beginnt und endet."""
+    s, a, n = punkt
+    return s + _weg(n) * ABSTAND, a
+
+
+def _hinauf(punkt, w):
+    """(Spitze, Achse, Länge) – der Weg beim Ein- und Austauchen: ab ZUGANG_HUB über dem Fräser
+    vor der Wand (_vor_der_wand) die Achse entlang bis über das Rohteil. Erst ab dort mit Spiel:
+    Unten steht die Stirn des gekippten Fräsers auf dem Fuß der Wand, um das Spiel breiter sänke
+    ihr Rand in den Boden (dort prüft _geht)."""
+    frei, a = _vor_der_wand(punkt)
+    oben = w.oben + w.sicherheit
+    laenge = (oben - frei.z) / max(a.z, 1e-6) - ZUGANG_HUB
+    return (tuple(frei + a * ZUGANG_HUB), tuple(a), max(0.01, laenge))
+
+
+def _erste_freie(folge, frei):
+    """Die erste Stelle in `folge` (Indizes), an der `frei` gilt – None, wenn keine: erst in
+    verdoppelten Schritten, dann halbiert; versperrt ist nur der Anfang (an der Ecke)."""
+    schlecht, schritt = 0, 1
+    while True:
+        gut = min(schlecht + schritt, len(folge) - 1)
+        if frei(folge[gut]):
+            break
+        if gut == len(folge) - 1:
+            return None
+        schlecht, schritt = gut, schritt * 2
+    while gut - schlecht > 1:
+        mitte = (gut + schlecht) // 2
+        if frei(folge[mitte]):
+            gut = mitte
+        else:
+            schlecht = mitte
+    return folge[gut]
+
+
+def _zugaenge(form, teile, w):
+    """[(anfang, ende)] je Umlauf (Teil): An welcher Stelle er eintaucht und an welcher er
+    austaucht – die Achse entlang muss der Fräser dort frei vom Teil sein. Unter einem Rand ist
+    das am Anfang und Ende einer Wand oft nicht so: Dort hängt die Nachbarwand über (Manuels tiefe
+    Tasche, „Kollision prüfen“: in der unteren Lage strich der Fräser beim Eintauchen 2,5 mm durch
+    die Nachbarwand). Erst alle Enden auf einmal (_gehen), für die versperrten dann die erste
+    freie Stelle (_erste_freie) – mit ZUGANG_SPIEL Luft: Im Eilgang strich er an der Tasche 0,04 mm
+    an der Wand vorbei. (None, None): nirgends frei."""
+    if not teile:
+        return []
+    enden = _gehen_hinauf(
+        form, [_hinauf(t[i], w) for t in teile for i in (0, -1)], w.radius + ZUGANG_SPIEL
+    )
     ergebnis = []
-    s0, a0, n0 = teil[0]
-    frei = s0 + _weg(n0) * ABSTAND
+    for k, teil in enumerate(teile):
+        n = len(teil)
+
+        def frei(i, teil=teil):
+            return geht_stueck(form, [_hinauf(teil[i], w)], w.radius + ZUGANG_SPIEL)[0]
+
+        anfang = 0 if enden[2 * k] else _erste_freie(list(range(n)), frei)
+        if anfang is None:
+            ergebnis.append((None, None))
+            continue
+        ende = n - 1 if enden[2 * k + 1] else _erste_freie(list(range(n - 1, anfang - 1, -1)), frei)
+        ergebnis.append((anfang, anfang if ende is None else ende))
+    return ergebnis
+
+
+def _gehen_hinauf(form, fragen, radius):
+    """geht_stueck für `fragen` – ab PARALLEL_AB auf den Nebenrechnern."""
+    if len(fragen) >= PARALLEL_AB:
+        verteilt = _gehen_verteilt(form, fragen, radius)
+        if verteilt is not None:
+            return verteilt
+    return geht_stueck(form, fragen, radius)
+
+
+def _umlauf(teil, w, anfang=0, ende=None):
+    """[Stelle] – ein Umlauf mit An- und Abfahren: hinein bei der Stelle `anfang`, ABSTAND vor
+    der Wand zurück zur ersten, den Umlauf, ABSTAND vor der Wand zurück bis `ende`, hinaus."""
+    ende = len(teil) - 1 if ende is None else ende
+    ergebnis = []
+    frei, a0 = _vor_der_wand(teil[anfang])
     oben = w.oben + w.sicherheit
     for hoehe, eilgang in ((w.sicher, True), (oben, True)):
         lam = max(0.0, (hoehe - frei.z) / max(a0.z, 1e-6))
         ergebnis.append(Stelle(tuple(frei + a0 * lam), tuple(a0), eilgang=eilgang))
     ergebnis.append(Stelle(tuple(frei), tuple(a0), eintauchen=True))
+    for i in range(anfang - 1, -1, -1):
+        s, a = _vor_der_wand(teil[i])
+        ergebnis.append(Stelle(tuple(s), tuple(a)))
     for s, a, _n in teil:
         ergebnis.append(Stelle(tuple(s), tuple(a)))
-    s1, a1, n1 = teil[-1]
-    weg = s1 + _weg(n1) * ABSTAND
-    ergebnis.append(Stelle(tuple(weg), tuple(a1)))
+    for i in range(len(teil) - 1, ende - 1, -1):
+        s, a = _vor_der_wand(teil[i])
+        ergebnis.append(Stelle(tuple(s), tuple(a)))
+    weg, a1 = _vor_der_wand(teil[ende])
     lam = max(0.0, (w.sicher - weg.z) / max(a1.z, 1e-6))
     ergebnis.append(Stelle(tuple(weg + a1 * lam), tuple(a1), eilgang=True))
     return ergebnis

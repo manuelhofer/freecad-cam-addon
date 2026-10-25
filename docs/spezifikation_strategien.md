@@ -2910,7 +2910,11 @@ Kollision mit Rundachsen je Station.
   einer Ebene) die Spitze um Radius und Aufmaß vor dem Fuß, die Stirn nie tiefer als er; schnitte
   der Fräser (0,002 mm kleiner) dort ins Teil – eine scharfe Innenecke –, fällt die Stelle weg, die
   Grenze wird halbiert. Gleichlauf (das Material rechts), Lagen, wenn die Wand länger ist als die
-  Schneide; An- und Abfahren die Achse entlang 2 mm vor der Wand. `flanke.py` – die Operation
+  Schneide; An- und Abfahren die Achse entlang 2 mm vor der Wand. Ist der Weg die Achse entlang
+  dort nicht frei – unter einem Rand hängt an der Ecke die Nachbarwand über –, taucht der Fräser
+  an der ersten freien Stelle ein und fährt 2 mm vor der Wand zum Anfang zurück, am Ende ebenso
+  (`_zugaenge`, P-2026-10-25-34); in einer unteren Lage prüft `_geht` auch Hals und
+  Schaft bis über die Wand. `flanke.py` – die Operation
   speichert die Spitzen und je Satz die Achse; „Auf der Maschine prüfen“, die Kollision und das
   Programm rechnen die Rundachsen (`simultan.befehle_auf_maschine`, die Spitze und das obere Ende
   der Schneide auf der Geraden; `simultan_operation` ist die Weiche für Anstellen und Flanke).
