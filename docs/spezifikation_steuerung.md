@@ -864,3 +864,9 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   nach den Satznummern). `programm_pruefen` liest Wörter auch ohne Leerzeichen (`_zerlegen`,
   G53/G28/G75 aus den G-Codes).
 
+## 27. Eigene Befehle vor und nach dem Werkzeugwechsel (P-2026-10-25-86)
+
+- Felder `vor_wechsel` (nach dem Wechselpunkt, vor `T… M6`) und `nach_wechsel` (nach dem Wechsel
+  und der Vorwahl), {t} und {werkzeug}, vorbelegt leer – etwa „M1“ davor, an GRBL das Antasten mit
+  der Tastplatte danach (G38.2, G10 L20).
+

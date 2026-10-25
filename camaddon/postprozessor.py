@@ -193,6 +193,10 @@ class Steuerung:
     # Haken aus: keine Vorwahl; an der Drehmaschine nie (T dreht dort den Revolver).
     vorwahl: str = ""
     werkzeug_vorwahl: bool = True
+    # Eigene Befehle vor und nach dem Werkzeugwechsel ({t}, {werkzeug}) – etwa ein wahlweiser Halt
+    # (M1) davor, an GRBL das Antasten mit der Tastplatte danach (G38.2 …, G10 L20 …). Leer: nichts.
+    vor_wechsel: str = ""
+    nach_wechsel: str = ""
     # Der Nullpunkt, den der Job nennt (CAM: Fixtures, „G54“) – am Anfang und hinter jeder Marke,
     # vor dem Wechselpunkt und dem Schwenken. Die ersten `nullpunkt_grund` mit `nullpunkt`, die
     # übrigen mit `nullpunkt_weitere`: {g} G54 … G59, {nr} die Nummer (G54 = 1, G59.1 und
@@ -338,8 +342,10 @@ BEFEHLSFELDER = (
     "ende",
     "nullpunkt",
     "nullpunkt_weitere",
+    "vor_wechsel",
     "wechsel_fraesen",
     "vorwahl",
+    "nach_wechsel",
     "laenge_ein",
     "wechsel_drehen",
     "laenge_ein_drehen",
@@ -975,6 +981,8 @@ def feld_text(feld):
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
         "vorwahl": (tr("pp.feld.vorwahl"), tr("pp.feld.vorwahl.tooltip")),
+        "vor_wechsel": (tr("pp.feld.vor_wechsel"), tr("pp.feld.vor_wechsel.tooltip")),
+        "nach_wechsel": (tr("pp.feld.nach_wechsel"), tr("pp.feld.nach_wechsel.tooltip")),
         "nullpunkt": (tr("pp.feld.nullpunkt"), tr("pp.feld.nullpunkt.tooltip")),
         "nullpunkt_weitere": (
             tr("pp.feld.nullpunkt_weitere"),
@@ -1519,17 +1527,11 @@ def programm(
             if abschnitt.werkzeugname:
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
-            zeilen.extend(
-                _zeilen(
-                    _fuellen(
-                        vorlage,
-                        t=int(abschnitt.werkzeug),
-                        werkzeug=_werkzeugname(
-                            abschnitt.name_steuerung or abschnitt.werkzeugname, abschnitt.werkzeug
-                        ),
-                    )
-                )
+            name_w = _werkzeugname(
+                abschnitt.name_steuerung or abschnitt.werkzeugname, abschnitt.werkzeug
             )
+            for befehl in (s.vor_wechsel, vorlage):
+                zeilen.extend(_zeilen(_fuellen(befehl, t=int(abschnitt.werkzeug), werkzeug=name_w)))
             wechsel_zahl += 1
             naechstes = next(
                 (
@@ -1550,6 +1552,9 @@ def programm(
                         )
                     )
                 )
+            zeilen.extend(
+                _zeilen(_fuellen(s.nach_wechsel, t=int(abschnitt.werkzeug), werkzeug=name_w))
+            )
             # Ohne Befehl bringt der Wechsel die Länge mit (Siemens D1, Fanuc T0101).
             laenge_offen = _fuellen(
                 s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein,

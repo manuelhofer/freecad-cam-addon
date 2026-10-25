@@ -353,6 +353,16 @@ pruefe(
     and all(z.startswith(("N", "(", "%", "O")) for z in fanuc_n),
     f"Satznummern: {fanuc_n[:6]} … {fanuc_n[-3:]}",
 )
+# Eigene Befehle vor und nach dem Wechsel: „M1“ davor, an GRBL das Antasten danach.
+mit_eigen = pp.steuerung(
+    "grbl", {"vor_wechsel": "M1 (T{t})", "nach_wechsel": "G38.2 Z-50 F100\nG10 L20 P1 Z5\nG0 Z10"}
+)
+z_e = pp.programm([tasche], mit_eigen, None, "E").zeilen
+k = z_e.index("M0") if "M0" in z_e else -1
+pruefe(
+    k > 0 and z_e[k - 1] == "M1 (T3)" and z_e[k + 1 : k + 4] == ["G38.2 Z-50 F100", "G10 L20 P1 Z5", "G0 Z10"],
+    f"vor/nach dem Wechsel: {z_e[k - 3 : k + 5]}",
+)  # fmt: skip
 # Ohne Leerzeichen (Haken aus): „G1X…“ – Kommentare bleiben; nachgelesen ohne Befund; die Siemens
 # bleibt mit Leerzeichen (SUPA D0).
 ohne_l = pp.programm([tasche], pp.steuerung("fanuc", {"leerzeichen": False}), None, "P")

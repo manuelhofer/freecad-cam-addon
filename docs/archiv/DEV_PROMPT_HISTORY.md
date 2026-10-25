@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-86 befehle-vor-und-nach-dem-wechsel
+
+### EINGELESEN
+- Einstellmöglichkeiten je Postprozessor (Manuel, nachts): an vielen Maschinen kommen um den
+  Werkzeugwechsel eigene Befehle dazu – ein wahlweiser Halt (M1), „G91 G28 Z0“, an GRBL das
+  Antasten mit der Tastplatte.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Felder `vor_wechsel`, `nach_wechsel` ({t}, {werkzeug}), vorbelegt
+  leer; `camaddon/gui_programm.py` (Gruppe Werkzeugwechsel), `translations/*.json`,
+  `help/*/programm.html`, `docs/spezifikation_steuerung.md` 27, `tests/test_postprozessor.py`.
+
+### ERGEBNIS
+- GRBL mit „M1 (T{t})“ davor und Antasten danach: „M1 (T3)“, „M0“, „G38.2 Z-50 F100“,
+  „G10 L20 P1 Z5“, „G0 Z10“. Leer: Programme wie bisher.
+- Grün: test_postprozessor, _grbl, _zufall, test_programm_pruefen, test_sprache;
+  szenario_programm.
+
 ## P-2026-10-25-85 woerter-ohne-leerzeichen
 
 ### EINGELESEN

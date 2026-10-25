@@ -531,6 +531,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 nachts (0.307.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.309.0):* Eigene Befehle vor und nach dem Werkzeugwechsel (leer vorbelegt).
 - *Neu (0.308.0):* Haken „Wörter mit Leerzeichen trennen“ (aus: rund 10 % kleinere Datei) bei
   LinuxCNC, Fanuc, Mazak, Haas, Mach, GRBL.
 - *Korrektur (0.307.1):* Ein Bogen, dessen Enden gerundet gleich stünden, wird eine Gerade statt

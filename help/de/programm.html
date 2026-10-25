@@ -129,6 +129,10 @@ Programmanfang. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzykl
 <ul>
 <li><b>Werkzeugwechsel</b> – an der Fräse „T1 M6“, an der Drehmaschine wie die Steuerung es
 will: Siemens „T1 D1“, Fanuc „T0101“, Haas „T101“.</li>
+<li><b>Vor und nach dem Werkzeugwechsel</b> – eigene Befehle, vorbelegt leer: davor etwa „M1“
+(wahlweiser Halt) oder „G91 G28 Z0“, danach an GRBL etwa das Antasten mit der Tastplatte
+(„G38.2 Z-50 F100“, „G10 L20 P1 Z5“ mit der Dicke der Platte, „G0 Z10“). {t} ist die Nummer des
+neuen Werkzeugs, {werkzeug} sein Name.</li>
 <li><b>Nächstes Werkzeug vorwählen</b> – gleich nach dem Wechsel „T2“ (Heidenhain „TOOL DEF 2“):
 Das Magazin holt das nächste Werkzeug heran, während das jetzige fräst, der nächste Wechsel geht
 schneller. Vorbelegt an bei LinuxCNC, Siemens, Fanuc, Mazak, Mach und Heidenhain; an der

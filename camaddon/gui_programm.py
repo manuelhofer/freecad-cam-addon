@@ -67,9 +67,11 @@ GRUPPEN = (
         "wechsel",
         "wechsel",
         (
+            "vor_wechsel",
             "wechsel_fraesen",
             "werkzeug_vorwahl",
             "vorwahl",
+            "nach_wechsel",
             "laenge_ein",
             "wechsel_drehen",
             "laenge_ein_drehen",
