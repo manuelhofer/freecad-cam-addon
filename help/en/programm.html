@@ -129,7 +129,7 @@ speed, feed per minute).</li>
 <ul>
 <li><b>Tool change</b> – on a mill “T1 M6”, on a lathe as the control wants it: Siemens
 “T1 D1”, Fanuc “T0101”, Haas “T101”.</li>
-<li><b>Before and after the tool change</b> – own commands, empty by default: before e.g. “M1”
+<li><b>Before and after the tool change</b> – custom commands, empty by default: before e.g. “M1”
 (optional stop) or “G91 G28 Z0”, after on GRBL e.g. probing with the touch plate (“G38.2 Z-50
 F100”, “G10 L20 P1 Z5” with the plate's thickness, “G0 Z10”). {t} is the new tool's number,
 {werkzeug} its name.</li>
