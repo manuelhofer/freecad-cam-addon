@@ -32,13 +32,16 @@ import numpy as np
 from . import halter as hl
 from . import hinterschnitt_bahn as hb
 
-PAARE_HOECHSTENS = 60  # so viele Paare rechnet es höchstens
-HALTER_HOECHSTENS = 12  # so viele Halter der Werkzeugverwaltung fragt es
-HALBIEREN = 7  # so oft halbiert es die Auskragung (auf etwa 1 mm)
+PAARE_HOECHSTENS = 40  # so viele Paare rechnet es höchstens
+HALTER_HOECHSTENS = 8  # so viele Halter der Werkzeugverwaltung fragt es
+HALBIEREN = 6  # so oft halbiert es die Auskragung
+# Je Normreihe nur so viele Längen: die kürzeste, eine mittlere, die längste – an Manuels Tasche
+# rechnete es sonst mit allen 30 Paaren und auf einem Nebenrechner „hört garnicht auf“.
+LAENGEN_JE_REIHE = 3
 GLEICH_LANG = 5.0  # mm: so viel länger darf ein vorhandenes Paar sein und gewinnt doch
 ER_GROESSEN = 2  # die so vielen kleinsten ER-Größen, die den Schaft fassen
-ERST_AN, ERST_FREI = 40, 20  # so viele Stellen fragt die erste, grobe Runde je Paar
-ZWEITE = 3  # so viele der besten Paare rechnet die zweite Runde mit allen Stellen
+ERST_AN, ERST_FREI = 20, 10  # so viele Stellen fragt die erste, grobe Runde je Paar
+ZWEITE = 2  # so viele der besten Paare rechnet die zweite Runde mit allen Stellen
 RESERVE = 2.0  # mm mehr heraus, als die Stellen der Prüfung brauchen (sie sind eine Auswahl)
 KEINE = "keine"  # gesucht, nichts gefunden (statt None: nicht gesucht)
 
@@ -66,16 +69,26 @@ def _schaft(werkzeug):
     return float(wz.schaft_fuer_cam(werkzeug) or werkzeug.durchmesser or 0.0)
 
 
+def _laengen(art):
+    """LAENGEN_JE_REIHE Längen der Reihe: die kürzeste, mittlere, längste."""
+    alle = hl.REIHE_LAENGEN[art]
+    if len(alle) <= LAENGEN_JE_REIHE:
+        return alle
+    wahl = np.unique(np.linspace(0, len(alle) - 1, LAENGEN_JE_REIHE).round().astype(int))
+    return tuple(alle[i] for i in wahl)
+
+
 def _normhalter(schaft, aufnahme):
-    """[Halter] der Normreihen, die den Schaft `schaft` fassen, an der Aufnahme."""
+    """[Halter] der Normreihen, die den Schaft `schaft` fassen, an der Aufnahme – je Reihe
+    LAENGEN_JE_REIHE Längen."""
     schluessel = []
     for art in (hl.SCHRUMPF, hl.HYDRO):
         if any(abs(g - schaft) < 1e-6 for g in hl.REIHE_GROESSEN[art]):
             groesse = next(g for g in hl.REIHE_GROESSEN[art] if abs(g - schaft) < 1e-6)
-            schluessel += [hl.reihe(art, groesse, a) for a in hl.REIHE_LAENGEN[art]]
+            schluessel += [hl.reihe(art, groesse, a) for a in _laengen(art)]
     er = [g for g in hl.REIHE_GROESSEN[hl.ER] if hl.ER_MASSE[g][3] >= schaft - 1e-6]
     for groesse in er[:ER_GROESSEN]:
-        schluessel += [hl.reihe(hl.ER, groesse, a) for a in hl.REIHE_LAENGEN[hl.ER]]
+        schluessel += [hl.reihe(hl.ER, groesse, a) for a in _laengen(hl.ER)]
     return [hl.aus_vorlage(s, aufnahme=aufnahme) for s in schluessel]
 
 
@@ -266,7 +279,7 @@ def _rechnen(form, toleranz, zelle, auftraege):
 # Ein Kugelfräser, den es noch nicht gibt (neue_kugel): die üblichen Ø und Gesamtlängen, die
 # Schneide 1,5 · Ø, unter Ø 6 ein Schaft Ø 6 mit Hals.
 KUGEL_DURCHMESSER = (1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0, 16.0, 20.0)
-KUGEL_LAENGEN = (60.0, 80.0, 100.0, 150.0)
+KUGEL_LAENGEN = (60.0, 100.0, 150.0)
 SCHAFT_KLEINSTER = 6.0
 
 

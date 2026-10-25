@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-27 empfehlung-im-hintergrund
+
+### EINGELESEN
+- Manuel, 2026-10-25, in seinem FreeCAD an der tiefen Tasche (Schritt 3): „das rechnet immernoch
+  ... das hört garnicht auf zu rechnen“, „das rechnet übrigens imemr noch wenn ich auf so einrichten
+  klicke und auf t1 auf 54 ausspannen geht das leider nicht“.
+- Bei ihm lief nur ein Nebenrechner seit 5 min bei 68 %. Die Vorschau des 3D-Schlichtens rechnete
+  die Empfehlung gleich mit: rund 30 Halterpaare je Halbierung, für die Ecken bis 60 Paare. Jeder
+  Klick („So einrichten“, „ausspannen“) startete die Vorschau neu und brach den Nebenrechner ab.
+  Die anderen Blöcke warteten dahinter, auch die Flanke nach „T1 auf 54 mm ausspannen“.
+- Dazu: „man könnte nun hier auch damit es schneller geht erstmal bohren .. oder rausschruppen mit
+  nem größeren fräser gerade“ – als Frage 4 in `docs/OFFENE_FRAGEN.md`.
+
+### DATEIEN
+- `camaddon/schlichten3d.py`: `vorschau` rechnet keine Empfehlung mehr.
+- `camaddon/bearbeitung_vorschau.py`: `empfehlung` ist ein eigener Auftrag für Empfehlung und
+  Ecken.
+- `camaddon/gui_bearbeitung.py`: `_empfehlung_anstossen` startet ihn, wenn die Vorschau zu sehen
+  ist. Gemerkt wird je Fräser, Halter, Länge und Flächen, ein neuer Klick bricht ihn nicht ab.
+  Solange steht „Ich suche, womit es ginge …“ da, danach die Empfehlung im Satz
+  (`_empfehlung_zeigen`). Fehler der Vorschau werden für das Gemerkte gehalten (`_fehler_merken`).
+- `camaddon/empfehlung.py`: Je Normreihe drei Längen, höchstens 40 Paare, die erste Runde mit 30
+  Stellen, die zweite für die besten zwei. Die Kugel für die Ecken gibt es mit 60/100/150 mm.
+- `camaddon/flanke_bahn.py`: `_zum_teil` wird je Form und Fläche gemerkt, das Fenster atmet
+  dabei. Die Mantellinie halbiert 30- statt 40-mal (Diagonale / 2³⁰). Beim Anlegen stand das
+  Fenster an der Tasche 8-mal je gut 3 s.
+- `docs/OFFENE_FRAGEN.md`: Frage 4.
+
+### ERGEBNIS
+- Szenario an der G550 (Kopie der Tasche): Die Vorschau steht, die Empfehlung kommt danach. Die
+  Ecken-Empfehlung kam 39 s nach „So einrichten“. „T1 auf 54 mm ausspannen“ rechnet die Flanke
+  gleich neu (64 Umläufe).
+- Prüfungen: test_empfehlung, test_hinterschnitt_bahn, test_flanke, test_schraeg_abtrag,
+  test_raum_bahn grün.
+
 ## P-2026-10-25-26 fraeser-vorschlag-fuer-die-ecken
 
 ### EINGELESEN

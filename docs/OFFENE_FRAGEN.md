@@ -22,3 +22,19 @@ fänden „Nach Updates suchen“ und gespeicherte Dateien nichts mehr. Vorschl�
 *Warum nur Manuel:* Es ist dein Addon und dein Name nach außen. *Was die Antwort ändert:* Name im
 Addon-Manager, Menü und Hilfe (de/en), README; nichts an Bahnen oder Dateien. – seit 2026-10-24.
 
+
+**Frage 4 – Ganze Abfolgen vorschlagen, damit es schneller geht?** Manuel, 2026-10-25, an seiner
+tiefen Tasche: „man könnte nun hier auch damit es schneller geht erstmal bohren .. oder
+rausschruppen mit nem größeren fräser gerade .. oder oder oder es gibt ja viele möglichkeiten“ –
+„lass uns mal drüber reden“. Heute empfiehlt das Addon nur Halter und Auskragung (und einen Fräser
+für die Ecken). Eine Stufe höher hieße: ganze Abfolgen nach Zeit vergleichen und die schnellste
+vorschlagen, auch mit Werkzeugen, die man nicht hat. Mein Vorschlag zum Anfangen, an deiner Tasche,
+mit Bild und Zahlen:
+1. **Räumen T1** wie jetzt (Ringe von innen, 2 min),
+2. **erst bohren** (ein Bohrer Ø 30 … 40 in die Mitte, dann Räumen),
+3. **erst ein großer Schaftfräser** (Ø 25 … 32, kurz und steif), dann T1 nur, was er stehen lässt,
+4. du nennst, welche Wege du in der Werkstatt gehst.
+*Warum nur Manuel:* Welche Abfolgen in Frage kommen und was „schneller“ wert ist (Werkzeugwechsel,
+Rüsten, Kauf), ist deine Werkstatt. Nach der Regel „Strategiewahl erst besprechen“ wähle ich nichts
+davon selbst vor. *Was die Antwort ändert:* Welche Abfolgen das Addon rechnet und als Empfehlung
+zeigt (wie „So einrichten“). – seit 2026-10-25.

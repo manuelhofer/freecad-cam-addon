@@ -3320,15 +3320,11 @@ class _Schlichten3D(_Strategie):
     @staticmethod
     def _unter_dem_rand(werkzeug, werte, form):
         """Die Schlüsselwörter für schlichten3d.vorschau mit „Unter dem Rand“ (angehakt, eine
-        Kugel): die Richtung, Halter und Schaft, die Empfehlung – sonst keine."""
+        Kugel): die Richtung, Halter und Schaft – sonst keine. Die Empfehlung rechnet der Block
+        danach (_empfehlung_anstossen)."""
         weiter = {}
         if werte.get("hinterschnitt") and form.nur_kugel:
             weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
-            # Stößt etwas an: ein anderer Halter, ein längerer Fräser (empfehlung.py; Manuel,
-            # 2026-10-25: „wenn du diese aufnahme / halter nimmst und diesen fräser soweit
-            # ausspannst .. dann klapts“).
-            weiter["empfehlen"] = werkzeug.kennung
-            weiter["aufnahme"] = werte.get("aufnahme", "")
             # Schaft und Halter aus der Werkzeugverwaltung (der Halter in Stücken, Kegel genau).
             try:
                 bibliothek = wz.Bibliothek.laden()
@@ -4477,6 +4473,16 @@ class _Block:
         if schluessel is not None and merk is not None and schluessel in merk:
             merk.move_to_end(schluessel)
             self._gemerkt_zeigen(merk[schluessel])
+            fehler_merk = self.panel.__dict__.get("_fehler_merk", {})
+            if schluessel in fehler_merk:
+                was = ("fehler", *fehler_merk[schluessel])
+            elif self.vorschau is not None:
+                zeit_ = _zeit_text(self.zeit) if self.zeit is not None else "?"
+                was = ("bahn", zeit_, self.vorschau)
+            else:
+                was = None
+            if was is not None:
+                self._empfehlung_anstossen(job, werkzeug, flaechen, was)
             return
         frei = mitgerechnet = None
         auftrag = self._im_hintergrund(job, werkzeug, werte, flaechen, vorschub, senkrecht)
@@ -4487,6 +4493,10 @@ class _Block:
             self.hinweis.setText(self._fehler_text(mitgerechnet[1], mitgerechnet[3]))
             self.schon_weg = mitgerechnet[2]
             self._merken(merk, schluessel)
+            self._fehler_merken(schluessel, mitgerechnet[1], mitgerechnet[3])
+            self._empfehlung_anstossen(
+                job, werkzeug, flaechen, ("fehler", mitgerechnet[1], mitgerechnet[3])
+            )
             return
         if mitgerechnet is not None:
             self.vorschau, frei = mitgerechnet[1]
@@ -4494,9 +4504,12 @@ class _Block:
             try:
                 self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
             except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
-                self.hinweis.setText(self._fehler_text(str(fehler), getattr(fehler, "daten", None)))
+                daten = getattr(fehler, "daten", None)
+                self.hinweis.setText(self._fehler_text(str(fehler), daten))
                 self.schon_weg = isinstance(fehler, mst.SchonWeg)
                 self._merken(merk, schluessel)
+                self._fehler_merken(schluessel, str(fehler), daten)
+                self._empfehlung_anstossen(job, werkzeug, flaechen, ("fehler", str(fehler), daten))
                 return
         self.zeit = self.s.zeit(self.vorschau, vorschub, senkrecht) if vorschub > 0 else None
         if self.zeit is not None and self.s.kennung in IM_FREIEN_SCHNELL:
@@ -4512,6 +4525,7 @@ class _Block:
         )
         self.ergebnis.setText(self.ergebnis_basis)
         self.material.setText(_material_text(self.vorschau))
+        self._empfehlung_anstossen(job, werkzeug, flaechen, ("bahn", zeit, self.vorschau))
         if self.s.kennung == "nut":
             self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
         if isinstance(self.s, _Raeumen) and getattr(self.vorschau, "variante", None) == "adaptiv":
@@ -4582,6 +4596,135 @@ class _Block:
             text += " " + tr("emp.dazu", dazu="; ".join(dazu))
         knopf = html.escape(tr("emp.einrichten"))
         return f'{html.escape(text, quote=False)} <a href="empfehlung:">{knopf}</a>'
+
+    def _empfehlung_anstossen(self, job, werkzeug, flaechen, was):
+        """Unter dem Rand: Stößt etwas an (Bahn.pruefung, auch im Fehler) oder bleiben Ecken
+        (Bahn.ecken), die Empfehlung (bearbeitung_vorschau.empfehlung) in einem eigenen Auftrag –
+        die Vorschau ist schon zu sehen; je Fräser, Halter, Länge und Flächen einmal gerechnet
+        (gemerkt), ein neuer Klick bricht sie nicht ab. Ist sie da, kommt sie in den Satz
+        (_empfehlung_zeigen). `was`: ("fehler", Satz, Daten) oder ("bahn", Zeittext, Bahn)."""
+        from . import nebenrechner as nr
+        from . import reichweite as rw
+
+        self._empfehlung_kontext = None
+        if was[0] == "fehler":
+            daten = was[2] if isinstance(was[2], dict) else {}
+            pruefung = {"pruefung": daten.get("pruefung"), "ausspannen": daten.get("ausspannen")}
+            ecken = None
+        else:
+            bahn = was[2]
+            if not getattr(bahn, "hinterschnitt", False):
+                return
+            pruefung = {"pruefung": bahn.pruefung, "ausspannen": bahn.ausspannen}
+            # Einen Fräser für die Ecken schlägt nur das 3D-Schlichten vor (_mit_ecken).
+            ecken = (
+                bahn.ecken if bahn.ecken_radius > 0 and self.s.kennung == "schlichten3d" else None
+            )
+        if not pruefung["pruefung"] and not ecken:
+            return
+        bibliothek = self.panel.bibliothek
+        if bibliothek is None or werkzeug is None:
+            return
+        halter = bibliothek.halter_fuer_pruefung(werkzeug)
+        try:
+            laenge = rw.laenge_des_werkzeugs(werkzeug, bibliothek)[0]
+        except Exception:  # noqa: BLE001
+            laenge = 0.0
+        schluessel = (
+            self.s.kennung,
+            werkzeug.kennung,
+            getattr(halter, "kennung", ""),
+            round(float(laenge), 2),
+            tuple(flaechen),
+            bool(pruefung["pruefung"]),
+            bool(ecken),
+        )
+        self._empfehlung_kontext = (schluessel, was)
+        gemerkt = self.panel.__dict__.setdefault("_empfehlungen", {})
+        if schluessel in gemerkt:
+            self._empfehlung_zeigen(schluessel, gemerkt[schluessel])
+            return
+        laeuft = self.panel.__dict__.setdefault("_empfehlung_laeuft", {})
+        if schluessel in laeuft and not laeuft[schluessel].erledigt:
+            self._empfehlung_suche_zeigen()
+            return
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return
+        try:
+            kopie = pool.kopie(job.Document, wiederverwenden=True)
+            auftrag = pool.auftrag(
+                "bearbeitung_vorschau",
+                "empfehlung",
+                kopie,
+                job.Name,
+                pruefung,
+                ecken,
+                werkzeug.kennung,
+                self.panel.werkzeugaufnahme(),
+            )
+        except Exception as fehler:  # noqa: BLE001 – dann eben ohne Empfehlung
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Empfehlung im Nebenrechner: {fehler}\n")
+            return
+        laeuft[schluessel] = auftrag
+        auftrag.bei_fertig = lambda _a, s=schluessel: QtCore.QTimer.singleShot(
+            0, functools.partial(self._empfehlung_fertig, s)
+        )
+        self._empfehlung_suche_zeigen()
+
+    def _fehler_merken(self, schluessel, satz, daten):
+        """Satz und Daten eines Fehlers der Vorschau zum Schlüssel – zeigt die Vorschau ihn aus dem
+        Gemerkten, rechnet die Empfehlung damit (_empfehlung_anstossen)."""
+        if schluessel is None or not isinstance(daten, dict) or not daten.get("pruefung"):
+            return
+        merk = self.panel.__dict__.setdefault("_fehler_merk", {})
+        merk[schluessel] = (satz, daten)
+        while len(merk) > VORSCHAU_MERK:
+            merk.pop(next(iter(merk)))
+
+    def _empfehlung_fertig(self, schluessel):
+        """Der Auftrag der Empfehlung ist fertig: gemerkt, und gilt er noch, gezeigt."""
+        laeuft = self.panel.__dict__.get("_empfehlung_laeuft", {})
+        auftrag = laeuft.pop(schluessel, None)
+        if auftrag is None or self.panel.geschlossen:
+            return
+        ergebnis = auftrag.ergebnis if auftrag.fertig else (None, None)
+        if not auftrag.fertig and auftrag.fehler is not None:
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Empfehlung gescheitert: {auftrag.fehler}\n")
+        self.panel.__dict__.setdefault("_empfehlungen", {})[schluessel] = ergebnis
+        self._empfehlung_zeigen(schluessel, ergebnis)
+
+    def _empfehlung_suche_zeigen(self):
+        """Solange die Empfehlung rechnet: ein grauer Satz dahinter."""
+        kontext = getattr(self, "_empfehlung_kontext", None)
+        if kontext is None:
+            return
+        _schluessel, was = kontext
+        suche = html.escape(tr("emp.sucht"), quote=False)
+        if was[0] == "fehler":
+            self.hinweis.setText(f"{self._fehler_text(was[1], was[2])} <i>{suche}</i>")
+        else:
+            self.ergebnis.setText(f"{self.ergebnis_basis} <i>{suche}</i>")
+
+    def _empfehlung_zeigen(self, schluessel, ergebnis):
+        """Die Empfehlung in den Satz – nur, wenn der Block noch dieselbe Vorschau zeigt."""
+        kontext = getattr(self, "_empfehlung_kontext", None)
+        if kontext is None or kontext[0] != schluessel:
+            return
+        haupt, ecke = ergebnis if ergebnis else (None, None)
+        _s, was = kontext
+        if was[0] == "fehler":
+            daten = dict(was[2]) if isinstance(was[2], dict) else {}
+            if haupt is not None:
+                daten["empfehlung"] = haupt
+            self.hinweis.setText(self._fehler_text(was[1], daten))
+            return
+        zeit, bahn = was[1], was[2]
+        bahn.empfehlung, bahn.ecken_empfehlung = haupt, ecke
+        self.ergebnis_basis = self._mit_ecken(
+            self._mit_ausspannen(self.s.ergebnis_text(bahn, zeit), bahn), bahn
+        )
+        self.ergebnis.setText(self.ergebnis_basis)
 
     def _ecken_werkzeug_anlegen(self):
         """„In der Werkzeugverwaltung anlegen und Restschlichten anhaken“: der vorgeschlagene

@@ -79,6 +79,22 @@ def schlichten3d_wegkippen(dokument, job_name, werkzeug, argumente, weiter, zeit
     return bahn, _frei(argumente[0], bahn, zeit)
 
 
+def empfehlung(dokument, job_name, daten, ecken, kennung, aufnahme):
+    """(Empfehlung, Empfehlung für die Ecken) – neben der Vorschau des 3D-Schlichtens unter dem
+    Rand, in einem eigenen Auftrag (schlichten3d._empfehlung, _ecken_empfehlung; je None, wenn es
+    nichts zu empfehlen gibt). `daten`: {"pruefung", "ausspannen"} der Bahn oder ihres Fehlers,
+    `ecken`: Bahn.ecken, `kennung`: der Fräser in der Werkzeugverwaltung."""
+    from . import schlichten3d
+
+    job = _job(dokument, job_name)
+    modell = job.Model.Group
+    haupt = None
+    if daten and daten.get("pruefung"):
+        haupt = schlichten3d._empfehlung(job, modell, daten, kennung, aufnahme)
+    ecke = schlichten3d._ecken_empfehlung(job, modell, ecken, kennung, aufnahme) if ecken else None
+    return haupt, ecke
+
+
 def _frei(form, bahn, zeit):
     """freiwege.zeit_im_freien für die Bahn – None ohne `zeit` (Vorschub, Eintauchen,
     Freivorschub, Materialstand: der des Assistenten, wie gui_bearbeitung._zeit_im_freien; das

@@ -3215,5 +3215,6 @@
     "ba.s3.unter.ecken_fehlt": "In deiner Werkzeugverwaltung ist keine so kleine Kugel – dafür fehlt ein Kugelfräser bis Ø {d}.",
     "ba.s3.unter.ecken_rest": "Restschlichten mit {werkzeug} anhaken",
     "ba.s3.unter.ecken_neu": "So ginge es: {werkzeug} im Halter „{halter}“, {heraus} mm heraus.",
-    "ba.s3.unter.ecken_anlegen": "In der Werkzeugverwaltung anlegen und Restschlichten anhaken"
+    "ba.s3.unter.ecken_anlegen": "In der Werkzeugverwaltung anlegen und Restschlichten anhaken",
+    "emp.sucht": "Ich suche, womit es ginge …"
 }

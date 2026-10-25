@@ -3215,5 +3215,6 @@
     "ba.s3.unter.ecken_fehlt": "Your tool library has no ball that small – a ball end mill up to Ø {d} is missing for it.",
     "ba.s3.unter.ecken_rest": "Check rest finishing with {werkzeug}",
     "ba.s3.unter.ecken_neu": "This would work: {werkzeug} in the holder “{halter}”, sticking out {heraus} mm.",
-    "ba.s3.unter.ecken_anlegen": "Add it to the tool library and check rest finishing"
+    "ba.s3.unter.ecken_anlegen": "Add it to the tool library and check rest finishing",
+    "emp.sucht": "Looking for what would work …"
 }

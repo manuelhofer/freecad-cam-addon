@@ -61,6 +61,7 @@ HALTER_SCHRITT = 1.0  # mm – so dicht längs der Bahn prüft halter_pruefen (d
 PARALLEL_AB = 200
 STELLEN_JE_STUECK = 40
 UEBERLAPP = 0.5  # mm – so viel überlappen sich zwei Lagen
+ENDE_HALBIEREN = 30  # so oft halbiert mantellinie bis zum Ende der Geraden (Diagonale / 2³⁰)
 
 
 @dataclass
@@ -182,7 +183,7 @@ def mantellinie(form, flaeche, punkt):
     # Fuß und Kopf: die Gerade so weit, wie sie in der Fläche liegt (halbieren).
     def ende(richtung):
         drin, draussen = 0.0, max(flaeche.BoundBox.DiagonalLength, 1.0)
-        for _ in range(40):
+        for _ in range(ENDE_HALBIEREN):
             mitte = (drin + draussen) / 2
             if flaeche.isInside(punkt + richtung * mitte, 1e-4, True):
                 drin = mitte
@@ -196,7 +197,25 @@ def mantellinie(form, flaeche, punkt):
 def _zum_teil(form, flaeche):
     """Zeigt die Normale der Fläche (normalAt) ins Teil? In der Mitte der Fläche nachgesehen: An
     ihrem Rand läge der Prüfpunkt einer überhängenden Wand – die Normale zeigt schräg nach unten –
-    an einer scharfen Bodenkante im Boden, und die Normale wäre falsch herum."""
+    an einer scharfen Bodenkante im Boden, und die Normale wäre falsch herum. Je Form und Fläche
+    gemerkt: mantellinie fragt es an jeder Stelle (beim Anlegen an Manuels tiefer Tasche ein
+    Fünftel der 25 s, in denen das Fenster stand)."""
+    from . import uhren
+
+    uhren.atmen()
+    schluessel = (id(form), form.hashCode(), flaeche.hashCode())
+    if schluessel in _ZUM_TEIL:
+        return _ZUM_TEIL[schluessel]
+    if len(_ZUM_TEIL) > 512:
+        _ZUM_TEIL.clear()
+    _ZUM_TEIL[schluessel] = ergebnis = _zum_teil_rechnen(form, flaeche)
+    return ergebnis
+
+
+_ZUM_TEIL = {}  # (id der Form, Fläche) → _zum_teil
+
+
+def _zum_teil_rechnen(form, flaeche):
     u0, u1, v0, v1 = flaeche.ParameterRange
     mitte = flaeche.valueAt((u0 + u1) / 2, (v0 + v1) / 2)
     if not flaeche.isInside(mitte, 1e-4, True):

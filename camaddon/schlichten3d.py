@@ -493,63 +493,22 @@ def bahn_fuer(
     return sb.planen(form_teil, list(flaechen), werte, toleranz)
 
 
-def vorschau(job, modell, form, grathoehe, flaechen, empfehlen=None, aufnahme="", **weiter):
-    """Die Bahn für den Assistenten: gröber abgetastet und vernetzt. Mit `empfehlen` (Kennung des
-    Fräsers in der Werkzeugverwaltung) unter dem Rand: Stößt etwas an und reicht Ausspannen mit
-    seinem Halter nicht, die Empfehlung (empfehlung.empfehlen; Halter für die Werkzeugaufnahme
-    `aufnahme` der Maschine) – an der Bahn `empfehlung`, beim Fehler in seinen Daten."""
-    try:
-        bahn = bahn_fuer(
-            job,
-            modell,
-            form,
-            grathoehe,
-            flaechen,
-            schritt=sb.VORSCHAU_SCHRITT,
-            toleranz=sb.VORSCHAU_TOLERANZ,
-            raster=sb.VORSCHAU_RASTER,
-            **weiter,
-        )
-    except ValueError as fehler:
-        daten = getattr(fehler, "daten", None)
-        if empfehlen and isinstance(daten, dict) and daten.get("pruefung"):
-            daten["empfehlung"] = _empfehlung(job, modell, daten, empfehlen, aufnahme)
-        raise
-    if empfehlen and getattr(bahn, "anstoesse", 0) and bahn.pruefung:
-        daten = {"pruefung": bahn.pruefung, "ausspannen": bahn.ausspannen}
-        bahn.empfehlung = _empfehlung(job, modell, daten, empfehlen, aufnahme)
-    if empfehlen and getattr(bahn, "ecken", None):
-        bahn.ecken_empfehlung = _ecken_empfehlung(job, modell, bahn.ecken, empfehlen, aufnahme)
-    return bahn
-
-
-def _ecken_empfehlung(job, modell, ecken, kennung, aufnahme=""):
-    """empfehlung.neue_kugel für die Ecken – None, wenn die Werkzeugverwaltung schon einen
-    Kugelfräser hat, der hineinpasst (dann bietet der Assistent ihn an)."""
-    from . import empfehlung as em
-    from . import magazin as mg
-    from . import werkzeuge as wz
-
-    try:
-        bibliothek = wz.Bibliothek.laden()
-    except (wz.BeschaedigteDatei, OSError):
-        return None
-    vorbild = next((w for w in bibliothek.werkzeuge if w.kennung == kennung), None)
-    if vorbild is None or vorbild.art != wz.KUGELFRAESER:
-        return None
-    grenze = 2.0 * float(ecken["radius"]) + 1e-6
-    if any(
-        w.art == wz.KUGELFRAESER and 0 < float(w.durchmesser) <= grenze
-        for w in bibliothek.werkzeuge
-    ):
-        return None
-    magazin = mg.des_jobs(job, bibliothek)
-    aufnahme = aufnahme or getattr(bibliothek, "aufnahme_vorschlag", "") or ""
-    try:
-        return em.neue_kugel(vs._teil(modell), ecken, vorbild, bibliothek, aufnahme, magazin)
-    except Exception as fehler:  # noqa: BLE001 – eine Empfehlung darf die Vorschau nicht stören
-        FreeCAD.Console.PrintWarning(f"CAM-Addon: Empfehlung für die Ecken: {fehler}\n")
-        return None
+def vorschau(job, modell, form, grathoehe, flaechen, **weiter):
+    """Die Bahn für den Assistenten: gröber abgetastet und vernetzt. Empfehlungen (stößt unter dem
+    Rand etwas an, fehlt eine Kugel für die Ecken) rechnet der Assistent danach in einem eigenen
+    Auftrag (bearbeitung_vorschau.empfehlung: _empfehlung, _ecken_empfehlung) – in der Vorschau
+    hielten sie jede andere auf (Manuel, 2026-10-25: „das hört garnicht auf zu rechnen“)."""
+    return bahn_fuer(
+        job,
+        modell,
+        form,
+        grathoehe,
+        flaechen,
+        schritt=sb.VORSCHAU_SCHRITT,
+        toleranz=sb.VORSCHAU_TOLERANZ,
+        raster=sb.VORSCHAU_RASTER,
+        **weiter,
+    )
 
 
 def _empfehlung(job, modell, daten, kennung, aufnahme=""):
@@ -582,6 +541,35 @@ def _empfehlung(job, modell, daten, kennung, aufnahme=""):
         )
     except Exception as fehler:  # noqa: BLE001 – eine Empfehlung darf die Vorschau nicht stören
         FreeCAD.Console.PrintWarning(f"CAM-Addon: Empfehlung: {fehler}\n")
+        return None
+
+
+def _ecken_empfehlung(job, modell, ecken, kennung, aufnahme=""):
+    """empfehlung.neue_kugel für die Ecken – None, wenn die Werkzeugverwaltung schon einen
+    Kugelfräser hat, der hineinpasst (dann bietet der Assistent ihn an)."""
+    from . import empfehlung as em
+    from . import magazin as mg
+    from . import werkzeuge as wz
+
+    try:
+        bibliothek = wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        return None
+    vorbild = next((w for w in bibliothek.werkzeuge if w.kennung == kennung), None)
+    if vorbild is None or vorbild.art != wz.KUGELFRAESER:
+        return None
+    grenze = 2.0 * float(ecken["radius"]) + 1e-6
+    if any(
+        w.art == wz.KUGELFRAESER and 0 < float(w.durchmesser) <= grenze
+        for w in bibliothek.werkzeuge
+    ):
+        return None
+    magazin = mg.des_jobs(job, bibliothek)
+    aufnahme = aufnahme or getattr(bibliothek, "aufnahme_vorschlag", "") or ""
+    try:
+        return em.neue_kugel(vs._teil(modell), ecken, vorbild, bibliothek, aufnahme, magazin)
+    except Exception as fehler:  # noqa: BLE001 – eine Empfehlung darf die Vorschau nicht stören
+        FreeCAD.Console.PrintWarning(f"CAM-Addon: Empfehlung für die Ecken: {fehler}\n")
         return None
 
 
