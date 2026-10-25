@@ -132,7 +132,6 @@ except ValueError as grund:
 
 # --- Der Halter in Stücken: ein langes Schrumpffutter Ø12, das Werkzeug 27 mm heraus -------------
 from camaddon import halter as hl
-from camaddon import reichweite as rw
 
 h160 = hl.aus_vorlage(hl.reihe(hl.SCHRUMPF, 12, 160))
 masse = rw.Werkzeugmasse(
