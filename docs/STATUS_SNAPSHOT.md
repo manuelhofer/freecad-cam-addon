@@ -530,7 +530,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.288.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.290.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.288.1–0.290.0):* „Alles aus dieser Aufspannung“ an allen sieben Taster-Teilen (Kopien)
+  bis „Anlegen“: Räumen bricht mit vorgebohrten Löchern nicht mehr ab; fehlt ein Bohrer für
+  Bohrungen kleiner als der Fräser, legt ihn „Bohrer Ø … anlegen“ unter „Bohrung fräsen“ an, fehlt
+  ein Kegelsenker, „Kegelsenker 90° Ø … anlegen“ (DIN 335 C) unter „Nicht fertig“; weniger Kerne
+  eingestellt → Hinweis, dass es länger dauert (Herbert im Forum).
 - *Neu (0.287.x/0.288.0):* fehlt der Bohrer, legt ihn ein Knopf an; Vorbohren auch für die
   geschlossene Nut (je Nut der passende Bohrer); der Materialstand kennt die Löcher von „Bohren“
   wieder (in der Lochmitte blieb eine Nadel stehen). In 1.1.4 und 26.3 RC2 geprüft.
