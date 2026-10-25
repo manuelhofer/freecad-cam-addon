@@ -5750,9 +5750,15 @@ class BearbeitungPanel:
         ziel[0].addWidget(self.passt_text)
         self.knopf_passt = knopf("", tr("ba.passt.knopf.tooltip"), self.passenden_uebernehmen)
         self.knopf_passt.hide()
+        # Eine Bohrung kleiner als jeder Fräser und kein Bohrer dafür: ihn anlegen (Manuel: der
+        # nächste Schritt als Knopf; Empfehlungen auch, wenn es das Werkzeug nicht gibt).
+        self._fehlender_bohrer = None  # (Ø, Schneidenlänge) hinter knopf_bohrer
+        self.knopf_bohrer = knopf("", tr("ba.bohrer_anlegen.tooltip"), self.bohrer_anlegen)
+        self.knopf_bohrer.hide()
         zeile_passt = QtGui.QHBoxLayout()
         zeile_passt.setContentsMargins(0, 0, 0, 0)
         zeile_passt.addWidget(self.knopf_passt)
+        zeile_passt.addWidget(self.knopf_bohrer)
         zeile_passt.addStretch()
         ziel[0].addLayout(zeile_passt)
         # Der schnellere Fräser aus der Ziel-Zeile mit einem Klick – freiwillig (Manuel,
@@ -10162,6 +10168,11 @@ class BearbeitungPanel:
         if angebot is not None:
             self.knopf_passt.setText(tr("ba.passt.knopf", werkzeug=_ziel_werkzeug(angebot)))
         self.knopf_passt.setVisible(angebot is not None)
+        self._fehlender_bohrer = self._bohrer_fehlt() if text else None
+        if self._fehlender_bohrer is not None:
+            d = groesse_zeigen(self._fehlender_bohrer[0], einheiten.LAENGE, 2) or "0"
+            self.knopf_bohrer.setText(tr("ba.bohrer_anlegen.knopf", d=d))
+        self.knopf_bohrer.setVisible(self._fehlender_bohrer is not None)
 
     def _passendes_angebot(self):
         """Der kleinere Fräser, der passt (bei Planfräsen und Räumen derselbe: der erste) – None."""
@@ -10204,6 +10215,64 @@ class BearbeitungPanel:
             except Exception:  # noqa: BLE001 – ein Block ohne Flächen: nichts
                 continue
         return bedeckt
+
+    def _bohrer_fehlt(self):
+        """(Ø, Schneidenlänge) eines Bohrers für die erste gewählte Bohrung, in die kein Fräser von
+        „Bohrung fräsen“ passt und für die die Werkzeugverwaltung keinen Bohrer ihres Durchmessers
+        hat (durchgehend oder mit der Spitze eines Bohrers) – sonst None."""
+        eintrag = getattr(self, "_getauscht", {}).get(self.bohrung)
+        if eintrag is None or self.bibliothek is None or self.job is None:
+            return None
+        _vorher, nachher, eng = eintrag
+        if nachher is not None or not eng:
+            return None
+        try:
+            liste = bb.bohrungen(vr.modell(self.job).Shape, list(eng))
+        except Exception:  # noqa: BLE001 – ohne Bohrungen nichts anzubieten
+            return None
+        bohrer = [w for w in self.bibliothek.werkzeuge if w.art == wz.BOHRER]
+        for b in liste:
+            if not b.durch and abs(b.spitze - bh.SPITZENWINKEL) > bh.GLEICH_WINKEL:
+                continue  # ein ebener Grund oder eine andere Spitze: kein Bohrer
+            if any(bh.passt_durchmesser(b, float(w.durchmesser)) for w in bohrer):
+                continue
+            tiefe = b.z_oben - b.z_unten + bh.spitze(2 * b.radius) + 3.0
+            return round(2.0 * b.radius, 3), tiefe
+        return None
+
+    def bohrer_anlegen(self):
+        """„Bohrer Ø … anlegen“: der fehlende Bohrer (_bohrer_fehlt) – HSS, 118°, Schneide
+        mindestens 8 × D und tief genug, mit Richtwerten, ins Magazin, gespeichert; der Assistent
+        liest es neu, „Bohren“ kann die Bohrung."""
+        from . import werkzeugkiste as wk
+
+        if self._fehlender_bohrer is None or self.bibliothek is None:
+            return
+        d, tiefe = self._fehlender_bohrer
+        bohrer = wz.Werkzeug(
+            nummer=self.bibliothek.naechste_nummer(),
+            name=tr("ba.raeumen.vorbohren.bohrer_name", d=f"{d:g}"),
+            art=wz.BOHRER,
+            durchmesser=float(d),
+            schneiden=2,
+            schneidenlaenge=float(math.ceil(max(8.0 * d, tiefe))),
+            spitzenwinkel=wz.SPITZENWINKEL_BOHRER,
+            schneidstoff=wz.HSS,
+        )
+        wk.richtwerte_eintragen(bohrer)
+        self.bibliothek.werkzeuge.append(bohrer)
+        magazin = self.magazin()
+        if magazin is not None:
+            mg.uebernehmen(self.bibliothek, magazin, bohrer, self.job)  # speichert
+        else:
+            self.bibliothek.speichern()
+        self._fehlender_bohrer = None
+        self.knopf_bohrer.hide()
+        self._werkzeuge_gespeichert()
+        # „Bohren“ kann die Bohrung jetzt – die Haken neu (wie „T6 nehmen“)
+        if self.job is not None:
+            self._haken_vorschlagen(vr.modell(self.job).Shape)
+        self.vorschau_starten()
 
     def passenden_uebernehmen(self):
         """„„T3 …“ übernehmen“: der angebotene Fräser in Planfräsen und Räumen, wo er dort steht.

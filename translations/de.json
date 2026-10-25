@@ -2234,6 +2234,8 @@
     "ba.passt.angebot": "{werkzeug} kommt nicht in {flaechen} – für {block} passt {neu}.",
     "ba.passt.knopf": "„{werkzeug}“ übernehmen",
     "ba.passt.knopf.tooltip": "Nimmt diesen Fräser in Planfräsen und Räumen. Mit dem gewählten bliebe in den genannten Flächen Material stehen.",
+    "ba.bohrer_anlegen.knopf": "Bohrer Ø {d} anlegen",
+    "ba.bohrer_anlegen.tooltip": "Legt einen Bohrer mit dem Durchmesser der Bohrung in der Werkzeugverwaltung an (HSS, 118°, Richtwerte) und steckt ihn ins Magazin – dann kann „Bohren“ sie bohren.",
     "ba.passt.und": "{erster} und {zweiter}",
     "ba.passt.keiner": "{werkzeug} kommt nicht in {flaechen}, und kein kleinerer Fräser der Werkzeugkiste passt – {block} lässt dort stehen.",
     "ba.ziel.volumen": "Weg müssen {volumen}.",

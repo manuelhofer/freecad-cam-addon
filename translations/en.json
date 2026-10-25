@@ -2234,6 +2234,8 @@
     "ba.passt.angebot": "{werkzeug} does not fit into {flaechen} – {neu} fits for {block}.",
     "ba.passt.knopf": "Take “{werkzeug}”",
     "ba.passt.knopf.tooltip": "Puts this cutter into face milling and clearing. With the selected one, material would remain in the faces named.",
+    "ba.bohrer_anlegen.knopf": "Create drill Ø {d}",
+    "ba.bohrer_anlegen.tooltip": "Creates a drill with the diameter of the hole in the tool manager (HSS, 118°, guide values) and puts it into the magazine – then “Drilling” can drill it.",
     "ba.passt.und": "{erster} and {zweiter}",
     "ba.passt.keiner": "{werkzeug} does not fit into {flaechen}, and no smaller cutter in the tool library does – {block} leaves material there.",
     "ba.ziel.volumen": "{volumen} have to go.",

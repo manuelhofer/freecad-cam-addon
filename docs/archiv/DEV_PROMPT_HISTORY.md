@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-45 bohrer-anlegen
+
+### EINGELESEN
+- An Manuels `obere_klemmung_kugeln` (Kopie): „Bohrung fräsen“ meldet rot „Die Bohrung Ø 4,2 ist
+  kleiner als der Fräser“, „Bohren“ ist grau, weil kein Bohrer Ø 4,2 in der Werkzeugverwaltung
+  steht – und „Anlegen“ bleibt gesperrt. Ein Ausweg fehlte.
+- Manuel: der nächste Schritt als Knopf; wo das Werkzeug fehlt, sagen, womit es ginge, mit Knopf.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: unter der Meldung zum Fräser der Knopf „Bohrer Ø 4,2 anlegen“,
+  sobald eine gewählte Bohrung kleiner als jeder Fräser ist und kein Bohrer ihres Durchmessers da
+  ist (durchgehend oder mit 118°-Spitze). Er legt einen HSS-Bohrer an (Schneide ≥ 8 × D und tief
+  genug, Richtwerte), steckt ihn ins Magazin, speichert und schlägt die Haken neu vor – „Bohren“
+  übernimmt die Bohrung.
+- `translations/de.json`, `en.json`.
+
+### ERGEBNIS
+- Szenario an der Kopie ohne Bohrer: Knopf „Bohrer Ø 4,2 anlegen“ → T5 Ø 4,2; danach „Bohren“
+  an (3 Bohrungen, 3 Hübe), „Anlegen“ frei, sechs Operationen mit Bahnen (Bohren T5: 15 Befehle).
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-44 hinweis-weniger-kerne
 
 ### EINGELESEN
