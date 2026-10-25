@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-18 halter-abschnitt-im-bild
+
+### EINGELESEN
+- Manuel, 2026-10-25 02:27 (Bild Halter, Zeile 4 gewählt): „wenn ich den bereich anklicke so wie
+  jetzt den bereich 4 ... wäre es cool wenn rechts im bild der bereich farblich markiert wäre“.
+
+### DATEIEN
+- `camaddon/gui_halter.py`: Die Zeile, die in der Kontur-Tabelle gewählt ist, steht im Bild
+  orange (`HalterBild.markiere`, `_markiert_bereich`). Gezeichnet werden genau die Stücke ihres
+  Profils, also auch Flansch und Spannmutter in ihrer Form.
+- `tests/gui/szenario_halter.py`: Zeile 3 gewählt, im Bild ist Abschnitt 3 markiert.
+
+### ERGEBNIS
+- Grün: `szenario_halter` (Bild `3_abschnitt`: der Kegel unter dem Flansch orange).
+
 ## P-2026-10-25-17 fenster-groesse-gemerkt
 
 ### EINGELESEN

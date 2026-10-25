@@ -44,6 +44,10 @@ SPINDEL_HOEHE = 14  # Pixel: das Stück Spindel über der Spindelnase
 FARBE_HALTER = QtGui.QColor("#9aa3ab")
 FARBE_HALTER_RAND = QtGui.QColor("#4d555c")
 FARBE_SPINDEL = QtGui.QColor("#5c6670")
+# Der Abschnitt der Zeile, die in der Tabelle gewählt ist (Manuel, 2026-10-25: „wenn ich den
+# bereich anklicke … wäre es cool wenn rechts im bild der bereich farblich markiert wäre“).
+FARBE_MARKIERT = QtGui.QColor(240, 160, 48, 190)
+FARBE_MARKIERT_RAND = QtGui.QColor("#b8650f")
 
 
 def _laenge(mm):
@@ -252,6 +256,7 @@ class HalterDialog(QtGui.QDialog):
         self.tabelle.setItemDelegate(_Zahlendelegat(self.tabelle))
         self.tabelle.setToolTip(tr("hd.kontur.tooltip"))
         self.tabelle.itemChanged.connect(self._zelle_geaendert)
+        self.tabelle.currentCellChanged.connect(self._zeile_gewaehlt)
         links.addWidget(self.tabelle, 1)
         zeile = QtGui.QHBoxLayout()
         self.knopf_dazu = knopf(
@@ -585,6 +590,12 @@ class HalterDialog(QtGui.QDialog):
         eingabe.setText(self._gewinkelt_text(h, feld))
         self._neu_berechnet()
 
+    def _zeile_gewaehlt(self, zeile, *_):
+        """Die gewählte Zeile der Kontur steht im Bild farbig."""
+        bild = getattr(self, "bild", None)
+        if bild is not None:
+            bild.markiere(zeile if zeile >= 0 else None)
+
     def _zelle_geaendert(self, zelle):
         """Eine Zahl in der Kontur: übernehmen, schön zeigen, neu zeichnen."""
         h = self.gewaehlt
@@ -684,6 +695,13 @@ class HalterBild(QtGui.QWidget):
         self.halter = None
         self.werkzeug = None
         self.laenge = 0.0
+        self.markiert = None  # die Nummer des Abschnitts, der farbig steht (ab 0) – oder None
+
+    def markiere(self, abschnitt):
+        """Färbt den Abschnitt `abschnitt` (Index in halter.abschnitte, None: keinen)."""
+        if abschnitt != self.markiert:
+            self.markiert = abschnitt
+            self.update()
 
     def zeige(self, halter, werkzeug=None, laenge=0.0):
         """`laenge`: vom Bezugspunkt (gerade: von der Spindelnase) bis zur Spitze des
@@ -699,6 +717,14 @@ class HalterBild(QtGui.QWidget):
         if h is not None and (h.kontur() or h.gewinkelt):
             self._zeichne(maler, h)
         maler.end()
+
+    def _markiert_bereich(self, h):
+        """(Anfang, Ende) des markierten Abschnitts unter der Spindelnase, mm – None ohne."""
+        k = self.markiert
+        if k is None or not 0 <= k < len(h.abschnitte) or h.abschnitte[k].laenge <= 0:
+            return None
+        anfang = sum(a.laenge for a in h.abschnitte[:k] if a.laenge > 0)
+        return anfang, anfang + h.abschnitte[k].laenge
 
     def _zeichne(self, maler, h):
         """In Maßen gerechnet (x quer, y Tiefe unter der Aufnahme), dann eingepasst."""
@@ -770,6 +796,24 @@ class HalterBild(QtGui.QWidget):
             maler.setPen(QtGui.QPen(rand, 1.2 if fuellung is FARBE_HALTER else 1.0))
             maler.setBrush(fuellung)
             maler.drawPolygon(QtGui.QPolygonF([bild(p) for p in teile]))
+
+        # Der gewählte Abschnitt farbig über dem Halter – so weit, wie seine Stücke im Profil reichen.
+        markiert = self._markiert_bereich(h)
+        if markiert is not None:
+            a0, a1 = markiert
+            stuecke, oben = [], 0.0
+            for laenge, d_oben, d_unten in hl.profil(h):
+                if oben >= a0 - 1e-9 and oben + laenge <= a1 + 1e-9:
+                    stuecke.append((oben, d_oben / 2))
+                    stuecke.append((oben + laenge, d_unten / 2))
+                oben += laenge
+            if stuecke:
+                rand = [punkt(a, r) for a, r in stuecke] + [
+                    punkt(a, -r) for a, r in reversed(stuecke)
+                ]
+                maler.setPen(QtGui.QPen(FARBE_MARKIERT_RAND, 1.5))
+                maler.setBrush(FARBE_MARKIERT)
+                maler.drawPolygon(QtGui.QPolygonF([bild(p) for p in rand]))
 
         # Die Aufnahme als Strich.
         maler.setPen(QtGui.QPen(FARBE_SPINDEL, 1.5))

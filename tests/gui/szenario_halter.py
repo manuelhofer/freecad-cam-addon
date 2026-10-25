@@ -113,6 +113,10 @@ def schritte(h):
     yield 200
     h.pruefe(abs(halter.laenge - 80) < 1e-9, f"mit Abschnitt: {halter.laenge}")
     h.pruefe(f.tabelle.item(2, 1).text() == "48", "neuer Abschnitt nicht so dick wie der davor")
+    # Die gewählte Zeile steht im Bild farbig (Manuel, 2026-10-25).
+    f.tabelle.setCurrentCell(2, 0)
+    yield 100
+    h.pruefe(f.bild.markiert == 2, f"im Bild markiert: {f.bild.markiert}")
     h.bild("3_abschnitt", f)
     f.tabelle.setCurrentCell(2, 0)
     f.abschnitt_weg()
