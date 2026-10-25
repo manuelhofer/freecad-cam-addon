@@ -103,6 +103,49 @@ def vorschubsaetze_programm(text, siemens=False):
     return aus
 
 
+def klartext_punkte(text):
+    """[(X, Y, Z, F)] der Sätze im Vorschub eines Klartext-Programms (L, C) – modal, Zahlen mit
+    Vorzeichen, F nur, wenn es sich ändert; Fortsetzungszeilen der Zyklen übersprungen."""
+    aus = []
+    pos = {"X": None, "Y": None, "Z": None}
+    f = None
+    for zeile in text.splitlines():
+        if zeile.startswith("  "):
+            continue
+        satz = re.sub(r"^\d+ ", "", zeile).strip()
+        if not satz.startswith(("L ", "C ")):
+            continue
+        for a, w in re.findall(r"\b([XYZ])([-+]\d+\.?\d*)", satz):
+            pos[a] = float(w)
+        m = re.search(r"\bF(\d+\.?\d*)", satz)
+        if m:
+            f = float(m.group(1))
+        if "FMAX" in satz or "M91" in satz or None in pos.values():
+            continue
+        aus.append((pos["X"], pos["Y"], pos["Z"], f))
+    return aus
+
+
+def im_klartext(job_saetze, punkte):
+    """None, wenn jeder Endpunkt des Jobs in derselben Folge im Klartext steht (dazwischen darf
+    mehr stehen: der Vollkreis in zwei Hälften, die Schraube in Geraden) – mit demselben F."""
+    k = 0
+    for i, soll in enumerate(job_saetze):
+        # Eine Gerade ist der nächste Satz; ein Bogen darf Zwischenpunkte haben (zwei Hälften,
+        # die Schraube in Geraden).
+        bis = len(punkte) if soll[0] in ("G2", "G3") else min(k + 1, len(punkte))
+        while k < bis and not all(
+            abs(a - b) <= GENAU for a, b in zip(soll[1:4], punkte[k][:3], strict=True)
+        ):
+            k += 1
+        if k >= bis:
+            return f"Satz {i + 1} {soll} fehlt im Klartext"
+        if punkte[k][3] is None or not math.isclose(soll[6], punkte[k][3], rel_tol=1e-3):
+            return f"Satz {i + 1} F {punkte[k][3]} statt {soll[6]}"
+        k += 1
+    return None
+
+
 def vergleichen(job_saetze, prog_saetze):
     """None, wenn jeder Vorschubsatz stimmt – sonst der erste Unterschied als Satz."""
     if len(job_saetze) != len(prog_saetze):
@@ -137,6 +180,10 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd"):
                 ist = vorschubsaetze_programm(programm.text, siemens=kennung == "siemens")
                 unterschied = vergleichen(soll, ist)
                 pruefe(not unterschied, f"{datei} {job.Label} {kennung} {aenderung}: {unterschied}")
+        for kennung in ("heidenhain", "heidenhain_tnc640"):
+            programm = pp.programm(abschnitte, pp.steuerung(kennung), fraese, job.Label)
+            unterschied = im_klartext(soll, klartext_punkte(programm.text))
+            pruefe(not unterschied, f"{datei} {job.Label} {kennung}: {unterschied}")
         print(ascii(f"{job.Label}: {len(soll)} Vorschubsaetze je Steuerung gleich"))
         if datei.startswith("platte"):
             # Die Gegenprobe merkt es: ein Satz 0,01 mm daneben, ein Vorschub anders.
@@ -147,6 +194,12 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd"):
             f = re.search(r"F(\d+\.\d+)", text)
             anders = text[: f.start(1)] + f"{float(f.group(1)) * 1.01:.3f}" + text[f.end(1) :]
             pruefe(vergleichen(soll, vorschubsaetze_programm(anders)), "anderes F übersehen")
+            text = pp.programm(abschnitte, pp.steuerung("heidenhain"), fraese, "P").text
+            z = re.search(r"^\d+ L [^\n]*Z([-+]\d+\.\d+) R0 F\d", text, re.M)
+            daneben = text[: z.start(1)] + f"{float(z.group(1)) + 0.01:+.3f}" + text[z.end(1) :]
+            pruefe(
+                im_klartext(soll, klartext_punkte(daneben)), "Klartext: 0,01 mm daneben übersehen"
+            )
     FreeCAD.closeDocument(doc.Name)
 
 if fehler:
