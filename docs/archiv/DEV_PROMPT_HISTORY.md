@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-78 aus-der-ebene-rundachsen-auf-null, beispiele-liste, g550-hochlauf
+
+### EINGELESEN
+- Voller Lauf nach 0.305.0: 131/133 Prüfungen, 142/144 Szenarien grün. Rot: test_beispiele
+  (`daten/beispiele.json` nach dem neu geschriebenen G550-Beispielprogramm aus 0.303.1 nicht
+  nachgezogen – „Beispiele laden …“ hätte die Prüfsumme verworfen), szenario_g550_von_oben und
+  szenario_schraeg_g550 (der Hinweis „keine Hochlaufzeit“ aus 0.301.0 an der Beispiel-G550),
+  test_nebenrechner (Last des Laufs; einzeln grün).
+- Durchsicht Schwenken: Siemens `CYCLE800()` löscht laut Doku nur die Schwenkframes – danach ohne
+  Ebene weiter hieße: Werkzeug schräg, ohne Werkzeugwechsel nicht einmal freigefahren. Der Weg
+  zurück ohne Zyklus schrieb die Rundachsen mit dem Buchstaben statt dem Namen an der Maschine.
+- Haas G268 nachgelesen (haascnc.com): fährt nichts, Rundachsen und G43 vorher – nicht gebaut.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `schwenken_aus_dreht` (Heidenhain an), `_schwenken_aus` mit
+  `info` und `auf_null`; aus der Ebene ohne Werkzeugwechsel in „ohne Ebene“ erst zum
+  Wechselpunkt; Programmende ebenso.
+- `camaddon/beispielmaschine.py`: G550 2 s Hochlaufzeit. `daten/beispiele.json` neu.
+- `tests/test_schwenken.py`, `help/*/programm.html`, `docs/spezifikation_steuerung.md` 21, 22.
+
+### ERGEBNIS
+- Siemens Ebene → ohne Ebene (dasselbe Werkzeug): „M5“, „CYCLE800()“, „G0 SUPA D0 Z150.000“,
+  „G0 A0.000 C0.000“; am Ende „CYCLE800()“, hoch, „G0 A0.000 C0.000“. Heidenhain unverändert.
+- Grün: test_schwenken, _maschinen, test_postprozessor, test_n_eck, test_rundachsen_din,
+  test_beispiele, test_nebenrechner, test_simultan_bereiche, test_simultan_nc; szenario_g550_von_oben,
+  _schraeg_g550, _schwenken, _schwenkdatensatz, _schwenken_maschinenwahl.
+
 ## P-2026-10-25-77 fanuc-g68-2
 
 ### EINGELESEN

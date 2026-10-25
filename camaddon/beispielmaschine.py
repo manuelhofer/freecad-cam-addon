@@ -1075,7 +1075,8 @@ def grob_g550(masse=None, winkelaufnahme=False):
     _linear(ma, z, "Z1", 80000, 0, 0, wechsel=masse.weg_z[1])
     _positionieren(ma, a, "A1", 25)
     _positionieren(ma, dreh, "B1", 50, endlos=True)
-    s1 = _spindel(ma, s, "S1", masse.drehzahl, 0, masse.werkzeugaufnahme)
+    # 2 s bis zur Drehzahl, wie die anderen Beispiele (ohne: LinuxCNC wartete nach M3 nicht).
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 2, masse.werkzeugaufnahme)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
     _benenne(asm, ma, masse.name)

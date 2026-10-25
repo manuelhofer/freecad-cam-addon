@@ -214,6 +214,10 @@ class Steuerung:
     # (G69) – und G53.1 fährt nicht frei, G69 die Rundachsen nicht zurück: dazwischen hoch und die
     # Rundachsen auf 0.
     schwenken_aus_zuerst: bool = False
+    # Dreht `schwenken_aus` die Rundachsen selbst zurück (Heidenhain PLANE RESET TURN)? Nein bei
+    # Siemens: CYCLE800() löscht nur die Schwenkframes – geht es ohne Ebene weiter, fährt das
+    # Programm erst zum Wechselpunkt, dann die Rundachsen auf 0.
+    schwenken_aus_dreht: bool = False
     # 5 Achsen simultan mit TCPM (Manuel, 2026-10-03: „TCPM bleibt aus … später als Haken“): die
     # Steuerung führt die Spitze – im Programm die Spitze im Werkstück und die Rundachsen je
     # Punkt, F in mm/min statt G93 ({t}: Werkzeugnummer). Aus oder leer: ohne TCPM, die
@@ -767,6 +771,7 @@ _HEIDENHAIN = {
         "CYCL DEF 7.2 Y0\nCYCL DEF 7.3 Z0"
     ),
     "g93": False,
+    "schwenken_aus_dreht": True,  # PLANE RESET TURN MB MAX: zieht zurück und dreht auf 0
     "dialekt": "klartext",
 }
 
@@ -1458,9 +1463,11 @@ def programm(
             nullpunkt = []
             zeilen.extend(_zum_wechselpunkt(s, info))
             if zurueck is not None:  # die Rundachsen oben auf 0
-                zeilen.extend(_schwenken_aus(s, zurueck, False, _wechselpunkt_oben(s, info)))
+                zeilen.extend(_schwenken_aus(s, zurueck, False, _wechselpunkt_oben(s, info), info))
             if geschwenkt is not None and not sw.gleiche(geschwenkt, abschnitt.schwenkung):
-                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
+                oben = _wechselpunkt_oben(s, info)
+                ohne = abschnitt.schwenkung is None
+                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben, info, ohne))
                 geschwenkt = None
             if abschnitt.werkzeugname:
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
@@ -1509,22 +1516,29 @@ def programm(
         ):
             # Eine andere Ebene (oder dieselbe nach der Marke neu): erst weg vom Teil (ohne
             # Zyklus; CYCLE800 fährt selbst frei).
-            if not gewechselt and (not zyklus or s.schwenken_aus_zuerst):
+            ins_freie = (  # CYCLE800() dreht nicht zurück: erst nach oben, dann auf 0
+                geschwenkt is not None
+                and abschnitt.schwenkung is None
+                and not s.schwenken_aus_dreht
+            )
+            if not gewechselt and (not zyklus or s.schwenken_aus_zuerst or ins_freie):
                 if spindel_an is not None:
                     zeilen.extend(_spindel_aus(s, spindel_an))
                     spindel_an = None
                 zurueck = None
-                if zyklus and geschwenkt is not None:  # Fanuc: G69, hoch, Rundachsen auf 0
+                if zyklus and geschwenkt is not None:  # G69/CYCLE800(), hoch, Rundachsen auf 0
                     zeilen.extend(_zeilen(s.schwenken_aus))
                     zurueck, geschwenkt = geschwenkt, None
                 weg = _zum_wechselpunkt(s, info)
                 zeilen.extend(weg)
                 if zurueck is not None:
-                    zeilen.extend(_schwenken_aus(s, zurueck, False, _wechselpunkt_oben(s, info)))
+                    oben = _wechselpunkt_oben(s, info)
+                    zeilen.extend(_schwenken_aus(s, zurueck, False, oben, info))
                 if weg and s.laenge_wieder and werkzeug:
                     laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
             if geschwenkt is not None and abschnitt.schwenkung is None:
-                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
+                oben = _wechselpunkt_oben(s, info)
+                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben, info))
             if abschnitt.schwenkung is not None:
                 umgekehrt = _rund_umdrehen(abschnitt, info)
                 rund = sw.text_rundachsen(
@@ -1608,7 +1622,7 @@ def programm(
                     zeilen.extend(weg)
                     if zurueck is not None:
                         oben = _wechselpunkt_oben(s, info)
-                        zeilen.extend(_schwenken_aus(s, zurueck, False, oben))
+                        zeilen.extend(_schwenken_aus(s, zurueck, False, oben, info))
                     if s.laenge_wieder and werkzeug:
                         laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
                     continue
@@ -1823,12 +1837,11 @@ def programm(
     if werkzeug is not None:
         zeilen.extend(_zum_wechselpunkt(s, info))
     if zurueck is not None:  # die Rundachsen oben auf 0
-        zeilen.extend(
-            _schwenken_aus(s, zurueck, False, werkzeug is not None and _wechselpunkt_oben(s, info))
-        )
+        oben = werkzeug is not None and _wechselpunkt_oben(s, info)
+        zeilen.extend(_schwenken_aus(s, zurueck, False, oben, info))
     if geschwenkt is not None:
         oben = werkzeug is not None and _wechselpunkt_oben(s, info)
-        zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben))
+        zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben, info))
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     for zeile in _zeilen(s.ende):
@@ -2000,16 +2013,24 @@ def _schwenken_ein(s, schwenkung, info=None, umgekehrt=()):
     return _zeilen(_fuellen(s.schwenken, **werte))
 
 
-def _schwenken_aus(s, schwenkung, zyklus, oben=False):
+def _schwenken_aus(s, schwenkung, zyklus, oben=False, info=None, auf_null=True):
     """Zurück aus der Ebene: der Zyklus zurück – ohne Zyklus erst hoch genug
     (Schwenkung.hoehe; `oben`: die Maschine steht schon am Wechselpunkt ganz oben), dann die
-    Rundachsen auf 0."""
+    Rundachsen auf 0, mit ihren Namen an der Maschine (`info`: Siemens „C4=0.000“). Ein Zyklus,
+    der sie nicht selbst zurückdreht (Siemens CYCLE800()), danach ebenso – mit `auf_null`: es
+    geht ohne Ebene weiter."""
     if zyklus:
-        return _zeilen(s.schwenken_aus)
+        zeilen = _zeilen(s.schwenken_aus)
+        if auf_null and not s.schwenken_aus_dreht:
+            zeilen.extend(_schwenken_aus(s, schwenkung, False, oben, info))
+        return zeilen
     zeilen = []
     if schwenkung.hoehe is not None and not oben:
         zeilen.append(f"G0 {_wort(s, 'Z', _zahl(schwenkung.hoehe))}")
-    woerter = [_wort(s, b, _zahl(0.0)) for b in sorted(schwenkung.rund)]
+    woerter = [
+        _wort(s, _adresse(s, b, info) if info is not None else b, _zahl(0.0))
+        for b in sorted(schwenkung.rund)
+    ]
     if woerter:
         zeilen.append(" ".join(["G0", *woerter]))
     return zeilen

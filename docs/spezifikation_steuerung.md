@@ -804,7 +804,23 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Programmende und jeder neuen Ebene; dann – G69 dreht nicht zurück, G53.1 fährt nicht frei – oben
   die Rundachsen auf 0 (`_schwenken_aus` ohne Zyklus), erst danach G68.2 der nächsten Ebene; ein
   Wechsel der Ebene ohne Werkzeugwechsel fährt dafür zum Wechselpunkt.
-- Mazak (EIA) kennt laut Handbuch kein G68.2 (dort G68 mit Achse und Winkel), Haas G268 ohne
-  gesicherte Syntax: beide ohne Zyklus. `programm_pruefen` zählt G4, G10, G52, G68, G68.2, G68.5
+- Mazak (EIA) kennt laut Handbuch kein G68.2 (dort G68 mit Achse und Winkel): ohne Zyklus.
+- Haas G268/G269 (haascnc.com, „Feature Coordinate System“, nachgelesen 2026-10-25): G268 fährt
+  nichts – die Rundachsen (B, C) müssen vorher stehen, G43 vorher aktiv sein, danach die Lage neu
+  anfahren; I, J, K drehen um X, Y, Z des Werkstücks, Q die Reihenfolge (Q123 vorgegeben, Q321).
+  Ohne gesicherte Vorzeichen der B/C-Achsen an der UMC nicht gebaut: Haas schreibt ohne Zyklus. `programm_pruefen` zählt G4, G10, G52, G68, G68.2, G68.5
   nicht als Bewegung.
+
+## 22. Aus der Ebene: die Rundachsen auf 0 (P-2026-10-25-78)
+
+- `CYCLE800()` löscht nur die Schwenkframes (Siemens: „Resets the swivelled plane (deletes the
+  swivel frame)“); dass es die Rundachsen zurückdreht, steht nirgends. Ging es danach ohne Ebene
+  weiter, lief die Bearbeitung mit schräg stehendem Werkzeug – ohne Werkzeugwechsel sogar ohne
+  Freifahren. Jetzt (`Steuerung.schwenken_aus_dreht`, an nur bei Heidenhain „PLANE RESET TURN“):
+  in eine Bearbeitung ohne Ebene und am Programmende erst zum Wechselpunkt, dann `CYCLE800()`,
+  dann die Rundachsen auf 0 (ohne Wechselpunkt vorher auf die Schwenkhöhe).
+- Die Rundachsen auf 0 stehen mit ihrem Namen an der Maschine (`_adresse`: Siemens „C4=0.000“) –
+  auch ohne Zyklus; bis hier der bloße Buchstabe.
+- Die Beispielmaschine GROB G550 hat 2 s Hochlaufzeit (bis hier 0: LinuxCNC wartete nicht, ein
+  Hinweis bei jedem Programm).
 

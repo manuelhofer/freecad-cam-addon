@@ -492,7 +492,26 @@ pruefe(
     siemens.index(zyklus) < next(i for i, z in enumerate(siemens) if z.startswith("M3")),
     "CYCLE800 nach dem Spindelstart",
 )
-pruefe("CYCLE800()" in siemens[-5:], f"Ende: {siemens[-6:]}")
+# Am Ende CYCLE800() – es löscht nur die Schwenkframes: danach hoch und die Rundachsen auf 0.
+k = len(siemens) - 1 - siemens[::-1].index("CYCLE800()") if "CYCLE800()" in siemens else -1
+pruefe(
+    k > 0 and siemens[k + 1].startswith("G0 Z") and siemens[k + 2] == "G0 A0.000 C0.000",
+    f"Ende: {siemens[-8:]}",
+)
+# Geht es danach ohne Ebene weiter (dasselbe Werkzeug, ohne Marken): erst zum Wechselpunkt, dann
+# CYCLE800() und die Rundachsen auf 0 – nicht am Teil mit schräg stehendem Werkzeug weiter.
+ohne_ebene = dataclasses.replace(teile[0], name="Oben", schwenkung=None)
+oben_s = pp.Maschineninfo("5-Achs")
+oben_s.wechselpunkt = {"Z": 150.0}
+z_frei = pp.programm(
+    [teile[0], ohne_ebene], pp.steuerung("siemens", {"marken": False}), oben_s, "Block"
+).zeilen
+k = z_frei.index("; Oben") if "; Oben" in z_frei else -1
+pruefe(
+    k > 0
+    and z_frei[k + 1 : k + 5] == ["M5", "CYCLE800()", "G0 SUPA D0 Z150.000", "G0 A0.000 C0.000"],
+    f"Siemens aus der Ebene: {z_frei[k:k + 8]}",
+)
 # Mit dem Schwenkdatensatz der Maschine und der Richtung der geprüften Stellung (D-1, D-2).
 info_tc = pp.Maschineninfo("5-Achs", schwenkdatensatz="TC1")
 teile_plus = [
@@ -509,7 +528,14 @@ pruefe(
     any(z.startswith("G1") and f"X{erster.Parameters['X']:.3f}" in z for z in siemens),
     "Siemens: Sätze nicht in Koordinaten der Ebene",
 )
-pruefe(not any(" A" in z or "C=" in z for z in siemens if z.startswith("G")), "Siemens: Rundachsen")
+pruefe(
+    not any(
+        " A" in z or "C=" in z
+        for z in siemens
+        if z.startswith("G") and z != "G0 A0.000 C0.000"  # nach CYCLE800() zurück auf 0
+    ),
+    "Siemens: Rundachsen",
+)
 # Ohne Zyklus (LinuxCNC; Siemens mit Haken aus): die Rundachsen und gerechnete X, Y, Z.
 schwenkung = teile[0].schwenkung
 gesamt = schwenkung.gesamt()

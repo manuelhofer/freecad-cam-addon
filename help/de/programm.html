@@ -259,8 +259,10 @@ Ebene „CYCLE800(1,"",0,27,X0,Y0,Z0,A,B,C,0,0,0,-1,0,1)“: Freifahren in Z, de
 (zwischen den Anführungszeichen; leer, wenn die Maschine nur einen hat), neu, achsweise um Z, Y,
 X, der Ursprung der Ebene im Grundjob, Richtung −1. Danach stehen die Sätze in Koordinaten der
 Ebene; die Steuerung rechnet Rundachsen und Werkzeuglänge selbst, der Nullpunkt bleibt am Teil.
-Zurück mit „CYCLE800()“. Quelle: Siemens-Programmierhandbuch Arbeitsvorbereitung 10/2015,
-S. 678–681.<br>
+Zurück mit „CYCLE800()“ – es löscht nur die Schwenkframes, die Rundachsen bleiben stehen: Geht es
+ohne Ebene weiter (oder ist das Programm zu Ende), fährt es erst zum Wechselpunkt, dann
+„CYCLE800()“ und die Rundachsen auf 0. Quelle: Siemens-Programmierhandbuch Arbeitsvorbereitung
+10/2015, S. 678–681.<br>
 An <b>Heidenhain</b> (iTNC 530, TNC 640/620/320) ebenso vorbelegt: der Nullpunkt auf den Ursprung
 der Ebene („CYCL DEF 7.0 NULLPUNKT“, „7.1 X…“ bis „7.3 Z…“), dann „PLANE SPATIAL SPA… SPB… SPC…
 TURN MB MAX FMAX SEQ±“ – die Raumwinkel um X, Y, Z der Maschine, dieselben wie bei CYCLE800,

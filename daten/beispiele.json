@@ -73,8 +73,8 @@
   },
   {
    "pfad": "beispiele/grob_g550_freiform/freiform_5achs.mpf",
-   "bytes": 2844922,
-   "sha256": "7f17eeae2e342bbbd3b8ffda4aeab49dcb61bd81bad0121214ca8e0a5e031cb0"
+   "bytes": 2845313,
+   "sha256": "14c647fae4082e3d6f337a4f7943b3b91e31806d800454d0b909b164f7964d21"
   },
   {
    "pfad": "beispiele/grob_g550_freiform/g550_winkelaufnahme.FCStd",
@@ -83,8 +83,8 @@
   },
   {
    "pfad": "beispiele/grob_g550_freiform/nc_pruefung.json",
-   "bytes": 706,
-   "sha256": "b306d1e1e4ff8ef4718e1b85b07455a5fa91b7755d27923309f8e954f2bf0f31"
+   "bytes": 704,
+   "sha256": "ca843928ba407a27967b813b5690d8737d170e213bf8fe005d7b86b17337863f"
   },
   {
    "pfad": "beispiele/grob_g550_freiform/pruefen.py",

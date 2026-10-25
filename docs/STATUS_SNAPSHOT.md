@@ -531,6 +531,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Korrektur (0.305.1):* Aus einer Ebene mit CYCLE800() in eine Bearbeitung ohne Ebene (und am
+  Ende): erst zum Wechselpunkt, dann die Rundachsen auf 0; Beispielliste nachgezogen; G550 mit
+  2 s Hochlaufzeit. Voller Lauf nach 0.305.0: alles grün bis auf diese drei (behoben).
 - *Neu (0.305.0):* Fanuc G68.2/G53.1 für 3+2 (Haken, vorbelegt aus – eine Option); Mazak und
   Haas weiter ohne Zyklus (kein G68.2 im Mazak-Handbuch, G268 nicht gesichert).
 - *Neu (0.304.0):* Meldung beim Messstopp (Siemens MSG, LinuxCNC (MSG, …)); G94 im Kopf
