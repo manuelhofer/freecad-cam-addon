@@ -336,7 +336,8 @@ ihre Stellung. „Auf der Maschine prüfen“ zeigt die Bahn ohne TCPM.</li>
 Befehl der Steuerung, zurück im Eilgang; X im Durchmesser, wenn die Maschine so zählt. Denn dort
 bohren die Zyklen nicht verlässlich längs Z: Siemens kennt G81 nur im ISO-Modus und CYCLE81 bohrt
 in G18 längs Y, Fanuc-Drehmaschinen haben kein G81, LinuxCNC bohrt in G18 längs Y.
-Gewindebohren an der Drehmaschine schreibt es nicht – ein Hinweis sagt es.</p>
+Gewindebohren an der Drehmaschine schreibt es nicht – ein Hinweis sagt es; nur LinuxCNC mit
+„Gewindebohren synchron“ bohrt dort mit G33.1 längs Z.</p>
 <p>FreeCADs Bohren schreibt <b>G81</b> (bohren), <b>G82</b> (mit Verweilen), <b>G83</b>
 (tief, Entspanen), <b>G73</b> (Spänebrechen) und <b>G85</b> (Reiben) mit X, Y, Z (Tiefe),
 R (Bezugsebene) und Q, P. LinuxCNC, Fanuc, Haas und Mach kennen sie so. Eine

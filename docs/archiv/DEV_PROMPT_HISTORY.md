@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-88 linuxcnc-gewinde-an-der-drehmaschine
+
+### EINGELESEN
+- Seit 0.306.1 steht an der Drehmaschine statt Gewindebohren ein Hinweis. LinuxCNC kann es aber
+  synchron mit G33.1 längs Z, in jeder Ebene.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `Steuerung.gewinde_drehen` (LinuxCNC), an der Drehmaschine die
+  Vorlage `gewinde`; `_zyklus_als_befehl` mit X im Durchmesser und ohne Y0, wo die Maschine kein Y
+  hat. `help/*/programm.html`, `docs/spezifikation_steuerung.md` 24, `tests/test_postprozessor.py`.
+
+### ERGEBNIS
+- LinuxCNC an der Drehmaschine mit „synchron“: „G0 X10.000“ (Durchmesser), „G0 Z24.000“,
+  „G33.1 Z6.500 K1.500“, „G0 Z24.000“. Ohne den Haken und an Siemens/Fanuc: der Hinweis.
+- Grün: test_postprozessor, _nachfahren, _zufall, test_programm_pruefen.
+
 ## P-2026-10-25-87 kommentare-gross, klartext-ohne-nullsaetze
 
 ### EINGELESEN

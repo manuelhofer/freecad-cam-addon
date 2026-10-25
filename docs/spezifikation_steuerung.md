@@ -878,4 +878,6 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - Klartext (`gerade`): eine Achse nur, wenn sich ihr gerundeter Wert ändert, sonst kein Satz –
   die Zufallsprobe fand „L Y+14.774 R0“ dreimal hintereinander (ein kleiner Bogen in YZ in
   Geraden).
+- LinuxCNC mit „Gewindebohren synchron“ (`gewinde_drehen`): an der Drehmaschine G33.1 längs Z
+  (die Vorlage gilt in jeder Ebene), X im Durchmesser (P-2026-10-25-88).
 

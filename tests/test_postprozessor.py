@@ -646,6 +646,20 @@ pruefe(
     and any("Drehmaschine" in h for h in p_gd.hinweise),
     f"Gewinde an der Drehmaschine: {p_gd.zeilen[-8:]} {p_gd.hinweise}",
 )
+# LinuxCNC mit „synchron“: G33.1 längs Z auch an der Drehmaschine, X im Durchmesser.
+gewinde_x = dataclasses.replace(
+    gewinde_d,
+    befehle=[C("G0", {"X": 0.0, "Z": 24.0}),
+             C("G84", {"X": 5.0, "Z": 6.5, "R": 24.0, "S": 255.0, "F": 1.5}), C("G80")],
+)  # fmt: skip
+z_lg = pp.programm(
+    [gewinde_x], pp.steuerung("linuxcnc", {"gewinde_synchron": True}), dreh, "G"
+).zeilen
+k = z_lg.index("G33.1 Z6.500 K1.500") if "G33.1 Z6.500 K1.500" in z_lg else -1
+pruefe(
+    k > 2 and z_lg[k - 3] == "G0 X10.000",
+    f"LinuxCNC G33.1 an der Drehmaschine: {z_lg[k - 3 : k + 2]}",
+)
 
 
 # Der Nullpunkt aus dem Job (Fixtures): vorbelegt aus; an: am Anfang und in jedem Einstieg vor

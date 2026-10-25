@@ -272,6 +272,10 @@ class Steuerung:
     # `gewinde_ausgleich` (leer: G84/G74 mit F = Steigung · Drehzahl), ohne `gewinde_vorher`.
     gewinde_synchron: bool = True
     gewinde_ausgleich: str = ""
+    # Gilt `gewinde` auch an der Drehmaschine (längs Z, unabhängig von der Ebene)? Ja bei LinuxCNC
+    # G33.1; sonst steht dort ein Hinweis (Siemens CYCLE84 und Fanuc G84 bohren in G18 nicht
+    # längs Z).
+    gewinde_drehen: bool = False
     # Eine endlos drehende Rundachse als Moduloachse (0 … unter 360°; Manuel, 2026-10-05, Siemens:
     # „Fehler 16830 … falsche Position bei Achse/Spindel C4 programmiert“): {wert} die Position
     # im Bereich, je nach Drehrichtung der Bahn (Siemens ACP/ACN). Leer: der Winkel fortlaufend,
@@ -468,6 +472,7 @@ STEUERUNGEN = {
         # Ausgleichsfutter; LinuxCNC-Handbuch: „G84 does not use synchronized motion“).
         gewinde="G0 Z{rfp}\nG33.1 Z{dp} K{pit_abs}\nG0 Z{rtp}",
         gewinde_synchron=False,
+        gewinde_drehen=True,
     ),
     "siemens": Steuerung(
         "siemens",
@@ -1776,6 +1781,23 @@ def programm(
                     )
                     saetze += 1
                     continue
+                if gross in GEWINDE and info.drehmaschine and s.gewinde_drehen and s.gewinde:
+                    # LinuxCNC G33.1: synchron längs Z – in jeder Ebene, auch an der Drehmaschine.
+                    zeilen.extend(
+                        _zyklus_als_befehl(
+                            s,
+                            s.gewinde,
+                            parameter,
+                            stand,
+                            auf_r,
+                            faktor,
+                            steigung,
+                            drehzahl_ab,
+                            info,
+                        )
+                    )
+                    saetze += 1
+                    continue
                 if gross in GEWINDE:
                     if info.drehmaschine:
                         hinweis = tr("pp.hinweis.gewinde_drehen", operation=abschnitt.name)
@@ -1998,7 +2020,7 @@ def _mpr_fertig(s, name, rohteil, hinweise):
 
 
 def _zyklus_als_befehl(
-    s, vorlage, parameter, stand, auf_r, faktor=1.0, steigung=None, drehzahl=0.0
+    s, vorlage, parameter, stand, auf_r, faktor=1.0, steigung=None, drehzahl=0.0, info=None
 ):
     """Ein Bohrzyklus (G81 ff.) als Befehl der Steuerung: über das Loch („G0 X… Y…“), der
     Vorschub, dann `vorlage` mit {rtp} {rfp} {dp} {fdep} {q} {dtb} {f} (Steuerung.bohren …),
@@ -2007,9 +2029,16 @@ def _zyklus_als_befehl(
     (die Drehzahl war über der Höchstdrehzahl)."""
     zeilen = []
     lage = [a for a in ("X", "Y") if a in parameter]
+    if info is not None and info.linear:  # Y0 an der Drehmaschine ohne Y: weg
+        lage = [a for a in lage if a in info.linear or abs(float(parameter[a])) > 1e-9]
+    durchmesser = info is not None and info.drehmaschine and info.x_durchmesser
     neu = [a for a in lage if stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9]
     if neu:  # schon über dem Loch: kein Satz
-        zeilen.append(" ".join(["G0", *(_wort(s, a, _zahl(float(parameter[a]))) for a in lage)]))
+        woerter = (
+            _wort(s, a, _zahl(float(parameter[a]) * (2.0 if a == "X" and durchmesser else 1.0)))
+            for a in lage
+        )
+        zeilen.append(" ".join(["G0", *woerter]))
     davor = stand.get("Z")
     tief = float(parameter.get("Z", davor if davor is not None else 0.0))
     r = float(parameter.get("R", davor if davor is not None else tief))
