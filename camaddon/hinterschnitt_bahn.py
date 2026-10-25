@@ -35,6 +35,7 @@ import FreeCAD
 import numpy as np
 
 from . import bahn as bn
+from . import uhren
 from .sprache import tr
 
 SCHRITT = 0.5  # mm – so dicht liegen die Punkte einer Linie
@@ -577,8 +578,6 @@ def schneiden_stueck(form, namen, hoehen, schritt):
     auch im Nebenrechner für ein Stück der Höhen (die Flächen je Form einmal)."""
     import Part
 
-    from . import uhren
-
     schluessel = (id(form), tuple(namen))
     gemerkt = _FLAECHEN.get(schluessel)
     if gemerkt is None or gemerkt[0] is not form:
@@ -634,8 +633,6 @@ def genau_stueck(form, mitten, mindestens):
     """(n,) bool: Liegt jede Kugelmitte mindestens `mindestens` vom Teil (genau, OpenCascade)? Für
     die knappen, bei denen das Netz zu kurz schätzt – auch im Nebenrechner für ein Stück davon."""
     import Part
-
-    from . import uhren
 
     ergebnis = np.zeros(len(mitten), dtype=bool)
     for i, m in enumerate(np.asarray(mitten, dtype=float).reshape(-1, 3)):
@@ -846,6 +843,7 @@ def frei_stueck(netz, spitzen, achsen, teile):
         offen = np.flatnonzero((bis_hier > von + 1e-6) & ergebnis)
         reichweite = radius + spiel + 0.5
         for anfang in range(0, len(offen), JE_KAPSEL):
+            uhren.atmen()  # beim Anlegen im Fenster: es zeichnet sich zwischendurch neu
             k = offen[anfang : anfang + JE_KAPSEL]
             d = netz.kapseln(
                 spitzen[k] + von * achsen[k],

@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-29 anlegen-atmet-unter-dem-rand
+
+### EINGELESEN
+- Gemessen im Szenario an Manuels Tasche: Beim „Anlegen“ stand das Fenster 7-mal, zusammen 9,3 s
+  (vor P-27 8-mal, zusammen 25,7 s). Das ist die Prüfung von Schaft und Halter beim Rechnen des
+  3D-Schlichtens unter dem Rand (`netzabstand.kapseln`).
+
+### DATEIEN
+- `camaddon/hinterschnitt_bahn.py`: `frei_stueck` atmet je Stapel (`uhren.atmen`). Das Fenster
+  zeichnet sich beim Anlegen zwischendurch neu.
+
+### ERGEBNIS
+- test_hinterschnitt_bahn grün.
+
 ## P-2026-10-25-28 restschlichten-ecke-fuer-ecke
 
 ### EINGELESEN
