@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-11 ebenen-rechnen-mit-dem-rest
+
+### EINGELESEN
+- Manuel, 2026-10-24: „schau das die werkzeugwege sinnvoll sind vor allem im 5 achs bereich“.
+  Bisher gab es kein Szenario mit einem STL an der 5-Achs-Fräse. Der Geist an der Tisch/Tisch:
+  „Alles aus dieser Aufspannung“ legt von oben an und öffnet dann sieben geschwenkte Ebenen.
+  Ab Ebene 2 meldete jede „Weg müssen“ 206–368 cm³, das ist fast das ganze Rohteil (Rohteil minus
+  Teil 349 cm³, von oben schon 248 weg). Jede Ebene schruppte 23–38 min, zusammen gut 2 h 50 min,
+  großteils durch die Luft.
+- Ursache (`raum_material.fuer_ebene`): In Ebene 1 streifte einer von 449 Eilgängen des
+  3D-Schruppens das Restmodell im Raster mit 0,76 mm³. Daraufhin galt der ganze räumliche Rest
+  als „nicht sicher“, und alle Ebenen danach fingen wieder beim vollen Rohteil an.
+- Dazu: In einer Ebene, in der nichts mehr zu tun war, blieben 3D-Schruppen und 3D-Schlichten rot
+  angehakt („Über den gewählten Flächen steht nichts …“, „… gibt es nichts zu fräsen …“). Waren
+  sie aus, ging „Anlegen“ trotzdem nicht. Es blieb nur „Abbrechen“, und das beendet die Kette.
+  „Nicht fertig“ riet dann „Dafür anhaken: „3D-Schlichten““. Und nach „Alles aus dieser
+  Aufspannung“ (25.577 Dreiecke) stand das Fenster 32,5 s still, weil „Nicht fertig“ jedes
+  Dreieck bei Kontur, Nut, Wand … nachfragte.
+
+### DATEIEN
+- `camaddon/raum_material.py`: Ein Eilgang trägt im Restmodell nichts ab. Er misst nur
+  (`teile_abtragen(…, messen=True)`, `Material.kugel/schaft(…, messen)`), und das Material bleibt
+  stehen. Der Rest bleibt damit eine sichere Obergrenze, auch weil ein G0 nicht sicher die Gerade
+  fährt. `fuer_ebene` gibt ihn deshalb nicht mehr auf.
+- `camaddon/schruppen3d_bahn.py`, `camaddon/schlichten3d_bahn.py`: „nichts zu fräsen“ ist ein
+  `materialstand.SchonWeg`. Der Assistent nimmt dem Block den Haken ab, wie bei „schon weg“; der
+  rote Satz bleibt stehen.
+- `camaddon/gui_bearbeitung.py`: Ist in einer Ebene der Kette nichts angehakt, heißt der Knopf
+  „Nächste Ebene →“ (bei der letzten „Fertig“) und geht weiter. Die Ebene bleibt ohne Operation
+  (`_folge_ohne_operation`). „Nicht fertig“ schlägt keinen Block mehr vor, der eben „nichts zu
+  tun“ fand. Bei einem STL fragt es nur die Freiform-Strategien und keine Wände.
+- `translations/de.json`, `en.json`: `ba.folge.naechste`, `ba.folge.fertig` mit Tooltips.
+- `tests/test_raum_material.py`: Ein Eilgang durchs Material misst und lässt stehen, der
+  Vorschub trägt ab.
+- `tests/gui/szenario_geist_fuenfachs.py` (neu): der Geist an der 5-Achs-Fräse, die ganze Kette.
+  Kein Block bleibt rot, Ebenen ohne Haken zeigen „Nächste Ebene →“/„Fertig“, das 3D-Schruppen
+  der Ebenen dauert zusammen höchstens 30 min, es entstehen 8 Jobs.
+
+### ERGEBNIS
+- Geist, 5-Achs-Fräse: 3D-Schruppen in den Ebenen zusammen **2 h 50 min → 12 min**, je Ebene
+  7/4/0/1/1/0/0 min statt 7/28/38/23/25/26/… Ebene 6 meldet „Weg müssen“ 11,8 statt 313,6 cm³.
+  Die Ebenen 6 und 7 haben nichts mehr zu tun, die Kette geht durch. Die längste Pause des
+  Fensters ist 1,3 s statt 32,5 s.
+- Grün: `test_raum_material`, `test_raum_bahn`, `test_ebenen_auslassen`, `test_schruppen3d`,
+  `test_schlichten3d`, `szenario_geist_fuenfachs`, `szenario_bearbeitung_aufspannung_folge`,
+  `szenario_raum_material`.
+- Gesehen und noch offen: In einem von vier Läufen der Geist-Kette stand der Assistent zwischen
+  zwei Ebenen 10 min ohne zu rechnen. Das ist genau die Leerlaufzeit der Nebenrechner
+  (`LEERLAUF`). Mit Mitschrift des Pools kam es nicht wieder. In einem Lauf stürzte FreeCAD
+  27.1 (Wochen-Build) in `Control.closeDialog()` nach der letzten Ebene ab, im nächsten nicht.
+
 ## P-2026-10-25-10 5achs-doppelte-saetze-weg
 
 ### EINGELESEN

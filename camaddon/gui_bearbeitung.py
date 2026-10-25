@@ -5413,6 +5413,10 @@ class BearbeitungPanel:
                 knopf_.setToolTip(tr("ba.weiter.tooltip"))
                 knopf_.setEnabled(self.job is not None and not self.nur_vierachs())
                 continue
+            elif self._folge_ohne_operation():
+                naechste = "ba.folge.naechste" if _FOLGE else "ba.folge.fertig"
+                knopf_.setText(tr(naechste))
+                knopf_.setToolTip(tr(naechste + ".tooltip"))
             else:
                 knopf_.setText(tr("va.anlegen"))
                 knopf_.setToolTip(tr("ba.anlegen.tooltip"))
@@ -5427,8 +5431,22 @@ class BearbeitungPanel:
             return False
         if not aktive:
             # Nur schräge Flächen gewählt: „Anlegen“ legt die Ebene bzw. Aufspannung dafür an.
+            if self._folge_ohne_operation():
+                return True
             return self.job is not None and self._nur_geschwenkt(vr.modell(self.job).Shape)
         return all(b.kann_anlegen() for b in aktive)
+
+    def _folge_ohne_operation(self):
+        """Eine Ebene der Kette (_ebenen_der_aufspannung), in der nichts angehakt ist – oft haben
+        die Ebenen davor alles genommen: Der Knopf geht weiter zur nächsten, die Ebene bleibt ohne
+        Operation. Sonst bliebe nur „Abbrechen“, und das beendet die Kette (am Geist an der
+        5-Achs-Fräse Ebene 6 von 7)."""
+        return (
+            self.zu_aendern is None
+            and bool(getattr(self, "_folge", None))
+            and self.job is not None
+            and not self.aktive_bloecke()
+        )
 
     def accept(self):
         if getattr(self, "_oben_weiter", False):
@@ -7839,12 +7857,18 @@ class BearbeitungPanel:
         """[(Fläche, [Blöcke, die sie fertig machten])] für jede gewählte Fläche, die am Ende
         keine genaue Bahn hätte – ohne die, mit denen keine Strategie etwas anfangen kann (die
         stehen rot in der Liste)."""
+        bloecke = self.bloecke
+        stl = self._ist_stl()
+        if stl:
+            # Ein STL: nur Freiform (wie _wahl) – sonst fragte es jedes Dreieck Kontur, Nut, Wand …
+            # (am Geist an der 5-Achs-Fräse 25.577 Dreiecke, das Fenster stand 32 s).
+            bloecke = [b for b in bloecke if b.s.kennung in FREIFORM_STRATEGIEN]
         je_block = {
-            b: set(self._fertige_flaechen(b, form)) for b in self.bloecke if b.aktiv() or b.moeglich
+            b: set(self._fertige_flaechen(b, form)) for b in bloecke if b.aktiv() or b.moeglich
         }
         fertig = set().union(*(je_block[b] for b in self.aktive_bloecke()))
         fertig |= set(self._geschwenkt(form))  # die kommen in ihrer Ebene oder Aufspannung dran
-        if fertig and not self._ist_stl():  # ein STL hat keine Bohrungen (nur Dreiecke)
+        if fertig and not stl:  # ein STL hat keine Bohrungen (nur Dreiecke)
             fertig |= {
                 n
                 for n in self.gewaehlte
@@ -7852,17 +7876,20 @@ class BearbeitungPanel:
             }
         ergebnis = []
         for name in self.gewaehlte:
-            if name in fertig or not any(b.s.passt(form, name) for b in self.bloecke):
+            if name in fertig or not any(b.s.passt(form, name) for b in bloecke):
                 continue
-            if kb.waende(form, [name]) and self._ohne_rohteil(form, name):
+            if not stl and kb.waende(form, [name]) and self._ohne_rohteil(form, name):
                 continue  # kein Rohteil vor der Wand: schon fertig (die Stange im Fertigmaß)
             # Entgraten bricht nur die Kanten: Angehakt zählt die Fläche als bearbeitet, als
             # Vorschlag, sie fertig zu machen, taugt es nicht (an der Stirn einer Welle stand
-            # sonst „Dafür anhaken: „Entgraten 3D““).
+            # sonst „Dafür anhaken: „Entgraten 3D““). Auch keiner, der eben „nichts zu tun“ fand und
+            # den Haken abgab (am Geist in einer Ebene der Kette: „Dafür anhaken: „3D-Schlichten““
+            # unter dessen „Auf den gewählten Flächen gibt es nichts zu fräsen“).
             koennten = [
                 b
-                for b in self.bloecke
+                for b in bloecke
                 if not b.aktiv()
+                and not b.schon_weg
                 and name in je_block.get(b, ())
                 and b not in (self.entgraten, self.entgraten3d)
             ]

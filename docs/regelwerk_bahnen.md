@@ -157,6 +157,10 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
   für die Genauigkeit der Spitze einsetzt, liegen auf genau diesem Weg – mit dem Mittel der
   Rundachsen, nicht dem der Werkzeugachsen (das kippte A dort kurz weniger; `simultan.verdichtet`).
 - **Kein Sprung im Schnitt:** Kein Satz im Vorschub dreht eine Rundachse um mehr als 20°.
+- **Jede Ebene fräst nur, was die davor gelassen haben.** Der räumliche Rest nach dem Grundjob und
+  den Ebenen davor gilt für die nächste. Ein Eilgang, der im Raster etwas streift, lässt sein
+  Material darin stehen (lieber zu viel Rest) und wirft den Rest nicht weg. Sonst schruppte am
+  Geist jede Ebene das ganze Rohteil noch einmal.
 - **Eilgänge längs einer schrägen Achse kurz halten:** Ein G0 fährt auf vielen Steuerungen keine
   Gerade – dicht an einer Wand wird daraus kein langer schräger Eilgang.
 

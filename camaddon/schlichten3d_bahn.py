@@ -1448,7 +1448,12 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         if bahn is not None and (beste is None or bahn.zeit < beste.zeit):
             beste = bahn
     if beste is None:
-        raise ValueError(tr("s3.fehler.nichts"))
+        from . import materialstand as mst
+
+        # Nichts zu tun wie nach dem Materialstand: Der Assistent nimmt dem Block den Haken – in
+        # der Kette der Ebenen am Geist ging „Anlegen“ sonst nicht (die 16 Dreiecke von hinten
+        # verdeckt).
+        raise mst.SchonWeg(tr("s3.fehler.nichts"))
     return beste
 
 

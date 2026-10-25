@@ -253,6 +253,20 @@ def pruefen():
         weg[name] = raum.teile_abtragen(block, (10, 10, 17), (30, 10, 17), (0, 0, 1), teile)
     assert weg["kern"] < weg["innen"] < weg["aussen"], weg
     assert 60 < weg["aussen"] - weg["innen"] < 90, weg
+    # Ein Eilgang durchs Material misst nur, was er schnitte – das Material bleibt stehen (der
+    # Rest bleibt sicher, auch wenn ein G0 nicht die Gerade fährt); der Vorschub trägt ab.
+    block = raum.Material(Part.makeBox(40, 20, 20), 0.5)
+    voll = block.volumen
+    bewegungen = (
+        np.array([True, False]),
+        np.array([[10.0, 16, 17], [10.0, 4, 17]]),
+        np.array([[30.0, 16, 17], [30.0, 4, 17]]),
+        np.zeros(2),
+    )
+    eilgang = raum.bewegungen_abtragen(block, bewegungen, (0, 0, 1), innen, aussen)
+    assert len(eilgang) == 1 and eilgang[0] > 100, eilgang
+    assert block.belegt([[20, 16, 18]]).all(), "der Eilgang hat abgetragen"
+    assert not block.belegt([[20, 4, 18]]).any() and block.volumen < voll - 100
     # Eine Ebene nach einem Torusfräser bekommt einen räumlichen Materialstand (vorher keinen).
     torus = wz.Werkzeug(
         nummer=2, name="Torus 12", art=wz.TORUSFRAESER, durchmesser=12.0, schneiden=4,

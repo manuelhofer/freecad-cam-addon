@@ -681,7 +681,11 @@ def planen(
     if not ergebnisse and davor is not None:
         raise ValueError(tr("r3.fehler.kein_rest"))
     if not ergebnisse:
-        raise ValueError(tr("r3.fehler.nichts"))
+        from . import materialstand as mst
+
+        # Nichts zu tun: Der Assistent nimmt dem Block den Haken (wie bei „schon weg“) – in einer
+        # Ebene der Kette hat oft die Ebene davor alles genommen, und „Anlegen“ ging sonst nicht.
+        raise mst.SchonWeg(tr("r3.fehler.nichts"))
     bahn = min(ergebnisse.values(), key=lambda b: b.zeit)
     bahn.zeiten = {v: b.zeit for v, b in ergebnisse.items()}
     return bahn

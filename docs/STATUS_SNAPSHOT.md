@@ -530,12 +530,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.281.11) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.281.12) – offen, in dieser Reihenfolge:**
 0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
    Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
    A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz
    vor und zurück); „Rest räumen“ am C-Ring (das Fenster steht nicht mehr beim Einrichten); ein
-   STL mit zwei getrennten Teilen wird ein gültiger Körper (je Teil einer).
+   STL mit zwei getrennten Teilen wird ein gültiger Körper (je Teil einer); **der Geist an der
+   5-Achs-Fräse** („Bearbeitung“ → „Alles aus dieser Aufspannung“ → „Anlegen“, dann die sieben
+   Ebenen): Die Ebenen schruppen nur noch, was die davor gelassen haben (zusammen 12 statt
+   170 min), eine Ebene ohne Arbeit geht mit „Nächste Ebene →“ weiter (P-2026-10-25-11).
 1. *Erledigt (P-2026-10-24-01): Fasen (W-037)* nach Manuels Antwort auf Frage 1 – der Block
    „Fase“: angeklickt mit dem Schaftfräser in Stufen (0,05), ein Fasenfräser ihres Winkels als
    Frage mit Knopf (im Magazin vorgewählt), über „Alles aus dieser Aufspannung“ nicht – die Zeile
@@ -1412,6 +1415,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   der erste Klick 0,8 statt 1,9 s; im Baum stehen sie grau. Mit P-157/-158 (Prüffenster aus dem
   Netz, CAMs Tiefen ohne Modell) steht das Fenster im ganzen 4-Achs-Ablauf höchstens 1 s. Bereiche wählen braucht es nicht (Manuel: ein STL immer rundum) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
+  **An der 5-Achs-Fräse (P-2026-10-25-11, `szenario_geist_fuenfachs`):** „Alles aus dieser
+  Aufspannung“ von oben, dann sieben Ebenen; jede mit dem räumlichen Rest der davor. Offen, je
+  einmal gesehen: zwischen zwei Ebenen 10 min Stillstand ohne Rechnen (so lange wie `LEERLAUF`
+  der Nebenrechner), und ein Absturz von 27.1 in `Control.closeDialog()` nach der letzten Ebene.
   **Mehrere Körper in einem STL** (gesehen 2026-10-24 nachts, behoben P-2026-10-25-09): je
   Körper ein Solid, zusammen ein Verbund – vorher ein ungültiger Körper (ein Solid mit zwei
   Schalen bzw. eine unzusammenhängende Schale). Der Assistent „Bearbeitung“ nimmt den Verbund

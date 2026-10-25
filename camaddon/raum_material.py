@@ -87,26 +87,27 @@ def koerperteile(form, laenge, toleranz):
     return innen, [("schaft", 0.0, r, laenge)]
 
 
-def teile_abtragen(ziel, von, nach, achse, teile, quer=0.0, laengs=0.0):
+def teile_abtragen(ziel, von, nach, achse, teile, quer=0.0, laengs=0.0, messen=False):
     """Trägt die Teile (koerperteile) längs der Geraden von → nach der Spitze ab, die Achse fest.
     `quer`: jeder Radius um so viel größer (< 0: kleiner – die Sehne eines Bogens); `laengs`:
     jeder Zylinder an beiden Enden um so viel länger (< 0: kürzer). Mit beiden gleich wächst
     oder schrumpft jedes Teil rundum (die Bewegungsschranke in raum_bahn). Gibt das abgetragene
-    Volumen zurück."""
+    Volumen zurück; mit `messen` (nur an einem Material) nur das Volumen, das Material bleibt."""
     u = np.asarray(achse, dtype=float)
+    extra = {"messen": True} if messen else {}
     a, b = np.asarray(von, dtype=float), np.asarray(nach, dtype=float)
     volumen = 0.0
     for teil in teile:
         if teil[0] == "kugel":
             _art, z, radius = teil
             if radius + quer > GENAU:
-                volumen += ziel.kugel(a + z * u, b + z * u, radius + quer)
+                volumen += ziel.kugel(a + z * u, b + z * u, radius + quer, **extra)
             continue
         _art, z, radius, laenge = teil
         if radius + quer > GENAU and laenge + 2 * laengs > GENAU:
             unten = z - laengs
             volumen += ziel.schaft(
-                a + unten * u, b + unten * u, u, radius + quer, laenge + 2 * laengs
+                a + unten * u, b + unten * u, u, radius + quer, laenge + 2 * laengs, **extra
             )
     return volumen
 
@@ -232,8 +233,9 @@ def rueckzuege_wie_vorschub(bewegungen, achse):
 
 def bewegungen_abtragen(material, bewegungen, achse, innen, aussen, fortschritt=None):
     """Trägt die Bewegungen (_bewegungen) am Material ab – im Vorschub gesammelt (_Stapel) mit
-    den Teilen `innen`, ein Eilgang am Material, wie es dann steht, mit `aussen`. Gibt je Eilgang
-    das Volumen zurück, das er schnitte (> 0: der Rest ist nicht sicher)."""
+    den Teilen `innen`. Ein Eilgang trägt nichts ab: Er misst am Material, wie es dann steht, mit
+    `aussen`, was er schnitte – das bleibt stehen (ein G0 fährt nicht sicher die Gerade, und
+    lieber steht im Rest zu viel als zu wenig). Gibt je Eilgang dieses Volumen zurück."""
     eilgang, von, nach, quer = bewegungen
     stapel = _Stapel(material)
     volumina = np.zeros(int(eilgang.sum()))
@@ -243,7 +245,9 @@ def bewegungen_abtragen(material, bewegungen, achse, innen, aussen, fortschritt=
             raise ValueError(tr("s5p.fehler.unvollstaendig"))
         if eilgang[n]:
             stapel.leeren()
-            volumina[k] = teile_abtragen(material, von[n], nach[n], achse, aussen, quer[n])
+            volumina[k] = teile_abtragen(
+                material, von[n], nach[n], achse, aussen, quer[n], messen=True
+            )
             k += 1
         else:
             teile_abtragen(stapel, von[n], nach[n], achse, innen, quer[n])
@@ -461,9 +465,11 @@ class Material:
         iy = np.searchsorted(self.y, [unten[1], oben[1]], side="left")
         return slice(ix[0], min(len(self.x), ix[1] + 1)), slice(iy[0], min(len(self.y), iy[1] + 1))
 
-    def _abtragen(self, fenster, unten, oben):
+    def _abtragen(self, fenster, unten, oben, messen=False):
         beide, anzahl, abtrag = _schneiden(self.grenzen[fenster], unten, oben)
         volumen = float(np.nansum(abtrag)) * self.dx * self.dy
+        if messen:
+            return volumen
         self._platz(anzahl)
         self.grenzen[fenster] = np.nan
         self.grenzen[fenster][:, :, :anzahl] = beide[:, :, :anzahl]
@@ -476,8 +482,9 @@ class Material:
         self.grenzen[i, j] = np.nan
         self.grenzen[i, j, :anzahl] = beide[:, :anzahl]
 
-    def kugel(self, von, nach, radius):
-        """Eine Kugel mit MITTE von/nach schneidet ihre ganze Gerade, in jeder Richtung."""
+    def kugel(self, von, nach, radius, messen=False):
+        """Eine Kugel mit MITTE von/nach schneidet ihre ganze Gerade, in jeder Richtung (`messen`:
+        nur das Volumen, das Material bleibt)."""
         from .simultan_abtrag import kugelschnitt
 
         a, b = _vektor(von), _vektor(nach)
@@ -487,10 +494,11 @@ class Material:
         x, y = np.meshgrid(self.x[f[0]], self.y[f[1]], indexing="ij")
         unten = kugelschnitt(x, y, a, b, radius)
         oben = -kugelschnitt(x, y, a * (1, 1, -1), b * (1, 1, -1), radius)
-        return self._abtragen(f, unten, oben)
+        return self._abtragen(f, unten, oben, messen)
 
-    def schaft(self, von, nach, achse, radius, laenge):
-        """Endlicher Schaftfräser mit fester Achse von Spitze zum Schaft, kontinuierlich."""
+    def schaft(self, von, nach, achse, radius, laenge, messen=False):
+        """Endlicher Schaftfräser mit fester Achse von Spitze zum Schaft, kontinuierlich
+        (`messen`: nur das Volumen, das Material bleibt)."""
         a, b, u = _vektor(von), _vektor(nach), _vektor(achse)
         if (
             not math.isfinite(radius)
@@ -503,7 +511,7 @@ class Material:
         f = self._fenster(ecken.min(axis=0) - radius, ecken.max(axis=0) + radius)
         x, y = np.meshgrid(self.x[f[0]], self.y[f[1]], indexing="ij")
         unten, oben = schaftschnitt(x, y, a, b, u, radius, laenge)
-        return self._abtragen(f, unten, oben)
+        return self._abtragen(f, unten, oben, messen)
 
 
 def _schneiden(g, unten, oben):
@@ -1151,11 +1159,12 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None, jobs=None):
             stapel.leeren()
             u = np.asarray(achse, dtype=float)
             bewegungen = rueckzuege_wie_vorschub(bewegungen, u)
-            volumina = _abtragen_verteilt(material, bewegungen, u, innen, aussen, fortschritt)
-            if volumina is None:
-                volumina = bewegungen_abtragen(material, bewegungen, u, innen, aussen, fortschritt)
-            if np.any(volumina > 1e-7):
-                return None  # ein Eilgang schneidet: der Rest ist nicht sicher
+            # Ein Eilgang, der schnitte, lässt sein Material stehen (bewegungen_abtragen): Der Rest
+            # bleibt sicher. Bis 0.281.11 gab er ihn ganz auf – am Geist an der 5-Achs-Fräse
+            # streifte in der ersten Ebene ein Eilgang von 449 0,76 mm³ im Raster, und alle sechs
+            # Ebenen danach schruppten das ganze Rohteil noch einmal (je 20–28 min, in der Luft).
+            if _abtragen_verteilt(material, bewegungen, u, innen, aussen, fortschritt) is None:
+                bewegungen_abtragen(material, bewegungen, u, innen, aussen, fortschritt)
     stapel.leeren()
     _merken(key, material)
     return material
