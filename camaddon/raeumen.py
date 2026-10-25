@@ -637,6 +637,11 @@ class Vorbohren:
     # Je Loch (x, y, z, Ø, Kennung des Bohrers) – verschiedene Bohrer (die Nuten verschieden
     # breit); leer: alle `stellen` mit `durchmesser` und `kennung`.
     loecher: list = field(default_factory=list)
+    # Die Bahn ohne Vorbohren (ihre Punkte) und ihre Zeit im Freien (freiwege, min; None: noch
+    # nicht gerechnet) – für die Frage „Eintauchen“ im Assistenten (W-039): beide Wege, ohne
+    # dass einer noch einmal gerechnet wird.
+    ohne_punkte: list = field(default_factory=list)
+    ohne_frei: float = None
 
     def je_loch(self):
         """[(x, y, z, Ø, Kennung)] je Loch."""
@@ -723,6 +728,7 @@ def vorschau_fuer_assistent(
         zu_kurz=0 < float(vorbohren.get("schneidenlaenge") or 0.0) < tiefe,
         geholfen=len(vorbohr_stellen(bahn)) - len(vorbohr_stellen(neu)),
         kennung=str(vorbohren.get("kennung") or ""),
+        ohne_punkte=list(bahn.punkte),
     )
     return neu
 

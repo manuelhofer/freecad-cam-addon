@@ -4165,5 +4165,31 @@ als frage ;) … "weg 1 ist so und so [vorschau button] weg 2 ist so und so [vor
 - **Vorschau:** die Wege des Wegs als Linien im 3D (`gui_bahnvorschau`), vor dem Teil gezeichnet
   (sonst verdeckt der Rand sie), je Operation eine Farbe, Eilgang grau; vom Job ans Teil
   (Original · Klon⁻¹); noch ein Klick nimmt sie weg, beim Schließen des Fensters fällt sie weg.
-- Nächste Fragen nach Manuels Liste (W-039): das Vorgehen (erst vorbohren …; erst alles
-  schruppen, dann alles schlichten).
+- **Die Folge im Job:** Bei „Flanke grob, Spirale fertig“ kommt die Flanke vor das 3D-Schlichten
+  (`_in_anlege_reihe` mit der Form; in `STRATEGIEN` steht das 3D-Schlichten davor – bis
+  P-2026-10-25-61 schlichtete die Spirale, bevor die Flanke schruppte).
+- **Die Zeiten je Weg** sind die für alles, was angehakt ist (`_zeit_ohne` + die Blöcke der
+  Frage): Ein Weg kann den Wettbewerb verschieben – am Gehäuseunterteil nimmt das Räumen ohne
+  Vorbohren dem Planfräsen die Oberseite ab, nur Räumen und Nut gezählt hieß es „11 min“, danach
+  13 (P-2026-10-25-62).
+
+### 16.22 Wo der Fräser ins Volle eintaucht – erst vorbohren? (W-039, P-2026-10-25-62)
+
+Manuel, 2026-10-25: „hey wie willst du vorgehen sollen wir erst vorborhren (bei egal welchem teil
+immer wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?) und dann weiter machen“.
+
+- **Die Frage** über den Strategien, sobald Räumen oder Nut angehakt sind, ins Volle eintauchen und
+  ein Bohrer im Magazin passt (ihr Haken „Vorbohren“ geht): „Erst vorbohren“ (vorbelegt, wie der
+  Haken) – der Satz nennt Löcher, Ø und Tiefe, beim Adaptiv-Räumen, dass die Helix bleibt und nur
+  den Ring um das Loch nimmt; „Schraubend eintauchen“ – Helix, in einer sehr schmalen Nut die
+  Rampe, kein Bohrer, kein Werkzeugwechsel.
+- **Wählen** setzt „Vorbohren“ bei Räumen und Nut (die Haken bei den Einstellungen sagen
+  dasselbe; ändert man sie dort, zeigt die Frage es).
+- **Zeiten ohne doppeltes Rechnen:** Vorgebohrt hat das Räumen (die Nut) die Bahn ohne Löcher
+  schon gerechnet – `raeumen.Vorbohren.ohne_punkte`, ihre Zeit im Freien `ohne_frei` (im
+  Nebenrechner: `bearbeitung_vorschau._frei`). Ist „Schraubend“ gewählt, rechnet der Nebenrechner
+  den Weg mit Vorbohren dazu (mit dem Materialstand und dem Bohrer, die der Block zuletzt bekam,
+  `zusatz_zuletzt`). Der Weg mit Vorbohren zählt die Bohrzeit mit, Werkzeugwechsel noch nicht.
+- **Vorschau:** die Löcher als senkrechte Linien (`_Bohrlinien`), dazu die Bahnen.
+- **Nächste Frage:** „Erst alles schruppen, dann alles schlichten“ – Manuel, 2026-10-25 abends:
+  Bohren, Senken und Gewinde zwischen Schruppen und Schlichten.

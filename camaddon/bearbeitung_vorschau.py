@@ -108,4 +108,9 @@ def _frei(form, bahn, zeit):
     if zeit is None:
         return None
     vorschub, eintauchen, freivorschub, stand = zeit
+    vorgebohrt = getattr(bahn, "vorbohren", None)
+    if vorgebohrt is not None and vorgebohrt.ohne_punkte:  # der Weg ohne Vorbohren (W-039)
+        vorgebohrt.ohne_frei = fw.zeit_im_freien(
+            form, stand, vorgebohrt.ohne_punkte, vorschub, eintauchen, freivorschub
+        )
     return fw.zeit_im_freien(form, stand, bahn.punkte, vorschub, eintauchen, freivorschub)

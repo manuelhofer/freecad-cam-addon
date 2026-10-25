@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-61/-62 flanke-vor-der-spirale, frage-erst-vorbohren
+
+### EINGELESEN
+- Manuels tiefe Tasche (Kopie), Weg „Flanke grob, Spirale fertig“: Der Job hatte „3D-Schlichten
+  T2“ vor „Flanke T1“ – die Spirale schlichtete die Wände, bevor die Flanke sie mit 0,3 mm
+  Aufmaß schruppte.
+- W-039, Manuel: „hey wie willst du vorgehen sollen wir erst vorborhren (bei egal welchem teil
+  immer wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?) und dann weiter machen oder
+  sollen wir alles rausschruppen und dann schlichten“ – „weg 1 ist so und so [vorschau button]
+  weg 2 ist so und so [vorschau button]“.
+- Manuel, abends, vor der Nacht: „Erst alles schruppen, dann schlichten“ mit Bohren, Senken,
+  Gewinde zwischen Schruppen und Schlichten; Werkzeugwechsel je Maschine, vorbelegt 10 s (W-040);
+  Postprozessoren „alle !“ (W-041); zur Bohrzeit im Wettbewerb: „who cares about 0.9 min“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_in_anlege_reihe` mit der Form – bei „Spirale“ die Flanke vor das
+  3D-Schlichten; die Frage „Wo der Fräser ins Volle eintauchen muss – erst vorbohren?“
+  (`frage_eintauchen`, `_eintauchen_*`, `_vorgebohrt_rechnen`, `_vorbohren_satz`, `_Bohrlinien`);
+  die Zeiten beider Fragen für alles Angehakte (`_zeit_ohne`, `_mit_anderen`); `_Frage` mit
+  `satz_setzen`, `waehlen` und einem Tooltip an der Zeit.
+- `camaddon/raeumen.py`, `camaddon/nut.py`, `camaddon/bearbeitung_vorschau.py`:
+  `Vorbohren.ohne_punkte` / `ohne_frei` – die Bahn ohne Löcher und ihre Zeit im Freien.
+- `translations/de.json`, `en.json`; `tests/gui/szenario_frage_eintauchen.py` (neu).
+
+### ERGEBNIS
+- Tasche (Kopie): „Flanke T1“ (7514 Sätze), dann „3D-Schlichten T2“ (41788) – die Bahnen wie
+  vorher.
+- Klotz mit geschlossener Tasche (Szenario): die Frage, „Erst vorbohren“ gewählt, 1 Loch Ø 12,5,
+  beide Wege mit Zeit; „Vorschau“ zeigt Loch und Räumen; „Schraubend eintauchen“ nimmt „Vorbohren“
+  ab, kein Vorbohren im Job.
+- Gehäuseunterteil (Kopie): Erst vorbohren 36 min, schraubend 35 min (alles Angehakte); hin und
+  zurück dieselben Zahlen.
+- Prüfungen: test_raeumen, test_nut, szenario_frage_eintauchen grün.
+
 ## P-2026-10-25-58/-59/-60 schneide-ueber-der-kugel, magazin-im-programm, raeumen-neben-der-nut
 
 ### EINGELESEN

@@ -22,6 +22,7 @@ import html
 import math
 import os
 import traceback
+import types
 from collections import OrderedDict
 
 import FreeCAD
@@ -257,7 +258,7 @@ class _Frage:
         kopf.setWordWrap(True)
         aufbau.addWidget(kopf)
         self.gruppe = QtGui.QButtonGroup(self.widget)
-        self.knoepfe, self.zeiten, self.vorschau_knoepfe = {}, {}, {}
+        self.knoepfe, self.zeiten, self.vorschau_knoepfe, self.saetze = {}, {}, {}, {}
         for kennung, kurz, satz in wege:
             zeile = QtGui.QHBoxLayout()
             zeile.setContentsMargins(0, 0, 0, 0)
@@ -267,6 +268,7 @@ class _Frage:
             self.gruppe.addButton(auswahl)
             zeile.addWidget(auswahl, 1)
             zeit = _grau()
+            zeit.setToolTip(tr("ba.frage.zeit.tooltip"))
             zeile.addWidget(zeit)
             zeigen = knopf(
                 tr("ba.frage.vorschau"),
@@ -283,6 +285,19 @@ class _Frage:
             self.knoepfe[kennung] = auswahl
             self.zeiten[kennung] = zeit
             self.vorschau_knoepfe[kennung] = zeigen
+            self.saetze[kennung] = erklaerung
+
+    def satz_setzen(self, kennung, satz):
+        self.saetze[kennung].setText(satz)
+
+    def waehlen(self, kennung):
+        """Zeigt den Weg `kennung` gewählt, ohne `gewechselt` zu rufen – er ist es schon (ein
+        Haken bei den Einstellungen sagt dasselbe)."""
+        for auswahl in self.knoepfe.values():
+            auswahl.blockSignals(True)
+        self.knoepfe[kennung].setChecked(True)
+        for auswahl in self.knoepfe.values():
+            auswahl.blockSignals(False)
 
     def zeit_setzen(self, kennung, minuten):
         """„etwa 12 min“ – None: „rechnet …“, False: „geht hier nicht“."""
@@ -300,6 +315,31 @@ class _Frage:
             zeigen.blockSignals(True)
             zeigen.setChecked(k == kennung)
             zeigen.blockSignals(False)
+
+
+def _mit_anderen(minuten, andere):
+    """Die Zeit eines Wegs (`minuten`, None: rechnet, False: geht nicht) mit der der anderen
+    angehakten Blöcke."""
+    if minuten is None or isinstance(minuten, bool):
+        return minuten
+    return minuten + andere
+
+
+class _Bohrlinien:
+    """Die Löcher des Vorbohrens (raeumen.Vorbohren) als Bahn für die Vorschau im 3D: je Loch aus
+    5 mm über dem Rohteil senkrecht hinab und wieder hinauf."""
+
+    def __init__(self, gebohrt):
+        self.gebohrt = gebohrt
+        loecher = gebohrt.je_loch()
+        oben = gebohrt.tiefe + min(float(lo[2]) for lo in loecher) + 5.0
+        self.punkte = []
+        for x, y, z, *_bohrer in loecher:
+            self.punkte += [
+                bn.Punkt(True, x, y, oben),
+                bn.Punkt(False, x, y, z),
+                bn.Punkt(True, x, y, oben),
+            ]
 
 
 class _Angebot:
@@ -4683,6 +4723,7 @@ class _Block:
         self.material.setText("")
         self.hinweis.setText("")
         self._angebot_flaechen = list(flaechen)  # für _bohrer_angebot
+        self.zusatz_zuletzt = dict(zusatz or {})  # für den anderen Weg einer Frage (W-039)
         werkzeug, einsatz = self.fraeser(), self.einsatz()
         if werkzeug is None or einsatz is None:
             nur_radial = getattr(self, "_nur_radial", False)
@@ -4745,6 +4786,7 @@ class _Block:
                 if frei is not None
                 else _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
             )
+        self._ohne_vorbohren_rechnen(job, werkzeug, werte, vorschub, senkrecht)
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
         self.ergebnis_basis = self._mit_ecken(
             self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
@@ -4760,6 +4802,20 @@ class _Block:
         if isinstance(self.s, _Raeumen) and getattr(self.vorschau, "variante", None) == "adaptiv":
             self._genau_starten(job, werkzeug, werte, flaechen)
         self._merken(merk, schluessel)
+
+    def _ohne_vorbohren_rechnen(self, job, werkzeug, werte, vorschub, senkrecht):
+        """Die Zeit des Wegs ohne Vorbohren (raeumen.Vorbohren.ohne_frei) wie die eigene – im
+        Nebenrechner schon gerechnet, sonst hier (die Frage „Eintauchen“, W-039)."""
+        vorgebohrt = getattr(self.vorschau, "vorbohren", None)
+        if vorgebohrt is None or not vorgebohrt.ohne_punkte or vorgebohrt.ohne_frei is not None:
+            return
+        if vorschub <= 0:
+            return
+        ohne = types.SimpleNamespace(punkte=vorgebohrt.ohne_punkte)
+        if self.s.kennung in IM_FREIEN_SCHNELL:
+            vorgebohrt.ohne_frei = _zeit_im_freien(job, werkzeug, werte, ohne, vorschub, senkrecht)
+        else:
+            vorgebohrt.ohne_frei = self.s.zeit(ohne, vorschub, senkrecht)
 
     def _genau_starten(self, job, werkzeug, werte, flaechen):
         """Die genaue Bahn des Räumens schon jetzt in einem Nebenrechner (W-036; Manuel,
@@ -5972,6 +6028,25 @@ class BearbeitungPanel:
             lambda weg: self._weg_zeigen("waende", weg),
         )
         self.frage_waende.widget.hide()
+        # Wo der Fräser ins Volle eintaucht: vorbohren oder schraubend? (Manuel, 2026-10-25: „hey
+        # wie willst du vorgehen sollen wir erst vorborhren … oder sollen wir alles rausschruppen
+        # und dann schlichten“) – dieselben Haken wie bei Räumen und Nut („Vorbohren“).
+        self.frage_eintauchen = _Frage(
+            tr("ba.frage.eintauchen"),
+            [
+                (
+                    "vorbohren",
+                    tr("ba.frage.eintauchen.vorbohren"),
+                    tr("ba.frage.eintauchen.vorbohren.satz"),
+                ),
+                ("helix", tr("ba.frage.eintauchen.helix"), tr("ba.frage.eintauchen.helix.satz")),
+            ],
+            "vorbohren",
+            self._eintauchen_waehlen,
+            lambda weg: self._weg_zeigen("eintauchen", weg),
+        )
+        self.frage_eintauchen.widget.hide()
+        ziel[0].addWidget(self.frage_eintauchen.widget)
         ziel[0].addWidget(self.frage_waende.widget)
         # Je Strategie ein Haken mit ihrem Ergebnis – was zur Wahl passt oben, darunter
         # eingeklappt, was (noch) nicht passt (_bloecke_ordnen).
@@ -8660,7 +8735,8 @@ class BearbeitungPanel:
             block.knopf_vorschau.blockSignals(True)
             block.knopf_vorschau.setChecked(gezeigt == ("block", block.s.kennung))
             block.knopf_vorschau.blockSignals(False)
-        self.frage_waende.gezeigt(gezeigt[1] if gezeigt and gezeigt[0] == "waende" else None)
+        for frage, widget in (("waende", self.frage_waende), ("eintauchen", self.frage_eintauchen)):
+            widget.gezeigt(gezeigt[1] if gezeigt and gezeigt[0] == frage else None)
 
     def _weg_zeigen(self, frage, weg):
         """„Vorschau“: die Werkzeugwege des Wegs im 3D – noch ein Klick nimmt sie weg. Rechnet er
@@ -8701,17 +8777,40 @@ class BearbeitungPanel:
         return repr(teile)
 
     def _fragen_schritte(self, form):
+        """Die Fragen (W-039) nach dem Rechnen der Blöcke: „Eintauchen“, „Wände unter dem
+        Rand“."""
+        yield from self._eintauchen_schritte(form)
+        yield from self._waende_schritte(form)
+
+    def _frage_passt(self, frage, widget, passt):
+        """Zeigt die Frage, wenn sie passt – sonst weg, mit ihrer Vorschau im 3D."""
+        widget.widget.setVisible(passt)
+        gezeigt = getattr(self._bahnvorschau, "kennung", None)
+        if not passt and gezeigt is not None and gezeigt[0] == frage:
+            self._bahnvorschau.weg()
+            self._vorschau_knoepfe_setzen()
+
+    def _gezeigten_weg_erneuern(self, frage, woraus):
+        """Zeigte das 3D einen Weg der Frage, die neu gerechneten Wege."""
+        gezeigt = getattr(self._bahnvorschau, "kennung", None)
+        if gezeigt is not None and gezeigt[0] == frage:
+            eintrag = self._wege.get(gezeigt)
+            if eintrag is not None and eintrag[2] == woraus and eintrag[1]:
+                self._bahnvorschau.zeigen(gezeigt, eintrag[1], self._job_zum_teil())
+
+    def _waende_schritte(self, form):
         """Die Frage „Wände unter dem Rand“: zeigen, wenn es um solche Wände geht; die Zeit des
         gewählten Wegs aus den Blöcken, den anderen im Nebenrechner dazu (grob wie die
         Vorschau)."""
         frage = self.frage_waende
         passt = self.zu_aendern is None and bool(self._waende_unter_rand(form))
-        frage.widget.setVisible(passt)
+        self._frage_passt("waende", frage, passt)
         if not passt:
             return
         woraus = self._waende_woraus()
         jetzt = self._weg["waende"]
         bloecke = (self.flanke, self.schlichten3d)
+        andere = self._zeit_ohne(bloecke)
         if all(b.vorschau is not None and b.zeit is not None for b in bloecke):
             zeit = sum(b.zeit for b in bloecke)
             self._wege[("waende", jetzt)] = (zeit, [b.vorschau for b in bloecke], woraus)
@@ -8719,7 +8818,8 @@ class BearbeitungPanel:
             self._wege[("waende", jetzt)] = (False, [], woraus)  # einer der Blöcke steht rot
         for weg in frage.knoepfe:
             eintrag = self._wege.get(("waende", weg))
-            frage.zeit_setzen(weg, eintrag[0] if eintrag and eintrag[2] == woraus else None)
+            gilt = eintrag is not None and eintrag[2] == woraus
+            frage.zeit_setzen(weg, _mit_anderen(eintrag[0], andere) if gilt else None)
         for weg in frage.knoepfe:
             eintrag = self._wege.get(("waende", weg))
             if weg == jetzt or (eintrag is not None and eintrag[2] == woraus):
@@ -8728,12 +8828,15 @@ class BearbeitungPanel:
             if gerechnet is None:
                 gerechnet = (False, [])
             self._wege[("waende", weg)] = (*gerechnet, woraus)
-            frage.zeit_setzen(weg, gerechnet[0])
-        gezeigt = getattr(self._bahnvorschau, "kennung", None)
-        if gezeigt is not None and gezeigt[0] == "waende":
-            eintrag = self._wege.get(gezeigt)
-            if eintrag is not None and eintrag[2] == woraus and eintrag[1]:
-                self._bahnvorschau.zeigen(gezeigt, eintrag[1], self._job_zum_teil())
+            frage.zeit_setzen(weg, _mit_anderen(gerechnet[0], andere))
+        self._gezeigten_weg_erneuern("waende", woraus)
+
+    def _zeit_ohne(self, bloecke):
+        """Die Zeit aller angehakten Blöcke außer `bloecke` (min): Die Fragen zeigen je Weg die
+        Zeit für alles, was angehakt ist – sonst täuschten sie, wenn ein Weg den Wettbewerb
+        verschiebt (ohne Vorbohren nahm das Räumen am Gehäuseunterteil dem Planfräsen die
+        Oberseite ab: 11 min statt 13)."""
+        return sum(b.zeit for b in self.aktive_bloecke() if b not in bloecke and b.zeit is not None)
 
     def _weg_rechnen(self, form, frage, weg):
         """(Minuten, [Vorschau je Block]) der Blöcke der Frage, gerechnet, als wäre `weg` gewählt
@@ -8771,6 +8874,177 @@ class BearbeitungPanel:
             if vorschub > 0:
                 zeit += block.s.zeit(bahn, vorschub, senkrecht)
         return zeit, bahnen
+
+    def _eintauchen_waehlen(self, weg):
+        """Die Frage „Eintauchen“: „Vorbohren“ bei Räumen und Nut an oder ab (die Haken bei ihren
+        Einstellungen sagen dasselbe), dann neu rechnen."""
+        an = weg == "vorbohren"
+        for block in (self.raeumen, self.nut):
+            haken = block.haken_felder.get("vorbohren")
+            if haken is not None and haken.isEnabled() and haken.isChecked() != an:
+                haken.blockSignals(True)
+                haken.setChecked(an)
+                haken.blockSignals(False)
+        self.vorschau_starten()
+
+    def _eintauchen_bloecke(self):
+        """Räumen und Nut, angehakt und gerechnet, die ins Volle eintauchen und vorbohren könnten
+        (ihr Haken „Vorbohren“ geht – ein Bohrer im Magazin): vorgebohrt, oder „Vorbohren“ ist
+        abgehakt und es gibt Stellen, an denen sie eintauchen."""
+        bloecke = []
+        for block in (self.raeumen, self.nut):
+            haken = block.haken_felder.get("vorbohren")
+            bahn = block.vorschau
+            if not block.aktiv() or bahn is None or block.zeit is None:
+                continue
+            if haken is None or not haken.isEnabled():
+                continue
+            if getattr(bahn, "vorbohren", None) is not None:
+                bloecke.append(block)
+            elif not haken.isChecked():
+                if block is self.nut:
+                    taucht_ein = any(not e[5] for e in (getattr(bahn, "eintauchen", None) or []))
+                else:
+                    taucht_ein = bool(ra.vorbohr_stellen(bahn))
+                if taucht_ein:
+                    bloecke.append(block)
+        return bloecke
+
+    def _eintauchen_woraus(self, bloecke, form):
+        """Woraus die Wege der Frage „Eintauchen“ gerechnet sind – alles außer dem Haken
+        „Vorbohren“ selbst (so gilt der andere Weg nach dem Wählen weiter, solange die Blöcke
+        dieselben Flächen haben)."""
+        teile = [tuple(self.gewaehlte)]
+        for block in bloecke:
+            werte = {k: v for k, v in block.werte().items() if k != "vorbohren"}
+            zusatz = getattr(block, "zusatz_zuletzt", {})
+            teile.append(
+                (
+                    block.s.kennung,
+                    tuple(self._flaechen(block, form)),
+                    getattr(block.fraeser(), "kennung", None),
+                    repr(block.einsatz()),
+                    repr(sorted(werte.items())),
+                    repr(sorted((k, repr(v)) for k, v in zusatz.items() if k != "materialstand")),
+                    getattr(zusatz.get("materialstand"), "kennung", None),
+                )
+            )
+        return repr(teile)
+
+    def _eintauchen_schritte(self, form):
+        """Die Frage „Eintauchen“: zeigen, wenn Räumen oder Nut ins Volle eintauchen und
+        vorbohren könnten. Ohne Vorbohren aus den Blöcken (vorgebohrt haben sie den Weg ohne
+        mitgerechnet: raeumen.Vorbohren.ohne_punkte), mit Vorbohren aus ihnen, wenn sie
+        vorgebohrt haben, sonst im Nebenrechner dazu."""
+        frage = self.frage_eintauchen
+        bloecke = self._eintauchen_bloecke() if self.zu_aendern is None else []
+        self._frage_passt("eintauchen", frage, bool(bloecke))
+        if not bloecke:
+            return
+        an = any(b.haken_felder["vorbohren"].isChecked() for b in bloecke)
+        frage.waehlen("vorbohren" if an else "helix")
+        woraus = self._eintauchen_woraus(bloecke, form)
+        andere = self._zeit_ohne(bloecke)
+        zeit, bahnen = 0.0, []
+        for block in bloecke:
+            gebohrt = getattr(block.vorschau, "vorbohren", None)
+            if gebohrt is None:
+                zeit += block.zeit
+                bahnen.append(block.vorschau)
+            elif gebohrt.ohne_frei is not None and gebohrt.ohne_punkte:
+                zeit += gebohrt.ohne_frei
+                bahnen.append(types.SimpleNamespace(punkte=gebohrt.ohne_punkte))
+            else:
+                zeit, bahnen = False, []
+                break
+        self._wege[("eintauchen", "helix")] = (zeit, bahnen, woraus)
+        if all(getattr(b.vorschau, "vorbohren", None) is not None for b in bloecke):
+            zeit, bahnen = 0.0, []
+            for block in bloecke:
+                zeit += block.zeit + block.vorschau.vorbohren.zeit
+                bahnen += [_Bohrlinien(block.vorschau.vorbohren), block.vorschau]
+            self._wege[("eintauchen", "vorbohren")] = (zeit, bahnen, woraus)
+        for weg in frage.knoepfe:
+            eintrag = self._wege.get(("eintauchen", weg))
+            gilt = eintrag is not None and eintrag[2] == woraus
+            frage.zeit_setzen(weg, _mit_anderen(eintrag[0], andere) if gilt else None)
+        eintrag = self._wege.get(("eintauchen", "vorbohren"))
+        if eintrag is None or eintrag[2] != woraus:
+            gerechnet = yield from self._vorgebohrt_rechnen(form, bloecke)
+            eintrag = (*(gerechnet or (False, [])), woraus)
+            self._wege[("eintauchen", "vorbohren")] = eintrag
+            frage.zeit_setzen("vorbohren", _mit_anderen(eintrag[0], andere))
+        frage.satz_setzen("vorbohren", self._vorbohren_satz(eintrag[1]))
+        self._gezeigten_weg_erneuern("eintauchen", woraus)
+
+    def _vorgebohrt_rechnen(self, form, bloecke):
+        """(Minuten, [Vorschau]) des Wegs „vorbohren“: Blöcke, die schon vorgebohrt haben, wie sie
+        sind; die anderen mit „Vorbohren“ gerechnet – im Nebenrechner, wenn es geht, mit dem, was
+        der Assistent ihnen zuletzt gab (Materialstand, Bohrer). None, wenn es nicht geht oder
+        nirgends vorgebohrt würde."""
+        zeit, bahnen = 0.0, []
+        for block in bloecke:
+            bahn = block.vorschau
+            minuten = block.zeit
+            if getattr(bahn, "vorbohren", None) is None:
+                werkzeug, einsatz = block.fraeser(), block.einsatz()
+                _n, vorschub, senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
+                werte = dict(block.werte(), vorschub=vorschub, eintauchen=senkrecht)
+                werte.update(getattr(block, "zusatz_zuletzt", {}))
+                werte["vorbohren"] = True
+                flaechen = self._flaechen(block, form)
+                auftrag = block._im_hintergrund(
+                    self.job, werkzeug, werte, flaechen, vorschub, senkrecht
+                )
+                frei = None
+                if auftrag is not None:
+                    yield auftrag
+                    gerechnet = _aus_dem_hintergrund(auftrag)
+                    if gerechnet is None or gerechnet[0] != "ok":
+                        return None
+                    bahn, frei = gerechnet[1]
+                else:
+                    try:
+                        bahn = block.s.vorschau(self.job, werkzeug, werte, flaechen)
+                    except (ValueError, RuntimeError):
+                        return None
+                    yield
+                if frei is None and block.s.kennung in IM_FREIEN_SCHNELL:
+                    frei = _zeit_im_freien(self.job, werkzeug, werte, bahn, vorschub, senkrecht)
+                minuten = frei if frei is not None else block.s.zeit(bahn, vorschub, senkrecht)
+            gebohrt = getattr(bahn, "vorbohren", None)
+            if gebohrt is not None:
+                minuten += gebohrt.zeit
+                bahnen.append(_Bohrlinien(gebohrt))
+            zeit += minuten
+            bahnen.append(bahn)
+        if not any(isinstance(b, _Bohrlinien) for b in bahnen):
+            return None
+        return zeit, bahnen
+
+    def _vorbohren_satz(self, bahnen):
+        """Der Satz zum Weg „vorbohren“: wie viele Löcher, welcher Ø, wie tief – ohne gerechnete
+        Löcher der allgemeine."""
+        gebohrt = [b.gebohrt for b in bahnen if isinstance(b, _Bohrlinien)]
+        loecher = [lo for g in gebohrt for lo in g.je_loch()]
+        if not loecher:
+            return tr("ba.frage.eintauchen.vorbohren.satz")
+        durchmesser = " / ".join(
+            f"Ø {groesse_zeigen(d, einheiten.LAENGE, 1) or '0'}"
+            for d in sorted({round(float(lo[3]), 2) for lo in loecher}, reverse=True)
+        )
+        werte = {
+            "n": len(loecher),
+            "d": durchmesser,
+            "tiefe": groesse_zeigen(max(g.tiefe for g in gebohrt), einheiten.LAENGE, 0) or "0",
+        }
+        schluessel = "ein_loch" if len(loecher) == 1 else "loecher"
+        satz = tr(f"ba.frage.eintauchen.vorbohren.{schluessel}", **werte)
+        if any(not g.loecher and g.geholfen <= 0 for g in gebohrt):  # das Räumen, adaptiv
+            satz += " " + tr("ba.frage.eintauchen.vorbohren.adaptiv")
+        if any(g.zu_kurz for g in gebohrt):
+            satz += " " + tr("ba.raeumen.vorbohren.zu_kurz")
+        return satz
 
     # --- Das Teil muss herauskommen (Grundsatz 0) -------------------------------------------
 
@@ -9637,13 +9911,24 @@ class BearbeitungPanel:
             text = tr("ba.kontur.nach_raeumen", text=self.kontur.ergebnis_basis)
         self.kontur.ergebnis.setText(text)
 
-    def _in_anlege_reihe(self, bloecke):
+    def _in_anlege_reihe(self, bloecke, form=None):
         """`bloecke` in der Reihenfolge, in der sie in den Job kommen: „Schlichten danach“ hinter
         der Nut gleich nach ihr (und nach dem Räumen, wenn es angehakt ist) – Nut, Messstopp, Nut
         schlichten (P-2026-10-17-41). Dieselbe Reihenfolge gilt für den Materialstand der
         Vorschau (P-2026-10-18-64: sonst stand „Schlichten danach“ vor der Nut, nahm ihr alles weg,
-        und die Nut verlor bei jeder Änderung den Haken – „Hier ist nichts mehr zu tun“)."""
+        und die Nut verlor bei jeder Änderung den Haken – „Hier ist nichts mehr zu tun“). Bei
+        „Flanke grob, Spirale fertig“ (W-039, mit `form`) die Flanke vor das 3D-Schlichten – in
+        STRATEGIEN steht es davor, und die Spirale schlichtete die Wände, bevor die Flanke sie
+        schruppt (P-2026-10-25-61)."""
         reihe = list(bloecke)
+        if (
+            form is not None
+            and self.flanke in reihe
+            and self.schlichten3d in reihe
+            and self._spirale_nach_flanke(form)
+        ):
+            reihe.remove(self.flanke)
+            reihe.insert(reihe.index(self.schlichten3d), self.flanke)
         danach = self.schlichten_danach
         if danach not in reihe or not danach.aktiv():
             return reihe
@@ -9672,7 +9957,7 @@ class BearbeitungPanel:
             return (yield from mst.fuer_schritte(self.job, vor=self.zu_aendern))
         eigene = set(self._flaechen(block, form) if flaechen is None else flaechen)
         dazu = []
-        for anderer in self._in_anlege_reihe(self.bloecke):
+        for anderer in self._in_anlege_reihe(self.bloecke, form):
             if anderer is block:
                 break
             werkzeug = anderer.fraeser()
@@ -9884,7 +10169,7 @@ class BearbeitungPanel:
             return None
         kennungen = {w.kennung for w in schaft}
         im_job = {}
-        for anderer in self._in_anlege_reihe(self.bloecke):
+        for anderer in self._in_anlege_reihe(self.bloecke, form):
             if anderer is block:
                 break
             werkzeug = anderer.fraeser() if anderer.aktiv() else None
@@ -11254,7 +11539,7 @@ class BearbeitungPanel:
         Fenster: False."""
         self._genau_abholen(self.aktive_bloecke())
         form = vr.modell(self.job).Shape
-        aktive = self._in_anlege_reihe(self.aktive_bloecke())
+        aktive = self._in_anlege_reihe(self.aktive_bloecke(), form)
         if self.raeumen in aktive and not self._flaechen(self.raeumen, form):
             # Alle seine Flächen nimmt schon ein anderer (die Gründe der Nut) – ohne Fläche
             # räumte die Operation das ganze Teil.

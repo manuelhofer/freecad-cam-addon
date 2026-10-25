@@ -285,6 +285,7 @@ def vorschau(
         zu_kurz=zu_kurz,
         geholfen=sum(1 for e in (neu.eintauchen or []) if e[5]),
         loecher=loecher,
+        ohne_punkte=list(bahn.punkte),
     )
     return neu
 

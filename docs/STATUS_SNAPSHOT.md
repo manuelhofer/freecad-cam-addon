@@ -530,7 +530,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.293.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 abends (0.295.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.294.0–0.295.0):* „Vorschau“ neben jedem Haken; die Schneide über der Kugel geprüft
+  (Spirale an Manuels Tasche: „Kollision prüfen“ meldet nichts mehr ins Teil, nur den Schaft
+  0,62 mm nah); Werkzeuglänge aus dem Magazin auch im Programm; Räumen neben der Nut ohne leere
+  Operation; die Flanke vor der Spirale; die Frage „erst vorbohren?“ (W-039). Manuels Antworten
+  am Abend: „Erst alles schruppen, dann schlichten“ mit Bohren, Senken, Gewinde dazwischen (nächste
+  Frage); Werkzeugwechselzeit je Maschine, vorbelegt 10 s (W-040); Postprozessoren: „alle !“ –
+  Siemens 840D, Heidenhain TNC 640, Fanuc/Haas, weitere (W-041). Kleinkram (0,9 min Bohrzeit im
+  Wettbewerb) nicht fragen: „who cares about 0.9 min“.
 - *Neu (0.290.1–0.293.0):* Bohren mit mehreren Bohrern, Bohrer mit der Spitze der Sackbohrung
   (140° VHM), Senkung bis Ø 31 (größer: Fase), Meldung, wenn das Modell nicht rechnet; Nebenrechner
   als Zahl von 1 bis zu den Kernen (einmal zurück auf alle); Homag/Weeke woodWOP (MPR); die
@@ -1891,6 +1899,14 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   4,7 s im einen Nebenrechner am Anfang. Danach rechnet das Fenster gut 6 s allein: die Form
   lesen, `richte_ein` und die Einfahrbewegung des Teils (70 Bilder mit dem Netz des Geists) –
   Zeichnen, nicht verteilbar.
+- **W-041 Postprozessoren „perfekt“ für alle verbreiteten Steuerungen** – Manuel, 2026-10-25
+  („generell ... für die bekantesten steuerungen einen post prozessor bauen der perfetkt ist“;
+  abends auf die Frage, welche zuerst: „alle !“). Siemens 840D (CYCLE800, Bohrzyklen, TRAORI),
+  Heidenhain TNC 640 (Zyklen 200 ff., PLANE, M128), Fanuc/Haas (G68.2, G43.4, G81–G89), dazu
+  neue: Okuma OSP, Mazak (EIA/ISO), Brother, GRBL. Ohne Maschine nicht prüfbar – nach den
+  Handbüchern, beim Nachlesen geprüft (programm_pruefen).
+- **W-040 Werkzeugwechsel in der Zeit** – Manuel, 2026-10-25 abends: je Maschine eintragbar,
+  vorbelegt 10 s; die Fragen (W-039) und der Wettbewerb zählen die Wechsel mit.
 - **W-039 Der Assistent fragt, wie man vorgehen will** – Manuel, 2026-10-25 (Antwort auf Frage 6,
   die aus seinem Vorschlag zu Frage 4 kam: „hey wie willst du vorgehen sollen wir erst vorbohren …
   oder sollen wir alles rausschruppen und dann schlichten“): „ja irgendwie mehr abfragen wie der
