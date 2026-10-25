@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-68 mazak
+
+### EINGELESEN
+- W-041 (Manuel: „alle !“). Programmierhandbuch MAZATROL MATRIX EIA/ISO (H740PB0030E), Reihe M:
+  „G84.2 [Xx Yy] Rr Zz [Ptc] Ff0 … f0 : Feed rate (in pitch)“, G84.3 links, Alarm 952 ohne Option;
+  „Tool tip point control (Type 1) ON G43.4“; G73, G81–G85 wie Fanuc.
+- Okuma (OSP-P200M) und Brother (CNC-B00): Handbuchseiten mit Bot-Prüfung bzw. abgelaufenem
+  Zertifikat – nicht umgangen, nicht gebaut.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Steuerung „mazak“; `Steuerung.gewinde_g`, `gewinde_f_steigung`.
+- `tests/test_postprozessor.py`; `help/*/programm.html`; `docs/spezifikation_steuerung.md` 17.
+
+### ERGEBNIS
+- M10 × 1,5: `G84.2 X60.000 Y30.000 Z6.500 R24.000 F1.5000`, links `G84.3 … F1.5000`; nachgelesen
+  ohne Befund.
+- Prüfungen: test_postprozessor, test_programm_pruefen grün.
+
 ## P-2026-10-25-66/-67 grbl, programmkopf-werkzeugliste, ausspannen-vor-empfehlung
 
 ### EINGELESEN

@@ -721,3 +721,15 @@ kommt auch am anfang ein Anfang sprungpunkt“ – „und das bei jedem post pro
   „(RAEUMEN_T1 – Räumen T1)“ – so findet die Suche den Namen.
 - Für jede Steuerung derselbe Kopf; woodWOP trägt ihn in den Kommentarblock (KM-Zeilen).
 - Geprüft: `tests/test_programmkopf.py`, `test_postprozessor_grbl.py`, `test_mpr.py`.
+
+## 17. Mazak EIA/ISO (P-2026-10-25-68, W-041)
+
+Nach dem Programmierhandbuch MAZATROL MATRIX EIA/ISO (H740PB0030E), G-Code-Reihe M (Fräsen):
+wie Fanuc (Programmnummer, G43 H, G81–G85 und G73 mit denselben Adressen, Satznummer als Marke),
+dazu:
+- Gewindebohren synchron als **G84.2** (rechts) und **G84.3** (links), **F ist die Steigung**
+  (14-5-21: „f0 : Feed rate (in pitch)“) – `Steuerung.gewinde_g`, `gewinde_f_steigung`. Ohne die
+  Option „synchronous tapping“ meldet die Steuerung Alarm 952.
+- 5 Achsen mit TCPM: G43.4 H… / G49 (Tabelle der G-Codes: „Tool tip point control (Type 1) ON“).
+- Endung `.eia`. Okuma (OSP) und Brother: die Handbücher waren nicht erreichbar (Seiten mit
+  Bot-Prüfung bzw. abgelaufenem Zertifikat) – nicht gebaut, bis eins vorliegt.

@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.299.0):* Mazak EIA/ISO (G84.2/G84.3 mit F = Steigung, G43.4). Okuma und Brother offen:
+  kein Handbuch erreichbar (Bot-Prüfung, Zertifikat).
 - *Neu (0.298.0):* GRBL 1.1; der Programmkopf mit Werkzeugliste (Ø, Auskragung, ab Spindelnase,
   Halter, für welche Bearbeitungen), Sprungmarken mit Werkzeug und ANFANG – bei jeder Steuerung
   (Manuel, nachts); „ausspannen“ vor einer Empfehlung, die einen anderen Halter will; die

@@ -207,6 +207,11 @@ class Steuerung:
     # Vor dem ersten G84/G74 einer Folge ({s}: die Drehzahl) – Fanuc „M29 S…“: Gewindebohren ohne
     # Ausgleichsfutter. Leer: nichts.
     gewinde_vorher: str = ""
+    # Ohne `gewinde`: so heißen Gewindebohren rechts und links im Programm (Mazak G84.2/G84.3:
+    # synchron), und ob F dort die Steigung ist (Mazak: „Feed rate (in pitch)“) statt des
+    # Vorschubs Steigung · Drehzahl.
+    gewinde_g: tuple = ("G84", "G74")
+    gewinde_f_steigung: bool = False
     # Eine endlos drehende Rundachse als Moduloachse (0 … unter 360°; Manuel, 2026-10-05, Siemens:
     # „Fehler 16830 … falsche Position bei Achse/Spindel C4 programmiert“): {wert} die Position
     # im Bereich, je nach Drehrichtung der Bahn (Siemens ACP/ACN). Leer: der Winkel fortlaufend,
@@ -470,6 +475,41 @@ STEUERUNGEN = {
         g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
+        kopf_drehmaschine="%\nO0001 {kommentar_name}\nG21 G40 G80 G97 G98",
+    ),
+    # Mazak EIA/ISO, G-Code-Reihe M (Programmierhandbuch MAZATROL MATRIX EIA/ISO, H740PB0030E):
+    # wie Fanuc; Gewindebohren synchron als G84.2/G84.3 mit F = Steigung (14-5-21: „G84.2 [Xx Yy]
+    # Rr Zz [Ptc] Ff0 … f0 : Feed rate (in pitch)“ – ohne die Option Alarm 952), Werkzeugspitze
+    # mit G43.4 (Tabelle 3: „Tool tip point control (Type 1) ON G43.4“), die Bohrzyklen G73, G81–G85
+    # mit denselben Adressen.
+    "mazak": Steuerung(
+        "mazak",
+        "Mazak (EIA/ISO)",
+        ".eia",
+        "(",
+        "%\nO0001 {kommentar_name}\nG17 G21 G40 G49 G80 G90",
+        _ENDE,
+        "G18",
+        "T{t} M6",
+        "T{t} M6",
+        "M{m} S{s}",
+        "M5",
+        "M{m} S{s}",
+        "M5",
+        "",
+        "",
+        "G93",
+        "G94",
+        "G98",
+        marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
+        vom_hersteller=("angetrieben_ein", "angetrieben_aus", "c_ein", "c_aus"),
+        wechselpunkt_vorschlaege=_MKS,
+        laenge_ein="G43 H{t}",
+        tcpm_ein="G43.4 H{t}",
+        tcpm_aus="G49",
+        gewinde_g=("G84.2", "G84.3"),
+        gewinde_f_steigung=True,
+        g90_drehen=False,
         kopf_drehmaschine="%\nO0001 {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
     "haas": Steuerung(
@@ -1418,7 +1458,7 @@ def programm(
                 # FreeCADs Brennschneiden (26.3) zündet mit „G1 F0“ an der Stelle, wo es steht –
                 # nichts zu fahren, und F0 lehnen Mach3 und LinuxCNC ab (Forum, t=107926).
                 continue
-            woerter = [gross]
+            woerter = [s.gewinde_g[GEWINDE.index(gross)] if gross in GEWINDE else gross]
             bewegung = gross in BEWEGUNG
             if laenge_offen and bewegung and ("Z" in parameter or info.drehmaschine):
                 # An der Fräse im Satz mit Z (in X und Y oben fährt nichts an), an der
@@ -1444,6 +1484,9 @@ def programm(
                     # Vorschub hieße F0 „steh“ (Mach3 und LinuxCNC lehnen es ab): das F davor gilt.
                     continue
                 if gross in BOGEN and adresse == QUER_ZUR_EBENE[ebene] and abs(wert) < 1e-9:
+                    continue
+                if adresse == "F" and steigung is not None and s.gewinde_f_steigung:
+                    woerter.append(_wort(s, "F", _zahl(abs(steigung), 4)))  # die Steigung
                     continue
                 if adresse == "F":
                     wert *= 60.0 * faktor

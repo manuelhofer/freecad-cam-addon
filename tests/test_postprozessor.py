@@ -671,6 +671,12 @@ pruefe(
     and not any(x.startswith("G84") for x in z_g),
     f"Siemens CYCLE84: {z_g}",
 )
+# Mazak (Series M): synchron als G84.2 / G84.3, F ist die Steigung (Handbuch 14-5-21).
+z_m = pp.programm([rechts], pp.steuerung("mazak"), fraese, "G")
+pruefe("G84.2 X60.000 Y30.000 Z6.500 R24.000 F1.5000" in z_m.zeilen, f"Mazak G84.2: {z_m.zeilen}")
+pruefe(not pp.nachlesen(z_m, pp.steuerung("mazak"), fraese)[0], "Mazak nachgelesen")
+z_m = pp.programm([links], pp.steuerung("mazak"), fraese, "G").zeilen
+pruefe("G84.3 X60.000 Y30.000 Z6.500 R24.000 F1.5000" in z_m, f"Mazak G84.3: {z_m}")
 z_g = pp.programm([links], pp.steuerung("siemens"), fraese, "G").zeilen
 pruefe("CYCLE84(24.000,24.000,0,6.500,,0.000,4,,-1.500,0,255,255)" in z_g, f"links: {z_g}")
 langsam = pp.Maschineninfo("Fräse")
