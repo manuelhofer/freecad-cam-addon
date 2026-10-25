@@ -632,6 +632,15 @@ pruefe(
     not any(" Y" in x for x in p_my.zeilen if not x.startswith(";")) and not p_my.hinweise,
     f"Y0 ohne Y-Achse: {p_my.zeilen[-12:]} {p_my.hinweise}",
 )
+# Eine Fräse mit anders benannter Achse („Hub“ statt Z): nichts fällt weg, auch nicht Z0.
+hub = pp.Maschineninfo("Fräse")
+hub.linear = {"X", "Y", "H"}
+z_hub = pp.programm([mitte], pp.steuerung("linuxcnc"), hub, "H").zeilen
+pruefe(
+    any(" Y0.000" in x for x in z_hub)
+    and not pp.programm([mitte], pp.steuerung("linuxcnc"), hub, "H").hinweise,
+    f"Fräse ohne Z-Name: {z_hub[-8:]}",
+)
 p_y5 = pp.programm([bohren], pp.steuerung("siemens"), ohne_y, "Y")
 pruefe(any("keine Y-Achse" in h for h in p_y5.hinweise), f"Y10 ohne Y-Achse: {p_y5.hinweise}")
 gewinde_d = pp.Abschnitt(

@@ -1879,7 +1879,7 @@ def programm(
                         continue
                     woerter.append(_wort(s, "F", _zahl(wert, STELLEN_G93 if g93 else STELLEN)))
                     continue
-                if adresse in ("X", "Y", "Z") and info.linear and adresse not in info.linear:
+                if adresse == "Y" and _ohne_y(info):
                     # Die Maschine hat diese Achse nicht (Y an der Drehmaschine): auf 0 weglassen –
                     # FreeCADs Bohren schreibt Y0 –, sonst stehen lassen (die Steuerung hält an)
                     # und sagen.
@@ -2030,8 +2030,8 @@ def _zyklus_als_befehl(
     (die Drehzahl war über der Höchstdrehzahl)."""
     zeilen = []
     lage = [a for a in ("X", "Y") if a in parameter]
-    if info is not None and info.linear:  # Y0 an der Drehmaschine ohne Y: weg
-        lage = [a for a in lage if a in info.linear or abs(float(parameter[a])) > 1e-9]
+    if _ohne_y(info):  # Y0 an der Drehmaschine ohne Y: weg
+        lage = [a for a in lage if a != "Y" or abs(float(parameter[a])) > 1e-9]
     durchmesser = info is not None and info.drehmaschine and info.x_durchmesser
     neu = [a for a in lage if stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9]
     if neu:  # schon über dem Loch: kein Satz
@@ -2088,8 +2088,8 @@ def _zyklus_ausgeschrieben(
         zeilen.append(satz + (f" {_wort(s, 'F', _zahl(f))}" if f else ""))
 
     lage = [a for a in ("X", "Y") if a in parameter]
-    if info is not None and info.linear:  # Y0 an der Drehmaschine ohne Y: weg
-        lage = [a for a in lage if a in info.linear or abs(float(parameter[a])) > 1e-9]
+    if _ohne_y(info):  # Y0 an der Drehmaschine ohne Y: weg
+        lage = [a for a in lage if a != "Y" or abs(float(parameter[a])) > 1e-9]
     if any(stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9 for a in lage):
         woerter = (
             _wort(
@@ -2274,6 +2274,17 @@ def _ohne_leerzeichen(zeilen, s):
         satz, klammer, rest = zeile.partition("(")
         ergebnis.append(satz.replace(" ", "") + klammer + rest)
     return ergebnis
+
+
+def _ohne_y(info):
+    """Eine Drehmaschine, deren Modell X und Z kennt, aber kein Y? Nur dann fällt „Y0“ weg –
+    sonst (eine Fräse, ein Modell mit anders benannten Achsen) bleibt jede Adresse."""
+    return bool(
+        info is not None
+        and info.drehmaschine
+        and {"X", "Z"} <= set(info.linear)
+        and "Y" not in info.linear
+    )
 
 
 def _zum_wechselpunkt(s, info):

@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-90 achsfilter-nur-drehmaschine-ohne-y
+
+### EINGELESEN
+- Nachgedacht über 0.306.2: Die Linearachsen kommen aus den NC-Namen der Maschine. Heißt eine
+  Achse in einem selbst gebauten Modell anders („Hub“), zählte Z als fehlend – „Z0“ fiele still
+  weg.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `_ohne_y` – nur eine Drehmaschine mit X und Z, aber ohne Y, lässt
+  „Y0“ weg; sonst bleibt jede Adresse. `tests/test_postprozessor.py` (Fräse mit „Hub“: Z0 und Y0
+  bleiben), `docs/spezifikation_steuerung.md` 24.
+
+### ERGEBNIS
+- Grün: test_postprozessor, _nachfahren, _zufall, test_stirnseite; szenario_programm,
+  _rundum_drehmaschine, _bearbeitung_drehmaschine, _stirn_bund, _g550_von_oben.
+
 ## P-2026-10-25-89 klartext-angetriebenes-werkzeug
 
 ### EINGELESEN
