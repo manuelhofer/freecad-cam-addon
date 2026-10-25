@@ -72,6 +72,7 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.DurchmesserDavor = 0.0  # 0: ganz schlichten; sonst Restschlichten
         obj.EckenradiusDavor = 0.0
+        obj.UnterRandSpirale = True  # unter dem Rand als Spirale hinab (neu: vorbelegt an)
         self._anstellen_vorbelegen(obj)
         self._editormodi(obj)
 
@@ -97,6 +98,8 @@ class Schlichten3D(PathOp.ObjectOp):
         if "SpielHalter" in neu and "Anstellen" not in neu:
             obj.SpielHalter = wk.SPIEL_HALTER
             obj.SpielSchaft = wk.SPIEL_SCHAFT
+        if "UnterRandSpirale" in neu:
+            obj.UnterRandSpirale = False  # gespeichert vor der Spirale: Linie für Linie wie damals
         if "Grenzwinkel" in neu:
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
         if "Winkel" in neu:
@@ -147,6 +150,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyAngle", "WegkippenBis", tr("wk.eigenschaft.bis")),
             ("App::PropertyLength", "SpielHalter", tr("wk.eigenschaft.spiel_halter")),
             ("App::PropertyLength", "SpielSchaft", tr("wk.eigenschaft.spiel_schaft")),
+            ("App::PropertyBool", "UnterRandSpirale", tr("s3.eigenschaft.spirale")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE_5ACHS, text)
@@ -329,7 +333,10 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         **weiter,
         **(
-            _koerper_des_controllers(obj.ToolController)
+            dict(
+                _koerper_des_controllers(obj.ToolController),
+                spirale=bool(getattr(obj, "UnterRandSpirale", False)),
+            )
             if str(obj.Richtung) == hb.HINTERSCHNITT
             else {}
         ),
@@ -437,12 +444,14 @@ def bahn_fuer(
     gleichlauf=True,
     koerper=None,
     schneide=0.0,
+    spirale=False,
 ):
     """Die Bahn „3D-Schlichten“ über die Flächen `flaechen` des Modells – mit `davor` (Form des
     Fräsers davor) nur der Rest; `gleichlauf` False: die Höhenlinien mit dem Material links (M4).
     Mit `richtung` „hinterschnitt“ und Flächen unter dem Rand die Höhenlinien mit gekippter Kugel
     (hinterschnitt_bahn.Bahn), Schaft und Halter frei – `koerper` [(von, bis, Radius)] über der
-    Schneide (`schneide` lang); None: die des Werkzeugs nicht bekannt, ein Schaft wie die Kugel.
+    Schneide (`schneide` lang); None: die des Werkzeugs nicht bekannt, ein Schaft wie die Kugel;
+    `spirale`: wo es rundum geht, als Spirale hinab (hinterschnitt_bahn._spirale).
     ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
@@ -470,6 +479,7 @@ def bahn_fuer(
                 # Außenradius – lieber zu viel Rest)
                 davor_radius=float(davor.radius) if davor is not None else 0.0,
                 freivorschub=fw.freivorschub_fuer(job),
+                spirale=bool(spirale),
             )
             return hb.planen(form_teil, [n for n in flaechen if str(n).startswith("Face")], werte_h)
         richtung = "auto"
@@ -655,9 +665,12 @@ def _gekippt(obj):
     return bool(getattr(obj, "Anstellen", False) or getattr(obj, "Wegkippen", False))
 
 
-def unter_dem_rand(obj, an_):
-    """Setzt die Richtung „hinterschnitt“ (an) oder „auto“ (aus, wenn sie es war) – ohne eigene
+def unter_dem_rand(obj, an_, spirale=None):
+    """Setzt die Richtung „hinterschnitt“ (an) oder „auto“ (aus, wenn sie es war) – mit
+    `spirale` (nicht None) auch, ob es unter dem Rand als Spirale hinabgeht. Ohne eigene
     Transaktion."""
+    if spirale is not None and "UnterRandSpirale" in obj.PropertiesList:
+        obj.UnterRandSpirale = bool(spirale)
     if an_:
         obj.Richtung = hb.HINTERSCHNITT
     elif str(obj.Richtung) == hb.HINTERSCHNITT:

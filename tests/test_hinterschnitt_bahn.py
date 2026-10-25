@@ -131,6 +131,47 @@ frei = [p for p in schnell.punkte if p.anteil > 1.0]
 print(ascii(f"Freivorschub: {schnell.zeit:.2f} statt {bahn.zeit:.2f} min, {len(frei)} Saetze"))
 pruefe(frei and schnell.zeit < bahn.zeit, f"Freivorschub: {schnell.zeit:.2f} min")
 pruefe(all(p.z > 10.0 + 2.0 for p in frei), "Freivorschub am Boden")
+
+# Als Spirale (Manuel, 2026-10-25: „mit halt einer spirale nach unten“): Die Tasche geht in jeder
+# Höhe rundum – je Umdrehung eine Linie tiefer, ohne Absatz von Linie zu Linie. Nirgends tiefer im
+# Teil als die Linien, der Schaft so frei wie dort, nicht langsamer.
+spirale = hb.planen(
+    teil, waende, hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, vorschub=1500.0, spirale=True)
+)
+s_vorschub = [(p, a) for p, a in zip(spirale.punkte, spirale.achsen, strict=True) if not p.eilgang]
+s_kugel = s_schaft = 99.0
+for p, a in s_vorschub[:: max(1, len(s_vorschub) // 300)]:
+    mitte = V(p.x, p.y, p.z + R)
+    s_kugel = min(s_kugel, teil.distToShape(Part.Vertex(mitte))[0] - R)
+    schaft = Part.LineSegment(mitte + V(*a) * (1.5 * R), mitte + V(*a) * 30.0).toShape()
+    s_schaft = min(s_schaft, teil.distToShape(schaft)[0] - R)
+
+
+def absaetze(b):
+    """Wie oft die Kugel im Vorschub von einer Linie zur nächsten hinabsetzt (mehr als 0,1 mm)."""
+    im = [p for p in b.punkte if not p.eilgang]
+    return sum(1 for p, q in zip(im, im[1:], strict=False) if q.z < p.z - 0.1)
+
+
+hinein, s_hinein = absaetze(bahn), absaetze(spirale)
+print(
+    ascii(
+        f"Spirale: {spirale.spiralen} Spirale(n), {s_hinein} statt {hinein} Absaetze, "
+        f"{spirale.zeit:.2f} statt {bahn.zeit:.2f} min, Kugel {s_kugel:.4f}, Schaft {s_schaft:.3f}"
+    )
+)
+pruefe(spirale.spirale and spirale.spiralen >= 1, f"{spirale.spiralen} Spiralen")
+pruefe(3 * s_hinein < hinein, f"Spirale: {s_hinein} Absätze, Linien {hinein}")
+pruefe(spirale.zeit <= bahn.zeit * 1.02, f"Spirale {spirale.zeit:.2f} min")
+pruefe(s_kugel > -0.03, f"Spirale: Kugel {s_kugel:.3f} mm im Teil")
+pruefe(s_schaft > hb.SPIEL_SCHAFT - hb.NETZ_TOLERANZ - 0.01, f"Spirale: Schaft {s_schaft:.3f}")
+# Hinab, nie hinauf: In der Spirale steigt die Kugel zwischen zwei Punkten nirgends.
+steigt = [
+    (p, q)
+    for p, q in zip(s_vorschub, s_vorschub[1:], strict=False)
+    if q[0].z > p[0].z + 0.05 and not q[0].eintauchen and abs(q[0].x - p[0].x) < 2.0
+]
+pruefe(len(steigt) <= 2 * spirale.spiralen, f"Spirale steigt {len(steigt)}-mal")
 try:
     hb.planen(teil, [], hb.Werte(radius=R, sicher=40.0))
     pruefe(False, "ohne Flächen kein Fehler")

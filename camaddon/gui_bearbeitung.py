@@ -3214,7 +3214,7 @@ def _job_der(op):
     return next((j for j in js.jobs(op.Document) if op in js.operationen(j)), None)
 
 
-KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt")  # 3D-Schlichten: nur mit 5 Achsen
+KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt", "spirale")  # 3D-Schlichten: 5 Achsen
 # Was im Grundjob einer Maschine mit waagerechter Spindel bleibt: die Strategien mit Achse je Satz.
 SIMULTAN_IM_GRUNDJOB = ("flanke", "schlichten3d", "restschlichten", "entgraten3d")
 
@@ -3257,6 +3257,8 @@ class _Schlichten3D(_Strategie):
             ("anstellen", tr("ba.s3.anstellen"), tr("ba.s3.anstellen.tooltip"), False),
             ("wegkippen", tr("ba.s3.wegkippen"), tr("ba.s3.wegkippen.tooltip"), False),
             ("hinterschnitt", tr("ba.s3.unter"), tr("ba.s3.unter.tooltip"), True),
+            # Manuel, 2026-10-25: „sozusagen abzeilen mit halt einer spirale nach unten“.
+            ("spirale", tr("ba.s3.spirale"), tr("ba.s3.spirale.tooltip"), True),
         )
 
     def haken_verborgen(self, feld, block):
@@ -3281,9 +3283,9 @@ class _Schlichten3D(_Strategie):
     def haken_gesperrt_warum(self, feld, block):
         # Manuel, 2026-10-16: „warum das anstellen aber nur mit einem kugelfräser geht weis ich
         # nun nicht ?“
-        if feld in ("anstellen", "hinterschnitt") and self.haken_gesperrt(feld, block) == tr(
-            "ba.s3.anstellen.ohne_kugel"
-        ):
+        if feld in ("anstellen", "hinterschnitt", "spirale") and self.haken_gesperrt(
+            feld, block
+        ) == tr("ba.s3.anstellen.ohne_kugel"):
             return tr("ba.s3.anstellen.ohne_kugel.warum")
         return None
 
@@ -3325,6 +3327,7 @@ class _Schlichten3D(_Strategie):
         weiter = {}
         if werte.get("hinterschnitt") and form.nur_kugel:
             weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
+            weiter["spirale"] = bool(werte.get("spirale", True))
             # Schaft und Halter aus der Werkzeugverwaltung (der Halter in Stücken, Kegel genau).
             try:
                 bibliothek = wz.Bibliothek.laden()
@@ -3382,13 +3385,16 @@ class _Schlichten3D(_Strategie):
 
     def _ergebnis_text(self, bahn, zeit):
         if getattr(bahn, "hinterschnitt", False):
-            text = tr(
-                "ba.ergebnis_s3_unter",
-                n=bahn.linien,
-                neigung=f"{bahn.neigung:.0f}",
-                abstand=groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
-                zeit=zeit,
-            )
+            werte = {
+                "n": bahn.linien,
+                "neigung": f"{bahn.neigung:.0f}",
+                "abstand": groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
+                "zeit": zeit,
+            }
+            if bahn.spirale:
+                text = tr("ba.ergebnis_s3_unter_spirale", **werte)
+            else:
+                text = tr("ba.ergebnis_s3_unter", **werte)
             ecken = bahn.weggelassen - bahn.anstoesse
             if ecken and getattr(bahn, "ecken_radius", 0.0) > 0:
                 d = groesse_zeigen(2.0 * bahn.ecken_radius, einheiten.LAENGE, 1) or "0"
@@ -3438,14 +3444,14 @@ class _Schlichten3D(_Strategie):
         op = s3op.lege_an(job, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
-        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False))
+        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False), werte.get("spirale", True))
         return op
 
     def aendere(self, op, tc, werte, flaechen):
         s3op.aendere(op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
-        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False))
+        s3op.unter_dem_rand(op, werte.get("hinterschnitt", False), werte.get("spirale", True))
 
     def ist(self, op):
         return s3op.ist_schlichten3d(op) and not s3op.ist_restschlichten(op)
@@ -3457,6 +3463,7 @@ class _Schlichten3D(_Strategie):
             "anstellen": bool(getattr(op, "Anstellen", False)),
             "wegkippen": bool(getattr(op, "Wegkippen", False)),
             "hinterschnitt": str(getattr(op, "Richtung", "")) == s3op.hb.HINTERSCHNITT,
+            "spirale": bool(getattr(op, "UnterRandSpirale", False)),
         }
 
 
@@ -5799,9 +5806,12 @@ class BearbeitungPanel:
                 knopf_.setEnabled(self.job is not None and not self.nur_vierachs())
                 continue
             elif self._folge_ohne_operation():
-                naechste = "ba.folge.naechste" if _FOLGE else "ba.folge.fertig"
-                knopf_.setText(tr(naechste))
-                knopf_.setToolTip(tr(naechste + ".tooltip"))
+                if _FOLGE:
+                    knopf_.setText(tr("ba.folge.naechste"))
+                    knopf_.setToolTip(tr("ba.folge.naechste.tooltip"))
+                else:
+                    knopf_.setText(tr("ba.folge.fertig"))
+                    knopf_.setToolTip(tr("ba.folge.fertig.tooltip"))
             else:
                 knopf_.setText(tr("va.anlegen"))
                 knopf_.setToolTip(tr("ba.anlegen.tooltip"))

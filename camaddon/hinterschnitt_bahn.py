@@ -55,6 +55,7 @@ FLAECHEN_HOECHSTENS = 400  # mehr gewählte Flächen: ueberdeckte() fragt nicht 
 STRAHL_TOLERANZ = 0.02  # mm – so fein das Netz für ueberdeckt (die Stelle liegt 0,1 mm davor)
 HALTER_STUECK = 5.0  # mm – so lang sind die Stücke des Halters für die Prüfung
 LANG_IM_FREIEN = 6.0  # mm – längere Wege von Zug zu Zug gehen vor der Wand im Freivorschub
+SPIRALE_LUECKE = 2.0  # mm – so nah müssen sich die Züge einer Höhe kommen, um ein Umlauf zu sein
 RAND_REST = 1.5  # mm – so weit fährt das Restschlichten über die Lücke der Kugel davor hinaus
 ECKE_KLEINSTE = 0.5  # mm Radius – kleiner: eine scharfe Kante, dort passt keine Kugel
 ECKE_HALBIEREN = 8
@@ -287,6 +288,9 @@ class Werte:
     # mm/min – längs der Achse in der Tasche hinab und hinauf (frei geprüft, _zugang); 0: der
     # Vorschub. Bis 0.283.1 im Schnittvorschub: an Manuels Tasche gut 11 s Luft je Zug.
     freivorschub: float = 0.0
+    # Wo eine Höhe rundum geht: als Spirale hinab statt Linie für Linie (_spirale; Manuel,
+    # 2026-10-25: „mit halt einer spirale nach unten .. wie beim 4 achs außen“).
+    spirale: bool = False
 
 
 @dataclass
@@ -306,6 +310,7 @@ class Bahn:
     umlaeufe: int = 0
     laengs_x: bool = False
     spirale: bool = False
+    spiralen: int = 0  # so viele Spiralen (_spirale): je eine über mehrere Höhen, die rundum gehen
     hinterschnitt: bool = True
     abstand: float = 0.0  # mm – der Abstand der Linien längs der Fläche
     namen: list = field(default_factory=list)
@@ -478,7 +483,11 @@ def planen(form, namen, w):
     # Stelle – gekippt taucht auch ein Bund weit oben am Halter darunter.
     teile = _koerper(w, 1e6)
     zuege, anstoesse = _achsen(form, netz, stuecke, teile, w, mitte)
-    zuege = _reihenfolge([_gerichtet(z, w.gleichlauf) for z in zuege])
+    zuege = [_gerichtet(z, w.gleichlauf) for z in zuege]
+    spiralen = 0
+    if w.spirale:
+        zuege, spiralen = _spirale(form, netz, zuege, teile, w, halb, mitte)
+    zuege = _reihenfolge(zuege)
     punkte, achsen, weg = _verbinden(zuege, w, netz, halb) if zuege else ([], [], [])
     anstoesse += weg
     luecken += anstoesse
@@ -520,6 +529,8 @@ def planen(form, namen, w):
         luecken=luecken,
         hoehenlinien=len(linien),
         umlaeufe=len(linien),
+        spirale=spiralen > 0,
+        spiralen=spiralen,
         anstoesse=len(anstoesse),
         ausspannen=ausspannen,
         pruefung=pruefung,
@@ -1218,6 +1229,195 @@ def _vor(stelle):
     waag = FreeCAD.Vector(n.x, n.y, 0.0)
     waag = waag.normalize() if waag.Length > 1e-9 else FreeCAD.Vector(0, 0, 0)
     return c + waag * ABSTAND
+
+
+def _hoehe_der_stelle(stelle, halb):
+    """Die Höhe der Linie, aus der die Stelle kommt: z der Fläche unter der Kugelmitte."""
+    c, _a, n = stelle
+    return round(c.z - n.z * halb, 3)
+
+
+def _umlauf_der_hoehe(netz, zuege, teile, w, halb):
+    """([Stelle], Mitte des längsten Zugs darin) – die Züge einer Höhe zu einem Umlauf gekettet
+    (Ende an den nächsten Anfang): An einer Ecke, in die die Kugel nicht passt, enden zwei Züge
+    fast an derselben Stelle – dort liegt sie an beiden Wänden an. None, wenn eine Lücke weiter ist
+    als SPIRALE_LUECKE, die Gerade darüber nicht frei bleibt oder es nicht rundum geht."""
+    rest = [list(z) for z in zuege]
+    kette = rest.pop(0)
+    if (kette[0][0] - kette[-1][0]).Length < 1e-6:
+        kette = kette[:-1]  # ein geschlossener Zug: den doppelten Punkt am Ende weg
+    laengster = (len(kette), len(kette) // 2)
+    while rest:
+        ende = kette[-1][0]
+        j = min(range(len(rest)), key=lambda i: (rest[i][0][0] - ende).Length)
+        if (rest[j][0][0] - ende).Length > SPIRALE_LUECKE:
+            return None
+        if not _gerade_frei(netz, kette[-1], rest[j][0], halb, w.radius, teile):
+            return None
+        stueck = rest.pop(j)
+        if len(stueck) > laengster[0]:
+            laengster = (len(stueck), len(kette) + len(stueck) // 2)
+        kette.extend(stueck)
+    if len(kette) < 3 or (kette[0][0] - kette[-1][0]).Length > SPIRALE_LUECKE:
+        return None
+    if not _gerade_frei(netz, kette[-1], kette[0], halb, w.radius, teile):
+        return None
+    return kette, laengster[1]
+
+
+def _abgetastet(umlauf, anfang, anzahl):
+    """(Mitten, Achsen, Normalen) je (anzahl, 3) – der geschlossene Umlauf ab der Stelle `anfang`
+    gleichmäßig nach seiner Länge abgetastet (ohne den Punkt am Ende, der wieder der Anfang ist)."""
+    umlauf = umlauf[anfang:] + umlauf[:anfang]
+    felder = [np.array([[v.x, v.y, v.z] for v in spalte]) for spalte in zip(*umlauf, strict=True)]
+    felder = [np.vstack([f, f[:1]]) for f in felder]
+    weg = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(felder[0], axis=0), axis=1))])
+    s = np.linspace(0.0, weg[-1], anzahl, endpoint=False)
+    ergebnis = [np.column_stack([np.interp(s, weg, f[:, i]) for i in range(3)]) for f in felder]
+    for f in ergebnis[1:]:  # Achsen und Normalen wieder auf Länge 1
+        f /= np.maximum(np.linalg.norm(f, axis=1), 1e-12)[:, None]
+    return ergebnis
+
+
+def _spirale(form, netz, zuege, teile, w, halb, mitte):
+    """([Zug], Zahl der Spiralen) – wo mehrere Höhen untereinander je rundum gehen
+    (_umlauf_der_hoehe), werden sie eine Spirale: einmal rundum in der oberen Höhe, dann je
+    Umdrehung gleichmäßig zur nächsten hinab – Kugelmitte, Achse und Normale zwischen beiden
+    Höhen gemittelt –, zuletzt einmal rundum in der unteren. Sie beginnt mitten auf der längsten
+    Wand (nicht in einer Ecke). Jede Stelle dazwischen wird wie die der Linien geprüft (Kugel,
+    Schneide, Schaft, Halter), wo die gemittelte Achse anstößt, die Neigung dort neu gesucht; geht
+    eine Umdrehung nicht, endet die Spirale davor. Die anderen Höhen bleiben Linien. Manuel,
+    2026-10-25: „sozusagen abzeilen mit halt einer spirale nach unten .. wie beim 4 achs außen
+    eine spirale entlang laeuft und das bauteil abfährt so halt mit 5 achs“."""
+    v = FreeCAD.Vector
+    je_hoehe = {}
+    for zug in zuege:
+        je_hoehe.setdefault(_hoehe_der_stelle(zug[0], halb), []).append(zug)
+    reihe = sorted(je_hoehe, reverse=True)  # von oben nach unten
+    umlaeufe = {h: _umlauf_der_hoehe(netz, je_hoehe[h], teile, w, halb) for h in reihe}
+
+    # Läufe aufeinanderfolgender Höhen, die rundum gehen; je Umlauf der Anfang unter dem davor.
+    laeufe, lauf = [], []
+    for h in reihe:
+        if umlaeufe[h] is None:
+            if len(lauf) >= 2:
+                laeufe.append(lauf)
+            lauf = []
+        else:
+            lauf.append(h)
+    if len(lauf) >= 2:
+        laeufe.append(lauf)
+    if not laeufe:
+        return zuege, 0
+
+    abgetastet = {}
+    for lauf in laeufe:
+        davor = None
+        for h in lauf:
+            umlauf, anfang = umlaeufe[h]
+            if davor is not None:
+                mitten = np.array([[c.x, c.y] for c, _a, _n in umlauf])
+                anfang = int(np.argmin(np.linalg.norm(mitten - davor[:2], axis=1)))
+            laenge = sum((umlauf[i][0] - umlauf[i - 1][0]).Length for i in range(len(umlauf)))
+            anzahl = max(len(umlauf), int(math.ceil(laenge / max(w.schritt, 0.1))))
+            abgetastet[h] = (umlauf, anfang, anzahl)
+            c0 = umlauf[anfang][0]
+            davor = np.array([c0.x, c0.y, c0.z])
+
+    def umdrehung(oben, unten):
+        """(Mitten, Achsen, Normalen) einer Umdrehung von der Höhe `oben` zu `unten`: je Stelle der
+        oberen ihr nächster Punkt auf der unteren (in einem Fenster um dieselbe Stelle der Länge,
+        nie zurück) – so liegen beide auf derselben Normalen, auch an den Ecken, wo die untere
+        länger ist –, dazwischen gleichmäßig hinab."""
+        anzahl = max(abgetastet[oben][2], abgetastet[unten][2])
+        a = _abgetastet(abgetastet[oben][0], abgetastet[oben][1], anzahl)
+        dicht = 4 * anzahl
+        b = _abgetastet(abgetastet[unten][0], abgetastet[unten][1], dicht)
+        fenster = np.arange(-(dicht // 8), dicht // 8 + 1)
+        erwartet = np.arange(anzahl) * 4
+        kandidaten = erwartet[:, None] + fenster[None, :]
+        weite = np.linalg.norm(b[0][np.mod(kandidaten, dicht)] - a[0][:, None, :], axis=2)
+        j = kandidaten[np.arange(anzahl), np.argmin(weite, axis=1)]
+        j = np.clip(np.maximum.accumulate(j), 0, dicht - 1)  # nie zurück, nicht über das Ende
+        b = [f[j] for f in b]
+        t = (np.arange(anzahl) / anzahl)[:, None]
+        mitten = a[0] * (1.0 - t) + b[0] * t
+        achsen, normalen = (x * (1.0 - t) + y * t for x, y in ((a[1], b[1]), (a[2], b[2])))
+        achsen = achsen / np.maximum(np.linalg.norm(achsen, axis=1), 1e-12)[:, None]
+        normalen = normalen / np.maximum(np.linalg.norm(normalen, axis=1), 1e-12)[:, None]
+        return mitten, achsen, normalen
+
+    # Alle Umdrehungen auf einmal geprüft – wie die Stellen der Linien.
+    umdrehungen = [(lauf[i], lauf[i + 1]) for lauf in laeufe for i in range(len(lauf) - 1)]
+    gerechnet = [umdrehung(o, u) for o, u in umdrehungen]
+    mitten = np.concatenate([g[0] for g in gerechnet])
+    achsen = np.concatenate([g[1] for g in gerechnet])
+    abstand = np.concatenate(
+        [netz.abstand(mitten[i : i + JE_ABFRAGE]) for i in range(0, len(mitten), JE_ABFRAGE)]
+    )
+    kugel = abstand >= halb - SPIEL - 3.0 * NETZ_TOLERANZ
+    koerper = np.array(
+        _in_stuecken(form, netz, "frei", (mitten - w.radius * achsen, achsen), (teile,)), dtype=bool
+    )
+    nochmal = np.flatnonzero(kugel & ~koerper)
+    if len(nochmal):
+        # Wie _achsen: wo die gemittelte Achse anstößt, die Neigung dort neu suchen (ab der dort).
+        normalen = np.concatenate([g[2] for g in gerechnet])
+        neigung = np.degrees(np.arccos(np.clip(achsen[nochmal, 2], -1.0, 1.0)))
+        neu = _in_stuecken(
+            form,
+            netz,
+            "suchen",
+            (mitten[nochmal], _richtungen(mitten[nochmal], normalen[nochmal], mitte), neigung),
+            (teile, w.radius),
+            VERTEILT_AB // 4,
+        )
+        geht = ~np.isnan(neu[:, 0])
+        achsen[nochmal[geht]] = _achse(neu[geht])
+        koerper[nochmal[geht]] = True
+        k = 0
+        for g in gerechnet:
+            g[1][:] = achsen[k : k + len(g[1])]
+            k += len(g[1])
+    gut, k = {}, 0
+    for (o, u), g in zip(umdrehungen, gerechnet, strict=True):
+        n = len(g[0])
+        gut[(o, u)] = bool(kugel[k : k + n].all() and koerper[k : k + n].all())
+        k += n
+
+    def rundum(h):
+        umlauf, anfang, _anzahl = abgetastet[h]
+        return umlauf[anfang:] + umlauf[:anfang] + umlauf[anfang : anfang + 1]
+
+    ergebnis, verbraucht, spiralen = [], set(), 0
+    for lauf in laeufe:
+        i = 0
+        while i < len(lauf) - 1:
+            j = i
+            while j < len(lauf) - 1 and gut[(lauf[j], lauf[j + 1])]:
+                j += 1
+            if j > i:
+                zug = rundum(lauf[i])
+                for o, u in zip(lauf[i:j], lauf[i + 1 : j + 1], strict=True):
+                    m, a, n = gerechnet[umdrehungen.index((o, u))]
+                    erste = 1 if o == lauf[i] else 0  # ihr Anfang ist das Ende von rundum()
+                    zug.extend((v(*m[q]), v(*a[q]), v(*n[q])) for q in range(erste, len(m)))
+                zug.extend(rundum(lauf[j]))
+                ergebnis.append(zug)
+                verbraucht.update(lauf[i : j + 1])
+                spiralen += 1
+            i = j + 1 if j > i else i + 1
+    if not spiralen:
+        return zuege, 0
+    # Die übrigen Höhen: rundum als ein Umlauf, wo es geht – sonst ihre Züge wie zuvor.
+    for h in reihe:
+        if h in verbraucht:
+            continue
+        if h in abgetastet:
+            ergebnis.append(rundum(h))
+        else:
+            ergebnis.extend(je_hoehe[h])
+    return ergebnis, spiralen
 
 
 def _reihenfolge(zuege):

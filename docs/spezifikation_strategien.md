@@ -4025,6 +4025,20 @@ Grundjob (simultan) wie die der Flanke.
   Schaft und Halter dort frei bleiben, sonst hinaus und wieder hinein.
 - **Stößt etwas an:** wie weit das Werkzeug heraussteht und wie weit es müsste (Halbierung an
   40 der Stellen); geht gar nichts, sagt es der Assistent rot mit „T… auf … mm ausspannen“.
+- **Als Spirale hinab (P-2026-10-25-35).** Manuel, 2026-10-25: „sozusagen abzeilen mit halt einer
+  spirale nach unten .. wie beim 4 achs ausen eine spirale entlang laeuft“. Haken „Unter dem Rand
+  als Spirale hinab“, vorbelegt an (die Operation: `UnterRandSpirale`; gespeicherte ohne die
+  Eigenschaft bleiben bei den Linien). Je Höhe werden die Züge zu einem Umlauf gekettet – an einer
+  Ecke, in die die Kugel nicht passt, enden zwei Züge fast an derselben Stelle (die Kugel liegt
+  dort an beiden Wänden an), bis 2 mm Lücke, die Gerade frei geprüft. Aufeinanderfolgende Höhen,
+  die rundum gehen, werden eine Spirale: einmal rundum in der oberen, je Umdrehung gleichmäßig
+  zur nächsten hinab – der Partner jeder Stelle ist ihr nächster Punkt auf der unteren Höhe (im
+  Fenster um dieselbe Stelle der Länge, nie zurück), dazwischen Kugelmitte, Achse und Normale
+  gemittelt –, zuletzt einmal rundum in der untersten. Sie beginnt mitten auf der längsten Wand.
+  Jede Stelle dazwischen wird wie die der Linien geprüft; wo die gemittelte Achse anstößt, wird
+  die Neigung dort neu gesucht, geht eine Umdrehung nicht, endet die Spirale davor. An Manuels
+  Tasche: eine Spirale über alle 79 Höhen, weggelassen 1101 statt 2045 Stellen, 12,3 statt
+  12,1 min; Bild `docs/bilder/vorschlaege/spirale_unter_dem_rand.png`.
 
 **Gemessen an einer Kopie von Manuels Tasche** (alle 16 Flächen, Kugel D12 = T3 aus seiner
 Werkzeugliste mit Halter, Grathöhe 0,01, Vorschau-Schritt 1 mm): 79 Höhenlinien, die Achse in der

@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-36 sprachpruefung-woertliche-schluessel
+
+### EINGELESEN
+- test_sprache war rot: Schlüssel, die zusammengesetzt wurden (f"halter.reihe.{art}", der Knopf
+  „Nächste Ebene“/„Fertig“), findet die Prüfung nicht (sie sucht tr("…") wörtlich).
+
+### DATEIEN
+- `camaddon/halter.py` (`reihe_text`, `reihe_gruppe_text`), `camaddon/gui_bearbeitung.py`:
+  die Schlüssel wörtlich je Fall.
+
+### ERGEBNIS
+- test_sprache, test_halter grün.
+
+## P-2026-10-25-35 unter-dem-rand-als-spirale
+
+### EINGELESEN
+- Manuel, 2026-10-25, zu Frage 5 (Flanke in zwei Lagen): „ich würde das teil sozusagen auf der c
+  achse drehen lassen den fräser anstellen und in z entlang der bahn nach unten fahren wen ich
+  schlichte .. sozusagen "abzeilen" mit halt einer spirale nach unten .. wie beim 4 achs ausen
+  eine spirale entlang laeuft und das bauteil abfährt so halt mit 5 achs ?? ... wenn was zu viel
+  vom schruppen steht vorschlichten ... und wenn es ecken gibt die anders erreicht weden müssen
+  eben anders anstellen also dynamisch halt einfach ..“
+- Das 3D-Schlichten unter dem Rand kippte schon je Stelle dynamisch, auch in den Ecken – aber
+  Linie für Linie. An seiner Tasche zerfiel jede Höhe an den engen Ecken in Stücke; zwischen
+  ihnen liegt fast kein Weg (die Kugel liegt dort an beiden Wänden an).
+
+### DATEIEN
+- `camaddon/hinterschnitt_bahn.py`: `Werte.spirale`, `_spirale` – je Höhe die Züge zu einem
+  Umlauf gekettet (`_umlauf_der_hoehe`, Lücken bis SPIRALE_LUECKE 2 mm, Gerade frei); Höhen, die
+  rundum gehen, werden eine Spirale: einmal rundum oben, je Umdrehung zur nächsten Höhe hinab
+  (Partner jeder Stelle ihr nächster Punkt auf der unteren Höhe, nie zurück), einmal rundum
+  unten; Beginn mitten auf der längsten Wand. Jede Stelle wie die Linien geprüft (Kugel,
+  Schneide, Schaft, Halter), wo die gemittelte Achse anstößt, die Neigung neu gesucht; geht eine
+  Umdrehung nicht, endet die Spirale davor. Übrige Höhen bleiben Umläufe oder Linien.
+  `Bahn.spiralen`.
+- `camaddon/schlichten3d.py`: Eigenschaft `UnterRandSpirale` (neu angelegt an, gespeicherte
+  Operationen aus, wie damals), `bahn_fuer(spirale=…)`, `unter_dem_rand(obj, an_, spirale)`.
+- `camaddon/gui_bearbeitung.py`: Haken „Unter dem Rand als Spirale hinab“ im 3D-Schlichten
+  (vorbelegt an, nur an der 5-Achs-Fräse), Text „… als Spirale hinab …“.
+- `translations/de.json`, `en.json`; `tests/test_hinterschnitt_bahn.py`: Spirale am Prüfteil.
+
+### ERGEBNIS
+- Prüfteil: eine Spirale, 1 statt 35 Absätze, 2,63 statt 2,70 min, Kugel und Schaft frei.
+- Manuels Tasche (Kopie, R 6, Grathöhe 0,01): eine Spirale über alle 79 Höhen; weggelassen 1101
+  statt 2045 Stellen (die Linien verloren beim Verbinden 944 Stellen ohne Zugang), 12,3 statt
+  12,1 min. Im Assistenten „14 Höhenlinien unter dem Rand als Spirale hinab … etwa 5 min“;
+  „Kollision prüfen“ über die Kette: im 3D-Schlichten nichts.
+- Bild: `docs/bilder/vorschlaege/spirale_unter_dem_rand.png`.
+- Prüfungen: test_hinterschnitt_bahn, test_schlichten3d, test_sprache grün.
+
 ## P-2026-10-25-34 flanke-frei-an-der-ecke
 
 ### EINGELESEN

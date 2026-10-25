@@ -514,17 +514,31 @@ def reihe_text(schluessel, aufnahme=None):
     """„Schrumpffutter Ø12 · A 200 lang · SK40“."""
     art, groesse, laenge = _reihe_lesen(schluessel)
     groesse_ = groesse if art == ER else f"Ø{groesse:g}"
-    return tr(
-        f"halter.reihe.{art}",
-        groesse=groesse_,
-        laenge=laengen_text(laenge),
-        aufnahme=aufnahme_oder_vorgabe(aufnahme),
-    )
+    werte = {
+        "groesse": groesse_,
+        "laenge": laengen_text(laenge),
+        "aufnahme": aufnahme_oder_vorgabe(aufnahme),
+    }
+    # Die Schlüssel wörtlich – so findet sie die Sprachprüfung (test_sprache).
+    if art == SCHRUMPF:
+        return tr("halter.reihe.schrumpf", **werte)
+    if art == ER:
+        return tr("halter.reihe.er", **werte)
+    if art == WELDON:
+        return tr("halter.reihe.weldon", **werte)
+    return tr("halter.reihe.hydro", **werte)
 
 
 def reihe_gruppe_text(art):
     """Titel eines Untermenüs der Normreihen: „Schrumpffutter (DIN 69882-8)“."""
-    return tr(f"halter.reihe.gruppe.{art}", norm=REIHE_NORM[art])
+    norm = REIHE_NORM[art]
+    if art == SCHRUMPF:
+        return tr("halter.reihe.gruppe.schrumpf", norm=norm)
+    if art == ER:
+        return tr("halter.reihe.gruppe.er", norm=norm)
+    if art == WELDON:
+        return tr("halter.reihe.gruppe.weldon", norm=norm)
+    return tr("halter.reihe.gruppe.hydro", norm=norm)
 
 
 def reihe_groesse_text(art, groesse):
