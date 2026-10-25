@@ -161,6 +161,11 @@ class Steuerung:
     # ASCII-Zeichensatz und brechen bei anderen Zeichen mit „Illegal character“ ab.
     nur_ascii: bool = True
     satznummern: bool = False  # N10, N20 … vor jedem Satz
+    # Die Wörter mit Leerzeichen trennen („G1 X10.000“); aus: „G1X10.000“ – die Datei rund 10 %
+    # kleiner (kleiner Programmspeicher, DNC). Nur, wo jedes Wort ein Buchstabe mit Zahl ist
+    # (`ohne_leerzeichen_moeglich`) – an der Siemens hieße „SUPA D0“ sonst „SUPAD0“.
+    leerzeichen: bool = True
+    ohne_leerzeichen_moeglich: bool = False
     # Die höchste Satznummer – Fanuc, Haas, Mazak: fünf Stellen (eine sechste ist ein Alarm);
     # darüber geht es wieder bei N10 los (Satznummern dürfen sich wiederholen, Marken nicht).
     satznummer_max: int = 99999
@@ -393,6 +398,7 @@ HAKEN = (
     "kommentare",
     "nur_ascii",
     "satznummern",
+    "leerzeichen",
     "rohteil",
     "kuehlung",
     "wechselpunkt",
@@ -437,6 +443,7 @@ STEUERUNGEN = {
         "G94",
         # LinuxCNC: G64 P (Toleranz der Bahn) Q (gerade Stücke zusammenfassen).
         hochlauf_warten=True,  # LinuxCNC wartet nicht von selbst (ohne „spindle at speed“)
+        ohne_leerzeichen_moeglich=True,
         vorwahl="T{t}",  # das nächste Werkzeug vorbereiten (T ohne M6)
         nullpunkt_weitere="G59.{e}",  # G59.1 … G59.3 (LinuxCNC: neun Nullpunkte)
         meldung="(MSG, {text})",  # LinuxCNC zeigt „(MSG, …)“ in der Oberfläche
@@ -564,6 +571,7 @@ STEUERUNGEN = {
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
         programmnummer_max=9999,  # O0001 … O9999
+        ohne_leerzeichen_moeglich=True,
         zahl_max=99999.999,
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme P1 … P48
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
@@ -627,6 +635,7 @@ STEUERUNGEN = {
         vorwahl="T{t}",
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme (wie Fanuc)
         programmnummer_max=9999,
+        ohne_leerzeichen_moeglich=True,
         zahl_max=99999.999,
         gewinde_g=("G84.2", "G84.3"),
         gewinde_f_steigung=True,
@@ -658,6 +667,7 @@ STEUERUNGEN = {
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         nullpunkt_weitere="G154 P{e}",  # Haas: G154 P1 … P99 (zusätzliche Werkstückoffsets)
         programmnummer_max=99999,  # O00001 … O99999
+        ohne_leerzeichen_moeglich=True,
         # Ohne G187 gilt die Glättung aus Einstellung 191 der Maschine.
         glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
         wechselpunkt_vorschlaege=_MKS,
@@ -695,6 +705,7 @@ STEUERUNGEN = {
         "G94",
         "G94",
         hochlauf_warten=True,  # GRBL wartet nie auf die Drehzahl
+        ohne_leerzeichen_moeglich=True,
         kuehlung_nebel="M8",
         wechselpunkt_vorschlaege=_MKS,
         # Die Marken als Namen im Kommentar (suchen, ANFANG) – ohne vollständigen Einstieg, der hieße
@@ -725,6 +736,7 @@ STEUERUNGEN = {
         hochlauf_warten=True,
         vorwahl="T{t}",
         nullpunkt_weitere="G59 P{nr}",  # Mach3/Mach4: ab dem siebten „G59 P7“
+        ohne_leerzeichen_moeglich=True,
         glaetten_angebot=(Glaetten("g64", "G64", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
@@ -1033,6 +1045,7 @@ def haken_text(feld):
         "kommentare": (tr("pp.haken.kommentare"), tr("pp.haken.kommentare.erklaerung")),
         "nur_ascii": (tr("pp.haken.nur_ascii"), tr("pp.haken.nur_ascii.erklaerung")),
         "satznummern": (tr("pp.haken.satznummern"), tr("pp.haken.satznummern.erklaerung")),
+        "leerzeichen": (tr("pp.haken.leerzeichen"), tr("pp.haken.leerzeichen.erklaerung")),
         "rohteil": (tr("pp.haken.rohteil"), tr("pp.haken.rohteil.erklaerung")),
         "kuehlung": (tr("pp.haken.kuehlung"), tr("pp.haken.kuehlung.erklaerung")),
         "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
@@ -1344,7 +1357,7 @@ def programm(
     else:
 
         def fertig(zeilen_, saetze_):
-            return Programm(_nummeriert(zeilen_, s), hinweise, saetze_)
+            return Programm(_ohne_leerzeichen(_nummeriert(zeilen_, s), s), hinweise, saetze_)
 
     def notiz(text):
         if s.kommentare:
@@ -2198,6 +2211,21 @@ def _nummeriert(zeilen, s):
                 SATZNUMMER_SCHRITT if nummer > s.satznummer_max else nummer + SATZNUMMER_SCHRITT
             )
         ergebnis.append(f"N{nummer} {zeile}")
+    return ergebnis
+
+
+def _ohne_leerzeichen(zeilen, s):
+    """Die Sätze ohne Leerzeichen zwischen den Wörtern (Haken `leerzeichen` aus) – Kommentare
+    („(…)“, „;“) bleiben, wie sie sind."""
+    if s.leerzeichen or not s.ohne_leerzeichen_moeglich:
+        return zeilen
+    ergebnis = []
+    for zeile in zeilen:
+        if zeile.startswith(("(", ";", "%")):
+            ergebnis.append(zeile)
+            continue
+        satz, klammer, rest = zeile.partition("(")
+        ergebnis.append(satz.replace(" ", "") + klammer + rest)
     return ergebnis
 
 

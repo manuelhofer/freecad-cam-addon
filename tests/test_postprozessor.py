@@ -353,6 +353,21 @@ pruefe(
     and all(z.startswith(("N", "(", "%", "O")) for z in fanuc_n),
     f"Satznummern: {fanuc_n[:6]} … {fanuc_n[-3:]}",
 )
+# Ohne Leerzeichen (Haken aus): „G1X…“ – Kommentare bleiben; nachgelesen ohne Befund; die Siemens
+# bleibt mit Leerzeichen (SUPA D0).
+ohne_l = pp.programm([tasche], pp.steuerung("fanuc", {"leerzeichen": False}), None, "P")
+pruefe(
+    "G17G21G40G49G80G90G94" in ohne_l.zeilen
+    and any(x.startswith("G1Z") or x.startswith("G1X") for x in ohne_l.zeilen)
+    and "O0001(P)" in ohne_l.zeilen
+    and any(x.startswith("(") and " " in x for x in ohne_l.zeilen),
+    f"ohne Leerzeichen: {ohne_l.zeilen[:14]}",
+)
+pruefe(
+    not pp.nachlesen(ohne_l, pp.steuerung("fanuc", {"leerzeichen": False}), None)[0], "nachgelesen"
+)
+mit_s = pp.programm([tasche], pp.steuerung("siemens", {"leerzeichen": False}), None, "P").zeilen
+pruefe("G17 G71 G90 G40 G94" in mit_s, f"Siemens ohne Leerzeichen: {mit_s[:3]}")
 # Die Programmnummer des Jobs im Kopf: Fanuc vierstellig, Haas fünfstellig, höchstens die größte.
 pruefe(
     pp.programm([tasche], pp.steuerung("fanuc"), None, "P", nummer=1234).zeilen[1] == "O1234 (P)",

@@ -48,6 +48,7 @@ GRUPPEN = (
             "werkzeugliste",
             "nur_ascii",
             "satznummern",
+            "leerzeichen",
             "kopf",
             "kopf_drehmaschine",
             "kopf_drehen",
@@ -754,6 +755,8 @@ class ProgrammDialog(QtGui.QDialog):
             return False
         if feld in NUR_KLARTEXT and self.steuerung().dialekt != "klartext":
             return False
+        if feld == "leerzeichen":
+            return self.steuerung().ohne_leerzeichen_moeglich
         if feld in ("nullpunkt_setzen", "nullpunkt", "nullpunkt_weitere"):
             # woodWOP kennt kein G54; der Klartext wählt jeden Bezugspunkt mit Zyklus 247.
             dialekt = self.steuerung().dialekt

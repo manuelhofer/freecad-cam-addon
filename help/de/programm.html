@@ -100,6 +100,10 @@ Siemens aus – SINUMERIK Operate zeigt Umlaute.</li>
 Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm. Höchstens fünf
 Stellen (Fanuc, Haas und Mazak geben bei N100000 einen Alarm; Siemens acht) – danach geht es
 wieder bei N10 los. Die Nummer einer Sprungmarke (Fanuc „N3“) bekommt kein anderer Satz.</li>
+<li><b>Wörter mit Leerzeichen trennen</b> – „G1 X10.000 Y5.000“. Aus: „G1X10.000Y5.000“, die
+Datei rund 10 % kleiner – wenn der Programmspeicher knapp ist oder das Programm über DNC
+eingespeist wird. Kommentare bleiben. Nur bei LinuxCNC, Fanuc, Mazak, Haas, Mach und GRBL, deren
+Wörter alle ein Buchstabe mit Zahl sind; an der Siemens hieße „SUPA D0“ sonst „SUPAD0“.</li>
 <li><b>Rohteil für die Simulation</b> (Siemens) – im Kopf das Rohteil des Jobs als WORKPIECE,
 damit die Simulation an der Steuerung das richtige Rohteil zeigt: an der Fräse ein Quader
 „WORKPIECE(,"",,"BOX",240,Z oben,Z unten,ZB,X0,Y0,X1,Y1)“, an der Drehmaschine die Stange

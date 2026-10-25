@@ -103,6 +103,8 @@
     "pp.hinweis.nullpunkte_mehrere": "Der Job nennt mehrere Nullpunkte ({alle}) – das Programm wählt nur {register}; je Teil auf dem Tisch ein Job oder das Programm noch einmal mit dem anderen Nullpunkt.",
     "pp.kopf.nullpunkt": "Nullpunkt: {register}",
     "pp.kopf.nullpunkt_befehl": "Nullpunkt: {register} – im Programm {befehl}",
+    "pp.haken.leerzeichen": "Wörter mit Leerzeichen trennen",
+    "pp.haken.leerzeichen.erklaerung": "„G1 X10.000 Y5.000“. Aus: „G1X10.000Y5.000“ – die Datei rund 10 % kleiner, wenn der Programmspeicher knapp ist oder über DNC eingespeist wird. Kommentare bleiben, wie sie sind. Nur bei Steuerungen, deren Wörter alle ein Buchstabe mit Zahl sind (nicht Siemens: dort hieße „SUPA D0“ sonst „SUPAD0“).",
     "pp.haken.werkzeugliste": "Werkzeugliste im Kopf",
     "pp.haken.werkzeugliste.erklaerung": "Oben im Programm je Werkzeug: Nummer und Name, Ø, Auskragung, Länge ab Spindelnase und Halter (aus der Werkzeugverwaltung und dem Magazin der Maschine; geschätzt steht „ca.“ dabei), und für welche Bearbeitungen es gebraucht wird – mit ihren Sprungmarken, nach denen man im Programm suchen kann. Nur mit „Kommentare“.",
     "pp.kopf.marken": "Sprungmarken (je Bearbeitung ein vollständiger Einstieg) – nach dem Namen suchen:",

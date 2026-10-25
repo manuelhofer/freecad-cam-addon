@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 nachts (0.307.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.308.0):* Haken „Wörter mit Leerzeichen trennen“ (aus: rund 10 % kleinere Datei) bei
+  LinuxCNC, Fanuc, Mazak, Haas, Mach, GRBL.
 - *Korrektur (0.307.1):* Ein Bogen, dessen Enden gerundet gleich stünden, wird eine Gerade statt
   eines Vollkreises an der Steuerung.
 - *Neu (0.307.0):* Im Einrichtblatt je Aufspannung das gespeicherte Programm („W.nc · O1234 ·

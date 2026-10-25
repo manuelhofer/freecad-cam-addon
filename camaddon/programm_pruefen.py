@@ -60,7 +60,7 @@ _KLAMMER = re.compile(r"\([^)]*\)")
 _SATZNUMMER = re.compile(r"^\s*N\d+\s*")
 # Siemens: „C4=12.5“, eine Moduloachse auch „C4=ACN(270.000)“ (ACP, ACN, DC, AC, IC).
 _MIT_GLEICH = re.compile(r"([A-Z]+)(\d*)=(?:ACP|ACN|DC|AC|IC)?\(?(-?[\d.]+)\)?")
-_WORT = re.compile(r"([A-Z])(-?[\d.]+)")
+_WORT = re.compile(r"([A-Z$])(-?[\d.]+)")  # „$1“: LinuxCNC, die Spindel
 _D_AUS = re.compile(r"\bD0\b")
 _D_EIN = re.compile(r"\bD[1-9]\d*\b")
 _T_MIT_D = re.compile(r"T\S*\s+D[1-9]")
@@ -86,19 +86,20 @@ def _zerlegen(satz):
         if treffer:
             werte[treffer.group(1) + treffer.group(2)] = float(treffer.group(3))
             continue
-        treffer = _WORT.fullmatch(teil)
-        if not treffer:
+        # Ein Wort („X10.000“) – oder mehrere ohne Leerzeichen („G1X10.000Y5.000“).
+        woerter = _WORT.findall(teil)
+        if not woerter or "".join(a + z for a, z in woerter) != teil:
             continue
-        adresse, zahl = treffer.group(1), treffer.group(2)
-        if adresse == "G":
-            g.append(zahl.lstrip("0") or "0")
-        elif adresse == "M":
-            m.append(zahl.lstrip("0") or "0")
-        else:
-            try:
-                werte[adresse] = float(zahl)
-            except ValueError:
-                continue
+        for adresse, zahl in woerter:
+            if adresse == "G":
+                g.append(zahl.lstrip("0") or "0")
+            elif adresse == "M":
+                m.append(zahl.lstrip("0") or "0")
+            else:
+                try:
+                    werte[adresse] = float(zahl)
+                except ValueError:
+                    continue
     return g, m, werte
 
 
@@ -163,7 +164,7 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False, nu
             f = werte["F"] if werte["F"] > 0 else None
         if siemens and _T_MIT_D.match(gross):
             laenge = True  # Drehmaschine: „T1 D1“
-        if _MASCHINENKOORDINATEN.search(gross):
+        if _MASCHINENKOORDINATEN.search(gross) or {"53", "28", "75"} & set(g):
             continue  # Maschinenkoordinaten: ohne Länge gefahren, ändert den Stand im WKS nicht
         if any(c in _OHNE_WEG for c in g):
             continue  # X, Y, Z ohne Weg: Verweilen (Fanuc „G4 X2.0“), Ebene (G68.2), Daten (G10)

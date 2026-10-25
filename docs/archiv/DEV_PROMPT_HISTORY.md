@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-85 woerter-ohne-leerzeichen
+
+### EINGELESEN
+- Manuel: Einstellmöglichkeiten je Postprozessor, große Programme („14834834 zeilen“). Übliche
+  Option anderer Postprozessoren: Wörter ohne Leerzeichen – kleinere Datei bei knappem
+  Programmspeicher (ältere Fanuc) oder DNC.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Haken `leerzeichen` (an), `ohne_leerzeichen_moeglich` (LinuxCNC,
+  Fanuc, Mazak, Haas, Mach, GRBL), `_ohne_leerzeichen` – Kommentare bleiben.
+- `camaddon/programm_pruefen.py`: Wörter ohne Leerzeichen (`_zerlegen`), „$1“, G53/G28/G75 aus den
+  G-Codes (sonst meldete „G53G0Z250.000“ eine fehlende Länge).
+- `camaddon/gui_programm.py` (nur, wo es geht), `translations/*.json`, `help/*/programm.html`,
+  `docs/spezifikation_steuerung.md` 26, `tests/test_postprozessor.py` (die Gegenprobe schaltet
+  den Haken an jeder Steuerung mit um).
+
+### ERGEBNIS
+- Fanuc: „G17G21G40G49G80G90G94“, „O0001(P)“, Kommentare mit Leerzeichen; nachgelesen ohne Befund;
+  Siemens bleibt mit Leerzeichen. C-Ring 10,9 %, 4-Achs-Nase 9,8 % kleiner.
+- Grün: test_postprozessor, _nachfahren, _zufall, _grbl, test_programm_pruefen, test_sprache;
+  szenario_programm.
+
 ## P-2026-10-25-84 winzige-boegen-nicht-als-vollkreis
 
 ### EINGELESEN

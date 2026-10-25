@@ -856,3 +856,11 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - An Manuels Taster-Teilen (3600 Bögen) kam keiner vor; FreeCADs eigene Operationen können solche
   Bögen aus der Geometrie erzeugen.
 
+## 26. Wörter ohne Leerzeichen (P-2026-10-25-85)
+
+- Haken `leerzeichen` (an): aus „G1X10.000Y5.000“ – C-Ring 10,9 %, 4-Achs-Nase 9,8 % kleiner.
+  Nur mit `ohne_leerzeichen_moeglich` (LinuxCNC, Fanuc, Mazak, Haas, Mach, GRBL); Siemens nicht
+  („SUPA D0“ → „SUPAD0“), Klartext und woodWOP nicht. Kommentare bleiben (`_ohne_leerzeichen`
+  nach den Satznummern). `programm_pruefen` liest Wörter auch ohne Leerzeichen (`_zerlegen`,
+  G53/G28/G75 aus den G-Codes).
+

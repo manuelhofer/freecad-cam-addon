@@ -106,6 +106,10 @@ SINUMERIK Operate shows umlauts.</li>
 comments. They are not needed; some operators use them to jump in the program. At most five
 digits (Fanuc, Haas and Mazak alarm at N100000; Siemens eight) – then they start again at N10.
 No other block gets the number of a jump label (Fanuc “N3”).</li>
+<li><b>Separate words with spaces</b> – “G1 X10.000 Y5.000”. Off: “G1X10.000Y5.000”, the file
+about 10 % smaller – when program memory is tight or the program is drip-fed (DNC). Comments
+stay. Only for LinuxCNC, Fanuc, Mazak, Haas, Mach and GRBL, whose words are all a letter with a
+number; on Siemens “SUPA D0” would become “SUPAD0”.</li>
 <li><b>Program start, start on the lathe, program end</b> – the fixed lines: units, plane (G18
 on the lathe), at the end spindle and coolant off, M30.</li>
 <li><b>Read X as diameter / radius</b> (lathe) – depending on how the machine counts X (“Edit
