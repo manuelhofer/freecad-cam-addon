@@ -55,3 +55,15 @@ bohrt, steht nur an der Maschine – falsch geraten bricht der Gewindebohrer.
 *Was die Antwort ändert:* Danach schreibt der Postprozessor das Gewinde an der Drehmaschine als
 Satz statt als Hinweis.
 Seit 2026-10-26.
+
+**Frage 5 – Große Programme an der alten 840D: aus dem NC-Speicher oder „von extern“?** Ein
+5-Achs-Simultanprogramm hat schnell Millionen Sätze (du schriebst von „14834834 Zeilen“). Im
+NC-Speicher einer älteren 840D ist dafür kein Platz; dort läuft so etwas von der Festplatte oder
+vom Netz („Abarbeiten von Extern“ bzw. `EXTCALL`). Wie fährst du große Programme heute? Soll
+„Programm schreiben“ auf Wunsch ein Hauptprogramm schreiben, das je Bearbeitung ein Unterprogramm
+mit `EXTCALL "…"` aufruft (Werkzeugwechsel im Hauptprogramm, die Bahn in den Unterprogrammen)?
+*Warum nur Manuel:* Wie seine Maschine eingerichtet ist (Speicher, PCU mit Festplatte, Pfad für
+EXTCALL in den Maschinendaten), sieht man nur an ihr.
+*Was die Antwort ändert:* Mit ja ein Haken „Je Bearbeitung ein Unterprogramm (EXTCALL)“ für
+Siemens; sonst bleibt es ein Programm.
+Seit 2026-10-26.
