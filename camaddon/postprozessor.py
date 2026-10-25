@@ -779,8 +779,9 @@ _HEIDENHAIN = {
     "wechsel_drehen": "TOOL CALL {t} Z",
     "spindel_ein": "M{m} S{s}",
     "spindel_aus": "M5",
-    "angetrieben_ein": "",
-    "angetrieben_aus": "",
+    # An einer TNC mit Drehen treibt die Frässpindel das Werkzeug: M3/M4 mit der Drehzahl.
+    "angetrieben_ein": "M{m} S{s}",
+    "angetrieben_aus": "M5",
     "c_ein": "",
     "c_aus": "",
     "vorschub_zeit": "",

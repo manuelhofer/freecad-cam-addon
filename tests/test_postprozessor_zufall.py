@@ -4,8 +4,7 @@
 # allen drei Ebenen (auch Radius 0, fast gleiche Enden), Schrauben, Bohrzyklen, eine Rundachse
 # über mehrere Umdrehungen, je Programm drei zufällig umgeschaltete Haken, Fräse und Drehmaschine,
 # Programmnummern von 0 bis 200 000. Fester Startwert – jedes Mal dieselben Programme. Kein
-# Absturz; nachgelesen ohne Befund (außer Kreis: zufällige Bögen sind oft keine; Klartext an der
-# Drehmaschine mit angetriebenem Werkzeug: dort nicht unterstützt, mit Hinweis).
+# Absturz; nachgelesen ohne Befund (außer Kreis: zufällige Bögen sind oft keine).
 # Ausführen: freecadcmd tests/test_postprozessor_zufall.py
 
 import os
@@ -100,7 +99,7 @@ for runde in range(120):
             continue
         programme += 1
         arten = {b.art for b in befunde} - {"kreis"}
-        if s.dialekt == "mpr" or (s.dialekt == "klartext" and info.drehmaschine):
+        if s.dialekt == "mpr":
             continue
         if arten:
             fehler.append(f"Runde {runde} {kennung}: {[(b.art, b.satz[:60]) for b in befunde][:2]}")

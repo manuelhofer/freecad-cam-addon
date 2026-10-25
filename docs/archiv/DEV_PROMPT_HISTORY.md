@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-89 klartext-angetriebenes-werkzeug
+
+### EINGELESEN
+- Zufallsprobe: Heidenhain an der Drehmaschine startete ein angetriebenes Werkzeug nicht (der
+  Befehl war leer) – die Prüfung meldete jeden Satz ohne Spindel.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Klartext `angetrieben_ein` „M{m} S{s}“, `angetrieben_aus` „M5“
+  (an einer TNC mit Drehen treibt die Frässpindel das Werkzeug); `tests/test_postprozessor_zufall.py`
+  ohne die Ausnahme dafür.
+
+### ERGEBNIS
+- Zufallsprobe ohne Ausnahme für Klartext an der Drehmaschine grün; test_postprozessor,
+  test_programm_pruefen, szenario_programm_heidenhain grün.
+
 ## P-2026-10-25-88 linuxcnc-gewinde-an-der-drehmaschine
 
 ### EINGELESEN
