@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-53 kerne-einmal-alle
+
+### EINGELESEN
+- Manuel (Bild aus „Bearbeitung“): „rechnet … – mit 1 von 24 Kernen“ – „warum rechnet der nur mit
+  1 ??“, „standart sollte maximal sein !!“. Im alten Feld (bis 0.291.1) hieß 0 „alle Kerne“; ein
+  Klick auf den Pfeil nach oben machte 1 daraus, und das blieb gespeichert.
+
+### DATEIEN
+- `camaddon/nebenrechner.py`: beim ersten Lesen mit dem Feld als Zahl (`NebenrechnerAlsZahl`)
+  einmal zurück auf alle Kerne; danach gilt, was man einstellt.
+- `tests/gui/szenario_erster_start.py`: eine alte 1 wird alle, eine eingestellte 3 bleibt.
+
+### ERGEBNIS
+- Prüfungen: szenario_erster_start grün.
+
 ## P-2026-10-25-51 kerne-als-zahl
 
 ### EINGELESEN

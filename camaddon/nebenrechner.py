@@ -62,6 +62,10 @@ import FreeCAD
 from . import ADDON_ORDNER, PARAMETER_PFAD
 
 EINSTELLUNG_ANZAHL = "Nebenrechner"  # so viele Arbeiter; 0 = so viele wie Kerne
+# Einmal zurück auf alle Kerne: Im alten Feld (bis 0.291.1) hieß 0 „alle“, ein Klick auf den Pfeil
+# nach oben machte 1 daraus – bei Manuel rechnete danach nur noch ein Kern (2026-10-25: „warum
+# rechnet der nur mit 1 ??“ … „standart sollte maximal sein !!“).
+EINSTELLUNG_UMGESTELLT = "NebenrechnerAlsZahl"
 ARBEITER_SKRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "nebenrechner_arbeiter.py"
 )
@@ -369,10 +373,20 @@ def physische_kerne():
     return max(1, threads // 2) if threads >= 8 else threads
 
 
+def _eingestellt():
+    """Die Zahl aus den Einstellungen (0 = alle) – beim ersten Mal mit dem Feld als Zahl
+    (EINSTELLUNG_UMGESTELLT) einmal zurück auf alle."""
+    parameter = FreeCAD.ParamGet(PARAMETER_PFAD)
+    if not parameter.GetBool(EINSTELLUNG_UMGESTELLT, False):
+        parameter.SetInt(EINSTELLUNG_ANZAHL, 0)
+        parameter.SetBool(EINSTELLUNG_UMGESTELLT, True)
+    return parameter.GetInt(EINSTELLUNG_ANZAHL, 0)
+
+
 def gewuenschte_anzahl():
     """So viele Arbeiter darf der Pool haben: die Einstellung (EINSTELLUNG_ANZAHL im
     Parameter-System, 0 = alle), höchstens so viele wie Kerne – mehr bringen nichts."""
-    anzahl = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(EINSTELLUNG_ANZAHL, 0)
+    anzahl = _eingestellt()
     return min(anzahl, anzahl_kerne()) if anzahl > 0 else anzahl_kerne()
 
 
@@ -383,7 +397,7 @@ def weniger_kerne_text():
     das es länger dauert da nur die eingestellte … anzahl kerne genommen wird“)."""
     from .sprache import tr
 
-    eingestellt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(EINSTELLUNG_ANZAHL, 0)
+    eingestellt = _eingestellt()
     kerne = anzahl_kerne()
     if eingestellt <= 0 or eingestellt >= kerne:
         return ""
@@ -394,6 +408,7 @@ def anzahl_setzen(anzahl):
     """Schreibt die Zahl der Arbeiter (EINSTELLUNG_ANZAHL; 0 = so viele wie Kerne) – der laufende
     Pool nimmt sie gleich: Mehr starten beim nächsten Bedarf, überzählige enden im Leerlauf."""
     anzahl = max(0, int(anzahl))
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(EINSTELLUNG_UMGESTELLT, True)
     FreeCAD.ParamGet(PARAMETER_PFAD).SetInt(EINSTELLUNG_ANZAHL, anzahl)
     if _pool is not None:
         _pool.anzahl = gewuenschte_anzahl()

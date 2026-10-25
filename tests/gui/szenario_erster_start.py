@@ -204,6 +204,16 @@ def schritte(h):
     # Anfangs alle Kerne als Zahl, mehr geht nicht (Manuel, 2026-10-25: „was ist wenn ich 255
     # eintragen würde ?“); ganz oben heißt gespeichert wieder 0 = alle.
     kerne = nr_.anzahl_kerne()
+    # Aus dem alten Feld (0 = alle, ein Klick nach oben: 1) bleibt nichts hängen – beim ersten Mal
+    # mit dem neuen einmal alle (Manuel: „warum rechnet der nur mit 1 ??“).
+    par = FreeCAD.ParamGet(PARAMETER_PFAD)
+    par.SetInt(nr_.EINSTELLUNG_ANZAHL, 1)
+    par.RemBool(nr_.EINSTELLUNG_UMGESTELLT)
+    h.pruefe(
+        nr_.gewuenschte_anzahl() == kerne and par.GetInt(nr_.EINSTELLUNG_ANZAHL, -1) == 0,
+        f"alt 1: {nr_.gewuenschte_anzahl()}, {par.GetInt(nr_.EINSTELLUNG_ANZAHL, -1)}",
+    )
+    seite.loadSettings()
     feld = seite.wahl_nebenrechner
     h.pruefe(
         feld.value() == kerne and feld.text() == f"{kerne} von {kerne} Kernen",
@@ -215,6 +225,7 @@ def schritte(h):
     seite.saveSettings()
     gemerkt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nr_.EINSTELLUNG_ANZAHL, -1)
     h.pruefe(gemerkt == 3 and nr_.pool().anzahl == 3, f"3 Nebenrechner: {gemerkt}, {nr_.pool().anzahl}")
+    h.pruefe(nr_.gewuenschte_anzahl() == 3, "die eingestellte 3 bleibt")
     feld.setValue(kerne)
     seite.saveSettings()
     gemerkt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nr_.EINSTELLUNG_ANZAHL, -1)
