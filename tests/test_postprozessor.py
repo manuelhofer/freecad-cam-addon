@@ -476,6 +476,69 @@ pruefe(
     not any(x.split(" ")[0] in ("G80", "G81", "G83", "G85", "G98", "G99") for x in siemens_b),
     f"Siemens: G8x/G98/G99 übrig: {siemens_b}",
 )
+# Das nächste Werkzeug gleich nach dem Wechsel vorwählen (Fanuc „T2“, Heidenhain „TOOL DEF 2“),
+# beim letzten keins; Haken aus: keine Vorwahl; an der Drehmaschine nie.
+import re  # noqa: E402
+
+zwei = pp.programm([tasche, bohren], pp.steuerung("fanuc"), fraese, "V").zeilen
+k = zwei.index("T3 M6") if "T3 M6" in zwei else -1
+pruefe(
+    k > 0 and zwei[k + 1] == "T2" and zwei.count("T2") == 1, f"Fanuc Vorwahl: {zwei[k - 1 : k + 3]}"
+)
+ohne_v = pp.programm(
+    [tasche, bohren], pp.steuerung("fanuc", {"werkzeug_vorwahl": False}), fraese, "V"
+)
+pruefe("T2" not in ohne_v.zeilen, "Vorwahl trotz Haken aus")
+p_hv = pp.programm([tasche, bohren], pp.steuerung("heidenhain"), fraese, "V")
+s_hv = [re.sub(r"^\d+ ", "", x) for x in p_hv.zeilen]
+k = s_hv.index("TOOL CALL 3 Z S2000") if "TOOL CALL 3 Z S2000" in s_hv else -1
+pruefe(k > 0 and s_hv[k + 1] == "TOOL DEF 2", f"Heidenhain Vorwahl: {s_hv[k - 1 : k + 3]}")
+pruefe(
+    not pp.nachlesen(p_hv, pp.steuerung("heidenhain"), fraese)[0], "Heidenhain Vorwahl nachgelesen"
+)
+pruefe(
+    not any(
+        x == "T2" for x in pp.programm([tasche, bohren], pp.steuerung("fanuc"), dreh, "V").zeilen
+    ),
+    "Vorwahl an der Drehmaschine",
+)
+# Warten, bis die Spindel läuft (die Hochlaufzeit an der Maschine): GRBL, LinuxCNC, Mach von
+# selbst „G4 P2.000“ nach M3; Fanuc erst mit dem Haken, dann „G4 X2.000“ (X mit Punkt: Sekunden);
+# Siemens „G4 F2.000“; Heidenhain Zyklus 9. Ohne Hochlaufzeit ein Hinweis statt einer Wartezeit.
+hoch = pp.Maschineninfo("Fräse")
+hoch.hochlauf = {"haupt": 2.0}
+for kennung, soll in (("linuxcnc", "G4 P2.000"), ("grbl", "G4 P2.000"), ("mach", "G4 P2.000")):
+    z_h = pp.programm([tasche], pp.steuerung(kennung), hoch, "H").zeilen
+    k = z_h.index("M3 S2000") if "M3 S2000" in z_h else -1
+    pruefe(k > 0 and z_h[k + 1] == soll, f"{kennung} Hochlauf: {z_h[k : k + 3]}")
+pruefe(
+    "G4 X2.000" not in pp.programm([tasche], pp.steuerung("fanuc"), hoch, "H").zeilen, "Fanuc aus"
+)
+an = {"hochlauf_warten": True}
+for kennung, soll in (("fanuc", "G4 X2.000"), ("mazak", "G4 X2.000"), ("siemens", "G4 F2.000")):
+    z_h = pp.programm([tasche], pp.steuerung(kennung, an), hoch, "H").zeilen
+    pruefe(soll in z_h, f"{kennung} Hochlauf an: {z_h}")
+z_h = [
+    re.sub(r"^\d+ ", "", x)
+    for x in pp.programm([tasche], pp.steuerung("heidenhain", an), hoch, "H").zeilen
+]
+pruefe("CYCL DEF 9.1 V.ZEIT 2" in z_h, f"Heidenhain Hochlauf: {z_h}")
+null = pp.Maschineninfo("Fräse")
+null.hochlauf = {"haupt": 0.0}  # die Spindel ist da, ihre Hochlaufzeit nicht eingetragen
+ohne_h = pp.programm([tasche], pp.steuerung("linuxcnc"), null, "H")
+pruefe(
+    not any(x.startswith("G4") for x in ohne_h.zeilen)
+    and any("Hochlaufzeit" in h for h in ohne_h.hinweise),
+    f"ohne Hochlaufzeit: {ohne_h.hinweise}",
+)
+# Eine Vorlage geleert (Tiefbohren im ISO-Modus): die anderen gelten weiter, G98/G99 bleiben.
+teil_b = pp.programm([bohren], pp.steuerung("siemens", {"tiefbohren": ""}), fraese, "B").zeilen
+pruefe(
+    "CYCLE81(5.000,2.000,0,-8.000)" in teil_b
+    and any(x.startswith("G83 ") for x in teil_b)
+    and "G98" in teil_b,
+    f"Siemens ohne Tiefbohr-Vorlage: {teil_b}",
+)
 lcnc_b = pp.programm([bohren], pp.steuerung("linuxcnc"), fraese, "B").zeilen
 pruefe(
     any(x.startswith("G83 ") and "Q5.000" in x for x in lcnc_b) and "G98" in lcnc_b,
@@ -529,7 +592,8 @@ pruefe(
     f"Heidenhain Anfang/Ende: {saetze_hh[:3]} … {saetze_hh[-2:]}",
 )  # fmt: skip
 k = saetze_hh.index("TOOL CALL 3 Z S2000") if "TOOL CALL 3 Z S2000" in saetze_hh else -1
-pruefe(k > 0 and saetze_hh[k + 1 : k + 3] == ["M3", "M8"], f"TOOL CALL: {saetze_hh[k - 2 : k + 4]}")
+nach_call = [x for x in saetze_hh[k + 1 : k + 4] if not x.startswith("TOOL DEF")]  # die Vorwahl
+pruefe(k > 0 and nach_call[:2] == ["M3", "M8"], f"TOOL CALL: {saetze_hh[k - 2 : k + 4]}")
 pruefe(
     "L Z+0.000 R0 FMAX M91" in saetze_hh and "L X-200.000 Z+0.000 R0 FMAX M91" in saetze_hh,
     f"Wechselpunkt M91: {saetze_hh[:16]}",

@@ -110,6 +110,10 @@ Programmanfang. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzykl
 <ul>
 <li><b>Werkzeugwechsel</b> – an der Fräse „T1 M6“, an der Drehmaschine wie die Steuerung es
 will: Siemens „T1 D1“, Fanuc „T0101“, Haas „T101“.</li>
+<li><b>Nächstes Werkzeug vorwählen</b> – gleich nach dem Wechsel „T2“ (Heidenhain „TOOL DEF 2“):
+Das Magazin holt das nächste Werkzeug heran, während das jetzige fräst, der nächste Wechsel geht
+schneller. Vorbelegt an bei LinuxCNC, Siemens, Fanuc, Mazak, Mach und Heidenhain; an der
+Drehmaschine nie (T dreht dort den Revolver).</li>
 <li><b>Werkzeuglänge ein (Fräse)</b> – nach dem Wechsel die Längenkorrektur des neuen Werkzeugs:
 an LinuxCNC, Fanuc, Haas und Mach „G43 H1“, im ersten Satz danach, der Z fährt
 („G0 G43 H1 Z15.000“) – allein in einer Zeile führe manche Steuerung am Wechselpunkt oben um die
@@ -146,6 +150,11 @@ ShopTurn-Programmkopf) deinen Punkt kennt, prüf in der Simulation der Steuerung
 <h3>Spindel und Kühlung</h3>
 <ul>
 <li><b>Spindel ein und aus</b> – „M3 S…“ (links M4), „M5“.</li>
+<li><b>Warten, bis die Spindel läuft</b> – danach so lange warten, wie die Spindel bis zur
+Drehzahl braucht: die Hochlaufzeit der Spindel in „Maschine bearbeiten“ (LinuxCNC, GRBL, Haas
+„G4 P2.000“, Siemens „G4 F2.000“, Fanuc und Mazak „G4 X2.000“, Heidenhain Zyklus 9). Vorbelegt an
+bei GRBL, LinuxCNC und Mach, die selbst nicht warten; fehlt die Hochlaufzeit, sagt ein Hinweis
+es.</li>
 <li><b>Angetriebenes Werkzeug</b> – an der Drehmaschine dreht M3 das Teil: Ein angetriebenes
 Werkzeug bekommt den Befehl seines Antriebs mit dessen Nummer aus der Maschine – Siemens
 „M1=3 S1=…“ (Antrieb S1), Haas „M133 P…“, LinuxCNC „M3 $1 S…“.</li>

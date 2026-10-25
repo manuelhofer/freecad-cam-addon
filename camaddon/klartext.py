@@ -45,6 +45,7 @@ SPAN_BRECHEN = 0.5  # mm – G73: so weit zurück nach jeder Zustellung
 ACHSEN = ("X", "Y", "Z", "A", "B", "C")
 KLARTEXT = (
     "TOOL CALL",
+    "TOOL DEF",
     "L ",
     "CC ",
     "C ",

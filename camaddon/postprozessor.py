@@ -162,6 +162,17 @@ class Steuerung:
     # Werkzeug, Spindel, Kühlung, Ebene –, so dass man sie direkt anspringen kann (D-4, Manuel
     # 2026-10-04: „Ja, jede Marke vollständig“); im Kopf die Marken und die Werkzeuge.
     marken: bool = True
+    # Nach dem Einschalten der Spindel warten, bis sie ihre Drehzahl hat – die Hochlaufzeit der
+    # Spindel an der Maschine ({sek}: Sekunden, immer mit Dezimalpunkt; Fanuc und Mazak zählen X
+    # ohne Punkt in Tausendstel). An bei Steuerungen, die selbst nicht warten (GRBL, LinuxCNC,
+    # Mach); Siemens, Fanuc, Haas, Heidenhain, Mazak warten meist von sich aus.
+    verweilen: str = "G4 P{sek}"
+    hochlauf_warten: bool = False
+    # Das nächste Werkzeug gleich nach dem Wechsel vorwählen ({t}, {werkzeug}): Das Magazin holt es
+    # heran, während das jetzige fräst – „T2“ nach „T1 M6“, Heidenhain „TOOL DEF 2“. Leer oder
+    # Haken aus: keine Vorwahl; an der Drehmaschine nie (T dreht dort den Revolver).
+    vorwahl: str = ""
+    werkzeug_vorwahl: bool = True
     # Hinter jeder Marke ein vollständiger Einstieg (Werkzeug neu) – nein bei GRBL: Dort ist der
     # Wechsel ein Halt (M0); die Marken stehen als Namen im Kommentar zum Suchen.
     einstieg_je_marke: bool = True
@@ -289,6 +300,7 @@ BEFEHLSFELDER = (
     "radius_ein",
     "ende",
     "wechsel_fraesen",
+    "vorwahl",
     "laenge_ein",
     "wechsel_drehen",
     "laenge_ein_drehen",
@@ -298,6 +310,7 @@ BEFEHLSFELDER = (
     "marke",
     "spindel_ein",
     "spindel_aus",
+    "verweilen",
     "angetrieben_ein",
     "angetrieben_aus",
     "c_ein",
@@ -349,6 +362,8 @@ HAKEN = (
     "wechselpunkt",
     "marken",
     "werkzeugliste",
+    "werkzeug_vorwahl",
+    "hochlauf_warten",
     "c_achse",
     "g93",
     "schwenkzyklus",
@@ -382,6 +397,8 @@ STEUERUNGEN = {
         "G94",
         "G94",
         # LinuxCNC: G64 P (Toleranz der Bahn) Q (gerade Stücke zusammenfassen).
+        hochlauf_warten=True,  # LinuxCNC wartet nicht von selbst (ohne „spindle at speed“)
+        vorwahl="T{t}",  # das nächste Werkzeug vorbereiten (T ohne M6)
         glaetten_angebot=(Glaetten("g64", "G64 P{toleranz} Q{toleranz}", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
@@ -413,6 +430,8 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G94",
+        verweilen="G4 F{sek}",  # Siemens: G4 F – Sekunden (G4 S: Umdrehungen)
+        vorwahl="T{t}",  # vorwählen; „T{t} M6“ wechselt (mit Werkzeugverwaltung: T="{werkzeug}")
         # SUPA: Maschinenkoordinaten ohne Verschiebungen; D0 ohne Werkzeugkorrektur – der
         # Wechselpunkt gilt für den Werkzeugträger.
         wechselpunkt_mks="G0 SUPA D0 {achsen}",
@@ -494,6 +513,8 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G98",
+        verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
+        vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         vom_hersteller=("angetrieben_ein", "angetrieben_aus", "c_ein", "c_aus"),
         # Vorausschau und AI-Konturregelung sind bei Fanuc Optionen – vorbelegt aus.
@@ -544,6 +565,8 @@ STEUERUNGEN = {
         laenge_ein="G43 H{t}",
         tcpm_ein="G43.4 H{t}",
         tcpm_aus="G49",
+        verweilen="G4 X{sek}",  # „G04 X5. … Dwell time = 5.0 sec“ (Handbuch 8-1)
+        vorwahl="T{t}",
         gewinde_g=("G84.2", "G84.3"),
         gewinde_f_steigung=True,
         # Mit Ausgleichsfutter: G84 (G74 links) asynchron – H0 („h0 = 0 … Asynchronous tapping“),
@@ -608,6 +631,7 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G94",
+        hochlauf_warten=True,  # GRBL wartet nie auf die Drehzahl
         kuehlung_nebel="M8",
         wechselpunkt_vorschlaege=_MKS,
         # Die Marken als Namen im Kommentar (suchen, ANFANG) – ohne vollständigen Einstieg, der hieße
@@ -635,6 +659,8 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G94",
+        hochlauf_warten=True,
+        vorwahl="T{t}",
         glaetten_angebot=(Glaetten("g64", "G64", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
@@ -652,6 +678,7 @@ _HEIDENHAIN = {
     "ende": "M5\nM9\nM30",
     "kopf_drehen": "",
     "wechsel_fraesen": "TOOL CALL {t} Z",
+    "vorwahl": "TOOL DEF {t}",  # das nächste Werkzeug vorwählen
     "wechsel_drehen": "TOOL CALL {t} Z",
     "spindel_ein": "M{m} S{s}",
     "spindel_aus": "M5",
@@ -754,6 +781,8 @@ class Maschineninfo:
     # schreibt das Programm sie und die Vorschübe im selben Maß kleiner (fz bleibt): Die
     # Steuerung begrenzte sonst nur S, und der Span je Zahn wüchse um das Verhältnis.
     drehzahl_max: float = 0.0
+    # s – die Hochlaufzeit je Spindel („haupt“ oder die Nummer des Antriebs); fehlt: unbekannt.
+    hochlauf: dict = field(default_factory=dict)
     # Die Rundachsen (Buchstaben), die an der Maschine endlos drehen – an der Steuerung eine
     # Moduloachse: Steuerung.rundachse_plus/_minus.
     modulo: set = field(default_factory=set)
@@ -837,6 +866,8 @@ def feld_text(feld):
         "radius_ein": (tr("pp.feld.radius_ein"), tr("pp.feld.radius_ein.tooltip")),
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
+        "vorwahl": (tr("pp.feld.vorwahl"), tr("pp.feld.vorwahl.tooltip")),
+        "verweilen": (tr("pp.feld.verweilen"), tr("pp.feld.verweilen.tooltip")),
         "wechsel_drehen": (tr("pp.feld.wechsel_drehen"), tr("pp.feld.wechsel_drehen.tooltip")),
         "laenge_ein": (tr("pp.feld.laenge_ein"), tr("pp.feld.laenge_ein.tooltip")),
         "laenge_wieder": (tr("pp.feld.laenge_wieder"), tr("pp.feld.laenge_wieder.tooltip")),
@@ -904,6 +935,14 @@ def haken_text(feld):
         "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
         "marken": (tr("pp.haken.marken"), tr("pp.haken.marken.erklaerung")),
         "werkzeugliste": (tr("pp.haken.werkzeugliste"), tr("pp.haken.werkzeugliste.erklaerung")),
+        "werkzeug_vorwahl": (
+            tr("pp.haken.werkzeug_vorwahl"),
+            tr("pp.haken.werkzeug_vorwahl.erklaerung"),
+        ),
+        "hochlauf_warten": (
+            tr("pp.haken.hochlauf_warten"),
+            tr("pp.haken.hochlauf_warten.erklaerung"),
+        ),
         "c_achse": (tr("pp.haken.c_achse"), tr("pp.haken.c_achse.erklaerung")),
         "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
         "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
@@ -1229,7 +1268,6 @@ def programm(
         getattr(s, f)
         for f in ("bohren", "bohren_verweilen", "tiefbohren", "spaenebrechen", "reiben")
     )
-    gewinde_als_befehl = not info.drehmaschine and bool(s.gewinde)
     geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
     zyklus = bool(s.schwenkzyklus and s.schwenken)
     laenge_offen = ""  # die Werkzeuglänge – kommt in den ersten Satz nach dem Wechsel mit Z
@@ -1314,6 +1352,25 @@ def programm(
                 )
             )
             wechsel_zahl += 1
+            naechstes = next(
+                (
+                    a
+                    for a in abschnitte[nummer_ab + 1 :]
+                    if a.werkzeug and a.werkzeug != abschnitt.werkzeug
+                ),
+                None,
+            )
+            if s.werkzeug_vorwahl and s.vorwahl and naechstes is not None and not info.drehmaschine:
+                name_naechstes = naechstes.name_steuerung or naechstes.werkzeugname
+                zeilen.extend(
+                    _zeilen(
+                        _fuellen(
+                            s.vorwahl,
+                            t=int(naechstes.werkzeug),
+                            werkzeug=_werkzeugname(name_naechstes, naechstes.werkzeug),
+                        )
+                    )
+                )
             # Ohne Befehl bringt der Wechsel die Länge mit (Siemens D1, Fanuc T0101).
             laenge_offen = _fuellen(
                 s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein,
@@ -1384,6 +1441,15 @@ def programm(
             else:
                 zeilen.append(_fuellen(s.spindel_ein, m=m, s=drehzahl))
             spindel_an = soll
+            if s.hochlauf_warten and s.verweilen:
+                # Warten, bis die Spindel ihre Drehzahl hat (die Hochlaufzeit an der Maschine).
+                sekunden = info.hochlauf.get(antrieb or "haupt", 0.0)
+                if sekunden > 0:
+                    zeilen.extend(_zeilen(_fuellen(s.verweilen, sek=_zahl(sekunden))))
+                elif (antrieb or "haupt") in info.hochlauf:  # die Spindel ist da, die Zeit fehlt
+                    hinweis = tr("pp.hinweis.hochlauf_fehlt", maschine=info.name, steuerung=s.name)
+                    if hinweis not in hinweise:
+                        hinweise.append(hinweis)
         kuehlung = {"Flood": s.kuehlung_flut, "Mist": s.kuehlung_nebel}.get(abschnitt.kuehlung)
         if not s.kuehlung:
             kuehlung = None
@@ -1494,9 +1560,9 @@ def programm(
                 # Ein Bohrzyklus als erster Satz mit Z: die Länge davor in einer eigenen Zeile.
                 zeilen.append(laenge_offen)
                 laenge_offen = ""
-            vorlage = getattr(s, ZYKLUS_FELDER.get(gross, ""), "") if zyklen_als_befehl else ""
-            if gross in GEWINDE:
-                vorlage = s.gewinde if gewinde_als_befehl else ""
+            # Jede gesetzte Vorlage gilt (an der Drehmaschine keine: CYCLE83 bohrte dort ohne _AXN
+            # längs der falschen Achse) – auch, wenn eine andere leer ist.
+            vorlage = "" if info.drehmaschine else getattr(s, ZYKLUS_FELDER.get(gross, ""), "")
             if vorlage:
                 zeilen.extend(
                     _zyklus_als_befehl(
@@ -2286,6 +2352,20 @@ def _info_aus(dok, m, msp):
         for spindel, c in spindeln.antriebe:
             if c is not None and m.nc_nummer(spindel):
                 info.antrieb_c[m.nc_nummer(spindel)] = c.NcName.strip()
+
+        def hochlauf(ba):
+            return max(0.0, float(getattr(ba, "Hochlaufzeit", 0.0) or 0.0)) if ba else 0.0
+
+        # An der Fräse treibt die Spindel mit der Werkzeugaufnahme das Werkzeug („haupt“ im
+        # Programm), an der Drehmaschine die Hauptspindel das Teil, die Antriebe die Werkzeuge.
+        if info.drehmaschine:
+            info.hochlauf["haupt"] = hochlauf(spindeln.haupt)
+        else:
+            werkzeugspindeln = [s for s, _c in spindeln.antriebe] or [spindeln.haupt]
+            info.hochlauf["haupt"] = max(hochlauf(s) for s in werkzeugspindeln)
+        for spindel, _c in spindeln.antriebe:
+            if m.nc_nummer(spindel):
+                info.hochlauf[m.nc_nummer(spindel)] = hochlauf(spindel)
         for aufnahme in m.aufnahmen(maschine):
             spindel = getattr(aufnahme, "Spindel", None)
             if aufnahme.Art != m.AUFNAHME_WERKZEUG or spindel is None:

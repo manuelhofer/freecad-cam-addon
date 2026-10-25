@@ -63,6 +63,8 @@ GRUPPEN = (
         "wechsel",
         (
             "wechsel_fraesen",
+            "werkzeug_vorwahl",
+            "vorwahl",
             "laenge_ein",
             "wechsel_drehen",
             "laenge_ein_drehen",
@@ -78,6 +80,8 @@ GRUPPEN = (
         (
             "spindel_ein",
             "spindel_aus",
+            "hochlauf_warten",
+            "verweilen",
             "angetrieben_ein",
             "angetrieben_aus",
             "kuehlung",
@@ -129,6 +133,8 @@ NUR_DREHEN = {
 }
 NUR_FRAESEN = {
     "rohteil_fraesen",
+    "werkzeug_vorwahl",
+    "vorwahl",
     "tcpm",
     "tcpm_ein",
     "tcpm_aus",
@@ -175,6 +181,8 @@ NUR_GCODE = {
 NUR_KLARTEXT = {"bohrzyklen"}
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {
+    "vorwahl": "werkzeug_vorwahl",
+    "verweilen": "hochlauf_warten",
     "rohteil_fraesen": "rohteil",
     "rohteil_drehen": "rohteil",
     "laenge_wieder": "wechselpunkt",

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-70 werkzeug-vorwahl, hochlauf-warten, jede-bohrvorlage-gilt
+
+### EINGELESEN
+- Manuel, nachts: „bei den post prozessoren auf jeden fall darauf achten das die auch wirlich
+  alles richtig ausgeben und einstell möglichkeiten haben“ – „und das bei jedem post prozessor“.
+- Mit 10 s je Werkzeugwechsel (W-040) zählt jeder Wechsel: Vorgewählt holt das Magazin das
+  nächste Werkzeug heran, während das jetzige fräst.
+- Fehler gefunden: Eine geleerte Bohrzyklus-Vorlage (z. B. G82 bei Siemens) schaltete alle CYCLE8x
+  ab – das Programm bohrte dann in G0/G1, obwohl die übrigen Vorlagen gesetzt waren.
+- GRBL, LinuxCNC (ohne „spindle at speed“) und Mach warten nach M3 nicht, bis die Spindel dreht.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Feld `vorwahl` ({t}, {werkzeug}) mit Haken `werkzeug_vorwahl`
+  (vorbelegt an bei LinuxCNC, Siemens, Fanuc, Mazak, Mach, Heidenhain „TOOL DEF {t}“; nie an der
+  Drehmaschine); Feld `verweilen` ({sek}) mit Haken `hochlauf_warten` (an bei GRBL, LinuxCNC,
+  Mach), `Maschineninfo.hochlauf` aus der Hochlaufzeit der Spindel; Hinweis, wenn sie fehlt;
+  Bohrvorlage je Zyklus statt alle oder keine.
+- `camaddon/klartext.py`: „TOOL DEF“ als Klartext-Satz.
+- `camaddon/gui_programm.py`, `translations/de.json`, `en.json`, `help/*/programm.html`,
+  `docs/spezifikation_steuerung.md` 18, `tests/test_postprozessor.py`.
+- `tests/golden/freiform_simultan_nc.json`, `kuppel_simultan_gesamt_nc.json`,
+  `simultan_folge.json`: nur die Prüfsumme des Programms (die Vorwahl nach dem Wechsel).
+
+### ERGEBNIS
+- Fanuc „T1 M6“ / „T2“, Heidenhain nach „TOOL CALL 1 …“ „TOOL DEF 2“; das letzte Werkzeug wählt
+  nichts mehr vor. Mit 2 s Hochlauf nach M3: LinuxCNC, GRBL, Mach „G4 P2.000“, mit dem Haken
+  Fanuc und Mazak „G4 X2.000“, Siemens „G4 F2.000“.
+- Grün: test_postprozessor, _grbl, _nachfahren, test_programm_pruefen, test_programmkopf,
+  test_mpr, test_sprache, die Simultan-Prüfungen (Referenzen neu); szenario_programm,
+  _programm_heidenhain, _programm_im_hintergrund, _programm_theme, _einrichtblatt,
+  _magazin_bearbeitung, _frage_eintauchen, _frage_reihenfolge.
+
 ## P-2026-10-25-69 gewinde-synchron-oder-ausgleichsfutter
 
 ### EINGELESEN

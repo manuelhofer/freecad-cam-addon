@@ -751,3 +751,19 @@ synchron):
 Dazu: G80/G98/G99 entfallen nur, wenn **alle** Bohrzyklen eine Vorlage haben – hat nur das
 Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzhalter `{pit_abs}`,
 `{g}`; `Steuerung.wirksam()` setzt bei „aus“ die Befehle mit Ausgleichsfutter ein.
+
+## 18. Nächstes Werkzeug vorwählen; jede Bohrvorlage gilt (P-2026-10-25-70)
+
+- Gleich nach dem Werkzeugwechsel das nächste andere Werkzeug der Folge vorwählen
+  (`Steuerung.vorwahl` mit {t}, {werkzeug}; Haken `werkzeug_vorwahl`, vorbelegt an): LinuxCNC,
+  Siemens, Fanuc, Mazak, Mach „T{t}“, Heidenhain „TOOL DEF {t}“; Haas, GRBL, woodWOP leer; an der
+  Drehmaschine nie (T dreht dort den Revolver). Das Magazin holt es heran, während das jetzige
+  fräst – Manuels Rechnung mit 10 s je Wechsel (W-040).
+- Jede gesetzte Bohrzyklus-Vorlage gilt, auch wenn eine andere leer ist (bis hierhin: eine
+  geleerte Vorlage schaltete bei Siemens alle CYCLE8x ab); G80/G98/G99 entfallen nur, wenn alle
+  gesetzt sind.
+- Warten, bis die Spindel läuft (Haken `hochlauf_warten`, Feld `verweilen` mit {sek}): nach
+  M3/M4 die Hochlaufzeit der Spindel an der Maschine (`Maschineninfo.hochlauf` je Spindel – an der
+  Fräse die mit der Werkzeugaufnahme). Vorbelegt an bei GRBL, LinuxCNC, Mach; LinuxCNC/GRBL/Haas
+  `G4 P{sek}`, Siemens `G4 F{sek}`, Fanuc/Mazak `G4 X{sek}` (X mit Punkt: Sekunden – Mazak
+  Handbuch 8-1), Heidenhain Zyklus 9. Ohne eingetragene Zeit an einer Spindel ein Hinweis.

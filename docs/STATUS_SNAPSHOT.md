@@ -531,6 +531,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.301.0):* Nächstes Werkzeug vorwählen (T2 nach T1 M6, Heidenhain TOOL DEF), Warten
+  bis die Spindel läuft (G4 mit der Hochlaufzeit; an bei GRBL, LinuxCNC, Mach); jede gesetzte
+  Bohrzyklus-Vorlage gilt, auch wenn eine andere leer ist.
 - *Neu (0.300.0):* Haken „Gewindebohren synchron (ohne Ausgleichsfutter)“ je Steuerung (CYCLE840,
   Zyklus 206, G84 ohne M29, Mazak H0, LinuxCNC G33.1); die Gegenprobe liest jedes Programm wieder
   ein (test_postprozessor_nachfahren).

@@ -108,6 +108,10 @@ speed, feed per minute).</li>
 <ul>
 <li><b>Tool change</b> – on a mill “T1 M6”, on a lathe as the control wants it: Siemens
 “T1 D1”, Fanuc “T0101”, Haas “T101”.</li>
+<li><b>Preselect next tool</b> – right after the change “T2” (Heidenhain “TOOL DEF 2”): the
+magazine brings up the next tool while the current one cuts, the next change is faster. On by
+default for LinuxCNC, Siemens, Fanuc, Mazak, Mach and Heidenhain; never on a lathe (T indexes the
+turret there).</li>
 <li><b>Tool length on (mill)</b> – after the change, the length offset of the new tool: on
 LinuxCNC, Fanuc, Haas and Mach “G43 H1”, in the first block afterwards that moves Z
 (“G0 G43 H1 Z15.000”) – alone on a line some controls would move up by the tool length at the
@@ -143,6 +147,11 @@ header), check in the control's simulation.</li>
 <h3>Spindle and coolant</h3>
 <ul>
 <li><b>Spindle on and off</b> – “M3 S…” (left M4), “M5”.</li>
+<li><b>Wait until the spindle is up to speed</b> – afterwards wait as long as the spindle needs
+to reach its speed: the spindle's ramp-up time in “Edit machine” (LinuxCNC, GRBL, Haas
+“G4 P2.000”, Siemens “G4 F2.000”, Fanuc and Mazak “G4 X2.000”, Heidenhain cycle 9). On by default
+for GRBL, LinuxCNC and Mach, which do not wait themselves; if the ramp-up time is missing, a note
+says so.</li>
 <li><b>Driven tool</b> – on a lathe M3 turns the part: a driven tool gets the command of its
 drive with the drive's number from the machine – Siemens “M1=3 S1=…” (drive S1), Haas
 “M133 P…”, LinuxCNC “M3 $1 S…”.</li>
