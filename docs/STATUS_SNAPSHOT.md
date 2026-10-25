@@ -532,7 +532,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 **Stand 2026-10-25 nachts (0.307.0) – offen, in dieser Reihenfolge:**
 - *Neu (0.310.0):* Kommentare in Großbuchstaben (Fanuc, Mazak an); Klartext ohne Sätze unter der
-  letzten Stelle.
+  letzten Stelle. Voller Lauf danach: 134/134 Prüfungen, 144/144 Szenarien grün.
 - *Neu (0.309.0):* Eigene Befehle vor und nach dem Werkzeugwechsel (leer vorbelegt).
 - *Neu (0.308.0):* Haken „Wörter mit Leerzeichen trennen“ (aus: rund 10 % kleinere Datei) bei
   LinuxCNC, Fanuc, Mazak, Haas, Mach, GRBL.
