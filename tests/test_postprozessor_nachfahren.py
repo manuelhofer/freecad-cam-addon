@@ -9,6 +9,7 @@
 # mit Zapfen (Planfräsen, Kontur).
 # Ausführen: freecadcmd tests/test_postprozessor_nachfahren.py
 
+import dataclasses
 import math
 import os
 import re
@@ -78,7 +79,8 @@ def vorschubsaetze_job(abschnitte, info, spindel=None):
                 )
             aus.append((name, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
             if spindel is not None:
-                spindel.append((round(abschnitt.drehzahl), bool(abschnitt.rueckwaerts)))
+                kuehl = abschnitt.kuehlung in ("Flood", "Mist")
+                spindel.append((round(abschnitt.drehzahl), bool(abschnitt.rueckwaerts), kuehl))
     return aus
 
 
@@ -92,7 +94,7 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None):
     pos = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUND)
     art, f, maschine = "G0", None, False
-    drehzahl, links, laeuft = 0, False, False
+    drehzahl, links, laeuft, kuehl = 0, False, False, False
     for zeile in text.splitlines():
         zeile = re.sub(r"\([^)]*\)", "", zeile)
         zeile = zeile.split(";", 1)[0].strip().upper()
@@ -114,6 +116,10 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None):
                 laeuft, links = True, float(z) == 4.0
             elif b == "M" and float(z) == 5.0:
                 laeuft = False
+            elif b == "M" and float(z) in (7.0, 8.0):
+                kuehl = True
+            elif b == "M" and float(z) == 9.0:
+                kuehl = False
         maschine = 53.0 in g
         for code in g:
             if code in (0.0, 1.0, 2.0, 3.0):
@@ -135,7 +141,7 @@ def vorschubsaetze_programm(text, siemens=False, spindel=None):
             mitte = (start["X"] + werte.get("I", 0.0), start["Y"] + werte.get("J", 0.0))
         aus.append((art, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
         if spindel is not None:
-            spindel.append((drehzahl if laeuft else 0, links))
+            spindel.append((drehzahl if laeuft else 0, links, kuehl))
     return aus
 
 
@@ -338,8 +344,9 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 ist = vorschubsaetze_programm(programm.text, siemens=kennung == "siemens")
                 unterschied = vergleichen(soll, ist)
                 pruefe(not unterschied, f"{datei} {job.Label} {kennung} {aenderung}: {unterschied}")
-                # Bei jedem Vorschubsatz läuft die Spindel mit Drehzahl und Drehsinn der Operation
-                # – auch nach Messstopp, Wechsel und Einstieg hinter einer Marke.
+                # Bei jedem Vorschubsatz läuft die Spindel mit Drehzahl und Drehsinn der Operation,
+                # die Kühlung wie an ihr – auch nach Messstopp, Wechsel und Einstieg hinter einer
+                # Marke.
                 spindel_ist = []
                 vorschubsaetze_programm(programm.text, kennung == "siemens", spindel_ist)
                 falsch = next(
@@ -393,6 +400,31 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             f = re.search(r"F(\d+\.\d+)", text)
             anders = text[: f.start(1)] + f"{float(f.group(1)) * 1.01:.3f}" + text[f.end(1) :]
             pruefe(vergleichen(soll, vorschubsaetze_programm(anders)), "anderes F übersehen")
+            # Gemischt: Flut mit Linkslauf, Nebel, ohne Kühlung mit anderer Drehzahl – Spindel und
+            # Kühlung bei jedem Vorschubsatz wie an der Operation.
+            arten = (("Flood", True, 1800.0), ("Mist", False, 2255.0), ("None", False, 3100.0))
+            gemischt = [
+                dataclasses.replace(a, kuehlung=k, rueckwaerts=r, drehzahl=d)
+                for a, (k, r, d) in zip(abschnitte, arten, strict=False)
+            ]
+            g_soll = []
+            vorschubsaetze_job(gemischt, fraese, g_soll)
+            for kennung in ("linuxcnc", "fanuc", "haas", "mach", "mazak", "grbl", "siemens"):
+                for aenderung in ({}, {"marken": False}):
+                    g_ist = []
+                    text_g = pp.programm(
+                        gemischt, pp.steuerung(kennung, aenderung), fraese, "G"
+                    ).text
+                    vorschubsaetze_programm(text_g, kennung == "siemens", g_ist)
+                    falsch = next(
+                        (
+                            (i, a, b)
+                            for i, (a, b) in enumerate(zip(g_soll, g_ist, strict=True))
+                            if a != b
+                        ),
+                        None,
+                    )
+                    pruefe(not falsch, f"gemischt {kennung} {aenderung}: {falsch}")
             ohne_m3 = re.sub(r"^M3 S\d+\n", "", text, count=1, flags=re.M)
             spindel_ohne = []
             vorschubsaetze_programm(ohne_m3, False, spindel_ohne)
