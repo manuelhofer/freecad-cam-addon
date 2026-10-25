@@ -615,12 +615,16 @@ def lege_an(job, tc, grathoehe, aufmass=0.0, name=None, flaechen=(), davor=(0.0,
 
 
 def _endtiefe(obj, job):
-    """Die Endtiefe: der tiefste Punkt der gewählten Freiformflächen."""
+    """Die Endtiefe: der tiefste Punkt der gewählten Freiformflächen – unter dem Rand aller
+    gewählten (auch die Wände der Flanke, die die Spirale fertig macht)."""
     from . import vierachs_flaechen as vf
 
     try:
         form_teil = vs._teil(job.Model.Group)
-        nummern = vf.nummern(sb.freiformflaechen(form_teil, list(obj.Flaechen)))
+        if str(getattr(obj, "Richtung", "")) == hb.HINTERSCHNITT:
+            nummern = vf.nummern([n for n in obj.Flaechen if str(n).startswith("Face")])
+        else:
+            nummern = vf.nummern(sb.freiformflaechen(form_teil, list(obj.Flaechen)))
     except ValueError:
         nummern = []
     if nummern:

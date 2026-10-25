@@ -4140,3 +4140,30 @@ im Halter „…“, 30 mm heraus (… ab Spindelnase). Dazu: den Halter gibt es
 Werkzeugverwaltung noch nicht …“, dahinter der Knopf **„So einrichten“**. Er legt den Halter an,
 setzt ihn beim Fräser (im Magazin an seinem Platz), trägt die Auskragung ein und rechnet neu. Geht
 gar nichts, sagt er das auch.
+
+### 16.21 Wie willst du vorgehen? – die Wände unter dem Rand (W-039, P-2026-10-25-55)
+
+Manuel, 2026-10-25, zu Frage 7 („Flanke grob, Spirale fertig“), dann: „bau einfach beides .. und
+lass den user entscheiden wie er es haben will .. fertig .. mach die geschichte mit der vorschau
+..“ – „die vorschau muss die werkzeugwege halt nur sehr schnell berechnen grob .. auf +-0.3mm oder
+so“; zu Frage 6: „mehr abfragen wie der benutzer das teil bearbeiten wollen würde … aber wirklich
+als frage ;) … "weg 1 ist so und so [vorschau button] weg 2 ist so und so [vorschau button]"“.
+
+- **Die Frage:** In Schritt 2 über den Strategien „Die Wände unter dem Rand – wie sollen sie
+  fertig werden?“, sobald Flanke und 3D-Schlichten (Kugel, „Unter dem Rand“, „als Spirale“)
+  angehakt sind und alle Wände der Flanke unter dem Rand liegen. Je Weg ein Auswahlknopf, ein
+  Satz, seine Zeit und „Vorschau“:
+  - **Flanke fertig** (vorbelegt, wie bisher): die Flanke ohne Aufmaß, die Kugel nur die
+    Freiformflächen unter dem Rand.
+  - **Flanke grob, Spirale fertig:** die Flanke mit 0,3 mm Aufmaß (`FLANKE_VOR_SPIRALE`, nur wenn
+    keins von Hand eingetragen ist), die Spirale nimmt die Wände der Flanke dazu
+    (`_spirale_nach_flanke`); die Flanke zählt dann nicht als fertig, die Spirale schon.
+- **Die Zeiten:** der gewählte Weg aus den Blöcken, der andere im Nebenrechner, grob wie die
+  Vorschau (`_weg_rechnen`); geht ein Weg nicht, „geht hier nicht“. An Manuels tiefer Tasche
+  (G550, T1 54 mm heraus, Kugel im Schrumpffutter): Flanke fertig etwa 11 min, Flanke grob +
+  Spirale etwa 32 min (Spirale über alle Wände 79 Höhenlinien, 27 min).
+- **Vorschau:** die Wege des Wegs als Linien im 3D (`gui_bahnvorschau`), vor dem Teil gezeichnet
+  (sonst verdeckt der Rand sie), je Operation eine Farbe, Eilgang grau; vom Job ans Teil
+  (Original · Klon⁻¹); noch ein Klick nimmt sie weg, beim Schließen des Fensters fällt sie weg.
+- Nächste Fragen nach Manuels Liste (W-039): das Vorgehen (erst vorbohren …; erst alles
+  schruppen, dann alles schlichten).

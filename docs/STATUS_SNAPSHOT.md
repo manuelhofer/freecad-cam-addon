@@ -1883,6 +1883,16 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   4,7 s im einen Nebenrechner am Anfang. Danach rechnet das Fenster gut 6 s allein: die Form
   lesen, `richte_ein` und die Einfahrbewegung des Teils (70 Bilder mit dem Netz des Geists) –
   Zeichnen, nicht verteilbar.
+- **W-039 Der Assistent fragt, wie man vorgehen will** – Manuel, 2026-10-25 (Antwort auf Frage 6,
+  die aus seinem Vorschlag zu Frage 4 kam: „hey wie willst du vorgehen sollen wir erst vorbohren …
+  oder sollen wir alles rausschruppen und dann schlichten“): „ja irgendwie mehr abfragen wie der
+  benutzer das teil bearbeiten wollen würde .. so generell mehr abfragen was der nutzer gerne
+  machen würde ... aber wirklich als frage ;) ... und vll mit bildern erklärt oder das man ne
+  kleine vorschau einbaut ... "weg 1 ist so und so [vorschau button] weg 2 ist so und so [vorschau
+  button]"“. Plan: in Schritt 2 eine Frage „Wie willst du vorgehen?“ – je Weg ein Satz, seine Zeit
+  am Teil und ein Knopf „Vorschau“, der ihn im 3D zeigt (Bahnen in ihrer Folge); vorbelegt der
+  schnellste, gewählt erst auf Klick. Wege zuerst: wie vorgeschlagen; erst vorbohren, dann räumen,
+  dann schlichten; erst alles schruppen, dann alles schlichten. Neue Wege nur nach Rücksprache.
 - **W-038 5-Achs-Testteil „tief“** – Manuel, 2026-10-23: „ich habe ein neues 5 achs testteil
   erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen bearbeitet
   werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel, nicht im

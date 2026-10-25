@@ -241,6 +241,67 @@ def _bibliothek_der_pruefung():
         return None
 
 
+class _Frage:
+    """Eine Frage im Überblick (W-039; Manuel, 2026-10-25: „mehr abfragen wie der benutzer das
+    teil bearbeiten wollen würde … aber wirklich als frage ;) … "weg 1 ist so und so [vorschau
+    button] weg 2 ist so und so [vorschau button]"“): ihr Satz, je Weg ein Auswahlknopf mit
+    kurzem Titel, darunter grau sein Satz, rechts seine Zeit und „Vorschau“ (die Werkzeugwege im
+    3D). `wege`: [(Kennung, Titel, Satz)]; `gewechselt(kennung)` beim Wählen, `vorschau(kennung)`
+    beim Klick auf „Vorschau“. Versteckt, solange sie nicht passt."""
+
+    def __init__(self, titel, wege, gewaehlt, gewechselt, vorschau):
+        self.widget = QtGui.QWidget()
+        aufbau = QtGui.QVBoxLayout(self.widget)
+        aufbau.setContentsMargins(0, 4, 0, 4)
+        kopf = QtGui.QLabel(f"<b>{html.escape(titel)}</b>")
+        kopf.setWordWrap(True)
+        aufbau.addWidget(kopf)
+        self.gruppe = QtGui.QButtonGroup(self.widget)
+        self.knoepfe, self.zeiten, self.vorschau_knoepfe = {}, {}, {}
+        for kennung, kurz, satz in wege:
+            zeile = QtGui.QHBoxLayout()
+            zeile.setContentsMargins(0, 0, 0, 0)
+            auswahl = QtGui.QRadioButton(kurz)
+            auswahl.setChecked(kennung == gewaehlt)
+            auswahl.toggled.connect(lambda an, k=kennung: an and gewechselt(k))
+            self.gruppe.addButton(auswahl)
+            zeile.addWidget(auswahl, 1)
+            zeit = _grau()
+            zeile.addWidget(zeit)
+            zeigen = knopf(
+                tr("ba.frage.vorschau"),
+                tr("ba.frage.vorschau.tooltip"),
+                lambda k=kennung: vorschau(k),
+            )
+            zeigen.setCheckable(True)
+            zeile.addWidget(zeigen)
+            aufbau.addLayout(zeile)
+            erklaerung = _grau(satz)
+            erklaerung.setWordWrap(True)
+            erklaerung.setContentsMargins(22, 0, 0, 2)
+            aufbau.addWidget(erklaerung)
+            self.knoepfe[kennung] = auswahl
+            self.zeiten[kennung] = zeit
+            self.vorschau_knoepfe[kennung] = zeigen
+
+    def zeit_setzen(self, kennung, minuten):
+        """„etwa 12 min“ – None: „rechnet …“, False: „geht hier nicht“."""
+        if minuten is None:
+            text = tr("ba.frage.rechnet")
+        elif minuten is False:
+            text = tr("ba.frage.geht_nicht")
+        else:
+            text = _zeit_text(minuten)
+        self.zeiten[kennung].setText(text)
+
+    def gezeigt(self, kennung):
+        """Der Knopf „Vorschau“ des Wegs `kennung` gedrückt, die anderen nicht (None: keiner)."""
+        for k, zeigen in self.vorschau_knoepfe.items():
+            zeigen.blockSignals(True)
+            zeigen.setChecked(k == kennung)
+            zeigen.blockSignals(False)
+
+
 class _Angebot:
     """Ein Satz mit Knöpfen (höchstens KNOEPFE), der etwas anbietet – wie _Satz an zwei Stellen:
     im Überblick (nur, wenn die Strategie zur Wahl passt) und bei den Einstellungen. Leer nimmt
@@ -3347,6 +3408,10 @@ KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt", "spirale")  # 3D-Schlich
 # nicht mehr in den Kreis, den das Räumen für die Helix braucht (raeumen_bahn.ADAPTIV_HELIX).
 VORBOHRER_HOECHSTENS = 1.6
 VORBOHRER_LUFT = 0.5  # mm – am liebsten so viel größer als der Fräser, damit er frei hineinfällt
+# mm – so viel lässt die Flanke an Wänden unter dem Rand, die danach die Spirale des 3D-Schlichtens
+# fertig macht (Manuel, 2026-10-25, Frage 7: „Flanke grob, Spirale fertig“ – in der unteren Lage
+# lag der Schaft von T1 sonst an der schon fertigen Wand an).
+FLANKE_VOR_SPIRALE = 0.3
 # Kegelsenker nach DIN 335 C (Ø, Ø der Spitze, Schaft-Ø; übliche Katalogmaße): „Kegelsenker …
 # anlegen“ nimmt den kleinsten, der die Senkung abdeckt und dessen Spitze in die Bohrung passt.
 KEGELSENKER_REIHE = (
@@ -4979,8 +5044,13 @@ class _Block:
                     f'<a href="eckenwerkzeug:">{knopf}</a>'
                 )
             return f"{text} {dazu}"
+        rest = self.panel.restschlichten
+        jetzt = rest.fraeser() if rest.aktiv() else None
+        if jetzt is not None and any(w.kennung == jetzt.kennung for w in kugeln):
+            return text  # Restschlichten ist schon mit einer Kugel angehakt, die hineinpasst
         kugel = max(kugeln, key=lambda w: float(w.durchmesser))
-        knopf = html.escape(tr("ba.s3.unter.ecken_rest", werkzeug=f"T{kugel.nummer}"))
+        nummer = mg.genannt(kugel, self.panel.magazin()) if self.panel.magazin() else None
+        knopf = html.escape(tr("ba.s3.unter.ecken_rest", werkzeug=nummer or wz.nummer_text(kugel)))
         return f'{text} <a href="restschlichten:{kugel.kennung}">{knopf}</a>'
 
     def _vorbohrer_angebot(self):
@@ -5155,6 +5225,12 @@ class _Block:
     def _gemerkt_zeigen(self, gemerkt):
         vorschau, zeit, schon_weg, basis, material, hinweis = gemerkt
         self.vorschau, self.zeit, self.schon_weg = vorschau, zeit, schon_weg
+        if vorschau is not None and self.s.kennung == "schlichten3d":
+            # Der Verweis zum Restschlichten hängt von dessen Haken ab, nicht von der Bahn.
+            zeit_ = _zeit_text(zeit) if zeit is not None else "?"
+            basis = self._mit_ecken(
+                self._mit_ausspannen(self.s.ergebnis_text(vorschau, zeit_), vorschau), vorschau
+            )
         self.ergebnis_basis = basis
         self.ergebnis.setText(basis)
         self.material.setText(material)
@@ -5852,6 +5928,29 @@ class BearbeitungPanel:
         zeile_schneller.addWidget(self.knopf_schneller)
         zeile_schneller.addStretch()
         ziel[0].addLayout(zeile_schneller)
+        # Fragen, wie man vorgehen will (W-039): je Weg ein Satz, seine Zeit und „Vorschau“.
+        self._weg = {"waende": "flanke"}  # vorbelegt der schnellere (wie bisher)
+        self._wege = {}  # (Frage, Weg) → (Minuten, [Vorschau je Block], woraus gerechnet)
+        self._bahnvorschau = None  # gui_bahnvorschau.Bahnvorschau
+        self.frage_waende = _Frage(
+            tr("ba.frage.waende"),
+            [
+                ("flanke", tr("ba.frage.waende.flanke"), tr("ba.frage.waende.flanke.satz")),
+                (
+                    "spirale",
+                    tr("ba.frage.waende.spirale"),
+                    tr(
+                        "ba.frage.waende.spirale.satz",
+                        aufmass=groesse_zeigen(FLANKE_VOR_SPIRALE, einheiten.LAENGE, 2) or "0",
+                    ),
+                ),
+            ],
+            "flanke",
+            lambda weg: self._weg_waehlen("waende", weg),
+            lambda weg: self._weg_zeigen("waende", weg),
+        )
+        self.frage_waende.widget.hide()
+        ziel[0].addWidget(self.frage_waende.widget)
         # Je Strategie ein Haken mit ihrem Ergebnis – was zur Wahl passt oben, darunter
         # eingeklappt, was (noch) nicht passt (_bloecke_ordnen).
         strategien = QtGui.QWidget()
@@ -6195,6 +6294,8 @@ class BearbeitungPanel:
     def _vor_dem_schliessen(self):
         BearbeitungPanel.offen = None
         self.geschlossen = True
+        if self._bahnvorschau is not None:
+            self._bahnvorschau.weg()
         self._rechnet.ende()
         self._vorschau_lauf_beenden()
         self._genau_beenden()
@@ -8353,6 +8454,12 @@ class BearbeitungPanel:
 
     def _werkzeuge_gespeichert(self):
         if BearbeitungPanel.offen is self and self.job is not None:
+            # Was die Vorschau sich merkte, galt für die Werkzeuge davor – ihr Schlüssel kennt den
+            # Platz im Magazin nicht (Manuel, 2026-10-25: „T1 auf 54 mm ausspannen“ – danach kam
+            # der alte rote Satz aus dem Merker zurück).
+            self.vorschau_merk.clear()
+            self.__dict__.pop("_fehler_merk", None)
+            self._wege.clear()
             self._bearbeitung_fuellen()
 
     # --- Werte und Vorschau -----------------------------------------------------------------
@@ -8486,6 +8593,127 @@ class BearbeitungPanel:
         self._unfertig_zeigen(form)
         self._fase_angebot()
         self._knoepfe_beschriften()
+        yield from self._fragen_schritte(form)
+
+    # --- Fragen: wie willst du vorgehen? (W-039) ----------------------------------------------
+
+    def _weg_waehlen(self, frage, weg):
+        if self._weg.get(frage) == weg:
+            return
+        self._weg[frage] = weg
+        self.vorschau_starten()
+
+    def _weg_zeigen(self, frage, weg):
+        """„Vorschau“: die Werkzeugwege des Wegs im 3D – noch ein Klick nimmt sie weg. Rechnet er
+        noch, kommt sie, sobald er fertig ist."""
+        from . import gui_bahnvorschau as gb
+
+        if self._bahnvorschau is None:
+            self._bahnvorschau = gb.Bahnvorschau(self.doc)
+        if self._bahnvorschau.kennung == (frage, weg):
+            self._bahnvorschau.weg()
+            self.frage_waende.gezeigt(None)
+            return
+        eintrag = self._wege.get((frage, weg))
+        if eintrag is None:
+            self._bahnvorschau.weg()
+            self._bahnvorschau.kennung = (frage, weg)  # kommt nach dem Rechnen
+            self.frage_waende.gezeigt(weg)
+            return
+        self._bahnvorschau.zeigen((frage, weg), eintrag[1], self._job_zum_teil())
+        self.frage_waende.gezeigt(weg)
+
+    def _job_zum_teil(self):
+        """Die Lage, die Punkte im Job ans Teil bringt, wie es in der Ansicht liegt: Der Klon im
+        Job ist Lage · Original (vierachs_rohteil.richte_ein) – also Original · Klon⁻¹."""
+        if self.job is None:
+            return None
+        klon = vr.modell(self.job)
+        teil = vr.original(klon)
+        if teil is klon:
+            return None
+        return teil.Placement.multiply(klon.Placement.inverse())
+
+    def _waende_woraus(self):
+        """Woraus die Wege der Frage „Wände“ gerechnet sind – ändert sich etwas, gelten sie
+        nicht mehr."""
+        teile = [tuple(self.gewaehlte)]
+        for block in (self.flanke, self.schlichten3d):
+            teile.append((getattr(block.fraeser(), "kennung", None), repr(block.einsatz())))
+            teile.append(repr(sorted(block.werte().items())))
+        return repr(teile)
+
+    def _fragen_schritte(self, form):
+        """Die Frage „Wände unter dem Rand“: zeigen, wenn es um solche Wände geht; die Zeit des
+        gewählten Wegs aus den Blöcken, den anderen im Nebenrechner dazu (grob wie die
+        Vorschau)."""
+        frage = self.frage_waende
+        passt = self.zu_aendern is None and bool(self._waende_unter_rand(form))
+        frage.widget.setVisible(passt)
+        if not passt:
+            return
+        woraus = self._waende_woraus()
+        jetzt = self._weg["waende"]
+        bloecke = (self.flanke, self.schlichten3d)
+        if all(b.vorschau is not None and b.zeit is not None for b in bloecke):
+            zeit = sum(b.zeit for b in bloecke)
+            self._wege[("waende", jetzt)] = (zeit, [b.vorschau for b in bloecke], woraus)
+        else:
+            self._wege[("waende", jetzt)] = (False, [], woraus)  # einer der Blöcke steht rot
+        for weg in frage.knoepfe:
+            eintrag = self._wege.get(("waende", weg))
+            frage.zeit_setzen(weg, eintrag[0] if eintrag and eintrag[2] == woraus else None)
+        for weg in frage.knoepfe:
+            eintrag = self._wege.get(("waende", weg))
+            if weg == jetzt or (eintrag is not None and eintrag[2] == woraus):
+                continue
+            gerechnet = yield from self._weg_rechnen(form, "waende", weg)
+            if gerechnet is None:
+                gerechnet = (False, [])
+            self._wege[("waende", weg)] = (*gerechnet, woraus)
+            frage.zeit_setzen(weg, gerechnet[0])
+        gezeigt = getattr(self._bahnvorschau, "kennung", None)
+        if gezeigt is not None and gezeigt[0] == "waende":
+            eintrag = self._wege.get(gezeigt)
+            if eintrag is not None and eintrag[2] == woraus:
+                self._bahnvorschau.zeigen(gezeigt, eintrag[1], self._job_zum_teil())
+
+    def _weg_rechnen(self, form, frage, weg):
+        """(Minuten, [Vorschau je Block]) der Blöcke der Frage, gerechnet, als wäre `weg` gewählt
+        – im Nebenrechner, wenn es geht (Schritte: ein Auftrag je Block); None, wenn es nicht
+        geht."""
+        bahnen, zeit = [], 0.0
+        for block in (self.flanke, self.schlichten3d):
+            werkzeug, einsatz = block.fraeser(), block.einsatz()
+            if werkzeug is None or einsatz is None:
+                return None
+            _n, vorschub, senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
+            alt, self._weg[frage] = self._weg[frage], weg
+            try:
+                werte = dict(block.werte(), vorschub=vorschub, eintauchen=senkrecht,
+                             **(self._zusatz(block, form) or {}))  # fmt: skip
+                flaechen = self._flaechen(block, form)
+            finally:
+                self._weg[frage] = alt
+            auftrag = block._im_hintergrund(
+                self.job, werkzeug, werte, flaechen, vorschub, senkrecht
+            )
+            if auftrag is not None:
+                yield auftrag
+                gerechnet = _aus_dem_hintergrund(auftrag)
+                if gerechnet is None or gerechnet[0] != "ok":
+                    return None
+                bahn = gerechnet[1][0]
+            else:
+                try:
+                    bahn = block.s.vorschau(self.job, werkzeug, werte, flaechen)
+                except (ValueError, RuntimeError):
+                    return None
+                yield
+            bahnen.append(bahn)
+            if vorschub > 0:
+                zeit += block.s.zeit(bahn, vorschub, senkrecht)
+        return zeit, bahnen
 
     # --- Das Teil muss herauskommen (Grundsatz 0) -------------------------------------------
 
@@ -8728,6 +8956,11 @@ class BearbeitungPanel:
                 self._raeumen_bei_nut = True
         if block is self.kontur:
             self._kontur_text(form, eigen)
+        if block is self.flanke and eigen and block.ergebnis_basis:
+            aufmass = groesse_zeigen(eigen["aufmass"], einheiten.LAENGE, 2) or "0"
+            block.ergebnis.setText(
+                tr("ba.fl.vor_spirale", text=block.ergebnis_basis, aufmass=aufmass)
+            )
         if block is self.bohren and (zusatz or {}).get("reiben") and block.ergebnis_basis:
             d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
             block.ergebnis.setText(tr("ba.bohren.vorbohren", text=block.ergebnis_basis, d=d))
@@ -9432,6 +9665,12 @@ class BearbeitungPanel:
             return {"davor": davor} if davor else None
         if block is self.restschlichten:
             return self._davor_3d(self.restschlichten, self.schlichten3d)
+        if block is self.flanke:
+            if self.flanke.felder["aufmass"].text().strip():
+                return None  # von Hand eingetragen
+            if self._spirale_nach_flanke(form):
+                return {"aufmass": FLANKE_VOR_SPIRALE}
+            return None
         if block is self.schlichten_danach:
             return self._schlichten_danach_zusatz(form)
         if block is self.restschruppen:
@@ -9758,6 +9997,9 @@ class BearbeitungPanel:
                 weg |= set(self._durch_waende(form))
             weg |= {f for f in flaechen if f not in weg and self._ohne_rohteil(form, f)}
             return [f for f in flaechen if f not in weg]
+        if block is self.schlichten3d and self._spirale_nach_flanke(form):
+            # Die Flanke schruppt die Wände unter dem Rand mit Aufmaß, die Spirale macht sie fertig.
+            return flaechen + [f for f in self._spirale_nach_flanke(form) if f not in flaechen]
         if (
             block is self.schlichten3d
             and self.flanke.aktiv()
@@ -9767,6 +10009,34 @@ class BearbeitungPanel:
             flanke = set(self._eigene(self.flanke, form))
             return [f for f in flaechen if f not in flanke]
         return flaechen
+
+    def _spirale_nach_flanke(self, form):
+        """Die Wände der Flanke, die danach das 3D-Schlichten als Spirale unter dem Rand fertig
+        macht – die Flanke schruppt sie dann mit FLANKE_VOR_SPIRALE (Manuel, 2026-10-25, Frage 7:
+        „Flanke grob, Spirale fertig“, dann: „bau einfach beides .. und lass den user entscheiden“):
+        nur, wenn in der Frage dieser Weg gewählt ist (_weg) – sonst []."""
+        if self._weg.get("waende") != "spirale":
+            return []
+        return self._waende_unter_rand(form)
+
+    def _waende_unter_rand(self, form):
+        """Die Wände der Flanke, um die es in der Frage „Wände unter dem Rand“ geht: beide
+        angehakt, das 3D-Schlichten mit einer Kugel „Unter dem Rand“ und „als Spirale“, und alle
+        Wände der Flanke liegen unter dem Rand (hinterschnitt_bahn.ueberdeckte) – sonst []."""
+        if not (self.flanke.aktiv() and self.schlichten3d.aktiv()):
+            return []
+        werte = self.schlichten3d.werte()
+        if not (werte.get("hinterschnitt") and werte.get("spirale")):
+            return []
+        kugel = (
+            ff.von_werkzeug(self.schlichten3d.fraeser()) if self.schlichten3d.fraeser() else None
+        )
+        if kugel is None or not kugel.nur_kugel:
+            return []
+        waende = list(self._eigene(self.flanke, form))
+        if not waende or not set(waende) <= set(s3op.hb.ueberdeckte(form, waende)):
+            return []
+        return waende
 
     def _ohne_rohteil(self, form, name):
         """wand_ohne_rohteil mit dem Rohteil des Jobs – je Rohteil, Teil und Fläche gemerkt."""

@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-55/-56 frage-waende-vorschau, merker-und-restschlichten
+
+### EINGELESEN
+- Frage 7 (Manuel): „Flanke grob, Spirale fertig“; auf die Zeiten (32 statt 10 min): „bau einfach
+  beides .. und lass den user entscheiden wie er es haben will .. fertig .. mach die geschichte
+  mit der vorschau ..“, „die vorschau muss die werkzeugwege halt nur sehr schnell berechnen grob
+  .. auf +-0.3mm oder so“. Frage 6: „mehr abfragen wie der benutzer das teil bearbeiten wollen
+  würde … "weg 1 ist so und so [vorschau button] weg 2 ist so und so [vorschau button]"“ (W-039).
+- Manuel (Bild, Schritt 3): „ist das blaue restschlichten mit t4 anhacken hier noch akut wenn
+  unten restschlichten schon da ist ? … wenn man draufklickt passiert … nix“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_Frage` (Satz, je Weg Auswahl, Satz, Zeit, „Vorschau“); die
+  Frage „Wände unter dem Rand“ (`_weg`, `_wege`, `_fragen_schritte`, `_weg_rechnen` im
+  Nebenrechner, `_weg_zeigen`, `_job_zum_teil`); `_spirale_nach_flanke` nur im Weg „Spirale“
+  (`_waende_unter_rand`), dann Flanke mit `FLANKE_VOR_SPIRALE` und die Wände im 3D-Schlichten.
+  Nach dem Speichern von Werkzeugen der Vorschau-Merker leer (sein Schlüssel kennt den Platz im
+  Magazin nicht). „Restschlichten mit T… anhaken“ entfällt, wenn Restschlichten schon mit einer
+  Kugel angehakt ist, die passt; die Nummer wie im Magazin; aus dem Merker neu gebaut.
+- `camaddon/gui_bahnvorschau.py` (neu): die groben Wege im 3D, vor dem Teil.
+- `camaddon/schlichten3d.py`: unter dem Rand die Endtiefe aus allen Flächen (auch Wänden).
+- `translations/de.json`, `en.json`; `docs/spezifikation_strategien.md` 16.21;
+  `docs/OFFENE_FRAGEN.md` (Fragen 6 und 7 beantwortet), `docs/STATUS_SNAPSHOT.md` (W-039).
+
+### ERGEBNIS
+- Szenario an Manuels tiefer Tasche (Kopie seiner Werkzeugverwaltung mit Magazin): die Frage mit
+  „Flanke fertig 11 min“ und „Flanke grob, Spirale fertig 32 min“, beide Vorschauen im 3D; gewählt
+  „Spirale“: Flanke mit 0,3 mm Aufmaß, das 3D-Schlichten mit Face2–9. Nach „In der
+  Werkzeugverwaltung anlegen und Restschlichten anhaken“ kein Verweis mehr beim 3D-Schlichten.
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-54 vorschau-mit-magazin
 
 ### EINGELESEN
