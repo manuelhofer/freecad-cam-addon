@@ -372,6 +372,13 @@ pruefe(
     f"Hinterschnitt quer 1: {viermal.umlaeufe} Umläufe, {viermal.zeit:.2f} min",
 )
 print(ascii(f"Hinterschnitt: {einmal.zeit:.2f} min, mit quer 1 mm {viermal.zeit:.2f} min"))
+# Zwei Lagen (Schneide 12): oben ist der Keil höchstens 10 · sin 10° = 1,7 mm dick – dort nur die
+# Umläufe 1 und 0 mm davor, unten alle vier: 6 statt 8, nirgends im Teil.
+zwei = fb.planen(teil_h, namen_h, dataclasses.replace(werte_h, quer=1.0, schneide=12.0))
+pruefe(
+    zwei.lagen == 2 and zwei.umlaeufe == 6 and im_teil(teil_h, zwei, 12.0) == 0,
+    f"Hinterschnitt in 2 Lagen: {zwei.lagen} Lagen, {zwei.umlaeufe} Umläufe",
+)
 
 FreeCAD.closeDocument(doc.Name)
 if fehler:

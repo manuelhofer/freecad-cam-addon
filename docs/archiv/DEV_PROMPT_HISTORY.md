@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-30 flanke-ohne-luft-in-der-oberen-lage
+
+### EINGELESEN
+- Beim Nachrechnen der Zeiten an Manuels Tasche (Frage 4) war die Flanke der größte Brocken:
+  64 Umläufe. Der Keil unter dem Rand ist oben 0 und unten 6,5 mm dick. Die Flanke fuhr in jeder
+  Lage alle Umläufe davor, in der oberen Lage also auch die äußeren durch Luft.
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `_keil_in_der_lage` – je Lage nur die Umläufe, deren Abstand vor der
+  Wand kleiner ist als der Keil dort (seine tiefste Stelle × Sinus der Neigung).
+- `tests/test_flanke.py`: in zwei Lagen (Schneide 12) 6 statt 8 Umläufe, nirgends im Teil.
+
+### ERGEBNIS
+- Manuels Tasche (Kopie), T1 mit „quer“ 2,4: 64 → 48 Umläufe, 3,6 → 2,8 min Bahnzeit.
+- Prüfungen: test_flanke, test_schraeg_abtrag grün.
+
 ## P-2026-10-25-29 anlegen-atmet-unter-dem-rand
 
 ### EINGELESEN

@@ -405,6 +405,21 @@ def _versaetze(stuecke, w):
     return [k * w.quer for k in range(anzahl - 1, 0, -1)] + [0.0]
 
 
+def _keil_in_der_lage(stuecke, lage, hoehe):
+    """So dick (mm) ist der Keil unter dem Rand höchstens in der Lage `lage` (von oben gezählt,
+    `hoehe` je Lage): an ihrer tiefsten Stelle, so weit unter dem oberen Ende der Wand, wie die
+    Lagen bis dorthin reichen, mal dem Sinus der Neigung – nur an überhängenden Wänden."""
+    return max(
+        (
+            min(st[4], (lage + 1) * hoehe) * math.sqrt(max(0.0, 1.0 - st[1].z ** 2))
+            for stueck in stuecke
+            for st in stueck
+            if st[2].z < -1e-6
+        ),
+        default=0.0,
+    )
+
+
 def _stellen_des_zugs(form, zug, w):
     """[[Stelle als Tupel (_stelle)]] – die Stellen eines Zugs, an scharfen Kanten in Stücke
     geteilt."""
@@ -477,14 +492,22 @@ def planen(form, namen, werte):
         umlauf_stuecke = {
             v: [[_versetzt(st, v, w) for st in s] for s in stuecke] for v in versaetze
         }
+        # Je Lage nur die Umläufe, die dort Material treffen: Der Keil unter dem Rand ist oben 0
+        # dick – in der oberen Lage fuhren die äußeren Umläufe nur durch Luft (an Manuels Tasche
+        # 64 statt 48 Umläufe).
+        lagen_umlaeufe = [
+            (lage, v)
+            for lage in range(lagen)
+            for v in versaetze
+            if v <= 0.0 or v < _keil_in_der_lage(stuecke, lage, hoehe) - 1e-6
+        ]
         # Erst für alle Stellen, Lagen und Umläufe, ob der Fräser dort geht – auf einmal, verteilt.
         gehen = iter(
             _gehen(
                 form,
                 [
                     (stelle, lage)
-                    for lage in range(lagen)
-                    for v in versaetze
+                    for lage, v in lagen_umlaeufe
                     for st in umlauf_stuecke[v]
                     for stelle in st
                 ],
@@ -492,7 +515,7 @@ def planen(form, namen, werte):
                 w,
             )
         )
-        for lage, v in ((lage, v) for lage in range(lagen) for v in versaetze):
+        for lage, v in lagen_umlaeufe:
             w_v = replace(w, aufmass=w.aufmass + v)  # für _grenze: die Stellen dazwischen
             for stueck in umlauf_stuecke[v]:
                 teile, aus = [], []
