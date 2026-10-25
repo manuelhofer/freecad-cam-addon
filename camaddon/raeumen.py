@@ -318,7 +318,9 @@ def bahn_fuer(
         nur_eng=float(nur_eng or 0.0),
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
-    bahn = rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)
+    konturen = konturen_des_teils(form_teil)
+    konturen = konturen + taschen_unter_oeffnungen(form_teil, ebenen, konturen)
+    bahn = rb.planen(netz, werte, ebenen, konturen, schritt, stand)
     if durch:
         # Ein gedachter Boden ist keine Fläche des Teils: „Rest räumen“ bekommt statt seiner die
         # Wände, die ihn begrenzen – darunter räumt es wieder bis durch (W-034, ein enges Gebiet
@@ -462,6 +464,106 @@ def umrisse(form_teil, namen):
         except Exception:  # eine Fläche, deren Umriss sich nicht holen lässt: ohne Grenze
             continue
     return ergebnis or None
+
+
+def taschen_unter_oeffnungen(form_teil, ebenen, konturen=()):
+    """[kb.Kontur] für die Böden in `ebenen`, um die keine Kontur aus senkrechten Wänden eine
+    Tasche bildet, die aber unter einer Öffnung liegen – einem Loch in einer ebenen Fläche nach
+    oben darüber –, in die bis zum Boden nichts vom Teil hineinragt: Ihre Wände stehen nicht
+    senkrecht, sie hängen über (unten weiter als oben; Manuels tiefe Tasche, 2026-10-25: „oben
+    angefangen … in einer helix … dann mit morphkreisen von da aus rauskaut“). Von oben ist die
+    Öffnung die Wand der Tasche: ihr Umriss, senkrecht auf den Boden gelegt. Den Rest unter dem
+    Rand nimmt das Anstellen."""
+    import Part
+
+    ergebnis = []
+    oeffnungen = []  # (z, Draht, Namen der Flächen daran)
+    kanten_je_flaeche = {}
+    for i, f in enumerate(form_teil.Faces):
+        kanten_je_flaeche[f"Face{i + 1}"] = {k.hashCode() for k in f.Edges}
+    for i, f in enumerate(form_teil.Faces):
+        if not isinstance(f.Surface, Part.Plane) or len(f.Wires) < 2:
+            continue
+        n = f.normalAt(*f.Surface.parameter(f.CenterOfMass))
+        if f.Orientation == "Reversed":
+            n = -n
+        if n.z < 1.0 - 1e-6:
+            continue
+        for draht in f.Wires:
+            if draht.isSame(f.OuterWire):
+                continue
+            kanten = {k.hashCode() for k in draht.Edges}
+            namen = tuple(
+                name
+                for name, k in kanten_je_flaeche.items()
+                if k & kanten and name != f"Face{i + 1}"
+            )
+            oeffnungen.append((f.BoundBox.ZMax, draht, namen))
+    if not oeffnungen:
+        return []
+    for e in ebenen:
+        mitte = ((e.x_von + e.x_bis) / 2, (e.y_von + e.y_bis) / 2)
+        schon = False
+        for k in konturen:
+            if not k.geschlossen or abs(k.z_unten - e.z) > kb.NAH:
+                continue
+            flaeche = rb.kontur_flaeche(k)
+            if flaeche is not None and rb.ist_tasche(k, flaeche) and rb.innerhalb(flaeche, *mitte):
+                schon = True
+                break
+        if schon:
+            continue
+        beste = None
+        for z, draht, namen in oeffnungen:
+            if z <= e.z + hf.HOEHE_GLEICH or (beste is not None and z >= beste[0]):
+                continue
+            try:
+                unten = draht.copy()
+                unten.translate(FreeCAD.Vector(0, 0, -z))
+                flaeche = Part.Face(unten)
+            except Exception:  # noqa: BLE001 – OCC: kein Gesicht aus dem Draht
+                continue
+            if rb.innerhalb(flaeche, *mitte):
+                beste = (z, draht, namen, flaeche)
+        if beste is None:
+            continue
+        z, draht, namen, flaeche = beste
+        try:
+            boden = draht.copy()
+            boden.translate(FreeCAD.Vector(0, 0, e.z - z))
+            saeule = Part.Face(boden).extrude(FreeCAD.Vector(0, 0, z - e.z))
+            # Ragt das Teil in die Öffnung hinein (eine Formschräge, oben weiter als unten)? Dann
+            # ist sie nicht die Wand – das macht der Rest des Räumens wie bisher.
+            if saeule.common(form_teil).Volume > 1e-6 * max(saeule.Volume, 1.0):
+                continue
+        except Exception:  # noqa: BLE001 – OCC
+            continue
+        laengste = max(boden.Edges, key=lambda k: k.Length)
+        mitte_kante = laengste.valueAt(
+            laengste.FirstParameter + 0.5 * (laengste.LastParameter - laengste.FirstParameter)
+        )
+        t = laengste.tangentAt(
+            laengste.FirstParameter + 0.5 * (laengste.LastParameter - laengste.FirstParameter)
+        )
+        normale = (-t.y, t.x)
+        laenge = math.hypot(*normale) or 1.0
+        normale = (normale[0] / laenge, normale[1] / laenge)
+        if not rb.innerhalb(
+            flaeche, mitte_kante.x + normale[0] * 0.01, mitte_kante.y + normale[1] * 0.01
+        ):
+            normale = (-normale[0], -normale[1])
+        ergebnis.append(
+            kb.Kontur(
+                draht=boden,
+                z_unten=e.z,
+                z_oben=z,
+                geschlossen=True,
+                stelle=(mitte_kante.x, mitte_kante.y),
+                normale=normale,
+                waende=namen,
+            )
+        )
+    return ergebnis
 
 
 def konturen_des_teils(form_teil):

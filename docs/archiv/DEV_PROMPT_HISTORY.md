@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-20 tasche-unter-der-oeffnung
+
+### EINGELESEN
+- W-038, Schritt 1 nach Manuels Plan (Schruppen von oben mit Helix und Kreisen nach außen): In
+  seiner tiefen Tasche hängen die Wände über, keine steht senkrecht. Das Räumen hatte deshalb
+  keine Kontur um den Boden, die Tasche galt ihm nicht als Tasche, und es nahm Adaptiv (etwa
+  3 min).
+
+### DATEIEN
+- `camaddon/raeumen.py`: `taschen_unter_oeffnungen` baut zu einem Boden ohne Taschenkontur aus
+  senkrechten Wänden eine, wenn er unter einer Öffnung liegt (einem Loch in einer ebenen Fläche
+  nach oben darüber) und bis zum Boden nichts vom Teil in die Öffnung ragt. Das prüft ein Prisma
+  von der Öffnung bis zum Boden, das das Teil nicht schneiden darf. Ihr Umriss, senkrecht auf
+  den Boden gelegt, ist von oben die Wand der Tasche. Eine Formschräge, die oben weiter ist,
+  bekommt keine.
+- `tests/test_raeumen.py`: eine Loft-Tasche, unten weiter als oben, bekommt eine Kontur auf ihrem
+  Boden, so breit wie die Öffnung; die Formschräge keine.
+
+### ERGEBNIS
+- Tiefe Tasche (Tisch/Tisch): Das Räumen fährt in der Tasche Ringe von innen nach außen, 3
+  Lagen, 15 Ringe, etwa 2 statt 3 min. Die Morph-Spirale ist mit im Wettbewerb, hält dort die
+  Last aber nicht.
+- Grün: `test_raeumen`, `test_goldene_bahnen`, `test_testteil`, `test_pruefstand`,
+  `szenario_bearbeitung`.
+
 ## P-2026-10-25-19 taschen-morph-spirale-an
 
 ### EINGELESEN

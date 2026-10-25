@@ -1165,6 +1165,38 @@ if fgebiete:
         pruefe(not umwege, f"{name_b}: {len(umwege)} Eilgang-Umwege oben")
 FreeCAD.closeDocument(flansch_doc.Name)
 
+# Eine Tasche, deren Wände überhängen (unten weiter als oben – Manuels tiefe Tasche, 2026-10-25):
+# Ihre Öffnung, senkrecht auf den Boden gelegt, ist die Tasche des Räumens von oben. Eine
+# Formschräge (oben weiter) bekommt keine: Dort ragt das Teil in die Öffnung.
+V = FreeCAD.Vector
+
+
+def _loft_tasche(unten, oben):
+    rechteck = [
+        Part.makePolygon([V(40 - a, 40 - a, z), V(40 + a, 40 - a, z), V(40 + a, 40 + a, z),
+                          V(40 - a, 40 + a, z), V(40 - a, 40 - a, z)])
+        for a, z in ((unten, 20.0), (oben, 51.0))
+    ]  # fmt: skip
+    return Part.makeBox(80, 80, 50).cut(Part.makeLoft(rechteck, True)).removeSplitter()
+
+
+for name_u, teil_u, erwartet in (
+    ("überhängend", _loft_tasche(26.0, 20.0), 1),
+    ("Formschräge", _loft_tasche(20.0, 26.0), 0),
+):
+    ebenen_u = hf.ebenen_oben(teil_u)
+    neue = ra.taschen_unter_oeffnungen(teil_u, ebenen_u, ra.konturen_des_teils(teil_u))
+    pruefe(len(neue) == erwartet, f"Tasche unter der Öffnung, {name_u}: {len(neue)}")
+    if neue:
+        k_u = neue[0]
+        bb_u = k_u.draht.BoundBox
+        pruefe(
+            abs(k_u.z_unten - 20.0) < 1e-6
+            and abs(bb_u.XLength - 2 * (26.0 - 6.0 * 30.0 / 31.0)) < 0.05  # die Öffnung auf z 50
+            and rb.ist_tasche(k_u, rb.kontur_flaeche(k_u)),
+            f"{name_u}: z {k_u.z_unten}, {bb_u.XLength:.2f} breit",
+        )
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
