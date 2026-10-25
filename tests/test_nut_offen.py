@@ -195,11 +195,12 @@ if nut_w:
 # --- (d) Der Wettbewerb wie im Assistenten --------------------------------------------------------
 waende, grund = waende_und_grund(ii)
 ebenen = hf.ebenen_oben(ii, grund)
+werte_raeumen = rb.Raeumwerte(form=form, zustellung=AP, zeilenabstand=AE, aufmass=0.3,
+                              oben=20.0, sicher=25.0, rohteil=(0, 60, 0, 40), schneidenlaenge=26.0,
+                              eintauchwinkel=3.0, vorschub=VF, eintauchen=VF * 0.3)  # fmt: skip
 raeumen = rb.planen(
     hf.netze_je_hoehe(ii, ebenen, hf.TOLERANZ),
-    rb.Raeumwerte(form=form, zustellung=AP, zeilenabstand=AE, aufmass=0.3, oben=20.0,
-                  sicher=25.0, rohteil=(0, 60, 0, 40), schneidenlaenge=26.0,
-                  eintauchwinkel=3.0, vorschub=VF, eintauchen=VF * 0.3),
+    werte_raeumen,
     ebenen,
     kb.konturen(ii, [f"Face{i + 1}" for i in range(len(ii.Faces))]),
 )  # fmt: skip
@@ -218,13 +219,21 @@ k_raeumen = ps.messen([ps.Bahnlauf(raeumen.punkte, VF, VF * 0.3)], ii, (0, 60, 0
 print(ascii(f"Wettbewerb: Nut {bahn_ii.zeit:.2f}, Räumen {raeumen.zeit:.2f} (Wirkungsgrad "
             f"{k_raeumen.wirkungsgrad * 100:.0f} %), Kontur {zeit_kontur:.2f} min"))  # fmt: skip
 pruefe(bahn_ii.zeit < zeit_kontur, f"Nut {bahn_ii.zeit:.2f} nicht schneller als die Kontur")
-# Das Räumen ohne Vorgabe: adaptiv – es hält die Last auch in der Nut (keine volle Breite mehr),
-# ist aber langsamer als die Bögen der Nut. Mit den Ringen schnitte es in voller Breite (mehr
-# Abtrag, als ae · ap erlaubt: ein Wirkungsgrad über 100 %) – nur scheinbar schnell.
+# Das Räumen ohne Vorgabe hält die Last nach seinem Maß (Spezifikation Strategien 12.1: der
+# Querschnitt je mm Weg durch ae · Lagentiefe – kurz bis LAST_KURZ, am Stück bis LAST_DAUERND).
+# Seit P-2026-10-25-19 (Frage 2: „das was schneller ist ... gewinnt“) rechnet es die Ringe fein
+# nach, wo sie die Last sprengten, und nimmt sie, wenn sie dann halten – hier 0,55 statt Adaptiv
+# 1,64 min (bis dahin prüfte diese Zeile „adaptiv“). Der Prüfstand nennt dort bis 6,6 ae: Er teilt
+# durch die Tiefe, die gerade geschnitten wird – ein flacher, breiter Schnitt –, der Querschnitt
+# bleibt im Rahmen. Im Assistenten tritt das Räumen mit Ringen in einer Nut nicht an (Vollschnitt,
+# gui_bearbeitung._wettbewerb_gruppe) – dort fräst die Nut.
+groesste, lang = rb.last(raeumen, werte_raeumen)
 pruefe(
-    raeumen.variante == "adaptiv" and k_raeumen.wirkungsgrad < 1.0 and bahn_ii.zeit < raeumen.zeit,
-    f"Räumen in der Nut: {raeumen.variante}, {raeumen.zeit:.2f} min, Wirkungsgrad "
-    f"{k_raeumen.wirkungsgrad * 100:.0f} %",
+    raeumen.variante in ("inseln", "adaptiv")
+    and groesste <= bn.LAST_KURZ * rb.LAST_SPIEL
+    and lang <= 2.0 * R,
+    f"Räumen in der Nut: {raeumen.variante}, {raeumen.zeit:.2f} min, Last bis {groesste:.2f} ae, "
+    f"{lang:.0f} mm am Stück über {bn.LAST_DAUERND:g} ae",
 )
 ringe = rb.planen(
     hf.netze_je_hoehe(ii, ebenen, hf.TOLERANZ),
