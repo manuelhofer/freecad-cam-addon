@@ -852,6 +852,8 @@ class Maschineninfo:
     drehzahl_max: float = 0.0
     # s – die Hochlaufzeit je Spindel („haupt“ oder die Nummer des Antriebs); fehlt: unbekannt.
     hochlauf: dict = field(default_factory=dict)
+    # Die Linearachsen der Maschine („X“, „Z“ an einer Drehmaschine ohne Y); leer: unbekannt.
+    linear: set = field(default_factory=set)
     # Die Rundachsen (Buchstaben), die an der Maschine endlos drehen – an der Steuerung eine
     # Moduloachse: Steuerung.rundachse_plus/_minus.
     modulo: set = field(default_factory=set)
@@ -1796,6 +1798,22 @@ def programm(
                         continue
                     woerter.append(_wort(s, "F", _zahl(wert, STELLEN_G93 if g93 else STELLEN)))
                     continue
+                if adresse in ("X", "Y", "Z") and info.linear and adresse not in info.linear:
+                    # Die Maschine hat diese Achse nicht (Y an der Drehmaschine): auf 0 weglassen –
+                    # FreeCADs Bohren schreibt Y0 –, sonst stehen lassen (die Steuerung hält an)
+                    # und sagen.
+                    if abs(wert) < 1e-9:
+                        continue
+                    if f"ohne_{adresse}" not in gesehen:
+                        gesehen.add(f"ohne_{adresse}")
+                        hinweise.append(
+                            tr(
+                                "pp.hinweis.achse_fehlt",
+                                maschine=info.name,
+                                achse=adresse,
+                                operation=abschnitt.name,
+                            )
+                        )
                 if adresse == "X" and info.drehmaschine and info.x_durchmesser:
                     wert *= 2.0
                 if adresse in info.modulo and s.rundachse_plus and s.rundachse_minus:
@@ -1982,6 +2000,8 @@ def _zyklus_ausgeschrieben(
         zeilen.append(satz + (f" {_wort(s, 'F', _zahl(f))}" if f else ""))
 
     lage = [a for a in ("X", "Y") if a in parameter]
+    if info is not None and info.linear:  # Y0 an der Drehmaschine ohne Y: weg
+        lage = [a for a in lage if a in info.linear or abs(float(parameter[a])) > 1e-9]
     if any(stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9 for a in lage):
         woerter = (
             _wort(
@@ -2544,6 +2564,11 @@ def _info_aus(dok, m, msp):
             info.hauptspindel_name = spindeln.haupt.NcName.strip()
         # Die C-Achse der Hauptspindel zuerst: Sie dreht das Teil. Die C-Achse eines
         # Werkzeugantriebs richtet nur das Werkzeug aus – nie die Rundachse der Bahn.
+        info.linear = {
+            m.programmname(ba).upper()[:1]
+            for ba in m.betriebsarten(maschine)
+            if ba.Art == m.ART_LINEAR and m.programmname(ba)
+        }
         positionieren = [ba for ba in m.betriebsarten(maschine) if ba.Art == m.ART_POSITIONIEREN]
         if spindeln.haupt_c is not None:
             positionieren.sort(key=lambda ba: ba is not spindeln.haupt_c)

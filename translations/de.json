@@ -97,6 +97,7 @@
     "pp.feld.meldung_aus.tooltip": "Nach dem Halt, wenn es weitergeht – Siemens MSG() löscht die Meldung. Leer: nichts.",
     "pp.meldung.messstopp": "Messstopp: messen, dann NC-Start",
     "pp.hinweis.gewinde_drehen": "„{operation}“: Gewindebohren an der Drehmaschine schreibt das Programm nicht – der Gewindezyklus hängt dort an der Steuerung (Siemens CYCLE84 mit der Bohrachse, Fanuc G84 an der Stirn). Bitte an der Maschine von Hand ergänzen.",
+    "pp.hinweis.achse_fehlt": "„{operation}“ fährt {achse}, aber „{maschine}“ hat keine {achse}-Achse – die Steuerung hält dort mit Alarm an. Ist die Bearbeitung für diese Maschine gedacht?",
     "pp.hinweis.zahl_zu_gross": "{steuerung} liest höchstens ±{max} – im Programm steht {adresse}{wert}, dort hält sie mit Alarm an. Meist ist es eine Rundachse, die im langen Rundum-Bearbeiten fortlaufend weiterzählt: an der Maschine als Moduloachse einrichten (Fanuc: Parameter 1008, ROA) oder die Bearbeitung teilen.",
     "pp.hinweis.nullpunkt_fehlt": "Den Nullpunkt „{register}“ aus dem Job kann {steuerung} so nicht anwählen – das Programm setzt keinen; an der Maschine anwählen oder unter „Weitere Nullpunkte“ den Befehl eintragen.",
     "pp.hinweis.nullpunkte_mehrere": "Der Job nennt mehrere Nullpunkte ({alle}) – das Programm wählt nur {register}; je Teil auf dem Tisch ein Job oder das Programm noch einmal mit dem anderen Nullpunkt.",

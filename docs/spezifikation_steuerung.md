@@ -840,4 +840,8 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Durchmesser (`x_durchmesser`), das Verweilen von G82 mit `Steuerung.verweilen` (Siemens G4 F,
   Fanuc G4 X; bis hier immer G4 P). Gewindebohren an der Drehmaschine: weggelassen mit Hinweis
   `pp.hinweis.gewinde_drehen`.
+- Die Linearachsen der Maschine (`Maschineninfo.linear`, aus den Betriebsarten „Linear“; leer:
+  unbekannt): Eine Adresse ohne Achse an der Maschine (Y an der Drehmaschine ohne Y) fällt auf 0
+  weg – FreeCADs Bohren schreibt Y0 –, sonst bleibt sie (die Steuerung hält an, statt an der
+  falschen Stelle zu bohren) mit Hinweis `pp.hinweis.achse_fehlt` (P-2026-10-25-81).
 

@@ -97,6 +97,7 @@
     "pp.feld.meldung_aus.tooltip": "After the stop, when it continues – Siemens MSG() clears the message. Empty: nothing.",
     "pp.meldung.messstopp": "Measuring stop: measure, then cycle start",
     "pp.hinweis.gewinde_drehen": "“{operation}”: the program does not write tapping on the lathe – the tapping cycle depends on the control there (Siemens CYCLE84 with the drilling axis, Fanuc G84 on the face). Please add it by hand on the machine.",
+    "pp.hinweis.achse_fehlt": "“{operation}” moves {achse}, but “{maschine}” has no {achse} axis – the control stops there with an alarm. Is the operation meant for this machine?",
     "pp.hinweis.zahl_zu_gross": "{steuerung} reads at most ±{max} – the program has {adresse}{wert}, it stops with an alarm there. Usually a rotary axis that keeps counting during a long rotary operation: set it up as a modulo axis on the machine (Fanuc: parameter 1008, ROA) or split the operation.",
     "pp.hinweis.nullpunkt_fehlt": "{steuerung} cannot select the job's work offset “{register}” this way – the program sets none; select it on the machine or enter the command under “Further work offsets”.",
     "pp.hinweis.nullpunkte_mehrere": "The job names several work offsets ({alle}) – the program selects only {register}; one job per part on the table, or the program once more with the other work offset.",

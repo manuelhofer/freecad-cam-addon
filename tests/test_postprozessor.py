@@ -593,6 +593,21 @@ for kennung in ("siemens", "fanuc", "linuxcnc"):
         and "G1 Z-8.000 F120.000" in dreh_b,
         f"{kennung} Drehmaschine Bohren: {dreh_b}",
     )
+# Eine Drehmaschine ohne Y: „Y0“ fällt weg, ein anderes Y bleibt (Alarm statt falscher Stelle) –
+# mit Hinweis.
+ohne_y = pp.Maschineninfo("Drehmaschine", True, True, {"C": "C4"}, {1: "3"})
+ohne_y.linear = {"X", "Z"}
+mitte = dataclasses.replace(
+    bohren,
+    befehle=[C("G0", {"X": 0.0, "Y": 0.0, "Z": 5.0}), C("G81", {"X": 0.0, "Y": 0.0, "Z": -8.0, "R": 2.0, "F": 2.0})],
+)  # fmt: skip
+p_my = pp.programm([mitte], pp.steuerung("siemens"), ohne_y, "Y")
+pruefe(
+    not any(" Y" in x for x in p_my.zeilen if not x.startswith(";")) and not p_my.hinweise,
+    f"Y0 ohne Y-Achse: {p_my.zeilen[-12:]} {p_my.hinweise}",
+)
+p_y5 = pp.programm([bohren], pp.steuerung("siemens"), ohne_y, "Y")
+pruefe(any("keine Y-Achse" in h for h in p_y5.hinweise), f"Y10 ohne Y-Achse: {p_y5.hinweise}")
 gewinde_d = pp.Abschnitt(
     "Gewinde", 4, 255.0, False, "None",
     [C("G0", {"X": 0.0, "Z": 24.0}), C("G84", {"X": 0.0, "Z": 6.5, "R": 24.0, "S": 255.0, "F": 1.5}),

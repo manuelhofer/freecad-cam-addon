@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-81 drehmaschine-ohne-y
+
+### EINGELESEN
+- FreeCADs Bohren schreibt „X0 Y0“ auch an der Drehmaschine; eine Drehmaschine ohne Y hält bei
+  „Y0.000“ mit Alarm an. Die Maschine kennt ihre Linearachsen (Betriebsart „Linear“).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `Maschineninfo.linear`; eine Adresse ohne Achse an der Maschine
+  fällt auf 0 weg, sonst Hinweis `pp.hinweis.achse_fehlt` (der Satz bleibt: Alarm statt falscher
+  Stelle) – auch im ausgeschriebenen Bohren.
+- `translations/*.json`, `docs/spezifikation_steuerung.md` 24, `tests/test_postprozessor.py`.
+
+### ERGEBNIS
+- Drehmaschine ohne Y, Bohrung in der Mitte: kein Y im Programm, kein Hinweis; Bohrung bei Y10:
+  Hinweis „… hat keine Y-Achse …“.
+- Grün: test_postprozessor, _nachfahren, test_stirnseite, test_rundachsen_din,
+  test_schwenken_maschinen, test_sprache; 17 Szenarien mit Beispielmaschinen (Programm, Drehen,
+  G550, Ring, Schwenken, Magazin, Einrichtblatt).
+
 ## P-2026-10-25-80 bohren-an-der-drehmaschine-ausgeschrieben
 
 ### EINGELESEN
