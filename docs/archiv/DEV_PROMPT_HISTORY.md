@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-72 satznummern-fuenf-stellen-und-marken
+
+### EINGELESEN
+- Manuel, nachts: „bei einem 14834834 zeilen programm schnell von a nach b kommt“ – mit dem Haken
+  „Satznummern“ hätte ein langes Fanuc-Programm ab dem 10 000. Satz N100000 geschrieben: sechs
+  Stellen, an Fanuc, Haas und Mazak ein Alarm. Und mit Marken „N1 … N12“ bekam der erste Satz
+  „N10“ – die Suche nach der Marke N10 hätte den falschen gefunden.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `Steuerung.satznummer_max` (99999, Siemens 99999999);
+  `_nummeriert` überspringt die Nummern der Marken und fängt über dem Höchstwert bei N10 neu an.
+- `tests/test_postprozessor.py` (12 Bearbeitungen, Höchstwert 200), `help/*/programm.html`,
+  `docs/spezifikation_steuerung.md` (Marken).
+
+### ERGEBNIS
+- Fanuc mit 12 Marken: Marke „N10“ allein, die Sätze N20, N30 …, bis 200 und wieder ab N20.
+- Grün: test_postprozessor, _nachfahren, _grbl, test_programm_pruefen, test_programmkopf.
+
 ## P-2026-10-25-71 nullpunkt-aus-dem-job
 
 ### EINGELESEN

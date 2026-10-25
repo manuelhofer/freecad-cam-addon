@@ -10,6 +10,7 @@
 import dataclasses
 import os
 import pathlib
+import re
 import sys
 import tempfile
 
@@ -351,6 +352,17 @@ pruefe(
     and all(z.startswith(("N", "(", "%", "O")) for z in fanuc_n),
     f"Satznummern: {fanuc_n[:6]} … {fanuc_n[-3:]}",
 )
+# Mit Marken N1 … N12 bekommt kein Satz die Nummer einer Marke (sonst fände die Suche nach N10
+# den Satz); über der höchsten Nummer (Fanuc: fünf Stellen) wieder ab N10.
+zwoelf = [pp.Abschnitt(f"Op{i}", i, 1000.0, False, "None", tasche.befehle) for i in range(1, 13)]
+s_n = pp.steuerung("fanuc", {"satznummern": True}).ersetzt(satznummer_max=200)
+z_nn = pp.programm(zwoelf, s_n, None, "P").zeilen
+nummern = [int(z.split()[0][1:]) for z in z_nn if re.match(r"N\d+ ", z)]
+pruefe("N10" in z_nn and "N12" in z_nn, f"Marken N10, N12: {z_nn[:30]}")
+pruefe(
+    10 not in nummern and 20 in nummern and max(nummern) <= 200 and nummern.count(30) >= 2,
+    f"Satznummern neben Marken, bis 200: {nummern[:40]}",
+)
 # Ohne G93 (S5): F in mm/min, so dass die Zeit stimmt – von X42 Z3 C0 nach X38 Z0 C90 in
 # 1/3 min: √(4² + 3² + 90²) · 3 = 270,416 mm/min; kein G93, kein G94.
 ohne_g93 = pp.programm([rundum], pp.steuerung("siemens", {"g93": False}), dreh, "Welle").zeilen
@@ -478,7 +490,6 @@ pruefe(
 )
 # Das nächste Werkzeug gleich nach dem Wechsel vorwählen (Fanuc „T2“, Heidenhain „TOOL DEF 2“),
 # beim letzten keins; Haken aus: keine Vorwahl; an der Drehmaschine nie.
-import re  # noqa: E402
 
 zwei = pp.programm([tasche, bohren], pp.steuerung("fanuc"), fraese, "V").zeilen
 k = zwei.index("T3 M6") if "T3 M6" in zwei else -1
@@ -546,12 +557,11 @@ pruefe(
 )
 dreh_b = pp.programm([bohren], pp.steuerung("siemens"), dreh, "B").zeilen
 pruefe(any(x.startswith("G81 ") for x in dreh_b), "Drehmaschine: G81 nicht behalten")
+
+
 # Der Nullpunkt aus dem Job (Fixtures): vorbelegt aus; an: am Anfang und in jedem Einstieg vor
 # dem Wechselpunkt, je Steuerung ihr Befehl – Siemens ab dem fünften G505 (G58 ist dort axial),
 # Fanuc G54.1 P, Haas G154 P, Mach G59 P, Heidenhain Zyklus 247; GRBL kennt nach G59 keinen.
-import dataclasses  # noqa: E402
-
-
 def mit_nullpunkt(*register):
     return [dataclasses.replace(a, nullpunkte=register) for a in (tasche, bohren)]
 
@@ -616,7 +626,6 @@ pruefe(
 # iTNC 530“): Sätze wie im Programm einer iTNC 530 – BEGIN/END PGM wie die Datei, BLK FORM,
 # TOOL CALL mit Drehzahl, M3 allein, L mit Vorzeichen, FMAX, CC/C, M91 zum Wechselpunkt; die
 # Bohrzyklen ausgeschrieben (G98: zurück auf die Höhe davor, G99: auf R); Satznummern ab 0.
-import re  # noqa: E402
 
 from camaddon import klartext as kt  # noqa: E402
 from camaddon import programm_pruefen as prp  # noqa: E402

@@ -93,7 +93,9 @@ ersetzt (ä → ae, Ø → D, – → -). Fanuc, Haas und Mach lesen Programme i
 brechen bei anderen Zeichen mit „Illegal character“ ab; an LinuxCNC vorsichtshalber ebenso. An
 Siemens aus – SINUMERIK Operate zeigt Umlaute.</li>
 <li><b>Satznummern</b> – N10, N20 … vor jedem Satz, nicht vor „%“, der Programmnummer und
-Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm.</li>
+Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm. Höchstens fünf
+Stellen (Fanuc, Haas und Mazak geben bei N100000 einen Alarm; Siemens acht) – danach geht es
+wieder bei N10 los. Die Nummer einer Sprungmarke (Fanuc „N3“) bekommt kein anderer Satz.</li>
 <li><b>Rohteil für die Simulation</b> (Siemens) – im Kopf das Rohteil des Jobs als WORKPIECE,
 damit die Simulation an der Steuerung das richtige Rohteil zeigt: an der Fräse ein Quader
 „WORKPIECE(,"",,"BOX",240,Z oben,Z unten,ZB,X0,Y0,X1,Y1)“, an der Drehmaschine die Stange

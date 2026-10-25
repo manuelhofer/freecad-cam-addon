@@ -156,6 +156,9 @@ class Steuerung:
     # ASCII-Zeichensatz und brechen bei anderen Zeichen mit „Illegal character“ ab.
     nur_ascii: bool = True
     satznummern: bool = False  # N10, N20 … vor jedem Satz
+    # Die höchste Satznummer – Fanuc, Haas, Mazak: fünf Stellen (eine sechste ist ein Alarm);
+    # darüber geht es wieder bei N10 los (Satznummern dürfen sich wiederholen, Marken nicht).
+    satznummer_max: int = 99999
     kuehlung: bool = True  # M8/M7 und M9 wie an der Operation
     wechselpunkt: bool = True  # vor jedem Werkzeugwechsel und am Ende zum Wechselpunkt
     # Je Bearbeitung eine Sprungmarke und danach ein vollständiger Einstieg – Wechselpunkt,
@@ -444,6 +447,7 @@ STEUERUNGEN = {
         "G94",
         "G94",
         verweilen="G4 F{sek}",  # Siemens: G4 F – Sekunden (G4 S: Umdrehungen)
+        satznummer_max=99999999,
         vorwahl="T{t}",  # vorwählen; „T{t} M6“ wechselt (mit Werkzeugverwaltung: T="{werkzeug}")
         # Einstellbare Nullpunkte G54 … G57, ab dem fünften G505 … G599 – G58 und G59 sind an der
         # 840D axiale Verschiebungen (Grundlagen, „Einstellbare Nullpunktverschiebung“).
@@ -1970,6 +1974,9 @@ def _nummeriert(zeilen, s):
     Programmnummer (O…) und reinen Kommentaren."""
     if not s.satznummern:
         return zeilen
+    # Die Marken der Bearbeitungen mit Nummer (Fanuc „N3“) – kein Satz bekommt ihre Nummer, sonst
+    # fände die Suche nach N10 den falschen.
+    marken = {int(z.strip()[1:]) for z in zeilen if _NUR_NUMMER.fullmatch(z.strip())}
     ergebnis, nummer = [], 0
     for zeile in zeilen:
         roh = zeile.strip()
@@ -1978,6 +1985,10 @@ def _nummeriert(zeilen, s):
             ergebnis.append(zeile)
             continue
         nummer += SATZNUMMER_SCHRITT
+        while nummer in marken or nummer > s.satznummer_max:
+            nummer = (
+                SATZNUMMER_SCHRITT if nummer > s.satznummer_max else nummer + SATZNUMMER_SCHRITT
+            )
         ergebnis.append(f"N{nummer} {zeile}")
     return ergebnis
 

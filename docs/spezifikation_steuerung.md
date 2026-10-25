@@ -412,7 +412,8 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
     Siemens `{marke}:` (Name aus der Bearbeitung: groß, Umlaute ausgeschrieben, nur Buchstaben,
     Ziffern und „_“, zwei Buchstaben vorn, höchstens 32 Zeichen, eindeutig – `markenname`), Fanuc
     und Haas `N{n}` für die Satzsuche, LinuxCNC und Mach nur der Kommentar. Marken bekommen keine
-    Satznummer.
+    Satznummer, und kein Satz bekommt die Nummer einer Marke; über `satznummer_max` (fünf
+    Stellen, Siemens acht) geht es wieder bei N10 los (P-2026-10-25-72).
   - Hinter jeder Marke ein vollständiger Einstieg: Spindel aus, zum Wechselpunkt, `T… M6`,
     Spindel, Kühlung, die Ebene (CYCLE800) neu – auch mit demselben Werkzeug wie davor; ein
     Messstopp nicht. „Auf der Maschine prüfen“ fährt ebenso vor jeder Bearbeitung zum
