@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-43 verbreitert-ueberall
+
+### EINGELESEN
+- Nach P-42 dieselbe Rechnung (Maske längs eines Rings mit np.convolve „same“ verbreitert) noch
+  an zwei Stellen: Rest räumen um Inseln (`_ringe_um_inseln`) und die Zwischenlagen des
+  3D-Schruppens (`schruppen3d_bahn`) – dort derselbe Abbruch bei kurzen Ringen möglich.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `verbreitert(maske, breit, geschlossen)` – an allen drei Stellen.
+- `camaddon/schruppen3d_bahn.py`: benutzt sie.
+
+### ERGEBNIS
+- Bei normal langen Ringen dasselbe Ergebnis wie vorher (die goldenen Bahnen gleich).
+- Prüfungen: test_raeumen, test_schruppen3d, test_goldene_bahnen, test_testteil, test_pruefstand
+  grün.
+
 ## P-2026-10-25-42 kurze-ringe-in-teilstuecken
 
 ### EINGELESEN

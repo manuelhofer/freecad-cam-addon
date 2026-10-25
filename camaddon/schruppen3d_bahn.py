@@ -187,11 +187,7 @@ def _ringe_zwischen(ablauf, feld, w, D, material, material_links, schritt, toler
             noetig = unter_stirn[feld.zellen(ring.proben.x, ring.proben.y)]
             if not noetig.any():
                 continue
-            if geschlossen:
-                kern = np.concatenate([noetig[-breit:], noetig, noetig[:breit]])
-                nur[id(ring)] = np.convolve(kern, np.ones(2 * breit + 1), "same")[breit:-breit] > 0
-            else:
-                nur[id(ring)] = np.convolve(noetig, np.ones(2 * breit + 1), "same") > 0
+            nur[id(ring)] = rb.verbreitert(noetig, breit, geschlossen)
             ringe.append(ring)
         rb._naechster_zuerst(ablauf, ringe, True, f"zwischen {nummer}", nur)
 

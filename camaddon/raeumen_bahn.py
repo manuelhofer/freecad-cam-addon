@@ -2723,6 +2723,20 @@ def form_mit_aufmass(form, aufmass):
     return form.mit_aufmass(aufmass)
 
 
+def verbreitert(maske, breit, geschlossen):
+    """Die Maske längs eines Rings um `breit` Proben nach beiden Seiten verbreitert – geschlossen
+    über den Anfang hinweg. Gleich lang wie `maske`, auch wenn der Ring weniger Proben hat als
+    das Fenster (mit np.convolve „same“ kam dort eine andere Länge heraus: „operands could not be
+    broadcast“, am Gehäuse mit vorgebohrten Löchern, P-2026-10-25-42)."""
+    maske = np.asarray(maske, dtype=bool)
+    if geschlossen:
+        kern = np.take(maske, np.arange(-breit, len(maske) + breit), mode="wrap")
+    else:
+        leer = np.zeros(breit, dtype=bool)
+        kern = np.concatenate([leer, maske, leer])
+    return np.convolve(kern, np.ones(2 * breit + 1), "valid") > 0
+
+
 def _naechster_zuerst(ablauf, ringe, eng, kennung, nur=None, luft=False):
     """Fährt die Ringe – immer den, der der Spitze am nächsten liegt, zuerst."""
     while ringe:
@@ -4297,17 +4311,7 @@ def _teilstuecke(ablauf, feld, w, D, material_links, schritt, toleranz, j):
             nah = abstand <= bereich
             if not nah.any():
                 continue
-            # Um `breit` Proben nach beiden Seiten verbreitert – auch an Ringen mit weniger Proben
-            # als das Fenster (bis 0.288.0 kam dort eine andere Länge heraus: „operands could not
-            # be broadcast“, am Gehäuse mit vorgebohrten Löchern).
-            if geschlossen:
-                kern = np.take(nah, np.arange(-breit, len(nah) + breit), mode="wrap")
-            else:
-                kern = np.concatenate(
-                    [np.zeros(breit, dtype=bool), nah, np.zeros(breit, dtype=bool)]
-                )
-            nah = np.convolve(kern, np.ones(2 * breit + 1), "valid") > 0
-            nur[id(ring)] = nah
+            nur[id(ring)] = verbreitert(nah, breit, geschlossen)
             ringe.append(ring)
         if ringe:
             _naechster_zuerst(ablauf, ringe, True, f"feld {j}+{k}/{w.teilung}", nur)
@@ -4367,8 +4371,7 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
                     continue
                 # Ein Stück rundherum (3 mm), damit kein Lauf an einer Zelle endet.
                 breit = max(1, int(round(3.0 / schritt)))
-                kern = np.concatenate([noetig[-breit:], noetig, noetig[:breit]])
-                nur[id(ring)] = np.convolve(kern, np.ones(2 * breit + 1), "same")[breit:-breit] > 0
+                nur[id(ring)] = verbreitert(noetig, breit, True)
             ringe.append(ring)
         _naechster_zuerst(ablauf, ringe, True, f"feld {j}", nur if nur_rest else None)
         j -= 1
