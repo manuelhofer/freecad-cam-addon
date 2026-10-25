@@ -30,6 +30,12 @@ def zahl(a, b):
     return round(zufall.uniform(a, b), zufall.choice((0, 1, 3, 6)))
 
 
+def vorschub(a, b):
+    return max(
+        zahl(a, b), 0.01
+    )  # gerundet nie F0 – das hieße „steh“ (der Postprozessor lässt es weg)
+
+
 def abschnitt(n):
     x, y, z = zahl(-50, 50), zahl(-50, 50), 20.0
     befehle = [C("G0", {"X": x, "Y": y, "Z": z})]
@@ -40,13 +46,15 @@ def abschnitt(n):
             continue
         if art in ("G81", "G83"):
             p = {"X": zahl(-50, 50), "Y": zahl(-50, 50), "Z": zahl(-20, 0), "R": 2.0}
-            p["F"] = zahl(0.5, 5)
+            p["F"] = vorschub(0.5, 5)
             if art == "G83":
                 p["Q"] = zufall.choice((0.0, 1.0, 5.0))
             befehle += [C("G98"), C(art, p), C("G80")]
             continue
         if art == "A":
-            befehle.append(C("G1", {"X": zahl(-50, 50), "A": zahl(-720, 720), "F": zahl(0.1, 50)}))
+            befehle.append(
+                C("G1", {"X": zahl(-50, 50), "A": zahl(-720, 720), "F": vorschub(0.1, 50)})
+            )
             continue
         p = {"X": zahl(-50, 50), "Y": zahl(-50, 50), "Z": zahl(-10, 20)}
         if art in ("G2", "G3"):
@@ -59,7 +67,7 @@ def abschnitt(n):
                 "J": j,
             }
         if art != "G0":
-            p["F"] = zahl(0.01, 100)
+            p["F"] = vorschub(0.01, 100)
         befehle.append(C(art, p))
         x, y, z = p["X"], p["Y"], p["Z"]
     return pp.Abschnitt(
