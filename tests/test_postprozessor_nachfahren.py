@@ -19,6 +19,7 @@ sys.path.insert(0, ADDON)
 
 import FreeCAD  # noqa: E402
 
+from camaddon import messstopp as ms  # noqa: E402
 from camaddon import postprozessor as pp  # noqa: E402
 from camaddon import sprache  # noqa: E402
 
@@ -120,6 +121,99 @@ def vorschubsaetze_programm(text, siemens=False):
             mitte = (start["X"] + werte.get("I", 0.0), start["Y"] + werte.get("J", 0.0))
         aus.append((art, pos["X"], pos["Y"], pos["Z"], *mitte, f, *rund.values()))
     return aus
+
+
+def eilgaenge_job(abschnitte, info):
+    """[(X, Y, Z, A, B, C)] der Eilgänge im Job, die etwas fahren – ohne den Zug nach oben nach
+    einem Messstopp (dort fährt der Postprozessor zum Wechselpunkt)."""
+    aus = []
+    pos = {"X": None, "Y": None, "Z": None}
+    rund = dict.fromkeys(RUND)
+    for abschnitt in abschnitte:
+        umdrehen = pp._rund_umdrehen(abschnitt, info)
+        nach_messstopp = False
+        for befehl in abschnitt.befehle:
+            name, werte = (befehl.Name, befehl.Parameters) if hasattr(befehl, "Name") else befehl
+            if name == ms.KOMMENTAR:
+                nach_messstopp = True
+                continue
+            name = name.upper().replace("G0", "G", 1) if re.fullmatch(r"G0\d", name) else name
+            name = {"G": "G0"}.get(name, name)
+            if name not in ("G0", "G1", "G2", "G3"):
+                continue
+            vorher = (*pos.values(), *rund.values())
+            for a in pos:
+                if a in werte:
+                    pos[a] = float(werte[a])
+            for a in RUND:
+                if a in werte:
+                    rund[a] = -float(werte[a]) if a in umdrehen else float(werte[a])
+            if name != "G0" or None in pos.values():
+                continue
+            if nach_messstopp and set(werte) <= {"Z", "F"}:
+                nach_messstopp = False
+                continue
+            jetzt = (*pos.values(), *rund.values())
+            if jetzt != vorher:
+                aus.append(jetzt)
+    return aus
+
+
+def eilgaenge_programm(text, siemens=False):
+    """Dasselbe aus dem Programmtext – ohne Sätze in Maschinenkoordinaten (G53, SUPA); ein
+    Bohrzyklus setzt nur X und Y (zurück geht er auf die Höhe davor)."""
+    aus = []
+    pos = {"X": None, "Y": None, "Z": None}
+    rund = dict.fromkeys(RUND)
+    art = "G0"
+    for zeile in text.splitlines():
+        zeile = re.sub(r"\([^)]*\)", "", zeile)
+        zeile = zeile.split(";", 1)[0].strip().upper()
+        zeile = re.sub(r"\b([ABC])=", r"\1", zeile)
+        if not zeile or zeile.startswith(("%", "O")):
+            continue
+        zeile = re.sub(r"^N\d+\s*", "", zeile)
+        if siemens and ("SUPA" in zeile or "CYCLE" in zeile or ":" in zeile):
+            continue
+        woerter = _WORT.findall(zeile)
+        g = [float(z) for b, z in woerter if b == "G"]
+        werte = {b: float(z) for b, z in woerter if b not in ("G", "M", "N", "T", "S", "H", "D")}
+        if 53.0 in g:
+            for a in pos:
+                if a in werte:
+                    pos[a] = None
+            continue
+        zyklus = any(c in (73.0, 81.0, 82.0, 83.0, 84.0, 85.0) for c in g)
+        for code in g:
+            if code in (0.0, 1.0, 2.0, 3.0):
+                art = f"G{int(code)}"
+        vorher = (*pos.values(), *rund.values())
+        for a in ("X", "Y") if zyklus else pos:
+            if a in werte:
+                pos[a] = werte[a]
+        for a in RUND:
+            if a in werte:
+                rund[a] = werte[a]
+        jetzt = (*pos.values(), *rund.values())
+        if art == "G0" and not zyklus and None not in pos.values() and jetzt != vorher:
+            aus.append(jetzt)
+    return aus
+
+
+def in_folge(soll, ist):
+    """None, wenn jeder Eilgang aus `soll` in derselben Folge in `ist` steht (dazwischen darf
+    mehr stehen: Wechselpunkt, Anfahren nach dem Wechsel)."""
+    k = 0
+    for i, p in enumerate(soll):
+        while k < len(ist) and not all(
+            (a is None and b is None) or (a is not None and b is not None and abs(a - b) <= GENAU)
+            for a, b in zip(p, ist[k], strict=True)
+        ):
+            k += 1
+        if k >= len(ist):
+            return f"Eilgang {i + 1} {p} fehlt"
+        k += 1
+    return None
 
 
 def klartext_punkte(text):
@@ -225,6 +319,11 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 ist = vorschubsaetze_programm(programm.text, siemens=kennung == "siemens")
                 unterschied = vergleichen(soll, ist)
                 pruefe(not unterschied, f"{datei} {job.Label} {kennung} {aenderung}: {unterschied}")
+                fehlt = in_folge(
+                    eilgaenge_job(abschnitte, fraese),
+                    eilgaenge_programm(programm.text, siemens=kennung == "siemens"),
+                )
+                pruefe(not fehlt, f"{datei} {job.Label} {kennung} {aenderung}: {fehlt}")
         for kennung in () if rundum else ("heidenhain", "heidenhain_tnc640"):
             programm = pp.programm(abschnitte, pp.steuerung(kennung), fraese, job.Label)
             unterschied = im_klartext(soll, klartext_punkte(programm.text))
@@ -239,6 +338,12 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             f = re.search(r"F(\d+\.\d+)", text)
             anders = text[: f.start(1)] + f"{float(f.group(1)) * 1.01:.3f}" + text[f.end(1) :]
             pruefe(vergleichen(soll, vorschubsaetze_programm(anders)), "anderes F übersehen")
+            g0 = re.search(r"^G0 X[^\n]*Y(-?\d+\.\d+)", text, re.M)
+            daneben = text[: g0.start(1)] + f"{float(g0.group(1)) + 0.01:.3f}" + text[g0.end(1) :]
+            pruefe(
+                in_folge(eilgaenge_job(abschnitte, fraese), eilgaenge_programm(daneben)),
+                "Eilgang 0,01 mm daneben übersehen",
+            )
             text = pp.programm(abschnitte, pp.steuerung("heidenhain"), fraese, "P").text
             z = re.search(r"^\d+ L [^\n]*Z([-+]\d+\.\d+) R0 F\d", text, re.M)
             daneben = text[: z.start(1)] + f"{float(z.group(1)) + 0.01:+.3f}" + text[z.end(1) :]
