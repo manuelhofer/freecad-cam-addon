@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-46/-47 bohrer-unter-bohrung-fraesen, kegelsenker-anlegen
+
+### EINGELESEN
+- Nach 0.289.0 die übrigen Taster-Teile (Kopien) mit „Alles aus dieser Aufspannung“: Am
+  Stifthalter fräst „Bohrung fräsen“ die große Bohrung und lässt Face29, Face31, Face32 (Ø 3,2)
+  „für den Bohrer“ – es gibt keinen, und der Knopf aus 0.289.0 kam nur, wenn der Fräser in gar
+  keine Bohrung passt. Am Stifthalter und Messspitzenhalter fehlt für die Senkungen ein
+  Kegelsenker; die Zeile bot nur „Werkzeugverwaltung …“.
+- Manuel: der nächste Schritt als Knopf; empfehlen, auch wenn das Werkzeug fehlt.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Der Bohrer-Knopf steht jetzt unter „Bohrung fräsen“
+  (Angebotszeile wie beim Vorbohren) und gilt für jede Bohrung, in die sein Fräser nicht kommt –
+  ob die Vorschau gelang oder rot blieb; je Durchmesser ein Bohrer (`_fehlende_bohrer`,
+  `_bohrer_anlegen`). Unter „Nicht fertig“ „Kegelsenker 90° Ø 6,3 anlegen“ aus der Reihe DIN 335 C
+  (`KEGELSENKER_REIHE`, `_senker_fuer`, `_senker_anlegen`); das Anlegen eines angebotenen
+  Werkzeugs gemeinsam (`_werkzeug_anlegen`).
+- `translations/de.json`, `en.json`; `docs/spezifikation_strategien.md` 12.9.
+
+### ERGEBNIS
+- Szenario an vier Teilen: Klemmung „Bohrer Ø 4,2 anlegen“ → Bohren T5; Stifthalter und
+  Federhalter „Bohrer Ø 3,2 anlegen“ → Bohren T5 (3 Bohrungen); Stifthalter „Kegelsenker 90° Ø 6,3
+  anlegen“ → Senken T6, 3 Stellen; Messspitzenhalter nach „T3 übernehmen“ „Kegelsenker 90° Ø 8,3
+  anlegen“ → Senken T5, 6 Stellen. Überall „Anlegen“ frei, alle Operationen mit Bahn.
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-45 bohrer-anlegen
 
 ### EINGELESEN

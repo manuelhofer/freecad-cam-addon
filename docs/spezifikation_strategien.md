@@ -2133,6 +2133,18 @@ wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?“
   (Bohrer) begann nach dem kleinen Aufmaß des Materialstands (`_grosszuegig`) erst neben der
   Achse – die Zelle in der Mitte jedes Lochs blieb in voller Höhe stehen. `Form.mit_aufmass`
   rollt jetzt auch über die Spitze.
+- **Bohrer und Kegelsenker anlegen, wenn sie fehlen (P-2026-10-25-45 bis -47):** An Manuels
+  Taster-Teilen (Kopien, „Alles aus dieser Aufspannung“) blieb „Anlegen“ gesperrt oder Bohrungen
+  ohne Bahn: Ø 4,2 und Ø 3,2 kleiner als jeder Fräser, kein Bohrer dafür; Senkungen ohne
+  Kegelsenker. Unter „Bohrung fräsen“ steht dann „Für Face29, Face31, Face32 fehlt in der
+  Werkzeugverwaltung ein Bohrer“ mit „Bohrer Ø 3,2 anlegen“ – für alle Bohrungen, in die sein
+  Fräser nicht kommt (durchgehend oder mit 118°-Spitze), je Durchmesser ein Bohrer
+  (`_fehlende_bohrer`); danach schlägt der Assistent die Haken neu vor, „Bohren“ übernimmt sie.
+  Unter „Nicht fertig“ statt nur „Werkzeugverwaltung …“ der Knopf „Kegelsenker 90° Ø 6,3
+  anlegen“: der kleinste aus der Reihe DIN 335 C (Ø 6,3 … 31), der die Senkung abdeckt und dessen
+  Spitze in die Bohrung passt (`KEGELSENKER_REIHE`, `_senker_fuer`); „Senken“ hakt sich an. An
+  vier Teilen: Klemmung (Ø 4,2), Federhalter und Stifthalter (Ø 3,2, Senkung Ø 4 → Ø 6,3),
+  Messspitzenhalter (Senkung Ø 7,2 → Ø 8,3) – überall „Anlegen“ frei, alle Operationen mit Bahn.
 
 ## 13. Manuels Testteil für die 3-Achs-Fräse (W-013, 2026-10-02)
 

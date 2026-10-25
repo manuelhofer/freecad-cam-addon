@@ -3298,6 +3298,18 @@ KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt", "spirale")  # 3D-Schlich
 # nicht mehr in den Kreis, den das Räumen für die Helix braucht (raeumen_bahn.ADAPTIV_HELIX).
 VORBOHRER_HOECHSTENS = 1.6
 VORBOHRER_LUFT = 0.5  # mm – am liebsten so viel größer als der Fräser, damit er frei hineinfällt
+# Kegelsenker nach DIN 335 C (Ø, Ø der Spitze, Schaft-Ø; übliche Katalogmaße): „Kegelsenker …
+# anlegen“ nimmt den kleinsten, der die Senkung abdeckt und dessen Spitze in die Bohrung passt.
+KEGELSENKER_REIHE = (
+    (6.3, 1.5, 5.0),
+    (8.3, 2.0, 6.0),
+    (10.4, 2.5, 6.0),
+    (12.4, 2.8, 8.0),
+    (16.5, 3.2, 10.0),
+    (20.5, 3.5, 10.0),
+    (25.0, 3.8, 10.0),
+    (31.0, 4.2, 12.0),
+)
 # Was im Grundjob einer Maschine mit waagerechter Spindel bleibt: die Strategien mit Achse je Satz.
 SIMULTAN_IM_GRUNDJOB = ("flanke", "schlichten3d", "restschlichten", "entgraten3d")
 
@@ -4548,6 +4560,7 @@ class _Block:
         self.ergebnis.setText("")
         self.material.setText("")
         self.hinweis.setText("")
+        self._angebot_flaechen = list(flaechen)  # für _bohrer_angebot
         werkzeug, einsatz = self.fraeser(), self.einsatz()
         if werkzeug is None or einsatz is None:
             nur_radial = getattr(self, "_nur_radial", False)
@@ -4584,6 +4597,7 @@ class _Block:
             self.schon_weg = mitgerechnet[2]
             self._merken(merk, schluessel)
             self._fehler_merken(schluessel, mitgerechnet[1], mitgerechnet[3])
+            self._vorbohrer_angebot()
             self._empfehlung_anstossen(
                 job, werkzeug, flaechen, ("fehler", mitgerechnet[1], mitgerechnet[3])
             )
@@ -4599,6 +4613,7 @@ class _Block:
                 self.schon_weg = isinstance(fehler, mst.SchonWeg)
                 self._merken(merk, schluessel)
                 self._fehler_merken(schluessel, str(fehler), daten)
+                self._vorbohrer_angebot()
                 self._empfehlung_anstossen(job, werkzeug, flaechen, ("fehler", str(fehler), daten))
                 return
         self.zeit = self.s.zeit(self.vorschau, vorschub, senkrecht) if vorschub > 0 else None
@@ -4931,6 +4946,9 @@ class _Block:
         if self.s.kennung == "nut":
             self._vorbohrer_angebot_nut()
             return
+        if self.s.kennung == "bohrung":
+            self._bohrer_angebot()
+            return
         if self.s.kennung != "raeumen":
             return
         bahn = self.vorschau
@@ -4956,6 +4974,26 @@ class _Block:
         )
         knopf_ = tr("ba.raeumen.vorbohren.anlegen", d=groesse_zeigen(d, einheiten.LAENGE, 1) or "0")
         self.angebot.zeigen(text, [(knopf_, lambda: self.panel._vorbohrer_anlegen(d, tiefe))])
+
+    def _bohrer_angebot(self):
+        """Unter „Bohrung fräsen“: Bohrungen, in die sein Fräser nicht kommt, und kein Bohrer
+        dafür (panel._fehlende_bohrer) – das Angebot „Bohrer Ø … anlegen“, danach bohrt sie
+        „Bohren“ (Manuel: der nächste Schritt als Knopf, auch wenn das Werkzeug fehlt). Gilt, ob
+        die Vorschau gelang (die kleineren „für den Bohrer“) oder rot blieb (in keine)."""
+        fehlend = self.panel._fehlende_bohrer(self, getattr(self, "_angebot_flaechen", ()))
+        if not fehlend:
+            self.angebot.leeren()
+            return
+        namen = [n for _d, _t, liste in fehlend for n in liste]
+        durchmesser = [
+            f"Ø {groesse_zeigen(d, einheiten.LAENGE, 2) or '0'}" for d, _t, _n in fehlend
+        ]
+        text = tr(
+            "ba.bohrung.bohrer_fehlt",
+            flaechen=", ".join(namen[:4]) + (" …" if len(namen) > 4 else ""),
+        )
+        knopf_ = tr("ba.bohrer_anlegen.knopf", d=", ".join(durchmesser))
+        self.angebot.zeigen(text, [(knopf_, lambda: self.panel._bohrer_anlegen(fehlend))])
 
     def _vorbohrer_angebot_nut(self):
         """Unter der Nut: Passt für eine Nut kein Bohrer aus dem Magazin (nut.vorschau:
@@ -5087,7 +5125,7 @@ class _Block:
         self.ergebnis.setText("")
         self.material.setText("")
         self.hinweis.setText("")
-        if self.s.kennung in ("raeumen", "nut"):
+        if self.s.kennung in ("raeumen", "nut", "bohrung"):
             self.angebot.leeren()  # das Angebot des Bohrers (_vorbohrer_angebot)
 
 
@@ -5750,15 +5788,9 @@ class BearbeitungPanel:
         ziel[0].addWidget(self.passt_text)
         self.knopf_passt = knopf("", tr("ba.passt.knopf.tooltip"), self.passenden_uebernehmen)
         self.knopf_passt.hide()
-        # Eine Bohrung kleiner als jeder Fräser und kein Bohrer dafür: ihn anlegen (Manuel: der
-        # nächste Schritt als Knopf; Empfehlungen auch, wenn es das Werkzeug nicht gibt).
-        self._fehlender_bohrer = None  # (Ø, Schneidenlänge) hinter knopf_bohrer
-        self.knopf_bohrer = knopf("", tr("ba.bohrer_anlegen.tooltip"), self.bohrer_anlegen)
-        self.knopf_bohrer.hide()
         zeile_passt = QtGui.QHBoxLayout()
         zeile_passt.setContentsMargins(0, 0, 0, 0)
         zeile_passt.addWidget(self.knopf_passt)
-        zeile_passt.addWidget(self.knopf_bohrer)
         zeile_passt.addStretch()
         ziel[0].addLayout(zeile_passt)
         # Der schnellere Fräser aus der Ziel-Zeile mit einem Klick – freiwillig (Manuel,
@@ -9898,17 +9930,25 @@ class BearbeitungPanel:
             and block._passende_einsaetze(w, werkstoff)
         ]
         if not passende:
-            # Auch kein Fasenfräser: sagen, was fehlt, mit dem Knopf dorthin (Manuel: der nächste
+            # Auch kein Fasenfräser: sagen, was fehlt, und ihn anlegen (Manuel: der nächste
             # Schritt als Knopf) – an seinem Messspitzenhalter stand nur „nicht fertig“.
+            unten = min((x.unten for x in liste if x.unten > 0), default=0.0)
+            winkel = round(liste[0].winkel, 1)
             satz = tr(
                 "ba.senken.fehlt",
                 d=groesse_zeigen(max(x.durchmesser for x in liste), einheiten.LAENGE),
-                winkel=f"{round(liste[0].winkel, 1):g}",
-                spitze=groesse_zeigen(
-                    min((x.unten for x in liste if x.unten > 0), default=0.0), einheiten.LAENGE
-                ),
+                winkel=f"{winkel:g}",
+                spitze=groesse_zeigen(unten, einheiten.LAENGE),
             )
-            return dezimal(satz), tr("va.werkzeugverwaltung"), self.werkzeugverwaltung
+            senker = self._senker_fuer(liste, unten)
+            if senker is None:
+                return dezimal(satz), tr("va.werkzeugverwaltung"), self.werkzeugverwaltung
+            knopf_text = tr(
+                "ba.senken.senker_anlegen",
+                winkel=f"{winkel:g}",
+                d=groesse_zeigen(senker[0], einheiten.LAENGE, 1) or "0",
+            )
+            return dezimal(satz), knopf_text, lambda: self._senker_anlegen(*senker, winkel)
         werkzeug = passende[0]
         satz = tr(
             "ba.senken.angebot",
@@ -9917,6 +9957,42 @@ class BearbeitungPanel:
         )
         knopf_text = tr("ba.fase.angebot.knopf", nummer=wz.nummer_text(werkzeug))
         return dezimal(satz), knopf_text, lambda: self._senken_mit_fasenfraeser(werkzeug)
+
+    def _senker_fuer(self, liste, unten):
+        """(Ø, Ø der Spitze, Schaft-Ø) des kleinsten Kegelsenkers aus KEGELSENKER_REIHE, der alle
+        Senkungen der `liste` abdeckt und dessen Spitze in die engste Bohrung (`unten`, 0: keine)
+        passt – None, wenn keiner der Reihe das kann."""
+        groesste = max(x.durchmesser for x in liste)
+        for d, spitze, schaft in KEGELSENKER_REIHE:
+            if d + sk.GLEICH_D < groesste:
+                continue
+            if unten > 0 and spitze > unten + sk.GLEICH_D:
+                continue
+            return d, spitze, schaft
+        return None
+
+    def _senker_anlegen(self, durchmesser, spitze, schaft, winkel):
+        """„Kegelsenker 90° Ø 6,3 anlegen“ (_senken_angebot): HSS, drei Schneiden, mit
+        Richtwerten in die Werkzeugverwaltung und ins Magazin; dann die Haken neu – „Senken“
+        senkt (wie „T6 nehmen“)."""
+        if self.bibliothek is None:
+            return
+        senker = wz.Werkzeug(
+            nummer=self.bibliothek.naechste_nummer(),
+            name=tr("ba.senken.senker_name", winkel=f"{winkel:g}", d=f"{durchmesser:g}"),
+            art=wz.KEGELSENKER,
+            durchmesser=float(durchmesser),
+            schneiden=3,
+            spitzenwinkel=float(winkel),
+            spitzen_d=float(spitze),
+            schaft=float(schaft),
+            schneidstoff=wz.HSS,
+        )
+        self._werkzeug_anlegen(senker)
+        self.unfertig_angebot.hide()
+        if self.job is not None:
+            self._haken_vorschlagen(vr.modell(self.job).Shape)
+        self.vorschau_starten()
 
     def _senken_mit_fasenfraeser(self, werkzeug):
         """„T6 nehmen“: der Block „Senken“ nimmt auch Fasenfräser, dieser ist gewählt, der Haken
@@ -10168,11 +10244,6 @@ class BearbeitungPanel:
         if angebot is not None:
             self.knopf_passt.setText(tr("ba.passt.knopf", werkzeug=_ziel_werkzeug(angebot)))
         self.knopf_passt.setVisible(angebot is not None)
-        self._fehlender_bohrer = self._bohrer_fehlt() if text else None
-        if self._fehlender_bohrer is not None:
-            d = groesse_zeigen(self._fehlender_bohrer[0], einheiten.LAENGE, 2) or "0"
-            self.knopf_bohrer.setText(tr("ba.bohrer_anlegen.knopf", d=d))
-        self.knopf_bohrer.setVisible(self._fehlender_bohrer is not None)
 
     def _passendes_angebot(self):
         """Der kleinere Fräser, der passt (bei Planfräsen und Räumen derselbe: der erste) – None."""
@@ -10216,60 +10287,41 @@ class BearbeitungPanel:
                 continue
         return bedeckt
 
-    def _bohrer_fehlt(self):
-        """(Ø, Schneidenlänge) eines Bohrers für die erste gewählte Bohrung, in die kein Fräser von
-        „Bohrung fräsen“ passt und für die die Werkzeugverwaltung keinen Bohrer ihres Durchmessers
-        hat (durchgehend oder mit der Spitze eines Bohrers) – sonst None."""
-        eintrag = getattr(self, "_getauscht", {}).get(self.bohrung)
-        if eintrag is None or self.bibliothek is None or self.job is None:
-            return None
-        _vorher, nachher, eng = eintrag
-        if nachher is not None or not eng:
-            return None
+    def _fehlende_bohrer(self, block, flaechen):
+        """[(Ø, Tiefe, [Flächen])] der Bohrungen unter `flaechen`, in die der Fräser von `block`
+        („Bohrung fräsen“) nicht hineinkommt (wie _bohrungsfraeser_anbieten) und für die die
+        Werkzeugverwaltung keinen Bohrer ihres Durchmessers hat – durchgehend oder mit der Spitze
+        eines Bohrers; je Durchmesser einmal, die tiefste zählt."""
+        fraeser = block.fraeser()
+        if fraeser is None or not flaechen or self.bibliothek is None or self.job is None:
+            return []
         try:
-            liste = bb.bohrungen(vr.modell(self.job).Shape, list(eng))
+            liste = bb.bohrungen(vr.modell(self.job).Shape, list(flaechen))
         except Exception:  # noqa: BLE001 – ohne Bohrungen nichts anzubieten
-            return None
-        bohrer = [w for w in self.bibliothek.werkzeuge if w.art == wz.BOHRER]
+            return []
+        werte = block.werte()
+        aufmass = float(werte.get("aufmass", 0.0) or 0.0) if werte.get("schlichten") else 0.0
+        bohrer = [float(w.durchmesser) for w in self.bibliothek.werkzeuge if w.art == wz.BOHRER]
+        fehlend = {}
         for b in liste:
+            if b.radius - fraeser.durchmesser / 2 - aufmass >= -1e-3:
+                continue  # die fräst er
             if not b.durch and abs(b.spitze - bh.SPITZENWINKEL) > bh.GLEICH_WINKEL:
                 continue  # ein ebener Grund oder eine andere Spitze: kein Bohrer
-            if any(bh.passt_durchmesser(b, float(w.durchmesser)) for w in bohrer):
+            if any(bh.passt_durchmesser(b, d) for d in bohrer):
                 continue
-            tiefe = b.z_oben - b.z_unten + bh.spitze(2 * b.radius) + 3.0
-            return round(2.0 * b.radius, 3), tiefe
-        return None
+            d = round(2.0 * b.radius, 3)
+            tiefe = b.z_oben - b.z_unten + bh.spitze(d)
+            vorher = fehlend.get(d, (0.0, []))
+            fehlend[d] = (max(vorher[0], tiefe), [*vorher[1], b.name])
+        return [(d, tiefe, namen) for d, (tiefe, namen) in sorted(fehlend.items())]
 
-    def bohrer_anlegen(self):
-        """„Bohrer Ø … anlegen“: der fehlende Bohrer (_bohrer_fehlt) – HSS, 118°, Schneide
-        mindestens 8 × D und tief genug, mit Richtwerten, ins Magazin, gespeichert; der Assistent
-        liest es neu, „Bohren“ kann die Bohrung."""
-        from . import werkzeugkiste as wk
-
-        if self._fehlender_bohrer is None or self.bibliothek is None:
-            return
-        d, tiefe = self._fehlender_bohrer
-        bohrer = wz.Werkzeug(
-            nummer=self.bibliothek.naechste_nummer(),
-            name=tr("ba.raeumen.vorbohren.bohrer_name", d=f"{d:g}"),
-            art=wz.BOHRER,
-            durchmesser=float(d),
-            schneiden=2,
-            schneidenlaenge=float(math.ceil(max(8.0 * d, tiefe))),
-            spitzenwinkel=wz.SPITZENWINKEL_BOHRER,
-            schneidstoff=wz.HSS,
-        )
-        wk.richtwerte_eintragen(bohrer)
-        self.bibliothek.werkzeuge.append(bohrer)
-        magazin = self.magazin()
-        if magazin is not None:
-            mg.uebernehmen(self.bibliothek, magazin, bohrer, self.job)  # speichert
-        else:
-            self.bibliothek.speichern()
-        self._fehlender_bohrer = None
-        self.knopf_bohrer.hide()
-        self._werkzeuge_gespeichert()
-        # „Bohren“ kann die Bohrung jetzt – die Haken neu (wie „T6 nehmen“)
+    def _bohrer_anlegen(self, fehlend):
+        """„Bohrer Ø … anlegen“ unter „Bohrung fräsen“: je Durchmesser aus _fehlende_bohrer ein
+        Bohrer wie fürs Vorbohren (_vorbohrer_anlegen); dann die Haken neu – „Bohren“ übernimmt
+        die Bohrungen (wie „T6 nehmen“)."""
+        for d, tiefe, _namen in fehlend:
+            self._vorbohrer_anlegen(d, tiefe)
         if self.job is not None:
             self._haken_vorschlagen(vr.modell(self.job).Shape)
         self.vorschau_starten()
@@ -10845,8 +10897,6 @@ class BearbeitungPanel:
         5 mm mehr als `tiefe`) mit Richtwerten in die Werkzeugverwaltung – steht eine Maschine mit
         Magazin da, auch ins Magazin –, gespeichert; der Assistent liest es neu, das Vorbohren
         geht."""
-        from . import werkzeugkiste as wk
-
         if self.bibliothek is None:
             return
         bohrer = wz.Werkzeug(
@@ -10859,11 +10909,19 @@ class BearbeitungPanel:
             spitzenwinkel=wz.SPITZENWINKEL_BOHRER,
             schneidstoff=wz.HSS,
         )
-        wk.richtwerte_eintragen(bohrer)
-        self.bibliothek.werkzeuge.append(bohrer)
+        self._werkzeug_anlegen(bohrer)
+
+    def _werkzeug_anlegen(self, werkzeug):
+        """Ein Werkzeug, das ein Knopf anbietet, mit Richtwerten in die Werkzeugverwaltung – steht
+        eine Maschine mit Magazin da, auch ins Magazin –, gespeichert; der Assistent liest es
+        neu."""
+        from . import werkzeugkiste as wk
+
+        wk.richtwerte_eintragen(werkzeug)
+        self.bibliothek.werkzeuge.append(werkzeug)
         magazin = self.magazin()
         if magazin is not None:
-            mg.uebernehmen(self.bibliothek, magazin, bohrer, self.job)  # speichert
+            mg.uebernehmen(self.bibliothek, magazin, werkzeug, self.job)  # speichert
         else:
             self.bibliothek.speichern()
         self._werkzeuge_gespeichert()
