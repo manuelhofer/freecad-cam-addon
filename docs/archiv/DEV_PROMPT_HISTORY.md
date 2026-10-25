@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-16 maschinenstand-gemerkt
+
+### EINGELESEN
+- Pausen-Mitschrift der Geist-Kette nach P-15: `gui_materialstand._pruefen` stand noch 6-mal etwa
+  0,8 s, meist in `maschinenzugang._schluessel` → `_stand_der_maschine`. Für jeden Schlüssel der
+  Erreichbarkeit ging es alle Gelenke der offenen Maschine durch. In der Kette fragt jede Ebene
+  nach allen Operationen der Ebenen davor, je Prüfung über 100-mal.
+
+### DATEIEN
+- `camaddon/maschinenzugang.py`: Der Stand der Anschläge je offenem Maschinendokument ist
+  gemerkt. Der Beobachter `_Maschinen` vergisst ihn, sobald sich in diesem Dokument etwas ändert
+  (Objekt, Rückgängig, Wiederholen, Schließen).
+
+### ERGEBNIS
+- Grün: `test_bahnzugang`, `test_zugang`.
+
 ## P-2026-10-25-15 ebenen-stand-in-schritten
 
 ### EINGELESEN

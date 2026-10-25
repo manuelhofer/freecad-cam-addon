@@ -96,11 +96,58 @@ def _stand_der_maschine(datei):
     doc = _offene_maschine(datei)
     if doc is None:
         return os.path.getmtime(datei)
-    return tuple(
+    # Gemerkt, bis sich im Dokument der Maschine etwas ändert (_Maschinen): Der Materialstand fragt
+    # je Operation und je Ebene davor – in der Kette der Ebenen am Geist je Prüfung über 100-mal.
+    beobachter = _Maschinen.beobachten()
+    if beobachter is not None and doc.Name in beobachter.staende:
+        return beobachter.staende[doc.Name]
+    stand = tuple(
         (o.Name, *(str(getattr(o, n, None)) for n in ANSCHLAEGE))
         for o in doc.Objects
         if hasattr(o, "JointType")
     )
+    if beobachter is not None:
+        beobachter.staende[doc.Name] = stand
+    return stand
+
+
+class _Maschinen:
+    """Ein Beobachter der Dokumente (FreeCAD.addDocumentObserver): je offenem Dokument einer
+    Maschine der Stand ihrer Anschläge (_stand_der_maschine), bis sich darin etwas ändert."""
+
+    _einer = None
+
+    @classmethod
+    def beobachten(cls):
+        """Der eine Beobachter (beim ersten Bedarf angemeldet); None, wenn FreeCAD keinen nimmt."""
+        if cls._einer is None:
+            try:
+                einer = cls()
+                FreeCAD.addDocumentObserver(einer)
+            except Exception:  # noqa: BLE001 – ohne Beobachter wird jedes Mal gelesen
+                return None
+            cls._einer = einer
+        return cls._einer
+
+    def __init__(self):
+        self.staende = {}  # Name des Dokuments -> Stand der Anschläge
+
+    def _objekt(self, obj, *_):
+        try:
+            self.staende.pop(obj.Document.Name, None)
+        except Exception:  # noqa: BLE001 – lässt sich nicht zuordnen: alle neu
+            self.staende.clear()
+
+    slotCreatedObject = slotDeletedObject = slotChangedObject = _objekt  # noqa: N815
+
+    def _dokument(self, dokument, *_):
+        try:
+            self.staende.pop(dokument.Name, None)
+        except Exception:  # noqa: BLE001
+            self.staende.clear()
+
+    slotCreatedDocument = slotDeletedDocument = slotUndoDocument = _dokument  # noqa: N815
+    slotRedoDocument = _dokument  # noqa: N815
 
 
 def bahn_grund(maschine, befehle, name="", grenzen=True, schritte=None):
