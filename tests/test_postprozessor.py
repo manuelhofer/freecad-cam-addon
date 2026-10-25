@@ -518,7 +518,7 @@ p_hh = pp.programm(
 z_hh = p_hh.zeilen
 saetze_hh = [re.sub(r"^\d+ ", "", x) for x in z_hh]
 pruefe(
-    all(x.startswith(f"{i} ") for i, x in enumerate(z_hh)),
+    all(x.startswith(f"{i} ") for i, x in enumerate(z for z in z_hh if not z.startswith("  "))),
     f"Heidenhain Nummern: {z_hh[:3]}",
 )
 pruefe(
@@ -539,16 +539,63 @@ for satz in (
     "CC X+15.000 Y+5.000",
     "C X+20.000 Y+5.000 DR- R0 F600",
     "C X+10.000 Y+5.000 DR+ R0",  # der Vollkreis in zwei Hälften
+):
+    pruefe(satz in saetze_hh, f"Heidenhain fehlt „{satz}“")
+# Die Bohrzyklen als Zyklen der TNC (P-2026-10-25-65): G81 → 200 (eine Zustellung, Q204 zurück
+# auf 5), G83 → 200 mit Q202 = 5, G85 → 201 (heraus im Vorschub, G99: Q204 0); je Loch M99.
+
+
+def zyklus(nummer, name):
+    k = (
+        saetze_hh.index(f"CYCL DEF {nummer} {name} ~")
+        if f"CYCL DEF {nummer} {name} ~" in saetze_hh
+        else -1
+    )
+    if k < 0:
+        return k, []
+    ende = next(i for i in range(k + 1, len(saetze_hh)) if not saetze_hh[i].startswith("  "))
+    return ende, [x.strip().split(" ;")[0] for x in saetze_hh[k + 1 : ende]]
+
+
+ende, q = zyklus(200, "BOHREN")
+pruefe(
+    q[:7] == ["Q200=+0", "Q201=-10", "Q206=+120", "Q202=+10", "Q210=+0",
+              "Q203=+2", "Q204=+3"]
+    and saetze_hh[ende] == "CYCL CALL",
+    f"Zyklus 200 (G81): {q} {saetze_hh[ende:ende + 2]}",
+)  # fmt: skip
+pruefe(
+    "  Q202=+5 ;ZUSTELL-TIEFE ~" in saetze_hh and "L X+30.000 R0 FMAX M99" in saetze_hh,
+    f"Zyklus 200 (G83): {saetze_hh}",
+)
+ende, q = zyklus(201, "REIBEN")
+pruefe(
+    q == ["Q200=+0", "Q201=-8", "Q206=+60", "Q211=+0", "Q208=+60",
+          "Q203=+2", "Q204=+0"],
+    f"Zyklus 201 (G85): {q}",
+)  # fmt: skip
+# Ohne den Haken „Bohrzyklen der TNC“: ausgeschrieben wie bisher.
+saetze_l = [
+    re.sub(r"^\d+ ", "", x)
+    for x in pp.programm(
+        [bohren], pp.steuerung("heidenhain", {"bohrzyklen": False}), wp, "L"
+    ).zeilen
+]
+for satz in (
     "L Z-8.000 R0 F120",  # G81
     "L Z-20.000 R0",  # G83 bis zur Tiefe
     "L Z-17.500 R0 FMAX",  # G83: im Eilgang bis knapp über die letzte Tiefe
     "L Z-6.000 R0 F60",  # G85 hinein …
 ):
-    pruefe(satz in saetze_hh, f"Heidenhain fehlt „{satz}“")
-g85 = saetze_hh.index("L Z-6.000 R0 F60") if "L Z-6.000 R0 F60" in saetze_hh else -1
-pruefe(saetze_hh[g85 + 1] == "L Z+2.000 R0", f"G85 im Vorschub heraus: {saetze_hh[g85:g85 + 3]}")
+    pruefe(satz in saetze_l, f"Heidenhain ausgeschrieben fehlt „{satz}“")
+g85 = saetze_l.index("L Z-6.000 R0 F60") if "L Z-6.000 R0 F60" in saetze_l else -1
+pruefe(saetze_l[g85 + 1] == "L Z+2.000 R0", f"G85 im Vorschub heraus: {saetze_l[g85:g85 + 3]}")
 pruefe(
-    not any(x.split()[0] in ("G0", "G1", "G2", "G3", "G81", "G83", "G85") for x in saetze_hh),
+    not any(
+        x.split()[0] in ("G0", "G1", "G2", "G3", "G81", "G83", "G85")
+        for x in saetze_hh
+        if x.strip()
+    ),
     "Heidenhain: G-Code übrig",
 )
 pruefe(any("Schraube" in h for h in p_hh.hinweise), f"Schraube: {p_hh.hinweise}")
@@ -630,7 +677,7 @@ langsam = pp.Maschineninfo("Fräse")
 langsam.drehzahl_max = 200.0  # über der Höchstdrehzahl: S und F im selben Maß
 z_g = pp.programm([rechts], pp.steuerung("linuxcnc"), langsam, "G").zeilen
 pruefe(any(x.startswith("G84") and x.endswith("F300.000") for x in z_g), f"begrenzt: {z_g}")
-for g, abschnitt, m, q239 in (("G84", rechts, "M3", "+1.5000"), ("G74", links, "M4", "-1.5000")):
+for g, abschnitt, m, q239 in (("G84", rechts, "M3", "+1.5"), ("G74", links, "M4", "-1.5")):
     p_g = pp.programm([abschnitt], hh, fraese, "G")
     saetze_g = [re.sub(r"^\d+ ", "", x) for x in p_g.zeilen]
     k = (
@@ -642,11 +689,11 @@ for g, abschnitt, m, q239 in (("G84", rechts, "M3", "+1.5000"), ("G74", links, "
         k > 0
         and saetze_g[k + 1 : k + 6]
         == [
-            "  Q200=+0.0000 ;SICHERHEITS-ABST. ~",
-            "  Q201=-17.5000 ;TIEFE ~",
+            "  Q200=+0 ;SICHERHEITS-ABST. ~",
+            "  Q201=-17.5 ;TIEFE ~",
             f"  Q239={q239} ;GEWINDESTEIGUNG ~",
-            "  Q203=+24.0000 ;KOOR. OBERFLAECHE ~",
-            "  Q204=+0.0000 ;2. SICHERHEITS-ABST.",
+            "  Q203=+24 ;KOOR. OBERFLAECHE ~",
+            "  Q204=+0 ;2. SICHERHEITS-ABST.",
         ]
         and saetze_g[k + 6 : k + 8] == ["CYCL CALL", m],
         f"Heidenhain {g}: {saetze_g[k - 2 : k + 9]}",

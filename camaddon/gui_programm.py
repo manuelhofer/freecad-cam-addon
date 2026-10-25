@@ -96,6 +96,7 @@ GRUPPEN = (
         "bohren",
         "bohren",
         (
+            "bohrzyklen",
             "bohren",
             "bohren_verweilen",
             "tiefbohren",
@@ -165,6 +166,8 @@ NUR_GCODE = {
     "gewinde",
     "gewinde_vorher",
 }
+# Was es nur im Heidenhain-Klartext gibt.
+NUR_KLARTEXT = {"bohrzyklen"}
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {
     "rohteil_fraesen": "rohteil",
@@ -683,6 +686,8 @@ class ProgrammDialog(QtGui.QDialog):
         if (feld in NUR_DREHEN and not drehen) or (feld in NUR_FRAESEN and drehen):
             return False
         if feld in NUR_GCODE and self.steuerung().dialekt == "klartext":
+            return False
+        if feld in NUR_KLARTEXT and self.steuerung().dialekt != "klartext":
             return False
         if feld == "wechselpunkt_mks":
             return not self.info.wechsel_wks

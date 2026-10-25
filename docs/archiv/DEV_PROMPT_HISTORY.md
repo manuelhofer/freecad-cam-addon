@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-65 heidenhain-bohrzyklen
+
+### EINGELESEN
+- W-041 (Manuel: Postprozessoren „perfekt“, „alle !“). Heidenhain: G81 ff. standen als
+  ausgeschriebene L-Sätze im Programm – an der TNC erwartet man Zyklen (Tiefe, Vorschub dort
+  ändern). Nach dem Zyklenhandbuch iTNC 530 (Kapitel 3, Beispiele „CYCL DEF 200 BOHREN“ …
+  „L X+30 Y+20 FMAX M3 M99“).
+
+### DATEIEN
+- `camaddon/klartext.py`: `_bohrzyklus` (200, 203, 201), `_zyklus_rufen`, `q_zahl`; `uebersetzen(…,
+  zyklen)`.
+- `camaddon/postprozessor.py`: Haken `bohrzyklen` (vorbelegt an); `camaddon/gui_programm.py`: nur
+  im Klartext gezeigt (`NUR_KLARTEXT`), in der Gruppe „Bohrzyklen“.
+- `translations/de.json`, `en.json`; `tests/test_postprozessor.py`;
+  `docs/spezifikation_steuerung.md` 14.1.
+
+### ERGEBNIS
+- G81 Z−8 R2 (G98 von 5): `CYCL DEF 200 BOHREN ~` Q200=+0, Q201=-10, Q206=+120, Q202=+10,
+  Q203=+2, Q204=+3, dann `CYCL CALL`; G83 Q5 mit Q202=+5 und `L X+30.000 R0 FMAX M99`; G73 als 203
+  mit Q256=+0.5; G85 als 201 mit Q208=+60. Nachgelesen ohne Befund. Ohne den Haken wie bisher.
+- Prüfungen: test_postprozessor, test_schwenken, szenario_programm_heidenhain grün.
+
 ## P-2026-10-25-64 gewindebohren-vorschub-und-zyklen
 
 ### EINGELESEN

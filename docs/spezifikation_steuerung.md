@@ -671,3 +671,17 @@ Loch). „Auf der Maschine prüfen“ zählte die Zeit fast viermal so lang.
 - Geprüft: `tests/test_postprozessor.py` (alle Steuerungen, rechts und links, begrenzte Drehzahl,
   Heidenhain nachgelesen). Ohne Maschine nicht gefahren – vor dem ersten Lauf in der Simulation
   der Steuerung ansehen (Manuels Regel vom 2026-10-03).
+
+### 14.1 Bohrzyklen der TNC (P-2026-10-25-65)
+
+Bis hierhin schrieb der Klartext G81 ff. als einzelne L-Sätze – lauffähig, aber wer an der TNC
+steht, erwartet Zyklen und ändert Tiefe und Vorschub dort. Jetzt (Haken „Bohrzyklen der TNC“,
+vorbelegt an – Manuel: „Neues als Haken, vorbelegt an“), nach dem Zyklenhandbuch iTNC 530,
+Kapitel 3:
+- G81, G82, G83 → `CYCL DEF 200 BOHREN` (Q202 die Zustellung: G83 Q, sonst die ganze Tiefe;
+  Q211 das Verweilen von G82), G73 → `203 UNIVERSAL-BOHREN` (Q213 99 Spanbrüche, Q256 0,5 mm
+  zurück, Q208 heraus so schnell es geht), G85 → `201 REIBEN` (Q208 = Q206: heraus im Vorschub).
+- Wie beim Gewinde: Q200 0, Q203 = R, Q201 die Tiefe ab R, Q204 zurück auf die Höhe davor (G98)
+  oder R (G99); neu definiert nur, wenn sich ein Wert ändert; je Loch `L X… Y… R0 FMAX M99`.
+- Die Zahlen wie im Handbuch („Q201=-15“, „Q211=0.1“), die Fortsetzungszeilen mit „~“.
+- Aus: ausgeschrieben wie bisher. Gewindebohren bleibt Zyklus 207 (ausgeschrieben ginge es nicht).

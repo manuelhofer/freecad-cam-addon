@@ -17,8 +17,10 @@ Y+20 Z-3“, Kommentare „;…“, „TOOL CALL 10 Z S5000 F2000“, „M3“ a
   Eine andere Drehzahl mit demselben Werkzeug: „TOOL CALL n Z S…“ noch einmal (so ändert die
   TNC sie). Die Länge nimmt TOOL CALL mit – kein G43.
 - „G53 G0 …“ (Maschinenkoordinaten) → „L … R0 FMAX M91“.
-- Bohrzyklen G81, G82, G83, G73, G85 ausgeschrieben in L-Sätzen (G98: zurück auf die Höhe davor,
-  G99: auf R); Verweilen mit Zyklus 9.
+- Bohrzyklen G81, G82, G83 als Zyklus 200 BOHREN, G73 als 203 UNIVERSAL-BOHREN, G85 als 201
+  REIBEN (Zyklenhandbuch iTNC 530, Kapitel 3; P-2026-10-25-65) mit „L X… Y… R0 FMAX M99“ je Loch;
+  ohne `zyklen` ausgeschrieben in L-Sätzen (G98: zurück auf die Höhe davor, G99: auf R),
+  Verweilen mit Zyklus 9.
 - Gewindebohren G84/G74 als Zyklus 207 „Gewindebohren GS“ (ohne Ausgleichsfutter; Zyklenhandbuch
   iTNC 530, 4.3) mit „L X… Y… R0 FMAX M99“ je Loch – ausgeschrieben ginge es nicht, die Spindel
   muss mit Z laufen. Die Q-Zeilen setzen den Satz fort („~“, ohne eigene Nummer). Am Zyklusende
@@ -88,12 +90,42 @@ TEXTE = {
     },
 }
 FORTSETZUNG = "  "  # eine Zeile, die den Satz davor fortsetzt (Q-Parameter eines Zyklus)
+# Die Bohrzyklen der TNC: Nummer → (Name deutsch, englisch); je Q-Parameter sein Kommentar.
+BOHRZYKLEN = {
+    200: ("BOHREN", "DRILLING"),
+    201: ("REIBEN", "REAMING"),
+    203: ("UNIVERSAL-BOHREN", "UNIVERSAL DRILLING"),
+}
+Q_TEXTE = {
+    "Q200": ("SICHERHEITS-ABST.", "SET-UP CLEARANCE"),
+    "Q201": ("TIEFE", "DEPTH"),
+    "Q202": ("ZUSTELL-TIEFE", "PLUNGING DEPTH"),
+    "Q203": ("KOOR. OBERFLAECHE", "SURFACE COORDINATE"),
+    "Q204": ("2. SICHERHEITS-ABST.", "2ND SET-UP CLEARANCE"),
+    "Q205": ("MIN. ZUSTELL-TIEFE", "MIN. PLUNGING DEPTH"),
+    "Q206": ("VORSCHUB TIEFENZ.", "FEED RATE FOR PLNGNG"),
+    "Q208": ("VORSCHUB RUECKZUG", "RETRACTION FEED RATE"),
+    "Q210": ("VERWEILZEIT OBEN", "DWELL TIME AT TOP"),
+    "Q211": ("VERWEILZEIT UNTEN", "DWELL TIME AT DEPTH"),
+    "Q212": ("ABNAHMEBETRAG", "DECREMENT"),
+    "Q213": ("SPANBRUECHE", "BREAKS"),
+    "Q256": ("RZ BEI SPANBRUCH", "DIST FOR CHIP BRKNG"),
+    "Q395": ("BEZUG TIEFE", "DEPTH REFERENCE"),
+}
+SPANBRUECHE = 99  # G73: so viele Spanbrüche, bevor 203 ganz herausfährt – G73 fährt nie heraus
+RUECKZUG_EILGANG = 99999  # mm/min – Q208 bei G73: heraus so schnell es geht
 
 
 def zahl(wert, stellen=STELLEN):
     """„+12.500“ – im Klartext steht vor jeder Zahl ihr Vorzeichen."""
     text = f"{float(wert):+.{stellen}f}"
     return "+" + "0." + "0" * stellen if float(text) == 0.0 else text
+
+
+def q_zahl(wert):
+    """Ein Q-Parameter wie im Zyklenhandbuch: „+2“, „-15“, „+0.1“ – ohne Nullen am Ende."""
+    text = f"{float(wert):+.4f}".rstrip("0").rstrip(".")
+    return "+0" if text in ("+0", "-0") else text
 
 
 def _mit_vorzeichen(roh, stellen=STELLEN):
@@ -136,8 +168,10 @@ def _woerter(zeile):
 
 
 class _Uebersetzer:
-    def __init__(self, deutsch, stellen=STELLEN):
+    def __init__(self, deutsch, stellen=STELLEN, zyklen=True):
         self.stellen = stellen
+        self.deutsch = bool(deutsch)
+        self.zyklen = zyklen  # Bohrzyklen als Zyklen der TNC, sonst in L-Sätzen
         self.aus = []
         self.hinweise = []
         self.texte = TEXTE[bool(deutsch)]
@@ -152,6 +186,7 @@ class _Uebersetzer:
         self.drehzahl = None  # S, zuletzt geschrieben
         self.spindel_m = 3  # M3 oder M4, zuletzt geschrieben
         self.gewinde_def = None  # was Zyklus 207 zuletzt hieß (Tiefe, Steigung, R, Rückzug)
+        self.zyklus_def = None  # der zuletzt definierte Bohrzyklus: (Nummer, Q-Werte)
         self.werkzeug = None
         self.wechsel_offen = None  # Index des TOOL CALL, dem die Drehzahl noch fehlt
         self.saetze = 0
@@ -304,7 +339,10 @@ class _Uebersetzer:
         if not any(a in werte for a in ACHSEN + ("I", "J", "K", "R")):
             return
         if self.zyklus is not None and self.art in ("G81", "G82", "G83", "G73", "G85"):
-            self._bohren(ziel, werte)
+            if self.zyklen:
+                self._bohrzyklus(ziel, werte)
+            else:
+                self._bohren(ziel, werte)
             return
         if self.zyklus is not None and self.art in ("G84", "G74"):
             self._gewinde(ziel, werte)
@@ -466,6 +504,73 @@ class _Uebersetzer:
             self.gerade({"Z": r}, False)
         self.gerade({"Z": rueck}, True)
 
+    def _bohrzyklus(self, ziel, werte):
+        """G81, G82, G83, G73, G85 als Zyklus der TNC: 200 BOHREN (G81; G82 mit Verweilen Q211;
+        G83 mit der Zustellung Q202 = Q, zurück auf den Sicherheitsabstand), 203 UNIVERSAL-BOHREN
+        (G73: Spanbruch, um SPAN_BRECHEN zurück), 201 REIBEN (G85: heraus im Vorschub). Q200 0 (R
+        hat den Abstand schon), Q203 = R, Q201 die Tiefe ab R, Q204 zurück auf die Höhe davor
+        (G98) oder R (G99) – neu definiert, wenn sich etwas ändert; dann über dem Loch „M99“
+        (schon darüber: CYCL CALL)."""
+        code, zyklus = self.zyklus
+        werte = {**zyklus, **werte}
+        z_vorher = self.pos["Z"]
+        r = werte.get("R", z_vorher)
+        tiefe = werte.get("Z")
+        f = self.f_satz
+        if r is None or tiefe is None or not f:
+            self.hinweise.append(f"G{code} ohne R, Z oder Vorschub")
+            return
+        rueck = r if self.rueckzug_r or z_vorher is None else max(z_vorher, r)
+        t = tiefe - r
+        q = werte.get("Q", 0.0)
+        zustellung = q if code in (83, 73) and q > 1e-9 else abs(t)
+        oben = (("Q200", 0.0), ("Q201", t), ("Q206", f))
+        unten = (("Q203", r), ("Q204", rueck - r))
+        if code == 85:
+            nummer = 201
+            q_werte = (*oben, ("Q211", 0.0), ("Q208", f), *unten)
+        elif code == 73:
+            nummer = 203
+            q_werte = (
+                *oben,
+                ("Q202", zustellung),
+                ("Q210", 0.0),
+                *unten,
+                ("Q212", 0.0),
+                ("Q213", SPANBRUECHE),
+                ("Q205", 0.0),
+                ("Q211", 0.0),
+                ("Q208", RUECKZUG_EILGANG),
+                ("Q256", SPAN_BRECHEN),
+                ("Q395", 0.0),
+            )
+        else:
+            nummer = 200
+            verweil = werte.get("P", 0.0) if code == 82 else 0.0
+            q_werte = (*oben, ("Q202", zustellung), ("Q210", 0.0), *unten,
+                       ("Q211", verweil), ("Q395", 0.0))  # fmt: skip
+        definition = (nummer, tuple((n, round(w, 6)) for n, w in q_werte))
+        if definition != self.zyklus_def:
+            sprache = 0 if self.deutsch else 1
+            self.aus.append(f"CYCL DEF {nummer} {BOHRZYKLEN[nummer][sprache]} ~")
+            for k, (name, wert) in enumerate(q_werte):
+                ende = "" if k == len(q_werte) - 1 else " ~"
+                text = Q_TEXTE[name][sprache]
+                self.aus.append(f"{FORTSETZUNG}{name}={q_zahl(wert)} ;{text}{ende}")
+            self.zyklus_def = definition
+            self.wechsel_offen = None
+        self._zyklus_rufen(ziel)
+        self.pos["Z"] = rueck
+
+    def _zyklus_rufen(self, ziel):
+        """Über dem Loch „L X… Y… R0 FMAX M99“ – steht das Werkzeug schon darüber: CYCL CALL."""
+        xy = {a: ziel[a] for a in ("X", "Y") if ziel.get(a) is not None}
+        if any(self.pos[a] is None or abs(self.pos[a] - w) > 1e-9 for a, w in xy.items()):
+            self.gerade(xy, True, m="M99")
+        else:
+            self.aus.append("CYCL CALL")
+            self.saetze += 1
+
     def _gewinde(self, ziel, werte):
         """Gewindebohren (G84 rechts, G74 links) als Zyklus 207: die Steigung aus F ÷ Drehzahl
         (links negativ), Q203 = R mit Sicherheitsabstand 0 (R hat ihn schon), Q201 die Tiefe ab
@@ -495,26 +600,22 @@ class _Uebersetzer:
             self.aus.append(texte[0] + " ~")
             for k, (name, wert, text) in enumerate(q):
                 ende = "" if k == len(q) - 1 else " ~"
-                self.aus.append(f"{FORTSETZUNG}{name}={zahl(wert, 4)} ;{text}{ende}")
+                self.aus.append(f"{FORTSETZUNG}{name}={q_zahl(wert)} ;{text}{ende}")
             self.gewinde_def = definition
             self.wechsel_offen = None
-        xy = {a: ziel[a] for a in ("X", "Y") if ziel.get(a) is not None}
-        if any(self.pos[a] is None or abs(self.pos[a] - w) > 1e-9 for a, w in xy.items()):
-            self.gerade(xy, True, m="M99")
-        else:
-            self.aus.append("CYCL CALL")
-            self.saetze += 1
+        self._zyklus_rufen(ziel)
         self.pos["Z"] = rueck
         self.aus.append(f"M{self.spindel_m}")  # „Am Zyklusende steht die Spindel“
 
 
-def uebersetzen(zeilen, pgm, rohteil=None, deutsch=True, stellen=STELLEN):
+def uebersetzen(zeilen, pgm, rohteil=None, deutsch=True, stellen=STELLEN, zyklen=True):
     """Uebersetzt: die Zeilen des Programms (wie postprozessor.programm sie ohne Satznummern
     schreibt) als Klartext mit Nummern, BEGIN/END PGM `pgm` und – mit `rohteil` ((xmin, ymin,
     zmin), (xmax, ymax, zmax)) – BLK FORM; `deutsch`: die Texte der Zyklen wie an einer deutschen
-    Steuerung; `stellen`: Genauigkeit der Koordinaten, auch für fein geprüfte Bahnen."""
+    Steuerung; `stellen`: Genauigkeit der Koordinaten, auch für fein geprüfte Bahnen; `zyklen`:
+    die Bohrzyklen als Zyklen der TNC (sonst in L-Sätzen)."""
     name = pgm_name(pgm)
-    u = _Uebersetzer(deutsch, stellen)
+    u = _Uebersetzer(deutsch, stellen, zyklen)
     u.aus.append(f"BEGIN PGM {name} MM")
     if rohteil is not None:
         (x0, y0, z0), (x1, y1, z1) = rohteil

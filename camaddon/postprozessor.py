@@ -218,6 +218,9 @@ class Steuerung:
     # „gcode“ oder „klartext“ (Heidenhain): Klartext schreibt der Postprozessor erst als G-Code und
     # übersetzt ihn am Schluss (klartext.uebersetzen) – ohne G93, Satznummern ab 0 immer.
     dialekt: str = "gcode"
+    # Heidenhain: die Bohrzyklen als Zyklen der TNC (200, 201, 203, Gewinde 207) – aus: G81 ff. in
+    # L-Sätzen ausgeschrieben, wie bis P-2026-10-25-65 (Gewinde gibt es nur als Zyklus).
+    bohrzyklen: bool = True
 
     def ersetzt(self, **werte):
         """Eine Kopie mit geänderten Befehlen."""
@@ -305,6 +308,7 @@ HAKEN = (
     "g93",
     "schwenkzyklus",
     "tcpm",
+    "bohrzyklen",
 )
 
 _KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90"
@@ -770,6 +774,7 @@ def haken_text(feld):
         "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
         "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
         "tcpm": (tr("pp.haken.tcpm"), tr("pp.haken.tcpm.erklaerung")),
+        "bohrzyklen": (tr("pp.haken.bohrzyklen"), tr("pp.haken.bohrzyklen.erklaerung")),
     }.get(feld, (feld, ""))
 
 
@@ -1423,7 +1428,9 @@ def _klartext_fertig(s, name, datei, rohteil, hinweise, stellen=STELLEN):
     pgm = os.path.splitext(os.path.basename(datei))[0] if datei else name
 
     def fertig(zeilen, saetze):
-        uebersetzt = kt.uebersetzen(zeilen, pgm, rohteil, aktuelle_sprache() == "de", stellen)
+        uebersetzt = kt.uebersetzen(
+            zeilen, pgm, rohteil, aktuelle_sprache() == "de", stellen, s.bohrzyklen
+        )
         for art, wert in uebersetzt.hinweise:
             if art == "schrauben":
                 hinweise.append(tr("pp.hinweis.klartext_schrauben", anzahl=wert))

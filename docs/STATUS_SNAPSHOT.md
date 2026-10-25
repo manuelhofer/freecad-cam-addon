@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.297.0):* Heidenhain: Bohrzyklen als Zyklen der TNC (200, 201, 203; Haken „Bohrzyklen der
+  TNC“, vorbelegt an). Weiter mit W-041: GRBL, Okuma, Mazak, Brother; Fanuc/Haas G68.2.
 - *Korrektur (0.296.1):* Gewindebohren – F war die Steigung als mm/s (M10 × 1,5: F90 statt
   F382,5), im Klartext ein Eilgang ins Loch; jetzt F = Steigung · Drehzahl, Siemens CYCLE84,
   Fanuc M29, Heidenhain Zyklus 207 (Spezifikation Steuerung 14). Weiter mit W-041.

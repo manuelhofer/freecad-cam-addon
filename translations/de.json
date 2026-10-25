@@ -2992,6 +2992,8 @@
     "pp.gruppe.simultan": "5 Achsen simultan",
     "pp.haken.tcpm": "TCPM – die Steuerung führt die Spitze",
     "pp.haken.tcpm.erklaerung": "An: Bahnen, bei denen sich die Werkzeugachse von Satz zu Satz ändert (Kugel angestellt, Flanke, Wegkippen), stehen im Programm als Spitze im Werkstück und Rundachsen, F in mm/min. Die Steuerung rechnet daraus die Maschinenachsen und hält die Spitze auf der Geraden (Siemens TRAORI, Fanuc G43.4, Haas G234). Das ist kürzer und genauer, braucht aber die Option an der Steuerung und dort die richtige Kinematik. Aus: Das Addon rechnet X, Y, Z der Maschine selbst, in G93 – das geht an jeder 5-Achs-Maschine.",
+    "pp.haken.bohrzyklen": "Bohrzyklen der TNC",
+    "pp.haken.bohrzyklen.erklaerung": "An: Bohren, Tiefbohren und Reiben als Zyklen der TNC – 200 BOHREN, 203 UNIVERSAL-BOHREN (Spanbruch), 201 REIBEN – mit „M99“ je Loch; die Tiefe und den Vorschub ändert man an der Maschine im Zyklus. Aus: jeder Weg als L-Satz ausgeschrieben, wie bis Version 0.296. Gewindebohren steht immer als Zyklus 207 da – ausgeschrieben ginge es nicht.",
     "pp.feld.tcpm_ein": "TCPM ein",
     "pp.feld.tcpm_ein.tooltip": "Schaltet TCPM vor der Bahn ein ({t}: Werkzeugnummer) – Siemens TRAORI, Fanuc G43.4 H{t}, Haas G234 H{t}. Leer: ohne TCPM.",
     "pp.feld.tcpm_aus": "TCPM aus",
