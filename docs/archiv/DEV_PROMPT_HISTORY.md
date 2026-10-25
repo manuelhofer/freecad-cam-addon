@@ -58,10 +58,11 @@ patch_naming:
 - Grün: `test_raum_material`, `test_raum_bahn`, `test_ebenen_auslassen`, `test_schruppen3d`,
   `test_schlichten3d`, `szenario_geist_fuenfachs`, `szenario_bearbeitung_aufspannung_folge`,
   `szenario_raum_material`.
-- Gesehen und noch offen: In einem von vier Läufen der Geist-Kette stand der Assistent zwischen
-  zwei Ebenen 10 min ohne zu rechnen. Das ist genau die Leerlaufzeit der Nebenrechner
-  (`LEERLAUF`). Mit Mitschrift des Pools kam es nicht wieder. In einem Lauf stürzte FreeCAD
-  27.1 (Wochen-Build) in `Control.closeDialog()` nach der letzten Ebene ab, im nächsten nicht.
+- Gesehen: Zweimal standen die Läufe vor dieser Änderung 10 min zwischen zwei Ebenen. Das war
+  das Szenario selbst: Es wartete bis zu 600 s auf die Vorschau eines rot angehakten Blocks, und
+  der hat keine. Seit „nichts zu fräsen“ den Haken nimmt, kommt das nicht mehr vor. Offen: In
+  einem von drei Läufen stürzte FreeCAD 27.1 (Wochen-Build) in `Control.closeDialog()` nach der
+  letzten Ebene ab, im nächsten nicht.
 
 ## P-2026-10-25-10 5achs-doppelte-saetze-weg
 

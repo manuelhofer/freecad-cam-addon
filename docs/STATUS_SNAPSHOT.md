@@ -1416,9 +1416,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Netz, CAMs Tiefen ohne Modell) steht das Fenster im ganzen 4-Achs-Ablauf höchstens 1 s. Bereiche wählen braucht es nicht (Manuel: ein STL immer rundum) –
   [spezifikation_vierachs.md](spezifikation_vierachs.md), Abschnitt 16.
   **An der 5-Achs-Fräse (P-2026-10-25-11, `szenario_geist_fuenfachs`):** „Alles aus dieser
-  Aufspannung“ von oben, dann sieben Ebenen; jede mit dem räumlichen Rest der davor. Offen, je
-  einmal gesehen: zwischen zwei Ebenen 10 min Stillstand ohne Rechnen (so lange wie `LEERLAUF`
-  der Nebenrechner), und ein Absturz von 27.1 in `Control.closeDialog()` nach der letzten Ebene.
+  Aufspannung“ von oben, dann sieben Ebenen; jede mit dem räumlichen Rest der davor. Offen, einmal
+  in drei Läufen gesehen: ein Absturz von 27.1 in `Control.closeDialog()` nach der letzten Ebene.
   **Mehrere Körper in einem STL** (gesehen 2026-10-24 nachts, behoben P-2026-10-25-09): je
   Körper ein Solid, zusammen ein Verbund – vorher ein ungültiger Körper (ein Solid mit zwei
   Schalen bzw. eine unzusammenhängende Schale). Der Assistent „Bearbeitung“ nimmt den Verbund
