@@ -2488,6 +2488,7 @@
     "ba.uebernehmen.tooltip": "Ändert die Operation: Flächen, Fräser, Einsatz und die Werte – ein Schritt Rückgängig.",
     "ba.transaktion.anlegen": "Bearbeitung anlegen",
     "ba.transaktion.aendern": "Bearbeitung ändern",
+    "ba.fehler.modell": "„{teil}“ lässt sich nicht berechnen: „{objekt}“ meldet „{fehler}“ (im Baum ein rotes Ausrufezeichen; eine Datei aus einer neueren FreeCAD-Version rechnet manchmal nicht). Erst das Modell reparieren, dann das Teil wählen.",
     "ba.fehler.anlegen": "Konnte nicht anlegen: {fehler}",
     "ba.fehler.aendern": "Konnte nicht ändern: {fehler}",
     "rw.werkzeug_radial": "„{operation}“: Die Bahn ist für ein Werkzeug gerechnet, das radial aus {richtung} zur Achse zeigt – {werkzeug} sitzt auf {aufnahme} aber anders. So gefahren, passt sie nicht zum Teil: Gib {werkzeug} in der Werkzeugverwaltung einen Halter, der radial steht (etwa „VDI30 angetrieben radial“), oder nimm einen Platz, der aus {richtung} zeigt.",

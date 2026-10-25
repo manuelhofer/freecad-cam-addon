@@ -87,6 +87,7 @@ from .gui_vierachs import (
     GRAU_TEXT,
     GRUEN,
     _entlang,
+    _fehler_im_modell,
     _globale_transaktionen,
     _im_befehl,
     _Reihen,
@@ -6384,7 +6385,14 @@ class BearbeitungPanel:
             self.job = _im_befehl(self._neuer_job)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
             FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n{traceback.format_exc()}")
-            self.hinweis.setText(tr("ba.fehler.anlegen", fehler=str(fehler)))
+            kaputt = _fehler_im_modell(teil)
+            if kaputt is not None:
+                # Statt CAMs „length of box too small“ (Manuels Stifthalter in 1.1.4: die Drehung
+                # fand ihre Skizzenfläche nicht – das Modell rechnete beim Anlegen nicht).
+                text = tr("ba.fehler.modell", teil=teil.Label, objekt=kaputt[0], fehler=kaputt[1])
+            else:
+                text = tr("ba.fehler.anlegen", fehler=str(fehler))
+            self.hinweis.setText(text)
             self.teil = None
             return
         self._job_offen = True

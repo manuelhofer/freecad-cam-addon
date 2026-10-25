@@ -391,6 +391,24 @@ def _globale_transaktionen():
         return False
 
 
+def _fehler_im_modell(teil):
+    """(Name, Fehler) des ersten Objekts im Modell `teil` (es selbst und alles, woraus es
+    entsteht), das FreeCAD nicht berechnen konnte – oder None."""
+    try:
+        objekte = [teil, *teil.OutListRecursive]
+    except Exception:  # noqa: BLE001 – ohne Abhängigkeiten nichts zu sagen
+        return None
+    for objekt in objekte:
+        try:
+            if objekt.isValid():
+                continue
+            fehler = objekt.getStatusString() if hasattr(objekt, "getStatusString") else ""
+        except Exception:  # noqa: BLE001
+            continue
+        return objekt.Label, fehler
+    return None
+
+
 def _im_befehl(aufgabe):
     """Führt `aufgabe()` als FreeCAD-Befehl aus und gibt ihr Ergebnis zurück; eine Ausnahme
     kommt danach durch.
@@ -6387,7 +6405,14 @@ class VierachsPanel:
                 )
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
             FreeCAD.Console.PrintError(f"4-Achs-Bearbeitung: {fehler}\n")
-            self._hinweis(tr("va.fehler", fehler=str(fehler)))
+            kaputt = _fehler_im_modell(self.teil) if self.teil is not None else None
+            if kaputt is not None:  # wie im Assistenten „Bearbeitung“
+                text = tr(
+                    "ba.fehler.modell", teil=self.teil.Label, objekt=kaputt[0], fehler=kaputt[1]
+                )
+            else:
+                text = tr("va.fehler", fehler=str(fehler))
+            self._hinweis(text)
             return False
         self._stange_jetzt = stange
         if erstes_mal:

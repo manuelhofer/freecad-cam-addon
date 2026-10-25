@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-48 modell-rechnet-nicht
+
+### EINGELESEN
+- Die neuen Knöpfe in FreeCAD 1.1.4 nachgeprüft (Klemmung, Messspitzenhalter: grün). Der
+  Stifthalter (mit einer neueren FreeCAD-Version gespeichert) rechnet in 1.1.4 nicht: Die Drehung
+  findet ihre Skizzenfläche nicht („Sub shape not found … InternalFace1“). Beim Anlegen des Jobs
+  stand nur CAMs „Konnte nicht anlegen: length of box too small“.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_fehler_im_modell(teil)` – das erste Objekt im Modell (es selbst
+  und alles, woraus es entsteht), das FreeCAD nicht berechnen konnte, mit seiner Meldung. Der
+  4-Achs-Assistent nennt es, wenn der Job nicht entsteht.
+- `camaddon/gui_bearbeitung.py`: ebenso beim Anlegen des Jobs.
+- `translations/de.json`, `en.json`: `ba.fehler.modell`.
+
+### ERGEBNIS
+- Szenario Stifthalter in 1.1.4: „„stifthalter_pla_iso“ lässt sich nicht berechnen: „Revolution“
+  meldet „Sub shape not found: …“ (im Baum ein rotes Ausrufezeichen; eine Datei aus einer neueren
+  FreeCAD-Version rechnet manchmal nicht). Erst das Modell reparieren, dann das Teil wählen.“
+  Den 4-Achs-Zweig deckt kein Szenario mit kaputtem Teil.
+- Prüfungen: test_sprache grün.
+
 ## P-2026-10-25-46/-47 bohrer-unter-bohrung-fraesen, kegelsenker-anlegen
 
 ### EINGELESEN

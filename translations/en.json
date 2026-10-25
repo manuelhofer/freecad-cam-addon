@@ -2488,6 +2488,7 @@
     "ba.uebernehmen.tooltip": "Changes the operation: faces, cutter, application and the values – one undo step.",
     "ba.transaktion.anlegen": "Create machining",
     "ba.transaktion.aendern": "Change machining",
+    "ba.fehler.modell": "“{teil}” cannot be computed: “{objekt}” reports “{fehler}” (a red exclamation mark in the tree; a file from a newer FreeCAD version sometimes fails to recompute). Repair the model first, then select the part.",
     "ba.fehler.anlegen": "Could not create: {fehler}",
     "ba.fehler.aendern": "Could not change: {fehler}",
     "rw.werkzeug_radial": "“{operation}”: the path is calculated for a tool pointing radially at the axis from {richtung} – but {werkzeug} on {aufnahme} sits differently. Run like this, it does not fit the part: give {werkzeug} a holder in the tool manager that stands radially (such as “VDI30 driven radial”), or use a station pointing from {richtung}.",
