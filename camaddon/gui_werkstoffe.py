@@ -15,7 +15,7 @@ from PySide import QtCore, QtGui
 
 from . import werkstoffe as ws
 from .gui_hilfe import kopfzeile
-from .gui_teile import fett, hinweiszeile, knopf, ruhiges_mausrad
+from .gui_teile import fenster_merken, fett, hinweiszeile, knopf, ruhiges_mausrad
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
@@ -65,7 +65,7 @@ class WerkstoffDialog(QtGui.QDialog):
         self.geaendert = False
         self._gezeigt = []  # die Werkstoffe in der Tabelle, in ihrer Reihenfolge
         self.setWindowTitle(tr("ws.titel"))
-        self.resize(*FENSTER_GROESSE)
+        fenster_merken(self, "Werkstoffe", FENSTER_GROESSE)
 
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("ws.titel"), "werkstoffe"))

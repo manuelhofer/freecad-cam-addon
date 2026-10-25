@@ -170,6 +170,17 @@ def schritte(h):
         yield 200
         oben = m.liste.topLevelItem(0)
     h.pruefe(oben.childCount() == 1, f"nach dem Löschen: {oben.childCount()} Magazine")
+    # Größe und Lage gemerkt (Manuel, 2026-10-25): gezogen, geschlossen – wieder so geöffnet.
+    m.resize(1150, 680)
+    m.move(40, 30)
+    yield 200
+    gezogen = (m.width(), m.height(), m.x(), m.y())
+    m.accept()
+    yield 300
+    m = d.magazine_zeigen()
+    yield 600
+    wieder = (m.width(), m.height(), m.x(), m.y())
+    h.pruefe(wieder == gezogen, f"Magazine wieder geöffnet: {wieder} statt {gezogen}")
     m.accept()
     yield 300
     d.accept()

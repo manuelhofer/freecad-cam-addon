@@ -27,7 +27,7 @@ from . import maschine as m
 from . import maschinenspeicher as msp
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import GRAU, knopf, ruhiges_mausrad
+from .gui_teile import GRAU, fenster_merken, knopf, ruhiges_mausrad
 from .gui_zahlen import groesse_lesen, groesse_zeigen
 from .sprache import tr
 
@@ -129,7 +129,7 @@ class MagazinDialog(QtGui.QDialog):
         self._fuellt = False
         self._offen = set()  # die Maschinen (Datei), deren Magazine aufgeklappt sind
         self.setWindowTitle(tr("mg.titel"))
-        self.resize(*FENSTER_GROESSE)
+        fenster_merken(self, "Magazine", FENSTER_GROESSE)
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("mg.titel"), "magazine"))
         erklaerung = QtGui.QLabel(tr("mg.erklaerung"))

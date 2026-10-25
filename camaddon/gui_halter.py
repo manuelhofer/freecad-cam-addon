@@ -22,7 +22,7 @@ from . import halter as hl
 from . import werkzeuge as wz
 from .gui_eingriff import FARBE_KANTE, FARBE_SCHAFT, FARBE_WERKZEUG, FARBE_WERKZEUG_RAND
 from .gui_hilfe import kopfzeile
-from .gui_teile import GRAU, knopf, mit_einheit, ruhiges_mausrad
+from .gui_teile import GRAU, fenster_merken, knopf, mit_einheit, ruhiges_mausrad
 from .gui_zahlen import (
     Zahlenpruefer,
     groesse_fest,
@@ -70,7 +70,7 @@ class HalterDialog(QtGui.QDialog):
         self._gezeigt = []  # die Halter in der Liste, in ihrer Reihenfolge
         self._fuellt = False
         self.setWindowTitle(tr("hd.titel"))
-        self.resize(*FENSTER_GROESSE)
+        fenster_merken(self, "Halter", FENSTER_GROESSE)
 
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("hd.titel"), "halter"))

@@ -28,7 +28,7 @@ from . import postprozessor as pp
 from . import programm_rechnen as pr
 from . import reichweite as rw
 from .gui_hilfe import kopfzeile
-from .gui_teile import knopf, ruhiges_mausrad
+from .gui_teile import fenster_merken, knopf, ruhiges_mausrad
 from .gui_zahlen import zahlenformat
 from .sprache import tr
 
@@ -383,7 +383,7 @@ class ProgrammDialog(QtGui.QDialog):
         self.glaetten_haken = {}  # Kennung → QCheckBox
         self.feld_toleranz = None
         self.setWindowTitle(tr("pp.titel"))
-        self.resize(1180, 840)
+        fenster_merken(self, "Programm", (1180, 840))
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("pp.titel"), "programm"))
         erklaerung = QtGui.QLabel(tr("pp.erklaerung"))

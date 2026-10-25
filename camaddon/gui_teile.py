@@ -212,3 +212,29 @@ def ruhiges_mausrad(wurzel):
         feld.setFocusPolicy(QtCore.Qt.StrongFocus)
         feld.installEventFilter(_rad)
     return wurzel
+
+
+def fenster_merken(fenster, name, groesse):
+    """Gibt dem Dialog `fenster` die Größe und Lage vom letzten Schließen – beim ersten Mal
+    `groesse` (Breite, Höhe) – und merkt sie sich beim Schließen in den Einstellungen unter
+    „Fenster<name>“ (Manuel, 2026-10-25, am Magazin: „wenn man es gezogen hat wie man es braucht
+    auch so in der größe es nächste mal wieder aufbekommt“). Lag es auf einem Bildschirm, den es
+    nicht mehr gibt, holt Qt es auf einen vorhandenen."""
+    import FreeCAD
+
+    from . import PARAMETER_PFAD
+
+    fenster.resize(*groesse)
+    schluessel = "Fenster" + name
+    gruppe = FreeCAD.ParamGet(PARAMETER_PFAD)
+    text = gruppe.GetString(schluessel, "")
+    if text:
+        with contextlib.suppress(Exception):  # unlesbar: wie beim ersten Mal
+            fenster.restoreGeometry(QtCore.QByteArray.fromBase64(text.encode("ascii")))
+
+    def merken(*_):
+        with contextlib.suppress(Exception):
+            daten = bytes(fenster.saveGeometry().toBase64()).decode("ascii")
+            gruppe.SetString(schluessel, daten)
+
+    fenster.finished.connect(merken)

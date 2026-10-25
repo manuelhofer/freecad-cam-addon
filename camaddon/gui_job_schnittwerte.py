@@ -22,7 +22,7 @@ from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import grau, hinweiszeile, ruhiges_mausrad, weiter
+from .gui_teile import fenster_merken, grau, hinweiszeile, ruhiges_mausrad, weiter
 from .gui_werkzeuge import WerkzeugDialog, werkstoffe_anbieten
 from .gui_zahlen import dezimal, groesse_fest, groesse_zeigen, zahl_zeigen, zahlenformat
 from .sprache import tr
@@ -155,7 +155,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self._zeilen = []  # (tc, werkzeug oder None, Auswahl des Einsatzes)
         self._duenn = {}  # Zeile → [(Satz, vorgeschlagenes ap oder None)] zu dünnen Ebenen
         self.setWindowTitle(tr("sj.titel"))
-        self.resize(*FENSTER_GROESSE)
+        fenster_merken(self, "Schnittwerte", FENSTER_GROESSE)
 
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("sj.titel"), "werkzeuge"))

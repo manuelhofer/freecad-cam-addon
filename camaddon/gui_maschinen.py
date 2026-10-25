@@ -16,7 +16,7 @@ from . import maschine as m
 from . import maschinenspeicher as ms
 from . import symbol
 from .gui_hilfe import kopfzeile
-from .gui_teile import GRAU, ROT, knopf
+from .gui_teile import GRAU, ROT, fenster_merken, knopf
 from .sprache import tr
 
 FENSTER_GROESSE = (760, 380)
@@ -98,7 +98,7 @@ class MaschinenDialog(QtGui.QDialog):
         self.pfad = pfad  # None: die Liste beim Benutzer
         self.eintraege = []
         self.setWindowTitle(tr("ms.titel"))
-        self.resize(*FENSTER_GROESSE)
+        fenster_merken(self, "Maschinen", FENSTER_GROESSE)
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("ms.titel"), "maschinen"))
         text = QtGui.QLabel(tr("ms.text"))

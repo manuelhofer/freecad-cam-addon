@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-17 fenster-groesse-gemerkt
+
+### EINGELESEN
+- Manuel, 2026-10-25 02:27: „bekommt man es irgendwie hin das man das fenster fürs magazin wenn
+  man es gezogen hat wie man es braucht auch so in der größe es nächste mal wieder aufbekommt ?
+  also sozusagen die position speichert ??“
+
+### DATEIEN
+- `camaddon/gui_teile.py`: `fenster_merken(fenster, name, groesse)` gibt einem Dialog Größe und
+  Lage vom letzten Schließen (`saveGeometry` in den Einstellungen unter „Fenster<name>“), beim
+  ersten Mal die bisherige Größe. Lag das Fenster auf einem Bildschirm, den es nicht mehr gibt,
+  holt Qt es auf einen vorhandenen.
+- Damit merken sich jetzt Magazine, Werkzeugverwaltung, Halter, Werkstoffe, Maschinen, Programm,
+  Einrichtblatt, die Schnittwerte im Job und die Schruppwerte ihre Größe und Lage
+  (`gui_magazine`, `gui_werkzeuge`, `gui_halter`, `gui_werkstoffe`, `gui_maschinen`,
+  `gui_programm`, `gui_einrichtblatt`, `gui_job_schnittwerte`, `gui_schruppwerte`).
+- `tests/gui/szenario_magazine.py`: das Fenster ziehen, schließen, wieder öffnen, und es hat
+  dieselbe Größe und Lage.
+
+### ERGEBNIS
+- Grün: `szenario_magazine`, `szenario_halter`.
+
 ## P-2026-10-25-16 maschinenstand-gemerkt
 
 ### EINGELESEN

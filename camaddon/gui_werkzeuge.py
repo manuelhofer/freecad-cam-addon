@@ -25,7 +25,15 @@ from . import werkzeugkiste as wk
 from .gui_halter import HalterDialog
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
-from .gui_teile import GRAU, hinweiszeile, knopf, kurze_liste, mit_einheit, ruhiges_mausrad
+from .gui_teile import (
+    GRAU,
+    fenster_merken,
+    hinweiszeile,
+    knopf,
+    kurze_liste,
+    mit_einheit,
+    ruhiges_mausrad,
+)
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_werkzeugbild import WerkzeugBild
 from .gui_werkzeugbild import symbol as art_symbol
@@ -299,7 +307,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self._fuellt = False  # während Felder gefüllt werden, zählt keine Eingabe
 
         self.setWindowTitle(tr("wv.titel"))
-        self.resize(*FENSTER_GROESSE)
+        fenster_merken(self, "Werkzeuge", FENSTER_GROESSE)
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(self._bereich_werkstoff())
         teilung = QtGui.QSplitter()

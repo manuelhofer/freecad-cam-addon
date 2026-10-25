@@ -13,6 +13,7 @@ from PySide import QtCore, QtGui
 
 from . import VERSION, einheiten, symbol
 from . import einrichtblatt as eb
+from .gui_teile import fenster_merken
 from .gui_zahlen import dezimal, groesse_zeigen
 from .sprache import tr
 
@@ -72,7 +73,7 @@ class EinrichtblattDialog(QtGui.QDialog):
         knoepfe.addStretch()
         knoepfe.addWidget(schliessen)
         aufbau.addLayout(knoepfe)
-        self.resize(820, 900)
+        fenster_merken(self, "Einrichtblatt", (820, 900))
         # Die Bilder der Aufspannungen kommen nach und nach (je eins ~0,75 s; an einer 8-Kant-Kette
         # stand das Fenster sonst 6 s, bevor es aufging): je Takt der Ereignisschleife eins.
         self._ansicht = self._dokument_gui = None

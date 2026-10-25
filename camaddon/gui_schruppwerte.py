@@ -18,7 +18,7 @@ from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import GRAU, ROT, hinweiszeile, knopf, mit_einheit
+from .gui_teile import GRAU, ROT, fenster_merken, hinweiszeile, knopf, mit_einheit
 from .gui_zahlen import (
     Zahlenpruefer,
     dezimal,
@@ -80,7 +80,7 @@ class SchruppDialog(QtGui.QDialog):
         self.plan = None
         self.vergleich = vergleich
         self.setWindowTitle(tr("sp.titel"))
-        self.resize(*FENSTER_GROESSE)
+        fenster_merken(self, "Schruppwerte", FENSTER_GROESSE)
 
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("sp.titel"), "schruppwerte"))
