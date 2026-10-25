@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-64 gewindebohren-vorschub-und-zyklen
+
+### EINGELESEN
+- W-041 (Manuel: Postprozessoren „perfekt“, „alle !“). Beim Durchsehen: FreeCADs Gewinde schreibt
+  `G84 … S255 F1.5` – F die Steigung. Unser Postprozessor schrieb `F90` (die Steigung als mm/s)
+  statt F382,5 auf jeder Steuerung, Siemens G84 (nur im ISO-Modus), Heidenhain `L Z+6.500 R0
+  FMAX` – im Eilgang ins Loch. „Auf der Maschine prüfen“ zählte fast viermal so lang.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: G84/G74 mit S – F = Steigung · Drehzahl; `Steuerung.gewinde`
+  (Siemens `CYCLE84(…,SDAC,,PIT,0,SST,SST1)`), `Steuerung.gewinde_vorher` (Fanuc `M29 S…`).
+- `camaddon/klartext.py`: G84/G74 als Zyklus 207 mit Fortsetzungszeilen, M99/CYCL CALL, danach
+  M3/M4; nummeriert und nachgelesen ohne die Fortsetzungszeilen.
+- `camaddon/reichweite.py`: der Vorschub beim Gewindebohren, heraus im Vorschub (G84, G74, G85,
+  G89).
+- `camaddon/gui_programm.py`, `translations/de.json`, `en.json`: die zwei Befehle im Fenster.
+- `tests/test_postprozessor.py` (Gewindebohren je Steuerung), `tests/test_programm_pruefen.py`
+  (woodWOP zählt Konturelemente – seit 0.292.0 rot).
+- `docs/spezifikation_steuerung.md`, Abschnitt 14.
+
+### ERGEBNIS
+- M10 × 1,5 bei 255 1/min: LinuxCNC/Haas/Mach `G84 … F382.500`; Fanuc `M29 S255` davor; Siemens
+  `CYCLE84(24.000,24.000,0,6.500,,0.000,3,,1.500,0,255,255)`, links mit 4 und −1.500; Heidenhain
+  `CYCL DEF 207 GEW.-BOHREN GS NEU ~` mit Q239=+1.5000, `CYCL CALL`, `M3`; begrenzt auf 200 1/min
+  F300.
+- Prüfungen: test_postprozessor, test_programm_pruefen, test_gewinde, test_abfahren,
+  test_reichweite, szenario_gewinde grün.
+
 ## P-2026-10-25-63 werkzeugwechsel-zeit, frage-reihenfolge
 
 ### EINGELESEN

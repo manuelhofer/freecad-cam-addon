@@ -19,6 +19,10 @@ Y+20 Z-3“, Kommentare „;…“, „TOOL CALL 10 Z S5000 F2000“, „M3“ a
 - „G53 G0 …“ (Maschinenkoordinaten) → „L … R0 FMAX M91“.
 - Bohrzyklen G81, G82, G83, G73, G85 ausgeschrieben in L-Sätzen (G98: zurück auf die Höhe davor,
   G99: auf R); Verweilen mit Zyklus 9.
+- Gewindebohren G84/G74 als Zyklus 207 „Gewindebohren GS“ (ohne Ausgleichsfutter; Zyklenhandbuch
+  iTNC 530, 4.3) mit „L X… Y… R0 FMAX M99“ je Loch – ausgeschrieben ginge es nicht, die Spindel
+  muss mit Z laufen. Die Q-Zeilen setzen den Satz fort („~“, ohne eigene Nummer). Am Zyklusende
+  steht die Spindel: danach wieder M3 bzw. M4.
 - Zeilen, die schon Klartext sind (aus den Befehlen der Steuerung: TOOL CALL, „L … M91“, „* -“
   Gliederung, CYCL DEF, M128, FUNCTION TCPM, PLANE …), bleiben – Zahlen in L-Sätzen bekommen ihr
   Vorzeichen.
@@ -60,9 +64,30 @@ KLARTEXT = (
 OHNE = {"G17", "G21", "G40", "G49", "G80", "G90", "G94", "G64", "G61", "G642", "G43"}
 
 TEXTE = {
-    True: {"verweil": ("CYCL DEF 9.0 VERWEILZEIT", "CYCL DEF 9.1 V.ZEIT {s}")},
-    False: {"verweil": ("CYCL DEF 9.0 DWELL TIME", "CYCL DEF 9.1 DWELL {s}")},
+    True: {
+        "verweil": ("CYCL DEF 9.0 VERWEILZEIT", "CYCL DEF 9.1 V.ZEIT {s}"),
+        "gewinde": (
+            "CYCL DEF 207 GEW.-BOHREN GS NEU",
+            "SICHERHEITS-ABST.",
+            "TIEFE",
+            "GEWINDESTEIGUNG",
+            "KOOR. OBERFLAECHE",
+            "2. SICHERHEITS-ABST.",
+        ),
+    },
+    False: {
+        "verweil": ("CYCL DEF 9.0 DWELL TIME", "CYCL DEF 9.1 DWELL {s}"),
+        "gewinde": (
+            "CYCL DEF 207 RIGID TAPPING NEW",
+            "SET-UP CLEARANCE",
+            "DEPTH",
+            "THREAD PITCH",
+            "SURFACE COORDINATE",
+            "2ND SET-UP CLEARANCE",
+        ),
+    },
 }
+FORTSETZUNG = "  "  # eine Zeile, die den Satz davor fortsetzt (Q-Parameter eines Zyklus)
 
 
 def zahl(wert, stellen=STELLEN):
@@ -124,6 +149,9 @@ class _Uebersetzer:
         self.ebene = "G17"
         self.rueckzug_r = False  # G99
         self.zyklus = None  # ein Bohrzyklus, modal: (G, {Adresse: Wert})
+        self.drehzahl = None  # S, zuletzt geschrieben
+        self.spindel_m = 3  # M3 oder M4, zuletzt geschrieben
+        self.gewinde_def = None  # was Zyklus 207 zuletzt hieß (Tiefe, Steigung, R, Rückzug)
         self.werkzeug = None
         self.wechsel_offen = None  # Index des TOOL CALL, dem die Drehzahl noch fehlt
         self.saetze = 0
@@ -240,7 +268,7 @@ class _Uebersetzer:
                 self.zyklus = None
         if "F" in werte:
             self.f_satz = werte.pop("F")
-        bewegung = [c for c in g if c in (0, 1, 2, 3, 81, 82, 83, 73, 85)]
+        bewegung = [c for c in g if c in (0, 1, 2, 3, 81, 82, 83, 73, 85, 84, 74)]
         if 4 in g:
             sekunden = werte.get("P", 0.0)
             for text in self.texte["verweil"]:
@@ -257,9 +285,10 @@ class _Uebersetzer:
             self.aus.append(f"M{code}")
             if code in (3, 4):
                 self.wechsel_offen = None
+                self.spindel_m = code
         if bewegung:
             self.art = f"G{bewegung[-1]}"
-            if bewegung[-1] in (81, 82, 83, 73, 85):
+            if bewegung[-1] in (81, 82, 83, 73, 85, 84, 74):
                 self.zyklus = (bewegung[-1], dict(werte))
         ziel = self._ziel(werte)
         if maschine:
@@ -277,12 +306,16 @@ class _Uebersetzer:
         if self.zyklus is not None and self.art in ("G81", "G82", "G83", "G73", "G85"):
             self._bohren(ziel, werte)
             return
+        if self.zyklus is not None and self.art in ("G84", "G74"):
+            self._gewinde(ziel, werte)
+            return
         if self.art in ("G0", "G1"):
             self.gerade(ziel, self.art == "G0")
         elif self.art in ("G2", "G3"):
             self._bogen(ziel, werte, self.art == "G2")
 
     def _drehzahl(self, s):
+        self.drehzahl = float(s)
         drehzahl = f"S{float(s):.0f}"
         if self.wechsel_offen is not None:
             self.aus[self.wechsel_offen] += f" {drehzahl}"
@@ -433,6 +466,47 @@ class _Uebersetzer:
             self.gerade({"Z": r}, False)
         self.gerade({"Z": rueck}, True)
 
+    def _gewinde(self, ziel, werte):
+        """Gewindebohren (G84 rechts, G74 links) als Zyklus 207: die Steigung aus F ÷ Drehzahl
+        (links negativ), Q203 = R mit Sicherheitsabstand 0 (R hat ihn schon), Q201 die Tiefe ab
+        R, Q204 zurück auf die Höhe davor (G98) oder R (G99) – neu definiert, wenn sich etwas
+        davon ändert; dann über dem Loch „M99“ (schon darüber: CYCL CALL) und die Spindel wieder
+        an."""
+        code, zyklus = self.zyklus
+        werte = {**zyklus, **werte}
+        z_vorher = self.pos["Z"]
+        r = werte.get("R", z_vorher)
+        tiefe = werte.get("Z")
+        if r is None or tiefe is None or not self.drehzahl or not self.f_satz:
+            self.hinweise.append(f"G{code} ohne R, Z, Drehzahl oder Vorschub")
+            return
+        steigung = self.f_satz / self.drehzahl * (-1.0 if code == 74 else 1.0)
+        rueck = r if self.rueckzug_r or z_vorher is None else max(z_vorher, r)
+        definition = tuple(round(w, 6) for w in (tiefe - r, steigung, r, rueck - r))
+        if definition != self.gewinde_def:
+            texte = self.texte["gewinde"]
+            q = (
+                ("Q200", 0.0, texte[1]),
+                ("Q201", tiefe - r, texte[2]),
+                ("Q239", steigung, texte[3]),
+                ("Q203", r, texte[4]),
+                ("Q204", rueck - r, texte[5]),
+            )
+            self.aus.append(texte[0] + " ~")
+            for k, (name, wert, text) in enumerate(q):
+                ende = "" if k == len(q) - 1 else " ~"
+                self.aus.append(f"{FORTSETZUNG}{name}={zahl(wert, 4)} ;{text}{ende}")
+            self.gewinde_def = definition
+            self.wechsel_offen = None
+        xy = {a: ziel[a] for a in ("X", "Y") if ziel.get(a) is not None}
+        if any(self.pos[a] is None or abs(self.pos[a] - w) > 1e-9 for a, w in xy.items()):
+            self.gerade(xy, True, m="M99")
+        else:
+            self.aus.append("CYCL CALL")
+            self.saetze += 1
+        self.pos["Z"] = rueck
+        self.aus.append(f"M{self.spindel_m}")  # „Am Zyklusende steht die Spindel“
+
 
 def uebersetzen(zeilen, pgm, rohteil=None, deutsch=True, stellen=STELLEN):
     """Uebersetzt: die Zeilen des Programms (wie postprozessor.programm sie ohne Satznummern
@@ -459,7 +533,13 @@ def uebersetzen(zeilen, pgm, rohteil=None, deutsch=True, stellen=STELLEN):
         if zeilen_aus and satz == zeilen_aus[-1] and satz.startswith("L ") and "FMAX" in satz:
             continue
         zeilen_aus.append(satz)
-    nummeriert = [f"{i} {satz}" for i, satz in enumerate(zeilen_aus)]
+    nummeriert, nummer = [], 0
+    for satz in zeilen_aus:
+        if satz.startswith(FORTSETZUNG):
+            nummeriert.append(satz)  # setzt den Satz davor fort – ohne eigene Nummer
+            continue
+        nummeriert.append(f"{nummer} {satz}")
+        nummer += 1
     hinweise = []
     if u.schrauben:
         hinweise.append(("schrauben", u.schrauben))
@@ -485,7 +565,7 @@ def pruefe(text):
     def befund(art, nummer, satz):
         pruefung.befunde.append(prp.Befund(art, nummer, satz))
 
-    zeilen = [z for z in text.split("\n") if z.strip()]
+    zeilen = [z for z in text.split("\n") if z.strip() and not z.startswith(FORTSETZUNG)]
     pos = dict.fromkeys(ACHSEN)
     werkzeug = False
     drehzahl = 0.0

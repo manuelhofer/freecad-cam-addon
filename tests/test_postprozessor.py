@@ -585,6 +585,79 @@ pruefe(
 )
 print(ascii(f"Heidenhain: {len(z_hh)} Saetze, {saetze} nachgelesen"))
 
+
+# --- Gewindebohren (P-2026-10-25-64): FreeCADs Gewinde schreibt in F die Steigung, in S die
+# Drehzahl – der Vorschub ist ihr Produkt (bis dahin stand für M10 × 1,5 bei 255 1/min „F90“ da,
+# die Steigung als mm/s). Siemens CYCLE84 (SDAC wie vorher), Fanuc M29 davor, Heidenhain Zyklus
+# 207 mit M99/CYCL CALL und danach wieder M3; links (G74) die Steigung negativ.
+def gewinde_abschnitt(g, rueckwaerts):
+    return pp.Abschnitt(
+        "Gewinde",
+        4,
+        255.0,
+        rueckwaerts,
+        "None",
+        [
+            C("G90"),
+            C("G0", {"Z": 26.0}),
+            C("G98"),
+            C("G0", {"X": 60.0, "Y": 30.0, "Z": 24.0}),
+            C(g, {"X": 60.0, "Y": 30.0, "Z": 6.5, "R": 24.0, "S": 255.0, "F": 1.5}),
+            C("G80"),
+            C("G0", {"Z": 26.0}),
+        ],
+        "M10",
+    )
+
+
+rechts, links = gewinde_abschnitt("G84", False), gewinde_abschnitt("G74", True)
+g84 = "G84 X60.000 Y30.000 Z6.500 R24.000 F382.500"
+for kennung in ("linuxcnc", "haas", "mach"):
+    z_g = pp.programm([rechts], pp.steuerung(kennung), fraese, "G").zeilen
+    pruefe(g84 in z_g and not any(x.startswith("M29") for x in z_g), f"{kennung} G84: {z_g}")
+z_g = pp.programm([rechts], pp.steuerung("fanuc"), fraese, "G").zeilen
+i_g = z_g.index(g84) if g84 in z_g else -1
+pruefe(i_g > 0 and z_g[i_g - 1] == "M29 S255", f"Fanuc M29 vor G84: {z_g[i_g - 2 : i_g + 1]}")
+z_g = pp.programm([rechts], pp.steuerung("siemens"), fraese, "G").zeilen
+pruefe(
+    "CYCLE84(24.000,24.000,0,6.500,,0.000,3,,1.500,0,255,255)" in z_g
+    and not any(x.startswith("G84") for x in z_g),
+    f"Siemens CYCLE84: {z_g}",
+)
+z_g = pp.programm([links], pp.steuerung("siemens"), fraese, "G").zeilen
+pruefe("CYCLE84(24.000,24.000,0,6.500,,0.000,4,,-1.500,0,255,255)" in z_g, f"links: {z_g}")
+langsam = pp.Maschineninfo("Fräse")
+langsam.drehzahl_max = 200.0  # über der Höchstdrehzahl: S und F im selben Maß
+z_g = pp.programm([rechts], pp.steuerung("linuxcnc"), langsam, "G").zeilen
+pruefe(any(x.startswith("G84") and x.endswith("F300.000") for x in z_g), f"begrenzt: {z_g}")
+for g, abschnitt, m, q239 in (("G84", rechts, "M3", "+1.5000"), ("G74", links, "M4", "-1.5000")):
+    p_g = pp.programm([abschnitt], hh, fraese, "G")
+    saetze_g = [re.sub(r"^\d+ ", "", x) for x in p_g.zeilen]
+    k = (
+        saetze_g.index("CYCL DEF 207 GEW.-BOHREN GS NEU ~")
+        if saetze_g.count("CYCL DEF 207 GEW.-BOHREN GS NEU ~")
+        else -1
+    )
+    pruefe(
+        k > 0
+        and saetze_g[k + 1 : k + 6]
+        == [
+            "  Q200=+0.0000 ;SICHERHEITS-ABST. ~",
+            "  Q201=-17.5000 ;TIEFE ~",
+            f"  Q239={q239} ;GEWINDESTEIGUNG ~",
+            "  Q203=+24.0000 ;KOOR. OBERFLAECHE ~",
+            "  Q204=+0.0000 ;2. SICHERHEITS-ABST.",
+        ]
+        and saetze_g[k + 6 : k + 8] == ["CYCL CALL", m],
+        f"Heidenhain {g}: {saetze_g[k - 2 : k + 9]}",
+    )
+    befunde, _n = pp.nachlesen(p_g, hh, fraese)
+    pruefe(not befunde, f"Heidenhain {g} nachgelesen: {[(b.art, b.satz) for b in befunde]}")
+    pruefe(
+        not any(x.split()[0] in ("G84", "G74") for x in saetze_g if x.strip()),
+        f"Heidenhain {g}: G-Code übrig",
+    )
+
 # --- Messstopp (Spezifikation Strategien 12.4): zum Messen an den Wechselpunkt ----------------
 # Mit Wechselpunkt Z 150 (MKS) statt „G0 Z25“ der Weg dorthin, dann M5, M0, M3; an der Siemens
 # mit „F_HOME“ als Befehl genau das; ohne Wechselpunkt bleibt „G0 Z25“.

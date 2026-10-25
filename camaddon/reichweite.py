@@ -58,6 +58,8 @@ RUNDACHSEN = ("A", "B", "C")
 # etwa 25°: ein schräg angestellter Kopf zählt noch, ein radialer Platz nicht.
 QUER = 0.9
 BOHRZYKLEN = {"G73", "G74", "G76", "G81", "G82", "G83", "G84", "G85", "G86", "G87", "G88", "G89"}
+GEWINDEZYKLEN = ("G84", "G74")  # Gewindebohren rechts, links
+HERAUS_IM_VORSCHUB = ("G84", "G74", "G85", "G89")
 # Befehle ohne Bewegung – Ebene, Maßsystem, Korrekturen, Nullpunkte, Modi: Die Prüfung
 # übergeht sie ohne Hinweis.
 OHNE_BEWEGUNG = {
@@ -1814,6 +1816,11 @@ def _bahn(befehle, unbekannt, rueckzug=False, start=None):
         werte = befehl.Parameters
         if "F" in werte:
             vorschub = float(werte["F"])
+            if name in GEWINDEZYKLEN and float(werte.get("S", 0.0) or 0.0) > 0:
+                # FreeCADs Gewindebohren schreibt in F die Steigung (mm), in S die Drehzahl –
+                # hinein und heraus mit Steigung · Drehzahl (bis P-2026-10-25-64 die Steigung als
+                # mm/s: die Zeit fast viermal so lang).
+                vorschub *= float(werte["S"]) / 60.0
         if not name or name.startswith("(") or name[0] in "MTSFON":
             continue
         name = _ohne_null(name)
@@ -1894,6 +1901,10 @@ def _bahn(befehle, unbekannt, rueckzug=False, start=None):
                 punkt = (lage["X"], lage["Y"], hoehe)
                 yield _Schritt("punkt", punkt, dict(rund), eilgang, vorschub, satz)
             lage["Z"] = zyklus.get("R") if rueckzug_auf_r or ausgang is None else ausgang
+            if rueckzug and name in HERAUS_IM_VORSCHUB and zyklus.get("R") is not None:
+                # Gewindebohren und Reiben fahren im Vorschub heraus, bis R.
+                punkt = (lage["X"], lage["Y"], zyklus["R"])
+                yield _Schritt("punkt", punkt, dict(rund), False, vorschub, satz)
             if rueckzug:
                 punkt = (lage["X"], lage["Y"], lage["Z"])
                 yield _Schritt("punkt", punkt, dict(rund), True, vorschub, satz, rueckzug=True)

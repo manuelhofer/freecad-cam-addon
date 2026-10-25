@@ -131,8 +131,9 @@ for kennung in pp.STEUERUNGEN:
         s = pp.steuerung(kennung, aenderung)
         programm = pp.programm([tasche, zweite], s, fraese, "P")
         befunde, saetze = pp.nachlesen(programm, s, fraese)
+        # woodWOP zählt Konturelemente: Eintauchen, Bogen, Gerade je Kontur (P-2026-10-25-52).
         pruefe(
-            not befunde and saetze >= 10,
+            not befunde and saetze >= (6 if s.dialekt == "mpr" else 10),
             f"{kennung} {aenderung}: {[(b.art, b.satz) for b in befunde]} ({saetze} Sätze)",
         )
 # Die Drehmaschine: LinuxCNC schaltet die Korrektur mit G43 im ersten Fahrsatz ein, die

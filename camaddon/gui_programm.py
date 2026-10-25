@@ -95,7 +95,15 @@ GRUPPEN = (
     (
         "bohren",
         "bohren",
-        ("bohren", "bohren_verweilen", "tiefbohren", "spaenebrechen", "reiben"),
+        (
+            "bohren",
+            "bohren_verweilen",
+            "tiefbohren",
+            "spaenebrechen",
+            "reiben",
+            "gewinde",
+            "gewinde_vorher",
+        ),
     ),
     ("glaetten", "glaetten", ()),
 )
@@ -131,6 +139,8 @@ NUR_FRAESEN = {
     "tiefbohren",
     "spaenebrechen",
     "reiben",
+    "gewinde",
+    "gewinde_vorher",
 }
 # Was es im Heidenhain-Klartext nicht gibt (die Satznummern schreibt er immer, die Länge nimmt
 # TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst) – nicht gezeigt.
@@ -152,6 +162,8 @@ NUR_GCODE = {
     "tiefbohren",
     "spaenebrechen",
     "reiben",
+    "gewinde",
+    "gewinde_vorher",
 }
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {

@@ -641,3 +641,33 @@ im hellen Dialog #fafafa dunkel heraus; jetzt derselbe gerenderte Hintergrund.
 Im dunklen Dialog #2d2d2d ebenfalls identisch. Normale Erklärungen übernehmen
 Schwarz bzw. Weiß; kontrastarme feste Grauschrift entfernt. Native NC-Vorschau
 und D12-Controller erhalten. Screenshots angesehen, Manuels Sichtprüfung steht aus.
+
+## 14. Gewindebohren (P-2026-10-25-64, W-041)
+
+Manuel, 2026-10-25: „für die bekantesten steuerungen einen post prozessor bauen der perfetkt
+ist“; abends: „alle !“. Beim Durchsehen gefunden: FreeCADs Gewinde (`tapping.generate`, 1.1 wie
+Wochen-Build) schreibt `G84 X… Y… Z… R… S<Drehzahl> F<Steigung>` – F ist die Steigung in mm, nicht
+der Vorschub (FreeCADs eigene Postprozessoren rechnen `F · S` in `_tapping_to_speed`). Unser
+Postprozessor nahm F als mm/s: M10 × 1,5 bei 255 1/min stand als `F90` im Programm statt
+`F382.5` – beim Gewindebohren muss der Vorschub genau Steigung · Drehzahl sein, sonst reißt das
+Gewinde oder der Gewindebohrer. Im Klartext wurde G84 sogar zu `L Z… R0 FMAX` (im Eilgang ins
+Loch). „Auf der Maschine prüfen“ zählte die Zeit fast viermal so lang.
+
+**Gebaut:**
+- G84 (rechts) und G74 (links) mit S: der Vorschub F = Steigung · Drehzahl (mit der Höchstdrehzahl
+  begrenzt beide im selben Maß); im Abfahren ebenso, heraus im Vorschub bis R (wie G85, G89).
+- `Steuerung.gewinde` – der Zyklus der Steuerung mit {pit} (Steigung mit Vorzeichen), {s}, {sdac}
+  und den Platzhaltern der Bohrzyklen. Siemens: `CYCLE84(RTP, RFP, 0, DP, , DTB, SDAC, , PIT, 0,
+  SST, SST1)` nach der Kurzanleitung Programmierung 10.00 (S. 6-65: Gewindebohren ohne
+  Ausgleichsfutter); SDAC 3 bzw. 4, damit die Spindel danach läuft wie vorher.
+- `Steuerung.gewinde_vorher` – vor dem ersten G84/G74 eines Zyklus. Fanuc: `M29 S…` (Gewinde-
+  bohren ohne Ausgleichsfutter; ohne M29 hieße G84 mit Ausgleichsfutter). Haas: nichts (G84 ist
+  dort ohne Ausgleichsfutter), LinuxCNC und Mach: G84 mit F = Steigung · Drehzahl.
+- Heidenhain: Zyklus 207 „Gewindebohren GS“ (Zyklenhandbuch iTNC 530, 4.3): Q200 0 (R hat den
+  Abstand schon), Q201 Tiefe ab R, Q239 Steigung (+ rechts, − links), Q203 = R, Q204 zurück auf die
+  Höhe davor (G98) oder R (G99); die Q-Zeilen setzen den Satz fort (` ~`, ohne Nummer), über dem
+  Loch `L X… Y… R0 FMAX M99`, schon darüber `CYCL CALL`. „Am Zyklusende steht die Spindel“ –
+  danach wieder M3 bzw. M4. Das Nachlesen überspringt die Fortsetzungszeilen.
+- Geprüft: `tests/test_postprozessor.py` (alle Steuerungen, rechts und links, begrenzte Drehzahl,
+  Heidenhain nachgelesen). Ohne Maschine nicht gefahren – vor dem ersten Lauf in der Simulation
+  der Steuerung ansehen (Manuels Regel vom 2026-10-03).

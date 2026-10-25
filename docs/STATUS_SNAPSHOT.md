@@ -531,6 +531,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Korrektur (0.296.1):* Gewindebohren – F war die Steigung als mm/s (M10 × 1,5: F90 statt
+  F382,5), im Klartext ein Eilgang ins Loch; jetzt F = Steigung · Drehzahl, Siemens CYCLE84,
+  Fanuc M29, Heidenhain Zyklus 207 (Spezifikation Steuerung 14). Weiter mit W-041.
 - *Neu (0.296.0):* W-040 Werkzeugwechsel 10 s je Maschine vorbelegt (leer; am Revolver 0), der
   Assistent zählt sie in Fragen und Wettbewerb; W-039 die Frage „Reihenfolge – erst alles
   schruppen, dann schlichten?“ (Bohren, Senken, Gewinde dazwischen). Als Nächstes W-041

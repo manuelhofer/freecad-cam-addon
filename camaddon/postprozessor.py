@@ -193,6 +193,14 @@ class Steuerung:
     tiefbohren: str = ""
     spaenebrechen: str = ""
     reiben: str = ""
+    # Gewindebohren (G84 rechts, G74 links; FreeCADs Gewinde schreibt in F die Steigung, in S die
+    # Drehzahl): {pit} die Steigung mit Vorzeichen (+ rechts, − links), {s} die Drehzahl, {sdac}
+    # die Drehrichtung danach (3 rechts, 4 links – die Spindel läuft weiter wie vorher), dazu
+    # die Platzhalter der Bohrzyklen. Leer: G84/G74 bleiben, F ist dann Steigung · Drehzahl.
+    gewinde: str = ""
+    # Vor dem ersten G84/G74 einer Folge ({s}: die Drehzahl) – Fanuc „M29 S…“: Gewindebohren ohne
+    # Ausgleichsfutter. Leer: nichts.
+    gewinde_vorher: str = ""
     # Eine endlos drehende Rundachse als Moduloachse (0 … unter 360°; Manuel, 2026-10-05, Siemens:
     # „Fehler 16830 … falsche Position bei Achse/Spindel C4 programmiert“): {wert} die Position
     # im Bereich, je nach Drehrichtung der Bahn (Siemens ACP/ACN). Leer: der Winkel fortlaufend,
@@ -268,6 +276,8 @@ BEFEHLSFELDER = (
     "tiefbohren",
     "spaenebrechen",
     "reiben",
+    "gewinde",
+    "gewinde_vorher",
 )
 
 # Welcher Befehl der Steuerung für welchen Bohrzyklus steht.
@@ -277,7 +287,10 @@ ZYKLUS_FELDER = {
     "G83": "tiefbohren",
     "G73": "spaenebrechen",
     "G85": "reiben",
+    "G84": "gewinde",
+    "G74": "gewinde",
 }
+GEWINDE = ("G84", "G74")  # Gewindebohren rechts, links
 
 # Die Haken – (Name, Typ) wie in Steuerung; im Fenster je eine Zeile mit Erklärung.
 HAKEN = (
@@ -397,6 +410,11 @@ STEUERUNGEN = {
         tiefbohren="CYCLE83({rtp},{rfp},0,{dp},,{fdep},,0,0,0,1,1)",
         spaenebrechen="CYCLE83({rtp},{rfp},0,{dp},,{fdep},,0,0,0,1,0)",
         reiben="CYCLE85({rtp},{rfp},0,{dp},,0,{f},{f})",
+        # Gewindebohren ohne Ausgleichsfutter (Kurzanleitung Programmierung 10.00, S. 6-65):
+        # CYCLE84(RTP, RFP, SDIS, DP, DPR, DTB, SDAC, MPIT, PIT, POSS, SST, SST1) – die Steigung
+        # als Wert (PIT, das Vorzeichen die Drehrichtung im Gewinde), SDAC wie vorher, SST und
+        # SST1 die Drehzahl hinein und heraus.
+        gewinde="CYCLE84({rtp},{rfp},0,{dp},,{dtb},{sdac},,{pit},0,{s},{s})",
     ),
     "fanuc": Steuerung(
         "fanuc",
@@ -426,6 +444,9 @@ STEUERUNGEN = {
         ),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        # Gewindebohren ohne Ausgleichsfutter: M29 mit der Drehzahl vor G84/G74 (Fanuc „Rigid
+        # Tapping“; ohne M29 hieße G84 mit Ausgleichsfutter).
+        gewinde_vorher="M29 S{s}",
         # G43.4: Werkzeugspitzensteuerung Typ 1 (Rundachsen im Satz); G49 schaltet sie ab.
         tcpm_ein="G43.4 H{t}",
         tcpm_aus="G49",
@@ -730,6 +751,8 @@ def feld_text(feld):
         "tiefbohren": (tr("pp.feld.tiefbohren"), tr("pp.feld.tiefbohren.tooltip")),
         "spaenebrechen": (tr("pp.feld.spaenebrechen"), tr("pp.feld.spaenebrechen.tooltip")),
         "reiben": (tr("pp.feld.reiben"), tr("pp.feld.reiben.tooltip")),
+        "gewinde": (tr("pp.feld.gewinde"), tr("pp.feld.gewinde.tooltip")),
+        "gewinde_vorher": (tr("pp.feld.gewinde_vorher"), tr("pp.feld.gewinde_vorher.tooltip")),
     }.get(feld, (feld, ""))
 
 
@@ -1046,6 +1069,7 @@ def programm(
     saetze = 0
     gesehen = set()
     auf_r = False  # G99: Bohrzyklen ziehen auf R zurück, sonst (G98) auf die Höhe davor
+    gewinde_folge = False  # G84/G74 schon in diesem Zyklus (Fanuc: M29 nur vor dem ersten)
     # Nur an der Fräse – an der Drehmaschine bohrte CYCLE83 ohne _AXN entlang der falschen Achse.
     zyklen_als_befehl = not info.drehmaschine and any(getattr(s, f) for f in ZYKLUS_FELDER.values())
     geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
@@ -1217,6 +1241,17 @@ def programm(
                         laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
                     continue
             gross = name_.upper()
+            steigung = None
+            if gross in GEWINDE and "F" in parameter and float(parameter.get("S", 0) or 0) > 0:
+                # FreeCADs Gewinde: in F die Steigung (mm), in S die Drehzahl – der Vorschub ist ihr
+                # Produkt. Bis P-2026-10-25-64 stand die Steigung als mm/s da: M10 × 1,5 bei
+                # 255 1/min „F90“ statt F382,5 – der Gewindebohrer wäre abgerissen.
+                steigung = float(parameter["F"])
+                parameter = dict(parameter, F=steigung * float(parameter["S"]) / 60.0)
+                if gross == "G74":
+                    steigung = -steigung  # Linksgewinde
+            if gross in BEWEGUNG or gross == "G80":
+                gewinde_folge = False
             if im_messstopp and gross in ("M5", "M05"):
                 # Spindel aus – die, die läuft: an der Drehmaschine mit angetriebenem Werkzeug
                 # dessen Befehl (Siemens „M3=5“), nicht M5 der Hauptspindel, die als C-Achse
@@ -1277,9 +1312,17 @@ def programm(
                 laenge_offen = ""
             vorlage = getattr(s, ZYKLUS_FELDER.get(gross, ""), "") if zyklen_als_befehl else ""
             if vorlage:
-                zeilen.extend(_zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor))
+                zeilen.extend(
+                    _zyklus_als_befehl(
+                        s, vorlage, parameter, stand, auf_r, faktor, steigung, drehzahl_ab
+                    )
+                )
                 saetze += 1
                 continue
+            if gross in GEWINDE and s.gewinde_vorher and not gewinde_folge:
+                zeilen.extend(_zeilen(_fuellen(s.gewinde_vorher, s=f"{drehzahl_ab:.0f}")))
+            if gross in GEWINDE:
+                gewinde_folge = True
             if gross in QUER_ZUR_EBENE:
                 ebene = gross
             if gross in ("G1", "G01") and _steht(stand, parameter):
@@ -1416,9 +1459,12 @@ def _mpr_fertig(s, name, rohteil, hinweise):
     return fertig
 
 
-def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor=1.0):
+def _zyklus_als_befehl(
+    s, vorlage, parameter, stand, auf_r, faktor=1.0, steigung=None, drehzahl=0.0
+):
     """Ein Bohrzyklus (G81 ff.) als Befehl der Steuerung: über das Loch („G0 X… Y…“), der
-    Vorschub, dann `vorlage` mit {rtp} {rfp} {dp} {fdep} {q} {dtb} {f} (Steuerung.bohren …).
+    Vorschub, dann `vorlage` mit {rtp} {rfp} {dp} {fdep} {q} {dtb} {f} (Steuerung.bohren …),
+    beim Gewindebohren dazu {pit} (`steigung`, links negativ), {s} (`drehzahl`) und {sdac}.
     `stand` folgt: X, Y des Lochs, Z die Rückzugsebene; `faktor`: der Vorschub so viel kleiner
     (die Drehzahl war über der Höchstdrehzahl)."""
     zeilen = []
@@ -1442,8 +1488,12 @@ def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor=1.0):
         "q": q,
         "dtb": float(parameter.get("P", 0.0)),
         "f": f,
+        "pit": steigung or 0.0,
     }
-    zeilen.extend(_zeilen(_fuellen(vorlage, **{k: _zahl(v) for k, v in werte.items()})))
+    werte = {k: _zahl(v) for k, v in werte.items()}
+    werte["s"] = f"{drehzahl:.0f}"
+    werte["sdac"] = "4" if steigung is not None and steigung < 0 else "3"
+    zeilen.extend(_zeilen(_fuellen(vorlage, **werte)))
     stand.update({a: float(parameter[a]) for a in lage})
     stand["Z"] = rtp
     return zeilen
