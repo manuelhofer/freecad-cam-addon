@@ -530,7 +530,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.290.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.293.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.290.1–0.293.0):* Bohren mit mehreren Bohrern, Bohrer mit der Spitze der Sackbohrung
+  (140° VHM), Senkung bis Ø 31 (größer: Fase), Meldung, wenn das Modell nicht rechnet; Nebenrechner
+  als Zahl von 1 bis zu den Kernen (einmal zurück auf alle); Homag/Weeke woodWOP (MPR); die
+  Vorschau von Flanke und 3D-Schlichten mit dem Magazin der Maschine; W-039 erster Schritt: die
+  Frage „Wände unter dem Rand“ (Flanke fertig / Flanke grob + Spirale fertig) mit Zeiten und
+  Vorschau im 3D. Offen: „Kollision prüfen“ meldete im Weg „Spirale“ an Manuels Tasche einmal
+  „ins fertige Teil (Satz 57)“ – die Bahn ist im Job sauber (nachgemessen), geprüft wird das
+  Umrechnen auf die Achsen der G550; danach die Frage „Vorgehen“ (W-039).
 - *Neu (0.288.1–0.290.0):* „Alles aus dieser Aufspannung“ an allen sieben Taster-Teilen (Kopien)
   bis „Anlegen“: Räumen bricht mit vorgebohrten Löchern nicht mehr ab; fehlt ein Bohrer für
   Bohrungen kleiner als der Fräser, legt ihn „Bohrer Ø … anlegen“ unter „Bohrung fräsen“ an, fehlt
