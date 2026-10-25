@@ -530,7 +530,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.286.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.288.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.287.x/0.288.0):* fehlt der Bohrer, legt ihn ein Knopf an; Vorbohren auch für die
+  geschlossene Nut (je Nut der passende Bohrer); der Materialstand kennt die Löcher von „Bohren“
+  wieder (in der Lochmitte blieb eine Nadel stehen). In 1.1.4 und 26.3 RC2 geprüft.
 - *Neu (0.285.0/0.286.0, nach Manuels Antworten auf die Fragen 1, 4, 5):* das 3D-Schlichten unter
   dem Rand als Spirale hinab (Haken, vorbelegt an; an seiner Tasche eine Spirale über alle 79
   Höhen), Vorbohren fürs Räumen (Haken, vorbelegt an, mit Bohrer aus dem Magazin), der Name
