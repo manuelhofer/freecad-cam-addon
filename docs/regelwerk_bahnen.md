@@ -198,5 +198,10 @@ Regel gilt für jede Strategie. Luft wird ohne Rückfrage beseitigt.
 - Zickzack (W-035): nachgezählt in allen Szenarien – Kehren nur noch, wo sie erlaubt sind (eine
   geschlossene Nut, so breit wie der Fräser). Hinab an den Ecken der 4-Achs-Querbahn schneller
   nur mit einem echten 3D-Materialstand (am Geist gut 3 min, Nase 0).
+- Ecke für Ecke statt Ring für Ring (gesehen 2026-10-25 am Geist, 3D-Schruppen von oben): Ein
+  Ring um das Teil hat oft Läufe in zwei Ecken des Rohteils; die Bahn fährt den Ring ganz und
+  springt so je Ring einmal hinüber (in der ersten Lage 25-mal 95 mm, über das Rohteil). Die Läufe
+  einzeln nach Bereitschaft fahren wie die Stiche des Räumens (`_stiche_um_inseln`) machte eine
+  Ecke nach der anderen fertig. Ringe umsortieren allein hilft nicht (probiert, verworfen).
 - Alle Kerne (W-036): Was noch auf einem Kern läuft, ist FreeCADs eigenes Anlegen des Jobs, das
   Zeichnen und OpenCascade-Schritte, die sich nicht teilen lassen (STL → Körper).
