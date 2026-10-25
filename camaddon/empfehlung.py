@@ -103,10 +103,26 @@ def _halter_der_verwaltung(bibliothek, aufnahme, schaft, ohne):
             continue
         if h.aufnahme and aufnahme and h.aufnahme != aufnahme:
             continue
-        if h.abschnitte[-1].d_unten <= schaft + 1e-6:
+        if h.abschnitte[-1].d_unten <= schaft + 1e-6 or not _fasst(h, schaft):
             continue
         ergebnis.append(h)
     return ergebnis[:HALTER_HOECHSTENS]
+
+
+def _fasst(halter, schaft):
+    """Kann der Halter den Schaft (Ø mm) spannen – soweit sein Name es sagt: „ER16“ bis zum
+    größten Schaft der Größe (halter.ER_MASSE), „Schrumpffutter/Hydrodehn/Weldon Ø12“ genau den;
+    sonst (ein eigener Name) ja."""
+    import re
+
+    name = f"{halter.name} {halter.bezeichnung}"
+    er = re.search(r"\bER\s?(\d+)\b", name)
+    if er and f"ER{er.group(1)}" in hl.ER_MASSE:
+        return hl.ER_MASSE[f"ER{er.group(1)}"][3] >= schaft - 1e-6
+    d = re.search(r"(Schrumpf|Hydro|Weldon|Flächenspann)\w*\s+Ø\s?(\d+(?:[.,]\d+)?)", name)
+    if d:
+        return abs(float(d.group(2).replace(",", ".")) - schaft) < 1e-6
+    return True
 
 
 def _werkzeuge(werkzeug, bibliothek):
@@ -150,21 +166,12 @@ def paar_stueck(form, toleranz, zelle, mitten, richtungen, masse, halter, radius
     return oben
 
 
-def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
-    """Empfehlung – das steifste Paar aus Fräser und Halter, mit dem an den Stellen der Prüfung
-    (hinterschnitt_bahn.Bahn.pruefung) nichts anstößt; KEINE, wenn keins geht; None ohne Prüfung,
-    Fräser oder Werkzeugverwaltung."""
-    from . import magazin as mg
-    from . import reichweite as rw
-
-    if not pruefung or not pruefung.get("mitten") or werkzeug is None or bibliothek is None:
-        return None
-    radius = float(pruefung["radius"])
-    mitten = np.asarray(pruefung["mitten"], dtype=float).reshape(-1, 3)
-    mitte = FreeCAD.Vector(*pruefung["mitte"], 0.0)
-    richtungen = hb._richtungen(mitten, np.zeros_like(mitten), mitte)
+def _paare(werkzeug, bibliothek, aufnahme):
+    """[(Werkzeug, Halter, neu)] – die Fräser (_werkzeuge) je mit den Haltern der Werkzeugverwaltung
+    und der Normreihen für ihren Schaft; der gewählte Fräser ohne seinen jetzigen Halter (den hat
+    die Bahn schon gefragt), ein längerer auch mit ihm. Höchstens PAARE_HOECHSTENS."""
     jetzt = bibliothek.halter_fuer_pruefung(werkzeug)
-    paare = []  # (Werkzeug, Halter, neu)
+    paare = []
     for w in _werkzeuge(werkzeug, bibliothek):
         schaft = _schaft(w)
         halter = [(h, False) for h in _halter_der_verwaltung(bibliothek, aufnahme, schaft, None)]
@@ -174,22 +181,58 @@ def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
         gesehen = set()
         for h, neu in halter:
             if w is werkzeug and jetzt is not None and h.kennung == jetzt.kennung:
-                continue  # das hat die Bahn schon gefragt
+                continue
             if h.kennung in gesehen:
                 continue
             gesehen.add(h.kennung)
             # Der vorgeschlagene Halter (halter.vorschlag) steht nicht in der Werkzeugverwaltung.
             paare.append((w, h, neu or hl.ist_vorschlag(h)))
-    paare = paare[:PAARE_HOECHSTENS]
+    return paare[:PAARE_HOECHSTENS]
+
+
+def _grenzen(w):
+    """(Maße, kürzeste, längste Auskragung) eines Fräsers: über die Schneide hinaus bis zur
+    Gesamtlänge − Schaft-Ø (wie reichweite.ausspannen_auf)."""
+    from . import reichweite as rw
+
+    masse = rw.masse_des_werkzeugs(w)
+    von = float(masse.schneide) + 1.0
+    gesamt = float(w.gesamtlaenge or masse.gesamt or 0.0)
+    return masse, von, (gesamt - _schaft(w) if gesamt else von + hb.HALTER_LAENGER)
+
+
+def _empfehlung(paar, heraus, werkzeug, magazin):
+    """Die Empfehlung für ein Paar mit der Auskragung `heraus`."""
+    from . import magazin as mg
+
+    w, h, neu = paar
+    return Empfehlung(
+        werkzeug=w.kennung,
+        werkzeug_text=f"T{w.nummer} {w.name or w.art}".strip(),
+        halter=replace(h),
+        halter_neu=neu,
+        heraus=heraus,
+        laenge=float(h.laenge) + heraus,
+        im_magazin=magazin is None or mg.rang(w, magazin) != mg.NICHT_IM_MAGAZIN,
+        anderes_werkzeug=w.kennung != werkzeug.kennung,
+    )
+
+
+def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
+    """Empfehlung – das steifste Paar aus Fräser und Halter, mit dem an den Stellen der Prüfung
+    (hinterschnitt_bahn.Bahn.pruefung) nichts anstößt; KEINE, wenn keins geht; None ohne Prüfung,
+    Fräser oder Werkzeugverwaltung."""
+    if not pruefung or not pruefung.get("mitten") or werkzeug is None or bibliothek is None:
+        return None
+    radius = float(pruefung["radius"])
+    mitten = np.asarray(pruefung["mitten"], dtype=float).reshape(-1, 3)
+    mitte = FreeCAD.Vector(*pruefung["mitte"], 0.0)
+    richtungen = hb._richtungen(mitten, np.zeros_like(mitten), mitte)
+    paare = _paare(werkzeug, bibliothek, aufnahme)
     if not paare:
         return KEINE
-    netz_t, netz_z = hb.NETZ_TOLERANZ, radius + 1.0
-    grenzen = []
-    for w, _h, _neu in paare:
-        masse = rw.masse_des_werkzeugs(w)
-        von = float(masse.schneide) + 1.0
-        gesamt = float(w.gesamtlaenge or masse.gesamt or 0.0)
-        grenzen.append((masse, von, gesamt - _schaft(w) if gesamt else von + hb.HALTER_LAENGER))
+    netz = (hb.NETZ_TOLERANZ, radius + 1.0)
+    grenzen = [_grenzen(w) for w, _h, _n in paare]
     # Erst grob (ERST_AN + ERST_FREI Stellen) alle Paare, dann die ZWEITE besten mit allen Stellen.
     an = np.asarray(pruefung.get("an", pruefung["mitten"]), dtype=float).reshape(-1, 3)
     frei = np.asarray(pruefung.get("frei", []), dtype=float).reshape(-1, 3)
@@ -197,10 +240,9 @@ def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
     grob_r = hb._richtungen(grob, np.zeros_like(grob), mitte)
     erst = _rechnen(
         form,
-        netz_t,
-        netz_z,
+        "paar_stueck",
         [
-            (grob, grob_r, m, h, radius, von, bis)
+            (*netz, grob, grob_r, m, h, radius, von, bis)
             for (_w, h, _n), (m, von, bis) in zip(paare, grenzen, strict=True)
         ],
     )
@@ -212,15 +254,20 @@ def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
         return KEINE
     zweit = _rechnen(
         form,
-        netz_t,
-        netz_z,
+        "paar_stueck",
         [
-            (mitten, richtungen, grenzen[i][0], paare[i][1], radius, erst[i], grenzen[i][2])
+            (*netz, mitten, richtungen, grenzen[i][0], paare[i][1], radius, erst[i], grenzen[i][2])
             for i in rang
         ],
     )
+    return _beste(paare, rang, zweit, grenzen, werkzeug, magazin)
+
+
+def _beste(paare, rang, auskragungen, grenzen, werkzeug, magazin):
+    """Die Empfehlung für das beste der Paare `rang` (je die Auskragung, None: geht nicht) – mit
+    RESERVE, höchstens bis zur längsten; KEINE ohne."""
     beste = None
-    for i, heraus in zip(rang, zweit, strict=True):
+    for i, heraus in zip(rang, auskragungen, strict=True):
         if heraus is None:
             continue
         heraus = min(float(np.ceil(heraus + RESERVE)), grenzen[i][2])
@@ -230,17 +277,70 @@ def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
     if beste is None:
         return KEINE
     _wert, i, heraus = beste
-    w, h, neu = paare[i]
-    return Empfehlung(
-        werkzeug=w.kennung,
-        werkzeug_text=f"T{w.nummer} {w.name or w.art}".strip(),
-        halter=replace(h),
-        halter_neu=neu,
-        heraus=heraus,
-        laenge=float(h.laenge) + heraus,
-        im_magazin=magazin is None or mg.rang(w, magazin) != mg.NICHT_IM_MAGAZIN,
-        anderes_werkzeug=w.kennung != werkzeug.kennung,
+    return _empfehlung(paare[i], heraus, werkzeug, magazin)
+
+
+def flanke_paar_stueck(form, spitzen, achsen, masse, halter, radius, von, bis):
+    """Die Auskragung (mm), ab der an den Stellen der Flanke (Spitzen und Achsen, fest) nichts
+    anstößt (flanke_bahn.halter_an_stellen: die Körper dicker als die Schneide, wie „Kollision
+    prüfen“ sie sieht) – None, wenn es erst weiter als `bis` ginge. Auch im Nebenrechner."""
+    from . import flanke_bahn as fb
+    from . import kollision as kb
+
+    laenge = float(halter.laenge) + von
+    kapseln = kb.werkzeugkapseln(masse, laenge, halter)
+    koerper = [
+        (p0[2] + laenge, p1[2] + laenge, r)
+        for art in (kb.HALS, kb.SCHAFT, kb.HALTER)
+        for p0, p1, r, _flach in kapseln.get(art, ())
+    ]
+    anstoss = fb.halter_an_stellen(
+        form,
+        np.asarray(spitzen, dtype=float).reshape(-1, 3),
+        np.asarray(achsen, dtype=float).reshape(-1, 3),
+        koerper,
+        radius,
+        _flanke_netz(form),
     )
+    noetig = float(von) if anstoss is None else float(anstoss.mindestens)
+    return noetig if noetig <= bis + 1e-6 else None
+
+
+_FLANKE_NETZ = {}
+
+
+def _flanke_netz(form):
+    """Das Netz des Teils für flanke_bahn.halter_an_stellen, gemerkt je Form."""
+    from . import flanke_bahn as fb
+    from . import netzabstand as na
+
+    gemerkt = _FLANKE_NETZ.get(id(form))
+    if gemerkt is None or gemerkt[0] is not form:
+        _FLANKE_NETZ.clear()
+        gemerkt = (form, na.Netz(form, fb.HALTER_NETZ))
+        _FLANKE_NETZ[id(form)] = gemerkt
+    return gemerkt[1]
+
+
+def empfehlen_flanke(form, flanke, werkzeug, bibliothek, aufnahme="", magazin=None):
+    """Wie empfehlen, für die Flanke: `flanke` {"spitzen", "achsen", "radius"} – Stellen ihrer Bahn
+    (flanke.vorschau); je Paar die Auskragung, ab der nichts anstößt (flanke_paar_stueck)."""
+    if not flanke or not flanke.get("spitzen") or werkzeug is None or bibliothek is None:
+        return None
+    paare = _paare(werkzeug, bibliothek, aufnahme)
+    if not paare:
+        return KEINE
+    grenzen = [_grenzen(w) for w, _h, _n in paare]
+    radius = float(flanke["radius"])
+    auskragungen = _rechnen(
+        form,
+        "flanke_paar_stueck",
+        [
+            (flanke["spitzen"], flanke["achsen"], m, h, radius, von, bis)
+            for (_w, h, _n), (m, von, bis) in zip(paare, grenzen, strict=True)
+        ],
+    )
+    return _beste(paare, list(range(len(paare))), auskragungen, grenzen, werkzeug, magazin)
 
 
 def _auswahl(feld, anzahl):
@@ -256,8 +356,9 @@ def _wertung(paar, heraus):
     return float(h.laenge) + heraus - (0.0 if neu else GLEICH_LANG)
 
 
-def _rechnen(form, toleranz, zelle, auftraege):
-    """[Auskragung oder None] je Paar – auf den Nebenrechnern, sonst hier."""
+def _rechnen(form, funktion, auftraege):
+    """[Ergebnis je Paar] von `funktion` (paar_stueck, flanke_paar_stueck: Form, dann die
+    Argumente eines Auftrags) – auf den Nebenrechnern, sonst hier."""
     from . import nebenrechner as nr
 
     try:
@@ -266,14 +367,13 @@ def _rechnen(form, toleranz, zelle, auftraege):
             raise nr.NichtVerfuegbar("hier")
         brep = form.exportBrepToString()
         teil = pool.gemeinsam("hs-teil-" + hashlib.sha1(brep.encode()).hexdigest(), nr.Form(brep))
-        laufend = [
-            pool.auftrag("empfehlung", "paar_stueck", teil, toleranz, zelle, *a) for a in auftraege
-        ]
+        laufend = [pool.auftrag("empfehlung", funktion, teil, *a) for a in auftraege]
         return list(pool.warten(laufend, zwischendurch=nr.ereignisse_ohne_eingaben))
     except Exception as fehler:  # noqa: BLE001 – dann rechnet es hier
         if not isinstance(fehler, nr.NichtVerfuegbar):
             FreeCAD.Console.PrintWarning(f"CAM-Addon: Empfehlung auf den Nebenrechnern: {fehler}\n")
-        return [paar_stueck(form, toleranz, zelle, *a) for a in auftraege]
+        rechnen = globals()[funktion]
+        return [rechnen(form, *a) for a in auftraege]
 
 
 # Ein Kugelfräser, den es noch nicht gibt (neue_kugel): die üblichen Ø und Gesamtlängen, die

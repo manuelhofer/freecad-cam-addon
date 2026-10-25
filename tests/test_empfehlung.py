@@ -163,6 +163,46 @@ if isinstance(neu, em.Empfehlung):
     einsatz = angelegt.schnittwerte[wz.ALLE][0]
     pruefe(abs(einsatz.fz - 0.1 * d / 16.0) < 1e-9, f"fz {einsatz.fz}")
 
+# Die Flanke: ein Schaftfräser Ø 10 (Schneide 20) im ER32 – die Mutter führt in die Wand. 45 mm
+# lang geht es mit keinem Halter (die Wand ist 30 hoch, jeder bräuchte rund 39 mm heraus, höchstens
+# 35 gehen); 60 mm lang empfohlen ein anderer Halter, mit dem es an allen Stellen der Bahn geht
+# (flanke_bahn.halter_an_stellen).
+from camaddon import flanke as flop  # noqa: E402
+from camaddon import flanke_bahn as fb  # noqa: E402
+
+schaft = wz.Werkzeug(
+    nummer=7,
+    name="VHM 10",
+    art=wz.SCHAFTFRAESER,
+    durchmesser=10.0,
+    schneiden=4,
+    schneidenlaenge=20.0,
+    gesamtlaenge=45.0,
+    schneidstoff=wz.VHM,
+)
+bib.werkzeuge.append(schaft)
+schaft.halter = er32.kennung
+fl_bahn = fb.planen(
+    teil,
+    waende,
+    fb.Flankenwerte(radius=5.0, schneide=20.0, oben=40.0, sicher=60.0, vorschub=1000.0),
+)
+fl_stellen = flop._stellen_fuer_empfehlung(fl_bahn, 5.0)
+pruefe(em.empfehlen_flanke(teil, fl_stellen, schaft, bib, "SK40") == em.KEINE, "Ø10 × 45: doch")
+# Das ER11-Futter aus der Werkzeugverwaltung spannt höchstens Ø 7 – nicht für den Schaft Ø 10.
+er11 = next(h for h in bib.halter if "ER11" in h.name)
+pruefe(not em._fasst(er11, 10.0) and em._fasst(er11, 6.0), "ER11 fasst Ø10")
+schaft.gesamtlaenge = 60.0
+fl = em.empfehlen_flanke(teil, fl_stellen, schaft, bib, "SK40")
+name = fl.halter.name if isinstance(fl, em.Empfehlung) else fl
+print(ascii(f"Flanke: {name}, {getattr(fl, 'heraus', 0):.0f} mm"))
+pruefe(isinstance(fl, em.Empfehlung) and fl.halter_neu and fl.heraus <= 50.0, f"Flanke: {fl}")
+if isinstance(fl, em.Empfehlung):
+    em.einrichten(fl, bib)
+    kapseln = flop.koerper_ueber_der_schneide(schaft, bib)
+    rest = fb.halter_pruefen(teil, fl_bahn, kapseln, 5.0)
+    pruefe(rest is None, f"Flanke eingerichtet: stößt noch an {rest}")
+
 # Ein Halter, mit dem nichts geht, wird nicht empfohlen: ohne Normreihen und eigene Halter KEINE.
 leer = wz.Bibliothek()
 fest = wz.Werkzeug(nummer=5, art=wz.KUGELFRAESER, durchmesser=7.0, gesamtlaenge=20.0)

@@ -263,10 +263,64 @@ def vorschau(
                 mindestens=einheiten.text(math.ceil(bahn.anstoss.mindestens), einheiten.LAENGE, 0),
             )
         )
-        # Für „T5 auf … mm ausspannen“ im Assistenten (P-2026-10-11-65), auch aus dem Nebenrechner.
-        fehler.daten = {"ausspannen": (bahn.anstoss.heraus, bahn.anstoss.mindestens)}
+        # Für „T5 auf … mm ausspannen“ im Assistenten (P-2026-10-11-65), auch aus dem Nebenrechner;
+        # „flanke“: Stellen der Bahn für eine Empfehlung (empfehlung.empfehlen_flanke).
+        fehler.daten = {
+            "ausspannen": (bahn.anstoss.heraus, bahn.anstoss.mindestens),
+            "flanke": _stellen_fuer_empfehlung(bahn, radius),
+        }
         raise fehler
     return bahn
+
+
+EMPFEHLUNG_STELLEN = 300  # so viele Stellen der Bahn prüft eine Empfehlung je Paar
+
+
+def _stellen_fuer_empfehlung(bahn, radius):
+    """{"spitzen", "achsen", "radius"}: Stellen der Bahn im Vorschub (etwa je HALTER_SCHRITT,
+    höchstens EMPFEHLUNG_STELLEN) – für empfehlung.empfehlen_flanke."""
+    import numpy as np
+
+    stellen = [p for p in bahn.punkte if not p.eilgang]
+    spitzen = np.array([tuple(p.spitze) for p in stellen], dtype=float).reshape(-1, 3)
+    achsen = np.array([tuple(p.achse) for p in stellen], dtype=float).reshape(-1, 3)
+    wahl = fb.ausgewaehlt(spitzen)
+    if len(wahl) > EMPFEHLUNG_STELLEN:
+        wahl = wahl[np.linspace(0, len(wahl) - 1, EMPFEHLUNG_STELLEN).astype(int)]
+    return {
+        "spitzen": [tuple(float(x) for x in spitzen[i]) for i in wahl],
+        "achsen": [tuple(float(x) for x in achsen[i]) for i in wahl],
+        "radius": float(radius),
+    }
+
+
+def _empfehlung(job, modell, daten, kennung, aufnahme=""):
+    """empfehlung.empfehlen_flanke für den Fräser `kennung` – None, wenn Ausspannen mit seinem
+    Halter reicht (reichweite.ausspannen_auf) oder es nichts zu empfehlen gibt."""
+    from . import empfehlung as em
+    from . import magazin as mg
+    from . import reichweite as rw
+    from . import werkzeuge as wz
+
+    try:
+        bibliothek = wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        return None
+    werkzeug = next((w for w in bibliothek.werkzeuge if w.kennung == kennung), None)
+    if werkzeug is None:
+        return None
+    magazin = mg.des_jobs(job, bibliothek)
+    ausspannen = daten.get("ausspannen")
+    if ausspannen and rw.ausspannen_auf(werkzeug, bibliothek, *ausspannen) is not None:
+        return None  # „T… auf … mm ausspannen“ genügt
+    aufnahme = aufnahme or getattr(bibliothek, "aufnahme_vorschlag", "") or ""
+    try:
+        return em.empfehlen_flanke(
+            vs._teil(modell), daten["flanke"], werkzeug, bibliothek, aufnahme, magazin
+        )
+    except Exception as fehler:  # noqa: BLE001 – eine Empfehlung darf die Vorschau nicht stören
+        FreeCAD.Console.PrintWarning(f"CAM-Addon: Empfehlung: {fehler}\n")
+        return None
 
 
 def koerper_ueber_der_schneide(werkzeug, bibliothek):

@@ -4609,7 +4609,11 @@ class _Block:
         self._empfehlung_kontext = None
         if was[0] == "fehler":
             daten = was[2] if isinstance(was[2], dict) else {}
-            pruefung = {"pruefung": daten.get("pruefung"), "ausspannen": daten.get("ausspannen")}
+            pruefung = {
+                "pruefung": daten.get("pruefung"),
+                "ausspannen": daten.get("ausspannen"),
+                "flanke": daten.get("flanke"),
+            }
             ecken = None
         else:
             bahn = was[2]
@@ -4620,7 +4624,7 @@ class _Block:
             ecken = (
                 bahn.ecken if bahn.ecken_radius > 0 and self.s.kennung == "schlichten3d" else None
             )
-        if not pruefung["pruefung"] and not ecken:
+        if not pruefung["pruefung"] and not pruefung.get("flanke") and not ecken:
             return
         bibliothek = self.panel.bibliothek
         if bibliothek is None or werkzeug is None:
@@ -4675,7 +4679,9 @@ class _Block:
     def _fehler_merken(self, schluessel, satz, daten):
         """Satz und Daten eines Fehlers der Vorschau zum Schlüssel – zeigt die Vorschau ihn aus dem
         Gemerkten, rechnet die Empfehlung damit (_empfehlung_anstossen)."""
-        if schluessel is None or not isinstance(daten, dict) or not daten.get("pruefung"):
+        if schluessel is None or not isinstance(daten, dict):
+            return
+        if not daten.get("pruefung") and not daten.get("flanke"):
             return
         merk = self.panel.__dict__.setdefault("_fehler_merk", {})
         merk[schluessel] = (satz, daten)
