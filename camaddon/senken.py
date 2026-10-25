@@ -35,6 +35,10 @@ HOECHSTENS = 0.9  # × Ø des Anbohrers: so breit schneidet er oben höchstens
 GLEICH_WINKEL = 1.0  # Grad – so genau muss der Winkel des Senkers zur Senkung passen
 GLEICH_D = 0.02  # mm
 SPITZENWINKEL = 90.0  # Grad, wenn das Werkzeug keinen hat
+# mm – größer ist keine Senkung, sondern die Fase am Rand einer großen Bohrung oder Ansenkung: Der
+# größte Kegelsenker nach DIN 335 hat Ø 31 (Manuels Auflage: 0,5 mm an Ø 33 und Ø 60 – kein
+# Senker sinkt das von der Mitte aus; als Fase bietet „Fasen dazu“ sie an).
+SENKUNG_HOECHSTENS = 31.0
 
 
 @dataclass(frozen=True)
@@ -69,7 +73,8 @@ def tiefe_fuer(durchmesser_oben, spitzenwinkel, spitze=0.0):
 
 def senkungen(form, namen=None):
     """[Senkung] – die Kegelflächen des Teils (nur `namen`, wenn gegeben), die ganz herum gehen,
-    nach oben offen sind, das Material außen haben und unten an einer Bohrung enden."""
+    nach oben offen sind, das Material außen haben, unten an einer Bohrung enden und oben nicht
+    größer sind als SENKUNG_HOECHSTENS."""
     import Part
 
     ergebnis = []
@@ -91,6 +96,8 @@ def senkungen(form, namen=None):
         hoehe = kasten.ZMax - kasten.ZMin
         if r_oben <= r_unten + 1e-6 or hoehe <= 1e-6:
             continue  # nach oben nicht offen
+        if 2 * r_oben > SENKUNG_HOECHSTENS + GLEICH_D:
+            continue  # die Fase einer großen Bohrung
         mitte = oben[0].Curve.Center
         punkt = flaeche.valueAt((u0 + u1) / 2, (v0 + v1) / 2)
         normale = flaeche.normalAt((u0 + u1) / 2, (v0 + v1) / 2)

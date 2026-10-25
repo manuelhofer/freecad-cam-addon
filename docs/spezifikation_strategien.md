@@ -2156,6 +2156,11 @@ wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?“
   130° als VHM), ein Bohrer gilt nur als da, wenn auch seine Spitze passt (`bohren.kann`). Im
   Wettbewerb zählen die Bohrungen, die „Bohrung fräsen“ dem Bohrer lässt, als nicht erreicht –
   sonst war es „9 % schneller“, weil es die Ø 2,5 liegen ließ, und sie bekamen keine Operation.
+- **Senkung bis Ø 31 (P-2026-10-25-50):** Eine Kegelfläche über einer Bohrung, oben größer als
+  der größte Kegelsenker nach DIN 335 (Ø 31), ist keine Senkung, sondern die Fase am Rand einer
+  großen Bohrung oder Ansenkung (`senken.SENKUNG_HOECHSTENS`). An Manuels Auflage (umgedreht)
+  hieß es „Für die Senkung Ø 61 fehlt ein Kegelsenker 90° ab Ø 61“ – die 0,5-mm-Fase an der
+  Ø-60-Ansenkung; jetzt steht sie bei „Ohne die Fasen …“ und „Fasen dazu“ bietet sie an.
 
 ## 13. Manuels Testteil für die 3-Achs-Fräse (W-013, 2026-10-02)
 

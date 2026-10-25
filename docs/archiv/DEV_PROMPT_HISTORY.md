@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-50 senkung-bis-31
+
+### EINGELESEN
+- Manuels Auflage (Kopie) umgedreht: „Für die Senkung Ø 61 (90°) fehlt … ein Kegelsenker 90° ab
+  Ø 61 – oder ein Fasenfräser … mit einer Spitze bis Ø 2,5“. Ø 61 → 60 ist die 0,5-mm-Fase am
+  Rand einer Ø-60-Ansenkung (ebenso Ø 34 an der Ø 33); die Erkennung nahm jeden Kegel über einer
+  „Bohrung“ als Senkung, und für alle zusammen sollte ein Werkzeug her.
+
+### DATEIEN
+- `camaddon/senken.py`: `SENKUNG_HOECHSTENS = 31.0` (größter Kegelsenker DIN 335); größer ist es
+  keine Senkung – die Fasen-Erkennung nimmt sie (Kegel, die keine Senkung sind).
+- `docs/spezifikation_strategien.md` 12.9.
+
+### ERGEBNIS
+- Szenario Auflage umgedreht: „Ohne die Fasen Face24, Face25, Face31, Face32“; für die sechs
+  Senkungen Ø 3,5 „Kegelsenker 90° Ø 6,3 anlegen“ → Senken T6, 6 Stellen; „Anlegen“ frei.
+- Prüfungen: test_senken, test_fase grün.
+
 ## P-2026-10-25-49 bohren-mehrere-bohrer
 
 ### EINGELESEN
