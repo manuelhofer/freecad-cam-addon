@@ -2116,6 +2116,23 @@ wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?“
 - **Gemessen:** geschlossene Tasche 40 × 30 × 15, Fräser Ø 12, Bohrer Ø 13 (`test_raeumen`):
   Ringe 3-mal ins Volle → 0-mal; `szenario` im Assistenten: „Vorbohren T5“ vor „Räumen T1“, G81
   an der Stelle der Helix.
+- **Fehlt der Bohrer (P-2026-10-25-38/-39):** unter dem Räumen die Zeile „Zum Vorbohren fehlt ein
+  Bohrer Ø … bis … im Magazin.“ mit dem Knopf „Bohrer Ø … anlegen und vorbohren“ (HSS, 118°,
+  Richtwerte, ins Magazin).
+- **Die Nut (P-2026-10-25-40):** Jede geschlossene gerade Nut meldet, wo sie eintaucht (am Ende
+  oder an der gewählten Stelle, die Vollnut am Ende) und wie groß das Loch sein darf: so breit
+  wie die Nut ohne Aufmaß, bis 1 mm schmaler, die Vollnut so groß wie der Fräser
+  (`nut_bahn.loch_masse`). Haken „Vorbohren, wo die Nut eintaucht“ (vorbelegt an); je Loch der
+  größte Bohrer aus dem Magazin (Ø Fräser bis doppelt so groß), der hineinpasst – verschieden
+  breite Nuten bekommen verschiedene Bohrer, je Bohrer ein „Bohren“. Ist laut Materialstand an der
+  Stelle bis zum Grund nichts mehr, taucht die Nut je Lage senkrecht ins Loch, unten einmal rundum
+  (der Rest um das Loch), dann die Bögen in beide Richtungen; die Vollnut geradeaus ans Ende
+  (`_gebohrte_lagen`). An `test_nut`: Nut 16 breit (Bohrer Ø 15) und Vollnut 12,4 (Ø 12):
+  48 Bögen hinab → 0.
+- **Der Materialstand kannte keine Löcher (P-2026-10-25-41):** Die Form eines spitzen Werkzeugs
+  (Bohrer) begann nach dem kleinen Aufmaß des Materialstands (`_grosszuegig`) erst neben der
+  Achse – die Zelle in der Mitte jedes Lochs blieb in voller Höhe stehen. `Form.mit_aufmass`
+  rollt jetzt auch über die Spitze.
 
 ## 13. Manuels Testteil für die 3-Achs-Fräse (W-013, 2026-10-02)
 

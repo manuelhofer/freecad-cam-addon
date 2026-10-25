@@ -217,11 +217,76 @@ def bahn_fuer(
     return nb.planen(werte, liste, stand)
 
 
-def vorschau(job, modell, fraeser_radius, zustellung, zeilenabstand, aufmass, flaechen, **weiter):
-    """Die Bahn für den Assistenten – dieselbe wie bahn_fuer() (sie braucht kein Raster)."""
-    return bahn_fuer(
-        job, modell, fraeser_radius, zustellung, zeilenabstand, aufmass, flaechen, **weiter
+def vorschau(
+    job,
+    modell,
+    fraeser_radius,
+    zustellung,
+    zeilenabstand,
+    aufmass,
+    flaechen,
+    vorbohren=None,
+    **weiter,
+):
+    """Die Bahn für den Assistenten – dieselbe wie bahn_fuer() (sie braucht kein Raster). Mit
+    `vorbohren` ([{kennung, durchmesser, spitzenwinkel, schneidenlaenge, vorschub}] der Bohrer im
+    Magazin) dort vorgebohrt, wo die geschlossenen Nuten eintauchen (Nutbahn.eintauchen): je Loch
+    der größte Bohrer, der hineinpasst (nut_bahn.loch_masse), die Bahn mit den Löchern im
+    Materialstand noch einmal – sie tauchen dort senkrecht ein; dazu `bahn.vorbohren`
+    (raeumen.Vorbohren, je Loch sein Bohrer). Passt für eine Nut keiner: `bahn.vorbohren_fehlt`
+    (Ø von, bis) – für das Angebot, einen anzulegen."""
+    argumente = (job, modell, fraeser_radius, zustellung, zeilenabstand, aufmass, flaechen)
+    bahn = bahn_fuer(*argumente, **weiter)
+    stand = weiter.get("stand")
+    eintauchen = [e for e in (bahn.eintauchen or []) if not e[5]]
+    if not vorbohren or stand is None or not eintauchen:
+        return bahn
+    from . import raeumen as ra
+
+    loecher, fehlt, je_bohrer = [], None, {}
+    for x, y, z, von, bis, _gebohrt in eintauchen:
+        passende = [b for b in vorbohren if von - 1e-6 <= float(b["durchmesser"]) <= bis + 1e-6]
+        if not passende:
+            fehlt = fehlt or (von, bis)
+            continue
+        bohrer = max(passende, key=lambda b: float(b["durchmesser"]))
+        loecher.append((x, y, z, float(bohrer["durchmesser"]), str(bohrer.get("kennung") or "")))
+        je_bohrer.setdefault(loecher[-1][4], (bohrer, []))[1].append((x, y, z))
+    bahn.vorbohren_fehlt = fehlt
+    if not loecher:
+        return bahn
+    *_rohteil, oben = pf.rohteil_von_oben(job)
+    zeit = hube = 0
+    zu_kurz = False
+    for bohrer, stellen in je_bohrer.values():
+        d = float(bohrer["durchmesser"])
+        bohrung = ra.vorbohr_bahn(
+            stellen,
+            d,
+            float(bohrer.get("spitzenwinkel") or 118.0),
+            oben,
+            oben + 5.0,
+            float(bohrer.get("vorschub") or 0.0),
+        )
+        zeit += bohrung.zeit
+        hube += bohrung.hube
+        laenge = float(bohrer.get("schneidenlaenge") or 0.0)
+        zu_kurz = zu_kurz or 0 < laenge < max(oben - z for _x, _y, z in stellen)
+    mit = ra.loecher_im_stand(stand, [lo[:4] for lo in loecher], 0.0, oben)
+    neu = bahn_fuer(*argumente, **dict(weiter, stand=mit))
+    neu.vorbohren_fehlt = fehlt
+    neu.vorbohren = ra.Vorbohren(
+        [lo[:3] for lo in loecher],
+        max(lo[3] for lo in loecher),
+        zeit,
+        bahn.zeit,
+        hube,
+        max(oben - lo[2] for lo in loecher),
+        zu_kurz=zu_kurz,
+        geholfen=sum(1 for e in (neu.eintauchen or []) if e[5]),
+        loecher=loecher,
     )
+    return neu
 
 
 def lege_an(

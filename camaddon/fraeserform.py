@@ -218,6 +218,15 @@ class Form:
             return self
         neu = []
         vorher = None  # (Punkt am Ende, Normale dort) des vorigen Stücks
+        erstes = self.stuecke[0]
+        if erstes.rho_von <= _GENAU and erstes.art != EBEN:
+            # Eine Spitze auf der Achse (Bohrer, Kegel ohne ebene Stirn): Die Kugel rollt auch über
+            # sie – ein Bogen von der Achse (Normale nach unten) bis zur Flanke. Ohne ihn begann die
+            # Form erst neben der Achse, und die Zelle in der Mitte eines Lochs blieb im
+            # Materialstand stehen (eine Nadel in voller Höhe, P-2026-10-25-41).
+            neu.extend(
+                _ecke(erstes.punkt(erstes.rho_von), (0.0, -1.0), erstes.normale(0.0), aufmass)
+            )
         for stueck in self.stuecke:
             if vorher is not None:
                 neu.extend(_ecke(vorher[0], vorher[1], stueck.normale(stueck.rho_von), aufmass))

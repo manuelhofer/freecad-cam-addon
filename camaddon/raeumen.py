@@ -19,7 +19,7 @@ Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import FreeCAD
 import Path
@@ -633,6 +633,16 @@ class Vorbohren:
     tiefe: float  # mm – das tiefste Loch ab der Oberkante des Rohteils
     zu_kurz: bool = False  # tiefer als die Schneide des Bohrers
     geholfen: int = 0  # so viele Eintauchstellen ins Volle weniger
+    kennung: str = ""  # der Bohrer (Werkzeugverwaltung)
+    # Je Loch (x, y, z, Ø, Kennung des Bohrers) – verschiedene Bohrer (die Nuten verschieden
+    # breit); leer: alle `stellen` mit `durchmesser` und `kennung`.
+    loecher: list = field(default_factory=list)
+
+    def je_loch(self):
+        """[(x, y, z, Ø, Kennung)] je Loch."""
+        if self.loecher:
+            return list(self.loecher)
+        return [(x, y, z, self.durchmesser, self.kennung) for x, y, z in self.stellen]
 
 
 def vorbohr_stellen(bahn, nah=VORBOHREN_NAH):
@@ -690,8 +700,6 @@ def vorschau_fuer_assistent(
     stellen = vorbohr_stellen(bahn) if vorbohren and stand is not None else []
     if not stellen:
         return bahn
-    from . import fraeserform as ff
-
     durchmesser = float(vorbohren["durchmesser"])
     *_rohteil, oben = pf.rohteil_von_oben(job)
     bohrung = vorbohr_bahn(
@@ -702,13 +710,7 @@ def vorschau_fuer_assistent(
         oben + 5.0,
         float(vorbohren.get("vorschub") or 0.0),
     )
-    # Im Materialstand: je Loch der volle Durchmesser bis zur Tiefe (die Spitze darunter zählt
-    # fürs Räumen nicht).
-    loecher = []
-    for x, y, z in stellen:
-        loecher += [bn.Punkt(True, x, y, oben + 5.0), bn.Punkt(False, x, y, z, True)]
-        loecher.append(bn.Punkt(True, x, y, oben + 5.0))
-    mit = mst.mit_bahn(stand, tr("ra.vorbohren.name"), loecher, ff.scheibe(durchmesser / 2.0))
+    mit = loecher_im_stand(stand, stellen, durchmesser, oben)
     neu = rechnen(dict(weiter, stand=mit))
     tiefe = max(oben - z for _x, _y, z in stellen)
     neu.vorbohren = Vorbohren(
@@ -720,8 +722,28 @@ def vorschau_fuer_assistent(
         tiefe,
         zu_kurz=0 < float(vorbohren.get("schneidenlaenge") or 0.0) < tiefe,
         geholfen=len(vorbohr_stellen(bahn)) - len(vorbohr_stellen(neu)),
+        kennung=str(vorbohren.get("kennung") or ""),
     )
     return neu
+
+
+def loecher_im_stand(stand, stellen, durchmesser, oben):
+    """Der Materialstand mit den Löchern des Vorbohrens: je Stelle (x, y, z) – oder (x, y, z, Ø)
+    mit eigenem Durchmesser – der volle Durchmesser bis z (die Spitze darunter zählt nicht)."""
+    from . import fraeserform as ff
+
+    je_d = {}
+    for stelle in stellen:
+        x, y, z = stelle[:3]
+        d = float(stelle[3]) if len(stelle) > 3 else float(durchmesser)
+        je_d.setdefault(round(d, 4), []).append((x, y, z))
+    for d, orte in sorted(je_d.items()):
+        loecher = []
+        for x, y, z in orte:
+            loecher += [bn.Punkt(True, x, y, oben + 5.0), bn.Punkt(False, x, y, z, True)]
+            loecher.append(bn.Punkt(True, x, y, oben + 5.0))
+        stand = mst.mit_bahn(stand, tr("ra.vorbohren.name"), loecher, ff.scheibe(d / 2.0))
+    return stand
 
 
 def lege_an(

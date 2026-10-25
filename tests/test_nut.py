@@ -472,6 +472,89 @@ pruefe(
 )
 print(ascii(f"Operation: {len(befehle)} Befehle"))
 
+
+# --- Vorbohren (Manuel, 2026-10-25: „immer wenn man eintauchen muss ists gut wenn vorgebohrt
+# ist“): eine Nut 16 breit und eine Vollnut 12,4 breit, je 40 lang und 10 tief, Fräser Ø 12.
+# Ohne Loch taucht die breite mit der Helix ein, die Vollnut mit Helix oder Rampe; mit den
+# Bohrern Ø 12 und Ø 15 je Nut der größte, der hineinpasst (15 in die breite, 12 in die
+# Vollnut), und die Nuten tauchen senkrecht ins Loch ein – kein Bogen mehr, der dabei hinabgeht.
+def langloch(x0, y, breite, laenge, tiefe, oben=20.0):
+    r = breite / 2.0
+    form = Part.makeBox(laenge, breite, tiefe, V(x0, y - r, oben - tiefe))
+    for x in (x0, x0 + laenge):
+        form = form.fuse(Part.makeCylinder(r, tiefe, V(x, y, oben - tiefe)))
+    return form
+
+
+teil_v = Part.makeBox(100, 60, 20).cut(
+    langloch(20, 18, 16.0, 40, 10).fuse(langloch(20, 42, 12.4, 40, 10))
+)
+teil_v = teil_v.removeSplitter()
+doc_v = FreeCAD.newDocument("NutVorbohren")
+objekt_v = doc_v.addObject("Part::Feature", "Teil")
+objekt_v.Shape = teil_v
+doc_v.recompute()
+job_v = PathJob.Create("JobVorbohren", [objekt_v])
+job_v.Stock.ExtZpos = 0.0
+doc_v.recompute()
+gruende_v = [
+    f"Face{i + 1}"
+    for i, f in enumerate(job_v.Model.Group[0].Shape.Faces)
+    if abs(f.BoundBox.ZMax - 10.0) < 1e-6 and f.BoundBox.ZLength < 1e-6
+]
+stand_v = mst.fuer(job_v)
+ohne_v = nu.vorschau(job_v, job_v.Model.Group, 6.0, 5.0, 1.5, nu.AUFMASS, gruende_v, stand=stand_v)
+bohrer_v = [
+    {"kennung": "b12", "durchmesser": 12.0, "spitzenwinkel": 118.0, "vorschub": 150.0},
+    {"kennung": "b15", "durchmesser": 15.0, "spitzenwinkel": 118.0, "vorschub": 120.0},
+]
+mit_v = nu.vorschau(
+    job_v,
+    job_v.Model.Group,
+    6.0,
+    5.0,
+    1.5,
+    nu.AUFMASS,
+    gruende_v,
+    stand=stand_v,
+    vorbohren=bohrer_v,
+)
+
+
+def boegen_hinab(bahn):
+    """So viele Bögen, auf denen es hinabgeht (Helix)."""
+    return sum(
+        1
+        for p, q in zip(bahn.punkte, bahn.punkte[1:], strict=False)
+        if q.bogen is not None and q.z < p.z - 1e-6
+    )
+
+
+vb_v = getattr(mit_v, "vorbohren", None)
+print(
+    ascii(
+        f"Nut vorbohren: {len(gruende_v)} Gruende, ohne {ohne_v.eintauchen}, Helix-Boegen ohne "
+        f"{boegen_hinab(ohne_v)}, mit {boegen_hinab(mit_v)}; Loecher {vb_v.je_loch() if vb_v else None}"
+    )
+)
+pruefe(len(ohne_v.eintauchen or []) == 2, f"Nut: Eintauchstellen {ohne_v.eintauchen}")
+pruefe(
+    vb_v is not None
+    and sorted(lo[3] for lo in vb_v.je_loch()) == [12.0, 15.0]
+    and vb_v.geholfen == 2,
+    f"Nut: Löcher {vb_v.je_loch() if vb_v else None}, geholfen {vb_v.geholfen if vb_v else 0}",
+)
+pruefe(boegen_hinab(ohne_v) > 0 and boegen_hinab(mit_v) == 0, "Nut: noch Helix mit Loch")
+pruefe(
+    mit_v.lagen == ohne_v.lagen and mit_v.nuten == ohne_v.nuten,
+    f"Nut: Lagen {mit_v.lagen}/{ohne_v.lagen}, Nuten {mit_v.nuten}/{ohne_v.nuten}",
+)
+# Im Teil bleibt die Bahn wie ohne Loch: die Spitze nie tiefer als der Grund.
+pruefe(
+    min(p.z for p in mit_v.punkte) >= 10.0 - 1e-6,
+    f"Nut: tiefer als der Grund ({min(p.z for p in mit_v.punkte):.3f})",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

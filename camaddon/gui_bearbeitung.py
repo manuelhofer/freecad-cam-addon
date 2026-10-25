@@ -1973,6 +1973,19 @@ class _Nut(_Strategie):
             # Neu als Haken, angehakt (Manuel, 2026-10-16: „gleich und gegenlauf … kaum
             # schnellvorschub … meist schneidet“).
             ("wellen", tr("ba.nut.wellen"), tr("ba.nut.wellen.tooltip"), True),
+            # Manuel, 2026-10-25: „immer wenn man eintauchen muss ists gut wenn vorgebohrt ist“.
+            ("vorbohren", tr("ba.nut.vorbohren"), tr("ba.nut.vorbohren.tooltip"), True),
+        )
+
+    def haken_gesperrt(self, feld, block):
+        if feld != "vorbohren":
+            return None
+        fraeser = block.fraeser()
+        if fraeser is None or block.panel._vorbohrer_liste(fraeser):
+            return None
+        return tr(
+            "ba.nut.vorbohren.kein_bohrer",
+            d=groesse_zeigen(fraeser.durchmesser, einheiten.LAENGE, 1) or "0",
         )
 
     def passt(self, form, name):
@@ -2033,15 +2046,40 @@ class _Nut(_Strategie):
             eintauchen=werte.get("eintauchen", 0.0),
             stand=werte.get("materialstand"),
             eintauchen_bei=werte.get("eintauchen_bei"),
+            vorbohren=werte.get("vorbohrer_liste") if werte.get("vorbohren") else None,
         )
 
     def ergebnis_text(self, bahn, zeit):
         nuten = tr("ba.zahl.nut") if bahn.nuten == 1 else tr("ba.zahl.nuten", n=bahn.nuten)
         if bahn.vollnut == bahn.nuten:
-            return tr("ba.ergebnis_vollnut", nuten=nuten, zeit=zeit)
-        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
-        boegen = tr("ba.zahl.bogen") if bahn.boegen == 1 else tr("ba.zahl.boegen", n=bahn.boegen)
-        return tr("ba.ergebnis_nut", nuten=nuten, lagen=lagen, boegen=boegen, zeit=zeit)
+            text = tr("ba.ergebnis_vollnut", nuten=nuten, zeit=zeit)
+        else:
+            lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+            boegen = (
+                tr("ba.zahl.bogen") if bahn.boegen == 1 else tr("ba.zahl.boegen", n=bahn.boegen)
+            )
+            text = tr("ba.ergebnis_nut", nuten=nuten, lagen=lagen, boegen=boegen, zeit=zeit)
+        vorbohren = getattr(bahn, "vorbohren", None)
+        if vorbohren is not None:
+            loecher = vorbohren.je_loch()
+            d = " / ".join(
+                groesse_zeigen(x, einheiten.LAENGE, 1) or "0"
+                for x in sorted({lo[3] for lo in loecher})
+            )
+            werte = {
+                "n": len(loecher),
+                "d": d,
+                "tiefe": groesse_zeigen(vorbohren.tiefe, einheiten.LAENGE, 0) or "0",
+                "zeit": dezimal(f"{vorbohren.zeit:.1f}"),
+            }
+            if len(loecher) == 1:
+                text += ". " + tr("ba.raeumen.vorbohren.ein_loch", **werte)
+            else:
+                text += ". " + tr("ba.raeumen.vorbohren.loecher", **werte)
+            text += " " + tr("ba.nut.vorbohren.senkrecht")
+            if vorbohren.zu_kurz:
+                text += " " + tr("ba.raeumen.vorbohren.zu_kurz")
+        return text
 
     def lege_an(self, job, tc, werte, flaechen):
         return nu.lege_an(
@@ -4890,6 +4928,9 @@ class _Block:
         """Unter dem Räumen: Taucht es ins Volle ein und fehlt fürs Vorbohren ein Bohrer im
         Magazin (_vorbohrer), das Angebot „Bohrer Ø … anlegen und vorbohren“ (Manuel: Empfehlungen
         auch, wenn es das Werkzeug nicht gibt – der nächste Schritt als Knopf); sonst leer."""
+        if self.s.kennung == "nut":
+            self._vorbohrer_angebot_nut()
+            return
         if self.s.kennung != "raeumen":
             return
         bahn = self.vorschau
@@ -4912,6 +4953,34 @@ class _Block:
             von=groesse_zeigen(fraeser.durchmesser, einheiten.LAENGE, 1) or "0",
             bis=groesse_zeigen(fraeser.durchmesser * VORBOHRER_HOECHSTENS, einheiten.LAENGE, 1)
             or "0",
+        )
+        knopf_ = tr("ba.raeumen.vorbohren.anlegen", d=groesse_zeigen(d, einheiten.LAENGE, 1) or "0")
+        self.angebot.zeigen(text, [(knopf_, lambda: self.panel._vorbohrer_anlegen(d, tiefe))])
+
+    def _vorbohrer_angebot_nut(self):
+        """Unter der Nut: Passt für eine Nut kein Bohrer aus dem Magazin (nut.vorschau:
+        `vorbohren_fehlt`), das Angebot, einen anzulegen – der größte in halben Millimetern, der
+        hineinpasst."""
+        bahn = self.vorschau
+        haken = getattr(self, "haken_felder", {}).get("vorbohren")
+        offen = [e for e in (getattr(bahn, "eintauchen", None) or []) if not e[5]]
+        fehlt = getattr(bahn, "vorbohren_fehlt", None) if bahn is not None else None
+        if fehlt is None and offen and haken is not None and not haken.isEnabled():
+            fehlt = (offen[0][3], offen[0][4])  # kein Bohrer im Magazin: die erste Nut
+        wollen = haken is not None and (haken.isChecked() or not haken.isEnabled())
+        if not fehlt or not offen or not wollen or self.panel.job is None:
+            self.angebot.leeren()
+            return
+        von, bis = fehlt
+        d = math.floor(bis * 2.0 + 1e-9) / 2.0
+        if d < von - 1e-6:
+            d = math.floor(bis * 10.0 + 1e-9) / 10.0
+        *_rohteil, oben = pf.rohteil_von_oben(self.panel.job)
+        tiefe = max(oben - e[2] for e in (bahn.eintauchen or [(0, 0, oben)]))
+        text = tr(
+            "ba.nut.vorbohren.fehlt",
+            von=groesse_zeigen(von, einheiten.LAENGE, 1) or "0",
+            bis=groesse_zeigen(bis, einheiten.LAENGE, 1) or "0",
         )
         knopf_ = tr("ba.raeumen.vorbohren.anlegen", d=groesse_zeigen(d, einheiten.LAENGE, 1) or "0")
         self.angebot.zeigen(text, [(knopf_, lambda: self.panel._vorbohrer_anlegen(d, tiefe))])
@@ -5018,7 +5087,7 @@ class _Block:
         self.ergebnis.setText("")
         self.material.setText("")
         self.hinweis.setText("")
-        if self.s.kennung == "raeumen":
+        if self.s.kennung in ("raeumen", "nut"):
             self.angebot.leeren()  # das Angebot des Bohrers (_vorbohrer_angebot)
 
 
@@ -9254,6 +9323,9 @@ class BearbeitungPanel:
             if bohrer is not None:
                 zusatz["vorbohrer"] = bohrer
             return zusatz or None
+        if block is self.nut:
+            liste = self._vorbohrer_liste(block.fraeser())
+            return {"vorbohrer_liste": liste} if liste else None
         if block is self.restraeumen:
             return self._nur_eng()
         if block is self.bohren:
@@ -10610,8 +10682,8 @@ class BearbeitungPanel:
                         ops.append(neue[0])
                         folge.extend(neue[1:])
                     else:
-                        if block is self.raeumen:
-                            folge.extend(self._vorbohren_anlegen(werte))
+                        if block is self.raeumen or block is self.nut:
+                            folge.extend(self._vorbohren_anlegen(block, werte))
                         neue_op = block.s.lege_an(self.job, tc, werte, flaechen)
                         au.setze(neue_op, werte.get("aufloesung", 0.0))
                         ops.append(neue_op)
@@ -10642,32 +10714,62 @@ class BearbeitungPanel:
         self.operationen += folge
         return True
 
-    def _vorbohren_anlegen(self, werte):
-        """Vor dem Räumen das Vorbohren (raeumen.vorbohr_stellen): FreeCADs Bohren an den Stellen,
-        an denen die Vorschau des Räumens ins Volle eintauchte – mit dem Bohrer aus _vorbohrer.
-        Das Räumen rechnet danach mit den Löchern (Materialstand) und taucht dort senkrecht ein.
-        In der Transaktion von _anlegen; gibt die neuen Operationen zurück."""
-        vorbohren = getattr(self.raeumen.vorschau, "vorbohren", None)
-        bohrer = werte.get("vorbohrer")
-        if not werte.get("vorbohren") or vorbohren is None or not bohrer:
+    def _vorbohren_anlegen(self, block, werte):
+        """Vor dem Räumen oder der Nut das Vorbohren: FreeCADs Bohren an den Stellen, an denen ihre
+        Vorschau ins Volle eintauchte (raeumen.Vorbohren.je_loch) – je Bohrer eine Operation (die
+        Nuten verschieden breit: verschiedene Bohrer). Danach rechnen sie mit den Löchern
+        (Materialstand) und tauchen dort senkrecht ein. In der Transaktion von _anlegen; gibt die
+        neuen Operationen zurück."""
+        vorbohren = getattr(block.vorschau, "vorbohren", None)
+        if not werte.get("vorbohren") or vorbohren is None:
             return []
-        werkzeug = next(
-            (w for w in self.bibliothek.werkzeuge if w.kennung == bohrer["kennung"]), None
-        )
-        if werkzeug is None:
-            return []
-        einsaetze = self.bohren._passende_einsaetze(werkzeug, self.werkstoff())
-        tc = js.controller_ohne_transaktion(
-            self.doc, self.job, werkzeug, einsaetze[0] if einsaetze else None, self.werkstoff()
-        )
-        ops = bh.an_stellen_anlegen(
-            self.job,
-            tc,
-            vorbohren.stellen,
-            tr("ba.raeumen.vorbohren.name", werkzeug=f"T{tc.ToolNumber}"),
-        )
-        self.doc.recompute()  # das Räumen rechnet mit den Löchern
+        vorgabe = (werte.get("vorbohrer") or {}).get("kennung", "")
+        je_bohrer = {}
+        for x, y, z, _d, kennung in vorbohren.je_loch():
+            je_bohrer.setdefault(kennung or vorgabe, []).append((x, y, z))
+        ops = []
+        for kennung, stellen in je_bohrer.items():
+            werkzeug = next((w for w in self.bibliothek.werkzeuge if w.kennung == kennung), None)
+            if werkzeug is None:
+                continue
+            einsaetze = self.bohren._passende_einsaetze(werkzeug, self.werkstoff())
+            tc = js.controller_ohne_transaktion(
+                self.doc, self.job, werkzeug, einsaetze[0] if einsaetze else None, self.werkstoff()
+            )
+            ops += bh.an_stellen_anlegen(
+                self.job, tc, stellen, tr("ba.raeumen.vorbohren.name", werkzeug=f"T{tc.ToolNumber}")
+            )
+        if ops:
+            self.doc.recompute()  # das Räumen und die Nut rechnen mit den Löchern
         return ops
+
+    def _vorbohrer_liste(self, fraeser):
+        """Die Bohrer fürs Vorbohren der Nut – [{kennung, durchmesser, spitzenwinkel,
+        schneidenlaenge, vorschub}]: im Magazin der Maschine (ohne Magazin aus der
+        Werkzeugverwaltung), mit Schnittwerten, Ø zwischen dem Fräser und doppelt so groß; welcher
+        in welche Nut passt, sagt ihre Vorschau (nut.vorschau)."""
+        if fraeser is None or self.bibliothek is None or fraeser.durchmesser <= 0:
+            return []
+        d = float(fraeser.durchmesser)
+        magazin = self.magazin()
+        liste = []
+        for w in self.bibliothek.werkzeuge:
+            if w.art != wz.BOHRER or not d - 1e-6 <= w.durchmesser <= 2.0 * d:
+                continue
+            if magazin is not None and mg.rang(w, magazin) == mg.NICHT_IM_MAGAZIN:
+                continue
+            einsaetze = self.bohren._passende_einsaetze(w, self.werkstoff())
+            if einsaetze:
+                liste.append(
+                    {
+                        "kennung": w.kennung,
+                        "durchmesser": float(w.durchmesser),
+                        "spitzenwinkel": float(w.spitzenwinkel or wz.SPITZENWINKEL_BOHRER),
+                        "schneidenlaenge": float(w.schneidenlaenge or 0.0),
+                        "vorschub": float(js.werte(w, einsaetze[0])[1]),
+                    }
+                )
+        return sorted(liste, key=lambda b: b["durchmesser"])
 
     def _vorbohrer_anlegen(self, durchmesser, tiefe):
         """„Bohrer Ø … anlegen und vorbohren“: ein Bohrer (HSS, 118°, Schneide mindestens 8 × D und

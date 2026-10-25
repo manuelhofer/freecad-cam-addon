@@ -99,6 +99,10 @@ MATERIAL_SPIEL = 0.01  # mm – so wenig über dem Grund gilt im Materialstand a
 # die Nut), taucht er dort ein.
 EINTAUCH_RASTER = 1.0  # mm
 EINTAUCH_WENIGER = 0.8  # × das Material an den Enden
+# Vorbohren (Manuel, 2026-10-25: „immer wenn man eintauchen muss ists gut wenn vorgebohrt ist“):
+# so viel schmaler als die Nut ohne Aufmaß darf das Loch an der Eintauchstelle sein – den Rest
+# nimmt der Kreis unten um die Stelle.
+VORBOHREN_SCHMALER = 1.0  # mm
 
 
 @dataclass(frozen=True)
@@ -199,6 +203,9 @@ class Nutbahn:
     # Je geschlossene Nut: (schluessel, Anteil oder None – abwechselnd an den Enden,
     # vorgeschlagen?, A, B) – für die Zeile „Eintauchen bei“ im Assistenten.
     stellen: list = None
+    # Je geschlossene gerade Nut, wo sie eintaucht: (x, y, z des Grunds, Ø des Lochs von, bis,
+    # schon vorgebohrt?) – dort lässt sich vorbohren (nut.vorschau mit `vorbohren`).
+    eintauchen: list = None
 
 
 # --- Erkennung --------------------------------------------------------------------------------
@@ -1415,12 +1422,84 @@ def _oben(nut, w, stand, z_ende):
     return min(w.oben, hoechste)
 
 
-def _nut(punkte, nut, w, stand=None, bei=None):
+def loch_masse(nut, fraeser_radius, aufmass=0.0):
+    """(Ø von, Ø bis) des Lochs, das an der Eintauchstelle der Nut vorgebohrt werden darf: so
+    breit wie die Nut ohne Aufmaß, bis VORBOHREN_SCHMALER schmaler – nie schmaler als der Fräser
+    (die Vollnut: der Fräser selbst)."""
+    breite = 2.0 * nut.radius - 2.0 * max(aufmass, 0.0)
+    durchmesser = 2.0 * fraeser_radius
+    return max(durchmesser, breite - VORBOHREN_SCHMALER), max(durchmesser, breite)
+
+
+def _gebohrt(stand, p, radius, z_ende):
+    """Steht im Kreis `radius` um `p` bis zum Grund `z_ende` nichts mehr – vorgebohrt?"""
+    if stand is None:
+        return False
+    return stand.hoechste_bei(p[0], p[1], radius) <= z_ende + MATERIAL_SPIEL
+
+
+def _gebohrte_lagen(punkte, nut, w, r_l, oben, z_ende, uhr, p, vollnut):
+    """Die Lagen einer geschlossenen geraden Nut, die an `p` vorgebohrt ist: je Lage im Loch
+    senkrecht hinab – keine Helix, keine Rampe –, die Vollnut geradeaus bis ans Ende, die breite
+    unten einmal rundum (der Rest um das Loch) und die Bögen von `p` in beide Richtungen; die
+    nächste Lage durch die freie Nut zurück an `p`. Gibt (Länge, Lagen, Bögen, das Ende, an dem
+    sie aufhört) zurück."""
+    R = w.fraeser_radius
+    ap = _vollnut_ap(w) if vollnut else (w.zustellung if w.zustellung > GLEICH else 2 * R)
+    if w.schneidenlaenge > 0:
+        ap = min(ap, w.schneidenlaenge)
+    anteil = _vollnut_anteil(w) if vollnut else 1.0
+    tiefe = oben - z_ende
+    anzahl = max(1, int(math.ceil(tiefe / ap - 1e-9)))
+    schritt = _bogenschritt(r_l, R, min(max(w.zeilenabstand, MIN_SCHRITT), R)) if not vollnut else 0
+    drehung = -1.0 if uhr else 1.0
+    seite = -drehung  # wie in _boegen: Gleichlauf beginnt an der Wand rechts der Fahrt
+    laufe = [
+        (_richtung(p, ziel), math.hypot(ziel[0] - p[0], ziel[1] - p[1]), ziel)
+        for ziel in (nut.b, nut.a)
+        if math.hypot(ziel[0] - p[0], ziel[1] - p[1]) > GLEICH
+    ]
+    weg = 0.0
+    boegen = 0
+    ende = p
+    z_vorher = oben
+    for lage in range(1, anzahl + 1):
+        z = oben - tiefe * lage / anzahl
+        if lage > 1:  # durch die freie Nut zurück an das Loch
+            weg += _hin(punkte, p[0], p[1], z_vorher, anteil=RUECKWEG)
+        hinab = bn.Punkt(False, float(p[0]), float(p[1]), float(z), True)  # im Loch hinab
+        weg += bn.weg(punkte[-1], hinab)
+        punkte.append(hinab)
+        for nummer, (u, laenge, ziel) in enumerate(laufe):
+            if vollnut:
+                if nummer:
+                    weg += _hin(punkte, p[0], p[1], z, anteil=RUECKWEG)
+                weg += _hin(punkte, ziel[0], ziel[1], z, anteil=anteil)
+            else:
+                wand = math.atan2(u[1], u[0]) + seite * math.pi / 2
+                ort = (p[0] + r_l * math.cos(wand), p[1] + r_l * math.sin(wand))
+                weg += _hin(punkte, ort[0], ort[1], z, anteil=RUECKWEG if nummer else 1.0)
+                if not nummer:  # unten einmal rundum: der Rest um das Loch
+                    weg += _bogen(punkte, p, r_l, wand, wand + drehung * 2 * math.pi, z, z, uhr)
+                stueck, n = _boegen(
+                    punkte, p, u, r_l, R, schritt, laenge, z, uhr, s_anfang=0.0, wellen=w.wellen
+                )
+                weg += stueck
+                boegen += n
+            ende = ziel
+        z_vorher = z
+    return weg, anzahl, boegen, ende
+
+
+def _nut(punkte, nut, w, stand=None, bei=None, eintauchen=None):
     """Eine Nut: in Bögen oder als Vollnut, dann rundum. Gibt (Länge, Lagen, Bögen, vollnut,
     z_min) zurück; (0, 0, 0, False, inf), wenn über ihr nichts steht. `stand`: der
     Materialstand (materialstand) – die Lagen beginnen dann, wo in der Nut noch Material ist.
     `bei`: die Eintauchstelle (Anteil von A nach B) – die geschlossene Nut taucht in jeder Lage
-    dort ein; die Vollnut beginnt ihre Rampe am Ende, das ihr am nächsten liegt."""
+    dort ein; die Vollnut beginnt ihre Rampe am Ende, das ihr am nächsten liegt. Ist dort laut
+    `stand` vorgebohrt, taucht sie senkrecht ins Loch (_gebohrte_lagen). `eintauchen`: eine
+    Liste, in die die Stelle kommt (Nutbahn.eintauchen)."""
+    eintauchen = [] if eintauchen is None else eintauchen
     R = w.fraeser_radius
     aufmass = max(w.aufmass, 0.0)
     z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
@@ -1464,6 +1543,26 @@ def _nut(punkte, nut, w, stand=None, bei=None):
         return weg, (1 if vollnut else lagen), boegen, vollnut, z_ende
     if vollnut and bei is not None and bei > 0.5:
         nut = replace(nut, a=nut.b, b=nut.a)  # die Rampe beginnt am Ende bei der Stelle
+    # Wo sie eintaucht – und ist dort schon vorgebohrt (das Loch im Materialstand)?
+    p = stelle(nut, bei) if bei is not None and not vollnut else nut.a
+    d_von, d_bis = loch_masse(nut, R, aufmass)
+    gebohrt = _gebohrt(stand, p, max(R, r_l + R - VORBOHREN_SCHMALER / 2.0) - 0.05, z_ende)
+    eintauchen.append((float(p[0]), float(p[1]), float(z_ende), d_von, d_bis, gebohrt))
+    if gebohrt:
+        punkte.append(bn.Punkt(True, p[0], p[1], w.sicher))
+        punkte.append(bn.Punkt(True, p[0], p[1], knapp))
+        punkte.append(bn.Punkt(False, p[0], p[1], oben, True))
+        weg = bn.weg(punkte[-2], punkte[-1])
+        stueck, lagen, boegen, ende = _gebohrte_lagen(
+            punkte, nut, w, r_l, oben, z_ende, uhr, p, vollnut
+        )
+        weg += stueck
+        r_s = r_w if w.schlichten else max(r_l, 0.0)
+        if r_s > GLEICH and (w.schlichten or vollnut):
+            weg += _schlichten(punkte, nut, w, r_s, oben, z_ende, ende, uhr)
+        letzter = punkte[-1]
+        punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+        return weg, (1 if vollnut else lagen), boegen, vollnut, z_ende
     helix = vollnut and mit_helix(nut, R, aufmass)
     if helix:  # auf dem Kreis um A, zur Nut hin
         ux, uy = _richtung(nut.a, nut.b)
@@ -1818,6 +1917,7 @@ def planen(werte, liste, stand=None):
     noch = weg = 0.0
     davor = []
     stellen = []
+    eintauchen = []
     for nut in folge:
         if stand is not None:
             maske = _maske_um(stand, nut, nut.radius)
@@ -1829,7 +1929,7 @@ def planen(werte, liste, stand=None):
         bei, vorgeschlagen = _bei(nut, w, stand)
         if not nut.offen and not nut.ring:
             stellen.append((schluessel(nut), bei, vorgeschlagen, nut.a, nut.b))
-        stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w, stand, bei)
+        stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w, stand, bei, eintauchen)
         if not n_lagen:
             continue
         gefraest += 1
@@ -1846,7 +1946,19 @@ def planen(werte, liste, stand=None):
         raise ValueError(tr("nt.fehler.nichts"))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
     return Nutbahn(
-        punkte, gefraest, lagen, boegen, vollnut, z_min, laenge, zeit, noch, weg, davor, stellen
+        punkte,
+        gefraest,
+        lagen,
+        boegen,
+        vollnut,
+        z_min,
+        laenge,
+        zeit,
+        noch,
+        weg,
+        davor,
+        stellen,
+        eintauchen,
     )
 
 

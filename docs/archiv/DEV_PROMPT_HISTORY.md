@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-41 materialstand-spitze-auf-der-achse
+
+### EINGELESEN
+- Beim Vorbohren der Nut im Szenario: Die Vorschau sagte „taucht senkrecht ein“, die angelegte
+  Nut fuhr trotzdem die Helix. Der Materialstand nach FreeCADs Bohren stand an der Lochmitte
+  noch in voller Höhe.
+
+### DATEIEN
+- `camaddon/fraeserform.py`: `Form.mit_aufmass` – beginnt die Form mit einer Spitze auf der Achse
+  (Bohrer, Kegel ohne ebene Stirn), rollt die Kugel auch über sie (ein Bogen von der Achse bis
+  zur Flanke). Ohne ihn begann die um 0,01 mm großzügigere Form (`materialstand._grosszuegig`)
+  erst neben der Achse; die Zelle in der Mitte jedes Lochs blieb stehen (eine Nadel), jede Frage
+  „was steht hier höchstens“ sah das volle Material.
+
+### ERGEBNIS
+- Nachgestellt: Bohren Ø 15 an einer Stelle – vorher 21 (oben) in der Mitte, jetzt 6,09.
+- Prüfungen: test_fraeserform, test_materialstand, test_restmaterial, test_bohren, test_nut,
+  test_goldene_bahnen, test_testteil, test_simultan_planung, test_pruefstand grün.
+
+## P-2026-10-25-40 vorbohren-fuer-die-nut
+
+### EINGELESEN
+- Manuel, 2026-10-25: „bei egal welchem teil immer wenn man eintauchen muss ists gut wenn
+  vorgebohrt ist“. Die geschlossene Nut taucht mit der Helix am Ende ein, die Vollnut ohne Platz
+  dafür mit der Rampe hin und her.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`: `Nutbahn.eintauchen` (x, y, z, Ø von, bis, schon gebohrt), `loch_masse`,
+  `_gebohrt`, `_gebohrte_lagen` – ist laut Materialstand an der Eintauchstelle bis zum Grund
+  nichts mehr, je Lage senkrecht ins Loch, unten rundum, Bögen in beide Richtungen; die Vollnut
+  geradeaus.
+- `camaddon/nut.py`: `vorschau(vorbohren=…)` – je Loch der größte passende Bohrer, die Bahn mit
+  den Löchern noch einmal, `bahn.vorbohren` / `bahn.vorbohren_fehlt`.
+- `camaddon/raeumen.py`: `Vorbohren.loecher` und `je_loch` (je Loch sein Bohrer),
+  `loecher_im_stand` (auch je Loch ein Ø).
+- `camaddon/gui_bearbeitung.py`: Haken „Vorbohren, wo die Nut eintaucht“, `_vorbohrer_liste`,
+  Angebot „Bohrer Ø … anlegen und vorbohren“ unter der Nut, `_vorbohren_anlegen(block, …)` je
+  Bohrer ein „Bohren“; die Gründe gesperrter Haken passen in „… – geht mit einem Bohrer …“.
+- `translations/de.json`, `en.json`; `tests/test_nut.py`; Spezifikation 12.9.
+
+### ERGEBNIS
+- test_nut: Nut 16 breit und Vollnut 12,4, Bohrer Ø 12 und Ø 15 – je Nut der passende, 48 Bögen
+  hinab → 0, nie tiefer als der Grund.
+- Szenario (nur T1 Ø 12): „Zum Vorbohren fehlt ein Bohrer Ø 14,4 bis 15,4 im Magazin.“ mit Knopf;
+  geklickt: Bohrer Ø 15, „Vorgebohrt: 1 Loch Ø 15 … – dort taucht die Nut senkrecht ein.“;
+  angelegt „Vorbohren T2“ vor „Nut T1“, die Nut ohne Bogen hinab.
+- Prüfungen: test_nut, test_raeumen, test_sprache grün.
+
 ## P-2026-10-25-39 vorbohrer-als-angebot
 
 ### EINGELESEN
