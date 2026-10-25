@@ -310,6 +310,11 @@ on the machine” shows the path without TCPM.</li>
 
 <a name="bohren"></a>
 <h3>Drilling cycles</h3>
+<p><b>On the lathe</b> the addon writes every drilling cycle expanded – “G0” to R, “G1” to the
+depth (G83 in pecks with retract, G73 with chip breaking), dwell with the control's command, back
+in rapid; X as a diameter if the machine counts that way. There the cycles do not reliably drill
+along Z: Siemens knows G81 only in ISO mode and CYCLE81 drills along Y in G18, Fanuc lathes have
+no G81, LinuxCNC drills along Y in G18. Tapping on the lathe is not written – a note says so.</p>
 <p>FreeCAD's drilling writes <b>G81</b> (drill), <b>G82</b> (with dwell), <b>G83</b> (deep,
 chip removal), <b>G73</b> (chip breaking) and <b>G85</b> (reaming) with X, Y, Z (depth), R
 (reference plane) and Q, P. LinuxCNC, Fanuc, Haas and Mach know them like that. A <b>Siemens

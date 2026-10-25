@@ -832,3 +832,12 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Kopf `{nummer` enthält. Bis hier stand fest „O0001“: zwei Programme überschrieben sich an der
   Maschine.
 
+## 24. Bohren an der Drehmaschine ausgeschrieben (P-2026-10-25-80)
+
+- An jeder Drehmaschine `_zyklus_ausgeschrieben` (wie GRBL): Siemens kennt G81 ff. nur im
+  ISO-Modus (bis hier stand „G81 …“ und „G98“ im Siemens-Programm – Alarm), CYCLE81 bohrt in G18
+  längs Y; Fanuc-Drehmaschinen (System A) haben kein G81; LinuxCNC bohrt in G18 längs Y. X im
+  Durchmesser (`x_durchmesser`), das Verweilen von G82 mit `Steuerung.verweilen` (Siemens G4 F,
+  Fanuc G4 X; bis hier immer G4 P). Gewindebohren an der Drehmaschine: weggelassen mit Hinweis
+  `pp.hinweis.gewinde_drehen`.
+

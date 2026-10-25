@@ -581,8 +581,30 @@ pruefe(
     any(x.startswith("G83 ") and "Q5.000" in x for x in lcnc_b) and "G98" in lcnc_b,
     f"LinuxCNC Bohrzyklen: {lcnc_b}",
 )
-dreh_b = pp.programm([bohren], pp.steuerung("siemens"), dreh, "B").zeilen
-pruefe(any(x.startswith("G81 ") for x in dreh_b), "Drehmaschine: G81 nicht behalten")
+# An der Drehmaschine ausgeschrieben (Siemens kennt G81 nur im ISO-Modus, Fanuc-Drehmaschinen
+# haben kein G81, LinuxCNC bohrte in G18 längs Y): X im Durchmesser, Verweilen wie die Steuerung.
+for kennung in ("siemens", "fanuc", "linuxcnc"):
+    dreh_b = pp.programm([bohren], pp.steuerung(kennung), dreh, "B").zeilen
+    nach_kopf = dreh_b[next(i for i, x in enumerate(dreh_b) if x.startswith("M3")) :]
+    woerter_b = " ".join(x for x in nach_kopf if not x.startswith(("(", ";"))).split()
+    pruefe(
+        not set(woerter_b) & {"G80", "G81", "G82", "G83", "G85", "G98", "G99"}
+        and "G0 X20.000 Y10.000" in dreh_b
+        and "G1 Z-8.000 F120.000" in dreh_b,
+        f"{kennung} Drehmaschine Bohren: {dreh_b}",
+    )
+gewinde_d = pp.Abschnitt(
+    "Gewinde", 4, 255.0, False, "None",
+    [C("G0", {"X": 0.0, "Z": 24.0}), C("G84", {"X": 0.0, "Z": 6.5, "R": 24.0, "S": 255.0, "F": 1.5}),
+     C("G80")],
+    "M10",
+)  # fmt: skip
+p_gd = pp.programm([gewinde_d], pp.steuerung("siemens"), dreh, "G")
+pruefe(
+    not any("G84" in x or "CYCLE84" in x for x in p_gd.zeilen if not x.startswith(";"))
+    and any("Drehmaschine" in h for h in p_gd.hinweise),
+    f"Gewinde an der Drehmaschine: {p_gd.zeilen[-8:]} {p_gd.hinweise}",
+)
 
 
 # Der Nullpunkt aus dem Job (Fixtures): vorbelegt aus; an: am Anfang und in jedem Einstieg vor

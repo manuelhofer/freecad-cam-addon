@@ -321,6 +321,12 @@ ihre Stellung. „Auf der Maschine prüfen“ zeigt die Bahn ohne TCPM.</li>
 
 <a name="bohren"></a>
 <h3>Bohrzyklen</h3>
+<p><b>An der Drehmaschine</b> schreibt das Addon jeden Bohrzyklus ausgeschrieben – „G0“ auf R,
+„G1“ auf die Tiefe (G83 in Zustellungen mit Rückzug, G73 mit Spanbruch), Verweilen mit dem
+Befehl der Steuerung, zurück im Eilgang; X im Durchmesser, wenn die Maschine so zählt. Denn dort
+bohren die Zyklen nicht verlässlich längs Z: Siemens kennt G81 nur im ISO-Modus und CYCLE81 bohrt
+in G18 längs Y, Fanuc-Drehmaschinen haben kein G81, LinuxCNC bohrt in G18 längs Y.
+Gewindebohren an der Drehmaschine schreibt es nicht – ein Hinweis sagt es.</p>
 <p>FreeCADs Bohren schreibt <b>G81</b> (bohren), <b>G82</b> (mit Verweilen), <b>G83</b>
 (tief, Entspanen), <b>G73</b> (Spänebrechen) und <b>G85</b> (Reiben) mit X, Y, Z (Tiefe),
 R (Bezugsebene) und Q, P. LinuxCNC, Fanuc, Haas und Mach kennen sie so. Eine

@@ -1706,19 +1706,27 @@ def programm(
                 auf_r = gross == "G99"
             if zyklen_als_befehl and gross in ("G80", "G98", "G99"):
                 continue  # die Zyklen der Steuerung kennen sie nicht (Siemens: ISO-Modus)
-            if s.zyklen_ausschreiben and not info.drehmaschine:
+            # Ausgeschrieben in G0/G1/G4: ohne Zyklen (GRBL) – und an jeder Drehmaschine: Siemens
+            # kennt G81 ff. nur im ISO-Modus, Fanuc-Drehmaschinen haben kein G81, LinuxCNC bohrt
+            # in G18 entlang Y.
+            if s.zyklen_ausschreiben or info.drehmaschine:
                 if gross in ("G80", "G98", "G99"):
                     continue  # GRBL kennt G98/G99 nicht, G80 braucht es ohne Zyklus nicht
                 if gross in AUSGESCHRIEBEN:
                     zeilen.extend(
-                        _zyklus_ausgeschrieben(s, gross, parameter, stand, auf_r, faktor, stellen)
+                        _zyklus_ausgeschrieben(
+                            s, gross, parameter, stand, auf_r, faktor, stellen, info
+                        )
                     )
                     saetze += 1
                     continue
                 if gross in GEWINDE:
-                    hinweis = tr(
-                        "pp.hinweis.ohne_gewinde", operation=abschnitt.name, steuerung=s.name
-                    )
+                    if info.drehmaschine:
+                        hinweis = tr("pp.hinweis.gewinde_drehen", operation=abschnitt.name)
+                    else:
+                        hinweis = tr(
+                            "pp.hinweis.ohne_gewinde", operation=abschnitt.name, steuerung=s.name
+                        )
                     if hinweis not in hinweise:
                         hinweise.append(hinweis)
                         notiz(hinweis)
@@ -1956,11 +1964,15 @@ def _zyklus_als_befehl(
     return zeilen
 
 
-def _zyklus_ausgeschrieben(s, gross, parameter, stand, auf_r, faktor, stellen=STELLEN):
-    """Ein Bohrzyklus in G0/G1/G4 – für eine Steuerung ohne Zyklen (GRBL): über das Loch, im
-    Eilgang auf R, im Vorschub auf die Tiefe – G83 in Zustellungen Q mit Rückzug auf R, G73 mit
-    Spanbruch, G82 mit Verweilen P, G85 heraus im Vorschub –, dann zurück auf die Höhe davor
-    (G98) oder R (G99). Wie klartext._bohren. `stand` folgt."""
+def _zyklus_ausgeschrieben(
+    s, gross, parameter, stand, auf_r, faktor, stellen=STELLEN, info=None
+):  # fmt: skip
+    """Ein Bohrzyklus in G0/G1/G4 – für eine Steuerung ohne Zyklen (GRBL) und an der
+    Drehmaschine: über das Loch, im Eilgang auf R, im Vorschub auf die Tiefe – G83 in
+    Zustellungen Q mit Rückzug auf R, G73 mit Spanbruch, G82 mit Verweilen P, G85 heraus im
+    Vorschub –, dann zurück auf die Höhe davor (G98) oder R (G99). Wie klartext._bohren. `stand`
+    folgt; X an der Drehmaschine im Durchmesser, wenn die Maschine so zählt (`info`)."""
+    durchmesser = info is not None and info.drehmaschine and info.x_durchmesser
     from . import klartext as kt
 
     zeilen = []
@@ -1971,7 +1983,14 @@ def _zyklus_ausgeschrieben(s, gross, parameter, stand, auf_r, faktor, stellen=ST
 
     lage = [a for a in ("X", "Y") if a in parameter]
     if any(stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9 for a in lage):
-        woerter = (_wort(s, a, _zahl(float(parameter[a]), stellen)) for a in lage)
+        woerter = (
+            _wort(
+                s,
+                a,
+                _zahl(float(parameter[a]) * (2.0 if a == "X" and durchmesser else 1.0), stellen),
+            )
+            for a in lage
+        )
         zeilen.append(" ".join(["G0", *woerter]))
     davor = stand.get("Z")
     tief = float(parameter.get("Z", davor if davor is not None else 0.0))
@@ -1993,7 +2012,9 @@ def _zyklus_ausgeschrieben(s, gross, parameter, stand, auf_r, faktor, stellen=ST
             z("G0", jetzt + kt.PECK_LUFT)
     z("G1", tief, f)
     if gross == "G82" and float(parameter.get("P", 0.0)) > 0:
-        zeilen.append(f"G4 {_wort(s, 'P', _zahl(float(parameter['P'])))}")
+        zeilen.extend(
+            _zeilen(_fuellen(s.verweilen or "G4 P{sek}", sek=_zahl(float(parameter["P"]))))
+        )
     if gross == "G85":
         z("G1", r)
     z("G0", rueck)

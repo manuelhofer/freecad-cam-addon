@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-80 bohren-an-der-drehmaschine-ausgeschrieben
+
+### EINGELESEN
+- Durchsicht Bohren an der Drehmaschine: Siemens schrieb „G98“ und „G81 … R…“ (nur im ISO-Modus
+  bekannt – Alarm), Fanuc „G81“ (an Fanuc-Drehmaschinen gibt es kein G81), LinuxCNC „G81“ in G18
+  (bohrt dort längs Y). Das ausgeschriebene Verweilen schrieb immer „G4 P“ (Siemens: G4 F,
+  Fanuc: G4 X).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: an jeder Drehmaschine die Bohrzyklen ausgeschrieben, X im
+  Durchmesser, Verweilen mit `Steuerung.verweilen`; Gewindebohren an der Drehmaschine weggelassen
+  mit Hinweis `pp.hinweis.gewinde_drehen`.
+- `translations/*.json`, `help/*/programm.html` (Bohrzyklen), `docs/spezifikation_steuerung.md`
+  24, `tests/test_postprozessor.py`.
+
+### ERGEBNIS
+- Siemens, Fanuc, LinuxCNC an der Drehmaschine: „G0 X20.000 Y10.000“ (Durchmesser), „G0 Z2.000“,
+  „G1 Z-8.000 F120.000“, G83 in Zustellungen, kein G80/G81/G83/G98/G99 mehr. G84 an der
+  Drehmaschine: kein Satz, ein Hinweis.
+- Grün: test_postprozessor, _grbl, _nachfahren, test_programm_pruefen, test_sprache,
+  test_stirnseite, test_rundachsen_din; szenario_programm, _rundum_drehmaschine,
+  _bearbeitung_drehmaschine, _bohren, _stirn_bund.
+
 ## P-2026-10-25-79 programmnummer-je-job
 
 ### EINGELESEN
