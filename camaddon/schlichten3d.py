@@ -469,6 +469,7 @@ def bahn_fuer(
                 # Restschlichten: nur, wo die Kugel davor nicht hinkam (davor ein Torus: sein
                 # Außenradius – lieber zu viel Rest)
                 davor_radius=float(davor.radius) if davor is not None else 0.0,
+                freivorschub=fw.freivorschub_fuer(job),
             )
             return hb.planen(form_teil, [n for n in flaechen if str(n).startswith("Face")], werte_h)
         richtung = "auto"

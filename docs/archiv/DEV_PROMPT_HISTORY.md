@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-28 restschlichten-ecke-fuer-ecke
+
+### EINGELESEN
+- Im Szenario an Manuels Tasche brauchte das Restschlichten der Ecken (Kugel Ø 6) 25 min für 23
+  Höhenlinien in vier Ecken. Nachgemessen: Nur einmal ging es hinaus, aber in jeder Höhe sprang die
+  Bahn im Schnittvorschub (668 mm/min) von Ecke zu Ecke quer durch die Tasche. Dazu fuhr sie längs
+  der Achse in der Tasche hinab und hinauf im Schnittvorschub. Das ist Luft im Vorschub (Regel:
+  ohne Rückfrage weg).
+
+### DATEIEN
+- `camaddon/hinterschnitt_bahn.py`:
+  - `_reihenfolge`: Der nächste Zug beginnt dort, wo der davor aufhörte. So wird erst eine Ecke
+    ganz hinab fertig, dann die nächste.
+  - Lange Wege durch die Luft (über 6 mm) gehen 2 mm vor der Wand im Freivorschub (`_vor`); hinab
+    und hinauf längs der Achse ebenfalls (`Werte.freivorschub`, `bahn.Punkt.anteil`).
+- `camaddon/schlichten3d.py`: der Freivorschub der Maschine (`freiwege.freivorschub_fuer`).
+- `tests/test_hinterschnitt_bahn.py`: Mit Freivorschub ist die Bahn schneller, die schnellen Sätze
+  liegen nie am Boden.
+
+### ERGEBNIS
+- Restschlichten der Ecken an Manuels Tasche (Kopie, Ø 6 im ER11, 35 mm heraus): 24,7 → 1,5 min
+  durch die Reihenfolge, 1,1 min mit dem Freivorschub (30 m/min).
+- Prüfungen: test_hinterschnitt_bahn, test_empfehlung grün.
+
 ## P-2026-10-25-27 empfehlung-im-hintergrund
 
 ### EINGELESEN

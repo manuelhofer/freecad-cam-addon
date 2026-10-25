@@ -124,6 +124,13 @@ pruefe(not tief_im_eilgang, f"{len(tief_im_eilgang)} Eilgänge in die Tasche")
 unten_z = min(p.z for p, _a in im_vorschub)
 pruefe(unten_z < 10.5, f"tiefste Linie bei z {unten_z:.2f}")
 
+# Längs der Achse in der Tasche im Freivorschub: schneller, nur die freien Sätze, nie an der Wand.
+w_frei = hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, vorschub=1500.0, freivorschub=10000.0)
+schnell = hb.planen(teil, waende, w_frei)
+frei = [p for p in schnell.punkte if p.anteil > 1.0]
+print(ascii(f"Freivorschub: {schnell.zeit:.2f} statt {bahn.zeit:.2f} min, {len(frei)} Saetze"))
+pruefe(frei and schnell.zeit < bahn.zeit, f"Freivorschub: {schnell.zeit:.2f} min")
+pruefe(all(p.z > 10.0 + 2.0 for p in frei), "Freivorschub am Boden")
 try:
     hb.planen(teil, [], hb.Werte(radius=R, sicher=40.0))
     pruefe(False, "ohne Flächen kein Fehler")

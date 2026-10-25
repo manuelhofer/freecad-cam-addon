@@ -53,6 +53,7 @@ PROBEN_JE_FLAECHE = 4  # je Richtung so viele Stellen fragt ueberdeckt()
 FLAECHEN_HOECHSTENS = 400  # mehr gewählte Flächen: ueberdeckte() fragt nicht (ein STL)
 STRAHL_TOLERANZ = 0.02  # mm – so fein das Netz für ueberdeckt (die Stelle liegt 0,1 mm davor)
 HALTER_STUECK = 5.0  # mm – so lang sind die Stücke des Halters für die Prüfung
+LANG_IM_FREIEN = 6.0  # mm – längere Wege von Zug zu Zug gehen vor der Wand im Freivorschub
 RAND_REST = 1.5  # mm – so weit fährt das Restschlichten über die Lücke der Kugel davor hinaus
 ECKE_KLEINSTE = 0.5  # mm Radius – kleiner: eine scharfe Kante, dort passt keine Kugel
 ECKE_HALBIEREN = 8
@@ -280,9 +281,11 @@ class Werte:
     koerper: tuple = ()
     schneide: float = 0.0
     oben: float = None  # z der Oberkante des Rohteils – bis darüber im Eilgang; None: des Teils
-    davor_radius: float = (
-        0.0  # Restschlichten: der Radius der Kugel davor – nur, wo sie nicht hinkam
-    )
+    # Restschlichten: der Radius der Kugel davor – nur, wo sie nicht hinkam
+    davor_radius: float = 0.0
+    # mm/min – längs der Achse in der Tasche hinab und hinauf (frei geprüft, _zugang); 0: der
+    # Vorschub. Bis 0.283.1 im Schnittvorschub: an Manuels Tasche gut 11 s Luft je Zug.
+    freivorschub: float = 0.0
 
 
 @dataclass
@@ -474,7 +477,7 @@ def planen(form, namen, w):
     # Stelle – gekippt taucht auch ein Bund weit oben am Halter darunter.
     teile = _koerper(w, 1e6)
     zuege, anstoesse = _achsen(form, netz, stuecke, teile, w, mitte)
-    zuege = [_gerichtet(z, w.gleichlauf) for z in zuege]
+    zuege = _reihenfolge([_gerichtet(z, w.gleichlauf) for z in zuege])
     punkte, achsen, weg = _verbinden(zuege, w, netz, halb) if zuege else ([], [], [])
     anstoesse += weg
     luecken += anstoesse
@@ -1134,9 +1137,14 @@ def _verbinden(zuege, w, netz, halb):
     Die Punkte sind die Spitze der senkrecht gedachten Kugel."""
     punkte, achsen, weg = [], [], []
 
-    def dazu(c, a, eilgang=False, eintauchen=False):
+    # Im Freien längs der Achse (frei geprüft, _zugang) mit dem Freivorschub: als Anteil am
+    # Vorschub (bahn.Punkt.anteil), nie langsamer.
+    schnell = max(1.0, float(w.freivorschub or 0.0) / float(w.vorschub)) if w.vorschub else 1.0
+
+    def dazu(c, a, eilgang=False, eintauchen=False, frei=False):
         spitze = c - FreeCAD.Vector(0, 0, w.radius)
-        punkte.append(bn.Punkt(eilgang, spitze.x, spitze.y, spitze.z, eintauchen))
+        anteil = schnell if frei and not eilgang else 1.0
+        punkte.append(bn.Punkt(eilgang, spitze.x, spitze.y, spitze.z, eintauchen, anteil=anteil))
         achsen.append((a.x, a.y, a.z))
 
     def geschlossen(zug):
@@ -1160,7 +1168,7 @@ def _verbinden(zuege, w, netz, halb):
             dazu(vor, a)
         dazu(knapp, a)
         if ueber is not None:
-            dazu(ueber, a)
+            dazu(ueber, a, frei=True)
         dazu(hoch, a, eilgang=True)
 
     teile = _koerper(w, 1e6)
@@ -1170,7 +1178,21 @@ def _verbinden(zuege, w, netz, halb):
         if ende is not None and geschlossen(zug):
             k = min(range(len(zug)), key=lambda i: (zug[i][0] - ende[0]).Length)
             zug = zug[k:] + zug[1 : k + 1] if k else zug
-        if ende is None or not _gerade_frei(netz, ende, zug[0], halb, w.radius, teile):
+        direkt = ende is not None and _gerade_frei(netz, ende, zug[0], halb, w.radius, teile)
+        if direkt and (zug[0][0] - ende[0]).Length > LANG_IM_FREIEN:
+            # Ein langer Weg durch die Luft (von Ecke zu Ecke): 2 mm vor der Wand im
+            # Freivorschub, nur das letzte Stück im Schnittvorschub.
+            v1, v0 = _vor(ende), _vor(zug[0])
+            if (
+                _gerade_frei(netz, ende, (v1, ende[1], ende[2]), halb, w.radius, teile)
+                and _gerade_frei(
+                    netz, (v1, ende[1], ende[2]), (v0, zug[0][1], zug[0][2]), halb, w.radius, teile
+                )
+                and _gerade_frei(netz, (v0, zug[0][1], zug[0][2]), zug[0], halb, w.radius, teile)
+            ):
+                dazu(v1, ende[1])
+                dazu(v0, zug[0][1], frei=True)
+        if not direkt:
             zugang = _zugang(netz, zug[0], w, halb, teile)
             if zugang is None:
                 weg.extend((c.x, c.y, c.z) for c, _a, _n in zug)
@@ -1182,7 +1204,7 @@ def _verbinden(zuege, w, netz, halb):
             dazu(hoch, a0, eilgang=True)
             if ueber is not None:
                 dazu(ueber, a0, eilgang=True)
-            dazu(knapp, a0)
+            dazu(knapp, a0, frei=ueber is not None)
             dazu(vor, a0, eintauchen=True)
         for c, a, _n in zug:
             dazu(c, a)
@@ -1190,6 +1212,40 @@ def _verbinden(zuege, w, netz, halb):
     if davor is not None:
         verlassen(davor)
     return punkte, achsen, weg
+
+
+def _vor(stelle):
+    """Die Kugelmitte ABSTAND waagerecht vor der Wand an der Stelle."""
+    c, _a, n = stelle
+    waag = FreeCAD.Vector(n.x, n.y, 0.0)
+    waag = waag.normalize() if waag.Length > 1e-9 else FreeCAD.Vector(0, 0, 0)
+    return c + waag * ABSTAND
+
+
+def _reihenfolge(zuege):
+    """Die Züge so der Reihe nach, dass der nächste dort beginnt, wo der davor aufhörte – erst eine
+    Ecke ganz hinab, dann die nächste, statt in jeder Höhe von Ecke zu Ecke (Restschlichten an
+    Manuels Tasche: 23 Höhen × 4 Ecken quer durch die Tasche). Geschlossene Züge zählen mit ihrem
+    nächsten Punkt (_verbinden beginnt sie dort), offene mit ihrem Anfang; begonnen mit dem
+    ersten."""
+    if len(zuege) <= 2:
+        return list(zuege)
+    proben = []
+    for zug in zuege:
+        geschlossen = (zug[0][0] - zug[-1][0]).Length <= 2.0 * SCHRITT
+        stellen = zug[:: max(1, len(zug) // 24)] if geschlossen else zug[:1]
+        proben.append(np.array([[c.x, c.y, c.z] for c, _a, _n in stellen]))
+    offen = list(range(1, len(zuege)))
+    folge = [0]
+    while offen:
+        e = zuege[folge[-1]][-1][0]
+        ende = np.array([e.x, e.y, e.z])
+        naechster = min(
+            offen, key=lambda i: float(np.min(np.linalg.norm(proben[i] - ende, axis=1)))
+        )
+        offen.remove(naechster)
+        folge.append(naechster)
+    return [zuege[i] for i in folge]
 
 
 def _zugang(netz, stelle, w, halb, teile):
