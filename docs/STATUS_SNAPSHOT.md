@@ -530,7 +530,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 (0.281.15) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-25 (0.281.22) – offen, in dieser Reihenfolge:**
 0. *Zum Ausprobieren für Manuel (Nacht zum 2026-10-25):* die langen Halter (Werkzeugverwaltung →
    Halter → „Neu“: Schrumpffutter Ø 6/Ø 12 lang A 200, ER16/ER25 lang A 160, extra schlank 2–6
    A 160); an der 5-Achs-Maschine das Wegkippen in einer tiefen Kavität (A kippt nicht mehr kurz
@@ -561,7 +561,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    (mehr Arbeiter bringen nichts).
 5. *Frage 2 (Taschen):* A liegt fertig auf dem Zweig `frage2-a`; die Morph-Spirale in der Tasche
    (`morph_tasche`) gebaut, aus.
-6. *W-038* (`testteil5achstief`): erst, wenn Manuel es sagt.
+6. *W-038* (`testteil5achstief`): angefangen am 2026-10-25 nach Manuels Plan (Schruppen von oben
+   mit Helix/Kreisen, an den Kanten angestellt, dann die Wand mit der Kugel). Schritte 1 und 2
+   fertig (0.281.21/0.281.22), Schritt 3 (Kugel unter dem Rand) in Arbeit.
 
 Die Aufträge vom 2026-10-18 früh (Forum-Post, Einrichtblatt mit vc/fz und Koordinatensystem,
 Rohteilmaße in „Bearbeitung“, Nase/Kombination) sind erledigt (P-2026-10-18-84 … -99).
@@ -1842,11 +1844,21 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   4,7 s im einen Nebenrechner am Anfang. Danach rechnet das Fenster gut 6 s allein: die Form
   lesen, `richte_ein` und die Einfahrbewegung des Teils (70 Bilder mit dem Netz des Geists) –
   Zeichnen, nicht verteilbar.
-- **W-038 5-Achs-Testteil „tief“ (für später)** – Manuel, 2026-10-23: „ich habe ein neues 5 achs
-  testteil erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen
-  bearbeitet werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel,
-  nicht im Repo): Block 80 × 80 × 93,3, Face1 eben oben bei Z 90, Face23 eben bei Z 40 (50 tief),
-  dazwischen 16 Freiformflächen (B-Spline). Noch nicht anfangen – er sagt, wann.
+- **W-038 5-Achs-Testteil „tief“** – Manuel, 2026-10-23: „ich habe ein neues 5 achs testteil
+  erstellt für später ... es muss von face 1 runter auf face23 mit allen konturen bearbeitet
+  werden“. Datei `~/freecad_cam/testteile/testteil5achstief.FCStd` (nur bei Manuel, nicht im
+  Repo): Block 80 × 80 × 93,3, Face1 oben bei Z 90, Face23 Boden bei Z 40 (50 tief). Die Wände
+  hängen 8,5–10° über (oben ±30, unten ±36,5), Rundungen R 7 am Boden. Am 2026-10-25 hat er es
+  freigegeben („ich will doch nur die tasche da herraus fräsen mit einer 5 achs fräsmaschine mit
+  einem langen halter heist ich muss ausweich kippen haben“) und den Weg genannt: von oben mit
+  Helix und Morph-Kreisen schruppen, an den Kanten anstellen, bis mit dem Schruppfräser alles
+  weg ist, dann die Wand mit dem Kugelfräser schlichten.
+  **Fertig:** P-2026-10-25-20 (die Tasche unter der Öffnung erkennt das Räumen, Ringe von innen
+  nach außen, 2 min); P-21 (die Flanke an überhängenden Wänden, erst Umläufe je ae davor, 64
+  Umläufe, 6 min; an der G550 die Flanke nach der Ebene „von oben“). **In Arbeit:** die Kugel
+  unter dem Rand (`hinterschnitt_bahn.py`: Höhenlinien, Achse um Wandneigung + 4° gekippt).
+  **Offen:** ein leeres „3D-Schruppen T1“, das der Assistent anlegt (die Vorschau sieht mehr
+  Rest als das genaue Räumen lässt).
 - **W-037 Messspitzenhalter von vorn: Ringnut und Fase** – Manuel, 2026-10-18 (Bilder): Im Ring
   zwischen Bund Ø 15 und der Fase außen fuhr das Planfräsen mit dem 6er Zeilen („totaler
   scheissdreck … einfahren wie in eine nut und mit wellen rauskauen und dann noch die ränder
