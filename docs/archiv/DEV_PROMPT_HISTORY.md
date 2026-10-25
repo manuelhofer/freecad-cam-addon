@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-74 g94-im-kopf
+
+### EINGELESEN
+- Durchsicht der Programme am Taster-Teil (Fanuc, Haas, Mazak, LinuxCNC, Mach, GRBL, Siemens):
+  Kein Kopf setzte den Vorschub je Minute. Steht vom Programm davor G95 (je Umdrehung) – Fanuc
+  behält den Zustand nach dem Reset –, liest die Steuerung „G81 … F187.000“ als 187 mm je
+  Umdrehung.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: G94 im Kopf der Fräse bei LinuxCNC, Mach, Fanuc, Mazak, Haas,
+  GRBL und Siemens (an Fanuc/Haas/Mazak-Drehmaschinen bleibt der eigene Kopf mit G98 – G94 ist
+  dort ein Plandrehzyklus).
+- `tests/test_postprozessor.py`, `tests/gui/szenario_programm.py`; Prüfsummen der
+  Simultan-Referenzen (`freiform_simultan_nc.json`, `kuppel_simultan_gesamt_nc.json`,
+  `simultan_folge.json`, `simultan_bereiche.json`); das Beispielprogramm
+  `beispiele/grob_g550_freiform/freiform_5achs.mpf` mit `nc_pruefung.json` neu geschrieben (stand
+  noch ohne Werkzeugliste, ANFANG und Vorwahl).
+
+### ERGEBNIS
+- Fanuc: „G17 G21 G40 G49 G80 G90 G94“, Siemens „G17 G71 G90 G40 G94“.
+- Grün: test_postprozessor, _nachfahren, _grbl, test_programmkopf, test_programm_pruefen,
+  test_mpr, test_rundachsen_din, test_schwenken_maschinen, test_stirnseite, die
+  Simultan-Prüfungen; szenario_programm.
+
 ## P-2026-10-25-73 klartext-schraubenlinie-cp
 
 ### EINGELESEN

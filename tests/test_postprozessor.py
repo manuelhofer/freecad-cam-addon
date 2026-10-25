@@ -61,7 +61,7 @@ tasche = pp.Abschnitt(
 )
 prog = pp.programm([tasche], pp.steuerung("linuxcnc"), pp.Maschineninfo("Fräse"), "Platte")
 z = prog.zeilen
-pruefe(z[:3] == ["%", "(Platte)", "G17 G21 G40 G49 G80 G90"], f"Kopf: {z[:3]}")
+pruefe(z[:3] == ["%", "(Platte)", "G17 G21 G40 G49 G80 G90 G94"], f"Kopf: {z[:3]}")
 pruefe("T3 M6" in z and "M3 S2000" in z and "M8" in z, f"Wechsel/Spindel/Kühlung: {z[3:10]}")
 pruefe("G1 Z-2.000 F300.000" in z, f"F mal 60: {[x for x in z if x.startswith('G1')]}")
 pruefe("G2 X20.000 Y5.000 I5.000 J0.000 F600.000" in z, "Bogen")
@@ -223,7 +223,7 @@ quader = ((-30.0, -20.0, 0.0), (30.0, 20.0, 25.0))
 mit_rohteil = pp.programm([tasche], pp.steuerung("siemens"), rohteil=quader).zeilen
 pruefe(
     'WORKPIECE(,"",,"BOX",240,25.000,0.000,0.000,-30.000,-20.000,30.000,20.000)' in mit_rohteil
-    and mit_rohteil.index("G17 G71 G90 G40")
+    and mit_rohteil.index("G17 G71 G90 G40 G94")
     < mit_rohteil.index(
         'WORKPIECE(,"",,"BOX",240,25.000,0.000,0.000,-30.000,-20.000,30.000,20.000)'
     )
@@ -347,7 +347,7 @@ pruefe(
 # Satznummern: N10, N20 … – nicht vor „%“, „O0001“ und Kommentaren.
 fanuc_n = pp.programm([tasche], pp.steuerung("fanuc", {"satznummern": True}), None, "P").zeilen
 pruefe(
-    fanuc_n[:3] == ["%", "O0001 (P)", "N10 G17 G21 G40 G49 G80 G90"]
+    fanuc_n[:3] == ["%", "O0001 (P)", "N10 G17 G21 G40 G49 G80 G90 G94"]
     and fanuc_n[-1] == "%"
     and all(z.startswith(("N", "(", "%", "O")) for z in fanuc_n),
     f"Satznummern: {fanuc_n[:6]} … {fanuc_n[-3:]}",

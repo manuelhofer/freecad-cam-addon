@@ -452,7 +452,8 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
     `laenge_ein_drehen` (vorbelegt `G43 H{t}` nur an LinuxCNC), im ersten Fahrsatz nach dem
     Wechsel.
   - An Fanuc (G-Code-System A) und Haas ist G90 an der Drehmaschine der Längsdrehzyklus, G49
-    gibt es dort nicht – der Kopf der Fräse (`G17 G21 G40 G49 G80 G90`) stand bis hier auch an
+    gibt es dort nicht – der Kopf der Fräse (`G17 G21 G40 G49 G80 G90`, seit P-2026-10-25-74 mit
+    `G94`) stand bis hier auch an
     der Drehmaschine. Jetzt `kopf_drehmaschine` (statt `kopf` an der Drehmaschine), an Fanuc und
     Haas `G21 G40 G80 G97 G98`. Nicht an einer echten Steuerung nachgeprüft – vor dem ersten
     Lauf in der Simulation ansehen.

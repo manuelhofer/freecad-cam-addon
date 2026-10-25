@@ -1,16 +1,16 @@
 {
-  "sha256": "7f17eeae2e342bbbd3b8ffda4aeab49dcb61bd81bad0121214ca8e0a5e031cb0",
+  "sha256": "14c647fae4082e3d6f337a4f7943b3b91e31806d800454d0b909b164f7964d21",
   "nc_saetze": 45143,
   "material": {
     "rest": 0.01644218766042016,
-    "einschnitt": 0.0013375577036889297,
+    "einschnitt": 0.001337557703685377,
     "eilgang_abtrag": 0.0,
     "schnell_abtrag": 0.0,
     "schnellweg": 3.999999220557651,
-    "luftweg": 72.57482788983947,
-    "vorschubweg": 8141.179072358653,
-    "volumen": 4752.155578969154,
-    "last_max": 6.819197429679077,
+    "luftweg": 72.52574977797443,
+    "vorschubweg": 8141.179072358636,
+    "volumen": 4752.15557897511,
+    "last_max": 6.819197399882773,
     "eintauchungen": 0,
     "luftzuege": 0,
     "rampenwinkel_max": 0.0,
@@ -18,9 +18,9 @@
     "eilgaenge": [],
     "raster": 0.1,
     "unsicherheit": 0.0005,
-    "flaechenzellen": 545585,
+    "flaechenzellen": 550907,
     "ungedeckt": 0,
     "gruende": []
   },
-  "brep_abstand_mm": 0.0003615958915460524
+  "brep_abstand_mm": 0.0003615958915424997
 }

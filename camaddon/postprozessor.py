@@ -387,7 +387,9 @@ HAKEN = (
     "gewinde_synchron",
 )
 
-_KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90"
+# G94 im Kopf: Stand vom Programm davor G95 (Vorschub je Umdrehung), hieße F187 sonst 187 mm je
+# Umdrehung – Fanuc behält den Zustand nach dem Reset.
+_KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90 G94"
 _MKS = ("G53 G0 {achsen}",)
 _ENDE = "M5\nM9\nM30\n%"
 
@@ -432,7 +434,7 @@ STEUERUNGEN = {
         "Siemens 840D",
         ".mpf",
         "; ",
-        "{kommentar_name}\nG17 G71 G90 G40",
+        "{kommentar_name}\nG17 G71 G90 G40 G94",
         "M5\nM9\nM30",
         "G18",
         "T{t} M6",
@@ -520,7 +522,7 @@ STEUERUNGEN = {
         "Fanuc",
         ".nc",
         "(",
-        "%\nO0001 {kommentar_name}\nG17 G21 G40 G49 G80 G90",
+        "%\nO0001 {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
         _ENDE,
         "G18",
         "T{t} M6",
@@ -567,7 +569,7 @@ STEUERUNGEN = {
         "Mazak (EIA/ISO)",
         ".eia",
         "(",
-        "%\nO0001 {kommentar_name}\nG17 G21 G40 G49 G80 G90",
+        "%\nO0001 {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
         _ENDE,
         "G18",
         "T{t} M6",
@@ -603,7 +605,7 @@ STEUERUNGEN = {
         "Haas",
         ".nc",
         "(",
-        "%\nO00001 {kommentar_name}\nG17 G21 G40 G49 G80 G90",
+        "%\nO00001 {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
         _ENDE,
         "G18",
         "T{t} M6",
@@ -641,7 +643,7 @@ STEUERUNGEN = {
         ".nc",
         "(",
         # Ohne G49: GRBL kennt keine Länge je Werkzeug (nur G43.1) – Z wird je Werkzeug angetastet.
-        "{kommentar_name}\nG17 G21 G40 G80 G90",
+        "{kommentar_name}\nG17 G21 G40 G80 G90 G94",
         "M5\nM9\nM30",
         "G18",
         "M0",

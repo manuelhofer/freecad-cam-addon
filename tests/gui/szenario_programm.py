@@ -132,7 +132,7 @@ def schritte(h):
     d.glaetten_haken["compcad"].setChecked(True)
     yield 500
     text = d.vorschau.toPlainText()
-    h.pruefe("N10 G17 G71 G90 G40" in text and "COMPCAD" in text, f"Haken: {text[:300]!r}")
+    h.pruefe("N10 G17 G71 G90 G40 G94" in text and "COMPCAD" in text, f"Haken: {text[:300]!r}")
     h.pruefe("COMPCAD" in d.hinweise.text(), f"Hinweis COMPCAD: {d.hinweise.text()!r}")
     h.bild("2b_siemens_einstellungen", d)
     leiste = d.einstellungen.verticalScrollBar()
