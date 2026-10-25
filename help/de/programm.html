@@ -79,6 +79,15 @@ ihrer Satznummer („N3 = RAEUMEN_T1“). Ganz vorn die Marke <b>ANFANG</b>: Im 
 suchst du nach dem Namen einer Marke und bist dort, nach ANFANG und bist wieder oben (Siemens
 „ANFANG:“, Heidenhain „* - ANFANG“, sonst als Kommentar; Steuerungen ohne Marken haben den Namen
 jeder Bearbeitung im Kommentar).</li>
+<li><b>Nullpunkt aus dem Job (G54 …)</b> – vorbelegt aus. An: am Anfang und hinter jeder
+Sprungmarke der Nullpunkt, den der Job unter den Arbeitskoordinatensystemen nennt (in FreeCAD
+vorbelegt G54) – vor dem Wechselpunkt und vor dem Schwenken, im Kopf „Nullpunkt: G54“. Jede
+Steuerung mit ihrem Befehl: LinuxCNC G54 … G59.3, Siemens G54 … G57 und ab dem fünften G505 …
+(G58 und G59 sind an der 840D axiale Verschiebungen), Fanuc und Mazak ab dem siebten
+„G54.1 P1“, Haas „G154 P1“, Mach „G59 P7“, Heidenhain Zyklus 247 mit der Zeile der
+Preset-Tabelle (G54 = 1, G55 = 2 …), GRBL nur G54 … G59. Nennt der Job mehrere, wählt das
+Programm den ersten und sagt es. Aus: das Programm fährt im Nullpunkt, der an der Maschine gerade
+aktiv ist – wähl ihn dort an.</li>
 <li><b>Kommentare nur in ASCII</b> – Umlaute und Zeichen wie Ø, –, · in den Kommentaren
 ersetzt (ä → ae, Ø → D, – → -). Fanuc, Haas und Mach lesen Programme im ASCII-Zeichensatz und
 brechen bei anderen Zeichen mit „Illegal character“ ab; an LinuxCNC vorsichtshalber ebenso. An

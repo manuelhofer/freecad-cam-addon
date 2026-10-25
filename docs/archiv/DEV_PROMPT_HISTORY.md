@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-71 nullpunkt-aus-dem-job
+
+### EINGELESEN
+- Manuel, nachts: Postprozessoren sollen „wirlich alles richtig ausgeben und einstell möglichkeiten
+  haben“ – „und das bei jedem post prozessor“. Bis hier schrieb kein Postprozessor des Addons einen
+  Nullpunkt: das Programm fuhr in dem, der an der Maschine aktiv ist; der Job nennt ihn aber
+  (`Job.Fixtures`, vorbelegt G54), das Einrichtblatt zeigt ihn schon.
+- FreeCAD (Wochen-Build 27.1, `Post/Processor.py`): Nullpunkte heißen G54 … G59, G59.1 … oder
+  G54.1 Pn. Siemens 840D: G58/G59 sind axiale Verschiebungen, die einstellbaren ab dem fünften
+  G505 … G599; Fanuc/Mazak G54.1 P1 …, Haas G154 P1 …, Mach G59 P7 …, Heidenhain Zyklus 247
+  (Q339 die Zeile der Preset-Tabelle; setzt Zyklus 7 zurück, PLANE bleibt).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Felder `nullpunkt`, `nullpunkt_weitere`, `nullpunkt_grund`, Haken
+  `nullpunkt_setzen` (vorbelegt aus); `nullpunkt_nummer`, `nullpunkt_befehl`;
+  `Abschnitt.nullpunkte` aus dem Grundjob; im Programm vor dem Wechselpunkt jedes Einstiegs, im
+  Kopf „Nullpunkt: G58 – im Programm G505“; Hinweise ohne Befehl und bei mehreren.
+- `camaddon/klartext.py`: Q-Parameter-Zeilen aus den Befehlen setzen den Zyklus davor fort.
+- `camaddon/gui_programm.py` (Gruppe „Programm“; nicht bei woodWOP, „Weitere“ nicht im
+  Klartext), `translations/de.json`, `en.json`, `help/*/programm.html`,
+  `docs/spezifikation_steuerung.md` 19, `docs/OFFENE_FRAGEN.md` Frage 3 (vorbelegt an?).
+- `tests/test_postprozessor.py`, `tests/test_postprozessor_nachfahren.py` (Nullpunkte aus dem Job,
+  Gegenprobe mit Haken an).
+
+### ERGEBNIS
+- An: LinuxCNC „G54“ vor „G53 G0 Z250.000“ in jedem Einstieg; Siemens G56 → G56, G58 → G505,
+  G59.1 → G507; Fanuc G59.2 → G54.1 P2, Haas G154 P2, Mach G59 P8; Heidenhain
+  „CYCL DEF 247 BEZUGSPUNKT SETZEN ~ / Q339=+2“; GRBL G59.1: Hinweis, kein Befehl. Alle
+  nachgelesen ohne Befund. Aus (vorbelegt): Programme wie bisher, Referenzen unverändert.
+- Grün: test_postprozessor, _nachfahren, _grbl, test_programmkopf, test_programm_pruefen,
+  test_mpr, test_sprache; szenario_programm, _programm_heidenhain.
+
 ## P-2026-10-25-70 werkzeug-vorwahl, hochlauf-warten, jede-bohrvorlage-gilt
 
 ### EINGELESEN

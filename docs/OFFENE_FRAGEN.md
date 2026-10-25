@@ -32,3 +32,14 @@ jemand im Forum.
 danach, wie Mazak heute Nacht.
 Seit 2026-10-25.
 
+
+**Frage 3 – Soll das Programm den Nullpunkt (G54) selbst anwählen?** Neu gibt es den Haken
+„Nullpunkt aus dem Job (G54 …)“: Dann steht am Anfang und hinter jeder Sprungmarke der Nullpunkt
+des Jobs (Siemens G54–G57, ab dem fünften G505; Heidenhain Zyklus 247). Vorbelegt ist er **aus**
+– wie bisher fährt das Programm im Nullpunkt, der an der Maschine aktiv ist. Fusion, Mastercam und
+FreeCADs eigene Postprozessoren schreiben G54 von sich aus.
+*Warum nur Manuel:* Ob man in seiner Werkstatt den Nullpunkt an der Maschine anwählt oder das
+Programm ihn setzen soll, ist Gewohnheit der Bediener – falsch vorbelegt fährt das Programm im
+falschen Nullpunkt.
+*Was die Antwort ändert:* Mit ja ist der Haken vorbelegt an (je Steuerung oder für alle).
+Seit 2026-10-25.

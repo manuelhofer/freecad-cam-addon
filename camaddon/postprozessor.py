@@ -173,6 +173,15 @@ class Steuerung:
     # Haken aus: keine Vorwahl; an der Drehmaschine nie (T dreht dort den Revolver).
     vorwahl: str = ""
     werkzeug_vorwahl: bool = True
+    # Der Nullpunkt, den der Job nennt (CAM: Fixtures, „G54“) – am Anfang und hinter jeder Marke,
+    # vor dem Wechselpunkt und dem Schwenken. Die ersten `nullpunkt_grund` mit `nullpunkt`, die
+    # übrigen mit `nullpunkt_weitere`: {g} G54 … G59, {nr} die Nummer (G54 = 1, G59.1 und
+    # G54.1 P1 = 7), {e} die Nummer nach G59 (G59.1 = 1), {nn} zweistellig (Siemens G505). Haken
+    # aus (vorbelegt): das Programm nimmt den Nullpunkt, der an der Maschine aktiv ist.
+    nullpunkt: str = "{g}"
+    nullpunkt_weitere: str = ""
+    nullpunkt_grund: int = 6
+    nullpunkt_setzen: bool = False
     # Hinter jeder Marke ein vollständiger Einstieg (Werkzeug neu) – nein bei GRBL: Dort ist der
     # Wechsel ein Halt (M0); die Marken stehen als Namen im Kommentar zum Suchen.
     einstieg_je_marke: bool = True
@@ -299,6 +308,8 @@ BEFEHLSFELDER = (
     "durchmesser_ein",
     "radius_ein",
     "ende",
+    "nullpunkt",
+    "nullpunkt_weitere",
     "wechsel_fraesen",
     "vorwahl",
     "laenge_ein",
@@ -363,6 +374,7 @@ HAKEN = (
     "marken",
     "werkzeugliste",
     "werkzeug_vorwahl",
+    "nullpunkt_setzen",
     "hochlauf_warten",
     "c_achse",
     "g93",
@@ -399,6 +411,7 @@ STEUERUNGEN = {
         # LinuxCNC: G64 P (Toleranz der Bahn) Q (gerade Stücke zusammenfassen).
         hochlauf_warten=True,  # LinuxCNC wartet nicht von selbst (ohne „spindle at speed“)
         vorwahl="T{t}",  # das nächste Werkzeug vorbereiten (T ohne M6)
+        nullpunkt_weitere="G59.{e}",  # G59.1 … G59.3 (LinuxCNC: neun Nullpunkte)
         glaetten_angebot=(Glaetten("g64", "G64 P{toleranz} Q{toleranz}", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
@@ -432,6 +445,10 @@ STEUERUNGEN = {
         "G94",
         verweilen="G4 F{sek}",  # Siemens: G4 F – Sekunden (G4 S: Umdrehungen)
         vorwahl="T{t}",  # vorwählen; „T{t} M6“ wechselt (mit Werkzeugverwaltung: T="{werkzeug}")
+        # Einstellbare Nullpunkte G54 … G57, ab dem fünften G505 … G599 – G58 und G59 sind an der
+        # 840D axiale Verschiebungen (Grundlagen, „Einstellbare Nullpunktverschiebung“).
+        nullpunkt_grund=4,
+        nullpunkt_weitere="G5{nn}",
         # SUPA: Maschinenkoordinaten ohne Verschiebungen; D0 ohne Werkzeugkorrektur – der
         # Wechselpunkt gilt für den Werkzeugträger.
         wechselpunkt_mks="G0 SUPA D0 {achsen}",
@@ -515,6 +532,7 @@ STEUERUNGEN = {
         "G98",
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
+        nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme P1 … P48
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         vom_hersteller=("angetrieben_ein", "angetrieben_aus", "c_ein", "c_aus"),
         # Vorausschau und AI-Konturregelung sind bei Fanuc Optionen – vorbelegt aus.
@@ -567,6 +585,7 @@ STEUERUNGEN = {
         tcpm_aus="G49",
         verweilen="G4 X{sek}",  # „G04 X5. … Dwell time = 5.0 sec“ (Handbuch 8-1)
         vorwahl="T{t}",
+        nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme (wie Fanuc)
         gewinde_g=("G84.2", "G84.3"),
         gewinde_f_steigung=True,
         # Mit Ausgleichsfutter: G84 (G74 links) asynchron – H0 („h0 = 0 … Asynchronous tapping“),
@@ -595,6 +614,7 @@ STEUERUNGEN = {
         "G94",
         "G98",
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
+        nullpunkt_weitere="G154 P{e}",  # Haas: G154 P1 … P99 (zusätzliche Werkstückoffsets)
         # Ohne G187 gilt die Glättung aus Einstellung 191 der Maschine.
         glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
         wechselpunkt_vorschlaege=_MKS,
@@ -661,6 +681,7 @@ STEUERUNGEN = {
         "G94",
         hochlauf_warten=True,
         vorwahl="T{t}",
+        nullpunkt_weitere="G59 P{nr}",  # Mach3/Mach4: ab dem siebten „G59 P7“
         glaetten_angebot=(Glaetten("g64", "G64", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
@@ -679,6 +700,10 @@ _HEIDENHAIN = {
     "kopf_drehen": "",
     "wechsel_fraesen": "TOOL CALL {t} Z",
     "vorwahl": "TOOL DEF {t}",  # das nächste Werkzeug vorwählen
+    # Bezugspunkt aus der Preset-Tabelle (Zyklus 247, Q339 die Zeile – G54 = 1); setzt Zyklus 7
+    # zurück, PLANE bleibt: darum vor dem Schwenken.
+    "nullpunkt": "CYCL DEF 247 BEZUGSPUNKT SETZEN ~\nQ339=+{nr} ;BEZUGSPUNKT-NUMMER",
+    "nullpunkt_grund": 999,
     "wechsel_drehen": "TOOL CALL {t} Z",
     "spindel_ein": "M{m} S{s}",
     "spindel_aus": "M5",
@@ -754,6 +779,7 @@ _WOODWOP = {
     "marken": False,
     "rohteil": False,
     "schwenkzyklus": False,
+    "nullpunkt": "",  # woodWOP kennt kein G54
     "dialekt": "mpr",
 }
 STEUERUNGEN["woodwop"] = Steuerung("woodwop", "Homag woodWOP (MPR)", **_WOODWOP)
@@ -837,6 +863,8 @@ class Abschnitt:
     # "nase", "halter", "geschaetzt"} – leer, wenn das Werkzeug nicht in der Werkzeugverwaltung
     # steht (dann wären Länge und Halter geraten).
     masse: dict = field(default_factory=dict)
+    # Die Nullpunkte des Jobs (CAM: Fixtures; bei einer Ebene die des Grundjobs) – „G54“ …
+    nullpunkte: tuple = ()
 
 
 @dataclass
@@ -867,6 +895,11 @@ def feld_text(feld):
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
         "vorwahl": (tr("pp.feld.vorwahl"), tr("pp.feld.vorwahl.tooltip")),
+        "nullpunkt": (tr("pp.feld.nullpunkt"), tr("pp.feld.nullpunkt.tooltip")),
+        "nullpunkt_weitere": (
+            tr("pp.feld.nullpunkt_weitere"),
+            tr("pp.feld.nullpunkt_weitere.tooltip"),
+        ),
         "verweilen": (tr("pp.feld.verweilen"), tr("pp.feld.verweilen.tooltip")),
         "wechsel_drehen": (tr("pp.feld.wechsel_drehen"), tr("pp.feld.wechsel_drehen.tooltip")),
         "laenge_ein": (tr("pp.feld.laenge_ein"), tr("pp.feld.laenge_ein.tooltip")),
@@ -938,6 +971,10 @@ def haken_text(feld):
         "werkzeug_vorwahl": (
             tr("pp.haken.werkzeug_vorwahl"),
             tr("pp.haken.werkzeug_vorwahl.erklaerung"),
+        ),
+        "nullpunkt_setzen": (
+            tr("pp.haken.nullpunkt_setzen"),
+            tr("pp.haken.nullpunkt_setzen.erklaerung"),
         ),
         "hochlauf_warten": (
             tr("pp.haken.hochlauf_warten"),
@@ -1079,6 +1116,32 @@ def _fuellen(vorlage, **werte):
 
 def _zeilen(text):
     return [z.rstrip() for z in (text or "").split("\n") if z.strip()]
+
+
+_NULLPUNKT = re.compile(r"G5([4-9])|G59\.([1-9])|G54\.1\s*P(\d+)")
+
+
+def nullpunkt_nummer(register):
+    """Die Nummer des Nullpunkts, wie der Job ihn nennt (FreeCADs Fixtures): G54 … G59 → 1 … 6,
+    G59.1 … G59.9 und G54.1 P1 … → 7 …; None, wenn es keiner ist."""
+    m = _NULLPUNKT.fullmatch(str(register).strip().upper())
+    if m is None:
+        return None
+    if m.group(1):
+        return int(m.group(1)) - 3
+    weiter = int(m.group(2) or m.group(3))
+    return 6 + weiter if weiter > 0 else None
+
+
+def nullpunkt_befehl(s, register):
+    """Die Zeilen, mit denen die Steuerung `s` den Nullpunkt `register` (wie der Job ihn nennt)
+    anwählt – leer, wenn sie dafür keinen Befehl hat."""
+    nr = nullpunkt_nummer(register)
+    if nr is None:
+        return []
+    vorlage = s.nullpunkt if nr <= s.nullpunkt_grund else s.nullpunkt_weitere
+    g = f"G5{nr + 3}" if nr <= 6 else ""
+    return _zeilen(_fuellen(vorlage, g=g, nr=nr, e=nr - 6, nn=f"{nr:02d}"))
 
 
 def _adresse(s, buchstabe, info):
@@ -1271,6 +1334,7 @@ def programm(
     geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
     zyklus = bool(s.schwenkzyklus and s.schwenken)
     laenge_offen = ""  # die Werkzeuglänge – kommt in den ersten Satz nach dem Wechsel mit Z
+    nullpunkt_aktiv = None  # der Nullpunkt, den das Programm zuletzt angewählt hat
     for nummer_ab, abschnitt in enumerate(abschnitte):
         stellen = abschnitt.koordinatenstellen
         # Jede Bearbeitung ein vollständiger Einstieg hinter ihrer Marke (D-4): Wechselpunkt,
@@ -1328,11 +1392,32 @@ def programm(
             for _name, werte in befehle:
                 for buchstabe in umdrehen & set(werte):
                     werte[buchstabe] = -werte[buchstabe]
+        # Der Nullpunkt des Jobs – am Anfang und in jedem Einstieg, vor dem Wechselpunkt (in WKS)
+        # und dem Schwenken (Heidenhain: Zyklus 247 setzt Zyklus 7 zurück).
+        nullpunkt = []
+        register = abschnitt.nullpunkte[0] if abschnitt.nullpunkte else ""
+        if s.nullpunkt_setzen and register and (register != nullpunkt_aktiv or einstieg):
+            nullpunkt = nullpunkt_befehl(s, register)
+            if register != nullpunkt_aktiv:
+                hinweis = ""
+                if not nullpunkt:
+                    hinweis = tr("pp.hinweis.nullpunkt_fehlt", register=register, steuerung=s.name)
+                elif len(abschnitt.nullpunkte) > 1:
+                    hinweis = tr(
+                        "pp.hinweis.nullpunkte_mehrere",
+                        register=register,
+                        alle=", ".join(abschnitt.nullpunkte),
+                    )
+                if hinweis and hinweis not in hinweise:
+                    hinweise.append(hinweis)
+            nullpunkt_aktiv = register
         gewechselt = False
         if abschnitt.werkzeug and (abschnitt.werkzeug != werkzeug or einstieg):
             if spindel_an is not None:
                 zeilen.extend(_spindel_aus(s, spindel_an))
                 spindel_an = None
+            zeilen.extend(nullpunkt)
+            nullpunkt = []
             zeilen.extend(_zum_wechselpunkt(s, info))
             if geschwenkt is not None and not sw.gleiche(geschwenkt, abschnitt.schwenkung):
                 zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
@@ -1378,6 +1463,7 @@ def programm(
             )
             werkzeug = abschnitt.werkzeug
             gewechselt = True
+        zeilen.extend(nullpunkt)  # ohne Wechsel (Bahn ohne Werkzeug am Anfang)
         if not sw.gleiche(geschwenkt, abschnitt.schwenkung) or (
             einstieg and abschnitt.schwenkung is not None
         ):
@@ -2014,6 +2100,12 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
     merk = {}  # je Controller: Einspannung und Maße (_einspannung_und_knapp)
     geschwenkt = sw.ist_ebene(job)
     gerechnet = {}  # id(Maschine) → (Maschine, Schwenkung): je Werkzeug einmal
+    # Die Nullpunkte des Jobs – eine Ebene liegt in derselben Aufspannung wie ihr Grundjob.
+    nullpunkte = tuple(
+        str(f).strip()
+        for f in (getattr(rw.grundjob_von(job) or job, "Fixtures", None) or [])
+        if str(f).strip()
+    )
     for op in getattr(getattr(job, "Operations", None), "Group", []):
         if not getattr(op, "Active", True) or getattr(op, "Path", None) is None:
             continue
@@ -2107,6 +2199,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 stirn,
                 koordinatenstellen=6 if float(getattr(op, "BahnGrathoehe", 0.0)) > 0 else STELLEN,
                 masse=einspannung[2],
+                nullpunkte=nullpunkte,
             )
         )
     return ergebnis
@@ -2537,6 +2630,17 @@ def _kopfzeilen(s, abschnitte, marken):
     Werkzeug sein Name, Ø, Auskragung, Länge ab Spindelnase und Halter, und für welche
     Bearbeitungen (ihre Marken); wo es knapp wird."""
     zeilen = []
+    register = next((a.nullpunkte[0] for a in abschnitte if a.nullpunkte), "")
+    if s.nullpunkt_setzen and register:
+        # Der Befehl in einer Zeile, ohne Fortsetzung und Kommentar (Zyklus 247: „… Q339=+5“).
+        befehl = " ".join(
+            z.split(" ;")[0].replace(" ~", "").strip() for z in nullpunkt_befehl(s, register)
+        )
+        if befehl and befehl != register:
+            text = tr("pp.kopf.nullpunkt_befehl", register=register, befehl=befehl)
+        else:
+            text = tr("pp.kopf.nullpunkt", register=register)
+        zeilen.append(_kommentar(s, text))
     if marken:
         zeilen.append(_kommentar(s, tr("pp.kopf.marken")))
         zeilen.append(_kommentar(s, f"  {MARKE_ANFANG} – {tr('pp.kopf.anfang')}"))

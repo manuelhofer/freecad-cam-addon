@@ -50,6 +50,9 @@ GRUPPEN = (
             "kopf",
             "kopf_drehmaschine",
             "kopf_drehen",
+            "nullpunkt_setzen",
+            "nullpunkt",
+            "nullpunkt_weitere",
             "rohteil",
             "rohteil_fraesen",
             "rohteil_drehen",
@@ -182,6 +185,8 @@ NUR_KLARTEXT = {"bohrzyklen"}
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {
     "vorwahl": "werkzeug_vorwahl",
+    "nullpunkt": "nullpunkt_setzen",
+    "nullpunkt_weitere": "nullpunkt_setzen",
     "verweilen": "hochlauf_warten",
     "rohteil_fraesen": "rohteil",
     "rohteil_drehen": "rohteil",
@@ -702,6 +707,10 @@ class ProgrammDialog(QtGui.QDialog):
             return False
         if feld in NUR_KLARTEXT and self.steuerung().dialekt != "klartext":
             return False
+        if feld in ("nullpunkt_setzen", "nullpunkt", "nullpunkt_weitere"):
+            # woodWOP kennt kein G54; der Klartext wählt jeden Bezugspunkt mit Zyklus 247.
+            dialekt = self.steuerung().dialekt
+            return dialekt != "mpr" and not (feld == "nullpunkt_weitere" and dialekt == "klartext")
         if feld in ("gewinde_synchron", "gewinde_ausgleich"):
             # Nur, wo synchron und mit Ausgleichsfutter verschieden geschrieben wird (Haas nicht).
             return self.steuerung().gewinde_waehlbar()

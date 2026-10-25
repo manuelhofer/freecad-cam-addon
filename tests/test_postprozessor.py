@@ -546,6 +546,71 @@ pruefe(
 )
 dreh_b = pp.programm([bohren], pp.steuerung("siemens"), dreh, "B").zeilen
 pruefe(any(x.startswith("G81 ") for x in dreh_b), "Drehmaschine: G81 nicht behalten")
+# Der Nullpunkt aus dem Job (Fixtures): vorbelegt aus; an: am Anfang und in jedem Einstieg vor
+# dem Wechselpunkt, je Steuerung ihr Befehl – Siemens ab dem fünften G505 (G58 ist dort axial),
+# Fanuc G54.1 P, Haas G154 P, Mach G59 P, Heidenhain Zyklus 247; GRBL kennt nach G59 keinen.
+import dataclasses  # noqa: E402
+
+
+def mit_nullpunkt(*register):
+    return [dataclasses.replace(a, nullpunkte=register) for a in (tasche, bohren)]
+
+
+oben = pp.Maschineninfo("Fräse", wechselpunkt={"Z": 250.0})
+aus_n = pp.programm(mit_nullpunkt("G54"), pp.steuerung("linuxcnc"), oben, "N").zeilen
+pruefe("G54" not in aus_n, f"Nullpunkt ohne Haken: {aus_n}")
+an_n = {"nullpunkt_setzen": True}
+z_n = pp.programm(mit_nullpunkt("G54"), pp.steuerung("linuxcnc", an_n), oben, "N").zeilen
+k = z_n.index("G54") if "G54" in z_n else -1
+pruefe(
+    k > 0 and z_n[k + 1] == "G53 G0 Z250.000" and z_n.count("G54") == 2,
+    f"LinuxCNC Nullpunkt je Einstieg vor dem Wechselpunkt: {z_n}",
+)
+pruefe("(Nullpunkt: G54)" in z_n, f"Nullpunkt im Kopf: {z_n[:12]}")
+for kennung, register, soll in (
+    ("siemens", "G56", "G56"),
+    ("siemens", "G58", "G505"),
+    ("siemens", "G59.1", "G507"),
+    ("linuxcnc", "G59.2", "G59.2"),
+    ("fanuc", "G59.2", "G54.1 P2"),
+    ("fanuc", "G54.1 P3", "G54.1 P3"),
+    ("mazak", "G59.1", "G54.1 P1"),
+    ("haas", "G59.2", "G154 P2"),
+    ("mach", "G59.2", "G59 P8"),
+    ("grbl", "G55", "G55"),
+):
+    p_n = pp.programm(mit_nullpunkt(register), pp.steuerung(kennung, an_n), oben, "N")
+    pruefe(soll in p_n.zeilen, f"{kennung} {register} → {soll}: {p_n.zeilen}")
+    pruefe(not p_n.hinweise, f"{kennung} {register} Hinweis: {p_n.hinweise}")
+    befunde_n = pp.nachlesen(p_n, pp.steuerung(kennung, an_n), oben)[0]
+    pruefe(not befunde_n, f"{kennung} {register} nachgelesen: {[b.art for b in befunde_n]}")
+k_s = pp.programm(mit_nullpunkt("G58"), pp.steuerung("siemens", an_n), oben, "N").zeilen
+pruefe("; Nullpunkt: G58 – im Programm G505" in k_s, f"Siemens Kopf: {k_s[:6]}")
+p_g = pp.programm(mit_nullpunkt("G59.1"), pp.steuerung("grbl", an_n), oben, "N")
+pruefe(
+    not any(x.startswith("G59") for x in p_g.zeilen) and any("G59.1" in h for h in p_g.hinweise),
+    f"GRBL G59.1: {p_g.hinweise}",
+)
+p_m = pp.programm(mit_nullpunkt("G54", "G55"), pp.steuerung("linuxcnc", an_n), oben, "N")
+pruefe(
+    "G55" not in p_m.zeilen and any("G54, G55" in h for h in p_m.hinweise),
+    f"mehrere Nullpunkte: {p_m.hinweise}",
+)
+p_hn = pp.programm(mit_nullpunkt("G55"), pp.steuerung("heidenhain", an_n), oben, "N")
+s_hn = [re.sub(r"^\d+ ", "", x) for x in p_hn.zeilen]
+k = (
+    s_hn.index("CYCL DEF 247 BEZUGSPUNKT SETZEN ~")
+    if "CYCL DEF 247 BEZUGSPUNKT SETZEN ~" in s_hn
+    else -1
+)
+pruefe(
+    k > 0 and s_hn[k + 1] == "  Q339=+2 ;BEZUGSPUNKT-NUMMER" and "M91" in s_hn[k + 2],
+    f"Heidenhain Zyklus 247: {s_hn[k - 1 : k + 4]}",
+)
+pruefe(
+    not pp.nachlesen(p_hn, pp.steuerung("heidenhain", an_n), oben)[0],
+    "Heidenhain Zyklus 247 nachgelesen",
+)
 
 # --- Heidenhain im Klartext (P-2026-10-05-01; Manuel: „Heidenhain muss mit rein … vor allem
 # iTNC 530“): Sätze wie im Programm einer iTNC 530 – BEGIN/END PGM wie die Datei, BLK FORM,

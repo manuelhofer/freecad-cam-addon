@@ -192,10 +192,18 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
         abschnitte = pp.abschnitte(job)
         soll = vorschubsaetze_job(abschnitte, fraese)
         pruefe(len(soll) > 20, f"{job.Label}: nur {len(soll)} Vorschubsätze")
+        pruefe(
+            all(a.nullpunkte == tuple(job.Fixtures) for a in abschnitte),
+            f"{job.Label}: Nullpunkte {abschnitte[0].nullpunkte} statt {job.Fixtures}",
+        )
         rundum = any(w is not None for s in soll for w in s[7:])
         steuerungen = ("linuxcnc", "fanuc", "haas", "mach", "mazak", "grbl", "siemens")
         for kennung in [k for k in steuerungen if not (rundum and k == "grbl")]:
-            for aenderung in ({}, {"satznummern": True}, {"marken": False}):
+            for aenderung in (
+                {},
+                {"satznummern": True},
+                {"marken": False, "nullpunkt_setzen": True},
+            ):
                 s = pp.steuerung(kennung, aenderung)
                 programm = pp.programm(abschnitte, s, fraese, job.Label)
                 ist = vorschubsaetze_programm(programm.text, siemens=kennung == "siemens")

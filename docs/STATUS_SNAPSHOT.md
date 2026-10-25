@@ -531,6 +531,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.302.0):* Haken „Nullpunkt aus dem Job (G54 …)“, vorbelegt aus – je Steuerung ihr
+  Befehl (Siemens G505 ab dem fünften, Fanuc G54.1 P, Haas G154 P, Heidenhain Zyklus 247);
+  OFFENE_FRAGEN Frage 3: vorbelegt an?
 - *Neu (0.301.0):* Nächstes Werkzeug vorwählen (T2 nach T1 M6, Heidenhain TOOL DEF), Warten
   bis die Spindel läuft (G4 mit der Hochlaufzeit; an bei GRBL, LinuxCNC, Mach); jede gesetzte
   Bohrzyklus-Vorlage gilt, auch wenn eine andere leer ist.

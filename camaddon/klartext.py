@@ -264,6 +264,10 @@ class _Uebersetzer:
         if roh.startswith("("):
             self.kommentar(roh.strip("()"))
             return
+        if re.match(r"Q\d+\s*=", roh) and self.aus and self.aus[-1].endswith("~"):
+            # Ein Q-Parameter des Zyklus davor – aus den Befehlen der Steuerung (Zyklus 247).
+            self.aus.append(FORTSETZUNG + roh)
+            return
         if roh.startswith("TOOL CALL"):
             m = re.match(r"TOOL CALL\s+(\d+)", roh)
             if m:

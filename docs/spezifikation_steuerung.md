@@ -767,3 +767,18 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Fräse die mit der Werkzeugaufnahme). Vorbelegt an bei GRBL, LinuxCNC, Mach; LinuxCNC/GRBL/Haas
   `G4 P{sek}`, Siemens `G4 F{sek}`, Fanuc/Mazak `G4 X{sek}` (X mit Punkt: Sekunden – Mazak
   Handbuch 8-1), Heidenhain Zyklus 9. Ohne eingetragene Zeit an einer Spindel ein Hinweis.
+
+## 19. Nullpunkt aus dem Job (P-2026-10-25-71)
+
+- Haken `nullpunkt_setzen`, **vorbelegt aus** (Frage an Manuel in `OFFENE_FRAGEN.md`): der erste
+  Nullpunkt des Jobs (`Job.Fixtures`; bei einer Ebene die des Grundjobs – dieselbe Aufspannung)
+  am Anfang und in jedem Einstieg hinter einer Marke, vor dem Wechselpunkt (er kann in WKS
+  zählen) und vor dem Schwenken (Heidenhain: Zyklus 247 setzt Zyklus 7 zurück, PLANE bleibt).
+  Im Kopf „Nullpunkt: G54“, bei anderem Befehl „– im Programm G505“.
+- Nummer aus FreeCADs Schreibweise (`Post/Processor.py`, `_FIXTURE_WORD`): G54 … G59 → 1 … 6,
+  G59.1 … und G54.1 P1 … → 7 … (`nullpunkt_nummer`). Die ersten `nullpunkt_grund` mit
+  `nullpunkt` ({g} G54 … G59, {nr}, {nn}), die übrigen mit `nullpunkt_weitere` ({e} = nr − 6):
+  LinuxCNC G59.{e}, Siemens bis G57, dann G5{nn} (G505 …; G58/G59 sind dort axial), Fanuc und
+  Mazak G54.1 P{e}, Haas G154 P{e}, Mach G59 P{nr}, Heidenhain `CYCL DEF 247 BEZUGSPUNKT SETZEN`
+  mit Q339=+{nr}, GRBL nur G54 … G59, woodWOP keiner. Ohne Befehl und bei mehreren Nullpunkten
+  ein Hinweis (das Programm wählt den ersten).

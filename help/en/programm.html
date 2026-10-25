@@ -77,6 +77,15 @@ and Haas with their block number (“N3 = RAEUMEN_T1”). At the very start the 
 in a long program you search for a label's name to get there, and for ANFANG to get back to the
 top (Siemens “ANFANG:”, Heidenhain “* - ANFANG”, otherwise as a comment; controls without labels
 have each operation's label name in a comment).</li>
+<li><b>Work offset from the job (G54 …)</b> – off by default. On: at the start and after
+every jump label the work offset the job names under its work coordinate systems (FreeCAD's
+default G54) – before the tool change point and before tilting, in the header “Work offset:
+G54”. Each control with its own command: LinuxCNC G54 … G59.3, Siemens G54 … G57 and from the
+fifth on G505 … (G58 and G59 are axial offsets on the 840D), Fanuc and Mazak from the seventh on
+“G54.1 P1”, Haas “G154 P1”, Mach “G59 P7”, Heidenhain cycle 247 with the line of the preset
+table (G54 = 1, G55 = 2 …), GRBL only G54 … G59. If the job names several, the program selects
+the first and says so. Off: the program runs in the work offset active on the machine – select it
+there.</li>
 <li><b>Blank for the simulation</b> (Siemens) – the job's stock as WORKPIECE in the header,
 so the simulation on the control shows the right blank: on the mill a box
 “WORKPIECE(,"",,"BOX",240,Z top,Z bottom,ZB,X0,Y0,X1,Y1)”, on the lathe the bar
