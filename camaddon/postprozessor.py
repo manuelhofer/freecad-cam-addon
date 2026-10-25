@@ -163,6 +163,9 @@ class Steuerung:
     # Die höchste Satznummer – Fanuc, Haas, Mazak: fünf Stellen (eine sechste ist ein Alarm);
     # darüber geht es wieder bei N10 los (Satznummern dürfen sich wiederholen, Marken nicht).
     satznummer_max: int = 99999
+    # Die Programmnummer im Kopf ({nummer}, je Job im Fenster): Fanuc „O1234“ – bis zu dieser
+    # Nummer; 0: die Steuerung hat keine (der Name steht in der Datei).
+    programmnummer_max: int = 0
     # Die größte Zahl, die die Steuerung liest – Fanuc und Mazak: acht Ziffern (±99999.999, sonst
     # Alarm „zu viele Ziffern“). Eine Rundachse, die fortlaufend zählt, kommt im langen Rundum-
     # Schlichten darüber; 0: ohne Grenze.
@@ -543,7 +546,7 @@ STEUERUNGEN = {
         "Fanuc",
         ".nc",
         "(",
-        "%\nO0001 {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
+        "%\nO{nummer:04d} {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
         _ENDE,
         "G18",
         "T{t} M6",
@@ -559,6 +562,7 @@ STEUERUNGEN = {
         "G98",
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
+        programmnummer_max=9999,  # O0001 … O9999
         zahl_max=99999.999,
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme P1 … P48
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
@@ -586,7 +590,7 @@ STEUERUNGEN = {
         g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
-        kopf_drehmaschine="%\nO0001 {kommentar_name}\nG21 G40 G80 G97 G98",
+        kopf_drehmaschine="%\nO{nummer:04d} {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
     # Mazak EIA/ISO, G-Code-Reihe M (Programmierhandbuch MAZATROL MATRIX EIA/ISO, H740PB0030E):
     # wie Fanuc; Gewindebohren synchron als G84.2/G84.3 mit F = Steigung (14-5-21: „G84.2 [Xx Yy]
@@ -598,7 +602,7 @@ STEUERUNGEN = {
         "Mazak (EIA/ISO)",
         ".eia",
         "(",
-        "%\nO0001 {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
+        "%\nO{nummer:04d} {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
         _ENDE,
         "G18",
         "T{t} M6",
@@ -621,6 +625,7 @@ STEUERUNGEN = {
         verweilen="G4 X{sek}",  # „G04 X5. … Dwell time = 5.0 sec“ (Handbuch 8-1)
         vorwahl="T{t}",
         nullpunkt_weitere="G54.1 P{e}",  # zusätzliche Werkstückkoordinatensysteme (wie Fanuc)
+        programmnummer_max=9999,
         zahl_max=99999.999,
         gewinde_g=("G84.2", "G84.3"),
         gewinde_f_steigung=True,
@@ -628,14 +633,14 @@ STEUERUNGEN = {
         # F der Vorschub. Ohne H entschiede Parameter F94.
         gewinde_ausgleich="{g} Z{dp} R{rfp} F{f} H0",
         g90_drehen=False,
-        kopf_drehmaschine="%\nO0001 {kommentar_name}\nG21 G40 G80 G97 G98",
+        kopf_drehmaschine="%\nO{nummer:04d} {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
     "haas": Steuerung(
         "haas",
         "Haas",
         ".nc",
         "(",
-        "%\nO00001 {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
+        "%\nO{nummer:05d} {kommentar_name}\nG17 G21 G40 G49 G80 G90 G94",
         _ENDE,
         "G18",
         "T{t} M6",
@@ -651,6 +656,7 @@ STEUERUNGEN = {
         "G98",
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         nullpunkt_weitere="G154 P{e}",  # Haas: G154 P1 … P99 (zusätzliche Werkstückoffsets)
+        programmnummer_max=99999,  # O00001 … O99999
         # Ohne G187 gilt die Glättung aus Einstellung 191 der Maschine.
         glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
         wechselpunkt_vorschlaege=_MKS,
@@ -662,7 +668,7 @@ STEUERUNGEN = {
         g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
-        kopf_drehmaschine="%\nO00001 {kommentar_name}\nG21 G40 G80 G97 G98",
+        kopf_drehmaschine="%\nO{nummer:05d} {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
     # GRBL 1.1 (README „List of Supported G-Codes in Grbl v1.1“): kein M6, keine Bohrzyklen, kein
     # G98/G99, kein G43 H, kein G64, keine Rundachsen, M7 meist nicht einkompiliert. Der Wechsel
@@ -1285,14 +1291,15 @@ def _befehl(eintrag):
 
 
 def programm(
-    abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil=None, einrichten=""
+    abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil=None, einrichten="",
+    nummer=1,
 ):  # fmt: skip
     """Das Programm (Programm) für die Abschnitte mit der Steuerung `s` und der Maschine
     `info`. `vorschau`: höchstens so viele Bewegungssätze, dann ein Hinweis – fürs Fenster.
     Klartext (Heidenhain): `datei` gibt den Namen im BEGIN/END PGM (wie die Datei, sonst `name`),
     `rohteil` ((xmin, ymin, zmin), (xmax, ymax, zmax)) das BLK FORM. `einrichten`: wie man
     einrichtet (die Aufspannung einer N-Eck-Stange, n_eck.einrichten_text) – als Kommentar im
-    Kopf und als Hinweis."""
+    Kopf und als Hinweis. `nummer`: die Programmnummer im Kopf (Fanuc „O1234“)."""
     info = info or Maschineninfo()
     s = s.wirksam()  # ohne „Gewindebohren synchron“ die Befehle mit Ausgleichsfutter
     koordinatenstellen = max((a.koordinatenstellen for a in abschnitte), default=STELLEN)
@@ -1319,7 +1326,8 @@ def programm(
 
     kommentar_name = _kommentar(s, name or tr("pp.programm")) if s.kommentare else ""
     kopf = s.kopf_drehmaschine if info.drehmaschine and s.kopf_drehmaschine else s.kopf
-    for zeile in _zeilen(_fuellen(kopf, kommentar_name=kommentar_name, name=name)):
+    nummer = min(max(1, int(nummer or 1)), s.programmnummer_max or 99999999)
+    for zeile in _zeilen(_fuellen(kopf, kommentar_name=kommentar_name, name=name, nummer=nummer)):
         zeilen.append(zeile)
     if info.drehmaschine:
         zeilen.extend(_zeilen(s.kopf_drehen))

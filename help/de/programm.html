@@ -79,6 +79,10 @@ ihrer Satznummer („N3 = RAEUMEN_T1“). Ganz vorn die Marke <b>ANFANG</b>: Im 
 suchst du nach dem Namen einer Marke und bist dort, nach ANFANG und bist wieder oben (Siemens
 „ANFANG:“, Heidenhain „* - ANFANG“, sonst als Kommentar; Steuerungen ohne Marken haben den Namen
 jeder Bearbeitung im Kommentar).</li>
+<li><b>Programmnummer</b> (Fanuc, Mazak, Haas) – unten neben der Datei: die Nummer im Kopf
+(„O1234“, Haas fünfstellig „O01234“), je Job gemerkt, vorbelegt 1. Zwei Programme mit derselben
+Nummer überschreiben sich an der Maschine. Im Befehl „Programmanfang“ steht sie als
+<code>{nummer}</code>.</li>
 <li><b>Nullpunkt aus dem Job (G54 …)</b> – vorbelegt aus. An: am Anfang und hinter jeder
 Sprungmarke der Nullpunkt, den der Job unter den Arbeitskoordinatensystemen nennt (in FreeCAD
 vorbelegt G54) – vor dem Wechselpunkt und vor dem Schwenken, im Kopf „Nullpunkt: G54“. Jede

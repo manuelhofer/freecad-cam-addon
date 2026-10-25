@@ -139,11 +139,12 @@ def programm(
     datei="",
     rohteil=None,
     nachlesen=False,
+    nummer=1,
 ):
     """Auch auf einem Nebenrechner: das Programm des Jobs `job_name` im Dokument (der Kopie) –
     `maschine`: None, der Pfad ihrer Datei oder ihr Dokument (eine Kopie); `s` die Steuerung,
-    `info` die Maschineninfo, `vorschau`: so viele Sätze (None: alle), `datei` und `rohteil` wie
-    pp.programm. {zeilen, hinweise, saetze} – mit `nachlesen` dazu {befunde, nachgelesen, groesse}
+    `info` die Maschineninfo, `vorschau`: so viele Sätze (None: alle), `datei`, `rohteil` und `nummer`
+    wie pp.programm. {zeilen, hinweise, saetze} – mit `nachlesen` dazu {befunde, nachgelesen, groesse}
     (pp.nachlesen, pp.groesse_text). Die Abschnitte bleiben für den nächsten Aufruf gemerkt."""
     job = dokument.getObject(job_name)
     if job is None:
@@ -163,7 +164,7 @@ def programm(
 
     ergebnis = pp.programm(
         teile, s, info, job.Label, vorschau, datei=datei, rohteil=rohteil,
-        einrichten=ne.einrichten_text(job),
+        einrichten=ne.einrichten_text(job), nummer=nummer,
     )  # fmt: skip
     if ohne and not (s.schwenkzyklus and s.schwenken):
         # Sonst stillschweigend: der gedachte Tisch A, C um den Nullpunkt (schwenken).

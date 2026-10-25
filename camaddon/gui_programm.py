@@ -34,6 +34,7 @@ from .sprache import tr
 
 EIGENSCHAFT_STEUERUNG = "CamAddonSteuerung"  # am Job: die Kennung der Steuerung
 EIGENSCHAFT_DATEI = "CamAddonProgrammdatei"  # am Job: wohin sein Programm zuletzt kam
+EIGENSCHAFT_NUMMER = "CamAddonProgrammnummer"  # am Job: seine Programmnummer (Fanuc „O1234“)
 VORSCHAU_SAETZE = 300  # so viele Bewegungssätze zeigt die Vorschau
 GELB = farben.GELB
 
@@ -317,6 +318,24 @@ def datei_merken(job, pfad):
         _parameter().SetString("ProgrammOrdnerJeMaschine", json.dumps(ordner))
 
 
+def programmnummer_des_jobs(job):
+    """Die Programmnummer, die sich der Job gemerkt hat – sonst 1."""
+    return max(1, int(getattr(job, EIGENSCHAFT_NUMMER, 1) or 1)) if job is not None else 1
+
+
+def programmnummer_merken(job, nummer):
+    """Merkt die Programmnummer am Job (ausgeblendete Eigenschaft)."""
+    if job is None:
+        return
+    if EIGENSCHAFT_NUMMER not in job.PropertiesList:
+        job.addProperty(
+            "App::PropertyInteger", EIGENSCHAFT_NUMMER, "CAM-Addon", tr("pp.eigenschaft.nummer")
+        )
+        job.setEditorMode(EIGENSCHAFT_NUMMER, 2)
+    if getattr(job, EIGENSCHAFT_NUMMER) != int(nummer):
+        setattr(job, EIGENSCHAFT_NUMMER, int(nummer))
+
+
 def _ordner_je_maschine():
     try:
         return json.loads(_parameter().GetString("ProgrammOrdnerJeMaschine", "") or "{}")
@@ -501,6 +520,14 @@ class ProgrammDialog(QtGui.QDialog):
         aufbau.addWidget(teiler, 1)
 
         zeile = QtGui.QHBoxLayout()
+        # Die Programmnummer je Job (Fanuc, Haas, Mazak „O1234“) – nur, wo der Kopf eine hat.
+        self.text_nummer = QtGui.QLabel(tr("pp.nummer"))
+        self.text_nummer.setToolTip(tr("pp.nummer.tooltip"))
+        zeile.addWidget(self.text_nummer)
+        self.feld_nummer = QtGui.QSpinBox()
+        self.feld_nummer.setToolTip(tr("pp.nummer.tooltip"))
+        self.feld_nummer.valueChanged.connect(self._nummer_geaendert)
+        zeile.addWidget(self.feld_nummer)
         zeile.addWidget(QtGui.QLabel(tr("pp.datei")))
         self.feld_datei = QtGui.QLineEdit()
         # Klartext: der Name im BEGIN/END PGM folgt der Datei – die Vorschau zeigt ihn neu.
@@ -695,6 +722,23 @@ class ProgrammDialog(QtGui.QDialog):
             steuerung_merken(self.job, self.kennung())
         self._einstellungen_bauen()
         self.feld_datei.setText(datei_vorschlag(self.job, self.steuerung()))
+        self.vorschau_rechnen()
+
+    def _nummer_zeigen(self):
+        """Das Feld Programmnummer: nur, wenn der Kopf der Steuerung eine hat ({nummer}), mit ihrer
+        höchsten Nummer und der des Jobs."""
+        s = self.steuerung()
+        da = bool(s.programmnummer_max) and "{nummer" in s.kopf + s.kopf_drehmaschine
+        self.text_nummer.setVisible(da)
+        self.feld_nummer.setVisible(da)
+        if da:
+            self.feld_nummer.blockSignals(True)
+            self.feld_nummer.setRange(1, s.programmnummer_max)
+            self.feld_nummer.setValue(min(programmnummer_des_jobs(self.job), s.programmnummer_max))
+            self.feld_nummer.blockSignals(False)
+
+    def _nummer_geaendert(self, wert):
+        programmnummer_merken(self.job, wert)
         self.vorschau_rechnen()
 
     # --- Einstellungen ------------------------------------------------------------------
@@ -914,6 +958,7 @@ class ProgrammDialog(QtGui.QDialog):
             datei=self.feld_datei.text().strip(),
             rohteil=_rohteil(self.job),
             einrichten=ne.einrichten_text(self.job),
+            nummer=programmnummer_des_jobs(self.job),
         )
         if self._ohne_kette and not (s.schwenkzyklus and s.schwenken):
             # Sonst stillschweigend: der gedachte Tisch A, C um den Nullpunkt (schwenken).
@@ -958,6 +1003,7 @@ class ProgrammDialog(QtGui.QDialog):
                 datei=self.feld_datei.text().strip(),
                 rohteil=_rohteil(self.job),
                 nachlesen=nachlesen,
+                nummer=programmnummer_des_jobs(self.job),
             )
         except nr.Fehler:
             return False
@@ -992,6 +1038,7 @@ class ProgrammDialog(QtGui.QDialog):
     def vorschau_rechnen(self):
         if self.job is None:
             return
+        self._nummer_zeigen()
         if self._gross() and self._im_hintergrund(
             "vorschau", VORSCHAU_SAETZE, False, self._vorschau_angekommen
         ):

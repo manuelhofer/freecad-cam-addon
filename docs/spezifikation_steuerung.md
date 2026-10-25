@@ -824,3 +824,11 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - Die Beispielmaschine GROB G550 hat 2 s Hochlaufzeit (bis hier 0: LinuxCNC wartete nicht, ein
   Hinweis bei jedem Programm).
 
+## 23. Programmnummer je Job (P-2026-10-25-79)
+
+- Fanuc und Mazak „O{nummer:04d}“, Haas „O{nummer:05d}“ im Kopf (auch an der Drehmaschine);
+  `Steuerung.programmnummer_max` 9999 bzw. 99999 (0: keine). `pp.programm(…, nummer=1)`, am Job
+  `CamAddonProgrammnummer` (ausgeblendet), im Fenster ein Feld neben der Datei – nur, wenn der
+  Kopf `{nummer` enthält. Bis hier stand fest „O0001“: zwei Programme überschrieben sich an der
+  Maschine.
+

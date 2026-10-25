@@ -120,6 +120,17 @@ def schritte(h):
     yield 500
     h.pruefe("M18 (C EIN)" in d.vorschau.toPlainText(), "geänderter Befehl nicht in der Vorschau")
     h.bild("2_fanuc_befehle", d)
+    # Die Programmnummer je Job: bei Fanuc ein Feld neben der Datei, „O1234“ im Kopf, am Job gemerkt.
+    h.pruefe(d.feld_nummer.isVisible(), "Fanuc: kein Feld Programmnummer")
+    d.feld_nummer.setValue(1234)
+    yield 300
+    zeilen_o = d.vorschau.toPlainText().splitlines()
+    h.pruefe(
+        len(zeilen_o) > 1
+        and zeilen_o[1].startswith("O1234 ")
+        and gui_programm.programmnummer_des_jobs(job) == 1234,
+        f"Programmnummer: {zeilen_o[:3]}",
+    )
     d.zuruecksetzen()
     yield 300
     h.pruefe("M18" not in d.vorschau.toPlainText(), "Zurücksetzen wirkt nicht")

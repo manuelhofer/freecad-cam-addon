@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-79 programmnummer-je-job
+
+### EINGELESEN
+- Manuel, nachts: die Postprozessoren sollen „einstell möglichkeiten haben“. Fanuc, Mazak und Haas
+  schrieben fest „O0001“ in den Kopf – der Kopf gilt für alle Jobs; an der Maschine überschreibt
+  das nächste Programm mit O0001 das vorige.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `{nummer}` im Kopf von Fanuc, Mazak (O0001 … O9999) und Haas
+  (O00001 … O99999), `Steuerung.programmnummer_max`, `programm(…, nummer=1)`.
+- `camaddon/programm_rechnen.py` (auch im Nebenrechner), `camaddon/gui_programm.py` (Feld
+  „Programmnummer O“ neben der Datei, am Job `CamAddonProgrammnummer`), `translations/*.json`,
+  `help/*/programm.html`, `docs/spezifikation_steuerung.md` 23.
+- `tests/test_postprozessor.py`, `tests/gui/szenario_programm.py`.
+
+### ERGEBNIS
+- Fanuc mit 1234: „O1234 (P)“; Haas mit 7: „O00007 (P)“; über 9999 an Fanuc „O9999“. Im Fenster
+  bei Fanuc das Feld, gesetzt auf 1234 steht „O1234“ in der Vorschau und am Job.
+- Grün: test_postprozessor, test_programm_pruefen, test_programmkopf, test_sprache;
+  szenario_programm, _programm_im_hintergrund.
+
 ## P-2026-10-25-78 aus-der-ebene-rundachsen-auf-null, beispiele-liste, g550-hochlauf
 
 ### EINGELESEN

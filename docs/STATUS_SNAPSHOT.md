@@ -531,6 +531,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Stand 2026-10-25 abends (0.296.0) – offen, in dieser Reihenfolge:**
+- *Neu (0.306.0):* Programmnummer je Job (Fanuc, Mazak „O1234“, Haas „O01234“) im Fenster
+  neben der Datei.
 - *Korrektur (0.305.1):* Aus einer Ebene mit CYCLE800() in eine Bearbeitung ohne Ebene (und am
   Ende): erst zum Wechselpunkt, dann die Rundachsen auf 0; Beispielliste nachgezogen; G550 mit
   2 s Hochlaufzeit. Voller Lauf nach 0.305.0: alles grün bis auf diese drei (behoben).

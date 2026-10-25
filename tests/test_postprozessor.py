@@ -352,6 +352,19 @@ pruefe(
     and all(z.startswith(("N", "(", "%", "O")) for z in fanuc_n),
     f"Satznummern: {fanuc_n[:6]} … {fanuc_n[-3:]}",
 )
+# Die Programmnummer des Jobs im Kopf: Fanuc vierstellig, Haas fünfstellig, höchstens die größte.
+pruefe(
+    pp.programm([tasche], pp.steuerung("fanuc"), None, "P", nummer=1234).zeilen[1] == "O1234 (P)",
+    "Fanuc O1234",
+)
+pruefe(
+    pp.programm([tasche], pp.steuerung("haas"), None, "P", nummer=7).zeilen[1] == "O00007 (P)",
+    "Haas O00007",
+)
+pruefe(
+    pp.programm([tasche], pp.steuerung("fanuc"), None, "P", nummer=123456).zeilen[1] == "O9999 (P)",
+    "Fanuc über O9999",
+)
 # Mit Marken N1 … N12 bekommt kein Satz die Nummer einer Marke (sonst fände die Suche nach N10
 # den Satz); über der höchsten Nummer (Fanuc: fünf Stellen) wieder ab N10.
 zwoelf = [pp.Abschnitt(f"Op{i}", i, 1000.0, False, "None", tasche.befehle) for i in range(1, 13)]
