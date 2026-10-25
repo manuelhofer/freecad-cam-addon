@@ -574,8 +574,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    Wegkippen (P-23) und Plan indexiert je Versatz (P-24) auf allen Kernen – die längsten Pausen
    des Fensters beim Anlegen 5,0/5,4 s → 0,5/0,65 s. Am Geist sind die 12 echten Kerne voll
    (mehr Arbeiter bringen nichts).
-5. *Frage 2 (Taschen):* A liegt fertig auf dem Zweig `frage2-a`; die Morph-Spirale in der Tasche
-   (`morph_tasche`) gebaut, aus.
+5. *Frage 2 (Taschen): erledigt* – Manuel wählte B (0.281.20): Ringe und Morph-Spirale treten
+   gegen Adaptiv an, die schnellere gewinnt, solange die Last hält.
 6. *W-038* (`testteil5achstief`): angefangen am 2026-10-25 nach Manuels Plan (Schruppen von oben
    mit Helix/Kreisen, an den Kanten angestellt, dann die Wand mit der Kugel). Schritte 1–3 gebaut
    (0.281.21–0.281.23; Schritt 3: 3D-Schlichten „Unter dem Rand mit gekippter Kugel“, Halter und
@@ -589,7 +589,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    Empfehlung rechnet im eigenen Auftrag nach der Vorschau (0.283.1 – bei Manuel hatte sie die
    Vorschau blockiert); unter dem Rand Ecke für Ecke, im Freien mit Freivorschub (Restschlichten
    25 → 1 min, 0.283.2); die Flanke ohne Umläufe durch Luft in der oberen Lage (64 → 48, 0.283.4).
-   Offen: Frage 4 (ganze Abfolgen vorschlagen); der Wochenpost wartet auf Manuels Screenshot. An der G550 legt der Grundjob nur
+   Danach (0.284.0–0.287.1): Empfehlung auch für die Flanke, G550-Rückzug längs der Spindel,
+   Flanke an den Ecken frei, die Wand als Spirale hinab, Vorbohren fürs Räumen (an der Tasche:
+   alle drei Lagen senkrecht ins Loch). Offen: Fragen 6 und 7. An der G550 legt der Grundjob nur
    noch simultane Strategien an (das „3D-Schruppen T1“ ohne Schwenk ist weg). Offen: die engen
    Ecken der Tasche (Radius kleiner als die Kugel) für eine kleinere Kugel; im Grundjob an der
    G550 ein 3D-Schlichten ganz ohne gekippte Achse (alle Kipphaken aus) prüft es nicht.
