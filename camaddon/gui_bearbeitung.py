@@ -3215,6 +3215,8 @@ def _job_der(op):
 
 
 KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt")  # 3D-Schlichten: nur mit 5 Achsen
+# Was im Grundjob einer Maschine mit waagerechter Spindel bleibt: die Strategien mit Achse je Satz.
+SIMULTAN_IM_GRUNDJOB = ("flanke", "schlichten3d", "entgraten3d")
 
 
 class _Schlichten3D(_Strategie):
@@ -3314,13 +3316,18 @@ class _Schlichten3D(_Strategie):
         }
         if werte.get("hinterschnitt") and form.nur_kugel:
             weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
-            # Schaft und Halter aus der Werkzeugverwaltung, wie die Flanke sie sieht.
+            # Schaft und Halter aus der Werkzeugverwaltung (der Halter in Stücken, Kegel genau).
             try:
                 bibliothek = wz.Bibliothek.laden()
             except (wz.BeschaedigteDatei, OSError):
                 bibliothek = None
-            weiter["koerper"] = flop.koerper_ueber_der_schneide(werkzeug, bibliothek)
-            weiter["schneide"] = float(rw.masse_des_werkzeugs(werkzeug).schneide)
+            if bibliothek is not None:
+                masse = rw.masse_des_werkzeugs(werkzeug)
+                laenge = rw.laenge_des_werkzeugs(werkzeug, bibliothek)[0]
+                weiter["koerper"] = s3op.hb.koerper_des_werkzeugs(
+                    masse, laenge, bibliothek.halter_fuer_pruefung(werkzeug)
+                )
+                weiter["schneide"] = float(masse.schneide)
         return (form, werte["grathoehe"], list(flaechen)), weiter
 
     def _wegkippen(self, werkzeug, werte):
@@ -3375,9 +3382,11 @@ class _Schlichten3D(_Strategie):
             )
             ecken = bahn.weggelassen - bahn.anstoesse
             if ecken:
-                text += " " + tr("ba.ergebnis_s3_unter.ecken", n=ecken)
+                text += ". " + tr("ba.ergebnis_s3_unter.ecken", n=ecken)
             if bahn.anstoesse:
-                text += " " + tr("ba.ergebnis_s3_unter.anstoss", n=bahn.anstoesse)
+                text += (" " if ecken else ". ") + tr(
+                    "ba.ergebnis_s3_unter.anstoss", n=bahn.anstoesse
+                )
                 if bahn.ausspannen is not None and bahn.ausspannen[1] is not None:
                     text += " " + tr(
                         "ba.ergebnis_s3_unter.mindestens",
@@ -3917,6 +3926,8 @@ class _Block:
         self.kurz.hide()
         aufbau.addWidget(self.kurz)
         self.ergebnis = _Satz(GRAU_TEXT)
+        for etikett in (self.ergebnis, self.ergebnis.spiegel):  # „T… auf … mm ausspannen“
+            etikett.linkActivated.connect(self._hinweis_verweis)
         aufbau.addWidget(self.ergebnis)
         # Was nach den Operationen davor noch zu tun ist (W-012; Manuel: „Ist überhaupt noch
         # viel Material vorhanden, was ich wegmachen muss“).
@@ -4473,7 +4484,9 @@ class _Block:
                 else _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
             )
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
-        self.ergebnis_basis = self.s.ergebnis_text(self.vorschau, zeit)
+        self.ergebnis_basis = self._mit_ausspannen(
+            self.s.ergebnis_text(self.vorschau, zeit), self.vorschau
+        )
         self.ergebnis.setText(self.ergebnis_basis)
         self.material.setText(_material_text(self.vorschau))
         if self.s.kennung == "nut":
@@ -4513,20 +4526,28 @@ class _Block:
         """Der rote Satz zur Vorschau – stößt der Halter an (flanke.vorschau: Daten
         „ausspannen“), mit dem nächsten Schritt dahinter: „T5 auf … mm ausspannen“, oder dass das
         Werkzeug dafür zu kurz ist (reichweite.ausspannen_auf; wie im 4-Achs-Assistenten)."""
+        ausspannen = daten.get("ausspannen") if isinstance(daten, dict) else None
+        if not ausspannen:
+            return satz
+        dazu = self._ausspannen_verweis(*ausspannen)
+        return f"{html.escape(satz, quote=False)} {dazu}" if dazu else satz
+
+    def _ausspannen_verweis(self, heraus, mindestens):
+        """„T5 auf … mm ausspannen“ als Verweis (_hinweis_verweis) – oder, dass das Werkzeug dafür
+        zu kurz ist (reichweite.ausspannen_auf); "" ohne Fräser oder Werkzeugverwaltung."""
         from . import reichweite as rw
 
-        ausspannen = daten.get("ausspannen") if isinstance(daten, dict) else None
         werkzeug = self.fraeser()
         bibliothek = self.panel.bibliothek
-        if not ausspannen or werkzeug is None or bibliothek is None:
-            return satz
-        heraus, mindestens = ausspannen
+        if mindestens is None or werkzeug is None or bibliothek is None:
+            return ""
         kennung = rw.ausspannen_kennung(werkzeug)
         auf = rw.ausspannen_auf(werkzeug, bibliothek, heraus, mindestens)
         if auf is None:
             gesamt = einheiten.text(float(werkzeug.gesamtlaenge), einheiten.LAENGE, 0)
-            zu_kurz = tr("va.halter_zu_kurz", werkzeug=kennung, gesamt=gesamt)
-            return f"{html.escape(satz, quote=False)} {html.escape(zu_kurz, quote=False)}"
+            return html.escape(
+                tr("va.halter_zu_kurz", werkzeug=kennung, gesamt=gesamt), quote=False
+            )
         ziel, laenge = auf
         text = tr(
             "va.halter_ausspannen",
@@ -4534,7 +4555,16 @@ class _Block:
             heraus=einheiten.text(ziel, einheiten.LAENGE, 0),
         )
         verweis = rw.ausspannen_ziel(werkzeug, laenge, ziel)
-        return f'{html.escape(satz, quote=False)} <a href="{verweis}">{html.escape(text)}</a>'
+        return f'<a href="{verweis}">{html.escape(text)}</a>'
+
+    def _mit_ausspannen(self, text, bahn):
+        """Die Ergebniszeile – stößt die Bahn stellenweise an (hinterschnitt_bahn.Bahn.ausspannen),
+        dahinter „T… auf … mm ausspannen“ (Manuel: der nächste Schritt als Knopf)."""
+        ausspannen = getattr(bahn, "ausspannen", None)
+        if not ausspannen or not getattr(bahn, "anstoesse", 0) or ausspannen[1] is None:
+            return text
+        dazu = self._ausspannen_verweis(*ausspannen)
+        return f"{html.escape(text, quote=False)} {dazu}" if dazu else text
 
     def _hinweis_verweis(self, ziel):
         """„ausspannen:5:83.000:43“ im roten Satz: T5 in der Werkzeugverwaltung auf 83 mm ab
@@ -7463,6 +7493,10 @@ class BearbeitungPanel:
         weg = set(self._geschwenkt(form)) if self.gewaehlte and not stl else set()
         nur_kanten = bool(self.kanten) and not [n for n in self.gewaehlte if n not in weg]
         fuenfachs = self._fuenfachs()
+        # Steht die Spindel waagerecht (GROB G550), fräst der Grundjob nur simultan – sonst führe
+        # die Maschine eine Bahn von oben mit der Spindel quer (P-2026-10-25-21: ein „3D-Schruppen“
+        # im Grundjob ohne Schwenk). Was von oben gefräst wird, kommt in der Ebene dran.
+        quer = not stl and self._spindel_quer() and bool(self.gewaehlte or self.kanten)
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -7478,6 +7512,13 @@ class BearbeitungPanel:
                     block.haken.setEnabled(False)
                     block.haken.setChecked(False)
                     block.erklaerung.setText(nur_dort)
+                    block.zustand_zeigen()
+                    continue
+                if quer and block.s.kennung not in SIMULTAN_IM_GRUNDJOB:
+                    block.moeglich = False
+                    block.haken.setEnabled(False)
+                    block.haken.setChecked(False)
+                    block.erklaerung.setText(tr("ba.waagerecht.nur_simultan"))
                     block.zustand_zeigen()
                     continue
                 if block is self.flanke and not fuenfachs:

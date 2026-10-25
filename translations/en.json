@@ -3188,5 +3188,20 @@
     "hs.fehler.anstoss": "Shank or holder hit the part everywhere, even tilted up to 40° – a longer tool or a slimmer holder.",
     "hs.fehler.anstoss_mindestens": "Shank or holder hit the part everywhere, even tilted up to 40°: the tool sticks out {heraus} mm, under the rim it would need at least {mindestens} mm – or a slimmer, longer holder.",
     "ba.ergebnis_s3_unter.anstoss": "At {n} spots shank or holder hit the part, even tilted up to 40° – material stays there.",
-    "ba.ergebnis_s3_unter.mindestens": "Sticking out at least {mindestens} mm (now {heraus} mm), the ball would reach everywhere."
+    "ba.ergebnis_s3_unter.mindestens": "Sticking out at least {mindestens} mm (now {heraus} mm), the ball would reach everywhere.",
+    "halter.reihe.schrumpf": "Shrink-fit chuck {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.er": "Collet chuck {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.weldon": "Weldon {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.hydro": "Hydraulic {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.gruppe.schrumpf": "Shrink-fit chucks ({norm})",
+    "halter.reihe.gruppe.er": "ER collet chucks ({norm})",
+    "halter.reihe.gruppe.weldon": "Weldon ({norm})",
+    "halter.reihe.gruppe.hydro": "Hydraulic chucks ({norm})",
+    "halter.reihe.a": "A {a}",
+    "halter.reihe.lang": "A {a} long",
+    "halter.reihe.extra_lang": "A {a} extra long",
+    "halter.reihe.bezeichnung": "Typical dimensions per {norm}, not catalog values – compare with your holder",
+    "hd.neu.reihen": "Standard series (all sizes and lengths)",
+    "hd.neu.reihen.tooltip": "Holders per standard in every size and length, up to “extra long” – the contour computed from typical dimensions. After creating, compare with your own holder.",
+    "ba.waagerecht.nur_simultan": "On this machine the spindle is horizontal: here in the base job only 5-axis simultaneous strategies cut (flank, tilted 3D finishing, 3D deburring). Everything from above comes in the plane “from above” after “Create”."
 }

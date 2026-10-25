@@ -367,11 +367,10 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
 
 def _koerper_des_controllers(tc):
     """{"koerper": [(von, bis, Radius)], "schneide": mm} – Hals, Schaft und Halter über der
-    Schneide des Werkzeugs am Controller, wie „Kollision prüfen“ sie sieht (kollision.
-    werkzeugkapseln; der Halter aus dem Magazin, gewählt oder vorgeschlagen); leer, wenn es nicht
-    geht (dann ein Schaft wie die Kugel)."""
+    Schneide des Werkzeugs am Controller (hinterschnitt_bahn.koerper_des_werkzeugs; der Halter aus
+    dem Magazin, gewählt oder vorgeschlagen); leer, wenn es nicht geht (dann ein Schaft wie die
+    Kugel)."""
     from . import halter as hl
-    from . import kollision as kb
     from . import magazin as mg
     from . import reichweite as rw
     from . import werkzeuge as wz
@@ -390,18 +389,11 @@ def _koerper_des_controllers(tc):
         )
         if halter.gewinkelt:
             return {}
-        kapseln = kb.werkzeugkapseln(masse, laenge, halter)
+        koerper = hb.koerper_des_werkzeugs(masse, laenge, halter)
     except (AttributeError, TypeError, ValueError) as grund:
         FreeCAD.Console.PrintWarning(f"{getattr(tc, 'Label', tc)}: {grund}\n")
         return {}
-    return {
-        "koerper": [
-            (p0[2] + laenge, p1[2] + laenge, r)
-            for art in (kb.HALS, kb.SCHAFT, kb.HALTER)
-            for p0, p1, r, _flach in kapseln.get(art, ())
-        ],
-        "schneide": float(masse.schneide),
-    }
+    return {"koerper": koerper, "schneide": float(masse.schneide)}
 
 
 def form_davor(obj):

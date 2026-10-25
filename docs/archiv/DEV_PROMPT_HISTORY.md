@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-25-23 normreihen-halter
+
+### EINGELESEN
+- Manuel, 02:27: „auserdem gibts da auch extra lange aufnahmen .. wäre echt cool wenn du die
+  halterdatenbank deutlichst erweiterst ... also ich mein so richtig richtig dolle erweiterst“.
+- Mit dem Halter von T3 kommt die Kugel unten in seiner tiefen Tasche nicht hin (P-22). Die
+  Prüfung nahm jeden Abschnitt des Halters als eine Kapsel mit dem größeren Radius. Die Nase
+  eines Schrumpffutters (Kegel 24 → 32) war so Ø 32 dick.
+- Gesehen an der G550: Der Assistent legte ein „3D-Schruppen T1“ in den Grundjob. Das Programm
+  gibt es ohne Schwenk aus, die Maschine führe es mit waagerechter Spindel.
+
+### DATEIEN
+- `camaddon/halter.py`: Normreihen `reihe:<Art>:<Größe>:<A>` (`aus_vorlage` → `_aus_reihe`):
+  - Schrumpffutter (DIN 69882-8, Nase 4,5°) Ø 3 … 32 mit A 80 … 300;
+  - ER-Spannzangenfutter (DIN ISO 15488) ER11 … ER40 mit A 70 … 250;
+  - Weldon (DIN 69882-4) und Hydrodehn (DIN 69882-7) Ø 6 … 32.
+
+  Ab A 160 heißen sie „lang“, ab A 250 „extra lang“. Das sind 208 Halter je Aufnahme. Die Kontur
+  ist aus typischen Normmaßen gerechnet (`_schrumpf`, `_er`, `_weldon`, `_hydro`), keine
+  Katalogwerte. Die Bezeichnung sagt das, der Link sucht die Art beim Händler.
+- `camaddon/gui_halter.py`: „Neu“ → „Normreihen (alle Größen und Längen)“ → Art → Größe → Länge
+  (`_reihen_menue`). Unter „Für eine andere Aufnahme“ steht je Aufnahme dasselbe, gebaut erst
+  beim Aufklappen.
+- `camaddon/hinterschnitt_bahn.py`: `koerper_des_werkzeugs` – Hals und Schaft wie „Kollision
+  prüfen“, der Halter in Stücken von 5 mm mit dem größten Radius darin. Das 3D-Schlichten nimmt
+  es im Assistenten und in der Operation (`schlichten3d._koerper_des_controllers`).
+- `camaddon/gui_bearbeitung.py`: Stößt die Bahn stellenweise an, steht hinter der Ergebniszeile
+  der Knopf „T… auf … mm ausspannen“ (`_mit_ausspannen`, `_ausspannen_verweis` – derselbe wie im
+  roten Satz der Flanke). An einer Maschine mit waagerechter Spindel bleiben im Grundjob nur
+  Flanke, 3D-Schlichten und Entgraten 3D; die anderen sagen, dass sie in der Ebene „von oben“
+  drankommen (`SIMULTAN_IM_GRUNDJOB`).
+- `docs/spezifikation_halter.md` (Normreihen), `translations/*.json`.
+- `tests/test_halter.py`: alle 624 Normhalter an SK40, HSK-A63 und BT30 – so lang wie A, mit
+  Flansch, eigener Name; Schrumpf Ø12 A 200: Nase Ø 24, 4,5°, schlank 32.
+  `tests/test_hinterschnitt_bahn.py`: der Halter in Stücken, die Nase Ø 24.
+
+### ERGEBNIS
+- Manuels tiefe Tasche (Kopie), T3 mit „Schrumpffutter Ø12 · A 160 lang“: Es bräuchte 29 statt
+  27 mm heraus (vorher 39 mm mit den dicken Kapseln). Im Assistenten an der G550 steht der Knopf
+  „T3 auf 30 mm ausspannen“. Nach dem Klick stößt nichts mehr an; 14 Höhenlinien in der Rundung,
+  die Achse 28–40°, etwa 10 min. Angelegt: „3D-Schlichten T3“ mit 7797 Sätzen, je Satz eine
+  Achse, im Programm mit A und B (Bild `unter_dem_rand.png`).
+- In den engen Ecken (Radius kleiner als die Kugel) bleibt Material: 525 Stellen, für eine
+  kleinere Kugel.
+
 ## P-2026-10-25-22 kugel-unter-dem-rand
 
 ### EINGELESEN

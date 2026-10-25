@@ -130,6 +130,21 @@ try:
 except ValueError as grund:
     pruefe("Keine Fläche" in str(grund), f"ohne Flächen: {grund}")
 
+# --- Der Halter in Stücken: ein langes Schrumpffutter Ø12, das Werkzeug 27 mm heraus -------------
+from camaddon import halter as hl
+from camaddon import reichweite as rw
+
+h160 = hl.aus_vorlage(hl.reihe(hl.SCHRUMPF, 12, 160))
+masse = rw.Werkzeugmasse(
+    durchmesser=12.0, schneide=16.0, hals_d=0.0, hals_laenge=0.0, schaft=12.0, gesamt=73.0
+)
+koerper = hb.koerper_des_werkzeugs(masse, 160.0 + 27.0, h160)
+am_halter = [k for k in koerper if k[0] >= 27.0 - 1e-6]
+pruefe(all(b - a <= hb.HALTER_STUECK + 1e-6 for a, b, _r in am_halter), "Stücke länger als 5 mm")
+nase = min(am_halter, key=lambda k: k[0])
+pruefe(abs(nase[0] - 27.0) < 1e-6 and nase[2] < 12.5, f"die Nase: {nase}")  # Ø 24, nicht 32
+pruefe(abs(max(b for _a, b, _r in am_halter) - 187.0) < 1e-6, "bis zur Spindelnase")
+
 # --- Die Operation im Job -----------------------------------------------------------------------
 import Path.Main.Job as PathJob
 

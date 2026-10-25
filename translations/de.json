@@ -3188,5 +3188,20 @@
     "hs.fehler.anstoss": "Schaft oder Halter stoßen an jeder Stelle ans Teil, auch bis 40° gekippt – ein längeres Werkzeug oder ein schlankerer Halter.",
     "hs.fehler.anstoss_mindestens": "Schaft oder Halter stoßen überall an, auch bis 40° gekippt: Das Werkzeug steht {heraus} mm heraus, unter dem Rand bräuchte es mindestens {mindestens} mm – oder einen schlankeren, längeren Halter.",
     "ba.ergebnis_s3_unter.anstoss": "An {n} Stellen stoßen Schaft oder Halter an, auch bis 40° gekippt – dort bleibt Material.",
-    "ba.ergebnis_s3_unter.mindestens": "Mit mindestens {mindestens} mm heraus (jetzt {heraus} mm) käme die Kugel überall hin."
+    "ba.ergebnis_s3_unter.mindestens": "Mit mindestens {mindestens} mm heraus (jetzt {heraus} mm) käme die Kugel überall hin.",
+    "halter.reihe.schrumpf": "Schrumpffutter {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.er": "Spannzangenfutter {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.weldon": "Weldon {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.hydro": "Hydrodehn {groesse} · {laenge} · {aufnahme}",
+    "halter.reihe.gruppe.schrumpf": "Schrumpffutter ({norm})",
+    "halter.reihe.gruppe.er": "ER-Spannzangenfutter ({norm})",
+    "halter.reihe.gruppe.weldon": "Weldon ({norm})",
+    "halter.reihe.gruppe.hydro": "Hydrodehnspannfutter ({norm})",
+    "halter.reihe.a": "A {a}",
+    "halter.reihe.lang": "A {a} lang",
+    "halter.reihe.extra_lang": "A {a} extra lang",
+    "halter.reihe.bezeichnung": "Typische Maße nach {norm}, keine Katalogwerte – mit deinem Halter vergleichen",
+    "hd.neu.reihen": "Normreihen (alle Größen und Längen)",
+    "hd.neu.reihen.tooltip": "Halter nach Norm in jeder Größe und Länge, bis „extra lang“ – die Kontur aus typischen Maßen gerechnet. Nach dem Anlegen mit dem eigenen Halter vergleichen.",
+    "ba.waagerecht.nur_simultan": "An dieser Maschine steht die Spindel waagerecht: Hier im Grundjob fräst nur, was 5 Achsen simultan fährt (Flanke, 3D-Schlichten gekippt, Entgraten 3D). Alles von oben kommt nach „Anlegen“ in der Ebene „von oben“ dran."
 }

@@ -317,6 +317,91 @@ SUCHE = {
     "bohrfutter": "Kurzbohrfutter {aufnahme}",
     "vdi_er25": "ER-Spannzangenhalter {aufnahme} ER25",
 }
+# Normreihen (Manuel, 2026-10-25 02:27: „extra lange aufnahmen .. wäre echt cool wenn du die
+# halterdatenbank deutlichst erweiterst ... so richtig richtig dolle“): je Spannsystem alle Größen
+# und Längen A (ab der Spindelnase, bis zur Stirn), an jeder Aufnahme. Die Kontur gerechnet aus
+# typischen Maßen nach der Norm – keine Katalogwerte, kein Katalog nachgebaut (wie die Vorlagen:
+# mit dem eigenen Halter vergleichen). Schlüssel „reihe:<Art>:<Größe>:<A>“.
+REIHE = "reihe"
+SCHRUMPF, ER, WELDON, HYDRO = "schrumpf", "er", "weldon", "hydro"
+REIHEN = (SCHRUMPF, ER, WELDON, HYDRO)  # in der Reihenfolge des Menüs
+REIHE_NORM = {
+    SCHRUMPF: "DIN 69882-8",
+    ER: "DIN ISO 15488",
+    WELDON: "DIN 69882-4",
+    HYDRO: "DIN 69882-7",
+}
+# Schrumpffutter, Nase unter 4,5°: Spann-Ø → (Ø der Nase, Spanntiefe). 6 bis 32 die Nasen der
+# Norm (21/24/27/33/44); 3 bis 5 schlank, wie sie üblich sind.
+SCHRUMPF_MASSE = {
+    3.0: (10.0, 15.0),
+    4.0: (11.0, 18.0),
+    5.0: (13.0, 22.0),
+    6.0: (21.0, 36.0),
+    8.0: (21.0, 36.0),
+    10.0: (24.0, 41.0),
+    12.0: (24.0, 46.0),
+    14.0: (27.0, 46.0),
+    16.0: (27.0, 49.0),
+    18.0: (33.0, 49.0),
+    20.0: (33.0, 51.0),
+    25.0: (44.0, 57.0),
+    32.0: (44.0, 61.0),
+}
+SCHRUMPF_KEGEL = 4.5  # Grad je Seite
+SCHRUMPF_NASE_DAZU = 8.0  # mm: so viel dicker als die Nase ist der schlanke Körper dahinter
+SCHRUMPF_LAENGEN = (80.0, 120.0, 160.0, 200.0, 250.0, 300.0)
+# ER: Größe → (Ø und Länge der Spannmutter, Spanntiefe, größter Schaft-Ø).
+ER_MASSE = {
+    "ER11": (19.0, 11.5, 18.0, 7.0),
+    "ER16": (28.0, 18.0, 20.0, 10.0),
+    "ER20": (34.0, 20.0, 24.0, 13.0),
+    "ER25": (42.0, 21.0, 28.0, 16.0),
+    "ER32": (50.0, 23.0, 40.0, 20.0),
+    "ER40": (63.0, 26.0, 45.0, 26.0),
+}
+ER_LAENGEN = (70.0, 100.0, 160.0, 200.0, 250.0)
+# Weldon und Hydrodehn: Spann-Ø → Ø vorn (Weldon: der Körper), Spanntiefe = Schaftlänge nach
+# DIN 1835.
+SCHAFTLAENGE = {
+    6.0: 36.0,
+    8.0: 36.0,
+    10.0: 40.0,
+    12.0: 45.0,
+    14.0: 45.0,
+    16.0: 48.0,
+    18.0: 48.0,
+    20.0: 50.0,
+    25.0: 56.0,
+    32.0: 60.0,
+}
+WELDON_D = {6.0: 25.0, 8.0: 28.0, 10.0: 35.0, 12.0: 42.0, 14.0: 44.0, 16.0: 48.0, 18.0: 50.0}
+WELDON_D.update({20.0: 52.0, 25.0: 65.0, 32.0: 72.0})
+WELDON_LAENGEN = (50.0, 63.0, 80.0, 100.0, 160.0)
+HYDRO_D = {6.0: 26.0, 8.0: 28.0, 10.0: 30.0, 12.0: 32.0, 14.0: 34.0, 16.0: 38.0, 18.0: 40.0}
+HYDRO_D.update({20.0: 40.0, 25.0: 50.0, 32.0: 60.0})
+HYDRO_LAENGEN = (80.0, 100.0, 120.0, 150.0, 200.0)
+REIHE_GROESSEN = {
+    SCHRUMPF: tuple(SCHRUMPF_MASSE),
+    ER: tuple(ER_MASSE),
+    WELDON: tuple(SCHAFTLAENGE),
+    HYDRO: tuple(SCHAFTLAENGE),
+}
+REIHE_LAENGEN = {
+    SCHRUMPF: SCHRUMPF_LAENGEN,
+    ER: ER_LAENGEN,
+    WELDON: WELDON_LAENGEN,
+    HYDRO: HYDRO_LAENGEN,
+}
+EXTRA_LANG_AB = 250.0  # mm: ab da heißt es „extra lang“, ab LANG_AB „lang“
+LANG_AB = 160.0
+REIHE_SUCHE = {
+    SCHRUMPF: "Schrumpffutter {aufnahme} {groesse} A = {a}",
+    ER: "ER-Spannzangenfutter {aufnahme} {groesse} A = {a}",
+    WELDON: "Flächenspannfutter {aufnahme} {groesse}",
+    HYDRO: "Hydrodehnspannfutter {aufnahme} {groesse}",
+}
+
 KATALOG_ARTIKEL = "https://www.hoffmann-group.com/DE/de/hom/p/{artikel}"
 KATALOG_SUCHE = "https://www.hoffmann-group.com/DE/de/hom/v2/search?search={begriff}"
 # Die angetriebenen VDI-Halter gibt es je Spannzange (Manuel, 2026-10-02: „warum bekomme ich bei
@@ -361,6 +446,8 @@ def vorlage_text(schluessel, vdi=0, aufnahme=None):
     „VDI40 angetrieben radial · ER16“, sonst „VDI angetrieben radial · ER16“."""
     schluessel, vdi = _vorlage(schluessel, vdi)
     aufnahme = aufnahme_oder_vorgabe(aufnahme)
+    if ist_reihe(schluessel):
+        return reihe_text(schluessel, aufnahme)
     groesse = f"{vdi:g}" if vdi else ""
     for gruppe, vorlagen in GRUPPEN.items():
         for er, vorlage in vorlagen.items():
@@ -388,6 +475,125 @@ def vorlage_text(schluessel, vdi=0, aufnahme=None):
         "vdi_er25": tr("halter.vorlage.vdi_er25", groesse=groesse),
         "winkelkopf_90": tr("halter.vorlage.winkelkopf_90", aufnahme=aufnahme),
     }[schluessel]
+
+
+def reihe(art, groesse, laenge):
+    """Der Schlüssel einer Normreihe: „reihe:schrumpf:12:200“."""
+    return f"{REIHE}:{art}:{groesse if isinstance(groesse, str) else f'{float(groesse):g}'}:" + (
+        f"{float(laenge):g}"
+    )
+
+
+def ist_reihe(schluessel):
+    """Ist es der Schlüssel einer Normreihe (reihe)?"""
+    return isinstance(schluessel, str) and schluessel.startswith(REIHE + ":")
+
+
+def _reihe_lesen(schluessel):
+    """(Art, Größe, A) – die Größe als Zahl (Spann-Ø), bei ER der Name („ER25“). KeyError, wenn es
+    die Reihe oder Größe nicht gibt."""
+    _r, art, groesse, laenge = schluessel.split(":")
+    if art not in REIHEN:
+        raise KeyError(schluessel)
+    groesse = groesse if art == ER else float(groesse)
+    if groesse not in REIHE_GROESSEN[art]:
+        raise KeyError(schluessel)
+    return art, groesse, float(laenge)
+
+
+def laengen_text(laenge):
+    """„A 200“, „A 200 lang“, „A 300 extra lang“."""
+    if laenge >= EXTRA_LANG_AB:
+        return tr("halter.reihe.extra_lang", a=f"{laenge:g}")
+    if laenge >= LANG_AB:
+        return tr("halter.reihe.lang", a=f"{laenge:g}")
+    return tr("halter.reihe.a", a=f"{laenge:g}")
+
+
+def reihe_text(schluessel, aufnahme=None):
+    """„Schrumpffutter Ø12 · A 200 lang · SK40“."""
+    art, groesse, laenge = _reihe_lesen(schluessel)
+    groesse_ = groesse if art == ER else f"Ø{groesse:g}"
+    return tr(
+        f"halter.reihe.{art}",
+        groesse=groesse_,
+        laenge=laengen_text(laenge),
+        aufnahme=aufnahme_oder_vorgabe(aufnahme),
+    )
+
+
+def reihe_gruppe_text(art):
+    """Titel eines Untermenüs der Normreihen: „Schrumpffutter (DIN 69882-8)“."""
+    return tr(f"halter.reihe.gruppe.{art}", norm=REIHE_NORM[art])
+
+
+def reihe_groesse_text(art, groesse):
+    """„Ø12“, „ER25“ – eine Größe im Untermenü."""
+    return groesse if art == ER else f"Ø{float(groesse):g}"
+
+
+def _reihe(schluessel, flansch_d):
+    """(Spanntiefe, Abschnitte nach dem Flansch, Länge danach) einer Normreihe – die Kontur von
+    der Spindel zur Stirn, A ab der Spindelnase. Der Körper nicht dicker als 0,76 · Ø des Flanschs
+    (an SK40 48 mm, wie bei den Vorlagen)."""
+    art, groesse, laenge = _reihe_lesen(schluessel)
+    koerper_max = 0.76 * flansch_d
+    if art == SCHRUMPF:
+        nase, tiefe = SCHRUMPF_MASSE[groesse]
+        steigung = 2.0 * math.tan(math.radians(SCHRUMPF_KEGEL))  # Ø je mm
+        koerper_max = max(koerper_max, nase + SCHRUMPF_NASE_DAZU)  # ein kleiner Flansch (BT30)
+        return tiefe, lambda rest: _schrumpf(rest, nase, steigung, koerper_max)
+    if art == ER:
+        mutter_d, mutter_l, tiefe, _schaft = ER_MASSE[groesse]
+        return tiefe, lambda rest: _er(rest, mutter_d, mutter_l, koerper_max)
+    if art == WELDON:
+        d = min(WELDON_D[groesse], koerper_max)
+        return SCHAFTLAENGE[groesse], lambda rest: _weldon(rest, d)
+    d = min(HYDRO_D[groesse], koerper_max)
+    return SCHAFTLAENGE[groesse], lambda rest: _hydro(rest, d)
+
+
+def _schrumpf(rest, nase, steigung, koerper_max):
+    """Schrumpffutter: vorn die Nase unter 4,5° auf SCHRUMPF_NASE_DAZU dicker, dahinter schlank
+    bis zum Flansch – lang mit einem Übergang auf den dicken Körper davor (25 mm), kurz nur ein
+    Bund (wie die Vorlagen nach ihren Vorbildern)."""
+    kegel = min(SCHRUMPF_NASE_DAZU / steigung, max(rest - 13.0, 1.0))
+    schlank = min(nase + steigung * kegel, koerper_max)
+    kegel = (schlank - nase) / steigung
+    uebrig = rest - kegel
+    teile = []
+    if uebrig > 45.0:
+        dick = min(koerper_max, schlank + 12.0)
+        teile.append((25.0, dick, schlank))
+        uebrig -= 25.0
+    teile += [(max(uebrig, 0.0), schlank, schlank), (kegel, schlank, nase)]
+    return teile
+
+
+def _er(rest, mutter_d, mutter_l, koerper_max):
+    """ER-Spannzangenfutter: der Körper so dick wie die Mutter (höchstens wie die Vorlagen), ein
+    Kegel auf den Gewindehals (0,8 · Mutter, 8,5 mm lang), die Mutter."""
+    koerper = min(mutter_d, koerper_max)
+    hals = 0.8 * mutter_d
+    kegel = max((koerper - hals) / 2.0, 0.0) if koerper > hals else 0.0
+    koerper_l = max(rest - mutter_l - 8.5 - kegel, 1.0)
+    teile = [(koerper_l, koerper, koerper)]
+    if kegel > 0:
+        teile.append((kegel, koerper, hals))
+    teile += [(8.5, hals, hals), (mutter_l, mutter_d, mutter_d, MUTTER)]
+    return teile
+
+
+def _weldon(rest, d):
+    """Weldon-Aufnahme: ein Zylinder, vorn auf 0,77 · Ø abgeschrägt (12,8 mm an Ø 52,5)."""
+    schraege = min(0.25 * d, max(rest - 1.0, 1.0))
+    return [(max(rest - schraege, 1.0), d, d), (schraege, d, 0.77 * d)]
+
+
+def _hydro(rest, d):
+    """Hydrodehnspannfutter: der Körper 9 mm dicker als vorn, vorn ein Kegel von 9,5 mm."""
+    dick = d + 9.0
+    return [(max(rest - 9.5, 1.0), dick, dick), (9.5, dick, d)]
 
 
 def gruppe_text(gruppe, vdi=0):
@@ -679,6 +885,8 @@ def aus_vorlage(schluessel, vdi=None, aufnahme=None):
     und ein Name ohne Größe. `aufnahme`: die Aufnahme der Spindel (AUFNAHMEN) für die anderen –
     der Flansch statt dem von SK40, der Name nennt sie; ohne Angabe SK40."""
     schluessel, vdi = _vorlage(schluessel, vdi)
+    if ist_reihe(schluessel):
+        return _aus_reihe(schluessel, aufnahme)
     spanntiefe, abschnitte = _VORLAGEN[schluessel]
     faktor = vdi / VDI_BEZUG if vdi else 1.0
     an_der_spindel = schluessel not in VDI_VORLAGEN
@@ -702,6 +910,31 @@ def aus_vorlage(schluessel, vdi=None, aufnahme=None):
         halter.winkel, halter.drehung = winkel, drehung
         halter.versatz, halter.kopf_d = versatz * faktor, kopf_d * faktor
     return halter
+
+
+def _aus_reihe(schluessel, aufnahme):
+    """Ein Halter aus einer Normreihe an der Aufnahme `aufnahme` (ohne: SK40): ihr Flansch, dann
+    die Kontur der Reihe bis A."""
+    from urllib.parse import quote
+
+    aufnahme = aufnahme_oder_vorgabe(aufnahme)
+    _norm, flansch_d, flansch_l = AUFNAHMEN[aufnahme]
+    art, groesse, laenge = _reihe_lesen(schluessel)
+    spanntiefe, kontur = _reihe(schluessel, flansch_d)
+    abschnitte = [(flansch_l, flansch_d, flansch_d, FLANSCH), *kontur(laenge - flansch_l)]
+    suche = REIHE_SUCHE[art].format(
+        aufnahme=re.sub(r"(?<=[A-Za-z])(?=\d+$)", " ", aufnahme),
+        groesse=groesse if art == ER else f"{groesse:g}",
+        a=f"{laenge:g}",
+    )
+    return Halter(
+        name=reihe_text(schluessel, aufnahme),
+        aufnahme=aufnahme,
+        bezeichnung=tr("halter.reihe.bezeichnung", norm=REIHE_NORM[art]),
+        link=KATALOG_SUCHE.format(begriff=quote(suche)),
+        spanntiefe=spanntiefe,
+        abschnitte=[_abschnitt(a) for a in abschnitte if a[0] > 1e-6],
+    )
 
 
 def _artikel_text(artikel):

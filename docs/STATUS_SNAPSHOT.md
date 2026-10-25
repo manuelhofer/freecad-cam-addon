@@ -565,8 +565,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
    mit Helix/Kreisen, an den Kanten angestellt, dann die Wand mit der Kugel). Schritte 1–3 gebaut
    (0.281.21–0.281.23; Schritt 3: 3D-Schlichten „Unter dem Rand mit gekippter Kugel“, Halter und
    Schaft frei je Stelle). Mit T3 (45 mm heraus) stößt unten der Halter an – es bräuchte 64 mm;
-   dafür lange, schlanke Halter in der Halterdatenbank (offen, Manuel 02:27: „richtig richtig
-   dolle erweitern“). Offen noch: das leere „3D-Schruppen T1“ in der Tasche.
+   mit dem neuen „Schrumpffutter Ø12 · A 160 lang“ (Normreihen, 0.281.24) 29 statt 27 mm, der
+   Knopf „T3 auf 30 mm ausspannen“ steht unter der Vorschau. An der G550 legt der Grundjob nur
+   noch simultane Strategien an (das „3D-Schruppen T1“ ohne Schwenk ist weg). Offen: die engen
+   Ecken der Tasche (Radius kleiner als die Kugel) für eine kleinere Kugel; im Grundjob an der
+   G550 ein 3D-Schlichten ganz ohne gekippte Achse (alle Kipphaken aus) prüft es nicht.
 
 Die Aufträge vom 2026-10-18 früh (Forum-Post, Einrichtblatt mit vc/fz und Koordinatensystem,
 Rohteilmaße in „Bearbeitung“, Nase/Kombination) sind erledigt (P-2026-10-18-84 … -99).

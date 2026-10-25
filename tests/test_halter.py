@@ -7,7 +7,8 @@
 # „VDI30 angetrieben radial“ kippt das Werkzeug um 90° zur Bezugsrichtung X, 55 mm
 # unter der Aufnahme; Drehung und Winkel drehen die Richtung; der Körper hat Kopf und
 # Abgang; eine alte Datei ohne Richtung ist gerade. Vorlagen je Aufnahme (W-022): ER32 für HSK-A63
-# mit dessen Flansch (26 × Ø 63), Schrumpf Ø12 für BT50 (38 × Ø 100); VDI ohne Aufnahme.
+# mit dessen Flansch (26 × Ø 63), Schrumpf Ø12 für BT50 (38 × Ø 100); VDI ohne Aufnahme. Die
+# Normreihen: jede Art, Größe und Länge so lang wie A, mit Flansch, Nase und Namen.
 import os
 import sys
 import tempfile
@@ -332,6 +333,48 @@ pruefe((u.abschnitte[0].laenge, u.abschnitte[0].d_oben) == (0, 12), f"{u.abschni
 # Löschen: Die Werkzeuge verlieren ihren Halter.
 b.entferne_halter(a)
 pruefe(a not in b.halter and t1.halter == "" and t2.halter == "", "entfernen")
+
+# Normreihen (Manuel, 2026-10-25: „halterdatenbank deutlichst erweitern“): jede Art, Größe und
+# Länge an SK40 und HSK-A63 – so lang wie A, vorn die Nase der Norm, der Flansch der Aufnahme.
+anzahl = 0
+namen = set()
+for aufnahme in ("SK40", "HSK-A63", "BT30"):
+    for art in hl.REIHEN:
+        for groesse in hl.REIHE_GROESSEN[art]:
+            for laenge in hl.REIHE_LAENGEN[art]:
+                schluessel = hl.reihe(art, groesse, laenge)
+                r = hl.aus_vorlage(schluessel, aufnahme=aufnahme)
+                anzahl += 1
+                namen.add(r.name)
+                pruefe(nahe(r.laenge, laenge), f"{r.name}: {r.laenge:.2f} statt A {laenge:g}")
+                pruefe(r.abschnitte[0].art == hl.FLANSCH, f"{r.name}: ohne Flansch")
+                pruefe(
+                    nahe(r.abschnitte[0].d_oben, hl.AUFNAHMEN[aufnahme][1]),
+                    f"{r.name}: Flansch {r.abschnitte[0].d_oben}",
+                )
+                pruefe(r.spanntiefe > 0 and r.link and "DIN" in r.bezeichnung, f"{r.name}")
+                pruefe(
+                    all(a.laenge > 0 and a.d_oben > 0 and a.d_unten > 0 for a in r.abschnitte),
+                    f"{r.name}: {r.abschnitte}",
+                )
+pruefe(len(namen) == anzahl, f"{anzahl} Normhalter, {len(namen)} Namen")
+s12 = hl.aus_vorlage(hl.reihe(hl.SCHRUMPF, 12, 200))
+pruefe(s12.name == "Schrumpffutter Ø12 · A 200 lang · SK40", s12.name)
+pruefe(nahe(s12.abschnitte[-1].d_unten, 24.0) and nahe(s12.spanntiefe, 46.0), f"{s12}")
+# 4,5° je Seite an der Nase, dahinter schlank (32 mm), am Flansch dicker
+nase = s12.abschnitte[-1]
+pruefe(abs((nase.d_oben - nase.d_unten) / 2 / nase.laenge - 0.0787) < 1e-4, f"Nase {nase}")
+pruefe(nahe(s12.abschnitte[-2].d_oben, 32.0), f"schlank {s12.abschnitte[-2]}")
+lang = hl.aus_vorlage(hl.reihe(hl.SCHRUMPF, 6, 300), aufnahme="HSK-A63")
+pruefe(lang.name == "Schrumpffutter Ø6 · A 300 extra lang · HSK-A63", lang.name)
+er25 = hl.aus_vorlage(hl.reihe(hl.ER, "ER25", 160))
+pruefe(
+    er25.name == "Spannzangenfutter ER25 · A 160 lang · SK40"
+    and er25.abschnitte[-1].art == hl.MUTTER
+    and nahe(er25.abschnitte[-1].d_unten, 42.0),
+    f"{er25.name}: {er25.abschnitte[-1]}",
+)
+print(f"Normreihen: {anzahl} Halter an drei Aufnahmen")
 
 sprache.setze_sprache(vorher)
 if fehler:

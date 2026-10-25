@@ -350,3 +350,40 @@ angetrieben radial und axial nur ER16?“ Gebaut:
   der Körper bleibt (ER32: Ø 60). Die **Spannmutter wächst nicht** mit der
   VDI-Größe – ihr Ø hängt an der Spannzange; das gilt auch für „VDI axial mit
   ER25“. Der Körper, Kopf und Versatz wachsen wie bisher.
+
+## Normreihen – alle Größen und Längen (P-2026-10-25-23)
+
+Manuel, 2026-10-25 02:27, im Halter-Dialog: „auserdem gibts da auch extra lange aufnahmen .. wäre
+echt cool wenn du die halterdatenbank deutlichst erweiterst ... also ich mein so richtig richtig
+dolle erweitern“. Dazu seine tiefe Tasche: Mit dem Halter von T3 kommt die Kugel unten nicht hin.
+
+**Was es ist:** Im Halter-Dialog unter „Neu“ das Untermenü „Normreihen (alle Größen und Längen)“:
+Art → Größe → Länge A (ab der Spindelnase bis zur Stirn), an der Aufnahme der offenen Maschine;
+unter „Für eine andere Aufnahme“ je Aufnahme dasselbe (gebaut erst beim Aufklappen).
+
+| Reihe | Norm | Größen | Längen A |
+|---|---|---|---|
+| Schrumpffutter, Nase 4,5° | DIN 69882-8 | Ø 3 … 32 (13) | 80, 120, 160, 200, 250, 300 |
+| ER-Spannzangenfutter | DIN ISO 15488 | ER11 … ER40 (6) | 70, 100, 160, 200, 250 |
+| Weldon | DIN 69882-4 | Ø 6 … 32 (10) | 50, 63, 80, 100, 160 |
+| Hydrodehnspannfutter | DIN 69882-7 | Ø 6 … 32 (10) | 80, 100, 120, 150, 200 |
+
+Ab A 160 heißt es „lang“, ab A 250 „extra lang“. 78 + 30 + 50 + 50 = 208 Halter je Aufnahme.
+
+**Die Kontur** ist aus typischen Maßen nach der Norm gerechnet (`halter._reihe`), keine
+Katalogwerte – nachgebaut wird kein Katalog (die Vorlagen nach Vorbild bleiben je Spannart eins).
+Die Bezeichnung sagt das: „Typische Maße nach DIN 69882-8, keine Katalogwerte – mit deinem Halter
+vergleichen“; der Link sucht die Art beim Händler.
+- *Schrumpffutter:* vorn die Nase der Norm (Ø 21/24/27/33/44 für 6–32), unter 4,5° auf 8 mm
+  dicker, dahinter schlank bis zum Flansch; ab 45 mm Rest ein Übergang (25 mm) auf den dicken
+  Körper davor. Kurz (A 80) wie die Vorlage nach Vorbild: Nase 47,6 mm, Körper Ø 31,5.
+- *ER:* der Körper so dick wie die Mutter (höchstens 0,76 · Ø des Flanschs), ein Kegel auf den
+  Gewindehals (0,8 · Mutter, 8,5 mm), die Mutter (ER16 Ø 28 × 18 … ER40 Ø 63 × 26).
+- *Weldon, Hydrodehn:* der Körper, vorn abgeschrägt; die Spanntiefe ist die Schaftlänge nach
+  DIN 1835.
+
+**Für die Prüfung unter dem Rand** (3D-Schlichten mit gekippter Kugel) zerfällt der Halter in
+Stücke von höchstens 5 mm, je Stück der größte Radius darin
+(`hinterschnitt_bahn.koerper_des_werkzeugs`). Als eine Kapsel mit dem größeren Radius wäre die Nase
+eines Schrumpffutters Ø 32 statt Ø 24 gewesen. An Manuels Tasche (Kopie) brauchte T3 mit dem
+Schrumpffutter Ø12 · A 160 so 29 statt 39 mm Auskragung.

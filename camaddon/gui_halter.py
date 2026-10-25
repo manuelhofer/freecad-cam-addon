@@ -134,8 +134,12 @@ class HalterDialog(QtGui.QDialog):
                 untermenue = self.menue_neu.addMenu(hl.gruppe_text(gruppe, vdi))
                 for er, vorlage in hl.GRUPPEN[gruppe].items():
                     untermenue.addAction(er, lambda s=vorlage: self.neu(s))
-        # Die Vorlagen für jede andere Aufnahme (W-022): je eine ein Untermenü.
+        # Die Normreihen (Manuel, 2026-10-25: „halterdatenbank deutlichst erweitern“): Art →
+        # Größe → Länge, an der Aufnahme der offenen Maschine.
         self.menue_neu.addSeparator()
+        self._reihen_menue(self.menue_neu.addMenu(tr("hd.neu.reihen")), aufnahme)
+        # Die Vorlagen für jede andere Aufnahme (W-022): je eine ein Untermenü, darin auch die
+        # Normreihen – gebaut erst beim Aufklappen (30 Aufnahmen × 250 Einträge).
         andere = self.menue_neu.addMenu(tr("hd.neu.andere_aufnahme"))
         an_der_spindel = [s for s in hl.VORLAGEN if s not in hl.VDI_VORLAGEN]
         for name, (norm, _d, _l) in hl.AUFNAHMEN.items():
@@ -145,6 +149,8 @@ class HalterDialog(QtGui.QDialog):
                     hl.vorlage_text(schluessel, 0, name),
                     lambda s=schluessel, a=name: self.neu(s, a),
                 )
+            untermenue.addSeparator()
+            self._reihen_menue(untermenue.addMenu(tr("hd.neu.reihen")), name)
         self.knopf_neu.setMenu(self.menue_neu)
         self.knopf_kopieren = knopf(tr("hd.kopieren"), tr("hd.kopieren.tooltip"), self.kopieren)
         self.knopf_loeschen = knopf(tr("hd.loeschen"), tr("hd.loeschen.tooltip"), self.loeschen)
@@ -326,6 +332,29 @@ class HalterDialog(QtGui.QDialog):
         """Der gewählte Halter, oder None."""
         zeile = self.liste.currentRow()
         return self._gezeigt[zeile] if 0 <= zeile < len(self._gezeigt) else None
+
+    def _reihen_menue(self, menue, aufnahme):
+        """Füllt `menue` beim ersten Aufklappen mit den Normreihen (halter.REIHEN): je Art ein
+        Untermenü, darin je Größe eines mit den Längen."""
+        menue.setToolTipsVisible(True)
+        menue.menuAction().setToolTip(tr("hd.neu.reihen.tooltip"))
+
+        def fuellen():
+            if menue.actions():
+                return
+            for art in hl.REIHEN:
+                art_menue = menue.addMenu(hl.reihe_gruppe_text(art))
+                for groesse in hl.REIHE_GROESSEN[art]:
+                    groesse_menue = art_menue.addMenu(hl.reihe_groesse_text(art, groesse))
+                    for laenge in hl.REIHE_LAENGEN[art]:
+                        schluessel = hl.reihe(art, groesse, laenge)
+                        groesse_menue.addAction(
+                            hl.laengen_text(laenge),
+                            lambda s=schluessel, a=aufnahme: self.neu(s, a),
+                        )
+
+        menue.aboutToShow.connect(fuellen)
+        return menue
 
     def waehle(self, halter):
         """Wählt einen Halter (die Suche wird geleert)."""

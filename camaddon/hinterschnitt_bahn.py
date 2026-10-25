@@ -51,6 +51,7 @@ HINTERSCHNITT = "hinterschnitt"  # die Richtung des 3D-Schlichtens dafür (schli
 VORSCHAU_SCHRITT = 1.0  # mm – so dicht liegen die Punkte einer Linie in der Vorschau
 PROBEN_JE_FLAECHE = 4  # je Richtung so viele Stellen fragt ueberdeckt()
 FLAECHEN_HOECHSTENS = 400  # mehr gewählte Flächen: ueberdeckte() fragt nicht (ein STL)
+HALTER_STUECK = 5.0  # mm – so lang sind die Stücke des Halters für die Prüfung
 # Die Achse: je Stelle die kleinste Neigung, bei der Schneide über der Kugel, Schaft und Halter um
 # ihr Spiel vom Teil bleiben (Manuels tiefe Tasche: in der Wandmitte 10°, in den Ecken hängen zwei
 # Wände über – dort kippt sie schräg in die Ecke).
@@ -71,6 +72,43 @@ SCHNITTE_VERTEILT_AB = 6  # Höhen: ab so vielen schneiden die Nebenrechner
 GENAU_VERTEILT_AB = 100  # knappe Kugelmitten: ab so vielen fragen die Nebenrechner OpenCascade
 GENAU_JE_STUECK = 25
 STELLEN_JE_STUECK = 200
+
+
+def koerper_des_werkzeugs(masse, laenge, halter):
+    """[(von, bis, Radius)] längs der Achse ab der Spitze über der Schneide: Hals und Schaft wie
+    „Kollision prüfen“ (kollision.werkzeugkapseln), der Halter in Stücken von höchstens
+    HALTER_STUECK mm, je Stück der größte Radius darin (halter.radius_bei an seinen Enden und an
+    jedem Absatz dazwischen). Als eine Kapsel mit dem größeren Radius wäre ein Kegel viel zu dick –
+    an der Nase eines Schrumpffutters Ø 32 statt Ø 24. `masse` (reichweite.Werkzeugmasse), `laenge`
+    von der Spindelnase bis zur Spitze; ein gewinkelter Halter: leer."""
+    from . import kollision as kb
+
+    if halter is not None and halter.gewinkelt:
+        return []
+    kapseln = kb.werkzeugkapseln(masse, laenge, halter)
+    teile = [
+        (p0[2] + laenge, p1[2] + laenge, r)
+        for art in (kb.HALS, kb.SCHAFT)
+        for p0, p1, r, _flach in kapseln.get(art, ())
+    ]
+    if halter is None or not halter.abschnitte or halter.laenge <= 0:
+        return teile + [
+            (p0[2] + laenge, p1[2] + laenge, r) for p0, p1, r, _f in kapseln.get(kb.HALTER, ())
+        ]
+    marken = {0.0, float(halter.laenge)}
+    oben = 0.0
+    for a in halter.abschnitte:
+        oben += a.laenge
+        marken.add(min(oben, halter.laenge))
+    marken |= set(np.arange(0.0, halter.laenge, HALTER_STUECK).tolist())
+    marken = sorted(marken)
+    for z0, z1 in zip(marken, marken[1:], strict=False):  # unter der Spindelnase
+        if z1 - z0 < 1e-6:
+            continue
+        r = max(halter.radius_bei(z0 + 1e-6), halter.radius_bei(z1 - 1e-6))
+        if r > 0:
+            teile.append((laenge - z1, laenge - z0, r))
+    return teile
 
 
 def ueberdeckt(form, name):
