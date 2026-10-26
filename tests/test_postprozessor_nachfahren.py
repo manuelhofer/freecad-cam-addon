@@ -319,6 +319,128 @@ def im_klartext(job_saetze, punkte):
     return None
 
 
+def _mitte_aus_r(anfang, ende, r, uhrzeiger, gross):
+    """Die Mitte eines Bogens, wie woodWOP sie aus Anfang, Ende, R und DS rechnet: bis 180° liegt
+    sie gegen den Uhrzeigersinn links der Sehne, im Uhrzeigersinn rechts; darüber andersherum."""
+    dx, dy = ende[0] - anfang[0], ende[1] - anfang[1]
+    sehne = math.hypot(dx, dy)
+    h = math.sqrt(max(r * r - sehne * sehne / 4, 0.0))
+    s = 1.0 if (not uhrzeiger) != gross else -1.0
+    return anfang[0] + dx / 2 - s * h * dy / sehne, anfang[1] + dy / 2 + s * h * dx / sehne
+
+
+def mpr_lesen(text, rohteil):
+    """Die MPR-Datei, wie woodWOP sie fährt, zurück in Koordinaten des Jobs (woodWOP zählt ab der
+    Ecke des Werkstücks, Z vom Boden): je Element KL/KA in der Folge der Bearbeitungen (Art, X, Y,
+    Z, F je Minute, Werkzeug, Drehzahl, Kontur, Anfang, Mitte, im Uhrzeigersinn) – die Mitte aus
+    Anfang, Ende, R und DS –, dazu die Bohrungen [(X, Y, Z, Werkzeug)]."""
+    (x0, y0, z0), (_, _, z1) = rohteil
+    konturen, makros = {}, []
+    kontur = element = makro = None
+    for zeile in text.splitlines():
+        zeile = zeile.strip()
+        if zeile.startswith("]") and zeile[1:].isdigit():
+            kontur, element, makro = konturen.setdefault(int(zeile[1:]), []), None, None
+        elif zeile.startswith("$E") and kontur is not None:
+            element = {}
+            kontur.append(element)
+        elif zeile in ("KP", "KL", "KA") and element is not None:
+            element["art"] = zeile
+        elif zeile.startswith("<"):
+            kontur = element = None
+            treffer = re.match(r"<\d+\s+\\(\w+)\\", zeile)
+            makro = {"name": treffer.group(1) if treffer else ""}
+            makros.append(makro)
+        elif "=" in zeile:
+            schluessel, _, wert = zeile.partition("=")
+            if element is not None:
+                element[schluessel] = float(wert)
+            elif makro is not None:
+                makro[schluessel] = wert.strip('"')
+    elemente, bohrungen = [], []
+    for makro in makros:
+        if makro["name"] == "Konturfraesen":
+            n, _, erstes = makro["EA"].partition(":")
+            letztes = makro["EE"].partition(":")[2]
+            f = float(makro["F_"]) * 1000.0
+            werkzeug, drehzahl = int(makro["TNO"]), float(makro.get("S_A", 0))
+            vorher = None
+            for e in konturen[int(n)][int(erstes) : int(letztes) + 1]:
+                punkt = (e["X"] + x0, e["Y"] + y0, e["Z"] + z0)
+                mitte, uhrzeiger = None, None
+                if e["art"] == "KA":
+                    uhrzeiger, gross = int(e["DS"]) in (0, 2), int(e["DS"]) in (2, 3)
+                    mitte = _mitte_aus_r(vorher, punkt, e["R"], uhrzeiger, gross)
+                if e["art"] != "KP":
+                    elemente.append((e["art"], *punkt, f, werkzeug, drehzahl, int(n), vorher,
+                                     mitte, uhrzeiger))  # fmt: skip
+                vorher = punkt
+        elif makro["name"] == "BohrVert":
+            bohrungen.append((float(makro["XA"]) + x0, float(makro["YA"]) + y0,
+                              z1 - float(makro["TI"]), int(makro["TNO"])))  # fmt: skip
+    return elemente, bohrungen
+
+
+def im_mpr(job_saetze, spindel, werkzeuge, elemente):
+    """None, wenn jeder Vorschubsatz des Jobs in derselben Folge als Element steht (ein Bogen darf
+    in Stücke bis 90° geteilt, eine Schraube in Geraden zerlegt sein): Endpunkt, Werkzeug, Drehzahl;
+    ein Bogen in XY mit dem Drehsinn des Jobs und an jeder Stelle auf seinem Kreis, so wie woodWOP
+    ihn aus R und DS fährt. Der Vorschub einer Kontur ist der kleinste ihrer Sätze."""
+    k = 0
+    f_je_kontur = {}
+    for i, soll in enumerate(job_saetze):
+        bogen = soll[0] in ("G2", "G3")
+        bis = len(elemente) if bogen else min(k + 1, len(elemente))
+        anfang = k
+        while k < bis and not all(
+            abs(a - b) <= GENAU for a, b in zip(soll[1:4], elemente[k][1:4], strict=True)
+        ):
+            k += 1
+        if k >= bis:
+            return f"Satz {i + 1} {soll} fehlt: {elemente[anfang : anfang + 2]}"
+        for e in elemente[anfang : k + 1]:
+            if e[5] != werkzeuge[i][0] or (spindel[i][0] > 0 and round(e[6]) != spindel[i][0]):
+                return (
+                    f"Satz {i + 1}: T{e[5]} S{e[6]:.0f} statt T{werkzeuge[i][0]} S{spindel[i][0]}"
+                )
+            f_je_kontur.setdefault(e[7], []).append((soll[6], e[4], i))
+            if e[0] != "KA":
+                continue
+            if not bogen or e[10] != (soll[0] == "G2"):
+                return f"Satz {i + 1} {soll[0]}: ein Bogen KA im Uhrzeigersinn={e[10]}"
+            r_soll = math.hypot(soll[1] - soll[4], soll[2] - soll[5])
+            w0 = math.atan2(e[8][1] - e[9][1], e[8][0] - e[9][0])
+            w1 = math.atan2(e[2] - e[9][1], e[1] - e[9][0])
+            winkel = ((w0 - w1) if e[10] else (w1 - w0)) % (2 * math.pi)
+            r = math.hypot(e[1] - e[9][0], e[2] - e[9][1])
+            for n in range(1, 8):
+                w = w0 + (-1.0 if e[10] else 1.0) * winkel * n / 8
+                q = (e[9][0] + r * math.cos(w), e[9][1] + r * math.sin(w))
+                daneben = abs(math.hypot(q[0] - soll[4], q[1] - soll[5]) - r_soll)
+                if daneben > 0.003:
+                    return f"Satz {i + 1} {soll[0]}: der Bogen {daneben:.3f} mm neben dem Kreis"
+        k += 1
+    for nummer, paare in f_je_kontur.items():
+        kleinster = min(f for f, _, _ in paare)
+        if any(abs(f_ist - kleinster) > 0.06 for _, f_ist, _ in paare):
+            return f"Kontur {nummer}: F {paare[0][1]} statt {kleinster} (der kleinste ihrer Sätze)"
+    return None
+
+
+def bohrungen_job(abschnitte):
+    """[(X, Y, Z, Werkzeug)] der Bohrzyklen im Job."""
+    aus, pos = [], {"X": None, "Y": None}
+    for abschnitt in abschnitte:
+        for befehl in abschnitt.befehle:
+            name, werte = (befehl.Name, befehl.Parameters) if hasattr(befehl, "Name") else befehl
+            for a in pos:
+                if a in werte:
+                    pos[a] = float(werte[a])
+            if name.upper() in ("G81", "G82", "G83", "G73", "G85") and "Z" in werte:
+                aus.append((pos["X"], pos["Y"], float(werte["Z"]), int(abschnitt.werkzeug)))
+    return aus
+
+
 def vergleichen(job_saetze, prog_saetze):
     """None, wenn jeder Vorschubsatz stimmt – sonst der erste Unterschied als Satz."""
     if len(job_saetze) != len(prog_saetze):
@@ -411,6 +533,30 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             gerufen = folge([int(n) for n in re.findall(r"TOOL CALL (\d+) ", programm.text)])
             soll_w = folge([int(a.werkzeug) for a in abschnitte if a.werkzeug])
             pruefe(gerufen == soll_w, f"{datei} {kennung}: Werkzeuge {gerufen} statt {soll_w}")
+        if not rundum:
+            # woodWOP (MPR, Homag/Weeke): die Konturen und Bohrungen zurück in Koordinaten des
+            # Jobs – jeder Vorschubsatz, jeder Bogen so, wie die Maschine ihn aus R und DS fährt.
+            box = job.Stock.Shape.BoundBox
+            rohteil = ((box.XMin, box.YMin, box.ZMin), (box.XMax, box.YMax, box.ZMax))
+            programm = pp.programm(
+                abschnitte, pp.steuerung("woodwop"), fraese, job.Label, rohteil=rohteil
+            )
+            elemente, bohrungen = mpr_lesen(programm.text, rohteil)
+            unterschied = im_mpr(soll, spindel_soll, werkzeug_soll, elemente)
+            pruefe(not unterschied, f"{datei} {job.Label} woodwop: {unterschied}")
+            soll_b = bohrungen_job(abschnitte)
+            pruefe(
+                len(soll_b) == len(bohrungen)
+                and all(
+                    a[3] == b[3]
+                    and all(abs(u - v) <= GENAU for u, v in zip(a[:3], b[:3], strict=True))
+                    for a, b in zip(soll_b, bohrungen, strict=True)
+                ),
+                f"{datei} {job.Label} woodwop: Bohrungen {bohrungen[:3]} statt {soll_b[:3]}",
+            )
+            print(
+                ascii(f"{job.Label} woodWOP: {len(elemente)} Elemente, {len(bohrungen)} Bohrungen")
+            )
         print(ascii(f"{job.Label}: {len(soll)} Vorschubsaetze je Steuerung gleich"))
         if datei.startswith("platte"):
             # Jeder Haken einzeln umgeschaltet, an jeder Steuerung (außer woodWOP): nachgelesen

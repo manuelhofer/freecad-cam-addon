@@ -10,7 +10,8 @@ einer Homag BOF 211 lief:
   KM, „<100 \\Werkstck\\“ das Werkstück (LA, BR, DI).
 - Konturen „]n“, je Element „$Em“ und KP (Anfang), KL (Gerade) oder KA (Bogen in XY) mit X=, Y=,
   Z= in eigenen Zeilen; der Bogen mit R= und DS= (0 im Uhrzeigersinn bis 180°, 1 gegen den
-  Uhrzeigersinn, 2 und 3 über 180°).
+  Uhrzeigersinn, 2 und 3 über 180°) – geschrieben in Stücken bis 90° (BOGEN_HOECHSTENS), also nur
+  0 und 1.
 - „<105 \\Konturfraesen\\“ fährt eine Kontur: EA/EE erstes und letztes Element („1:0“),
   MDA="SEN" senkrecht an, MDE="SEN_AB" senkrecht ab, RK="NOWRK" ohne Radiuskorrektur (die
   Mittelbahn, wie die Bahn gerechnet ist), ZA="@0" die Höhe aus der Kontur, TNO das Werkzeug,
@@ -34,7 +35,10 @@ from dataclasses import dataclass, field
 
 STELLEN = 3
 SEHNE = 0.002  # mm – so weit darf eine Gerade von einem Bogen abweichen, der zerlegt wird
-R_LUFT = 0.001  # mm – der Radius etwas größer: gerundet passt er sonst nicht zur Sehne
+# Ein Bogen höchstens so weit in einem Element: woodWOP rechnet die Mitte aus Anfang, Ende und R –
+# nahe 180° verschiebt schon die letzte Stelle von R sie weit (am Vollkreis Ø 100 in zwei Hälften
+# 0,32 mm neben der Bahn). Bis 90° bleibt es unter 2 µm.
+BOGEN_HOECHSTENS = math.pi / 2
 KM_LAENGE = 80  # Zeichen je Kommentarzeile höchstens (woodWOP)
 KOMMENTARE_HOECHSTENS = 40
 ACHSEN = ("X", "Y", "Z", "A", "B", "C")
@@ -227,20 +231,22 @@ class _Leser:
         self._in_geraden((x1, y1, z1), werte, uhrzeiger)
 
     def _kreis_xy(self, mitte, anfang, ende, z, uhrzeiger):
-        voll = math.hypot(ende[0] - anfang[0], ende[1] - anfang[1]) < 1e-6
-        punkte = [ende]
-        if voll:  # ein Vollkreis: zwei Hälften
-            punkte = [(2 * mitte[0] - anfang[0], 2 * mitte[1] - anfang[1]), ende]
-        start = anfang
-        for px, py in punkte:
-            winkel = _winkel(mitte, start, (px, py), uhrzeiger)
-            r = max(math.hypot(start[0] - mitte[0], start[1] - mitte[1]),
-                    math.hypot(px - mitte[0], py - mitte[1]))  # fmt: skip
-            gross = winkel > math.pi + 1e-9
-            ds = (2 if gross else 0) if uhrzeiger else (3 if gross else 1)
-            self._element(("KA", px, py, z, r, ds))
+        """Ein Bogen in XY – in Stücken bis BOGEN_HOECHSTENS (ein Vollkreis in vier), je mit R und
+        DS (0 im Uhrzeigersinn, 1 gegen ihn; über 180° gibt es so nicht mehr)."""
+        winkel = _winkel(mitte, anfang, ende, uhrzeiger)
+        r = max(math.hypot(anfang[0] - mitte[0], anfang[1] - mitte[1]),
+                math.hypot(ende[0] - mitte[0], ende[1] - mitte[1]))  # fmt: skip
+        n = max(1, math.ceil(winkel / BOGEN_HOECHSTENS - 1e-9))
+        w0 = math.atan2(anfang[1] - mitte[1], anfang[0] - mitte[0])
+        vorzeichen = -1.0 if uhrzeiger else 1.0
+        for k in range(1, n + 1):
+            if k == n:
+                px, py = ende
+            else:
+                w_k = w0 + vorzeichen * winkel * k / n
+                px, py = mitte[0] + r * math.cos(w_k), mitte[1] + r * math.sin(w_k)
+            self._element(("KA", px, py, z, r, 0 if uhrzeiger else 1))
             self._setzen({"X": px, "Y": py, "Z": z})
-            start = (px, py)
 
     def _in_geraden(self, ende, werte, uhrzeiger):
         """Ein Bogen, den MPR so nicht kennt (Schraube, Ebene XZ/YZ): in Geraden."""
@@ -359,13 +365,20 @@ def uebersetzen(zeilen, name="", rohteil=None, maschinentyp="HOMAG", stellen=STE
         nummer += 1
         nummern[id(teil)] = nummer
         aus += [f"]{nummer}", ""]
+        vorher = None
         for k, element in enumerate(teil.elemente):
+            punkt = (z_(element[1] - x0), z_(element[2] - y0))
             aus += [f"$E{k}", element[0]]
-            aus += [f"X={z_(element[1] - x0)}", f"Y={z_(element[2] - y0)}",
-                    f"Z={z_(element[3] - z0)}"]  # fmt: skip
+            aus += [f"X={punkt[0]}", f"Y={punkt[1]}", f"Z={z_(element[3] - z0)}"]
             if element[0] == "KA":
-                r = math.ceil((element[4] + R_LUFT) * 10**stellen) / 10**stellen
+                # R gerundet wie die Punkte; reicht er gerundet nicht bis zur halben Sehne (ein
+                # winziger Bogen), aufgerundet.
+                r = float(z_(element[4]))
+                sehne = math.dist(map(float, vorher), map(float, punkt)) if vorher else 0.0
+                if r < sehne / 2:
+                    r = math.ceil(sehne / 2 * 10**stellen) / 10**stellen
                 aus += [f"R={z_(r)}", f"DS={element[5]}"]
+            vorher = punkt
             aus.append("")
             saetze += element[0] != "KP"
     for teil in leser.arbeit:

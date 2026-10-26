@@ -540,6 +540,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   113 statt 865 Zeilen. TRACYL nicht (ein Radius; die Mantelbahnen wechseln ihn). 0.312.1: der
   Haken nur bei Siemens (Fanuc G12.1/Haas G112: X im Radius oder Durchmesser je Parameter).
   0.312.2: Bohren mit TRANSMIT ohne verdoppeltes X, ohne Y-Achse bleibt „Y0“ stehen.
+- *Korrektur (0.312.3):* woodWOP (Homag/Weeke) – Bögen in Stücken bis 90°: Mit dem aufgerundeten
+  R lief ein Vollkreis Ø 100 bis 0,32 mm neben der Bahn (woodWOP rechnet die Mitte aus R). Die
+  Gegenprobe liest jetzt auch MPR zurück. Voller Lauf nach 0.312.1 grün (134/134, 144/144).
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde

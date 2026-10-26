@@ -104,9 +104,21 @@ pruefe(all(x in z for x in ("<100 \\Werkstck\\", 'LA="L"', 'BR="B"', 'DI="D"')),
 pruefe(element(z, 0) == ["KP", "X=10", "Y=5", "Z=25"], f"KP: {element(z, 0)}")
 pruefe(element(z, 1) == ["KL", "X=10", "Y=5", "Z=18"], f"Eintauchen: {element(z, 1)}")
 pruefe(element(z, 2) == ["KL", "X=20", "Y=5", "Z=18"], f"Gerade: {element(z, 2)}")
-pruefe(element(z, 3) == ["KA", "X=30", "Y=5", "Z=18", "R=5.001", "DS=0"], f"G2: {element(z, 3)}")
-pruefe(element(z, 4) == ["KA", "X=20", "Y=5", "Z=18", "R=5.001", "DS=1"], f"G3 1: {element(z, 4)}")
-pruefe(element(z, 5) == ["KA", "X=30", "Y=5", "Z=18", "R=5.001", "DS=1"], f"G3 2: {element(z, 5)}")
+# Bögen in Stücken bis 90°: woodWOP rechnet die Mitte aus Anfang, Ende und R – am Halbkreis
+# verschob ein R von 5,001 sie um 0,1 mm (am Vollkreis Ø 100 um 0,32 mm).
+boegen = [element(z, k) for k in range(3, 9)]
+pruefe(
+    boegen
+    == [
+        ["KA", "X=25", "Y=10", "Z=18", "R=5", "DS=0"],
+        ["KA", "X=30", "Y=5", "Z=18", "R=5", "DS=0"],
+        ["KA", "X=25", "Y=10", "Z=18", "R=5", "DS=1"],
+        ["KA", "X=20", "Y=5", "Z=18", "R=5", "DS=1"],
+        ["KA", "X=25", "Y=0", "Z=18", "R=5", "DS=1"],
+        ["KA", "X=30", "Y=5", "Z=18", "R=5", "DS=1"],
+    ],
+    f"Halbkreis und Vollkreis: {boegen}",
+)
 pruefe(element(z, 2, kontur=2) == ["KL", "X=60", "Y=50", "Z=15"], "Kontur 2")
 
 # Die Bearbeitungen nach allen Konturen, in ihrer Folge
@@ -114,7 +126,7 @@ letzte_kontur = max(i for i, x in enumerate(z) if x.startswith("]"))
 erstes_makro = min(i for i, x in enumerate(z) if x.startswith("<105") or x.startswith("<102"))
 pruefe(letzte_kontur < erstes_makro, "Konturen vor den Bearbeitungen")
 k1 = makro(z, "Konturfraesen", 0)
-for soll in ('EA="1:0"', 'EE="1:5"', 'MDA="SEN"', 'RK="NOWRK"', 'ZA="@0"', 'TNO="3"', 'F_="3"',
+for soll in ('EA="1:0"', 'EE="1:8"', 'MDA="SEN"', 'RK="NOWRK"', 'ZA="@0"', 'TNO="3"', 'F_="3"',
              'SM="1"', 'S_A="18000"'):  # fmt: skip
     pruefe(soll in k1, f"Konturfräsen 1 ohne {soll}: {k1}")
 k2 = makro(z, "Konturfraesen", 1)
@@ -135,10 +147,10 @@ pruefe(
     any("woodWOP: Eine Kontur hat nur einen Vorschub – an 1 Konturen" in h for h in prog.hinweise),
     f"Hinweis Vorschub: {prog.hinweise}",
 )
-pruefe(prog.saetze == 9, f"Sätze: {prog.saetze}")  # 5 + 2 Elemente, 2 Bohrungen
+pruefe(prog.saetze == 12, f"Sätze: {prog.saetze}")  # 8 + 2 Elemente, 2 Bohrungen
 pruefe(mpr.text(z).count("\r\n") == len(z), "CR LF")
 befunde, saetze = pp.nachlesen(prog, s, fraese)
-pruefe(not befunde and saetze == 9, f"nachgelesen: {[(b.art, b.satz) for b in befunde]}")
+pruefe(not befunde and saetze == 12, f"nachgelesen: {[(b.art, b.satz) for b in befunde]}")
 
 # Weeke: nur der Maschinentyp anders
 weeke = pp.programm([tasche], pp.steuerung("woodwop_weeke"), fraese, "P", rohteil=ROHTEIL)
@@ -171,8 +183,8 @@ pruefe(any("Rundachsen" in h for h in pr.hinweise), f"Hinweis Rundachsen: {pr.hi
 text = prog.text
 kaputt = {
     prp.ENDE: text.replace("\n!\n", "\n"),
-    prp.KREIS: text.replace("R=5.001", "R=4"),
-    "nummer": text.replace('EE="1:5"', 'EE="1:9"'),
+    prp.KREIS: text.replace("\nR=5\n", "\nR=3\n"),
+    "nummer": text.replace('EE="1:8"', 'EE="1:9"'),
     prp.VORSCHUB: text.replace('F_="0.12"', 'F_="0"'),
 }
 for art, falsch in kaputt.items():

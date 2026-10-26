@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-06 woodwop-boegen-bis-90-grad, gegenprobe-mpr
+
+### EINGELESEN
+- Manuels Nachtauftrag (2026-10-25): „bei den post prozessoren auf jeden fall darauf achten das
+  die auch wirlich alles richtig ausgeben … und das bei jedem post prozessor !!!“ – die
+  Gegenprobe ließ woodWOP (MPR) bisher aus.
+
+### DATEIEN
+- `camaddon/mpr.py`: `BOGEN_HOECHSTENS` (90°), `_kreis_xy` teilt jeden Bogen in XY in gleiche
+  Stücke bis dahin; R gerundet wie die Punkte (aufgerundet nur, wenn er die halbe Sehne nicht
+  erreicht); `R_LUFT` weg.
+- `tests/test_mpr.py` (Halbkreis und Vollkreis in Vierteln, R=5), `tests/test_postprozessor_nachfahren.py`
+  (`mpr_lesen`, `im_mpr`, `bohrungen_job`).
+- `docs/spezifikation_steuerung.md` (woodWOP, 31), `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.3.
+
+### ERGEBNIS
+- Vorher, so wie woodWOP die Mitte aus Anfang, Ende, R und DS rechnet: Vollkreis/Halbkreis Ø 4
+  0,06 mm, Ø 10 0,10 mm, Ø 50 0,22 mm, Ø 100 0,32 mm neben dem Kreis; ein Bogen über 179° bis
+  0,20 mm. Jetzt unter 0,4 µm.
+- Die Gegenprobe an C-Ring (zweimal) und Platte: 28 220, 24 004, 6094 Elemente ohne Befund; mit
+  Bögen bis 180° in einem Stück meldet sie 0,010 mm an der Platte.
+- Grün: test_mpr, test_postprozessor_nachfahren. Voller Lauf nach 0.312.1: 134/134 Prüfungen,
+  144/144 Szenarien.
+- An einer Homag nicht ausprobiert.
 ## P-2026-10-26-05 transmit-bohren-und-ohne-y
 
 ### EINGELESEN

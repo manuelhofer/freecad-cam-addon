@@ -588,8 +588,12 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   verschieden). Der Postprozessor schreibt die Bahn wie sonst, `mpr.uebersetzen` macht daraus:
   - Kopf `[H` (VERSION 4.0, MAT, INCH 0), Variablen L, B, D aus dem Rohteil, `<100 \Werkstck\`.
   - Je Zug im Vorschub eine Kontur `]n` – `$E0 KP` dort, wo der Eilgang endete, `KL` für G1,
-    `KA` mit `R` und `DS` (0/1 bis 180° im/gegen den Uhrzeigersinn, 2/3 darüber) für Bögen in XY;
-    ein Vollkreis in zwei Hälften; Schrauben und Bögen in XZ/YZ in Geraden (0,002 mm). X/Y ab der
+    `KA` mit `R` und `DS` (0/1 bis 180° im/gegen den Uhrzeigersinn, 2/3 darüber) für Bögen in XY,
+    seit P-2026-10-26-06 in Stücken bis 90° (ein Vollkreis in vier, also nur DS 0/1), R gerundet wie
+    die Punkte; Schrauben und Bögen in XZ/YZ in Geraden (0,002 mm). Vorher ein Vollkreis in zwei
+    Hälften mit R aufgerundet um 0,001–0,002: woodWOP rechnet die Mitte aus Anfang, Ende und R, und
+    nahe 180° verschiebt die letzte Stelle von R sie weit – am Vollkreis Ø 100 lief die Bahn bis
+    0,32 mm neben dem Kreis, an Ø 10 0,10 mm; in Stücken bis 90° unter 0,4 µm. X/Y ab der
     Ecke des Rohteils, Z vom Boden (woodWOP: Z = D ist oben).
   - Je Kontur `<105 \Konturfraesen\` mit `MDA="SEN"`/`MDE="SEN_AB"` (senkrecht an und ab),
     `RK="NOWRK"` (die Mittelbahn – so ist sie gerechnet), `ZA="@0"` (die Höhe aus der Kontur),
@@ -916,4 +920,17 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - TRACYL nicht gebaut: Es rechnet auf einem einzigen Zylinderradius; die Mantelbahnen
   (4-Achs-Bearbeitung) wechseln den Radius. Gäbe es eine Operation auf festem Radius (Nut auf dem
   Mantel), käme `TRACYL(d)` dazu.
+
+## 31. Gegenprobe für woodWOP (P-2026-10-26-06)
+
+- `test_postprozessor_nachfahren`: die MPR-Datei zurück in Koordinaten des Jobs (`mpr_lesen`: ab
+  der Ecke des Rohteils, Z vom Boden; die Mitte jedes KA so, wie woodWOP sie aus Anfang, Ende, R
+  und DS rechnet). Jeder Vorschubsatz des Jobs steht in derselben Folge als Element (`im_mpr`:
+  ein Bogen darf in Stücke geteilt, eine Schraube in Geraden zerlegt sein), mit Werkzeug und
+  Drehzahl; jeder Bogen mit dem Drehsinn des Jobs und an sieben Stellen höchstens 0,003 mm neben
+  seinem Kreis; der Vorschub einer Kontur ist der kleinste ihrer Sätze; die Bohrungen
+  (`<102 \BohrVert\`) mit Lage, Tiefe und Werkzeug wie die Zyklen im Job.
+- Am C-Ring (Platte und Rundmaterial) und an der Platte mit Zapfen: 28 220, 24 004 und 6094
+  Elemente ohne Befund. Gegenprobe der Gegenprobe: mit Bögen bis 180° in einem Stück meldet sie
+  „0,010 mm neben dem Kreis“ an der Platte.
 
