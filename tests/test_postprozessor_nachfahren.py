@@ -460,6 +460,32 @@ def bohrungen_job(abschnitte):
     return aus
 
 
+def an_der_drehmaschine(text):
+    """Das Programm einer Drehmaschine so umgeschrieben, wie sie es fährt, für
+    vorschubsaetze_programm: X im Durchmesser halbiert; C als Moduloachse – „C4=ACP(v)“ dreht
+    positiv, „ACN“ negativ bis v (dieselbe Stelle: nicht), „C4=v“ absolut – fortlaufend gezählt wie
+    im Job; „Cv“ (Fanuc, Haas …) liest vorschubsaetze_programm selbst."""
+    c = 0.0
+
+    def rundachse(m):
+        nonlocal c
+        if m.group(1):
+            wert = float(m.group(2))
+            d = (wert - c) % 360.0 if m.group(1) == "ACP" else -((c - wert) % 360.0)
+            c += 0.0 if abs(d) > 359.9995 else d
+        else:
+            c = float(m.group(3))
+        return f"C{c:.6f}"
+
+    aus = []
+    for zeile in text.splitlines():
+        if not zeile.lstrip().startswith((";", "(")):
+            zeile = re.sub(r"\bC\d*=(?:(AC[PN])\(([-+\d.]+)\)|([-+]?\d+\.?\d*))", rundachse, zeile)
+            zeile = re.sub(r"\bX([-+]?\d+\.?\d*)", lambda m: f"X{float(m.group(1)) / 2:.6f}", zeile)
+        aus.append(zeile)
+    return "\n".join(aus)
+
+
 def vergleichen(job_saetze, prog_saetze):
     """None, wenn jeder Vorschubsatz stimmt – sonst der erste Unterschied als Satz."""
     if len(job_saetze) != len(prog_saetze):
@@ -481,6 +507,7 @@ def vergleichen(job_saetze, prog_saetze):
 
 sprache.setze_sprache("de")
 fraese = pp.Maschineninfo("Fräse", wechselpunkt={"Z": 250.0})
+dreh = pp.Maschineninfo("Drehmaschine", True, True, {"C": "C4"}, {1: "3"})
 for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_4achs_nase.FCStd"):
     doc = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", datei))
     for job in [o for o in doc.Objects if hasattr(o, "Operations")]:
@@ -552,6 +579,18 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             gerufen = folge([int(n) for n in re.findall(r"TOOL CALL (\d+) ", programm.text)])
             soll_w = folge([int(a.werkzeug) for a in abschnitte if a.werkzeug])
             pruefe(gerufen == soll_w, f"{datei} {kennung}: Werkzeuge {gerufen} statt {soll_w}")
+        if rundum:
+            # An der Drehmaschine (X im Durchmesser, C4 der Hauptspindel als Moduloachse – wie
+            # Manuels CLX550): gelesen, wie sie es fährt, Satz für Satz wie im Job.
+            for kennung in ("siemens", "fanuc", "haas", "linuxcnc", "mazak"):
+                programm = pp.programm(abschnitte, pp.steuerung(kennung), dreh, job.Label)
+                ist = vorschubsaetze_programm(
+                    an_der_drehmaschine(programm.text), siemens=kennung == "siemens"
+                )
+                unterschied = vergleichen(vorschubsaetze_job(abschnitte, dreh), ist)
+                pruefe(
+                    not unterschied, f"{datei} {job.Label} {kennung} Drehmaschine: {unterschied}"
+                )
         if not rundum:
             # woodWOP (MPR, Homag/Weeke): die Konturen und Bohrungen zurück in Koordinaten des
             # Jobs – jeder Vorschubsatz, jeder Bogen so, wie die Maschine ihn aus R und DS fährt.

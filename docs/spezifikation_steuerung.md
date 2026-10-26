@@ -934,5 +934,8 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Elemente ohne Befund. Gegenprobe der Gegenprobe: mit Bögen bis 180° in einem Stück meldet sie
   „0,010 mm neben dem Kreis“ an der Platte.- Klartext: Die Gegenprobe prüfte nur die Endpunkte. Jetzt auch jeden Bogen (C in Hälften, CP):
   der Pol (CC, modal) ist die Mitte des Jobs, DR wie G2/G3, eine Gerade nie als Bogen. An allen
-  Beispielen ohne Befund; ein Pol 0,01 mm daneben und ein falscher Drehsinn werden gemeldet.
+  Beispielen ohne Befund; ein Pol 0,01 mm daneben und ein falscher Drehsinn werden gemeldet.- Drehmaschine: das Rundum-Programm der Nase (236 061 Vorschubsätze) an einer Drehmaschine wie
+  Manuels CLX550 (X im Durchmesser, C4 der Hauptspindel) für Siemens, Fanuc, Haas, LinuxCNC und
+  Mazak, gelesen, wie die Maschine es fährt (`an_der_drehmaschine`: X halbiert, „C4=ACP/ACN“ als
+  Moduloachse fortlaufend) – Satz für Satz wie im Job, ohne Befund.
 
