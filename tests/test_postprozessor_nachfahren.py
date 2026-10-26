@@ -261,8 +261,9 @@ def in_folge(soll, ist):
 
 
 def klartext_punkte(text):
-    """[(X, Y, Z, F)] der Sätze im Vorschub eines Klartext-Programms (L, C) – modal, Zahlen mit
-    Vorzeichen, F nur, wenn es sich ändert; Fortsetzungszeilen der Zyklen übersprungen."""
+    """[(X, Y, Z, F, Bogen)] der Sätze im Vorschub eines Klartext-Programms (L, C, CP) – modal,
+    Zahlen mit Vorzeichen, F nur, wenn es sich ändert; Fortsetzungszeilen der Zyklen übersprungen.
+    Bogen: bei C und CP um einen Pol in XY (Pol X, Pol Y, im Uhrzeigersinn), sonst None."""
     aus = []
     pos = {"X": None, "Y": None, "Z": None}
     f = None
@@ -272,7 +273,8 @@ def klartext_punkte(text):
             continue
         satz = re.sub(r"^\d+ ", "", zeile).strip()
         if satz.startswith("CC "):
-            pol = [float(w) for _a, w in re.findall(r"\b([XY])([-+]\d+\.?\d*)", satz)]
+            pol = {a: float(w) for a, w in re.findall(r"\b([XYZ])([-+]\d+\.?\d*)", satz)}
+            pol = [pol.get("X"), pol.get("Y")]
             continue
         if satz.startswith("CP "):
             # Die Schraubenlinie: um IPA um den Pol gedreht, Z um IZ.
@@ -284,7 +286,7 @@ def klartext_punkte(text):
             pos["Z"] += float(iz.group(1)) if iz else 0.0
             m = re.search(r"\bF(\d+\.?\d*)", satz)
             f = float(m.group(1)) if m else f
-            aus.append((pos["X"], pos["Y"], pos["Z"], f))
+            aus.append((pos["X"], pos["Y"], pos["Z"], f, (*pol, ipa < 0)))
             continue
         if not satz.startswith(("L ", "C ")):
             continue
@@ -295,7 +297,10 @@ def klartext_punkte(text):
             f = float(m.group(1))
         if "FMAX" in satz or "M91" in satz or None in pos.values():
             continue
-        aus.append((pos["X"], pos["Y"], pos["Z"], f))
+        bogen = None
+        if satz.startswith("C ") and pol is not None and None not in pol:
+            bogen = (*pol, "DR-" in satz)
+        aus.append((pos["X"], pos["Y"], pos["Z"], f, bogen))
     return aus
 
 
@@ -307,6 +312,7 @@ def im_klartext(job_saetze, punkte):
         # Eine Gerade ist der nächste Satz; ein Bogen darf Zwischenpunkte haben (zwei Hälften,
         # die Schraube in Geraden).
         bis = len(punkte) if soll[0] in ("G2", "G3") else min(k + 1, len(punkte))
+        anfang = k
         while k < bis and not all(
             abs(a - b) <= GENAU for a, b in zip(soll[1:4], punkte[k][:3], strict=True)
         ):
@@ -315,6 +321,19 @@ def im_klartext(job_saetze, punkte):
             return f"Satz {i + 1} {soll} fehlt im Klartext"
         if punkte[k][3] is None or not math.isclose(soll[6], punkte[k][3], rel_tol=1e-3):
             return f"Satz {i + 1} F {punkte[k][3]} statt {soll[6]}"
+        # Ein Bogen (auch in Hälften oder als CP): um die Mitte des Jobs, im Drehsinn des Jobs;
+        # eine Gerade nie als Bogen.
+        for q in punkte[anfang : k + 1]:
+            if q[4] is None:
+                continue
+            if soll[0] not in ("G2", "G3"):
+                return f"Satz {i + 1} {soll[0]}: im Klartext ein Bogen {q}"
+            if (
+                abs(q[4][0] - soll[4]) > GENAU
+                or abs(q[4][1] - soll[5]) > GENAU
+                or q[4][2] != (soll[0] == "G2")
+            ):
+                return f"Satz {i + 1} {soll[0]} Mitte {soll[4:6]}: im Klartext {q[4]}"
         k += 1
     return None
 
@@ -669,6 +688,18 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             pruefe(
                 im_klartext(soll, klartext_punkte(daneben)), "Klartext: 0,01 mm daneben übersehen"
             )
+            # Ein Pol 0,01 mm daneben, ein Bogen im falschen Drehsinn – die Endpunkte bleiben.
+            cc = re.search(r"^\d+ CC X([-+]\d+\.\d+)", text, re.M)
+            dr = re.search(r"^\d+ C [^\n]*DR([-+])", text, re.M)
+            pruefe(cc is not None and dr is not None, "Klartext der Platte ohne Bogen")
+            if cc is not None and dr is not None:
+                pol = text[: cc.start(1)] + f"{float(cc.group(1)) + 0.01:+.3f}" + text[cc.end(1) :]
+                pruefe(im_klartext(soll, klartext_punkte(pol)), "Klartext: Pol daneben übersehen")
+                anders = "+" if dr.group(1) == "-" else "-"
+                falsch_dr = text[: dr.start(1)] + anders + text[dr.end(1) :]
+                pruefe(
+                    im_klartext(soll, klartext_punkte(falsch_dr)), "Klartext: Drehsinn übersehen"
+                )
     FreeCAD.closeDocument(doc.Name)
 
 if fehler:

@@ -932,5 +932,7 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   (`<102 \BohrVert\`) mit Lage, Tiefe und Werkzeug wie die Zyklen im Job.
 - Am C-Ring (Platte und Rundmaterial) und an der Platte mit Zapfen: 28 220, 24 004 und 6094
   Elemente ohne Befund. Gegenprobe der Gegenprobe: mit Bögen bis 180° in einem Stück meldet sie
-  „0,010 mm neben dem Kreis“ an der Platte.
+  „0,010 mm neben dem Kreis“ an der Platte.- Klartext: Die Gegenprobe prüfte nur die Endpunkte. Jetzt auch jeden Bogen (C in Hälften, CP):
+  der Pol (CC, modal) ist die Mitte des Jobs, DR wie G2/G3, eine Gerade nie als Bogen. An allen
+  Beispielen ohne Befund; ein Pol 0,01 mm daneben und ein falscher Drehsinn werden gemeldet.
 
