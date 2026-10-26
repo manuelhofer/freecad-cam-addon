@@ -90,7 +90,7 @@
     "pp.feld.vorwahl": "Preselect next tool",
     "pp.feld.vorwahl.tooltip": "Right after the change – {t}: number of the next tool, {werkzeug}: its name (Siemens with tool management: T=\"{werkzeug}\"). Empty: no preselection.",
     "pp.haken.nullpunkt_setzen": "Work offset from the job (G54 …)",
-    "pp.haken.nullpunkt_setzen.erklaerung": "At the start and after every jump label, select the work offset the job names (CAM: work coordinate systems/Fixtures, default G54) – before the tool change point and the tilting. Siemens G54–G57, from the fifth on G505 … (G58/G59 mean something else there); Fanuc and Mazak from the seventh on G54.1 P…, Haas G154 P…, Heidenhain cycle 247 with the line of the preset table (G54 = 1). Off: the program runs in the work offset that is active on the machine.",
+    "pp.haken.nullpunkt_setzen.erklaerung": "At the start and after every jump label, select the work offset the job names (CAM: work coordinate systems/Fixtures, default G54) – before the tool change point and the tilting. Siemens G54–G57, from the fifth on G505 … (G58/G59 mean something else there); Fanuc and Mazak from the seventh on G54.1 P…, Haas G154 P…, Heidenhain cycle 247 with the line of the preset table (G54 = 1). On by default (off for Heidenhain – which line of the preset table is G54 is up to each shop). Off: the program runs in the work offset that is active on the machine.",
     "pp.feld.nullpunkt": "Select work offset",
     "pp.feld.nullpunkt.tooltip": "{g}: G54 … G59 as in the job, {nr}: its number (G54 = 1, G59.1 = 7), {nn}: two digits. For the first work offsets (Siemens: G54–G57; Heidenhain all) – the others with “Further work offsets”.",
     "pp.feld.nullpunkt_weitere": "Further work offsets",

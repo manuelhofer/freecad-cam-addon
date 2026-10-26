@@ -90,7 +90,7 @@
     "pp.feld.vorwahl": "Nächstes Werkzeug vorwählen",
     "pp.feld.vorwahl.tooltip": "Gleich nach dem Wechsel – {t}: die Nummer des nächsten Werkzeugs, {werkzeug}: sein Name (Siemens mit Werkzeugverwaltung: T=\"{werkzeug}\"). Leer: keine Vorwahl.",
     "pp.haken.nullpunkt_setzen": "Nullpunkt aus dem Job (G54 …)",
-    "pp.haken.nullpunkt_setzen.erklaerung": "Am Anfang und hinter jeder Sprungmarke den Nullpunkt anwählen, den der Job nennt (CAM: Arbeitskoordinatensysteme/Fixtures, vorbelegt G54) – vor dem Wechselpunkt und dem Schwenken. Siemens G54–G57, ab dem fünften G505 … (G58/G59 sind dort etwas anderes); Fanuc und Mazak ab dem siebten G54.1 P…, Haas G154 P…, Heidenhain Zyklus 247 mit der Zeile der Preset-Tabelle (G54 = 1). Aus: das Programm fährt im Nullpunkt, der an der Maschine gerade aktiv ist.",
+    "pp.haken.nullpunkt_setzen.erklaerung": "Am Anfang und hinter jeder Sprungmarke den Nullpunkt anwählen, den der Job nennt (CAM: Arbeitskoordinatensysteme/Fixtures, vorbelegt G54) – vor dem Wechselpunkt und dem Schwenken. Siemens G54–G57, ab dem fünften G505 … (G58/G59 sind dort etwas anderes); Fanuc und Mazak ab dem siebten G54.1 P…, Haas G154 P…, Heidenhain Zyklus 247 mit der Zeile der Preset-Tabelle (G54 = 1). Vorbelegt an (bei Heidenhain aus – welche Zeile der Preset-Tabelle G54 heißt, legt jede Werkstatt selbst fest). Aus: das Programm fährt im Nullpunkt, der an der Maschine gerade aktiv ist.",
     "pp.feld.nullpunkt": "Nullpunkt anwählen",
     "pp.feld.nullpunkt.tooltip": "{g}: G54 … G59 wie im Job, {nr}: seine Nummer (G54 = 1, G59.1 = 7), {nn}: zweistellig. Gilt für die ersten Nullpunkte (Siemens: G54–G57; Heidenhain alle) – die übrigen mit „Weitere Nullpunkte“.",
     "pp.feld.nullpunkt_weitere": "Weitere Nullpunkte",

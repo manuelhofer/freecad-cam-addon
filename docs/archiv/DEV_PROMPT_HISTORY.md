@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-02 antworten-fragen-1-bis-6, nullpunkt-vorbelegt-an
+
+### EINGELESEN
+- Manuel, 2026-10-26 früh, auf die Fragen 1–6: „1 ja 2 nein3 ja4shopturn also nicht relevant 5.
+  Keine Ahnung 6. Nein“.
+  - 1 TRANSMIT/TRACYL an der CLX550: ja, die Option ist da → wird gebaut (S6).
+  - 2 Handbuch Okuma/Brother: nein → beide nicht gebaut.
+  - 3 Nullpunkt-Haken vorbelegt an: ja.
+  - 4 Gewindebohren an der CLX550: in ShopTurn – nicht relevant; an der Drehmaschine bleibt der
+    Hinweis.
+  - 5 Große Programme an der alten 840D: „keine Ahnung“ – kein EXTCALL gebaut (der Hinweis zur
+    Größe nennt es weiter).
+  - 6 Roter Block sperrt „Anlegen“: nein, nicht ändern – es bleibt gesperrt (mit „So einrichten“).
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `nullpunkt_setzen` vorbelegt an, Heidenhain aus (welche Zeile der
+  Preset-Tabelle G54 heißt, legt jede Werkstatt fest). `translations/*.json`,
+  `help/*/programm.html`, `docs/spezifikation_steuerung.md` 19, `docs/OFFENE_FRAGEN.md` (leer),
+  `docs/STATUS_SNAPSHOT.md`.
+- `tests/test_postprozessor.py`, `tests/gui/szenario_programm.py`; Prüfsummen der
+  Simultan-Referenzen, `beispiele/grob_g550_freiform/freiform_5achs.mpf`, `nc_pruefung.json`,
+  `daten/beispiele.json` (jetzt mit „G54“).
+
+### ERGEBNIS
+- Siemens am G550-Beispiel: „; Nullpunkt: G54“ im Kopf, „G54“ vor dem Wechselpunkt; Heidenhain
+  ohne Zyklus 247, solange man ihn nicht anhakt.
+- Grün: test_postprozessor, _nachfahren, _zufall, test_programmkopf, test_programm_pruefen,
+  test_einrichtblatt, test_schwenken, die Simultan-Prüfungen, test_beispiele.
+
 ## P-2026-10-26-01 anlegen-ohne-leere-operationen
 
 ### EINGELESEN

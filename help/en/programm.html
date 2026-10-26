@@ -81,7 +81,7 @@ have each operation's label name in a comment).</li>
 header (“O1234”, Haas five digits “O01234”), remembered per job, 1 by default. Two programs with the
 same number overwrite each other on the machine. In the command “Program start” it is
 <code>{nummer}</code>.</li>
-<li><b>Work offset from the job (G54 …)</b> – off by default. On: at the start and after
+<li><b>Work offset from the job (G54 …)</b> – on by default (off for Heidenhain). At the start and after
 every jump label the work offset the job names under its work coordinate systems (FreeCAD's
 default G54) – before the tool change point and before tilting, in the header “Work offset:
 G54”. Each control with its own command: LinuxCNC G54 … G59.3, Siemens G54 … G57 and from the

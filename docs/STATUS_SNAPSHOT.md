@@ -535,6 +535,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Operation ohne Arbeit (nur Eilgänge) bekommt im Programm keinen Werkzeugwechsel mehr, sondern
   einen Hinweis; 0.311.2: der Achsfilter nur an der Drehmaschine
   ohne Y; 0.311.1: Klartext startet ein angetriebenes Werkzeug.
+- *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
+  Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde
   (G33.1 längs Z, X im Durchmesser).
 - *Neu (0.310.0):* Kommentare in Großbuchstaben (Fanuc, Mazak an); Klartext ohne Sätze unter der
@@ -1967,9 +1969,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Nullpunkt aus dem Job (Haken aus, Frage 3), Satznummern ≤ 5 Stellen, Heidenhain-Schraube als CP,
   G94 im Kopf, Meldung beim Messstopp, Fanuc G68.2 (Haken aus), Rundachsen nach CYCLE800() auf 0,
   Programmnummer je Job, Bohren an der Drehmaschine ausgeschrieben, Drehmaschine ohne Y; die
-  Gegenprobe (Vorschub, Eilgänge, jeder Haken jeder Steuerung). **Offen:** Okuma und Brother (kein
-  Handbuch, Frage 2), Haas G268 (Vorzeichen der UMC ungeprüft), Gewindebohren an der Drehmaschine
-  (Siemens G331/G332 oder CYCLE84 mit Bohrachse – Hinweis statt Satz), TRANSMIT/TRACYL (Frage 1).
+  Gegenprobe (Vorschub, Eilgänge, jeder Haken jeder Steuerung). **Manuels Antworten
+  (2026-10-26):** TRANSMIT/TRACYL hat die CLX550 („ja“ – in Arbeit); kein Handbuch für Okuma und
+  Brother („nein“ – nicht gebaut); Nullpunkt-Haken vorbelegt an („ja“ – 0.311.5); Gewinde an der
+  CLX550 macht er in ShopTurn („nicht relevant“ – an der Drehmaschine bleibt der Hinweis); große
+  Programme an der 840D: „keine Ahnung“ – kein EXTCALL; ein roter Block sperrt „Anlegen“ weiter
+  („nein“). **Offen:** Haas G268 (Vorzeichen der UMC ungeprüft).
 - **W-039 Der Assistent fragt, wie man vorgehen will** – Manuel, 2026-10-25 (Antwort auf Frage 6,
   die aus seinem Vorschlag zu Frage 4 kam: „hey wie willst du vorgehen sollen wir erst vorbohren …
   oder sollen wir alles rausschruppen und dann schlichten“): „ja irgendwie mehr abfragen wie der

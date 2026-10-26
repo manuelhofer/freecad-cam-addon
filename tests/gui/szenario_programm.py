@@ -150,15 +150,19 @@ def schritte(h):
     leiste.setValue(leiste.maximum())
     yield 300
     h.bild("2c_siemens_glaetten", d)
-    # Der Nullpunkt aus dem Job (vorbelegt aus): angehakt steht „G54“ vor dem Wechselpunkt.
+    # Der Nullpunkt aus dem Job (vorbelegt an – Manuel, 2026-10-26): „G54“ vor dem Wechselpunkt;
+    # ohne den Haken keiner.
     haken_n = d.haken["nullpunkt_setzen"]
-    h.pruefe(not haken_n.isChecked() and "G54" not in d.vorschau.toPlainText(), "G54 ohne Haken")
-    d.einstellungen.ensureWidgetVisible(haken_n, 0, 150)
-    haken_n.setChecked(True)
-    yield 500
     vorschau_n = d.vorschau.toPlainText().splitlines()
-    h.pruefe("G54" in " ".join(vorschau_n), f"G54 fehlt mit Haken: {vorschau_n[:30]}")
+    h.pruefe(
+        haken_n.isChecked() and "G54" in " ".join(vorschau_n), f"G54 vorbelegt: {vorschau_n[:30]}"
+    )
+    d.einstellungen.ensureWidgetVisible(haken_n, 0, 150)
+    yield 300
     h.bild("2d_siemens_nullpunkt", d)
+    haken_n.setChecked(False)
+    yield 500
+    h.pruefe("G54" not in d.vorschau.toPlainText(), "G54 ohne Haken")
     d.zuruecksetzen()
     yield 300
     h.pruefe(

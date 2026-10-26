@@ -671,7 +671,7 @@ pruefe(
 )
 
 
-# Der Nullpunkt aus dem Job (Fixtures): vorbelegt aus; an: am Anfang und in jedem Einstieg vor
+# Der Nullpunkt aus dem Job (Fixtures): vorbelegt an (Heidenhain aus); am Anfang und in jedem Einstieg vor
 # dem Wechselpunkt, je Steuerung ihr Befehl – Siemens ab dem fünften G505 (G58 ist dort axial),
 # Fanuc G54.1 P, Haas G154 P, Mach G59 P, Heidenhain Zyklus 247; GRBL kennt nach G59 keinen.
 def mit_nullpunkt(*register):
@@ -679,8 +679,15 @@ def mit_nullpunkt(*register):
 
 
 oben = pp.Maschineninfo("Fräse", wechselpunkt={"Z": 250.0})
-aus_n = pp.programm(mit_nullpunkt("G54"), pp.steuerung("linuxcnc"), oben, "N").zeilen
+aus_n = pp.programm(
+    mit_nullpunkt("G54"), pp.steuerung("linuxcnc", {"nullpunkt_setzen": False}), oben, "N"
+).zeilen
 pruefe("G54" not in aus_n, f"Nullpunkt ohne Haken: {aus_n}")
+pruefe(
+    "G54" in pp.programm(mit_nullpunkt("G54"), pp.steuerung("linuxcnc"), oben, "N").zeilen
+    and not any("247" in x for x in pp.programm(mit_nullpunkt("G54"), pp.steuerung("heidenhain"), oben, "N").zeilen),
+    "Nullpunkt vorbelegt an (Heidenhain aus)",
+)  # fmt: skip
 an_n = {"nullpunkt_setzen": True}
 z_n = pp.programm(mit_nullpunkt("G54"), pp.steuerung("linuxcnc", an_n), oben, "N").zeilen
 k = z_n.index("G54") if "G54" in z_n else -1

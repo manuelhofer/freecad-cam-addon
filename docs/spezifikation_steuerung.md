@@ -773,7 +773,8 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 
 ## 19. Nullpunkt aus dem Job (P-2026-10-25-71)
 
-- Haken `nullpunkt_setzen`, **vorbelegt aus** (Frage an Manuel in `OFFENE_FRAGEN.md`): der erste
+- Haken `nullpunkt_setzen`, **vorbelegt an** (Manuel, 2026-10-26: „ja“; Heidenhain vorbelegt
+  aus – welche Zeile der Preset-Tabelle G54 heißt, legt jede Werkstatt fest): der erste
   Nullpunkt des Jobs (`Job.Fixtures`; bei einer Ebene die des Grundjobs – dieselbe Aufspannung)
   am Anfang und in jedem Einstieg hinter einer Marke, vor dem Wechselpunkt (er kann in WKS
   zählen) und vor dem Schwenken (Heidenhain: Zyklus 247 setzt Zyklus 7 zurück, PLANE bleibt).

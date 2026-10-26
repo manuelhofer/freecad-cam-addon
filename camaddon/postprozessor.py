@@ -203,12 +203,14 @@ class Steuerung:
     # Der Nullpunkt, den der Job nennt (CAM: Fixtures, „G54“) – am Anfang und hinter jeder Marke,
     # vor dem Wechselpunkt und dem Schwenken. Die ersten `nullpunkt_grund` mit `nullpunkt`, die
     # übrigen mit `nullpunkt_weitere`: {g} G54 … G59, {nr} die Nummer (G54 = 1, G59.1 und
-    # G54.1 P1 = 7), {e} die Nummer nach G59 (G59.1 = 1), {nn} zweistellig (Siemens G505). Haken
-    # aus (vorbelegt): das Programm nimmt den Nullpunkt, der an der Maschine aktiv ist.
+    # G54.1 P1 = 7), {e} die Nummer nach G59 (G59.1 = 1), {nn} zweistellig (Siemens G505).
+    # Vorbelegt an (Manuel, 2026-10-26, Frage 3: „ja“); aus: der Nullpunkt, der an der Maschine
+    # aktiv ist. Heidenhain vorbelegt aus – welche Zeile der Preset-Tabelle G54 heißt, legt jede
+    # Werkstatt selbst fest.
     nullpunkt: str = "{g}"
     nullpunkt_weitere: str = ""
     nullpunkt_grund: int = 6
-    nullpunkt_setzen: bool = False
+    nullpunkt_setzen: bool = True
     # Hinter jeder Marke ein vollständiger Einstieg (Werkzeug neu) – nein bei GRBL: Dort ist der
     # Wechsel ein Halt (M0); die Marken stehen als Namen im Kommentar zum Suchen.
     einstieg_je_marke: bool = True
@@ -776,6 +778,7 @@ _HEIDENHAIN = {
     # zurück, PLANE bleibt: darum vor dem Schwenken.
     "nullpunkt": "CYCL DEF 247 BEZUGSPUNKT SETZEN ~\nQ339=+{nr} ;BEZUGSPUNKT-NUMMER",
     "nullpunkt_grund": 999,
+    "nullpunkt_setzen": False,  # die Zeile der Preset-Tabelle hängt an der Werkstatt
     "wechsel_drehen": "TOOL CALL {t} Z",
     "spindel_ein": "M{m} S{s}",
     "spindel_aus": "M5",
