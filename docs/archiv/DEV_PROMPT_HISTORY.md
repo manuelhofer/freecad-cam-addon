@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-08 fenster-atmet-bei-netzabstaenden
+
+### EINGELESEN
+- Manuel (Merkzettel „Ressourcen nutzen“): alle Kerne, das Fenster darf nie laggen.
+- Szenario am 5-Achs-Teil „tief“ (Kopie, W-038): Flächen der Tasche, „So einrichten“ beim
+  3D-Schlichten, Ecken-Kugel anlegen, „T1 auf 54 mm ausspannen“, „Anlegen“. Es ging durch – aber
+  beim Anlegen stand das Fenster bis 3,6 s, im Hauptprozess in `netzabstand.punkt_dreieck_abstand`.
+
+### DATEIEN
+- `camaddon/netzabstand.py`: `NetzAbstand.abstand` rechnet in Teilen zu `JE_TEIL` (2000) Punkten
+  und ruft dazwischen `uhren.atmen()` (nur in `uhren.atmend()`, also beim Anlegen/Neuberechnen im
+  Hauptprozess; in den Nebenrechnern nichts). Dasselbe Ergebnis.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.5.
+
+### ERGEBNIS
+- Längste Pause beim Anlegen 3,62 s → 2,09 s; dieselben Operationen und dieselben sechs Befunde
+  der Kollisionsprüfung (die Berührung des Schafts in der Flanke ist der Fall „Flanke fertig“, den
+  die Frage „Die Wände unter dem Rand“ nennt).
+- Grün: test_netzabstand, test_hinterschnitt_bahn, test_flanke, test_empfehlung,
+  test_schraeg_abtrag, test_vierachs_halter; szenario_tief_emp (Kopie, nicht im Repo).
 ## P-2026-10-26-07 gegenprobe-klartext-und-drehmaschine, kommentar-ohne-g93
 
 ### EINGELESEN

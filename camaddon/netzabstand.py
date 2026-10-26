@@ -14,6 +14,7 @@ Rechnung vorher sieht (kollision._stelle)."""
 
 import numpy as np
 
+JE_TEIL = 2000  # Punkte je Teil in NetzAbstand.abstand – dazwischen atmet das Fenster
 ZELLE_MINDESTENS = 2.0  # mm – kleiner lohnt sich nicht: je Punkt werden 27 Zellen gelesen
 ZELLE_HOECHSTENS = 25.0  # mm – größer: zu viele Dreiecke je Zelle
 STAPEL = 4096  # so viele Paare (Strecke, Dreieck) rechnet `kapseln` höchstens auf einmal
@@ -362,8 +363,19 @@ class Netz:
     def abstand(self, punkte):
         """Je Punkt (n, 3): so weit ist er mindestens von der Oberfläche entfernt – der Abstand
         zum Netz minus `toleranz`, höchstens eine Zellenbreite minus `toleranz` (weiter sieht das
-        Gitter nicht). Nie mehr als der wahre Abstand zur Oberfläche."""
+        Gitter nicht). Nie mehr als der wahre Abstand zur Oberfläche. In Teilen zu JE_TEIL Punkten:
+        dazwischen zeichnet sich das Fenster neu (uhren.atmen – nur beim Anlegen im Hauptprozess;
+        am 5-Achs-Teil „tief“ stand es sonst bis 3,6 s)."""
+        from . import uhren
+
         punkte = np.asarray(punkte, dtype=np.float64).reshape(-1, 3)
+        teile = []
+        for anfang in range(0, len(punkte), JE_TEIL):
+            teile.append(self._abstand(punkte[anfang : anfang + JE_TEIL]))
+            uhren.atmen()
+        return np.concatenate(teile) if teile else np.full(0, self.zelle - self.toleranz)
+
+    def _abstand(self, punkte):
         n = len(punkte)
         ergebnis = np.full(n, self.zelle)
         if n == 0 or len(self.ecken) == 0:
