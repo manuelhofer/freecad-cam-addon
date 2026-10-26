@@ -1514,6 +1514,9 @@ def programm(
             and s.transmit
             and s.transmit_ein
         )
+        # Mit TRANSMIT zählt X im Radius (DIAMOF) und Y ist gedacht – auch ohne Y-Achse: Bohren
+        # ohne Durchmesser und ohne Achsfilter.
+        info_zyklus = None if transmit else info
         if transmit:
             # TRANSMIT: die Bahn in X und Y um die Drehachse, wie sie im Job steht – die
             # Steuerung rechnet C.
@@ -1814,7 +1817,7 @@ def programm(
                 if gross in AUSGESCHRIEBEN:
                     zeilen.extend(
                         _zyklus_ausgeschrieben(
-                            s, gross, parameter, stand, auf_r, faktor, stellen, info
+                            s, gross, parameter, stand, auf_r, faktor, stellen, info_zyklus
                         )
                     )
                     saetze += 1
@@ -1831,7 +1834,7 @@ def programm(
                             faktor,
                             steigung,
                             drehzahl_ab,
-                            info,
+                            info_zyklus,
                         )
                     )
                     saetze += 1
@@ -1916,7 +1919,7 @@ def programm(
                         continue
                     woerter.append(_wort(s, "F", _zahl(wert, STELLEN_G93 if g93 else STELLEN)))
                     continue
-                if adresse == "Y" and _ohne_y(info):
+                if adresse == "Y" and _ohne_y(info) and not transmit:
                     # Die Maschine hat diese Achse nicht (Y an der Drehmaschine): auf 0 weglassen –
                     # FreeCADs Bohren schreibt Y0 –, sonst stehen lassen (die Steuerung hält an)
                     # und sagen.

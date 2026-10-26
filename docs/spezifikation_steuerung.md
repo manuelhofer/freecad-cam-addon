@@ -905,6 +905,10 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - Am Prüfteil (Tasche an der Stirnseite, `tests/test_stirnseite.py`): 113 statt 865 Zeilen („C dreht
   mit“), 113 statt 135 („C in Schritten“); jeder Schnittpunkt liegt auf dem 72-Eck; nachgelesen
   ohne Befund.
+- Mit TRANSMIT gilt X im Radius und Y gedacht, auch an einer Drehmaschine ohne Y (dafür ist
+  TRANSMIT gemacht): Bohrungen ausgeschrieben ohne Verdoppeln, „Y0“ bleibt stehen, kein Hinweis
+  „Achse fehlt“ (`info_zyklus`; P-2026-10-26-05 – vorher „G0 X20.000“ statt X10 und ein
+  fehlendes Y0, das Werkzeug wäre bei Y20 geblieben).
 - Der Haken steht nur, wo die Vorlage `transmit_ein` füllt (Siemens). Fanuc `G12.1`/`G112` und
   Haas `G112` nicht gebaut: Dort fahren X und C (Fanuc: C als gedachte Linearachse), und ob X im
   Radius oder Durchmesser zählt, legt ein Parameter fest (Haas Setting 285) – ohne Handbuch und

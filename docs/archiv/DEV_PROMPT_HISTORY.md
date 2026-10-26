@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-05 transmit-bohren-und-ohne-y
+
+### EINGELESEN
+- Eigene Durchsicht von P-2026-10-26-03: Das ausgeschriebene Bohren und der Achsfilter für
+  Drehmaschinen ohne Y sahen von TRANSMIT nichts.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: `info_zyklus` (mit TRANSMIT `None`: kein Durchmesser, kein
+  Achsfilter beim Bohren), der Y-Filter nicht mit TRANSMIT.
+- `tests/test_stirnseite.py`: an der Beispiel-Drehmaschine ohne Y eine Bohrung neben der Mitte und
+  eine Bahn zurück auf Y0 mit TRANSMIT.
+- `docs/spezifikation_steuerung.md` 30, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.2.
+
+### ERGEBNIS
+- Vorher: „G0 X20.000 Y20.000“ für die Bohrung bei X10 (X verdoppelt, obwohl DIAMOF gilt);
+  „G0 X15.000“ und „G1 X15.000“ ohne „Y0“ – das Werkzeug wäre bei Y20 bzw. Y8 geblieben; dazu der
+  falsche Hinweis „hat keine Y-Achse“. Jetzt X10, Y0 steht, kein Hinweis.
+- Grün: test_stirnseite, test_postprozessor, test_postprozessor_zufall.
 ## P-2026-10-26-04 transmit-nur-bei-siemens
 
 ### EINGELESEN

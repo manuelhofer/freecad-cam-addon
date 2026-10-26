@@ -477,6 +477,37 @@ pruefe(
     f"ohne Y: Y {y_0[:5]}, C {len(c_0)}",
 )
 print(ascii(f"Ohne Y an der Beispiel-Drehmaschine: {len(am_0)} Stellen, {daneben_0:.4f} daneben"))
+# TRANSMIT ohne Y-Achse – dafür ist es gemacht: Y bleibt im Programm, auch Y0, ohne den Hinweis
+# „Achse fehlt“; die Bohrung neben der Mitte mit X im Radius (DIAMOF), nicht verdoppelt.
+mx_0, my_0 = info_0.stirn.mitte
+probe_t = pp.Abschnitt(
+    "Stirn bohren",
+    1,
+    1000.0,
+    False,
+    befehle=[
+        ("G0", {"Z": 5.0}),
+        ("G81", {"X": mx_0 + 10.0, "Y": my_0 + 20.0, "Z": -3.0, "R": 2.0, "F": 2.0}),
+        ("G80", {}),
+        ("G0", {"Z": 5.0}),
+        ("G0", {"X": mx_0 + 15.0, "Y": my_0}),
+        ("G1", {"Z": -1.0, "F": 5.0}),
+        ("G1", {"X": mx_0 + 15.0, "Y": my_0 + 8.0, "F": 5.0}),
+        ("G1", {"X": mx_0 + 15.0, "Y": my_0, "F": 5.0}),
+        ("G0", {"Z": 5.0}),
+    ],
+    stirn=(st.MIT, 5.0),
+)
+erg_t0 = pp.programm([probe_t], pp.steuerung("siemens", {"transmit": True}), info_0, "Stirn")
+z_t0 = erg_t0.zeilen
+k_t0 = z_t0.index("TRANSMIT") if "TRANSMIT" in z_t0 else len(z_t0)
+nach_y8 = z_t0[next((k for k, z in enumerate(z_t0) if "Y8.000" in z), len(z_t0)) :]
+pruefe(
+    "G0 X10.000 Y20.000" in z_t0[k_t0:]
+    and any("Y0.000" in z for z in nach_y8[1:])
+    and not any("Y" in h_ for h_ in erg_t0.hinweise),
+    f"TRANSMIT ohne Y: {z_t0[k_t0 : k_t0 + 16]} {erg_t0.hinweise}",
+)
 FreeCAD.closeDocument(asm_0.Document.Name)
 
 FreeCAD.closeDocument(doc.Name)
