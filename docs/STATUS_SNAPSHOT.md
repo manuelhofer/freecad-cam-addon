@@ -666,7 +666,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 3. *W-029 erledigt:* Stange (P-2026-10-24-09, im Prüffenster am Ende „Fertigteil als Rohteil …“)
    und 3+2 (P-2026-10-24-19, räumlich nach allen Ebenen).
 4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen (verworfen, siehe W-036), das
-   Neuberechnen beim Anlegen im Hauptprozess, 4-Achs-Schlichten genau beim Anlegen. Gebaut am
+   Neuberechnen beim Anlegen im Hauptprozess (am 5-Achs-Teil „tief“ seit 0.312.5 noch 2,1 s
+   in C++ beim Rechnen der Flanke – dort atmet nichts; nur eine Bahn aus den Nebenrechnern hülfe),
+   4-Achs-Schlichten genau beim Anlegen. Gebaut am
    2026-10-24 abends: Verteilen ohne Leerlauf (P-14), Vorschau-Schruppbahn wieder übernommen (P-15),
    Wegkippen (P-23) und Plan indexiert je Versatz (P-24) auf allen Kernen – die längsten Pausen
    des Fensters beim Anlegen 5,0/5,4 s → 0,5/0,65 s. Am Geist sind die 12 echten Kerne voll
