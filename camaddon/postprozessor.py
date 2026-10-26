@@ -1715,7 +1715,12 @@ def programm(
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
         for name_, parameter in befehle:
             if name_.startswith("("):
-                notiz(name_.strip("()"))
+                text_ = name_.strip("()")
+                if not s.g93 and text_.endswith("Vorschub G93"):
+                    # Ohne G93 steht F in mm/min, so dass die Zeit stimmt (S5) – nicht, was die
+                    # Bahn im Job sagt (4-Achs rundum).
+                    text_ = text_[: -len("G93")] + "mm/min"
+                notiz(text_)
                 messstopp = messstopp or name_ == ms.KOMMENTAR
                 im_messstopp = im_messstopp or name_ == ms.KOMMENTAR
                 continue

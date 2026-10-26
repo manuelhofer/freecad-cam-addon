@@ -937,5 +937,8 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Beispielen ohne Befund; ein Pol 0,01 mm daneben und ein falscher Drehsinn werden gemeldet.- Drehmaschine: das Rundum-Programm der Nase (236 061 Vorschubsätze) an einer Drehmaschine wie
   Manuels CLX550 (X im Durchmesser, C4 der Hauptspindel) für Siemens, Fanuc, Haas, LinuxCNC und
   Mazak, gelesen, wie die Maschine es fährt (`an_der_drehmaschine`: X halbiert, „C4=ACP/ACN“ als
-  Moduloachse fortlaufend) – Satz für Satz wie im Job, ohne Befund.
+  Moduloachse fortlaufend) – Satz für Satz wie im Job, ohne Befund.- Dazu an der Drehmaschine jeder Haken jeder G-Code-Steuerung einzeln umgeschaltet (die ersten
+  3000 Sätze je Operation der Nase): nachgelesen ohne Befund, Satz für Satz wie im Job; ohne G93
+  nur die Lage (F in mm/min, S5). Gefunden: Ohne G93 sagte der Kommentar der Rundum-Bahn weiter
+  „Vorschub G93“ – jetzt „Vorschub mm/min“ (P-2026-10-26-07).
 

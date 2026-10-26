@@ -462,7 +462,7 @@ def bohrungen_job(abschnitte):
 
 def an_der_drehmaschine(text):
     """Das Programm einer Drehmaschine so umgeschrieben, wie sie es fährt, für
-    vorschubsaetze_programm: X im Durchmesser halbiert; C als Moduloachse – „C4=ACP(v)“ dreht
+    vorschubsaetze_programm (auch ohne Leerzeichen): X im Durchmesser halbiert; C als Moduloachse – „C4=ACP(v)“ dreht
     positiv, „ACN“ negativ bis v (dieselbe Stelle: nicht), „C4=v“ absolut – fortlaufend gezählt wie
     im Job; „Cv“ (Fanuc, Haas …) liest vorschubsaetze_programm selbst."""
     c = 0.0
@@ -480,8 +480,12 @@ def an_der_drehmaschine(text):
     aus = []
     for zeile in text.splitlines():
         if not zeile.lstrip().startswith((";", "(")):
-            zeile = re.sub(r"\bC\d*=(?:(AC[PN])\(([-+\d.]+)\)|([-+]?\d+\.?\d*))", rundachse, zeile)
-            zeile = re.sub(r"\bX([-+]?\d+\.?\d*)", lambda m: f"X{float(m.group(1)) / 2:.6f}", zeile)
+            zeile = re.sub(
+                r"(?<![A-Z])C\d*=(?:(AC[PN])\(([-+\d.]+)\)|([-+]?\d+\.?\d*))", rundachse, zeile
+            )
+            zeile = re.sub(
+                r"(?<![A-Z])X([-+]?\d+\.?\d*)", lambda m: f"X{float(m.group(1)) / 2:.6f}", zeile
+            )
         aus.append(zeile)
     return "\n".join(aus)
 
@@ -591,6 +595,34 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 pruefe(
                     not unterschied, f"{datei} {job.Label} {kennung} Drehmaschine: {unterschied}"
                 )
+            # Jeder Haken einzeln umgeschaltet, an jeder G-Code-Steuerung – mit den ersten Sätzen
+            # jeder Operation (das ganze Programm hat 236 000 Sätze).
+            kurz = [dataclasses.replace(a, befehle=a.befehle[:3000]) for a in abschnitte]
+            soll_kurz = vorschubsaetze_job(kurz, dreh)
+            for kennung, s0 in pp.STEUERUNGEN.items():
+                if s0.dialekt != "gcode" or kennung == "grbl":
+                    continue
+                for haken in (h for h in pp.HAKEN if hasattr(s0, h)):
+                    s = s0.ersetzt(**{haken: not getattr(s0, haken)})
+                    p_h = pp.programm(kurz, s, dreh, job.Label, nummer=12)
+                    befunde = pp.nachlesen(p_h, s, dreh)[0]
+                    ist = vorschubsaetze_programm(
+                        an_der_drehmaschine(p_h.text), siemens=kennung == "siemens"
+                    )
+                    if haken == "g93" and not s.g93:
+                        # Ohne G93 steht F in mm/min so, dass die Zeit des Satzes stimmt (S5) –
+                        # hier nur die Lage.
+                        u = vergleichen(
+                            [(*a[:6], 1.0, *a[7:]) for a in soll_kurz],
+                            [(*a[:6], 1.0, *a[7:]) for a in ist],
+                        ) or ("G93" in p_h.text and "G93 im Programm")
+                    else:
+                        u = vergleichen(soll_kurz, ist)
+                    pruefe(
+                        not befunde and not u,
+                        f"Drehmaschine {kennung} {haken}={getattr(s, haken)}: {u} "
+                        f"{[(b.art, b.satz) for b in befunde[:3]]}",
+                    )
         if not rundum:
             # woodWOP (MPR, Homag/Weeke): die Konturen und Bohrungen zurück in Koordinaten des
             # Jobs – jeder Vorschubsatz, jeder Bogen so, wie die Maschine ihn aus R und DS fährt.

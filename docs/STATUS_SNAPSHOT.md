@@ -543,6 +543,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - *Korrektur (0.312.3):* woodWOP (Homag/Weeke) – Bögen in Stücken bis 90°: Mit dem aufgerundeten
   R lief ein Vollkreis Ø 100 bis 0,32 mm neben der Bahn (woodWOP rechnet die Mitte aus R). Die
   Gegenprobe liest jetzt auch MPR zurück. Voller Lauf nach 0.312.1 grün (134/134, 144/144).
+  Die Gegenprobe prüft auch Pol und Drehsinn im Klartext und die Drehmaschine (X im Durchmesser,
+  C4 modulo, jeder Haken); 0.312.4: ohne G93 sagt der Rundum-Kommentar „Vorschub mm/min“.
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde

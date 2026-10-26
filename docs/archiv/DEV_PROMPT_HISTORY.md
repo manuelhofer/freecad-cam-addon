@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-07 gegenprobe-klartext-und-drehmaschine, kommentar-ohne-g93
+
+### EINGELESEN
+- Manuels Nachtauftrag (2026-10-25), „und das bei jedem post prozessor !!!“: Die Gegenprobe
+  prüfte im Klartext nur Endpunkte und an der Drehmaschine gar nicht.
+
+### DATEIEN
+- `tests/test_postprozessor_nachfahren.py`: `klartext_punkte` mit Pol und Drehsinn je Bogen,
+  `im_klartext` prüft sie (Mutationen: Pol 0,01 mm daneben, DR umgedreht); `an_der_drehmaschine`
+  (X halbiert, C4=ACP/ACN fortlaufend, auch ohne Leerzeichen); die Nase an einer Drehmaschine wie
+  der CLX550 für fünf Steuerungen, dazu jeder Haken jeder G-Code-Steuerung (gekürzt).
+- `camaddon/postprozessor.py`: ohne G93 der Kommentar „… Vorschub mm/min“ statt „G93“.
+- `docs/spezifikation_steuerung.md` 31, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.4.
+
+### ERGEBNIS
+- Klartext an allen Beispielen: jeder Pol und Drehsinn wie im Job.
+- Drehmaschine: 236 061 Vorschubsätze der Nase bei Siemens, Fanuc, Haas, LinuxCNC, Mazak wie im
+  Job; jeder Haken ohne Befund. Einziger Fund: der Kommentar ohne G93.
+- Grün: test_postprozessor_nachfahren, test_postprozessor, test_postprozessor_zufall.
 ## P-2026-10-26-06 woodwop-boegen-bis-90-grad, gegenprobe-mpr
 
 ### EINGELESEN
