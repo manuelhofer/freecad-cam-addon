@@ -554,7 +554,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Szenarien schreibt je Pause den ganzen Weg durchs Addon („Weg: …“ in pausen.txt).
 - *Korrektur (0.312.7):* „Anlegen“ nimmt die Bahn der Flanke aus der Vorschau (Nebenrechner),
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
-  Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs).
+  Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
+  danach grün (134/134 Prüfungen, 144/144 Szenarien).
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde
