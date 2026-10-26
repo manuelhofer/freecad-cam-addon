@@ -530,7 +530,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
-**Stand 2026-10-25 nachts (0.307.0) – offen, in dieser Reihenfolge:**
+**Stand 2026-10-26 (0.312.4) – offen, in dieser Reihenfolge:**
 - *Korrektur (0.311.3):* Voller Lauf danach grün (134/134 Prüfungen, 144/144 Szenarien). Eine
   Operation ohne Arbeit (nur Eilgänge) bekommt im Programm keinen Werkzeugwechsel mehr, sondern
   einen Hinweis; 0.311.2: der Achsfilter nur an der Drehmaschine
