@@ -634,6 +634,95 @@ for kennung in ("heidenhain", "heidenhain_tnc640"):
     befunde, _saetze = pp.nachlesen(programm_h, s_h, info)
     pruefe(not befunde, f"{kennung}: nachgelesen {[(b.art, b.satz) for b in befunde[:3]]}")
 
+# Gegenprobe (W-041; Manuel, 2026-10-25: „das die auch wirlich alles richtig ausgeben … bei jedem
+# post prozessor“): jeder Satz im Vorschub wie in der Operation – mit Zyklus (Siemens CYCLE800,
+# Fanuc G68.2) in Koordinaten der Ebene, ohne mit der Drehung der Ebene gerechnet (gesamt.punkt).
+# Ein Bogen darf ohne Zyklus in Geraden stehen (er liegt dann schräg zu XY).
+_BEWEGUNG = {"0": "G0", "00": "G0", "1": "G1", "01": "G1", "2": "G2", "02": "G2", "3": "G3",
+             "03": "G3"}  # fmt: skip
+
+
+def lagen_job(abschnitte):
+    """[(Art, X, Y, Z)] nach jedem Satz im Vorschub der Operationen (modal; eine Gerade ohne Weg
+    lässt der Postprozessor weg)."""
+    pos, aus = dict.fromkeys("XYZ"), []
+    for a in abschnitte:
+        for b in a.befehle:
+            name, werte = (b.Name, b.Parameters) if hasattr(b, "Name") else b
+            vorher = dict(pos)
+            pos.update({k: float(werte[k]) for k in "XYZ" if k in werte})
+            art = _BEWEGUNG.get(name.upper().lstrip("G"), "")
+            bewegt = art in ("G2", "G3") or (art == "G1" and pos != vorher)
+            if bewegt and None not in pos.values():
+                aus.append((art, pos["X"], pos["Y"], pos["Z"]))
+    return aus
+
+
+def lagen_programm(zeilen):
+    """Dasselbe aus dem G-Code, wie die Steuerung ihn liest: modal, ohne Kommentare, Marken,
+    Maschinenkoordinaten (SUPA, G53) und Zyklen."""
+    pos, art, aus = dict.fromkeys("XYZ"), "G0", []
+    for z in zeilen:
+        z = re.sub(r"\([^)]*\)", "", z).split(";", 1)[0].strip().upper()
+        z = re.sub(r"^N\d+\s*", "", z)
+        if not z or "SUPA" in z or "CYCLE" in z or z.endswith(":") or z.startswith("G68.2"):
+            continue
+        if re.search(r"\bG53\b", z):
+            continue
+        for code in re.findall(r"\bG(\d+)\b", z):
+            art = _BEWEGUNG.get(code, art)
+        vorher = dict(pos)
+        for k, v in re.findall(r"\b([XYZ])(-?\d+\.?\d*)", z):
+            pos[k] = float(v)
+        woerter = re.search(r"\b[XYZIJK]-?\d", z)
+        bewegt = art in ("G2", "G3") or (art == "G1" and pos != vorher)
+        if woerter and bewegt and None not in pos.values():
+            aus.append((art, pos["X"], pos["Y"], pos["Z"]))
+    return aus
+
+
+def in_folge_lagen(soll, ist):
+    """Die größte Abweichung, wenn jede Lage des Jobs in derselben Folge im Programm steht (nach
+    einem Bogen dürfen Zwischenpunkte stehen, eine Gerade ist der nächste Satz) – sonst None."""
+    k, weit = 0, 0.0
+    for i, p in enumerate(soll):
+        bis = len(ist) if p[0] != "G1" else min(k + 1, len(ist))
+        while k < bis and max(abs(a - b) for a, b in zip(p[1:], ist[k][1:], strict=True)) > 0.0015:
+            k += 1
+        if k >= bis:
+            return None, i
+        weit = max(weit, max(abs(a - b) for a, b in zip(p[1:], ist[k][1:], strict=True)))
+        k += 1
+    return weit, len(soll)
+
+
+lagen_soll = lagen_job(teile)
+for kennung, aenderung in (
+    ("siemens", {}),
+    ("fanuc", {"schwenkzyklus": True}),
+    ("siemens", {"schwenkzyklus": False}),
+    ("fanuc", {}),
+    ("linuxcnc", {}),
+    ("haas", {}),
+    ("mazak", {}),
+    ("mach", {}),
+):
+    s_g = pp.steuerung(kennung, aenderung)
+    mit_zyklus = bool(s_g.schwenkzyklus and s_g.schwenken)
+    soll_l = [p if mit_zyklus else (p[0], *gesamt.punkt(list(p[1:]))[:3]) for p in lagen_soll]
+    if not mit_zyklus:
+        soll_l = [(("G1" if p[0] == "G1" else "G2"), *p[1:]) for p in soll_l]
+    ist_l = lagen_programm(pp.programm(teile, s_g, info, "Block").zeilen)
+    weit, bis = in_folge_lagen(soll_l, ist_l)
+    pruefe(
+        weit is not None and (not mit_zyklus or len(ist_l) == len(soll_l)),
+        f"Gegenprobe {kennung} {aenderung}: Satz {bis + 1} von {len(soll_l)} fehlt "
+        f"({len(ist_l)} im Programm) {soll_l[bis:bis + 1]}",
+    )
+daneben = [(p[0], p[1] + 0.01, *p[2:]) for p in lagen_soll]
+pruefe(in_folge_lagen(daneben, lagen_programm(siemens))[0] is None, "Gegenprobe: 0,01 mm übersehen")
+print(f"3+2 Gegenprobe: {len(lagen_soll)} Vorschubsätze, acht Steuerungen")
+
 # Mit Wechselpunkt Z in MKS (ganz oben) schwenkt die Maschine dort – nicht erst wieder hinunter
 # auf die Schwenkhöhe, weder hin noch zurück.
 oben = pp.Maschineninfo("5-Achs")

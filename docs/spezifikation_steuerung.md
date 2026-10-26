@@ -940,5 +940,8 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Moduloachse fortlaufend) – Satz für Satz wie im Job, ohne Befund.- Dazu an der Drehmaschine jeder Haken jeder G-Code-Steuerung einzeln umgeschaltet (die ersten
   3000 Sätze je Operation der Nase): nachgelesen ohne Befund, Satz für Satz wie im Job; ohne G93
   nur die Lage (F in mm/min, S5). Gefunden: Ohne G93 sagte der Kommentar der Rundum-Bahn weiter
-  „Vorschub G93“ – jetzt „Vorschub mm/min“ (P-2026-10-26-07).
+  „Vorschub G93“ – jetzt „Vorschub mm/min“ (P-2026-10-26-07).- 3+2 (`test_schwenken`): jeder Vorschubsatz der Operation auf der Schräge (4552) bei Siemens und
+  Fanuc mit Zyklus (CYCLE800, G68.2) in Koordinaten der Ebene, ohne Zyklus (Siemens mit Haken aus,
+  Fanuc, LinuxCNC, Haas, Mazak, Mach) mit der Drehung der Ebene gerechnet – in derselben Folge,
+  höchstens 0,0015 mm daneben; 0,01 mm daneben wird gemeldet.
 

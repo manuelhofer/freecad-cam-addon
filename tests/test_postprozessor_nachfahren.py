@@ -319,7 +319,10 @@ def im_klartext(job_saetze, punkte):
             k += 1
         if k >= bis:
             return f"Satz {i + 1} {soll} fehlt im Klartext"
-        if punkte[k][3] is None or not math.isclose(soll[6], punkte[k][3], rel_tol=1e-3):
+        # F steht ab 10 mm/min ganz im Klartext (klartext.vorschub): 315,5 → F316.
+        if punkte[k][3] is None or not math.isclose(
+            soll[6], punkte[k][3], abs_tol=0.51 if soll[6] >= 10.0 else 0.051
+        ):
             return f"Satz {i + 1} F {punkte[k][3]} statt {soll[6]}"
         # Ein Bogen (auch in Hälften oder als CP): um die Mitte des Jobs, im Drehsinn des Jobs;
         # eine Gerade nie als Bogen.
