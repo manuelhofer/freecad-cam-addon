@@ -1985,7 +1985,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Brother („nein“ – nicht gebaut); Nullpunkt-Haken vorbelegt an („ja“ – 0.311.5); Gewinde an der
   CLX550 macht er in ShopTurn („nicht relevant“ – an der Drehmaschine bleibt der Hinweis); große
   Programme an der 840D: „keine Ahnung“ – kein EXTCALL; ein roter Block sperrt „Anlegen“ weiter
-  („nein“). **Offen:** Haas G268 (Vorzeichen der UMC ungeprüft).
+  („nein“). **Stand 2026-10-26:** TRANSMIT (Siemens, Haken) gebaut; die Gegenprobe liest auch
+  woodWOP (dabei gefunden: Kreise bis 0,32 mm neben der Bahn – behoben, 0.312.3), im Klartext Pol
+  und Drehsinn, die Drehmaschine (X im Durchmesser, C4 modulo, jeder Haken) und 3+2 bei acht
+  Steuerungen. **Offen:** Haas G268 (Vorzeichen der UMC ungeprüft); Fanuc G12.1/Haas G112 (X im
+  Radius oder Durchmesser je Parameter).
 - **W-039 Der Assistent fragt, wie man vorgehen will** – Manuel, 2026-10-25 (Antwort auf Frage 6,
   die aus seinem Vorschlag zu Frage 4 kam: „hey wie willst du vorgehen sollen wir erst vorbohren …
   oder sollen wir alles rausschruppen und dann schlichten“): „ja irgendwie mehr abfragen wie der
