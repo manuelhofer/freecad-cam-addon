@@ -67,6 +67,17 @@ HALTER_SCHRITT = 1.0  # mm – so dicht längs der Bahn prüft halter_pruefen (d
 PARALLEL_AB = 200
 STELLEN_JE_STUECK = 40
 UEBERLAPP = 0.5  # mm – so viel überlappen sich zwei Lagen
+# Unter einem Rand läuft in unteren Lagen der Schaft über der Schneide (so dick wie sie) an der Wand
+# der oberen Lage entlang: Er streifte die fertige Wand oder schliff durch das Aufmaß (Manuels
+# tiefe Tasche, „Kollision prüfen“: 0,01 mm). Mit `schaft_frei` kippt die Flanke dort weiter von der
+# Wand weg – um den Fuß der Lage, in Schritten bis WEITER_MAX –, bis der Schaft SCHAFT_LUFT über
+# dem Aufmaß bleibt; an der Wand bleibt ein Keil, oben in der Lage höchstens ihre Höhe mal dem
+# Sinus, für die Kugel (Manuel, 2026-10-26: „kann man nicht weiter anstellen einfach ? und so
+# vorschlichten oder nach schruppen ??“). Längs der Wand ändert es sich höchstens WEITER_JE_MM.
+SCHAFT_LUFT = 0.1  # mm
+WEITER_SCHRITT = 0.25  # Grad
+WEITER_MAX = 4.0  # Grad
+WEITER_JE_MM = 0.5  # Grad je mm längs der Wand
 ENDE_HALBIEREN = 30  # so oft halbiert mantellinie bis zum Ende der Geraden (Diagonale / 2³⁰)
 # planen() merkt sich so viele Bahnen – auch die aus den Nebenrechnern (geplant_merken): „Anlegen“
 # im Assistenten rechnete die Bahn der Vorschau sonst im Hauptprozess noch einmal (am 5-Achs-Teil
@@ -91,6 +102,9 @@ class Flankenwerte:
     # Am Hinterschnitt (die Wand hängt über): so weit je Umlauf von innen an die Wand – den Keil
     # unter dem Rand, den das Räumen von oben stehen lässt (_versaetze); 0: ein Umlauf.
     quer: float = 0.0
+    # In unteren Lagen weiter anstellen, wo der Schaft sonst die Wand darüber streift
+    # (_weiter_anstellen).
+    schaft_frei: bool = True
 
 
 @dataclass
@@ -117,6 +131,13 @@ class Flankenbahn:
     zuege: list = field(default_factory=list)  # je Zug die Flächen
     anstoss: object = None  # Anstoss: Halter oder Schaft im Teil (halter_pruefen), sonst None
     schluessel: tuple = ()  # plan_schluessel der Eingaben – für geplant_merken
+    # Schaft frei (_weiter_anstellen): an so vielen Stellen weiter angestellt, höchstens so viel
+    # (Grad); so dick (mm) bleibt dort an der Wand höchstens stehen; so viele ausgelassen, weil
+    # auch WEITER_MAX nicht reichte (dort bleibt Material für die Kugel).
+    weiter_stellen: int = 0
+    weiter: float = 0.0
+    keil: float = 0.0
+    streift: int = 0
 
 
 @dataclass
@@ -527,8 +548,8 @@ def _planen(form, namen, werte):
     if not waende:
         raise ValueError(tr("fl.fehler.keine"))
     punkte, alle_teile = [], []
-    umlaeufe = lagen_max = weggelassen = 0
-    neigung = 0.0
+    umlaeufe = lagen_max = weggelassen = weiter_stellen = streift = 0
+    neigung = weiter = keil = 0.0
     namen_je_zug = []
     for zug, geschlossen in zuege(form, waende):
         stuecke = _stellen_des_zugs(form, zug, w)
@@ -560,27 +581,35 @@ def _planen(form, namen, werte):
             if v <= 0.0 or v < _keil_in_der_lage(stuecke, lage, hoehe) - 1e-6
         ]
         # Erst für alle Stellen, Lagen und Umläufe, ob der Fräser dort geht – auf einmal, verteilt.
-        gehen = iter(
-            _gehen(
-                form,
-                [
-                    (stelle, lage)
-                    for lage, v in lagen_umlaeufe
-                    for st in umlauf_stuecke[v]
-                    for stelle in st
-                ],
-                hoehe,
-                w,
-            )
+        paare = [
+            (stelle, lage)
+            for lage, v in lagen_umlaeufe
+            for st in umlauf_stuecke[v]
+            for stelle in st
+        ]
+        geht_liste = _gehen(form, paare, hoehe, w)
+        gekippt, angestellt = (
+            _weiter_anstellen(form, paare, geht_liste, hoehe, w) if w.schaft_frei else ({}, None)
         )
+        if angestellt is not None:
+            weiter_stellen += angestellt[0]
+            weiter = max(weiter, angestellt[1])
+            keil = max(keil, angestellt[2])
+            streift += angestellt[3]
+        gehen = iter(enumerate(geht_liste))
         for lage, v in lagen_umlaeufe:
             w_v = replace(w, aufmass=w.aufmass + v)  # für _grenze: die Stellen dazwischen
             for stueck in umlauf_stuecke[v]:
                 teile, aus = [], []
-                davor = None  # (Stelle, geht) der Stelle davor
+                davor = None  # (Stelle, geht, der Schaft ließ sie aus) der Stelle davor
                 for stelle in stueck:
-                    geht = next(gehen)
-                    if davor is not None and davor[1] != geht:
+                    index, geht = next(gehen)
+                    schaft_aus = geht and index in gekippt and gekippt[index] is None
+                    if schaft_aus:
+                        geht = False  # der Schaft käme auch weiter gekippt an die Wand
+                    # Die Grenze genauer nur, wo der Fräser schneidet – nicht am Schaft (_grenze
+                    # sieht ihn nicht und schöbe sie bis an die Stelle, an der er streift).
+                    if davor is not None and davor[1] != geht and not (schaft_aus or davor[2]):
                         # Wo es von „geht“ auf „schneidet“ wechselt: die Grenze genauer.
                         grenze = _grenze(form, davor[0], stelle, davor[1], lage, hoehe, w_v)
                         if grenze is not None:
@@ -589,14 +618,15 @@ def _planen(form, namen, werte):
                             else:
                                 aus = [grenze]
                     if geht:
-                        aus.append(_lage(stelle, lage, hoehe))
-                        neigung = max(neigung, _winkel(stelle[1], FreeCAD.Vector(0, 0, 1)))
+                        hier = gekippt.get(index) or _lage(stelle, lage, hoehe)
+                        aus.append(hier)
+                        neigung = max(neigung, _winkel(hier[1], FreeCAD.Vector(0, 0, 1)))
                     else:
                         weggelassen += 1
                         if aus and (davor is None or davor[1]):
                             teile.append(aus)
                         aus = []
-                    davor = (stelle, geht)
+                    davor = (stelle, geht, schaft_aus)
                 if aus:
                     teile.append(aus)
                 alle_teile.extend(teil for teil in teile if len(teil) >= 2)
@@ -610,7 +640,18 @@ def _planen(form, namen, werte):
         raise ValueError(tr("fl.fehler.nichts"))
     laenge, zeit = _laenge_und_zeit(punkte, w)
     return Flankenbahn(
-        punkte, umlaeufe, lagen_max, laenge, zeit, neigung, weggelassen, namen_je_zug
+        punkte,
+        umlaeufe,
+        lagen_max,
+        laenge,
+        zeit,
+        neigung,
+        weggelassen,
+        namen_je_zug,
+        weiter_stellen=weiter_stellen,
+        weiter=weiter,
+        keil=keil,
+        streift=streift,
     )
 
 
@@ -715,6 +756,167 @@ def _geht(form, stelle, lage, hoehe, w):
     return not _schneidet(form, spitze, achse, _pruef_laenge(stelle, lage, hoehe, w), w.radius)
 
 
+def _gekippt(lage_stelle, fuss_z, grad, w, richtung=None):
+    """(Spitze, Achse, Normale) – die Stelle in ihrer Lage um `grad` weiter gekippt, um den
+    Punkt, an dem die Schneide unten an der Wand anliegt: darüber geht sie von der Wand weg (der
+    Keil), unten bleibt sie dran. `richtung`: wohin die Achse oben geht (quer zu ihr; ohne: von
+    der Wand weg, die Normale) – in einer Ecke weg von der Nachbarwand, die hereinhängt. Die
+    Stirn nirgends tiefer als der Fuß der Wand (`fuss_z`; wie _stelle)."""
+    spitze, achse, normale = lage_stelle
+    abstand = w.radius + max(w.aufmass, 0.0)
+    an_der_wand = spitze - normale * abstand
+    um = achse.cross(richtung if richtung is not None else normale)
+    if um.Length < 1e-9:
+        um = achse.cross(normale)
+    drehung = FreeCAD.Rotation(um, grad)
+    neu = drehung.multVec(achse)
+    n_neu = drehung.multVec(normale)
+    spitze = an_der_wand + n_neu * abstand
+    tiefster = spitze.z - w.radius * math.sqrt(max(0.0, 1.0 - neu.z**2))
+    if tiefster < fuss_z - 1e-9:
+        spitze = spitze + neu * ((fuss_z - tiefster) / max(neu.z, 1e-6))
+    return (spitze, neu, n_neu)
+
+
+def _schaft_frage(lage_stelle, laenge, w):
+    """(Spitze, Achse, Länge) für _schneidet: der Schaft über der Schneide bis über die Wand."""
+    spitze, achse, _normale = lage_stelle
+    return (tuple(spitze + achse * w.schneide), tuple(achse), laenge - w.schneide)
+
+
+def _weiter_anstellen(form, paare, geht, hoehe, w):
+    """({Index in `paare`: (Spitze, Achse, Normale) weiter gekippt – None: auslassen, auch
+    WEITER_MAX reicht nicht}, (Stellen, Grad höchstens, Keil mm höchstens, ausgelassene
+    Stellen)) – in unteren Lagen, wo
+    der Schaft über der Schneide (so dick wie sie) näher als Aufmaß plus SCHAFT_LUFT an die Wand
+    darüber kommt, in Schritten weiter von der Wand weg (_gekippt), bis er frei ist und der
+    Fräser nirgends ins Teil schneidet. Längs der Wand ändert es sich höchstens WEITER_JE_MM."""
+    frei_radius = w.radius + max(w.aufmass, 0.0) + SCHAFT_LUFT + TOLERANZ
+    laengen = [_pruef_laenge(stelle, lage, hoehe, w) for stelle, lage in paare]
+    unten = [i for i, g in enumerate(geht) if g and laengen[i] - w.schneide > 0.5]
+    if not unten:
+        return {}, None
+    lagen_ = {i: _lage(*paare[i], hoehe) for i in unten}
+    frei = _gehen_fragen(
+        form, [_schaft_frage(lagen_[i], laengen[i], w) for i in unten], frei_radius
+    )
+    offen = [i for i, f in zip(unten, frei, strict=True) if not f]
+    # Wohin kippen: von der eigenen Wand weg (die Normale), oder – in einer Ecke, wo die
+    # Nachbarwand hereinhängt – weg von der Stelle, an der der Schaft dem Teil am nächsten kommt,
+    # oder zwischen beidem; je Schritt die erste, die geht.
+    flucht = _fluchtrichtungen(form, [_schaft_frage(lagen_[i], laengen[i], w) for i in offen])
+    wege = {}
+    for i, e in zip(offen, flucht, strict=True):
+        normale = lagen_[i][2]
+        wege[i] = [None]
+        if e is not None and e.getAngle(normale) > math.radians(1.0):
+            mitte = normale + e
+            if mitte.Length > 1e-9:
+                wege[i].append(FreeCAD.Vector(mitte).normalize())
+            wege[i].append(e)
+    gewaehlt = {}  # Index → Richtung (None: die Normale)
+    noetig = {}  # Index → Grad
+    grad = 0.0
+    while offen and grad < WEITER_MAX - 1e-9:
+        grad += WEITER_SCHRITT
+        versuche = [(i, r) for i in offen for r in wege[i]]
+        kandidat = [_gekippt(lagen_[i], paare[i][0][3].z, grad, w, r) for i, r in versuche]
+        schaft = _gehen_fragen(
+            form,
+            [
+                _schaft_frage(k, laengen[i], w)
+                for (i, _r), k in zip(versuche, kandidat, strict=True)
+            ],
+            frei_radius,
+        )
+        ganz = _gehen_fragen(
+            form,
+            [
+                (tuple(k[0]), tuple(k[1]), laengen[i])
+                for (i, _r), k in zip(versuche, kandidat, strict=True)
+            ],
+            w.radius,
+        )
+        for (i, r), s, g in zip(versuche, schaft, ganz, strict=True):
+            if s and g and i not in noetig:
+                noetig[i], gewaehlt[i] = grad, r
+        offen = [i for i in offen if i not in noetig]
+    if not noetig:
+        return dict.fromkeys(offen), (0, 0.0, 0.0, len(offen))
+    # Längs der Wand höchstens WEITER_JE_MM je mm: vorwärts und rückwärts geglättet (nur mehr
+    # gekippt, nie weniger); was dabei mehr kippt, noch einmal nachgesehen.
+    folge = sorted(set(unten))
+    grade = {i: noetig.get(i, 0.0) for i in folge}
+    for reihe in (folge, folge[::-1]):
+        for a, b in zip(reihe, reihe[1:], strict=False):
+            weg = (paare[a][0][3] - paare[b][0][3]).Length
+            grade[b] = max(grade[b], grade[a] - WEITER_JE_MM * weg)
+    mehr = [i for i in folge if grade[i] > noetig.get(i, 0.0) + 1e-9]
+    if mehr:
+        kandidat = {
+            i: _gekippt(lagen_[i], paare[i][0][3].z, grade[i], w, gewaehlt.get(i)) for i in mehr
+        }
+        ganz = _gehen_fragen(
+            form,
+            [(tuple(kandidat[i][0]), tuple(kandidat[i][1]), laengen[i]) for i in mehr],
+            w.radius,
+        )
+        for i, g in zip(mehr, ganz, strict=True):
+            if not g:
+                grade[i] = noetig.get(i, 0.0)
+    gekippt = {
+        i: _gekippt(lagen_[i], paare[i][0][3].z, g, w, gewaehlt.get(i))
+        for i, g in grade.items()
+        if g > 0.0
+    }
+    keil = max(
+        (min(hoehe, w.schneide) * math.sin(math.radians(g)) for g in grade.values()), default=0.0
+    )
+    gekippt.update(dict.fromkeys(offen))  # auch WEITER_MAX reicht nicht: auslassen
+    return gekippt, (len(gekippt) - len(offen), max(grade.values()), keil, len(offen))
+
+
+def _fluchtrichtungen(form, fragen):
+    """Je (Anfang, Achse, Länge) des Schafts (Tupel): die Richtung quer zur Achse, weg von der
+    Stelle des Teils, die der Achse am nächsten kommt (FreeCAD.Vector; None, wenn OpenCascade
+    keine findet) – ab PARALLEL_AB auf den Nebenrechnern (fluchtrichtungen_stueck)."""
+    roh = None
+    if len(fragen) >= PARALLEL_AB:
+        roh = _verteilt(form, "fluchtrichtungen_stueck", fragen)
+    if roh is None:
+        roh = fluchtrichtungen_stueck(form, fragen)
+    return [FreeCAD.Vector(*r) if r is not None else None for r in roh]
+
+
+def fluchtrichtungen_stueck(form, fragen):
+    """_fluchtrichtungen für ein Stück – auch im Nebenrechner; Tupel oder None."""
+    import Part
+
+    v = FreeCAD.Vector
+    aus = []
+    for anfang, achse, laenge in fragen:
+        a, r = v(*anfang), v(*achse)
+        try:
+            _d, paare, _info = form.distToShape(Part.LineSegment(a, a + r * laenge).toShape())
+            auf_teil, auf_achse = paare[0]
+        except Exception:  # noqa: BLE001 – OCC
+            aus.append(None)
+            continue
+        weg = auf_achse - auf_teil
+        weg = weg - r * weg.dot(r)
+        aus.append(tuple(weg.normalize()) if weg.Length > 1e-9 else None)
+    return aus
+
+
+def _gehen_fragen(form, fragen, radius):
+    """geht_stueck für `fragen` – ab PARALLEL_AB auf den Nebenrechnern."""
+    if len(fragen) >= PARALLEL_AB:
+        verteilt = _gehen_verteilt(form, fragen, radius)
+        if verteilt is not None:
+            return verteilt
+    return geht_stueck(form, fragen, radius)
+
+
 def _gehen(form, paare, hoehe, w):
     """[_geht] je (Stelle, Lage) aus `paare` – ab PARALLEL_AB auf den Nebenrechnern
     (geht_stueck), sonst oder wenn sie scheitern hier. Dieselbe Rechnung, dasselbe Ergebnis."""
@@ -731,6 +933,12 @@ def _gehen(form, paare, hoehe, w):
 
 def _gehen_verteilt(form, fragen, radius):
     """geht_stueck in Stücken auf den Nebenrechnern – None ohne sie oder wenn sie scheitern."""
+    return _verteilt(form, "geht_stueck", fragen, radius)
+
+
+def _verteilt(form, funktion, fragen, *weiter):
+    """`funktion` dieses Moduls (form, Stück der Fragen, *weiter) in Stücken auf den
+    Nebenrechnern, die Ergebnisse aneinander – None ohne sie oder wenn sie scheitern."""
     import hashlib
 
     from . import nebenrechner as nr
@@ -745,7 +953,7 @@ def _gehen_verteilt(form, fragen, radius):
         brep = form.exportBrepToString()
         teil = pool.gemeinsam("fl-teil-" + hashlib.sha1(brep.encode()).hexdigest(), nr.Form(brep))
         auftraege = [
-            pool.auftrag("flanke_bahn", "geht_stueck", teil, fragen[von:bis], radius)
+            pool.auftrag("flanke_bahn", funktion, teil, fragen[von:bis], *weiter)
             for von, bis in bereiche
         ]
         teile = pool.warten(auftraege, zwischendurch=nr.ereignisse_ohne_eingaben)
@@ -754,7 +962,7 @@ def _gehen_verteilt(form, fragen, radius):
             f"CAM-Addon: Flanke auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
         )
         return None
-    return [geht for teil_ in teile for geht in teil_]
+    return [ergebnis for teil_ in teile for ergebnis in teil_]
 
 
 def geht_stueck(form, fragen, radius):

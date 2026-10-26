@@ -3818,8 +3818,21 @@ class _Flanke(_Strategie):
         )
         werte = {"umlaeufe": umlaeufe, "neigung": f"{bahn.neigung:.0f}", "zeit": zeit}
         if bahn.lagen > 1:
-            return tr("ba.ergebnis_fl_lagen", lagen=bahn.lagen, **werte)
-        return tr("ba.ergebnis_fl", **werte)
+            text = tr("ba.ergebnis_fl_lagen", lagen=bahn.lagen, **werte)
+        else:
+            text = tr("ba.ergebnis_fl", **werte)
+        if getattr(bahn, "weiter_stellen", 0):
+            # Schaft frei: in der unteren Lage weiter angestellt, an der Wand bleibt ein Keil.
+            text = tr(
+                "ba.fl.weiter",
+                text=text,
+                stellen=bahn.weiter_stellen,
+                grad=zahl_zeigen(round(bahn.weiter, 2)),
+                keil=groesse_zeigen(bahn.keil, einheiten.LAENGE, 2) or "0",
+            )
+        if getattr(bahn, "streift", 0):
+            text = tr("ba.fl.streift", text=text, stellen=bahn.streift)
+        return text
 
     def lege_an(self, job, tc, werte, flaechen):
         return flop.lege_an(

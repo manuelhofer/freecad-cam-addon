@@ -905,6 +905,14 @@ If holder or shank would run into the wall, the block turns red and says how far
 have to stick out at least; behind it “Clamp T5 at … mm stick-out” (sets the length from the
 spindle nose in the tool manager, then the assistant computes again) – or, if less than one shank
 diameter would remain in the holder, that the tool is too short.</li>
+<li><b>Shank clear</b> (on the operation, ticked by default): if the wall overhangs, in a lower level
+the shank above the flutes runs along the wall of the upper level – as thick as the cutter, it would
+rub the finished wall or grind through the allowance. There the flank tilts further away from the
+wall (in a corner also away from the neighbouring wall) until the shank has 0.1 mm of air; a thin
+wedge stays on the wall, thickest at the top of the level, for the ball. If 4° is not enough, it
+leaves the spot out. The block says how far and how thick (on a deep pocket with 10° overhang:
+mostly 0.25°, at most 0.5°, wedge up to 0.19 mm; with 0.3 mm allowance up to 1.25° and
+0.48 mm).</li>
 </ul>
 
 <h3>16. 3D roughing</h3>

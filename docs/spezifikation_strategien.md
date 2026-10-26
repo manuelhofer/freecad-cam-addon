@@ -4211,3 +4211,31 @@ Frage, wohin Bohren, Senken und Gewinde gehören: „Zwischen Schruppen/Schlicht
   Gewindefräsen; dann Schlichten danach, Restmaterial, 3D-Schlichten, Flanke, Restschlichten,
   Bleistift; zuletzt Fase und Entgraten. Innerhalb eines Abschnitts die Folge aus `STRATEGIEN`.
   Dieselbe Folge gilt für den Materialstand der Vorschau (`_in_anlege_reihe`).
+
+
+### 16.24 Schaft frei: in unteren Lagen weiter anstellen (W-038, P-2026-10-26-12)
+
+Manuel, 2026-10-26, auf Frage 1 (der Schaft der Flanke streift in der unteren Lage die Wand): „kann
+man nicht weiter anstellen einfach ? und so vorschliechten oder nach schruppen ??“
+
+- In einer unteren Lage liegt der Schaft über der Schneide (so dick wie sie) auf der Mantellinie,
+  die oben die fertige Wand ist – mit Aufmaß 0 berührte er sie, mit 0,3 mm schliff er in der Ecke
+  bis 0,01 mm heran (Manuels tiefe Tasche, „Kollision prüfen“).
+- `flanke_bahn._weiter_anstellen` (Haken `Flankenwerte.schaft_frei`, an der Operation `SchaftFrei`,
+  vorbelegt an, gespeicherte Flanken angehakt): je Stelle einer unteren Lage, die geht, der Schaft
+  ab der Schneide bis über die Wand mit Radius + Aufmaß + `SCHAFT_LUFT` (0,1 mm) gegen das Teil.
+  Stößt er an, in Schritten `WEITER_SCHRITT` (0,25°) bis `WEITER_MAX` (4°) gekippt
+  (`_gekippt`): starr um den Punkt, an dem die Schneide unten an der Wand anliegt, die Stirn nie
+  unter dem Fuß; je Schritt drei Richtungen – die Normale, weg vom nächsten Punkt des Teils
+  (`_fluchtrichtungen`, in einer Ecke die Nachbarwand), die Mitte –, die erste, bei der der Schaft
+  frei ist und der Fräser nirgends schneidet. Längs der Wand geglättet (`WEITER_JE_MM`, 0,5° je
+  mm; nur mehr, nachgeprüft). Reicht auch 4° nicht: die Stelle aus (ohne `_grenze`).
+- An der Wand bleibt ein Keil, oben in der Lage höchstens Lagenhöhe · sin(weiter);
+  `Flankenbahn.weiter_stellen`, `weiter`, `keil`, `streift` (ausgelassen); der Block sagt es.
+- Manuels Tasche (Kopie, T1 Ø 12, Schneide 26, zwei Lagen à 22 mm): ohne Aufmaß 1236 Stellen
+  weiter (1020 mit 0,25°, 184 mit 0,5°), Keil bis 0,19 mm, 16 ausgelassen – „Kollision prüfen“:
+  der Schaft 0,10 mm an der Wand (vorher berührt); mit 0,3 mm Aufmaß 1508 Stellen bis 1,25°, Keil
+  bis 0,48 mm – der Schaft 0,41 mm (vorher 0,01). Zeit der Flanke gleich (etwa 5 min). Erst nur
+  längs der Normalen: in den Ecken bis 4° und 1,54 mm Keil, 48 Stellen trotzdem zu nah.
+- Offen: ob die Kugel den Keil (mit Aufmaß bis 0,78 mm) in einem Gang nimmt oder vorschlichtet
+  (Manuel: „vorschlichten oder nach schruppen“) – siehe OFFENE_FRAGEN.

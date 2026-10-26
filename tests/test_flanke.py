@@ -409,6 +409,49 @@ pruefe(
 )
 
 
+# Schaft frei (Manuel, 2026-10-26: „kann man nicht weiter anstellen einfach ? und so vorschlichten
+# oder nach schruppen ??“): In der unteren Lage lief der Schaft über der Schneide (so dick wie sie)
+# an der Wand der oberen Lage entlang. Jetzt kippt die Flanke dort weiter, bis er SCHAFT_LUFT hat;
+# an der Wand bleibt ein dünner Keil für die Kugel.
+def schaft_streift(teil, bahn, schneide, aufmass=0.0):
+    """An wie vielen Stellen im Vorschub der Schaft über der Schneide (R) näher als Aufmaß plus
+    SCHAFT_LUFT ans Teil kommt (0,003 mm Spiel)."""
+    zahl = 0
+    for p in bahn.punkte:
+        if p.eilgang or p.eintauchen:
+            continue
+        achse = V(*p.achse)
+        zylinder = Part.makeCylinder(
+            R + aufmass + fb.SCHAFT_LUFT - 0.003, 40.0, V(*p.spitze) + achse * schneide, achse
+        )
+        zahl += teil.distToShape(zylinder)[0] < 1e-9
+    return zahl
+
+
+werte_zwei = dataclasses.replace(werte_h, quer=1.0, schneide=12.0)
+ohne_frei = fb.planen(teil_h, namen_h, dataclasses.replace(werte_zwei, schaft_frei=False))
+streift_ohne, streift_mit = schaft_streift(teil_h, ohne_frei, 12.0), schaft_streift(
+    teil_h, zwei, 12.0
+)
+pruefe(
+    streift_ohne > 0
+    and streift_mit == 0
+    and zwei.weiter_stellen > 0
+    and 0.0 < zwei.weiter <= fb.WEITER_MAX
+    and zwei.keil < 0.5
+    and zwei.streift == 0,
+    f"Schaft frei: ohne {streift_ohne}, mit {streift_mit} Stellen zu nah; {zwei.weiter_stellen} "
+    f"weiter angestellt, bis {zwei.weiter}°, Keil {zwei.keil:.3f} mm, {zwei.streift} streifen",
+)
+print(
+    ascii(
+        f"Schaft frei: {streift_ohne} -> {streift_mit} Stellen zu nah, {zwei.weiter_stellen} "
+        f"Stellen bis {zwei.weiter} Grad weiter, Keil {zwei.keil:.3f} mm, "
+        f"{ohne_frei.zeit:.2f} -> {zwei.zeit:.2f} min"
+    )
+)
+
+
 # Scharfe Ecken: je Wand ein Umlauf, er endet vor der Ecke. Taucht der Fräser in der unteren Lage
 # dort die Achse entlang ein, streift er oben die Nachbarwand, die weiter hereinhängt (Manuels
 # tiefe Tasche, „Kollision prüfen“: Flanke Satz 2780). Er taucht an der ersten freien Stelle ein

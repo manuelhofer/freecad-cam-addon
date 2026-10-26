@@ -556,6 +556,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.313.0):* Flanke „Schaft frei“ (Haken, vorbelegt an; Manuel: „kann man nicht weiter
+  anstellen einfach ? und so vorschliechten oder nach schruppen ??“): in unteren Lagen weiter
+  gekippt, bis der Schaft 0,1 mm Luft hat – an der tiefen Tasche meist 0,25°, höchstens 0,5°
+  (mit 0,3 Aufmaß 1,25°), Keil bis 0,19/0,48 mm; „Kollision prüfen“: Schaft 0,10 statt 0 bzw.
+  0,41 statt 0,01 mm. Frage 1 neu: Keil + Aufmaß in einem Gang oder vorschlichten?
 - *Korrektur (0.312.8):* „Anlegen“ am Teil „tief“ 30,5 s → 0,8 s: Die Bahn unter dem Rand
   (3D-Schlichten, Restschlichten) rechnet nach der Vorschau ein Nebenrechner so, wie die
   Operation sie braucht, „Anlegen“ übernimmt sie; die Vorschau rechnet mit den Vorschüben des

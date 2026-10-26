@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-12 flanke-schaft-frei
+
+### EINGELESEN
+- Manuel, 2026-10-26, auf Frage 1 (der Schaft der Flanke streift in der unteren Lage die Wand):
+  „kann man nicht weiter anstellen einfach ? und so vorschliechten oder nach schruppen ??“
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `Flankenwerte.schaft_frei`, `_weiter_anstellen`, `_gekippt`
+  (starr um den Anlagepunkt der Schneide unten an der Wand, in einer Richtung),
+  `_schaft_frage`, `_fluchtrichtungen`/`fluchtrichtungen_stueck` (auch im Nebenrechner),
+  `_gehen_fragen`, `_verteilt` (aus `_gehen_verteilt`); `SCHAFT_LUFT`, `WEITER_SCHRITT`,
+  `WEITER_MAX`, `WEITER_JE_MM`; `Flankenbahn.weiter_stellen/weiter/keil/streift`; ausgelassene
+  Stellen ohne `_grenze`.
+- `camaddon/flanke.py`: Eigenschaft `SchaftFrei` (vorbelegt an, gespeicherte angehakt),
+  `bahn_fuer(schaft_frei=…)`.
+- `camaddon/gui_bearbeitung.py`: der Satz im Block (`ba.fl.weiter`, `ba.fl.streift`).
+- `translations/*.json`, `help/*/bearbeitung.html` (Flanke), `docs/spezifikation_strategien.md`
+  16.24, `docs/OFFENE_FRAGEN.md` (Frage 1 neu), `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.313.0.
+- `tests/test_flanke.py`: „Schaft frei“ – ohne den Haken 342 Stellen zu nah, mit ihm 0.
+
+### ERGEBNIS
+- Erst nur längs der Normalen gekippt: in den Ecken bis 4°, Keil 1,54 mm, 48 Stellen trotzdem
+  zu nah. Mit der Fluchtrichtung (weg vom nächsten Punkt des Teils) und der Mitte dazu: an der
+  tiefen Tasche (Kopie) ohne Aufmaß 1020 Stellen 0,25°, 184 Stellen 0,5°, Keil bis 0,19 mm, 16
+  ausgelassen; mit 0,3 mm Aufmaß bis 1,25°, Keil bis 0,48 mm.
+- „Kollision prüfen“ nach dem Anlegen: „Flanke fertig“ – Schaft 0,10 mm an der Wand (vorher
+  berührt); „Spirale fertig“ – Schaft 0,41 mm (vorher 0,01). Die Flanke bleibt bei etwa 5 min.
+- Grün: test_flanke, test_empfehlung, test_sprache, test_hilfe; szenario_tief_emp und
+  szenario_tief_spirale_waende (Kopien).
 ## P-2026-10-26-11 anlegen-nimmt-die-bahn-unter-dem-rand-aus-dem-nebenrechner
 
 ### EINGELESEN

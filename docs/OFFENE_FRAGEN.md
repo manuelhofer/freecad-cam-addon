@@ -8,29 +8,21 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
-## 1. Schaft der Flanke in der unteren Lage – Stellen auslassen oder streifen lassen?
+## 1. Keil und Aufmaß für die Kugel – in einem Gang oder vorschlichten?
 
-Am 5-Achs-Teil „tief“ (Kopie, GROB G550, T1 Schaftfräser Ø 12, nach „T1 auf 54 mm ausspannen“)
-fährt die Flanke die überhängenden Wände in zwei Lagen. In der unteren Lage steht die Achse so
-schräg wie die Wand dort; der Schaft darüber (so dick wie die Schneide) liegt dann an der Wand der
-oberen Lage an. „Kollision prüfen“ nach dem Anlegen:
+Deine Antwort auf die vorige Frage („weiter anstellen … und so vorschlichten oder nach
+schruppen“) ist gebaut (0.313.0, Haken „Schaft frei“): In der unteren Lage kippt die Flanke an
+deiner tiefen Tasche meist 0,25°, höchstens 0,5° weiter (mit 0,3 mm Aufmaß bis 1,25°), der Schaft
+bleibt 0,1 mm von der Wand bzw. vom Aufmaß weg. An der Wand bleibt dafür ein Keil: ohne Aufmaß bis
+0,19 mm, mit 0,3 mm Aufmaß bis 0,48 mm dazu.
 
-- **„Flanke fertig“** (vorgewählt, 12 min): Der Schaft von T1 **berührt die fertige Wand**
-  (Satz 7684). Das sagt die Frage „Die Wände unter dem Rand“ schon im Text.
-- **„Flanke grob, Spirale fertig“** (33 min): Die Flanke lässt 0,3 mm stehen, der Schaft kommt aber
-  bis **0,01 mm** an die fertige Wand (Satz 8203, in einer Ecke). Er schleift also 0,29 mm tief
-  durch das stehende Aufmaß. Die Kugel macht danach alles fertig, die fertige Wand bleibt heil.
+**Die Frage:** Mit „Flanke grob, Spirale fertig“ bekommt die Kugel dort bis 0,78 mm (0,3 + 0,48).
+Nimmt sie das in einem Gang, oder soll sie davor einmal mit z. B. 0,1 mm Aufmaß vorschlichten
+(kostet etwa die Zeit der Spirale noch einmal, an deiner Tasche gut 25 min)?
 
-**Die Frage:** Soll die Flanke Stellen auslassen, an denen der Schaft die Wand (oder das Aufmaß)
-streifen würde? Dort bliebe in der unteren Lage mehr stehen, das dann die Kugel (Spirale) oder das
-Restschlichten nimmt. Oder ist ein streifender Schaft bei dir in der Werkstatt in Ordnung, solange
-die fertige Wand heil bleibt?
+*Warum nur Manuel:* Wie viel eine Kugel Ø 12 unter dem Rand am Stück verträgt, ist Werkstatt.
 
-*Warum nur Manuel:* Ob ein Schaft im Aufmaß schleifen darf (Reibung, Wärme, Abdrängen) oder ob
-lieber mehr Material für die Kugel bleibt, ist Werkstatterfahrung – rechnen kann ich beides.
-
-*Was die Antwort ändert:* „auslassen“ → die Flanke prüft den Schaft mit Aufmaß und etwas Luft und
-lässt solche Stellen weg; die Kugel bekommt dort mehr (die Zeit sage ich dann mit Zahlen von deinem
-Teil). „so lassen“ → nichts, nur der Hinweis bleibt.
+*Was die Antwort ändert:* „ein Gang“ → nichts. „vorschlichten“ → das 3D-Schlichten unter dem Rand
+bekommt einen Vorschlicht-Gang, wo Keil und Aufmaß zusammen mehr als X mm sind (X sagst du).
 
 Seit 2026-10-26.

@@ -50,12 +50,14 @@ class Flanke(PathOp.ObjectOp):
     def initOperation(self, obj):
         self._eigenschaften(obj)
         obj.Aufmass = 0.0
+        obj.SchaftFrei = True
         obj.Sicherheitsabstand = fb.SICHERHEIT
         obj.Werkzeugachsen = []
         self._editormodi(obj)
 
     def opOnDocumentRestored(self, obj):
-        self._eigenschaften(obj)
+        if "SchaftFrei" in self._eigenschaften(obj):
+            obj.SchaftFrei = True  # neu: auch gespeicherte Flanken angehakt
         self._editormodi(obj)
 
     @staticmethod
@@ -67,6 +69,7 @@ class Flanke(PathOp.ObjectOp):
             ("App::PropertyStringList", "Flaechen", GRUPPE, tr("fl.eigenschaft.flaechen")),
             ("App::PropertyLength", "Aufmass", GRUPPE, tr("fl.eigenschaft.aufmass")),
             ("App::PropertyLength", "Quer", GRUPPE, tr("fl.eigenschaft.quer")),
+            ("App::PropertyBool", "SchaftFrei", GRUPPE, tr("fl.eigenschaft.schaft_frei")),
             ("App::PropertyLength", "Sicherheitsabstand", GRUPPE, tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Umlaeufe", GRUPPE, tr("fl.eigenschaft.umlaeufe")),
             ("App::PropertyInteger", "Lagen", GRUPPE, tr("fl.eigenschaft.lagen")),
@@ -152,6 +155,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
             vo.flaechen(obj),
             aufmass=float(obj.Aufmass),
             quer=float(getattr(obj, "Quer", 0.0)),
+            schaft_frei=bool(getattr(obj, "SchaftFrei", True)),
             oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
             sicher=float(obj.SafeHeight),
             sicherheit=float(obj.Sicherheitsabstand),
@@ -193,6 +197,7 @@ def bahn_fuer(
     schritt=fb.SCHRITT,
     koerper=None,
     quer=0.0,
+    schaft_frei=True,
 ):
     """Die Bahn „Flanke“ an den Wänden `flaechen` des Modells; `schritt`: so dicht liegen die
     Stellen an gekrümmten Kanten (mm); `koerper` (koerper_ueber_der_schneide): mit ihnen sieht
@@ -221,6 +226,7 @@ def bahn_fuer(
         gleichlauf=gleichlauf,
         schritt=schritt,
         quer=float(quer or 0.0),
+        schaft_frei=bool(schaft_frei),
     )
     bahn = fb.planen(form_teil, list(flaechen), werte)
     if koerper:
