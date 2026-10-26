@@ -322,7 +322,7 @@ def schritte(h):
             )
     # Abfahren: Die Stange wird von vorn abgetragen (bis 0.274.1 blieb sie unberührt, Manuel:
     # „kein abtrag vom rohteil“) – im Ring bis −0,8, der Bund bleibt, außen steht nichts.
-    from PySide import QtCore
+    from PySide import QtCore, QtGui
 
     from camaddon import gui_reichweite
 
@@ -390,3 +390,44 @@ def schritte(h):
         h.bild("5_abfahren_am_ende")
         pruef.reject()
         yield 500
+    # „Programm schreiben“ mit TRANSMIT (Manuel, 2026-10-26: die CLX550 hat es): die Nut an der
+    # Stirnseite in X und Y, X im Radius (DIAMOF), davor TRANSMIT und G17, danach TRAFOOF.
+    from camaddon import gui_programm
+
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 300
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_ProgrammSchreiben"))
+    yield from h.warte_auf(lambda: gui_programm.ProgrammDialog.offen is not None, 60000)
+    d = gui_programm.ProgrammDialog.offen
+    h.pruefe(d is not None, "„Programm schreiben“ öffnet kein Fenster")
+    if d is None:
+        return
+    d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("siemens"))
+    yield 800
+    haken_t = d.haken.get("transmit")
+    h.pruefe(haken_t is not None, "kein Haken „Stirnseite mit TRANSMIT“")
+    if haken_t is not None:
+        haken_t.setChecked(True)
+        yield 1500
+        text = d.vorschau.toPlainText().splitlines()
+        k = text.index("TRANSMIT") if "TRANSMIT" in text else -1
+        h.pruefe(
+            k > 0 and text[k - 1] == "DIAMOF" and text[k + 1] == "G17",
+            f"Vorschau ohne TRANSMIT: {text[:60]}",
+        )
+        if k > 0:
+            d.vorschau.moveCursor(QtGui.QTextCursor.End)
+            cursor = d.vorschau.textCursor()
+            cursor.setPosition(
+                d.vorschau.document().findBlockByLineNumber(max(0, k - 8)).position()
+            )
+            d.vorschau.setTextCursor(cursor)
+            d.vorschau.ensureCursorVisible()
+        d.einstellungen.ensureWidgetVisible(haken_t, 0, 200)
+        yield 500
+        h.bild("6_programm_transmit", d)
+        haken_t.setChecked(False)
+        yield 300
+    d.reject()
+    yield 300
