@@ -549,6 +549,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Abstände zum Netz im Hauptprozess, ohne Atmen) – jetzt in Teilen zu 2000 Punkten, dazwischen
   zeichnet es sich neu: längste Pause 2,1 s. Der Weg „So einrichten“ → Ecken-Kugel → „T1 auf
   54 mm ausspannen“ → „Anlegen“ geht dort durch (Räumen, Flanke, 3D-Schlichten, Restschlichten).
+- *Korrektur (0.312.6):* Das Fenster atmet auch beim Wegkippen (Anlegen: 47 Pausen bis 1 s → keine
+  über 0,3 s) und im Prüffenster beim schrägen Abtrag (1,7 s unter Last). Die Pausenmessung der
+  Szenarien schreibt je Pause den ganzen Weg durchs Addon („Weg: …“ in pausen.txt).
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde

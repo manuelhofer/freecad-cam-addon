@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-09 fenster-atmet-wegkippen-und-schraeger-abtrag
+
+### EINGELESEN
+- Manuel (Merkzettel „Ressourcen nutzen“): das Fenster darf nie laggen. Die Pausen aller
+  Szenarien im vollen Lauf nach 0.312.1 ausgewertet (unter Last: elf Läufe zugleich): die
+  längsten in Szenario-eigenen Rechnungen, echte im Prüffenster (`gui_reichweite.pruefe` →
+  `schraeg_abtrag.fuer`, 1,7 s) und beim Anlegen (Wegkippen, Räumen, je um 1 s).
+
+### DATEIEN
+- `camaddon/schraeg_abtrag.py`: `uhren.atmen()` je Station in `fuer` (simultan je Station eine
+  Achse aus der Kinematik).
+- `camaddon/wegkippen.py`: `uhren.atmen()` je 256 Stellen in `stoesst`.
+- `tests/gui/_lauf/szenario_lauf.py`: `pausen.txt` nennt je längster Pause den ganzen Weg durchs
+  Addon („Weg: gui_bearbeitung … accept → … → wegkippen.py:169 hoehe“) – vorher nur Auslöser und
+  innerste Stelle.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.6.
+
+### ERGEBNIS
+- szenario_wegkippen allein: beim Anlegen 47 Pausen bis 1,03 s → keine mehr über der Schwelle;
+  übrig 0,52 s beim Start des Assistenten.
+- Ohne Last bleiben je um 1 s: das Anlegen des Jobs aus einem STL (FreeCADs Job, C++), ein Klick
+  auf eine Fläche, der das Räumen der Gebiete im Hauptprozess rechnet (szenario_deckel 0,95 s),
+  Räumen beim Anlegen (C-Ring 0,96 s).
+- Grün: test_wegkippen, test_schraeg_abtrag; szenario_wegkippen, szenario_bearbeitung_cring_alles,
+  szenario_deckel, szenario_bearbeitung_stl.
 ## P-2026-10-26-08 fenster-atmet-bei-netzabstaenden
 
 ### EINGELESEN

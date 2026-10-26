@@ -294,6 +294,7 @@ def stoesst(huelle, mitten, achsen, koerper_, kugel_radius, mit_schaft):
         if not len(punkte) or not len(welche):
             continue
         for k0 in range(0, len(welche), 256):
+            uhren.atmen()  # je 256 Stellen (beim Anlegen stand das Fenster sonst 1 s)
             k = welche[k0 : k0 + 256]
             welt = (
                 spitzen[k, None, :]

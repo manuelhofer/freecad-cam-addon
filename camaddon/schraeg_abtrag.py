@@ -24,6 +24,7 @@ import math
 import numpy as np
 
 from . import restmaterial as rm
+from . import uhren
 
 FLACHSTE_ACHSE = 0.2  # z-Anteil der Werkzeugachse (zur Spindel), flacher im Material: kein Bild
 SENKRECHT = 1e-9  # so wenig darf die Achse von +z abweichen, um senkrecht zu zählen
@@ -232,6 +233,9 @@ def fuer(abfahrt, job, spitzen):
     for i, s in enumerate(abfahrt.stationen):
         if s.operation not in fraeser or s.stellungen is None:
             continue
+        # Simultan je Station eine Achse aus der Kinematik: das Prüffenster stand dabei 1,7 s
+        # (szenario_wegkippen) – so zeichnet es sich zwischendurch neu (nur in uhren.atmend()).
+        uhren.atmen()
         schluessel = (s.operation, tuple(sorted((b, round(w, 9)) for b, w in s.rund.items())))
         achse = gemerkt.get(schluessel)
         if achse is None:

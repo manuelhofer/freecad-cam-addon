@@ -89,7 +89,7 @@ class _Sonde:
         self.zuletzt = jetzt
 
     def _wachen(self):
-        pause = None  # [Beginn, Auslöser → [Proben], innen → Proben]
+        pause = None  # [Beginn, Auslöser → Proben, innen → Proben, Weg → Proben, Dauer …]
         while not self._aus:
             time.sleep(0.05)
             stehen = time.perf_counter() - self.zuletzt
@@ -109,34 +109,41 @@ class _Sonde:
             if pause is None or pause[0] != self.zuletzt:
                 if pause is not None:
                     self._pause_fertig(pause)
-                pause = [self.zuletzt, {}, {}]
+                pause = [self.zuletzt, {}, {}, {}]
             # Auslöser: die äußersten zwei Rahmen aus Addon oder Szenario; innen: der innerste.
             ausloeser = " → ".join(zeilen[:2]) or "(außerhalb des Addons)"
             innen = zeilen[-1] if zeilen else "(außerhalb des Addons)"
             pause[1][ausloeser] = pause[1].get(ausloeser, 0) + 1
             pause[2][innen] = pause[2].get(innen, 0) + 1
+            # Der ganze Weg durch das Addon (ohne Szenario-Rahmen) – wer die Pause auslöst.
+            weg = " → ".join(z for z in zeilen if "szenario_" not in z) or innen
+            pause[3][weg] = pause[3].get(weg, 0) + 1
             pause.append(stehen)
 
     def _pause_fertig(self, pause):
-        dauer = max(pause[3:], default=0.0) + 0.05
+        dauer = max(pause[4:], default=0.0) + 0.05
         ausloeser = max(pause[1], key=pause[1].get)
         innen = sorted(pause[2].items(), key=lambda e: -e[1])[:4]
-        eintrag = self.stellen.setdefault(ausloeser, [0.0, 0, []])
+        weg = max(pause[3], key=pause[3].get)
+        eintrag = self.stellen.setdefault(ausloeser, [0.0, 0, [], ""])
         if dauer > eintrag[0]:
             eintrag[0] = dauer
             eintrag[2] = innen
+            eintrag[3] = weg
         eintrag[1] += 1
 
     def schreiben(self):
         self._aus = True
         self.uhr.stop()
         zeilen = [f"längste Pause: {self.laengste:.2f} s"]
-        for ausloeser, (dauer, wie_oft, innen) in sorted(
+        for ausloeser, (dauer, wie_oft, innen, weg) in sorted(
             self.stellen.items(), key=lambda e: -e[1][0]
         ):
             zeilen.append(f"{dauer:6.2f} s ({wie_oft:2d}×)  {ausloeser}")
             for stelle, proben in innen:
                 zeilen.append(f"            {proben:4d} Proben  {stelle}")
+            if weg:
+                zeilen.append(f"            Weg: {weg}")
         with open(os.path.join(AUSGABE, "pausen.txt"), "w", encoding="utf-8") as datei:
             datei.write("\n".join(zeilen) + "\n")
 
