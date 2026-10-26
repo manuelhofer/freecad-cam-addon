@@ -37,7 +37,8 @@ Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass, field, replace
+from collections import OrderedDict
+from dataclasses import astuple, dataclass, field, replace
 
 import FreeCAD
 import numpy as np
@@ -67,6 +68,10 @@ PARALLEL_AB = 200
 STELLEN_JE_STUECK = 40
 UEBERLAPP = 0.5  # mm – so viel überlappen sich zwei Lagen
 ENDE_HALBIEREN = 30  # so oft halbiert mantellinie bis zum Ende der Geraden (Diagonale / 2³⁰)
+# planen() merkt sich so viele Bahnen – auch die aus den Nebenrechnern (geplant_merken): „Anlegen“
+# im Assistenten rechnete die Bahn der Vorschau sonst im Hauptprozess noch einmal (am 5-Achs-Teil
+# „tief“ stand das Fenster dabei 2,1 s, in OpenCascade).
+GEPLANT_GEMERKT = 16
 
 
 @dataclass
@@ -111,6 +116,7 @@ class Flankenbahn:
     weggelassen: int = 0  # Stellen, an denen der Fräser in eine andere Fläche schnitte
     zuege: list = field(default_factory=list)  # je Zug die Flächen
     anstoss: object = None  # Anstoss: Halter oder Schaft im Teil (halter_pruefen), sonst None
+    schluessel: tuple = ()  # plan_schluessel der Eingaben – für geplant_merken
 
 
 @dataclass
@@ -464,9 +470,66 @@ def _schneidet(form, spitze, achse, laenge, radius):
         return True
 
 
+_GEPLANT = OrderedDict()  # plan_schluessel → Flankenbahn
+TREFFER = [0, 0]  # (aus dem Merker, gerechnet) – für die Prüfungen
+
+
+def plan_schluessel(form, namen, werte):
+    """Der Schlüssel der Eingaben von planen() – gleich auch in einem anderen Prozess: die Form
+    nach Volumen, Fläche, Zahl der Flächen und Kanten und der Lage aller Eckpunkte (eine gleich
+    große Tasche an anderer Stelle ändert sie; hashCode gilt nur im eigenen Prozess), die Wände,
+    die Werte (gerundet). None, wenn die Form das nicht hergibt."""
+    import hashlib
+
+    try:
+        ecken = sorted((round(v.X, 5), round(v.Y, 5), round(v.Z, 5)) for v in form.Vertexes)
+        teil = (
+            round(form.Volume, 4),
+            round(form.Area, 4),
+            len(form.Faces),
+            len(form.Edges),
+            hashlib.sha256(repr(ecken).encode()).hexdigest(),
+        )
+    except Exception:  # noqa: BLE001 – eine Form ohne Maße: nicht merken
+        return None
+    # Ohne die Vorschübe: Sie geben nur die Zeit (planen rechnet sie bei einem Treffer neu); die
+    # Operation hat sie gerundet (1560 statt 1559,72 mm/min in der Vorschau).
+    ohne_vorschub = astuple(replace(werte, vorschub=0.0, eintauchen=0.0))
+    werte_ = tuple(round(v, 6) if isinstance(v, float) else v for v in ohne_vorschub)
+    return (teil, tuple(namen), werte_)
+
+
+def geplant_merken(bahn):
+    """Nimmt eine Bahn aus einem Nebenrechner (die Vorschau im Assistenten) in den Merker von
+    planen() auf: Rechnet die Operation hier mit denselben Eingaben, nimmt sie diese Bahn."""
+    if bahn is None or not getattr(bahn, "schluessel", ()):
+        return
+    _GEPLANT[bahn.schluessel] = replace(bahn, anstoss=None)
+    _GEPLANT.move_to_end(bahn.schluessel)
+    while len(_GEPLANT) > GEPLANT_GEMERKT:
+        _GEPLANT.popitem(last=False)
+
+
 def planen(form, namen, werte):
     """Die Bahn „Flanke“ (Flankenbahn) an den Wänden `namen` von `form` mit `werte`. ValueError
-    mit einem Satz, wenn es nicht geht."""
+    mit einem Satz, wenn es nicht geht. Dieselben Eingaben ein zweites Mal: die gemerkte Bahn."""
+    schluessel = plan_schluessel(form, namen, werte)
+    gemerkt = _GEPLANT.get(schluessel) if schluessel is not None else None
+    if gemerkt is not None:
+        TREFFER[0] += 1
+        _GEPLANT.move_to_end(schluessel)
+        bahn = replace(gemerkt)
+        bahn.laenge, bahn.zeit = _laenge_und_zeit(bahn.punkte, werte)
+        return bahn
+    TREFFER[1] += 1
+    bahn = _planen(form, namen, werte)
+    if schluessel is not None:
+        bahn.schluessel = schluessel
+        geplant_merken(bahn)
+    return bahn
+
+
+def _planen(form, namen, werte):
     w = werte
     if w.radius <= 0 or w.schneide <= 0:
         raise ValueError(tr("fl.fehler.fraeser"))

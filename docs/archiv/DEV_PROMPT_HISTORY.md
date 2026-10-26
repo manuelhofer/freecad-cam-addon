@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-10 flanke-aus-der-vorschau
+
+### EINGELESEN
+- Manuel (Merkzettel „Ressourcen nutzen“): das Fenster darf nie laggen. Nach P-2026-10-26-08
+  stand es beim Anlegen am 5-Achs-Teil „tief“ noch 2,1 s – in OpenCascade, beim Rechnen der
+  Flanke, die die Vorschau im Nebenrechner schon gerechnet hatte (W-036 Rest).
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `planen` merkt sich seine Bahnen (`_GEPLANT`, `GEPLANT_GEMERKT`
+  16) unter `plan_schluessel` – die Form nach Volumen, Fläche, Zahl der Flächen und Kanten und
+  einer Prüfsumme der Eckpunkte (gleich in jedem Prozess; eine verschobene Tasche ändert sie), die
+  Wände, die Werte ohne die Vorschübe (die geben nur die Zeit; bei einem Treffer neu gerechnet).
+  `geplant_merken` nimmt Bahnen aus einem Nebenrechner auf; `Flankenbahn.schluessel`, `TREFFER`.
+- `camaddon/gui_bearbeitung.py`: die Flanke aus dem Nebenrechner in den Merker.
+- `camaddon/flanke.py`: ohne `sicher` fährt die Bahn wie die Operation auf StartDepth plus
+  SafeHeightOffset des Jobs (vorher oben + Sicherheit + 3: 96 statt 94 am Teil „tief“).
+- `tests/test_flanke.py`: Treffer, Kopie, aus dem Nebenrechner, andere Werte, verschobene Form;
+  der Merker geleert, wo die Prüfung Funktionen austauscht.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.7.
+
+### ERGEBNIS
+- Am Teil „tief“ (Kopie): erst kein Treffer – die Vorschau fuhr auf 96 statt 94 und rechnete
+  mit 1559,72 statt 1560 mm/min. Danach `TREFFER [1, 0]`: „Anlegen“ rechnet die Flanke nicht
+  mehr; keine Pause beim Anlegen über der Messschwelle (vorher 2,1 s, ganz vorher 3,6 s).
+- Grün: test_flanke, test_empfehlung; szenario_flanke, szenario_flanke_halter,
+  szenario_tief_treffer (Kopie).
 ## P-2026-10-26-09 fenster-atmet-wegkippen-und-schraeger-abtrag
 
 ### EINGELESEN

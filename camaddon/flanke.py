@@ -203,7 +203,12 @@ def bahn_fuer(
     if oben is None:
         oben = z_oben
     if sicher is None:
-        sicher = oben + sicherheit + 3.0
+        # Wie die Operation: SafeHeight ist StartDepth plus SafeHeightOffset des Jobs – sonst
+        # führe die Vorschau höher als die Operation, und „Anlegen“ rechnete ihre Bahn noch einmal
+        # (flanke_bahn.planen; am 5-Achs-Teil „tief“ 96 statt 94).
+        versatz = getattr(getattr(job, "SetupSheet", None), "SafeHeightOffset", None)
+        versatz = getattr(versatz, "Value", versatz)
+        sicher = oben + (float(versatz) if versatz is not None else sicherheit + 3.0)
     werte = fb.Flankenwerte(
         radius=radius,
         schneide=schneide,

@@ -4815,6 +4815,10 @@ class _Block:
             return
         if mitgerechnet is not None:
             self.vorschau, frei = mitgerechnet[1]
+            if isinstance(self.vorschau, flb.Flankenbahn):
+                # Die Flanke aus dem Nebenrechner: „Anlegen“ nimmt sie, statt sie noch einmal im
+                # Hauptprozess zu rechnen (flanke_bahn.planen).
+                flb.geplant_merken(self.vorschau)
         else:
             try:
                 self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)

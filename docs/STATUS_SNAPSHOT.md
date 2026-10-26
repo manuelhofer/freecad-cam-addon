@@ -552,6 +552,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - *Korrektur (0.312.6):* Das Fenster atmet auch beim Wegkippen (Anlegen: 47 Pausen bis 1 s → keine
   über 0,3 s) und im Prüffenster beim schrägen Abtrag (1,7 s unter Last). Die Pausenmessung der
   Szenarien schreibt je Pause den ganzen Weg durchs Addon („Weg: …“ in pausen.txt).
+- *Korrektur (0.312.7):* „Anlegen“ nimmt die Bahn der Flanke aus der Vorschau (Nebenrechner),
+  statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
+  Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs).
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde
@@ -669,8 +672,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 3. *W-029 erledigt:* Stange (P-2026-10-24-09, im Prüffenster am Ende „Fertigteil als Rohteil …“)
    und 3+2 (P-2026-10-24-19, räumlich nach allen Ebenen).
 4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen (verworfen, siehe W-036), das
-   Neuberechnen beim Anlegen im Hauptprozess (am 5-Achs-Teil „tief“ seit 0.312.5 noch 2,1 s
-   in C++ beim Rechnen der Flanke – dort atmet nichts; nur eine Bahn aus den Nebenrechnern hülfe),
+   Neuberechnen beim Anlegen im Hauptprozess (die Flanke seit 0.312.7 aus der Vorschau:
+   flanke_bahn.geplant_merken; am 5-Achs-Teil „tief“ keine Pause mehr beim Anlegen),
    4-Achs-Schlichten genau beim Anlegen. Gebaut am
    2026-10-24 abends: Verteilen ohne Leerlauf (P-14), Vorschau-Schruppbahn wieder übernommen (P-15),
    Wegkippen (P-23) und Plan indexiert je Versatz (P-24) auf allen Kernen – die längsten Pausen

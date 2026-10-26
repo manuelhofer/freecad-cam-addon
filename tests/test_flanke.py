@@ -187,6 +187,34 @@ pruefe(len(vorn_c) >= 2 and vorn_c[1].spitze[0] < vorn_c[0].spitze[0], "C: nicht
 bahn_d = fb.planen(teil_a, namen_a, werte(12.0))
 pruefe(bahn_d.lagen == 2 and bahn_d.umlaeufe == 2, f"D: {bahn_d.lagen} Lagen")
 pruefe(im_teil(teil_a, bahn_d, 12.0) == 0, "D: Fräser im Teil")
+# Dieselben Eingaben noch einmal – auch aus einem Nebenrechner (geplant_merken; „Anlegen“ rechnete
+# die Vorschau der Flanke sonst im Hauptprozess neu): die gemerkte Bahn, eine Kopie. Andere Werte
+# oder eine andere Form: gerechnet.
+vorher = list(fb.TREFFER)
+noch_einmal = fb.planen(teil_a, namen_a, werte(12.0))
+pruefe(
+    fb.TREFFER[0] == vorher[0] + 1
+    and noch_einmal is not bahn_d
+    and noch_einmal.punkte == bahn_d.punkte
+    and noch_einmal.schluessel == bahn_d.schluessel,
+    f"gemerkt: {fb.TREFFER} nach {vorher}",
+)
+fb._GEPLANT.clear()
+fb.geplant_merken(dataclasses.replace(bahn_d))
+fb.planen(teil_a, namen_a, werte(12.0))
+anders = fb.planen(teil_a, namen_a, dataclasses.replace(werte(12.0), aufmass=0.1))
+pruefe(
+    fb.TREFFER[0] == vorher[0] + 2 and anders.punkte != bahn_d.punkte,
+    f"aus dem Nebenrechner / andere Werte: {fb.TREFFER}",
+)
+# Dieselbe Form 5 mm verschoben (gleiches Volumen, gleiche Flächen): ein anderer Schlüssel.
+verschoben = teil_a.copy()
+verschoben.translate(V(5, 0, 0))
+pruefe(
+    fb.plan_schluessel(verschoben, namen_a, werte(12.0))
+    != fb.plan_schluessel(teil_a, namen_a, werte(12.0)),
+    "verschobene Form: derselbe Schlüssel",
+)
 
 # --- Die Operation im Job ---------------------------------------------------------------------
 import Path.Main.Job as PathJob  # noqa: E402
@@ -417,6 +445,7 @@ fb._zugaenge = lambda form, teile, w: [(0, len(t) - 1) for t in teile]
 fb._pruef_laenge = lambda stelle, lage, hoehe, w: min(w.schneide, stelle[4] + 1.0)
 vorher_s = fb.planen(teil_s, namen_s, werte_s)
 fb._zugaenge, fb._pruef_laenge = alt_zugaenge, alt_laenge
+fb._GEPLANT.clear()  # sonst käme die Bahn mit den ausgetauschten Funktionen aus dem Merker
 scharf = fb.planen(teil_s, namen_s, werte_s)
 pruefe(
     len(namen_s) == 4 and wege_im_teil(teil_s, vorher_s, 12.0) > 0,
