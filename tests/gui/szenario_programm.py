@@ -202,5 +202,23 @@ def schritte(h):
         "ungespeicherte Maschine am Job gemerkt",
     )
     h.bild("4_meine_drehmaschine", d)
+    # TRANSMIT an der Stirnseite (Manuel, 2026-10-26: die CLX550 hat die Option): vorbelegt aus,
+    # die Befehle darunter grau, bis der Haken sitzt.
+    haken_t = d.haken.get("transmit")
+    h.pruefe(haken_t is not None and not haken_t.isChecked(), "TRANSMIT-Haken an der Drehmaschine")
+    if haken_t is not None:
+        titel_t, eingabe_t = d.felder["transmit_ein"]
+        h.pruefe(
+            not eingabe_t.isEnabled() and eingabe_t.text() == "TRANSMIT",
+            f"TRANSMIT ohne Haken: {eingabe_t.isEnabled()} {eingabe_t.text()!r}",
+        )
+        haken_t.setChecked(True)
+        yield 300
+        h.pruefe(eingabe_t.isEnabled(), "TRANSMIT mit Haken grau")
+        d.einstellungen.ensureWidgetVisible(haken_t, 0, 200)
+        yield 300
+        h.bild("5_drehmaschine_transmit", d)
+        haken_t.setChecked(False)
+        yield 300
     d.reject()
     yield 300
