@@ -905,6 +905,10 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - Am Prüfteil (Tasche an der Stirnseite, `tests/test_stirnseite.py`): 113 statt 865 Zeilen („C dreht
   mit“), 113 statt 135 („C in Schritten“); jeder Schnittpunkt liegt auf dem 72-Eck; nachgelesen
   ohne Befund.
+- Der Haken steht nur, wo die Vorlage `transmit_ein` füllt (Siemens). Fanuc `G12.1`/`G112` und
+  Haas `G112` nicht gebaut: Dort fahren X und C (Fanuc: C als gedachte Linearachse), und ob X im
+  Radius oder Durchmesser zählt, legt ein Parameter fest (Haas Setting 285) – ohne Handbuch und
+  Maschine nicht prüfbar (P-2026-10-26-04).
 - TRACYL nicht gebaut: Es rechnet auf einem einzigen Zylinderradius; die Mantelbahnen
   (4-Achs-Bearbeitung) wechseln den Radius. Gäbe es eine Operation auf festem Radius (Nut auf dem
   Mantel), käme `TRACYL(d)` dazu.

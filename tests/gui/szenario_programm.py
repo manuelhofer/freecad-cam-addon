@@ -220,5 +220,9 @@ def schritte(h):
         h.bild("5_drehmaschine_transmit", d)
         haken_t.setChecked(False)
         yield 300
+    # Fanuc schreibt die Stirnseite ohne Transformation: kein Haken, den man setzen könnte.
+    d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("fanuc"))
+    yield 800
+    h.pruefe("transmit" not in d.haken, "TRANSMIT-Haken bei Fanuc")
     d.reject()
     yield 300

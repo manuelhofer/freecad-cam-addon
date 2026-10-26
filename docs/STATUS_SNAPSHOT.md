@@ -537,7 +537,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   ohne Y; 0.311.1: Klartext startet ein angetriebenes Werkzeug.
 - *Neu (0.312.0):* Siemens an der Drehmaschine: „Stirnseite mit TRANSMIT“ (Haken, vorbelegt aus) –
   die Steuerung rechnet C, X/Y wie im Job, X im Radius (DIAMOF), Bögen bleiben Bögen; am Prüfteil
-  113 statt 865 Zeilen. TRACYL nicht (ein Radius; die Mantelbahnen wechseln ihn).
+  113 statt 865 Zeilen. TRACYL nicht (ein Radius; die Mantelbahnen wechseln ihn). 0.312.1: der
+  Haken nur bei Siemens (Fanuc G12.1/Haas G112: X im Radius oder Durchmesser je Parameter).
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde

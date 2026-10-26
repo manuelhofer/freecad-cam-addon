@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-04 transmit-nur-bei-siemens
+
+### EINGELESEN
+- Eigene Durchsicht nach P-2026-10-26-03: Der Haken „Stirnseite mit TRANSMIT“ stand an jeder
+  Drehmaschinen-Steuerung, schreibt aber nur bei Siemens etwas. Trüge jemand bei Fanuc „G12.1“
+  ein, stünden Y-Wörter im Programm statt C.
+
+### DATEIEN
+- `camaddon/gui_programm.py` (`_zeigen`: Haken und Befehle nur, wo die Vorlage `transmit_ein`
+  füllt), `tests/gui/szenario_programm.py` (Fanuc ohne den Haken), `docs/spezifikation_steuerung.md`
+  30, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.1.
+
+### ERGEBNIS
+- Fanuc G12.1 und Haas G112 nachgelesen, nicht gebaut: Ob X dort im Radius oder Durchmesser zählt,
+  hängt am Parameter der Maschine (Haas Setting 285); Fanuc fährt C als gedachte Linearachse.
+- Grün: szenario_programm.
 ## P-2026-10-26-03 transmit-an-der-stirnseite
 
 ### EINGELESEN

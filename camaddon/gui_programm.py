@@ -777,6 +777,10 @@ class ProgrammDialog(QtGui.QDialog):
         if feld in ("gewinde_synchron", "gewinde_ausgleich"):
             # Nur, wo synchron und mit Ausgleichsfutter verschieden geschrieben wird (Haas nicht).
             return self.steuerung().gewinde_waehlbar()
+        if feld in ("transmit", "transmit_ein", "transmit_aus"):
+            # Nur, wo die Vorlage die Transformation kennt (Siemens): Fanuc G12.1 und Haas G112
+            # fahren X und C mit X je nach Parameter im Radius oder Durchmesser – nicht gebaut.
+            return bool(pp.steuerung(self.kennung()).transmit_ein)
         if feld == "wechselpunkt_mks":
             return not self.info.wechsel_wks
         if feld == "wechselpunkt_wks":
