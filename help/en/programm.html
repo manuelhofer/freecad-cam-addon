@@ -29,8 +29,8 @@ lathe or mill, X as diameter, the main spindle and its C axis (“main spindle S
 which stations are driven (“T1…T12 → S1 (C1)”). Without a machine it writes as for a
 mill.</li>
 <li><b>Control</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4, Mazak (EIA/ISO), GRBL 1.1, Homag/Weeke
-woodWOP (MPR) or Heidenhain conversational – iTNC 530 or TNC 640/620/320
-(<a href="#heidenhain">below</a>). The job remembers the
+woodWOP (MPR, <a href="#woodwop">below</a>) or Heidenhain conversational – iTNC 530 or TNC
+640/620/320 (<a href="#heidenhain">below</a>). The job remembers the
 choice, so does the machine – for the next job on it, it is preselected.</li>
 <li><b>Settings on the left, preview on the right</b> with the first blocks – you see every
 change right away.</li>
@@ -422,6 +422,32 @@ move, speed and M3 before feed, F, the arcs, M30.</li>
 </ul>
 <p>Conversational is built here for milling machines; a lathe (CNC PILOT, MANUALplus) uses
 another language.</p>
+
+<a name="woodwop"></a>
+<h3>Homag and Weeke (woodWOP)</h3>
+<p>woodWOP does not read G-code but an <b>MPR file</b>: first contours, then the machining steps
+that run them. The post processor writes the path as for any control and translates it:</p>
+<ul>
+<li>The workpiece (L, B, D) comes from the <b>job's stock</b>; X and Y count from its corner, Z
+from the bottom (Z = D is the top). Without stock it takes the space of the path – a note says
+so.</li>
+<li>Every run at feed becomes a <b>contour</b>: lines as KL, arcs in XY as KA with radius and
+direction, in pieces of up to 90° – woodWOP computes the centre from the radius and the end
+points, and near 180° the last digit of the radius alone would move it far off. Helices and arcs
+in XZ/YZ are written as lines (at most 0.002 mm off).</li>
+<li>One <b>contour milling</b> step per contour: vertical approach and retract, no radius
+compensation (the path is the centre of the cutter), tool, speed and feed in m/min. A contour has
+only one feed – if it changes inside (slower plunge), the smaller one applies, and the program
+says on how many contours.</li>
+<li>Holes as <b>BohrVert</b> with position, depth from the top, tool and feed.</li>
+<li>No tool change point, no coolant, no jump labels – woodWOP retracts by itself and knows its
+tools. The tool list and the names of the operations are in the comment. This output cannot do
+rotary axes.</li>
+<li>The file is read back, and the cross-check reads every contour back into job coordinates:
+every point, every arc as woodWOP runs it, tool, speed, holes.</li>
+</ul>
+<p>The output has not yet run on a Homag or Weeke – please open it in woodWOP and look at it
+before the first part.</p>
 
 <a name="einrichtblatt"></a>
 <h3>Setup sheet</h3>

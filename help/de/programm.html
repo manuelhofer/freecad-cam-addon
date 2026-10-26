@@ -31,8 +31,8 @@ ihr weiß: Drehmaschine oder Fräse, X im Durchmesser, die Hauptspindel und ihre
 („Hauptspindel S4, C-Achse C4“), welche Plätze angetrieben sind („T1…T12 → S1 (C1)“). Ohne
 Maschine schreibt er wie für eine Fräse.</li>
 <li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4, Mazak (EIA/ISO), GRBL 1.1, Homag/Weeke
-woodWOP (MPR) oder Heidenhain im Klartext – iTNC 530 oder TNC 640/620/320
-(<a href="#heidenhain">unten</a>). Der Job merkt sich
+woodWOP (MPR, <a href="#woodwop">unten</a>) oder Heidenhain im Klartext – iTNC 530 oder TNC
+640/620/320 (<a href="#heidenhain">unten</a>). Der Job merkt sich
 die Wahl, ebenso die Maschine – beim nächsten Job auf ihr ist sie vorgewählt.</li>
 <li><b>Links die Einstellungen, rechts die Vorschau</b> mit den ersten Sätzen – jede Änderung
 siehst du sofort.</li>
@@ -437,6 +437,32 @@ Drehzahl und M3 vor dem Vorschub, F, die Kreise, M30.</li>
 </ul>
 <p>Klartext ist hier für Fräsmaschinen gebaut; an einer Drehmaschine (CNC PILOT, MANUALplus)
 gilt eine andere Sprache.</p>
+
+<a name="woodwop"></a>
+<h3>Homag und Weeke (woodWOP)</h3>
+<p>woodWOP liest kein G-Code, sondern eine <b>MPR-Datei</b>: erst Konturen, dann die
+Bearbeitungen, die sie fahren. Der Postprozessor schreibt die Bahn wie für jede Steuerung und
+übersetzt sie:</p>
+<ul>
+<li>Das Werkstück (L, B, D) kommt aus dem <b>Rohteil des Jobs</b>; X und Y zählen ab seiner Ecke,
+Z vom Boden (Z = D ist oben). Ohne Rohteil nimmt er den Raum der Bahn – ein Hinweis sagt es.</li>
+<li>Jeder Zug im Vorschub wird eine <b>Kontur</b>: Geraden als KL, Kreise in XY als KA mit
+Radius und Drehsinn, in Stücken bis 90° – woodWOP rechnet die Mitte aus Radius und Endpunkten, und
+nahe 180° läge sie sonst schon bei der letzten Stelle des Radius weit daneben. Schrauben und
+Bögen in XZ/YZ stehen in Geraden (höchstens 0,002 mm daneben).</li>
+<li>Je Kontur ein <b>Konturfräsen</b>: senkrecht an und ab, ohne Radiuskorrektur (die Bahn ist
+die Mitte des Fräsers), Werkzeug, Drehzahl und Vorschub in m/min. Eine Kontur hat nur einen
+Vorschub – wechselt er in ihr (langsamer Eintauchen), gilt der kleinere, und das Programm sagt,
+an wie vielen Konturen.</li>
+<li>Bohrungen als <b>BohrVert</b> mit Lage, Tiefe ab Oberseite, Werkzeug und Vorschub.</li>
+<li>Kein Wechselpunkt, keine Kühlung, keine Sprungmarken – woodWOP fährt selbst frei und kennt
+seine Werkzeuge. Die Werkzeugliste und die Namen der Bearbeitungen stehen im Kommentar.
+Rundachsen kann diese Ausgabe nicht.</li>
+<li>Nachgelesen wird die Datei, und die Gegenprobe liest jede Kontur zurück in Koordinaten des
+Jobs: jeder Punkt, jeder Bogen so, wie woodWOP ihn fährt, Werkzeug, Drehzahl, Bohrungen.</li>
+</ul>
+<p>An einer Homag oder Weeke ist die Ausgabe noch nicht gelaufen – bitte vor dem ersten Teil in
+woodWOP öffnen und ansehen.</p>
 
 <a name="einrichtblatt"></a>
 <h3>Einrichtblatt</h3>
