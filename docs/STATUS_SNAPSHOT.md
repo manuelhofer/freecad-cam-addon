@@ -556,6 +556,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.312.8):* „Anlegen“ am Teil „tief“ 30,5 s → 0,8 s: Die Bahn unter dem Rand
+  (3D-Schlichten, Restschlichten) rechnet nach der Vorschau ein Nebenrechner so, wie die
+  Operation sie braucht, „Anlegen“ übernimmt sie; die Vorschau rechnet mit den Vorschüben des
+  Controllers (gerundet). Voller Lauf grün.
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde
@@ -673,8 +677,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 3. *W-029 erledigt:* Stange (P-2026-10-24-09, im Prüffenster am Ende „Fertigteil als Rohteil …“)
    und 3+2 (P-2026-10-24-19, räumlich nach allen Ebenen).
 4. *W-036 Rest:* Räumen adaptiv je Lage vorausrechnen (verworfen, siehe W-036), das
-   Neuberechnen beim Anlegen im Hauptprozess (die Flanke seit 0.312.7 aus der Vorschau:
-   flanke_bahn.geplant_merken; am 5-Achs-Teil „tief“ keine Pause mehr beim Anlegen),
+   Neuberechnen beim Anlegen im Hauptprozess (die Flanke seit 0.312.7 aus der Vorschau, die
+   Bahn unter dem Rand seit 0.312.8 vorab im Nebenrechner: am 5-Achs-Teil „tief“ „Anlegen“
+   30,5 s → 0,8 s),
    4-Achs-Schlichten genau beim Anlegen. Gebaut am
    2026-10-24 abends: Verteilen ohne Leerlauf (P-14), Vorschau-Schruppbahn wieder übernommen (P-15),
    Wegkippen (P-23) und Plan indexiert je Versatz (P-24) auf allen Kernen – die längsten Pausen

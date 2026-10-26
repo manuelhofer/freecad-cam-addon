@@ -509,13 +509,15 @@ def werte_im_job(werkzeug, einsatz, job):
     """Wie werte() – aber höchstens mit der Höchstdrehzahl der Maschine des Jobs
     (drehzahl_grenze), die Vorschübe im selben Maß kleiner: fz bleibt. Sonst begrenzte die
     Steuerung nur S, und der Span je Zahn wüchse um das Verhältnis (ein Fräser Ø 2 mit vc 350
-    käme auf 55 700 U/min – an einer Spindel mit 8000 das Siebenfache an fz)."""
+    käme auf 55 700 U/min – an einer Spindel mit 8000 das Siebenfache an fz). Gerundet wie im
+    Controller (_setze_werte): So rechnet die Vorschau im Assistenten mit denselben Werten wie die
+    Operation danach, und „Anlegen“ übernimmt ihre Bahn (flanke_bahn, hinterschnitt_bahn)."""
     n, vf, senkrecht = werte(werkzeug, einsatz)
     grenze = drehzahl_grenze(job) if job is not None else 0.0
     if grenze > 0 and n > grenze:
         faktor = grenze / n
-        return grenze, vf * faktor, senkrecht * faktor
-    return n, vf, senkrecht
+        n, vf, senkrecht = grenze, vf * faktor, senkrecht * faktor
+    return float(round(n)), float(round(vf)), float(round(senkrecht))
 
 
 def drehzahl_grenze(job):

@@ -29,7 +29,8 @@ Bezug). Läuft ohne Oberfläche.
 
 import contextlib
 import math
-from dataclasses import dataclass, field
+from collections import OrderedDict
+from dataclasses import astuple, dataclass, field, replace
 
 import FreeCAD
 import numpy as np
@@ -331,6 +332,7 @@ class Bahn:
     # Die größte Kugel (Radius, mm), die in die Lücken der Ecken passte – 0: keine Lücke oder nur
     # scharfe Kanten (dort passt keine).
     ecken_radius: float = 0.0
+    schluessel: tuple = ()  # plan_schluessel der Eingaben – für geplant_merken
     # Für einen Fräser dorthin (empfehlung.neue_kugel): {"punkte", "normalen" (je bis PRUEF_AN, auf
     # der Fläche, wo eine Kugel mit ecken_radius anläge), "radius", "aufmass", "mitte"}; None ohne.
     ecken: dict = None
@@ -401,9 +403,64 @@ def _schnitt(verbund, flaechen, z, schritt):
     return ergebnis
 
 
+# planen() merkt sich so viele Bahnen – auch die aus den Nebenrechnern (geplant_merken): „Anlegen“
+# im Assistenten rechnete die Bahn der Vorschau sonst im Hauptprozess noch einmal (am 5-Achs-Teil
+# „tief“ 3D-Schlichten und Restschlichten 29,8 der 30,5 s).
+GEPLANT_GEMERKT = 8
+_GEPLANT = OrderedDict()  # plan_schluessel → Bahn
+TREFFER = [0, 0]  # (aus dem Merker, gerechnet) – für die Prüfungen
+
+
+def _gerundet(wert):
+    """Zahlen in (verschachtelten) Tupeln und Listen auf 6 Stellen – für den Schlüssel."""
+    if isinstance(wert, float):
+        return round(wert, 6)
+    if isinstance(wert, (tuple, list)):
+        return tuple(_gerundet(v) for v in wert)
+    return wert
+
+
+def plan_schluessel(form, namen, w):
+    """Der Schlüssel der Eingaben von planen() – gleich auch in einem anderen Prozess: die Form
+    (formteile.pruefsumme), die Flächen, die Werte (gerundet; mit den Vorschüben – der Anteil
+    des Freivorschubs steht in den Punkten). None, wenn die Form das nicht hergibt."""
+    from . import formteile
+
+    teil = formteile.pruefsumme(form)
+    if teil is None:
+        return None
+    return (teil, tuple(namen), _gerundet(astuple(w)))
+
+
+def geplant_merken(bahn):
+    """Nimmt eine Bahn aus einem Nebenrechner (die Vorschau im Assistenten) in den Merker von
+    planen() auf: Rechnet die Operation hier mit denselben Eingaben, nimmt sie diese Bahn."""
+    if bahn is None or not getattr(bahn, "schluessel", ()):
+        return
+    _GEPLANT[bahn.schluessel] = replace(bahn, punkte=list(bahn.punkte), achsen=list(bahn.achsen))
+    _GEPLANT.move_to_end(bahn.schluessel)
+    while len(_GEPLANT) > GEPLANT_GEMERKT:
+        _GEPLANT.popitem(last=False)
+
+
 def planen(form, namen, w):
     """Die Bahn an den Flächen `namen` von `form` (Werte `w`). ValueError mit einem Satz, wenn es
-    nicht geht."""
+    nicht geht. Dieselben Eingaben ein zweites Mal: die gemerkte Bahn (eine Kopie)."""
+    schluessel = plan_schluessel(form, namen, w)
+    gemerkt = _GEPLANT.get(schluessel) if schluessel is not None else None
+    if gemerkt is not None:
+        TREFFER[0] += 1
+        _GEPLANT.move_to_end(schluessel)
+        return replace(gemerkt, punkte=list(gemerkt.punkte), achsen=list(gemerkt.achsen))
+    TREFFER[1] += 1
+    bahn = _planen(form, namen, w)
+    if schluessel is not None:
+        bahn.schluessel = schluessel
+        geplant_merken(bahn)
+    return bahn
+
+
+def _planen(form, namen, w):
     import Part
 
     from . import netzabstand as na

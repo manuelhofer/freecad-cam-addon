@@ -414,9 +414,10 @@ pruefe(
 js.drehzahl_grenze, echte_grenze = (lambda _job: round(n) / 2.0), js.drehzahl_grenze
 try:
     begrenzt = js.werte_im_job(fraeser, einsaetze[1], job)
+    # Gerundet wie im Controller (die Vorschau rechnet mit denselben Werten wie die Operation).
     pruefe(
-        abs(begrenzt[0] - round(n) / 2.0) < 1e-9
-        and abs(begrenzt[1] - vf * round(n) / 2.0 / n) < 1e-6,
+        begrenzt[0] == float(round(round(n) / 2.0))
+        and begrenzt[1] == float(round(vf * round(n) / 2.0 / n)),
         f"begrenzt: {begrenzt}, ohne {n}, {vf}",
     )
     js.controller_fuer(dok, job, fraeser, einsaetze[1], "1.4301", kontur)
@@ -427,7 +428,11 @@ try:
     )
 finally:
     js.drehzahl_grenze = echte_grenze
-pruefe(js.werte_im_job(fraeser, einsaetze[1], None) == js.werte(fraeser, einsaetze[1]), "ohne Job")
+pruefe(
+    js.werte_im_job(fraeser, einsaetze[1], None)
+    == tuple(float(round(w)) for w in js.werte(fraeser, einsaetze[1])),
+    "ohne Job: werte(), gerundet",
+)
 js.controller_fuer(dok, job, fraeser, einsaetze[1], "1.4301", kontur)  # wieder ohne Grenze
 # Benutzt auch die Tasche den TC, bekommt die Kontur einen neuen; der alte bleibt, wie er war.
 tasche.ToolController = tc

@@ -83,6 +83,30 @@ pruefe(
 
 # --- Die Bahn -----------------------------------------------------------------------------------
 bahn = hb.planen(teil, waende, hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, vorschub=1500.0))
+# Dieselben Eingaben noch einmal – auch aus einem Nebenrechner (geplant_merken; „Anlegen“ rechnete
+# 3D-Schlichten und Restschlichten am 5-Achs-Teil „tief“ sonst 30 s im Hauptprozess): die gemerkte
+# Bahn, eine Kopie. Andere Werte: gerechnet.
+vorher_t = list(hb.TREFFER)
+noch_einmal = hb.planen(
+    teil, waende, hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, vorschub=1500.0)
+)
+pruefe(
+    hb.TREFFER[0] == vorher_t[0] + 1
+    and noch_einmal is not bahn
+    and noch_einmal.punkte == bahn.punkte
+    and noch_einmal.punkte is not bahn.punkte
+    and noch_einmal.achsen == bahn.achsen,
+    f"gemerkt: {hb.TREFFER} nach {vorher_t}",
+)
+hb._GEPLANT.clear()
+hb.geplant_merken(bahn)
+hb.planen(teil, waende, hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, vorschub=1500.0))
+pruefe(hb.TREFFER[0] == vorher_t[0] + 2, f"aus dem Nebenrechner: {hb.TREFFER}")
+pruefe(
+    hb.plan_schluessel(teil, waende, hb.Werte(radius=R, sicher=40.0, grathoehe=0.01, schritt=1.0))
+    != bahn.schluessel,
+    "anderer Schritt: derselbe Schlüssel",
+)
 print(
     ascii(
         f"Bahn: {bahn.linien} Linien, {len(bahn.punkte)} Punkte, {bahn.neigung:.1f} Grad, "

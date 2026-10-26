@@ -49,6 +49,7 @@ from . import gewinde as gw
 from . import gewinde_bahn as gfb
 from . import gewindefraesen as gf
 from . import gleiche_flaechen as glf
+from . import hinterschnitt_bahn as hsb
 from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
@@ -4815,10 +4816,13 @@ class _Block:
             return
         if mitgerechnet is not None:
             self.vorschau, frei = mitgerechnet[1]
+            # Die Flanke und die Kugel unter dem Rand aus dem Nebenrechner: „Anlegen“ nimmt sie,
+            # statt sie noch einmal im Hauptprozess zu rechnen (flanke_bahn.planen,
+            # hinterschnitt_bahn.planen; am 5-Achs-Teil „tief“ 30 s).
             if isinstance(self.vorschau, flb.Flankenbahn):
-                # Die Flanke aus dem Nebenrechner: „Anlegen“ nimmt sie, statt sie noch einmal im
-                # Hauptprozess zu rechnen (flanke_bahn.planen).
                 flb.geplant_merken(self.vorschau)
+            elif isinstance(self.vorschau, hsb.Bahn):
+                hsb.geplant_merken(self.vorschau)
         else:
             try:
                 self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
@@ -4853,6 +4857,8 @@ class _Block:
             self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
         if isinstance(self.s, _Raeumen) and getattr(self.vorschau, "variante", None) == "adaptiv":
             self._genau_starten(job, werkzeug, werte, flaechen)
+        if isinstance(self.s, _Schlichten3D) and isinstance(self.vorschau, hsb.Bahn):
+            self._genau_unter_dem_rand(job, werkzeug, werte, flaechen)
         self._merken(merk, schluessel)
 
     def _ohne_vorbohren_rechnen(self, job, werkzeug, werte, vorschub, senkrecht):
@@ -4895,6 +4901,35 @@ class _Block:
             )
         except Exception as fehler:  # noqa: BLE001 – dann rechnet „Anlegen“ wie bisher
             FreeCAD.Console.PrintLog(f"CAM-Addon: genaue Bahn im Nebenrechner: {fehler}\n")
+
+    def _genau_unter_dem_rand(self, job, werkzeug, werte, flaechen):
+        """Die Bahn unter dem Rand (3D-Schlichten, Restschlichten), wie „Anlegen“ sie rechnet –
+        Schritt wie die Operation statt gröber wie die Vorschau, die Sicherheitshöhe wie ihre
+        (StartDepth plus SafeHeightOffset des Jobs) – in einem Nebenrechner, während man noch
+        schaut; „Anlegen“ holt sie ab (_genau_abholen → hinterschnitt_bahn.geplant_merken). Am
+        5-Achs-Teil „tief“ rechnete „Anlegen“ sie sonst 30 s im Hauptprozess."""
+        from . import nebenrechner as nr
+
+        pool = nr.pool()
+        if not pool.verfuegbar():
+            return
+        while len(self.genau) >= GENAU_JE_BLOCK:
+            alt = self.genau.pop(0)
+            if not alt.erledigt and getattr(alt, "arbeiter", None) is None:
+                pool.abbrechen(alt)
+        try:
+            argumente, weiter = self.s._argumente(werkzeug, werte, flaechen)
+            versatz = getattr(getattr(job, "SetupSheet", None), "SafeHeightOffset", None)
+            versatz = float(getattr(versatz, "Value", versatz))
+            weiter = dict(weiter, schritt=s3b.SCHRITT, sicher=pf.rohteil_von_oben(job)[4] + versatz)
+            kopie = pool.kopie(job.Document, wiederverwenden=True)
+            self.genau.append(
+                pool.auftrag(
+                    "bearbeitung_vorschau", "schlichten3d_genau", kopie, job.Name, argumente, weiter
+                )
+            )
+        except Exception as fehler:  # noqa: BLE001 – dann rechnet „Anlegen“ wie bisher
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Bahn unter dem Rand im Nebenrechner: {fehler}\n")
 
     def _fehler_text(self, satz, daten):
         """Der rote Satz zur Vorschau – stößt der Halter an (flanke.vorschau: Daten
@@ -11728,7 +11763,10 @@ class BearbeitungPanel:
                 nr.pool().warten(offen, zwischendurch=nr.ereignisse_ohne_eingaben)
         for auftrag in auftraege:
             if auftrag.fertig and auftrag.fehler is None and not auftrag.abgebrochen:
-                rb.adaptiv_merken(auftrag.ergebnis)
+                if isinstance(auftrag.ergebnis, hsb.Bahn):  # unter dem Rand (_genau_unter_dem_rand)
+                    hsb.geplant_merken(auftrag.ergebnis)
+                elif isinstance(auftrag.ergebnis, dict):
+                    rb.adaptiv_merken(auftrag.ergebnis)
 
     def _genau_beenden(self):
         """Beim Schließen: Was an genauen Bahnen (_Block._genau_starten) noch wartet, fällt weg;

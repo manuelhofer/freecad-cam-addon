@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-11 anlegen-nimmt-die-bahn-unter-dem-rand-aus-dem-nebenrechner
+
+### EINGELESEN
+- Manuel (Merkzettel „Ressourcen nutzen“): alle Kerne, das Fenster darf nie laggen. „Anlegen“ am
+  5-Achs-Teil „tief“ (Kopie) dauerte 30,5 s, davon 29,8 s `hinterschnitt_bahn.planen`
+  (3D-Schlichten und Restschlichten unter dem Rand) im Hauptprozess – die Vorschau rechnet
+  dieselbe Bahn gröber (Schritt 1 statt 0,5 mm), ihre ließ sich nicht übernehmen.
+
+### DATEIEN
+- `camaddon/hinterschnitt_bahn.py`: `planen` merkt sich seine Bahnen (`_GEPLANT`, 8) unter
+  `plan_schluessel` (Form nach `formteile.pruefsumme`, Flächen, alle Werte gerundet);
+  `geplant_merken`, `Bahn.schluessel`, `TREFFER`; die Kopien mit eigenen Listen.
+- `camaddon/formteile.py`: `pruefsumme` (Volumen, Fläche, Flächen, Kanten, Prüfsumme der
+  Eckpunkte – gleich in jedem Prozess); `flanke_bahn.plan_schluessel` nimmt sie.
+- `camaddon/bearbeitung_vorschau.py`: `schlichten3d_genau` – die Bahn, wie „Anlegen“ sie
+  rechnet, im Nebenrechner.
+- `camaddon/gui_bearbeitung.py`: `_genau_unter_dem_rand` startet sie nach der Vorschau
+  (Schritt wie die Operation, Sicherheitshöhe StartDepth + SafeHeightOffset);
+  `_genau_abholen` gibt sie an `hinterschnitt_bahn.geplant_merken` (das Räumen weiter an
+  `adaptiv_merken`).
+- `camaddon/job_schnittwerte.py`: `werte_im_job` gerundet wie im Controller (`_setze_werte`) –
+  die Vorschau rechnete mit 1559,72 statt 1560 mm/min und traf die Operation nie.
+- `tests/test_hinterschnitt_bahn.py` (Merker), `tests/test_job_schnittwerte.py` (gerundet).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.8.
+
+### ERGEBNIS
+- Am Teil „tief“: „Anlegen“ 30,5 s → 0,8 s; 3D-Schlichten und Restschlichten aus dem Merker
+  (`[2, 0]`), die Flanke auch.
+- Grün: test_hinterschnitt_bahn, test_flanke, test_empfehlung, test_job_schnittwerte;
+  szenario_tief_treffer3 (Kopie). Voller Lauf grün (134/134 Prüfungen, 144/144 Szenarien).
 ## P-2026-10-26-10 flanke-aus-der-vorschau
 
 ### EINGELESEN

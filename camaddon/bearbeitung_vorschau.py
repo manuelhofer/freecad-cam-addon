@@ -57,6 +57,20 @@ def raeumen_genau(dokument, job_name, form, zustellung, zeilenabstand, aufmass, 
     return rb.adaptiv_benutzt()
 
 
+def schlichten3d_genau(dokument, job_name, argumente, weiter):
+    """Die Bahn des 3D-Schlichtens unter dem Rand (hinterschnitt_bahn.Bahn), wie „Anlegen“ sie
+    rechnet – nicht gröber wie die Vorschau –, schon während man im Assistenten schaut: Das
+    Fenster nimmt sie auf (hinterschnitt_bahn.geplant_merken), und die Operation trifft sie (am
+    5-Achs-Teil „tief“ rechnete „Anlegen“ sonst 30 s im Hauptprozess). Geht es nicht, None."""
+    from . import schlichten3d
+
+    job = _job(dokument, job_name)
+    try:
+        return schlichten3d.bahn_fuer(job, job.Model.Group, *argumente, **weiter)
+    except ValueError:
+        return None
+
+
 def strategie(dokument, job_name, modul, argumente, weiter, zeit):
     """(Bahn, Zeit im Freien oder None) – `camaddon.<modul>.vorschau(job, Modell, *argumente,
     **weiter)` (Planfräsen, Kontur, 3D-Schruppen und Restschruppen, 3D-Schlichten); das erste der

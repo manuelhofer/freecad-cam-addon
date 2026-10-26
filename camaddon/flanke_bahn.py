@@ -476,24 +476,14 @@ TREFFER = [0, 0]  # (aus dem Merker, gerechnet) – für die Prüfungen
 
 def plan_schluessel(form, namen, werte):
     """Der Schlüssel der Eingaben von planen() – gleich auch in einem anderen Prozess: die Form
-    nach Volumen, Fläche, Zahl der Flächen und Kanten und der Lage aller Eckpunkte (eine gleich
-    große Tasche an anderer Stelle ändert sie; hashCode gilt nur im eigenen Prozess), die Wände,
-    die Werte (gerundet). None, wenn die Form das nicht hergibt."""
-    import hashlib
+    (formteile.pruefsumme), die Wände, die Werte (gerundet). None, wenn die Form das nicht
+    hergibt."""
+    from . import formteile
 
-    try:
-        ecken = sorted((round(v.X, 5), round(v.Y, 5), round(v.Z, 5)) for v in form.Vertexes)
-        teil = (
-            round(form.Volume, 4),
-            round(form.Area, 4),
-            len(form.Faces),
-            len(form.Edges),
-            hashlib.sha256(repr(ecken).encode()).hexdigest(),
-        )
-    except Exception:  # noqa: BLE001 – eine Form ohne Maße: nicht merken
+    teil = formteile.pruefsumme(form)
+    if teil is None:
         return None
-    # Ohne die Vorschübe: Sie geben nur die Zeit (planen rechnet sie bei einem Treffer neu); die
-    # Operation hat sie gerundet (1560 statt 1559,72 mm/min in der Vorschau).
+    # Ohne die Vorschübe: Sie geben nur die Zeit (planen rechnet sie bei einem Treffer neu).
     ohne_vorschub = astuple(replace(werte, vorschub=0.0, eintauchen=0.0))
     werte_ = tuple(round(v, 6) if isinstance(v, float) else v for v in ohne_vorschub)
     return (teil, tuple(namen), werte_)

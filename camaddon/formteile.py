@@ -149,3 +149,23 @@ def _netz_volumen(form):
         return None
     a, b, c = punkte[dreiecke[:, 0]], punkte[dreiecke[:, 1]], punkte[dreiecke[:, 2]]
     return float(np.einsum("ij,ij->i", a, np.cross(b, c)).sum() / 6.0)
+
+
+def pruefsumme(form):
+    """Ein Schlüssel der Form, gleich in jedem Prozess (hashCode gilt nur im eigenen): Volumen,
+    Fläche, Zahl der Flächen und Kanten und eine Prüfsumme der Lage aller Eckpunkte – eine gleich
+    große Tasche an anderer Stelle ändert sie. Für die Merker, die Bahnen aus den Nebenrechnern
+    übernehmen (flanke_bahn, hinterschnitt_bahn). None, wenn die Form das nicht hergibt."""
+    import hashlib
+
+    try:
+        ecken = sorted((round(v.X, 5), round(v.Y, 5), round(v.Z, 5)) for v in form.Vertexes)
+        return (
+            round(form.Volume, 4),
+            round(form.Area, 4),
+            len(form.Faces),
+            len(form.Edges),
+            hashlib.sha256(repr(ecken).encode()).hexdigest(),
+        )
+    except Exception:  # noqa: BLE001 – eine Form ohne Maße: nicht merken
+        return None
