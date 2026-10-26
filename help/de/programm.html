@@ -234,6 +234,13 @@ C mit, polar mit X und C. Muss C dabei neben der Drehmitte umschlagen (X kommt n
 hinter die Mitte), fährt das Werkzeug hoch, C dreht, und es taucht an derselben Stelle wieder ein.</p>
 <p>Das Prüffenster rechnet genauso. Erreicht die Maschine eine Stelle mit keiner Stellung von C,
 sagt es das.</p>
+<p><b>Stirnseite mit TRANSMIT</b> (Siemens, Gruppe „C-Achse“, vorbelegt aus): Hat die Maschine die
+Option, rechnet die Steuerung C selbst. Das Programm schaltet die C-Achse an („SPOS“), dann
+„DIAMOF“, „TRANSMIT“ und „G17“; die Bahn steht in X und Y wie im Job, mit der Drehmitte als
+Nullpunkt und X im Radius, Bögen bleiben Bögen. Danach „TRAFOOF“, „G18“ und „DIAMON“. An einer
+Tasche wird das Programm so oft viel kürzer (am Prüfteil 113 statt 865 Zeilen). Ohne die Option
+hält die Steuerung mit Alarm an – dann den Haken aus lassen. Vor dem ersten Lauf in der
+Simulation der Steuerung ansehen.</p>
 <h3>Rundachse</h3>
 <ul>
 <li><b>Moduloachse</b> – eine Rundachse, die an der Maschine endlos dreht (in „Maschine
@@ -461,6 +468,7 @@ Programms).</li>
 </ul>
 
 <h3>Noch nicht</h3>
-<p>Die Zylinder- und Polartransformation der Steuerung (TRACYL, TRANSMIT) schreibt das Addon
-noch nicht. Es rechnet C selbst – auf dem Mantel (4-Achs-Bearbeitung) und an der Stirnseite
-(siehe oben).</p>
+<p>Die Zylindertransformation der Steuerung (TRACYL) schreibt das Addon noch nicht: Sie rechnet
+auf einem einzigen Radius, die Bahnen auf dem Mantel (4-Achs-Bearbeitung) wechseln den Radius.
+Dort rechnet das Addon C selbst. Die Polartransformation (TRANSMIT) an der Stirnseite gibt es bei
+Siemens als Haken (siehe oben).</p>

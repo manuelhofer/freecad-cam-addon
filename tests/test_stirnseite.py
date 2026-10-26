@@ -385,6 +385,53 @@ for modus in st.MODI:
         f"{modus}: nach DIN gelesen {weit_din:.4f} mm neben der Bahn",
     )
     print(ascii(f"{modus}: {len(programm)} Zeilen, Y bis {max(abs(y) for y in y_werte):.2f}"))
+    # TRANSMIT (Manuel, 2026-10-26: die CLX550 hat es): die Bahn in X und Y wie im Job (X im
+    # Radius, DIAMOF), kein C in den Sätzen der Stirn, davor SPOS, TRANSMIT, G17, danach TRAFOOF,
+    # G18, DIAMON – am Teil direkt auf dem 72-Eck, und kürzer.
+    mit_t = pp.programm(
+        pp.abschnitte(job), pp.steuerung("siemens", {"transmit": True}), info, "Stirn"
+    ).zeilen
+    k_ein = mit_t.index("TRANSMIT") if "TRANSMIT" in mit_t else -1
+    k_aus = mit_t.index("TRAFOOF") if "TRAFOOF" in mit_t else -1
+    innen = mit_t[k_ein + 1 : k_aus]
+    pruefe(
+        0 < k_ein < k_aus
+        and mit_t[k_ein - 1] == "DIAMOF"
+        and mit_t[k_ein + 1] == "G17"
+        and mit_t[k_aus + 1 : k_aus + 3] == ["G18", "DIAMON"]
+        and any(z.startswith("SPOS") for z in mit_t[:k_ein])
+        and not any("C" in w and "=" in w for z in innen for w in z.split()),
+        f"{modus} TRANSMIT: {mit_t[max(0, k_ein - 6) : k_ein + 4]} … {mit_t[k_aus - 2 : k_aus + 4]}",
+    )
+    stand_t = {"X": None, "Y": None, "Z": None}
+    am_t = []
+    for z in innen:
+        for w in z.split()[1:] if z.startswith(("G0", "G1")) else []:
+            if w[0] in "XYZ" and w[1:2] in "-.0123456789":
+                stand_t[w[0]] = float(w[1:])
+        if z.startswith("G1") and None not in stand_t.values() and stand_t["Z"] < -0.5:
+            am_t.append((stand_t["X"], stand_t["Y"]))
+    weit_t = max(
+        (
+            min(abstand_gerade(q, e0, e1) for e0, e1 in zip(ecken, ecken[1:], strict=False))
+            for q in am_t
+        ),
+        default=math.inf,
+    )
+    pruefe(
+        len(am_t) > 20 and weit_t < 0.01 and len(mit_t) < len(programm),
+        f"{modus} TRANSMIT: {len(am_t)} Stellen, {weit_t:.4f} mm daneben, {len(mit_t)} statt {len(programm)} Zeilen",
+    )  # fmt: skip
+    befunde_t = pp.nachlesen(
+        pp.programm(pp.abschnitte(job), pp.steuerung("siemens", {"transmit": True}), info, "S"),
+        pp.steuerung("siemens", {"transmit": True}),
+        info,
+    )[0]
+    befunde_t = [b for b in befunde_t if b.art != "spindel"]  # die Operation hier ohne Drehzahl
+    pruefe(
+        not befunde_t, f"{modus} TRANSMIT nachgelesen: {[(b.art, b.satz) for b in befunde_t[:3]]}"
+    )
+    print(ascii(f"{modus} TRANSMIT: {len(mit_t)} statt {len(programm)} Zeilen"))
 
 # --- Die Beispiel-Drehmaschine ohne Y (P-2026-10-18-56; Manuel: „es geht um alle Maschinen“) ----
 # Der Y-Schlitten steht fest: keine Y-Achse in Kette und Betriebsarten, der Rahmen Y 0 bis 0. Die

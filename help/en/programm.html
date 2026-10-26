@@ -228,6 +228,13 @@ C along, polar with X and C. If C has to flip beside the centre of rotation (X d
 enough past the centre), the tool lifts, C turns, and it plunges again at the same spot.</p>
 <p>The check window computes the same way. If the machine cannot reach a spot at any position of
 C, it says so.</p>
+<p><b>Face with TRANSMIT</b> (Siemens, group “C axis”, off by default): if the machine has the
+option, the control computes C itself. The program switches the C axis on (“SPOS”), then
+“DIAMOF”, “TRANSMIT” and “G17”; the path is in X and Y as in the job, with the centre of rotation
+as the origin and X as a radius, arcs stay arcs. After it “TRAFOOF”, “G18” and “DIAMON”. For a
+pocket the program often gets much shorter (113 instead of 865 lines on the test part). Without
+the option the control stops with an alarm – then leave the box unticked. Look at it in the
+control's simulation before the first run.</p>
 <h3>Rotary axis</h3>
 <ul>
 <li><b>Modulo axis</b> – a rotary axis that turns endlessly on the machine (in “Edit machine”:
@@ -445,6 +452,7 @@ header).</li>
 </ul>
 
 <h3>Not yet</h3>
-<p>The add-on does not yet write the control's cylinder and polar transformation (TRACYL,
-TRANSMIT). It computes C itself – on the outside of the bar (4-axis machining) and on the face
-(see above).</p>
+<p>The add-on does not yet write the control's cylinder transformation (TRACYL): it works on a
+single radius, while the paths on the outside of the bar (4-axis machining) change the radius.
+There the add-on computes C itself. The polar transformation (TRANSMIT) on the face is a box for
+Siemens (see above).</p>

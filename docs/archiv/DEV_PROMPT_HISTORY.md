@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-26-03 transmit-an-der-stirnseite
+
+### EINGELESEN
+- Manuel, 2026-10-26, Antwort 1 auf die offenen Fragen: „1 ja“ – die CLX550 hat TRANSMIT/TRACYL.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Steuerung `transmit`, `transmit_ein`, `transmit_aus` (Siemens
+  `TRANSMIT`/`TRAFOOF`); im Stirnseiten-Abschnitt die Bahn um die Drehmitte verschoben statt in
+  X/Y/C umgerechnet, davor C-Achse an, DIAMOF, TRANSMIT, G17, danach TRAFOOF, G18, DIAMON.
+- `camaddon/gui_programm.py`: Gruppe „C-Achse“ mit dem Haken und den beiden Befehlen, nur an der
+  Drehmaschine.
+- `translations/*.json`, `help/*/programm.html` (Stirnseite, „Noch nicht“),
+  `docs/spezifikation_steuerung.md` 30, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.312.0.
+- `tests/test_stirnseite.py`: Reihenfolge der Befehle, keine C-Wörter, Punkte auf dem 72-Eck,
+  kürzer, nachgelesen.
+
+### ERGEBNIS
+- Am Prüfteil 113 statt 865 Zeilen („C dreht mit“), 113 statt 135 („C in Schritten“).
+- TRACYL nicht gebaut: ein Zylinderradius, die Mantelbahnen wechseln ihn.
+- Grün: test_stirnseite, test_postprozessor, _nachfahren, _zufall, test_sprache,
+  test_programm_pruefen, test_beispiele; Szenarien programm, programm_heidenhain, stirn_bund,
+  bearbeitung_drehmaschine, rundum_drehmaschine, vierachs_stirnseite.
+- Ob die CLX550 das Programm so nimmt, prüft nur Manuel in der Simulation der Steuerung.
 ## P-2026-10-26-02 antworten-fragen-1-bis-6, nullpunkt-vorbelegt-an
 
 ### EINGELESEN

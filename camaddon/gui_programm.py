@@ -102,7 +102,11 @@ GRUPPEN = (
             "meldung_aus",
         ),
     ),
-    ("c_achse", "c_achse", ("c_achse", "c_ein", "c_aus")),
+    (
+        "c_achse",
+        "c_achse",
+        ("c_achse", "c_ein", "c_aus", "transmit", "transmit_ein", "transmit_aus"),
+    ),
     ("rundachse", "rundachse", ("rundachse_plus", "rundachse_minus")),
     ("vorschub", "vorschub", ("g93", "vorschub_zeit", "vorschub_minute", "vorschub_minute_drehen")),
     ("schwenken", "schwenken", ("schwenkzyklus", "schwenken", "schwenken_aus")),
@@ -140,6 +144,9 @@ NUR_DREHEN = {
     "c_achse",
     "c_ein",
     "c_aus",
+    "transmit",
+    "transmit_ein",
+    "transmit_aus",
 }
 NUR_FRAESEN = {
     "rohteil_fraesen",
@@ -207,6 +214,8 @@ HAKEN_VON = {
     "kuehlung_aus": "kuehlung",
     "c_ein": "c_achse",
     "c_aus": "c_achse",
+    "transmit_ein": "transmit",
+    "transmit_aus": "transmit",
     "vorschub_zeit": "g93",
     "vorschub_minute": "g93",
     "vorschub_minute_drehen": "g93",

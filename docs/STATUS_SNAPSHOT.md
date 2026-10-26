@@ -535,6 +535,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Operation ohne Arbeit (nur Eilgänge) bekommt im Programm keinen Werkzeugwechsel mehr, sondern
   einen Hinweis; 0.311.2: der Achsfilter nur an der Drehmaschine
   ohne Y; 0.311.1: Klartext startet ein angetriebenes Werkzeug.
+- *Neu (0.312.0):* Siemens an der Drehmaschine: „Stirnseite mit TRANSMIT“ (Haken, vorbelegt aus) –
+  die Steuerung rechnet C, X/Y wie im Job, X im Radius (DIAMOF), Bögen bleiben Bögen; am Prüfteil
+  113 statt 865 Zeilen. TRACYL nicht (ein Radius; die Mantelbahnen wechseln ihn).
 - *Korrektur (0.311.5):* Nullpunkt aus dem Job vorbelegt an (Heidenhain aus) – Manuels „ja“ auf
   Frage 3; alle sechs offenen Fragen beantwortet.
 - *Neu (0.311.0):* LinuxCNC bohrt mit „Gewindebohren synchron“ auch an der Drehmaschine Gewinde
@@ -1970,7 +1973,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   G94 im Kopf, Meldung beim Messstopp, Fanuc G68.2 (Haken aus), Rundachsen nach CYCLE800() auf 0,
   Programmnummer je Job, Bohren an der Drehmaschine ausgeschrieben, Drehmaschine ohne Y; die
   Gegenprobe (Vorschub, Eilgänge, jeder Haken jeder Steuerung). **Manuels Antworten
-  (2026-10-26):** TRANSMIT/TRACYL hat die CLX550 („ja“ – in Arbeit); kein Handbuch für Okuma und
+  (2026-10-26):** TRANSMIT/TRACYL hat die CLX550 („ja“ – TRANSMIT gebaut, 0.312.0; TRACYL
+  nicht, es rechnet auf einem Radius); kein Handbuch für Okuma und
   Brother („nein“ – nicht gebaut); Nullpunkt-Haken vorbelegt an („ja“ – 0.311.5); Gewinde an der
   CLX550 macht er in ShopTurn („nicht relevant“ – an der Drehmaschine bleibt der Hinweis); große
   Programme an der 840D: „keine Ahnung“ – kein EXTCALL; ein roter Block sperrt „Anlegen“ weiter

@@ -893,3 +893,19 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   wechselte dafür das Werkzeug). Ein Messstopp (M5, M9, M0) und eigene Operationen mit M-Befehlen
   bleiben.
 
+## 30. TRANSMIT an der Stirnseite (P-2026-10-26-03)
+
+- Manuel, 2026-10-26: Die CLX550 hat die Option TRANSMIT/TRACYL. Haken `transmit` (Gruppe
+  „C-Achse“, nur Drehmaschine, vorbelegt aus – ohne die Option hält die Steuerung mit Alarm),
+  Befehle `transmit_ein`/`transmit_aus` (Siemens `TRANSMIT`/`TRAFOOF`; leer bei den anderen).
+- Ein Stirnseiten-Abschnitt (`abschnitt.stirn`, `info.stirn`) mit Haken: die Bahn des Jobs um die
+  Drehmitte verschoben (`_verschoben(-mx, -my)`), ohne X/Y/C-Umrechnung; Bögen bleiben Bögen.
+  Davor C-Achse an (`c_ein`, SPOS), `DIAMOF` (wenn X im Durchmesser), `TRANSMIT`, `G17`; danach
+  `TRAFOOF`, `kopf_drehen` (G18), `DIAMON`. X wird dazwischen nicht verdoppelt; keine C-Wörter.
+- Am Prüfteil (Tasche an der Stirnseite, `tests/test_stirnseite.py`): 113 statt 865 Zeilen („C dreht
+  mit“), 113 statt 135 („C in Schritten“); jeder Schnittpunkt liegt auf dem 72-Eck; nachgelesen
+  ohne Befund.
+- TRACYL nicht gebaut: Es rechnet auf einem einzigen Zylinderradius; die Mantelbahnen
+  (4-Achs-Bearbeitung) wechseln den Radius. Gäbe es eine Operation auf festem Radius (Nut auf dem
+  Mantel), käme `TRACYL(d)` dazu.
+

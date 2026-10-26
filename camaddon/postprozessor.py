@@ -218,6 +218,13 @@ class Steuerung:
     # seine Bearbeitungen (Manuel, 2026-10-25) – mit `kommentare`.
     werkzeugliste: bool = True
     c_achse: bool = True  # Drehmaschine: C-Achse ein und aus
+    # An der Stirnseite der Drehmaschine mit der Transformation der Steuerung (Siemens TRANSMIT;
+    # Manuel, 2026-10-26: die CLX550 hat sie): Die Bahn bleibt in X und Y (X im Radius), die
+    # Steuerung rechnet C – statt Punkt für Punkt X, Y und C (stirnseite.befehle). Eine Option der
+    # Maschine: vorbelegt aus.
+    transmit: bool = False
+    transmit_ein: str = ""
+    transmit_aus: str = ""
     g93: bool = True  # Bahnen mit Rundachse in G93; aus: F in mm/min, Zeit wie G93 (S5)
     glaetten: tuple = None  # Kennungen der eingeschalteten Glaetten; None: die vorbelegten
     toleranz: float = 0.01  # mm – fürs Glätten (G642/CTOL, G64 P)
@@ -369,6 +376,8 @@ BEFEHLSFELDER = (
     "angetrieben_aus",
     "c_ein",
     "c_aus",
+    "transmit_ein",
+    "transmit_aus",
     "rundachse_plus",
     "rundachse_minus",
     "vorschub_zeit",
@@ -424,6 +433,7 @@ HAKEN = (
     "nullpunkt_setzen",
     "hochlauf_warten",
     "c_achse",
+    "transmit",
     "g93",
     "schwenkzyklus",
     "tcpm",
@@ -519,6 +529,9 @@ STEUERUNGEN = {
         nur_ascii=False,  # SINUMERIK Operate zeigt Umlaute
         durchmesser_ein="DIAMON",
         radius_ein="DIAMOF",
+        # TRANSMIT: Fräsen an der Stirn in X und Y, die Steuerung rechnet C; TRAFOOF aus.
+        transmit_ein="TRANSMIT",
+        transmit_aus="TRAFOOF",
         gleich_bei_nummer=True,
         nur_buchstabe=False,
         # Programmierhandbuch Arbeitsvorbereitung 10/2015 (S. 470–471: CTOL) und Grundlagen
@@ -1028,6 +1041,8 @@ def feld_text(feld):
         "angetrieben_aus": (tr("pp.feld.angetrieben_aus"), tr("pp.feld.angetrieben_aus.tooltip")),
         "c_ein": (tr("pp.feld.c_ein"), tr("pp.feld.c_ein.tooltip")),
         "c_aus": (tr("pp.feld.c_aus"), tr("pp.feld.c_aus.tooltip")),
+        "transmit_ein": (tr("pp.feld.transmit_ein"), tr("pp.feld.transmit_ein.tooltip")),
+        "transmit_aus": (tr("pp.feld.transmit_aus"), tr("pp.feld.transmit_aus.tooltip")),
         "vorschub_zeit": (tr("pp.feld.vorschub_zeit"), tr("pp.feld.vorschub_zeit.tooltip")),
         "vorschub_minute": (tr("pp.feld.vorschub_minute"), tr("pp.feld.vorschub_minute.tooltip")),
         "vorschub_minute_drehen": (
@@ -1091,6 +1106,7 @@ def haken_text(feld):
             tr("pp.haken.hochlauf_warten.erklaerung"),
         ),
         "c_achse": (tr("pp.haken.c_achse"), tr("pp.haken.c_achse.erklaerung")),
+        "transmit": (tr("pp.haken.transmit"), tr("pp.haken.transmit.erklaerung")),
         "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
         "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
         "tcpm": (tr("pp.haken.tcpm"), tr("pp.haken.tcpm.erklaerung")),
@@ -1491,7 +1507,19 @@ def programm(
                 hinweise.append(f"{abschnitt.name}: {grund}")
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
                 continue
-        if abschnitt.stirn and info.stirn is not None:
+        transmit = bool(
+            abschnitt.stirn
+            and info.drehmaschine
+            and info.stirn is not None
+            and s.transmit
+            and s.transmit_ein
+        )
+        if transmit:
+            # TRANSMIT: die Bahn in X und Y um die Drehachse, wie sie im Job steht – die
+            # Steuerung rechnet C.
+            mx, my = info.stirn.mitte
+            befehle_roh = [_verschoben(b, -mx, -my) for b in befehle_roh]
+        elif abschnitt.stirn and info.stirn is not None:
             # An der Stirnseite: Y, so weit es reicht, sonst hilft C (stirnseite).
             from . import stirnseite as st
 
@@ -1623,7 +1651,7 @@ def programm(
                     zeilen.extend(_schwenken_ein(s, abschnitt.schwenkung, info, umgekehrt))
             geschwenkt = abschnitt.schwenkung
         mit_rundachse = any(set(p) & set(ROTATION) for _n, p in befehle)
-        if info.drehmaschine and mit_rundachse and not c_an and s.c_achse:
+        if info.drehmaschine and (mit_rundachse or transmit) and not c_an and s.c_achse:
             # Auch ohne Befehl der Hinweis: Gerade dann muss ihn jemand eintragen (Fanuc).
             _hersteller(s, "c_ein", hinweise, gesehen, zeilen)
             if s.c_ein:
@@ -1674,6 +1702,12 @@ def programm(
             kuehlung = None
         if kuehlung:
             zeilen.append(kuehlung)
+        if transmit:
+            if info.x_durchmesser and s.radius_ein:
+                zeilen.extend(_zeilen(s.radius_ein))  # unter TRANSMIT X im Radius, wie Y
+            zeilen.extend(_zeilen(s.transmit_ein))
+            zeilen.append("G17")
+            ebene = "G17"
         messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
         for name_, parameter in befehle:
@@ -1898,7 +1932,7 @@ def programm(
                                 operation=abschnitt.name,
                             )
                         )
-                if adresse == "X" and info.drehmaschine and info.x_durchmesser:
+                if adresse == "X" and info.drehmaschine and info.x_durchmesser and not transmit:
                     wert *= 2.0
                 if adresse in info.modulo and s.rundachse_plus and s.rundachse_minus:
                     vorher = davor.get(adresse)
@@ -1944,6 +1978,12 @@ def programm(
                 if vorschau is not None and saetze >= vorschau:
                     zeilen.append(_kommentar(s, tr("pp.vorschau_ende")))
                     return fertig(zeilen, saetze)
+        if transmit:
+            zeilen.extend(_zeilen(s.transmit_aus))
+            zeilen.extend(_zeilen(s.kopf_drehen))  # zurück in die Ebene der Drehmaschine (G18)
+            ebene = "G18"
+            if info.x_durchmesser and s.durchmesser_ein:
+                zeilen.extend(_zeilen(s.durchmesser_ein))
         if kuehlung:
             zeilen.append(s.kuehlung_aus)
     if spindel_an is not None:
@@ -2303,6 +2343,17 @@ def ohne_arbeit(op):
         return False  # ihre Sätze rechnet erst das Programm (_simultan)
     bahn = getattr(op, "Path", None)
     return bahn is not None and not _arbeitet(list(bahn.Commands))
+
+
+def _verschoben(befehl, dx, dy):
+    """Der Befehl mit X und Y um (dx, dy) verschoben – I und J (relativ) bleiben."""
+    name, werte = (befehl.Name, dict(befehl.Parameters)) if hasattr(befehl, "Name") else befehl
+    werte = dict(werte)
+    if "X" in werte:
+        werte["X"] = float(werte["X"]) + dx
+    if "Y" in werte:
+        werte["Y"] = float(werte["Y"]) + dy
+    return (name, werte)
 
 
 def _ohne_y(info):
