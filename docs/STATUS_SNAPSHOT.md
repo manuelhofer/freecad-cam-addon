@@ -548,7 +548,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   OpenCascade (27 statt 21 s), der Halter in Kegelscheiben (Schranke unverändert 0,74 mm, mit
   feinem Netz 34 s). **Offen:** eine engere Schranke für den Halter (warum 0,74 statt 1,9 –
   Zellenbreite des Netzes? Form des Schrumpffutters gegen seine Abschnitte?), Messdatei
-  `probe_kollision.py` mit gespeicherter Kopie und Werkzeugverwaltung.
+  `probe_kollision.py` mit gespeicherter Kopie und Werkzeugverwaltung (Kopie in
+  `~/freecad_cam/wip/pruefhelfer/`). Gefunden: Das Schrumpffutter ist vorn ein Kegel Ø 24 → Ø 31,5
+  über 48 mm, `werkzeugkapseln` nimmt je Abschnitt den größten Radius (15,8 statt 12 mm an der
+  Spitze). In Scheiben geteilt (0,5 mm je Scheibe) blieb die grobe Schranke trotzdem 0,74 mm –
+  die Ursache liegt im Netzteil (`netzabstand.kapseln`, grobes Netz), noch nicht gefunden.
 - *Korrektur (0.311.3):* Voller Lauf danach grün (134/134 Prüfungen, 144/144 Szenarien). Eine
   Operation ohne Arbeit (nur Eilgänge) bekommt im Programm keinen Werkzeugwechsel mehr, sondern
   einen Hinweis; 0.311.2: der Achsfilter nur an der Drehmaschine
