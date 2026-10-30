@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-03 kollision-zylinder-an-den-stirnkanten
+
+### EINGELESEN
+- Manuel, 2026-10-30: „Dann mach doch weiter“ – nach 0.314.1 blieb an der Kante der Futterspitze
+  die Kapsel gut 0,4 mm zu vorsichtig.
+
+### DATEIEN
+- `camaddon/netzabstand.py`: `zylinder_schranke` (Herleitung im Docstring); in `kapseln` für
+  flache Kapseln – nur übernommen, wo sie > 0 ist.
+- `camaddon/kollision.py`: `KEGEL_FEHLER` 0,25 → 0,5 mm.
+- `tests/test_netzabstand.py`: zylinder_schranke gegen OpenCascade (300 zufällige Dreiecke, nie
+  darüber, 56 schärfer als die Kapsel); ein Zylinder 3 mm im Würfel – `kapseln` sagt −3, nicht 0.
+- `docs/spezifikation_strategien.md` 16.5 Punkt 10, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.314.2.
+
+### ERGEBNIS
+- Zuerst überall angewandt: `test_empfehlung` rot – für einen Schaftfräser Ø 10 × 45 empfahl die
+  Flanke ein ER16 23 mm heraus; genau nachgemessen (OpenCascade, die Körper an jeder Stelle der
+  Bahn) ragte dessen Mutter an 78 Stellen bis 1700 mm³ ins Teil. Ursache: Die Schranke ist ein
+  Abstand (dort 0), die Rufer lesen negative Werte als Tiefe (HALTER_TIEFER 0,1). Nur noch > 0
+  übernommen; die neue Prüfung im Würfel ist mit dem Fehler rot, mit der Korrektur grün; die
+  Spirale kippt wieder an 8819 Sätzen wie vorher (mit dem Fehler 8803).
+- Stresstest außerhalb der Prüfdatei: 5000 Dreiecke, nie über OpenCascade.
+- Teil „tief“ (probe_ganz.py, alle Kerne): 85,0 / 88,9 s mit 0,5 mm, 91,7 s mit 0,25 mm (vorher
+  110 s, morgens 167 s), dieselben sechs Befunde. G550-Beispiele: freiform 9,2 → 9,2 s, simultan
+  2,3–2,5 → 2,7 s.
+- Grün: test_netzabstand, test_empfehlung, test_flanke, test_hinterschnitt_bahn, test_wegkippen,
+  test_entgraten3d, test_kollision, test_kollision_verteilt, test_simultan_bereiche, test_stl_teil,
+  test_vierachs_pruefen, test_spannung.
 ## P-2026-10-30-02 kollision-halterkegel-in-stufen
 
 ### EINGELESEN

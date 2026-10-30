@@ -219,8 +219,19 @@ class Netz:
                 continue
             stapel = stapel[offen]
             kk, mm = paare_k[stapel], paare_m[stapel]
-            d = segment_dreieck_abstand(von[kk], nach[kk], self.ecken[dreiecke[mm]]) - radien[kk]
+            ecken = self.ecken[dreiecke[mm]]
+            d = segment_dreieck_abstand(von[kk], nach[kk], ecken) - radien[kk]
             d = np.maximum(d, scheibe[stapel])
+            zylinder = flach[kk]
+            if zylinder.any():
+                # An den Stirnkanten schärfer als die Kapsel – nur, wo sie das Dreieck draußen
+                # sieht: Ein negativer Wert sagt den Rufern, wie tief es hineinragt (die Flanke
+                # zählt erst HALTER_TIEFER); dort bleibt die Kapsel (P-2026-10-30-03: sonst
+                # empfahl test_empfehlung ein ER16, dessen Mutter 1700 mm³ ins Teil ragte).
+                z = np.flatnonzero(zylinder)
+                kz = kk[z]
+                schaerfer = zylinder_schranke(von[kz], achse[kz], laenge[kz], radien[kz], ecken[z])
+                d[z] = np.where(schaerfer > 0.0, np.maximum(d[z], schaerfer), d[z])
             np.minimum.at(ergebnis, kk, d)
         return ergebnis - self.toleranz
 
@@ -446,6 +457,54 @@ def _ebenen_schranke(normale, abstand, gut, ecken):
     s = np.einsum("pj,pkj->pk", normale, ecken) - abstand[:, None]
     seite = np.maximum(np.maximum(s.min(axis=1), -s.max(axis=1)), 0.0)
     return np.where(gut, seite, 0.0)
+
+
+# Winkel für zylinder_schranke: je einer eine Schranke, die größte gilt.
+_ZYLINDER_WINKEL = np.radians(np.arange(0.0, 90.1, 15.0))
+
+
+def zylinder_schranke(anfang, achse, laenge, radien, dreiecke):
+    """Je Paar: so weit ist das Dreieck (k, 3, 3) mindestens von dem Zylinder (Achse ab `anfang`
+    längs `achse` (Einheitsvektoren), `laenge` lang, Radius `radien`) entfernt – schärfer als die
+    Kapsel an seinen Stirnkanten, wo das Dreieck schräg darunter liegt (der Halter von T3 an
+    Manuels tiefer Tasche: die Kapsel sagte dort gut 0,4 mm zu wenig).
+
+    Für einen Punkt q ist der Abstand √(x² + e²) mit x = max(ρ − r, 0) (ρ: Abstand zur Achse) und
+    e dem Überstand längs der Achse über die Stirnebenen. Für jede Richtung n quer zur Achse ist
+    ρ ≥ n·(q − anfang), für jeden Winkel φ zwischen 0 und 90° √(x² + e²) ≥ x cos φ + e sin φ –
+    rechts steht eine Funktion, die auf dem Dreieck stückweise linear ist (Knicke an den
+    Stirnebenen): Ihr Kleinstes liegt an einer Ecke oder einem Schnitt einer Kante mit einer
+    Stirnebene. n: die Normale des Dreiecks quer zur Achse, zu ihm hin; liegt das Dreieck quer zur
+    Achse (der Boden), sagt sie nichts – dort zählt die Stirnebene (kapseln)."""
+    rel = dreiecke - anfang[:, None, :]
+    t = np.einsum("kej,kj->ke", rel, achse)  # (k, 3) längs der Achse
+    quer = rel - t[:, :, None] * achse[:, None, :]
+    normale = np.cross(dreiecke[:, 1] - dreiecke[:, 0], dreiecke[:, 2] - dreiecke[:, 0])
+    betrag = np.linalg.norm(normale, axis=1)
+    normale = normale / np.where(betrag > 1e-15, betrag, 1.0)[:, None]
+    normale = normale - np.einsum("kj,kj->k", normale, achse)[:, None] * achse
+    betrag = np.linalg.norm(normale, axis=1)
+    gut = betrag > 1e-6
+    normale = normale / np.where(gut, betrag, 1.0)[:, None]
+    h = np.einsum("kej,kj->ke", quer, normale)  # (k, 3)
+    zeichen = np.where(h.mean(axis=1) < 0.0, -1.0, 1.0)  # zum Dreieck hin
+    h = h * zeichen[:, None] - radien[:, None]
+    # Die Stellen: die Ecken, dazu je Kante ihre Schnitte mit den Stirnebenen (t = 0, t = laenge).
+    hs, ts = [h], [t]
+    for i, j in ((0, 1), (1, 2), (2, 0)):
+        for ebene in (np.zeros(len(t)), laenge):
+            a, b = t[:, i] - ebene, t[:, j] - ebene
+            schnitt = a * b < 0.0
+            u = np.where(schnitt, a / np.where(schnitt, a - b, 1.0), 0.0)
+            hs.append(np.where(schnitt, h[:, i] + u * (h[:, j] - h[:, i]), np.inf)[:, None])
+            ts.append(np.where(schnitt, ebene, t[:, i])[:, None])
+    h = np.concatenate(hs, axis=1)
+    t = np.concatenate(ts, axis=1)
+    e = np.maximum(np.maximum(-t, t - laenge[:, None]), 0.0)
+    beste = np.full(len(t), -np.inf)
+    for phi in _ZYLINDER_WINKEL:
+        beste = np.maximum(beste, (h * np.cos(phi) + e * np.sin(phi)).min(axis=1))
+    return np.where(gut, beste, -np.inf)
 
 
 def punkt_dreieck_abstand(p, dreiecke):

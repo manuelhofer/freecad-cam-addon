@@ -3343,8 +3343,20 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    Spitze 3,8 mm zu dick. Sagt die grobe Schranke (Netz 0,3 mm) „vielleicht ein Befund“, fragt sie
    erst das feine Netz, dann OpenCascade. Manuels tiefe Tasche, Halter von T3 1,9 mm vom Teil:
    Schranke −2,4 → grob 0,9 → fein 1,2 mm; „Kollision prüfen“ 167 → 110 s, dieselben sechs
-   Befunde. Nur eins von beiden: 163 s; Stufen von 0,1 mm: 161 s (die Kapseln kosten mehr). Was
-   bleibt: An der Kante der Futterspitze sagt die Kapsel (Strecke plus Radius) gut 0,4 mm zu wenig.
+   Befunde. Nur eins von beiden: 163 s; Stufen von 0,1 mm: 161 s (die Kapseln kosten mehr).
+10. **Zylinder an den Stirnkanten (P-2026-10-30-03):** Liegt ein Dreieck schräg unter oder über
+   der Stirnkante eines Zylinders, sagt die Kapsel (Strecke plus Radius) zu wenig – an der Spitze
+   des Futters gut 0,4 mm. `netzabstand.zylinder_schranke`: für jede Richtung n quer zur Achse
+   ist ρ ≥ n·(q − a), für jeden Winkel φ √(x² + e²) ≥ x cos φ + e sin φ (x: über den Radius, e:
+   über die Stirnebene); rechts eine auf dem Dreieck stückweise lineare Funktion – ihr Kleinstes an
+   den Ecken und den Schnitten der Kanten mit den Stirnebenen; n die Normale des Dreiecks quer zur
+   Achse, φ in 15°-Schritten, die größte gilt. Gegen OpenCascade an 5000 zufälligen Dreiecken nie
+   darüber, in einem Fünftel schärfer als die Kapsel. **Nur, wo sie das Dreieck draußen sieht
+   (> 0):** Negative Werte lesen Flanke, Empfehlung und Schlichten unter dem Rand als Tiefe im Teil
+   (HALTER_TIEFER) – überall angewandt hob sie −7,6 auf 0, und `test_empfehlung` empfahl ein ER16,
+   dessen Mutter 1700 mm³ ins Teil ragte. Halter T3 an der tiefen Tasche: grob 0,9 → 1,2–1,3 mm;
+   „Kollision prüfen“ 110 → 85–89 s mit `KEGEL_FEHLER` 0,5 mm (0,25: 92 s, 1 mm: 150 s), dieselben
+   Befunde; das G550-Simultanbeispiel 2,3–2,5 → 2,7 s.
 3. **Varianten und Zwischenlagen parallel** – sie sind unabhängig: mit dem Haken „Alle
    Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
 4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich

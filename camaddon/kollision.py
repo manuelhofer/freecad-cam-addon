@@ -150,8 +150,10 @@ NETZ_FEHLVERSUCHE = 3
 # Ein kegeliger Abschnitt des Halters in Kapseln zu Stufen, je höchstens so viel dicker als der
 # Kegel (mm): Als eine Kapsel mit dem größten Radius stand das Schrumpffutter Ø 24 → 31,5 an der
 # Spitze 3,8 mm dicker da – an Manuels tiefer Tasche lag die Schranke dort bei −2,4 statt 1,9 mm,
-# und OpenCascade rechnete fast jede Stelle genau (167 s „Kollision prüfen“).
-KEGEL_FEHLER = 0.25
+# und OpenCascade rechnete fast jede Stelle genau (167 s „Kollision prüfen“). Mit der Schranke an
+# den Stirnkanten (netzabstand.zylinder_schranke) dort: 0,25 mm 92 s, 0,5 mm 85–89 s; 1 mm 150 s
+# (die Schranke fällt unter den Warnabstand).
+KEGEL_FEHLER = 0.5
 
 
 # --- Die Körper -----------------------------------------------------------------------------

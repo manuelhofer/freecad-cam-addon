@@ -576,6 +576,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.314.2):* „Kollision prüfen“ am Teil „tief“ weiter 110 → 85–89 s (insgesamt 167 →
+  87 s), dieselben Befunde: eine schärfere Schranke an den Stirnkanten von Zylindern (Halter,
+  Schaft), Kegelstufen 0,5 mm (Spezifikation Strategien 16.5, Punkt 10). Dabei gefunden und
+  vermieden: Negative Werte der Schranke sind für Flanke und Empfehlung eine Tiefe im Teil.
 - *Korrektur (0.314.1):* „Kollision prüfen“ am Teil „tief“ 167 → 110 s, dieselben sechs
   Befunde: Kegel des Halters in Kapsel-Stufen (höchstens 0,25 mm zu dick), bei „vielleicht ein
   Befund“ erst das feine Netz, dann OpenCascade (Spezifikation Strategien 16.5, Punkt 9).

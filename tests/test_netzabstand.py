@@ -156,4 +156,65 @@ von = np.array([[32.5, 30.0, 8.0]])
 nach = np.array([[32.5, 30.0, 18.0]])
 wand = netz.kapseln(von, nach, 5.0, np.array([2.0]), np.array([True]))[0]
 assert abs(wand - (0.5 - TOLERANZ)) < 2 * TOLERANZ, wand
+# Die Zylinder-Schranke (zylinder_schranke): nie über dem wahren Abstand (OpenCascade), an den
+# Stirnkanten schärfer als die Kapsel – zufällige Dreiecke um einen schrägen Zylinder r 12,
+# 48 lang, viele schräg unter und über den Stirnkanten.
+zufall = np.random.default_rng(7)
+achse_z = np.array([0.3, -0.2, 1.0]) / np.linalg.norm([0.3, -0.2, 1.0])
+anfang_z = np.array([5.0, -3.0, 2.0])
+r_z, l_z = 12.0, 48.0
+quer_a = np.cross(achse_z, [1.0, 0.0, 0.0])
+quer_a /= np.linalg.norm(quer_a)
+quer_b = np.cross(achse_z, quer_a)
+zyl = Part.makeCylinder(r_z, l_z, FreeCAD.Vector(*anfang_z), FreeCAD.Vector(*achse_z))
+dreiecke_z, wahr_z = [], []
+for _ in range(300):
+    w = zufall.uniform(0, 2 * np.pi)
+    radial = np.cos(w) * quer_a + np.sin(w) * quer_b
+    t = zufall.choice(
+        [zufall.uniform(-4, 2), zufall.uniform(l_z - 2, l_z + 4), zufall.uniform(0, l_z)]
+    )
+    mitte = anfang_z + achse_z * t + radial * (r_z + zufall.uniform(-1.0, 4.0))
+    ecken_z = mitte + zufall.normal(0, zufall.choice([0.5, 3.0, 10.0]), (3, 3))
+    flaeche = Part.Face(Part.makePolygon([FreeCAD.Vector(*e) for e in (*ecken_z, ecken_z[0])]))
+    dreiecke_z.append(ecken_z)
+    wahr_z.append(zyl.distToShape(flaeche)[0])
+dreiecke_z, wahr_z = np.array(dreiecke_z), np.array(wahr_z)
+k_z = len(dreiecke_z)
+zs = na.zylinder_schranke(
+    np.tile(anfang_z, (k_z, 1)),
+    np.tile(achse_z, (k_z, 1)),
+    np.full(k_z, l_z),
+    np.full(k_z, r_z),
+    dreiecke_z,
+)
+assert np.all(zs <= wahr_z + 1e-7), float((zs - wahr_z).max())
+kapsel_z = (
+    na.segment_dreieck_abstand(
+        np.tile(anfang_z, (k_z, 1)), np.tile(anfang_z + achse_z * l_z, (k_z, 1)), dreiecke_z
+    )
+    - r_z
+)
+besser = (zs > kapsel_z + 0.1) & (wahr_z > 0.5)
+assert besser.sum() > 10, int(besser.sum())
+print(
+    "Zylinder-Schranke:",
+    int(besser.sum()),
+    "von",
+    k_z,
+    "schärfer als die Kapsel, im Mittel",
+    round(float(np.mean(np.maximum(zs, kapsel_z)[wahr_z > 0] / wahr_z[wahr_z > 0])), 3),
+    "des wahren Abstands",
+)
+# Ragt ein Zylinder ins Teil, sagt kapseln wie tief (die Flanke zählt erst HALTER_TIEFER): ein
+# Zylinder r 5 mit der Achse 2 mm vor der Wand eines Würfels – 3 mm hinein, nicht „berührt“.
+wuerfel = na.Netz(Part.makeBox(40, 40, 40), toleranz=0.01)
+hinein = wuerfel.kapseln(
+    np.array([[42.0, 20.0, 10.0]]),
+    np.array([[42.0, 20.0, 30.0]]),
+    10.0,
+    np.array([5.0]),
+    np.array([True]),
+)[0]
+assert abs(hinein - (-3.0 - 0.01)) < 0.02, hinein
 print("OK", pathlib.Path(__file__).name)
