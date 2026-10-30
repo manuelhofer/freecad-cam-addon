@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-08 beta-anlegen-im-schruppen-mit-ebene
+
+### EINGELESEN
+- Fortsetzung P-2026-10-30-07 an Manuels Teil „tief“ (Kopie): Im Schruppen blieb „Anlegen“ grau –
+  geprüft wurden auch Flanke und 3D-Schlichten (später), deren rote Sätze (Werkzeug zu kurz)
+  sperrten; und die Ebene „von oben“, die nach „Anlegen“ kommt, öffnete den gewohnten Assistenten.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_kann_anlegen` nur mit den Blöcken bis zum Schritt (nur
+  eine Ebene: „Anlegen“ legt sie an); in einer Ebene der Kette keine Frage zur Tasche.
+- `camaddon/gui_bearbeitung.py`: `accept` prüft die Vorschau nur der Blöcke, die angelegt werden
+  (`_nur_diese_anlegen` – im gewohnten Assistenten alle); die Ebenen-Kette öffnet das Fenster der
+  Art, aus der „Anlegen“ kam (`_FOLGE_FENSTER`; die N-Eck-Kette den gewohnten).
+- `package.xml` 0.317.1.
+
+### ERGEBNIS
+- Teil „tief“: zwei Wände → ganze Tasche → Schruppen („Face23 kommt in einer eigenen Ebene dran“)
+  → „Anlegen“ (jetzt frei) → die Ebene „von oben (A−90 B0)“ öffnet sich als Beta, Flächen Face23,
+  Schruppen: Räumen T1 2,4 min → „Anlegen“ → im Ebenen-Job „Räumen T1“, der Grundjob leer bis zum
+  Schlichten (am Job gemerkt: Schruppen fertig).
+- szenario_beta_schritte, szenario_g550_von_oben (gewohnter Assistent mit Ebenen-Kette) grün.
 ## P-2026-10-30-07 beta-anlegen-zeile-mehrere-flaechen-ebene
 
 ### EINGELESEN

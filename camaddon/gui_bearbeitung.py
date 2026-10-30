@@ -584,6 +584,9 @@ OFFEN_HOECHSTENS = 0.05
 
 # Die nächsten Ebenen aus „Alles aus dieser Aufspannung“: [(Job der Ebene, [Flächen], Satz)].
 _FOLGE = []
+# Welches Fenster die nächste Ebene der Kette öffnet: das, aus dem „Anlegen“ kam (die Beta öffnet
+# wieder die Beta).
+_FOLGE_FENSTER = {"klasse": None}
 
 
 def _ebenen_der_aufspannung(grundjob, richtungen, werkzeug=None, einsatz=None, waagerecht=False):
@@ -843,8 +846,9 @@ def _folge_weiter():
     FreeCADGui.Selection.clearSelection()
     if FreeCAD.ActiveDocument is not job.Document:  # in 26.3 kommt das Fenster ins aktive
         FreeCAD.setActiveDocument(job.Document.Name)
+    fenster = _FOLGE_FENSTER.get("klasse") or BearbeitungPanel
     FreeCADGui.Control.showDialog(
-        BearbeitungPanel(
+        fenster(
             job.Document,
             (vr.original(klon), flaechen[0] if flaechen else None),
             angeklickt=klon,
@@ -858,6 +862,7 @@ def _n_eck_anlegen(dokument, teil, wahl):
     """Das Teil aus einer N-Eck-Stange im Schraubstock (W-018): Grundjob und Aufspannungen 2 … N
     (n_eck) – ein Schritt Rückgängig –, dann der Assistent für die erste; nach seinem „Anlegen“
     die nächste (_folge_weiter), jede mit dem Satz fürs Einrichten."""
+    _FOLGE_FENSTER["klasse"] = None
     import numpy as np
 
     from . import n_eck as ne
@@ -6450,6 +6455,7 @@ class BearbeitungPanel:
         )
 
     def accept(self):
+        _FOLGE_FENSTER["klasse"] = type(self)
         if getattr(self, "_oben_weiter", False):
             # Der Knopf oben vor dem letzten Schritt: „Weiter“ (_knoepfe_beschriften).
             self._oben_weiter = False
@@ -6472,9 +6478,14 @@ class BearbeitungPanel:
         mg.merken(self.job, None if magazin is None or magazin.gilt else magazin)
         # Rechnet die Vorschau noch (im Takt, oder gleich nach einer Eingabe): erst ganz fertig –
         # der Wettbewerb am Ende setzt noch Haken.
-        if self.vorschau_laeuft() or any(b.vorschau is None for b in self.aktive_bloecke()):
+        anzulegen = self._nur_diese_anlegen
+        if self.vorschau_laeuft() or any(
+            b.vorschau is None for b in anzulegen(self.aktive_bloecke())
+        ):
             self._vorschau_rechnen()
-        if not self._kann_anlegen() or any(b.vorschau is None for b in self.aktive_bloecke()):
+        if not self._kann_anlegen() or any(
+            b.vorschau is None for b in anzulegen(self.aktive_bloecke())
+        ):
             return False  # der Grund steht rot im Fenster
         if self.zu_aendern is not None:
             if not self._aendern():

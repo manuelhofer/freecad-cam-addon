@@ -495,7 +495,10 @@ class BetaPanel(BearbeitungPanel):
         """Gehören die gewählten Flächen zu einer Tasche, von der nur ein Teil gewählt ist: der
         Satz mit „Ganze Tasche nehmen“ / „Nur diese Flächen“."""
         self._beta_fehlende = []
-        if self.job is None or not self.gewaehlte or self._ist_stl():
+        # In einer Ebene der Kette (nach „Anlegen“) sind die Flächen schon im ersten Fenster
+        # gewählt – die Wände der Tasche bleiben dort im Grundjob, gefragt wird nicht noch einmal.
+        kette = bool(getattr(self, "_folge", None))
+        if self.job is None or not self.gewaehlte or self._ist_stl() or kette:
             self.tasche_box.hide()
             return
         try:
@@ -538,6 +541,21 @@ class BetaPanel(BearbeitungPanel):
             return aktive
         von = self._beta_ab or 0
         return [b for b in aktive if von <= abschnitt(b) <= bis]
+
+    def _kann_anlegen(self):
+        """Wie im gewohnten Assistenten – aber nur mit dem, was „Anlegen“ hier anlegt: Ein roter
+        Satz an der Flanke (später) sperrt das Schruppen nicht. Kommt hier nur eine Ebene dran,
+        legt „Anlegen“ sie an."""
+        a = self._aktueller_abschnitt() if hasattr(self, "_beta_seiten") else None
+        if a is None or self.zu_aendern is not None:
+            return super()._kann_anlegen()
+        if self.hinweis.text():
+            return False
+        von = self._beta_ab or 0
+        hier = [b for b in self.aktive_bloecke() if von <= abschnitt(b) <= a]
+        if not hier:
+            return bool(self._beta_geschwenkt) or self._folge_ohne_operation()
+        return all(b.kann_anlegen() for b in hier)
 
     def accept(self):
         if self._vor_anlegen() and self.zu_aendern is None:
