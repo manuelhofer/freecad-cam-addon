@@ -576,6 +576,14 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.315.0, Beta):* „Bearbeitung in Schritten“ (Manuel, 2026-10-30: das Fenster „zu groß
+  geworden“, „Einzelschritte … einzeln abfragen“, „einen Beta-Knopf … das Alte behalten“): Haken
+  „Beta-Funktionen zeigen“ in den Einstellungen → Leiste „CAM-Addon Beta“. Aufspannung → Flächen
+  (Tasche nur zum Teil gewählt: „Ganze Tasche nehmen“ / „Nur diese Flächen“) → Schruppen → Löcher →
+  Schlichten → Kanten, „Weiter“ erst wenn klar, „Anlegen“ ab dem Schruppen nur bis hier; „Weiter
+  bearbeiten (Beta)“ am Job. Konzept und Vorschläge B1–B7: `docs/konzept_schritt_assistent.md`;
+  Fragen 1–4 in `OFFENE_FRAGEN.md`. **Nächster Schritt dort:** B3 (Fräser in der Zeile), dann je
+  nach Manuels Antworten B1/B2/B4/B5.
 - *Korrektur (0.314.3, Manuels tiefe Tasche im Wochen-Build):* (1) Nullpunkt „Mitte oben“ aus dem
   genauen Hüllquader – der grobe (BoundBox ohne Netz) lag an den B-Spline-Wänden 3,32 mm zu hoch,
   Z0 so weit über dem Rohteil. (2) „Entgraten 3D“ setzt seine Endtiefe selbst (Flächen, sonst

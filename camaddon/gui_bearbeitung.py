@@ -1019,6 +1019,10 @@ class BefehlBearbeitung:
     def IsActive(self):
         return not FreeCADGui.Control.activeDialog()
 
+    def panel(self, *args, **kwargs):
+        """Das Fenster, das der Befehl öffnet – die Beta (gui_bearbeitung_beta) nimmt ihr eigenes."""
+        return BearbeitungPanel(*args, **kwargs)
+
     def Activated(self):
         from .gui_hilfe import arbeitsdokument
 
@@ -1041,7 +1045,7 @@ class BefehlBearbeitung:
                 netz = angebot
             elif angebot is not None:
                 FreeCADGui.Control.showDialog(
-                    BearbeitungPanel(dokument, (angebot, None), angeklickt=angebot)
+                    self.panel(dokument, (angebot, None), angeklickt=angebot)
                 )
                 return
         if netz is not None:
@@ -1053,7 +1057,7 @@ class BefehlBearbeitung:
             if gui_stl.teil_aus_netz.n_eck is not None:
                 _n_eck_anlegen(dokument, teil, gui_stl.teil_aus_netz.n_eck)
                 return
-            FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, (teil, None), angeklickt=teil))
+            FreeCADGui.Control.showDialog(self.panel(dokument, (teil, None), angeklickt=teil))
             return
         wahl, angeklickt = gewaehlte_flaeche(dokument), angeklicktes_teil(dokument)
         if wahl is not None:
@@ -1061,7 +1065,7 @@ class BefehlBearbeitung:
             if teil is not wahl[0]:  # ein Link in der Maschine (B-020): im Dokument des Teils
                 wahl, angeklickt, dokument = (teil, wahl[1]), None, teil.Document
                 _aktivieren(dokument)
-        FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, wahl, angeklickt=angeklickt))
+        FreeCADGui.Control.showDialog(self.panel(dokument, wahl, angeklickt=angeklickt))
 
 
 def teil_hinter_link(teil):
@@ -6373,7 +6377,12 @@ class BearbeitungPanel:
         self._knoepfe_beschriften()
 
     def _oben_gedrueckt(self):
-        self._oben_weiter = self.zu_aendern is None and self._seite < len(self.seiten) - 1
+        self._oben_weiter = self.zu_aendern is None and self._vor_anlegen()
+
+    def _vor_anlegen(self):
+        """Steht der Knopf oben noch für „Weiter“? Hier vor dem letzten Schritt; die Beta
+        (gui_bearbeitung_beta) legt schon ab dem Schruppen an."""
+        return getattr(self, "_seite", 0) < len(getattr(self, "seiten", ())) - 1
 
     def knopf_anlegen(self):
         if self._knoepfe is None:
@@ -6390,7 +6399,7 @@ class BearbeitungPanel:
         # Vor dem letzten Schritt heißt der Knopf oben „Weiter“ und blättert weiter, wie der unten
         # rechts (Manuel, 2026-10-16: „anklickbar obwohl noch zwei weitere auswahl felder kommen
         # vll sollte man das als "weiter" button deklarieren exakt wie den unten rechts“).
-        vorher = not aendern and getattr(self, "_seite", 0) < len(getattr(self, "seiten", ())) - 1
+        vorher = not aendern and self._vor_anlegen()
         for knopf_ in (self.knopf_anlegen(), unten):
             if knopf_ is None:
                 continue
@@ -11867,13 +11876,18 @@ class BearbeitungPanel:
                         nr.pool().abbrechen(auftrag)
             block.genau = []
 
+    def _nur_diese_anlegen(self, aktive):
+        """Welche der angehakten Blöcke „Anlegen“ wirklich anlegt – hier alle; die Beta
+        (gui_bearbeitung_beta) nur die der Schritte, die man gesehen hat."""
+        return aktive
+
     def _anlegen(self):
         """Werkzeug-Controller und die angehakten Operationen in den Job – ein eigener Schritt
         Rückgängig, in einem Befehl (_im_befehl). Geht es nicht, steht der Grund rot im
         Fenster: False."""
         self._genau_abholen(self.aktive_bloecke())
         form = vr.modell(self.job).Shape
-        aktive = self._in_anlege_reihe(self.aktive_bloecke(), form)
+        aktive = self._nur_diese_anlegen(self._in_anlege_reihe(self.aktive_bloecke(), form))
         if self.raeumen in aktive and not self._flaechen(self.raeumen, form):
             # Alle seine Flächen nimmt schon ein anderer (die Gründe der Nut) – ohne Fläche
             # räumte die Operation das ganze Teil.

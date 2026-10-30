@@ -7,6 +7,7 @@ Menü an genau diesen beiden Arbeitsbereichen – über die öffentliche
 Python-Schnittstelle der Arbeitsbereiche, nichts an FreeCAD wird überschrieben.
 """
 
+import contextlib
 import html
 
 import FreeCAD
@@ -120,6 +121,11 @@ def starten():
             "CamAddon_BeispieleLaden": gui_beispiele.BefehlBeispieleLaden(),
         }
     )
+    from . import gui_bearbeitung_beta
+
+    # Die Beta (Manuel, 2026-10-30: „dass wir erstmal das Alte behalten …, und wir noch einen
+    # Beta-Bereich reinmachen“): angemeldet immer, in Leiste und Menü nur, wenn eingeschaltet.
+    BEFEHLE.update({name: klasse() for name, klasse in gui_bearbeitung_beta.BEFEHLE.items()})
     for name, befehl in BEFEHLE.items():
         FreeCADGui.addCommand(name, befehl)
     _TEXTE["gelesen_in"] = sprache.aktuelle_sprache()
@@ -191,6 +197,12 @@ def _tooltip(titel, text, name):
     )
 
 
+def beta_umgeschaltet():
+    """Die Beta in den Einstellungen ein- oder ausgeschaltet: gleich im aktiven Arbeitsbereich."""
+    with contextlib.suppress(Exception):
+        _werkzeugleiste_anhaengen(FreeCADGui.activeWorkbench().name())
+
+
 def _werkzeugleiste_anhaengen(name_arbeitsbereich):
     """Hängt Werkzeugleiste und Menü an, sobald ein Ziel-Arbeitsbereich aktiv wird.
 
@@ -207,6 +219,10 @@ def _werkzeugleiste_anhaengen(name_arbeitsbereich):
         neu = True
     if MENUE_NAME not in arbeitsbereich.listMenus():
         arbeitsbereich.appendMenu(MENUE_NAME, MENUE)
+        neu = True
+    from . import gui_bearbeitung_beta
+
+    if gui_bearbeitung_beta.leiste_anhaengen(arbeitsbereich):
         neu = True
     if neu:
         arbeitsbereich.reloadActive()  # erst danach erscheinen Leiste und Menü

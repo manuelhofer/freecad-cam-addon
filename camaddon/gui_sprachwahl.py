@@ -230,12 +230,22 @@ class Einstellungsseite:
         self.wahl_nebenrechner.valueChanged.connect(self._weniger_kerne_zeigen)
         _mit_satz(rechnen, rechnen_aufbau, self.rechnen_hinweis)
 
+        # Die Beta (Manuel, 2026-10-30): neue Wege zum Ausprobieren, das Gewohnte bleibt.
+        beta = QtGui.QGroupBox(tr("einstellungen.beta.gruppe"))
+        self.beta_an = QtGui.QCheckBox(tr("einstellungen.beta.haken"))
+        beta_aufbau = QtGui.QFormLayout()
+        beta_aufbau.addRow(self.beta_an)
+        self.beta_hinweis = QtGui.QLabel(tr("einstellungen.beta.hinweis"))
+        self.beta_hinweis.setWordWrap(True)
+        _mit_satz(beta, beta_aufbau, self.beta_hinweis)
+
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
         aufbau.addWidget(zahlen)
         aufbau.addWidget(dateien)
         aufbau.addWidget(rechnen)
         aufbau.addWidget(self.gruppe_updates)
+        aufbau.addWidget(beta)
         aufbau.addStretch()
         ruhiges_mausrad(self.form)  # FreeCADs Einstellungen blättern
 
@@ -263,6 +273,9 @@ class Einstellungsseite:
         index = self.wahl_dezimalzeichen.findData(dezimalzeichen())
         self.wahl_dezimalzeichen.setCurrentIndex(max(index, 0))
         self.klone_einmal.setChecked(klone_speichern.an())
+        from . import gui_bearbeitung_beta
+
+        self.beta_an.setChecked(gui_bearbeitung_beta.beta_an())
         from . import nebenrechner
 
         # Gespeichert heißt 0 „alle“ (ein Rechner mit mehr Kernen nimmt dann alle seine).
@@ -277,6 +290,11 @@ class Einstellungsseite:
             self.wahl_dezimalzeichen.currentData(),
         )
         klone_speichern.setzen(self.klone_einmal.isChecked())
+        from . import gui_bearbeitung_beta, gui_start
+
+        if self.beta_an.isChecked() != gui_bearbeitung_beta.beta_an():
+            gui_bearbeitung_beta.beta_setzen(self.beta_an.isChecked())
+            gui_start.beta_umgeschaltet()
         from . import nebenrechner
 
         anzahl = self.wahl_nebenrechner.value()

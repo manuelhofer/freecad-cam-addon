@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-05 beta-bearbeitung-in-schritten
+
+### EINGELESEN
+- Manuel, 2026-10-30 abends: „Ich finde, dass das Gewachsene, dieses Bearbeitungsfenster, … zu
+  groß geworden ist. Ich finde, wir sollten die Einzelschritte besser abfragen, und zwar einzeln
+  abfragen. Immer mit einem Weiter und immer nur dann weiter, wenn auch wirklich alles ausgewählt
+  ist“ – erst die eingespannte Fläche, dann die Flächen, dann „was willst du schruppen? Wie willst
+  du schruppen?“, „Anlegen“ oder weiter, später „weiter bearbeiten“ zum Schlichten; „wenn ich jetzt
+  da bloß zwei Wände anklicke, wie willst du die bearbeiten, ohne alles andere auch ein bisschen
+  mit zu bearbeiten? … hey, hör zu, du kannst die zwei Wände nicht einzeln bearbeiten“.
+- Gleich danach: „Arbeitet da heute Nacht mal bitte dran an Ideen und an Vorschlägen … Vielleicht
+  machst du noch einen Beta-Knopf rein, … dass wir erstmal das Alte behalten, was jetzt jeder
+  gewohnt ist“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py` (neu): `BetaPanel` (der Assistent „Bearbeitung“, seine Teile
+  auf sechs Schritte verteilt: Aufspannung, Flächen, Schruppen, Löcher, Schlichten, Kanten – nach
+  `SCHRUPPEN_ZUERST`), „Weiter“ erst, wenn der Schritt klar ist (der Grund orange darüber),
+  „Anlegen“ ab dem Schruppen nur für die gesehenen Schritte (`_nur_diese_anlegen`), am Job gemerkt
+  (`CamAddonBetaFlaechen`, `CamAddonBetaAbschnitt`); „Weiter bearbeiten (Beta)“; die Werte je
+  Strategie eingeklappt hinter „Werte ändern“.
+- `camaddon/taschen_wahl.py` (neu): die Vertiefung zu gewählten Flächen – über hohle Kanten und
+  glatte (nicht in nach außen gewölbte Flächen).
+- `camaddon/gui_bearbeitung.py`: drei Weichen ohne Wirkung auf den gewohnten Assistenten
+  (`_vor_anlegen`, `_nur_diese_anlegen`, `BefehlBearbeitung.panel`).
+- `camaddon/gui_start.py`, `camaddon/gui_sprachwahl.py`: die Befehle; Leiste „CAM-Addon Beta“ und
+  Menü „Beta“ nur mit dem Haken „Beta-Funktionen zeigen“ (Einstellungen, vorbelegt aus).
+- `translations/de.json`, `translations/en.json`; `tests/test_taschen_wahl.py`,
+  `tests/gui/szenario_beta_schritte.py` (neu); `docs/konzept_schritt_assistent.md` (neu),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.315.0.
+
+### ERGEBNIS
+- Manuels Teil „tief“ (Kopie): zwei Wände angeklickt → die ganze Tasche, 17 Flächen (dieselben, die
+  das Szenario dort sonst von Hand wählt); die Oberseite allein bleibt allein. 0,07 s.
+- Zuerst fragte die Erkennung nur das Parameter-Rechteck der Fläche ab – an einer oben
+  abgeschnittenen B-Spline-Wand kam die Ecke zufällig als Außenkante heraus (test_taschen_wahl
+  rot: 3 statt 5 Flächen); jetzt die beschnittene Fläche selbst (distToShape) – grün.
+- szenario_beta_schritte (Weekly): Schritt 1 „Weiter“ gesperrt bis „Liegt wie im Modell“; eine
+  Wand → der orange Satz zur Tasche, „Ganze Tasche nehmen“ → 9 Flächen; Schruppen zeigt nur
+  Planfräsen, Räumen, Kontur, 3D-Schruppen, Restschruppen; „Anlegen“ dort → Räumen, Kontur,
+  3D-Schruppen im Job, kein Schlichten; „Weiter bearbeiten (Beta)“ beginnt beim Schlichten mit
+  denselben Flächen → 3D-Schlichten dazu.
+- Der gewohnte Assistent: szenario_nullpunkt_freiform grün; test_sprache grün.
 ## P-2026-10-30-04 nullpunkt-genau-entgraten-endtiefe-abtrag-in-der-ebene
 
 ### EINGELESEN
