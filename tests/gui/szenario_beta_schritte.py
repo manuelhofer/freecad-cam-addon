@@ -246,6 +246,31 @@ def schritte(h):
         f"dazu: {[_art(o) for o in neu]}",
     )
     h.bild("6_job", None)
+
+    # 5. Neue Aufspannung: derselbe Teil, ein neuer Job, Schritt 1.
+    with __import__("contextlib").suppress(Exception):
+        Gui.Control.closeDialog()
+    yield 500
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400
+    h.pruefe(Gui.Command.get("CamAddon_NeueAufspannungBeta").isActive(), "„Neue Aufspannung“ grau")
+    jobs_vorher = [o for o in doc.Objects if hasattr(o, "Operations")]
+    Gui.runCommand("CamAddon_NeueAufspannungBeta")
+    yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen is not weiter, 60000)
+    yield 1500
+    neu_fenster = beta.BearbeitungPanel.offen
+    h.pruefe(isinstance(neu_fenster, beta.BetaPanel), f"kein Beta-Fenster: {neu_fenster!r}")
+    if isinstance(neu_fenster, beta.BetaPanel):
+        h.pruefe(
+            neu_fenster.job is not None and neu_fenster.job not in jobs_vorher,
+            "„Neue Aufspannung“ ohne neuen Job",
+        )
+        h.pruefe(neu_fenster.seite() == 0, f"„Neue Aufspannung“ auf Seite {neu_fenster.seite()}")
+        h.pruefe(not neu_fenster.knopf_weiter.isEnabled(), "„Weiter“ geht vor der Aufspannung")
+        h.bild("7_neue_aufspannung", neu_fenster.form)
+        neu_fenster.reject()
+        yield 1000
     with __import__("contextlib").suppress(Exception):
         Gui.Control.closeDialog()
     yield 500

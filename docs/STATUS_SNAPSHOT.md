@@ -582,8 +582,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   (Tasche nur zum Teil gewählt: „Ganze Tasche nehmen“ / „Nur diese Flächen“) → Schruppen → Löcher →
   Schlichten → Kanten, „Weiter“ erst wenn klar, „Anlegen“ ab dem Schruppen nur bis hier; „Weiter
   bearbeiten (Beta)“ am Job. Konzept und Vorschläge B1–B7: `docs/konzept_schritt_assistent.md`;
-  Fragen 1–4 in `OFFENE_FRAGEN.md`. 0.316.0: B3 (Fräser in der Zeile). **Nächster Schritt dort:**
-  B6 (Schritt „Prüfen“), dann je nach Manuels Antworten B1/B2/B4/B5.
+  Fragen 1–4 in `OFFENE_FRAGEN.md`. 0.316.0: B3 (Fräser in der Zeile); 0.317: „Anlegen legt an …“,
+  alle angeklickten Flächen, die Ebene im Schruppen, die Ebenen-Kette in der Beta (an Manuels Teil
+  „tief“ durchgespielt); 0.318.0: „Neue Aufspannung (Beta)“. **Nächster Schritt dort:** je nach
+  Manuels Antworten B1/B2/B4/B5.
 - *Korrektur (0.314.3, Manuels tiefe Tasche im Wochen-Build):* (1) Nullpunkt „Mitte oben“ aus dem
   genauen Hüllquader – der grobe (BoundBox ohne Netz) lag an den B-Spline-Wänden 3,32 mm zu hoch,
   Z0 so weit über dem Rohteil. (2) „Entgraten 3D“ setzt seine Endtiefe selbst (Flächen, sonst

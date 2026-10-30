@@ -688,9 +688,45 @@ def weiter_bearbeiten(job, ab):
     return panel
 
 
+class BefehlNeueAufspannung:
+    """„Neue Aufspannung (Beta)“: dasselbe Teil anders gespannt – ein neuer Job, die Beta beginnt
+    bei der Aufspannung (Manuel, 2026-10-30: „wenn ich eine weitere Operation haben möchte, das
+    heißt irgendwie anders eingespannt, muss ich einfach eine neue … einfügen“)."""
+
+    def GetResources(self):
+        return {
+            "Pixmap": symbol("bearbeitung.svg"),
+            "MenuText": tr("befehl.beta.aufspannung.titel"),
+            "ToolTip": tr("befehl.beta.aufspannung.tooltip"),
+        }
+
+    def IsActive(self):
+        return not FreeCADGui.Control.activeDialog() and _gewaehlter_job() is not None
+
+    def Activated(self):
+        job = _gewaehlter_job()
+        if job is None:
+            QtGui.QMessageBox.information(
+                FreeCADGui.getMainWindow(),
+                tr("befehl.beta.aufspannung.titel"),
+                tr("beta.aufspannung.kein_job"),
+            )
+            return
+        neue_aufspannung(job)
+
+
+def neue_aufspannung(job):
+    """Öffnet die Beta mit einem neuen Job für das Teil von `job` – bei Schritt 1."""
+    teil = vr.original(vr.modell(job))
+    panel = BetaPanel(job.Document, (teil, None), neu=True)
+    FreeCADGui.Control.showDialog(panel)
+    return panel
+
+
 BEFEHLE = {
     "CamAddon_BearbeitungBeta": BefehlBearbeitungBeta,
     "CamAddon_WeiterBearbeitenBeta": BefehlWeiterBearbeiten,
+    "CamAddon_NeueAufspannungBeta": BefehlNeueAufspannung,
 }
 WERKZEUGLEISTE_NAME = "CAM-Addon Beta"
 WERKZEUGLEISTE = list(BEFEHLE)

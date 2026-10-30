@@ -1,6 +1,6 @@
 # Konzept: „Bearbeitung in Schritten“ (Beta)
 
-Stand 2026-10-30 nachts, 0.317.0. Auftrag von Manuel, 2026-10-30 abends:
+Stand 2026-10-31 früh, 0.318.0. Auftrag von Manuel, 2026-10-30 abends:
 
 > „Ich finde, dass das Gewachsene, dieses Bearbeitungsfenster, … zu groß geworden ist. Ich finde,
 > wir sollten die Einzelschritte besser abfragen, und zwar einzeln abfragen. Immer mit einem
@@ -17,8 +17,9 @@ die nächsten Stufen. Teil C nennt, was nur Manuel entscheiden kann; diese Frage
 ## A. Was die Beta 0.315.0 kann
 
 **Einschalten:** Bearbeiten → Einstellungen → CAM-Addon → Gruppe „Beta“ → „Beta-Funktionen
-zeigen“. Danach gibt es die Werkzeugleiste „CAM-Addon Beta“ mit zwei Befehlen, und dieselben
-Befehle stehen im Menü „CAM-Addon → Beta“. Ist der Haken aus, bleibt alles wie gewohnt.
+zeigen“. Danach gibt es die Werkzeugleiste „CAM-Addon Beta“ mit den Beta-Befehlen, und dieselben
+Befehle stehen im Menü „CAM-Addon → Beta“. Seit 0.318.0 sind es drei, dazu kam „Neue Aufspannung
+(Beta)“ (siehe B5). Ist der Haken aus, bleibt alles wie gewohnt.
 
 **„Bearbeitung in Schritten (Beta)“**: derselbe Assistent mit denselben Rechnungen, Vorschauen und
 Strategien wie „Bearbeitung“, nur auf sechs Schritte verteilt. Oben steht der Schritt, darunter
@@ -116,7 +117,7 @@ bearbeiten“. Zwei Möglichkeiten:
 oder auf Anlegen drücken“), braucht aber einen Umbau beim Anlegen. Die Operationen kommen dann
 schrittweise in den Job, nicht alle auf einmal. *Frage 3.*
 
-### B5. Neue Aufspannung („anders eingespannt“)
+### B5. Neue Aufspannung („anders eingespannt“) – *zum Teil gebaut, 0.318.0*
 
 Manuel: „wenn ich eine weitere Operation haben möchte, das heißt irgendwie anders eingespannt,
 muss ich einfach eine neue Operation oder sowas … einfügen“. Vorschlag: Im letzten Schritt (und
@@ -124,6 +125,12 @@ in „Weiter bearbeiten“) ein Knopf „Teil umspannen …“. Er legt einen ne
 (das gibt es schon als „Neuer Job …“) und beginnt bei Schritt 1, der Aufspannung. Vorgewählt sind
 die Flächen, die in der ersten Aufspannung nicht erreichbar waren; das rechnet „Alles aus dieser
 Aufspannung“ schon aus. *Frage 4.*
+
+Gebaut ist der erste Teil, der keine Wahl des Addons ändert: der Befehl **„Neue Aufspannung
+(Beta)“** in der Beta-Leiste. Man klickt einen Job an, dann den Befehl. Er legt für dasselbe Teil
+einen neuen Job an, und die Schritte beginnen bei der Aufspannung, mit „Weiter“ gesperrt, bis klar
+ist, was unten liegt. Noch offen (Frage 4): der Knopf im letzten Schritt und die vorgewählten
+Flächen.
 
 ### B6. Schritt „Prüfen“ am Ende
 

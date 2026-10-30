@@ -3391,7 +3391,7 @@
     "beta.weiter.fertig": "All steps of this job are already created – up to the edges.",
     "einstellungen.beta.gruppe": "Beta",
     "einstellungen.beta.haken": "Show beta functions",
-    "einstellungen.beta.hinweis": "New ways to try out, in a toolbar of their own “CAM-Addon Beta” and in the menu under “Beta” – currently “Machining in steps” and “Continue machining”. The usual stays as it is.",
+    "einstellungen.beta.hinweis": "New ways to try out, in a toolbar of their own “CAM-Addon Beta” and in the menu under “Beta” – currently “Machining in steps”, “Continue machining” and “New setup”. The usual stays as it is.",
     "beta.werte": "Change values",
     "beta.werte.tooltip": "Shows cutter, use and the values of this strategy – preset from the tool management, change only where needed.",
     "beta.anlegen.minuten": "{min} min",
@@ -3399,5 +3399,8 @@
     "beta.anlegen.nichts": "“Create” creates nothing here – nothing ticked up to this step.",
     "beta.anlegen.spaeter": "Ticked for later: {liste} (with “Next” or “Continue machining”).",
     "beta.ebene.satz": "{anzahl} of the chosen faces ({namen}) are machined in a plane of their own – tilted, or from above if the spindle is horizontal. “Create” creates the plane; there the wizard asks how to rough.",
-    "beta.anlegen.liste_ohne_zeit": "“Create” creates: {liste} – the time is not known yet (see the sentences at the strategies)."
+    "beta.anlegen.liste_ohne_zeit": "“Create” creates: {liste} – the time is not known yet (see the sentences at the strategies).",
+    "befehl.beta.aufspannung.titel": "New setup (beta)",
+    "befehl.beta.aufspannung.tooltip": "The same part clamped differently: a new job for the part of the selected job – the steps start at the setup (which face lies at the bottom). Click the job in the tree first.",
+    "beta.aufspannung.kein_job": "First click the job (or one of its operations) in the tree whose part is to be re-clamped."
 }

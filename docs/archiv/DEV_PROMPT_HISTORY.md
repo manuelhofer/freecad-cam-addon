@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-01 beta-neue-aufspannung
+
+### EINGELESEN
+- Manuel, 2026-10-30: „Und wenn ich eine weitere Operation haben möchte, das heißt irgendwie anders
+  eingespannt, muss ich einfach eine neue Operation oder sowas, irgendwie sowas einfügen. Da
+  bräuchte man auch noch irgendwas.“ – Vorschlag B5, erster Teil (ohne Wahl des Addons).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: Befehl „Neue Aufspannung (Beta)“ (`neue_aufspannung`): ein
+  neuer Job für das Teil des gewählten Jobs, die Beta bei Schritt 1.
+- `translations/de.json`, `translations/en.json`, `tests/gui/szenario_beta_schritte.py` (Teil 5),
+  `docs/konzept_schritt_assistent.md` (B5), `docs/bilder/beta/7_neue_aufspannung.png`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.318.0.
+
+### ERGEBNIS
+- szenario_beta_schritte grün: Job angeklickt → „Neue Aufspannung (Beta)“ aktiv → ein neuer Job,
+  das Fenster auf „Aufspannung“, „Weiter“ gesperrt mit dem orangen Satz, bis klar ist, was unten
+  liegt.
 ## P-2026-10-30-08 beta-anlegen-im-schruppen-mit-ebene
 
 ### EINGELESEN
