@@ -33,6 +33,8 @@ patch_naming:
 - Ganze Prüfung ohne Oberfläche, alle Kerne (`probe_ganz.py`, tief_flanke-Kopie mit ihrer
   Werkzeugverwaltung): alt 166,9 s, neu 113,0 / 109,8 s, dieselben sechs Befunde. Nur feines Netz:
   163,5 s; Stufen 0,1 mm: 161,0 s.
+- Gegenprobe an den Beispielen (alt/neu, dieselben Befunde): grob_g550_simultan 2,0/2,1 s,
+  grob_g550_freiform 9,2/9,2 s – das feine Netz kostet dort nichts.
 - Grün: test_netzabstand, test_kollision, test_kollision_verteilt.
 ## P-2026-10-30-01 vorschlichten-unter-dem-rand
 
