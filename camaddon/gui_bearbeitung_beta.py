@@ -160,6 +160,14 @@ class BetaPanel(BearbeitungPanel):
         for widget in (self.ziel_text, self.passt_text, self.knopf_passt, self.knopf_schneller):
             _umsetzen(widget, schruppen, alt)
         _umsetzen(self.frage_eintauchen.widget, schruppen, alt)
+        # Kommt Gewähltes in einer Ebene dran (schräg, oder von oben an der waagerechten Spindel),
+        # sagt es der Schritt – sonst fiele das Schruppen hier still weg (Manuels Teil „tief“ an
+        # der G550: der Boden wird in der Ebene „von oben“ geräumt).
+        self.ebene_text = QtGui.QLabel()
+        self.ebene_text.setWordWrap(True)
+        self.ebene_text.hide()
+        schruppen.addWidget(self.ebene_text)
+        self._beta_geschwenkt = []
         _umsetzen(self.frage_waende.widget, self._beta_seiten[SCHLICHTEN].layout(), alt)
         _aus_layout(alt, self.frage_reihenfolge.widget)
         self.frage_reihenfolge.widget.hide()
@@ -244,6 +252,8 @@ class BetaPanel(BearbeitungPanel):
         return ERSTER_ABSCHNITT + a
 
     def _abschnitt_hat_etwas(self, a):
+        if a == SCHRUPPEN and getattr(self, "_beta_geschwenkt", None):
+            return True  # der Satz, dass es in der Ebene drankommt
         return any(b.moeglich and abschnitt(b) == a for b in self.bloecke)
 
     def _aktueller_abschnitt(self):
@@ -336,6 +346,8 @@ class BetaPanel(BearbeitungPanel):
         self.knopf_weiter.setToolTip(warum or tr("beta.weiter.tooltip"))
         self.warum_text.setText(warum)
         self.warum_text.setVisible(bool(warum))
+        for a, leer in self._beta_leer.items():
+            leer.setVisible(not self._abschnitt_hat_etwas(a))
         for block in self.bloecke:
             zeile, huelle, klapp = self._beta_werte[block.s.kennung]
             an = block.moeglich and block.aktiv()
@@ -375,12 +387,10 @@ class BetaPanel(BearbeitungPanel):
                 spaeter.append(block.s.titel())
         if not jetzt:
             text = tr("beta.anlegen.nichts")
+        elif zeit > 0:
+            text = tr("beta.anlegen.liste", liste=", ".join(jetzt), min=dezimal(f"{zeit:.1f}"))
         else:
-            text = tr(
-                "beta.anlegen.liste",
-                liste=", ".join(jetzt),
-                min=dezimal(f"{zeit:.1f}"),
-            )
+            text = tr("beta.anlegen.liste_ohne_zeit", liste=", ".join(jetzt))
         if spaeter:
             text += " " + tr("beta.anlegen.spaeter", liste=", ".join(spaeter))
         self.anlegen_text.setText(text)
@@ -415,8 +425,6 @@ class BetaPanel(BearbeitungPanel):
             return super()._bloecke_ordnen()
         for block in self.bloecke:
             block.widget.setVisible(block.moeglich)
-        for a, leer in self._beta_leer.items():
-            leer.setVisible(not self._abschnitt_hat_etwas(a))
         self.passt_nicht.hide()
         self.nichts_angehakt.hide()
         if hasattr(self, "_seite"):
@@ -426,6 +434,10 @@ class BetaPanel(BearbeitungPanel):
         super().haken_geklickt(block)
         if hasattr(self, "_beta_seiten") and hasattr(self, "_seite"):
             self._beta_knoepfe()
+
+    def _neues_fenster(self, dokument, wahl):
+        flaechen = list(self.gewaehlte) or None
+        return lambda: BetaPanel(dokument, wahl, neu=True, flaechen=flaechen)
 
     def _vorwahl_nehmen(self, form, flaeche):
         # „Weiter bearbeiten“: genau die Flächen von vorher – auch Rundungen, die allein keine
@@ -456,7 +468,28 @@ class BetaPanel(BearbeitungPanel):
         super()._flaechen_zeigen()
         if hasattr(self, "_beta_seiten"):
             self._tasche_pruefen()
+            self._ebene_zeigen()
             self._beta_knoepfe()
+
+    def _ebene_zeigen(self):
+        """Im Schruppen: welche gewählten Flächen in einer Ebene drankommen – dort fragt nach
+        „Anlegen“ der Assistent der Ebene nach dem Schruppen."""
+        self._beta_geschwenkt = []
+        if self.job is not None and self.gewaehlte and not self._ist_stl():
+            try:
+                self._beta_geschwenkt = list(self._geschwenkt(vr.modell(self.job).Shape))
+            except Exception as fehler:
+                FreeCAD.Console.PrintLog(f"Beta: Ebenen nicht geprüft: {fehler}\n")
+        if not self._beta_geschwenkt:
+            self.ebene_text.hide()
+            return
+        namen = ", ".join(self._beta_geschwenkt[:6])
+        if len(self._beta_geschwenkt) > 6:
+            namen += " …"
+        self.ebene_text.setText(
+            tr("beta.ebene.satz", anzahl=len(self._beta_geschwenkt), namen=namen)
+        )
+        self.ebene_text.show()
 
     def _tasche_pruefen(self):
         """Gehören die gewählten Flächen zu einer Tasche, von der nur ein Teil gewählt ist: der
@@ -545,8 +578,29 @@ class BefehlBearbeitungBeta(BefehlBearbeitung):
             "ToolTip": tr("befehl.beta.bearbeitung.tooltip"),
         }
 
-    def panel(self, *args, **kwargs):
-        return BetaPanel(*args, **kwargs)
+    def panel(self, dokument, wahl=None, **kwargs):
+        # Alle vorher angeklickten Flächen des Teils kommen mit (der gewohnte Assistent nimmt die
+        # erste) – Manuel klickt etwa zwei Wände an und dann den Befehl.
+        flaechen = _angeklickte_flaechen(dokument, wahl)
+        if len(flaechen) > 1 and "flaechen" not in kwargs:
+            kwargs["flaechen"] = flaechen
+        return BetaPanel(dokument, wahl, **kwargs)
+
+
+def _angeklickte_flaechen(dokument, wahl):
+    """Alle in `dokument` angeklickten Flächen des Teils aus `wahl` („Face2“, „Face3“ …)."""
+    from .gui_vierachs import _entlang
+
+    if not wahl or wahl[0] is None:
+        return []
+    namen = []
+    for auswahl in FreeCADGui.Selection.getSelectionEx(dokument.Name, 0):
+        for unterelement in auswahl.SubElementNames or []:
+            teil, flaeche = _entlang(dokument, auswahl.Object, unterelement)
+            passt = flaeche and teil is not None and vr.original(teil) is wahl[0]
+            if passt and flaeche not in namen:
+                namen.append(flaeche)
+    return namen
 
 
 def _gewaehlter_job():

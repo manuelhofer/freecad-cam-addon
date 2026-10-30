@@ -3397,5 +3397,7 @@
     "beta.anlegen.minuten": "{min} min",
     "beta.anlegen.liste": "„Anlegen“ legt an: {liste} – zusammen etwa {min} min.",
     "beta.anlegen.nichts": "„Anlegen“ legt hier nichts an – nichts angehakt bis zu diesem Schritt.",
-    "beta.anlegen.spaeter": "Angehakt für später: {liste} (mit „Weiter“ oder „Weiter bearbeiten“)."
+    "beta.anlegen.spaeter": "Angehakt für später: {liste} (mit „Weiter“ oder „Weiter bearbeiten“).",
+    "beta.ebene.satz": "{anzahl} der gewählten Flächen ({namen}) kommen in einer eigenen Ebene dran – geschwenkt, oder von oben, wenn die Spindel waagerecht steht. „Anlegen“ legt die Ebene an; dort fragt der Assistent, wie geschruppt wird.",
+    "beta.anlegen.liste_ohne_zeit": "„Anlegen“ legt an: {liste} – die Zeit steht noch nicht fest (siehe die Sätze an den Strategien)."
 }

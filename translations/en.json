@@ -3397,5 +3397,7 @@
     "beta.anlegen.minuten": "{min} min",
     "beta.anlegen.liste": "“Create” creates: {liste} – about {min} min in total.",
     "beta.anlegen.nichts": "“Create” creates nothing here – nothing ticked up to this step.",
-    "beta.anlegen.spaeter": "Ticked for later: {liste} (with “Next” or “Continue machining”)."
+    "beta.anlegen.spaeter": "Ticked for later: {liste} (with “Next” or “Continue machining”).",
+    "beta.ebene.satz": "{anzahl} of the chosen faces ({namen}) are machined in a plane of their own – tilted, or from above if the spindle is horizontal. “Create” creates the plane; there the wizard asks how to rough.",
+    "beta.anlegen.liste_ohne_zeit": "“Create” creates: {liste} – the time is not known yet (see the sentences at the strategies)."
 }

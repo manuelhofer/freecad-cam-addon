@@ -1,6 +1,6 @@
 # Konzept: „Bearbeitung in Schritten“ (Beta)
 
-Stand 2026-10-30 nachts, 0.316.0. Auftrag von Manuel, 2026-10-30 abends:
+Stand 2026-10-30 nachts, 0.317.0. Auftrag von Manuel, 2026-10-30 abends:
 
 > „Ich finde, dass das Gewachsene, dieses Bearbeitungsfenster, … zu groß geworden ist. Ich finde,
 > wir sollten die Einzelschritte besser abfragen, und zwar einzeln abfragen. Immer mit einem
@@ -45,6 +45,11 @@ in dem es für die gewählten Flächen nichts gibt (hier „Löcher“), fehlt i
    (Wände, Böden, Freiform, Restmaterial, Bleistift) und 6. **Kanten** (Fase, Entgraten). In
    jedem dieser Schritte gibt es „Anlegen“. Angelegt wird, was in den bis dahin gezeigten
    Schritten angehakt ist.
+
+Über „Anlegen“ steht, was es in diesem Schritt anlegt, mit Zeit, und was für später angehakt ist.
+Klickt man vor dem Befehl mehrere Flächen an, kommen alle mit. Kommen gewählte Flächen in einer
+eigenen Ebene dran (schräg, oder an der G550 von oben), sagt das der Schritt Schruppen. An
+Manuels Teil „tief“ ist das der Boden: Er wird in der Ebene „von oben“ geräumt.
 
 **„Weiter bearbeiten (Beta)“**: Job im Baum anklicken, dann den Befehl. Das Fenster beginnt beim
 Schritt nach dem zuletzt angelegten, mit denselben Flächen. Die Aufspannung ist fest, und vor

@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-07 beta-anlegen-zeile-mehrere-flaechen-ebene
+
+### EINGELESEN
+- Weiter am Auftrag von P-2026-10-30-05 (Manuel: „Arbeitet da heute Nacht mal bitte dran“) – die
+  Beta an einer Kopie von Manuels Teil „tief“ an seiner G550 mit seiner Werkzeugliste durchgespielt
+  (`~/freecad_cam/wip/pruefhelfer/szenario_beta_tief.py`, nicht im Repo).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: die Zeile „„Anlegen“ legt an: … – zusammen etwa … min.
+  Angehakt für später: …“ (ohne Zeit, wenn sie noch nicht feststeht); alle vorher angeklickten
+  Flächen des Teils kommen mit (`_angeklickte_flaechen`); „Neuer Job …“ öffnet wieder die Beta;
+  im Schruppen der Satz, welche Flächen in einer eigenen Ebene drankommen (`_ebene_zeigen`) – der
+  Schritt fällt dann nicht weg.
+- `camaddon/gui_bearbeitung.py`: `_neues_fenster` (Weiche für „Neuer Job …“, sonst unverändert).
+- `translations/de.json`, `translations/en.json`, `tests/gui/szenario_beta_schritte.py` (die
+  Zeile), `docs/konzept_schritt_assistent.md`, `package.xml` 0.317.0.
+
+### ERGEBNIS
+- Teil „tief“, zwei Wände angeklickt → beide in der Liste (vorher nur die erste); die Kopie hat
+  schon Manuels Job – „Neuer Job …“ → wieder die Beta, Schritt 1 gesperrt bis „Liegt wie im
+  Modell“; „Ganze Tasche nehmen“ → 17 Flächen. Vorher sprang „Weiter“ vom Flächen-Schritt gleich
+  zum Schlichten (an der G550 kommt der Boden in die Ebene „von oben“, im Grundjob ist kein
+  Schruppen möglich) – jetzt Schruppen mit „1 der gewählten Flächen (Face23) kommen in einer
+  eigenen Ebene dran …“. Im Schlichten Flanke T1 und 3D-Schlichten T3 mit ihren roten Sätzen
+  (Werkzeug zu kurz, „So einrichten“ / „T1 auf 51 mm ausspannen“) – wie im gewohnten Assistenten.
+- szenario_beta_schritte grün: „Anlegen legt an: Räumen (T1, 1,8 min), Kontur (T1, 0,9 min),
+  3D-Schruppen (T1, 0,3 min) – zusammen etwa 3,0 min. Angehakt für später: 3D-Schlichten“.
 ## P-2026-10-30-06 beta-fraeser-in-der-zeile
 
 ### EINGELESEN

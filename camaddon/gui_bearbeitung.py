@@ -6782,10 +6782,16 @@ class BearbeitungPanel:
         flaeche = self.gewaehlte[0] if self.gewaehlte else None
         self.reject()
 
+        fenster = self._neues_fenster(dokument, (teil, flaeche))
+
         def oeffnen():
-            FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, (teil, flaeche), neu=True))
+            FreeCADGui.Control.showDialog(fenster())
 
         QtCore.QTimer.singleShot(0, oeffnen)
+
+    def _neues_fenster(self, dokument, wahl):
+        """Was „Neuer Job …“ öffnet – die Beta (gui_bearbeitung_beta) öffnet sich selbst."""
+        return lambda: BearbeitungPanel(dokument, wahl, neu=True)
 
     def _aufspannung_fest(self):
         """Stehen Maschine, Rohteil, Nullpunkt und Lage im Job schon fest – beim Ändern einer
