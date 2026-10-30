@@ -271,6 +271,40 @@ def schritte(h):
         h.bild("7_neue_aufspannung", neu_fenster.form)
         neu_fenster.reject()
         yield 1000
+
+    # 6. Ohne Auswahl gestartet: der erste Klick ist die Fläche, die unten liegt.
+    zweites = FreeCAD.newDocument("Zweites")
+    klotz = zweites.addObject("Part::Feature", "Klotz")
+    klotz.Shape = Part.makeBox(60, 40, 20).cut(Part.makeBox(20, 10, 5, V(20, 15, 15)))
+    zweites.recompute()
+    zweites.saveAs(os.path.join(ordner, "zweites.FCStd"))
+    oben_seite = next(
+        f"Face{i + 1}"
+        for i, f in enumerate(klotz.Shape.Faces)
+        if abs(f.BoundBox.ZMin - 20) < 1e-6 and abs(f.BoundBox.ZMax - 20) < 1e-6
+    )
+    Gui.Selection.clearSelection()
+    yield 300
+    Gui.runCommand("CamAddon_BearbeitungBeta")
+    yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen is not neu_fenster, 60000)
+    yield 1000
+    leer = beta.BearbeitungPanel.offen
+    h.pruefe(isinstance(leer, beta.BetaPanel) and leer.job is None, "ohne Auswahl: schon ein Job?")
+    if isinstance(leer, beta.BetaPanel):
+        h.pruefe("unten liegt" in leer.anleitung.text(), f"Anleitung: {leer.anleitung.text()!r}")
+        Gui.Selection.addSelection(zweites.Name, klotz.Name, oben_seite)
+        yield from h.warte_auf(lambda: leer.job is not None, 60000)
+        yield 1500
+        h.pruefe(leer.job is not None, "der erste Klick legt keinen Job an")
+        h.pruefe(leer._unten == oben_seite, f"unten: {leer._unten} statt {oben_seite}")
+        h.pruefe(not leer.gewaehlte, f"der Klick auf die Unterseite ist gewählt: {leer.gewaehlte}")
+        h.pruefe(
+            leer.knopf_weiter.isEnabled(), "„Weiter“ nach dem Klick auf die Unterseite gesperrt"
+        )
+        h.pruefe(not leer.knopf_unten_waehlen.isChecked(), "„Fläche anklicken …“ bleibt gedrückt")
+        h.bild("8_erster_klick_unten", leer.form)
+        leer.reject()
+        yield 1000
     with __import__("contextlib").suppress(Exception):
         Gui.Control.closeDialog()
     yield 500

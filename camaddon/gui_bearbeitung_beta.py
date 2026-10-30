@@ -105,6 +105,9 @@ class BetaPanel(BearbeitungPanel):
         self._beta_fehlende = []
         self._beta_nachbarn = None  # (Form, taschen_wahl.nachbarn) – gerechnet einmal je Form
         self._beta_bis = None  # beim Anlegen: bis zu welchem Abschnitt
+        # Ohne Auswahl gestartet: der erste Klick ins Teil ist die Fläche, die unten liegt (Manuel:
+        # „erstmal, wo ist die eingespannte Fläche, abfragen“) – damit entsteht auch der Job.
+        self._beta_erster_klick_unten = wahl is None and kwargs.get("operation") is None
         super().__init__(dokument, wahl, **kwargs)
         self._weg["reihenfolge"] = "schruppen"  # die Schritte sind die Reihenfolge
         self._beta_start = 0  # vor diese Seite geht „Zurück“ nicht
@@ -448,10 +451,25 @@ class BetaPanel(BearbeitungPanel):
 
     # --- Schritt 1: was unten liegt ---------------------------------------------------------
 
+    def _beginnen(self, wahl, angeklickt=None):
+        if not getattr(self, "_beta_erster_klick_unten", False):
+            return super()._beginnen(wahl, angeklickt)
+        self._beta_erster_klick_unten = False
+        teil, flaeche = wahl
+        super()._beginnen((teil, None), angeklickt)
+        if self.job is None or flaeche is None:
+            return
+        if self._aufspannung_fest():  # das Teil hat schon einen Job: die Fläche ist zu bearbeiten
+            if flaeche not in self.gewaehlte:
+                self.flaeche_umschalten(flaeche)
+            return
+        self.unten_waehlen(flaeche)
+
     def unten_waehlen(self, flaeche):
         super().unten_waehlen(flaeche)
         if flaeche is not None and self._unten == flaeche:
             self._beta_unten_klar = True
+            self.knopf_unten_waehlen.setChecked(False)  # der nächste Klick wählt wieder Flächen
         if hasattr(self, "_beta_seiten"):
             self._beta_knoepfe()
 

@@ -3367,7 +3367,7 @@
     "beta.schritt.loecher": "Holes",
     "beta.schritt.schlichten": "Finishing",
     "beta.schritt.kanten": "Edges",
-    "beta.anleitung.teil": "Click a face of the part – the add-on then creates the job with the stock. Right after, it asks which face lies at the bottom.",
+    "beta.anleitung.teil": "Click the face of the part that lies at the bottom (in the vise, on the table) – the add-on then creates the job with the stock. After that it asks what to machine.",
     "beta.anleitung.aufspannung": "How does the part lie on the table? Click the face at the bottom (in the vise, on the table) – or “Lies as modelled”. Check stock and origin, then “Next”.",
     "beta.anleitung.flaechen": "Which faces are to be machined? A click adds or removes a face. “Next” works once at least one is chosen.",
     "beta.anleitung.schruppen": "How should the material come out? The roughing strategies with their time, the fastest ticked; below, their values. “Create” now creates only the roughing – later “Continue machining (beta)” at the job. “Next” to the following steps.",
