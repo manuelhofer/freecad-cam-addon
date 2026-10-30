@@ -4237,5 +4237,25 @@ man nicht weiter anstellen einfach ? und so vorschliechten oder nach schruppen ?
   der Schaft 0,10 mm an der Wand (vorher berührt); mit 0,3 mm Aufmaß 1508 Stellen bis 1,25°, Keil
   bis 0,48 mm – der Schaft 0,41 mm (vorher 0,01). Zeit der Flanke gleich (etwa 5 min). Erst nur
   längs der Normalen: in den Ecken bis 4° und 1,54 mm Keil, 48 Stellen trotzdem zu nah.
-- Offen: ob die Kugel den Keil (mit Aufmaß bis 0,78 mm) in einem Gang nimmt oder vorschlichtet
-  (Manuel: „vorschlichten oder nach schruppen“) – siehe OFFENE_FRAGEN.
+- Ob die Kugel den Keil (mit Aufmaß bis 0,78 mm) in einem Gang nimmt: Manuel, 2026-10-30, auf
+  Frage 1: „vorschlichten“ – siehe 16.25.
+
+### 16.25 Vorschlichten unter dem Rand, wo die Flanke einen Keil ließ (W-038, P-2026-10-30-01)
+
+- Nur bei „Flanke grob, Spirale fertig“ (Frage „Wände“): Haken `vorschlichten` am 3D-Schlichten
+  (KIPPHAKEN, vorbelegt an, sichtbar nur mit diesem Weg). Die Flanke merkt sich je weiter
+  angestellter Stelle z oben in ihrer Lage und den Keil dort (`Flankenbahn.keil_stellen`);
+  `flanke_bahn.vorschlichten_bis(bahn, aufmass, mehr_als)` gibt die höchste, an der Keil +
+  Aufmaß der Flanke mehr als `schlichten3d.VORSCHLICHTEN_AB` (0,4 mm) sind – sonst None.
+- Der Assistent rechnet bei diesem Weg die Flanke vor dem 3D-Schlichten (`_vorschau_schritte`,
+  auch `_weg_rechnen` für den anderen Weg mit dessen Flanke) und gibt ihm `vorschlichten_bis`
+  (`_vorschlichten_zusatz`, auf 0,1 mm gerundet). Die Operation: `Vorschlichten`,
+  `VorschlichtenBis`, `VorschlichtenAufmass` (0,1 mm); gespeicherte ohne.
+- `schlichten3d.bahn_fuer` mit `vorschlichten_bis`: unter dem Rand erst `hinterschnitt_bahn.planen`
+  mit Aufmaß + 0,1 mm, Grathöhe mindestens `VORSCHLICHTEN_GRATHOEHE` (0,03 mm: mit Ø 12 die Linien
+  1,2 statt 0,5 mm auseinander) und nur den Höhen bis z (`Werte.bis`), dann die fertige;
+  `hintereinander` hängt beide aneinander (Zeit und Länge zusammen), `geplant_merken` merkt beide
+  einzeln (Vorschau, Vorabrechnung „genau“ und Operation treffen sich). Geht das Vorschlichten
+  nicht (keine Höhe darunter), bleibt die fertige allein.
+- Die Schwelle 0,4 mm und das Aufmaß 0,1 mm hat Claude gewählt (Manuel nannte kein X): 0,3 mm
+  Aufmaß der Flanke allein schlichtet die Kugel wie bisher in einem Gang.

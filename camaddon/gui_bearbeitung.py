@@ -3459,7 +3459,8 @@ def _job_der(op):
     return next((j for j in js.jobs(op.Document) if op in js.operationen(j)), None)
 
 
-KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt", "spirale")  # 3D-Schlichten: 5 Achsen
+# 3D-Schlichten: 5 Achsen
+KIPPHAKEN = ("anstellen", "wegkippen", "hinterschnitt", "spirale", "vorschlichten")
 # Vorbohren fürs Räumen: der Bohrer zwischen dem Fräser und so viel mal ihm – größer passte er
 # nicht mehr in den Kreis, den das Räumen für die Helix braucht (raeumen_bahn.ADAPTIV_HELIX).
 VORBOHRER_HOECHSTENS = 1.6
@@ -3482,6 +3483,14 @@ KEGELSENKER_REIHE = (
 )
 # Was im Grundjob einer Maschine mit waagerechter Spindel bleibt: die Strategien mit Achse je Satz.
 SIMULTAN_IM_GRUNDJOB = ("flanke", "schlichten3d", "restschlichten", "entgraten3d")
+
+
+def _vorschlichten_bis(werte):
+    """z, bis zu der das 3D-Schlichten unter dem Rand vorschlichtet (Haken „Vorschlichten“ und
+    eine Höhe aus der Flanke davor, BearbeitungPanel._vorschlichten_zusatz) – sonst None."""
+    if not (werte.get("hinterschnitt") and werte.get("vorschlichten", True)):
+        return None
+    return werte.get("vorschlichten_bis")
 
 
 class _Schlichten3D(_Strategie):
@@ -3524,11 +3533,24 @@ class _Schlichten3D(_Strategie):
             ("hinterschnitt", tr("ba.s3.unter"), tr("ba.s3.unter.tooltip"), True),
             # Manuel, 2026-10-25: „sozusagen abzeilen mit halt einer spirale nach unten“.
             ("spirale", tr("ba.s3.spirale"), tr("ba.s3.spirale.tooltip"), True),
+            # Manuel, 2026-10-30, Frage 1: „vorschlichten“ – wo die Flanke davor einen Keil ließ.
+            (
+                "vorschlichten",
+                tr("ba.s3.vorschlichten"),
+                tr(
+                    "ba.s3.vorschlichten.tooltip",
+                    ab=groesse_zeigen(s3op.VORSCHLICHTEN_AB, einheiten.LAENGE, 1),
+                    aufmass=groesse_zeigen(s3op.VORSCHLICHTEN_AUFMASS, einheiten.LAENGE, 1),
+                ),
+                True,
+            ),
         )
 
     def haken_verborgen(self, feld, block):
         # Anstellen, Wegkippen und unter dem Rand nur an einer 5-Achs-Maschine – sonst wären sie
-        # nur Rauschen.
+        # nur Rauschen; Vorschlichten nur nach „Flanke grob, Spirale fertig“ (Frage „Wände“).
+        if feld == "vorschlichten" and getattr(block.panel, "_weg", {}).get("waende") != "spirale":
+            return True
         return feld in KIPPHAKEN and not block.panel._fuenfachs()
 
     def haken_gesperrt(self, feld, block):
@@ -3548,9 +3570,9 @@ class _Schlichten3D(_Strategie):
     def haken_gesperrt_warum(self, feld, block):
         # Manuel, 2026-10-16: „warum das anstellen aber nur mit einem kugelfräser geht weis ich
         # nun nicht ?“
-        if feld in ("anstellen", "hinterschnitt", "spirale") and self.haken_gesperrt(
-            feld, block
-        ) == tr("ba.s3.anstellen.ohne_kugel"):
+        if feld != "wegkippen" and self.haken_gesperrt(feld, block) == tr(
+            "ba.s3.anstellen.ohne_kugel"
+        ):
             return tr("ba.s3.anstellen.ohne_kugel.warum")
         return None
 
@@ -3593,6 +3615,8 @@ class _Schlichten3D(_Strategie):
         if werte.get("hinterschnitt") and form.nur_kugel:
             weiter["richtung"] = s3op.hb.HINTERSCHNITT  # nur überdeckte Flächen, sonst „auto“
             weiter["spirale"] = bool(werte.get("spirale", True))
+            if werte.get("vorschlichten", True) and werte.get("vorschlichten_bis") is not None:
+                weiter["vorschlichten_bis"] = float(werte["vorschlichten_bis"])
             # Schaft und Halter aus der Werkzeugverwaltung (der Halter in Stücken, Kegel genau) –
             # wie sie im Magazin der Maschine stecken.
             bibliothek = _bibliothek_der_pruefung()
@@ -3658,6 +3682,14 @@ class _Schlichten3D(_Strategie):
                 text = tr("ba.ergebnis_s3_unter_spirale", **werte)
             else:
                 text = tr("ba.ergebnis_s3_unter", **werte)
+            vor = getattr(bahn, "vor", None)
+            if vor is not None:
+                text = tr(
+                    "ba.s3.vorschlichten.ergebnis",
+                    text=text,
+                    n=vor.linien,
+                    zeit=_ziel_minuten(vor.zeit),
+                )
             ecken = bahn.weggelassen - bahn.anstoesse
             if ecken and getattr(bahn, "ecken_radius", 0.0) > 0:
                 d = groesse_zeigen(2.0 * bahn.ecken_radius, einheiten.LAENGE, 1) or "0"
@@ -3708,6 +3740,7 @@ class _Schlichten3D(_Strategie):
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
         s3op.unter_dem_rand(op, werte.get("hinterschnitt", False), werte.get("spirale", True))
+        s3op.vorschlichten(op, _vorschlichten_bis(werte))
         return op
 
     def aendere(self, op, tc, werte, flaechen):
@@ -3715,6 +3748,7 @@ class _Schlichten3D(_Strategie):
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
         s3op.stelle_weg(op, werte.get("wegkippen", False))
         s3op.unter_dem_rand(op, werte.get("hinterschnitt", False), werte.get("spirale", True))
+        s3op.vorschlichten(op, _vorschlichten_bis(werte))
 
     def ist(self, op):
         return s3op.ist_schlichten3d(op) and not s3op.ist_restschlichten(op)
@@ -4920,27 +4954,39 @@ class _Block:
         Schritt wie die Operation statt gröber wie die Vorschau, die Sicherheitshöhe wie ihre
         (StartDepth plus SafeHeightOffset des Jobs) – in einem Nebenrechner, während man noch
         schaut; „Anlegen“ holt sie ab (_genau_abholen → hinterschnitt_bahn.geplant_merken). Am
-        5-Achs-Teil „tief“ rechnete „Anlegen“ sie sonst 30 s im Hauptprozess."""
+        5-Achs-Teil „tief“ rechnete „Anlegen“ sie sonst 30 s im Hauptprozess. Mit Vorschlichten
+        rechnen es und das Schlichten je in einem Nebenrechner, zugleich (nacheinander wartete
+        „Anlegen“ dort 23 s)."""
         from . import nebenrechner as nr
 
         pool = nr.pool()
         if not pool.verfuegbar():
             return
-        while len(self.genau) >= GENAU_JE_BLOCK:
-            alt = self.genau.pop(0)
-            if not alt.erledigt and getattr(alt, "arbeiter", None) is None:
-                pool.abbrechen(alt)
         try:
             argumente, weiter = self.s._argumente(werkzeug, werte, flaechen)
             versatz = getattr(getattr(job, "SetupSheet", None), "SafeHeightOffset", None)
             versatz = float(getattr(versatz, "Value", versatz))
             weiter = dict(weiter, schritt=s3b.SCHRITT, sicher=pf.rohteil_von_oben(job)[4] + versatz)
+            teile = [weiter]
+            if "vorschlichten_bis" in weiter:
+                ohne = {k: v for k, v in weiter.items() if k != "vorschlichten_bis"}
+                teile = [ohne, dict(weiter, nur_vorschlichten=True)]
+            while self.genau and len(self.genau) + len(teile) > GENAU_JE_BLOCK:
+                alt = self.genau.pop(0)
+                if not alt.erledigt and getattr(alt, "arbeiter", None) is None:
+                    pool.abbrechen(alt)
             kopie = pool.kopie(job.Document, wiederverwenden=True)
-            self.genau.append(
-                pool.auftrag(
-                    "bearbeitung_vorschau", "schlichten3d_genau", kopie, job.Name, argumente, weiter
+            for teil in teile:
+                self.genau.append(
+                    pool.auftrag(
+                        "bearbeitung_vorschau",
+                        "schlichten3d_genau",
+                        kopie,
+                        job.Name,
+                        argumente,
+                        teil,
+                    )
                 )
-            )
         except Exception as fehler:  # noqa: BLE001 – dann rechnet „Anlegen“ wie bisher
             FreeCAD.Console.PrintLog(f"CAM-Addon: Bahn unter dem Rand im Nebenrechner: {fehler}\n")
 
@@ -8785,7 +8831,13 @@ class BearbeitungPanel:
         self._raeumen_bei_nut = False  # alle Gründe des Räumens fräst die Nut (_block_schritte)
         boeden = self._nur_boeden(form)
         gerechnet = {}  # Block → woraus seine Vorschau gerechnet ist (_block_rechnen)
-        for block in self.bloecke:
+        reihe = list(self.bloecke)
+        if self._weg.get("waende") == "spirale":
+            # Die Flanke vor dem 3D-Schlichten: Ihr Keil sagt, bis wohin es vorschlichtet
+            # (_vorschlichten_zusatz) – sonst rechnete es danach noch einmal.
+            reihe.remove(self.flanke)
+            reihe.insert(reihe.index(self.schlichten3d), self.flanke)
+        for block in reihe:
             yield from self._block_schritte(block, form, boeden, gerechnet)
             yield
         self._wettbewerb(form, nur_bohrung=boeden is not None)
@@ -8835,6 +8887,8 @@ class BearbeitungPanel:
         if self._weg.get(frage) == weg:
             return
         self._weg[frage] = weg
+        if frage == "waende":
+            self.schlichten3d.haken_pruefen()  # „Vorschlichten“ nur bei „Flanke grob, Spirale …“
         self.vorschau_starten()
 
     def _block_zeigen(self, block):
@@ -9066,8 +9120,10 @@ class BearbeitungPanel:
             _n, vorschub, senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
             alt, self._weg[frage] = self._weg[frage], weg
             try:
+                # Das 3D-Schlichten mit der Flanke dieses Wegs (Vorschlichten: ihr Keil).
+                zusatz = self._zusatz(block, form, flanke=bahnen[0] if bahnen else None)
                 werte = dict(block.werte(), vorschub=vorschub, eintauchen=senkrecht,
-                             **(self._zusatz(block, form) or {}))  # fmt: skip
+                             **(zusatz or {}))  # fmt: skip
                 flaechen = self._flaechen(block, form)
             finally:
                 self._weg[frage] = alt
@@ -10221,13 +10277,14 @@ class BearbeitungPanel:
                 dazu.append((anderer.s.titel(), anderer.vorschau.punkte, fraeser))
         return (yield from mst.fuer_schritte(self.job, dazu=dazu))
 
-    def _zusatz(self, block, form):
+    def _zusatz(self, block, form, flanke=None):
         """Was der Assistent einem Block vorgibt: Räumt das Räumen den Boden einer Tasche, deren
         Wände die Kontur fährt, und ist die Breite der Kontur leer, dann steht neben den Wänden
         nur noch das Aufmaß des Räumens – die Kontur schlichtet nur noch (Räumen + Kontur mit
         Breite = Aufmaß, die schnellste Folge in der Tasche; Spezifikation Abschnitt 11). Fräst
         das Planfräsen die Böden vor allen Wänden (ein Absatz), steht dort höchstens sein Rest
-        an der Wand (P-2026-10-02-17)."""
+        an der Wand (P-2026-10-02-17). `flanke`: die Bahn der Flanke für das Vorschlichten des
+        3D-Schlichtens (_vorschlichten_zusatz) – ohne: ihre Vorschau."""
         if block is self.gewindefraesen:
             return {"werkzeug": block.fraeser()}  # Steigung und Zähne kennt CAM nicht
         if block is self.raeumen:
@@ -10257,6 +10314,8 @@ class BearbeitungPanel:
             return {"davor": davor} if davor else None
         if block is self.restschlichten:
             return self._davor_3d(self.restschlichten, self.schlichten3d)
+        if block is self.schlichten3d:
+            return self._vorschlichten_zusatz(form, flanke)
         if block is self.flanke:
             if self.flanke.felder["aufmass"].text().strip():
                 return None  # von Hand eingetragen
@@ -10601,6 +10660,20 @@ class BearbeitungPanel:
             flanke = set(self._eigene(self.flanke, form))
             return [f for f in flaechen if f not in flanke]
         return flaechen
+
+    def _vorschlichten_zusatz(self, form, flanke=None):
+        """{"vorschlichten_bis": z} für das 3D-Schlichten bei „Flanke grob, Spirale fertig“: bis
+        dort hinauf lässt die Flanke (`flanke`, ohne: ihre Vorschau) an der Wand mehr als
+        schlichten3d.VORSCHLICHTEN_AB – Aufmaß und Keil, wo sie weiter angestellt ist (Manuel,
+        2026-10-30, Frage 1: „vorschlichten“). Sonst None."""
+        if not self._spirale_nach_flanke(form):
+            return None
+        bahn = flanke if flanke is not None else self.flanke.vorschau
+        if not getattr(bahn, "keil_stellen", None):
+            return None
+        werte = dict(self.flanke.werte(), **(self._zusatz(self.flanke, form) or {}))
+        bis = flb.vorschlichten_bis(bahn, float(werte.get("aufmass", 0.0)), s3op.VORSCHLICHTEN_AB)
+        return {"vorschlichten_bis": round(bis, 1)} if bis is not None else None
 
     def _spirale_nach_flanke(self, form):
         """Die Wände der Flanke, die danach das 3D-Schlichten als Spirale unter dem Rand fertig

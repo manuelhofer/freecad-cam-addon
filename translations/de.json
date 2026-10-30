@@ -3349,5 +3349,11 @@
     "ba.s3.unter.ecken_rest": "Restschlichten mit {werkzeug} anhaken",
     "ba.s3.unter.ecken_neu": "So ginge es: {werkzeug} im Halter „{halter}“, {heraus} mm heraus.",
     "ba.s3.unter.ecken_anlegen": "In der Werkzeugverwaltung anlegen und Restschlichten anhaken",
-    "emp.sucht": "Ich suche, womit es ginge …"
+    "emp.sucht": "Ich suche, womit es ginge …",
+    "ba.s3.vorschlichten": "Vorschlichten, wo die Flanke einen Keil lässt",
+    "ba.s3.vorschlichten.tooltip": "Bei „Flanke grob, Spirale fertig“: Stellt die Flanke in unteren Lagen weiter an, damit der Schaft frei bleibt, steht an der Wand außer ihrem Aufmaß noch ein Keil. Wo beides zusammen mehr als {ab} ist, fährt die Kugel bis dort hinauf zuerst mit {aufmass} Aufmaß und gröberem Abstand hinab, dann fertig – fürs Schlichten bleibt nur das Aufmaß des Vorschlichtens.",
+    "ba.s3.vorschlichten.ergebnis": "{text}, davon {zeit} Vorschlichten ({n} Höhenlinien), wo die Flanke einen Keil ließ",
+    "s3.eigenschaft.vorschlichten": "Unter dem Rand zuerst vorschlichten – bis „Vorschlichten bis“ hinauf, mit dem Aufmaß „Vorschlichten Aufmaß“ mehr; dann fertig. Setzt der Assistent, wo die Flanke davor einen Keil ließ.",
+    "s3.eigenschaft.vorschlichten_bis": "Bis zu dieser Höhe (z im Job) schlichtet die Kugel unter dem Rand vor.",
+    "s3.eigenschaft.vorschlichten_aufmass": "So viel mehr Aufmaß lässt das Vorschlichten unter dem Rand – das nimmt danach das Schlichten."
 }

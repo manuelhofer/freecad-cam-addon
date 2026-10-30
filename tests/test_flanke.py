@@ -451,6 +451,21 @@ print(
     )
 )
 
+# Vorschlichten (Manuel, 2026-10-30, Frage 1: „vorschlichten“): Wo die Flanke weiter angestellt
+# ist, merkt sie sich je Stelle, wie dick der Keil oben in der Lage ist und auf welcher Höhe;
+# vorschlichten_bis nennt die höchste, an der Keil und Aufmaß mehr als gefragt sind.
+keil_hoch = max(k for _z, k in zwei.keil_stellen)
+bis = fb.vorschlichten_bis(zwei, 0.3, 0.3 + keil_hoch / 2)
+pruefe(
+    len(zwei.keil_stellen) == zwei.weiter_stellen
+    and abs(keil_hoch - zwei.keil) < 1e-3
+    and bis is not None
+    and 10.0 < bis < 30.0
+    and fb.vorschlichten_bis(zwei, 0.3, 0.3 + keil_hoch + 0.01) is None
+    and fb.vorschlichten_bis(ohne_frei, 0.3, 0.0) is None,
+    f"Vorschlichten bis: {len(zwei.keil_stellen)} Stellen, Keil {keil_hoch:.3f}, bis z {bis}",
+)
+
 
 # Scharfe Ecken: je Wand ein Umlauf, er endet vor der Ecke. Taucht der Fräser in der unteren Lage
 # dort die Achse entlang ein, streift er oben die Nachbarwand, die weiter hereinhängt (Manuels

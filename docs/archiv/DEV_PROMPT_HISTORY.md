@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-01 vorschlichten-unter-dem-rand
+
+### EINGELESEN
+- Manuel, 2026-10-30, auf Frage 1 (nimmt die Kugel Keil + Aufmaß bis 0,78 mm in einem Gang,
+  oder vorschlichten?): „vorschlichten“. Eine Schwelle X nannte er nicht – gewählt 0,4 mm.
+
+### DATEIEN
+- `camaddon/flanke_bahn.py`: `Flankenbahn.keil_stellen` (je weiter angestellter Stelle z oben in
+  der Lage und Keil dort, aus `_weiter_anstellen`), `vorschlichten_bis(bahn, aufmass, mehr_als)`.
+- `camaddon/hinterschnitt_bahn.py`: `Werte.bis` (nur Höhen darunter), `Bahn.vor/fertig`,
+  `hintereinander`, `geplant_merken` merkt beide Teile.
+- `camaddon/schlichten3d.py`: `VORSCHLICHTEN_AB` 0,4, `VORSCHLICHTEN_AUFMASS` 0,1,
+  `VORSCHLICHTEN_GRATHOEHE` 0,03; Eigenschaften `Vorschlichten`, `VorschlichtenBis`,
+  `VorschlichtenAufmass` (gespeicherte ohne); `bahn_fuer(vorschlichten_bis=…,
+  nur_vorschlichten=…)`, `vorschlichten(op, bis)`.
+- `camaddon/gui_bearbeitung.py`: Haken „Vorschlichten, wo die Flanke einen Keil lässt“ (vorbelegt
+  an, nur bei „Flanke grob, Spirale fertig“), `_vorschlichten_zusatz`, die Flanke vor dem
+  3D-Schlichten in der Vorschau und in `_weg_rechnen`, Satz „…, davon 7,3 min Vorschlichten“,
+  Vorabrechnung in zwei Nebenrechnern.
+- `translations/*.json`, `help/*/bearbeitung.html`, `docs/spezifikation_strategien.md` 16.25,
+  `docs/OFFENE_FRAGEN.md` (leer), `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.314.0.
+- `tests/test_flanke.py` (Keil-Stellen, vorschlichten_bis), `tests/test_hinterschnitt_bahn.py`
+  (bis, hintereinander, Merker, Operation mit/ohne Vorschlichten).
+
+### ERGEBNIS
+- Tiefe Tasche (Kopie), „Flanke grob, Spirale fertig“: Vorschlichten bis z 70,1 (Oberkante der
+  unteren Flanken-Lage), 29 Höhenlinien, 7,3 min; das 3D-Schlichten 34 statt 27 min.
+- „Anlegen“ zuerst 23,8 s (die Vorabrechnung rechnete beide nacheinander, „Anlegen“ wartete) –
+  alter Stand 1,2 s; mit zwei Nebenrechnern 1,0 s.
+- Gemessen am alten und neuen Stand gleich: rund 50–60 s rechnet das Fenster nach der Wahl
+  „Spirale fertig“ allein – nicht von dieser Änderung, offen im Status.
+- Grün: test_flanke, test_hinterschnitt_bahn, test_sprache, test_hilfe; Szenario an der tiefen
+  Tasche (Kopie, lokal): Haken bei „Flanke fertig“ verborgen, bei „Spirale fertig“ an.
 ## P-2026-10-26-12 flanke-schaft-frei
 
 ### EINGELESEN

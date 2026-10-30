@@ -46,6 +46,14 @@ GRUPPE_5ACHS = "5-Achs"
 # „hinterschnitt“: liegen gewählte Flächen unter dem Rand (hinterschnitt_bahn.ueberdeckt), an
 # einer 5-Achs-Maschine Höhenlinien mit gekippter Kugel; sonst wie „auto“.
 RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche", "aequidistant", "winkel", hb.HINTERSCHNITT)
+# Vorschlichten unter dem Rand (Manuel, 2026-10-30, Frage 1: „vorschlichten“): Wo die Flanke davor
+# weiter angestellt war (Schaft frei) und an der Wand Keil und Aufmaß zusammen mehr als
+# VORSCHLICHTEN_AB lassen, fährt die Kugel bis dort hinauf zuerst mit VORSCHLICHTEN_AUFMASS mehr
+# und gröber hinab (VORSCHLICHTEN_GRATHOEHE: mit Ø 12 die Linien 1,2 statt 0,5 mm auseinander),
+# dann fertig – sie nimmt am Stück höchstens das Aufmaß des Vorschlichtens.
+VORSCHLICHTEN_AB = 0.4  # mm
+VORSCHLICHTEN_AUFMASS = 0.1  # mm
+VORSCHLICHTEN_GRATHOEHE = 0.03  # mm
 
 
 class Schlichten3D(PathOp.ObjectOp):
@@ -73,8 +81,15 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.DurchmesserDavor = 0.0  # 0: ganz schlichten; sonst Restschlichten
         obj.EckenradiusDavor = 0.0
         obj.UnterRandSpirale = True  # unter dem Rand als Spirale hinab (neu: vorbelegt an)
+        self._vorschlichten_vorbelegen(obj)
         self._anstellen_vorbelegen(obj)
         self._editormodi(obj)
+
+    @staticmethod
+    def _vorschlichten_vorbelegen(obj):
+        obj.Vorschlichten = False  # setzt der Assistent, wo die Flanke einen Keil ließ
+        obj.VorschlichtenBis = 0.0
+        obj.VorschlichtenAufmass = VORSCHLICHTEN_AUFMASS
 
     @staticmethod
     def _anstellen_vorbelegen(obj):
@@ -100,6 +115,8 @@ class Schlichten3D(PathOp.ObjectOp):
             obj.SpielSchaft = wk.SPIEL_SCHAFT
         if "UnterRandSpirale" in neu:
             obj.UnterRandSpirale = False  # gespeichert vor der Spirale: Linie für Linie wie damals
+        if "Vorschlichten" in neu:
+            self._vorschlichten_vorbelegen(obj)  # gespeichert davor: ohne, wie damals
         if "Grenzwinkel" in neu:
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
         if "Winkel" in neu:
@@ -151,6 +168,13 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyLength", "SpielHalter", tr("wk.eigenschaft.spiel_halter")),
             ("App::PropertyLength", "SpielSchaft", tr("wk.eigenschaft.spiel_schaft")),
             ("App::PropertyBool", "UnterRandSpirale", tr("s3.eigenschaft.spirale")),
+            ("App::PropertyBool", "Vorschlichten", tr("s3.eigenschaft.vorschlichten")),
+            ("App::PropertyDistance", "VorschlichtenBis", tr("s3.eigenschaft.vorschlichten_bis")),
+            (
+                "App::PropertyLength",
+                "VorschlichtenAufmass",
+                tr("s3.eigenschaft.vorschlichten_aufmass"),
+            ),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE_5ACHS, text)
@@ -336,6 +360,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
             dict(
                 _koerper_des_controllers(obj.ToolController),
                 spirale=bool(getattr(obj, "UnterRandSpirale", False)),
+                **_vorschlichten_der_operation(obj),
             )
             if str(obj.Richtung) == hb.HINTERSCHNITT
             else {}
@@ -370,6 +395,16 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
 
         schlicht_anlauf.ergaenzen(bahn, job, obj, form.radius, vorschub, eintauchen)
     return bahn
+
+
+def _vorschlichten_der_operation(obj):
+    """Die Schlüsselwörter für bahn_fuer, wenn die Operation vorschlichtet – sonst keine."""
+    if not getattr(obj, "Vorschlichten", False):
+        return {}
+    return {
+        "vorschlichten_bis": float(obj.VorschlichtenBis),
+        "vorschlichten_aufmass": float(obj.VorschlichtenAufmass),
+    }
 
 
 def _koerper_des_controllers(tc):
@@ -445,13 +480,19 @@ def bahn_fuer(
     koerper=None,
     schneide=0.0,
     spirale=False,
+    vorschlichten_bis=None,
+    vorschlichten_aufmass=VORSCHLICHTEN_AUFMASS,
+    nur_vorschlichten=False,
 ):
     """Die Bahn „3D-Schlichten“ über die Flächen `flaechen` des Modells – mit `davor` (Form des
     Fräsers davor) nur der Rest; `gleichlauf` False: die Höhenlinien mit dem Material links (M4).
     Mit `richtung` „hinterschnitt“ und Flächen unter dem Rand die Höhenlinien mit gekippter Kugel
     (hinterschnitt_bahn.Bahn), Schaft und Halter frei – `koerper` [(von, bis, Radius)] über der
     Schneide (`schneide` lang); None: die des Werkzeugs nicht bekannt, ein Schaft wie die Kugel;
-    `spirale`: wo es rundum geht, als Spirale hinab (hinterschnitt_bahn._spirale).
+    `spirale`: wo es rundum geht, als Spirale hinab (hinterschnitt_bahn._spirale);
+    `vorschlichten_bis` (z): unter dem Rand bis dort hinauf erst mit `vorschlichten_aufmass` mehr
+    vorschlichten (VORSCHLICHTEN_AB), dann fertig (hinterschnitt_bahn.hintereinander);
+    `nur_vorschlichten`: nur dieses (für einen eigenen Nebenrechner).
     ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
@@ -481,7 +522,24 @@ def bahn_fuer(
                 freivorschub=fw.freivorschub_fuer(job),
                 spirale=bool(spirale),
             )
-            return hb.planen(form_teil, [n for n in flaechen if str(n).startswith("Face")], werte_h)
+            namen_h = [n for n in flaechen if str(n).startswith("Face")]
+            if vorschlichten_bis is not None:
+                werte_vor = replace(
+                    werte_h,
+                    aufmass=aufmass + float(vorschlichten_aufmass),
+                    grathoehe=max(grathoehe, VORSCHLICHTEN_GRATHOEHE),
+                    bis=float(vorschlichten_bis),
+                )
+                if nur_vorschlichten:
+                    return hb.planen(form_teil, namen_h, werte_vor)
+            fertig = hb.planen(form_teil, namen_h, werte_h)
+            if vorschlichten_bis is None:
+                return fertig
+            try:
+                vor = hb.planen(form_teil, namen_h, werte_vor)
+            except ValueError:  # darunter keine Höhe, oder dort kommt die Kugel nicht hin
+                return fertig
+            return hb.hintereinander(vor, fertig)
         richtung = "auto"
     werte = sb.Schlichtwerte(
         form=form,
@@ -679,6 +737,16 @@ def unter_dem_rand(obj, an_, spirale=None):
         obj.Richtung = hb.HINTERSCHNITT
     elif str(obj.Richtung) == hb.HINTERSCHNITT:
         obj.Richtung = "auto"
+
+
+def vorschlichten(obj, bis):
+    """Vorschlichten unter dem Rand bis z = `bis` hinauf (VORSCHLICHTEN_AB); None: ohne. Ohne
+    eigene Transaktion."""
+    if "Vorschlichten" not in obj.PropertiesList:
+        return
+    obj.Vorschlichten = bis is not None
+    if bis is not None:
+        obj.VorschlichtenBis = float(bis)
 
 
 def stelle_an(obj, anstellen, kippachse=None):

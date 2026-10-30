@@ -298,6 +298,8 @@ class Werte:
     # Wo eine Höhe rundum geht: als Spirale hinab statt Linie für Linie (_spirale; Manuel,
     # 2026-10-25: „mit halt einer spirale nach unten .. wie beim 4 achs außen“).
     spirale: bool = False
+    # z: nur die Höhen darunter (das Vorschlichten, wo die Flanke einen Keil ließ); None: alle.
+    bis: float = None
 
 
 @dataclass
@@ -336,6 +338,9 @@ class Bahn:
     # Für einen Fräser dorthin (empfehlung.neue_kugel): {"punkte", "normalen" (je bis PRUEF_AN, auf
     # der Fläche, wo eine Kugel mit ecken_radius anläge), "radius", "aufmass", "mitte"}; None ohne.
     ecken: dict = None
+    # Mit Vorschlichten (hintereinander): die Bahn davor und die fertige – je für sich gemerkt.
+    vor: object = None
+    fertig: object = None
 
 
 def _richtung_zur_luft(form, flaeche):
@@ -435,6 +440,10 @@ def plan_schluessel(form, namen, w):
 def geplant_merken(bahn):
     """Nimmt eine Bahn aus einem Nebenrechner (die Vorschau im Assistenten) in den Merker von
     planen() auf: Rechnet die Operation hier mit denselben Eingaben, nimmt sie diese Bahn."""
+    if bahn is not None and getattr(bahn, "fertig", None) is not None:
+        geplant_merken(bahn.vor)
+        geplant_merken(bahn.fertig)
+        return
     if bahn is None or not getattr(bahn, "schluessel", ()):
         return
     _GEPLANT[bahn.schluessel] = replace(bahn, punkte=list(bahn.punkte), achsen=list(bahn.achsen))
@@ -484,7 +493,10 @@ def _planen(form, namen, w):
     netz = na.Netz(form, toleranz=NETZ_TOLERANZ, zelle=max(halb, davor) + 1.0)
     linien = []  # [[[(Mitte, Normale)]]] – je Höhe die Ringe
     namen = [n for _f, _v, n in flaechen]
-    for je_hoehe in _verteilt_schneiden(form, namen, _hoehen(flaechen, bb, abstand), w.schritt):
+    hoehen = _hoehen(flaechen, bb, abstand)
+    if w.bis is not None:
+        hoehen = [z for z in hoehen if z <= w.bis]
+    for je_hoehe in _verteilt_schneiden(form, namen, hoehen, w.schritt):
         ringe = [
             [(FreeCAD.Vector(*(p + n * halb)), FreeCAD.Vector(*n)) for p, n in zip(*r, strict=True)]
             for r in je_hoehe
@@ -599,6 +611,22 @@ def _planen(form, namen, w):
         pruefung=pruefung,
         ecken_radius=ecken_radius,
         ecken=ecken,
+    )
+
+
+def hintereinander(vor, fertig):
+    """Erst `vor` (das Vorschlichten), dann `fertig` – eine Bahn: Punkte, Achsen, Länge und Zeit
+    zusammen, sonst wie `fertig`."""
+    return replace(
+        fertig,
+        punkte=list(vor.punkte) + list(fertig.punkte),
+        achsen=list(vor.achsen) + list(fertig.achsen),
+        laenge=vor.laenge + fertig.laenge,
+        zeit=vor.zeit + fertig.zeit,
+        neigung=max(vor.neigung, fertig.neigung),
+        schluessel=(),
+        vor=vor,
+        fertig=fertig,
     )
 
 

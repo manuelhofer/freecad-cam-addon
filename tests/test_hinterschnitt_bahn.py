@@ -196,6 +196,32 @@ steigt = [
     if q[0].z > p[0].z + 0.05 and not q[0].eintauchen and abs(q[0].x - p[0].x) < 2.0
 ]
 pruefe(len(steigt) <= 2 * spirale.spiralen, f"Spirale steigt {len(steigt)}-mal")
+# Vorschlichten (Manuel, 2026-10-30, Frage 1: „vorschlichten“): nur die Höhen bis `bis` (20), mit
+# mehr Aufmaß; hintereinander mit der fertigen eine Bahn – gemerkt werden beide für sich.
+vor = hb.planen(
+    teil,
+    waende,
+    hb.Werte(radius=R, sicher=40.0, grathoehe=0.03, aufmass=0.1, vorschub=1500.0, bis=20.0),
+)
+v_vorschub = [p for p in vor.punkte if not p.eilgang and p.z < 29.0]  # in der Tasche
+beide = hb.hintereinander(vor, bahn)
+pruefe(
+    0 < vor.linien < bahn.linien / 2
+    and max(p.z for p in v_vorschub) < 20.0 + 0.2
+    and len(beide.punkte) == len(vor.punkte) + len(bahn.punkte)
+    and len(beide.achsen) == len(beide.punkte)
+    and abs(beide.zeit - vor.zeit - bahn.zeit) < 1e-9
+    and beide.vor is vor
+    and beide.fertig is bahn,
+    f"Vorschlichten: {vor.linien} Linien bis z {max(p.z for p in v_vorschub):.2f}",
+)
+hb._GEPLANT.clear()
+hb.geplant_merken(beide)
+pruefe(
+    hb._GEPLANT.get(vor.schluessel) is not None and hb._GEPLANT.get(bahn.schluessel) is not None,
+    "Vorschlichten: nicht beide gemerkt",
+)
+print(ascii(f"Vorschlichten: {vor.linien} Linien, {vor.zeit:.2f} min vor {bahn.zeit:.2f} min"))
 try:
     hb.planen(teil, [], hb.Werte(radius=R, sicher=40.0))
     pruefe(False, "ohne Flächen kein Fehler")
@@ -297,6 +323,21 @@ pruefe(
     "das Programm schwenkt nicht",
 )
 print(ascii(f"Maschine: {len(saetze)} Saetze"))
+
+# Vorschlichten bis z = 20 (vom Assistenten aus der Flanke): erst die gröbere Bahn, dann dieselbe.
+s3op.vorschlichten(op, 20.0)
+doc.recompute()
+mit_vor = list(op.Path.Commands)
+pruefe(
+    op.Vorschlichten
+    and len(mit_vor) > len(befehle)
+    and len(op.Werkzeugachsen) == len(mit_vor)
+    and so.ist_simultan(op),
+    f"Vorschlichten: {len(mit_vor)} statt {len(befehle)} Sätze",
+)
+s3op.vorschlichten(op, None)
+doc.recompute()
+pruefe(not op.Vorschlichten and len(op.Path.Commands) == len(befehle), "Vorschlichten aus")
 
 s3op.unter_dem_rand(op, False)
 doc.recompute()

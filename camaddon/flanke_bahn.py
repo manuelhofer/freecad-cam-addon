@@ -138,6 +138,9 @@ class Flankenbahn:
     weiter: float = 0.0
     keil: float = 0.0
     streift: int = 0
+    # Je weiter angestellter Stelle (z oben in ihrer Lage, Keil dort in mm): wo die Kugel danach
+    # mehr als das Aufmaß vorfindet (vorschlichten_bis).
+    keil_stellen: list = field(default_factory=list)
 
 
 @dataclass
@@ -550,6 +553,7 @@ def _planen(form, namen, werte):
     punkte, alle_teile = [], []
     umlaeufe = lagen_max = weggelassen = weiter_stellen = streift = 0
     neigung = weiter = keil = 0.0
+    keil_stellen = []
     namen_je_zug = []
     for zug, geschlossen in zuege(form, waende):
         stuecke = _stellen_des_zugs(form, zug, w)
@@ -596,6 +600,7 @@ def _planen(form, namen, werte):
             weiter = max(weiter, angestellt[1])
             keil = max(keil, angestellt[2])
             streift += angestellt[3]
+            keil_stellen.extend(angestellt[4])
         gehen = iter(enumerate(geht_liste))
         for lage, v in lagen_umlaeufe:
             w_v = replace(w, aufmass=w.aufmass + v)  # für _grenze: die Stellen dazwischen
@@ -652,7 +657,16 @@ def _planen(form, namen, werte):
         weiter=weiter,
         keil=keil,
         streift=streift,
+        keil_stellen=keil_stellen,
     )
+
+
+def vorschlichten_bis(bahn, aufmass, mehr_als):
+    """z, bis zu der hinauf die Kugel nach dieser Flanke (mit `aufmass`) an der Wand mehr als
+    `mehr_als` mm vorfindet – Aufmaß und Keil, wo die Flanke weiter angestellt ist (Schaft frei);
+    None: nirgends."""
+    hoehen = [z for z, keil in getattr(bahn, "keil_stellen", ()) if keil + aufmass > mehr_als]
+    return max(hoehen) if hoehen else None
 
 
 def halter_pruefen(form, bahn, koerper, radius):
@@ -787,7 +801,7 @@ def _schaft_frage(lage_stelle, laenge, w):
 def _weiter_anstellen(form, paare, geht, hoehe, w):
     """({Index in `paare`: (Spitze, Achse, Normale) weiter gekippt – None: auslassen, auch
     WEITER_MAX reicht nicht}, (Stellen, Grad höchstens, Keil mm höchstens, ausgelassene
-    Stellen)) – in unteren Lagen, wo
+    Stellen, [(z oben in der Lage, Keil dort)] je weiter gekippter Stelle)) – in unteren Lagen, wo
     der Schaft über der Schneide (so dick wie sie) näher als Aufmaß plus SCHAFT_LUFT an die Wand
     darüber kommt, in Schritten weiter von der Wand weg (_gekippt), bis er frei ist und der
     Fräser nirgends ins Teil schneidet. Längs der Wand ändert es sich höchstens WEITER_JE_MM."""
@@ -842,7 +856,7 @@ def _weiter_anstellen(form, paare, geht, hoehe, w):
                 noetig[i], gewaehlt[i] = grad, r
         offen = [i for i in offen if i not in noetig]
     if not noetig:
-        return dict.fromkeys(offen), (0, 0.0, 0.0, len(offen))
+        return dict.fromkeys(offen), (0, 0.0, 0.0, len(offen), [])
     # Längs der Wand höchstens WEITER_JE_MM je mm: vorwärts und rückwärts geglättet (nur mehr
     # gekippt, nie weniger); was dabei mehr kippt, noch einmal nachgesehen.
     folge = sorted(set(unten))
@@ -872,8 +886,23 @@ def _weiter_anstellen(form, paare, geht, hoehe, w):
     keil = max(
         (min(hoehe, w.schneide) * math.sin(math.radians(g)) for g in grade.values()), default=0.0
     )
+    # Oben in der Lage ist der Keil am dicksten: dort (z) so dick.
+    keil_stellen = [
+        (
+            round(float(lagen_[i][0].z + min(hoehe, w.schneide) * lagen_[i][1].z), 3),
+            round(min(hoehe, w.schneide) * math.sin(math.radians(g)), 4),
+        )
+        for i, g in grade.items()
+        if g > 0.0
+    ]
     gekippt.update(dict.fromkeys(offen))  # auch WEITER_MAX reicht nicht: auslassen
-    return gekippt, (len(gekippt) - len(offen), max(grade.values()), keil, len(offen))
+    return gekippt, (
+        len(gekippt) - len(offen),
+        max(grade.values()),
+        keil,
+        len(offen),
+        keil_stellen,
+    )
 
 
 def _fluchtrichtungen(form, fragen):

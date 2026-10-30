@@ -3349,5 +3349,11 @@
     "ba.s3.unter.ecken_rest": "Check rest finishing with {werkzeug}",
     "ba.s3.unter.ecken_neu": "This would work: {werkzeug} in the holder “{halter}”, sticking out {heraus} mm.",
     "ba.s3.unter.ecken_anlegen": "Add it to the tool library and check rest finishing",
-    "emp.sucht": "Looking for what would work …"
+    "emp.sucht": "Looking for what would work …",
+    "ba.s3.vorschlichten": "Semi-finish where the flank leaves a wedge",
+    "ba.s3.vorschlichten.tooltip": "With “flank rough, spiral finish”: if the flank tilts further in lower layers so the shank stays clear, a wedge stands on the wall in addition to its allowance. Where both together are more than {ab}, the ball first runs down to there with {aufmass} allowance and a coarser spacing, then finishes – finishing only takes the allowance of the semi-finish.",
+    "ba.s3.vorschlichten.ergebnis": "{text}, of which {zeit} semi-finishing ({n} contours) where the flank left a wedge",
+    "s3.eigenschaft.vorschlichten": "Under the rim, semi-finish first – up to “Semi-finish up to”, with the allowance “Semi-finish allowance” more; then finish. Set by the assistant where the flank before left a wedge.",
+    "s3.eigenschaft.vorschlichten_bis": "Up to this height (z in the job) the ball semi-finishes under the rim.",
+    "s3.eigenschaft.vorschlichten_aufmass": "This much more allowance is left by the semi-finish under the rim – finishing takes it afterwards."
 }
