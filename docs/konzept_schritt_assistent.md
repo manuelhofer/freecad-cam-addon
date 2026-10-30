@@ -1,6 +1,6 @@
 # Konzept: „Bearbeitung in Schritten“ (Beta)
 
-Stand 2026-10-30 nachts, 0.315.0. Auftrag von Manuel, 2026-10-30 abends:
+Stand 2026-10-30 nachts, 0.316.0. Auftrag von Manuel, 2026-10-30 abends:
 
 > „Ich finde, dass das Gewachsene, dieses Bearbeitungsfenster, … zu groß geworden ist. Ich finde,
 > wir sollten die Einzelschritte besser abfragen, und zwar einzeln abfragen. Immer mit einem
@@ -37,7 +37,7 @@ in dem es für die gewählten Flächen nichts gibt (hier „Löcher“), fehlt i
    ![Schritt 2](bilder/beta/2_flaechen_tasche.png)
 3. **Schruppen.** Zu sehen sind nur die Strategien des Schruppens, je mit Zeit und Vorschau,
    dazu die Frage zum Eintauchen (vorbohren oder schraubend), wo sie passt. Die Werte jeder
-   Strategie stehen eingeklappt hinter „Werte ändern ▸“. **„Anlegen“** legt jetzt nur das
+   Strategie stehen eingeklappt hinter „Werte ändern ▸“; der Fräser steht gleich in der Zeile. **„Anlegen“** legt jetzt nur das
    Schruppen an. Gerechnet wird trotzdem mit dem Schlichten danach, deshalb lässt das Schruppen
    sein Aufmaß stehen.
    ![Schritt 3](bilder/beta/3_schruppen.png)
@@ -91,12 +91,12 @@ einen Knopf „Vorschau“, wie die vorhandenen Fragen (W-039). Vorbelegt ist de
 Neu zu bauen wäre nur Tauchfräsen. Alles andere ist vorhanden und müsste nur als eine Frage
 gezeigt werden. *Frage 2.*
 
-### B3. Das Werkzeug sichtbar in der Zeile
+### B3. Das Werkzeug sichtbar in der Zeile – *gebaut, 0.316.0*
 
-Manuel: „Wie willst du schruppen? Mit welchem, … welches Werkzeug“. In der Beta steckt der Fräser
-noch hinter „Werte ändern“. Vorschlag: In der Zeile jeder angehakten Strategie steht der Fräser
-als Auswahl („T1 VHM 12“), und „Werte ändern“ enthält nur noch die Zahlen. Das ändert keine
-Wahl, nur die Anzeige. Ich baue es als Nächstes, falls Manuel nichts dagegen hat.
+Manuel: „Wie willst du schruppen? Mit welchem, … welches Werkzeug“. Unter jeder angehakten
+Strategie steht jetzt die Zeile „Fräser [T1 VHM 12 …] ▸ Werte ändern“. Es ist dieselbe Liste wie
+in den Werten, und eine Wahl in der einen Liste gilt auch in der anderen. Das ändert keine Wahl
+des Addons, nur die Anzeige.
 
 ### B4. Nach „Anlegen“: gleich weiter?
 

@@ -144,7 +144,7 @@ class BetaPanel(BearbeitungPanel):
 
         self._beta_seiten = {}
         self._beta_leer = {}
-        self._beta_werte = {}  # Kennung → (Klappknopf, Hülle der Einstellungen)
+        self._beta_werte = {}  # Kennung → (Zeile mit Fräser und Klappknopf, Hülle, Klappknopf)
         position = aufbau.indexOf(alt_strategien)
         for nummer, a in enumerate(ABSCHNITTE):
             seite = QtGui.QWidget()
@@ -178,9 +178,25 @@ class BetaPanel(BearbeitungPanel):
             huelle_aufbau.addWidget(block.einstellungen)
             huelle.hide()
             klapp.toggled.connect(lambda offen, k=klapp, w=huelle: self._werte_klappen(k, w, offen))
-            ziel.addWidget(klapp, 0, QtCore.Qt.AlignLeft)
+            # Der Fräser gleich in der Zeile (Manuel: „Wie willst du schruppen? … welches
+            # Werkzeug“): dieselbe Liste wie in den Werten (ein Modell), die Wahl hin und her.
+            zeile = QtGui.QWidget()
+            zeilen_aufbau = QtGui.QHBoxLayout(zeile)
+            zeilen_aufbau.setContentsMargins(16, 0, 0, 0)
+            zeilen_aufbau.addWidget(QtGui.QLabel(tr("va.fraeser")))
+            fraeser = QtGui.QComboBox()
+            fraeser.setModel(block.wahl_fraeser.model())
+            fraeser.setToolTip(block.wahl_fraeser.toolTip())
+            fraeser.setCurrentIndex(block.wahl_fraeser.currentIndex())
+            fraeser.activated.connect(lambda i, b=block: b.wahl_fraeser.setCurrentIndex(i))
+            block.wahl_fraeser.currentIndexChanged.connect(
+                lambda i, f=fraeser: f.setCurrentIndex(i) if f.currentIndex() != i else None
+            )
+            zeilen_aufbau.addWidget(fraeser, 1)
+            zeilen_aufbau.addWidget(klapp)
+            ziel.addWidget(zeile)
             ziel.addWidget(huelle)
-            self._beta_werte[block.s.kennung] = (klapp, huelle)
+            self._beta_werte[block.s.kennung] = (zeile, huelle, klapp)
         _aus_layout(self._block_aufbau, self.passt_nicht)
         self.passt_nicht.hide()
         self._reihe = []
@@ -315,9 +331,9 @@ class BetaPanel(BearbeitungPanel):
         self.warum_text.setText(warum)
         self.warum_text.setVisible(bool(warum))
         for block in self.bloecke:
-            klapp, huelle = self._beta_werte[block.s.kennung]
+            zeile, huelle, klapp = self._beta_werte[block.s.kennung]
             an = block.moeglich and block.aktiv()
-            klapp.setVisible(an)
+            zeile.setVisible(an)
             huelle.setVisible(an and klapp.isChecked())
         self.knopf_fertig.setVisible(self._seite >= ERSTER_ABSCHNITT)
         self._knoepfe_beschriften()

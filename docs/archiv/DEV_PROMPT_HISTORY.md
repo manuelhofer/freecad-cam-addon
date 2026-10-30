@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-06 beta-fraeser-in-der-zeile
+
+### EINGELESEN
+- Manuel, 2026-10-30: „was willst du schruppen? Wie willst du schruppen? Mit welchem, also, ne,
+  welches Werkzeug“ – Vorschlag B3 aus `docs/konzept_schritt_assistent.md`.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: je angehakte Strategie die Zeile „Fräser […] ▸ Werte ändern“
+  (dasselbe Modell wie `wahl_fraeser`, die Wahl in beide Richtungen).
+- `tests/gui/szenario_beta_schritte.py` (ein zweiter Fräser, die Wahl hin und her),
+  `docs/konzept_schritt_assistent.md`, `docs/bilder/beta/3_schruppen.png`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.316.0.
+
+### ERGEBNIS
+- szenario_beta_schritte grün (Weekly): die Liste in der Zeile hat so viele Einträge wie die in den
+  Werten, eine Wahl in der Zeile kommt im Block an und umgekehrt; der Rest des Wegs wie in
+  P-2026-10-30-05.
 ## P-2026-10-30-05 beta-bearbeitung-in-schritten
 
 ### EINGELESEN

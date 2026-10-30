@@ -41,7 +41,18 @@ def schritte(h):
     from camaddon import werkzeuge as wz
 
     beta.beta_setzen(True)
-    wz.Bibliothek([wz.standardwerkzeug()]).speichern()
+    t2 = wz.Werkzeug(
+        nummer=2,
+        name="VHM 6",
+        art=wz.SCHAFTFRAESER,
+        durchmesser=6.0,
+        schneiden=3,
+        schneidenlaenge=20.0,
+        gesamtlaenge=60.0,
+        schneidstoff=wz.VHM,
+    )
+    t2.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1.0, ap=6.0, vc=150.0, fz=0.04)]
+    wz.Bibliothek([wz.standardwerkzeug(), t2]).speichern()
     ms.speichern([])
     ordner = tempfile.mkdtemp()
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
@@ -141,6 +152,27 @@ def schritte(h):
     angehakt = [b.s.kennung for b in panel.aktive_bloecke()]
     print("BETA angehakt", angehakt, "sichtbar", sichtbar, flush=True)
     h.pruefe(panel.knopf_fertig.isVisible(), "kein „Anlegen“ im Schruppen")
+    # Der Fräser in der Zeile: dieselbe Wahl wie in den Werten, hin und her.
+    raeumen = next(b for b in panel.bloecke if b.s.kennung == "raeumen")
+    zeile, _huelle, _klapp = panel._beta_werte["raeumen"]
+    from PySide import QtGui
+
+    fraeser = zeile.findChild(QtGui.QComboBox)
+    h.pruefe(
+        zeile.isVisibleTo(panel.form) and fraeser.count() == raeumen.wahl_fraeser.count() >= 2,
+        f"Fräser in der Zeile: {fraeser.count()} / {raeumen.wahl_fraeser.count()}",
+    )
+    anderer = 1 - raeumen.wahl_fraeser.currentIndex()
+    fraeser.activated.emit(anderer)
+    yield 500
+    h.pruefe(raeumen.wahl_fraeser.currentIndex() == anderer, "die Wahl in der Zeile kommt nicht an")
+    raeumen.wahl_fraeser.setCurrentIndex(1 - anderer)
+    yield 300
+    h.pruefe(
+        fraeser.currentIndex() == 1 - anderer, "die Wahl in den Werten kommt nicht in die Zeile"
+    )
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
+    yield 500
     h.bild("3_schruppen", panel.form)
     panel.knopf_weiter.click()
     yield 1000
