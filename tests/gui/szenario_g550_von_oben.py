@@ -151,6 +151,14 @@ def schritte(h):
         "Hinweis „passt sie nicht zum Teil“",
     )
     h.bild("3_pruefen", pruefung.form)
+    # Abtrag beim Abspielen – auch hier, wo alles in der Ebene senkrecht von oben kommt, A aber
+    # steht (P-2026-10-30-04; Manuels tiefe Tasche: „vorschau kein abtrag ? warum ?“).
+    spieler = pruefung.abspieler
+    spieler.setze_zeit(spieler.abfahrt.dauer * 0.5)
+    yield from h.warte_auf(lambda: "rechnet" not in spieler.rest.text(), 120000)
+    yield 500
+    h.pruefe("abgetragen" in spieler.rest.text(), f"Abtrag: {spieler.rest.text()!r}")
+    h.bild("3b_abtrag", None)
     dialog = pruefung.programm_schreiben()
     yield 2000
     programm = dialog._programm()

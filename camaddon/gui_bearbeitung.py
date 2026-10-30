@@ -7546,9 +7546,10 @@ class BearbeitungPanel:
             # Die Ecken des Rohteils: der Körper aus dem Dokument – oder Teil plus Aufmaß.
             gedreht = (koerper if koerper is not None else teil).Shape.copy()
             gedreht.Placement = drehung.multiply(gedreht.Placement)
-            bb = gedreht.BoundBox
-            if koerper is None and self.knopf_rohteil_masse.isChecked():
-                bb = gedreht.optimalBoundingBox(False, False)  # wie _rohteil_setzen mit Maßen
+            # Der genaue Hüllquader – wie FreeCAD das Rohteil in der Oberfläche um das angezeigte
+            # (vernetzte) Teil baut: BoundBox einer Kopie ohne Netz war an Manuels tiefer Tasche
+            # (Loft aus B-Splines) oben 3,32 mm zu hoch, Z0 lag so weit über dem Rohteil.
+            bb = gedreht.optimalBoundingBox(False, False)
             if koerper is not None:
                 aus = dict.fromkeys(
                     ("ExtXneg", "ExtXpos", "ExtYneg", "ExtYpos", "ExtZneg", "ExtZpos"), 0.0

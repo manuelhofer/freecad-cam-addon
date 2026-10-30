@@ -354,6 +354,7 @@ def lege_an(job, tc, breite=BREITE, fuenf=True, name=None, flaechen=()):
     obj.Fasenbreite = breite
     obj.FuenfAchsen = bool(fuenf)
     obj.Flaechen = list(flaechen)
+    _endtiefe(obj, job)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -380,6 +381,32 @@ def aendere(obj, tc, breite=BREITE, fuenf=None, flaechen=None):
         obj.FuenfAchsen = bool(fuenf)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
+    job = getattr(obj.Proxy, "job", None)
+    if job is not None:
+        _endtiefe(obj, job)
+
+
+def _endtiefe(obj, job):
+    """Die Endtiefe zum Lesen: der tiefste Punkt der gewählten Flächen (genauer Hüllquader), ohne
+    Flächen das Rohteil unten – die Bahn rechnet aus den Kanten. FreeCADs Vorgabe ohne Base ist
+    die Oberkante des Modells, aus dem groben Hüllquader: An Manuels tiefer Tasche (Loft aus
+    B-Splines) lag sie 2,3 mm über dem Rohteil – „Final depth is above start depth“."""
+    try:
+        form_teil = vs._teil(job.Model.Group)
+        tiefen = [
+            form_teil.getElement(str(n)).optimalBoundingBox(False, False).ZMin
+            for n in obj.Flaechen
+            if str(n).startswith("Face")
+        ]
+    except Exception:  # noqa: BLE001 – eine Fläche, die es nicht (mehr) gibt
+        tiefen = []
+    if not tiefen:
+        rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
+        if rohteil is None or rohteil.isNull():
+            return
+        tiefen = [rohteil.BoundBox.ZMin]
+    obj.setExpression("FinalDepth", None)
+    obj.FinalDepth = min(min(tiefen), float(obj.StartDepth))
 
 
 def ist_entgraten3d(op):

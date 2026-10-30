@@ -576,6 +576,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.314.3, Manuels tiefe Tasche im Wochen-Build):* (1) Nullpunkt „Mitte oben“ aus dem
+  genauen Hüllquader – der grobe (BoundBox ohne Netz) lag an den B-Spline-Wänden 3,32 mm zu hoch,
+  Z0 so weit über dem Rohteil. (2) „Entgraten 3D“ setzt seine Endtiefe selbst (Flächen, sonst
+  Rohteil unten) – FreeCADs Vorgabe aus demselben groben Quader lag über der Starttiefe („Final
+  depth is above start depth“). (3) Abtrag beim Abspielen auch in einer Ebene, wo alles senkrecht
+  von oben kommt (G550 „von oben“, A −90) – geprüft auf der Ebene stand das Rohteil unberührt.
+  Manuels „nur Räumen“: geprüft hatte er die Ebene – der Grundjob zeigt alle vier Operationen.
+  Dabei: test_schraeg_abtrag und szenario_flanke_halter erwarteten noch die Ausspannung von vor
+  den Kegelstufen (40–44 bzw. 41 mm) – genau nachgemessen 34,5 mm, angepasst.
 - *Korrektur (0.314.2):* „Kollision prüfen“ am Teil „tief“ weiter 110 → 85–89 s (insgesamt 167 →
   87 s), dieselben Befunde: eine schärfere Schranke an den Stirnkanten von Zylindern (Halter,
   Schaft), Kegelstufen 0,5 mm (Spezifikation Strategien 16.5, Punkt 10). Dabei gefunden und

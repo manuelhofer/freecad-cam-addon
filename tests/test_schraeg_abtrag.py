@@ -124,7 +124,9 @@ def abtrag_mit(schneide):
 for schneide, lagen in ((35.0, 1), (12.0, 3)):
     doc, job, op, fahrt, spitzen, werkzeug, bibliothek = abtrag_mit(schneide)
     # Der Halter (flanke_bahn.halter_pruefen): mit 12 mm Schneide steht der ER16 in den unteren
-    # Lagen im Kegel – die Bahn sagt es und wie weit das Werkzeug herausstehen müsste.
+    # Lagen im Kegel – die Bahn sagt es und wie weit das Werkzeug herausstehen müsste. Seit dem
+    # Kegel in Stufen (P-2026-10-30-02/-03) 34,5 statt 40–44 mm – genau nachgemessen (OpenCascade,
+    # die Körper an jeder zweiten Stelle): 34 mm heraus noch 2 mm³ im Teil, 34,5 mm frei.
     koerper = flop.koerper_ueber_der_schneide(werkzeug, bibliothek)
     bahn = flop.bahn_fuer(job, job.Model.Group, 5.0, schneide, mantel, koerper=koerper)
     anstoss = bahn.anstoss
@@ -135,7 +137,7 @@ for schneide, lagen in ((35.0, 1), (12.0, 3)):
         pruefe(
             anstoss is not None
             and abs(anstoss.heraus - 32.0) < 1e-6
-            and 40.0 < anstoss.mindestens < 44.0,
+            and 34.0 < anstoss.mindestens < 35.0,
             f"Schneide {schneide}: Anstoß {anstoss}",
         )
     pruefe(op.Lagen == lagen, f"Schneide {schneide}: {op.Lagen} Lagen statt {lagen}")

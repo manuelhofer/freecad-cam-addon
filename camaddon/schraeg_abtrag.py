@@ -229,7 +229,6 @@ def fuer(abfahrt, job, spitzen):
     gueltig = np.zeros(len(abfahrt.stationen), dtype=bool)
     operation = np.array([s.operation for s in abfahrt.stationen], dtype=int)
     gemerkt = {}  # (Operation, Rundachsen) → Achse: In einer Ebene (3+2) bleibt sie gleich
-    schraeg = False
     for i, s in enumerate(abfahrt.stationen):
         if s.operation not in fraeser or s.stellungen is None:
             continue
@@ -250,11 +249,12 @@ def fuer(abfahrt, job, spitzen):
         )
         if im_material and achse[2] < FLACHSTE_ACHSE:
             return None  # von der Seite oder von unten: das zeigt kein Höhenfeld
-        schraeg = schraeg or achse[2] < 1.0 - SENKRECHT
         achsen[i] = achse
         gueltig[i] = True
-    if not schraeg:
-        return None  # alles senkrecht: das kann restmaterial.fuer_quader genauer
+    # Auch alles senkrecht: Gerufen wird es erst, wenn restmaterial.fuer_quader nicht ging – in
+    # einer Ebene (3+2: die Rundachse steht, das Rohteil ist das des Grundjobs) nie. An Manuels
+    # tiefer Tasche zeigte „Räumen T1 – Ebene A−90“ geprüft keinen Abtrag (2026-10-30: „vorschau
+    # kein abtrag ? warum ?“).
     aufmass = next(
         (
             float(o.Aufmass)

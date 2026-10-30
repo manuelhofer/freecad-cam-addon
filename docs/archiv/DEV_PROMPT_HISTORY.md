@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-04 nullpunkt-genau-entgraten-endtiefe-abtrag-in-der-ebene
+
+### EINGELESEN
+- Manuel, 2026-10-30, Bild aus dem Wochen-Build an der tiefen Tasche: „Entgraten 3D T1: Depth
+  parameters error! / Final depth is above start depth“; „vorschau kein abtrag ? warum ?“; „und ich
+  hab nur raeumen rausbekommen als operation die schrägen wurden nicht bearbeitet warum nicht“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_nullpunkt_setzen` mit `optimalBoundingBox` statt `BoundBox`.
+- `camaddon/entgraten3d.py`: `_endtiefe` (beim Anlegen und Ändern).
+- `camaddon/schraeg_abtrag.py`: kein Ausstieg mehr bei „alles senkrecht“.
+- `tests/gui/szenario_nullpunkt_freiform.py` (neu), `tests/gui/szenario_g550_von_oben.py` (Abtrag),
+  `tests/test_schraeg_abtrag.py`, `tests/gui/szenario_flanke_halter.py` (Ausspannung nach den
+  Kegelstufen), `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.314.3.
+
+### ERGEBNIS
+- Manuels Datei (Kopie): das Teil 0…90 hoch, der grobe Hüllquader 93,32 (vier B-Spline-Flächen des
+  Lofts); das Rohteil (FreeCAD, mit Netz) oben 1 mm über dem Teil, Z0 3,32 mm darüber. Neues
+  Szenario mit einem Loft über die Oberkante: alt Rohteil oben −5 statt 0 und Entgraten-Fehler, neu
+  grün.
+- Entgraten 3D in Manuels Job (Kopie): alt genau seine Meldung, neu Ende −95,3 (ohne Flächen) bzw.
+  −4,3 (Face1).
+- Prüffenster an Manuels Datei: Grundjob – Räumen (Ebene), 3D-Schlichten T2, Flanke T1,
+  Restschlichten T3, „wird beim Abspielen abgetragen“; die Ebene – nur Räumen, kein Abtrag (alle
+  drei Abtrag-Rechner None). szenario_g550_von_oben mit der neuen Erwartung: alt rot, neu grün.
+- Nachgeholt: test_schraeg_abtrag war seit 0.314.1 rot (mindestens 34,49 statt 40–44) – genau mit
+  OpenCascade nachgemessen: 34 mm heraus 2 mm³ im Teil, 34,5 mm frei; die Zahl stimmt.
 ## P-2026-10-30-03 kollision-zylinder-an-den-stirnkanten
 
 ### EINGELESEN
