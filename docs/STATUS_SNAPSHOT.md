@@ -633,7 +633,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   als Zahl von 1 bis zu den Kernen (einmal zurück auf alle); Homag/Weeke woodWOP (MPR); die
   Vorschau von Flanke und 3D-Schlichten mit dem Magazin der Maschine; W-039 erster Schritt: die
   Frage „Wände unter dem Rand“ (Flanke fertig / Flanke grob + Spirale fertig) mit Zeiten und
-  Vorschau im 3D. Offen: „Kollision prüfen“ meldete im Weg „Spirale“ an Manuels Tasche einmal
+  Vorschau im 3D. Erledigt (2026-10-26 nachgemessen: „Spirale fertig“ ohne Befund ins Teil). War
+  offen: „Kollision prüfen“ meldete im Weg „Spirale“ an Manuels Tasche einmal
   „ins fertige Teil (Satz 57)“ – die Bahn ist im Job sauber (nachgemessen), geprüft wird das
   Umrechnen auf die Achsen der G550; danach die Frage „Vorgehen“ (W-039).
 - *Neu (0.288.1–0.290.0):* „Alles aus dieser Aufspannung“ an allen sieben Taster-Teilen (Kopien)
@@ -2011,7 +2012,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   („nein“). **Stand 2026-10-26:** TRANSMIT (Siemens, Haken) gebaut; die Gegenprobe liest auch
   woodWOP (dabei gefunden: Kreise bis 0,32 mm neben der Bahn – behoben, 0.312.3), im Klartext Pol
   und Drehsinn, die Drehmaschine (X im Durchmesser, C4 modulo, jeder Haken) und 3+2 bei acht
-  Steuerungen. **Offen:** Haas G268 (Vorzeichen der UMC ungeprüft); Fanuc G12.1/Haas G112 (X im
+  Steuerungen. **Herbert (Forum, 2026-10-26):** ab Mitte November kann er an der Homag der HWK eine
+  MPR-Datei erstellen und den genauen Typ nennen (MPRs der Vorgängermaschine passten dort nicht).
+  **Offen:** Haas G268 (Vorzeichen der UMC ungeprüft); Fanuc G12.1/Haas G112 (X im
   Radius oder Durchmesser je Parameter).
 - **W-039 Der Assistent fragt, wie man vorgehen will** – Manuel, 2026-10-25 (Antwort auf Frage 6,
   die aus seinem Vorschlag zu Frage 4 kam: „hey wie willst du vorgehen sollen wir erst vorbohren …
@@ -2036,7 +2039,9 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   nach außen, 2 min); P-21 (die Flanke an überhängenden Wänden, erst Umläufe je ae davor, 64
   Umläufe, 6 min; an der G550 die Flanke nach der Ebene „von oben“). **In Arbeit:** die Kugel
   unter dem Rand (`hinterschnitt_bahn.py`: Höhenlinien, Achse um Wandneigung + 4° gekippt).
-  **Offen:** ein leeres „3D-Schruppen T1“, das der Assistent anlegt (die Vorschau sieht mehr
+  **Erledigt (gesehen 2026-10-26, 0.312.x):** Der Assistent legt am Teil „tief“ nur noch Räumen
+  (Ebene von oben), Flanke, 3D-Schlichten und Restschlichten an – kein „3D-Schruppen T1“ mehr.
+  **War offen:** ein leeres „3D-Schruppen T1“, das der Assistent anlegt (die Vorschau sieht mehr
   Rest als das genaue Räumen lässt). Seit 0.311.3/0.311.4: Eine Operation nur aus Eilgängen
   bekommt im Programm keinen Werkzeugwechsel und wird beim „Anlegen“ gar nicht erst behalten.
   **Aber:** Das alte „3D-Schruppen T1“ hatte 1115 Sätze – „leer“ hieß dort wohl Fräsen in Luft;
