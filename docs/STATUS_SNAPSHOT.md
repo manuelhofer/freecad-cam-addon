@@ -584,8 +584,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   bei diesem Weg sichtbar). Tiefe Tasche (Kopie): bis z 70,1 (Oberkante der unteren Lage),
   29 Höhenlinien, 7,3 min – das 3D-Schlichten 34 statt 27 min. „Anlegen“ 1,0 s (Vorschlichten und
   Schlichten je in einem Nebenrechner vorab). Keine offenen Fragen mehr.
-- *Gemessen, nicht von mir:* Am Teil „tief“ rechnet das Fenster nach der Wahl „Spirale fertig“
-  rund 50–60 s allein (alter und neuer Stand gleich, Mitschnitt). Was es da rechnet, ist offen.
+- *Gemessen, geklärt:* Die 50–60 s „Fenster allein auf einem Kern“ im Szenario am Teil „tief“
+  (alter und neuer Stand gleich) sind der Aufruf `abfahren.abfahrt` des Szenarios selbst (die
+  Programme der Simultan-Operationen, faulthandler-Stapel alle 2 s) – „Auf der Maschine prüfen“
+  rechnet sie vorab in Nebenrechnern (`programm_im_arbeiter`). Im Assistenten steht nichts.
 - *Neu (0.313.0):* Flanke „Schaft frei“ (Haken, vorbelegt an; Manuel: „kann man nicht weiter
   anstellen einfach ? und so vorschliechten oder nach schruppen ??“): in unteren Lagen weiter
   gekippt, bis der Schaft 0,1 mm Luft hat – an der tiefen Tasche meist 0,25°, höchstens 0,5°

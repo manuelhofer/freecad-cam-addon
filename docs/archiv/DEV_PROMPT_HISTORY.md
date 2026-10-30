@@ -41,8 +41,9 @@ patch_naming:
   unteren Flanken-Lage), 29 Höhenlinien, 7,3 min; das 3D-Schlichten 34 statt 27 min.
 - „Anlegen“ zuerst 23,8 s (die Vorabrechnung rechnete beide nacheinander, „Anlegen“ wartete) –
   alter Stand 1,2 s; mit zwei Nebenrechnern 1,0 s.
-- Gemessen am alten und neuen Stand gleich: rund 50–60 s rechnet das Fenster nach der Wahl
-  „Spirale fertig“ allein – nicht von dieser Änderung, offen im Status.
+- Gemessen am alten und neuen Stand gleich: rund 50–60 s rechnet das Fenster im Szenario allein –
+  der Aufruf `abfahren.abfahrt` des Szenarios selbst (faulthandler-Stapel); „Auf der Maschine
+  prüfen“ rechnet diese Programme vorab in Nebenrechnern.
 - Grün: test_flanke, test_hinterschnitt_bahn, test_sprache, test_hilfe; Szenario an der tiefen
   Tasche (Kopie, lokal): Haken bei „Flanke fertig“ verborgen, bei „Spirale fertig“ an.
 ## P-2026-10-26-12 flanke-schaft-frei
