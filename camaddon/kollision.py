@@ -147,6 +147,11 @@ NETZ_SCHRITT = 2.0  # mm – so weit über den Warnabstand hinaus sucht die Netz
 # entscheidet (Kapsel zu grob: der flache Halter von unten, der Kern eines Schaftfräsers am
 # Boden) – danach fragt das Paar nur noch OpenCascade.
 NETZ_FEHLVERSUCHE = 3
+# Ein kegeliger Abschnitt des Halters in Kapseln zu Stufen, je höchstens so viel dicker als der
+# Kegel (mm): Als eine Kapsel mit dem größten Radius stand das Schrumpffutter Ø 24 → 31,5 an der
+# Spitze 3,8 mm dicker da – an Manuels tiefer Tasche lag die Schranke dort bei −2,4 statt 1,9 mm,
+# und OpenCascade rechnete fast jede Stelle genau (167 s „Kollision prüfen“).
+KEGEL_FEHLER = 0.25
 
 
 # --- Die Körper -----------------------------------------------------------------------------
@@ -251,9 +256,16 @@ def werkzeugkapseln(masse, laenge, halter):
         for abschnitt in halter.abschnitte:
             if abschnitt.laenge <= 0:
                 continue
-            r = max(abschnitt.d_oben, abschnitt.d_unten) / 2
-            if r > 0:
-                stufen.append((-z - abschnitt.laenge, -z, r, True))
+            r_oben, r_unten = abschnitt.d_oben / 2, abschnitt.d_unten / 2
+            n = max(1, math.ceil(abs(r_oben - r_unten) / KEGEL_FEHLER - 1e-9))
+            for i in range(n):  # von unten (zum Werkzeug) nach oben (zur Spindel)
+                a, b = i / n, (i + 1) / n
+                r = max(r_unten + a * (r_oben - r_unten), r_unten + b * (r_oben - r_unten))
+                if r > 0:
+                    unten = -z - abschnitt.laenge
+                    stufen.append(
+                        (unten + a * abschnitt.laenge, unten + b * abschnitt.laenge, r, True)
+                    )
             z += abschnitt.laenge
         if stufen:
             auf_z[HALTER] = tuple(stufen)
@@ -2004,6 +2016,13 @@ class _Welt:
         # So weit suchen, dass die Schranke über `reicht` hinaus noch einen Schritt erlaubt.
         reichweite = float(radius.max()) + reicht + NETZ_SCHRITT
         werte = netz.kapseln(von, nach, reichweite, radius, flach)
+        if werte.min() <= reicht and reicht >= 0.1:
+            # Grob vielleicht ein Befund: erst das feine Netz, dann OpenCascade – an Manuels tiefer
+            # Tasche liegt der Halter von T3 1,9 mm vom Teil, grob 0,9, fein 1,2 (über 1 mm).
+            fein = anderer.netz(fein=True)
+            if fein is not None:
+                netz = fein
+                werte = np.maximum(werte, netz.kapseln(von, nach, reichweite, radius, flach))
         k = int(np.argmin(werte))
         knapp = bool(werte[k] < reichweite - radius[k] - netz.toleranz - 1e-9)
         return float(werte[k]), knapp

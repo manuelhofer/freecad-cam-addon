@@ -545,14 +545,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Abstand rund 1,9–2 mm, die Netzschranke (grob, 0,3 mm) nur 0,7 mm – unter dem Warnabstand
   1 mm, also genau gerechnet. Die Schranke von Station zu Station verbraucht sich, weil B simultan
   dreht (Hebel weit weg von der Drehmitte). Versucht und verworfen: das feine Netz vor
-  OpenCascade (27 statt 21 s), der Halter in Kegelscheiben (Schranke unverändert 0,74 mm, mit
-  feinem Netz 34 s). **Offen:** eine engere Schranke für den Halter (warum 0,74 statt 1,9 –
-  Zellenbreite des Netzes? Form des Schrumpffutters gegen seine Abschnitte?), Messdatei
-  `probe_kollision.py` mit gespeicherter Kopie und Werkzeugverwaltung (Kopie in
-  `~/freecad_cam/wip/pruefhelfer/`). Gefunden: Das Schrumpffutter ist vorn ein Kegel Ø 24 → Ø 31,5
-  über 48 mm, `werkzeugkapseln` nimmt je Abschnitt den größten Radius (15,8 statt 12 mm an der
-  Spitze). In Scheiben geteilt (0,5 mm je Scheibe) blieb die grobe Schranke trotzdem 0,74 mm –
-  die Ursache liegt im Netzteil (`netzabstand.kapseln`, grobes Netz), noch nicht gefunden.
+  OpenCascade allein, die Kegelscheiben allein (im Ausschnitt je teurer). **Erledigt in 0.314.1:**
+  der nächste Punkt liegt an der Kante der Futterspitze (z −80, r 12); als eine Kapsel mit dem
+  größten Radius war der Kegel dort 3,8 mm zu dick (Schranke −2,4). Stufen zu 0,25 mm plus das
+  feine Netz vor OpenCascade: grob 0,9, fein 1,2 mm – die ganze Prüfung 167 → 110 s (gemessen ohne
+  Oberfläche, alle Kerne, zweimal; dieselben sechs Befunde). Messdateien `probe_kapseln.py`,
+  `probe_ganz.py` in `~/freecad_cam/wip/pruefhelfer/`.
 - *Korrektur (0.311.3):* Voller Lauf danach grün (134/134 Prüfungen, 144/144 Szenarien). Eine
   Operation ohne Arbeit (nur Eilgänge) bekommt im Programm keinen Werkzeugwechsel mehr, sondern
   einen Hinweis; 0.311.2: der Achsfilter nur an der Drehmaschine
@@ -578,6 +576,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.314.1):* „Kollision prüfen“ am Teil „tief“ 167 → 110 s, dieselben sechs
+  Befunde: Kegel des Halters in Kapsel-Stufen (höchstens 0,25 mm zu dick), bei „vielleicht ein
+  Befund“ erst das feine Netz, dann OpenCascade (Spezifikation Strategien 16.5, Punkt 9).
 - *Neu (0.314.0):* Vorschlichten unter dem Rand (Manuel, 2026-10-30, Frage 1: „vorschlichten“):
   Bei „Flanke grob, Spirale fertig“ schlichtet die Kugel, wo Keil + Aufmaß der Flanke mehr als
   0,4 mm sind, zuerst mit 0,1 mm Aufmaß und gröber vor (Haken am 3D-Schlichten, vorbelegt an, nur

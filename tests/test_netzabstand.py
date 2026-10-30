@@ -126,6 +126,23 @@ k3 = kb.werkzeugkapseln(flach, 110.0, gewinkelt)
 assert set(k3) >= {kb.SCHNEIDE, kb.KERN, kb.SCHAFT, kb.HALTER}, k3
 enthalten(flach, 110.0, gewinkelt)
 enthalten(masse, 110.0, gewinkelt)
+# Ein kegeliges Schrumpffutter: der Kegel in Stufen, je höchstens KEGEL_FEHLER dicker als er (an
+# Manuels tiefer Tasche war die eine Kapsel mit dem größten Radius an der Spitze 3,8 mm zu dick).
+schrumpf = hl.aus_vorlage("schrumpf_12_lang")
+kegel = [a for a in schrumpf.abschnitte if abs(a.d_oben - a.d_unten) > 2 * kb.KEGEL_FEHLER]
+assert kegel, [(a.laenge, a.d_unten, a.d_oben) for a in schrumpf.abschnitte]
+k4 = kb.werkzeugkapseln(flach, 110.0, schrumpf)
+assert len(k4[kb.HALTER]) > len(schrumpf.abschnitte), len(k4[kb.HALTER])
+enthalten(flach, 110.0, schrumpf)
+z = 0.0
+for (
+    a
+) in schrumpf.abschnitte:  # an der Spitze jedes Kegels: die Kapsel dort höchstens so viel dicker
+    unten = -z - a.laenge
+    if a in kegel:
+        r = next(r for p0, p1, r, _f in k4[kb.HALTER] if abs(p0[2] - unten) < 1e-6)
+        assert r - a.d_unten / 2 <= kb.KEGEL_FEHLER + 1e-9 or a.d_unten > a.d_oben, (r, a.d_unten)
+    z += a.laenge
 # Flacher Zylinder über dem Taschenboden (z = 5): Kern r 2,45 mit der Stirn 0,05 darüber – die
 # Kapsel allein sagt −2,4, mit der Stirnebene 0,05 (minus Toleranz); die Kugel bleibt bei der Kapsel.
 von = np.array([[50.0, 30.0, 5.05]])

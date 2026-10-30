@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-30-02 kollision-halterkegel-in-stufen
+
+### EINGELESEN
+- Manuel, 2026-10-30: „Kannst du noch weiter machen ich bin bald daheim solange weiter arbeiten“ –
+  offene Baustelle aus dem Status: „Kollision prüfen“ am Teil „tief“ 167 s, fast nur der Halter
+  von T3 gegen das Teil genau gerechnet.
+
+### DATEIEN
+- `camaddon/kollision.py`: `KEGEL_FEHLER` 0,25 mm – `werkzeugkapseln` teilt kegelige Abschnitte
+  des Halters in Stufen; `_netzschranke` fragt bei „vielleicht ein Befund“ (grob ≤ Warnabstand)
+  erst das feine Netz, dann OpenCascade.
+- `tests/test_netzabstand.py`: Schrumpffutter „schrumpf_12_lang“ – Stufen, enthalten, an der
+  Spitze höchstens KEGEL_FEHLER dicker.
+- `docs/spezifikation_strategien.md` 16.5 Punkt 9, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.314.1.
+
+### ERGEBNIS
+- Der nächste Punkt des Halters liegt an der Kante der Futterspitze (z −80, r 12); die eine
+  Kapsel (r 15,77) machte die Schranke −2,4 statt 1,9 mm. Mit Stufen grob 0,9, fein 1,2 mm.
+- Ganze Prüfung ohne Oberfläche, alle Kerne (`probe_ganz.py`, tief_flanke-Kopie mit ihrer
+  Werkzeugverwaltung): alt 166,9 s, neu 113,0 / 109,8 s, dieselben sechs Befunde. Nur feines Netz:
+  163,5 s; Stufen 0,1 mm: 161,0 s.
+- Grün: test_netzabstand, test_kollision, test_kollision_verteilt.
 ## P-2026-10-30-01 vorschlichten-unter-dem-rand
 
 ### EINGELESEN

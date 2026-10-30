@@ -3337,6 +3337,14 @@ Hebel, in der Reihenfolge des Nutzens (Schätzungen, nicht gemessen):
    Schaftfräser samt Kern) zählt unter und über den Stirnebenen der Abstand zur Ebene – so
    entscheidet der Kern 0,05 mm über dem Boden ohne OpenCascade. Manuels 3-Achs-Testteil:
    „Kollision prüfen“ 21,8 → 9,3 s, genaue Abstände 30 769 → 684, dieselben Befunde.
+9. **Kegel in Stufen, dann das feine Netz (P-2026-10-30-02):** Ein kegeliger Abschnitt des
+   Halters wird in Kapseln zu Stufen geteilt, je höchstens `KEGEL_FEHLER` (0,25 mm) dicker als der
+   Kegel – als eine Kapsel mit dem größten Radius war das Schrumpffutter Ø 24 → 31,5 an der
+   Spitze 3,8 mm zu dick. Sagt die grobe Schranke (Netz 0,3 mm) „vielleicht ein Befund“, fragt sie
+   erst das feine Netz, dann OpenCascade. Manuels tiefe Tasche, Halter von T3 1,9 mm vom Teil:
+   Schranke −2,4 → grob 0,9 → fein 1,2 mm; „Kollision prüfen“ 167 → 110 s, dieselben sechs
+   Befunde. Nur eins von beiden: 163 s; Stufen von 0,1 mm: 161 s (die Kapseln kosten mehr). Was
+   bleibt: An der Kante der Futterspitze sagt die Kapsel (Strecke plus Radius) gut 0,4 mm zu wenig.
 3. **Varianten und Zwischenlagen parallel** – sie sind unabhängig: mit dem Haken „Alle
    Kombinationen“ und im gemeinsamen Vergleich (drei Lagen → drei Prozesse) sofort ein Vielfaches.
 4. **Höhenfeld:** Kanten nur auf die Stellen ausbreiten, die sie unter dem Kugelradius wirklich
