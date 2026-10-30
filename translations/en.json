@@ -3389,7 +3389,6 @@
     "beta.unten.modell.tooltip": "The part lies on the table as it is modelled – bottom is bottom.",
     "beta.weiter.kein_job": "First click a job created with “Machining in steps (beta)”.",
     "beta.weiter.fertig": "All steps of this job are already created – up to the edges.",
-    "einstellungen.beta.gruppe": "Beta",
     "einstellungen.beta.haken": "Show beta functions",
     "einstellungen.beta.hinweis": "New ways to try out, in a toolbar of their own “CAM-Addon Beta” and in the menu under “Beta” – currently “Machining in steps”, “Continue machining” and “New setup”. The usual stays as it is.",
     "beta.werte": "Change values",

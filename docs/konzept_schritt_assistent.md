@@ -16,7 +16,7 @@ die nächsten Stufen. Teil C nennt, was nur Manuel entscheiden kann; diese Frage
 
 ## A. Was die Beta 0.315.0 kann
 
-**Einschalten:** Bearbeiten → Einstellungen → CAM-Addon → Gruppe „Beta“ → „Beta-Funktionen
+**Einschalten:** Bearbeiten → Einstellungen → CAM-Addon → Gruppe „Updates“ → „Beta-Funktionen
 zeigen“. Danach gibt es die Werkzeugleiste „CAM-Addon Beta“ mit den Beta-Befehlen, und dieselben
 Befehle stehen im Menü „CAM-Addon → Beta“. Seit 0.318.0 sind es drei, dazu kam „Neue Aufspannung
 (Beta)“ (siehe B5). Ist der Haken aus, bleibt alles wie gewohnt.

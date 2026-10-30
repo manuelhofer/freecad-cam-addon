@@ -231,13 +231,12 @@ class Einstellungsseite:
         _mit_satz(rechnen, rechnen_aufbau, self.rechnen_hinweis)
 
         # Die Beta (Manuel, 2026-10-30): neue Wege zum Ausprobieren, das Gewohnte bleibt.
-        beta = QtGui.QGroupBox(tr("einstellungen.beta.gruppe"))
+        # Ein Haken in der Gruppe „Updates“, die Erklärung im Tooltip – eine eigene Gruppe mit Satz
+        # machte die Seite so hoch, dass die Sätze darüber gestaucht wurden
+        # (szenario_erster_start, 680 hoch).
         self.beta_an = QtGui.QCheckBox(tr("einstellungen.beta.haken"))
-        beta_aufbau = QtGui.QFormLayout()
-        beta_aufbau.addRow(self.beta_an)
-        self.beta_hinweis = QtGui.QLabel(tr("einstellungen.beta.hinweis"))
-        self.beta_hinweis.setWordWrap(True)
-        _mit_satz(beta, beta_aufbau, self.beta_hinweis)
+        self.beta_an.setToolTip(tr("einstellungen.beta.hinweis"))
+        self.gruppe_updates.layout().insertWidget(1, self.beta_an)
 
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
@@ -245,7 +244,6 @@ class Einstellungsseite:
         aufbau.addWidget(dateien)
         aufbau.addWidget(rechnen)
         aufbau.addWidget(self.gruppe_updates)
-        aufbau.addWidget(beta)
         aufbau.addStretch()
         ruhiges_mausrad(self.form)  # FreeCADs Einstellungen blättern
 
