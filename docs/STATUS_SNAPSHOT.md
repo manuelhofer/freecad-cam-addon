@@ -537,6 +537,18 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   einen einzelnen Abbruch in FreeCADs `Control.closeDialog()` unter Volllast
   (szenario_raeumen_materialstand; einzeln zweimal und viermal gleichzeitig grün – nicht
   nachstellbar).
+- *Gemessen (2026-10-30), „Kollision prüfen“ am 5-Achs-Teil „tief“* (Kopie, Flanke fertig, nach
+  „So einrichten“): 167 s auf 24 Kernen, die Kerne voll (im Mittel 21,8; das Fenster frei). Ohne
+  Oberfläche gleich (162 s) – es liegt an den Werkzeugen nach „So einrichten“ (mit der alten
+  Werkzeugverwaltung 52 s). Je Stück (51 Stationen) im 3D-Schlichten bis 36 s: 636 von 637
+  genauen Abständen (OpenCascade, 19 ms) sind **der Halter von T3 gegen das Teil**, der wahre
+  Abstand rund 1,9–2 mm, die Netzschranke (grob, 0,3 mm) nur 0,7 mm – unter dem Warnabstand
+  1 mm, also genau gerechnet. Die Schranke von Station zu Station verbraucht sich, weil B simultan
+  dreht (Hebel weit weg von der Drehmitte). Versucht und verworfen: das feine Netz vor
+  OpenCascade (27 statt 21 s), der Halter in Kegelscheiben (Schranke unverändert 0,74 mm, mit
+  feinem Netz 34 s). **Offen:** eine engere Schranke für den Halter (warum 0,74 statt 1,9 –
+  Zellenbreite des Netzes? Form des Schrumpffutters gegen seine Abschnitte?), Messdatei
+  `probe_kollision.py` mit gespeicherter Kopie und Werkzeugverwaltung.
 - *Korrektur (0.311.3):* Voller Lauf danach grün (134/134 Prüfungen, 144/144 Szenarien). Eine
   Operation ohne Arbeit (nur Eilgänge) bekommt im Programm keinen Werkzeugwechsel mehr, sondern
   einen Hinweis; 0.311.2: der Achsfilter nur an der Drehmaschine
