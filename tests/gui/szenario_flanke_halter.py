@@ -3,11 +3,12 @@
 # in den kegel reinballert“): ein Kegel Ø 50 → Ø 30, 30 hoch, auf einer Platte, die 5-Achs-Maschine
 # Tisch/Tisch, ein Schaftfräser Ø 10 mit 12 mm Schneide in einem ER16 (er steht 32 mm heraus, die
 # Wand ist 31,6 mm lang) und ein Kugelfräser Ø 6. Den Mantel anklicken → „Bearbeitung“: Die Flanke
-# ist rot – Halter oder Schaft führen in die Wand, mindestens 42 mm bräuchte es, und T5 ist dafür zu
-# kurz (Gesamtlänge 52) –, den Haken hat das 3D-Schlichten. Dann ist T5 in der Werkzeugverwaltung
-# länger (80 mm, derselbe Überstand 32): Hinter dem roten Satz steht „T5 auf 43 mm ausspannen“; ein
+# ist rot – Halter oder Schaft führen in die Wand, mindestens 41 mm bräuchte es, und T5 ist dafür zu
+# kurz (Gesamtlänge 50) –, den Haken hat das 3D-Schlichten. Dann ist T5 in der Werkzeugverwaltung
+# länger (80 mm, derselbe Überstand 32): Hinter dem roten Satz steht „T5 auf 42 mm ausspannen“; ein
 # Klick setzt die Länge ab Spindelnase, der Assistent rechnet neu, und die Flanke hat ihre Bahn
-# (P-2026-10-11-65).
+# (P-2026-10-11-65). Seit „Schaft frei“ (0.313.0) kippt die Flanke in der unteren Lage etwas weiter
+# von der Wand weg – der Halter braucht 1 mm weniger (vorher 42/43).
 import os
 import re
 import tempfile
@@ -50,9 +51,10 @@ def schritte(h):
         durchmesser=10.0,
         schneiden=4,
         schneidenlaenge=12.0,
-        gesamtlaenge=52.0,
+        gesamtlaenge=50.0,
         schneidstoff=wz.VHM,
     )
+    t5.ausspannlaenge = 32.0  # wie vorher: 32 mm heraus
     t5.halter = er16.kennung
     t5.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.3, ap=10.0, vc=150.0, fz=0.04)]
     t3 = wz.Werkzeug(
@@ -108,7 +110,7 @@ def schritte(h):
         "in die Wand" in rot and "32 mm heraus" in rot and "mindestens" in rot,
         f"Flanke: {rot!r}",
     )
-    h.pruefe("T5 ist dafür zu kurz (Gesamtlänge 52 mm)" in rot, f"zu kurz? {rot!r}")
+    h.pruefe("T5 ist dafür zu kurz (Gesamtlänge 50 mm)" in rot, f"zu kurz? {rot!r}")
     h.pruefe(flanke.vorschau is None, "die Flanke hat trotzdem eine Bahn")
     h.pruefe(not flanke.aktiv() and s3.aktiv(), f"Haken: Flanke {flanke.aktiv()}, 3D {s3.aktiv()}")
     panel.seite_zeigen(1)
@@ -127,7 +129,7 @@ def schritte(h):
     )
     rot = flanke.hinweis.text()
     verweis = re.search(r'href="(ausspannen:[^"]+)"', rot)
-    h.pruefe(verweis is not None and "T5 auf 43 mm ausspannen" in rot, f"Verweis: {rot!r}")
+    h.pruefe(verweis is not None and "T5 auf 42 mm ausspannen" in rot, f"Verweis: {rot!r}")
     yield 300
     h.bild("2_ausspannen_angeboten", panel.form)
     if verweis is None:
@@ -136,7 +138,8 @@ def schritte(h):
     yield 500
     gespeichert = next(w for w in wz.Bibliothek.laden().werkzeuge if w.nummer == 5)
     h.pruefe(
-        abs(gespeichert.laenge_spindelnase - (laenge + 11.0)) < 1e-3,
+        # die Länge ab Spindelnase, die der Verweis setzt („ausspannen:5:112.000:42“)
+        abs(gespeichert.laenge_spindelnase - float(verweis.group(1).split(":")[2])) < 1e-3,
         f"Länge ab Spindelnase {gespeichert.laenge_spindelnase} (vorher {laenge})",
     )
     flanke = panel.flanke
