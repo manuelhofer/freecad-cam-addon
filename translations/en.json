@@ -3393,5 +3393,9 @@
     "einstellungen.beta.haken": "Show beta functions",
     "einstellungen.beta.hinweis": "New ways to try out, in a toolbar of their own “CAM-Addon Beta” and in the menu under “Beta” – currently “Machining in steps” and “Continue machining”. The usual stays as it is.",
     "beta.werte": "Change values",
-    "beta.werte.tooltip": "Shows cutter, use and the values of this strategy – preset from the tool management, change only where needed."
+    "beta.werte.tooltip": "Shows cutter, use and the values of this strategy – preset from the tool management, change only where needed.",
+    "beta.anlegen.minuten": "{min} min",
+    "beta.anlegen.liste": "“Create” creates: {liste} – about {min} min in total.",
+    "beta.anlegen.nichts": "“Create” creates nothing here – nothing ticked up to this step.",
+    "beta.anlegen.spaeter": "Ticked for later: {liste} (with “Next” or “Continue machining”)."
 }

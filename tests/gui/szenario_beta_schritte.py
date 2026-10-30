@@ -152,6 +152,12 @@ def schritte(h):
     angehakt = [b.s.kennung for b in panel.aktive_bloecke()]
     print("BETA angehakt", angehakt, "sichtbar", sichtbar, flush=True)
     h.pruefe(panel.knopf_fertig.isVisible(), "kein „Anlegen“ im Schruppen")
+    satz = panel.anlegen_text.text()
+    print("BETA anlegen_text", repr(satz), flush=True)
+    h.pruefe(
+        "Räumen (T1" in satz and "zusammen" in satz and "später: 3D-Schlichten" in satz,
+        f"was „Anlegen“ anlegt: {satz!r}",
+    )
     # Der Fräser in der Zeile: dieselbe Wahl wie in den Werten, hin und her.
     raeumen = next(b for b in panel.bloecke if b.s.kennung == "raeumen")
     zeile, _huelle, _klapp = panel._beta_werte["raeumen"]

@@ -41,6 +41,7 @@ from .gui_bearbeitung import (
     _klappknopf,
 )
 from .gui_teile import knopf
+from .gui_zahlen import dezimal
 from .sprache import tr
 
 BETA_AN = "BetaZeigen"  # Parameter: die Beta-Befehle in Menü und Werkzeugleiste
@@ -221,6 +222,11 @@ class BetaPanel(BearbeitungPanel):
         self.warum_text.setStyleSheet("color: #d08000;")
         zeile = self.knopf_weiter.parentWidget()
         aufbau.insertWidget(aufbau.indexOf(zeile), self.warum_text)
+        # Was „Anlegen“ in diesem Schritt anlegt – es legt ja nur bis hier an – und was danach
+        # noch angehakt ist (kommt mit „Weiter bearbeiten“).
+        self.anlegen_text = _grau()
+        self.anlegen_text.setWordWrap(True)
+        aufbau.insertWidget(aufbau.indexOf(zeile), self.anlegen_text)
         return form
 
     def _werte_klappen(self, klapp, huelle, offen):
@@ -337,6 +343,48 @@ class BetaPanel(BearbeitungPanel):
             huelle.setVisible(an and klapp.isChecked())
         self.knopf_fertig.setVisible(self._seite >= ERSTER_ABSCHNITT)
         self._knoepfe_beschriften()
+
+    def _knoepfe_beschriften(self):
+        super()._knoepfe_beschriften()
+        if hasattr(self, "anlegen_text"):
+            self._anlegen_zeigen()
+
+    def _anlegen_zeigen(self):
+        """„Anlegen legt an: Räumen (T1, 2 min), Kontur (T1, 1 min) – zusammen etwa 3 min.
+        Später: 3D-Schlichten.“ – nur ab dem Schruppen."""
+        a = self._aktueller_abschnitt()
+        if a is None or self.zu_aendern is not None:
+            self.anlegen_text.hide()
+            return
+        von = self._beta_ab or 0
+        jetzt, spaeter, zeit = [], [], 0.0
+        for block in self._in_anlege_reihe(self.aktive_bloecke()):
+            if not block.moeglich:
+                continue
+            if von <= abschnitt(block) <= a:
+                fraeser = block.fraeser()
+                nummer = getattr(fraeser, "nummer", None)
+                teile = [f"T{nummer}"] if nummer is not None else []
+                if block.zeit is not None:
+                    teile.append(tr("beta.anlegen.minuten", min=dezimal(f"{block.zeit:.1f}")))
+                    zeit += block.zeit
+                jetzt.append(
+                    f"{block.s.titel()} ({', '.join(teile)})" if teile else block.s.titel()
+                )
+            elif abschnitt(block) > a:
+                spaeter.append(block.s.titel())
+        if not jetzt:
+            text = tr("beta.anlegen.nichts")
+        else:
+            text = tr(
+                "beta.anlegen.liste",
+                liste=", ".join(jetzt),
+                min=dezimal(f"{zeit:.1f}"),
+            )
+        if spaeter:
+            text += " " + tr("beta.anlegen.spaeter", liste=", ".join(spaeter))
+        self.anlegen_text.setText(text)
+        self.anlegen_text.show()
 
     def _erste_erlaubte(self):
         """„Weiter bearbeiten“ beginnt hinter dem, was schon angelegt ist: nicht davor zurück."""
