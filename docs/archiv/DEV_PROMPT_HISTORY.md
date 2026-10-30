@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-02 beta-erster-klick-unten-voller-lauf
+
+### EINGELESEN
+- Manuel, 2026-10-30: „Also erstmal, wo ist die eingespannte Fläche, abfragen, dann auf Weiter
+  drücken“ – ohne Auswahl gestartet, war der erste Klick in der Beta noch eine Fläche zum
+  Bearbeiten.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: ohne Auswahl ist der erste Klick die Fläche, die unten liegt
+  (`_beginnen`), damit entsteht der Job; danach ist „Fläche anklicken …“ wieder gelöst.
+- `camaddon/gui_sprachwahl.py`: der Haken „Beta-Funktionen zeigen“ in der Gruppe „Updates“, die
+  Erklärung im Tooltip.
+- `translations/de.json`, `translations/en.json`, `tests/gui/szenario_beta_schritte.py` (Teil 6),
+  `docs/konzept_schritt_assistent.md`, `package.xml` 0.319.0.
+
+### ERGEBNIS
+- Voller Lauf nach P-2026-10-30-05 bis P-2026-10-31-01 (Weekly): 135/135 Prüfdateien, 144/145
+  leichte Szenarien; rot nur szenario_erster_start – die eigene Gruppe „Beta“ mit Satz machte die
+  Einstellungsseite so hoch, dass der Satz unter „Dateien“ gestaucht war (45 statt 65). Als Haken
+  in „Updates“ grün. Die schweren Szenarien mit dem Assistenten (geist_fuenfachs,
+  magazin_vierachs, vierachs_stirnseite) grün.
+- szenario_beta_schritte grün: ohne Auswahl → Anleitung „… die unten liegt“; Klick auf die
+  Oberseite eines Klotzes → Job, „Face3 – nach unten gedreht“, nichts gewählt, „Weiter“ frei.
 ## P-2026-10-31-01 beta-neue-aufspannung
 
 ### EINGELESEN

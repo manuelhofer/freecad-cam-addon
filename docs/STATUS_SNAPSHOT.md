@@ -584,7 +584,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   bearbeiten (Beta)“ am Job. Konzept und Vorschläge B1–B7: `docs/konzept_schritt_assistent.md`;
   Fragen 1–4 in `OFFENE_FRAGEN.md`. 0.316.0: B3 (Fräser in der Zeile); 0.317: „Anlegen legt an …“,
   alle angeklickten Flächen, die Ebene im Schruppen, die Ebenen-Kette in der Beta (an Manuels Teil
-  „tief“ durchgespielt); 0.318.0: „Neue Aufspannung (Beta)“. **Nächster Schritt dort:** je nach
+  „tief“ durchgespielt); 0.318.0: „Neue Aufspannung (Beta)“; 0.319.0: ohne Auswahl ist der erste Klick die Unterseite. Voller
+  Lauf danach grün (135/135, 145/145 und die schweren mit dem Assistenten). **Nächster Schritt dort:** je nach
   Manuels Antworten B1/B2/B4/B5.
 - *Korrektur (0.314.3, Manuels tiefe Tasche im Wochen-Build):* (1) Nullpunkt „Mitte oben“ aus dem
   genauen Hüllquader – der grobe (BoundBox ohne Netz) lag an den B-Spline-Wänden 3,32 mm zu hoch,
