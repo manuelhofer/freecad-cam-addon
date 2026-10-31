@@ -3587,7 +3587,7 @@
     "beta.weiter.nochmal": "{text} – noch einmal",
     "beta.weiter.aufmass": "Für mehrere Gänge (z. B. schruppen mit 3 mm Aufmaß, dann auf 2, auf 1, auf 0): das Aufmaß je Strategie steht unter „Werte ändern ▸“.",
     "beta.weiter.messstopp": "Messstopp davor",
-    "beta.weiter.messstopp.tooltip": "Vor den neuen Operationen hält die Maschine (Z hoch, Spindel und Kühlung aus, M0): messen, dann Start – es geht mit Spindel und Kühlung weiter.",
+    "beta.weiter.messstopp.tooltip": "Vor den neuen Operationen hält die Maschine (Z hoch, Spindel und Kühlung aus, M0): messen, dann Start – es geht mit Spindel und Kühlung weiter. Ist am Postprozessor der Maschine ein Messtaster mit Zyklus eingetragen und ist die Fläche eine Tasche, Bohrung oder ein Zapfen, misst stattdessen der Taster – angehalten wird nur, wenn das Maß außerhalb der Toleranz liegt.",
     "beta.weiter.los": "Weiter",
     "beta.weiter.keine_loecher": "Löcher – an diesen Flächen keine",
     "wv.kiste.suche": "Suchen: Hersteller, Marke, Reihe …",
@@ -3617,5 +3617,16 @@
     "ba.ergebnis_tauchfraesen": "→ {stellen} Tauchstellen, {lagen} Lage(n), etwa {zeit}",
     "hd.spann_d": "Spannt Ø",
     "hd.spann_d.tooltip": "Welchen Schaft-Ø der Halter spannt (Schrumpf-, Hydrodehn-, Weldonfutter: genau diesen). Die Empfehlung „so ginge es“ bietet ihn dann nur Werkzeugen mit diesem Schaft an. Leer bei Spannzangenfuttern – dort sagt es der Name (ER16 …).",
-    "hd.spann_d.leer": "– (Spannzange: am Namen)"
+    "hd.spann_d.leer": "– (Spannzange: am Namen)",
+    "pp.feld.taster": "Messtaster (T-Nr.)",
+    "pp.feld.taster.tooltip": "Die Werkzeugnummer des Messtasters. Eingetragen misst ein Messstopp mit Messmerkmal (aus „Weiter bearbeiten“) die Tasche, Bohrung oder den Zapfen mit dem Zyklus unten, statt anzuhalten – außerhalb der Toleranz hält die Steuerung an. Leer: Halt zum Messen von Hand.",
+    "pp.feld.taster_ein": "Taster ein",
+    "pp.feld.taster_ein.tooltip": "Befehle, die den Taster einschalten (an vielen Maschinen ein M-Befehl oder ein Makro des Herstellers). Leer: nichts.",
+    "pp.feld.taster_aus": "Taster aus",
+    "pp.feld.taster_aus.tooltip": "Befehle, die den Taster wieder ausschalten. Leer: nichts.",
+    "pp.feld.messen_tasche": "Messen: Rechtecktasche",
+    "pp.feld.messen_zapfen": "Messen: Rechteckzapfen",
+    "pp.feld.messen_bohrung": "Messen: Bohrung",
+    "pp.feld.messen_welle": "Messen: Welle/Zapfen rund",
+    "pp.feld.messen.tooltip": "Der Messzyklus der Steuerung für diese Art – {t} Taster, {x} {y} Mitte, {z} Messhöhe, {lx} {ly} Seitenlängen, {d} Durchmesser, {tol} Toleranz ±, {oben} Oberkante, {sicher} sichere Höhe. Leer: für diese Art halten statt messen."
 }

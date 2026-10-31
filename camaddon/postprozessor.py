@@ -129,6 +129,20 @@ class Steuerung:
     # NC-Start“), nach dem Start wieder weg – Siemens MSG, LinuxCNC „(MSG, …)“; leer: keine.
     meldung: str = ""
     meldung_aus: str = ""
+    # Messen statt Halt (Plan C3b; Manuel, 2026-10-31: „willst du auch messprogramme einbauen ..
+    # wär natürlich cool“): Trägt der Messstopp ein Messmerkmal (messstopp.merkmal_zeile) und ist
+    # hier ein Taster eingetragen (`taster`: seine Werkzeugnummer), misst der Zyklus der Art statt
+    # zu halten – ein Maß außerhalb der Toleranz hält dann die Steuerung an. Danach wechselt die
+    # nächste Bearbeitung ihr Werkzeug neu ein. {t} der Taster, {x} {y} die Mitte, {z} die
+    # Messhöhe, {lx} {ly} die Seitenlängen, {d} der Ø, {tol} ± die Toleranz, {oben} die Oberkante,
+    # {sicher} die sichere Höhe (mm, drei Stellen). Leer: Halt wie bisher.
+    taster: str = ""
+    taster_ein: str = ""
+    taster_aus: str = ""
+    messen_tasche: str = ""
+    messen_zapfen: str = ""
+    messen_bohrung: str = ""
+    messen_welle: str = ""
     # Zum Wechselpunkt der Maschine – {achsen}: „X200.000 Z300.000“; in MKS bzw. WKS.
     wechselpunkt_mks: str = "G53 G0 {achsen}"
     wechselpunkt_wks: str = "G0 {achsen}"
@@ -390,6 +404,13 @@ BEFEHLSFELDER = (
     "tuer_zu",
     "meldung",
     "meldung_aus",
+    "taster",
+    "taster_ein",
+    "taster_aus",
+    "messen_tasche",
+    "messen_zapfen",
+    "messen_bohrung",
+    "messen_welle",
     "schwenken",
     "schwenken_aus",
     "tcpm_ein",
@@ -1056,6 +1077,13 @@ def feld_text(feld):
         "tuer_zu": (tr("pp.feld.tuer_zu"), tr("pp.feld.tuer_zu.tooltip")),
         "meldung": (tr("pp.feld.meldung"), tr("pp.feld.meldung.tooltip")),
         "meldung_aus": (tr("pp.feld.meldung_aus"), tr("pp.feld.meldung_aus.tooltip")),
+        "taster": (tr("pp.feld.taster"), tr("pp.feld.taster.tooltip")),
+        "taster_ein": (tr("pp.feld.taster_ein"), tr("pp.feld.taster_ein.tooltip")),
+        "taster_aus": (tr("pp.feld.taster_aus"), tr("pp.feld.taster_aus.tooltip")),
+        "messen_tasche": (tr("pp.feld.messen_tasche"), tr("pp.feld.messen.tooltip")),
+        "messen_zapfen": (tr("pp.feld.messen_zapfen"), tr("pp.feld.messen.tooltip")),
+        "messen_bohrung": (tr("pp.feld.messen_bohrung"), tr("pp.feld.messen.tooltip")),
+        "messen_welle": (tr("pp.feld.messen_welle"), tr("pp.feld.messen.tooltip")),
         "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
         "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
         "tcpm_ein": (tr("pp.feld.tcpm_ein"), tr("pp.feld.tcpm_ein.tooltip")),
@@ -1244,6 +1272,40 @@ def _fuellen(vorlage, **werte):
 
 def _zeilen(text):
     return [z.rstrip() for z in (text or "").split("\n") if z.strip()]
+
+
+def _messen_saetze(s, gemessen, info):
+    """Die Sätze, mit denen der Taster das Merkmal misst (Steuerung.messen_*): Taster einwechseln,
+    einschalten, der Zyklus, ausschalten – [] ohne Merkmal, Taster oder Zyklus für die Art (dann
+    hält der Messstopp wie bisher)."""
+    if not gemessen or not s.taster.strip() or info.drehmaschine:
+        return []
+    m, toleranz = gemessen
+    vorlage = getattr(s, f"messen_{m.art}", "")
+    if not vorlage:
+        return []
+    try:
+        t = int(s.taster.strip())
+    except ValueError:
+        return []
+    werte = {
+        "t": t,
+        "x": f"{m.x:.3f}",
+        "y": f"{m.y:.3f}",
+        "z": f"{m.z_mess:.3f}",
+        "lx": f"{m.laenge_x:.3f}",
+        "ly": f"{m.laenge_y:.3f}",
+        "d": f"{m.durchmesser:.3f}",
+        "tol": f"{toleranz:.3f}",
+        "oben": f"{m.z_oben:.3f}",
+        "sicher": f"{m.z_oben + 10.0:.3f}",
+    }
+    saetze = []
+    for befehl in (s.vor_wechsel, s.wechsel_fraesen, s.nach_wechsel):
+        saetze.extend(_zeilen(_fuellen(befehl, t=t, werkzeug=str(t))))
+    for befehl in (s.taster_ein, vorlage, s.taster_aus):
+        saetze.extend(_zeilen(_fuellen(befehl, **werte)))
+    return saetze
 
 
 _NULLPUNKT = re.compile(r"G5([4-9])|G59\.([1-9])|G54\.1\s*P(\d+)")
@@ -1712,6 +1774,7 @@ def programm(
             zeilen.append("G17")
             ebene = "G17"
         messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
+        gemessen = None  # (messen.Merkmal, Toleranz) aus seiner Zeile „(MESSEN …)“
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
         for name_, parameter in befehle:
             if name_.startswith("("):
@@ -1721,6 +1784,8 @@ def programm(
                     # Bahn im Job sagt (4-Achs rundum).
                     text_ = text_[: -len("G93")] + "mm/min"
                 notiz(text_)
+                if text_.startswith(ms.MESSEN + " "):
+                    gemessen = ms.merkmal_von([name_])
                 messstopp = messstopp or name_ == ms.KOMMENTAR
                 im_messstopp = im_messstopp or name_ == ms.KOMMENTAR
                 continue
@@ -1769,6 +1834,13 @@ def programm(
                 # Drehmaschine: die Hauptspindel an.
                 continue
             if im_messstopp and gross in ("M0", "M00"):
+                taster = _messen_saetze(s, gemessen, info)
+                if taster:
+                    # Statt zu halten misst der Taster; danach wechselt die nächste Bearbeitung
+                    # ihr Werkzeug neu ein (auch dasselbe wie davor).
+                    zeilen.extend(taster)
+                    werkzeug = None
+                    continue
                 # Der Halt zum Messen: davor die Tür auf, danach zu – wie die Steuerung es sagt
                 # (Steuerung.tuer_auf/tuer_zu; leer: nur der Halt).
                 if s.tuer_auf:

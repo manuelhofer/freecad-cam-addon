@@ -3587,7 +3587,7 @@
     "beta.weiter.nochmal": "{text} – once more",
     "beta.weiter.aufmass": "For several passes (e.g. rough with 3 mm stock, then to 2, to 1, to 0): the stock to leave per strategy is under “Change values ▸”.",
     "beta.weiter.messstopp": "Measuring stop before",
-    "beta.weiter.messstopp.tooltip": "Before the new operations the machine stops (Z up, spindle and coolant off, M0): measure, then Start – it goes on with spindle and coolant.",
+    "beta.weiter.messstopp.tooltip": "Before the new operations the machine stops (Z up, spindle and coolant off, M0): measure, then Start – it goes on with spindle and coolant. If the machine's post processor has a touch probe with a cycle and the faces are a pocket, bore or boss, the probe measures instead – it only stops when the size is out of tolerance.",
     "beta.weiter.los": "Next",
     "beta.weiter.keine_loecher": "Holes – none on these faces",
     "wv.kiste.suche": "Search: manufacturer, brand, series …",
@@ -3617,5 +3617,16 @@
     "ba.ergebnis_tauchfraesen": "→ {stellen} plunges, {lagen} layer(s), about {zeit}",
     "hd.spann_d": "Clamps Ø",
     "hd.spann_d.tooltip": "Which shank Ø the holder clamps (shrink-fit, hydraulic, Weldon chucks: exactly this one). The “this would work” recommendation then only offers it to tools with this shank. Leave empty for collet chucks – there the name tells (ER16 …).",
-    "hd.spann_d.leer": "– (collet: by name)"
+    "hd.spann_d.leer": "– (collet: by name)",
+    "pp.feld.taster": "Probe (tool no.)",
+    "pp.feld.taster.tooltip": "The tool number of the touch probe. When set, a measuring stop with a feature (from “Continue machining”) measures the pocket, bore or boss with the cycle below instead of stopping – out of tolerance, the control stops. Empty: stop for manual measuring.",
+    "pp.feld.taster_ein": "Probe on",
+    "pp.feld.taster_ein.tooltip": "Commands that switch the probe on (on many machines an M code or a vendor macro). Empty: nothing.",
+    "pp.feld.taster_aus": "Probe off",
+    "pp.feld.taster_aus.tooltip": "Commands that switch the probe off again. Empty: nothing.",
+    "pp.feld.messen_tasche": "Measure: rectangular pocket",
+    "pp.feld.messen_zapfen": "Measure: rectangular boss",
+    "pp.feld.messen_bohrung": "Measure: bore",
+    "pp.feld.messen_welle": "Measure: round boss",
+    "pp.feld.messen.tooltip": "The control's measuring cycle for this kind – {t} probe, {x} {y} centre, {z} measuring height, {lx} {ly} side lengths, {d} diameter, {tol} tolerance ±, {oben} top edge, {sicher} safe height. Empty: stop instead of measuring for this kind."
 }

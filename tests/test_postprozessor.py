@@ -1098,6 +1098,41 @@ z_ohne = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), fraese, "M").ze
 k = z_ohne.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_ohne else -1
 pruefe(z_ohne[k + 1] == "G0 G43 H2 Z25.000", f"ohne Wechselpunkt: {z_ohne[k:]}")
 
+# Messen statt Halt (Plan C3b): Trägt der Messstopp ein Messmerkmal und kennt die Steuerung Taster
+# und Zyklus, wechselt sie den Taster ein und misst – kein M0; die nächste Bearbeitung wechselt ihr
+# Werkzeug neu ein, auch wenn es dasselbe ist wie vor dem Messen. Ohne Taster bleibt der Halt.
+from camaddon import messen as mn  # noqa: E402
+
+merkmal_t = mn.Merkmal(mn.TASCHE, 0.0, 0.0, laenge_x=59.4, laenge_y=39.4, z_oben=-1.0, z_mess=-8.5)
+mit_merkmal = ms.zeilen(25.0, 900.0)
+mit_merkmal.insert(1, ms.merkmal_zeile(merkmal_t, 0.02))
+messen_m = pp.Abschnitt("Messstopp", 2, 900.0, False, "None", [C(z) for z in mit_merkmal], "Bohrer")
+weiter_2 = dataclasses.replace(tasche, name="Weiter", werkzeug=2)
+mit_taster = pp.steuerung(
+    "linuxcnc",
+    {
+        "taster": "99",
+        "taster_ein": "M64 P0",
+        "messen_tasche": "O<messen_tasche> CALL [{x}] [{y}] [{lx}] [{ly}] [{z}] [{tol}]",
+        "taster_aus": "M65 P0",
+    },
+)
+z_t = pp.programm([bohren, messen_m, weiter_2], mit_taster, fraese, "M").zeilen
+k = z_t.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_t else -1
+aufruf = "O<messen_tasche> CALL [0.000] [0.000] [59.400] [39.400] [-8.500] [0.020]"
+nach_t = z_t[k:]
+pruefe(
+    k >= 0 and aufruf in nach_t and "M0" not in nach_t and "M64 P0" in nach_t,
+    f"Messen mit Taster: {nach_t[:14]}",
+)
+i = nach_t.index(aufruf) if aufruf in nach_t else 0
+pruefe(
+    any("T99" in x for x in nach_t[:i]) and any("T2" in x for x in nach_t[i:]),
+    f"Taster ein-, T2 wieder eingewechselt: {nach_t[:i + 8]}",
+)
+z_ohne_t = pp.programm([bohren, messen_m, weiter_2], pp.steuerung("linuxcnc"), fraese, "M").zeilen
+pruefe("M0" in z_ohne_t and not any("CALL" in x for x in z_ohne_t), "ohne Taster kein Halt")
+
 # An der Drehmaschine mit angetriebenem Werkzeug (Manuels CLX, Siemens): Der Messstopp schaltet
 # den Antrieb aus („M3=5“ der Spindel 3), nicht die Hauptspindel („M5“); nach dem Halt schaltet die
 # nächste Bearbeitung ihren Antrieb mit ihrer Drehzahl wieder ein (P-2026-10-18-54).
