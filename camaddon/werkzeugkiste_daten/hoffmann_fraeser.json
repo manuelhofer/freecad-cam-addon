@@ -1,0 +1,6789 @@
+{
+ "format": "camaddon-werkzeugkiste",
+ "version": 1,
+ "reihen": [
+  {
+   "kennung": "hg-garant-201040",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "VHM-Fräser",
+   "quelle": "hoffmann-group.com, Produktseiten 201040-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201040-1%2C5",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet",
+    "kuehlung_innen": false,
+    "mittenschneidend": true,
+    "werkstoffe": [
+     "N1",
+     "N2",
+     "P1"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 6,
+     "gesamtlaenge": 50,
+     "schaft": 3,
+     "artikel": "201040 1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-1%2C5",
+     "preis_netto": 37.13,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.004,
+        "ae_d": 1,
+        "ap": 0.75
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 50,
+     "schaft": 3,
+     "artikel": "201040 2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-2",
+     "preis_netto": 39.2,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 50,
+     "schaft": 3,
+     "artikel": "201040 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-3",
+     "preis_netto": 40.29,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1.5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 15,
+     "gesamtlaenge": 60,
+     "schaft": 4,
+     "artikel": "201040 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-4",
+     "preis_netto": 44.87,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 2
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 60,
+     "schaft": 5,
+     "artikel": "201040 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-5",
+     "preis_netto": 54.12,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 20,
+     "gesamtlaenge": 65,
+     "schaft": 6,
+     "artikel": "201040 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-6",
+     "preis_netto": 58.48,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.025,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 64,
+     "schaft": 8,
+     "artikel": "201040 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-8",
+     "preis_netto": 83.32,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 75,
+     "schaft": 10,
+     "artikel": "201040 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-10",
+     "preis_netto": 140.11,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 30,
+     "gesamtlaenge": 80,
+     "schaft": 12,
+     "artikel": "201040 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201040-12",
+     "preis_netto": 190.5,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-201043",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "VHM-Fräser",
+   "quelle": "hoffmann-group.com, Produktseiten 201043-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201043-1",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet",
+    "kuehlung_innen": false,
+    "mittenschneidend": true,
+    "werkstoffe": [
+     "N1",
+     "N2",
+     "P1"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201043 1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-1",
+     "preis_netto": 53.25,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.004,
+        "ae_d": 1,
+        "ap": 0.5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201043 1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-1%2C5",
+     "preis_netto": 57.83,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.004,
+        "ae_d": 1,
+        "ap": 0.75
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201043 2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-2",
+     "preis_netto": 60.98,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201043 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-3",
+     "preis_netto": 63.27,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1.5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 75,
+     "schaft": 4,
+     "artikel": "201043 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-4",
+     "preis_netto": 75.47,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 2
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 75,
+     "schaft": 5,
+     "artikel": "201043 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-5",
+     "preis_netto": 76.67,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 30,
+     "gesamtlaenge": 100,
+     "schaft": 6,
+     "artikel": "201043 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-6",
+     "preis_netto": 87.5,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.025,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 35,
+     "gesamtlaenge": 100,
+     "schaft": 8,
+     "artikel": "201043 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-8",
+     "preis_netto": 129.84,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 40,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "artikel": "201043 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-10",
+     "preis_netto": 204.01,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 45,
+     "gesamtlaenge": 120,
+     "schaft": 12,
+     "artikel": "201043 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201043-12",
+     "preis_netto": 264.24,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 170
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-201045",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "VHM-Fräser",
+   "quelle": "hoffmann-group.com, Produktseiten 201045-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201045-1",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "DLC",
+    "kuehlung_innen": false,
+    "mittenschneidend": true,
+    "werkstoffe": [
+     "N1",
+     "N2",
+     "P1"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 4,
+     "gesamtlaenge": 50,
+     "schaft": 3,
+     "artikel": "201045 1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-1",
+     "preis_netto": 48.13,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.004,
+        "ae_d": 1,
+        "ap": 0.5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 6,
+     "gesamtlaenge": 50,
+     "schaft": 3,
+     "artikel": "201045 1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-1%2C5",
+     "preis_netto": 48.9,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.004,
+        "ae_d": 1,
+        "ap": 0.75
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 50,
+     "schaft": 3,
+     "artikel": "201045 2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-2",
+     "preis_netto": 51.18,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 50,
+     "schaft": 3,
+     "artikel": "201045 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-3",
+     "preis_netto": 53.91,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1.5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 15,
+     "gesamtlaenge": 60,
+     "schaft": 4,
+     "artikel": "201045 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-4",
+     "preis_netto": 60.33,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 2
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 60,
+     "schaft": 5,
+     "artikel": "201045 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-5",
+     "preis_netto": 69.91,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 20,
+     "gesamtlaenge": 65,
+     "schaft": 6,
+     "artikel": "201045 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-6",
+     "preis_netto": 76.43,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.025,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 64,
+     "schaft": 8,
+     "artikel": "201045 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-8",
+     "preis_netto": 107.03,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 75,
+     "schaft": 10,
+     "artikel": "201045 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-10",
+     "preis_netto": 172.06,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 30,
+     "gesamtlaenge": 80,
+     "schaft": 12,
+     "artikel": "201045 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201045-12",
+     "preis_netto": 238.43,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-201046",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "VHM-Fräser",
+   "quelle": "hoffmann-group.com, Produktseiten 201046-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201046-1",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "DLC",
+    "kuehlung_innen": false,
+    "mittenschneidend": true,
+    "werkstoffe": [
+     "N1",
+     "N2",
+     "P1"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201046 1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-1",
+     "preis_netto": 68.93,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.004,
+        "ae_d": 1,
+        "ap": 0.5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201046 1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-1%2C5",
+     "preis_netto": 75.14,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.004,
+        "ae_d": 1,
+        "ap": 0.75
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201046 2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-2",
+     "preis_netto": 80.15,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 75,
+     "schaft": 3,
+     "artikel": "201046 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-3",
+     "preis_netto": 82.87,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 1.5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 75,
+     "schaft": 4,
+     "artikel": "201046 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-4",
+     "preis_netto": 98.01,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 2
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 75,
+     "schaft": 5,
+     "artikel": "201046 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-5",
+     "preis_netto": 99.21,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.015,
+        "ae_d": 1,
+        "ap": 5
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 30,
+     "gesamtlaenge": 100,
+     "schaft": 6,
+     "artikel": "201046 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-6",
+     "preis_netto": 112.9,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.025,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 35,
+     "gesamtlaenge": 100,
+     "schaft": 8,
+     "artikel": "201046 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-8",
+     "preis_netto": 156.93,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 40,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "artikel": "201046 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-10",
+     "preis_netto": 235.97,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 45,
+     "gesamtlaenge": 120,
+     "schaft": 12,
+     "artikel": "201046 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201046-12",
+     "preis_netto": 308.48,
+     "schnittwerte": {
+      "N1": {
+       "vollnut": {
+        "vc": 440
+       }
+      },
+      "N2": {
+       "vollnut": {
+        "vc": 190
+       }
+      },
+      "P1": {
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-201070",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "Master Alu VHM-Schaftfräser HPC",
+   "quelle": "hoffmann-group.com, Produktseiten 201070-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201070-2L",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "unbeschichtet",
+    "kuehlung_innen": false,
+    "mittenschneidend": true,
+    "einsatzzweck": "HPC",
+    "werkstoffe": [
+     "N1",
+     "N2",
+     "P1"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "artikel": "201070 2L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-2L",
+     "preis_netto": 57.58,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.04,
+        "ae_max_d": 0.5,
+        "ap": 11
+       },
+       "vollnut": {
+        "fz": 0.02,
+        "ae_d": 1,
+        "ap": 4
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 5,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "artikel": "201070 2M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-2M",
+     "preis_netto": 47.31,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.04,
+        "ae_max_d": 0.5,
+        "ap": 5
+       },
+       "vollnut": {
+        "fz": 0.02,
+        "ae_d": 1,
+        "ap": 4
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 2.8,
+     "artikel": "201070 3L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-3L",
+     "preis_netto": 57.58,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.05,
+        "ae_max_d": 0.5,
+        "ap": 12
+       },
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 6,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 2.8,
+     "artikel": "201070 3M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-3M",
+     "preis_netto": 47.31,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.05,
+        "ae_max_d": 0.5,
+        "ap": 6
+       },
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 3.8,
+     "artikel": "201070 4M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-4M",
+     "preis_netto": 57.58,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.06,
+        "ae_max_d": 0.5,
+        "ap": 10
+       },
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 55,
+     "schaft": 6,
+     "hals_d": 3.8,
+     "artikel": "201070 4L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-4L",
+     "preis_netto": 69.43,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.06,
+        "ae_max_d": 0.5,
+        "ap": 16
+       },
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 4.8,
+     "artikel": "201070 5E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-5E",
+     "preis_netto": 57.58,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.07,
+        "ae_max_d": 0.5,
+        "ap": 9
+       },
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 9
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 55,
+     "schaft": 6,
+     "hals_d": 4.8,
+     "artikel": "201070 5M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-5M",
+     "preis_netto": 69.43,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.07,
+        "ae_max_d": 0.5,
+        "ap": 16
+       },
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "artikel": "201070 6E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-6E",
+     "preis_netto": 59.61,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.08,
+        "ae_max_d": 0.5,
+        "ap": 11
+       },
+       "vollnut": {
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 11
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "artikel": "201070 6L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-6L",
+     "preis_netto": 62.66,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.08,
+        "ae_max_d": 0.5,
+        "ap": 16
+       },
+       "vollnut": {
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 55,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "artikel": "201070 6X",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-6X",
+     "preis_netto": 72.03,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.08,
+        "ae_max_d": 0.5,
+        "ap": 21
+       },
+       "vollnut": {
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 50,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201070 8K",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-8K",
+     "preis_netto": 65.82,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 8
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 14,
+     "gesamtlaenge": 60,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201070 8E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-8E",
+     "preis_netto": 67.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 14
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 14
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 60,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201070 8S",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-8S",
+     "preis_netto": 74.06,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 21
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 16
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 14,
+     "gesamtlaenge": 70,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201070 8D",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-8D",
+     "preis_netto": 74.06,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.09,
+        "ae_max_d": 0.5,
+        "ap": 14
+       },
+       "vollnut": {
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 14
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 70,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201070 8T",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-8T",
+     "preis_netto": 90.77,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.09,
+        "ae_max_d": 0.5,
+        "ap": 26
+       },
+       "vollnut": {
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 16
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 31,
+     "gesamtlaenge": 70,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201070 8X",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-8X",
+     "preis_netto": 86.37,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.09,
+        "ae_max_d": 0.5,
+        "ap": 31
+       },
+       "vollnut": {
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 16
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 55,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201070 10D",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-10D",
+     "preis_netto": 91.31,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 10
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 60,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201070 10E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-10E",
+     "preis_netto": 94.02,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 18
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 18
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 60,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201070 10L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-10L",
+     "preis_netto": 98.81,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 26
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 20
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 33,
+     "gesamtlaenge": 70,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201070 10X",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-10X",
+     "preis_netto": 102.5,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.11,
+        "ae_max_d": 0.5,
+        "ap": 33
+       },
+       "vollnut": {
+        "fz": 0.09,
+        "ae_d": 1,
+        "ap": 20
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 80,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201070 10S",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-10S",
+     "preis_netto": 109.5,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 18
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 18
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 85,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201070 10M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-10M",
+     "preis_netto": 130.27,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 26
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 20
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 60,
+     "schaft": 12,
+     "hals_d": 11,
+     "artikel": "201070 12K",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-12K",
+     "preis_netto": 152.4,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.14,
+        "ae_max_d": 0.5,
+        "ap": 12
+       },
+       "vollnut": {
+        "fz": 0.12,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 70,
+     "schaft": 12,
+     "hals_d": 11,
+     "artikel": "201070 12E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-12E",
+     "preis_netto": 176.98,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 21
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 21
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 32,
+     "gesamtlaenge": 70,
+     "schaft": 12,
+     "hals_d": 11,
+     "artikel": "201070 12L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201070-12L",
+     "preis_netto": 188.04,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 180
+       },
+       "vollnut": {
+        "vc": 180
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 32
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 24
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-201075",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "Master Alu VHM-Schaftfräser HPC",
+   "quelle": "hoffmann-group.com, Produktseiten 201075-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201075-2L",
+   "gemeinsam": {
+    "schneiden": 1,
+    "schneidstoff": "vhm",
+    "beschichtung": "DLC",
+    "kuehlung_innen": false,
+    "mittenschneidend": true,
+    "einsatzzweck": "HPC",
+    "werkstoffe": [
+     "N1",
+     "N2",
+     "P1"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "artikel": "201075 2L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-2L",
+     "preis_netto": 66.05,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.04,
+        "ae_max_d": 0.5,
+        "ap": 11
+       },
+       "vollnut": {
+        "fz": 0.02,
+        "ae_d": 1,
+        "ap": 4
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 5,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "artikel": "201075 2M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-2M",
+     "preis_netto": 54.3,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.04,
+        "ae_max_d": 0.5,
+        "ap": 5
+       },
+       "vollnut": {
+        "fz": 0.02,
+        "ae_d": 1,
+        "ap": 4
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 2.8,
+     "artikel": "201075 3L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-3L",
+     "preis_netto": 66.05,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.05,
+        "ae_max_d": 0.5,
+        "ap": 12
+       },
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 6,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 2.8,
+     "artikel": "201075 3M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-3M",
+     "preis_netto": 54.3,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.05,
+        "ae_max_d": 0.5,
+        "ap": 6
+       },
+       "vollnut": {
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 6
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 3.8,
+     "artikel": "201075 4M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-4M",
+     "preis_netto": 66.05,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.06,
+        "ae_max_d": 0.5,
+        "ap": 10
+       },
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 55,
+     "schaft": 6,
+     "hals_d": 3.8,
+     "artikel": "201075 4L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-4L",
+     "preis_netto": 79.71,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.06,
+        "ae_max_d": 0.5,
+        "ap": 16
+       },
+       "vollnut": {
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 4.8,
+     "artikel": "201075 5E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-5E",
+     "preis_netto": 66.05,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.07,
+        "ae_max_d": 0.5,
+        "ap": 9
+       },
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 9
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 55,
+     "schaft": 6,
+     "hals_d": 4.8,
+     "artikel": "201075 5M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-5M",
+     "preis_netto": 79.71,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.07,
+        "ae_max_d": 0.5,
+        "ap": 16
+       },
+       "vollnut": {
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "artikel": "201075 6E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-6E",
+     "preis_netto": 68.64,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.08,
+        "ae_max_d": 0.5,
+        "ap": 11
+       },
+       "vollnut": {
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 11
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 50,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "artikel": "201075 6L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-6L",
+     "preis_netto": 72.03,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.08,
+        "ae_max_d": 0.5,
+        "ap": 16
+       },
+       "vollnut": {
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 55,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "artikel": "201075 6X",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-6X",
+     "preis_netto": 83.88,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.08,
+        "ae_max_d": 0.5,
+        "ap": 21
+       },
+       "vollnut": {
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 50,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201075 8K",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-8K",
+     "preis_netto": 76.09,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 8
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 8
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 14,
+     "gesamtlaenge": 60,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201075 8E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-8E",
+     "preis_netto": 78.24,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 14
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 14
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 60,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201075 8S",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-8S",
+     "preis_netto": 85.35,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 21
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 16
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 14,
+     "gesamtlaenge": 70,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201075 8D",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-8D",
+     "preis_netto": 85.35,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.09,
+        "ae_max_d": 0.5,
+        "ap": 14
+       },
+       "vollnut": {
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 14
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 70,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201075 8T",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-8T",
+     "preis_netto": 104.66,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.09,
+        "ae_max_d": 0.5,
+        "ap": 26
+       },
+       "vollnut": {
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 16
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 31,
+     "gesamtlaenge": 70,
+     "schaft": 8,
+     "hals_d": 7.4,
+     "artikel": "201075 8X",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-8X",
+     "preis_netto": 99.24,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.09,
+        "ae_max_d": 0.5,
+        "ap": 31
+       },
+       "vollnut": {
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 16
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 55,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201075 10D",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-10D",
+     "preis_netto": 104.1,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 10
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 10
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 60,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201075 10E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-10E",
+     "preis_netto": 108.64,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 18
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 18
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 60,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201075 10L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-10L",
+     "preis_netto": 113.93,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 26
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 20
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 33,
+     "gesamtlaenge": 70,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201075 10X",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-10X",
+     "preis_netto": 117.62,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.11,
+        "ae_max_d": 0.5,
+        "ap": 33
+       },
+       "vollnut": {
+        "fz": 0.09,
+        "ae_d": 1,
+        "ap": 20
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 80,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201075 10S",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-10S",
+     "preis_netto": 125.36,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 18
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 18
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 85,
+     "schaft": 10,
+     "hals_d": 9.2,
+     "artikel": "201075 10M",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-10M",
+     "preis_netto": 148.71,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.1,
+        "ae_max_d": 0.5,
+        "ap": 26
+       },
+       "vollnut": {
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 20
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 60,
+     "schaft": 12,
+     "hals_d": 11,
+     "artikel": "201075 12K",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-12K",
+     "preis_netto": 176.98,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.14,
+        "ae_max_d": 0.5,
+        "ap": 12
+       },
+       "vollnut": {
+        "fz": 0.12,
+        "ae_d": 1,
+        "ap": 12
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 70,
+     "schaft": 12,
+     "hals_d": 11,
+     "artikel": "201075 12E",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-12E",
+     "preis_netto": 201.56,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 21
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 21
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 32,
+     "gesamtlaenge": 70,
+     "schaft": 12,
+     "hals_d": 11,
+     "artikel": "201075 12L",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201075-12L",
+     "preis_netto": 216.3,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.12,
+        "ae_max_d": 0.5,
+        "ap": 32
+       },
+       "vollnut": {
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 24
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-201140",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "VHM-Microfräser",
+   "quelle": "hoffmann-group.com, Produktseiten 201140-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C1X0%2C3",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schaft": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "DLC",
+    "kuehlung_innen": false,
+    "werkstoffe": [
+     "N1",
+     "N2",
+     "P1"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.1,
+     "schneidenlaenge": 0.15,
+     "gesamtlaenge": 45,
+     "hals_d": 0.08,
+     "mittenschneidend": true,
+     "artikel": "201140 0,1X0,3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C1X0%2C3",
+     "preis_netto": 104.11,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.025
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.1,
+     "schneidenlaenge": 0.15,
+     "gesamtlaenge": 45,
+     "hals_d": 0.08,
+     "mittenschneidend": true,
+     "artikel": "201140 0,1X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C1X0%2C5",
+     "preis_netto": 104.11,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.025
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.1,
+     "schneidenlaenge": 0.15,
+     "gesamtlaenge": 45,
+     "hals_d": 0.08,
+     "mittenschneidend": true,
+     "artikel": "201140 0,1X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C1X1",
+     "preis_netto": 104.11,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.007
+       },
+       "vollnut": {
+        "fz": 0.005,
+        "ae_d": 1,
+        "ap": 0.013
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.2,
+     "schneidenlaenge": 0.3,
+     "gesamtlaenge": 45,
+     "hals_d": 0.18,
+     "mittenschneidend": true,
+     "artikel": "201140 0,2X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C2X0%2C5",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012,
+        "ae_max_d": 0.5,
+        "ap": 0.3
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.05
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.2,
+     "schneidenlaenge": 0.3,
+     "gesamtlaenge": 45,
+     "hals_d": 0.18,
+     "mittenschneidend": true,
+     "artikel": "201140 0,2X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C2X1",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.05
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.2,
+     "schneidenlaenge": 0.3,
+     "gesamtlaenge": 45,
+     "artikel": "201140 0,2X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C2X1%2C5",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.2,
+     "schneidenlaenge": 0.3,
+     "gesamtlaenge": 45,
+     "hals_d": 0.18,
+     "mittenschneidend": true,
+     "artikel": "201140 0,2X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C2X2",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.007,
+        "ae_max_d": 0.5,
+        "ap": 0.3
+       },
+       "vollnut": {
+        "fz": 0.005,
+        "ae_d": 1,
+        "ap": 0.025
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.2,
+     "schneidenlaenge": 0.3,
+     "gesamtlaenge": 45,
+     "hals_d": 0.18,
+     "mittenschneidend": true,
+     "artikel": "201140 0,2X3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C2X3",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.007
+       },
+       "vollnut": {
+        "fz": 0.005,
+        "ae_d": 1,
+        "ap": 0.01
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.3,
+     "schneidenlaenge": 0.4,
+     "gesamtlaenge": 45,
+     "hals_d": 0.28,
+     "mittenschneidend": true,
+     "artikel": "201140 0,3X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C3X0%2C5",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016,
+        "ae_max_d": 0.5,
+        "ap": 0.4
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.075
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.3,
+     "schneidenlaenge": 0.4,
+     "gesamtlaenge": 45,
+     "hals_d": 0.28,
+     "mittenschneidend": true,
+     "artikel": "201140 0,3X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C3X1",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.075
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.3,
+     "schneidenlaenge": 0.4,
+     "gesamtlaenge": 45,
+     "hals_d": 0.28,
+     "mittenschneidend": true,
+     "artikel": "201140 0,3X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C3X2",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.068
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.3,
+     "schneidenlaenge": 0.4,
+     "gesamtlaenge": 45,
+     "hals_d": 0.28,
+     "mittenschneidend": true,
+     "artikel": "201140 0,3X3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C3X3",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.038
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.3,
+     "schneidenlaenge": 0.4,
+     "gesamtlaenge": 45,
+     "hals_d": 0.28,
+     "mittenschneidend": true,
+     "artikel": "201140 0,3X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C3X4",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.026
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.3,
+     "schneidenlaenge": 0.4,
+     "gesamtlaenge": 45,
+     "hals_d": 0.28,
+     "mittenschneidend": true,
+     "artikel": "201140 0,3X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C3X6",
+     "preis_netto": 94.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.007
+       },
+       "vollnut": {
+        "fz": 0.005,
+        "ae_d": 1,
+        "ap": 0.006
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.4,
+     "schneidenlaenge": 0.6,
+     "gesamtlaenge": 45,
+     "hals_d": 0.38,
+     "mittenschneidend": true,
+     "artikel": "201140 0,4X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C4X1",
+     "preis_netto": 86.36,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016,
+        "ae_max_d": 0.5,
+        "ap": 0.6
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.1
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.4,
+     "schneidenlaenge": 0.6,
+     "gesamtlaenge": 45,
+     "hals_d": 0.38,
+     "mittenschneidend": true,
+     "artikel": "201140 0,4X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C4X2",
+     "preis_netto": 86.36,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.1
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.4,
+     "schneidenlaenge": 0.6,
+     "gesamtlaenge": 45,
+     "hals_d": 0.38,
+     "mittenschneidend": true,
+     "artikel": "201140 0,4X3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C4X3",
+     "preis_netto": 86.36,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.08
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.4,
+     "schneidenlaenge": 0.6,
+     "gesamtlaenge": 45,
+     "hals_d": 0.38,
+     "mittenschneidend": true,
+     "artikel": "201140 0,4X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C4X4",
+     "preis_netto": 86.36,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012,
+        "ae_max_d": 0.5,
+        "ap": 0.6
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.05
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.4,
+     "schneidenlaenge": 0.6,
+     "gesamtlaenge": 45,
+     "hals_d": 0.38,
+     "mittenschneidend": true,
+     "artikel": "201140 0,4X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C4X6",
+     "preis_netto": 86.36,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.02
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.4,
+     "schneidenlaenge": 0.6,
+     "gesamtlaenge": 45,
+     "hals_d": 0.38,
+     "mittenschneidend": true,
+     "artikel": "201140 0,4X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C4X8",
+     "preis_netto": 86.36,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.007
+       },
+       "vollnut": {
+        "fz": 0.005,
+        "ae_d": 1,
+        "ap": 0.008
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 45,
+     "hals_d": 0.48,
+     "mittenschneidend": true,
+     "artikel": "201140 0,5X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C5X1",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.02,
+        "ae_max_d": 0.5,
+        "ap": 0.7
+       },
+       "vollnut": {
+        "fz": 0.016,
+        "ae_d": 1,
+        "ap": 0.125
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 45,
+     "hals_d": 0.48,
+     "mittenschneidend": true,
+     "artikel": "201140 0,5X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C5X2",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.02,
+        "ae_max_d": 0.5,
+        "ap": 0.7
+       },
+       "vollnut": {
+        "fz": 0.016,
+        "ae_d": 1,
+        "ap": 0.125
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 45,
+     "hals_d": 0.48,
+     "mittenschneidend": true,
+     "artikel": "201140 0,5X3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C5X3",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.02,
+        "ae_max_d": 0.5,
+        "ap": 0.7
+       },
+       "vollnut": {
+        "fz": 0.016,
+        "ae_d": 1,
+        "ap": 0.113
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 45,
+     "hals_d": 0.48,
+     "mittenschneidend": true,
+     "artikel": "201140 0,5X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C5X4",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.02
+       },
+       "vollnut": {
+        "fz": 0.016,
+        "ae_d": 1,
+        "ap": 0.1
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 45,
+     "hals_d": 0.48,
+     "mittenschneidend": true,
+     "artikel": "201140 0,5X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C5X6",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016,
+        "ae_max_d": 0.5,
+        "ap": 0.7
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.044
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 45,
+     "hals_d": 0.48,
+     "mittenschneidend": true,
+     "artikel": "201140 0,5X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C5X8",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.015
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 50,
+     "hals_d": 0.48,
+     "mittenschneidend": true,
+     "artikel": "201140 0,5X10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C5X10",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.012
+       },
+       "vollnut": {
+        "fz": 0.008,
+        "ae_d": 1,
+        "ap": 0.01
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 45,
+     "hals_d": 0.58,
+     "mittenschneidend": true,
+     "artikel": "201140 0,6X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C6X2",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.02
+       },
+       "vollnut": {
+        "fz": 0.016,
+        "ae_d": 1,
+        "ap": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 45,
+     "hals_d": 0.58,
+     "mittenschneidend": true,
+     "artikel": "201140 0,6X3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C6X3",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.02
+       },
+       "vollnut": {
+        "fz": 0.016,
+        "ae_d": 1,
+        "ap": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 45,
+     "hals_d": 0.58,
+     "mittenschneidend": true,
+     "artikel": "201140 0,6X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C6X4",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.02
+       },
+       "vollnut": {
+        "fz": 0.016,
+        "ae_d": 1,
+        "ap": 0.135
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 45,
+     "hals_d": 0.58,
+     "mittenschneidend": true,
+     "artikel": "201140 0,6X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C6X6",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.075
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 45,
+     "hals_d": 0.58,
+     "mittenschneidend": true,
+     "artikel": "201140 0,6X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C6X8",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.053
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 50,
+     "hals_d": 0.58,
+     "mittenschneidend": true,
+     "artikel": "201140 0,6X10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C6X10",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.018
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.7,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 45,
+     "artikel": "201140 0,7X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C7X2",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.7,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 45,
+     "artikel": "201140 0,7X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C7X4",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.8,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 50,
+     "hals_d": 0.78,
+     "mittenschneidend": true,
+     "artikel": "201140 0,8X10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C8X10",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.07
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.8,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 50,
+     "hals_d": 0.78,
+     "mittenschneidend": true,
+     "artikel": "201140 0,8X12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201140-0%2C8X12",
+     "preis_netto": 72.85,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       },
+       "vollnut": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       },
+       "vollnut": {
+        "vc": 200
+       }
+      },
+      "P1": {
+       "schruppen": {
+        "fz": 0.016,
+        "ae_max_d": 0.5,
+        "ap": 1.2
+       },
+       "vollnut": {
+        "fz": 0.012,
+        "ae_d": 1,
+        "ap": 0.04
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-201141",
+   "art": "schaftfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "VHM-Microfräser",
+   "quelle": "hoffmann-group.com, Produktseiten 201141-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C2X1",
+   "gemeinsam": {
+    "schneiden": 2,
+    "schaft": 6,
+    "schneidstoff": "vhm",
+    "beschichtung": "DLC",
+    "mittenschneidend": true,
+    "werkstoffe": [
+     "N1",
+     "N2"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 0.2,
+     "schneidenlaenge": 0.3,
+     "gesamtlaenge": 55,
+     "hals_d": 0.18,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,2X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C2X1",
+     "preis_netto": 55,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.4,
+     "schneidenlaenge": 0.6,
+     "gesamtlaenge": 55,
+     "hals_d": 0.38,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,4X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C4X2",
+     "preis_netto": 54.1,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 55,
+     "hals_d": 0.48,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,5X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C5X1",
+     "preis_netto": 49.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 55,
+     "hals_d": 0.48,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,5X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C5X2",
+     "preis_netto": 49.9,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 55,
+     "hals_d": 0.48,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,5X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C5X4",
+     "preis_netto": 48.1,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.5,
+     "schneidenlaenge": 0.7,
+     "gesamtlaenge": 55,
+     "hals_d": 0.48,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,5X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C5X6",
+     "preis_netto": 52.2,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 55,
+     "hals_d": 0.58,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,6X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C6X2",
+     "preis_netto": 48.9,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.6,
+     "schneidenlaenge": 0.9,
+     "gesamtlaenge": 55,
+     "hals_d": 0.58,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,6X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C6X4",
+     "preis_netto": 27.03,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.8,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 55,
+     "hals_d": 0.78,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,8X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C8X2",
+     "preis_netto": 41.7,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.8,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 55,
+     "hals_d": 0.78,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,8X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C8X4",
+     "preis_netto": 26.37,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.8,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 55,
+     "hals_d": 0.78,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,8X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C8X6",
+     "preis_netto": 47.8,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 0.8,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 55,
+     "hals_d": 0.78,
+     "kuehlung_innen": false,
+     "artikel": "201141 0,8X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C8X8",
+     "preis_netto": 64.8,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X10",
+     "preis_netto": 49.6,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X12",
+     "preis_netto": 49.1,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X15",
+     "preis_netto": 49.3,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X16",
+     "preis_netto": 26.84,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X2",
+     "preis_netto": 41.8,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X4",
+     "preis_netto": 41.6,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X5",
+     "preis_netto": 25.04,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X6",
+     "preis_netto": 43.3,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 55,
+     "hals_d": 0.95,
+     "artikel": "201141 1X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1X8",
+     "preis_netto": 61.4,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 2.3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.44,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,5X10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C5X10",
+     "preis_netto": 47.4,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 2.3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.44,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,5X12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C5X12",
+     "preis_netto": 53,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 2.3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.44,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,5X15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C5X15",
+     "preis_netto": 49.1,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 2.3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.44,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,5X16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C5X16",
+     "preis_netto": 53.5,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 2.3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.44,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,5X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C5X6",
+     "preis_netto": 47.6,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 2.3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.44,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,5X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C5X8",
+     "preis_netto": 46.4,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.5,
+     "schneidenlaenge": 2.3,
+     "gesamtlaenge": 57,
+     "hals_d": 1.44,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,5X20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C5X20",
+     "preis_netto": 67.8,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 1.8,
+     "schneidenlaenge": 2.7,
+     "gesamtlaenge": 55,
+     "hals_d": 1.71,
+     "kuehlung_innen": false,
+     "artikel": "201141 1,8X10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-1%2C8X10",
+     "preis_netto": 43.9,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.91,
+     "artikel": "201141 2X10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X10",
+     "preis_netto": 50.3,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.91,
+     "artikel": "201141 2X12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X12",
+     "preis_netto": 48.8,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.91,
+     "artikel": "201141 2X15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X15",
+     "preis_netto": 52.9,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.91,
+     "artikel": "201141 2X16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X16",
+     "preis_netto": 28.29,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.91,
+     "artikel": "201141 2X4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X4",
+     "preis_netto": 48.1,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 57,
+     "hals_d": 1.91,
+     "artikel": "201141 2X20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X20",
+     "preis_netto": 48.1,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 65,
+     "hals_d": 1.91,
+     "artikel": "201141 2X25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X25",
+     "preis_netto": 51.7,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 65,
+     "hals_d": 1.91,
+     "artikel": "201141 2X30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X30",
+     "preis_netto": 52.5,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2.5,
+     "schneidenlaenge": 3.7,
+     "gesamtlaenge": 55,
+     "hals_d": 2.41,
+     "artikel": "201141 2,5X15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2%2C5X15",
+     "preis_netto": 49.9,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2.5,
+     "schneidenlaenge": 3.7,
+     "gesamtlaenge": 55,
+     "hals_d": 2.41,
+     "artikel": "201141 2,5X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2%2C5X8",
+     "preis_netto": 28.33,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2.5,
+     "schneidenlaenge": 3.7,
+     "gesamtlaenge": 57,
+     "hals_d": 2.41,
+     "artikel": "201141 2,5X20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2%2C5X20",
+     "preis_netto": 71,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "hg-holex-206357",
+   "art": "torusfraeser",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "Pro Steel VHM-Torusfräser HPC",
+   "quelle": "hoffmann-group.com, Produktseiten 206357-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/206357-4%402F0%2C5",
+   "gemeinsam": {
+    "schneiden": 4,
+    "schneidstoff": "vhm",
+    "beschichtung": "TiAlN",
+    "kuehlung_innen": false,
+    "mittenschneidend": true,
+    "einsatzzweck": "HPC",
+    "werkstoffe": [
+     "K",
+     "M",
+     "P1",
+     "P2"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 57,
+     "schaft": 6,
+     "hals_d": 3.8,
+     "eckradius": 0.5,
+     "artikel": "206357 4/0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-4%402F0%2C5",
+     "preis_netto": 41.66,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.025,
+        "ae_max_d": 0.3,
+        "ap": 11
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.02,
+        "ae_d": 1,
+        "ap": 0.2
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 4,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 57,
+     "schaft": 6,
+     "hals_d": 3.8,
+     "eckradius": 1,
+     "artikel": "206357 4/1,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-4%402F1%2C0",
+     "preis_netto": 41.66,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.025,
+        "ae_max_d": 0.3,
+        "ap": 11
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.02,
+        "ae_d": 1,
+        "ap": 0.2
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 57,
+     "schaft": 6,
+     "hals_d": 4.8,
+     "eckradius": 0.5,
+     "artikel": "206357 5/0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-5%402F0%2C5",
+     "preis_netto": 41.66,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.04,
+        "ae_max_d": 0.3,
+        "ap": 13
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 0.25
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 5,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 57,
+     "schaft": 6,
+     "hals_d": 4.8,
+     "eckradius": 1,
+     "artikel": "206357 5/1,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-5%402F1%2C0",
+     "preis_netto": 41.66,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.04,
+        "ae_max_d": 0.3,
+        "ap": 13
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.03,
+        "ae_d": 1,
+        "ap": 0.25
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 57,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "eckradius": 1,
+     "artikel": "206357 6/1,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-6%402F1%2C0",
+     "preis_netto": 41.66,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.05,
+        "ae_max_d": 0.3,
+        "ap": 13
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 0.3
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 57,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "eckradius": 1.5,
+     "artikel": "206357 6/1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-6%402F1%2C5",
+     "preis_netto": 41.66,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.05,
+        "ae_max_d": 0.3,
+        "ap": 13
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 0.3
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 6,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 57,
+     "schaft": 6,
+     "hals_d": 5.5,
+     "eckradius": 2,
+     "artikel": "206357 6/2,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-6%402F2%2C0",
+     "preis_netto": 41.66,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.05,
+        "ae_max_d": 0.3,
+        "ap": 13
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.04,
+        "ae_d": 1,
+        "ap": 0.3
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 19,
+     "gesamtlaenge": 63,
+     "schaft": 8,
+     "hals_d": 7.5,
+     "eckradius": 1,
+     "artikel": "206357 8/1,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-8%402F1%2C0",
+     "preis_netto": 56.22,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.06,
+        "ae_max_d": 0.3,
+        "ap": 19
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 0.4
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 19,
+     "gesamtlaenge": 63,
+     "schaft": 8,
+     "hals_d": 7.5,
+     "eckradius": 1.5,
+     "artikel": "206357 8/1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-8%402F1%2C5",
+     "preis_netto": 56.22,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.06,
+        "ae_max_d": 0.3,
+        "ap": 19
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 0.4
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 8,
+     "schneidenlaenge": 19,
+     "gesamtlaenge": 63,
+     "schaft": 8,
+     "hals_d": 7.5,
+     "eckradius": 2,
+     "artikel": "206357 8/2,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-8%402F2%2C0",
+     "preis_netto": 56.22,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.06,
+        "ae_max_d": 0.3,
+        "ap": 19
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.05,
+        "ae_d": 1,
+        "ap": 0.4
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 72,
+     "schaft": 10,
+     "hals_d": 9.5,
+     "eckradius": 0.5,
+     "artikel": "206357 10/0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-10%402F0%2C5",
+     "preis_netto": 85.17,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.08,
+        "ae_max_d": 0.3,
+        "ap": 22
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 0.5
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 72,
+     "schaft": 10,
+     "hals_d": 9.5,
+     "eckradius": 1.5,
+     "artikel": "206357 10/1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-10%402F1%2C5",
+     "preis_netto": 85.17,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.08,
+        "ae_max_d": 0.3,
+        "ap": 22
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 0.5
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 10,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 72,
+     "schaft": 10,
+     "hals_d": 9.5,
+     "eckradius": 2,
+     "artikel": "206357 10/2,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-10%402F2%2C0",
+     "preis_netto": 85.17,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.08,
+        "ae_max_d": 0.3,
+        "ap": 22
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.06,
+        "ae_d": 1,
+        "ap": 0.5
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 83,
+     "schaft": 12,
+     "hals_d": 11.5,
+     "eckradius": 0.5,
+     "artikel": "206357 12/0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-12%402F0%2C5",
+     "preis_netto": 103.85,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.09,
+        "ae_max_d": 0.3,
+        "ap": 26
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 0.6
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 83,
+     "schaft": 12,
+     "hals_d": 11.5,
+     "eckradius": 1.5,
+     "artikel": "206357 12/1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-12%402F1%2C5",
+     "preis_netto": 103.85,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.09,
+        "ae_max_d": 0.3,
+        "ap": 26
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 0.6
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 83,
+     "schaft": 12,
+     "hals_d": 11.5,
+     "eckradius": 2,
+     "artikel": "206357 12/2,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-12%402F2%2C0",
+     "preis_netto": 103.85,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.09,
+        "ae_max_d": 0.3,
+        "ap": 26
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 0.6
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 12,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 83,
+     "schaft": 12,
+     "hals_d": 11.5,
+     "eckradius": 3,
+     "artikel": "206357 12/3,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-12%402F3%2C0",
+     "preis_netto": 103.85,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.09,
+        "ae_max_d": 0.3,
+        "ap": 26
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.07,
+        "ae_d": 1,
+        "ap": 0.6
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 32,
+     "gesamtlaenge": 92,
+     "schaft": 16,
+     "hals_d": 15.5,
+     "eckradius": 0.5,
+     "artikel": "206357 16/0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-16%402F0%2C5",
+     "preis_netto": 201.24,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.1,
+        "ae_max_d": 0.3,
+        "ap": 32
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 0.8
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 32,
+     "gesamtlaenge": 92,
+     "schaft": 16,
+     "hals_d": 15.5,
+     "eckradius": 2,
+     "artikel": "206357 16/2,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-16%402F2%2C0",
+     "preis_netto": 201.24,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.1,
+        "ae_max_d": 0.3,
+        "ap": 32
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 0.8
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 32,
+     "gesamtlaenge": 92,
+     "schaft": 16,
+     "hals_d": 15.5,
+     "eckradius": 4,
+     "artikel": "206357 16/4,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-16%402F4%2C0",
+     "preis_netto": 201.24,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.1,
+        "ae_max_d": 0.3,
+        "ap": 32
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.08,
+        "ae_d": 1,
+        "ap": 0.8
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 38,
+     "gesamtlaenge": 104,
+     "schaft": 20,
+     "hals_d": 19.5,
+     "eckradius": 1,
+     "artikel": "206357 20/1,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-20%402F1%2C0",
+     "preis_netto": 340.52,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.13,
+        "ae_max_d": 0.3,
+        "ap": 38
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 1
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 38,
+     "gesamtlaenge": 104,
+     "schaft": 20,
+     "hals_d": 19.5,
+     "eckradius": 2,
+     "artikel": "206357 20/2,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-20%402F2%2C0",
+     "preis_netto": 340.52,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.13,
+        "ae_max_d": 0.3,
+        "ap": 38
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 1
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 38,
+     "gesamtlaenge": 104,
+     "schaft": 20,
+     "hals_d": 19.5,
+     "eckradius": 4,
+     "artikel": "206357 20/4,0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-20%402F4%2C0",
+     "preis_netto": 340.52,
+     "schnittwerte": {
+      "P1": {
+       "schruppen": {
+        "vc": 240,
+        "fz": 0.13,
+        "ae_max_d": 0.3,
+        "ap": 38
+       },
+       "vollnut": {
+        "vc": 240,
+        "fz": 0.1,
+        "ae_d": 1,
+        "ap": 1
+       }
+      },
+      "P2": {
+       "schruppen": {
+        "vc": 160
+       },
+       "vollnut": {
+        "vc": 160
+       }
+      },
+      "M": {
+       "schruppen": {
+        "vc": 80
+       },
+       "vollnut": {
+        "vc": 80
+       }
+      },
+      "K": {
+       "schruppen": {
+        "vc": 250
+       },
+       "vollnut": {
+        "vc": 250
+       }
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

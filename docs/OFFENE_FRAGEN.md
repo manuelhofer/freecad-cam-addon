@@ -28,3 +28,14 @@ daraus folgt, stehen in [konzept_schritt_assistent.md](konzept_schritt_assistent
    und ob Lage und Reihenfolge der Stellen so passen. –
    *Was die Antwort ändert:* Mit Ja kommt „Tauchfräsen“ als Weg in den Schritt „Schruppen“ der Beta
    (mit Zeit und Vorschau), angeboten, wenn ein Tauchfräser da ist oder im Katalog. – 2026-10-31.
+3. **Hoffmann sperrt zu viele Abrufe – wie sollen die restlichen Hoffmann-Werkzeuge kommen?**
+   hoffmann-group.com hat das Sammeln zweimal gesperrt (429, „aus sicherheitstechnischen Gründen
+   nicht verfügbar“ – für deine IP, eine Weile auch im Browser). Drin sind 9 Fräserreihen (191
+   Größen) und 225 Bohrerreihen; es fehlen rund 505 Fräser-Artikelgruppen (Kugel, Konik, Fasen,
+   Gewinde, Hochvorschub, Wendeplatten, Messerköpfe). Wege: (a) sehr langsam, eine Seite alle 10 s,
+   über eine Nacht (~20 h) – aber nur, wenn Hoffmann das nicht sperrt; geht es trotzdem zu, höre ich
+   auf und umgehe nichts; (b) Hoffmann um eine Datenlieferung bitten (BMEcat/Excel – Händler geben
+   das oft für Kunden heraus); (c) Hoffmann lassen, die Hersteller selbst nehmen (Fraisa, Gühring,
+   Sandvik … sind drin bzw. unterwegs). – *Warum nur Manuel:* ob du Hoffmann anschreibst und ob dir
+   der langsame Abruf recht ist. – *Was die Antwort ändert:* woher die übrigen Hoffmann-Daten kommen.
+   – 2026-10-31.
