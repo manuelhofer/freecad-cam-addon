@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-21 weiter-messen-anzeigen
+
+### EINGELESEN
+- Manuel, 2026-10-31: „du wartest lange ?“ – weiterbauen; Plan C3b.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `messmerkmal(job)`, `_merkmal_text`; WeiterFrage zeigt das Messen und nimmt die T-Nummer des Tasters (gui_programm.gespeicherte_aenderungen); Mindestbreite.
+- `translations/*.json`; `tests/gui/szenario_beta_schritte.py` (ohne Zyklus / mit Taster).
+- `docs/OFFENE_FRAGEN.md` Frage 1 (Stufe 2), `docs/STATUS_SNAPSHOT.md`, `docs/bilder/beta/4_womit_weiter.png`, `package.xml` 0.331.2.
+
+### ERGEBNIS
+- szenario_beta_schritte, test_sprache grün.
 ## P-2026-10-31-20 haimer-zwischenstand
 
 ### EINGELESEN

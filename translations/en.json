@@ -3628,5 +3628,15 @@
     "pp.feld.messen_zapfen": "Measure: rectangular boss",
     "pp.feld.messen_bohrung": "Measure: bore",
     "pp.feld.messen_welle": "Measure: round boss",
-    "pp.feld.messen.tooltip": "The control's measuring cycle for this kind – {t} probe, {x} {y} centre, {z} measuring height, {lx} {ly} side lengths, {d} diameter, {tol} tolerance ±, {oben} top edge, {sicher} safe height. Empty: stop instead of measuring for this kind."
+    "pp.feld.messen.tooltip": "The control's measuring cycle for this kind – {t} probe, {x} {y} centre, {z} measuring height, {lx} {ly} side lengths, {d} diameter, {tol} tolerance ±, {oben} top edge, {sicher} safe height. Empty: stop instead of measuring for this kind.",
+    "beta.weiter.messen.tasche": "Pocket",
+    "beta.weiter.messen.zapfen": "Boss",
+    "beta.weiter.messen.bohrung": "Bore",
+    "beta.weiter.messen.welle": "Round boss",
+    "beta.weiter.messen.taster": "Touch probe T",
+    "beta.weiter.messen.taster.tooltip": "Your touch probe's tool number – remembered at this machine's post processor (as in the “Write program” window). Empty: the machine stops for measuring.",
+    "beta.weiter.messen.keins": "Measured by hand: the faces are not a rectangular pocket, boss, bore or round boss – the machine stops.",
+    "beta.weiter.messen.kein_zyklus": "{was} – there is no measuring cycle for {steuerung}: the machine stops for measuring by hand.",
+    "beta.weiter.messen.ohne_taster": "{was} – with your touch probe's number the machine measures it itself and only stops if it is outside ±0.02 mm; empty, it stops for measuring by hand.",
+    "beta.weiter.messen.mit": "Probe T{t} measures {was} (±0.02 mm) – it only stops if it is outside."
 }

@@ -295,7 +295,20 @@ def schritte(h):
     h.pruefe(not frage.wahl[beta.LOECHER].isEnabled(), "„Löcher“ wählbar ohne Bohrung")
     h.pruefe(frage.messstopp.isChecked(), "„Messstopp davor“ nicht angehakt")
     h.pruefe("noch einmal" in frage.wahl[beta.SCHRUPPEN].text(), frage.wahl[beta.SCHRUPPEN].text())
+    # Was am Messstopp gemessen wird (Plan C3b): die Tasche um das Aufmaß kleiner; an LinuxCNC kein
+    # Messzyklus – es hält. Mit einem Zyklus (hier von Hand gesetzt) das Feld für den Taster.
+    satz = frage.messen_text.text()
+    print(ascii(f"Messen: {satz}"))
+    h.pruefe("Tasche 59,4 × 39,4" in satz and "Messzyklus" in satz, f"Messen: {satz!r}")
+    h.pruefe(not frage.taster.isVisible(), "Taster-Feld ohne Zyklus")
+    frage._zyklus = True
+    frage.taster.setText("99")
+    yield 200
+    satz = frage.messen_text.text()
+    h.pruefe(frage.taster.isVisible() and "T99 misst" in satz, f"mit Taster: {satz!r}")
     h.bild("4b_womit_weiter", frage)
+    frage.taster.setText("")
+    frage._zyklus = False
     frage.accept()
     yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen not in (None, panel), 60000)
     weiter = beta.BearbeitungPanel.offen

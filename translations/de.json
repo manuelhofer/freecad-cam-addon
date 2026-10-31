@@ -3628,5 +3628,15 @@
     "pp.feld.messen_zapfen": "Messen: Rechteckzapfen",
     "pp.feld.messen_bohrung": "Messen: Bohrung",
     "pp.feld.messen_welle": "Messen: Welle/Zapfen rund",
-    "pp.feld.messen.tooltip": "Der Messzyklus der Steuerung für diese Art – {t} Taster, {x} {y} Mitte, {z} Messhöhe, {lx} {ly} Seitenlängen, {d} Durchmesser, {tol} Toleranz ±, {oben} Oberkante, {sicher} sichere Höhe. Leer: für diese Art halten statt messen."
+    "pp.feld.messen.tooltip": "Der Messzyklus der Steuerung für diese Art – {t} Taster, {x} {y} Mitte, {z} Messhöhe, {lx} {ly} Seitenlängen, {d} Durchmesser, {tol} Toleranz ±, {oben} Oberkante, {sicher} sichere Höhe. Leer: für diese Art halten statt messen.",
+    "beta.weiter.messen.tasche": "Tasche",
+    "beta.weiter.messen.zapfen": "Zapfen",
+    "beta.weiter.messen.bohrung": "Bohrung",
+    "beta.weiter.messen.welle": "Welle",
+    "beta.weiter.messen.taster": "Messtaster T",
+    "beta.weiter.messen.taster.tooltip": "Die Werkzeugnummer deines Messtasters – gemerkt am Postprozessor dieser Maschine (wie im Fenster „Programm schreiben“). Leer: zum Messen hält die Maschine.",
+    "beta.weiter.messen.keins": "Gemessen wird von Hand: Die Flächen sind keine Rechtecktasche, kein Zapfen, keine Bohrung oder Welle – die Maschine hält.",
+    "beta.weiter.messen.kein_zyklus": "{was} – für {steuerung} gibt es keinen Messzyklus: Die Maschine hält zum Messen von Hand.",
+    "beta.weiter.messen.ohne_taster": "{was} – mit der Nummer deines Messtasters misst die Maschine das selbst und hält nur, wenn es außerhalb ±0,02 mm liegt; leer hält sie zum Messen von Hand.",
+    "beta.weiter.messen.mit": "Der Taster T{t} misst {was} (±0,02 mm) – angehalten wird nur, wenn es außerhalb liegt."
 }

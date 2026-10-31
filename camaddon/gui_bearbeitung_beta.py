@@ -957,30 +957,13 @@ class BetaPanel(BearbeitungPanel):
             davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
             tc = getattr(davor, "ToolController", None)
             if tc is not None:
-                stopp = ms.lege_an(self.job, tc, tc, self._messmerkmal(davor))
+                stopp = ms.lege_an(self.job, tc, tc, messmerkmal(self.job, davor))
         ergebnis = super()._anlegen()
         if stopp is not None and not ergebnis:
             self.job.Document.removeObject(stopp.Name)
         elif stopp is not None:
             self._beta_messstopp = False  # nur einmal
         return ergebnis
-
-    def _messmerkmal(self, davor):
-        """Was ein Taster am Messstopp messen würde (messen.merkmal, Plan C3b): das Merkmal der
-        gemerkten Flächen, mit dem Aufmaß der Operation davor – None, wenn sie keins ergeben."""
-        from . import messen
-
-        flaechen = list(getattr(self.job, EIGENSCHAFT_FLAECHEN, []))
-        if not flaechen:
-            return None
-        try:
-            m = messen.merkmal(vr.modell(self.job).Shape, flaechen)
-        except Exception:  # Part.OCCError: ein Name passt nicht mehr zum Modell
-            return None
-        if m is None:
-            return None
-        aufmass = getattr(davor, "Aufmass", 0.0)
-        return messen.soll(m, float(getattr(aufmass, "Value", aufmass) or 0.0))
 
     def _nur_diese_anlegen(self, aktive):
         bis = self._beta_bis
@@ -1181,6 +1164,7 @@ class WeiterFrage(QtGui.QDialog):
         super().__init__(eltern)
         WeiterFrage.offen = self
         self.setWindowTitle(tr("befehl.beta.weiter.titel"))
+        self.setMinimumWidth(460)  # sonst schneiden die umbrochenen Sätze unten ab
         aufbau = QtGui.QVBoxLayout(self)
         text = QtGui.QLabel(tr("beta.weiter.frage"))
         text.setWordWrap(True)
@@ -1216,16 +1200,94 @@ class WeiterFrage(QtGui.QDialog):
         self.messstopp.setToolTip(tr("beta.weiter.messstopp.tooltip"))
         self.messstopp.setChecked(bool(list(job.Operations.Group)))
         aufbau.addWidget(self.messstopp)
+        self._messen_bauen(aufbau, job)
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         knoepfe.button(QtGui.QDialogButtonBox.Ok).setText(tr("beta.weiter.los"))
         knoepfe.accepted.connect(self.accept)
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
 
+    def _messen_bauen(self, aufbau, job):
+        """Unter „Messstopp davor“: was dort gemessen wird – mit Taster und Zyklus der Steuerung
+        des Jobs, sonst warum es hält –, dazu die T-Nummer des Tasters zum Eintragen (an der
+        Steuerung gemerkt, wie im Fenster „Programm schreiben“)."""
+        from . import gui_programm as gp
+        from . import postprozessor as pp
+
+        self.merkmal = messmerkmal(job)
+        self._kennung = gp.steuerung_des_jobs(job)
+        s = pp.steuerung(self._kennung, gp.gespeicherte_aenderungen(self._kennung))
+        self._zyklus = bool(self.merkmal is not None and getattr(s, f"messen_{self.merkmal.art}"))
+        self.messen_text = _grau()
+        self.messen_text.setWordWrap(True)
+        self.messen_text.setContentsMargins(22, 0, 0, 0)
+        aufbau.addWidget(self.messen_text)
+        zeile = QtGui.QHBoxLayout()
+        zeile.setContentsMargins(22, 0, 0, 0)
+        self.taster_beschriftung = QtGui.QLabel(tr("beta.weiter.messen.taster"))
+        zeile.addWidget(self.taster_beschriftung)
+        self.taster = QtGui.QLineEdit(s.taster)
+        self.taster.setValidator(QtGui.QIntValidator(0, 99999, self.taster))
+        self.taster.setToolTip(tr("beta.weiter.messen.taster.tooltip"))
+        self.taster.setMaximumWidth(80)
+        self.taster.textChanged.connect(self._messen_zeigen)
+        zeile.addWidget(self.taster)
+        zeile.addStretch()
+        aufbau.addLayout(zeile)
+        self._steuerung_name = s.name
+        self.messstopp.toggled.connect(self._messen_zeigen)
+        self._messen_zeigen()
+
+    def _messen_zeigen(self, *_):
+        an = self.messstopp.isChecked()
+        mit_zyklus = an and self._zyklus
+        self.taster.setVisible(mit_zyklus)
+        self.taster_beschriftung.setVisible(mit_zyklus)
+        if not an:
+            self.messen_text.setText("")
+        elif self.merkmal is None:
+            self.messen_text.setText(tr("beta.weiter.messen.keins"))
+        elif not self._zyklus:
+            self.messen_text.setText(
+                tr(
+                    "beta.weiter.messen.kein_zyklus",
+                    was=_merkmal_text(self.merkmal),
+                    steuerung=self._steuerung_name,
+                )
+            )
+        elif self.taster.text().strip():
+            self.messen_text.setText(
+                tr(
+                    "beta.weiter.messen.mit",
+                    was=_merkmal_text(self.merkmal),
+                    t=self.taster.text().strip(),
+                )
+            )
+        else:
+            self.messen_text.setText(
+                tr("beta.weiter.messen.ohne_taster", was=_merkmal_text(self.merkmal))
+            )
+        self.messen_text.setVisible(an)
+        self.adjustSize()
+
+    def taster_merken(self):
+        """Die T-Nummer an der Steuerung des Jobs merken (gui_programm.gespeicherte_aenderungen)."""
+        from . import gui_programm as gp
+
+        if not self._zyklus:
+            return
+        aenderungen = dict(gp.gespeicherte_aenderungen(self._kennung))
+        neu = self.taster.text().strip()
+        if aenderungen.get("taster", "") != neu:
+            aenderungen["taster"] = neu
+            gp.aenderungen_merken(self._kennung, aenderungen)
+
     def abschnitt(self):
         return next((a for a, k in self.wahl.items() if k.isChecked()), SCHLICHTEN)
 
     def done(self, ergebnis):
+        if ergebnis == QtGui.QDialog.Accepted:
+            self.taster_merken()
         WeiterFrage.offen = None
         super().done(ergebnis)
 
@@ -1267,6 +1329,49 @@ def _vorschlag_zeile(v):
         )
     grenze = dezimal(f"{v.grenze:.0f}")
     return f"<b>{weg}</b> ({tr('beta.werkzeuge.bis', d=grenze)}): " + " · ".join(teile)
+
+
+def messmerkmal(job, davor=None):
+    """Was ein Taster am Messstopp messen würde (messen.merkmal, Plan C3b): das Merkmal der am Job
+    gemerkten Flächen, mit dem Aufmaß der Operation `davor` (ohne: die letzte mit Werkzeug) – None,
+    wenn sie keins ergeben."""
+    from . import messen
+
+    flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
+    if not flaechen:
+        return None
+    if davor is None:
+        ops = list(job.Operations.Group)
+        davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
+    try:
+        m = messen.merkmal(vr.modell(job).Shape, flaechen)
+    except Exception:  # Part.OCCError: ein Name passt nicht mehr zum Modell
+        return None
+    if m is None:
+        return None
+    aufmass = getattr(davor, "Aufmass", 0.0)
+    return messen.soll(m, float(getattr(aufmass, "Value", aufmass) or 0.0))
+
+
+def _merkmal_text(m):
+    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“."""
+    from . import einheiten
+    from .gui_zahlen import groesse_zeigen
+
+    art = {
+        "tasche": tr("beta.weiter.messen.tasche"),
+        "zapfen": tr("beta.weiter.messen.zapfen"),
+        "bohrung": tr("beta.weiter.messen.bohrung"),
+        "welle": tr("beta.weiter.messen.welle"),
+    }[m.art]
+    if m.rund:
+        mass = f"Ø {groesse_zeigen(m.durchmesser, einheiten.LAENGE, 3)}"
+    else:
+        mass = (
+            f"{groesse_zeigen(m.laenge_x, einheiten.LAENGE, 3)} × "
+            f"{groesse_zeigen(m.laenge_y, einheiten.LAENGE, 3)}"
+        )
+    return f"{art} {mass} {einheiten.einheit(einheiten.LAENGE)}"
 
 
 def _hat_loecher(job):
