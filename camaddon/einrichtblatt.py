@@ -563,6 +563,11 @@ def spannung_text(job, tr):
     rohteil = getattr(grundjob(job), "Stock", None)
     if vr.ist_stange(job, rohteil):
         return tr("eb.spannung.stange", mm=_mm(), tiefe=_zahl(vr.spannlaenge(job)))
+    from . import spannmittel as sm
+
+    auf = sm.aufspannung(job)
+    if auf is not None:  # aus der Sammlung, auf dem Tisch eingerichtet (W-042)
+        return sm.beschreibung(auf, tr)
     tiefe = spannung.gespannt(grundjob(job))
     if tiefe <= 0:
         return tr("eb.spannung.keine")

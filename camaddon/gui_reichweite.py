@@ -493,7 +493,15 @@ class PruefPanel:
         self.knopf_programm = QtGui.QPushButton(tr("befehl.programm.titel"))
         self.knopf_programm.setToolTip(tr("rw.programm.tooltip"))
         self.knopf_programm.clicked.connect(self.programm_schreiben)
-        aufbau.addWidget(self.knopf_programm, 0, QtCore.Qt.AlignLeft)
+        # Worin das Rohteil auf dem Tisch steckt (W-042) – nach OK rechnet das Fenster neu.
+        self.knopf_spannmittel = QtGui.QPushButton(tr("befehl.spannmittel.titel"))
+        self.knopf_spannmittel.setToolTip(tr("rw.spannmittel.tooltip"))
+        self.knopf_spannmittel.clicked.connect(self.spannmittel_zeigen)
+        knoepfe = QtGui.QHBoxLayout()
+        knoepfe.addWidget(self.knopf_programm)
+        knoepfe.addWidget(self.knopf_spannmittel)
+        knoepfe.addStretch()
+        aufbau.addLayout(knoepfe)
         self.liste = QtGui.QListWidget()
         self.liste.setWordWrap(True)
         # So hoch wie ihre Sätze, nicht höher – sonst schöbe sie die Bereiche und
@@ -542,6 +550,25 @@ class PruefPanel:
         dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         dialog.show()
         return dialog
+
+    def spannmittel_zeigen(self):
+        """„Spannmittel …“ auf der Seite „Aufspannung im Job“ für den Job dieses Fensters; nach
+        OK zeigt es den neuen Nullpunkt und prüft neu. Gibt das Fenster zurück."""
+        from . import gui_spannmittel
+
+        dialog = gui_spannmittel.oeffne(rw.grundjob_von(self.job()))
+        dialog.accepted.connect(self._nach_spannmittel)
+        return dialog
+
+    def _nach_spannmittel(self):
+        if PruefPanel.offen is not self:
+            return
+        if not rw.eingetragener_nullpunkt(self.job()):  # das Spannmittel sagt jetzt, wo es liegt
+            for feld in self.felder_nullpunkt.values():
+                feld.blockSignals(True)
+                feld.clear()
+                feld.blockSignals(False)
+        self._job_gewechselt()
 
     def job(self):
         return self.jobs[self.wahl_job.currentIndex()]

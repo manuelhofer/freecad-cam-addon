@@ -114,6 +114,9 @@ class HalterDialog(QtGui.QDialog):
         self.knopf_neu.setToolTip(tr("hd.neu.tooltip"))
         self.knopf_neu.setAutoDefault(False)
         self.menue_neu = QtGui.QMenu(self.knopf_neu)
+        # Die Reihen der Hersteller (W-042, halter_katalog) – wie die Werkzeugkiste.
+        self.menue_neu.addAction(tr("hd.neu.katalog"), self.aus_katalog)
+        self.menue_neu.addSeparator()
         self.menue_neu.addAction(tr("hd.neu.leer"), lambda: self.neu())
         aus_datei = self.menue_neu.addAction(tr("hd.neu.datei"), lambda: self.aus_datei())
         aus_datei.setToolTip(tr("hd.neu.datei.tooltip"))
@@ -152,9 +155,17 @@ class HalterDialog(QtGui.QDialog):
             untermenue.addSeparator()
             self._reihen_menue(untermenue.addMenu(tr("hd.neu.reihen")), name)
         self.knopf_neu.setMenu(self.menue_neu)
+        self.knopf_katalog = knopf(
+            tr("hd.katalog.knopf"), tr("hd.katalog.knopf.tooltip"), self.aus_katalog
+        )
         self.knopf_kopieren = knopf(tr("hd.kopieren"), tr("hd.kopieren.tooltip"), self.kopieren)
         self.knopf_loeschen = knopf(tr("hd.loeschen"), tr("hd.loeschen.tooltip"), self.loeschen)
-        for element in (self.knopf_neu, self.knopf_kopieren, self.knopf_loeschen):
+        for element in (
+            self.knopf_neu,
+            self.knopf_katalog,
+            self.knopf_kopieren,
+            self.knopf_loeschen,
+        ):
             zeile.addWidget(element)
         aufbau.addLayout(zeile)
         return aufbau
@@ -405,6 +416,35 @@ class HalterDialog(QtGui.QDialog):
         if not erkannt:
             QtGui.QMessageBox.information(self, tr("hd.titel"), tr("hd.datei.ohne_spindel"))
         return halter
+
+    def aus_katalog(self):
+        """„Aus dem Katalog der Hersteller …“ (W-042): die angehakten Größen als Halter; die
+        Aufnahme der offenen Maschine steht oben."""
+        from . import halter_katalog as hk
+        from .gui_katalog import KatalogDialog
+
+        aufnahme = _aufnahme_offener_maschinen() or hl.VORGABE_AUFNAHME
+        reihen = sorted(hk.katalog_reihen(), key=lambda r: r.aufnahme != aufnahme)
+        aufnahmen = list(dict.fromkeys(r.aufnahme for r in reihen))
+        dialog = KatalogDialog(
+            self,
+            tr("hk.titel"),
+            tr("hk.erklaerung", aufnahme=aufnahme),
+            reihen,
+            [(a, f"{a} ({hl.AUFNAHMEN[a][0]})") for a in aufnahmen],
+            lambda reihe: reihe.aufnahme,
+            _katalog_zeile,
+        )
+        if not dialog.exec():
+            return None
+        bericht = hk.hinzufuegen(self.bibliothek, dialog.gewaehlt())
+        if bericht.neu:
+            self.waehle(bericht.neu[0])
+        satz = tr("hk.bericht", neu=len(bericht.neu))
+        if bericht.schon_da:
+            satz += " " + tr("hk.schon_da", anzahl=len(bericht.schon_da))
+        QtGui.QMessageBox.information(self, tr("hk.titel"), satz)
+        return bericht
 
     def kopieren(self):
         if self.gewaehlt is not None:
@@ -689,6 +729,77 @@ class HalterDialog(QtGui.QDialog):
     def reject(self):
         HalterDialog.offen = None
         super().reject()
+
+
+def _katalog_zeile(reihe, groesse):
+    """Eine Größe im Katalog: „d 12 A 80 – Schrumpffutter, Ø vorn 24 mm · 302235-12“."""
+    from . import halter_katalog as hk
+
+    masse = groesse["masse"]
+    teile = [hk.typ_text(reihe.art)]
+    if masse.get("d_nase"):
+        teile.append(tr("hk.zeile.nase", wert=_laenge(masse["d_nase"])))
+    if masse.get("a"):
+        teile.append(tr("hk.zeile.a", wert=_laenge(masse["a"])))
+    text = f"{groesse['name']} – {', '.join(teile)}"
+    return f"{text} · {groesse['artikel']}" if groesse["artikel"] else text
+
+
+class BefehlHalter:
+    """„Halter und Aufnahmen“ (W-042; Manuel, 2026-10-31: „die halter oder aufnahmen einen
+    eigenen knopf“): das Fenster „Halter“ ohne den Weg über die Werkzeugverwaltung."""
+
+    def GetResources(self):
+        from . import symbol
+
+        return {
+            "Pixmap": symbol("halter.svg"),
+            "MenuText": tr("befehl.halter.titel"),
+            "ToolTip": tr("befehl.halter.tooltip"),
+        }
+
+    def IsActive(self):
+        return True
+
+    def Activated(self):
+        oeffne()
+
+
+def oeffne(pfad=None):
+    """Öffnet das Fenster „Halter“. Ist die Werkzeugverwaltung offen, geht es über sie – ihre
+    ungespeicherten Änderungen bleiben, gespeichert wird dort. Sonst liest es die Bibliothek und
+    speichert sie mit OK (und gibt sie an CAM, wenn sie dort schon steht)."""
+    import FreeCAD
+    import FreeCADGui
+
+    from . import uebergabe_werkzeuge as ue
+    from .gui_werkzeuge import WerkzeugDialog
+
+    verwaltung = WerkzeugDialog.offen
+    if verwaltung is not None and verwaltung.isVisible():
+        verwaltung.raise_()
+        verwaltung.halter_zeigen(mit_werkzeug=False)
+        return
+    try:
+        bibliothek = wz.Bibliothek.laden(pfad)
+    except wz.BeschaedigteDatei as fehler:
+        QtGui.QMessageBox.warning(
+            None, tr("hd.titel"), tr("wv.fehler.laden", fehler=fehler, datei=fehler.beiseite)
+        )
+        return
+    dialog = HalterDialog(FreeCADGui.getMainWindow(), bibliothek)
+    if not dialog.exec():
+        return
+    try:
+        bibliothek.speichern(pfad)
+    except OSError as fehler:
+        QtGui.QMessageBox.warning(None, tr("hd.titel"), tr("wv.fehler.speichern", fehler=fehler))
+        return
+    try:
+        if ue.schon_uebergeben():
+            ue.uebergeben(bibliothek)
+    except Exception as fehler:  # jeder Fehler von CAM soll als Satz ankommen
+        FreeCAD.Console.PrintError(f"CAM-Addon: Übergabe an CAM: {fehler}\n")
 
 
 def _nummern(werkzeuge):

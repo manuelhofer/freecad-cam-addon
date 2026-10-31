@@ -27,6 +27,7 @@ THEMEN = [
     "werkstoffe",
     "werkzeuge",
     "halter",
+    "spannmittel",
     "magazine",
     "schnittwerte",
     "strategien",

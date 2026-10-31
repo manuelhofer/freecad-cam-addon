@@ -117,7 +117,7 @@ def setze(job, mm):
 def schraubstock(job):
     """Die Backen des Schraubstocks als ein Körper in Koordinaten des Grundjobs – None, wenn
     nichts gespannt ist oder es kein Rohteil gibt. In der N-Eck-Stange (W-018) die Backen am
-    Ende der Stange (n_eck.backen)."""
+    Ende der Stange (n_eck.backen); mit einer Aufspannung (spannmittel) deren Spannmittel."""
     import Part
 
     from . import n_eck as ne
@@ -125,6 +125,10 @@ def schraubstock(job):
 
     if ne.ist_n_eck(job):
         return ne.backen(job)
+    from . import spannmittel as sm
+
+    if sm.aufspannung(job) is not None:  # aus der Sammlung, auf dem Tisch eingerichtet (W-042)
+        return sm.koerper_im_job(job)
     tiefe = gespannt(job)
     stock = getattr(rw.grundjob_von(job), "Stock", None)
     rohteil = getattr(stock, "Shape", None)

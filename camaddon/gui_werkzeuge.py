@@ -1087,13 +1087,15 @@ class WerkzeugDialog(QtGui.QDialog):
         w.halter = self.feld_halter.itemData(index) or ""
         self._geaendert()
 
-    def halter_zeigen(self):
+    def halter_zeigen(self, mit_werkzeug=True):
         """„Halter …“: Halter anlegen und bearbeiten; mit OK bekommt das gewählte Werkzeug den
-        dort gewählten Halter. Gespeichert wird mit OK oder Übernehmen hier."""
-        dialog = HalterDialog(self, self.bibliothek, self.werkzeug)
+        dort gewählten Halter. Gespeichert wird mit OK oder Übernehmen hier. Ohne `mit_werkzeug`
+        (Befehl „Halter und Aufnahmen“) bekommt kein Werkzeug einen."""
+        werkzeug = self.werkzeug if mit_werkzeug else None
+        dialog = HalterDialog(self, self.bibliothek, werkzeug)
         if dialog.exec():
             self._halter_anbieten()
-            if self.werkzeug is not None:
+            if werkzeug is not None:
                 self._geaendert()
 
     def _geaendert(self):

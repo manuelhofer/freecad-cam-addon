@@ -294,7 +294,8 @@ def vorschlag_nullpunkt(job):
     Spannfläche. Eine runde Stange längs Z sitzt genau auf ihrer Achse und steckt mit
     ihrer Spannlänge im Futter (4-Achs-Bearbeitung an der Drehmaschine, W-003 V2c). Ein
     runder Rohling im Dreibackenfutter auf dem Tisch (W-021) liegt um die Höhe des Futters höher
-    (spannung.futter_hoehe). Ohne Rohteil der Ursprung. Für eine geschwenkte Ebene der ihres
+    (spannung.futter_hoehe). Mit einer Aufspannung (spannmittel, W-042) da, wo das Spannmittel
+    das Rohteil hält. Ohne Rohteil der Ursprung. Für eine geschwenkte Ebene der ihres
     Grundjobs."""
     from . import spannung
 
@@ -303,6 +304,11 @@ def vorschlag_nullpunkt(job):
     form = getattr(rohteil, "Shape", None)
     if form is None or form.isNull():
         return FreeCAD.Vector()
+    from . import spannmittel as sm
+
+    auf = sm.aufspannung(job)
+    if auf is not None:  # auf dem Tisch eingerichtet (W-042)
+        return FreeCAD.Vector(*sm.nullpunkt_vorschlag(auf, form.BoundBox))
     stange = _stange_laengs_z(rohteil)
     if stange is not None:
         hoeher = spannung.futter_hoehe(job)

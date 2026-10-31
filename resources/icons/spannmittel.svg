@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Spannmittel“: ein Schraubstock von der Seite mit Rohteil zwischen den Backen, darunter der Tisch mit T-Nuten. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="52" width="60" height="10" fill="#888a85" stroke="#2e3436" stroke-width="1.5"/>
+  <path d="M14 62 L14 57 L18 57 L18 62 M30 62 L30 57 L34 57 L34 62 M46 62 L46 57 L50 57 L50 62" fill="#2e3436"/>
+  <rect x="6" y="38" width="52" height="14" rx="1" fill="#9aa3ab" stroke="#2e3436" stroke-width="2"/>
+  <rect x="8" y="20" width="10" height="18" fill="#babdb6" stroke="#2e3436" stroke-width="2"/>
+  <rect x="36" y="20" width="10" height="18" fill="#babdb6" stroke="#2e3436" stroke-width="2"/>
+  <rect x="18" y="14" width="18" height="20" fill="#f0b45a" stroke="#a0601a" stroke-width="2"/>
+  <rect x="46" y="27" width="14" height="5" fill="#555753"/>
+  <rect x="58" y="22" width="4" height="15" rx="1" fill="#555753"/>
+</svg>

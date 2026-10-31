@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Halter und Aufnahmen“: ein Steilkegel-Halter im Schnitt – Kegel, Flansch mit Greiferrille, schlanker Körper, Spannmutter. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <path d="M25 2 L39 2 L42 18 L22 18 Z" fill="#d3d7cf" stroke="#2e3436" stroke-width="2"/>
+  <rect x="14" y="18" width="36" height="12" rx="1" fill="#9aa3ab" stroke="#2e3436" stroke-width="2"/>
+  <rect x="14" y="22.5" width="36" height="3" fill="#4d555c"/>
+  <path d="M21 30 L43 30 L39 46 L25 46 Z" fill="#babdb6" stroke="#2e3436" stroke-width="2"/>
+  <rect x="22" y="46" width="20" height="9" rx="1.5" fill="#9aa3ab" stroke="#2e3436" stroke-width="2"/>
+  <rect x="29" y="55" width="6" height="8" fill="#729fcf" stroke="#204a87" stroke-width="1.5"/>
+</svg>

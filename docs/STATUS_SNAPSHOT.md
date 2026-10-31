@@ -576,6 +576,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.320.0):* **Halter und Spannmittel mit eigenem Knopf** (W-042; Manuel, 2026-10-31: „die
+  halter oder aufnahmen einen eigenen knopf … genau so spannmittel ... gut vorgefüllt … wie er auf dem
+  tisch aufgespannt ist ... denk dir was aus !“). „Halter und Aufnahmen …“ öffnet das Fenster „Halter“
+  ohne Werkzeugverwaltung; „Spannmittel …“ hat die Sammlung (Schraubstock, Zentrischspanner, Futter,
+  Pratzen, Nullpunktspannsystem, Platte) und die Aufspannung im Job (Spannmittel, Unterbau, X/Y von
+  der Werkstückaufnahme, Drehung, Spanntiefe) – daraus Nullpunkt-Vorschlag, Kollision mit
+  anliegenden Backen, „von unten gespannt“, Einrichtblatt. Beide mit „Katalog …“ der Hersteller
+  (`camaddon/spannmittel_daten/`, `camaddon/halter_daten/`). Konzept: `docs/konzept_spannmittel.md`,
+  Fragen 5–7 in `OFFENE_FRAGEN.md`.
 - *Neu (0.315.0, Beta):* „Bearbeitung in Schritten“ (Manuel, 2026-10-30: das Fenster „zu groß
   geworden“, „Einzelschritte … einzeln abfragen“, „einen Beta-Knopf … das Alte behalten“): Haken
   „Beta-Funktionen zeigen“ in den Einstellungen → Leiste „CAM-Addon Beta“. Aufspannung → Flächen

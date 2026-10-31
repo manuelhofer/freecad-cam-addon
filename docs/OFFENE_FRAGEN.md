@@ -29,3 +29,19 @@ zeigen“; die Bilder und alle Vorschläge in [konzept_schritt_assistent.md](kon
    anlegt und bei der Aufspannung beginnt – vorgewählt die Flächen, die in der ersten Aufspannung nicht
    gingen? – *Warum nur Manuel:* wie er umspannt. – *Was die Antwort ändert:* ein neuer Knopf und der
    Weg dorthin. – 2026-10-30.
+
+Zu „Spannmittel …“ und „Halter und Aufnahmen …“ (0.320.0) – alles in
+[konzept_spannmittel.md](konzept_spannmittel.md):
+
+5. **Im Assistenten „Bearbeitung“ (Schritt 1) und in der Beta (Schritt „Aufspannung“) gleich das
+   Spannmittel wählen?** Statt nur „von unten gespannt … mm“: „Spannmittel [Gressel C2 125 ▾]“ aus
+   der Sammlung, damit ist die Aufspannung eingetragen. – *Warum nur Manuel:* ändert den gewohnten
+   ersten Schritt. – *Was die Antwort ändert:* eine Auswahl mehr im ersten Schritt; ohne Ja bleibt
+   es beim Fenster „Spannmittel …“. – 2026-10-31.
+6. **Soll das Addon bei einem neuen Job von selbst das kleinste passende Spannmittel aus der Sammlung
+   vorschlagen** (Spannweite nimmt das Rohteil)? – *Warum nur Manuel:* Das Addon wählte dann etwas,
+   das heute niemand wählt. – *Was die Antwort ändert:* Nullpunkt und Kollision rechneten ohne
+   Zutun mit diesem Spannmittel. – 2026-10-31.
+7. **Die feste Backe des Schraubstocks bei 0° vorn (−Y, zum Bediener) – oder hinten?** So ist es
+   jetzt gebaut; um 180° gedreht liegt sie hinten. – *Warum nur Manuel:* wie es in seiner Werkstatt
+   steht. – *Was die Antwort ändert:* nur die Vorgabe bei 0°. – 2026-10-31.
