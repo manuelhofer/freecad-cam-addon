@@ -3712,7 +3712,7 @@
     "beta.fertig.kopf": "{n} new operations in the job “{job}” (bold). This is everything it contains now:",
     "beta.fertig.operation": "Operation",
     "beta.fertig.zeit": "Time",
-    "beta.fertig.summe": "About {zeit} in total (without tool changes).",
+    "beta.fertig.summe": "About {zeit} in total, including {wechsel} tool changes.",
     "beta.fertig.pruefen": "Check on the machine …",
     "beta.fertig.pruefen.tooltip": "Runs all operations on the job's machine: reach, collision, time.",
     "beta.fertig.programm": "Write program …",
@@ -3727,5 +3727,6 @@
     "ba.katalog.bohrer": "In the manufacturers' catalogue with this Ø: {namen} – into the tool library via “Tool box …”.",
     "wv.kiste.vorbereiten": "Preparing the tool box … (the manufacturers' catalogues are checked once)",
     "ba.katalog.reibahle": "In the manufacturers' catalogue with this Ø: {namen} – into the tool library via “Tool box …”.",
-    "ba.katalog.gewindefraeser": "In the manufacturers' catalogue for this core hole: {namen} – into the tool library via “Tool box …”."
+    "ba.katalog.gewindefraeser": "In the manufacturers' catalogue for this core hole: {namen} – into the tool library via “Tool box …”.",
+    "beta.fertig.summe.eins": "About {zeit} in total, including one tool change."
 }

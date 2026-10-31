@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-46 angelegt-mit-wechseln
+
+### EINGELESEN
+- Weiter zu P-2026-10-31-40 (Fenster „Angelegt“): die Summe stand „ohne Werkzeugwechsel“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `FertigFenster` zählt die Wechsel der Folge (T-Nummern der
+  Controller) mit maschinenspeicher.wechselzeit_von (Maschine des Grundjobs, sonst die Vorgabe).
+- `translations/*.json` (beta.fertig.summe, .eins), `package.xml` 0.342.1.
+
+### ERGEBNIS
+- szenario_tauchfraesen grün („Zusammen etwa 3,2 min, mit 2 Werkzeugwechseln“: T3, dann T1),
+  szenario_beta_schritte grün, test_sprache grün.
 ## P-2026-10-31-45 halter-big-rego-emuge
 
 ### EINGELESEN

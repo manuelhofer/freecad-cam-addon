@@ -1633,6 +1633,20 @@ class FertigFenster(QtGui.QDialog):
         unten.addWidget(knopf(tr("kg.schliessen"), "", self.accept))
         aufbau.addLayout(unten)
         self._dynamik = msp.dynamik_des_jobs(rw.grundjob_von(job))
+        # Die Werkzeugwechsel der Folge, mit der Wechselzeit der Maschine (wie die Fragen, W-040).
+        from . import magazin as mg
+
+        pfad = mg.maschine_von(rw.grundjob_von(job))
+        eintrag = msp.finde(msp.laden(), pfad) if pfad else None
+        nummern = [
+            int(getattr(op.ToolController, "ToolNumber", 0))
+            for op, _zeile in self._zeilen
+            if getattr(op, "ToolController", None) is not None
+        ]
+        self.wechsel = sum(1 for a, b in zip(nummern, nummern[1:], strict=False) if a != b) + bool(
+            nummern
+        )
+        self._wechsel_minuten = self.wechsel * msp.wechselzeit_von(eintrag) / 60.0
         self._offen = list(self._zeilen)
         self.minuten = 0.0
         self.fertig = False
@@ -1656,7 +1670,11 @@ class FertigFenster(QtGui.QDialog):
             QtCore.QTimer.singleShot(0, self._naechste)
             return
         self.liste.resizeColumnToContents(1)
-        self.summe.setText(tr("beta.fertig.summe", zeit=_minuten_text(self.minuten)))
+        zeit = _minuten_text(self.minuten + self._wechsel_minuten)
+        if self.wechsel == 1:
+            self.summe.setText(tr("beta.fertig.summe.eins", zeit=zeit))
+        else:
+            self.summe.setText(tr("beta.fertig.summe", zeit=zeit, wechsel=self.wechsel))
         self.fertig = True
 
     def _befehl(self, name):

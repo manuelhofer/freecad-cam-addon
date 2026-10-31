@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.342.1):* Das Fenster „Angelegt“ zählt die Werkzeugwechsel der Folge mit der
+  Wechselzeit der Maschine dazu („Zusammen etwa 3,2 min, mit 2 Werkzeugwechseln“).
 - *Neu (0.342.0):* **Halter-Katalog: 1137 Reihen, 8402 Größen** (vorher 640/6320) – dazu BIG
   DAISHOWA (Mega Double Power, Hydraulik, Mega Micro/E, New Baby; aus den Katalog-PDFs, auch
   BIG-PLUS unter BT, Capto C4–C8), REGO-FIX (powRgrip PG6–PG32, secuRgrip, ER auf CAT und Capto;
