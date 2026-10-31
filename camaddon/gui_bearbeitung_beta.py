@@ -253,6 +253,12 @@ class BetaPanel(BearbeitungPanel):
         self.anlegen_text = _grau()
         self.anlegen_text.setWordWrap(True)
         aufbau.insertWidget(aufbau.indexOf(zeile), self.anlegen_text)
+        # Im letzten Schritt: anlegen und dasselbe Teil anders gespannt weiter (Plan C4).
+        self.knopf_umspannen = knopf(
+            tr("beta.umspannen"), tr("beta.umspannen.tooltip"), self.umspannen
+        )
+        self.knopf_umspannen.hide()
+        aufbau.insertWidget(aufbau.indexOf(zeile), self.knopf_umspannen, 0, QtCore.Qt.AlignRight)
         return form
 
     def _spannmittel_bauen(self):
@@ -499,6 +505,17 @@ class BetaPanel(BearbeitungPanel):
         if not hasattr(self, "_beta_seiten"):  # noch im Aufbau (BearbeitungPanel.__init__)
             return super().seite_zeigen(min(int(nummer), 2))
         self._seite = max(0, min(int(nummer), len(self.seiten) - 1))
+        vorwahl = getattr(self, "_beta_vorwahl", None)
+        if self._seite == 1 and vorwahl and self.job is not None and not self.gewaehlte:
+            # Umgespannt: die Flächen, die in der Aufspannung davor nicht gingen und jetzt von oben
+            # gehen (die Rundungen am Boden einer Tasche „sieht“ der Zugang von oben nicht – nach
+            # dem Umspannen hingen sie nach unten).
+            self._beta_vorwahl = None
+            jetzt = self._von_oben_erreichbar()
+            self.gewaehlte = [n for n in vorwahl if n != self._unten and n in jetzt]
+            if self.gewaehlte:
+                self._flaechen_zeigen()
+                self.vorschau_starten()
         for i, seite in enumerate(self.seiten):
             seite.setVisible(i == self._seite)
         namen = [tr("ba.schritt.aufspannung"), tr("beta.schritt.flaechen")]
@@ -562,6 +579,13 @@ class BetaPanel(BearbeitungPanel):
             zeile.setVisible(an)
             huelle.setVisible(an and klapp.isChecked())
         self.knopf_fertig.setVisible(self._seite >= ERSTER_ABSCHNITT)
+        self.knopf_umspannen.setVisible(
+            self._seite >= ERSTER_ABSCHNITT
+            and not weiter_da
+            and self.zu_aendern is None
+            and self.job is not None
+            and not self.nur_vierachs()
+        )
         self._knoepfe_beschriften()
 
     def _knoepfe_beschriften(self):
@@ -882,7 +906,60 @@ class BetaPanel(BearbeitungPanel):
             bis, self._beta_bis = self._beta_bis, None
         if ergebnis is not False and job is not None and bis is not None:
             self._am_job_merken(job, bis)
+        if ergebnis is not False and _UMSPANNEN:
+            QtCore.QTimer.singleShot(500, _umspannen_wenn_frei)
         return ergebnis
+
+    def reject(self):
+        ergebnis = super().reject()
+        if _UMSPANNEN:
+            QtCore.QTimer.singleShot(500, _umspannen_wenn_frei)
+        return ergebnis
+
+    def umspannen(self):
+        """„Anlegen und Teil umspannen …“ (Plan C4; Manuel, 2026-10-31: „das find ich irgendwie
+        sinnvoll … sollten wir austesten“): legt an wie „Anlegen“ und öffnet danach – wenn auch
+        die Ebenen der Kette fertig sind – dasselbe Teil in einer neuen Aufspannung, vorgewählt die
+        Flächen, die in dieser nicht zu erreichen sind."""
+        job = rw.grundjob_von(self.job)
+        rest = self._nicht_erreichbar()
+        _UMSPANNEN.update({"job": job, "flaechen": rest})
+        if self.accept() is False:
+            _UMSPANNEN.clear()  # nichts angelegt: hier bleiben
+
+    def _von_oben_erreichbar(self):
+        """Die Flächen, die in dieser Aufspannung von oben zu erreichen sind (zugang)."""
+        from . import zugang as zg
+
+        try:
+            form = vr.modell(self.job).Shape
+            ergebnis = zg.zugang(form, spannflaeche=self._unten or zg.spannflaeche_unten(form))
+        except Exception as fehler:
+            FreeCAD.Console.PrintLog(f"Beta: Zugang nicht gerechnet: {fehler}\n")
+            return set()
+        oben = ergebnis.richtungen[0] if ergebnis.richtungen else None
+        if oben is None or oben.achse[2] < 1 - 1e-6:
+            return set()
+        return set(oben.flaechen)
+
+    def _nicht_erreichbar(self):
+        """Die Flächen des Teils, die in dieser Aufspannung nicht zu erreichen sind (zugang) –
+        ohne 5-Achs-Maschine alles, was nicht von oben geht."""
+        from . import zugang as zg
+
+        try:
+            form = vr.modell(self.job).Shape
+            ergebnis = zg.zugang(form, spannflaeche=self._unten or zg.spannflaeche_unten(form))
+            if not self._fuenfachs():
+                ergebnis = zg.ohne_schwenken(ergebnis)
+            namen = set(ergebnis.unerreichbar)
+            spann = ergebnis.spannflaeche  # die Fläche im Spannmittel – erst umgespannt frei
+            if isinstance(spann, str) and spann.startswith("Face"):
+                namen.add(spann)
+            return sorted(namen, key=lambda n: int(n[4:]) if n[4:].isdigit() else 0)
+        except Exception as fehler:  # dann eben ohne Vorwahl
+            FreeCAD.Console.PrintLog(f"Beta: Zugang nicht gerechnet: {fehler}\n")
+            return []
 
     def _am_job_merken(self, job, bis):
         try:
@@ -1027,12 +1104,32 @@ class BefehlNeueAufspannung:
         neue_aufspannung(job)
 
 
-def neue_aufspannung(job):
-    """Öffnet die Beta mit einem neuen Job für das Teil von `job` – bei Schritt 1."""
+def neue_aufspannung(job, vorwahl=None):
+    """Öffnet die Beta mit einem neuen Job für das Teil von `job` – bei Schritt 1; `vorwahl`: die
+    Flächen, die in Schritt 2 gewählt sind (umspannen)."""
     teil = vr.original(vr.modell(job))
     panel = BetaPanel(job.Document, (teil, None), neu=True)
+    panel._beta_vorwahl = list(vorwahl or [])
     FreeCADGui.Control.showDialog(panel)
     return panel
+
+
+_UMSPANNEN = {}  # „Anlegen und Teil umspannen“: der Job und die Flächen für die neue Aufspannung
+
+
+def _umspannen_wenn_frei():
+    """Ist kein Aufgabenfenster mehr offen (die Ebenen der Kette sind durch), die neue
+    Aufspannung; sonst wartet es auf das Schließen des nächsten Beta-Fensters."""
+    if not _UMSPANNEN or FreeCADGui.Control.activeDialog():
+        return
+    job, flaechen = _UMSPANNEN.get("job"), _UMSPANNEN.get("flaechen")
+    _UMSPANNEN.clear()
+    try:
+        if job is None or job.Document.getObject(job.Name) is None:
+            return
+    except Exception:  # noqa: BLE001 – das Dokument ist zu
+        return
+    neue_aufspannung(job, flaechen)
 
 
 BEFEHLE = {

@@ -180,8 +180,12 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    mit Taster je Steuerung (Siemens CYCLE977/978, Heidenhain 4xx, Fanuc/Renishaw), die das Aufmaß
    prüfen und den nächsten Gang korrigieren.
 4. **Umspannen** – „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir austesten“.
-   *Plan C4:* der Knopf „Teil umspannen …“ im letzten Schritt, vorgewählt die Flächen, die nicht
-   gingen.
+   *Gebaut (0.324.0, zum Austesten):* Im letzten Schritt **„Anlegen und Teil umspannen …“**: legt
+   an wie „Anlegen“ (auch die Ebenen der Kette) und öffnet danach dasselbe Teil in einer neuen
+   Aufspannung (neuer Job, Schritt 1). Nach der Unterseite ist in Schritt 2 vorgewählt, was in der
+   Aufspannung davor nicht ging (auch die Fläche im Spannmittel) **und jetzt von oben geht** – am
+   Block mit Tasche: die alte Unterseite.
+   ![Umgespannt](bilder/beta/8_umgespannt.png)
 5. **Spannmittel im ersten Schritt** – „die aufspannung sollte man schon irgendwie sinnvoll wählen
    ja am besten vor dem man die unten fläche auswählt und wie tief das teil eingespannt ist“.
    *Gebaut (0.322.0):* In der Beta beginnt „Aufspannung“ mit „Worin gespannt?“ (Sammlung, Knopf

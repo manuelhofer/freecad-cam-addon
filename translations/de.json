@@ -3577,5 +3577,7 @@
     "beta.tasche.voll": "Die {gewaehlt} gewählten Flächen gehören zu einer Tasche, in der noch Material steht – sie muss erst ausgeräumt werden ({fehlen} Flächen fehlen dafür).",
     "beta.tasche.leer": "Die {gewaehlt} gewählten Flächen gehören zu einer Tasche, die schon ausgeräumt ist{von} – ({fehlen} weitere Flächen gehören dazu).",
     "beta.tasche.von": " (von {wer})",
-    "beta.tasche.geteilt": "Schruppen: die ganze Tasche ({ganz} Flächen) · Schlichten und Kanten: nur die angeklickten Flächen ({nur})."
+    "beta.tasche.geteilt": "Schruppen: die ganze Tasche ({ganz} Flächen) · Schlichten und Kanten: nur die angeklickten Flächen ({nur}).",
+    "beta.umspannen": "Anlegen und Teil umspannen …",
+    "beta.umspannen.tooltip": "Legt an wie „Anlegen“ und öffnet danach dasselbe Teil in einer neuen Aufspannung (ein neuer Job) – in Schritt 2 vorgewählt die Flächen, die hier nicht zu erreichen sind."
 }

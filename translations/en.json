@@ -3577,5 +3577,7 @@
     "beta.tasche.voll": "The {gewaehlt} chosen faces belong to a pocket that still holds material – it has to be cleared first ({fehlen} faces are missing for that).",
     "beta.tasche.leer": "The {gewaehlt} chosen faces belong to a pocket that is already cleared{von} – ({fehlen} more faces belong to it).",
     "beta.tasche.von": " (by {wer})",
-    "beta.tasche.geteilt": "Roughing: the whole pocket ({ganz} faces) · Finishing and edges: only the clicked faces ({nur})."
+    "beta.tasche.geteilt": "Roughing: the whole pocket ({ganz} faces) · Finishing and edges: only the clicked faces ({nur}).",
+    "beta.umspannen": "Create and re-clamp the part …",
+    "beta.umspannen.tooltip": "Creates like “Create” and then opens the same part in a new setup (a new job) – in step 2 the faces that cannot be reached here are preselected."
 }

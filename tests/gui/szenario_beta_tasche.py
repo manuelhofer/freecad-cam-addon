@@ -5,6 +5,10 @@
 # sagt, dass Material in der Tasche steht; der Knopf nimmt die ganze Tasche – die Strategien des
 # Schruppens bekommen alle ihre Flächen, die des Schlichtens nur die angeklickte Wand; „Weiter“
 # geht. Eine andere Fläche dazu hebt die Teilung auf.
+# Dann bis zum letzten Schritt: „Anlegen und Teil umspannen …“ (Plan C4) legt an und öffnet das
+# Teil in einer neuen Aufspannung (ein zweiter Job); unten die Oberseite, in Schritt 2 vorgewählt,
+# was in der ersten Aufspannung nicht ging und jetzt von oben geht – die alte Unterseite (nicht die
+# Rundungen am Taschenboden, die der Zugang von oben nicht sieht).
 # ZEITLIMIT: 600
 import os
 import tempfile
@@ -130,4 +134,42 @@ def schritte(h):
     panel.flaeche_umschalten(oben)
     yield 1500
     h.pruefe(panel._beta_schlichten is None, "Teilung bleibt nach einer anderen Wahl")
-    panel.reject()
+    panel.flaeche_umschalten(oben)
+    yield 1500
+
+    # Umspannen
+    for _ in range(6):
+        if not panel.knopf_weiter.isVisible():
+            break
+        panel.knopf_weiter.click()
+        yield 1500
+    h.pruefe(panel.knopf_umspannen.isVisible(), "im letzten Schritt kein „Teil umspannen …“")
+    h.bild("2_letzter_schritt", panel.form)
+    jobs_vorher = [o for o in doc.Objects if o.TypeId == "Path::FeaturePython" and "Job" in o.Name]
+    panel.knopf_umspannen.click()
+    yield from h.warte_auf(
+        lambda: beta.BearbeitungPanel.offen is not None
+        and beta.BearbeitungPanel.offen is not panel,
+        120000,
+    )
+    yield 2000
+    neu = beta.BearbeitungPanel.offen
+    h.pruefe(isinstance(neu, beta.BetaPanel) and neu is not panel, f"kein neues Fenster: {neu!r}")
+    if not isinstance(neu, beta.BetaPanel) or neu is panel:
+        return
+    vorwahl = list(getattr(neu, "_beta_vorwahl", None) or [])
+    unten = next(
+        f"Face{i + 1}"
+        for i, f in enumerate(teil.Shape.Faces)
+        if abs(f.BoundBox.ZMin) < 1e-6 and abs(f.BoundBox.ZMax) < 1e-6
+    )
+    print(ascii(f"Vorwahl: {vorwahl} | Jobs vorher {len(jobs_vorher)}"))
+    h.pruefe(unten in vorwahl and oben not in vorwahl and wand not in vorwahl, f"{vorwahl}")
+    neu.unten_waehlen(oben)
+    yield 1500
+    neu.knopf_weiter.click()
+    yield 2000
+    h.pruefe(neu.seite() == 1, f"Seite {neu.seite()}")
+    h.pruefe(unten in neu.gewaehlte and oben not in neu.gewaehlte, f"vorgewählt: {neu.gewaehlte}")
+    h.bild("3_umgespannt", neu.form)
+    neu.reject()

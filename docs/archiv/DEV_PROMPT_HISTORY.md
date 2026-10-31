@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-07 beta-teil-umspannen
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Antwort 4): „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir
+  austesten“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: „Anlegen und Teil umspannen …“ im letzten Schritt; nach dem
+  Anlegen (und der Kette der Ebenen) `neue_aufspannung(job, vorwahl)`; vorgewählt, was vorher nicht
+  ging (zugang, dazu die Spannfläche) und jetzt von oben geht.
+- `tests/gui/szenario_beta_tasche.py` (Umspannen), Texte, `docs/konzept_schritt_assistent.md` (C4,
+  Bild 8), `package.xml` 0.324.0.
+
+### ERGEBNIS
+- szenario_beta_tasche, test_sprache grün. Gesehen: der Zugang hält die Rundungen am Taschenboden
+  von oben für verdeckt („keine freie Sicht“) – darum zählt für die Vorwahl, was jetzt von oben geht.
+
 ## P-2026-10-31-06 beta-tasche-voll-oder-ausgeraeumt
 
 ### EINGELESEN
