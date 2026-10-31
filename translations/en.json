@@ -3645,5 +3645,6 @@
     "mn.zapfen": "Boss",
     "mn.bohrung": "Bore",
     "mn.welle": "Round boss",
-    "eb.messen": "measure: {was}"
+    "eb.messen": "measure: {was}",
+    "pp.meldung.messen": "Measuring stop: measure {was}, then cycle start"
 }

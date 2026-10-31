@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.332.2):* Ohne Taster sagt die **Meldung am Halt** das Sollmaß: „Messstopp: Tasche
+  59,4 × 39,4 mm ±0,02 messen, dann NC-Start“ (Siemens MSG, LinuxCNC MSG; ASCII: ± als „+-“).
 - *Korrektur (0.332.1):* Das **Einrichtblatt** schreibt beim Messstopp mit Merkmal in die Spalte
   der Werte „messen: Tasche 59,4 × 39,4 mm ±0,02“ – das Sollmaß nach dem Gang davor, auch zum
   Messen von Hand (`messen.text`, gemeinsam mit dem Fenster „Weiter bearbeiten“).

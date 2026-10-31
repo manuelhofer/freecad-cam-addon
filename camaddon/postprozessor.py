@@ -1323,6 +1323,7 @@ ASCII_ERSATZ = (
     ("−", "-"),
     ("≈", "~"),
     ("µ", "u"),
+    ("±", "+-"),
 )
 
 
@@ -1955,7 +1956,12 @@ def programm(
                 if s.tuer_auf:
                     zeilen.extend(_zeilen(s.tuer_auf))
                 if s.meldung:
-                    text = tr("pp.meldung.messstopp").replace('"', "")
+                    text = tr("pp.meldung.messstopp")
+                    if gemessen:  # das Sollmaß dazu (Plan C3b): was von Hand zu messen ist
+                        from . import messen
+
+                        text = tr("pp.meldung.messen", was=messen.text(*gemessen))
+                    text = text.replace('"', "")
                     text = ascii_text(text) if s.nur_ascii else text
                     zeilen.extend(_zeilen(_fuellen(s.meldung, text=text)))
                 zeilen.append("M0")

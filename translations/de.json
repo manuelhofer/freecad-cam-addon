@@ -3645,5 +3645,6 @@
     "mn.zapfen": "Zapfen",
     "mn.bohrung": "Bohrung",
     "mn.welle": "Welle",
-    "eb.messen": "messen: {was}"
+    "eb.messen": "messen: {was}",
+    "pp.meldung.messen": "Messstopp: {was} messen, dann NC-Start"
 }

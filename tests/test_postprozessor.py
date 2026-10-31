@@ -1153,6 +1153,10 @@ for kennung, erwartet in (
     pruefe("M0" not in z_k or kennung == "siemens", f"{kennung}: Halt trotz Taster")
 z_ohne_t = pp.programm([bohren, messen_m, weiter_2], pp.steuerung("linuxcnc"), fraese, "M").zeilen
 pruefe("M0" in z_ohne_t and not any("CALL" in x for x in z_ohne_t), "ohne Taster kein Halt")
+# Ohne Taster sagt die Meldung am Halt das Sollmaß (Siemens MSG, ASCII: ± als „+-“).
+z_msg = pp.programm([bohren, messen_m, weiter_2], pp.steuerung("siemens"), fraese, "M").zeilen
+msg = next((x for x in z_msg if x.startswith('MSG("Messstopp')), "")
+pruefe("Tasche 59" in msg and "39" in msg and "0" in msg.split("+-")[-1], f"Meldung: {msg}")
 
 # An der Drehmaschine mit angetriebenem Werkzeug (Manuels CLX, Siemens): Der Messstopp schaltet
 # den Antrieb aus („M3=5“ der Spindel 3), nicht die Hauptspindel („M5“); nach dem Halt schaltet die

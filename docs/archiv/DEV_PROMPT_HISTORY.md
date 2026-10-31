@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-29 meldung-sollmass
+
+### EINGELESEN
+- Plan C3: Messschritte – am Halt das Sollmaß für den Bediener.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Meldung `pp.meldung.messen` mit messen.text; ASCII „±“ → „+-“.
+- `translations/*.json`; `tests/test_postprozessor.py`.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.332.2.
+
+### ERGEBNIS
+- test_postprozessor, test_sprache grün.
 ## P-2026-10-31-28 einrichtblatt-messen
 
 ### EINGELESEN
