@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.330.3):* Halter-Fenster: Feld **„Spannt Ø“** (`Halter.spann_d`) – auch eigene
+  Halter sagen, welchen Schaft sie spannen; die Empfehlung bietet sie nur dafür an.
 - *Korrektur (0.330.2):* **Tauchfräsen auch um eine Außenkontur** (Manuel: „geht auch für ne
   ausen kontur“): getaucht wird, wo über dem Boden Rohteil und kein Teil ist (`tauchfraesen.gebiet`)
   – um einen Zapfen bis über den Rand des Rohteils, die erste Stelle außen im Freien. Der

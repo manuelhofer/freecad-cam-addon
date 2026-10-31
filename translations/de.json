@@ -3614,5 +3614,8 @@
     "ba.tauchfraeser.tooltip": "Der Fräser fürs Tauchfräsen – mit ebener Stirn, der ins Volle tauchen darf: ein Tauchfräser oder ein mittenschneidender Schaftfräser.",
     "ba.tauchfraesen.schritt": "Abstand der Stellen",
     "ba.tauchfraesen.schritt.tooltip": "So weit liegen die Tauchstellen höchstens auseinander. Höchstens 0,7 × Durchmesser – sonst bleiben zwischen vier Stellen Zapfen stehen.",
-    "ba.ergebnis_tauchfraesen": "→ {stellen} Tauchstellen, {lagen} Lage(n), etwa {zeit}"
+    "ba.ergebnis_tauchfraesen": "→ {stellen} Tauchstellen, {lagen} Lage(n), etwa {zeit}",
+    "hd.spann_d": "Spannt Ø",
+    "hd.spann_d.tooltip": "Welchen Schaft-Ø der Halter spannt (Schrumpf-, Hydrodehn-, Weldonfutter: genau diesen). Die Empfehlung „so ginge es“ bietet ihn dann nur Werkzeugen mit diesem Schaft an. Leer bei Spannzangenfuttern – dort sagt es der Name (ER16 …).",
+    "hd.spann_d.leer": "– (Spannzange: am Namen)"
 }

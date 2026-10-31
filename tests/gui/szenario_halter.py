@@ -124,6 +124,14 @@ def schritte(h):
     tippen(f.feld_name, "SK40 ER32 A70")
     yield 200
     h.pruefe(f.liste.item(0).text() == "SK40 ER32 A70", f"Liste: {f.liste.item(0).text()}")
+    # „Spannt Ø“ (Halter.spann_d): eingetragen kommt er an; ein ER-Futter hat ihn leer.
+    h.pruefe(f.feld_spann_d.text() == "", f"Spannt Ø vorher: {f.feld_spann_d.text()!r}")
+    tippen(f.feld_spann_d, "12")
+    yield 200
+    h.pruefe(abs(halter.spann_d - 12) < 1e-9, f"Spannt Ø: {halter.spann_d}")
+    tippen(f.feld_spann_d, "")
+    yield 200
+    h.pruefe(halter.spann_d == 0, f"Spannt Ø geleert: {halter.spann_d}")
     # Nur ein Komma in der Spanntiefe: OK schließt trotzdem, die Spanntiefe bleibt.
     f.feld_spanntiefe.setText(",")
     f.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()

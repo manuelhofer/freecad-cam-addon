@@ -205,6 +205,12 @@ class HalterDialog(QtGui.QDialog):
         self.feld_spanntiefe.setValidator(Zahlenpruefer(self.feld_spanntiefe))
         self.feld_spanntiefe.setToolTip(tr("hd.spanntiefe.tooltip"))
         self.feld_spanntiefe.editingFinished.connect(self._spanntiefe_uebernehmen)
+        # Welchen Schaft er spannt (Halter.spann_d) – die Empfehlung bietet ihn nur dafür an.
+        self.feld_spann_d = QtGui.QLineEdit()
+        self.feld_spann_d.setValidator(Zahlenpruefer(self.feld_spann_d))
+        self.feld_spann_d.setToolTip(tr("hd.spann_d.tooltip"))
+        self.feld_spann_d.setPlaceholderText(tr("hd.spann_d.leer"))
+        self.feld_spann_d.editingFinished.connect(self._spann_d_uebernehmen)
         mm = einheiten.einheit(einheiten.LAENGE)
         self.wahl_richtung = QtGui.QComboBox()
         self.wahl_richtung.addItem(tr("hd.richtung.gerade"), hl.GERADE)
@@ -233,6 +239,7 @@ class HalterDialog(QtGui.QDialog):
                 (tr("hd.bezeichnung"), self.feld_bezeichnung),
                 (tr("hd.link"), zeile_link),
                 (tr("hd.spanntiefe"), mit_einheit(self.feld_spanntiefe, mm)),
+                (tr("hd.spann_d"), mit_einheit(self.feld_spann_d, mm)),
                 (tr("hd.richtung"), self.wahl_richtung),
                 *gewinkelt,
             )
@@ -240,7 +247,7 @@ class HalterDialog(QtGui.QDialog):
             beschriftung = QtGui.QLabel(text)
             gitter.addWidget(beschriftung, reihe, 0)
             gitter.addWidget(feld, reihe, 1)
-            if reihe >= 5:
+            if reihe >= 6:
                 self._zeilen_gewinkelt += [beschriftung, feld]
         innen.addLayout(gitter)
 
@@ -489,6 +496,7 @@ class HalterDialog(QtGui.QDialog):
         self.feld_link.setText(h.link)
         self._link_knopf_zeigen(h)
         self.feld_spanntiefe.setText(groesse_zeigen(h.spanntiefe, einheiten.LAENGE))
+        self.feld_spann_d.setText(groesse_zeigen(h.spann_d, einheiten.LAENGE) if h.spann_d else "")
         self.wahl_richtung.setCurrentIndex(self.wahl_richtung.findData(h.richtung))
         for feld, eingabe in self.felder_gewinkelt.items():
             eingabe.setText(self._gewinkelt_text(h, feld))
@@ -636,6 +644,15 @@ class HalterDialog(QtGui.QDialog):
         self.feld_spanntiefe.setText(groesse_zeigen(h.spanntiefe, einheiten.LAENGE))
         self._neu_berechnet()
 
+    def _spann_d_uebernehmen(self):
+        h = self.gewaehlt
+        if self._fuellt or h is None:
+            return
+        text = self.feld_spann_d.text().strip()
+        with contextlib.suppress(ValueError):  # Unlesbares: bleibt, wie es war
+            h.spann_d = groesse_lesen(text, einheiten.LAENGE) if text else 0.0
+        self.feld_spann_d.setText(groesse_zeigen(h.spann_d, einheiten.LAENGE) if h.spann_d else "")
+
     def _richtung_geaendert(self, _index):
         h = self.gewaehlt
         if self._fuellt or h is None:
@@ -711,6 +728,7 @@ class HalterDialog(QtGui.QDialog):
     def accept(self):
         """Übernimmt die Halter in die Werkzeugverwaltung; das Werkzeug bekommt den gewählten."""
         self._spanntiefe_uebernehmen()
+        self._spann_d_uebernehmen()
         for feld in self.felder_gewinkelt:
             self._gewinkelt_uebernehmen(feld)
         self.original.halter = self.bibliothek.halter

@@ -3614,5 +3614,8 @@
     "ba.tauchfraeser.tooltip": "The cutter for plunge milling – flat-bottomed and allowed to plunge into solid material: a plunge cutter or a centre-cutting end mill.",
     "ba.tauchfraesen.schritt": "Plunge spacing",
     "ba.tauchfraesen.schritt.tooltip": "The largest distance between plunges. At most 0.7 × diameter – otherwise pins remain between four plunges.",
-    "ba.ergebnis_tauchfraesen": "→ {stellen} plunges, {lagen} layer(s), about {zeit}"
+    "ba.ergebnis_tauchfraesen": "→ {stellen} plunges, {lagen} layer(s), about {zeit}",
+    "hd.spann_d": "Clamps Ø",
+    "hd.spann_d.tooltip": "Which shank Ø the holder clamps (shrink-fit, hydraulic, Weldon chucks: exactly this one). The “this would work” recommendation then only offers it to tools with this shank. Leave empty for collet chucks – there the name tells (ER16 …).",
+    "hd.spann_d.leer": "– (collet: by name)"
 }

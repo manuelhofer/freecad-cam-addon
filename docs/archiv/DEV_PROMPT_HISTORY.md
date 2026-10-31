@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-18 halter-spannt-d
+
+### EINGELESEN
+- Folge aus 0.329.0 (Empfehlung mit Katalog-Haltern, `Halter.spann_d`): eigene Halter brauchen
+  das Feld auch.
+
+### DATEIEN
+- `camaddon/gui_halter.py`: Feld „Spannt Ø“; `translations/*.json`.
+- `tests/gui/szenario_halter.py`: eintragen, leeren.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.330.3.
+
+### ERGEBNIS
+- szenario_halter, test_sprache grün.
 ## P-2026-10-31-17 tauchen-aussen-messzeile
 
 ### EINGELESEN
