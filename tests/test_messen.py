@@ -4,7 +4,7 @@
 # 2. Zapfen 30 × 20 auf einer Platte: Rechteck außen.
 # 3. Bohrung Ø 20 und Welle Ø 16: rund, innen bzw. außen.
 # 4. Soll nach einem Gang mit Aufmaß 1: Tasche 58 × 38, Bohrung 18, Zapfen 32 × 22, Welle 18.
-# 5. Eine schräge Wand ergibt kein Merkmal.
+# 5. Eine schräge Wand ergibt kein Merkmal, zwei Taschen nebeneinander auch nicht.
 import os
 import sys
 
@@ -100,6 +100,12 @@ keil = Part.makeBox(100, 80, 40).cut(
 )
 wahl = namen(keil, lambda f: senkrecht_wand(f) and f.BoundBox.ZMin > 24.9)
 pruefe(messen.merkmal(keil, wahl) is None, "schräge Tasche als Rechteck erkannt")
+
+# Zwei Taschen nebeneinander: kein Rechteck über beide.
+zwei = Part.makeBox(100, 80, 40).cut(Part.makeBox(30, 40, 15, V(10, 20, 25)))
+zwei = zwei.cut(Part.makeBox(30, 40, 15, V(60, 20, 25)))
+wahl = namen(zwei, lambda f: senkrecht_wand(f) and f.BoundBox.ZMin > 24.9)
+pruefe(messen.merkmal(zwei, wahl) is None, "zwei Taschen als ein Rechteck")
 
 # 6. Die Zeile im Messstopp: geschrieben und wieder gelesen dasselbe.
 from camaddon import messstopp as ms  # noqa: E402

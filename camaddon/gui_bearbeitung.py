@@ -12269,6 +12269,17 @@ class BearbeitungPanel:
             self.bibliothek.speichern()
         self._werkzeuge_gespeichert()
 
+    def _messmerkmal(self, aufmass):
+        """Das Messmerkmal der gewählten Flächen (messen.merkmal) nach einem Gang mit `aufmass` –
+        None, wenn sie keins ergeben (dann hält der Messstopp wie bisher)."""
+        from . import messen
+
+        try:
+            m = messen.merkmal(vr.modell(self.job).Shape, list(self.gewaehlte))
+        except Exception:  # Part.OCCError: ein Name passt nicht mehr zum Modell
+            return None
+        return messen.soll(m, float(aufmass or 0.0)) if m is not None else None
+
     def _tauch_vorbohrer(self, fraeser):
         """Der Bohrer fürs Vorbohren beim Tauchfräsen (Manuel: „grösten bohrer den man hat bohrt
         mittig ein loch“): der größte, der nicht größer ist als der Fräser – im Magazin der
@@ -12337,7 +12348,10 @@ class BearbeitungPanel:
         werkzeug = f"T{tc.ToolNumber}"
         ops = []
         if werte.get("messstopp"):
-            ops.append(ms.lege_an(self.job, tc_davor, tc))
+            # Mit dem, was ein Taster dort messen würde (Plan C3b): die gewählte Tasche, Bohrung
+            # oder der Zapfen, um das Aufmaß des Räumens an der Wand.
+            merkmal = self._messmerkmal(werte.get("aufmass_wand", 0.0))
+            ops.append(ms.lege_an(self.job, tc_davor, tc, merkmal))
         if getattr(bahn, "boden", None) is not None:
             ops.append(
                 ra.lege_an(

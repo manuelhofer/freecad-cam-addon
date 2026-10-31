@@ -137,6 +137,15 @@ def _rechteck(ebenen, ecken):
     y1 = max(f.BoundBox.YMax for f in alle)
     z_oben = max(f.BoundBox.ZMax for f in alle)
     z_unten = min(f.BoundBox.ZMin for f in alle)
+    # Jede Wand auf dem Rand des Rechtecks – sonst sind es zwei Taschen, ein Absatz … (ein
+    # Rechteck über alles mäße Luft).
+    for f in ebenen:
+        n = _normale(f)
+        b = f.BoundBox
+        if abs(n.x) > 0.5 and min(abs(b.XMin - x0), abs(b.XMin - x1)) > 1e-3:
+            return None
+        if abs(n.y) > 0.5 and min(abs(b.YMin - y0), abs(b.YMin - y1)) > 1e-3:
+            return None
     mx, my = (x0 + x1) / 2, (y0 + y1) / 2
     # Innen (Tasche), wenn die Außennormale einer Wand zur Mitte zeigt.
     f = ebenen[0]

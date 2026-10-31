@@ -576,6 +576,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.331.5):* Auch der Messstopp von „Schlichten danach“ (gewohnter Assistent) trägt das
+  Messmerkmal der gewählten Flächen (Soll mit dem Wand-Aufmaß des Räumens) – mit Taster misst er.
+  Die Erkennung ist strenger: jede Wand muss auf dem Rand des Rechtecks liegen (zwei Taschen
+  nebeneinander ergaben sonst ein Rechteck über beide).
 - *Korrektur (0.331.4):* **Tauchfräsen mit Vorbohren** (Manuel zum Bild: „Stelle 1 in der Mitte
   (dort vorgebohrt)“): Haken „In der Mitte vorbohren“, vorbelegt an – der größte Bohrer im Magazin,
   der nicht größer ist als der Fräser, bohrt an der ersten Stelle jeder Tasche bis auf den Boden

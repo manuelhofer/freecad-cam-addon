@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-24 messen-schlichten-danach
+
+### EINGELESEN
+- Plan C3b: Messen statt Halt auch im gewohnten Assistenten.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_messmerkmal`, der Messstopp von „Schlichten danach“ mit Merkmal.
+- `camaddon/messen.py`: jede Wand auf dem Rand des Rechtecks; `tests/test_messen.py` (zwei Taschen).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.331.5.
+
+### ERGEBNIS
+- test_messen, szenario_raeumen_schlichten grün.
 ## P-2026-10-31-23 tauchen-vorbohren
 
 ### EINGELESEN
