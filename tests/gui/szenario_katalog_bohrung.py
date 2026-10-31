@@ -3,7 +3,8 @@
 # Ø 6,75, 20 tief (das Kernloch von M8 nach gewinde.kernloch: 8 − 1,25); in der
 # Werkzeugverwaltung nur der Standardfräser. Die Bohrung wählen, „Weiter“: „Gewinde bohren“ und
 # „Bohren“ passen nicht – darunter „Im Katalog der Hersteller …“ mit Gewindebohrern M8 × 1,25 bzw.
-# Bohrern Ø 6,75 als Links (der Katalog wird im Faden gelesen, die Sätze kommen danach).
+# Bohrern Ø 6,75 als Links (der Katalog wird im Faden gelesen, die Sätze kommen danach). Dann die
+# durchgehende Bohrung Ø 8 gewählt: „Reiben“ nennt Reibahlen Ø 8 aus dem Katalog.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -27,13 +28,18 @@ def schritte(h):
     doc = FreeCAD.newDocument("Klotz")
     teil = doc.addObject("Part::Feature", "Klotz")
     loch = Part.makeCylinder(3.375, 20, V(0, 0, -20))
-    teil.Shape = Part.makeBox(80, 60, 30, V(-40, -30, -30)).cut(loch).removeSplitter()
+    durch = Part.makeCylinder(4.0, 40, V(25, 0, -35))  # Ø 8 durchgehend: zum Reiben
+    teil.Shape = Part.makeBox(80, 60, 30, V(-40, -30, -30)).cut(loch).cut(durch).removeSplitter()
     doc.recompute()
-    wand = next(
-        f"Face{i + 1}"
-        for i, f in enumerate(teil.Shape.Faces)
-        if f.Surface.__class__.__name__ == "Cylinder"
-    )
+
+    def zylinder(radius):
+        return next(
+            f"Face{i + 1}"
+            for i, f in enumerate(teil.Shape.Faces)
+            if f.Surface.__class__.__name__ == "Cylinder" and abs(f.Surface.Radius - radius) < 1e-6
+        )
+
+    wand = zylinder(3.375)
     Gui.activateWorkbench("CAMWorkbench")
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(doc.Name, teil.Name, wand)
@@ -63,4 +69,15 @@ def schritte(h):
     panel.passt_nicht_knopf.click()  # die Blöcke, die nicht passen, aufklappen
     yield 500
     h.bild("1_katalog_bohrung", panel.form)
+    # Die Bohrung Ø 8 (durch): „Reiben“ nennt Reibahlen Ø 8 aus dem Katalog.
+    panel.flaechen_leeren()  # ein Klick auf eine Fläche nimmt sie sonst dazu
+    yield 500
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Name, teil.Name, zylinder(4.0))
+    yield 1500
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
+    yield from h.warte_auf(lambda: zeile(panel.reiben), 60000)
+    reiben = zeile(panel.reiben)
+    print(ascii(f"Reiben: {reiben}"))
+    h.pruefe("Im Katalog" in reiben and "Ø 8)" in reiben, reiben)
     panel.reject()

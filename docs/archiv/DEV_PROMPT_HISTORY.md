@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-43 katalog-reibahle
+
+### EINGELESEN
+- Weiter zu P-2026-10-31-42 (Gedächtnis „Empfehlen über das Magazin hinaus“).
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py`: `bohrer_im_katalog(…, art=)` auch für Reibahlen.
+- `camaddon/gui_bearbeitung.py`: der Satz aus dem Katalog auch unter „Reiben“.
+- `translations/*.json` (ba.katalog.reibahle), `tests/gui/szenario_katalog_bohrung.py` (Teil
+  Reiben: Auswahl leeren, Bohrung Ø 8 durch), `package.xml` 0.341.1.
+
+### ERGEBNIS
+- szenario_katalog_bohrung grün: „Gühring 6016 8.000 (Reibahle Ø 8), Walter F2171-8, Sandvik
+  CoroReamer 435 …“; längste Fensterpause 0,49 s. test_sprache grün.
 ## P-2026-10-31-42 katalog-bohrer-gewinde-nebenrechner
 
 ### EINGELESEN

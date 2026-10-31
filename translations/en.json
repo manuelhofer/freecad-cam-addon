@@ -3725,5 +3725,6 @@
     "beta.werkzeuge.katalog.liest": "Reading the catalogue …",
     "ba.katalog.gewindebohrer": "In the manufacturers' catalogue with this core hole: {namen} – into the tool library via “Tool box …”.",
     "ba.katalog.bohrer": "In the manufacturers' catalogue with this Ø: {namen} – into the tool library via “Tool box …”.",
-    "wv.kiste.vorbereiten": "Preparing the tool box … (the manufacturers' catalogues are checked once)"
+    "wv.kiste.vorbereiten": "Preparing the tool box … (the manufacturers' catalogues are checked once)",
+    "ba.katalog.reibahle": "In the manufacturers' catalogue with this Ø: {namen} – into the tool library via “Tool box …”."
 }

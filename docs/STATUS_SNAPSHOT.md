@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.341.1):* Auch „Reiben“ nennt Reibahlen mit dem Ø der Bohrung aus dem Katalog, wenn
+  die Werkzeugverwaltung keine hat (Gühring 6016, Walter, Sandvik CoroReamer bei Ø 8).
 - *Neu (0.341.0):* **Fehlt der Bohrer oder Gewindebohrer, nennt der Block einen aus dem Katalog**
   (Gedächtnis „Empfehlen über das Magazin hinaus“): unter „Bohren“ bzw. „Gewinde bohren“, wenn
   sie zur gewählten Bohrung passen, aber die Werkzeugverwaltung nichts hat – „Im Katalog der

@@ -8798,7 +8798,11 @@ class BearbeitungPanel:
                     block.s.text() if moeglich else grund or block.s.unmoeglich_text()
                 )
                 block.katalog_zeile = ""
-                if not moeglich and grund is None and block in (self.bohren, self.gewinde):
+                if (
+                    not moeglich
+                    and grund is None
+                    and block in (self.bohren, self.gewinde, self.reiben)
+                ):
                     block.katalog_zeile = self._im_katalog_zeile(block, form)
                 if not moeglich:
                     block.haken.setChecked(False)
@@ -11285,7 +11289,8 @@ class BearbeitungPanel:
             tiefe = max(
                 (b.z_oben - b.z_unten for b in bb.bohrungen(form, namen or [""])), default=0.0
             )
-            gefunden = ww.bohrer_im_katalog(d, tiefe, katalog)
+            art = wz.REIBAHLE if block is self.reiben else wz.BOHRER
+            gefunden = ww.bohrer_im_katalog(d, tiefe, katalog, art=art)
         if not gefunden:
             return ""
         from .gui_bearbeitung_beta import _werkzeug_text
@@ -11294,7 +11299,10 @@ class BearbeitungPanel:
             return tr(
                 "ba.katalog.gewindebohrer", namen=", ".join(_gewinde_text(w) for w in gefunden)
             )
-        return tr("ba.katalog.bohrer", namen=", ".join(_werkzeug_text(w) for w in gefunden))
+        namen = ", ".join(_werkzeug_text(w) for w in gefunden)
+        if block is self.reiben:
+            return tr("ba.katalog.reibahle", namen=namen)
+        return tr("ba.katalog.bohrer", namen=namen)
 
     def _nach_katalog(self):
         """Ist der Katalog gelesen, die Sätze „passt nicht“ noch einmal (mit den Vorschlägen) –
@@ -11308,7 +11316,7 @@ class BearbeitungPanel:
             QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, self._nach_katalog)
             return
         form = vr.modell(self.job).Shape
-        for block in (self.bohren, self.gewinde):
+        for block in (self.bohren, self.gewinde, self.reiben):
             if not block.moeglich and not getattr(block, "katalog_zeile", ""):
                 block.katalog_zeile = self._im_katalog_zeile(block, form)
                 block.zustand_zeigen()

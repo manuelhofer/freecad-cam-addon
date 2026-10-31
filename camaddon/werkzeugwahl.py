@@ -153,13 +153,14 @@ def gewindebohrer_im_katalog(kernloch_d, katalog, hoechstens=3):
     )
 
 
-def bohrer_im_katalog(durchmesser, tiefe, katalog, hoechstens=3):
-    """Bohrer des Katalogs mit genau diesem Ø (auf 0,01 mm), die `tiefe` erreichen – keine
-    Wendeplattenbohrer; je Hersteller einer, die kürzesten zuerst (am steifsten)."""
+def bohrer_im_katalog(durchmesser, tiefe, katalog, hoechstens=3, art=wz.BOHRER):
+    """Bohrer (oder mit `art` Reibahlen) des Katalogs mit genau diesem Ø (auf 0,01 mm), die
+    `tiefe` erreichen – keine Wendeplattenbohrer; je Hersteller einer, die kürzesten zuerst (am
+    steifsten)."""
     gut = [
         w
         for w in katalog
-        if w.art == wz.BOHRER
+        if w.art == art
         and abs(w.durchmesser - durchmesser) <= 0.005
         and not w.faehigkeiten.get("wendeplatten")
         and (not tiefe or (w.schneidenlaenge or w.gesamtlaenge or 0) >= tiefe - 1e-6)
