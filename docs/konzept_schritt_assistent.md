@@ -175,7 +175,9 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    laufen. (b) erster Teil: Im Schritt „Schruppen“ der Beta **„Werkzeuge für diese Tasche“** –
    Tiefe und freier Kreis gemessen (`werkzeugwahl.py`), je Weg (Vorbohren, Schruppen, Ecken,
    Bohrfräsen) das größte passende eigene Werkzeug; „Was gäbe es im Katalog?“ nennt größere aus
-   dem Katalog mit Link. Noch offen: die Wege als Frage mit Zeit und Vorschau, Tauchfräsen.
+   dem Katalog mit Link. Noch offen: die Wege als Frage mit Zeit und Vorschau. **Tauchfräsen** als
+   Entwurf (`camaddon/tauchfraesen.py`, Bild `bilder/tauchfraesen_entwurf.png`) – wartet auf
+   Manuels Ja (OFFENE_FRAGEN, Frage 2).
    ![Werkzeuge](bilder/beta/3c_werkzeuge_katalog.png)
 3. **Nach dem Schruppen** – „wir sollten da wirklich einen knopf "weiter bearbeiten" einrichtchten
    wo dann die selbe ausgewälte kontor nochmal … entgratet … geschlichtet oder nochmal geschlichtet
