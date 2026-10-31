@@ -268,7 +268,7 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
     )
     # Die Werkzeuge der Reihe – erst ohne Katalogwerte: Sie geben die Maße für den Vergleich und
     # die Richtwerte, mit denen fehlende vc oder fz einer Datei aufgefüllt werden.
-    werkzeuge = wk.werkzeuge(reihe)
+    werkzeuge = wk.werkzeuge(reihe, mit_werten=False)
     katalogwerte = {}
     behalten = []
     for i, (groesse, werkzeug, daten_g) in enumerate(
@@ -508,7 +508,9 @@ class _Index:
         self.masse = {}
         for reihe in reihen:
             self.kennungen[reihe.kennung] = reihe.datei
-            for groesse, werkzeug in zip(reihe.groessen, wk.werkzeuge(reihe), strict=True):
+            for groesse, werkzeug in zip(
+                reihe.groessen, wk.werkzeuge(reihe, mit_werten=False), strict=True
+            ):
                 self.merke(reihe, groesse, werkzeug)
 
     def merke(self, reihe, groesse, werkzeug):

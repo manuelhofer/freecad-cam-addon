@@ -1,0 +1,10056 @@
+{
+ "format": "camaddon-werkzeugkiste",
+ "version": 1,
+ "reihen": [
+  {
+   "kennung": "mmc-ajx-schaft",
+   "art": "hochvorschubfraeser",
+   "hersteller": "Mitsubishi Materials",
+   "marke": "AJX",
+   "titel": "AJX Hochvorschub-Radiusfräser mit Schaft (Plattengröße 06/08/09/12)",
+   "quelle": "mitsubishicarbide.net Webkatalog (mhg/enuk), Serie 10000364 Seiten 1–2 von 5 (nur Schaftausführungen SA bis Ø30) und Artikelseite 20066625 (Spalten CICT, ZEFP, DC, APMX, LH, LF, DCON, DCX; durchmesser = DCX; RMPX/AZ nur dort genannt), abgerufen 2026-10-31",
+   "link": "https://www.mitsubishicarbide.net/mhg/enuk/end_mills/10000364",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "hochvorschub": true,
+    "einsatzzweck": "Hochvorschubfräsen, 3-schneidige Radiusplatte"
+   },
+   "groessen": [
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 200,
+     "schaft": 16,
+     "artikel": "AJX06R162SA16EL"
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 150,
+     "schaft": 16,
+     "artikel": "AJX06R162SA16L"
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 110,
+     "schaft": 16,
+     "artikel": "AJX06R162SA16S",
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 17,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 200,
+     "schaft": 16,
+     "artikel": "AJX06R172SA16EL"
+    },
+    {
+     "durchmesser": 17,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 150,
+     "schaft": 16,
+     "artikel": "AJX06R172SA16L"
+    },
+    {
+     "durchmesser": 17,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 110,
+     "schaft": 16,
+     "artikel": "AJX06R172SA16S"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 250,
+     "schaft": 20,
+     "artikel": "AJX08R202SA20EL"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 180,
+     "schaft": 20,
+     "artikel": "AJX08R202SA20L"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "artikel": "AJX08R202SA20S"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 180,
+     "schaft": 20,
+     "artikel": "AJX06R203SA20L"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "artikel": "AJX06R203SA20S"
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 250,
+     "schaft": 20,
+     "artikel": "AJX08R222SA20EL"
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 180,
+     "schaft": 20,
+     "artikel": "AJX08R222SA20L"
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "artikel": "AJX08R222SA20S"
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 180,
+     "schaft": 20,
+     "artikel": "AJX06R223SA20L"
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "artikel": "AJX06R223SA20S"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 2,
+     "gesamtlaenge": 300,
+     "schaft": 25,
+     "artikel": "AJX09R252SA25EL"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 2,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "AJX09R252SA25L"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 2,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "AJX09R252SA25S"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "AJX08R253SA25L"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "schneidenlaenge": 1.5,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "AJX08R253SA25S"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "AJX06R254SA25L"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "AJX06R254SA25S"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 2,
+     "gesamtlaenge": 300,
+     "schaft": 25,
+     "artikel": "AJX09R282SA25EL"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 2,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "AJX09R282SA25L"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 2,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "AJX09R282SA25S"
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 2,
+     "schneidenlaenge": 2,
+     "gesamtlaenge": 300,
+     "schaft": 32,
+     "artikel": "AJX12R302SA32EL"
+    }
+   ]
+  },
+  {
+   "kennung": "mmc-mvx",
+   "art": "wendeplattenbohrer",
+   "hersteller": "Mitsubishi Materials",
+   "marke": "MVX",
+   "titel": "MVX Wendeplattenbohrer (außen CVD-, innen PVD-Platte), L/D 2–6",
+   "quelle": "mitsubishicarbide.net Webkatalog (mhg/enuk), Serie 20000164 Seiten 1, 6 und 11 (Ø14–16, Ø26–29, Ø42–44; Spalten DC, ld, LU, LPR, OAL, DCON, DCSFMS, LBX laut Artikelseite 20102709), abgerufen 2026-10-31",
+   "link": "https://www.mitsubishicarbide.net/mhg/enuk/drilling/20000164",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "kuehlung_innen": true,
+    "einsatzzweck": "Wendeplattenbohrer für tiefe Bohrungen bis L/D = 6"
+   },
+   "groessen": [
+    {
+     "durchmesser": 14,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 28,
+     "gesamtlaenge": 93,
+     "schaft": 20,
+     "artikel": "MVX1400X2F20"
+    },
+    {
+     "durchmesser": 14,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 42,
+     "gesamtlaenge": 107,
+     "schaft": 20,
+     "artikel": "MVX1400X3F20"
+    },
+    {
+     "durchmesser": 14,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 56,
+     "gesamtlaenge": 121,
+     "schaft": 20,
+     "artikel": "MVX1400X4F20"
+    },
+    {
+     "durchmesser": 14,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 70,
+     "gesamtlaenge": 135,
+     "schaft": 20,
+     "artikel": "MVX1400X5F20"
+    },
+    {
+     "durchmesser": 14.5,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 29,
+     "gesamtlaenge": 94,
+     "schaft": 20,
+     "artikel": "MVX1450X2F20"
+    },
+    {
+     "durchmesser": 14.5,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 43.5,
+     "gesamtlaenge": 108.5,
+     "schaft": 20,
+     "artikel": "MVX1450X3F20"
+    },
+    {
+     "durchmesser": 14.5,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 58,
+     "gesamtlaenge": 123,
+     "schaft": 20,
+     "artikel": "MVX1450X4F20"
+    },
+    {
+     "durchmesser": 14.5,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 72.5,
+     "gesamtlaenge": 137.5,
+     "schaft": 20,
+     "artikel": "MVX1450X5F20"
+    },
+    {
+     "durchmesser": 15,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 30,
+     "gesamtlaenge": 95,
+     "schaft": 20,
+     "artikel": "MVX1500X2F20"
+    },
+    {
+     "durchmesser": 15,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 45,
+     "gesamtlaenge": 110,
+     "schaft": 20,
+     "artikel": "MVX1500X3F20"
+    },
+    {
+     "durchmesser": 15,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 60,
+     "gesamtlaenge": 125,
+     "schaft": 20,
+     "artikel": "MVX1500X4F20"
+    },
+    {
+     "durchmesser": 15,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 75,
+     "gesamtlaenge": 140,
+     "schaft": 20,
+     "artikel": "MVX1500X5F20"
+    },
+    {
+     "durchmesser": 15.5,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 31,
+     "gesamtlaenge": 96,
+     "schaft": 20,
+     "artikel": "MVX1550X2F20"
+    },
+    {
+     "durchmesser": 15.5,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 46.5,
+     "gesamtlaenge": 111.5,
+     "schaft": 20,
+     "artikel": "MVX1550X3F20"
+    },
+    {
+     "durchmesser": 15.5,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 62,
+     "gesamtlaenge": 127,
+     "schaft": 20,
+     "artikel": "MVX1550X4F20"
+    },
+    {
+     "durchmesser": 15.5,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 77.5,
+     "gesamtlaenge": 142.5,
+     "schaft": 20,
+     "artikel": "MVX1550X5F20"
+    },
+    {
+     "durchmesser": 16,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 32,
+     "gesamtlaenge": 97,
+     "schaft": 20,
+     "artikel": "MVX1600X2F20"
+    },
+    {
+     "durchmesser": 16,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 48,
+     "gesamtlaenge": 113,
+     "schaft": 20,
+     "artikel": "MVX1600X3F20"
+    },
+    {
+     "durchmesser": 16,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 64,
+     "gesamtlaenge": 129,
+     "schaft": 20,
+     "artikel": "MVX1600X4F20"
+    },
+    {
+     "durchmesser": 16,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 80,
+     "gesamtlaenge": 145,
+     "schaft": 20,
+     "artikel": "MVX1600X5F20"
+    },
+    {
+     "durchmesser": 26,
+     "bohrtiefe_d": 6,
+     "schneidenlaenge": 156,
+     "gesamtlaenge": 238,
+     "schaft": 32,
+     "artikel": "MVX2600X6F32"
+    },
+    {
+     "durchmesser": 26.5,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 53,
+     "gesamtlaenge": 135,
+     "schaft": 32,
+     "artikel": "MVX2650X2F32"
+    },
+    {
+     "durchmesser": 26.5,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 79.5,
+     "gesamtlaenge": 161.5,
+     "schaft": 32,
+     "artikel": "MVX2650X3F32"
+    },
+    {
+     "durchmesser": 27,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 54,
+     "gesamtlaenge": 136,
+     "schaft": 32,
+     "artikel": "MVX2700X2F32"
+    },
+    {
+     "durchmesser": 27,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 81,
+     "gesamtlaenge": 163,
+     "schaft": 32,
+     "artikel": "MVX2700X3F32"
+    },
+    {
+     "durchmesser": 27,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 108,
+     "gesamtlaenge": 190,
+     "schaft": 32,
+     "artikel": "MVX2700X4F32"
+    },
+    {
+     "durchmesser": 27,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 135,
+     "gesamtlaenge": 217,
+     "schaft": 32,
+     "artikel": "MVX2700X5F32"
+    },
+    {
+     "durchmesser": 27,
+     "bohrtiefe_d": 6,
+     "schneidenlaenge": 162,
+     "gesamtlaenge": 244,
+     "schaft": 32,
+     "artikel": "MVX2700X6F32"
+    },
+    {
+     "durchmesser": 27.5,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 55,
+     "gesamtlaenge": 137,
+     "schaft": 32,
+     "artikel": "MVX2750X2F32"
+    },
+    {
+     "durchmesser": 27.5,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 82.5,
+     "gesamtlaenge": 164.5,
+     "schaft": 32,
+     "artikel": "MVX2750X3F32"
+    },
+    {
+     "durchmesser": 28,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 56,
+     "gesamtlaenge": 138,
+     "schaft": 32,
+     "artikel": "MVX2800X2F32"
+    },
+    {
+     "durchmesser": 28,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 84,
+     "gesamtlaenge": 166,
+     "schaft": 32,
+     "artikel": "MVX2800X3F32"
+    },
+    {
+     "durchmesser": 28,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 112,
+     "gesamtlaenge": 194,
+     "schaft": 32,
+     "artikel": "MVX2800X4F32"
+    },
+    {
+     "durchmesser": 28,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 140,
+     "gesamtlaenge": 222,
+     "schaft": 32,
+     "artikel": "MVX2800X5F32"
+    },
+    {
+     "durchmesser": 28,
+     "bohrtiefe_d": 6,
+     "schneidenlaenge": 168,
+     "gesamtlaenge": 250,
+     "schaft": 32,
+     "artikel": "MVX2800X6F32"
+    },
+    {
+     "durchmesser": 28.5,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 57,
+     "gesamtlaenge": 139,
+     "schaft": 32,
+     "artikel": "MVX2850X2F32"
+    },
+    {
+     "durchmesser": 28.5,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 85.5,
+     "gesamtlaenge": 167.5,
+     "schaft": 32,
+     "artikel": "MVX2850X3F32"
+    },
+    {
+     "durchmesser": 29,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 58,
+     "gesamtlaenge": 140,
+     "schaft": 32,
+     "artikel": "MVX2900X2F32"
+    },
+    {
+     "durchmesser": 29,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 87,
+     "gesamtlaenge": 169,
+     "schaft": 32,
+     "artikel": "MVX2900X3F32"
+    },
+    {
+     "durchmesser": 29,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 116,
+     "gesamtlaenge": 198,
+     "schaft": 32,
+     "artikel": "MVX2900X4F32"
+    },
+    {
+     "durchmesser": 42,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 126,
+     "gesamtlaenge": 228,
+     "schaft": 40,
+     "artikel": "MVX4200X3F40"
+    },
+    {
+     "durchmesser": 42,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 168,
+     "gesamtlaenge": 270,
+     "schaft": 40,
+     "artikel": "MVX4200X4F40"
+    },
+    {
+     "durchmesser": 42,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 168,
+     "gesamtlaenge": 280,
+     "schaft": 50,
+     "artikel": "MVX4200X4F50"
+    },
+    {
+     "durchmesser": 42,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 210,
+     "gesamtlaenge": 312,
+     "schaft": 40,
+     "artikel": "MVX4200X5F40"
+    },
+    {
+     "durchmesser": 42,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 210,
+     "gesamtlaenge": 322,
+     "schaft": 50,
+     "artikel": "MVX4200X5F50"
+    },
+    {
+     "durchmesser": 42,
+     "bohrtiefe_d": 6,
+     "schneidenlaenge": 252,
+     "gesamtlaenge": 354,
+     "schaft": 40,
+     "artikel": "MVX4200X6F40"
+    },
+    {
+     "durchmesser": 42,
+     "bohrtiefe_d": 6,
+     "schneidenlaenge": 252,
+     "gesamtlaenge": 364,
+     "schaft": 50,
+     "artikel": "MVX4200X6F50"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 86,
+     "gesamtlaenge": 188,
+     "schaft": 40,
+     "artikel": "MVX4300X2F40"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 129,
+     "gesamtlaenge": 231,
+     "schaft": 40,
+     "artikel": "MVX4300X3F40"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 172,
+     "gesamtlaenge": 274,
+     "schaft": 40,
+     "artikel": "MVX4300X4F40"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 172,
+     "gesamtlaenge": 284,
+     "schaft": 50,
+     "artikel": "MVX4300X4F50"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 215,
+     "gesamtlaenge": 317,
+     "schaft": 40,
+     "artikel": "MVX4300X5F40"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 215,
+     "gesamtlaenge": 327,
+     "schaft": 50,
+     "artikel": "MVX4300X5F50"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 6,
+     "schneidenlaenge": 258,
+     "gesamtlaenge": 360,
+     "schaft": 40,
+     "artikel": "MVX4300X6F40"
+    },
+    {
+     "durchmesser": 43,
+     "bohrtiefe_d": 6,
+     "schneidenlaenge": 258,
+     "gesamtlaenge": 370,
+     "schaft": 50,
+     "artikel": "MVX4300X6F50"
+    },
+    {
+     "durchmesser": 44,
+     "bohrtiefe_d": 2,
+     "schneidenlaenge": 88,
+     "gesamtlaenge": 190,
+     "schaft": 40,
+     "artikel": "MVX4400X2F40"
+    },
+    {
+     "durchmesser": 44,
+     "bohrtiefe_d": 3,
+     "schneidenlaenge": 132,
+     "gesamtlaenge": 234,
+     "schaft": 40,
+     "artikel": "MVX4400X3F40"
+    },
+    {
+     "durchmesser": 44,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 176,
+     "gesamtlaenge": 278,
+     "schaft": 40,
+     "artikel": "MVX4400X4F40"
+    },
+    {
+     "durchmesser": 44,
+     "bohrtiefe_d": 4,
+     "schneidenlaenge": 176,
+     "gesamtlaenge": 288,
+     "schaft": 50,
+     "artikel": "MVX4400X4F50"
+    },
+    {
+     "durchmesser": 44,
+     "bohrtiefe_d": 5,
+     "schneidenlaenge": 220,
+     "gesamtlaenge": 322,
+     "schaft": 40,
+     "artikel": "MVX4400X5F40"
+    }
+   ]
+  },
+  {
+   "kennung": "mmc-pmr",
+   "art": "tauchfraeser",
+   "hersteller": "Mitsubishi Materials",
+   "marke": "PMR",
+   "titel": "PMR Tauchfräser zum Aufstecken (Plunge), gebogene Schneide",
+   "quelle": "mitsubishicarbide.net Webkatalog (mhg/enuk), Serie 10000392 und Artikelseite 20066979 (Spalten CICT, ZEFP, DC, APMX, CBDP, LF, DCON, DCSFMS), abgerufen 2026-10-31",
+   "link": "https://www.mitsubishicarbide.net/mhg/enuk/end_mills/10000392",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "tauchfraesen": true,
+    "einsatzzweck": "Tauchfräsen mit großer Auskragung, 2 Schneidrichtungen"
+   },
+   "groessen": [
+    {
+     "durchmesser": 50,
+     "schneiden": 3,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 40,
+     "artikel": "PMR405003A22R"
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 3,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 40,
+     "artikel": "PMR405003BR"
+    },
+    {
+     "durchmesser": 52,
+     "schneiden": 3,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 40,
+     "artikel": "PMR405203A22R"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 4,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 40,
+     "artikel": "PMR406304A22R"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 4,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 40,
+     "artikel": "PMR406304BR"
+    },
+    {
+     "durchmesser": 66,
+     "schneiden": 5,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 50,
+     "artikel": "PMR406604A27R"
+    }
+   ]
+  },
+  {
+   "kennung": "mmc-wjx09-schaft",
+   "art": "hochvorschubfraeser",
+   "hersteller": "Mitsubishi Materials",
+   "marke": "WJX",
+   "titel": "WJX09 Hochvorschub-Radiusfräser mit Schaft, doppelseitige Wendeplatte",
+   "quelle": "mitsubishicarbide.net Webkatalog (mhg/enuk), Serie 30000065 Seiten 1–2 und Artikelseite 30001964 (Spalten CICT, ZEFP, DC, APMX, LH, LF, DCON, DCX; durchmesser = DCX), abgerufen 2026-10-31",
+   "link": "https://www.mitsubishicarbide.net/mhg/enuk/end_mills/30000065",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "hochvorschub": true,
+    "einsatzzweck": "Hochvorschub-Schruppen, doppelseitige Platte"
+   },
+   "groessen": [
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 300,
+     "schaft": 25,
+     "artikel": "WJX09R2502SA25EL"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "WJX09R2502SA25L"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "WJX09R2502SA25S",
+     "eintauchwinkel": 4.7
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "WJX09R2503SA25L"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "WJX09R2503SA25S"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 300,
+     "schaft": 25,
+     "artikel": "WJX09R2802SA25EL"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "WJX09R2802SA25L"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "WJX09R2802SA25S"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "artikel": "WJX09R2803SA25L"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "artikel": "WJX09R2803SA25S"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 300,
+     "schaft": 32,
+     "artikel": "WJX09R3202SA32EL"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "artikel": "WJX09R3202SA32L"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "artikel": "WJX09R3202SA32S"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "artikel": "WJX09R3203SA32L"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "artikel": "WJX09R3203SA32S"
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 2,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 300,
+     "schaft": 32,
+     "artikel": "WJX09R3502SA32EL"
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "artikel": "WJX09R3503SA32L"
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "artikel": "WJX09R3503SA32S"
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 4,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "artikel": "WJX09R3504SA32L"
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 4,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "artikel": "WJX09R3504SA32S"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 300,
+     "schaft": 32,
+     "artikel": "WJX09R4003SA32EL"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 250,
+     "schaft": 32,
+     "artikel": "WJX09R4003SA32L"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 3,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "artikel": "WJX09R4003SA32S"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 4,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 250,
+     "schaft": 32,
+     "artikel": "WJX09R4004SA32L"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 4,
+     "schneidenlaenge": 1.2,
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "artikel": "WJX09R4004SA32S"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-drillforce-meister-3d",
+   "art": "wendeplattenbohrer",
+   "hersteller": "Tungaloy",
+   "marke": "DrillForce-Meister",
+   "titel": "DrillForce-Meister Wechselkopfbohrer TIS…-3 (L/D = 3), Kopf SMP",
+   "quelle": "Tungaloy Report 509-G „DrillForce-Meister“ (PDF), Körper TIS + Kopf SMP; Schnittwerte = Mitte der Katalogbereiche, abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/509-G_DrillForce-Meister.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "Bohrkopf SMP",
+    "spitzenwinkel": 140,
+    "bohrtiefe_d": 3,
+    "kuehlung_innen": true,
+    "einsatzzweck": "Wechselkopfbohrer Ø20–41",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "bohren": {
+      "vc": 110
+     }
+    },
+    "P2": {
+     "bohren": {
+      "vc": 105
+     }
+    },
+    "M": {
+     "bohren": {
+      "vc": 60
+     }
+    },
+    "K": {
+     "bohren": {
+      "vc": 130
+     }
+    },
+    "S": {
+     "bohren": {
+      "vc": 35
+     }
+    },
+    "H": {
+     "bohren": {
+      "vc": 40
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "schneidenlaenge": 63.1,
+     "schaft": 25,
+     "artikel": "TIS200F25-3 + SMP200",
+     "name": "DrillForce-Meister Ø20 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 20.5,
+     "schneiden": 2,
+     "schneidenlaenge": 63.1,
+     "schaft": 25,
+     "artikel": "TIS200F25-3 + SMP205",
+     "name": "DrillForce-Meister Ø20.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 21,
+     "schneiden": 2,
+     "schneidenlaenge": 66.3,
+     "schaft": 25,
+     "artikel": "TIS210F25-3 + SMP210",
+     "name": "DrillForce-Meister Ø21 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 21.5,
+     "schneiden": 2,
+     "schneidenlaenge": 66.3,
+     "schaft": 25,
+     "artikel": "TIS210F25-3 + SMP215",
+     "name": "DrillForce-Meister Ø21.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 2,
+     "schneidenlaenge": 69.4,
+     "schaft": 25,
+     "artikel": "TIS220F25-3 + SMP220",
+     "name": "DrillForce-Meister Ø22 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 22.3,
+     "schneiden": 2,
+     "schneidenlaenge": 69.4,
+     "schaft": 25,
+     "artikel": "TIS220F25-3 + SMP223",
+     "name": "DrillForce-Meister Ø22.3 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 22.5,
+     "schneiden": 2,
+     "schneidenlaenge": 69.4,
+     "schaft": 25,
+     "artikel": "TIS220F25-3 + SMP225",
+     "name": "DrillForce-Meister Ø22.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 23,
+     "schneiden": 2,
+     "schneidenlaenge": 72.6,
+     "schaft": 25,
+     "artikel": "TIS230F25-3 + SMP230",
+     "name": "DrillForce-Meister Ø23 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 23.5,
+     "schneiden": 2,
+     "schneidenlaenge": 72.6,
+     "schaft": 25,
+     "artikel": "TIS230F25-3 + SMP235",
+     "name": "DrillForce-Meister Ø23.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 24,
+     "schneiden": 2,
+     "schneidenlaenge": 75.7,
+     "schaft": 32,
+     "artikel": "TIS240F32-3 + SMP240",
+     "name": "DrillForce-Meister Ø24 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 24.5,
+     "schneiden": 2,
+     "schneidenlaenge": 75.7,
+     "schaft": 32,
+     "artikel": "TIS240F32-3 + SMP245",
+     "name": "DrillForce-Meister Ø24.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 24.7,
+     "schneiden": 2,
+     "schneidenlaenge": 75.7,
+     "schaft": 32,
+     "artikel": "TIS240F32-3 + SMP247",
+     "name": "DrillForce-Meister Ø24.7 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 78.9,
+     "schaft": 32,
+     "artikel": "TIS250F32-3 + SMP250",
+     "name": "DrillForce-Meister Ø25 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 25.5,
+     "schneiden": 2,
+     "schneidenlaenge": 78.9,
+     "schaft": 32,
+     "artikel": "TIS250F32-3 + SMP255",
+     "name": "DrillForce-Meister Ø25.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26,
+     "schneiden": 2,
+     "schneidenlaenge": 82.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-3 + SMP260",
+     "name": "DrillForce-Meister Ø26 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26.1,
+     "schneiden": 2,
+     "schneidenlaenge": 82.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-3 + SMP261",
+     "name": "DrillForce-Meister Ø26.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26.5,
+     "schneiden": 2,
+     "schneidenlaenge": 82.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-3 + SMP265",
+     "name": "DrillForce-Meister Ø26.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26.7,
+     "schneiden": 2,
+     "schneidenlaenge": 82.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-3 + SMP267",
+     "name": "DrillForce-Meister Ø26.7 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27,
+     "schneiden": 2,
+     "schneidenlaenge": 85.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-3 + SMP270",
+     "name": "DrillForce-Meister Ø27 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27.1,
+     "schneiden": 2,
+     "schneidenlaenge": 85.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-3 + SMP271",
+     "name": "DrillForce-Meister Ø27.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27.2,
+     "schneiden": 2,
+     "schneidenlaenge": 85.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-3 + SMP272",
+     "name": "DrillForce-Meister Ø27.2 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27.5,
+     "schneiden": 2,
+     "schneidenlaenge": 85.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-3 + SMP275",
+     "name": "DrillForce-Meister Ø27.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 89.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-3 + SMP280",
+     "name": "DrillForce-Meister Ø28 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28.1,
+     "schneiden": 2,
+     "schneidenlaenge": 89.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-3 + SMP281",
+     "name": "DrillForce-Meister Ø28.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28.5,
+     "schneiden": 2,
+     "schneidenlaenge": 89.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-3 + SMP285",
+     "name": "DrillForce-Meister Ø28.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28.6,
+     "schneiden": 2,
+     "schneidenlaenge": 89.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-3 + SMP286",
+     "name": "DrillForce-Meister Ø28.6 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29,
+     "schneiden": 2,
+     "schneidenlaenge": 92.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-3 + SMP290",
+     "name": "DrillForce-Meister Ø29 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29.1,
+     "schneiden": 2,
+     "schneidenlaenge": 92.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-3 + SMP291",
+     "name": "DrillForce-Meister Ø29.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29.5,
+     "schneiden": 2,
+     "schneidenlaenge": 92.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-3 + SMP295",
+     "name": "DrillForce-Meister Ø29.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29.6,
+     "schneiden": 2,
+     "schneidenlaenge": 92.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-3 + SMP296",
+     "name": "DrillForce-Meister Ø29.6 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 2,
+     "schneidenlaenge": 95.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-3 + SMP300",
+     "name": "DrillForce-Meister Ø30 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.1,
+     "schneiden": 2,
+     "schneidenlaenge": 95.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-3 + SMP301",
+     "name": "DrillForce-Meister Ø30.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.2,
+     "schneiden": 2,
+     "schneidenlaenge": 95.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-3 + SMP302",
+     "name": "DrillForce-Meister Ø30.2 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.3,
+     "schneiden": 2,
+     "schneidenlaenge": 95.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-3 + SMP303",
+     "name": "DrillForce-Meister Ø30.3 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.5,
+     "schneiden": 2,
+     "schneidenlaenge": 95.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-3 + SMP305",
+     "name": "DrillForce-Meister Ø30.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.8,
+     "schneiden": 2,
+     "schneidenlaenge": 95.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-3 + SMP308",
+     "name": "DrillForce-Meister Ø30.8 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31,
+     "schneiden": 2,
+     "schneidenlaenge": 98.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-3 + SMP310",
+     "name": "DrillForce-Meister Ø31 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31.1,
+     "schneiden": 2,
+     "schneidenlaenge": 98.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-3 + SMP311",
+     "name": "DrillForce-Meister Ø31.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31.5,
+     "schneiden": 2,
+     "schneidenlaenge": 98.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-3 + SMP315",
+     "name": "DrillForce-Meister Ø31.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31.8,
+     "schneiden": 2,
+     "schneidenlaenge": 98.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-3 + SMP318",
+     "name": "DrillForce-Meister Ø31.8 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "schneidenlaenge": 101.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-3 + SMP320",
+     "name": "DrillForce-Meister Ø32 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32.1,
+     "schneiden": 2,
+     "schneidenlaenge": 101.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-3 + SMP321",
+     "name": "DrillForce-Meister Ø32.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32.5,
+     "schneiden": 2,
+     "schneidenlaenge": 101.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-3 + SMP325",
+     "name": "DrillForce-Meister Ø32.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32.8,
+     "schneiden": 2,
+     "schneidenlaenge": 101.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-3 + SMP328",
+     "name": "DrillForce-Meister Ø32.8 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33,
+     "schneiden": 2,
+     "schneidenlaenge": 105,
+     "schaft": 40,
+     "artikel": "TIS330F40-3 + SMP330",
+     "name": "DrillForce-Meister Ø33 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33.1,
+     "schneiden": 2,
+     "schneidenlaenge": 105,
+     "schaft": 40,
+     "artikel": "TIS330F40-3 + SMP331",
+     "name": "DrillForce-Meister Ø33.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33.3,
+     "schneiden": 2,
+     "schneidenlaenge": 105,
+     "schaft": 40,
+     "artikel": "TIS330F40-3 + SMP333",
+     "name": "DrillForce-Meister Ø33.3 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33.5,
+     "schneiden": 2,
+     "schneidenlaenge": 105,
+     "schaft": 40,
+     "artikel": "TIS330F40-3 + SMP335",
+     "name": "DrillForce-Meister Ø33.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34,
+     "schneiden": 2,
+     "schneidenlaenge": 108.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-3 + SMP340",
+     "name": "DrillForce-Meister Ø34 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34.1,
+     "schneiden": 2,
+     "schneidenlaenge": 108.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-3 + SMP341",
+     "name": "DrillForce-Meister Ø34.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34.5,
+     "schneiden": 2,
+     "schneidenlaenge": 108.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-3 + SMP345",
+     "name": "DrillForce-Meister Ø34.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34.9,
+     "schneiden": 2,
+     "schneidenlaenge": 108.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-3 + SMP349",
+     "name": "DrillForce-Meister Ø34.9 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 2,
+     "schneidenlaenge": 111.4,
+     "schaft": 40,
+     "artikel": "TIS350F40-3 + SMP350",
+     "name": "DrillForce-Meister Ø35 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 35.1,
+     "schneiden": 2,
+     "schneidenlaenge": 111.4,
+     "schaft": 40,
+     "artikel": "TIS350F40-3 + SMP351",
+     "name": "DrillForce-Meister Ø35.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 35.5,
+     "schneiden": 2,
+     "schneidenlaenge": 111.4,
+     "schaft": 40,
+     "artikel": "TIS350F40-3 + SMP355",
+     "name": "DrillForce-Meister Ø35.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36,
+     "schneiden": 2,
+     "schneidenlaenge": 114.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-3 + SMP360",
+     "name": "DrillForce-Meister Ø36 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36.1,
+     "schneiden": 2,
+     "schneidenlaenge": 114.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-3 + SMP361",
+     "name": "DrillForce-Meister Ø36.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36.5,
+     "schneiden": 2,
+     "schneidenlaenge": 114.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-3 + SMP365",
+     "name": "DrillForce-Meister Ø36.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36.6,
+     "schneiden": 2,
+     "schneidenlaenge": 114.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-3 + SMP366",
+     "name": "DrillForce-Meister Ø36.6 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 37,
+     "schneiden": 2,
+     "schneidenlaenge": 117.7,
+     "schaft": 40,
+     "artikel": "TIS370F40-3 + SMP370",
+     "name": "DrillForce-Meister Ø37 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 37.1,
+     "schneiden": 2,
+     "schneidenlaenge": 117.7,
+     "schaft": 40,
+     "artikel": "TIS370F40-3 + SMP371",
+     "name": "DrillForce-Meister Ø37.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 37.5,
+     "schneiden": 2,
+     "schneidenlaenge": 117.7,
+     "schaft": 40,
+     "artikel": "TIS370F40-3 + SMP375",
+     "name": "DrillForce-Meister Ø37.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38,
+     "schneiden": 2,
+     "schneidenlaenge": 120.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-3 + SMP380",
+     "name": "DrillForce-Meister Ø38 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38.1,
+     "schneiden": 2,
+     "schneidenlaenge": 120.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-3 + SMP381",
+     "name": "DrillForce-Meister Ø38.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38.5,
+     "schneiden": 2,
+     "schneidenlaenge": 120.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-3 + SMP385",
+     "name": "DrillForce-Meister Ø38.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38.8,
+     "schneiden": 2,
+     "schneidenlaenge": 120.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-3 + SMP388",
+     "name": "DrillForce-Meister Ø38.8 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39,
+     "schneiden": 2,
+     "schneidenlaenge": 124.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-3 + SMP390",
+     "name": "DrillForce-Meister Ø39 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.1,
+     "schneiden": 2,
+     "schneidenlaenge": 124.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-3 + SMP391",
+     "name": "DrillForce-Meister Ø39.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.5,
+     "schneiden": 2,
+     "schneidenlaenge": 124.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-3 + SMP395",
+     "name": "DrillForce-Meister Ø39.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.7,
+     "schneiden": 2,
+     "schneidenlaenge": 124.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-3 + SMP397",
+     "name": "DrillForce-Meister Ø39.7 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.8,
+     "schneiden": 2,
+     "schneidenlaenge": 124.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-3 + SMP398",
+     "name": "DrillForce-Meister Ø39.8 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 2,
+     "schneidenlaenge": 127.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-3 + SMP400",
+     "name": "DrillForce-Meister Ø40 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 40.1,
+     "schneiden": 2,
+     "schneidenlaenge": 127.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-3 + SMP401",
+     "name": "DrillForce-Meister Ø40.1 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 40.5,
+     "schneiden": 2,
+     "schneidenlaenge": 127.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-3 + SMP405",
+     "name": "DrillForce-Meister Ø40.5 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 41,
+     "schneiden": 2,
+     "schneidenlaenge": 127.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-3 + SMP410",
+     "name": "DrillForce-Meister Ø41 3xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "tung-drillforce-meister-5d",
+   "art": "wendeplattenbohrer",
+   "hersteller": "Tungaloy",
+   "marke": "DrillForce-Meister",
+   "titel": "DrillForce-Meister Wechselkopfbohrer TIS…-5 (L/D = 5), Kopf SMP",
+   "quelle": "Tungaloy Report 509-G „DrillForce-Meister“ (PDF), Körper TIS + Kopf SMP; Schnittwerte = Mitte der Katalogbereiche, abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/509-G_DrillForce-Meister.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "Bohrkopf SMP",
+    "spitzenwinkel": 140,
+    "bohrtiefe_d": 5,
+    "kuehlung_innen": true,
+    "einsatzzweck": "Wechselkopfbohrer Ø20–41",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "bohren": {
+      "vc": 110
+     }
+    },
+    "P2": {
+     "bohren": {
+      "vc": 105
+     }
+    },
+    "M": {
+     "bohren": {
+      "vc": 60
+     }
+    },
+    "K": {
+     "bohren": {
+      "vc": 130
+     }
+    },
+    "S": {
+     "bohren": {
+      "vc": 35
+     }
+    },
+    "H": {
+     "bohren": {
+      "vc": 40
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "schneidenlaenge": 103.1,
+     "schaft": 25,
+     "artikel": "TIS200F25-5 + SMP200",
+     "name": "DrillForce-Meister Ø20 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 20.5,
+     "schneiden": 2,
+     "schneidenlaenge": 103.1,
+     "schaft": 25,
+     "artikel": "TIS200F25-5 + SMP205",
+     "name": "DrillForce-Meister Ø20.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 21,
+     "schneiden": 2,
+     "schneidenlaenge": 108.3,
+     "schaft": 25,
+     "artikel": "TIS210F25-5 + SMP210",
+     "name": "DrillForce-Meister Ø21 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 21.5,
+     "schneiden": 2,
+     "schneidenlaenge": 108.3,
+     "schaft": 25,
+     "artikel": "TIS210F25-5 + SMP215",
+     "name": "DrillForce-Meister Ø21.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 2,
+     "schneidenlaenge": 113.4,
+     "schaft": 25,
+     "artikel": "TIS220F25-5 + SMP220",
+     "name": "DrillForce-Meister Ø22 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 22.3,
+     "schneiden": 2,
+     "schneidenlaenge": 113.4,
+     "schaft": 25,
+     "artikel": "TIS220F25-5 + SMP223",
+     "name": "DrillForce-Meister Ø22.3 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 22.5,
+     "schneiden": 2,
+     "schneidenlaenge": 113.4,
+     "schaft": 25,
+     "artikel": "TIS220F25-5 + SMP225",
+     "name": "DrillForce-Meister Ø22.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 23,
+     "schneiden": 2,
+     "schneidenlaenge": 118.6,
+     "schaft": 25,
+     "artikel": "TIS230F25-5 + SMP230",
+     "name": "DrillForce-Meister Ø23 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 23.5,
+     "schneiden": 2,
+     "schneidenlaenge": 118.6,
+     "schaft": 25,
+     "artikel": "TIS230F25-5 + SMP235",
+     "name": "DrillForce-Meister Ø23.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 24,
+     "schneiden": 2,
+     "schneidenlaenge": 123.7,
+     "schaft": 32,
+     "artikel": "TIS240F32-5 + SMP240",
+     "name": "DrillForce-Meister Ø24 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 24.5,
+     "schneiden": 2,
+     "schneidenlaenge": 123.7,
+     "schaft": 32,
+     "artikel": "TIS240F32-5 + SMP245",
+     "name": "DrillForce-Meister Ø24.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 24.7,
+     "schneiden": 2,
+     "schneidenlaenge": 123.7,
+     "schaft": 32,
+     "artikel": "TIS240F32-5 + SMP247",
+     "name": "DrillForce-Meister Ø24.7 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "schneidenlaenge": 128.9,
+     "schaft": 32,
+     "artikel": "TIS250F32-5 + SMP250",
+     "name": "DrillForce-Meister Ø25 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 25.5,
+     "schneiden": 2,
+     "schneidenlaenge": 128.9,
+     "schaft": 32,
+     "artikel": "TIS250F32-5 + SMP255",
+     "name": "DrillForce-Meister Ø25.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26,
+     "schneiden": 2,
+     "schneidenlaenge": 134.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-5 + SMP260",
+     "name": "DrillForce-Meister Ø26 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26.1,
+     "schneiden": 2,
+     "schneidenlaenge": 134.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-5 + SMP261",
+     "name": "DrillForce-Meister Ø26.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26.5,
+     "schneiden": 2,
+     "schneidenlaenge": 134.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-5 + SMP265",
+     "name": "DrillForce-Meister Ø26.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 26.7,
+     "schneiden": 2,
+     "schneidenlaenge": 134.7,
+     "schaft": 32,
+     "artikel": "TIS260F32-5 + SMP267",
+     "name": "DrillForce-Meister Ø26.7 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27,
+     "schneiden": 2,
+     "schneidenlaenge": 139.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-5 + SMP270",
+     "name": "DrillForce-Meister Ø27 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27.1,
+     "schneiden": 2,
+     "schneidenlaenge": 139.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-5 + SMP271",
+     "name": "DrillForce-Meister Ø27.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27.2,
+     "schneiden": 2,
+     "schneidenlaenge": 139.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-5 + SMP272",
+     "name": "DrillForce-Meister Ø27.2 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 27.5,
+     "schneiden": 2,
+     "schneidenlaenge": 139.9,
+     "schaft": 32,
+     "artikel": "TIS270F32-5 + SMP275",
+     "name": "DrillForce-Meister Ø27.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 2,
+     "schneidenlaenge": 145.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-5 + SMP280",
+     "name": "DrillForce-Meister Ø28 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28.1,
+     "schneiden": 2,
+     "schneidenlaenge": 145.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-5 + SMP281",
+     "name": "DrillForce-Meister Ø28.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28.5,
+     "schneiden": 2,
+     "schneidenlaenge": 145.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-5 + SMP285",
+     "name": "DrillForce-Meister Ø28.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 28.6,
+     "schneiden": 2,
+     "schneidenlaenge": 145.1,
+     "schaft": 32,
+     "artikel": "TIS280F32-5 + SMP286",
+     "name": "DrillForce-Meister Ø28.6 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29,
+     "schneiden": 2,
+     "schneidenlaenge": 150.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-5 + SMP290",
+     "name": "DrillForce-Meister Ø29 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29.1,
+     "schneiden": 2,
+     "schneidenlaenge": 150.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-5 + SMP291",
+     "name": "DrillForce-Meister Ø29.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29.5,
+     "schneiden": 2,
+     "schneidenlaenge": 150.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-5 + SMP295",
+     "name": "DrillForce-Meister Ø29.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 29.6,
+     "schneiden": 2,
+     "schneidenlaenge": 150.3,
+     "schaft": 32,
+     "artikel": "TIS290F32-5 + SMP296",
+     "name": "DrillForce-Meister Ø29.6 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 2,
+     "schneidenlaenge": 155.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-5 + SMP300",
+     "name": "DrillForce-Meister Ø30 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.1,
+     "schneiden": 2,
+     "schneidenlaenge": 155.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-5 + SMP301",
+     "name": "DrillForce-Meister Ø30.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.2,
+     "schneiden": 2,
+     "schneidenlaenge": 155.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-5 + SMP302",
+     "name": "DrillForce-Meister Ø30.2 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.3,
+     "schneiden": 2,
+     "schneidenlaenge": 155.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-5 + SMP303",
+     "name": "DrillForce-Meister Ø30.3 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.5,
+     "schneiden": 2,
+     "schneidenlaenge": 155.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-5 + SMP305",
+     "name": "DrillForce-Meister Ø30.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 30.8,
+     "schneiden": 2,
+     "schneidenlaenge": 155.5,
+     "schaft": 32,
+     "artikel": "TIS300F32-5 + SMP308",
+     "name": "DrillForce-Meister Ø30.8 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31,
+     "schneiden": 2,
+     "schneidenlaenge": 160.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-5 + SMP310",
+     "name": "DrillForce-Meister Ø31 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31.1,
+     "schneiden": 2,
+     "schneidenlaenge": 160.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-5 + SMP311",
+     "name": "DrillForce-Meister Ø31.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31.5,
+     "schneiden": 2,
+     "schneidenlaenge": 160.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-5 + SMP315",
+     "name": "DrillForce-Meister Ø31.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 31.8,
+     "schneiden": 2,
+     "schneidenlaenge": 160.6,
+     "schaft": 32,
+     "artikel": "TIS310F32-5 + SMP318",
+     "name": "DrillForce-Meister Ø31.8 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "schneidenlaenge": 165.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-5 + SMP320",
+     "name": "DrillForce-Meister Ø32 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32.1,
+     "schneiden": 2,
+     "schneidenlaenge": 165.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-5 + SMP321",
+     "name": "DrillForce-Meister Ø32.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32.5,
+     "schneiden": 2,
+     "schneidenlaenge": 165.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-5 + SMP325",
+     "name": "DrillForce-Meister Ø32.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 32.8,
+     "schneiden": 2,
+     "schneidenlaenge": 165.8,
+     "schaft": 40,
+     "artikel": "TIS320F40-5 + SMP328",
+     "name": "DrillForce-Meister Ø32.8 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33,
+     "schneiden": 2,
+     "schneidenlaenge": 171,
+     "schaft": 40,
+     "artikel": "TIS330F40-5 + SMP330",
+     "name": "DrillForce-Meister Ø33 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33.1,
+     "schneiden": 2,
+     "schneidenlaenge": 171,
+     "schaft": 40,
+     "artikel": "TIS330F40-5 + SMP331",
+     "name": "DrillForce-Meister Ø33.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33.3,
+     "schneiden": 2,
+     "schneidenlaenge": 171,
+     "schaft": 40,
+     "artikel": "TIS330F40-5 + SMP333",
+     "name": "DrillForce-Meister Ø33.3 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 33.5,
+     "schneiden": 2,
+     "schneidenlaenge": 171,
+     "schaft": 40,
+     "artikel": "TIS330F40-5 + SMP335",
+     "name": "DrillForce-Meister Ø33.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34,
+     "schneiden": 2,
+     "schneidenlaenge": 176.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-5 + SMP340",
+     "name": "DrillForce-Meister Ø34 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34.1,
+     "schneiden": 2,
+     "schneidenlaenge": 176.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-5 + SMP341",
+     "name": "DrillForce-Meister Ø34.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34.5,
+     "schneiden": 2,
+     "schneidenlaenge": 176.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-5 + SMP345",
+     "name": "DrillForce-Meister Ø34.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 34.9,
+     "schneiden": 2,
+     "schneidenlaenge": 176.2,
+     "schaft": 40,
+     "artikel": "TIS340F40-5 + SMP349",
+     "name": "DrillForce-Meister Ø34.9 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 2,
+     "schneidenlaenge": 181.4,
+     "schaft": 40,
+     "artikel": "TIS350F40-5 + SMP350",
+     "name": "DrillForce-Meister Ø35 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 35.1,
+     "schneiden": 2,
+     "schneidenlaenge": 181.4,
+     "schaft": 40,
+     "artikel": "TIS350F40-5 + SMP351",
+     "name": "DrillForce-Meister Ø35.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 35.5,
+     "schneiden": 2,
+     "schneidenlaenge": 181.4,
+     "schaft": 40,
+     "artikel": "TIS350F40-5 + SMP355",
+     "name": "DrillForce-Meister Ø35.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.35
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.225
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.4
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.15
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.15
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36,
+     "schneiden": 2,
+     "schneidenlaenge": 186.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-5 + SMP360",
+     "name": "DrillForce-Meister Ø36 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36.1,
+     "schneiden": 2,
+     "schneidenlaenge": 186.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-5 + SMP361",
+     "name": "DrillForce-Meister Ø36.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36.5,
+     "schneiden": 2,
+     "schneidenlaenge": 186.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-5 + SMP365",
+     "name": "DrillForce-Meister Ø36.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 36.6,
+     "schneiden": 2,
+     "schneidenlaenge": 186.6,
+     "schaft": 40,
+     "artikel": "TIS360F40-5 + SMP366",
+     "name": "DrillForce-Meister Ø36.6 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 37,
+     "schneiden": 2,
+     "schneidenlaenge": 191.7,
+     "schaft": 40,
+     "artikel": "TIS370F40-5 + SMP370",
+     "name": "DrillForce-Meister Ø37 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 37.1,
+     "schneiden": 2,
+     "schneidenlaenge": 191.7,
+     "schaft": 40,
+     "artikel": "TIS370F40-5 + SMP371",
+     "name": "DrillForce-Meister Ø37.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 37.5,
+     "schneiden": 2,
+     "schneidenlaenge": 191.7,
+     "schaft": 40,
+     "artikel": "TIS370F40-5 + SMP375",
+     "name": "DrillForce-Meister Ø37.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38,
+     "schneiden": 2,
+     "schneidenlaenge": 196.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-5 + SMP380",
+     "name": "DrillForce-Meister Ø38 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38.1,
+     "schneiden": 2,
+     "schneidenlaenge": 196.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-5 + SMP381",
+     "name": "DrillForce-Meister Ø38.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38.5,
+     "schneiden": 2,
+     "schneidenlaenge": 196.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-5 + SMP385",
+     "name": "DrillForce-Meister Ø38.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 38.8,
+     "schneiden": 2,
+     "schneidenlaenge": 196.9,
+     "schaft": 40,
+     "artikel": "TIS380F40-5 + SMP388",
+     "name": "DrillForce-Meister Ø38.8 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39,
+     "schneiden": 2,
+     "schneidenlaenge": 202.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-5 + SMP390",
+     "name": "DrillForce-Meister Ø39 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.1,
+     "schneiden": 2,
+     "schneidenlaenge": 202.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-5 + SMP391",
+     "name": "DrillForce-Meister Ø39.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.5,
+     "schneiden": 2,
+     "schneidenlaenge": 202.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-5 + SMP395",
+     "name": "DrillForce-Meister Ø39.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.7,
+     "schneiden": 2,
+     "schneidenlaenge": 202.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-5 + SMP397",
+     "name": "DrillForce-Meister Ø39.7 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 39.8,
+     "schneiden": 2,
+     "schneidenlaenge": 202.1,
+     "schaft": 40,
+     "artikel": "TIS390F40-5 + SMP398",
+     "name": "DrillForce-Meister Ø39.8 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 2,
+     "schneidenlaenge": 207.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-5 + SMP400",
+     "name": "DrillForce-Meister Ø40 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 40.1,
+     "schneiden": 2,
+     "schneidenlaenge": 207.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-5 + SMP401",
+     "name": "DrillForce-Meister Ø40.1 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 40.5,
+     "schneiden": 2,
+     "schneidenlaenge": 207.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-5 + SMP405",
+     "name": "DrillForce-Meister Ø40.5 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 41,
+     "schneiden": 2,
+     "schneidenlaenge": 207.3,
+     "schaft": 40,
+     "artikel": "TIS400F40-5 + SMP410",
+     "name": "DrillForce-Meister Ø41 5xD",
+     "schnittwerte": {
+      "P1": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "P2": {
+       "bohren": {
+        "f": 0.375
+       }
+      },
+      "M": {
+       "bohren": {
+        "f": 0.275
+       }
+      },
+      "K": {
+       "bohren": {
+        "f": 0.45
+       }
+      },
+      "S": {
+       "bohren": {
+        "f": 0.175
+       }
+      },
+      "H": {
+       "bohren": {
+        "f": 0.175
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "kennung": "tung-een09",
+   "art": "planfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoPent",
+   "titel": "DoPent EEN09 Planfräser mit Schaft, fünfeckige Wendeplatte PN*U0905 (10 Schneiden)",
+   "quelle": "Tungaloy Report 372-US „DoPent“ (PDF, metrische Tabellen), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/372-u_DoPent.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "PN*U0905..",
+    "kuehlung_innen": true,
+    "einsatzzweck": "Planfräsen, niedrige Schnittkräfte, günstig je Schneide"
+   },
+   "groessen": [
+    {
+     "durchmesser": 32,
+     "schneiden": 3,
+     "schneidenlaenge": 6.4,
+     "schaft": 32,
+     "gesamtlaenge": 115,
+     "artikel": "EEN09R032M32.0-03"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 4,
+     "schneidenlaenge": 6.4,
+     "schaft": 32,
+     "gesamtlaenge": 115,
+     "artikel": "EEN09R040M32.0-04"
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 4,
+     "schneidenlaenge": 6.4,
+     "schaft": 32,
+     "gesamtlaenge": 120,
+     "artikel": "EEN09R050M32.0-04"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 6,
+     "schneidenlaenge": 6.4,
+     "schaft": 32,
+     "gesamtlaenge": 120,
+     "artikel": "EEN09R063M32.0-06"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 7,
+     "schneidenlaenge": 6.4,
+     "schaft": 32,
+     "gesamtlaenge": 120,
+     "artikel": "EEN09R080M32.0-07"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-epav04",
+   "art": "schaftfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "TungForce-Rec",
+   "titel": "TungForce-Rec EPAV04 Eckfräser mit Schaft, Wendeplatte AVMT04",
+   "quelle": "Tungaloy Report TR506-G „TungForce-Rec 04/06/12“ (PDF), Schnittwerte = Mitte der Katalogbereiche (First choice), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/TR506-G_TungForceRec-04-06-12_web.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "AVMT04..",
+    "bohrfraesen": true,
+    "einsatzzweck": "Eckfräsen 90°, Nuten, Rampen, Helix",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.085
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 175,
+      "fz": 0.085
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 130,
+      "fz": 0.075
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.085
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.055
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 100,
+      "fz": 0.055
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 6,
+     "schneiden": 1,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M006C06.0R01",
+     "gesamtlaenge": 60,
+     "schaft": 6,
+     "eintauchwinkel": 0.4,
+     "max_eintauchtiefe": 0.03
+    },
+    {
+     "durchmesser": 8,
+     "schneiden": 2,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M008C08.0R02",
+     "gesamtlaenge": 60,
+     "schaft": 8,
+     "eintauchwinkel": 0.5,
+     "max_eintauchtiefe": 0.04
+    },
+    {
+     "durchmesser": 8,
+     "schneiden": 2,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M008C08.0R02L",
+     "gesamtlaenge": 80,
+     "schaft": 8,
+     "eintauchwinkel": 0.5,
+     "max_eintauchtiefe": 0.04
+    },
+    {
+     "durchmesser": 10,
+     "schneiden": 2,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M010C10.0R02",
+     "gesamtlaenge": 80,
+     "schaft": 10,
+     "eintauchwinkel": 4.1,
+     "max_eintauchtiefe": 0.4
+    },
+    {
+     "durchmesser": 10,
+     "schneiden": 3,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M010C10.0R03",
+     "gesamtlaenge": 80,
+     "schaft": 10,
+     "eintauchwinkel": 1.7,
+     "max_eintauchtiefe": 0.2
+    },
+    {
+     "durchmesser": 10,
+     "schneiden": 2,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M010C10.0R02L",
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "eintauchwinkel": 4.1,
+     "max_eintauchtiefe": 0.4
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 3,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M012C12.0R03",
+     "gesamtlaenge": 80,
+     "schaft": 12,
+     "eintauchwinkel": 2.7,
+     "max_eintauchtiefe": 0.4
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M012C12.0R04",
+     "gesamtlaenge": 80,
+     "schaft": 12,
+     "eintauchwinkel": 1.3,
+     "max_eintauchtiefe": 0.2
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 3,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M012C12.0R03L",
+     "gesamtlaenge": 120,
+     "schaft": 12,
+     "eintauchwinkel": 2.7,
+     "max_eintauchtiefe": 0.4
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M016C16.0R04",
+     "gesamtlaenge": 90,
+     "schaft": 16,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.4
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 5,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M016C16.0R05",
+     "gesamtlaenge": 90,
+     "schaft": 16,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.4
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EPAV04M016C16.0R04L",
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.4
+    }
+   ]
+  },
+  {
+   "kennung": "tung-epav06",
+   "art": "schaftfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "TungForce-Rec",
+   "titel": "TungForce-Rec EPAV06 Eckfräser mit Schaft, Wendeplatte AVGT06",
+   "quelle": "Tungaloy Report TR506-G „TungForce-Rec 04/06/12“ (PDF), Schnittwerte = Mitte der Katalogbereiche (First choice), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/TR506-G_TungForceRec-04-06-12_web.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "AVGT06..",
+    "bohrfraesen": true,
+    "einsatzzweck": "Eckfräsen 90°, Nuten, Rampen, Helix",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 330,
+      "fz": 0.095
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 250,
+      "fz": 0.095
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 185,
+      "fz": 0.08
+     }
+    },
+    "N1": {
+     "schruppen": {
+      "vc": 825,
+      "fz": 0.095
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 265,
+      "fz": 0.095
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 55,
+      "fz": 0.065
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 58,
+      "fz": 0.06
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 8,
+     "schneiden": 1,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M008C10.0R01",
+     "gesamtlaenge": 80,
+     "schaft": 10
+    },
+    {
+     "durchmesser": 10,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M010C10.0R02",
+     "gesamtlaenge": 80,
+     "schaft": 10,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 10,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M010C10.0R02L",
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 10,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M010C08.0R02L",
+     "gesamtlaenge": 100,
+     "schaft": 8,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M012C12.0R02",
+     "gesamtlaenge": 80,
+     "schaft": 12,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M012C12.0R03",
+     "gesamtlaenge": 80,
+     "schaft": 12,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M012C12.0R02L",
+     "gesamtlaenge": 120,
+     "schaft": 12,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M012C10.0R02L",
+     "gesamtlaenge": 120,
+     "schaft": 10,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M012C10.0R03",
+     "gesamtlaenge": 80,
+     "schaft": 10,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 14,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M014C12.0R03",
+     "gesamtlaenge": 80,
+     "schaft": 12,
+     "eintauchwinkel": 2.3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 14,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M014C12.0R03L",
+     "gesamtlaenge": 140,
+     "schaft": 12,
+     "eintauchwinkel": 2.3,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M016C16.0R03",
+     "gesamtlaenge": 90,
+     "schaft": 16,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 4,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M016C16.0R04",
+     "gesamtlaenge": 90,
+     "schaft": 16,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M016C16.0R03L",
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 18,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M018C16.0R03",
+     "gesamtlaenge": 90,
+     "schaft": 16,
+     "eintauchwinkel": 1.6,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 18,
+     "schneiden": 4,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M018C16.0R04",
+     "gesamtlaenge": 90,
+     "schaft": 16,
+     "eintauchwinkel": 1.6,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 18,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M018C16.0R03L",
+     "gesamtlaenge": 180,
+     "schaft": 16,
+     "eintauchwinkel": 1.6,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 4,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M020C20.0R04",
+     "gesamtlaenge": 100,
+     "schaft": 20,
+     "eintauchwinkel": 1.4,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 5,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M020C20.0R05",
+     "gesamtlaenge": 100,
+     "schaft": 20,
+     "eintauchwinkel": 1.4,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 4,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M020C20.0R04L",
+     "gesamtlaenge": 200,
+     "schaft": 20,
+     "eintauchwinkel": 1.4,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 4,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M020C16.0R04",
+     "gesamtlaenge": 110,
+     "schaft": 16,
+     "eintauchwinkel": 1.4,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 5,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M025C25.0R05",
+     "gesamtlaenge": 115,
+     "schaft": 25,
+     "eintauchwinkel": 1.1,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 6,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M025C25.0R06",
+     "gesamtlaenge": 115,
+     "schaft": 25,
+     "eintauchwinkel": 1.1,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M025C25.0R04L",
+     "gesamtlaenge": 200,
+     "schaft": 25,
+     "eintauchwinkel": 1.1,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 6,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M025C20.0R06",
+     "gesamtlaenge": 115,
+     "schaft": 20,
+     "eintauchwinkel": 1.1,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 8,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M032C32.0R08",
+     "gesamtlaenge": 120,
+     "schaft": 32,
+     "eintauchwinkel": 0.8,
+     "max_eintauchtiefe": 0.3
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 6,
+     "schneidenlaenge": 6,
+     "artikel": "EPAV06M032C32.0R06L",
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "eintauchwinkel": 0.8,
+     "max_eintauchtiefe": 0.3
+    }
+   ]
+  },
+  {
+   "kennung": "tung-epav12",
+   "art": "schaftfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "TungForce-Rec",
+   "titel": "TungForce-Rec EPAV12 Eckfräser mit Schaft, Wendeplatte AVMT/AVGT12",
+   "quelle": "Tungaloy Report TR506-G „TungForce-Rec 04/06/12“ (PDF), Schnittwerte = Mitte der Katalogbereiche (First choice), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/TR506-G_TungForceRec-04-06-12_web.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "AVM/GT12..",
+    "bohrfraesen": true,
+    "einsatzzweck": "Eckfräsen 90°, Nuten, Rampen, Helix",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.14
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 175,
+      "fz": 0.14
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 130,
+      "fz": 0.135
+     }
+    },
+    "N1": {
+     "schruppen": {
+      "vc": 900,
+      "fz": 0.185
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.085
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.095
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 100,
+      "fz": 0.055
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 12,
+     "schneiden": 1,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M012C12.0R01",
+     "gesamtlaenge": 85,
+     "schaft": 12,
+     "eintauchwinkel": 4.5,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M016C16.0R02",
+     "gesamtlaenge": 85,
+     "schaft": 16,
+     "eintauchwinkel": 3.5,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 3,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M016C16.0R03",
+     "gesamtlaenge": 85,
+     "schaft": 16,
+     "eintauchwinkel": 3.5,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M016C16.0R02L",
+     "gesamtlaenge": 145,
+     "schaft": 16,
+     "eintauchwinkel": 3.5,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 3,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M020C20.0R03",
+     "gesamtlaenge": 100,
+     "schaft": 20,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 4,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M020C20.0R04",
+     "gesamtlaenge": 100,
+     "schaft": 20,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M020C20.0R02L",
+     "gesamtlaenge": 185,
+     "schaft": 20,
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M025C25.0R04",
+     "gesamtlaenge": 115,
+     "schaft": 25,
+     "eintauchwinkel": 2.5,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 6,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M025C25.0R06",
+     "gesamtlaenge": 115,
+     "schaft": 25,
+     "eintauchwinkel": 2.5,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M025C25.0R03L",
+     "gesamtlaenge": 220,
+     "schaft": 25,
+     "eintauchwinkel": 2.5,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 6,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M032C32.0R06",
+     "gesamtlaenge": 120,
+     "schaft": 32,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 8,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M032C32.0R08",
+     "gesamtlaenge": 120,
+     "schaft": 32,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 3,
+     "schneidenlaenge": 11.5,
+     "artikel": "EPAV12M032C32.0R03L",
+     "gesamtlaenge": 255,
+     "schaft": 32,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5
+    }
+   ]
+  },
+  {
+   "kennung": "tung-exln",
+   "art": "torusfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoTwistBall",
+   "titel": "DoTwistBall EXLN Radius-Schaftfräser für doppelseitige 4-Eck-Platten LNMX",
+   "quelle": "Tungaloy Report 507S1-US „DoTwistBall“ (PDF, metrische Tabellen; Eckradius aus Plattenbezeichnung LNMX0405R4/0506R5/0607R6), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/507s1-u_DoTwistBall.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "LNMX..-MJ/ML (Radius) oder LNMX..-HJ/HL (Hochvorschub)",
+    "kuehlung_innen": true,
+    "einsatzzweck": "Kopierfräsen/Schruppen mit Radiusplatte, wahlweise Hochvorschubplatte",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EXLN04M020C20.0R02",
+     "gesamtlaenge": 130,
+     "schaft": 20
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EXLN04M020C20.0R02L",
+     "gesamtlaenge": 160,
+     "schaft": 20
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EXLN04M025C25.0R03",
+     "gesamtlaenge": 140,
+     "schaft": 25
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EXLN04M025C25.0R03L",
+     "gesamtlaenge": 180,
+     "schaft": 25
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 4,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EXLN04M032C32.0R04",
+     "gesamtlaenge": 150,
+     "schaft": 32
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 5,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EXLN04M032C32.0R05",
+     "gesamtlaenge": 150,
+     "schaft": 32
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 5,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "EXLN04M032C32.0R05L",
+     "gesamtlaenge": 200,
+     "schaft": 32
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "eckradius": 5,
+     "schneidenlaenge": 5,
+     "artikel": "EXLN05M025C25.0R02",
+     "gesamtlaenge": 150,
+     "schaft": 25
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 4,
+     "eckradius": 5,
+     "schneidenlaenge": 5,
+     "artikel": "EXLN05M032C32.0R04",
+     "gesamtlaenge": 150,
+     "schaft": 32
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "eckradius": 6,
+     "schneidenlaenge": 6,
+     "artikel": "EXLN06M032C32.0R02",
+     "gesamtlaenge": 150,
+     "schaft": 32
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 4,
+     "eckradius": 6,
+     "schneidenlaenge": 6,
+     "artikel": "EXLN06M040C32.0R04",
+     "gesamtlaenge": 150,
+     "schaft": 32
+    }
+   ]
+  },
+  {
+   "kennung": "tung-exn03",
+   "art": "hochvorschubfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoFeed",
+   "titel": "DoFeed EXN03 Hochvorschub-Schaftfräser, Wendeplatte LNMU03 (4 Schneiden)",
+   "quelle": "Tungaloy Report 403-IT „DoFeed“ (PDF, tungaloy.com/wpdata/wp-content/uploads/403-it.pdf), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/403-it.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "hochvorschub": true,
+    "platte": "LNMU03..",
+    "kuehlung_innen": true,
+    "max_eintauchtiefe": 0.3,
+    "bohrfraesen": true,
+    "einsatzzweck": "Hochvorschubfräsen (Schruppen), Tauchen, Rampen, Helix-Bohren",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 120,
+      "fz": 0.4
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.2
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 100,
+      "fz": 0.3
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R016M16.0-02",
+     "gesamtlaenge": 100,
+     "schaft": 16,
+     "eintauchwinkel": 2.1
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R016M16.0-02L",
+     "gesamtlaenge": 150,
+     "schaft": 16,
+     "eintauchwinkel": 2.1
+    },
+    {
+     "durchmesser": 18,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R018M16.0-02",
+     "gesamtlaenge": 100,
+     "schaft": 16,
+     "eintauchwinkel": 1.7
+    },
+    {
+     "durchmesser": 18,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R018M16.0-02L",
+     "gesamtlaenge": 150,
+     "schaft": 16,
+     "eintauchwinkel": 1.7
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R020M20.0-03",
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "eintauchwinkel": 1.4
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R020M20.0-03L",
+     "gesamtlaenge": 160,
+     "schaft": 20,
+     "eintauchwinkel": 1.4
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R020M20.0-04",
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "eintauchwinkel": 1.4
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R022M20.0-03",
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "eintauchwinkel": 1.2
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R022M20.0-03L",
+     "gesamtlaenge": 160,
+     "schaft": 20,
+     "eintauchwinkel": 1.2
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R022M20.0-04",
+     "gesamtlaenge": 130,
+     "schaft": 20,
+     "eintauchwinkel": 1.2
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R025M25.0-04",
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "eintauchwinkel": 1.0
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R025M25.0-04L",
+     "gesamtlaenge": 180,
+     "schaft": 25,
+     "eintauchwinkel": 1.0
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R025M25.0-05",
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "eintauchwinkel": 1.0
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R028M25.0-04",
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "eintauchwinkel": 0.8
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R028M25.0-04L",
+     "gesamtlaenge": 180,
+     "schaft": 25,
+     "eintauchwinkel": 0.8
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R028M25.0-05",
+     "gesamtlaenge": 140,
+     "schaft": 25,
+     "eintauchwinkel": 0.8
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R030M32.0-04",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 0.7
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R030M32.0-04L",
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "eintauchwinkel": 0.7
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R030M32.0-05",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 0.7
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R032M32.0-05",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 0.7
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R032M32.0-05L",
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "eintauchwinkel": 0.7
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 6,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R032M32.0-06",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 0.7
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R035M32.0-05",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 0.6
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R035M32.0-05L",
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "eintauchwinkel": 0.6
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 6,
+     "schneidenlaenge": 1,
+     "artikel": "EXN03R035M32.0-06",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 0.6
+    }
+   ]
+  },
+  {
+   "kennung": "tung-exn06",
+   "art": "hochvorschubfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoFeed",
+   "titel": "DoFeed EXN06 Hochvorschub-Schaftfräser, Wendeplatte LN*U06",
+   "quelle": "Tungaloy Report 403-IT „DoFeed“ (PDF, tungaloy.com/wpdata/wp-content/uploads/403-it.pdf), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/403-it.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "hochvorschub": true,
+    "platte": "LN*U06..",
+    "kuehlung_innen": true,
+    "max_eintauchtiefe": 0.5,
+    "bohrfraesen": true,
+    "einsatzzweck": "Hochvorschubfräsen (Schruppen), Tauchen, Rampen, Helix-Bohren",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 1.0
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 1.0
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 120,
+      "fz": 0.5
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 1.0
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.2
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 120,
+      "fz": 0.3
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "artikel": "EXN06R032M32.0-02",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 2
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "artikel": "EXN06R032M32.0-02L",
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "eintauchwinkel": 2
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "artikel": "EXN06R035M32.0-02",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 1.7
+    },
+    {
+     "durchmesser": 35,
+     "schneiden": 2,
+     "schneidenlaenge": 1.5,
+     "artikel": "EXN06R035M32.0-02L",
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "eintauchwinkel": 1.7
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 3,
+     "schneidenlaenge": 1.5,
+     "artikel": "EXN06R040M32.0-03",
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "eintauchwinkel": 1.3
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 3,
+     "schneidenlaenge": 1.5,
+     "artikel": "EXN06R040M32.0-03L",
+     "gesamtlaenge": 220,
+     "schaft": 32,
+     "eintauchwinkel": 1.3
+    }
+   ]
+  },
+  {
+   "kennung": "tung-hpav06-m",
+   "art": "schaftfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "TungForce-Rec",
+   "titel": "TungForce-Rec HPAV06-M Eckfräs-Einschraubkopf (M6/M8), Wendeplatte AVGT06",
+   "quelle": "Tungaloy Report TR506-G „TungForce-Rec 04/06/12“ (PDF), Schnittwerte = Mitte der Katalogbereiche (First choice), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/TR506-G_TungForceRec-04-06-12_web.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "AVGT06..",
+    "bohrfraesen": true,
+    "einsatzzweck": "Eckfräsen 90°, Nuten, Rampen, Helix",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 330,
+      "fz": 0.095
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 250,
+      "fz": 0.095
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 185,
+      "fz": 0.08
+     }
+    },
+    "N1": {
+     "schruppen": {
+      "vc": 825,
+      "fz": 0.095
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 265,
+      "fz": 0.095
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 55,
+      "fz": 0.065
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 58,
+      "fz": 0.06
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 10,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "HPAV06M010M06R02",
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3,
+     "name": "TungForce-Rec HPAV06 Ø10 Kopf M6"
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 2,
+     "schneidenlaenge": 6,
+     "artikel": "HPAV06M012M06R02",
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3,
+     "name": "TungForce-Rec HPAV06 Ø12 Kopf M6"
+    },
+    {
+     "durchmesser": 12,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "HPAV06M012M06R03",
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.3,
+     "name": "TungForce-Rec HPAV06 Ø12 Kopf M6"
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 3,
+     "schneidenlaenge": 6,
+     "artikel": "HPAV06M016M08R03",
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.3,
+     "name": "TungForce-Rec HPAV06 Ø16 Kopf M8"
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 4,
+     "schneidenlaenge": 6,
+     "artikel": "HPAV06M016M08R04",
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.3,
+     "name": "TungForce-Rec HPAV06 Ø16 Kopf M8"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-hpav12-m",
+   "art": "schaftfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "TungForce-Rec",
+   "titel": "TungForce-Rec HPAV12-M Eckfräs-Einschraubkopf (M8–M16), Wendeplatte AVMT/AVGT12",
+   "quelle": "Tungaloy Report TR506-G „TungForce-Rec 04/06/12“ (PDF), Schnittwerte = Mitte der Katalogbereiche (First choice), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/TR506-G_TungForceRec-04-06-12_web.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "AVM/GT12..",
+    "bohrfraesen": true,
+    "einsatzzweck": "Eckfräsen 90°, Nuten, Rampen, Helix",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.14
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 175,
+      "fz": 0.14
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 130,
+      "fz": 0.135
+     }
+    },
+    "N1": {
+     "schruppen": {
+      "vc": 900,
+      "fz": 0.185
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.085
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.095
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 100,
+      "fz": 0.055
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M016M08R02",
+     "eintauchwinkel": 3.5,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø16 Kopf M8"
+    },
+    {
+     "durchmesser": 16,
+     "schneiden": 3,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M016M08R03",
+     "eintauchwinkel": 3.5,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø16 Kopf M8"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 3,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M020M10R03",
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø20 Kopf M10"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 4,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M020M10R04",
+     "eintauchwinkel": 3,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø20 Kopf M10"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M025M12R04",
+     "eintauchwinkel": 2.5,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø25 Kopf M12"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 6,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M025M12R06",
+     "eintauchwinkel": 2.5,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø25 Kopf M12"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 6,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M032M16R06",
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø32 Kopf M16"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 8,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M032M16R08",
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø32 Kopf M16"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 6,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M040M16R06",
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø40 Kopf M16"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 8,
+     "schneidenlaenge": 11.5,
+     "artikel": "HPAV12M040M16R08",
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5,
+     "name": "TungForce-Rec HPAV12 Ø40 Kopf M16"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-hxln",
+   "art": "torusfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoTwistBall",
+   "titel": "DoTwistBall HXLN Radius-Einschraubkopf (M10–M16), Wendeplatte LNMX",
+   "quelle": "Tungaloy Report 507S1-US „DoTwistBall“ (PDF, metrische Tabellen; Eckradius aus Plattenbezeichnung LNMX0405R4/0506R5/0607R6), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/507s1-u_DoTwistBall.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "LNMX..-MJ/ML (Radius) oder LNMX..-HJ/HL (Hochvorschub)",
+    "kuehlung_innen": true,
+    "einsatzzweck": "Kopierfräsen/Schruppen mit Radiusplatte, wahlweise Hochvorschubplatte",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 20,
+     "schneiden": 2,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "HXLN04M020M10R02",
+     "name": "DoTwistBall HXLN Ø20 R4 Kopf M10"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 3,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "HXLN04M025M12R03",
+     "name": "DoTwistBall HXLN Ø25 R4 Kopf M12"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 4,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "HXLN04M032M16R04",
+     "name": "DoTwistBall HXLN Ø32 R4 Kopf M16"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 5,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "HXLN04M032M16R05",
+     "name": "DoTwistBall HXLN Ø32 R4 Kopf M16"
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 6,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "HXLN04M040M16R06",
+     "name": "DoTwistBall HXLN Ø40 R4 Kopf M16"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 2,
+     "eckradius": 5,
+     "schneidenlaenge": 5,
+     "artikel": "HXLN05M025M12R02",
+     "name": "DoTwistBall HXLN Ø25 R5 Kopf M12"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 4,
+     "eckradius": 5,
+     "schneidenlaenge": 5,
+     "artikel": "HXLN05M032M16R04",
+     "name": "DoTwistBall HXLN Ø32 R5 Kopf M16"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 2,
+     "eckradius": 6,
+     "schneidenlaenge": 6,
+     "artikel": "HXLN06M032M16R02",
+     "name": "DoTwistBall HXLN Ø32 R6 Kopf M16"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-hxn03",
+   "art": "hochvorschubfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoFeed",
+   "titel": "DoFeed HXN03 Hochvorschub-Einschraubkopf (Gewindeanschluss M8–M16), Wendeplatte LNMU03",
+   "quelle": "Tungaloy Report 403-IT „DoFeed“ (PDF, tungaloy.com/wpdata/wp-content/uploads/403-it.pdf), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/403-it.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "hochvorschub": true,
+    "platte": "LNMU03..",
+    "kuehlung_innen": true,
+    "max_eintauchtiefe": 0.3,
+    "bohrfraesen": true,
+    "einsatzzweck": "Hochvorschubfräsen (Schruppen), Tauchen, Rampen, Helix-Bohren",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 120,
+      "fz": 0.4
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.2
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 100,
+      "fz": 0.3
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 16,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R016MM08-02",
+     "eintauchwinkel": 2.1,
+     "name": "DoFeed HXN03 Ø16 Kopf M8"
+    },
+    {
+     "durchmesser": 18,
+     "schneiden": 2,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R018MM08-02",
+     "eintauchwinkel": 1.7,
+     "name": "DoFeed HXN03 Ø18 Kopf M8"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R020MM10-03",
+     "eintauchwinkel": 1.4,
+     "name": "DoFeed HXN03 Ø20 Kopf M10"
+    },
+    {
+     "durchmesser": 20,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R020MM10-04",
+     "eintauchwinkel": 1.4,
+     "name": "DoFeed HXN03 Ø20 Kopf M10"
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 3,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R022MM10-03",
+     "eintauchwinkel": 1.2,
+     "name": "DoFeed HXN03 Ø22 Kopf M10"
+    },
+    {
+     "durchmesser": 22,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R022MM10-04",
+     "eintauchwinkel": 1.2,
+     "name": "DoFeed HXN03 Ø22 Kopf M10"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R025MM12-04",
+     "eintauchwinkel": 1.0,
+     "name": "DoFeed HXN03 Ø25 Kopf M12"
+    },
+    {
+     "durchmesser": 25,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R025MM12-05",
+     "eintauchwinkel": 1.0,
+     "name": "DoFeed HXN03 Ø25 Kopf M12"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R028MM12-04",
+     "eintauchwinkel": 0.8,
+     "name": "DoFeed HXN03 Ø28 Kopf M12"
+    },
+    {
+     "durchmesser": 28,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R028MM12-05",
+     "eintauchwinkel": 0.8,
+     "name": "DoFeed HXN03 Ø28 Kopf M12"
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 4,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R030MM16-04",
+     "eintauchwinkel": 0.7,
+     "name": "DoFeed HXN03 Ø30 Kopf M16"
+    },
+    {
+     "durchmesser": 30,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R030MM16-05",
+     "eintauchwinkel": 0.7,
+     "name": "DoFeed HXN03 Ø30 Kopf M16"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R032MM16-05",
+     "eintauchwinkel": 0.7,
+     "name": "DoFeed HXN03 Ø32 Kopf M16"
+    },
+    {
+     "durchmesser": 32,
+     "schneiden": 6,
+     "schneidenlaenge": 1,
+     "artikel": "HXN03R032MM16-06",
+     "eintauchwinkel": 0.7,
+     "name": "DoFeed HXN03 Ø32 Kopf M16"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-tan07",
+   "art": "planfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoOcto",
+   "titel": "DoOcto TAN07 Planfräser 45°, achteckige ON*U07 oder quadratische SN*U07 Wendeplatte (16/8 Schneiden)",
+   "quelle": "Tungaloy Report 385-US „DoOcto“ (PDF, metrische Tabelle TAN07), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/385-u_DoOcto.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "ONMU/ONHU07.. oder SNMU/SNHU07..",
+    "einstellwinkel": 45,
+    "einsatzzweck": "Planfräsen Schruppen"
+   },
+   "groessen": [
+    {
+     "durchmesser": 63,
+     "schneiden": 5,
+     "gesamtlaenge": 40,
+     "artikel": "TAN07R063M22.0E05"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 6,
+     "gesamtlaenge": 40,
+     "artikel": "TAN07R063M22.0E06"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 6,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R080M25.4-06"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 8,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R080M25.4-08"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 6,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R080M27.0E06"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 8,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R080M27.0E08"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 7,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R100M31.7-07"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 10,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R100M31.7-10"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 7,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R100M32.0E07"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 10,
+     "gesamtlaenge": 50,
+     "artikel": "TAN07R100M32.0E10"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 8,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R125M38.1-08"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 12,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R125M38.1-12"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 8,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R125M40.0E08"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 12,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R125M40.0E12"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 10,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R160M40.0E10"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 15,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R160M40.0E15"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 10,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R160M50.8-10"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 15,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R160M50.8-15"
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 12,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R200M47.6-12"
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 18,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R200M47.6-18"
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 12,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R200M60.0E12"
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 18,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R200M60.0E18"
+    },
+    {
+     "durchmesser": 250,
+     "schneiden": 15,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R250M47.6-15"
+    },
+    {
+     "durchmesser": 250,
+     "schneiden": 21,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R250M47.6-21"
+    },
+    {
+     "durchmesser": 250,
+     "schneiden": 15,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R250M60.0E15"
+    },
+    {
+     "durchmesser": 250,
+     "schneiden": 21,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R250M60.0E21"
+    },
+    {
+     "durchmesser": 315,
+     "schneiden": 18,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R315M47.6-18"
+    },
+    {
+     "durchmesser": 315,
+     "schneiden": 24,
+     "gesamtlaenge": 63,
+     "artikel": "TAN07R315M47.6-24"
+    },
+    {
+     "durchmesser": 315,
+     "schneiden": 18,
+     "gesamtlaenge": 80,
+     "artikel": "TAN07R315M60.0E18"
+    },
+    {
+     "durchmesser": 315,
+     "schneiden": 24,
+     "gesamtlaenge": 80,
+     "artikel": "TAN07R315M60.0E24"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-ten09",
+   "art": "planfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoPent",
+   "titel": "DoPent TEN09 Planfräser zum Aufstecken, Wendeplatte PN*U0905",
+   "quelle": "Tungaloy Report 372-US „DoPent“ (PDF, metrische Tabellen), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/372-u_DoPent.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "PN*U0905..",
+    "einstellwinkel": 70,
+    "einsatzzweck": "Planfräsen, niedrige Schnittkräfte, günstig je Schneide"
+   },
+   "groessen": [
+    {
+     "durchmesser": 50,
+     "schneiden": 3,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R050M22.0-03"
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 4,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R050M22.0-04"
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 6,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R050M22.0-06"
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 4,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R050M22.0E04"
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 6,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R050M22.0E06"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 4,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R063M22.0-04"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 6,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R063M22.0-06"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 8,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R063M22.0-08"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 6,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R063M22.0E06"
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 8,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 40,
+     "artikel": "TEN09R063M22.0E08"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 4,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R080M25.4-04"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 7,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R080M25.4-07"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 10,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R080M25.4-10"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 7,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R080M27.0E07"
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 10,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R080M27.0E10"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 5,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R100M31.7-05"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 8,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R/L100M31.7-08"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 12,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R100M31.7-12"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 8,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R/L100M32.0E08"
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 12,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 50,
+     "artikel": "TEN09R100M32.0E12"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 6,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R125M38.1-06"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 10,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R/L125M38.1-10"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 16,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R125M38.1-16"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 10,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R/L125M40.0E10"
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 16,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R125M40.0E16"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 7,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R160M50.8-07"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 12,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R/L160M40.0E12"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 20,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R160M40.0E20"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 12,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R/L160M50.8-12"
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 20,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R160M50.8-20"
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 10,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R200M47.6-10"
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 14,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R200M60.0E14"
+    },
+    {
+     "durchmesser": 250,
+     "schneiden": 12,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R250M47.6-12"
+    },
+    {
+     "durchmesser": 250,
+     "schneiden": 16,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R250M60.0E16"
+    },
+    {
+     "durchmesser": 315,
+     "schneiden": 14,
+     "schneidenlaenge": 6.4,
+     "gesamtlaenge": 63,
+     "artikel": "TEN09R315M47.6-14"
+    }
+   ]
+  },
+  {
+   "kennung": "tung-tpav",
+   "art": "schaftfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "TungForce-Rec",
+   "titel": "TungForce-Rec TPAV06/TPAV12 Eckfräser zum Aufstecken",
+   "quelle": "Tungaloy Report TR506-G „TungForce-Rec 04/06/12“ (PDF), Schnittwerte = Mitte der Katalogbereiche (First choice), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/TR506-G_TungForceRec-04-06-12_web.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "AVGT06.. / AVM/GT12..",
+    "bohrfraesen": true,
+    "einsatzzweck": "Eckfräsen 90°, Nuten, Rampen, Helix",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "N1",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.14
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 175,
+      "fz": 0.14
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 130,
+      "fz": 0.135
+     }
+    },
+    "N1": {
+     "schruppen": {
+      "vc": 900,
+      "fz": 0.185
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.085
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.095
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 100,
+      "fz": 0.055
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 40,
+     "schneiden": 10,
+     "schneidenlaenge": 6,
+     "artikel": "TPAV06M040B16.0R10",
+     "gesamtlaenge": 40,
+     "eintauchwinkel": 0.6,
+     "max_eintauchtiefe": 0.3,
+     "platte": "AVGT06.."
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 8,
+     "schneidenlaenge": 11.5,
+     "artikel": "TPAV12M050B22.0R08",
+     "gesamtlaenge": 40,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5,
+     "platte": "AVM/GT12.."
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 12,
+     "schneidenlaenge": 11.5,
+     "artikel": "TPAV12M050B22.0R12",
+     "gesamtlaenge": 40,
+     "eintauchwinkel": 2,
+     "max_eintauchtiefe": 0.5,
+     "platte": "AVM/GT12.."
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 8,
+     "schneidenlaenge": 11.5,
+     "artikel": "TPAV12M063B22.0R08",
+     "gesamtlaenge": 40,
+     "eintauchwinkel": 1.8,
+     "max_eintauchtiefe": 0.5,
+     "platte": "AVM/GT12.."
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 14,
+     "schneidenlaenge": 11.5,
+     "artikel": "TPAV12M063B22.0R14",
+     "gesamtlaenge": 40,
+     "eintauchwinkel": 1.8,
+     "max_eintauchtiefe": 0.5,
+     "platte": "AVM/GT12.."
+    }
+   ]
+  },
+  {
+   "kennung": "tung-txln",
+   "art": "torusfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoTwistBall",
+   "titel": "DoTwistBall TXLN Radius-Aufsteckfräser, Wendeplatte LNMX",
+   "quelle": "Tungaloy Report 507S1-US „DoTwistBall“ (PDF, metrische Tabellen; Eckradius aus Plattenbezeichnung LNMX0405R4/0506R5/0607R6), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/507s1-u_DoTwistBall.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "platte": "LNMX..-MJ/ML (Radius) oder LNMX..-HJ/HL (Hochvorschub)",
+    "kuehlung_innen": true,
+    "einsatzzweck": "Kopierfräsen/Schruppen mit Radiusplatte, wahlweise Hochvorschubplatte",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "groessen": [
+    {
+     "durchmesser": 40,
+     "schneiden": 6,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "TXLN04M040B16.0R06",
+     "gesamtlaenge": 40
+    },
+    {
+     "durchmesser": 42,
+     "schneiden": 6,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "TXLN04M042B16.0R06",
+     "gesamtlaenge": 40
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 7,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "TXLN04M050B22.0R07",
+     "gesamtlaenge": 50
+    },
+    {
+     "durchmesser": 52,
+     "schneiden": 7,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "TXLN04M052B22.0R07",
+     "gesamtlaenge": 50
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 7,
+     "eckradius": 4,
+     "schneidenlaenge": 4,
+     "artikel": "TXLN04M063B22.0R07",
+     "gesamtlaenge": 50
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 5,
+     "eckradius": 5,
+     "schneidenlaenge": 5,
+     "artikel": "TXLN05M040B16.0R05",
+     "gesamtlaenge": 40
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 6,
+     "eckradius": 5,
+     "schneidenlaenge": 5,
+     "artikel": "TXLN05M050B22.0R06",
+     "gesamtlaenge": 50
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 5,
+     "eckradius": 6,
+     "schneidenlaenge": 6,
+     "artikel": "TXLN06M050B22.0R05",
+     "gesamtlaenge": 50
+    },
+    {
+     "durchmesser": 52,
+     "schneiden": 5,
+     "eckradius": 6,
+     "schneidenlaenge": 6,
+     "artikel": "TXLN06M052B22.0R05",
+     "gesamtlaenge": 50
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 6,
+     "eckradius": 6,
+     "schneidenlaenge": 6,
+     "artikel": "TXLN06M063B22.0R06",
+     "gesamtlaenge": 50
+    }
+   ]
+  },
+  {
+   "kennung": "tung-txn03",
+   "art": "hochvorschubfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoFeed",
+   "titel": "DoFeed TXN03 Hochvorschub-Aufsteckfräser, Wendeplatte LNMU03",
+   "quelle": "Tungaloy Report 403-IT „DoFeed“ (PDF, tungaloy.com/wpdata/wp-content/uploads/403-it.pdf), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/403-it.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "hochvorschub": true,
+    "platte": "LNMU03..",
+    "kuehlung_innen": true,
+    "max_eintauchtiefe": 0.3,
+    "bohrfraesen": true,
+    "einsatzzweck": "Hochvorschubfräsen (Schruppen), Tauchen, Rampen, Helix-Bohren",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 120,
+      "fz": 0.4
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 0.8
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.2
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 100,
+      "fz": 0.3
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 40,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "TXN03R040M16.0E05",
+     "gesamtlaenge": 40,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 40,
+     "schneiden": 6,
+     "schneidenlaenge": 1,
+     "artikel": "TXN03R040M16.0E06",
+     "gesamtlaenge": 40,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 5,
+     "schneidenlaenge": 1,
+     "artikel": "TXN03R050M22.0E05",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.4
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 8,
+     "schneidenlaenge": 1,
+     "artikel": "TXN03R050M22.0E08",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.4
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 8,
+     "schneidenlaenge": 1,
+     "artikel": "TXN03R050M22.2-08",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.4
+    }
+   ]
+  },
+  {
+   "kennung": "tung-txn06",
+   "art": "hochvorschubfraeser",
+   "hersteller": "Tungaloy",
+   "marke": "DoFeed",
+   "titel": "DoFeed TXN06 Hochvorschub-Aufsteckfräser, Wendeplatte LN*U06",
+   "quelle": "Tungaloy Report 403-IT „DoFeed“ (PDF, tungaloy.com/wpdata/wp-content/uploads/403-it.pdf), abgerufen 2026-10-31",
+   "katalog": "https://tungaloy.com/wpdata/wp-content/uploads/403-it.pdf",
+   "gemeinsam": {
+    "schneidstoff": "wsp",
+    "wendeplatten": true,
+    "hochvorschub": true,
+    "platte": "LN*U06..",
+    "kuehlung_innen": true,
+    "max_eintauchtiefe": 0.5,
+    "bohrfraesen": true,
+    "einsatzzweck": "Hochvorschubfräsen (Schruppen), Tauchen, Rampen, Helix-Bohren",
+    "werkstoffe": [
+     "P1",
+     "P2",
+     "M",
+     "K",
+     "S",
+     "H"
+    ]
+   },
+   "schnittwerte": {
+    "P1": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 1.0
+     }
+    },
+    "P2": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 1.0
+     }
+    },
+    "M": {
+     "schruppen": {
+      "vc": 120,
+      "fz": 0.5
+     }
+    },
+    "K": {
+     "schruppen": {
+      "vc": 200,
+      "fz": 1.0
+     }
+    },
+    "S": {
+     "schruppen": {
+      "vc": 30,
+      "fz": 0.2
+     }
+    },
+    "H": {
+     "schruppen": {
+      "vc": 120,
+      "fz": 0.3
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 50,
+     "schneiden": 4,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R050M22.0E04",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.9
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 5,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R050M22.0E05",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.9
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 4,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R050M22.2-04",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.9
+    },
+    {
+     "durchmesser": 50,
+     "schneiden": 5,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R050M22.2-05",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.9
+    },
+    {
+     "durchmesser": 52,
+     "schneiden": 4,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R052M22.0E04",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.8
+    },
+    {
+     "durchmesser": 52,
+     "schneiden": 5,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R052M22.0E05",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.8
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 4,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R063M22.0E04",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.6
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 6,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R063M22.0E06",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.6
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 4,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R063M22.2-04",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.6
+    },
+    {
+     "durchmesser": 63,
+     "schneiden": 6,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R063M22.2-06",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.6
+    },
+    {
+     "durchmesser": 66,
+     "schneiden": 4,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R066M27.0E04",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 66,
+     "schneiden": 6,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R066M27.0E06",
+     "gesamtlaenge": 50,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 5,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R080M27.0E05",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 8,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R080M27.0E08",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 5,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R080M31.7-05",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 80,
+     "schneiden": 8,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R080M31.7-08",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.5
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 6,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R100M31.7-06",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.34
+    },
+    {
+     "durchmesser": 100,
+     "schneiden": 6,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R100M32.0E06",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.34
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 8,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R125M38.1-08",
+     "gesamtlaenge": 63
+    },
+    {
+     "durchmesser": 125,
+     "schneiden": 8,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R125M40.0E08",
+     "gesamtlaenge": 63
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 10,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R160M40.0E10",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.2
+    },
+    {
+     "durchmesser": 160,
+     "schneiden": 10,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R160M50.8-10",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.2
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 12,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R200M47.6-12",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.15
+    },
+    {
+     "durchmesser": 200,
+     "schneiden": 12,
+     "schneidenlaenge": 1.5,
+     "artikel": "TXN06R200M60.0E12",
+     "gesamtlaenge": 63,
+     "eintauchwinkel": 0.15
+    }
+   ]
+  }
+ ]
+}

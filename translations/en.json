@@ -3589,5 +3589,6 @@
     "beta.weiter.messstopp": "Measuring stop before",
     "beta.weiter.messstopp.tooltip": "Before the new operations the machine stops (Z up, spindle and coolant off, M0): measure, then Start – it goes on with spindle and coolant.",
     "beta.weiter.los": "Next",
-    "beta.weiter.keine_loecher": "Holes – none on these faces"
+    "beta.weiter.keine_loecher": "Holes – none on these faces",
+    "wv.kiste.suche": "Search: manufacturer, brand, series …"
 }

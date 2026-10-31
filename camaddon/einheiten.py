@@ -60,8 +60,15 @@ _MASSSYSTEM = "Masssystem"
 _ZAHL = re.compile(r"-?(\d+([.,]\d*)?|[.,]\d+)")
 
 
+_GRUPPE = (
+    []
+)  # die Gruppe der Einstellungen, einmal geholt (ParamGet kostet: 1,5 Mio. Aufrufe 3,7 s)
+
+
 def _parameter():
-    return FreeCAD.ParamGet(PARAMETER_PFAD)
+    if not _GRUPPE:
+        _GRUPPE.append(FreeCAD.ParamGet(PARAMETER_PFAD))
+    return _GRUPPE[0]
 
 
 def gewaehltes_dezimalzeichen():

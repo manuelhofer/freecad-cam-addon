@@ -873,8 +873,10 @@ def reihe(kennung):
 # --- Werkzeuge und Werte ------------------------------------------------------------------
 
 
-def werkzeuge(reihe):
-    """Die Werkzeuge der Reihe, ohne T-Nummer (1), mit Schnittwerten je Werkstoffklasse."""
+def werkzeuge(reihe, mit_werten=True):
+    """Die Werkzeuge der Reihe, ohne T-Nummer (1), mit Schnittwerten je Werkstoffklasse – ohne
+    `mit_werten` nur mit den Maßen (zum Vergleichen und Zeigen: Die Schnittwerte aller Klassen zu
+    schätzen kostete bei 12 000 Größen 7 s)."""
     ergebnis = []
     for groesse in reihe.groessen:
         werte = dict(reihe.gemeinsam, **groesse)
@@ -894,7 +896,7 @@ def werkzeuge(reihe):
         w.bezeichnung = werte.get("bezeichnung", reihe.bezeichnung)
         w.link = werte.get("link") or reihe.link or suche(reihe.hersteller, w.artikel, w.name)
         w.katalog = werte.get("katalog") or reihe.katalog
-        if reihe.schnittwerte:
+        if reihe.schnittwerte and mit_werten:
             katalog = reihe.katalogwerte.get(float(w.durchmesser))
             for klasse in ws.KLASSEN:
                 w.schnittwerte[klasse] = einsaetze(w, klasse, katalog)

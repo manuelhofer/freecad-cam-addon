@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-09 werkzeugkiste-kataloge-der-hersteller
+
+### EINGELESEN
+- Manuel, 2026-10-31: „die hersteller datenbank aufpumpen bis zum geht nicht mehr das wir wissen
+  welche werkzeuge es auf dem markt gibt und was sie können !! … solltest du als erstes“.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/`: fraisa_hufschmied.json (303 Reihen, 6133 Größen), guehring.json
+  (85, 5425), mapal.json (31, 336), iscar_kennametal_tungaloy.json (23, 513), hoffmann_bohren.json
+  (225, 225) – von den Sammlern, gegen die eingebauten und davor geladenen geprüft.
+- `camaddon/werkzeugkiste.py`: `werkzeuge(reihe, mit_werten=False)` für Vergleich und Anzeige.
+- `camaddon/werkzeugkiste_datei.py`: beim Lesen ohne Schnittwerte (20 s → 1,5 s).
+- `camaddon/einheiten.py`: die Einstellungsgruppe einmal geholt.
+- `camaddon/gui_werkzeuge.py` (KisteDialog): Größen erst beim Aufklappen, Suche, Wartecursor.
+- `tests/test_werkzeugkiste.py`, `tests/test_werkzeugkiste_datei.py`: auf die vollen Kataloge;
+  Texte, `package.xml` 0.326.0.
+
+### ERGEBNIS
+- test_werkzeugkiste, test_werkzeugkiste_datei, test_faehigkeiten, test_einheiten, test_sprache,
+  szenario_werkzeugkiste grün; Laden der Kiste 2,3 s ohne eine Warnung.
+
 ## P-2026-10-31-08 beta-womit-weiter-messstopp
 
 ### EINGELESEN

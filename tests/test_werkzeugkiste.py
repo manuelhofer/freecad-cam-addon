@@ -49,9 +49,13 @@ pruefe(all(ws.klasse_von(k) == k and ws.ist_klasse(k) for k in ws.KLASSEN), "Kla
 pruefe(ws.klasse_text("M").startswith("M – "), f"Klassentext: {ws.klasse_text('M')!r}")
 
 # --- die Reihen ----------------------------------------------------------------------------
-reihen = wk.reihen()
+alle = wk.reihen()
+alle_kennungen = [r.kennung for r in alle]
+pruefe(len(set(alle_kennungen)) == len(alle_kennungen), "doppelte Kennung")
+# Hinzufügen und Speichern mit den eingebauten Reihen und der ersten Liste (hoffmann.json) – die
+# Kataloge der Hersteller (W-042, über 12 000 Größen) prüft test_werkzeugkiste_datei.
+reihen = [r for r in alle if not r.datei or r.datei == "hoffmann.json"]
 kennungen = [r.kennung for r in reihen]
-pruefe(len(set(kennungen)) == len(kennungen), f"doppelte Kennung: {kennungen}")
 arten = {r.art for r in reihen}
 pruefe(arten == set(wz.ARTEN), f"ohne Beispiel: {sorted(set(wz.ARTEN) - arten)}")
 

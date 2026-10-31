@@ -576,6 +576,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.326.0):* **Werkzeugkiste mit den Katalogen der Hersteller** (Manuel, 2026-10-31: „die
+  hersteller datenbank aufpumpen bis zum geht nicht mehr“): mitgeliefert jetzt 744 Reihen mit über
+  12 800 Größen – Fraisa/Hufschmied, Gühring, MAPAL, Iscar/Kennametal/Tungaloy, Hoffmann-Bohrer
+  (je Artikelreihe erst eine Größe), dazu `hoffmann.json`. Aufbereitet mit
+  `~/freecad_cam/wip/pruefhelfer/werkzeuge_uebernehmen.py` (nur, was der Import annimmt – keine
+  Dubletten, keine Warnungen beim Laden). Laden 20 s → 2,3 s (`werkzeuge(…, mit_werten=False)`,
+  die Einstellungsgruppe einmal geholt); die Größen im Baum erst beim Aufklappen, Suche über
+  Hersteller/Marke/Reihe. Fähigkeiten der Werkzeuge (Format 3a) seit 0.322.0. Offen: Hoffmann-Fräser,
+  Sandvik/Seco/Walter, weitere Spannmittel und Halter (Sammler).
 - *Neu (0.320.0):* **Halter und Spannmittel mit eigenem Knopf** (W-042; Manuel, 2026-10-31: „die
   halter oder aufnahmen einen eigenen knopf … genau so spannmittel ... gut vorgefüllt … wie er auf dem
   tisch aufgespannt ist ... denk dir was aus !“). „Halter und Aufnahmen …“ öffnet das Fenster „Halter“

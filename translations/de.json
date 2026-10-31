@@ -3589,5 +3589,6 @@
     "beta.weiter.messstopp": "Messstopp davor",
     "beta.weiter.messstopp.tooltip": "Vor den neuen Operationen hält die Maschine (Z hoch, Spindel und Kühlung aus, M0): messen, dann Start – es geht mit Spindel und Kühlung weiter.",
     "beta.weiter.los": "Weiter",
-    "beta.weiter.keine_loecher": "Löcher – an diesen Flächen keine"
+    "beta.weiter.keine_loecher": "Löcher – an diesen Flächen keine",
+    "wv.kiste.suche": "Suchen: Hersteller, Marke, Reihe …"
 }

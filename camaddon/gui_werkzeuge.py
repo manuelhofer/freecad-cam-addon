@@ -1511,10 +1511,19 @@ class KisteDialog(QtGui.QDialog):
         erklaerung = QtGui.QLabel(tr("wv.kiste.erklaerung"))
         erklaerung.setWordWrap(True)
         aufbau.addWidget(erklaerung)
+        # Suchen über Hersteller, Marke und Reihe (mit den Katalogen der Hersteller sind es
+        # Hunderte Reihen, W-042).
+        self.suche = QtGui.QLineEdit()
+        self.suche.setPlaceholderText(tr("wv.kiste.suche"))
+        self.suche.setClearButtonEnabled(True)
+        self.suche.textChanged.connect(self.filtern)
+        aufbau.addWidget(self.suche)
         self.baum = QtGui.QTreeWidget()
         self.baum.setHeaderHidden(True)
         self.baum.setIndentation(16)
+        self.baum.itemExpanded.connect(self._groessen_fuellen)
         self._reihen = []  # die Zeilen der Reihen, in der Reihenfolge der Anzeige
+        self._nach_kennung = {}  # Kennung → Reihe
         self.bericht = None  # die letzte Prüfung von „Aus Datei einlesen …“ (für die Szenarien)
         self.fuellen()
         aufbau.addWidget(self.baum, 1)
@@ -1551,7 +1560,12 @@ class KisteDialog(QtGui.QDialog):
         haken = (
             QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsAutoTristate
         )
-        reihen = wk.reihen()
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        try:
+            reihen = wk.reihen()
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+        self._nach_kennung = {r.kennung: r for r in reihen}
         for art in wz.ARTEN:
             der_art = [r for r in reihen if r.art == art]
             if not der_art:
@@ -1578,15 +1592,45 @@ class KisteDialog(QtGui.QDialog):
                 zeile.setData(0, QtCore.Qt.UserRole, reihe.kennung)
                 zeile.setToolTip(0, reihe.quelle)
                 zeile.setFlags(haken)
+                zeile.setCheckState(0, QtCore.Qt.Unchecked)
+                # Die Größen erst beim Aufklappen (_groessen_fuellen) – zwölftausend auf einmal
+                # hielten das Fenster an.
+                zeile.setChildIndicatorPolicy(QtGui.QTreeWidgetItem.ShowIndicator)
                 gruppe.addChild(zeile)
                 self._reihen.append(zeile)
-                for nummer, werkzeug in enumerate(wk.werkzeuge(reihe)):
-                    groesse = QtGui.QTreeWidgetItem([dezimal(wz.zeile_ohne_nummer(werkzeug))])
-                    groesse.setData(0, QtCore.Qt.UserRole, (reihe.kennung, nummer))
-                    groesse.setFlags(haken)
-                    groesse.setCheckState(0, QtCore.Qt.Unchecked)
-                    zeile.addChild(groesse)
             gruppe.setExpanded(True)
+        self.filtern()
+
+    def _groessen_fuellen(self, zeile):
+        """Die Größen einer Reihe, wenn sie zum ersten Mal aufgeklappt wird – angehakt wie sie."""
+        reihe = self._nach_kennung.get(zeile.data(0, QtCore.Qt.UserRole))
+        if reihe is None or zeile.childCount():
+            return
+        zustand = zeile.checkState(0)
+        haken = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable
+        for nummer, werkzeug in enumerate(wk.werkzeuge(reihe, mit_werten=False)):
+            groesse = QtGui.QTreeWidgetItem([dezimal(wz.zeile_ohne_nummer(werkzeug))])
+            groesse.setData(0, QtCore.Qt.UserRole, (reihe.kennung, nummer))
+            groesse.setFlags(haken)
+            groesse.setCheckState(
+                0, QtCore.Qt.Checked if zustand == QtCore.Qt.Checked else QtCore.Qt.Unchecked
+            )
+            zeile.addChild(groesse)
+
+    def filtern(self, _text=None):
+        """Nur die Reihen, deren Hersteller, Marke oder Titel jedes Wort der Suche enthält."""
+        worte = self.suche.text().lower().split() if hasattr(self, "suche") else []
+        for i in range(self.baum.topLevelItemCount()):
+            gruppe = self.baum.topLevelItem(i)
+            sichtbar = 0
+            for j in range(gruppe.childCount()):
+                zeile = gruppe.child(j)
+                reihe = self._nach_kennung.get(zeile.data(0, QtCore.Qt.UserRole))
+                text = f"{zeile.text(0)} {getattr(reihe, 'marke', '')}".lower()
+                treffer = all(w in text for w in worte)
+                zeile.setHidden(not treffer)
+                sichtbar += treffer
+            gruppe.setHidden(not sichtbar)
 
     def einlesen(self):
         """„Aus Datei einlesen …“: die Datei prüfen, in den Ordner der Kiste legen, den Baum neu
@@ -1675,6 +1719,10 @@ class KisteDialog(QtGui.QDialog):
         auswahl = []
         for zeile in self._reihen:
             groessen = [zeile.child(i) for i in range(zeile.childCount())]
+            if not groessen:  # nie aufgeklappt: der Haken der Reihe gilt für alle Größen
+                if zeile.checkState(0) == QtCore.Qt.Checked:
+                    auswahl.append(zeile.data(0, QtCore.Qt.UserRole))
+                continue
             angehakt = [g for g in groessen if g.checkState(0) == QtCore.Qt.Checked]
             if len(angehakt) == len(groessen):
                 auswahl.append(zeile.data(0, QtCore.Qt.UserRole))
