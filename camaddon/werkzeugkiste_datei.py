@@ -24,6 +24,7 @@ import json
 import os
 import re
 import shutil
+import threading
 from dataclasses import dataclass, field, fields, replace
 
 import FreeCAD
@@ -546,12 +547,71 @@ class _Index:
 
 _gelesen = {}  # Pfad → (Größe, Änderungszeit, [Reihe])
 _mitgeliefert = None  # die Reihen der mitgelieferten Dateien, einmal gelesen
+_SPERRE = threading.RLock()
+ZWISCHENSPEICHER = "werkzeugkiste_mitgeliefert.pickle"
+
+
+def _zwischenspeicher():
+    """Die Datei, in der die geprüften mitgelieferten Reihen liegen, neben der Werkzeugverwaltung."""
+    return os.path.join(os.path.dirname(wz.datei_pfad()), ZWISCHENSPEICHER)
+
+
+def _stand():
+    """Woraus die mitgelieferten Reihen gerechnet sind: die Dateien (Name, Größe, Zeit), der Code,
+    der sie liest, und die Sprache (die Quelle steht übersetzt darin)."""
+    from . import sprache
+
+    teile = [sprache.aktuelle_sprache(), MITGELIEFERT]
+    namen = sorted(os.listdir(MITGELIEFERT)) if os.path.isdir(MITGELIEFERT) else []
+    for name in namen:
+        info = os.stat(os.path.join(MITGELIEFERT, name))
+        teile.append((name, info.st_size, info.st_mtime_ns))
+    for modul in (wk, wz, ws):
+        info = os.stat(modul.__file__)
+        teile.append((os.path.basename(modul.__file__), info.st_size, info.st_mtime_ns))
+    info = os.stat(__file__)
+    teile.append((os.path.basename(__file__), info.st_size, info.st_mtime_ns))
+    return repr(teile)
+
+
+def _aus_dem_zwischenspeicher(stand):
+    import pickle
+
+    try:
+        with open(_zwischenspeicher(), "rb") as datei:
+            daten = pickle.load(datei)
+    except Exception:  # fehlt, alt, kaputt: neu lesen
+        return None
+    return daten.get("reihen") if isinstance(daten, dict) and daten.get("stand") == stand else None
+
+
+def _in_den_zwischenspeicher(stand, reihen):
+    import pickle
+
+    pfad = _zwischenspeicher()
+    try:
+        os.makedirs(os.path.dirname(pfad), exist_ok=True)
+        with open(pfad + ".neu", "wb") as datei:
+            pickle.dump({"stand": stand, "reihen": reihen}, datei, pickle.HIGHEST_PROTOCOL)
+        os.replace(pfad + ".neu", pfad)
+    except OSError as fehler:  # nur langsamer beim nächsten Mal
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht zwischengespeichert: {fehler}\n")
 
 
 def mitgelieferte():
     """Die Reihen der Dateien, die mit dem Addon kommen (MITGELIEFERT) – gegen die eingebauten
-    und die Dateien davor geprüft, einmal gelesen."""
+    und die Dateien davor geprüft, einmal gelesen. Die geprüften Reihen bleiben zwischengespeichert
+    (ZWISCHENSPEICHER): mit den Katalogen der Hersteller (über 40 000 Größen) dauerte das Prüfen
+    5 s – solange sich Dateien, Code und Sprache nicht ändern, liest es sie von dort."""
+    with _SPERRE:  # der Faden beim Start (gui_start) und das Fenster nicht zugleich
+        return _mitgelieferte()
+
+
+def _mitgelieferte():
     global _mitgeliefert
+    if _mitgeliefert is None:
+        stand = _stand()
+        _mitgeliefert = _aus_dem_zwischenspeicher(stand)
     if _mitgeliefert is None:
         reihen = []
         vorhandene = list(wk.eingebaute())
@@ -565,6 +625,7 @@ def mitgelieferte():
             reihen += pruefung.reihen
             vorhandene += pruefung.reihen
         _mitgeliefert = reihen
+        _in_den_zwischenspeicher(stand, reihen)
     return _mitgeliefert
 
 

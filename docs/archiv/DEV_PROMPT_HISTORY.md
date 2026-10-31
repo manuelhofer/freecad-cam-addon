@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-11 kataloge-voll-zwischenspeicher
+
+### EINGELESEN
+- Manuel, 2026-10-31: „hersteller datenbank aufpumpen bis zum geht nicht mehr“; „ALLE daten“.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/sandvik_seco_walter.json` (495 Reihen, 27 855 Größen),
+  `hoffmann_fraeser.json` (9, 191), `hoffmann_bohren.json` (225, 2742) – von den Sammlern.
+- `camaddon/spannmittel_daten/hersteller.json` (270 Reihen, 1952 Größen), `halter_daten`.
+- `camaddon/werkzeugkiste_datei.py`: Zwischenspeicher der geprüften mitgelieferten Reihen (Stand:
+  Dateien, Code, Sprache), Sperre gegen doppeltes Lesen.
+- `camaddon/gui_start.py`: 20 s nach dem Start füllt ein Faden den Zwischenspeicher.
+- `tests/test_werkzeugkiste_datei.py`, `tests/gui/szenario_werkzeugkiste.py`: auf die vollen
+  Kataloge und den Zwischenspeicher; `docs/OFFENE_FRAGEN.md` Frage 3 (Hoffmann-Sperre),
+  `package.xml` 0.328.0.
+
+### ERGEBNIS
+- test_werkzeugkiste_datei, test_werkzeugkiste, test_werkzeugwahl, test_spannmittel,
+  szenario_werkzeugkiste, szenario_erster_start grün. Gesehen: hoffmann-group.com sperrt bei vielen
+  Abrufen (429) – gesammelt wird dort nichts mehr ohne Manuels Entscheidung; ein Prüfaufruf mit
+  nicht vorhandenem FREECAD_USER_HOME schrieb in Manuels Profil (entfernt, Gedächtnis ergänzt).
+
 ## P-2026-10-31-10 beta-werkzeuge-fuer-die-tasche
 
 ### EINGELESEN

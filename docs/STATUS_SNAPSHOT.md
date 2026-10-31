@@ -576,6 +576,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.328.0):* **Werkzeugkiste: 1278 Reihen, 43 425 Größen** – dazu Sandvik/Seco/Walter
+  (495 Reihen, 27 855 Größen aus den Gesamtkatalogen; Schnittwerte nur Seco), Hoffmann-Fräser (191)
+  und -Bohrer (2742). Spannmittel 270 Reihen/1952 Größen. Die geprüften Reihen liegen im
+  Zwischenspeicher neben der Werkzeugverwaltung (`werkzeugkiste_mitgeliefert.pickle`; 5,4 s → 0,06 s),
+  20 s nach dem Start füllt ihn ein Faden. Hoffmann sperrt zu viele Abrufe (429) – Frage 3.
 - *Neu (0.326.0):* **Werkzeugkiste mit den Katalogen der Hersteller** (Manuel, 2026-10-31: „die
   hersteller datenbank aufpumpen bis zum geht nicht mehr“): mitgeliefert jetzt 744 Reihen mit über
   12 800 Größen – Fraisa/Hufschmied, Gühring, MAPAL, Iscar/Kennametal/Tungaloy, Hoffmann-Bohrer

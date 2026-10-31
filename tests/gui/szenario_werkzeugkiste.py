@@ -35,8 +35,15 @@ def schritte(h):
     wz.Bibliothek([]).speichern()
     eingebaut = len(wk.eingebaute())
     mitgeliefert = wd.mitgelieferte()
-    h.pruefe(len(mitgeliefert) == 77, f"mitgeliefert: {len(mitgeliefert)} Reihen")
-    h.pruefe(len(wk.reihen()) == eingebaut + 77, f"reihen() ohne Datei: {len(wk.reihen())}")
+    # hoffmann.json und die Kataloge der Hersteller (W-042, über 40 000 Größen).
+    h.pruefe(
+        sum(r.datei == "hoffmann.json" for r in mitgeliefert) == 77 and len(mitgeliefert) > 1000,
+        f"mitgeliefert: {len(mitgeliefert)} Reihen",
+    )
+    h.pruefe(
+        len(wk.reihen()) == eingebaut + len(mitgeliefert),
+        f"reihen() ohne Datei: {len(wk.reihen())}",
+    )
     ordner = tempfile.mkdtemp()
     with open(os.path.join(wd.MITGELIEFERT, "hoffmann.json"), encoding="utf-8") as datei:
         daten = json.load(datei)
@@ -102,7 +109,7 @@ def schritte(h):
         os.path.isfile(os.path.join(wd.ordner(), os.path.basename(eigene))),
         "Datei nicht im Ordner",
     )
-    h.pruefe(len(wk.reihen()) == eingebaut + 77 + 5, f"reihen(): {len(wk.reihen())}")
+    h.pruefe(len(wk.reihen()) == eingebaut + len(mitgeliefert) + 5, f"reihen(): {len(wk.reihen())}")
     h.bild("3_baum", kiste)
 
     # --- Noch einmal dieselbe Datei: ersetzt sich selbst, nichts doppelt ------------------------

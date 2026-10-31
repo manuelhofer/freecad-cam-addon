@@ -147,7 +147,30 @@ def starten():
     stl_anzeige.beobachten()  # ein Teil aus einem STL als Netz (W-017)
     gui_sprachwahl.beim_ersten_start_fragen()
     gui_aktualisierung.beim_start()
+    _werkzeugkiste_vorbereiten()
     FreeCAD.Console.PrintLog("CAM-Addon geladen\n")
+
+
+def _werkzeugkiste_vorbereiten():
+    """Liest die mitgelieferte Werkzeugkiste (über 40 000 Größen) 20 s nach dem Start in einem
+    Faden neben der Oberfläche – nach einem Update dauert das Prüfen 6 s, danach liegt sie im
+    Zwischenspeicher (werkzeugkiste_datei.mitgelieferte); wer die Werkzeugkiste öffnet, wartet
+    so nicht."""
+    import threading
+
+    from PySide import QtCore
+
+    from . import werkzeugkiste_datei as wd
+
+    def lesen():
+        try:
+            wd.mitgelieferte()
+        except Exception as fehler:  # dann eben beim Öffnen
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht vorbereitet: {fehler}\n")
+
+    QtCore.QTimer.singleShot(
+        20000, lambda: threading.Thread(target=lesen, name="Werkzeugkiste", daemon=True).start()
+    )
 
 
 class BefehlUeber:
