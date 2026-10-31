@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-01 emuge-halter-vollstaendig
+
+### EINGELESEN
+- Der Nachabruf der Emuge-Aufnahmen (eine Seite je 12–20 s) ist um 00:16 fertig: 483 Anfragen,
+  keine Sperre.
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: 1324 Reihen, 9034 Größen (EMUGE-FRANKEN 281/844, mit
+  Schrumpffuttern samt Kegelwinkel und FPC-Spannhülsenfuttern).
+- `camaddon/kataloge_index.json`, `translations/*.json` („9000 Halter“), `package.xml` 0.344.1.
+- Sammler (nicht im Repo): ~/freecad_cam/wip/emuge_sammler/bau_halter.py (Schrumpfen, FPC, nur
+  Aufnahmen aus halter.AUFNAHMEN).
+
+### ERGEBNIS
+- Alle 9034 Halter gebaut, keine Fehler. test_halter, test_halter_datei, test_kataloge,
+  test_empfehlung, test_sprache grün.
+- Ausgelassen: Einschraub-Aufnahmen (Modulschäfte), HSK-E25/E63, HSK-FM80; Wendeplatten-
+  Trägerkörper und Aufsteckfräser (kein Schaft).
 ## P-2026-10-31-48 zecha-union
 
 ### EINGELESEN

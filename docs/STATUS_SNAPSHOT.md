@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.344.1):* **Halter: 1324 Reihen, 9034 Größen** – die EMUGE-FRANKEN-Aufnahmen vollständig
+  (281 Reihen, 844 Größen: ER, FHE, PGR/secuRgrip, Schrumpf mit Kegelwinkel, FPC-Spannhülsen).
 - *Neu (0.344.0):* **Werkzeugkiste: 139 809 Größen** – dazu ZECHA (157 Reihen, 5 465 Größen;
   zecha.shop und Stahl-/Fräserkatalog 2025, Schnittwerte nur für die zectec-Reihen) und Union Tool
   (116 Reihen, 6 761 Größen; Gesamtkatalog Vol. 22, Schnittwerte für 92 Reihen aus n/vf).
