@@ -174,11 +174,18 @@ def lesen(pfad, vorhandene=None, index=None):
         pruefung.fehler.append(tr("wd.fehler.reihen"))
         return pruefung
     fruehere = set()
-    if index is None:
-        if vorhandene is None:  # eine Datei gleichen Namens im Ordner ersetzt diese
+    if index is None and vorhandene is None:
+        # Eine Datei gleichen Namens im Ordner ersetzt diese; verglichen wird mit einer Kopie des
+        # Vergleichs über Eingebaute und Mitgelieferte (_basis_kopie) und den anderen Dateien.
+        eigene = eingelesene()
+        fruehere = {r.kennung for r in eigene if r.datei == name}
+        if any(r.datei == name for r in mitgelieferte()):
             alle = wk.reihen()
-            vorhandene = [r for r in alle if r.datei != name]
-            fruehere = {r.kennung for r in alle if r.datei == name}
+            index = _Index([r for r in alle if r.datei != name])
+        else:
+            index = _basis_kopie()
+            index.hinzu([r for r in eigene if r.datei != name])
+    if index is None:
         index = _Index(vorhandene)
     gesehen = set()
     for nummer, daten_reihe in enumerate(reihen, 1):
@@ -238,7 +245,7 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
     mit_werten = bool(werte_reihe)
     fertige = []
     for i, daten_groesse in enumerate(groessen, 1):
-        stelle_g = tr("wd.stelle.groesse", stelle=stelle, nummer=i)
+        stelle_g = _Spaeter(lambda i=i: tr("wd.stelle.groesse", stelle=stelle, nummer=i))
         groesse = _felder(daten_groesse, stelle_g, pruefung)
         for feld in _TEXTE:
             if daten_groesse.get(feld) is not None and feld not in groesse:
@@ -288,7 +295,7 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
     for i, (groesse, werkzeug, daten_g) in enumerate(
         zip(reihe.groessen, werkzeuge, fertige, strict=True), 1
     ):
-        stelle_g = tr("wd.stelle.groesse", stelle=stelle, nummer=i)
+        stelle_g = _Spaeter(lambda i=i: tr("wd.stelle.groesse", stelle=stelle, nummer=i))
         grund = index.dublette(reihe, groesse, werkzeug)
         if grund is not None:
             pruefung.doppelt.append(
@@ -302,7 +309,35 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
     if not behalten:
         pruefung.hinweise.append(tr("wd.doppelt.reihe", stelle=stelle))  # keine Größe: ein Hinweis
         return None
+    index.kennungen[reihe.kennung] = reihe.datei  # die nächste Datei sieht die Kennung belegt
     return replace(reihe, groessen=tuple(behalten), katalogwerte=katalogwerte)
+
+
+class _Spaeter:
+    """Ein Text, erst gebaut, wenn er gebraucht wird (str, format): die Stelle einer Größe und wo
+    ein Werkzeug schon steht – für jede der 82 000 Größen vorab übersetzt kostete das 250 000
+    tr()-Aufrufe (mit den Parametern von FreeCAD je Aufruf; in einem Faden ließ das das Fenster
+    7 s stehen). Aufgerufen mit einer Funktion ohne Argumente, die den Text baut."""
+
+    __slots__ = ("_funktion", "_argumente", "_werte", "_text")
+
+    def __init__(self, funktion, *argumente, **werte):
+        self._funktion, self._argumente, self._werte = funktion, argumente, werte
+        self._text = None
+
+    def __str__(self):
+        if self._text is None:
+            self._text = str(self._funktion(*self._argumente, **self._werte))
+        return self._text
+
+    def __format__(self, spec):
+        return format(str(self), spec)
+
+    def __eq__(self, anderes):
+        return str(self) == str(anderes)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 def _felder(daten, stelle, pruefung):
@@ -517,10 +552,13 @@ class _Index:
     """Was die Kiste schon hat – zum Vergleichen: Kennungen (mit der Datei, aus der sie kommen;
     "" eingebaut), Artikelnummern je Hersteller und die vollständigen Maße."""
 
-    def __init__(self, reihen):
+    def __init__(self, reihen=()):
         self.kennungen = {}
         self.artikel = {}
         self.masse = {}
+        self.hinzu(reihen)
+
+    def hinzu(self, reihen):
         for reihe in reihen:
             self.kennungen[reihe.kennung] = reihe.datei
             for groesse, werkzeug in zip(
@@ -528,9 +566,19 @@ class _Index:
             ):
                 self.merke(reihe, groesse, werkzeug)
 
+    def kopie(self):
+        """Eine Kopie, die weiterwachsen darf, ohne dass sich diese ändert."""
+        neu = _Index()
+        neu.kennungen = dict(self.kennungen)
+        neu.artikel = dict(self.artikel)
+        neu.masse = {k: dict(v) for k, v in self.masse.items()}
+        return neu
+
     def merke(self, reihe, groesse, werkzeug):
         schluessel = _artikel_schluessel(werkzeug.hersteller, werkzeug.artikel)
-        wo = tr("wd.wo", name=_name(werkzeug), kennung=reihe.kennung)
+        # Wo es schon steht: (Name, Kennung) – übersetzt erst in der Meldung (_wo_text); so lässt
+        # sich der Index mit den Reihen zwischenspeichern.
+        wo = (werkzeug.name or _name(werkzeug), reihe.kennung)
         if schluessel is not None:
             self.artikel.setdefault(schluessel, wo)
         # Je Maßsatz die Artikelnummern, unter denen er schon da ist ("" ohne Nummer).
@@ -545,21 +593,41 @@ class _Index:
         denselben Maßen ist dasselbe Werkzeug."""
         schluessel = _artikel_schluessel(werkzeug.hersteller, werkzeug.artikel)
         if schluessel is not None and schluessel in self.artikel:
-            return tr("wd.grund.artikel", artikel=werkzeug.artikel, wo=self.artikel[schluessel])
+            return tr(
+                "wd.grund.artikel", artikel=werkzeug.artikel, wo=_wo_text(self.artikel[schluessel])
+            )
         gleiche = self.masse.get(_masse_schluessel(reihe, groesse, werkzeug)) or {}
         if not gleiche:
             return None
         if schluessel is None:
-            return tr("wd.grund.masse", wo=next(iter(gleiche.values())))
+            return tr("wd.grund.masse", wo=_wo_text(next(iter(gleiche.values()))))
         if "" in gleiche:
-            return tr("wd.grund.masse", wo=gleiche[""])
+            return tr("wd.grund.masse", wo=_wo_text(gleiche[""]))
         return None
+
+
+def _wo_text(wo):
+    return tr("wd.wo", name=wo[0], kennung=wo[1])
+
+
+def _basis_kopie():
+    """Eine Kopie des Vergleichs über die eingebauten und die mitgelieferten Reihen – gebaut beim
+    Prüfen der Kataloge und mit ihnen zwischengespeichert (sonst einmal gebaut: 82 000 Größen,
+    3 s). Für jede eingelesene Datei aus allen neu gebaut, stand das Fenster bei „Aus Datei
+    einlesen“ 4 s."""
+    global _basis
+    with _SPERRE:
+        mitgelieferte()
+        if _basis is None:
+            _basis = _Index([*wk.eingebaute(), *_mitgeliefert])
+        return _basis.kopie()
 
 
 # --- Der Ordner beim Benutzer ---------------------------------------------------------------
 
 _gelesen = {}  # Pfad → (Größe, Änderungszeit, [Reihe])
 _mitgeliefert = None  # die Reihen der mitgelieferten Dateien, einmal gelesen
+_basis = None  # _Index der eingebauten und mitgelieferten Reihen (_basis_kopie)
 _SPERRE = threading.RLock()
 ZWISCHENSPEICHER = "werkzeugkiste_mitgeliefert.pickle"
 
@@ -589,24 +657,36 @@ def _stand():
 
 
 def _aus_dem_zwischenspeicher(stand):
+    """Die Reihen aus dem Zwischenspeicher – und den Vergleich über sie (_basis), wenn er darin
+    liegt; None, wenn er nicht zum Stand passt."""
     import pickle
 
+    global _basis
     try:
         with open(_zwischenspeicher(), "rb") as datei:
             daten = pickle.load(datei)
     except Exception:  # fehlt, alt, kaputt: neu lesen
         return None
-    return daten.get("reihen") if isinstance(daten, dict) and daten.get("stand") == stand else None
+    if not isinstance(daten, dict) or daten.get("stand") != stand:
+        return None
+    _basis = None
+    if isinstance(daten.get("index"), tuple) and len(daten["index"]) == 3:
+        _basis = _Index()
+        _basis.kennungen, _basis.artikel, _basis.masse = daten["index"]
+    return daten.get("reihen")
 
 
-def _in_den_zwischenspeicher(stand, reihen):
+def _in_den_zwischenspeicher(stand, reihen, index=None):
     import pickle
 
     pfad = _zwischenspeicher()
     try:
         os.makedirs(os.path.dirname(pfad), exist_ok=True)
         with open(pfad + ".neu", "wb") as datei:
-            pickle.dump({"stand": stand, "reihen": reihen}, datei, pickle.HIGHEST_PROTOCOL)
+            daten = {"stand": stand, "reihen": reihen}
+            if index is not None:
+                daten["index"] = (index.kennungen, index.artikel, index.masse)
+            pickle.dump(daten, datei, pickle.HIGHEST_PROTOCOL)
         os.replace(pfad + ".neu", pfad)
     except OSError as fehler:  # nur langsamer beim nächsten Mal
         FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht zwischengespeichert: {fehler}\n")
@@ -638,9 +718,93 @@ def _mitgelieferte():
             for satz in pruefung.fehler + pruefung.doppelt:
                 FreeCAD.Console.PrintWarning(f"CAM-Addon: {name}: {satz}\n")
             reihen += pruefung.reihen
+        global _basis
         _mitgeliefert = reihen
-        _in_den_zwischenspeicher(stand, reihen)
+        _basis = index  # eingebaut und mitgeliefert – der Vergleich fürs Einlesen
+        _in_den_zwischenspeicher(stand, reihen, index)
     return _mitgeliefert
+
+
+def bereit():
+    """Liegen die mitgelieferten Reihen schon im Speicher (dann kostet mitgelieferte() nichts)?"""
+    return _mitgeliefert is not None
+
+
+def aus_dem_zwischenspeicher_laden():
+    """Die Reihen aus dem Zwischenspeicher holen, wenn er zu Dateien, Code und Sprache passt (0,1 s
+    bei 82 000 Größen) – True, wenn sie dann da sind; sonst bleibt alles, wie es ist."""
+    global _mitgeliefert
+    with _SPERRE:
+        if _mitgeliefert is None:
+            _mitgeliefert = _aus_dem_zwischenspeicher(_stand())
+        return _mitgeliefert is not None
+
+
+def vorbereiten(sprache_code=""):
+    """Im Nebenrechner: die Reihen prüfen und zwischenspeichern – in der Sprache des Fensters (der
+    Arbeiter hat seine eigene Kopie der Einstellungen). Gibt die Zahl der Reihen zurück."""
+    from . import sprache
+
+    if sprache_code and sprache_code != sprache.aktuelle_sprache():
+        sprache.setze_sprache(sprache_code)
+    return len(mitgelieferte())
+
+
+def im_hintergrund_vorbereiten():
+    """Die Reihen bereitstellen, ohne das Fenster aufzuhalten: aus dem Zwischenspeicher – sonst
+    prüft ein Nebenrechner (ein eigener Prozess) und schreibt ihn, danach kommen sie von dort. Im
+    Faden des Fensters hielt das Prüfen (4–6 s reines Python) FreeCAD bis 7 s an, nach jedem
+    Update einmal (der Code gehört zum Stand des Zwischenspeichers). Ohne Nebenrechner, oder hat
+    er keinen passenden geschrieben: ein Faden wie bisher. Läuft es schon: nichts."""
+    global _vorbereitung
+    if _vorbereitung is not None or aus_dem_zwischenspeicher_laden():
+        return
+    from . import nebenrechner as nr
+    from . import sprache
+
+    def im_faden():
+        global _vorbereitung
+        _vorbereitung = "faden"
+
+        def lesen():
+            global _vorbereitung
+            try:
+                mitgelieferte()
+            except Exception as fehler:  # noqa: BLE001 – dann eben beim Öffnen
+                FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht vorbereitet: {fehler}\n")
+            finally:
+                _vorbereitung = None
+
+        threading.Thread(target=lesen, name="Werkzeugkiste", daemon=True).start()
+
+    if _NEBENRECHNER_VERSUCHT:
+        im_faden()
+        return
+    try:
+        auftrag = nr.pool().auftrag(
+            "werkzeugkiste_datei", "vorbereiten", sprache.aktuelle_sprache()
+        )
+    except Exception:  # noqa: BLE001 – kein Nebenrechner (NichtVerfuegbar)
+        im_faden()
+        return
+
+    def fertig(_auftrag):
+        global _vorbereitung, _NEBENRECHNER_VERSUCHT
+        _vorbereitung = None
+        if not aus_dem_zwischenspeicher_laden():
+            _NEBENRECHNER_VERSUCHT = True  # passt nicht (anderer Stand): einmal, dann der Faden
+
+    auftrag.bei_fertig = fertig
+    _vorbereitung = auftrag
+
+
+def wird_vorbereitet():
+    """Bereitet ein Nebenrechner (oder ein Faden) die Reihen gerade vor?"""
+    return _vorbereitung is not None
+
+
+_vorbereitung = None  # der Auftrag (oder „faden“), der die Reihen gerade vorbereitet
+_NEBENRECHNER_VERSUCHT = False
 
 
 def eingelesene():
@@ -649,7 +813,7 @@ def eingelesene():
     einer Zeile je Datei – eine früher eingelesene Liste, die jetzt mitkommt, wäre sonst eine Zeile
     je Reihe). Gelesen wird nur, was sich geändert hat."""
     ergebnis = []
-    vorhandene = list(wk.eingebaute()) + list(mitgelieferte())
+    index = None  # der Vergleich, erst gebaut, wenn eine Datei neu zu lesen ist
     for pfad in dateien():
         try:
             stat = os.stat(pfad)
@@ -658,7 +822,10 @@ def eingelesene():
             continue
         gemerkt = _gelesen.get(pfad)
         if gemerkt is None or gemerkt[0] != stempel:
-            pruefung = lesen(pfad, vorhandene)
+            if index is None:
+                index = _basis_kopie()
+                index.hinzu(ergebnis)  # die Dateien davor
+            pruefung = lesen(pfad, index=index)  # was die Datei behält, kommt hinein
             for satz in pruefung.fehler:
                 FreeCAD.Console.PrintWarning(f"CAM-Addon: {pruefung.datei}: {satz}\n")
             if pruefung.doppelt:
@@ -673,9 +840,10 @@ def eingelesene():
                     + "\n"
                 )
             _gelesen[pfad] = (stempel, pruefung.reihen)
+        elif index is not None:
+            index.hinzu(_gelesen[pfad][1])
         reihen = _gelesen[pfad][1]
         ergebnis.extend(reihen)
-        vorhandene.extend(reihen)
     return ergebnis
 
 

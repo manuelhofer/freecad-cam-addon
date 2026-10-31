@@ -213,16 +213,14 @@ class LadenFenster(QtGui.QDialog):
 
 
 def _werkzeugkiste_vorbereiten():
-    """Die neuen Werkzeuge gleich im Hintergrund prüfen und zwischenspeichern."""
+    """Die neuen Werkzeuge gleich prüfen und zwischenspeichern – in einem Nebenrechner
+    (werkzeugkiste_datei.im_hintergrund_vorbereiten), das Fenster bleibt frei."""
     from . import werkzeugkiste_datei as wd
 
-    def lesen():
-        try:
-            wd.mitgelieferte()
-        except Exception as fehler:  # dann eben beim Öffnen
-            FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht vorbereitet: {fehler}\n")
-
-    threading.Thread(target=lesen, name="Werkzeugkiste", daemon=True).start()
+    try:
+        wd.im_hintergrund_vorbereiten()
+    except Exception as fehler:  # noqa: BLE001 – dann eben beim Öffnen
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht vorbereitet: {fehler}\n")
 
 
 def zeile(eltern, danach=None):

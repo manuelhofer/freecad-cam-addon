@@ -26,7 +26,6 @@ werden nur seine Teile auf die Schritte verteilt.
 """
 
 import html
-import threading
 
 import FreeCAD
 import FreeCADGui
@@ -913,13 +912,13 @@ class BetaPanel(BearbeitungPanel):
             return
         self.knopf_katalog.setEnabled(False)
         self.knopf_katalog.setText(tr("beta.werkzeuge.katalog.liest"))
-        faden = threading.Thread(target=ww.katalog_werkzeuge, name="Katalog", daemon=True)
-        faden.start()
+        ww.katalog_laden_im_hintergrund()
 
         def nachsehen():
             if self.geschlossen:
                 return
-            if faden.is_alive():
+            if not ww.katalog_bereit():
+                ww.katalog_laden_im_hintergrund()  # nach dem Nebenrechner: jetzt der Faden
                 QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, nachsehen)
                 return
             self.knopf_katalog.setEnabled(True)

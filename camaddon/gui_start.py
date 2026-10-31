@@ -155,25 +155,21 @@ def starten():
 
 
 def _werkzeugkiste_vorbereiten():
-    """Liest die mitgelieferte Werkzeugkiste (über 40 000 Größen) 20 s nach dem Start in einem
-    Faden neben der Oberfläche – nach einem Update dauert das Prüfen 6 s, danach liegt sie im
-    Zwischenspeicher (werkzeugkiste_datei.mitgelieferte); wer die Werkzeugkiste öffnet, wartet
-    so nicht."""
-    import threading
-
+    """Stellt die mitgelieferte Werkzeugkiste (über 80 000 Größen) 20 s nach dem Start bereit –
+    aus dem Zwischenspeicher, nach einem Update prüft sie ein Nebenrechner
+    (werkzeugkiste_datei.im_hintergrund_vorbereiten); wer die Werkzeugkiste öffnet, wartet so
+    nicht, und das Fenster steht dabei nicht."""
     from PySide import QtCore
 
     from . import werkzeugkiste_datei as wd
 
-    def lesen():
+    def bereitstellen():
         try:
-            wd.mitgelieferte()
-        except Exception as fehler:  # dann eben beim Öffnen
+            wd.im_hintergrund_vorbereiten()
+        except Exception as fehler:  # noqa: BLE001 – dann eben beim Öffnen
             FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht vorbereitet: {fehler}\n")
 
-    QtCore.QTimer.singleShot(
-        20000, lambda: threading.Thread(target=lesen, name="Werkzeugkiste", daemon=True).start()
-    )
+    QtCore.QTimer.singleShot(20000, bereitstellen)
 
 
 class BefehlUeber:

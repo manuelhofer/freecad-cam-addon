@@ -1496,6 +1496,9 @@ def vorlage_datei_waehlen(eltern, ordner):
     return pfad
 
 
+KISTE_NACHSEHEN_MS = 200  # Werkzeugkiste: so oft sehen, ob der Nebenrechner sie vorbereitet hat
+
+
 class KisteDialog(QtGui.QDialog):
     """„Werkzeuge der Hersteller“ (W-007): die Werkzeugkiste als Baum – je Werkzeugart eine
     Gruppe, darin die Reihen der Hersteller, darin jede Größe mit eigenem Haken (Manuel,
@@ -1560,12 +1563,23 @@ class KisteDialog(QtGui.QDialog):
         aufbau.addLayout(unten)
 
     def fuellen(self):
-        """Der Baum aus allen Reihen – eingebaute und eingelesene –, alles angehakt."""
+        """Der Baum aus allen Reihen – eingebaute und eingelesene –, alles angehakt. Sind die
+        Kataloge noch nicht geprüft (nach einem Update, in den ersten 20 s), prüft sie ein
+        Nebenrechner: bis dahin „wird vorbereitet …“, das Fenster bleibt frei (sonst 4–6 s)."""
+        from . import werkzeugkiste_datei as wd
+
         self.baum.clear()
         self._reihen = []
         haken = (
             QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsAutoTristate
         )
+        if not wd.bereit():
+            wd.im_hintergrund_vorbereiten()
+        if not wd.bereit() and wd.wird_vorbereitet():
+            self._nach_kennung = {}
+            self.baum.addTopLevelItem(QtGui.QTreeWidgetItem([tr("wv.kiste.vorbereiten")]))
+            QtCore.QTimer.singleShot(KISTE_NACHSEHEN_MS, self._nachsehen)
+            return
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             reihen = wk.reihen()
@@ -1606,6 +1620,17 @@ class KisteDialog(QtGui.QDialog):
                 self._reihen.append(zeile)
             gruppe.setExpanded(True)
         self.filtern()
+
+    def _nachsehen(self):
+        """Ist die Werkzeugkiste vorbereitet, den Baum füllen – sonst gleich wieder nachsehen."""
+        from . import werkzeugkiste_datei as wd
+
+        if not self.isVisible():
+            return
+        if wd.bereit() or not wd.wird_vorbereitet():
+            self.fuellen()
+            return
+        QtCore.QTimer.singleShot(KISTE_NACHSEHEN_MS, self._nachsehen)
 
     def _groessen_fuellen(self, zeile):
         """Die Größen einer Reihe, wenn sie zum ersten Mal aufgeklappt wird – angehakt wie sie."""

@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-42 katalog-bohrer-gewinde-nebenrechner
+
+### EINGELESEN
+- Gedächtnis „Empfehlen über das Magazin hinaus“ und „Ressourcen nutzen“ (das Fenster darf nie
+  laggen; Manuel, 2026-10-31: „aber warum nicht mit allen kernen ?!?!?!?“).
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py`: `gewindebohrer_im_katalog`, `bohrer_im_katalog`, `_je_mass_einer`,
+  `katalog_laden_im_hintergrund` (erst wenn die Werkzeugkiste bereit ist).
+- `camaddon/gui_bearbeitung.py`: `_im_katalog_zeile`, `_nach_katalog`, `_gewinde_text`,
+  `katalog_zeile` in der Zeile „passt nicht“ (mit Links), `KATALOG_NACHSEHEN_MS`.
+- `camaddon/werkzeugkiste_datei.py`: `im_hintergrund_vorbereiten` (Nebenrechner, sonst Faden),
+  `vorbereiten`, `bereit`, `wird_vorbereitet`, `aus_dem_zwischenspeicher_laden`; `_Spaeter`
+  (Ortsangaben erst bei Bedarf); der Vergleich `_basis` im Zwischenspeicher, `_basis_kopie`,
+  `_Index.hinzu/kopie`, Einträge (Name, Kennung) statt Text; `lesen` und `eingelesene` mit einer
+  Kopie des Vergleichs; Kennungen behaltener Reihen im mitwachsenden Vergleich.
+- `camaddon/sprache.py`: tr() holt die Einheiten nur für Texte mit {e_…}/{vergleichsvolumen}.
+- `camaddon/gui_start.py`, `camaddon/gui_kataloge.py`: Vorbereiten über den Nebenrechner.
+- `camaddon/gui_werkzeuge.py`: Werkzeugkiste „wird vorbereitet …“, `_nachsehen`.
+- `camaddon/gui_bearbeitung_beta.py`: „Was gäbe es im Katalog?“ über denselben Weg.
+- `tests/gui/szenario_katalog_bohrung.py` (neu), `translations/*.json`, `package.xml` 0.341.0.
+
+### ERGEBNIS
+- szenario_katalog_bohrung grün: Gewinde „Gühring 5596 M8 (M8 × 1,25)“, Bohrer Ø 6,75 von
+  Sandvik/Walter/Seco; längste Fensterpause 7,8 s → 0,5 s (frisches Profil, kein Zwischenspeicher).
+- Werkzeugkiste früh geöffnet: „wird vorbereitet …“, dann 26 Gruppen, längste Pause 0,37 s.
+- szenario_werkzeugkiste (die 3,7 s sind der eigene Aufruf des Szenarios), _werkzeugverwaltung,
+  _kataloge, _beta_schritte grün; test_werkzeugkiste_datei, test_kataloge, test_faehigkeiten,
+  test_werkzeugwahl, test_sprache grün.
 ## P-2026-10-31-41 katalog-im-faden
 
 ### EINGELESEN

@@ -111,9 +111,11 @@ def tr(schluessel, sprache=None, **werte):
     text = _suche_text(schluessel, sprache)
     # Einheiten wie {e_laenge} setzt tr() selbst ein – „mm“ oder „in“, je
     # nach Maßsystem (einheiten.py).
-    if not werte and "{e_" not in text and "{vergleichsvolumen}" not in text:
+    einheit = "{e_" in text or "{vergleichsvolumen}" in text
+    if not werte and not einheit:
         return text
-    werte = {**einheiten.platzhalter(), **werte}
+    if einheit:  # nur dann – platzhalter() fragt je Größe FreeCADs Parameter
+        werte = {**einheiten.platzhalter(), **werte}
     try:
         return text.format(**werte)
     except (KeyError, IndexError, ValueError):

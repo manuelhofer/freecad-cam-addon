@@ -3722,5 +3722,8 @@
     "beta.fertig.weiter.tooltip": "An denselben Flächen weiter: nach dem Schruppen schlichten, entgraten oder noch einmal vorschlichten.",
     "beta.fertig.zeigen": "Dieses Fenster nach dem Anlegen zeigen",
     "beta.fertig.zeigen.tooltip": "Abgehakt: „Anlegen“ schließt ohne das Fenster „Angelegt“. Der Haken steht auch unten im Assistenten (Beta).",
-    "beta.werkzeuge.katalog.liest": "Katalog wird gelesen …"
+    "beta.werkzeuge.katalog.liest": "Katalog wird gelesen …",
+    "ba.katalog.gewindebohrer": "Im Katalog der Hersteller mit diesem Kernloch: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
+    "ba.katalog.bohrer": "Im Katalog der Hersteller mit diesem Ø: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
+    "wv.kiste.vorbereiten": "Die Werkzeugkiste wird vorbereitet … (die Kataloge der Hersteller werden einmal geprüft)"
 }

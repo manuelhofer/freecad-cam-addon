@@ -3722,5 +3722,8 @@
     "beta.fertig.weiter.tooltip": "Continue on the same faces: finish after roughing, deburr or semi-finish once more.",
     "beta.fertig.zeigen": "Show this window after creating",
     "beta.fertig.zeigen.tooltip": "Unchecked: “Create” closes without the “Created” window. The same checkbox is at the bottom of the assistant (beta).",
-    "beta.werkzeuge.katalog.liest": "Reading the catalogue …"
+    "beta.werkzeuge.katalog.liest": "Reading the catalogue …",
+    "ba.katalog.gewindebohrer": "In the manufacturers' catalogue with this core hole: {namen} – into the tool library via “Tool box …”.",
+    "ba.katalog.bohrer": "In the manufacturers' catalogue with this Ø: {namen} – into the tool library via “Tool box …”.",
+    "wv.kiste.vorbereiten": "Preparing the tool box … (the manufacturers' catalogues are checked once)"
 }

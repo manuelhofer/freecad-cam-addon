@@ -118,6 +118,86 @@ def katalog_werkzeuge():
     return _KATALOG
 
 
+def _je_mass_einer(werkzeuge, schluessel, hoechstens):
+    """Je Maß (`schluessel(w)`) einer – der mit Link zuerst –, höchstens `hoechstens`."""
+    gesehen, auswahl = set(), []
+    for w in sorted(werkzeuge, key=lambda w: not getattr(w, "link", "")):
+        k = schluessel(w)
+        if k in gesehen:
+            continue
+        gesehen.add(k)
+        auswahl.append(w)
+        if len(auswahl) >= hoechstens:
+            break
+    return auswahl
+
+
+def gewindebohrer_im_katalog(kernloch_d, katalog, hoechstens=3):
+    """Gewindebohrer (rechts) des Katalogs, deren Kernloch `kernloch_d` ist (gewinde.GLEICH_D) –
+    je Gewinde (Ø × Steigung) einer, das am besten passende zuerst (Gedächtnis „Empfehlen über das
+    Magazin hinaus“)."""
+    from . import gewinde as gw
+
+    gut = [
+        w
+        for w in katalog
+        if w.art == wz.GEWINDEBOHRER_RECHTS
+        and (w.steigung or 0) > 0
+        and abs(gw.kernloch(w.durchmesser, w.steigung) - kernloch_d) <= gw.GLEICH_D
+    ]
+    # Das Kernloch am nächsten zuerst (M8 × 1,25 vor 5/16-18 UNC bei Ø 6,8), dann das gröbere.
+    gut.sort(key=lambda w: (round(abs(gw.kernloch(w.durchmesser, w.steigung) - kernloch_d), 2),
+                            -w.steigung))  # fmt: skip
+    return _je_mass_einer(
+        gut, lambda w: (round(w.durchmesser, 2), round(w.steigung, 3)), hoechstens
+    )
+
+
+def bohrer_im_katalog(durchmesser, tiefe, katalog, hoechstens=3):
+    """Bohrer des Katalogs mit genau diesem Ø (auf 0,01 mm), die `tiefe` erreichen – keine
+    Wendeplattenbohrer; je Hersteller einer, die kürzesten zuerst (am steifsten)."""
+    gut = [
+        w
+        for w in katalog
+        if w.art == wz.BOHRER
+        and abs(w.durchmesser - durchmesser) <= 0.005
+        and not w.faehigkeiten.get("wendeplatten")
+        and (not tiefe or (w.schneidenlaenge or w.gesamtlaenge or 0) >= tiefe - 1e-6)
+    ]
+    gut.sort(key=lambda w: w.schneidenlaenge or w.gesamtlaenge or 0)
+    return _je_mass_einer(gut, lambda w: getattr(w, "hersteller", ""), hoechstens)
+
+
+def katalog_laden_im_hintergrund():
+    """Den Katalog in einem Faden bauen (0,5 s) – läuft er schon oder ist er da: nichts. Fehlen
+    noch die geprüften Reihen der Werkzeugkiste, bereitet sie erst ein Nebenrechner vor
+    (werkzeugkiste_datei.im_hintergrund_vorbereiten); wer wartet, ruft wieder. Wer danach etwas
+    zeigt, sieht aus dem Hauptfaden nach (katalog_bereit) – ein Qt-Zeitgeber aus dem Faden liefe
+    nie."""
+    from . import werkzeugkiste_datei as wd
+
+    global _LAEDT
+    if _KATALOG or _LAEDT:
+        return
+    if not wd.bereit():  # erst die geprüften Reihen – im Nebenrechner, nicht hier
+        wd.im_hintergrund_vorbereiten()
+        if not wd.bereit():
+            return  # der Aufrufer sieht wieder nach und ruft noch einmal
+    _LAEDT = True
+
+    def laden():
+        global _LAEDT
+        try:
+            katalog_werkzeuge()
+        finally:
+            _LAEDT = False
+
+    threading.Thread(target=laden, name="Katalog", daemon=True).start()
+
+
+_LAEDT = False
+
+
 def katalog_bereit():
     """Ist der Katalog schon gebaut (dann kostet katalog_werkzeuge() nichts)?"""
     return bool(_KATALOG)

@@ -147,6 +147,7 @@ PASST_SPIEL = 0.5
 REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 UHR_SCHRITT_MS = 30  # ein Schritt der Vorschau mitten in einer Rechnung: so viel später
+KATALOG_NACHSEHEN_MS = 200  # Katalog im Faden (_im_katalog_zeile): so oft nachsehen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 VORSCHAU_MERK = 60  # so viele Vorschauen merkt sich der Assistent (_Block.vorschau_rechnen)
 GENAU_JE_BLOCK = 4  # so viele genaue Bahnen des Räumens rechnen je Block vorab (_genau_starten)
@@ -2905,6 +2906,23 @@ class _Gewinde(_Strategie):
         return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
 
 
+def _gewinde_text(w):
+    """„EMUGE C0803001.0008 (M8 × 1,25)“ mit Link – das Gewinde statt nur des Ø."""
+    d, p = float(w.durchmesser), float(w.steigung)
+    if round(d, 1) == d and round(p, 2) == p:  # metrisch: „M8 × 1,25“
+        name = html.escape(dezimal(f"M{d:g} × {p:g}"))
+    else:  # Zoll, Rohr: „Ø 7,94 × 1,155“
+        name = html.escape(dezimal(f"Ø {d:.2f} × {p:.3f}"))
+    if getattr(w, "name", ""):
+        name = f"{html.escape(w.name)} ({name})"
+    hersteller = getattr(w, "hersteller", "")
+    if hersteller and hersteller.split()[0].lower() not in name.lower():
+        name = f"{html.escape(hersteller)} {name}"
+    if getattr(w, "link", ""):
+        name = f'<a href="{html.escape(w.link)}">{name}</a>'
+    return name
+
+
 class _Gewindefraesen(_Strategie):
     """„Gewinde fräsen“ mit einem Gewindefräser aus der Werkzeugverwaltung (gewindefraesen) –
     nach dem Kernloch, statt „Gewinde bohren“; den Haken setzt man selbst."""
@@ -4539,6 +4557,7 @@ class _Block:
         aufbau.addLayout(kopfzeile)
         self.kurz = _grau()
         self.kurz.setTextFormat(QtCore.Qt.RichText)
+        self.kurz.setOpenExternalLinks(True)  # Vorschläge aus dem Katalog
         self.kurz.hide()
         aufbau.addWidget(self.kurz)
         self.ergebnis = _Satz(GRAU_TEXT)
@@ -4683,7 +4702,10 @@ class _Block:
         self.einstellungen.setVisible(self.aktiv())
         if not self.moeglich:
             titel = html.escape(self.s.titel())
-            self.kurz.setText(f"<b>{titel}</b> – {html.escape(self.erklaerung.text())}")
+            text = f"<b>{titel}</b> – {html.escape(self.erklaerung.text())}"
+            if getattr(self, "katalog_zeile", ""):
+                text += "<br>" + self.katalog_zeile  # mit Links (_im_katalog_zeile)
+            self.kurz.setText(text)
 
     def fraeser(self):
         i = self.wahl_fraeser.currentIndex()
@@ -8775,6 +8797,9 @@ class BearbeitungPanel:
                 block.erklaerung.setText(
                     block.s.text() if moeglich else grund or block.s.unmoeglich_text()
                 )
+                block.katalog_zeile = ""
+                if not moeglich and grund is None and block in (self.bohren, self.gewinde):
+                    block.katalog_zeile = self._im_katalog_zeile(block, form)
                 if not moeglich:
                     block.haken.setChecked(False)
                 elif not block.von_hand:
@@ -11237,6 +11262,56 @@ class BearbeitungPanel:
             if all(rbn.kann(b, w.durchmesser) for b in liste):
                 self.reiben.wahl_fraeser.setCurrentIndex(i)
                 return
+
+    def _im_katalog_zeile(self, block, form):
+        """Fehlt für die gewählten Bohrungen der Bohrer oder Gewindebohrer: welche der Katalog
+        der Hersteller hat, mit Link (Gedächtnis „Empfehlen über das Magazin hinaus“) – „“, wenn
+        er keine hat oder noch nicht gelesen ist (dann liest ihn ein Faden, und die Haken kommen
+        danach noch einmal)."""
+        from . import werkzeugwahl as ww
+
+        d = self._bohrungs_durchmesser(form)
+        if d is None:
+            return ""
+        if not ww.katalog_bereit():
+            ww.katalog_laden_im_hintergrund()
+            QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, self._nach_katalog)
+            return ""
+        katalog = ww.katalog_werkzeuge()
+        if block is self.gewinde:
+            gefunden = ww.gewindebohrer_im_katalog(d, katalog)
+        else:
+            namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
+            tiefe = max(
+                (b.z_oben - b.z_unten for b in bb.bohrungen(form, namen or [""])), default=0.0
+            )
+            gefunden = ww.bohrer_im_katalog(d, tiefe, katalog)
+        if not gefunden:
+            return ""
+        from .gui_bearbeitung_beta import _werkzeug_text
+
+        if block is self.gewinde:
+            return tr(
+                "ba.katalog.gewindebohrer", namen=", ".join(_gewinde_text(w) for w in gefunden)
+            )
+        return tr("ba.katalog.bohrer", namen=", ".join(_werkzeug_text(w) for w in gefunden))
+
+    def _nach_katalog(self):
+        """Ist der Katalog gelesen, die Sätze „passt nicht“ noch einmal (mit den Vorschlägen) –
+        sonst gleich wieder nachsehen."""
+        from . import werkzeugwahl as ww
+
+        if self.geschlossen or self.job is None:
+            return
+        if not ww.katalog_bereit():
+            ww.katalog_laden_im_hintergrund()  # nach dem Nebenrechner: jetzt der Faden
+            QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, self._nach_katalog)
+            return
+        form = vr.modell(self.job).Shape
+        for block in (self.bohren, self.gewinde):
+            if not block.moeglich and not getattr(block, "katalog_zeile", ""):
+                block.katalog_zeile = self._im_katalog_zeile(block, form)
+                block.zustand_zeigen()
 
     def _bohrungs_durchmesser(self, form):
         """Der Durchmesser der gewählten Bohrungen – None, wenn keine oder verschiedene."""

@@ -576,6 +576,19 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.341.0):* **Fehlt der Bohrer oder Gewindebohrer, nennt der Block einen aus dem Katalog**
+  (Gedächtnis „Empfehlen über das Magazin hinaus“): unter „Bohren“ bzw. „Gewinde bohren“, wenn
+  sie zur gewählten Bohrung passen, aber die Werkzeugverwaltung nichts hat – „Im Katalog der
+  Hersteller mit diesem Kernloch: Gühring 5596 M8 (M8 × 1,25), …“ mit Links (Kernloch am
+  nächsten zuerst; Bohrer mit genau diesem Ø, die die Tiefe erreichen, je Hersteller einer).
+  **Das Fenster steht nicht mehr, wenn die Kataloge geprüft werden:** Das Prüfen der
+  Werkzeugkiste (nach jedem Update einmal, 82 000 Größen) läuft in einem Nebenrechner statt in
+  einem Faden – im Faden hielt es FreeCAD bis 7,8 s an (gemessen mit faulthandler: der Faden hielt
+  die GIL, 250 000 tr()-Aufrufe mit FreeCADs Parametern). Dazu: Ortsangaben der Meldungen erst
+  bei Bedarf, tr() holt die Einheiten nur, wenn der Text sie braucht (Prüfen 6,2 → 3,9 s); der
+  Vergleich für „Aus Datei einlesen“ liegt mit im Zwischenspeicher (Pause 4,3 s → weg); die
+  Werkzeugkiste geht sofort auf („wird vorbereitet …“) und füllt sich danach. Behoben dabei: Der
+  mitwachsende Vergleich (0.336.0) merkte sich die Kennungen behaltener Reihen nicht.
 - *Korrektur (0.340.1):* „Was gäbe es im Katalog?“ (Beta, Schruppen) liest den Katalog in einem
   Faden – „Katalog wird gelesen …“, das Fenster bleibt frei. Mit den Katalogen von heute (82 000
   Größen) standen sonst ohne Zwischenspeicher der Werkzeugkiste 6,7 s still (mit 0,8 s).
