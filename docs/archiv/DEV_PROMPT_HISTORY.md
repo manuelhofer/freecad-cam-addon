@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-13 empfehlung-mit-katalog-haltern
+
+### EINGELESEN
+- Gedächtnis „Empfehlen über das Magazin hinaus“ (Manuel: „wenn du diese aufnahme / halter nimmst
+  und diesen fräser soweit ausspannst .. dann klapts“); der Halter-Katalog hat seit 0.328.1
+  5000 Größen.
+
+### DATEIEN
+- `camaddon/empfehlung.py`: `_katalog_halter` – je Längenbereich (3) der schlankste Halter des
+  Katalogs (größter Ø auf den vorderen 50 mm), der genau den Schaft spannt; `_fasst` fragt zuerst
+  `Halter.spann_d`.
+- `camaddon/halter.py`: Feld `spann_d` (gespeichert); `camaddon/halter_katalog.py` setzt es
+  (nicht bei Spannzangen).
+- `camaddon/gui_bearbeitung.py`: der Satz der Empfehlung mit der Bezeichnung des Halters.
+- `tests/test_empfehlung.py`: Erwartung „Normreihe“ → Aufnahme SK40; ER11 selbst angelegt;
+  Katalog-Halter Ø 6 fasst Ø 10 nicht.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.329.0.
+
+### ERGEBNIS
+- test_empfehlung (Kugel Ø 6: MAPAL 3° slim, 25 mm heraus, danach 0 Anstöße; Ø 10 × 45 an der
+  Flanke weiter KEINE – vorher hätte der Ø-6-Halter gegolten), test_halter, test_spannmittel,
+  test_sprache grün.
 ## P-2026-10-31-12 halter-katalog-5000
 
 ### EINGELESEN

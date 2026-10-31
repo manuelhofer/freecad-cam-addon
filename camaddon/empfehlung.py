@@ -12,7 +12,9 @@ Magazin steht, auch Halter, die es in der Werkzeugverwaltung noch nicht gibt:
   länger sind.
 - **Halter:** die geraden der Werkzeugverwaltung an der Aufnahme der Maschine, dazu die
   Normreihen für den Schaft (halter.REIHEN: Schrumpffutter, Hydrodehn, die zwei kleinsten
-  ER-Größen, die ihn fassen) in jeder Länge.
+  ER-Größen, die ihn fassen) in jeder Länge, und aus dem Katalog der Hersteller (halter_katalog)
+  je Längenbereich der schlankste, der genau diesen Schaft spannt – etwa ein 3°-Schrumpffutter,
+  vorn Ø 18 statt 24.
 - **Je Paar** die kürzeste Auskragung (halbiert zwischen der Schneide und Gesamtlänge − Schaft-Ø,
   wie reichweite.ausspannen_auf), bei der an den Stellen der Prüfung (Bahn.pruefung: die
   anstoßenden und einige freie) eine gekippte Achse frei bleibt (hinterschnitt_bahn.suchen_stueck).
@@ -40,6 +42,8 @@ HALBIEREN = 6  # so oft halbiert es die Auskragung
 LAENGEN_JE_REIHE = 3
 GLEICH_LANG = 5.0  # mm: so viel länger darf ein vorhandenes Paar sein und gewinnt doch
 ER_GROESSEN = 2  # die so vielen kleinsten ER-Größen, die den Schaft fassen
+KATALOG_BEREICHE = 3  # so viele Längenbereiche des Katalogs, je der schlankste Halter
+SCHLANK_VORN = 50.0  # mm: über so viel vorn an der Nase zählt, wie schlank ein Halter ist
 ERST_AN, ERST_FREI = 20, 10  # so viele Stellen fragt die erste, grobe Runde je Paar
 ZWEITE = 2  # so viele der besten Paare rechnet die zweite Runde mit allen Stellen
 RESERVE = 2.0  # mm mehr heraus, als die Stellen der Prüfung brauchen (sie sind eine Auswahl)
@@ -92,6 +96,48 @@ def _normhalter(schaft, aufnahme):
     return [hl.aus_vorlage(s, aufnahme=aufnahme) for s in schluessel]
 
 
+def _katalog_halter(schaft, aufnahme):
+    """[Halter] aus dem Katalog der Hersteller an der Aufnahme, die genau den Schaft spannen (keine
+    Spannzangenfutter – die Normreihen haben ER schon): nach der Länge in KATALOG_BEREICHE
+    Bereiche geteilt, je Bereich der schlankste (_schlankheit), bei gleicher der kürzere."""
+    if not aufnahme or schaft <= 0:
+        return []
+    schluessel = (round(schaft, 3), aufnahme)
+    if schluessel not in _KATALOG:
+        from . import halter_katalog as hk
+
+        kandidaten = []
+        for reihe in hk.katalog_reihen():
+            if reihe.aufnahme != aufnahme or reihe.art == hk.SPANNZANGE:
+                continue
+            for groesse in reihe.groessen:
+                if abs(groesse["masse"].get("d_spann", 0.0) - schaft) < 1e-6:
+                    kandidaten.append((reihe, groesse))
+        halter = [hk.aus_katalog(r, g) for r, g in kandidaten]
+        halter = [h for h in halter if h.abschnitte and h.laenge > 0]
+        halter.sort(key=lambda h: h.laenge)
+        wahl = []
+        bereiche = min(KATALOG_BEREICHE, len(halter))
+        for teil in np.array_split(np.arange(len(halter)), bereiche) if bereiche else []:
+            if len(teil):
+                wahl.append(
+                    min((halter[i] for i in teil), key=lambda h: (_schlankheit(h), h.laenge))
+                )
+        _KATALOG[schluessel] = wahl
+    return [replace(h) for h in _KATALOG[schluessel]]
+
+
+_KATALOG = {}  # (Schaft, Aufnahme) → [Halter]
+
+
+def _schlankheit(halter):
+    """Der größte Ø (mm) auf den vorderen SCHLANK_VORN mm des Halters – je kleiner, desto tiefer
+    kommt er in eine Tasche."""
+    ende = halter.laenge
+    stellen = np.linspace(max(0.0, ende - SCHLANK_VORN), ende, 11)
+    return 2.0 * max(halter.radius_bei(float(a)) for a in stellen)
+
+
 def _halter_der_verwaltung(bibliothek, aufnahme, schaft, ohne):
     """Die geraden Halter der Werkzeugverwaltung an der Aufnahme (oder ohne Aufnahme), deren Nase
     weiter ist als der Schaft – ohne den Halter `ohne` (den des Werkzeugs)."""
@@ -110,10 +156,14 @@ def _halter_der_verwaltung(bibliothek, aufnahme, schaft, ohne):
 
 
 def _fasst(halter, schaft):
-    """Kann der Halter den Schaft (Ø mm) spannen – soweit sein Name es sagt: „ER16“ bis zum
-    größten Schaft der Größe (halter.ER_MASSE), „Schrumpffutter/Hydrodehn/Weldon Ø12“ genau den;
-    sonst (ein eigener Name) ja."""
+    """Kann der Halter den Schaft (Ø mm) spannen – aus dem Katalog genau den, den er spannt
+    (Halter.spann_d); sonst soweit sein Name es sagt: „ER16“ bis zum größten Schaft der Größe
+    (halter.ER_MASSE), „Schrumpffutter/Hydrodehn/Weldon Ø12“ genau den; sonst (ein eigener Name)
+    ja."""
     import re
+
+    if getattr(halter, "spann_d", 0.0):
+        return abs(float(halter.spann_d) - schaft) < 1e-6
 
     name = f"{halter.name} {halter.bezeichnung}"
     er = re.search(r"\bER\s?(\d+)\b", name)
@@ -167,9 +217,10 @@ def paar_stueck(form, toleranz, zelle, mitten, richtungen, masse, halter, radius
 
 
 def _paare(werkzeug, bibliothek, aufnahme):
-    """[(Werkzeug, Halter, neu)] – die Fräser (_werkzeuge) je mit den Haltern der Werkzeugverwaltung
-    und der Normreihen für ihren Schaft; der gewählte Fräser ohne seinen jetzigen Halter (den hat
-    die Bahn schon gefragt), ein längerer auch mit ihm. Höchstens PAARE_HOECHSTENS."""
+    """[(Werkzeug, Halter, neu)] – die Fräser (_werkzeuge) je mit den Haltern der Werkzeugverwaltung,
+    der Normreihen und des Katalogs für ihren Schaft; der gewählte Fräser ohne seinen jetzigen
+    Halter (den hat die Bahn schon gefragt), ein längerer auch mit ihm. Höchstens
+    PAARE_HOECHSTENS."""
     jetzt = bibliothek.halter_fuer_pruefung(werkzeug)
     paare = []
     for w in _werkzeuge(werkzeug, bibliothek):
@@ -178,6 +229,7 @@ def _paare(werkzeug, bibliothek, aufnahme):
         if w is not werkzeug and jetzt is not None:
             halter.insert(0, (jetzt, False))
         halter += [(h, True) for h in _normhalter(schaft, aufnahme)]
+        halter += [(h, True) for h in _katalog_halter(schaft, aufnahme)]
         gesehen = set()
         for h, neu in halter:
             if w is werkzeug and jetzt is not None and h.kennung == jetzt.kennung:
@@ -436,9 +488,9 @@ def neue_kugel(form, ecken, vorbild, bibliothek, aufnahme="", magazin=None):
 
 
 def einrichten(empfehlung, bibliothek):
-    """Richtet die Empfehlung in der Werkzeugverwaltung ein: einen neuen Halter (eine Normreihe)
-    dazu, beim Fräser (im Magazin an seinem Platz) der Halter und wie weit er heraussteht
-    (reichweite.ausspannen_setzen).
+    """Richtet die Empfehlung in der Werkzeugverwaltung ein: einen neuen Halter (eine Normreihe
+    oder aus dem Katalog) dazu, beim Fräser (im Magazin an seinem Platz) der Halter und wie weit
+    er heraussteht (reichweite.ausspannen_setzen).
     Gibt das Werkzeug zurück – None, wenn es nicht mehr da ist. Speichert nicht."""
     from . import reichweite as rw
     from . import werkzeuge as wz

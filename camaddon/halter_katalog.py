@@ -137,6 +137,7 @@ def aus_katalog(reihe, groesse):
         abschnitte=teile,
         aufnahme=reihe.aufnahme,
         link=groesse["link"] or reihe.link,
+        spann_d=0.0 if reihe.art == SPANNZANGE else groesse["masse"].get("d_spann", 0.0),
     )
 
 

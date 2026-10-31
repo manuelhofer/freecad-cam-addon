@@ -5036,7 +5036,11 @@ class _Block:
             dazu.append(tr("emp.nicht_im_magazin"))
         werte = {
             "werkzeug": empfehlung.werkzeug_text,
-            "halter": empfehlung.halter.name,
+            # Mit der Bezeichnung (aus dem Katalog: Artikelnummer und Hersteller) – so lässt er
+            # sich bestellen.
+            "halter": " – ".join(
+                t for t in (empfehlung.halter.name, empfehlung.halter.bezeichnung) if t
+            ),
             "heraus": einheiten.text(empfehlung.heraus, einheiten.LAENGE, 0),
             "laenge": einheiten.text(empfehlung.laenge, einheiten.LAENGE, 0),
         }

@@ -108,7 +108,7 @@ if isinstance(empfehlung, em.Empfehlung):
             f"{empfehlung.heraus:.0f} mm heraus, {empfehlung.laenge:.0f} ab Spindelnase"
         )
     )
-    pruefe(empfehlung.halter_neu and "· SK40" in empfehlung.halter.name, empfehlung.halter.name)
+    pruefe(empfehlung.halter_neu and empfehlung.halter.aufnahme == "SK40", empfehlung.halter.name)
     pruefe(12.0 < empfehlung.heraus <= 54.0, f"heraus {empfehlung.heraus}")
     werkzeug = em.einrichten(empfehlung, bib)
     pruefe(werkzeug is kugel and kugel.halter != er32.kennung, "nicht eingerichtet")
@@ -188,10 +188,19 @@ fl_bahn = fb.planen(
     fb.Flankenwerte(radius=5.0, schneide=20.0, oben=40.0, sicher=60.0, vorschub=1000.0),
 )
 fl_stellen = flop._stellen_fuer_empfehlung(fl_bahn, 5.0)
-pruefe(em.empfehlen_flanke(teil, fl_stellen, schaft, bib, "SK40") == em.KEINE, "Ø10 × 45: doch")
+kurz = em.empfehlen_flanke(teil, fl_stellen, schaft, bib, "SK40")
+pruefe(kurz == em.KEINE, f"Ø10 × 45: doch {getattr(getattr(kurz, 'halter', None), 'name', '')}")
 # Das ER11-Futter aus der Werkzeugverwaltung spannt höchstens Ø 7 – nicht für den Schaft Ø 10.
-er11 = next(h for h in bib.halter if "ER11" in h.name)
+# (Seit die Empfehlung auch den Katalog fragt, legt die Kugel oben ein 3°-Schrumpffutter an, kein
+# ER11 – dann hier eins.)
+er11 = next((h for h in bib.halter if "ER11" in h.name), None) or bib.halter_dazu(
+    hl.aus_vorlage(hl.reihe(hl.ER, "ER11", hl.REIHE_LAENGEN[hl.ER][0]), aufnahme="SK40")
+)
 pruefe(not em._fasst(er11, 10.0) and em._fasst(er11, 6.0), "ER11 fasst Ø10")
+# Ein Schrumpffutter aus dem Katalog spannt genau seinen Ø (Halter.spann_d) – „d6 A80“ sagt es
+# dem Namen nach nicht; bis 0.328 bot die Flanke es dem Schaft Ø 10 an.
+d6 = next((h for h in bib.halter if h.spann_d), None)
+pruefe(d6 is not None and em._fasst(d6, 6.0) and not em._fasst(d6, 10.0), f"Katalog: {d6}")
 schaft.gesamtlaenge = 60.0
 fl = em.empfehlen_flanke(teil, fl_stellen, schaft, bib, "SK40")
 name = fl.halter.name if isinstance(fl, em.Empfehlung) else fl

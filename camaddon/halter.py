@@ -682,6 +682,9 @@ class Halter:
     kopf_d: float = 0.0  # mm: Ø des Kopfs von der Aufnahme bis zum Bezugspunkt
     aufnahme: str = ""  # an der Spindel: „SK40“, „HSK-A63“ … (AUFNAHMEN); "" unbekannt
     link: str = ""  # die Seite des Halters im Katalog (oder die Suche danach)
+    # mm: genau diesen Schaft spannt er (Schrumpf-, Hydrodehn-, Weldonfutter aus dem Katalog der
+    # Hersteller); 0: nicht bekannt, oder eine Spannzange (dann sagt es der Name, „ER16“).
+    spann_d: float = 0.0
 
     @property
     def gewinkelt(self):
@@ -737,6 +740,7 @@ class Halter:
             "kopf_d": self.kopf_d,
             "aufnahme": self.aufnahme,
             "link": self.link,
+            "spann_d": self.spann_d,
         }
 
     @classmethod
@@ -760,6 +764,7 @@ class Halter:
         h.kopf_d = _zahl(daten.get("kopf_d"))
         h.aufnahme = str(daten.get("aufnahme") or "")
         h.link = str(daten.get("link") or "")
+        h.spann_d = _zahl(daten.get("spann_d"))
         return h
 
 

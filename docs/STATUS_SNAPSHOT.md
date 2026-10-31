@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.329.0):* **Empfehlung mit Haltern aus dem Katalog** – stößt der Halter an, fragt
+  `empfehlung.py` außer den Normreihen je Längenbereich den schlanksten Halter des Katalogs, der
+  genau den Schaft spannt (am Testblock: MAPAL ThermoChuck 3° slim, vorn Ø 17,4 statt 24 – 25 mm
+  heraus). Der Satz nennt Artikelnummer und Hersteller. Neu am Halter `spann_d` (aus dem Katalog):
+  ein Schrumpffutter Ø 6 wird keinem Schaft Ø 10 mehr angeboten – vorher galt jeder Halter ohne
+  „Schrumpffutter Ø…“ im Namen als passend.
 - *Korrektur (0.328.1):* **Halter-Katalog: 449 Reihen, 5000 Größen** (vorher 43/350) – MAPAL,
   HAIMER, SCHUNK, Kennametal, REGO-FIX, Hoffmann GARANT, Sandvik (CoroChuck 930), NIKKEN; jetzt auch
   SK30/SK50, BT30/BT50, HSK-A32…A100, HSK-E, HSK-F63, Capto C3–C8, CAT40/50. Doppelte erkennt die
