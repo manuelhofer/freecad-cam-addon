@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-47 osg-yg1-moldino-sumitomo
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“; die Sammler für OSG/YG-1 und Moldino/Sumitomo vom
+  31.10. vormittags waren abgebrochen – neu gestartet mit den Regeln „Tempo wie ein Mensch“ und
+  „nicht nach /tmp“ (~/freecad_cam/wip/sammler_auftrag.md).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/osg_yg1.json` (731 Reihen, 30 569 Größen),
+  `camaddon/werkzeugkiste_daten/moldino_sumitomo.json` (242 Reihen, 14 920 Größen) – über
+  werkzeuge_uebernehmen.py.
+- `camaddon/kataloge_index.json` neu (14 Dateien, 39,4 MB); `translations/*.json`: „Rund 127 000
+  Werkzeuge“ mit den neuen Herstellern; `package.xml` 0.343.0.
+
+### ERGEBNIS
+- Übernahme: Fehler 0, doppelt 0 (auch über die Dateien hinweg: 82 097 + 30 569 + 14 920 =
+  127 586). Prüfen der Werkzeugkiste 5,6 s (im Nebenrechner).
+- Gesperrt/aufgehört: yg1.de HTTP 403 (sofort aufgehört); yg1.solutions brach den Europa-Katalog
+  serverseitig ab. Moldino: unvollständige Zertifikatskette, das Zwischenzertifikat beim Aussteller
+  geholt (Prüfung an).
+- test_kataloge, test_werkzeugkiste_datei, test_werkzeugwahl, test_empfehlung,
+  test_faehigkeiten, test_sprache, szenario_katalog_bohrung, szenario_werkzeugkiste,
+  szenario_beta_schritte grün.
 ## P-2026-10-31-46 angelegt-mit-wechseln
 
 ### EINGELESEN

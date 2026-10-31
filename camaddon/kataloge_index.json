@@ -44,6 +44,14 @@
    "groesse": 207064,
    "sha256": "cd19b366ab49bf4ffc3ed4d3eedb0b85b8924eaaf07ef5eed162204f46d8f15b"
   },
+  "werkzeugkiste_daten/moldino_sumitomo.json": {
+   "groesse": 4617038,
+   "sha256": "82135ff473c9332421b6de0a9e5049a58984bdd114ee91d596df02cf90b2bd7c"
+  },
+  "werkzeugkiste_daten/osg_yg1.json": {
+   "groesse": 8406717,
+   "sha256": "d101a3d943e7b0a57569cf86fdd16748425e8966a1bc585fbba7a6f7b725cfd8"
+  },
   "werkzeugkiste_daten/sandvik_seco_walter.json": {
    "groesse": 6139695,
    "sha256": "1307513da4b33337f3d28a42e9143d5aa0f146c804b6119a79325d78d6e37115"
