@@ -101,9 +101,11 @@ def schritte(h):
     )
     h.bild("4_cam_werkzeugleiste")
 
-    # Die Werkzeugleiste: die zwölf Arbeitsbefehle, mit „Bestückung“ (W-002 Stufe G),
+    # Die Werkzeugleiste: die vierzehn Arbeitsbefehle, mit „Bestückung“ (W-002 Stufe G),
     # „Bearbeitung (Fräsen)“ (W-006 S3c), „Ebene schwenken (3+2) …“ (W-014), „5-Achs-Schlichten
-    # vergleichen …“ (W-015, 16.5) und „Programm schreiben“ (W-005). Das Menü „CAM-Addon“: alle (D-13).
+    # vergleichen …“ (W-015, 16.5), „Programm schreiben“ (W-005) und – hinter der
+    # Werkzeugverwaltung – „Halter und Aufnahmen …“ und „Spannmittel …“ (W-042). Das Menü
+    # „CAM-Addon“: alle (D-13).
     leiste = next(
         t
         for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
@@ -111,7 +113,10 @@ def schritte(h):
     )
     knoepfe = [a.text() for a in leiste.actions() if not a.isSeparator()]
     h.pruefe(
-        len(knoepfe) == 12 and "Bestückung" in knoepfe and knoepfe[-1] == "Programm schreiben …",
+        len(knoepfe) == 14
+        and "Bestückung" in knoepfe
+        and knoepfe[-1] == "Programm schreiben …"
+        and knoepfe[4:6] == ["Halter und Aufnahmen …", "Spannmittel …"],
         f"Werkzeugleiste: {knoepfe}",
     )
     h.pruefe("Nach Updates suchen" not in knoepfe, "„Nach Updates suchen“ in der Leiste")
@@ -123,13 +128,14 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 19
+            len(eintraege) == 21
             and eintraege[:2] == ["So geht’s", "Maschinen …"]
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege
             and "Einrichtblatt …" in eintraege  # W-019
             and "Fertigteil als Rohteil" in eintraege  # W-029
-            and "Beispiele laden …" in eintraege,
+            and "Beispiele laden …" in eintraege
+            and "Spannmittel …" in eintraege,  # W-042
             f"Menü: {eintraege}",
         )
         menue.popup(FreeCADGui.getMainWindow().mapToGlobal(QtCore.QPoint(400, 60)))
@@ -224,7 +230,9 @@ def schritte(h):
     feld.setValue(3)
     seite.saveSettings()
     gemerkt = FreeCAD.ParamGet(PARAMETER_PFAD).GetInt(nr_.EINSTELLUNG_ANZAHL, -1)
-    h.pruefe(gemerkt == 3 and nr_.pool().anzahl == 3, f"3 Nebenrechner: {gemerkt}, {nr_.pool().anzahl}")
+    h.pruefe(
+        gemerkt == 3 and nr_.pool().anzahl == 3, f"3 Nebenrechner: {gemerkt}, {nr_.pool().anzahl}"
+    )
     h.pruefe(nr_.gewuenschte_anzahl() == 3, "die eingestellte 3 bleibt")
     feld.setValue(kerne)
     seite.saveSettings()
