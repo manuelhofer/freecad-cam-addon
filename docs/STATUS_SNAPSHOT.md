@@ -584,7 +584,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Dubletten, keine Warnungen beim Laden). Laden 20 s → 2,3 s (`werkzeuge(…, mit_werten=False)`,
   die Einstellungsgruppe einmal geholt); die Größen im Baum erst beim Aufklappen, Suche über
   Hersteller/Marke/Reihe. Fähigkeiten der Werkzeuge (Format 3a) seit 0.322.0. Offen: Hoffmann-Fräser,
-  Sandvik/Seco/Walter, weitere Spannmittel und Halter (Sammler).
+  Sandvik/Seco/Walter, weitere Spannmittel und Halter (Sammler). 0.327.0: „Werkzeuge für diese Tasche“
+  in der Beta (`werkzeugwahl.py`); Tauchfräsen als Entwurf (Frage 2). Alle Prüfdateien danach grün
+  (139/139, 2026-10-31).
 - *Neu (0.320.0):* **Halter und Spannmittel mit eigenem Knopf** (W-042; Manuel, 2026-10-31: „die
   halter oder aufnahmen einen eigenen knopf … genau so spannmittel ... gut vorgefüllt … wie er auf dem
   tisch aufgespannt ist ... denk dir was aus !“). „Halter und Aufnahmen …“ öffnet das Fenster „Halter“
