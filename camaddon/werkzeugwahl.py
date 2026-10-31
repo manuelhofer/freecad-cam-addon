@@ -17,7 +17,9 @@ dort ein größeres steht:
 - **schruppen:** Schaft-, Torus- und Hochvorschubfräser, Ø höchstens 80 % des freien Kreises (die
   Länge zählt nicht: er schruppt in Lagen),
 - **ecken:** Fräser für die Rundungen, Ø höchstens 2 × der kleinste Innenradius,
-- **bohrfraesen:** Wendeplattenbohrer, die das laut Hersteller können.
+- **bohrfraesen:** Wendeplattenbohrer, die das laut Hersteller können,
+- **tauchfraesen:** Fräser, die laut Hersteller tauchen (Tauchfräser), Ø höchstens der freie Kreis
+  (tauchfraesen.py taucht in Lagen: die Länge zählt nicht).
 
 Läuft ohne Oberfläche.
 """
@@ -41,7 +43,7 @@ class Masse:
 
 @dataclass
 class Vorschlag:
-    weg: str  # "vorbohren", "schruppen", "ecken", "bohrfraesen"
+    weg: str  # "vorbohren", "schruppen", "ecken", "bohrfraesen", "tauchfraesen"
     eigenes: object = None  # das größte passende aus der Werkzeugverwaltung
     katalog: list = field(default_factory=list)  # größere aus dem Katalog (bis zu 3)
     grenze: float = 0.0  # mm: so groß darf es höchstens sein
@@ -173,4 +175,8 @@ def vorschlaege(m, eigene, katalog=None):
         "bohrfraesen", (wz.BOHRER,), m.frei - 2 * RAND, m.tiefe, eigene, katalog,
         lambda w: bool(w.faehigkeiten.get("bohrfraesen")),
     )  # fmt: skip
-    return [v for v in (bohrer, schruppen, ecken, bohrfraesen) if v is not None]
+    tauchen = _vorschlag(
+        "tauchfraesen", FRAESER, m.frei, 0.0, eigene, katalog,
+        lambda w: bool(w.faehigkeiten.get("tauchfraesen")),
+    )  # fmt: skip
+    return [v for v in (bohrer, schruppen, ecken, bohrfraesen, tauchen) if v is not None]

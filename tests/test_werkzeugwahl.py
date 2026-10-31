@@ -3,7 +3,8 @@
 # 2. vorschlaege mit eigenen Werkzeugen (Bohrer Ø 10/20/38, 38 nur 10 mm Schneide; Fräser Ø 12/28)
 #    und einem kleinen Katalog: vorbohren der eigene Ø 20 (Ø 38 ist zu kurz), aus dem Katalog der
 #    größere Ø 36; schruppen der eigene Ø 28 (bis 80 % des freien Kreises); ecken (bis Ø 10) nichts Eigenes, aus dem Katalog Ø 10
-#    und Ø 8; bohrfraesen nur der Wendeplattenbohrer, der es kann.
+#    und Ø 8; bohrfraesen nur der Wendeplattenbohrer, der es kann; tauchfraesen nur der Tauchfräser
+#    (Ø 32 im Katalog, kein eigener; der Ø 50 passt nicht in den freien Kreis).
 import os
 import sys
 
@@ -57,6 +58,8 @@ katalog = [
     werkzeug(wz.BOHRER, 25, wendeplatten=True),
     werkzeug(wz.SCHAFTFRAESER, 10),
     werkzeug(wz.KUGELFRAESER, 8),
+    werkzeug(wz.SCHAFTFRAESER, 32, tauchfraesen=True),
+    werkzeug(wz.SCHAFTFRAESER, 50, tauchfraesen=True),
 ]
 v = {x.weg: x for x in ww.vorschlaege(m, eigene, katalog)}
 vb = v.get("vorbohren")
@@ -71,6 +74,9 @@ if ec is None or ec.eigenes is not None or [w.durchmesser for w in ec.katalog] !
 bf = v.get("bohrfraesen")
 if bf is None or [w.durchmesser for w in bf.katalog] != [30]:
     fehler.append(f"bohrfraesen: {bf}")
+tf = v.get("tauchfraesen")
+if tf is None or tf.eigenes is not None or [w.durchmesser for w in tf.katalog] != [32]:
+    fehler.append(f"tauchfraesen: {tf}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

@@ -3638,5 +3638,6 @@
     "beta.weiter.messen.keins": "Gemessen wird von Hand: Die Flächen sind keine Rechtecktasche, kein Zapfen, keine Bohrung oder Welle – die Maschine hält.",
     "beta.weiter.messen.kein_zyklus": "{was} – für {steuerung} gibt es keinen Messzyklus: Die Maschine hält zum Messen von Hand.",
     "beta.weiter.messen.ohne_taster": "{was} – mit der Nummer deines Messtasters misst die Maschine das selbst und hält nur, wenn es außerhalb ±0,02 mm liegt; leer hält sie zum Messen von Hand.",
-    "beta.weiter.messen.mit": "Der Taster T{t} misst {was} (±0,02 mm) – angehalten wird nur, wenn es außerhalb liegt."
+    "beta.weiter.messen.mit": "Der Taster T{t} misst {was} (±0,02 mm) – angehalten wird nur, wenn es außerhalb liegt.",
+    "beta.werkzeuge.tauchfraesen": "Tauchfräsen"
 }

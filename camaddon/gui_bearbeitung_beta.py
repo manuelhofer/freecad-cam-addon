@@ -1315,13 +1315,14 @@ def _vorschlag_zeile(v):
         "schruppen": tr("beta.werkzeuge.schruppen"),
         "ecken": tr("beta.werkzeuge.ecken"),
         "bohrfraesen": tr("beta.werkzeuge.bohrfraesen"),
+        "tauchfraesen": tr("beta.werkzeuge.tauchfraesen"),
     }[v.weg]
     teile = []
     if v.eigenes is not None:
         nummer = getattr(v.eigenes, "nummer", 0)
         name = _werkzeug_text(v.eigenes)
         teile.append(tr("beta.werkzeuge.eigenes", name=f"T{nummer} {name}" if nummer else name))
-    elif v.weg != "bohrfraesen":
+    elif v.weg not in ("bohrfraesen", "tauchfraesen"):
         teile.append(tr("beta.werkzeuge.keins"))
     if v.katalog:
         teile.append(

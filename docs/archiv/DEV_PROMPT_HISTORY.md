@@ -12,6 +12,17 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-22 tauchfraeser-vorschlagen
+
+### EINGELESEN
+- Plan C2 (Werkzeuge vorschlagen) mit dem Tauchfräsen aus 0.330.0.
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py`: Weg „tauchfraesen“ (Fähigkeit tauchfraesen, Ø bis freier Kreis); `camaddon/gui_bearbeitung_beta.py`: die Zeile; `translations/*.json`.
+- `tests/test_werkzeugwahl.py`; `docs/bilder/beta/3c_werkzeuge_katalog.png`, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.331.3.
+
+### ERGEBNIS
+- test_werkzeugwahl, test_sprache, szenario_beta_schritte grün.
 ## P-2026-10-31-21 weiter-messen-anzeigen
 
 ### EINGELESEN

@@ -3638,5 +3638,6 @@
     "beta.weiter.messen.keins": "Measured by hand: the faces are not a rectangular pocket, boss, bore or round boss – the machine stops.",
     "beta.weiter.messen.kein_zyklus": "{was} – there is no measuring cycle for {steuerung}: the machine stops for measuring by hand.",
     "beta.weiter.messen.ohne_taster": "{was} – with your touch probe's number the machine measures it itself and only stops if it is outside ±0.02 mm; empty, it stops for measuring by hand.",
-    "beta.weiter.messen.mit": "Probe T{t} measures {was} (±0.02 mm) – it only stops if it is outside."
+    "beta.weiter.messen.mit": "Probe T{t} measures {was} (±0.02 mm) – it only stops if it is outside.",
+    "beta.werkzeuge.tauchfraesen": "Plunge milling"
 }
