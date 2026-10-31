@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-16 hoffmann-rest-messmerkmal
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Frage 3): „mach es einfach langsamer … limitier dich auf ein menschliches
+  mass“; (Frage 1) „willst du auch messprogramme einbauen .. wär natürlich cool ^^“.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/hoffmann_rest.json` (24 Reihen, 489 Größen),
+  `hoffmann_fraeser.json` (eine Reihe vollständiger) – aus `~/freecad_cam/wip/hoffmann_sammler/`.
+- `camaddon/messen.py`, `tests/test_messen.py`: Messmerkmal aus den Flächen (Plan C3b).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.330.1.
+
+### ERGEBNIS
+- test_werkzeugkiste_datei, test_messen grün. Der Hoffmann-Dauerlauf läuft (Exit 3 bei Sperre).
 ## P-2026-10-31-15 tauchfraesen
 
 ### EINGELESEN

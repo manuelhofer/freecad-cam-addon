@@ -4711,7 +4711,7 @@
    "hersteller": "Hoffmann Group",
    "marke": "GARANT",
    "titel": "VHM-Microfräser",
-   "quelle": "hoffmann-group.com, Produktseiten 201141-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen 2026-10-31",
+   "quelle": "hoffmann-group.com, Produktseiten 201141-<Größe> (Technische Daten, Anwendertabelle, Netto-Preis), abgerufen bis 2026-10-31",
    "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/201141-0%2C2X1",
    "gemeinsam": {
     "schneiden": 2,
@@ -4719,6 +4719,7 @@
     "schneidstoff": "vhm",
     "beschichtung": "DLC",
     "mittenschneidend": true,
+    "bohrfraesen": true,
     "werkstoffe": [
      "N1",
      "N2"
@@ -5462,6 +5463,48 @@
     {
      "durchmesser": 2,
      "schneidenlaenge": 3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.91,
+     "artikel": "201141 2X6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X6",
+     "preis_netto": 45.9,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
+     "gesamtlaenge": 55,
+     "hals_d": 1.91,
+     "artikel": "201141 2X8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2X8",
+     "preis_netto": 43.9,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 2,
+     "schneidenlaenge": 3,
      "gesamtlaenge": 57,
      "hals_d": 1.91,
      "artikel": "201141 2X20",
@@ -5572,6 +5615,90 @@
      "artikel": "201141 2,5X20",
      "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-2%2C5X20",
      "preis_netto": 71,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 4.6,
+     "gesamtlaenge": 55,
+     "hals_d": 2.91,
+     "artikel": "201141 3X15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-3X15",
+     "preis_netto": 55,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 4.6,
+     "gesamtlaenge": 57,
+     "hals_d": 2.91,
+     "artikel": "201141 3X20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-3X20",
+     "preis_netto": 71,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 4.6,
+     "gesamtlaenge": 65,
+     "hals_d": 2.91,
+     "artikel": "201141 3X25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-3X25",
+     "preis_netto": 52.4,
+     "schnittwerte": {
+      "N1": {
+       "schruppen": {
+        "vc": 480
+       }
+      },
+      "N2": {
+       "schruppen": {
+        "vc": 200
+       }
+      }
+     }
+    },
+    {
+     "durchmesser": 3,
+     "schneidenlaenge": 4.6,
+     "gesamtlaenge": 65,
+     "hals_d": 2.91,
+     "artikel": "201141 3X30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/201141-3X30",
+     "preis_netto": 60.5,
      "schnittwerte": {
       "N1": {
        "schruppen": {
