@@ -1171,6 +1171,17 @@ pruefe(
     "G65 P9812 X59.400 T2 U0.5" in z_fk and "G65 P9812 Y39.400 H0.020" in z_fk,
     f"Renishaw mit Korrektur: {[x for x in z_fk if 'P981' in x]}",
 )
+# Heidenhain: derselbe Zyklus 423 mit Q330 = T2 (die TNC trägt die Abweichung in DR ein) und den
+# Grenzen ±0,5 statt der Toleranz – angehalten nur bei einem groben Fehler.
+for kennung in ("heidenhain", "heidenhain_tnc640"):
+    z_hk = pp.programm(
+        [bohren, messen_k, weiter_2], pp.steuerung(kennung, {"taster": "99"}), fraese, "M"
+    ).zeilen
+    for erwartet in ("Q330=+2 ;WERKZEUG", "Q284=+59.900 ;GROESSTMASS 1. SEITE ~"):
+        pruefe(
+            any(x.strip().endswith(erwartet) for x in z_hk),
+            f"{kennung} mit Korrektur: „{erwartet}“ fehlt",
+        )
 
 # Ohne Taster sagt die Meldung am Halt das Sollmaß (Siemens MSG, ASCII: ± als „+-“).
 z_msg = pp.programm([bohren, messen_m, weiter_2], pp.steuerung("siemens"), fraese, "M").zeilen

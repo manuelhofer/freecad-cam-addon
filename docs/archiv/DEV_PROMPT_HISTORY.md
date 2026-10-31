@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-39 heidenhain-rl-rr-q330
+
+### EINGELESEN
+- Plan C3b, Stufe 2 (Manuel, 2026-10-31: „1.b“ Konturprogrammierung, „ja mach das so“ zum
+  Korrigieren im Messzyklus) – offen war Heidenhain: RL/RR im Klartext und Q330.
+
+### DATEIEN
+- `camaddon/klartext.py`: `KORREKTUR`, `komp` (modal) – L- und C-Sätze mit RL/RR statt R0.
+- `camaddon/postprozessor.py`: Heidenhain mit korrektur_links/-rechts/-aus (G41/G42/G40, im
+  Klartext RL/RR/R0) und `korrigieren_*` (421–424 mit Q330 = Schlichtwerkzeug, Grenzen
+  ±KORR_GRENZE 0,5); `_hh_ende`, `_hh_rechteck`; `_mit_korrektur` auch für den Dialekt Klartext.
+- `tests/test_kontur_korrektur.py` (Teil 5: Heidenhain RL, Bögen mit RL, R0 danach, nachgelesen
+  ohne Befund), `tests/test_postprozessor.py` (Heidenhain mit Korrektur: Q330=+2, Q284 ±0,5).
+- `docs/konzept_schritt_assistent.md`, `package.xml` 0.339.0.
+
+### ERGEBNIS
+- test_kontur_korrektur, test_postprozessor, test_postprozessor_nachfahren (158 s),
+  test_postprozessor_zufall, test_programm_pruefen grün.
+- Klartext der Tasche 60 × 40, Ecken R 10: „L X+50 Y+60 RL F900“, „L X+30 RL“, „CC X+30 Y+50“,
+  „C X+20 Y+50 DR+ RL“ … „L X+50 RL“, „L X+44 Y+42 R0“.
 ## P-2026-10-31-38 frage-material-raus
 
 ### EINGELESEN

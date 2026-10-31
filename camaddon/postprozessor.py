@@ -569,32 +569,55 @@ KORRIGIEREN_RENISHAW = {
     "korrigieren_welle": _RENISHAW_EIN + "G65 P9810 Z{ueber} F3000.\n"
     "G65 P9814 D{d} Z{z} T{t_korr} U0.5\n" + _RENISHAW_AUS,
 }
+# Radiuskorrektur: Siemens und LinuxCNC nehmen den Radius des eingewechselten Werkzeugs (Siemens
+# D1, LinuxCNC die Werkzeugtabelle, Heidenhain RL/RR mit R + DR der Tabelle), Fanuc und Haas aus
+# dem Register D.
+KORREKTUR_OHNE_D = {"korrektur_links": "G41", "korrektur_rechts": "G42", "korrektur_aus": "G40"}
+KORR_GRENZE = 0.5  # mm – Korrigieren: angehalten nur, wenn die Abweichung größer ist (S_TDIF, U)
 _HH_KOPF = "L Z{sicher_vz} R0 FMAX\n"
 _HH_HOEHEN = (
     "Q261={z_vz} ;MESSHOEHE ~\nQ320=+0 ;SICHERHEITS-ABST. ~\nQ260={sicher_vz} ;SICHERE HOEHE ~\n"
     "Q301=+1 ;FAHREN AUF S. HOEHE ~\n"
 )
-_HH_ENDE = (
-    "Q279=+0 ;TOLERANZ 1. MITTE ~\nQ280=+0 ;TOLERANZ 2. MITTE ~\nQ281=+1 ;MESSPROTOKOLL ~\n"
-    "Q309=+1 ;PGM-STOP BEI FEHLER ~\nQ330=+0 ;WERKZEUG"
-)
-_HH_RECHTECK = (
-    "Q273={x_vz} ;MITTE 1. ACHSE ~\nQ274={y_vz} ;MITTE 2. ACHSE ~\nQ282={lx_vz} ;1. SEITEN-LAENGE ~\n"
-    "Q283={ly_vz} ;2. SEITEN-LAENGE ~\n"
-    + _HH_HOEHEN
-    + "Q284={lx_max} ;GROESSTMASS 1. SEITE ~\nQ285={lx_min} ;KLEINSTMASS 1. SEITE ~\n"
-    "Q286={ly_max} ;GROESSTMASS 2. SEITE ~\nQ287={ly_min} ;KLEINSTMASS 2. SEITE ~\n" + _HH_ENDE
-)
 
 
-def _hh_kreis(nummer, titel, groesst, kleinst, tnc640):
+def _hh_ende(korr=False):
+    """Toleranzen der Mitte, Protokoll, Halt bei Fehler – und Q330: das Werkzeug, dessen Radius
+    (Spalte DR) die TNC um die Abweichung korrigiert (korr; Messzyklen TNC 640, „Werkzeug
+    korrigieren“: „korrigiert den Werkzeugradius in der Spalte DR … grundsätzlich immer“)."""
+    werkzeug = "+{t_korr}" if korr else "+0"
+    return (
+        "Q279=+0 ;TOLERANZ 1. MITTE ~\nQ280=+0 ;TOLERANZ 2. MITTE ~\nQ281=+1 ;MESSPROTOKOLL ~\n"
+        f"Q309=+1 ;PGM-STOP BEI FEHLER ~\nQ330={werkzeug} ;WERKZEUG"
+    )
+
+
+def _hh_rechteck(korr=False):
+    """Die Q-Parameter der Rechtecke (423, 424); mit `korr` die Grenzen ±KORR_GRENZE (gemessen
+    wird vor dem letzten Gang: angehalten nur bei einem groben Fehler, sonst korrigiert)."""
+    k = "_k" if korr else ""
+    return (
+        "Q273={x_vz} ;MITTE 1. ACHSE ~\nQ274={y_vz} ;MITTE 2. ACHSE ~\n"
+        "Q282={lx_vz} ;1. SEITEN-LAENGE ~\nQ283={ly_vz} ;2. SEITEN-LAENGE ~\n"
+        + _HH_HOEHEN
+        + f"Q284={{lx_max{k}}} ;GROESSTMASS 1. SEITE ~\nQ285={{lx_min{k}}} ;KLEINSTMASS 1. SEITE ~\n"
+        f"Q286={{ly_max{k}}} ;GROESSTMASS 2. SEITE ~\nQ287={{ly_min{k}}} ;KLEINSTMASS 2. SEITE ~\n"
+        + _hh_ende(korr)
+    )
+
+
+_HH_RECHTECK = _hh_rechteck()
+
+
+def _hh_kreis(nummer, titel, groesst, kleinst, tnc640, korr=False):
+    k = "_k" if korr else ""
     text = (
         f"TCH PROBE {nummer} {titel} ~\nQ273={{x_vz}} ;MITTE 1. ACHSE ~\n"
         "Q274={y_vz} ;MITTE 2. ACHSE ~\nQ262={d_vz} ;SOLL-DURCHMESSER ~\n"
         "Q325=+0 ;STARTWINKEL ~\nQ247=+90 ;WINKELSCHRITT ~\n"
         + _HH_HOEHEN
-        + f"Q{groesst}={{d_max}} ;GROESSTMASS ~\nQ{kleinst}={{d_min}} ;KLEINSTMASS ~\n"
-        + _HH_ENDE
+        + f"Q{groesst}={{d_max{k}}} ;GROESSTMASS ~\nQ{kleinst}={{d_min{k}}} ;KLEINSTMASS ~\n"
+        + _hh_ende(korr)
     )
     if tnc640:  # ab TNC 640: Antastungen, Verfahrart, Werkzeug umkehren, Anstellwinkel
         text += (
@@ -605,17 +628,22 @@ def _hh_kreis(nummer, titel, groesst, kleinst, tnc640):
 
 
 def _messen_heidenhain(tnc640):
-    return {
-        "messen_tasche": _HH_KOPF + "TCH PROBE 423 MESSEN RECHTECK INN. ~\n" + _HH_RECHTECK,
-        "messen_zapfen": _HH_KOPF + "TCH PROBE 424 MESSEN RECHTECK AUS. ~\n" + _HH_RECHTECK,
-        "messen_bohrung": _hh_kreis(421, "MESSEN BOHRUNG", 275, 276, tnc640),
-        "messen_welle": _hh_kreis(422, "MESSEN KREIS AUSSEN", 277, 278, tnc640),
-    }
+    """Messen (421–424) und Messen mit Korrektur des Schlichtwerkzeugs (dieselben mit Q330), dazu
+    die Radiuskorrektur RL/RR – klartext.py macht sie aus G41/G42/G40."""
+    zyklen = {}
+    for korr, vorne in ((False, "messen"), (True, "korrigieren")):
+        rechteck = _hh_rechteck(korr)
+        zyklen.update(
+            {
+                f"{vorne}_tasche": _HH_KOPF + "TCH PROBE 423 MESSEN RECHTECK INN. ~\n" + rechteck,
+                f"{vorne}_zapfen": _HH_KOPF + "TCH PROBE 424 MESSEN RECHTECK AUS. ~\n" + rechteck,
+                f"{vorne}_bohrung": _hh_kreis(421, "MESSEN BOHRUNG", 275, 276, tnc640, korr),
+                f"{vorne}_welle": _hh_kreis(422, "MESSEN KREIS AUSSEN", 277, 278, tnc640, korr),
+            }
+        )
+    return {**zyklen, **KORREKTUR_OHNE_D}
 
 
-# Radiuskorrektur: Siemens und LinuxCNC nehmen den Radius des eingewechselten Werkzeugs (Siemens
-# D1, LinuxCNC die Werkzeugtabelle), Fanuc und Haas aus dem Register D.
-KORREKTUR_OHNE_D = {"korrektur_links": "G41", "korrektur_rechts": "G42", "korrektur_aus": "G40"}
 KORREKTUR_MIT_D = {
     "korrektur_links": "G41 D{t}",
     "korrektur_rechts": "G42 D{t}",
@@ -1492,6 +1520,12 @@ def _messen_saetze(s, gemessen, info, nummer=1, korrigiert=None, abschnitte=()):
         "ly_min": f"{m.laenge_y - toleranz:+.3f}",
         "d_max": f"{m.durchmesser + toleranz:+.3f}",
         "d_min": f"{m.durchmesser - toleranz:+.3f}",
+        "lx_max_k": f"{m.laenge_x + KORR_GRENZE:+.3f}",
+        "lx_min_k": f"{m.laenge_x - KORR_GRENZE:+.3f}",
+        "ly_max_k": f"{m.laenge_y + KORR_GRENZE:+.3f}",
+        "ly_min_k": f"{m.laenge_y - KORR_GRENZE:+.3f}",
+        "d_max_k": f"{m.durchmesser + KORR_GRENZE:+.3f}",
+        "d_min_k": f"{m.durchmesser - KORR_GRENZE:+.3f}",
         "x": f"{m.x:.3f}",
         "y": f"{m.y:.3f}",
         "z": f"{m.z_mess:.3f}",
@@ -1658,7 +1692,10 @@ def _mit_korrektur(befehle, s, abschnitt, info, hinweise):
     if not any(n.startswith(KOMP) for n, _p in befehle):
         return befehle
     kann = (
-        s.korrektur_links and s.korrektur_rechts and s.korrektur_aus and s.dialekt == "gcode"
+        s.korrektur_links
+        and s.korrektur_rechts
+        and s.korrektur_aus
+        and s.dialekt in ("gcode", "klartext")
     ) and not info.drehmaschine
     ergebnis, i = [], 0
     while i < len(befehle):

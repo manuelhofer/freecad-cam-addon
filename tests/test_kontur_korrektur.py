@@ -7,6 +7,7 @@
 # 3. Die Bahn selbst (die Mitte) ist mit und ohne Korrektur dieselbe.
 # 4. Der Postprozessor (LinuxCNC): „G41“, die Fahrt auf den ersten Konturpunkt, die Kontur, „G40“,
 #    keine Bögen des Ein- und Ausfahrens; GRBL (ohne Korrektur): die Mitte, keine Notizen.
+# 5. Heidenhain (Klartext): RL an der Kontur, R0 danach, nachgelesen ohne Befund.
 import math
 import os
 import pathlib
@@ -162,6 +163,26 @@ abschnitt = pp.Abschnitt(
 )
 z10 = programm("linuxcnc")
 pruefe(sum(x.startswith("G3") for x in z10) >= 4, f"R10: {sum(x.startswith('G3') for x in z10)}")
+
+
+# 5. Heidenhain (Klartext): „RL“ am ersten Konturpunkt und an der Kontur, „R0“ danach; die Bögen
+#    R 10 als „C … DR+ RL“; nachgelesen wie an der TNC ohne Befund.
+from camaddon import klartext as kt  # noqa: E402
+
+for kennung in ("heidenhain", "heidenhain_tnc640"):
+    zh = programm(kennung)
+    text = "\n".join(zh)
+    rl = [x for x in zh if re.search(r"\bRL\b", x)]
+    print(kennung, len(rl), "Sätze mit RL, z. B.", rl[:2])
+    pruefe(rl and re.search(r"X\+50(\.0+)? Y\+60", rl[0]), f"{kennung}: erster RL-Satz {rl[:1]}")
+    pruefe(any(re.search(r"\bC X.*DR\+ RL", x) for x in zh), f"{kennung}: kein Bogen mit RL")
+    pruefe(not any("RR" in x for x in zh), f"{kennung}: RR in der Tasche")
+    nach = zh[zh.index(rl[-1]) + 1 :] if rl else []
+    weg = next((x for x in nach if re.search(r"\bL ", x)), "")
+    pruefe("R0" in weg, f"{kennung}: nach der Kontur ohne R0: {weg!r}")
+    pruefe(not any("G41" in x or "G40" in x for x in zh), f"{kennung}: G41/G40 im Klartext")
+    befunde = kt.pruefe(text).befunde
+    pruefe(not befunde, f"{kennung}: Befunde {befunde[:3]}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

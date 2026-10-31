@@ -18,6 +18,10 @@ Y+20 Z-3“, Kommentare „;…“, „TOOL CALL 10 Z S5000 F2000“, „M3“ a
   Eine andere Drehzahl mit demselben Werkzeug: „TOOL CALL n Z S…“ noch einmal (so ändert die
   TNC sie). Die Länge nimmt TOOL CALL mit – kein G43.
 - „G53 G0 …“ (Maschinenkoordinaten) → „L … R0 FMAX M91“.
+- Radiuskorrektur (Plan C3b, Konturprogrammierung): G41 → „RL“, G42 → „RR“ an den folgenden
+  L- und C-Sätzen statt „R0“, G40 → wieder „R0“ (der Satz danach fährt ohne Korrektur weg). Den
+  Radius nimmt die TNC aus der Werkzeugtabelle (R + DR) – dort trägt der Messzyklus mit Q330
+  die Abweichung in DR ein.
 - Bohrzyklen G81, G82, G83 als Zyklus 200 BOHREN, G73 als 203 UNIVERSAL-BOHREN, G85 als 201
   REIBEN (Zyklenhandbuch iTNC 530, Kapitel 3; P-2026-10-25-65) mit „L X… Y… R0 FMAX M99“ je Loch;
   ohne `zyklen` ausgeschrieben in L-Sätzen (G98: zurück auf die Höhe davor, G99: auf R),
@@ -64,6 +68,7 @@ KLARTEXT = (
     "*",
     ";",
 )
+KORREKTUR = {"G40": "R0", "G41": "RL", "G42": "RR"}
 # Was der Klartext nicht braucht: Ebene, mm, Radiuskorrektur aus, Länge, Zyklus aus, absolut,
 # Vorschub je Minute, Bahnmodi.
 OHNE = {"G17", "G21", "G40", "G49", "G80", "G90", "G94", "G64", "G61", "G642", "G43"}
@@ -216,6 +221,7 @@ class _Uebersetzer:
         # Der Pol (CC), zuletzt geschrieben – er gilt, bis ein neuer kommt; nach einer Marke, einem
         # TOOL CALL oder einem Zyklus wieder, damit jeder Einstieg ihn selbst setzt.
         self.pol = None
+        self.komp = "R0"  # Radiuskorrektur: R0, RL (G41) oder RR (G42) – modal
 
     # --- Ausgabe ----------------------------------------------------------------------------
 
@@ -243,7 +249,7 @@ class _Uebersetzer:
                 teile.append(f"{achse}{zahl(ziel[achse], self.stellen)}")
         if not teile and m is None:
             return
-        satz = "L " + " ".join(teile) + (" " if teile else "") + "R0"
+        satz = "L " + " ".join(teile) + (" " if teile else "") + self.komp
         if eilgang:
             satz += " FMAX"
         else:
@@ -340,6 +346,8 @@ class _Uebersetzer:
                 self.rueckzug_r = True
             elif name == "G80":
                 self.zyklus = None
+            elif name in KORREKTUR:
+                self.komp = KORREKTUR[name]
         if "F" in werte:
             self.f_satz = werte.pop("F")
         bewegung = [c for c in g if c in (0, 1, 2, 3, 81, 82, 83, 73, 85, 84, 74)]
@@ -464,7 +472,7 @@ class _Uebersetzer:
         for px, py in punkte:
             self._pol(cc)
             self.aus.append(
-                f"C X{zahl(px, self.stellen)} Y{zahl(py, self.stellen)} {richtung} R0{self._f()}"
+                f"C X{zahl(px, self.stellen)} Y{zahl(py, self.stellen)} {richtung} {self.komp}{self._f()}"
             )
             self.saetze += 1
             self.pos["X"], self.pos["Y"] = px, py

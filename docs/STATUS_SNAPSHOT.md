@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.339.0):* **Heidenhain mit Radiuskorrektur und Korrektur im Messzyklus:** Die
+  Konturprogrammierung („Radiuskorrektur der Steuerung“ an Kontur und „Schlichten danach“) schreibt
+  im Klartext „L X… Y… RL“ / „C … DR+ RL“ und fährt mit „R0“ weg (klartext.py: G41/G42/G40 →
+  RL/RR/R0). Der Messzyklus vor dem Schlichten (TCH PROBE 421–424) bekommt Q330 = das
+  Schlichtwerkzeug: die TNC trägt die Abweichung in DR der Werkzeugtabelle ein; Grenzen ±0,5 mm,
+  angehalten nur bei einem groben Fehler (wie Siemens S_TDIF und Renishaw U).
 - *Neu (0.338.0):* **„Wie soll das Material raus, wo der Fräser ins Volle muss?“** (Plan C2 b):
   Die Frage „Eintauchen“ hat einen dritten Weg **„Tauchfräsen statt räumen“** mit Zeit, Satz (mit
   dem Werkzeug) und Vorschau – nur, wo ein Werkzeug fürs Tauchfräsen passt. Gewählt hakt er das
