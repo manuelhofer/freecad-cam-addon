@@ -3728,5 +3728,6 @@
     "wv.kiste.vorbereiten": "Die Werkzeugkiste wird vorbereitet … (die Kataloge der Hersteller werden einmal geprüft)",
     "ba.katalog.reibahle": "Im Katalog der Hersteller mit diesem Ø: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
     "ba.katalog.gewindefraeser": "Im Katalog der Hersteller für dieses Kernloch: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
-    "beta.fertig.summe.eins": "Zusammen etwa {zeit}, mit einem Werkzeugwechsel."
+    "beta.fertig.summe.eins": "Zusammen etwa {zeit}, mit einem Werkzeugwechsel.",
+    "ba.katalog.bohrfraeser": "Im Katalog der Hersteller dafür: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“."
 }

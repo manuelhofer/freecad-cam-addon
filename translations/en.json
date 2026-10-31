@@ -3728,5 +3728,6 @@
     "wv.kiste.vorbereiten": "Preparing the tool box … (the manufacturers' catalogues are checked once)",
     "ba.katalog.reibahle": "In the manufacturers' catalogue with this Ø: {namen} – into the tool library via “Tool box …”.",
     "ba.katalog.gewindefraeser": "In the manufacturers' catalogue for this core hole: {namen} – into the tool library via “Tool box …”.",
-    "beta.fertig.summe.eins": "About {zeit} in total, including one tool change."
+    "beta.fertig.summe.eins": "About {zeit} in total, including one tool change.",
+    "ba.katalog.bohrfraeser": "In the manufacturers' catalogue for this: {namen} – into the tool library via “Tool box …”."
 }

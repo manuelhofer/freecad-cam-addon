@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-03 katalog-bohrfraeser
+
+### EINGELESEN
+- Weiter zu P-2026-10-31-42 bis -44 (Gedächtnis „Empfehlen über das Magazin hinaus“): „Bohrung
+  fräsen“ sagte nur „ein kleinerer Fräser oder ein Bohrer“.
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py`: `fraeser_fuer_bohrung`, `BOHRUNG_ANTEIL`.
+- `camaddon/gui_bearbeitung.py`: `_bohrfraeser_aus_katalog`, `_fehler_text` hängt ihn bei
+  „Bohrung fräsen“ an, `_nach_katalog` trägt ihn nach; `_hinweis_verweis` öffnet http(s)-Links.
+- `translations/*.json` (ba.katalog.bohrfraeser), `tests/gui/szenario_katalog_bohrung.py`,
+  `package.xml` 0.344.3.
+
+### ERGEBNIS
+- szenario_katalog_bohrung grün: „Im Katalog der Hersteller dafür: FRANKEN 3848 Z.005 (Ø 5),
+  3848 Z.004 (Ø 4), OSG EXOCARB …“; längste Fensterpause 0,57 s. test_sprache grün.
 ## P-2026-11-01-02 haimer-sk40
 
 ### EINGELESEN

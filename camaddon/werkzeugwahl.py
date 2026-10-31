@@ -36,6 +36,7 @@ RAND = 1.0  # mm: so viel Luft bleibt um einen Bohrer im freien Kreis
 SCHRUPPEN_ANTEIL = 0.8  # vom freien Kreis darf der Schruppfräser einnehmen
 RASTER = 2.0  # mm: so fein sucht masse() den freien Kreis im Boden
 FRAESER = (wz.SCHAFTFRAESER, wz.TORUSFRAESER)
+BOHRUNG_ANTEIL = 0.8  # so dick darf ein Fräser fürs Bohrungsfräsen höchstens sein (× Bohrungs-Ø)
 
 
 @dataclass
@@ -198,6 +199,27 @@ def gewindefraeser_im_katalog(kernloch_d, tiefe, katalog, hoechstens=3):
         if len(auswahl) >= hoechstens:
             break
     return auswahl
+
+
+def fraeser_fuer_bohrung(durchmesser, tiefe, katalog, hoechstens=3):
+    """Fräser des Katalogs fürs Bohrungsfräsen in Ø `durchmesser`: Schaft- oder Torusfräser
+    zwischen der Hälfte und BOHRUNG_ANTEIL des Ø (darunter bliebe der Kern lange stehen), die ins
+    Volle dürfen (nicht ausdrücklich „nicht mittenschneidend“) und die `tiefe` erreichen – die,
+    für die der Hersteller Bohrfräsen nennt, zuerst, dann die dicksten; je Ø einer."""
+    gut = []
+    for w in katalog:
+        if w.art not in FRAESER or not w.durchmesser:
+            continue
+        if not 0.5 * durchmesser - 1e-6 <= w.durchmesser <= BOHRUNG_ANTEIL * durchmesser + 1e-6:
+            continue
+        if w.faehigkeiten.get("mittenschneidend") is False:
+            continue
+        reicht = getattr(w, "auskragung", 0.0) or w.schneidenlaenge or 0.0
+        if tiefe and reicht and reicht < tiefe - 1e-6:
+            continue
+        gut.append(w)
+    gut.sort(key=lambda w: (not w.faehigkeiten.get("bohrfraesen"), -w.durchmesser))
+    return _je_mass_einer(gut, lambda w: round(w.durchmesser, 2), hoechstens)
 
 
 def katalog_laden_im_hintergrund():

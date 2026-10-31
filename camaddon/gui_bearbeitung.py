@@ -5260,7 +5260,12 @@ class _Block:
         Werkzeug dafür zu kurz ist (reichweite.ausspannen_auf; wie im 4-Achs-Assistenten)."""
         ausspannen = daten.get("ausspannen") if isinstance(daten, dict) else None
         empfehlung = daten.get("empfehlung") if isinstance(daten, dict) else None
-        return self._ausspannen_oder_empfehlung(satz, ausspannen, empfehlung) or satz
+        text = self._ausspannen_oder_empfehlung(satz, ausspannen, empfehlung) or satz
+        if self.s.kennung == "bohrung":
+            dazu = self.panel._bohrfraeser_aus_katalog(self)
+            if dazu:
+                text = f"{text if text is not satz else html.escape(satz, quote=False)}<br>{dazu}"
+        return text
 
     def _ausspannen_oder_empfehlung(self, satz, ausspannen, empfehlung):
         """`satz` und der nächste Schritt: „T5 auf … mm ausspannen“, wenn das Werkzeug dafür lang
@@ -5647,6 +5652,9 @@ class _Block:
         """„ausspannen:5:83.000:43“ im roten Satz: T5 in der Werkzeugverwaltung auf 83 mm ab
         Spindelnase, 43 mm heraus (rw.ausspannen_setzen), gespeichert; der Assistent liest es neu
         und rechnet die Vorschau."""
+        if ziel.startswith(("http://", "https://")):  # ein Werkzeug aus dem Katalog
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(ziel))
+            return
         bibliothek = self.panel.bibliothek
         if (
             not ziel.startswith(("ausspannen:", "empfehlung:", "restschlichten:", "eckenwerkzeug:"))
@@ -11316,6 +11324,32 @@ class BearbeitungPanel:
             return tr("ba.katalog.reibahle", namen=namen)
         return tr("ba.katalog.bohrer", namen=namen)
 
+    def _bohrfraeser_aus_katalog(self, block):
+        """Ist der Fräser von „Bohrung fräsen“ für die gewählte Bohrung zu dick: welche der
+        Katalog hätte (werkzeugwahl.fraeser_fuer_bohrung), mit Link – „“ sonst oder solange der
+        Katalog noch gelesen wird."""
+        from . import werkzeugwahl as ww
+
+        werkzeug = block.fraeser()
+        if self.job is None or werkzeug is None:
+            return ""
+        form = vr.modell(self.job).Shape
+        d = self._bohrungs_durchmesser(form)
+        if d is None or werkzeug.durchmesser < d - 1e-6:
+            return ""
+        if not ww.katalog_bereit():
+            ww.katalog_laden_im_hintergrund()
+            QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, self._nach_katalog)
+            return ""
+        namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
+        tiefe = max((b.z_oben - b.z_unten for b in bb.bohrungen(form, namen or [""])), default=0.0)
+        gefunden = ww.fraeser_fuer_bohrung(d, tiefe, ww.katalog_werkzeuge())
+        if not gefunden:
+            return ""
+        from .gui_bearbeitung_beta import _werkzeug_text
+
+        return tr("ba.katalog.bohrfraeser", namen=", ".join(_werkzeug_text(w) for w in gefunden))
+
     def _nach_katalog(self):
         """Ist der Katalog gelesen, die Sätze „passt nicht“ noch einmal (mit den Vorschlägen) –
         sonst gleich wieder nachsehen."""
@@ -11332,6 +11366,12 @@ class BearbeitungPanel:
             if not block.moeglich and not getattr(block, "katalog_zeile", ""):
                 block.katalog_zeile = self._im_katalog_zeile(block, form)
                 block.zustand_zeigen()
+        # Der rote Satz von „Bohrung fräsen“ entstand vielleicht, bevor der Katalog da war.
+        alt = self.bohrung.hinweis.text()
+        if alt and "<br>" not in alt:
+            dazu = self._bohrfraeser_aus_katalog(self.bohrung)
+            if dazu:
+                self.bohrung.hinweis.setText(f"{alt}<br>{dazu}")
 
     def _bohrungs_durchmesser(self, form):
         """Der Durchmesser der gewählten Bohrungen – None, wenn keine oder verschiedene."""

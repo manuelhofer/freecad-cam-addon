@@ -67,6 +67,11 @@ def schritte(h):
     h.pruefe("Im Katalog" in gewinde and "M8 × 1,25" in gewinde and "<a href" in gewinde, gewinde)
     h.pruefe("Im Katalog" in bohren and "6,75" in bohren, bohren)
     h.pruefe("Im Katalog" in panel.gewinde.kurz.text(), panel.gewinde.kurz.text())
+    # „Bohrung fräsen“ mit T1 Ø 12 in Ø 6,75: rot, dazu Fräser aus dem Katalog (Ø 3,4 … 5,4).
+    yield from h.warte_auf(lambda: "Im Katalog" in panel.bohrung.hinweis.text(), 30000)
+    rot = panel.bohrung.hinweis.text()
+    print(ascii(f"Bohrung fraesen: {rot}"))
+    h.pruefe("Im Katalog" in rot and "<a href" in rot, rot)
     yield from h.warte_auf(lambda: zeile(panel.gewindefraesen), 30000)
     fraesen = zeile(panel.gewindefraesen)
     print(ascii(f"Gewinde fraesen: {fraesen}"))

@@ -576,6 +576,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.344.3):* Ist der Fräser von „Bohrung fräsen“ für die Bohrung zu dick, nennt der rote Satz
+  Fräser aus dem Katalog (½ bis 0,8 × Ø, ins Volle erlaubt, Tiefe erreicht; mit Bohrfräsen-Freigabe
+  zuerst) – auch nachträglich, wenn der Katalog erst danach gelesen ist. Links im roten Satz öffnen
+  den Browser.
 - *Korrektur (0.344.2):* **Halter: 1332 Reihen, 9141 Größen** – die fehlenden HAIMER-Reihen für SK40
   (Hydraulik, Schrumpf, Weldon/Whistle Notch, Spannzangen; die anderen Aufnahmen standen schon
   im Katalog). Die Quellen von BIG und REGO-FIX nennen jetzt den richtigen Abruftag (31.10.).
