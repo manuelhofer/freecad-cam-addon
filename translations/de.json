@@ -3611,7 +3611,7 @@
     "tf.eigenschaft.stellen": "Tauchstellen je Lage (Ergebnis)",
     "ba.tauchfraesen": "Tauchfräsen",
     "ba.tauchfraesen.text": "Taucht senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen (dort vorbohren). Für Tauchfräser und Messerköpfe, die ins Volle stechen dürfen; zwischen den Stellen bleiben kleine Zwickel für das Schlichten.",
-    "ba.tauchfraeser.tooltip": "Der Fräser fürs Tauchfräsen – mit ebener Stirn, der ins Volle tauchen darf: ein Tauchfräser oder ein mittenschneidender Schaftfräser.",
+    "ba.tauchfraeser.tooltip": "Das Werkzeug fürs Tauchfräsen – ein Fräser mit ebener Stirn, der ins Volle tauchen darf (Tauchfräser, mittenschneidender Schaftfräser), oder ein Wendeplattenbohrer, für den der Hersteller die Brillenbohrung nennt (Loch neben Loch, dort 70 % Vorschub).",
     "ba.tauchfraesen.schritt": "Abstand der Stellen",
     "ba.tauchfraesen.schritt.tooltip": "So weit liegen die Tauchstellen höchstens auseinander. Höchstens 0,7 × Durchmesser – sonst bleiben zwischen vier Stellen Zapfen stehen.",
     "ba.ergebnis_tauchfraesen": "→ {stellen} Tauchstellen, {lagen} Lage(n), etwa {zeit}",
@@ -3658,5 +3658,16 @@
     "wv.kann.bohrfraesen_fenster": "helikal ins Volle Ø {von}–{bis}",
     "wv.kann.zirkularfraesen": "zirkular (aufweiten)",
     "wv.kann.rampe": "Rampe bis {grad}°",
-    "wv.kann.bohrverwendung": "bohrt auch: {liste}"
+    "wv.kann.bohrverwendung": "bohrt auch: {liste}",
+    "ba.tauchfraesen.vorbohren.selbst": "Der Wendeplattenbohrer bohrt selbst – ohne Vorbohren.",
+    "tf.eigenschaft.ueberlappt": "So viel vom Eintauchvorschub an Stellen, die neben schon Offenem angreifen (Wendeplattenbohrer, Brillenbohrung: 70 %)",
+    "wv.bohrverwendung.brillenbohrung": "Brillenbohrung",
+    "wv.bohrverwendung.schraeg_anbohren": "schräg anbohren",
+    "wv.bohrverwendung.schraeger_austritt": "schräger Austritt",
+    "wv.bohrverwendung.ballig": "ballige Flächen",
+    "wv.bohrverwendung.konkav": "konkave Flächen",
+    "wv.bohrverwendung.querbohren": "Querbohrung",
+    "wv.bohrverwendung.paketbohren": "Paketbohren",
+    "wv.bohrverwendung.unterbrochener_schnitt": "unterbrochener Schnitt",
+    "wv.bohrverwendung.auskesselung": "Auskesselung"
 }

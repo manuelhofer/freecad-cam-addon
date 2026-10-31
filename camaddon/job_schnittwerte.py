@@ -60,7 +60,7 @@ EINSATZ_NACH_OPERATION = {
     "planfraesen": (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Planfräsen“ (W-006 S3)
     "raeumen": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „Räumen“ (W-006 S3f)
     "nut": (wz.DYNAMISCH, wz.SCHRUPPEN, wz.VOLLNUT),  # „Nut“ (W-006 4.1 Punkt 6)
-    "tauchfraesen": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „Tauchfräsen“ (Plan C2)
+    "tauchfraesen": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN, wz.BOHREN),  # „Tauchfräsen“ (Plan C2)
     "schlichten3d": (wz.SCHLICHTEN, wz.SCHRUPPEN),  # „3D-Schlichten“ (W-006 4.2 Punkt 3)
     "flanke": (wz.SCHLICHTEN, wz.SCHRUPPEN),  # „Flanke“ (5 Achsen simultan, W-015 S3)
     "schruppen3d": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „3D-Schruppen“ (4.2 Punkt 1)

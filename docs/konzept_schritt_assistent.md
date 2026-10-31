@@ -250,6 +250,10 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    `helix_d_min/max`, `zirkularfraesen`, `rampenwinkel_max`, `bohrverwendung` (0.333.1); der
    Vorschlag „Helikal ins Volle“ nimmt Fräser. Der Hoffmann-Sammler zählte „Zirkularfräsen“ und
    „Gewindebohrfräsen“ als Bohrfräsen – behoben.
+   *Manuel, 2026-10-31: „ja wenn das vom hersteller die genannte methode ist“* – gebaut 0.334.0:
+   Das Tauchfräsen nimmt auch einen Wendeplattenbohrer, für den der Hersteller die Brillenbohrung
+   nennt (bisher Walter D3120/D4120/D4170, Kompendium 2024 S. B57); je Lage die erste Stelle mit
+   vollem Vorschub, die überlappenden mit 70 %; ohne Vorbohren.
 8. **Daten** – „ALLE daten aus dem internet nicht nur hoffmann … auch die dazugehörigen cad dateien
    .. einfach holen oder nachbauen .. im freecad nachbauen ist eh sinnvoller“. *Gebaut (0.321.0):*
    alle gesammelten Hoffmann-Größen im Katalog (282 Spannmittel, 353 Halter); sieben Sammler holen

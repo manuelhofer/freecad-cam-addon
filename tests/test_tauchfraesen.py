@@ -119,7 +119,18 @@ boden_name = next(
 t1 = wz.standardwerkzeug()
 t1.schneidenlaenge = 20.0
 user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
-ue.uebergeben(wz.Bibliothek([t1]))
+t3 = wz.Werkzeug(
+    nummer=3,
+    name="Wendeplattenbohrer 20",
+    art=wz.BOHRER,
+    durchmesser=20.0,
+    schneidenlaenge=60.0,
+    gesamtlaenge=120.0,
+    schneidstoff=wz.WSP,
+)
+t3.faehigkeiten = {"wendeplatten": True, "bohrverwendung": ["brillenbohrung"]}
+t3.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=150.0, fz=0.08)]
+ue.uebergeben(wz.Bibliothek([t1, t3]))
 doc = FreeCAD.newDocument("Tauch")
 objekt = doc.addObject("Part::Feature", "Teil")
 objekt.Shape = teil
@@ -176,6 +187,27 @@ if (
     fehler.append(f"Vorbohren: {vb}")
 if tf.bahn_fuer(job, job.Model.Group, r12, [boden_name], 0.5, 0.2).vorbohren is not None:
     fehler.append("ohne Bohrer vorgebohrt")
+# 8. Mit dem Wendeplattenbohrer (Brillenbohrung, Manuel: „ja wenn das vom hersteller die
+#    genannte methode ist“): Radius aus dem Durchmesser, je Lage die erste Stelle mit vollem
+#    Eintauchvorschub, die übrigen mit 70 %.
+einsatz3 = t3.schnittwerte[wz.ALLE][0]
+tc3 = js.controller_ohne_transaktion(doc, job, t3, einsatz3)
+doc.recompute()
+op3 = tf.lege_an(job, tc3, [boden_name], anteil=tf.BRILLE_ANTEIL)
+doc.recompute()
+vorschuebe = [
+    c.Parameters["F"] for c in op3.Path.Commands if c.Name == "G1" and "F" in c.Parameters
+]
+print(
+    f"Brille: {op3.Stellen} Stellen, {op3.Lagen} Lagen, F {sorted({round(f, 3) for f in vorschuebe})}"
+)
+if op3.Stellen <= 0 or len({round(f, 6) for f in vorschuebe}) != 2:
+    fehler.append(f"Brille: {op3.Stellen} Stellen, Vorschübe {set(vorschuebe)}")
+elif abs(min(vorschuebe) / max(vorschuebe) - tf.BRILLE_ANTEIL) > 1e-6:
+    fehler.append(f"Brille: Anteil {min(vorschuebe) / max(vorschuebe)}")
+if sum(1 for f in vorschuebe if abs(f - max(vorschuebe)) < 1e-9) != op3.Lagen:
+    fehler.append("Brille: nicht genau eine volle Stelle je Lage")
+
 tf.aendere(op, tc, [boden_name], 0.5, 0.2, 12.0)
 doc.recompute()
 if float(op.Schritt) != 12.0 or op.Stellen <= 4:

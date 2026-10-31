@@ -576,6 +576,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.334.0):* **Tauchfräsen mit dem Wendeplattenbohrer (Brillenbohrung)** – Manuel: „ja wenn
+  das vom hersteller die genannte methode ist“. Nur Bohrer, für die der Hersteller die
+  Brillenbohrung nennt (`bohrverwendung`; eingetragen bei Walter D3120/D4120/D4170 nach dem
+  Kompendium 2024, S. B57); je Lage die erste Stelle mit vollem Vorschub, die überlappenden mit 70 %
+  (Eigenschaft „VorschubUeberlappt“); ohne Vorbohren; im Werkzeugvorschlag „Tauchfräsen“ dabei.
 - *Korrektur (0.333.1):* **Bohrfräsen geklärt** (Manuel: „man muss klären wie die bohrfräsen
   definieren“): bei Herstellern eine Eigenschaft von Fräsern (helikal ins Volle, Ø-Fenster), bei
   Wendeplattenbohrern statt dessen Bohrverwendungen (Brillenbohrung, schräg, Querbohrung …). Format:

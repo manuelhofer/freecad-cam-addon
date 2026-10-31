@@ -65311,7 +65311,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D4120, 2×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 260–264; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 260–264; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -65325,7 +65325,13 @@
      "N2",
      "S"
     ],
-    "bohrtiefe_d": 2.0
+    "bohrtiefe_d": 2.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {
@@ -66011,7 +66017,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D4120, 3×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 270–274; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 270–274; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -66025,7 +66031,13 @@
      "N2",
      "S"
     ],
-    "bohrtiefe_d": 3.0
+    "bohrtiefe_d": 3.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {
@@ -66711,7 +66723,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D4120, 4×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 280–282; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 280–282; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -66725,7 +66737,13 @@
      "N2",
      "S"
     ],
-    "bohrtiefe_d": 4.0
+    "bohrtiefe_d": 4.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {
@@ -67357,7 +67375,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D4120, 5×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 288–290; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 288–290; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -67369,7 +67387,13 @@
      "N1",
      "N2"
     ],
-    "bohrtiefe_d": 5.0
+    "bohrtiefe_d": 5.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {
@@ -68001,7 +68025,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D4170 mit Kassette, 3×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 296; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 296; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -68015,7 +68039,13 @@
      "N2",
      "S"
     ],
-    "bohrtiefe_d": 3.0
+    "bohrtiefe_d": 3.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {
@@ -68066,7 +68096,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D3120, 2×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 298; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 298; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -68080,7 +68110,13 @@
      "N2",
      "S"
     ],
-    "bohrtiefe_d": 2.0
+    "bohrtiefe_d": 2.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {
@@ -68334,7 +68370,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D3120, 3×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 300–304; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 300–304; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -68348,7 +68384,13 @@
      "N2",
      "S"
     ],
-    "bohrtiefe_d": 3.0
+    "bohrtiefe_d": 3.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {
@@ -68818,7 +68860,7 @@
    "hersteller": "Walter",
    "marke": "Walter",
    "titel": "Drion·tec Wendeplattenbohrer D3120, 4×D",
-   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 308; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31",
+   "quelle": "Walter Gesamtkatalog B Bohrwerkzeuge, Ausgabe 2024 (französische Fassung), PDF-Seiten 308; Werkstoffe = ISO-Gruppen mit C/CC im Katalog; gesamtlaenge = l4 + l5, auskragung = l4; abgerufen 2026-10-31; Bohrverwendung: Walter Kompendium Bohrungsbearbeitung 2024, S. B57 „Einsatzmöglichkeiten D4170/D4120/D3120“ (Brillenbohrung −30 % f, Schräganbohren −30 % f, Querbohrungen −30 % f, unterbrochener Schnitt)",
    "katalog": "https://www.groupedorise.fr/boutique/datas/documents/walter---catalogue-percage---2024_20241014121744.pdf",
    "gemeinsam": {
     "schneidstoff": "wsp",
@@ -68832,7 +68874,13 @@
      "N2",
      "S"
     ],
-    "bohrtiefe_d": 4.0
+    "bohrtiefe_d": 4.0,
+    "bohrverwendung": [
+     "brillenbohrung",
+     "schraeg_anbohren",
+     "querbohren",
+     "unterbrochener_schnitt"
+    ]
    },
    "groessen": [
     {

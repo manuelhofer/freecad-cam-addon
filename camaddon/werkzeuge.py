@@ -342,7 +342,19 @@ def faehigkeiten_text(werkzeug):
     if f.get("rampenwinkel_max"):
         teile.append(tr("wv.kann.rampe", grad=f"{f['rampenwinkel_max']:g}"))
     if f.get("bohrverwendung"):
-        teile.append(tr("wv.kann.bohrverwendung", liste=", ".join(f["bohrverwendung"])))
+        namen = {
+            "brillenbohrung": tr("wv.bohrverwendung.brillenbohrung"),
+            "schraeg_anbohren": tr("wv.bohrverwendung.schraeg_anbohren"),
+            "schraeger_austritt": tr("wv.bohrverwendung.schraeger_austritt"),
+            "ballig": tr("wv.bohrverwendung.ballig"),
+            "konkav": tr("wv.bohrverwendung.konkav"),
+            "querbohren": tr("wv.bohrverwendung.querbohren"),
+            "paketbohren": tr("wv.bohrverwendung.paketbohren"),
+            "unterbrochener_schnitt": tr("wv.bohrverwendung.unterbrochener_schnitt"),
+            "auskesselung": tr("wv.bohrverwendung.auskesselung"),
+        }
+        liste = ", ".join(namen.get(v, v) for v in f["bohrverwendung"])
+        teile.append(tr("wv.kann.bohrverwendung", liste=liste))
     for name, text in (
         ("zirkularfraesen", tr("wv.kann.zirkularfraesen")),
         ("tauchfraesen", tr("wv.kann.tauchfraesen")),

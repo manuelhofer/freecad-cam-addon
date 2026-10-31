@@ -39,6 +39,10 @@ from .sprache import tr
 SCHRITT_ANTEIL = 0.7  # × D: größter Abstand der Stellen
 ABHEBEN = 1.0  # mm über der Oberkante zwischen den Stellen (und über der Lage davor)
 AUFMASS = 0.5  # mm – bleibt an der Wand fürs Schlichten
+# Mit dem Wendeplattenbohrer (Brillenbohrung; Manuel, 2026-10-31: „ja wenn das vom hersteller die
+# genannte methode ist“): an überlappenden Stellen so viel vom Vorschub (Walter, Kompendium
+# Bohrungsbearbeitung 2024, S. B57: Brillenbohrung −30 % f).
+BRILLE_ANTEIL = 0.7
 SCHNITT_UEBER = 0.01  # mm über dem Boden: dort schneidet gebiet() das Teil
 GRUPPE = "Fräsen"
 
@@ -148,17 +152,20 @@ def von_innen_nach_aussen(punkte, mitte=None):
     return folge
 
 
-def bahn(punkte, z_oben, z_unten, z_frei=None):
+def bahn(punkte, z_oben, z_unten, z_frei=None, anteil_ueberlappt=1.0):
     """[bahn.Punkt]: je Stelle im Eilgang darüber (ABHEBEN über `z_oben`), mit Eintauchvorschub
     auf `z_unten`, im Eilgang zurück. `z_frei`: bis dahin ist das Loch schon offen (die Lage
-    davor) – im Eilgang bis ABHEBEN darüber."""
+    davor) – im Eilgang bis ABHEBEN darüber. `anteil_ueberlappt`: so viel vom Eintauchvorschub an
+    jeder Stelle nach der ersten – sie greifen neben Offenem an (Brillenbohrung mit dem
+    Wendeplattenbohrer: Walter 70 %)."""
     ergebnis = []
     oben = z_oben + ABHEBEN
-    for x, y in punkte:
+    for i, (x, y) in enumerate(punkte):
         ergebnis.append(bh.Punkt(True, x, y, oben))
         if z_frei is not None and z_frei + ABHEBEN < oben:
             ergebnis.append(bh.Punkt(True, x, y, z_frei + ABHEBEN))
-        ergebnis.append(bh.Punkt(False, x, y, z_unten, eintauchen=True))
+        anteil = 1.0 if i == 0 else anteil_ueberlappt
+        ergebnis.append(bh.Punkt(False, x, y, z_unten, eintauchen=True, anteil=anteil))
         ergebnis.append(bh.Punkt(True, x, y, oben))
     return ergebnis
 
@@ -184,6 +191,7 @@ def bahn_fuer(
     schneidenlaenge=0.0,
     oben=None,
     vorbohren=None,
+    anteil_ueberlappt=1.0,
 ):
     """Die Bahn „Tauchfräsen“ (Tauchbahn) über den ebenen Flächen nach oben unter `flaechen`
     („Face7“ …) – von oben nach unten, je Boden die Stellen (stellen) in Lagen bis auf den Boden +
@@ -226,7 +234,7 @@ def bahn_fuer(
         frei = None
         for lage in range(1, lagen + 1):
             z = max(z_unten, oben - lage * tiefe / lagen)
-            punkte += bahn(stellen_, oben, z, frei)
+            punkte += bahn(stellen_, oben, z, frei, anteil_ueberlappt)
             frei = z
         stellen_zahl += len(stellen_)
         lagen_zahl = max(lagen_zahl, lagen)
@@ -289,6 +297,7 @@ if PathOp is not None:
             obj.Aufmass = AUFMASS
             obj.AufmassBoden = 0.0
             obj.Schritt = 0.0
+            obj.VorschubUeberlappt = 100
             self._editormodi(obj)
 
         def opOnDocumentRestored(self, obj):
@@ -302,6 +311,7 @@ if PathOp is not None:
                 ("App::PropertyLength", "Aufmass", tr("bo.eigenschaft.aufmass")),
                 ("App::PropertyLength", "AufmassBoden", tr("tf.eigenschaft.aufmass_boden")),
                 ("App::PropertyLength", "Schritt", tr("tf.eigenschaft.schritt")),
+                ("App::PropertyPercent", "VorschubUeberlappt", tr("tf.eigenschaft.ueberlappt")),
                 ("App::PropertyInteger", "Stellen", tr("tf.eigenschaft.stellen")),
                 ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ):
@@ -337,25 +347,43 @@ def rechne(obj, job, modell):
     """Die Bahn (Tauchbahn) für die Operation `obj` im Job – ValueError mit einem Satz."""
     from . import kontur as ko
     from . import planfraesen as pf
-    from . import vierachs_schlichten as vs
 
-    form = vs.form_des_controllers(obj.ToolController)
-    if form is None or float(getattr(form, "radius", 0.0) or 0.0) <= 0:
+    radius = radius_des_controllers(obj.ToolController)
+    if radius <= 0:
         raise ValueError(tr("nt.fehler.form"))
     return bahn_fuer(
         job,
         modell,
-        float(form.radius),
+        radius,
         list(obj.Flaechen),
         aufmass=float(obj.Aufmass),
         aufmass_boden=float(obj.AufmassBoden),
         schritt=float(obj.Schritt) or None,
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
+        anteil_ueberlappt=float(getattr(obj, "VorschubUeberlappt", 100) or 100) / 100.0,
     )
 
 
-def lege_an(job, tc, flaechen, aufmass=AUFMASS, aufmass_boden=0.0, schritt=0.0, name=None):
+def radius_des_controllers(tc):
+    """Der Radius des Werkzeugs (mm): eines Fräsers seine Form, eines Bohrers (Brillenbohrung)
+    sein Durchmesser – 0, wenn es keins ist."""
+    from . import vierachs_schlichten as vs
+    from . import werkzeuge as wz
+    from .werkzeuge_aus_cam import vom_controller
+
+    form = vs.form_des_controllers(tc)
+    if form is not None:
+        return float(getattr(form, "radius", 0.0) or 0.0)
+    werkzeug = vom_controller(tc)
+    if werkzeug is not None and werkzeug.art == wz.BOHRER:
+        return float(werkzeug.durchmesser) / 2.0
+    return 0.0
+
+
+def lege_an(
+    job, tc, flaechen, aufmass=AUFMASS, aufmass_boden=0.0, schritt=0.0, name=None, anteil=1.0
+):
     """Legt „Tauchfräsen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Gibt die
     Operation zurück."""
     from . import namen
@@ -375,6 +403,7 @@ def lege_an(job, tc, flaechen, aufmass=AUFMASS, aufmass_boden=0.0, schritt=0.0, 
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
     _werte(obj, flaechen, aufmass, aufmass_boden, schritt)
+    obj.VorschubUeberlappt = int(round(anteil * 100))
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("tf.name", werkzeug=f"T{tc.ToolNumber}"), obj
@@ -408,7 +437,7 @@ def _endtiefe(obj, job):
         obj.FinalDepth = min(e.z for e in ebenen) + float(obj.AufmassBoden)
 
 
-def aendere(obj, tc, flaechen, aufmass, aufmass_boden, schritt=0.0):
+def aendere(obj, tc, flaechen, aufmass, aufmass_boden, schritt=0.0, anteil=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     from . import namen
@@ -418,6 +447,8 @@ def aendere(obj, tc, flaechen, aufmass, aufmass_boden, schritt=0.0):
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     _werte(obj, flaechen, aufmass, aufmass_boden, schritt)
+    if anteil is not None:
+        obj.VorschubUeberlappt = int(round(anteil * 100))
     job = getattr(obj.Proxy, "job", None)
     if job is not None:
         _endtiefe(obj, job)

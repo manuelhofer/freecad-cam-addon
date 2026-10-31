@@ -3611,7 +3611,7 @@
     "tf.eigenschaft.stellen": "Plunges per layer (result)",
     "ba.tauchfraesen": "Plunge milling",
     "ba.tauchfraesen.text": "Plunges straight down into solid material, spot after spot, from the centre outwards (pre-drill there). For plunge cutters and face mills that may plunge; small cusps remain between the spots for finishing.",
-    "ba.tauchfraeser.tooltip": "The cutter for plunge milling – flat-bottomed and allowed to plunge into solid material: a plunge cutter or a centre-cutting end mill.",
+    "ba.tauchfraeser.tooltip": "The tool for plunge milling – a flat-bottomed cutter allowed to plunge into solid material (plunge cutter, centre-cutting end mill), or an indexable drill for which the maker states chain drilling (hole beside hole, 70 % feed there).",
     "ba.tauchfraesen.schritt": "Plunge spacing",
     "ba.tauchfraesen.schritt.tooltip": "The largest distance between plunges. At most 0.7 × diameter – otherwise pins remain between four plunges.",
     "ba.ergebnis_tauchfraesen": "→ {stellen} plunges, {lagen} layer(s), about {zeit}",
@@ -3658,5 +3658,16 @@
     "wv.kann.bohrfraesen_fenster": "helical into solid Ø {von}–{bis}",
     "wv.kann.zirkularfraesen": "circular (enlarging)",
     "wv.kann.rampe": "ramp up to {grad}°",
-    "wv.kann.bohrverwendung": "also drills: {liste}"
+    "wv.kann.bohrverwendung": "also drills: {liste}",
+    "ba.tauchfraesen.vorbohren.selbst": "The indexable drill drills by itself – no pre-drilling.",
+    "tf.eigenschaft.ueberlappt": "This much of the plunge feed at spots that cut next to open material (indexable drill, chain drilling: 70 %)",
+    "wv.bohrverwendung.brillenbohrung": "chain drilling",
+    "wv.bohrverwendung.schraeg_anbohren": "inclined entry",
+    "wv.bohrverwendung.schraeger_austritt": "inclined exit",
+    "wv.bohrverwendung.ballig": "convex surfaces",
+    "wv.bohrverwendung.konkav": "concave surfaces",
+    "wv.bohrverwendung.querbohren": "cross holes",
+    "wv.bohrverwendung.paketbohren": "stack drilling",
+    "wv.bohrverwendung.unterbrochener_schnitt": "interrupted cut",
+    "wv.bohrverwendung.auskesselung": "undercutting"
 }

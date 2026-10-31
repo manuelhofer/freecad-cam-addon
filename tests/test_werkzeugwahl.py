@@ -4,7 +4,7 @@
 #    und einem kleinen Katalog: vorbohren der eigene Ø 20 (Ø 38 ist zu kurz), aus dem Katalog der
 #    größere Ø 36; schruppen der eigene Ø 28 (bis 80 % des freien Kreises); ecken (bis Ø 10) nichts Eigenes, aus dem Katalog Ø 10
 #    und Ø 8; bohrfraesen nur der Fräser, der laut Hersteller helikal ins Volle darf (Ø 25, Fenster
-#    Ø 30–45 um den freien Kreis; der mit Fenster ab Ø 50 nicht); tauchfraesen nur der Tauchfräser
+#    Ø 30–45 um den freien Kreis; der mit Fenster ab Ø 50 nicht); tauchfraesen der Tauchfräser und der Wendeplattenbohrer mit Brillenbohrung
 #    (Ø 32 im Katalog, kein eigener; der Ø 50 passt nicht in den freien Kreis).
 import os
 import sys
@@ -62,6 +62,7 @@ katalog = [
     werkzeug(wz.SCHAFTFRAESER, 10),
     werkzeug(wz.KUGELFRAESER, 8),
     werkzeug(wz.SCHAFTFRAESER, 32, tauchfraesen=True),
+    werkzeug(wz.BOHRER, 31, wendeplatten=True, bohrverwendung=["brillenbohrung"]),
     werkzeug(wz.SCHAFTFRAESER, 50, tauchfraesen=True),
 ]
 v = {x.weg: x for x in ww.vorschlaege(m, eigene, katalog)}
@@ -78,7 +79,7 @@ bf = v.get("bohrfraesen")
 if bf is None or [w.durchmesser for w in bf.katalog] != [25]:
     fehler.append(f"bohrfraesen: {bf}")
 tf = v.get("tauchfraesen")
-if tf is None or tf.eigenes is not None or [w.durchmesser for w in tf.katalog] != [32]:
+if tf is None or tf.eigenes is not None or [w.durchmesser for w in tf.katalog] != [32, 31, 30]:
     fehler.append(f"tauchfraesen: {tf}")
 
 if fehler:

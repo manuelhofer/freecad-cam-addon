@@ -113,6 +113,20 @@ if (
 if geladen[wz.SCHAFTFRAESER].faehigkeiten != s12.faehigkeiten:
     fehler.append(f"Schaftfräser geladen: {geladen[wz.SCHAFTFRAESER].faehigkeiten}")
 
+# 3. Aus dem Katalog: Walter D4120 nennt die Brillenbohrung (Kompendium 2024, S. B57).
+from camaddon import sprache  # noqa: E402
+from camaddon import werkzeugkiste as wk  # noqa: E402
+from camaddon import werkzeugkiste_datei as wd  # noqa: E402
+
+sprache.setze_sprache("de")
+datei = wd.lesen(os.path.join(wd.MITGELIEFERT, "sandvik_seco_walter.json"), [])
+reihe = next((r for r in datei.reihen if "D4120, 3" in r.titel), None)
+w = wk.werkzeuge(reihe, mit_werten=False)[0] if reihe is not None else None
+if w is None or "brillenbohrung" not in (w.faehigkeiten.get("bohrverwendung") or []):
+    fehler.append(f"Walter D4120: {w.faehigkeiten if w else reihe}")
+elif "bohrt auch: Brillenbohrung, schräg anbohren" not in wz.faehigkeiten_text(w):
+    fehler.append(f"Text: {wz.faehigkeiten_text(w)}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

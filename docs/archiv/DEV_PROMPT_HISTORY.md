@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-32 tauchen-brillenbohrung
+
+### EINGELESEN
+- Manuel, 2026-10-31, Frage 2: „ja wenn das vom hersteller die genannte methode ist“.
+
+### DATEIEN
+- `camaddon/tauchfraesen.py`: `BRILLE_ANTEIL`, `bahn(…, anteil_ueberlappt)`, Eigenschaft „VorschubUeberlappt“, `radius_des_controllers` (Bohrer: der Durchmesser).
+- `camaddon/gui_bearbeitung.py`: `_Tauchfraesen` nimmt Bohrer mit Brillenbohrung (`brillenbohrer`), Einsatz Bohren, ohne Vorbohren; `camaddon/job_schnittwerte.py`; `camaddon/werkzeugwahl.py`.
+- `camaddon/werkzeuge.py`: Bohrverwendungen lesbar; `camaddon/werkzeugkiste_daten/sandvik_seco_walter.json`: Walter D3120/D4120/D4170 mit `bohrverwendung` (Quelle S. B57).
+- `translations/*.json`; `tests/test_tauchfraesen.py` (8.), `tests/test_faehigkeiten.py` (3.), `tests/test_werkzeugwahl.py`.
+- `docs/OFFENE_FRAGEN.md`, `docs/konzept_schritt_assistent.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.334.0.
+
+### ERGEBNIS
+- test_tauchfraesen (Brille: Vorschub 9,55 / 6,685 = 70 %), test_faehigkeiten, test_werkzeugwahl, test_werkzeugkiste_datei, test_sprache, szenario_tauchfraesen grün.
 ## P-2026-10-31-31 bohrfraesen-geklaert
 
 ### EINGELESEN

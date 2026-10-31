@@ -20,7 +20,8 @@ dort ein größeres steht:
 - **bohrfraesen:** Fräser, die laut Hersteller helikal ins Volle dürfen (Fähigkeit „bohrfraesen“ –
   nach der Recherche 2026-10-31 eine Eigenschaft von Fräsern, nicht von Wendeplattenbohrern), Ø bis
   80 % des freien Kreises; mit Ø-Fenster nur, wenn der freie Kreis darin liegt,
-- **tauchfraesen:** Fräser, die laut Hersteller tauchen (Tauchfräser), Ø höchstens der freie Kreis
+- **tauchfraesen:** Fräser, die laut Hersteller tauchen (Tauchfräser), und Wendeplattenbohrer, für
+  die der Hersteller die Brillenbohrung nennt; Ø höchstens der freie Kreis
   (tauchfraesen.py taucht in Lagen: die Länge zählt nicht).
 
 Läuft ohne Oberfläche.
@@ -188,7 +189,8 @@ def vorschlaege(m, eigene, katalog=None):
         lambda w: _helix_passt(w, m.frei),
     )  # fmt: skip
     tauchen = _vorschlag(
-        "tauchfraesen", FRAESER, m.frei, 0.0, eigene, katalog,
-        lambda w: bool(w.faehigkeiten.get("tauchfraesen")),
+        "tauchfraesen", (*FRAESER, wz.BOHRER), m.frei, 0.0, eigene, katalog,
+        lambda w: bool(w.faehigkeiten.get("tauchfraesen"))
+        or "brillenbohrung" in (w.faehigkeiten.get("bohrverwendung") or []),
     )  # fmt: skip
     return [v for v in (bohrer, schruppen, ecken, bohrfraesen, tauchen) if v is not None]

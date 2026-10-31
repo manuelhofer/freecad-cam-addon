@@ -1845,7 +1845,8 @@ class _Tauchfraesen(_Strategie):
     zwischen den Stellen stehen bleibt, nimmt die Kontur (sie rechnet mit dem Materialstand)."""
 
     kennung = "tauchfraesen"
-    einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN)
+    # Ein Wendeplattenbohrer (Brillenbohrung) bringt nur den Einsatz „Bohren“ mit.
+    einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN, wz.BOHREN)
 
     def titel(self):
         return tr("ba.tauchfraesen")
@@ -1868,8 +1869,12 @@ class _Tauchfraesen(_Strategie):
 
     def werkzeug_passt(self, werkzeug):
         """Ein Fräser mit ebener Stirn, der ins Volle tauchen darf: nicht ausdrücklich „nicht
-        mittenschneidend“ (Werkzeug.faehigkeiten; unbekannt zählt als ja)."""
+        mittenschneidend“ (Werkzeug.faehigkeiten; unbekannt zählt als ja) – oder ein Bohrer, für
+        den der Hersteller die Brillenbohrung nennt (Manuel, 2026-10-31: „ja wenn das vom
+        hersteller die genannte methode ist“)."""
         faehig = getattr(werkzeug, "faehigkeiten", None) or {}
+        if werkzeug.art == wz.BOHRER:
+            return brillenbohrer(werkzeug)
         if faehig.get("mittenschneidend") is False and not faehig.get("tauchfraesen"):
             return False
         return super().werkzeug_passt(werkzeug)
@@ -1907,6 +1912,8 @@ class _Tauchfraesen(_Strategie):
         if feld != "vorbohren":
             return None
         fraeser = block.fraeser()
+        if fraeser is not None and fraeser.art == wz.BOHRER:
+            return tr("ba.tauchfraesen.vorbohren.selbst")
         if fraeser is None or block.panel._tauch_vorbohrer(fraeser) is not None:
             return None
         return tr(
@@ -1930,19 +1937,24 @@ class _Tauchfraesen(_Strategie):
         return 0.0
 
     def vorschau(self, job, werkzeug, werte, flaechen):
-        form = ff.von_werkzeug(werkzeug)
-        if form is None or vp.ebener_radius(form) <= 0:
-            raise ValueError(tr("nt.fehler.form"))
+        if werkzeug.art == wz.BOHRER:
+            radius = float(werkzeug.durchmesser) / 2.0
+        else:
+            form = ff.von_werkzeug(werkzeug)
+            if form is None or vp.ebener_radius(form) <= 0:
+                raise ValueError(tr("nt.fehler.form"))
+            radius = float(form.radius)
         return tfr.bahn_fuer(
             job,
             job.Model.Group,
-            float(form.radius),
+            radius,
             list(flaechen),
             aufmass=werte["aufmass"],
             aufmass_boden=werte["aufmass_boden"],
             schritt=werte["schritt"] or None,
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
             vorbohren=werte.get("vorbohrer") if werte.get("vorbohren") else None,
+            anteil_ueberlappt=tfr.BRILLE_ANTEIL if werkzeug.art == wz.BOHRER else 1.0,
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -1965,11 +1977,25 @@ class _Tauchfraesen(_Strategie):
 
     def lege_an(self, job, tc, werte, flaechen):
         return tfr.lege_an(
-            job, tc, flaechen, werte["aufmass"], werte["aufmass_boden"], werte["schritt"]
+            job,
+            tc,
+            flaechen,
+            werte["aufmass"],
+            werte["aufmass_boden"],
+            werte["schritt"],
+            anteil=_brille_anteil(tc),
         )
 
     def aendere(self, op, tc, werte, flaechen):
-        tfr.aendere(op, tc, flaechen, werte["aufmass"], werte["aufmass_boden"], werte["schritt"])
+        tfr.aendere(
+            op,
+            tc,
+            flaechen,
+            werte["aufmass"],
+            werte["aufmass_boden"],
+            werte["schritt"],
+            anteil=_brille_anteil(tc),
+        )
 
     def ist(self, op):
         return tfr.ist_tauchfraesen(op)
@@ -1980,6 +2006,21 @@ class _Tauchfraesen(_Strategie):
             "aufmass": float(op.Aufmass),
             "aufmass_boden": float(op.AufmassBoden),
         }
+
+
+def brillenbohrer(werkzeug):
+    """Nennt der Hersteller für den Bohrer die Brillenbohrung (Werkzeug.faehigkeiten
+    „bohrverwendung“)?"""
+    faehig = getattr(werkzeug, "faehigkeiten", None) or {}
+    return "brillenbohrung" in (faehig.get("bohrverwendung") or [])
+
+
+def _brille_anteil(tc):
+    """Der Vorschubanteil an überlappenden Stellen: mit einem Bohrer tauchfraesen.BRILLE_ANTEIL."""
+    from .werkzeuge_aus_cam import vom_controller
+
+    werkzeug = vom_controller(tc)
+    return tfr.BRILLE_ANTEIL if werkzeug is not None and werkzeug.art == wz.BOHRER else 1.0
 
 
 class _RestRaeumen(_Raeumen):
@@ -10498,6 +10539,8 @@ class BearbeitungPanel:
             liste = self._vorbohrer_liste(block.fraeser())
             return {"vorbohrer_liste": liste} if liste else None
         if block.s.kennung == "tauchfraesen":
+            if block.fraeser() is not None and block.fraeser().art == wz.BOHRER:
+                return None  # der Wendeplattenbohrer bohrt selbst
             bohrer = self._tauch_vorbohrer(block.fraeser())
             return {"vorbohrer": bohrer} if bohrer else None
         if block is self.restraeumen:
