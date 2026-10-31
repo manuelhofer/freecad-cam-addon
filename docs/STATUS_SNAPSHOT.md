@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.331.6):* Hoffmann-Bohrer **6506 Größen** (vorher 2742; 80 von 225 Reihen
+  vollständig aus dem langsamen Lauf) – die Werkzeugkiste hat jetzt 47 573 Größen.
 - *Korrektur (0.331.5):* Auch der Messstopp von „Schlichten danach“ (gewohnter Assistent) trägt das
   Messmerkmal der gewählten Flächen (Soll mit dem Wand-Aufmaß des Räumens) – mit Taster misst er.
   Die Erkennung ist strenger: jede Wand muss auf dem Rand des Rechtecks liegen (zwei Taschen

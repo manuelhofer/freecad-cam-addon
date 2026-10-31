@@ -12,6 +12,17 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-25 hoffmann-bohrer-6506
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Frage 3): langsam abrufen; „du wartest lange ?“ – Zwischenstände übernehmen.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/hoffmann_bohren.json`: 225 Reihen, 6506 Größen (Ersatz aus `hoffmann_rest_ersatz.json`).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.331.6.
+
+### ERGEBNIS
+- test_werkzeugkiste_datei grün; Werkzeugkiste 47 573 Größen.
 ## P-2026-10-31-24 messen-schlichten-danach
 
 ### EINGELESEN
