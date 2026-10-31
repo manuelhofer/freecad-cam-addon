@@ -27,6 +27,15 @@ Die Antworten vom 2026-10-31 nachmittags (Messtaster, Tauchfräsen, Hoffmann-Abr
    neu gefasst.) – *Warum nur Manuel:* Werkstattpraxis. – *Was die Antwort ändert:* ob der Zyklus
    nach dem Messen korrigiert. – 2026-10-31.
 
-Manuel, 2026-10-31 abends: Stufe 2 „1.b“ (Konturprogrammierung);
-Bohrfräsen – „man muss klären wie die bohrfräsen definieren“ (Recherche läuft, siehe
-konzept_schritt_assistent.md, Teil C).
+2. **Wendeplattenbohrer „nicht 100 % im Eingriff“: Taschen kettenbohren?** Geklärt (Recherche
+   2026-10-31, deine Vermutung stimmt): Bei Wendeplattenbohrern meinen die Hersteller kein
+   Kreisfräsen, sondern **Bohrverwendungen** – Brillenbohrung (Loch neben Loch, Teil-Eingriff,
+   Walter: 30 % weniger Vorschub), schräg anbohren, ballig, Querbohrung; eine Helix gibt nur
+   Sandvik beim CoroDrill 880 frei, eng begrenzt. „Bohrfräsen“ (helikal ins Volle) ist eine
+   Eigenschaft von **Fräsern** (Tungaloy, Ingersoll) – so heißt es jetzt auch im Addon. Mein
+   Vorschlag: Das **Tauchfräsen** nimmt auch einen Wendeplattenbohrer, der „Brillenbohrung“ kann –
+   dieselben Stellen von der Mitte nach außen, als Bohrungen, mit 30 % weniger Vorschub, wo sie
+   überlappen. – *Warum nur Manuel:* ein neuer Weg (abgemacht: erst fragen). – *Was die Antwort
+   ändert:* ob Taschen mit dem Wendeplattenbohrer ausgebohrt werden können. – 2026-10-31.
+
+Manuel, 2026-10-31 abends: Stufe 2 „1.b“ (Konturprogrammierung, gebaut 0.333.0).

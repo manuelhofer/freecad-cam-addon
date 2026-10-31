@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.333.1):* **Bohrfräsen geklärt** (Manuel: „man muss klären wie die bohrfräsen
+  definieren“): bei Herstellern eine Eigenschaft von Fräsern (helikal ins Volle, Ø-Fenster), bei
+  Wendeplattenbohrern statt dessen Bohrverwendungen (Brillenbohrung, schräg, Querbohrung …). Format:
+  `helix_d_min/max`, `zirkularfraesen`, `rampenwinkel_max`, `bohrverwendung`; der Vorschlag heißt
+  „Helikal ins Volle“ und nimmt Fräser; der Hoffmann-Sammler zählt „Zirkularfräsen“ nicht mehr als
+  Bohrfräsen. Frage 2 neu: Tauchfräsen auch mit dem Wendeplattenbohrer (Brillenbohrung)?
 - *Neu (0.333.0):* **Konturprogrammierung mit Radiuskorrektur** (Plan C3b Stufe 2; Manuel,
   2026-10-31: „1.b“): Haken „Radiuskorrektur der Steuerung (G41/G42)“ an „Kontur“ und „Schlichten
   danach“, aus vorbelegt. Der Schlichtkreis trägt je Satz die Kontur des Teils (`kontur_bahn.

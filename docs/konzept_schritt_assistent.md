@@ -242,8 +242,14 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    die meinen bohrfäasen nur das sie einfach an einer anderen stelle wo nicht 100 % im eingriff
    sind eben borhen können … man muss klären wie die bohrfräsen definieren !“* – In den Katalogdaten
    tragen „bohrfraesen“ bisher nur Fräser (Tungaloy TungForce-Rec, DoFeed, eine Hoffmann-Reihe);
-   versetztes Bohren hat das Format als `seitlich_versetzt` (mm). Die Hersteller-Definitionen
-   werden nachgelesen.
+   versetztes Bohren hat das Format als `seitlich_versetzt` (mm). *Recherche 2026-10-31
+   (Quellen unter `~/freecad_cam/wip/bohrfraesen_quellen/`):* Wendeplattenbohrer nennen
+   Bohrverwendungen (Brillenbohrung, schräg, ballig, Querbohrung, Paket) und einen Verstellbereich,
+   eine Helix nur Sandvik 880; „Bohrfräsen“ = Fräser helikal ins Volle im Ø-Fenster (Tungaloy
+   „Drilling (Helical feed)“, Ingersoll „Bohrzirkularfräsen“). Im Format getrennt: `bohrfraesen` mit
+   `helix_d_min/max`, `zirkularfraesen`, `rampenwinkel_max`, `bohrverwendung` (0.333.1); der
+   Vorschlag „Helikal ins Volle“ nimmt Fräser. Der Hoffmann-Sammler zählte „Zirkularfräsen“ und
+   „Gewindebohrfräsen“ als Bohrfräsen – behoben.
 8. **Daten** – „ALLE daten aus dem internet nicht nur hoffmann … auch die dazugehörigen cad dateien
    .. einfach holen oder nachbauen .. im freecad nachbauen ist eh sinnvoller“. *Gebaut (0.321.0):*
    alle gesammelten Hoffmann-Größen im Katalog (282 Spannmittel, 353 Halter); sieben Sammler holen
