@@ -100,12 +100,21 @@ def setze_masssystem(wahl):
 
 
 def freecad_masssystem():
-    """Das Maßsystem von FreeCADs Einheitensystem: Zoll bei allen „Imperial“-Systemen."""
+    """Das Maßsystem von FreeCADs Einheitensystem: Zoll bei allen „Imperial“-Systemen. Die Namen
+    der Systeme ändern sich nie – einmal geholt (_SCHEMAS): listSchemas() kostet je Aufruf 26 µs,
+    und jeder übersetzte Satz fragt (beim Einlesen der Werkzeugkiste 185 000 Mal, 4,8 von 5,8 s
+    einer Datei)."""
+    global _SCHEMAS
     try:
-        name = FreeCAD.Units.listSchemas()[FreeCAD.Units.getSchema()]
+        if _SCHEMAS is None:
+            _SCHEMAS = list(FreeCAD.Units.listSchemas())
+        name = _SCHEMAS[FreeCAD.Units.getSchema()]
     except (AttributeError, IndexError, TypeError):
         return METRISCH
     return ZOLL if "imperial" in name.lower() else METRISCH
+
+
+_SCHEMAS = None  # die Namen der Einheitensysteme (freecad_masssystem)
 
 
 def masssystem():

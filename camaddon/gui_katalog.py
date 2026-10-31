@@ -13,11 +13,13 @@ from .sprache import tr
 class KatalogDialog(QtGui.QDialog):
     """`reihen`: katalog.Reihe; `gruppen`: [(Schlüssel, Text)] in der Reihenfolge der Anzeige,
     `gruppe_von(reihe)` der Schlüssel einer Reihe, `groesse_text(reihe, groesse)` die Zeile einer
-    Größe."""
+    Größe. `neu_laden()` → (reihen, gruppen): nach dem Laden der Kataloge (gui_kataloge) neu."""
 
     offen = None  # für die Oberflächen-Szenarien
 
-    def __init__(self, eltern, titel, erklaerung, reihen, gruppen, gruppe_von, groesse_text):
+    def __init__(
+        self, eltern, titel, erklaerung, reihen, gruppen, gruppe_von, groesse_text, neu_laden=None
+    ):
         super().__init__(eltern)
         KatalogDialog.offen = self
         self.setWindowTitle(titel)
@@ -31,6 +33,17 @@ class KatalogDialog(QtGui.QDialog):
         text = QtGui.QLabel(erklaerung)
         text.setWordWrap(True)
         aufbau.addWidget(text)
+        # Noch keine Kataloge (eigener Download): der Satz und der Knopf zum Laden.
+        from . import gui_kataloge
+
+        def nach_dem_laden():
+            if neu_laden is not None:
+                self._alle, self._gruppen = (list(x) for x in neu_laden())
+                self.fuellen()
+
+        self.kataloge_zeile = gui_kataloge.zeile(self, nach_dem_laden)
+        if self.kataloge_zeile is not None:
+            aufbau.addWidget(self.kataloge_zeile)
         self.suche = QtGui.QLineEdit()
         self.suche.setPlaceholderText(tr("kt.suche.platzhalter"))
         self.suche.setClearButtonEnabled(True)

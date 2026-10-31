@@ -66,8 +66,8 @@ pruefe(
 pruefe(wd._aus_dem_zwischenspeicher("ein anderer Stand") is None, "fremder Stand angenommen")
 # Jede Datei fehlerfrei und ohne Dubletten gegen das, was vor ihr geladen ist.
 davor = list(wk.eingebaute())
-for name in sorted(n for n in os.listdir(wd.MITGELIEFERT) if n.endswith(".json")):
-    p = wd.lesen(os.path.join(wd.MITGELIEFERT, name), list(davor))
+for name in sorted(n for n in os.listdir(wd.mitgeliefert_ordner()) if n.endswith(".json")):
+    p = wd.lesen(os.path.join(wd.mitgeliefert_ordner(), name), list(davor))
     pruefe(not p.fehler and not p.doppelt, f"{name}: {p.fehler[:2]} {p.doppelt[:2]}")
     davor += p.reihen
 fasen = next((r for r in mitgeliefert if r.kennung == "garant-208080"), None)

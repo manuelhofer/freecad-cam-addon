@@ -399,6 +399,7 @@ class SpannmittelDialog(QtGui.QDialog):
             [(art, sm.art_text(art)) for art in sm.ARTEN],
             lambda reihe: reihe.art,
             _groesse_text,
+            lambda: (sm.katalog_reihen(), [(art, sm.art_text(art)) for art in sm.ARTEN]),
         )
         if not dialog.exec():
             return None

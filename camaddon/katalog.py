@@ -96,8 +96,11 @@ def lesen(pfad):
 
 
 def reihen(ordner):
-    """Alle Reihen der Dateien in `ordner` (unter dem Addon), nach Hersteller und Titel."""
-    pfad = os.path.join(ORDNER, ordner)
+    """Alle Reihen der Dateien des Katalogs `ordner` („halter_daten“) – im Addon oder, aus dem
+    Download, im Profil (kataloge.ordner) –, nach Hersteller und Titel."""
+    from . import kataloge
+
+    pfad = kataloge.ordner(ordner)
     if not os.path.isdir(pfad):
         return []
     alle = []

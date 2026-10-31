@@ -576,6 +576,18 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.336.0):* **Kataloge der Hersteller als eigener Download** (Manuel: „hey sollen wir die
+  kataloginhalte downloaden … ja nein vll“): Werkzeuge, Halter und Spannmittel kommen nicht mehr
+  mit dem Update-Paket (2,99 → 2,07 MB), sondern auf Wunsch von GitHub ins FreeCAD-Profil
+  (`CamAddon/kataloge`, übersteht jedes Update; etwa 1,1 MB gepackt, 15,4 MB auf der Platte).
+  Kurz nach dem Start fragt das Addon „Ja, laden / Später / Nein“; nach „Ja“ holt es neue
+  Fassungen nach Updates still nach. Die Kataloge der Halter, Spannmittel und die Werkzeugkiste
+  zeigen ohne Kataloge „Kataloge laden …“. `kataloge_index.json` (Größe, SHA-256 je Datei) prüft
+  jede Datei; `scripts/kataloge_index.py` nach jeder Katalogänderung. Im Git-Klon bleibt alles
+  wie bisher. Dazu: die Werkzeugkiste prüft die Kataloge in **3,5 s statt 76 s** (einheiten:
+  Liste der Maßsysteme gemerkt – 82 % der Zeit; werkzeugkiste_datei: ein mitwachsender Vergleich
+  statt eines neuen je Datei).
+![Frage nach dem Start](bilder/kataloge/1_frage.png)
 - *Neu (0.335.0):* **Messzyklus korrigiert den Schlichtfräser selbst** (Manuel: „ja mach das so“):
   Haken in „Weiter bearbeiten“ (mit Taster, vorbelegt an); er hakt bei den Strategien des Schritts
   „Radiuskorrektur“ an, der Messstopp trägt „KORR{T}“ des ersten neuen Gangs mit Radiuskorrektur.

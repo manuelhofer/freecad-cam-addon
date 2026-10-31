@@ -99,7 +99,17 @@ _FREMDE_FORMEN = (
 # Was mit dem Addon kommt (Manuel, 2026-10-16: „übernehm das in die liste direkt wenn man es
 # gebrauchen kann“): Dateien in diesem Format, nach den eingebauten Reihen – etwa die Liste seines
 # lokalen Assistenten von hoffmann-group.com, mit den vc aus den Anwendertabellen ergänzt.
-MITGELIEFERT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "werkzeugkiste_daten")
+MITGELIEFERT = None  # ein fester Ordner statt kataloge.ordner (die Prüfungen)
+
+
+def mitgeliefert_ordner():
+    """Wo die Kataloge der Werkzeuge liegen: im Addon (Git-Klon) oder aus dem
+    Download im Profil (kataloge.ordner)."""
+    if MITGELIEFERT is not None:
+        return MITGELIEFERT
+    from . import kataloge
+
+    return kataloge.ordner("werkzeugkiste_daten")
 
 
 def ordner():
@@ -138,10 +148,12 @@ class Pruefung:
 # --- Lesen und Prüfen -----------------------------------------------------------------------
 
 
-def lesen(pfad, vorhandene=None):
+def lesen(pfad, vorhandene=None, index=None):
     """Prüft die Datei und baut ihre Reihen; `vorhandene`: die Reihen, gegen die Dubletten
     gesucht werden (ohne: alle der Kiste außer denen aus einer Datei gleichen Namens – die
-    ersetzt diese). Gibt eine Pruefung zurück; eine unlesbare Datei hat nur Fehler."""
+    ersetzt diese). `index` (_Index) statt `vorhandene`: ein Vergleich, der mitwächst – was die
+    Datei behält, kommt hinein (mitgelieferte: einmal gebaut statt je Datei aus allen davor, das
+    waren 34 von 76 s). Gibt eine Pruefung zurück; eine unlesbare Datei hat nur Fehler."""
     name = os.path.basename(pfad)
     pruefung = Pruefung(datei=name)
     try:
@@ -162,11 +174,12 @@ def lesen(pfad, vorhandene=None):
         pruefung.fehler.append(tr("wd.fehler.reihen"))
         return pruefung
     fruehere = set()
-    if vorhandene is None:  # eine Datei gleichen Namens im Ordner ersetzt diese
-        alle = wk.reihen()
-        vorhandene = [r for r in alle if r.datei != name]
-        fruehere = {r.kennung for r in alle if r.datei == name}
-    index = _Index(vorhandene)
+    if index is None:
+        if vorhandene is None:  # eine Datei gleichen Namens im Ordner ersetzt diese
+            alle = wk.reihen()
+            vorhandene = [r for r in alle if r.datei != name]
+            fruehere = {r.kennung for r in alle if r.datei == name}
+        index = _Index(vorhandene)
     gesehen = set()
     for nummer, daten_reihe in enumerate(reihen, 1):
         reihe = _reihe(daten_reihe, nummer, name, pruefung, gesehen, index)
@@ -561,10 +574,11 @@ def _stand():
     der sie liest, und die Sprache (die Quelle steht übersetzt darin)."""
     from . import sprache
 
-    teile = [sprache.aktuelle_sprache(), MITGELIEFERT]
-    namen = sorted(os.listdir(MITGELIEFERT)) if os.path.isdir(MITGELIEFERT) else []
+    ordner = mitgeliefert_ordner()
+    teile = [sprache.aktuelle_sprache(), ordner]
+    namen = sorted(os.listdir(ordner)) if os.path.isdir(ordner) else []
     for name in namen:
-        info = os.stat(os.path.join(MITGELIEFERT, name))
+        info = os.stat(os.path.join(ordner, name))
         teile.append((name, info.st_size, info.st_mtime_ns))
     for modul in (wk, wz, ws):
         info = os.stat(modul.__file__)
@@ -599,7 +613,7 @@ def _in_den_zwischenspeicher(stand, reihen):
 
 
 def mitgelieferte():
-    """Die Reihen der Dateien, die mit dem Addon kommen (MITGELIEFERT) – gegen die eingebauten
+    """Die Reihen der Kataloge (mitgeliefert_ordner: im Addon oder geladen) – gegen die eingebauten
     und die Dateien davor geprüft, einmal gelesen. Die geprüften Reihen bleiben zwischengespeichert
     (ZWISCHENSPEICHER): mit den Katalogen der Hersteller (über 40 000 Größen) dauerte das Prüfen
     5 s – solange sich Dateien, Code und Sprache nicht ändern, liest es sie von dort."""
@@ -614,16 +628,16 @@ def _mitgelieferte():
         _mitgeliefert = _aus_dem_zwischenspeicher(stand)
     if _mitgeliefert is None:
         reihen = []
-        vorhandene = list(wk.eingebaute())
-        namen = sorted(os.listdir(MITGELIEFERT)) if os.path.isdir(MITGELIEFERT) else []
+        index = _Index(list(wk.eingebaute()))  # wächst mit jeder Datei (lesen)
+        ordner = mitgeliefert_ordner()
+        namen = sorted(os.listdir(ordner)) if os.path.isdir(ordner) else []
         for name in namen:
             if not name.lower().endswith(".json"):
                 continue
-            pruefung = lesen(os.path.join(MITGELIEFERT, name), vorhandene)
+            pruefung = lesen(os.path.join(ordner, name), index=index)
             for satz in pruefung.fehler + pruefung.doppelt:
                 FreeCAD.Console.PrintWarning(f"CAM-Addon: {name}: {satz}\n")
             reihen += pruefung.reihen
-            vorhandene += pruefung.reihen
         _mitgeliefert = reihen
         _in_den_zwischenspeicher(stand, reihen)
     return _mitgeliefert

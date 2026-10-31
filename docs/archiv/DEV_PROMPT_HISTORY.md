@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-35 kataloge-download-werkzeugkiste-schnell
+
+### EINGELESEN
+- Manuel, 2026-10-31: „ja sollte man jetzt schon planen und einbauen das man sagt nach der
+  installation "hey sollen wir die kataloginhalte downloaden um einfach deutlich bessere
+  vorhersagen machen zu können" oder sowas .. und dann ja nein vll 😉“
+- Manuel, 2026-10-31: „was rechnet da gerade mit einem einzelnen kern ?“ – „aber warum nicht mit
+  allen kernen ?!?!?!?“ (die Werkzeugkiste prüfte die Kataloge 76 s lang auf einem Kern)
+
+### DATEIEN
+- `camaddon/kataloge.py` (neu): Ordner im Addon oder im Profil, Index mit SHA-256, Laden von
+  GitHub (gepackt, geprüft, .neu → umbenannt), Alte weg, gemerkte Kataloge vergessen.
+- `camaddon/gui_kataloge.py` (neu): Frage nach dem Start (Ja/Später/Nein), Fenster mit
+  Fortschritt (Faden + Zeitgeber), Zeile „Kataloge laden …“ für die Katalogfenster.
+- `camaddon/kataloge_index.json`, `scripts/kataloge_index.py` (neu); `.gitattributes`: die drei
+  Datenordner export-ignore (Update-Paket 2,99 → 2,07 MB).
+- `camaddon/katalog.py`, `camaddon/werkzeugkiste_datei.py` (mitgeliefert_ordner, mitwachsender
+  _Index in lesen/_mitgelieferte), `camaddon/einheiten.py` (Liste der Maßsysteme gemerkt),
+  `camaddon/gui_katalog.py`, `gui_halter.py`, `gui_spannmittel.py`, `gui_werkzeuge.py`,
+  `gui_start.py`, Übersetzungen, `package.xml` 0.336.0.
+- `tests/test_kataloge.py`, `tests/gui/szenario_kataloge.py` (neu); test_werkzeugkiste_datei,
+  test_faehigkeiten, szenario_werkzeugkiste auf mitgeliefert_ordner().
+
+### ERGEBNIS
+- Werkzeugkiste in frischem Profil: 76 s → 3,5 s (1272 Reihen, 47 573 Größen). 82 % lagen in
+  FreeCAD.Units.listSchemas() (185 000 Aufrufe über tr → einheiten), 34 s im Vergleich, der je
+  Datei aus allen davor neu gebaut wurde. Verteilen auf Kerne lohnt danach nicht mehr.
+- test_kataloge, test_werkzeugkiste_datei, test_faehigkeiten, test_sprache, test_einheiten grün;
+  szenario_kataloge grün (Frage, leerer Halterkatalog mit Knopf, Laden von einem Webserver hier:
+  „Fertig – 11 Dateien“, danach 23 Aufnahmen im Katalog).
 ## P-2026-10-31-34 messen-korrigieren
 
 ### EINGELESEN

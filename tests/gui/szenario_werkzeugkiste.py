@@ -45,7 +45,7 @@ def schritte(h):
         f"reihen() ohne Datei: {len(wk.reihen())}",
     )
     ordner = tempfile.mkdtemp()
-    with open(os.path.join(wd.MITGELIEFERT, "hoffmann.json"), encoding="utf-8") as datei:
+    with open(os.path.join(wd.mitgeliefert_ordner(), "hoffmann.json"), encoding="utf-8") as datei:
         daten = json.load(datei)
     # Eine eigene Datei: fünf Reihen mit anderen Kennungen und Artikelnummern (sonst wären sie
     # doppelt – es gibt sie ja schon).

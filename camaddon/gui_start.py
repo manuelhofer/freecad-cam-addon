@@ -148,6 +148,9 @@ def starten():
     gui_sprachwahl.beim_ersten_start_fragen()
     gui_aktualisierung.beim_start()
     _werkzeugkiste_vorbereiten()
+    from . import gui_kataloge
+
+    gui_kataloge.beim_start()  # „Kataloge der Hersteller laden?“
     FreeCAD.Console.PrintLog("CAM-Addon geladen\n")
 
 

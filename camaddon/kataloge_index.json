@@ -1,0 +1,48 @@
+{
+ "dateien": {
+  "halter_daten/hersteller.json": {
+   "groesse": 2900949,
+   "sha256": "265fe41a5b953128276bd82ccbd9509d60cc4c1c0baa0165888a96e5ca9bdc6b"
+  },
+  "spannmittel_daten/hersteller.json": {
+   "groesse": 865980,
+   "sha256": "3a2291eac513368589d36e53049710e9bd090eca73f8bc27a34589863e091c77"
+  },
+  "werkzeugkiste_daten/fraisa_hufschmied.json": {
+   "groesse": 1422737,
+   "sha256": "447b8990a9bf0ef046efce2a08168081610774eb79f57b7babfd8205d79b1475"
+  },
+  "werkzeugkiste_daten/guehring.json": {
+   "groesse": 1265602,
+   "sha256": "c447bd06c443602f80eceddcff556af69061a9ac44a8e20d033cc02f06ec60f9"
+  },
+  "werkzeugkiste_daten/hoffmann.json": {
+   "groesse": 87630,
+   "sha256": "e2c74529d734bafe86f23bfd8c0d823c3ee2c544c761d10783e6ed99dae2ed12"
+  },
+  "werkzeugkiste_daten/hoffmann_bohren.json": {
+   "groesse": 1767280,
+   "sha256": "32142969b575b35dc69e163f49a976fbbc95f974e3666b10710d7feec44dd921"
+  },
+  "werkzeugkiste_daten/hoffmann_fraeser.json": {
+   "groesse": 129547,
+   "sha256": "08b8265a46027a49c80385c81f9244478019bf3f63a78d9d0cc07c13ac28b561"
+  },
+  "werkzeugkiste_daten/hoffmann_rest.json": {
+   "groesse": 424856,
+   "sha256": "bd8685848c0a936925e7fa1433c98c3036aaae1c0bbb545b043020c6acbe7427"
+  },
+  "werkzeugkiste_daten/iscar_kennametal_tungaloy.json": {
+   "groesse": 183998,
+   "sha256": "2c70855d26b8e75cc0cf18abe57ed63a9c5af77de275b049f1c19784c3effc4c"
+  },
+  "werkzeugkiste_daten/mapal.json": {
+   "groesse": 207064,
+   "sha256": "cd19b366ab49bf4ffc3ed4d3eedb0b85b8924eaaf07ef5eed162204f46d8f15b"
+  },
+  "werkzeugkiste_daten/sandvik_seco_walter.json": {
+   "groesse": 6139695,
+   "sha256": "1307513da4b33337f3d28a42e9143d5aa0f146c804b6119a79325d78d6e37115"
+  }
+ }
+}

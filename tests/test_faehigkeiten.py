@@ -119,7 +119,7 @@ from camaddon import werkzeugkiste as wk  # noqa: E402
 from camaddon import werkzeugkiste_datei as wd  # noqa: E402
 
 sprache.setze_sprache("de")
-datei = wd.lesen(os.path.join(wd.MITGELIEFERT, "sandvik_seco_walter.json"), [])
+datei = wd.lesen(os.path.join(wd.mitgeliefert_ordner(), "sandvik_seco_walter.json"), [])
 reihe = next((r for r in datei.reihen if "D4120, 3" in r.titel), None)
 w = wk.werkzeuge(reihe, mit_werten=False)[0] if reihe is not None else None
 if w is None or "brillenbohrung" not in (w.faehigkeiten.get("bohrverwendung") or []):

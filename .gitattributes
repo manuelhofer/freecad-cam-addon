@@ -17,3 +17,8 @@ pyproject.toml export-ignore
 beispiele/** export-ignore
 beispiele/README.md -export-ignore
 beispiele/werkzeugkiste_*.json -export-ignore
+# Die Kataloge der Hersteller (gut 15 MB) kommen nicht mit dem Update-Paket: Das Addon fragt nach
+# dem Start, ob es sie laden soll (kataloge.py, gui_kataloge.py), und holt sie ins FreeCAD-Profil.
+camaddon/werkzeugkiste_daten/ export-ignore
+camaddon/halter_daten/ export-ignore
+camaddon/spannmittel_daten/ export-ignore

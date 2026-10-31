@@ -431,16 +431,22 @@ class HalterDialog(QtGui.QDialog):
         from .gui_katalog import KatalogDialog
 
         aufnahme = _aufnahme_offener_maschinen() or hl.VORGABE_AUFNAHME
-        reihen = sorted(hk.katalog_reihen(), key=lambda r: r.aufnahme != aufnahme)
-        aufnahmen = list(dict.fromkeys(r.aufnahme for r in reihen))
+
+        def holen():
+            reihen = sorted(hk.katalog_reihen(), key=lambda r: r.aufnahme != aufnahme)
+            aufnahmen = list(dict.fromkeys(r.aufnahme for r in reihen))
+            return reihen, [(a, f"{a} ({hl.AUFNAHMEN[a][0]})") for a in aufnahmen]
+
+        reihen, gruppen = holen()
         dialog = KatalogDialog(
             self,
             tr("hk.titel"),
             tr("hk.erklaerung", aufnahme=aufnahme),
             reihen,
-            [(a, f"{a} ({hl.AUFNAHMEN[a][0]})") for a in aufnahmen],
+            gruppen,
             lambda reihe: reihe.aufnahme,
             _katalog_zeile,
+            holen,
         )
         if not dialog.exec():
             return None

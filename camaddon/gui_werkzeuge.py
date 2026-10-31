@@ -1511,6 +1511,12 @@ class KisteDialog(QtGui.QDialog):
         erklaerung = QtGui.QLabel(tr("wv.kiste.erklaerung"))
         erklaerung.setWordWrap(True)
         aufbau.addWidget(erklaerung)
+        # Noch keine Kataloge der Hersteller (eigener Download): der Satz und der Knopf zum Laden.
+        from . import gui_kataloge
+
+        self.kataloge_zeile = gui_kataloge.zeile(self, lambda: self.fuellen())
+        if self.kataloge_zeile is not None:
+            aufbau.addWidget(self.kataloge_zeile)
         # Suchen über Hersteller, Marke und Reihe (mit den Katalogen der Hersteller sind es
         # Hunderte Reihen, W-042).
         self.suche = QtGui.QLineEdit()
