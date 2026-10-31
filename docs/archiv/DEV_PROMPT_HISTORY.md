@@ -12,6 +12,17 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-20 haimer-zwischenstand
+
+### EINGELESEN
+- Manuel, 2026-10-31: „du wartest lange ?“ – nicht auf das Ende der Abrufe warten.
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: 598 Reihen, 6075 Größen (HAIMER bis CAT50).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.331.1.
+
+### ERGEBNIS
+- test_spannmittel grün (baut jeden Halter), alle Aufnahmen bekannt.
 ## P-2026-10-31-19 messen-statt-halt
 
 ### EINGELESEN

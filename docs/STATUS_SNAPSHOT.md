@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.331.1):* Halter-Katalog **598 Reihen, 6075 Größen** – HAIMER dazu bis CAT50
+  (HSK-E, Capto/PSC, CAT, SK40 …); der Abruf läuft weiter.
 - *Neu (0.331.0):* **Messprogramme, Stufe 1** (Plan C3b; Manuel: „willst du auch messprogramme
   einbauen .. wär natürlich cool“): Ist am Postprozessor ein Messtaster (T-Nummer) eingetragen,
   misst der Messstopp aus „Weiter bearbeiten“ Tasche, Zapfen, Bohrung oder Welle mit dem Zyklus der
