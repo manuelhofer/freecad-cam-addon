@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-10 beta-werkzeuge-fuer-die-tasche
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Antwort 2): „grösten bohrer den man hat bohrt mittig ein loch … wenn man …
+  kein platz hat für nen bohrer … helix … wendeplatten bohrer oder einem messerkopf bohrfräsen ...
+  alles möglichkeiten die der benutzer haben muss wenn er die richtigen werkzeuge hat oder eben
+  vorschläge für werkzeuge bekommt“.
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py` (neu): Maße der Tasche (Tiefe, freier Kreis, kleinster Innenradius),
+  Vorschläge je Weg aus eigenen Werkzeugen und dem Katalog.
+- `camaddon/gui_bearbeitung_beta.py`: „Werkzeuge für diese Tasche“ im Schritt Schruppen, „Was gäbe
+  es im Katalog?“ mit Links.
+- `camaddon/werkzeugkiste_datei.py`: `null` als Link/Artikel/Name nicht als Text „None“.
+- `tests/test_werkzeugwahl.py` (neu), `tests/gui/szenario_beta_schritte.py` (Teil 3), Texte,
+  Konzept C2, Bild 3c, `package.xml` 0.327.0.
+
+### ERGEBNIS
+- test_werkzeugwahl, test_werkzeugkiste_datei, test_faehigkeiten, test_sprache,
+  szenario_beta_schritte grün.
+
 ## P-2026-10-31-09 werkzeugkiste-kataloge-der-hersteller
 
 ### EINGELESEN

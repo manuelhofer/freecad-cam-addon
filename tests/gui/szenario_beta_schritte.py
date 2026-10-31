@@ -10,7 +10,8 @@
 # 2. Flächen: die eine Wand gehört zu einer Tasche, in der noch Material steht – der Satz dazu,
 #    „Ganze Tasche schruppen, diese Wände schlichten“ vorn, „Weiter“ gesperrt; „Ganze Tasche
 #    nehmen“ nimmt Wände, Rundungen und Boden dazu, „Weiter“ geht.
-# 3. Schruppen: nur Strategien des Schruppens zu sehen. „Weiter“ zum Schlichten (Löcher gibt es
+# 3. Schruppen: nur Strategien des Schruppens zu sehen; darüber die Werkzeuge für die Tasche – die
+#    eigenen, mit „Was gäbe es im Katalog?“ größere aus dem Katalog mit Link (Plan C2). „Weiter“ zum Schlichten (Löcher gibt es
 #    hier nicht – übersprungen), „Zurück“, dann „Anlegen“ im Schruppen: nur das Schruppen kommt in
 #    den Job, am Job steht, was gewählt war und bis wohin angelegt ist.
 # 4. Job anklicken, „Weiter bearbeiten (Beta)“: die Frage „Womit weiter?“ – vorgewählt der Schritt
@@ -212,7 +213,17 @@ def schritte(h):
     )
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     yield 500
+    # Werkzeuge für die Tasche (Plan C2): die eigenen sofort, der Katalog auf Knopfdruck.
+    text = panel.werkzeuge_text.text()
+    print(ascii(f"Werkzeuge: {text[:300]}"))
+    h.pruefe(panel.werkzeuge_box.isVisible() and "deins: T" in text, f"Werkzeuge: {text!r}")
     h.bild("3_schruppen", panel.form)
+    panel.knopf_katalog.click()
+    yield 500
+    text = panel.werkzeuge_text.text()
+    print(ascii(f"Katalog: {text[:600]}"))
+    h.pruefe("im Katalog" in text and "<a href" in text, f"Katalog: {text[:300]!r}")
+    h.bild("3c_werkzeuge_katalog", panel.form)
     panel.knopf_weiter.click()
     yield 1000
     h.pruefe(panel.seite() == 2 + beta.SCHLICHTEN, f"nach dem Schruppen Seite {panel.seite()}")

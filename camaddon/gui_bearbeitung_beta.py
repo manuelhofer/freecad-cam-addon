@@ -36,6 +36,7 @@ from . import reichweite as rw
 from . import spannmittel as sm
 from . import taschen_wahl as tw
 from . import vierachs_rohteil as vr
+from . import werkzeugwahl as ww
 from .gui_bearbeitung import (
     SCHRUPPEN_ZUERST,
     BearbeitungPanel,
@@ -184,6 +185,23 @@ class BetaPanel(BearbeitungPanel):
         self.ebene_text.setWordWrap(True)
         self.ebene_text.hide()
         schruppen.addWidget(self.ebene_text)
+        # Welche Werkzeuge für die Tasche passen – eigene und aus dem Katalog (Plan C2).
+        self.werkzeuge_box = QtGui.QWidget()
+        box = QtGui.QVBoxLayout(self.werkzeuge_box)
+        box.setContentsMargins(0, 4, 0, 4)
+        self.werkzeuge_text = QtGui.QLabel()
+        self.werkzeuge_text.setWordWrap(True)
+        self.werkzeuge_text.setTextFormat(QtCore.Qt.RichText)
+        self.werkzeuge_text.setOpenExternalLinks(True)
+        box.addWidget(self.werkzeuge_text)
+        self.knopf_katalog = knopf(
+            tr("beta.werkzeuge.katalog"), tr("beta.werkzeuge.katalog.tooltip"), self.im_katalog
+        )
+        box.addWidget(self.knopf_katalog, 0, QtCore.Qt.AlignLeft)
+        self.werkzeuge_box.hide()
+        schruppen.addWidget(self.werkzeuge_box)
+        self._beta_masse = None  # (Wahl, werkzeugwahl.Masse) der Tasche
+        self._beta_katalog_an = False
         self._beta_geschwenkt = []
         _umsetzen(self.frage_waende.widget, self._beta_seiten[SCHLICHTEN].layout(), alt)
         _aus_layout(alt, self.frage_reihenfolge.widget)
@@ -542,6 +560,8 @@ class BetaPanel(BearbeitungPanel):
                 self.knopf_unten_waehlen.setChecked(True)
         elif self.knopf_unten_waehlen.isChecked():
             self.knopf_unten_waehlen.setChecked(False)
+        if self._seite == ERSTER_ABSCHNITT + SCHRUPPEN:
+            self._werkzeuge_zeigen()
         self._rohteil_kurz_zeigen()
         self._beta_knoepfe()
         self.nichts_angehakt.hide()
@@ -824,6 +844,61 @@ class BetaPanel(BearbeitungPanel):
             maske = stand.maske_um((mitte.x, mitte.y), (mitte.x, mitte.y), 2 * stand.schritt)
             wer += [w for w in stand.wer(maske) if w not in wer]
         return voll, wer
+
+    def _tasche_masse(self):
+        """Die Maße der Tasche, zu der die gewählten Flächen gehören – None ohne Tasche."""
+        wahl = frozenset(self.gewaehlte)
+        if self._beta_masse is not None and self._beta_masse[0] == wahl:
+            return self._beta_masse[1]
+        masse = None
+        if self.job is not None and self.gewaehlte and not self._ist_stl():
+            try:
+                form = vr.modell(self.job).Shape
+                kennung = form.hashCode()
+                if self._beta_nachbarn is None or self._beta_nachbarn[0] != kennung:
+                    self._beta_nachbarn = (kennung, tw.nachbarn(form))
+                tasche = tw.vertiefung(form, self.gewaehlte, self._beta_nachbarn[1])
+                if len(tasche) > 1:  # Boden und Wände: eine Tasche
+                    masse = ww.masse(form, tasche)
+            except Exception as fehler:  # nie das Fenster sperren
+                FreeCAD.Console.PrintLog(f"Beta: Tasche nicht gemessen: {fehler}\n")
+        self._beta_masse = (wahl, masse)
+        return masse
+
+    def _werkzeuge_zeigen(self):
+        """Im Schruppen: je Weg das größte passende eigene Werkzeug; mit „Was gäbe es im
+        Katalog?“ dazu größere aus dem Katalog der Hersteller."""
+        masse = self._tasche_masse()
+        if masse is None or masse.frei <= 0:
+            self.werkzeuge_box.hide()
+            return
+        from . import magazin as mg
+
+        bibliothek = self.bibliothek if self.bibliothek is not None else mg.bibliothek_laden()
+        eigene = list(getattr(bibliothek, "werkzeuge", []) or [])
+        katalog = ww.katalog_werkzeuge() if self._beta_katalog_an else []
+        zeilen = [
+            tr(
+                "beta.werkzeuge.tasche",
+                tiefe=dezimal(f"{masse.tiefe:.1f}"),
+                frei=dezimal(f"{masse.frei:.0f}"),
+            )
+        ]
+        for v in ww.vorschlaege(masse, eigene, katalog):
+            zeilen.append(_vorschlag_zeile(v))
+        self.werkzeuge_text.setText("<br>".join(zeilen))
+        self.knopf_katalog.setVisible(not self._beta_katalog_an)
+        self.werkzeuge_box.show()
+
+    def im_katalog(self):
+        """„Was gäbe es im Katalog?“ – einmal den Katalog lesen (dauert beim ersten Mal)."""
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        try:
+            ww.katalog_werkzeuge()
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+        self._beta_katalog_an = True
+        self._werkzeuge_zeigen()
 
     def tasche_schruppen_waende_schlichten(self):
         """„Ganze Tasche schruppen, diese Wände schlichten“ (B1): das Schruppen bekommt die ganze
@@ -1136,6 +1211,45 @@ class WeiterFrage(QtGui.QDialog):
     def done(self, ergebnis):
         WeiterFrage.offen = None
         super().done(ergebnis)
+
+
+def _werkzeug_text(w):
+    """„Gühring 5510 32,000 (Bohrer Ø 32)“ mit Link, wenn es einen gibt."""
+    from . import werkzeuge as wz
+
+    text = dezimal(wz.kurz(w))
+    if getattr(w, "name", ""):  # der Name aus dem Katalog: Reihe und Größe, Artikel
+        text = f"{w.name} ({text})"
+    text = html.escape(text)
+    hersteller = getattr(w, "hersteller", "")
+    if hersteller and hersteller.split()[0].lower() not in text.lower():
+        text = f"{html.escape(hersteller)} {text}"
+    if getattr(w, "link", ""):
+        text = f'<a href="{html.escape(w.link)}">{text}</a>'
+    return text
+
+
+def _vorschlag_zeile(v):
+    """Eine Zeile je Weg: „Vorbohren (bis Ø 38): deiner T3 Bohrer Ø 20 · im Katalog: …“."""
+    weg = {
+        "vorbohren": tr("beta.werkzeuge.vorbohren"),
+        "schruppen": tr("beta.werkzeuge.schruppen"),
+        "ecken": tr("beta.werkzeuge.ecken"),
+        "bohrfraesen": tr("beta.werkzeuge.bohrfraesen"),
+    }[v.weg]
+    teile = []
+    if v.eigenes is not None:
+        nummer = getattr(v.eigenes, "nummer", 0)
+        name = _werkzeug_text(v.eigenes)
+        teile.append(tr("beta.werkzeuge.eigenes", name=f"T{nummer} {name}" if nummer else name))
+    elif v.weg != "bohrfraesen":
+        teile.append(tr("beta.werkzeuge.keins"))
+    if v.katalog:
+        teile.append(
+            tr("beta.werkzeuge.aus_katalog", namen=", ".join(_werkzeug_text(w) for w in v.katalog))
+        )
+    grenze = dezimal(f"{v.grenze:.0f}")
+    return f"<b>{weg}</b> ({tr('beta.werkzeuge.bis', d=grenze)}): " + " · ".join(teile)
 
 
 def _hat_loecher(job):

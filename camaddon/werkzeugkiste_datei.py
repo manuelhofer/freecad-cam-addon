@@ -227,7 +227,7 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
         stelle_g = tr("wd.stelle.groesse", stelle=stelle, nummer=i)
         groesse = _felder(daten_groesse, stelle_g, pruefung)
         for feld in _TEXTE:
-            if feld in daten_groesse and feld not in groesse:
+            if daten_groesse.get(feld) is not None and feld not in groesse:
                 groesse[feld] = str(daten_groesse[feld]).strip()
         werte_groesse = _schnittwerte(daten_groesse.get("schnittwerte"), art, stelle_g, pruefung)
         mit_werten = mit_werten or bool(werte_groesse)
@@ -306,7 +306,8 @@ def _felder(daten, stelle, pruefung):
                 ergebnis[name] = str(wert).strip()
             continue
         if name in ("artikel", "name", "link"):
-            ergebnis[name] = str(wert).strip()
+            if wert is not None:  # null in der Datei: nichts – nicht der Text „None“
+                ergebnis[name] = str(wert).strip()
             continue
         if name in wz.FAEHIGKEITEN:  # Abschnitt 3a
             gelesen = wz.faehigkeit_lesen(name, wert)

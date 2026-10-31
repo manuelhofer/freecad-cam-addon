@@ -3590,5 +3590,16 @@
     "beta.weiter.messstopp.tooltip": "Before the new operations the machine stops (Z up, spindle and coolant off, M0): measure, then Start – it goes on with spindle and coolant.",
     "beta.weiter.los": "Next",
     "beta.weiter.keine_loecher": "Holes – none on these faces",
-    "wv.kiste.suche": "Search: manufacturer, brand, series …"
+    "wv.kiste.suche": "Search: manufacturer, brand, series …",
+    "beta.werkzeuge.tasche": "Tools for this pocket (up to {tiefe} mm deep, free circle Ø {frei}):",
+    "beta.werkzeuge.vorbohren": "Pre-drilling",
+    "beta.werkzeuge.schruppen": "Roughing",
+    "beta.werkzeuge.ecken": "Corners",
+    "beta.werkzeuge.bohrfraesen": "Drill-milling",
+    "beta.werkzeuge.bis": "up to Ø {d}",
+    "beta.werkzeuge.eigenes": "yours: {name}",
+    "beta.werkzeuge.keins": "none in the tool manager",
+    "beta.werkzeuge.aus_katalog": "larger in the catalogue: {namen}",
+    "beta.werkzeuge.katalog": "What would the catalogue have?",
+    "beta.werkzeuge.katalog.tooltip": "Searches the manufacturers' catalogue (over 12,000 tools) for larger tools that would fit here – with a link to order. The first time takes a second or two."
 }

@@ -3590,5 +3590,16 @@
     "beta.weiter.messstopp.tooltip": "Vor den neuen Operationen hält die Maschine (Z hoch, Spindel und Kühlung aus, M0): messen, dann Start – es geht mit Spindel und Kühlung weiter.",
     "beta.weiter.los": "Weiter",
     "beta.weiter.keine_loecher": "Löcher – an diesen Flächen keine",
-    "wv.kiste.suche": "Suchen: Hersteller, Marke, Reihe …"
+    "wv.kiste.suche": "Suchen: Hersteller, Marke, Reihe …",
+    "beta.werkzeuge.tasche": "Werkzeuge für diese Tasche (bis {tiefe} mm tief, freier Kreis Ø {frei}):",
+    "beta.werkzeuge.vorbohren": "Vorbohren",
+    "beta.werkzeuge.schruppen": "Schruppen",
+    "beta.werkzeuge.ecken": "Ecken",
+    "beta.werkzeuge.bohrfraesen": "Bohrfräsen",
+    "beta.werkzeuge.bis": "bis Ø {d}",
+    "beta.werkzeuge.eigenes": "deins: {name}",
+    "beta.werkzeuge.keins": "keins in der Werkzeugverwaltung",
+    "beta.werkzeuge.aus_katalog": "größer im Katalog: {namen}",
+    "beta.werkzeuge.katalog": "Was gäbe es im Katalog?",
+    "beta.werkzeuge.katalog.tooltip": "Sucht im Katalog der Hersteller (über 12 000 Werkzeuge) größere Werkzeuge, die hier passen würden – mit Link zum Bestellen. Beim ersten Mal dauert das ein, zwei Sekunden."
 }

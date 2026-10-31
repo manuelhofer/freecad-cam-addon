@@ -170,6 +170,13 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    größte passende Bohrer aus Magazin oder Werkzeugverwaltung) + Räumen; Helix + Räumen; Bohrfräsen;
    Tauchfräsen (neu). Je Zeile Zeit, Vorschau und das Werkzeug – fehlt eins, ein Vorschlag aus dem
    Katalog („mit einem … ginge es in … min“).
+   *Gebaut (0.326.0/0.327.0):* (a) die Kataloge – 744 Reihen, über 12 800 Größen (Fraisa/Hufschmied,
+   Gühring, MAPAL, Iscar/Kennametal/Tungaloy, Hoffmann), Fähigkeiten im Format; weitere Sammler
+   laufen. (b) erster Teil: Im Schritt „Schruppen“ der Beta **„Werkzeuge für diese Tasche“** –
+   Tiefe und freier Kreis gemessen (`werkzeugwahl.py`), je Weg (Vorbohren, Schruppen, Ecken,
+   Bohrfräsen) das größte passende eigene Werkzeug; „Was gäbe es im Katalog?“ nennt größere aus
+   dem Katalog mit Link. Noch offen: die Wege als Frage mit Zeit und Vorschau, Tauchfräsen.
+   ![Werkzeuge](bilder/beta/3c_werkzeuge_katalog.png)
 3. **Nach dem Schruppen** – „wir sollten da wirklich einen knopf "weiter bearbeiten" einrichtchten
    wo dann die selbe ausgewälte kontor nochmal … entgratet … geschlichtet oder nochmal geschlichtet
    oder vorgeschlcihtet ... 3 mm aufmass beim schruppen … schlichten auf 2mm … nochmal … auf 1 mm …
