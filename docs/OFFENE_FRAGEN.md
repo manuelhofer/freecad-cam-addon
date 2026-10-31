@@ -31,8 +31,10 @@ daraus folgt, stehen in [konzept_schritt_assistent.md](konzept_schritt_assistent
 3. **Hoffmann sperrt zu viele Abrufe – wie sollen die restlichen Hoffmann-Werkzeuge kommen?**
    hoffmann-group.com hat das Sammeln zweimal gesperrt (429, „aus sicherheitstechnischen Gründen
    nicht verfügbar“ – für deine IP, eine Weile auch im Browser). Drin sind 9 Fräserreihen (191
-   Größen) und 225 Bohrerreihen; es fehlen rund 505 Fräser-Artikelgruppen (Kugel, Konik, Fasen,
-   Gewinde, Hochvorschub, Wendeplatten, Messerköpfe). Wege: (a) sehr langsam, eine Seite alle 10 s,
+   Größen) und 225 Bohrerreihen (2742 Größen, 35 Reihen vollständig); es fehlen rund 505
+   Fräser-Artikelgruppen (Kugel, Konik, Fasen, Gewinde, Hochvorschub, Wendeplatten, Messerköpfe),
+   die übrigen Größen von 190 Bohrerreihen und Gewindebohrer, Reibahlen, Senker (zusammen über
+   10 000 Größen; die Listen dafür liegen bereit). Wege: (a) sehr langsam, eine Seite alle 10 s,
    über eine Nacht (~20 h) – aber nur, wenn Hoffmann das nicht sperrt; geht es trotzdem zu, höre ich
    auf und umgehe nichts; (b) Hoffmann um eine Datenlieferung bitten (BMEcat/Excel – Händler geben
    das oft für Kunden heraus); (c) Hoffmann lassen, die Hersteller selbst nehmen (Fraisa, Gühring,
