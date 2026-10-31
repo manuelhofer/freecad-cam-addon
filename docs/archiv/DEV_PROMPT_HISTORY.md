@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-02 haimer-sk40
+
+### EINGELESEN
+- Der HAIMER-Nachlauf (shop.haimer.com, eine Anfrage je 15–25 s) ist um 00:33 fertig, ohne
+  Sperre.
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: 1332 Reihen, 9141 Größen (HAIMER +21 Reihen/152
+  Größen für SK40, davon neu, was noch fehlte).
+- `camaddon/kataloge_index.json`, `package.xml` 0.344.2.
+- Sammler (nicht im Repo): ~/freecad_cam/wip/halter_nacht_skripte/hai_bauen.py – filterte die
+  unfertigen Familien, hai() las danach aber die ungefilterte Datei; jetzt über eine gefilterte
+  Kopie. Die Quellen von BIG/REGO-FIX nannten „abgerufen 2026-11-01“, geholt am 31.10. –
+  korrigiert.
+
+### ERGEBNIS
+- Alle 9141 Halter gebaut, keine Fehler. test_halter, test_halter_datei, test_kataloge grün.
 ## P-2026-11-01-01 emuge-halter-vollstaendig
 
 ### EINGELESEN

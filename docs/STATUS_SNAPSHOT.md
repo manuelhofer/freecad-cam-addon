@@ -576,6 +576,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.344.2):* **Halter: 1332 Reihen, 9141 Größen** – die fehlenden HAIMER-Reihen für SK40
+  (Hydraulik, Schrumpf, Weldon/Whistle Notch, Spannzangen; die anderen Aufnahmen standen schon
+  im Katalog). Die Quellen von BIG und REGO-FIX nennen jetzt den richtigen Abruftag (31.10.).
 - *Korrektur (0.344.1):* **Halter: 1324 Reihen, 9034 Größen** – die EMUGE-FRANKEN-Aufnahmen vollständig
   (281 Reihen, 844 Größen: ER, FHE, PGR/secuRgrip, Schrumpf mit Kegelwinkel, FPC-Spannhülsen).
 - *Neu (0.344.0):* **Werkzeugkiste: 139 809 Größen** – dazu ZECHA (157 Reihen, 5 465 Größen;
