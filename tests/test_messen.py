@@ -55,6 +55,7 @@ wahl = namen(
     and f.BoundBox.YMin >= 20 - 1e-6
     and f.BoundBox.YMax <= 60 + 1e-6,
 )
+wahl_tasche = wahl
 m = messen.merkmal(form, wahl)
 print(m)
 pruefe(
@@ -80,7 +81,7 @@ pruefe(abs(s.laenge_x - 32) < 1e-6 and abs(s.laenge_y - 22) < 1e-6, f"Soll Zapfe
 
 # 3. Bohrung und Welle
 gebohrt = Part.makeBox(100, 80, 40).cut(Part.makeCylinder(10, 20, V(50, 40, 20)))
-wahl = namen(gebohrt, lambda f: f.Surface.__class__.__name__ == "Cylinder")
+wahl = wahl_bohrung = namen(gebohrt, lambda f: f.Surface.__class__.__name__ == "Cylinder")
 m = messen.merkmal(gebohrt, wahl)
 pruefe(
     m is not None and m.art == messen.BOHRUNG and abs(m.durchmesser - 20) < 1e-6,
@@ -99,6 +100,25 @@ keil = Part.makeBox(100, 80, 40).cut(
 )
 wahl = namen(keil, lambda f: senkrecht_wand(f) and f.BoundBox.ZMin > 24.9)
 pruefe(messen.merkmal(keil, wahl) is None, "schräge Tasche als Rechteck erkannt")
+
+# 6. Die Zeile im Messstopp: geschrieben und wieder gelesen dasselbe.
+from camaddon import messstopp as ms  # noqa: E402
+
+for m in (
+    messen.soll(messen.merkmal(form, wahl_tasche), 1.0),
+    messen.merkmal(gebohrt, wahl_bohrung),
+):
+    zeile = ms.merkmal_zeile(m, 0.02)
+    zurueck, toleranz = ms.merkmal_von(["(MESSSTOPP)", zeile, "M0"])
+    pruefe(
+        zurueck.art == m.art
+        and abs(zurueck.laenge_x - m.laenge_x) < 1e-3
+        and abs(zurueck.durchmesser - m.durchmesser) < 1e-3
+        and abs(zurueck.z_mess - m.z_mess) < 1e-3
+        and abs(toleranz - 0.02) < 1e-9,
+        f"Zeile {zeile} → {zurueck}",
+    )
+pruefe(ms.merkmal_von(["(MESSSTOPP)", "G0 Z45.000", "M0"]) is None, "ohne Zeile ein Merkmal")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

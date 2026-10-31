@@ -239,9 +239,7 @@ def schritte(h):
     # Der andere Weg für dieselben Böden: Räumen ist aus, die Kontur rechnet mit dem, was das
     # Tauchen weggenommen hat.
     h.pruefe(not raeumen.haken.isChecked(), "Räumen und Tauchfräsen zugleich angehakt")
-    h.pruefe(
-        not panel.unfertig.isVisible(), f"mit Tauchfräsen unfertig: {panel.unfertig.text()!r}"
-    )
+    h.pruefe(not panel.unfertig.isVisible(), f"mit Tauchfräsen unfertig: {panel.unfertig.text()!r}")
     kontur = next(b for b in panel.bloecke if b.s.kennung == "kontur")
     print(ascii(f"Kontur nach dem Tauchen: {kontur.ergebnis.text()}"))
     h.bild("3d_tauchfraesen", panel.form)
@@ -331,6 +329,21 @@ def schritte(h):
 
     h.pruefe(
         bool(neu) and ms.ist_messstopp(neu[0]), f"kein Messstopp zuerst: {[o.Label for o in neu]}"
+    )
+    # Was ein Taster dort messen würde (Plan C3b): die Tasche 60 × 40, um das Aufmaß des Gangs
+    # davor kleiner – in Koordinaten des Jobs (der Nullpunkt liegt in der Mitte der Tasche).
+    gemessen = ms.merkmal_von(list(neu[0].Gcode)) if neu else None
+    print(ascii(f"Messen: {gemessen}"))
+    m_ = gemessen[0] if gemessen else None
+    h.pruefe(
+        m_ is not None
+        and m_.art == "tasche"
+        and abs(m_.x) < 1e-3
+        and abs(m_.y) < 1e-3
+        and m_.z_mess < m_.z_oben
+        and 55 < m_.laenge_x <= 60
+        and abs((60 - m_.laenge_x) - (40 - m_.laenge_y)) < 1e-3,
+        f"Messmerkmal: {gemessen}",
     )
     h.bild("6_job", None)
 

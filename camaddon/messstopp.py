@@ -12,6 +12,11 @@ Halt.
 FreeCADs Befehle kennen nur G- und M-Wörter; ein Unterprogramm der Steuerung wie Siemens „F_HOME“
 schreibt erst der Postprozessor des Addons (W-005) – dafür steht vorweg der Kommentar MESSSTOPP.
 
+Mit einem Messmerkmal (messen.Merkmal, Plan C3b) steht dahinter eine zweite Zeile „(MESSEN …)“:
+was nach dem Gang davor zu messen ist – Art, Mitte, Sollmaß, Messhöhe, Toleranz. Ein
+Postprozessor, der für die Steuerung einen Messzyklus kennt und einen Taster eingetragen hat,
+misst dort statt zu halten; jeder andere hält wie bisher (die Zeile ist nur ein Kommentar).
+
 Läuft ohne Oberfläche.
 """
 
@@ -21,6 +26,7 @@ from . import spindel
 from .sprache import tr
 
 KOMMENTAR = "(MESSSTOPP)"
+MESSEN = "MESSEN"  # die Zeile mit dem Messmerkmal: „(MESSEN tasche X50.000 …)“
 ABSTAND = 5.0  # mm über dem Rohteil, wenn der Job keinen Abstand nennt
 
 
@@ -53,10 +59,50 @@ def zeilen(sicher, drehzahl, rueckwaerts=False, kuehlung=None):
     return ergebnis
 
 
-def lege_an(job, tc, danach):
+def merkmal_zeile(m, toleranz):
+    """„(MESSEN tasche X50.000 Y40.000 LX58.000 LY38.000 Z32.500 OBEN40.000 TOL0.020)“ – rund mit
+    D statt LX/LY."""
+    masse = f"D{m.durchmesser:.3f}" if m.rund else f"LX{m.laenge_x:.3f} LY{m.laenge_y:.3f}"
+    return (
+        f"({MESSEN} {m.art} X{m.x:.3f} Y{m.y:.3f} {masse} Z{m.z_mess:.3f} "
+        f"OBEN{m.z_oben:.3f} TOL{toleranz:.3f})"
+    )
+
+
+def merkmal_von(zeilen_):
+    """(messen.Merkmal, Toleranz) aus den Zeilen eines Messstopps – None ohne Zeile „(MESSEN …)“."""
+    from . import messen
+
+    for zeile in zeilen_ or []:
+        text = str(zeile).strip()
+        if not text.startswith(f"({MESSEN} "):
+            continue
+        teile = text.strip("()").split()[1:]
+        art, werte = teile[0], {}
+        for teil in teile[1:]:
+            name = teil.rstrip("0123456789.-")
+            werte[name] = float(teil[len(name) :])
+        if art not in messen.ARTEN:
+            return None
+        m = messen.Merkmal(
+            art,
+            werte["X"],
+            werte["Y"],
+            laenge_x=werte.get("LX", 0.0),
+            laenge_y=werte.get("LY", 0.0),
+            durchmesser=werte.get("D", 0.0),
+            z_oben=werte.get("OBEN", werte["Z"]),
+            z_mess=werte["Z"],
+        )
+        return m, werte.get("TOL", messen.TOLERANZ)
+    return None
+
+
+def lege_an(job, tc, danach, merkmal=None, toleranz=None):
     """Legt den Messstopp im Job an – ohne eigene Transaktion, die hält der Aufrufer – mit dem
     Controller `tc` der Operation davor; `danach`: der Controller, mit dem es weitergeht
-    (Drehzahl, Richtung). Gibt die Operation zurück."""
+    (Drehzahl, Richtung); `merkmal` (messen.Merkmal, schon mit dem Soll): was ein Taster dort
+    messen würde. Gibt die Operation zurück."""
     from Path.Op import Custom
 
     FreeCAD.setActiveDocument(job.Document.Name)
@@ -66,7 +112,12 @@ def lege_an(job, tc, danach):
     op.Source = "Text"
     drehzahl = float(getattr(danach, "SpindleSpeed", 0.0) or 0.0)
     kuehlung = str(getattr(getattr(job, "SetupSheet", None), "CoolantMode", "") or "")
-    op.Gcode = zeilen(sichere_hoehe(job), drehzahl, spindel.rueckwaerts(danach), kuehlung)
+    gcode = zeilen(sichere_hoehe(job), drehzahl, spindel.rueckwaerts(danach), kuehlung)
+    if merkmal is not None:
+        from . import messen
+
+        gcode.insert(1, merkmal_zeile(merkmal, messen.TOLERANZ if toleranz is None else toleranz))
+    op.Gcode = gcode
     return op
 
 

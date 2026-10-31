@@ -957,13 +957,30 @@ class BetaPanel(BearbeitungPanel):
             davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
             tc = getattr(davor, "ToolController", None)
             if tc is not None:
-                stopp = ms.lege_an(self.job, tc, tc)
+                stopp = ms.lege_an(self.job, tc, tc, self._messmerkmal(davor))
         ergebnis = super()._anlegen()
         if stopp is not None and not ergebnis:
             self.job.Document.removeObject(stopp.Name)
         elif stopp is not None:
             self._beta_messstopp = False  # nur einmal
         return ergebnis
+
+    def _messmerkmal(self, davor):
+        """Was ein Taster am Messstopp messen würde (messen.merkmal, Plan C3b): das Merkmal der
+        gemerkten Flächen, mit dem Aufmaß der Operation davor – None, wenn sie keins ergeben."""
+        from . import messen
+
+        flaechen = list(getattr(self.job, EIGENSCHAFT_FLAECHEN, []))
+        if not flaechen:
+            return None
+        try:
+            m = messen.merkmal(vr.modell(self.job).Shape, flaechen)
+        except Exception:  # Part.OCCError: ein Name passt nicht mehr zum Modell
+            return None
+        if m is None:
+            return None
+        aufmass = getattr(davor, "Aufmass", 0.0)
+        return messen.soll(m, float(getattr(aufmass, "Value", aufmass) or 0.0))
 
     def _nur_diese_anlegen(self, aktive):
         bis = self._beta_bis
