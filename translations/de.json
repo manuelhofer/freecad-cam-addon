@@ -3368,7 +3368,7 @@
     "beta.schritt.schlichten": "Schlichten",
     "beta.schritt.kanten": "Kanten",
     "beta.anleitung.teil": "Klick die Fläche des Teils an, die unten liegt (im Schraubstock, auf dem Tisch) – damit legt das Addon den Job mit dem Rohteil an. Danach fragt es, was bearbeitet wird.",
-    "beta.anleitung.aufspannung": "Wie liegt das Teil auf dem Tisch? Klick die Fläche an, die unten liegt (im Schraubstock, auf dem Tisch) – oder „Liegt wie im Modell“. Rohteil und Nullpunkt prüfen, dann „Weiter“.",
+    "beta.anleitung.aufspannung": "Erst: Worin ist das Teil gespannt und wie tief? Dann: Welche Fläche liegt unten – klick sie an oder „Liegt wie im Modell“. Rohteil und Nullpunkt prüfen, dann „Weiter“.",
     "beta.anleitung.flaechen": "Welche Flächen sollen bearbeitet werden? Ein Klick nimmt eine Fläche dazu oder heraus. „Weiter“ geht, sobald mindestens eine gewählt ist.",
     "beta.anleitung.schruppen": "Wie soll das Material raus? Die Strategien fürs Schruppen mit ihrer Zeit, angehakt ist die schnellste; darunter ihre Werte. „Anlegen“ legt jetzt nur das Schruppen an – später „Weiter bearbeiten (Beta)“ am Job. „Weiter“ zu den nächsten Schritten.",
     "beta.anleitung.loecher": "Die Löcher: Zentrieren, Bohren, Bohrung fräsen, Senken, Reiben, Gewinde. „Anlegen“ legt an, was bis hier angehakt ist.",
@@ -3561,5 +3561,16 @@
     "wv.kann.bohrtiefe": "bis {d} × D tief",
     "wv.kann.eintauchtiefe": "taucht bis {mm} mm ein",
     "wv.kann.wendeplatten": "Wendeplatten{platte}",
-    "wv.kann.werkstoffe": "für {klassen}"
+    "wv.kann.werkstoffe": "für {klassen}",
+    "beta.spannmittel": "Worin gespannt?",
+    "beta.spannmittel.tooltip": "Das Spannmittel aus deiner Sammlung (Fenster „Spannmittel …“) – oben die, die das Rohteil nehmen. Die Wahl ist gleich die Aufspannung des Jobs: Backen am Rohteil, Nullpunkt auf dem Tisch, Kollision, Einrichtblatt.",
+    "beta.spannmittel.fenster": "Spannmittel …",
+    "beta.spannmittel.fenster.tooltip": "Die Sammlung bearbeiten oder aus dem Katalog der Hersteller ergänzen – und Lage auf dem Tisch und feste Backe einstellen.",
+    "beta.spannmittel.keins": "– keins gewählt (wie bisher) –",
+    "beta.spannmittel.passt": "✓ {name}",
+    "beta.spannmittel.passt_nicht": "✗ {name}",
+    "beta.spannmittel.leer": "Noch keine Spannmittel in der Sammlung – „Spannmittel …“ → „Katalog …“ übernimmt sie von den Herstellern.",
+    "beta.spannmittel.anzahl": "{passend} von {alle} Spannmitteln nehmen dieses Rohteil (✓ oben). Mit der Maus über einem ✗ steht, warum nicht.",
+    "beta.spannmittel.ohne_rohteil": "Was passt, steht hier, sobald es ein Rohteil gibt (nach dem ersten Klick auf die Unterseite).",
+    "beta.spannmittel.katalog": "Aus dem Katalog der Hersteller nähmen es zum Beispiel: {namen} (übernehmen mit „Spannmittel …“ → „Katalog …“)."
 }

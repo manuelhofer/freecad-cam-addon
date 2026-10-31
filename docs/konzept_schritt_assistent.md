@@ -181,11 +181,14 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    gingen.
 5. **Spannmittel im ersten Schritt** – „die aufspannung sollte man schon irgendwie sinnvoll wählen
    ja am besten vor dem man die unten fläche auswählt und wie tief das teil eingespannt ist“.
-   *Plan C5:* In der Beta beginnt „Aufspannung“ mit „Worin wird gespannt?“ (Sammlung) und der
-   Spanntiefe, dann die Unterseite.
+   *Gebaut (0.322.0):* In der Beta beginnt „Aufspannung“ mit „Worin gespannt?“ (Sammlung, Knopf
+   „Spannmittel …“) und der Spanntiefe, dann die Unterseite. Die Wahl ist gleich die Aufspannung
+   am Job (Backen, Nullpunkt, Kollision, Einrichtblatt).
 6. **Vorschläge, worin es passt** – „sinnvoll … aber halt eine auswahl geben“, und die Datenbank der
-   Spannmittel „extrem gross“. *Plan C6:* Die Auswahl in C5 zeigt zuerst, was passt (Spannweite,
-   Höhe), mit „passt nicht, weil …“ für die anderen; dazu „aus dem Katalog: … würde passen“.
+   Spannmittel „extrem gross“. *Gebaut (0.322.0):* Die Auswahl zeigt zuerst mit ✓, was das Rohteil
+   nimmt (Spannweite, Höhe; in der Lage, in der es passt), die anderen mit ✗ und dem Grund im
+   Tooltip. Passt nichts aus der Sammlung, nennt der Satz bis zu drei Größen aus dem Katalog der
+   Hersteller, die das Rohteil nähmen (die kleinsten, je Hersteller eine).
 7. **Wie der Schraubstock steht** – „ich habe keine idee … denk dir was aus mach nen vorschlag“.
    *Gebaut (0.321.0):* „Feste Backe: hinten / vorn / links / rechts“, vorbelegt hinten; im Bild von
    oben „Bediener“ unten, „Maschine“ oben.

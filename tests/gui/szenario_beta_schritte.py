@@ -3,7 +3,10 @@
 # Beta-Knopf …, dass wir erstmal das Alte behalten“). Ein Block 100 × 80 × 40 mit einer Tasche
 # 60 × 40, 15 tief, Boden gerundet (R 3). Die Beta ist eingeschaltet, eine Wand der Tasche
 # angeklickt, „Bearbeitung in Schritten (Beta)“:
-# 1. Aufspannung: „Weiter“ gesperrt, bis „Liegt wie im Modell“ geklickt ist.
+# 1. Aufspannung: oben „Worin gespannt?“ – in der Sammlung ein Schraubstock (Spannweite bis 160) und
+#    ein kleiner Zentrischspanner (bis 65): der Schraubstock mit ✓ oben, der andere mit ✗; ihn
+#    wählen trägt die Aufspannung am Job ein, die Spanntiefe 10 steht im Feld (Plan C5/C6).
+#    „Weiter“ gesperrt, bis „Liegt wie im Modell“ geklickt ist.
 # 2. Flächen: die eine Wand gehört zu einer Tasche – der Satz dazu, „Weiter“ gesperrt; „Ganze
 #    Tasche nehmen“ nimmt Wände, Rundungen und Boden dazu, „Weiter“ geht.
 # 3. Schruppen: nur Strategien des Schruppens zu sehen. „Weiter“ zum Schlichten (Löcher gibt es
@@ -53,6 +56,14 @@ def schritte(h):
     )
     t2.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1.0, ap=6.0, vc=150.0, fz=0.04)]
     wz.Bibliothek([wz.standardwerkzeug(), t2]).speichern()
+    from camaddon import spannmittel as sm
+
+    gross = sm.neu(sm.SCHRAUBSTOCK)
+    gross.name = "Schraubstock 125"
+    klein = sm.neu(sm.ZENTRISCH)
+    klein.name = "Zentrisch 46"
+    klein.masse["spannweite_max"] = 65.0
+    sm.Sammlung([klein, gross]).speichern()
     ms.speichern([])
     ordner = tempfile.mkdtemp()
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
@@ -112,6 +123,21 @@ def schritte(h):
     h.pruefe(not panel.knopf_weiter.isEnabled(), "„Weiter“ geht, bevor klar ist, was unten liegt")
     h.pruefe(
         panel.knopf_unten_waehlen.isChecked(), "der Klick auf die untere Fläche ist nicht bereit"
+    )
+    texte = [panel.wahl_spannmittel.itemText(i) for i in range(panel.wahl_spannmittel.count())]
+    print(ascii(f"Spannmittel: {texte} | {panel.spannmittel_text.text()}"))
+    h.pruefe(
+        len(texte) == 3 and texte[1] == "✓ Schraubstock 125" and texte[2] == "✗ Zentrisch 46",
+        f"Auswahl: {texte}",
+    )
+    panel.wahl_spannmittel.setCurrentIndex(1)
+    panel.wahl_spannmittel.activated.emit(1)
+    yield 300
+    auf = sm.aufspannung(panel.job)
+    h.pruefe(auf is not None and auf.spannmittel.name == "Schraubstock 125", "nicht am Job")
+    h.pruefe(
+        panel.felder_spannung["gespannt"].text() == "10",
+        f"Spanntiefe: {panel.felder_spannung['gespannt'].text()!r}",
     )
     h.bild("1_aufspannung", panel.form)
     panel.wie_modelliert()

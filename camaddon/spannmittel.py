@@ -553,6 +553,41 @@ def hinweise(auf, box):
     return saetze
 
 
+def passt(spannmittel, box):
+    """(Drehung, in der es das Rohteil mit der Hüllbox `box` nimmt – oder None; die Sätze, warum
+    nicht, aus der ersten Lage). Plan C6: Manuel, 2026-10-31: „vorschläge … wo das bauteil
+    reinpassen würde vom spannmitel her ... aber halt eine auswahl geben“."""
+    erste = []
+    for grad in lagen(spannmittel.art):
+        saetze = hinweise(Aufspannung(spannmittel, drehung=grad), box)
+        if not saetze:
+            return grad, []
+        erste = erste or saetze
+    return None, erste
+
+
+def aus_dem_katalog(box, anzahl=3, arten=(SCHRAUBSTOCK, ZENTRISCH)):
+    """Bis zu `anzahl` Spannmittel aus dem Katalog der Hersteller, die das Rohteil nehmen – die
+    kleinsten (Spannweite) zuerst, je Hersteller eins (für „in der Sammlung passt keins“)."""
+    kandidaten = []
+    for reihe in katalog_reihen():
+        if reihe.art not in arten:
+            continue
+        for groesse in reihe.groessen:
+            s = aus_katalog(reihe, groesse)
+            if passt(s, box)[0] is not None:
+                kandidaten.append((s.mass("spannweite_max"), s))
+    kandidaten.sort(key=lambda k: k[0])
+    ergebnis, hersteller = [], set()
+    for _weite, s in kandidaten:
+        if s.hersteller not in hersteller:
+            hersteller.add(s.hersteller)
+            ergebnis.append(s)
+        if len(ergebnis) >= anzahl:
+            break
+    return ergebnis
+
+
 def _mm(wert):
     from . import einheiten
 

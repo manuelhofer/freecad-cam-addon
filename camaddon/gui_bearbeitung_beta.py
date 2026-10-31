@@ -8,7 +8,8 @@ klar ist.“ – und: „Vielleicht machst du noch einen Beta-Knopf rein …, da
 behalten, was jetzt jeder gewohnt ist“.
 
 Die Schritte:
-1. Aufspannung – welche Fläche liegt unten (oder: wie im Modell). Weiter erst, wenn das klar ist.
+1. Aufspannung – worin gespannt wird (Spannmittel aus der Sammlung, die passenden zuerst) und wie
+   tief, dann welche Fläche unten liegt (oder: wie im Modell). Weiter erst, wenn das klar ist.
 2. Flächen – was bearbeitet wird. Weiter erst mit mindestens einer Fläche; gehören die gewählten
    zu einer Tasche, von der nur ein Teil gewählt ist (taschen_wahl), erst nach der Antwort:
    „Ganze Tasche nehmen“ oder „Nur diese Flächen – der Rest ist schon frei“.
@@ -31,6 +32,8 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, symbol
+from . import reichweite as rw
+from . import spannmittel as sm
 from . import taschen_wahl as tw
 from . import vierachs_rohteil as vr
 from .gui_bearbeitung import (
@@ -109,6 +112,7 @@ class BetaPanel(BearbeitungPanel):
         # „erstmal, wo ist die eingespannte Fläche, abfragen“) – damit entsteht auch der Job.
         self._beta_erster_klick_unten = wahl is None and kwargs.get("operation") is None
         super().__init__(dokument, wahl, **kwargs)
+        self._nach_rohteil()
         self._weg["reihenfolge"] = "schruppen"  # die Schritte sind die Reihenfolge
         self._beta_start = 0  # vor diese Seite geht „Zurück“ nicht
         if ab is not None and self.job is not None:
@@ -217,6 +221,7 @@ class BetaPanel(BearbeitungPanel):
         alt_strategien.hide()
         aufbau.removeWidget(alt_strategien)
         self.seiten = [self.seiten[0], flaechen] + [self._beta_seiten[a] for a in ABSCHNITTE]
+        self._spannmittel_bauen()
         # „Liegt so, wie modelliert“: macht Schritt 1 ohne Klick auf eine Fläche klar.
         self.knopf_wie_modell = knopf(
             tr("beta.unten.modell"), tr("beta.unten.modell.tooltip"), self.wie_modelliert
@@ -239,6 +244,196 @@ class BetaPanel(BearbeitungPanel):
         self.anlegen_text.setWordWrap(True)
         aufbau.insertWidget(aufbau.indexOf(zeile), self.anlegen_text)
         return form
+
+    def _spannmittel_bauen(self):
+        """Oben in Schritt 1: „Worin gespannt?“ und die Spanntiefe – vor der Unterseite (Plan C5;
+        Manuel, 2026-10-31: „die aufspannung sollte man … wählen ja am besten vor dem man die unten
+        fläche auswählt und wie tief das teil eingespannt ist“)."""
+        self._beta_sammlung = None
+        self._beta_aufspannung = None  # gewählt, bevor es einen Job gibt
+        box = QtGui.QWidget()
+        aufbau = QtGui.QVBoxLayout(box)
+        aufbau.setContentsMargins(0, 0, 0, 6)
+        zeile = QtGui.QHBoxLayout()
+        zeile.addWidget(QtGui.QLabel(tr("beta.spannmittel")))
+        self.wahl_spannmittel = QtGui.QComboBox()
+        self.wahl_spannmittel.setToolTip(tr("beta.spannmittel.tooltip"))
+        self.wahl_spannmittel.activated.connect(lambda _i: self._spannmittel_gewaehlt())
+        zeile.addWidget(self.wahl_spannmittel, 1)
+        self.knopf_spannmittel = knopf(
+            tr("beta.spannmittel.fenster"),
+            tr("beta.spannmittel.fenster.tooltip"),
+            self.spannmittel_fenster,
+        )
+        zeile.addWidget(self.knopf_spannmittel)
+        aufbau.addLayout(zeile)
+        self.spannmittel_text = _grau()
+        self.spannmittel_text.setWordWrap(True)
+        aufbau.addWidget(self.spannmittel_text)
+        seite = self.seiten[0].layout()
+        _aus_layout(seite, self.spannungfelder)  # die Spanntiefe gleich darunter
+        aufbau.addWidget(self.spannungfelder)
+        oben = self.knopf_unten_waehlen.parentWidget().parentWidget()
+        seite.insertWidget(max(seite.indexOf(oben), 0), box)
+        self.spannmittel_box = box
+        self._spannmittel_anbieten()
+
+    def _nach_rohteil(self):
+        """Job oder Rohteil sind neu: eine vorher gewählte Aufspannung an den Job, die Auswahl
+        neu sortiert (was passt, hängt am Rohteil)."""
+        if not hasattr(self, "wahl_spannmittel"):
+            return
+        if (
+            self.job is not None
+            and self._beta_aufspannung is not None
+            and sm.aufspannung(self.job) is None
+        ):
+            self._aufspannung_setzen(self._beta_aufspannung)  # gewählt, bevor es den Job gab
+        else:
+            self._spannmittel_anbieten()
+
+    def teil_waehlen(self, teil, flaeche=None):
+        ergebnis = super().teil_waehlen(teil, flaeche)
+        self._nach_rohteil()
+        return ergebnis
+
+    def _rohteil_anwenden(self):
+        super()._rohteil_anwenden()
+        self._nach_rohteil()
+
+    def _sammlung(self):
+        if self._beta_sammlung is None:
+            try:
+                self._beta_sammlung = sm.Sammlung.laden()
+            except sm.BeschaedigteDatei:
+                self._beta_sammlung = sm.Sammlung()
+        return self._beta_sammlung
+
+    def _rohteil_box(self):
+        rohteil = getattr(getattr(self.job, "Stock", None), "Shape", None)
+        return rohteil.BoundBox if rohteil is not None and not rohteil.isNull() else None
+
+    def _jetzige_aufspannung(self):
+        if self.job is not None:
+            return sm.aufspannung(rw.grundjob_von(self.job))
+        return getattr(self, "_beta_aufspannung", None)
+
+    def _spannmittel_anbieten(self):
+        """Die Auswahl: „keins (wie bisher)“, dann die Spannmittel der Sammlung – die, die das
+        Rohteil nehmen, zuerst; bei den anderen steht, warum nicht. Darunter ein Satz."""
+        if not hasattr(self, "wahl_spannmittel"):
+            return
+        box = self._rohteil_box()
+        jetzt = self._jetzige_aufspannung()
+        eintraege = []
+        for s in self._sammlung().sortiert():
+            if box is None:
+                eintraege.append((1, s, None, ""))
+                continue
+            drehung, warum = sm.passt(s, box)
+            eintraege.append((0 if drehung is not None else 2, s, drehung, " ".join(warum)))
+        eintraege.sort(key=lambda e: e[0])
+        self.wahl_spannmittel.blockSignals(True)
+        self.wahl_spannmittel.clear()
+        self.wahl_spannmittel.addItem(tr("beta.spannmittel.keins"), None)
+        self._beta_lagen = {}
+        for stufe, s, drehung, warum in eintraege:
+            if stufe == 0:
+                text = tr("beta.spannmittel.passt", name=s.text)
+            elif stufe == 2:
+                text = tr("beta.spannmittel.passt_nicht", name=s.text)
+            else:
+                text = s.text
+            self.wahl_spannmittel.addItem(text, s.kennung)
+            index = self.wahl_spannmittel.count() - 1
+            self.wahl_spannmittel.setItemData(index, warum or s.bezeichnung, QtCore.Qt.ToolTipRole)
+            self._beta_lagen[s.kennung] = drehung
+        if jetzt is not None and self.wahl_spannmittel.findData(jetzt.spannmittel.kennung) < 0:
+            self.wahl_spannmittel.addItem(
+                tr("sm.auf.im_job", name=jetzt.spannmittel.text), jetzt.spannmittel.kennung
+            )
+        index = self.wahl_spannmittel.findData(jetzt.spannmittel.kennung) if jetzt else 0
+        self.wahl_spannmittel.setCurrentIndex(max(index, 0))
+        self.wahl_spannmittel.blockSignals(False)
+        self.wahl_spannmittel.setEnabled(not self._aufspannung_fest())
+        passend = sum(1 for e in eintraege if e[0] == 0)
+        satz = ""
+        if not self._sammlung().spannmittel:
+            satz = tr("beta.spannmittel.leer")
+        elif jetzt is not None:
+            satz = sm.beschreibung(jetzt)
+            if box is not None and sm.hinweise(jetzt, box):
+                satz += " – " + " ".join(sm.hinweise(jetzt, box))
+        elif box is not None:
+            satz = tr("beta.spannmittel.anzahl", passend=passend, alle=len(eintraege))
+        if box is not None and jetzt is None and not passend:
+            vorschlaege = sm.aus_dem_katalog(box)
+            if vorschlaege:
+                satz += " " + tr(
+                    "beta.spannmittel.katalog", namen=", ".join(v.text for v in vorschlaege)
+                )
+        else:
+            satz = tr("beta.spannmittel.ohne_rohteil")
+        self.spannmittel_text.setText(satz)
+
+    def _spannmittel_gewaehlt(self):
+        """Die Wahl wird gleich die Aufspannung am Job (Lage: die, in der es passt, sonst die
+        Vorgabe der Art; Spanntiefe: was im Feld steht, sonst die übliche)."""
+        kennung = self.wahl_spannmittel.currentData()
+        auf = None
+        if kennung:
+            s = self._sammlung().mit(kennung)
+            jetzt = self._jetzige_aufspannung()
+            if s is None and jetzt is not None and jetzt.spannmittel.kennung == kennung:
+                s = jetzt.spannmittel
+            if s is None:
+                return
+            drehung = self._beta_lagen.get(kennung)
+            if drehung is None:
+                drehung = sm.lagen(s.art)[0]
+            tiefe = self._gespannt() if self.felder_spannung["gespannt"].text().strip() else -1.0
+            auf = sm.Aufspannung(sm.Spannmittel.aus_dict(s.als_dict()), drehung=drehung)
+            auf.spanntiefe = tiefe
+        self._aufspannung_setzen(auf)
+
+    def _aufspannung_setzen(self, auf):
+        self._beta_aufspannung = auf
+        if self.job is not None and not self._aufspannung_fest():
+            grund = rw.grundjob_von(self.job)
+            sm.setze(grund, auf)
+            if auf is not None and auf.spannmittel.art in sm.MIT_BACKEN:
+                self._fuellt = True
+                self.felder_spannung["gespannt"].setText(dezimal(f"{auf.tiefe:g}"))
+                self._fuellt = False
+                self._rohteil_kurz_zeigen()
+        self._spannmittel_anbieten()
+
+    def _spannung_geaendert(self):
+        """Die Spanntiefe gilt auch für die Aufspannung (Backen und Nullpunkt)."""
+        super()._spannung_geaendert()
+        if not hasattr(self, "wahl_spannmittel"):
+            return  # noch im Aufbau
+        auf = self._jetzige_aufspannung()
+        if self._fuellt or auf is None or getattr(self, "geschlossen", False):
+            return
+        auf.spanntiefe = self._gespannt()
+        self._aufspannung_setzen(auf)
+
+    def spannmittel_fenster(self):
+        """„Spannmittel …“: die Sammlung bearbeiten; danach die Auswahl neu."""
+        from . import gui_spannmittel
+
+        job = rw.grundjob_von(self.job) if self.job is not None else None
+        dialog = gui_spannmittel.oeffne(job)
+
+        def danach():
+            self._beta_sammlung = None
+            if job is not None:
+                self._beta_aufspannung = sm.aufspannung(job)
+            self._spannmittel_anbieten()
+
+        dialog.finished.connect(lambda _e: danach())
+        return dialog
 
     def _werte_klappen(self, klapp, huelle, offen):
         klapp.setArrowType(QtCore.Qt.DownArrow if offen else QtCore.Qt.RightArrow)
@@ -467,6 +662,7 @@ class BetaPanel(BearbeitungPanel):
 
     def unten_waehlen(self, flaeche):
         super().unten_waehlen(flaeche)
+        self._nach_rohteil()
         if flaeche is not None and self._unten == flaeche:
             self._beta_unten_klar = True
             self.knopf_unten_waehlen.setChecked(False)  # der nächste Klick wählt wieder Flächen

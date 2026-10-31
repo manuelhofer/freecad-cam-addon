@@ -172,6 +172,14 @@ for r in reihen_hk:
         ):
             fehler.append(f"Halter {r.kennung} {g['name']}: {h.abschnitte}")
 
+# 8. Vorschläge aus dem Katalog: ein Rohteil 300 breit – die kleinsten, die es nehmen, je Hersteller
+breit = Part.makeBox(100, 300, 40).BoundBox
+vorschlaege = sm.aus_dem_katalog(breit)
+if not vorschlaege or any(sm.passt(v, breit)[0] is None for v in vorschlaege):
+    fehler.append(f"Katalog-Vorschläge: {[v.name for v in vorschlaege]}")
+if len({v.hersteller for v in vorschlaege}) != len(vorschlaege):
+    fehler.append("zwei Vorschläge vom selben Hersteller")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

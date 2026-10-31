@@ -3368,7 +3368,7 @@
     "beta.schritt.schlichten": "Finishing",
     "beta.schritt.kanten": "Edges",
     "beta.anleitung.teil": "Click the face of the part that lies at the bottom (in the vise, on the table) – the add-on then creates the job with the stock. After that it asks what to machine.",
-    "beta.anleitung.aufspannung": "How does the part lie on the table? Click the face at the bottom (in the vise, on the table) – or “Lies as modelled”. Check stock and origin, then “Next”.",
+    "beta.anleitung.aufspannung": "First: what is the part clamped in, and how deep? Then: which face is at the bottom – click it or “Lies as modelled”. Check stock and origin, then “Next”.",
     "beta.anleitung.flaechen": "Which faces are to be machined? A click adds or removes a face. “Next” works once at least one is chosen.",
     "beta.anleitung.schruppen": "How should the material come out? The roughing strategies with their time, the fastest ticked; below, their values. “Create” now creates only the roughing – later “Continue machining (beta)” at the job. “Next” to the following steps.",
     "beta.anleitung.loecher": "The holes: centring, drilling, bore milling, countersinking, reaming, threads. “Create” creates what is ticked up to here.",
@@ -3561,5 +3561,16 @@
     "wv.kann.bohrtiefe": "up to {d} × D deep",
     "wv.kann.eintauchtiefe": "plunges up to {mm} mm",
     "wv.kann.wendeplatten": "indexable inserts{platte}",
-    "wv.kann.werkstoffe": "for {klassen}"
+    "wv.kann.werkstoffe": "for {klassen}",
+    "beta.spannmittel": "Clamped in?",
+    "beta.spannmittel.tooltip": "The workholding from your collection (window “Workholding …”) – those that take the stock at the top. The choice is the job's setup right away: jaws at the stock, work offset on the table, collision check, setup sheet.",
+    "beta.spannmittel.fenster": "Workholding …",
+    "beta.spannmittel.fenster.tooltip": "Edit the collection or add from the manufacturers' catalogue – and set position on the table and fixed jaw.",
+    "beta.spannmittel.keins": "– none chosen (as before) –",
+    "beta.spannmittel.passt": "✓ {name}",
+    "beta.spannmittel.passt_nicht": "✗ {name}",
+    "beta.spannmittel.leer": "No workholding in the collection yet – “Workholding …” → “Catalogue …” takes it from the manufacturers.",
+    "beta.spannmittel.anzahl": "{passend} of {alle} workholding items take this stock (✓ at the top). Hover over a ✗ to see why not.",
+    "beta.spannmittel.ohne_rohteil": "What fits shows here as soon as there is a stock (after the first click on the bottom face).",
+    "beta.spannmittel.katalog": "From the manufacturers' catalogue, for example these would take it: {namen} (take over with “Workholding …” → “Catalogue …”)."
 }

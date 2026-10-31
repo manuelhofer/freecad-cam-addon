@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-05 beta-worin-gespannt-faehigkeiten
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Antworten 5, 6, 2): „die aufspannung … am besten vor dem man die unten fläche
+  auswählt und wie tief das teil eingespannt ist“; „vorschläge … wo das bauteil reinpassen würde …
+  aber halt eine auswahl“; „hersteller datenbank aufpumpen … was sie können“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: Schritt 1 beginnt mit „Worin gespannt?“ (Sammlung, ✓ passt
+  oben, ✗ mit Grund) und der Spanntiefe; die Wahl ist gleich die Aufspannung am Job; passt nichts,
+  Vorschläge aus dem Katalog.
+- `camaddon/spannmittel.py`: `passt`, `aus_dem_katalog`.
+- `camaddon/werkzeuge.py`, `camaddon/werkzeugkiste_datei.py`, `camaddon/werkzeugkiste.py`,
+  `camaddon/gui_werkzeuge.py`, `camaddon/uebergabe_werkzeuge.py`: Fähigkeiten der Werkzeuge
+  (Format 3a), Schneidstoff WSP, Arten Wendeplattenbohrer/Tauchfräser/Hochvorschubfräser als
+  vorhandene Art mit Fähigkeit; Zeile „Kann laut Hersteller …“.
+- `tests/test_faehigkeiten.py` (neu), `tests/test_spannmittel.py` (Teil 8),
+  `tests/gui/szenario_beta_schritte.py` (Teil 1), Texte, `package.xml` 0.322.0.
+
+### ERGEBNIS
+- test_faehigkeiten, test_werkzeugkiste, test_werkzeugkiste_datei, test_spannmittel, test_sprache,
+  szenario_beta_schritte, szenario_werkzeugverwaltung, szenario_werkzeugkiste grün.
+
 ## P-2026-10-31-04 antworten-fragen-1-8-feste-backe-alle-daten
 
 ### EINGELESEN
