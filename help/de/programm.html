@@ -200,7 +200,14 @@ auf – angehalten wird nur, wenn das Maß außerhalb liegt. Vorbelegt sind Siem
 (Q309 = 1 hält bei Fehler, Q330 = 0 korrigiert nichts) und Renishaw Inspection Plus an Fanuc und
 Haas (G65 P9812/P9814 nur mit H). Gemessen wird nur, korrigiert wird nichts. <b>Am ersten Teil
 mit Vorschub-Override langsam prüfen.</b> Taster ein/aus (etwa G65 P9832/P9833 oder ein M-Befehl)
-nach deiner Maschine. Ohne Taster: der Halt wie bisher.</li>
+nach deiner Maschine. Ohne Taster: der Halt wie bisher.
+Ist in „Weiter bearbeiten“ <i>Messzyklus korrigiert den Schlichtfräser selbst</i> angehakt, trägt der
+Zyklus eine Abweichung als Radius-Verschleiß beim Schlichtwerkzeug danach ein (Siemens D1 des
+Werkzeugs, Fanuc/Haas mit Renishaw das D-Register mit der Werkzeugnummer) – aus einer Messung, bei
+Tasche und Zapfen der Breite in X, bei Bohrung und Welle dem Ø; über 0,5 mm korrigiert er nicht und
+hält mit Alarm. Das wirkt nur, wenn der Gang danach mit Radiuskorrektur fährt (eine Kontur oder
+„Schlichten danach“ mit G41/G42) – sonst misst er nur. Siemens ohne Werkzeugverwaltung: Den
+Werkzeugnamen (S_TNAME) bitte an der Maschine prüfen.</li>
 </ul>
 <p><b>Ältere Siemens 840D (ohne SINUMERIK Operate).</b> Dort stehen die Parameter der Messzyklen
 als Variablen vor dem Aufruf (Siemens Messzyklen Programmierhandbuch 04/2006); mit <code>_KNUM=0</code>

@@ -125,6 +125,21 @@ for m in (
         f"Zeile {zeile} → {zurueck}",
     )
 pruefe(ms.merkmal_von(["(MESSSTOPP)", "G0 Z45.000", "M0"]) is None, "ohne Zeile ein Merkmal")
+# Mit Korrektur: „KORR3“ in der Zeile; nachträglich gesetzt und wieder weg.
+zeile_k = ms.merkmal_zeile(messen.merkmal(gebohrt, wahl_bohrung), 0.02, korrigieren=3)
+pruefe(ms.korrektur_von([zeile_k]) == 3 and ms.merkmal_von([zeile_k]) is not None, zeile_k)
+
+
+class _Op:
+    Gcode = ["(MESSSTOPP)", ms.merkmal_zeile(messen.merkmal(gebohrt, wahl_bohrung), 0.02), "M0"]
+
+
+op_ = _Op()
+pruefe(ms.korrektur_von(op_.Gcode) is None, "ohne Korrektur KORR")
+ms.korrektur_setzen(op_, 5)
+pruefe(ms.korrektur_von(op_.Gcode) == 5, f"gesetzt: {op_.Gcode}")
+ms.korrektur_setzen(op_, None)
+pruefe(ms.korrektur_von(op_.Gcode) is None and ms.merkmal_von(op_.Gcode), f"weg: {op_.Gcode}")
 
 # 7. Das Einrichtblatt sagt beim Messstopp, was zu messen ist (auch für das Messen von Hand).
 from camaddon import einrichtblatt as eb  # noqa: E402

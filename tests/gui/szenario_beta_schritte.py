@@ -306,6 +306,14 @@ def schritte(h):
     yield 200
     satz = frage.messen_text.text()
     h.pruefe(frage.taster.isVisible() and "T99 misst" in satz, f"mit Taster: {satz!r}")
+    # „Messzyklus korrigiert den Schlichtfräser selbst“ (Manuel: „ja mach das so“): mit Taster
+    # sichtbar, vorbelegt an.
+    h.pruefe(
+        frage.korrigieren.isVisible()
+        and frage.korrigieren.isChecked()
+        and "Radius-Verschlei" in satz,
+        f"Korrigieren: {frage.korrigieren.isVisible()} {satz!r}",
+    )
     h.bild("4b_womit_weiter", frage)
     frage.taster.setText("")
     frage._zyklus = False

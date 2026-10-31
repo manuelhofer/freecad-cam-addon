@@ -59,14 +59,42 @@ def zeilen(sicher, drehzahl, rueckwaerts=False, kuehlung=None):
     return ergebnis
 
 
-def merkmal_zeile(m, toleranz):
+def merkmal_zeile(m, toleranz, korrigieren=None):
     """„(MESSEN tasche X50.000 Y40.000 LX58.000 LY38.000 Z32.500 OBEN40.000 TOL0.020)“ – rund mit
-    D statt LX/LY."""
+    D statt LX/LY; mit `korrigieren` (die Werkzeugnummer des Schlichtwerkzeugs danach) dazu
+    „KORR3“: Der Messzyklus trägt die Abweichung als dessen Radius-Verschleiß ein."""
     masse = f"D{m.durchmesser:.3f}" if m.rund else f"LX{m.laenge_x:.3f} LY{m.laenge_y:.3f}"
+    korr = f" KORR{int(korrigieren)}" if korrigieren else ""
     return (
         f"({MESSEN} {m.art} X{m.x:.3f} Y{m.y:.3f} {masse} Z{m.z_mess:.3f} "
-        f"OBEN{m.z_oben:.3f} TOL{toleranz:.3f})"
+        f"OBEN{m.z_oben:.3f} TOL{toleranz:.3f}{korr})"
     )
+
+
+def korrektur_von(zeilen_):
+    """Die Werkzeugnummer, deren Radius-Verschleiß der Messzyklus korrigiert („KORR3“) – None:
+    nur messen."""
+    for zeile in zeilen_ or []:
+        text = str(zeile).strip()
+        if text.startswith(f"({MESSEN} "):
+            for wort in text.strip("()").split():
+                if wort.startswith("KORR") and wort[4:].isdigit():
+                    return int(wort[4:])
+    return None
+
+
+def korrektur_setzen(op, werkzeugnummer):
+    """Schreibt „KORR…“ in die Zeile „(MESSEN …)“ des Messstopps `op` (None: weg)."""
+    neu = []
+    for zeile in list(op.Gcode):
+        text = str(zeile)
+        if text.strip().startswith(f"({MESSEN} "):
+            woerter = [w for w in text.strip().strip("()").split() if not w.startswith("KORR")]
+            if werkzeugnummer:
+                woerter.append(f"KORR{int(werkzeugnummer)}")
+            text = "(" + " ".join(woerter) + ")"
+        neu.append(text)
+    op.Gcode = neu
 
 
 def merkmal_von(zeilen_):
@@ -81,6 +109,8 @@ def merkmal_von(zeilen_):
         art, werte = teile[0], {}
         for teil in teile[1:]:
             name = teil.rstrip("0123456789.-")
+            if name == "KORR":
+                continue  # korrektur_von
             werte[name] = float(teil[len(name) :])
         if art not in messen.ARTEN:
             return None

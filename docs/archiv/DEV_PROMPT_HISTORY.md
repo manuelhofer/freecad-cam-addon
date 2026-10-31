@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-34 messen-korrigieren
+
+### EINGELESEN
+- Manuel, 2026-10-31: „also der messzykluss mist das vorschlicht ergebniss und je nachdem obs stimmt wird der fräser durchmesser angepasst korrekt ?“ – „ja mach das so“.
+
+### DATEIEN
+- `camaddon/messstopp.py`: „KORR“ (`merkmal_zeile(…, korrigieren)`, `korrektur_von`, `korrektur_setzen`).
+- `camaddon/postprozessor.py`: Felder `korrigieren_*`, `KORRIGIEREN_SIEMENS` (`_siemens_korrektur`), `KORRIGIEREN_RENISHAW`; `_messen_saetze` mit {t_korr} {name_korr}.
+- `camaddon/gui_bearbeitung_beta.py`: Haken „Messzyklus korrigiert den Schlichtfräser selbst“ (an), Radiuskorrektur der Strategien, KORR nach dem Anlegen.
+- `translations/*.json`, `help/*/programm.html`, `docs/spezifikation_steuerung.md`, `docs/OFFENE_FRAGEN.md`, `docs/STATUS_SNAPSHOT.md`, `docs/bilder/beta/4_womit_weiter.png`, `package.xml` 0.335.0.
+- `tests/test_postprozessor.py`, `tests/test_messen.py`, `tests/gui/szenario_beta_schritte.py`.
+
+### ERGEBNIS
+- test_postprozessor (Siemens CYCLE977(203,…) mit Korrektur, Renishaw X T2 U0.5 / Y H), test_messen, test_sprache, test_hilfe, szenario_beta_schritte grün.
 ## P-2026-10-31-33 tauchen-nicht-freigegeben
 
 ### EINGELESEN

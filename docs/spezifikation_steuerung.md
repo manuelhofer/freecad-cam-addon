@@ -981,4 +981,8 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   weg, Rohzeile G41/G42, G1 auf den ersten Konturpunkt, die Kontur (G1, G2/G3 um dieselbe Mitte;
   Punkte gleich dem vorigen entfallen), Rohzeile G40, G1 aufs Ende des Ausfahrens, das Ausfahren
   weg. Geht ein Kreis nicht auf (ein Satz ohne Notiz, kein Ende): die Mitte und ein Hinweis.
+- Mit Korrektur (P-2026-10-31-34): Zeile „KORR{T}“ im Messstopp (`messstopp.korrektur_setzen`);
+  Felder `korrigieren_tasche|zapfen|bohrung|welle` mit {t_korr} {name_korr}; Siemens
+  `CYCLE977(203|204|201|202,,1,1,Soll,,,2,1,0,Absenken,,,MA,1,"Name",,0,0.5,Tol,-Tol,0,1,0,,1,1)`,
+  Renishaw `G65 P9812 X… T{t_korr} U0.5` + `Y… H{tol}` bzw. `P9814 D… T{t_korr} U0.5`.
 

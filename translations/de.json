@@ -3672,5 +3672,13 @@
     "wv.bohrverwendung.auskesselung": "Auskesselung",
     "ba.tauchfraesen.ungeeignete": "Auch Werkzeuge nehmen, die der Hersteller dafür nicht nennt",
     "ba.tauchfraesen.ungeeignete.tooltip": "Ohne Haken nimmt das Tauchfräsen nur Tauchfräser, mittenschneidende Fräser und Wendeplattenbohrer, für die der Hersteller die Brillenbohrung nennt. Mit Haken jeden Wendeplattenbohrer – auf eigene Verantwortung, an den überlappenden Stellen mit 50 % Vorschub.",
-    "ba.tauchfraesen.ungeprueft": "Der Hersteller nennt für diesen Bohrer keine Brillenbohrung – auf eigene Verantwortung, überlappend mit {anteil} % Vorschub"
+    "ba.tauchfraesen.ungeprueft": "Der Hersteller nennt für diesen Bohrer keine Brillenbohrung – auf eigene Verantwortung, überlappend mit {anteil} % Vorschub",
+    "pp.feld.korrigieren_tasche": "Messen + korrigieren: Rechtecktasche",
+    "pp.feld.korrigieren_zapfen": "Messen + korrigieren: Rechteckzapfen",
+    "pp.feld.korrigieren_bohrung": "Messen + korrigieren: Bohrung",
+    "pp.feld.korrigieren_welle": "Messen + korrigieren: Welle/Zapfen rund",
+    "pp.feld.korrigieren.tooltip": "Wie „Messen“, nur trägt der Zyklus die Abweichung als Radius-Verschleiß des Schlichtwerkzeugs danach ein ({t_korr} seine Nummer, {name_korr} sein Name an der Steuerung) – nur, wenn „Messzyklus korrigiert den Schlichtfräser“ angehakt ist und der Gang danach mit Radiuskorrektur schlichtet. Korrigiert wird aus einer Messung (Breite in X bzw. Ø). Leer: nur messen.",
+    "beta.weiter.korrigieren": "Messzyklus korrigiert den Schlichtfräser selbst",
+    "beta.weiter.korrigieren.tooltip": "Liegt das Maß daneben, trägt der Messzyklus die Abweichung als Radius-Verschleiß beim Schlichtfräser ein (z. B. Tasche 0,04 zu klein → −0,02) – der Fertiggang trifft dann das Maß, ohne Halt. Dafür schlichten die Strategien mit Radiuskorrektur der Steuerung (G41/G42; der Haken wird gesetzt). Über 0,5 mm Abweichung korrigiert er nicht und hält mit Alarm. Aus: messen und nur anhalten, wenn es außerhalb liegt.",
+    "beta.weiter.messen.mit_korrektur": "Der Taster T{t} misst {was} und trägt eine Abweichung als Radius-Verschleiß beim Schlichtfräser ein – angehalten wird nur über 0,5 mm."
 }

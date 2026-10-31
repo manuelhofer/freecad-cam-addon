@@ -1153,6 +1153,25 @@ for kennung, erwartet in (
     pruefe("M0" not in z_k or kennung == "siemens", f"{kennung}: Halt trotz Taster")
 z_ohne_t = pp.programm([bohren, messen_m, weiter_2], pp.steuerung("linuxcnc"), fraese, "M").zeilen
 pruefe("M0" in z_ohne_t and not any("CALL" in x for x in z_ohne_t), "ohne Taster kein Halt")
+# Mit Korrektur (Manuel: „ja mach das so“): Siemens CYCLE977 Nut in X mit Werkzeugkorrektur (203,
+# S_KNUM1 1, S_TNAME, S_TDIF 0,5), ohne eigene Abfrage; Renishaw X mit T2 U0.5, Y nur geprüft.
+mit_korr = ms.zeilen(25.0, 900.0)
+mit_korr.insert(1, ms.merkmal_zeile(merkmal_t, 0.02, korrigieren=2))
+messen_k = pp.Abschnitt("Messstopp", 2, 900.0, False, "None", [C(z) for z in mit_korr], "Bohrer")
+z_sk = pp.programm(
+    [bohren, messen_k, weiter_2], pp.steuerung("siemens", {"taster": "99"}), fraese, "M"
+).zeilen
+erwartet_sk = 'CYCLE977(203,,1,1,59.400,,,2,1,0,,,,1,1,"2",,0,0.5,0.020,-0.020,0,1,0,,1,1)'
+pruefe(erwartet_sk in z_sk, f"Siemens mit Korrektur: {[x for x in z_sk if 'CYCLE977' in x]}")
+pruefe(not any("_OVR" in x for x in z_sk), "Siemens mit Korrektur: eigene Abfrage")
+z_fk = pp.programm(
+    [bohren, messen_k, weiter_2], pp.steuerung("fanuc", {"taster": "99"}), fraese, "M"
+).zeilen
+pruefe(
+    "G65 P9812 X59.400 T2 U0.5" in z_fk and "G65 P9812 Y39.400 H0.020" in z_fk,
+    f"Renishaw mit Korrektur: {[x for x in z_fk if 'P981' in x]}",
+)
+
 # Ohne Taster sagt die Meldung am Halt das Sollmaß (Siemens MSG, ASCII: ± als „+-“).
 z_msg = pp.programm([bohren, messen_m, weiter_2], pp.steuerung("siemens"), fraese, "M").zeilen
 msg = next((x for x in z_msg if x.startswith('MSG("Messstopp')), "")

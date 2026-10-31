@@ -576,6 +576,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.335.0):* **Messzyklus korrigiert den Schlichtfräser selbst** (Manuel: „ja mach das so“):
+  Haken in „Weiter bearbeiten“ (mit Taster, vorbelegt an); er hakt bei den Strategien des Schritts
+  „Radiuskorrektur“ an, der Messstopp trägt „KORR{T}“ des ersten neuen Gangs mit Radiuskorrektur.
+  Postprozessor: Felder `korrigieren_*` – Siemens CYCLE977 Nut/Steg in X bzw. Bohrung/Welle mit
+  Werkzeugkorrektur (S_KNUM1 1, S_TNAME, S_TDIF 0,5), Renishaw X mit T U0.5 (Y nur H); Heidenhain
+  misst weiter nur. Korrigiert wird nur, wenn danach eine Kontur oder „Schlichten danach“ mit
+  G41/G42 fährt – sonst messen und anhalten.
 - *Korrektur (0.334.1):* Haken **„Auch Werkzeuge nehmen, die der Hersteller dafür nicht nennt“** am
   Tauchfräsen (Manuel: „aber erst wenn man einen hacken gesetzt hat“), aus vorbelegt: dann jeder
   Wendeplattenbohrer, an den überlappenden Stellen mit 50 % Vorschub, im Satz „auf eigene

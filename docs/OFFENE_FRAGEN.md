@@ -14,18 +14,10 @@ daraus folgt, stehen in [konzept_schritt_assistent.md](konzept_schritt_assistent
 Die Antworten vom 2026-10-31 nachmittags (Messtaster, Tauchfräsen, Hoffmann-Abruf) stehen in
 [konzept_schritt_assistent.md](konzept_schritt_assistent.md), Teil C.
 
-1. **Messen: Soll das Programm die Korrektur selbst eintragen oder nur anhalten?** Was gebaut
-   ist: Nach „Weiter bearbeiten“ mit Messstopp weiß das Programm, was zu messen ist – z. B. Tasche
-   60 × 40 nach einem Gang mit 0,3 Aufmaß: Soll 59,4 × 39,4 (auf halber Wandhöhe; auch Zapfen,
-   Bohrung, Welle). Ohne Taster hält es mit „Messstopp: Tasche 59,4 × 39,4 mm ±0,02 messen, dann
-   NC-Start“; mit Taster misst der Zyklus der Steuerung und hält nur, wenn es außerhalb liegt.
-   Die Frage: Ist die Tasche 0,04 zu klein, trägt man von Hand beim Schlichtwerkzeug den Radius-
-   Verschleiß −0,02 ein. **Soll das der Messzyklus selbst tun** (spart den Halt; misst der Taster
-   falsch, verstellt er das Werkzeug), **oder nur anhalten** und der Bediener trägt ein? Mein
-   Vorschlag: erst nur anhalten (wie jetzt), Selbst-Eintragen später als Haken, aus vorbelegt.
-   (Manuel, 2026-10-31, zur ersten Fassung: „ich hab keine ahnung was du damit überhaupt meinst“ –
-   neu gefasst.) – *Warum nur Manuel:* Werkstattpraxis. – *Was die Antwort ändert:* ob der Zyklus
-   nach dem Messen korrigiert. – 2026-10-31.
+Frage 1 (Messen und korrigieren) beantwortet, Manuel, 2026-10-31: „ja mach das so“ (der
+Messzyklus korrigiert den Schlichtfräser selbst, als Haken) – gebaut 0.335.0.
+
+Zurzeit keine offenen Fragen.
 
 Frage 2 (Brillenbohrung) beantwortet, Manuel, 2026-10-31: „ja wenn das vom hersteller die
 genannte methode ist“ – gebaut 0.334.0.

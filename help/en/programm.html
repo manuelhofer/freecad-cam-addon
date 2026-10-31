@@ -195,7 +195,14 @@ subtracted) and ±0.02 mm – it only stops when the size is outside. Preset are
 stops on error, Q330 = 0 corrects nothing) and Renishaw Inspection Plus on Fanuc and Haas
 (G65 P9812/P9814 with H only). It only measures, it corrects nothing. <b>Check the first part
 slowly with feed override.</b> Probe on/off (e.g. G65 P9832/P9833 or an M code) as your machine
-needs. Without a probe: the stop as before.</li>
+needs. Without a probe: the stop as before.
+If <i>Measuring cycle corrects the finishing cutter itself</i> is ticked in “Continue machining”, the
+cycle enters a deviation as radius wear of the following finishing tool (Siemens D1 of the tool,
+Fanuc/Haas with Renishaw the D register with the tool number) – from one measurement, the width in X
+for pockets and bosses, the Ø for bores and round bosses; above 0.5 mm it does not correct and stops
+with an alarm. This only works if the next pass runs with cutter compensation (a contour or
+“Finish afterwards” with G41/G42) – otherwise it only measures. Siemens without tool management:
+please check the tool name (S_TNAME) at the machine.</li>
 <li><b>Coolant</b> – as set at the operation: flood M8, mist M7, then M9. Off if you switch it
 by hand at the machine.</li>
 </ul>

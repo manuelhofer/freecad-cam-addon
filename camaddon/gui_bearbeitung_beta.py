@@ -959,11 +959,19 @@ class BetaPanel(BearbeitungPanel):
             tc = getattr(davor, "ToolController", None)
             if tc is not None:
                 stopp = ms.lege_an(self.job, tc, tc, messmerkmal(self.job, davor))
+        vorher = {o.Name for o in self.job.Operations.Group} if stopp is not None else set()
         ergebnis = super()._anlegen()
         if stopp is not None and not ergebnis:
             self.job.Document.removeObject(stopp.Name)
         elif stopp is not None:
             self._beta_messstopp = False  # nur einmal
+            if getattr(self, "_beta_korrigieren", False):
+                # Das Schlichtwerkzeug danach – das erste neue mit Radiuskorrektur.
+                neu = [o for o in self.job.Operations.Group if o.Name not in vorher]
+                mit = next((o for o in neu if getattr(o, "Radiuskorrektur", False)), None)
+                tc = getattr(mit, "ToolController", None)
+                if tc is not None:
+                    ms.korrektur_setzen(stopp, int(tc.ToolNumber))
         return ergebnis
 
     def _nur_diese_anlegen(self, aktive):
@@ -1150,7 +1158,11 @@ class BefehlWeiterBearbeiten:
         frage = WeiterFrage(FreeCADGui.getMainWindow(), job)
         if frage.exec():
             weiter_bearbeiten(
-                job, frage.abschnitt(), frage.messstopp.isChecked(), frage.aufmass_wert()
+                job,
+                frage.abschnitt(),
+                frage.messstopp.isChecked(),
+                frage.aufmass_wert(),
+                frage.korrigieren_wert(),
             )
 
 
@@ -1269,6 +1281,14 @@ class WeiterFrage(QtGui.QDialog):
         zeile.addWidget(self.taster)
         zeile.addStretch()
         aufbau.addLayout(zeile)
+        # Manuel, 2026-10-31: „ja mach das so“ – der Messzyklus trägt die Abweichung selbst als
+        # Radius-Verschleiß des Schlichtfräsers ein (vorbelegt an, wie Neues sonst auch).
+        self.korrigieren = QtGui.QCheckBox(tr("beta.weiter.korrigieren"))
+        self.korrigieren.setToolTip(tr("beta.weiter.korrigieren.tooltip"))
+        self.korrigieren.setChecked(True)
+        self.korrigieren.setContentsMargins(22, 0, 0, 0)
+        self.korrigieren.toggled.connect(self._messen_zeigen)
+        aufbau.addWidget(self.korrigieren)
         self._steuerung_name = s.name
         self.messstopp.toggled.connect(self._messen_zeigen)
         self._messen_zeigen()
@@ -1278,6 +1298,7 @@ class WeiterFrage(QtGui.QDialog):
         mit_zyklus = an and self._zyklus
         self.taster.setVisible(mit_zyklus)
         self.taster_beschriftung.setVisible(mit_zyklus)
+        self.korrigieren.setVisible(mit_zyklus and bool(self.taster.text().strip()))
         if not an:
             self.messen_text.setText("")
         elif self.merkmal is None:
@@ -1291,19 +1312,26 @@ class WeiterFrage(QtGui.QDialog):
                 )
             )
         elif self.taster.text().strip():
-            self.messen_text.setText(
-                tr(
-                    "beta.weiter.messen.mit",
-                    was=_merkmal_text(self.merkmal),
-                    t=self.taster.text().strip(),
-                )
-            )
+            werte = {"was": _merkmal_text(self.merkmal), "t": self.taster.text().strip()}
+            if self.korrigieren.isChecked():
+                self.messen_text.setText(tr("beta.weiter.messen.mit_korrektur", **werte))
+            else:
+                self.messen_text.setText(tr("beta.weiter.messen.mit", **werte))
         else:
             self.messen_text.setText(
                 tr("beta.weiter.messen.ohne_taster", was=_merkmal_text(self.merkmal))
             )
         self.messen_text.setVisible(an)
         self.adjustSize()
+
+    def korrigieren_wert(self):
+        """Soll der Messzyklus den Schlichtfräser korrigieren? (nur mit Taster und Zyklus)"""
+        return bool(
+            self.messstopp.isChecked()
+            and self._zyklus
+            and self.taster.text().strip()
+            and self.korrigieren.isChecked()
+        )
 
     def taster_merken(self):
         """Die T-Nummer an der Steuerung des Jobs merken (gui_programm.gespeicherte_aenderungen)."""
@@ -1434,10 +1462,11 @@ def aufmass_setzen(panel, ab, aufmass):
     panel.vorschau_starten()
 
 
-def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None):
+def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None, korrigieren=False):
     """Öffnet die Beta am Job `job` beim Abschnitt `ab` – mit den gemerkten Flächen; `messstopp`:
     vor den neuen Operationen ein Messstopp (messstopp.py); `aufmass` (mm): das Aufmaß dieses Gangs
-    für die Strategien des Abschnitts."""
+    für die Strategien des Abschnitts; `korrigieren`: der Messzyklus korrigiert den Schlichtfräser
+    – dafür schlichten die Strategien mit Radiuskorrektur (Haken „korrektur“)."""
     klon = vr.modell(job)
     teil = vr.original(klon)
     flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
@@ -1449,6 +1478,11 @@ def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None):
         flaechen=flaechen,
     )
     panel._beta_messstopp = messstopp
+    panel._beta_korrigieren = bool(messstopp and korrigieren)
+    if panel._beta_korrigieren:
+        for block in panel.bloecke:
+            if abschnitt(block) == ab and "korrektur" in block.haken_felder:
+                block.haken_felder["korrektur"].setChecked(True)
     if aufmass is not None:
         aufmass_setzen(panel, ab, aufmass)
     FreeCADGui.Control.showDialog(panel)

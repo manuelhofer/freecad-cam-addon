@@ -150,6 +150,12 @@ class Steuerung:
     messen_zapfen: str = ""
     messen_bohrung: str = ""
     messen_welle: str = ""
+    # … mit Korrektur des Schlichtwerkzeugs danach ({t_korr} seine Nummer, {name_korr} sein Name
+    # an der Steuerung): nur, wenn der Messstopp sie verlangt (Zeile „KORR…“); leer: nur messen.
+    korrigieren_tasche: str = ""
+    korrigieren_zapfen: str = ""
+    korrigieren_bohrung: str = ""
+    korrigieren_welle: str = ""
     # Zum Wechselpunkt der Maschine – {achsen}: „X200.000 Z300.000“; in MKS bzw. WKS.
     wechselpunkt_mks: str = "G53 G0 {achsen}"
     wechselpunkt_wks: str = "G0 {achsen}"
@@ -421,6 +427,10 @@ BEFEHLSFELDER = (
     "messen_zapfen",
     "messen_bohrung",
     "messen_welle",
+    "korrigieren_tasche",
+    "korrigieren_zapfen",
+    "korrigieren_bohrung",
+    "korrigieren_welle",
     "schwenken",
     "schwenken_aus",
     "tcpm_ein",
@@ -504,6 +514,37 @@ MESSEN_SIEMENS = {
     "messen_welle": "G0 X{x} Y{y}\nG0 Z{ueber}\n"
     "CYCLE977(2,,,1,{d},,,2,1,0,{absenken}" + _SIEMENS_REST[1:] + _SIEMENS_PRUEFEN_RUND,
 }
+
+
+# Mit Korrektur (Manuel, 2026-10-31: „ja mach das so“ – der Messzyklus trägt die Abweichung als
+# Radius-Verschleiß des Schlichtwerkzeugs ein): korrigiert wird aus einer Messung – bei Tasche und
+# Zapfen der Breite in X, bei Bohrung und Welle dem Ø –, sonst korrigierte X und Y es doppelt.
+# Siemens: CYCLE977 Nut/Steg in X (S_MVAR 203/204, S_MA 1) bzw. Bohrung/Welle (201/202) mit
+# Hunderter 2 „Werkzeugkorrektur“, S_KNUM1 1 (D1, Radius-Verschleiß), S_TNAME das Werkzeug, S_TDIF
+# 0,5 (darüber keine Korrektur, Alarm), S_TUL/S_TLL die Toleranz (_AMODE 1). Renishaw: T die
+# Werkzeugnummer (D-Register), U0.5 (darüber kein Update, Alarm); Y nur geprüft (H).
+def _siemens_korrektur(mvar, sollwert, ma="", absenken=""):
+    teile = [
+        mvar, "", "1", "1", sollwert, "", "", "2", "1", "0", absenken, "", "", ma, "1",
+        '"{name_korr}"', "", "0", "0.5", "{tol}", "-{tol}", "0", "1", "0", "", "1", "1",
+    ]  # fmt: skip
+    return "CYCLE977(" + ",".join(teile) + ")\n"
+
+
+KORRIGIEREN_SIEMENS = {
+    "korrigieren_tasche": "G0 X{x} Y{y}\nG0 Z{sicher}\nG1 Z{z} F1000\n"
+    + _siemens_korrektur("203", "{lx}", ma="1")
+    + "G0 Z{sicher}",
+    "korrigieren_zapfen": "G0 X{x} Y{y}\nG0 Z{ueber}\n"
+    + _siemens_korrektur("204", "{lx}", ma="1", absenken="{absenken}")
+    + "G0 Z{sicher}",
+    "korrigieren_bohrung": "G0 X{x} Y{y}\nG0 Z{sicher}\nG1 Z{z} F1000\n"
+    + _siemens_korrektur("201", "{d}")
+    + "G0 Z{sicher}",
+    "korrigieren_welle": "G0 X{x} Y{y}\nG0 Z{ueber}\n"
+    + _siemens_korrektur("202", "{d}", absenken="{absenken}")
+    + "G0 Z{sicher}",
+}
 _RENISHAW_EIN = "G0 G90 X{x} Y{y}\nG43 H{t} Z{sicher}\nG65 P9832\n"
 _RENISHAW_AUS = "G65 P9810 Z{sicher}\nG65 P9833"
 MESSEN_RENISHAW = {
@@ -517,6 +558,16 @@ MESSEN_RENISHAW = {
     "messen_welle": _RENISHAW_EIN
     + "G65 P9810 Z{ueber} F3000.\nG65 P9814 D{d} Z{z} H{tol}\n"
     + _RENISHAW_AUS,
+}
+KORRIGIEREN_RENISHAW = {
+    "korrigieren_tasche": _RENISHAW_EIN + "G65 P9810 Z{z} F3000.\nG65 P9812 X{lx} T{t_korr} U0.5\n"
+    "G65 P9812 Y{ly} H{tol}\n" + _RENISHAW_AUS,
+    "korrigieren_zapfen": _RENISHAW_EIN + "G65 P9810 Z{ueber} F3000.\n"
+    "G65 P9812 X{lx} Z{z} T{t_korr} U0.5\nG65 P9812 Y{ly} Z{z} H{tol}\n" + _RENISHAW_AUS,
+    "korrigieren_bohrung": _RENISHAW_EIN + "G65 P9810 Z{z} F3000.\n"
+    "G65 P9814 D{d} T{t_korr} U0.5\n" + _RENISHAW_AUS,
+    "korrigieren_welle": _RENISHAW_EIN + "G65 P9810 Z{ueber} F3000.\n"
+    "G65 P9814 D{d} Z{z} T{t_korr} U0.5\n" + _RENISHAW_AUS,
 }
 _HH_KOPF = "L Z{sicher_vz} R0 FMAX\n"
 _HH_HOEHEN = (
@@ -632,6 +683,7 @@ STEUERUNGEN = {
         "G94",
         verweilen="G4 F{sek}",  # Siemens: G4 F – Sekunden (G4 S: Umdrehungen)
         **MESSEN_SIEMENS,
+        **KORRIGIEREN_SIEMENS,
         **KORREKTUR_OHNE_D,
         meldung='MSG("{text}")',  # in der Meldezeile, bis MSG() sie löscht
         meldung_aus="MSG()",
@@ -727,6 +779,7 @@ STEUERUNGEN = {
         "G98",
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
         **MESSEN_RENISHAW,
+        **KORRIGIEREN_RENISHAW,
         **KORREKTUR_MIT_D,
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
         programmnummer_max=9999,  # O0001 … O9999
@@ -828,6 +881,7 @@ STEUERUNGEN = {
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         nullpunkt_weitere="G154 P{e}",  # Haas: G154 P1 … P99 (zusätzliche Werkstückoffsets)
         **MESSEN_RENISHAW,
+        **KORRIGIEREN_RENISHAW,
         **KORREKTUR_MIT_D,
         programmnummer_max=99999,  # O00001 … O99999
         ohne_leerzeichen_moeglich=True,
@@ -1199,6 +1253,13 @@ def feld_text(feld):
         "messen_zapfen": (tr("pp.feld.messen_zapfen"), tr("pp.feld.messen.tooltip")),
         "messen_bohrung": (tr("pp.feld.messen_bohrung"), tr("pp.feld.messen.tooltip")),
         "messen_welle": (tr("pp.feld.messen_welle"), tr("pp.feld.messen.tooltip")),
+        "korrigieren_tasche": (tr("pp.feld.korrigieren_tasche"), tr("pp.feld.korrigieren.tooltip")),
+        "korrigieren_zapfen": (tr("pp.feld.korrigieren_zapfen"), tr("pp.feld.korrigieren.tooltip")),
+        "korrigieren_bohrung": (
+            tr("pp.feld.korrigieren_bohrung"),
+            tr("pp.feld.korrigieren.tooltip"),
+        ),
+        "korrigieren_welle": (tr("pp.feld.korrigieren_welle"), tr("pp.feld.korrigieren.tooltip")),
         "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
         "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
         "tcpm_ein": (tr("pp.feld.tcpm_ein"), tr("pp.feld.tcpm_ein.tooltip")),
@@ -1390,7 +1451,7 @@ def _zeilen(text):
     return [z.rstrip() for z in (text or "").split("\n") if z.strip()]
 
 
-def _messen_saetze(s, gemessen, info, nummer=1):
+def _messen_saetze(s, gemessen, info, nummer=1, korrigiert=None, abschnitte=()):
     """Die Sätze, mit denen der Taster das Merkmal misst (Steuerung.messen_*): Taster einwechseln,
     einschalten, der Zyklus, ausschalten – [] ohne Merkmal, Taster oder Zyklus für die Art (dann
     hält der Messstopp wie bisher)."""
@@ -1398,8 +1459,15 @@ def _messen_saetze(s, gemessen, info, nummer=1):
         return []
     m, toleranz = gemessen
     vorlage = getattr(s, f"messen_{m.art}", "")
+    if korrigiert and getattr(s, f"korrigieren_{m.art}", ""):
+        vorlage = getattr(s, f"korrigieren_{m.art}")
     if not vorlage:
         return []
+    # Der Name des Schlichtwerkzeugs an der Steuerung (Siemens S_TNAME): wie beim Wechsel.
+    danach = next((a for a in abschnitte if a.werkzeug == korrigiert), None)
+    name_korr = str(korrigiert or "")
+    if danach is not None and "{werkzeug}" in s.wechsel_fraesen:
+        name_korr = _werkzeugname(danach.name_steuerung or danach.werkzeugname, korrigiert)
     try:
         t = int(s.taster.strip())
     except ValueError:
@@ -1433,6 +1501,8 @@ def _messen_saetze(s, gemessen, info, nummer=1):
         "tol": f"{toleranz:.3f}",
         "oben": f"{m.z_oben:.3f}",
         "sicher": f"{sicher:.3f}",
+        "t_korr": int(korrigiert or 0),
+        "name_korr": name_korr,
     }
     saetze = []
     for befehl in (s.vor_wechsel, s.wechsel_fraesen, s.nach_wechsel):
@@ -2022,6 +2092,7 @@ def programm(
             ebene = "G17"
         messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
         gemessen = None  # (messen.Merkmal, Toleranz) aus seiner Zeile „(MESSEN …)“
+        korrigiert = None  # die Werkzeugnummer, deren Radius der Messzyklus korrigiert („KORR…“)
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
         for name_, parameter in befehle:
             if name_.startswith("("):
@@ -2036,6 +2107,7 @@ def programm(
                 notiz(text_)
                 if text_.startswith(ms.MESSEN + " "):
                     gemessen = ms.merkmal_von([name_])
+                    korrigiert = ms.korrektur_von([name_])
                 messstopp = messstopp or name_ == ms.KOMMENTAR
                 im_messstopp = im_messstopp or name_ == ms.KOMMENTAR
                 continue
@@ -2084,7 +2156,7 @@ def programm(
                 # Drehmaschine: die Hauptspindel an.
                 continue
             if im_messstopp and gross in ("M0", "M00"):
-                taster = _messen_saetze(s, gemessen, info, messungen + 1)
+                taster = _messen_saetze(s, gemessen, info, messungen + 1, korrigiert, abschnitte)
                 if taster:
                     messungen += 1
                     # Statt zu halten misst der Taster; danach wechselt die nächste Bearbeitung

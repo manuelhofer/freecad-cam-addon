@@ -3672,5 +3672,13 @@
     "wv.bohrverwendung.auskesselung": "undercutting",
     "ba.tauchfraesen.ungeeignete": "Also use tools the maker doesn't state for it",
     "ba.tauchfraesen.ungeeignete.tooltip": "Without the tick, plunge milling only takes plunge cutters, centre-cutting end mills and indexable drills for which the maker states chain drilling. With the tick any indexable drill – at your own risk, at 50 % feed where the holes overlap.",
-    "ba.tauchfraesen.ungeprueft": "The maker states no chain drilling for this drill – at your own risk, overlapping at {anteil} % feed"
+    "ba.tauchfraesen.ungeprueft": "The maker states no chain drilling for this drill – at your own risk, overlapping at {anteil} % feed",
+    "pp.feld.korrigieren_tasche": "Measure + correct: rectangular pocket",
+    "pp.feld.korrigieren_zapfen": "Measure + correct: rectangular boss",
+    "pp.feld.korrigieren_bohrung": "Measure + correct: bore",
+    "pp.feld.korrigieren_welle": "Measure + correct: round boss",
+    "pp.feld.korrigieren.tooltip": "Like “Measure”, but the cycle enters the deviation as radius wear of the finishing tool that follows ({t_korr} its number, {name_korr} its name at the control) – only if “Measuring cycle corrects the finishing cutter” is ticked and the next pass finishes with cutter compensation. The correction comes from one measurement (width in X or Ø). Empty: measure only.",
+    "beta.weiter.korrigieren": "Measuring cycle corrects the finishing cutter itself",
+    "beta.weiter.korrigieren.tooltip": "If the size is off, the measuring cycle enters the deviation as radius wear of the finishing cutter (e.g. pocket 0.04 too small → −0.02) – the finishing pass then hits the size, without a stop. For this the strategies finish with the control's cutter compensation (G41/G42; the tick is set). Above 0.5 mm deviation it does not correct and stops with an alarm. Off: measure and only stop if it is outside.",
+    "beta.weiter.messen.mit_korrektur": "Probe T{t} measures {was} and enters a deviation as radius wear of the finishing cutter – it only stops above 0.5 mm."
 }
