@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-45 halter-big-rego-emuge
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“ (Manuel: „bis zum geht nicht mehr“); im Stand offen:
+  BIG Daishowa, REGO-FIX powRgrip, Rest HAIMER.
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: 1137 Reihen, 8402 Größen (über
+  ~/freecad_cam/wip/katalog_roh/katalog_uebernehmen.py, jetzt auch mit teil_big_rego_haimer.json
+  und teil_emuge.json).
+- `camaddon/kataloge_index.json` neu (26,4 MB); `translations/*.json`: „8400 Halter“;
+  `package.xml` 0.342.0.
+
+### ERGEBNIS
+- Sammler (Nacht): BIG 231 Reihen/1161 Größen (Katalog-PDFs bei Sumipol, Tabellen nach Lage auf
+  der Seite gelesen, Stichproben an den Seitenbildern), REGO-FIX 159/664 (Hauptkatalog 2025 bei
+  Maford Europe; Yumpu antwortete mit HTTP 202 ohne Inhalt – dort sofort aufgehört), HAIMER bisher
+  13/45 (shop.haimer.com, eine Anfrage je 15–25 s, läuft weiter); EMUGE-FRANKEN 94/212 aus den
+  Variantendaten.
+- Alle 8402 Halter mit halter_katalog.aus_katalog gebaut: keine Fehler. test_halter,
+  test_halter_datei, test_vierachs_halter, test_kataloge, test_empfehlung, szenario_halter,
+  szenario_spannmittel grün.
 ## P-2026-10-31-44 katalog-gewindefraeser
 
 ### EINGELESEN
