@@ -7,6 +7,9 @@
 # 4. Zu eng (Tasche schmaler als der Fräser): keine Stelle.
 # 5. Reihenfolge von innen nach außen: die erste Stelle an der Mitte, jede weitere höchstens einen
 #    Rasterschritt (+ Spiel) vom schon Offenen.
+# 7. Um eine Außenkontur (Manuel: „geht auch für ne ausen kontur“): Zapfen 30 × 20 auf einer Platte
+#    100 × 80, Rohteil 5 mm größer – Stellen weg vom Zapfen, bis über den Rand der Platte, die
+#    erste außen an einer Ecke.
 # 6. Die Operation im Job: Block 120 × 80 × 40, Tasche 80 × 50, 30 tief; Schaftfräser Ø 12 mit 20 mm
 #    Schneide – zwei Lagen, die zweite im Eilgang bis knapp über die erste; jeder Vorschubsatz
 #    senkrecht, keiner unter dem Boden; Art „tauchfraesen“ (Schnittwerte in den Job).
@@ -72,6 +75,27 @@ for i in range(1, len(stellen)):
     abstand = min(math.hypot(stellen[i][0] - a, stellen[i][1] - b) for a, b in stellen[:i])
     if abstand > 0.7 * 2 * r * 1.05:
         fehler.append(f"Stelle {i + 1} nicht neben dem Offenen: {abstand:.1f}")
+
+# --- 7. Um eine Außenkontur --------------------------------------------------------------------
+zapfen = Part.makeBox(100, 80, 10).fuse(Part.makeBox(30, 20, 15, V(35, 30, 10))).removeSplitter()
+platte_oben = next(
+    f for f in zapfen.Faces if abs(f.BoundBox.ZMin - 10) < 1e-6 and abs(f.BoundBox.ZMax - 10) < 1e-6
+)
+stuecke = tf.gebiet(zapfen, platte_oben, (-5, 105, -5, 85), r + aufmass)
+aussen = [p for st in stuecke for p in tf.stellen(st, r, aufmass)]
+kern = Part.makeBox(30, 20, 15, V(35, 30, 10))
+zu_nah = [
+    p for p in aussen if kern.distToShape(Part.Vertex(V(p[0], p[1], 15)))[0] < r + aufmass - 1e-3
+]
+print(f"Außenkontur: {len(stuecke)} Gebiet(e), {len(aussen)} Stellen, erste {aussen[:1]}")
+if len(stuecke) != 1 or not aussen or zu_nah:
+    fehler.append(
+        f"Außenkontur: {len(stuecke)} Gebiete, {len(aussen)} Stellen, zu nah {zu_nah[:3]}"
+    )
+if aussen and not min(p[0] for p in aussen) < 0:
+    fehler.append("Außenkontur: keine Stelle über den Rand der Platte hinaus")
+if aussen and math.hypot(aussen[0][0] - 50, aussen[0][1] - 40) < 40:
+    fehler.append(f"Außenkontur: erste Stelle nicht außen: {aussen[0]}")
 
 # --- 6. Die Operation im Job ---------------------------------------------------------------------
 import pathlib  # noqa: E402

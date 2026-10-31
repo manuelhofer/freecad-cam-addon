@@ -180,7 +180,7 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    2026-10-31, zum Bild: „ja.. so ists ok .. geht auch für ne ausen kontur das man die vorbohrt
    so“* – *gebaut (0.330.0):* Block „Tauchfräsen“ im Schruppen, von sich aus aus; angehakt statt
    Räumen (das eine schaltet das andere ab), die Kontur nimmt danach die Zwickel an den Wänden.
-   Noch offen: an einer Außenkontur (die Stellen zwischen Rohteil und Kontur).
+   *0.330.2:* auch um eine Außenkontur (zwischen ihr und dem Rand des Rohteils).
    ![Tauchfräsen](bilder/beta/3d_tauchfraesen.png)
    ![Werkzeuge](bilder/beta/3c_werkzeuge_katalog.png)
 3. **Nach dem Schruppen** – „wir sollten da wirklich einen knopf "weiter bearbeiten" einrichtchten

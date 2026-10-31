@@ -9,7 +9,9 @@ Im Assistenten ein Weg im Schruppen, den man anhakt – von sich aus wählt er w
 Der Fräser (ein Tauchfräser oder ein mittenschneidender Schaftfräser mit Wendeplatten) taucht
 senkrecht ins Volle, Stelle an Stelle:
 
-- **Wo:** Die Mitte des Fräsers bleibt um Radius + Aufmaß innerhalb des Bodens (makeOffset2D). Darin
+- **Wo:** über dem Boden, soweit dort Rohteil und kein Teil ist (gebiet: in einer Tasche ihre
+  Öffnung, um einen Zapfen bis an den Rand des Rohteils). Die Mitte des Fräsers bleibt um Radius +
+  Aufmaß von der Kontur weg (makeOffset2D); über den Rand des Rohteils darf sie hinaus. Darin
   liegen die Stellen in einem Raster (`schritt`, höchstens 0,7 × D – dann bleiben zwischen vier
   Stellen nur kleine Zwickel), dazu Stellen längs der versetzten Kontur im selben Abstand, damit
   die Wände gleichmäßig Aufmaß behalten.
@@ -37,6 +39,7 @@ from .sprache import tr
 SCHRITT_ANTEIL = 0.7  # × D: größter Abstand der Stellen
 ABHEBEN = 1.0  # mm über der Oberkante zwischen den Stellen (und über der Lage davor)
 AUFMASS = 0.5  # mm – bleibt an der Wand fürs Schlichten
+SCHNITT_UEBER = 0.01  # mm über dem Boden: dort schneidet gebiet() das Teil
 GRUPPE = "Fräsen"
 
 
@@ -72,8 +75,50 @@ def stellen(boden, radius, aufmass=0.0, schritt=None):
             )
             if all(math.hypot(p.x - a, p.y - b) > 0.5 * schritt for a, b in punkte):
                 punkte.append((p.x, p.y))
+    if len(boden.Wires) > 1:
+        # Um eine Insel (eine Außenkontur): von außen nach innen – die erste Stelle an einer Ecke
+        # des Gebiets, am Rand des Rohteils, wo es frei ist.
+        return von_innen_nach_aussen(punkte, (box.XMin, box.YMin))
     mitte = innen.CenterOfMass if innen.isInside(innen.CenterOfMass, 1e-6, True) else None
     return von_innen_nach_aussen(punkte, (mitte.x, mitte.y) if mitte is not None else None)
+
+
+def gebiet(form, boden, rohteil, rand):
+    """[Part.Face] – wo über dem Boden `boden` (ebene Fläche nach oben) getaucht werden darf: der
+    Umriss des Rohteils (x_von, x_bis, y_von, y_bis), um `rand` größer (der Fräser darf über den
+    Rand hinaus, ins Freie), ohne den Schnitt des Teils knapp über dem Boden – davon die Stücke,
+    die am Boden liegen. So taucht es in einer Tasche in ihrer Öffnung, um eine Außenkontur (Manuel,
+    2026-10-31: „geht auch für ne ausen kontur“) zwischen ihr und dem Rand des Rohteils. Geht der
+    Schnitt nicht: [boden]."""
+    import FreeCAD
+    import Part
+
+    try:
+        z = boden.BoundBox.ZMax
+        x0, x1, y0, y1 = rohteil
+        V = FreeCAD.Vector
+        rahmen = Part.Face(
+            Part.makePolygon(
+                [
+                    V(x0 - rand, y0 - rand, z),
+                    V(x1 + rand, y0 - rand, z),
+                    V(x1 + rand, y1 + rand, z),
+                    V(x0 - rand, y1 + rand, z),
+                    V(x0 - rand, y0 - rand, z),
+                ]
+            )
+        )
+        drahte = form.slice(V(0, 0, 1), z + SCHNITT_UEBER)
+        if drahte:
+            teil = Part.makeFace(drahte, "Part::FaceMakerBullseye")
+            teil.translate(V(0, 0, z - teil.BoundBox.ZMin))
+            frei = rahmen.cut(teil)
+        else:
+            frei = rahmen
+        stuecke = [f for f in frei.Faces if f.common(boden).Area > 1e-6]
+        return stuecke or [boden]
+    except Exception:  # Part.OCCError – dann wie bisher: der Boden selbst
+        return [boden]
 
 
 def von_innen_nach_aussen(punkte, mitte=None):
@@ -149,15 +194,23 @@ def bahn_fuer(
     ebenen = hf.ebenen_oben(form, list(flaechen))
     if not ebenen:
         raise ValueError(tr("tf.fehler.keine"))
+    rohteil = None
+    try:
+        *rohteil, z_rohteil = pf.rohteil_von_oben(job)
+    except ValueError:  # ohne Rohteil: nur über den Böden selbst
+        z_rohteil = max(e.z for e in ebenen)
     if oben is None:
-        oben = pf.rohteil_von_oben(job)[4]
+        oben = z_rohteil
     punkte, stellen_zahl, lagen_zahl, boeden, namen = [], 0, 0, 0, []
     for ebene in sorted(ebenen, key=lambda e: -e.z):
         z_unten = ebene.z + aufmass_boden
         tiefe = oben - z_unten
         if tiefe <= 1e-6:
             continue
-        stellen_ = stellen(form.getElement(ebene.name), radius, aufmass, schritt)
+        boden = form.getElement(ebene.name)
+        stellen_ = []
+        for stueck in gebiet(form, boden, rohteil, radius + aufmass) if rohteil else [boden]:
+            stellen_ += stellen(stueck, radius, aufmass, schritt)
         if not stellen_:
             continue
         lagen = max(1, math.ceil(tiefe / schneidenlaenge - 1e-9)) if schneidenlaenge > 0 else 1

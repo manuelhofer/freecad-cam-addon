@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-17 tauchen-aussen-messzeile
+
+### EINGELESEN
+- Manuel, 2026-10-31, zum Tauchfräsen: „geht auch für ne ausen kontur das man die vorbohrt so“.
+
+### DATEIEN
+- `camaddon/tauchfraesen.py`: `gebiet` (Rohteil-Umriss + Rand minus Teilschnitt über dem Boden,
+  die Stücke am Boden), um eine Insel von außen nach innen.
+- `camaddon/messstopp.py`: Zeile „(MESSEN …)“ (`merkmal_zeile`, `merkmal_von`);
+  `camaddon/gui_bearbeitung_beta.py`: der Messstopp aus „Weiter bearbeiten“ trägt das Merkmal.
+- `tests/test_tauchfraesen.py` (7. Außenkontur), `tests/test_messen.py` (6. Zeile),
+  `tests/gui/szenario_beta_schritte.py` (Messmerkmal am Messstopp).
+- `docs/STATUS_SNAPSHOT.md`, `docs/konzept_schritt_assistent.md`, `package.xml` 0.330.2.
+
+### ERGEBNIS
+- test_tauchfraesen, test_messen, test_postprozessor, test_postprozessor_nachfahren, test_abfahren,
+  szenario_beta_schritte grün.
 ## P-2026-10-31-16 hoffmann-rest-messmerkmal
 
 ### EINGELESEN

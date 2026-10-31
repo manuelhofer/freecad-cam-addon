@@ -576,6 +576,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.330.2):* **Tauchfräsen auch um eine Außenkontur** (Manuel: „geht auch für ne
+  ausen kontur“): getaucht wird, wo über dem Boden Rohteil und kein Teil ist (`tauchfraesen.gebiet`)
+  – um einen Zapfen bis über den Rand des Rohteils, die erste Stelle außen im Freien. Der
+  Messstopp aus „Weiter bearbeiten“ trägt das Messmerkmal (`(MESSEN tasche X… LX… TOL…)`, in
+  Koordinaten des Jobs, Soll nach dem Aufmaß davor) – die Zyklen je Steuerung kommen als Nächstes.
 - *Korrektur (0.330.1):* **Hoffmann: 24 Fräserreihen mit 489 Größen dazu** (`hoffmann_rest.json`,
   aus dem Speicher früherer Abrufe), eine Reihe vollständiger. Der Rest kommt aus einem langsamen
   Dauerlauf (`~/freecad_cam/wip/hoffmann_sammler/rest_abruf.py`: eine Seite je 15–25 s, bei Sperre
