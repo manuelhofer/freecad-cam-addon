@@ -224,6 +224,31 @@ def schritte(h):
     print(ascii(f"Katalog: {text[:600]}"))
     h.pruefe("im Katalog" in text and "<a href" in text, f"Katalog: {text[:300]!r}")
     h.bild("3c_werkzeuge_katalog", panel.form)
+    # Tauchfräsen (Plan C2; Manuel zum Bild: „ja.. so ists ok“): ein Weg zum Anhaken, von sich
+    # aus aus – angehakt rechnet er seine Vorschau mit Tauchstellen und Zeit.
+    tauchen = next(b for b in panel.bloecke if b.s.kennung == "tauchfraesen")
+    h.pruefe(not tauchen.haken.isChecked(), "Tauchfräsen von sich aus angehakt")
+    tauchen.haken.setChecked(True)
+    yield 500
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
+    yield 800
+    satz = tauchen.ergebnis.text()
+    print(ascii(f"Tauchfraesen: {satz}"))
+    h.pruefe("Tauchstellen" in satz and "min" in satz, f"Tauchfräsen: {satz!r}")
+    h.pruefe(tauchen.widget.isVisibleTo(panel.form), "Tauchfräsen nicht im Schritt Schruppen")
+    # Der andere Weg für dieselben Böden: Räumen ist aus, die Kontur rechnet mit dem, was das
+    # Tauchen weggenommen hat.
+    h.pruefe(not raeumen.haken.isChecked(), "Räumen und Tauchfräsen zugleich angehakt")
+    h.pruefe(
+        not panel.unfertig.isVisible(), f"mit Tauchfräsen unfertig: {panel.unfertig.text()!r}"
+    )
+    kontur = next(b for b in panel.bloecke if b.s.kennung == "kontur")
+    print(ascii(f"Kontur nach dem Tauchen: {kontur.ergebnis.text()}"))
+    h.bild("3d_tauchfraesen", panel.form)
+    raeumen.haken.setChecked(True)
+    yield 500
+    h.pruefe(not tauchen.haken.isChecked(), "Räumen angehakt, Tauchfräsen bleibt an")
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     panel.knopf_weiter.click()
     yield 1000
     h.pruefe(panel.seite() == 2 + beta.SCHLICHTEN, f"nach dem Schruppen Seite {panel.seite()}")

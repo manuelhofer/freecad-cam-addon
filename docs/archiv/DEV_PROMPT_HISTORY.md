@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-15 tauchfraesen
+
+### EINGELESEN
+- Manuel, 2026-10-31, Antworten auf die offenen Fragen: (1) Messtaster – „für ein cadcam brauchen
+  wir auch keine messtaster oder willst du auch messprogramme einbauen .. wär natürlich cool ^^“;
+  (2) Tauchfräsen – „ja.. so ists ok .. geht auch für ne ausen kontur das man die vorbohrt so“;
+  (3) Hoffmann – „mach es einfach langsamer … limitier dich auf ein menschliches mass“.
+
+### DATEIEN
+- `camaddon/tauchfraesen.py`: Lagen, `bahn_fuer` (Tauchbahn), Operation `Tauchfraesen` (ObjectOp),
+  `lege_an`/`aendere`/`ist_tauchfraesen`.
+- `camaddon/gui_bearbeitung.py`: Strategie `_Tauchfraesen` (nicht vorgeschlagen, Böden wie Räumen),
+  Räumen ↔ Tauchfräsen schließen sich aus (haken_geklickt), seine Böden zählen als fertig.
+- `camaddon/job_schnittwerte.py`: Art „tauchfraesen“ → Schruppen.
+- `translations/*.json`: Texte; Katalog-Tooltip „über 43 000 Werkzeuge“.
+- `tests/test_tauchfraesen.py` (6. die Operation im Job), `tests/gui/szenario_beta_schritte.py`
+  (Bild 3d_tauchfraesen); `docs/OFFENE_FRAGEN.md` leer, Antworten im Konzept Teil C;
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.330.0.
+
+### ERGEBNIS
+- test_tauchfraesen, test_sprache, szenario_beta_schritte, szenario_bearbeitung grün.
+- Gesehen und verworfen: Tauchfräsen als Vorarbeit vor dem Räumen (Materialstand) – das Räumen fand
+  „nichts zu tun“, die Folge schaltete auf Planfräsen um (9,7 statt 4,5 min). Jetzt: anderer Weg.
 ## P-2026-10-31-14 zugang-bodenrundungen
 
 ### EINGELESEN

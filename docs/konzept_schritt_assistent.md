@@ -176,8 +176,12 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    Tiefe und freier Kreis gemessen (`werkzeugwahl.py`), je Weg (Vorbohren, Schruppen, Ecken,
    Bohrfräsen) das größte passende eigene Werkzeug; „Was gäbe es im Katalog?“ nennt größere aus
    dem Katalog mit Link. Noch offen: die Wege als Frage mit Zeit und Vorschau. **Tauchfräsen** als
-   Entwurf (`camaddon/tauchfraesen.py`, Bild `bilder/tauchfraesen_entwurf.png`) – wartet auf
-   Manuels Ja (OFFENE_FRAGEN, Frage 2).
+   Entwurf (`camaddon/tauchfraesen.py`, Bild `bilder/tauchfraesen_entwurf.png`). *Manuel,
+   2026-10-31, zum Bild: „ja.. so ists ok .. geht auch für ne ausen kontur das man die vorbohrt
+   so“* – *gebaut (0.330.0):* Block „Tauchfräsen“ im Schruppen, von sich aus aus; angehakt statt
+   Räumen (das eine schaltet das andere ab), die Kontur nimmt danach die Zwickel an den Wänden.
+   Noch offen: an einer Außenkontur (die Stellen zwischen Rohteil und Kontur).
+   ![Tauchfräsen](bilder/beta/3d_tauchfraesen.png)
    ![Werkzeuge](bilder/beta/3c_werkzeuge_katalog.png)
 3. **Nach dem Schruppen** – „wir sollten da wirklich einen knopf "weiter bearbeiten" einrichtchten
    wo dann die selbe ausgewälte kontor nochmal … entgratet … geschlichtet oder nochmal geschlichtet
@@ -192,7 +196,10 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    ![Womit weiter](bilder/beta/4_womit_weiter.png)
    *Plan C3b:* statt Halt zum Messen von Hand **Messzyklen mit Taster** je Steuerung (Siemens
    CYCLE977/978, Heidenhain 420 ff., Fanuc/Renishaw G65 P9810/P9811), die das Aufmaß messen und den
-   nächsten Gang korrigieren (Werkzeugradius-Korrektur bzw. Aufmaß aus dem Messwert).
+   nächsten Gang korrigieren (Werkzeugradius-Korrektur bzw. Aufmaß aus dem Messwert). *Manuel,
+   2026-10-31: „es geht nicht um meine maschine aber für ein cadcam brauchen wir auch keine
+   messtaster oder willst du auch messprogramme einbauen .. wär natürlich cool ^^“* – also
+   allgemein, je Steuerung im Postprozessor wählbar, nicht für eine bestimmte Maschine.
 4. **Umspannen** – „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir austesten“.
    *Gebaut (0.324.0, zum Austesten):* Im letzten Schritt **„Anlegen und Teil umspannen …“**: legt
    an wie „Anlegen“ (auch die Ebenen der Kette) und öffnet danach dasselbe Teil in einer neuen
@@ -217,6 +224,9 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    .. einfach holen oder nachbauen .. im freecad nachbauen ist eh sinnvoller“. *Gebaut (0.321.0):*
    alle gesammelten Hoffmann-Größen im Katalog (282 Spannmittel, 353 Halter); sieben Sammler holen
    weitere (Werkzeuge mit Fähigkeiten, Spannmittel, Halter). CAD wird aus den Maßen in FreeCAD
-   nachgebaut (die CAD-Downloads verbieten die Weitergabe).
+   nachgebaut (die CAD-Downloads verbieten die Weitergabe). *Hoffmann sperrte zu schnelle Abrufe;
+   Manuel, 2026-10-31: „mach es einfach langsamer … limitier dich auf ein menschliches mass … bei
+   jeder homepage eher langsamer anfragen dafür bei mehreren gleichzeitig“* – der Rest kommt als
+   langsamer Dauerlauf (eine Seite je ~20 s, bei einer Sperre Schluss).
 
 Reihenfolge: C2a (Kataloge) läuft; derweil C7/C8 (fertig), C5/C6, C1, C4; dann C2b und C3.

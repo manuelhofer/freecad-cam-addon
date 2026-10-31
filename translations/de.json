@@ -3601,5 +3601,18 @@
     "beta.werkzeuge.keins": "keins in der Werkzeugverwaltung",
     "beta.werkzeuge.aus_katalog": "größer im Katalog: {namen}",
     "beta.werkzeuge.katalog": "Was gäbe es im Katalog?",
-    "beta.werkzeuge.katalog.tooltip": "Sucht im Katalog der Hersteller (über 12 000 Werkzeuge) größere Werkzeuge, die hier passen würden – mit Link zum Bestellen. Beim ersten Mal dauert das ein, zwei Sekunden."
+    "beta.werkzeuge.katalog.tooltip": "Sucht im Katalog der Hersteller (über 43 000 Werkzeuge) größere Werkzeuge, die hier passen würden – mit Link zum Bestellen. Beim ersten Mal dauert das ein, zwei Sekunden.",
+    "tf.name": "Tauchfräsen {werkzeug}",
+    "tf.fehler.keine": "Keine ebene Fläche nach oben gewählt – Tauchfräsen braucht einen Boden.",
+    "tf.fehler.eng": "Der Fräser Ø {d} passt in keinen der Böden hinein.",
+    "tf.eigenschaft.flaechen": "Die Böden, über denen getaucht wird (Face…)",
+    "tf.eigenschaft.aufmass_boden": "Bleibt über dem Boden stehen",
+    "tf.eigenschaft.schritt": "Größter Abstand der Tauchstellen; 0: 0,7 × Durchmesser",
+    "tf.eigenschaft.stellen": "Tauchstellen je Lage (Ergebnis)",
+    "ba.tauchfraesen": "Tauchfräsen",
+    "ba.tauchfraesen.text": "Taucht senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen (dort vorbohren). Für Tauchfräser und Messerköpfe, die ins Volle stechen dürfen; zwischen den Stellen bleiben kleine Zwickel für das Schlichten.",
+    "ba.tauchfraeser.tooltip": "Der Fräser fürs Tauchfräsen – mit ebener Stirn, der ins Volle tauchen darf: ein Tauchfräser oder ein mittenschneidender Schaftfräser.",
+    "ba.tauchfraesen.schritt": "Abstand der Stellen",
+    "ba.tauchfraesen.schritt.tooltip": "So weit liegen die Tauchstellen höchstens auseinander. Höchstens 0,7 × Durchmesser – sonst bleiben zwischen vier Stellen Zapfen stehen.",
+    "ba.ergebnis_tauchfraesen": "→ {stellen} Tauchstellen, {lagen} Lage(n), etwa {zeit}"
 }

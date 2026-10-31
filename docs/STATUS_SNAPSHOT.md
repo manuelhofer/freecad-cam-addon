@@ -576,6 +576,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.330.0):* **Tauchfräsen** (Plan C2; Manuel zum Bild: „ja.. so ists ok“) – eigene
+  Operation (`camaddon/tauchfraesen.py`): je Boden Tauchstellen von der Mitte nach außen, senkrecht
+  mit Eintauchvorschub, Lagen nach der Schneidenlänge (ab der zweiten im Eilgang bis über die
+  davor). Im Assistenten (alt und Beta) ein Block im Schruppen, **von sich aus aus**; angehakt ist
+  das Räumen derselben Böden aus (und umgekehrt), die Kontur nimmt mit dem Materialstand, was
+  an den Wänden stehen blieb. Am Beta-Testteil: Tauchfräsen + Kontur + 3D-Schruppen 2,7 min statt
+  4,5 min mit Räumen. Noch offen: an einer Außenkontur (Manuel: „geht auch für ne ausen kontur“),
+  Materialstand im Tauchen selbst (taucht auch über schon Offenem).
+![Tauchfräsen](bilder/beta/3d_tauchfraesen.png)
 - *Korrektur (0.329.1):* **Rundungen am Taschenboden von oben erreichbar** (`zugang.py`): Zylinder-
   und Kegelflächen gelten wie Freiformen auch aus einer Richtung, gegen die keine ihrer Normalen
   zeigt – vorher nur längs ihrer Achse (waagerecht, dort stehen die Wände), „Keine freie Sicht“, und

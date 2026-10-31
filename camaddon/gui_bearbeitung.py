@@ -72,6 +72,7 @@ from . import schlichten3d_bahn as s3b
 from . import schruppen3d as r3op
 from . import schruppen3d_bahn as r3b
 from . import senken as sk
+from . import tauchfraesen as tfr
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_bahn as vb
 from . import vierachs_huelle as vh
@@ -1833,6 +1834,112 @@ class _Raeumen(_Strategie):
             "aufmass": float(op.Aufmass),
             "aufmass_boden": float(op.AufmassBoden),
             "gleichlauf": bool(op.Gleichlauf),
+        }
+
+
+class _Tauchfraesen(_Strategie):
+    """Tauchfräsen (tauchfraesen.py; Plan C2, Manuel, 2026-10-31, zum Bild: „ja.. so ists ok“):
+    senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen. Ein anderer Weg als Räumen
+    für dieselben Böden (das Panel hakt das eine ab, wenn das andere angehakt wird) – von sich aus
+    bleibt es beim Räumen (Gedächtnis „Strategiewahl erst besprechen“). Was an den Wänden
+    zwischen den Stellen stehen bleibt, nimmt die Kontur (sie rechnet mit dem Materialstand)."""
+
+    kennung = "tauchfraesen"
+    einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN)
+
+    def titel(self):
+        return tr("ba.tauchfraesen")
+
+    def text(self):
+        return tr("ba.tauchfraesen.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.tauchfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.raeumeinsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("schritt", tr("ba.tauchfraesen.schritt"), tr("ba.tauchfraesen.schritt.tooltip")),
+            ("aufmass", tr("ba.aufmass_wand"), tr("ba.aufmass_wand.tooltip")),
+            ("aufmass_boden", tr("ba.aufmass_boden"), tr("ba.aufmass_boden.tooltip")),
+        )
+
+    def werkzeug_passt(self, werkzeug):
+        """Ein Fräser mit ebener Stirn, der ins Volle tauchen darf: nicht ausdrücklich „nicht
+        mittenschneidend“ (Werkzeug.faehigkeiten; unbekannt zählt als ja)."""
+        faehig = getattr(werkzeug, "faehigkeiten", None) or {}
+        if faehig.get("mittenschneidend") is False and not faehig.get("tauchfraesen"):
+            return False
+        return super().werkzeug_passt(werkzeug)
+
+    def passt(self, form, name):
+        return bool(hf.ebenen_oben(form, [name])) or bool(kb.waende(form, [name]))
+
+    def flaechen_fuer(self, form, gewaehlte):
+        """Die ebenen Flächen nach oben – und die Böden der Taschen, deren Wände gewählt sind;
+        nicht den Boden einer Bohrung."""
+        ebenen = [
+            name
+            for name in gewaehlte
+            if hf.ebenen_oben(form, [name]) and bb.bohrung_ueber_boden(form, name) is None
+        ]
+        waende = [name for name in gewaehlte if name not in ebenen and kb.waende(form, [name])]
+        for boden in rb.taschenboeden(form, waende):
+            if boden not in ebenen and bb.bohrung_ueber_boden(form, boden) is None:
+                ebenen.append(boden)
+        return ebenen
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ein Weg zum Anhaken, nicht der Vorschlag
+
+    def unmoeglich_text(self):
+        return tr("ba.raeumen.keine_flaeche")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "schritt":
+            if werkzeug is None or werkzeug.durchmesser <= 0:
+                return 0.0
+            return round(tfr.SCHRITT_ANTEIL * werkzeug.durchmesser, 1)
+        if feld == "aufmass":
+            return tfr.AUFMASS
+        return 0.0
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        form = ff.von_werkzeug(werkzeug)
+        if form is None or vp.ebener_radius(form) <= 0:
+            raise ValueError(tr("nt.fehler.form"))
+        return tfr.bahn_fuer(
+            job,
+            job.Model.Group,
+            float(form.radius),
+            list(flaechen),
+            aufmass=werte["aufmass"],
+            aufmass_boden=werte["aufmass_boden"],
+            schritt=werte["schritt"] or None,
+            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        return tr("ba.ergebnis_tauchfraesen", stellen=bahn.stellen, lagen=bahn.lagen, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return tfr.lege_an(
+            job, tc, flaechen, werte["aufmass"], werte["aufmass_boden"], werte["schritt"]
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        tfr.aendere(op, tc, flaechen, werte["aufmass"], werte["aufmass_boden"], werte["schritt"])
+
+    def ist(self, op):
+        return tfr.ist_tauchfraesen(op)
+
+    def werte_von(self, op):
+        return {
+            "schritt": float(op.Schritt),
+            "aufmass": float(op.Aufmass),
+            "aufmass_boden": float(op.AufmassBoden),
         }
 
 
@@ -4194,6 +4301,7 @@ class _Reiben(_Strategie):
 STRATEGIEN = (
     _Planfraesen,
     _Raeumen,
+    _Tauchfraesen,  # der andere Weg für dieselben Böden
     _RestRaeumen,
     _SchlichtenDanach,
     _Nut,
@@ -4227,6 +4335,7 @@ STRATEGIEN = (
 SCHRUPPEN_ZUERST = {
     "planfraesen": 0,
     "raeumen": 0,
+    "tauchfraesen": 0,
     "restraeumen": 0,
     "nut": 0,
     "kontur": 0,
@@ -8593,8 +8702,12 @@ class BearbeitungPanel:
         if block is self.reiben and self.job is not None:
             # Gerieben: kleiner vorbohren, Bohrung fräsen und Kontur treten dort nicht an.
             self._haken_vorschlagen(vr.modell(self.job).Shape)
-        # Gewinde bohren oder fräsen – beides in dieselben Bohrungen schnitte zwei Gänge.
+        # Gewinde bohren oder fräsen – beides in dieselben Bohrungen schnitte zwei Gänge. Räumen
+        # oder Tauchfräsen – zwei Wege für dieselben Böden (Plan C2).
+        tauchen = next((b for b in self.bloecke if b.s.kennung == "tauchfraesen"), None)
         paar = {self.gewinde: self.gewindefraesen, self.gewindefraesen: self.gewinde}
+        if tauchen is not None:
+            paar.update({tauchen: self.raeumen, self.raeumen: tauchen})
         anderer = paar.get(block)
         if anderer is not None and block.aktiv() and anderer.aktiv():
             self._fuellt = True
@@ -9403,6 +9516,12 @@ class BearbeitungPanel:
             if float(werte.get("aufmass", 0.0)):
                 eng |= {f for f in self._raeumt(form) if ra.durchgehend(form, f)}
             return [f for f in self._raeumt(form) if f not in eng]
+        if block.s.kennung == "tauchfraesen":
+            # Ohne Aufmaß am Boden taucht es bis auf ihn, wie das Räumen: die Böden, über denen
+            # es Stellen fand (Tauchbahn.namen).
+            if float(werte.get("aufmass_boden", 0.0)):
+                return []
+            return list(getattr(block.vorschau, "namen", None) or [])
         if block is self.schlichten_danach:
             zusatz = self._schlichten_danach_zusatz(form)
             flaechen = list(zusatz.get("boden_flaechen", ())) if werte.get("boden") else []

@@ -7,6 +7,9 @@
 # 4. Zu eng (Tasche schmaler als der Fräser): keine Stelle.
 # 5. Reihenfolge von innen nach außen: die erste Stelle an der Mitte, jede weitere höchstens einen
 #    Rasterschritt (+ Spiel) vom schon Offenen.
+# 6. Die Operation im Job: Block 120 × 80 × 40, Tasche 80 × 50, 30 tief; Schaftfräser Ø 12 mit 20 mm
+#    Schneide – zwei Lagen, die zweite im Eilgang bis knapp über die erste; jeder Vorschubsatz
+#    senkrecht, keiner unter dem Boden; Art „tauchfraesen“ (Schnittwerte in den Job).
 import math
 import os
 import sys
@@ -69,6 +72,73 @@ for i in range(1, len(stellen)):
     abstand = min(math.hypot(stellen[i][0] - a, stellen[i][1] - b) for a, b in stellen[:i])
     if abstand > 0.7 * 2 * r * 1.05:
         fehler.append(f"Stelle {i + 1} nicht neben dem Offenen: {abstand:.1f}")
+
+# --- 6. Die Operation im Job ---------------------------------------------------------------------
+import pathlib  # noqa: E402
+import tempfile  # noqa: E402
+
+import Path.Main.Job as PathJob  # noqa: E402
+from Path.Tool.camassets import user_asset_store  # noqa: E402
+
+from camaddon import job_schnittwerte as js  # noqa: E402
+from camaddon import sprache  # noqa: E402
+from camaddon import uebergabe_werkzeuge as ue  # noqa: E402
+from camaddon import werkzeuge as wz  # noqa: E402
+
+sprache.setze_sprache("de")
+teil = Part.makeBox(120, 80, 40).cut(Part.makeBox(80, 50, 30, V(20, 15, 10)))
+boden_name = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(teil.Faces)
+    if abs(f.BoundBox.ZMax - 10) < 1e-6 and abs(f.BoundBox.ZMin - 10) < 1e-6
+)
+t1 = wz.standardwerkzeug()
+t1.schneidenlaenge = 20.0
+user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
+ue.uebergeben(wz.Bibliothek([t1]))
+doc = FreeCAD.newDocument("Tauch")
+objekt = doc.addObject("Part::Feature", "Teil")
+objekt.Shape = teil
+doc.recompute()
+job = PathJob.Create("Job", [objekt])
+job.Stock.ExtZpos = 0.0
+doc.recompute()
+einsatz = next(e for e in t1.schnittwerte[wz.ALLE] if e.art == wz.SCHRUPPEN)
+tc = js.controller_ohne_transaktion(doc, job, t1, einsatz)
+doc.recompute()
+op = tf.lege_an(job, tc, [boden_name], aufmass=0.5, aufmass_boden=0.2)
+doc.recompute()
+print(f"Operation: {op.Label}, {op.Stellen} Stellen, {op.Lagen} Lagen")
+if not (op.Label.startswith("Tauchfräsen T") and op.Stellen > 4 and op.Lagen == 2):
+    fehler.append(f"Operation: {op.Label}, {op.Stellen} Stellen, {op.Lagen} Lagen")
+if abs(float(op.FinalDepth) - 10.2) > 1e-6 or js.operationsart(op) != "tauchfraesen":
+    fehler.append(f"Endtiefe {float(op.FinalDepth)}, Art {js.operationsart(op)}")
+r12 = t1.durchmesser / 2
+x0 = y0 = z0 = None
+for befehl in op.Path.Commands:
+    p = befehl.Parameters
+    x, y, z = p.get("X", x0), p.get("Y", y0), p.get("Z", z0)
+    if befehl.Name == "G1":
+        if (x, y) != (x0, y0):
+            fehler.append(f"Vorschub nicht senkrecht: {befehl.toGCode()}")
+            break
+        if z < 10.2 - 1e-6:
+            fehler.append(f"unter dem Boden: {befehl.toGCode()}")
+            break
+        if not (20 + r12 + 0.5 - 1e-3 <= x <= 100 - r12 - 0.5 + 1e-3):
+            fehler.append(f"an der Wand: {befehl.toGCode()}")
+            break
+    x0, y0, z0 = x, y, z
+# 29,8 tief (Boden 10 + 0,2) in zwei Lagen: die erste bis 25,1, die zweite im Eilgang bis 26,1.
+eilgang_tief = [
+    c for c in op.Path.Commands if c.Name == "G0" and abs(c.Parameters.get("Z", 99) - 26.1) < 1e-6
+]
+if not eilgang_tief:
+    fehler.append("zweite Lage nicht im Eilgang bis über die erste (Z 26,1)")
+tf.aendere(op, tc, [boden_name], 0.5, 0.2, 12.0)
+doc.recompute()
+if float(op.Schritt) != 12.0 or op.Stellen <= 4:
+    fehler.append(f"geändert: Schritt {float(op.Schritt)}, {op.Stellen} Stellen")
 
 if fehler:
     raise AssertionError("\n".join(fehler))
