@@ -191,8 +191,9 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    **„Womit soll es an denselben Flächen weitergehen?“** – Schruppen, Löcher (grau ohne Bohrung),
    Schlichten (oder vorschlichten), Kanten; was schon angelegt ist, heißt „– noch einmal“;
    vorgewählt das Nächste. Darunter **„Messstopp davor“** (an): vor den neuen Operationen hält die
-   Maschine (Z hoch, Spindel und Kühlung aus, M0). Das Aufmaß je Gang steht unter „Werte ändern ▸“
-   (3 → 2 → 1 → 0 mm).
+   Maschine (Z hoch, Spindel und Kühlung aus, M0). *0.332.0:* Das Fenster fragt das „Aufmaß
+   dieses Gangs“, vorgeschlagen 1 mm weniger als davor (3 → 2 → 1 → 0); die Strategien des
+   Schritts bekommen es eingetragen.
    ![Womit weiter](bilder/beta/4_womit_weiter.png)
    *Plan C3b:* statt Halt zum Messen von Hand **Messzyklen mit Taster** je Steuerung (Siemens
    CYCLE977/978, Heidenhain 420 ff., Fanuc/Renishaw G65 P9810/P9811), die das Aufmaß messen und den

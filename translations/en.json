@@ -3585,7 +3585,7 @@
     "beta.weiter.schlichten": "Finishing (or semi-finishing)",
     "beta.weiter.kanten": "Edges (chamfers, deburring)",
     "beta.weiter.nochmal": "{text} – once more",
-    "beta.weiter.aufmass": "For several passes (e.g. rough with 3 mm stock, then to 2, to 1, to 0): the stock to leave per strategy is under “Change values ▸”.",
+    "beta.weiter.aufmass": "For several passes (rough with 3 mm allowance, then finish to 2, to 1, to 0) use “Continue machining” for each pass – the allowance is proposed, the measuring stop measures in between.",
     "beta.weiter.messstopp": "Measuring stop before",
     "beta.weiter.messstopp.tooltip": "Before the new operations the machine stops (Z up, spindle and coolant off, M0): measure, then Start – it goes on with spindle and coolant. If the machine's post processor has a touch probe with a cycle and the faces are a pocket, bore or boss, the probe measures instead – it only stops when the size is out of tolerance.",
     "beta.weiter.los": "Next",
@@ -3642,5 +3642,7 @@
     "beta.werkzeuge.tauchfraesen": "Plunge milling",
     "ba.tauchfraesen.vorbohren": "Pre-drill in the centre",
     "ba.tauchfraesen.vorbohren.tooltip": "At the first plunge of each pocket, the largest drill in the magazine that is not larger than the cutter drills a hole down to the floor first – the cutter then plunges into that hole. Not around a boss: there it starts in the open. FreeCAD's “Drilling” is created before the plunge milling.",
-    "ba.tauchfraesen.vorbohren.kein_bohrer": "No drill up to Ø {d} in the magazine – without pre-drilling."
+    "ba.tauchfraesen.vorbohren.kein_bohrer": "No drill up to Ø {d} in the magazine – without pre-drilling.",
+    "beta.weiter.aufmass.feld": "Allowance of this pass",
+    "beta.weiter.aufmass.tooltip": "This much stays on the faces after this pass – proposed 1 mm less than the pass before (3 → 2 → 1 → 0). The strategies of this step get it entered; it can be changed there under “Change values ▸”."
 }

@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-27 aufmass-stufen
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Antwort 3): „3 mm aufmass beim schruppen … schlichten auf 2mm … nochmal … auf 1 mm … und jedes mal dazwischen messschritte … sehr wichtig“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: WeiterFrage mit „Aufmaß dieses Gangs“ (`aufmass_vorschlag`: davor − 1 mm), `aufmass_setzen`, `weiter_bearbeiten(…, aufmass)`.
+- `translations/*.json`; `tests/gui/szenario_beta_schritte.py`; `docs/bilder/beta/4_womit_weiter.png`.
+- `docs/STATUS_SNAPSHOT.md`, `docs/konzept_schritt_assistent.md`, `package.xml` 0.332.0.
+
+### ERGEBNIS
+- szenario_beta_schritte (Vorschlag 0 nach 0,3; 0,5 kommt in den Schlicht-Strategien an), test_sprache grün.
 ## P-2026-10-31-26 haimer-fertig-840d-hilfe
 
 ### EINGELESEN

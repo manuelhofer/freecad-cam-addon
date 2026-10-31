@@ -309,6 +309,11 @@ def schritte(h):
     h.bild("4b_womit_weiter", frage)
     frage.taster.setText("")
     frage._zyklus = False
+    # Das Aufmaß dieses Gangs (3 → 2 → 1 → 0): vorgeschlagen 1 mm weniger als davor, hier 0,5.
+    print(ascii(f"Aufmass vorgeschlagen: {frage.aufmass.text()!r}"))
+    h.pruefe(frage.aufmass.text() == "0", f"Vorschlag nach 0,3: {frage.aufmass.text()!r}")
+    h.pruefe(frage.aufmass.isVisible(), "kein Feld „Aufmaß dieses Gangs“ beim Schlichten")
+    frage.aufmass.setText("0,5")
     frage.accept()
     yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen not in (None, panel), 60000)
     weiter = beta.BearbeitungPanel.offen
@@ -320,6 +325,13 @@ def schritte(h):
     h.pruefe(weiter.job is job, "„Weiter bearbeiten“ in einem anderen Job")
     h.pruefe(weiter.seite() > 2, f"„Weiter bearbeiten“ beginnt auf Seite {weiter.seite()}")
     h.pruefe(sorted(weiter.gewaehlte) == sorted(flaechen), f"Flächen: {weiter.gewaehlte}")
+    mit_aufmass = [
+        b for b in weiter.bloecke if beta.abschnitt(b) == beta.SCHLICHTEN and "aufmass" in b.felder
+    ]
+    h.pruefe(
+        mit_aufmass and all(b.felder["aufmass"].text() == "0,5" for b in mit_aufmass),
+        f"Aufmaß im Schlichten: {[(b.s.kennung, b.felder['aufmass'].text()) for b in mit_aufmass]}",
+    )
     h.pruefe(
         not weiter.knopf_zurueck.isVisible() or weiter.seite() > 2 + beta.SCHLICHTEN,
         "„Zurück“ ins Schruppen",

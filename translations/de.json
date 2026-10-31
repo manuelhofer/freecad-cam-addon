@@ -3585,7 +3585,7 @@
     "beta.weiter.schlichten": "Schlichten (oder vorschlichten)",
     "beta.weiter.kanten": "Kanten (Fasen, Entgraten)",
     "beta.weiter.nochmal": "{text} – noch einmal",
-    "beta.weiter.aufmass": "Für mehrere Gänge (z. B. schruppen mit 3 mm Aufmaß, dann auf 2, auf 1, auf 0): das Aufmaß je Strategie steht unter „Werte ändern ▸“.",
+    "beta.weiter.aufmass": "Für mehrere Gänge (schruppen mit 3 mm Aufmaß, dann schlichten auf 2, auf 1, auf 0) je Gang „Weiter bearbeiten“ – das Aufmaß ist vorgeschlagen, der Messstopp misst dazwischen.",
     "beta.weiter.messstopp": "Messstopp davor",
     "beta.weiter.messstopp.tooltip": "Vor den neuen Operationen hält die Maschine (Z hoch, Spindel und Kühlung aus, M0): messen, dann Start – es geht mit Spindel und Kühlung weiter. Ist am Postprozessor der Maschine ein Messtaster mit Zyklus eingetragen und ist die Fläche eine Tasche, Bohrung oder ein Zapfen, misst stattdessen der Taster – angehalten wird nur, wenn das Maß außerhalb der Toleranz liegt.",
     "beta.weiter.los": "Weiter",
@@ -3642,5 +3642,7 @@
     "beta.werkzeuge.tauchfraesen": "Tauchfräsen",
     "ba.tauchfraesen.vorbohren": "In der Mitte vorbohren",
     "ba.tauchfraesen.vorbohren.tooltip": "An der ersten Tauchstelle jeder Tasche bohrt davor der größte Bohrer aus dem Magazin, der nicht größer ist als der Fräser, ein Loch bis auf den Boden – dort taucht der Fräser dann ins Loch. Um einen Zapfen nicht: Dort beginnt es im Freien. Angelegt wird FreeCADs „Bohren“ vor dem Tauchfräsen.",
-    "ba.tauchfraesen.vorbohren.kein_bohrer": "Kein Bohrer bis Ø {d} im Magazin – ohne Vorbohren."
+    "ba.tauchfraesen.vorbohren.kein_bohrer": "Kein Bohrer bis Ø {d} im Magazin – ohne Vorbohren.",
+    "beta.weiter.aufmass.feld": "Aufmaß dieses Gangs",
+    "beta.weiter.aufmass.tooltip": "So viel bleibt nach diesem Gang an den Flächen stehen – vorgeschlagen 1 mm weniger als beim Gang davor (3 → 2 → 1 → 0). Die Strategien dieses Schritts bekommen es eingetragen; ändern lässt es sich dort unter „Werte ändern ▸“."
 }

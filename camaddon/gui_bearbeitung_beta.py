@@ -31,7 +31,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, symbol
+from . import PARAMETER_PFAD, einheiten, symbol
 from . import reichweite as rw
 from . import spannmittel as sm
 from . import taschen_wahl as tw
@@ -45,7 +45,7 @@ from .gui_bearbeitung import (
     _klappknopf,
 )
 from .gui_teile import knopf
-from .gui_zahlen import dezimal
+from .gui_zahlen import Zahlenpruefer, dezimal, groesse_lesen, groesse_zeigen
 from .sprache import tr
 
 BETA_AN = "BetaZeigen"  # Parameter: die Beta-Befehle in Menü und Werkzeugleiste
@@ -56,6 +56,7 @@ ERSTER_ABSCHNITT = 2  # die Seite des Schruppens; davor Aufspannung und Flächen
 EIGENSCHAFT_FLAECHEN = "CamAddonBetaFlaechen"
 EIGENSCHAFT_ABSCHNITT = "CamAddonBetaAbschnitt"
 GRUPPE = "CAM-Addon Beta"
+AUFMASS_STUFE = 1.0  # mm: so viel weniger Aufmaß schlägt „Weiter bearbeiten“ je Gang vor
 TASCHE_REST = 1.0  # mm über einem Boden: so viel darf stehen, und die Tasche gilt als ausgeräumt
 
 
@@ -1148,7 +1149,9 @@ class BefehlWeiterBearbeiten:
             return
         frage = WeiterFrage(FreeCADGui.getMainWindow(), job)
         if frage.exec():
-            weiter_bearbeiten(job, frage.abschnitt(), frage.messstopp.isChecked())
+            weiter_bearbeiten(
+                job, frage.abschnitt(), frage.messstopp.isChecked(), frage.aufmass_wert()
+            )
 
 
 class WeiterFrage(QtGui.QDialog):
@@ -1193,9 +1196,27 @@ class WeiterFrage(QtGui.QDialog):
                 knopf_.setText(tr("beta.weiter.keine_loecher"))
             aufbau.addWidget(knopf_)
             self.wahl[a] = knopf_
+        # Das Aufmaß dieses Gangs (Manuel, 2026-10-31: „3 mm aufmass beim schruppen … schlichten auf
+        # 2mm … nochmal … auf 1 mm“): vorgeschlagen AUFMASS_STUFE weniger als beim Gang davor.
+        zeile = QtGui.QHBoxLayout()
+        self.aufmass_beschriftung = QtGui.QLabel(tr("beta.weiter.aufmass.feld"))
+        zeile.addWidget(self.aufmass_beschriftung)
+        self.aufmass = QtGui.QLineEdit(
+            groesse_zeigen(aufmass_vorschlag(job), einheiten.LAENGE) or "0"
+        )
+        self.aufmass.setValidator(Zahlenpruefer(self.aufmass))
+        self.aufmass.setToolTip(tr("beta.weiter.aufmass.tooltip"))
+        self.aufmass.setMaximumWidth(80)
+        zeile.addWidget(self.aufmass)
+        zeile.addWidget(QtGui.QLabel(einheiten.einheit(einheiten.LAENGE)))
+        zeile.addStretch()
+        aufbau.addLayout(zeile)
         hinweis = _grau(tr("beta.weiter.aufmass"))
         hinweis.setWordWrap(True)
         aufbau.addWidget(hinweis)
+        for knopf_ in self.wahl.values():
+            knopf_.toggled.connect(self._aufmass_zeigen)
+        self._aufmass_zeigen()
         self.messstopp = QtGui.QCheckBox(tr("beta.weiter.messstopp"))
         self.messstopp.setToolTip(tr("beta.weiter.messstopp.tooltip"))
         self.messstopp.setChecked(bool(list(job.Operations.Group)))
@@ -1206,6 +1227,20 @@ class WeiterFrage(QtGui.QDialog):
         knoepfe.accepted.connect(self.accept)
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
+
+    def _aufmass_zeigen(self, *_):
+        an = self.abschnitt() in (SCHRUPPEN, SCHLICHTEN)
+        self.aufmass.setVisible(an)
+        self.aufmass_beschriftung.setVisible(an)
+
+    def aufmass_wert(self):
+        """Das Aufmaß dieses Gangs (mm) – None, wenn der Schritt keins hat oder das Feld leer ist."""
+        if self.abschnitt() not in (SCHRUPPEN, SCHLICHTEN) or not self.aufmass.text().strip():
+            return None
+        try:
+            return max(0.0, groesse_lesen(self.aufmass.text(), einheiten.LAENGE))
+        except ValueError:
+            return None
 
     def _messen_bauen(self, aufbau, job):
         """Unter „Messstopp davor“: was dort gemessen wird – mit Taster und Zyklus der Steuerung
@@ -1356,9 +1391,6 @@ def messmerkmal(job, davor=None):
 
 def _merkmal_text(m):
     """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“."""
-    from . import einheiten
-    from .gui_zahlen import groesse_zeigen
-
     art = {
         "tasche": tr("beta.weiter.messen.tasche"),
         "zapfen": tr("beta.weiter.messen.zapfen"),
@@ -1394,9 +1426,29 @@ def _hat_loecher(job):
     return False
 
 
-def weiter_bearbeiten(job, ab, messstopp=False):
+def aufmass_vorschlag(job):
+    """Das Aufmaß für den nächsten Gang: das der letzten Operation mit Werkzeug (ihre Eigenschaft
+    „Aufmass“) weniger AUFMASS_STUFE, nicht unter 0."""
+    ops = list(job.Operations.Group)
+    davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
+    aufmass = getattr(davor, "Aufmass", 0.0)
+    aufmass = float(getattr(aufmass, "Value", aufmass) or 0.0)
+    return max(0.0, round(aufmass - AUFMASS_STUFE, 3))
+
+
+def aufmass_setzen(panel, ab, aufmass):
+    """Trägt `aufmass` bei den Strategien des Abschnitts `ab` ein, die ein Feld „aufmass“ haben,
+    und rechnet die Vorschau neu."""
+    for block in panel.bloecke:
+        if abschnitt(block) == ab and "aufmass" in block.felder:
+            block.felder["aufmass"].setText(groesse_zeigen(aufmass, einheiten.LAENGE) or "0")
+    panel.vorschau_starten()
+
+
+def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None):
     """Öffnet die Beta am Job `job` beim Abschnitt `ab` – mit den gemerkten Flächen; `messstopp`:
-    vor den neuen Operationen ein Messstopp (messstopp.py)."""
+    vor den neuen Operationen ein Messstopp (messstopp.py); `aufmass` (mm): das Aufmaß dieses Gangs
+    für die Strategien des Abschnitts."""
     klon = vr.modell(job)
     teil = vr.original(klon)
     flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
@@ -1408,6 +1460,8 @@ def weiter_bearbeiten(job, ab, messstopp=False):
         flaechen=flaechen,
     )
     panel._beta_messstopp = messstopp
+    if aufmass is not None:
+        aufmass_setzen(panel, ab, aufmass)
     FreeCADGui.Control.showDialog(panel)
     return panel
 

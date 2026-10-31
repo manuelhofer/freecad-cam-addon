@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.332.0):* **Aufmaß-Stufen in „Weiter bearbeiten“** (Manuel: „3 mm aufmass beim schruppen …
+  schlichten auf 2mm … nochmal … auf 1 mm … jedes mal dazwischen messschritte“ – „sehr wichtig“):
+  Feld „Aufmaß dieses Gangs“, vorgeschlagen 1 mm weniger als die Operation davor (nicht unter 0);
+  die Strategien des Schritts (Schruppen oder Schlichten) bekommen es eingetragen. Zusammen mit dem
+  Messstopp (mit Taster: Messen) ist das die Folge schruppen – messen – schlichten auf 2 – messen …
+![Womit weiter](bilder/beta/4_womit_weiter.png)
 - *Korrektur (0.331.7):* Halter-Katalog **640 Reihen, 6320 Größen** – der HAIMER-Abruf ist durch
   (alle Aufnahmen bis BT mit Plananlage). Hilfe „Programm schreiben“: Vorlage für die Messzyklen
   der älteren 840D ohne Operate (Variablen vor dem Aufruf, `_KNUM=0`, `_CBIT[2]=1`). Gegenprobe:
