@@ -576,6 +576,17 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.333.0):* **Konturprogrammierung mit Radiuskorrektur** (Plan C3b Stufe 2; Manuel,
+  2026-10-31: „1.b“): Haken „Radiuskorrektur der Steuerung (G41/G42)“ an „Kontur“ und „Schlichten
+  danach“, aus vorbelegt. Der Schlichtkreis trägt je Satz die Kontur des Teils (`kontur_bahn.
+  _korrektur`: jedes Stück um r zum Material zurück, Bögen konzentrisch, Außenecken scharf, an einer
+  Innenecke enger als der Fräser der Schnitt der Wände – nie die kleine Rundung); der Postprozessor
+  des Addons schreibt ihn mit G41/G42 (Siemens, LinuxCNC: „G41“; Fanuc, Haas: „G41 D{t}“) von der
+  Einfahrstelle auf den ersten Konturpunkt, die Kontur, G40 zum Ende des Ausfahrens. Die Bahn im
+  Addon bleibt die Mitte (Vorschau, Materialstand, Prüfen unverändert); GRBL, Heidenhain (noch),
+  offene Konturen, Kreise, die über die Wendel eintauchen: die Mitte wie bisher. Offen: die
+  Korrektur durch den Messzyklus selbst (Siemens S_KNUM1/S_TNAME ohne Werkzeugverwaltung, Renishaw
+  T – welches Register; Heidenhain Q330, dort fehlt noch RL/RR).
 - *Korrektur (0.332.2):* Ohne Taster sagt die **Meldung am Halt** das Sollmaß: „Messstopp: Tasche
   59,4 × 39,4 mm ±0,02 messen, dann NC-Start“ (Siemens MSG, LinuxCNC MSG; ASCII: ± als „+-“).
 - *Korrektur (0.332.1):* Das **Einrichtblatt** schreibt beim Messstopp mit Merkmal in die Spalte

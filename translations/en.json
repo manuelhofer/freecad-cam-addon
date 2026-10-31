@@ -3646,5 +3646,13 @@
     "mn.bohrung": "Bore",
     "mn.welle": "Round boss",
     "eb.messen": "measure: {was}",
-    "pp.meldung.messen": "Measuring stop: measure {was}, then cycle start"
+    "pp.meldung.messen": "Measuring stop: measure {was}, then cycle start",
+    "ko.eigenschaft.radiuskorrektur": "Cutter compensation by the control: the finishing loop goes into the program as the part contour with G41/G42 (radius from the tool table) – so a measuring cycle or the operator corrects the wear.",
+    "pp.feld.korrektur_links": "Cutter compensation left",
+    "pp.feld.korrektur_rechts": "Cutter compensation right",
+    "pp.feld.korrektur_aus": "Cutter compensation off",
+    "pp.feld.korrektur.tooltip": "For contours with “cutter compensation by the control”: the finishing loop goes out as the part contour with these commands – G41 (tool left of the contour), G42 (right), G40 (off); {t} is the tool number (Fanuc/Haas “G41 D{t}”). Empty: the loop stays the centre path.",
+    "pp.hinweis.korrektur": "{operation}: the finishing loop did not work out as a contour with cutter compensation – it is in the program as the centre path.",
+    "ba.kontur.korrektur": "Cutter compensation by the control (G41/G42)",
+    "ba.kontur.korrektur.tooltip": "The finishing loop goes into the program as the part contour with G41/G42 – the control takes the radius from its tool table, as in a hand-written program. So the operator or a measuring cycle corrects the wear. The radius in the tool table must be right. Only a closed loop, on controls with G41/G42 (not GRBL, Heidenhain not yet); otherwise the centre path."
 }

@@ -83,6 +83,8 @@ def schritte(h):
     einsatz = kontur.einsatz()
     h.pruefe(einsatz is not None and einsatz.art == wz.SCHRUPPEN, "Kontur: Einsatz Schruppen")
     h.pruefe(kontur.haken_felder["schlichten"].isChecked(), "Schlichten vorgewählt")
+    # Radiuskorrektur der Steuerung (Plan C3b Stufe 2): von sich aus aus.
+    h.pruefe(not kontur.haken_felder["korrektur"].isChecked(), "Radiuskorrektur vorgewählt")
     yield from h.warte_auf(lambda: kontur.vorschau is not None, 30000)
     h.pruefe(not kontur.hinweis.text(), f"rot: {kontur.hinweis.text()!r}")
     text = kontur.ergebnis.text()
@@ -108,7 +110,9 @@ def schritte(h):
     h.pruefe(panel.flaechen_liste.count() == 12, f"Liste: {panel.flaechen_liste.count()} Zeilen")
     h.bild("2_alle_waende", panel.form)
 
-    # --- Anlegen: „Planfräsen T1“ und „Kontur T1“ ------------------------------------------
+    # --- Anlegen: „Planfräsen T1“ und „Kontur T1“ (mit Radiuskorrektur) --------------------
+    kontur.haken_felder["korrektur"].setChecked(True)
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 60000)
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
     yield 3000
     h.pruefe(gui_bearbeitung.BearbeitungPanel.offen is None, "Fenster nach „Anlegen“ offen")
@@ -121,6 +125,13 @@ def schritte(h):
         return
     op = ops[1]
     h.pruefe(op.Label == "Kontur T1", f"Name: {op.Label}")
+    # Der Außenumfang trägt seine Kontur; die Tasche (ungeräumt) taucht beim Schlichten über die
+    # Wendel längs der Kontur ein – dort bleibt die Mitte (kontur_bahn._lauf, nur in der Luft).
+    kommentare = [c.Name for c in op.Path.Commands if c.Name.startswith("(KOMP ANFANG")]
+    h.pruefe(
+        op.Radiuskorrektur and len(kommentare) == 1,
+        f"Radiuskorrektur: {op.Radiuskorrektur}, {len(kommentare)} Kreise",
+    )
     h.pruefe(
         (op.Konturen, op.Lagen, op.Bahnen) == (2, 4, 9), f"{op.Konturen}, {op.Lagen}, {op.Bahnen}"
     )

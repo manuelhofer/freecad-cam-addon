@@ -3646,5 +3646,13 @@
     "mn.bohrung": "Bohrung",
     "mn.welle": "Welle",
     "eb.messen": "messen: {was}",
-    "pp.meldung.messen": "Messstopp: {was} messen, dann NC-Start"
+    "pp.meldung.messen": "Messstopp: {was} messen, dann NC-Start",
+    "ko.eigenschaft.radiuskorrektur": "Radiuskorrektur der Steuerung: Der Schlichtkreis kommt im Programm als Kontur des Teils mit G41/G42 (der Radius aus der Werkzeugtabelle) – so korrigiert ein Messzyklus oder der Bediener den Verschleiß.",
+    "pp.feld.korrektur_links": "Radiuskorrektur links",
+    "pp.feld.korrektur_rechts": "Radiuskorrektur rechts",
+    "pp.feld.korrektur_aus": "Radiuskorrektur aus",
+    "pp.feld.korrektur.tooltip": "Für Konturen mit „Radiuskorrektur der Steuerung“: Der Schlichtkreis kommt als Kontur des Teils mit diesen Befehlen – G41 (Werkzeug links der Kontur), G42 (rechts), G40 (aus); {t} ist die Werkzeugnummer (Fanuc/Haas „G41 D{t}“). Leer: der Kreis bleibt die Mittelpunktbahn.",
+    "pp.hinweis.korrektur": "{operation}: Der Schlichtkreis ging als Kontur mit Radiuskorrektur nicht auf – er steht als Mittelpunktbahn im Programm.",
+    "ba.kontur.korrektur": "Radiuskorrektur der Steuerung (G41/G42)",
+    "ba.kontur.korrektur.tooltip": "Der Schlichtkreis kommt ins Programm als Kontur des Teils mit G41/G42 – den Radius nimmt die Steuerung aus ihrer Werkzeugtabelle, wie bei einem von Hand geschriebenen Programm. So korrigiert der Bediener oder ein Messzyklus den Verschleiß. Der Radius in der Werkzeugtabelle muss stimmen. Nur ein geschlossener Kreis, an Steuerungen mit G41/G42 (nicht GRBL, Heidenhain noch nicht); sonst die Mittelpunktbahn."
 }

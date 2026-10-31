@@ -213,6 +213,11 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    die Schlichtgänge als Kontur des Teils (die Bahn um den Fräserradius zurück) mit G41/G42 und dem
    vollen Radius aus der Werkzeugtabelle, wie von Hand programmiert; der Messzyklus korrigiert den
    Radius-Verschleiß des Werkzeugs (Siemens S_MVAR 2xx, Heidenhain Q330, Renishaw T).
+   *Gebaut (0.333.0):* die Konturprogrammierung (Haken an „Kontur“ und „Schlichten danach“, aus
+   vorbelegt; G41/G42 an Siemens, LinuxCNC, Fanuc, Haas). Noch offen: die Korrektur im
+   Messzyklus – Siemens kodiert sie in S_KNUM1 (D-Nummer, ohne weitere Stellen der Radius-
+   Verschleiß), braucht aber S_TNAME (Werkzeugname bei Werkzeugverwaltung); Renishaw T hängt am
+   Register der Maschine; Heidenhain Q330 ist klar, dort fehlt RL/RR im Klartext.
 4. **Umspannen** – „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir austesten“.
    *Gebaut (0.324.0, zum Austesten):* Im letzten Schritt **„Anlegen und Teil umspannen …“**: legt
    an wie „Anlegen“ (auch die Ebenen der Kette) und öffnet danach dasselbe Teil in einer neuen

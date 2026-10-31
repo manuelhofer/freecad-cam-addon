@@ -968,3 +968,17 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   - LinuxCNC, GRBL, Mach, Mazak: leer (kein belegter Standard) – Halt.
 - Offen (an der Maschine prüfen): Vorzeichen von _OVR[16] (darum ABS), ob P9812 nach X wieder
   auf der Mitte steht, Variablen an Haas NGC/WIPS.
+
+## 33. Konturprogrammierung mit Radiuskorrektur (Plan C3b Stufe 2, P-2026-10-31-30)
+
+- Kontur (`kontur.py`, Eigenschaft „Radiuskorrektur“; im Assistenten an „Kontur“ und „Schlichten
+  danach“): Der Schlichtkreis (geschlossen, in der Luft eingefahren, beim Fräserradius) trägt je
+  Satz eine Notiz „(KOMP …)“ mit der Kontur des Teils: „KOMP ANFANG G41|G42 X Y“ (erster
+  Konturpunkt) vor dem Einfahren, „KOMP X Y [I J G2|G3]“ je Satz (I J absolut: die Mitte),
+  „KOMP ENDE X Y“ vor dem Ausfahren (sein Ende). Die Bahn bleibt die Mitte.
+- Felder `korrektur_links`, `korrektur_rechts`, `korrektur_aus` ({t}): Siemens, LinuxCNC „G41“,
+  „G42“, „G40“; Fanuc, Haas „G41 D{t}“, „G42 D{t}“, „G40“; sonst leer. `_mit_korrektur`: Einfahren
+  weg, Rohzeile G41/G42, G1 auf den ersten Konturpunkt, die Kontur (G1, G2/G3 um dieselbe Mitte;
+  Punkte gleich dem vorigen entfallen), Rohzeile G40, G1 aufs Ende des Ausfahrens, das Ausfahren
+  weg. Geht ein Kreis nicht auf (ein Satz ohne Notiz, kein Ende): die Mitte und ein Hinweis.
+

@@ -96,6 +96,10 @@ class Konturwerte:
     # Das Material rechts der Fahrtrichtung (Gleichlauf bei M3); False: links – Gleichlauf bei
     # rückwärts drehender Spindel (M4, P-2026-10-02-20).
     gleichlauf: bool = True
+    # Radiuskorrektur der Steuerung (Plan C3b Stufe 2; Manuel, 2026-10-31: „1.b“ –
+    # Konturprogrammierung): Der Schlichtkreis trägt je Satz die Kontur des Teils (_korrektur) –
+    # der Postprozessor des Addons schreibt ihn mit G41/G42; die Bahn selbst bleibt die Mitte.
+    korrektur: bool = False
 
 
 @dataclass
@@ -1567,6 +1571,7 @@ def _bahnen(
             schritt,
             mit_stand,
             am_engpass,
+            k,
         )
         anzahl += 1
     return anzahl
@@ -1596,6 +1601,7 @@ def _lauf(
     schritt,
     mit_stand=None,
     am_engpass=False,
+    k=None,
 ):
     """Ein Lauf: Eilgang über den Anfang, hinab – in der Luft senkrecht, im Material über die
     Rampe –, tangential hinein, die Bahn, tangential heraus, hinauf. `geraeumt`: (von, bis) –
@@ -1748,15 +1754,115 @@ def _lauf(
             punkt = bn.Punkt(False, start[0], start[1], lage)
             laenge += bn.weg(punkte[-1], punkt)
             punkte.append(punkt)
+    i_ein = len(punkte)
     if ein is not None:
         laenge += _anfahrt_punkte(punkte, ein, lage, hinein=True)
+    i_kreis = len(punkte)
     laenge += _bahnpunkte(punkte, segmente, proben, stellen, lage, hinten, w.austritt, r)
+    i_aus = len(punkte)
     if aus is not None:
         laenge += _anfahrt_punkte(punkte, aus, lage, hinein=False)
+    if (
+        w.korrektur
+        and k is not None
+        and k.geschlossen
+        and geschlossen
+        and abs(d - r) < GLEICH  # der Schlichtkreis, nicht ein Schrupp- oder Aufmaßzug
+        and ein is not None
+        and aus is not None
+        and not material
+        and neben is None
+        and i_kreis > i_ein
+        and len(punkte) > i_aus
+    ):
+        _korrektur(punkte, r, i_ein, i_kreis, i_aus, w.gleichlauf)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
     st.laenge += laenge
     st.bahnen += 1
+
+
+def _korrektur(punkte, r, i_ein, i_kreis, i_aus, gleichlauf):
+    """Der Schlichtkreis für die Radiuskorrektur der Steuerung (Konturwerte.korrektur): je Satz
+    die Kontur des Teils als Notiz – jedes Stück der Mittelpunktbahn um `r` zum Material hin
+    zurück (eine Gerade parallel, ein Bogen um dieselbe Mitte; der Bogen um eine Außenecke fällt
+    auf die Ecke zusammen). Stoßen zwei Geraden nicht tangential aneinander (eine Innenecke, deren
+    Rundung kleiner ist als der Fräser), gilt ihr Schnitt – die scharfe Ecke, um die die
+    Steuerung dieselbe Mitte fährt; nie die kleine Rundung (Alarm „Radius zu klein“). Geht es
+    anders nicht auf: keine Notiz, der Kreis bleibt die Mitte.
+    „KOMP ANFANG G41|G42 X Y“ vor dem Einfahren (der erste Punkt der Kontur), „KOMP X Y [I J
+    G2|G3]“ je Satz (I J: die Mitte des Bogens, absolut), „KOMP ENDE X Y“ vor dem Ausfahren (sein
+    Ende – dorthin mit G40). Material rechts (Gleichlauf, M3): das Werkzeug links – G41."""
+    import dataclasses
+
+    stuecke = []  # [(Anfang, Ende, Mitte oder None, Uhrzeiger)] der Kontur
+    vorher = punkte[i_kreis - 1]
+    for i in range(i_kreis, i_aus):
+        p = punkte[i]
+        a, b = (vorher.x, vorher.y), (p.x, p.y)
+        if p.bogen is None:
+            t = _einheit(b[0] - a[0], b[1] - a[1])
+            n = (t[1], -t[0]) if gleichlauf else (-t[1], t[0])  # zum Material
+            stuecke.append(
+                ((a[0] + r * n[0], a[1] + r * n[1]), (b[0] + r * n[0], b[1] + r * n[1]), None, None)
+            )
+        else:
+            mx, my, uhrzeiger = p.bogen
+            r_a = math.hypot(a[0] - mx, a[1] - my)
+            if r_a < NAH:
+                return
+            u = ((a[0] - mx) / r_a, (a[1] - my) / r_a)
+            t = (u[1], -u[0]) if uhrzeiger else (-u[1], u[0])
+            n = (t[1], -t[0]) if gleichlauf else (-t[1], t[0])
+            r_k = r_a + r if n[0] * u[0] + n[1] * u[1] > 0 else r_a - r
+            if r_k < -1e-3:
+                return
+            r_k = max(r_k, 0.0)
+            r_b = math.hypot(b[0] - mx, b[1] - my)
+            aa = (mx + (a[0] - mx) * r_k / r_a, my + (a[1] - my) * r_k / r_a)
+            bb = (mx + (b[0] - mx) * r_k / r_b, my + (b[1] - my) * r_k / r_b)
+            stuecke.append((aa, bb, (mx, my) if r_k > 1e-3 else None, uhrzeiger))
+        vorher = p
+    # Aneinanderfügen: tangential stimmen die Enden überein; zwei Geraden werden geschnitten.
+    for i in range(len(stuecke) - 1):
+        a0, e0, m0, u0 = stuecke[i]
+        a1, e1, m1, u1 = stuecke[i + 1]
+        if math.hypot(e0[0] - a1[0], e0[1] - a1[1]) < 1e-3:
+            continue
+        if m0 is not None or m1 is not None:
+            return  # ein Bogen an einer Ecke: lieber die Mitte
+        schnitt = _schnitt(a0, e0, a1, e1)
+        if schnitt is None:
+            return
+        stuecke[i] = (a0, schnitt, m0, u0)
+        stuecke[i + 1] = (schnitt, e1, m1, u1)
+    if not stuecke:
+        return
+    seite = "G41" if gleichlauf else "G42"
+    c0 = stuecke[0][0]
+    punkte[i_ein] = dataclasses.replace(
+        punkte[i_ein], notiz=f"KOMP ANFANG {seite} X{c0[0]:.4f} Y{c0[1]:.4f}"
+    )
+    for i, (_a, e, m, uhrzeiger) in zip(range(i_kreis, i_aus), stuecke, strict=True):
+        notiz = f"KOMP X{e[0]:.4f} Y{e[1]:.4f}"
+        if m is not None:
+            notiz += f" I{m[0]:.4f} J{m[1]:.4f} {'G2' if uhrzeiger else 'G3'}"
+        punkte[i] = dataclasses.replace(punkte[i], notiz=notiz)
+    ende = punkte[-1]
+    punkte[i_aus] = dataclasses.replace(
+        punkte[i_aus], notiz=f"KOMP ENDE X{ende.x:.4f} Y{ende.y:.4f}"
+    )
+
+
+def _schnitt(a0, e0, a1, e1):
+    """Der Schnitt der Geraden durch a0–e0 und a1–e1 – None, wenn sie (fast) parallel sind."""
+    d0 = (e0[0] - a0[0], e0[1] - a0[1])
+    d1 = (e1[0] - a1[0], e1[1] - a1[1])
+    nenner = d0[0] * d1[1] - d0[1] * d1[0]
+    if abs(nenner) < 1e-9 * max(1.0, math.hypot(*d0) * math.hypot(*d1)):
+        return None
+    s = ((a1[0] - a0[0]) * d1[1] - (a1[1] - a0[1]) * d1[0]) / nenner
+    return (a0[0] + s * d0[0], a0[1] + s * d0[1])
 
 
 def _anfahrt(p, t, r_ein, gerade, frei, hinein, frei_rechts=False):

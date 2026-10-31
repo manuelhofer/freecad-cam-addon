@@ -136,6 +136,13 @@ class Steuerung:
     # nächste Bearbeitung ihr Werkzeug neu ein. {t} der Taster, {x} {y} die Mitte, {z} die
     # Messhöhe, {lx} {ly} die Seitenlängen, {d} der Ø, {tol} ± die Toleranz, {oben} die Oberkante,
     # {sicher} die sichere Höhe (mm, drei Stellen). Leer: Halt wie bisher.
+    # Radiuskorrektur der Steuerung (Plan C3b Stufe 2; Manuel, 2026-10-31: „1.b“): Trägt eine
+    # Kontur ihren Schlichtkreis als Kontur des Teils (kontur_bahn._korrektur), schreibt das
+    # Programm ihn mit diesen Befehlen – G41 (Werkzeug links), G42 (rechts), G40 (aus); {t} die
+    # Werkzeugnummer (Fanuc/Haas D{t}). Leer: der Kreis bleibt die Mittelpunktbahn.
+    korrektur_links: str = ""
+    korrektur_rechts: str = ""
+    korrektur_aus: str = ""
     taster: str = ""
     taster_ein: str = ""
     taster_aus: str = ""
@@ -404,6 +411,9 @@ BEFEHLSFELDER = (
     "tuer_zu",
     "meldung",
     "meldung_aus",
+    "korrektur_links",
+    "korrektur_rechts",
+    "korrektur_aus",
     "taster",
     "taster_ein",
     "taster_aus",
@@ -552,6 +562,15 @@ def _messen_heidenhain(tnc640):
     }
 
 
+# Radiuskorrektur: Siemens und LinuxCNC nehmen den Radius des eingewechselten Werkzeugs (Siemens
+# D1, LinuxCNC die Werkzeugtabelle), Fanuc und Haas aus dem Register D.
+KORREKTUR_OHNE_D = {"korrektur_links": "G41", "korrektur_rechts": "G42", "korrektur_aus": "G40"}
+KORREKTUR_MIT_D = {
+    "korrektur_links": "G41 D{t}",
+    "korrektur_rechts": "G42 D{t}",
+    "korrektur_aus": "G40",
+}
+
 STEUERUNGEN = {
     "linuxcnc": Steuerung(
         "linuxcnc",
@@ -578,6 +597,7 @@ STEUERUNGEN = {
         vorwahl="T{t}",  # das nächste Werkzeug vorbereiten (T ohne M6)
         nullpunkt_weitere="G59.{e}",  # G59.1 … G59.3 (LinuxCNC: neun Nullpunkte)
         meldung="(MSG, {text})",  # LinuxCNC zeigt „(MSG, …)“ in der Oberfläche
+        **KORREKTUR_OHNE_D,
         glaetten_angebot=(Glaetten("g64", "G64 P{toleranz} Q{toleranz}", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
@@ -612,6 +632,7 @@ STEUERUNGEN = {
         "G94",
         verweilen="G4 F{sek}",  # Siemens: G4 F – Sekunden (G4 S: Umdrehungen)
         **MESSEN_SIEMENS,
+        **KORREKTUR_OHNE_D,
         meldung='MSG("{text}")',  # in der Meldezeile, bis MSG() sie löscht
         meldung_aus="MSG()",
         satznummer_max=99999999,
@@ -706,6 +727,7 @@ STEUERUNGEN = {
         "G98",
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
         **MESSEN_RENISHAW,
+        **KORREKTUR_MIT_D,
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
         programmnummer_max=9999,  # O0001 … O9999
         grossbuchstaben=True,
@@ -806,6 +828,7 @@ STEUERUNGEN = {
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         nullpunkt_weitere="G154 P{e}",  # Haas: G154 P1 … P99 (zusätzliche Werkstückoffsets)
         **MESSEN_RENISHAW,
+        **KORREKTUR_MIT_D,
         programmnummer_max=99999,  # O00001 … O99999
         ohne_leerzeichen_moeglich=True,
         # Ohne G187 gilt die Glättung aus Einstellung 191 der Maschine.
@@ -1166,6 +1189,9 @@ def feld_text(feld):
         "tuer_zu": (tr("pp.feld.tuer_zu"), tr("pp.feld.tuer_zu.tooltip")),
         "meldung": (tr("pp.feld.meldung"), tr("pp.feld.meldung.tooltip")),
         "meldung_aus": (tr("pp.feld.meldung_aus"), tr("pp.feld.meldung_aus.tooltip")),
+        "korrektur_links": (tr("pp.feld.korrektur_links"), tr("pp.feld.korrektur.tooltip")),
+        "korrektur_rechts": (tr("pp.feld.korrektur_rechts"), tr("pp.feld.korrektur.tooltip")),
+        "korrektur_aus": (tr("pp.feld.korrektur_aus"), tr("pp.feld.korrektur.tooltip")),
         "taster": (tr("pp.feld.taster"), tr("pp.feld.taster.tooltip")),
         "taster_ein": (tr("pp.feld.taster_ein"), tr("pp.feld.taster_ein.tooltip")),
         "taster_aus": (tr("pp.feld.taster_aus"), tr("pp.feld.taster_aus.tooltip")),
@@ -1536,6 +1562,117 @@ def _c_umdrehen(abschnitt, info):
     return buchstabe if drehsinn != soll else ""
 
 
+KOMP = "(KOMP "  # die Notizen der Kontur mit Radiuskorrektur (kontur_bahn._korrektur)
+ROHZEILE = "ROH "  # ein Kommentar, den der Postprozessor als Zeile schreibt (_mit_korrektur)
+BEWEGT = ("G1", "G01", "G2", "G02", "G3", "G03")
+
+
+def _komp_werte(name):
+    """{Buchstabe: Zahl} und die Wörter einer Notiz „(KOMP X1 Y2 I3 J4 G2)“."""
+    werte, woerter = {}, []
+    for wort in name.strip("()").split()[1:]:
+        if wort[0] in "XYIJ":
+            werte[wort[0]] = float(wort[1:])
+        else:
+            woerter.append(wort)  # ANFANG, ENDE, G41, G42, G2, G3
+    return werte, woerter
+
+
+def _mit_korrektur(befehle, s, abschnitt, info, hinweise):
+    """Der Schlichtkreis einer Kontur mit Radiuskorrektur (Notizen „(KOMP …)“): mit den Befehlen
+    der Steuerung (korrektur_links/-rechts/-aus) als Kontur des Teils – das Einfahren entfällt,
+    G41/G42 und die Fahrt auf den ersten Konturpunkt (die Steuerung kommt dabei auf den Anfang der
+    Mitte), die Kontur, G40 und die Fahrt auf das Ende des Ausfahrens. Ohne Befehle (GRBL,
+    Heidenhain), an der Drehmaschine oder wenn der Kreis nicht aufgeht: die Mittelpunktbahn, wie
+    sie ist – nur ohne die Notizen."""
+    if not any(n.startswith(KOMP) for n, _p in befehle):
+        return befehle
+    kann = (
+        s.korrektur_links and s.korrektur_rechts and s.korrektur_aus and s.dialekt == "gcode"
+    ) and not info.drehmaschine
+    ergebnis, i = [], 0
+    while i < len(befehle):
+        name, parameter = befehle[i]
+        if name.startswith(KOMP + "ANFANG"):
+            kreis, weiter = _korrektur_kreis(befehle, i, s, abschnitt) if kann else (None, None)
+            if kreis is not None:
+                ergebnis.extend(kreis)
+                i = weiter
+                continue
+            if kann:
+                hinweis = tr("pp.hinweis.korrektur", operation=abschnitt.name)
+                if hinweis not in hinweise:
+                    hinweise.append(hinweis)
+        if not name.startswith(KOMP):
+            ergebnis.append((name, parameter))
+        i += 1
+    return ergebnis
+
+
+def _korrektur_kreis(befehle, i, s, abschnitt):
+    """([Befehle], nächste Stelle) für den Kreis ab der Notiz „KOMP ANFANG“ an Stelle `i` – (None,
+    None), wenn er nicht aufgeht (ein Satz ohne Konturpunkt, kein Ende)."""
+    werte, woerter = _komp_werte(befehle[i][0])
+    seite = woerter[1] if len(woerter) > 1 else ""
+    vorlage = {"G41": s.korrektur_links, "G42": s.korrektur_rechts}.get(seite)
+    if not vorlage or "X" not in werte or "Y" not in werte:
+        return None, None
+    t = int(abschnitt.werkzeug or 0)
+    ein = (f"({ROHZEILE}{_fuellen(vorlage, t=t)})", {})
+    aus = (f"({ROHZEILE}{_fuellen(s.korrektur_aus, t=t)})", {})
+    erster = (werte["X"], werte["Y"])
+    neu, ziel, vorige, z, f = [], None, None, None, None
+    j = i + 1
+    while j < len(befehle):
+        name, parameter = befehle[j]
+        gross = name.upper()
+        if name.startswith(KOMP + "ENDE"):
+            if vorige is None:
+                return None, None
+            ende, _w = _komp_werte(name)
+            neu += [aus, ("G1", {"X": ende["X"], "Y": ende["Y"], "Z": z, "F": f})]
+            j += 1
+            while j < len(befehle) and befehle[j][0].upper() in BEWEGT:
+                j += 1  # das Ausfahren der Mitte entfällt
+            return neu, j
+        if name.startswith(KOMP):
+            ziel = _komp_werte(name)
+            j += 1
+            continue
+        if gross in BEWEGT:
+            z = parameter.get("Z", z)
+            f = parameter.get("F", f)
+            if ziel is None:
+                if vorige is not None:
+                    return None, None  # ein Satz der Kontur ohne Konturpunkt
+                j += 1  # das Einfahren der Mitte entfällt
+                continue
+            if vorige is None:
+                neu += [ein, ("G1", {"X": erster[0], "Y": erster[1], "Z": z, "F": f})]
+                vorige = erster
+            (ziel_werte, ziel_woerter), ziel = ziel, None
+            punkt = (ziel_werte["X"], ziel_werte["Y"])
+            if math.hypot(punkt[0] - vorige[0], punkt[1] - vorige[1]) < 1e-4:
+                j += 1  # der Bogen um eine Außenecke: auf der Kontur ein Punkt
+                continue
+            satz = {"X": punkt[0], "Y": punkt[1], "Z": z, "F": f}
+            bogen = next((w for w in ziel_woerter if w in ("G2", "G3")), None)
+            if bogen is not None and "I" in ziel_werte:
+                satz["I"] = ziel_werte["I"] - vorige[0]
+                satz["J"] = ziel_werte["J"] - vorige[1]
+                neu.append((bogen, satz))
+            else:
+                neu.append(("G1", satz))
+            vorige = punkt
+            j += 1
+            continue
+        if vorige is not None or gross in ("G0", "G00"):
+            return None, None  # etwas anderes mitten im Kreis
+        neu.append((name, parameter))
+        j += 1
+    return None, None
+
+
 def _befehl(eintrag):
     """(Name, {Adresse: Wert}) aus einem Path.Command oder einem Paar."""
     if isinstance(eintrag, tuple):
@@ -1704,6 +1841,7 @@ def programm(
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
                 continue
         befehle = [_befehl(b) for b in befehle_roh]
+        befehle = _mit_korrektur(befehle, s, abschnitt, info, hinweise)
         umdrehen = _rund_umdrehen(abschnitt, info)
         if umdrehen:
             for _name, werte in befehle:
@@ -1892,6 +2030,9 @@ def programm(
                     # Ohne G93 steht F in mm/min, so dass die Zeit stimmt (S5) – nicht, was die
                     # Bahn im Job sagt (4-Achs rundum).
                     text_ = text_[: -len("G93")] + "mm/min"
+                if text_.startswith(ROHZEILE):  # Radiuskorrektur ein/aus (_mit_korrektur)
+                    zeilen.extend(_zeilen(text_[len(ROHZEILE) :]))
+                    continue
                 notiz(text_)
                 if text_.startswith(ms.MESSEN + " "):
                     gemessen = ms.merkmal_von([name_])

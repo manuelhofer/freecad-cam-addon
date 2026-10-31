@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-30 radiuskorrektur
+
+### EINGELESEN
+- Manuel, 2026-10-31: „1.b“ – Stufe 2 als Konturprogrammierung (G41/G42, Radius aus der Werkzeugtabelle).
+
+### DATEIEN
+- `camaddon/bahn.py`: `Punkt.notiz` (ein Kommentar vor dem Satz); `camaddon/freiwege.py`: Notiz bleibt.
+- `camaddon/kontur_bahn.py`: `Konturwerte.korrektur`, `_korrektur` (Kontur durch Versatz, Schnitt an Innenecken), `_schnitt`.
+- `camaddon/kontur.py`: Eigenschaft „Radiuskorrektur“; `camaddon/gui_bearbeitung.py`: Haken an „Kontur“ und „Schlichten danach“.
+- `camaddon/postprozessor.py`: Felder `korrektur_links/-rechts/-aus`, `_mit_korrektur`, `_korrektur_kreis`, Rohzeilen.
+- `translations/*.json`; neu `tests/test_kontur_korrektur.py`; `tests/gui/szenario_kontur.py`.
+- `docs/spezifikation_steuerung.md` (33), `docs/konzept_schritt_assistent.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.333.0.
+
+### ERGEBNIS
+- test_kontur_korrektur (R 5: scharfes Rechteck; R 10: Bögen R 10; Bahn unverändert; LinuxCNC G41 … G40, Fanuc G41 D1, GRBL die Mitte), test_kontur, test_postprozessor, test_postprozessor_zufall, test_freiwege, test_raeumen, test_sprache, szenario_kontur, szenario_raeumen_schlichten, szenario_kontur_materialstand grün.
+- Gefunden: „G41“ in der Notiz las der Zerleger als Zahl – behoben, bevor es raus ging.
 ## P-2026-10-31-29 meldung-sollmass
 
 ### EINGELESEN

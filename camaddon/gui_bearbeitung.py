@@ -2101,6 +2101,7 @@ class _SchlichtenDanach(_Strategie):
             ("boden", tr("ba.schlichten_danach.boden_haken"), tr("ba.schlichten_danach.boden_haken.tooltip"), True),
             ("waende", tr("ba.schlichten_danach.waende_haken"), tr("ba.schlichten_danach.waende_haken.tooltip"), True),
             ("messstopp", tr("ba.schlichten_danach.messstopp"), tr("ba.schlichten_danach.messstopp.tooltip"), False),
+            ("korrektur", tr("ba.kontur.korrektur"), tr("ba.kontur.korrektur.tooltip"), False),
         )  # fmt: skip
 
     def vorgeschlagen(self, form, gewaehlte):
@@ -2444,7 +2445,12 @@ class _Kontur(_Strategie):
         )
 
     def haken(self):
-        return (("schlichten", tr("ba.schlichten"), tr("ba.schlichten.tooltip"), True),)
+        return (
+            ("schlichten", tr("ba.schlichten"), tr("ba.schlichten.tooltip"), True),
+            # Plan C3b Stufe 2 (Manuel, 2026-10-31: „1.b“): Konturprogrammierung – aus vorbelegt,
+            # sie verlangt den richtigen Radius in der Werkzeugtabelle der Maschine.
+            ("korrektur", tr("ba.kontur.korrektur"), tr("ba.kontur.korrektur.tooltip"), False),
+        )
 
     def passt(self, form, name):
         return bool(kb.waende(form, [name]))
@@ -2516,6 +2522,7 @@ class _Kontur(_Strategie):
             werte["schlichten"],
             werte["breite"],
             flaechen=flaechen,
+            korrektur=bool(werte.get("korrektur")),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -2528,6 +2535,7 @@ class _Kontur(_Strategie):
             werte["schlichten"],
             werte["breite"],
             flaechen=flaechen,
+            korrektur=bool(werte.get("korrektur")),
         )
 
     def ist(self, op):
@@ -2540,6 +2548,7 @@ class _Kontur(_Strategie):
             "aufmass": float(op.Aufmass),
             "breite": float(op.Breite),
             "schlichten": bool(op.Schlichten),
+            "korrektur": bool(getattr(op, "Radiuskorrektur", False)),
         }
 
 
@@ -12372,7 +12381,7 @@ class BearbeitungPanel:
             ops.append(
                 ko.lege_an(
                     self.job, tc, werte["zustellung"], aufmass, aufmass, True, aufmass, name,
-                    flaechen=bahn.kontur_waende,
+                    flaechen=bahn.kontur_waende, korrektur=bool(werte.get("korrektur")),
                 )  # fmt: skip
             )
         if getattr(bahn, "ring", None) is not None:

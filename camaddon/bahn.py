@@ -40,7 +40,8 @@ class Punkt:
     dem Eintauchvorschub (senkrecht ins Material). `bogen`: (mx, my, uhrzeiger) – vom Punkt
     davor hierher auf einem Kreisbogen um (mx, my), im Uhrzeigersinn (G2) oder dagegen (G3);
     z dazwischen linear. `anteil`: so viel vom Vorschub gilt für den Satz hierher (beim
-    Austritt aus dem Material weniger)."""
+    Austritt aus dem Material weniger). `notiz`: ein Kommentar vor dem Satz hierher – für den
+    Postprozessor des Addons (die Kontur mit Radiuskorrektur, kontur_bahn)."""
 
     eilgang: bool
     x: float
@@ -49,6 +50,7 @@ class Punkt:
     eintauchen: bool = False
     bogen: tuple = None
     anteil: float = 1.0
+    notiz: str = None
 
 
 def im_uhrzeigersinn(von, nach, durch):
@@ -155,6 +157,8 @@ def befehle(punkte, vorschub, eintauchen=None, kommentar=None):
     ergebnis.append(Path.Command("G0", {"X": float(start.x), "Y": float(start.y)}))
     vorher = start
     for punkt in punkte[1:]:
+        if punkt.notiz:
+            ergebnis.append(Path.Command(f"({punkt.notiz})"))
         werte = {"X": float(punkt.x), "Y": float(punkt.y), "Z": float(punkt.z)}
         if punkt.eilgang:
             if weg(vorher, punkt) < 1e-6:

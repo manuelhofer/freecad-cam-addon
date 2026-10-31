@@ -81,6 +81,7 @@ class Kontur(PathOp.ObjectOp):
             ("App::PropertyLength", "Zeilenabstand", tr("ko.eigenschaft.zeilenabstand")),
             ("App::PropertyLength", "Aufmass", tr("ko.eigenschaft.aufmass")),
             ("App::PropertyBool", "Schlichten", tr("ko.eigenschaft.schlichten")),
+            ("App::PropertyBool", "Radiuskorrektur", tr("ko.eigenschaft.radiuskorrektur")),
             ("App::PropertyLength", "Breite", tr("ko.eigenschaft.breite")),
             ("App::PropertyLength", "Tiefer", tr("ko.eigenschaft.tiefer")),
             ("App::PropertyLength", "Einfahrradius", tr("ko.eigenschaft.einfahrradius")),
@@ -174,6 +175,7 @@ def rechne(obj, job, modell):
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         stand=stand,
         schritt=au.wert(obj, kb.SCHRITT),
+        korrektur=bool(getattr(obj, "Radiuskorrektur", False)),
     )
 
 
@@ -200,12 +202,14 @@ def bahn_fuer(
     radius_davor=0.0,
     gleichlauf=True,
     stand=None,
+    korrektur=False,
 ):
     """Die Bahn „Kontur“ für Modell und Rohteil des Jobs an den Wänden `flaechen` („Face6“ …).
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
     Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm). `radius_davor` > 0: Restmaterial –
     nur, wo ein Fräser mit diesem Radius davor nicht hinkam (W-006 4.1 Punkt 5). `stand`: der
     Materialstand davor (materialstand, W-012) – nur, was die Operationen davor übrig ließen.
+    `korrektur`: der Schlichtkreis trägt die Kontur für G41/G42 (Konturwerte.korrektur).
     ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
@@ -239,6 +243,7 @@ def bahn_fuer(
         austritt=austritt,
         nur_wo=nur_wo,
         gleichlauf=gleichlauf,
+        korrektur=korrektur,
     )
     waende = kb.waende(form_teil, list(flaechen))
     netz_nah, netz_fern = hf.netze_ohne(
@@ -295,6 +300,7 @@ def lege_an(
     name=None,
     flaechen=(),
     radius_davor=0.0,
+    korrektur=False,
 ):
     """Legt „Kontur“ im Job an – mit `radius_davor` > 0 als „Restmaterial“ – ohne eigene
     Transaktion, die hält der Aufrufer. Tiefen und Höhen wie FreeCADs Operationen
@@ -319,6 +325,7 @@ def lege_an(
     obj.Schlichten = bool(schlichten)
     obj.Breite = breite
     obj.RadiusDavor = radius_davor
+    obj.Radiuskorrektur = bool(korrektur)
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc, radius_davor), obj)
@@ -359,9 +366,10 @@ def aendere(
     breite=0.0,
     flaechen=None,
     radius_davor=None,
+    korrektur=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `flaechen` und `radius_davor` ohne bleiben. Der Name folgt dem Werkzeug,
+    Transaktion; `flaechen`, `radius_davor` und `korrektur` ohne bleiben. Der Name folgt dem Werkzeug,
     solange es der vorgeschlagene ist."""
     if radius_davor is not None:
         obj.RadiusDavor = radius_davor
@@ -374,6 +382,8 @@ def aendere(
     obj.Aufmass = aufmass
     obj.Schlichten = bool(schlichten)
     obj.Breite = breite
+    if korrektur is not None:
+        obj.Radiuskorrektur = bool(korrektur)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
     job = getattr(obj.Proxy, "job", None)

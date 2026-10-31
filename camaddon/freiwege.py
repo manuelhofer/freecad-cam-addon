@@ -159,7 +159,9 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
         if nach.bogen is not None:
             if all(flags):
                 anteil = max(anteil_frei, float(nach.anteil))
-                neu.append(bn.Punkt(False, nach.x, nach.y, nach.z, False, nach.bogen, anteil))
+                neu.append(
+                    bn.Punkt(False, nach.x, nach.y, nach.z, False, nach.bogen, anteil, nach.notiz)
+                )
                 schnell_weg += sum(e[2] for e in eintraege)
             else:
                 neu.append(nach)
@@ -169,7 +171,9 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
             if not letzte and flags[i] == flags[i + 1]:
                 continue
             anteil = max(anteil_frei, float(nach.anteil)) if flags[i] else float(nach.anteil)
-            neu.append(bn.Punkt(False, b[0], b[1], nach.z, False, None, anteil))
+            # Die Notiz (Kontur mit Radiuskorrektur) gilt dem Ende des Satzes: am letzten Stück.
+            notiz = nach.notiz if letzte else None
+            neu.append(bn.Punkt(False, b[0], b[1], nach.z, False, None, anteil, notiz))
         schnell_weg += sum(e[2] for e, f in zip(eintraege, flags, strict=True) if f)
     return _ohne_ausflug(neu), schnell_weg
 
