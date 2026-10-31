@@ -66927,6 +66927,3197 @@
    ]
   },
   {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, ASME B5.50 · CAT50 – short",
+   "typ": "schrumpf",
+   "aufnahme": "CAT50",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.06.4",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "50.840.06.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.06.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "50.840.08.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.08.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d12.7 A80",
+     "artikel": "50.840.1-2Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.1-2Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 12.7,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d6.35 A80",
+     "artikel": "50.840.1-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.1-4Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 6.35,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "50.840.10.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.10.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d31.75 A100",
+     "artikel": "50.840.11-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.11-4Z.4",
+     "masse": {
+      "a": 100,
+      "d_spann": 31.75,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "50.840.12.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.12.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A80",
+     "artikel": "50.840.14.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.14.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "50.840.16.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.16.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A80",
+     "artikel": "50.840.18.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.18.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d25.4 A100",
+     "artikel": "50.840.1Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.1Z.4",
+     "masse": {
+      "a": 100,
+      "d_spann": 25.4,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d20 A80",
+     "artikel": "50.840.20.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.20.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "50.840.25.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.25.4",
+     "masse": {
+      "a": 100,
+      "d_spann": 25,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d19.05 A80",
+     "artikel": "50.840.3-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.3-4Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 19.05,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d9.525 A80",
+     "artikel": "50.840.3-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.3-8Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 9.525,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d7.938 A80",
+     "artikel": "50.840.5-16Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.5-16Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 7.938,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d15.875 A80",
+     "artikel": "50.840.5-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.5-8Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 15.875,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d11.113 A80",
+     "artikel": "50.840.7-16Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.7-16Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 11.113,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d22.225 A80",
+     "artikel": "50.840.7-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.840.7-8Z.4",
+     "masse": {
+      "a": 80,
+      "d_spann": 22.225,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, ASME B5.50 · CAT50 – oversize (160 mm)",
+   "typ": "schrumpf",
+   "aufnahme": "CAT50",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.06.4",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A160",
+     "artikel": "50.842.06.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.06.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A160",
+     "artikel": "50.842.08.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.08.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d12.7 A160",
+     "artikel": "50.842.1-2Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.1-2Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 12.7,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d6.35 A160",
+     "artikel": "50.842.1-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.1-4Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 6.35,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A160",
+     "artikel": "50.842.10.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.10.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d31.75 A160",
+     "artikel": "50.842.11-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.11-4Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 31.75,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d12 A160",
+     "artikel": "50.842.12.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.12.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A160",
+     "artikel": "50.842.14.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.14.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A160",
+     "artikel": "50.842.16.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.16.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A160",
+     "artikel": "50.842.20.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.20.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A160",
+     "artikel": "50.842.25.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.25.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 25,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d19.05 A160",
+     "artikel": "50.842.3-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.3-4Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 19.05,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d9.525 A160",
+     "artikel": "50.842.3-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.3-8Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 9.525,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d32 A160",
+     "artikel": "50.842.32.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.32.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 32,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d7.938 A160",
+     "artikel": "50.842.5-16Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.5-16Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 7.938,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d15.875 A160",
+     "artikel": "50.842.5-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.5-8Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 15.875,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d11.113 A160",
+     "artikel": "50.842.7-16Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.7-16Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 11.113,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d22.225 A160",
+     "artikel": "50.842.7-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.842.7-8Z.4",
+     "masse": {
+      "a": 160,
+      "d_spann": 22.225,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, ASME B5.50 · CAT50 – ZG130",
+   "typ": "schrumpf",
+   "aufnahme": "CAT50",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.06.4",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A130",
+     "artikel": "50.844.06.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.06.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A130",
+     "artikel": "50.844.08.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.08.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d12.7 A130",
+     "artikel": "50.844.1-2Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.1-2Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 12.7,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d6.35 A130",
+     "artikel": "50.844.1-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.1-4Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 6.35,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A130",
+     "artikel": "50.844.10.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.10.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d31.75 A130",
+     "artikel": "50.844.11-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.11-4Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 31.75,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "50.844.12.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.12.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A130",
+     "artikel": "50.844.14.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.14.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A130",
+     "artikel": "50.844.16.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.16.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A130",
+     "artikel": "50.844.18.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.18.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d25.4 A130",
+     "artikel": "50.844.1Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.1Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 25.4,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d20 A130",
+     "artikel": "50.844.20.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.20.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A130",
+     "artikel": "50.844.25.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.25.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 25,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d19.05 A130",
+     "artikel": "50.844.3-4Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.3-4Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 19.05,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d9.525 A130",
+     "artikel": "50.844.3-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.3-8Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 9.525,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d32 A130",
+     "artikel": "50.844.32.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.32.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 32,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d7.938 A130",
+     "artikel": "50.844.5-16Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.5-16Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 7.938,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d15.875 A130",
+     "artikel": "50.844.5-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.5-8Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 15.875,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d11.113 A130",
+     "artikel": "50.844.7-16Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.7-16Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 11.113,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d22.225 A130",
+     "artikel": "50.844.7-8Z.4",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-ASME-B5.50-CAT50/50.844.7-8Z.4",
+     "masse": {
+      "a": 130,
+      "d_spann": 22.225,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT40 with face contact – short",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.16.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A70",
+     "artikel": "40P.520.16.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.16.3.HP",
+     "masse": {
+      "a": 70,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A70",
+     "artikel": "40P.520.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.25.3.HP",
+     "masse": {
+      "a": 70,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A70",
+     "artikel": "40P.520.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.32.3.HP",
+     "masse": {
+      "a": 70,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT40 with face contact – long",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.16.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A100",
+     "artikel": "40P.521.16.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.16.3.HP",
+     "masse": {
+      "a": 100,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A100",
+     "artikel": "40P.521.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.25.3.HP",
+     "masse": {
+      "a": 100,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A100",
+     "artikel": "40P.521.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.32.3.HP",
+     "masse": {
+      "a": 100,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT40 with face contact – oversize (160 mm)",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.16.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A160",
+     "artikel": "40P.522.16.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.16.3.HP",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A160",
+     "artikel": "40P.522.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.25.3.HP",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A160",
+     "artikel": "40P.522.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.32.3.HP",
+     "masse": {
+      "a": 160,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT40 with face contact – ZG120",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.16.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A120",
+     "artikel": "40P.527.16.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.16.3.HP",
+     "masse": {
+      "a": 120,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A120",
+     "artikel": "40P.527.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.25.3.HP",
+     "masse": {
+      "a": 120,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A120",
+     "artikel": "40P.527.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.32.3.HP",
+     "masse": {
+      "a": 120,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT40 with face contact – short",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A70",
+     "artikel": "40P.520.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.16.3",
+     "masse": {
+      "a": 70,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A70",
+     "artikel": "40P.520.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.25.3",
+     "masse": {
+      "a": 70,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A70",
+     "artikel": "40P.520.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.520.32.3",
+     "masse": {
+      "a": 70,
+      "d_spann": 20,
+      "d_nase": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT40 with face contact – long",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A100",
+     "artikel": "40P.521.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.16.3",
+     "masse": {
+      "a": 100,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A100",
+     "artikel": "40P.521.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.25.3",
+     "masse": {
+      "a": 100,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A100",
+     "artikel": "40P.521.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.521.32.3",
+     "masse": {
+      "a": 100,
+      "d_spann": 20,
+      "d_nase": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT40 with face contact – oversize (160 mm)",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A160",
+     "artikel": "40P.522.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.16.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A160",
+     "artikel": "40P.522.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.25.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A160",
+     "artikel": "40P.522.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.522.32.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 20,
+      "d_nase": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT40 with face contact – ZG120",
+   "typ": "spannzange",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A120",
+     "artikel": "40P.527.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.16.3",
+     "masse": {
+      "a": 120,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A120",
+     "artikel": "40P.527.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.25.3",
+     "masse": {
+      "a": 120,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A120",
+     "artikel": "40P.527.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.527.32.3",
+     "masse": {
+      "a": 120,
+      "d_spann": 20,
+      "d_nase": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink Chuck extra slim, similar JIS B 6339-2, BT40 with face contact – oversize (160 mm)",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.03.8",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A160",
+     "artikel": "40P.672.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.03.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 3,
+      "d_nase": 6,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d4 A160",
+     "artikel": "40P.672.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.04.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 4,
+      "d_nase": 7,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d5 A160",
+     "artikel": "40P.672.05.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.05.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 5,
+      "d_nase": 8,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d6 A160",
+     "artikel": "40P.672.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.06.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 6,
+      "d_nase": 9,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d8 A160",
+     "artikel": "40P.672.08.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.08.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 8,
+      "d_nase": 11,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d10 A160",
+     "artikel": "40P.672.10.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.10.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 13,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d12 A160",
+     "artikel": "40P.672.12.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.672.12.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 12,
+      "d_nase": 15,
+      "spanntiefe": 80
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink Chuck extra slim, similar JIS B 6339-2, BT40 with face contact – ZG130",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.03.8",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A130",
+     "artikel": "40P.674.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.03.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 3,
+      "d_nase": 6,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d4 A130",
+     "artikel": "40P.674.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.04.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 4,
+      "d_nase": 7,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d5 A130",
+     "artikel": "40P.674.05.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.05.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 5,
+      "d_nase": 8,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d6 A130",
+     "artikel": "40P.674.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.06.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 6,
+      "d_nase": 9,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d8 A130",
+     "artikel": "40P.674.08.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.08.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 8,
+      "d_nase": 11,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d10 A130",
+     "artikel": "40P.674.10.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.10.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 10,
+      "d_nase": 13,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "40P.674.12.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-extra-slim-similar-JIS-B-6339-2-BT40-with-face-contact/40P.674.12.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 12,
+      "d_nase": 15,
+      "spanntiefe": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink Chuck, similar JIS B 6339-2, BT40 with face contact – oversize (160 mm)",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.03.8",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A160",
+     "artikel": "40P.682.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.03.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 3,
+      "d_nase": 9,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d4 A160",
+     "artikel": "40P.682.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.04.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 4,
+      "d_nase": 10,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d5 A160",
+     "artikel": "40P.682.05.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.05.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 5,
+      "d_nase": 11,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d6 A160",
+     "artikel": "40P.682.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.06.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 6,
+      "d_nase": 12,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d8 A160",
+     "artikel": "40P.682.08.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.08.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 8,
+      "d_nase": 14,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d10 A160",
+     "artikel": "40P.682.10.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.10.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 16,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d12 A160",
+     "artikel": "40P.682.12.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.12.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 12,
+      "d_nase": 18,
+      "spanntiefe": 80
+     }
+    },
+    {
+     "name": "d16 A160",
+     "artikel": "40P.682.16.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.682.16.8",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 24,
+      "spanntiefe": 80
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink Chuck, similar JIS B 6339-2, BT40 with face contact – ZG130",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.03.8",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A130",
+     "artikel": "40P.684.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.03.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 3,
+      "d_nase": 9,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d4 A130",
+     "artikel": "40P.684.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.04.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 4,
+      "d_nase": 10,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d5 A130",
+     "artikel": "40P.684.05.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.05.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 5,
+      "d_nase": 11,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d6 A130",
+     "artikel": "40P.684.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.06.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 6,
+      "d_nase": 12,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d8 A130",
+     "artikel": "40P.684.08.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.08.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 8,
+      "d_nase": 14,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d10 A130",
+     "artikel": "40P.684.10.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.10.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 10,
+      "d_nase": 16,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "40P.684.12.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.12.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 12,
+      "d_nase": 18,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d16 A130",
+     "artikel": "40P.684.16.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.684.16.8",
+     "masse": {
+      "a": 130,
+      "d_spann": 16,
+      "d_nase": 24,
+      "spanntiefe": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Shrink Chuck, similar JIS B 6339-2, BT40 with face contact – oversize (160 mm)",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.06.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A160",
+     "artikel": "40P.642.06.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.06.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 50,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A160",
+     "artikel": "40P.642.08.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.08.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 50,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A160",
+     "artikel": "40P.642.10.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.10.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 50,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A160",
+     "artikel": "40P.642.12.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.12.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 50,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A160",
+     "artikel": "40P.642.14.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.14.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 50,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A160",
+     "artikel": "40P.642.16.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.16.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 50,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A160",
+     "artikel": "40P.642.18.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.18.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 50,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A160",
+     "artikel": "40P.642.20.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.20.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 50,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Shrink Chuck, similar JIS B 6339-2, BT40 with face contact – ZG130",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.06.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A130",
+     "artikel": "40P.644.06.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.06.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 50,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A130",
+     "artikel": "40P.644.08.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.08.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 50,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A130",
+     "artikel": "40P.644.10.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.10.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 50,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "40P.644.12.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.12.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 50,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A130",
+     "artikel": "40P.644.14.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.14.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 50,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A130",
+     "artikel": "40P.644.16.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.16.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 50,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A130",
+     "artikel": "40P.644.18.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.18.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 50,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A130",
+     "artikel": "40P.644.20.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.20.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 50,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Shrink Chuck, similar JIS B 6339-2, BT40 with face contact – ultra short",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.06.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A70",
+     "artikel": "40P.645.06.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.06.3",
+     "masse": {
+      "a": 70,
+      "d_spann": 6,
+      "d_nase": 22,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A70",
+     "artikel": "40P.645.08.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.08.3",
+     "masse": {
+      "a": 70,
+      "d_spann": 8,
+      "d_nase": 22,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A70",
+     "artikel": "40P.645.10.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.10.3",
+     "masse": {
+      "a": 70,
+      "d_spann": 10,
+      "d_nase": 26.5,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A70",
+     "artikel": "40P.645.12.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.12.3",
+     "masse": {
+      "a": 70,
+      "d_spann": 12,
+      "d_nase": 26.5,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A75",
+     "artikel": "40P.645.14.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.14.3",
+     "masse": {
+      "a": 75,
+      "d_spann": 14,
+      "d_nase": 29.5,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A75",
+     "artikel": "40P.645.16.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.16.3",
+     "masse": {
+      "a": 75,
+      "d_spann": 16,
+      "d_nase": 29.5,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A75",
+     "artikel": "40P.645.18.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.18.3",
+     "masse": {
+      "a": 75,
+      "d_spann": 18,
+      "d_nase": 35.5,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A75",
+     "artikel": "40P.645.20.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.20.3",
+     "masse": {
+      "a": 75,
+      "d_spann": 20,
+      "d_nase": 35.5,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A85",
+     "artikel": "40P.645.25.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.25.3",
+     "masse": {
+      "a": 85,
+      "d_spann": 25,
+      "d_nase": 45.5,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d32 A85",
+     "artikel": "40P.645.32.3",
+     "link": "https://shop.haimer.com/en/Power-Shrink-Chuck-similar-JIS-B-6339-2-BT40-with-face-contact/40P.645.32.3",
+     "masse": {
+      "a": 85,
+      "d_spann": 32,
+      "d_nase": 45.5,
+      "spanntiefe": 58
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, similar JIS B 6339-2, BT40 with face contact – short",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.03.1",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A90",
+     "artikel": "40P.640.03.1",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.03.1",
+     "masse": {
+      "a": 90,
+      "d_spann": 3,
+      "d_nase": 10,
+      "spanntiefe": 9
+     }
+    },
+    {
+     "name": "d4 A90",
+     "artikel": "40P.640.04.1",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.04.1",
+     "masse": {
+      "a": 90,
+      "d_spann": 4,
+      "d_nase": 10,
+      "spanntiefe": 12
+     }
+    },
+    {
+     "name": "d5 A90",
+     "artikel": "40P.640.05.1",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.05.1",
+     "masse": {
+      "a": 90,
+      "d_spann": 5,
+      "d_nase": 10,
+      "spanntiefe": 15
+     }
+    },
+    {
+     "name": "d6 A90",
+     "artikel": "40P.640.06",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.06",
+     "masse": {
+      "a": 90,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A90",
+     "artikel": "40P.640.08",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.08",
+     "masse": {
+      "a": 90,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A90",
+     "artikel": "40P.640.10",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.10",
+     "masse": {
+      "a": 90,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A90",
+     "artikel": "40P.640.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.12",
+     "masse": {
+      "a": 90,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A90",
+     "artikel": "40P.640.14",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.14",
+     "masse": {
+      "a": 90,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A90",
+     "artikel": "40P.640.16",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.16",
+     "masse": {
+      "a": 90,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A90",
+     "artikel": "40P.640.18",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.18",
+     "masse": {
+      "a": 90,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A90",
+     "artikel": "40P.640.20",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.20",
+     "masse": {
+      "a": 90,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "40P.640.25",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.25",
+     "masse": {
+      "a": 100,
+      "d_spann": 25,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d32 A100",
+     "artikel": "40P.640.32",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.640.32",
+     "masse": {
+      "a": 100,
+      "d_spann": 32,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, similar JIS B 6339-2, BT40 with face contact – oversize (160 mm)",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.06",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A160",
+     "artikel": "40P.642.06",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.06",
+     "masse": {
+      "a": 160,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A160",
+     "artikel": "40P.642.08",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.08",
+     "masse": {
+      "a": 160,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A160",
+     "artikel": "40P.642.10",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.10",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A160",
+     "artikel": "40P.642.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.12",
+     "masse": {
+      "a": 160,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A160",
+     "artikel": "40P.642.14",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.14",
+     "masse": {
+      "a": 160,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A160",
+     "artikel": "40P.642.16",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.16",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A160",
+     "artikel": "40P.642.18",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.18",
+     "masse": {
+      "a": 160,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A160",
+     "artikel": "40P.642.20",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.20",
+     "masse": {
+      "a": 160,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A160",
+     "artikel": "40P.642.25",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.642.25",
+     "masse": {
+      "a": 160,
+      "d_spann": 25,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, similar JIS B 6339-2, BT40 with face contact – ZG130",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.06",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d6 A130",
+     "artikel": "40P.644.06",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.06",
+     "masse": {
+      "a": 130,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A130",
+     "artikel": "40P.644.08",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.08",
+     "masse": {
+      "a": 130,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A130",
+     "artikel": "40P.644.10",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.10",
+     "masse": {
+      "a": 130,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "40P.644.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.12",
+     "masse": {
+      "a": 130,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A130",
+     "artikel": "40P.644.14",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.14",
+     "masse": {
+      "a": 130,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A130",
+     "artikel": "40P.644.16",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.16",
+     "masse": {
+      "a": 130,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A130",
+     "artikel": "40P.644.18",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.18",
+     "masse": {
+      "a": 130,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A130",
+     "artikel": "40P.644.20",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.20",
+     "masse": {
+      "a": 130,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A130",
+     "artikel": "40P.644.25",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT40-with-face-contact/40P.644.25",
+     "masse": {
+      "a": 130,
+      "d_spann": 25,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 58
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG120",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.527.25.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER25 A120",
+     "artikel": "30P.527.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.527.25.3.HP",
+     "masse": {
+      "a": 120,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A120",
+     "artikel": "30P.527.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.527.32.3.HP",
+     "masse": {
+      "a": 120,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG60",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.060.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A60",
+     "artikel": "30P.529.16.3.060.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.060.HP",
+     "masse": {
+      "a": 60,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A60",
+     "artikel": "30P.529.25.3.060.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.25.3.060.HP",
+     "masse": {
+      "a": 60,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A60",
+     "artikel": "30P.529.32.3.060.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.32.3.060.HP",
+     "masse": {
+      "a": 60,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG75",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.075.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A75",
+     "artikel": "30P.529.16.3.075.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.075.HP",
+     "masse": {
+      "a": 75,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A75",
+     "artikel": "30P.529.25.3.075.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.25.3.075.HP",
+     "masse": {
+      "a": 75,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A75",
+     "artikel": "30P.529.32.3.075.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.32.3.075.HP",
+     "masse": {
+      "a": 75,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG105",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.105.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A105",
+     "artikel": "30P.529.16.3.105.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.105.HP",
+     "masse": {
+      "a": 105,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A105",
+     "artikel": "30P.529.25.3.105.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.25.3.105.HP",
+     "masse": {
+      "a": 105,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A105",
+     "artikel": "30P.529.32.3.105.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.32.3.105.HP",
+     "masse": {
+      "a": 105,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT30 with face contact – short",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.520.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A80",
+     "artikel": "30P.520.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.520.16.3",
+     "masse": {
+      "a": 80,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A80",
+     "artikel": "30P.520.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.520.25.3",
+     "masse": {
+      "a": 80,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A80",
+     "artikel": "30P.520.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.520.32.3",
+     "masse": {
+      "a": 80,
+      "d_spann": 20,
+      "d_nase": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ultra short",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.525.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A55",
+     "artikel": "30P.525.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.525.16.3",
+     "masse": {
+      "a": 55,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A55",
+     "artikel": "30P.525.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.525.25.3",
+     "masse": {
+      "a": 55,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A55",
+     "artikel": "30P.525.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.525.32.3",
+     "masse": {
+      "a": 55,
+      "d_spann": 20,
+      "d_nase": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG120",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.527.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A120",
+     "artikel": "30P.527.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.527.16.3",
+     "masse": {
+      "a": 120,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A120",
+     "artikel": "30P.527.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.527.25.3",
+     "masse": {
+      "a": 120,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A120",
+     "artikel": "30P.527.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.527.32.3",
+     "masse": {
+      "a": 120,
+      "d_spann": 20,
+      "d_nase": 50
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG60",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.060",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A60",
+     "artikel": "30P.529.16.3.060",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.060",
+     "masse": {
+      "a": 60,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A60",
+     "artikel": "30P.529.25.3.060",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.25.3.060",
+     "masse": {
+      "a": 60,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG75",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.075",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A75",
+     "artikel": "30P.529.16.3.075",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.075",
+     "masse": {
+      "a": 75,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A75",
+     "artikel": "30P.529.25.3.075",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.25.3.075",
+     "masse": {
+      "a": 75,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT30 with face contact – ZG105",
+   "typ": "spannzange",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.105",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A105",
+     "artikel": "30P.529.16.3.105",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.529.16.3.105",
+     "masse": {
+      "a": 105,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink Chuck, similar JIS B 6339-2, BT30 with face contact – ZG95",
+   "typ": "schrumpf",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.671.03.8",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A95",
+     "artikel": "30P.671.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.671.03.8",
+     "masse": {
+      "a": 95,
+      "d_spann": 3,
+      "d_nase": 6,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d4 A95",
+     "artikel": "30P.671.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.671.04.8",
+     "masse": {
+      "a": 95,
+      "d_spann": 4,
+      "d_nase": 7,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d6 A95",
+     "artikel": "30P.671.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.671.06.8",
+     "masse": {
+      "a": 95,
+      "d_spann": 6,
+      "d_nase": 9,
+      "spanntiefe": 42
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink Chuck, similar JIS B 6339-2, BT30 with face contact – ZG120",
+   "typ": "schrumpf",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.677.03.8",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A120",
+     "artikel": "30P.677.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.677.03.8",
+     "masse": {
+      "a": 120,
+      "d_spann": 3,
+      "d_nase": 6,
+      "spanntiefe": 67
+     }
+    },
+    {
+     "name": "d4 A120",
+     "artikel": "30P.677.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.677.04.8",
+     "masse": {
+      "a": 120,
+      "d_spann": 4,
+      "d_nase": 7,
+      "spanntiefe": 67
+     }
+    },
+    {
+     "name": "d6 A120",
+     "artikel": "30P.677.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.677.06.8",
+     "masse": {
+      "a": 120,
+      "d_spann": 6,
+      "d_nase": 9,
+      "spanntiefe": 67
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink Chuck, similar JIS B 6339-2, BT30 with face contact – short",
+   "typ": "schrumpf",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.680.03.8",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A75",
+     "artikel": "30P.680.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.680.03.8",
+     "masse": {
+      "a": 75,
+      "d_spann": 3,
+      "d_nase": 9,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d4 A75",
+     "artikel": "30P.680.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.680.04.8",
+     "masse": {
+      "a": 75,
+      "d_spann": 4,
+      "d_nase": 10,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d6 A75",
+     "artikel": "30P.680.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.680.06.8",
+     "masse": {
+      "a": 75,
+      "d_spann": 6,
+      "d_nase": 12,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A75",
+     "artikel": "30P.680.08.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.680.08.8",
+     "masse": {
+      "a": 75,
+      "d_spann": 8,
+      "d_nase": 14,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A75",
+     "artikel": "30P.680.10.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.680.10.8",
+     "masse": {
+      "a": 75,
+      "d_spann": 10,
+      "d_nase": 16,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d12 A75",
+     "artikel": "30P.680.12.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-similar-JIS-B-6339-2-BT30-with-face-contact/30P.680.12.8",
+     "masse": {
+      "a": 75,
+      "d_spann": 12,
+      "d_nase": 18,
+      "spanntiefe": 36
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, similar JIS B 6339-2, BT30 with face contact – short",
+   "typ": "schrumpf",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.03",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A80",
+     "artikel": "30P.640.03",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.03",
+     "masse": {
+      "a": 80,
+      "d_spann": 3,
+      "d_nase": 10,
+      "spanntiefe": 9
+     }
+    },
+    {
+     "name": "d4 A80",
+     "artikel": "30P.640.04",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.04",
+     "masse": {
+      "a": 80,
+      "d_spann": 4,
+      "d_nase": 10,
+      "spanntiefe": 12
+     }
+    },
+    {
+     "name": "d5 A80",
+     "artikel": "30P.640.05",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.05",
+     "masse": {
+      "a": 80,
+      "d_spann": 5,
+      "d_nase": 10,
+      "spanntiefe": 15
+     }
+    },
+    {
+     "name": "d6 A80",
+     "artikel": "30P.640.06",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.06",
+     "masse": {
+      "a": 80,
+      "d_spann": 6,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "30P.640.08",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.08",
+     "masse": {
+      "a": 80,
+      "d_spann": 8,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "30P.640.10",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.10",
+     "masse": {
+      "a": 80,
+      "d_spann": 10,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "30P.640.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.12",
+     "masse": {
+      "a": 80,
+      "d_spann": 12,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A80",
+     "artikel": "30P.640.14",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.14",
+     "masse": {
+      "a": 80,
+      "d_spann": 14,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "30P.640.16",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.16",
+     "masse": {
+      "a": 80,
+      "d_spann": 16,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A90",
+     "artikel": "30P.640.18",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.18",
+     "masse": {
+      "a": 90,
+      "d_spann": 18,
+      "d_nase": 33,
+      "d_koerper": 40.5,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A90",
+     "artikel": "30P.640.20",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.640.20",
+     "masse": {
+      "a": 90,
+      "d_spann": 20,
+      "d_nase": 33,
+      "d_koerper": 40.5,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version, similar JIS B 6339-2, BT30 with face contact – ultra short",
+   "typ": "schrumpf",
+   "aufnahme": "BT30",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.03",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung: D1 → d_spann; D2 = ISO DCINTF (Interference diameter, Ø an der Stirn) → d_nase; ISO BD1 (Body diameter 1) → d_koerper und ISO LBD1 (Length body diameter 1) → l_nase, aber nur wenn es zum Kegel passt (D2 + 2·LBD1·tan TA = BD1 auf 0,3 mm, z. B. HSK-A63 d3: 10 + 2·54·tan 4,5° = 18,50 = BD1); sonst ist l_nase leer und die Kegellänge folgt aus D2, BD1 und TA (bei SK30 d3 passt BD1 18,67 zu ISO LB 55,37, nicht zu LBD1 60,9); ISO TA (Taper angle) → kegel; L ('Length', ISO LSCX 'Clamping length max.') → spanntiefe. Fehlen die ISO-Werte, steht nur D2/D3 aus der HAIMER-Tabelle (D3 → d_koerper).",
+   "groessen": [
+    {
+     "name": "d3 A60",
+     "artikel": "30P.645.03",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.03",
+     "masse": {
+      "a": 60,
+      "d_spann": 3,
+      "d_nase": 10,
+      "spanntiefe": 9
+     }
+    },
+    {
+     "name": "d4 A60",
+     "artikel": "30P.645.04",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.04",
+     "masse": {
+      "a": 60,
+      "d_spann": 4,
+      "d_nase": 10,
+      "spanntiefe": 12
+     }
+    },
+    {
+     "name": "d5 A60",
+     "artikel": "30P.645.05",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.05",
+     "masse": {
+      "a": 60,
+      "d_spann": 5,
+      "d_nase": 10,
+      "spanntiefe": 15
+     }
+    },
+    {
+     "name": "d6 A60",
+     "artikel": "30P.645.06",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.06",
+     "masse": {
+      "a": 60,
+      "d_spann": 6,
+      "d_nase": 23,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A60",
+     "artikel": "30P.645.08",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.08",
+     "masse": {
+      "a": 60,
+      "d_spann": 8,
+      "d_nase": 23,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A60",
+     "artikel": "30P.645.10",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.10",
+     "masse": {
+      "a": 60,
+      "d_spann": 10,
+      "d_nase": 27,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A60",
+     "artikel": "30P.645.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.12",
+     "masse": {
+      "a": 60,
+      "d_spann": 12,
+      "d_nase": 27,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A65",
+     "artikel": "30P.645.14",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.14",
+     "masse": {
+      "a": 65,
+      "d_spann": 14,
+      "d_nase": 30,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A65",
+     "artikel": "30P.645.16",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.16",
+     "masse": {
+      "a": 65,
+      "d_spann": 16,
+      "d_nase": 30,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d18 A70",
+     "artikel": "30P.645.18",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.18",
+     "masse": {
+      "a": 70,
+      "d_spann": 18,
+      "d_nase": 35.5,
+      "d_koerper": 40.5,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A70",
+     "artikel": "30P.645.20",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-similar-JIS-B-6339-2-BT30-with-face-contact/30P.645.20",
+     "masse": {
+      "a": 70,
+      "d_spann": 20,
+      "d_nase": 35.5,
+      "d_koerper": 40.5,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT50 with face contact – short",
+   "typ": "spannzange",
+   "aufnahme": "BT50",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.16.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A100",
+     "artikel": "50P.520.16.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.16.3.HP",
+     "masse": {
+      "a": 100,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A100",
+     "artikel": "50P.520.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.25.3.HP",
+     "masse": {
+      "a": 100,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A100",
+     "artikel": "50P.520.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.32.3.HP",
+     "masse": {
+      "a": 100,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT50 with face contact – oversize (160 mm)",
+   "typ": "spannzange",
+   "aufnahme": "BT50",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.16.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A160",
+     "artikel": "50P.522.16.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.16.3.HP",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A160",
+     "artikel": "50P.522.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.25.3.HP",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A160",
+     "artikel": "50P.522.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.32.3.HP",
+     "masse": {
+      "a": 160,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "High Precision Collet Chuck, similar JIS B 6339-2, BT50 with face contact – ZG130",
+   "typ": "spannzange",
+   "aufnahme": "BT50",
+   "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.16.3.HP",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A130",
+     "artikel": "50P.524.16.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.16.3.HP",
+     "masse": {
+      "a": 130,
+      "d_spann": 10,
+      "d_nase": 28,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "ER25 A130",
+     "artikel": "50P.524.25.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.25.3.HP",
+     "masse": {
+      "a": 130,
+      "d_spann": 16,
+      "d_nase": 42,
+      "l_nase": 51
+     }
+    },
+    {
+     "name": "ER32 A130",
+     "artikel": "50P.524.32.3.HP",
+     "link": "https://shop.haimer.com/en/High-Precision-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.32.3.HP",
+     "masse": {
+      "a": 130,
+      "d_spann": 20,
+      "d_nase": 50,
+      "l_nase": 53
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT50 with face contact – short",
+   "typ": "spannzange",
+   "aufnahme": "BT50",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A100",
+     "artikel": "50P.520.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.16.3",
+     "masse": {
+      "a": 100,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A100",
+     "artikel": "50P.520.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.25.3",
+     "masse": {
+      "a": 100,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A100",
+     "artikel": "50P.520.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.520.32.3",
+     "masse": {
+      "a": 100,
+      "d_spann": 20,
+      "d_nase": 48
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT50 with face contact – oversize (160 mm)",
+   "typ": "spannzange",
+   "aufnahme": "BT50",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A160",
+     "artikel": "50P.522.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.16.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A160",
+     "artikel": "50P.522.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.25.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A160",
+     "artikel": "50P.522.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.522.32.3",
+     "masse": {
+      "a": 160,
+      "d_spann": 20,
+      "d_nase": 48
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Collet Chuck, similar JIS B 6339-2, BT50 with face contact – ZG130",
+   "typ": "spannzange",
+   "aufnahme": "BT50",
+   "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.16.3",
+   "quelle": "HAIMER-Shop (shop.haimer.com), je Artikel eigene Seite mit Tabelle 'Technical data' in drei Fassungen (HAIMER-Kürzel, DIN 4000, ISO 13399), abgerufen 2026-10-31. Rohwerte je Größe unter 'iso13399' (Kürzel wie im Shop: HAIMER-Kürzel ohne Präfix, ISO-Kürzel mit 'iso_'). a = Length A bzw. ISO LPR (Protruding length); laut Maßzeichnungen von der Bezugsebene der Aufnahme (Steilkegel: Bundfläche/Kegelende; HSK/PSC: Plananlage) bis zur Stirn. Zuordnung laut Maßzeichnungen (ER: asset-112801-1201, High Precision: asset-112347-1195): D = Ø der Spannmutter → d_nase; d_spann = obere Grenze von 'Clamping range'. Nur beim High Precision Collet Chuck ist L die Länge des schlanken Vorderteils ab Stirn → l_nase; beim ER-Futter reicht L von der Bundfläche bis zur Stirn (nicht übernommen). Körper-Ø nicht angegeben.",
+   "groessen": [
+    {
+     "name": "ER16 A130",
+     "artikel": "50P.524.16.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.16.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 10,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "ER25 A130",
+     "artikel": "50P.524.25.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.25.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 16,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER32 A130",
+     "artikel": "50P.524.32.3",
+     "link": "https://shop.haimer.com/en/Power-Collet-Chuck-similar-JIS-B-6339-2-BT50-with-face-contact/50P.524.32.3",
+     "masse": {
+      "a": 130,
+      "d_spann": 20,
+      "d_nase": 48
+     }
+    }
+   ]
+  },
+  {
    "hersteller": "SCHUNK",
    "titel": "TRIBOS-Mini HSK-E40",
    "typ": "polygon",

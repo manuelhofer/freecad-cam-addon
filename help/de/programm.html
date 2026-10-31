@@ -202,6 +202,22 @@ Haas (G65 P9812/P9814 nur mit H). Gemessen wird nur, korrigiert wird nichts. <b>
 mit Vorschub-Override langsam prüfen.</b> Taster ein/aus (etwa G65 P9832/P9833 oder ein M-Befehl)
 nach deiner Maschine. Ohne Taster: der Halt wie bisher.</li>
 </ul>
+<p><b>Ältere Siemens 840D (ohne SINUMERIK Operate).</b> Dort stehen die Parameter der Messzyklen
+als Variablen vor dem Aufruf (Siemens Messzyklen Programmierhandbuch 04/2006); mit <code>_KNUM=0</code>
+prüft der Zyklus die Toleranz ohne zu korrigieren, und mit <code>_CBIT[2]=1</code> hält er bei
+Aufmaß oder Untermaß an (M0). Für die Rechtecktasche ins Feld „Messen: Rechtecktasche“:</p>
+<pre>G0 X{x} Y{y}
+G0 Z{sicher}
+G1 Z{z} F1000
+_CBIT[2]=1
+_TZL=0.005 _TMV=0.01 _TUL={tol} _TLL=-{tol} _TDIF=0.1 _TSA=1
+_PRNUM=1 _VMS=0 _NMSP=1 _FA=2 _EVNUM=0 _K=1
+_MVAR=5 _SETV[0]={lx} _SETV[1]={ly} _KNUM=0
+CYCLE977
+G0 Z{sicher}</pre>
+<p>Für die Bohrung <code>_MVAR=1 _SETVAL={d}</code> statt der Zeile mit <code>_SETV</code>.
+<code>_CBIT[2]</code> ist ein globales Bit der Maschine – frag im Zweifel, wer die Maschine
+betreut. Am ersten Teil langsam.</p>
 <p><b>Hauptspindel und angetriebene Werkzeuge.</b> Eine Drehmaschine mit angetriebenen
 Werkzeugen hat zwei Spindeln, jede mit einem S und einem C: Die Hauptspindel dreht das Teil
 (S) oder positioniert es (C) – beim Fräsen positioniert sie: „SPOS[4]=0“, dann „C4=…“ in den

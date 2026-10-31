@@ -199,6 +199,23 @@ needs. Without a probe: the stop as before.</li>
 <li><b>Coolant</b> – as set at the operation: flood M8, mist M7, then M9. Off if you switch it
 by hand at the machine.</li>
 </ul>
+<p><b>Older Siemens 840D (without SINUMERIK Operate).</b> There the measuring cycle parameters are
+variables set before the call (Siemens measuring cycles programming manual 04/2006); with
+<code>_KNUM=0</code> the cycle checks the tolerance without correcting, and with <code>_CBIT[2]=1</code>
+it stops on oversize or undersize (M0). For the rectangular pocket, in “Measure: rectangular
+pocket”:</p>
+<pre>G0 X{x} Y{y}
+G0 Z{sicher}
+G1 Z{z} F1000
+_CBIT[2]=1
+_TZL=0.005 _TMV=0.01 _TUL={tol} _TLL=-{tol} _TDIF=0.1 _TSA=1
+_PRNUM=1 _VMS=0 _NMSP=1 _FA=2 _EVNUM=0 _K=1
+_MVAR=5 _SETV[0]={lx} _SETV[1]={ly} _KNUM=0
+CYCLE977
+G0 Z{sicher}</pre>
+<p>For the bore, <code>_MVAR=1 _SETVAL={d}</code> instead of the line with <code>_SETV</code>.
+<code>_CBIT[2]</code> is a global machine bit – ask whoever looks after the machine if in doubt.
+Go slowly on the first part.</p>
 <p><b>Main spindle and driven tools.</b> A lathe with driven tools has two spindles, each with
 an S and a C: the main spindle turns the part (S) or positions it (C) – for milling it
 positions: “SPOS[4]=0”, then “C4=…” in the blocks. The tool drive turns the tool

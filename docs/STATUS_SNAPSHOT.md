@@ -576,6 +576,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.331.7):* Halter-Katalog **640 Reihen, 6320 Größen** – der HAIMER-Abruf ist durch
+  (alle Aufnahmen bis BT mit Plananlage). Hilfe „Programm schreiben“: Vorlage für die Messzyklen
+  der älteren 840D ohne Operate (Variablen vor dem Aufruf, `_KNUM=0`, `_CBIT[2]=1`). Gegenprobe:
+  33 Szenarien des Assistenten mit dem Block „Tauchfräsen“ grün.
 - *Korrektur (0.331.6):* Hoffmann-Bohrer **6506 Größen** (vorher 2742; 80 von 225 Reihen
   vollständig aus dem langsamen Lauf) – die Werkzeugkiste hat jetzt 47 573 Größen.
 - *Korrektur (0.331.5):* Auch der Messstopp von „Schlichten danach“ (gewohnter Assistent) trägt das

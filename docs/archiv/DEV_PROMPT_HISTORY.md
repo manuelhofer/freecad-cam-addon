@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-26 haimer-fertig-840d-hilfe
+
+### EINGELESEN
+- HAIMER-Abruf beendet; Manuels 5-Achs-Maschine hat eine alte 840D (Gedächtnis).
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: 640 Reihen, 6320 Größen.
+- `help/de/programm.html`, `help/en/programm.html`: Vorlage Messzyklus 840D ohne Operate.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.331.7.
+
+### ERGEBNIS
+- test_spannmittel, test_hilfe grün; 33 Szenarien des Assistenten (bearbeitung*, raeumen*, nut*, kontur*, testteil*, schlichten3d*, bohr*, frage_*, absatz, ecken, deckel, flansch) grün.
 ## P-2026-10-31-25 hoffmann-bohrer-6506
 
 ### EINGELESEN
