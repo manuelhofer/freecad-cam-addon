@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-41 katalog-im-faden
+
+### EINGELESEN
+- Gedächtnis „Ressourcen nutzen“ (das Fenster darf nie laggen); die Kataloge sind in der Nacht auf
+  82 000 Größen gewachsen – nachgemessen, was der Assistent damit im Fenster rechnet.
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py`: `katalog_werkzeuge` mit Sperre (auch aus einem Faden),
+  `katalog_bereit`.
+- `camaddon/gui_bearbeitung_beta.py`: `im_katalog` liest im Faden, der Knopf sagt „Katalog wird
+  gelesen …“, ein Zeitgeber sieht nach (`KATALOG_NACHSEHEN_MS`).
+- `translations/*.json`, `tests/gui/szenario_beta_schritte.py` (wartet auf den Katalog),
+  `package.xml` 0.340.1.
+
+### ERGEBNIS
+- Gemessen (frisches Profil, alle Kataloge): Werkzeugkiste ohne Zwischenspeicher 6,7 s, mit 0,14 s;
+  katalog_werkzeuge 0,63 s (82 208 Werkzeuge); vorschlaege 0,07 s; Halter-Empfehlung 0,02 s.
+- szenario_beta_schritte grün, längste Fensterpause 0,75 s; test_werkzeugwahl, test_sprache grün.
 ## P-2026-10-31-40 beta-fenster-angelegt
 
 ### EINGELESEN

@@ -27,6 +27,7 @@ dort ein größeres steht:
 Läuft ohne Oberfläche.
 """
 
+import threading
 from dataclasses import dataclass, field
 
 from . import werkzeuge as wz
@@ -103,17 +104,27 @@ def _gewoelbt(flaeche):
 
 
 def katalog_werkzeuge():
-    """Alle Werkzeuge des Katalogs der Hersteller, nur mit Maßen (einmal gebaut)."""
-    if not _KATALOG:
-        from . import werkzeugkiste as wk
+    """Alle Werkzeuge des Katalogs der Hersteller, nur mit Maßen (einmal gebaut; auch aus einem
+    Faden – gui_bearbeitung_beta.im_katalog: ohne Zwischenspeicher der Werkzeugkiste dauert das
+    erste Mal 7 s)."""
+    with _KATALOG_SPERRE:
+        if not _KATALOG:
+            from . import werkzeugkiste as wk
 
-        for reihe in wk.reihen():
-            for werkzeug in wk.werkzeuge(reihe, mit_werten=False):
-                _KATALOG.append(werkzeug)
+            neu = []
+            for reihe in wk.reihen():
+                neu.extend(wk.werkzeuge(reihe, mit_werten=False))
+            _KATALOG.extend(neu)
     return _KATALOG
 
 
+def katalog_bereit():
+    """Ist der Katalog schon gebaut (dann kostet katalog_werkzeuge() nichts)?"""
+    return bool(_KATALOG)
+
+
 _KATALOG = []
+_KATALOG_SPERRE = threading.Lock()
 
 
 def _passend(werkzeuge, arten, grenze, tiefe, bedingung=None):

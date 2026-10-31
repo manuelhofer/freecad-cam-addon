@@ -3721,5 +3721,6 @@
     "beta.fertig.blatt.tooltip": "Das Blatt für die Maschine: Werkzeuge, Spannung, Nullpunkt, Schritte mit Zeit.",
     "beta.fertig.weiter.tooltip": "An denselben Flächen weiter: nach dem Schruppen schlichten, entgraten oder noch einmal vorschlichten.",
     "beta.fertig.zeigen": "Dieses Fenster nach dem Anlegen zeigen",
-    "beta.fertig.zeigen.tooltip": "Abgehakt: „Anlegen“ schließt ohne das Fenster „Angelegt“. Der Haken steht auch unten im Assistenten (Beta)."
+    "beta.fertig.zeigen.tooltip": "Abgehakt: „Anlegen“ schließt ohne das Fenster „Angelegt“. Der Haken steht auch unten im Assistenten (Beta).",
+    "beta.werkzeuge.katalog.liest": "Katalog wird gelesen …"
 }

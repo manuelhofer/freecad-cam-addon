@@ -219,7 +219,9 @@ def schritte(h):
     h.pruefe(panel.werkzeuge_box.isVisible() and "deins: T" in text, f"Werkzeuge: {text!r}")
     h.bild("3_schruppen", panel.form)
     panel.knopf_katalog.click()
-    yield 500
+    # Der Katalog wird in einem Faden gelesen – das Fenster bleibt frei.
+    yield from h.warte_auf(lambda: panel._beta_katalog_an, 60000)
+    yield 300
     text = panel.werkzeuge_text.text()
     print(ascii(f"Katalog: {text[:600]}"))
     h.pruefe("im Katalog" in text and "<a href" in text, f"Katalog: {text[:300]!r}")

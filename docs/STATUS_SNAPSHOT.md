@@ -576,6 +576,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.340.1):* „Was gäbe es im Katalog?“ (Beta, Schruppen) liest den Katalog in einem
+  Faden – „Katalog wird gelesen …“, das Fenster bleibt frei. Mit den Katalogen von heute (82 000
+  Größen) standen sonst ohne Zwischenspeicher der Werkzeugkiste 6,7 s still (mit 0,8 s).
 - *Neu (0.340.0):* **Fenster „Angelegt“ nach „Anlegen“ (Beta, Konzept B6):** was jetzt im Job
   steht, je Operation die Zeit (wie im Einrichtblatt, eine je Uhrtakt gerechnet), die neuen fett,
   zusammen; die nächsten Schritte als Knöpfe: „Auf der Maschine prüfen …“, „Programm schreiben …“,

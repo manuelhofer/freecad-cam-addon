@@ -26,6 +26,7 @@ werden nur seine Teile auf die Schritte verteilt.
 """
 
 import html
+import threading
 
 import FreeCAD
 import FreeCADGui
@@ -60,6 +61,7 @@ AUFMASS_STUFE = 1.0  # mm: so viel weniger Aufmaß schlägt „Weiter bearbeiten
 TASCHE_REST = 1.0  # mm über einem Boden: so viel darf stehen, und die Tasche gilt als ausgeräumt
 FERTIG_ZEIGEN = "BetaFertigZeigen"  # Parameter: nach „Anlegen“ das Fenster „Angelegt“ (an)
 FERTIG_ZEILEN = 14  # so viele Operationen zeigt es ohne Blättern
+KATALOG_NACHSEHEN_MS = 150  # „Was gäbe es im Katalog?“: so oft sehen, ob der Faden fertig ist
 
 
 def beta_an():
@@ -902,14 +904,30 @@ class BetaPanel(BearbeitungPanel):
         self.werkzeuge_box.show()
 
     def im_katalog(self):
-        """„Was gäbe es im Katalog?“ – einmal den Katalog lesen (dauert beim ersten Mal)."""
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        try:
-            ww.katalog_werkzeuge()
-        finally:
-            QtGui.QApplication.restoreOverrideCursor()
-        self._beta_katalog_an = True
-        self._werkzeuge_zeigen()
+        """„Was gäbe es im Katalog?“ – den Katalog einmal lesen: in einem Faden, das Fenster bleibt
+        frei (ohne Zwischenspeicher der Werkzeugkiste 7 s, sonst unter 1 s); danach die Vorschläge.
+        """
+        if ww.katalog_bereit():
+            self._beta_katalog_an = True
+            self._werkzeuge_zeigen()
+            return
+        self.knopf_katalog.setEnabled(False)
+        self.knopf_katalog.setText(tr("beta.werkzeuge.katalog.liest"))
+        faden = threading.Thread(target=ww.katalog_werkzeuge, name="Katalog", daemon=True)
+        faden.start()
+
+        def nachsehen():
+            if self.geschlossen:
+                return
+            if faden.is_alive():
+                QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, nachsehen)
+                return
+            self.knopf_katalog.setEnabled(True)
+            self.knopf_katalog.setText(tr("beta.werkzeuge.katalog"))
+            self._beta_katalog_an = True
+            self._werkzeuge_zeigen()
+
+        QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, nachsehen)
 
     def tasche_schruppen_waende_schlichten(self):
         """„Ganze Tasche schruppen, diese Wände schlichten“ (B1): das Schruppen bekommt die ganze

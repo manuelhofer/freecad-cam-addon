@@ -3721,5 +3721,6 @@
     "beta.fertig.blatt.tooltip": "The sheet for the machine: tools, clamping, zero point, steps with time.",
     "beta.fertig.weiter.tooltip": "Continue on the same faces: finish after roughing, deburr or semi-finish once more.",
     "beta.fertig.zeigen": "Show this window after creating",
-    "beta.fertig.zeigen.tooltip": "Unchecked: “Create” closes without the “Created” window. The same checkbox is at the bottom of the assistant (beta)."
+    "beta.fertig.zeigen.tooltip": "Unchecked: “Create” closes without the “Created” window. The same checkbox is at the bottom of the assistant (beta).",
+    "beta.werkzeuge.katalog.liest": "Reading the catalogue …"
 }
