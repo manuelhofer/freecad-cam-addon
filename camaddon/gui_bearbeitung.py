@@ -1845,6 +1845,11 @@ class _Tauchfraesen(_Strategie):
     zwischen den Stellen stehen bleibt, nimmt die Kontur (sie rechnet mit dem Materialstand)."""
 
     kennung = "tauchfraesen"
+    # Manuel, 2026-10-31: „kann man das so machen das man die auch nutzen kann .. aber erst wenn man
+    # einen hacken gesetzt hat vonwegen "werkzeuge nehmen die dafür nciht geeignet sind"“ – dann
+    # jeder Wendeplattenbohrer, mit BRILLE_UNGEPRUEFT Vorschub an den überlappenden Stellen.
+    auch_ungeeignete = False
+    _anteil = 1.0  # der Vorschubanteil der letzten Vorschau (für ihren Satz)
     # Ein Wendeplattenbohrer (Brillenbohrung) bringt nur den Einsatz „Bohren“ mit.
     einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN, wz.BOHREN)
 
@@ -1867,6 +1872,12 @@ class _Tauchfraesen(_Strategie):
             ("aufmass_boden", tr("ba.aufmass_boden"), tr("ba.aufmass_boden.tooltip")),
         )
 
+    def haken_umgeschaltet(self, block, feld, an):
+        """„Auch nicht freigegebene Werkzeuge“: die Auswahl des Werkzeugs neu."""
+        if feld == "ungeeignete":
+            self.auch_ungeeignete = bool(an)
+            block.fraeser_fuellen(block.panel.bibliothek, block.panel.werkstoff())
+
     def werkzeug_passt(self, werkzeug):
         """Ein Fräser mit ebener Stirn, der ins Volle tauchen darf: nicht ausdrücklich „nicht
         mittenschneidend“ (Werkzeug.faehigkeiten; unbekannt zählt als ja) – oder ein Bohrer, für
@@ -1874,7 +1885,9 @@ class _Tauchfraesen(_Strategie):
         hersteller die genannte methode ist“)."""
         faehig = getattr(werkzeug, "faehigkeiten", None) or {}
         if werkzeug.art == wz.BOHRER:
-            return brillenbohrer(werkzeug)
+            return brillenbohrer(werkzeug) or (
+                self.auch_ungeeignete and wendeplattenbohrer(werkzeug)
+            )
         if faehig.get("mittenschneidend") is False and not faehig.get("tauchfraesen"):
             return False
         return super().werkzeug_passt(werkzeug)
@@ -1905,6 +1918,12 @@ class _Tauchfraesen(_Strategie):
                 tr("ba.tauchfraesen.vorbohren"),
                 tr("ba.tauchfraesen.vorbohren.tooltip"),
                 True,
+            ),
+            (
+                "ungeeignete",
+                tr("ba.tauchfraesen.ungeeignete"),
+                tr("ba.tauchfraesen.ungeeignete.tooltip"),
+                False,
             ),
         )
 
@@ -1937,6 +1956,7 @@ class _Tauchfraesen(_Strategie):
         return 0.0
 
     def vorschau(self, job, werkzeug, werte, flaechen):
+        self._anteil = float(werte.get("anteil", 1.0))  # vom Panel (_zusatz)
         if werkzeug.art == wz.BOHRER:
             radius = float(werkzeug.durchmesser) / 2.0
         else:
@@ -1954,11 +1974,15 @@ class _Tauchfraesen(_Strategie):
             schritt=werte["schritt"] or None,
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
             vorbohren=werte.get("vorbohrer") if werte.get("vorbohren") else None,
-            anteil_ueberlappt=tfr.BRILLE_ANTEIL if werkzeug.art == wz.BOHRER else 1.0,
+            anteil_ueberlappt=self._anteil,
         )
 
     def ergebnis_text(self, bahn, zeit):
         text = tr("ba.ergebnis_tauchfraesen", stellen=bahn.stellen, lagen=bahn.lagen, zeit=zeit)
+        if self._anteil == tfr.BRILLE_UNGEPRUEFT:
+            text += ". " + tr(
+                "ba.tauchfraesen.ungeprueft", anteil=f"{tfr.BRILLE_UNGEPRUEFT * 100:.0f}"
+            )
         vorbohren = getattr(bahn, "vorbohren", None)
         if vorbohren is not None:
             werte = {
@@ -1983,7 +2007,7 @@ class _Tauchfraesen(_Strategie):
             werte["aufmass"],
             werte["aufmass_boden"],
             werte["schritt"],
-            anteil=_brille_anteil(tc),
+            anteil=float(werte.get("anteil", 1.0)),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -1994,7 +2018,7 @@ class _Tauchfraesen(_Strategie):
             werte["aufmass"],
             werte["aufmass_boden"],
             werte["schritt"],
-            anteil=_brille_anteil(tc),
+            anteil=float(werte.get("anteil", 1.0)),
         )
 
     def ist(self, op):
@@ -2015,12 +2039,12 @@ def brillenbohrer(werkzeug):
     return "brillenbohrung" in (faehig.get("bohrverwendung") or [])
 
 
-def _brille_anteil(tc):
-    """Der Vorschubanteil an überlappenden Stellen: mit einem Bohrer tauchfraesen.BRILLE_ANTEIL."""
-    from .werkzeuge_aus_cam import vom_controller
-
-    werkzeug = vom_controller(tc)
-    return tfr.BRILLE_ANTEIL if werkzeug is not None and werkzeug.art == wz.BOHRER else 1.0
+def wendeplattenbohrer(werkzeug):
+    """Ein Bohrer mit Wendeplatten (Fähigkeit „wendeplatten“ oder Schneidstoff WSP)?"""
+    faehig = getattr(werkzeug, "faehigkeiten", None) or {}
+    return werkzeug.art == wz.BOHRER and (
+        bool(faehig.get("wendeplatten")) or werkzeug.schneidstoff == wz.WSP
+    )
 
 
 class _RestRaeumen(_Raeumen):
@@ -4606,6 +4630,8 @@ class _Block:
             kasten.setToolTip(tooltip)
             kasten.setChecked(vorgabe)
             kasten.toggled.connect(lambda _an: self.panel.vorschau_starten())
+            if hasattr(strategie, "haken_umgeschaltet"):
+                kasten.toggled.connect(lambda an, f=feld: strategie.haken_umgeschaltet(self, f, an))
             self.haken_felder[feld] = kasten
             self._haken_texte[feld] = (text, tooltip)
             self.reihen.ganz(kasten)
@@ -10539,9 +10565,12 @@ class BearbeitungPanel:
             liste = self._vorbohrer_liste(block.fraeser())
             return {"vorbohrer_liste": liste} if liste else None
         if block.s.kennung == "tauchfraesen":
-            if block.fraeser() is not None and block.fraeser().art == wz.BOHRER:
-                return None  # der Wendeplattenbohrer bohrt selbst
-            bohrer = self._tauch_vorbohrer(block.fraeser())
+            werkzeug = block.fraeser()
+            if werkzeug is not None and werkzeug.art == wz.BOHRER:
+                # Der Wendeplattenbohrer bohrt selbst; an überlappenden Stellen weniger Vorschub.
+                ok = brillenbohrer(werkzeug)
+                return {"anteil": tfr.BRILLE_ANTEIL if ok else tfr.BRILLE_UNGEPRUEFT}
+            bohrer = self._tauch_vorbohrer(werkzeug)
             return {"vorbohrer": bohrer} if bohrer else None
         if block is self.restraeumen:
             return self._nur_eng()

@@ -3669,5 +3669,8 @@
     "wv.bohrverwendung.querbohren": "cross holes",
     "wv.bohrverwendung.paketbohren": "stack drilling",
     "wv.bohrverwendung.unterbrochener_schnitt": "interrupted cut",
-    "wv.bohrverwendung.auskesselung": "undercutting"
+    "wv.bohrverwendung.auskesselung": "undercutting",
+    "ba.tauchfraesen.ungeeignete": "Also use tools the maker doesn't state for it",
+    "ba.tauchfraesen.ungeeignete.tooltip": "Without the tick, plunge milling only takes plunge cutters, centre-cutting end mills and indexable drills for which the maker states chain drilling. With the tick any indexable drill – at your own risk, at 50 % feed where the holes overlap.",
+    "ba.tauchfraesen.ungeprueft": "The maker states no chain drilling for this drill – at your own risk, overlapping at {anteil} % feed"
 }

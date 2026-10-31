@@ -38,7 +38,19 @@ def schritte(h):
         schneidstoff=wz.HSS,
     )
     t3.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25.0, fz=0.1)]
-    wz.Bibliothek([wz.standardwerkzeug(), t3]).speichern()
+    # Ein Wendeplattenbohrer, für den kein Hersteller die Brillenbohrung nennt.
+    t4 = wz.Werkzeug(
+        nummer=4,
+        name="WPB 16",
+        art=wz.BOHRER,
+        durchmesser=16.0,
+        schneidenlaenge=50.0,
+        gesamtlaenge=110.0,
+        schneidstoff=wz.WSP,
+    )
+    t4.faehigkeiten = {"wendeplatten": True}
+    t4.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=150.0, fz=0.06)]
+    wz.Bibliothek([wz.standardwerkzeug(), t3, t4]).speichern()
     ms.speichern([])
     ordner = tempfile.mkdtemp()
 
@@ -88,6 +100,30 @@ def schritte(h):
     tauchen = next(b for b in panel.bloecke if b.s.kennung == "tauchfraesen")
     raeumen = next(b for b in panel.bloecke if b.s.kennung == "raeumen")
     tauchen.haken.setChecked(True)
+    yield 500
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
+    yield 800
+    # Nicht freigegeben (Manuel: „erst wenn man einen hacken gesetzt hat“): ohne Haken fehlt T4,
+    # mit Haken steht er da, gewählt mit dem Satz „auf eigene Verantwortung“.
+    nummern = [w.nummer for w in tauchen._fraeser]
+    h.pruefe(4 not in nummern, f"T4 ohne Haken in der Auswahl: {nummern}")
+    h.pruefe(not tauchen.haken_felder["ungeeignete"].isChecked(), "Haken von sich aus gesetzt")
+    tauchen.haken_felder["ungeeignete"].setChecked(True)
+    yield 500
+    nummern = [w.nummer for w in tauchen._fraeser]
+    h.pruefe(4 in nummern, f"T4 mit Haken nicht in der Auswahl: {nummern}")
+    if 4 in nummern:
+        tauchen.wahl_fraeser.setCurrentIndex(nummern.index(4))
+        yield 500
+        yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
+        yield 800
+        satz4 = tauchen.ergebnis.text()
+        print(ascii(f"T4: {satz4}"))
+        h.pruefe("eigene Verantwortung" in satz4, f"T4: {satz4!r}")
+        h.bild("0_ungeeignet", panel.form)
+        tauchen.wahl_fraeser.setCurrentIndex(nummern.index(1))
+        yield 500
+    tauchen.haken_felder["ungeeignete"].setChecked(False)
     yield 500
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     yield 800

@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-33 tauchen-nicht-freigegeben
+
+### EINGELESEN
+- Manuel, 2026-10-31: „kann man das so machen das man die auch nutzen kann .. aber erst wenn man einen hacken gesetzt hat vonwegen \"werkzeuge nehmen die dafür nciht geeignet sind ...\"“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Haken „ungeeignete“ (Strategie.haken_umgeschaltet füllt die Auswahl neu), `wendeplattenbohrer`, Anteil über `_zusatz`; `camaddon/tauchfraesen.py`: `BRILLE_UNGEPRUEFT` 0,5.
+- `translations/*.json`; `tests/gui/szenario_tauchfraesen.py` (T4 ohne Angabe); `docs/bilder/beta/3e_tauchfraesen_ungeeignet.png`.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.334.1.
+
+### ERGEBNIS
+- szenario_tauchfraesen (T4 nur mit Haken, Satz „auf eigene Verantwortung“), test_tauchfraesen, test_sprache grün.
 ## P-2026-10-31-32 tauchen-brillenbohrung
 
 ### EINGELESEN

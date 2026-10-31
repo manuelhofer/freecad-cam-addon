@@ -576,6 +576,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.334.1):* Haken **„Auch Werkzeuge nehmen, die der Hersteller dafür nicht nennt“** am
+  Tauchfräsen (Manuel: „aber erst wenn man einen hacken gesetzt hat“), aus vorbelegt: dann jeder
+  Wendeplattenbohrer, an den überlappenden Stellen mit 50 % Vorschub, im Satz „auf eigene
+  Verantwortung“. Der Vorschubanteil kommt beim Anlegen aus den Werten des Panels (_zusatz).
+![Nicht freigegeben](bilder/beta/3e_tauchfraesen_ungeeignet.png)
 - *Neu (0.334.0):* **Tauchfräsen mit dem Wendeplattenbohrer (Brillenbohrung)** – Manuel: „ja wenn
   das vom hersteller die genannte methode ist“. Nur Bohrer, für die der Hersteller die
   Brillenbohrung nennt (`bohrverwendung`; eingetragen bei Walter D3120/D4120/D4170 nach dem

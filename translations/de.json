@@ -3669,5 +3669,8 @@
     "wv.bohrverwendung.querbohren": "Querbohrung",
     "wv.bohrverwendung.paketbohren": "Paketbohren",
     "wv.bohrverwendung.unterbrochener_schnitt": "unterbrochener Schnitt",
-    "wv.bohrverwendung.auskesselung": "Auskesselung"
+    "wv.bohrverwendung.auskesselung": "Auskesselung",
+    "ba.tauchfraesen.ungeeignete": "Auch Werkzeuge nehmen, die der Hersteller dafür nicht nennt",
+    "ba.tauchfraesen.ungeeignete.tooltip": "Ohne Haken nimmt das Tauchfräsen nur Tauchfräser, mittenschneidende Fräser und Wendeplattenbohrer, für die der Hersteller die Brillenbohrung nennt. Mit Haken jeden Wendeplattenbohrer – auf eigene Verantwortung, an den überlappenden Stellen mit 50 % Vorschub.",
+    "ba.tauchfraesen.ungeprueft": "Der Hersteller nennt für diesen Bohrer keine Brillenbohrung – auf eigene Verantwortung, überlappend mit {anteil} % Vorschub"
 }

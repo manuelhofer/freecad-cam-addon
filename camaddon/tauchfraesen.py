@@ -43,6 +43,9 @@ AUFMASS = 0.5  # mm – bleibt an der Wand fürs Schlichten
 # genannte methode ist“): an überlappenden Stellen so viel vom Vorschub (Walter, Kompendium
 # Bohrungsbearbeitung 2024, S. B57: Brillenbohrung −30 % f).
 BRILLE_ANTEIL = 0.7
+# … mit einem Wendeplattenbohrer, für den der Hersteller sie nicht nennt (Haken „auch nicht
+# freigegebene Werkzeuge“): vorsichtiger.
+BRILLE_UNGEPRUEFT = 0.5
 SCHNITT_UEBER = 0.01  # mm über dem Boden: dort schneidet gebiet() das Teil
 GRUPPE = "Fräsen"
 
