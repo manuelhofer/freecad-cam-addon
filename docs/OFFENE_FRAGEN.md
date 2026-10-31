@@ -25,6 +25,6 @@ daraus folgt, stehen in [konzept_schritt_assistent.md](konzept_schritt_assistent
    ersten Bild, das Zeile für Zeile aus der Ecke begann). Bei 400 mm/min 3,2 min, 186 cm³/min. An den Rändern bleiben Zwickel, die das
    Schlichten (oder Restschruppen) nimmt. Gebaut als Entwurf (`camaddon/tauchfraesen.py`), noch nicht
    im Assistenten. – *Warum nur Manuel:* eine neue Strategie (abgemacht: erst Bild, dann sein Ja) –
-   und ob die Stellen so liegen sollen (Zeilen, versetzte Zeilen, oder längs der Wand zuerst). –
+   und ob Lage und Reihenfolge der Stellen so passen. –
    *Was die Antwort ändert:* Mit Ja kommt „Tauchfräsen“ als Weg in den Schritt „Schruppen“ der Beta
    (mit Zeit und Vorschau), angeboten, wenn ein Tauchfräser da ist oder im Katalog. – 2026-10-31.
