@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-08 beta-womit-weiter-messstopp
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Antwort 3): „einen knopf "weiter bearbeiten" … die selbe ausgewälte kontor
+  nochmal … entgratet … geschlichtet oder nochmal geschlichtet oder vorgeschlcihtet ... jedes mal
+  dazwischen messschritte“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `WeiterFrage` („Womit weiter?“, auch „noch einmal“, Löcher nur
+  mit Bohrung, „Messstopp davor“); `_anlegen` legt den Messstopp vor die neuen Operationen.
+- `tests/gui/szenario_beta_schritte.py` (Teil 4), Texte, Konzept C3a/C3b, Bild 4, `package.xml`
+  0.325.0.
+
+### ERGEBNIS
+- szenario_beta_schritte (Messstopp, dann 3D-Schlichten), test_sprache grün.
+
 ## P-2026-10-31-07 beta-teil-umspannen
 
 ### EINGELESEN

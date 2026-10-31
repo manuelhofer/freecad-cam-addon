@@ -3387,7 +3387,6 @@
     "beta.unten.modell": "Liegt wie im Modell",
     "beta.unten.modell.tooltip": "Das Teil liegt so auf dem Tisch, wie es modelliert ist – unten ist unten.",
     "beta.weiter.kein_job": "Erst einen Job anklicken, der mit „Bearbeitung in Schritten (Beta)“ angelegt wurde.",
-    "beta.weiter.fertig": "An diesem Job sind alle Schritte schon angelegt – bis zu den Kanten.",
     "einstellungen.beta.haken": "Beta-Funktionen zeigen",
     "einstellungen.beta.hinweis": "Neue Wege zum Ausprobieren, in einer eigenen Werkzeugleiste „CAM-Addon Beta“ und im Menü unter „Beta“ – zurzeit „Bearbeitung in Schritten“, „Weiter bearbeiten“ und „Neue Aufspannung“. Das Gewohnte bleibt, wie es ist.",
     "beta.werte": "Werte ändern",
@@ -3579,5 +3578,16 @@
     "beta.tasche.von": " (von {wer})",
     "beta.tasche.geteilt": "Schruppen: die ganze Tasche ({ganz} Flächen) · Schlichten und Kanten: nur die angeklickten Flächen ({nur}).",
     "beta.umspannen": "Anlegen und Teil umspannen …",
-    "beta.umspannen.tooltip": "Legt an wie „Anlegen“ und öffnet danach dasselbe Teil in einer neuen Aufspannung (ein neuer Job) – in Schritt 2 vorgewählt die Flächen, die hier nicht zu erreichen sind."
+    "beta.umspannen.tooltip": "Legt an wie „Anlegen“ und öffnet danach dasselbe Teil in einer neuen Aufspannung (ein neuer Job) – in Schritt 2 vorgewählt die Flächen, die hier nicht zu erreichen sind.",
+    "beta.weiter.frage": "Womit soll es an denselben Flächen weitergehen?",
+    "beta.weiter.schruppen": "Schruppen",
+    "beta.weiter.loecher": "Löcher",
+    "beta.weiter.schlichten": "Schlichten (oder vorschlichten)",
+    "beta.weiter.kanten": "Kanten (Fasen, Entgraten)",
+    "beta.weiter.nochmal": "{text} – noch einmal",
+    "beta.weiter.aufmass": "Für mehrere Gänge (z. B. schruppen mit 3 mm Aufmaß, dann auf 2, auf 1, auf 0): das Aufmaß je Strategie steht unter „Werte ändern ▸“.",
+    "beta.weiter.messstopp": "Messstopp davor",
+    "beta.weiter.messstopp.tooltip": "Vor den neuen Operationen hält die Maschine (Z hoch, Spindel und Kühlung aus, M0): messen, dann Start – es geht mit Spindel und Kühlung weiter.",
+    "beta.weiter.los": "Weiter",
+    "beta.weiter.keine_loecher": "Löcher – an diesen Flächen keine"
 }

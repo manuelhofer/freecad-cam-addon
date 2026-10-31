@@ -3387,7 +3387,6 @@
     "beta.unten.modell": "Lies as modelled",
     "beta.unten.modell.tooltip": "The part lies on the table as it is modelled – bottom is bottom.",
     "beta.weiter.kein_job": "First click a job created with “Machining in steps (beta)”.",
-    "beta.weiter.fertig": "All steps of this job are already created – up to the edges.",
     "einstellungen.beta.haken": "Show beta functions",
     "einstellungen.beta.hinweis": "New ways to try out, in a toolbar of their own “CAM-Addon Beta” and in the menu under “Beta” – currently “Machining in steps”, “Continue machining” and “New setup”. The usual stays as it is.",
     "beta.werte": "Change values",
@@ -3579,5 +3578,16 @@
     "beta.tasche.von": " (by {wer})",
     "beta.tasche.geteilt": "Roughing: the whole pocket ({ganz} faces) · Finishing and edges: only the clicked faces ({nur}).",
     "beta.umspannen": "Create and re-clamp the part …",
-    "beta.umspannen.tooltip": "Creates like “Create” and then opens the same part in a new setup (a new job) – in step 2 the faces that cannot be reached here are preselected."
+    "beta.umspannen.tooltip": "Creates like “Create” and then opens the same part in a new setup (a new job) – in step 2 the faces that cannot be reached here are preselected.",
+    "beta.weiter.frage": "What should follow on the same faces?",
+    "beta.weiter.schruppen": "Roughing",
+    "beta.weiter.loecher": "Holes",
+    "beta.weiter.schlichten": "Finishing (or semi-finishing)",
+    "beta.weiter.kanten": "Edges (chamfers, deburring)",
+    "beta.weiter.nochmal": "{text} – once more",
+    "beta.weiter.aufmass": "For several passes (e.g. rough with 3 mm stock, then to 2, to 1, to 0): the stock to leave per strategy is under “Change values ▸”.",
+    "beta.weiter.messstopp": "Measuring stop before",
+    "beta.weiter.messstopp.tooltip": "Before the new operations the machine stops (Z up, spindle and coolant off, M0): measure, then Start – it goes on with spindle and coolant.",
+    "beta.weiter.los": "Next",
+    "beta.weiter.keine_loecher": "Holes – none on these faces"
 }

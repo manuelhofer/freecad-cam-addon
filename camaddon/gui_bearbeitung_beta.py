@@ -871,6 +871,25 @@ class BetaPanel(BearbeitungPanel):
 
     # --- Anlegen ----------------------------------------------------------------------------
 
+    def _anlegen(self):
+        """Mit „Messstopp davor“ (Weiter bearbeiten): erst der Messstopp, dann die Operationen –
+        geht das Anlegen nicht, kommt er wieder heraus."""
+        stopp = None
+        ops = list(self.job.Operations.Group) if self.job is not None else []
+        if getattr(self, "_beta_messstopp", False) and ops:
+            from . import messstopp as ms
+
+            davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
+            tc = getattr(davor, "ToolController", None)
+            if tc is not None:
+                stopp = ms.lege_an(self.job, tc, tc)
+        ergebnis = super()._anlegen()
+        if stopp is not None and not ergebnis:
+            self.job.Document.removeObject(stopp.Name)
+        elif stopp is not None:
+            self._beta_messstopp = False  # nur einmal
+        return ergebnis
+
     def _nur_diese_anlegen(self, aktive):
         bis = self._beta_bis
         if bis is None:
@@ -1052,17 +1071,95 @@ class BefehlWeiterBearbeiten:
                 tr("beta.weiter.kein_job"),
             )
             return
-        ab = naechster_abschnitt(job)
-        if ab is None:
-            QtGui.QMessageBox.information(
-                FreeCADGui.getMainWindow(), tr("befehl.beta.weiter.titel"), tr("beta.weiter.fertig")
-            )
-            return
-        weiter_bearbeiten(job, ab)
+        frage = WeiterFrage(FreeCADGui.getMainWindow(), job)
+        if frage.exec():
+            weiter_bearbeiten(job, frage.abschnitt(), frage.messstopp.isChecked())
 
 
-def weiter_bearbeiten(job, ab):
-    """Öffnet die Beta am Job `job` beim Abschnitt `ab` – mit den gemerkten Flächen."""
+class WeiterFrage(QtGui.QDialog):
+    """„Womit weiter?“ (Plan C3; Manuel, 2026-10-31: „einen knopf "weiter bearbeiten" … wo dann die
+    selbe ausgewälte kontor nochmal … entgratet … geschlichtet oder nochmal geschlichtet oder
+    vorgeschlcihtet ... 3 mm aufmass beim schruppen … schlichten auf 2mm … nochmal … auf 1 mm … und
+    jedes mal dazwischen messschritte“): je Schritt eine Wahl – vorgewählt der nach dem zuletzt
+    angelegten, sonst noch einmal Schlichten –, dazu „Messstopp davor“, vorbelegt an."""
+
+    offen = None  # für die Oberflächen-Szenarien
+
+    def __init__(self, eltern, job):
+        super().__init__(eltern)
+        WeiterFrage.offen = self
+        self.setWindowTitle(tr("befehl.beta.weiter.titel"))
+        aufbau = QtGui.QVBoxLayout(self)
+        text = QtGui.QLabel(tr("beta.weiter.frage"))
+        text.setWordWrap(True)
+        aufbau.addWidget(text)
+        zuletzt = int(getattr(job, EIGENSCHAFT_ABSCHNITT, -1))
+        loecher = _hat_loecher(job)
+        vorwahl = naechster_abschnitt(job)
+        if vorwahl == LOECHER and not loecher:
+            vorwahl = SCHLICHTEN
+        if vorwahl is None:
+            vorwahl = SCHLICHTEN
+        self.wahl = {}
+        texte = {
+            SCHRUPPEN: tr("beta.weiter.schruppen"),
+            LOECHER: tr("beta.weiter.loecher"),
+            SCHLICHTEN: tr("beta.weiter.schlichten"),
+            KANTEN: tr("beta.weiter.kanten"),
+        }
+        for a in ABSCHNITTE:
+            knopf_ = QtGui.QRadioButton(texte[a])
+            if a <= zuletzt:
+                knopf_.setText(tr("beta.weiter.nochmal", text=texte[a]))
+            knopf_.setChecked(a == vorwahl)
+            if a == LOECHER and not loecher:
+                knopf_.setEnabled(False)
+                knopf_.setText(tr("beta.weiter.keine_loecher"))
+            aufbau.addWidget(knopf_)
+            self.wahl[a] = knopf_
+        hinweis = _grau(tr("beta.weiter.aufmass"))
+        hinweis.setWordWrap(True)
+        aufbau.addWidget(hinweis)
+        self.messstopp = QtGui.QCheckBox(tr("beta.weiter.messstopp"))
+        self.messstopp.setToolTip(tr("beta.weiter.messstopp.tooltip"))
+        self.messstopp.setChecked(bool(list(job.Operations.Group)))
+        aufbau.addWidget(self.messstopp)
+        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        knoepfe.button(QtGui.QDialogButtonBox.Ok).setText(tr("beta.weiter.los"))
+        knoepfe.accepted.connect(self.accept)
+        knoepfe.rejected.connect(self.reject)
+        aufbau.addWidget(knoepfe)
+
+    def abschnitt(self):
+        return next((a for a, k in self.wahl.items() if k.isChecked()), SCHLICHTEN)
+
+    def done(self, ergebnis):
+        WeiterFrage.offen = None
+        super().done(ergebnis)
+
+
+def _hat_loecher(job):
+    """Ob unter den gemerkten Flächen eine Bohrung ist: ein hohler Zylinder über mindestens einen
+    halben Umfang (Rundungen in Ecken sind Viertel)."""
+    import math
+
+    try:
+        form = vr.modell(job).Shape
+        for name in getattr(job, EIGENSCHAFT_FLAECHEN, []):
+            flaeche = form.getElement(name)
+            if flaeche.Surface.__class__.__name__ != "Cylinder" or tw.gewoelbt(flaeche):
+                continue
+            u0, u1, _v0, _v1 = flaeche.ParameterRange
+            if u1 - u0 >= math.pi - 1e-6:
+                return True
+    except Exception:  # noqa: BLE001 – im Zweifel anbieten
+        return True
+    return False
+
+
+def weiter_bearbeiten(job, ab, messstopp=False):
+    """Öffnet die Beta am Job `job` beim Abschnitt `ab` – mit den gemerkten Flächen; `messstopp`:
+    vor den neuen Operationen ein Messstopp (messstopp.py)."""
     klon = vr.modell(job)
     teil = vr.original(klon)
     flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
@@ -1073,6 +1170,7 @@ def weiter_bearbeiten(job, ab):
         angeklickt=klon,
         flaechen=flaechen,
     )
+    panel._beta_messstopp = messstopp
     FreeCADGui.Control.showDialog(panel)
     return panel
 

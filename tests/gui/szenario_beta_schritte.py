@@ -13,8 +13,10 @@
 # 3. Schruppen: nur Strategien des Schruppens zu sehen. „Weiter“ zum Schlichten (Löcher gibt es
 #    hier nicht – übersprungen), „Zurück“, dann „Anlegen“ im Schruppen: nur das Schruppen kommt in
 #    den Job, am Job steht, was gewählt war und bis wohin angelegt ist.
-# 4. Job anklicken, „Weiter bearbeiten (Beta)“: das Fenster beginnt beim Schlichten, die Flächen
-#    dieselben; „Anlegen“ – das Schlichten kommt dazu.
+# 4. Job anklicken, „Weiter bearbeiten (Beta)“: die Frage „Womit weiter?“ – vorgewählt der Schritt
+#    nach dem Schruppen mit etwas (Löcher gibt es keine: grau), „Schruppen – noch einmal“ wählbar, „Messstopp davor“ an; das Fenster
+#    beginnt beim Schlichten, die Flächen dieselben; „Anlegen“ – erst der Messstopp, dann das
+#    Schlichten (Plan C3).
 # ZEITLIMIT: 900
 import os
 import tempfile
@@ -247,8 +249,21 @@ def schritte(h):
     h.pruefe(
         Gui.Command.get("CamAddon_WeiterBearbeitenBeta").isActive(), "„Weiter bearbeiten“ grau"
     )
-    Gui.runCommand("CamAddon_WeiterBearbeitenBeta")
-    yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen is not panel, 60000)
+    from PySide import QtCore
+
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_WeiterBearbeitenBeta"))
+    yield from h.warte_auf(lambda: beta.WeiterFrage.offen is not None, 10000)
+    frage = beta.WeiterFrage.offen
+    h.pruefe(frage is not None, "keine Frage „Womit weiter?“")
+    if frage is None:
+        return
+    h.pruefe(frage.abschnitt() == beta.SCHLICHTEN, f"vorgewählt: {frage.abschnitt()}")
+    h.pruefe(not frage.wahl[beta.LOECHER].isEnabled(), "„Löcher“ wählbar ohne Bohrung")
+    h.pruefe(frage.messstopp.isChecked(), "„Messstopp davor“ nicht angehakt")
+    h.pruefe("noch einmal" in frage.wahl[beta.SCHRUPPEN].text(), frage.wahl[beta.SCHRUPPEN].text())
+    h.bild("4b_womit_weiter", frage)
+    frage.accept()
+    yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen not in (None, panel), 60000)
     weiter = beta.BearbeitungPanel.offen
     yield from h.warte_auf(lambda: weiter is not None and not weiter.vorschau_laeuft(), 300000)
     yield 1000
@@ -275,6 +290,11 @@ def schritte(h):
     h.pruefe(
         bool(neu) and not any(_art(op) in SCHRUPPEN_MODULE for op in neu),
         f"dazu: {[_art(o) for o in neu]}",
+    )
+    from camaddon import messstopp as ms
+
+    h.pruefe(
+        bool(neu) and ms.ist_messstopp(neu[0]), f"kein Messstopp zuerst: {[o.Label for o in neu]}"
     )
     h.bild("6_job", None)
 

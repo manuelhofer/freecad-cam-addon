@@ -174,11 +174,16 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    wo dann die selbe ausgewälte kontor nochmal … entgratet … geschlichtet oder nochmal geschlichtet
    oder vorgeschlcihtet ... 3 mm aufmass beim schruppen … schlichten auf 2mm … nochmal … auf 1 mm …
    und jedes mal dazwischen messschritte … auf der maschine zu verwirklichen ist mir sehr wichtig“.
-   *Plan C3:* „Weiter bearbeiten“ bleibt der Weg (B4 a/b entfällt) und bekommt auf derselben Kontur:
-   weiteren Gang mit eigenem Aufmaß (Vorschlichten, Schlichten, noch einmal), Entgraten – und
-   **Messschritte** dazwischen: heute gibt es den Messstopp (M0, `messstopp.py`); dazu Messzyklen
-   mit Taster je Steuerung (Siemens CYCLE977/978, Heidenhain 4xx, Fanuc/Renishaw), die das Aufmaß
-   prüfen und den nächsten Gang korrigieren.
+   „Weiter bearbeiten“ bleibt der Weg (B4 a/b entfällt). *Gebaut (0.325.0, C3a):* Es fragt
+   **„Womit soll es an denselben Flächen weitergehen?“** – Schruppen, Löcher (grau ohne Bohrung),
+   Schlichten (oder vorschlichten), Kanten; was schon angelegt ist, heißt „– noch einmal“;
+   vorgewählt das Nächste. Darunter **„Messstopp davor“** (an): vor den neuen Operationen hält die
+   Maschine (Z hoch, Spindel und Kühlung aus, M0). Das Aufmaß je Gang steht unter „Werte ändern ▸“
+   (3 → 2 → 1 → 0 mm).
+   ![Womit weiter](bilder/beta/4_womit_weiter.png)
+   *Plan C3b:* statt Halt zum Messen von Hand **Messzyklen mit Taster** je Steuerung (Siemens
+   CYCLE977/978, Heidenhain 420 ff., Fanuc/Renishaw G65 P9810/P9811), die das Aufmaß messen und den
+   nächsten Gang korrigieren (Werkzeugradius-Korrektur bzw. Aufmaß aus dem Messwert).
 4. **Umspannen** – „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir austesten“.
    *Gebaut (0.324.0, zum Austesten):* Im letzten Schritt **„Anlegen und Teil umspannen …“**: legt
    an wie „Anlegen“ (auch die Ebenen der Kette) und öffnet danach dasselbe Teil in einer neuen
