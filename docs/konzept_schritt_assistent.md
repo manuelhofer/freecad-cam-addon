@@ -200,6 +200,17 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    2026-10-31: „es geht nicht um meine maschine aber für ein cadcam brauchen wir auch keine
    messtaster oder willst du auch messprogramme einbauen .. wär natürlich cool ^^“* – also
    allgemein, je Steuerung im Postprozessor wählbar, nicht für eine bestimmte Maschine.
+   *Plan C3b in zwei Stufen:* Die Bahnen des Addons sind Mittelpunktbahnen ohne G41/G42 – ein
+   Messwert in der Werkzeugkorrektur der Steuerung änderte an ihnen nichts. Darum
+   **Stufe 1 (im Bau):** Der Messstopp aus „Weiter bearbeiten“ trägt das Messmerkmal
+   (`messen.py`: Tasche, Zapfen, Bohrung, Welle – Mitte, Soll nach dem Aufmaß, Messhöhe, in
+   Koordinaten des Jobs). Ist am Postprozessor ein Taster (T-Nummer) und für die Art ein
+   Messzyklus eingetragen, wechselt er den Taster ein und misst statt zu halten; außerhalb der
+   Toleranz hält die Steuerung an. Ohne Taster bleibt der Halt. Die Zyklen je Steuerung (Siemens
+   CYCLE977, Heidenhain 421–424, Renishaw G65 P9812/P9814) kommen aus den Handbüchern.
+   **Stufe 2 (danach):** den nächsten Gang korrigieren – dafür schreibt der Postprozessor die
+   Schlichtbahnen mit Radiuskorrektur im Verschleißmodus (G41/G42, D nur der Verschleiß), und der
+   Zyklus trägt die Abweichung dort ein.
 4. **Umspannen** – „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir austesten“.
    *Gebaut (0.324.0, zum Austesten):* Im letzten Schritt **„Anlegen und Teil umspannen …“**: legt
    an wie „Anlegen“ (auch die Ebenen der Kette) und öffnet danach dasselbe Teil in einer neuen
