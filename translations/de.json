@@ -3639,5 +3639,8 @@
     "beta.weiter.messen.kein_zyklus": "{was} – für {steuerung} gibt es keinen Messzyklus: Die Maschine hält zum Messen von Hand.",
     "beta.weiter.messen.ohne_taster": "{was} – mit der Nummer deines Messtasters misst die Maschine das selbst und hält nur, wenn es außerhalb ±0,02 mm liegt; leer hält sie zum Messen von Hand.",
     "beta.weiter.messen.mit": "Der Taster T{t} misst {was} (±0,02 mm) – angehalten wird nur, wenn es außerhalb liegt.",
-    "beta.werkzeuge.tauchfraesen": "Tauchfräsen"
+    "beta.werkzeuge.tauchfraesen": "Tauchfräsen",
+    "ba.tauchfraesen.vorbohren": "In der Mitte vorbohren",
+    "ba.tauchfraesen.vorbohren.tooltip": "An der ersten Tauchstelle jeder Tasche bohrt davor der größte Bohrer aus dem Magazin, der nicht größer ist als der Fräser, ein Loch bis auf den Boden – dort taucht der Fräser dann ins Loch. Um einen Zapfen nicht: Dort beginnt es im Freien. Angelegt wird FreeCADs „Bohren“ vor dem Tauchfräsen.",
+    "ba.tauchfraesen.vorbohren.kein_bohrer": "Kein Bohrer bis Ø {d} im Magazin – ohne Vorbohren."
 }

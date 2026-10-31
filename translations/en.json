@@ -3639,5 +3639,8 @@
     "beta.weiter.messen.kein_zyklus": "{was} – there is no measuring cycle for {steuerung}: the machine stops for measuring by hand.",
     "beta.weiter.messen.ohne_taster": "{was} – with your touch probe's number the machine measures it itself and only stops if it is outside ±0.02 mm; empty, it stops for measuring by hand.",
     "beta.weiter.messen.mit": "Probe T{t} measures {was} (±0.02 mm) – it only stops if it is outside.",
-    "beta.werkzeuge.tauchfraesen": "Plunge milling"
+    "beta.werkzeuge.tauchfraesen": "Plunge milling",
+    "ba.tauchfraesen.vorbohren": "Pre-drill in the centre",
+    "ba.tauchfraesen.vorbohren.tooltip": "At the first plunge of each pocket, the largest drill in the magazine that is not larger than the cutter drills a hole down to the floor first – the cutter then plunges into that hole. Not around a boss: there it starts in the open. FreeCAD's “Drilling” is created before the plunge milling.",
+    "ba.tauchfraesen.vorbohren.kein_bohrer": "No drill up to Ø {d} in the magazine – without pre-drilling."
 }

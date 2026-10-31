@@ -159,6 +159,23 @@ eilgang_tief = [
 ]
 if not eilgang_tief:
     fehler.append("zweite Lage nicht im Eilgang bis über die erste (Z 26,1)")
+# Vorbohren (Manuel: „bohrt mittig ein loch“): ein Loch an der ersten Stelle, bis auf den Boden.
+bohrer = {"kennung": "b", "durchmesser": 10.0, "spitzenwinkel": 118.0, "schneidenlaenge": 60.0}
+gebohrt = tf.bahn_fuer(
+    job, job.Model.Group, r12, [boden_name], 0.5, 0.2, schneidenlaenge=20.0, vorbohren=bohrer
+)
+vb = gebohrt.vorbohren
+print(f"Vorbohren: {vb.stellen if vb else None}, erste Stelle {gebohrt.punkte[0]}")
+if (
+    vb is None
+    or len(vb.stellen) != 1
+    or abs(vb.stellen[0][2] - 10.2) > 1e-6
+    or (vb.stellen[0][0], vb.stellen[0][1]) != (gebohrt.punkte[0].x, gebohrt.punkte[0].y)
+    or vb.zu_kurz
+):
+    fehler.append(f"Vorbohren: {vb}")
+if tf.bahn_fuer(job, job.Model.Group, r12, [boden_name], 0.5, 0.2).vorbohren is not None:
+    fehler.append("ohne Bohrer vorgebohrt")
 tf.aendere(op, tc, [boden_name], 0.5, 0.2, 12.0)
 doc.recompute()
 if float(op.Schritt) != 12.0 or op.Stellen <= 4:

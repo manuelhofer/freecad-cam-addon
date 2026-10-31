@@ -170,6 +170,7 @@ class Tauchbahn:
     lagen: int  # die meisten Lagen eines Bodens
     boeden: int
     namen: list = None  # die Böden, über denen getaucht wird („Face7“ …)
+    vorbohren: object = None  # raeumen.Vorbohren – in der Mitte jeder Tasche vorgebohrt
 
 
 def bahn_fuer(
@@ -182,10 +183,14 @@ def bahn_fuer(
     schritt=None,
     schneidenlaenge=0.0,
     oben=None,
+    vorbohren=None,
 ):
     """Die Bahn „Tauchfräsen“ (Tauchbahn) über den ebenen Flächen nach oben unter `flaechen`
     („Face7“ …) – von oben nach unten, je Boden die Stellen (stellen) in Lagen bis auf den Boden +
-    `aufmass_boden`. ValueError mit einem Satz, wenn es nicht geht."""
+    `aufmass_boden`. Mit `vorbohren` ({kennung, durchmesser, spitzenwinkel, schneidenlaenge,
+    vorschub} eines Bohrers): an der ersten Stelle jeder Tasche ein Loch bis auf den Boden (Manuel,
+    2026-10-31: „bohrt mittig ein loch“) – um eine Insel nicht, dort beginnt es im Freien.
+    ValueError mit einem Satz, wenn es nicht geht."""
     from . import hoehenfeld as hf
     from . import planfraesen as pf
     from . import vierachs_schlichten as vs
@@ -202,6 +207,7 @@ def bahn_fuer(
     if oben is None:
         oben = z_rohteil
     punkte, stellen_zahl, lagen_zahl, boeden, namen = [], 0, 0, 0, []
+    loecher = []  # (x, y, z) – vorgebohrt
     for ebene in sorted(ebenen, key=lambda e: -e.z):
         z_unten = ebene.z + aufmass_boden
         tiefe = oben - z_unten
@@ -210,7 +216,10 @@ def bahn_fuer(
         boden = form.getElement(ebene.name)
         stellen_ = []
         for stueck in gebiet(form, boden, rohteil, radius + aufmass) if rohteil else [boden]:
-            stellen_ += stellen(stueck, radius, aufmass, schritt)
+            hier = stellen(stueck, radius, aufmass, schritt)
+            if hier and vorbohren and len(stueck.Wires) == 1:
+                loecher.append((hier[0][0], hier[0][1], z_unten))
+            stellen_ += hier
         if not stellen_:
             continue
         lagen = max(1, math.ceil(tiefe / schneidenlaenge - 1e-9)) if schneidenlaenge > 0 else 1
@@ -225,7 +234,28 @@ def bahn_fuer(
         namen.append(ebene.name)
     if not punkte:
         raise ValueError(tr("tf.fehler.eng", d=f"{2 * radius:g}"))
-    return Tauchbahn(punkte, stellen_zahl, lagen_zahl, boeden, namen)
+    bahn_ = Tauchbahn(punkte, stellen_zahl, lagen_zahl, boeden, namen)
+    if loecher:
+        from . import raeumen as ra
+
+        d = float(vorbohren["durchmesser"])
+        winkel = float(vorbohren.get("spitzenwinkel") or 118.0)
+        bohrung = ra.vorbohr_bahn(
+            loecher, d, winkel, oben, oben + 5.0, float(vorbohren.get("vorschub") or 0.0)
+        )
+        laenge = float(vorbohren.get("schneidenlaenge") or 0.0)
+        tiefe = max(oben - z for _x, _y, z in loecher)
+        bahn_.vorbohren = ra.Vorbohren(
+            loecher,
+            d,
+            bohrung.zeit,
+            0.0,
+            bohrung.hube,
+            tiefe,
+            zu_kurz=0 < laenge < tiefe,
+            kennung=str(vorbohren.get("kennung") or ""),
+        )
+    return bahn_
 
 
 def zeit(punkte, eintauchen, eilgang=None, beschleunigung=None):

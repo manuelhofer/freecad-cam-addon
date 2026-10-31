@@ -7,8 +7,8 @@
 # geht. Eine andere Fläche dazu hebt die Teilung auf.
 # Dann bis zum letzten Schritt: „Anlegen und Teil umspannen …“ (Plan C4) legt an und öffnet das
 # Teil in einer neuen Aufspannung (ein zweiter Job); unten die Oberseite, in Schritt 2 vorgewählt,
-# was in der ersten Aufspannung nicht ging und jetzt von oben geht – die alte Unterseite (nicht die
-# Rundungen am Taschenboden, die der Zugang von oben nicht sieht).
+# was in der ersten Aufspannung nicht ging und jetzt von oben geht – die alte Unterseite (die
+# Rundungen am Taschenboden gehen seit 0.329.1 schon in der ersten Aufspannung von oben).
 # ZEITLIMIT: 600
 import os
 import tempfile

@@ -576,6 +576,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.331.4):* **Tauchfräsen mit Vorbohren** (Manuel zum Bild: „Stelle 1 in der Mitte
+  (dort vorgebohrt)“): Haken „In der Mitte vorbohren“, vorbelegt an – der größte Bohrer im Magazin,
+  der nicht größer ist als der Fräser, bohrt an der ersten Stelle jeder Tasche bis auf den Boden
+  (FreeCADs Bohren vor dem Tauchfräsen); um einen Zapfen nicht. Szenario `szenario_tauchfraesen`.
 - *Korrektur (0.331.3):* „Werkzeuge für diese Tasche“ nennt auch **Tauchfräser** (laut Hersteller
   tauchend, bis zum freien Kreis) – am Beta-Testteil Seco R217.79 Ø 32 und Ø 25, Garant 202004 Ø 20.
 - *Korrektur (0.331.2):* „Weiter bearbeiten“ zeigt unter „Messstopp davor“, was gemessen wird

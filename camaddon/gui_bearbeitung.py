@@ -1891,6 +1891,29 @@ class _Tauchfraesen(_Strategie):
                 ebenen.append(boden)
         return ebenen
 
+    def haken(self):
+        # Manuel, 2026-10-31, zum Bild: „Stelle 1 in der Mitte (dort vorgebohrt)“ – vorbelegt an,
+        # nur mit einem Bohrer im Magazin.
+        return (
+            (
+                "vorbohren",
+                tr("ba.tauchfraesen.vorbohren"),
+                tr("ba.tauchfraesen.vorbohren.tooltip"),
+                True,
+            ),
+        )
+
+    def haken_gesperrt(self, feld, block):
+        if feld != "vorbohren":
+            return None
+        fraeser = block.fraeser()
+        if fraeser is None or block.panel._tauch_vorbohrer(fraeser) is not None:
+            return None
+        return tr(
+            "ba.tauchfraesen.vorbohren.kein_bohrer",
+            d=groesse_zeigen(fraeser.durchmesser, einheiten.LAENGE, 1) or "0",
+        )
+
     def vorgeschlagen(self, form, gewaehlte):
         return False  # ein Weg zum Anhaken, nicht der Vorschlag
 
@@ -1919,10 +1942,26 @@ class _Tauchfraesen(_Strategie):
             aufmass_boden=werte["aufmass_boden"],
             schritt=werte["schritt"] or None,
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+            vorbohren=werte.get("vorbohrer") if werte.get("vorbohren") else None,
         )
 
     def ergebnis_text(self, bahn, zeit):
-        return tr("ba.ergebnis_tauchfraesen", stellen=bahn.stellen, lagen=bahn.lagen, zeit=zeit)
+        text = tr("ba.ergebnis_tauchfraesen", stellen=bahn.stellen, lagen=bahn.lagen, zeit=zeit)
+        vorbohren = getattr(bahn, "vorbohren", None)
+        if vorbohren is not None:
+            werte = {
+                "n": len(vorbohren.stellen),
+                "d": groesse_zeigen(vorbohren.durchmesser, einheiten.LAENGE, 1) or "0",
+                "tiefe": groesse_zeigen(vorbohren.tiefe, einheiten.LAENGE, 0) or "0",
+                "zeit": dezimal(f"{vorbohren.zeit:.1f}"),
+            }
+            if len(vorbohren.stellen) == 1:
+                text += ". " + tr("ba.raeumen.vorbohren.ein_loch", **werte)
+            else:
+                text += ". " + tr("ba.raeumen.vorbohren.loecher", **werte)
+            if vorbohren.zu_kurz:
+                text += " " + tr("ba.raeumen.vorbohren.zu_kurz")
+        return text
 
     def lege_an(self, job, tc, werte, flaechen):
         return tfr.lege_an(
@@ -10449,6 +10488,9 @@ class BearbeitungPanel:
         if block is self.nut:
             liste = self._vorbohrer_liste(block.fraeser())
             return {"vorbohrer_liste": liste} if liste else None
+        if block.s.kennung == "tauchfraesen":
+            bohrer = self._tauch_vorbohrer(block.fraeser())
+            return {"vorbohrer": bohrer} if bohrer else None
         if block is self.restraeumen:
             return self._nur_eng()
         if block is self.bohren:
@@ -12069,7 +12111,7 @@ class BearbeitungPanel:
                         ops.append(neue[0])
                         folge.extend(neue[1:])
                     else:
-                        if block is self.raeumen or block is self.nut:
+                        if block in (self.raeumen, self.nut) or block.s.kennung == "tauchfraesen":
                             folge.extend(self._vorbohren_anlegen(block, werte))
                         neue_op = block.s.lege_an(self.job, tc, werte, flaechen)
                         au.setze(neue_op, werte.get("aufloesung", 0.0))
@@ -12226,6 +12268,33 @@ class BearbeitungPanel:
         else:
             self.bibliothek.speichern()
         self._werkzeuge_gespeichert()
+
+    def _tauch_vorbohrer(self, fraeser):
+        """Der Bohrer fürs Vorbohren beim Tauchfräsen (Manuel: „grösten bohrer den man hat bohrt
+        mittig ein loch“): der größte, der nicht größer ist als der Fräser – im Magazin der
+        Maschine (ohne Magazin aus der Werkzeugverwaltung), mit Schnittwerten; None ohne."""
+        if fraeser is None or self.bibliothek is None or fraeser.durchmesser <= 0:
+            return None
+        magazin = self.magazin()
+        kandidaten = []
+        for w in self.bibliothek.werkzeuge:
+            if w.art != wz.BOHRER or not 0 < w.durchmesser <= float(fraeser.durchmesser) + 1e-6:
+                continue
+            if magazin is not None and mg.rang(w, magazin) == mg.NICHT_IM_MAGAZIN:
+                continue
+            einsaetze = self.bohren._passende_einsaetze(w, self.werkstoff())
+            if einsaetze:
+                kandidaten.append((w, js.werte(w, einsaetze[0])[1]))
+        if not kandidaten:
+            return None
+        w, vorschub = max(kandidaten, key=lambda k: k[0].durchmesser)
+        return {
+            "kennung": w.kennung,
+            "durchmesser": float(w.durchmesser),
+            "spitzenwinkel": float(w.spitzenwinkel or wz.SPITZENWINKEL_BOHRER),
+            "schneidenlaenge": float(w.schneidenlaenge or 0.0),
+            "vorschub": float(vorschub),
+        }
 
     def _vorbohrer(self, fraeser):
         """Der Bohrer fürs Vorbohren zum Räumfräser `fraeser` – {kennung, durchmesser,

@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-23 tauchen-vorbohren
+
+### EINGELESEN
+- Manuel, 2026-10-31, zum Bild Tauchfräsen („Stelle 1 in der Mitte (dort vorgebohrt)“): „ja.. so ists ok“.
+
+### DATEIEN
+- `camaddon/tauchfraesen.py`: `bahn_fuer(…, vorbohren=…)` – Loch an der ersten Stelle jeder Tasche (Tauchbahn.vorbohren).
+- `camaddon/gui_bearbeitung.py`: Haken „In der Mitte vorbohren“, `_tauch_vorbohrer` (der größte Bohrer bis Ø Fräser), Vorbohren beim Anlegen.
+- `translations/*.json`; `tests/test_tauchfraesen.py`; neu `tests/gui/szenario_tauchfraesen.py`; Kommentar in `szenario_beta_tasche.py`.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.331.4.
+
+### ERGEBNIS
+- test_tauchfraesen, test_sprache, szenario_tauchfraesen (Vorbohren T3 vor Tauchfräsen T1), szenario_beta_schritte grün.
 ## P-2026-10-31-22 tauchfraeser-vorschlagen
 
 ### EINGELESEN
