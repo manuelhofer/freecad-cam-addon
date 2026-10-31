@@ -997,7 +997,7 @@
     "schneidstoff": "vhm",
     "beschichtung": "AlCrN",
     "mittenschneidend": true,
-    "bohrfraesen": true,
+    "zirkularfraesen": true,
     "werkstoffe": [
      "K",
      "M",
@@ -3598,7 +3598,7 @@
     "schneidstoff": "vhm",
     "beschichtung": "TiAlN",
     "kuehlung_innen": false,
-    "bohrfraesen": true,
+    "zirkularfraesen": true,
     "werkstoffe": [
      "H",
      "M",
@@ -14959,7 +14959,7 @@
     "kuehlung_innen": false,
     "mittenschneidend": true,
     "einsatzzweck": "HPC",
-    "bohrfraesen": true,
+    "zirkularfraesen": true,
     "tauchfraesen": true,
     "werkstoffe": [
      "N1",
@@ -15856,7 +15856,7 @@
     "kuehlung_innen": false,
     "mittenschneidend": true,
     "einsatzzweck": "HPC",
-    "bohrfraesen": true,
+    "zirkularfraesen": true,
     "tauchfraesen": true,
     "werkstoffe": [
      "N1",
@@ -16527,7 +16527,7 @@
     "kuehlung_innen": true,
     "mittenschneidend": true,
     "einsatzzweck": "HPC",
-    "bohrfraesen": true,
+    "zirkularfraesen": true,
     "tauchfraesen": true,
     "werkstoffe": [
      "N1",
@@ -16794,7 +16794,7 @@
     "kuehlung_innen": true,
     "mittenschneidend": true,
     "einsatzzweck": "HPC",
-    "bohrfraesen": true,
+    "zirkularfraesen": true,
     "tauchfraesen": true,
     "werkstoffe": [
      "N1",

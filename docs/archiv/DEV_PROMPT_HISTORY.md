@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-36 hoffmann-bohrer-vollstaendig
+
+### EINGELESEN
+- Manuel, 2026-10-31: Hoffmann langsam abrufen erlaubt („mach es einfach langsamer !!!“); der
+  Restabruf (rest_abruf.py, eine Anfrage nach der anderen) lief bis 18:28 und hörte bei HTTP 429
+  sofort auf (556 Anfragen).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/hoffmann_bohren.json`: 170 Reihen durch ihre vollständigen
+  Fassungen ersetzt (alle Seiten der Größentabelle), 225 Reihen / 16 145 Größen (vorher 6506).
+- `camaddon/werkzeugkiste_daten/hoffmann_fraeser.json`, `hoffmann_rest.json`: neu übernommen.
+- `camaddon/kataloge_index.json` neu (11 Dateien, 17,7 MB); `translations/*.json`: „Rund 57 000
+  Werkzeuge“; `package.xml` 0.336.1.
+
+### ERGEBNIS
+- Übernahme: Fehler 0, doppelt 0. test_kataloge, test_werkzeugkiste_datei grün.
 ## P-2026-10-31-35 kataloge-download-werkzeugkiste-schnell
 
 ### EINGELESEN

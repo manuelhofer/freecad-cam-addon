@@ -4719,7 +4719,7 @@
     "schneidstoff": "vhm",
     "beschichtung": "DLC",
     "mittenschneidend": true,
-    "bohrfraesen": true,
+    "zirkularfraesen": true,
     "werkstoffe": [
      "N1",
      "N2"

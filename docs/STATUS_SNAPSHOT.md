@@ -576,6 +576,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.336.1):* **Hoffmann-Bohrer vollständiger:** 170 Reihen mit allen Größen statt der
+  ersten Seite (hoffmann_bohren 6506 → 16 145 Größen), Kataloge jetzt 17,7 MB (gepackt etwa 1 MB).
+  Der Restabruf hörte nach 556 Anfragen bei HTTP 429 sofort auf; der Rest folgt später.
 - *Neu (0.336.0):* **Kataloge der Hersteller als eigener Download** (Manuel: „hey sollen wir die
   kataloginhalte downloaden … ja nein vll“): Werkzeuge, Halter und Spannmittel kommen nicht mehr
   mit dem Update-Paket (2,99 → 2,07 MB), sondern auf Wunsch von GitHub ins FreeCAD-Profil

@@ -21,16 +21,16 @@
    "sha256": "e2c74529d734bafe86f23bfd8c0d823c3ee2c544c761d10783e6ed99dae2ed12"
   },
   "werkzeugkiste_daten/hoffmann_bohren.json": {
-   "groesse": 1767280,
-   "sha256": "32142969b575b35dc69e163f49a976fbbc95f974e3666b10710d7feec44dd921"
+   "groesse": 4098088,
+   "sha256": "30da91091c272c2eb3708862cbf7023c6fcc946b62ff6aadab0fe8e3b207dc02"
   },
   "werkzeugkiste_daten/hoffmann_fraeser.json": {
-   "groesse": 129547,
-   "sha256": "08b8265a46027a49c80385c81f9244478019bf3f63a78d9d0cc07c13ac28b561"
+   "groesse": 129551,
+   "sha256": "adbc52af751df5f0da684573a1fb6f86d9a262c288f5515d215070d3c25228ae"
   },
   "werkzeugkiste_daten/hoffmann_rest.json": {
-   "groesse": 424856,
-   "sha256": "bd8685848c0a936925e7fa1433c98c3036aaae1c0bbb545b043020c6acbe7427"
+   "groesse": 424880,
+   "sha256": "a0c52cd0138565ea0f48e45b8793916a4c26d679d61a1c9213a99514285c7717"
   },
   "werkzeugkiste_daten/iscar_kennametal_tungaloy.json": {
    "groesse": 183998,

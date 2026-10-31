@@ -3682,7 +3682,7 @@
     "beta.weiter.korrigieren.tooltip": "Liegt das Maß daneben, trägt der Messzyklus die Abweichung als Radius-Verschleiß beim Schlichtfräser ein (z. B. Tasche 0,04 zu klein → −0,02) – der Fertiggang trifft dann das Maß, ohne Halt. Dafür schlichten die Strategien mit Radiuskorrektur der Steuerung (G41/G42; der Haken wird gesetzt). Über 0,5 mm Abweichung korrigiert er nicht und hält mit Alarm. Aus: messen und nur anhalten, wenn es außerhalb liegt.",
     "beta.weiter.messen.mit_korrektur": "Der Taster T{t} misst {was} und trägt eine Abweichung als Radius-Verschleiß beim Schlichtfräser ein – angehalten wird nur über 0,5 mm.",
     "kg.titel": "Kataloge der Hersteller",
-    "kg.frage": "Sollen die Kataloge der Hersteller geladen werden? Rund 47 000 Werkzeuge (Sandvik, Seco, Walter, Gühring, MAPAL, Fraisa, Hoffmann …), 6300 Halter und 1950 Spannmittel – damit macht das Addon deutlich bessere Vorschläge: welches Werkzeug passt, welcher Halter reicht, worin das Teil passt. Sie kommen von GitHub ins FreeCAD-Profil und bleiben bei jedem Update.",
+    "kg.frage": "Sollen die Kataloge der Hersteller geladen werden? Rund 57 000 Werkzeuge (Sandvik, Seco, Walter, Gühring, MAPAL, Fraisa, Hoffmann …), 6300 Halter und 1950 Spannmittel – damit macht das Addon deutlich bessere Vorschläge: welches Werkzeug passt, welcher Halter reicht, worin das Teil passt. Sie kommen von GitHub ins FreeCAD-Profil und bleiben bei jedem Update.",
     "kg.groesse": "Etwa {download} Download, {platte} auf der Platte.",
     "kg.ja": "Ja, laden",
     "kg.ja.tooltip": "Lädt die Kataloge jetzt; neue Fassungen nach einem Update holt das Addon dann von selbst.",
