@@ -3547,5 +3547,19 @@
     "sm.beschreibung.backe_vorn": "fixed jaw at the front",
     "sm.beschreibung.backe_links": "fixed jaw on the left",
     "sm.beschreibung.backe_rechts": "fixed jaw on the right",
-    "sm.beschreibung.in_x": "clamps in X"
+    "sm.beschreibung.in_x": "clamps in X",
+    "wv.schneidstoff.wsp.kurz": "indexable",
+    "wv.schneidstoff.wsp": "Indexable inserts (carbide)",
+    "wv.kann": "Can, per manufacturer: {text}",
+    "wv.kann.tooltip": "What the manufacturer says about this tool (from the catalogue) – the add-on will use it to choose how a pocket is cleared (pre-drilling, helix, drill-milling, plunge milling).",
+    "wv.kann.mittenschneidend": "centre cutting (plunges vertically)",
+    "wv.kann.nicht_mittenschneidend": "not centre cutting (ramp/helix or pre-drill only)",
+    "wv.kann.bohrfraesen": "drill-milling",
+    "wv.kann.tauchfraesen": "plunge milling",
+    "wv.kann.hochvorschub": "high feed",
+    "wv.kann.kuehlung_innen": "internal coolant",
+    "wv.kann.bohrtiefe": "up to {d} × D deep",
+    "wv.kann.eintauchtiefe": "plunges up to {mm} mm",
+    "wv.kann.wendeplatten": "indexable inserts{platte}",
+    "wv.kann.werkstoffe": "for {klassen}"
 }

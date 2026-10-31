@@ -499,6 +499,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schneidstoff = QtGui.QComboBox()
         self.feld_schneidstoff.addItem(tr("wv.schneidstoff.vhm"), wz.VHM)
         self.feld_schneidstoff.addItem(tr("wv.schneidstoff.hss"), wz.HSS)
+        self.feld_schneidstoff.addItem(tr("wv.schneidstoff.wsp"), wz.WSP)
         self.feld_schneidstoff.setToolTip(tr("wv.schneidstoff.tooltip"))
         self.feld_schneidstoff.currentIndexChanged.connect(self._schneidstoff_geaendert)
         self._felder["schneidstoff"] = (QtGui.QLabel(), self.feld_schneidstoff)
@@ -581,6 +582,11 @@ class WerkzeugDialog(QtGui.QDialog):
         self.beispiel_hinweis.setWordWrap(True)
         self.beispiel_hinweis.setStyleSheet(f"color: {GRAU.name()};")
         self.hinweis = hinweiszeile()
+        # Grau: was es laut Hersteller kann (Werkzeugkiste, Format Abschnitt 3a).
+        self.kann = QtGui.QLabel()
+        self.kann.setWordWrap(True)
+        self.kann.setStyleSheet(f"color: {GRAU.name()};")
+        self.kann.setToolTip(tr("wv.kann.tooltip"))
         # Rechts neben den Feldern das Werkzeug im richtigen Verhältnis.
         self.werkzeugbild = WerkzeugBild()
         self.werkzeugbild.setToolTip(tr("wv.werkzeugbild.tooltip"))
@@ -831,6 +837,7 @@ class WerkzeugDialog(QtGui.QDialog):
             self.feld_bezeichnung,
             *(teil for paar in self._herkunft for teil in paar),
             self.beispiel_hinweis,
+            self.kann,
             self.hinweis,
             self.werkzeugbild,
         ):
@@ -865,8 +872,9 @@ class WerkzeugDialog(QtGui.QDialog):
             gitter.addWidget(beschriftung, reihe, spalte)
             gitter.addWidget(zeile, reihe, spalte + 1)
         gitter.addWidget(self.beispiel_hinweis, unten + 5, 0, 1, 4)
-        gitter.addWidget(self.hinweis, unten + 6, 0, 1, 4)
-        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 7, 1, QtCore.Qt.AlignTop)
+        gitter.addWidget(self.kann, unten + 6, 0, 1, 4)
+        gitter.addWidget(self.hinweis, unten + 7, 0, 1, 4)
+        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 8, 1, QtCore.Qt.AlignTop)
 
     def _ausspann_markieren(self, w):
         """„Schaut aus dem Halter (Standard)“ – und steht im Magazin einer Maschine je Platz ein
@@ -1055,6 +1063,9 @@ class WerkzeugDialog(QtGui.QDialog):
                 )
         self.hinweis.setText("\n".join(saetze))
         self.hinweis.setVisible(bool(saetze))
+        kann = wz.faehigkeiten_text(w) if w is not None else ""
+        self.kann.setText(tr("wv.kann", text=kann) if kann else "")
+        self.kann.setVisible(bool(kann))
 
     def _halter_anbieten(self):
         """Die Auswahl der Halter: „ohne“ und alle nach Namen; gewählt der des Werkzeugs."""

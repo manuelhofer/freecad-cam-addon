@@ -92,7 +92,7 @@ BEARBEITUNGSARTEN = {
     wz.EIGEN: None,
 }
 
-SCHNEIDSTOFFE = {wz.VHM: "Carbide", wz.HSS: "HSS"}
+SCHNEIDSTOFFE = {wz.VHM: "Carbide", wz.HSS: "HSS", wz.WSP: "Carbide"}
 VORSCHUBVERHAELTNIS_EINTAUCHEN = 0.33  # wie FreeCADs Vorgabe für neue Presets
 VORSCHUBVERHAELTNIS_BOHREN = 1.0  # Bohren: der Vorschub ist der senkrechte
 # Kanten der Länge 0 mögen CAMs Skizzen nicht (keine Kappe unter der Säge,

@@ -883,6 +883,11 @@ def werkzeuge(reihe):
             if feld in ("link", "artikel", "name", "bezeichnung", "katalog") or feld[0] == "_":
                 continue  # „_…“: nur zum Vergleichen (werkzeugkiste_datei)
             setattr(w, feld, wert)
+        # Was es kann: die der Reihe, ergänzt um die der Größe (Format Abschnitt 3a).
+        w.faehigkeiten = {
+            **reihe.gemeinsam.get("faehigkeiten", {}),
+            **groesse.get("faehigkeiten", {}),
+        }
         w.name = werte.get("name", "")
         w.hersteller = reihe.hersteller
         w.artikel = werte.get("artikel", "")

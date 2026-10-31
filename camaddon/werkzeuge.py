@@ -105,9 +105,46 @@ DREHRICHTUNG = "drehrichtung"
 DREHRICHTUNGEN = (RECHTS, LINKS)
 
 VHM, HSS = "vhm", "hss"
+WSP = "wsp"  # Wendeplatten (Hartmetall) auf einem Grundkörper – rechnet wie VHM
 # Spitzenwinkel eines Bohrers, wenn keiner eingetragen ist: üblich für Spiralbohrer.
 SPITZENWINKEL_BOHRER = 118.0  # Grad
-SCHNEIDSTOFFE = (VHM, HSS)
+SCHNEIDSTOFFE = (VHM, HSS, WSP)
+# Was ein Werkzeug laut Hersteller kann (Werkzeugkiste, Format Abschnitt 3a; Manuel, 2026-10-31:
+# „das wir wissen welche werkzeuge es auf dem markt gibt und was sie können“) – Name → Typ. Daran
+# wählt das Addon später den Weg (vorbohren, Helix, Bohrfräsen, Tauchfräsen) und schlägt Werkzeuge
+# vor. Fehlt ein Eintrag, ist es unbekannt.
+FAEHIGKEITEN = {
+    "mittenschneidend": bool,
+    "bohrfraesen": bool,
+    "tauchfraesen": bool,
+    "hochvorschub": bool,
+    "wendeplatten": bool,
+    "kuehlung_innen": bool,
+    "max_eintauchtiefe": float,
+    "seitlich_versetzt": float,
+    "bohrtiefe_d": float,
+    "platte": str,
+    "einsatzzweck": str,
+    "werkstoffe": list,
+}
+
+
+def faehigkeit_lesen(name, wert):
+    """Ein Wert für FAEHIGKEITEN[name] – oder None, wenn er nicht passt."""
+    typ = FAEHIGKEITEN.get(name)
+    if typ is bool:
+        return wert if isinstance(wert, bool) else None
+    if typ is float:
+        ok = isinstance(wert, (int, float)) and not isinstance(wert, bool) and wert >= 0
+        return float(wert) if ok else None
+    if typ is str:
+        return str(wert).strip() or None if isinstance(wert, (str, int, float)) else None
+    if typ is list:
+        if isinstance(wert, str):
+            wert = [w.strip() for w in wert.split(",")]
+        return [str(w) for w in wert if str(w).strip()] or None if isinstance(wert, list) else None
+    return None
+
 
 # Steht in der Werkstoff-Auswahl für „Alle Werkstoffe“: Werte, die für jeden
 # Werkstoff gelten, der keine eigenen hat.
@@ -273,9 +310,44 @@ def ausfuehrung_text(ausfuehrung):
     }.get(ausfuehrung, tr("wv.ausfuehrung.unbekannt"))
 
 
+def faehigkeiten_text(werkzeug):
+    """„mittenschneidend · Bohrfräsen · bis 3 × D · Wendeplatten (SEKT 1204) · HPC-Schruppen“ – was
+    das Werkzeug laut Hersteller kann (FAEHIGKEITEN); leer, wenn nichts bekannt ist."""
+    f = werkzeug.faehigkeiten
+    teile = []
+    if f.get("mittenschneidend") is True:
+        teile.append(tr("wv.kann.mittenschneidend"))
+    elif f.get("mittenschneidend") is False:
+        teile.append(tr("wv.kann.nicht_mittenschneidend"))
+    for name, text in (
+        ("bohrfraesen", tr("wv.kann.bohrfraesen")),
+        ("tauchfraesen", tr("wv.kann.tauchfraesen")),
+        ("hochvorschub", tr("wv.kann.hochvorschub")),
+        ("kuehlung_innen", tr("wv.kann.kuehlung_innen")),
+    ):
+        if f.get(name):
+            teile.append(text)
+    if f.get("bohrtiefe_d"):
+        teile.append(tr("wv.kann.bohrtiefe", d=f"{f['bohrtiefe_d']:g}"))
+    if f.get("max_eintauchtiefe"):
+        teile.append(tr("wv.kann.eintauchtiefe", mm=f"{f['max_eintauchtiefe']:g}"))
+    if f.get("wendeplatten"):
+        platte = f.get("platte")
+        teile.append(tr("wv.kann.wendeplatten", platte=f" ({platte})" if platte else ""))
+    if f.get("einsatzzweck"):
+        teile.append(f["einsatzzweck"])
+    if f.get("werkstoffe"):
+        teile.append(tr("wv.kann.werkstoffe", klassen=", ".join(f["werkstoffe"])))
+    return " · ".join(teile)
+
+
 def schneidstoff_text(schneidstoff):
     """Kurzname des Schneidstoffs, wie er in der Liste steht: „VHM“, „HSS“."""
-    return {VHM: tr("wv.schneidstoff.vhm.kurz"), HSS: tr("wv.schneidstoff.hss.kurz")}[schneidstoff]
+    return {
+        VHM: tr("wv.schneidstoff.vhm.kurz"),
+        HSS: tr("wv.schneidstoff.hss.kurz"),
+        WSP: tr("wv.schneidstoff.wsp.kurz"),
+    }[schneidstoff]
 
 
 def einsatzart_text(art):
@@ -466,6 +538,8 @@ class Werkzeug:
     katalog: str = ""
     # Werkstoff-Kennung oder ALLE -> die Einsätze mit ihren Werten.
     schnittwerte: dict = field(default_factory=dict)
+    # Was es laut Hersteller kann (FAEHIGKEITEN): {"mittenschneidend": True, …}; leer = unbekannt.
+    faehigkeiten: dict = field(default_factory=dict)
     # Felder, die noch Beispielwerte halten (grau gezeigt, aber gültig); nicht gespeichert.
     beispiel: set = field(default_factory=set, compare=False, repr=False)
 
@@ -600,6 +674,7 @@ class Werkzeug:
                 for werkstoff, liste in self.schnittwerte.items()
                 if liste or werkstoff != ALLE
             },
+            **({"faehigkeiten": dict(self.faehigkeiten)} if self.faehigkeiten else {}),
         }
 
     @classmethod
@@ -655,6 +730,13 @@ class Werkzeug:
                 if isinstance(liste, list)
             }
             _vertreter_zu_klassen(w.schnittwerte)
+        # Erst seit 0.321 – fehlen sie, sind sie unbekannt.
+        faehigkeiten = daten.get("faehigkeiten")
+        if isinstance(faehigkeiten, dict):
+            for name, wert in faehigkeiten.items():
+                gelesen = faehigkeit_lesen(name, wert)
+                if gelesen is not None:
+                    w.faehigkeiten[name] = gelesen
         return w
 
 

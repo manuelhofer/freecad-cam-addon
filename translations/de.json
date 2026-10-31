@@ -3547,5 +3547,19 @@
     "sm.beschreibung.backe_vorn": "feste Backe vorn",
     "sm.beschreibung.backe_links": "feste Backe links",
     "sm.beschreibung.backe_rechts": "feste Backe rechts",
-    "sm.beschreibung.in_x": "spannt in X"
+    "sm.beschreibung.in_x": "spannt in X",
+    "wv.schneidstoff.wsp.kurz": "WSP",
+    "wv.schneidstoff.wsp": "Wendeplatten (Hartmetall)",
+    "wv.kann": "Kann laut Hersteller: {text}",
+    "wv.kann.tooltip": "Was der Hersteller zu diesem Werkzeug sagt (aus dem Katalog) – daran wählt das Addon später, wie eine Tasche ausgeräumt wird (vorbohren, Helix, Bohrfräsen, Tauchfräsen).",
+    "wv.kann.mittenschneidend": "mittenschneidend (taucht senkrecht ein)",
+    "wv.kann.nicht_mittenschneidend": "nicht mittenschneidend (nur Rampe/Helix oder vorbohren)",
+    "wv.kann.bohrfraesen": "Bohrfräsen",
+    "wv.kann.tauchfraesen": "Tauchfräsen",
+    "wv.kann.hochvorschub": "Hochvorschub",
+    "wv.kann.kuehlung_innen": "innere Kühlung",
+    "wv.kann.bohrtiefe": "bis {d} × D tief",
+    "wv.kann.eintauchtiefe": "taucht bis {mm} mm ein",
+    "wv.kann.wendeplatten": "Wendeplatten{platte}",
+    "wv.kann.werkstoffe": "für {klassen}"
 }

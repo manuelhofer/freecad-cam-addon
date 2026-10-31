@@ -48,8 +48,17 @@ _WERKZEUGFELDER = {f.name for f in fields(wz.Werkzeug)} | {"auskragung"}
 _NICHT_AUS_DATEI = {
     "kennung", "nummer", "art", "schnittwerte", "beispiel", "name", "bezeichnung", "hersteller",
     "artikel", "link", "katalog", "halter", "laenge_spindelnase", "ausspannlaenge",
-    "ae_warngrenze",
+    "ae_warngrenze", "faehigkeiten",
 }  # fmt: skip
+# Arten aus Abschnitt 3a, die das Addon als eine vorhandene Art mit Fähigkeit führt – so bleiben Bild,
+# Bahnen und Werkzeugverwaltung, wie sie sind, und die Vorschläge wählen nach der Fähigkeit.
+_ARTEN_MIT_FAEHIGKEIT = {
+    "wendeplattenbohrer": (wz.BOHRER, {"wendeplatten": True}),
+    "tauchfraeser": (wz.SCHAFTFRAESER, {"tauchfraesen": True}),
+    "hochvorschubfraeser": (wz.TORUSFRAESER, {"hochvorschub": True}),
+}
+# Einsätze aus Abschnitt 3a, die das Addon unter einem vorhandenen führt.
+_ANDERE_EINSAETZE = {"tauchfraesen": wz.SCHRUPPEN, "hochvorschub": wz.SCHRUPPEN}
 _TEXTE = ("artikel", "name", "link", "beschichtung", "schneidstoff", "ausfuehrung", "drehrichtung")
 _ANDERE_NAMEN = {"auskraglaenge": "auskragung", "nutzlaenge": "auskragung", "zaehne": "schneiden"}
 # Schneidstoffe, wie Kataloge sie schreiben – HSS-E, HSS-Co, PM sind HSS; HM, Hartmetall, VHM.
@@ -58,6 +67,8 @@ _SCHNEIDSTOFFE = {
     "solid carbide": wz.VHM, "hss": wz.HSS, "hss-e": wz.HSS, "hsse": wz.HSS, "hss-e-pm": wz.HSS,
     "hss-pm": wz.HSS, "hss-co": wz.HSS, "hssco": wz.HSS, "hss co 5": wz.HSS, "hss co 8": wz.HSS,
     "hss co 10": wz.HSS, "hss-co5": wz.HSS, "hss-co8": wz.HSS, "hss-co10": wz.HSS,
+    "wsp": wz.WSP, "wendeplatte": wz.WSP, "wendeplatten": wz.WSP, "indexable": wz.WSP,
+    "hm-wendeplatten": wz.WSP,
 }  # fmt: skip
 _UMLAUTE = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
 _WERTE = ("vc", "fz", "f", "ap", "ap_d", "ae", "ae_d", "ae_max", "ae_max_d")
@@ -190,6 +201,7 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
         pruefung.fehler.append(tr("wd.fehler.kennung_belegt", stelle=stelle, wo=wo))
         return None
     art = wz.ALTE_ARTEN.get(daten["art"], daten["art"])
+    art, faehig = _ARTEN_MIT_FAEHIGKEIT.get(art, (art, {}))
     if art not in wz.ARTEN:
         pruefung.fehler.append(tr("wd.fehler.art", stelle=stelle, art=daten["art"]))
         return None
@@ -206,6 +218,8 @@ def _reihe(daten, nummer, name, pruefung, gesehen, index):
             tr("wd.hinweis.fremde_form", stelle=stelle, wort=fremd, art=wz.art_text(art))
         )
     gemeinsam = _felder(daten.get("gemeinsam") or {}, stelle, pruefung)
+    if faehig:
+        gemeinsam["faehigkeiten"] = {**faehig, **gemeinsam.get("faehigkeiten", {})}
     werte_reihe = _schnittwerte(daten.get("schnittwerte"), art, stelle, pruefung)
     mit_werten = bool(werte_reihe)
     fertige = []
@@ -294,6 +308,13 @@ def _felder(daten, stelle, pruefung):
         if name in ("artikel", "name", "link"):
             ergebnis[name] = str(wert).strip()
             continue
+        if name in wz.FAEHIGKEITEN:  # Abschnitt 3a
+            gelesen = wz.faehigkeit_lesen(name, wert)
+            if gelesen is None:
+                pruefung.hinweise.append(tr("wd.hinweis.wert", stelle=stelle, feld=feld, wert=wert))
+            else:
+                ergebnis.setdefault("faehigkeiten", {})[name] = gelesen
+            continue
         if name not in _WERKZEUGFELDER or name in _NICHT_AUS_DATEI:
             pruefung.hinweise.append(tr("wd.hinweis.unbekannt", stelle=stelle, feld=feld))
             continue
@@ -345,6 +366,7 @@ def _schnittwerte(daten, art, stelle, pruefung):
             pruefung.hinweise.append(tr("wd.hinweis.schnittwerte", stelle=stelle))
             continue
         for einsatz, werte in einsaetze.items():
+            einsatz = _ANDERE_EINSAETZE.get(einsatz, einsatz)
             if einsatz not in arten:
                 pruefung.hinweise.append(
                     tr("wd.hinweis.einsatz", stelle=stelle, einsatz=einsatz, art=wz.art_text(art))
