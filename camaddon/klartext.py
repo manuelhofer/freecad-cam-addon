@@ -53,6 +53,7 @@ KLARTEXT = (
     "CR ",
     "CT ",
     "CYCL ",
+    "TCH PROBE",  # Messzyklen des Tasters (Plan C3b: 421–424)
     "PLANE ",
     "FUNCTION ",
     "BLK FORM",
@@ -270,7 +271,7 @@ class _Uebersetzer:
         roh = roh.strip()
         if not roh:
             return
-        if roh.startswith(("TOOL CALL", "CYCL DEF", "PLANE", "*")):
+        if roh.startswith(("TOOL CALL", "CYCL DEF", "TCH PROBE", "PLANE", "*")):
             self.pol = None
         if roh.startswith(";"):
             self.kommentar(roh[1:])
@@ -296,8 +297,8 @@ class _Uebersetzer:
             if roh.startswith(("CYCL DEF 7.", "PLANE SPATIAL")):
                 roh = _mit_vorzeichen(roh, self.stellen)
             self.aus.append(roh)
-            if roh.startswith("CYCL DEF") or roh.startswith("PLANE"):
-                self.wechsel_offen = None
+            if roh.startswith(("CYCL DEF", "TCH PROBE", "PLANE")):
+                self.wechsel_offen = None  # der Taster dreht nicht: keine Drehzahl in den Aufruf
             return
         woerter = _woerter(roh)
         if not woerter:

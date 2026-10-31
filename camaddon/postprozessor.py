@@ -468,6 +468,90 @@ _KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90 G94"
 _MKS = ("G53 G0 {achsen}",)
 _ENDE = "M5\nM9\nM30\n%"
 
+# Messzyklen (Plan C3b) – nur prüfen, nicht korrigieren; Quellen: Siemens Messzyklen
+# Programmierhandbuch 06/2019 (A5E44904897A AB, Kap. 4.1.7: CYCLE977 – Hunderter von S_MVAR 0 „nur
+# Messen“; die Toleranz wirkt dort nur mit Werkzeugkorrektur, darum die eigene Abfrage über
+# _OVR[16]/[17], die Abweichung der Längen bzw. des Ø); Heidenhain TNC 640 Messzyklen 10/2023
+# (1303409-13, Kap. 6.5–6.10: 421–424, Q309=1 hält bei Toleranzfehler, Q330=0 korrigiert nichts);
+# Renishaw Inspection Plus H-2000-6031/-6222 (G65 P9812/P9814 nur mit H – ohne S und T keine
+# Korrektur, außerhalb hält „OUT OF TOL“). Vorgestellt wird über der Mitte, Tasche und Bohrung auf
+# Messhöhe, Zapfen und Welle senkt der Zyklus selbst ab.
+_SIEMENS_PRUEFEN = (
+    "IF (ABS(_OVR[16])>{tol}) OR (ABS(_OVR[17])>{tol}) GOTOF MESSEN_AUS{n}\nGOTOF MESSEN_OK{n}\n"
+    'MESSEN_AUS{n}:\nMSG("Messen: ausser Toleranz")\nM0\nMSG()\nMESSEN_OK{n}:\nG0 Z{sicher}'
+)
+_SIEMENS_PRUEFEN_RUND = _SIEMENS_PRUEFEN.replace(" OR (ABS(_OVR[17])>{tol})", "")
+# Nach S_STA1: S_ID, S_SZA, S_SZO, S_MA leer, S_NMSP 1, S_TNAME "", S_DLNUM, S_TZL … S_TMV 0, S_K 1,
+# S_EVNUM 0, S_MCBIT, _DMODE 1 (G17), _AMODE 0 (Handbuch S. 72f: „0,,,,,1,…“).
+_SIEMENS_REST = ',,,,,1,"",,0,0,0,0,0,1,0,,1,0)\n'
+MESSEN_SIEMENS = {
+    "messen_tasche": "G0 X{x} Y{y}\nG0 Z{sicher}\nG1 Z{z} F1000\n"
+    "CYCLE977(5,,,1,,{lx},{ly},2,1,0" + _SIEMENS_REST + _SIEMENS_PRUEFEN,
+    "messen_zapfen": "G0 X{x} Y{y}\nG0 Z{ueber}\n"
+    "CYCLE977(6,,,1,,{lx},{ly},2,1,0,{absenken}" + _SIEMENS_REST[1:] + _SIEMENS_PRUEFEN,
+    "messen_bohrung": "G0 X{x} Y{y}\nG0 Z{sicher}\nG1 Z{z} F1000\n"
+    "CYCLE977(1,,,1,{d},,,2,1,0" + _SIEMENS_REST + _SIEMENS_PRUEFEN_RUND,
+    "messen_welle": "G0 X{x} Y{y}\nG0 Z{ueber}\n"
+    "CYCLE977(2,,,1,{d},,,2,1,0,{absenken}" + _SIEMENS_REST[1:] + _SIEMENS_PRUEFEN_RUND,
+}
+_RENISHAW_EIN = "G0 G90 X{x} Y{y}\nG43 H{t} Z{sicher}\nG65 P9832\n"
+_RENISHAW_AUS = "G65 P9810 Z{sicher}\nG65 P9833"
+MESSEN_RENISHAW = {
+    "messen_tasche": _RENISHAW_EIN + "G65 P9810 Z{z} F3000.\nG65 P9812 X{lx} H{tol}\n"
+    "G65 P9812 Y{ly} H{tol}\n" + _RENISHAW_AUS,
+    "messen_zapfen": _RENISHAW_EIN + "G65 P9810 Z{ueber} F3000.\nG65 P9812 X{lx} Z{z} H{tol}\n"
+    "G65 P9812 Y{ly} Z{z} H{tol}\n" + _RENISHAW_AUS,
+    "messen_bohrung": _RENISHAW_EIN
+    + "G65 P9810 Z{z} F3000.\nG65 P9814 D{d} H{tol}\n"
+    + _RENISHAW_AUS,
+    "messen_welle": _RENISHAW_EIN
+    + "G65 P9810 Z{ueber} F3000.\nG65 P9814 D{d} Z{z} H{tol}\n"
+    + _RENISHAW_AUS,
+}
+_HH_KOPF = "L Z{sicher_vz} R0 FMAX\n"
+_HH_HOEHEN = (
+    "Q261={z_vz} ;MESSHOEHE ~\nQ320=+0 ;SICHERHEITS-ABST. ~\nQ260={sicher_vz} ;SICHERE HOEHE ~\n"
+    "Q301=+1 ;FAHREN AUF S. HOEHE ~\n"
+)
+_HH_ENDE = (
+    "Q279=+0 ;TOLERANZ 1. MITTE ~\nQ280=+0 ;TOLERANZ 2. MITTE ~\nQ281=+1 ;MESSPROTOKOLL ~\n"
+    "Q309=+1 ;PGM-STOP BEI FEHLER ~\nQ330=+0 ;WERKZEUG"
+)
+_HH_RECHTECK = (
+    "Q273={x_vz} ;MITTE 1. ACHSE ~\nQ274={y_vz} ;MITTE 2. ACHSE ~\nQ282={lx_vz} ;1. SEITEN-LAENGE ~\n"
+    "Q283={ly_vz} ;2. SEITEN-LAENGE ~\n"
+    + _HH_HOEHEN
+    + "Q284={lx_max} ;GROESSTMASS 1. SEITE ~\nQ285={lx_min} ;KLEINSTMASS 1. SEITE ~\n"
+    "Q286={ly_max} ;GROESSTMASS 2. SEITE ~\nQ287={ly_min} ;KLEINSTMASS 2. SEITE ~\n" + _HH_ENDE
+)
+
+
+def _hh_kreis(nummer, titel, groesst, kleinst, tnc640):
+    text = (
+        f"TCH PROBE {nummer} {titel} ~\nQ273={{x_vz}} ;MITTE 1. ACHSE ~\n"
+        "Q274={y_vz} ;MITTE 2. ACHSE ~\nQ262={d_vz} ;SOLL-DURCHMESSER ~\n"
+        "Q325=+0 ;STARTWINKEL ~\nQ247=+90 ;WINKELSCHRITT ~\n"
+        + _HH_HOEHEN
+        + f"Q{groesst}={{d_max}} ;GROESSTMASS ~\nQ{kleinst}={{d_min}} ;KLEINSTMASS ~\n"
+        + _HH_ENDE
+    )
+    if tnc640:  # ab TNC 640: Antastungen, Verfahrart, Werkzeug umkehren, Anstellwinkel
+        text += (
+            " ~\nQ423=+4 ;ANZAHL ANTASTUNGEN ~\nQ365=+1 ;VERFAHRART ~\n"
+            "Q498=+0 ;WERKZEUG UMKEHREN ~\nQ531=+0 ;ANSTELLWINKEL"
+        )
+    return _HH_KOPF + text
+
+
+def _messen_heidenhain(tnc640):
+    return {
+        "messen_tasche": _HH_KOPF + "TCH PROBE 423 MESSEN RECHTECK INN. ~\n" + _HH_RECHTECK,
+        "messen_zapfen": _HH_KOPF + "TCH PROBE 424 MESSEN RECHTECK AUS. ~\n" + _HH_RECHTECK,
+        "messen_bohrung": _hh_kreis(421, "MESSEN BOHRUNG", 275, 276, tnc640),
+        "messen_welle": _hh_kreis(422, "MESSEN KREIS AUSSEN", 277, 278, tnc640),
+    }
+
+
 STEUERUNGEN = {
     "linuxcnc": Steuerung(
         "linuxcnc",
@@ -527,6 +611,7 @@ STEUERUNGEN = {
         "G94",
         "G94",
         verweilen="G4 F{sek}",  # Siemens: G4 F – Sekunden (G4 S: Umdrehungen)
+        **MESSEN_SIEMENS,
         meldung='MSG("{text}")',  # in der Meldezeile, bis MSG() sie löscht
         meldung_aus="MSG()",
         satznummer_max=99999999,
@@ -620,6 +705,7 @@ STEUERUNGEN = {
         "G94",
         "G98",
         verweilen="G4 X{sek}",  # X mit Punkt: Sekunden (P: Tausendstel)
+        **MESSEN_RENISHAW,
         vorwahl="T{t}",  # Fanuc: T wählt vor, M6 wechselt
         programmnummer_max=9999,  # O0001 … O9999
         grossbuchstaben=True,
@@ -719,6 +805,7 @@ STEUERUNGEN = {
         "G98",
         marke="N{n}",  # die Satznummer der Bearbeitung – für die Satzsuche
         nullpunkt_weitere="G154 P{e}",  # Haas: G154 P1 … P99 (zusätzliche Werkstückoffsets)
+        **MESSEN_RENISHAW,
         programmnummer_max=99999,  # O00001 … O99999
         ohne_leerzeichen_moeglich=True,
         # Ohne G187 gilt die Glättung aus Einstellung 191 der Maschine.
@@ -855,6 +942,7 @@ STEUERUNGEN["heidenhain"] = Steuerung(
     tcpm_ein="M128",
     tcpm_aus="M129",
     **_HEIDENHAIN,
+    **_messen_heidenhain(tnc640=False),
 )
 STEUERUNGEN["heidenhain_tnc640"] = Steuerung(
     "heidenhain_tnc640",
@@ -862,6 +950,7 @@ STEUERUNGEN["heidenhain_tnc640"] = Steuerung(
     tcpm_ein="FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS",
     tcpm_aus="FUNCTION RESET TCPM",
     **_HEIDENHAIN,
+    **_messen_heidenhain(tnc640=True),
 )
 # woodWOP (Homag, Weeke; Manuel, 2026-10-25: „mach das einfach“): kein G-Code, sondern MPR – der
 # Postprozessor schreibt die Bahn wie sonst, mpr.uebersetzen macht Konturen und Bearbeitungen
@@ -1274,7 +1363,7 @@ def _zeilen(text):
     return [z.rstrip() for z in (text or "").split("\n") if z.strip()]
 
 
-def _messen_saetze(s, gemessen, info):
+def _messen_saetze(s, gemessen, info, nummer=1):
     """Die Sätze, mit denen der Taster das Merkmal misst (Steuerung.messen_*): Taster einwechseln,
     einschalten, der Zyklus, ausschalten – [] ohne Merkmal, Taster oder Zyklus für die Art (dann
     hält der Messstopp wie bisher)."""
@@ -1288,8 +1377,26 @@ def _messen_saetze(s, gemessen, info):
         t = int(s.taster.strip())
     except ValueError:
         return []
+    sicher = m.z_oben + 10.0
+    ueber = m.z_oben + 5.0  # Zapfen und Welle: darüber, der Zyklus senkt ab
     werte = {
         "t": t,
+        "n": nummer,
+        "ueber": f"{ueber:.3f}",
+        "absenken": f"{m.z_mess - ueber:.3f}",
+        "x_vz": f"{m.x:+.3f}",
+        "y_vz": f"{m.y:+.3f}",
+        "z_vz": f"{m.z_mess:+.3f}",
+        "lx_vz": f"{m.laenge_x:+.3f}",
+        "ly_vz": f"{m.laenge_y:+.3f}",
+        "d_vz": f"{m.durchmesser:+.3f}",
+        "sicher_vz": f"{sicher:+.3f}",
+        "lx_max": f"{m.laenge_x + toleranz:+.3f}",
+        "lx_min": f"{m.laenge_x - toleranz:+.3f}",
+        "ly_max": f"{m.laenge_y + toleranz:+.3f}",
+        "ly_min": f"{m.laenge_y - toleranz:+.3f}",
+        "d_max": f"{m.durchmesser + toleranz:+.3f}",
+        "d_min": f"{m.durchmesser - toleranz:+.3f}",
         "x": f"{m.x:.3f}",
         "y": f"{m.y:.3f}",
         "z": f"{m.z_mess:.3f}",
@@ -1298,7 +1405,7 @@ def _messen_saetze(s, gemessen, info):
         "d": f"{m.durchmesser:.3f}",
         "tol": f"{toleranz:.3f}",
         "oben": f"{m.z_oben:.3f}",
-        "sicher": f"{m.z_oben + 10.0:.3f}",
+        "sicher": f"{sicher:.3f}",
     }
     saetze = []
     for befehl in (s.vor_wechsel, s.wechsel_fraesen, s.nach_wechsel):
@@ -1508,6 +1615,7 @@ def programm(
         for treffer in _EBENE.finditer(zeile.upper()):
             ebene = "G1" + treffer.group(1)
     werkzeug = None
+    messungen = 0  # so oft hat ein Taster gemessen – für eindeutige Sprungmarken (Siemens)
     spindel_an = None  # ("haupt" oder Nummer des Antriebs, Drehzahl, Richtung)
     c_an = False
     g93 = False
@@ -1834,8 +1942,9 @@ def programm(
                 # Drehmaschine: die Hauptspindel an.
                 continue
             if im_messstopp and gross in ("M0", "M00"):
-                taster = _messen_saetze(s, gemessen, info)
+                taster = _messen_saetze(s, gemessen, info, messungen + 1)
                 if taster:
+                    messungen += 1
                     # Statt zu halten misst der Taster; danach wechselt die nächste Bearbeitung
                     # ihr Werkzeug neu ein (auch dasselbe wie davor).
                     zeilen.extend(taster)

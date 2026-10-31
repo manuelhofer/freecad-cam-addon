@@ -945,3 +945,26 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   Fanuc, LinuxCNC, Haas, Mazak, Mach) mit der Drehung der Ebene gerechnet – in derselben Folge,
   höchstens 0,0015 mm daneben; 0,01 mm daneben wird gemeldet.
 
+## 32. Messen statt Halt (Plan C3b, P-2026-10-31-19)
+
+- Der Messstopp aus „Weiter bearbeiten“ trägt nach „(MESSSTOPP)“ die Zeile „(MESSEN {art} X… Y…
+  LX… LY… | D… Z… OBEN… TOL…)“ (`messstopp.merkmal_zeile`; `messen.merkmal` + `soll`: Mitte, Soll
+  nach dem Aufmaß der Operation davor, Messhöhe, in Koordinaten des Jobs).
+- Felder `taster` (Werkzeugnummer), `taster_ein`, `taster_aus`, `messen_tasche`, `messen_zapfen`,
+  `messen_bohrung`, `messen_welle` mit {t} {n} {x} {y} {z} {lx} {ly} {d} {tol} {oben} {sicher}
+  {ueber} {absenken}, mit Vorzeichen {x_vz} … {sicher_vz}, Grenzen {lx_max} {lx_min} {ly_max}
+  {ly_min} {d_max} {d_min}. Mit Taster und Vorlage der Art: am M0 des Messstopps der Wechsel auf
+  den Taster (vor_wechsel, wechsel_fraesen, nach_wechsel), Taster ein, Zyklus, Taster aus – kein
+  M0; danach wechselt die nächste Bearbeitung ihr Werkzeug neu ein. Sonst der Halt wie bisher.
+- Vorbelegt (nur prüfen, keine Korrektur; Quellen im Kopf von `MESSEN_SIEMENS`):
+  - **Siemens** (Operate): `CYCLE977(5|6|1|2,,,1,…)` in der Folge der PROC-Zeile, danach
+    `IF (ABS(_OVR[16])>{tol}) …` → `MSG` + `M0`; die alte 840D (powerline, GUD-Variablen und
+    `_KNUM=0`) bitte selbst eintragen.
+  - **Heidenhain** 423/424/421/422 mit Q309 = 1, Q330 = 0, Größt-/Kleinstmaß absolut; TNC 640 mit
+    Q423/Q365/Q498/Q531, iTNC 530 ohne. `TCH PROBE` lässt klartext.py unverändert durch.
+  - **Fanuc, Haas** (Renishaw Inspection Plus): `G65 P9832`, `P9810` auf Messhöhe (Zapfen und
+    Welle: darüber, der Zyklus senkt mit Z ab), `P9812 X/Y … H{tol}` bzw. `P9814 D… H{tol}`,
+    `P9833`.
+  - LinuxCNC, GRBL, Mach, Mazak: leer (kein belegter Standard) – Halt.
+- Offen (an der Maschine prüfen): Vorzeichen von _OVR[16] (darum ABS), ob P9812 nach X wieder
+  auf der Mitte steht, Variablen an Haas NGC/WIPS.

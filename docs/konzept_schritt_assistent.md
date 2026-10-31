@@ -202,7 +202,7 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    allgemein, je Steuerung im Postprozessor wählbar, nicht für eine bestimmte Maschine.
    *Plan C3b in zwei Stufen:* Die Bahnen des Addons sind Mittelpunktbahnen ohne G41/G42 – ein
    Messwert in der Werkzeugkorrektur der Steuerung änderte an ihnen nichts. Darum
-   **Stufe 1 (im Bau):** Der Messstopp aus „Weiter bearbeiten“ trägt das Messmerkmal
+   **Stufe 1 (gebaut, 0.331.0):** Der Messstopp aus „Weiter bearbeiten“ trägt das Messmerkmal
    (`messen.py`: Tasche, Zapfen, Bohrung, Welle – Mitte, Soll nach dem Aufmaß, Messhöhe, in
    Koordinaten des Jobs). Ist am Postprozessor ein Taster (T-Nummer) und für die Art ein
    Messzyklus eingetragen, wechselt er den Taster ein und misst statt zu halten; außerhalb der

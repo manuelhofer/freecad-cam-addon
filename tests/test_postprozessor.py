@@ -1130,6 +1130,27 @@ pruefe(
     any("T99" in x for x in nach_t[:i]) and any("T2" in x for x in nach_t[i:]),
     f"Taster ein-, T2 wieder eingewechselt: {nach_t[:i + 8]}",
 )
+# Die Zyklen je Steuerung (Handbücher, Plan C3b): Siemens CYCLE977 mit der Parameterfolge der
+# PROC-Zeile (S_STA1 0, dann vier leere bis S_NMSP 1), danach die eigene Abfrage über _OVR;
+# Renishaw P9812 je Achse nur mit H; Heidenhain 423 mit Q309=1 und Q330=0.
+for kennung, erwartet in (
+    ("siemens", 'CYCLE977(5,,,1,,59.400,39.400,2,1,0,,,,,1,"",,0,0,0,0,0,1,0,,1,0)'),
+    ("siemens", "IF (ABS(_OVR[16])>0.020) OR (ABS(_OVR[17])>0.020) GOTOF MESSEN_AUS1"),
+    ("fanuc", "G65 P9812 X59.400 H0.020"),
+    ("haas", "G65 P9812 Y39.400 H0.020"),
+    ("heidenhain_tnc640", "Q309=+1 ;PGM-STOP BEI FEHLER ~"),
+    ("heidenhain_tnc640", "Q284=+59.420 ;GROESSTMASS 1. SEITE ~"),
+):
+    z_k = pp.programm(
+        [bohren, messen_m, weiter_2], pp.steuerung(kennung, {"taster": "99"}), fraese, "M"
+    ).zeilen
+    # (Heidenhain nummeriert die Sätze und rückt die Zeilen eines Zyklus ein.)
+    i_k = next((i for i, x in enumerate(z_k) if "TCH PROBE" in x or "CYCLE977" in x), 0)
+    pruefe(
+        any(x.strip().endswith(erwartet) for x in z_k),
+        f"{kennung}: „{erwartet}“ fehlt: {z_k[i_k - 3:i_k + 6]}",
+    )
+    pruefe("M0" not in z_k or kennung == "siemens", f"{kennung}: Halt trotz Taster")
 z_ohne_t = pp.programm([bohren, messen_m, weiter_2], pp.steuerung("linuxcnc"), fraese, "M").zeilen
 pruefe("M0" in z_ohne_t and not any("CALL" in x for x in z_ohne_t), "ohne Taster kein Halt")
 

@@ -576,6 +576,14 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.331.0):* **Messprogramme, Stufe 1** (Plan C3b; Manuel: „willst du auch messprogramme
+  einbauen .. wär natürlich cool“): Ist am Postprozessor ein Messtaster (T-Nummer) eingetragen,
+  misst der Messstopp aus „Weiter bearbeiten“ Tasche, Zapfen, Bohrung oder Welle mit dem Zyklus der
+  Steuerung, statt zu halten – Soll nach dem Aufmaß davor, ±0,02; außerhalb hält die Steuerung.
+  Vorbelegt nach den Handbüchern: Siemens CYCLE977 (Operate, Toleranz über _OVR selbst geprüft),
+  Heidenhain 421–424 (Q309 = 1, Q330 = 0; klartext.py lässt `TCH PROBE` jetzt durch), Renishaw
+  G65 P9812/P9814 an Fanuc und Haas. Nur prüfen, keine Korrektur (die kommt mit Stufe 2: G41/G42 im
+  Verschleißmodus). Ohne Taster der Halt wie bisher. Am ersten Teil langsam prüfen.
 - *Korrektur (0.330.3):* Halter-Fenster: Feld **„Spannt Ø“** (`Halter.spann_d`) – auch eigene
   Halter sagen, welchen Schaft sie spannen; die Empfehlung bietet sie nur dafür an.
 - *Korrektur (0.330.2):* **Tauchfräsen auch um eine Außenkontur** (Manuel: „geht auch für ne

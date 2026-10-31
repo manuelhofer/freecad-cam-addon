@@ -186,6 +186,16 @@ start, as your machine wants it (e.g. M80/M81); empty: the operator opens by han
 start” for the operator: Siemens MSG("…") in the message line, after the start “Clear message”
 MSG(); LinuxCNC “(MSG, …)”. Fanuc and Haas can do it with a macro (#3006=1 (…), stops by
 itself) if the macro option is there – enter it there.</li>
+<li><b>Touch probe and measuring cycles</b> – if you enter your probe's tool number, a measuring
+stop from “Continue machining” measures instead of stopping: if the faces are a rectangular
+pocket, a rectangular boss, a bore or a round boss, the program changes to the probe and calls
+your control's measuring cycle with the nominal size after the previous pass (allowance
+subtracted) and ±0.02 mm – it only stops when the size is outside. Preset are Siemens CYCLE977
+(SINUMERIK Operate; the program checks the tolerance itself via _OVR), Heidenhain 421–424 (Q309 = 1
+stops on error, Q330 = 0 corrects nothing) and Renishaw Inspection Plus on Fanuc and Haas
+(G65 P9812/P9814 with H only). It only measures, it corrects nothing. <b>Check the first part
+slowly with feed override.</b> Probe on/off (e.g. G65 P9832/P9833 or an M code) as your machine
+needs. Without a probe: the stop as before.</li>
 <li><b>Coolant</b> – as set at the operation: flood M8, mist M7, then M9. Off if you switch it
 by hand at the machine.</li>
 </ul>

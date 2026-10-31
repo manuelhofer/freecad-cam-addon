@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-19 messen-statt-halt
+
+### EINGELESEN
+- Manuel, 2026-10-31: „für ein cadcam brauchen wir auch keine messtaster oder willst du auch
+  messprogramme einbauen .. wär natürlich cool ^^“; Plan C3b. Recherche der Zyklen in den
+  Handbüchern (Siemens A5E44904897A, Heidenhain 1303409-13 / 340 490-03, Renishaw H-2000-6031,
+  H-2000-6222) – Quellen unter `~/freecad_cam/wip/messzyklen_quellen/`.
+
+### DATEIEN
+- `camaddon/postprozessor.py`: Felder `taster`, `taster_ein/aus`, `messen_*`; `_messen_saetze`
+  am M0 des Messstopps; Vorlagen `MESSEN_SIEMENS`, `MESSEN_RENISHAW`, `_messen_heidenhain`.
+- `camaddon/klartext.py`: `TCH PROBE` als Klartext (wurde sonst als G-Code gelesen – „TOOL CALL 99
+  Z S1“).
+- `camaddon/messstopp.py`, `camaddon/messen.py` (schon 0.330.2), `translations/*.json`,
+  `help/*/programm.html`, `docs/spezifikation_steuerung.md` (Abschnitt 32),
+  `docs/konzept_schritt_assistent.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.331.0.
+- `tests/test_postprozessor.py`: Messen mit Taster (eigene Vorlage), je Steuerung der Zyklus.
+
+### ERGEBNIS
+- test_postprozessor, test_programm_pruefen, test_postprozessor_zufall, test_messen, test_sprache,
+  test_hilfe grün. Gefunden beim Prüfen: ein Komma zu wenig im Siemens-Aufruf (S_ID … S_MA) und
+  der Klartext-Übersetzer, der TCH PROBE zerlegte – beides behoben, bevor es raus ging.
 ## P-2026-10-31-18 halter-spannt-d
 
 ### EINGELESEN

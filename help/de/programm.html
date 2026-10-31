@@ -191,6 +191,16 @@ Maschine es will (etwa M80/M81); leer: der Bediener öffnet von Hand.</li>
 Bediener: Siemens MSG("…") in der Meldezeile, nach dem Start „Meldung weg“ MSG(); LinuxCNC
 „(MSG, …)“. Fanuc und Haas können es mit einem Makro (#3006=1 (…), hält selbst an), wenn die
 Makro-Option da ist – dann dort eintragen.</li>
+<li><b>Messtaster und Messzyklen</b> – trägst du die Werkzeugnummer deines Tasters ein, misst ein
+Messstopp aus „Weiter bearbeiten“ statt anzuhalten: Sind die Flächen eine Rechtecktasche, ein
+Rechteckzapfen, eine Bohrung oder eine Welle, wechselt das Programm den Taster ein und ruft den
+Messzyklus deiner Steuerung mit dem Sollmaß nach dem Gang davor (Aufmaß abgezogen) und ±0,02 mm
+auf – angehalten wird nur, wenn das Maß außerhalb liegt. Vorbelegt sind Siemens CYCLE977
+(SINUMERIK Operate; die Toleranz fragt das Programm über _OVR selbst ab), Heidenhain 421–424
+(Q309 = 1 hält bei Fehler, Q330 = 0 korrigiert nichts) und Renishaw Inspection Plus an Fanuc und
+Haas (G65 P9812/P9814 nur mit H). Gemessen wird nur, korrigiert wird nichts. <b>Am ersten Teil
+mit Vorschub-Override langsam prüfen.</b> Taster ein/aus (etwa G65 P9832/P9833 oder ein M-Befehl)
+nach deiner Maschine. Ohne Taster: der Halt wie bisher.</li>
 </ul>
 <p><b>Hauptspindel und angetriebene Werkzeuge.</b> Eine Drehmaschine mit angetriebenen
 Werkzeugen hat zwei Spindeln, jede mit einem S und einem C: Die Hauptspindel dreht das Teil
