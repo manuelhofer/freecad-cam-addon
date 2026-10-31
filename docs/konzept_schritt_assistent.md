@@ -151,10 +151,13 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    nutzer treffen ... wenn wir vorher keinerlei bearbeitung haben .. muss halt erstmal etwas
    rausgeschruppt werden ... wenn vorher schon eine schrupp operation stattgefunden hat ... vll will
    er wirklich nur die wände geschlichtet haben ... das muss irgendwie unterschieden werden“.
-   *Plan C1:* Der Schritt „Flächen“ schaut nach, ob in der Tasche noch Material steht (Rohteil und
-   die Operationen davor, `materialstand`). Ist sie voll: „Die Tasche ist noch zu – erst die ganze
-   Tasche schruppen, dann diese Wände schlichten“ (vorgewählt) oder „ganze Tasche fertig“. Ist sie
-   schon ausgeräumt (mit welcher Operation): „Nur diese Wände schlichten“ vorgewählt.
+   *Gebaut (0.323.0):* Der Schritt „Flächen“ schaut nach, ob in der Tasche noch Material steht
+   (ohne Operation im Job: ja; sonst der Materialstand über den Böden, mehr als 1 mm). Ist sie voll:
+   „… in der noch Material steht – sie muss erst ausgeräumt werden“, vorn der Knopf **„Ganze Tasche
+   schruppen, diese Wände schlichten“** (das Schruppen bekommt die ganze Tasche, Schlichten und
+   Kanten nur die angeklickten Flächen), dazu „Ganze Tasche nehmen“ und „Nur diese Flächen“. Ist
+   sie schon ausgeräumt: „… die schon ausgeräumt ist (von „Räumen T1“)“, vorn „Nur diese Flächen“.
+   ![Tasche](bilder/beta/2_flaechen_tasche.png)
 2. **Wie das Material raus soll** – vorbohren mit dem größten Bohrer, der passt, dann mit dem
    größten Spanvolumen räumen, dann schlichten; geht kein Bohrer: Helix mit einem Fräser, der tief
    genug ist, dann die schnellste Bahn; oder bohrfräsen/stechend mit Wendeplattenbohrer oder

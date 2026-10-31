@@ -3378,8 +3378,7 @@
     "beta.weiter.tooltip": "Zum nächsten Schritt.",
     "beta.warum.unten": "Erst sagen, wie das Teil liegt: die untere Fläche anklicken oder „Liegt wie im Modell“.",
     "beta.warum.flaechen": "Erst mindestens eine Fläche anklicken, die bearbeitet werden soll.",
-    "beta.warum.tasche": "Erst entscheiden: ganze Tasche nehmen oder nur diese Flächen.",
-    "beta.tasche.satz": "Die {gewaehlt} gewählten Flächen gehören zu einer Tasche mit {fehlen} weiteren Flächen. Allein lassen sie sich nicht fräsen, ohne den Rest der Tasche mitzunehmen – das Material davor muss ja auch weg.",
+    "beta.warum.tasche": "Erst entscheiden, wie es mit der Tasche weitergeht – einer der Knöpfe unter dem Satz zur Tasche.",
     "beta.tasche.ok": "Nur diese {gewaehlt} Flächen – der Rest der Tasche ({fehlen} Flächen) gilt als schon frei.",
     "beta.tasche.ganz": "Ganze Tasche nehmen",
     "beta.tasche.ganz.tooltip": "Nimmt alle Flächen der Tasche dazu – Wände, Übergänge und Boden.",
@@ -3572,5 +3571,11 @@
     "beta.spannmittel.leer": "Noch keine Spannmittel in der Sammlung – „Spannmittel …“ → „Katalog …“ übernimmt sie von den Herstellern.",
     "beta.spannmittel.anzahl": "{passend} von {alle} Spannmitteln nehmen dieses Rohteil (✓ oben). Mit der Maus über einem ✗ steht, warum nicht.",
     "beta.spannmittel.ohne_rohteil": "Was passt, steht hier, sobald es ein Rohteil gibt (nach dem ersten Klick auf die Unterseite).",
-    "beta.spannmittel.katalog": "Aus dem Katalog der Hersteller nähmen es zum Beispiel: {namen} (übernehmen mit „Spannmittel …“ → „Katalog …“)."
+    "beta.spannmittel.katalog": "Aus dem Katalog der Hersteller nähmen es zum Beispiel: {namen} (übernehmen mit „Spannmittel …“ → „Katalog …“).",
+    "beta.tasche.schruppen": "Ganze Tasche schruppen, diese Wände schlichten",
+    "beta.tasche.schruppen.tooltip": "Das Schruppen räumt die ganze Tasche aus; Schlichten und Kanten nehmen nur die angeklickten Flächen.",
+    "beta.tasche.voll": "Die {gewaehlt} gewählten Flächen gehören zu einer Tasche, in der noch Material steht – sie muss erst ausgeräumt werden ({fehlen} Flächen fehlen dafür).",
+    "beta.tasche.leer": "Die {gewaehlt} gewählten Flächen gehören zu einer Tasche, die schon ausgeräumt ist{von} – ({fehlen} weitere Flächen gehören dazu).",
+    "beta.tasche.von": " (von {wer})",
+    "beta.tasche.geteilt": "Schruppen: die ganze Tasche ({ganz} Flächen) · Schlichten und Kanten: nur die angeklickten Flächen ({nur})."
 }

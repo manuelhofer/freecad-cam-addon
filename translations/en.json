@@ -3378,8 +3378,7 @@
     "beta.weiter.tooltip": "To the next step.",
     "beta.warum.unten": "First say how the part lies: click the bottom face or “Lies as modelled”.",
     "beta.warum.flaechen": "First click at least one face to be machined.",
-    "beta.warum.tasche": "First decide: take the whole pocket or only these faces.",
-    "beta.tasche.satz": "The {gewaehlt} chosen faces belong to a pocket with {fehlen} more faces. On their own they cannot be milled without taking the rest of the pocket along – the material in front of them has to go too.",
+    "beta.warum.tasche": "First decide how to go on with the pocket – one of the buttons below the sentence about the pocket.",
     "beta.tasche.ok": "Only these {gewaehlt} faces – the rest of the pocket ({fehlen} faces) counts as already clear.",
     "beta.tasche.ganz": "Take the whole pocket",
     "beta.tasche.ganz.tooltip": "Adds all faces of the pocket – walls, transitions and floor.",
@@ -3572,5 +3571,11 @@
     "beta.spannmittel.leer": "No workholding in the collection yet – “Workholding …” → “Catalogue …” takes it from the manufacturers.",
     "beta.spannmittel.anzahl": "{passend} of {alle} workholding items take this stock (✓ at the top). Hover over a ✗ to see why not.",
     "beta.spannmittel.ohne_rohteil": "What fits shows here as soon as there is a stock (after the first click on the bottom face).",
-    "beta.spannmittel.katalog": "From the manufacturers' catalogue, for example these would take it: {namen} (take over with “Workholding …” → “Catalogue …”)."
+    "beta.spannmittel.katalog": "From the manufacturers' catalogue, for example these would take it: {namen} (take over with “Workholding …” → “Catalogue …”).",
+    "beta.tasche.schruppen": "Rough the whole pocket, finish these walls",
+    "beta.tasche.schruppen.tooltip": "Roughing clears the whole pocket; finishing and edges take only the clicked faces.",
+    "beta.tasche.voll": "The {gewaehlt} chosen faces belong to a pocket that still holds material – it has to be cleared first ({fehlen} faces are missing for that).",
+    "beta.tasche.leer": "The {gewaehlt} chosen faces belong to a pocket that is already cleared{von} – ({fehlen} more faces belong to it).",
+    "beta.tasche.von": " (by {wer})",
+    "beta.tasche.geteilt": "Roughing: the whole pocket ({ganz} faces) · Finishing and edges: only the clicked faces ({nur})."
 }

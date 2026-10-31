@@ -7,8 +7,9 @@
 #    ein kleiner Zentrischspanner (bis 65): der Schraubstock mit ✓ oben, der andere mit ✗; ihn
 #    wählen trägt die Aufspannung am Job ein, die Spanntiefe 10 steht im Feld (Plan C5/C6).
 #    „Weiter“ gesperrt, bis „Liegt wie im Modell“ geklickt ist.
-# 2. Flächen: die eine Wand gehört zu einer Tasche – der Satz dazu, „Weiter“ gesperrt; „Ganze
-#    Tasche nehmen“ nimmt Wände, Rundungen und Boden dazu, „Weiter“ geht.
+# 2. Flächen: die eine Wand gehört zu einer Tasche, in der noch Material steht – der Satz dazu,
+#    „Ganze Tasche schruppen, diese Wände schlichten“ vorn, „Weiter“ gesperrt; „Ganze Tasche
+#    nehmen“ nimmt Wände, Rundungen und Boden dazu, „Weiter“ geht.
 # 3. Schruppen: nur Strategien des Schruppens zu sehen. „Weiter“ zum Schlichten (Löcher gibt es
 #    hier nicht – übersprungen), „Zurück“, dann „Anlegen“ im Schruppen: nur das Schruppen kommt in
 #    den Job, am Job steht, was gewählt war und bis wohin angelegt ist.
@@ -150,6 +151,10 @@ def schritte(h):
     h.pruefe(panel.seite() == 1, f"Seite {panel.seite()}")
     h.pruefe(panel.gewaehlte == [wand], f"gewählt: {panel.gewaehlte}")
     h.pruefe(panel.tasche_box.isVisible(), "kein Satz zur Tasche")
+    # Noch keine Operation: In der Tasche steht Material – der erste Weg ist, sie auszuräumen und
+    # nur die angeklickte Wand zu schlichten (Plan C1).
+    h.pruefe("noch Material" in panel.tasche_text.text(), f"Satz: {panel.tasche_text.text()!r}")
+    h.pruefe(panel.knopf_tasche_schruppen.isVisible(), "kein Knopf „Ganze Tasche schruppen …“")
     h.pruefe(not panel.knopf_weiter.isEnabled(), "„Weiter“ geht ohne Antwort zur Tasche")
     h.bild("2_flaechen_tasche", panel.form)
     panel.knopf_ganze_tasche.click()

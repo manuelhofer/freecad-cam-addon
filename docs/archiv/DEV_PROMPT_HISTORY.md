@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-06 beta-tasche-voll-oder-ausgeraeumt
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Antwort 1): „wenn wir vorher keinerlei bearbeitung haben .. muss halt erstmal
+  etwas rausgeschruppt werden … wenn vorher schon eine schrupp operation stattgefunden hat … vll
+  will er wirklich nur die wände geschlichtet haben ... das muss irgendwie unterschieden werden“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_tasche_voll` (Materialstand über den Böden), Sätze „noch
+  Material“/„schon ausgeräumt (von …)“, der naheliegende Weg vorn; neuer Knopf „Ganze Tasche
+  schruppen, diese Wände schlichten“ – `_wahl` gibt Schlichten und Kanten nur die angeklickten
+  Flächen.
+- `tests/gui/szenario_beta_tasche.py` (neu), `tests/gui/szenario_beta_schritte.py` (Teil 2), Texte,
+  `docs/konzept_schritt_assistent.md` (C1), `package.xml` 0.323.0.
+
+### ERGEBNIS
+- szenario_beta_schritte, szenario_beta_tasche, test_sprache grün. Der Fall „schon ausgeräumt“ ist
+  noch in keinem Szenario (braucht eine Operation im Job vor dem Fenster).
+
 ## P-2026-10-31-05 beta-worin-gespannt-faehigkeiten
 
 ### EINGELESEN

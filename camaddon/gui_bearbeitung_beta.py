@@ -55,6 +55,7 @@ ERSTER_ABSCHNITT = 2  # die Seite des Schruppens; davor Aufspannung und Flächen
 EIGENSCHAFT_FLAECHEN = "CamAddonBetaFlaechen"
 EIGENSCHAFT_ABSCHNITT = "CamAddonBetaAbschnitt"
 GRUPPE = "CAM-Addon Beta"
+TASCHE_REST = 1.0  # mm über einem Boden: so viel darf stehen, und die Tasche gilt als ausgeräumt
 
 
 def beta_an():
@@ -106,6 +107,8 @@ class BetaPanel(BearbeitungPanel):
         self._beta_unten_klar = False
         self._beta_tasche_ok = set()  # Flächen-Wahlen, bei denen „Nur diese Flächen“ gilt
         self._beta_fehlende = []
+        self._beta_voll = True  # steht in der Tasche noch Material (Plan C1)?
+        self._beta_schlichten = None  # (die ganze Tasche, nur diese schlichten) – Plan C1
         self._beta_nachbarn = None  # (Form, taschen_wahl.nachbarn) – gerechnet einmal je Form
         self._beta_bis = None  # beim Anlegen: bis zu welchem Abschnitt
         # Ohne Auswahl gestartet: der erste Klick ins Teil ist die Fläche, die unten liegt (Manuel:
@@ -143,8 +146,15 @@ class BetaPanel(BearbeitungPanel):
         self.knopf_nur_diese = knopf(
             tr("beta.tasche.nur_diese"), tr("beta.tasche.nur_diese.tooltip"), self.nur_diese
         )
+        self.knopf_tasche_schruppen = knopf(
+            tr("beta.tasche.schruppen"),
+            tr("beta.tasche.schruppen.tooltip"),
+            self.tasche_schruppen_waende_schlichten,
+        )
+        zeile.addWidget(self.knopf_tasche_schruppen)
         zeile.addWidget(self.knopf_ganze_tasche)
         zeile.addWidget(self.knopf_nur_diese)
+        self._tasche_zeile = zeile
         zeile.addStretch()
         box.addLayout(zeile)
         self.tasche_box.hide()
@@ -706,12 +716,23 @@ class BetaPanel(BearbeitungPanel):
         self.ebene_text.show()
 
     def _tasche_pruefen(self):
-        """Gehören die gewählten Flächen zu einer Tasche, von der nur ein Teil gewählt ist: der
-        Satz mit „Ganze Tasche nehmen“ / „Nur diese Flächen“."""
+        """Gehören die gewählten Flächen zu einer Tasche, von der nur ein Teil gewählt ist: ein Satz
+        und die Wege dazu (Plan C1; Manuel, 2026-10-31: „wenn wir vorher keinerlei bearbeitung
+        haben .. muss halt erstmal etwas rausgeschruppt werden … wenn vorher schon eine schrupp
+        operation stattgefunden hat … vll will er wirklich nur die wände geschlichtet haben ... das
+        muss irgendwie unterschieden werden“). Steht in der Tasche noch Material, ist der erste Weg
+        „ganze Tasche schruppen, diese Wände schlichten“; ist sie schon ausgeräumt, „nur diese“."""
         self._beta_fehlende = []
         # In einer Ebene der Kette (nach „Anlegen“) sind die Flächen schon im ersten Fenster
         # gewählt – die Wände der Tasche bleiben dort im Grundjob, gefragt wird nicht noch einmal.
         kette = bool(getattr(self, "_folge", None))
+        if (
+            self._beta_schlichten is not None
+            and frozenset(self.gewaehlte) == self._beta_schlichten[0]
+        ):
+            self._tasche_zeigen_entschieden()
+            return
+        self._beta_schlichten = None  # die Wahl ist eine andere geworden
         if self.job is None or not self.gewaehlte or self._ist_stl() or kette:
             self.tasche_box.hide()
             return
@@ -721,6 +742,8 @@ class BetaPanel(BearbeitungPanel):
             if self._beta_nachbarn is None or self._beta_nachbarn[0] != kennung:
                 self._beta_nachbarn = (kennung, tw.nachbarn(form))
             self._beta_fehlende = tw.fehlende(form, self.gewaehlte, self._beta_nachbarn[1])
+            if self._beta_fehlende:
+                self._beta_voll, wer = self._tasche_voll(form, self.gewaehlte + self._beta_fehlende)
         except Exception as fehler:  # nie das Fenster sperren, weil die Prüfung scheitert
             FreeCAD.Console.PrintLog(f"Beta: Tasche nicht geprüft: {fehler}\n")
             self._beta_fehlende = []
@@ -731,11 +754,86 @@ class BetaPanel(BearbeitungPanel):
         anzahl = {"gewaehlt": len(self.gewaehlte), "fehlen": len(self._beta_fehlende)}
         if entschieden:
             self.tasche_text.setText(tr("beta.tasche.ok", **anzahl))
+        elif self._beta_voll:
+            self.tasche_text.setText(tr("beta.tasche.voll", **anzahl))
         else:
-            self.tasche_text.setText(tr("beta.tasche.satz", **anzahl))
+            von = tr("beta.tasche.von", wer=", ".join(wer)) if wer else ""
+            self.tasche_text.setText(tr("beta.tasche.leer", von=von, **anzahl))
         self.tasche_text.setStyleSheet("" if entschieden else "color: #d08000;")
         self.knopf_nur_diese.setVisible(not entschieden)
+        self.knopf_tasche_schruppen.setVisible(not entschieden and self._beta_voll)
+        self.knopf_ganze_tasche.setVisible(True)
+        # Der naheliegende Weg zuerst: voll – ausräumen; leer – nur diese Wände.
+        zeile = self._tasche_zeile
+        erster = self.knopf_tasche_schruppen if self._beta_voll else self.knopf_nur_diese
+        zeile.removeWidget(erster)
+        zeile.insertWidget(0, erster)
         self.tasche_box.show()
+
+    def _tasche_voll(self, form, namen):
+        """(Steht in der Tasche noch Material?, wer sie ausgeräumt hat). Ohne Operation im Job ist
+        sie voll; sonst fragt es den Materialstand über den Böden der Tasche – mehr als
+        TASCHE_REST über einem Boden heißt: noch zu."""
+        job = rw.grundjob_von(self.job)
+        if not list(getattr(getattr(job, "Operations", None), "Group", []) or []):
+            return True, []
+        from . import materialstand as mst
+        from . import schwenken as sw
+
+        if sw.ist_ebene(self.job):
+            return True, []
+        stand = mst.fuer(job)
+        if stand is None:
+            return True, []
+        voll, wer = False, []
+        for name in namen:
+            flaeche = form.getElement(name)
+            if flaeche.Surface.__class__.__name__ != "Plane":
+                continue
+            u0, u1, v0, v1 = flaeche.ParameterRange
+            mitte = flaeche.valueAt((u0 + u1) / 2, (v0 + v1) / 2)
+            if flaeche.normalAt((u0 + u1) / 2, (v0 + v1) / 2).z < 0.7:
+                continue  # nur die Böden
+            hoehe = stand.hoehen_an([mitte.x], [mitte.y], naechste=True)[0][0]
+            if hoehe > mitte.z + TASCHE_REST:
+                voll = True
+            maske = stand.maske_um((mitte.x, mitte.y), (mitte.x, mitte.y), 2 * stand.schritt)
+            wer += [w for w in stand.wer(maske) if w not in wer]
+        return voll, wer
+
+    def tasche_schruppen_waende_schlichten(self):
+        """„Ganze Tasche schruppen, diese Wände schlichten“ (B1): das Schruppen bekommt die ganze
+        Tasche, Schlichten und Kanten nur die gewählten Flächen (_wahl)."""
+        nur = frozenset(self.gewaehlte)
+        for name in list(self._beta_fehlende):
+            if name not in self.gewaehlte:
+                self.flaeche_umschalten(name)
+        ganz = frozenset(self.gewaehlte)
+        self._beta_schlichten = (ganz, nur)
+        self._beta_tasche_ok.add(ganz)
+        self._tasche_zeigen_entschieden()
+        self._beta_knoepfe()
+
+    def _tasche_zeigen_entschieden(self):
+        ganz, nur = self._beta_schlichten
+        self.tasche_text.setText(tr("beta.tasche.geteilt", ganz=len(ganz), nur=len(nur)))
+        self.tasche_text.setStyleSheet("")
+        for k in (self.knopf_tasche_schruppen, self.knopf_ganze_tasche, self.knopf_nur_diese):
+            k.setVisible(False)
+        self.tasche_box.show()
+
+    def _wahl(self, block):
+        """Mit „ganze Tasche schruppen, diese Wände schlichten“: Schlichten und Kanten nur die
+        gewählten Flächen (und Kanten)."""
+        wahl = super()._wahl(block)
+        geteilt = self._beta_schlichten
+        if (
+            geteilt is not None
+            and frozenset(self.gewaehlte) == geteilt[0]
+            and abschnitt(block) in (SCHLICHTEN, KANTEN)
+        ):
+            return [n for n in wahl if n in geteilt[1] or not str(n).startswith("Face")]
+        return wahl
 
     def ganze_tasche(self):
         for name in list(self._beta_fehlende):
