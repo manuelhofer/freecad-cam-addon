@@ -14,6 +14,17 @@ daraus folgt, stehen in [konzept_schritt_assistent.md](konzept_schritt_assistent
 Die Antworten vom 2026-10-31 nachmittags (Messtaster, Tauchfräsen, Hoffmann-Abruf) stehen in
 [konzept_schritt_assistent.md](konzept_schritt_assistent.md), Teil C.
 
-Zurzeit keine offenen Fragen. Manuel, 2026-10-31 abends: Stufe 2 „1.b“ (Konturprogrammierung);
+1. **Messen und korrigieren: Welches Werkzeug-Register soll der Zyklus korrigieren?** Die
+   Konturprogrammierung steht (0.333.0: Schlichtkreis mit G41/G42, Radius aus der Werkzeugtabelle).
+   Damit der Messzyklus den nächsten Gang selbst korrigiert, muss er den Radius-Verschleiß des
+   Schlichtwerkzeugs ändern. Mein Vorschlag, wie es die meisten Werkstätten einrichten:
+   **Siemens:** CYCLE977 mit „Werkzeugkorrektur“ auf D1 des Schlichtwerkzeugs (S_KNUM1 = 1,
+   Radius-Verschleiß) – mit Werkzeugverwaltung über den Namen (`T="…"`), ohne über die T-Nummer;
+   **Fanuc/Haas mit Renishaw:** `T` = die Nummer des D-Registers = Werkzeugnummer (Haas: D gleich
+   T). Ist das so üblich, oder macht man es anders (eigene D-Nummer, nur Warnung statt Korrektur)?
+   – *Warum nur Manuel:* wie es an den Maschinen eingerichtet wird. – *Was die Antwort ändert:*
+   ob und wie der Zyklus nach dem Messen selbst korrigiert. – 2026-10-31.
+
+Manuel, 2026-10-31 abends: Stufe 2 „1.b“ (Konturprogrammierung);
 Bohrfräsen – „man muss klären wie die bohrfräsen definieren“ (Recherche läuft, siehe
 konzept_schritt_assistent.md, Teil C).
