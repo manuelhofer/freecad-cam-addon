@@ -27,3 +27,14 @@ Die Antworten vom 2026-10-31 nachmittags (Messtaster, Tauchfräsen, Hoffmann-Abr
    (a) als Haken je Postprozessor, vorbelegt aus, D-Nummer einstellbar. – *Warum nur Manuel:*
    wie die Werkzeugtabellen in der Werkstatt geführt werden. – *Was die Antwort ändert:* wie der
    Postprozessor die Schlichtgänge nach einem Messen schreibt. – 2026-10-31.
+2. **Bohrfräsen mit dem Wendeplattenbohrer – so?** Du hattest als Weg „mit einem wendeplatten bohrer
+   oder einem messerkopf bohrfräsen“ genannt. Mit dem **Messerkopf** geht es schon: Räumen nimmt
+   ihn als Fräser und taucht schraubend ein (Frage „Eintauchen: schraubend“). Für den
+   **Wendeplattenbohrer** mein Vorschlag: Bohrer, die es laut Hersteller können (Fähigkeit
+   „bohrfraesen“, z. B. Iscar/Kennametal-Reihen im Katalog), darf das Räumen als Werkzeug nehmen –
+   er bohrt sein Startloch selbst senkrecht und räumt dann zirkular/helikal wie ein Fräser, mit den
+   Schnittwerten „Bohrfräsen“ des Herstellers. Keine eigene neue Strategie, nur ein weiteres
+   Werkzeug im Räumen. – *Warum nur Manuel:* ob du es so meintest (abgemacht: neue Wege erst
+   besprechen). – *Was die Antwort ändert:* ob Wendeplattenbohrer im Räumen wählbar werden. –
+   2026-10-31.
+
