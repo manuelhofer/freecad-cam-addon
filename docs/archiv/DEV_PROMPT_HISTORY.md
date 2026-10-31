@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-44 katalog-gewindefraeser
+
+### EINGELESEN
+- Weiter zu P-2026-10-31-42/-43 (Gedächtnis „Empfehlen über das Magazin hinaus“).
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py`: `gewindefraeser_im_katalog` (gewinde_bahn.gewinde_fuer, Luft wie
+  beim Fräsen, je Gewinde einer, das gröbste zuerst).
+- `camaddon/gui_bearbeitung.py`: der Satz aus dem Katalog auch unter „Gewinde fräsen“.
+- `translations/*.json` (ba.katalog.gewindefraeser), `tests/gui/szenario_katalog_bohrung.py`,
+  `package.xml` 0.341.2.
+
+### ERGEBNIS
+- szenario_katalog_bohrung grün: „EMUGE GFB7514A.0080 (Gewindefräser Ø 6,5) – M8x1.25“; längste
+  Fensterpause 0,51 s. test_sprache grün.
 ## P-2026-10-31-43 katalog-reibahle
 
 ### EINGELESEN

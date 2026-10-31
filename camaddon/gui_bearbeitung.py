@@ -8801,7 +8801,7 @@ class BearbeitungPanel:
                 if (
                     not moeglich
                     and grund is None
-                    and block in (self.bohren, self.gewinde, self.reiben)
+                    and block in (self.bohren, self.gewinde, self.reiben, self.gewindefraesen)
                 ):
                     block.katalog_zeile = self._im_katalog_zeile(block, form)
                 if not moeglich:
@@ -11282,6 +11282,18 @@ class BearbeitungPanel:
             QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, self._nach_katalog)
             return ""
         katalog = ww.katalog_werkzeuge()
+        if block is self.gewindefraesen:
+            namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
+            tiefe = max(
+                (b.z_oben - b.z_unten for b in bb.bohrungen(form, namen or [""])), default=0.0
+            )
+            fraeser = ww.gewindefraeser_im_katalog(d, tiefe, katalog)
+            if not fraeser:
+                return ""
+            from .gui_bearbeitung_beta import _werkzeug_text
+
+            teile = [f"{_werkzeug_text(w)} – {html.escape(g.name)}" for w, g in fraeser]
+            return tr("ba.katalog.gewindefraeser", namen=", ".join(teile))
         if block is self.gewinde:
             gefunden = ww.gewindebohrer_im_katalog(d, katalog)
         else:
@@ -11316,7 +11328,7 @@ class BearbeitungPanel:
             QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, self._nach_katalog)
             return
         form = vr.modell(self.job).Shape
-        for block in (self.bohren, self.gewinde, self.reiben):
+        for block in (self.bohren, self.gewinde, self.reiben, self.gewindefraesen):
             if not block.moeglich and not getattr(block, "katalog_zeile", ""):
                 block.katalog_zeile = self._im_katalog_zeile(block, form)
                 block.zustand_zeigen()

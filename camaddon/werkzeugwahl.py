@@ -169,6 +169,37 @@ def bohrer_im_katalog(durchmesser, tiefe, katalog, hoechstens=3, art=wz.BOHRER):
     return _je_mass_einer(gut, lambda w: getattr(w, "hersteller", ""), hoechstens)
 
 
+def gewindefraeser_im_katalog(kernloch_d, tiefe, katalog, hoechstens=3):
+    """[(Gewindefräser, Gewinde)] des Katalogs, deren Steigung zum Kernloch `kernloch_d` ein
+    Gewinde der Tabelle ergibt (gewinde_bahn.gewinde_fuer) und die mit Luft hineinpassen – je
+    Gewinde einer, das gröbste zuerst, darin der dickste Fräser (am steifsten). Was `tiefe` nicht
+    erreicht (Auskragung bzw. Schneidenlänge bekannt und kürzer), fällt weg."""
+    from . import gewinde_bahn as gfb
+
+    gut = []
+    for w in katalog:
+        if w.art != wz.GEWINDEFRAESER or (w.steigung or 0) <= 0 or w.durchmesser <= 0:
+            continue
+        if w.durchmesser > kernloch_d - 2 * gfb.LUFT + gfb.GLEICH:
+            continue
+        reicht = getattr(w, "auskragung", 0.0) or w.schneidenlaenge or 0.0
+        if tiefe and reicht and reicht < tiefe - 1e-6:
+            continue
+        gewinde = gfb.gewinde_fuer(kernloch_d, w.steigung)
+        if gewinde is not None:
+            gut.append((w, gewinde))
+    gut.sort(key=lambda e: (-e[1].steigung, -e[0].durchmesser, not getattr(e[0], "link", "")))
+    gesehen, auswahl = set(), []
+    for w, gewinde in gut:
+        if gewinde.name in gesehen:
+            continue
+        gesehen.add(gewinde.name)
+        auswahl.append((w, gewinde))
+        if len(auswahl) >= hoechstens:
+            break
+    return auswahl
+
+
 def katalog_laden_im_hintergrund():
     """Den Katalog in einem Faden bauen (0,5 s) – läuft er schon oder ist er da: nichts. Fehlen
     noch die geprüften Reihen der Werkzeugkiste, bereitet sie erst ein Nebenrechner vor

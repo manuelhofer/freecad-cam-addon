@@ -3726,5 +3726,6 @@
     "ba.katalog.gewindebohrer": "Im Katalog der Hersteller mit diesem Kernloch: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
     "ba.katalog.bohrer": "Im Katalog der Hersteller mit diesem Ø: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
     "wv.kiste.vorbereiten": "Die Werkzeugkiste wird vorbereitet … (die Kataloge der Hersteller werden einmal geprüft)",
-    "ba.katalog.reibahle": "Im Katalog der Hersteller mit diesem Ø: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“."
+    "ba.katalog.reibahle": "Im Katalog der Hersteller mit diesem Ø: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
+    "ba.katalog.gewindefraeser": "Im Katalog der Hersteller für dieses Kernloch: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“."
 }

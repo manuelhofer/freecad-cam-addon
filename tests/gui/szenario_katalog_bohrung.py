@@ -4,7 +4,8 @@
 # Werkzeugverwaltung nur der Standardfräser. Die Bohrung wählen, „Weiter“: „Gewinde bohren“ und
 # „Bohren“ passen nicht – darunter „Im Katalog der Hersteller …“ mit Gewindebohrern M8 × 1,25 bzw.
 # Bohrern Ø 6,75 als Links (der Katalog wird im Faden gelesen, die Sätze kommen danach). Dann die
-# durchgehende Bohrung Ø 8 gewählt: „Reiben“ nennt Reibahlen Ø 8 aus dem Katalog.
+# durchgehende Bohrung Ø 8 gewählt: „Reiben“ nennt Reibahlen Ø 8 aus dem Katalog. „Gewinde fräsen“
+# nennt für Ø 6,75 Gewindefräser, deren Steigung ein M8 daraus macht.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -66,6 +67,10 @@ def schritte(h):
     h.pruefe("Im Katalog" in gewinde and "M8 × 1,25" in gewinde and "<a href" in gewinde, gewinde)
     h.pruefe("Im Katalog" in bohren and "6,75" in bohren, bohren)
     h.pruefe("Im Katalog" in panel.gewinde.kurz.text(), panel.gewinde.kurz.text())
+    yield from h.warte_auf(lambda: zeile(panel.gewindefraesen), 30000)
+    fraesen = zeile(panel.gewindefraesen)
+    print(ascii(f"Gewinde fraesen: {fraesen}"))
+    h.pruefe("Im Katalog" in fraesen and "M8" in fraesen, fraesen)
     panel.passt_nicht_knopf.click()  # die Blöcke, die nicht passen, aufklappen
     yield 500
     h.bild("1_katalog_bohrung", panel.form)
