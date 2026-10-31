@@ -242,32 +242,6 @@
       "kegel": 4.5,
       "spanntiefe": 58
      }
-    },
-    {
-     "name": "d12 A130",
-     "artikel": "40.444.12",
-     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.444.12",
-     "masse": {
-      "d_spann": 12,
-      "a": 130,
-      "d_nase": 24,
-      "d_koerper": 32,
-      "kegel": 4.5,
-      "spanntiefe": 47
-     }
-    },
-    {
-     "name": "d12 A160",
-     "artikel": "40.442.12",
-     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.442.12",
-     "masse": {
-      "d_spann": 12,
-      "a": 160,
-      "d_nase": 24,
-      "d_koerper": 32,
-      "kegel": 4.5,
-      "spanntiefe": 47
-     }
     }
    ]
   },
@@ -4512,16 +4486,6 @@
       "d_spann": 20,
       "a": 63,
       "d_nase": 52
-     }
-    },
-    {
-     "name": "d25 A100",
-     "artikel": "300100 25",
-     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-25",
-     "masse": {
-      "d_spann": 25,
-      "a": 100,
-      "d_nase": 65
      }
     },
     {
