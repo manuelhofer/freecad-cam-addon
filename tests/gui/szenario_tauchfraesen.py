@@ -169,3 +169,22 @@ def schritte(h):
     if tauch is not None:
         op = neu[tauch]
         h.pruefe(op.Stellen > 0 and op.Path.Size > 0, f"Tauchfräsen ohne Bahn: {op.Stellen}")
+    # Danach das Fenster „Angelegt“ (Konzept B6): alle Operationen des Jobs mit Zeit, die neuen
+    # fett, zusammen; „Weiter bearbeiten“ als Knopf (Kanten kommen noch).
+    yield from h.warte_auf(lambda: beta.FertigFenster.offen is not None, 10000)
+    fertig = beta.FertigFenster.offen
+    h.pruefe(fertig is not None, "kein Fenster „Angelegt“")
+    if fertig is None:
+        return
+    yield from h.warte_auf(lambda: fertig.fertig, 60000)
+    yield 300
+    zeilen = [fertig.liste.topLevelItem(i) for i in range(fertig.liste.topLevelItemCount())]
+    fett = [z.text(0) for z in zeilen if z.font(0).bold()]
+    print(ascii(f"Angelegt: {[(z.text(0), z.text(1)) for z in zeilen]}, fett {fett}"))
+    h.pruefe(len(zeilen) == len(panel.job.Operations.Group), f"Zeilen: {len(zeilen)}")
+    h.pruefe(sorted(fett) == sorted(namen), f"fett {fett} statt {namen}")
+    h.pruefe(all("min" in z.text(1) for z in zeilen if z.text(0) in namen), "neue ohne Zeit")
+    h.pruefe("min" in fertig.summe.text(), fertig.summe.text())
+    h.pruefe(fertig.knopf_weiter.isVisible(), "kein „Weiter bearbeiten“")
+    h.bild("2_angelegt", fertig)
+    fertig.accept()

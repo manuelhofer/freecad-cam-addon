@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-40 beta-fenster-angelegt
+
+### EINGELESEN
+- Konzept B6 (Schritt „Prüfen“ am Ende, ändert keine Wahl); Gedächtnis „Nächster Schritt als
+  Knopf“; Manuel, 2026-10-31 abends: „so lange einfach Durcharbeit“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `FertigFenster` (Operationen mit Zeit aus
+  einrichtblatt.minuten, eine je Uhrtakt; Knöpfe zu den Befehlen, Job gewählt), `_fertig_oeffnen`,
+  `fertig_zeigen_an`, Parameter `BetaFertigZeigen`, Haken unten im Assistenten; `accept` öffnet es
+  mit den neuen Operationen (nicht beim Umspannen).
+- `translations/*.json` (beta.fertig.*), `tests/gui/szenario_tauchfraesen.py` (Teil „Angelegt“),
+  `docs/konzept_schritt_assistent.md`, `docs/bilder/beta/9_angelegt.png`, `package.xml` 0.340.0.
+
+### ERGEBNIS
+- szenario_tauchfraesen grün: „Vorbohren T3 0,1 min, Tauchfräsen T1 1,6 min, Kontur T1 0,8 min,
+  3D-Schruppen T1 0,4 min“, alle fett, zusammen 2,8 min. szenario_beta_schritte,
+  szenario_beta_tasche grün.
 ## P-2026-10-31-39 heidenhain-rl-rr-q330
 
 ### EINGELESEN

@@ -3707,5 +3707,19 @@
     "kg.still_fehler": "CAM add-on: catalogues not updated: {grund}",
     "ba.frage.eintauchen.tauchen": "Plunge milling instead of clearing",
     "ba.frage.eintauchen.tauchen.satz": "The cutter plunges straight down, spot next to spot, from the centre outwards – for deep pockets, long tools and weak machines. Between the spots small cusps remain at the walls – a contour pass afterwards takes them.",
-    "ba.frage.eintauchen.tauchen.mit": "With {werkzeug} straight down, spot next to spot, from the centre outwards – for deep pockets, long tools and weak machines. Between the spots small cusps remain at the walls – a contour pass afterwards takes them."
+    "ba.frage.eintauchen.tauchen.mit": "With {werkzeug} straight down, spot next to spot, from the centre outwards – for deep pockets, long tools and weak machines. Between the spots small cusps remain at the walls – a contour pass afterwards takes them.",
+    "beta.fertig.titel": "Created",
+    "beta.fertig.kopf": "{n} new operations in the job “{job}” (bold). This is everything it contains now:",
+    "beta.fertig.operation": "Operation",
+    "beta.fertig.zeit": "Time",
+    "beta.fertig.summe": "About {zeit} in total (without tool changes).",
+    "beta.fertig.pruefen": "Check on the machine …",
+    "beta.fertig.pruefen.tooltip": "Runs all operations on the job's machine: reach, collision, time.",
+    "beta.fertig.programm": "Write program …",
+    "beta.fertig.programm.tooltip": "Writes the NC program for the machine's control.",
+    "beta.fertig.blatt": "Setup sheet …",
+    "beta.fertig.blatt.tooltip": "The sheet for the machine: tools, clamping, zero point, steps with time.",
+    "beta.fertig.weiter.tooltip": "Continue on the same faces: finish after roughing, deburr or semi-finish once more.",
+    "beta.fertig.zeigen": "Show this window after creating",
+    "beta.fertig.zeigen.tooltip": "Unchecked: “Create” closes without the “Created” window. The same checkbox is at the bottom of the assistant (beta)."
 }

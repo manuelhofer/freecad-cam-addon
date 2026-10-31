@@ -3707,5 +3707,19 @@
     "kg.still_fehler": "CAM-Addon: Kataloge nicht aktualisiert: {grund}",
     "ba.frage.eintauchen.tauchen": "Tauchfräsen statt räumen",
     "ba.frage.eintauchen.tauchen.satz": "Der Fräser taucht senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen – für tiefe Taschen, lange Werkzeuge und schwache Maschinen. Zwischen den Stellen bleiben an den Wänden Zwickel stehen – die nimmt eine Kontur danach.",
-    "ba.frage.eintauchen.tauchen.mit": "Mit {werkzeug} senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen – für tiefe Taschen, lange Werkzeuge und schwache Maschinen. Zwischen den Stellen bleiben an den Wänden Zwickel stehen – die nimmt eine Kontur danach."
+    "ba.frage.eintauchen.tauchen.mit": "Mit {werkzeug} senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen – für tiefe Taschen, lange Werkzeuge und schwache Maschinen. Zwischen den Stellen bleiben an den Wänden Zwickel stehen – die nimmt eine Kontur danach.",
+    "beta.fertig.titel": "Angelegt",
+    "beta.fertig.kopf": "{n} neue Operationen im Job „{job}“ (fett). Das steht jetzt alles darin:",
+    "beta.fertig.operation": "Operation",
+    "beta.fertig.zeit": "Zeit",
+    "beta.fertig.summe": "Zusammen etwa {zeit} (ohne Werkzeugwechsel).",
+    "beta.fertig.pruefen": "Auf der Maschine prüfen …",
+    "beta.fertig.pruefen.tooltip": "Fährt alle Operationen mit der Maschine des Jobs ab: Reichweite, Kollision, Zeit.",
+    "beta.fertig.programm": "Programm schreiben …",
+    "beta.fertig.programm.tooltip": "Schreibt das NC-Programm für die Steuerung der Maschine.",
+    "beta.fertig.blatt": "Einrichtblatt …",
+    "beta.fertig.blatt.tooltip": "Das Blatt für die Maschine: Werkzeuge, Spannung, Nullpunkt, Schritte mit Zeit.",
+    "beta.fertig.weiter.tooltip": "An denselben Flächen weiter: nach dem Schruppen schlichten, entgraten oder noch einmal vorschlichten.",
+    "beta.fertig.zeigen": "Dieses Fenster nach dem Anlegen zeigen",
+    "beta.fertig.zeigen.tooltip": "Abgehakt: „Anlegen“ schließt ohne das Fenster „Angelegt“. Der Haken steht auch unten im Assistenten (Beta)."
 }

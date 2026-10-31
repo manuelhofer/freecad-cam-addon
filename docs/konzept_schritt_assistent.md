@@ -137,6 +137,12 @@ Flächen.
 Nach „Kanten“ ein letzter Schritt, der zeigt, was im Job ist, mit Gesamtzeit und den Knöpfen
 „Auf der Maschine prüfen“ und „Programm schreiben“. Das ändert keine Wahl.
 
+*Gebaut (0.340.0)* als Fenster **„Angelegt“** nach „Anlegen“ (prüfen geht erst, wenn die
+Operationen im Job stehen): alle Operationen des Jobs mit Zeit, die neuen fett, zusammen; Knöpfe
+„Auf der Maschine prüfen …“, „Programm schreiben …“, „Einrichtblatt …“, „Weiter bearbeiten
+(Beta)“. Haken „Dieses Fenster nach dem Anlegen zeigen“ (vorbelegt an), auch unten im Assistenten.
+![Angelegt](bilder/beta/9_angelegt.png)
+
 ### B7. Wenn die Beta trägt
 
 Sobald Manuel und die Tester zufrieden sind, wird „Bearbeitung“ zur Schrittfassung. Das alte

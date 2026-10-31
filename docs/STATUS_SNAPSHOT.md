@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.340.0):* **Fenster „Angelegt“ nach „Anlegen“ (Beta, Konzept B6):** was jetzt im Job
+  steht, je Operation die Zeit (wie im Einrichtblatt, eine je Uhrtakt gerechnet), die neuen fett,
+  zusammen; die nächsten Schritte als Knöpfe: „Auf der Maschine prüfen …“, „Programm schreiben …“,
+  „Einrichtblatt …“, „Weiter bearbeiten (Beta)“. Haken „Dieses Fenster nach dem Anlegen zeigen“,
+  vorbelegt an – im Fenster und unten im Assistenten.
+![Angelegt](bilder/beta/9_angelegt.png)
 - *Neu (0.339.0):* **Heidenhain mit Radiuskorrektur und Korrektur im Messzyklus:** Die
   Konturprogrammierung („Radiuskorrektur der Steuerung“ an Kontur und „Schlichten danach“) schreibt
   im Klartext „L X… Y… RL“ / „C … DR+ RL“ und fährt mit „R0“ weg (klartext.py: G41/G42/G40 →

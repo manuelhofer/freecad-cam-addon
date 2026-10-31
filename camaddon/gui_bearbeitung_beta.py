@@ -58,6 +58,8 @@ EIGENSCHAFT_ABSCHNITT = "CamAddonBetaAbschnitt"
 GRUPPE = "CAM-Addon Beta"
 AUFMASS_STUFE = 1.0  # mm: so viel weniger Aufmaß schlägt „Weiter bearbeiten“ je Gang vor
 TASCHE_REST = 1.0  # mm über einem Boden: so viel darf stehen, und die Tasche gilt als ausgeräumt
+FERTIG_ZEIGEN = "BetaFertigZeigen"  # Parameter: nach „Anlegen“ das Fenster „Angelegt“ (an)
+FERTIG_ZEILEN = 14  # so viele Operationen zeigt es ohne Blättern
 
 
 def beta_an():
@@ -272,6 +274,14 @@ class BetaPanel(BearbeitungPanel):
         self.anlegen_text = _grau()
         self.anlegen_text.setWordWrap(True)
         aufbau.insertWidget(aufbau.indexOf(zeile), self.anlegen_text)
+        # Danach das Fenster „Angelegt“ (Konzept B6) – hier ab- und wieder anzuhaken.
+        self.haken_fertig = QtGui.QCheckBox(tr("beta.fertig.zeigen"))
+        self.haken_fertig.setToolTip(tr("beta.fertig.zeigen.tooltip"))
+        self.haken_fertig.setChecked(fertig_zeigen_an())
+        self.haken_fertig.toggled.connect(
+            lambda an: FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(FERTIG_ZEIGEN, bool(an))
+        )
+        aufbau.insertWidget(aufbau.indexOf(zeile), self.haken_fertig)
         # Im letzten Schritt: anlegen und dasselbe Teil anders gespannt weiter (Plan C4).
         self.knopf_umspannen = knopf(
             tr("beta.umspannen"), tr("beta.umspannen.tooltip"), self.umspannen
@@ -1003,6 +1013,7 @@ class BetaPanel(BearbeitungPanel):
             return False
         self._beta_bis = self._aktueller_abschnitt()
         job = self.job
+        vorher = {o.Name for o in job.Operations.Group} if job is not None else set()
         try:
             ergebnis = super().accept()
         finally:
@@ -1011,6 +1022,10 @@ class BetaPanel(BearbeitungPanel):
             self._am_job_merken(job, bis)
         if ergebnis is not False and _UMSPANNEN:
             QtCore.QTimer.singleShot(500, _umspannen_wenn_frei)
+        elif ergebnis is not False and job is not None and fertig_zeigen_an():
+            neu = {o.Name for o in job.Operations.Group} - vorher
+            if neu:
+                QtCore.QTimer.singleShot(300, lambda: _fertig_oeffnen(job, neu))
         return ergebnis
 
     def reject(self):
@@ -1487,6 +1502,156 @@ def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None, korrigieren=False)
         aufmass_setzen(panel, ab, aufmass)
     FreeCADGui.Control.showDialog(panel)
     return panel
+
+
+def fertig_zeigen_an():
+    return FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(FERTIG_ZEIGEN, True)
+
+
+def _fertig_oeffnen(job, neu):
+    try:
+        job.Operations  # noqa: B018 – der Job ist noch da (das Dokument nicht geschlossen)
+    except (ReferenceError, RuntimeError):
+        return
+    fenster = FertigFenster(FreeCADGui.getMainWindow(), job, neu)
+    fenster.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+    fenster.show()
+
+
+def _minuten_text(minuten):
+    """„0,3 min“, „12 min“, „2 h 05 min“."""
+    if minuten < 10:
+        return dezimal(tr("va.zeit.min", min=f"{minuten:.1f}"))
+    gesamt = int(round(minuten))
+    if gesamt < 60:
+        return tr("va.zeit.min", min=gesamt)
+    return tr("va.zeit.h", h=gesamt // 60, min=f"{gesamt % 60:02d}")
+
+
+class FertigFenster(QtGui.QDialog):
+    """Nach „Anlegen“ (Konzept B6, Schritt „Prüfen“): was jetzt im Job steht – je Operation ihre
+    Zeit (einrichtblatt.minuten), die eben angelegten fett –, zusammen, und die nächsten Schritte
+    als Knöpfe (Gedächtnis „Nächster Schritt als Knopf“): „Auf der Maschine prüfen“, „Programm
+    schreiben“, „Einrichtblatt“, „Weiter bearbeiten“. Die Zeiten rechnet es eine Operation je
+    Uhrtakt – bei großen 3D-Bahnen bleibt das Fenster bedienbar. Ändert nichts am Job."""
+
+    offen = None  # für die Oberflächen-Szenarien
+
+    def __init__(self, eltern, job, neu=()):
+        super().__init__(eltern)
+        from . import maschinenspeicher as msp
+
+        FertigFenster.offen = self
+        self.job = job
+        self.setWindowTitle(tr("beta.fertig.titel"))
+        self.setMinimumWidth(480)
+        aufbau = QtGui.QVBoxLayout(self)
+        kopf = QtGui.QLabel(tr("beta.fertig.kopf", job=job.Label, n=len(neu)))
+        kopf.setWordWrap(True)
+        aufbau.addWidget(kopf)
+        self.liste = QtGui.QTreeWidget()
+        self.liste.setRootIsDecorated(False)
+        self.liste.setHeaderLabels([tr("beta.fertig.operation"), tr("beta.fertig.zeit")])
+        self._zeilen = []
+        for op, _ebene in rw.operationen_mit_ebene(job):
+            zeile = QtGui.QTreeWidgetItem([op.Label, tr("ba.frage.rechnet")])
+            zeile.setTextAlignment(1, QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            if op.Name in neu:
+                schrift = zeile.font(0)
+                schrift.setBold(True)
+                zeile.setFont(0, schrift)
+            self.liste.addTopLevelItem(zeile)
+            self._zeilen.append((op, zeile))
+        self.liste.resizeColumnToContents(1)
+        self.liste.header().setStretchLastSection(False)
+        self.liste.header().setSectionResizeMode(0, QtGui.QHeaderView.Stretch)
+        # So hoch wie die Operationen (höchstens FERTIG_ZEILEN), nicht ein leeres Feld darunter.
+        hoehe = self.liste.sizeHintForRow(0) if self._zeilen else 18
+        self.liste.setFixedHeight(
+            self.liste.header().sizeHint().height()
+            + hoehe * min(max(len(self._zeilen), 1), FERTIG_ZEILEN)
+            + 2 * self.liste.frameWidth()
+            + 2
+        )
+        aufbau.addWidget(self.liste)
+        self.summe = _grau(tr("ba.frage.rechnet"))
+        aufbau.addWidget(self.summe)
+        zeile = QtGui.QHBoxLayout()
+        self.knopf_pruefen = knopf(
+            tr("beta.fertig.pruefen"),
+            tr("beta.fertig.pruefen.tooltip"),
+            lambda: self._befehl("CamAddon_AufMaschinePruefen"),
+        )
+        self.knopf_programm = knopf(
+            tr("beta.fertig.programm"),
+            tr("beta.fertig.programm.tooltip"),
+            lambda: self._befehl("CamAddon_ProgrammSchreiben"),
+        )
+        self.knopf_blatt = knopf(
+            tr("beta.fertig.blatt"),
+            tr("beta.fertig.blatt.tooltip"),
+            lambda: self._befehl("CamAddon_Einrichtblatt"),
+        )
+        self.knopf_weiter = knopf(
+            tr("befehl.beta.weiter.titel"),
+            tr("beta.fertig.weiter.tooltip"),
+            lambda: self._befehl("CamAddon_WeiterBearbeitenBeta"),
+        )
+        self.knopf_weiter.setVisible(
+            hasattr(job, EIGENSCHAFT_FLAECHEN) and naechster_abschnitt(job) is not None
+        )
+        for k in (self.knopf_pruefen, self.knopf_programm, self.knopf_blatt, self.knopf_weiter):
+            zeile.addWidget(k)
+        zeile.addStretch()
+        aufbau.addLayout(zeile)
+        unten = QtGui.QHBoxLayout()
+        self.haken_zeigen = QtGui.QCheckBox(tr("beta.fertig.zeigen"))
+        self.haken_zeigen.setToolTip(tr("beta.fertig.zeigen.tooltip"))
+        self.haken_zeigen.setChecked(fertig_zeigen_an())
+        self.haken_zeigen.toggled.connect(
+            lambda an: FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(FERTIG_ZEIGEN, bool(an))
+        )
+        unten.addWidget(self.haken_zeigen)
+        unten.addStretch()
+        unten.addWidget(knopf(tr("kg.schliessen"), "", self.accept))
+        aufbau.addLayout(unten)
+        self._dynamik = msp.dynamik_des_jobs(rw.grundjob_von(job))
+        self._offen = list(self._zeilen)
+        self.minuten = 0.0
+        self.fertig = False
+        QtCore.QTimer.singleShot(0, self._naechste)
+
+    def _naechste(self):
+        """Die Zeit der nächsten Operation – eine je Uhrtakt."""
+        from . import einrichtblatt as eb
+
+        if FertigFenster.offen is not self or not self._offen:
+            return
+        op, zeile = self._offen.pop(0)
+        tc = getattr(op, "ToolController", None)
+        try:
+            minuten = eb.minuten(op, tc) if tc is not None else 0.0
+        except Exception:  # noqa: BLE001 – dann ohne Zeit, wie im Einrichtblatt
+            minuten = 0.0
+        zeile.setText(1, _minuten_text(minuten) if minuten > 0 else "–")
+        self.minuten += minuten
+        if self._offen:
+            QtCore.QTimer.singleShot(0, self._naechste)
+            return
+        self.liste.resizeColumnToContents(1)
+        self.summe.setText(tr("beta.fertig.summe", zeit=_minuten_text(self.minuten)))
+        self.fertig = True
+
+    def _befehl(self, name):
+        """Den Job wählen und den Befehl starten – das Fenster geht zu."""
+        FreeCADGui.Selection.clearSelection()
+        FreeCADGui.Selection.addSelection(self.job.Document.Name, self.job.Name)
+        self.accept()
+        FreeCADGui.runCommand(name)
+
+    def done(self, ergebnis):
+        FertigFenster.offen = None
+        super().done(ergebnis)
 
 
 class BefehlNeueAufspannung:
