@@ -356,6 +356,57 @@
    ]
   },
   {
+   "hersteller": "Allmatic",
+   "titel": "HD Hochdruck-Schraubstock (ohne Drehplatte)",
+   "art": "schraubstock",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362250-100",
+   "quelle": "Hoffmann-Produktseiten 362250-100/-125/-160 (Hersteller Allmatic, Herstellernummern 6921011000055/6921021000055/6921031000055): Backenbreite A, Backenhöhe h, Höhe Grundkörper c, Auflagehöhe c1 (53,5/78/85), Länge gesamt min./max., Spannbereich 1/2, Gewicht. Gesamthöhe nicht angegeben (nicht aus c + h addiert, da Backenlage zum Körper unklar). Werte decken sich mit ALLMATIC-Katalog S. 20.",
+   "groessen": [
+    {
+     "name": "Allmatic HD 100",
+     "artikel": "362250 100 (Allmatic 6921011000055)",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362250-100",
+     "masse": {
+      "backenbreite": 100,
+      "backenhoehe": 32,
+      "spannweite_min": 0,
+      "spannweite_max": 162,
+      "laenge": 419,
+      "koerperhoehe": 87,
+      "gewicht": 18
+     }
+    },
+    {
+     "name": "Allmatic HD 125",
+     "artikel": "362250 125 (Allmatic 6921021000055)",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362250-125",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 40,
+      "spannweite_min": 0,
+      "spannweite_max": 202,
+      "laenge": 507,
+      "koerperhoehe": 120,
+      "gewicht": 30
+     }
+    },
+    {
+     "name": "Allmatic HD 160",
+     "artikel": "362250 160 (Allmatic 6921031000055)",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362250-160",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 50,
+      "spannweite_min": 0,
+      "spannweite_max": 302,
+      "laenge": 613,
+      "koerperhoehe": 137,
+      "gewicht": 60
+     }
+    }
+   ]
+  },
+  {
    "hersteller": "Gressel",
    "titel": "C2 Zentrischspanner",
    "art": "zentrisch",
@@ -1040,8 +1091,19 @@
    "titel": "Xtric Zentrischspanner Grundgerät",
    "art": "zentrisch",
    "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-125L",
-   "quelle": "Hoffmann-Produktseiten hoffmann-group.com/AT/de/hoa/p/363000-<Typ>, Tabelle 'Technische Daten': Länge gesamt min. L, Breite gesamt B, Höhe gesamt H, Gewicht, Spannbereich min./max. 1 und 2 (nur bei manchen Typen angegeben; spannweite_min = Spannbereich min. 1, spannweite_max = Spannbereich max. 2). Grundgerät OHNE Backen: H als koerperhoehe eingetragen, Backenbreite/-höhe hängen von den separat gekauften Backen ab (Baugröße 50/80/125 = Körperbreite). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Hoffmann-Produktseiten hoffmann-group.com/AT/de/hoa/p/363000-<Typ>, Tabelle 'Technische Daten': Länge gesamt min. L, Breite gesamt B, Höhe gesamt H, Gewicht, Spannbereich min./max. 1 und 2 (nur bei manchen Typen angegeben; spannweite_min = Spannbereich min. 1, spannweite_max = Spannbereich max. 2). Grundgerät OHNE Backen: H als koerperhoehe eingetragen, Backenbreite/-höhe hängen von den separat gekauften Backen ab (Baugröße 50/80/125 = Körperbreite).",
    "groessen": [
+    {
+     "name": "Xtric 50XS",
+     "artikel": "363000 50XS",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-50XS",
+     "masse": {
+      "breite": 50,
+      "koerperhoehe": 35,
+      "laenge": 96,
+      "gewicht": 1.5
+     }
+    },
     {
      "name": "Xtric 50S",
      "artikel": "363000 50S",
@@ -1054,6 +1116,248 @@
       "spannweite_min": 0,
       "spannweite_max": 94
      }
+    },
+    {
+     "name": "Xtric 50H",
+     "artikel": "363000 50H",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-50H",
+     "masse": {
+      "breite": 50,
+      "koerperhoehe": 35,
+      "laenge": 110,
+      "gewicht": 1.5
+     }
+    },
+    {
+     "name": "Xtric 80XS",
+     "artikel": "363000 80XS",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-80XS",
+     "masse": {
+      "breite": 80,
+      "koerperhoehe": 40,
+      "laenge": 136,
+      "gewicht": 2.7
+     }
+    },
+    {
+     "name": "Xtric 80S",
+     "artikel": "363000 80S",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-80S",
+     "masse": {
+      "breite": 80,
+      "koerperhoehe": 40,
+      "laenge": 170,
+      "gewicht": 3.2
+     }
+    },
+    {
+     "name": "Xtric 80M",
+     "artikel": "363000 80M",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-80M",
+     "masse": {
+      "breite": 80,
+      "koerperhoehe": 40,
+      "laenge": 220,
+      "gewicht": 4.0,
+      "spannweite_min": 0,
+      "spannweite_max": 194
+     }
+    },
+    {
+     "name": "Xtric 125XS",
+     "artikel": "363000 125XS",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-125XS",
+     "masse": {
+      "breite": 125,
+      "koerperhoehe": 54,
+      "laenge": 186,
+      "gewicht": 7.8,
+      "spannweite_min": 0,
+      "spannweite_max": 146
+     }
+    },
+    {
+     "name": "Xtric 125S",
+     "artikel": "363000 125S",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-125S",
+     "masse": {
+      "breite": 125,
+      "koerperhoehe": 54,
+      "laenge": 220,
+      "gewicht": 9.0
+     }
+    },
+    {
+     "name": "Xtric 125M",
+     "artikel": "363000 125M",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-125M",
+     "masse": {
+      "breite": 125,
+      "koerperhoehe": 54,
+      "laenge": 270,
+      "gewicht": 10.6
+     }
+    },
+    {
+     "name": "Xtric 125L",
+     "artikel": "363000 125L",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-125L",
+     "masse": {
+      "breite": 125,
+      "koerperhoehe": 54,
+      "laenge": 320,
+      "gewicht": 11.8,
+      "spannweite_min": 0,
+      "spannweite_max": 280
+     }
+    },
+    {
+     "name": "Xtric 125XL",
+     "artikel": "363000 125XL",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-125XL",
+     "masse": {
+      "breite": 125,
+      "koerperhoehe": 54,
+      "laenge": 370,
+      "gewicht": 13.4,
+      "spannweite_min": 0,
+      "spannweite_max": 330
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann Group GARANT",
+   "titel": "Xpent 5-Achs-Spanner",
+   "art": "schraubstock",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/361100-1",
+   "quelle": "Hoffmann-Produktseiten 361100-0/-1/-1S/-2 (Spannbereich min. 1 … max. 4 je nach Stellung der Aufsatzbacken, Länge gesamt min. L, Breite gesamt B, Höhe Grundkörper c, Gewicht). Backenbreite 125 für Typ 1/1S/2 aus Zubehörseite 361138-125 'Universal-Aufsatzbacke für Xpent, Backenbreite b 125 mm, passend für Xpent 361100 Größe 1-2'. Typ 0: Backenbreite nicht angegeben (Körperbreite 100). Backenhöhe/Gesamthöhe mit Aufsatzbacken nicht angegeben.",
+   "groessen": [
+    {
+     "name": "Xpent Typ 0",
+     "artikel": "361100 0",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/361100-0",
+     "masse": {
+      "spannweite_min": 6,
+      "spannweite_max": 301,
+      "laenge": 362,
+      "breite": 100,
+      "koerperhoehe": 125,
+      "gewicht": 19
+     }
+    },
+    {
+     "name": "Xpent Typ 1S",
+     "artikel": "361100 1S",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/361100-1S",
+     "masse": {
+      "spannweite_min": 6,
+      "spannweite_max": 386,
+      "laenge": 454,
+      "breite": 125,
+      "koerperhoehe": 125.5,
+      "gewicht": 34,
+      "backenbreite": 125
+     }
+    },
+    {
+     "name": "Xpent Typ 1",
+     "artikel": "361100 1",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/361100-1",
+     "masse": {
+      "spannweite_min": 6,
+      "spannweite_max": 386,
+      "laenge": 454,
+      "breite": 125,
+      "koerperhoehe": 165.5,
+      "gewicht": 36,
+      "backenbreite": 125
+     }
+    },
+    {
+     "name": "Xpent Typ 2",
+     "artikel": "361100 2",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/361100-2",
+     "masse": {
+      "spannweite_min": 6,
+      "spannweite_max": 386,
+      "laenge": 454,
+      "breite": 125,
+      "koerperhoehe": 195.5,
+      "gewicht": 41,
+      "backenbreite": 125
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann Group GARANT",
+   "titel": "NC-Hochdruckspanner (Version LC, HiPo Clamp)",
+   "art": "schraubstock",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360510-125",
+   "quelle": "Hoffmann-Produktseiten 360510-125 (Version LC) und 360465-125 (HiPo Clamp mit Kraftverstärker): Spannbereich 1 (0–182) / 2 (131–313), Länge Grundkörper a, Länge gesamt L, Breite Grundkörper B (nur HiPo), Höhe Grundkörper c, Backenhöhe h, Gewicht. Gesamthöhe nicht angegeben. 360465-160 hat auf der Seite keine Maße.",
+   "groessen": [
+    {
+     "name": "GARANT NC-Hochdruckspanner LC 125",
+     "artikel": "360510 125",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360510-125",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 39.5,
+      "spannweite_min": 0,
+      "spannweite_max": 313,
+      "laenge": 398,
+      "koerperhoehe": 100,
+      "gewicht": 34
+     }
+    },
+    {
+     "name": "GARANT HiPo Clamp 125",
+     "artikel": "360465 125",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360465-125",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 39.5,
+      "spannweite_min": 0,
+      "spannweite_max": 313,
+      "laenge": 424,
+      "breite": 125,
+      "koerperhoehe": 100,
+      "gewicht": 35
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann Group GARANT",
+   "titel": "Zentrischspanner neutral (Backenbreite 80/120)",
+   "art": "zentrisch",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360133-80",
+   "quelle": "Hoffmann-Produktseiten 360133-80 / 360133-120: Backenbreite A, Länge gesamt min. L, Breite gesamt B, Höhe gesamt H, Gewicht. Spannbereich auf der Seite nicht angegeben.",
+   "groessen": [
+    {
+     "name": "GARANT Zentrischspanner 80",
+     "artikel": "360133 80",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360133-80",
+     "masse": {
+      "backenbreite": 80,
+      "laenge": 110,
+      "breite": 80,
+      "hoehe": 50.2,
+      "gewicht": 2.5
+     }
+    },
+    {
+     "name": "GARANT Zentrischspanner 120",
+     "artikel": "360133 120",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360133-120",
+     "masse": {
+      "backenbreite": 120,
+      "laenge": 130,
+      "breite": 120,
+      "hoehe": 50.2,
+      "gewicht": 5.1
+     }
     }
    ]
   },
@@ -1062,7 +1366,7 @@
    "titel": "NC-Hochdruckspanner",
    "art": "schraubstock",
    "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360565-125",
-   "quelle": "Hoffmann-Produktseiten 360565-125 / 360565-160: Backenbreite A, Länge Grundkörper a, Länge gesamt max. L, Breite Grundkörper B, Höhe Grundkörper c, Höhe gesamt H, Spannbereich 1/2 (0–182 / 48–230 bzw. 0–245 / 72–317), Gewicht. backenhoehe ABGELEITET = H − c. (Abmessungen sehr ähnlich Allmatic NC4.) – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Hoffmann-Produktseiten 360565-125 / 360565-160: Backenbreite A, Länge Grundkörper a, Länge gesamt max. L, Breite Grundkörper B, Höhe Grundkörper c, Höhe gesamt H, Spannbereich 1/2 (0–182 / 48–230 bzw. 0–245 / 72–317), Gewicht. backenhoehe ABGELEITET = H − c. (Abmessungen sehr ähnlich Allmatic NC4.)",
    "groessen": [
     {
      "name": "HOLEX NC-Hochdruckspanner 125",
@@ -1078,6 +1382,106 @@
       "hoehe": 134.5,
       "koerperhoehe": 95,
       "gewicht": 30
+     }
+    },
+    {
+     "name": "HOLEX NC-Hochdruckspanner 160",
+     "artikel": "360565 160",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360565-160",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 49.8,
+      "spannweite_min": 0,
+      "spannweite_max": 317,
+      "laenge": 530,
+      "breite": 164,
+      "hoehe": 159.8,
+      "koerperhoehe": 110,
+      "gewicht": 67
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann Group HOLEX",
+   "titel": "Zentrischspanner",
+   "art": "zentrisch",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363300-75",
+   "quelle": "Hoffmann-Produktseiten 363300-75 / 363300-120: Backenbreite A, Länge/Breite/Höhe Grundkörper a/B/c, Gewicht. Spannbereich auf der Seite nicht angegeben.",
+   "groessen": [
+    {
+     "name": "HOLEX Zentrischspanner 75",
+     "artikel": "363300 75",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363300-75",
+     "masse": {
+      "backenbreite": 75,
+      "laenge": 130,
+      "breite": 75,
+      "koerperhoehe": 46,
+      "gewicht": 2.8
+     }
+    },
+    {
+     "name": "HOLEX Zentrischspanner 120",
+     "artikel": "363300 120",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363300-120",
+     "masse": {
+      "backenbreite": 120,
+      "laenge": 180,
+      "breite": 125,
+      "koerperhoehe": 65,
+      "gewicht": 9.5
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann Group HOLEX",
+   "titel": "Stationärer Maschinenschraubstock",
+   "art": "schraubstock",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362175-100M",
+   "quelle": "Hoffmann-Produktseiten 362175-100M / -150M / -150I: Backenbreite A, Backenhöhe h, Spannbereich 1 (0–155 bzw. 0–232), Länge/Breite/Höhe Grundkörper a/B/c. Gewicht und Gesamthöhe nicht angegeben.",
+   "groessen": [
+    {
+     "name": "HOLEX 100M",
+     "artikel": "362175 100M",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362175-100M",
+     "masse": {
+      "backenbreite": 102,
+      "backenhoehe": 34.9,
+      "spannweite_min": 0,
+      "spannweite_max": 155,
+      "laenge": 318,
+      "breite": 129,
+      "koerperhoehe": 73
+     }
+    },
+    {
+     "name": "HOLEX 150M",
+     "artikel": "362175 150M",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362175-150M",
+     "masse": {
+      "backenbreite": 151,
+      "backenhoehe": 44.5,
+      "spannweite_min": 0,
+      "spannweite_max": 232,
+      "laenge": 427,
+      "breite": 186,
+      "koerperhoehe": 73
+     }
+    },
+    {
+     "name": "HOLEX 150I",
+     "artikel": "362175 150I",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/362175-150I",
+     "masse": {
+      "backenbreite": 151,
+      "backenhoehe": 44.5,
+      "spannweite_min": 0,
+      "spannweite_max": 232,
+      "laenge": 427,
+      "breite": 186,
+      "koerperhoehe": 73
      }
     }
    ]
@@ -2048,7 +2452,7 @@
    "titel": "Duro-M Planspiralfutter 3-Backen, zylindrische Aufnahme DIN 6350/702-4 Form A, Bohr- und Drehbacken",
    "art": "futter",
    "link": "https://www.roehm.biz/duro-m",
-   "quelle": "Maße: hoffmann-group.com Artikel 310505-<Größe> (Technische Daten A, H1, H2, E; Herstellernummer = Röhm-Ident). backenhoehe = H2 - H1 (abgeleitet). spann_min/spann_max = Röhm-Prospekt DURO-M (de_Duro_M_DS_230505, Tabelle 'Spannbereiche Backenstufen (Richtwerte)', Außenspannung: Minimum der Stufe A1 (Bohrbacke), Maximum der Stufe A4 (Drehbacke)); umlauf_max = 'Größter Umlauf-Ø' derselben Tabelle. Röhm-Ident 185300…185307 bestätigt im Prospekt (3-Backen, Bohr- und Drehbacken). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Maße: hoffmann-group.com Artikel 310505-<Größe> (Technische Daten A, H1, H2, E; Herstellernummer = Röhm-Ident). backenhoehe = H2 - H1 (abgeleitet). spann_min/spann_max = Röhm-Prospekt DURO-M (de_Duro_M_DS_230505, Tabelle 'Spannbereiche Backenstufen (Richtwerte)', Außenspannung: Minimum der Stufe A1 (Bohrbacke), Maximum der Stufe A4 (Drehbacke)); umlauf_max = 'Größter Umlauf-Ø' derselben Tabelle. Röhm-Ident 185300…185307 bestätigt im Prospekt (3-Backen, Bohr- und Drehbacken).",
    "groessen": [
     {
      "name": "Duro-M 80/3",
@@ -2063,6 +2467,254 @@
       "spann_min": 2,
       "spann_max": 80,
       "umlauf_max": 104
+     }
+    },
+    {
+     "name": "Duro-M 100/3",
+     "artikel": "Röhm 185301 / Hoffmann 310505 100",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-100",
+     "masse": {
+      "durchmesser": 100,
+      "hoehe": 50,
+      "backenhoehe": 18,
+      "hoehe_mit_backen": 68,
+      "bohrung": 20,
+      "spann_min": 3,
+      "spann_max": 100,
+      "umlauf_max": 128
+     }
+    },
+    {
+     "name": "Duro-M 125/3",
+     "artikel": "Röhm 185302 / Hoffmann 310505 125",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-125",
+     "masse": {
+      "durchmesser": 125,
+      "hoehe": 56,
+      "backenhoehe": 22.5,
+      "hoehe_mit_backen": 78.5,
+      "bohrung": 32,
+      "spann_min": 3,
+      "spann_max": 125,
+      "umlauf_max": 157
+     }
+    },
+    {
+     "name": "Duro-M 160/3",
+     "artikel": "Röhm 185303 / Hoffmann 310505 160",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-160",
+     "masse": {
+      "durchmesser": 160,
+      "hoehe": 65,
+      "backenhoehe": 26,
+      "hoehe_mit_backen": 91,
+      "bohrung": 42,
+      "spann_min": 3,
+      "spann_max": 160,
+      "umlauf_max": 194
+     }
+    },
+    {
+     "name": "Duro-M 200/3",
+     "artikel": "Röhm 185304 / Hoffmann 310505 200",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-200",
+     "masse": {
+      "durchmesser": 200,
+      "hoehe": 73.5,
+      "backenhoehe": 32.5,
+      "hoehe_mit_backen": 106,
+      "bohrung": 55,
+      "spann_min": 4,
+      "spann_max": 200,
+      "umlauf_max": 238
+     }
+    },
+    {
+     "name": "Duro-M 250/3",
+     "artikel": "Röhm 185305 / Hoffmann 310505 250",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-250",
+     "masse": {
+      "durchmesser": 250,
+      "hoehe": 82,
+      "backenhoehe": 40,
+      "hoehe_mit_backen": 122,
+      "bohrung": 76,
+      "spann_min": 5,
+      "spann_max": 250,
+      "umlauf_max": 302
+     }
+    },
+    {
+     "name": "Duro-M 315/3",
+     "artikel": "Röhm 185306 / Hoffmann 310505 315",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-315",
+     "masse": {
+      "durchmesser": 315,
+      "hoehe": 95,
+      "backenhoehe": 46,
+      "hoehe_mit_backen": 141,
+      "bohrung": 103,
+      "spann_min": 6,
+      "spann_max": 315,
+      "umlauf_max": 395
+     }
+    },
+    {
+     "name": "Duro-M 400/3",
+     "artikel": "Röhm 185307 / Hoffmann 310505 400",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-400",
+     "masse": {
+      "durchmesser": 400,
+      "hoehe": 105,
+      "backenhoehe": 43,
+      "hoehe_mit_backen": 148,
+      "bohrung": 136,
+      "spann_min": 20,
+      "spann_max": 400,
+      "umlauf_max": 480
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "DURO-T Keilstangenfutter 3-Backen, zylindrische Zentrieraufnahme, einteilige Umkehrbacken",
+   "art": "futter",
+   "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/DURO-T.pdf",
+   "quelle": "hoffmann-group.com Händlerseiten /p/<Röhm-Ident>- (Merkmale: Aussendurchmesser, Höhe Futter, Durchgangsbohrung, Backenhub). Backenhöhe und Spannbereich auf diesen Seiten nicht angegeben.",
+   "groessen": [
+    {
+     "name": "DURO-T 125",
+     "artikel": "Röhm 437475",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/437475-",
+     "masse": {
+      "durchmesser": 130,
+      "hoehe": 46.5,
+      "bohrung": 32,
+      "backenhub": 4.8
+     }
+    },
+    {
+     "name": "DURO-T 160",
+     "artikel": "Röhm 437476",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/437476-",
+     "masse": {
+      "durchmesser": 164,
+      "hoehe": 63,
+      "bohrung": 42,
+      "backenhub": 6.2
+     }
+    },
+    {
+     "name": "DURO-T 200",
+     "artikel": "Röhm 437477",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/437477-",
+     "masse": {
+      "durchmesser": 206,
+      "hoehe": 81,
+      "bohrung": 52,
+      "backenhub": 6.8
+     }
+    },
+    {
+     "name": "DURO-T 250",
+     "artikel": "Röhm 437478",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/437478-",
+     "masse": {
+      "durchmesser": 256,
+      "hoehe": 92,
+      "bohrung": 62,
+      "backenhub": 8
+     }
+    },
+    {
+     "name": "DURO-T 315",
+     "artikel": "Röhm 437479",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/437479-",
+     "masse": {
+      "durchmesser": 322,
+      "hoehe": 111,
+      "bohrung": 87,
+      "backenhub": 10.2
+     }
+    },
+    {
+     "name": "DURO-T 400",
+     "artikel": "Röhm 437480",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/437480-",
+     "masse": {
+      "durchmesser": 407,
+      "hoehe": 118,
+      "bohrung": 102,
+      "backenhub": 12.5
+     }
+    },
+    {
+     "name": "DURO-T 500",
+     "artikel": "Röhm 437481",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/437481-",
+     "masse": {
+      "durchmesser": 507,
+      "hoehe": 118,
+      "bohrung": 162,
+      "backenhub": 12.5
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "DURO-T Keilstangenfutter mit Grund- und harten Aufsatzbacken, DIN 702-4",
+   "art": "futter",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/313120-160",
+   "quelle": "hoffmann-group.com Artikel 313120-<Größe> (Technische Daten: Durchmesser außen A, Höhe ohne Backen H1, Spannbereich außen min./max., Durchlass E; Hersteller Röhm, Herstellernummer 437490…437493).",
+   "groessen": [
+    {
+     "name": "DURO-T 160 (Grund-/Aufsatzbacken)",
+     "artikel": "Röhm 437490 / Hoffmann 313120 160",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313120-160",
+     "masse": {
+      "durchmesser": 164,
+      "hoehe": 63,
+      "bohrung": 42,
+      "spann_min": 5,
+      "spann_max": 161
+     }
+    },
+    {
+     "name": "DURO-T 200 (Grund-/Aufsatzbacken)",
+     "artikel": "Röhm 437491 / Hoffmann 313120 200",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313120-200",
+     "masse": {
+      "durchmesser": 206,
+      "hoehe": 81,
+      "bohrung": 52,
+      "spann_min": 7,
+      "spann_max": 207
+     }
+    },
+    {
+     "name": "DURO-T 250 (Grund-/Aufsatzbacken)",
+     "artikel": "Röhm 437492 / Hoffmann 313120 250",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313120-250",
+     "masse": {
+      "durchmesser": 256,
+      "hoehe": 92,
+      "bohrung": 62,
+      "spann_min": 8,
+      "spann_max": 253
+     }
+    },
+    {
+     "name": "DURO-T 315 (Grund-/Aufsatzbacken)",
+     "artikel": "Röhm 437493 / Hoffmann 313120 315",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313120-315",
+     "masse": {
+      "durchmesser": 322,
+      "hoehe": 111,
+      "bohrung": 87,
+      "spann_min": 12,
+      "spann_max": 323
      }
     }
    ]
@@ -2209,6 +2861,141 @@
       "umlauf_max": 770,
       "lochkreis": 586,
       "hoehe": 135
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HOLEX (Hoffmann)",
+   "titel": "Dreibacken-Drehfutter Guss, zylindrische Zentrieraufnahme DIN 702-4",
+   "art": "futter",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-160",
+   "quelle": "hoffmann-group.com Artikel 312906-<Größe> (Technische Daten A, H1, H2, E). backenhoehe = H2 - H1 (abgeleitet). Höhen identisch mit Bison 3204 (vermutlich Bison-Fertigung, nicht belegt).",
+   "groessen": [
+    {
+     "name": "HOLEX 312906 80",
+     "artikel": "Hoffmann 312906 80",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-80",
+     "masse": {
+      "durchmesser": 80,
+      "hoehe": 44,
+      "backenhoehe": 13,
+      "hoehe_mit_backen": 57,
+      "bohrung": 16
+     }
+    },
+    {
+     "name": "HOLEX 312906 100",
+     "artikel": "Hoffmann 312906 100",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-100",
+     "masse": {
+      "durchmesser": 100,
+      "hoehe": 50,
+      "backenhoehe": 17,
+      "hoehe_mit_backen": 67,
+      "bohrung": 20
+     }
+    },
+    {
+     "name": "HOLEX 312906 125",
+     "artikel": "Hoffmann 312906 125",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-125",
+     "masse": {
+      "durchmesser": 125,
+      "hoehe": 56,
+      "backenhoehe": 20,
+      "hoehe_mit_backen": 76,
+      "bohrung": 32
+     }
+    },
+    {
+     "name": "HOLEX 312906 160",
+     "artikel": "Hoffmann 312906 160",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-160",
+     "masse": {
+      "durchmesser": 160,
+      "hoehe": 64.5,
+      "backenhoehe": 32.0,
+      "hoehe_mit_backen": 96.5,
+      "bohrung": 42
+     }
+    },
+    {
+     "name": "HOLEX 312906 200",
+     "artikel": "Hoffmann 312906 200",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-200",
+     "masse": {
+      "durchmesser": 200,
+      "hoehe": 75,
+      "backenhoehe": 29,
+      "hoehe_mit_backen": 104,
+      "bohrung": 55
+     }
+    },
+    {
+     "name": "HOLEX 312906 250",
+     "artikel": "Hoffmann 312906 250",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-250",
+     "masse": {
+      "durchmesser": 250,
+      "hoehe": 85,
+      "backenhoehe": 34,
+      "hoehe_mit_backen": 119,
+      "bohrung": 76
+     }
+    },
+    {
+     "name": "HOLEX 312906 315",
+     "artikel": "Hoffmann 312906 315",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/312906-315",
+     "masse": {
+      "durchmesser": 315,
+      "hoehe": 94,
+      "backenhoehe": 43,
+      "hoehe_mit_backen": 137,
+      "bohrung": 103
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Schunk",
+   "titel": "ROTA-S plus 2.0 Keilstangen-Handspannfutter mit Grund- und harten Aufsatzbacken, DIN 702-4",
+   "art": "futter",
+   "link": "https://www.schunk.com/de/en/workpiece-clamping-technology/stationary-lathe-chucks/manual-lathe-chuck/rota-s-plus-2-0/c/PGR_4288",
+   "quelle": "hoffmann-group.com Artikel 313117-250 (Technische Daten A, H1, Spannbereich außen, E; Herstellernummer 0819103). Weitere Größen (313117-160/200/315/400) haben bei Hoffmann keine technischen Daten; schunk.com nennt nur Hub/Gewicht.",
+   "groessen": [
+    {
+     "name": "ROTA-S plus 2.0 250",
+     "artikel": "Schunk 0819103 / Hoffmann 313117 250",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313117-250",
+     "masse": {
+      "durchmesser": 256,
+      "hoehe": 98,
+      "bohrung": 62,
+      "spann_min": 10,
+      "spann_max": 250
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "GARANT (Hoffmann)",
+   "titel": "Dreibacken-Drehfutter Stahl, zylindrische Zentrieraufnahme DIN 702-4",
+   "art": "futter",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/310600-160",
+   "quelle": "hoffmann-group.com Artikel 310600-160 (A, H1, H2, E); backenhoehe = H2 - H1. Nur Größe 160 im Sortiment (Maße gleich Röhm Duro-M 160).",
+   "groessen": [
+    {
+     "name": "GARANT 310600 160",
+     "artikel": "Hoffmann 310600 160",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310600-160",
+     "masse": {
+      "durchmesser": 160,
+      "hoehe": 65,
+      "backenhoehe": 26,
+      "hoehe_mit_backen": 91,
+      "bohrung": 42
      }
     }
    ]
@@ -2388,7 +3175,7 @@
    "titel": "ZeroClamp Basisplatte (Spanntopf ⌀120 bzw. ⌀138, Stichmaß 200)",
    "art": "nullpunkt",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-10077",
-   "quelle": "hoffmann-group.com Artikel 360012-<Typ> (Technische Daten L, B, H, Durchmesser Spanntopf, Anzahl Spanntöpfe, Stichmaß). raster = Stichmaß. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "hoffmann-group.com Artikel 360012-<Typ> (Technische Daten L, B, H, Durchmesser Spanntopf, Anzahl Spanntöpfe, Stichmaß). raster = Stichmaß.",
    "groessen": [
     {
      "name": "ZeroClamp Basisplatte 10077 (2x ⌀120)",
@@ -2402,6 +3189,225 @@
       "spanntopf_durchmesser": 120,
       "spannstellen": 2
      }
+    },
+    {
+     "name": "ZeroClamp Basisplatte 10008 (4x ⌀120)",
+     "artikel": "Hoffmann 360012 10008",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-10008",
+     "masse": {
+      "laenge": 366,
+      "breite": 366,
+      "hoehe": 44,
+      "raster": 200,
+      "spanntopf_durchmesser": 120,
+      "spannstellen": 4
+     }
+    },
+    {
+     "name": "ZeroClamp Basisplatte 10024 (6x ⌀120)",
+     "artikel": "Hoffmann 360012 10024",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-10024",
+     "masse": {
+      "laenge": 366,
+      "breite": 566,
+      "hoehe": 44,
+      "raster": 200,
+      "spanntopf_durchmesser": 120,
+      "spannstellen": 6
+     }
+    },
+    {
+     "name": "ZeroClamp Basisplatte 11058 (8x ⌀120)",
+     "artikel": "Hoffmann 360012 11058",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-11058",
+     "masse": {
+      "laenge": 366,
+      "breite": 766,
+      "hoehe": 44,
+      "raster": 200,
+      "spanntopf_durchmesser": 120,
+      "spannstellen": 8
+     }
+    },
+    {
+     "name": "ZeroClamp Basisplatte 21782 (2x ⌀138)",
+     "artikel": "Hoffmann 360012 21782",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-21782",
+     "masse": {
+      "laenge": 446,
+      "breite": 196,
+      "hoehe": 54,
+      "raster": 200,
+      "spanntopf_durchmesser": 138,
+      "spannstellen": 2
+     }
+    },
+    {
+     "name": "ZeroClamp Basisplatte 21521 (4x ⌀138)",
+     "artikel": "Hoffmann 360012 21521",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-21521",
+     "masse": {
+      "laenge": 396,
+      "breite": 396,
+      "hoehe": 54,
+      "raster": 200,
+      "spanntopf_durchmesser": 138,
+      "spannstellen": 4
+     }
+    },
+    {
+     "name": "ZeroClamp Basisplatte 25438 (6x ⌀138)",
+     "artikel": "Hoffmann 360012 25438",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-25438",
+     "masse": {
+      "laenge": 396,
+      "breite": 596,
+      "hoehe": 54,
+      "raster": 200,
+      "spanntopf_durchmesser": 138,
+      "spannstellen": 6
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "GARANT (Hoffmann)",
+   "titel": "Basisplatte Aluminium für Nullpunktspannsystem (Stichmaß 200)",
+   "art": "nullpunkt",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/368010-180",
+   "quelle": "hoffmann-group.com Artikel 368010-180/-360 (L, B, H, Stichmaß).",
+   "groessen": [
+    {
+     "name": "GARANT Basisplatte 180x360",
+     "artikel": "Hoffmann 368010 180",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/368010-180",
+     "masse": {
+      "laenge": 180,
+      "breite": 360,
+      "hoehe": 30,
+      "raster": 200
+     }
+    },
+    {
+     "name": "GARANT Basisplatte 360x360",
+     "artikel": "Hoffmann 368010 360",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/368010-360",
+     "masse": {
+      "laenge": 360,
+      "breite": 360,
+      "hoehe": 30,
+      "raster": 200
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "KIPP",
+   "titel": "UNILOCK Spannstation (Module ⌀138, ohne Verdrehsicherung)",
+   "art": "nullpunkt",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/K2350.4200399399600-",
+   "quelle": "hoffmann-group.com Händlerseiten K2350.* (Merkmale L, B, H, D = Modul-⌀ 138, L1 = 200 Abstand der Module). raster = L1.",
+   "groessen": [
+    {
+     "name": "UNILOCK Spannstation 2-fach 399x199",
+     "artikel": "K2350.2200399199600",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K2350.2200399199600-",
+     "masse": {
+      "laenge": 399,
+      "breite": 199,
+      "hoehe": 60,
+      "raster": 200,
+      "spannstellen": 2,
+      "modul_durchmesser": 138
+     }
+    },
+    {
+     "name": "UNILOCK Spannstation 4-fach 399x399",
+     "artikel": "K2350.4200399399600",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K2350.4200399399600-",
+     "masse": {
+      "laenge": 399,
+      "breite": 399,
+      "hoehe": 60,
+      "raster": 200,
+      "spannstellen": 4,
+      "modul_durchmesser": 138
+     }
+    },
+    {
+     "name": "UNILOCK Spannstation 6-fach 599x399",
+     "artikel": "K2350.6200599399600",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K2350.6200599399600-",
+     "masse": {
+      "laenge": 599,
+      "breite": 399,
+      "hoehe": 60,
+      "raster": 200,
+      "spannstellen": 6,
+      "modul_durchmesser": 138
+     }
+    },
+    {
+     "name": "UNILOCK Spannstation 8-fach 799x399",
+     "artikel": "K2350.8200799399600",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K2350.8200799399600-",
+     "masse": {
+      "laenge": 799,
+      "breite": 399,
+      "hoehe": 60,
+      "raster": 200,
+      "spannstellen": 8,
+      "modul_durchmesser": 138
+     }
+    },
+    {
+     "name": "UNILOCK Turn-Spannstation 3-fach ⌀450",
+     "artikel": "K2351.320045075",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K2351.320045075-",
+     "masse": {
+      "durchmesser": 450,
+      "hoehe": 75,
+      "spannstellen": 3
+     }
+    },
+    {
+     "name": "UNILOCK Turn-Spannstation 5-fach ⌀570",
+     "artikel": "K2351.520057079",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K2351.520057079-",
+     "masse": {
+      "durchmesser": 570,
+      "hoehe": 79,
+      "spannstellen": 5
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "KIPP",
+   "titel": "UNILOCK Spannmodule (Aufbau ASM 99, ESA 138)",
+   "art": "nullpunkt",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/K1971.99560-",
+   "quelle": "hoffmann-group.com Händlerseiten K1971.99560 (ASM 99: D 99, H 56) und K1972.138390 (ESA 138: D 138, D1 110, H 55,7, H1 39). ESA 138 hat einen ⌀110-Zapfen wie Schunk NSE3 138; die Höhe über Tisch ist nicht beschriftet, daher hoehe_gesamt.",
+   "groessen": [
+    {
+     "name": "UNILOCK ASM 99",
+     "artikel": "K1971.99560",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K1971.99560-",
+     "masse": {
+      "durchmesser": 99,
+      "hoehe": 56
+     }
+    },
+    {
+     "name": "UNILOCK ESA 138",
+     "artikel": "K1972.138390",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/K1972.138390-",
+     "masse": {
+      "durchmesser": 138,
+      "einbau_durchmesser": 110,
+      "hoehe_gesamt": 55.7,
+      "hoehe": 55.7
+     }
     }
    ]
   },
@@ -2410,7 +3416,7 @@
    "titel": "Spannpratze (Spanneisen + Spannschraube als Einheit, stufenlos verstellbar)",
    "art": "pratzen",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/370660-12",
-   "quelle": "hoffmann-group.com Artikel 370660-<Nut> (Länge L, Breite B, Spannhöhe min./max. h, Breite Nut a; Hersteller AMF, Herstellernummer 749xx). Gewinde nicht angegeben. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "hoffmann-group.com Artikel 370660-<Nut> (Länge L, Breite B, Spannhöhe min./max. h, Breite Nut a; Hersteller AMF, Herstellernummer 749xx). Gewinde nicht angegeben.",
    "groessen": [
     {
      "name": "AMF Spannpratze Nut 12",
@@ -2423,6 +3429,316 @@
       "hoehe_max": 50,
       "nut": 12
      }
+    },
+    {
+     "name": "AMF Spannpratze Nut 14",
+     "artikel": "AMF 74914 / Hoffmann 370660 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370660-14",
+     "masse": {
+      "laenge": 140,
+      "breite": 50,
+      "hoehe_min": 0,
+      "hoehe_max": 50,
+      "nut": 14
+     }
+    },
+    {
+     "name": "AMF Spannpratze Nut 16",
+     "artikel": "AMF 74922 / Hoffmann 370660 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370660-16",
+     "masse": {
+      "laenge": 140,
+      "breite": 50,
+      "hoehe_min": 0,
+      "hoehe_max": 75,
+      "nut": 16
+     }
+    },
+    {
+     "name": "AMF Spannpratze Nut 18",
+     "artikel": "AMF 74930 / Hoffmann 370660 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370660-18",
+     "masse": {
+      "laenge": 140,
+      "breite": 50,
+      "hoehe_min": 0,
+      "hoehe_max": 75,
+      "nut": 18
+     }
+    },
+    {
+     "name": "AMF Spannpratze Nut 22",
+     "artikel": "AMF 74963 / Hoffmann 370660 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370660-22",
+     "masse": {
+      "laenge": 175,
+      "breite": 60,
+      "hoehe_min": 0,
+      "hoehe_max": 85,
+      "nut": 22
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "AMF",
+   "titel": "Spannpratze kurz, mit U-Stück und T-Nutenschraube DIN 787",
+   "art": "pratzen",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/370665-12",
+   "quelle": "hoffmann-group.com Artikel 370665-<Nut> (L, B, Spannhöhe min./max., Breite Nut a; Hersteller AMF, Herstellernummer 771xx/772xx). nut = 'Breite Nut a' (bei 12 nennt die Seite zusätzlich T-Nutbreite 14).",
+   "groessen": [
+    {
+     "name": "AMF Spannpratze kurz Nut 12",
+     "artikel": "AMF 77149 / Hoffmann 370665 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370665-12",
+     "masse": {
+      "laenge": 88,
+      "breite": 38,
+      "hoehe_min": 0,
+      "hoehe_max": 35,
+      "nut": 12
+     }
+    },
+    {
+     "name": "AMF Spannpratze kurz Nut 14",
+     "artikel": "AMF 77156 / Hoffmann 370665 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370665-14",
+     "masse": {
+      "laenge": 88,
+      "breite": 38,
+      "hoehe_min": 0,
+      "hoehe_max": 35,
+      "nut": 14
+     }
+    },
+    {
+     "name": "AMF Spannpratze kurz Nut 16",
+     "artikel": "AMF 77180 / Hoffmann 370665 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370665-16",
+     "masse": {
+      "laenge": 130,
+      "breite": 56,
+      "hoehe_min": 0,
+      "hoehe_max": 55,
+      "nut": 16
+     }
+    },
+    {
+     "name": "AMF Spannpratze kurz Nut 18",
+     "artikel": "AMF 77198 / Hoffmann 370665 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370665-18",
+     "masse": {
+      "laenge": 130,
+      "breite": 56,
+      "hoehe_min": 0,
+      "hoehe_max": 55,
+      "nut": 18
+     }
+    },
+    {
+     "name": "AMF Spannpratze kurz Nut 20",
+     "artikel": "AMF 77206 / Hoffmann 370665 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370665-20",
+     "masse": {
+      "laenge": 144,
+      "breite": 66,
+      "hoehe_min": 0,
+      "hoehe_max": 65,
+      "nut": 20
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HOLEX (Hoffmann)",
+   "titel": "Spannpratze mit Schraube (Spannkralle für T-Nuten)",
+   "art": "pratzen",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/370670-12",
+   "quelle": "hoffmann-group.com Artikel 370670-<Nut> (Länge/Breite gesamt, empfohlene Klemmhöhe H2 min./max., Gewinde M, T-Nutbreite). Für 14/16/22 nennt die Seite keine Länge/Breite, für 16 kein Gewinde.",
+   "groessen": [
+    {
+     "name": "HOLEX Spannpratze Nut 12",
+     "artikel": "Hoffmann 370670 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370670-12",
+     "masse": {
+      "hoehe_min": 0,
+      "hoehe_max": 45,
+      "nut": 12,
+      "laenge": 105,
+      "breite": 44
+     }
+    },
+    {
+     "name": "HOLEX Spannpratze Nut 14",
+     "artikel": "Hoffmann 370670 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370670-14",
+     "masse": {
+      "hoehe_min": 0,
+      "hoehe_max": 45,
+      "nut": 14
+     }
+    },
+    {
+     "name": "HOLEX Spannpratze Nut 16",
+     "artikel": "Hoffmann 370670 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370670-16",
+     "masse": {
+      "hoehe_min": 0,
+      "hoehe_max": 50,
+      "nut": 16
+     }
+    },
+    {
+     "name": "HOLEX Spannpratze Nut 18",
+     "artikel": "Hoffmann 370670 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370670-18",
+     "masse": {
+      "hoehe_min": 0,
+      "hoehe_max": 50,
+      "nut": 18,
+      "laenge": 140,
+      "breite": 51
+     }
+    },
+    {
+     "name": "HOLEX Spannpratze Nut 22",
+     "artikel": "Hoffmann 370670 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370670-22",
+     "masse": {
+      "hoehe_min": 0,
+      "hoehe_max": 70,
+      "nut": 22
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "AMF",
+   "titel": "Spanneisen flach DIN 6314",
+   "art": "pratzen",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-14X100",
+   "quelle": "hoffmann-group.com Artikel 371000-<Schlitz>X<Länge> (L, B, H, Breite Schlitz, Spannschrauben; Hersteller AMF, Herstellernummer 700xx). Flaches Eisen: hoehe = Dicke H (kein Spannhöhenbereich, der ergibt sich aus der Unterlage); schlitz = Breite Schlitz.",
+   "groessen": [
+    {
+     "name": "Spanneisen DIN 6314 7X50",
+     "artikel": "AMF 70003 / Hoffmann 371000 7X50",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-7X50",
+     "masse": {
+      "laenge": 50,
+      "breite": 20,
+      "schlitz": 7,
+      "dicke": 10
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 9X60",
+     "artikel": "AMF 70011 / Hoffmann 371000 9X60",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-9X60",
+     "masse": {
+      "laenge": 60,
+      "breite": 25,
+      "schlitz": 9,
+      "dicke": 12
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 11X80",
+     "artikel": "AMF 70029 / Hoffmann 371000 11X80",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-11X80",
+     "masse": {
+      "laenge": 80,
+      "breite": 30,
+      "schlitz": 11,
+      "dicke": 15
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 14X100",
+     "artikel": "AMF 70037 / Hoffmann 371000 14X100",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-14X100",
+     "masse": {
+      "laenge": 100,
+      "breite": 40,
+      "schlitz": 14,
+      "dicke": 20
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 14X125",
+     "artikel": "AMF 70045 / Hoffmann 371000 14X125",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-14X125",
+     "masse": {
+      "laenge": 125,
+      "breite": 40,
+      "schlitz": 14,
+      "dicke": 20
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 18X125",
+     "artikel": "AMF 70052 / Hoffmann 371000 18X125",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-18X125",
+     "masse": {
+      "laenge": 125,
+      "breite": 50,
+      "schlitz": 18,
+      "dicke": 25
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 18X160",
+     "artikel": "AMF 70060 / Hoffmann 371000 18X160",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-18X160",
+     "masse": {
+      "laenge": 160,
+      "breite": 50,
+      "schlitz": 18,
+      "dicke": 25
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 22X160",
+     "artikel": "AMF 70078 / Hoffmann 371000 22X160",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-22X160",
+     "masse": {
+      "laenge": 160,
+      "breite": 60,
+      "schlitz": 22,
+      "dicke": 30
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 22X200",
+     "artikel": "AMF 70086 / Hoffmann 371000 22X200",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-22X200",
+     "masse": {
+      "laenge": 200,
+      "breite": 60,
+      "schlitz": 22,
+      "dicke": 30
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 26X200",
+     "artikel": "AMF 70094 / Hoffmann 371000 26X200",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-26X200",
+     "masse": {
+      "laenge": 200,
+      "breite": 70,
+      "schlitz": 26,
+      "dicke": 30
+     }
+    },
+    {
+     "name": "Spanneisen DIN 6314 26X250",
+     "artikel": "AMF 70102 / Hoffmann 371000 26X250",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/371000-26X250",
+     "masse": {
+      "laenge": 250,
+      "breite": 70,
+      "schlitz": 26,
+      "dicke": 35
+     }
     }
    ]
   },
@@ -2431,7 +3747,7 @@
    "titel": "Permanent-Magnetspannplatte, Querpolteilung (Neodym, Handhebel)",
    "art": "platte",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/380100-250",
-   "quelle": "hoffmann-group.com Artikel 380100-<Länge> (Länge, Breite, Höhe H; Hersteller SAV, Herstellernummer 243.11-LxB). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "hoffmann-group.com Artikel 380100-<Länge> (Länge, Breite, Höhe H; Hersteller SAV, Herstellernummer 243.11-LxB).",
    "groessen": [
     {
      "name": "SAV 243.11 250x150",
@@ -2442,6 +3758,184 @@
       "breite": 150,
       "hoehe": 56
      }
+    },
+    {
+     "name": "SAV 243.11 350x150",
+     "artikel": "SAV 243.11-350X150 / Hoffmann 380100 350",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380100-350",
+     "masse": {
+      "laenge": 350,
+      "breite": 150,
+      "hoehe": 56
+     }
+    },
+    {
+     "name": "SAV 243.11 400x200",
+     "artikel": "SAV 243.11-400X200 / Hoffmann 380100 400",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380100-400",
+     "masse": {
+      "laenge": 400,
+      "breite": 200,
+      "hoehe": 59
+     }
+    },
+    {
+     "name": "SAV 243.11 500x200",
+     "artikel": "SAV 243.11-500X200 / Hoffmann 380100 500",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380100-500",
+     "masse": {
+      "laenge": 500,
+      "breite": 200,
+      "hoehe": 59
+     }
+    },
+    {
+     "name": "SAV 243.11 600x200",
+     "artikel": "SAV 243.11-600X200 / Hoffmann 380100 600",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380100-600",
+     "masse": {
+      "laenge": 600,
+      "breite": 200,
+      "hoehe": 59
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "SAV",
+   "titel": "Permanent-Magnetspannplatte, feine Querpolteilung",
+   "art": "platte",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/380500-175",
+   "quelle": "hoffmann-group.com Artikel 380500-<Länge> (Länge, Breite, Höhe H; Hersteller SAV, Herstellernummer 243.01-LxB).",
+   "groessen": [
+    {
+     "name": "SAV 243.01 175x100",
+     "artikel": "SAV 243.01-175X100 / Hoffmann 380500 175",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380500-175",
+     "masse": {
+      "laenge": 175,
+      "breite": 100,
+      "hoehe": 49
+     }
+    },
+    {
+     "name": "SAV 243.01 255x130",
+     "artikel": "SAV 243.01-255X130 / Hoffmann 380500 255",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380500-255",
+     "masse": {
+      "laenge": 255,
+      "breite": 130,
+      "hoehe": 49
+     }
+    },
+    {
+     "name": "SAV 243.01 300x150",
+     "artikel": "SAV 243.01-300X150 / Hoffmann 380500 300",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380500-300",
+     "masse": {
+      "laenge": 300,
+      "breite": 150,
+      "hoehe": 51
+     }
+    },
+    {
+     "name": "SAV 243.01 350x150",
+     "artikel": "SAV 243.01-350X150 / Hoffmann 380500 350",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380500-350",
+     "masse": {
+      "laenge": 350,
+      "breite": 150,
+      "hoehe": 51
+     }
+    },
+    {
+     "name": "SAV 243.01 450x150",
+     "artikel": "SAV 243.01-450X150 / Hoffmann 380500 450",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380500-450",
+     "masse": {
+      "laenge": 450,
+      "breite": 150,
+      "hoehe": 51
+     }
+    },
+    {
+     "name": "SAV 243.01 600x200",
+     "artikel": "SAV 243.01-600X200 / Hoffmann 380500 600",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380500-600",
+     "masse": {
+      "laenge": 600,
+      "breite": 200,
+      "hoehe": 51
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "AMF",
+   "titel": "Magnetspannplatte für das Fräsen (Elektro-Permanent, Pol 50 mm) Premium Line / Eco Line",
+   "art": "platte",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/559634-",
+   "quelle": "hoffmann-group.com Händlerseiten /p/<AMF-Nr.>- (Merkmale A, B, H, Anzahl Pole). laenge = A, breite = B.",
+   "groessen": [
+    {
+     "name": "AMF Magnetspannplatte Premium 490x295",
+     "artikel": "559634",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/559634-",
+     "masse": {
+      "laenge": 490,
+      "breite": 295,
+      "hoehe": 43
+     }
+    },
+    {
+     "name": "AMF Magnetspannplatte Premium 640x295",
+     "artikel": "559638",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/559638-",
+     "masse": {
+      "laenge": 640,
+      "breite": 295,
+      "hoehe": 43
+     }
+    },
+    {
+     "name": "AMF Magnetspannplatte Premium 795x295",
+     "artikel": "559642",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/559642-",
+     "masse": {
+      "laenge": 795,
+      "breite": 295,
+      "hoehe": 43
+     }
+    },
+    {
+     "name": "AMF Magnetspannplatte Premium 950x295",
+     "artikel": "559646",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/559646-",
+     "masse": {
+      "laenge": 950,
+      "breite": 295,
+      "hoehe": 43
+     }
+    },
+    {
+     "name": "AMF Magnetspannplatte Eco 390x330",
+     "artikel": "559715",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/559715-",
+     "masse": {
+      "laenge": 390,
+      "breite": 330,
+      "hoehe": 43
+     }
+    },
+    {
+     "name": "AMF Magnetspannplatte Eco 580x390",
+     "artikel": "559718",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/559718-",
+     "masse": {
+      "laenge": 580,
+      "breite": 390,
+      "hoehe": 43
+     }
     }
    ]
   },
@@ -2450,7 +3944,7 @@
    "titel": "Vakuumspannplatte Premium Line (H 40) / Basic Line (H 30), Venturi",
    "art": "platte",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/564845-",
-   "quelle": "hoffmann-group.com Händlerseiten /p/<AMF-Nr.>- (Merkmale A, B, H). laenge = A, breite = B (Reihenfolge wie auf der Seite). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "hoffmann-group.com Händlerseiten /p/<AMF-Nr.>- (Merkmale A, B, H). laenge = A, breite = B (Reihenfolge wie auf der Seite).",
    "groessen": [
     {
      "name": "AMF Vakuumspannplatte Premium 150x150",
@@ -2461,6 +3955,204 @@
       "breite": 150,
       "hoehe": 40
      }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Premium 300x200",
+     "artikel": "564845",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/564845-",
+     "masse": {
+      "laenge": 300,
+      "breite": 200,
+      "hoehe": 40
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Premium 300x400",
+     "artikel": "564846",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/564846-",
+     "masse": {
+      "laenge": 300,
+      "breite": 400,
+      "hoehe": 40
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Premium 400x400",
+     "artikel": "564848",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/564848-",
+     "masse": {
+      "laenge": 400,
+      "breite": 400,
+      "hoehe": 40
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Premium 400x600",
+     "artikel": "564849",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/564849-",
+     "masse": {
+      "laenge": 400,
+      "breite": 600,
+      "hoehe": 40
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Premium 600x800",
+     "artikel": "563703",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/563703-",
+     "masse": {
+      "laenge": 600,
+      "breite": 800,
+      "hoehe": 40
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Basic 190x290",
+     "artikel": "569353",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/569353-",
+     "masse": {
+      "laenge": 190,
+      "breite": 290,
+      "hoehe": 30
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Basic 290x390",
+     "artikel": "569354",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/569354-",
+     "masse": {
+      "laenge": 290,
+      "breite": 390,
+      "hoehe": 30
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Basic 390x390",
+     "artikel": "569355",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/569355-",
+     "masse": {
+      "laenge": 390,
+      "breite": 390,
+      "hoehe": 30
+     }
+    },
+    {
+     "name": "AMF Vakuumspannplatte Basic 390x590",
+     "artikel": "569356",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/569356-",
+     "masse": {
+      "laenge": 390,
+      "breite": 590,
+      "hoehe": 30
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "WITTE",
+   "titel": "Raster-Vakuumplatte / Schlitz-Vakuumplatte modular (Aluminium)",
+   "art": "platte",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/385030-R1",
+   "quelle": "hoffmann-group.com Artikel 385030-R1..R3 und 385037-S1..S3 (Länge, Breite, Höhe H; Hersteller Witte Barskamp).",
+   "groessen": [
+    {
+     "name": "WITTE Raster-Vakuumplatte R1 300x200",
+     "artikel": "Witte 89676 / Hoffmann 385030 R1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/385030-R1",
+     "masse": {
+      "laenge": 300,
+      "breite": 200,
+      "hoehe": 32.5
+     }
+    },
+    {
+     "name": "WITTE Raster-Vakuumplatte R2 400x300",
+     "artikel": "Witte 90249 / Hoffmann 385030 R2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/385030-R2",
+     "masse": {
+      "laenge": 400,
+      "breite": 300,
+      "hoehe": 32.5
+     }
+    },
+    {
+     "name": "WITTE Raster-Vakuumplatte R3 600x400",
+     "artikel": "Witte 92289 / Hoffmann 385030 R3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/385030-R3",
+     "masse": {
+      "laenge": 600,
+      "breite": 400,
+      "hoehe": 32.5
+     }
+    },
+    {
+     "name": "WITTE Schlitz-Vakuumplatte S1 300x200",
+     "artikel": "Witte 287960 / Hoffmann 385037 S1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/385037-S1",
+     "masse": {
+      "laenge": 300,
+      "breite": 200,
+      "hoehe": 48
+     }
+    },
+    {
+     "name": "WITTE Schlitz-Vakuumplatte S2 400x300",
+     "artikel": "Witte 289470 / Hoffmann 385037 S2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/385037-S2",
+     "masse": {
+      "laenge": 400,
+      "breite": 300,
+      "hoehe": 48
+     }
+    },
+    {
+     "name": "WITTE Schlitz-Vakuumplatte S3 600x400",
+     "artikel": "Witte 289471 / Hoffmann 385037 S3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/385037-S3",
+     "masse": {
+      "laenge": 600,
+      "breite": 400,
+      "hoehe": 48
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "GARANT (Hoffmann)",
+   "titel": "Vakuumplatten (VAC-MAT, Raster-Vakuumplatte Venturi-System)",
+   "art": "platte",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/384900-VR1",
+   "quelle": "hoffmann-group.com Artikel 384910-V1, 384900-VRV0, 384900-VR1 (Länge, Breite, Höhe H).",
+   "groessen": [
+    {
+     "name": "GARANT VAC-MAT V1 300x200",
+     "artikel": "Hoffmann 384910 V1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/384910-V1",
+     "masse": {
+      "laenge": 300,
+      "breite": 200,
+      "hoehe": 30
+     }
+    },
+    {
+     "name": "GARANT Raster-Vakuumplatte Venturi VRV0 200x125",
+     "artikel": "Hoffmann 384900 VRV0",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/384900-VRV0",
+     "masse": {
+      "laenge": 200,
+      "breite": 125,
+      "hoehe": 21
+     }
+    },
+    {
+     "name": "GARANT Raster-Vakuumplatte Venturi VR1 300x200",
+     "artikel": "Hoffmann 384900 VR1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/384900-VR1",
+     "masse": {
+      "laenge": 300,
+      "breite": 200,
+      "hoehe": 32.5
+     }
     }
    ]
   },
@@ -2469,7 +4161,7 @@
    "titel": "Grundplatte zum Aufspannen von Drehfuttern (DIN 702-4) auf dem Maschinentisch",
    "art": "platte",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/313910-160",
-   "quelle": "hoffmann-group.com Artikel 313910-<Futter> (Höhe H, Länge A, Breite B, Teilkreis F, Nutenbreite S, Durchlass E; Marke BISON BIAL, Herstellernummer 32945…). Für das Futter-Modell: Futter steht um hoehe höher. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "hoffmann-group.com Artikel 313910-<Futter> (Höhe H, Länge A, Breite B, Teilkreis F, Nutenbreite S, Durchlass E; Marke BISON BIAL, Herstellernummer 32945…). Für das Futter-Modell: Futter steht um hoehe höher.",
    "groessen": [
     {
      "name": "Bison Grundplatte für Futter 160",
@@ -2481,6 +4173,30 @@
       "hoehe": 28,
       "nut": 14,
       "lochkreis": 140
+     }
+    },
+    {
+     "name": "Bison Grundplatte für Futter 200",
+     "artikel": "Bison 329450050900 / Hoffmann 313910 200",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313910-200",
+     "masse": {
+      "laenge": 300,
+      "breite": 234,
+      "hoehe": 32,
+      "nut": 18,
+      "lochkreis": 176
+     }
+    },
+    {
+     "name": "Bison Grundplatte für Futter 250",
+     "artikel": "Bison 329450060000 / Hoffmann 313910 250",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313910-250",
+     "masse": {
+      "laenge": 354,
+      "breite": 292,
+      "hoehe": 32,
+      "nut": 18,
+      "lochkreis": 224
      }
     }
    ]

@@ -75,6 +75,34 @@ Alle Maße in **mm**, Winkel in **Grad**, Zahlen mit Punkt (`10.5`, nicht `10,5`
 
 Nur Felder angeben, die die Art hat (Abschnitt 4) und die die Quelle nennt.
 
+### 3a. Was das Werkzeug kann (ab 0.321)
+
+Manuel, 2026-10-31: „das wir wissen welche werkzeuge es auf dem markt gibt und was sie können …
+das man vorschläge machen kann wie man es am schnellsten herstellen kann“. Daran wählt das Addon
+später den Weg (vorbohren mit dem größten Bohrer, Helix, Bohrfräsen, Tauchfräsen) und schlägt
+Werkzeuge vor. Nur angeben, was der Hersteller nennt – auf Reihe (`gemeinsam`) oder Größe:
+
+| Feld | Bedeutung |
+|---|---|
+| `mittenschneidend` | `true`: Stirnschneide über die Mitte – darf senkrecht eintauchen; `false`: nicht (nur Rampe/Helix oder vorbohren) |
+| `eintauchwinkel` | (schon oben) der größte Rampenwinkel in Grad |
+| `max_eintauchtiefe` | wie tief er je Eintauchen höchstens geht (mm), z. B. bei Wendeplattenfräsern |
+| `bohrfraesen` | `true`: darf zirkular/helikal ins Volle fräsen (Bohrfräsen, Interpolieren) – auch Wendeplattenbohrer, die das können |
+| `tauchfraesen` | `true`: für Tauchfräsen gemacht (senkrecht Stoß an Stoß, „Plunge“) |
+| `seitlich_versetzt` | Wendeplattenbohrer: größter seitlicher Versatz beim Aufbohren (mm), wenn genannt |
+| `bohrtiefe_d` | Bohrer: die Länge als Vielfaches von D, wie der Katalog sie nennt (3, 5, 8 …) |
+| `kuehlung_innen` | `true`: mit innerer Kühlmittelzufuhr |
+| `wendeplatten` | `true`: mit Wendeplatten (Grundkörper und Platten), nicht aus dem Vollen |
+| `platte` | die Wendeplatte, wie der Hersteller sie nennt (Text, z. B. „SEKT 1204“) |
+| `hochvorschub` | `true`: Hochvorschubfräser (kleines ap, sehr hoher fz) |
+| `einsatzzweck` | kurzer Text vom Hersteller: „HPC-Schruppen“, „Trochoidalfräsen“, „Formenbau Schlichten“ … |
+| `werkstoffe` | die Klassen, für die der Hersteller ihn empfiehlt, z. B. `["P1", "P2", "M"]` |
+
+Neue Arten (ab 0.321): `tauchfraeser` (Tauchfräser, Plunge-Fräser mit Wendeplatten – Maße wie
+Schaftfräser, Einsatz `tauchfraesen`), `wendeplattenbohrer` (Bohrer mit Wendeplatten – Maße wie
+Bohrer, Einsätze `bohren`, auch `bohrfraesen`), `hochvorschubfraeser` (Maße wie Torusfräser,
+Einsatz `schruppen`). Schneidstoff `wsp` für Werkzeuge mit Wendeplatten.
+
 ## 4. Werkzeugarten (`art`) und ihre Maße
 
 | `art` | Werkzeug | Maße | Einsätze (Abschnitt 5) |

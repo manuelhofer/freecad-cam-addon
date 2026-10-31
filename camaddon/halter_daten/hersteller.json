@@ -718,6 +718,93 @@
    ]
   },
   {
+   "hersteller": "MAPAL (WTE)",
+   "titel": "WTE Schrumpffutter HSK-A63 kurz",
+   "typ": "schrumpf",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-12",
+   "quelle": "MAPAL selbst führt im Shop keine Schrumpffutter (Suche „shrink chuck“ liefert nur UNIQ DReaM). Diese Reihe stammt von WTE Präzisionstechnik (MAPAL-Gruppe), gelesen auf den Hoffmann-Group-Artikelseiten 308183-6 … 308183-25 (Marke „WTE“, Herstellerbezeichnung „Schrumpffutter HSK-A 63 kurz“; artikel = Herstellernummer, Hoffmann-Nr. im Link). Abruf über WebFetch (Zusammenfassung eines Hilfsmodells, Werte nicht im Rohtext gegengeprüft). Zuordnung nur nach Beschriftung, keine Maßzeichnung gesehen: „Min./Max. clamping diameter D1“ → d_spann; „Gauge length A“ → a (bei HSK üblich ab Plananlage des Bunds); „Diameter outer 2 on the tool side D2“ (kleiner Ø) → d_nase; „External diameter, on the tool side D“ (größerer Ø) → d_koerper. „Overall length L“ = A + 32 (Schaftlänge HSK) nicht übernommen. Kegelwinkel, Nasenlänge und Spanntiefe nicht angegeben (Verstellweg V = 10 mm). Weitere Größen laut Variantenliste: d3, d4, d5, d14, d18, d32.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "16.306.63.06.Z",
+     "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "16.306.63.08.Z",
+     "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27
+     }
+    },
+    {
+     "name": "d10 A85",
+     "artikel": "16.306.63.10.Z",
+     "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 85,
+      "d_nase": 24,
+      "d_koerper": 32
+     }
+    },
+    {
+     "name": "d12 A90",
+     "artikel": "16.306.63.12.Z",
+     "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 24,
+      "d_koerper": 32
+     }
+    },
+    {
+     "name": "d16 A95",
+     "artikel": "16.306.63.16.Z",
+     "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 95,
+      "d_nase": 27,
+      "d_koerper": 34
+     }
+    },
+    {
+     "name": "d20 A100",
+     "artikel": "16.306.63.20.Z",
+     "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 100,
+      "d_nase": 33,
+      "d_koerper": 42
+     }
+    },
+    {
+     "name": "d25 A115",
+     "artikel": "16.306.63.25.Z",
+     "link": "https://www.hoffmann-group.com/US/en/hus/p/308183-25",
+     "masse": {
+      "d_spann": 25,
+      "a": 115,
+      "d_nase": 44,
+      "d_koerper": 53
+     }
+    }
+   ]
+  },
+  {
    "hersteller": "SCHUNK",
    "titel": "TENDO E compact HSK-A63",
    "typ": "hydro",
@@ -3595,8 +3682,44 @@
    "typ": "schrumpf",
    "aufnahme": "SK40",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-3",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/302235-<d> (je Größe eine Seite, Rohtabelle 'technical-data-cell'). Zuordnung nach der Maßzeichnung dxf_CAD_302235_6.jpg: 'Durchmesser außen 2 werkzeugseitig D2' = Ø an der Stirn → d_nase; 'Durchmesser außen werkzeugseitig D' = Ø am hinteren Kegelende/zylindrischer Körper → d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. kegel 4.5 abgeleitet: in der Zeichnung d6 geht der Kegel über 38,12 mm von Ø21 auf Ø27 → atan(3/38,12) = 4,5°; l_nase 38.12 (Kegellänge) nur bei d6 aus der Zeichnung gelesen. Keine Spanntiefe angegeben. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/302235-<d> (je Größe eine Seite, Rohtabelle 'technical-data-cell'). Zuordnung nach der Maßzeichnung dxf_CAD_302235_6.jpg: 'Durchmesser außen 2 werkzeugseitig D2' = Ø an der Stirn → d_nase; 'Durchmesser außen werkzeugseitig D' = Ø am hinteren Kegelende/zylindrischer Körper → d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. kegel 4.5 abgeleitet: in der Zeichnung d6 geht der Kegel über 38,12 mm von Ø21 auf Ø27 → atan(3/38,12) = 4,5°; l_nase 38.12 (Kegellänge) nur bei d6 aus der Zeichnung gelesen. Keine Spanntiefe angegeben.",
    "groessen": [
+    {
+     "name": "d3 A80",
+     "artikel": "302235 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-3",
+     "masse": {
+      "d_spann": 3,
+      "a": 80,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d4 A80",
+     "artikel": "302235 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-4",
+     "masse": {
+      "d_spann": 4,
+      "a": 80,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d5 A80",
+     "artikel": "302235 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-5",
+     "masse": {
+      "d_spann": 5,
+      "a": 80,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
     {
      "name": "d6 A80",
      "artikel": "302235 6",
@@ -3609,6 +3732,211 @@
       "kegel": 4.5,
       "l_nase": 38.12
      }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "302235 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "302235 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 24,
+      "d_koerper": 31.4,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "302235 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 80,
+      "d_nase": 24,
+      "d_koerper": 31.4,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d14 A80",
+     "artikel": "302235 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-14",
+     "masse": {
+      "d_spann": 14,
+      "a": 80,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "302235 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 80,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d18 A80",
+     "artikel": "302235 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-18",
+     "masse": {
+      "d_spann": 18,
+      "a": 80,
+      "d_nase": 33,
+      "d_koerper": 41,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d20 A80",
+     "artikel": "302235 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 33,
+      "d_koerper": 41,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "302235 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-25",
+     "masse": {
+      "d_spann": 25,
+      "a": 100,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "kegel": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "Schrumpffutter SK 40 A = 120",
+   "typ": "schrumpf",
+   "aufnahme": "SK40",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-6",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/302256-<d>. Zuordnung wie bei 302235 (D2 → d_nase an der Stirn, D → d_koerper); Zeichnung dieser Reihe nicht einzeln gelesen. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. Die Seiten nennen zusätzlich 'Länge Schaft LS' = 68,4 mm (unklar, ob Einstecktiefe – nicht übernommen). Kegelwinkel auf den Seiten nicht angegeben.",
+   "groessen": [
+    {
+     "name": "d6 A120",
+     "artikel": "302256 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 120,
+      "d_nase": 21,
+      "d_koerper": 27
+     }
+    },
+    {
+     "name": "d8 A120",
+     "artikel": "302256 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 120,
+      "d_nase": 21,
+      "d_koerper": 27
+     }
+    },
+    {
+     "name": "d10 A120",
+     "artikel": "302256 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 120,
+      "d_nase": 24,
+      "d_koerper": 32
+     }
+    },
+    {
+     "name": "d12 A120",
+     "artikel": "302256 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 120,
+      "d_nase": 24,
+      "d_koerper": 32
+     }
+    },
+    {
+     "name": "d14 A120",
+     "artikel": "302256 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-14",
+     "masse": {
+      "d_spann": 14,
+      "a": 120,
+      "d_nase": 27,
+      "d_koerper": 34
+     }
+    },
+    {
+     "name": "d16 A120",
+     "artikel": "302256 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 120,
+      "d_nase": 27,
+      "d_koerper": 34
+     }
+    },
+    {
+     "name": "d18 A120",
+     "artikel": "302256 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-18",
+     "masse": {
+      "d_spann": 18,
+      "a": 120,
+      "d_nase": 33,
+      "d_koerper": 42
+     }
+    },
+    {
+     "name": "d20 A120",
+     "artikel": "302256 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 120,
+      "d_nase": 33,
+      "d_koerper": 42
+     }
+    },
+    {
+     "name": "d25 A120",
+     "artikel": "302256 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302256-25",
+     "masse": {
+      "d_spann": 25,
+      "a": 120,
+      "d_nase": 44,
+      "d_koerper": 53
+     }
     }
    ]
   },
@@ -3618,8 +3946,80 @@
    "typ": "schrumpf",
    "aufnahme": "HSK-A63",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-3",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/308170-<d>; 'Kegelwinkel 4,5 Grad' steht auf den Seiten. D2 → d_nase (Stirn), D → d_koerper (Kegelende), geprüft an dxf_CAD_308170_12.jpg. A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). l_nase 50.82 (Kegellänge) nur bei d12 aus der Zeichnung gelesen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/308170-<d>; 'Kegelwinkel 4,5 Grad' steht auf den Seiten. D2 → d_nase (Stirn), D → d_koerper (Kegelende), geprüft an dxf_CAD_308170_12.jpg. A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). l_nase 50.82 (Kegellänge) nur bei d12 aus der Zeichnung gelesen.",
    "groessen": [
+    {
+     "name": "d3 A80",
+     "artikel": "308170 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-3",
+     "masse": {
+      "d_spann": 3,
+      "a": 80,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d4 A80",
+     "artikel": "308170 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-4",
+     "masse": {
+      "d_spann": 4,
+      "a": 80,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d5 A80",
+     "artikel": "308170 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-5",
+     "masse": {
+      "d_spann": 5,
+      "a": 80,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d6 A80",
+     "artikel": "308170 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "308170 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d10 A85",
+     "artikel": "308170 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 85,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5
+     }
+    },
     {
      "name": "d12 A90",
      "artikel": "308170 12",
@@ -3632,6 +4032,66 @@
       "kegel": 4.5,
       "l_nase": 50.82
      }
+    },
+    {
+     "name": "d14 A90",
+     "artikel": "308170 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-14",
+     "masse": {
+      "d_spann": 14,
+      "a": 90,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d16 A95",
+     "artikel": "308170 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 95,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d18 A95",
+     "artikel": "308170 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-18",
+     "masse": {
+      "d_spann": 18,
+      "a": 95,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d20 A100",
+     "artikel": "308170 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 100,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d25 A115",
+     "artikel": "308170 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-25",
+     "masse": {
+      "d_spann": 25,
+      "a": 115,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "kegel": 4.5
+     }
     }
    ]
   },
@@ -3641,8 +4101,80 @@
    "typ": "schrumpf",
    "aufnahme": "BT40",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-3",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/303410-<d>. D2 → d_nase (Stirn), D → d_koerper, geprüft an dxf_CAD_303410_12.jpg. A in der Zeichnung von der Planfläche des BT-Bunds (Kegelende) bis zur Stirn. kegel 4.5 abgeleitet: d12 Kegel über 50,82 mm von Ø24 auf Ø32 → atan(4/50,82) = 4,5°; l_nase 50.82 nur bei d12 aus der Zeichnung. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/303410-<d>. D2 → d_nase (Stirn), D → d_koerper, geprüft an dxf_CAD_303410_12.jpg. A in der Zeichnung von der Planfläche des BT-Bunds (Kegelende) bis zur Stirn. kegel 4.5 abgeleitet: d12 Kegel über 50,82 mm von Ø24 auf Ø32 → atan(4/50,82) = 4,5°; l_nase 50.82 nur bei d12 aus der Zeichnung.",
    "groessen": [
+    {
+     "name": "d3 A90",
+     "artikel": "303410 3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-3",
+     "masse": {
+      "d_spann": 3,
+      "a": 90,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d4 A90",
+     "artikel": "303410 4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-4",
+     "masse": {
+      "d_spann": 4,
+      "a": 90,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d5 A90",
+     "artikel": "303410 5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-5",
+     "masse": {
+      "d_spann": 5,
+      "a": 90,
+      "d_nase": 10,
+      "d_koerper": 18,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d6 A90",
+     "artikel": "303410 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 90,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d8 A90",
+     "artikel": "303410 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 90,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d10 A90",
+     "artikel": "303410 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 90,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5
+     }
+    },
     {
      "name": "d12 A90",
      "artikel": "303410 12",
@@ -3655,6 +4187,66 @@
       "kegel": 4.5,
       "l_nase": 50.82
      }
+    },
+    {
+     "name": "d14 A90",
+     "artikel": "303410 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-14",
+     "masse": {
+      "d_spann": 14,
+      "a": 90,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d16 A90",
+     "artikel": "303410 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 90,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d18 A90",
+     "artikel": "303410 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-18",
+     "masse": {
+      "d_spann": 18,
+      "a": 90,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d20 A90",
+     "artikel": "303410 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 90,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "kegel": 4.5
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "303410 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-25",
+     "masse": {
+      "d_spann": 25,
+      "a": 100,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "kegel": 4.5
+     }
     }
    ]
   },
@@ -3664,8 +4256,41 @@
    "typ": "hydro",
    "aufnahme": "SK40",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-6",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/302038-<d>. Zuordnung nach dxf_CAD_302038_12.jpg: D2 = Ø der schlanken Nase → d_nase (vorn auf 17,1 mm leicht verjüngt auf Ø26,4 bei d12), D = Körper-Ø → d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. l_nase 40 (zylindrische Nase) nur bei d12 aus der Zeichnung gelesen. Keine Spanntiefe angegeben. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/302038-<d>. Zuordnung nach dxf_CAD_302038_12.jpg: D2 = Ø der schlanken Nase → d_nase (vorn auf 17,1 mm leicht verjüngt auf Ø26,4 bei d12), D = Körper-Ø → d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. l_nase 40 (zylindrische Nase) nur bei d12 aus der Zeichnung gelesen. Keine Spanntiefe angegeben.",
    "groessen": [
+    {
+     "name": "d6 A80.5",
+     "artikel": "302038 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 80.5,
+      "d_nase": 26,
+      "d_koerper": 49.5
+     }
+    },
+    {
+     "name": "d8 A80.5",
+     "artikel": "302038 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 80.5,
+      "d_nase": 28,
+      "d_koerper": 49.5
+     }
+    },
+    {
+     "name": "d10 A80.5",
+     "artikel": "302038 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 80.5,
+      "d_nase": 30,
+      "d_koerper": 49.5
+     }
+    },
     {
      "name": "d12 A80.5",
      "artikel": "302038 12",
@@ -3677,6 +4302,50 @@
       "d_koerper": 49.5,
       "l_nase": 40
      }
+    },
+    {
+     "name": "d16 A80.5",
+     "artikel": "302038 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 80.5,
+      "d_nase": 38,
+      "d_koerper": 49.5
+     }
+    },
+    {
+     "name": "d20 A80.5",
+     "artikel": "302038 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 80.5,
+      "d_nase": 42,
+      "d_koerper": 49.5
+     }
+    },
+    {
+     "name": "d25 A80.5",
+     "artikel": "302038 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-25",
+     "masse": {
+      "d_spann": 25,
+      "a": 80.5,
+      "d_nase": 55,
+      "d_koerper": 63
+     }
+    },
+    {
+     "name": "d32 A80.5",
+     "artikel": "302038 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-32",
+     "masse": {
+      "d_spann": 32,
+      "a": 80.5,
+      "d_nase": 63,
+      "d_koerper": 70
+     }
     }
    ]
   },
@@ -3686,8 +4355,41 @@
    "typ": "hydro",
    "aufnahme": "HSK-A63",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-6",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/307512-<d>. Zuordnung nach dxf_CAD_307512_12.jpg: D2 = Ø der Nase → d_nase, D = Körper-Ø → d_koerper (Körper bei d12 59 mm ab Stirn). A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). l_nase 40 nur bei d12 aus der Zeichnung gelesen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/307512-<d>. Zuordnung nach dxf_CAD_307512_12.jpg: D2 = Ø der Nase → d_nase, D = Körper-Ø → d_koerper (Körper bei d12 59 mm ab Stirn). A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). l_nase 40 nur bei d12 aus der Zeichnung gelesen.",
    "groessen": [
+    {
+     "name": "d6 A70",
+     "artikel": "307512 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 70,
+      "d_nase": 26,
+      "d_koerper": 50
+     }
+    },
+    {
+     "name": "d8 A70",
+     "artikel": "307512 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 70,
+      "d_nase": 28,
+      "d_koerper": 50
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "307512 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 30,
+      "d_koerper": 50
+     }
+    },
     {
      "name": "d12 A85",
      "artikel": "307512 12",
@@ -3699,6 +4401,28 @@
       "d_koerper": 50,
       "l_nase": 40
      }
+    },
+    {
+     "name": "d16 A90",
+     "artikel": "307512 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 90,
+      "d_nase": 38,
+      "d_koerper": 50
+     }
+    },
+    {
+     "name": "d20 A90",
+     "artikel": "307512 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 90,
+      "d_nase": 42,
+      "d_koerper": 50
+     }
     }
    ]
   },
@@ -3708,7 +4432,7 @@
    "typ": "weldon",
    "aufnahme": "SK40",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-6",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/300100-<d>. Laut dxf_CAD_300100_12.jpg ist der Körper ein Zylinder mit Ø D bis zur Stirn (vorn Fase auf Ø30 über 12,87 mm bei d12) → D als d_nase, kein d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/300100-<d>. Laut dxf_CAD_300100_12.jpg ist der Körper ein Zylinder mit Ø D bis zur Stirn (vorn Fase auf Ø30 über 12,87 mm bei d12) → D als d_nase, kein d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn.",
    "groessen": [
     {
      "name": "d6 A50",
@@ -3719,6 +4443,96 @@
       "a": 50,
       "d_nase": 25
      }
+    },
+    {
+     "name": "d8 A50",
+     "artikel": "300100 8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-8",
+     "masse": {
+      "d_spann": 8,
+      "a": 50,
+      "d_nase": 28
+     }
+    },
+    {
+     "name": "d10 A50",
+     "artikel": "300100 10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-10",
+     "masse": {
+      "d_spann": 10,
+      "a": 50,
+      "d_nase": 35
+     }
+    },
+    {
+     "name": "d12 A50",
+     "artikel": "300100 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 50,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "d14 A50",
+     "artikel": "300100 14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-14",
+     "masse": {
+      "d_spann": 14,
+      "a": 50,
+      "d_nase": 44
+     }
+    },
+    {
+     "name": "d16 A63",
+     "artikel": "300100 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-16",
+     "masse": {
+      "d_spann": 16,
+      "a": 63,
+      "d_nase": 48
+     }
+    },
+    {
+     "name": "d18 A63",
+     "artikel": "300100 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-18",
+     "masse": {
+      "d_spann": 18,
+      "a": 63,
+      "d_nase": 50
+     }
+    },
+    {
+     "name": "d20 A63",
+     "artikel": "300100 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-20",
+     "masse": {
+      "d_spann": 20,
+      "a": 63,
+      "d_nase": 52
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "300100 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-25",
+     "masse": {
+      "d_spann": 25,
+      "a": 100,
+      "d_nase": 65
+     }
+    },
+    {
+     "name": "d32 A100",
+     "artikel": "300100 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-32",
+     "masse": {
+      "d_spann": 32,
+      "a": 100,
+      "d_nase": 72
+     }
     }
    ]
   },
@@ -3728,8 +4542,41 @@
    "typ": "spannzange",
    "aufnahme": "SK40",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/300470-16",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/300470-<ER-Größe>. d_spann = 'Spanndurchmesser max. D1' (Spannbereich der Zange), d_nase = 'Durchmesser außen werkzeugseitig D' = Ø der Spannmutter. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. Nur bei ER32 aus der Zeichnung dxf_CAD_300470_32.jpg: Mutterlänge 23 → l_nase, Körper-Ø 48 dahinter → d_koerper. Die Reihe hat je Größe eine andere Spannzange; 'spannzange' auf Reihenebene = größte, je Größe im Namen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/300470-<ER-Größe>. d_spann = 'Spanndurchmesser max. D1' (Spannbereich der Zange), d_nase = 'Durchmesser außen werkzeugseitig D' = Ø der Spannmutter. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. Nur bei ER32 aus der Zeichnung dxf_CAD_300470_32.jpg: Mutterlänge 23 → l_nase, Körper-Ø 48 dahinter → d_koerper. Die Reihe hat je Größe eine andere Spannzange; 'spannzange' auf Reihenebene = größte, je Größe im Namen.",
    "groessen": [
+    {
+     "name": "ER16 A70",
+     "artikel": "300470 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300470-16",
+     "masse": {
+      "d_spann": 10,
+      "a": 70,
+      "d_nase": 28
+     },
+     "spannzange": "ER16"
+    },
+    {
+     "name": "ER20 A70",
+     "artikel": "300470 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300470-20",
+     "masse": {
+      "d_spann": 13,
+      "a": 70,
+      "d_nase": 34
+     },
+     "spannzange": "ER20"
+    },
+    {
+     "name": "ER25 A70",
+     "artikel": "300470 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300470-25",
+     "masse": {
+      "d_spann": 16,
+      "a": 70,
+      "d_nase": 42
+     },
+     "spannzange": "ER25"
+    },
     {
      "name": "ER32 A70",
      "artikel": "300470 32",
@@ -3742,6 +4589,17 @@
       "d_koerper": 48
      },
      "spannzange": "ER32"
+    },
+    {
+     "name": "ER40 A70",
+     "artikel": "300470 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300470-40",
+     "masse": {
+      "d_spann": 26,
+      "a": 70,
+      "d_nase": 63
+     },
+     "spannzange": "ER40"
     }
    ],
    "spannzange": "ER16–ER40"
@@ -3752,8 +4610,41 @@
    "typ": "spannzange",
    "aufnahme": "HSK-A63",
    "link": "https://www.hoffmann-group.com/DE/de/hom/p/305390-16",
-   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/305390-<ER-Größe>. d_spann = 'Spanndurchmesser max. D1' (Spannbereich der Zange), d_nase = 'Durchmesser außen werkzeugseitig D' = Ø der Spannmutter. A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). Nur bei ER32 aus der Zeichnung dxf_CAD_305390_32.jpg: Mutterlänge 23 → l_nase, Körper-Ø 48 dahinter → d_koerper. Die Reihe hat je Größe eine andere Spannzange; 'spannzange' auf Reihenebene = größte, je Größe im Namen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/305390-<ER-Größe>. d_spann = 'Spanndurchmesser max. D1' (Spannbereich der Zange), d_nase = 'Durchmesser außen werkzeugseitig D' = Ø der Spannmutter. A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). Nur bei ER32 aus der Zeichnung dxf_CAD_305390_32.jpg: Mutterlänge 23 → l_nase, Körper-Ø 48 dahinter → d_koerper. Die Reihe hat je Größe eine andere Spannzange; 'spannzange' auf Reihenebene = größte, je Größe im Namen.",
    "groessen": [
+    {
+     "name": "ER16 A100",
+     "artikel": "305390 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/305390-16",
+     "masse": {
+      "d_spann": 10,
+      "a": 100,
+      "d_nase": 28
+     },
+     "spannzange": "ER16"
+    },
+    {
+     "name": "ER20 A100",
+     "artikel": "305390 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/305390-20",
+     "masse": {
+      "d_spann": 13,
+      "a": 100,
+      "d_nase": 34
+     },
+     "spannzange": "ER20"
+    },
+    {
+     "name": "ER25 A100",
+     "artikel": "305390 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/305390-25",
+     "masse": {
+      "d_spann": 16,
+      "a": 100,
+      "d_nase": 42
+     },
+     "spannzange": "ER25"
+    },
     {
      "name": "ER32 A100",
      "artikel": "305390 32",
@@ -3766,6 +4657,17 @@
       "d_koerper": 48
      },
      "spannzange": "ER32"
+    },
+    {
+     "name": "ER40 A120",
+     "artikel": "305390 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/305390-40",
+     "masse": {
+      "d_spann": 26,
+      "a": 120,
+      "d_nase": 63
+     },
+     "spannzange": "ER40"
     }
    ],
    "spannzange": "ER16–ER40"

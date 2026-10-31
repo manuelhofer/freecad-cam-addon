@@ -117,6 +117,13 @@ BACKE_MIN, BACKE_MAX = 15.0, 40.0
 FUTTERBACKE_LANG = 0.18  # Anteil am Futter-Ø: so lang ist eine Backe radial
 SCHRAUBE_D = 14.0  # mm – die Schraube einer Pratze (M12 mit Mutter)
 DREHUNGEN = (0, 90, 180, 270)  # Grad um Z
+# Wie man die Lage an der Maschine sagt (Frage 7; Manuel, 2026-10-31: „man muss irgendwie
+# entscheiden können wie der schraubstock auf der maschine steht ... mach nen vorschlag“): beim
+# Schraubstock, wo die feste Backe liegt – im Bezug liegt sie bei −y, gedreht um θ zeigt sie nach
+# (sin θ, −cos θ) –, sonst, in welcher Richtung die Backen spannen. Vorgabe: die feste Backe hinten
+# (zur Maschine, der Griff zum Bediener), wie meist an einer senkrechten Fräse.
+LAGEN_SCHRAUBSTOCK = (180, 0, 270, 90)  # hinten, vorn, links, rechts
+LAGEN_SONST = (0, 90)  # spannt in Y, in X
 
 
 def art_text(art):
@@ -129,6 +136,23 @@ def art_text(art):
         NULLPUNKT: tr("sm.art.nullpunkt"),
         PLATTE: tr("sm.art.platte"),
     }.get(art, art)
+
+
+def lagen(art):
+    """Die Drehungen, die es für die Art zur Wahl gibt, die erste ist die Vorgabe."""
+    return LAGEN_SCHRAUBSTOCK if art == SCHRAUBSTOCK else LAGEN_SONST
+
+
+def lage_text(art, drehung):
+    """„hinten (+Y, zur Maschine)“ – beim Schraubstock, wo die feste Backe liegt; sonst „in Y“."""
+    if art == SCHRAUBSTOCK:
+        return {
+            180: tr("sm.lage.hinten"),
+            0: tr("sm.lage.vorn"),
+            270: tr("sm.lage.links"),
+            90: tr("sm.lage.rechts"),
+        }[drehung]
+    return tr("sm.lage.x") if drehung in (90, 270) else tr("sm.lage.y")
 
 
 def feld_text(feld):
@@ -652,14 +676,24 @@ def koerper_im_job(job):
 
 
 def beschreibung(auf, tr=tr):
-    """Ein Satz fürs Einrichtblatt: „Gressel C2 125 auf Nullpunkt …, bei X 0, Y −50, um 90°
-    gedreht, 8 mm gespannt“; `tr` in der Sprache des Blatts."""
+    """Ein Satz fürs Einrichtblatt: „Gressel C2 125, auf Nullpunkt …, bei X 0 mm, Y −50 mm, feste
+    Backe hinten, 8 mm gespannt“; `tr` in der Sprache des Blatts."""
     teile = [auf.spannmittel.text]
     if auf.unterbau is not None:
         teile.append(tr("sm.beschreibung.auf", unterbau=auf.unterbau.text))
     teile.append(tr("sm.beschreibung.lage", x=_mm(auf.x), y=_mm(auf.y)))
-    if auf.drehung:
-        teile.append(tr("sm.beschreibung.gedreht", grad=auf.drehung))
+    if auf.spannmittel.art == SCHRAUBSTOCK:
+        lage = {180: "hinten", 0: "vorn", 270: "links", 90: "rechts"}[auf.drehung]
+        teile.append(
+            {
+                "hinten": tr("sm.beschreibung.backe_hinten"),
+                "vorn": tr("sm.beschreibung.backe_vorn"),
+                "links": tr("sm.beschreibung.backe_links"),
+                "rechts": tr("sm.beschreibung.backe_rechts"),
+            }[lage]
+        )
+    elif auf.drehung in (90, 270):
+        teile.append(tr("sm.beschreibung.in_x"))
     if auf.tiefe > 0:
         teile.append(tr("sm.beschreibung.gespannt", tiefe=_mm(auf.tiefe)))
     return ", ".join(teile)

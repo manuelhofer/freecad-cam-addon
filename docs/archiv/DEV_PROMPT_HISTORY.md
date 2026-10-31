@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-04 antworten-fragen-1-8-feste-backe-alle-daten
+
+### EINGELESEN
+- Manuel, 2026-10-31, zu den Fragen 1–8: Tasche nach Vorbearbeitung unterscheiden; Kataloge „aufpumpen
+  bis zum geht nicht mehr“ (zuerst); „weiter bearbeiten“ mit Aufmaß-Stufen und Messschritten;
+  Umspannen austesten; Spannmittel vor der Unterseite wählen, mit Vorschlägen als Auswahl; zur Lage
+  des Schraubstocks „denk dir was aus“; „ALLE daten aus dem internet nicht nur hoffmann … cad … im
+  freecad nachbauen“.
+
+### DATEIEN
+- `camaddon/spannmittel.py`, `camaddon/gui_spannmittel.py`: „Feste Backe: hinten/vorn/links/rechts“
+  (vorbelegt hinten) statt Grad, sonst „Spannt in Y/X“; im Bild von oben „Bediener“/„Maschine“;
+  Einrichtblatt „feste Backe hinten“.
+- `camaddon/spannmittel_daten/hersteller.json` (57 Reihen, 282 Größen), `camaddon/halter_daten/
+  hersteller.json` (43 Reihen, 353 Größen): alle gesammelten Hoffmann-Größen dazu.
+- `docs/werkzeugkiste_json.md` Abschnitt 3a: Fähigkeiten (mittenschneidend, bohrfraesen,
+  tauchfraesen, bohrtiefe_d, wendeplatten …) und neue Arten – sieben Sammler unterwegs.
+- `docs/konzept_schritt_assistent.md` Teil C: Antworten und Plan C1–C8; `OFFENE_FRAGEN.md` leer;
+  Hilfe, Texte, `package.xml` 0.321.0.
+
+### ERGEBNIS
+- test_spannmittel, test_sprache, test_hilfe, szenario_spannmittel grün.
+
 ## P-2026-10-31-03 halter-und-spannmittel-eigener-knopf
 
 ### EINGELESEN

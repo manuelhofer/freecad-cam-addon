@@ -142,6 +142,57 @@ Nach „Kanten“ ein letzter Schritt, der zeigt, was im Job ist, mit Gesamtzeit
 Sobald Manuel und die Tester zufrieden sind, wird „Bearbeitung“ zur Schrittfassung. Das alte
 Fenster bleibt dann als „Alles auf einer Seite“ (für Geübte) noch eine Weile in der Beta-Leiste.
 
-## C. Was nur Manuel entscheiden kann
+## C. Manuels Antworten (2026-10-31) und was daraus folgt
 
-Die Fragen 1–4 aus B1, B2, B4 und B5 stehen in [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md).
+Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.md)) hat Manuel am
+2026-10-31 beantwortet. Seine Worte, gekürzt, und der Plan:
+
+1. **Tasche, nur zwei Wände angeklickt** – „dann muss eine auswahl geschehen .. und di ekann nur der
+   nutzer treffen ... wenn wir vorher keinerlei bearbeitung haben .. muss halt erstmal etwas
+   rausgeschruppt werden ... wenn vorher schon eine schrupp operation stattgefunden hat ... vll will
+   er wirklich nur die wände geschlichtet haben ... das muss irgendwie unterschieden werden“.
+   *Plan C1:* Der Schritt „Flächen“ schaut nach, ob in der Tasche noch Material steht (Rohteil und
+   die Operationen davor, `materialstand`). Ist sie voll: „Die Tasche ist noch zu – erst die ganze
+   Tasche schruppen, dann diese Wände schlichten“ (vorgewählt) oder „ganze Tasche fertig“. Ist sie
+   schon ausgeräumt (mit welcher Operation): „Nur diese Wände schlichten“ vorgewählt.
+2. **Wie das Material raus soll** – vorbohren mit dem größten Bohrer, der passt, dann mit dem
+   größten Spanvolumen räumen, dann schlichten; geht kein Bohrer: Helix mit einem Fräser, der tief
+   genug ist, dann die schnellste Bahn; oder bohrfräsen/stechend mit Wendeplattenbohrer oder
+   Messerkopf. „alles möglichkeiten die der benutzer haben muss wenn er die richtigen werkzeuge hat
+   oder eben vorschläge für werkzeuge bekommt .. darum müssen wir auch die hersteller datenbank
+   aufpumpen bis zum geht nicht mehr … das solltest du als erstes eigentlioch machen“.
+   *Plan C2:* (a) zuerst die Kataloge mit Fähigkeiten füllen (Format: `werkzeugkiste_json.md`,
+   Abschnitt 3a – mittenschneidend, Bohrfräsen, Tauchfräsen, Bohrtiefe × D, Wendeplatten); (b) dann
+   im Schritt „Schruppen“ die Frage „Wie soll das Material raus?“ mit je einer Zeile: Vorbohren (der
+   größte passende Bohrer aus Magazin oder Werkzeugverwaltung) + Räumen; Helix + Räumen; Bohrfräsen;
+   Tauchfräsen (neu). Je Zeile Zeit, Vorschau und das Werkzeug – fehlt eins, ein Vorschlag aus dem
+   Katalog („mit einem … ginge es in … min“).
+3. **Nach dem Schruppen** – „wir sollten da wirklich einen knopf "weiter bearbeiten" einrichtchten
+   wo dann die selbe ausgewälte kontor nochmal … entgratet … geschlichtet oder nochmal geschlichtet
+   oder vorgeschlcihtet ... 3 mm aufmass beim schruppen … schlichten auf 2mm … nochmal … auf 1 mm …
+   und jedes mal dazwischen messschritte … auf der maschine zu verwirklichen ist mir sehr wichtig“.
+   *Plan C3:* „Weiter bearbeiten“ bleibt der Weg (B4 a/b entfällt) und bekommt auf derselben Kontur:
+   weiteren Gang mit eigenem Aufmaß (Vorschlichten, Schlichten, noch einmal), Entgraten – und
+   **Messschritte** dazwischen: heute gibt es den Messstopp (M0, `messstopp.py`); dazu Messzyklen
+   mit Taster je Steuerung (Siemens CYCLE977/978, Heidenhain 4xx, Fanuc/Renishaw), die das Aufmaß
+   prüfen und den nächsten Gang korrigieren.
+4. **Umspannen** – „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir austesten“.
+   *Plan C4:* der Knopf „Teil umspannen …“ im letzten Schritt, vorgewählt die Flächen, die nicht
+   gingen.
+5. **Spannmittel im ersten Schritt** – „die aufspannung sollte man schon irgendwie sinnvoll wählen
+   ja am besten vor dem man die unten fläche auswählt und wie tief das teil eingespannt ist“.
+   *Plan C5:* In der Beta beginnt „Aufspannung“ mit „Worin wird gespannt?“ (Sammlung) und der
+   Spanntiefe, dann die Unterseite.
+6. **Vorschläge, worin es passt** – „sinnvoll … aber halt eine auswahl geben“, und die Datenbank der
+   Spannmittel „extrem gross“. *Plan C6:* Die Auswahl in C5 zeigt zuerst, was passt (Spannweite,
+   Höhe), mit „passt nicht, weil …“ für die anderen; dazu „aus dem Katalog: … würde passen“.
+7. **Wie der Schraubstock steht** – „ich habe keine idee … denk dir was aus mach nen vorschlag“.
+   *Gebaut (0.321.0):* „Feste Backe: hinten / vorn / links / rechts“, vorbelegt hinten; im Bild von
+   oben „Bediener“ unten, „Maschine“ oben.
+8. **Daten** – „ALLE daten aus dem internet nicht nur hoffmann … auch die dazugehörigen cad dateien
+   .. einfach holen oder nachbauen .. im freecad nachbauen ist eh sinnvoller“. *Gebaut (0.321.0):*
+   alle gesammelten Hoffmann-Größen im Katalog (282 Spannmittel, 353 Halter); sieben Sammler holen
+   weitere (Werkzeuge mit Fähigkeiten, Spannmittel, Halter). CAD wird aus den Maßen in FreeCAD
+   nachgebaut (die CAD-Downloads verbieten die Weitergabe).
+
+Reihenfolge: C2a (Kataloge) läuft; derweil C7/C8 (fertig), C5/C6, C1, C4; dann C2b und C3.

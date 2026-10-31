@@ -46,9 +46,9 @@ einer Reihe sagt, woher die Maße kommen.
 Die Daten liegen als JSON in `camaddon/spannmittel_daten/` und `camaddon/halter_daten/`, im
 Format von [katalog.py](../camaddon/katalog.py). Jede Reihe nennt ihre Quelle. Werte, die der
 Katalog nicht nennt, bekommen den Beispielwert der Art, und die Quelle sagt, welche das sind.
-Artikelnummern stehen nur dort, wo der Hersteller sie zeigt. Aus dem Hoffmann-Katalog ist je Spannart (bei
-Haltern je Aufnahme und Typ) nur eine Größe als Vorbild drin, wie bei den Halter-Vorlagen
-(Datenbankschutz, *Frage 8*); alles von den Seiten der Hersteller selbst ist ganz drin.
+Artikelnummern stehen nur dort, wo der Hersteller sie zeigt. Seit 0.321.0 sind auch alle
+gesammelten Hoffmann-Größen drin (Manuel, 2026-10-31: „ALLE daten aus dem internet nicht nur
+hoffmann“; bis 0.320 nur ein Vorbild je Spannart).
 
 ![Katalog der Spannmittel](bilder/spannmittel/1_katalog.png)
 ![Katalog der Halter](bilder/spannmittel/4_halter_katalog.png)
@@ -87,7 +87,10 @@ Maschine auch macht:
    Tischmitte, und die Drehung um Z in 90°-Schritten. Gemessen wird beim **Schraubstock an der
    Mitte der festen Backe**, denn sie bleibt stehen, wenn ein breiteres Teil kommt. Bei allen
    anderen Arten ist es die Mitte. Bei 0° spannen die Backen in Y, und die feste Backe liegt vorn
-   (−Y). Bei 90° spannen sie in X.
+   (−Y). Bei 90° spannen sie in X. **Seit 0.321 (Frage 7):** Statt Grad fragt das Fenster
+   „Feste Backe: hinten (zur Maschine) / vorn (zum Bediener) / links / rechts“, vorbelegt hinten
+   – so steht er meist an einer senkrechten Fräse, der Griff zum Bediener; bei den anderen Arten
+   „Spannt in Y / X“. Im Bild von oben steht unten „Bediener“, oben „Maschine“.
 4. **Spanntiefe:** so viel vom Rohteil steckt in den Backen. Leer gilt die übliche des
    Spannmittels, bei 5-Achs-Spannern mit Spannzähnen sind das wenige Millimeter.
 
@@ -116,10 +119,11 @@ Geprüft: `tests/test_spannmittel.py` und `tests/gui/szenario_spannmittel.py`.
 1. **Im Assistenten „Bearbeitung“ fragen, worin gespannt wird.** Im ersten Schritt, wo heute
    „von unten gespannt … mm“ steht, käme eine Auswahl „Spannmittel“ aus der Sammlung. Mit ihr
    wird dann gleich die Aufspannung eingetragen. In der Beta „Bearbeitung in Schritten“ würde der
-   Schritt „Aufspannung“ zu „Wo liegt es, und worin?“. *Frage 5.*
+   Schritt „Aufspannung“ zu „Wo liegt es, und worin?“. *Manuel: ja, vor der Unterseite und mit der
+   Spanntiefe – Plan C5 in [konzept_schritt_assistent.md](konzept_schritt_assistent.md).*
 2. **Vorschlag „passt hinein“:** Bei einem neuen Job schlägt das Addon aus der Sammlung das
-   kleinste Spannmittel vor, dessen Spannweite das Rohteil nimmt. Damit wählt das Addon etwas,
-   also kommt es nur mit Manuels Ja (*Frage 6*).
+   kleinste Spannmittel vor, dessen Spannweite das Rohteil nimmt. *Manuel: ja, als Auswahl –
+   Plan C6.*
 3. **Der Tisch der Maschine:** Mit T-Nuten und Größe aus der Maschine könnte das Bild „auf dem
    Tisch“ den echten Tisch zeigen, und eine Lage außerhalb des Tisches würde gemeldet. Dafür
    bräuchte die Maschine Tischmaße. Das ist erst sinnvoll, wenn Manuel es will.

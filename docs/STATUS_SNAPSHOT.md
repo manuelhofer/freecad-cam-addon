@@ -584,7 +584,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   der Werkstückaufnahme, Drehung, Spanntiefe) – daraus Nullpunkt-Vorschlag, Kollision mit
   anliegenden Backen, „von unten gespannt“, Einrichtblatt. Beide mit „Katalog …“ der Hersteller
   (`camaddon/spannmittel_daten/`, `camaddon/halter_daten/`). Konzept: `docs/konzept_spannmittel.md`,
-  Fragen 5–7 in `OFFENE_FRAGEN.md`.
+  Antworten und Plan: `docs/konzept_schritt_assistent.md`, Teil C.
 - *Neu (0.315.0, Beta):* „Bearbeitung in Schritten“ (Manuel, 2026-10-30: das Fenster „zu groß
   geworden“, „Einzelschritte … einzeln abfragen“, „einen Beta-Knopf … das Alte behalten“): Haken
   „Beta-Funktionen zeigen“ in den Einstellungen → Leiste „CAM-Addon Beta“. Aufspannung → Flächen

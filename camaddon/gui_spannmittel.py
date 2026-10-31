@@ -436,9 +436,9 @@ class SpannmittelDialog(QtGui.QDialog):
         self.feld_x.setPlaceholderText("0")
         self.feld_y.setPlaceholderText("0")
         self.wahl_drehung = QtGui.QComboBox()
-        for grad in sm.DREHUNGEN:
-            self.wahl_drehung.addItem(f"{grad}°", grad)
         self.wahl_drehung.setToolTip(tr("sm.auf.drehung.tooltip"))
+        self.beschriftung_drehung = QtGui.QLabel()
+        self._drehung_anbieten(sm.SCHRAUBSTOCK, sm.LAGEN_SCHRAUBSTOCK[0])
         self.feld_tiefe = _laengenfeld(tr("sm.auf.tiefe.tooltip"))
         lage = QtGui.QWidget()
         lage_aufbau = QtGui.QHBoxLayout(lage)
@@ -451,7 +451,7 @@ class SpannmittelDialog(QtGui.QDialog):
         gitter.addRow(tr("sm.auf.spannmittel"), self.wahl_spannmittel)
         gitter.addRow(tr("sm.auf.unterbau"), self.wahl_unterbau)
         gitter.addRow(tr("sm.auf.lage"), lage)
-        gitter.addRow(tr("sm.auf.drehung"), self.wahl_drehung)
+        gitter.addRow(self.beschriftung_drehung, self.wahl_drehung)
         self.zeile_tiefe = mit_einheit(self.feld_tiefe, mm)
         gitter.addRow(tr("sm.auf.tiefe"), self.zeile_tiefe)
         links.addLayout(gitter)
@@ -522,7 +522,8 @@ class SpannmittelDialog(QtGui.QDialog):
         self._fuellt = True
         self.feld_x.setText(groesse_zeigen(auf.x, einheiten.LAENGE) if auf else "")
         self.feld_y.setText(groesse_zeigen(auf.y, einheiten.LAENGE) if auf else "")
-        self.wahl_drehung.setCurrentIndex(sm.DREHUNGEN.index(auf.drehung) if auf else 0)
+        art = auf.spannmittel.art if auf else sm.SCHRAUBSTOCK
+        self._drehung_anbieten(art, auf.drehung if auf else sm.lagen(art)[0])
         if auf is not None and auf.spanntiefe >= 0:
             self.feld_tiefe.setText(groesse_zeigen(auf.spanntiefe, einheiten.LAENGE))
         else:
@@ -541,6 +542,10 @@ class SpannmittelDialog(QtGui.QDialog):
             self._aufspannung_beschriften()
             return
         spannmittel = self._spannmittel_fuer(kennung, alt and alt.spannmittel)
+        if alt is None or alt.spannmittel.art != spannmittel.art:  # andere Art: ihre Vorgabe
+            self._fuellt = True
+            self._drehung_anbieten(spannmittel.art, sm.lagen(spannmittel.art)[0])
+            self._fuellt = False
         kennung_unterbau = self.wahl_unterbau.currentData()
         unterbau = (
             self._spannmittel_fuer(kennung_unterbau, alt and alt.unterbau)
@@ -564,6 +569,22 @@ class SpannmittelDialog(QtGui.QDialog):
             tiefe if self.feld_tiefe.text() else -1.0,
         )
         self._aufspannung_beschriften()
+
+    def _drehung_anbieten(self, art, drehung):
+        """Die Wahl der Lage: beim Schraubstock „Feste Backe hinten/vorn/links/rechts“, sonst
+        „Spannt in Y/X“ (spannmittel.lagen)."""
+        self.wahl_drehung.blockSignals(True)
+        self.wahl_drehung.clear()
+        for grad in sm.lagen(art):
+            self.wahl_drehung.addItem(sm.lage_text(art, grad), grad)
+        index = self.wahl_drehung.findData(drehung)
+        if index < 0 and art != sm.SCHRAUBSTOCK:  # 180°/270° spannen wie 0°/90°
+            index = self.wahl_drehung.findData(drehung % 180)
+        self.wahl_drehung.setCurrentIndex(max(index, 0))
+        self.wahl_drehung.blockSignals(False)
+        self.beschriftung_drehung.setText(
+            tr("sm.auf.feste_backe") if art == sm.SCHRAUBSTOCK else tr("sm.auf.spannt_in")
+        )
 
     def _spannmittel_fuer(self, kennung, im_job):
         """Eine Kopie aus der Sammlung – oder, was der Job schon hat."""
@@ -832,7 +853,21 @@ class SpannmittelBild(QtGui.QWidget):
                 QtCore.QPointF(BILD_RAND, tisch), QtCore.QPointF(self.width() - BILD_RAND, tisch)
             )
             maler.setPen(GRAU)
-            maler.drawText(QtCore.QPointF(self.width() / 2, tisch - 4), tr("sm.bild.tisch"))
+            maler.drawText(QtCore.QPointF(BILD_RAND + 90, tisch + 13), tr("sm.bild.tisch"))
+        if self.auf_dem_tisch:  # wo Bediener und Maschine stehen – fürs Ausrichten
+            maler.setPen(GRAU)
+            unten = draufsicht(min(xs), min(ys)).y()
+            oben = draufsicht(min(xs), max(ys)).y()
+            maler.drawText(
+                QtCore.QRectF(0, unten + 2, self.width(), 14),
+                int(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop),
+                tr("sm.bild.bediener"),
+            )
+            maler.drawText(
+                QtCore.QRectF(0, oben - 15, self.width(), 14),
+                int(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignBottom),
+                tr("sm.bild.maschine"),
+            )
         if self.auf_dem_tisch:  # die Werkstückaufnahme: X nach rechts, Y nach oben
             ursprung = draufsicht(0.0, 0.0)
             maler.setPen(QtGui.QPen(FARBE_ACHSE, 2))
