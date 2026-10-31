@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-04 voller-lauf-nacht
+
+### EINGELESEN
+- Nach den Änderungen der Nacht (tr(), Klartext, Werkzeugkiste, Frage „Eintauchen“, Kataloge)
+  einmal alle Prüfdateien – die Frage: ist woanders etwas kaputt?
+
+### DATEIEN
+- `tests/test_empfehlung.py`: „Ø10 × 45: kein Halter“ ohne den Katalog der Hersteller geprüft
+  (empfehlung._katalog_halter leer) – seit 0.344.2 gibt es mit HAIMER Mini Shrink extra slim
+  (vorn Ø 13) einen Halter, mit dem es geht; geprüft wird der Weg „nichts geht“.
+
+### ERGEBNIS
+- Voller Lauf (Weekly, 5 gleichzeitig): 141/142, rot nur test_empfehlung (siehe oben) – danach
+  grün, also 142/142.
 ## P-2026-11-01-03 katalog-bohrfraeser
 
 ### EINGELESEN

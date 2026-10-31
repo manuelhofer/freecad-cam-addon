@@ -164,8 +164,8 @@ if isinstance(neu, em.Empfehlung):
     pruefe(abs(einsatz.fz - 0.1 * d / 16.0) < 1e-9, f"fz {einsatz.fz}")
 
 # Die Flanke: ein Schaftfräser Ø 10 (Schneide 20) im ER32 – die Mutter führt in die Wand. 45 mm
-# lang geht es mit keinem Halter (die Wand ist 30 hoch, jeder bräuchte rund 39 mm heraus, höchstens
-# 35 gehen); 60 mm lang empfohlen ein anderer Halter, mit dem es an allen Stellen der Bahn geht
+# lang geht es mit keinem Normhalter (die Wand ist 30 hoch, jeder bräuchte rund 39 mm heraus,
+# höchstens 35 gehen); 60 mm lang empfohlen ein anderer Halter, mit dem es an allen Stellen der Bahn geht
 # (flanke_bahn.halter_an_stellen).
 from camaddon import flanke as flop  # noqa: E402
 from camaddon import flanke_bahn as fb  # noqa: E402
@@ -188,7 +188,15 @@ fl_bahn = fb.planen(
     fb.Flankenwerte(radius=5.0, schneide=20.0, oben=40.0, sicher=60.0, vorschub=1000.0),
 )
 fl_stellen = flop._stellen_fuer_empfehlung(fl_bahn, 5.0)
-kurz = em.empfehlen_flanke(teil, fl_stellen, schaft, bib, "SK40")
+# Ohne den Katalog der Hersteller (nur Normreihen und eigene Halter): Mit ihm gibt es seit 0.344.2
+# ein schlankeres Futter (HAIMER Mini Shrink extra slim, vorn Ø 13), mit dem es geht – geprüft wird
+# hier der Weg „nichts geht“, nicht der Inhalt des Katalogs.
+mit_katalog = em._katalog_halter
+em._katalog_halter = lambda *_a: []
+try:
+    kurz = em.empfehlen_flanke(teil, fl_stellen, schaft, bib, "SK40")
+finally:
+    em._katalog_halter = mit_katalog
 pruefe(kurz == em.KEINE, f"Ø10 × 45: doch {getattr(getattr(kurz, 'halter', None), 'name', '')}")
 # Das ER11-Futter aus der Werkzeugverwaltung spannt höchstens Ø 7 – nicht für den Schaft Ø 10.
 # (Seit die Empfehlung auch den Katalog fragt, legt die Kugel oben ein 3°-Schrumpffutter an, kein
