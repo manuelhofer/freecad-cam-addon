@@ -99,10 +99,29 @@ def schritte(h):
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     tauchen = next(b for b in panel.bloecke if b.s.kennung == "tauchfraesen")
     raeumen = next(b for b in panel.bloecke if b.s.kennung == "raeumen")
-    tauchen.haken.setChecked(True)
+    # Die Frage „Wie soll das Material raus …“ (Plan C2 b): Tauchfräsen als dritter Weg, mit
+    # Zeit, solange noch das Räumen angehakt ist.
+    frage = panel.frage_eintauchen
+    h.pruefe(frage.widget.isVisible(), "die Frage „Wie soll das Material raus“ fehlt")
+    h.pruefe(frage.knoepfe["tauchen"].isVisible(), "kein Weg „Tauchfräsen“")
+    yield from h.warte_auf(lambda: "min" in frage.zeiten["tauchen"].text(), 120000)
+    zeiten = {w: frage.zeiten[w].text() for w in frage.knoepfe}
+    print(ascii(f"Wege: {zeiten}"))
+    h.pruefe("min" in zeiten["tauchen"], f"Tauchfräsen ohne Zeit: {zeiten}")
+    h.pruefe("T1" in frage.saetze["tauchen"].text(), frage.saetze["tauchen"].text())
+    h.bild("0_frage_wege", panel.form)
+    frage.knoepfe["tauchen"].click()
     yield 500
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     yield 800
+    h.pruefe(tauchen.haken.isChecked() and not raeumen.haken.isChecked(), "Weg hakt nicht um")
+    h.pruefe(frage.widget.isVisible(), "die Frage ist nach dem Tauchfräsen weg")
+    h.pruefe(frage.knoepfe["tauchen"].isChecked(), "„Tauchfräsen“ nicht gewählt")
+    yield from h.warte_auf(lambda: "min" in frage.zeiten["helix"].text(), 120000)
+    zeiten = {w: frage.zeiten[w].text() for w in frage.knoepfe}
+    print(ascii(f"Wege getaucht: {zeiten}"))
+    h.pruefe("min" in zeiten["helix"], f"Räumen ohne Zeit, wenn getaucht: {zeiten}")
+    h.bild("0b_frage_getaucht", panel.form)
     # Nicht freigegeben (Manuel: „erst wenn man einen hacken gesetzt hat“): ohne Haken fehlt T4,
     # mit Haken steht er da, gewählt mit dem Satz „auf eigene Verantwortung“.
     nummern = [w.nummer for w in tauchen._fraeser]

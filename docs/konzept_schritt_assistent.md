@@ -175,7 +175,9 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    laufen. (b) erster Teil: Im Schritt „Schruppen“ der Beta **„Werkzeuge für diese Tasche“** –
    Tiefe und freier Kreis gemessen (`werkzeugwahl.py`), je Weg (Vorbohren, Schruppen, Ecken,
    Bohrfräsen) das größte passende eigene Werkzeug; „Was gäbe es im Katalog?“ nennt größere aus
-   dem Katalog mit Link. Noch offen: die Wege als Frage mit Zeit und Vorschau. **Tauchfräsen** als
+   dem Katalog mit Link. *Gebaut (0.338.0):* die Wege als Frage mit Zeit und Vorschau – „Wie soll das
+   Material raus, wo der Fräser ins Volle muss?“: Erst vorbohren / Schraubend eintauchen /
+   Tauchfräsen statt räumen. **Tauchfräsen** als
    Entwurf (`camaddon/tauchfraesen.py`, Bild `bilder/tauchfraesen_entwurf.png`). *Manuel,
    2026-10-31, zum Bild: „ja.. so ists ok .. geht auch für ne ausen kontur das man die vorbohrt
    so“* – *gebaut (0.330.0):* Block „Tauchfräsen“ im Schruppen, von sich aus aus; angehakt statt

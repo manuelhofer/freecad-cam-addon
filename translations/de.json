@@ -2366,7 +2366,7 @@
     "ba.frage.waende.flanke.satz": "Die Flanke macht die Wände fertig, die Kugel nur die Flächen unter dem Rand – schneller; in der unteren Lage läuft der Schaft an der schon fertigen Wand entlang.",
     "ba.frage.waende.spirale": "Flanke grob, Spirale fertig",
     "ba.frage.waende.spirale.satz": "Die Flanke schruppt mit {aufmass} mm Aufmaß, die Kugel macht alle Wände als Spirale fertig – sauberer, dauert länger.",
-    "ba.frage.eintauchen": "Wo der Fräser ins Volle eintauchen muss – erst vorbohren?",
+    "ba.frage.eintauchen": "Wie soll das Material raus, wo der Fräser ins Volle muss?",
     "ba.frage.eintauchen.vorbohren": "Erst vorbohren",
     "ba.frage.eintauchen.vorbohren.satz": "Ein Bohrer aus dem Magazin bohrt vor, wo der Fräser ins Volle eintauchen müsste; dort taucht er senkrecht ein – das schont seine Schneide, kostet aber einen Werkzeugwechsel.",
     "ba.frage.eintauchen.vorbohren.ein_loch": "Vorgebohrt wird 1 Loch ({d}, {tiefe} tief); dort taucht der Fräser senkrecht ein – das schont seine Schneide, kostet aber einen Werkzeugwechsel.",
@@ -3704,5 +3704,8 @@
     "kg.knopf": "Kataloge laden …",
     "kg.knopf.tooltip": "Lädt die Kataloge der Hersteller (Werkzeuge, Halter, Spannmittel) von GitHub ins FreeCAD-Profil.",
     "kg.still_fertig": "CAM-Addon: {n} Katalogdateien aktualisiert.",
-    "kg.still_fehler": "CAM-Addon: Kataloge nicht aktualisiert: {grund}"
+    "kg.still_fehler": "CAM-Addon: Kataloge nicht aktualisiert: {grund}",
+    "ba.frage.eintauchen.tauchen": "Tauchfräsen statt räumen",
+    "ba.frage.eintauchen.tauchen.satz": "Der Fräser taucht senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen – für tiefe Taschen, lange Werkzeuge und schwache Maschinen. Zwischen den Stellen bleiben an den Wänden Zwickel stehen – die nimmt eine Kontur danach.",
+    "ba.frage.eintauchen.tauchen.mit": "Mit {werkzeug} senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen – für tiefe Taschen, lange Werkzeuge und schwache Maschinen. Zwischen den Stellen bleiben an den Wänden Zwickel stehen – die nimmt eine Kontur danach."
 }

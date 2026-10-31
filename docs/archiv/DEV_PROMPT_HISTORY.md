@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-38 frage-material-raus
+
+### EINGELESEN
+- Manuel, 2026-10-31 (Antwort 2): „vorbohren … helix … bohrfräsen/stechend … alles möglichkeiten
+  die der benutzer haben muss“ – Plan C2 (b): die Wege als Frage mit Zeit und Vorschau.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_Frage.weg_zeigen`; Frage „Eintauchen“ mit dem Weg „tauchen“;
+  `_eintauchen_schritte` (auch, wenn das Tauchfräsen statt des Räumens angehakt ist),
+  `_eintauchen_waehlen` (hakt Tauchfräsen bzw. Räumen um), `_nachrechnen` (ein Block im
+  Nebenrechner mit geänderten Werten – auch für `_vorgebohrt_rechnen`), `_mit_vorbohren`,
+  `_tauchen_satz`, `_tauch_block`.
+- `translations/*.json`: Titel „Wie soll das Material raus, wo der Fräser ins Volle muss?“, Weg
+  „Tauchfräsen statt räumen“.
+- `tests/gui/szenario_tauchfraesen.py`: Frage mit drei Wegen und Zeiten, Wahl „Tauchfräsen“ hakt um,
+  die Frage bleibt mit den Zeiten des Räumens.
+- `docs/konzept_schritt_assistent.md`, `docs/bilder/beta/3f_frage_material_raus.png`,
+  `package.xml` 0.338.0.
+
+### ERGEBNIS
+- szenario_tauchfraesen grün (Wege je 3 min an der Tasche 60 × 40 × 15; getaucht: Räumen-Wege
+  nachgerechnet), szenario_frage_eintauchen grün (alter Assistent, dritter Weg dabei),
+  test_sprache grün. Längste Fensterpause 3,2 s beim „Anlegen“ (wie vorher).
 ## P-2026-10-31-37 emuge-franken-katalog
 
 ### EINGELESEN

@@ -2366,7 +2366,7 @@
     "ba.frage.waende.flanke.satz": "The flank finishes the walls, the ball only the faces under the rim – faster; in the lower layer the shank runs along the already finished wall.",
     "ba.frage.waende.spirale": "Flank roughs, spiral finishes",
     "ba.frage.waende.spirale.satz": "The flank roughs with {aufmass} mm stock left, the ball finishes all walls as a spiral – cleaner, takes longer.",
-    "ba.frage.eintauchen": "Where the cutter has to plunge into solid material – pre-drill first?",
+    "ba.frage.eintauchen": "How should the material come out where the cutter has to go into solid stock?",
     "ba.frage.eintauchen.vorbohren": "Pre-drill first",
     "ba.frage.eintauchen.vorbohren.satz": "A drill from the magazine drills where the cutter would plunge into solid material; it then plunges straight down there – easier on its cutting edge, but it costs a tool change.",
     "ba.frage.eintauchen.vorbohren.ein_loch": "1 hole is pre-drilled ({d}, {tiefe} deep); the cutter plunges straight down there – easier on its cutting edge, but it costs a tool change.",
@@ -3704,5 +3704,8 @@
     "kg.knopf": "Load catalogues …",
     "kg.knopf.tooltip": "Loads the manufacturers' catalogues (tools, holders, workholding) from GitHub into the FreeCAD profile.",
     "kg.still_fertig": "CAM add-on: {n} catalogue files updated.",
-    "kg.still_fehler": "CAM add-on: catalogues not updated: {grund}"
+    "kg.still_fehler": "CAM add-on: catalogues not updated: {grund}",
+    "ba.frage.eintauchen.tauchen": "Plunge milling instead of clearing",
+    "ba.frage.eintauchen.tauchen.satz": "The cutter plunges straight down, spot next to spot, from the centre outwards – for deep pockets, long tools and weak machines. Between the spots small cusps remain at the walls – a contour pass afterwards takes them.",
+    "ba.frage.eintauchen.tauchen.mit": "With {werkzeug} straight down, spot next to spot, from the centre outwards – for deep pockets, long tools and weak machines. Between the spots small cusps remain at the walls – a contour pass afterwards takes them."
 }

@@ -291,6 +291,15 @@ class _Frage:
             self.zeiten[kennung] = zeit
             self.saetze[kennung] = erklaerung
 
+    def weg_zeigen(self, kennung, sichtbar):
+        """Zeigt den Weg `kennung` – oder blendet ihn aus, wo es ihn nicht gibt (Tauchfräsen ohne
+        passendes Werkzeug)."""
+        widgets = [self.knoepfe[kennung], self.zeiten[kennung], self.saetze[kennung]]
+        if kennung in self.vorschau_knoepfe:
+            widgets.append(self.vorschau_knoepfe[kennung])
+        for widget in widgets:
+            widget.setVisible(bool(sichtbar))
+
     def satz_setzen(self, kennung, satz):
         self.saetze[kennung].setText(satz)
 
@@ -6432,6 +6441,13 @@ class BearbeitungPanel:
                     tr("ba.frage.eintauchen.vorbohren.satz"),
                 ),
                 ("helix", tr("ba.frage.eintauchen.helix"), tr("ba.frage.eintauchen.helix.satz")),
+                # Plan C2 (Manuel, 2026-10-31: „bohrfräsen/stechend … alles möglichkeiten die der
+                # benutzer haben muss“): Tauchfräsen statt Räumen, als Weg dieser Frage.
+                (
+                    "tauchen",
+                    tr("ba.frage.eintauchen.tauchen"),
+                    tr("ba.frage.eintauchen.tauchen.satz"),
+                ),
             ],
             "vorbohren",
             self._eintauchen_waehlen,
@@ -9406,9 +9422,27 @@ class BearbeitungPanel:
                 zeit += block.s.zeit(bahn, vorschub, senkrecht)
         return zeit, bahnen
 
+    def _tauch_block(self):
+        return next((b for b in self.bloecke if b.s.kennung == "tauchfraesen"), None)
+
     def _eintauchen_waehlen(self, weg):
         """Die Frage „Eintauchen“: „Vorbohren“ bei Räumen und Nut an oder ab (die Haken bei ihren
-        Einstellungen sagen dasselbe), dann neu rechnen."""
+        Einstellungen sagen dasselbe), dann neu rechnen. „Tauchfräsen“ hakt das Tauchfräsen an
+        (haken_geklickt nimmt dem Räumen den Haken), die anderen Wege das Räumen wieder."""
+        tauch = self._tauch_block()
+        if weg == "tauchen":
+            if tauch is not None and not tauch.aktiv():
+                tauch.haken.setChecked(True)
+            return
+        if tauch is not None and tauch.aktiv():
+            self._fuellt = True  # das Räumen kommt gleich mit seinem Haken
+            try:
+                tauch.haken.setChecked(False)
+                tauch.von_hand = True
+                tauch.zustand_zeigen()
+            finally:
+                self._fuellt = False
+            self.raeumen.haken.setChecked(True)  # haken_geklickt rechnet neu
         an = weg == "vorbohren"
         for block in (self.raeumen, self.nut):
             haken = block.haken_felder.get("vorbohren")
@@ -9464,57 +9498,163 @@ class BearbeitungPanel:
 
     def _eintauchen_schritte(self, form):
         """Die Frage „Eintauchen“: zeigen, wenn Räumen oder Nut ins Volle eintauchen und
-        vorbohren könnten. Ohne Vorbohren aus den Blöcken (vorgebohrt haben sie den Weg ohne
-        mitgerechnet: raeumen.Vorbohren.ohne_punkte), mit Vorbohren aus ihnen, wenn sie
-        vorgebohrt haben, sonst im Nebenrechner dazu."""
+        vorbohren könnten – oder das Tauchfräsen statt des Räumens angehakt ist. Ohne Vorbohren aus
+        den Blöcken (vorgebohrt haben sie den Weg ohne mitgerechnet: raeumen.Vorbohren.ohne_punkte),
+        mit Vorbohren aus ihnen, wenn sie vorgebohrt haben, sonst im Nebenrechner dazu. Der Weg
+        „Tauchfräsen“ (nur, wenn es allein ums Räumen geht und ein Werkzeug dafür passt): aus dem
+        Block, wenn er angehakt ist, sonst nachgerechnet; ist er angehakt, kommen die Wege des
+        Räumens aus dem Gemerkten oder nachgerechnet."""
         frage = self.frage_eintauchen
-        bloecke = self._eintauchen_bloecke() if self.zu_aendern is None else []
+        tauch = self._tauch_block()
+        getaucht = self.zu_aendern is None and tauch is not None and tauch.aktiv()
+        if getaucht:
+            bloecke = [self.raeumen]  # davor räumte es dieselben Böden
+        else:
+            bloecke = self._eintauchen_bloecke() if self.zu_aendern is None else []
         self._frage_passt("eintauchen", frage, bool(bloecke))
         if not bloecke:
             return
-        an = any(b.haken_felder["vorbohren"].isChecked() for b in bloecke)
-        frage.waehlen("vorbohren" if an else "helix")
+        kann_tauchen = (
+            tauch is not None and bloecke == [self.raeumen] and tauch.fraeser() is not None
+        )
+        frage.weg_zeigen("tauchen", kann_tauchen)
+        if getaucht:
+            frage.waehlen("tauchen")
+        else:
+            an = any(b.haken_felder["vorbohren"].isChecked() for b in bloecke)
+            frage.waehlen("vorbohren" if an else "helix")
         woraus = self._eintauchen_woraus(bloecke, form)
-        zeit, bahnen = 0.0, []
-        for block in bloecke:
-            gebohrt = getattr(block.vorschau, "vorbohren", None)
-            if gebohrt is None:
-                zeit += block.zeit
-                bahnen.append(block.vorschau)
-            elif gebohrt.ohne_frei is not None and gebohrt.ohne_punkte:
-                zeit += gebohrt.ohne_frei
-                bahnen.append(types.SimpleNamespace(punkte=gebohrt.ohne_punkte))
-            else:
-                zeit, bahnen = False, []
-                break
-        self._wege[("eintauchen", "helix")] = (zeit, bahnen, woraus)
-        if all(getattr(b.vorschau, "vorbohren", None) is not None for b in bloecke):
+        woraus_tauchen = None
+        if kann_tauchen:  # mit seinem eigenen Haken „Vorbohren“
+            woraus_tauchen = woraus + repr(
+                (
+                    getattr(tauch.fraeser(), "kennung", None),
+                    repr(tauch.einsatz()),
+                    repr(sorted(tauch.werte().items())),
+                    tuple(self._flaechen(tauch, form)),
+                )
+            )
+        if not getaucht:
             zeit, bahnen = 0.0, []
             for block in bloecke:
-                zeit += block.zeit + block.vorschau.vorbohren.zeit
-                bahnen += [_Bohrlinien(block.vorschau.vorbohren, block), block.vorschau]
-            self._wege[("eintauchen", "vorbohren")] = (zeit, bahnen, woraus)
+                gebohrt = getattr(block.vorschau, "vorbohren", None)
+                if gebohrt is None:
+                    zeit += block.zeit
+                    bahnen.append(block.vorschau)
+                elif gebohrt.ohne_frei is not None and gebohrt.ohne_punkte:
+                    zeit += gebohrt.ohne_frei
+                    bahnen.append(types.SimpleNamespace(punkte=gebohrt.ohne_punkte))
+                else:
+                    zeit, bahnen = False, []
+                    break
+            self._wege[("eintauchen", "helix")] = (zeit, bahnen, woraus)
+            if all(getattr(b.vorschau, "vorbohren", None) is not None for b in bloecke):
+                zeit, bahnen = 0.0, []
+                for block in bloecke:
+                    zeit += block.zeit + block.vorschau.vorbohren.zeit
+                    bahnen += [_Bohrlinien(block.vorschau.vorbohren, block), block.vorschau]
+                self._wege[("eintauchen", "vorbohren")] = (zeit, bahnen, woraus)
+        elif tauch.vorschau is not None and tauch.zeit is not None:
+            self._wege[("eintauchen", "tauchen")] = (
+                *self._mit_vorbohren(tauch, tauch.vorschau, tauch.zeit),
+                woraus_tauchen,
+            )
+        ersetzt = list(bloecke) + ([tauch] if tauch is not None else [])
+
+        def gilt(weg):
+            eintrag = self._wege.get(("eintauchen", weg))
+            soll = woraus_tauchen if weg == "tauchen" else woraus
+            return eintrag if eintrag is not None and eintrag[2] == soll else None
 
         def gesamt(weg):
-            eintrag = self._wege.get(("eintauchen", weg))
-            if eintrag is None or eintrag[2] != woraus:
+            eintrag = gilt(weg)
+            if eintrag is None:
                 return None
-            bohrer = {b: [] for b in bloecke}
+            bohrer = {b: [] for b in ersetzt}
             for bahn in eintrag[1]:
                 if isinstance(bahn, _Bohrlinien) and bahn.block in bohrer:
                     bohrer[bahn.block] += _bohrer_von(bahn.gebohrt)
-            return self._gesamt(eintrag[0], bloecke, bohrer)
+            return self._gesamt(eintrag[0], ersetzt, bohrer)
 
-        for weg in frage.knoepfe:
+        wege = [w for w in frage.knoepfe if w != "tauchen" or kann_tauchen]
+        for weg in wege:
             frage.zeit_setzen(weg, gesamt(weg))
-        eintrag = self._wege.get(("eintauchen", "vorbohren"))
-        if eintrag is None or eintrag[2] != woraus:
-            gerechnet = yield from self._vorgebohrt_rechnen(form, bloecke)
-            eintrag = (*(gerechnet or (False, [])), woraus)
-            self._wege[("eintauchen", "vorbohren")] = eintrag
-            frage.zeit_setzen("vorbohren", gesamt("vorbohren"))
-        frage.satz_setzen("vorbohren", self._vorbohren_satz(eintrag[1]))
+        for weg in wege:
+            if gilt(weg) is not None:
+                continue
+            if weg == "tauchen":
+                gerechnet = yield from self._nachrechnen(
+                    tauch, form, zusatz=self._zusatz(tauch, form)
+                )
+                if gerechnet is not None:
+                    gerechnet = self._mit_vorbohren(tauch, gerechnet[1], gerechnet[0])
+                self._wege[("eintauchen", weg)] = (*(gerechnet or (False, [])), woraus_tauchen)
+            elif weg == "vorbohren" and not getaucht:
+                gerechnet = yield from self._vorgebohrt_rechnen(form, bloecke)
+                self._wege[("eintauchen", weg)] = (*(gerechnet or (False, [])), woraus)
+            else:  # getaucht: das Räumen, wie es mit diesem Weg räumte
+                gerechnet = yield from self._nachrechnen(
+                    self.raeumen, form, dazu={"vorbohren": weg == "vorbohren"}
+                )
+                if gerechnet is not None:
+                    gerechnet = self._mit_vorbohren(self.raeumen, gerechnet[1], gerechnet[0])
+                self._wege[("eintauchen", weg)] = (*(gerechnet or (False, [])), woraus)
+            frage.zeit_setzen(weg, gesamt(weg))
+        eintrag = gilt("vorbohren")
+        frage.satz_setzen("vorbohren", self._vorbohren_satz(eintrag[1] if eintrag else []))
+        if kann_tauchen:
+            frage.satz_setzen("tauchen", self._tauchen_satz(tauch))
         self._gezeigten_weg_erneuern("eintauchen", woraus)
+        self._gezeigten_weg_erneuern("eintauchen", woraus_tauchen)
+
+    def _mit_vorbohren(self, block, bahn, minuten):
+        """(Minuten, [Vorschau]) einer Bahn mit ihrem Vorbohren (Zeit und Bohrlinien)."""
+        gebohrt = getattr(bahn, "vorbohren", None)
+        if gebohrt is None:
+            return minuten, [bahn]
+        return minuten + gebohrt.zeit, [_Bohrlinien(gebohrt, block), bahn]
+
+    def _tauchen_satz(self, tauch):
+        """Der Satz zum Weg „Tauchfräsen“, mit dem Werkzeug: „… mit T4 WPB 16 …“."""
+        werkzeug = tauch.fraeser()
+        return tr(
+            "ba.frage.eintauchen.tauchen.mit",
+            werkzeug=f"{self._nummer(werkzeug)} {getattr(werkzeug, 'name', '')}".strip(),
+        )
+
+    def _nachrechnen(self, block, form, dazu=None, zusatz=None):
+        """(Minuten, Vorschau) des Blocks, gerechnet mit seinen Werten, dem `zusatz` (ohne: was der
+        Assistent ihm zuletzt gab) und `dazu` – im Nebenrechner, wenn es geht. None, wenn es nicht
+        geht (ein Generator: `yield` je Schritt)."""
+        werkzeug, einsatz = block.fraeser(), block.einsatz()
+        if werkzeug is None or einsatz is None:
+            return None
+        _n, vorschub, senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
+        werte = dict(block.werte(), vorschub=vorschub, eintauchen=senkrecht)
+        werte.update(getattr(block, "zusatz_zuletzt", {}) if zusatz is None else zusatz)
+        werte.update(dazu or {})
+        flaechen = self._flaechen(block, form)
+        if not flaechen:
+            return None
+        auftrag = block._im_hintergrund(self.job, werkzeug, werte, flaechen, vorschub, senkrecht)
+        frei = None
+        if auftrag is not None:
+            yield auftrag
+            gerechnet = _aus_dem_hintergrund(auftrag)
+            if gerechnet is None or gerechnet[0] != "ok":
+                return None
+            bahn, frei = gerechnet[1]
+        else:
+            try:
+                bahn = block.s.vorschau(self.job, werkzeug, werte, flaechen)
+            except (ValueError, RuntimeError):
+                return None
+            yield
+        if frei is None and block.s.kennung in IM_FREIEN_SCHNELL:
+            frei = _zeit_im_freien(self.job, werkzeug, werte, bahn, vorschub, senkrecht)
+        if frei is not None:
+            return frei, bahn
+        return (block.s.zeit(bahn, vorschub, senkrecht) if vorschub > 0 else 0.0), bahn
 
     def _vorgebohrt_rechnen(self, form, bloecke):
         """(Minuten, [Vorschau]) des Wegs „vorbohren“: Blöcke, die schon vorgebohrt haben, wie sie
@@ -9526,31 +9666,10 @@ class BearbeitungPanel:
             bahn = block.vorschau
             minuten = block.zeit
             if getattr(bahn, "vorbohren", None) is None:
-                werkzeug, einsatz = block.fraeser(), block.einsatz()
-                _n, vorschub, senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
-                werte = dict(block.werte(), vorschub=vorschub, eintauchen=senkrecht)
-                werte.update(getattr(block, "zusatz_zuletzt", {}))
-                werte["vorbohren"] = True
-                flaechen = self._flaechen(block, form)
-                auftrag = block._im_hintergrund(
-                    self.job, werkzeug, werte, flaechen, vorschub, senkrecht
-                )
-                frei = None
-                if auftrag is not None:
-                    yield auftrag
-                    gerechnet = _aus_dem_hintergrund(auftrag)
-                    if gerechnet is None or gerechnet[0] != "ok":
-                        return None
-                    bahn, frei = gerechnet[1]
-                else:
-                    try:
-                        bahn = block.s.vorschau(self.job, werkzeug, werte, flaechen)
-                    except (ValueError, RuntimeError):
-                        return None
-                    yield
-                if frei is None and block.s.kennung in IM_FREIEN_SCHNELL:
-                    frei = _zeit_im_freien(self.job, werkzeug, werte, bahn, vorschub, senkrecht)
-                minuten = frei if frei is not None else block.s.zeit(bahn, vorschub, senkrecht)
+                gerechnet = yield from self._nachrechnen(block, form, dazu={"vorbohren": True})
+                if gerechnet is None:
+                    return None
+                minuten, bahn = gerechnet
             gebohrt = getattr(bahn, "vorbohren", None)
             if gebohrt is not None:
                 minuten += gebohrt.zeit

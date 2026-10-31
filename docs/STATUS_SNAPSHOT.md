@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.338.0):* **„Wie soll das Material raus, wo der Fräser ins Volle muss?“** (Plan C2 b):
+  Die Frage „Eintauchen“ hat einen dritten Weg **„Tauchfräsen statt räumen“** mit Zeit, Satz (mit
+  dem Werkzeug) und Vorschau – nur, wo ein Werkzeug fürs Tauchfräsen passt. Gewählt hakt er das
+  Tauchfräsen an und nimmt dem Räumen den Haken; die Frage bleibt dann stehen, die Wege des
+  Räumens rechnet sie nach. Vorbelegt bleibt, was der Assistent bisher wählte.
+![Wie soll das Material raus](bilder/beta/3f_frage_material_raus.png)
 - *Neu (0.337.0):* **EMUGE-FRANKEN im Katalog:** 1254 Reihen, 24 885 Größen – Fräser mit
   Zylinderschaft (Schaft-, Kugel-, Torus-, Hochvorschub-, Konik-, T-Nutenfräser, Kegelsenker),
   VHM-Bohrer, Maschinen-Gewindebohrer und -former (rechts/links; metrisch, UNC/UNF/UNEF, G, BSW,
