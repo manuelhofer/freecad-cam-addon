@@ -10101,6 +10101,18 @@
    "quelle": "Schunk-Präsentation 'VERO-S NSE mini – Das extrem flache, pneumatische Nullpunktspannsystem' (IM0009031), Seite 15 'Baureihen VERO-S NSE mini' (Durchmesser, Einzugskraft [N], mit Turbo, Gewicht) und Seite 16 'Baureihen VERO-S NSL mini' (Länge, Breite, Einzugskraft, Gewicht). Einzugskräfte von N in kN umgerechnet. hoehe 20 mm nur beim Grundmodul NSE mini 90 (Schunk-Übersicht IM0012189 'Module height' und Produktseite PGR_4059 'Bauhöhe von nur 20 mm'); für die übrigen Varianten und die NSL-mini-Stationen nennt die Quelle keine Höhe. NSL mini 100-3 ist rund (Durchmesser 230). anzahl_module aus der Endziffer des Namens (100-1 … 100-4), passt zur Einzugskraft 500 N je Modul. NSE-M = mechanisch betätigt (Entriegelungsmoment 10 Nm).",
    "groessen": [
     {
+     "name": "VERO-S NSE mini 90",
+     "artikel": "",
+     "link": "https://dev.stb.cloud.schunk.com/media/IM0009031.PDF",
+     "masse": {
+      "durchmesser": 90,
+      "hoehe": 20,
+      "einzugskraft": 0.5,
+      "einzugskraft_turbo": 1.5,
+      "gewicht": 1
+     }
+    },
+    {
      "name": "VERO-S NSE-M mini 90 (mechanisch)",
      "artikel": "",
      "link": "https://dev.stb.cloud.schunk.com/media/IM0009031.PDF",

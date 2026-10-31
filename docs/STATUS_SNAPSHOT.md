@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.328.1):* **Halter-Katalog: 449 Reihen, 5000 Größen** (vorher 43/350) – MAPAL,
+  HAIMER, SCHUNK, Kennametal, REGO-FIX, Hoffmann GARANT, Sandvik (CoroChuck 930), NIKKEN; jetzt auch
+  SK30/SK50, BT30/BT50, HSK-A32…A100, HSK-E, HSK-F63, Capto C3–C8, CAT40/50. Doppelte erkennt die
+  Übernahme an der Artikelnummer (sonst Reihe + Name) – vorher fielen gleich benannte Größen
+  verschiedener Reihen („d6 a80“) weg. Noch offen: HAIMER HSK-E/Capto/CAT/SK40, BIG Daishowa,
+  REGO-FIX powRgrip, Rest Hoffmann (Frage 3).
 - *Neu (0.328.0):* **Werkzeugkiste: 1278 Reihen, 43 425 Größen** – dazu Sandvik/Seco/Walter
   (495 Reihen, 27 855 Größen aus den Gesamtkatalogen; Schnittwerte nur Seco), Hoffmann-Fräser (191)
   und -Bohrer (2742). Spannmittel 270 Reihen/1952 Größen. Die geprüften Reihen liegen im

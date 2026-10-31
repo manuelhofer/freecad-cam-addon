@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-12 halter-katalog-5000
+
+### EINGELESEN
+- Manuel, 2026-10-31: „halter oder aufnahmen … gut vorgefüllt … von sehr vielen herstellern“;
+  „ALLE daten“. Bericht des Halter-Sammlers (halter_mehr.json: 406 Reihen, 4647 Größen).
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: 449 Reihen, 5000 Größen (MAPAL, HAIMER, SCHUNK,
+  Kennametal, REGO-FIX, Hoffmann GARANT, Sandvik, NIKKEN; alle Aufnahmen von SK30 bis Capto C8).
+- `camaddon/spannmittel_daten/hersteller.json`: 1953 Größen – die Übernahme
+  (`~/freecad_cam/wip/katalog_roh/katalog_uebernehmen.py`) erkennt Doppelte jetzt an der
+  Artikelnummer, sonst an Reihe + Name; vorher fielen gleich benannte Größen verschiedener Reihen
+  weg (Halter: 2100 von 4647).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.328.1.
+
+### ERGEBNIS
+- test_spannmittel (baut jede Katalog-Größe als Halter) und szenario_spannmittel grün; der
+  Halter-Katalog öffnet in 0,48 s (499 Größen SK40).
 ## P-2026-10-31-11 kataloge-voll-zwischenspeicher
 
 ### EINGELESEN
