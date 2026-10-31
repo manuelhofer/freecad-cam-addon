@@ -209,9 +209,10 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
    Messzyklus eingetragen, wechselt er den Taster ein und misst statt zu halten; außerhalb der
    Toleranz hält die Steuerung an. Ohne Taster bleibt der Halt. Die Zyklen je Steuerung (Siemens
    CYCLE977, Heidenhain 421–424, Renishaw G65 P9812/P9814) kommen aus den Handbüchern.
-   **Stufe 2 (danach):** den nächsten Gang korrigieren – dafür schreibt der Postprozessor die
-   Schlichtbahnen mit Radiuskorrektur im Verschleißmodus (G41/G42, D nur der Verschleiß), und der
-   Zyklus trägt die Abweichung dort ein.
+   **Stufe 2:** den nächsten Gang korrigieren. *Manuel, 2026-10-31: „1.b“* – Konturprogrammierung:
+   die Schlichtgänge als Kontur des Teils (die Bahn um den Fräserradius zurück) mit G41/G42 und dem
+   vollen Radius aus der Werkzeugtabelle, wie von Hand programmiert; der Messzyklus korrigiert den
+   Radius-Verschleiß des Werkzeugs (Siemens S_MVAR 2xx, Heidenhain Q330, Renishaw T).
 4. **Umspannen** – „ja das find ich irgendwie sinnvoll … ich glaub das sollten wir austesten“.
    *Gebaut (0.324.0, zum Austesten):* Im letzten Schritt **„Anlegen und Teil umspannen …“**: legt
    an wie „Anlegen“ (auch die Ebenen der Kette) und öffnet danach dasselbe Teil in einer neuen
@@ -232,6 +233,12 @@ Die Fragen 1–4 (hier) und 5–8 ([konzept_spannmittel.md](konzept_spannmittel.
 7. **Wie der Schraubstock steht** – „ich habe keine idee … denk dir was aus mach nen vorschlag“.
    *Gebaut (0.321.0):* „Feste Backe: hinten / vorn / links / rechts“, vorbelegt hinten; im Bild von
    oben „Bediener“ unten, „Maschine“ oben.
+   *Bohrfräsen (Frage 2, Manuel, 2026-10-31): „ich weis nicht ob der das zirkular kann ich denke
+   die meinen bohrfäasen nur das sie einfach an einer anderen stelle wo nicht 100 % im eingriff
+   sind eben borhen können … man muss klären wie die bohrfräsen definieren !“* – In den Katalogdaten
+   tragen „bohrfraesen“ bisher nur Fräser (Tungaloy TungForce-Rec, DoFeed, eine Hoffmann-Reihe);
+   versetztes Bohren hat das Format als `seitlich_versetzt` (mm). Die Hersteller-Definitionen
+   werden nachgelesen.
 8. **Daten** – „ALLE daten aus dem internet nicht nur hoffmann … auch die dazugehörigen cad dateien
    .. einfach holen oder nachbauen .. im freecad nachbauen ist eh sinnvoller“. *Gebaut (0.321.0):*
    alle gesammelten Hoffmann-Größen im Katalog (282 Spannmittel, 353 Halter); sieben Sammler holen
