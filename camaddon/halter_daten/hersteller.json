@@ -1,0 +1,3774 @@
+{
+ "reihen": [
+  {
+   "hersteller": "HAIMER",
+   "titel": "Power Mini Shrink SK40",
+   "typ": "schrumpf",
+   "aufnahme": "SK40",
+   "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.08.8",
+   "quelle": "HAIMER-Shop, je Artikel eigene Seite (Tabelle „Technical data“, Spalte HAIMER) plus Maßzeichnung „Technical drawing Power Mini Shrink Chuck extra slim DIN ISO 7388-1 SK40“ (shop.haimer.com/media/8f/3b/75/1690202620/asset-113283-1166.jpg). Zuordnung laut Zeichnung: D1 (Clamping diameter) → d_spann; D2 (Diameter 2) = Ø vorne an der Nase → d_nase; L (Length) = Länge des schlanken 3°-Kegelteils bis zur Stirn → l_nase; 3° in der Zeichnung als Winkel Kegelmantel zur Achse (je Seite) → kegel. A (Length A) läuft in der Zeichnung von der spindelseitigen Planfläche des SK-Bunds (Kegel-Ende = Bezugsebene) bis zur Stirn. Spanntiefe T steht nur in der Zeichnung, nicht in der Tabelle → fehlt. Ø des Körpers hinter dem Kegelteil steht nicht in der Tabelle → d_koerper fehlt. Reihe 40.484.xx.8 = ZG130 (A130, L50), 40.482.xx.8 = „oversize (160 mm)“ (A160, L80). Weitere Größen laut Variantenliste: d3–d16 je A130/A160 (40.484.05.8, 40.482.03/04/05/08/10/16.8 nicht abgerufen).",
+   "groessen": [
+    {
+     "name": "d3 A130",
+     "artikel": "40.484.03.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.03.8",
+     "masse": {
+      "d_spann": 3,
+      "a": 130,
+      "d_nase": 9,
+      "l_nase": 50,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d4 A130",
+     "artikel": "40.484.04.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.04.8",
+     "masse": {
+      "d_spann": 4,
+      "a": 130,
+      "d_nase": 10,
+      "l_nase": 50,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d6 A130",
+     "artikel": "40.484.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.06.8",
+     "masse": {
+      "d_spann": 6,
+      "a": 130,
+      "d_nase": 12,
+      "l_nase": 50,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d8 A130",
+     "artikel": "40.484.08.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.08.8",
+     "masse": {
+      "d_spann": 8,
+      "a": 130,
+      "d_nase": 14,
+      "l_nase": 50,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d10 A130",
+     "artikel": "40.484.10.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.10.8",
+     "masse": {
+      "d_spann": 10,
+      "a": 130,
+      "d_nase": 16,
+      "l_nase": 50,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "40.484.12.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.12.8",
+     "masse": {
+      "d_spann": 12,
+      "a": 130,
+      "d_nase": 18,
+      "l_nase": 50,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d16 A130",
+     "artikel": "40.484.16.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.484.16.8",
+     "masse": {
+      "d_spann": 16,
+      "a": 130,
+      "d_nase": 24,
+      "l_nase": 50,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d6 A160",
+     "artikel": "40.482.06.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.482.06.8",
+     "masse": {
+      "d_spann": 6,
+      "a": 160,
+      "d_nase": 12,
+      "l_nase": 80,
+      "kegel": 3
+     }
+    },
+    {
+     "name": "d12 A160",
+     "artikel": "40.482.12.8",
+     "link": "https://shop.haimer.com/en/Power-Mini-Shrink-Chuck-DIN-ISO-7388-1-SK40/40.482.12.8",
+     "masse": {
+      "d_spann": 12,
+      "a": 160,
+      "d_nase": 18,
+      "l_nase": 80,
+      "kegel": 3
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Shrink Fit Chuck Standard Version SK40",
+   "typ": "schrumpf",
+   "aufnahme": "SK40",
+   "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.12",
+   "quelle": "HAIMER-Shop, je Artikel eigene Seite (Tabelle „Technical data“) plus Maßzeichnung shop.haimer.com/media/fb/b7/c2/1690205362/asset-115646-1178.jpg. Zuordnung laut Zeichnung: D1 → d_spann; D2 = Ø an der Stirn → d_nase; D3 = Ø am hinteren Ende des 4,5°-Kegels (dahinter zylindrisch bis zum Bund) → d_koerper; L heißt im Shop „Clamping length“ → spanntiefe (Zeichnung: 10 mm davon Verstellweg); 4,5° aus der Zeichnung (Kegelmantel zur Achse) → kegel. A wie bei Power Mini Shrink von der spindelseitigen Bundfläche bis zur Stirn. Länge des Kegelteils steht nirgends → l_nase fehlt (nicht hergeleitet). Reihen: 40.440 = „short“ (A80/A100), 40.444 = ZG130, 40.442 = „oversize (160 mm)“, 40.447 = ZG120 (dort fehlt L, nicht übernommen). Weitere Größen d3–d5 (40.440.0x.1), d18 und alle Längen laut Variantenliste vorhanden, nicht abgerufen.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "40.440.06",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.06",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "40.440.08",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.08",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "40.440.10",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.10",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "40.440.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.12",
+     "masse": {
+      "d_spann": 12,
+      "a": 80,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A80",
+     "artikel": "40.440.14",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.14",
+     "masse": {
+      "d_spann": 14,
+      "a": 80,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "40.440.16",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.16",
+     "masse": {
+      "d_spann": 16,
+      "a": 80,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5,
+      "spanntiefe": 50
+     }
+    },
+    {
+     "name": "d20 A80",
+     "artikel": "40.440.20",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.20",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "kegel": 4.5,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "40.440.25",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.25",
+     "masse": {
+      "d_spann": 25,
+      "a": 100,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "kegel": 4.5,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d32 A100",
+     "artikel": "40.440.32",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.440.32",
+     "masse": {
+      "d_spann": 32,
+      "a": 100,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "kegel": 4.5,
+      "spanntiefe": 58
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "40.444.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.444.12",
+     "masse": {
+      "d_spann": 12,
+      "a": 130,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d12 A160",
+     "artikel": "40.442.12",
+     "link": "https://shop.haimer.com/en/Shrink-Fit-Chuck-Standard-Version-DIN-ISO-7388-1-SK40/40.442.12",
+     "masse": {
+      "d_spann": 12,
+      "a": 160,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "spanntiefe": 47
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "HAIMER",
+   "titel": "Standard Hydraulic Chuck SK40",
+   "typ": "hydro",
+   "aufnahme": "SK40",
+   "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.12",
+   "quelle": "HAIMER-Shop, je Artikel eigene Seite (Tabelle „Technical data“) plus Maßzeichnung (Galeriebild shop.haimer.com/media/a7/74/57/1696840331/asset-112117-24073.jpg). Zuordnung laut Zeichnung: D1 → d_spann; D3 = Ø des schlanken Vorderteils → d_nase (D2 = Ø an der Stirn, 3–4 mm kleiner, nicht übernommen: d6: 22, d8: 24, d10: 26, d12: 28, d14: 30, d16: 34, d18: 36, d20: 38, d25: 51, d32: 59); L2 = Länge des schlanken Vorderteils bis zur Stirn → l_nase; D4 = Ø des Körpers dahinter → d_koerper; L heißt im Shop nur „Length“, reicht in der Zeichnung vom Bohrungsgrund (inkl. 10 mm Verstellweg) bis zur Stirn → als spanntiefe übernommen (Deutung der Zeichnung). A von der spindelseitigen Bundfläche bis zur Stirn. Alle A80,5 („short“). Bei d25/d32 ist der Körper größer (D4 63/70) und das Vorderteil kürzer (L2 28/20). Kein Kegelwinkel angegeben. Zusätzlich gibt es Power Hydraulic Chuck SK40 (40.4H10.20.3: D1 20, A 64,5, L 51, D2 38, D3 49; 40.4H10.32.3: D1 32, A 81, L 61, D2 57, D3 63, D4 70, L2 81) – nicht als eigene Reihe aufgenommen.",
+   "groessen": [
+    {
+     "name": "d6 A80.5",
+     "artikel": "40.4H10.06",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.06",
+     "masse": {
+      "d_spann": 6,
+      "a": 80.5,
+      "d_nase": 26,
+      "d_koerper": 49.5,
+      "l_nase": 29.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d8 A80.5",
+     "artikel": "40.4H10.08",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.08",
+     "masse": {
+      "d_spann": 8,
+      "a": 80.5,
+      "d_nase": 28,
+      "d_koerper": 49.5,
+      "l_nase": 30,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d10 A80.5",
+     "artikel": "40.4H10.10",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.10",
+     "masse": {
+      "d_spann": 10,
+      "a": 80.5,
+      "d_nase": 30,
+      "d_koerper": 49.5,
+      "l_nase": 35,
+      "spanntiefe": 41
+     }
+    },
+    {
+     "name": "d12 A80.5",
+     "artikel": "40.4H10.12",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.12",
+     "masse": {
+      "d_spann": 12,
+      "a": 80.5,
+      "d_nase": 32,
+      "d_koerper": 49.5,
+      "l_nase": 40,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d14 A80.5",
+     "artikel": "40.4H10.14",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.14",
+     "masse": {
+      "d_spann": 14,
+      "a": 80.5,
+      "d_nase": 34,
+      "d_koerper": 49.5,
+      "l_nase": 40,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A80.5",
+     "artikel": "40.4H10.16",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.16",
+     "masse": {
+      "d_spann": 16,
+      "a": 80.5,
+      "d_nase": 38,
+      "d_koerper": 49.5,
+      "l_nase": 45,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d18 A80.5",
+     "artikel": "40.4H10.18",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.18",
+     "masse": {
+      "d_spann": 18,
+      "a": 80.5,
+      "d_nase": 40,
+      "d_koerper": 49.5,
+      "l_nase": 46,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d20 A80.5",
+     "artikel": "40.4H10.20",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.20",
+     "masse": {
+      "d_spann": 20,
+      "a": 80.5,
+      "d_nase": 41,
+      "d_koerper": 49.5,
+      "l_nase": 47,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d25 A80.5",
+     "artikel": "40.4H10.25",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.25",
+     "masse": {
+      "d_spann": 25,
+      "a": 80.5,
+      "d_nase": 55,
+      "d_koerper": 63,
+      "l_nase": 28,
+      "spanntiefe": 57
+     }
+    },
+    {
+     "name": "d32 A80.5",
+     "artikel": "40.4H10.32",
+     "link": "https://shop.haimer.com/en/Standard-Hydraulic-Chuck-DIN-ISO-7388-1-SK40/40.4H10.32",
+     "masse": {
+      "d_spann": 32,
+      "a": 80.5,
+      "d_nase": 63,
+      "d_koerper": 70,
+      "l_nase": 20,
+      "spanntiefe": 61
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "MAPAL",
+   "titel": "UNIQ Mill Chuck HA SK40",
+   "typ": "hydro",
+   "aufnahme": "SK40",
+   "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031345215",
+   "quelle": "MAPAL-Shop (shop.mapal.com), je Artikel eigene Seite (Tabelle „Technical specifications“) plus Maßzeichnung (Bild …_sin_td_… auf der Seite, z. B. HD-MHC-0100_31345212_2_sin_td_s90-R_v1.jpg). Zuordnung laut Zeichnung: d1 → d_spann; l1 = Kegel-Ende (Bezugsebene SK) bis Stirn → a; d2 = Ø an der Stirn → d_nase; d3 = größter Körper-Ø → d_koerper; l2 = Bohrungsgrund bis Stirn → spanntiefe (l3 = 10 mm Verstellweg); l4 = vordere Bundfläche bis Stirn (ganzer Körper, kein schlanker Teil) → nicht als l_nase übernommen: d6: 27.1, d8: 27.1, d10: 27.1, d12: 27.1, d14: 27.1, d16: 41.6, d20: 41.6, d32: 50. Der Körper ist ballig (d2 vorn → d3 hinten), kein Kegelwinkel angegeben. Bei d32 steht zusätzlich d4 = 49,5 (in der Zeichnung nicht bemaßt, nicht übernommen). Gleiche Reihe gibt es als BT40 (31345236–31345240, l1 58/72,5) und CAT40 (31345224–31345229).",
+   "groessen": [
+    {
+     "name": "d6 l1=50 (MHC-SK040-06-050-3-0-A)",
+     "artikel": "31345212",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031345212",
+     "masse": {
+      "d_spann": 6,
+      "a": 50,
+      "d_nase": 26,
+      "d_koerper": 42,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d8 l1=50 (MHC-SK040-08-050-3-0-A)",
+     "artikel": "31345213",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031345213",
+     "masse": {
+      "d_spann": 8,
+      "a": 50,
+      "d_nase": 28,
+      "d_koerper": 42,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d10 l1=50 (MHC-SK040-10-050-3-0-A)",
+     "artikel": "31345214",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031345214",
+     "masse": {
+      "d_spann": 10,
+      "a": 50,
+      "d_nase": 30,
+      "d_koerper": 42,
+      "spanntiefe": 41
+     }
+    },
+    {
+     "name": "d12 l1=50 (MHC-SK040-12-050-3-0-A)",
+     "artikel": "31345215",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031345215",
+     "masse": {
+      "d_spann": 12,
+      "a": 50,
+      "d_nase": 32,
+      "d_koerper": 49,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d14 l1=50 (MHC-SK040-14-050-3-0-A)",
+     "artikel": "31374686",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031374686",
+     "masse": {
+      "d_spann": 14,
+      "a": 50,
+      "d_nase": 34,
+      "d_koerper": 49,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 l1=65 (MHC-SK040-16-065-3-0-A)",
+     "artikel": "31345216",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031345216",
+     "masse": {
+      "d_spann": 16,
+      "a": 65,
+      "d_nase": 38,
+      "d_koerper": 49,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d20 l1=65 (MHC-SK040-20-065-3-0-A)",
+     "artikel": "31345217",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031345217",
+     "masse": {
+      "d_spann": 20,
+      "a": 65,
+      "d_nase": 38,
+      "d_koerper": 49,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d32 l1=115 (MHC-SK040-32-115-3-0-A)",
+     "artikel": "31396179",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031396179",
+     "masse": {
+      "d_spann": 32,
+      "a": 115,
+      "d_nase": 58.5,
+      "d_koerper": 62.5,
+      "spanntiefe": 61
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "MAPAL",
+   "titel": "UNIQ DReaM Chuck 4.5° SK40",
+   "typ": "hydro",
+   "aufnahme": "SK40",
+   "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031344883",
+   "quelle": "MAPAL-Shop (shop.mapal.com), je Artikel eigene Seite plus Maßzeichnung (HD-MHC-0200_31344883_2_sin_td_s90-R_v1.jpg). Zuordnung laut Zeichnung: d1 → d_spann; l1 = Kegel-Ende (Bezugsebene SK) bis Stirn → a; d2 = Ø an der Stirn → d_nase; l4 = Länge des schlanken 4,5°-Kegelteils bis zur Stirn → l_nase; 4,5° aus Titel/Zeichnung → kegel; l2 = Bohrungsgrund bis Stirn → spanntiefe (l3 = 10 mm Verstellweg); d3 = Ø am hinteren Ende des Kegelteils. Nur bei l1 = 80 geht der Kegel laut Zeichnung direkt in den Bund über → dort d3 als d_koerper. Bei l1 = 120/160 liegt zwischen Bund und Kegelteil ein weiterer Körper, dessen Ø nicht angegeben ist (die Zeichnung ist dieselbe Prinzipskizze) → d_koerper fehlt, d3 dort nicht übernommen. Bei 31561507 (d32, l1 160) steht zusätzlich d4 = 49 (nicht bemaßt, nicht übernommen). Weitere SK40-Artikel: 31441490/92/94 (l1 120), 31561500/02/04/05 (l1 160).",
+   "groessen": [
+    {
+     "name": "d6 l1=80 (MHC-SK040-06-080-3-0-A)",
+     "artikel": "31344880",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031344880",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "l_nase": 55.7,
+      "kegel": 4.5,
+      "spanntiefe": 37,
+      "d_koerper": 27
+     }
+    },
+    {
+     "name": "d8 l1=80 (MHC-SK040-08-080-3-0-A)",
+     "artikel": "31344881",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031344881",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "l_nase": 55.7,
+      "kegel": 4.5,
+      "spanntiefe": 37,
+      "d_koerper": 27
+     }
+    },
+    {
+     "name": "d10 l1=80 (MHC-SK040-10-080-3-0-A)",
+     "artikel": "31344882",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031344882",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 24,
+      "l_nase": 55.7,
+      "kegel": 4.5,
+      "spanntiefe": 41,
+      "d_koerper": 32
+     }
+    },
+    {
+     "name": "d12 l1=80 (MHC-SK040-12-080-3-0-A)",
+     "artikel": "31344883",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031344883",
+     "masse": {
+      "d_spann": 12,
+      "a": 80,
+      "d_nase": 24,
+      "l_nase": 55.7,
+      "kegel": 4.5,
+      "spanntiefe": 46,
+      "d_koerper": 32
+     }
+    },
+    {
+     "name": "d14 l1=80 (MHC-SK040-14-080-3-0-A)",
+     "artikel": "31375087",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031375087",
+     "masse": {
+      "d_spann": 14,
+      "a": 80,
+      "d_nase": 27,
+      "l_nase": 55.8,
+      "kegel": 4.5,
+      "spanntiefe": 46,
+      "d_koerper": 34
+     }
+    },
+    {
+     "name": "d16 l1=80 (MHC-SK040-16-080-3-0-A)",
+     "artikel": "31344884",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031344884",
+     "masse": {
+      "d_spann": 16,
+      "a": 80,
+      "d_nase": 27,
+      "l_nase": 55.8,
+      "kegel": 4.5,
+      "spanntiefe": 49,
+      "d_koerper": 34
+     }
+    },
+    {
+     "name": "d18 l1=80 (MHC-SK040-18-080-3-0-A)",
+     "artikel": "31375088",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031375088",
+     "masse": {
+      "d_spann": 18,
+      "a": 80,
+      "d_nase": 33,
+      "l_nase": 57.2,
+      "kegel": 4.5,
+      "spanntiefe": 49,
+      "d_koerper": 42
+     }
+    },
+    {
+     "name": "d20 l1=80 (MHC-SK040-20-080-3-0-A)",
+     "artikel": "31344885",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031344885",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 33,
+      "l_nase": 57.2,
+      "kegel": 4.5,
+      "spanntiefe": 51,
+      "d_koerper": 42
+     }
+    },
+    {
+     "name": "d12 l1=120 (MHC-SK040-12-120-3-0-A)",
+     "artikel": "31441491",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031441491",
+     "masse": {
+      "d_spann": 12,
+      "a": 120,
+      "d_nase": 24,
+      "l_nase": 61.6,
+      "kegel": 4.5,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 l1=120 (MHC-SK040-16-120-3-0-A)",
+     "artikel": "31441493",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031441493",
+     "masse": {
+      "d_spann": 16,
+      "a": 120,
+      "d_nase": 27,
+      "l_nase": 56.2,
+      "kegel": 4.5,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d20 l1=120 (MHC-SK040-20-120-3-0-A)",
+     "artikel": "31441495",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031441495",
+     "masse": {
+      "d_spann": 20,
+      "a": 120,
+      "d_nase": 33,
+      "l_nase": 68.9,
+      "kegel": 4.5,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d8 l1=160 (MHC-SK040-08-160-3-0-A)",
+     "artikel": "31561429",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031561429",
+     "masse": {
+      "d_spann": 8,
+      "a": 160,
+      "d_nase": 21,
+      "l_nase": 48.9,
+      "kegel": 4.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d16 l1=160 (MHC-SK040-16-160-3-0-A)",
+     "artikel": "31561503",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031561503",
+     "masse": {
+      "d_spann": 16,
+      "a": 160,
+      "d_nase": 27,
+      "l_nase": 56.2,
+      "kegel": 4.5,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d32 l1=160 (MHC-SK040-32-160-3-0-A)",
+     "artikel": "31561507",
+     "link": "https://shop.mapal.com/en/Clamping/Chucks//p/000000000031561507",
+     "masse": {
+      "d_spann": 32,
+      "a": 160,
+      "d_nase": 44,
+      "l_nase": 60,
+      "kegel": 4.5,
+      "spanntiefe": 61
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "SCHUNK",
+   "titel": "TENDO E compact HSK-A63",
+   "typ": "hydro",
+   "aufnahme": "HSK-A63",
+   "link": "https://schunk.com/de/de/werkzeugspanntechnik/werkzeughalter/tendo-hydrodehnspannfutter/tendo-e-compact/c/PGR_4942",
+   "quelle": "Werte je Größe von den SCHUNK-Produktseiten (schunk.com/us/en/p/<ID>, Tabelle 'Technical details', abgerufen 2026-10-31). Die Seiten benennen nur D1 (Spanndurchmesser) und L1 (Auskraglänge); die übrigen Kürzel sind über die bemaßte Zeichnung im SCHUNK-Prospekt 'TENDO E compact' (productivity.com/wp-content/uploads/2025/10/Schunk-Tendo-E-Compact-Catalog.pdf, Seite 'Technical Data' = S. 13, Stand 2012) zugeordnet; die dortigen Zahlen für 0206404 und 0206406 stimmen mit den Produktseiten überein (Katalog D4/L7 = Seite D6/L5). Zuordnung: D1 -> d_spann; L1 -> a = Auskraglänge ab HSK-Plananlage (Bundfläche, laut Zeichnung X+L2=L1); D2 -> d_nase = Außen-Ø des vorderen Kopfes; D3 -> d_koerper = dickerer Ø dahinter (nur wo angegeben); L4 -> l_nase = Länge des D2-Abschnitts ab Stirn (ohne D3 reicht er bis zum Bund, dann ist L4 = Abstand Stirn-Bund); L5 (nur bei Größen mit D3) = Stirn bis Bund-Vorderseite: 12x80 54, 130er 104; L2 -> spanntiefe = max. Einstecktiefe bis Längeneinstellschraube (L3 = 10 mm Verstellweg). D6 = Ø der Stirnfläche nach der Fase (12x80 32, 16/20x80 38, 32x120 58.5, 130er 32/38/38) – nicht als d_nase genommen, weil die Fase kurz ist und D2 die Hüllkontur bildet. Fasenlänge und Kegelwinkel nicht angegeben. Zoll-Größe 3/4\"x80 (206456) weggelassen.",
+   "groessen": [
+    {
+     "name": "d12 A80",
+     "artikel": "206404",
+     "link": "https://schunk.com/us/en/p/000000206404",
+     "masse": {
+      "d_spann": 12,
+      "a": 80,
+      "d_nase": 42,
+      "d_koerper": 52.5,
+      "l_nase": 34,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "206405",
+     "link": "https://schunk.com/us/en/p/000000206405",
+     "masse": {
+      "d_spann": 16,
+      "a": 80,
+      "d_nase": 52.5,
+      "l_nase": 54,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d20 A80",
+     "artikel": "206406",
+     "link": "https://schunk.com/us/en/p/000000206406",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 52.5,
+      "l_nase": 54,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d32 A120",
+     "artikel": "1323447",
+     "link": "https://schunk.com/us/en/p/000001323447",
+     "masse": {
+      "d_spann": 32,
+      "a": 120,
+      "d_nase": 62.5,
+      "l_nase": 94,
+      "spanntiefe": 61
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "20064356",
+     "link": "https://schunk.com/us/en/p/000020064356",
+     "masse": {
+      "d_spann": 12,
+      "a": 130,
+      "d_nase": 42,
+      "d_koerper": 44.5,
+      "l_nase": 32,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A130",
+     "artikel": "1431660",
+     "link": "https://schunk.com/us/en/p/000001431660",
+     "masse": {
+      "d_spann": 16,
+      "a": 130,
+      "d_nase": 42,
+      "d_koerper": 44.5,
+      "l_nase": 50,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d20 A130",
+     "artikel": "20064357",
+     "link": "https://schunk.com/us/en/p/000020064357",
+     "masse": {
+      "d_spann": 20,
+      "a": 130,
+      "d_nase": 42,
+      "d_koerper": 44.5,
+      "l_nase": 50,
+      "spanntiefe": 51
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "SCHUNK",
+   "titel": "TENDO E compact SK40",
+   "typ": "hydro",
+   "aufnahme": "SK40",
+   "link": "https://schunk.com/de/de/werkzeugspanntechnik/werkzeughalter/tendo-hydrodehnspannfutter/tendo-e-compact/c/PGR_4942",
+   "quelle": "Werte je Größe von den SCHUNK-Produktseiten (schunk.com/us/en/p/<ID>, abgerufen 2026-10-31; SK 40 nach DIN 69871). Kürzel-Zuordnung wie bei 'TENDO E compact HSK-A63' über die SK-Zeichnung im Prospekt 'TENDO E compact' S. 13 (productivity.com/wp-content/uploads/2025/10/Schunk-Tendo-E-Compact-Catalog.pdf); dort 0206414 L1 50, L7 31 bzw. 0206416 L1 64.5, L7 45.5 – Produktseiten heute L4 30.9 bzw. 45.4. L1 -> a = Auskraglänge ab der kegelseitigen Planfläche des SK-Bundes (Zeichnung: X+L2=L1). D2 -> d_nase, D3 -> d_koerper (nur 130er), L4 -> l_nase (Länge des D2-Abschnitts; ohne D3 = Stirn bis Bund), L2 -> spanntiefe. 130er: L5 110.9 = Stirn bis Bund. D6 = Stirnflächen-Ø nach Fase (12er 32, 16/20er 38), nicht übernommen.",
+   "groessen": [
+    {
+     "name": "d12 A50",
+     "artikel": "206414",
+     "link": "https://schunk.com/us/en/p/000000206414",
+     "masse": {
+      "d_spann": 12,
+      "a": 50,
+      "d_nase": 42,
+      "l_nase": 30.9,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A64.5",
+     "artikel": "206415",
+     "link": "https://schunk.com/us/en/p/000000206415",
+     "masse": {
+      "d_spann": 16,
+      "a": 64.5,
+      "d_nase": 49.25,
+      "l_nase": 45.4,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d20 A64.5",
+     "artikel": "206416",
+     "link": "https://schunk.com/us/en/p/000000206416",
+     "masse": {
+      "d_spann": 20,
+      "a": 64.5,
+      "d_nase": 49.25,
+      "l_nase": 45.4,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d12 A130",
+     "artikel": "20064358",
+     "link": "https://schunk.com/us/en/p/000020064358",
+     "masse": {
+      "d_spann": 12,
+      "a": 130,
+      "d_nase": 42,
+      "d_koerper": 44.5,
+      "l_nase": 32,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A130",
+     "artikel": "1439112",
+     "link": "https://schunk.com/us/en/p/000001439112",
+     "masse": {
+      "d_spann": 16,
+      "a": 130,
+      "d_nase": 42,
+      "d_koerper": 44.5,
+      "l_nase": 50,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d20 A130",
+     "artikel": "20064359",
+     "link": "https://schunk.com/us/en/p/000020064359",
+     "masse": {
+      "d_spann": 20,
+      "a": 130,
+      "d_nase": 42,
+      "d_koerper": 44.5,
+      "l_nase": 50,
+      "spanntiefe": 51
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "SCHUNK",
+   "titel": "TRIBOS-S SK40",
+   "typ": "polygon",
+   "aufnahme": "SK40",
+   "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+   "quelle": "SCHUNK-Katalogseite 122 'SK 40 · DIN 69871 AD/B – TRIBOS SPF-S SK 40' (Datenblatt scu_tribos_s_sk_de_en.pdf, verlinkt im Höchsmann-Lexikon wtp.hoechsmann.com/lexikon/24274/tribos-polygonspannfutter; älterer Katalogstand, ID mit führender 0 wie gedruckt). Zuordnung aus der bemaßten Zeichnung: L1 -> a = Stirn bis kegelseitige Planfläche des SK-Bundes; L7 = Stirn bis Bund-Vorderseite (61); L4 = Stirn bis Beginn des Körpers D3 (37/42/47); L8 -> l_nase = Länge des schlanken Halses (35/40/45); D2 -> d_nase = Stirn-Ø des Halses; D5 = zweiter, etwas größerer Hals-Ø am hinteren Halsende (6:13, 8:15, 10:18, 12:21, 14:24, 16:27, 18:30, 20:32) – nicht als Feld übernommen, für eine sichere Hüllkontur ggf. D5 statt D2 nehmen; D3 -> d_koerper = 49 (Körper zwischen Bund und Hals, Länge L7-L4); L2 -> spanntiefe = Stirn bis Anschlag (L3 = 10 mm Verstellweg). Kein Kegelwinkel angegeben.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "0205131",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 10,
+      "d_koerper": 49,
+      "l_nase": 35,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "0205132",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 13,
+      "d_koerper": 49,
+      "l_nase": 35,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "0205133",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 16,
+      "d_koerper": 49,
+      "l_nase": 40,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "0205134",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 12,
+      "a": 80,
+      "d_nase": 19,
+      "d_koerper": 49,
+      "l_nase": 45,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A80",
+     "artikel": "0205139",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 14,
+      "a": 80,
+      "d_nase": 22,
+      "d_koerper": 49,
+      "l_nase": 45,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "0205135",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 16,
+      "a": 80,
+      "d_nase": 25,
+      "d_koerper": 49,
+      "l_nase": 45,
+      "spanntiefe": 48
+     }
+    },
+    {
+     "name": "d18 A80",
+     "artikel": "0205130",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 18,
+      "a": 80,
+      "d_nase": 28,
+      "d_koerper": 49,
+      "l_nase": 45,
+      "spanntiefe": 48
+     }
+    },
+    {
+     "name": "d20 A80",
+     "artikel": "0205136",
+     "link": "https://wtp.hoechsmann.com/de/lexikon/pdf/scu_tribos_s_sk_de_en.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 30,
+      "d_koerper": 49,
+      "l_nase": 45,
+      "spanntiefe": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "SCHUNK",
+   "titel": "TRIBOS-S HSK-A63",
+   "typ": "polygon",
+   "aufnahme": "HSK-A63",
+   "link": "https://schunk.com/us/en/tools/toolholder-quickfinder/tribos-s/tribos-s-hsk-a-63-16x95/p/000000000000203355",
+   "quelle": "Werte je Größe von den SCHUNK-Produktseiten (schunk.com/us/en/p/<ID>, abgerufen 2026-10-31). Die Seiten benennen nur D1 und L1 (Auskraglänge); für HSK-A63 fand sich keine bemaßte Zeichnung. Zuordnung daher ÜBER WERTGLEICHHEIT mit der SK40-Zeichnung (Reihe 'TRIBOS-S SK40', Katalogseite 122) erschlossen, nicht gelesen: D2 = Stirn-Ø (SK: D2, gleiche Werte) -> d_nase; D3 = hinterer Hals-Ø (SK: D5, je ca. +0.1) – nicht als Feld übernommen; D4 = 50 = Körper-Ø (SK: D3 49) -> d_koerper; L2 = Spanntiefe (SK: L2, gleiche Werte) -> spanntiefe; L4 = Halslänge (SK: L8 35/45) -> l_nase; L5 = Stirn bis Körperbeginn (SK: L4 37/47; hier 37.2/47.2, bei d25 52, d32 57); L6 = Stirn bis Bund (= L1-26). L1 -> a; Bezug vermutlich HSK-Plananlage (L1-L6 = 26 mm Bundbereich), auf der Seite nicht angegeben. Bitte als 'erschlossen' behandeln.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "203351",
+     "link": "https://schunk.com/us/en/p/000000203351",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 9.9,
+      "d_koerper": 50,
+      "l_nase": 35,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "203352",
+     "link": "https://schunk.com/us/en/p/000000203352",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 13,
+      "d_koerper": 50,
+      "l_nase": 35,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d12 A90",
+     "artikel": "203354",
+     "link": "https://schunk.com/us/en/p/000000203354",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 19,
+      "d_koerper": 50,
+      "l_nase": 45,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d14 A90",
+     "artikel": "203359",
+     "link": "https://schunk.com/us/en/p/000000203359",
+     "masse": {
+      "d_spann": 14,
+      "a": 90,
+      "d_nase": 22,
+      "d_koerper": 50,
+      "l_nase": 45,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d16 A95",
+     "artikel": "203355",
+     "link": "https://schunk.com/us/en/p/000000203355",
+     "masse": {
+      "d_spann": 16,
+      "a": 95,
+      "d_nase": 25,
+      "d_koerper": 50,
+      "l_nase": 45,
+      "spanntiefe": 48
+     }
+    },
+    {
+     "name": "d20 A100",
+     "artikel": "203356",
+     "link": "https://schunk.com/us/en/p/000000203356",
+     "masse": {
+      "d_spann": 20,
+      "a": 100,
+      "d_nase": 30,
+      "d_koerper": 50,
+      "l_nase": 45,
+      "spanntiefe": 52
+     }
+    },
+    {
+     "name": "d25 A95",
+     "artikel": "203357",
+     "link": "https://schunk.com/us/en/p/000000203357",
+     "masse": {
+      "d_spann": 25,
+      "a": 95,
+      "d_nase": 36,
+      "d_koerper": 50,
+      "l_nase": 45,
+      "spanntiefe": 57
+     }
+    },
+    {
+     "name": "d32 A100",
+     "artikel": "203358",
+     "link": "https://schunk.com/us/en/p/000000203358",
+     "masse": {
+      "d_spann": 32,
+      "a": 100,
+      "d_nase": 45,
+      "d_koerper": 50,
+      "l_nase": 45,
+      "spanntiefe": 61
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "GÜHRING",
+   "titel": "GM 300 Schrumpffutter HSK-A63 (Serie 4736)",
+   "typ": "schrumpf",
+   "aufnahme": "HSK-A63",
+   "link": "https://guhring.com/ProductsServices/SeriesDetails?Series=4736",
+   "quelle": "GM-300-Katalogseiten 34-36 'HSK-A shrink fit chucks', Series Number 4736 (englische Ausgabe, als PDF beim Händler Midwest Machine Tool: midwestmachinetool.com/media/assets/product/documents/4736.pdf); Größenliste und EDP-Nummern stimmen mit guhring.com/ProductsServices/SeriesDetails?Series=4736 überein. Zuordnung aus der bemaßten Zeichnung: d1 -> d_spann; l1 -> a = Stirn bis HSK-Plananlage (Bezug B); d2 -> d_nase = Stirn-Ø des Kegels; d4 -> d_koerper = Ø am hinteren Ende des Außenkegels vor dem Bund (Kegel läuft von d2 bis d4 durch, kein zylindrischer Zwischenkörper); l2 -> spanntiefe = Stirn bis Einstellschraube (10 mm Verstellweg); d3 = HSK-Größe 63. Kegelwinkel steht auf dieser Seite NICHT (bei Serie 4738 SK: 4°30'), daher kegel und l_nase leer. Artikel wie gedruckt: Serie + 'Order Code' (Schreibweise 'Bestell-Nr. 4662 20.063' aus Gühring-Prospekt) plus EDP-Nummer. Weitere Längen 120/160/200 mm in derselben Tabelle (z. B. 212.063: d12 l1 120 d4 32). Seite 35 trägt die Überschrift 'GÜHROJET with peripheral cooling', die Zeilen gehören laut Code/EDP aber zur Serie 4736.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "4736 6.063 (EDP 9047360060630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "4736 8.063 (EDP 9047360080630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A85",
+     "artikel": "4736 10.063 (EDP 9047360100630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 85,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 41
+     }
+    },
+    {
+     "name": "d12 A90",
+     "artikel": "4736 12.063 (EDP 9047360120630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d14 A90",
+     "artikel": "4736 14.063 (EDP 9047360140630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 14,
+      "a": 90,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A95",
+     "artikel": "4736 16.063 (EDP 9047360160630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 16,
+      "a": 95,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d18 A95",
+     "artikel": "4736 18.063 (EDP 9047360180630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 18,
+      "a": 95,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d20 A100",
+     "artikel": "4736 20.063 (EDP 9047360200630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 100,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d25 A115",
+     "artikel": "4736 25.063 (EDP 9047360250630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 25,
+      "a": 115,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 57
+     }
+    },
+    {
+     "name": "d32 A120",
+     "artikel": "4736 32.063 (EDP 9047360320630)",
+     "link": "https://midwestmachinetool.com/media/assets/product/documents/4736.pdf",
+     "masse": {
+      "d_spann": 32,
+      "a": 120,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "spanntiefe": 61
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "GÜHRING",
+   "titel": "GM 300 Schrumpffutter SK40 (Serie 4738)",
+   "typ": "schrumpf",
+   "aufnahme": "SK40",
+   "link": "https://guhring.com/ProductsServices/SeriesDetails?Series=4738",
+   "quelle": "GM-300-Katalogseiten 40-41 'ISO taper shrink fit chucks', Series Number 4738 (guhring.com/media/tools/4738.pdf), SK nach DIN 69871 Form AD/B. Zuordnung aus der bemaßten Zeichnung: d1 -> d_spann; l1 -> a = Stirn bis kegelseitige Planfläche des SK-Bundes; d2 -> d_nase = Stirn-Ø; d4 -> d_koerper = Ø am hinteren Ende des Außenkegels vor dem Bund; kegel = 4°30' (4.5° je Seite, in der Zeichnung angeschrieben); l2 -> spanntiefe = Stirn bis Einstellschraube (10 mm Verstellweg). l_nase nicht angegeben (Kegel läuft laut Zeichnung bis kurz vor den Bund; aus d2/d4/4.5° NICHT nachgerechnet, weil das mit l1 nicht aufgeht). Weitere Längen 120/160/200 mm in derselben Tabelle.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "4738 6.040 (EDP 9047380060400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "4738 8.040 (EDP 9047380080400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "4738 10.040 (EDP 9047380100400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "spanntiefe": 41
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "4738 12.040 (EDP 9047380120400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 12,
+      "a": 80,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d14 A80",
+     "artikel": "4738 14.040 (EDP 9047380140400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 14,
+      "a": 80,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "4738 16.040 (EDP 9047380160400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 16,
+      "a": 80,
+      "d_nase": 27,
+      "d_koerper": 34,
+      "kegel": 4.5,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d18 A80",
+     "artikel": "4738 18.040 (EDP 9047380180400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 18,
+      "a": 80,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "kegel": 4.5,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d20 A80",
+     "artikel": "4738 20.040 (EDP 9047380200400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 33,
+      "d_koerper": 42,
+      "kegel": 4.5,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "4738 25.040 (EDP 9047380250400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 25,
+      "a": 100,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "kegel": 4.5,
+      "spanntiefe": 57
+     }
+    },
+    {
+     "name": "d32 A100",
+     "artikel": "4738 32.040 (EDP 9047380320400)",
+     "link": "https://guhring.com/media/tools/4738.pdf",
+     "masse": {
+      "d_spann": 32,
+      "a": 100,
+      "d_nase": 44,
+      "d_koerper": 53,
+      "kegel": 4.5,
+      "spanntiefe": 61
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "GÜHRING",
+   "titel": "GM 300 Hydro-Dehnspannfutter HSK-A63 (Serie 4299)",
+   "typ": "hydro",
+   "aufnahme": "HSK-A63",
+   "link": "https://guhring.com/ProductsServices/SeriesDetails?Series=4299",
+   "quelle": "GM-300-Katalogseiten 14-15 'HSK-A hydraulic chucks with increased clamping force', Series Number 4299 (guhring.com/media/tools/4299.pdf), DIN 69882-7. Zuordnung aus der bemaßten Zeichnung: d1 -> d_spann; l1 -> a = Stirn bis HSK-Plananlage (Bezug B); d2 -> d_nase = Ø des vorderen Kopfes; l5 -> l_nase = Länge des d2-Abschnitts ab Stirn; d4 -> d_koerper = Ø des Körpers dahinter bis zum Bund; l2 -> spanntiefe = Stirn bis Einstellschraube (10 mm Verstellweg); d3 = HSK-Größe. Kein Kegelwinkel (Absatz). Weitere Längen 150/200 mm in derselben Tabelle (z. B. 12.163: l1 150, l5 105). Zusätzlich gefunden, nicht übernommen: Gühring SuperLine-Prospekt (guehring.com/wp-content/uploads/2018/dokumente/Spannmittel-Schrumpftechnik/GUE_SL_Hydraulik-Dehnspannfutter_DE.pdf) mit je einer Größe: 4662 20.063 HSK-A63 d20 d2 52.5 l1 80 l2 51; 4663 20.040 SK40 d20 d2 49.5 l1 65 l2 51.",
+   "groessen": [
+    {
+     "name": "d6 A70",
+     "artikel": "4299 6.063 (EDP 9042990060630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 6,
+      "a": 70,
+      "d_nase": 26,
+      "d_koerper": 50,
+      "l_nase": 24.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d8 A70",
+     "artikel": "4299 8.063 (EDP 9042990080630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 8,
+      "a": 70,
+      "d_nase": 28,
+      "d_koerper": 50,
+      "l_nase": 24.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "4299 10.063 (EDP 9042990100630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 30,
+      "d_koerper": 50,
+      "l_nase": 35.5,
+      "spanntiefe": 41
+     }
+    },
+    {
+     "name": "d12 A85",
+     "artikel": "4299 12.063 (EDP 9042990120630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 12,
+      "a": 85,
+      "d_nase": 32,
+      "d_koerper": 50,
+      "l_nase": 41.5,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d14 A85",
+     "artikel": "4299 14.063 (EDP 9042990140630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 14,
+      "a": 85,
+      "d_nase": 34,
+      "d_koerper": 50,
+      "l_nase": 41.5,
+      "spanntiefe": 46
+     }
+    },
+    {
+     "name": "d16 A90",
+     "artikel": "4299 16.063 (EDP 9042990160630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 16,
+      "a": 90,
+      "d_nase": 38,
+      "d_koerper": 50,
+      "l_nase": 45.5,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d18 A90",
+     "artikel": "4299 18.063 (EDP 9042990180630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 18,
+      "a": 90,
+      "d_nase": 40,
+      "d_koerper": 50,
+      "l_nase": 48.5,
+      "spanntiefe": 49
+     }
+    },
+    {
+     "name": "d20 A90",
+     "artikel": "4299 20.063 (EDP 9042990200630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 90,
+      "d_nase": 42,
+      "d_koerper": 50,
+      "l_nase": 47.5,
+      "spanntiefe": 51
+     }
+    },
+    {
+     "name": "d25 A120",
+     "artikel": "4299 25.063 (EDP 9042990250630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 25,
+      "a": 120,
+      "d_nase": 57,
+      "d_koerper": 63,
+      "l_nase": 55.3,
+      "spanntiefe": 57
+     }
+    },
+    {
+     "name": "d32 A125",
+     "artikel": "4299 32.063 (EDP 9042990320630)",
+     "link": "https://guhring.com/media/tools/4299.pdf",
+     "masse": {
+      "d_spann": 32,
+      "a": 125,
+      "d_nase": 64,
+      "d_koerper": 75,
+      "l_nase": 63,
+      "spanntiefe": 61
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "REGO-FIX",
+   "titel": "powRgrip PG25 HSK-A63",
+   "typ": "spannzange",
+   "spannzange": "PG25",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.rego-fix.com/en/products/toolholders/hskpg",
+   "quelle": "REGO-FIX Catalogue 2026 English (Yumpu, offizieller REGO-FIX-Account), Seite 30 'HSK-A toolholders HSK-AB / HSK-A DIN 69893 ISO 12164 powRgrip', Spalten Part no., BD1, BD2, BD3, LPR, LB1, LB2, FWR: https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30 . d_spann = 20: größte PG-25-Standardzange Ø20.0 (1725.20000), Katalog S. 76 (https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/76), kleinste Ø3.0. REGO-FIX nutzt ISO-13399-Kürzel; laut Terminologie-Seite des Katalogs (Yumpu S. 443) BD = Body diameter, LPR = Protruding length. Zuordnung: LPR -> a (Auskraglänge ab Spindel-Anlage/Bezugslinie, wie im Katalog als 'Dimensions [mm]' angegeben; ob ab Plananlage oder Messlinie ist im Tabellentext nicht ausgeschrieben), BD1 bzw. DLN (Mutter-Ø bei ER) -> d_nase, BD3 (XL) bzw. BD2 (ER-XL) -> d_koerper. LB1/LB2 (Längen der XL-Stufen) nicht zugeordnet, weil ihre Bezugskante im Text nicht erkennbar ist. FWR = Wuchtring-Typ (nicht übernommen). Keine Länge der schlanken Nase und kein Kegelwinkel angegeben. XL-Größen: BD3=55 -> d_koerper, LB2 = 140 (240/260 XL) nicht zugeordnet. NL-Variante: Fußnote 'Collets PG-L, PG-MQL and PG-CRYO cannot be used'. Produktseite rego-fix.com rendert die Tabelle nur per JavaScript, daher Werte aus dem Katalog.",
+   "groessen": [
+    {
+     "name": "PG25 x 085 H NL",
+     "artikel": "4563.72540",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30",
+     "masse": {
+      "d_spann": 20,
+      "a": 85,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 100 H",
+     "artikel": "4563.72550",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30",
+     "masse": {
+      "d_spann": 20,
+      "a": 100,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 120 H",
+     "artikel": "4563.72560",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30",
+     "masse": {
+      "d_spann": 20,
+      "a": 120,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 160 H",
+     "artikel": "4563.72580",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30",
+     "masse": {
+      "d_spann": 20,
+      "a": 160,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 200 H",
+     "artikel": "4563.72590",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30",
+     "masse": {
+      "d_spann": 20,
+      "a": 200,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 240 XL",
+     "artikel": "8865.76070",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30",
+     "masse": {
+      "d_spann": 20,
+      "a": 240,
+      "d_nase": 40,
+      "d_koerper": 55
+     }
+    },
+    {
+     "name": "PG25 x 260 XL",
+     "artikel": "8865.76090",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/30",
+     "masse": {
+      "d_spann": 20,
+      "a": 260,
+      "d_nase": 40,
+      "d_koerper": 55
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "REGO-FIX",
+   "titel": "powRgrip PG15 HSK-A63",
+   "typ": "spannzange",
+   "spannzange": "PG15",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.rego-fix.com/en/products/toolholders/hskpg",
+   "quelle": "REGO-FIX Catalogue 2026 English (Yumpu), Seite 29 'HSK-A toolholders ... powRgrip', Zeilen HSK-A 63 / PG 15: https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/29 . d_spann = 10: größte PG-15-Standardzange Ø10.0 (1715.10000), Katalog S. 75 (https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/75); die dünnwandige PG 15-TW reicht bis Ø12.0 (1715.12006). REGO-FIX nutzt ISO-13399-Kürzel; laut Terminologie-Seite des Katalogs (Yumpu S. 443) BD = Body diameter, LPR = Protruding length. Zuordnung: LPR -> a (Auskraglänge ab Spindel-Anlage/Bezugslinie, wie im Katalog als 'Dimensions [mm]' angegeben; ob ab Plananlage oder Messlinie ist im Tabellentext nicht ausgeschrieben), BD1 bzw. DLN (Mutter-Ø bei ER) -> d_nase, BD3 (XL) bzw. BD2 (ER-XL) -> d_koerper. LB1/LB2 (Längen der XL-Stufen) nicht zugeordnet, weil ihre Bezugskante im Text nicht erkennbar ist. FWR = Wuchtring-Typ (nicht übernommen). Keine Länge der schlanken Nase und kein Kegelwinkel angegeben.",
+   "groessen": [
+    {
+     "name": "PG15 x 080 H",
+     "artikel": "4563.71540",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/29",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 24
+     }
+    },
+    {
+     "name": "PG15 x 100 H",
+     "artikel": "4563.71550",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/29",
+     "masse": {
+      "d_spann": 10,
+      "a": 100,
+      "d_nase": 24
+     }
+    },
+    {
+     "name": "PG15 x 120 H",
+     "artikel": "4563.71560",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/29",
+     "masse": {
+      "d_spann": 10,
+      "a": 120,
+      "d_nase": 24
+     }
+    },
+    {
+     "name": "PG15 x 160 H",
+     "artikel": "4563.71580",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/29",
+     "masse": {
+      "d_spann": 10,
+      "a": 160,
+      "d_nase": 24
+     }
+    },
+    {
+     "name": "PG15 x 200 H",
+     "artikel": "4563.71590",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/29",
+     "masse": {
+      "d_spann": 10,
+      "a": 200,
+      "d_nase": 24
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "REGO-FIX",
+   "titel": "powRgrip PG25 SK40 (DIN 69871)",
+   "typ": "spannzange",
+   "spannzange": "PG25",
+   "aufnahme": "SK40",
+   "link": "https://www.rego-fix.com/en/products/toolholders/skpg",
+   "quelle": "REGO-FIX Catalogue 2026 English (Yumpu), Seite 38, SK-40-powRgrip-Tabelle (Part no., BD1, BD2, BD3, LPR, LB1, LB2, FWR): https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/38 . d_spann = 20 aus PG-25-Zangentabelle S. 76. REGO-FIX nutzt ISO-13399-Kürzel; laut Terminologie-Seite des Katalogs (Yumpu S. 443) BD = Body diameter, LPR = Protruding length. Zuordnung: LPR -> a (Auskraglänge ab Spindel-Anlage/Bezugslinie, wie im Katalog als 'Dimensions [mm]' angegeben; ob ab Plananlage oder Messlinie ist im Tabellentext nicht ausgeschrieben), BD1 bzw. DLN (Mutter-Ø bei ER) -> d_nase, BD3 (XL) bzw. BD2 (ER-XL) -> d_koerper. LB1/LB2 (Längen der XL-Stufen) nicht zugeordnet, weil ihre Bezugskante im Text nicht erkennbar ist. FWR = Wuchtring-Typ (nicht übernommen). Keine Länge der schlanken Nase und kein Kegelwinkel angegeben. Nur 4 SK-40/PG-25-Größen im Katalog.",
+   "groessen": [
+    {
+     "name": "PG25 x 072",
+     "artikel": "2240.72533",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/38",
+     "masse": {
+      "d_spann": 20,
+      "a": 72,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 080 H",
+     "artikel": "4240.72543",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/38",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 120 H",
+     "artikel": "4240.72563",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/38",
+     "masse": {
+      "d_spann": 20,
+      "a": 120,
+      "d_nase": 40
+     }
+    },
+    {
+     "name": "PG25 x 160 H",
+     "artikel": "4240.72583",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/38",
+     "masse": {
+      "d_spann": 20,
+      "a": 160,
+      "d_nase": 40
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "REGO-FIX",
+   "titel": "ER32 Spannzangenfutter HSK-A63",
+   "typ": "spannzange",
+   "spannzange": "ER32",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99",
+   "quelle": "REGO-FIX Catalogue 2026 English (Yumpu), Seite 99 'HSK-A toolholders HSK-AB', HSK-A 63 / ER, Spalten Part no., DLN, BD2, LPR, LB1, FWR, Wrench: https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99 . DLN (= Ø der Hi-Q/ER-Mutter, im Lieferumfang) -> d_nase; LPR -> a; BD2 (nur XL) -> d_koerper; LB1 (140 bei 240/260 XL) nicht zugeordnet. d_spann = 22.0: REGO-FIX-Datenblatt 'ER collets dimensions' (https://www.rego-fix.com/system/files/docs/2017-09/RFAG_TD_ER_Spannzangen-Masse_EN_0.pdf) nennt für ER 32 Zangen bis 8.0–22.0 (Achtung: verbreitete ER32-Angabe ist 20; hier steht 22.0). Werte aus dem Seitentext; Spaltenzuordnung vom Abrufwerkzeug aus der Kopfzeilenreihenfolge abgeleitet und plausibel (Mutter-Ø 50 = ER32).",
+   "groessen": [
+    {
+     "name": "ER32 x 080 H",
+     "artikel": "4563.13240",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99",
+     "masse": {
+      "d_spann": 22,
+      "a": 80,
+      "d_nase": 50
+     }
+    },
+    {
+     "name": "ER32 x 100 H",
+     "artikel": "4563.13250",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99",
+     "masse": {
+      "d_spann": 22,
+      "a": 100,
+      "d_nase": 50
+     }
+    },
+    {
+     "name": "ER32 x 160 H",
+     "artikel": "4563.13280",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99",
+     "masse": {
+      "d_spann": 22,
+      "a": 160,
+      "d_nase": 50
+     }
+    },
+    {
+     "name": "ER32 x 200 H",
+     "artikel": "4563.13290",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99",
+     "masse": {
+      "d_spann": 22,
+      "a": 200,
+      "d_nase": 50
+     }
+    },
+    {
+     "name": "ER32 x 240 XL",
+     "artikel": "8865.16070",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99",
+     "masse": {
+      "d_spann": 22,
+      "a": 240,
+      "d_nase": 50,
+      "d_koerper": 55
+     }
+    },
+    {
+     "name": "ER32 x 260 XL",
+     "artikel": "8865.16090",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/99",
+     "masse": {
+      "d_spann": 22,
+      "a": 260,
+      "d_nase": 50,
+      "d_koerper": 55
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "REGO-FIX",
+   "titel": "ER25 Spannzangenfutter SK40 (SK-B 40, DIN 69871)",
+   "typ": "spannzange",
+   "spannzange": "ER25",
+   "aufnahme": "SK40",
+   "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/106",
+   "quelle": "REGO-FIX Catalogue 2026 English (Yumpu), Seite 106 'SK-B toolholders SK-B DIN 69871 DIN ISO 7388-1', Spalten Part no., DLN, BD2, LPR, LB1, FWR, Wrench: https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/106 . DLN (Mutter-Ø) -> d_nase, LPR -> a. SK-B = SK 40 mit Kühlmittel über Bund (Form AD/B). d_spann = 17.0 laut REGO-FIX 'ER collets dimensions' (https://www.rego-fix.com/system/files/docs/2017-09/RFAG_TD_ER_Spannzangen-Masse_EN_0.pdf): ER 25 8.0–17.0. Nur 3 Längen.",
+   "groessen": [
+    {
+     "name": "ER25 x 070 H",
+     "artikel": "4240.12533",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/106",
+     "masse": {
+      "d_spann": 17,
+      "a": 70,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER25 x 100 H",
+     "artikel": "4240.12553",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/106",
+     "masse": {
+      "d_spann": 17,
+      "a": 100,
+      "d_nase": 42
+     }
+    },
+    {
+     "name": "ER25 x 160 H",
+     "artikel": "4240.12583",
+     "link": "https://www.yumpu.com/en/document/view/70787239/rego-fix-catalogue-2026-english/106",
+     "masse": {
+      "d_spann": 17,
+      "a": 160,
+      "d_nase": 42
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "BIG KAISER / BIG DAISHOWA",
+   "titel": "Mega Micro Chuck MEGA6S BBT40 (BIG-PLUS, Kegelform T)",
+   "typ": "spannzange",
+   "spannzange": "NBC6S",
+   "aufnahme": "BT40",
+   "link": "https://www.bigdaishowa.com/en/products/tool-holders/collet-chucks/mega-micro-chuck",
+   "quelle": "BIG DAISHOWA Katalogseiten 'MEGA MICRO CHUCK' (Clamping diameter ø0.45–ø8.05), als PDF beim Händler Sumipol: https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf , Tabelle 'BIG-PLUS BBT SHANK Model [High Rigidity Taper Type]'. BBT40 = BT40 mit Plananlage (BIG-PLUS), passt auch in normale BT40-Spindeln. Zeichnung 'Taper type' (T): øD = Mutter-Ø an der Nase, øD1 = Körper-Ø am Ende des Kegels, L = Messlinie (Bund/Plananlage BIG-PLUS) bis Nase, L1 = Länge von der Nase bis zur Stelle øD1 (Kegelbereich) -> l_nase; Zeichnung bemaßt den Kegel mit 5° -> kegel=5 (Werte passen: z. B. 6S-90T->120T ΔD1=5 mm auf ΔL1=30 mm ≈ 4.8° je Seite). Zuordnung: d_nase=øD, d_koerper=øD1, a=L, l_nase=L1, d_spann = obere Grenze des Spannbereichs ød (0.45–6.05). H1/H2 (Gewinde-/Einstellmaße) nicht übernommen, da nur bei ※-Typen ausdrücklich als max. Einstecklänge definiert. order.bigdaishowa.com war per DNS nicht erreichbar, bigdaishowa.com-Produktseite zeigt keine Maße.",
+   "groessen": [
+    {
+     "name": "BBT40-MEGA6S-60T",
+     "artikel": "BBT40-MEGA6S-60T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 60,
+      "d_nase": 14,
+      "d_koerper": 15.5,
+      "l_nase": 28,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "BBT40-MEGA6S-75T",
+     "artikel": "BBT40-MEGA6S-75T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 75,
+      "d_nase": 14,
+      "d_koerper": 18,
+      "l_nase": 43,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "BBT40-MEGA6S-90T",
+     "artikel": "BBT40-MEGA6S-90T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 90,
+      "d_nase": 14,
+      "d_koerper": 21,
+      "l_nase": 58,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "BBT40-MEGA6S-105T",
+     "artikel": "BBT40-MEGA6S-105T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 105,
+      "d_nase": 14,
+      "d_koerper": 23.5,
+      "l_nase": 73,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "BBT40-MEGA6S-120T",
+     "artikel": "BBT40-MEGA6S-120T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 120,
+      "d_nase": 14,
+      "d_koerper": 26,
+      "l_nase": 88,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "BBT40-MEGA6S-135T",
+     "artikel": "BBT40-MEGA6S-135T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 135,
+      "d_nase": 14,
+      "d_koerper": 29,
+      "l_nase": 103,
+      "kegel": 5
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "BIG KAISER / BIG DAISHOWA",
+   "titel": "Mega Micro Chuck MEGA6S HSK-A63 (Kegelform T)",
+   "typ": "spannzange",
+   "spannzange": "NBC6S",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.bigdaishowa.com/en/products/tool-holders/collet-chucks/mega-micro-chuck",
+   "quelle": "Wie BBT40-Reihe, gleiches PDF https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf , Tabelle 'HSK MEGA MICRO CHUCK, A Type (DIN 69893-1) (ISO 12164)', Zeilen HSK-A63-MEGA6S-..T. L ab HSK-Plananlage (Messlinie) bis Nase. Zeichnung 'Taper type' (T): øD = Mutter-Ø an der Nase, øD1 = Körper-Ø am Ende des Kegels, L = Messlinie (Bund/Plananlage BIG-PLUS) bis Nase, L1 = Länge von der Nase bis zur Stelle øD1 (Kegelbereich) -> l_nase; Zeichnung bemaßt den Kegel mit 5° -> kegel=5 (Werte passen: z. B. 6S-90T->120T ΔD1=5 mm auf ΔL1=30 mm ≈ 4.8° je Seite). Zuordnung: d_nase=øD, d_koerper=øD1, a=L, l_nase=L1, d_spann = obere Grenze des Spannbereichs ød (0.45–6.05). H1/H2 (Gewinde-/Einstellmaße) nicht übernommen, da nur bei ※-Typen ausdrücklich als max. Einstecklänge definiert.",
+   "groessen": [
+    {
+     "name": "HSK-A63-MEGA6S-60T",
+     "artikel": "HSK-A63-MEGA6S-60T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 60,
+      "d_nase": 14,
+      "d_koerper": 15.5,
+      "l_nase": 23,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA6S-75T",
+     "artikel": "HSK-A63-MEGA6S-75T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 75,
+      "d_nase": 14,
+      "d_koerper": 17,
+      "l_nase": 36,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA6S-90T",
+     "artikel": "HSK-A63-MEGA6S-90T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 90,
+      "d_nase": 14,
+      "d_koerper": 20,
+      "l_nase": 51,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA6S-105T",
+     "artikel": "HSK-A63-MEGA6S-105T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 105,
+      "d_nase": 14,
+      "d_koerper": 22.5,
+      "l_nase": 66,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA6S-120T",
+     "artikel": "HSK-A63-MEGA6S-120T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 120,
+      "d_nase": 14,
+      "d_koerper": 25,
+      "l_nase": 81,
+      "kegel": 5
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA6S-135T",
+     "artikel": "HSK-A63-MEGA6S-135T",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-MICRO-CHUCK.pdf",
+     "masse": {
+      "d_spann": 6.05,
+      "a": 135,
+      "d_nase": 14,
+      "d_koerper": 27.5,
+      "l_nase": 96,
+      "kegel": 5
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "BIG KAISER / BIG DAISHOWA",
+   "titel": "Mega E Chuck MEGA10E BBT40 (BIG-PLUS)",
+   "typ": "spannzange",
+   "spannzange": "MEC10",
+   "aufnahme": "BT40",
+   "link": "https://www.bigdaishowa.com/en/products/tool-holders/collet-chucks/mega-e-chuck",
+   "quelle": "BIG DAISHOWA Katalogseite A8 'MEGA E CHUCK, Clamping diameter ø3–ø12, BBT/BT SHANK', PDF beim Händler Sumipol: https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf (Tabelle als Bild gegengelesen). BBT40 = BIG-PLUS BT40 mit Plananlage. Mutter MEN10, Zange MEC10. Zeichnung: øD = Ø der MEGA-E-Mutter (Nase), øD1 = Körper-Ø am Ende des kegeligen Körpers, L = Messlinie bis Nase, L1 = Nase bis Stelle øD1 -> l_nase. Zuordnung d_nase=øD, d_koerper=øD1, a=L, l_nase=L1, d_spann = obere Grenze ød (3–10). Kegelwinkel nicht angegeben (nicht abgeleitet). 'Tool adjustment amount H' = Verstellweg mit Einstellschraube, nicht als spanntiefe übernommen. Hinweis: -200 hat øD1 55.5 laut Tabelle (nur 1 mm mehr als -165).",
+   "groessen": [
+    {
+     "name": "BBT40-MEGA10E-60",
+     "artikel": "BBT40-MEGA10E-60",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 60,
+      "d_nase": 35,
+      "d_koerper": 36,
+      "l_nase": 29
+     }
+    },
+    {
+     "name": "BBT40-MEGA10E-75",
+     "artikel": "BBT40-MEGA10E-75",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 75,
+      "d_nase": 35,
+      "d_koerper": 38.5,
+      "l_nase": 43
+     }
+    },
+    {
+     "name": "BBT40-MEGA10E-90",
+     "artikel": "BBT40-MEGA10E-90",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 90,
+      "d_nase": 35,
+      "d_koerper": 41,
+      "l_nase": 58
+     }
+    },
+    {
+     "name": "BBT40-MEGA10E-105",
+     "artikel": "BBT40-MEGA10E-105",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 105,
+      "d_nase": 35,
+      "d_koerper": 44,
+      "l_nase": 73
+     }
+    },
+    {
+     "name": "BBT40-MEGA10E-120",
+     "artikel": "BBT40-MEGA10E-120",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 120,
+      "d_nase": 35,
+      "d_koerper": 46.5,
+      "l_nase": 88
+     }
+    },
+    {
+     "name": "BBT40-MEGA10E-135",
+     "artikel": "BBT40-MEGA10E-135",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 135,
+      "d_nase": 35,
+      "d_koerper": 49,
+      "l_nase": 103
+     }
+    },
+    {
+     "name": "BBT40-MEGA10E-165",
+     "artikel": "BBT40-MEGA10E-165",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 165,
+      "d_nase": 35,
+      "d_koerper": 54.5,
+      "l_nase": 135
+     }
+    },
+    {
+     "name": "BBT40-MEGA10E-200",
+     "artikel": "BBT40-MEGA10E-200",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 200,
+      "d_nase": 35,
+      "d_koerper": 55.5,
+      "l_nase": 171
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "BIG KAISER / BIG DAISHOWA",
+   "titel": "Mega E Chuck MEGA10E HSK-A63",
+   "typ": "spannzange",
+   "spannzange": "MEC10",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.bigdaishowa.com/en/products/tool-holders/collet-chucks/mega-e-chuck",
+   "quelle": "Gleiches PDF https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf , Tabelle 'HSK MEGA E CHUCK, A Type (DIN 69893-1) (ISO 12164)', Zeilen HSK-A63-MEGA10E-... Zeichnung: øD = Ø der MEGA-E-Mutter (Nase), øD1 = Körper-Ø am Ende des kegeligen Körpers, L = Messlinie bis Nase, L1 = Nase bis Stelle øD1 -> l_nase. Zuordnung d_nase=øD, d_koerper=øD1, a=L, l_nase=L1, d_spann = obere Grenze ød (3–10). Kegelwinkel nicht angegeben (nicht abgeleitet). 'Tool adjustment amount H' = Verstellweg mit Einstellschraube, nicht als spanntiefe übernommen. Ausnahme: Fußnote 4 – bei ※-Modellen (-75, -90) ist H die maximal einsteckbare Schaftlänge -> spanntiefe. Auffällig, aber so gedruckt: -135 hat øD1 43 (kleiner als -120 mit 46).",
+   "groessen": [
+    {
+     "name": "HSK-A63-MEGA10E-75 ※",
+     "artikel": "HSK-A63-MEGA10E-75",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 75,
+      "d_nase": 35,
+      "d_koerper": 37.5,
+      "l_nase": 37,
+      "spanntiefe": 48
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA10E-90 ※",
+     "artikel": "HSK-A63-MEGA10E-90",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 90,
+      "d_nase": 35,
+      "d_koerper": 40,
+      "l_nase": 53,
+      "spanntiefe": 64
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA10E-105",
+     "artikel": "HSK-A63-MEGA10E-105",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 105,
+      "d_nase": 35,
+      "d_koerper": 43,
+      "l_nase": 69
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA10E-120",
+     "artikel": "HSK-A63-MEGA10E-120",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 120,
+      "d_nase": 35,
+      "d_koerper": 46,
+      "l_nase": 85
+     }
+    },
+    {
+     "name": "HSK-A63-MEGA10E-135",
+     "artikel": "HSK-A63-MEGA10E-135",
+     "link": "https://www.sumipol.com/wp-content/uploads/2019/11/MEGA-E-CHUCK.pdf",
+     "masse": {
+      "d_spann": 10,
+      "a": 135,
+      "d_nase": 35,
+      "d_koerper": 43,
+      "l_nase": 99
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "NIKKEN",
+   "titel": "Slim Chuck SK10 BT40",
+   "typ": "spannzange",
+   "spannzange": "SK10",
+   "aufnahme": "BT40",
+   "link": "https://www.nikken-kosakusho.co.jp/en/product/index.php?seq=14",
+   "quelle": "NIKKEN-Katalogblatt 'SLIM CHUCK HIGH SPEED ROTATION・HIGH ACCURACY' (BT TOOLING SYSTEM Standard, Katalogseite 41), PDF: https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf , verlinkt auf https://www.nikken-kosakusho.co.jp/en/product/index.php?seq=14 . Normaler BT40 (keine Plananlage); die 2LOCK-Ausführung (Plananlage) ist ein eigenes Blatt. Zeichnungen Fig. 1–3: φC = Ø von Mutter und schlankem Vorderteil, ℓ = Länge dieses Vorderteils ab Nase, φC1 = Körper-Ø hinten, ℓ1 = Nase bis Stelle φC1, L = Messlinie (Bund) bis Nase, D = Spannbereich. Fig. 1 gerade (C=C1, ℓ=ℓ1), Fig. 2 Stufe auf C1, Fig. 3 Kegel von C (bei ℓ) auf C1 (bei ℓ1). Zuordnung d_nase=C, l_nase=ℓ, d_koerper=C1, a=L, d_spann = obere Grenze D. H = Einstellweg mit Einstellschraube (Option), nicht übernommen. Hinweis im Katalog: mit SK-J-Mutter wird das Futter 6 mm länger; mit SK-A/SK-AC-Zangen bzw. Werkzeug kleiner als Nenn-Ø etwa 3 mm kürzer. Tabelle als Bild (300 dpi) gelesen, verbundene Zellen geprüft. ℓ1 je Größe (nicht im Schema): 60:32, 75:45, 90:60, 120:90, 150:118, 180:148, 200:168, 250:218; Fig: 60/75=1, 90/120=2, 150–250=3.",
+   "groessen": [
+    {
+     "name": "BT40-SK10-60",
+     "artikel": "BT40-SK10-60",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 60,
+      "d_nase": 27.5,
+      "l_nase": 32,
+      "d_koerper": 27.5
+     }
+    },
+    {
+     "name": "BT40-SK10-75",
+     "artikel": "BT40-SK10-75",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 75,
+      "d_nase": 27.5,
+      "l_nase": 45,
+      "d_koerper": 27.5
+     }
+    },
+    {
+     "name": "BT40-SK10-90",
+     "artikel": "BT40-SK10-90",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 90,
+      "d_nase": 27.5,
+      "l_nase": 48,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK10-120",
+     "artikel": "BT40-SK10-120",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 120,
+      "d_nase": 27.5,
+      "l_nase": 73,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK10-150",
+     "artikel": "BT40-SK10-150",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 150,
+      "d_nase": 27.5,
+      "l_nase": 73,
+      "d_koerper": 34.5
+     }
+    },
+    {
+     "name": "BT40-SK10-180",
+     "artikel": "BT40-SK10-180",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 180,
+      "d_nase": 27.5,
+      "l_nase": 73,
+      "d_koerper": 39
+     }
+    },
+    {
+     "name": "BT40-SK10-200",
+     "artikel": "BT40-SK10-200",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 200,
+      "d_nase": 27.5,
+      "l_nase": 73,
+      "d_koerper": 39
+     }
+    },
+    {
+     "name": "BT40-SK10-250",
+     "artikel": "BT40-SK10-250",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 250,
+      "d_nase": 27.5,
+      "l_nase": 73,
+      "d_koerper": 39
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "NIKKEN",
+   "titel": "Slim Chuck SK16 BT40",
+   "typ": "spannzange",
+   "spannzange": "SK16",
+   "aufnahme": "BT40",
+   "link": "https://www.nikken-kosakusho.co.jp/en/product/index.php?seq=14",
+   "quelle": "Gleiches Katalogblatt https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf (Seite 41), Zeilen BT40-SK16-... Alle Größen Fig. 1 (gerade): C = C1 = 40, ℓ = ℓ1. Zeichnungen Fig. 1–3: φC = Ø von Mutter und schlankem Vorderteil, ℓ = Länge dieses Vorderteils ab Nase, φC1 = Körper-Ø hinten, ℓ1 = Nase bis Stelle φC1, L = Messlinie (Bund) bis Nase, D = Spannbereich. Fig. 1 gerade (C=C1, ℓ=ℓ1), Fig. 2 Stufe auf C1, Fig. 3 Kegel von C (bei ℓ) auf C1 (bei ℓ1). Zuordnung d_nase=C, l_nase=ℓ, d_koerper=C1, a=L, d_spann = obere Grenze D. H = Einstellweg mit Einstellschraube (Option), nicht übernommen. Hinweis im Katalog: mit SK-J-Mutter wird das Futter 6 mm länger; mit SK-A/SK-AC-Zangen bzw. Werkzeug kleiner als Nenn-Ø etwa 3 mm kürzer. Tabelle als Bild (300 dpi) gelesen, verbundene Zellen geprüft.",
+   "groessen": [
+    {
+     "name": "BT40-SK16-60",
+     "artikel": "BT40-SK16-60",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 60,
+      "d_nase": 40,
+      "l_nase": 32,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK16-75",
+     "artikel": "BT40-SK16-75",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 75,
+      "d_nase": 40,
+      "l_nase": 43,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK16-90",
+     "artikel": "BT40-SK16-90",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 90,
+      "d_nase": 40,
+      "l_nase": 58,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK16-120",
+     "artikel": "BT40-SK16-120",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 120,
+      "d_nase": 40,
+      "l_nase": 88,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK16-150",
+     "artikel": "BT40-SK16-150",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 150,
+      "d_nase": 40,
+      "l_nase": 118,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK16-180",
+     "artikel": "BT40-SK16-180",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 180,
+      "d_nase": 40,
+      "l_nase": 148,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK16-200",
+     "artikel": "BT40-SK16-200",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 200,
+      "d_nase": 40,
+      "l_nase": 168,
+      "d_koerper": 40
+     }
+    },
+    {
+     "name": "BT40-SK16-250",
+     "artikel": "BT40-SK16-250",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001333.pdf",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 250,
+      "d_nase": 40,
+      "l_nase": 218,
+      "d_koerper": 40
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "NIKKEN",
+   "titel": "Milling Chuck (C-Typ) BT40",
+   "typ": "kraftspann",
+   "aufnahme": "BT40",
+   "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+   "quelle": "NIKKEN-Katalogblatt 'MILLING CHUCK' (BT, Katalogseite 31, 'Doubled rigidity', Run-out 5 μm at 3×D, Centre through), PDF: https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf (Tabelle und Zeichnung als Bild gelesen). Das ist NIKKENs CNC-Fräsfutter mit Spannring; den Namen 'MULTI LOCK MILLING CHUCK' führt NIKKEN nur für die konventionelle Reihe (MCA, Steilkegel National Taper, seq=106) – für BT40 nicht gefunden. Zeichnung C16–C42: φC1 = Außen-Ø des Futterkörpers/Spannrings (über die ganze Länge bis zum Bund) -> d_nase (d_koerper nicht gesondert angegeben); φD = Spann-Ø -> d_spann; L = Messlinie bis Nase -> a. ℓ1 nicht übernommen: Werte (58/65/80/77–105) sind teils größer als L (z. B. C25-70: L 70, ℓ1 80), also nicht die Nasenlänge; Bedeutung aus Zeichnung nicht eindeutig. C12: Zeichnung zeigt zusätzlich φ33/φ35 und Maß 30 an der Nase. Hinweis: Codes -C16-60 und -C20-70 haben laut Tabelle L = 63 bzw. 71. Reduzierzangen CCK/CCNK/KM/NK passend je Größe.",
+   "groessen": [
+    {
+     "name": "BT40-C12-65",
+     "artikel": "BT40-C12-65",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 12,
+      "a": 65,
+      "d_nase": 33
+     }
+    },
+    {
+     "name": "BT40-C12-90",
+     "artikel": "BT40-C12-90",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 33
+     }
+    },
+    {
+     "name": "BT40-C12-120",
+     "artikel": "BT40-C12-120",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 12,
+      "a": 120,
+      "d_nase": 33
+     }
+    },
+    {
+     "name": "BT40-C16-60",
+     "artikel": "BT40-C16-60",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 16,
+      "a": 63,
+      "d_nase": 44
+     }
+    },
+    {
+     "name": "BT40-C16-90",
+     "artikel": "BT40-C16-90",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 16,
+      "a": 90,
+      "d_nase": 44
+     }
+    },
+    {
+     "name": "BT40-C16-120",
+     "artikel": "BT40-C16-120",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 16,
+      "a": 120,
+      "d_nase": 44
+     }
+    },
+    {
+     "name": "BT40-C20-70",
+     "artikel": "BT40-C20-70",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 71,
+      "d_nase": 52
+     }
+    },
+    {
+     "name": "BT40-C20-90",
+     "artikel": "BT40-C20-90",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 90,
+      "d_nase": 52
+     }
+    },
+    {
+     "name": "BT40-C20-105",
+     "artikel": "BT40-C20-105",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 105,
+      "d_nase": 52
+     }
+    },
+    {
+     "name": "BT40-C20-120",
+     "artikel": "BT40-C20-120",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 20,
+      "a": 120,
+      "d_nase": 52
+     }
+    },
+    {
+     "name": "BT40-C25-70",
+     "artikel": "BT40-C25-70",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 25,
+      "a": 70,
+      "d_nase": 60
+     }
+    },
+    {
+     "name": "BT40-C25-90",
+     "artikel": "BT40-C25-90",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 25,
+      "a": 90,
+      "d_nase": 60
+     }
+    },
+    {
+     "name": "BT40-C25-120",
+     "artikel": "BT40-C25-120",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 25,
+      "a": 120,
+      "d_nase": 60
+     }
+    },
+    {
+     "name": "BT40-C32-85",
+     "artikel": "BT40-C32-85",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 32,
+      "a": 85,
+      "d_nase": 69
+     }
+    },
+    {
+     "name": "BT40-C32-105",
+     "artikel": "BT40-C32-105",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 32,
+      "a": 105,
+      "d_nase": 69
+     }
+    },
+    {
+     "name": "BT40-C32-120",
+     "artikel": "BT40-C32-120",
+     "link": "https://www.nikken-kosakusho.co.jp/upload/product/detail_attach/attach00001298.pdf",
+     "masse": {
+      "d_spann": 32,
+      "a": 120,
+      "d_nase": 69
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Kennametal",
+   "titel": "Schrumpffutter TTGL DV40 (DIN 69871 = SK40, Erickson)",
+   "typ": "schrumpf",
+   "aufnahme": "SK40",
+   "link": "https://www.novoutils.com/wp-content/uploads/sites/2/2018/12/TOOLING-2018.pdf",
+   "quelle": "Kennametal Tooling Systems News 2018 (PDF, Kennametal-Dokument, gehostet beim Händler Novoutils: https://www.novoutils.com/wp-content/uploads/sites/2/2018/12/TOOLING-2018.pdf), Abschnitt Shrink Fit Toolholders, Katalogseite 48 (PDF-Seite 50), Tabelle 'TTGL • Metric'. Zuordnung laut Maßbild: D1 → d_spann; L1 (von der Stirn bis zur Planseite/Messebene des Kegels auf Spindelseite des Bundes) → a; D2 (Durchmesser an der Stirn) → d_nase; L2 (Stirn bis Bund-Vorderseite) → l_nase; L9 (Einspannlänge laut Maßbild) → spanntiefe; kegel = 4°30' aus dem Maßbild (Kegelwinkel der Nase, als 4.5 je Seite übernommen). Nicht übernommen: D21 = Durchmesser am hinteren Kegelende vor dem Bund (kein Körperdurchmesser): d6→27, d8→27, d10→32, d12→32, d14→34, d16→34, d18→42, d20→42, d25→53; V = 10 (Verstellweg). Kein d_koerper: hinter der Nase folgt direkt der Bund der Aufnahme. Artikel = 'catalog number', Link = Kennametal-Produktseite zur 'order number' (Seite rendert nur per JavaScript und war nicht lesbar, Werte daher nur aus dem PDF; Lieferbarkeit nicht geprüft). Hinweis: Mit 4°30' je Seite reicht der Kegel von D2 bis D21 nur ca. (D21-D2)/2/tan(4,5°) mm, also kürzer als L2 (z. B. d6: 38 statt 61); die Kontur zwischen Kegelende D21 und Bund ist im Maßbild nicht bemaßt. Stand 2018.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "DV40TTGL06080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201356.html",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 26
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "DV40TTGL08080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201357.html",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 21,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 26
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "DV40TTGL10080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201358.html",
+     "masse": {
+      "d_spann": 10,
+      "a": 80,
+      "d_nase": 24,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 32
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "DV40TTGL12080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201359.html",
+     "masse": {
+      "d_spann": 12,
+      "a": 80,
+      "d_nase": 24,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d14 A80",
+     "artikel": "DV40TTGL14080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201360.html",
+     "masse": {
+      "d_spann": 14,
+      "a": 80,
+      "d_nase": 27,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d16 A80",
+     "artikel": "DV40TTGL16080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201421.html",
+     "masse": {
+      "d_spann": 16,
+      "a": 80,
+      "d_nase": 27,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 40
+     }
+    },
+    {
+     "name": "d18 A80",
+     "artikel": "DV40TTGL18080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201424.html",
+     "masse": {
+      "d_spann": 18,
+      "a": 80,
+      "d_nase": 33,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 40
+     }
+    },
+    {
+     "name": "d20 A80",
+     "artikel": "DV40TTGL20080M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201425.html",
+     "masse": {
+      "d_spann": 20,
+      "a": 80,
+      "d_nase": 33,
+      "l_nase": 61,
+      "kegel": 4.5,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "DV40TTGL25100M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201426.html",
+     "masse": {
+      "d_spann": 25,
+      "a": 100,
+      "d_nase": 44,
+      "l_nase": 81,
+      "kegel": 4.5,
+      "spanntiefe": 48
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Kennametal",
+   "titel": "Schrumpffutter TTGL BT40 (Erickson)",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://www.novoutils.com/wp-content/uploads/sites/2/2018/12/TOOLING-2018.pdf",
+   "quelle": "Kennametal Tooling Systems News 2018 (PDF, Kennametal-Dokument, gehostet beim Händler Novoutils: https://www.novoutils.com/wp-content/uploads/sites/2/2018/12/TOOLING-2018.pdf), Abschnitt Shrink Fit Toolholders, Katalogseite 45 (PDF-Seite 47), Tabelle 'TTGL • Metric'. Zuordnung laut Maßbild: D1 → d_spann; L1 (von der Stirn bis zur Planseite/Messebene des Kegels auf Spindelseite des Bundes) → a; D2 (Durchmesser an der Stirn) → d_nase; L2 (Stirn bis Bund-Vorderseite) → l_nase; L9 (Einspannlänge laut Maßbild) → spanntiefe; kegel = 4°30' aus dem Maßbild (Kegelwinkel der Nase, als 4.5 je Seite übernommen). Nicht übernommen: D21 = Durchmesser am hinteren Kegelende vor dem Bund (kein Körperdurchmesser): d6→27, d8→27, d10→32, d12→32, d14→34, d16→34, d18→42, d20→42, d25→53; V = 10 (Verstellweg). Kein d_koerper: hinter der Nase folgt direkt der Bund der Aufnahme. Artikel = 'catalog number', Link = Kennametal-Produktseite zur 'order number' (Seite rendert nur per JavaScript und war nicht lesbar, Werte daher nur aus dem PDF; Lieferbarkeit nicht geprüft). Hinweis: Mit 4°30' je Seite reicht der Kegel von D2 bis D21 nur ca. (D21-D2)/2/tan(4,5°) mm, also kürzer als L2 (z. B. d6: 38 statt 61); die Kontur zwischen Kegelende D21 und Bund ist im Maßbild nicht bemaßt. Stand 2018.",
+   "groessen": [
+    {
+     "name": "d6 A90",
+     "artikel": "BT40TTGL06090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201779.html",
+     "masse": {
+      "d_spann": 6,
+      "a": 90,
+      "d_nase": 21,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 26
+     }
+    },
+    {
+     "name": "d8 A90",
+     "artikel": "BT40TTGL08090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201780.html",
+     "masse": {
+      "d_spann": 8,
+      "a": 90,
+      "d_nase": 21,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 26
+     }
+    },
+    {
+     "name": "d10 A90",
+     "artikel": "BT40TTGL10090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201831.html",
+     "masse": {
+      "d_spann": 10,
+      "a": 90,
+      "d_nase": 24,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 32
+     }
+    },
+    {
+     "name": "d12 A90",
+     "artikel": "BT40TTGL12090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201832.html",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 24,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d14 A90",
+     "artikel": "BT40TTGL14090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201834.html",
+     "masse": {
+      "d_spann": 14,
+      "a": 90,
+      "d_nase": 27,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 37
+     }
+    },
+    {
+     "name": "d16 A90",
+     "artikel": "BT40TTGL16090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201835.html",
+     "masse": {
+      "d_spann": 16,
+      "a": 90,
+      "d_nase": 27,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 40
+     }
+    },
+    {
+     "name": "d18 A90",
+     "artikel": "BT40TTGL18090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201836.html",
+     "masse": {
+      "d_spann": 18,
+      "a": 90,
+      "d_nase": 33,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 40
+     }
+    },
+    {
+     "name": "d20 A90",
+     "artikel": "BT40TTGL20090M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201837.html",
+     "masse": {
+      "d_spann": 20,
+      "a": 90,
+      "d_nase": 33,
+      "l_nase": 63,
+      "kegel": 4.5,
+      "spanntiefe": 42
+     }
+    },
+    {
+     "name": "d25 A100",
+     "artikel": "BT40TTGL25100M",
+     "link": "https://www.kennametal.com/us/en/products/p.6201838.html",
+     "masse": {
+      "d_spann": 25,
+      "a": 100,
+      "d_nase": 44,
+      "l_nase": 73,
+      "kegel": 4.5,
+      "spanntiefe": 48
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Kennametal",
+   "titel": "Hydraulikdehnspannfutter HC Standard HP Line HSK-A63 (Erickson)",
+   "typ": "hydro",
+   "aufnahme": "HSK-A63",
+   "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
+   "quelle": "Kennametal Tooling Systems 2013 Master Catalog, Abschnitt HSK63A Shank Tools (PDF, Kennametal-Dokument, gehostet beim Händler: https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947), Katalogseite C54 (PDF-Seite 75), Tabelle 'HC MM-HSK Form A'. Zuordnung laut Maßbild: D1 → d_spann; L1 (Stirn bis HSK-Planfläche = Messebene) → a; D2 (vorderer zylindrischer Schaft) → d_nase; L2 (Stirn bis Absatz auf D21) → l_nase; D21 (Körper hinter dem Absatz) → d_koerper; L9 (Einspannlänge laut Maßbild) → spanntiefe. V = 10 (Verstellweg) nicht übernommen. Kein kegel angegeben (vorne nur eine Fase). Artikel = 'catalog number', Link = Kennametal-Produktseite zur 'order number'. Stand 2013; Verfügbarkeit heute nicht geprüft.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "HSK63AHC06080M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245440.html",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 25.7,
+      "d_koerper": 50,
+      "l_nase": 33,
+      "spanntiefe": 27
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "HSK63AHC08080M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245441.html",
+     "masse": {
+      "d_spann": 8,
+      "a": 80,
+      "d_nase": 27.7,
+      "d_koerper": 50,
+      "l_nase": 34,
+      "spanntiefe": 27
+     }
+    },
+    {
+     "name": "d10 A85",
+     "artikel": "HSK63AHC10085M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245477.html",
+     "masse": {
+      "d_spann": 10,
+      "a": 85,
+      "d_nase": 29.7,
+      "d_koerper": 50,
+      "l_nase": 39,
+      "spanntiefe": 31
+     }
+    },
+    {
+     "name": "d12 A90",
+     "artikel": "HSK63AHC12090M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245478.html",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 31.6,
+      "d_koerper": 50,
+      "l_nase": 45,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d14 A90",
+     "artikel": "HSK63AHC14090M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245479.html",
+     "masse": {
+      "d_spann": 14,
+      "a": 90,
+      "d_nase": 33.6,
+      "d_koerper": 50,
+      "l_nase": 46,
+      "spanntiefe": 36
+     }
+    },
+    {
+     "name": "d16 A95",
+     "artikel": "HSK63AHC16095M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245480.html",
+     "masse": {
+      "d_spann": 16,
+      "a": 95,
+      "d_nase": 37.6,
+      "d_koerper": 50,
+      "l_nase": 52,
+      "spanntiefe": 39
+     }
+    },
+    {
+     "name": "d18 A95",
+     "artikel": "HSK63AHC18095M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245481.html",
+     "masse": {
+      "d_spann": 18,
+      "a": 95,
+      "d_nase": 39.6,
+      "d_koerper": 50,
+      "l_nase": 52,
+      "spanntiefe": 39
+     }
+    },
+    {
+     "name": "d20 A100",
+     "artikel": "HSK63AHC20100M",
+     "link": "https://www.kennametal.com/us/en/products/p.1191019.html",
+     "masse": {
+      "d_spann": 20,
+      "a": 100,
+      "d_nase": 41.6,
+      "d_koerper": 50,
+      "l_nase": 58,
+      "spanntiefe": 41
+     }
+    },
+    {
+     "name": "d25 A120",
+     "artikel": "HSK63AHC25120M",
+     "link": "https://www.kennametal.com/us/en/products/p.1245482.html",
+     "masse": {
+      "d_spann": 25,
+      "a": 120,
+      "d_nase": 49.8,
+      "d_koerper": 63,
+      "l_nase": 51,
+      "spanntiefe": 47
+     }
+    },
+    {
+     "name": "d32 A125",
+     "artikel": "HSK63AHC32125M",
+     "link": "https://www.kennametal.com/us/en/products/p.1192226.html",
+     "masse": {
+      "d_spann": 32,
+      "a": 125,
+      "d_nase": 59.8,
+      "d_koerper": 63,
+      "l_nase": 59,
+      "spanntiefe": 51
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Kennametal",
+   "titel": "HPMC Hochleistungs-Fräsfutter HSK-A63 (Erickson)",
+   "typ": "kraftspann",
+   "aufnahme": "HSK-A63",
+   "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
+   "quelle": "Kennametal Tooling Systems 2013 Master Catalog, Abschnitt HSK63A Shank Tools (https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947), Katalogseite C56 (PDF-Seite 77), Tabelle 'HPMC MM-HSK Form A'. Zuordnung laut Maßbild: D1 → d_spann; L1 (Stirn bis HSK-Planfläche) → a; D11 (Außendurchmesser der Spannmutter, größter Durchmesser vorn) → d_nase; L9 (Einspannlänge) → spanntiefe. Länge der Mutter (l_nase) und Körperdurchmesser sind in der Tabelle nicht angegeben. Nur zwei metrische Größen im Katalog. Stand 2013.",
+   "groessen": [
+    {
+     "name": "d20 A110",
+     "artikel": "HSK63AHPMC20110M",
+     "link": "https://www.kennametal.com/us/en/products/p.3100547.html",
+     "masse": {
+      "d_spann": 20,
+      "a": 110,
+      "d_nase": 53,
+      "spanntiefe": 56
+     }
+    },
+    {
+     "name": "d32 A120",
+     "artikel": "HSK63AHPMC32120M",
+     "link": "https://www.kennametal.com/us/en/products/p.3100548.html",
+     "masse": {
+      "d_spann": 32,
+      "a": 120,
+      "d_nase": 70,
+      "spanntiefe": 66
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Sandvik Coromant",
+   "titel": "CoroChuck 930 HSK-A63 (S schlank, HD)",
+   "typ": "hydro",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-S-06-074A",
+   "quelle": "Sandvik-Coromant-Produktdaten (ISO 13399) je Artikel, gelesen über die JSON-Schnittstelle, die die Produktseite selbst lädt (/api/productsearch/product?id=<ISO-Code>&unitOfMeasurement=Metric; Seite: product-details?c=<Code>), Stand 2026-10-31. a = LF (Funktionslänge ab Bezugsebene der Kupplung: HSK-Plananlage). Kontur je Artikel: Abschnitt i reicht bis LB_i ab Stirn mit Ø BD_i; Abschnitt 1 ist ein kurzer Kegel mit Halbwinkel BHTA_1 von BD_1 (Stirn) auf BD_2 – nachgerechnet: d12: 28 + 2·11,3·tan10° = 32,0. Zuordnung (gewählt, nicht vom Hersteller): d_nase = BD_2 (Ø des schlanken Teils, BD_1 an der Stirn ist kleiner), l_nase = LB_2, d_koerper = BD_3 nur wenn ein 4. Abschnitt (Flansch) folgt; bei HD (nur 2 Abschnitte) reicht BD_2 bis zur Kupplung. Kein kegel eingetragen, weil der Kegel nur die ersten 11–19 mm betrifft – die Rohwerte stehen je Größe unter 'iso13399'. artikel = ISO-Bestellcode wie auf der Seite. spanntiefe nicht in den Daten.",
+   "groessen": [
+    {
+     "name": "S d6 A74",
+     "artikel": "930-HA06-S-06-074A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-S-06-074A",
+     "masse": {
+      "d_spann": 6.0,
+      "a": 74.0,
+      "d_nase": 26.0,
+      "l_nase": 30.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d8 A74",
+     "artikel": "930-HA06-S-08-074A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-S-08-074A",
+     "masse": {
+      "d_spann": 8.0,
+      "a": 74.0,
+      "d_nase": 28.0,
+      "l_nase": 30.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d10 A80",
+     "artikel": "930-HA06-S-10-080A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-S-10-080A",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 80.0,
+      "d_nase": 30.0,
+      "l_nase": 34.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d12 A90",
+     "artikel": "930-HA06-S-12-090A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-S-12-090A",
+     "masse": {
+      "d_spann": 12.0,
+      "a": 90.0,
+      "d_nase": 32.0,
+      "l_nase": 38.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d20 A100",
+     "artikel": "930-HA06-S-20-100A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-S-20-100A",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 100.0,
+      "d_nase": 42.0,
+      "l_nase": 49.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d25 A108",
+     "artikel": "930-HA06-S-25-108A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-S-25-108A",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 108.0,
+      "d_nase": 50.0,
+      "l_nase": 81.1
+     }
+    },
+    {
+     "name": "HD d20 A104",
+     "artikel": "930-HA06-HD-20-104A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-HD-20-104A",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 104.0,
+      "d_nase": 55.0,
+      "l_nase": 78.0
+     }
+    },
+    {
+     "name": "HD d25 A110",
+     "artikel": "930-HA06-HD-25-110A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-HD-25-110A",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 110.0,
+      "d_nase": 65.0,
+      "l_nase": 110.0
+     }
+    },
+    {
+     "name": "HD d32 A112",
+     "artikel": "930-HA06-HD-32-112A",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-HA06-HD-32-112A",
+     "masse": {
+      "d_spann": 32.0,
+      "a": 112.0,
+      "d_nase": 76.0,
+      "l_nase": 112.0
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Sandvik Coromant",
+   "titel": "CoroChuck 930 SK40 (ISO 7388-1, S schlank, HD)",
+   "typ": "hydro",
+   "aufnahme": "SK40",
+   "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-S-06-068",
+   "quelle": "Sandvik-Coromant-Produktdaten (ISO 13399) je Artikel, gelesen über die JSON-Schnittstelle, die die Produktseite selbst lädt (/api/productsearch/product?id=<ISO-Code>&unitOfMeasurement=Metric; Seite: product-details?c=<Code>), Stand 2026-10-31. a = LF (Funktionslänge ab Bezugsebene der Kupplung: Bezugsebene des Steilkegels ISO 7388-1, der Flansch erscheint als BD_4 = 63,5). Kontur je Artikel: Abschnitt i reicht bis LB_i ab Stirn mit Ø BD_i; Abschnitt 1 ist ein kurzer Kegel mit Halbwinkel BHTA_1 von BD_1 (Stirn) auf BD_2 – nachgerechnet: d12: 28 + 2·11,3·tan10° = 32,0. Zuordnung (gewählt, nicht vom Hersteller): d_nase = BD_2 (Ø des schlanken Teils, BD_1 an der Stirn ist kleiner), l_nase = LB_2, d_koerper = BD_3 nur wenn ein 4. Abschnitt (Flansch) folgt; bei HD (nur 2 Abschnitte) reicht BD_2 bis zur Kupplung. Kein kegel eingetragen, weil der Kegel nur die ersten 11–19 mm betrifft – die Rohwerte stehen je Größe unter 'iso13399'. artikel = ISO-Bestellcode wie auf der Seite. spanntiefe nicht in den Daten.",
+   "groessen": [
+    {
+     "name": "S d6 A68",
+     "artikel": "930-I40-S-06-068",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-S-06-068",
+     "masse": {
+      "d_spann": 6.0,
+      "a": 68.0,
+      "d_nase": 26.0,
+      "l_nase": 30.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d8 A68",
+     "artikel": "930-I40-S-08-068",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-S-08-068",
+     "masse": {
+      "d_spann": 8.0,
+      "a": 68.0,
+      "d_nase": 28.0,
+      "l_nase": 30.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d10 A72",
+     "artikel": "930-I40-S-10-072",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-S-10-072",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 72.0,
+      "d_nase": 30.0,
+      "l_nase": 34.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d12 A80",
+     "artikel": "930-I40-S-12-080",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-S-12-080",
+     "masse": {
+      "d_spann": 12.0,
+      "a": 80.0,
+      "d_nase": 32.0,
+      "l_nase": 38.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d20 A90",
+     "artikel": "930-I40-S-20-090",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-S-20-090",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 90.0,
+      "d_nase": 42.0,
+      "l_nase": 49.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d25 A95",
+     "artikel": "930-I40-S-25-095",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-S-25-095",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 95.0,
+      "d_nase": 50.0,
+      "l_nase": 75.0
+     }
+    },
+    {
+     "name": "HD d20 A97",
+     "artikel": "930-I40-HD-20-097",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-HD-20-097",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 97.0,
+      "d_nase": 55.0,
+      "l_nase": 77.9
+     }
+    },
+    {
+     "name": "HD d25 A103",
+     "artikel": "930-I40-HD-25-103",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-I40-HD-25-103",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 103.0,
+      "d_nase": 65.0,
+      "l_nase": 103.0
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Sandvik Coromant",
+   "titel": "CoroChuck 930 BT40 (MAS-BT 403, S schlank, HD)",
+   "typ": "hydro",
+   "aufnahme": "BT40",
+   "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-S-06-075",
+   "quelle": "Sandvik-Coromant-Produktdaten (ISO 13399) je Artikel, gelesen über die JSON-Schnittstelle, die die Produktseite selbst lädt (/api/productsearch/product?id=<ISO-Code>&unitOfMeasurement=Metric; Seite: product-details?c=<Code>), Stand 2026-10-31. a = LF (Funktionslänge ab Bezugsebene der Kupplung: Bezugsebene MAS-BT). Kontur je Artikel: Abschnitt i reicht bis LB_i ab Stirn mit Ø BD_i; Abschnitt 1 ist ein kurzer Kegel mit Halbwinkel BHTA_1 von BD_1 (Stirn) auf BD_2 – nachgerechnet: d12: 28 + 2·11,3·tan10° = 32,0. Zuordnung (gewählt, nicht vom Hersteller): d_nase = BD_2 (Ø des schlanken Teils, BD_1 an der Stirn ist kleiner), l_nase = LB_2, d_koerper = BD_3 nur wenn ein 4. Abschnitt (Flansch) folgt; bei HD (nur 2 Abschnitte) reicht BD_2 bis zur Kupplung. Kein kegel eingetragen, weil der Kegel nur die ersten 11–19 mm betrifft – die Rohwerte stehen je Größe unter 'iso13399'. artikel = ISO-Bestellcode wie auf der Seite. spanntiefe nicht in den Daten.",
+   "groessen": [
+    {
+     "name": "S d6 A75",
+     "artikel": "930-B40-S-06-075",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-S-06-075",
+     "masse": {
+      "d_spann": 6.0,
+      "a": 75.0,
+      "d_nase": 26.0,
+      "l_nase": 30.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d8 A75",
+     "artikel": "930-B40-S-08-075",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-S-08-075",
+     "masse": {
+      "d_spann": 8.0,
+      "a": 75.0,
+      "d_nase": 28.0,
+      "l_nase": 30.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d10 A80",
+     "artikel": "930-B40-S-10-080",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-S-10-080",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 80.0,
+      "d_nase": 30.0,
+      "l_nase": 34.2,
+      "d_koerper": 40.0
+     }
+    },
+    {
+     "name": "S d12 A85",
+     "artikel": "930-B40-S-12-085",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-S-12-085",
+     "masse": {
+      "d_spann": 12.0,
+      "a": 85.0,
+      "d_nase": 32.0,
+      "l_nase": 38.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d20 A94",
+     "artikel": "930-B40-S-20-094",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-S-20-094",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 94.0,
+      "d_nase": 42.0,
+      "l_nase": 49.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d25 A102",
+     "artikel": "930-B40-S-25-102",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-S-25-102",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 102.0,
+      "d_nase": 50.0,
+      "l_nase": 74.0
+     }
+    },
+    {
+     "name": "HD d20 A88",
+     "artikel": "930-B40-HD-20-088",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-HD-20-088",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 88.0,
+      "d_nase": 55.0,
+      "l_nase": 61.0
+     }
+    },
+    {
+     "name": "HD d25 A94",
+     "artikel": "930-B40-HD-25-094",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-B40-HD-25-094",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 94.0,
+      "d_nase": 65.0,
+      "l_nase": 94.0
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Sandvik Coromant",
+   "titel": "CoroChuck 930 Coromant Capto C6 (S schlank, HD)",
+   "typ": "hydro",
+   "aufnahme": "Capto C6",
+   "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-S-06-074",
+   "quelle": "Sandvik-Coromant-Produktdaten (ISO 13399) je Artikel, gelesen über die JSON-Schnittstelle, die die Produktseite selbst lädt (/api/productsearch/product?id=<ISO-Code>&unitOfMeasurement=Metric; Seite: product-details?c=<Code>), Stand 2026-10-31. a = LF (Funktionslänge ab Bezugsebene der Kupplung: Capto-Plananlage). Kontur je Artikel: Abschnitt i reicht bis LB_i ab Stirn mit Ø BD_i; Abschnitt 1 ist ein kurzer Kegel mit Halbwinkel BHTA_1 von BD_1 (Stirn) auf BD_2 – nachgerechnet: d12: 28 + 2·11,3·tan10° = 32,0. Zuordnung (gewählt, nicht vom Hersteller): d_nase = BD_2 (Ø des schlanken Teils, BD_1 an der Stirn ist kleiner), l_nase = LB_2, d_koerper = BD_3 nur wenn ein 4. Abschnitt (Flansch) folgt; bei HD (nur 2 Abschnitte) reicht BD_2 bis zur Kupplung. Kein kegel eingetragen, weil der Kegel nur die ersten 11–19 mm betrifft – die Rohwerte stehen je Größe unter 'iso13399'. artikel = ISO-Bestellcode wie auf der Seite. spanntiefe nicht in den Daten.",
+   "groessen": [
+    {
+     "name": "S d6 A74",
+     "artikel": "930-C6-S-06-074",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-S-06-074",
+     "masse": {
+      "d_spann": 6.0,
+      "a": 74.0,
+      "d_nase": 26.0,
+      "l_nase": 30.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d8 A76",
+     "artikel": "930-C6-S-08-076",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-S-08-076",
+     "masse": {
+      "d_spann": 8.0,
+      "a": 76.0,
+      "d_nase": 28.0,
+      "l_nase": 32.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d10 A78",
+     "artikel": "930-C6-S-10-078",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-S-10-078",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 78.0,
+      "d_nase": 30.0,
+      "l_nase": 34.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d12 A82",
+     "artikel": "930-C6-S-12-082",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-S-12-082",
+     "masse": {
+      "d_spann": 12.0,
+      "a": 82.0,
+      "d_nase": 32.0,
+      "l_nase": 38.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d20 A91",
+     "artikel": "930-C6-S-20-091",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-S-20-091",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 91.0,
+      "d_nase": 42.0,
+      "l_nase": 49.2,
+      "d_koerper": 50.0
+     }
+    },
+    {
+     "name": "S d25 A98",
+     "artikel": "930-C6-S-25-098",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-S-25-098",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 98.0,
+      "d_nase": 50.0,
+      "l_nase": 72.1
+     }
+    },
+    {
+     "name": "HD d20 A84",
+     "artikel": "930-C6-HD-20-084",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-HD-20-084",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 84.0,
+      "d_nase": 55.0,
+      "l_nase": 59.0
+     }
+    },
+    {
+     "name": "HD d25 A87",
+     "artikel": "930-C6-HD-25-087",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-HD-25-087",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 87.0,
+      "d_nase": 65.0,
+      "l_nase": 87.0
+     }
+    },
+    {
+     "name": "HD d32 A91",
+     "artikel": "930-C6-HD-32-091",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=930-C6-HD-32-091",
+     "masse": {
+      "d_spann": 32.0,
+      "a": 91.0,
+      "d_nase": 76.0,
+      "l_nase": 91.0
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Sandvik Coromant",
+   "titel": "Schrumpffutter Coromant Capto C6 (C6-391.19)",
+   "typ": "schrumpf",
+   "aufnahme": "Capto C6",
+   "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-06%20080",
+   "quelle": "Sandvik-Coromant-Produktdaten (ISO 13399) je Artikel über die JSON-Schnittstelle der Produktseite (wie CoroChuck 930), Stand 2026-10-31. a = LF ab Capto-Plananlage. Kontur: Abschnitt 1 Kegel BHTA_1 = 4,5° von BD_1 (Stirn) bis LB_1 auf BD_2 (nachgerechnet d6: 20 + 2·44,1·tan4,5° = 26,9 ≈ 27), dann Ø BD_2 bis LB_2, dann BD_3 = 63 (Capto-Körper) bis LF. Zuordnung: d_nase = BD_1, kegel = BHTA_1, l_nase = LB_1, d_koerper = BD_2. Rohwerte je Größe unter 'iso13399'. spanntiefe nicht in den Daten.",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "C6-391.19-06 080",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-06%20080",
+     "masse": {
+      "d_spann": 6.0,
+      "a": 80.0,
+      "d_nase": 20.0,
+      "kegel": 4.5,
+      "l_nase": 44.1,
+      "d_koerper": 27.0
+     }
+    },
+    {
+     "name": "d8 A80",
+     "artikel": "C6-391.19-08 080",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-08%20080",
+     "masse": {
+      "d_spann": 8.0,
+      "a": 80.0,
+      "d_nase": 20.0,
+      "kegel": 4.5,
+      "l_nase": 44.1,
+      "d_koerper": 27.0
+     }
+    },
+    {
+     "name": "d10 A80",
+     "artikel": "C6-391.19-10 080",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-10%20080",
+     "masse": {
+      "d_spann": 10.0,
+      "a": 80.0,
+      "d_nase": 24.0,
+      "kegel": 4.5,
+      "l_nase": 50.5,
+      "d_koerper": 32.0
+     }
+    },
+    {
+     "name": "d12 A80",
+     "artikel": "C6-391.19-12 080",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-12%20080",
+     "masse": {
+      "d_spann": 12.0,
+      "a": 80.0,
+      "d_nase": 24.0,
+      "kegel": 4.5,
+      "l_nase": 50.5,
+      "d_koerper": 32.0
+     }
+    },
+    {
+     "name": "d14 A85",
+     "artikel": "C6-391.19-14 085",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-14%20085",
+     "masse": {
+      "d_spann": 14.0,
+      "a": 85.0,
+      "d_nase": 27.0,
+      "kegel": 4.5,
+      "l_nase": 44.1,
+      "d_koerper": 34.0
+     }
+    },
+    {
+     "name": "d16 A85",
+     "artikel": "C6-391.19-16 085",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-16%20085",
+     "masse": {
+      "d_spann": 16.0,
+      "a": 85.0,
+      "d_nase": 27.0,
+      "kegel": 4.5,
+      "l_nase": 44.1,
+      "d_koerper": 34.0
+     }
+    },
+    {
+     "name": "d18 A85",
+     "artikel": "C6-391.19-18 085",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-18%20085",
+     "masse": {
+      "d_spann": 18.0,
+      "a": 85.0,
+      "d_nase": 33.0,
+      "kegel": 4.5,
+      "l_nase": 56.9,
+      "d_koerper": 42.0
+     }
+    },
+    {
+     "name": "d20 A85",
+     "artikel": "C6-391.19-20 085",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-20%20085",
+     "masse": {
+      "d_spann": 20.0,
+      "a": 85.0,
+      "d_nase": 33.0,
+      "kegel": 4.5,
+      "l_nase": 56.9,
+      "d_koerper": 42.0
+     }
+    },
+    {
+     "name": "d25 A90",
+     "artikel": "C6-391.19-25 090",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-25%20090",
+     "masse": {
+      "d_spann": 25.0,
+      "a": 90.0,
+      "d_nase": 44.0,
+      "kegel": 4.5,
+      "l_nase": 56.9,
+      "d_koerper": 53.0
+     }
+    },
+    {
+     "name": "d32 A95",
+     "artikel": "C6-391.19-32 095",
+     "link": "https://www.sandvik.coromant.com/en-gb/product-details?c=C6-391.19-32%20095",
+     "masse": {
+      "d_spann": 32.0,
+      "a": 95.0,
+      "d_nase": 44.0,
+      "kegel": 4.5,
+      "l_nase": 56.9,
+      "d_koerper": 53.0
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "Schrumpffutter SK 40 kurz",
+   "typ": "schrumpf",
+   "aufnahme": "SK40",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-3",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/302235-<d> (je Größe eine Seite, Rohtabelle 'technical-data-cell'). Zuordnung nach der Maßzeichnung dxf_CAD_302235_6.jpg: 'Durchmesser außen 2 werkzeugseitig D2' = Ø an der Stirn → d_nase; 'Durchmesser außen werkzeugseitig D' = Ø am hinteren Kegelende/zylindrischer Körper → d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. kegel 4.5 abgeleitet: in der Zeichnung d6 geht der Kegel über 38,12 mm von Ø21 auf Ø27 → atan(3/38,12) = 4,5°; l_nase 38.12 (Kegellänge) nur bei d6 aus der Zeichnung gelesen. Keine Spanntiefe angegeben. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "d6 A80",
+     "artikel": "302235 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302235-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 80,
+      "d_nase": 21,
+      "d_koerper": 27,
+      "kegel": 4.5,
+      "l_nase": 38.12
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "Schrumpffutter HSK-A 63 kurz",
+   "typ": "schrumpf",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-3",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/308170-<d>; 'Kegelwinkel 4,5 Grad' steht auf den Seiten. D2 → d_nase (Stirn), D → d_koerper (Kegelende), geprüft an dxf_CAD_308170_12.jpg. A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). l_nase 50.82 (Kegellänge) nur bei d12 aus der Zeichnung gelesen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "d12 A90",
+     "artikel": "308170 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/308170-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "l_nase": 50.82
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "Schrumpffutter BT 40 kurz (Form ADB)",
+   "typ": "schrumpf",
+   "aufnahme": "BT40",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-3",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/303410-<d>. D2 → d_nase (Stirn), D → d_koerper, geprüft an dxf_CAD_303410_12.jpg. A in der Zeichnung von der Planfläche des BT-Bunds (Kegelende) bis zur Stirn. kegel 4.5 abgeleitet: d12 Kegel über 50,82 mm von Ø24 auf Ø32 → atan(4/50,82) = 4,5°; l_nase 50.82 nur bei d12 aus der Zeichnung. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "d12 A90",
+     "artikel": "303410 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/303410-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 90,
+      "d_nase": 24,
+      "d_koerper": 32,
+      "kegel": 4.5,
+      "l_nase": 50.82
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "Hydrodehn-Spannfutter kurz, schlank SK 40 (Form ADB)",
+   "typ": "hydro",
+   "aufnahme": "SK40",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-6",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/302038-<d>. Zuordnung nach dxf_CAD_302038_12.jpg: D2 = Ø der schlanken Nase → d_nase (vorn auf 17,1 mm leicht verjüngt auf Ø26,4 bei d12), D = Körper-Ø → d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. l_nase 40 (zylindrische Nase) nur bei d12 aus der Zeichnung gelesen. Keine Spanntiefe angegeben. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "d12 A80.5",
+     "artikel": "302038 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/302038-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 80.5,
+      "d_nase": 32,
+      "d_koerper": 49.5,
+      "l_nase": 40
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "Hydrodehn-Spannfutter kurz, schlank HSK-A 63",
+   "typ": "hydro",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-6",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/307512-<d>. Zuordnung nach dxf_CAD_307512_12.jpg: D2 = Ø der Nase → d_nase, D = Körper-Ø → d_koerper (Körper bei d12 59 mm ab Stirn). A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). l_nase 40 nur bei d12 aus der Zeichnung gelesen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "d12 A85",
+     "artikel": "307512 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/307512-12",
+     "masse": {
+      "d_spann": 12,
+      "a": 85,
+      "d_nase": 32,
+      "d_koerper": 50,
+      "l_nase": 40
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "Flächenspannfutter (Weldon) SK 40 kurz (Form ADB)",
+   "typ": "weldon",
+   "aufnahme": "SK40",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-6",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/300100-<d>. Laut dxf_CAD_300100_12.jpg ist der Körper ein Zylinder mit Ø D bis zur Stirn (vorn Fase auf Ø30 über 12,87 mm bei d12) → D als d_nase, kein d_koerper. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "d6 A50",
+     "artikel": "300100 6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300100-6",
+     "masse": {
+      "d_spann": 6,
+      "a": 50,
+      "d_nase": 25
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "ER-Spannzangenfutter SK 40 A = 70 (Form ADB)",
+   "typ": "spannzange",
+   "aufnahme": "SK40",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/300470-16",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/300470-<ER-Größe>. d_spann = 'Spanndurchmesser max. D1' (Spannbereich der Zange), d_nase = 'Durchmesser außen werkzeugseitig D' = Ø der Spannmutter. A = Auskraglänge laut Shop, in der Maßzeichnung von der kegelseitigen Planfläche des SK-Bunds bis zur Stirn. Nur bei ER32 aus der Zeichnung dxf_CAD_300470_32.jpg: Mutterlänge 23 → l_nase, Körper-Ø 48 dahinter → d_koerper. Die Reihe hat je Größe eine andere Spannzange; 'spannzange' auf Reihenebene = größte, je Größe im Namen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "ER32 A70",
+     "artikel": "300470 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/300470-32",
+     "masse": {
+      "d_spann": 20,
+      "a": 70,
+      "d_nase": 50,
+      "l_nase": 23,
+      "d_koerper": 48
+     },
+     "spannzange": "ER32"
+    }
+   ],
+   "spannzange": "ER16–ER40"
+  },
+  {
+   "hersteller": "Hoffmann GARANT",
+   "titel": "ER-Spannzangenfutter HSK-A 63 lang",
+   "typ": "spannzange",
+   "aufnahme": "HSK-A63",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/305390-16",
+   "quelle": "Technische Daten der Hoffmann-Produktseiten /DE/de/hom/p/305390-<ER-Größe>. d_spann = 'Spanndurchmesser max. D1' (Spannbereich der Zange), d_nase = 'Durchmesser außen werkzeugseitig D' = Ø der Spannmutter. A = Auskraglänge laut Shop, in der Maßzeichnung von der HSK-Plananlage bis zur Stirn (L gesamt − A = 32 = HSK-Schaft). Nur bei ER32 aus der Zeichnung dxf_CAD_305390_32.jpg: Mutterlänge 23 → l_nase, Körper-Ø 48 dahinter → d_koerper. Die Reihe hat je Größe eine andere Spannzange; 'spannzange' auf Reihenebene = größte, je Größe im Namen. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "ER32 A100",
+     "artikel": "305390 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/305390-32",
+     "masse": {
+      "d_spann": 20,
+      "a": 100,
+      "d_nase": 50,
+      "l_nase": 23,
+      "d_koerper": 48
+     },
+     "spannzange": "ER32"
+    }
+   ],
+   "spannzange": "ER16–ER40"
+  }
+ ]
+}

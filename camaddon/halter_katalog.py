@@ -10,8 +10,9 @@ Je Größe nennt der Katalog die Maße, aus denen die Kontur folgt (mm):
 
 Die Kontur von der Spindel zum Werkzeug: der Flansch der Aufnahme (halter.AUFNAHMEN, wie bei den
 Normreihen), der Körper, vorn die Nase – beim Schrumpffutter ein Kegel, beim Spannzangenfutter die
-Mutter. Fehlt ein Maß, gilt das der Normreihe derselben Größe; die Bezeichnung sagt dann, dass die
-Kontur zum Teil geschätzt ist. Läuft ohne Oberfläche.
+Mutter; nennt der Katalog einen Kegel, ist die Nase bei jedem Typ ein Kegel (schlanke
+Spannzangenfutter). Fehlt ein Maß, gilt das der Normreihe derselben Größe; die Bezeichnung sagt
+dann, dass die Kontur zum Teil geschätzt ist. Läuft ohne Oberfläche.
 """
 
 import math
@@ -91,7 +92,7 @@ def abschnitte(typ, aufnahme, masse):
     a = masse.get("a", 100.0)
     rest = max(a - flansch_l, 1.0)
     teile = [hl.Abschnitt(flansch_l, flansch_d, flansch_d, hl.FLANSCH)]
-    if typ == SCHRUMPF:
+    if typ == SCHRUMPF or "kegel" in masse:  # auch schlanke Spannzangenfutter (Mega Micro)
         steigung = 2.0 * math.tan(math.radians(masse.get("kegel", KEGEL)))
         kegel_l = masse.get("l_nase") or (d_koerper - d_nase) / max(steigung, 1e-6)
         kegel_l = min(kegel_l, rest - 1.0) if rest > 2.0 else rest / 2

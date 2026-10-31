@@ -684,7 +684,9 @@ def aus_katalog(reihe, groesse):
     Beispielwert der Art, und die Quelle sagt welche."""
     masse = {_ANDERE_NAMEN.get(k, k): v for k, v in groesse["masse"].items()}
     if "hoehe" not in masse and "koerperhoehe" in masse and reihe.art in (SCHRAUBSTOCK, ZENTRISCH):
-        masse["hoehe"] = masse["koerperhoehe"] + masse.get("backenhoehe", 0.0)
+        # ohne Backenhöhe mit der Beispiel-Backenhöhe – die Quelle nennt sie dann als geschätzt
+        backen = masse.get("backenhoehe", dict(FELDER[reihe.art])["backenhoehe"])
+        masse["hoehe"] = masse["koerperhoehe"] + backen
     felder = dict(FELDER[reihe.art])
     if reihe.art == NULLPUNKT and "laenge" in masse and "durchmesser" not in masse:
         masse["durchmesser"] = 0.0  # eckig
@@ -698,7 +700,7 @@ def aus_katalog(reihe, groesse):
         ).strip()
     return Spannmittel(
         art=reihe.art,
-        name=f"{reihe.hersteller} {groesse['name']}".strip(),
+        name=_name(reihe.hersteller, groesse["name"]),
         hersteller=reihe.hersteller,
         bezeichnung=reihe.titel,
         artikel=groesse["artikel"],
@@ -706,6 +708,13 @@ def aus_katalog(reihe, groesse):
         quelle=quelle,
         masse={f: masse.get(f, wert) for f, wert in felder.items()},
     )
+
+
+def _name(hersteller, name):
+    """„Gressel C2 125“ – ohne den Hersteller doppelt, wenn die Größe ihn schon nennt."""
+    if not hersteller or name.lower().startswith(hersteller.lower().split()[0]):
+        return name
+    return f"{hersteller} {name}"
 
 
 def katalog_hinzufuegen(sammlung, auswahl):

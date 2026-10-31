@@ -1,0 +1,2489 @@
+{
+ "reihen": [
+  {
+   "hersteller": "5th Axis",
+   "titel": "Self-Centering Vises X-Serie (RockLock 52)",
+   "art": "zentrisch",
+   "link": "https://5thaxis.com/product-category/x-series-self-centering-vises",
+   "quelle": "5thaxis.com Produktseiten, Abschnitt 'Specs': 'Size' (Breite x Länge x Höhe in mm), 'Jaw Width', 'Clamping Range (Jaws Forward)' und '(Jaws Reversed)' – spannweite_min = Anfang vorwärts, spannweite_max = Ende umgedreht. V75100X 'Step Height 0.1\"' = 2,54 mm (UMGERECHNET) als spanntiefe. V5275 'Weight 1.76 lb' = 0,8 kg (UMGERECHNET). Shipping Weight nicht übernommen. Höhe = Spanner ohne RockLock-Platte (Montage über Pull-Studs 52 mm).",
+   "groessen": [
+    {
+     "name": "V5275 Mini Vise",
+     "artikel": "V5275",
+     "link": "https://5thaxis.com/product/v5275/",
+     "masse": {
+      "backenbreite": 51.5,
+      "spannweite_min": 3.5,
+      "spannweite_max": 38.5,
+      "laenge": 75,
+      "breite": 52,
+      "hoehe": 38,
+      "gewicht": 0.8
+     }
+    },
+    {
+     "name": "V75100X",
+     "artikel": "V75100X",
+     "link": "https://5thaxis.com/product/v75100x/",
+     "masse": {
+      "backenbreite": 75,
+      "spannweite_min": 0,
+      "spannweite_max": 76.3,
+      "laenge": 100,
+      "breite": 75,
+      "hoehe": 56,
+      "spanntiefe": 2.54
+     }
+    },
+    {
+     "name": "V75150X",
+     "artikel": "V75150X",
+     "link": "https://5thaxis.com/product/v75150x/",
+     "masse": {
+      "backenbreite": 75,
+      "spannweite_min": 0,
+      "spannweite_max": 128.8,
+      "laenge": 150,
+      "breite": 75,
+      "hoehe": 56
+     }
+    },
+    {
+     "name": "V562X",
+     "artikel": "V562X",
+     "link": "https://5thaxis.com/product/v562x/",
+     "masse": {
+      "backenbreite": 125.7,
+      "spannweite_min": 8.3,
+      "spannweite_max": 128,
+      "laenge": 152.4,
+      "breite": 125.7,
+      "hoehe": 73.6
+     }
+    },
+    {
+     "name": "V510X",
+     "artikel": "V510X",
+     "link": "https://5thaxis.com/product/v510x/",
+     "masse": {
+      "backenbreite": 125.7,
+      "spannweite_min": 8.3,
+      "spannweite_max": 234.7,
+      "laenge": 254,
+      "breite": 125.7,
+      "hoehe": 73.6
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Allmatic",
+   "titel": "TeleCentric Zentrischspanner",
+   "art": "zentrisch",
+   "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+   "quelle": "ALLMATIC-Katalog (allmatic.de, ALLMATIC_Katalog_kom1.pdf), Katalogseiten 10–11 'TeleCentric – Technische Daten'. Laut Zeichnung: a = Grundkörperlänge, b = Gesamthöhe (Tisch bis Backenoberkante), c = Höhe Unterteil, d/e = Breiten Unterteil, f = Backenbreite. breite = größere der Breiten d/e (70: d=100, e=94; 125: d=124,4, e=125). spannweite = Zeile 'Spannweite' (9-135 / 42-200 / 42-235); 'Spannweite maximal mit Trägerbacken' 142/207/244. Backenbreite aus Produktübersicht S. 2 (70/70/125). Katalog nennt zusätzlich 'Auflagehöhe des Werkstückes' 192 mm (70K/M) bzw. 202 mm (125) – widerspricht b; nicht übernommen.",
+   "groessen": [
+    {
+     "name": "TeleCentric 70 K",
+     "artikel": "6921548000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 70,
+      "spannweite_min": 9,
+      "spannweite_max": 135,
+      "laenge": 286,
+      "breite": 100,
+      "hoehe": 168.9,
+      "gewicht": 17.5
+     }
+    },
+    {
+     "name": "TeleCentric 70 M",
+     "artikel": "6921548000155",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 70,
+      "spannweite_min": 42,
+      "spannweite_max": 200,
+      "laenge": 351,
+      "breite": 100,
+      "hoehe": 168.9,
+      "gewicht": 19.5
+     }
+    },
+    {
+     "name": "TeleCentric 125",
+     "artikel": "6921558000155",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 42,
+      "spannweite_max": 235,
+      "laenge": 398,
+      "breite": 125,
+      "hoehe": 178.9,
+      "gewicht": 35
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Allmatic",
+   "titel": "NC8 Hochdruckspanner",
+   "art": "schraubstock",
+   "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+   "quelle": "ALLMATIC-Katalog S. 22–23 'NC8 – Technische Daten'. Zeichnung: a = Grundkörperlänge, b = Gesamtlänge, c = Grundkörperhöhe, d = Grundkörperbreite, h = Höhe bis Backenoberkante. spannweite_min/max aus S1 min. und 'Spannweite maximal'. backenhoehe ABGELEITET = h − c. Backenbreite = Baugröße.",
+   "groessen": [
+    {
+     "name": "NC8 90",
+     "artikel": "6921908000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 90,
+      "backenhoehe": 34,
+      "spannweite_min": 0,
+      "spannweite_max": 217,
+      "laenge": 283,
+      "breite": 90,
+      "hoehe": 114,
+      "koerperhoehe": 80,
+      "gewicht": 15
+     }
+    },
+    {
+     "name": "NC8 125 M",
+     "artikel": "6921918000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 39.5,
+      "spannweite_min": 0,
+      "spannweite_max": 313,
+      "laenge": 389,
+      "breite": 126,
+      "hoehe": 139.5,
+      "koerperhoehe": 100,
+      "gewicht": 35
+     }
+    },
+    {
+     "name": "NC8 125 L",
+     "artikel": "6921918010055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 39.5,
+      "spannweite_min": 0,
+      "spannweite_max": 445,
+      "laenge": 530,
+      "breite": 126,
+      "hoehe": 139.5,
+      "koerperhoehe": 100,
+      "gewicht": 43
+     }
+    },
+    {
+     "name": "NC8 160",
+     "artikel": "6921928000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 49.8,
+      "spannweite_min": 0,
+      "spannweite_max": 435,
+      "laenge": 530,
+      "breite": 164,
+      "hoehe": 164.8,
+      "koerperhoehe": 115,
+      "gewicht": 56
+     }
+    },
+    {
+     "name": "NC8 200",
+     "artikel": "6921928010055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 200,
+      "backenhoehe": 60,
+      "spannweite_min": 0,
+      "spannweite_max": 435,
+      "laenge": 530,
+      "breite": 164,
+      "hoehe": 175,
+      "koerperhoehe": 115,
+      "gewicht": 60
+     }
+    },
+    {
+     "name": "NC8 200 Heavy Duty",
+     "artikel": "6921938000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 200,
+      "backenhoehe": 60,
+      "spannweite_min": 0,
+      "spannweite_max": 435,
+      "laenge": 530,
+      "breite": 202,
+      "hoehe": 200,
+      "koerperhoehe": 140,
+      "gewicht": 85
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Allmatic",
+   "titel": "NC4 Hochdruckspanner",
+   "art": "schraubstock",
+   "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+   "quelle": "ALLMATIC-Katalog S. 21 'NC4 – Technische Daten' (a, b, c, d, h wie in der NC8-Zeichnung; Werte für 125 identisch mit NC8 125). backenhoehe ABGELEITET = h − c.",
+   "groessen": [
+    {
+     "name": "NC4 125",
+     "artikel": "6921118000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 39.5,
+      "spannweite_min": 0,
+      "spannweite_max": 230,
+      "laenge": 398.5,
+      "breite": 126,
+      "hoehe": 139.5,
+      "koerperhoehe": 100,
+      "gewicht": 30
+     }
+    },
+    {
+     "name": "NC4 160",
+     "artikel": "6921128000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 49.8,
+      "spannweite_min": 0,
+      "spannweite_max": 317,
+      "laenge": 530,
+      "breite": 164,
+      "hoehe": 164.8,
+      "koerperhoehe": 115,
+      "gewicht": 67
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Allmatic",
+   "titel": "TITAN 2 Grippspanner",
+   "art": "schraubstock",
+   "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+   "quelle": "ALLMATIC-Katalog S. 14–15 'TITAN 2 – Technische Daten'. Zeichnung: a = Grundkörperlänge, b = Gesamtlänge, c = Grundkörperhöhe, d = Grundkörperbreite. Keine Gesamthöhe und keine kleinste Spannweite angegeben. Backenbreite = Baugröße.",
+   "groessen": [
+    {
+     "name": "TITAN 2 125 K",
+     "artikel": "6921738000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 195,
+      "laenge": 280,
+      "breite": 126,
+      "koerperhoehe": 100,
+      "gewicht": 22
+     }
+    },
+    {
+     "name": "TITAN 2 125 M",
+     "artikel": "6921838000755",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 313,
+      "laenge": 398,
+      "breite": 126,
+      "koerperhoehe": 100,
+      "gewicht": 30
+     }
+    },
+    {
+     "name": "TITAN 2 125 L",
+     "artikel": "6921838000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 452,
+      "laenge": 530,
+      "breite": 126,
+      "koerperhoehe": 100,
+      "gewicht": 38
+     }
+    },
+    {
+     "name": "TITAN 2-160",
+     "artikel": "6921848000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "spannweite_max": 435,
+      "laenge": 530,
+      "breite": 164,
+      "koerperhoehe": 115,
+      "gewicht": 68
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Allmatic",
+   "titel": "CentroGripp Zentrischspanner",
+   "art": "zentrisch",
+   "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+   "quelle": "ALLMATIC-Katalog S. 18–19 'CentroGripp – Technische Daten' (Spannweite maximal 247, Gewicht 20,7 kg, Art.-Nr.) und Bildtafel 'Trägerbacken mit Grippeinsätzen': min. Spannweite 25 mm, max. 247 mm. laenge = Spalte 'Grundkörper' der Produktübersicht S. 2 (329; steht auch als Buchstabenmaß in der Tabelle). Weitere Buchstabenmaße (a 112, b 154, c 100 …) ohne lesbare Zeichnung NICHT zugeordnet; Höhe daher nicht angegeben.",
+   "groessen": [
+    {
+     "name": "CentroGripp 125",
+     "artikel": "6921538000055",
+     "link": "https://allmatic.de/wp-content/uploads/ALLMATIC_Katalog_kom1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 25,
+      "spannweite_max": 247,
+      "laenge": 329,
+      "gewicht": 20.7
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Gressel",
+   "titel": "C2 Zentrischspanner",
+   "art": "zentrisch",
+   "link": "https://www.penntoolco.com/content/Gressel-C2-Brochure.pdf",
+   "quelle": "Gressel-Prospekt 'C2 Zentrischspanner' (gehostet bei Penn Tool Co., https://www.penntoolco.com/content/Gressel-C2-Brochure.pdf), S. 9 (C2 125, mit Wendebacken grip) und S. 20 (C2 160 L-480 mit Wendebacken grip). Buchstaben laut Maßzeichnung S. 9: A = Backenbreite = Körperbreite, C = Grundkörperhöhe, D = Backenhöhe über Grundkörper, E = Gesamthöhe, G = Grundkörperlänge, Lmax = Länge inkl. Spindelende, H = Spannstufe (3 mm), B/B1/B2/B3 = Spannbereiche der Wendebacken-Stellungen; spannweite_min/max = kleinster/größter Wert aus B..B3 (Prospekt: 'Spannbereich C2 125 L-160 (0-163)'). laenge = G (Grundkörper), Lmax steht in laenge_hinweis. Gewicht inkl. 2 Wendebacken; beim C2 160 = 35 kg ohne Systembacken + 2 x 3,2 kg Wendebacken (nicht addiert, nur Grundkörper angegeben).",
+   "groessen": [
+    {
+     "name": "C2 125 L-160",
+     "artikel": "CGM.125.001.01",
+     "link": "https://www.penntoolco.com/content/Gressel-C2-Brochure.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 0,
+      "spannweite_max": 163,
+      "laenge": 160,
+      "breite": 125,
+      "hoehe": 83,
+      "koerperhoehe": 50,
+      "spanntiefe": 3,
+      "gewicht": 8.7
+     }
+    },
+    {
+     "name": "C2 125 L-300",
+     "artikel": "CGM.125.021.01",
+     "link": "https://www.penntoolco.com/content/Gressel-C2-Brochure.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 0,
+      "spannweite_max": 303,
+      "laenge": 300,
+      "breite": 125,
+      "hoehe": 83,
+      "koerperhoehe": 50,
+      "spanntiefe": 3,
+      "gewicht": 14.0
+     }
+    },
+    {
+     "name": "C2 160 L-480",
+     "artikel": "CGM.160.022.01 (Grundkörper) + 2x CGA.160.001.01 (Wendebacke grip)",
+     "link": "https://www.penntoolco.com/content/Gressel-C2-Brochure.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 50,
+      "spannweite_min": 16,
+      "spannweite_max": 461,
+      "laenge": 480,
+      "breite": 160,
+      "hoehe": 120,
+      "koerperhoehe": 70,
+      "spanntiefe": 3,
+      "gewicht": 35
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Gressel",
+   "titel": "C5X 5-Achs-Zentrischspanner (S/M/L)",
+   "art": "zentrisch",
+   "link": "https://www.gressel.ch/5-achs-zentrischspanner-c5x/",
+   "quelle": "Gressel-Prospekt https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf (Seiten 'C5X-S/-M/-L mit Wendebacken grip', Massetabelle und Bestelltabelle S. 21–22). Buchstaben wie im C2-Prospekt: A = Backenbreite, B/B1/B2/B3 = Spannbereiche der Backenstellungen (min = Anfang B, max = Ende B3), C = Grundkörperhöhe (= 'H' in der Typbeschreibung 142/181/252), D = Backenhöhe 33, E = Gesamthöhe (= C + D), G = Grundkörperlänge, I = 3 (Grip-Stufe, als spanntiefe). Gewicht = Grundkörper OHNE Systembacken (Wendebacke grip zusätzlich 1,1 kg je Stück, 2 Stück). Artikelnummern der Grundkörper je Zeile aus der Bestelltabelle. breite = Backenbreite (Körperbreite nicht separat genannt, ABGELEITET).",
+   "groessen": [
+    {
+     "name": "C5X-S L-320 mm",
+     "artikel": "C5M.125.001.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 211,
+      "laenge": 320,
+      "breite": 125,
+      "hoehe": 175,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 26.1
+     }
+    },
+    {
+     "name": "C5X-M L-320 mm",
+     "artikel": "C5M.125.021.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 211,
+      "laenge": 320,
+      "breite": 125,
+      "hoehe": 214,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 32
+     }
+    },
+    {
+     "name": "C5X-L L-320 mm",
+     "artikel": "C5M.125.041.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 211,
+      "laenge": 320,
+      "breite": 125,
+      "hoehe": 285,
+      "koerperhoehe": 252,
+      "spanntiefe": 3,
+      "gewicht": 42.6
+     }
+    },
+    {
+     "name": "C5X-S L-400 mm",
+     "artikel": "C5M.125.002.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 291,
+      "laenge": 400,
+      "breite": 125,
+      "hoehe": 175,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 29
+     }
+    },
+    {
+     "name": "C5X-M L-400 mm",
+     "artikel": "C5M.125.022.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 291,
+      "laenge": 400,
+      "breite": 125,
+      "hoehe": 214,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 35
+     }
+    },
+    {
+     "name": "C5X-L L-400 mm",
+     "artikel": "C5M.125.042.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 291,
+      "laenge": 400,
+      "breite": 125,
+      "hoehe": 285,
+      "koerperhoehe": 252,
+      "spanntiefe": 3,
+      "gewicht": 45.5
+     }
+    },
+    {
+     "name": "C5X-S L-500 mm",
+     "artikel": "C5M.125.003.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 391,
+      "laenge": 500,
+      "breite": 125,
+      "hoehe": 175,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 32.5
+     }
+    },
+    {
+     "name": "C5X-M L-500 mm",
+     "artikel": "C5M.125.023.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 391,
+      "laenge": 500,
+      "breite": 125,
+      "hoehe": 214,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 38.5
+     }
+    },
+    {
+     "name": "C5X-L L-500 mm",
+     "artikel": "C5M.125.043.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 391,
+      "laenge": 500,
+      "breite": 125,
+      "hoehe": 285,
+      "koerperhoehe": 252,
+      "spanntiefe": 3,
+      "gewicht": 49
+     }
+    },
+    {
+     "name": "C5X-S L-600 mm",
+     "artikel": "C5M.125.004.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 491,
+      "laenge": 600,
+      "breite": 125,
+      "hoehe": 175,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 36
+     }
+    },
+    {
+     "name": "C5X-M L-600 mm",
+     "artikel": "C5M.125.024.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 491,
+      "laenge": 600,
+      "breite": 125,
+      "hoehe": 214,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 42
+     }
+    },
+    {
+     "name": "C5X-L L-600 mm",
+     "artikel": "C5M.125.044.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 491,
+      "laenge": 600,
+      "breite": 125,
+      "hoehe": 285,
+      "koerperhoehe": 252,
+      "spanntiefe": 3,
+      "gewicht": 52.5
+     }
+    },
+    {
+     "name": "C5X-S L-800 mm",
+     "artikel": "C5M.125.005.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 691,
+      "laenge": 800,
+      "breite": 125,
+      "hoehe": 175,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 43.2
+     }
+    },
+    {
+     "name": "C5X-M L-800 mm",
+     "artikel": "C5M.125.025.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 691,
+      "laenge": 800,
+      "breite": 125,
+      "hoehe": 214,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 49.1
+     }
+    },
+    {
+     "name": "C5X-L L-800 mm",
+     "artikel": "C5M.125.045.01 (Grundkörper) + 2x CGA.125.001.01 (Wendebacke grip 3 mm)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2025/09/5-Achs-Zentrischspanner-C5X-1.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 33,
+      "spannweite_min": 10,
+      "spannweite_max": 691,
+      "laenge": 800,
+      "breite": 125,
+      "hoehe": 285,
+      "koerperhoehe": 252,
+      "spanntiefe": 3,
+      "gewicht": 59.7
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Gressel",
+   "titel": "SC5X 5-Achs-Spanner mechanisch (M-S / M)",
+   "art": "schraubstock",
+   "link": "https://www.gressel.ch/5-achs-spanner-sc5x/",
+   "quelle": "Gressel-Broschüre SC5X (https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf), Seiten 25–26 'SC5X-M-S / SC5X-M mit SWB Wendebacken grip 3 mm': Massetabelle A, B, B1, B2, B3, C, D, E, G, H, I und Bestelltabelle (Backenbreite, Gewicht, Bestell-Nr.). Buchstaben wie bei C2/C5X: C = Grundkörperhöhe (= 'H = 142/181' in der Bestelltabelle), D = Backenhöhe 27, E = Gesamthöhe (= C + D), G = Grundkörperlänge, I = 3 (grip-Stufe). spannweite = Anfang B bis Ende B3. Gewicht = Spanner OHNE Schnellwechselbacken (Wendebacke 125: 0,87 kg je Stück). Backen auch in 40/65/80 mm Breite lieferbar. breite = Backenbreite (ABGELEITET, Körperbreite nicht separat genannt).",
+   "groessen": [
+    {
+     "name": "SC5X-M-S L-330",
+     "artikel": "TMM.125.062.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 217,
+      "laenge": 330,
+      "breite": 125,
+      "hoehe": 169,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 26.1
+     }
+    },
+    {
+     "name": "SC5X-M L-330",
+     "artikel": "TMM.125.042.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 217,
+      "laenge": 330,
+      "breite": 125,
+      "hoehe": 208,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 32.1
+     }
+    },
+    {
+     "name": "SC5X-M-S L-430",
+     "artikel": "TMM.125.063.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 317,
+      "laenge": 430,
+      "breite": 125,
+      "hoehe": 169,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 29.1
+     }
+    },
+    {
+     "name": "SC5X-M L-430",
+     "artikel": "TMM.125.043.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 317,
+      "laenge": 430,
+      "breite": 125,
+      "hoehe": 208,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 35.1
+     }
+    },
+    {
+     "name": "SC5X-M-S L-500",
+     "artikel": "TMM.125.064.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 387,
+      "laenge": 500,
+      "breite": 125,
+      "hoehe": 169,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 31.1
+     }
+    },
+    {
+     "name": "SC5X-M L-500",
+     "artikel": "TMM.125.044.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 387,
+      "laenge": 500,
+      "breite": 125,
+      "hoehe": 208,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 37.2
+     }
+    },
+    {
+     "name": "SC5X-M-S L-630",
+     "artikel": "TMM.125.065.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 517,
+      "laenge": 630,
+      "breite": 125,
+      "hoehe": 169,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 34.8
+     }
+    },
+    {
+     "name": "SC5X-M L-630",
+     "artikel": "TMM.125.045.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 517,
+      "laenge": 630,
+      "breite": 125,
+      "hoehe": 208,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 40.8
+     }
+    },
+    {
+     "name": "SC5X-M-S L-800",
+     "artikel": "TMM.125.066.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 687,
+      "laenge": 800,
+      "breite": 125,
+      "hoehe": 169,
+      "koerperhoehe": 142,
+      "spanntiefe": 3,
+      "gewicht": 39.7
+     }
+    },
+    {
+     "name": "SC5X-M L-800",
+     "artikel": "TMM.125.046.01 (Grundkörper) + 2x TMA.125.101.11 (SWB Wendebacke grip 3 mm, Breite 125)",
+     "link": "https://www.gressel.ch/wp-content/uploads/2022/05/gressel_broschuere_SC5X_es_low.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 27,
+      "spannweite_min": 5,
+      "spannweite_max": 687,
+      "laenge": 800,
+      "breite": 125,
+      "hoehe": 208,
+      "koerperhoehe": 181,
+      "spanntiefe": 3,
+      "gewicht": 45.7
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Haas",
+   "titel": "Self-Centering Vise 5\" (130 mm)",
+   "art": "zentrisch",
+   "link": "https://www.haastooling.com/p/05-0004",
+   "quelle": "haastooling.com/p/05-0004 Spezifikation (metrisch): Jaw Width [JW] 125,0; Vise Opening [VO] 130,0; Inner Jaw Range [J1] 12,0–132,0; Outer Jaw Range [J3] 42,0–196,0; Overall Height 89,0; Overall Length 214,2; Body Length 210,0; Overall Width 126,0; Weight 12,7 kg; Body Height 57,0 (laut Suchtreffer-Auszug derselben Seite). spannweite_min/max = 12 (J1) bzw. 196 (J3) über beide Backenstellungen.",
+   "groessen": [
+    {
+     "name": "Haas 05-0004 (130 mm)",
+     "artikel": "05-0004",
+     "link": "https://www.haastooling.com/p/05-0004",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 12,
+      "spannweite_max": 196,
+      "laenge": 210,
+      "breite": 126,
+      "hoehe": 89,
+      "koerperhoehe": 57,
+      "gewicht": 12.7
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hilma (Römheld/Stark)",
+   "titel": "HILMA.NC modularer Maschinen-Schraubstock (mechanisch)",
+   "art": "schraubstock",
+   "link": "https://www.roemheld-usa.com/en/products/vice-system-hilma-nc~psxzOkqgyKDQ",
+   "quelle": "Römheld/Stark-Katalog 'HILMA.NC' WM-021-002-de (Download über roemheld-usa.com, Seiten 15–17 'HILMA.NC 100/125/160'): Tabelle Unterteillänge L, Spannbereich S (mit Standard-Spannbacken, 0–…), Gesamtlänge L max, Gewicht mit Spannbacken, Bestell-Nr.; Maßzeichnung: Gesamthöhe 103,5/126/148, Höhe Unterteil bis Backenauflage 70/82/95, Breite in der Stirnansicht 146/171/206 (an der Antriebsseite, als breite eingetragen). backenhoehe ABGELEITET = Gesamthöhe − Unterteilhöhe. Mit Aufsatzbacken größere Spannbereiche S1/S2 (nicht eingetragen). Römheld-Produktseite 930720213 nennt für NC 100/380 'Overall height (H) 70 mm' – das ist die Unterteilhöhe.",
+   "groessen": [
+    {
+     "name": "HILMA.NC 100.380",
+     "artikel": "930720203",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 100,
+      "backenhoehe": 33.5,
+      "spannweite_min": 0,
+      "spannweite_max": 205,
+      "laenge": 380,
+      "breite": 146,
+      "hoehe": 103.5,
+      "koerperhoehe": 70,
+      "gewicht": 18.5
+     }
+    },
+    {
+     "name": "HILMA.NC 100.540",
+     "artikel": "930720303",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 100,
+      "backenhoehe": 33.5,
+      "spannweite_min": 0,
+      "spannweite_max": 365,
+      "laenge": 540,
+      "breite": 146,
+      "hoehe": 103.5,
+      "koerperhoehe": 70,
+      "gewicht": 23.5
+     }
+    },
+    {
+     "name": "HILMA.NC 125.430",
+     "artikel": "930730203",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 44,
+      "spannweite_min": 0,
+      "spannweite_max": 225,
+      "laenge": 430,
+      "breite": 171,
+      "hoehe": 126,
+      "koerperhoehe": 82,
+      "gewicht": 32.5
+     }
+    },
+    {
+     "name": "HILMA.NC 125.560",
+     "artikel": "930730303",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 44,
+      "spannweite_min": 0,
+      "spannweite_max": 355,
+      "laenge": 560,
+      "breite": 171,
+      "hoehe": 126,
+      "koerperhoehe": 82,
+      "gewicht": 38.5
+     }
+    },
+    {
+     "name": "HILMA.NC 125.720",
+     "artikel": "930730403",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 44,
+      "spannweite_min": 0,
+      "spannweite_max": 515,
+      "laenge": 720,
+      "breite": 171,
+      "hoehe": 126,
+      "koerperhoehe": 82,
+      "gewicht": 45.5
+     }
+    },
+    {
+     "name": "HILMA.NC 125.1000",
+     "artikel": "930730803",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 44,
+      "spannweite_min": 0,
+      "spannweite_max": 795,
+      "laenge": 1000,
+      "breite": 171,
+      "hoehe": 126,
+      "koerperhoehe": 82,
+      "gewicht": 58.5
+     }
+    },
+    {
+     "name": "HILMA.NC 160.550",
+     "artikel": "930740203",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 53,
+      "spannweite_min": 0,
+      "spannweite_max": 308,
+      "laenge": 550,
+      "breite": 206,
+      "hoehe": 148,
+      "koerperhoehe": 95,
+      "gewicht": 59
+     }
+    },
+    {
+     "name": "HILMA.NC 160.750",
+     "artikel": "930740303",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 53,
+      "spannweite_min": 0,
+      "spannweite_max": 508,
+      "laenge": 750,
+      "breite": 206,
+      "hoehe": 148,
+      "koerperhoehe": 95,
+      "gewicht": 71.5
+     }
+    },
+    {
+     "name": "HILMA.NC 160.1000",
+     "artikel": "930740803",
+     "link": "https://www.roemheld-usa.com/en/download/WpN00k5zNb?filename=WM-021-002-de_HILMA-NC_03-04-01_web.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 53,
+      "spannweite_min": 0,
+      "spannweite_max": 758,
+      "laenge": 1000,
+      "breite": 206,
+      "hoehe": 148,
+      "koerperhoehe": 95,
+      "gewicht": 87
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann Group GARANT",
+   "titel": "Xtric Zentrischspanner Grundgerät",
+   "art": "zentrisch",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-125L",
+   "quelle": "Hoffmann-Produktseiten hoffmann-group.com/AT/de/hoa/p/363000-<Typ>, Tabelle 'Technische Daten': Länge gesamt min. L, Breite gesamt B, Höhe gesamt H, Gewicht, Spannbereich min./max. 1 und 2 (nur bei manchen Typen angegeben; spannweite_min = Spannbereich min. 1, spannweite_max = Spannbereich max. 2). Grundgerät OHNE Backen: H als koerperhoehe eingetragen, Backenbreite/-höhe hängen von den separat gekauften Backen ab (Baugröße 50/80/125 = Körperbreite). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "Xtric 50S",
+     "artikel": "363000 50S",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/363000-50S",
+     "masse": {
+      "breite": 50,
+      "koerperhoehe": 35,
+      "laenge": 125,
+      "gewicht": 1.8,
+      "spannweite_min": 0,
+      "spannweite_max": 94
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Hoffmann Group HOLEX",
+   "titel": "NC-Hochdruckspanner",
+   "art": "schraubstock",
+   "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360565-125",
+   "quelle": "Hoffmann-Produktseiten 360565-125 / 360565-160: Backenbreite A, Länge Grundkörper a, Länge gesamt max. L, Breite Grundkörper B, Höhe Grundkörper c, Höhe gesamt H, Spannbereich 1/2 (0–182 / 48–230 bzw. 0–245 / 72–317), Gewicht. backenhoehe ABGELEITET = H − c. (Abmessungen sehr ähnlich Allmatic NC4.) – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "HOLEX NC-Hochdruckspanner 125",
+     "artikel": "360565 125",
+     "link": "https://www.hoffmann-group.com/AT/de/hoa/p/360565-125",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 39.5,
+      "spannweite_min": 0,
+      "spannweite_max": 230,
+      "laenge": 398.5,
+      "breite": 126,
+      "hoehe": 134.5,
+      "koerperhoehe": 95,
+      "gewicht": 30
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Kurt",
+   "titel": "DX Crossover (DX6, DX8)",
+   "art": "schraubstock",
+   "link": "https://penntoolco.com/kurt-dx6-crossover-precision-machine-vise",
+   "quelle": "Spezifikationstabellen des Händlers Penn Tool Co. (penntoolco.com/kurt-dx6-crossover-precision-machine-vise, SKU/MPN 61-421-171; penntoolco.com/kurt-dx8-crossover-vise-8-jaw-width/, SKU 61-421-179) in Zoll/lbs. ALLE mm/kg-Werte UMGERECHNET (1\" = 25,4 mm, 1 lb = 0,4536 kg, auf 0,1 gerundet). DX6: Jaw Width 6\", Jaw Opening 9.08\", Jaw Height 1.735\", Length 16.81\", Width 7.39\", Overall Height 4.61\", Bed Height 2.875\", Weight 69 lbs. DX8: Jaw Width 8\", Jaw Opening 10\", Jaw Height 2.20\", Overall Length 24.016\", Base Length 21.865\", Base Width 8.987\", Overall Height 5.275\", Bed Height 3.31\" (Gewicht nicht angegeben). spannweite_min 0 nicht angegeben, daher weggelassen.",
+   "groessen": [
+    {
+     "name": "Kurt DX6",
+     "artikel": "61-421-171 (Penn Tool SKU)",
+     "link": "https://penntoolco.com/kurt-dx6-crossover-precision-machine-vise",
+     "masse": {
+      "backenbreite": 152.4,
+      "backenhoehe": 44.1,
+      "spannweite_max": 230.6,
+      "laenge": 427.0,
+      "breite": 187.7,
+      "hoehe": 117.1,
+      "koerperhoehe": 73.0,
+      "gewicht": 31.3
+     }
+    },
+    {
+     "name": "Kurt DX8",
+     "artikel": "61-421-179 (Penn Tool SKU)",
+     "link": "https://www.penntoolco.com/kurt-dx8-crossover-vise-8-jaw-width/",
+     "masse": {
+      "backenbreite": 203.2,
+      "backenhoehe": 55.9,
+      "spannweite_max": 254.0,
+      "laenge": 610.0,
+      "breite": 228.3,
+      "hoehe": 134.0,
+      "koerperhoehe": 84.1
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Kurt",
+   "titel": "VersatileLock AngLock (3600V, 3800V)",
+   "art": "schraubstock",
+   "link": "https://penntoolco.com/kurt-standard-modular-vise-3600v",
+   "quelle": "Penn Tool Co. Spezifikationstabellen (3600V: penntoolco.com/kurt-standard-modular-vise-3600v, SKU 61-421-180; 3800V: penntoolco.com/kurt-3800v-8-jaw-width-10-25-jaw-opening-milling-machine-vise, SKU 61-421-196), Zoll → mm UMGERECHNET. 3600V: Jaw Width 6\", Jaw Opening 6\", Jaw Depth 1.735\", Height of Vise Bed 3.187\", Top of bed to top of jaws without jaw plates 1.485\", Overall Length 15.062\", Weight 69 lbs; Gesamthöhe nicht angegeben (Händler-Suchtreffer nannte 4.672\" = 3.187 + 1.485, nicht übernommen). 3800V: Jaw Width 8\", Jaw Opening 10.25\" (Kurt-Katalog spricht von 'full 10\" opening'), Jaw Height 2\", Length 22\", Overall Height 5.715\", Bed Height 3.75\", Width 8.00\", Weight 148 lbs.",
+   "groessen": [
+    {
+     "name": "Kurt 3600V",
+     "artikel": "61-421-180 (Penn Tool SKU)",
+     "link": "https://penntoolco.com/kurt-standard-modular-vise-3600v",
+     "masse": {
+      "backenbreite": 152.4,
+      "backenhoehe": 44.1,
+      "spannweite_max": 152.4,
+      "laenge": 382.6,
+      "koerperhoehe": 80.9,
+      "gewicht": 31.3
+     }
+    },
+    {
+     "name": "Kurt 3800V",
+     "artikel": "61-421-196 (Penn Tool SKU)",
+     "link": "https://www.penntoolco.com/kurt-3800v-8-jaw-width-10-25-jaw-opening-milling-machine-vise",
+     "masse": {
+      "backenbreite": 203.2,
+      "backenhoehe": 50.8,
+      "spannweite_max": 260.3,
+      "laenge": 558.8,
+      "breite": 203.2,
+      "hoehe": 145.2,
+      "koerperhoehe": 95.2,
+      "gewicht": 67.1
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "LANG Technik",
+   "titel": "Makro-Grip 5-Achs-Spanner (46/77/125)",
+   "art": "zentrisch",
+   "link": "https://lang-technik.de/de/produkte",
+   "quelle": "Produktseiten lang-technik.de/en/products/<Art.-Nr.>… (Clamping range, Dimensions L x B x H, Weight, Jaw width) und Datenblätter 48120-77_de_9.pdf / 48200-77_de_5.pdf; Grundkörperlängen und Spannbereiche bestätigt durch Betriebsanleitung lang-technik.de/sites/default/files/anleitung/02-2024_Makro-Grip_DE.pdf (Tabelle 1.5.1). spanntiefe 3 mm = 'Einspanntiefe / Auflagehöhe standardmäßig 3 mm' (Anleitung 1.7.3). hoehe = dritte Zahl der Herstellerangabe 'Abmessungen L x B x H' (Grundkörper mit Backen, ohne Quick-Point-Nullpunktplatte; der Spanner sitzt mit Aufnahmebolzen auf einer Platte). breite = Grundkörperbreite (zweite Zahl). backenhoehe nicht angegeben. 48040-46 micro: Maße aus Datenblatt-Suchtreffer 48040-46_de.pdf (77 x 46 x 48 mm, 0,81 kg).",
+   "groessen": [
+    {
+     "name": "Makro-Grip 46 micro – 48040-46",
+     "artikel": "48040-46",
+     "link": "https://lang-technik.de/sites/default/files/676/pdf/48040-46_de.pdf",
+     "masse": {
+      "backenbreite": 46,
+      "spannweite_min": 0,
+      "spannweite_max": 65,
+      "laenge": 77,
+      "breite": 46,
+      "hoehe": 48,
+      "spanntiefe": 3,
+      "gewicht": 0.81
+     }
+    },
+    {
+     "name": "Makro-Grip 46 – 48065-46",
+     "artikel": "48065-46",
+     "link": "https://lang-technik.de/en/products/48065-46-makro-grip-46-5-axis-vise-jaw-width-46-mm-clamping-range-0-65-mm",
+     "masse": {
+      "backenbreite": 46,
+      "spannweite_min": 0,
+      "spannweite_max": 65,
+      "laenge": 77,
+      "breite": 77,
+      "hoehe": 65,
+      "spanntiefe": 3,
+      "gewicht": 1.75
+     }
+    },
+    {
+     "name": "Makro-Grip 77 – 48085-46",
+     "artikel": "48085-46",
+     "link": "https://lang-technik.de/en/products/48085-46-makro-grip-77-5-axis-vise-jaw-width-46-mm-clamping-range-0-85-mm",
+     "masse": {
+      "backenbreite": 46,
+      "spannweite_min": 0,
+      "spannweite_max": 85,
+      "laenge": 102,
+      "breite": 77,
+      "hoehe": 65,
+      "spanntiefe": 3,
+      "gewicht": 2.1
+     }
+    },
+    {
+     "name": "Makro-Grip 77 – 48120-46",
+     "artikel": "48120-46",
+     "link": "https://lang-technik.de/en/products/48120-46-makro-grip-77-5-axis-vise-jaw-width-46-mm-clamping-range-0-120-mm",
+     "masse": {
+      "backenbreite": 46,
+      "spannweite_min": 0,
+      "spannweite_max": 120,
+      "laenge": 130,
+      "breite": 77,
+      "hoehe": 65,
+      "spanntiefe": 3,
+      "gewicht": 2.56
+     }
+    },
+    {
+     "name": "Makro-Grip 77 – 48085-77",
+     "artikel": "48085-77",
+     "link": "https://lang-technik.de/en/products/48085-77-makro-grip-77-5-axis-vise-jaw-width-77-mm-clamping-range-0-85-mm",
+     "masse": {
+      "backenbreite": 77,
+      "spannweite_min": 0,
+      "spannweite_max": 85,
+      "laenge": 102,
+      "breite": 77,
+      "hoehe": 65,
+      "spanntiefe": 3,
+      "gewicht": 2.36
+     }
+    },
+    {
+     "name": "Makro-Grip 77 – 48120-77",
+     "artikel": "48120-77",
+     "link": "https://lang-technik.de/en/products/48120-77-makro-grip-77-5-axis-vise-jaw-width-77-mm-clamping-range-0-120-mm",
+     "masse": {
+      "backenbreite": 77,
+      "spannweite_min": 0,
+      "spannweite_max": 120,
+      "laenge": 130,
+      "breite": 77,
+      "hoehe": 65,
+      "spanntiefe": 3,
+      "gewicht": 2.9
+     }
+    },
+    {
+     "name": "Makro-Grip 77 – 48160-77",
+     "artikel": "48160-77",
+     "link": "https://lang-technik.de/en/products/48160-77-makro-grip-77-5-axis-vise-jaw-width-77-mm-clamping-range-0-160-mm",
+     "masse": {
+      "backenbreite": 77,
+      "spannweite_min": 0,
+      "spannweite_max": 160,
+      "laenge": 170,
+      "breite": 77,
+      "hoehe": 65,
+      "spanntiefe": 3,
+      "gewicht": 3.6
+     }
+    },
+    {
+     "name": "Makro-Grip 77 – 48200-77",
+     "artikel": "48200-77",
+     "link": "https://lang-technik.de/en/products/48200-77-makro-grip-77-5-axis-vise-jaw-width-77-mm-clamping-range-0-200-mm",
+     "masse": {
+      "backenbreite": 77,
+      "spannweite_min": 0,
+      "spannweite_max": 200,
+      "laenge": 210,
+      "breite": 77,
+      "hoehe": 65,
+      "spanntiefe": 3,
+      "gewicht": 4.2
+     }
+    },
+    {
+     "name": "Makro-Grip 125 – 48155-77",
+     "artikel": "48155-77",
+     "link": "https://lang-technik.de/en/products/48155-77-makro-grip-125-5-axis-vise-jaw-width-77-mm-clamping-range-0-155-mm",
+     "masse": {
+      "backenbreite": 77,
+      "spannweite_min": 0,
+      "spannweite_max": 155,
+      "laenge": 160,
+      "breite": 125,
+      "hoehe": 89,
+      "spanntiefe": 3,
+      "gewicht": 7.4
+     }
+    },
+    {
+     "name": "Makro-Grip 125 – 48205-77",
+     "artikel": "48205-77",
+     "link": "https://lang-technik.de/en/products/48205-77-makro-grip-125-5-axis-vise-jaw-width-77-mm-clamping-range-0-205-mm",
+     "masse": {
+      "backenbreite": 77,
+      "spannweite_min": 0,
+      "spannweite_max": 205,
+      "laenge": 210,
+      "breite": 125,
+      "hoehe": 89,
+      "spanntiefe": 3,
+      "gewicht": 9.1
+     }
+    },
+    {
+     "name": "Makro-Grip 125 – 48155-125",
+     "artikel": "48155-125",
+     "link": "https://lang-technik.de/en/products/48155-125-makro-grip-125-5-axis-vise-jaw-width-125-mm-clamping-range-0-155-mm",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 0,
+      "spannweite_max": 155,
+      "laenge": 160,
+      "breite": 125,
+      "hoehe": 89,
+      "spanntiefe": 3,
+      "gewicht": 8.3
+     }
+    },
+    {
+     "name": "Makro-Grip 125 – 48205-125",
+     "artikel": "48205-125",
+     "link": "https://lang-technik.de/en/products/48205-125-makro-grip-125-5-axis-vise-jaw-width-125-mm-clamping-range-0-205-mm",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 0,
+      "spannweite_max": 205,
+      "laenge": 210,
+      "breite": 125,
+      "hoehe": 89,
+      "spanntiefe": 3,
+      "gewicht": 10.1
+     }
+    },
+    {
+     "name": "Makro-Grip 125 – 48255-125",
+     "artikel": "48255-125",
+     "link": "https://lang-technik.de/en/products/48255-125-makro-grip-125-5-axis-vise-jaw-width-125-mm-clamping-range-0-255-mm",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 0,
+      "spannweite_max": 255,
+      "laenge": 260,
+      "breite": 125,
+      "hoehe": 89,
+      "spanntiefe": 3,
+      "gewicht": 12
+     }
+    },
+    {
+     "name": "Makro-Grip 125 – 48305-125",
+     "artikel": "48305-125",
+     "link": "https://lang-technik.de/en/products/48305-125-makro-grip-125-5-axis-vise-jaw-width-125-mm-clamping-range-0-305-mm",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 0,
+      "spannweite_max": 305,
+      "laenge": 310,
+      "breite": 125,
+      "hoehe": 89,
+      "spanntiefe": 3,
+      "gewicht": 13.9
+     }
+    },
+    {
+     "name": "Makro-Grip 125 – 48355-125",
+     "artikel": "48355-125",
+     "link": "https://lang-technik.de/en/products/48355-125-makro-grip-125-5-axis-vise-jaw-width-125-mm-clamping-range-0-355-mm",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 0,
+      "spannweite_max": 355,
+      "laenge": 360,
+      "breite": 125,
+      "hoehe": 89,
+      "spanntiefe": 3,
+      "gewicht": 15.7
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Mate",
+   "titel": "DynoGrip-52 Zentrischspanner",
+   "art": "zentrisch",
+   "link": "https://www.mate.com/products/workholding-solutions/dynogrip-vises/dynogrip-52-series/",
+   "quelle": "mate.com Produktseiten, Tabelle 'Features' (metrisch): Jaw Width, Jaw Grip-to-Grip Maximum Opening (= spannweite_max), Jaw Face-to-Face Maximum Opening (3 mm kleiner, nicht eingetragen), Vise Overall Length/Width/Height, Weight. Kleinste Spannweite und Spanntiefe nicht angegeben. Höhe ohne DynoLock-Nullpunktbasis.",
+   "groessen": [
+    {
+     "name": "DynoGrip-52 M5MVC-095060",
+     "artikel": "M5MVC-095060",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-52-series/m5mvc-095060/",
+     "masse": {
+      "backenbreite": 60,
+      "spannweite_max": 95,
+      "laenge": 117,
+      "breite": 80,
+      "hoehe": 65,
+      "gewicht": 2.6
+     }
+    },
+    {
+     "name": "DynoGrip-52 M5MVC-095080",
+     "artikel": "M5MVC-095080",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-52-series/m5mvc-095080/",
+     "masse": {
+      "backenbreite": 80,
+      "spannweite_max": 95,
+      "laenge": 117,
+      "breite": 80,
+      "hoehe": 65,
+      "gewicht": 2.9
+     }
+    },
+    {
+     "name": "DynoGrip-52 M5MVC-120060",
+     "artikel": "M5MVC-120060",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-52-series/m5mvc-120060/",
+     "masse": {
+      "backenbreite": 60,
+      "spannweite_max": 120,
+      "laenge": 142,
+      "breite": 80,
+      "hoehe": 65,
+      "gewicht": 3.0
+     }
+    },
+    {
+     "name": "DynoGrip-52 M5MVC-120080",
+     "artikel": "M5MVC-120080",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-52-series/m5mvc-120080/",
+     "masse": {
+      "backenbreite": 80,
+      "spannweite_max": 120,
+      "laenge": 142,
+      "breite": 80,
+      "hoehe": 65,
+      "gewicht": 3.3
+     }
+    },
+    {
+     "name": "DynoGrip-52 M5MVC-160080",
+     "artikel": "M5MVC-160080",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-52-series/m5mvc-160080/",
+     "masse": {
+      "backenbreite": 80,
+      "spannweite_max": 160,
+      "laenge": 182,
+      "breite": 80,
+      "hoehe": 65,
+      "gewicht": 3.9
+     }
+    },
+    {
+     "name": "DynoGrip-52 M5MVC-200080",
+     "artikel": "M5MVC-200080",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-52-series/m5mvc-200080/",
+     "masse": {
+      "backenbreite": 80,
+      "spannweite_max": 200,
+      "laenge": 222,
+      "breite": 80,
+      "hoehe": 65,
+      "gewicht": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Mate",
+   "titel": "DynoGrip-96 Zentrischspanner",
+   "art": "zentrisch",
+   "link": "https://www.mate.com/products/workholding-solutions/dynogrip-vises/dynogrip-96-series/",
+   "quelle": "wie DynoGrip-52: mate.com Produktseiten, Tabelle 'Features' (Jaw Width, Grip-to-Grip Maximum Opening, Overall Length/Width/Height, Weight).",
+   "groessen": [
+    {
+     "name": "DynoGrip-96 M9MVC-155080",
+     "artikel": "M9MVC-155080",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-96-series/m9mvc-155080/",
+     "masse": {
+      "backenbreite": 80,
+      "spannweite_max": 155,
+      "laenge": 181,
+      "breite": 125,
+      "hoehe": 89,
+      "gewicht": 8.5
+     }
+    },
+    {
+     "name": "DynoGrip-96 M9MVC-155125",
+     "artikel": "M9MVC-155125",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-96-series/m9mvc-155125/",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 155,
+      "laenge": 181,
+      "breite": 125,
+      "hoehe": 89,
+      "gewicht": 9.6
+     }
+    },
+    {
+     "name": "DynoGrip-96 M9MVC-205080",
+     "artikel": "M9MVC-205080",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-96-series/m9mvc-205080/",
+     "masse": {
+      "backenbreite": 80,
+      "spannweite_max": 205,
+      "laenge": 231,
+      "breite": 125,
+      "hoehe": 89,
+      "gewicht": 10.4
+     }
+    },
+    {
+     "name": "DynoGrip-96 M9MVC-205125",
+     "artikel": "M9MVC-205125",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-96-series/m9mvc-205125/",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 205,
+      "laenge": 231,
+      "breite": 125,
+      "hoehe": 89,
+      "gewicht": 11.5
+     }
+    },
+    {
+     "name": "DynoGrip-96 M9MVC-255125",
+     "artikel": "M9MVC-255125",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-96-series/m9mvc-255125/",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 255,
+      "laenge": 281,
+      "breite": 125,
+      "hoehe": 89,
+      "gewicht": 13.5
+     }
+    },
+    {
+     "name": "DynoGrip-96 M9MVC-305125",
+     "artikel": "M9MVC-305125",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-96-series/m9mvc-305125/",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 305,
+      "laenge": 331,
+      "breite": 125,
+      "hoehe": 89,
+      "gewicht": 15.4
+     }
+    },
+    {
+     "name": "DynoGrip-96 M9MVC-355125",
+     "artikel": "M9MVC-355125",
+     "link": "https://www.mate.com/product/workholding-solutions/dynogrip-vises/dynogrip-96-series/m9mvc-355125/",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_max": 355,
+      "laenge": 381,
+      "breite": 125,
+      "hoehe": 89,
+      "gewicht": 17.4
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "NC-Kompakt-Spanner RKE basic",
+   "art": "schraubstock",
+   "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+   "quelle": "Röhm-Flyer 'Schraubstockneuheiten' (Flyer_RKE_RZM_deutsch.pdf) S. 2, Tabelle RKE basic mit Stufenbacken (Id.-Nr. 178411–178414): Backenbreite A, B2/B3 (Spannweiten der Stufenbacken), C, D, E, F, G, K, Gewicht. Die Buchstaben-Bedeutung stammt aus der Maßzeichnung des Schwester-Datenblatts RKE-U L (https://roehm.biz/fileadmin/content/pdf/products/de/NC-Kompaktspanner_RKE-U_L.pdf): 'Backenhöhe C', 'Gesamtlänge D max.', G = Grundkörperhöhe (Toleranz -0,02); E = Gesamthöhe (prüfbar: E = G + C bei allen vier Größen); F = Grundkörperlänge; K laut Cliparc-Tabelle 'Führungsbreite' (als breite eingetragen, echte Körperbreite evtl. etwas größer). spannweite_max = Ende B3.",
+   "groessen": [
+    {
+     "name": "RKE 92 basic mit Stufenbacken",
+     "artikel": "178411",
+     "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+     "masse": {
+      "backenbreite": 92,
+      "backenhoehe": 32,
+      "spannweite_min": 0,
+      "spannweite_max": 208,
+      "laenge": 276,
+      "breite": 94,
+      "hoehe": 112,
+      "koerperhoehe": 80,
+      "gewicht": 15
+     }
+    },
+    {
+     "name": "RKE 125 basic mit Stufenbacken",
+     "artikel": "178412",
+     "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 40,
+      "spannweite_min": 0,
+      "spannweite_max": 312,
+      "laenge": 400,
+      "breite": 126,
+      "hoehe": 140,
+      "koerperhoehe": 100,
+      "gewicht": 41
+     }
+    },
+    {
+     "name": "RKE 160 basic mit Stufenbacken",
+     "artikel": "178413",
+     "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 50,
+      "spannweite_min": 0,
+      "spannweite_max": 451,
+      "laenge": 530,
+      "breite": 162,
+      "hoehe": 165,
+      "koerperhoehe": 115,
+      "gewicht": 79
+     }
+    },
+    {
+     "name": "RKE 200 basic mit Stufenbacken",
+     "artikel": "178414",
+     "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+     "masse": {
+      "backenbreite": 200,
+      "backenhoehe": 60,
+      "spannweite_min": 0,
+      "spannweite_max": 451,
+      "laenge": 530,
+      "breite": 162,
+      "hoehe": 175,
+      "koerperhoehe": 115,
+      "gewicht": 85
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "NC-Kompakt-Spanner RKE-U L (Zugspannung, fester Backen antriebsseitig)",
+   "art": "schraubstock",
+   "link": "https://roehm.biz/fileadmin/content/pdf/products/de/NC-Kompaktspanner_RKE-U_L.pdf",
+   "quelle": "Röhm-Datenblatt https://roehm.biz/fileadmin/content/pdf/products/de/NC-Kompaktspanner_RKE-U_L.pdf: Backenbreite 125, Spannweite B2 0-215 / B3 97-312, Backenhöhe C 40, Gesamtlänge D max. 492, E 140, F 400, G 100, K 126, Gewicht ca. 41 kg. E als Gesamthöhe, F als Grundkörperlänge, G als Körperhöhe gedeutet wie bei RKE (E = G + C).",
+   "groessen": [
+    {
+     "name": "RKE-U L 125",
+     "artikel": "177124",
+     "link": "https://roehm.biz/fileadmin/content/pdf/products/de/NC-Kompaktspanner_RKE-U_L.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "backenhoehe": 40,
+      "spannweite_min": 0,
+      "spannweite_max": 312,
+      "laenge": 400,
+      "breite": 126,
+      "hoehe": 140,
+      "koerperhoehe": 100,
+      "gewicht": 41
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "Zentrischspanner RZM",
+   "art": "zentrisch",
+   "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+   "quelle": "Röhm-Flyer S. 4 mit Maßzeichnung: A = Backenbreite/Breite, B min./max. = Spannweite, E = Gesamthöhe, C = Höhe bis Unterkante Backenführung, D = Länge über Oberteil (218, beide Ausführungen), F = Länge Grundplatte (180/260), Spanntiefe 2,5 mm mit den mitgelieferten SKB-Krallenbacken (Text und Zeichnungsmaß 2,5).",
+   "groessen": [
+    {
+     "name": "RZM 125 kurz",
+     "artikel": "178911",
+     "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 23,
+      "spannweite_max": 142,
+      "laenge": 180,
+      "breite": 125,
+      "hoehe": 196.5,
+      "spanntiefe": 2.5,
+      "gewicht": 17.4
+     }
+    },
+    {
+     "name": "RZM 125 lang",
+     "artikel": "178910",
+     "link": "https://www.roehm.biz/fileadmin/content/pdf/products/de/Flyer_RKE_RZM_deutsch.pdf",
+     "masse": {
+      "backenbreite": 125,
+      "spannweite_min": 23,
+      "spannweite_max": 222,
+      "laenge": 260,
+      "breite": 125,
+      "hoehe": 196.5,
+      "spanntiefe": 2.5,
+      "gewicht": 20.3
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "Maschinen-Schraubstock RB-K (kraftverstärkt)",
+   "art": "schraubstock",
+   "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+   "quelle": "Röhm-Betriebsanleitung RB-M (https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf), Kap. 13 'Maßübersicht: Schraubstöcke RB' (S. 25) mit Maßzeichnung: A = Backenbreite, B = größte Spannweite (RB-K bzw. RB-M), C = Backenhöhe, Dmax = Gesamtlänge bei größter Öffnung, E = Gesamthöhe, F = Länge der Grundplatte, G = Höhe bis Backenauflage (E = G + C), K = Breite der Grundplatte. Kleinste Spannweite nicht angegeben (weggelassen). koerperhoehe = G. Gewicht gilt laut Tabelle für beide Ausführungen.",
+   "groessen": [
+    {
+     "name": "RB-K Größe 1 (92 mm)",
+     "artikel": "179075",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 92,
+      "backenhoehe": 31.6,
+      "spannweite_max": 100,
+      "laenge": 310,
+      "breite": 160,
+      "hoehe": 91,
+      "koerperhoehe": 59,
+      "gewicht": 15.5
+     }
+    },
+    {
+     "name": "RB-K Größe 2 (113 mm)",
+     "artikel": "179076",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 113,
+      "backenhoehe": 31.6,
+      "spannweite_max": 170,
+      "laenge": 390,
+      "breite": 160,
+      "hoehe": 97,
+      "koerperhoehe": 65.5,
+      "gewicht": 24
+     }
+    },
+    {
+     "name": "RB-K Größe 3 (135 mm)",
+     "artikel": "179077",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 135,
+      "backenhoehe": 39.6,
+      "spannweite_max": 220,
+      "laenge": 468,
+      "breite": 200,
+      "hoehe": 112,
+      "koerperhoehe": 72.5,
+      "gewicht": 39
+     }
+    },
+    {
+     "name": "RB-K Größe 4 (160 mm)",
+     "artikel": "179078",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 49.6,
+      "spannweite_max": 310,
+      "laenge": 574,
+      "breite": 240,
+      "hoehe": 133,
+      "koerperhoehe": 83.5,
+      "gewicht": 60
+     }
+    },
+    {
+     "name": "RB-K Größe 5 (200 mm)",
+     "artikel": "179079",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 200,
+      "backenhoehe": 66.6,
+      "spannweite_max": 350,
+      "laenge": 685,
+      "breite": 280,
+      "hoehe": 171,
+      "koerperhoehe": 104.5,
+      "gewicht": 112
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "Maschinen-Schraubstock RB-M (mechanisch)",
+   "art": "schraubstock",
+   "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+   "quelle": "Röhm-Betriebsanleitung RB-M (https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf), Kap. 13 'Maßübersicht: Schraubstöcke RB' (S. 25) mit Maßzeichnung: A = Backenbreite, B = größte Spannweite (RB-K bzw. RB-M), C = Backenhöhe, Dmax = Gesamtlänge bei größter Öffnung, E = Gesamthöhe, F = Länge der Grundplatte, G = Höhe bis Backenauflage (E = G + C), K = Breite der Grundplatte. Kleinste Spannweite nicht angegeben (weggelassen). koerperhoehe = G. Gewicht gilt laut Tabelle für beide Ausführungen.",
+   "groessen": [
+    {
+     "name": "RB-M Größe 1 (92 mm)",
+     "artikel": "179080",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 92,
+      "backenhoehe": 31.6,
+      "spannweite_max": 100,
+      "laenge": 310,
+      "breite": 160,
+      "hoehe": 91,
+      "koerperhoehe": 59,
+      "gewicht": 15.5
+     }
+    },
+    {
+     "name": "RB-M Größe 2 (113 mm)",
+     "artikel": "179081",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 113,
+      "backenhoehe": 31.6,
+      "spannweite_max": 185,
+      "laenge": 390,
+      "breite": 160,
+      "hoehe": 97,
+      "koerperhoehe": 65.5,
+      "gewicht": 24
+     }
+    },
+    {
+     "name": "RB-M Größe 3 (135 mm)",
+     "artikel": "179082",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 135,
+      "backenhoehe": 39.6,
+      "spannweite_max": 240,
+      "laenge": 468,
+      "breite": 200,
+      "hoehe": 112,
+      "koerperhoehe": 72.5,
+      "gewicht": 39
+     }
+    },
+    {
+     "name": "RB-M Größe 4 (160 mm)",
+     "artikel": "179083",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 160,
+      "backenhoehe": 49.6,
+      "spannweite_max": 330,
+      "laenge": 574,
+      "breite": 240,
+      "hoehe": 133,
+      "koerperhoehe": 83.5,
+      "gewicht": 60
+     }
+    },
+    {
+     "name": "RB-M Größe 5 (200 mm)",
+     "artikel": "179084",
+     "link": "https://www.roehm.biz/fileadmin/products/media/de/RB-M.pdf",
+     "masse": {
+      "backenbreite": 200,
+      "backenhoehe": 66.6,
+      "spannweite_max": 370,
+      "laenge": 685,
+      "breite": 280,
+      "hoehe": 171,
+      "koerperhoehe": 104.5,
+      "gewicht": 112
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Schunk",
+   "titel": "KONTEC KSC3 Zentrischspanner",
+   "art": "zentrisch",
+   "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/c/PUB_8521",
+   "quelle": "Schunk-Produktseiten schunk.com/…/zentrischspanner/ksc3/<Typ>/p/<Ident-Nr.> ('Abmessungen: Breite x Länge x Höhe', Backenbreite, Gewicht) und Schunk-Prospekt KONTEC KSC3 (dev.stb.cloud.schunk.com/media/IM0047001.PDF, Tabellen 'Technische Daten' mit Ident-Nr./Gewicht). 'grip' = mit Wendebacken grip; ohne 'grip' = Grundkörper ohne Systembacken (Höhe = Körperhöhe). Spannweite, Backenhöhe und Spanntiefe gibt Schunk dort NICHT an. Hinweis: KSC3 125 hat dieselben Außenmaße wie Gressel C2 125 (125 x 160 x 83, 8,7 kg) – Spannweite dort 0–163 mm, hier aber bewusst nicht übernommen.",
+   "groessen": [
+    {
+     "name": "KSC3 grip 80-130",
+     "artikel": "1514206",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/ksc3/ksc3-grip-80-130/p/000000000001514206",
+     "masse": {
+      "laenge": 130,
+      "breite": 80,
+      "hoehe": 78,
+      "gewicht": 3.9,
+      "backenbreite": 80
+     }
+    },
+    {
+     "name": "KSC3 grip 80-190",
+     "artikel": "1514207",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/ksc3/ksc3-grip-80-190/p/000000000001514207",
+     "masse": {
+      "laenge": 190,
+      "breite": 80,
+      "hoehe": 78,
+      "gewicht": 5.5,
+      "backenbreite": 80
+     }
+    },
+    {
+     "name": "KSC3 grip 125-160",
+     "artikel": "1514238",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/ksc3/ksc3-grip-125-160/p/000000000001514238",
+     "masse": {
+      "laenge": 160,
+      "breite": 125,
+      "hoehe": 83,
+      "gewicht": 8.7,
+      "backenbreite": 125
+     }
+    },
+    {
+     "name": "KSC3 grip 125-235",
+     "artikel": "1514239",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/ksc3/ksc3-grip-125-235/p/000000000001514239",
+     "masse": {
+      "laenge": 235,
+      "breite": 125,
+      "hoehe": 83,
+      "gewicht": 12.0,
+      "backenbreite": 125
+     }
+    },
+    {
+     "name": "KSC3 grip 125-300",
+     "artikel": "1514240",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/ksc3/ksc3-grip-125-300/p/000000000001514240",
+     "masse": {
+      "laenge": 300,
+      "breite": 125,
+      "hoehe": 83,
+      "gewicht": 14.5,
+      "backenbreite": 125
+     }
+    },
+    {
+     "name": "KSC3 160-280 (ohne Systembacken)",
+     "artikel": "1514250",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/ksc3/ksc3-160-280/p/000000000001514250",
+     "masse": {
+      "laenge": 280,
+      "breite": 160,
+      "koerperhoehe": 70,
+      "gewicht": 25
+     }
+    },
+    {
+     "name": "KSC3 160-480 (ohne Systembacken)",
+     "artikel": "1514254",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/zentrischspanner/ksc3/ksc3-160-480/p/000000000001514254",
+     "masse": {
+      "laenge": 480,
+      "breite": 160,
+      "koerperhoehe": 70,
+      "gewicht": 35
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Schunk",
+   "titel": "KONTEC KSX kraftverstärkter 5-Achs-Spanner",
+   "art": "schraubstock",
+   "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/5-achs-spanner/ksx/c/PGR_3979",
+   "quelle": "Schunk-Produktseiten ksx-125 (Ident 432253) und ksx-125-l (432271): 'Abmessungen 125 x 300 x 174 mm' bzw. '125 x 300 x 125 mm', Bauhöhe, Gewicht; Prospekt KONTEC KSX (IM0011961.PDF): Backenbreite 125, Bauhöhe 174/125. KONTEC KSX-C (IM0022976.PDF): Spannerbreite 125, Bauhöhe 174, Gewicht 36/38,5/43 kg; Länge 430/500/630 nur aus der Typbezeichnung (ABGELEITET). Spannweite nicht angegeben.",
+   "groessen": [
+    {
+     "name": "KSX 125",
+     "artikel": "432253",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/5-achs-spanner/ksx/ksx-125/p/000000000000432253",
+     "masse": {
+      "backenbreite": 125,
+      "laenge": 300,
+      "breite": 125,
+      "hoehe": 174,
+      "gewicht": 30.2
+     }
+    },
+    {
+     "name": "KSX 125 L (niedrig)",
+     "artikel": "432271",
+     "link": "https://schunk.com/de/de/werkstueckspanntechnik/manuelle-spannsysteme/5-achs-spanner/ksx/ksx-125-l/p/000000000000432271",
+     "masse": {
+      "backenbreite": 125,
+      "laenge": 300,
+      "breite": 125,
+      "hoehe": 125,
+      "gewicht": 22.6
+     }
+    },
+    {
+     "name": "KSX-C 125-430",
+     "artikel": "1322981",
+     "link": "https://dev.stb.cloud.schunk.com/media/IM0022976.PDF",
+     "masse": {
+      "backenbreite": 125,
+      "laenge": 430,
+      "breite": 125,
+      "hoehe": 174,
+      "gewicht": 36
+     }
+    },
+    {
+     "name": "KSX-C 125-500",
+     "artikel": "1322982",
+     "link": "https://dev.stb.cloud.schunk.com/media/IM0022976.PDF",
+     "masse": {
+      "backenbreite": 125,
+      "laenge": 500,
+      "breite": 125,
+      "hoehe": 174,
+      "gewicht": 38.5
+     }
+    },
+    {
+     "name": "KSX-C 125-630",
+     "artikel": "1322983",
+     "link": "https://dev.stb.cloud.schunk.com/media/IM0022976.PDF",
+     "masse": {
+      "backenbreite": 125,
+      "laenge": 630,
+      "breite": 125,
+      "hoehe": 174,
+      "gewicht": 43
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Röhm",
+   "titel": "Duro-M Planspiralfutter 3-Backen, zylindrische Aufnahme DIN 6350/702-4 Form A, Bohr- und Drehbacken",
+   "art": "futter",
+   "link": "https://www.roehm.biz/duro-m",
+   "quelle": "Maße: hoffmann-group.com Artikel 310505-<Größe> (Technische Daten A, H1, H2, E; Herstellernummer = Röhm-Ident). backenhoehe = H2 - H1 (abgeleitet). spann_min/spann_max = Röhm-Prospekt DURO-M (de_Duro_M_DS_230505, Tabelle 'Spannbereiche Backenstufen (Richtwerte)', Außenspannung: Minimum der Stufe A1 (Bohrbacke), Maximum der Stufe A4 (Drehbacke)); umlauf_max = 'Größter Umlauf-Ø' derselben Tabelle. Röhm-Ident 185300…185307 bestätigt im Prospekt (3-Backen, Bohr- und Drehbacken). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "Duro-M 80/3",
+     "artikel": "Röhm 185300 / Hoffmann 310505 80",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/310505-80",
+     "masse": {
+      "durchmesser": 80,
+      "hoehe": 39.5,
+      "backenhoehe": 14.0,
+      "hoehe_mit_backen": 53.5,
+      "bohrung": 19,
+      "spann_min": 2,
+      "spann_max": 80,
+      "umlauf_max": 104
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Bison",
+   "titel": "3204 Planspiralfutter 3-Backen, Gusskörper, DIN 6350 (einteilige harte Backen)",
+   "art": "futter",
+   "link": "https://store.bison-chuck.com/us/en/3-jaw-self-cent-scroll-chuck-3204-3.html",
+   "quelle": "Durchmesser = Nenngröße; hoehe = Maß 'B', bohrung = Maß 'E', lochkreis = Maß 'F' aus den Cutwel-Datenblättern 3204-<Größe> (Legende dort nicht beschriftet; B = Höhe ohne Backen, weil es exakt mit HOLEX 312906 'Höhe ohne Backen H1' übereinstimmt: 44/50/64,5/75/85). Für 125, 315, 500 fehlt B bei Cutwel (HOLEX 312906 nennt 56 bzw. 94 für 125/315). spann_min = d1 min, spann_max = d3 max, umlauf_max = 'Max. Umlaufdurchmesser' aus der Bison-Betriebsanleitung B3204 (https://organametrisis.gr/cdn/shop/files/B3204_manual.pdf, Tabelle Spannbereiche 32**/35**, harte einteilige Backen).",
+   "groessen": [
+    {
+     "name": "Bison 3204-80",
+     "artikel": "3204-80",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/80mm-3inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-80",
+     "masse": {
+      "durchmesser": 80,
+      "bohrung": 16,
+      "spann_min": 2,
+      "spann_max": 71,
+      "umlauf_max": 90,
+      "lochkreis": 67,
+      "hoehe": 44
+     }
+    },
+    {
+     "name": "Bison 3204-100",
+     "artikel": "3204-100",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/100mm-4inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-100",
+     "masse": {
+      "durchmesser": 100,
+      "bohrung": 20,
+      "spann_min": 3,
+      "spann_max": 93,
+      "umlauf_max": 117,
+      "lochkreis": 83,
+      "hoehe": 50
+     }
+    },
+    {
+     "name": "Bison 3204-125",
+     "artikel": "3204-125",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/125mm-5inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-125",
+     "masse": {
+      "durchmesser": 125,
+      "bohrung": 32,
+      "spann_min": 3,
+      "spann_max": 125,
+      "umlauf_max": 151,
+      "lochkreis": 108
+     }
+    },
+    {
+     "name": "Bison 3204-160",
+     "artikel": "3204-160",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/160mm-6inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-160",
+     "masse": {
+      "durchmesser": 160,
+      "bohrung": 42,
+      "spann_min": 3,
+      "spann_max": 160,
+      "umlauf_max": 204,
+      "lochkreis": 140,
+      "hoehe": 64.5
+     }
+    },
+    {
+     "name": "Bison 3204-200",
+     "artikel": "3204-200",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/200mm-8inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-200",
+     "masse": {
+      "durchmesser": 200,
+      "bohrung": 55,
+      "spann_min": 4,
+      "spann_max": 200,
+      "umlauf_max": 246,
+      "lochkreis": 176,
+      "hoehe": 75
+     }
+    },
+    {
+     "name": "Bison 3204-250",
+     "artikel": "3204-250",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/250mm-10inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-250",
+     "masse": {
+      "durchmesser": 250,
+      "bohrung": 76,
+      "spann_min": 5,
+      "spann_max": 250,
+      "umlauf_max": 306,
+      "lochkreis": 224,
+      "hoehe": 85
+     }
+    },
+    {
+     "name": "Bison 3204-315",
+     "artikel": "3204-315",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/315mm-12inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-315",
+     "masse": {
+      "durchmesser": 315,
+      "bohrung": 103,
+      "spann_min": 10,
+      "spann_max": 315,
+      "umlauf_max": 384,
+      "lochkreis": 286
+     }
+    },
+    {
+     "name": "Bison 3204-400",
+     "artikel": "3204-400",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/400mm-16inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-400",
+     "masse": {
+      "durchmesser": 400,
+      "bohrung": 136,
+      "spann_min": 10,
+      "spann_max": 400,
+      "umlauf_max": 472,
+      "lochkreis": 362,
+      "hoehe": 105
+     }
+    },
+    {
+     "name": "Bison 3204-500",
+     "artikel": "3204-500",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/500mm-20inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-500",
+     "masse": {
+      "durchmesser": 500,
+      "bohrung": 190,
+      "spann_min": 20,
+      "spann_max": 500,
+      "umlauf_max": 600,
+      "lochkreis": 458
+     }
+    },
+    {
+     "name": "Bison 3204-630",
+     "artikel": "3204-630",
+     "link": "https://www.cutwel.co.uk/landing-pages/brand-shops/best-of-bison/best-of-bison-scroll-chucks/630mm-25inch-3-jaw-cast-iron-scroll-chuck-1-piece-jaw-rear-mount-3204-bison-3204-630",
+     "masse": {
+      "durchmesser": 630,
+      "bohrung": 252,
+      "spann_min": 30,
+      "spann_max": 630,
+      "umlauf_max": 770,
+      "lochkreis": 586,
+      "hoehe": 135
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "LANG Technik",
+   "titel": "Quick•Point 52 Grund-/Einzelplatten",
+   "art": "nullpunkt",
+   "link": "https://lang-technik.de",
+   "quelle": "LANG-Datenblätter (PDF): 45600 (92/pdf/45600_en.pdf), 45150 (138/pdf/45150_en_3.pdf), 45751 (143/pdf/45751_en_0.pdf), 45750 (142/pdf/45750_it.pdf); 'Dimensions' L x B x H bzw. ø x H. raster = Systemmaß 52 (Name).",
+   "groessen": [
+    {
+     "name": "Quick•Point 52 Einzelplatte 104x104",
+     "artikel": "45600",
+     "link": "https://lang-technik.de/sites/default/files/92/pdf/45600_en.pdf",
+     "masse": {
+      "laenge": 104,
+      "breite": 104,
+      "hoehe": 27,
+      "raster": 52
+     }
+    },
+    {
+     "name": "Quick•Point 52 Einzelplatte 150x116 mit Spannrand",
+     "artikel": "45150",
+     "link": "https://lang-technik.de/sites/default/files/138/pdf/45150_en_3.pdf",
+     "masse": {
+      "laenge": 150,
+      "breite": 116,
+      "hoehe": 27,
+      "raster": 52
+     }
+    },
+    {
+     "name": "Quick•Point 52 Rundplatte ø116",
+     "artikel": "45751",
+     "link": "https://lang-technik.de/sites/default/files/143/pdf/45751_en_0.pdf",
+     "masse": {
+      "durchmesser": 116,
+      "hoehe": 27,
+      "raster": 52
+     }
+    },
+    {
+     "name": "Quick•Point 52 Rundplatte ø116, Bohrungen Abstand 96",
+     "artikel": "45750",
+     "link": "https://lang-technik.de/sites/default/files/142/pdf/45750_it.pdf",
+     "masse": {
+      "durchmesser": 116,
+      "hoehe": 27,
+      "raster": 52
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "LANG Technik",
+   "titel": "Quick•Point 96 Grund-/Rasterplatten",
+   "art": "nullpunkt",
+   "link": "https://lang-technik.de",
+   "quelle": "LANG-Datenblätter (PDF): 45710 (132/pdf/45710_en_6.pdf), 45400 (140/pdf/45400_es.pdf), 45740 (122/pdf/45740_pt-br.pdf); 'Dimensions' L x B x H. raster = Systemmaß 96 (Name).",
+   "groessen": [
+    {
+     "name": "Quick•Point 96 Einzelplatte 192x192",
+     "artikel": "45710",
+     "link": "https://lang-technik.de/sites/default/files/132/pdf/45710_en_6.pdf",
+     "masse": {
+      "laenge": 192,
+      "breite": 192,
+      "hoehe": 27,
+      "raster": 96
+     }
+    },
+    {
+     "name": "Quick•Point 96 Einzelplatte 192x156 mit Spannrand",
+     "artikel": "45400",
+     "link": "https://lang-technik.de/sites/default/files/140/pdf/45400_es.pdf",
+     "masse": {
+      "laenge": 192,
+      "breite": 156,
+      "hoehe": 27,
+      "raster": 96
+     }
+    },
+    {
+     "name": "Quick•Point 96 Rasterplatte 4-fach 384x384",
+     "artikel": "45740",
+     "link": "https://lang-technik.de/sites/default/files/122/pdf/45740_pt-br.pdf",
+     "masse": {
+      "laenge": 384,
+      "breite": 384,
+      "hoehe": 27,
+      "raster": 96,
+      "spannstellen": 4
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "AMF",
+   "titel": "Zero-Point Aufbau-Spannmodul, pneumatisch öffnend (KP5/KP10/KP20/KP40)",
+   "art": "nullpunkt",
+   "link": "https://www.amf.de/en_us/clamping-systems/zero-point-systems/surface-mounting-clamping-modules",
+   "quelle": "amf.de Produktseiten surface-mounted-clamping-module-<Nr.> (Maßtabelle: dia. D, HA). durchmesser = D, hoehe = HA (Aufbauhöhe; Zuordnung HA = Höhe über Tisch aus Spaltenname, nicht aus Zeichnung).",
+   "groessen": [
+    {
+     "name": "AMF Aufbau-Spannmodul KP5",
+     "artikel": "306175",
+     "link": "https://www.amf.de/en_us/surface-mounted-clamping-module-306175",
+     "masse": {
+      "durchmesser": 62,
+      "hoehe": 26
+     }
+    },
+    {
+     "name": "AMF Aufbau-Spannmodul KP10",
+     "artikel": "305193",
+     "link": "https://www.amf.de/en_us/surface-mounted-clamping-module-305193",
+     "masse": {
+      "durchmesser": 78,
+      "hoehe": 32
+     }
+    },
+    {
+     "name": "AMF Aufbau-Spannmodul KP20",
+     "artikel": "302851",
+     "link": "https://www.amf.de/en_us/surface-mounted-clamping-module-302851",
+     "masse": {
+      "durchmesser": 112,
+      "hoehe": 50
+     }
+    },
+    {
+     "name": "AMF Aufbau-Spannmodul KP40",
+     "artikel": "302893",
+     "link": "https://www.amf.de/en_us/surface-mounted-clamping-module-302893",
+     "masse": {
+      "durchmesser": 148,
+      "hoehe": 62
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Schunk",
+   "titel": "VERO-S NSE3 138 Einzelmodule",
+   "art": "nullpunkt",
+   "link": "https://schunk.com/ch/de/produkte/werkstueckspanntechnik/vero-s-nse3",
+   "quelle": "schunk.com Produktseiten Ident 1313721 ('Abmessungen: Ø138 x Ø110 x 55,7 mm') und 1313726 ('Ø138 x Ø110 x 59 mm'). Ø110 = Einbauzapfen; die Höhe über Tisch/Platte im eingebauten Zustand nennt Schunk nicht, daher nur hoehe_gesamt. NSE3 138 ist laut Schunk 100 % einbaukompatibel zu NSE plus 138.",
+   "groessen": [
+    {
+     "name": "NSE3 138",
+     "artikel": "1313721",
+     "link": "https://schunk.com/ch/de/werkstueckspanntechnik/nullpunktspannsysteme/nullpunktspannsystem-fuer-allgemeine-fraesanwendungen-und-schwerzerspanung/einzelmodule-nse3/nse3-138/p/000000000001313721",
+     "masse": {
+      "durchmesser": 138,
+      "einbau_durchmesser": 110,
+      "hoehe_gesamt": 55.7,
+      "hoehe": 55.7
+     }
+    },
+    {
+     "name": "NSE-T3 138",
+     "artikel": "1313726",
+     "link": "https://schunk.com/ch/de/werkstueckspanntechnik/nullpunktspannsysteme/nullpunktspannsystem-fuer-allgemeine-fraesanwendungen-und-schwerzerspanung/einzelmodule-nse3/nse-t3-138/p/000000000001313726",
+     "masse": {
+      "durchmesser": 138,
+      "einbau_durchmesser": 110,
+      "hoehe_gesamt": 59,
+      "hoehe": 59
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "GARANT ZeroClamp (Hoffmann)",
+   "titel": "ZeroClamp Basisplatte (Spanntopf ⌀120 bzw. ⌀138, Stichmaß 200)",
+   "art": "nullpunkt",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-10077",
+   "quelle": "hoffmann-group.com Artikel 360012-<Typ> (Technische Daten L, B, H, Durchmesser Spanntopf, Anzahl Spanntöpfe, Stichmaß). raster = Stichmaß. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "ZeroClamp Basisplatte 10077 (2x ⌀120)",
+     "artikel": "Hoffmann 360012 10077",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/360012-10077",
+     "masse": {
+      "laenge": 416,
+      "breite": 166,
+      "hoehe": 44,
+      "raster": 200,
+      "spanntopf_durchmesser": 120,
+      "spannstellen": 2
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "AMF",
+   "titel": "Spannpratze (Spanneisen + Spannschraube als Einheit, stufenlos verstellbar)",
+   "art": "pratzen",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/370660-12",
+   "quelle": "hoffmann-group.com Artikel 370660-<Nut> (Länge L, Breite B, Spannhöhe min./max. h, Breite Nut a; Hersteller AMF, Herstellernummer 749xx). Gewinde nicht angegeben. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "AMF Spannpratze Nut 12",
+     "artikel": "AMF 74906 / Hoffmann 370660 12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/370660-12",
+     "masse": {
+      "laenge": 140,
+      "breite": 50,
+      "hoehe_min": 0,
+      "hoehe_max": 50,
+      "nut": 12
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "SAV",
+   "titel": "Permanent-Magnetspannplatte, Querpolteilung (Neodym, Handhebel)",
+   "art": "platte",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/380100-250",
+   "quelle": "hoffmann-group.com Artikel 380100-<Länge> (Länge, Breite, Höhe H; Hersteller SAV, Herstellernummer 243.11-LxB). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "SAV 243.11 250x150",
+     "artikel": "SAV 243.11-250X150 / Hoffmann 380100 250",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/380100-250",
+     "masse": {
+      "laenge": 250,
+      "breite": 150,
+      "hoehe": 56
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "AMF",
+   "titel": "Vakuumspannplatte Premium Line (H 40) / Basic Line (H 30), Venturi",
+   "art": "platte",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/564845-",
+   "quelle": "hoffmann-group.com Händlerseiten /p/<AMF-Nr.>- (Merkmale A, B, H). laenge = A, breite = B (Reihenfolge wie auf der Seite). – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "AMF Vakuumspannplatte Premium 150x150",
+     "artikel": "564844",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/564844-",
+     "masse": {
+      "laenge": 150,
+      "breite": 150,
+      "hoehe": 40
+     }
+    }
+   ]
+  },
+  {
+   "hersteller": "Bison",
+   "titel": "Grundplatte zum Aufspannen von Drehfuttern (DIN 702-4) auf dem Maschinentisch",
+   "art": "platte",
+   "link": "https://www.hoffmann-group.com/DE/de/hom/p/313910-160",
+   "quelle": "hoffmann-group.com Artikel 313910-<Futter> (Höhe H, Länge A, Breite B, Teilkreis F, Nutenbreite S, Durchlass E; Marke BISON BIAL, Herstellernummer 32945…). Für das Futter-Modell: Futter steht um hoehe höher. – aus dem Hoffmann-Katalog nur diese eine Größe als Vorbild (Datenbankschutz).",
+   "groessen": [
+    {
+     "name": "Bison Grundplatte für Futter 160",
+     "artikel": "Bison 329450040700 / Hoffmann 313910 160",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/313910-160",
+     "masse": {
+      "laenge": 250,
+      "breite": 190,
+      "hoehe": 28,
+      "nut": 14,
+      "lochkreis": 140
+     }
+    }
+   ]
+  }
+ ]
+}

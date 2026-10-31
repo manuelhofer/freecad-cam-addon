@@ -46,7 +46,12 @@ einer Reihe sagt, woher die Maße kommen.
 Die Daten liegen als JSON in `camaddon/spannmittel_daten/` und `camaddon/halter_daten/`, im
 Format von [katalog.py](../camaddon/katalog.py). Jede Reihe nennt ihre Quelle. Werte, die der
 Katalog nicht nennt, bekommen den Beispielwert der Art, und die Quelle sagt, welche das sind.
-Artikelnummern stehen nur dort, wo der Hersteller sie zeigt.
+Artikelnummern stehen nur dort, wo der Hersteller sie zeigt. Aus dem Hoffmann-Katalog ist je Spannart (bei
+Haltern je Aufnahme und Typ) nur eine Größe als Vorbild drin, wie bei den Halter-Vorlagen
+(Datenbankschutz, *Frage 8*); alles von den Seiten der Hersteller selbst ist ganz drin.
+
+![Katalog der Spannmittel](bilder/spannmittel/1_katalog.png)
+![Katalog der Halter](bilder/spannmittel/4_halter_katalog.png)
 
 ### Das Fenster „Spannmittel“
 
@@ -65,7 +70,11 @@ Datei neben der Werkzeugverwaltung (`spannmittel.json`).
 | Nullpunktspannsystem | Ø (rund) oder Länge × Breite, Höhe |
 | Spannplatte | Länge, Breite, Höhe |
 
+![Sammlung](bilder/spannmittel/2_sammlung.png)
+
 ### „Wie es auf dem Tisch aufgespannt ist“: die Aufspannung im Job
+
+![Aufspannung im Job](bilder/spannmittel/3_aufspannung.png)
 
 Die zweite Seite beschreibt die Aufspannung mit den Angaben, die man beim Einrichten an der
 Maschine auch macht:

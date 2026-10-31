@@ -134,6 +134,7 @@ FreeCAD.closeDocument(dokument.Name)
 from camaddon import halter as hl  # noqa: E402
 from camaddon import halter_katalog as hk  # noqa: E402
 from camaddon import katalog  # noqa: E402
+from camaddon.sprache import tr  # noqa: E402
 
 reihe = katalog.Reihe("probe:0", "Probe", "Schrumpf", hk.SCHRUMPF, aufnahme="HSK-A63")
 groesse = {"name": "d12", "artikel": "", "link": "", "masse": {}}
@@ -142,10 +143,10 @@ halter = hk.aus_katalog(reihe, groesse)
 nah(halter.laenge, 100.0, "Halter: Länge A", 0.02)
 nah(halter.abschnitte[0].d_oben, hl.AUFNAHMEN["HSK-A63"][1], "Halter: Flansch")
 nah(halter.abschnitte[-1].d_unten, 24.0, "Halter: vorn")
-if halter.abschnitte[0].art != hl.FLANSCH or "geschätzt" in halter.bezeichnung:
+if halter.abschnitte[0].art != hl.FLANSCH or halter.bezeichnung != "Probe":
     fehler.append(f"Halter: {halter.abschnitte[0]} {halter.bezeichnung!r}")
 groesse["masse"] = {"d_spann": 12.0}
-if "geschätzt" not in hk.aus_katalog(reihe, groesse).bezeichnung:
+if hk.aus_katalog(reihe, groesse).bezeichnung != tr("hk.geschaetzt", bezeichnung="Probe"):
     fehler.append("ohne Maße nicht als geschätzt benannt")
 
 # 7. Die mitgelieferten Kataloge

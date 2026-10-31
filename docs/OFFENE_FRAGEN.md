@@ -45,3 +45,11 @@ Zu „Spannmittel …“ und „Halter und Aufnahmen …“ (0.320.0) – alles 
 7. **Die feste Backe des Schraubstocks bei 0° vorn (−Y, zum Bediener) – oder hinten?** So ist es
    jetzt gebaut; um 180° gedreht liegt sie hinten. – *Warum nur Manuel:* wie es in seiner Werkstatt
    steht. – *Was die Antwort ändert:* nur die Vorgabe bei 0°. – 2026-10-31.
+8. **Dürfen mehr Daten aus dem Hoffmann-Katalog in die mitgelieferten Kataloge?** Bisher gilt deine
+   Regel „je Aufnahme/Spannart nur ein Vorbild, nicht den Katalog nachbauen“ (Datenbankschutz).
+   Gesammelt waren aus Hoffmann-Seiten gut 150 weitere Größen (Röhm-Futter, AMF-Pratzen und
+   -Spanneisen, SAV/AMF/Witte-Platten, KIPP UNILOCK, GARANT Xtric …) – übernommen ist je Spannart
+   eine. Futter (2 Reihen), Pratzen (1) und Platten (3) sind deshalb dünn; was von den
+   Herstellerseiten selbst kommt (LANG, Gressel, Allmatic, Röhm, Schunk, Kurt, Mate, Bison …), ist
+   ganz drin. – *Warum nur Manuel:* eine Rechtsfrage, die er sich selbst gesetzt hat. – *Was die
+   Antwort ändert:* mit Ja kämen die gesammelten Größen dazu (die Daten liegen bereit). – 2026-10-31.

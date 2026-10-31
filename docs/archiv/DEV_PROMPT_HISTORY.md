@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-03 halter-und-spannmittel-eigener-knopf
+
+### EINGELESEN
+- Manuel, 2026-10-31: „die halter oder aufnahmen einen eigenen knopf … genau so spannmittel ... eine
+  übersicht von spannmitteln die vorhanden sind … gut vorgefüllt … wie bei den werkzeugen … von sehr
+  vielen herstellern … bei den spannmittteln … wie er auf dem tisch aufgespannt ist ... denk dir was
+  aus !“ (W-042).
+
+### DATEIEN
+- `camaddon/spannmittel.py` (neu): Sammlung (`spannmittel.json`), sechs Arten mit Maßen, Körper mit
+  anliegenden Backen, Aufspannung am Job (Spannmittel, Unterbau, X/Y, Drehung, Spanntiefe),
+  Nullpunkt-Vorschlag, Hinweise, Katalog übernehmen.
+- `camaddon/gui_spannmittel.py` (neu): Fenster „Spannmittel“ – Sammlung und Aufspannung im Job, Bild
+  von der Seite und von oben; Befehl `CamAddon_Spannmittel`.
+- `camaddon/katalog.py`, `camaddon/gui_katalog.py`, `camaddon/halter_katalog.py` (neu): Kataloge der
+  Hersteller wie die Werkzeugkiste; Halter-Kontur aus Flansch, Körper, Nase.
+- `camaddon/spannmittel_daten/hersteller.json` (36 Reihen, 151 Größen, 16 Hersteller),
+  `camaddon/halter_daten/hersteller.json` (41 Reihen, 275 Größen, 11 Hersteller) – gesammelt von
+  den Herstellerseiten; aus dem Hoffmann-Katalog je Spannart bzw. Aufnahme und Typ nur ein Vorbild
+  (Frage 8); Rohdaten in `~/freecad_cam/wip/katalog_roh/`.
+- `camaddon/gui_halter.py`: Befehl `CamAddon_Halter` „Halter und Aufnahmen …“, „Katalog …“.
+- `camaddon/spannung.py`, `camaddon/reichweite.py`, `camaddon/einrichtblatt.py`: mit Aufspannung
+  der Körper, der Nullpunkt und der Satz fürs Einrichtblatt aus `spannmittel`.
+- `camaddon/gui_reichweite.py`: Knopf „Spannmittel …“, danach neu prüfen.
+- `camaddon/gui_start.py`, `camaddon/gui_werkzeuge.py`, `camaddon/hilfe.py`, Symbole, Hilfe
+  `spannmittel`, Texte de/en, `docs/konzept_spannmittel.md`, Fragen 5–8, `package.xml` 0.320.0.
+
+### ERGEBNIS
+- `tests/test_spannmittel.py` grün (auch: jede Katalog-Größe gibt Körper bzw. Kontur, Halterlänge =
+  A auf 0,1 mm bei allen 275), `tests/gui/szenario_spannmittel.py` grün mit Bildern
+  (`docs/bilder/spannmittel/`); dazu grün: test_sprache, test_hilfe, test_einrichtblatt,
+  szenario_erster_start (Leiste 14 Knöpfe), szenario_halter, szenario_werkzeugkiste, szenario_home.
+
 ## P-2026-10-31-02 beta-erster-klick-unten-voller-lauf
 
 ### EINGELESEN
