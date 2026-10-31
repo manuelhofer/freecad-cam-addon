@@ -18,9 +18,11 @@ daraus folgt, stehen in [konzept_schritt_assistent.md](konzept_schritt_assistent
    zum Messen von Hand misst die Maschine nach jedem Schlichtgang (Taschenbreite, Wandlage) und
    korrigiert den nächsten Gang; ohne Taster bleibt es beim Messstopp. – 2026-10-31.
 2. **Tauchfräsen so – darf es als Weg ins Schruppen?** ([Bild](bilder/tauchfraesen_entwurf.png))
-   Tasche 150 × 100, 40 tief, Tauchfräser Ø 32, Aufmaß 0,5: 28 Tauchstellen in Zeilen (Abstand
-   höchstens 0,7 × D, Zickzack), je senkrecht mit Eintauchvorschub auf den Boden, Eilgang hoch,
-   zur nächsten – bei 400 mm/min 3,2 min, 187 cm³/min. An den Rändern bleiben Zwickel, die das
+   Tasche 150 × 100, 40 tief, Tauchfräser Ø 32, Aufmaß 0,5: 28 Tauchstellen (Abstand höchstens
+   0,7 × D), je **senkrecht** mit Eintauchvorschub auf den Boden, Eilgang hoch, über dem Material
+   zur nächsten – kein Zickzack, kein Rampen. Reihenfolge: Stelle 1 in der Mitte (dort vorgebohrt),
+   dann nach außen, jede neue Stelle neben schon Offenem (nach Manuels „wieso zickzack bahn ?“ zum
+   ersten Bild, das Zeile für Zeile aus der Ecke begann). Bei 400 mm/min 3,2 min, 186 cm³/min. An den Rändern bleiben Zwickel, die das
    Schlichten (oder Restschruppen) nimmt. Gebaut als Entwurf (`camaddon/tauchfraesen.py`), noch nicht
    im Assistenten. – *Warum nur Manuel:* eine neue Strategie (abgemacht: erst Bild, dann sein Ja) –
    und ob die Stellen so liegen sollen (Zeilen, versetzte Zeilen, oder längs der Wand zuerst). –

@@ -10,11 +10,14 @@ Der Fräser (ein Tauchfräser oder ein mittenschneidender Schaftfräser mit Wend
 senkrecht ins Volle, Stelle an Stelle:
 
 - **Wo:** Die Mitte des Fräsers bleibt um Radius + Aufmaß innerhalb des Bodens (makeOffset2D). Darin
-  liegen die Stellen in Zeilen (`schritt`, höchstens 0,7 × D – dann bleiben zwischen vier Stellen
-  nur kleine Zwickel), Zeile um Zeile im Zickzack, und dazu Stellen längs der versetzten Kontur im
-  selben Abstand, damit die Wände gleichmäßig Aufmaß behalten.
-- **Wie:** im Eilgang über die Stelle (knapp über der Oberkante), mit dem Eintauchvorschub bis auf
-  den Boden + Aufmaß, im Eilgang zurück nach oben, zur nächsten.
+  liegen die Stellen in einem Raster (`schritt`, höchstens 0,7 × D – dann bleiben zwischen vier
+  Stellen nur kleine Zwickel), dazu Stellen längs der versetzten Kontur im selben Abstand, damit
+  die Wände gleichmäßig Aufmaß behalten.
+- **Reihenfolge:** von der Mitte (dort wird vorgebohrt) nach außen, jede neue Stelle neben dem
+  schon Offenen (von_innen_nach_aussen).
+- **Wie:** im Eilgang über die Stelle (knapp über der Oberkante), senkrecht mit dem
+  Eintauchvorschub bis auf den Boden + Aufmaß, im Eilgang zurück nach oben, zur nächsten – kein
+  Zickzack, kein Rampen.
 
 Läuft ohne Oberfläche.
 """
@@ -45,13 +48,11 @@ def stellen(boden, radius, aufmass=0.0, schritt=None):
     zeilen = max(1, math.ceil(box.YLength / schritt))
     for zeile in range(zeilen + 1):
         y = box.YMin + min(zeile * box.YLength / zeilen, box.YLength)
-        reihe = []
         spalten = max(1, math.ceil(box.XLength / schritt))
         for spalte in range(spalten + 1):
             x = box.XMin + spalte * box.XLength / spalten
             if innen.isInside(FreeCAD.Vector(x, y, z), 1e-6, True):
-                reihe.append((x, y))
-        punkte += reihe if zeile % 2 == 0 else list(reversed(reihe))
+                punkte.append((x, y))
     # Längs der Kontur der versetzten Fläche, damit die Wände gleichmäßig Aufmaß behalten.
     for kante in innen.Edges:
         anzahl = max(1, math.ceil(kante.Length / schritt))
@@ -61,7 +62,35 @@ def stellen(boden, radius, aufmass=0.0, schritt=None):
             )
             if all(math.hypot(p.x - a, p.y - b) > 0.5 * schritt for a, b in punkte):
                 punkte.append((p.x, p.y))
-    return punkte
+    mitte = innen.CenterOfMass if innen.isInside(innen.CenterOfMass, 1e-6, True) else None
+    return von_innen_nach_aussen(punkte, (mitte.x, mitte.y) if mitte is not None else None)
+
+
+def von_innen_nach_aussen(punkte, mitte=None):
+    """Die Reihenfolge (Manuel, 2026-10-31: „bohrt mittig ein loch und fräst dann“; zum ersten
+    Entwurf: „wieso zuickzack bahn ?“): zuerst die Stelle an der Mitte (dort wird vorgebohrt),
+    dann immer die, die dem schon Offenen am nächsten liegt – so greift jede neue Stelle neben
+    Offenem an und schneidet nur zum Teil ins Volle; bei Gleichstand die nächste zur letzten."""
+    if not punkte:
+        return []
+    if mitte is None:
+        mitte = (sum(p[0] for p in punkte) / len(punkte), sum(p[1] for p in punkte) / len(punkte))
+    offen = list(punkte)
+    erste = min(offen, key=lambda p: math.hypot(p[0] - mitte[0], p[1] - mitte[1]))
+    folge = [erste]
+    offen.remove(erste)
+    while offen:
+        letzte = folge[-1]
+        naechste = min(
+            offen,
+            key=lambda p: (
+                round(min(math.hypot(p[0] - a, p[1] - b) for a, b in folge), 3),
+                math.hypot(p[0] - letzte[0], p[1] - letzte[1]),
+            ),
+        )
+        folge.append(naechste)
+        offen.remove(naechste)
+    return folge
 
 
 def bahn(punkte, z_oben, z_unten):

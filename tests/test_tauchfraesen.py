@@ -5,6 +5,8 @@
 #    höchstens r von einer Stelle entfernt.
 # 3. Die Bahn: je Stelle Eilgang darüber, Eintauchen bis zum Boden, Eilgang hoch; die Zeit > 0.
 # 4. Zu eng (Tasche schmaler als der Fräser): keine Stelle.
+# 5. Reihenfolge von innen nach außen: die erste Stelle an der Mitte, jede weitere höchstens einen
+#    Rasterschritt (+ Spiel) vom schon Offenen.
 import math
 import os
 import sys
@@ -59,6 +61,14 @@ schmal = Part.Face(
 )
 if tf.stellen(schmal, r, aufmass):
     fehler.append("in einer zu engen Tasche Stellen")
+
+erste = stellen[0]
+if math.hypot(erste[0] - 75, erste[1] - 50) > 0.7 * 2 * r:
+    fehler.append(f"erste Stelle nicht an der Mitte: {erste}")
+for i in range(1, len(stellen)):
+    abstand = min(math.hypot(stellen[i][0] - a, stellen[i][1] - b) for a, b in stellen[:i])
+    if abstand > 0.7 * 2 * r * 1.05:
+        fehler.append(f"Stelle {i + 1} nicht neben dem Offenen: {abstand:.1f}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))
