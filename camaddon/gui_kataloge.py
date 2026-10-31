@@ -75,11 +75,11 @@ def _still_laden():
 
 
 def _download_text():
-    """„etwa 1,1 MB Download, 15,4 MB auf der Platte“ – gepackt etwa ein Fünfzehntel."""
+    """„etwa 1,5 MB Download, 25,2 MB auf der Platte“ – gepackt etwa ein Siebzehntel."""
     alle = sum(int(e.get("groesse", 0)) for e in kataloge.index().values())
     return tr(
         "kg.groesse",
-        download=kataloge.groesse_text(alle / 14.0),
+        download=kataloge.groesse_text(alle / 17.0),
         platte=kataloge.groesse_text(alle),
     )
 

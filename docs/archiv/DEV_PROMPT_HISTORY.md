@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-37 emuge-franken-katalog
+
+### EINGELESEN
+- Manuel, 2026-10-31: „darum müssen wir auch die hersteller datenbank aufpumpen bis zum geht nicht
+  mehr“; abends: „Kannst du weiter machen ich geh ins Bett“ – „Morgen um 9 bin ich wieder da so
+  lange einfach Durcharbeit“.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/emuge_franken.json` (neu): aus den am 31.10. vormittags geholten
+  Produkt- und Variantendaten der Webshop-Schnittstelle von EMUGE-FRANKEN (Sammler
+  ~/freecad_cam/wip/emuge_sammler/bau.py, nicht im Repo).
+- `camaddon/kataloge_index.json` neu (12 Dateien, 25,2 MB); `camaddon/gui_kataloge.py`: Schätzung
+  des Downloads ein Siebzehntel; `translations/*.json`: „Rund 82 000 Werkzeuge“ mit Emuge-Franken;
+  `package.xml` 0.337.0.
+
+### ERGEBNIS
+- Übernahme: 1254 Reihen, 24 885 Größen, Fehler 0, doppelt 0 (auch gegen die anderen Dateien).
+  Werkzeugkiste prüft alle 82 097 Größen in 6,0 s. test_kataloge, test_werkzeugkiste_datei,
+  test_faehigkeiten, test_werkzeugwahl, test_empfehlung, test_sprache grün.
+- Ein Link stichprobenweise geöffnet (HTTP 200, Produktseite 2869A).
 ## P-2026-10-31-36 hoffmann-bohrer-vollstaendig
 
 ### EINGELESEN

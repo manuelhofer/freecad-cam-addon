@@ -576,6 +576,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.337.0):* **EMUGE-FRANKEN im Katalog:** 1254 Reihen, 24 885 Größen – Fräser mit
+  Zylinderschaft (Schaft-, Kugel-, Torus-, Hochvorschub-, Konik-, T-Nutenfräser, Kegelsenker),
+  VHM-Bohrer, Maschinen-Gewindebohrer und -former (rechts/links; metrisch, UNC/UNF/UNEF, G, BSW,
+  Trapez) und Gewindefräser. Maße je Größe (Zoll-Reihen umgerechnet), Zähnezahl, Werkstoffklassen
+  aus den Empfehlungen von Emuge, „zentrumschneidend“ und „Bohrfräsen“ aus der Beschreibung.
+  Ausgelassen: Gewinde ohne sichere Steigung (NPT, Gewindeeinsätze), Frässtifte, Profil-,
+  Kreissegment- und Winkelfräser. Kataloge jetzt 82 000 Größen, 25,2 MB (gepackt 1,5 MB).
 - *Korrektur (0.336.1):* **Hoffmann-Bohrer vollständiger:** 170 Reihen mit allen Größen statt der
   ersten Seite (hoffmann_bohren 6506 → 16 145 Größen), Kataloge jetzt 17,7 MB (gepackt etwa 1 MB).
   Der Restabruf hörte nach 556 Anfragen bei HTTP 429 sofort auf; der Rest folgt später.
