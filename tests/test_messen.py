@@ -126,6 +126,27 @@ for m in (
     )
 pruefe(ms.merkmal_von(["(MESSSTOPP)", "G0 Z45.000", "M0"]) is None, "ohne Zeile ein Merkmal")
 
+# 7. Das Einrichtblatt sagt beim Messstopp, was zu messen ist (auch für das Messen von Hand).
+from camaddon import einrichtblatt as eb  # noqa: E402
+from camaddon import sprache  # noqa: E402
+
+sprache.setze_sprache("de")
+
+
+class Stopp:
+    Gcode = [
+        "(MESSSTOPP)",
+        ms.merkmal_zeile(messen.soll(messen.merkmal(form, wahl_tasche), 1.0), 0.02),
+        "M0",
+    ]
+
+
+satz = eb._messen_text(Stopp(), sprache.tr)
+print(satz)
+pruefe(satz.startswith("messen: Tasche 58") and "38" in satz and "±0" in satz, f"Blatt: {satz}")
+Stopp.Gcode = ["(MESSSTOPP)", "M0"]
+pruefe(eb._messen_text(Stopp(), sprache.tr) == "", "Blatt ohne Merkmal")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

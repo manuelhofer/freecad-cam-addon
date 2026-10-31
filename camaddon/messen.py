@@ -170,3 +170,25 @@ def soll(m, aufmass):
     if m.rund:
         return replace(m, durchmesser=m.durchmesser + um)
     return replace(m, laenge_x=m.laenge_x + um, laenge_y=m.laenge_y + um)
+
+
+def text(m, toleranz=None):
+    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“ – mit `toleranz` „… ±0,02“."""
+    from . import einheiten
+    from .sprache import tr
+
+    art = {
+        TASCHE: tr("mn.tasche"),
+        ZAPFEN: tr("mn.zapfen"),
+        BOHRUNG: tr("mn.bohrung"),
+        WELLE: tr("mn.welle"),
+    }[m.art]
+    laenge = einheiten.LAENGE
+    if m.rund:
+        mass = f"Ø {einheiten.text(m.durchmesser, laenge, 3)}"
+    else:
+        mass = f"{einheiten.text(m.laenge_x, laenge, 3)} × {einheiten.text(m.laenge_y, laenge, 3)}"
+    ergebnis = f"{art} {mass} {einheiten.einheit(laenge)}"
+    if toleranz is not None:
+        ergebnis += f" ±{einheiten.text(toleranz, laenge, 3)}"
+    return ergebnis

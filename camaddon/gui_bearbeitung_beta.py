@@ -1390,21 +1390,10 @@ def messmerkmal(job, davor=None):
 
 
 def _merkmal_text(m):
-    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“."""
-    art = {
-        "tasche": tr("beta.weiter.messen.tasche"),
-        "zapfen": tr("beta.weiter.messen.zapfen"),
-        "bohrung": tr("beta.weiter.messen.bohrung"),
-        "welle": tr("beta.weiter.messen.welle"),
-    }[m.art]
-    if m.rund:
-        mass = f"Ø {groesse_zeigen(m.durchmesser, einheiten.LAENGE, 3)}"
-    else:
-        mass = (
-            f"{groesse_zeigen(m.laenge_x, einheiten.LAENGE, 3)} × "
-            f"{groesse_zeigen(m.laenge_y, einheiten.LAENGE, 3)}"
-        )
-    return f"{art} {mass} {einheiten.einheit(einheiten.LAENGE)}"
+    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“ (messen.text)."""
+    from . import messen
+
+    return messen.text(m)
 
 
 def _hat_loecher(job):

@@ -153,7 +153,7 @@ def blatt(job, datum, version, bibliothek=None):
                     # nur „T1“: Der Fräser steht oben schon mit allen Maßen – hier zählen die
                     # Werte (Manuel, 2026-10-18: „sehr oft welches Werkzeug … sehr wenig Werte“)
                     werkzeug=f"T{w.nummer}" if w is not None else "–",
-                    werte=_werte(op, tc),
+                    werte=_messen_text(op, tr) or _werte(op, tc),
                     minuten=minuten(op, tc, dynamik),
                     lage=lage,
                     kuehlung=_kuehlung_text(op, tr),
@@ -345,6 +345,21 @@ def _werte(op, tc):
 
         teile.append(f"{tr('eb.eintauchwinkel')} {_ohne_nullen(winkel, 1)}°")
     return " · ".join(teile) or "–"
+
+
+def _messen_text(op, tr):
+    """Beim Messstopp mit Messmerkmal (messstopp.merkmal_zeile, Plan C3b): „messen: Tasche 59,4 ×
+    39,4 mm ±0,02“ – das Sollmaß nach dem Gang davor, für den Bediener (auch zum Messen von Hand);
+    sonst ""."""
+    from . import messen
+    from . import messstopp as ms
+
+    if not ms.ist_messstopp(op):
+        return ""
+    gemessen = ms.merkmal_von(list(getattr(op, "Gcode", []) or []))
+    if gemessen is None:
+        return ""
+    return tr("eb.messen", was=messen.text(*gemessen))
 
 
 def _vc_fz(tc, drehzahl, vorschub):

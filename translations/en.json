@@ -3629,10 +3629,6 @@
     "pp.feld.messen_bohrung": "Measure: bore",
     "pp.feld.messen_welle": "Measure: round boss",
     "pp.feld.messen.tooltip": "The control's measuring cycle for this kind – {t} probe, {x} {y} centre, {z} measuring height, {lx} {ly} side lengths, {d} diameter, {tol} tolerance ±, {oben} top edge, {sicher} safe height. Empty: stop instead of measuring for this kind.",
-    "beta.weiter.messen.tasche": "Pocket",
-    "beta.weiter.messen.zapfen": "Boss",
-    "beta.weiter.messen.bohrung": "Bore",
-    "beta.weiter.messen.welle": "Round boss",
     "beta.weiter.messen.taster": "Touch probe T",
     "beta.weiter.messen.taster.tooltip": "Your touch probe's tool number – remembered at this machine's post processor (as in the “Write program” window). Empty: the machine stops for measuring.",
     "beta.weiter.messen.keins": "Measured by hand: the faces are not a rectangular pocket, boss, bore or round boss – the machine stops.",
@@ -3644,5 +3640,10 @@
     "ba.tauchfraesen.vorbohren.tooltip": "At the first plunge of each pocket, the largest drill in the magazine that is not larger than the cutter drills a hole down to the floor first – the cutter then plunges into that hole. Not around a boss: there it starts in the open. FreeCAD's “Drilling” is created before the plunge milling.",
     "ba.tauchfraesen.vorbohren.kein_bohrer": "No drill up to Ø {d} in the magazine – without pre-drilling.",
     "beta.weiter.aufmass.feld": "Allowance of this pass",
-    "beta.weiter.aufmass.tooltip": "This much stays on the faces after this pass – proposed 1 mm less than the pass before (3 → 2 → 1 → 0). The strategies of this step get it entered; it can be changed there under “Change values ▸”."
+    "beta.weiter.aufmass.tooltip": "This much stays on the faces after this pass – proposed 1 mm less than the pass before (3 → 2 → 1 → 0). The strategies of this step get it entered; it can be changed there under “Change values ▸”.",
+    "mn.tasche": "Pocket",
+    "mn.zapfen": "Boss",
+    "mn.bohrung": "Bore",
+    "mn.welle": "Round boss",
+    "eb.messen": "measure: {was}"
 }

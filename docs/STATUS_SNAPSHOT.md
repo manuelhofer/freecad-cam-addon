@@ -576,6 +576,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.332.1):* Das **Einrichtblatt** schreibt beim Messstopp mit Merkmal in die Spalte
+  der Werte „messen: Tasche 59,4 × 39,4 mm ±0,02“ – das Sollmaß nach dem Gang davor, auch zum
+  Messen von Hand (`messen.text`, gemeinsam mit dem Fenster „Weiter bearbeiten“).
 - *Neu (0.332.0):* **Aufmaß-Stufen in „Weiter bearbeiten“** (Manuel: „3 mm aufmass beim schruppen …
   schlichten auf 2mm … nochmal … auf 1 mm … jedes mal dazwischen messschritte“ – „sehr wichtig“):
   Feld „Aufmaß dieses Gangs“, vorgeschlagen 1 mm weniger als die Operation davor (nicht unter 0);

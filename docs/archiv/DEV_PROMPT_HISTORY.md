@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-28 einrichtblatt-messen
+
+### EINGELESEN
+- Plan C3: Messschritte – der Bediener braucht das Sollmaß am Messstopp.
+
+### DATEIEN
+- `camaddon/messen.py`: `text`; `camaddon/einrichtblatt.py`: `_messen_text` in der Spalte der Werte; `camaddon/gui_bearbeitung_beta.py`: nutzt `messen.text`.
+- `translations/*.json` (mn.*, eb.messen; beta.weiter.messen.<art> weg); `tests/test_messen.py` (7.).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.332.1.
+
+### ERGEBNIS
+- test_messen, test_einrichtblatt, test_sprache, szenario_beta_schritte grün.
 ## P-2026-10-31-27 aufmass-stufen
 
 ### EINGELESEN

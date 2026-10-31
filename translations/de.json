@@ -3629,10 +3629,6 @@
     "pp.feld.messen_bohrung": "Messen: Bohrung",
     "pp.feld.messen_welle": "Messen: Welle/Zapfen rund",
     "pp.feld.messen.tooltip": "Der Messzyklus der Steuerung für diese Art – {t} Taster, {x} {y} Mitte, {z} Messhöhe, {lx} {ly} Seitenlängen, {d} Durchmesser, {tol} Toleranz ±, {oben} Oberkante, {sicher} sichere Höhe. Leer: für diese Art halten statt messen.",
-    "beta.weiter.messen.tasche": "Tasche",
-    "beta.weiter.messen.zapfen": "Zapfen",
-    "beta.weiter.messen.bohrung": "Bohrung",
-    "beta.weiter.messen.welle": "Welle",
     "beta.weiter.messen.taster": "Messtaster T",
     "beta.weiter.messen.taster.tooltip": "Die Werkzeugnummer deines Messtasters – gemerkt am Postprozessor dieser Maschine (wie im Fenster „Programm schreiben“). Leer: zum Messen hält die Maschine.",
     "beta.weiter.messen.keins": "Gemessen wird von Hand: Die Flächen sind keine Rechtecktasche, kein Zapfen, keine Bohrung oder Welle – die Maschine hält.",
@@ -3644,5 +3640,10 @@
     "ba.tauchfraesen.vorbohren.tooltip": "An der ersten Tauchstelle jeder Tasche bohrt davor der größte Bohrer aus dem Magazin, der nicht größer ist als der Fräser, ein Loch bis auf den Boden – dort taucht der Fräser dann ins Loch. Um einen Zapfen nicht: Dort beginnt es im Freien. Angelegt wird FreeCADs „Bohren“ vor dem Tauchfräsen.",
     "ba.tauchfraesen.vorbohren.kein_bohrer": "Kein Bohrer bis Ø {d} im Magazin – ohne Vorbohren.",
     "beta.weiter.aufmass.feld": "Aufmaß dieses Gangs",
-    "beta.weiter.aufmass.tooltip": "So viel bleibt nach diesem Gang an den Flächen stehen – vorgeschlagen 1 mm weniger als beim Gang davor (3 → 2 → 1 → 0). Die Strategien dieses Schritts bekommen es eingetragen; ändern lässt es sich dort unter „Werte ändern ▸“."
+    "beta.weiter.aufmass.tooltip": "So viel bleibt nach diesem Gang an den Flächen stehen – vorgeschlagen 1 mm weniger als beim Gang davor (3 → 2 → 1 → 0). Die Strategien dieses Schritts bekommen es eingetragen; ändern lässt es sich dort unter „Werte ändern ▸“.",
+    "mn.tasche": "Tasche",
+    "mn.zapfen": "Zapfen",
+    "mn.bohrung": "Bohrung",
+    "mn.welle": "Welle",
+    "eb.messen": "messen: {was}"
 }
