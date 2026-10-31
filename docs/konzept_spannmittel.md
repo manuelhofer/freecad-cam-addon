@@ -129,8 +129,8 @@ Geprüft: `tests/test_spannmittel.py` und `tests/gui/szenario_spannmittel.py`.
    bräuchte die Maschine Tischmaße. Das ist erst sinnvoll, wenn Manuel es will.
 4. **Spannmittel aus einer CAD-Datei:** wie bei den Haltern (STEP/STL des Herstellers). Der Körper
    käme dann aus der Datei statt aus den Maßen, für Bild und Kollision.
+5. **Mehrfachaufspannung:** zwei Schraubstöcke nebeneinander oder ein Spannturm mit mehreren
+   Teilen. Das braucht mehrere Aufspannungen je Job und kommt erst, wenn es gebraucht wird.
 6. **Aufspanntürme und -winkel:** 15 Reihen sind gesammelt (Schunk SAT/VAT3, Hilma TS, Gressel,
    Kipp K1451 …), aber noch nicht im Katalog: Dort hängt das Teil seitlich am Turm, nicht oben in
    den Backen – dafür braucht die Aufspannung eine Seite und mehrere Plätze (zusammen mit 5).
-5. **Mehrfachaufspannung:** zwei Schraubstöcke nebeneinander oder ein Spannturm mit mehreren
-   Teilen. Das braucht mehrere Aufspannungen je Job und kommt erst, wenn es gebraucht wird.
