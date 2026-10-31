@@ -576,6 +576,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.344.0):* **Werkzeugkiste: 139 809 Größen** – dazu ZECHA (157 Reihen, 5 465 Größen;
+  zecha.shop und Stahl-/Fräserkatalog 2025, Schnittwerte nur für die zectec-Reihen) und Union Tool
+  (116 Reihen, 6 761 Größen; Gesamtkatalog Vol. 22, Schnittwerte für 92 Reihen aus n/vf).
 - *Neu (0.343.0):* **Werkzeugkiste: 127 586 Größen** – dazu OSG und YG-1 (731 Reihen, 30 569 Größen;
   OSG-Gesamtkatalog Vol. 1, YG-1 YU25 Milling/Holemaking/Threading und Europa-Hefte; Schnittwerte
   für 327 Reihen) und MOLDINO/Sumitomo (242 Reihen, 14 920 Größen; Moldino-Katalog 2025–2026,

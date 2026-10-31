@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-48 zecha-union
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“; Sammler ZECHA/Union Tool (Nacht, Regeln wie -47).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/zecha_union.json` (273 Reihen, 12 223 Größen).
+- `camaddon/kataloge_index.json` neu (15 Dateien, 44,8 MB); `translations/*.json`: „Rund 140 000
+  Werkzeuge“ mit ZECHA und Union Tool; `package.xml` 0.344.0.
+
+### ERGEBNIS
+- Übernahme: Fehler 0, doppelt 0, Hinweise 0; Werkzeugkiste 139 809 Größen, Prüfen 6,3 s (im
+  Nebenrechner). Keine Sperren beim Sammeln; der Union-Webkatalog verlangt eine E-Mail-Adresse –
+  nicht genutzt; ZECHAs Schnittdatenrechner braucht ein Login – nicht genutzt.
+- test_kataloge, test_werkzeugkiste_datei, test_werkzeugwahl, test_faehigkeiten, test_sprache
+  grün.
 ## P-2026-10-31-47 osg-yg1-moldino-sumitomo
 
 ### EINGELESEN

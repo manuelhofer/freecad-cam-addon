@@ -55,6 +55,10 @@
   "werkzeugkiste_daten/sandvik_seco_walter.json": {
    "groesse": 6139695,
    "sha256": "1307513da4b33337f3d28a42e9143d5aa0f146c804b6119a79325d78d6e37115"
+  },
+  "werkzeugkiste_daten/zecha_union.json": {
+   "groesse": 5356851,
+   "sha256": "a09b670e65528c8e8bc06770802759573ac6388bb5f86339f1f1547f606d83c7"
   }
  }
 }
