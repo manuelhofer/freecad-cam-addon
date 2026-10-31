@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-31 bohrfraesen-geklaert
+
+### EINGELESEN
+- Manuel, 2026-10-31: „ich weis nicht ob der das zirkular kann ich denke die meinen bohrfäasen nur das sie einfach an einer anderen stelle wo nicht 100 % im eingriff sind eben borhen können … man muss klären wie die bohrfräsen definieren !“ – Recherche (Sandvik, Walter, Seco, Iscar, Kennametal, Tungaloy, Ingersoll, GARANT; Quellen unter ~/freecad_cam/wip/bohrfraesen_quellen/).
+
+### DATEIEN
+- `camaddon/werkzeuge.py`: FAEHIGKEITEN `helix_d_min`, `helix_d_max`, `zirkularfraesen`, `rampenwinkel_max`, `bohrverwendung`; Anzeige.
+- `camaddon/werkzeugwahl.py`: „bohrfraesen“ nimmt Fräser (Ø-Fenster); `tests/test_werkzeugwahl.py`.
+- `docs/werkzeugkiste_json.md` 3a; `translations/*.json`; `docs/OFFENE_FRAGEN.md` (Frage 1 neu gefasst, Frage 2 neu); `docs/konzept_schritt_assistent.md`; `docs/STATUS_SNAPSHOT.md`; `package.xml` 0.333.1.
+- Außerhalb: `~/freecad_cam/wip/hoffmann_sammler/rest_abruf.py` – FZI → zirkularfraesen, Gewindebohrfräsen nicht.
+
+### ERGEBNIS
+- test_werkzeugwahl, test_faehigkeiten, test_sprache grün.
 ## P-2026-10-31-30 radiuskorrektur
 
 ### EINGELESEN

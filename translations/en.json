@@ -3552,7 +3552,7 @@
     "wv.kann.tooltip": "What the manufacturer says about this tool (from the catalogue) – the add-on will use it to choose how a pocket is cleared (pre-drilling, helix, drill-milling, plunge milling).",
     "wv.kann.mittenschneidend": "centre cutting (plunges vertically)",
     "wv.kann.nicht_mittenschneidend": "not centre cutting (ramp/helix or pre-drill only)",
-    "wv.kann.bohrfraesen": "drill-milling",
+    "wv.kann.bohrfraesen": "helical into solid (drill milling)",
     "wv.kann.tauchfraesen": "plunge milling",
     "wv.kann.hochvorschub": "high feed",
     "wv.kann.kuehlung_innen": "internal coolant",
@@ -3595,7 +3595,7 @@
     "beta.werkzeuge.vorbohren": "Pre-drilling",
     "beta.werkzeuge.schruppen": "Roughing",
     "beta.werkzeuge.ecken": "Corners",
-    "beta.werkzeuge.bohrfraesen": "Drill-milling",
+    "beta.werkzeuge.bohrfraesen": "Helical into solid",
     "beta.werkzeuge.bis": "up to Ø {d}",
     "beta.werkzeuge.eigenes": "yours: {name}",
     "beta.werkzeuge.keins": "none in the tool manager",
@@ -3654,5 +3654,9 @@
     "pp.feld.korrektur.tooltip": "For contours with “cutter compensation by the control”: the finishing loop goes out as the part contour with these commands – G41 (tool left of the contour), G42 (right), G40 (off); {t} is the tool number (Fanuc/Haas “G41 D{t}”). Empty: the loop stays the centre path.",
     "pp.hinweis.korrektur": "{operation}: the finishing loop did not work out as a contour with cutter compensation – it is in the program as the centre path.",
     "ba.kontur.korrektur": "Cutter compensation by the control (G41/G42)",
-    "ba.kontur.korrektur.tooltip": "The finishing loop goes into the program as the part contour with G41/G42 – the control takes the radius from its tool table, as in a hand-written program. So the operator or a measuring cycle corrects the wear. The radius in the tool table must be right. Only a closed loop, on controls with G41/G42 (not GRBL, Heidenhain not yet); otherwise the centre path."
+    "ba.kontur.korrektur.tooltip": "The finishing loop goes into the program as the part contour with G41/G42 – the control takes the radius from its tool table, as in a hand-written program. So the operator or a measuring cycle corrects the wear. The radius in the tool table must be right. Only a closed loop, on controls with G41/G42 (not GRBL, Heidenhain not yet); otherwise the centre path.",
+    "wv.kann.bohrfraesen_fenster": "helical into solid Ø {von}–{bis}",
+    "wv.kann.zirkularfraesen": "circular (enlarging)",
+    "wv.kann.rampe": "ramp up to {grad}°",
+    "wv.kann.bohrverwendung": "also drills: {liste}"
 }

@@ -3,7 +3,8 @@
 # 2. vorschlaege mit eigenen Werkzeugen (Bohrer Ø 10/20/38, 38 nur 10 mm Schneide; Fräser Ø 12/28)
 #    und einem kleinen Katalog: vorbohren der eigene Ø 20 (Ø 38 ist zu kurz), aus dem Katalog der
 #    größere Ø 36; schruppen der eigene Ø 28 (bis 80 % des freien Kreises); ecken (bis Ø 10) nichts Eigenes, aus dem Katalog Ø 10
-#    und Ø 8; bohrfraesen nur der Wendeplattenbohrer, der es kann; tauchfraesen nur der Tauchfräser
+#    und Ø 8; bohrfraesen nur der Fräser, der laut Hersteller helikal ins Volle darf (Ø 25, Fenster
+#    Ø 30–45 um den freien Kreis; der mit Fenster ab Ø 50 nicht); tauchfraesen nur der Tauchfräser
 #    (Ø 32 im Katalog, kein eigener; der Ø 50 passt nicht in den freien Kreis).
 import os
 import sys
@@ -54,7 +55,9 @@ eigene = [
 ]
 katalog = [
     werkzeug(wz.BOHRER, 36),
-    werkzeug(wz.BOHRER, 30, wendeplatten=True, bohrfraesen=True),
+    werkzeug(wz.BOHRER, 30, wendeplatten=True, bohrverwendung=["brillenbohrung"]),
+    werkzeug(wz.SCHAFTFRAESER, 25, bohrfraesen=True, helix_d_min=30.0, helix_d_max=45.0),
+    werkzeug(wz.SCHAFTFRAESER, 26, bohrfraesen=True, helix_d_min=50.0, helix_d_max=60.0),
     werkzeug(wz.BOHRER, 25, wendeplatten=True),
     werkzeug(wz.SCHAFTFRAESER, 10),
     werkzeug(wz.KUGELFRAESER, 8),
@@ -72,7 +75,7 @@ ec = v.get("ecken")
 if ec is None or ec.eigenes is not None or [w.durchmesser for w in ec.katalog] != [10, 8]:
     fehler.append(f"ecken: {ec}")
 bf = v.get("bohrfraesen")
-if bf is None or [w.durchmesser for w in bf.katalog] != [30]:
+if bf is None or [w.durchmesser for w in bf.katalog] != [25]:
     fehler.append(f"bohrfraesen: {bf}")
 tf = v.get("tauchfraesen")
 if tf is None or tf.eigenes is not None or [w.durchmesser for w in tf.katalog] != [32]:

@@ -87,7 +87,11 @@ Werkzeuge vor. Nur angeben, was der Hersteller nennt – auf Reihe (`gemeinsam`)
 | `mittenschneidend` | `true`: Stirnschneide über die Mitte – darf senkrecht eintauchen; `false`: nicht (nur Rampe/Helix oder vorbohren) |
 | `eintauchwinkel` | (schon oben) der größte Rampenwinkel in Grad |
 | `max_eintauchtiefe` | wie tief er je Eintauchen höchstens geht (mm), z. B. bei Wendeplattenfräsern |
-| `bohrfraesen` | `true`: darf zirkular/helikal ins Volle fräsen (Bohrfräsen, Interpolieren) – auch Wendeplattenbohrer, die das können |
+| `bohrfraesen` | `true`: ein **Fräser**, der helikal ins Volle fräsen darf (Tungaloy „Drilling (Helical feed)“, Ingersoll „Bohrzirkularfräsen“, GARANT „Bohrfräsen“) – Wendeplattenbohrer nur, wenn der Hersteller die Helix ausdrücklich freigibt (bisher nur Sandvik CoroDrill 880) |
+| `helix_d_min`, `helix_d_max` | das Ø-Fenster dazu (mm): darunter läuft der Fräser auf, darüber bleibt ein Zapfen stehen |
+| `zirkularfraesen` | `true`: fräst auf der Kreisbahn (aufweiten einer vorhandenen Bohrung, Hoffmann „Zirkularfräsen (FZI)“) – nicht ins Volle |
+| `rampenwinkel_max` | der größte Rampenwinkel (°; Tungaloy RMPX, Hoffmann „Eintauchwinkel max. α“) |
+| `bohrverwendung` | Wendeplattenbohrer: wofür er außer ins Volle taugt – Liste aus `brillenbohrung` (Teil-Eingriff, Kettenbohren), `schraeg_anbohren`, `schraeger_austritt`, `ballig`, `konkav`, `querbohren`, `paketbohren`, `unterbrochener_schnitt`, `auskesselung` (Walter, Hoffmann „Bohrverwendung“) |
 | `tauchfraesen` | `true`: für Tauchfräsen gemacht (senkrecht Stoß an Stoß, „Plunge“) |
 | `seitlich_versetzt` | Wendeplattenbohrer: größter seitlicher Versatz beim Aufbohren (mm), wenn genannt |
 | `bohrtiefe_d` | Bohrer: die Länge als Vielfaches von D, wie der Katalog sie nennt (3, 5, 8 …) |
@@ -100,7 +104,7 @@ Werkzeuge vor. Nur angeben, was der Hersteller nennt – auf Reihe (`gemeinsam`)
 
 Neue Arten (ab 0.321): `tauchfraeser` (Tauchfräser, Plunge-Fräser mit Wendeplatten – Maße wie
 Schaftfräser, Einsatz `tauchfraesen`), `wendeplattenbohrer` (Bohrer mit Wendeplatten – Maße wie
-Bohrer, Einsätze `bohren`, auch `bohrfraesen`), `hochvorschubfraeser` (Maße wie Torusfräser,
+Bohrer, Einsatz `bohren`; die Helix nur mit ausdrücklicher Freigabe des Herstellers, sonst `bohrverwendung`), `hochvorschubfraeser` (Maße wie Torusfräser,
 Einsatz `schruppen`). Schneidstoff `wsp` für Werkzeuge mit Wendeplatten.
 
 ## 4. Werkzeugarten (`art`) und ihre Maße

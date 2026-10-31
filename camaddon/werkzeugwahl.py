@@ -17,7 +17,9 @@ dort ein größeres steht:
 - **schruppen:** Schaft-, Torus- und Hochvorschubfräser, Ø höchstens 80 % des freien Kreises (die
   Länge zählt nicht: er schruppt in Lagen),
 - **ecken:** Fräser für die Rundungen, Ø höchstens 2 × der kleinste Innenradius,
-- **bohrfraesen:** Wendeplattenbohrer, die das laut Hersteller können,
+- **bohrfraesen:** Fräser, die laut Hersteller helikal ins Volle dürfen (Fähigkeit „bohrfraesen“ –
+  nach der Recherche 2026-10-31 eine Eigenschaft von Fräsern, nicht von Wendeplattenbohrern), Ø bis
+  80 % des freien Kreises; mit Ø-Fenster nur, wenn der freie Kreis darin liegt,
 - **tauchfraesen:** Fräser, die laut Hersteller tauchen (Tauchfräser), Ø höchstens der freie Kreis
   (tauchfraesen.py taucht in Lagen: die Länge zählt nicht).
 
@@ -153,6 +155,16 @@ def _vorschlag(weg, arten, grenze, tiefe, eigene, katalog, bedingung=None):
     return Vorschlag(weg, eigenes, auswahl, grenze)
 
 
+def _helix_passt(werkzeug, frei):
+    """Darf der Fräser laut Hersteller helikal ins Volle – und, wenn er ein Ø-Fenster nennt, liegt
+    der freie Kreis `frei` darin (darunter liefe er auf; darüber geht es mit Räumen weiter)?"""
+    f = werkzeug.faehigkeiten
+    if not f.get("bohrfraesen"):
+        return False
+    d_min = float(f.get("helix_d_min") or 0.0)
+    return frei >= d_min - 1e-6
+
+
 def vorschlaege(m, eigene, katalog=None):
     """[Vorschlag] je Weg, für die Tasche mit den Maßen `m`; `eigene`: die Werkzeuge der
     Werkzeugverwaltung, `katalog`: die des Katalogs (ohne: katalog_werkzeuge())."""
@@ -172,8 +184,8 @@ def vorschlaege(m, eigene, katalog=None):
             "ecken", (*FRAESER, wz.KUGELFRAESER), 2 * m.innenradius, m.tiefe, eigene, katalog
         )
     bohrfraesen = _vorschlag(
-        "bohrfraesen", (wz.BOHRER,), m.frei - 2 * RAND, m.tiefe, eigene, katalog,
-        lambda w: bool(w.faehigkeiten.get("bohrfraesen")),
+        "bohrfraesen", FRAESER, SCHRUPPEN_ANTEIL * m.frei, 0.0, eigene, katalog,
+        lambda w: _helix_passt(w, m.frei),
     )  # fmt: skip
     tauchen = _vorschlag(
         "tauchfraesen", FRAESER, m.frei, 0.0, eigene, katalog,

@@ -3552,7 +3552,7 @@
     "wv.kann.tooltip": "Was der Hersteller zu diesem Werkzeug sagt (aus dem Katalog) – daran wählt das Addon später, wie eine Tasche ausgeräumt wird (vorbohren, Helix, Bohrfräsen, Tauchfräsen).",
     "wv.kann.mittenschneidend": "mittenschneidend (taucht senkrecht ein)",
     "wv.kann.nicht_mittenschneidend": "nicht mittenschneidend (nur Rampe/Helix oder vorbohren)",
-    "wv.kann.bohrfraesen": "Bohrfräsen",
+    "wv.kann.bohrfraesen": "helikal ins Volle (Bohrfräsen)",
     "wv.kann.tauchfraesen": "Tauchfräsen",
     "wv.kann.hochvorschub": "Hochvorschub",
     "wv.kann.kuehlung_innen": "innere Kühlung",
@@ -3595,7 +3595,7 @@
     "beta.werkzeuge.vorbohren": "Vorbohren",
     "beta.werkzeuge.schruppen": "Schruppen",
     "beta.werkzeuge.ecken": "Ecken",
-    "beta.werkzeuge.bohrfraesen": "Bohrfräsen",
+    "beta.werkzeuge.bohrfraesen": "Helikal ins Volle",
     "beta.werkzeuge.bis": "bis Ø {d}",
     "beta.werkzeuge.eigenes": "deins: {name}",
     "beta.werkzeuge.keins": "keins in der Werkzeugverwaltung",
@@ -3654,5 +3654,9 @@
     "pp.feld.korrektur.tooltip": "Für Konturen mit „Radiuskorrektur der Steuerung“: Der Schlichtkreis kommt als Kontur des Teils mit diesen Befehlen – G41 (Werkzeug links der Kontur), G42 (rechts), G40 (aus); {t} ist die Werkzeugnummer (Fanuc/Haas „G41 D{t}“). Leer: der Kreis bleibt die Mittelpunktbahn.",
     "pp.hinweis.korrektur": "{operation}: Der Schlichtkreis ging als Kontur mit Radiuskorrektur nicht auf – er steht als Mittelpunktbahn im Programm.",
     "ba.kontur.korrektur": "Radiuskorrektur der Steuerung (G41/G42)",
-    "ba.kontur.korrektur.tooltip": "Der Schlichtkreis kommt ins Programm als Kontur des Teils mit G41/G42 – den Radius nimmt die Steuerung aus ihrer Werkzeugtabelle, wie bei einem von Hand geschriebenen Programm. So korrigiert der Bediener oder ein Messzyklus den Verschleiß. Der Radius in der Werkzeugtabelle muss stimmen. Nur ein geschlossener Kreis, an Steuerungen mit G41/G42 (nicht GRBL, Heidenhain noch nicht); sonst die Mittelpunktbahn."
+    "ba.kontur.korrektur.tooltip": "Der Schlichtkreis kommt ins Programm als Kontur des Teils mit G41/G42 – den Radius nimmt die Steuerung aus ihrer Werkzeugtabelle, wie bei einem von Hand geschriebenen Programm. So korrigiert der Bediener oder ein Messzyklus den Verschleiß. Der Radius in der Werkzeugtabelle muss stimmen. Nur ein geschlossener Kreis, an Steuerungen mit G41/G42 (nicht GRBL, Heidenhain noch nicht); sonst die Mittelpunktbahn.",
+    "wv.kann.bohrfraesen_fenster": "helikal ins Volle Ø {von}–{bis}",
+    "wv.kann.zirkularfraesen": "zirkular (aufweiten)",
+    "wv.kann.rampe": "Rampe bis {grad}°",
+    "wv.kann.bohrverwendung": "bohrt auch: {liste}"
 }

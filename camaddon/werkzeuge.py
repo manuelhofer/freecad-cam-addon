@@ -113,9 +113,19 @@ SCHNEIDSTOFFE = (VHM, HSS, WSP)
 # „das wir wissen welche werkzeuge es auf dem markt gibt und was sie können“) – Name → Typ. Daran
 # wählt das Addon später den Weg (vorbohren, Helix, Bohrfräsen, Tauchfräsen) und schlägt Werkzeuge
 # vor. Fehlt ein Eintrag, ist es unbekannt.
+# Nach der Recherche 2026-10-31 (Manuel: „man muss klären wie die bohrfräsen definieren“):
+# „bohrfraesen“ ist ein Fräser, der helikal ins Volle darf (Tungaloy „Drilling (Helical feed)“,
+# Ingersoll „Bohrzirkularfräsen“), im Ø-Fenster helix_d_min … helix_d_max; „zirkularfraesen“ nur
+# auf der Kreisbahn (Hoffmann FZI, aufweiten); Wendeplattenbohrer sagen statt dessen, wofür sie
+# taugen („bohrverwendung“: brillenbohrung, schraeg_anbohren, querbohren …).
 FAEHIGKEITEN = {
     "mittenschneidend": bool,
     "bohrfraesen": bool,
+    "helix_d_min": float,
+    "helix_d_max": float,
+    "zirkularfraesen": bool,
+    "rampenwinkel_max": float,
+    "bohrverwendung": list,
     "tauchfraesen": bool,
     "hochvorschub": bool,
     "wendeplatten": bool,
@@ -319,8 +329,22 @@ def faehigkeiten_text(werkzeug):
         teile.append(tr("wv.kann.mittenschneidend"))
     elif f.get("mittenschneidend") is False:
         teile.append(tr("wv.kann.nicht_mittenschneidend"))
+    if f.get("bohrfraesen") and f.get("helix_d_min") and f.get("helix_d_max"):
+        teile.append(
+            tr(
+                "wv.kann.bohrfraesen_fenster",
+                von=f"{f['helix_d_min']:g}",
+                bis=f"{f['helix_d_max']:g}",
+            )
+        )
+    elif f.get("bohrfraesen"):
+        teile.append(tr("wv.kann.bohrfraesen"))
+    if f.get("rampenwinkel_max"):
+        teile.append(tr("wv.kann.rampe", grad=f"{f['rampenwinkel_max']:g}"))
+    if f.get("bohrverwendung"):
+        teile.append(tr("wv.kann.bohrverwendung", liste=", ".join(f["bohrverwendung"])))
     for name, text in (
-        ("bohrfraesen", tr("wv.kann.bohrfraesen")),
+        ("zirkularfraesen", tr("wv.kann.zirkularfraesen")),
         ("tauchfraesen", tr("wv.kann.tauchfraesen")),
         ("hochvorschub", tr("wv.kann.hochvorschub")),
         ("kuehlung_innen", tr("wv.kann.kuehlung_innen")),
