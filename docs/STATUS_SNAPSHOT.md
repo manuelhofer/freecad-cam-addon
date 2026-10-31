@@ -576,6 +576,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.329.1):* **Rundungen am Taschenboden von oben erreichbar** (`zugang.py`): Zylinder-
+  und Kegelflächen gelten wie Freiformen auch aus einer Richtung, gegen die keine ihrer Normalen
+  zeigt – vorher nur längs ihrer Achse (waagerecht, dort stehen die Wände), „Keine freie Sicht“, und
+  „Alles aus dieser Aufspannung“ zeigte sie rot. Eine Rundung in einer schrägen Tasche geht weiter
+  mit ihrer Tasche (_waende_zu_ihrer_tasche).
 - *Neu (0.329.0):* **Empfehlung mit Haltern aus dem Katalog** – stößt der Halter an, fragt
   `empfehlung.py` außer den Normreihen je Längenbereich den schlanksten Halter des Katalogs, der
   genau den Schaft spannt (am Testblock: MAPAL ThermoChuck 3° slim, vorn Ø 17,4 statt 24 – 25 mm

@@ -120,5 +120,31 @@ taschenboden = next(
     if abs(f.CenterOfMass.z - 21) < 1e-6 and f.normalAt(0, 0).z < -0.99
 )
 assert z3.unerreichbar.get(taschenboden) == sprache.tr("zg.grund.spannmittel"), z3.unerreichbar
+# Rundungen am Boden einer Tasche (R 3, Achse waagerecht): Von oben nimmt sie ein Kugel- oder
+# Torusfräser – bis 0.329 hieß es „Keine freie Sicht“, weil nur längs der Achse gesucht wurde, und
+# dort stehen die Wände. Eine Querbohrung (Achse waagerecht, Normalen rundum) bleibt von oben nichts.
+rund = Part.makeBox(100, 80, 40).cut(Part.makeBox(60, 40, 15, V(20, 20, 25)))
+kanten = [
+    e for e in rund.Edges if abs(e.BoundBox.ZMax - 25) < 1e-6 and abs(e.BoundBox.ZMin - 25) < 1e-6
+]
+rund = rund.makeFillet(3, kanten)
+quer = Part.makeCylinder(4, 100, V(0, 10, 10), V(1, 0, 0))
+rund = rund.cut(quer)
+z4 = zg.ohne_schwenken(zg.zugang(rund, spannflaeche=zg.spannflaeche_unten(rund)))
+rundungen = [
+    f"Face{i + 1}"
+    for i, f in enumerate(rund.Faces)
+    if f.Surface.__class__.__name__ == "Cylinder" and abs(f.Surface.Radius - 3) < 1e-6
+]
+bohrung = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(rund.Faces)
+    if f.Surface.__class__.__name__ == "Cylinder" and abs(f.Surface.Radius - 4) < 1e-6
+)
+assert len(rundungen) == 4, rundungen
+oben4 = z4.richtung_von(rundungen[0])
+assert all(z4.richtung_von(r) is oben4 for r in rundungen) and oben4 is not None, z4.unerreichbar
+assert tuple(round(c, 3) for c in oben4.achse) == (0, 0, 1), oben4
+assert bohrung in z4.unerreichbar, z4
 print(f"Schwenkteil {dauer:.2f} s")
 print("OK", os.path.basename(__file__))

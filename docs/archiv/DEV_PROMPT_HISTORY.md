@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-31-14 zugang-bodenrundungen
+
+### EINGELESEN
+- Beim Austesten des Umspannens (Plan C4) gesehen: `zugang` meldet die Rundungen am Taschenboden
+  „Keine freie Sicht: Das Teil selbst steht im Weg“.
+
+### DATEIEN
+- `camaddon/zugang.py`: `_deckt` – eine Zylinder-/Kegelfläche auch aus einer Richtung, gegen die
+  keine ihrer Normalen zeigt (wie eine Freiform), nicht nur längs ihrer Achse.
+- `tests/test_zugang.py`: Block mit Tasche, Bodenrundungen R 3 von oben; eine Querbohrung bleibt
+  von oben unerreichbar.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.329.1.
+
+### ERGEBNIS
+- test_zugang, test_ebenen_auslassen, test_bahnzugang, test_simultan_bereiche grün; 40 Szenarien
+  (versehentlich der Anfang des vollen Laufs: abfahren … entgraten3d, dazu schwenkteil) grün.
+- Nebenbei: /tmp (tmpfs, 16 GB im RAM) lief mit den Zwischenspeichern der Sammler voll – gepackt
+  nach `~/freecad_cam/wip/roh_cache/`, der Halter-Sammler liegt jetzt in
+  `~/freecad_cam/wip/halter_sammler/`.
 ## P-2026-10-31-13 empfehlung-mit-katalog-haltern
 
 ### EINGELESEN

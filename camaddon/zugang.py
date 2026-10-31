@@ -8,7 +8,9 @@ Spitze weg, in Koordinaten des Jobs):
 
 - eine ebene Fläche ihre Normale (die Stirn fräst sie) – oder eine gewählte Richtung, längs der
   sie steht (der Mantel fräst sie: senkrechte Wände von oben, ohne Schwenk);
-- eine Zylinder- oder Kegelfläche (Bohrung, Ecke einer Tasche, Zapfen) ihre Achse;
+- eine Zylinder- oder Kegelfläche (Bohrung, Ecke einer Tasche, Zapfen) ihre Achse – oder, wie eine
+  Freiform, eine Richtung, gegen die keine ihrer Normalen zeigt (die Rundung am Taschenboden von
+  oben);
 - jede andere (Freiform) eine Richtung, gegen die keine ihrer Normalen zeigt (kein Hinterschnitt).
 
 Nie ins Spannmittel: Keine Richtung zeigt zu ihm hin. Jede Fläche braucht freie Sicht längs der
@@ -201,7 +203,10 @@ def _deckt(fl, k, strahlen, merken):
     if fl.art == EBENE:
         passt = _gleich(fl.achse, k) or abs(fl.achse.dot(k)) < GENAU
     elif fl.art == ACHSE:
-        passt = fl.achse.cross(k).Length < GLEICH
+        # Längs der Achse (Bohrung, Ecke einer Tasche) – oder wie eine Freiform, wenn keine
+        # Normale gegen die Richtung zeigt: die Rundung am Boden einer Tasche (Achse waagerecht)
+        # nimmt ein Kugel- oder Torusfräser von oben; längs ihrer Achse stünden die Wände im Weg.
+        passt = fl.achse.cross(k).Length < GLEICH or bool(np.all(fl.normalen @ kv >= -GENAU))
     else:  # Freiform: keine Normale gegen die Richtung
         passt = bool(np.all(fl.normalen @ kv >= -GENAU))
     if passt:
