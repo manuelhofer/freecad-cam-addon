@@ -24,6 +24,10 @@
    "groesse": 1265602,
    "sha256": "c447bd06c443602f80eceddcff556af69061a9ac44a8e20d033cc02f06ec60f9"
   },
+  "werkzeugkiste_daten/guehring2.json": {
+   "groesse": 16522510,
+   "sha256": "630ac6e12ed3e6ae379160d55d3e90c7041d4cc896ca4d8dbbc35a5c5ba09f81"
+  },
   "werkzeugkiste_daten/hoffmann.json": {
    "groesse": 87630,
    "sha256": "e2c74529d734bafe86f23bfd8c0d823c3ee2c544c761d10783e6ed99dae2ed12"

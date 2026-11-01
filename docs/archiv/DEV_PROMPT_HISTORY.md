@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-09 guehring-vollstaendiger
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“; im Addon standen von Gühring erst 85 Reihen.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/guehring2.json` (2368 Reihen, 65 772 Größen).
+- `camaddon/kataloge_index.json` (20 Dateien, 85,0 MB), `translations/*.json` („Rund 260 000“),
+  `package.xml` 0.345.3.
+
+### ERGEBNIS
+- Übernahme: Fehler 0, doppelt 0. Werkzeugkiste 257 468 Größen, Prüfen 12,6 s (Nebenrechner).
+- Quelle webshop.guehring.de (öffentliche Produktsuche, 92 Seiten, eine Anfrage je 15–25 s, keine
+  Sperre), Schnittwerte aus dem Gesamtkatalog 2023 und Prospekten. Torus-/Hochvorschubgruppen
+  (Eckradius aus den Variantentabellen) noch offen – der Abruf läuft weiter.
+- test_kataloge, test_werkzeugkiste_datei, test_werkzeugwahl, test_faehigkeiten, test_empfehlung,
+  test_sprache, szenario_katalog_bohrung, szenario_werkzeugkiste grün.
 ## P-2026-11-01-08 sandvik-seco-walter-ergaenzt
 
 ### EINGELESEN

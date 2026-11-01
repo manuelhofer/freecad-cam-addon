@@ -576,6 +576,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.3):* **Werkzeugkiste: 257 468 Größen in 8416 Reihen** – Gühring vollständiger (2368
+  Reihen, 65 772 Größen aus der öffentlichen Produktsuche des Webshops, Schnittwerte aus dem
+  Gesamtkatalog 2023 für 268 Reihen): Gewindebohrer/-former, Fräser, Bohrer, Reibahlen,
+  Gewindefräser, Senker. Torus- und Hochvorschubfräser von Gühring kommen noch (Abruf läuft).
+  Kataloge 85 MB, gepackt 4,5 MB.
 - *Korrektur (0.345.2):* **Werkzeugkiste: rund 191 700 Größen** – Sandvik/Seco/Walter ergänzt (948
   Reihen, 8245 Größen): Walter-Gewindebohrer/-former Prototyp und VHM-Gewindefräser, Seco
   Threadmaster und weitere Jabro-Fräser, Sandvik CoroTap und Plura-Varianten. Ohne die
