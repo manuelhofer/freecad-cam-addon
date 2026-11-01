@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-11 halter-schunk-nikken-sandvik-kennametal
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“; im Halterkatalog standen SCHUNK (38 Reihen), NIKKEN (7),
+  Kennametal (58) und Sandvik (27) erst wenig.
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: 1773 Reihen, 12 038 Größen (katalog_uebernehmen.py mit
+  ~/freecad_cam/wip/katalog_roh/teil_halter_nacht2.json).
+- `camaddon/kataloge_index.json` (87,4 MB), `translations/*.json` („12 000 Halter“),
+  `package.xml` 0.345.5.
+
+### ERGEBNIS
+- Neu 441 Reihen/2897 Größen: SCHUNK 232/1212, NIKKEN 93/1030, Sandvik 66/350, Kennametal 50/305.
+  Gesperrt: sourceatlantic.ca (Cloudflare) – sofort aufgehört. Kegelwinkel teils aus den Maßen
+  abgeleitet (außerhalb der echten Kontur, auf der sicheren Seite).
+- Alle 12 038 Halter gebaut, keine Fehler. test_halter, test_halter_datei, test_vierachs_halter,
+  test_kataloge, test_empfehlung, test_sprache, szenario_halter, szenario_spannmittel grün.
+- Offen: Kennametal-ER-Reihen von vorher – L9 als l_nase oder spanntiefe (Katalogseite C58).
 ## P-2026-11-01-10 guehring-torus
 
 ### EINGELESEN

@@ -576,6 +576,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.5):* **Halter: 1773 Reihen, 12 038 Größen** – dazu SCHUNK (TENDO, TRIBOS, SINO-R, ER,
+  WELDON), NIKKEN (Slim Chuck, 2LOCK, Milling Chuck, Masamune), Sandvik (CoroChuck 930, Schrumpf,
+  Weldon) und Kennametal (TG, SAFE-LOCK, TTGL). Offen: Bei den schon länger vorhandenen
+  Kennametal-ER-Reihen steht L9 als l_nase – laut Katalogseite C58 ist L9 die Einspanntiefe;
+  nachsehen.
 - *Korrektur (0.345.4):* Gühring vollständig: 2485 Reihen, 67 945 Größen – jetzt mit 73 Torus- und 105
   Gewindefräser-Reihen (Eckradius und Steigung aus den Variantentabellen des Webshops).
 - *Korrektur (0.345.3):* **Werkzeugkiste: 257 468 Größen in 8416 Reihen** – Gühring vollständiger (2368
