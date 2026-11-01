@@ -576,6 +576,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.1):* **Spannmittel: 345 Reihen, 2722 Größen** (vorher 270/1953) – dazu HAINBUCH
+  (TOPlus, SPANNTOP, TOROK, HYDROK, DockLock), Kitagawa (Kraft- und Handspannfutter, Schraubstöcke),
+  LANG Technik (Avanti, Profilo, Vario•Tec, Makro•Grip Ultra, Quick•Point), Kurt, 5th Axis,
+  GARANT/HOLEX, Allmatic, Gerardi, SAV.
 - *Neu (0.345.0):* **Werkzeugkiste: 183 451 Größen in 5100 Reihen** – dazu ISCAR (180 Reihen) und
   Kennametal (234; Master Catalogue 2025 Fräsen und 2012 komplett), CERATIZIT/WNT (85), LMT (107),
   MAPAL-Ergänzungen (137; Fräsen-Katalog 2023 und MILLER), Dormer Pramet (299; Kataloge 2024/2026),

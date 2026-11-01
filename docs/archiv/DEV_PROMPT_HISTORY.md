@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-07 spannmittel-nacht
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“ (Manuel: Spannmittel-Datenbank „extrem gross“, eine
+  Auswahl, worin das Teil passt); Sammler der Nacht.
+
+### DATEIEN
+- `camaddon/spannmittel_daten/hersteller.json`: 345 Reihen, 2722 Größen (über
+  katalog_uebernehmen.py, jetzt auch mit ~/freecad_cam/wip/katalog_roh/spannmittel_nacht.json).
+- `camaddon/kataloge_index.json`, `translations/*.json` („2700 Spannmittel“), `package.xml`
+  0.345.1.
+
+### ERGEBNIS
+- Neu 76 Reihen/772 Größen: HAINBUCH 10/464, Kitagawa 36/148, LANG 7/61, Kurt, 5th Axis,
+  GARANT/HOLEX, Allmatic, Gerardi, SAV. Gesperrt: kurtworkholding.com, jergensinc.com,
+  miteebite.com, cutwel.co.uk (403), kippwerk.de (406), hoffmann-group.com am Ende 429 – jeweils
+  sofort aufgehört; Zertifikatsfehler (bison-bial.pl, forkardt.com, gerardi.com,
+  sav-spanntechnik.de) nicht umgangen.
+- test_spannmittel, test_spannung, test_kataloge, szenario_spannmittel,
+  szenario_bearbeitung_aufspannung_folge, szenario_beta_tasche, szenario_beta_schritte grün.
 ## P-2026-11-01-06 iscar-kennametal-ceratizit-lmt-mapal-mitsubishi-kyocera-dormer
 
 ### EINGELESEN
