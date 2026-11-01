@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-12 hoffmann-langsam
+
+### EINGELESEN
+- Manuel, 2026-11-01: „ne schau das du vom hoffmann das zueug bekommst bitte“.
+
+### DATEIEN
+- ~/freecad_cam/wip/hoffmann_sammler/rest_abruf.py (nicht im Repo): Pause 40–70 s, alle 100
+  Anfragen 15 min.
+- `camaddon/werkzeugkiste_daten/hoffmann_bohren.json` (225 Reihen, 16 234 Größen),
+  `hoffmann_rest.json`; `camaddon/kataloge_index.json`; `docs/OFFENE_FRAGEN.md` (Frage 1);
+  `package.xml` 0.345.6.
+
+### ERGEBNIS
+- Lauf 08:22–09:46: 93 Anfragen, dann HTTP 429 – sofort aufgehört. 9 Reihen vollständiger.
+  Übernahme ohne Fehler und Doppelte; test_kataloge, test_werkzeugkiste_datei grün.
+- Am 31.10. sperrte Hoffmann nach 556 Anfragen bei 15–25 s – das Tempo ist es nicht, eher ein
+  Tageskontingent. Ob täglich ein Lauf startet, entscheidet Manuel (Frage 1).
 ## P-2026-11-01-11 halter-schunk-nikken-sandvik-kennametal
 
 ### EINGELESEN

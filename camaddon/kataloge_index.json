@@ -33,16 +33,16 @@
    "sha256": "e2c74529d734bafe86f23bfd8c0d823c3ee2c544c761d10783e6ed99dae2ed12"
   },
   "werkzeugkiste_daten/hoffmann_bohren.json": {
-   "groesse": 4098088,
-   "sha256": "30da91091c272c2eb3708862cbf7023c6fcc946b62ff6aadab0fe8e3b207dc02"
+   "groesse": 4126874,
+   "sha256": "31ceb2e01113ae23a72774f1b17d42acc4a40a51fb11ba4c7c914322d528dfd9"
   },
   "werkzeugkiste_daten/hoffmann_fraeser.json": {
    "groesse": 129551,
-   "sha256": "adbc52af751df5f0da684573a1fb6f86d9a262c288f5515d215070d3c25228ae"
+   "sha256": "4c46507cfacf8c22264ae2cc3ff08bcff933990e320869ee36a1afaaa308beee"
   },
   "werkzeugkiste_daten/hoffmann_rest.json": {
    "groesse": 424880,
-   "sha256": "a0c52cd0138565ea0f48e45b8793916a4c26d679d61a1c9213a99514285c7717"
+   "sha256": "84b4974d78b6abf7d529cd524a6d90ed834637261249814b384589f4dc35a8e1"
   },
   "werkzeugkiste_daten/iscar_kennametal.json": {
    "groesse": 5920487,

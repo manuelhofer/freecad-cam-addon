@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.6):* Hoffmann-Bohrer: 9 weitere Reihen vollständig (16 234 Größen). Der Abruf sperrte
+  nach 93 Anfragen trotz 40–70 s Abstand (Tageskontingent?) – Frage 1 in OFFENE_FRAGEN.md.
 - *Korrektur (0.345.5):* **Halter: 1773 Reihen, 12 038 Größen** – dazu SCHUNK (TENDO, TRIBOS, SINO-R, ER,
   WELDON), NIKKEN (Slim Chuck, 2LOCK, Milling Chuck, Masamune), Sandvik (CoroChuck 930, Schrumpf,
   Weldon) und Kennametal (TG, SAFE-LOCK, TTGL). Offen: Bei den schon länger vorhandenen
