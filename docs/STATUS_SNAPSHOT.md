@@ -576,6 +576,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.2):* **Werkzeugkiste: rund 191 700 Größen** – Sandvik/Seco/Walter ergänzt (948
+  Reihen, 8245 Größen): Walter-Gewindebohrer/-former Prototyp und VHM-Gewindefräser, Seco
+  Threadmaster und weitere Jabro-Fräser, Sandvik CoroTap und Plura-Varianten. Ohne die
+  Morsekegel-Bohrer (das Addon spannt Zylinderschäfte) und die Handreibahle.
 - *Korrektur (0.345.1):* **Spannmittel: 345 Reihen, 2722 Größen** (vorher 270/1953) – dazu HAINBUCH
   (TOPlus, SPANNTOP, TOROK, HYDROK, DockLock), Kitagawa (Kraft- und Handspannfutter, Schraubstöcke),
   LANG Technik (Avanti, Profilo, Vario•Tec, Makro•Grip Ultra, Quick•Point), Kurt, 5th Axis,

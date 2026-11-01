@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-08 sandvik-seco-walter-ergaenzt
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“; Sammler Sandvik/Seco/Walter (nur, was in
+  sandvik_seco_walter.json fehlte).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/sandvik_seco_walter2.json` (948 Reihen, 8245 Größen) – ohne die
+  Walter-Morsekegelbohrer A4244/A4247/A4422/A4611/A4622/A4722 (kein Zylinderschaft) und die
+  Handreibahle F1131.
+- `camaddon/kataloge_index.json` (19 Dateien, 68,5 MB), `translations/*.json` („Rund 190 000“),
+  `package.xml` 0.345.2.
+
+### ERGEBNIS
+- Übernahme: Fehler 0, doppelt 0. Quellen: Walter Katalog C Gewindebearbeitung 2022 (eine Anfrage),
+  sonst die schon geladenen Gesamtkataloge (Seco 2026.2, Sandvik 26.1, Walter B 2024); keine
+  Sperren. Schnittwerte nur für Seco (Walter/Sandvik nennen sie im Katalog nicht).
+- test_kataloge, test_werkzeugkiste_datei, test_werkzeugwahl, test_faehigkeiten, test_sprache grün.
 ## P-2026-11-01-07 spannmittel-nacht
 
 ### EINGELESEN
