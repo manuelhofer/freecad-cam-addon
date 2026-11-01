@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-10 guehring-torus
+
+### EINGELESEN
+- Nachlauf zu P-2026-11-01-09: die Variantentabellen der Torus-/Hochvorschub-/Radienfräser und
+  die unvollständigen Gruppen, nacheinander (eine Anfrage je 15–25 s), ohne Sperre.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/guehring2.json` (2485 Reihen, 67 945 Größen),
+  `camaddon/kataloge_index.json`, `package.xml` 0.345.4.
+
+### ERGEBNIS
+- Übernahme: Fehler 0, doppelt 0. Torusfräser 73 Reihen (vorher 2), Gewindefräser 105.
+- test_kataloge, test_werkzeugkiste_datei, test_werkzeugwahl, test_faehigkeiten grün.
 ## P-2026-11-01-09 guehring-vollstaendiger
 
 ### EINGELESEN

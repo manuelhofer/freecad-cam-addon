@@ -576,6 +576,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.4):* Gühring vollständig: 2485 Reihen, 67 945 Größen – jetzt mit 73 Torus- und 105
+  Gewindefräser-Reihen (Eckradius und Steigung aus den Variantentabellen des Webshops).
 - *Korrektur (0.345.3):* **Werkzeugkiste: 257 468 Größen in 8416 Reihen** – Gühring vollständiger (2368
   Reihen, 65 772 Größen aus der öffentlichen Produktsuche des Webshops, Schnittwerte aus dem
   Gesamtkatalog 2023 für 268 Reihen): Gewindebohrer/-former, Fräser, Bohrer, Reibahlen,
