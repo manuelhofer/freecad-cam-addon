@@ -104,19 +104,69 @@ def _gewoelbt(flaeche):
     return tw.gewoelbt(flaeche)
 
 
+class _Katalogwerkzeug:
+    """Ein Werkzeug des Katalogs, nur mit dem, was Suche und Anzeige brauchen – als
+    werkzeuge.Werkzeug belegten 140 000 Größen über 300 MB im Fenster, so ein Zehntel."""
+
+    __slots__ = (
+        "art", "durchmesser", "schneidenlaenge", "gesamtlaenge", "auskragung", "steigung",
+        "faehigkeiten", "name", "hersteller", "artikel", "link",
+    )  # fmt: skip
+
+    def __init__(self, daten):
+        for feld, wert in zip(self.__slots__, daten, strict=True):
+            setattr(self, feld, wert)
+
+    @staticmethod
+    def daten(reihe, werte, faehigkeiten):
+        """Das Tupel in der Reihenfolge der Felder (so geht es aus dem Nebenrechner)."""
+        from . import werkzeugkiste as wk
+
+        name, artikel = werte.get("name", ""), werte.get("artikel", "")
+        masse = tuple(
+            float(werte.get(feld) or 0.0)
+            for feld in ("durchmesser", "schneidenlaenge", "gesamtlaenge", "auskragung", "steigung")
+        )
+        link = werte.get("link") or reihe.link or wk.suche(reihe.hersteller, artikel, name)
+        return (reihe.art, *masse, faehigkeiten, name, reihe.hersteller, artikel, link)
+
+
 def katalog_werkzeuge():
-    """Alle Werkzeuge des Katalogs der Hersteller, nur mit Maßen (einmal gebaut; auch aus einem
-    Faden – gui_bearbeitung_beta.im_katalog: ohne Zwischenspeicher der Werkzeugkiste dauert das
-    erste Mal 7 s)."""
+    """Alle Werkzeuge des Katalogs der Hersteller, nur mit Maßen (_Katalogwerkzeug; einmal gebaut;
+    auch aus einem Faden – gui_bearbeitung_beta.im_katalog: ohne Zwischenspeicher der
+    Werkzeugkiste dauert das erste Mal 7 s)."""
     with _KATALOG_SPERRE:
         if not _KATALOG:
             from . import werkzeugkiste as wk
 
-            neu = []
-            for reihe in wk.reihen():
-                neu.extend(wk.werkzeuge(reihe, mit_werten=False))
-            _KATALOG.extend(neu)
+            _KATALOG.extend(_Katalogwerkzeug(d) for d in _katalog_daten(wk.reihen()))
     return _KATALOG
+
+
+def _katalog_daten(reihen):
+    ergebnis = []
+    for reihe in reihen:
+        gemeinsam = reihe.gemeinsam.get("faehigkeiten", {})
+        for groesse in reihe.groessen:
+            eigene = groesse.get("faehigkeiten")
+            faehig = {**gemeinsam, **eigene} if eigene else gemeinsam
+            ergebnis.append(_Katalogwerkzeug.daten(reihe, {**reihe.gemeinsam, **groesse}, faehig))
+    return ergebnis
+
+
+def katalog_daten():
+    """Im Nebenrechner: der Katalog als Tupel (_Katalogwerkzeug.daten) – die geprüften Reihen
+    belegen über 400 MB; so bleiben sie aus dem Fenster. Danach gibt der Arbeiter sie frei."""
+    import gc
+
+    from . import werkzeugkiste as wk
+    from . import werkzeugkiste_datei as wd
+
+    daten = _katalog_daten(wk.reihen())
+    wd._mitgeliefert = None
+    wd._basis = None
+    gc.collect()
+    return daten
 
 
 def _je_mass_einer(werkzeuge, schluessel, hoechstens):
@@ -228,12 +278,32 @@ def katalog_laden_im_hintergrund():
     (werkzeugkiste_datei.im_hintergrund_vorbereiten); wer wartet, ruft wieder. Wer danach etwas
     zeigt, sieht aus dem Hauptfaden nach (katalog_bereit) – ein Qt-Zeitgeber aus dem Faden liefe
     nie."""
+    from . import nebenrechner as nr
     from . import werkzeugkiste_datei as wd
 
     global _LAEDT
     if _KATALOG or _LAEDT:
         return
-    if not wd.bereit():  # erst die geprüften Reihen – im Nebenrechner, nicht hier
+    if not wd.bereit() and not _OHNE_NEBENRECHNER:
+        # Die Reihen nicht ins Fenster: Ein Nebenrechner baut den Katalog und schickt die Tupel.
+        try:
+            auftrag = nr.pool().auftrag("werkzeugwahl", "katalog_daten")
+        except Exception:  # noqa: BLE001 – ohne Nebenrechner: die Reihen hier vorbereiten
+            auftrag = None
+        if auftrag is not None:
+            _LAEDT = True
+
+            def fertig(a):
+                global _LAEDT, _OHNE_NEBENRECHNER
+                _LAEDT = False
+                if a.ergebnis is None:
+                    _OHNE_NEBENRECHNER = True  # beim nächsten Ruf wie bisher im Fenster
+                elif not _KATALOG:
+                    with _KATALOG_SPERRE:
+                        _KATALOG.extend(_Katalogwerkzeug(d) for d in a.ergebnis)
+
+            auftrag.bei_fertig = fertig
+            return
         wd.im_hintergrund_vorbereiten()
         if not wd.bereit():
             return  # der Aufrufer sieht wieder nach und ruft noch einmal
@@ -250,6 +320,7 @@ def katalog_laden_im_hintergrund():
 
 
 _LAEDT = False
+_OHNE_NEBENRECHNER = False  # der Nebenrechner lieferte keinen Katalog: im Fenster bauen
 
 
 def katalog_bereit():

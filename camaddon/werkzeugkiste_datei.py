@@ -688,6 +688,9 @@ def _in_den_zwischenspeicher(stand, reihen, index=None):
                 daten["index"] = (index.kennungen, index.artikel, index.masse)
             pickle.dump(daten, datei, pickle.HIGHEST_PROTOCOL)
         os.replace(pfad + ".neu", pfad)
+        # Der Stand daneben: ob der Zwischenspeicher passt, ohne ihn zu laden (beim Start).
+        with open(pfad + ".stand", "w", encoding="utf-8") as datei:
+            datei.write(stand)
     except OSError as fehler:  # nur langsamer beim nächsten Mal
         FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht zwischengespeichert: {fehler}\n")
 
@@ -750,14 +753,31 @@ def vorbereiten(sprache_code=""):
     return len(mitgelieferte())
 
 
-def im_hintergrund_vorbereiten():
-    """Die Reihen bereitstellen, ohne das Fenster aufzuhalten: aus dem Zwischenspeicher – sonst
+def zwischenspeicher_aktuell():
+    """Passt der Zwischenspeicher zu Dateien, Code und Sprache – ohne ihn zu laden (der Stand
+    steht daneben)?"""
+    try:
+        with open(_zwischenspeicher() + ".stand", encoding="utf-8") as datei:
+            return datei.read() == _stand() and os.path.isfile(_zwischenspeicher())
+    except OSError:
+        return False
+
+
+def im_hintergrund_vorbereiten(laden=True):
+    """Die Reihen bereitstellen, ohne das Fenster aufzuhalten. Ohne `laden` (beim Start, nach dem
+    Laden der Kataloge) nur dafür sorgen, dass der Zwischenspeicher passt – das Fenster nimmt sie
+    erst, wenn jemand sie braucht (Werkzeugkiste, Vorschläge aus dem Katalog): Geladen belegen
+    140 000 Größen über 400 MB. Mit `laden`: aus dem Zwischenspeicher – sonst
     prüft ein Nebenrechner (ein eigener Prozess) und schreibt ihn, danach kommen sie von dort. Im
     Faden des Fensters hielt das Prüfen (4–6 s reines Python) FreeCAD bis 7 s an, nach jedem
     Update einmal (der Code gehört zum Stand des Zwischenspeichers). Ohne Nebenrechner, oder hat
     er keinen passenden geschrieben: ein Faden wie bisher. Läuft es schon: nichts."""
     global _vorbereitung
-    if _vorbereitung is not None or aus_dem_zwischenspeicher_laden():
+    if _vorbereitung is not None or bereit():
+        return
+    if not laden and zwischenspeicher_aktuell():
+        return
+    if laden and aus_dem_zwischenspeicher_laden():
         return
     from . import nebenrechner as nr
     from . import sprache
@@ -791,7 +811,8 @@ def im_hintergrund_vorbereiten():
     def fertig(_auftrag):
         global _vorbereitung, _NEBENRECHNER_VERSUCHT
         _vorbereitung = None
-        if not aus_dem_zwischenspeicher_laden():
+        passt = aus_dem_zwischenspeicher_laden() if laden else zwischenspeicher_aktuell()
+        if not passt:
             _NEBENRECHNER_VERSUCHT = True  # passt nicht (anderer Stand): einmal, dann der Faden
 
     auftrag.bei_fertig = fertig

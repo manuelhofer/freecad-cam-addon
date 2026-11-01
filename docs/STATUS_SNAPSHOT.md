@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.344.4):* **Weniger Speicher im Fenster:** Nach dem Start lud das Fenster seit 0.341 die
+  geprüfte Werkzeugkiste (140 000 Größen, über 400 MB); jetzt sorgt der Nebenrechner nur dafür,
+  dass der Zwischenspeicher passt (Stand in einer eigenen Datei) – geladen wird bei Bedarf. Den
+  Katalog für die Vorschläge baut ein Nebenrechner und schickt schlanke Einträge (29 statt 330 MB
+  im Fenster); die Reihen bleiben dabei aus dem Fenster. Gefunden im vollen Szenario-Lauf
+  (szenario_raum_bahn: Speicher 534 statt höchstens 300 MB).
 - *Korrektur (0.344.3):* Ist der Fräser von „Bohrung fräsen“ für die Bohrung zu dick, nennt der rote Satz
   Fräser aus dem Katalog (½ bis 0,8 × Ø, ins Volle erlaubt, Tiefe erreicht; mit Bohrfräsen-Freigabe
   zuerst) – auch nachträglich, wenn der Katalog erst danach gelesen ist. Links im roten Satz öffnen

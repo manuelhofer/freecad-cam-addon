@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-05 speicher-werkzeugkiste
+
+### EINGELESEN
+- Voller Szenario-Lauf der Nacht (181, zu zweit): 180 grün, rot szenario_raum_bahn – Speicher
+  (tracemalloc) 534 MB statt höchstens 300: seit 0.341 lud das Fenster 20 s nach dem Start die
+  ganze geprüfte Werkzeugkiste.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_datei.py`: Stand des Zwischenspeichers in `….pickle.stand`,
+  `zwischenspeicher_aktuell`, `im_hintergrund_vorbereiten(laden=)` – ohne `laden` nur auffrischen.
+- `camaddon/gui_start.py`, `camaddon/gui_kataloge.py`: beim Start/nach dem Laden ohne `laden`.
+- `camaddon/werkzeugwahl.py`: `_Katalogwerkzeug` (__slots__, Tupel), `_katalog_daten`,
+  `katalog_daten` (Nebenrechner, gibt die Reihen danach frei), `katalog_laden_im_hintergrund` über
+  den Nebenrechner, Rückfall im Fenster (`_OHNE_NEBENRECHNER`).
+- `package.xml` 0.344.4.
+
+### ERGEBNIS
+- Gemessen: Reihen geladen 423 MB; Katalog als Werkzeug-Objekte 334 MB → schlank 29 MB (0,7 s).
+- szenario_raum_bahn grün (längste Pause 7,9 → 5,4 s, der Rest ist die eigene Rechnung des
+  Szenarios), szenario_kataloge, szenario_katalog_bohrung, szenario_beta_schritte grün;
+  test_werkzeugwahl, test_werkzeugkiste_datei, test_kataloge, test_sprache grün.
 ## P-2026-11-01-04 voller-lauf-nacht
 
 ### EINGELESEN

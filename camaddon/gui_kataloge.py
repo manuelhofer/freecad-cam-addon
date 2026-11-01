@@ -218,7 +218,7 @@ def _werkzeugkiste_vorbereiten():
     from . import werkzeugkiste_datei as wd
 
     try:
-        wd.im_hintergrund_vorbereiten()
+        wd.im_hintergrund_vorbereiten(laden=False)
     except Exception as fehler:  # noqa: BLE001 – dann eben beim Öffnen
         FreeCAD.Console.PrintLog(f"CAM-Addon: Werkzeugkiste nicht vorbereitet: {fehler}\n")
 
