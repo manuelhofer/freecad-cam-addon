@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-01-06 iscar-kennametal-ceratizit-lmt-mapal-mitsubishi-kyocera-dormer
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“; vier weitere Sammler der Nacht (Auftrag
+  ~/freecad_cam/wip/sammler_auftrag.md, Tempo wie ein Mensch).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/iscar_kennametal.json` (414 Reihen, 10 839 Größen),
+  `ceratizit_lmt_mapal.json` (329, 12 580), `mitsubishi_kyocera_dormer.json` (585, 20 223).
+- `camaddon/kataloge_index.json` (18 Dateien, 65,1 MB), `translations/*.json` („Rund 180 000
+  Werkzeuge“), `package.xml` 0.345.0.
+
+### ERGEBNIS
+- Übernahme: Fehler 0, doppelt 0 (7 Größen CERATIZIT gleich wie WNT – beim Sammeln schon
+  draußen). Werkzeugkiste 183 451 Größen, Prüfen 9,1 s (im Nebenrechner).
+- Gesperrt/aufgehört: cuttingtools.ceratizit.com 403; mmc-carbide.com, data.mmc-carbide.com,
+  mitsubishicarbide.net 403 (CloudFront); einige Händler mit Cloudflare-Prüfseite oder 403 – dort
+  jeweils sofort aufgehört. kennametal.com füllt sich nur per JavaScript – Händler-PDFs.
+- test_kataloge, test_werkzeugkiste_datei, test_werkzeugwahl, test_empfehlung,
+  test_faehigkeiten, test_sprache, szenario_kataloge, szenario_katalog_bohrung,
+  szenario_werkzeugkiste, szenario_beta_schritte grün.
 ## P-2026-11-01-05 speicher-werkzeugkiste
 
 ### EINGELESEN

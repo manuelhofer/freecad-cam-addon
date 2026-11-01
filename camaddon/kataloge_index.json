@@ -8,6 +8,10 @@
    "groesse": 865980,
    "sha256": "3a2291eac513368589d36e53049710e9bd090eca73f8bc27a34589863e091c77"
   },
+  "werkzeugkiste_daten/ceratizit_lmt_mapal.json": {
+   "groesse": 4836485,
+   "sha256": "450e0ef26ff4dda315c71a520e7fd282f86b4e663be77c33d83a9539fb430833"
+  },
   "werkzeugkiste_daten/emuge_franken.json": {
    "groesse": 7507451,
    "sha256": "e6f2c5da4b5c96d75df8fd83032cc2decd94df2c0bb92d4faacebb3b29820ad5"
@@ -36,6 +40,10 @@
    "groesse": 424880,
    "sha256": "a0c52cd0138565ea0f48e45b8793916a4c26d679d61a1c9213a99514285c7717"
   },
+  "werkzeugkiste_daten/iscar_kennametal.json": {
+   "groesse": 5920487,
+   "sha256": "db797f39d8d7bc04ddd09d69d52874e5b7f947b6835e5955f8a061a196fb58aa"
+  },
   "werkzeugkiste_daten/iscar_kennametal_tungaloy.json": {
    "groesse": 183998,
    "sha256": "2c70855d26b8e75cc0cf18abe57ed63a9c5af77de275b049f1c19784c3effc4c"
@@ -43,6 +51,10 @@
   "werkzeugkiste_daten/mapal.json": {
    "groesse": 207064,
    "sha256": "cd19b366ab49bf4ffc3ed4d3eedb0b85b8924eaaf07ef5eed162204f46d8f15b"
+  },
+  "werkzeugkiste_daten/mitsubishi_kyocera_dormer.json": {
+   "groesse": 9215298,
+   "sha256": "7a718be5ebc4ffb2eeb40e86f7ef81f34b005529072c1af0de3f488f4637dbc6"
   },
   "werkzeugkiste_daten/moldino_sumitomo.json": {
    "groesse": 4617038,

@@ -576,6 +576,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.345.0):* **Werkzeugkiste: 183 451 Größen in 5100 Reihen** – dazu ISCAR (180 Reihen) und
+  Kennametal (234; Master Catalogue 2025 Fräsen und 2012 komplett), CERATIZIT/WNT (85), LMT (107),
+  MAPAL-Ergänzungen (137; Fräsen-Katalog 2023 und MILLER), Dormer Pramet (299; Kataloge 2024/2026),
+  Kyocera mit SGS (188) und Mitsubishi Materials (98; aus einer Händlerkopie des Katalogs
+  C009A, Mitsubishis Seiten sperrten mit 403). Schnittwerte für den größten Teil. Kataloge 65 MB,
+  gepackt 3,3 MB.
 - *Korrektur (0.344.4):* **Weniger Speicher im Fenster:** Nach dem Start lud das Fenster seit 0.341 die
   geprüfte Werkzeugkiste (140 000 Größen, über 400 MB); jetzt sorgt der Nebenrechner nur dafür,
   dass der Zwischenspeicher passt (Stand in einer eigenen Datei) – geladen wird bei Bedarf. Den
