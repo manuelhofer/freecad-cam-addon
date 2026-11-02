@@ -11,9 +11,9 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 **Im FreeCAD-Forum vorgestellt (2026-10-10):** Unterforum „CAM“,
 https://forum.freecad.org/viewtopic.php?t=107889 – am 2026-11-02 von Manuel geschlossen, dort nichts
-mehr posten; README und Issue-Vorlage verweisen auf Englisch auf die GitHub-Issues. Weiter offen:
-der deutsche Thread https://forum.freecad.org/viewtopic.php?t=107911. Antworten dort und Issues sind
-Eingang für Wünsche und Fehler – sie kommen hierher; die Beiträge selbst liegen nur bei Manuel (Manuel, 2026-10-11: „alles
+mehr posten. Auch den deutschen Thread (t=107911) und sein Forenkonto gibt Manuel auf (2026-11-02:
+„benötige ich das forum nicht“); README und Issue-Vorlage verweisen nur noch auf die GitHub-Issues.
+Die Issues sind Eingang für Wünsche und Fehler – sie kommen hierher; die Beiträge selbst liegen nur bei Manuel (Manuel, 2026-10-11: „alles
 was mit posts zutun hat … einfach nicht auf github … auser es werden bilder benötigt“; die Bilder
 im Zweig „forum“ des Repos, je Beitrag ein Ordner – nicht in `main`; ältere in `docs/bilder/forum/`).
 Dieselbe Vorstellung auf Deutsch im „Forum in Deutsch“: https://forum.freecad.org/viewtopic.php?t=107911.

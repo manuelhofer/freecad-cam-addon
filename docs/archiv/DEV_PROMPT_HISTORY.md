@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-02-03 forum-aufgegeben
+
+### EINGELESEN
+- Manuel, 2026-11-02: „wenn ich ein forum habe dann will ich das natülich auch nutzen .. so aber
+  nachdem klipp und klar meiner meinung nach nicht gewollt ist das im forum so sachen gepostet
+  werden wie wir sie heir bertreiben benötige ich das forum nicht.“ – er lässt sein Forenkonto löschen.
+
+### ANTWORTEN
+- Keine Forenverweise mehr: Fragen, Wünsche und Fehler laufen nur noch über die GitHub-Issues.
+  Keine Forums-Updates und Antwortentwürfe mehr.
+
+### DATEIEN
+- `README.md`: Abschnitt „Testen und Fehler melden“ verweist nur noch auf die Issues.
+- `.github/ISSUE_TEMPLATE/config.yml`: keine Forenverweise mehr.
+- `docs/STATUS_SNAPSHOT.md`: Projektstatus entsprechend.
 ## P-2026-11-02-02 englischer-forumsthread-geschlossen
 
 ### EINGELESEN

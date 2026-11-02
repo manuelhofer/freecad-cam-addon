@@ -121,7 +121,7 @@ Einstellungen → CAM-Addon** einschalten.
 
 Wer es ausprobiert, hilft am meisten mit einem Fehlerbericht, der sich nachstellen lässt:
 
-1. **Issues → New issue** auf dieser Seite (oder im deutschen Forum, siehe unten).
+1. **Issues → New issue** auf dieser Seite.
 2. Dazu: die FreeCAD-Version (**Hilfe → Über FreeCAD → In die Zwischenablage kopieren**), die
    Version des Addons (**CAM-Addon → Nach Updates suchen** zeigt sie), das Betriebssystem.
 3. Was du angeklickt hast und was du erwartet hättest; ein Bildschirmfoto; wenn möglich die Datei
@@ -129,9 +129,8 @@ Wer es ausprobiert, hilft am meisten mit einem Fehlerbericht, der sich nachstell
 4. Steht im **Bericht** (Ansicht → Fenster → Ausgabefenster) etwas Rotes, das bitte mitschicken.
 
 Besonders gesucht: Tests unter **Windows und macOS** und an anderen Maschinen und Steuerungen
-(Heidenhain, Fanuc, Haas, LinuxCNC). Austausch auf Deutsch im FreeCAD-Forum:
-[Forum in Deutsch](https://forum.freecad.org/viewtopic.php?t=107911); auf Englisch bitte über die
-[Issues](https://github.com/manuelhofer/freecad-cam-addon/issues) hier auf GitHub.
+(Heidenhain, Fanuc, Haas, LinuxCNC). Fragen, Wünsche und Austausch – auf Deutsch oder Englisch –
+bitte über die [Issues](https://github.com/manuelhofer/freecad-cam-addon/issues) hier auf GitHub.
 
 ## Für Mitarbeitende
 
