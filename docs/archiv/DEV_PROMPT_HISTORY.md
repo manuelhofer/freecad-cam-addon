@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-02-02 englischer-forumsthread-geschlossen
+
+### EINGELESEN
+- Manuel, 2026-11-02: hat den englischen Forumsthread t=107889 geschlossen (alle eigenen Beiträge
+  durch einen „Closed“-Text ersetzt). Zu Frage 1 (Verweise darauf in README und Issue-Vorlage durch
+  GitHub-Issues ersetzen?): „ja mach das so..“
+
+### ANTWORTEN
+- Frage 1: Englische Verweise zeigen jetzt auf die GitHub-Issues, der deutsche Thread t=107911 bleibt.
+  Im englischen Thread wird nichts mehr gepostet.
+
+### DATEIEN
+- `README.md`: Abschnitt „Testen und Fehler melden“ und „English“ ohne den englischen Thread.
+- `.github/ISSUE_TEMPLATE/config.yml`: Eintrag „FreeCAD-Forum (englisch / English)“ entfernt.
+- `docs/STATUS_SNAPSHOT.md`: Projektstatus nennt den geschlossenen Thread und den deutschen.
+- `docs/OFFENE_FRAGEN.md`: Frage 1 beantwortet und entfernt.
 ## P-2026-11-02-01 fragen-beantwortet
 
 ### EINGELESEN

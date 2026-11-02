@@ -121,7 +121,7 @@ Einstellungen → CAM-Addon** einschalten.
 
 Wer es ausprobiert, hilft am meisten mit einem Fehlerbericht, der sich nachstellen lässt:
 
-1. **Issues → New issue** auf dieser Seite (oder im Forum, siehe unten).
+1. **Issues → New issue** auf dieser Seite (oder im deutschen Forum, siehe unten).
 2. Dazu: die FreeCAD-Version (**Hilfe → Über FreeCAD → In die Zwischenablage kopieren**), die
    Version des Addons (**CAM-Addon → Nach Updates suchen** zeigt sie), das Betriebssystem.
 3. Was du angeklickt hast und was du erwartet hättest; ein Bildschirmfoto; wenn möglich die Datei
@@ -129,9 +129,9 @@ Wer es ausprobiert, hilft am meisten mit einem Fehlerbericht, der sich nachstell
 4. Steht im **Bericht** (Ansicht → Fenster → Ausgabefenster) etwas Rotes, das bitte mitschicken.
 
 Besonders gesucht: Tests unter **Windows und macOS** und an anderen Maschinen und Steuerungen
-(Heidenhain, Fanuc, Haas, LinuxCNC). Vorstellung und Austausch im FreeCAD-Forum:
-[englisch](https://forum.freecad.org/viewtopic.php?t=107889),
-[deutsch](https://forum.freecad.org/viewtopic.php?t=107911).
+(Heidenhain, Fanuc, Haas, LinuxCNC). Austausch auf Deutsch im FreeCAD-Forum:
+[Forum in Deutsch](https://forum.freecad.org/viewtopic.php?t=107911); auf Englisch bitte über die
+[Issues](https://github.com/manuelhofer/freecad-cam-addon/issues) hier auf GitHub.
 
 ## Für Mitarbeitende
 
@@ -165,4 +165,4 @@ and macOS are very welcome. To report a bug, open an issue with the FreeCAD vers
 (Help → About → Copy to clipboard), the add-on version, your OS, what you clicked, a screenshot and,
 if possible, the `.FCStd` file. Manufacturer tool data (dimensions and cutting data from public
 product pages and data sheets, source given per entry) are reference values only; brand names
-belong to their owners. Discussion: [FreeCAD forum](https://forum.freecad.org/viewtopic.php?t=107889).
+belong to their owners. Questions and discussion: [GitHub issues](https://github.com/manuelhofer/freecad-cam-addon/issues).
