@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-02-01 fragen-beantwortet
+
+### EINGELESEN
+- Manuel, 2026-11-02: „die regeln von offene fragen vergessen ???? … zu frage 2. ja ok soweit es
+  möglich ist und sinnvoll ist einfach machen... und zu frage 1 ja kannst du täglich somachen ..
+  und bitte die bewnatworteten fragen wie in den regeln steht können da raus“
+
+### ANTWORTEN
+- Frage 1 (Hoffmann-Abruf): täglich ein Lauf bis zur ersten Sperre. Eingerichtet als systemd-Timer
+  des Benutzers `hoffmann-abruf.timer` (täglich 11:00, ~/freecad_cam/wip/hoffmann_sammler/
+  taeglich.sh mit flock; 40–70 s je Anfrage, bei 429 Schluss für den Tag). Die Daten übernimmt
+  Claude in die Kataloge, wenn ein Lauf etwas gebracht hat.
+- Frage 2 (An FreeCAD CAM angleichen): „soweit es möglich ist und sinnvoll ist einfach machen“ –
+  die Schnittstellen in kleinen Schritten (Spannmittel im Format von Connors Bibliothek bzw. aus
+  ihr, Prüfen/Kollision über FreeCADs neuen Simulator, Werkzeuge/Halter in FreeCADs Formaten,
+  Maschinen als FreeCADs Maschinendefinition); neue Dateien und öffentliche Funktionen englisch im
+  FreeCAD-Stil. Das Innere bleibt deutsch.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md`: beantwortete Fragen entfernt, auch die älteren Reste vom 31.10. (deren
+  Antworten stehen in docs/konzept_schritt_assistent.md, Teil C) – „Zurzeit keine offenen Fragen.“
 ## P-2026-11-01-12 hoffmann-langsam
 
 ### EINGELESEN
