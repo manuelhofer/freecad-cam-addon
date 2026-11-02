@@ -17,6 +17,17 @@ Die Antworten vom 2026-10-31 nachmittags (Messtaster, Tauchfräsen, Hoffmann-Abr
 Frage 1 (Messen und korrigieren) beantwortet, Manuel, 2026-10-31: „ja mach das so“ (der
 Messzyklus korrigiert den Schlichtfräser selbst, als Haken) – gebaut 0.335.0.
 
+**Frage 2 (An FreeCAD CAM angleichen): Die Schnittstellen angleichen – oder auch die Namen im Code?**
+Manuel, 2026-11-02: „vll sollten wir ein wenig dann auch unsere variablennamen und sowas anpassen an die
+arbeit die die jungs machen … in kleinen schritten könntest du das durchaus umstellen“. Vorschlag:
+nicht die über 100 000 Zeilen deutscher Namen umbenennen (viel Aufwand, viel Bruchgefahr, bringt
+für die Zusammenarbeit wenig), sondern in kleinen Schritten die Schnittstellen: Spannmittel im Format
+von Connors Bibliothek bzw. aus ihr, Prüfen/Kollision über FreeCADs neuen Simulator (Zusage an
+Connor), Werkzeuge/Halter in FreeCADs Formaten (ToolBit, Asset-Store), Maschinen als FreeCADs
+Maschinendefinition; neue Dateien und öffentliche Funktionen englisch im FreeCAD-Stil. *Warum nur
+Manuel:* Es ändert die Richtung des Projekts. *Was die Antwort ändert:* Ob ich ab jetzt neue
+Schnittstellen englisch baue und einen Plan zur Angleichung schreibe. – seit 2026-11-02.
+
 **Frage 1 (Hoffmann-Abruf): Täglich einen Lauf bis zur Sperre – oder hier aufhören?** Am 31.10. sperrte
 Hoffmann nach 556 Anfragen (15–25 s Abstand), am 01.11. schon nach 93 (40–70 s) – das sieht nach
 einem Tageskontingent aus, nicht nach dem Tempo. Es fehlen noch rund 900 Artikelgruppen (etwa 4500
