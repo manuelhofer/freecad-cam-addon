@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-03-02 discussions
+
+### EINGELESEN
+- Manuel, 2026-11-03: keine Releases („für mich ist es kein Release“), aber „dieses Ersatzforum, von
+  wegen, wo Leute drauf antworten können … fände ich eigentlich eine coole Sache“; „Ja, das kannst du
+  mal so posten“.
+
+### ANTWORTEN
+- GitHub Discussions eingeschaltet; das Wochen-Update vom 2026-11-01 steht als erste Ankündigung
+  (Announcements, #2; Englisch, Deutsch aufklappbar). Ab jetzt jede Woche eine Ankündigung, der Zweig
+  `forum` bleibt das Archiv.
+
+### DATEIEN
+- `README.md`: Fehler → Issues, Fragen und Austausch → Discussions, Neuigkeiten → Announcements.
+- `.github/ISSUE_TEMPLATE/config.yml`: Verweis auf die Discussions.
+- `docs/STATUS_SNAPSHOT.md`: Projektstatus entsprechend.
 ## P-2026-11-03-01 neuigkeiten-im-zweig
 
 ### EINGELESEN

@@ -100,8 +100,9 @@ Menü **CAM-Addon → Nach Updates suchen**: Gibt es eine neue Version, fragt da
 aktualisieren?“. Automatisch beim Start suchen lässt es sich unter **Bearbeiten →
 Einstellungen → CAM-Addon** einschalten.
 
-Was neu ist, steht jede Woche mit Bildern in den
-[Neuigkeiten](https://github.com/manuelhofer/freecad-cam-addon/tree/forum#readme).
+Was neu ist, steht jede Woche mit Bildern unter
+[Announcements](https://github.com/manuelhofer/freecad-cam-addon/discussions/categories/announcements)
+(ältere im [Archiv](https://github.com/manuelhofer/freecad-cam-addon/tree/forum#readme)).
 
 ## Gut zu wissen
 
@@ -132,8 +133,9 @@ Wer es ausprobiert, hilft am meisten mit einem Fehlerbericht, der sich nachstell
 4. Steht im **Bericht** (Ansicht → Fenster → Ausgabefenster) etwas Rotes, das bitte mitschicken.
 
 Besonders gesucht: Tests unter **Windows und macOS** und an anderen Maschinen und Steuerungen
-(Heidenhain, Fanuc, Haas, LinuxCNC). Fragen, Wünsche und Austausch – auf Deutsch oder Englisch –
-bitte über die [Issues](https://github.com/manuelhofer/freecad-cam-addon/issues) hier auf GitHub.
+(Heidenhain, Fanuc, Haas, LinuxCNC). Fehler bitte als [Issue](https://github.com/manuelhofer/freecad-cam-addon/issues);
+Fragen, Wünsche und Austausch – auf Deutsch oder Englisch – in den
+[Discussions](https://github.com/manuelhofer/freecad-cam-addon/discussions) hier auf GitHub.
 
 ## Für Mitarbeitende
 
@@ -160,8 +162,10 @@ milling, a machine simulation with stock removal and collision check, and post p
 LinuxCNC, Siemens 840D, Fanuc, Haas, Mach and Heidenhain. Heavy computations run in separate
 FreeCADCmd processes, one per core, so the window stays responsive.
 
-What's new: the weekly updates with pictures are in the
-[news](https://github.com/manuelhofer/freecad-cam-addon/tree/forum#readme) (German and English).
+What's new: the weekly updates with pictures are posted under
+[Announcements](https://github.com/manuelhofer/freecad-cam-addon/discussions/categories/announcements)
+(older ones in the [archive](https://github.com/manuelhofer/freecad-cam-addon/tree/forum#readme)); questions
+and ideas are welcome in the [Discussions](https://github.com/manuelhofer/freecad-cam-addon/discussions).
 
 **Install:** paste one of the lines from “Installieren” above into FreeCAD's Python console
 (View → Panels → Python console) and restart FreeCAD; the language can be set to English at the
@@ -170,4 +174,4 @@ and macOS are very welcome. To report a bug, open an issue with the FreeCAD vers
 (Help → About → Copy to clipboard), the add-on version, your OS, what you clicked, a screenshot and,
 if possible, the `.FCStd` file. Manufacturer tool data (dimensions and cutting data from public
 product pages and data sheets, source given per entry) are reference values only; brand names
-belong to their owners. Questions and discussion: [GitHub issues](https://github.com/manuelhofer/freecad-cam-addon/issues).
+belong to their owners. Bugs: [GitHub issues](https://github.com/manuelhofer/freecad-cam-addon/issues).
