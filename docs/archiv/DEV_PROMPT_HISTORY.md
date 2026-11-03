@@ -12,6 +12,18 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-03-01 neuigkeiten-im-zweig
+
+### EINGELESEN
+- Manuel, 2026-11-03: „diese wöchentlichen Updates, finde ich, gehören da einfach mit rein“ (in den
+  Zweig, nicht nach main); zum Hinweis im README: „ja, sollst du machen“.
+
+### ANTWORTEN
+- Die Wochen-Updates stehen als Seiten (de.md/en.md mit Bildern) im Zweig `forum`, dessen README
+  sie auflistet; jede Woche kommt eines dazu.
+
+### DATEIEN
+- `README.md`: Abschnitt „Aktualisieren“ und „English“ verweisen auf die Neuigkeiten im Zweig `forum`.
 ## P-2026-11-02-03 forum-aufgegeben
 
 ### EINGELESEN

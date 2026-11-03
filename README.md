@@ -100,6 +100,9 @@ Menü **CAM-Addon → Nach Updates suchen**: Gibt es eine neue Version, fragt da
 aktualisieren?“. Automatisch beim Start suchen lässt es sich unter **Bearbeiten →
 Einstellungen → CAM-Addon** einschalten.
 
+Was neu ist, steht jede Woche mit Bildern in den
+[Neuigkeiten](https://github.com/manuelhofer/freecad-cam-addon/tree/forum#readme).
+
 ## Gut zu wissen
 
 - **Dokumente mit Operationen des Addons** („Nut“, „Fase“, „Räumen“, „Rundum schruppen“ …)
@@ -156,6 +159,9 @@ holders, magazines and cutting data per material, assistants for 2.5D, 3D, 4-axi
 milling, a machine simulation with stock removal and collision check, and post processors for
 LinuxCNC, Siemens 840D, Fanuc, Haas, Mach and Heidenhain. Heavy computations run in separate
 FreeCADCmd processes, one per core, so the window stays responsive.
+
+What's new: the weekly updates with pictures are in the
+[news](https://github.com/manuelhofer/freecad-cam-addon/tree/forum#readme) (German and English).
 
 **Install:** paste one of the lines from “Installieren” above into FreeCAD's Python console
 (View → Panels → Python console) and restart FreeCAD; the language can be set to English at the
