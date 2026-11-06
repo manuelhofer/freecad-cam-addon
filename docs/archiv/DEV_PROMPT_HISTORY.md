@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-02 englisch-wie-freecad
+
+### EINGELESEN
+- Manuel, 2026-11-02 (Frage 2): „ja ok soweit es möglich ist und sinnvoll ist einfach machen“ –
+  angleichen an FreeCAD CAM; 2026-11-03: „wir werden das addon schon sogut es geht an freecad anlehnen“.
+
+### DATEIEN
+- `translations/en.json`: 71 Texte – „allowance“ → „stock to leave“ (ADR-009; Boden „axial“,
+  Wand „radial“), „blank“ → „stock“, „post processor/postprocessor“ → „post-processor“, „feed rate“
+  → „horizontal feed“/„feed“, „plunge feed“ → „vertical feed“ (ADR-000). Beim Rohteil-Zuschlag
+  (ba.rohteil.*) bleibt „allowance“.
+- `package.xml` 0.345.8; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- test_sprache grün; keine Prüfung erwartet die alten englischen Texte.
 ## P-2026-11-06-01 kennametal-er-hoffmann
 
 ### EINGELESEN

@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.8):* Englische Begriffe wie in FreeCAD CAM (Glossar ADR-000, ADR-009): „stock to
+  leave“ statt „allowance“ für das Aufmaß einer Operation (Boden „axial“, Wand „radial“), „stock“
+  statt „blank“, „post-processor“, „horizontal/vertical feed“. „Allowance“ bleibt beim Zuschlag des
+  Rohteils (ein anderer Begriff), „work offset“ bleibt (FreeCADs „Fixture“ verwechselt man an der
+  Maschine mit dem Spannmittel). Deutsch unverändert.
 - *Korrektur (0.345.7):* Kennametal-ER-Halter (71 Größen, „Erickson, ER Hex/Round“): L9 ist laut Maßbild
   (Katalogseite C17/C58) die Einspanntiefe bis zum Verstellweg V, nicht die Länge der Spannmutter –
   jetzt `spanntiefe`; die Mutter hat die Länge nach DIN 6499 (vorher 10–20 mm zu lang). Hoffmann:
