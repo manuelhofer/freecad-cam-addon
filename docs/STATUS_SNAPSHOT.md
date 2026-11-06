@@ -2532,9 +2532,9 @@ B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den 
 vollen Szenario-Laufs, abgelegt in `~/freecad_cam/wip/laeufe/2026-11-06/` als Vergleichsstand):**
 B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am offenen Ende X 86 fährt es Y 27 →
 29 im Freivorschub, 29 → 27 im Arbeitsvorschub zurück, dann 27 → 33 – 2 × 2 mm unnötig, alles in der Luft.
-B-028 Planfräsen am Klotz (szenario_materialstand, _raeumen_materialstand, _zweiter_lauf): am Zeilenende
-X 4,0 von Y 28,28 auf 29,77 und gleich zurück, dann weiter auf 26,80 – ein Abstecher von 1,5 mm je
-Richtungswechsel (zweimal je Bahn). Beide nicht als Kehre gezählt (zu kurz); nächste freie Nummer B-029.
+(Der zweite Fund – Planfräsen am Klotz, am Zeilenende 1,5 mm zur vorigen Zeile und zurück – ist die
+gewollte Wandfahrt, `planfraesen_bahn._wandfahrt`: kein Fehler.) B-027 nicht als Kehre gezählt (zu kurz);
+nächste freie Nummer B-028.
 
 ## Offene Tasks
 
