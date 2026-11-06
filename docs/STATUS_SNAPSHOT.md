@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.11):* Drei Merker rechneten für ihren Schlüssel bei jedem Aufruf das Volumen
+  der Form (OpenCascade rechnet es jedes Mal neu – am Geist 0,9 s): hinterschnitt_bahn._dreiecke_von,
+  ueberdeckte, gui_bearbeitung._boeden_vor_je_wand. Jetzt `formteile.kennung` (hashCode, Flächen,
+  Kanten, Hüllquader; je Form gemerkt, aus vierachs_huelle.form_kennung verschoben). Geist „Anlegen“
+  unter dem Rand: 3,0 → 1,1 s (heute früh 5,8 s).
 - *Korrektur (0.345.10):* `formteile.pruefsumme` je Form gemerkt (die letzten 8, `isSame`) – am
   STL-Teil „Geist“ kostete sie bei jeder Bahn unter dem Rand und jeder Flanke Sekunden im
   Hauptprozess: „Anlegen“ (3D-Schlichten unter dem Rand) stand 5,8 → 3,0 s, das Öffnen von

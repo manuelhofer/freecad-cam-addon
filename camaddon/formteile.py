@@ -151,6 +151,44 @@ def _netz_volumen(form):
     return float(np.einsum("ij,ij->i", a, np.cross(b, c)).sum() / 6.0)
 
 
+# Die zuletzt gefragten Formen mit ihrer Kennung: Solange eine hier steht, wird ihr Speicher nicht
+# frei, ihr hashCode gehört also keiner anderen. Am STL-Teil „Geist“ (68 000 Dreiecke) zählt
+# countElement bei jedem Aufruf alle Flächen und Kanten, ohne die GIL freizugeben – beim Füllen
+# der Seite im 4-Achs-Assistenten stand das Fenster 5 s.
+_KENNUNGEN = OrderedDict()
+KENNUNGEN_GEMERKT = 8
+
+
+def kennung(form):
+    """Ein Schlüssel für eine Form (Part.Shape), unter dem Ergebnisse zu ihr gemerkt werden
+    dürfen: ihr hashCode – dieselbe Form in OpenCascade –, dazu, falls ein freigegebener
+    Speicher wiederverwendet wurde, die Zahl ihrer Flächen und Kanten und ihr Hüllquader.
+    Für dieselbe Form (`isSame`) gemerkt."""
+    code = form.hashCode()
+    eintrag = _KENNUNGEN.get(code)
+    if eintrag is not None and eintrag[0].isSame(form):
+        _KENNUNGEN.move_to_end(code)
+        return eintrag[1]
+    ergebnis = _kennung(form)
+    _KENNUNGEN[code] = (form, ergebnis)
+    while len(_KENNUNGEN) > KENNUNGEN_GEMERKT:
+        _KENNUNGEN.popitem(last=False)
+    return ergebnis
+
+
+def _kennung(form):
+    kasten = form.BoundBox
+    return (
+        form.hashCode(),
+        anzahl(form),
+        form.countElement("Edge"),  # nicht len(form.Edges): am Geist 1,2 s im Fenster
+        tuple(
+            round(float(w), 6)
+            for w in (kasten.XMin, kasten.YMin, kasten.ZMin, kasten.XMax, kasten.YMax, kasten.ZMax)
+        ),
+    )
+
+
 # Die zuletzt gefragten Formen mit ihrer Prüfsumme (je Form, `isSame`): An einem Körper aus einem
 # STL (68 000 Dreiecke) kostet sie Sekunden, und der Assistent fragt bei jeder Vorschau.
 _PRUEFSUMMEN = OrderedDict()

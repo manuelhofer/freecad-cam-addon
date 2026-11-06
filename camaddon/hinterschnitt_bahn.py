@@ -170,10 +170,13 @@ _DREIECKE = {}  # (Form) → Dreiecke des Netzes (m, 3, 3)
 
 def _dreiecke_von(form):
     """Das Netz des Teils (netzabstand.dreiecke, STRAHL_TOLERANZ), gemerkt je Form."""
+    from . import formteile
     from . import netzabstand as na
 
     try:
-        schluessel = (form.hashCode(), round(float(form.Volume), 3))
+        # formteile.kennung, nicht das Volumen: das rechnet OpenCascade bei jedem Aufruf neu (am
+        # STL-Teil „Geist“ 0,9 s je Mal).
+        schluessel = formteile.kennung(form)
     except Exception:  # noqa: BLE001
         schluessel = None
     if schluessel is not None and schluessel in _DREIECKE:
@@ -236,8 +239,10 @@ def ueberdeckte(form, namen):
     namen = tuple(n for n in namen if str(n).startswith("Face"))
     if not namen or len(namen) > FLAECHEN_HOECHSTENS:
         return frozenset()
+    from . import formteile
+
     try:
-        schluessel = (form.hashCode(), round(float(form.Volume), 3), namen)
+        schluessel = (formteile.kennung(form), namen)  # nicht das Volumen (_dreiecke_von)
     except Exception:  # noqa: BLE001 – keine Form, die sich merken lässt
         schluessel = None
     if schluessel is not None and schluessel in _UEBERDECKT:

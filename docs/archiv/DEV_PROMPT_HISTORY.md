@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-05 schluessel-ohne-volumen
+
+### EINGELESEN
+- Fortsetzung P-2026-11-06-04.
+
+### DATEIEN
+- `camaddon/formteile.py`: `kennung` (aus vierachs_huelle.form_kennung, je Form gemerkt).
+- `camaddon/vierachs_huelle.py`: `form_kennung` ruft formteile.kennung.
+- `camaddon/hinterschnitt_bahn.py` (`_dreiecke_von`, `ueberdeckte`), `camaddon/gui_bearbeitung.py`
+  (`_boeden_vor_je_wand`): Schlüssel ohne Volumen.
+- `package.xml` 0.345.11; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Am Geist gemessen: Volume 0,9 s, Area 0,9 s je Aufruf (nicht gemerkt), BoundBox 0,04 s,
+  countElement 0,02 s. szenario_geist_fuenfachs: „Anlegen“ 1,1 s statt 3,0 s.
+- test_hinterschnitt_bahn, test_vierachs_huelle, test_schlichten3d, test_vierachs_plan, test_kontur,
+  szenario_kontur, szenario_testteil grün.
 ## P-2026-11-06-04 pruefsumme-gemerkt
 
 ### EINGELESEN

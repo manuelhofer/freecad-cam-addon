@@ -537,10 +537,7 @@ def _boeden_vor_je_wand(form):
     if stl_teil.daten(form) is not None:
         return []
     try:
-        kasten = form.BoundBox
-        schluessel = (form.hashCode(), ft.anzahl(form), round(form.Volume, 6)) + tuple(
-            round(v, 6) for v in (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax)
-        )
+        schluessel = ft.kennung(form)
     except Exception:  # eine Form ohne Prüfsumme: rechnen
         schluessel = None
     if schluessel is not None and schluessel in _BOEDEN_VOR:
