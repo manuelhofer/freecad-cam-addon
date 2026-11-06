@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-07 halter-guehring-seco-walter
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“ (Vorrang): Halter „bis zum geht nicht mehr“.
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json` (2174 Reihen, 15 781 Größen), `camaddon/kataloge_index.json`;
+  Rohdaten ~/freecad_cam/wip/katalog_roh/teil_halter_roehm_guehring.json (Sammler, Auftrag
+  ~/freecad_cam/wip/halter_auftrag.md – mit der Lehre aus Kennametal L9: Maßbild ansehen).
+- `translations/de.json`, `en.json`: „15 000 Halter“ in der Frage nach den Katalogen.
+- `package.xml` 0.345.13; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Stichproben gegen DIN 69882-8 (Schrumpf d12: Nase 24, hinten 32) stimmen; 53 Größen mit
+  Artikelnummern als Maß weggelassen. test_kataloge, test_halter_datei, test_empfehlung grün.
 ## P-2026-11-06-06 tauchfraesen-materialstand
 
 ### EINGELESEN
