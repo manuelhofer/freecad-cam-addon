@@ -3,6 +3,7 @@
 # Generator-Funktion schritte(h): Jedes `yield ms` wartet so lange und lässt
 # FreeCAD dabei weiterlaufen – so erscheinen Dialoge, und modale Dialoge
 # blockieren das Szenario nicht.
+import contextlib
 import importlib.util
 import os
 import sys
@@ -64,6 +65,11 @@ def _verschachtelt():
     return QtGui.QApplication.activeModalWidget() is None
 
 
+# CAMADDON_ALLE_RAHMEN=1: im Weg auch FreeCADs Rahmen – wer eine Pause auslöst, wenn der erste
+# Rahmen aus dem Addon schon mitten in der Rechnung liegt.
+ALLE_RAHMEN = os.environ.get("CAMADDON_ALLE_RAHMEN") == "1"
+
+
 class _Sonde:
     """Eine Uhr im Hauptthread (alle 20 ms) und ein Wachhund daneben: Tickt die Uhr länger als
     PAUSE_AB nicht, sieht er alle 50 ms in den Python-Stapel des Hauptthreads – je Pause der
@@ -81,6 +87,7 @@ class _Sonde:
         self.uhr.start()
         self._haupt = threading.main_thread().ident
         self._aus = False
+        self._ruht = False
         threading.Thread(target=self._wachen, daemon=True).start()
 
     def _tick(self):
@@ -88,10 +95,28 @@ class _Sonde:
         self.laengste = max(self.laengste, jetzt - self.zuletzt)
         self.zuletzt = jetzt
 
+    def ruhe(self):
+        """Die Prüfungen des Laufs selbst (slotDeletedDocument) sind keine Pause des Addons: Die
+        Uhr steht für sie, danach zählt sie von vorn."""
+        sonde = self
+
+        class _Ruhe:
+            def __enter__(self):
+                sonde._ruht = True
+
+            def __exit__(self, *_a):
+                sonde.zuletzt = time.perf_counter()
+                sonde._ruht = False
+
+        return _Ruhe()
+
     def _wachen(self):
         pause = None  # [Beginn, Auslöser → Proben, innen → Proben, Weg → Proben, Dauer …]
         while not self._aus:
             time.sleep(0.05)
+            if self._ruht:
+                pause = None
+                continue
             stehen = time.perf_counter() - self.zuletzt
             if stehen < PAUSE_AB:
                 if pause is not None:
@@ -104,7 +129,7 @@ class _Sonde:
             zeilen = [
                 f"{os.path.basename(f.filename)}:{f.lineno} {f.name}"
                 for f in traceback.extract_stack(rahmen)
-                if "camaddon" in f.filename or "szenario_" in f.filename
+                if ALLE_RAHMEN or "camaddon" in f.filename or "szenario_" in f.filename
             ]
             if pause is None or pause[0] != self.zuletzt:
                 if pause is not None:
@@ -171,6 +196,11 @@ class _Bahnen:
             jobs = [o for o in doc.Objects if hasattr(o, "Operations") and hasattr(o, "Stock")]
         except Exception:  # noqa: BLE001
             return
+        sonde = getattr(starten, "sonde", None)
+        with sonde.ruhe() if sonde is not None else contextlib.nullcontext():
+            self._im_teil_merken(jobs, doc)
+
+    def _im_teil_merken(self, jobs, doc):
         for job in jobs:
             name = f"{doc.Name}/{job.Label}"
             try:
