@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-06 tauchfraesen-materialstand
+
+### EINGELESEN
+- Offen aus 0.330.0 (Manuel, 2026-10-31, zum Tauchfräsen): Materialstand im Tauchen selbst;
+  Gedächtnis „Unnötiges ohne Rückfrage weg“ (Luftfräsen beseitigen).
+
+### DATEIEN
+- `camaddon/tauchfraesen.py`: `bahn_fuer(stand=…)`, `bahn` mit freier Höhe je Stelle, `_material`,
+  `MATERIAL`; `rechne` mit `mst.fuer(job, vor=obj)`; Eigenschaft „Materialstand“ (verborgen).
+- `tests/test_tauchfraesen.py`: Teil 9 (alles weg → SchonWeg; 0,2 mm Rest → Eilgang bis Z 11,2).
+- `package.xml` 0.345.12; `docs/STATUS_SNAPSHOT.md` (Außenkontur war seit 0.330.2 gebaut).
+
+### ERGEBNIS
+- test_tauchfraesen, szenario_tauchfraesen grün.
 ## P-2026-11-06-05 schluessel-ohne-volumen
 
 ### EINGELESEN

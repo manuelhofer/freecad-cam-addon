@@ -578,6 +578,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.12):* **Tauchfräsen mit dem Materialstand** (W-012, offen seit 0.330.0): Wo
+  unter dem Fräser über einer Lage kein Material mehr steht, taucht es nicht; steht es niedriger,
+  im Eilgang bis 1 mm darüber, dann mit Eintauchvorschub (über einer Vorbohrung, nach dem Räumen –
+  am Prüfteil nach einem ersten Tauchfräsen: Eilgang bis Z 11,2 statt Vorschub ab Z 41); an einer
+  schon offenen ersten Stelle wird nicht vorgebohrt; ist alles weg: „Hier ist nichts mehr zu tun –
+  das hat … schon weggenommen“. Die Operation hat jetzt „Materialstand“ und rechnet neu, wenn sich
+  davor etwas ändert.
 - *Korrektur (0.345.11):* Drei Merker rechneten für ihren Schlüssel bei jedem Aufruf das Volumen
   der Form (OpenCascade rechnet es jedes Mal neu – am Geist 0,9 s): hinterschnitt_bahn._dreiecke_von,
   ueberdeckte, gui_bearbeitung._boeden_vor_je_wand. Jetzt `formteile.kennung` (hashCode, Flächen,
@@ -612,9 +619,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   nach 93 Anfragen trotz 40–70 s Abstand (Tageskontingent?) – Frage 1 in OFFENE_FRAGEN.md.
 - *Korrektur (0.345.5):* **Halter: 1773 Reihen, 12 038 Größen** – dazu SCHUNK (TENDO, TRIBOS, SINO-R, ER,
   WELDON), NIKKEN (Slim Chuck, 2LOCK, Milling Chuck, Masamune), Sandvik (CoroChuck 930, Schrumpf,
-  Weldon) und Kennametal (TG, SAFE-LOCK, TTGL). Offen: Bei den schon länger vorhandenen
-  Kennametal-ER-Reihen steht L9 als l_nase – laut Katalogseite C58 ist L9 die Einspanntiefe;
-  nachsehen.
+  Weldon) und Kennametal (TG, SAFE-LOCK, TTGL). Die schon länger vorhandenen
+  Kennametal-ER-Reihen hatten L9 als l_nase – L9 ist die Einspanntiefe, *berichtigt in 0.345.7*.
 - *Korrektur (0.345.4):* Gühring vollständig: 2485 Reihen, 67 945 Größen – jetzt mit 73 Torus- und 105
   Gewindefräser-Reihen (Eckradius und Steigung aus den Variantentabellen des Webshops).
 - *Korrektur (0.345.3):* **Werkzeugkiste: 257 468 Größen in 8416 Reihen** – Gühring vollständiger (2368
@@ -824,8 +830,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   davor). Im Assistenten (alt und Beta) ein Block im Schruppen, **von sich aus aus**; angehakt ist
   das Räumen derselben Böden aus (und umgekehrt), die Kontur nimmt mit dem Materialstand, was
   an den Wänden stehen blieb. Am Beta-Testteil: Tauchfräsen + Kontur + 3D-Schruppen 2,7 min statt
-  4,5 min mit Räumen. Noch offen: an einer Außenkontur (Manuel: „geht auch für ne ausen kontur“),
-  Materialstand im Tauchen selbst (taucht auch über schon Offenem).
+  4,5 min mit Räumen. Außenkontur: *gebaut, 0.330.2*; Materialstand im Tauchen: *gebaut, 0.345.12*.
 ![Tauchfräsen](bilder/beta/3d_tauchfraesen.png)
 - *Korrektur (0.329.1):* **Rundungen am Taschenboden von oben erreichbar** (`zugang.py`): Zylinder-
   und Kegelflächen gelten wie Freiformen auch aus einer Richtung, gegen die keine ihrer Normalen

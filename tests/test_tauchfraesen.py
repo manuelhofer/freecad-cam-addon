@@ -208,6 +208,46 @@ elif abs(min(vorschuebe) / max(vorschuebe) - tf.BRILLE_ANTEIL) > 1e-6:
 if sum(1 for f in vorschuebe if abs(f - max(vorschuebe)) < 1e-9) != op3.Lagen:
     fehler.append("Brille: nicht genau eine volle Stelle je Lage")
 
+# 9. Mit dem Materialstand (W-012; offen seit 0.330.0): Über dem, was „Tauchfräsen“ und die
+#    Brillenbohrung schon weggenommen haben, taucht es nicht mehr oder im Eilgang tiefer hinein.
+from camaddon import materialstand as mst  # noqa: E402
+
+stand = mst.fuer(job)
+ohne = tf.bahn_fuer(job, job.Model.Group, r12, [boden_name], 0.5, 0.2, schneidenlaenge=20.0)
+eintauchen_ohne = sum(1 for p in ohne.punkte if p.eintauchen)
+try:
+    mit = tf.bahn_fuer(
+        job, job.Model.Group, r12, [boden_name], 0.5, 0.2, schneidenlaenge=20.0, stand=stand
+    )
+except mst.SchonWeg as weg:
+    print(f"Materialstand: schon weg – {weg}")
+else:
+    eintauchen_mit = sum(1 for p in mit.punkte if p.eintauchen)
+    tiefster_eilgang = min(p.z for p in mit.punkte if p.eilgang)
+    print(
+        f"Materialstand: {eintauchen_mit} statt {eintauchen_ohne} Mal getaucht, "
+        f"Eilgang bis Z {tiefster_eilgang:.1f}"
+    )
+    if eintauchen_mit >= eintauchen_ohne:
+        fehler.append(f"Materialstand: {eintauchen_mit} statt weniger als {eintauchen_ohne}")
+    if tiefster_eilgang > 30.0:
+        fehler.append(
+            f"Materialstand: Eilgang nur bis Z {tiefster_eilgang:.1f}, nicht in die Tasche"
+        )
+
+# … und wo nach „Tauchfräsen T1“ (Boden + 0,2) noch 0,2 mm stehen: dort im Eilgang bis 1 mm
+#    über den Rest (Z 11,2), dann mit Vorschub – nicht von oben (Z 41).
+nach_t1 = mst.fuer(job, vor=op3)
+rest = tf.bahn_fuer(
+    job, job.Model.Group, r12, [boden_name], 0.5, 0.0, schneidenlaenge=40.0, stand=nach_t1
+)
+tiefer = [p.z for p in rest.punkte if p.eilgang]
+print(
+    f"Rest 0,2 mm: {sum(1 for p in rest.punkte if p.eintauchen)} Mal, Eilgang bis Z {min(tiefer):.1f}"
+)
+if min(tiefer) > 11.2 + 0.05:
+    fehler.append(f"Rest 0,2 mm: Eilgang nur bis Z {min(tiefer):.1f}")
+
 tf.aendere(op, tc, [boden_name], 0.5, 0.2, 12.0)
 doc.recompute()
 if float(op.Schritt) != 12.0 or op.Stellen <= 4:

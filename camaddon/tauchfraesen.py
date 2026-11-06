@@ -47,6 +47,7 @@ BRILLE_ANTEIL = 0.7
 # freigegebene Werkzeuge“): vorsichtiger.
 BRILLE_UNGEPRUEFT = 0.5
 SCHNITT_UEBER = 0.01  # mm über dem Boden: dort schneidet gebiet() das Teil
+MATERIAL = 0.05  # mm – so viel muss über einer Lage stehen, damit dort getaucht wird
 GRUPPE = "Fräsen"
 
 
@@ -128,6 +129,12 @@ def gebiet(form, boden, rohteil, rand):
         return [boden]
 
 
+def _material(stand, x, y, radius):
+    """Wie hoch das Material unter dem Fräser an (x, y) noch steht (materialstand.hoechste_bei) –
+    −inf, wo keins ist."""
+    return stand.hoechste_bei(x, y, radius)
+
+
 def von_innen_nach_aussen(punkte, mitte=None):
     """Die Reihenfolge (Manuel, 2026-10-31: „bohrt mittig ein loch und fräst dann“; zum ersten
     Entwurf: „wieso zuickzack bahn ?“): zuerst die Stelle an der Mitte (dort wird vorgebohrt),
@@ -158,15 +165,18 @@ def von_innen_nach_aussen(punkte, mitte=None):
 def bahn(punkte, z_oben, z_unten, z_frei=None, anteil_ueberlappt=1.0):
     """[bahn.Punkt]: je Stelle im Eilgang darüber (ABHEBEN über `z_oben`), mit Eintauchvorschub
     auf `z_unten`, im Eilgang zurück. `z_frei`: bis dahin ist das Loch schon offen (die Lage
-    davor) – im Eilgang bis ABHEBEN darüber. `anteil_ueberlappt`: so viel vom Eintauchvorschub an
+    davor oder der Materialstand) – im Eilgang bis ABHEBEN darüber; eine Zahl für alle Stellen
+    oder je Stelle eine (None: nichts offen). `anteil_ueberlappt`: so viel vom Eintauchvorschub an
     jeder Stelle nach der ersten – sie greifen neben Offenem an (Brillenbohrung mit dem
     Wendeplattenbohrer: Walter 70 %)."""
     ergebnis = []
     oben = z_oben + ABHEBEN
-    for i, (x, y) in enumerate(punkte):
+    if z_frei is None or isinstance(z_frei, (int, float)):
+        z_frei = [z_frei] * len(punkte)
+    for i, ((x, y), frei) in enumerate(zip(punkte, z_frei, strict=True)):
         ergebnis.append(bh.Punkt(True, x, y, oben))
-        if z_frei is not None and z_frei + ABHEBEN < oben:
-            ergebnis.append(bh.Punkt(True, x, y, z_frei + ABHEBEN))
+        if frei is not None and frei + ABHEBEN < oben:
+            ergebnis.append(bh.Punkt(True, x, y, frei + ABHEBEN))
         anteil = 1.0 if i == 0 else anteil_ueberlappt
         ergebnis.append(bh.Punkt(False, x, y, z_unten, eintauchen=True, anteil=anteil))
         ergebnis.append(bh.Punkt(True, x, y, oben))
@@ -195,12 +205,17 @@ def bahn_fuer(
     oben=None,
     vorbohren=None,
     anteil_ueberlappt=1.0,
+    stand=None,
 ):
     """Die Bahn „Tauchfräsen“ (Tauchbahn) über den ebenen Flächen nach oben unter `flaechen`
     („Face7“ …) – von oben nach unten, je Boden die Stellen (stellen) in Lagen bis auf den Boden +
     `aufmass_boden`. Mit `vorbohren` ({kennung, durchmesser, spitzenwinkel, schneidenlaenge,
     vorschub} eines Bohrers): an der ersten Stelle jeder Tasche ein Loch bis auf den Boden (Manuel,
     2026-10-31: „bohrt mittig ein loch“) – um eine Insel nicht, dort beginnt es im Freien.
+    `stand` (materialstand.Materialstand vor der Operation, W-012): Steht unter dem Fräser an
+    einer Stelle über einer Lage kein Material mehr, taucht es dort nicht; steht es niedriger als
+    oben, im Eilgang bis knapp darüber (über einer Vorbohrung, nach dem Räumen); ist es an der
+    ersten Stelle einer Tasche schon offen, wird dort nicht vorgebohrt.
     ValueError mit einem Satz, wenn es nicht geht."""
     from . import hoehenfeld as hf
     from . import planfraesen as pf
@@ -218,6 +233,7 @@ def bahn_fuer(
     if oben is None:
         oben = z_rohteil
     punkte, stellen_zahl, lagen_zahl, boeden, namen = [], 0, 0, 0, []
+    schon_offen = False  # Stellen gefunden, über ihnen aber kein Material mehr
     loecher = []  # (x, y, z) – vorgebohrt
     for ebene in sorted(ebenen, key=lambda e: -e.z):
         z_unten = ebene.z + aufmass_boden
@@ -229,21 +245,40 @@ def bahn_fuer(
         for stueck in gebiet(form, boden, rohteil, radius + aufmass) if rohteil else [boden]:
             hier = stellen(stueck, radius, aufmass, schritt)
             if hier and vorbohren and len(stueck.Wires) == 1:
-                loecher.append((hier[0][0], hier[0][1], z_unten))
+                x, y = hier[0]
+                if stand is None or _material(stand, x, y, radius) > z_unten + MATERIAL:
+                    loecher.append((x, y, z_unten))
             stellen_ += hier
         if not stellen_:
             continue
         lagen = max(1, math.ceil(tiefe / schneidenlaenge - 1e-9)) if schneidenlaenge > 0 else 1
-        frei = None
+        # So hoch steht das Material unter dem Fräser je Stelle (ohne Materialstand: bis oben).
+        hoch = [_material(stand, x, y, radius) if stand else oben for x, y in stellen_]
+        frei = [None] * len(stellen_)
+        getaucht = set()
         for lage in range(1, lagen + 1):
             z = max(z_unten, oben - lage * tiefe / lagen)
-            punkte += bahn(stellen_, oben, z, frei, anteil_ueberlappt)
-            frei = z
-        stellen_zahl += len(stellen_)
+            hier = [i for i in range(len(stellen_)) if hoch[i] > z + MATERIAL]
+            if hier:
+                frei_hier = [
+                    min(f, hoch[i]) if f is not None else (hoch[i] if hoch[i] < oben else None)
+                    for i, f in ((i, frei[i]) for i in hier)
+                ]
+                punkte += bahn([stellen_[i] for i in hier], oben, z, frei_hier, anteil_ueberlappt)
+                getaucht.update(hier)
+            frei = [z] * len(stellen_)
+        if not getaucht:
+            schon_offen = True
+            continue
+        stellen_zahl += len(getaucht)
         lagen_zahl = max(lagen_zahl, lagen)
         boeden += 1
         namen.append(ebene.name)
     if not punkte:
+        if schon_offen and stand is not None:
+            from . import materialstand as mst
+
+            raise mst.schon_weg(stand.namen)
         raise ValueError(tr("tf.fehler.eng", d=f"{2 * radius:g}"))
     bahn_ = Tauchbahn(punkte, stellen_zahl, lagen_zahl, boeden, namen)
     if loecher:
@@ -317,6 +352,7 @@ if PathOp is not None:
                 ("App::PropertyPercent", "VorschubUeberlappt", tr("tf.eigenschaft.ueberlappt")),
                 ("App::PropertyInteger", "Stellen", tr("tf.eigenschaft.stellen")),
                 ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
+                ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
             ):
                 if name not in obj.PropertiesList:
                     obj.addProperty(typ, name, GRUPPE, text)
@@ -325,6 +361,7 @@ if PathOp is not None:
         def _editormodi(obj):
             for name in ("Stellen", "Lagen"):
                 obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+            obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
         def opExecute(self, obj):
             from . import vierachs_operation as vo
@@ -349,11 +386,17 @@ if PathOp is not None:
 def rechne(obj, job, modell):
     """Die Bahn (Tauchbahn) für die Operation `obj` im Job – ValueError mit einem Satz."""
     from . import kontur as ko
+    from . import materialstand as mst
     from . import planfraesen as pf
 
     radius = radius_des_controllers(obj.ToolController)
     if radius <= 0:
         raise ValueError(tr("nt.fehler.form"))
+    # Was die Operationen davor schon weggenommen haben (W-012) – und woraus das gerechnet ist:
+    # Ändert sich davor etwas, rechnet gui_materialstand das Tauchfräsen neu.
+    stand = mst.fuer(job, vor=obj)
+    if "Materialstand" in obj.PropertiesList:
+        obj.Materialstand = mst.kennung_vor(job, obj)
     return bahn_fuer(
         job,
         modell,
@@ -365,6 +408,7 @@ def rechne(obj, job, modell):
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
         anteil_ueberlappt=float(getattr(obj, "VorschubUeberlappt", 100) or 100) / 100.0,
+        stand=stand,
     )
 
 
