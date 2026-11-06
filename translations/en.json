@@ -2403,6 +2403,8 @@
     "ba.s3.wegkippen.tooltip": "The axis tilts about the ball centre away from the wall, only where the holder would otherwise hit. So a shorter, stiffer tool will do. The path stays the same; below it says how far the tool must stick out at least.",
     "ba.s3.wegkippen.bedarf": "{text} – tilted away {gekippt} mm stick-out will do (vertical {senkrecht}); your cutter sticks out {auskragung}",
     "ba.s3.wegkippen.zu_kurz": "{text} – your cutter sticks out {auskragung} mm, even tilted away it needs {gekippt} (vertical {senkrecht}): let it stick out further or use a slimmer holder",
+    "ba.s3.wegkippen.vorschlag": "{text} – vertical, your cutter would have to stick out {senkrecht} mm, it sticks out {auskragung}. Tilted away, {gekippt} mm is enough, with nothing to change or order.",
+    "ba.s3.wegkippen.anhaken": "Tick tilt away",
     "wk.eigenschaft.spiel_halter": "At least this far the holder stays off the part when tilting away (more clearance: more tilt or more stick-out).",
     "wk.eigenschaft.spiel_schaft": "At least this far the shank stays off the part when tilting away.",
     "ra.warnung.last": "{operation}: no path keeps the load here (up to {last} ae) – too tight for this cutter: risk of breakage. Use a smaller cutter or a smaller step-over.",

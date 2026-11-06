@@ -102,7 +102,14 @@ def schritte(h):
     h.pruefe(weg is not None and weg.isEnabled() and not weg.isHidden(), "„Wegkippen“ nicht frei")
     if weg is None:
         return
-    weg.setChecked(True)
+    # Nicht angehakt: Senkrecht reicht die Auskragung nicht, weggekippt schon – der Satz schlägt es
+    # vor (Manuel, 2026-11-06: „erst die Strategien mit den Werkzeugen, die wir haben“).
+    yield from h.warte_auf(lambda: "wegkippen:" in block.ergebnis.text(), 300000)
+    vorschlag = block.ergebnis.text()
+    print(ascii(f"Vorschlag: {vorschlag}"))
+    h.pruefe("Weggekippt reichen" in vorschlag and not weg.isChecked(), f"{vorschlag!r}")
+    block._hinweis_verweis("wegkippen:")
+    h.pruefe(weg.isChecked(), "der Verweis setzt den Haken nicht")
     yield from h.warte_auf(
         lambda: block.vorschau is not None and "weggekippt" in block.ergebnis.text(), 300000
     )

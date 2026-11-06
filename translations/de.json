@@ -2403,6 +2403,8 @@
     "ba.s3.wegkippen.tooltip": "Die Achse kippt um die Kugelmitte von der Wand weg, nur wo der Halter sonst anstieße. So reicht ein kürzerer, steiferer Fräser. Die Bahn bleibt gleich; darunter steht, wie weit er mindestens herausstehen muss.",
     "ba.s3.wegkippen.bedarf": "{text} – weggekippt reichen {gekippt} mm Auskragung (senkrecht {senkrecht}); dein Fräser steht {auskragung} heraus",
     "ba.s3.wegkippen.zu_kurz": "{text} – dein Fräser steht {auskragung} mm heraus, auch weggekippt braucht er {gekippt} (senkrecht {senkrecht}): weiter herausstehen lassen oder einen schlankeren Halter",
+    "ba.s3.wegkippen.vorschlag": "{text} – senkrecht müsste dein Fräser {senkrecht} mm herausstehen, er steht {auskragung} heraus. Weggekippt reichen {gekippt} mm, ohne etwas zu ändern oder zu bestellen.",
+    "ba.s3.wegkippen.anhaken": "Wegkippen anhaken",
     "wk.eigenschaft.spiel_halter": "So weit bleibt der Halter beim Wegkippen mindestens vom Teil weg (mehr Spiel: mehr Neigung oder mehr Auskragung).",
     "wk.eigenschaft.spiel_schaft": "So weit bleibt der Schaft beim Wegkippen mindestens vom Teil weg.",
     "ra.warnung.last": "{operation}: Keine Bahn hält hier die Last (bis {last} ae) – zu eng für diesen Fräser: Bruchgefahr. Einen kleineren Fräser oder einen kleineren Zeilenabstand nehmen.",

@@ -3883,9 +3883,14 @@ class _Schlichten3D(_Strategie):
         return weiter
 
     def _wegkippen(self, werkzeug, werte):
-        """Rechnet die Vorschau den Bedarf zum Wegkippen mit (wegkippen.Bedarf)?"""
+        """Rechnet die Vorschau den Bedarf zum Wegkippen mit (wegkippen.Bedarf)? Angehakt – oder an
+        einer 5-Achs-Maschine für den Vorschlag (ergebnis_text; Manuel, 2026-11-06: „oder es mit
+        Schwenken geht, weil es mal eine 5-Achs hat … Erst die Strategien mit den Werkzeugen, die
+        wir haben“)."""
+        self._wegkippen_an = bool(werte.get("wegkippen"))
         form = ff.von_werkzeug(werkzeug)
-        return bool(werte.get("wegkippen")) and form is not None and form.nur_kugel
+        gefragt = self._wegkippen_an or bool(werte.get("fuenfachs"))
+        return gefragt and form is not None and form.nur_kugel
 
     def vorschau(self, job, werkzeug, werte, flaechen):
         argumente, weiter = self._argumente(werkzeug, werte, flaechen)
@@ -3919,6 +3924,13 @@ class _Schlichten3D(_Strategie):
             "gekippt": groesse_zeigen(bedarf.gekippt, einheiten.LAENGE, 1) or "0",
             "auskragung": groesse_zeigen(bedarf.auskragung, einheiten.LAENGE, 1) or "0",
         }
+        if not getattr(self, "_wegkippen_an", False):
+            # Nicht angehakt: nur, wenn der Fräser senkrecht anstößt und weggekippt reicht.
+            if bedarf.gekippt <= bedarf.auskragung < bedarf.senkrecht:
+                knopf = html.escape(tr("ba.s3.wegkippen.anhaken"))
+                satz = html.escape(tr("ba.s3.wegkippen.vorschlag", **werte), quote=False)
+                return f'{satz} <a href="wegkippen:">{knopf}</a>'
+            return text
         if bedarf.auskragung < bedarf.gekippt:
             return tr("ba.s3.wegkippen.zu_kurz", **werte)
         return tr("ba.s3.wegkippen.bedarf", **werte)
@@ -4754,6 +4766,7 @@ class _Block:
         werte.update({feld: kasten.isChecked() for feld, kasten in self.haken_felder.items()})
         if self.s.kennung in ("schlichten3d", "restschlichten"):
             werte["aufnahme"] = self.panel.werkzeugaufnahme()  # für eine Empfehlung
+            werte["fuenfachs"] = self.panel._fuenfachs()  # für den Vorschlag „Wegkippen“
         if self.s.kennung == "nut":
             werte["eintauchen_bei"] = dict(self.eintauchen)
         elif self.s.kennung == "raeumen":
@@ -5675,6 +5688,11 @@ class _Block:
         und rechnet die Vorschau."""
         if ziel.startswith(("http://", "https://")):  # ein Werkzeug aus dem Katalog
             QtGui.QDesktopServices.openUrl(QtCore.QUrl(ziel))
+            return
+        if ziel.startswith("wegkippen:"):  # der Haken, den der Satz vorschlägt
+            kasten = self.haken_felder.get("wegkippen")
+            if kasten is not None:
+                kasten.setChecked(True)
             return
         bibliothek = self.panel.bibliothek
         if (

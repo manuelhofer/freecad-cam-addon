@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-18 wegkippen-vorschlag
+
+### EINGELESEN
+- Manuel, 2026-11-06: „… oder es mit Schwenken geht, weil es mal eine 5-Achs hat, oder mit einer anderen
+  Strategie halt funktioniert … Erst die Strategien mit den Werkzeugen, die wir haben. Wenn nicht, muss man
+  halt sagen, okay, hey, jetzt du musst was bestellen.“; „weiter bitte“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `werte()` mit „fuenfachs“; `_Schlichten3D._wegkippen` fragt auch ohne
+  Haken; `ergebnis_text` mit dem Vorschlag; `_hinweis_verweis` „wegkippen:“.
+- `translations/de.json`, `en.json`: `ba.s3.wegkippen.vorschlag`, `.anhaken`.
+- `tests/gui/szenario_wegkippen.py`: der Vorschlag und sein Verweis.
+- `package.xml` 0.349.0; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- szenario_wegkippen, test_sprache grün.
+- Luft: Schräge Sätze im Freivorschub probiert – am Testteil kein Gewinn (die übrigen Stücke sind um 5 mm
+  lang, 2 mm davon bleiben ohnehin langsam), zurückgenommen. Beta-Beispiel Tasche: Kontur 5 %, 3D-Schruppen
+  unter 1 % Luft im Arbeitsvorschub.
 ## P-2026-11-06-17 luft-boegen
 
 ### EINGELESEN

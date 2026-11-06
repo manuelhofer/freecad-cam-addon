@@ -578,6 +578,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.349.0):* **„Wegkippen“ als Vorschlag vor dem Bestellen** (Manuel, 2026-11-06: „oder es mit
+  Schwenken geht, weil es mal eine 5-Achs hat … Erst die Strategien mit den Werkzeugen, die wir haben“):
+  An einer 5-Achs-Maschine rechnet die Vorschau des 3D-Schlichtens mit der Kugel den Bedarf
+  (`wegkippen.Bedarf`) auch ohne Haken. Reicht die Auskragung senkrecht nicht, weggekippt aber schon, sagt
+  die Ergebniszeile es und bietet „Wegkippen anhaken“ an. Am Beispiel: Ø 6, 27 mm heraus, senkrecht 32.
+  Weitere Auswege (Flanke, andere Strategie) folgen nach Rücksprache.
 - *Korrektur (0.348.3):* Freivorschub auch auf einem Teil eines Bogens: `freiwege.schneller` teilt einen
   Bogen, der nur zum Teil frei ist, in Teilbögen um denselben Mittelpunkt (vorher fuhr er ganz langsam,
   weil die letzten VORLAUF mm vor dem Material langsam bleiben). Testteil: 3D-Schruppen T1 Luft im
