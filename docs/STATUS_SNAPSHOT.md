@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.17):* **Werkzeugkiste: rund 292 000 Größen** – dazu Harvey Tool (1857 Reihen: Schaft,
+  Kugel, Torus, Fasen, Keyseat, Konik, Schwalbenschwanz, NC-Anbohrer, Bohrer, Gewindefräser …) und Helical
+  Solutions (136 Reihen, HPC/Trochoidal/Hochvorschub), zusammen 31 928 Größen, Zoll in mm umgerechnet;
+  Schnittwerte für 1872 Reihen aus den Speeds-&-Feeds-PDFs (fz nur, wo der Ø genau einer Spalte
+  entspricht). `werkzeugkiste_daten/harvey_helical.json`; Kataloge 113,8 MB.
 - *Korrektur (0.345.16):* Hoffmann-Bohrer: 16 489 Größen (+180; der tägliche Abruf kam am 06.11. auf
   157 Anfragen bis zur Sperre).
 - *Korrektur (0.345.15):* **Spannmittel: 471 Reihen, 3416 Größen** (vorher 345/2722) – dazu Röhm

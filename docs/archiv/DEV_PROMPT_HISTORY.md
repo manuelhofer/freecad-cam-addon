@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-11 harvey-helical
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“ (Vorrang).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/harvey_helical.json` (neu, 1993 Reihen, 31 928 Größen),
+  `camaddon/kataloge_index.json` (21 Dateien, 113,8 MB); Rohdaten ~/freecad_cam/wip/werkzeug_roh/.
+- `translations/de.json`, `en.json`: „Rund 290 000 Werkzeuge (… Harvey Tool, Helical …)“.
+- `package.xml` 0.345.17; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Übernahme ohne Fehler und Doppelte. test_kataloge, test_werkzeugkiste_datei, test_faehigkeiten,
+  test_werkzeugwahl, szenario_kataloge, szenario_katalog_bohrung, szenario_werkzeugkiste grün.
 ## P-2026-11-06-10 hoffmann-0611
 
 ### EINGELESEN
