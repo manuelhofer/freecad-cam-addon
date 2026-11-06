@@ -578,6 +578,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.349.2):* **Luft in der Flanke, B-028:** Die Flanke nimmt Wege durch die Luft schnell
+  (`flanke_frei`, Manuel, 2026-11-06: „da fuhr er oben ziemlich lang in der luft“): am Teil „tief“
+  Vorschubweg 3350 → 1837 mm, Luft 1122 → 217 mm. Die Umläufe an der Wand bleiben im Vorschub.
 - *Korrektur (0.349.1):* **B-027:** Hin, zurück und wieder hin auf einer Geraden im Freien wird ein Zug
   (`freiwege._ohne_rueckweg`) – am offenen Ende einer Nut trafen sich zwei Züge der Kontur so.
 - *Neu (0.349.0):* **„Wegkippen“ als Vorschlag vor dem Bestellen** (Manuel, 2026-11-06: „oder es mit
@@ -2592,7 +2595,11 @@ B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am off
 29 im Freivorschub, zurück nach 27, dann nach 33 – zwei Züge der Kontur, die sich dort treffen. Behoben in
 0.349.1 (`freiwege._ohne_rueckweg`).
 (Der zweite Fund – Planfräsen am Klotz, am Zeilenende 1,5 mm zur vorigen Zeile und zurück – ist die
-gewollte Wandfahrt, `planfraesen_bahn._wandfahrt`: kein Fehler.) Nächste freie Nummer B-028.
+gewollte Wandfahrt, `planfraesen_bahn._wandfahrt`: kein Fehler.)
+B-028 Bahn unter dem Rand (3D-Schlichten, Teil „tief“): Ihre schnellen Wege waren nur gegen das Teil
+geprüft, die erste Anfahrt ging mit 10 m/min in den Keil, den das Räumen stehen lässt. Behoben in 0.349.2
+(`flanke_frei.kugelwege_pruefen`): Der Weg endet vor dem Material, der Rest taucht ein; ist das Material
+nicht zu lesen, geht unter dem Rand kein Weg schnell. Nächste freie Nummer B-029.
 
 ## Offene Tasks
 
