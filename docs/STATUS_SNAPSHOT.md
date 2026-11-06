@@ -585,7 +585,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Maschine mit dem Spannmittel). Deutsch unverändert.
 - *Korrektur (0.345.7):* Kennametal-ER-Halter (71 Größen, „Erickson, ER Hex/Round“): L9 ist laut Maßbild
   (Katalogseite C17/C58) die Einspanntiefe bis zum Verstellweg V, nicht die Länge der Spannmutter –
-  jetzt `spanntiefe`; die Mutter hat die Länge nach DIN 6499 (vorher 10–20 mm zu lang). Hoffmann:
+  jetzt `spanntiefe`; die Mutter hat die Länge nach DIN 6499 (vorher 10–20 mm zu lang). Die
+  Kontur ändert sich nur bei den vier langen ER16 A160 (Körper-Ø größer als die Mutter): der Körper
+  beginnt 14 mm näher am Werkzeug – vorher sah die Kollision dort einen schlankeren Halter. Hoffmann:
   16 309 Bohrergrößen (+75, der tägliche Abruf schafft 20–45 Anfragen bis zur Sperre). Wochen-Build
   2026.11.04 (27.1 dev, Git 20261103): alle 142 Prüfdateien grün.
 - *Korrektur (0.345.6):* Hoffmann-Bohrer: 9 weitere Reihen vollständig (16 234 Größen). Der Abruf sperrte
