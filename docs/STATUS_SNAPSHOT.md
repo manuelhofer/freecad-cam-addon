@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.7):* Kennametal-ER-Halter (71 Größen, „Erickson, ER Hex/Round“): L9 ist laut Maßbild
+  (Katalogseite C17/C58) die Einspanntiefe bis zum Verstellweg V, nicht die Länge der Spannmutter –
+  jetzt `spanntiefe`; die Mutter hat die Länge nach DIN 6499 (vorher 10–20 mm zu lang). Hoffmann:
+  16 309 Bohrergrößen (+75, der tägliche Abruf schafft 20–45 Anfragen bis zur Sperre). Wochen-Build
+  2026.11.04 (27.1 dev, Git 20261103): alle 142 Prüfdateien grün.
 - *Korrektur (0.345.6):* Hoffmann-Bohrer: 9 weitere Reihen vollständig (16 234 Größen). Der Abruf sperrte
   nach 93 Anfragen trotz 40–70 s Abstand (Tageskontingent?) – Frage 1 in OFFENE_FRAGEN.md.
 - *Korrektur (0.345.5):* **Halter: 1773 Reihen, 12 038 Größen** – dazu SCHUNK (TENDO, TRIBOS, SINO-R, ER,

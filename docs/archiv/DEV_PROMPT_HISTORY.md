@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-01 kennametal-er-hoffmann
+
+### EINGELESEN
+- Manuel, 2026-11-06: „So du kannst weiter machen bitte durcharbeiten bis heute abend“; „Na warum
+  auf die prüfungen warten?? Arbeiten dienorüfungen auf allen CPUs??“
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json`: Kennametal ER (11 Reihen, 71 Größen) L9 → `spanntiefe`
+  statt `l_nase` (Quelle ~/freecad_cam/wip/werkzeug_roh/halter_mehr.json und der Sammler
+  halter_sammler/manuell/kennametal_er.py mitgeändert).
+- `camaddon/werkzeugkiste_daten/hoffmann_*.json`, `camaddon/kataloge_index.json`.
+- `package.xml` 0.345.7; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Maßbild selbst angesehen (Katalog D67, HSK40A-Seite): L9 reicht von der Stirn bis zum Beginn des
+  Verstellwegs V – über die Mutter hinaus. Am HSK-A63 ER16 A100: Mutter 18 statt 32 mm lang,
+  Einspanntiefe 32.
+- Wochen-Build 2026.11.04 geladen (auch Manuels Desktop-Starter); alle 142 Prüfdateien grün (8
+  parallel, Last 27 auf 24 Kernen). Daten in einer zweiten Arbeitskopie übernommen, damit die
+  laufenden Prüfungen nicht gestört werden; test_kataloge, test_werkzeugkiste_datei,
+  test_halter_datei, test_halter grün.
 ## P-2026-11-03-02 discussions
 
 ### EINGELESEN

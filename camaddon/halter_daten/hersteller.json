@@ -5683,7 +5683,7 @@
    "typ": "spannzange",
    "aufnahme": "HSK-A40",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
    "groessen": [
     {
      "name": "ER16 A80",
@@ -5693,7 +5693,7 @@
       "d_spann": 10.0,
       "a": 80.0,
       "d_nase": 28.0,
-      "l_nase": 27.0
+      "spanntiefe": 27.0
      }
     },
     {
@@ -5704,7 +5704,7 @@
       "d_spann": 16.0,
       "a": 80.0,
       "d_nase": 42.0,
-      "l_nase": 31.0
+      "spanntiefe": 31.0
      }
     },
     {
@@ -5715,7 +5715,7 @@
       "d_spann": 20.0,
       "a": 90.0,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -5726,7 +5726,7 @@
       "d_spann": 20.0,
       "a": 100.0,
       "d_nase": 50.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     }
    ]
@@ -5737,7 +5737,7 @@
    "typ": "spannzange",
    "aufnahme": "HSK-A50",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A50 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A50 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
    "groessen": [
     {
      "name": "ER16 A100",
@@ -5747,7 +5747,7 @@
       "d_spann": 10.0,
       "a": 100.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5758,8 +5758,8 @@
       "d_spann": 10.0,
       "a": 160.0,
       "d_nase": 28.0,
-      "l_nase": 32.0,
-      "d_koerper": 40.0
+      "d_koerper": 40.0,
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5770,7 +5770,7 @@
       "d_spann": 13.0,
       "a": 100.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -5781,7 +5781,7 @@
       "d_spann": 16.0,
       "a": 100.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -5792,7 +5792,7 @@
       "d_spann": 20.0,
       "a": 100.0,
       "d_nase": 50.0,
-      "l_nase": 45.0
+      "spanntiefe": 45.0
      }
     }
    ]
@@ -5803,7 +5803,7 @@
    "typ": "spannzange",
    "aufnahme": "HSK-A63",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A63 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A63 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
    "groessen": [
     {
      "name": "ER16 A100",
@@ -5813,7 +5813,7 @@
       "d_spann": 10.0,
       "a": 100.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5824,8 +5824,8 @@
       "d_spann": 10.0,
       "a": 160.0,
       "d_nase": 28.0,
-      "l_nase": 32.0,
-      "d_koerper": 45.0
+      "d_koerper": 45.0,
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5836,7 +5836,7 @@
       "d_spann": 13.0,
       "a": 100.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -5847,7 +5847,7 @@
       "d_spann": 16.0,
       "a": 100.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -5858,7 +5858,7 @@
       "d_spann": 20.0,
       "a": 100.0,
       "d_nase": 50.0,
-      "l_nase": 45.0
+      "spanntiefe": 45.0
      }
     },
     {
@@ -5869,7 +5869,7 @@
       "d_spann": 26.0,
       "a": 120.0,
       "d_nase": 63.0,
-      "l_nase": 54.0
+      "spanntiefe": 54.0
      }
     }
    ]
@@ -5880,7 +5880,7 @@
    "typ": "spannzange",
    "aufnahme": "HSK-A80",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A80 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A80 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
    "groessen": [
     {
      "name": "ER16 A100",
@@ -5890,7 +5890,7 @@
       "d_spann": 10.0,
       "a": 100.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5901,8 +5901,8 @@
       "d_spann": 10.0,
       "a": 160.0,
       "d_nase": 28.0,
-      "l_nase": 32.0,
-      "d_koerper": 39.0
+      "d_koerper": 39.0,
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5913,7 +5913,7 @@
       "d_spann": 13.0,
       "a": 100.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -5924,7 +5924,7 @@
       "d_spann": 16.0,
       "a": 100.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -5935,7 +5935,7 @@
       "d_spann": 20.0,
       "a": 100.0,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -5946,7 +5946,7 @@
       "d_spann": 26.0,
       "a": 120.0,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     }
    ]
@@ -5957,7 +5957,7 @@
    "typ": "spannzange",
    "aufnahme": "HSK-A100",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A100 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-A100 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
    "groessen": [
     {
      "name": "ER16 A100",
@@ -5967,7 +5967,7 @@
       "d_spann": 10.0,
       "a": 100.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5978,8 +5978,8 @@
       "d_spann": 10.0,
       "a": 160.0,
       "d_nase": 28.0,
-      "l_nase": 32.0,
-      "d_koerper": 60.0
+      "d_koerper": 60.0,
+      "spanntiefe": 32.0
      }
     },
     {
@@ -5990,7 +5990,7 @@
       "d_spann": 13.0,
       "a": 100.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6001,7 +6001,7 @@
       "d_spann": 16.0,
       "a": 100.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6012,7 +6012,7 @@
       "d_spann": 20.0,
       "a": 100.0,
       "d_nase": 50.0,
-      "l_nase": 45.0
+      "spanntiefe": 45.0
      }
     },
     {
@@ -6023,7 +6023,7 @@
       "d_spann": 26.0,
       "a": 120.0,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     }
    ]
@@ -6034,7 +6034,7 @@
    "typ": "spannzange",
    "aufnahme": "HSK-E40",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-E40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-E40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
    "groessen": [
     {
      "name": "ER16 A80",
@@ -6044,7 +6044,7 @@
       "d_spann": 10.0,
       "a": 80.0,
       "d_nase": 28.0,
-      "l_nase": 27.0
+      "spanntiefe": 27.0
      }
     },
     {
@@ -6055,7 +6055,7 @@
       "d_spann": 16.0,
       "a": 80.0,
       "d_nase": 42.0,
-      "l_nase": 31.0
+      "spanntiefe": 31.0
      }
     },
     {
@@ -6066,7 +6066,7 @@
       "d_spann": 20.0,
       "a": 100.0,
       "d_nase": 50.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     }
    ]
@@ -6077,7 +6077,7 @@
    "typ": "spannzange",
    "aufnahme": "HSK-F63",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-F63 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'HSK-F63 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013.",
    "groessen": [
     {
      "name": "ER32 A80",
@@ -6087,7 +6087,7 @@
       "d_spann": 20.0,
       "a": 80.0,
       "d_nase": 50.0,
-      "l_nase": 43.0
+      "spanntiefe": 43.0
      }
     }
    ]
@@ -6098,7 +6098,7 @@
    "typ": "spannzange",
    "aufnahme": "BT40",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'BT40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. BTKV = BT (MAS 403) Form B/AD.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'BT40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. BTKV = BT (MAS 403) Form B/AD.",
    "groessen": [
     {
      "name": "ER16 A60",
@@ -6108,7 +6108,7 @@
       "d_spann": 10.0,
       "a": 60.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6119,7 +6119,7 @@
       "d_spann": 10.0,
       "a": 120.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6130,7 +6130,7 @@
       "d_spann": 13.0,
       "a": 60.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6141,7 +6141,7 @@
       "d_spann": 13.0,
       "a": 120.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6152,7 +6152,7 @@
       "d_spann": 16.0,
       "a": 70.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6163,7 +6163,7 @@
       "d_spann": 16.0,
       "a": 120.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6174,7 +6174,7 @@
       "d_spann": 20.0,
       "a": 70.0,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6185,7 +6185,7 @@
       "d_spann": 20.0,
       "a": 120.0,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6196,7 +6196,7 @@
       "d_spann": 26.0,
       "a": 80.0,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     },
     {
@@ -6207,7 +6207,7 @@
       "d_spann": 26.0,
       "a": 120.0,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     }
    ]
@@ -6218,7 +6218,7 @@
    "typ": "spannzange",
    "aufnahme": "BT50",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'BT50 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. BTKV = BT (MAS 403) Form B/AD.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'BT50 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. BTKV = BT (MAS 403) Form B/AD.",
    "groessen": [
     {
      "name": "ER16 A100",
@@ -6228,7 +6228,7 @@
       "d_spann": 10.0,
       "a": 100.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6239,7 +6239,7 @@
       "d_spann": 10.0,
       "a": 150.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6250,7 +6250,7 @@
       "d_spann": 13.0,
       "a": 70.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6261,7 +6261,7 @@
       "d_spann": 13.0,
       "a": 150.0,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6272,7 +6272,7 @@
       "d_spann": 16.0,
       "a": 70.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6283,7 +6283,7 @@
       "d_spann": 16.0,
       "a": 150.0,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6294,7 +6294,7 @@
       "d_spann": 20.0,
       "a": 70.0,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6305,7 +6305,7 @@
       "d_spann": 20.0,
       "a": 150.0,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6316,7 +6316,7 @@
       "d_spann": 26.0,
       "a": 80.0,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     },
     {
@@ -6327,7 +6327,7 @@
       "d_spann": 26.0,
       "a": 150.0,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     }
    ]
@@ -6338,7 +6338,7 @@
    "typ": "spannzange",
    "aufnahme": "CAT40",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'CAT40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. CVKV = CAT (ANSI B5.50) Form B/AD; Maße in mm umgerechnet wie gedruckt.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'CAT40 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. CVKV = CAT (ANSI B5.50) Form B/AD; Maße in mm umgerechnet wie gedruckt.",
    "groessen": [
     {
      "name": "ER16 A63.5",
@@ -6348,7 +6348,7 @@
       "d_spann": 10.0,
       "a": 63.5,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6359,7 +6359,7 @@
       "d_spann": 10.0,
       "a": 127.0,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6370,7 +6370,7 @@
       "d_spann": 13.0,
       "a": 63.5,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6381,7 +6381,7 @@
       "d_spann": 13.0,
       "a": 152.4,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6392,7 +6392,7 @@
       "d_spann": 16.0,
       "a": 63.5,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6403,7 +6403,7 @@
       "d_spann": 16.0,
       "a": 152.4,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6414,7 +6414,7 @@
       "d_spann": 20.0,
       "a": 69.9,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6425,7 +6425,7 @@
       "d_spann": 20.0,
       "a": 152.4,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6436,7 +6436,7 @@
       "d_spann": 26.0,
       "a": 76.2,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     },
     {
@@ -6447,7 +6447,7 @@
       "d_spann": 26.0,
       "a": 152.4,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     }
    ]
@@ -6458,7 +6458,7 @@
    "typ": "spannzange",
    "aufnahme": "CAT50",
    "link": "https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947",
-   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'CAT50 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Länge der Mutter ab Stirn → l_nase; D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. CVKV = CAT (ANSI B5.50) Form B/AD; Maße in mm umgerechnet wie gedruckt.",
+   "quelle": "Kennametal Tooling Systems Master Catalog (Erickson), Abschnitt 'CAT50 Shank Tools – ER Single-Angle Collet Chucks', PDF https://image.makewebeasy.net/makeweb/0/NhfuzYEfd/Document/10_1_Shank_tool_D67.pdf?v=202012190947 (Text der Tabellen, Kopfzeilen und Maßbild auf Katalogseite C58 als Bild gegengelesen). Zuordnung laut Maßbild: D11 = Ø der Spannmutter → d_nase; L9 = Stirn bis Beginn des Verstellwegs V = Einspanntiefe → spanntiefe (Länge der Mutter nach DIN 6499, nicht im Katalog); D21 (nur lange Hex-Ausführungen) = Körper-Ø → d_koerper; L1 = Stirn bis Bezugsebene (HSK-Plananlage bzw. Steilkegel-Messebene) → a; L2 (Länge des schlanken Teils) und V (Verstellweg) stehen unter iso13399. d_spann = obere Grenze der Kennametal-Tabelle 'Collet Capacity' (ER16 10, ER20 13, ER25 16, ER32 20, ER40 26). BTKV/CVKV: L1FC (Ausführung mit Plananlage) steht unter iso13399. Stand Katalog 2011/2013. CVKV = CAT (ANSI B5.50) Form B/AD; Maße in mm umgerechnet wie gedruckt.",
    "groessen": [
     {
      "name": "ER16 A63.5",
@@ -6468,7 +6468,7 @@
       "d_spann": 10.0,
       "a": 63.5,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6479,7 +6479,7 @@
       "d_spann": 10.0,
       "a": 101.6,
       "d_nase": 28.0,
-      "l_nase": 32.0
+      "spanntiefe": 32.0
      }
     },
     {
@@ -6490,7 +6490,7 @@
       "d_spann": 13.0,
       "a": 63.5,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6501,7 +6501,7 @@
       "d_spann": 13.0,
       "a": 101.6,
       "d_nase": 34.0,
-      "l_nase": 36.0
+      "spanntiefe": 36.0
      }
     },
     {
@@ -6512,7 +6512,7 @@
       "d_spann": 16.0,
       "a": 63.5,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6523,7 +6523,7 @@
       "d_spann": 16.0,
       "a": 101.6,
       "d_nase": 42.0,
-      "l_nase": 40.0
+      "spanntiefe": 40.0
      }
     },
     {
@@ -6534,7 +6534,7 @@
       "d_spann": 20.0,
       "a": 69.85,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6545,7 +6545,7 @@
       "d_spann": 20.0,
       "a": 101.6,
       "d_nase": 50.0,
-      "l_nase": 46.0
+      "spanntiefe": 46.0
      }
     },
     {
@@ -6556,7 +6556,7 @@
       "d_spann": 26.0,
       "a": 76.2,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     },
     {
@@ -6567,7 +6567,7 @@
       "d_spann": 26.0,
       "a": 152.4,
       "d_nase": 63.0,
-      "l_nase": 52.0
+      "spanntiefe": 52.0
      }
     }
    ]

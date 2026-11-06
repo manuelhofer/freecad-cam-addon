@@ -1,8 +1,8 @@
 {
  "dateien": {
   "halter_daten/hersteller.json": {
-   "groesse": 6093052,
-   "sha256": "02a74c7bc1884f711671c4c861010261849872cc260b62fae877d02f15110066"
+   "groesse": 6094227,
+   "sha256": "a44d7b5a66b0457de46e0b5c0d946a15042a918a1015eac19756d72f163fe5f2"
   },
   "spannmittel_daten/hersteller.json": {
    "groesse": 1263572,
@@ -33,16 +33,16 @@
    "sha256": "e2c74529d734bafe86f23bfd8c0d823c3ee2c544c761d10783e6ed99dae2ed12"
   },
   "werkzeugkiste_daten/hoffmann_bohren.json": {
-   "groesse": 4126874,
-   "sha256": "31ceb2e01113ae23a72774f1b17d42acc4a40a51fb11ba4c7c914322d528dfd9"
+   "groesse": 4148971,
+   "sha256": "67cb2aecaed60655d8bae268996401d59eb2a2d361013796ffc9447c9b78e982"
   },
   "werkzeugkiste_daten/hoffmann_fraeser.json": {
    "groesse": 129551,
-   "sha256": "4c46507cfacf8c22264ae2cc3ff08bcff933990e320869ee36a1afaaa308beee"
+   "sha256": "b6f0f7ab0c81019a42e6da2d2ee93609068877ff7a0cccb188878acbf9bcbeb7"
   },
   "werkzeugkiste_daten/hoffmann_rest.json": {
    "groesse": 424880,
-   "sha256": "84b4974d78b6abf7d529cd524a6d90ed834637261249814b384589f4dc35a8e1"
+   "sha256": "b8e797c471c9a4a093b36f6a805c5c5f39420da6fa1a72c73121a0bc11e7faa1"
   },
   "werkzeugkiste_daten/iscar_kennametal.json": {
    "groesse": 5920487,
