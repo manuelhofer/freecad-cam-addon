@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-10 hoffmann-0611
+
+### EINGELESEN
+- Manuel, 2026-11-06: „Und mach mal weiter, das ist schon.“ (nach der Frage, was das Projekt weiter
+  voranbringt – Antwort: Programme an seinen Maschinen fahren, Handbücher, Tester, seine Teile).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/hoffmann_*.json`, `camaddon/kataloge_index.json`; `package.xml` 0.345.16;
+  `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Hoffmann-Lauf 11:00–13:37: 157 Anfragen bis HTTP 429; 3 Reihen vollständiger, 16 489 Bohrergrößen.
+  test_kataloge, test_werkzeugkiste_datei grün.
 ## P-2026-11-06-09 spannmittel-mehr
 
 ### EINGELESEN
