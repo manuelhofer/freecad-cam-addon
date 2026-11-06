@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-20 fragen-simulator-pruefteil
+
+### EINGELESEN
+- Manuel, 2026-11-06, zu Frage 2 (unsere Prüfung bleibt die Hauptsache, FreeCADs Simulator als Knopf
+  „In FreeCADs Simulator ansehen“, sobald er Rundachsen kann; Halter und Spannmittel in seinem Format):
+  „ja einverstanden“.
+- Zu Frage 1 (welches Prüfteil): „es war das 5 achs testteil tasche mit ausweitung nach unten ... da fuhr
+  er oben ziemlich lang in der luft ..“
+
+### ANTWORTEN
+- Frage 2: So wird es gemacht – beim Simulator nur ergänzen, nicht ersetzen.
+- Frage 1: das 5-Achs-Teil „tief“; die Luft dort wird nachgemessen.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md`: beide Fragen entfernt.
 ## P-2026-11-06-19 b027-rueckweg
 
 ### EINGELESEN
