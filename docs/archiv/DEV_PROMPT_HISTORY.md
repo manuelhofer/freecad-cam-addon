@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-04 pruefsumme-gemerkt
+
+### EINGELESEN
+- Fortsetzung P-2026-11-06-03 (Fensterpausen am 5-Achs-Geist).
+
+### DATEIEN
+- `camaddon/formteile.py`: `pruefsumme` je Form gemerkt (`_PRUEFSUMMEN`, 8, `isSame`).
+- `package.xml` 0.345.10; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- szenario_geist_fuenfachs (einzeln): längste Pause beim „Anlegen“ 5,8 → 3,0 s, beim Öffnen
+  5,9 → 1,6 s. Ein Versuch, ueberdeckte() mit einem Schlüssel aus der Prüfsumme aus dem Nebenrechner
+  zu übernehmen, machte es schlimmer (8,4 s) – zurückgenommen.
+- test_hinterschnitt_bahn, test_schlichten3d, test_nebenrechner, test_flanke grün.
 ## P-2026-11-06-03 fensterpausen-wochen-build
 
 ### EINGELESEN

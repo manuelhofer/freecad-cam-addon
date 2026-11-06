@@ -151,11 +151,34 @@ def _netz_volumen(form):
     return float(np.einsum("ij,ij->i", a, np.cross(b, c)).sum() / 6.0)
 
 
+# Die zuletzt gefragten Formen mit ihrer Prüfsumme (je Form, `isSame`): An einem Körper aus einem
+# STL (68 000 Dreiecke) kostet sie Sekunden, und der Assistent fragt bei jeder Vorschau.
+_PRUEFSUMMEN = OrderedDict()
+PRUEFSUMMEN_GEMERKT = 8
+
+
 def pruefsumme(form):
     """Ein Schlüssel der Form, gleich in jedem Prozess (hashCode gilt nur im eigenen): Volumen,
     Fläche, Zahl der Flächen und Kanten und eine Prüfsumme der Lage aller Eckpunkte – eine gleich
     große Tasche an anderer Stelle ändert sie. Für die Merker, die Bahnen aus den Nebenrechnern
     übernehmen (flanke_bahn, hinterschnitt_bahn). None, wenn die Form das nicht hergibt."""
+    try:
+        code = form.hashCode()
+    except Exception:  # noqa: BLE001 – keine Form
+        return None
+    eintrag = _PRUEFSUMMEN.get(code)
+    if eintrag is not None and eintrag[0].isSame(form):
+        _PRUEFSUMMEN.move_to_end(code)
+        return eintrag[1]
+    summe = _pruefsumme(form)
+    if summe is not None:
+        _PRUEFSUMMEN[code] = (form, summe)
+        while len(_PRUEFSUMMEN) > PRUEFSUMMEN_GEMERKT:
+            _PRUEFSUMMEN.popitem(last=False)
+    return summe
+
+
+def _pruefsumme(form):
     import hashlib
 
     try:

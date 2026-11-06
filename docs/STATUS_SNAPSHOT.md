@@ -578,6 +578,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.10):* `formteile.pruefsumme` je Form gemerkt (die letzten 8, `isSame`) – am
+  STL-Teil „Geist“ kostete sie bei jeder Bahn unter dem Rand und jeder Flanke Sekunden im
+  Hauptprozess: „Anlegen“ (3D-Schlichten unter dem Rand) stand 5,8 → 3,0 s, das Öffnen von
+  „Bearbeitung“ 5,9 → 1,6 s. Versucht und zurückgenommen: ueberdeckte() aus dem Nebenrechner
+  übernehmen (der Schlüssel brauchte die Prüfsumme schon vorher, 8,4 s). Offen: der Rest von 3 s
+  (hinterschnitt_bahn._treffer beim Anlegen) – die Vorschau im Nebenrechner müsste ihn mitbringen.
 - *Korrektur (0.345.9):* STL-Teil im 4-Achs-Assistenten: Beim Füllen der Seite „Bearbeitung“ stand
   das Fenster bis 5,3 s – `vierachs_huelle.form_kennung` zählte bei jedem Aufruf alle Flächen und
   Kanten des Netzkörpers (countElement hält die GIL). Jetzt je Form gemerkt (die letzten 8,
