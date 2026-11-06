@@ -578,6 +578,16 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.348.0):* **Zwei Empfehlungen: erst das Vorhandene, dann das Bessere zum Bestellen** (Manuel,
+  2026-11-06: „erst die Werkzeugliste, die vorhanden ist … wenn es was Besseres, Schnelleres gibt … vom
+  Katalog … wenn nicht, muss man halt sagen … jetzt du musst was bestellen“). `empfehlung._beste` rechnet
+  das kürzeste Paar aus Vorhandenem (eigene Fräser und Halter) und das kürzeste mit Neuem (Katalog,
+  Normreihe) getrennt; die zweite Runde rechnet die besten beider. Empfohlen ist das Vorhandene; das
+  Neue steht daneben (`Empfehlung.besser`, „Besser, wenn du bestellst: … – kürzer, also steifer“ mit
+  eigenem „So einrichten“), wenn es mindestens BESSER_UM (5 mm) kürzer ist. Geht nichts mit dem
+  Vorhandenen: das Neue mit „dafür musst du etwas bestellen“ (`bestellen`). Im Test: eigene lange Kugel
+  Ø6 im eigenen ER32 117 mm – daneben Kennametal 108 mm. Noch nicht: Schwenken oder eine andere
+  Strategie als Ausweg vor dem Bestellen (nächster Schritt).
 - *Neu (0.347.0):* **„Worin gespannt?“ (Beta): Spannmittel aus dem Katalog mit einem Klick** – nimmt
   keins der Sammlung das Rohteil, sind die bis zu drei Vorschläge aus dem Katalog Verweise: anklicken
   übernimmt es in die Sammlung (gespeichert) und wählt es. Bei einem runden Rohteil (Zylinder) zuerst

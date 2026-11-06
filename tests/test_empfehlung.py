@@ -288,6 +288,50 @@ if isinstance(aus_katalog, em.Empfehlung):
         f"eingerichtet: {neu_w}",
     )
 
+# 10. Erst mit dem Vorhandenen (Manuel, 2026-11-06: „erst die Werkzeugliste, die vorhanden ist …
+#     wenn nicht, muss man halt sagen, okay, hey, jetzt du musst was bestellen“): Mit einer eigenen
+#     langen Kugel Ø6 im eigenen ER32 ist die Empfehlung diese (nicht bestellen); was mit Neuem
+#     ginge, steht nur daneben (`besser`, mindestens BESSER_UM kürzer). Ohne sie: bestellen.
+eigene_bib = wz.Bibliothek()
+eigen6 = wz.Werkzeug(
+    nummer=7, name="Kugel 6 kurz", art=wz.KUGELFRAESER, durchmesser=6.0, schneiden=2,
+    schneidenlaenge=12.0, gesamtlaenge=35.0, schneidstoff=wz.VHM,
+)  # fmt: skip
+lang_eigen = wz.Werkzeug(
+    nummer=8, name="Kugel 6 lang", art=wz.KUGELFRAESER, durchmesser=6.0, schneiden=2,
+    schneidenlaenge=12.0, gesamtlaenge=100.0, schneidstoff=wz.VHM,
+)  # fmt: skip
+eigene_bib.werkzeuge += [eigen6, lang_eigen]
+er32_eigen = eigene_bib.neuer_halter("er32", None, "SK40")
+eigen6.halter = lang_eigen.halter = er32_eigen.kennung
+zweistufig = em.empfehlen(teil, pruefung, eigen6, eigene_bib, "SK40")
+besser = getattr(zweistufig, "besser", None)
+print(
+    ascii(
+        f"vorhanden: {getattr(zweistufig, 'werkzeug_text', zweistufig)} "
+        f"{getattr(zweistufig, 'laenge', 0):.0f} mm, bestellen {getattr(zweistufig, 'bestellen', None)}"
+        f" | besser: {getattr(besser, 'werkzeug_text', None)} {getattr(besser, 'laenge', 0):.0f} mm"
+    )
+)
+pruefe(
+    isinstance(zweistufig, em.Empfehlung)
+    and zweistufig.werkzeug == lang_eigen.kennung
+    and not zweistufig.bestellen
+    and not zweistufig.halter_neu,
+    f"erst das Vorhandene: {zweistufig}",
+)
+pruefe(
+    besser is None
+    or (besser.bestellen and besser.laenge < zweistufig.laenge - em.BESSER_UM + 1e-6),
+    f"besser: {besser}",
+)
+frische_bib = wz.Bibliothek()  # nur die kurze Kugel im ER32 – in `bib` steht inzwischen ein ER11
+nur6 = wz.Werkzeug.aus_dict(eigen6.als_dict())
+frische_bib.werkzeuge.append(nur6)
+nur6.halter = frische_bib.neuer_halter("er32", None, "SK40").kennung
+nur_neu = em.empfehlen(teil, pruefung, nur6, frische_bib, "SK40")
+pruefe(isinstance(nur_neu, em.Empfehlung) and nur_neu.bestellen, f"ohne Vorhandenes: {nur_neu}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

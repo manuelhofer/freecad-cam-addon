@@ -41,6 +41,7 @@ HALBIEREN = 6  # so oft halbiert es die Auskragung
 # rechnete es sonst mit allen 30 Paaren und auf einem Nebenrechner „hört garnicht auf“.
 LAENGEN_JE_REIHE = 3
 GLEICH_LANG = 5.0  # mm: so viel länger darf ein vorhandenes Paar sein und gewinnt doch
+BESSER_UM = GLEICH_LANG  # mm: so viel kürzer muss ein Paar mit Neuem sein, um daneben zu stehen
 ER_GROESSEN = 2  # die so vielen kleinsten ER-Größen, die den Schaft fassen
 KATALOG_BEREICHE = 3  # so viele Längenbereiche des Katalogs, je der schlankste Halter
 SCHLANK_VORN = 50.0  # mm: über so viel vorn an der Nase zählt, wie schlank ein Halter ist
@@ -65,6 +66,13 @@ class Empfehlung:
     # Ein Fräser, den es noch nicht gibt (neue_kugel): seine Daten (Werkzeug.als_dict) – einrichten
     # legt ihn in der Werkzeugverwaltung an; None: er steht schon dort.
     werkzeug_neu: dict = None
+    # Mit dem, was es schon gibt (Manuel, 2026-11-06: „erst die Werkzeugliste, die vorhanden ist …
+    # wenn nicht, muss man halt sagen, okay, hey, jetzt du musst was bestellen“): Diese Empfehlung
+    # nimmt einen Halter oder Fräser, den es noch nicht gibt – sonst ginge es nicht.
+    bestellen: bool = False
+    # Daneben eine bessere mit Neuem (Katalog, Normreihe), mindestens BESSER_UM kürzer ab Spindelnase
+    # als diese aus dem Vorhandenen – None, wenn es keine gibt.
+    besser: object = None
 
 
 def _schaft(werkzeug):
@@ -367,10 +375,13 @@ def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
             for (_w, h, _n), (m, von, bis) in zip(paare, grenzen, strict=True)
         ],
     )
-    rang = sorted(
+    geht = sorted(
         (i for i, s in enumerate(erst) if s is not None),
         key=lambda i: _wertung(paare[i], erst[i]),
-    )[:ZWEITE]
+    )
+    # Die besten mit dem Vorhandenen und die besten mit Neuem – beide Empfehlungen (_beste).
+    rang = [i for i in geht if not _neu(paare[i])][:ZWEITE]
+    rang += [i for i in geht if _neu(paare[i])][:ZWEITE]
     if not rang:
         return KEINE
     zweit = _rechnen(
@@ -384,21 +395,40 @@ def empfehlen(form, pruefung, werkzeug, bibliothek, aufnahme="", magazin=None):
     return _beste(paare, rang, zweit, grenzen, werkzeug, magazin)
 
 
+def _neu(paar):
+    """Braucht das Paar etwas, das es noch nicht gibt – einen neuen Halter oder einen Fräser aus
+    dem Katalog?"""
+    w, _h, neu = paar
+    return bool(neu) or w.kennung.startswith(KATALOG)
+
+
 def _beste(paare, rang, auskragungen, grenzen, werkzeug, magazin):
-    """Die Empfehlung für das beste der Paare `rang` (je die Auskragung, None: geht nicht) – mit
-    RESERVE, höchstens bis zur längsten; KEINE ohne."""
-    beste = None
+    """Die Empfehlung aus den Paaren `rang` (je die Auskragung, None: geht nicht; mit RESERVE,
+    höchstens bis zur längsten): das kürzeste mit dem Vorhandenen – daneben (`besser`) das
+    kürzeste mit Neuem, wenn es BESSER_UM kürzer ist; geht mit dem Vorhandenen nichts, das mit
+    Neuem (`bestellen`). KEINE ohne."""
+    vorhanden = neu = None
     for i, heraus in zip(rang, auskragungen, strict=True):
         if heraus is None:
             continue
         heraus = min(float(np.ceil(heraus + RESERVE)), grenzen[i][2])
-        wertung = _wertung(paare[i], heraus)
-        if beste is None or wertung < beste[0] - 1e-6:
-            beste = (wertung, i, heraus)
-    if beste is None:
+        laenge = float(paare[i][1].laenge) + heraus
+        if _neu(paare[i]):
+            if neu is None or laenge < neu[0] - 1e-6:
+                neu = (laenge, i, heraus)
+        elif vorhanden is None or laenge < vorhanden[0] - 1e-6:
+            vorhanden = (laenge, i, heraus)
+    if vorhanden is None and neu is None:
         return KEINE
-    _wert, i, heraus = beste
-    return _empfehlung(paare[i], heraus, werkzeug, magazin)
+    if vorhanden is None:
+        ergebnis = _empfehlung(paare[neu[1]], neu[2], werkzeug, magazin)
+        ergebnis.bestellen = True
+        return ergebnis
+    ergebnis = _empfehlung(paare[vorhanden[1]], vorhanden[2], werkzeug, magazin)
+    if neu is not None and neu[0] < vorhanden[0] - BESSER_UM:
+        ergebnis.besser = _empfehlung(paare[neu[1]], neu[2], werkzeug, magazin)
+        ergebnis.besser.bestellen = True
+    return ergebnis
 
 
 def flanke_paar_stueck(form, spitzen, achsen, masse, halter, radius, von, bis):
@@ -554,6 +584,7 @@ def neue_kugel(form, ecken, vorbild, bibliothek, aufnahme="", magazin=None):
         ergebnis.werkzeug_text = gewaehlt.name
     ergebnis.im_magazin = False
     ergebnis.anderes_werkzeug = True
+    ergebnis.bestellen, ergebnis.besser = True, None  # der Fräser ist ohnehin neu
     return ergebnis
 
 

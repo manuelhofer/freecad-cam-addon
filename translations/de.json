@@ -3338,6 +3338,8 @@
     "ba.waagerecht.nur_simultan": "An dieser Maschine steht die Spindel waagerecht: Hier im Grundjob fräst nur, was 5 Achsen simultan fährt (Flanke, 3D-Schlichten und Restschlichten gekippt, Entgraten 3D). Alles von oben kommt nach „Anlegen“ in der Ebene „von oben“ dran.",
     "emp.text": "Mit dem Magazin, wie es ist, geht es hier nicht ganz – so ginge es: {werkzeug} im Halter „{halter}“, {heraus} mm heraus ({laenge} mm ab Spindelnase).",
     "emp.oder": "Oder: {werkzeug} im Halter „{halter}“, {heraus} mm heraus ({laenge} mm ab Spindelnase).",
+    "emp.bestellen": "dafür musst du etwas bestellen – mit deinen Werkzeugen und Haltern geht es hier nicht",
+    "emp.besser": "Besser, wenn du bestellst: {werkzeug} im Halter „{halter}“, {heraus} mm heraus ({laenge} mm ab Spindelnase – kürzer, also steifer).",
     "emp.dazu": "Dazu: {dazu}.",
     "emp.fraeser_katalog": "Fräser aus dem Katalog der Hersteller – legt „So einrichten“ in der Werkzeugverwaltung an",
     "emp.halter_neu": "den Halter gibt es in deiner Werkzeugverwaltung noch nicht (Normreihe, typische Maße)",

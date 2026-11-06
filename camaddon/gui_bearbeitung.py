@@ -5286,7 +5286,24 @@ class _Block:
         if empfehlung == em.KEINE:
             return html.escape(tr("emp.keine"), quote=False)
         self._empfehlung = empfehlung
+        self._empfehlung_besser = getattr(empfehlung, "besser", None)
+        text = self._empfehlung_satz(empfehlung, "emp.oder" if oder else "emp.text")
+        knopf = html.escape(tr("emp.einrichten"))
+        satz = f'{html.escape(text, quote=False)} <a href="empfehlung:">{knopf}</a>'
+        if self._empfehlung_besser is not None:
+            # Daneben, was mit Neuem besser ginge (Manuel, 2026-11-06: „wenn es was Besseres,
+            # Schnelleres gibt … vom Katalog“).
+            besser = self._empfehlung_satz(self._empfehlung_besser, "emp.besser")
+            satz += f' {html.escape(besser, quote=False)} <a href="empfehlung:besser">{knopf}</a>'
+        return satz
+
+    def _empfehlung_satz(self, empfehlung, schluessel):
+        """Der Satz einer Empfehlung ohne Verweis – `schluessel`: emp.text, emp.oder, emp.besser."""
+        from . import empfehlung as em
+
         dazu = []
+        if empfehlung.bestellen and schluessel != "emp.besser":
+            dazu.append(tr("emp.bestellen"))
         if (empfehlung.werkzeug or "").startswith(em.KATALOG):
             dazu.append(tr("emp.fraeser_katalog"))
         if empfehlung.halter_neu:
@@ -5303,11 +5320,15 @@ class _Block:
             "heraus": einheiten.text(empfehlung.heraus, einheiten.LAENGE, 0),
             "laenge": einheiten.text(empfehlung.laenge, einheiten.LAENGE, 0),
         }
-        text = tr("emp.oder", **werte) if oder else tr("emp.text", **werte)
+        if schluessel == "emp.besser":
+            text = tr("emp.besser", **werte)
+        elif schluessel == "emp.oder":
+            text = tr("emp.oder", **werte)
+        else:
+            text = tr("emp.text", **werte)
         if dazu:
             text += " " + tr("emp.dazu", dazu="; ".join(dazu))
-        knopf = html.escape(tr("emp.einrichten"))
-        return f'{html.escape(text, quote=False)} <a href="empfehlung:">{knopf}</a>'
+        return text
 
     def _empfehlung_anstossen(self, job, werkzeug, flaechen, was):
         """Unter dem Rand: Stößt etwas an (Bahn.pruefung, auch im Fehler) oder bleiben Ecken
@@ -5462,12 +5483,13 @@ class _Block:
         self.panel._werkzeuge_gespeichert()
         self.panel.restschlichten_mit(werkzeug.kennung)
 
-    def _empfehlung_einrichten(self):
+    def _empfehlung_einrichten(self, besser=False):
         """„So einrichten“: die Empfehlung in die Werkzeugverwaltung (empfehlung.einrichten),
-        gespeichert; ein anderer Fräser wird gewählt; der Assistent rechnet neu."""
+        gespeichert; ein anderer Fräser wird gewählt; der Assistent rechnet neu. `besser`: die
+        daneben mit Neuem (Empfehlung.besser)."""
         from . import empfehlung as em
 
-        empfehlung = getattr(self, "_empfehlung", None)
+        empfehlung = getattr(self, "_empfehlung_besser" if besser else "_empfehlung", None)
         bibliothek = self.panel.bibliothek
         if empfehlung is None or bibliothek is None:
             return
@@ -5661,7 +5683,7 @@ class _Block:
         ):
             return
         if ziel.startswith("empfehlung:"):
-            self._empfehlung_einrichten()
+            self._empfehlung_einrichten(besser=ziel == "empfehlung:besser")
             return
         if ziel.startswith("restschlichten:"):
             self.panel.restschlichten_mit(ziel.split(":", 1)[1])

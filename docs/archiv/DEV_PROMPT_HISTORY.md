@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-14 zwei-empfehlungen
+
+### EINGELESEN
+- Manuel, 2026-11-06: „Also ich würde gerne … zwei Vorschläge … einen Vorschlag mit den vorhandenen …
+  Werkzeugen aus der Werkzeugliste, die schon eingerichtet sind … Und wenn es was Besseres, Schnelleres
+  gibt, wäre es cool, wenn es … vom Katalog herkommt. Wenn wir in der Werkzeugverwaltung nichts
+  Vergleichbares haben, dann eben nur aus dem Katalog … Dass erst die Werkzeugliste … geprüft wird, wenn
+  es da was gibt, oder es mit Schwenken geht, weil es mal eine 5-Achs hat, oder mit einer anderen
+  Strategie halt funktioniert … Erst die Strategien mit den Werkzeugen, die wir haben. Wenn nicht, muss
+  man halt sagen, okay, hey, jetzt du musst was bestellen.“
+
+### DATEIEN
+- `camaddon/empfehlung.py`: `Empfehlung.bestellen`, `.besser`, `BESSER_UM`, `_neu`; `_beste` getrennt
+  nach Vorhandenem und Neuem; die zweite Runde mit den besten beider; `neue_kugel` setzt `bestellen`.
+- `camaddon/gui_bearbeitung.py`: `_empfehlung_text` mit dem zweiten Satz und Verweis „empfehlung:besser“,
+  `_empfehlung_satz`, `_empfehlung_einrichten(besser=…)`.
+- `translations/de.json`, `en.json`: `emp.bestellen`, `emp.besser`.
+- `tests/test_empfehlung.py`: Teil 10.
+- `package.xml` 0.348.0; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- test_empfehlung, test_sprache, test_flanke, szenario_schraeg_anlegen, szenario_beta_tief,
+  szenario_geist_fuenfachs grün. Offen (nächster Schritt): Schwenken / andere Strategie als Ausweg.
 ## P-2026-11-06-13 spannmittel-vorschlag-klick
 
 ### EINGELESEN
