@@ -22,7 +22,9 @@ import Path.Op.Base as PathOp
 
 from . import aufloesung as au
 from . import flanke_bahn as fb
+from . import flanke_frei as fr
 from . import fraeserform as ff
+from . import freiwege as fw
 from . import namen, uhren
 from . import planfraesen as pf
 from . import simultan as si
@@ -34,6 +36,7 @@ from .sprache import tr
 GRUPPE = "Fräsen"
 GRUPPE_5ACHS = "5-Achs"
 KEINE = (0.0, 0.0, 0.0)  # in `Werkzeugachsen`: ein Satz ohne Bewegung
+BOEGEN = ("G2", "G02", "G3", "G03")
 
 
 class Flanke(PathOp.ObjectOp):
@@ -112,8 +115,9 @@ class Flanke(PathOp.ObjectOp):
         obj.Schneide = round(float(schneide), 4)
         vorschub = self.horizFeed
         eintauchen = vo.eintauchvorschub(self) / 60.0 or vorschub
+        freivorschub = max(vorschub, fw.freivorschub_fuer(self.job) / 60.0)
         vorige = None
-        for stelle in ergebnis.punkte:
+        for stelle in _ohne_luft(obj, self.job, ergebnis.punkte, schneide):
             if vorige is not None and all(
                 abs(float(u) - float(v)) <= 1e-9
                 for u, v in zip(
@@ -126,7 +130,8 @@ class Flanke(PathOp.ObjectOp):
             if stelle.eilgang:
                 self.commandlist.append(Path.Command("G0", werte))
             else:
-                werte["F"] = float(eintauchen if stelle.eintauchen else vorschub)
+                f = freivorschub if stelle.frei else eintauchen if stelle.eintauchen else vorschub
+                werte["F"] = float(f)
                 self.commandlist.append(Path.Command("G1", werte))
             self._achsen.append(tuple(stelle.achse))
 
@@ -140,6 +145,73 @@ class Flanke(PathOp.ObjectOp):
         achsen = (achsen + [KEINE] * alle)[:alle]
         obj.Werkzeugachsen = [FreeCAD.Vector(*a) for a in achsen]
         return ergebnis
+
+
+def material_vor(obj, job):
+    """Das Gitter des Materials vor der Flanke (flanke_frei.Gitter) – None, wenn es nicht sicher
+    zu lesen ist. Kommt der Grundjob nach seinen Ebenen, ist es der räumliche Rest nach ihnen, sonst
+    das Material von oben vor der ersten simultanen Operation – die kennt es nicht. Die simultanen
+    Bahnen davor fährt das Gitter selbst ab; was es von ihnen nicht lesen kann, steht für es noch
+    da, das ist die sichere Seite."""
+    from . import materialstand as mst
+    from . import raum_material as raum
+    from . import schwenken as sw
+    from . import simultan_operation as so
+
+    davor = mst.operationen_vor(job, obj)
+    simultan = [op for op in davor if so.ist_simultan(op)]
+    ebenen = sw.ebenen_von(job) if sw.nach_den_ebenen(job) else []
+    if ebenen:
+        rest = raum.fuer_ebene(ebenen[0], jobs=ebenen)
+        gitter = None if rest is None else fr.Gitter.aus_abschnitten(rest.x, rest.y, rest.grenzen)
+    else:
+        stand = mst.fuer(job, vor=simultan[0] if simultan else obj)
+        quader = None if stand is None else stand.quader
+        gitter = None if quader is None else fr.Gitter.aus_hoehen(quader.x, quader.y, quader.h)
+    if gitter is not None:
+        for op in simultan:
+            _abfahren(gitter, op)
+    return gitter
+
+
+def _abfahren(gitter, op):
+    """Eine simultane Operation davor nimmt aus dem Gitter weg – nur, was sich sicher lesen lässt:
+    Flanke oder Kugel, Geraden mit einer Achse je Satz."""
+    achsen = [tuple(a) for a in getattr(op, "Werkzeugachsen", ())]
+    befehle = op.Path.Commands
+    if len(achsen) != len(befehle) or any(b.Name.upper() in BOEGEN for b in befehle):
+        return
+    form, schneide = form_und_schneide(op.ToolController)
+    if form is None:
+        return
+    radius = float(form.radius)
+    if ist_flanke(op) and form.eben:
+        fr.fahre_flanke(gitter, punkte(befehle, achsen), radius, schneide)
+    elif form.nur_kugel:
+        fr.fahre_kugel(gitter, punkte(befehle, achsen), radius, schneide)
+
+
+def form_und_schneide(tc):
+    """(fraeserform.Form, Schneidenlänge) des Werkzeugs am Controller – (None, 0), wenn es keine
+    Form hat; ohne Schneidenlänge: zwei Durchmesser."""
+    from .werkzeuge_aus_cam import vom_controller
+
+    werkzeug = vom_controller(tc) if tc is not None else None
+    form = ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+    if form is None or form.radius <= 0:
+        return None, 0.0
+    schneide = float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0)
+    return form, schneide if schneide > 0 else 4.0 * float(form.radius)
+
+
+def _ohne_luft(obj, job, punkte, schneide):
+    """Die Stellen der Bahn, die Wege durch die Luft schnell (flanke_frei) – unverändert, wenn das
+    Material nicht sicher zu lesen ist."""
+    gitter = material_vor(obj, job)
+    if gitter is None:
+        return punkte
+    radius, _schneide = fraeser_von(obj.ToolController)
+    return fr.ohne_luft(punkte, gitter, radius, schneide)
 
 
 def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):

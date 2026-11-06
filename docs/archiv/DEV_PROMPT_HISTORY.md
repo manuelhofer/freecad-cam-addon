@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-21 luft-in-der-flanke
+
+### EINGELESEN
+- Manuel, 2026-11-06: „es war das 5 achs testteil tasche mit ausweitung nach unten ... da fuhr er oben
+  ziemlich lang in der luft ..“; „dieses Luftfräsen ist wirklich nicht gut“.
+- Gemessen an seinem gespeicherten Job (Kopie von `testteil5achstief.FCStd`) mit einem Voxel-Stand: Die
+  Flanke fuhr 1122 von 3350 mm Vorschubweg durch die Luft – je Umlauf 45 mm von oben im Eintauchvorschub
+  (515 mm/min) durch die geräumte Tasche, dazu Keil-Umläufe, die das 3D-Schlichten schon genommen hatte.
+- Beim Messen gefunden: Die Bahn unter dem Rand fuhr ihre erste Anfahrt mit 10 m/min in den Keil, der nach
+  dem Räumen noch steht (am Ende 390 mm³ im Werkzeug). Ihre schnellen Wege waren nur gegen das Teil geprüft.
+
+### DATEIEN
+- `camaddon/flanke_frei.py` (neu): räumliches Gitter aus dem Rest (raum_material) oder den Höhen; die
+  Bahn trägt daraus ab. `ohne_luft`: Eintauchen im Eilgang bis vor das Material, Zufahrten und Keil-Umläufe
+  im Freivorschub, die Umläufe an der Wand nie. `kugelwege_pruefen`: schnelle Wege unter dem Rand enden
+  vor dem Material, der Rest taucht ein.
+- `camaddon/flanke.py`: `material_vor`, `form_und_schneide`, simultane Operationen davor tragen ab.
+- `camaddon/flanke_bahn.py`: `Stelle.zufahrt`, `Stelle.frei`; Keil-Umläufe gemerkt.
+- `camaddon/schlichten3d.py`: `_im_material_langsam`.
+- `tests/test_flanke_frei.py` (neu).
+
+### ERGEBNIS
+- Flanke am Teil „tief“: Vorschubweg 3350 → 1837 mm, Luft 1122 → 217 mm; im Freivorschub und Eilgang kein
+  Material (nachgemessen mit eigenem Voxel-Stand). Die Anfahrt unter dem Rand: 34 mm schnell, dann
+  Eintauchvorschub.
+- `test_flanke`, `test_flanke_frei`, `test_hinterschnitt_bahn`, `test_schlichten3d`, `szenario_flanke` grün.
 ## P-2026-11-06-20 fragen-simulator-pruefteil
 
 ### EINGELESEN

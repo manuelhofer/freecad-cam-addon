@@ -30,7 +30,8 @@ gerade Parameterlinie.
   bis ABSTAND vor der Wand, quer an die Wand; am Ende quer weg und die Achse entlang hinauf. Ist
   der Weg die Achse entlang dort nicht frei (unter einem Rand hängt an der Ecke die Nachbarwand
   über), taucht der Fräser an der ersten freien Stelle ein und fährt ABSTAND vor der Wand zurück
-  zum Anfang – am Ende ebenso (_zugaenge).
+  zum Anfang – am Ende ebenso (_zugaenge). Was davon durch die Luft geht, macht flanke_frei
+  schnell; dazu die Umläufe im Keil, nie die an der Wand.
 
 Gerechnet in x, y, z des Jobs; je Punkt die Spitze und die Werkzeugachse (von der Spitze weg).
 Läuft ohne Oberfläche.
@@ -115,6 +116,9 @@ class Stelle:
     achse: tuple
     eilgang: bool = False
     eintauchen: bool = False
+    # Vor der Wand oder im Keil, nicht an ihr: flanke_frei sieht nach, ob hier Material steht.
+    zufahrt: bool = False
+    frei: bool = False  # frei geprüft (flanke_frei): im Freivorschub
 
 
 @dataclass
@@ -550,7 +554,7 @@ def _planen(form, namen, werte):
     waende = wandflaechen(form, namen)
     if not waende:
         raise ValueError(tr("fl.fehler.keine"))
-    punkte, alle_teile = [], []
+    punkte, alle_teile, im_keil = [], [], []
     umlaeufe = lagen_max = weggelassen = weiter_stellen = streift = 0
     neigung = weiter = keil = 0.0
     keil_stellen = []
@@ -634,12 +638,16 @@ def _planen(form, namen, werte):
                     davor = (stelle, geht, schaft_aus)
                 if aus:
                     teile.append(aus)
-                alle_teile.extend(teil for teil in teile if len(teil) >= 2)
-    for teil, (anfang, ende) in zip(alle_teile, _zugaenge(form, alle_teile, w), strict=True):
+                for teil in teile:
+                    if len(teil) >= 2:
+                        alle_teile.append(teil)
+                        im_keil.append(v > 0.0)
+    zugaenge = _zugaenge(form, alle_teile, w)
+    for teil, (anfang, ende), keil_umlauf in zip(alle_teile, zugaenge, im_keil, strict=True):
         if anfang is None:
             weggelassen += len(teil)  # nirgends frei hinein: dort bleibt Material
             continue
-        punkte.extend(_umlauf(teil, w, anfang, ende))
+        punkte.extend(_umlauf(teil, w, anfang, ende, keil_umlauf))
         umlaeufe += 1
     if not punkte:
         raise ValueError(tr("fl.fehler.nichts"))
@@ -1125,9 +1133,10 @@ def _gehen_hinauf(form, fragen, radius):
     return geht_stueck(form, fragen, radius)
 
 
-def _umlauf(teil, w, anfang=0, ende=None):
+def _umlauf(teil, w, anfang=0, ende=None, keil=False):
     """[Stelle] – ein Umlauf mit An- und Abfahren: hinein bei der Stelle `anfang`, ABSTAND vor
-    der Wand zurück zur ersten, den Umlauf, ABSTAND vor der Wand zurück bis `ende`, hinaus."""
+    der Wand zurück zur ersten, den Umlauf, ABSTAND vor der Wand zurück bis `ende`, hinaus. `keil`:
+    ein Umlauf vor der Wand (_versaetze), der nur den Keil nimmt – nie die Wand selbst."""
     ende = len(teil) - 1 if ende is None else ende
     ergebnis = []
     frei, a0 = _vor_der_wand(teil[anfang])
@@ -1138,12 +1147,13 @@ def _umlauf(teil, w, anfang=0, ende=None):
     ergebnis.append(Stelle(tuple(frei), tuple(a0), eintauchen=True))
     for i in range(anfang - 1, -1, -1):
         s, a = _vor_der_wand(teil[i])
-        ergebnis.append(Stelle(tuple(s), tuple(a)))
+        ergebnis.append(Stelle(tuple(s), tuple(a), zufahrt=True))
     for s, a, _n in teil:
-        ergebnis.append(Stelle(tuple(s), tuple(a)))
+        ergebnis.append(Stelle(tuple(s), tuple(a), zufahrt=keil))
     for i in range(len(teil) - 1, ende - 1, -1):
         s, a = _vor_der_wand(teil[i])
-        ergebnis.append(Stelle(tuple(s), tuple(a)))
+        # Das erste Stück geht von der Wand weg, dort steht noch der Span.
+        ergebnis.append(Stelle(tuple(s), tuple(a), zufahrt=i < len(teil) - 1))
     weg, a1 = _vor_der_wand(teil[ende])
     lam = max(0.0, (w.sicher - weg.z) / max(a1.z, 1e-6))
     ergebnis.append(Stelle(tuple(weg + a1 * lam), tuple(a1), eilgang=True))

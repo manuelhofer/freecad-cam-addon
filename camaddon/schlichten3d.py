@@ -280,8 +280,9 @@ class Schlichten3D(PathOp.ObjectOp):
         if getattr(ergebnis, "hinterschnitt", False):
             # Unter dem Rand: die Achse je Punkt steht schon fest (hinterschnitt_bahn) – nach dem
             # Schreiben ordnet execute sie den Sätzen zu.
+            punkte, achsen = _im_material_langsam(obj, self.job, punkte, ergebnis.achsen)
             self._unter_dem_rand = {
-                _schluessel(p.x, p.y, p.z): a for p, a in zip(punkte, ergebnis.achsen, strict=True)
+                _schluessel(p.x, p.y, p.z): a for p, a in zip(punkte, achsen, strict=True)
             }
             self.commandlist.extend(
                 bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
@@ -296,6 +297,20 @@ class Schlichten3D(PathOp.ObjectOp):
         self.commandlist.extend(
             bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )
+
+
+def _im_material_langsam(obj, job, punkte, achsen):
+    """Die Bahn unter dem Rand, ihre schnellen Wege gegen das Material vor ihr geprüft
+    (flanke_frei.kugelwege_pruefen). Ist es nicht zu lesen, geht kein Weg schnell: Der Fräser
+    sieht sonst nur das Teil, nicht den Keil, der davor steht."""
+    from . import flanke as fl
+    from . import flanke_frei as fr
+
+    form, schneide = fl.form_und_schneide(obj.ToolController)
+    gitter = fl.material_vor(obj, job) if form is not None else None
+    if gitter is None:
+        return [replace(p, anteil=min(p.anteil, 1.0)) for p in punkte], list(achsen)
+    return fr.kugelwege_pruefen(punkte, achsen, gitter, float(form.radius), schneide)
 
 
 def _schluessel(x, y, z):
