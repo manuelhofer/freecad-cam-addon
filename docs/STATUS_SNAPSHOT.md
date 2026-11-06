@@ -578,6 +578,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.348.3):* Freivorschub auch auf einem Teil eines Bogens: `freiwege.schneller` teilt einen
+  Bogen, der nur zum Teil frei ist, in Teilbögen um denselben Mittelpunkt (vorher fuhr er ganz langsam,
+  weil die letzten VORLAUF mm vor dem Material langsam bleiben). Testteil: 3D-Schruppen T1 Luft im
+  Arbeitsvorschub 180 → 120 mm (Strecken ≥ 5 mm 13 → 3), Kontur T1 93 → 82 mm. Beim Räumen T1 (933 mm)
+  streift der Fräser fast überall weniger als 0,25 mm am Material entlang – im Raster von 0,5 mm nicht
+  sicher von „schneidet kaum“ zu trennen; ein kleinerer RAND brächte dort 55 mm (0,5) bzw. 155 mm (0,25).
 - *Korrektur (0.348.2):* **Weniger Luft im Arbeitsvorschub** (Manuel, 2026-11-06, am Prüfteil im
   Wochen-Build: „noch relativ viel in der Luft … Dieses Luftfräsen ist wirklich nicht gut“). Der
   Freivorschub (`freiwege._frei`) zählte auch die fertigen Wände des Teils als Material, vor dem der

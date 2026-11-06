@@ -169,8 +169,20 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
                     bn.Punkt(False, nach.x, nach.y, nach.z, False, nach.bogen, anteil, nach.notiz)
                 )
                 schnell_weg += sum(e[2] for e in eintraege)
-            else:
-                neu.append(nach)
+                continue
+            # Ein Bogen, der zum Teil frei ist: in Teilbögen um denselben Mittelpunkt, je Wechsel
+            # einer (die Enden der Sehnen liegen auf ihm) – sonst fuhr er ganz langsam, weil die
+            # letzten VORLAUF mm vor dem Material langsam bleiben (am Testteil das 3D-Schruppen: je
+            # Lage ein Bogen von 9,4 mm im Arbeitsvorschub durch die Luft).
+            for i, (_a, b, _laenge, _ist_frei) in enumerate(eintraege):
+                letzte = i == len(eintraege) - 1
+                if not letzte and flags[i] == flags[i + 1]:
+                    continue
+                anteil = max(anteil_frei, float(nach.anteil)) if flags[i] else float(nach.anteil)
+                x, y = (nach.x, nach.y) if letzte else (b[0], b[1])
+                notiz = nach.notiz if letzte else None
+                neu.append(bn.Punkt(False, x, y, nach.z, False, nach.bogen, anteil, notiz))
+            schnell_weg += sum(e[2] for e, f in zip(eintraege, flags, strict=True) if f)
             continue
         for i, (_a, b, _laenge, _ist_frei) in enumerate(eintraege):
             letzte = i == len(eintraege) - 1

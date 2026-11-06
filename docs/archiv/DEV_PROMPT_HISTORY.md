@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-17 luft-boegen
+
+### EINGELESEN
+- Fortsetzung P-2026-11-06-16 (Luft im Arbeitsvorschub am Testteil).
+
+### DATEIEN
+- `camaddon/freiwege.py`: `schneller` teilt teilweise freie Bögen in Teilbögen.
+- `package.xml` 0.348.3; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- luft.py fragt jetzt je Luftstück, was freiwege sieht: Räumen T1 – 907 von 951 mm haben Rohteil im
+  Umkreis r + 1 (mit Rand 0,5 frei: 55, mit 0,25: 155) → Streifen, keine echte Luft. 3D-Schruppen –
+  122 mm sah freiwege frei, fuhr aber langsam: Bögen (G3) nur ganz schnell. Nachher 3D-Schruppen 120 mm
+  (13 → 3 Strecken), Kontur 82 mm.
+- test_freiwege, test_testteil, test_goldene_bahnen, test_kontur, test_raeumen, test_schruppen3d,
+  test_postprozessor grün.
 ## P-2026-11-06-16 luft-fertige-waende
 
 ### EINGELESEN
