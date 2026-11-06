@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-15 inovatools-nachi
+
+### EINGELESEN
+- Letzter Sammler vor der Pause (Manuel, 2026-11-06: „das ist jetzt ja erledigt … wenn der durch ist“).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/inovatools_nachi.json` (neu), `camaddon/kataloge_index.json` (22 Dateien,
+  118,5 MB); `translations/de.json`, `en.json` („Rund 310 000 Werkzeuge … Inovatools, Nachi …“);
+  `package.xml` 0.348.1; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- werkzeuge_uebernehmen meldete „doppelt 3“, schrieb sie aber mit; test_werkzeugkiste_datei fand sie
+  (nac-6366 Ø50, nac-6368 Ø28/Ø30 wie nac-6302/nac-6212) – genau diese drei entfernt (alle Zahlenfelder
+  gleich der früheren Größe). test_werkzeugkiste_datei, test_kataloge grün.
 ## P-2026-11-06-14 zwei-empfehlungen
 
 ### EINGELESEN

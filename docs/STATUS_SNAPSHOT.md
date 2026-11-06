@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.348.1):* **Werkzeugkiste: rund 313 000 Größen** – dazu INOVATOOLS (224 Reihen, Maße aus dem
+  Shop, ohne Schnittwerte) und NACHI (156 Reihen, Kataloge NE-17130/NE-17157 und Prospekte; Schnittwerte für
+  Bohrer und die VGX-Fräser). ATORN nicht: Hahn+Kolb zeigt eine Sperrseite, Hommel schließt KI-Abrufe in
+  robots.txt aus. Drei Nachi-Größen, die mit denselben Maßen schon in einer anderen Nachi-Reihe standen,
+  weggelassen. Das Sammeln ruht damit (Manuel, 2026-11-06), Hoffmann läuft weiter täglich.
 - *Neu (0.348.0):* **Zwei Empfehlungen: erst das Vorhandene, dann das Bessere zum Bestellen** (Manuel,
   2026-11-06: „erst die Werkzeugliste, die vorhanden ist … wenn es was Besseres, Schnelleres gibt … vom
   Katalog … wenn nicht, muss man halt sagen … jetzt du musst was bestellen“). `empfehlung._beste` rechnet

@@ -48,6 +48,10 @@
    "groesse": 424880,
    "sha256": "b9d7dbdc363c855019101e1f867e6e47d41f61266396d80752007ed7124a7a83"
   },
+  "werkzeugkiste_daten/inovatools_nachi.json": {
+   "groesse": 4771490,
+   "sha256": "804afa56d66e4f49550462c2af422512fbe50dfa1a160287eab4c24f9dae1f2f"
+  },
   "werkzeugkiste_daten/iscar_kennametal.json": {
    "groesse": 5920487,
    "sha256": "db797f39d8d7bc04ddd09d69d52874e5b7f947b6835e5955f8a061a196fb58aa"
