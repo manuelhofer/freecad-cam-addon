@@ -578,6 +578,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.9):* STL-Teil im 4-Achs-Assistenten: Beim Füllen der Seite „Bearbeitung“ stand
+  das Fenster bis 5,3 s – `vierachs_huelle.form_kennung` zählte bei jedem Aufruf alle Flächen und
+  Kanten des Netzkörpers (countElement hält die GIL). Jetzt je Form gemerkt (die letzten 8,
+  `isSame`): längste Pause im Szenario 1,3 s. Die Pausen von 3–5 s in szenario_pruefen_im_takt und
+  szenario_programm_im_hintergrund kamen aus der Prüfung des Szenario-Laufs selbst beim Schließen
+  des Dokuments – die zählt nicht mehr mit. Voller Lauf im Wochen-Build 2026.11.04: 181/181
+  Szenarien (szenario_vierachs_vorschlichten nur unter Last rot, einzeln grün).
 - *Korrektur (0.345.8):* Englische Begriffe wie in FreeCAD CAM (Glossar ADR-000, ADR-009): „stock to
   leave“ statt „allowance“ für das Aufmaß einer Operation (Boden „axial“, Wand „radial“), „stock“
   statt „blank“, „post-processor“, „horizontal/vertical feed“. „Allowance“ bleibt beim Zuschlag des

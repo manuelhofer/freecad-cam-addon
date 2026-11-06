@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-03 fensterpausen-wochen-build
+
+### EINGELESEN
+- Manuel: „alle kerne nutzen … Fenster darf nie laggen“ (Ressourcen nutzen); 2026-11-06 „bitte
+  durcharbeiten bis heute abend“.
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py`: `form_kennung` je Form gemerkt (`_KENNUNGEN`, 8, `isSame`).
+- `tests/gui/_lauf/szenario_lauf.py`: die Materialstand-Prüfung beim Schließen eines Dokuments
+  läuft in `sonde.ruhe()` (keine Fensterpause des Addons); `CAMADDON_ALLE_RAHMEN=1` nimmt FreeCADs
+  Rahmen in den Weg auf.
+- `package.xml` 0.345.9; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Voller Szenario-Lauf (6 parallel) im Wochen-Build 2026.11.04: 180/181, szenario_vierachs_vorschlichten
+  einzeln grün (Last). Die längsten Pausen ausgewertet: szenario_cam_eigene_pruefungen (33 s) und
+  szenario_werkzeugkiste (21 s) rechnen im Szenario selbst; pruefen_im_takt/programm_im_hintergrund
+  (3–5 s) waren die Prüfung des Laufs beim Schließen (mit einem vorübergehenden Stapel-Mitschnitt in
+  materialstand.fuer gefunden, danach zurückgenommen); szenario_vierachs_stl 5,3 s → 1,3 s.
+- test_vierachs_huelle, test_vierachs_plan grün.
 ## P-2026-11-06-02 englisch-wie-freecad
 
 ### EINGELESEN

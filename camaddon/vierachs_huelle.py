@@ -32,6 +32,7 @@ genau an den Stellen seiner Spirale.
 Läuft ohne Oberfläche; numpy gehört zu FreeCAD.
 """
 
+import collections
 import hashlib
 import math
 from dataclasses import dataclass
@@ -124,10 +125,32 @@ class Huelle:
         return np.maximum(wert(links), wert(rechts))
 
 
+# Die zuletzt gefragten Formen mit ihrer Kennung: Solange eine hier steht, wird ihr Speicher nicht
+# frei, ihr hashCode gehört also keiner anderen. Am STL-Teil „Geist“ (68 000 Dreiecke) zählt
+# countElement bei jedem Aufruf alle Flächen und Kanten, ohne die GIL freizugeben – beim Füllen
+# der Seite im 4-Achs-Assistenten stand das Fenster 5 s.
+_KENNUNGEN = collections.OrderedDict()
+KENNUNGEN_GEMERKT = 8
+
+
 def form_kennung(form):
     """Ein Schlüssel für eine Form (Part.Shape), unter dem Ergebnisse zu ihr gemerkt werden
     dürfen: ihr hashCode – dieselbe Form in OpenCascade –, dazu, falls ein freigegebener
-    Speicher wiederverwendet wurde, die Zahl ihrer Flächen und Kanten und ihr Hüllquader."""
+    Speicher wiederverwendet wurde, die Zahl ihrer Flächen und Kanten und ihr Hüllquader.
+    Für dieselbe Form (`isSame`) gemerkt."""
+    code = form.hashCode()
+    eintrag = _KENNUNGEN.get(code)
+    if eintrag is not None and eintrag[0].isSame(form):
+        _KENNUNGEN.move_to_end(code)
+        return eintrag[1]
+    kennung = _form_kennung(form)
+    _KENNUNGEN[code] = (form, kennung)
+    while len(_KENNUNGEN) > KENNUNGEN_GEMERKT:
+        _KENNUNGEN.popitem(last=False)
+    return kennung
+
+
+def _form_kennung(form):
     kasten = form.BoundBox
     return (
         form.hashCode(),
