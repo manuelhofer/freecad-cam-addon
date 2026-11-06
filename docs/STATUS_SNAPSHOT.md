@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.347.0):* **„Worin gespannt?“ (Beta): Spannmittel aus dem Katalog mit einem Klick** – nimmt
+  keins der Sammlung das Rohteil, sind die bis zu drei Vorschläge aus dem Katalog Verweise: anklicken
+  übernimmt es in die Sammlung (gespeichert) und wählt es. Bei einem runden Rohteil (Zylinder) zuerst
+  Futter, dann Zentrischspanner und Schraubstöcke. Behoben dabei: Der Satz darunter wurde immer durch
+  „Was passt, steht hier, sobald es ein Rohteil gibt“ ersetzt, sobald etwas passte oder gewählt war.
 - *Neu (0.346.0):* **Die Empfehlung nimmt auch Fräser aus den Katalogen** (Manuel, 2026-11-06: der Sinn
   der Kataloge sind bessere Vorschläge). Stoßen unter dem Rand oder an der Flanke Halter oder Schaft an,
   fragt `empfehlung` neben den Fräsern der Werkzeugverwaltung bis zu drei längere derselben Art und

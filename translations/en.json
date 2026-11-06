@@ -3571,7 +3571,7 @@
     "beta.spannmittel.leer": "No workholding in the collection yet – “Workholding …” → “Catalogue …” takes it from the manufacturers.",
     "beta.spannmittel.anzahl": "{passend} of {alle} workholding items take this stock (✓ at the top). Hover over a ✗ to see why not.",
     "beta.spannmittel.ohne_rohteil": "What fits shows here as soon as there is a stock (after the first click on the bottom face).",
-    "beta.spannmittel.katalog": "From the manufacturers' catalogue, for example these would take it: {namen} (take over with “Workholding …” → “Catalogue …”).",
+    "beta.spannmittel.katalog_waehlen": "From the manufacturers' catalogues, these would take it (click: add to the collection and choose):",
     "beta.tasche.schruppen": "Rough the whole pocket, finish these walls",
     "beta.tasche.schruppen.tooltip": "Roughing clears the whole pocket; finishing and edges take only the clicked faces.",
     "beta.tasche.voll": "The {gewaehlt} chosen faces belong to a pocket that still holds material – it has to be cleared first ({fehlen} faces are missing for that).",

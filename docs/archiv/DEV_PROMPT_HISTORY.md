@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-13 spannmittel-vorschlag-klick
+
+### EINGELESEN
+- Fortsetzung P-2026-11-06-12 (Vorschläge mit den Katalogen; Manuel: „wie man etwas spannt“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_spannmittel_anbieten` (Vorschläge als Verweise, Futter beim
+  runden Rohteil, der Satz nicht mehr überschrieben), `_katalog_spannmittel_nehmen`.
+- `translations/de.json`, `en.json`: `beta.spannmittel.katalog_waehlen` statt `beta.spannmittel.katalog`.
+- `package.xml` 0.347.0; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- test_sprache, szenario_beta_schritte, szenario_beta_tasche grün. Den Klick deckt kein Szenario ab
+  (das Prüfprofil hat keine Kataloge).
 ## P-2026-11-06-12 empfehlung-katalogfraeser
 
 ### EINGELESEN

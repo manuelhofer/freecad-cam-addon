@@ -3571,7 +3571,7 @@
     "beta.spannmittel.leer": "Noch keine Spannmittel in der Sammlung – „Spannmittel …“ → „Katalog …“ übernimmt sie von den Herstellern.",
     "beta.spannmittel.anzahl": "{passend} von {alle} Spannmitteln nehmen dieses Rohteil (✓ oben). Mit der Maus über einem ✗ steht, warum nicht.",
     "beta.spannmittel.ohne_rohteil": "Was passt, steht hier, sobald es ein Rohteil gibt (nach dem ersten Klick auf die Unterseite).",
-    "beta.spannmittel.katalog": "Aus dem Katalog der Hersteller nähmen es zum Beispiel: {namen} (übernehmen mit „Spannmittel …“ → „Katalog …“).",
+    "beta.spannmittel.katalog_waehlen": "Aus dem Katalog der Hersteller nähmen es zum Beispiel (anklicken: in die Sammlung und wählen):",
     "beta.tasche.schruppen": "Ganze Tasche schruppen, diese Wände schlichten",
     "beta.tasche.schruppen.tooltip": "Das Schruppen räumt die ganze Tasche aus; Schlichten und Kanten nehmen nur die angeklickten Flächen.",
     "beta.tasche.voll": "Die {gewaehlt} gewählten Flächen gehören zu einer Tasche, in der noch Material steht – sie muss erst ausgeräumt werden ({fehlen} Flächen fehlen dafür).",

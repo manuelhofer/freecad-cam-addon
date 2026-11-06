@@ -315,6 +315,8 @@ class BetaPanel(BearbeitungPanel):
         aufbau.addLayout(zeile)
         self.spannmittel_text = _grau()
         self.spannmittel_text.setWordWrap(True)
+        self.spannmittel_text.setTextFormat(QtCore.Qt.RichText)
+        self.spannmittel_text.linkActivated.connect(self._katalog_spannmittel_nehmen)
         aufbau.addWidget(self.spannmittel_text)
         seite = self.seiten[0].layout()
         _aus_layout(seite, self.spannungfelder)  # die Spanntiefe gleich darunter
@@ -412,15 +414,46 @@ class BetaPanel(BearbeitungPanel):
                 satz += " – " + " ".join(sm.hinweise(jetzt, box))
         elif box is not None:
             satz = tr("beta.spannmittel.anzahl", passend=passend, alle=len(eintraege))
+        self._beta_katalog_spannmittel = []
+        satz = html.escape(satz, quote=False)
         if box is not None and jetzt is None and not passend:
-            vorschlaege = sm.aus_dem_katalog(box)
+            # Ein rundes Rohteil (Zylinder) zuerst im Futter (Manuel: „vorschläge … wo das bauteil
+            # reinpassen würde vom spannmitel her“).
+            rund = getattr(getattr(self.job, "Stock", None), "Radius", None) is not None
+            arten = (sm.FUTTER, sm.ZENTRISCH, sm.SCHRAUBSTOCK) if rund else None
+            vorschlaege = sm.aus_dem_katalog(box, arten=arten) if arten else sm.aus_dem_katalog(box)
+            self._beta_katalog_spannmittel = vorschlaege
             if vorschlaege:
-                satz += " " + tr(
-                    "beta.spannmittel.katalog", namen=", ".join(v.text for v in vorschlaege)
+                # Je Vorschlag ein Verweis: übernimmt ihn in die Sammlung und wählt ihn
+                # (Gedächtnis „Nächster Schritt als Knopf“).
+                namen = ", ".join(
+                    f'<a href="spannmittel:{i}">{html.escape(v.text)}</a>'
+                    for i, v in enumerate(vorschlaege)
                 )
-        else:
-            satz = tr("beta.spannmittel.ohne_rohteil")
+                satz += " " + html.escape(tr("beta.spannmittel.katalog_waehlen"), quote=False)
+                satz += " " + namen + "."
+        elif box is None:
+            satz = html.escape(tr("beta.spannmittel.ohne_rohteil"), quote=False)
         self.spannmittel_text.setText(satz)
+
+    def _katalog_spannmittel_nehmen(self, verweis):
+        """Ein Vorschlag aus dem Katalog („spannmittel:<n>“): in die Sammlung (gespeichert, wie im
+        Fenster „Spannmittel …“) und gleich gewählt – gibt es ihn dort schon, der vorhandene."""
+        if not str(verweis).startswith("spannmittel:"):
+            return
+        try:
+            s = self._beta_katalog_spannmittel[int(str(verweis).split(":", 1)[1])]
+        except (ValueError, IndexError, AttributeError):
+            return
+        sammlung = self._sammlung()
+        vorhanden = sammlung.gleiches(s)
+        if vorhanden is None:
+            vorhanden = sammlung.dazu(sm.Spannmittel.aus_dict(s.als_dict()))
+            sammlung.speichern()
+        self._spannmittel_anbieten()
+        index = self.wahl_spannmittel.findData(vorhanden.kennung)
+        if index >= 0:
+            self.wahl_spannmittel.setCurrentIndex(index)  # → _spannmittel_gewaehlt
 
     def _spannmittel_gewaehlt(self):
         """Die Wahl wird gleich die Aufspannung am Job (Lage: die, in der es passt, sonst die
