@@ -240,6 +240,28 @@ for hoechst, soll in ((6000.0, 6000.0), (0.0, fw.FREIVORSCHUB)):
     )
 FreeCAD.ParamGet(PARAMETER_PFAD).SetString(rw.ZULETZT_MASCHINE, "")
 
+# --- Hin, zurück, wieder hin auf einer Geraden: ein Zug (_ohne_rueckweg, B-027) --------------------
+P = bn.Punkt
+zuege = [
+    P(False, 80.0, 21.0, 18.0),
+    P(False, 86.0, 27.0, 18.0, anteil=11.0),
+    P(False, 86.0, 29.0, 18.0, anteil=11.0),
+    P(False, 86.0, 27.0, 18.0),
+    P(False, 86.0, 27.0, 18.0),  # ohne Weg
+    P(False, 86.0, 33.0, 18.0, anteil=11.0),
+    P(False, 80.0, 39.0, 18.0),
+]
+glatt = [(p.x, p.y) for p in fw._ohne_rueckweg(zuege)]
+pruefe(glatt == [(80.0, 21.0), (86.0, 27.0), (86.0, 33.0), (80.0, 39.0)], f"Rückweg: {glatt}")
+# Im Arbeitsvorschub hin und her (die Wandfahrt des Planfräsens) bleibt.
+wandfahrt = [
+    P(False, 4.0, 28.0, -10.0),
+    P(False, 4.0, 30.0, -10.0),
+    P(False, 4.0, 28.0, -10.0),
+    P(False, 4.0, 26.0, -10.0),
+]
+pruefe(len(fw._ohne_rueckweg(wandfahrt)) == 4, "die Wandfahrt ist weg")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

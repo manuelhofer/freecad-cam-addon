@@ -193,7 +193,7 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
             notiz = nach.notiz if letzte else None
             neu.append(bn.Punkt(False, b[0], b[1], nach.z, False, None, anteil, notiz))
         schnell_weg += sum(e[2] for e, f in zip(eintraege, flags, strict=True) if f)
-    return _ohne_ausflug(neu), schnell_weg
+    return _ohne_rueckweg(_ohne_ausflug(neu)), schnell_weg
 
 
 def _abfahren(punkte, form, quader, weite, im_stueck=False):
@@ -433,6 +433,48 @@ def _ohne_ausflug(punkte):
                         ergebnis[-1] = p  # nur bis dorthin, wo es zurückkommt
                         continue
         ergebnis.append(p)
+    return ergebnis
+
+
+def _ohne_rueckweg(punkte):
+    """Hin im Freivorschub, ein Stück zurück und wieder hin auf derselben Geraden: ein Zug. Zwei
+    Züge der Kontur treffen sich so vor dem offenen Ende einer Nut – der erste läuft nach Y 33 aus,
+    der zweite beginnt bei Y 27 (B-027); das Abheben dazwischen spart schon _unten_bleiben. Der
+    Rückweg ist oft zu kurz für den Freivorschub und bliebe langsam. Sätze ohne Weg fallen weg."""
+
+    def gerade(p):
+        return not p.eilgang and p.bogen is None
+
+    def schnell(p):
+        return gerade(p) and not p.eintauchen and float(p.anteil) > 1.0
+
+    ergebnis = []
+    for p in punkte:
+        if (
+            ergebnis
+            and gerade(p)
+            and p.notiz is None
+            and math.dist((p.x, p.y, p.z), (ergebnis[-1].x, ergebnis[-1].y, ergebnis[-1].z)) < 1e-9
+        ):
+            continue
+        ergebnis.append(p)
+        if len(ergebnis) < 4:
+            continue
+        a, b, c, d = ergebnis[-4:]
+        if not (schnell(b) and schnell(d) and gerade(c) and not c.eintauchen and c.notiz is None):
+            continue
+        if max(abs(q.z - a.z) for q in (b, c, d)) > _HOEHE_GLEICH:
+            continue
+        laenge = math.dist((a.x, a.y), (b.x, b.y))
+        if laenge <= GLEICH:
+            continue
+        ux, uy = (b.x - a.x) / laenge, (b.y - a.y) / laenge
+        lage = []  # (entlang, quer) von c und d, von a aus
+        for q in (c, d):
+            dx, dy = q.x - a.x, q.y - a.y
+            lage.append((dx * ux + dy * uy, abs(dx * uy - dy * ux)))
+        if lage[0][1] <= GLEICH and lage[1][1] <= GLEICH and lage[0][0] < laenge <= lage[1][0]:
+            ergebnis[-3:] = [d]
     return ergebnis
 
 

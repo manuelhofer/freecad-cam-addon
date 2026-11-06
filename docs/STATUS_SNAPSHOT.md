@@ -578,6 +578,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.349.1):* **B-027:** Hin, zurück und wieder hin auf einer Geraden im Freien wird ein Zug
+  (`freiwege._ohne_rueckweg`) – am offenen Ende einer Nut trafen sich zwei Züge der Kontur so.
 - *Neu (0.349.0):* **„Wegkippen“ als Vorschlag vor dem Bestellen** (Manuel, 2026-11-06: „oder es mit
   Schwenken geht, weil es mal eine 5-Achs hat … Erst die Strategien mit den Werkzeugen, die wir haben“):
   An einer 5-Achs-Maschine rechnet die Vorschau des 3D-Schlichtens mit der Kugel den Bedarf
@@ -2586,15 +2588,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
 B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; B-026 (am Drehteil meldete die Kollision „Plan indexiert … im Eilgang durch Rohteil, das dort noch steht – bis 1,53 mm tief“: der letzten Lage fehlte am Rand der Fläche ein Stück jeder Zeile, und das Modell der Stange kannte bei Querversatz die Flanke des Fräsers nicht) behoben in P-2026-10-16-57. **Offen (gefunden 2026-11-06 mit `~/freecad_cam/wip/pruefhelfer/nc_pruefen.py` über die NC-Ausgaben des
 vollen Szenario-Laufs, abgelegt in `~/freecad_cam/wip/laeufe/2026-11-06/` als Vergleichsstand):**
-B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am offenen Ende X 86 fährt es Y 27 →
-29 im Freivorschub, 29 → 27 im Arbeitsvorschub zurück, dann 27 → 33 – 2 × 2 mm unnötig, alles in der Luft. Spur: `nut_bahn`
-selbst ist sauber (nachgerechnet: quer vor dem Ende in einem Zug, Ecken scharf); die Bögen r 6 an den Ecken
-und das Hin-her entstehen danach – `freiwege._ohne_ausflug` streicht ein Hin-her nur, wenn beide Stücke im
-Freivorschub fahren, hier fährt der Rückweg langsam (nah am Material, VORLAUF). Woher die Eckbögen kommen
-(Szenario-Werkzeug, Aufmaß 0?), noch nicht gefunden.
+B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am offenen Ende X 86 fuhr es Y 27 →
+29 im Freivorschub, zurück nach 27, dann nach 33 – zwei Züge der Kontur, die sich dort treffen. Behoben in
+0.349.1 (`freiwege._ohne_rueckweg`).
 (Der zweite Fund – Planfräsen am Klotz, am Zeilenende 1,5 mm zur vorigen Zeile und zurück – ist die
-gewollte Wandfahrt, `planfraesen_bahn._wandfahrt`: kein Fehler.) B-027 nicht als Kehre gezählt (zu kurz);
-nächste freie Nummer B-028.
+gewollte Wandfahrt, `planfraesen_bahn._wandfahrt`: kein Fehler.) Nächste freie Nummer B-028.
 
 ## Offene Tasks
 

@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-19 b027-rueckweg
+
+### EINGELESEN
+- Offener Fund B-027 (nc_pruefen.py, szenario_nut_durch); Manuel: „Luftfräsen … wirklich nicht gut“.
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_ohne_rueckweg`, nach `_ohne_ausflug`.
+- `tests/test_freiwege.py`: der Zug am offenen Ende; die Wandfahrt im Arbeitsvorschub bleibt.
+- `package.xml` 0.349.1; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Ursache mit einem Mitschnitt vor und nach `schneller`: Die Kontur hat zwei Züge (einer läuft nach Y 33
+  aus, der nächste beginnt bei Y 27), `_unten_bleiben` spart das Abheben, der Rückweg blieb stehen.
+- test_freiwege, test_testteil, test_goldene_bahnen, test_kontur, szenario_nut_durch grün.
 ## P-2026-11-06-18 wegkippen-vorschlag
 
 ### EINGELESEN
