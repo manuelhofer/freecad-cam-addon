@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-08 halter-diebold-bilz
+
+### EINGELESEN
+- Fortsetzung P-2026-11-06-07 (Datenbanken maximal füllen).
+
+### DATEIEN
+- `camaddon/halter_daten/hersteller.json` (2453 Reihen, 18 858 Größen), `camaddon/kataloge_index.json`;
+  Rohdaten ~/freecad_cam/wip/katalog_roh/teil_halter_diebold_bilz.json.
+- `translations/de.json`, `en.json`: „18 000 Halter“. `package.xml` 0.345.14; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Plausibilität (keine Riesenwerte, Spann-Ø < Nase, l_nase ≤ a, Kegel 0,5–15°) ohne Befund;
+  Diebold HSK-A63 d12 wie DIN 69882-8 (24/32). test_kataloge, test_halter_datei, test_empfehlung grün.
 ## P-2026-11-06-07 halter-guehring-seco-walter
 
 ### EINGELESEN

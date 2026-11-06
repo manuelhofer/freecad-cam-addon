@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.14):* **Halter: 2453 Reihen, 18 858 Größen** – dazu Diebold (GoldLine/SilverLine
+  2024: Schrumpf Standard/TSF/TUS/JetSleeve, CentroGrip, ER, UltraGrip, Hydro, Weldon, Fräsdorne; 135
+  Reihen) und BILZ (CNC Tool Holders 2024, ThermoGrip: Schrumpf, ER/Super-Collet, Weldon, Fräsdorne,
+  Hochleistungsfräsfutter; 144). Maßbilder je Bauart angesehen (Zuordnung in `quelle`); Unklares nur
+  unter `iso13399` (Diebold TUS: l1/NL; BILZ ER: L1/L3 sind nicht die Mutterlänge).
 - *Korrektur (0.345.13):* **Halter: 2174 Reihen, 15 781 Größen** (vorher 1773/12 038) – dazu GÜHRING
   (GM 300 2015: Schrumpf, Hydro, ER, HPC, Weldon, Fräsdorn; 158 Reihen), Seco (Tooling Systems 2020.1:
   SFD/SFR/SFS, HC, PMC, ER, EM, SM; 169) und Walter (Werkzeugaufnahmen 2024; 74). Die Maßbilder je
