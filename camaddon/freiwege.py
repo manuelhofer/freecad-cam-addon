@@ -67,6 +67,12 @@ def _frei(q, a, b, weite):
         return True  # neben dem Rohteil
     h = q.h[i0:i1, j0:j1]
     hoch = h > z + GLEICH
+    soll = getattr(q, "soll", None)
+    if soll is not None:
+        # Nur, was über dem Fertigteil steht: Eine fertige Wand daneben ist kein Material, vor dem
+        # der Fräser langsam fahren muss (Manuel, 2026-11-06, am Testteil: „noch relativ viel in
+        # der Luft“ – am Rand geräumter Böden fuhr er die Wand entlang im Arbeitsvorschub).
+        hoch &= h > soll[i0:i1, j0:j1] + GLEICH
     if not hoch.any():
         return True
     gx, gy = np.meshgrid(q.x[i0:i1], q.y[j0:j1], indexing="ij")
@@ -261,14 +267,17 @@ def _fenster(quader, teil, rand):
     return i0, max(i1, i0 + 2), j0, max(j1, j0 + 2)
 
 
-def _ausschnitt(x, y, h, z, schritt):
-    """Ein Quader aus einem Ausschnitt des Rasters (x, y, h) – im Nebenrechner. `z`: (von, bis)."""
+def _ausschnitt(x, y, h, z, schritt, soll=None):
+    """Ein Quader aus einem Ausschnitt des Rasters (x, y, h) – im Nebenrechner. `z`: (von, bis);
+    `soll`: die Höhen des Fertigteils im selben Ausschnitt (mit_fertigteil) oder None."""
     from . import restmaterial as rm
 
     q = rm.Quader(float(x[0]), float(x[-1]), float(y[0]), float(y[-1]), z[0], z[1], schritt)
     q.x = np.asarray(x, dtype=float)
     q.y = np.asarray(y, dtype=float)
     q.h = np.array(h, dtype=float)
+    if soll is not None:
+        q.soll = np.asarray(soll, dtype=float)
     return q
 
 
@@ -288,10 +297,10 @@ def abtrag_stueck(x, y, h, z, schritt, punkte, form):
     return q.h
 
 
-def abfahren_stueck(x, y, h, z, schritt, punkte, form, weite):
+def abfahren_stueck(x, y, h, z, schritt, punkte, form, weite, soll=None):
     """Auf einem Nebenrechner: _abfahren für ein Stück der Bahn, vom Materialstand (x, y, h) vor
     ihm aus – (seine Punkte, verändert, und seine Sätze)."""
-    q = _ausschnitt(x, y, h, z, schritt)
+    q = _ausschnitt(x, y, h, z, schritt, soll)
     punkte = list(punkte)
     saetze = _abfahren(punkte, form, q, weite, im_stueck=True)
     return punkte, saetze
@@ -327,6 +336,12 @@ def _abfahren_verteilt(punkte, form, quader, weite):
         i0, i1, j0, j1 = f
         return quader.x[i0:i1], quader.y[j0:j1], h[i0:i1, j0:j1]
 
+    soll = getattr(quader, "soll", None)
+
+    def soll_von(f):
+        i0, i1, j0, j1 = f
+        return soll[i0:i1, j0:j1] if soll is not None else None
+
     try:
         # Ohne Maus und Tastatur: Das läuft auch mitten in der Neuberechnung einer Operation.
         abtraege = pool.warten(
@@ -355,6 +370,7 @@ def _abfahren_verteilt(punkte, form, quader, weite):
                     teil,
                     form,
                     weite,
+                    soll_von(f),
                 )
                 for stand, teil, f in zip(staende, teile, fenster, strict=True)
             ],
@@ -585,6 +601,38 @@ def freivorschub_fuer(job):
     return vorschub if vorschub > 0 else FREIVORSCHUB
 
 
+_SOLL = {}  # (Form, Raster) → Höhen des Fertigteils
+
+
+def fertigteil_hoehen(job, quader):
+    """Die Höhen des Fertigteils (das Modell des Jobs von oben) im Raster des Materialstands – −inf,
+    wo kein Teil ist; None, wenn es sich nicht rechnen lässt. Je Form und Raster gemerkt."""
+    from . import formteile as ft
+    from . import hoehenfeld as hf
+    from . import vierachs_flaechen as vf
+    from . import vierachs_schlichten as vs
+
+    try:
+        form = vs._teil(job.Model.Group)
+        schluessel = (
+            ft.kennung(form),
+            len(quader.x),
+            len(quader.y),
+            round(float(quader.x[0]), 6),
+            round(float(quader.y[0]), 6),
+            round(float(quader.x[1] - quader.x[0]), 6),
+        )
+        if schluessel not in _SOLL:
+            soll = hf.hoehen(vf.vernetze(form, hf.VORSCHAU_TOLERANZ).netz, quader.x, quader.y)
+            soll = np.where(np.isfinite(soll), soll, -np.inf)
+            if len(_SOLL) > 8:
+                _SOLL.clear()
+            _SOLL[schluessel] = soll
+        return _SOLL[schluessel]
+    except Exception:  # noqa: BLE001 – ohne Fertigteil wie bisher (alles zählt als Material)
+        return None
+
+
 def fuer_operation(job, op, punkte, vorschub, form=None, freivorschub=None):
     """schneller() für die Operation `op` im Job: das Material vor ihr (materialstand), ihr
     Fräser, der Freivorschub ihrer Maschine (`freivorschub`: höchstens so viel) – unverändert
@@ -598,6 +646,7 @@ def fuer_operation(job, op, punkte, vorschub, form=None, freivorschub=None):
     if stand is None:
         return list(punkte), 0.0
     quader = mst._kopie(stand).quader
+    quader.soll = fertigteil_hoehen(job, quader)
     maschine = freivorschub_fuer(job)
     frei = min(freivorschub, maschine) if freivorschub else maschine
     return schneller(punkte, form, quader, vorschub, frei)

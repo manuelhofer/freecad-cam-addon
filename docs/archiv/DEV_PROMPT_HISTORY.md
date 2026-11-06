@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-16 luft-fertige-waende
+
+### EINGELESEN
+- Manuel, 2026-11-06: „Und warum arbeitest du nicht weiter an irgendwelchen Szenarien oder ja,
+  verbesserst die in den Luftfräsaktionen? … ich habe das Prüfteil mal auf das Weekly … mit der neuesten
+  Version probiert und muss sagen, da ist ja noch relativ viel in der Luft. Dieses Luftfräsen ist wirklich
+  nicht gut. Du musst echt schauen, dass du da die Szenarien ein bisschen besser anpasst.“
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_frei` mit `quader.soll`; `fertigteil_hoehen`; `_ausschnitt`/`abfahren_stueck`
+  mit `soll`; `fuer_operation` setzt `quader.soll`.
+- `package.xml` 0.348.2; `docs/STATUS_SNAPSHOT.md`.
+- Neu außerhalb des Repos: `~/freecad_cam/wip/pruefhelfer/luft.py`, Szenario-Kopien in
+  `~/freecad_cam/wip/luft_szen/` (Testteil mit Messung und gespeichertem Job).
+
+### ERGEBNIS
+- Testteil vorher: Räumen T1 951 mm Luft im Arbeitsvorschub (11 %), Kontur T1 169 (46 %), 3D-Schruppen
+  T1 180 (32 %), Restmaterial T3 11; nachher Kontur 93 mm, der Rest unverändert – dort liegt es an etwas
+  anderem (weiter in P-2026-11-06-17).
+- test_freiwege, test_testteil, test_goldene_bahnen, test_kontur, test_raeumen, test_schruppen3d,
+  test_vierachs_frei grün.
 ## P-2026-11-06-15 inovatools-nachi
 
 ### EINGELESEN

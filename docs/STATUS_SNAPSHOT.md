@@ -578,6 +578,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.348.2):* **Weniger Luft im Arbeitsvorschub** (Manuel, 2026-11-06, am Prüfteil im
+  Wochen-Build: „noch relativ viel in der Luft … Dieses Luftfräsen ist wirklich nicht gut“). Der
+  Freivorschub (`freiwege._frei`) zählte auch die fertigen Wände des Teils als Material, vor dem der
+  Fräser langsam bleibt (Radius + 1 mm) – jetzt nur, was über dem Fertigteil steht
+  (`fertigteil_hoehen`: das Modell von oben im Raster des Materialstands, je Form gemerkt; auch in
+  den Ausschnitten für die Nebenrechner). Am Testteil (neu: `~/freecad_cam/wip/pruefhelfer/luft.py`
+  misst je Operation die Luft im Arbeitsvorschub, Stück für Stück gegen den Materialstand): Kontur T1
+  169 → 93 mm. Offen: Räumen T1 951 mm (22 Strecken ≥ 5 mm), 3D-Schruppen T1 180 mm (je Lage 9,4 mm an
+  derselben Stelle).
 - *Korrektur (0.348.1):* **Werkzeugkiste: rund 313 000 Größen** – dazu INOVATOOLS (224 Reihen, Maße aus dem
   Shop, ohne Schnittwerte) und NACHI (156 Reihen, Kataloge NE-17130/NE-17157 und Prospekte; Schnittwerte für
   Bohrer und die VGX-Fräser). ATORN nicht: Hahn+Kolb zeigt eine Sperrseite, Hommel schließt KI-Abrufe in
