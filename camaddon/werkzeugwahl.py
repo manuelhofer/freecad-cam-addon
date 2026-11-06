@@ -111,6 +111,7 @@ class _Katalogwerkzeug:
     __slots__ = (
         "art", "durchmesser", "schneidenlaenge", "gesamtlaenge", "auskragung", "steigung",
         "faehigkeiten", "name", "hersteller", "artikel", "link",
+        "schaft", "hals_d", "hals_laenge", "eckradius",  # für empfehlung._katalog_fraeser
     )  # fmt: skip
 
     def __init__(self, daten):
@@ -128,7 +129,11 @@ class _Katalogwerkzeug:
             for feld in ("durchmesser", "schneidenlaenge", "gesamtlaenge", "auskragung", "steigung")
         )
         link = werte.get("link") or reihe.link or wk.suche(reihe.hersteller, artikel, name)
-        return (reihe.art, *masse, faehigkeiten, name, reihe.hersteller, artikel, link)
+        form = tuple(
+            float(werte.get(feld) or 0.0)
+            for feld in ("schaft", "hals_d", "hals_laenge", "eckradius")
+        )
+        return (reihe.art, *masse, faehigkeiten, name, reihe.hersteller, artikel, link, *form)
 
 
 def katalog_werkzeuge():

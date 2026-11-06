@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-12 empfehlung-katalogfraeser
+
+### EINGELESEN
+- Manuel, 2026-11-06: „Das Sammeln hat ja einen Sinn. Wir haben gesagt, dass wir dadurch bessere
+  Vorschläge machen können, wie man … etwas spannt, wie man etwas bearbeitet … das ist jetzt ja
+  erledigt, würde ich sagen … wenn der [letzte Sammler] durch ist.“
+
+### DATEIEN
+- `camaddon/empfehlung.py`: `_katalog_fraeser`, `KATALOG_FRAESER`, `KATALOG`; `_werkzeuge` mit den
+  Katalogfräsern; `_paare` abwechselnd je Fräser; `_empfehlung` mit `werkzeug_neu` und Artikelnummer;
+  `neue_kugel` nimmt auch ein Ergebnis aus dem Katalog.
+- `camaddon/werkzeugwahl.py`: `_Katalogwerkzeug` mit schaft, hals_d, hals_laenge, eckradius.
+- `camaddon/gui_bearbeitung.py`: `_empfehlung_text` mit „Fräser aus dem Katalog …“.
+- `translations/de.json`, `en.json`: `emp.fraeser_katalog`.
+- `tests/test_empfehlung.py`: Teile 1–8 ohne Katalogfräser, Teil 9 mit festem Katalog.
+- `package.xml` 0.346.0; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- test_empfehlung, test_sprache, test_werkzeugwahl, test_kataloge, szenario_schraeg_anlegen,
+  szenario_beta_tief grün. Beobachtet: Mit den Katalogen findet die Empfehlung für die kurze Kugel oft
+  schon ein schlankes Schrumpffutter (MAPAL 3°) – ein längerer Fräser kommt nur, wenn das nicht reicht
+  (sie nimmt das steifste Paar, kürzeste Länge ab Spindelnase).
 ## P-2026-11-06-11 harvey-helical
 
 ### EINGELESEN

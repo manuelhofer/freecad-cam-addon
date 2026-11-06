@@ -5287,6 +5287,8 @@ class _Block:
             return html.escape(tr("emp.keine"), quote=False)
         self._empfehlung = empfehlung
         dazu = []
+        if (empfehlung.werkzeug or "").startswith(em.KATALOG):
+            dazu.append(tr("emp.fraeser_katalog"))
         if empfehlung.halter_neu:
             dazu.append(tr("emp.halter_neu"))
         if not empfehlung.im_magazin:

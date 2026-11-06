@@ -578,6 +578,16 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.346.0):* **Die Empfehlung nimmt auch Fräser aus den Katalogen** (Manuel, 2026-11-06: der Sinn
+  der Kataloge sind bessere Vorschläge). Stoßen unter dem Rand oder an der Flanke Halter oder Schaft an,
+  fragt `empfehlung` neben den Fräsern der Werkzeugverwaltung bis zu drei längere derselben Art und
+  desselben Ø aus dem Katalog (beim Torus auch Eckradius) – je Gesamtlänge der mit dem längsten Hals,
+  vom kürzesten bis zum längsten; das schlanke Katalogverzeichnis (`werkzeugwahl._Katalogwerkzeug`)
+  kennt dafür Schaft, Hals-Ø, Halslänge und Eckradius. Die Paare kommen abwechselnd je Fräser, damit die
+  längeren nicht hinter PAARE_HOECHSTENS herausfallen. Der Satz nennt Hersteller, Name und Artikelnummer
+  („Fräser aus dem Katalog der Hersteller – legt „So einrichten“ in der Werkzeugverwaltung an“);
+  „So einrichten“ legt ihn mit Hals an (Schnittwerte vom gewählten Fräser, derselbe Ø).
+  test_empfehlung Teil 9 (kurze Kugel Ø6 nur mit ER32: die lange Ø6 aus dem Katalog, 47 mm heraus).
 - *Korrektur (0.345.17):* **Werkzeugkiste: rund 292 000 Größen** – dazu Harvey Tool (1857 Reihen: Schaft,
   Kugel, Torus, Fasen, Keyseat, Konik, Schwalbenschwanz, NC-Anbohrer, Bohrer, Gewindefräser …) und Helical
   Solutions (136 Reihen, HPC/Trochoidal/Hochvorschub), zusammen 31 928 Größen, Zoll in mm umgerechnet;

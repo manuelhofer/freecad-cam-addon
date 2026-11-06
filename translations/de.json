@@ -3339,6 +3339,7 @@
     "emp.text": "Mit dem Magazin, wie es ist, geht es hier nicht ganz – so ginge es: {werkzeug} im Halter „{halter}“, {heraus} mm heraus ({laenge} mm ab Spindelnase).",
     "emp.oder": "Oder: {werkzeug} im Halter „{halter}“, {heraus} mm heraus ({laenge} mm ab Spindelnase).",
     "emp.dazu": "Dazu: {dazu}.",
+    "emp.fraeser_katalog": "Fräser aus dem Katalog der Hersteller – legt „So einrichten“ in der Werkzeugverwaltung an",
     "emp.halter_neu": "den Halter gibt es in deiner Werkzeugverwaltung noch nicht (Normreihe, typische Maße)",
     "emp.nicht_im_magazin": "der Fräser steht nicht im Magazin",
     "emp.einrichten": "So einrichten",

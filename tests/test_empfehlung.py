@@ -34,6 +34,10 @@ def pruefe(bedingung, text):
 
 V = FreeCAD.Vector
 sprache.setze_sprache("de")
+# Die Teile 1–8 prüfen den Weg mit Fräsern der Werkzeugverwaltung; die Fräser aus dem Katalog der
+# Hersteller (empfehlung._katalog_fraeser, seit 0.346.0) prüft Teil 9 mit einem festen Katalog.
+_katalog_fraeser = em._katalog_fraeser
+em._katalog_fraeser = lambda *_a: []
 R = 3.0
 D = 30 * math.tan(math.radians(10))
 
@@ -227,6 +231,62 @@ leer.werkzeuge.append(fest)
 pruefe(em.empfehlen(teil, pruefung, fest, leer, "SK40") == em.KEINE, "Ø7 kurz: doch etwas")
 print(ascii(f"Normhalter fuer 6: {len(em._normhalter(6.0, 'SK40'))}"))
 pruefe(hl.aus_vorlage(hl.reihe(hl.SCHRUMPF, 6, 80)).name.startswith("Schrumpffutter Ø6"), "Name")
+
+# 9. Fräser aus dem Katalog (Manuel, 2026-11-06: der Sinn der Kataloge sind bessere Vorschläge):
+#    Ist die Kugel Ø6 zu kurz (35 mm: höchstens 29 heraus, gebraucht sind rund 38), nimmt die
+#    Empfehlung eine längere Ø6 aus dem Katalog, mit ihrem Hals; „So einrichten“ legt sie in der
+#    Werkzeugverwaltung an. Eine Ø6 anderer Art bleibt außen vor.
+from camaddon import werkzeugwahl as ww  # noqa: E402
+
+kurze_bib = wz.Bibliothek()
+kurz6 = wz.Werkzeug(
+    nummer=6, name="Kugel 6 kurz", art=wz.KUGELFRAESER, durchmesser=6.0, schneiden=2,
+    schneidenlaenge=12.0, gesamtlaenge=35.0, schneidstoff=wz.VHM,
+)  # fmt: skip
+kurze_bib.werkzeuge.append(kurz6)
+kurz6.halter = kurze_bib.neuer_halter("er32", None, "SK40").kennung
+lang6 = ww._Katalogwerkzeug(
+    (wz.KUGELFRAESER, 6.0, 6.0, 80.0, 0.0, 0.0, {}, "Kugel lang", "Probe", "K6-80", "", 6.0, 5.6,
+     45.0, 0.0)
+)  # fmt: skip
+schaft6 = ww._Katalogwerkzeug(
+    (wz.SCHAFTFRAESER, 6.0, 13.0, 80.0, 0.0, 0.0, {}, "Schaft", "Probe", "S6", "", 6.0, 0.0, 0.0, 0.0)
+)  # fmt: skip
+mit_katalog_w, mit_norm, mit_katalog_h = ww.katalog_werkzeuge, em._normhalter, em._katalog_halter
+ww.katalog_werkzeuge = lambda: [lang6, schaft6]
+# Nur der ER32 der Werkzeugverwaltung: Mit einem schlanken Schrumpffutter aus dem Katalog ginge es
+# auch mit der kurzen Kugel (MAPAL 3°) – hier soll der längere Fräser helfen.
+em._normhalter = em._katalog_halter = lambda *_a: []
+em._katalog_fraeser = _katalog_fraeser
+try:
+    kandidaten = [w.artikel for w in em._katalog_fraeser(kurz6)]
+    pruefe(kandidaten == ["K6-80"], f"Katalog: {kandidaten}")
+    aus_katalog = em.empfehlen(teil, pruefung, kurz6, kurze_bib, "SK40")
+finally:
+    ww.katalog_werkzeuge, em._normhalter, em._katalog_halter = (
+        mit_katalog_w,
+        mit_norm,
+        mit_katalog_h,
+    )
+print(ascii(f"aus dem Katalog: {getattr(aus_katalog, 'werkzeug_text', aus_katalog)}, "
+            f"{getattr(aus_katalog, 'heraus', 0):.0f} mm heraus"))  # fmt: skip
+pruefe(
+    isinstance(aus_katalog, em.Empfehlung)
+    and aus_katalog.werkzeug.startswith(em.KATALOG)
+    and aus_katalog.werkzeug_neu
+    and not aus_katalog.im_magazin,
+    f"aus dem Katalog: {aus_katalog}",
+)
+if isinstance(aus_katalog, em.Empfehlung):
+    neu_w = em.einrichten(aus_katalog, kurze_bib)
+    pruefe(
+        neu_w is not None
+        and neu_w.artikel == "K6-80"
+        and neu_w.nummer > 0
+        and abs(neu_w.hals_laenge - 45.0) < 1e-9
+        and neu_w in kurze_bib.werkzeuge,
+        f"eingerichtet: {neu_w}",
+    )
 
 if fehler:
     raise AssertionError("\n".join(fehler))

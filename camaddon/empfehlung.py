@@ -176,7 +176,9 @@ def _fasst(halter, schaft):
 
 
 def _werkzeuge(werkzeug, bibliothek):
-    """Der gewählte Fräser und die derselben Art und desselben Ø, die länger sind."""
+    """Der gewählte Fräser und die derselben Art und desselben Ø, die länger sind – aus der
+    Werkzeugverwaltung, dazu bis KATALOG_FRAESER aus dem Katalog der Hersteller (_katalog_fraeser).
+    """
     ergebnis = [werkzeug]
     for w in getattr(bibliothek, "werkzeuge", []):
         if w.kennung == werkzeug.kennung or w.art != werkzeug.art:
@@ -185,6 +187,60 @@ def _werkzeuge(werkzeug, bibliothek):
             continue
         if float(w.gesamtlaenge or 0.0) > float(werkzeug.gesamtlaenge or 0.0) + 1e-6:
             ergebnis.append(w)
+    return ergebnis + _katalog_fraeser(werkzeug)
+
+
+KATALOG_FRAESER = 3  # so viele längere Fräser aus dem Katalog fragt es höchstens
+KATALOG = "katalog-"  # Kennung eines Fräsers aus dem Katalog, den es noch nicht gibt
+
+
+def _katalog_fraeser(werkzeug):
+    """[werkzeuge.Werkzeug] – Fräser aus dem Katalog der Hersteller (werkzeugwahl.katalog_werkzeuge)
+    derselben Art und desselben Ø (beim Torus auch Eckradius), die länger sind als `werkzeug`, mit
+    ihrem Hals: vom kürzesten bis zum längsten bis KATALOG_FRAESER, je Gesamtlänge der mit dem
+    längsten Hals (Manuel, 2026-11-06: der Sinn der Kataloge sind bessere Vorschläge). Seine
+    Schnittwerte vom gewählten Fräser (derselbe Ø). Leer ohne Katalog."""
+    from . import werkzeuge as wz
+
+    try:
+        from . import werkzeugwahl as ww
+
+        katalog = ww.katalog_werkzeuge()
+    except Exception:  # noqa: BLE001 – ohne Katalog keine Vorschläge daraus
+        return []
+    d = float(werkzeug.durchmesser or 0.0)
+    laenge = float(werkzeug.gesamtlaenge or 0.0)
+    torus = werkzeug.art == wz.TORUSFRAESER
+    je_laenge = {}
+    for k in katalog:
+        if k.art != werkzeug.art or abs(float(k.durchmesser) - d) > 1e-3:
+            continue
+        if float(k.gesamtlaenge) <= laenge + 1.0:
+            continue
+        if torus and abs(float(k.eckradius) - float(werkzeug.eckradius or 0.0)) > 0.05:
+            continue
+        schluessel = round(float(k.gesamtlaenge))
+        alt = je_laenge.get(schluessel)
+        if alt is None or float(k.hals_laenge) > float(alt.hals_laenge):
+            je_laenge[schluessel] = k
+    gewaehlt = [je_laenge[s] for s in sorted(je_laenge)]
+    if len(gewaehlt) > KATALOG_FRAESER:
+        stellen = np.unique(np.linspace(0, len(gewaehlt) - 1, KATALOG_FRAESER).astype(int))
+        gewaehlt = [gewaehlt[i] for i in stellen]
+    ergebnis = []
+    for k in gewaehlt:
+        w = wz.Werkzeug.aus_dict(werkzeug.als_dict())  # Schnittwerte vom gewählten
+        w.kennung = KATALOG + (k.artikel or f"{k.hersteller}-{k.gesamtlaenge:g}")
+        w.nummer = 0
+        w.name = " ".join(t for t in (k.hersteller, k.name or k.artikel) if t)
+        w.schneidenlaenge, w.gesamtlaenge = float(k.schneidenlaenge), float(k.gesamtlaenge)
+        w.schaft = float(k.schaft) or d
+        w.hals_d, w.hals_laenge = float(k.hals_d), float(k.hals_laenge)
+        if torus:
+            w.eckradius = float(k.eckradius)
+        w.hersteller, w.artikel, w.link = k.hersteller, k.artikel, k.link
+        w.halter, w.ausspannlaenge, w.laenge_spindelnase = "", 0.0, 0.0
+        ergebnis.append(w)
     return ergebnis
 
 
@@ -222,8 +278,10 @@ def _paare(werkzeug, bibliothek, aufnahme):
     Halter (den hat die Bahn schon gefragt), ein längerer auch mit ihm. Höchstens
     PAARE_HOECHSTENS."""
     jetzt = bibliothek.halter_fuer_pruefung(werkzeug)
-    paare = []
+    je_fraeser = []
     for w in _werkzeuge(werkzeug, bibliothek):
+        paare = []
+        je_fraeser.append(paare)
         schaft = _schaft(w)
         halter = [(h, False) for h in _halter_der_verwaltung(bibliothek, aufnahme, schaft, None)]
         if w is not werkzeug and jetzt is not None:
@@ -239,6 +297,10 @@ def _paare(werkzeug, bibliothek, aufnahme):
             gesehen.add(h.kennung)
             # Der vorgeschlagene Halter (halter.vorschlag) steht nicht in der Werkzeugverwaltung.
             paare.append((w, h, neu or hl.ist_vorschlag(h)))
+    # Abwechselnd je Fräser – sonst fielen die längeren (auch die aus dem Katalog) hinten heraus.
+    paare = []
+    for i in range(max((len(p) for p in je_fraeser), default=0)):
+        paare += [p[i] for p in je_fraeser if i < len(p)]
     return paare[:PAARE_HOECHSTENS]
 
 
@@ -258,15 +320,22 @@ def _empfehlung(paar, heraus, werkzeug, magazin):
     from . import magazin as mg
 
     w, h, neu = paar
+    aus_katalog = w.kennung.startswith(KATALOG)
     return Empfehlung(
         werkzeug=w.kennung,
-        werkzeug_text=f"T{w.nummer} {w.name or w.art}".strip(),
+        werkzeug_text=(
+            (w.name if not w.artikel or w.artikel in w.name else f"{w.name} ({w.artikel})")
+            if aus_katalog
+            else f"T{w.nummer} {w.name or w.art}".strip()
+        ),
         halter=replace(h),
         halter_neu=neu,
         heraus=heraus,
         laenge=float(h.laenge) + heraus,
-        im_magazin=magazin is None or mg.rang(w, magazin) != mg.NICHT_IM_MAGAZIN,
+        im_magazin=not aus_katalog
+        and (magazin is None or mg.rang(w, magazin) != mg.NICHT_IM_MAGAZIN),
         anderes_werkzeug=w.kennung != werkzeug.kennung,
+        werkzeug_neu=w.als_dict() if aus_katalog else None,
     )
 
 
@@ -479,9 +548,10 @@ def neue_kugel(form, ecken, vorbild, bibliothek, aufnahme="", magazin=None):
     ergebnis = empfehlen(form, pruefung, neue[0], probe, aufnahme, None)
     if not isinstance(ergebnis, Empfehlung):
         return ergebnis
-    gewaehlt = next(w for w in neue if w.kennung == ergebnis.werkzeug)
-    ergebnis.werkzeug_neu = gewaehlt.als_dict()
-    ergebnis.werkzeug_text = gewaehlt.name
+    gewaehlt = next((w for w in neue if w.kennung == ergebnis.werkzeug), None)
+    if gewaehlt is not None:  # sonst ein Fräser aus dem Katalog: _empfehlung hat ihn schon
+        ergebnis.werkzeug_neu = gewaehlt.als_dict()
+        ergebnis.werkzeug_text = gewaehlt.name
     ergebnis.im_magazin = False
     ergebnis.anderes_werkzeug = True
     return ergebnis

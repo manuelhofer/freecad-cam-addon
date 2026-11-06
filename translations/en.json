@@ -3339,6 +3339,7 @@
     "emp.text": "With the magazine as it is, this doesn't fully work – this would: {werkzeug} in the holder “{halter}”, sticking out {heraus} mm ({laenge} mm from the spindle nose).",
     "emp.oder": "Or: {werkzeug} in the holder “{halter}”, {heraus} mm out ({laenge} mm from the spindle nose).",
     "emp.dazu": "Also: {dazu}.",
+    "emp.fraeser_katalog": "cutter from the manufacturers' catalogue – “Set it up” adds it to the tool library",
     "emp.halter_neu": "the holder is not yet in your tool library (standard series, typical dimensions)",
     "emp.nicht_im_magazin": "the cutter is not in the magazine",
     "emp.einrichten": "Set it up",
