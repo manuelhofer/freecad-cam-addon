@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-06-09 spannmittel-mehr
+
+### EINGELESEN
+- Gedächtnis „Datenbanken maximal füllen“: Spannmittel „bis zum geht nicht mehr“.
+
+### DATEIEN
+- `camaddon/spannmittel_daten/hersteller.json` (471 Reihen, 3416 Größen), `camaddon/kataloge_index.json`;
+  Rohdaten ~/freecad_cam/wip/katalog_roh/teil_spannmittel_mehr2.json (Sammler).
+- `translations/de.json`, `en.json`: „3400 Spannmittel“. `package.xml` 0.345.15; `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Plausibilität (Spannweite min ≤ max, Bohrung < Ø, keine Riesenmaße, nur Zahlen) ohne Befund.
+  test_kataloge, test_spannmittel, test_spannung grün. Volle Prüfdateien nach den Änderungen des Tages:
+  142/142 grün.
 ## P-2026-11-06-08 halter-diebold-bilz
 
 ### EINGELESEN

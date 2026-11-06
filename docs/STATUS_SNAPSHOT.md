@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.345.15):* **Spannmittel: 471 Reihen, 3416 Größen** (vorher 345/2722) – dazu Röhm
+  (Schraubstöcke 2025, Kraftspannfutter, Drehfutter), SCHUNK (TANDEM, ROTA, VERO-S, KONTEC), Erowa
+  (MTS, UPC, PowerChuck), Mate, LANG, Orange Vise, Gerardi, Kurt. Maßbilder je Bauart angesehen; aus
+  Zoll Umgerechnetes als „UMGERECHNET“ in `quelle`. Kurt sperrte (403), System 3R ohne brauchbare
+  Quelle (Katalog nur per JavaScript).
 - *Korrektur (0.345.14):* **Halter: 2453 Reihen, 18 858 Größen** – dazu Diebold (GoldLine/SilverLine
   2024: Schrumpf Standard/TSF/TUS/JetSleeve, CentroGrip, ER, UltraGrip, Hydro, Weldon, Fräsdorne; 135
   Reihen) und BILZ (CNC Tool Holders 2024, ThermoGrip: Schrumpf, ER/Super-Collet, Weldon, Fräsdorne,
