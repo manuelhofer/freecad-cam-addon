@@ -833,6 +833,22 @@ def _achse_text(achse):
     return tr("ba.gekippt.um", achse=achse) if achse else ""
 
 
+def _grundjob_nachziehen(job):
+    """Nach der letzten Ebene: Kommt der Grundjob nach seinen Ebenen (an der G550), sind seine
+    simultanen Operationen vor dem Räumen der Ebene angelegt – sie sahen das volle Rohteil und
+    fuhren alles langsam (flanke_frei). Jetzt rechnen sie mit dem, was die Ebene geräumt hat."""
+    from . import schwenken as sw
+    from . import simultan_operation as so
+
+    if not sw.ist_ebene(job) or not sw.nach_den_ebenen(job.Grundjob):
+        return
+    operationen = [op for op in job.Grundjob.Operations.Group if so.ist_simultan(op)]
+    for op in operationen:
+        op.touch()
+    if operationen:
+        job.Document.recompute()
+
+
 def _folge_weiter():
     """Der Assistent für die nächste Ebene der Kette – oder nichts mehr. Eine Aufspannung der
     N-Eck-Stange (W-018) kommt ohne gewählte Flächen („Alles aus dieser Aufspannung“ wählt sie)
@@ -6827,6 +6843,8 @@ class BearbeitungPanel:
             uhren.gleich(folge)
         elif self._folge:
             uhren.gleich(_folge_weiter)
+        if folge is None and not _FOLGE:
+            uhren.gleich(functools.partial(_grundjob_nachziehen, self.job))
         return True
 
     def _folge_vorbereiten(self):

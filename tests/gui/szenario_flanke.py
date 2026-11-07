@@ -8,6 +8,7 @@
 # einer Achse. „Auf der Maschine prüfen“: A steht auf −10°, nichts über die Grenzen.
 import math
 import os
+import types
 import tempfile
 
 import FreeCAD
@@ -197,6 +198,29 @@ def schritte(h):
         h.pruefe(float(q.h.min()) < q.z_bis - 5.0, f"nichts abgetragen: {float(q.h.min()):.2f}")
         h.bild("5_abgetragen")
     pruef.reject()
+    yield 500
+    # Nach dem Anlegen einer Ebene rechnet der Grundjob an der G550 neu: Vorher sah die Flanke das
+    # volle Rohteil (gui_bearbeitung._grundjob_nachziehen).
+    from unittest import mock
+
+    from camaddon import gui_bearbeitung, schwenken
+
+    ebene = types.SimpleNamespace(Grundjob=job, Document=doc)
+    flanke_op = ops[0]
+    sw_ist, sw_nach = "ist_ebene", "nach_den_ebenen"
+    with mock.patch.object(schwenken, sw_ist, return_value=True):
+        with mock.patch.object(schwenken, sw_nach, return_value=False):
+            gui_bearbeitung._grundjob_nachziehen(ebene)
+            h.pruefe("Touched" not in flanke_op.State, "ohne „nach den Ebenen“ rechnet nichts neu")
+    gerechnet = []
+    with (
+        mock.patch.object(schwenken, sw_ist, return_value=True),
+        mock.patch.object(schwenken, sw_nach, return_value=True),
+    ):
+        ebene.Document = types.SimpleNamespace(recompute=lambda: gerechnet.append(True))
+        gui_bearbeitung._grundjob_nachziehen(ebene)
+    h.pruefe(gerechnet == [True] and "Touched" in flanke_op.State, "der Grundjob rechnet nicht neu")
+    doc.recompute()
     yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300

@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-07-02 grundjob-nach-der-ebene
+
+### EINGELESEN
+- Im Assistenten entstehen Flanke und 3D-Schlichten an der G550 vor dem Räumen der Ebene: `flanke_frei` sah
+  dann das volle Rohteil, und die Wege blieben langsam, bis jemand neu rechnete.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `_grundjob_nachziehen`, gerufen nach dem letzten „Anlegen“ der Kette.
+- `tests/gui/szenario_flanke.py`: prüft, wann der Grundjob neu rechnet.
+
+### ERGEBNIS
+- `szenario_flanke` grün. Am Teil „tief“ im echten Ablauf nicht gesehen: Das alte Szenario dazu kommt nicht
+  bis zum Anlegen (Wartebedingungen vom 30.10.).
 ## P-2026-11-07-01 absatz-folge-im-szenario
 
 ### EINGELESEN
