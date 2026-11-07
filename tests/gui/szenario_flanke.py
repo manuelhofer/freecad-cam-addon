@@ -8,8 +8,8 @@
 # einer Achse. „Auf der Maschine prüfen“: A steht auf −10°, nichts über die Grenzen.
 import math
 import os
-import types
 import tempfile
+import types
 
 import FreeCAD
 import FreeCADGui as Gui
@@ -207,15 +207,16 @@ def schritte(h):
 
     ebene = types.SimpleNamespace(Grundjob=job, Document=doc)
     flanke_op = ops[0]
-    sw_ist, sw_nach = "ist_ebene", "nach_den_ebenen"
-    with mock.patch.object(schwenken, sw_ist, return_value=True):
-        with mock.patch.object(schwenken, sw_nach, return_value=False):
-            gui_bearbeitung._grundjob_nachziehen(ebene)
-            h.pruefe("Touched" not in flanke_op.State, "ohne „nach den Ebenen“ rechnet nichts neu")
+    with (
+        mock.patch.object(schwenken, "ist_ebene", return_value=True),
+        mock.patch.object(schwenken, "nach_den_ebenen", return_value=False),
+    ):
+        gui_bearbeitung._grundjob_nachziehen(ebene)
+    h.pruefe("Touched" not in flanke_op.State, "ohne „nach den Ebenen“ rechnet nichts neu")
     gerechnet = []
     with (
-        mock.patch.object(schwenken, sw_ist, return_value=True),
-        mock.patch.object(schwenken, sw_nach, return_value=True),
+        mock.patch.object(schwenken, "ist_ebene", return_value=True),
+        mock.patch.object(schwenken, "nach_den_ebenen", return_value=True),
     ):
         ebene.Document = types.SimpleNamespace(recompute=lambda: gerechnet.append(True))
         gui_bearbeitung._grundjob_nachziehen(ebene)
