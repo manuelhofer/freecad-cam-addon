@@ -81,9 +81,14 @@ def schritte(h):
     )
     liste = [panel.flaechen_liste.item(i).text() for i in range(panel.flaechen_liste.count())]
     h.pruefe(any(boden in z and "Absatz" in z for z in liste), f"Liste: {liste}")
-    # Die schnellere Folge hat die Haken: Planfräsen der Oberseite und die Kontur, die den Absatz
-    # an der Wand herausarbeitet – oder Räumen über beides und die Kontur nur das Aufmaß.
-    h.pruefe(plan.aktiv() != raeumen.aktiv(), "Planfräsen und Räumen: beide oder keins angehakt")
+    # Die schnellere Folge hat die Haken (gui_bearbeitung._folge): Räumen über beides – oder das
+    # Planfräsen der Oberseite und das Räumen nur des Absatzes; die Kontur nimmt das Aufmaß. Die
+    # beiden liegen hier nur 2 % auseinander (seit 0.348.2 vorn: die Folge mit dem Planfräsen).
+    h.pruefe(raeumen.aktiv(), "Räumen: kein Haken")
+    h.pruefe(
+        panel._raeumen_boeden == ([boden] if plan.aktiv() else None),
+        f"Räumen nimmt mit Planfräsen {plan.aktiv()}: {panel._raeumen_boeden}",
+    )
     h.pruefe(kontur.aktiv(), "Kontur: kein Haken")
     zeiten = f"Planfräsen {plan.zeit} min, Räumen {raeumen.zeit} min"
     h.pruefe(bool(plan.zeit) and bool(raeumen.zeit), zeiten)

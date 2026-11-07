@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-07-01 absatz-folge-im-szenario
+
+### EINGELESEN
+- `szenario_absatz` rot seit 0.348.2: Planfräsen und Räumen beide angehakt. Das ist die Folge aus
+  `gui_bearbeitung._folge` („Räumen über alles wäre 2 % langsamer“), keine Doppelarbeit: Das Räumen nimmt nur
+  den Absatz. Die schnelleren Freiwege haben den Vergleich gekippt.
+
+### DATEIEN
+- `tests/gui/szenario_absatz.py`: prüft die Folge statt „entweder oder“.
+
+### ERGEBNIS
+- `szenario_absatz` grün. Geprüft: 142/142 Prüfungen und 161 Szenarien auf 0.348.3, die übrigen 20
+  Szenarien auf 0.349.2 (`szenario_vierachs_vorschlichten` nur unter Last rot, allein grün), dazu auf
+  0.349.2 `test_flanke`, `test_hinterschnitt_bahn`, `test_schlichten3d`, `test_goldene_bahnen`,
+  `test_simultan_planung`, `test_testteil`, `test_freiwege`, `szenario_flanke`, `szenario_flanke_halter`.
 ## P-2026-11-06-21 luft-in-der-flanke
 
 ### EINGELESEN
