@@ -145,8 +145,12 @@ def schritte(h):
         f"Länge ab Spindelnase {gespeichert.laenge_spindelnase} (vorher {laenge})",
     )
     flanke = panel.flanke
+    # Bis der Hinweis weg ist: Die neue Vorschau beginnt erst etwas später, die alte steht noch da.
     yield from h.warte_auf(
-        lambda: not panel.vorschau_laeuft() and flanke.vorschau is not None, 300000
+        lambda: not panel.vorschau_laeuft()
+        and flanke.vorschau is not None
+        and not flanke.hinweis.text(),
+        120000,
     )
     h.pruefe(
         flanke.vorschau is not None and not flanke.hinweis.text(),
