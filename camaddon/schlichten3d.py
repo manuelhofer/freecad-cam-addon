@@ -164,6 +164,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyEnumeration", "Kippachse", tr("an.eigenschaft.kippachse")),
             ("App::PropertyVectorList", "Werkzeugachsen", tr("an.eigenschaft.achsen")),
             ("App::PropertyBool", "Wegkippen", tr("wk.eigenschaft.wegkippen")),
+            ("App::PropertyString", "MaterialDavor", tr("ms.eigenschaft.materialstand")),
             ("App::PropertyAngle", "WegkippenBis", tr("wk.eigenschaft.bis")),
             ("App::PropertyLength", "SpielHalter", tr("wk.eigenschaft.spiel_halter")),
             ("App::PropertyLength", "SpielSchaft", tr("wk.eigenschaft.spiel_schaft")),
@@ -186,6 +187,7 @@ class Schlichten3D(PathOp.ObjectOp):
         for name in ("Zeilen", "Hoehenlinien", "Umlaeufe", "Abstand"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Werkzeugachsen", 2)  # gerechnet, je Satz – nicht zum Ansehen
+        obj.setEditorMode("MaterialDavor", 2)  # woraus gerechnet (gui_materialstand)
         # BahnGrathoehe sichtbar und änderbar (Manuel, 2026-10-09: „die Auflösung bei jeder
         # Strategie einstellbar“): die Grathöhe, für die die Bahn gerechnet wird; 0 = Grathöhe.
         obj.setEditorMode("BahnGrathoehe", 0)
@@ -306,6 +308,7 @@ def _im_material_langsam(obj, job, punkte, achsen):
     from . import flanke as fl
     from . import flanke_frei as fr
 
+    setattr(obj, fl.MATERIAL_DAVOR, fl.material_kennung(obj, job))
     form, schneide = fl.form_und_schneide(obj.ToolController)
     gitter = fl.material_vor(obj, job) if form is not None else None
     if gitter is None:

@@ -578,9 +578,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
-- *Korrektur (0.349.3):* Nach der letzten Ebene rechnen die simultanen Operationen des Grundjobs neu
-  (`gui_bearbeitung._grundjob_nachziehen`): An der G550 entstehen sie vor dem Räumen der Ebene und sahen
-  das volle Rohteil.
+- *Korrektur (0.349.4):* Flanke und 3D-Schlichten unter dem Rand hängen am Wächter des Materialstands
+  (`gui_materialstand`, Eigenschaft `MaterialDavor`): Ändert sich das Material davor – auch in einer
+  Ebene –, rechnen sie neu. So sehen sie das Räumen, das an der G550 erst nach ihnen angelegt wird, und
+  nichts bleibt schnell, wenn es gelöscht wird (ersetzt das Nachrechnen aus 0.349.3).
 - *Korrektur (0.349.2):* **Luft in der Flanke, B-028:** Die Flanke nimmt Wege durch die Luft schnell
   (`flanke_frei`, Manuel, 2026-11-06: „da fuhr er oben ziemlich lang in der luft“): am Teil „tief“
   Vorschubweg 3350 → 1837 mm, Luft 1122 → 217 mm. Die Umläufe an der Wand bleiben im Vorschub.

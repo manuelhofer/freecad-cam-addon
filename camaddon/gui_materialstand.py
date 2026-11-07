@@ -16,6 +16,7 @@ Vorgänger. Wie in FreeCAD selbst ohne eigenen Schritt Rückgängig: Neuberechne
 import FreeCAD
 from PySide import QtCore
 
+from . import flanke as fl
 from . import job_schnittwerte as js
 from . import materialstand as mst
 from . import uhren
@@ -68,6 +69,14 @@ def nachrechnen(dokument):
                 op.touch()
                 op.recompute()
             neu.append(ziel)  # ihre Kennung rechnet die nächste, die sie braucht
+    # Danach die simultanen: Sie lesen das Material auch aus den Ebenen, und die sind jetzt fertig.
+    for job in js.jobs(dokument):
+        for op in mst.operationen_vor(job):
+            gemerkt = getattr(op, fl.MATERIAL_DAVOR, "")
+            if gemerkt and gemerkt != fl.material_kennung(op, job):
+                op.touch()
+                op.recompute()
+                neu.append(op)
     return neu
 
 

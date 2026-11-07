@@ -9,7 +9,6 @@
 import math
 import os
 import tempfile
-import types
 
 import FreeCAD
 import FreeCADGui as Gui
@@ -43,7 +42,13 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import PARAMETER_PFAD, beispielmaschine, gui_bearbeitung, gui_reichweite
+    from camaddon import (
+        PARAMETER_PFAD,
+        beispielmaschine,
+        gui_bearbeitung,
+        gui_materialstand,
+        gui_reichweite,
+    )
     from camaddon import flanke as flop
     from camaddon import flanke_bahn as fb
     from camaddon import maschinenspeicher as msp
@@ -199,29 +204,18 @@ def schritte(h):
         h.bild("5_abgetragen")
     pruef.reject()
     yield 500
-    # Nach dem Anlegen einer Ebene rechnet der Grundjob an der G550 neu: Vorher sah die Flanke das
-    # volle Rohteil (gui_bearbeitung._grundjob_nachziehen).
-    from unittest import mock
-
-    from camaddon import gui_bearbeitung, schwenken
-
-    ebene = types.SimpleNamespace(Grundjob=job, Document=doc)
+    # Ändert sich das Material davor, rechnet die Flanke neu – sonst führe ihr Eilgang dorthin, wo
+    # jetzt doch Material steht (gui_materialstand, flanke.material_kennung).
     flanke_op = ops[0]
-    with (
-        mock.patch.object(schwenken, "ist_ebene", return_value=True),
-        mock.patch.object(schwenken, "nach_den_ebenen", return_value=False),
-    ):
-        gui_bearbeitung._grundjob_nachziehen(ebene)
-    h.pruefe("Touched" not in flanke_op.State, "ohne „nach den Ebenen“ rechnet nichts neu")
-    gerechnet = []
-    with (
-        mock.patch.object(schwenken, "ist_ebene", return_value=True),
-        mock.patch.object(schwenken, "nach_den_ebenen", return_value=True),
-    ):
-        ebene.Document = types.SimpleNamespace(recompute=lambda: gerechnet.append(True))
-        gui_bearbeitung._grundjob_nachziehen(ebene)
-    h.pruefe(gerechnet == [True] and "Touched" in flanke_op.State, "der Grundjob rechnet nicht neu")
-    doc.recompute()
+    soll = flop.material_kennung(flanke_op, job)
+    h.pruefe(
+        bool(soll) and flanke_op.MaterialDavor == soll, "die Flanke merkt sich ihr Material nicht"
+    )
+    flanke_op.MaterialDavor = "vorher"
+    neu = gui_materialstand.nachrechnen(doc)
+    h.pruefe(flanke_op in neu, f"die Flanke rechnet nicht neu: {[o.Label for o in neu]}")
+    h.pruefe(flanke_op.MaterialDavor == soll, "die Flanke rechnet, merkt es sich aber nicht")
+    h.pruefe(not gui_materialstand.nachrechnen(doc), "die Flanke rechnet ohne Änderung neu")
     yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300

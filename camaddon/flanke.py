@@ -37,6 +37,7 @@ GRUPPE = "Fräsen"
 GRUPPE_5ACHS = "5-Achs"
 KEINE = (0.0, 0.0, 0.0)  # in `Werkzeugachsen`: ein Satz ohne Bewegung
 BOEGEN = ("G2", "G02", "G3", "G03")
+MATERIAL_DAVOR = "MaterialDavor"  # woraus die schnellen Wege gerechnet sind (material_kennung)
 
 
 class Flanke(PathOp.ObjectOp):
@@ -78,6 +79,12 @@ class Flanke(PathOp.ObjectOp):
             ("App::PropertyInteger", "Lagen", GRUPPE, tr("fl.eigenschaft.lagen")),
             ("App::PropertyLength", "Schneide", GRUPPE_5ACHS, tr("fl.eigenschaft.schneide")),
             (
+                "App::PropertyString",
+                MATERIAL_DAVOR,
+                GRUPPE_5ACHS,
+                tr("ms.eigenschaft.materialstand"),
+            ),
+            (
                 "App::PropertyVectorList",
                 "Werkzeugachsen",
                 GRUPPE_5ACHS,
@@ -94,6 +101,7 @@ class Flanke(PathOp.ObjectOp):
         for name in ("Umlaeufe", "Lagen", "Schneide"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Werkzeugachsen", 2)  # gerechnet, je Satz – nicht zum Ansehen
+        obj.setEditorMode(MATERIAL_DAVOR, 2)  # woraus gerechnet (gui_materialstand)
 
     @uhren.atmend_rechnen
     def opExecute(self, obj):
@@ -204,9 +212,27 @@ def form_und_schneide(tc):
     return form, schneide if schneide > 0 else 4.0 * float(form.radius)
 
 
+def material_kennung(obj, job):
+    """Woraus material_vor rechnet: das Rohteil und die Bahnen davor, auch die der Ebenen. Stimmt
+    sie nicht mehr, rechnet gui_materialstand die Operation neu – sonst führe ihr Eilgang dorthin,
+    wo jetzt doch Material steht. "" ohne Rohteil."""
+    from . import materialstand as mst
+    from . import schwenken as sw
+
+    try:
+        anfang = mst._rohteil_kennung(job)
+    except ValueError:
+        return ""
+    ebenen = sw.ebenen_von(job) if sw.nach_den_ebenen(job) else []
+    davor = [op for ebene in ebenen for op in mst.operationen_vor(ebene)]
+    davor += mst.operationen_vor(job, obj)
+    return "|".join([anfang] + [mst._kennung_op(op) for op in davor])
+
+
 def _ohne_luft(obj, job, punkte, schneide):
     """Die Stellen der Bahn, die Wege durch die Luft schnell (flanke_frei) – unverändert, wenn das
     Material nicht sicher zu lesen ist."""
+    setattr(obj, MATERIAL_DAVOR, material_kennung(obj, job))
     gitter = material_vor(obj, job)
     if gitter is None:
         return punkte

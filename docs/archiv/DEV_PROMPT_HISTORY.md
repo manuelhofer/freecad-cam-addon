@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-07-03 flanke-am-waechter
+
+### EINGELESEN
+- Die neuen Eilgänge der Flanke hängen vom Material davor ab. Der Wächter (`gui_materialstand`) kannte sie
+  nicht: Hätte man das Räumen später gelöscht, wären sie geblieben.
+
+### DATEIEN
+- `camaddon/flanke.py`: `MATERIAL_DAVOR`, `material_kennung` (mit den Bahnen der Ebenen).
+- `camaddon/schlichten3d.py`: dieselbe Eigenschaft für die Bahn unter dem Rand.
+- `camaddon/gui_materialstand.py`: rechnet sie nach den Jobs neu.
+- `camaddon/gui_bearbeitung.py`: `_grundjob_nachziehen` wieder weg, der Wächter erledigt das.
+- `tests/gui/szenario_flanke.py`: prüft das Neurechnen.
+
+### ERGEBNIS
+- Am Teil „tief“ im Beta-Ablauf gesehen (Kopie, `szenario_tief_luft` in `wip`): Flanke 154 mm Luft, 4:06 min.
+  Räumen gelöscht: Der Wächter rechnet neu, schnelle Sätze 1270 → 0. 39 Eilgänge bleiben dort, wo das
+  3D-Schlichten davor gefahren ist; ohne Räumen führe schon das ins Volle, das zeigt „Auf der Maschine prüfen“.
 ## P-2026-11-07-02 grundjob-nach-der-ebene
 
 ### EINGELESEN
