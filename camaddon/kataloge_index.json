@@ -92,6 +92,10 @@
    "groesse": 694787,
    "sha256": "16f7d8ffa90ae735e0d6160563b0b8eb57a96cc9180ddf8b3f9974390fcc5b39"
   },
+  "werkzeugkiste_daten/wendeplattenbohrer_sandvik.json": {
+   "groesse": 516023,
+   "sha256": "fcdc35bf7dd7107b56d7ba59b908cadb2cfb552a8b8340ad8cf589dd4cc6d742"
+  },
   "werkzeugkiste_daten/zecha_union.json": {
    "groesse": 5356851,
    "sha256": "a09b670e65528c8e8bc06770802759573ac6388bb5f86339f1f1547f606d83c7"

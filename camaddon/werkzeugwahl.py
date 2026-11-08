@@ -391,11 +391,28 @@ def _helix_passt(werkzeug, frei):
     return frei >= d_min - 1e-6
 
 
-def _vorbohren_vorzug(werkzeug):
-    """Bei gleichem Ø: erst der Wendeplattenbohrer, dann der kürzere (ein HSS-Bohrer mit
-    Morsekegel, 422 mm lang, ist an der Fräse selten die Wahl)."""
-    laenge = werkzeug.gesamtlaenge or werkzeug.schneidenlaenge or 1e9
-    return (0 if werkzeug.faehigkeiten.get("wendeplatten") else 1, laenge)
+def _vorbohren_vorzug(eigene):
+    """Der Schlüssel bei gleichem Ø: erst der Wendeplattenbohrer, dann ein Hersteller, von dem schon
+    Werkzeuge in der Werkzeugverwaltung stehen (Manuel, 2026-11-08: „ich hab halt sandvik“), dann
+    der mit der kürzeren nutzbaren Bohrtiefe – ein HSS-Bohrer mit Morsekegel, 422 mm lang, ist an der
+    Fräse selten die Wahl. Die Bohrtiefe zuerst, weil nicht jeder Katalog die Gesamtlänge nennt."""
+    bekannt = {_hersteller(w) for w in eigene} - {""}
+
+    def vorzug(werkzeug):
+        laenge = werkzeug.schneidenlaenge or werkzeug.gesamtlaenge or 1e9
+        return (
+            0 if werkzeug.faehigkeiten.get("wendeplatten") else 1,
+            0 if _hersteller(werkzeug) in bekannt else 1,
+            laenge,
+        )
+
+    return vorzug
+
+
+def _hersteller(werkzeug):
+    """Der Hersteller, klein und ohne Zusatz („Sandvik Coromant“ → „sandvik“)."""
+    text = str(getattr(werkzeug, "hersteller", "") or "").strip().lower()
+    return text.split()[0] if text else ""
 
 
 def vorschlaege(m, eigene, katalog=None):
@@ -408,7 +425,7 @@ def vorschlaege(m, eigene, katalog=None):
         return ergebnis
     bohrer = _vorschlag(
         "vorbohren", (wz.BOHRER,), m.frei - 2 * RAND, m.tiefe, eigene, katalog,
-        vorzug=_vorbohren_vorzug,
+        vorzug=_vorbohren_vorzug(eigene),
     )  # fmt: skip
     schruppen = _vorschlag("schruppen", FRAESER, SCHRUPPEN_ANTEIL * m.frei, 0.0, eigene, katalog)
     ecken = None

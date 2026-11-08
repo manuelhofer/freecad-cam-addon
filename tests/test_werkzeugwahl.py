@@ -89,6 +89,23 @@ tf = v.get("tauchfraesen")
 if tf is None or tf.eigenes is not None or [w.durchmesser for w in tf.katalog] != [32, 31, 30]:
     fehler.append(f"tauchfraesen: {tf}")
 
+
+# Bei gleichem Ø der Wendeplattenbohrer eines Herstellers, von dem schon Werkzeuge da sind.
+def von(hersteller, d, schneide=30.0):
+    w = werkzeug(wz.BOHRER, d, schneide, wendeplatten=True)
+    w.hersteller = hersteller
+    return w
+
+
+eigener = werkzeug(wz.SCHAFTFRAESER, 12)
+eigener.hersteller = "Sandvik Coromant"
+vb = {
+    x.weg: x
+    for x in ww.vorschlaege(m, [eigener], [von("Walter", 36, 20.0), von("Sandvik Coromant", 36)])
+}.get("vorbohren")
+if vb is None or vb.katalog[0].hersteller != "Sandvik Coromant":
+    fehler.append(f"vorbohren, bekannter Hersteller: {vb}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

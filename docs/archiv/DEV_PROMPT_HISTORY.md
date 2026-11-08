@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-08-06 sandvik-wendeplattenbohrer
+
+### EINGELESEN
+- Manuel, 2026-11-08: „egal von wehm ich hab halt sandvik“. Der Sammler für Sandvik ist fertig.
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/wendeplattenbohrer_sandvik.json` (neu): 39 Reihen, 1229 Größen – CoroDrill 880
+  (591, metrisch, Zoll, Capto, Großdurchmesser mit Kassetten), 881 (54), DS20 (386), Wechselkopf 870 (198
+  Grundkörper). Quellen: sandvik.coromant.com Produktsuche und -seiten, DS20-Katalog 2023; ISO 13399 DC/LU/OAL/
+  DCONMS; 880 mit `bohrfraesen` (Sandvik nennt „Helical interpolation“). Keine Sperre.
+- `camaddon/werkzeugwahl.py`: Vorbohren bei gleichem Ø – Wendeplattenbohrer, dann ein Hersteller, von dem
+  schon Werkzeuge in der Werkzeugverwaltung stehen, dann die kürzere nutzbare Bohrtiefe (statt der
+  Gesamtlänge: die fehlt bei Kennametal Drill Fix).
+- `tests/test_werkzeugwahl.py`, `camaddon/kataloge_index.json`.
+
+### ERGEBNIS
+- Ohne Fehler, Dubletten, Hinweise übernommen; `test_werkzeugkiste`, `test_werkzeugkiste_datei`,
+  `test_werkzeugwahl` grün.
+- Tasche „tief“ (Ø 58): vorn ein Wendeplattenbohrer Ø 58; Sandvik vorn, sobald Sandvik-Werkzeuge in der
+  Werkzeugverwaltung stehen (Manuels Liste hat zurzeit Jongen und Hoffmann).
 ## P-2026-11-08-05 wendeplattenbohrer-sechs-hersteller
 
 ### EINGELESEN
