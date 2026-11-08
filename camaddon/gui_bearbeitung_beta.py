@@ -1089,7 +1089,8 @@ class BetaPanel(BearbeitungPanel):
         elif ergebnis is not False and job is not None and fertig_zeigen_an():
             neu = {o.Name for o in job.Operations.Group} - vorher
             if neu:
-                QtCore.QTimer.singleShot(300, lambda: _fertig_oeffnen(job, neu))
+                _FERTIG.append((job, neu))
+                QtCore.QTimer.singleShot(300, _fertig_wenn_frei)
         return ergebnis
 
     def reject(self):
@@ -1570,6 +1571,32 @@ def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None, korrigieren=False)
 
 def fertig_zeigen_an():
     return FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(FERTIG_ZEIGEN, True)
+
+
+_FERTIG = []  # (Job, neue Operationen) – das Fenster „Angelegt“, sobald die Kette durch ist
+RUHIG_TAKTE = 3  # so oft hintereinander frei (je 500 ms), dann kommt das Fenster „Angelegt“
+
+
+def _fertig_wenn_frei(ruhig=0):
+    """Das Fenster „Angelegt“ erst, wenn kein Assistent mehr offen ist und keine Ebene der Kette
+    mehr kommt (Manuel, 2026-11-08, an der G550: „ich hab auf maschine prüfen gedrückt geendet bin
+    ich hier bei der nächsten aufspannung oder was soll das nun sein ??“ – das Fenster kam mit der
+    Ebene „von oben“ zugleich). Die nächste Ebene öffnet sich mit einer Verzögerung: Erst nach
+    RUHIG_TAKTE freien Takten hintereinander gilt die Kette als durch. Dann je Job ein Fenster."""
+    from .gui_bearbeitung import _FOLGE
+
+    if not _FERTIG:
+        return
+    if FreeCADGui.Control.activeDialog() or _FOLGE:
+        QtCore.QTimer.singleShot(500, _fertig_wenn_frei)
+        return
+    if ruhig < RUHIG_TAKTE:
+        QtCore.QTimer.singleShot(500, lambda: _fertig_wenn_frei(ruhig + 1))
+        return
+    offen = list(_FERTIG)
+    _FERTIG.clear()
+    for job, neu in offen:
+        _fertig_oeffnen(job, neu)
 
 
 def _fertig_oeffnen(job, neu):

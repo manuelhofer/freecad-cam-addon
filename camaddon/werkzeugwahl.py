@@ -13,7 +13,10 @@ senkrechten Rundungen (größer darf der Schlichtfräser nicht sein). `vorschlae
 katalog)` sucht je Weg das größte passende Werkzeug – erst unter den eigenen, dann im Katalog, wenn
 dort ein größeres steht:
 
-- **vorbohren:** Bohrer, Ø höchstens der freie Kreis minus Rand, so lang wie die Tasche tief,
+- **vorbohren:** Bohrer, auch Wendeplattenbohrer (sie bohren ins Volle – Manuel, 2026-11-08: „warum
+  is da kein sandvik dabei ? also so wendeplatten bohrer“; bis 0.350.1 waren sie hier ausgenommen und
+  es kamen HSS-Bohrer mit Morsekegel, 422 mm lang), Ø höchstens der freie Kreis minus Rand, so lang
+  wie die Tasche tief; bei gleichem Ø zuerst der Wendeplattenbohrer, dann der kürzere,
 - **schruppen:** Schaft-, Torus- und Hochvorschubfräser, Ø höchstens 80 % des freien Kreises (die
   Länge zählt nicht: er schruppt in Lagen),
 - **ecken:** Fräser für die Rundungen, Ø höchstens 2 × der kleinste Innenradius,
@@ -337,8 +340,9 @@ _KATALOG = []
 _KATALOG_SPERRE = threading.Lock()
 
 
-def _passend(werkzeuge, arten, grenze, tiefe, bedingung=None):
-    """Die Werkzeuge der Arten bis Ø `grenze`, die `tiefe` erreichen, nach Ø absteigend."""
+def _passend(werkzeuge, arten, grenze, tiefe, bedingung=None, vorzug=None):
+    """Die Werkzeuge der Arten bis Ø `grenze`, die `tiefe` erreichen, nach Ø absteigend – bei
+    gleichem Ø nach `vorzug` (ein Schlüssel, kleiner zuerst)."""
     gut = []
     for w in werkzeuge:
         if w.art not in arten or not w.durchmesser or w.durchmesser > grenze + 1e-6:
@@ -349,17 +353,17 @@ def _passend(werkzeuge, arten, grenze, tiefe, bedingung=None):
         if bedingung is not None and not bedingung(w):
             continue
         gut.append(w)
-    return sorted(gut, key=lambda w: -w.durchmesser)
+    return sorted(gut, key=lambda w: (-w.durchmesser, vorzug(w) if vorzug else 0))
 
 
-def _vorschlag(weg, arten, grenze, tiefe, eigene, katalog, bedingung=None):
+def _vorschlag(weg, arten, grenze, tiefe, eigene, katalog, bedingung=None, vorzug=None):
     if grenze <= 0:
         return None
-    mein = _passend(eigene, arten, grenze, tiefe, bedingung)
+    mein = _passend(eigene, arten, grenze, tiefe, bedingung, vorzug)
     eigenes = mein[0] if mein else None
     groesser = [
         w
-        for w in _passend(katalog, arten, grenze, tiefe, bedingung)
+        for w in _passend(katalog, arten, grenze, tiefe, bedingung, vorzug)
         if eigenes is None or w.durchmesser > eigenes.durchmesser + 1e-6
     ]
     # Je Ø nur einer, die größten zuerst, höchstens drei.
@@ -387,6 +391,13 @@ def _helix_passt(werkzeug, frei):
     return frei >= d_min - 1e-6
 
 
+def _vorbohren_vorzug(werkzeug):
+    """Bei gleichem Ø: erst der Wendeplattenbohrer, dann der kürzere (ein HSS-Bohrer mit
+    Morsekegel, 422 mm lang, ist an der Fräse selten die Wahl)."""
+    laenge = werkzeug.gesamtlaenge or werkzeug.schneidenlaenge or 1e9
+    return (0 if werkzeug.faehigkeiten.get("wendeplatten") else 1, laenge)
+
+
 def vorschlaege(m, eigene, katalog=None):
     """[Vorschlag] je Weg, für die Tasche mit den Maßen `m`; `eigene`: die Werkzeuge der
     Werkzeugverwaltung, `katalog`: die des Katalogs (ohne: katalog_werkzeuge())."""
@@ -397,7 +408,7 @@ def vorschlaege(m, eigene, katalog=None):
         return ergebnis
     bohrer = _vorschlag(
         "vorbohren", (wz.BOHRER,), m.frei - 2 * RAND, m.tiefe, eigene, katalog,
-        lambda w: not w.faehigkeiten.get("wendeplatten"),
+        vorzug=_vorbohren_vorzug,
     )  # fmt: skip
     schruppen = _vorschlag("schruppen", FRAESER, SCHRUPPEN_ANTEIL * m.frei, 0.0, eigene, katalog)
     ecken = None

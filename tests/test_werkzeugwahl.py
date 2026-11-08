@@ -1,8 +1,8 @@
 # Prüft werkzeugwahl (Plan C2): eine Tasche 60 × 40, 15 tief, senkrechte Ecken R 5, Boden eben.
 # 1. masse: Tiefe 15, freier Kreis Ø ≈ 40, kleinster Innenradius 5.
 # 2. vorschlaege mit eigenen Werkzeugen (Bohrer Ø 10/20/38, 38 nur 10 mm Schneide; Fräser Ø 12/28)
-#    und einem kleinen Katalog: vorbohren der eigene Ø 20 (Ø 38 ist zu kurz), aus dem Katalog der
-#    größere Ø 36; schruppen der eigene Ø 28 (bis 80 % des freien Kreises); ecken (bis Ø 10) nichts Eigenes, aus dem Katalog Ø 10
+#    und einem kleinen Katalog: vorbohren der eigene Ø 20 (Ø 38 ist zu kurz), aus dem Katalog die
+#    größeren Ø 36, 31, 30 – auch Wendeplattenbohrer, bei gleichem Ø (36) der Wendeplattenbohrer; schruppen der eigene Ø 28 (bis 80 % des freien Kreises); ecken (bis Ø 10) nichts Eigenes, aus dem Katalog Ø 10
 #    und Ø 8; bohrfraesen nur der Fräser, der laut Hersteller helikal ins Volle darf (Ø 25, Fenster
 #    Ø 30–45 um den freien Kreis; der mit Fenster ab Ø 50 nicht); tauchfraesen der Tauchfräser und der Wendeplattenbohrer mit Brillenbohrung
 #    (Ø 32 im Katalog, kein eigener; der Ø 50 passt nicht in den freien Kreis).
@@ -54,7 +54,8 @@ eigene = [
     werkzeug(wz.SCHAFTFRAESER, 28),
 ]
 katalog = [
-    werkzeug(wz.BOHRER, 36),
+    werkzeug(wz.BOHRER, 36, schneide=235.0),
+    werkzeug(wz.BOHRER, 36, wendeplatten=True),
     werkzeug(wz.BOHRER, 30, wendeplatten=True, bohrverwendung=["brillenbohrung"]),
     werkzeug(wz.SCHAFTFRAESER, 25, bohrfraesen=True, helix_d_min=30.0, helix_d_max=45.0),
     werkzeug(wz.SCHAFTFRAESER, 26, bohrfraesen=True, helix_d_min=50.0, helix_d_max=60.0),
@@ -67,8 +68,14 @@ katalog = [
 ]
 v = {x.weg: x for x in ww.vorschlaege(m, eigene, katalog)}
 vb = v.get("vorbohren")
-if vb is None or vb.eigenes.durchmesser != 20 or [w.durchmesser for w in vb.katalog] != [36]:
+if (
+    vb is None
+    or vb.eigenes.durchmesser != 20
+    or [w.durchmesser for w in vb.katalog] != [36, 31, 30]
+):
     fehler.append(f"vorbohren: {vb}")
+elif not vb.katalog[0].faehigkeiten.get("wendeplatten"):
+    fehler.append("vorbohren Ø 36: nicht der Wendeplattenbohrer")
 sr = v.get("schruppen")
 if sr is None or sr.eigenes.durchmesser != 28:
     fehler.append(f"schruppen: {sr}")

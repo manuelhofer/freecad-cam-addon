@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-08-03 vorbohren-wendeplatten-angelegt-spaeter
+
+### EINGELESEN
+- Manuel, 2026-11-08, mit Bild der Zeile „Vorbohren“ (Gühring 229 58.000, Gühring 245 57.500, YG-1
+  D1211216): „warum is da kein sandvik dabei ? also so wendeplatten bohrer .. oder sind das wendeplatten
+  bohrer ? ...“ – Nein: HSS-Spiralbohrer mit Morsekegel, 422 mm lang. Wendeplattenbohrer waren beim
+  Vorbohren ausgenommen (seit 0.327.0). Sandvik hat in den Daten nur Vollhartmetallbohrer (CoroDrill
+  Dura 462, 860), keine Wendeplattenbohrer (CoroDrill 880 fehlt).
+- Manuel, 2026-11-08, mit Bild nach „Anlegen“ an der G550: „ich hab auf maschine prüfen gedückt geendet
+  bin ich hier bei der nächsten aufspannung oder was soll das nun sein ??“ – Das Fenster „Angelegt“ kam
+  zugleich mit dem Assistenten der Ebene „von oben“.
+
+### DATEIEN
+- `camaddon/werkzeugwahl.py`: Vorbohren mit Wendeplattenbohrern; bei gleichem Ø erst der
+  Wendeplattenbohrer, dann der kürzere (`_vorbohren_vorzug`).
+- `camaddon/gui_bearbeitung_beta.py`: „Angelegt“ erst, wenn die Kette durch ist (`_fertig_wenn_frei`).
+- `tests/test_werkzeugwahl.py`: Wendeplattenbohrer beim Vorbohren, Vorzug bei gleichem Ø.
+
+### ERGEBNIS
+- Tasche des Teils „tief“ (frei Ø 60, 50 tief): Vorbohren Seco SD522-58 (Wendeplattenbohrer Ø 58), dann
+  Gühring Ø 57,5 und YG-1 Ø 57,15.
+- Teil „tief“ an der G550 (Kopie, Szenario in `wip`): kein „Angelegt“, solange die Ebene offen ist,
+  danach eins. `test_werkzeugwahl`, `szenario_tauchfraesen`, `szenario_beta_schritte`,
+  `szenario_beta_tasche` grün.
 ## P-2026-11-08-02 abgebrochener-klon
 
 ### EINGELESEN
