@@ -578,6 +578,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.350.0):* **„Bearbeitung“ in Schritten ist der Standard** (Manuel, 2026-11-07: „definitiv“):
+  Aufspannung › Flächen › Schruppen › Löcher › Schlichten › Kanten. „Weiter bearbeiten“ und „Neue
+  Aufspannung“ in Leiste und Menü; das alte Fenster auf einer Seite mit dem Haken „„Bearbeitung“ im
+  alten Fenster“ in den Einstellungen (Gruppe „Updates“). Geprüft in den Schritten: Manuels Testteil
+  (sieben Arbeitsschritte – „Ganze Tasche“ nimmt die runde Wand Face12 mit, sie schlichtet „Bohrung
+  fräsen“), C-Ring „Alles aus dieser Aufspannung“, Drehmaschine, N-Eck.
 - *Korrektur (0.349.4):* Flanke und 3D-Schlichten unter dem Rand hängen am Wächter des Materialstands
   (`gui_materialstand`, Eigenschaft `MaterialDavor`): Ändert sich das Material davor – auch in einer
   Ebene –, rechnen sie neu. So sehen sie das Räumen, das an der G550 erst nach ihnen angelegt wird, und

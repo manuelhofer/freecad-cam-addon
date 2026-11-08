@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-08-01 schritte-als-standard
+
+### EINGELESEN
+- Manuel, 2026-11-07, zu „Sollten wir den neuen sozusagen als Standart machen und den alten als Option in
+  den Einstellungen??“: „definitiv .. aber vorher sag mir nochmal was ist das aktuell weekly build ?“ –
+  dann „ja go“. (Wochen-Build: weekly-2026.11.04, FreeCAD 27.1.0 dev vom 03.11., kein neuerer.)
+- Zwischendurch: „aber kann es sein das du schon wieder nu einen cpu nimmst ?“ – ja, die Szenarien liefen
+  nacheinander; danach parallel (sechs Szenarien, vier Prüfdateien, Speicherbremse).
+
+### ANTWORTEN
+- Frage 1 (Schritte als Standard): ja – umgesetzt in 0.350.0.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `BefehlBearbeitung.panel` öffnet die Schritte, außer mit „altes Fenster“.
+- `camaddon/gui_bearbeitung_beta.py`: `ALTES_FENSTER`, `altes_fenster()`, `altes_fenster_setzen()`; die
+  Beta-Leiste leer.
+- `camaddon/gui_start.py`: „Weiter bearbeiten“ und „Neue Aufspannung“ in Leiste und Menü.
+- `camaddon/gui_sprachwahl.py`: Haken „„Bearbeitung“ im alten Fenster“.
+- `translations/de.json`, `en.json`: ohne „(Beta)“, die neuen Texte.
+- `tests/gui/_lauf/szenario_lauf.py`: stellt für die Szenarien des alten Fensters das alte ein
+  (`NEUES_FENSTER` im Szenario oder `CAMADDON_NEUES_FENSTER`).
+- Neu: `szenario_bearbeitung_standard`, `szenario_schritte_testteil`, `szenario_schritte_cring_alles`,
+  `szenario_schritte_drehmaschine`. Angepasst: `szenario_erster_start` (16 Knöpfe, 23 Einträge),
+  `szenario_beta_schritte`, `szenario_beta_tasche` (keine Beta-Leiste mehr).
+- `docs/konzept_schritt_assistent.md`, `docs/OFFENE_FRAGEN.md`.
+
+### ERGEBNIS
+- Manuels Testteil in den Schritten: sieben Arbeitsschritte, „Auf der Maschine prüfen“ nirgends ins Teil.
+- Eine angeklickte Operation ändern öffnet weiter das alte Fenster mit nur ihr.
 ## P-2026-11-07-03 flanke-am-waechter
 
 ### EINGELESEN

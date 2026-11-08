@@ -1033,7 +1033,13 @@ class BefehlBearbeitung:
         return not FreeCADGui.Control.activeDialog()
 
     def panel(self, *args, **kwargs):
-        """Das Fenster, das der Befehl öffnet – die Beta (gui_bearbeitung_beta) nimmt ihr eigenes."""
+        """Das Fenster, das der Befehl öffnet: die Schritte (gui_bearbeitung_beta) – das alte Fenster
+        auf einer Seite nur mit dem Haken „Altes Fenster“ in den Einstellungen (Manuel, 2026-11-07:
+        „definitiv“ die Schritte als Standard, das alte als Option)."""
+        from . import gui_bearbeitung_beta as beta
+
+        if not beta.altes_fenster():
+            return beta.BefehlBearbeitungBeta().panel(*args, **kwargs)
         return BearbeitungPanel(*args, **kwargs)
 
     def Activated(self):

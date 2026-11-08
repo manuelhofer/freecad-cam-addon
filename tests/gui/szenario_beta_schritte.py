@@ -108,8 +108,10 @@ def schritte(h):
     h.pruefe(seite.beta_an.isChecked(), "der Haken „Beta-Funktionen zeigen“ ist nicht gesetzt")
     gui_start.beta_umgeschaltet()
     yield 500
+    # Seit 0.350.0 sind die Schritte „Bearbeitung“: Ihre Befehle stehen in der gewohnten Leiste,
+    # die Beta-Leiste bleibt leer und weg.
     leisten = Gui.getWorkbench("CAMWorkbench").listToolbars()
-    h.pruefe(beta.WERKZEUGLEISTE_NAME in leisten, f"keine Beta-Leiste: {leisten}")
+    h.pruefe(beta.WERKZEUGLEISTE_NAME not in leisten, f"Beta-Leiste da: {leisten}")
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(doc.Name, teil.Name, wand)
     yield 500

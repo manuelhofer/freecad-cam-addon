@@ -373,6 +373,14 @@ def starten():
     spec = importlib.util.spec_from_file_location("szenario", pfad)
     modul = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(modul)
+    # „Bearbeitung“ öffnet seit 0.350.0 die Schritte; die Szenarien des alten Fensters (die meisten)
+    # prüfen weiter das alte, wer die Schritte will, setzt NEUES_FENSTER = True.
+    from camaddon import PARAMETER_PFAD
+
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(
+        "AltesFensterBearbeitung",
+        not (getattr(modul, "NEUES_FENSTER", False) or os.environ.get("CAMADDON_NEUES_FENSTER")),
+    )
     helfer = Helfer()
     ablauf = modul.schritte(helfer)
     # Eine Ausnahme in einem Qt-Slot (etwa beim Umschalten eines Hakens) läuft an keinem

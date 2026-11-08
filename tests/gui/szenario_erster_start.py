@@ -113,8 +113,10 @@ def schritte(h):
     )
     knoepfe = [a.text() for a in leiste.actions() if not a.isSeparator()]
     h.pruefe(
-        len(knoepfe) == 14
+        len(knoepfe) == 16
         and "Bestückung" in knoepfe
+        and "Weiter bearbeiten" in knoepfe  # die Schritte als Standard (0.350.0)
+        and "Neue Aufspannung" in knoepfe
         and knoepfe[-1] == "Programm schreiben …"
         and knoepfe[4:6] == ["Halter und Aufnahmen …", "Spannmittel …"],
         f"Werkzeugleiste: {knoepfe}",
@@ -128,7 +130,8 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 21
+            len(eintraege) == 23
+            and "Weiter bearbeiten" in eintraege
             and eintraege[:2] == ["So geht’s", "Maschinen …"]
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege

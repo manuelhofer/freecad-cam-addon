@@ -237,6 +237,9 @@ class Einstellungsseite:
         self.beta_an = QtGui.QCheckBox(tr("einstellungen.beta.haken"))
         self.beta_an.setToolTip(tr("einstellungen.beta.hinweis"))
         self.gruppe_updates.layout().insertWidget(1, self.beta_an)
+        self.altes_fenster = QtGui.QCheckBox(tr("einstellungen.altes_fenster.haken"))
+        self.altes_fenster.setToolTip(tr("einstellungen.altes_fenster.hinweis"))
+        self.gruppe_updates.layout().insertWidget(2, self.altes_fenster)
 
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
@@ -274,6 +277,7 @@ class Einstellungsseite:
         from . import gui_bearbeitung_beta
 
         self.beta_an.setChecked(gui_bearbeitung_beta.beta_an())
+        self.altes_fenster.setChecked(gui_bearbeitung_beta.altes_fenster())
         from . import nebenrechner
 
         # Gespeichert heißt 0 „alle“ (ein Rechner mit mehr Kernen nimmt dann alle seine).
@@ -293,6 +297,7 @@ class Einstellungsseite:
         if self.beta_an.isChecked() != gui_bearbeitung_beta.beta_an():
             gui_bearbeitung_beta.beta_setzen(self.beta_an.isChecked())
             gui_start.beta_umgeschaltet()
+        gui_bearbeitung_beta.altes_fenster_setzen(self.altes_fenster.isChecked())
         from . import nebenrechner
 
         anzahl = self.wahl_nebenrechner.value()

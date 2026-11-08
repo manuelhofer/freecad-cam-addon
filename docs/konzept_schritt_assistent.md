@@ -14,6 +14,17 @@ Teil A beschreibt, was die Beta schon kann (zum Ausprobieren). Teil B enthält d
 die nächsten Stufen. Teil C nennt, was nur Manuel entscheiden kann; diese Fragen stehen auch in
 [OFFENE_FRAGEN.md](OFFENE_FRAGEN.md).
 
+## Seit 0.350.0: die Schritte sind „Bearbeitung“
+
+Manuel, 2026-11-07, auf die Frage, ob die Schritte der Standard werden und das alte Fenster eine Option:
+„definitiv“. Seitdem öffnet „Bearbeitung“ die Schritte; „Weiter bearbeiten“ und „Neue Aufspannung“ stehen
+in der gewohnten Leiste und im Menü „CAM-Addon“. Das alte Fenster auf einer Seite gibt es mit dem Haken
+„„Bearbeitung“ im alten Fenster“ (Einstellungen → CAM-Addon, Gruppe „Updates“). Eine angeklickte Operation
+ändern öffnet weiter das alte Fenster mit nur dieser Operation. Geprüft in den Schritten:
+`szenario_bearbeitung_standard`, `szenario_schritte_testteil` (Manuels Testteil W-013),
+`szenario_schritte_cring_alles` („Alles aus dieser Aufspannung“), `szenario_schritte_drehmaschine`, dazu das
+N-Eck. Die Szenarien des alten Fensters stellen es selbst ein (`NEUES_FENSTER` im Szenario-Läufer).
+
 ## A. Was die Beta 0.315.0 kann
 
 **Einschalten:** Bearbeiten → Einstellungen → CAM-Addon → Gruppe „Updates“ → „Beta-Funktionen

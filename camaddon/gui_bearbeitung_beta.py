@@ -63,8 +63,22 @@ FERTIG_ZEILEN = 14  # so viele Operationen zeigt es ohne Blättern
 KATALOG_NACHSEHEN_MS = 150  # „Was gäbe es im Katalog?“: so oft sehen, ob der Faden fertig ist
 
 
+ALTES_FENSTER = (
+    "AltesFensterBearbeitung"  # Parameter: „Bearbeitung“ öffnet das Fenster auf einer Seite
+)
+
+
 def beta_an():
     return FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(BETA_AN, False)
+
+
+def altes_fenster():
+    """Öffnet „Bearbeitung“ das alte Fenster auf einer Seite statt der Schritte? Vorgabe: nein."""
+    return FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(ALTES_FENSTER, False)
+
+
+def altes_fenster_setzen(an):
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(ALTES_FENSTER, bool(an))
 
 
 def beta_setzen(an):
@@ -1783,14 +1797,16 @@ BEFEHLE = {
     "CamAddon_NeueAufspannungBeta": BefehlNeueAufspannung,
 }
 WERKZEUGLEISTE_NAME = "CAM-Addon Beta"
-WERKZEUGLEISTE = list(BEFEHLE)
+# Die Schritte sind seit 0.350.0 der Assistent „Bearbeitung“; „Weiter bearbeiten“ und „Neue
+# Aufspannung“ stehen in der gewohnten Leiste. Hier kommt, was wieder neu zum Ausprobieren ist.
+WERKZEUGLEISTE = []
 
 
 def leiste_anhaengen(arbeitsbereich):
     """Hängt die Beta-Leiste und das Menü „Beta“ an, wenn die Beta an ist – nimmt sie weg, wenn
     nicht. True, wenn sich etwas geändert hat."""
     neu = False
-    an = beta_an()
+    an = beta_an() and bool(WERKZEUGLEISTE)
     da = WERKZEUGLEISTE_NAME in arbeitsbereich.listToolbars()
     if an and not da:
         arbeitsbereich.appendToolbar(WERKZEUGLEISTE_NAME, WERKZEUGLEISTE)
