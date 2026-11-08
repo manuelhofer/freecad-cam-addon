@@ -84,6 +84,14 @@
    "groesse": 2971421,
    "sha256": "0e23e8031fe46ed16a7cab99a9deb778d61294b21ccc78fb15a6dcbc0c9b8a7a"
   },
+  "werkzeugkiste_daten/wendeplattenbohrer_kennametal_iscar_ingersoll.json": {
+   "groesse": 684661,
+   "sha256": "d8d6b22144a988a898d77db4033f49267537a1eebfc4bd83a13b65855deb2400"
+  },
+  "werkzeugkiste_daten/wendeplattenbohrer_komet_kyocera_sumitomo.json": {
+   "groesse": 694787,
+   "sha256": "16f7d8ffa90ae735e0d6160563b0b8eb57a96cc9180ddf8b3f9974390fcc5b39"
+  },
   "werkzeugkiste_daten/zecha_union.json": {
    "groesse": 5356851,
    "sha256": "a09b670e65528c8e8bc06770802759573ac6388bb5f86339f1f1547f606d83c7"

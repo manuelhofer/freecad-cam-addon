@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-08-05 wendeplattenbohrer-sechs-hersteller
+
+### EINGELESEN
+- Manuel, 2026-11-08: „generell sollten wendeplatten bohrer vorhanden sein ja .. egal von wehm ich hab halt
+  sandvik“. Drei Sammler nach `~/freecad_cam/wip/wpb_auftrag.md` (Maßbild ansehen, ein Abruf nach dem
+  anderen, bei Sperre aufhören).
+
+### DATEIEN
+- `camaddon/werkzeugkiste_daten/wendeplattenbohrer_kennametal_iscar_ingersoll.json` (neu): 116 Reihen,
+  2503 Größen – ISCAR DR-TWIST, COMBICHAM, SUMOCHAM u. a. (Katalog 08/2025); Ingersoll QuadTwist, QuadDrill,
+  DeepTrio, TwistsFeed, GoldTwist, SpadeTwist (Katalog 2024); Kennametal Drill Fix DFR/DFS/DFT, KenTIP, KSEM
+  (Master Catalogue 2012 – kennametal.com zeigt Daten nur per JavaScript). ingersoll-imc.com sperrte (403):
+  dort aufgehört.
+- `camaddon/werkzeugkiste_daten/wendeplattenbohrer_komet_kyocera_sumitomo.json` (neu): 75 Reihen, 2777 Größen
+  – KOMET KUB Pentron, MaxiDrill 900, KUB 100, KUB Trigon (2019/2020); Kyocera DRV, DRZ, DRW, Wechselkopf
+  DRA/DRC; Sumitomo GDX, WDX, Wechselkopf SMD.
+- `camaddon/kataloge_index.json`.
+
+### ERGEBNIS
+- Beide ohne Fehler, Dubletten, Hinweise übernommen; `test_werkzeugkiste`, `test_werkzeugkiste_datei` grün.
+- Vorbohren in der Tasche „tief“ (Ø 58): vorn Kennametal Drill Fix DFT580R2WD50M. Sandvik CoroDrill 880
+  sammelt der dritte Sammler noch.
 ## P-2026-11-08-04 wendeplattenbohrer-sammeln
 
 ### EINGELESEN
