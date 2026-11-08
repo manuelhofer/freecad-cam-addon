@@ -108,12 +108,16 @@ def installiere(adresse=ZIP_ADRESSE, mod=None, parameter=ADDON_MANAGER, ziel=Non
         ziel = os.path.join(mod, ORDNER_NAME)
     else:
         mod = os.path.dirname(os.path.abspath(ziel))
-    if os.path.exists(os.path.join(ziel, ".git")):
+    paket = os.path.join(ziel, "package.xml")
+    if os.path.exists(os.path.join(ziel, ".git")) and os.path.isfile(paket):
         trage_in_addon_manager_ein(parameter)
         return Ergebnis(GIT_KLON, ziel, _version(ziel))
+    # Ein .git ohne Addon daneben ist ein abgebrochener Klon (Manuel, 2026-11-08, im Wochen-Build:
+    # nur .git mit 78 MB, HEAD ins Leere – „schon mit Git installiert“, aber nichts ging auf). Der
+    # wird ersetzt wie ein alter Stand.
 
     daten = hole(adresse)
-    vorher = _version(ziel) if os.path.isdir(ziel) else ""
+    vorher = _version(ziel) if os.path.isfile(paket) else ""
     os.makedirs(mod, exist_ok=True)
     # Ausgepackt wird außerhalb von Mod/: Bliebe ein halber Ordner liegen,
     # lüde FreeCAD ihn beim nächsten Start als zweites Addon.

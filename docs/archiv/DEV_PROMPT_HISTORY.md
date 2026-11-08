@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-08-02 abgebrochener-klon
+
+### EINGELESEN
+- Manuel, 2026-11-08, mit zwei Bildern aus dem Wochen-Build: „in meinem weekly build is das cam nicht aktiv
+  wenn ich unten die install zeile eingeb kommt das es schon isntalliert ist aber es geht nichts davon auf ...“
+- In `~/.local/share/FreeCAD/v27-1/Mod/freecad-cam-addon` lag nur `.git` (78 MB, `HEAD` auf
+  `refs/heads/.invalid`), angelegt um 05:09 – ein abgebrochener Klon. Der Installer sah `.git` und meldete
+  „schon mit Git installiert“.
+
+### DATEIEN
+- `installieren.py`: Als Git-Klon gilt nur ein Ordner mit `.git` und `package.xml`; ein `.git` allein wird
+  ersetzt wie ein alter Stand.
+- `tests/test_installieren.py`: der abgebrochene Klon.
+
+### ERGEBNIS
+- Bei Manuel den Klon nachgeholt (`git fetch`, `checkout main`): 0.350.0 liegt im Ordner, FreeCAD muss neu
+  starten. `test_installieren` grün.
 ## P-2026-11-08-01 schritte-als-standard
 
 ### EINGELESEN

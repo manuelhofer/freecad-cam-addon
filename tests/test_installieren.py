@@ -103,6 +103,17 @@ e = inst.installiere(github_zip(basis, "3.0.0", {"InitGui.py": "# drei"}), mod, 
 pruefe(e.status == inst.GIT_KLON, f"Git-Klon: {e}")
 pruefe(Path(ziel, "InitGui.py").read_text() == "# neu", "Git-Klon wurde überschrieben")
 
+# Ein abgebrochener Klon – nur .git, kein Addon daneben – wird ersetzt (Manuel, 2026-11-08).
+kaputt = os.path.join(basis, "mod_kaputt")
+os.makedirs(os.path.join(kaputt, inst.ORDNER_NAME, ".git"))
+e = inst.installiere(github_zip(basis, "4.0.0", {"InitGui.py": "# vier"}), kaputt, PARAMETER)
+pruefe(e.status == inst.NEU and e.version == "4.0.0", f"abgebrochener Klon: {e}")
+pruefe(
+    os.path.isfile(os.path.join(kaputt, inst.ORDNER_NAME, "InitGui.py"))
+    and not os.path.exists(os.path.join(kaputt, inst.ORDNER_NAME, ".git")),
+    "abgebrochener Klon nicht ersetzt",
+)
+
 # Andere eigene Repositories bleiben; dieselbe Adresse mit „/“ oder „.git“ zählt als da.
 FreeCAD.ParamGet(PARAMETER).SetString(
     "CustomRepositories",
