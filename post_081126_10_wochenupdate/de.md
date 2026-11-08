@@ -2,7 +2,7 @@
 
 *2026-11-08*
 
-Aktuelle Version 0.350.3 („Nach Updates schauen“ bietet sie an).
+Aktuelle Version 0.350.3 („Nach Updates schauen“ bietet sie an). Aus Zeitmangel lief diese Woche bei mir nicht viel.
 
 ## Bearbeitung in Schritten ist jetzt der Standard
 „Bearbeitung“ öffnet jetzt den Assistenten in Schritten: Aufspannung › Flächen › Schruppen › Löcher › Schlichten › Kanten – je Schritt nur seine Strategien, „Weiter“ erst, wenn der Schritt klar ist. „Weiter bearbeiten“ und „Neue Aufspannung“ stehen jetzt in der normalen Leiste und im Menü CAM-Addon (nicht mehr „Beta“). Wer lieber das alte Fenster mit allem auf einer Seite will: Einstellungen → CAM-Addon → Gruppe „Updates“ → Haken „„Bearbeitung“ im alten Fenster“. Beide rechnen dasselbe. Eine bestehende Operation ändern öffnet weiter das Fenster auf einer Seite mit nur dieser Operation.

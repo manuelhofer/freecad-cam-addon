@@ -2,7 +2,7 @@
 
 *2026-11-08*
 
-Current version 0.350.3 (“Check for updates” offers it).
+Current version 0.350.3 (“Check for updates” offers it). Short on time this week, so not much happened on my side.
 
 ## Machining in steps is now the default
 “Machining” now opens the wizard in steps: setup › faces › roughing › holes › finishing › edges – each step shows only its own strategies, and “Next” only works once the step is clear. “Continue machining” and “New setup” are in the normal toolbar and the CAM-Addon menu now (no longer “beta”). If you prefer the old window with everything on one page: Preferences → CAM-Addon → group “Updates” → tick ““Machining” in the old window”. Both compute the same. Editing an existing operation still opens the one-page window with just that operation.
