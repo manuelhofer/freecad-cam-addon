@@ -12,6 +12,17 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-08-04 wendeplattenbohrer-sammeln
+
+### EINGELESEN
+- Manuel, 2026-11-08, zu „Soll ich die Sandvik-Wendeplattenbohrer nachsammeln“: „also generell sollten
+  wendeplatten bohrer vorhanden sein ja .. egal von wehm ich hab halt sandvik ..“
+
+### ANTWORTEN
+- Frage 1 (Sandvik CoroDrill 880): ja – und generell Wendeplattenbohrer aller Hersteller, Sandvik zuerst.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md`: Frage 1 entfernt.
 ## P-2026-11-08-03 vorbohren-wendeplatten-angelegt-spaeter
 
 ### EINGELESEN
