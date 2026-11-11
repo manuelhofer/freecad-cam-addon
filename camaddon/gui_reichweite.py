@@ -60,6 +60,66 @@ GRUEN = farben.GRUEN
 ACHSEN = ("X", "Y", "Z")
 
 
+def balken_stellen(von, bis, minimum, maximum):
+    """(Anfang, Ende der Grenzen; Anfang, Ende des Gebrauchten; reicht es?) als Anteile 0…1 der
+    Balkenbreite: Der Balken zeigt die Grenzen und, wo die Bahn darüber hinaus will, auch das. Ohne
+    endliche Grenzen (eine endlos drehende Achse) füllen die Grenzen den Balken, das Gebrauchte
+    steht in seiner Mitte."""
+    import math
+
+    von, bis = min(von, bis), max(von, bis)
+    endlich = (
+        minimum is not None
+        and maximum is not None
+        and math.isfinite(minimum)
+        and math.isfinite(maximum)
+        and maximum > minimum
+    )
+    if not endlich:
+        return 0.0, 1.0, 0.4, 0.6, True
+    links, rechts = min(minimum, von), max(maximum, bis)
+    spanne = rechts - links
+    anteil = lambda wert: (wert - links) / spanne  # noqa: E731
+    reicht = von >= minimum - 1e-6 and bis <= maximum + 1e-6
+    return anteil(minimum), anteil(maximum), anteil(von), anteil(bis), reicht
+
+
+class Achsbalken(QtGui.QWidget):
+    """Eine Achse als Balken: grau der Weg zwischen ihren Grenzen, darauf grün, was die Bahn davon
+    braucht – rot, wenn es über eine Grenze hinausgeht. Links ihr Name; die Zahlen stehen im
+    Tooltip (Bereich.text)."""
+
+    NAME = 34  # Pixel für den Namen der Achse
+
+    def __init__(self, bereich):
+        super().__init__()
+        self.bereich = bereich
+        self.setFixedHeight(16)
+        self.setToolTip(bereich.text())
+
+    def paintEvent(self, _ereignis):  # noqa: N802 – Qt-Name
+        from . import verfahren as vf
+
+        b = self.bereich
+        g0, g1, v0, v1, reicht = balken_stellen(b.von, b.bis, b.achse.minimum, b.achse.maximum)
+        if vf.programm_vorzeichen(b.achse) < 0:  # an der Steuerung andersherum gezählt
+            g0, g1, v0, v1 = 1 - g1, 1 - g0, 1 - v1, 1 - v0
+        maler = QtGui.QPainter(self)
+        maler.setRenderHint(QtGui.QPainter.Antialiasing)
+        maler.setPen(self.palette().color(QtGui.QPalette.WindowText))
+        feld = QtCore.QRect(0, 0, self.NAME, self.height())
+        maler.drawText(feld, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft, b.name)
+        breite = max(10, self.width() - self.NAME - 4)
+        stelle = lambda anteil: self.NAME + int(round(breite * anteil))  # noqa: E731
+        maler.setPen(QtCore.Qt.NoPen)
+        maler.setBrush(QtGui.QColor(GRAU.name()))
+        mitte = self.height() // 2
+        maler.drawRoundedRect(stelle(g0), mitte - 2, max(4, stelle(g1) - stelle(g0)), 4, 2, 2)
+        maler.setBrush(QtGui.QColor(GRUEN if reicht else ROT))
+        maler.drawRoundedRect(stelle(v0), mitte - 4, max(5, stelle(v1) - stelle(v0)), 8, 3, 3)
+        maler.end()
+
+
 class BefehlAufMaschinePruefen:
     """Befehl in der Werkzeugleiste: prüft die Bahnen eines Jobs auf einer Maschine."""
 
@@ -532,6 +592,22 @@ class PruefPanel:
         self.bereiche.setStyleSheet(f"color: {GRAU.name()};")
         self.bereiche.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         aufbau.addWidget(self.bereiche)
+        # Gezeigt statt aufgezählt (Manuel, 2026-11-11: zu viel Text): je Achse ein Balken – grau
+        # ihre Grenzen, grün, was die Bahn braucht (rot, wo es nicht reicht). Der Satz mit den
+        # Zahlen ist der Tooltip des Balkens; das Etikett darüber behält ihn zum Kopieren, bleibt
+        # aber verborgen.
+        self.bereiche.hide()
+        self.bereiche_titel = QtGui.QLabel()
+        self.bereiche_titel.setStyleSheet(f"color: {GRAU.name()};")
+        self.bereiche_titel.hide()
+        # Gleich unter den Urteilen und dem Satz zur Überschreitung – „wo, steht darunter“.
+        stelle = aufbau.indexOf(self.liste) + 1
+        aufbau.insertWidget(stelle, self.bereiche_titel)
+        self.bereiche_bild = QtGui.QWidget()
+        bild = QtGui.QVBoxLayout(self.bereiche_bild)
+        bild.setContentsMargins(0, 0, 0, 0)
+        bild.setSpacing(2)
+        aufbau.insertWidget(stelle + 1, self.bereiche_bild)
         self.hinweise = gui_kollision.hinweis_label()
         aufbau.addWidget(self.hinweise)
         for hinweise in (self.hinweise, self.kollision.hinweise):
@@ -1060,7 +1136,17 @@ class PruefPanel:
         if zeilen:
             zeilen.insert(0, tr("rw.bereiche", anzahl=e.punkte))
         self.bereiche.setText("\n".join(zeilen))
-        self.bereiche.setVisible(bool(zeilen))
+        bild = self.bereiche_bild.layout()
+        while bild.count():
+            alter = bild.takeAt(0).widget()
+            if alter is not None:
+                alter.deleteLater()
+        for bereich in e.bereiche:
+            bild.addWidget(Achsbalken(bereich))
+        self.bereiche_titel.setText(tr("rw.bereiche.bild", anzahl=e.punkte))
+        self.bereiche_titel.setToolTip("\n".join(zeilen))
+        self.bereiche_titel.setVisible(bool(e.bereiche))
+        self.bereiche_bild.setVisible(bool(e.bereiche))
         self.hinweise.setText(gui_kollision.hinweise_html(e.hinweise))
         self.hinweise.setVisible(bool(e.hinweise))
         geschaetzt = e.geschaetzte_laengen()

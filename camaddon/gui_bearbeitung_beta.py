@@ -182,6 +182,7 @@ class BetaPanel(BearbeitungPanel):
         self._beta_nachbarn = None  # (Form, taschen_wahl.nachbarn) – gerechnet einmal je Form
         self._beta_bis = None  # beim Anlegen: bis zu welchem Abschnitt
         self._beta_nicht_dabei = {}  # Kennung → (Titel, Satz): in der Übersicht abgehakt
+        self._tisch = None  # gui_tisch.Tisch: Schritt 1 zeigt, wie das Teil liegt
         self._beta_nur = None  # Übersicht: nur die Wege dieser Bearbeitung im Teil (Kennung)
         self._beta_wege_stand = None  # was die Übersicht gerade im Teil zeigt
         self._farben_basis = None  # (Flächen, Kanten) ohne das, was die Schritte dazu färben
@@ -247,6 +248,7 @@ class BetaPanel(BearbeitungPanel):
         box.setContentsMargins(0, 0, 0, 0)
         self.tasche_text = QtGui.QLabel()
         self.tasche_text.setWordWrap(True)
+        self.tasche_text.setTextFormat(QtCore.Qt.RichText)
         box.addWidget(self.tasche_text)
         zeile = QtGui.QHBoxLayout()
         self.knopf_ganze_tasche = knopf(
@@ -449,6 +451,11 @@ class BetaPanel(BearbeitungPanel):
         )
         self.knopf_umspannen.hide()
         aufbau.insertWidget(aufbau.indexOf(zeile), self.knopf_umspannen, 0, QtCore.Qt.AlignRight)
+        # Schritt „Flächen“: Der Satz „ebene nach oben werden plan gefräst …“ und die Zeile zu
+        # Maschine, Rohteil und Nullpunkt sind Tooltips (der Liste, der Schrittleiste) – nicht
+        # Lesestoff über der Liste.
+        self.flaechen_text.hide()
+        self.rohteil_kurz.hide()
         self.unfertig.setStyleSheet("")  # der Satz trägt das Kästchen in der Farbe der Flächen
         self.unfertig.setTextFormat(QtCore.Qt.RichText)
         self._rohteil_einklappen()
@@ -527,6 +534,7 @@ class BetaPanel(BearbeitungPanel):
 
     def _rohteil_kurz_zeigen(self):
         super()._rohteil_kurz_zeigen()
+        self._tisch_zeigen()
         if hasattr(self, "rohteil_zeile") and hasattr(self, "rohteil_kurz"):
             teile = self.rohteil_kurz.text().split(" · ")
             eintrag = self.maschine() if hasattr(self, "wahl_maschine") else None
@@ -572,6 +580,7 @@ class BetaPanel(BearbeitungPanel):
     def _nach_rohteil(self):
         """Job oder Rohteil sind neu: eine vorher gewählte Aufspannung an den Job, die Auswahl
         neu sortiert (was passt, hängt am Rohteil)."""
+        self._tisch_zeigen()
         if not hasattr(self, "wahl_spannmittel"):
             return
         if (
@@ -662,15 +671,19 @@ class BetaPanel(BearbeitungPanel):
         self.wahl_spannmittel.blockSignals(False)
         self.wahl_spannmittel.setEnabled(not self._aufspannung_fest())
         passend = sum(1 for e in eintraege if e[0] == 0)
-        satz = ""
+        # Im Fenster steht nur, was gewählt ist oder sich anklicken lässt; „noch keine in der
+        # Sammlung“ und „3 von 5 nehmen dieses Rohteil“ sind der Tooltip der Auswahl (die ✓ und ✗
+        # stehen dort schon).
+        satz, dazu = "", tr("beta.spannmittel.tooltip")
         if not self._sammlung().spannmittel:
-            satz = tr("beta.spannmittel.leer")
+            dazu = tr("beta.spannmittel.leer")
         elif jetzt is not None:
             satz = sm.beschreibung(jetzt)
             if box is not None and sm.hinweise(jetzt, box):
                 satz += " – " + " ".join(sm.hinweise(jetzt, box))
         elif box is not None:
-            satz = tr("beta.spannmittel.anzahl", passend=passend, alle=len(eintraege))
+            dazu = tr("beta.spannmittel.anzahl", passend=passend, alle=len(eintraege))
+        self.wahl_spannmittel.setToolTip(dazu)
         self._beta_katalog_spannmittel = []
         satz = html.escape(satz, quote=False)
         if box is not None and jetzt is None and not passend:
@@ -683,17 +696,18 @@ class BetaPanel(BearbeitungPanel):
             if vorschlaege:
                 # Je Vorschlag ein Verweis: übernimmt ihn in die Sammlung und wählt ihn
                 # (Gedächtnis „Nächster Schritt als Knopf“).
-                namen = ", ".join(
+                namen = " · ".join(
                     f'<a href="spannmittel:{i}">{html.escape(v.text)}</a>'
                     for i, v in enumerate(vorschlaege)
                 )
-                satz += " " + html.escape(tr("beta.spannmittel.katalog_waehlen"), quote=False)
-                satz += " " + namen + "."
+                satz = html.escape(tr("beta.spannmittel.katalog_waehlen"), quote=False)
+                satz += " " + namen
         elif box is None:
             # Noch kein Rohteil: Es gibt nichts zu sagen – der Satz „steht hier, sobald …“ war nur
             # Lesestoff. Er bleibt als Tooltip der Auswahl.
             satz = ""
-            self.wahl_spannmittel.setToolTip(tr("beta.spannmittel.ohne_rohteil"))
+            if self._sammlung().spannmittel:
+                self.wahl_spannmittel.setToolTip(tr("beta.spannmittel.ohne_rohteil"))
         self.spannmittel_text.setText(satz)
         self.spannmittel_text.setVisible(bool(satz))
 
@@ -881,6 +895,53 @@ class BetaPanel(BearbeitungPanel):
         self._beta_knoepfe()
         self.nichts_angehakt.hide()
 
+    def _tisch_zeigen(self):
+        """Schritt 1 zeigt, wie das Teil liegt: eine Platte unter dem Rohteil (vor dem Job unter
+        dem Teil, wie es modelliert ist) mit einem Pfeil nach +X – statt es in Worten zu fragen.
+        Wer es sieht, klickt nur, wenn es nicht stimmt. Nicht an der Drehmaschine (dort ist es
+        eine Stange im Futter), nicht beim Ändern und nicht in der Ebene einer Kette."""
+        if not hasattr(self, "_beta_seiten"):
+            return
+        box = None
+        if (
+            getattr(self, "_seite", 0) == 0
+            and not getattr(self, "geschlossen", False)
+            and self.zu_aendern is None
+            and not self.nur_vierachs()
+            and not self._ebene_der_kette()
+        ):
+            box = self._tisch_kasten()
+        if box is None:
+            if self._tisch is not None:
+                self._tisch.weg()
+            return
+        if self._tisch is None:
+            from . import gui_tisch
+
+            self._tisch = gui_tisch.Tisch(self.doc)
+        self._tisch.zeigen(box)
+
+    def _tisch_kasten(self):
+        """(xmin, ymin, zmin, xmax, ymax, zmax) dessen, was auf dem Tisch liegt: das Rohteil des
+        Jobs, sonst das einzige Teil des Dokuments – None ohne beides."""
+        form = None
+        if self.job is not None:
+            form = getattr(getattr(self.job, "Stock", None), "Shape", None)
+            if form is None or form.isNull():
+                form = vr.modell(self.job).Shape
+        else:
+            teil = self._einziges_teil()
+            form = teil.Shape if teil is not None else None
+        if form is None or form.isNull() or not form.BoundBox.isValid():
+            return None
+        b = form.BoundBox
+        return (b.XMin, b.YMin, b.ZMin, b.XMax, b.YMax, b.ZMax)
+
+    def _vor_dem_schliessen(self):
+        if self._tisch is not None:
+            self._tisch.weg()
+        super()._vor_dem_schliessen()
+
     def _schrittleiste(self):
         """„Aufspannung › **Flächen** › Schruppen …“ – ohne die Schritte, die nichts haben."""
         teile = []
@@ -901,6 +962,8 @@ class BetaPanel(BearbeitungPanel):
 
     def _beta_knoepfe(self):
         geht, warum = self._weiter_geht()
+        self.flaechen_liste.setToolTip(self.flaechen_text.text())
+        self.schrittleiste.setToolTip(self.rohteil_kurz.text())
         self.knopf_zurueck.setVisible(self._seite > 0 and self._seite > self._erste_erlaubte())
         weiter_da = self._seite < ERSTER_ABSCHNITT or self._naechste_seite() is not None
         self.knopf_weiter.setVisible(weiter_da)
@@ -1225,7 +1288,11 @@ class BetaPanel(BearbeitungPanel):
         neu = dict(farben or {})
         if self.job is None or self._ist_stl():
             return neu
-        eigene = [(n, UNFERTIG_FARBE) for n, _k in getattr(self, "_unfertig_liste", None) or ()]
+        eigene = []
+        if getattr(self, "_seite", 0) == 1:
+            # Schritt „Flächen“: was zur Tasche der Auswahl noch gehört (die Frage darunter).
+            eigene += [(n, TASCHE_FARBE) for n in getattr(self, "_beta_fehlende", None) or ()]
+        eigene += [(n, UNFERTIG_FARBE) for n, _k in getattr(self, "_unfertig_liste", None) or ()]
         if getattr(self, "_seite", 0) == UEBERSICHT:
             eigene += [(n, REST_FARBE) for n in self._rest_flaechen()]
         for name, farbe in eigene:
@@ -1527,6 +1594,7 @@ class BetaPanel(BearbeitungPanel):
             self._beta_fehlende = []
         if not self._beta_fehlende:
             self.tasche_box.hide()
+            self._farben_neu()
             return
         entschieden = frozenset(self.gewaehlte) in self._beta_tasche_ok
         anzahl = {"gewaehlt": len(self.gewaehlte), "fehlen": len(self._beta_fehlende)}
@@ -1537,7 +1605,13 @@ class BetaPanel(BearbeitungPanel):
         else:
             von = tr("beta.tasche.von", wer=", ".join(wer)) if wer else ""
             self.tasche_text.setText(tr("beta.tasche.leer", von=von, **anzahl))
-        self.tasche_text.setStyleSheet("" if entschieden else "color: #d08000;")
+        # Gezeigt statt gezählt: Die übrigen Flächen der Tasche stehen blau im Teil
+        # (_mit_eigenen_farben), der Satz trägt das Kästchen in derselben Farbe.
+        self.tasche_text.setText(
+            f"<span style='color: {TASCHE_FARBE};'>■</span> "
+            + html.escape(self.tasche_text.text(), quote=False)
+        )
+        self.tasche_text.setStyleSheet("")
         self.knopf_nur_diese.setVisible(not entschieden)
         self.knopf_tasche_schruppen.setVisible(not entschieden and self._beta_voll)
         self.knopf_ganze_tasche.setVisible(True)
@@ -1547,6 +1621,7 @@ class BetaPanel(BearbeitungPanel):
         zeile.removeWidget(erster)
         zeile.insertWidget(0, erster)
         self.tasche_box.show()
+        self._farben_neu()
 
     def _tasche_voll(self, form, namen):
         """(Steht in der Tasche noch Material?, wer sie ausgeräumt hat). Ohne Operation im Job ist
@@ -2333,6 +2408,7 @@ ZEIGE = "zeige|"  # Verweis einer Zeile der Übersicht: nur ihre Wege im Teil
 # … zu zeigen“): Was der Satz mit „Face1, Face2, Face4“ sagte, steht als Farbe im Teil.
 UNFERTIG_FARBE = "#f08c00"  # hat am Ende keine genaue Bahn
 REST_FARBE = "#8e44ad"  # geht in dieser Aufspannung von oben nicht
+TASCHE_FARBE = "#2f9be0"  # gehört zur Tasche der Auswahl, ist aber nicht gewählt
 BLASS = "#909090"
 WARN_ROT = "#c03030"
 BALKEN_FARBE = "#3584e4"  # der Zeitbalken einer angehakten Strategie

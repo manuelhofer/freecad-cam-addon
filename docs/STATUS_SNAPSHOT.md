@@ -578,6 +578,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.357.0):* **Mehr gezeigt:** Schritt 1 legt das Teil im 3D auf eine Platte mit X-Pfeil; die übrigen
+  Flächen einer Tasche stehen blau im Teil; „Auf der Maschine prüfen“ zeigt je Achse einen Balken (Grenzen
+  grau, Bedarf grün/rot). Gemessen: Kein Fenster der 14 geprüften Szenarien hat mehr als rund 220 Wörter.
+  Offen: „Neue Maschine“ (154 Wörter Erklärung), das gewählte Spannmittel im 3D zeigen, Ändern im alten Fenster.
 - *Neu (0.356.0):* **„Angelegt“: die Warnung ist ein Knopf.** Steht ein Werkzeug zu kurz heraus, sind seine
   Operationen rot, darunter „T3 auf 35 mm ausspannen“ – ein Klick trägt es in die Werkzeugverwaltung ein.
 - *Neu (0.355.0):* **Zeigen statt sagen** (Manuel: zu viel Text in den Fenstern): Übersicht mit den Wegen

@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-10 zeigen-lage-tasche-achsen
+
+### EINGELESEN
+- Manuel, 2026-11-11: „wenn noch WOT vorhanden ist dann sollte man da weiter machen oder ? ich hab doch
+  gesagt arbeite durch bis heute abend. mach so das es perfekt ist“.
+- Gemessen (14 Szenarien einzeln, `woerter.txt`): Die übrigen Fenster liegen unter rund 220 Wörtern – am
+  meisten „Auf der Maschine prüfen“ (215), „Neue Maschine“ (154), Spannmittel (98).
+
+### DATEIEN
+- `camaddon/gui_tisch.py` (neu): Schritt 1 zeigt, wie das Teil liegt – eine Platte unter Teil oder Rohteil
+  mit einem roten Pfeil nach +X (`BetaPanel._tisch_zeigen`); `tests/test_tisch.py`.
+- `camaddon/gui_bearbeitung_beta.py`: Schritt „Flächen“ – die übrigen Flächen der Tasche blau im Teil, der
+  Satz ohne Zählfehler („Die 1 gewählten Flächen“); die grauen Sätze über der Liste als Tooltip. Schritt 1 –
+  die Sätze zum Spannmittel als Tooltip, sichtbar nur die anklickbaren Vorschläge aus dem Katalog.
+- `camaddon/gui_reichweite.py`: `Achsbalken`, `balken_stellen` – je Achse ein Balken (grau die Grenzen, grün
+  der Bedarf, rot über der Grenze) gleich unter den Urteilen statt der Zahlenliste (die ist der Tooltip).
+- Hilfe de/en, `translations/`, `tests/gui/szenario_reichweite.py`.
+
+### ERGEBNIS
+- `test_sprache`, `test_tisch`, `szenario_reichweite`, `szenario_schritte_neu`, `szenario_beta_schritte`,
+  `szenario_beta_tasche` grün, einzeln gelaufen; Bilder angesehen. Manuel prüft: „Bearbeitung“ ohne Auswahl –
+  das Teil liegt auf einer grauen Platte mit rotem Pfeil; „↻ 90°“ dreht das Teil gegen den Pfeil. Eine Wand
+  einer Tasche anklicken – der Rest der Tasche wird blau.
 ## P-2026-11-11-09 alles-vorschlagen-fett
 
 ### EINGELESEN

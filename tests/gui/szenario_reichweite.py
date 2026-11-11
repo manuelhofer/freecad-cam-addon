@@ -86,11 +86,24 @@ def schritte(h):
         panel.bereiche.text().startswith("Was die Bahn braucht (7 Punkte):\nX1 braucht "),
         f"Bereiche: {panel.bereiche.text()!r}",
     )
+    # Gezeigt wird das als Balken je Achse (grau die Grenzen, grün der Bedarf); der Satz ist ihr
+    # Tooltip.
+    from camaddon import gui_reichweite as _gr
+
+    balken = panel.bereiche_bild.findChildren(_gr.Achsbalken)
+    h.pruefe(
+        panel.bereiche_bild.isVisible()
+        and len(balken) >= 3
+        and balken[0].toolTip().startswith("X1 braucht "),
+        f"Achsbalken: {[b.toolTip() for b in balken]}",
+    )
+    h.pruefe(not panel.bereiche.isVisible(), "die Zahlenliste steht noch als Text da")
     h.pruefe(
         "gerechnet mit der Länge des CAM-Werkzeugs, 50,00 mm" in panel.hinweise.text(),
         f"Hinweise: {panel.hinweise.text()!r}",
     )
     h.bild("1_in_grenzen")
+    h.bild("1_in_grenzen_fenster", panel.form)  # die Achsbalken
 
     # --- Nullpunkt X 300: X1 über die Grenze -----------------------------------------------
     panel.felder_nullpunkt["X"].setText("300")
@@ -110,6 +123,7 @@ def schritte(h):
         f"Urteil: {panel.urteil.text()!r}",
     )
     h.bild("2_ueber_der_grenze")
+    h.bild("2_ueber_der_grenze_fenster", panel.form)  # die Achsbalken
 
     # Ein Klick fährt die Maschine dorthin: X1 an seiner Grenze.
     panel.liste.setCurrentRow(0)
