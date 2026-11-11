@@ -422,6 +422,11 @@ class BetaPanel(BearbeitungPanel):
         # statt sechs Schritte – alles aus der Aufspannung, vorgeschlagen, mit Übersicht.
         self.knopf_alles = knopf(tr("beta.alles"), tr("beta.alles.tooltip"), self.alles_vorschlagen)
         zeile.layout().insertWidget(zeile.layout().indexOf(self.knopf_weiter), self.knopf_alles)
+        # Der eine Knopf, der zum Ziel führt, fällt auf (fett) – „Weiter“ ist der Weg für den, der
+        # Schritt für Schritt entscheiden will.
+        schrift = self.knopf_alles.font()
+        schrift.setBold(True)
+        self.knopf_alles.setFont(schrift)
         # Was „Anlegen“ in diesem Schritt anlegt – es legt ja nur bis hier an – und was danach
         # noch angehakt ist (kommt mit „Weiter bearbeiten“).
         self.anlegen_text = _grau()

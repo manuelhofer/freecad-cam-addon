@@ -12,6 +12,17 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-09 alles-vorschlagen-fett
+
+### EINGELESEN
+- Am Bild von Schritt 1 (nach P-2026-11-11-07): „Alles vorschlagen →“ und „Weiter →“ sahen gleich aus –
+  wer nicht liest, weiß nicht, welcher Knopf zum Ziel führt.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: „Alles vorschlagen →“ fett.
+
+### ERGEBNIS
+- `szenario_schritte_neu` grün, am Bild gesehen.
 ## P-2026-11-11-08 angelegt-ausspannen-knopf
 
 ### EINGELESEN
