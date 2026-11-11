@@ -14,6 +14,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import einheiten, farben, gui_aktualisierung, klone_speichern, sprache
+from .gui_hilfe import einleitung
 from .gui_teile import ruhiges_mausrad
 from .gui_zahlen import dezimalzeichen
 from .sprache import tr
@@ -193,7 +194,9 @@ class Einstellungsseite:
         zahlen_aufbau = QtGui.QFormLayout()
         zahlen_aufbau.addRow(tr("einstellungen.zahlen.masssystem"), self.wahl_masssystem)
         zahlen_aufbau.addRow(tr("einstellungen.zahlen.feld"), self.wahl_dezimalzeichen)
-        self.zahlen_hinweis = QtGui.QLabel(tr("einstellungen.zahlen.hinweis"))
+        self.zahlen_hinweis = einleitung(
+            tr("einstellungen.zahlen.hinweis")
+        )  # der Rest ist der Tooltip
         self.zahlen_hinweis.setWordWrap(True)
         _mit_satz(zahlen, zahlen_aufbau, self.zahlen_hinweis)
         self.gruppe_updates = gui_aktualisierung.einstellungen_gruppe(self)
@@ -201,7 +204,9 @@ class Einstellungsseite:
         self.klone_einmal = QtGui.QCheckBox(tr("einstellungen.dateien.klone"))
         dateien_aufbau = QtGui.QFormLayout()
         dateien_aufbau.addRow(self.klone_einmal)
-        self.klone_hinweis = QtGui.QLabel(tr("einstellungen.dateien.klone.hinweis"))
+        self.klone_hinweis = einleitung(
+            tr("einstellungen.dateien.klone.hinweis")
+        )  # der Rest ist der Tooltip
         self.klone_hinweis.setWordWrap(True)
         _mit_satz(dateien, dateien_aufbau, self.klone_hinweis)
 
@@ -220,7 +225,9 @@ class Einstellungsseite:
         self.wahl_nebenrechner.setSuffix(tr("einstellungen.rechnen.von", kerne=kerne))
         rechnen_aufbau = QtGui.QFormLayout()
         rechnen_aufbau.addRow(tr("einstellungen.rechnen.feld"), self.wahl_nebenrechner)
-        self.rechnen_hinweis = QtGui.QLabel(tr("einstellungen.rechnen.hinweis"))
+        self.rechnen_hinweis = einleitung(
+            tr("einstellungen.rechnen.hinweis")
+        )  # der Rest ist der Tooltip
         self.rechnen_hinweis.setWordWrap(True)
         self.wahl_nebenrechner.setToolTip(tr("einstellungen.rechnen.tooltip"))
         self.rechnen_hinweis.setToolTip(tr("einstellungen.rechnen.tooltip"))

@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-17 einstellungsseite-passt-wieder
+
+### EINGELESEN
+- `szenario_erster_start` rot: „Satz unter „Dateien“ ist 42 hoch, braucht 49“. Die zwei neuen Haken der
+  Gruppe „Bearbeitung“ (0.355.0 „Angelegt“ zeigen, 0.361.0 4-Achs offen) machten die Einstellungsseite zu
+  voll – die Auswahlfelder unter „Zahlen“ lagen übereinander, Sätze waren gestaucht. Das Szenario war bei
+  0.355.0 nicht gelaufen; die Seite war seitdem so auf `main`.
+
+### DATEIEN
+- `camaddon/gui_sprachwahl.py`: Die Sätze unter „Zahlen“, „Dateien“ und „Rechnen“ über
+  `gui_hilfe.einleitung` – der erste Satz steht da, der Rest ist der Tooltip.
+- `translations/`: der Satz zu den Klonen beginnt mit dem Nutzen.
+
+### ERGEBNIS
+- `szenario_erster_start` grün, die Seite am Bild angesehen: alles steht frei, nichts überlagert.
 ## P-2026-11-11-16 einleitungen-kurz
 
 ### EINGELESEN

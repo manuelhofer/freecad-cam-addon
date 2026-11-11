@@ -939,7 +939,7 @@
     "einstellungen.zahlen.masssystem": "Unit system:",
     "einstellungen.dateien.gruppe": "Files",
     "einstellungen.dateien.klone": "Save a part from an STL only once",
-    "einstellungen.dateien.klone.hinweis": "Every job has the part as a clone. If it is as large as an STL, it is stored only once in the file: saving is faster, the file smaller. Opened without the addon, the clones are empty – “Recompute” restores them.",
+    "einstellungen.dateien.klone.hinweis": "A large part is then stored only once in the file: saving is faster, the file smaller. Every job has the part as a clone; opened without the addon the clones are empty – “Recompute” restores them.",
     "einstellungen.rechnen.gruppe": "Computing",
     "einstellungen.rechnen.feld": "Worker processes",
     "einstellungen.rechnen.von": " of {kerne} cores",

@@ -939,7 +939,7 @@
     "einstellungen.zahlen.masssystem": "Maßsystem:",
     "einstellungen.dateien.gruppe": "Dateien",
     "einstellungen.dateien.klone": "Ein Teil aus einem STL nur einmal speichern",
-    "einstellungen.dateien.klone.hinweis": "Jeder Job hat das Teil als Klon. Ist es groß wie ein STL, steht es nur einmal in der Datei: Speichern schneller, Datei kleiner. Ohne das Addon geöffnet sind die Klone leer – „Neu berechnen“ stellt sie her.",
+    "einstellungen.dateien.klone.hinweis": "Ein großes Teil steht so nur einmal in der Datei: Speichern schneller, Datei kleiner. Jeder Job hat das Teil als Klon; ohne das Addon geöffnet sind die Klone leer – „Neu berechnen“ stellt sie her.",
     "einstellungen.rechnen.gruppe": "Rechnen",
     "einstellungen.rechnen.feld": "Nebenrechner",
     "einstellungen.rechnen.von": " von {kerne} Kernen",
