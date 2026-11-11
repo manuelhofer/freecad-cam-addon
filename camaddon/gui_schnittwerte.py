@@ -113,7 +113,11 @@ class SchnittwertBereich(QtGui.QWidget):
         self.wahl_einheit.currentIndexChanged.connect(self._einheit_gewechselt)
         zeile.addWidget(self.wahl_einheit)
         aufbau.addLayout(zeile)
-        self.zustand.setText(tr("wv.schnittwerte.werkstoffe"))
+        # Zu sehen ist der erste Satz, der ganze Text ist der Tooltip (wenig Text im Fenster,
+        # Arbeitsregeln Abschnitt 8) – die Tabelle selbst zeigt, wie es gemeint ist.
+        lang = tr("wv.schnittwerte.werkstoffe")
+        self.zustand.setText(lang.split(". ", 1)[0].rstrip(".") + ".")
+        self.zustand.setToolTip(lang)
 
         self.tabelle = QtGui.QTableWidget(0, Q + 1)
         self.tabelle.setMinimumHeight(TABELLE_MINDESTHOEHE)

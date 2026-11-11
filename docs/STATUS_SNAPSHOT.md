@@ -578,6 +578,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.362.0):* **„Anlegen“ nur in der Übersicht** – jeder Weg endet dort; in den Schritten „Zurück“ und
+  „Weiter“. Die Schritte zeigen ihre Wege farbig im Teil (Balken in derselben Farbe), die Übersicht hat
+  „▶ Abspielen“; „Neue Maschine“ mit Bildern der Bauarten. Entschieden: Es bleibt ein Addon auf FreeCADs Job
+  (keine eigene Workbench). Prüfen: tagsüber je Änderung ein Szenario, der volle Lauf am Tagesende.
 - *Neu (0.361.0):* **4-Achs-Assistent eingeklappt:** je Strategie ihr Fräser und „Werte ändern“ statt aller
   Felder offen (436 → 149 Wörter); die alte Form als Haken in den Einstellungen.
 - *Neu (0.360.0):* **Flächen leuchten auf:** Steht die Maus über „Face27“ in einem Satz oder über einer Zeile

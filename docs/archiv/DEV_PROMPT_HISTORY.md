@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-18 anlegen-nur-in-der-uebersicht
+
+### EINGELESEN
+- Offene Frage 1 („Soll auch der Weg Schritt für Schritt in der Übersicht enden?“) und Manuels Nachfragen
+  dazu, 2026-11-11.
+- Manuel, 2026-11-11: „du must so viel testen weil ?“, „ich finde das man mehr bauen sollte ... und dann am
+  ende des tages … diese tests mit einem günstigeren model als fable durcharbeiten lassen kann“; „und du
+  baust nicht weiter weil ?“.
+
+### ANTWORTEN
+- Frage 1: „ja“ (a – jeder Weg endet in der Übersicht).
+- Dazu Manuel: „wie kann man etwas anlegen das noch nicht durchgeklickt ist ??“ – auf die Rückfrage, wo
+  „Anlegen“ stehen soll: **nur in der Übersicht**.
+- Addon oder eigene Workbench (nur besprochen, nichts gebaut): „einfach so lassen is the way to go“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: „Weiter“ im letzten Schritt führt zur Übersicht; „Anlegen“ und
+  „Anlegen und Teil umspannen …“ stehen nur dort (`_vor_anlegen`, `accept(bis_hier=…)` für Stufen ohne Knopf);
+  am Job steht „bis hier angelegt“ nur, wenn jemand in einem späteren Schritt selbst einen Haken herausnahm.
+  Schritte zeigen ihre Wege farbig im Teil, der Zeitbalken trägt dieselbe Farbe (`_schritt_wege`,
+  `_block_zeigen`); Übersicht mit „▶ Abspielen“ und einem Balken je Zeile; die Flächenliste nennt, was die
+  Fläche ist, nicht „Face2“; „Angelegt“ mit Balken je Operation.
+- `camaddon/gui_bahnvorschau.py`: `Abspieler` – ein Werkzeug fährt die Wege der Vorschau ab (nur Anzeige).
+- `camaddon/gui_neue_maschine.py`, `resources/icons/bauart_*.svg` (7, neu), `tests/test_bauart_bilder.py`:
+  je Bauart ein Bild in der Liste.
+- `camaddon/gui_schnittwerte.py`: der Satz über der Schnittwerttabelle kurz, der Rest als Tooltip.
+- `docs/OFFENE_FRAGEN.md` (neue Frage 1: bestätigt „Weiter“ in Schritt 1 die gezeigte Lage?), Hilfe de/en,
+  `translations/`, vier Szenarien.
+
+### ERGEBNIS
+- `test_sprache`, `test_bauart_bilder`, `szenario_schritte_neu`, `szenario_beta_schritte`,
+  `szenario_beta_tasche`, `szenario_tauchfraesen`, `szenario_neue_maschine`, `szenario_schnittwerte` grün,
+  einzeln gelaufen; Bilder angesehen (Abspielen, Schritt mit farbigen Balken, „Angelegt“, „Neue Maschine“).
+- Der volle Lauf über 0.361.2 kam bis 127 von 188, alle grün; abgebrochen, weil dieser Stand ihn ablöst.
+  Nicht gelaufen mit dem neuen Stand: `szenario_schritte_testteil`, `szenario_schritte_cring_alles` (schwer,
+  bei Manuel war LM Studio geladen) und die übrigen – das macht der eine volle Lauf am Tagesende.
+- Manuel prüft: „Bearbeitung“ Schritt für Schritt – unten nur „Zurück“ und „Weiter“, die Wege des Schritts
+  stehen farbig im Teil; am Ende die Übersicht mit „▶ Abspielen“ und „Anlegen“.
 ## P-2026-11-11-17 einstellungsseite-passt-wieder
 
 ### EINGELESEN

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fenster „Neue Maschine“: 5-Achs-Fräse Kopf/Kopf – der Tisch steht, der Gabelkopf schwenkt und dreht. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="3" y="52" width="58" height="8" rx="1" fill="#555753"/>
+  <rect x="5" y="6" width="54" height="9" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <rect x="26" y="15" width="12" height="8" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <g transform="rotate(28 32 26)"><rect x="27" y="23" width="10" height="14" fill="#babdb6" stroke="#2e3436" stroke-width="1.5"/><rect x="31" y="37" width="2" height="6" fill="#2e3436"/></g>
+  <rect x="10" y="46" width="44" height="6" fill="#babdb6" stroke="#2e3436" stroke-width="1.5"/>
+  <rect x="20" y="41" width="24" height="5" fill="#edd400" stroke="#8f5902" stroke-width="1.5"/>
+  <path d="M44 20 a12 12 0 0 1 -2 14" fill="none" stroke="#4e9a06" stroke-width="2.5"/>
+  <path d="M40 37 l6 -1 -3 -5 z" fill="#4e9a06"/>
+</svg>

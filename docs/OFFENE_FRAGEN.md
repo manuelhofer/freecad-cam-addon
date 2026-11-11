@@ -8,17 +8,17 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
-## 1. Soll auch der Weg Schritt für Schritt in der Übersicht enden?
+## 1. Soll „Weiter“ in Schritt 1 die gezeigte Lage bestätigen?
 
-**Die Frage:** „Alles vorschlagen →“ endet in der Übersicht (Wege farbig im Teil, Zeiten, was fehlt). Wer
-mit „Weiter“ durch die Schritte geht, endet beim letzten Schritt (meist „Kanten“) und legt dort an – ohne
-dieses Bild. Soll „Weiter“ im letzten Schritt ebenfalls zur Übersicht führen? „Anlegen“ bliebe in jedem
-Schritt.
+**Die Frage:** Schritt 1 zeigt das Teil jetzt im 3D auf einer Platte (oder im Schraubstock) mit X-Pfeil – so,
+wie der Assistent es annimmt („Liegt wie im Modell“). Trotzdem verlangt „Weiter“ heute eine ausdrückliche
+Antwort: die untere Fläche anklicken oder den Knopf „Liegt wie im Modell“. „Alles vorschlagen →“ nimmt die
+gezeigte Lage dagegen ohne Antwort.
 
-- **a)** Ja – jeder Weg endet in der Übersicht (ein Klick mehr, dafür immer dasselbe Schlussbild).
-  *Claudes Vorschlag.*
-- **b)** Nein – Schritt für Schritt bleibt, wie es ist.
+- **a)** „Weiter“ bestätigt, was zu sehen ist – ein Klick weniger; wer es anders will, klickt vorher die
+  untere Fläche an. *Claudes Vorschlag.*
+- **b)** Es bleibt bei der ausdrücklichen Antwort (falsch gespannt hieße falsches Programm).
 
-*Warum nur Manuel:* Es ändert den Ablauf, den du in den Schritten gewohnt bist und so bestellt hast
-(„Anlegen legt an, was bis hier angehakt ist“). *Was die Antwort ändert:* bei a) eine Seite mehr am Ende
-des Schritt-Wegs und die Erwartungen von rund zehn Szenarien. Seit 2026-11-11.
+*Warum nur Manuel:* Du hast am 2026-10-30 bestellt, dass der Assistent die eingespannte Fläche zuerst
+abfragt („erstmal, wo ist die eingespannte Fläche, abfragen“); a) weicht das auf. *Was die Antwort ändert:*
+bei a) entfällt der orange Satz „Erst sagen, wie das Teil liegt“ in Schritt 1. Seit 2026-11-11.

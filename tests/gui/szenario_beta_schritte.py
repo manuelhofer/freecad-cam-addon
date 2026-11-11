@@ -171,6 +171,11 @@ def schritte(h):
 
     # 2. Flächen
     h.pruefe(panel.seite() == 1, f"Seite {panel.seite()}")
+    zeilen = [panel.flaechen_liste.item(i).text() for i in range(panel.flaechen_liste.count())]
+    h.pruefe(
+        not any(z.startswith(("Face", "Edge")) for z in zeilen),
+        f"die Liste nennt die Flächen noch beim FreeCAD-Namen: {zeilen}",
+    )
     h.pruefe(panel.gewaehlte == [wand], f"gewählt: {panel.gewaehlte}")
     h.pruefe(panel.tasche_box.isVisible(), "kein Satz zur Tasche")
     # Noch keine Operation: In der Tasche steht Material – der erste Weg ist, sie auszuräumen und
@@ -204,13 +209,14 @@ def schritte(h):
     )
     angehakt = [b.s.kennung for b in panel.aktive_bloecke()]
     print("BETA angehakt", angehakt, "sichtbar", sichtbar, flush=True)
-    h.pruefe(panel.knopf_fertig.isVisible(), "kein „Anlegen“ im Schruppen")
+    # „Anlegen“ gibt es nur in der Übersicht (Manuel, 2026-11-11) – im Schritt „Weiter“.
+    h.pruefe(not panel.knopf_fertig.isVisible(), "„Anlegen“ steht noch im Schruppen")
     # Im Fenster nur die Summe (die Liste steht als Haken mit Zeitbalken da) – die ganze Liste
     # ist der Tooltip.
     kurz, satz = panel.anlegen_text.text(), panel.anlegen_text.toolTip()
     print("BETA anlegen_text", repr(kurz), repr(satz), flush=True)
     h.pruefe(
-        "Räumen (T1" in satz and "zusammen" in satz and "später: 3D-Schlichten" in satz,
+        "Räumen (T1" in satz and "zusammen" in satz and "Danach: 3D-Schlichten" in satz,
         f"was „Anlegen“ anlegt: {satz!r}",
     )
     h.pruefe("min" in kurz and "Räumen" not in kurz, f"der kurze Satz: {kurz!r}")
@@ -220,6 +226,19 @@ def schritte(h):
         f"Zeitbalken am Räumen: {balken.text()!r} / {balken.toolTip()!r}",
     )
     h.pruefe(not raeumen_satz_sichtbar(panel), "der graue Satz am Räumen steht noch im Schritt")
+    # Der Schritt zeigt, was er tut: die Wege der angehakten Strategien im Teil, jede in der Farbe
+    # ihres Balkens.
+    from camaddon import gui_bahnvorschau as _gbv
+
+    gezeigt = getattr(panel._bahnvorschau, "kennung", None)
+    h.pruefe(
+        bool(gezeigt) and gezeigt[0] == "uebersicht" and panel._bahnvorschau.wurzel is not None,
+        f"im Schritt stehen keine Wege im Teil: {gezeigt}",
+    )
+    h.pruefe(
+        balken._farbe == _gbv.farbe_hex(panel._beta_farben["raeumen"]),
+        f"Balken und Wege in verschiedenen Farben: {balken._farbe} / {panel._beta_farben}",
+    )
     # Flächen in Sätzen sind Verweise, die die Fläche im Teil aufleuchten lassen.
     from camaddon import gui_bearbeitung as _gb
 
@@ -344,7 +363,9 @@ def schritte(h):
     yield 500
     h.pruefe(panel.seite() == 2, f"„Zurück“ auf Seite {panel.seite()}")
     vorher = len(panel.job.Operations.Group)
-    panel.accept()
+    # In Stufen: nur das Schruppen anlegen (ohne Knopf, accept(bis_hier=True)) – danach „Weiter
+    # bearbeiten“ am Job.
+    panel.accept(bis_hier=True)
     yield from h.warte_auf(
         lambda: beta.BearbeitungPanel.offen is not panel or panel.geschlossen, 120000
     )
@@ -436,7 +457,7 @@ def schritte(h):
     print("BETA weiter angehakt", [b.s.kennung for b in weiter.aktive_bloecke()], flush=True)
     h.bild("5_weiter_bearbeiten", weiter.form)
     vorher = len(job.Operations.Group)
-    weiter.accept()
+    weiter.accept(bis_hier=True)
     yield from h.warte_auf(
         lambda: beta.BearbeitungPanel.offen is not weiter or weiter.geschlossen, 120000
     )

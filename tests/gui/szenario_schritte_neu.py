@@ -75,6 +75,22 @@ def schritte(h):
     h.pruefe(float(panel.bohrung.fraeser().durchmesser) == 6.0, "Bohrung fräsen nicht mit dem Ø 6")
     h.pruefe("Nicht dabei" not in text, f"etwas ist nicht dabei: {text[-300:]!r}")
     h.bild("2_mit_beispielwerkzeugen", panel.form)
+    # „▶ Abspielen“: ein Werkzeug fährt die Wege im Teil ab; noch ein Klick hält es an.
+    h.pruefe(panel.knopf_abspielen.isVisible(), "kein „Abspielen“ in der Übersicht")
+    panel.knopf_abspielen.click()
+    yield 5500  # mitten im Räumen: das Werkzeug steht über der Tasche
+    spieler = panel._beta_spieler
+    h.pruefe(spieler is not None and spieler.laeuft(), "„Abspielen“ läuft nicht")
+    h.pruefe(panel.knopf_abspielen.text() == "■ Anhalten", panel.knopf_abspielen.text())
+    h.bild("2b_abspielen", None)
+    panel.knopf_abspielen.click()
+    yield 200
+    h.pruefe(
+        not spieler.laeuft()
+        and spieler.wurzel is None
+        and panel.knopf_abspielen.text() == "▶ Abspielen",
+        f"„Anhalten“ hält nicht an: {panel.knopf_abspielen.text()!r}",
+    )
     # „Anlegen“ – und das Fenster „Angelegt“ sagt rot, dass der Ø 6 für die 30 mm tiefe Bohrung zu
     # kurz heraussteht (das stand sonst erst im Kopf des Programms).
     job = panel.job
@@ -106,6 +122,10 @@ def schritte(h):
             f"Warnung bleibt nach dem Ausspannen: {fertig.warnung.text()!r}",
         )
         h.bild("4_angelegt_ausgespannt", fertig)
+        h.pruefe(
+            not fertig.knopf_weiter.isVisible(),
+            "„Weiter bearbeiten“ steht da, obwohl alles Vorgeschlagene angelegt ist",
+        )
         # Eine Zeile anklicken wählt die Operation (FreeCAD hebt dann ihre Bahn hervor).
         op, zeile = fertig._zeilen[1]
         fertig.liste.itemClicked.emit(zeile, 0)

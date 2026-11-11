@@ -108,7 +108,15 @@ def schritte(h):
         yield 1000
         seiten.append(panel.seite())
         h.bild(f"1_seite_{panel.seite()}", panel.form)
-    h.pruefe(seiten == [1, 2, 3, 4, 5], f"Schritte: {seiten}")
+    # Auch Schritt für Schritt endet der Weg in der Übersicht (Manuel, 2026-11-11: „ja“).
+    h.pruefe(seiten == [1, 2, 3, 4, 5, beta.UEBERSICHT], f"Schritte: {seiten}")
+    uebersicht = panel.uebersicht_text.text()
+    h.pruefe(
+        "Räumen" in uebersicht and "zeige|raeumen" in uebersicht and "Zusammen" in uebersicht,
+        f"Übersicht am Ende der Schritte: {uebersicht[:300]!r}",
+    )
+    h.pruefe("Nicht dabei" not in uebersicht, f"etwas ist nicht dabei: {uebersicht[-300:]!r}")
+    h.pruefe(not panel.knopf_weiter.isVisible(), "„Weiter“ noch in der Übersicht")
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
         and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke),

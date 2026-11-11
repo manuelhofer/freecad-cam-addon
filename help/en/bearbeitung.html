@@ -37,23 +37,26 @@ catalogue have?</b>, larger ones from the manufacturers.</li>
 <li><b>Edges</b> – chamfers and deburring.</li>
 </ol>
 <p>Every strategy shows its time as a <b>bar</b> – as long as its time against the longest of the step,
-in blue: you see what takes longer. Beside a strategy that is not ticked the short reason is shown in grey
+in the colour of its paths on the part: you see what takes longer. Beside a strategy that is not ticked the short reason is shown in grey
 instead (“319 % slower than clearing”). The sentence that goes with it (levels, passes,
 the comparison) is the tooltip of the bar and sits with the values. Every ticked strategy shows its
 cutter; <b>Change values</b> opens its settings – they are prefilled, change only where needed.
-<b>Preview</b> shows its paths on the part. If a selected face would not be finished this way, it is
+The paths of the ticked strategies of a step are shown on the part by themselves, each in the colour of
+its bar; <b>Preview</b> shows only those of one strategy, another click all of them again. If a selected face would not be finished this way, it is
 <b>orange on the part</b>; the button beside it ticks what finishes it. (In the old window these are “What comes off?” and “Settings”; the sections
 below still name the steps that way.)</p>
 <p><b>The short way – “Suggest everything →”:</b> in steps 1 and 2 the button <b>Suggest everything
 →</b> sits next to “Next”. It takes everything that can be machined from above in this setup, picks
 strategies and tools as in the steps and shows the <b>overview</b>: one row per machining with tool and
 time, the total – and on the part the paths, each machining in the colour of its row. A click on a row
-shows only its paths, another click all of them again. Orange on the part is what would not be finished
+shows only its paths, another click all of them again. <b>▶ Play</b> runs a tool along these paths on the part –
+for viewing only, without material removal and without a machine. Orange on the part is what would not be finished
 this way, purple what cannot be reached from above in this setup; in red what is still missing. If you have said nothing about the position, “Lies as modelled”
 applies. <b>Create</b> creates everything, and the “Created” window then offers <b>Write program …</b>
 right away. What cannot be created (for example no fitting tool) is listed under “Not included” with its
 reason – the rest still works. “Back” leads from the overview into the steps if you want to change
-something.</p>
+something. If you go step by step with “Next”, the last step also leads to this overview. <b>Creating happens only here</b> – the
+steps have “Back” and “Next”; if you only want to rough, untick the rest.</p>
 <p><b>No tool yet?</b> If the tool manager has no cutter with cutting data, the wizard offers <b>Create
 example tools</b>: four common cutters (Ø 12, Ø 6, Ø 20, face mill Ø 50) with example cutting data – the
 suggestion is there at once. The values are assumptions: adapt them in the tool manager to your tools,
@@ -62,13 +65,13 @@ your material and your machine before milling.</p>
 they stay open.</p>
 <p><b>Next works once the step is clear.</b> If something is missing, it says so in orange above the
 buttons – and a click on “Next” frames for a moment what to do.</p>
-<p><b>Create</b> is available from roughing on. It creates what is ticked <i>up to this step</i>; above
-the button it says what that is, with the time, and what stays ticked for later. Everything is taken
-into account all the same: roughing leaves stock when there is finishing. Later, <b>Continue
-machining</b> carries on at the job with the next step – the same faces, the setup fixed, with a
-measuring stop before it if you like. <b>New setup</b> starts a new job for the same part (clamped
-differently); in the last step <b>Create and re-clamp the part …</b> does both in one go and preselects
-what could not be reached in this setup.</p>
+<p><b>Create</b> exists only in the overview at the end – it creates everything that is ticked. In the
+steps a grey line at the bottom says how much time has added up so far. <b>Working in stages</b> (rough
+first, measure, then go on): untick the later steps and create; later, <b>Continue machining</b>
+carries on at the job with the next step – the same faces, the setup fixed, with a measuring stop
+before it if you like. <b>New setup</b> starts a new job for the same part (clamped differently); in the
+overview <b>Create and re-clamp the part …</b> does both in one go and preselects what could not be
+reached in this setup.</p>
 <p><b>Planes:</b> if something selected is machined in a plane of its own – tilted (3+2), or
 “from above” on a machine with a horizontal spindle – the “Roughing” step says so and the button reads
 <b>Create plane →</b>. The wizard of the plane then opens right at roughing; at the top it

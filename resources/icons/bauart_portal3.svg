@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fenster „Neue Maschine“: Portalfräse – zwei Ständer, Brücke, Schlitten mit Spindel über einem großen Tisch. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="3" y="52" width="58" height="8" rx="1" fill="#555753"/>
+  <rect x="5" y="14" width="8" height="38" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <rect x="51" y="14" width="8" height="38" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <rect x="5" y="8" width="54" height="10" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <rect x="26" y="14" width="12" height="16" fill="#babdb6" stroke="#2e3436" stroke-width="1.5"/>
+  <rect x="31" y="30" width="2" height="8" fill="#2e3436"/>
+  <rect x="14" y="46" width="36" height="6" fill="#babdb6" stroke="#2e3436" stroke-width="1.5"/>
+  <rect x="20" y="42" width="24" height="4" fill="#edd400" stroke="#8f5902" stroke-width="1.5"/>
+</svg>

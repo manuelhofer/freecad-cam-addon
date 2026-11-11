@@ -14,6 +14,8 @@ von „Maschine bearbeiten“ und „Maschine verfahren“, wenn es keine Baugru
 gibt.
 """
 
+import os
+
 import FreeCADGui
 from PySide import QtCore, QtGui
 
@@ -77,9 +79,15 @@ class NeueMaschineDialog(QtGui.QDialog):
         text.setWordWrap(True)
         text.setToolTip(lang)
         self.liste = QtGui.QListWidget()
+        # Je Bauart ein kleines Bild (resources/icons/bauart_<art>.svg): Woran man seine Maschine
+        # erkennt, sieht man schneller, als man es liest (Zeigen statt sagen, Arbeitsregeln 8).
+        self.liste.setIconSize(QtCore.QSize(40, 40))
         for art in beispielmaschine.ARTEN:
             eintrag = QtGui.QListWidgetItem(beispielmaschine.titel(art))
             eintrag.setData(ROLLE, art)
+            bild = symbol(f"bauart_{art}.svg")
+            if os.path.exists(bild):
+                eintrag.setIcon(QtGui.QIcon(bild))
             self.liste.addItem(eintrag)
         # So hoch, dass alle Bauarten ohne Rollbalken hineinpassen.
         self.liste.setFixedHeight(

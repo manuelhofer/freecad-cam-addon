@@ -152,7 +152,7 @@ def schritte(h):
     h.pruefe("Vorgebohrt: 1 Loch" in satz and "10" in satz, f"Tauchfräsen: {satz!r}")
     h.bild("1_tauchfraesen_vorbohren", panel.form)
     vorher = len(panel.job.Operations.Group)
-    panel.accept()
+    panel.accept(bis_hier=True)  # nur das Schruppen (in Stufen) – „Anlegen“ steht in der Übersicht
     yield from h.warte_auf(
         lambda: beta.BearbeitungPanel.offen is not panel or panel.geschlossen, 120000
     )
@@ -180,10 +180,10 @@ def schritte(h):
     yield 300
     zeilen = [fertig.liste.topLevelItem(i) for i in range(fertig.liste.topLevelItemCount())]
     fett = [z.text(0) for z in zeilen if z.font(0).bold()]
-    print(ascii(f"Angelegt: {[(z.text(0), z.text(1)) for z in zeilen]}, fett {fett}"))
+    print(ascii(f"Angelegt: {[(z.text(0), z.text(2)) for z in zeilen]}, fett {fett}"))
     h.pruefe(len(zeilen) == len(panel.job.Operations.Group), f"Zeilen: {len(zeilen)}")
     h.pruefe(sorted(fett) == sorted(namen), f"fett {fett} statt {namen}")
-    h.pruefe(all("min" in z.text(1) for z in zeilen if z.text(0) in namen), "neue ohne Zeit")
+    h.pruefe(all("min" in z.text(2) for z in zeilen if z.text(0) in namen), "neue ohne Zeit")
     h.pruefe("min" in fertig.summe.text(), fertig.summe.text())
     h.pruefe(fertig.knopf_weiter.isVisible(), "kein „Weiter bearbeiten“")
     h.bild("2_angelegt", fertig)
