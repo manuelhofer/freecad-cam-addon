@@ -3757,5 +3757,6 @@
     "beta.uebersicht.nicht_dabei": "Not included – something is still missing for these:",
     "beta.fertig.knapp": "Caution – the tool does not stick out far enough:",
     "beta.fertig.knapp.rat": "Clamp it longer or take a longer tool (tool manager) – “Check on the machine …” shows where holder or shank touch.",
-    "beta.anleitung.ein_teil": "Fastest: “Suggest everything →” – the wizard takes the part as it is modelled and shows what it suggests. Or step by step: click the face that lies at the bottom (in the vise, on the table), or “Lies as modelled”."
+    "beta.anleitung.ein_teil": "Fastest: “Suggest everything →” – the wizard takes the part as it is modelled and shows what it suggests. Or step by step: click the face that lies at the bottom (in the vise, on the table), or “Lies as modelled”.",
+    "beta.uebersicht.rest": "Not in this suggestion: {anzahl} faces ({namen}) that cannot be reached from above – for example walls under a rim or the underside. “Back” to the faces adds them (flank, 3D finishing), or “Create and re-clamp the part …” in the next setup."
 }

@@ -578,6 +578,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.354.0):* **Der kurze Weg an der 5-Achs-Maschine:** „Alles vorschlagen“ nimmt die ganze Tasche
+  (auch Wände unter dem Rand), die Ebenen der Kette zeigen ebenfalls die Übersicht; „Nicht dabei“ trägt die
+  Verweise der Strategie („T1 auf 51 mm ausspannen“) – ein Klick, und sie ist dabei. Am Teil „tief“ an der
+  G550: fünf Klicks bis zum ganzen Job.
 - *Neu (0.353.0):* Mit nur einem Teil im Dokument braucht „Bearbeitung“ keinen Klick ins Teil: „Alles
   vorschlagen →“ und „Liegt wie im Modell“ nehmen es. Die Beispiel-Werkzeuge der Nutzer sind eine eigene
   Liste (`starterkiste`); die Testkiste bleibt die feste Vergleichsbasis.

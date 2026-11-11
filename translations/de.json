@@ -3757,5 +3757,6 @@
     "beta.uebersicht.nicht_dabei": "Nicht dabei – dafür fehlt noch etwas:",
     "beta.fertig.knapp": "Achtung – das Werkzeug steht zu kurz heraus:",
     "beta.fertig.knapp.rat": "Länger ausspannen oder ein längeres Werkzeug nehmen (Werkzeugverwaltung) – „Auf der Maschine prüfen …“ zeigt, wo Halter oder Schaft anstoßen.",
-    "beta.anleitung.ein_teil": "Am schnellsten: „Alles vorschlagen →“ – der Assistent nimmt das Teil, wie es modelliert ist, und zeigt, was er vorschlägt. Oder Schritt für Schritt: Klick die Fläche an, die unten liegt (im Schraubstock, auf dem Tisch), oder „Liegt wie im Modell“."
+    "beta.anleitung.ein_teil": "Am schnellsten: „Alles vorschlagen →“ – der Assistent nimmt das Teil, wie es modelliert ist, und zeigt, was er vorschlägt. Oder Schritt für Schritt: Klick die Fläche an, die unten liegt (im Schraubstock, auf dem Tisch), oder „Liegt wie im Modell“.",
+    "beta.uebersicht.rest": "Nicht in diesem Vorschlag: {anzahl} Flächen ({namen}), die von oben nicht zu erreichen sind – etwa Wände unter einem Rand oder die Unterseite. „Zurück“ zu den Flächen nimmt sie dazu (Flanke, 3D-Schlichten), oder „Anlegen und Teil umspannen …“ in der nächsten Aufspannung."
 }

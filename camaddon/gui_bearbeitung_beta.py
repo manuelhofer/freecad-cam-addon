@@ -48,6 +48,9 @@ from .gui_teile import knopf
 from .gui_zahlen import Zahlenpruefer, dezimal, groesse_lesen, groesse_zeigen
 from .sprache import tr
 
+_KURZER_WEG = {
+    "an": False
+}  # „Alles vorschlagen“ geklickt: die Ebenen der Kette zeigen die Übersicht
 WARUM_FARBE = "color: #d08000;"  # der Satz, warum „Weiter“ noch nicht geht
 BETONT_MS = 1800  # so lange bleibt der Rahmen um das, was fehlt (_warum_betonen)
 BETA_AN = "BetaZeigen"  # Parameter: die Beta-Befehle in Menü und Werkzeugleiste
@@ -148,6 +151,8 @@ class BetaPanel(BearbeitungPanel):
             self.seite_zeigen(self._beta_start)
         elif self._ebene_der_kette():
             self._bei_der_ebene_beginnen()
+        else:
+            _KURZER_WEG["an"] = False  # ein neuer Anfang: der kurze Weg gilt erst mit seinem Knopf
 
     def _ebene_der_kette(self):
         """Ist das der Assistent einer Ebene, den „Anlegen“ davor geöffnet hat (3+2, oder „von
@@ -173,7 +178,10 @@ class BetaPanel(BearbeitungPanel):
         self.dazu_text.setText(self.dazu_text.text().replace(f"{self._folge}\n", ""))
         if self.gewaehlte:
             self._beta_tasche_ok.add(frozenset(self.gewaehlte))
-            self.seite_zeigen(self._abschnitt_seite(SCHRUPPEN, vorwaerts=True))
+            # Wer den kurzen Weg genommen hat („Alles vorschlagen“), bekommt auch in der Ebene
+            # gleich die Übersicht – sonst die Schritte ab dem Schruppen.
+            kurz = _KURZER_WEG.get("an", False)
+            self.seite_zeigen(UEBERSICHT if kurz else self._abschnitt_seite(SCHRUPPEN))
         else:
             self.seite_zeigen(1)
 
@@ -309,6 +317,7 @@ class BetaPanel(BearbeitungPanel):
         self.uebersicht_text = QtGui.QLabel()
         self.uebersicht_text.setWordWrap(True)
         self.uebersicht_text.setTextFormat(QtCore.Qt.RichText)
+        self.uebersicht_text.linkActivated.connect(self._uebersicht_verweis)
         uebersicht.addWidget(self.uebersicht_text)
         aufbau.insertWidget(aufbau.indexOf(self._beta_seiten[KANTEN]) + 1, self.uebersicht_seite)
         self.seiten.append(self.uebersicht_seite)
@@ -905,7 +914,15 @@ class BetaPanel(BearbeitungPanel):
         if not self.gewaehlte:
             self.seite_zeigen(1)  # dort steht je Fläche, warum sie hier nicht geht
             return
+        if self._fuenfachs():
+            # An der 5-Achs-Maschine gehören die Wände einer Tasche dazu, auch wenn sie von oben
+            # nicht zu erreichen sind (unter einem Rand): wie „Ganze Tasche nehmen“ – der Assistent
+            # schlägt für sie Flanke oder 3D-Schlichten vor.
+            self._tasche_pruefen()
+            if self._beta_fehlende:
+                self.ganze_tasche()
         self._beta_tasche_ok.add(frozenset(self.gewaehlte))
+        _KURZER_WEG["an"] = True  # gilt auch für die Ebenen, die „Anlegen“ danach öffnet
         self.seite_zeigen(UEBERSICHT)
 
     def _nicht_machbares_abhaken(self):
@@ -922,10 +939,7 @@ class BetaPanel(BearbeitungPanel):
         self._fuellt = True
         try:
             for block in raus:
-                self._beta_nicht_dabei[block.s.kennung] = (
-                    block.s.titel(),
-                    _ohne_marken(block.hinweis.text()),
-                )
+                self._beta_nicht_dabei[block.s.kennung] = (block.s.titel(), block.hinweis.text())
                 block.haken.setChecked(False)
                 block.zustand_zeigen()
         finally:
@@ -989,24 +1003,33 @@ class BetaPanel(BearbeitungPanel):
                 continue  # dafür steht der Knopf „Beispiel-Werkzeuge anlegen“ darunter
             if hinweis:
                 achtung.append(f"<b>{html.escape(block.s.titel())}:</b> {html.escape(hinweis)}")
-        if not zeilen:
-            self.uebersicht_text.setText(tr("beta.uebersicht.nichts"))
-            return
-        teile = [f"<table cellspacing='2'>{''.join(zeilen)}</table>"]
-        if self.vorschau_laeuft():
-            teile.append(f"<i>{html.escape(tr('beta.uebersicht.rechnet'))}</i>")
-        elif summe > 0:
-            teile.append(html.escape(tr("beta.uebersicht.summe", zeit=_minuten_text(summe))))
-        if self.ebene_text.text() and self._beta_geschwenkt:
-            teile.append(html.escape(self.ebene_text.text()))
+        rest = self._uebersicht_rest()
+        mit_ebene = bool(self._beta_geschwenkt and self.ebene_text.text())
+        if zeilen:
+            teile = [f"<table cellspacing='2'>{''.join(zeilen)}</table>"]
+            if self.vorschau_laeuft():
+                teile.append(f"<i>{html.escape(tr('beta.uebersicht.rechnet'))}</i>")
+            elif summe > 0:
+                teile.append(html.escape(tr("beta.uebersicht.summe", zeit=_minuten_text(summe))))
+            if mit_ebene:
+                teile.append(html.escape(self.ebene_text.text()))
+        elif mit_ebene:
+            # Nichts in diesem Job – aber in einer Ebene, die „Anlegen“ gleich öffnet.
+            teile = [html.escape(self.ebene_text.text())]
+        else:
+            teile = [html.escape(tr("beta.uebersicht.nichts"))]
+        if rest:
+            teile.append(html.escape(rest))
         if self._beta_nicht_dabei:
+            # Der Satz der Strategie mit seinen Verweisen („T1 auf 51 mm ausspannen“, „So
+            # einrichten“): Ein Klick hier behebt es, die Strategie kommt wieder dazu.
             nicht = "<br>".join(
-                f"<b>{html.escape(titel)}:</b> {html.escape(satz)}"
-                for titel, satz in self._beta_nicht_dabei.values()
+                f"<b>{html.escape(titel)}:</b> {_verweise_fuer(kennung, satz)}"
+                for kennung, (titel, satz) in self._beta_nicht_dabei.items()
             )
             teile.append(
                 f"<span style='color: #c03030;'>{html.escape(tr('beta.uebersicht.nicht_dabei'))}"
-                f"<br>{nicht}</span>"
+                f"</span><br>{nicht}"
             )
         if achtung:
             teile.append(
@@ -1014,6 +1037,38 @@ class BetaPanel(BearbeitungPanel):
                 f"<br>{'<br>'.join(achtung)}</span>"
             )
         self.uebersicht_text.setText("<br><br>".join(teile))
+
+    def _uebersicht_verweis(self, ziel):
+        """Ein Verweis unter „Nicht dabei“ angeklickt: Die Strategie bekommt ihren Haken wieder und
+        führt ihren Verweis aus (ausspannen, die Empfehlung einrichten) – danach rechnet die
+        Vorschau neu; geht es dann, steht sie in der Tabelle."""
+        if not ziel.startswith(VERWEIS_BLOCK):
+            return
+        _marke, kennung, rest = ziel.split("|", 2)
+        block = next((b for b in self.bloecke if b.s.kennung == kennung), None)
+        if block is None:
+            return
+        self._beta_nicht_dabei.pop(kennung, None)
+        self._fuellt = True
+        try:
+            block.haken.setChecked(True)
+            block.zustand_zeigen()
+        finally:
+            self._fuellt = False
+        block._hinweis_verweis(rest)
+        self.vorschau_starten()
+        self._beta_knoepfe()
+
+    def _uebersicht_rest(self):
+        """Ein Satz zu den Flächen, die der kurze Weg nicht nimmt, weil sie in dieser Aufspannung
+        von oben nicht zu erreichen sind (Wände unter einem Rand, die Unterseite) – „“ ohne."""
+        zugang = getattr(self, "_zugang", None)
+        offen = set(getattr(zugang, "unerreichbar", None) or ()) - set(self.gewaehlte)
+        namen = sorted((n for n in offen if n.startswith("Face")), key=lambda n: int(n[4:]))
+        if not namen:
+            return ""
+        kurz = ", ".join(namen[:6]) + (" …" if len(namen) > 6 else "")
+        return tr("beta.uebersicht.rest", anzahl=len(namen), namen=kurz)
 
     def _frage_passt(self, frage, widget, passt):
         # Die Schritte sind die Reihenfolge: Die Frage danach hängt hier in keinem Layout mehr –
@@ -2008,6 +2063,19 @@ def _knapp_saetze(job):
     except Exception as fehler:  # noqa: BLE001 – die Warnung darf das Fenster nicht verhindern
         FreeCAD.Console.PrintLog(f"Angelegt: Auskragung nicht geprüft: {fehler}\n")
     return saetze
+
+
+VERWEIS_BLOCK = "block|"  # in der Übersicht: „block|<Kennung>|<Verweis der Strategie>“
+
+
+def _verweise_fuer(kennung, text):
+    """Der Satz einer Strategie für die Übersicht: seine Verweise führen über die Übersicht zu
+    ihr zurück (BetaPanel._uebersicht_verweis)."""
+    import re
+
+    return re.sub(
+        r'href="([^"]+)"', lambda m: f'href="{VERWEIS_BLOCK}{kennung}|{m.group(1)}"', text or ""
+    )
 
 
 def _ohne_marken(text):

@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-06 kurzer-weg-fuenf-achsen
+
+### EINGELESEN
+- Manuel, 2026-11-11: „mach vor allem weiter ! bitte nicht anhalten“. Der kurze Weg an der G550 mit der
+  Kopie des Teils „tief“ nachgespielt: Die Übersicht des Grundjobs sagte „Hier gibt es nichts anzulegen“,
+  obwohl die Ebene kommt; die Wände unter dem Rand fehlten im Vorschlag; der Assistent der Ebene begann
+  wieder bei den Schritten.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: An der 5-Achs-Maschine nimmt „Alles vorschlagen“ die ganze Tasche
+  (wie „Ganze Tasche nehmen“); `_KURZER_WEG` – die Ebenen der Kette zeigen dann auch die Übersicht;
+  `_uebersicht_rest` (was von oben nicht geht); „Nicht dabei“ mit den Verweisen der Strategie
+  (`_verweise_fuer`, `_uebersicht_verweis`): ein Klick behebt es, die Strategie kommt dazu.
+- `translations/de.json`, `en.json`.
+
+### ERGEBNIS
+- Teil „tief“ an der G550 (Kopie, Szenario in `wip`): „Alles vorschlagen →“, zwei Verweise („So
+  einrichten“, „T1 auf 51 mm ausspannen“), „Ebene anlegen →“, in der Ebene „Anlegen“ – angelegt:
+  3D-Schlichten T3, Flanke T1, Räumen T1, Wände schlichten T1. `szenario_schritte_neu` grün.
 ## P-2026-11-11-05 ein-teil-ohne-klick
 
 ### EINGELESEN
