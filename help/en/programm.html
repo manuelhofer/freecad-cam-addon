@@ -33,7 +33,8 @@ woodWOP (MPR, <a href="#woodwop">below</a>) or Heidenhain conversational – iTN
 640/620/320 (<a href="#heidenhain">below</a>). The job remembers the
 choice, so does the machine – for the next job on it, it is preselected.</li>
 <li><b>Settings on the left, preview on the right</b> with the first blocks – you see every
-change right away.</li>
+change right away: the lines a setting writes or changes are highlighted in <b>yellow</b>, the
+first one scrolled into view; beside it the number of lines changed and dropped.</li>
 <li><b>Save</b> writes the whole program to the file – suggested is the one the job's program
 last went to, otherwise the folder a program for its machine last went to (its share, say),
 otherwise next to the document; with the control's extension (.ngc, .mpf, .nc, .tap, .h).
@@ -50,7 +51,8 @@ network), EXTCALL from a small main program, or DNC.</li>
 
 <h3>The settings</h3>
 <p>They apply per control to all jobs and are preset so you need not change anything to get
-started. Every row has a sentence of explanation, every group a <b>?</b> that jumps here.
+started. Every row has a sentence of explanation – as its tooltip; the tick <b>Show explanations</b> at the
+top writes it below every setting. Every group has a <b>?</b> that jumps here.
 <b>Bold</b> is what you changed; <b>yellow</b> what the machine builder decides (with Fanuc the
 driven tool and the C axis – the program then contains a comment about it). Only what applies
 to the chosen machine is shown – on a mill no C axis and no driven tool. If a tick is off, the

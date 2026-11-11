@@ -36,6 +36,27 @@ def _im_layout(layout, widget):
     )
 
 
+def lesemenge(wurzel):
+    """(Wörter, längster Text in Wörtern) der sichtbaren Sätze unter `wurzel` – Texte ab vier
+    Wörtern in Beschriftungen und Haken, ohne Tabellen und Listen. Das Maß dafür, wie viel jemand
+    lesen muss, ehe er klicken kann (Manuel, 2026-11-11: „ohh man muss ich das jetzt alles
+    wirklich lesen“); steht je Bild in `woerter.txt`."""
+    import re
+
+    anzahl, laengster = 0, 0
+    for element in wurzel.findChildren(QtGui.QWidget):
+        if not isinstance(element, (QtGui.QLabel, QtGui.QCheckBox, QtGui.QRadioButton)):
+            continue
+        if not element.isVisible():
+            continue
+        text = re.sub(r"<[^>]+>", " ", element.text() or "")
+        woerter = len(re.findall(r"\w+", text))
+        if woerter >= 4:
+            anzahl += woerter
+            laengster = max(laengster, woerter)
+    return anzahl, laengster
+
+
 def lose_elemente(wurzel):
     """Sichtbare Elemente unter `wurzel`, die in keinem Layout ihres Fensters hängen, obwohl es
     eines hat, und dabei ein Geschwister überdecken – so lag in den Schritten die Frage „In welcher
@@ -84,6 +105,9 @@ class Helfer:
         if not haupt:  # die Fenster des Addons – nicht FreeCADs Hauptfenster mit seinen Leisten
             for zeile in lose_elemente(widget):
                 self.fehler.append(f"Bild {name}: {zeile}")
+            anzahl, laengster = lesemenge(widget)
+            with open(os.path.join(AUSGABE, "woerter.txt"), "a", encoding="utf-8") as datei:
+                datei.write(f"{anzahl}\t{laengster}\t{name}\n")
 
     def warte_auf(self, bedingung, hoechstens_ms=20000, schritt_ms=250):
         """Wartet (mit `yield from`), bis `bedingung()` wahr ist – höchstens so lange.

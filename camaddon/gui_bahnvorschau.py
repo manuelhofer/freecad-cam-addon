@@ -15,7 +15,22 @@ FARBEN = (
     (0.15, 0.65, 0.20),
     (0.75, 0.15, 0.75),
     (0.00, 0.65, 0.70),
+    (0.85, 0.10, 0.25),
+    (0.45, 0.30, 0.10),
+    (0.40, 0.40, 0.95),
 )
+
+
+def farbe(nummer):
+    """Die Farbe der Bahn Nummer `nummer` (0, 1, …) als (r, g, b) von 0 bis 1."""
+    return FARBEN[nummer % len(FARBEN)]
+
+
+def farbe_hex(nummer):
+    """Dieselbe Farbe als „#rrggbb“ – für die Zeile, die im Fenster zu der Bahn gehört."""
+    return "#" + "".join(f"{int(round(255 * wert)):02x}" for wert in farbe(nummer))
+
+
 EILGANG = (0.60, 0.60, 0.60)
 BOGEN_STUECKE = 12  # so viele Geraden je Bogen – grob genügt
 
@@ -59,10 +74,11 @@ class Bahnvorschau:
         self.ansicht = None
         self.kennung = None
 
-    def zeigen(self, kennung, bahnen, lage=None):
+    def zeigen(self, kennung, bahnen, lage=None, farben=None):
         """Zeigt die Punkte der `bahnen` (je eine Vorschau mit `punkte`, mm im Job) – `lage`
-        (FreeCAD.Placement) bringt sie vom Job ans Teil, wie es in der Ansicht liegt. Gibt zurück,
-        ob es eine Ansicht dafür gab."""
+        (FreeCAD.Placement) bringt sie vom Job ans Teil, wie es in der Ansicht liegt. `farben`
+        gibt je Bahn ihre Farbe vor (sonst der Reihe nach) – so behält eine Bahn ihre Farbe, wenn
+        sie allein gezeigt wird. Gibt zurück, ob es eine Ansicht dafür gab."""
         from pivy import coin
 
         self.weg()
@@ -91,8 +107,8 @@ class Bahnvorschau:
             vorschub, eilgang = [], []
             for i in range(1, len(punkte)):
                 (eilgang if punkte[i][3] else vorschub).extend((i - 1, i, -1))
-            farbe = FARBEN[nummer % len(FARBEN)]
-            for stellen, f in ((vorschub, farbe), (eilgang, EILGANG)):
+            eigene = farben[nummer] if farben else farbe(nummer)
+            for stellen, f in ((vorschub, eigene), (eilgang, EILGANG)):
                 if not stellen:
                     continue
                 linien = coin.SoIndexedLineSet()

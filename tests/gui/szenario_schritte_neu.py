@@ -70,7 +70,7 @@ def schritte(h):
     text = panel.uebersicht_text.text()
     h.pruefe(not panel.beispiel_box.isVisible(), "das Angebot bleibt nach dem Anlegen stehen")
     h.pruefe(panel.knopf_fertig.isEnabled(), f"„Anlegen“ geht nicht: {text[-300:]!r}")
-    for wort in ("Räumen", "Bohrung fräsen", "T3", "Zusammen etwa"):
+    for wort in ("Räumen", "Bohrung fräsen", "T3", "Zusammen"):
         h.pruefe(wort in text, f"„{wort}“ fehlt: {text[:400]!r}")
     h.pruefe(float(panel.bohrung.fraeser().durchmesser) == 6.0, "Bohrung fräsen nicht mit dem Ø 6")
     h.pruefe("Nicht dabei" not in text, f"etwas ist nicht dabei: {text[-300:]!r}")

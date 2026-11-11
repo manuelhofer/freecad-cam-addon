@@ -33,6 +33,11 @@ def _art(op):
     return type(getattr(op, "Proxy", None)).__module__.split(".")[-1]
 
 
+def raeumen_satz_sichtbar(panel):
+    block = next(b for b in panel.bloecke if b.s.kennung == "raeumen")
+    return block.ergebnis.isVisible() and "<a " not in block.ergebnis.text()
+
+
 def schritte(h):
     yield 500
     erster = h.modal()
@@ -200,12 +205,21 @@ def schritte(h):
     angehakt = [b.s.kennung for b in panel.aktive_bloecke()]
     print("BETA angehakt", angehakt, "sichtbar", sichtbar, flush=True)
     h.pruefe(panel.knopf_fertig.isVisible(), "kein „Anlegen“ im Schruppen")
-    satz = panel.anlegen_text.text()
-    print("BETA anlegen_text", repr(satz), flush=True)
+    # Im Fenster nur die Summe (die Liste steht als Haken mit Zeitbalken da) – die ganze Liste
+    # ist der Tooltip.
+    kurz, satz = panel.anlegen_text.text(), panel.anlegen_text.toolTip()
+    print("BETA anlegen_text", repr(kurz), repr(satz), flush=True)
     h.pruefe(
         "Räumen (T1" in satz and "zusammen" in satz and "später: 3D-Schlichten" in satz,
         f"was „Anlegen“ anlegt: {satz!r}",
     )
+    h.pruefe("min" in kurz and "Räumen" not in kurz, f"der kurze Satz: {kurz!r}")
+    balken = panel._beta_balken["raeumen"]
+    h.pruefe(
+        balken.isVisible() and "min" in balken.text() and bool(balken.toolTip()),
+        f"Zeitbalken am Räumen: {balken.text()!r} / {balken.toolTip()!r}",
+    )
+    h.pruefe(not raeumen_satz_sichtbar(panel), "der graue Satz am Räumen steht noch im Schritt")
     # Der Fräser in der Zeile: dieselbe Wahl wie in den Werten, hin und her.
     raeumen = next(b for b in panel.bloecke if b.s.kennung == "raeumen")
     zeile, _huelle, _klapp = panel._beta_werte["raeumen"]

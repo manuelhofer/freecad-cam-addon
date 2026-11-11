@@ -246,6 +246,11 @@ class Einstellungsseite:
         self.altes_fenster = QtGui.QCheckBox(tr("einstellungen.altes_fenster.haken"))
         self.altes_fenster.setToolTip(tr("einstellungen.altes_fenster.hinweis"))
         QtGui.QVBoxLayout(bearbeitung).addWidget(self.altes_fenster)
+        # Der Haken stand in jedem Schritt des Assistenten – hier und im Fenster „Angelegt“ selbst
+        # genügt er (Manuel, 2026-11-11: zu viel Text in den Fenstern).
+        self.fertig_zeigen = QtGui.QCheckBox(tr("einstellungen.fertig_zeigen.haken"))
+        self.fertig_zeigen.setToolTip(tr("einstellungen.fertig_zeigen.hinweis"))
+        bearbeitung.layout().addWidget(self.fertig_zeigen)
 
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
@@ -285,6 +290,7 @@ class Einstellungsseite:
 
         self.beta_an.setChecked(gui_bearbeitung_beta.beta_an())
         self.altes_fenster.setChecked(gui_bearbeitung_beta.altes_fenster())
+        self.fertig_zeigen.setChecked(gui_bearbeitung_beta.fertig_zeigen_an())
         from . import nebenrechner
 
         # Gespeichert heißt 0 „alle“ (ein Rechner mit mehr Kernen nimmt dann alle seine).
@@ -305,6 +311,9 @@ class Einstellungsseite:
             gui_bearbeitung_beta.beta_setzen(self.beta_an.isChecked())
             gui_start.beta_umgeschaltet()
         gui_bearbeitung_beta.altes_fenster_setzen(self.altes_fenster.isChecked())
+        FreeCAD.ParamGet(gui_bearbeitung_beta.PARAMETER_PFAD).SetBool(
+            gui_bearbeitung_beta.FERTIG_ZEIGEN, self.fertig_zeigen.isChecked()
+        )
         from . import nebenrechner
 
         anzahl = self.wahl_nebenrechner.value()

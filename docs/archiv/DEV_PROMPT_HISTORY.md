@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-07 zeigen-statt-sagen
+
+### EINGELESEN
+- Manuel, 2026-11-11: „in den fenstern ist auch immer viel text .. ich denke das WOT immer den benutzer
+  abschreckt so das er sich denkt .... ohh man muss ich das jetzt alles wirklich lesen ich will doch nur
+  das das teil bearbeitet wird“ – und gleich danach: „kürzerer text ist ja nicht besser gibts vll einfach
+  ne andere möglichkeit das gesagte umzusetzten oder zu zeigen oder dem benutzer schmackhaft zu machen“.
+- Gemessen (neu: `szenario_lauf.lesemenge`, je Bild in `woerter.txt`): „Programm schreiben“ 2031 Wörter,
+  Schritt „Schruppen“ 275, Schritt 1 121, Übersicht 122.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: Übersicht – je Bearbeitung eine Zeile in der Farbe ihrer Wege im
+  Teil (`_uebersicht_wege`), ein Klick zeigt nur ihre; unfertige Flächen orange im Teil
+  (`_mit_eigenen_farben`, `_unfertig_zeigen`) mit Knopf „… anhaken“ statt „Face1, Face2 …“; was von oben
+  nicht geht, violett. Schritte – `_Zeitbalken` je Strategie, der graue Satz eingeklappt (Tooltip, „Werte
+  ändern“); Schritt 1 ohne die Absätze zu Maschine und Spannmittel, der Haken „Dieses Fenster … zeigen“
+  nur noch in „Angelegt“ und den Einstellungen.
+- `camaddon/gui_bearbeitung.py`: `_Satz.einklappen`; `_job_zum_teil` – ist der Klon im Job zu sehen,
+  liegen die Wege dort (sie hingen um den Nullpunkt-Versatz neben dem Teil); `_unfertig_liste`,
+  `_unfertig_ohne`.
+- `camaddon/gui_bahnvorschau.py`: acht Farben, `farbe`, `farbe_hex`, `zeigen(…, farben)`.
+- `camaddon/gui_programm.py`: Erklärsätze als Tooltip, Haken „Erklärungen zeigen“; die Vorschau
+  hinterlegt gelb, was eine Einstellung ändert (`_aenderung_markieren`).
+- `camaddon/gui_sprachwahl.py`: Haken „Nach „Anlegen“ das Fenster „Angelegt“ zeigen“.
+- `docs/arbeitsregeln.md` (Abschnitt 8: Zeigen statt sagen), Hilfe de/en, `translations/`,
+  `tests/gui/_lauf/szenario_lauf.py`, drei Szenarien.
+
+### ERGEBNIS
+- Wörter je Fenster: „Programm schreiben“ 2031 → rund 160, „Schruppen“ 275 → 68, Schritt 1 121 → 38,
+  Übersicht 122 → 70. `test_sprache` und sechs Szenarien grün (einzeln gelaufen – sechs zugleich neben
+  einem zweiten Chat hatten den Speicher gefüllt, Exit 137).
+- Nur im unsichtbaren Lauf gesehen. Manuel prüft: „Bearbeitung“ → „Alles vorschlagen →“ – die Wege stehen
+  farbig im Teil, ein Klick auf eine Zeile zeigt nur ihre; „Programm schreiben …“ – einen Haken umschalten,
+  rechts wird gelb, was sich ändert.
 ## P-2026-11-11-06 kurzer-weg-fuenf-achsen
 
 ### EINGELESEN

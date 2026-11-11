@@ -262,6 +262,16 @@ def _parameter():
     return FreeCAD.ParamGet(PARAMETER_PFAD)
 
 
+ERKLAERUNGEN = "ProgrammErklaerungen"  # Parameter: die Erklärsätze unter den Einstellungen (aus)
+
+
+def erklaerungen_an():
+    """Stehen die Erklärungen unter jeder Einstellung? Vorbelegt nicht (Manuel, 2026-11-11: „ohh
+    man muss ich das jetzt alles wirklich lesen“ – es waren über 2000 Wörter): Jede steht als
+    Tooltip an ihrer Einstellung, und die Vorschau zeigt gelb, was eine Änderung bewirkt."""
+    return _parameter().GetBool(ERKLAERUNGEN, False)
+
+
 def gespeicherte_aenderungen(kennung):
     """{Feld: Wert} – was der Benutzer an dieser Steuerung geändert hat: Befehle (Text), Haken,
     Toleranz und Glätten (pp.gueltige_aenderungen)."""
@@ -455,9 +465,13 @@ class ProgrammDialog(QtGui.QDialog):
         fenster_merken(self, "Programm", (1180, 840))
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("pp.titel"), "programm"))
-        erklaerung = QtGui.QLabel(tr("pp.erklaerung"))
-        erklaerung.setWordWrap(True)
-        aufbau.addWidget(erklaerung)
+        self._erklaer_zeilen = []  # die Erklärsätze der Einstellungen (_erklaer)
+        self._vorschau_text = None  # die gezeigte Vorschau – für „was hat sich geändert“
+        self._zeige_aenderung = False  # die nächste Vorschau markiert, was anders ist
+        self.kopf_erklaerung = QtGui.QLabel(tr("pp.erklaerung"))
+        self.kopf_erklaerung.setWordWrap(True)
+        aufbau.addWidget(self.kopf_erklaerung)
+        self.kopf_erklaerung.setVisible(erklaerungen_an())
 
         raster = QtGui.QGridLayout()
         self.wahl_job = QtGui.QComboBox()
@@ -522,7 +536,14 @@ class ProgrammDialog(QtGui.QDialog):
         self.hinweise.setWordWrap(True)
         self.hinweise.setStyleSheet(f"color: {GELB};")
         rechts_aufbau.addWidget(self.hinweise)
-        rechts_aufbau.addWidget(QtGui.QLabel(tr("pp.vorschau")))
+        kopf = QtGui.QHBoxLayout()
+        kopf.addWidget(QtGui.QLabel(tr("pp.vorschau")))
+        kopf.addStretch(1)
+        # Zeigen statt beschreiben: Was eine Einstellung bewirkt, steht gelb in der Vorschau.
+        self.aenderung_text = QtGui.QLabel()
+        self.aenderung_text.hide()
+        kopf.addWidget(self.aenderung_text)
+        rechts_aufbau.addLayout(kopf)
         self.vorschau = QtGui.QPlainTextEdit()
         self.vorschau.setReadOnly(True)
         schrift = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
@@ -796,9 +817,18 @@ class ProgrammDialog(QtGui.QDialog):
         self.feld_toleranz = None
         inhalt = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(inhalt)
+        self._erklaer_zeilen = []
         titel = QtGui.QLabel(f"<b>{tr('pp.einstellungen', steuerung=s.name)}</b>")
-        aufbau.addWidget(titel)
-        aufbau.addWidget(_erklaerung(tr("pp.einstellungen.erklaerung")))
+        titel.setToolTip(tr("pp.einstellungen.erklaerung"))
+        zeile = QtGui.QHBoxLayout()
+        zeile.addWidget(titel, 1)
+        self.haken_erklaerungen = QtGui.QCheckBox(tr("pp.erklaerungen.zeigen"))
+        self.haken_erklaerungen.setToolTip(tr("pp.erklaerungen.zeigen.tooltip"))
+        self.haken_erklaerungen.setChecked(erklaerungen_an())
+        self.haken_erklaerungen.toggled.connect(self._erklaerungen_schalten)
+        zeile.addWidget(self.haken_erklaerungen)
+        aufbau.addLayout(zeile)
+        self._erklaer(aufbau, tr("pp.einstellungen.erklaerung"))
         for gruppe, anker, felder in GRUPPEN:
             sichtbar = [f for f in felder if self._zeigen(f)]
             if gruppe != "glaetten" and not sichtbar:
@@ -815,7 +845,7 @@ class ProgrammDialog(QtGui.QDialog):
                 else:
                     self._feld_bauen(kasten_aufbau, feld, s, geaendert)
             aufbau.addWidget(kasten)
-        aufbau.addWidget(_erklaerung(tr("pp.befehle.hinweis")))
+        self._erklaer(aufbau, tr("pp.befehle.hinweis"))
         aufbau.addStretch(1)
         self.einstellungen.setWidget(inhalt)
         # setWidget schaltet die Qt-Hintergrundfüllung wieder ein; deshalb danach.
@@ -823,14 +853,30 @@ class ProgrammDialog(QtGui.QDialog):
         ruhiges_mausrad(inhalt)
         self._abhaengige_schalten()
 
+    def _erklaer(self, aufbau, text, einruecken=False, farbe=None):
+        """Ein Erklärsatz unter einer Einstellung – zu sehen nur mit dem Haken „Erklärungen
+        zeigen“; sonst steht er als Tooltip an der Einstellung."""
+        zeile = _erklaerung(text, einruecken, farbe)
+        aufbau.addWidget(zeile)
+        zeile.setVisible(erklaerungen_an())
+        self._erklaer_zeilen.append(zeile)
+        return zeile
+
+    def _erklaerungen_schalten(self, an):
+        _parameter().SetBool(ERKLAERUNGEN, bool(an))
+        self.kopf_erklaerung.setVisible(bool(an))
+        for zeile in self._erklaer_zeilen:
+            zeile.setVisible(bool(an))
+
     def _haken_bauen(self, aufbau, feld, s, geaendert):
         name, erklaerung = pp.haken_text(feld)
         haken = QtGui.QCheckBox(name)
         haken.setChecked(bool(getattr(s, feld)))
         _fett(haken, feld in geaendert)
         haken.toggled.connect(lambda an, f=feld: self.option_setzen(f, bool(an)))
+        haken.setToolTip(erklaerung)
         aufbau.addWidget(haken)
-        aufbau.addWidget(_erklaerung(erklaerung, einruecken=True))
+        self._erklaer(aufbau, erklaerung, einruecken=True)
         self.haken[feld] = haken
 
     def _feld_bauen(self, aufbau, feld, s, geaendert):
@@ -864,9 +910,10 @@ class ProgrammDialog(QtGui.QDialog):
                 lambda f=feld, e=eingabe: self._eingabe_fertig(f, e.text())
             )
         eingabe.setToolTip(erklaerung)
+        titel.setToolTip(erklaerung)
         aufbau.addWidget(titel)
         aufbau.addWidget(eingabe)
-        aufbau.addWidget(_erklaerung(erklaerung, farbe=farbe))
+        self._erklaer(aufbau, erklaerung, farbe=farbe)
         self.felder[feld] = (titel, eingabe)
 
     def _glaetten_bauen(self, aufbau, s, geaendert):
@@ -880,8 +927,9 @@ class ProgrammDialog(QtGui.QDialog):
             haken.setChecked(g.kennung in an)
             _fett(haken, "glaetten" in geaendert and (g.kennung in an) != g.an)
             haken.toggled.connect(lambda _an: self._glaetten_umgeschaltet())
+            haken.setToolTip(erklaerung)
             aufbau.addWidget(haken)
-            aufbau.addWidget(_erklaerung(erklaerung, einruecken=True))
+            self._erklaer(aufbau, erklaerung, einruecken=True)
             if g.option:
                 aufbau.addWidget(_erklaerung(tr("pp.option.erklaerung"), True, GELB))
             self.glaetten_haken[g.kennung] = haken
@@ -901,7 +949,7 @@ class ProgrammDialog(QtGui.QDialog):
             zeile.addWidget(feld)
             zeile.addStretch(1)
             aufbau.addLayout(zeile)
-            aufbau.addWidget(_erklaerung(tr("pp.glaetten.toleranz.erklaerung")))
+            self._erklaer(aufbau, tr("pp.glaetten.toleranz.erklaerung"))
             self.feld_toleranz = feld
 
     def _abhaengige_schalten(self):
@@ -954,6 +1002,7 @@ class ProgrammDialog(QtGui.QDialog):
         if feld in self.haken:
             _fett(self.haken[feld], not gleich)
         self._abhaengige_schalten()
+        self._zeige_aenderung = True  # die Vorschau zeigt gelb, was diese Einstellung bewirkt
         self.vorschau_rechnen()
 
     def zuruecksetzen(self):
@@ -1077,10 +1126,59 @@ class ProgrammDialog(QtGui.QDialog):
         self._vorschau_zeigen("\n".join(ergebnis["zeilen"]) + "\n", ergebnis["hinweise"])
 
     def _vorschau_zeigen(self, text, hinweise):
+        vorher = self._vorschau_text if self._zeige_aenderung else None
+        self._zeige_aenderung = False
         self.vorschau.setPlainText(text)
+        self._vorschau_text = text
+        self._aenderung_markieren(vorher, text)
         self.hinweise.setText("\n".join(hinweise))
         self.hinweise.setVisible(bool(hinweise))
         self.ergebnis.setText("")
+
+    def _aenderung_markieren(self, vorher, text):
+        """Nach einer geänderten Einstellung: die Zeilen der Vorschau, die jetzt neu oder anders
+        sind, gelb hinterlegt, die erste in Sicht – und daneben, wie viele es sind und wie viele
+        entfallen. So zeigt das Fenster, was ein Haken bewirkt, statt es zu beschreiben. `vorher`
+        None: nichts zu vergleichen (anderer Job, andere Steuerung)."""
+        import difflib
+
+        self.vorschau.setExtraSelections([])
+        self.aenderung_text.hide()
+        if vorher is None:
+            return
+        alt, neu = vorher.splitlines(), text.splitlines()
+        zeilen, weg = [], 0
+        vergleich = difflib.SequenceMatcher(None, alt, neu, autojunk=False)
+        for art, i1, i2, j1, j2 in vergleich.get_opcodes():
+            if art in ("replace", "insert"):
+                zeilen.extend(range(j1, j2))
+            if art in ("replace", "delete"):
+                weg += max(0, (i2 - i1) - (j2 - j1))
+        if not zeilen and not weg:
+            self.aenderung_text.setText(tr("pp.aenderung.keine"))
+            self.aenderung_text.show()
+            return
+        farbe = QtGui.QColor("#6b5d00" if farben.dunkel() else "#fff2a8")
+        marken = []
+        dokument = self.vorschau.document()
+        for nummer in zeilen:
+            marke = QtGui.QTextEdit.ExtraSelection()
+            marke.format.setBackground(farbe)
+            marke.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
+            marke.cursor = QtGui.QTextCursor(dokument.findBlockByNumber(nummer))
+            marken.append(marke)
+        self.vorschau.setExtraSelections(marken)
+        if zeilen:
+            self.vorschau.setTextCursor(QtGui.QTextCursor(dokument.findBlockByNumber(zeilen[0])))
+            self.vorschau.centerCursor()
+        if zeilen and weg:
+            satz = tr("pp.aenderung.beides", neu=len(zeilen), weg=weg)
+        elif zeilen:
+            satz = tr("pp.aenderung.neu", neu=len(zeilen))
+        else:
+            satz = tr("pp.aenderung.weg", weg=weg)
+        self.aenderung_text.setText(satz)
+        self.aenderung_text.show()
 
     def _datei_waehlen(self):
         s = self.steuerung()

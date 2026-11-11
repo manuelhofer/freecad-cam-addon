@@ -206,6 +206,7 @@ class _Satz(QtGui.QLabel):
         super().__init__()
         self.spiegel = QtGui.QLabel()
         self._erlaubt = True
+        self._eingeklappt = False
         for etikett in (self, self.spiegel):
             etikett.setWordWrap(True)
             etikett.setStyleSheet(f"color: {farbe};")
@@ -221,10 +222,18 @@ class _Satz(QtGui.QLabel):
         self._erlaubt = bool(an)
         self._sichtbarkeit()
 
+    def einklappen(self, an):
+        """In den Schritten: Der Satz steht nur noch bei den Werten („Werte ändern“, der Spiegel)
+        und als Tooltip am Zeitbalken – im Überblick bleibt er nur, wenn er einen Verweis zum
+        Anklicken trägt („T1 auf 51 mm ausspannen“)."""
+        self._eingeklappt = bool(an)
+        self._sichtbarkeit()
+
     def _sichtbarkeit(self):
         # Leer nimmt der Satz keinen Platz (ein leeres Etikett ist eine Zeile hoch).
         leer = not self.text()
-        self.setVisible(self._erlaubt and not leer)
+        zu = self._eingeklappt and "<a " not in self.text()
+        self.setVisible(self._erlaubt and not leer and not zu)
         self.spiegel.setVisible(not leer)
 
 
@@ -9300,6 +9309,18 @@ class BearbeitungPanel:
         teil = vr.original(klon)
         if teil is klon:
             return None
+
+        def sichtbar(objekt):
+            ansicht = getattr(objekt, "ViewObject", None)
+            return bool(ansicht is not None and ansicht.Visibility)
+
+        # Zu sehen ist meist der Klon im Job (FreeCAD blendet das Original aus, sobald der Job
+        # steht): Dort liegen die Wege schon richtig. Nur wenn das Original zu sehen ist und der
+        # Klon nicht, gehören sie dorthin – sonst hingen sie um den Nullpunkt-Versatz neben dem
+        # Teil (gesehen 2026-11-11 am Bild der Übersicht: Nullpunkt Mitte oben, Wege um die halbe
+        # Teilgröße daneben).
+        if sichtbar(klon) or not sichtbar(teil):
+            return None
         return teil.Placement.multiply(klon.Placement.inverse())
 
     def _waende_woraus(self):
@@ -9918,10 +9939,16 @@ class BearbeitungPanel:
             ergebnis.append((name, koennten))
         return ergebnis
 
+    def _unfertig_ohne(self):
+        """Kennungen, die „Dafür anhaken“ nicht nennt – in den Schritten, was die Übersicht unter
+        „Nicht dabei“ mit seinem Grund zeigt (anhaken hülfe dort nicht)."""
+        return ()
+
     def _unfertig_zeigen(self, form):
         """Rot über den Blöcken, welche gewählte Fläche am Ende keine genaue Bahn hätte – ein
         Zapfen aus dem Räumen wäre ein Vieleck im Aufmaß – und welcher Haken sie fertig macht."""
         unfertig = self._unfertige(form) if self.job is not None else []
+        self._unfertig_liste = unfertig  # die Schritte färben sie im Teil (gui_bearbeitung_beta)
         if not unfertig:
             self.unfertig.hide()
             self.unfertig_angebot.hide()
@@ -9942,9 +9969,14 @@ class BearbeitungPanel:
             for block in koennten:
                 if block not in bloecke:
                     bloecke.append(block)
+        ohne = self._unfertig_ohne()
+        woanders = [b for b in bloecke if b.s.kennung in ohne]
+        bloecke = [b for b in bloecke if b.s.kennung not in ohne]
         if bloecke:
             titel = ", ".join(f"„{b.s.titel()}“" for b in bloecke)
             text = tr("ba.unfertig", flaechen=flaechen, bloecke=titel)
+        elif woanders:
+            text = tr("ba.unfertig.nicht_dabei", flaechen=flaechen)
         elif angebot is not None:
             text = tr("ba.unfertig.mit_angebot", flaechen=flaechen)  # der Knopf darunter
         else:

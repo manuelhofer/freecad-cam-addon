@@ -63,7 +63,7 @@ def schritte(h):
     )
     yield 4000
     text = panel.uebersicht_text.text()
-    for wort in ("Räumen", "T1", "Zusammen etwa"):
+    for wort in ("Räumen", "T1", "Zusammen"):
         h.pruefe(wort in text, f"„{wort}“ fehlt in der Übersicht: {text[:300]!r}")
     h.pruefe(not panel.knopf_alles.isVisible(), "„Alles vorschlagen“ noch in der Übersicht")
     h.pruefe(panel.knopf_zurueck.isVisible() and panel.knopf_fertig.isEnabled(), "Knöpfe")

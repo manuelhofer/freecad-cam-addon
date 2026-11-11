@@ -361,6 +361,15 @@ Eleganz im Code. Der Maßstab: Wer den Bildschirm sieht, hat keine Frage.
   Animation – am besten direkt in der 3D-Ansicht (das betroffene Teil wird
   hervorgehoben und bewegt sich kurz), sonst als kurze Animation im Dialog.
   Animationen enthalten **keinen Text**, damit sie in jeder Sprache passen.
+- **Zeigen statt sagen – wenig Text im Fenster** (Manuel, 2026-11-11: „in den fenstern ist auch immer
+  viel text … ohh man muss ich das jetzt alles wirklich lesen ich will doch nur das das teil bearbeitet
+  wird“; „kürzerer text ist ja nicht besser gibts vll einfach ne andere möglichkeit das gesagte
+  umzusetzten oder zu zeigen“): Was sich zeigen lässt, wird gezeigt – Flächen als Farbe im Teil statt
+  „Face1, Face2“, Zeiten als Balken statt „319 % langsamer“, Wege im Teil in der Farbe ihrer Zeile, was
+  eine Einstellung bewirkt, gelb in der Vorschau. Was fehlt, ist ein Knopf. Erklärsätze stehen als
+  Tooltip und in der Hilfe, nicht als Absatz unter jedem Feld. Die Szenarien zählen die Wörter je
+  Fenster (`woerter.txt`, `szenario_lauf.lesemenge`) – ein Fenster mit einigen hundert Wörtern ist
+  ein Fund.
 - **Drei Stufen Hilfe:** (1) die Beschriftung selbst, (2) ein Tooltip mit einem
   Satz, (3) ein Hilfe-Knopf (?) je Bereich, der einen ausführlichen Text mit
   Beispielen öffnet. Stufe 3 darf lang sein, Stufe 1 und 2 nicht.

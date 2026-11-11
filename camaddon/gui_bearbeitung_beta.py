@@ -123,6 +123,51 @@ def _umsetzen(widget, ziel, alt):
     ziel.addWidget(widget)
 
 
+class _Zeitbalken(QtGui.QWidget):
+    """Die Zeit einer Strategie als Balken mit der Zahl daneben – so lang wie ihre Zeit gegen die
+    längste des Schritts. Zeigen statt beschreiben (Manuel, 2026-11-11): Dass Planfräsen hier
+    dreimal so lang braucht wie Räumen, sieht man, statt „319 % langsamer als Räumen“ zu lesen.
+    Angehakt in der Farbe der Auswahl, sonst grau. Der graue Satz der Strategie ist der Tooltip."""
+
+    BALKEN = 70  # Pixel für die längste Zeit
+
+    def __init__(self):
+        super().__init__()
+        self._anteil, self._text, self._an = 0.0, "", True
+        self.setFixedWidth(self.BALKEN + 78)
+        self.setMinimumHeight(18)
+
+    def setzen(self, minuten, groesste, an):
+        """`minuten` der Strategie (None: keine), `groesste` des Schritts, `an`: angehakt."""
+        if minuten is None:
+            self._anteil, self._text = 0.0, ""
+        else:
+            self._anteil = min(1.0, minuten / groesste) if groesste > 0 else 0.0
+            self._text = tr("beta.anlegen.minuten", min=_zehntel(minuten))
+        self._an = bool(an)
+        self.update()
+
+    def text(self):
+        return self._text
+
+    def paintEvent(self, _ereignis):  # noqa: N802 – Qt-Name
+        if not self._text:
+            return
+        maler = QtGui.QPainter(self)
+        maler.setRenderHint(QtGui.QPainter.Antialiasing)
+        palette = self.palette()
+        farbe = QtGui.QColor(BALKEN_FARBE if self._an else BLASS)
+        hoehe = 8
+        oben = (self.height() - hoehe) // 2
+        maler.setPen(QtCore.Qt.NoPen)
+        maler.setBrush(farbe)
+        maler.drawRoundedRect(0, oben, max(4, int(self.BALKEN * self._anteil)), hoehe, 3, 3)
+        maler.setPen(palette.color(QtGui.QPalette.WindowText) if self._an else QtGui.QColor(BLASS))
+        flaeche = QtCore.QRect(self.BALKEN + 6, 0, self.width() - self.BALKEN - 6, self.height())
+        maler.drawText(flaeche, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight, self._text)
+        maler.end()
+
+
 class BetaPanel(BearbeitungPanel):
     """Der Assistent „Bearbeitung“ in Schritten (siehe oben). `ab`: der Abschnitt, mit dem
     „Weiter bearbeiten“ beginnt (0 Schruppen … 3 Kanten) – None: von vorn."""
@@ -137,6 +182,9 @@ class BetaPanel(BearbeitungPanel):
         self._beta_nachbarn = None  # (Form, taschen_wahl.nachbarn) – gerechnet einmal je Form
         self._beta_bis = None  # beim Anlegen: bis zu welchem Abschnitt
         self._beta_nicht_dabei = {}  # Kennung → (Titel, Satz): in der Übersicht abgehakt
+        self._beta_nur = None  # Übersicht: nur die Wege dieser Bearbeitung im Teil (Kennung)
+        self._beta_wege_stand = None  # was die Übersicht gerade im Teil zeigt
+        self._farben_basis = None  # (Flächen, Kanten) ohne das, was die Schritte dazu färben
         # Ohne Auswahl gestartet: der erste Klick ins Teil ist die Fläche, die unten liegt (Manuel:
         # „erstmal, wo ist die eingespannte Fläche, abfragen“) – damit entsteht auch der Job.
         self._beta_erster_klick_unten = wahl is None and kwargs.get("operation") is None
@@ -224,6 +272,7 @@ class BetaPanel(BearbeitungPanel):
         self._beta_seiten = {}
         self._beta_leer = {}
         self._beta_werte = {}  # Kennung → (Zeile mit Fräser und Klappknopf, Hülle, Klappknopf)
+        self._beta_balken = {}  # Kennung → _Zeitbalken neben dem Haken
         position = aufbau.indexOf(alt_strategien)
         for nummer, a in enumerate(ABSCHNITTE):
             seite = QtGui.QWidget()
@@ -301,6 +350,14 @@ class BetaPanel(BearbeitungPanel):
             ziel.addWidget(zeile)
             ziel.addWidget(huelle)
             self._beta_werte[block.s.kennung] = (zeile, huelle, klapp)
+            # Der graue Satz („→ 6 Lagen, 206 Zeilen … 319 % langsamer als Räumen“) und der zum
+            # Material stehen bei den Werten und als Tooltip – in der Zeile steht die Zeit als
+            # Balken.
+            block.ergebnis.einklappen(True)
+            block.material.einklappen(True)
+            balken = _Zeitbalken()
+            block.widget.layout().itemAt(0).layout().insertWidget(1, balken)
+            self._beta_balken[block.s.kennung] = balken
         _aus_layout(self._block_aufbau, self.passt_nicht)
         self.passt_nicht.hide()
         self._reihe = []
@@ -378,12 +435,17 @@ class BetaPanel(BearbeitungPanel):
             lambda an: FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(FERTIG_ZEIGEN, bool(an))
         )
         aufbau.insertWidget(aufbau.indexOf(zeile), self.haken_fertig)
+        # Er steht im Fenster „Angelegt“ selbst und in den Einstellungen – in jedem Schritt war er
+        # eine Zeile mehr zu lesen, die mit dem Schritt nichts zu tun hat.
+        self.haken_fertig.hide()
         # Im letzten Schritt: anlegen und dasselbe Teil anders gespannt weiter (Plan C4).
         self.knopf_umspannen = knopf(
             tr("beta.umspannen"), tr("beta.umspannen.tooltip"), self.umspannen
         )
         self.knopf_umspannen.hide()
         aufbau.insertWidget(aufbau.indexOf(zeile), self.knopf_umspannen, 0, QtCore.Qt.AlignRight)
+        self.unfertig.setStyleSheet("")  # der Satz trägt das Kästchen in der Farbe der Flächen
+        self.unfertig.setTextFormat(QtCore.Qt.RichText)
         self._rohteil_einklappen()
         return form
 
@@ -542,6 +604,20 @@ class BetaPanel(BearbeitungPanel):
             return sm.aufspannung(rw.grundjob_von(self.job))
         return getattr(self, "_beta_aufspannung", None)
 
+    def _maschine_gewaehlt(self):
+        """Ohne eigene Maschine sagt die Auswahl selbst, womit der Assistent rechnet („3-Achs-Fräse
+        – keine eigene gewählt“) – die vier Zeilen dazu sind ihr Tooltip statt Lesestoff."""
+        super()._maschine_gewaehlt()
+        if getattr(self, "_maschinen_fuellt", False) or not hasattr(self, "maschine_hinweis"):
+            return
+        leer = self.wahl_maschine.findData("")
+        if leer >= 0:
+            self.wahl_maschine.setItemText(leer, tr("beta.maschine.standard"))
+        ohne = self.maschine() is None
+        self.wahl_maschine.setToolTip(tr("ba.maschine.leer") if ohne else "")
+        if ohne:
+            self.maschine_hinweis.hide()
+
     def _spannmittel_anbieten(self):
         """Die Auswahl: „keins (wie bisher)“, dann die Spannmittel der Sammlung – die, die das
         Rohteil nehmen, zuerst; bei den anderen steht, warum nicht. Darunter ein Satz."""
@@ -609,8 +685,12 @@ class BetaPanel(BearbeitungPanel):
                 satz += " " + html.escape(tr("beta.spannmittel.katalog_waehlen"), quote=False)
                 satz += " " + namen + "."
         elif box is None:
-            satz = html.escape(tr("beta.spannmittel.ohne_rohteil"), quote=False)
+            # Noch kein Rohteil: Es gibt nichts zu sagen – der Satz „steht hier, sobald …“ war nur
+            # Lesestoff. Er bleibt als Tooltip der Auswahl.
+            satz = ""
+            self.wahl_spannmittel.setToolTip(tr("beta.spannmittel.ohne_rohteil"))
         self.spannmittel_text.setText(satz)
+        self.spannmittel_text.setVisible(bool(satz))
 
     def _katalog_spannmittel_nehmen(self, verweis):
         """Ein Vorschlag aus dem Katalog („spannmittel:<n>“): in die Sammlung (gespeichert, wie im
@@ -757,6 +837,10 @@ class BetaPanel(BearbeitungPanel):
                 self.vorschau_starten()
         for i, seite in enumerate(self.seiten):
             seite.setVisible(i == self._seite)
+        if self._seite != UEBERSICHT:
+            self._uebersicht_wege([])  # sie gehören zur Übersicht
+        if self._farben_basis is not None:
+            self._farben_neu()  # die Übersicht färbt mehr als die Schritte
         namen = [tr("ba.schritt.aufspannung"), tr("beta.schritt.flaechen")]
         namen += [*_abschnitt_namen(), tr("beta.schritt.uebersicht")]
         self.schritt_text.setText(tr("beta.schritt", name=namen[self._seite]))
@@ -850,7 +934,31 @@ class BetaPanel(BearbeitungPanel):
     def _knoepfe_beschriften(self):
         super()._knoepfe_beschriften()
         if hasattr(self, "anlegen_text"):
+            self._zeitbalken_setzen()
             self._anlegen_zeigen()
+
+    def _zeitbalken_setzen(self):
+        """Je Strategie ihre Zeit als Balken, gemessen an der längsten ihres Schritts; ihr grauer
+        Satz (und beim Schruppen das Ziel) als Tooltip. Das Ziel selbst steht nicht mehr als Satz
+        über dem Schritt."""
+        self.ziel_text.hide()
+        groesste = {}
+        for block in self.bloecke:
+            if block.moeglich and block.zeit is not None:
+                a = abschnitt(block)
+                groesste[a] = max(groesste.get(a, 0.0), block.zeit)
+        ziel = _ohne_marken(self.ziel_text.text())
+        for block in self.bloecke:
+            balken = self._beta_balken.get(block.s.kennung)
+            if balken is None:
+                continue
+            zeit = block.zeit if block.moeglich else None
+            balken.setzen(zeit, groesste.get(abschnitt(block), 0.0), block.aktiv())
+            saetze = [_ohne_marken(block.ergebnis.text()), _ohne_marken(block.material.text())]
+            if abschnitt(block) == SCHRUPPEN:
+                saetze.append(ziel)
+            balken.setToolTip("\n".join(s for s in saetze if s))
+            balken.setVisible(zeit is not None)
 
     def _anlegen_zeigen(self):
         """„Anlegen legt an: Räumen (T1, 2 min), Kontur (T1, 1 min) – zusammen etwa 3 min.
@@ -891,6 +999,10 @@ class BetaPanel(BearbeitungPanel):
             text = tr("beta.anlegen.liste_ohne_zeit", liste=", ".join(jetzt))
         if spaeter:
             text += " " + tr("beta.anlegen.spaeter", liste=", ".join(spaeter))
+        self.anlegen_text.setToolTip(text)
+        if jetzt and zeit > 0 and not nur_ebene:
+            # Die Liste steht schon da – als Haken mit Zeitbalken. Hier nur die Summe.
+            text = tr("beta.anlegen.kurz", min=dezimal(f"{zeit:.1f}"))
         self.anlegen_text.setText(text)
         self.anlegen_text.show()
         self.beispiel_box.setVisible(self._seite >= ERSTER_ABSCHNITT and self._ohne_fraeser())
@@ -946,6 +1058,9 @@ class BetaPanel(BearbeitungPanel):
             self._fuellt = False
         self.vorschau_starten()
 
+    def _unfertig_ohne(self):
+        return tuple(self._beta_nicht_dabei)
+
     def _ohne_fraeser(self):
         """Hat die Werkzeugverwaltung für das, was angehakt ist, gar keinen Fräser (neu
         installiert)? Dann sagt es jede Strategie mit demselben Satz."""
@@ -975,11 +1090,15 @@ class BetaPanel(BearbeitungPanel):
         self._beta_knoepfe()
 
     def _uebersicht_zeigen(self):
-        """Die Übersicht: je Bearbeitung, die „Anlegen“ anlegt, ihr Werkzeug und ihre Zeit, die
-        Summe – und rot, was sich jemand ansehen muss (ein Satz der Strategie)."""
+        """Die Übersicht: je Bearbeitung, die „Anlegen“ anlegt, eine Zeile in der Farbe ihrer Wege
+        im Teil, mit Werkzeug und Zeit, und die Summe. Ein Klick auf eine Zeile zeigt nur ihre
+        Wege. Was nicht fertig wird oder von oben nicht geht, steht als Farbe im Teil – die Zeile
+        dazu trägt dieselbe Farbe statt einer Liste „Face1, Face2 …“."""
+        from . import gui_bahnvorschau as gb
         from . import werkzeuge as wz
 
-        zeilen, summe, achtung = [], 0.0, []
+        zeilen, summe, achtung, bahnen = [], 0.0, [], []
+        schrift = self.uebersicht_text.palette().color(QtGui.QPalette.WindowText).name()
         for block in self._in_anlege_reihe(self.aktive_bloecke()):
             if not block.moeglich:
                 continue
@@ -993,8 +1112,15 @@ class BetaPanel(BearbeitungPanel):
                 summe += block.zeit
             else:
                 zeit = "…"
+            kennung, farbe = block.s.kennung, gb.farbe_hex(len(zeilen))
+            if block.vorschau is not None:
+                bahnen.append((block.vorschau, gb.farbe(len(zeilen)), kennung))
+            blass = self._beta_nur not in (None, kennung)
+            ziel = f"href='{ZEIGE}{kennung}' style='text-decoration: none; color: "
             zeilen.append(
-                f"<tr><td><b>{html.escape(block.s.titel())}</b>&nbsp;&nbsp;</td>"
+                f"<tr><td><a {ziel}{BLASS if blass else farbe};'>■</a>&nbsp;</td>"
+                f"<td><a {ziel}{BLASS if blass else schrift};'>"
+                f"<b>{html.escape(block.s.titel())}</b></a>&nbsp;&nbsp;</td>"
                 f"<td>{html.escape(werkzeug)}&nbsp;&nbsp;</td>"
                 f"<td align='right'>{html.escape(zeit)}</td></tr>"
             )
@@ -1006,11 +1132,17 @@ class BetaPanel(BearbeitungPanel):
         rest = self._uebersicht_rest()
         mit_ebene = bool(self._beta_geschwenkt and self.ebene_text.text())
         if zeilen:
-            teile = [f"<table cellspacing='2'>{''.join(zeilen)}</table>"]
             if self.vorschau_laeuft():
-                teile.append(f"<i>{html.escape(tr('beta.uebersicht.rechnet'))}</i>")
+                zeilen.append(
+                    f"<tr><td></td><td colspan='3'><i>"
+                    f"{html.escape(tr('beta.uebersicht.rechnet'))}</i></td></tr>"
+                )
             elif summe > 0:
-                teile.append(html.escape(tr("beta.uebersicht.summe", zeit=_minuten_text(summe))))
+                zeilen.append(
+                    f"<tr><td></td><td colspan='2'>{html.escape(tr('beta.uebersicht.zusammen'))}"
+                    f"</td><td align='right'><b>{html.escape(_minuten_text(summe))}</b></td></tr>"
+                )
+            teile = [f"<table cellspacing='2'>{''.join(zeilen)}</table>"]
             if mit_ebene:
                 teile.append(html.escape(self.ebene_text.text()))
         elif mit_ebene:
@@ -1019,7 +1151,7 @@ class BetaPanel(BearbeitungPanel):
         else:
             teile = [html.escape(tr("beta.uebersicht.nichts"))]
         if rest:
-            teile.append(html.escape(rest))
+            teile.append(f"<span style='color: {REST_FARBE};'>■</span> {html.escape(rest)}")
         if self._beta_nicht_dabei:
             # Der Satz der Strategie mit seinen Verweisen („T1 auf 51 mm ausspannen“, „So
             # einrichten“): Ein Klick hier behebt es, die Strategie kommt wieder dazu.
@@ -1037,11 +1169,116 @@ class BetaPanel(BearbeitungPanel):
                 f"<br>{'<br>'.join(achtung)}</span>"
             )
         self.uebersicht_text.setText("<br><br>".join(teile))
+        self._uebersicht_wege(bahnen)
+
+    def _uebersicht_wege(self, bahnen):
+        """Die Wege der Übersicht im Teil: je Bearbeitung in der Farbe ihrer Zeile – oder nur die
+        der angeklickten Zeile (`_beta_nur`). `bahnen` ist [(Vorschau, Farbe, Kennung)]; leer nimmt
+        sie weg. Neu gezeichnet wird nur, wenn sich etwas geändert hat."""
+        from . import gui_bahnvorschau as gb
+
+        gezeigt = getattr(self._bahnvorschau, "kennung", None)
+        unsere = bool(gezeigt) and gezeigt[0] == "uebersicht"
+        if self._beta_nur is not None and all(k != self._beta_nur for _b, _f, k in bahnen):
+            self._beta_nur = None
+        zeige = [(b, f) for b, f, k in bahnen if self._beta_nur in (None, k)]
+        if not zeige:
+            if unsere:
+                self._bahnvorschau.weg()
+                self._vorschau_knoepfe_setzen()
+            self._beta_wege_stand = None
+            return
+        stand = tuple((id(b), f) for b, f in zeige)
+        if unsere and stand == self._beta_wege_stand:
+            return
+        if self._bahnvorschau is None:
+            self._bahnvorschau = gb.Bahnvorschau(self.doc)
+        self._bahnvorschau.zeigen(
+            ("uebersicht", self._beta_nur),
+            [b for b, _f in zeige],
+            self._job_zum_teil(),
+            [f for _b, f in zeige],
+        )
+        self._beta_wege_stand = stand
+        self._vorschau_knoepfe_setzen()
+
+    # --- Zeigen statt beschreiben: Farben im Teil ---------------------------------------------
+
+    def _farben_zeigen(self, farben, kanten=None):
+        self._farben_basis = (dict(farben or {}), dict(kanten or {}))
+        super()._farben_zeigen(self._mit_eigenen_farben(farben), kanten)
+
+    def _farben_neu(self):
+        """Färbt das Teil neu – nach dem Rechnen (was nicht fertig wird) und beim Seitenwechsel."""
+        if self._farben_basis is not None and self.job is not None:
+            flaechen, kanten = self._farben_basis
+            super()._farben_zeigen(self._mit_eigenen_farben(flaechen), kanten)
+
+    def _mit_eigenen_farben(self, farben):
+        """`farben` (Nummer der Fläche → Farbe) und dazu: orange, was am Ende keine genaue Bahn
+        hätte; in der Übersicht violett, was in dieser Aufspannung von oben nicht geht."""
+        neu = dict(farben or {})
+        if self.job is None or self._ist_stl():
+            return neu
+        eigene = [(n, UNFERTIG_FARBE) for n, _k in getattr(self, "_unfertig_liste", None) or ()]
+        if getattr(self, "_seite", 0) == UEBERSICHT:
+            eigene += [(n, REST_FARBE) for n in self._rest_flaechen()]
+        for name, farbe in eigene:
+            if name.startswith("Face") and name[4:].isdigit():
+                neu[int(name[4:]) - 1] = farbe
+        return neu
+
+    def _unfertig_zeigen(self, form):
+        """Wie im alten Fenster – aber gezeigt statt beschrieben: Die Flächen stehen orange im
+        Teil, der Satz nennt nur ihre Zahl (der lange mit den Namen ist sein Tooltip), und der
+        Haken, der sie fertig macht, ist ein Knopf."""
+        super()._unfertig_zeigen(form)
+        self._farben_neu()
+        if self.unfertig.isHidden():
+            return
+        anzahl = len(self._unfertig_liste)
+        self.unfertig.setToolTip(self.unfertig.text())
+        if anzahl == 1:
+            kurz = tr("beta.unfertig.kurz.eine")
+        else:
+            kurz = tr("beta.unfertig.kurz", anzahl=anzahl)
+        self.unfertig.setText(
+            f"<span style='color: {UNFERTIG_FARBE};'>■</span> {html.escape(kurz)}"
+        )
+        bloecke = self._unfertig_haken()
+        if bloecke and self.unfertig_angebot.isHidden():
+            titel = ", ".join(f"„{b.s.titel()}“" for b in bloecke)
+            self.unfertig_satz.setText("")
+            self.unfertig_knopf.setText(tr("beta.unfertig.anhaken", bloecke=titel))
+            self.unfertig_knopf.setToolTip(tr("beta.unfertig.anhaken.tooltip"))
+            self._unfertig_aktion = lambda b=tuple(bloecke): self._unfertige_anhaken(b)
+            self.unfertig_angebot.show()
+
+    def _unfertig_haken(self):
+        """Die wenigsten Strategien, die alles Unfertige fertig machen – je Fläche die erste, die
+        es kann, wenn nicht schon eine gewählte sie mitnimmt. Ohne die unter „Nicht dabei“."""
+        wahl = []
+        for _name, koennten in self._unfertig_liste:
+            koennten = [b for b in koennten if b.s.kennung not in self._beta_nicht_dabei]
+            if koennten and not any(b in wahl for b in koennten):
+                wahl.append(koennten[0])
+        return wahl
+
+    def _unfertige_anhaken(self, bloecke):
+        for block in bloecke:
+            block.haken.setChecked(True)  # wie von Hand: rechnet neu (haken_geklickt)
+        self._beta_knoepfe()
 
     def _uebersicht_verweis(self, ziel):
         """Ein Verweis unter „Nicht dabei“ angeklickt: Die Strategie bekommt ihren Haken wieder und
         führt ihren Verweis aus (ausspannen, die Empfehlung einrichten) – danach rechnet die
         Vorschau neu; geht es dann, steht sie in der Tabelle."""
+        if ziel.startswith(ZEIGE):
+            # Eine Zeile angeklickt: nur ihre Wege im Teil – noch ein Klick zeigt wieder alle.
+            kennung = ziel[len(ZEIGE) :]
+            self._beta_nur = None if self._beta_nur == kennung else kennung
+            self._uebersicht_zeigen()
+            return
         if not ziel.startswith(VERWEIS_BLOCK):
             return
         _marke, kennung, rest = ziel.split("|", 2)
@@ -1059,16 +1296,19 @@ class BetaPanel(BearbeitungPanel):
         self.vorschau_starten()
         self._beta_knoepfe()
 
-    def _uebersicht_rest(self):
-        """Ein Satz zu den Flächen, die der kurze Weg nicht nimmt, weil sie in dieser Aufspannung
-        von oben nicht zu erreichen sind (Wände unter einem Rand, die Unterseite) – „“ ohne."""
+    def _rest_flaechen(self):
+        """Die Flächen, die der kurze Weg nicht nimmt, weil sie in dieser Aufspannung von oben
+        nicht zu erreichen sind (Wände unter einem Rand, die Unterseite)."""
         zugang = getattr(self, "_zugang", None)
         offen = set(getattr(zugang, "unerreichbar", None) or ()) - set(self.gewaehlte)
-        namen = sorted((n for n in offen if n.startswith("Face")), key=lambda n: int(n[4:]))
+        return sorted((n for n in offen if n.startswith("Face")), key=lambda n: int(n[4:]))
+
+    def _uebersicht_rest(self):
+        """Ein Satz zu diesen Flächen – sie stehen violett im Teil; „“ ohne."""
+        namen = self._rest_flaechen()
         if not namen:
             return ""
-        kurz = ", ".join(namen[:6]) + (" …" if len(namen) > 6 else "")
-        return tr("beta.uebersicht.rest", anzahl=len(namen), namen=kurz)
+        return tr("beta.uebersicht.rest", anzahl=len(namen))
 
     def _frage_passt(self, frage, widget, passt):
         # Die Schritte sind die Reihenfolge: Die Frage danach hängt hier in keinem Layout mehr –
@@ -2066,6 +2306,13 @@ def _knapp_saetze(job):
 
 
 VERWEIS_BLOCK = "block|"  # in der Übersicht: „block|<Kennung>|<Verweis der Strategie>“
+ZEIGE = "zeige|"  # Verweis einer Zeile der Übersicht: nur ihre Wege im Teil
+# Zeigen statt beschreiben (Manuel, 2026-11-11: „gibts vll einfach ne andere möglichkeit das gesagte
+# … zu zeigen“): Was der Satz mit „Face1, Face2, Face4“ sagte, steht als Farbe im Teil.
+UNFERTIG_FARBE = "#f08c00"  # hat am Ende keine genaue Bahn
+REST_FARBE = "#8e44ad"  # geht in dieser Aufspannung von oben nicht
+BLASS = "#909090"
+BALKEN_FARBE = "#3584e4"  # der Zeitbalken einer angehakten Strategie
 
 
 def _verweise_fuer(kennung, text):
