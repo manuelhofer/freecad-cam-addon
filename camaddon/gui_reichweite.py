@@ -451,10 +451,11 @@ class PruefPanel:
         form.setWindowTitle(tr("rw.titel"))
         form.setWindowIcon(QtGui.QIcon(symbol("reichweite.svg")))
         aufbau = QtGui.QVBoxLayout(form)
-        aufbau.addWidget(kopfzeile(tr("rw.titel"), "reichweite"))
-        erklaerung = QtGui.QLabel(tr("rw.erklaerung"))
-        erklaerung.setWordWrap(True)
-        aufbau.addWidget(erklaerung)
+        kopf = kopfzeile(tr("rw.titel"), "reichweite")
+        # Was das Fenster tut, sagt sein Titel; der Satz dazu ist sein Tooltip (wenig Text im
+        # Fenster, Arbeitsregeln Abschnitt 8) – darunter stehen gleich die Urteile.
+        kopf.setToolTip(tr("rw.erklaerung"))
+        aufbau.addWidget(kopf)
 
         raster = QtGui.QGridLayout()
         raster.setColumnStretch(1, 1)

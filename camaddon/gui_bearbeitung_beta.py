@@ -275,6 +275,7 @@ class BetaPanel(BearbeitungPanel):
         self._beta_leer = {}
         self._beta_werte = {}  # Kennung → (Zeile mit Fräser und Klappknopf, Hülle, Klappknopf)
         self._beta_balken = {}  # Kennung → _Zeitbalken neben dem Haken
+        self._beta_grund = {}  # Kennung → grauer Halbsatz neben einem nicht angehakten Haken
         position = aufbau.indexOf(alt_strategien)
         for nummer, a in enumerate(ABSCHNITTE):
             seite = QtGui.QWidget()
@@ -360,6 +361,14 @@ class BetaPanel(BearbeitungPanel):
             balken = _Zeitbalken()
             block.widget.layout().itemAt(0).layout().insertWidget(1, balken)
             self._beta_balken[block.s.kennung] = balken
+            # Nicht angehakt, aber gerechnet (der Wettbewerb): kein Balken – seine Zeit allein
+            # täuschte (Planfräsen 8,1 min neben Räumen 9,8 min, dabei braucht es das Räumen der
+            # Böden dazu) –, sondern der eine Halbsatz, warum es nicht der Vorschlag ist.
+            grund = _grau()
+            grund.setWordWrap(False)
+            grund.hide()
+            block.widget.layout().itemAt(0).layout().insertWidget(2, grund)
+            self._beta_grund[block.s.kennung] = grund
         _aus_layout(self._block_aufbau, self.passt_nicht)
         self.passt_nicht.hide()
         self._reihe = []
@@ -1036,8 +1045,17 @@ class BetaPanel(BearbeitungPanel):
             saetze = [_ohne_marken(block.ergebnis.text()), _ohne_marken(block.material.text())]
             if abschnitt(block) == SCHRUPPEN:
                 saetze.append(ziel)
-            balken.setToolTip("\n".join(s for s in saetze if s))
-            balken.setVisible(zeit is not None)
+            tooltip = "\n".join(s for s in saetze if s)
+            balken.setToolTip(tooltip)
+            an = block.aktiv()
+            balken.setVisible(zeit is not None and an)
+            grund = self._beta_grund[block.s.kennung]
+            halbsatz = (
+                saetze[0].rsplit(" – ", 1)[1] if zeit is not None and " – " in saetze[0] else ""
+            )
+            grund.setText(grund.fontMetrics().elidedText(halbsatz, QtCore.Qt.ElideRight, 300))
+            grund.setToolTip(tooltip)
+            grund.setVisible(bool(halbsatz) and not an)
 
     def _anlegen_zeigen(self):
         """„Anlegen legt an: Räumen (T1, 2 min), Kontur (T1, 1 min) – zusammen etwa 3 min.
@@ -2542,6 +2560,11 @@ class FertigFenster(QtGui.QDialog):
         self.knopf_weiter.setVisible(
             hasattr(job, EIGENSCHAFT_FLAECHEN) and naechster_abschnitt(job) is not None
         )
+        # Der Knopf zum Ziel fällt auf (wie „Alles vorschlagen →“): Wer nicht liest, findet
+        # „Programm schreiben …“.
+        schrift = self.knopf_programm.font()
+        schrift.setBold(True)
+        self.knopf_programm.setFont(schrift)
         for k in (self.knopf_pruefen, self.knopf_programm, self.knopf_blatt, self.knopf_weiter):
             zeile.addWidget(k)
         zeile.addStretch()

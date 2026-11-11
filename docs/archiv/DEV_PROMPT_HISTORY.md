@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-13 balken-ehrlich
+
+### EINGELESEN
+- Am Bild des Testteils (Schritt „Schruppen“ nach P-2026-11-11-07): „Planfräsen 8,1 min“ grau neben
+  „Räumen 9,8 min“ angehakt, darüber „Angehakt ist das Schnellste“ – ein Widerspruch fürs Auge. Planfräsen
+  braucht dort das Räumen der Böden dazu; das stand nur im Tooltip.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: Nicht angehakte Strategien zeigen keinen Balken, sondern grau den
+  Halbsatz, warum sie nicht der Vorschlag sind (`_beta_grund`); „Programm schreiben …“ im Fenster
+  „Angelegt“ fett.
+- `camaddon/gui_reichweite.py`: Der Einleitungssatz von „Auf der Maschine prüfen“ ist der Tooltip des Titels.
+- `camaddon/gui_tisch.py` (Kommentare), Hilfe de/en, `translations/` („Angehakt ist der Vorschlag“).
+
+### ERGEBNIS
+- `szenario_schritte_testteil` (allein, 10 GB) und `szenario_beta_schritte` grün; am Bild: „Planfräsen –
+  319 % langsamer als Räumen“. Die Schritte am Testteil haben 29–68 Wörter (vorher bis 346).
 ## P-2026-11-11-12 spannmittel-im-3d
 
 ### EINGELESEN

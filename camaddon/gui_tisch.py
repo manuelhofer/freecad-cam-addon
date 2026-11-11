@@ -35,12 +35,10 @@ def _netz(form):
 
     punkte, dreiecke = form.tessellate(0.5)
     knoten = coin.SoSeparator()
-    knoten.addChild(
-        ga.material(SPANNMITTEL)
-    )  # deckend: durchsichtig überlagern sich die Flächen fleckig
-    hinweis = (
-        coin.SoShapeHints()
-    )  # beide Seiten beleuchtet – die Richtung der Dreiecke ist gemischt
+    # Deckend: durchsichtig überlagern sich die Flächen fleckig.
+    knoten.addChild(ga.material(SPANNMITTEL))
+    # Beide Seiten beleuchtet – die Richtung der Dreiecke ist gemischt.
+    hinweis = coin.SoShapeHints()
     hinweis.vertexOrdering = coin.SoShapeHints.UNKNOWN_ORDERING
     hinweis.shapeType = coin.SoShapeHints.UNKNOWN_SHAPE_TYPE
     knoten.addChild(hinweis)
