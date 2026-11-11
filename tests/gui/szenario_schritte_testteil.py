@@ -92,6 +92,8 @@ def schritte(h):
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     yield 1000
     h.pruefe(panel.tasche_box.isVisible(), "keine Frage nach der ganzen Tasche")
+    # Die Frage nach der Reihenfolge gibt es in den Schritten nicht – sie lag quer über der Liste.
+    h.pruefe(not panel.frage_reihenfolge.widget.isVisible(), "die Frage „Reihenfolge“ ist zu sehen")
     h.bild("1_flaechen", panel.form)
     if panel.tasche_box.isVisible():
         panel.knopf_ganze_tasche.click()

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-01 schritte-bedienung
+
+### EINGELESEN
+- Manuel, 2026-11-11: „schau dir das projekt an verbessere was du definitiv besser machen kannst vor allem
+  dei bedienbarkeit schau dir die projekt goals nochmal an“. CHATSTART und Arbeitsregeln, Abschnitt 8, neu
+  gelesen; die Bilder der Schritt-Szenarien durchgesehen.
+- Gefunden am Bild: Im Schritt „Flächen“ lag die Frage „In welcher Reihenfolge?“ quer über der Liste –
+  die Schritte nehmen sie aus dem Layout, der gemeinsame Code blendete sie wieder ein.
+- Manuel, 2026-11-08, an der G550: „geendet bin ich hier bei der nächsten aufspannung oder was soll das
+  nun sein ??“ – der Assistent der Ebene begann mit „Aufspannung“, alles grau.
+- Arbeitsregeln, Abschnitt 8: „ein Befehl ist nicht grau, weil etwas fehlt – er sagt, was fehlt, und
+  führt hin“ – „Weiter“ war grau.
+- Die Hilfe hinter „?“ beschrieb das alte Fenster („Schritt 1 von 3“); der Haken fürs alte Fenster stand
+  unter „Updates“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_frage_passt` (Reihenfolge bleibt weg); `_ebene_der_kette`,
+  `_bei_der_ebene_beginnen`, `folge_text` (die Ebene beginnt beim Schruppen, oben steht, welche es ist);
+  „Ebene anlegen →“ mit passendem Satz; „Weiter“ nicht grau – `_warum_betonen`, `_warum_ziele`.
+- `camaddon/gui_sprachwahl.py`: Gruppe „Bearbeitung“ für den Haken; der Satz zu den Nebenrechnern kürzer,
+  der Rest im Tooltip.
+- `help/de/bearbeitung.html`, `help/en/bearbeitung.html`: „Der Weg in Schritten“.
+- `translations/de.json`, `en.json`.
+- `tests/gui/_lauf/szenario_lauf.py`: `lose_elemente` – jedes Bild eines Fensters fällt durch, wenn ein
+  sichtbares Element ohne Layout ein anderes überdeckt.
+- `tests/gui/szenario_beta_schritte.py`, `szenario_schritte_testteil.py`, `szenario_erster_start.py`.
+
+### ERGEBNIS
+- Teil „tief“ an der G550 (Kopie, Szenario in `wip`): Knopf „Ebene anlegen →“, die Ebene beginnt auf dem
+  Schritt „Schruppen“ mit „Ebene 1 von 1 aus der Aufspannung“ oben, ohne zweite Frage nach der Tasche.
+- Der Wächter fand den Fehler auf dem alten Stand (`1_flaechen`), im vollen Lauf sonst nichts in den
+  Fenstern des Addons.
 ## P-2026-11-08-06 sandvik-wendeplattenbohrer
 
 ### EINGELESEN

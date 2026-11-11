@@ -12,6 +12,49 @@ li { margin-bottom: 0.4em; }
 </head>
 <body>
 <h2>Machining (milling)</h2>
+<h3>The way in steps</h3>
+<p>“Machining” leads from the part to the operations in six steps. The step is at the top, below it in
+grey the whole sequence – <i>Setup › Faces › Roughing › Holes › Finishing › Edges</i> – with the current
+one in bold. A step that has nothing for the selected faces (for example “Holes”) is missing from the
+sequence and is skipped. At the bottom <b>← Back</b> and <b>Next →</b> lead back and forth.</p>
+<ol>
+<li><b>Setup</b> – what the part is clamped in and how deep, the machine, which face is at the bottom
+(click it, or <b>Lies as modelled</b>), stock and origin.</li>
+<li><b>Faces</b> – what is machined: click faces on the part, or <b>Everything from this setup</b>. If
+the selected faces belong to a pocket of which only a part is selected, the step asks how to go on:
+<b>Rough the whole pocket, finish these walls</b>, <b>Take the whole pocket</b> or <b>Only these faces –
+the rest is already clear</b>.</li>
+<li><b>Roughing</b> – how the material comes out: one tick per strategy with its time; the fastest
+sequence is ticked. Above it, which tools fit the pocket – your own and, with <b>What would the
+catalogue have?</b>, larger ones from the manufacturers.</li>
+<li><b>Holes</b> – spotting, drilling, bore milling, countersinking, reaming, threads.</li>
+<li><b>Finishing</b> – walls, floors and free-form faces.</li>
+<li><b>Edges</b> – chamfers and deburring.</li>
+</ol>
+<p>Every ticked strategy shows its cutter; <b>Change values</b> opens its settings – they are prefilled,
+change only where needed. (In the old window these are “What comes off?” and “Settings”; the sections
+below still name the steps that way.)</p>
+<p><b>Next works once the step is clear.</b> If something is missing, it says so in orange above the
+buttons – and a click on “Next” frames for a moment what to do.</p>
+<p><b>Create</b> is available from roughing on. It creates what is ticked <i>up to this step</i>; above
+the button it says what that is, with the time, and what stays ticked for later. Everything is taken
+into account all the same: roughing leaves stock when there is finishing. Later, <b>Continue
+machining</b> carries on at the job with the next step – the same faces, the setup fixed, with a
+measuring stop before it if you like. <b>New setup</b> starts a new job for the same part (clamped
+differently); in the last step <b>Create and re-clamp the part …</b> does both in one go and preselects
+what could not be reached in this setup.</p>
+<p><b>Planes:</b> if something selected is machined in a plane of its own – tilted (3+2), or
+“from above” on a machine with a horizontal spindle – the “Roughing” step says so and the button reads
+<b>Create plane →</b>. The wizard of the plane then opens right at roughing; at the top it
+says in bold which one it is (“Plane 1 of 2 from the setup”). It is the same setup: machine, stock
+and origin stay, “Back” shows them.</p>
+<p>After the last “Create”, the window <b>Created</b> shows what is in the job now – each operation
+with its time, the new ones in bold – and offers the next steps as buttons: <b>Check on the machine
+…</b>, <b>Write program …</b>, <b>Setup sheet …</b>, <b>Continue machining</b>.</p>
+<p><b>Rather everything on one page?</b> Preferences → CAM-Addon → “Machining” → <i>“Machining” in the
+old window</i>. Both windows compute the same. Editing an existing operation (double-click) always
+opens the one-page window with just that operation.</p>
+<h3>The machinings in detail</h3>
 <p><b>From the front on the lathe:</b> if the lathe has a Y or C axis, “Machining” mills the front face of
 the bar with a tool standing axially in the turret – like on a mill (clearing, slot, contour,
 drilling, measuring stop). The bar job has to exist: from the 4-axis assistant via the link “open

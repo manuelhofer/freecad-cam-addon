@@ -12,6 +12,49 @@ li { margin-bottom: 0.4em; }
 </head>
 <body>
 <h2>Bearbeitung (Fräsen)</h2>
+<h3>Der Weg in Schritten</h3>
+<p>„Bearbeitung“ führt in sechs Schritten vom Teil zu den Operationen. Oben steht der Schritt, darunter
+grau die ganze Folge – <i>Aufspannung › Flächen › Schruppen › Löcher › Schlichten › Kanten</i> –, der
+eigene fett. Ein Schritt, in dem es für die gewählten Flächen nichts gibt (etwa „Löcher“), fehlt in der
+Folge und wird übersprungen. Unten führen <b>← Zurück</b> und <b>Weiter →</b> hin und her.</p>
+<ol>
+<li><b>Aufspannung</b> – worin das Teil gespannt ist und wie tief, die Maschine, welche Fläche unten
+liegt (anklicken, oder <b>Liegt wie im Modell</b>), Rohteil und Nullpunkt.</li>
+<li><b>Flächen</b> – was bearbeitet wird: Flächen im Teil anklicken, oder <b>Alles aus dieser
+Aufspannung</b>. Gehören die gewählten Flächen zu einer Tasche, von der nur ein Teil gewählt ist,
+fragt der Schritt, wie es weitergeht: <b>Ganze Tasche schruppen, diese Wände schlichten</b>,
+<b>Ganze Tasche nehmen</b> oder <b>Nur diese Flächen – der Rest ist schon frei</b>.</li>
+<li><b>Schruppen</b> – wie das Material raus soll: je Strategie ein Haken mit ihrer Zeit, angehakt
+ist die schnellste Folge. Darüber, welche Werkzeuge in die Tasche passen – eigene und, mit <b>Was gäbe
+es im Katalog?</b>, größere der Hersteller.</li>
+<li><b>Löcher</b> – Zentrieren, Bohren, Bohrung fräsen, Senken, Reiben, Gewinde.</li>
+<li><b>Schlichten</b> – Wände, Böden und Freiformflächen fertig machen.</li>
+<li><b>Kanten</b> – Fasen und Entgraten.</li>
+</ol>
+<p>Jede angehakte Strategie zeigt ihren Fräser; <b>Werte ändern</b> klappt ihre Einstellungen auf – sie
+sind vorbelegt, ändern nur, wo nötig. (Im alten Fenster sind das „Was soll weg?“ und „Einstellungen“;
+die Abschnitte unten nennen die Schritte noch so.)</p>
+<p><b>Weiter geht, wenn der Schritt klar ist.</b> Fehlt noch etwas, steht über den Knöpfen in Orange,
+was – und ein Klick auf „Weiter“ rahmt für einen Moment ein, womit es weitergeht.</p>
+<p><b>Anlegen</b> gibt es ab dem Schruppen. Es legt an, was <i>bis zu diesem Schritt</i> angehakt ist;
+darüber steht, was das ist, mit Zeit, und was für später angehakt bleibt. Gerechnet wird trotzdem mit
+allem: Das Schruppen lässt Aufmaß, wenn geschlichtet wird. Später geht es am Job mit <b>Weiter
+bearbeiten</b> beim nächsten Schritt weiter – dieselben Flächen, die Aufspannung fest, auf Wunsch mit
+einem Messstopp davor. <b>Neue Aufspannung</b> beginnt für dasselbe Teil einen neuen Job (anders
+gespannt); im letzten Schritt macht <b>Anlegen und Teil umspannen …</b> beides in einem Zug und wählt
+vor, was in dieser Aufspannung nicht zu erreichen war.</p>
+<p><b>Ebenen:</b> Kommt Gewähltes in einer eigenen Ebene dran – geschwenkt (3+2), oder „von oben“ an
+einer Maschine mit waagerechter Spindel –, sagt es der Schritt „Schruppen“, und der Knopf heißt
+<b>Ebene anlegen →</b>. Danach öffnet sich der Assistent der Ebene gleich beim Schruppen; oben steht
+fett, welche Ebene es ist („Ebene 1 von 2 aus der Aufspannung“). Es ist dieselbe Aufspannung: Maschine,
+Rohteil und Nullpunkt bleiben, „Zurück“ zeigt sie.</p>
+<p>Nach dem letzten „Anlegen“ zeigt das Fenster <b>Angelegt</b>, was jetzt im Job steht – je
+Operation ihre Zeit, die neuen fett – und bietet die nächsten Schritte als Knöpfe: <b>Auf der Maschine
+prüfen …</b>, <b>Programm schreiben …</b>, <b>Einrichtblatt …</b>, <b>Weiter bearbeiten</b>.</p>
+<p><b>Lieber alles auf einer Seite?</b> Einstellungen → CAM-Addon → „Bearbeitung“ → <i>„Bearbeitung“ im
+alten Fenster</i>. Beide Fenster rechnen dasselbe. Eine bestehende Operation ändern (Doppelklick)
+öffnet immer das Fenster auf einer Seite, mit nur dieser Operation.</p>
+<h3>Die Bearbeitungen im Einzelnen</h3>
 <p><b>Von vorn an der Drehmaschine:</b> Hat die Drehmaschine eine Y- oder C-Achse, fräst „Bearbeitung“ die
 Stirnseite der Stange mit einem axial stehenden Werkzeug im Revolver – wie an der Fräse (Räumen,
 Nut, Kontur, Bohren, Messstopp). Dafür muss der Stangen-Job da sein: aus dem 4-Achs-Assistenten über

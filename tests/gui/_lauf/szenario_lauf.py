@@ -24,6 +24,53 @@ START_NACH_MS = 3000
 PAUSE_AB = 0.3
 
 
+def _im_layout(layout, widget):
+    """Hängt `widget` in `layout` oder einem seiner inneren Layouts?"""
+    if layout is None:
+        return False
+    if layout.indexOf(widget) >= 0:
+        return True
+    return any(
+        layout.itemAt(i).layout() is not None and _im_layout(layout.itemAt(i).layout(), widget)
+        for i in range(layout.count())
+    )
+
+
+def lose_elemente(wurzel):
+    """Sichtbare Elemente unter `wurzel`, die in keinem Layout ihres Fensters hängen, obwohl es
+    eines hat, und dabei ein Geschwister überdecken – so lag in den Schritten die Frage „In welcher
+    Reihenfolge?“ quer über der Flächenliste (gefunden 2026-11-11 am Bild, nicht von einer
+    Prüfung). Gibt je Fund einen Satz zurück. Ohne die Innereien von Qt (Rollflächen, Karten)."""
+    funde = []
+    for eltern in [wurzel, *wurzel.findChildren(QtGui.QWidget)]:
+        layout = eltern.layout()
+        if layout is None or not eltern.isVisible():
+            continue
+        if isinstance(eltern, (QtGui.QAbstractScrollArea, QtGui.QTabWidget, QtGui.QSplitter)):
+            continue
+        if type(eltern).__module__.startswith("Path"):
+            continue  # FreeCADs eigene Fenster (die Zelle der Werkzeugtabelle legt Texte übereinander)
+        kinder = [
+            k
+            for k in eltern.children()
+            if isinstance(k, QtGui.QWidget) and k.isVisible() and not k.isWindow()
+        ]
+        for kind in kinder:
+            if _im_layout(layout, kind) or kind.width() < 8 or kind.height() < 8:
+                continue
+            flaeche = kind.geometry()
+            for anderes in kinder:
+                schnitt = flaeche.intersected(anderes.geometry())
+                if anderes is not kind and schnitt.width() > 6 and schnitt.height() > 6:
+                    text = getattr(kind, "text", lambda: "")() if hasattr(kind, "text") else ""
+                    funde.append(
+                        f"{type(kind).__name__} {kind.objectName()!r} {str(text)[:40]!r} ohne "
+                        f"Layout überdeckt {type(anderes).__name__} in {type(eltern).__name__}"
+                    )
+                    break
+    return funde
+
+
 class Helfer:
     def __init__(self):
         self.fehler = []
@@ -31,8 +78,12 @@ class Helfer:
     def bild(self, name, widget=None):
         """Screenshot von `widget` (Standard: Hauptfenster) nach AUSGABE/name.png."""
         QtGui.QApplication.processEvents()
+        haupt = widget is None
         widget = widget or FreeCADGui.getMainWindow()
         widget.grab().save(os.path.join(AUSGABE, name + ".png"))
+        if not haupt:  # die Fenster des Addons – nicht FreeCADs Hauptfenster mit seinen Leisten
+            for zeile in lose_elemente(widget):
+                self.fehler.append(f"Bild {name}: {zeile}")
 
     def warte_auf(self, bedingung, hoechstens_ms=20000, schritt_ms=250):
         """Wartet (mit `yield from`), bis `bedingung()` wahr ist – höchstens so lange.

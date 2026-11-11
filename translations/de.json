@@ -933,11 +933,11 @@
     "einstellungen.zahlen.masssystem": "Maßsystem:",
     "einstellungen.dateien.gruppe": "Dateien",
     "einstellungen.dateien.klone": "Ein Teil aus einem STL nur einmal speichern",
-    "einstellungen.dateien.klone.hinweis": "Jeder Job hat das Teil als Klon. Ist es groß wie ein STL, steht es nur einmal in der Datei, und die Jobs holen es beim Öffnen von dort: Speichern schneller, Datei kleiner. Ohne das Addon geöffnet sind die Klone leer – „Neu berechnen“ stellt sie her.",
+    "einstellungen.dateien.klone.hinweis": "Jeder Job hat das Teil als Klon. Ist es groß wie ein STL, steht es nur einmal in der Datei: Speichern schneller, Datei kleiner. Ohne das Addon geöffnet sind die Klone leer – „Neu berechnen“ stellt sie her.",
     "einstellungen.rechnen.gruppe": "Rechnen",
     "einstellungen.rechnen.feld": "Nebenrechner",
     "einstellungen.rechnen.von": " von {kerne} Kernen",
-    "einstellungen.rechnen.hinweis": "So viele Prozesse rechnen neben dem Fenster – Vorschau, Hüllflächen, Kollision, Abtrag –, einer je Kern. Anfangs stehen hier alle Kerne dieses Rechners; mehr geht nicht. Weniger, wenn der Rechner nebenbei anderes tun soll. Reicht der Arbeitsspeicher nicht, bekommt ein weiterer Prozess ohnehin erst Arbeit, wenn wieder genug frei ist.",
+    "einstellungen.rechnen.hinweis": "So viele Prozesse rechnen neben dem Fenster, einer je Kern. Weniger, wenn der Rechner nebenbei anderes tun soll.",
     "einstellungen.rechnen.weniger": "Es rechnen nur {anzahl} von {kerne} Kernen – Vorschau, Kollision und Abtrag dauern länger als mit allen. Die Assistenten sagen es beim Rechnen dazu. Ganz nach oben ({kerne}) heißt wieder: alle.",
     "wv.masssystem.tooltip": "Maßsystem: mm oder inch. Gilt sofort für das ganze Addon – Felder, Tabellen, Planer; gespeichert wird immer in mm. Auch unter Bearbeiten → Einstellungen → CAM-Addon.",
     "einheit.je_umdrehung": "{e_span}/U",
@@ -3736,5 +3736,9 @@
     "beta.fertig.summe.eins": "Zusammen etwa {zeit}, mit einem Werkzeugwechsel.",
     "ba.katalog.bohrfraeser": "Im Katalog der Hersteller dafür: {namen} – in die Werkzeugverwaltung über „Werkzeugkiste …“.",
     "einstellungen.altes_fenster.haken": "„Bearbeitung“ im alten Fenster (alles auf einer Seite)",
-    "einstellungen.altes_fenster.hinweis": "„Bearbeitung“ öffnet sonst die Schritte: Aufspannung, Flächen, Schruppen, Löcher, Schlichten, Kanten – je Schritt nur seine Strategien. Mit dem Haken kommt das gewohnte Fenster mit allem auf einer Seite; es rechnet dasselbe."
+    "einstellungen.altes_fenster.hinweis": "„Bearbeitung“ öffnet sonst die Schritte: Aufspannung, Flächen, Schruppen, Löcher, Schlichten, Kanten – je Schritt nur seine Strategien. Mit dem Haken kommt das gewohnte Fenster mit allem auf einer Seite; es rechnet dasselbe.",
+    "beta.anlegen.ebene": "„Anlegen“ legt die Ebene an und öffnet dort den Assistenten – in diesem Job selbst ist bis zu diesem Schritt nichts angehakt.",
+    "beta.anlegen.ebene.knopf": "Ebene anlegen →",
+    "einstellungen.bearbeitung.gruppe": "Bearbeitung",
+    "einstellungen.rechnen.tooltip": "Die Nebenrechner rechnen Vorschau, Hüllflächen, Kollision und Abtrag, während das Fenster frei bleibt. Anfangs stehen hier alle Kerne dieses Rechners; mehr geht nicht. Reicht der Arbeitsspeicher nicht, bekommt ein weiterer Prozess ohnehin erst Arbeit, wenn wieder genug frei ist."
 }

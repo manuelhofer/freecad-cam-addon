@@ -126,7 +126,19 @@ def schritte(h):
 
     # 1. Aufspannung
     h.pruefe(panel.seite() == 0, f"Seite {panel.seite()}")
-    h.pruefe(not panel.knopf_weiter.isEnabled(), "„Weiter“ geht, bevor klar ist, was unten liegt")
+    h.pruefe(not panel._weiter_geht()[0], "„Weiter“ geht, bevor klar ist, was unten liegt")
+    # Nicht grau, weil etwas fehlt: Der Klick bleibt im Schritt und zeigt, was fehlt (0.351.0).
+    h.pruefe(panel.knopf_weiter.isEnabled(), "„Weiter“ grau, obwohl nur etwas fehlt")
+    panel.knopf_weiter.click()
+    yield 300
+    h.pruefe(panel.seite() == 0, f"„Weiter“ blättert ohne Antwort: Seite {panel.seite()}")
+    h.pruefe(
+        "bold" in panel.warum_text.styleSheet() and "border" in panel.knopf_wie_modell.styleSheet(),
+        "der Klick auf „Weiter“ zeigt nicht, was fehlt",
+    )
+    h.bild("1b_weiter_zeigt_was_fehlt", panel.form)
+    yield 2200
+    h.pruefe("border" not in panel.knopf_wie_modell.styleSheet(), "der Rahmen bleibt stehen")
     h.pruefe(
         panel.knopf_unten_waehlen.isChecked(), "der Klick auf die untere Fläche ist nicht bereit"
     )
@@ -160,7 +172,7 @@ def schritte(h):
     # nur die angeklickte Wand zu schlichten (Plan C1).
     h.pruefe("noch Material" in panel.tasche_text.text(), f"Satz: {panel.tasche_text.text()!r}")
     h.pruefe(panel.knopf_tasche_schruppen.isVisible(), "kein Knopf „Ganze Tasche schruppen …“")
-    h.pruefe(not panel.knopf_weiter.isEnabled(), "„Weiter“ geht ohne Antwort zur Tasche")
+    h.pruefe(not panel._weiter_geht()[0], "„Weiter“ geht ohne Antwort zur Tasche")
     h.bild("2_flaechen_tasche", panel.form)
     panel.knopf_ganze_tasche.click()
     yield 1000
@@ -404,7 +416,7 @@ def schritte(h):
             "„Neue Aufspannung“ ohne neuen Job",
         )
         h.pruefe(neu_fenster.seite() == 0, f"„Neue Aufspannung“ auf Seite {neu_fenster.seite()}")
-        h.pruefe(not neu_fenster.knopf_weiter.isEnabled(), "„Weiter“ geht vor der Aufspannung")
+        h.pruefe(not neu_fenster._weiter_geht()[0], "„Weiter“ geht vor der Aufspannung")
         h.bild("7_neue_aufspannung", neu_fenster.form)
         neu_fenster.reject()
         yield 1000

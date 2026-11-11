@@ -222,6 +222,8 @@ class Einstellungsseite:
         rechnen_aufbau.addRow(tr("einstellungen.rechnen.feld"), self.wahl_nebenrechner)
         self.rechnen_hinweis = QtGui.QLabel(tr("einstellungen.rechnen.hinweis"))
         self.rechnen_hinweis.setWordWrap(True)
+        self.wahl_nebenrechner.setToolTip(tr("einstellungen.rechnen.tooltip"))
+        self.rechnen_hinweis.setToolTip(tr("einstellungen.rechnen.tooltip"))
         # Weniger als alle Kerne: gleich darunter, dass es dann länger dauert (Manuel, 2026-10-25).
         self.rechnen_weniger = QtGui.QLabel()
         self.rechnen_weniger.setWordWrap(True)
@@ -237,13 +239,18 @@ class Einstellungsseite:
         self.beta_an = QtGui.QCheckBox(tr("einstellungen.beta.haken"))
         self.beta_an.setToolTip(tr("einstellungen.beta.hinweis"))
         self.gruppe_updates.layout().insertWidget(1, self.beta_an)
+        # „Bearbeitung“ öffnet die Schritte; das alte Fenster ist dieser Haken – in einer eigenen
+        # Gruppe, unter „Updates“ suchte ihn niemand. Den Platz dafür gibt der gekürzte Satz zu den
+        # Nebenrechnern (der Rest steht im Tooltip).
+        bearbeitung = QtGui.QGroupBox(tr("einstellungen.bearbeitung.gruppe"))
         self.altes_fenster = QtGui.QCheckBox(tr("einstellungen.altes_fenster.haken"))
         self.altes_fenster.setToolTip(tr("einstellungen.altes_fenster.hinweis"))
-        self.gruppe_updates.layout().insertWidget(2, self.altes_fenster)
+        QtGui.QVBoxLayout(bearbeitung).addWidget(self.altes_fenster)
 
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
         aufbau.addWidget(zahlen)
+        aufbau.addWidget(bearbeitung)
         aufbau.addWidget(dateien)
         aufbau.addWidget(rechnen)
         aufbau.addWidget(self.gruppe_updates)

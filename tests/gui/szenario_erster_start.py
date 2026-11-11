@@ -190,6 +190,17 @@ def schritte(h):
         satz.height() >= satz.heightForWidth(satz.width()),
         f"Satz unter „Zahlen“ ist {satz.height()} hoch, braucht {satz.heightForWidth(satz.width())}",
     )
+    # Auch der Satz zu den Nebenrechnern ist ganz zu lesen (war mit dem Haken fürs alte Fenster
+    # gestaucht, gesehen am Bild 2026-11-11) – der Haken steht in seiner eigenen Gruppe.
+    satz = seite.rechnen_hinweis
+    h.pruefe(
+        satz.height() >= satz.heightForWidth(satz.width()),
+        f"Satz unter „Rechnen“ ist {satz.height()} hoch, braucht {satz.heightForWidth(satz.width())}",
+    )
+    h.pruefe(
+        seite.altes_fenster.parentWidget() is not seite.gruppe_updates,
+        "der Haken fürs alte Fenster steht unter „Updates“",
+    )
     h.pruefe(seite.wahl_dezimalzeichen.currentData() == ",", "Einstellungsseite: Dezimalzeichen")
     h.pruefe(seite.wahl_masssystem.currentData() == "metrisch", "Einstellungsseite: Maßsystem")
     # „Ein Teil aus einem STL nur einmal speichern“ (klone_speichern): vorbelegt an, abschaltbar.

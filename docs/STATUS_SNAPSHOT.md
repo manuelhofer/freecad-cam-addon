@@ -578,6 +578,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.351.1):* **Wochen-Build 2026.11.11:** FreeCADs neuer Adaptiv-Kern (Clipper2) hielt am
+  Rand den Eingriff nicht (Manuels Testteil 2,14 ae über 104 mm) – das Räumen misst die Last jetzt auch
+  bei „adaptiv“ immer und bremst; Wege durchs Freie strenger geprüft (kein Abtrag im Freivorschub).
+  CAMs neue Formen „Lollipop“ und „Keyway“ und die Reibahle mit „FluteLength“ in beide Richtungen.
+- *Neu (0.351.0):* **Bedienung der Schritte:** die Ebene einer Kette beginnt beim Schruppen und sagt oben,
+  welche sie ist; „Ebene anlegen →“; „Weiter“ ist nicht mehr grau, der Klick rahmt ein, was fehlt; die
+  Frage „Reihenfolge“ lag quer über dem Schritt „Flächen“ – weg. Hilfe „Der Weg in Schritten“;
+  Einstellungen mit Gruppe „Bearbeitung“. Szenarien fallen durch, wenn ein Element ohne Layout ein
+  anderes überdeckt.
 - *Neu (0.350.0):* **„Bearbeitung“ in Schritten ist der Standard** (Manuel, 2026-11-07: „definitiv“):
   Aufspannung › Flächen › Schruppen › Löcher › Schlichten › Kanten. „Weiter bearbeiten“ und „Neue
   Aufspannung“ in Leiste und Menü; das alte Fenster auf einer Seite mit dem Haken „„Bearbeitung“ im

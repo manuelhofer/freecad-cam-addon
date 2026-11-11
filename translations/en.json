@@ -933,11 +933,11 @@
     "einstellungen.zahlen.masssystem": "Unit system:",
     "einstellungen.dateien.gruppe": "Files",
     "einstellungen.dateien.klone": "Save a part from an STL only once",
-    "einstellungen.dateien.klone.hinweis": "Every job holds the part as a clone. If it is as large as an STL, the file stores it only once and the jobs take it from there when opened: faster saving, smaller file. Opened without the add-on, the clones are empty – “Recompute” restores them.",
+    "einstellungen.dateien.klone.hinweis": "Every job has the part as a clone. If it is as large as an STL, it is stored only once in the file: saving is faster, the file smaller. Opened without the addon, the clones are empty – “Recompute” restores them.",
     "einstellungen.rechnen.gruppe": "Computing",
     "einstellungen.rechnen.feld": "Worker processes",
     "einstellungen.rechnen.von": " of {kerne} cores",
-    "einstellungen.rechnen.hinweis": "This many processes compute next to the window – preview, envelopes, collision, removal –, one per core. At first all cores of this computer are set; more is not possible. Fewer if the computer should do other things at the same time. If memory runs short, another process only gets work once enough is free again.",
+    "einstellungen.rechnen.hinweis": "This many processes compute beside the window, one per core. Fewer if the computer has other things to do.",
     "einstellungen.rechnen.weniger": "Only {anzahl} of {kerne} cores compute – preview, collision and removal take longer than with all. The wizards mention it while computing. All the way up ({kerne}) means all again.",
     "wv.masssystem.tooltip": "Unit system: mm or inch. Applies right away to the whole addon – fields, tables, planner; values are always saved in mm. Also under Edit → Preferences → CAM Addon.",
     "einheit.je_umdrehung": "{e_span}/rev",
@@ -3736,5 +3736,9 @@
     "beta.fertig.summe.eins": "About {zeit} in total, including one tool change.",
     "ba.katalog.bohrfraeser": "In the manufacturers' catalogue for this: {namen} – into the tool library via “Tool box …”.",
     "einstellungen.altes_fenster.haken": "“Machining” in the old window (everything on one page)",
-    "einstellungen.altes_fenster.hinweis": "Otherwise “Machining” opens the steps: setup, faces, roughing, holes, finishing, edges – each step with its own strategies only. With the tick you get the familiar window with everything on one page; it computes the same."
+    "einstellungen.altes_fenster.hinweis": "Otherwise “Machining” opens the steps: setup, faces, roughing, holes, finishing, edges – each step with its own strategies only. With the tick you get the familiar window with everything on one page; it computes the same.",
+    "beta.anlegen.ebene": "“Create” creates the plane and opens its wizard there – in this job itself nothing is ticked up to this step.",
+    "beta.anlegen.ebene.knopf": "Create plane →",
+    "einstellungen.bearbeitung.gruppe": "Machining",
+    "einstellungen.rechnen.tooltip": "The worker processes compute preview, envelope surfaces, collision and material removal while the window stays free. At first all cores of this computer are entered here; more is not possible. If memory runs short, a further process only gets work once enough is free again."
 }

@@ -48,6 +48,8 @@ from .gui_teile import knopf
 from .gui_zahlen import Zahlenpruefer, dezimal, groesse_lesen, groesse_zeigen
 from .sprache import tr
 
+WARUM_FARBE = "color: #d08000;"  # der Satz, warum „Weiter“ noch nicht geht
+BETONT_MS = 1800  # so lange bleibt der Rahmen um das, was fehlt (_warum_betonen)
 BETA_AN = "BetaZeigen"  # Parameter: die Beta-Befehle in Menü und Werkzeugleiste
 SCHRUPPEN, LOECHER, SCHLICHTEN, KANTEN = 0, 1, 2, 3
 ABSCHNITTE = (SCHRUPPEN, LOECHER, SCHLICHTEN, KANTEN)
@@ -142,6 +144,36 @@ class BetaPanel(BearbeitungPanel):
             self._beta_tasche_ok.add(frozenset(self.gewaehlte))
             self._beta_start = self._abschnitt_seite(ab, vorwaerts=True)
             self.seite_zeigen(self._beta_start)
+        elif self._ebene_der_kette():
+            self._bei_der_ebene_beginnen()
+
+    def _ebene_der_kette(self):
+        """Ist das der Assistent einer Ebene, den „Anlegen“ davor geöffnet hat (3+2, oder „von
+        oben“ an der waagerechten Spindel)? Nicht eine Aufspannung der N-Eck-Stange: Dort wird
+        umgespannt, Schritt 1 sagt, wie."""
+        from . import schwenken as sw
+
+        return bool(self._folge) and self.job is not None and sw.ist_ebene(self.job)
+
+    def _bei_der_ebene_beginnen(self):
+        """Die Ebene einer Kette: Aufspannung, Maschine und Rohteil stehen fest, die Flächen hat der
+        Assistent davor gewählt – Schritt 1 wäre eine Seite voller grauer Felder und „Flächen“
+        fragte noch einmal nach der Tasche (Manuel, 2026-11-08, an der G550: „geendet bin ich hier
+        bei der nächsten aufspannung oder was soll das nun sein ??“). Darum beginnt sie beim
+        Schruppen, und über jedem Schritt steht, welche Ebene das ist; „Zurück“ geht zu den Flächen
+        und zur Aufspannung."""
+        self._beta_unten_klar = True
+        kopf, strich, rest = str(self._folge).partition(
+            " – "
+        )  # „Ebene 1 von 2 aus der Aufspannung“
+        self.folge_text.setText(f"<b>{html.escape(kopf)}</b>{html.escape(strich + rest)}")
+        self.folge_text.show()
+        self.dazu_text.setText(self.dazu_text.text().replace(f"{self._folge}\n", ""))
+        if self.gewaehlte:
+            self._beta_tasche_ok.add(frozenset(self.gewaehlte))
+            self.seite_zeigen(self._abschnitt_seite(SCHRUPPEN, vorwaerts=True))
+        else:
+            self.seite_zeigen(1)
 
     # --- Aufbau ---------------------------------------------------------------------------
 
@@ -274,6 +306,12 @@ class BetaPanel(BearbeitungPanel):
         )
         self.knopf_unten_waehlen.parentWidget().layout().addWidget(self.knopf_wie_modell)
         self.knopf_unten_modell.hide()  # „Wie modelliert“ – das macht jetzt „Liegt wie im Modell“
+        # Die Ebene einer Kette: über jedem Schritt, welche Ebene das ist (_bei_der_ebene_beginnen).
+        self.folge_text = QtGui.QLabel()
+        self.folge_text.setWordWrap(True)
+        self.folge_text.setTextFormat(QtCore.Qt.RichText)
+        self.folge_text.hide()
+        aufbau.insertWidget(aufbau.indexOf(self.schritt_text), self.folge_text)
         # Unter dem Schritt grau die ganze Folge, der eigene fett.
         self.schrittleiste = _grau()
         self.schrittleiste.setTextFormat(QtCore.Qt.RichText)
@@ -281,7 +319,7 @@ class BetaPanel(BearbeitungPanel):
         # Über den Knöpfen: warum „Weiter“ noch nicht geht – als nächster Schritt zum Lesen.
         self.warum_text = QtGui.QLabel()
         self.warum_text.setWordWrap(True)
-        self.warum_text.setStyleSheet("color: #d08000;")
+        self.warum_text.setStyleSheet(WARUM_FARBE)
         zeile = self.knopf_weiter.parentWidget()
         aufbau.insertWidget(aufbau.indexOf(zeile), self.warum_text)
         # Was „Anlegen“ in diesem Schritt anlegt – es legt ja nur bis hier an – und was danach
@@ -646,7 +684,9 @@ class BetaPanel(BearbeitungPanel):
         self.knopf_zurueck.setVisible(self._seite > 0 and self._seite > self._erste_erlaubte())
         weiter_da = self._seite < ERSTER_ABSCHNITT or self._naechste_seite() is not None
         self.knopf_weiter.setVisible(weiter_da)
-        self.knopf_weiter.setEnabled(geht)
+        # Nicht grau, weil etwas fehlt (Arbeitsregeln, Abschnitt 8): Der Klick zeigt, was fehlt
+        # (_warum_betonen). Grau nur ohne Teil und an der Drehmaschine – das sagt Schritt 1.
+        self.knopf_weiter.setEnabled(geht or bool(warum))
         self.knopf_weiter.setToolTip(warum or tr("beta.weiter.tooltip"))
         self.warum_text.setText(warum)
         self.warum_text.setVisible(bool(warum))
@@ -696,7 +736,14 @@ class BetaPanel(BearbeitungPanel):
                 )
             elif abschnitt(block) > a:
                 spaeter.append(block.s.titel())
-        if not jetzt:
+        nur_ebene = not jetzt and bool(self._beta_geschwenkt)
+        if nur_ebene:
+            # Hier ist nichts angehakt, aber „Anlegen“ legt die Ebene an und öffnet ihren
+            # Assistenten – der Satz „legt hier nichts an“ stand daneben und widersprach.
+            text = tr("beta.anlegen.ebene")
+            self.knopf_fertig.setText(tr("beta.anlegen.ebene.knopf"))
+            self.knopf_fertig.setToolTip(tr("beta.anlegen.ebene"))
+        elif not jetzt:
             text = tr("beta.anlegen.nichts")
         elif zeit > 0:
             text = tr("beta.anlegen.liste", liste=", ".join(jetzt), min=dezimal(f"{zeit:.1f}"))
@@ -707,17 +754,56 @@ class BetaPanel(BearbeitungPanel):
         self.anlegen_text.setText(text)
         self.anlegen_text.show()
 
+    def _frage_passt(self, frage, widget, passt):
+        # Die Schritte sind die Reihenfolge: Die Frage danach hängt hier in keinem Layout mehr –
+        # eingeblendet läge sie quer über dem Schritt „Flächen“ (gesehen am Bild, 2026-11-11).
+        super()._frage_passt(frage, widget, passt and frage != "reihenfolge")
+
     def _erste_erlaubte(self):
         """„Weiter bearbeiten“ beginnt hinter dem, was schon angelegt ist: nicht davor zurück."""
         return getattr(self, "_beta_start", 0)
 
     def weiter(self):
-        geht, _warum = self._weiter_geht()
+        geht, warum = self._weiter_geht()
         if not geht:
+            if warum:
+                self._warum_betonen()
             return
         naechste = self._naechste_seite()
         if naechste is not None:
             self.seite_zeigen(naechste)
+
+    def _warum_ziele(self):
+        """Womit es in diesem Schritt weitergeht – die Knöpfe oder die Liste, die noch fehlen."""
+        if self._seite == 0:
+            return [self.knopf_unten_waehlen, self.knopf_wie_modell]
+        if self._seite == 1 and self.tasche_box.isVisible():
+            knoepfe = (self.knopf_tasche_schruppen, self.knopf_ganze_tasche, self.knopf_nur_diese)
+            return [k for k in knoepfe if k.isVisible()]
+        if self._seite == 1:
+            return [self.flaechen_liste]
+        return []
+
+    def _warum_betonen(self):
+        """„Weiter“ geklickt, aber etwas fehlt: der Satz darüber fett, und was zu tun ist, bekommt
+        für einen Moment einen Rahmen – so führt der Knopf hin, statt grau zu sein."""
+        self.warum_text.setStyleSheet(WARUM_FARBE + " font-weight: bold;")
+        if not getattr(self, "_beta_stile", None):  # nicht noch einmal über den Rahmen von eben
+            self._beta_stile = [(w, w.styleSheet()) for w in self._warum_ziele()]
+            for w, stil in self._beta_stile:
+                w.setStyleSheet(stil + " border: 2px solid #d08000;")
+        self._beta_betont = getattr(self, "_beta_betont", 0) + 1
+        nummer = self._beta_betont
+
+        def zurueck():
+            if self.geschlossen or nummer != self._beta_betont:
+                return
+            self.warum_text.setStyleSheet(WARUM_FARBE)
+            for w, stil in self._beta_stile:
+                w.setStyleSheet(stil)
+            self._beta_stile = []
+
+        QtCore.QTimer.singleShot(BETONT_MS, zurueck)
 
     def zurueck(self):
         if self._seite <= ERSTER_ABSCHNITT:
