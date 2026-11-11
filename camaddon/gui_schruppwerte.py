@@ -17,7 +17,7 @@ from . import reichweite as rw
 from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkzeuge as wz
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import einleitung, kopfzeile
 from .gui_teile import GRAU, ROT, fenster_merken, hinweiszeile, knopf, mit_einheit
 from .gui_zahlen import (
     Zahlenpruefer,
@@ -90,7 +90,7 @@ class SchruppDialog(QtGui.QDialog):
         )
         kopf.setWordWrap(True)
         aufbau.addWidget(kopf)
-        erklaerung = QtGui.QLabel(tr("sp.erklaerung"))
+        erklaerung = einleitung(tr("sp.erklaerung"))
         erklaerung.setWordWrap(True)
         erklaerung.setStyleSheet(f"color: {GRAU.name()};")
         aufbau.addWidget(erklaerung)

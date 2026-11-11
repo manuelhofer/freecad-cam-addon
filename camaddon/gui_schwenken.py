@@ -18,7 +18,7 @@ from . import reichweite as rw
 from . import schwenken as sw
 from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
-from .gui_hilfe import dialog_schliessen, kopfzeile
+from .gui_hilfe import dialog_schliessen, einleitung, kopfzeile
 from .gui_teile import weiter
 from .gui_zahlen import zahlenformat
 from .sprache import tr
@@ -143,7 +143,7 @@ class SchwenkenPanel:
         self.form.setWindowTitle(tr("sw.titel"))
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(kopfzeile(tr("sw.titel"), "schwenken"))
-        text = QtGui.QLabel(tr("sw.panel.text"))
+        text = einleitung(tr("sw.panel.text"))
         text.setWordWrap(True)
         aufbau.addWidget(text)
         raster = QtGui.QFormLayout()

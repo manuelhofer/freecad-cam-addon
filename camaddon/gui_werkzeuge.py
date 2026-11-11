@@ -23,7 +23,7 @@ from . import werkzeuge as wz
 from . import werkzeuge_aus_cam as aus_cam
 from . import werkzeugkiste as wk
 from .gui_halter import HalterDialog
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import einleitung, kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
 from .gui_teile import (
     GRAU,
@@ -1511,7 +1511,7 @@ class KisteDialog(QtGui.QDialog):
         self.setWindowTitle(tr("wv.kiste.titel"))
         self.resize(720, 600)
         aufbau = QtGui.QVBoxLayout(self)
-        erklaerung = QtGui.QLabel(tr("wv.kiste.erklaerung"))
+        erklaerung = einleitung(tr("wv.kiste.erklaerung"))
         erklaerung.setWordWrap(True)
         aufbau.addWidget(erklaerung)
         # Noch keine Kataloge der Hersteller (eigener Download): der Satz und der Knopf zum Laden.

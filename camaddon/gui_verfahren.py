@@ -23,7 +23,7 @@ from PySide import QtCore, QtGui
 from . import beispielmaschine, einheiten, schraege_achse, symbol, uhren
 from . import maschine as m
 from . import verfahren as vf
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import einleitung, kopfzeile
 from .gui_maschine import beispiel_waehlen, gewaehlte_assembly
 from .gui_teile import GRAU, RuhigerRegler, fett, hinweiszeile, ruhiges_mausrad
 from .gui_zahlen import zahlenformat
@@ -167,7 +167,7 @@ class VerfahrPanel:
         form.setWindowIcon(QtGui.QIcon(symbol("verfahren.svg")))
         aufbau = QtGui.QVBoxLayout(form)
         aufbau.addWidget(kopfzeile(tr("vf.titel"), "verfahren"))
-        erklaerung = QtGui.QLabel(tr("vf.erklaerung"))
+        erklaerung = einleitung(tr("vf.erklaerung"))
         erklaerung.setWordWrap(True)
         aufbau.addWidget(erklaerung)
         if self.programm is not None:

@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-16 einleitungen-kurz
+
+### EINGELESEN
+- Manuel, 2026-11-11: „wenn noch WOT vorhanden ist dann sollte man da weiter machen“. Sechs Fenster beginnen
+  mit einem Absatz von 30 bis 66 Wörtern (Magazine, Schwenken, Schruppwerte, Werkzeugkiste, Bestückung,
+  Verfahren) – jedes hat daneben schon „?“ mit der ganzen Hilfe.
+
+### DATEIEN
+- `camaddon/gui_hilfe.py`: `einleitung(text)` – zu sehen ist der erste Satz, der ganze Text ist der Tooltip.
+- `gui_magazine.py`, `gui_schwenken.py`, `gui_schruppwerte.py`, `gui_werkzeuge.py`, `gui_bestueckung.py`,
+  `gui_verfahren.py`: ihre Einleitung über diesen Helfer.
+
+### ERGEBNIS
+- `szenario_magazine` (77 → 50 Wörter), `szenario_werkzeugkiste`, `szenario_schruppwerte`,
+  `szenario_bestueckung`, `szenario_verfahren`, `szenario_schwenken` grün, einzeln gelaufen.
 ## P-2026-11-11-15 vierachs-eingeklappt
 
 ### EINGELESEN

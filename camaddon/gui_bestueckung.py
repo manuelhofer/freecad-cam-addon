@@ -31,7 +31,7 @@ from . import magazin as mg
 from . import maschine as m
 from . import reichweite as rw
 from . import werkzeuge as wz
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import einleitung, kopfzeile
 from .gui_job_schnittwerte import dokument_mit_job
 from .gui_teile import GRAU, ROT, ruhiges_mausrad
 from .gui_zahlen import dezimal
@@ -216,7 +216,7 @@ class BestueckungsPanel:
         form.setWindowIcon(QtGui.QIcon(symbol("bestueckung.svg")))
         aufbau = QtGui.QVBoxLayout(form)
         aufbau.addWidget(kopfzeile(tr("bs.titel"), "bestueckung"))
-        erklaerung = QtGui.QLabel(tr("bs.erklaerung"))
+        erklaerung = einleitung(tr("bs.erklaerung"))
         erklaerung.setWordWrap(True)
         aufbau.addWidget(erklaerung)
 

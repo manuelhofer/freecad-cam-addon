@@ -93,6 +93,21 @@ def _nur_maschine(dokument):
     )
 
 
+def einleitung(text):
+    """Die Einleitung eines Fensters: Zu sehen ist ihr erster Satz, der ganze Text ist ihr Tooltip
+    (und steht hinter „?“). Wenig Text im Fenster (Manuel, 2026-11-11: „ohh man muss ich das jetzt
+    alles wirklich lesen“; Arbeitsregeln, Abschnitt 8) – wer mehr wissen will, hält die Maus
+    darauf."""
+    import re
+
+    erster = re.split(r"(?<=[.?!])\s", text, maxsplit=1)[0]
+    etikett = QtGui.QLabel(erster)
+    etikett.setWordWrap(True)
+    if erster != text:
+        etikett.setToolTip(text)
+    return etikett
+
+
 def kopfzeile(titel, thema=None, anker=None):
     """Überschrift eines Bereichs; mit `thema` rechts der Knopf (?) zu dieser Hilfeseite –
     mit `anker` gleich an die Stelle <a name="anker"> darin."""

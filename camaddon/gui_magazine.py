@@ -26,7 +26,7 @@ from . import halter as hl
 from . import maschine as m
 from . import maschinenspeicher as msp
 from . import werkzeuge as wz
-from .gui_hilfe import kopfzeile
+from .gui_hilfe import einleitung, kopfzeile
 from .gui_teile import GRAU, fenster_merken, knopf, ruhiges_mausrad
 from .gui_zahlen import groesse_lesen, groesse_zeigen
 from .sprache import tr
@@ -132,7 +132,7 @@ class MagazinDialog(QtGui.QDialog):
         fenster_merken(self, "Magazine", FENSTER_GROESSE)
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("mg.titel"), "magazine"))
-        erklaerung = QtGui.QLabel(tr("mg.erklaerung"))
+        erklaerung = einleitung(tr("mg.erklaerung"))
         erklaerung.setWordWrap(True)
         erklaerung.setStyleSheet(f"color: {GRAU.name()};")
         aufbau.addWidget(erklaerung)
