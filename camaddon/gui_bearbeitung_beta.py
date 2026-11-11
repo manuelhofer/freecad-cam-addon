@@ -1071,8 +1071,11 @@ class BetaPanel(BearbeitungPanel):
         if self._seite == 0 and self.zu_aendern is None:
             self.anleitung.setText(self._anleitung_aufspannung())
         self.warum_text.setText(warum)
-        # Steht der Grund schon als Anleitung oben, nicht noch einmal in Orange darunter.
-        self.warum_text.setVisible(bool(warum) and warum != self.anleitung.text())
+        # Der Grund steht erst da, wenn „Weiter“ geklickt wurde und nicht ging (_warum_betonen) –
+        # nicht als Mahnung von Anfang an: Die Frage zur Tasche steht mit ihren Knöpfen schon da.
+        # Und nicht noch einmal in Orange, wenn er schon als Anleitung oben steht.
+        gezeigt = bool(warum) and warum == getattr(self, "_beta_warum_gezeigt", None)
+        self.warum_text.setVisible(gezeigt and warum != self.anleitung.text())
         for a, leer in self._beta_leer.items():
             leer.setVisible(not self._abschnitt_hat_etwas(a))
         for block in self.bloecke:
@@ -1665,6 +1668,11 @@ class BetaPanel(BearbeitungPanel):
     def _warum_betonen(self):
         """„Weiter“ geklickt, aber etwas fehlt: der Satz darüber fett, und was zu tun ist, bekommt
         für einen Moment einen Rahmen – so führt der Knopf hin, statt grau zu sein."""
+        self._beta_warum_gezeigt = self._weiter_geht()[1]
+        self.warum_text.setText(self._beta_warum_gezeigt)
+        self.warum_text.setVisible(
+            bool(self._beta_warum_gezeigt) and self._beta_warum_gezeigt != self.anleitung.text()
+        )
         self.warum_text.setStyleSheet(WARUM_FARBE + " font-weight: bold;")
         if not getattr(self, "_beta_stile", None):  # nicht noch einmal über den Rahmen von eben
             self._beta_stile = [(w, w.styleSheet()) for w in self._warum_ziele()]

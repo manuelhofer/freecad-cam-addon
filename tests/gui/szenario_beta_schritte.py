@@ -170,6 +170,8 @@ def schritte(h):
     h.pruefe(panel.gewaehlte == [wand], f"gewählt: {panel.gewaehlte}")  # nicht vorbelegt: gewählt
     h.pruefe(panel.tasche_box.isVisible(), "kein Satz zur Tasche")
     # Nicht grau, weil etwas fehlt: Der Klick bleibt im Schritt und rahmt ein, was fehlt (0.351.0).
+    # Der orange Satz dazu steht erst nach dem Klick da, nicht als Mahnung von Anfang an.
+    h.pruefe(not panel.warum_text.isVisible(), f"orange vor dem Klick: {panel.warum_text.text()!r}")
     panel.knopf_weiter.click()
     yield 300
     h.pruefe(panel.seite() == 1, f"„Weiter“ blättert ohne Entscheidung zur Tasche: {panel.seite()}")
@@ -179,7 +181,7 @@ def schritte(h):
         if "border" in k.styleSheet()
     ]
     h.pruefe(
-        "bold" in panel.warum_text.styleSheet() and bool(gerahmt),
+        panel.warum_text.isVisible() and "bold" in panel.warum_text.styleSheet() and bool(gerahmt),
         f"der Klick auf „Weiter“ zeigt nicht, was fehlt: {gerahmt}",
     )
     h.bild("2a_weiter_zeigt_was_fehlt", panel.form)

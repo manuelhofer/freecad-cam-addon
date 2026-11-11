@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-23 grund-erst-nach-klick
+
+### EINGELESEN
+- Bild `1_flaechen` aus `szenario_schritte_testteil`: Der orange Satz „Erst entscheiden, wie es mit der Tasche
+  weitergeht …“ stand von Anfang an unter der Frage zur Tasche, die dasselbe mit ihren Knöpfen sagt.
+- Arbeitsregeln, Abschnitt 8 (wenig Text; der Klick zeigt, was fehlt).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_beta_knoepfe`/`_warum_betonen` – der Grund, warum „Weiter“ nicht geht,
+  erscheint erst nach dem Klick auf „Weiter“ (`_beta_warum_gezeigt`), nicht als Mahnung von Anfang an.
+- `tests/gui/szenario_beta_schritte.py`, `package.xml` (0.363.1).
+
+### ERGEBNIS
+- `szenario_beta_schritte` grün: vor dem Klick kein oranger Satz, nach dem Klick fett mit Rahmen um die Knöpfe.
 ## P-2026-11-11-22 wege-als-bild
 
 ### EINGELESEN
