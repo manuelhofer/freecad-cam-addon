@@ -3740,5 +3740,19 @@
     "beta.anlegen.ebene": "“Create” creates the plane and opens its wizard there – in this job itself nothing is ticked up to this step.",
     "beta.anlegen.ebene.knopf": "Create plane →",
     "einstellungen.bearbeitung.gruppe": "Machining",
-    "einstellungen.rechnen.tooltip": "The worker processes compute preview, envelope surfaces, collision and material removal while the window stays free. At first all cores of this computer are entered here; more is not possible. If memory runs short, a further process only gets work once enough is free again."
+    "einstellungen.rechnen.tooltip": "The worker processes compute preview, envelope surfaces, collision and material removal while the window stays free. At first all cores of this computer are entered here; more is not possible. If memory runs short, a further process only gets work once enough is free again.",
+    "beta.rohteil.aendern": "Stock and origin",
+    "beta.rohteil.aendern.tooltip": "Opens the fields for the stock (block with stock to leave or with dimensions, cylinder, body from the document) and the origin – they are prefilled; next to it is a short summary of what applies.",
+    "beta.alles": "Suggest everything →",
+    "beta.alles.tooltip": "The short way: takes everything that can be machined from above in this setup, picks strategies and tools as in the steps and shows the overview – nothing is created before “Create”. Without an answer about the position, “Lies as modelled” applies.",
+    "beta.schritt.uebersicht": "Overview",
+    "beta.anleitung.uebersicht": "This is what the wizard suggests for this setup. “Create” creates it – then “Write program …” takes you on. “Back” leads into the steps if you want to change something.",
+    "beta.uebersicht.rechnet": "Still computing – the times will follow.",
+    "beta.uebersicht.summe": "About {zeit} in total.",
+    "beta.uebersicht.achtung": "Please have a look:",
+    "beta.uebersicht.nichts": "Nothing to create here – nothing can be machined from above in this setup. “Back” shows why at the faces.",
+    "beta.beispielwerkzeuge": "Create example tools",
+    "beta.beispielwerkzeuge.text": "The tool manager has no cutter with cutting data yet – without a tool there is no suggestion. To get started you can have four common ones created and replace them with yours later.",
+    "beta.beispielwerkzeuge.tooltip": "Creates four cutters with example cutting data in the tool manager: end mills Ø 12, Ø 6 and Ø 20, face mill Ø 50. The suggestion uses them right away. The values are assumptions – adapt them to your tools, your material and your machine before milling (“Tool manager …”).",
+    "beta.uebersicht.nicht_dabei": "Not included – something is still missing for these:"
 }

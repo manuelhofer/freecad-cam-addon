@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-03 kurzer-weg-alles-vorschlagen
+
+### EINGELESEN
+- Manuel, 2026-11-11: „Wie gesagt mir geht's um die Benutzerfreundlichkeit die Einfachheit das es ultra
+  easy ist ein Programm zu erstellen mit freecad. Ich will nicht nur bedienorobleme beheben ich will das
+  der Workflow intuitiv ist und der Benutzer ohne gross nachzudenken in freecad sein perfektes CAM hat!!
+  Warum prüfst du so viel??“ – der zweite volle Lauf abgebrochen, danach nur noch die Szenarien zum
+  Geänderten.
+- Der Weg eines neuen Nutzers nachgespielt (keine Maschine, kein Werkzeug): nach sechs Schritten viermal
+  rot „Die Werkzeugverwaltung hat keinen Fräser … leg dort einen an“, „Anlegen“ grau, kein Knopf.
+  „Bohrung fräsen“ nahm für Ø 8 den Ø 12 und meldete rot, obwohl ein Ø 6 da war; eine rote Zeile sperrte
+  alles.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `alles_vorschlagen`, Seite `UEBERSICHT` (`_uebersicht_zeigen`),
+  `_nicht_machbares_abhaken`, `beispielwerkzeuge_anlegen` (`werkzeuge.testkiste`), `_rohteil_einklappen`,
+  `_zehntel`.
+- `camaddon/gui_bearbeitung.py`: `_bohrfraeser_waehlen`.
+- `help/de/bearbeitung.html`, `help/en/bearbeitung.html`, `translations/de.json`, `en.json`.
+- `tests/gui/szenario_schritte_alles.py`, `tests/gui/szenario_schritte_neu.py` (neu).
+- `docs/konzept_schritt_assistent.md`.
+
+### ERGEBNIS
+- Manuels Testteil: ein Klick in Schritt 1 → Übersicht mit acht Bearbeitungen, zusammen etwa 14 min.
+- Neu installiert: „Alles vorschlagen“ → „Beispiel-Werkzeuge anlegen“ → Vorschlag mit Zeiten, Bohrungen mit
+  dem Ø 6, „Anlegen“ geht.
+- Beim Bauen: ein doppelt freigegebenes Layout (takeAt) ließ FreeCAD beim Schließen abstürzen – behoben,
+  bevor es hinausging.
 ## P-2026-11-11-02 wochen-build-2026-11-11
 
 ### EINGELESEN

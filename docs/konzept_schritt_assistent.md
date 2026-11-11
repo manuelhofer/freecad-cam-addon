@@ -25,6 +25,15 @@ in der gewohnten Leiste und im Menü „CAM-Addon“. Das alte Fenster auf einer
 `szenario_schritte_cring_alles` („Alles aus dieser Aufspannung“), `szenario_schritte_drehmaschine`, dazu das
 N-Eck. Die Szenarien des alten Fensters stellen es selbst ein (`NEUES_FENSTER` im Szenario-Läufer).
 
+## Seit 0.352.0: der kurze Weg
+
+Manuel, 2026-11-11: „mir geht's um die Benutzerfreundlichkeit die Einfachheit das es ultra easy ist ein
+Programm zu erstellen … ohne gross nachzudenken“. Der Weg vom Teil zum Programm: „Bearbeitung“ → „Alles
+vorschlagen →“ → Übersicht → „Anlegen“ → „Programm schreiben …“ → „Speichern“. Neu installiert dazwischen
+einmal „Beispiel-Werkzeuge anlegen“. Die Schritte bleiben für alles, was jemand selbst entscheiden will
+(„Zurück“ aus der Übersicht). Geprüft: `szenario_schritte_alles` (Manuels Testteil), `szenario_schritte_neu`
+(ohne Maschine und Werkzeug).
+
 ## A. Was die Beta 0.315.0 kann
 
 **Einschalten:** Bearbeiten → Einstellungen → CAM-Addon → Gruppe „Updates“ → „Beta-Funktionen

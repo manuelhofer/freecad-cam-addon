@@ -578,6 +578,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.352.0):* **Der kurze Weg – „Alles vorschlagen →“** (Manuel, 2026-11-11: „ultra easy … ohne
+  gross nachzudenken in freecad sein perfektes CAM“): ein Knopf in Schritt 1 nimmt alles aus der Aufspannung
+  und zeigt die **Übersicht** (je Bearbeitung Werkzeug und Zeit, Summe, „Nicht dabei“ mit Grund); „Anlegen“
+  von dort, dann „Programm schreiben …“. Ohne Werkzeug: **„Beispiel-Werkzeuge anlegen“** (vier Fräser mit
+  Beispielwerten). „Bohrung fräsen“ nimmt von selbst den Fräser, der in die Bohrung passt. Schritt 1 nur
+  noch halb so lang: Rohteil und Nullpunkt als eine Zeile zum Aufklappen. „< 0,1 min“ statt „0,0 min“.
 - *Korrektur (0.351.1):* **Wochen-Build 2026.11.11:** FreeCADs neuer Adaptiv-Kern (Clipper2) hielt am
   Rand den Eingriff nicht (Manuels Testteil 2,14 ae über 104 mm) – das Räumen misst die Last jetzt auch
   bei „adaptiv“ immer und bremst; Wege durchs Freie strenger geprüft (kein Abtrag im Freivorschub).

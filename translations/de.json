@@ -3740,5 +3740,19 @@
     "beta.anlegen.ebene": "„Anlegen“ legt die Ebene an und öffnet dort den Assistenten – in diesem Job selbst ist bis zu diesem Schritt nichts angehakt.",
     "beta.anlegen.ebene.knopf": "Ebene anlegen →",
     "einstellungen.bearbeitung.gruppe": "Bearbeitung",
-    "einstellungen.rechnen.tooltip": "Die Nebenrechner rechnen Vorschau, Hüllflächen, Kollision und Abtrag, während das Fenster frei bleibt. Anfangs stehen hier alle Kerne dieses Rechners; mehr geht nicht. Reicht der Arbeitsspeicher nicht, bekommt ein weiterer Prozess ohnehin erst Arbeit, wenn wieder genug frei ist."
+    "einstellungen.rechnen.tooltip": "Die Nebenrechner rechnen Vorschau, Hüllflächen, Kollision und Abtrag, während das Fenster frei bleibt. Anfangs stehen hier alle Kerne dieses Rechners; mehr geht nicht. Reicht der Arbeitsspeicher nicht, bekommt ein weiterer Prozess ohnehin erst Arbeit, wenn wieder genug frei ist.",
+    "beta.rohteil.aendern": "Rohteil und Nullpunkt",
+    "beta.rohteil.aendern.tooltip": "Klappt die Felder für das Rohteil (Quader mit Aufmaß oder Maßen, Zylinder, Körper aus dem Dokument) und den Nullpunkt auf – sie sind vorbelegt, daneben steht kurz, was gilt.",
+    "beta.alles": "Alles vorschlagen →",
+    "beta.alles.tooltip": "Der kurze Weg: nimmt alles, was in dieser Aufspannung von oben geht, wählt Strategien und Werkzeuge wie in den Schritten und zeigt die Übersicht – angelegt wird erst mit „Anlegen“. Ohne Antwort zur Lage gilt „Liegt wie im Modell“.",
+    "beta.schritt.uebersicht": "Übersicht",
+    "beta.anleitung.uebersicht": "Das schlägt der Assistent für diese Aufspannung vor. „Anlegen“ legt es an – danach geht es mit „Programm schreiben …“ weiter. „Zurück“ führt in die Schritte, wenn du etwas ändern willst.",
+    "beta.uebersicht.rechnet": "Rechnet noch – die Zeiten kommen gleich.",
+    "beta.uebersicht.summe": "Zusammen etwa {zeit}.",
+    "beta.uebersicht.achtung": "Bitte ansehen:",
+    "beta.uebersicht.nichts": "Hier gibt es nichts anzulegen – in dieser Aufspannung ist von oben nichts zu bearbeiten. „Zurück“ zeigt bei den Flächen, warum.",
+    "beta.beispielwerkzeuge": "Beispiel-Werkzeuge anlegen",
+    "beta.beispielwerkzeuge.text": "In der Werkzeugverwaltung steht noch kein Fräser mit Schnittwerten – ohne Werkzeug gibt es keinen Vorschlag. Zum Loslegen kannst du vier übliche anlegen lassen und später durch deine ersetzen.",
+    "beta.beispielwerkzeuge.tooltip": "Legt vier Fräser mit Beispiel-Schnittwerten in die Werkzeugverwaltung: Schaftfräser Ø 12, Ø 6 und Ø 20, Planfräser Ø 50. Der Vorschlag rechnet sofort damit. Die Werte sind angenommen – vor dem Fräsen an deine Werkzeuge, deinen Werkstoff und deine Maschine anpassen („Werkzeugverwaltung …“).",
+    "beta.uebersicht.nicht_dabei": "Nicht dabei – dafür fehlt noch etwas:"
 }

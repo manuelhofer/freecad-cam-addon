@@ -54,6 +54,7 @@ BETA_AN = "BetaZeigen"  # Parameter: die Beta-Befehle in Menü und Werkzeugleist
 SCHRUPPEN, LOECHER, SCHLICHTEN, KANTEN = 0, 1, 2, 3
 ABSCHNITTE = (SCHRUPPEN, LOECHER, SCHLICHTEN, KANTEN)
 ERSTER_ABSCHNITT = 2  # die Seite des Schruppens; davor Aufspannung und Flächen
+UEBERSICHT = ERSTER_ABSCHNITT + len(ABSCHNITTE)  # die Seite nach den Schritten (alles_vorschlagen)
 # Was am Job steht, damit „Weiter bearbeiten“ dort weitermacht.
 EIGENSCHAFT_FLAECHEN = "CamAddonBetaFlaechen"
 EIGENSCHAFT_ABSCHNITT = "CamAddonBetaAbschnitt"
@@ -132,6 +133,7 @@ class BetaPanel(BearbeitungPanel):
         self._beta_schlichten = None  # (die ganze Tasche, nur diese schlichten) – Plan C1
         self._beta_nachbarn = None  # (Form, taschen_wahl.nachbarn) – gerechnet einmal je Form
         self._beta_bis = None  # beim Anlegen: bis zu welchem Abschnitt
+        self._beta_nicht_dabei = {}  # Kennung → (Titel, Satz): in der Übersicht abgehakt
         # Ohne Auswahl gestartet: der erste Klick ins Teil ist die Fläche, die unten liegt (Manuel:
         # „erstmal, wo ist die eingespannte Fläche, abfragen“) – damit entsteht auch der Job.
         self._beta_erster_klick_unten = wahl is None and kwargs.get("operation") is None
@@ -299,6 +301,17 @@ class BetaPanel(BearbeitungPanel):
         alt_strategien.hide()
         aufbau.removeWidget(alt_strategien)
         self.seiten = [self.seiten[0], flaechen] + [self._beta_seiten[a] for a in ABSCHNITTE]
+        # Nach den Schritten die Übersicht: was der Assistent für die Aufspannung vorschlägt, je
+        # Bearbeitung Werkzeug und Zeit – dorthin führt „Alles vorschlagen“ (alles_vorschlagen).
+        self.uebersicht_seite = QtGui.QWidget()
+        uebersicht = QtGui.QVBoxLayout(self.uebersicht_seite)
+        uebersicht.setContentsMargins(0, 0, 0, 0)
+        self.uebersicht_text = QtGui.QLabel()
+        self.uebersicht_text.setWordWrap(True)
+        self.uebersicht_text.setTextFormat(QtCore.Qt.RichText)
+        uebersicht.addWidget(self.uebersicht_text)
+        aufbau.insertWidget(aufbau.indexOf(self._beta_seiten[KANTEN]) + 1, self.uebersicht_seite)
+        self.seiten.append(self.uebersicht_seite)
         self._spannmittel_bauen()
         # „Liegt so, wie modelliert“: macht Schritt 1 ohne Klick auf eine Fläche klar.
         self.knopf_wie_modell = knopf(
@@ -322,6 +335,27 @@ class BetaPanel(BearbeitungPanel):
         self.warum_text.setStyleSheet(WARUM_FARBE)
         zeile = self.knopf_weiter.parentWidget()
         aufbau.insertWidget(aufbau.indexOf(zeile), self.warum_text)
+        # Neu installiert, noch kein Fräser in der Werkzeugverwaltung: Statt viermal rot „leg dort
+        # einen an“ ein Knopf, der vier übliche Fräser mit Beispielwerten anlegt – damit steht der
+        # Vorschlag sofort (der nächste Schritt ist ein Knopf, Arbeitsregeln Abschnitt 8).
+        self.beispiel_box = QtGui.QWidget()
+        kasten = QtGui.QVBoxLayout(self.beispiel_box)
+        kasten.setContentsMargins(0, 4, 0, 4)
+        satz = QtGui.QLabel(tr("beta.beispielwerkzeuge.text"))
+        satz.setWordWrap(True)
+        kasten.addWidget(satz)
+        self.knopf_beispielwerkzeuge = knopf(
+            tr("beta.beispielwerkzeuge"),
+            tr("beta.beispielwerkzeuge.tooltip"),
+            self.beispielwerkzeuge_anlegen,
+        )
+        kasten.addWidget(self.knopf_beispielwerkzeuge, 0, QtCore.Qt.AlignLeft)
+        self.beispiel_box.hide()
+        aufbau.insertWidget(aufbau.indexOf(self.warum_text), self.beispiel_box)
+        # Der kurze Weg (Manuel, 2026-11-11: „ultra easy … ohne gross nachzudenken“): ein Klick
+        # statt sechs Schritte – alles aus der Aufspannung, vorgeschlagen, mit Übersicht.
+        self.knopf_alles = knopf(tr("beta.alles"), tr("beta.alles.tooltip"), self.alles_vorschlagen)
+        zeile.layout().insertWidget(zeile.layout().indexOf(self.knopf_weiter), self.knopf_alles)
         # Was „Anlegen“ in diesem Schritt anlegt – es legt ja nur bis hier an – und was danach
         # noch angehakt ist (kommt mit „Weiter bearbeiten“).
         self.anlegen_text = _grau()
@@ -341,7 +375,88 @@ class BetaPanel(BearbeitungPanel):
         )
         self.knopf_umspannen.hide()
         aufbau.insertWidget(aufbau.indexOf(zeile), self.knopf_umspannen, 0, QtCore.Qt.AlignRight)
+        self._rohteil_einklappen()
         return form
+
+    def _rohteil_einklappen(self):
+        """Schritt 1: Rohteil und Nullpunkt als eine Zeile („Aufmaß 1 mm rundum · Nullpunkt: Mitte
+        oben“) mit einem Knopf, der ihre Felder aufklappt. Sie sind vorbelegt und werden meist nur
+        geprüft – offen machten ihre sieben Felder den ersten Schritt zur längsten Seite (Manuel,
+        2026-10-30: das Fenster „zu groß geworden“). Offen bleiben sie, sobald etwas anderes als der
+        Quader mit Aufmaß gewählt ist: Dann gibt es dort etwas einzutragen."""
+        seite = self.seiten[0].layout()
+        anfang = next(
+            (
+                i
+                for i in range(seite.count())
+                if isinstance(seite.itemAt(i).widget(), QtGui.QLabel)
+                and seite.itemAt(i).widget().text() == tr("ba.rohteil")
+            ),
+            None,
+        )
+        if anfang is None:
+            return
+        self.rohteil_huelle = QtGui.QWidget()
+        innen = QtGui.QVBoxLayout(self.rohteil_huelle)
+        innen.setContentsMargins(0, 0, 0, 0)
+        # Umhängen ohne takeAt: Das gäbe Python den Eintrag zu eigen – ein inneres Layout würde
+        # dann zweimal freigegeben (Python und sein neues Eltern-Layout), FreeCAD stürzte beim
+        # Schließen des Fensters ab (gesehen 2026-11-11 in szenario_beta_schritte).
+        while seite.count() > anfang:
+            eintrag = seite.itemAt(anfang)
+            if eintrag.widget() is not None:
+                widget = eintrag.widget()
+                seite.removeWidget(widget)
+                innen.addWidget(widget)
+            elif eintrag.layout() is not None:
+                inneres = eintrag.layout()
+                seite.removeItem(inneres)
+                innen.addLayout(inneres)
+            else:
+                seite.removeItem(eintrag)  # ein Abstandhalter
+        zeile = QtGui.QWidget()
+        reihe = QtGui.QHBoxLayout(zeile)
+        reihe.setContentsMargins(0, 0, 0, 0)
+        self.knopf_rohteil_aendern = _klappknopf(
+            tr("beta.rohteil.aendern"), tr("beta.rohteil.aendern.tooltip")
+        )
+        self.rohteil_zeile = _grau()
+        self.rohteil_zeile.setWordWrap(True)
+        reihe.addWidget(self.knopf_rohteil_aendern)
+        reihe.addWidget(self.rohteil_zeile, 1)
+        seite.addWidget(zeile)
+        seite.addWidget(self.rohteil_huelle)
+        seite.addStretch()
+        self.knopf_rohteil_aendern.toggled.connect(lambda _an: self._rohteil_klappen())
+        for wahl in (
+            self.knopf_rohteil_quader,
+            self.knopf_rohteil_masse,
+            self.knopf_rohteil_zylinder,
+            self.knopf_rohteil_teil,
+        ):
+            wahl.toggled.connect(lambda _an: self._rohteil_klappen())
+        self._rohteil_klappen()
+
+    def _rohteil_klappen(self):
+        """Die Felder für Rohteil und Nullpunkt: offen auf Klick – und immer, wenn nicht der Quader
+        mit Aufmaß gewählt ist."""
+        if not hasattr(self, "rohteil_huelle"):
+            return
+        offen = self.knopf_rohteil_aendern.isChecked() or not self.knopf_rohteil_quader.isChecked()
+        self.rohteil_huelle.setVisible(offen)
+        self.rohteil_zeile.setVisible(not offen)
+        self.knopf_rohteil_aendern.setArrowType(
+            QtCore.Qt.DownArrow if offen else QtCore.Qt.RightArrow
+        )
+
+    def _rohteil_kurz_zeigen(self):
+        super()._rohteil_kurz_zeigen()
+        if hasattr(self, "rohteil_zeile") and hasattr(self, "rohteil_kurz"):
+            teile = self.rohteil_kurz.text().split(" · ")
+            eintrag = self.maschine() if hasattr(self, "wahl_maschine") else None
+            if eintrag is not None and len(teile) > 1:
+                teile = teile[1:]  # die Maschine steht in Schritt 1 gleich darüber
+            self.rohteil_zeile.setText(" · ".join(teile))
 
     def _spannmittel_bauen(self):
         """Oben in Schritt 1: „Worin gespannt?“ und die Spanntiefe – vor der Unterseite (Plan C5;
@@ -634,7 +749,7 @@ class BetaPanel(BearbeitungPanel):
         for i, seite in enumerate(self.seiten):
             seite.setVisible(i == self._seite)
         namen = [tr("ba.schritt.aufspannung"), tr("beta.schritt.flaechen")]
-        namen += list(_abschnitt_namen())
+        namen += [*_abschnitt_namen(), tr("beta.schritt.uebersicht")]
         self.schritt_text.setText(tr("beta.schritt", name=namen[self._seite]))
         self.schrittleiste.setText(self._schrittleiste())
         if self.zu_aendern is None:
@@ -649,6 +764,7 @@ class BetaPanel(BearbeitungPanel):
                 tr("beta.anleitung.loecher"),
                 tr("beta.anleitung.schlichten"),
                 tr("beta.anleitung.kanten"),
+                tr("beta.anleitung.uebersicht"),
             ]
             self.anleitung.setText(anleitungen[self._seite])
         if self._seite == 0 and self.job is not None and not self._aufspannung_fest():
@@ -669,7 +785,9 @@ class BetaPanel(BearbeitungPanel):
         kurz = [
             tr("ba.schritt.aufspannung"),
             tr("beta.schritt.flaechen"),
-        ] + list(_abschnitt_namen())
+            *_abschnitt_namen(),
+            tr("beta.schritt.uebersicht"),
+        ]
         for i, name in enumerate(kurz):
             if i == self._seite:
                 teile.append(f"<b>{html.escape(name)}</b>")
@@ -684,6 +802,15 @@ class BetaPanel(BearbeitungPanel):
         self.knopf_zurueck.setVisible(self._seite > 0 and self._seite > self._erste_erlaubte())
         weiter_da = self._seite < ERSTER_ABSCHNITT or self._naechste_seite() is not None
         self.knopf_weiter.setVisible(weiter_da)
+        self.beispiel_box.setVisible(self._seite >= ERSTER_ABSCHNITT and self._ohne_fraeser())
+        self.knopf_alles.setVisible(
+            self._seite < ERSTER_ABSCHNITT
+            and self.job is not None
+            and self.zu_aendern is None
+            and self._beta_ab is None
+            and not self.nur_vierachs()
+            and not self._ebene_der_kette()
+        )
         # Nicht grau, weil etwas fehlt (Arbeitsregeln, Abschnitt 8): Der Klick zeigt, was fehlt
         # (_warum_betonen). Grau nur ohne Teil und an der Drehmaschine – das sagt Schritt 1.
         self.knopf_weiter.setEnabled(geht or bool(warum))
@@ -729,7 +856,7 @@ class BetaPanel(BearbeitungPanel):
                 nummer = getattr(fraeser, "nummer", None)
                 teile = [f"T{nummer}"] if nummer is not None else []
                 if block.zeit is not None:
-                    teile.append(tr("beta.anlegen.minuten", min=dezimal(f"{block.zeit:.1f}")))
+                    teile.append(tr("beta.anlegen.minuten", min=_zehntel(block.zeit)))
                     zeit += block.zeit
                 jetzt.append(
                     f"{block.s.titel()} ({', '.join(teile)})" if teile else block.s.titel()
@@ -753,6 +880,136 @@ class BetaPanel(BearbeitungPanel):
             text += " " + tr("beta.anlegen.spaeter", liste=", ".join(spaeter))
         self.anlegen_text.setText(text)
         self.anlegen_text.show()
+        self.beispiel_box.setVisible(self._seite >= ERSTER_ABSCHNITT and self._ohne_fraeser())
+        if self._seite == UEBERSICHT:
+            self.anlegen_text.hide()  # dasselbe steht dort als Tabelle
+            if not self.vorschau_laeuft() and not self._ohne_fraeser():
+                self._nicht_machbares_abhaken()
+            self._uebersicht_zeigen()
+
+    def alles_vorschlagen(self):
+        """Der kurze Weg: alles, was in dieser Aufspannung von oben geht (aus_der_aufspannung),
+        mit den Strategien und Werkzeugen, die der Assistent auch in den Schritten vorschlägt –
+        und gleich zur Übersicht. Ohne Antwort zur Lage gilt „Liegt wie im Modell“. Angelegt wird
+        erst mit „Anlegen“; „Zurück“ führt in die Schritte."""
+        if self.job is None or self.nur_vierachs():
+            return
+        if not (self._beta_unten_klar or self._aufspannung_fest()):
+            self.wie_modelliert()
+        self._beta_nicht_dabei = {}
+        self.aus_der_aufspannung()
+        if not self.gewaehlte:
+            self.seite_zeigen(1)  # dort steht je Fläche, warum sie hier nicht geht
+            return
+        self._beta_tasche_ok.add(frozenset(self.gewaehlte))
+        self.seite_zeigen(UEBERSICHT)
+
+    def _nicht_machbares_abhaken(self):
+        """In der Übersicht: Was sich nicht anlegen lässt (kein passendes Werkzeug, zu kurz …),
+        verliert den Haken und steht unter „Nicht dabei“ mit seinem Satz – „Anlegen“ geht für
+        den Rest. Sonst sperrte eine einzige rote Zeile den ganzen Vorschlag."""
+        raus = [
+            b
+            for b in self.aktive_bloecke()
+            if b.moeglich and b.vorschau is None and b.hinweis.text() and not b.kann_anlegen()
+        ]
+        if not raus:
+            return
+        self._fuellt = True
+        try:
+            for block in raus:
+                self._beta_nicht_dabei[block.s.kennung] = (
+                    block.s.titel(),
+                    _ohne_marken(block.hinweis.text()),
+                )
+                block.haken.setChecked(False)
+                block.zustand_zeigen()
+        finally:
+            self._fuellt = False
+        self.vorschau_starten()
+
+    def _ohne_fraeser(self):
+        """Hat die Werkzeugverwaltung für das, was angehakt ist, gar keinen Fräser (neu
+        installiert)? Dann sagt es jede Strategie mit demselben Satz."""
+        satz = tr("va.planfraeser.keiner")
+        return any(b.moeglich and b.aktiv() and satz in b.hinweis.text() for b in self.bloecke)
+
+    def beispielwerkzeuge_anlegen(self):
+        """Legt die vier Beispiel-Fräser (werkzeuge.testkiste: Ø 12, Planfräser Ø 50, Ø 6, Ø 20 mit
+        angenommenen Schnittwerten) in die Werkzeugverwaltung – auf freie Nummern, was schon da
+        ist, bleibt – und rechnet den Vorschlag damit neu."""
+        from . import werkzeuge as wz
+
+        bibliothek = wz.Bibliothek.laden()
+        belegt = {w.nummer for w in bibliothek.werkzeuge}
+        for werkzeug in wz.testkiste():
+            if werkzeug.nummer in belegt:
+                werkzeug.nummer = bibliothek.naechste_nummer()
+            bibliothek.werkzeuge.append(werkzeug)
+            belegt.add(werkzeug.nummer)
+        bibliothek.speichern()
+        self._beta_nicht_dabei = {}
+        self._werkzeuge_gespeichert()
+        if self.job is not None and self.gewaehlte:
+            # Mit Werkzeugen neu vorschlagen: Haken und je Strategie der passende Fräser.
+            self._haken_vorschlagen(vr.modell(self.job).Shape)
+            self.vorschau_starten()
+        self._beta_knoepfe()
+
+    def _uebersicht_zeigen(self):
+        """Die Übersicht: je Bearbeitung, die „Anlegen“ anlegt, ihr Werkzeug und ihre Zeit, die
+        Summe – und rot, was sich jemand ansehen muss (ein Satz der Strategie)."""
+        from . import werkzeuge as wz
+
+        zeilen, summe, achtung = [], 0.0, []
+        for block in self._in_anlege_reihe(self.aktive_bloecke()):
+            if not block.moeglich:
+                continue
+            fraeser = block.fraeser()
+            werkzeug = ""
+            if fraeser is not None:
+                nummer = getattr(fraeser, "nummer", None)
+                werkzeug = (f"T{nummer} " if nummer is not None else "") + wz.anzeigename(fraeser)
+            if block.zeit is not None:
+                zeit = tr("beta.anlegen.minuten", min=_zehntel(block.zeit))
+                summe += block.zeit
+            else:
+                zeit = "…"
+            zeilen.append(
+                f"<tr><td><b>{html.escape(block.s.titel())}</b>&nbsp;&nbsp;</td>"
+                f"<td>{html.escape(werkzeug)}&nbsp;&nbsp;</td>"
+                f"<td align='right'>{html.escape(zeit)}</td></tr>"
+            )
+            hinweis = _ohne_marken(block.hinweis.text())
+            if hinweis and tr("va.planfraeser.keiner") in block.hinweis.text():
+                continue  # dafür steht der Knopf „Beispiel-Werkzeuge anlegen“ darunter
+            if hinweis:
+                achtung.append(f"<b>{html.escape(block.s.titel())}:</b> {html.escape(hinweis)}")
+        if not zeilen:
+            self.uebersicht_text.setText(tr("beta.uebersicht.nichts"))
+            return
+        teile = [f"<table cellspacing='2'>{''.join(zeilen)}</table>"]
+        if self.vorschau_laeuft():
+            teile.append(f"<i>{html.escape(tr('beta.uebersicht.rechnet'))}</i>")
+        elif summe > 0:
+            teile.append(html.escape(tr("beta.uebersicht.summe", zeit=_minuten_text(summe))))
+        if self.ebene_text.text() and self._beta_geschwenkt:
+            teile.append(html.escape(self.ebene_text.text()))
+        if self._beta_nicht_dabei:
+            nicht = "<br>".join(
+                f"<b>{html.escape(titel)}:</b> {html.escape(satz)}"
+                for titel, satz in self._beta_nicht_dabei.values()
+            )
+            teile.append(
+                f"<span style='color: #c03030;'>{html.escape(tr('beta.uebersicht.nicht_dabei'))}"
+                f"<br>{nicht}</span>"
+            )
+        if achtung:
+            teile.append(
+                f"<span style='color: #c03030;'>{html.escape(tr('beta.uebersicht.achtung'))}"
+                f"<br>{'<br>'.join(achtung)}</span>"
+            )
+        self.uebersicht_text.setText("<br><br>".join(teile))
 
     def _frage_passt(self, frage, widget, passt):
         # Die Schritte sind die Reihenfolge: Die Frage danach hängt hier in keinem Layout mehr –
@@ -1161,7 +1418,7 @@ class BetaPanel(BearbeitungPanel):
             self._oben_weiter = False
             self.weiter()
             return False
-        self._beta_bis = self._aktueller_abschnitt()
+        self._beta_bis = min(self._aktueller_abschnitt(), KANTEN)  # die Übersicht: alles
         job = self.job
         vorher = {o.Name for o in job.Operations.Group} if job is not None else set()
         try:
@@ -1695,10 +1952,25 @@ def _fertig_oeffnen(job, neu):
     fenster.show()
 
 
+def _ohne_marken(text):
+    """Ein Satz der Oberfläche ohne seine HTML-Marken (Verweise, Farben) – für die Übersicht."""
+    import re
+
+    return html.unescape(re.sub(r"<[^>]+>", " ", text or "")).strip()
+
+
+def _zehntel(minuten):
+    """„1,4“ – und „< 0,1“ für alles, was auf 0,0 rundete: „Restmaterial (T3, 0,0 min)“ las sich,
+    als gäbe es dort nichts zu tun."""
+    if 0.0 < minuten < 0.05:
+        return dezimal("< 0.1")
+    return dezimal(f"{minuten:.1f}")
+
+
 def _minuten_text(minuten):
-    """„0,3 min“, „12 min“, „2 h 05 min“."""
+    """„0,3 min“, „< 0,1 min“, „12 min“, „2 h 05 min“."""
     if minuten < 10:
-        return dezimal(tr("va.zeit.min", min=f"{minuten:.1f}"))
+        return tr("va.zeit.min", min=_zehntel(minuten))
     gesamt = int(round(minuten))
     if gesamt < 60:
         return tr("va.zeit.min", min=gesamt)

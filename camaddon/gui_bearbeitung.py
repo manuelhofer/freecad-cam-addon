@@ -8873,6 +8873,7 @@ class BearbeitungPanel:
         self._rest_vorschlagen(form)
         self._restschlichtfraeser_waehlen()
         self._fase_fraeser_waehlen(form)
+        self._bohrfraeser_waehlen(form)
         self._bloecke_ordnen()
 
     def _bloecke_ordnen(self):
@@ -11032,6 +11033,30 @@ class BearbeitungPanel:
             block.fraeser_von_hand = True
             block.angebot.leeren()
             self.vorschau_starten()
+
+    def _bohrfraeser_waehlen(self, form):
+        """Wählt für „Bohrung fräsen“ den größten Fräser, der in die kleinste gewählte Bohrung
+        passt – wenn der gewählte zu groß ist. Sonst stand dort rot „Die Bohrung Ø 8 ist kleiner
+        als der Fräser“, obwohl ein Ø 6 in der Liste war (gesehen 2026-11-11 am Weg eines neuen
+        Nutzers), und „Anlegen“ ging nicht."""
+        block = self.bohrung
+        if not block.moeglich or not block._fraeser:
+            return
+        waende = block.s.flaechen_fuer(form, self.gewaehlte)
+        radien = [float(b.radius) for b in bb.bohrungen(form, waende)]
+        if not radien:
+            return
+        grenze = 2.0 * min(radien) - 1e-6
+        jetzt = block.fraeser()
+        if jetzt is not None and float(jetzt.durchmesser) <= grenze:
+            return
+        passend = [
+            (float(w.durchmesser), i)
+            for i, w in enumerate(block._fraeser)
+            if float(w.durchmesser) <= grenze
+        ]
+        if passend:
+            block.wahl_fraeser.setCurrentIndex(max(passend)[1])
 
     def _restfraeser_waehlen(self):
         """Wählt im Block Restmaterial den größten Fräser, der kleiner ist als der davor – wenn
