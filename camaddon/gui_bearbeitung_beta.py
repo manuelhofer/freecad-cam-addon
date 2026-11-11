@@ -909,6 +909,14 @@ class BetaPanel(BearbeitungPanel):
         namen = [tr("ba.schritt.aufspannung"), tr("beta.schritt.flaechen")]
         namen += [*_abschnitt_namen(), tr("beta.schritt.uebersicht")]
         self.schritt_text.setText(tr("beta.schritt", name=namen[self._seite]))
+        # Eine Überschrift statt zwei: Der Name des Schritts steht oben neben „?“ – „Bearbeitung:
+        # Teil im Quader oder Zylinder“ darüber sagte in jedem Schritt dasselbe (der Titel des
+        # Fensters nennt „Bearbeitung“ schon).
+        ueberschrift = self.kopf.findChild(QtGui.QLabel)
+        if ueberschrift is not None:
+            ueberschrift.setText(self.schritt_text.text())
+            ueberschrift.setFont(self.schritt_text.font())
+            self.schritt_text.hide()
         self.schrittleiste.setText(self._schrittleiste())
         if self.zu_aendern is None:
             anleitungen = [
@@ -938,6 +946,10 @@ class BetaPanel(BearbeitungPanel):
             self.knopf_unten_waehlen.setChecked(False)
         if self._seite == ERSTER_ABSCHNITT + SCHRUPPEN:
             self._werkzeuge_zeigen()
+        if self._seite == 0 and self.job is None:
+            einziges = self._einziges_teil()
+            if einziges is not None:
+                self.teil_text.setText(einziges.Label)  # es gibt nur dieses – kein „anklicken“
         self._rohteil_kurz_zeigen()
         self._beta_knoepfe()
         self.nichts_angehakt.hide()

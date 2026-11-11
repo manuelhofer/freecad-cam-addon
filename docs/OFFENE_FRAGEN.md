@@ -22,3 +22,18 @@ gezeigte Lage dagegen ohne Antwort.
 *Warum nur Manuel:* Du hast am 2026-10-30 bestellt, dass der Assistent die eingespannte Fläche zuerst
 abfragt („erstmal, wo ist die eingespannte Fläche, abfragen“); a) weicht das auf. *Was die Antwort ändert:*
 bei a) entfällt der orange Satz „Erst sagen, wie das Teil liegt“ in Schritt 1. Seit 2026-11-11.
+
+## 2. Soll der Schritt „Flächen“ mit allem aus der Aufspannung vorbelegt sein?
+
+**Die Frage:** Wer Schritt für Schritt geht, kommt in „Flächen“ mit leerer Auswahl an und muss Flächen
+anklicken oder „Alles aus dieser Aufspannung“ drücken. „Alles vorschlagen →“ nimmt dagegen von selbst
+alles, was von oben geht.
+
+- **a)** Vorbelegt mit allem, was in dieser Aufspannung von oben geht (grün im Teil) – man klickt heraus,
+  was nicht soll. *Claudes Vorschlag.*
+- **b)** Leer wie heute – man klickt an, was soll.
+
+*Warum nur Manuel:* Es ist deine Arbeitsweise am Teil (alles und abwählen, oder gezielt anwählen); bei
+großen Teilen stehen mit a) gleich sehr viele Flächen in der Liste. *Was die Antwort ändert:* bei a) ein
+Klick weniger im Schritt-Weg, und „Weiter“ geht in „Flächen“ sofort. Seit 2026-11-11.
+

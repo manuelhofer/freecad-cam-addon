@@ -6155,6 +6155,7 @@ class BearbeitungPanel:
         aufbau = QtGui.QVBoxLayout(form)
         kopf = kopfzeile(tr("ba.kopf"), "bearbeitung")
         aufbau.addWidget(kopf)
+        self.kopf = kopf  # die Schritte setzen hier den Namen des Schritts hinein
         self.rechnet = QtGui.QLabel()  # gui_rechnet: dreht sich, solange es rechnet
         aufbau.addWidget(self.rechnet)
         # Oben, in welchem der drei Schritte man ist; darunter, was dort zu tun ist.

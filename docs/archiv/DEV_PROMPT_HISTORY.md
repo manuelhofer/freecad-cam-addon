@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-19 eine-ueberschrift
+
+### EINGELESEN
+- Am Bild von Schritt 1: zwei Überschriften übereinander („Bearbeitung: Teil im Quader oder Zylinder“ und
+  der Name des Schritts), und in der Zeile „Teil“ stand „– noch keins: eine Fläche anklicken –“, obwohl es
+  im Dokument nur ein Teil gibt und der Assistent es von selbst nimmt.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`, `camaddon/gui_bearbeitung.py`: In den Schritten steht der Name des
+  Schritts oben neben „?“ (eine Überschrift); bei einem einzigen Teil steht sein Name gleich in Schritt 1.
+- `docs/OFFENE_FRAGEN.md`: Frage 2 (Schritt „Flächen“ vorbelegt?).
+
+### ERGEBNIS
+- `szenario_schritte_neu` grün, am Bild gesehen.
 ## P-2026-11-11-18 anlegen-nur-in-der-uebersicht
 
 ### EINGELESEN
