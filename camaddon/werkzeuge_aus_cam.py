@@ -31,6 +31,9 @@ ARTEN = {
     "vbit": wz.FASENFRAESER,
     "radius": wz.RADIENFRAESER,
     "slittingsaw": wz.NUTENFRAESER,
+    # Seit dem Wochen-Build 2026.11.11: Kugel am Hals und Scheibe am Hals (T-Nut, Woodruff).
+    "lollipop": wz.LOLLIPOPFRAESER,
+    "keyway": wz.NUTENFRAESER,
     "threadmill": wz.GEWINDEFRAESER,
     "drill": wz.BOHRER,
     "tap": wz.GEWINDEBOHRER_RECHTS,
@@ -123,7 +126,10 @@ def werkzeug_aus(bit, nummer):
         art = wz.GEWINDEBOHRER_LINKS
     werte = {
         "durchmesser": _mm(o, "Diameter"),
-        "schneidenlaenge": _mm(o, "CuttingEdgeHeight") or _mm(o, "CuttingEdgeLength"),
+        # Die Reibahle: seit dem Wochen-Build 2026.11.11 „FluteLength“ (uebergabe_werkzeuge._reamer).
+        "schneidenlaenge": (art == wz.REIBAHLE and _mm(o, "FluteLength"))
+        or _mm(o, "CuttingEdgeHeight")
+        or _mm(o, "CuttingEdgeLength"),
         "gesamtlaenge": _mm(o, "Length"),
         "schaft": _mm(o, "ShankDiameter") or _mm(o, "ShaftDiameter"),
         "eckradius": _mm(o, "CornerRadius"),
@@ -136,9 +142,15 @@ def werkzeug_aus(bit, nummer):
         "schneidenbreite": _mm(o, "BladeThickness"),
         "steigung": _mm(o, "Pitch"),
     }
-    if art == wz.NUTENFRAESER:
+    form = str(getattr(o, "ShapeType", "") or "").lower()
+    if form == "keyway":
+        # Die Scheibe am Hals: so dick wie ihr unterer Schneidenteil, der Hals steht dabei.
+        werte["schneidenbreite"] = _mm(o, "LowerCuttingHeight") or werte["schneidenlaenge"]
+    elif art == wz.NUTENFRAESER:
         # Über der Scheibe hat CAM nur den Schaft – er ist auch der Hals.
         werte["hals_d"] = werte["schaft"]
+    if form == "lollipop":
+        werte["hals_laenge"] = _mm(o, "NeckHeight")
     if art == wz.GEWINDEFRAESER:
         werte.update(_gewindefraeser(o, werte))
     w = wz.Werkzeug(nummer=int(nummer), art=art)

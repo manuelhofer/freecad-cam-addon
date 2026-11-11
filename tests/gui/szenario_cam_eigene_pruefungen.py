@@ -17,7 +17,13 @@ import FreeCADGui as Gui
 # Ohne Addon genauso rot (freecadcmd -t TestCAMApp, ohne Addon nachgesehen): im Wochen-Build 27.1 dev
 # vom 21.10. keine; in FreeCAD 1.1.4 test46 und test47 von TestPathOpUtil („BRep_API: command not
 # done“ in offsetWire – OpenCascade 7.9).
+# Im Wochen-Build 2026.11.11 (27.1 dev vom 10.11.) testLollipopBallOnAShaft: im Fenster ist der
+# Hüllkasten des Körpers 0,002 mm kleiner als erwartet (2,99806 statt 3) – genauso ohne das Addon
+# (im Fenster mit leerem Profil nachgesehen, 2026-11-11; ohne Fenster grün).
 BEKANNT_JE_VERSION = {
+    (27, 1): {
+        "CAMTests.TestPathToolBit.TestPathToolBitDerivedShapes.testLollipopBallOnAShaft",
+    },
     (1, 1): {
         "CAMTests.TestPathOpUtil.TestPathOpUtil.test46",
         "CAMTests.TestPathOpUtil.TestPathOpUtil.test47",

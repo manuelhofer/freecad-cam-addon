@@ -27,6 +27,8 @@ gibt, werden aus der Sammlung entfernt.
 Läuft ohne Oberfläche.
 """
 
+import functools
+import importlib
 import json
 from dataclasses import dataclass, field
 
@@ -69,6 +71,21 @@ NAEHERUNGEN = {
     wz.AUSSPINDELWERKZEUG: wz.SCHAFTFRAESER,
 }
 FORMEN.update({art: FORMEN[ziel] for art, ziel in NAEHERUNGEN.items()})
+
+
+def _cam_hat_form(modul):
+    """Kennt CAM in dieser FreeCAD-Version die Form (Path.Tool.shape.models.<modul>)?"""
+    try:
+        importlib.import_module(f"Path.Tool.shape.models.{modul}")
+    except Exception:  # noqa: BLE001 – ohne FreeCAD oder ohne diese Form
+        return False
+    return True
+
+
+# Seit dem Wochen-Build 2026.11.11 hat CAM die Form „Lollipop“ – dort kommt der Lollipopfräser als
+# er selbst an, nicht mehr als Kugelfräser mit dickem Hals (An FreeCAD CAM angleichen).
+if _cam_hat_form("lollipop"):
+    FORMEN[wz.LOLLIPOPFRAESER] = ("lollipop", "Lollipop")
 # Parameter, die Winkel sind (sonst Längen; Flutes ist eine Anzahl).
 WINKEL = {"TipAngle", "TaperAngle", "CuttingEdgeAngle", "cuttingAngle"}
 
@@ -212,6 +229,7 @@ def parameter_fuer_cam(werkzeug):
     parameter.update(_PARAMETER[datei](w))
     unten = max(
         parameter.get("CuttingEdgeHeight", 0.0) + parameter.get("NeckHeight", 0.0),
+        parameter.get("FluteLength", 0.0),
         parameter.get("CuttingEdgeLength", 0.0),
         parameter.get("NeckLength", 0.0),
     )
@@ -247,6 +265,12 @@ def _ballend(w):
     else:
         hoehe = max(wz.mass(w, "schneidenlaenge"), r)
     return {**_rund(w), "CuttingEdgeHeight": hoehe}
+
+
+def _lollipop(w):
+    # Die Kugel am Hals; wie hoch sie schneidet, rechnet CAM aus Kugel und Hals selbst.
+    hals = min(wz.mass(w, "hals_d"), w.durchmesser - WINZIG)
+    return {**_rund(w), "NeckDiameter": hals, "NeckHeight": wz.mass(w, "hals_laenge")}
 
 
 def _bullnose(w):
@@ -347,11 +371,27 @@ def _tap(w):
 
 
 def _reamer(w):
-    # Die Reibahle hat in CAM keine Schneidenzahl.
-    return {
+    # Die Reibahle hat in CAM keine Schneidenzahl. Seit dem Wochen-Build 2026.11.11 steht ihre
+    # Schneidenlänge in „FluteLength“ (CuttingEdgeHeight rechnet CAM dort selbst: 0, nur der
+    # Anschnitt schneidet) – gesetzt nur, wo die Form von CAM das Feld hat.
+    parameter = {
         "ShankDiameter": wz.mass(w, "schaft"),
         "CuttingEdgeHeight": wz.mass(w, "schneidenlaenge"),
     }
+    if _reibahle_hat_nutlaenge():
+        parameter["FluteLength"] = wz.mass(w, "schneidenlaenge")
+    return parameter
+
+
+@functools.lru_cache(maxsize=1)
+def _reibahle_hat_nutlaenge():
+    """Hat die Form „Reamer“ dieser FreeCAD-Version das Feld „FluteLength“?"""
+    try:
+        from Path.Tool.shape.models.reamer import ToolBitShapeReamer
+
+        return "FluteLength" in ToolBitShapeReamer.schema()
+    except Exception:  # noqa: BLE001 – eine Version ohne diese Form: dann eben nicht
+        return False
 
 
 def _probe(w):
@@ -361,6 +401,7 @@ def _probe(w):
 _PARAMETER = {
     "endmill": _endmill,
     "ballend": _ballend,
+    "lollipop": _lollipop,
     "bullnose": _bullnose,
     "taperedballnose": _taperedballnose,
     "dovetail": _dovetail,

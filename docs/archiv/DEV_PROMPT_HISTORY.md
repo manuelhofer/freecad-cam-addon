@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-02 wochen-build-2026-11-11
+
+### EINGELESEN
+- Wochen-Build weekly-2026.11.11 (27.1 dev vom 10.11.) geholt, voller Lauf darin: 139/143 Prüfdateien,
+  181/185 Szenarien.
+- FreeCAD CAM hat die Formen „Lollipop“ und „Keyway“ bekommen („Default“ hat 15 statt 13 Werkzeuge), die
+  Reibahle das Feld „FluteLength“ (CuttingEdgeHeight rechnet CAM dort selbst: 0).
+- Der Adaptiv-Kern ist auf Clipper2 umgestellt (FreeCAD PR 33739, 2026-11-06): `test_testteil` „Last bis
+  2.14 ae, 103.9 mm am Stück“ – am Rand der Platte, ungebremst; `test_pruefstand` „platte/raeumen: trägt im
+  Schnellvorschub ab (85.0 mm³)“. Mit dem Wochen-Build vom 04.11. beides grün.
+- `testLollipopBallOnAShaft` aus FreeCADs eigenen Prüfungen scheitert im Fenster auch ohne das Addon
+  (Hüllkasten 2,99806 statt 3; mit leerem Profil nachgesehen).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: Die Last wird auch bei „adaptiv“ immer gemessen (vorher: „hält sie nach
+  seiner Bauart“); `FREI_ZULAESSIG` 0,02 → 0,005.
+- `camaddon/uebergabe_werkzeuge.py`: Lollipopfräser als „Lollipop“, wo CAM die Form hat; Reibahle mit
+  „FluteLength“, wo die Form das Feld hat.
+- `camaddon/werkzeuge_aus_cam.py`: „Lollipop“ → Lollipopfräser, „Keyway“ → Nutenfräser; Reibahle liest
+  „FluteLength“.
+- `tests/test_cam_formen.py`, `test_werkzeuge_aus_cam.py`, `test_pruefstand.py` (ein Punkt mehr Luft mit
+  dem neuen Kern), `tests/gui/szenario_aus_cam.py`, `szenario_cam_eigene_pruefungen.py` (bekannt in 27.1).
+
+### ERGEBNIS
+- Manuels Testteil mit dem neuen Kern: Last 2,14 → 1,53 ae (gebremst), 10,30 min; kein Abtrag im
+  Freivorschub mehr. Mit dem Wochen-Build vom 04.11. und 1.1.4 unverändert (dieselben Zeiten).
+- `test_cam_formen`, `test_werkzeuge_aus_cam` grün in 1.1.4, 26.3 RC2 und beiden Wochen-Builds;
+  `test_pruefstand`, `test_testteil`, `test_goldene_bahnen`, `test_raeumen` grün in 1.1.4 und beiden
+  Wochen-Builds.
 ## P-2026-11-11-01 schritte-bedienung
 
 ### EINGELESEN

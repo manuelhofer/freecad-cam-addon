@@ -222,6 +222,8 @@ for w in nach_cam + schaft_wie_d + zu_kurz:
     if w.nummer > 100:
         continue
     erwartet = ue.NAEHERUNGEN.get(w.art, w.art)
+    if ue.FORMEN[w.art][1] == "Lollipop":
+        erwartet = w.art  # CAM hat die Form seit dem Wochen-Build 2026.11.11: keine Näherung mehr
     erwartet = {wz.KEGELSENKER: wz.FASENFRAESER, wz.NC_ANBOHRER: wz.BOHRER}.get(erwartet, erwartet)
     pruefe(zurueck is not None and zurueck.art == erwartet, f"{wer}: zurück als {zurueck}")
     if zurueck is None or w.art in ue.NAEHERUNGEN:

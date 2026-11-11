@@ -30,15 +30,18 @@ def schritte(h):
         return
     d._menue_aus_cam_fuellen()
     eintraege = {a.text(): a for a in d.menue_aus_cam.actions()}
-    h.pruefe("Default (13 Werkzeuge)" in eintraege, f"Menü: {sorted(eintraege)}")
-    if "Default (13 Werkzeuge)" not in eintraege:
+    # „Default“ hat 13 Werkzeuge, seit dem Wochen-Build 2026.11.11 15 (Lollipop und Keyway dazu).
+    eintrag = next((n for n in eintraege if n.startswith("Default (")), None)
+    anzahl = int(eintrag.split("(")[1].split()[0]) if eintrag else 0
+    h.pruefe(anzahl in (13, 15), f"Menü: {sorted(eintraege)}")
+    if not eintrag:
         return
-    eintraege["Default (13 Werkzeuge)"].trigger()
+    eintraege[eintrag].trigger()
     yield 800
     meldung = h.modal()
     if isinstance(meldung, QtGui.QMessageBox):
         text = meldung.text()
-        for teil in ("Übernommen: 12 Werkzeuge.", "3.175mm Endmill", "5mm Endmill"):
+        for teil in (f"Übernommen: {anzahl - 1} Werkzeuge.", "3.175mm Endmill", "5mm Endmill"):
             h.pruefe(teil in text, f"„{teil}“ fehlt: {text!r}")
         h.pruefe("kennt die Werkzeugverwaltung nicht" not in text, f"Formen fehlen: {text!r}")
         h.bild("1_meldung", meldung)
@@ -47,8 +50,8 @@ def schritte(h):
         h.pruefe(False, f"keine Rückmeldung: {meldung}")
     yield 300
     h.pruefe(
-        len(d.liste.eintraege()) == 13,
-        f"{len(d.liste.eintraege())} Werkzeuge in der Liste statt 13",
+        len(d.liste.eintraege()) == anzahl,
+        f"{len(d.liste.eintraege())} Werkzeuge in der Liste statt {anzahl}",
     )
     h.pruefe(d.geaendert, "Übernommenes gilt nicht als Änderung")
     h.bild("2_liste", d)
@@ -73,7 +76,7 @@ def schritte(h):
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 500
     gespeichert = wz.Bibliothek.laden().werkzeuge
-    h.pruefe(len(gespeichert) == 13, f"{len(gespeichert)} gespeichert statt 13")
+    h.pruefe(len(gespeichert) == anzahl, f"{len(gespeichert)} gespeichert statt {anzahl}")
 
     # Wieder öffnen, alle Werkzeuge ansehen, Abbrechen: keine Rückfrage –
     # angesehen ist nicht geändert.

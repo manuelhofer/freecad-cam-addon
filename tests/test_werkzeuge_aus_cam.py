@@ -48,6 +48,10 @@ pruefe(not _zeilen, f"Debug-Zeilen aus CAM: {_zeilen[:3]}")
 
 pruefe(namen == ["Default"], f"Bibliotheken: {namen}")
 adresse = bibliotheken[0][0] if bibliotheken else ""
+# „Default“ hat 13 Werkzeuge, seit dem Wochen-Build 2026.11.11 15 (dazu Lollipop und Keyway).
+ANZAHL = bibliotheken[0][2] if bibliotheken else 0
+MIT_LOLLIPOP = ANZAHL >= 15
+pruefe(ANZAHL in (13, 15), f"„Default“ hat {ANZAHL} Werkzeuge")
 
 # Die eigene Bibliothek „CAM-Addon“ wird nicht angeboten.
 ue.uebergeben(wz.Bibliothek([wz.Werkzeug(nummer=40, durchmesser=8)]))
@@ -64,26 +68,34 @@ neu = {w.name: w for w in bericht.neu}
 pruefe(all(not w.bezeichnung for w in bericht.neu), "Name aus CAM steht in der Bezeichnung")
 pruefe(
     sorted(neu)
-    == [
-        "30 Deg. V-Bit",
-        "45 Deg. Chamfer",
-        "45 Deg. V-Bit",
-        "5mm Drill",
-        "5mm Endmill",
-        "5mm-thread-cutter",
-        "6 mm Bull Nose",
-        "60 Deg. V-Bit",
-        "6mm Ball End",
-        "90 Deg. V-Bit",
-        "Probe",
-        "Slitting Saw",
-    ],
+    == sorted(
+        [
+            "30 Deg. V-Bit",
+            "45 Deg. Chamfer",
+            "45 Deg. V-Bit",
+            "5mm Drill",
+            "5mm Endmill",
+            "5mm-thread-cutter",
+            "6 mm Bull Nose",
+            "60 Deg. V-Bit",
+            "6mm Ball End",
+            "90 Deg. V-Bit",
+            "Probe",
+            "Slitting Saw",
+        ]
+        + (["1/4in Lollipop", "3/8in Keyway"] if MIT_LOLLIPOP else [])
+    ),
     f"übernommen: {sorted(neu)}",
 )
 pruefe(bericht.schon_da == ["3.175mm Endmill"], f"schon da: {bericht.schon_da}")
-pruefe(bericht.neue_nummer == [("5mm Endmill", 2, 14)], f"neue Nummer: {bericht.neue_nummer}")
+pruefe(
+    bericht.neue_nummer == [("5mm Endmill", 2, ANZAHL + 1)], f"neue Nummer: {bericht.neue_nummer}"
+)
 pruefe(not bericht.andere_form, f"andere Formen: {bericht.andere_form}")
-pruefe(len(bibliothek.werkzeuge) == 14, f"{len(bibliothek.werkzeuge)} Werkzeuge statt 14")
+pruefe(
+    len(bibliothek.werkzeuge) == ANZAHL + 1,
+    f"{len(bibliothek.werkzeuge)} Werkzeuge statt {ANZAHL + 1}",
+)
 pruefe(bibliothek.werkzeuge[0].einsaetze(wz.ALLE), "T1 hat seine Schnittwerte verloren")
 
 torus = neu.get("6 mm Bull Nose")
@@ -130,6 +142,25 @@ pruefe_werte(
     "Slitting Saw", wz.NUTENFRAESER, durchmesser=76.2, schneidenbreite=3, hals_d=19.05, schneiden=20
 )
 pruefe_werte("Probe", wz.TASTER, durchmesser=6, schaft=4, gesamtlaenge=50)
+if MIT_LOLLIPOP:
+    # Die neuen Formen von CAM: die Kugel am Hals und die Scheibe am Hals, beide in Zoll.
+    pruefe_werte(
+        "1/4in Lollipop",
+        wz.LOLLIPOPFRAESER,
+        durchmesser=6.35,
+        hals_d=3.175,
+        hals_laenge=12.7,
+        schaft=6.35,
+        schneiden=2,
+    )
+    pruefe_werte(
+        "3/8in Keyway",
+        wz.NUTENFRAESER,
+        durchmesser=9.525,
+        schneidenbreite=3.175,
+        hals_d=4.7625,
+        schaft=6.35,
+    )
 # Der Gewindefräser hat in CAM einen Zahn: (5 − 3) · tan 30° + 0,1 hoch, der Hals
 # reicht bis 20 mm.
 zahn = 2 * 0.5773502691896257 + 0.1
@@ -152,7 +183,7 @@ pruefe(namen == ["Default"], f"mit kaputter Bibliothek: {namen}")
 
 # Noch einmal: alles schon da.
 bericht = aus_cam.uebernehmen(bibliothek, adresse)
-pruefe(not bericht.neu and len(bericht.schon_da) == 13, f"zweites Mal: {bericht}")
+pruefe(not bericht.neu and len(bericht.schon_da) == ANZAHL, f"zweites Mal: {bericht}")
 
 # Ein Werkzeug, das sich nicht lesen lässt, hält die anderen nicht auf.
 original = aus_cam.werkzeug_aus
@@ -169,8 +200,11 @@ leer = wz.Bibliothek()
 bericht = aus_cam.uebernehmen(leer, adresse)
 aus_cam.werkzeug_aus = original
 pruefe(bericht.unlesbar == ["5mm Drill"], f"unlesbar: {bericht.unlesbar}")
-# Alle 13 Werkzeuge in „Default“ haben eine Art, ohne den Bohrer 12.
-pruefe(len(bericht.neu) == 12 and len(leer.werkzeuge) == 12, f"trotzdem: {bericht.neu}")
+# Alle Werkzeuge in „Default“ haben eine Art – alle kommen, außer dem Bohrer.
+pruefe(
+    len(bericht.neu) == ANZAHL - 1 and len(leer.werkzeuge) == ANZAHL - 1,
+    f"trotzdem: {bericht.neu}",
+)
 
 # Fremde Werkzeuge: Gewindebohrer links (CAM dreht ihn rückwärts) und in Zoll,
 # ein Konikfräser (Kegelwinkel je Seite = halber TaperAngle) – und eine eigene

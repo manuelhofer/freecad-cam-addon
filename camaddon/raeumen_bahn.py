@@ -152,7 +152,12 @@ RUECKWEG = 3.0  # × Vorschub: so schnell unten durchs Freie (G1, wie nut_bahn.R
 ADAPTIV_GEMERKT = 48
 _ADAPTIV = OrderedDict()  # Prüfsumme der Eingabe → [(Start, Mitte der Helix, Stücke)]
 _BENUTZT = None  # die Schlüssel, die ein Lauf brauchte (adaptiv_benutzt_beginnen) – sonst None
-FREI_ZULAESSIG = 0.02  # Anteil der Stirn, der auf dem Weg durchs Freie Rohteil treffen darf
+# Anteil der Stirn, der auf dem Weg durchs Freie Rohteil treffen darf – nur das Rauschen des
+# Rasters. Bis 0.350.4 waren es 2 %: Mit FreeCADs altem Adaptiv-Kern traf kein Weg je etwas, mit dem
+# neuen (Clipper2, Wochen-Build 2026.11.11) nahmen die Wege an Manuels Platte damit 85 mm³ im
+# Freivorschub mit (test_pruefstand). Mit 0,5 % nichts mehr; in 1.1.4 und im alten Wochen-Build
+# bleiben die Bahnen, wie sie waren (mit 0 hob 1.1.4 an einer Tasche zweimal mehr ab).
+FREI_ZULAESSIG = 0.005
 # Die Last einer Bahn (last): der Querschnitt, den der Fräser je mm Weg abträgt, durch
 # ae · Lagentiefe – über LAST_FENSTER mm gemittelt, in Stücken von LAST_SEHNE; LAST_SPIEL: so
 # viel misst das Raster zu viel.
@@ -1939,15 +1944,13 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     def haelt_last(v):
         """(hält sie die Last?, die größte Last) der Variante v – einmal gemessen."""
         if v not in lasten:
-            if v == "adaptiv" and not ergebnisse[v][0].eng:
-                lasten[v] = (
-                    True,
-                    0.0,
-                )  # er hält sie nach seiner Bauart – nur wo er kaum Platz hat nicht
-            else:
-                stellen[v] = []
-                groesste, lang = last(ergebnisse[v][0], w, stand, stellen[v])
-                lasten[v] = (groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r, groesste)
+            # Auch „adaptiv“ wird gemessen, überall: Bis 0.350.4 galt „er hält sie nach seiner
+            # Bauart“ und nur enge Stellen wurden gemessen. FreeCADs neuer Adaptiv-Kern (Clipper2,
+            # Wochen-Build 2026.11.11) hält den Eingriff am Rand nicht mehr – an Manuels Testteil
+            # 2,14 ae über 104 mm am Stück, ohne dass etwas bremste (test_testteil).
+            stellen[v] = []
+            groesste, lang = last(ergebnisse[v][0], w, stand, stellen[v])
+            lasten[v] = (groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r, groesste)
         return lasten[v]
 
     if "adaptiv" in ergebnisse:
