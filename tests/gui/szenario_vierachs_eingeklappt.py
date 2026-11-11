@@ -15,7 +15,6 @@ import FreeCAD
 import FreeCADGui as Gui
 import Part
 
-
 # Derselbe Ablauf wie szenario_vierachs_flaechen, aber mit eingeklappten Feldern („Werte ändern“,
 # seit 0.361.0 die Vorgabe): Was dort geprüft wird, muss auch so stimmen.
 NEUES_FENSTER = True
