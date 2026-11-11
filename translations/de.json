@@ -3373,7 +3373,7 @@
     "beta.schritt.schlichten": "Schlichten",
     "beta.schritt.kanten": "Kanten",
     "beta.anleitung.teil": "Klick die Fläche des Teils an, die unten liegt (im Schraubstock, auf dem Tisch) – damit legt das Addon den Job mit dem Rohteil an. Danach fragt es, was bearbeitet wird.",
-    "beta.anleitung.aufspannung": "Erst: Worin ist das Teil gespannt und wie tief? Dann: Welche Fläche liegt unten – klick sie an oder „Liegt wie im Modell“. Rohteil und Nullpunkt prüfen, dann „Weiter“.",
+    "beta.anleitung.aufspannung": "Erst: Worin ist das Teil gespannt und wie tief? Dann: Welche Fläche liegt unten – klick sie an oder „Liegt wie im Modell“. Rohteil und Nullpunkt prüfen, dann „Weiter“. Oder gleich „Alles vorschlagen →“.",
     "beta.anleitung.flaechen": "Welche Flächen sollen bearbeitet werden? Ein Klick nimmt eine Fläche dazu oder heraus. „Weiter“ geht, sobald mindestens eine gewählt ist.",
     "beta.anleitung.schruppen": "Wie soll das Material raus? Die Strategien fürs Schruppen mit ihrer Zeit, angehakt ist die schnellste; darunter ihre Werte. „Anlegen“ legt jetzt nur das Schruppen an – später „Weiter bearbeiten“ am Job. „Weiter“ zu den nächsten Schritten.",
     "beta.anleitung.loecher": "Die Löcher: Zentrieren, Bohren, Bohrung fräsen, Senken, Reiben, Gewinde. „Anlegen“ legt an, was bis hier angehakt ist.",
@@ -3756,5 +3756,6 @@
     "beta.beispielwerkzeuge.tooltip": "Legt vier Fräser mit Beispiel-Schnittwerten in die Werkzeugverwaltung: Schaftfräser Ø 12, Ø 6 und Ø 20, Planfräser Ø 50. Der Vorschlag rechnet sofort damit. Die Werte sind angenommen – vor dem Fräsen an deine Werkzeuge, deinen Werkstoff und deine Maschine anpassen („Werkzeugverwaltung …“).",
     "beta.uebersicht.nicht_dabei": "Nicht dabei – dafür fehlt noch etwas:",
     "beta.fertig.knapp": "Achtung – das Werkzeug steht zu kurz heraus:",
-    "beta.fertig.knapp.rat": "Länger ausspannen oder ein längeres Werkzeug nehmen (Werkzeugverwaltung) – „Auf der Maschine prüfen …“ zeigt, wo Halter oder Schaft anstoßen."
+    "beta.fertig.knapp.rat": "Länger ausspannen oder ein längeres Werkzeug nehmen (Werkzeugverwaltung) – „Auf der Maschine prüfen …“ zeigt, wo Halter oder Schaft anstoßen.",
+    "beta.anleitung.ein_teil": "Am schnellsten: „Alles vorschlagen →“ – der Assistent nimmt das Teil, wie es modelliert ist, und zeigt, was er vorschlägt. Oder Schritt für Schritt: Klick die Fläche an, die unten liegt (im Schraubstock, auf dem Tisch), oder „Liegt wie im Modell“."
 }

@@ -3373,7 +3373,7 @@
     "beta.schritt.schlichten": "Finishing",
     "beta.schritt.kanten": "Edges",
     "beta.anleitung.teil": "Click the face of the part that lies at the bottom (in the vise, on the table) – the add-on then creates the job with the stock. After that it asks what to machine.",
-    "beta.anleitung.aufspannung": "First: what is the part clamped in, and how deep? Then: which face is at the bottom – click it or “Lies as modelled”. Check stock and origin, then “Next”.",
+    "beta.anleitung.aufspannung": "First: what is the part clamped in, and how deep? Then: which face is at the bottom – click it or “Lies as modelled”. Check stock and origin, then “Next”. Or go straight to “Suggest everything →”.",
     "beta.anleitung.flaechen": "Which faces are to be machined? A click adds or removes a face. “Next” works once at least one is chosen.",
     "beta.anleitung.schruppen": "How should the material come out? The roughing strategies with their time, the fastest ticked; below, their values. “Create” now creates only the roughing – later “Continue machining” at the job. “Next” to the following steps.",
     "beta.anleitung.loecher": "The holes: centring, drilling, bore milling, countersinking, reaming, threads. “Create” creates what is ticked up to here.",
@@ -3756,5 +3756,6 @@
     "beta.beispielwerkzeuge.tooltip": "Creates four cutters with example cutting data in the tool manager: end mills Ø 12, Ø 6 and Ø 20, face mill Ø 50. The suggestion uses them right away. The values are assumptions – adapt them to your tools, your material and your machine before milling (“Tool manager …”).",
     "beta.uebersicht.nicht_dabei": "Not included – something is still missing for these:",
     "beta.fertig.knapp": "Caution – the tool does not stick out far enough:",
-    "beta.fertig.knapp.rat": "Clamp it longer or take a longer tool (tool manager) – “Check on the machine …” shows where holder or shank touch."
+    "beta.fertig.knapp.rat": "Clamp it longer or take a longer tool (tool manager) – “Check on the machine …” shows where holder or shank touch.",
+    "beta.anleitung.ein_teil": "Fastest: “Suggest everything →” – the wizard takes the part as it is modelled and shows what it suggests. Or step by step: click the face that lies at the bottom (in the vise, on the table), or “Lies as modelled”."
 }

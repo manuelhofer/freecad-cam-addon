@@ -1,6 +1,6 @@
 # Neu installiert – keine Maschine, kein Werkzeug (Manuel, 2026-11-11: „ultra easy … ohne gross
 # nachzudenken in freecad sein perfektes CAM“): ein Block mit Tasche und zwei Bohrungen Ø 8,
-# „Bearbeitung“ ohne Auswahl, die Unterseite angeklickt, „Alles vorschlagen →“. Die Übersicht sagt,
+# „Bearbeitung“ ohne Auswahl und ohne Klick ins Teil, „Alles vorschlagen →“. Die Übersicht sagt,
 # dass kein Fräser da ist, und bietet „Beispiel-Werkzeuge anlegen“: Danach steht der Vorschlag mit
 # Zeiten, die Bohrungen bekommen von selbst den Ø 6 (nicht rot „kleiner als der Fräser“), und
 # „Anlegen“ geht.
@@ -40,17 +40,18 @@ def schritte(h):
     h.pruefe(isinstance(panel, beta.BetaPanel) and panel.job is None, "kein Fenster in Schritten")
     if panel is None:
         return
-    unten = next(
-        f"Face{i + 1}" for i, f in enumerate(teil.Shape.Faces) if abs(f.BoundBox.ZMax) < 1e-6
+    # Ein Teil im Dokument: kein Klick ins Teil nötig – „Alles vorschlagen“ nimmt es, wie es
+    # modelliert ist, und legt den Job an.
+    h.pruefe(panel.knopf_alles.isVisible(), "kein „Alles vorschlagen“ ohne Auswahl")
+    h.pruefe(
+        "Alles vorschlagen" in panel.anleitung.text(), f"Anleitung: {panel.anleitung.text()!r}"
     )
-    Gui.Selection.addSelection(doc.Name, teil.Name, unten)
+    h.bild("0_ohne_auswahl", panel.form)
+    panel.knopf_alles.click()
     yield 2500
-    panel = gui_bearbeitung.BearbeitungPanel.offen
-    h.pruefe(panel.job is not None and panel._beta_unten_klar, "der Klick auf die Unterseite")
+    h.pruefe(panel.job is not None and panel._beta_unten_klar, "kein Job nach „Alles vorschlagen“")
     if panel.job is None:
         return
-    h.pruefe(panel.knopf_alles.isVisible(), "kein „Alles vorschlagen“")
-    panel.knopf_alles.click()
     yield 2000
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     yield 3000

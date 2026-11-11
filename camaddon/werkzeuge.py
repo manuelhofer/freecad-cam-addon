@@ -1412,6 +1412,15 @@ def testkiste():
     return [standardwerkzeug(1), plan, klein, gross]
 
 
+def starterkiste():
+    """Die Beispiel-Werkzeuge für neue Nutzer („Beispiel-Werkzeuge anlegen“ im Assistenten): heute
+    dieselben vier wie testkiste() – aber eine eigene Liste. Die Testkiste ist die feste
+    Vergleichsbasis der Prüfungen und Bahnvergleiche (Manuel, 2026-11-11: „definierte werkzeuge …
+    damit wir keine äpfel mit birnen vergleichen ... darum wurden die damals so festgelgt“) und
+    ändert sich nicht, wenn hier einmal andere Werkzeuge oder Werte stehen."""
+    return testkiste()
+
+
 def zeile(werkzeug):
     """Eine Zeile für die Liste: „T3  Schaftfräser Ø 12 · z 3 · VHM“, mit eigenem
     Namen „T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM“; je Art, was sie

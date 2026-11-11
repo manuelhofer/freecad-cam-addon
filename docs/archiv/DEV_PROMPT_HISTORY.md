@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-05 ein-teil-ohne-klick
+
+### EINGELESEN
+- Manuel, 2026-11-11, zu den Beispiel-Werkzeugen: „ich hätte gerne definierte werkzeuge die du oder eben
+  ein anderes modell immer zum testen … und werkzeugwege zum vergleichen nehmen kann damit wir keine äpfel
+  mit birnen vergleichen ... darum wurden die damals so festgelgt .. wenn du jetzt sagst ‚aber es gibt ja
+  viel bessere test methoden und wir sollten das ganz anders amchen‘ dann mach es so wie es besser ist und
+  mach vor allem weiter ! bitte nicht anhalten“.
+
+### ANTWORTEN
+- Frage 1 (Beispiel-Werkzeuge): Die Testkiste bleibt die feste Vergleichsbasis der Prüfungen; die
+  Beispiel-Werkzeuge der Nutzer sind eine eigene Liste (`werkzeuge.starterkiste`, heute gleich).
+
+### DATEIEN
+- `camaddon/werkzeuge.py`: `starterkiste()`.
+- `camaddon/gui_bearbeitung_beta.py`: `_einziges_teil`, `_mit_einzigem_teil_beginnen` – mit nur einem Teil
+  im Dokument gehen „Alles vorschlagen →“ und „Liegt wie im Modell“ ohne Klick ins Teil; die Anleitung in
+  Schritt 1 nennt den kurzen Weg.
+- `translations/de.json`, `en.json`; `tests/gui/szenario_schritte_neu.py`; `docs/OFFENE_FRAGEN.md`.
+
+### ERGEBNIS
+- Neu installiert, ein Teil: „Bearbeitung“ → „Alles vorschlagen →“ → „Beispiel-Werkzeuge anlegen“ →
+  „Anlegen“ → „Programm schreiben …“ → „Speichern“. `szenario_schritte_neu`, `szenario_beta_schritte`,
+  `szenario_beta_tasche` grün.
 ## P-2026-11-11-04 angelegt-warnt-vor-zu-kurzem-werkzeug
 
 ### EINGELESEN

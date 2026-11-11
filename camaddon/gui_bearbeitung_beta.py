@@ -757,7 +757,11 @@ class BetaPanel(BearbeitungPanel):
                 (
                     tr("beta.anleitung.aufspannung")
                     if self.job is not None
-                    else tr("beta.anleitung.teil")
+                    else (
+                        tr("beta.anleitung.ein_teil")
+                        if self._einziges_teil() is not None
+                        else tr("beta.anleitung.teil")
+                    )
                 ),
                 tr("beta.anleitung.flaechen"),
                 tr("beta.anleitung.schruppen"),
@@ -805,7 +809,7 @@ class BetaPanel(BearbeitungPanel):
         self.beispiel_box.setVisible(self._seite >= ERSTER_ABSCHNITT and self._ohne_fraeser())
         self.knopf_alles.setVisible(
             self._seite < ERSTER_ABSCHNITT
-            and self.job is not None
+            and (self.job is not None or self._einziges_teil() is not None)
             and self.zu_aendern is None
             and self._beta_ab is None
             and not self.nur_vierachs()
@@ -892,7 +896,7 @@ class BetaPanel(BearbeitungPanel):
         mit den Strategien und Werkzeugen, die der Assistent auch in den Schritten vorschlägt –
         und gleich zur Übersicht. Ohne Antwort zur Lage gilt „Liegt wie im Modell“. Angelegt wird
         erst mit „Anlegen“; „Zurück“ führt in die Schritte."""
-        if self.job is None or self.nur_vierachs():
+        if not self._mit_einzigem_teil_beginnen() or self.nur_vierachs():
             return
         if not (self._beta_unten_klar or self._aufspannung_fest()):
             self.wie_modelliert()
@@ -935,14 +939,14 @@ class BetaPanel(BearbeitungPanel):
         return any(b.moeglich and b.aktiv() and satz in b.hinweis.text() for b in self.bloecke)
 
     def beispielwerkzeuge_anlegen(self):
-        """Legt die vier Beispiel-Fräser (werkzeuge.testkiste: Ø 12, Planfräser Ø 50, Ø 6, Ø 20 mit
+        """Legt die vier Beispiel-Fräser (werkzeuge.starterkiste: Ø 12, Planfräser Ø 50, Ø 6, Ø 20 mit
         angenommenen Schnittwerten) in die Werkzeugverwaltung – auf freie Nummern, was schon da
         ist, bleibt – und rechnet den Vorschlag damit neu."""
         from . import werkzeuge as wz
 
         bibliothek = wz.Bibliothek.laden()
         belegt = {w.nummer for w in bibliothek.werkzeuge}
-        for werkzeug in wz.testkiste():
+        for werkzeug in wz.starterkiste():
             if werkzeug.nummer in belegt:
                 werkzeug.nummer = bibliothek.naechste_nummer()
             bibliothek.werkzeuge.append(werkzeug)
@@ -1125,7 +1129,35 @@ class BetaPanel(BearbeitungPanel):
         if hasattr(self, "_beta_seiten"):
             self._beta_knoepfe()
 
+    def _einziges_teil(self):
+        """Das Teil des Dokuments, wenn es nur eines gibt: ein Körper mit Volumen, der zu nichts
+        anderem gehört (kein Formelement eines Körpers, kein Rohteil oder Klon eines Jobs). Dann
+        braucht der Assistent keinen Klick ins Teil, um zu wissen, worum es geht."""
+        kandidaten = []
+        for objekt in self.doc.Objects:
+            if hasattr(objekt, "Operations") or not objekt.isDerivedFrom("Part::Feature"):
+                continue
+            if objekt.InList:
+                continue
+            form = getattr(objekt, "Shape", None)
+            if form is None or form.isNull() or not form.Solids:
+                continue
+            kandidaten.append(objekt)
+        return kandidaten[0] if len(kandidaten) == 1 else None
+
+    def _mit_einzigem_teil_beginnen(self):
+        """Noch kein Job, aber nur ein Teil im Dokument: mit ihm beginnen (der Job entsteht) –
+        True, wenn es danach einen Job gibt."""
+        if self.job is None:
+            teil = self._einziges_teil()
+            if teil is not None:
+                self._beta_erster_klick_unten = False
+                self._beginnen((teil, None), teil)
+        return self.job is not None
+
     def wie_modelliert(self):
+        if not self._mit_einzigem_teil_beginnen():
+            return
         if self._unten is not None:
             super().unten_waehlen(None)
         self._beta_unten_klar = True
