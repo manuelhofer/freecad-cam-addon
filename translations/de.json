@@ -2073,6 +2073,8 @@
     "ba.zurueck": "← Zurück",
     "ba.zurueck.tooltip": "Zum Schritt davor – nichts geht verloren.",
     "ba.aendern.text": "Du änderst „{name}“: Flächen, Fräser, Einsatz und die Werte darunter gelten nach „Übernehmen“. Das Rohteil bleibt, wie es im Job steht.",
+    "ba.aendern.kurz": "Gilt nach „Übernehmen“ – die Wege im Teil zeigen, was sich ändert.",
+    "ba.aendern.titel": "„{name}“ ändern",
     "ba.kein_dokument": "Öffne zuerst das Dokument mit dem Teil.",
     "ba.maschine": "Maschine",
     "ba.maschine.tooltip": "Auf welcher Maschine du das Teil fräst – aus deiner Liste („Maschinen …“). Der Job merkt sie sich: „Auf der Maschine prüfen“ nimmt sie ohne Frage.",

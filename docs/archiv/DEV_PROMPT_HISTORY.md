@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-11 aendern-zeigt-wege
+
+### EINGELESEN
+- Manuel, 2026-11-11: „wenn noch WOT vorhanden ist dann sollte man da weiter machen“. Das Fenster zum Ändern
+  einer Operation: 179 Wörter, Titel „Schritt 3 von 3 – Einstellungen“, und rot „Nicht fertig: Face1, Face2,
+  Face4, Face6 – keine angehakte Strategie fährt sie am Ende genau“ – beim Ändern von „Räumen“, obwohl
+  „Wände schlichten“ daneben im Job lag (falscher Alarm).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: Beim Ändern heißt das Fenster „„Räumen T1“ ändern“, der lange Satz und die
+  Erklärung der Strategie sind Tooltips; die neuen Wege stehen von selbst im Teil
+  (`_gezeigten_block_erneuern`); `_unfertige` meldet beim Ändern nichts.
+- Hilfe de/en, `translations/`.
+
+### ERGEBNIS
+- 179 → 102 Wörter. `test_sprache` grün; am Bild gesehen (Szenario in `wip`). Manuel prüft: eine Operation
+  im Baum wählen, „Bearbeitung“ – der Titel nennt sie, ihre Wege stehen blau im Teil; „Zeilenabstand“
+  ändern, die Wege ändern sich.
 ## P-2026-11-11-10 zeigen-lage-tasche-achsen
 
 ### EINGELESEN

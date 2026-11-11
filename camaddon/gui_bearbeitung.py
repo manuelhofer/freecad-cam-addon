@@ -6665,6 +6665,12 @@ class BearbeitungPanel:
                 name=namen[self._seite],
             )
         )
+        if self.zu_aendern is not None:
+            # Beim Ändern gibt es keine drei Schritte – der Titel nennt die Operation.
+            titel = tr("ba.aendern.titel", name=self.zu_aendern.Label)
+            if self._seite < len(self.seiten) - 1:
+                titel += " – " + namen[self._seite]
+            self.schritt_text.setText(titel)
         if self.zu_aendern is None:
             if self._job_dazu:
                 erste = tr("ba.anleitung.dazu")  # die Zeile darunter sagt, welcher Job
@@ -8063,7 +8069,13 @@ class BearbeitungPanel:
         block.tc_vorher = op.ToolController
         self.teil = vr.original(vr.modell(self.job))
         self.teil_text.setText(self.teil.Label)
-        self.anleitung.setText(tr("ba.aendern.text", name=op.Label))
+        # Wenig zu lesen (Manuel, 2026-11-11): Der Titel sagt, was geändert wird; der lange Satz
+        # und die Erklärung der Strategie sind Tooltips – und die Wege stehen im Teil
+        # (_gezeigten_block_erneuern), sie zeigen, was eine Änderung bewirkt.
+        self.anleitung.setText(tr("ba.aendern.kurz"))
+        self.anleitung.setToolTip(tr("ba.aendern.text", name=op.Label))
+        block.titel.setToolTip(block.erklaerung.text())
+        block.erklaerung.hide()
         self._aufspannung_zeigen()
         self._fuellt = True
         try:
@@ -9239,6 +9251,18 @@ class BearbeitungPanel:
         """Nach dem Rechnen: Zeigte das 3D die Wege eines Blocks, die neuen – hat er keine mehr,
         keine."""
         gezeigt = getattr(self._bahnvorschau, "kennung", None)
+        zu_aendern = getattr(self, "block_zu_aendern", None)
+        if (
+            gezeigt is None
+            and zu_aendern is not None
+            and zu_aendern.vorschau is not None
+            and not getattr(self, "_aendern_gezeigt", False)
+        ):
+            # Beim Ändern stehen die neuen Wege von selbst im Teil (einmal – wer sie mit
+            # „Vorschau“ wegnimmt, behält das): So sieht man, was ein geänderter Wert bewirkt.
+            self._aendern_gezeigt = True
+            self._block_zeigen(zu_aendern)
+            return
         if gezeigt is None or gezeigt[0] != "block":
             return
         block = next((b for b in self.bloecke if b.s.kennung == gezeigt[1]), None)
@@ -9900,6 +9924,11 @@ class BearbeitungPanel:
         """[(Fläche, [Blöcke, die sie fertig machten])] für jede gewählte Fläche, die am Ende
         keine genaue Bahn hätte – ohne die, mit denen keine Strategie etwas anfangen kann (die
         stehen rot in der Liste)."""
+        if self.zu_aendern is not None:
+            # Beim Ändern einer Operation sind die anderen des Jobs nicht im Fenster: „keine
+            # angehakte Strategie fährt sie am Ende genau“ wäre ein falscher Alarm (gesehen
+            # 2026-11-11 beim Ändern von „Räumen“, daneben lag „Wände schlichten“ im Job).
+            return []
         bloecke = self.bloecke
         stl = self._ist_stl()
         if stl:

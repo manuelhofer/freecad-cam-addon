@@ -2073,6 +2073,8 @@
     "ba.zurueck": "← Back",
     "ba.zurueck.tooltip": "To the step before – nothing is lost.",
     "ba.aendern.text": "You are changing “{name}”: faces, cutter, application and the values below apply after “Apply”. The stock stays as it is in the job.",
+    "ba.aendern.kurz": "Applies after “Apply” – the paths on the part show what changes.",
+    "ba.aendern.titel": "Change “{name}”",
     "ba.kein_dokument": "Open the document with the part first.",
     "ba.maschine": "Machine",
     "ba.maschine.tooltip": "Which machine you mill the part on – from your list (“Machines …”). The job remembers it: “Check on machine” uses it without asking.",
