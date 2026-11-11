@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Frage „Wie soll das Material raus?“: Tauchfräsen – senkrecht, Stelle an Stelle. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="48" viewBox="0 0 64 48">
+  <rect x="2" y="22" width="60" height="24" fill="#edd400" stroke="#8f5902" stroke-width="1.5"/>
+  <path d="M8 22 V40 H38 V22" fill="#ffffff" stroke="#8f5902" stroke-width="1"/>
+  <path d="M18 40 V36 M28 40 V36" stroke="#8f5902" stroke-width="1"/>
+  <rect x="38" y="4" width="10" height="30" fill="#729fcf" stroke="#204a87" stroke-width="1.2"/>
+  <path d="M38 12 L48 16 M38 20 L48 24" stroke="#204a87" stroke-width="1"/>
+  <path d="M13 6 V16 M10 12 L13 16 L16 12 M23 6 V16 M20 12 L23 16 L26 12 M33 6 V16 M30 12 L33 16 L36 12" fill="none" stroke="#cc0000" stroke-width="1.6"/>
+  <path d="M54 6 V16 M51 12 L54 16 L57 12" fill="none" stroke="#cc0000" stroke-width="1.6" stroke-dasharray="2 1.5"/>
+</svg>

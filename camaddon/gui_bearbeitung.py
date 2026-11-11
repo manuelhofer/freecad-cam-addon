@@ -310,9 +310,16 @@ class _Frage:
     button] weg 2 ist so und so [vorschau button]"“): ihr Satz, je Weg ein Auswahlknopf mit
     kurzem Titel, darunter grau sein Satz, rechts seine Zeit und „Vorschau“ (die Werkzeugwege im
     3D). `wege`: [(Kennung, Titel, Satz)]; `gewechselt(kennung)` beim Wählen, `vorschau(kennung)`
-    beim Klick auf „Vorschau“ (None: kein Knopf). Versteckt, solange sie nicht passt."""
+    beim Klick auf „Vorschau“ (None: kein Knopf). Versteckt, solange sie nicht passt.
 
-    def __init__(self, titel, wege, gewaehlt, gewechselt, vorschau):
+    `bilder`: {Kennung: Bild aus resources/icons} – mit Bild steht unter dem Titel nur das Kurze
+    (satz_setzen mit `kurz`), der ganze Satz ist der Tooltip: Was „schraubend eintauchen“ ist,
+    sieht man schneller, als man es liest (Manuel, 2026-11-11: „gibts vll einfach ne andere
+    möglichkeit das gesagte … zu zeigen“; Arbeitsregeln, Abschnitt 8)."""
+
+    BILD = (48, 36)  # Breite, Höhe der Bilder
+
+    def __init__(self, titel, wege, gewaehlt, gewechselt, vorschau, bilder=None):
         self.widget = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(self.widget)
         aufbau.setContentsMargins(0, 4, 0, 4)
@@ -321,7 +328,21 @@ class _Frage:
         aufbau.addWidget(kopf)
         self.gruppe = QtGui.QButtonGroup(self.widget)
         self.knoepfe, self.zeiten, self.vorschau_knoepfe, self.saetze = {}, {}, {}, {}
+        self.bilder, self.voll = {}, {}  # das Bild je Weg; sein ganzer Satz (satz())
         for kennung, kurz, satz in wege:
+            ziel = aufbau
+            bild = self._bild((bilder or {}).get(kennung))
+            if bild is not None:
+                # Links das Bild, rechts daneben der Weg mit seiner Zeile.
+                reihe = QtGui.QHBoxLayout()
+                reihe.setContentsMargins(0, 2, 0, 2)
+                reihe.addWidget(bild, 0, QtCore.Qt.AlignTop)
+                ziel = QtGui.QVBoxLayout()
+                ziel.setContentsMargins(0, 0, 0, 0)
+                ziel.setSpacing(0)
+                reihe.addLayout(ziel, 1)
+                aufbau.addLayout(reihe)
+                self.bilder[kennung] = bild
             zeile = QtGui.QHBoxLayout()
             zeile.setContentsMargins(0, 0, 0, 0)
             auswahl = QtGui.QRadioButton(kurz)
@@ -341,14 +362,30 @@ class _Frage:
                 zeigen.setCheckable(True)
                 zeile.addWidget(zeigen)
                 self.vorschau_knoepfe[kennung] = zeigen
-            aufbau.addLayout(zeile)
+            ziel.addLayout(zeile)
             erklaerung = _grau(satz)
             erklaerung.setWordWrap(True)
             erklaerung.setContentsMargins(22, 0, 0, 2)
-            aufbau.addWidget(erklaerung)
+            ziel.addWidget(erklaerung)
             self.knoepfe[kennung] = auswahl
             self.zeiten[kennung] = zeit
             self.saetze[kennung] = erklaerung
+            self.voll[kennung] = satz
+
+    @classmethod
+    def _bild(cls, name):
+        """Das Bild eines Wegs als Etikett – None ohne Namen oder ohne Datei."""
+        if not name:
+            return None
+        from . import symbol
+
+        pfad = symbol(name)
+        if not os.path.exists(pfad):
+            return None
+        etikett = QtGui.QLabel()
+        etikett.setPixmap(QtGui.QIcon(pfad).pixmap(*cls.BILD))
+        etikett.setFixedSize(*cls.BILD)
+        return etikett
 
     def weg_zeigen(self, kennung, sichtbar):
         """Zeigt den Weg `kennung` – oder blendet ihn aus, wo es ihn nicht gibt (Tauchfräsen ohne
@@ -356,11 +393,25 @@ class _Frage:
         widgets = [self.knoepfe[kennung], self.zeiten[kennung], self.saetze[kennung]]
         if kennung in self.vorschau_knoepfe:
             widgets.append(self.vorschau_knoepfe[kennung])
+        if kennung in self.bilder:
+            widgets.append(self.bilder[kennung])
         for widget in widgets:
             widget.setVisible(bool(sichtbar))
 
-    def satz_setzen(self, kennung, satz):
-        self.saetze[kennung].setText(satz)
+    def satz_setzen(self, kennung, satz, kurz=None):
+        """Der Satz des Wegs. Hat der Weg ein Bild und gibt es `kurz`, steht nur das Kurze da –
+        der ganze Satz ist der Tooltip von Bild, Titel und Zeile (satz() gibt ihn)."""
+        self.voll[kennung] = satz
+        if kurz and kennung in self.bilder:
+            self.saetze[kennung].setText(kurz)
+            for widget in (self.bilder[kennung], self.knoepfe[kennung], self.saetze[kennung]):
+                widget.setToolTip(satz)
+        else:
+            self.saetze[kennung].setText(satz)
+
+    def satz(self, kennung):
+        """Der ganze Satz des Wegs – auch wenn nur das Kurze zu sehen ist."""
+        return self.voll[kennung]
 
     def waehlen(self, kennung):
         """Zeigt den Weg `kennung` gewählt, ohne `gewechselt` zu rufen – er ist es schon (ein
@@ -6570,7 +6621,13 @@ class BearbeitungPanel:
             "flanke",
             lambda weg: self._weg_waehlen("waende", weg),
             lambda weg: self._weg_zeigen("waende", weg),
+            bilder={"flanke": "weg_flanke.svg", "spirale": "weg_spirale.svg"},
         )
+        for weg, kurz in (
+            ("flanke", tr("ba.frage.waende.flanke.kurz")),
+            ("spirale", tr("ba.frage.waende.spirale.kurz")),
+        ):
+            self.frage_waende.satz_setzen(weg, self.frage_waende.satz(weg), kurz)
         self.frage_waende.widget.hide()
         # Wo der Fräser ins Volle eintaucht: vorbohren oder schraubend? (Manuel, 2026-10-25: „hey
         # wie willst du vorgehen sollen wir erst vorborhren … oder sollen wir alles rausschruppen
@@ -6595,7 +6652,18 @@ class BearbeitungPanel:
             "vorbohren",
             self._eintauchen_waehlen,
             lambda weg: self._weg_zeigen("eintauchen", weg),
+            bilder={
+                "vorbohren": "weg_vorbohren.svg",
+                "helix": "weg_helix.svg",
+                "tauchen": "weg_tauchen.svg",
+            },
         )
+        for weg, kurz in (
+            ("vorbohren", tr("ba.frage.eintauchen.vorbohren.kurz")),
+            ("helix", tr("ba.frage.eintauchen.helix.kurz")),
+            ("tauchen", tr("ba.frage.eintauchen.tauchen.kurz")),
+        ):
+            self.frage_eintauchen.satz_setzen(weg, self.frage_eintauchen.satz(weg), kurz)
         self.frage_eintauchen.widget.hide()
         # Erst alles schruppen, dann alles schlichten? (Manuel, 2026-10-25: „oder sollen wir alles
         # rausschruppen und dann schlichten“; abends: Bohren, Senken und Gewinde dazwischen.)
@@ -8593,9 +8661,14 @@ class BearbeitungPanel:
             if name not in gewaehlt:
                 farben[int(name[4:]) - 1] = ROT
         for grund, namen in gruende.items():
-            text = QtGui.QLabel(
-                tr("ba.richtung.unerreichbar", namen=_namen_kurz(namen), grund=grund)
+            # Die Flächen stehen rot im Teil – das Kästchen in derselben Farbe und wie viele es
+            # sind, statt ihrer FreeCAD-Namen („Face7“ sagt niemandem, welche Fläche das ist);
+            # die Namen stehen im Tooltip.
+            anzahl = (
+                tr("ba.zahl.flaeche") if len(namen) == 1 else tr("ba.zahl.flaechen", n=len(namen))
             )
+            text = QtGui.QLabel(tr("ba.richtung.unerreichbar.kurz", anzahl=anzahl, grund=grund))
+            text.setToolTip(tr("ba.richtung.unerreichbar", namen=_namen_kurz(namen), grund=grund))
             text.setWordWrap(True)
             text.setStyleSheet(f"color: {ROT};")
             self._richtungen_aufbau.addWidget(text)
@@ -9812,9 +9885,9 @@ class BearbeitungPanel:
                 self._wege[("eintauchen", weg)] = (*(gerechnet or (False, [])), woraus)
             frage.zeit_setzen(weg, gesamt(weg))
         eintrag = gilt("vorbohren")
-        frage.satz_setzen("vorbohren", self._vorbohren_satz(eintrag[1] if eintrag else []))
+        frage.satz_setzen("vorbohren", *self._vorbohren_satz(eintrag[1] if eintrag else []))
         if kann_tauchen:
-            frage.satz_setzen("tauchen", self._tauchen_satz(tauch))
+            frage.satz_setzen("tauchen", *self._tauchen_satz(tauch))
         self._gezeigten_weg_erneuern("eintauchen", woraus)
         self._gezeigten_weg_erneuern("eintauchen", woraus_tauchen)
 
@@ -9826,11 +9899,12 @@ class BearbeitungPanel:
         return minuten + gebohrt.zeit, [_Bohrlinien(gebohrt, block), bahn]
 
     def _tauchen_satz(self, tauch):
-        """Der Satz zum Weg „Tauchfräsen“, mit dem Werkzeug: „… mit T4 WPB 16 …“."""
+        """(Satz, das Kurze) zum Weg „Tauchfräsen“, mit dem Werkzeug: „… mit T4 WPB 16 …“."""
         werkzeug = tauch.fraeser()
-        return tr(
-            "ba.frage.eintauchen.tauchen.mit",
-            werkzeug=f"{self._nummer(werkzeug)} {getattr(werkzeug, 'name', '')}".strip(),
+        name = f"{self._nummer(werkzeug)} {getattr(werkzeug, 'name', '')}".strip()
+        return (
+            tr("ba.frage.eintauchen.tauchen.mit", werkzeug=name),
+            tr("ba.frage.eintauchen.tauchen.kurz.mit", werkzeug=name),
         )
 
     def _nachrechnen(self, block, form, dazu=None, zusatz=None):
@@ -9912,12 +9986,14 @@ class BearbeitungPanel:
         return self._wechsel_minuten()
 
     def _vorbohren_satz(self, bahnen):
-        """Der Satz zum Weg „vorbohren“: wie viele Löcher, welcher Ø, wie tief – ohne gerechnete
-        Löcher der allgemeine."""
+        """(Satz, das Kurze) zum Weg „vorbohren“: wie viele Löcher, welcher Ø, wie tief – ohne
+        gerechnete Löcher der allgemeine."""
         gebohrt = [b.gebohrt for b in bahnen if isinstance(b, _Bohrlinien)]
         loecher = [lo for g in gebohrt for lo in g.je_loch()]
         if not loecher:
-            return tr("ba.frage.eintauchen.vorbohren.satz")
+            return tr("ba.frage.eintauchen.vorbohren.satz"), tr(
+                "ba.frage.eintauchen.vorbohren.kurz"
+            )
         durchmesser = " / ".join(
             f"Ø {groesse_zeigen(d, einheiten.LAENGE, 1) or '0'}"
             for d in sorted({round(float(lo[3]), 2) for lo in loecher}, reverse=True)
@@ -9929,13 +10005,17 @@ class BearbeitungPanel:
         }
         if len(loecher) == 1:
             satz = tr("ba.frage.eintauchen.vorbohren.ein_loch", **werte)
+            kurz = tr("ba.frage.eintauchen.vorbohren.kurz.ein_loch", **werte)
         else:
             satz = tr("ba.frage.eintauchen.vorbohren.loecher", **werte)
+            kurz = tr("ba.frage.eintauchen.vorbohren.kurz.loecher", **werte)
         if any(not g.loecher and g.geholfen <= 0 for g in gebohrt):  # das Räumen, adaptiv
             satz += " " + tr("ba.frage.eintauchen.vorbohren.adaptiv")
         if any(g.zu_kurz for g in gebohrt):
+            # Der Bohrer reicht nicht bis unten: Das muss man sehen, nicht erst im Tooltip.
+            kurz += " · " + tr("ba.raeumen.vorbohren.zu_kurz")
             satz += " " + tr("ba.raeumen.vorbohren.zu_kurz")
-        return satz
+        return satz, kurz
 
     # --- Das Teil muss herauskommen (Grundsatz 0) -------------------------------------------
 

@@ -12,6 +12,68 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-22 wege-als-bild
+
+### EINGELESEN
+- Manuel, 2026-11-11: „kürzerer text ist ja nicht besser gibts vll einfach ne andere möglichkeit das gesagte
+  umzusetzten oder zu zeigen“; Arbeitsregeln, Abschnitt 8 (Zeigen statt sagen).
+- Die Wortzahlen je Bild aus dem vollen Lauf (`woerter.txt`): Schritt „Schruppen“ mit Frage und Katalog 273,
+  „Auf der Maschine prüfen“ am Ende 371.
+
+### DATEIEN
+- `resources/icons/weg_vorbohren.svg`, `weg_helix.svg`, `weg_tauchen.svg`, `weg_flanke.svg`,
+  `weg_spirale.svg` (neu): je Weg der Fragen ein kleines Bild.
+- `camaddon/gui_bearbeitung.py`: `_Frage` mit `bilder`, `satz_setzen(kennung, satz, kurz)`, `satz()` –
+  neben dem Bild steht nur das Kurze, der ganze Satz ist der Tooltip; `_vorbohren_satz`/`_tauchen_satz`
+  geben (Satz, das Kurze).
+- `camaddon/gui_bearbeitung_beta.py`: `_katalog_kurz`, `_vorschlag_zeile` als Tabellenzeile,
+  `_katalog_name_zeigen` – aus dem Katalog „Ø 32 Hoffmann“ statt des Artikelnamens (der unter der Maus).
+- `camaddon/gui_abfahren.py`: `RestSatz`, `legende_html`, `Abspieler.rest_setzen`/`legende` – die Farben
+  am fertigen Teil als Legende mit Kästchen; warum stellenweise nicht verglichen wird, kurz im Satz und ganz
+  im Tooltip. `camaddon/gui_reichweite.py` nutzt `rest_setzen`.
+- `camaddon/gui_bearbeitung.py` (Zeilen „Nicht in dieser Aufspannung“): ein rotes Kästchen, wie viele Flächen
+  und der Grund – die Flächen stehen rot im Teil, ihre FreeCAD-Namen im Tooltip. Seit „Flächen“ vorbelegt
+  ist, sieht diese Zeilen jeder gleich beim ersten Mal.
+- `tests/test_bauart_bilder.py`, `tests/gui/szenario_frage_eintauchen.py`, `szenario_bohren.py`,
+  `szenario_beta_schritte.py` (auch: „Flächen“ vorbelegt, einmal), `szenario_bearbeitung_aufspannung.py`,
+  `translations/`, `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Grün, je eines zur Zeit: `test_sprache`, `test_bauart_bilder`, `szenario_beta_schritte`,
+  `szenario_frage_eintauchen`, `szenario_bohren`, `szenario_bearbeitung_aufspannung`,
+  `szenario_flaechen_pruefen`, `szenario_schritte_cring_alles`, `szenario_schritte_testteil`.
+- Bilder angesehen: die Frage mit den drei Bildern, die Katalog-Tabelle, „Flächen“ vorbelegt, die Legende
+  beim Prüfen, die rote Zeile mit Kästchen. Schritt „Schruppen“ mit Frage und Katalog: 273 → 153 Wörter.
+- Nicht gekürzt: die Hinweise unten in „Auf der Maschine prüfen“ – im zweiten Satz steht dort, was zu tun
+  ist; das gehört nicht in einen Tooltip.
+## P-2026-11-11-21 drei-antworten
+
+### EINGELESEN
+- Offene Fragen 1 bis 3 (Schritt 1, Schritt „Flächen“, Werkzeugleiste) und Manuels Antworten, 2026-11-11.
+
+### ANTWORTEN
+- Frage 1 („Weiter“ in Schritt 1 bestätigt die gezeigte Lage): „ja“.
+- Frage 2 (Schritt „Flächen“ vorbelegt mit allem, was von oben geht): „ja“.
+- Frage 3 (Werkzeugleiste: erst der tägliche Weg, dann das Einrichten, mit Trennstrichen): „ja“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_weiter_geht`/`weiter` – „Weiter“ in Schritt 1 nimmt die gezeigte Lage
+  (ohne Job mit dem einzigen Teil des Dokuments); der Schritt „Flächen“ wird einmal mit allem gefüllt, was
+  von oben geht (`_alles_waehlen`, auch für „Alles vorschlagen“).
+- `camaddon/gui_start.py`: `WERKZEUGLEISTE` in der Reihenfolge des Arbeitswegs mit Trennstrichen.
+- `docs/OFFENE_FRAGEN.md` (leer), Hilfe de/en, `translations/` (der orange Satz „Erst sagen, wie das Teil
+  liegt“ entfällt), `tests/gui/szenario_beta_schritte.py`, `szenario_schritte_testteil.py`,
+  `szenario_erster_start.py`, `szenario_schritte_cring_alles.py` (der Weg endet in der Übersicht).
+- „Neue Aufspannung“ (`umspannen=True`, `_unten_fehlt`): Dort bestätigte „Weiter“ dieselbe Lage noch
+  einmal – Schritt 1 verlangt weiter die Fläche, die jetzt unten liegt (ein Satz als Anleitung, „Weiter“
+  und „Alles vorschlagen“ rahmen die Knöpfe dazu ein).
+
+### ERGEBNIS
+- Voller Lauf über 0.362.1 (am Tagesende, nacheinander): 187 von 188 grün; rot nur
+  `szenario_schritte_cring_alles` mit einer veralteten Erwartung (Weg endet in der Übersicht) – angepasst.
+- Mit den drei Antworten grün: `test_sprache`, `szenario_beta_schritte`, `szenario_schritte_neu`,
+  `szenario_erster_start`, `szenario_schritte_cring_alles`, `szenario_schritte_testteil` (Manuels Testteil; mit seinem Zeitlimit 900 s). Bilder angesehen: Schritt 1 mit „Weiter“, „Neue
+  Aufspannung“ mit ihrem Satz, die Werkzeugleiste mit drei Trennstrichen.
 ## P-2026-11-11-20 so-gehts-kurzer-weg
 
 ### EINGELESEN

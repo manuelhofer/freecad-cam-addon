@@ -108,18 +108,21 @@ def schritte(h):
     yield 500
     panel.aus_der_aufspannung()
     yield 800
-    rot = [
-        w.text()
+    zeilen = [
+        w
         for w in panel.richtungen_box.findChildren(QtGui.QLabel)
         if w.isVisibleTo(panel.richtungen_box)
     ]
+    rot = [w.text() for w in zeilen]
+    namen = [w.toolTip() for w in zeilen]
     h.pruefe(len(panel.gewaehlte) == 14, f"ohne Maschine von oben: {panel.gewaehlte}")
-    # 13 Flächen: die ersten acht mit Namen, „und 5 weitere“ (gui_bearbeitung._namen_kurz).
+    # 13 Flächen, rot im Teil: in der Zeile ihre Zahl und der Grund; im Tooltip die ersten acht
+    # mit Namen, „und 5 weitere“ (gui_bearbeitung._namen_kurz).
     h.pruefe(
-        len(rot) == 1 and rot[0].startswith("Nicht in dieser Aufspannung: ")
-        and rot[0].endswith("Die Maschine schwenkt nicht so weit.")
-        and rot[0].count("Face") == 8 and " und 5 weitere" in rot[0],
-        f"rot: {rot}",
+        len(rot) == 1 and rot[0] == "■ 13 Flächen: Die Maschine schwenkt nicht so weit."
+        and namen[0].startswith("Nicht in dieser Aufspannung: ")
+        and namen[0].count("Face") == 8 and " und 5 weitere" in namen[0],
+        f"rot: {rot} {namen}",
     )  # fmt: skip
     Gui.activeDocument().activeView().viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")

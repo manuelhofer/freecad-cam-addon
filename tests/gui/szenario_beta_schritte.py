@@ -131,19 +131,12 @@ def schritte(h):
 
     # 1. Aufspannung
     h.pruefe(panel.seite() == 0, f"Seite {panel.seite()}")
-    h.pruefe(not panel._weiter_geht()[0], "„Weiter“ geht, bevor klar ist, was unten liegt")
-    # Nicht grau, weil etwas fehlt: Der Klick bleibt im Schritt und zeigt, was fehlt (0.351.0).
-    h.pruefe(panel.knopf_weiter.isEnabled(), "„Weiter“ grau, obwohl nur etwas fehlt")
-    panel.knopf_weiter.click()
-    yield 300
-    h.pruefe(panel.seite() == 0, f"„Weiter“ blättert ohne Antwort: Seite {panel.seite()}")
-    h.pruefe(
-        "bold" in panel.warum_text.styleSheet() and "border" in panel.knopf_wie_modell.styleSheet(),
-        "der Klick auf „Weiter“ zeigt nicht, was fehlt",
-    )
-    h.bild("1b_weiter_zeigt_was_fehlt", panel.form)
-    yield 2200
-    h.pruefe("border" not in panel.knopf_wie_modell.styleSheet(), "der Rahmen bleibt stehen")
+    # „Weiter“ bestätigt die gezeigte Lage (Manuel, 2026-11-11, Frage 1): Es geht ohne Antwort,
+    # nichts steht orange da; der nächste Klick ins Teil wäre trotzdem die untere Fläche.
+    h.pruefe(panel._weiter_geht() == (True, ""), f"„Weiter“ in Schritt 1: {panel._weiter_geht()}")
+    h.pruefe(panel.knopf_weiter.isEnabled(), "„Weiter“ grau in Schritt 1")
+    h.pruefe(not panel.warum_text.isVisible(), f"orange in Schritt 1: {panel.warum_text.text()!r}")
+    h.pruefe(not panel._beta_unten_klar, "die Lage gilt schon als beantwortet")
     h.pruefe(
         panel.knopf_unten_waehlen.isChecked(), "der Klick auf die untere Fläche ist nicht bereit"
     )
@@ -163,11 +156,9 @@ def schritte(h):
         f"Spanntiefe: {panel.felder_spannung['gespannt'].text()!r}",
     )
     h.bild("1_aufspannung", panel.form)
-    panel.wie_modelliert()
-    yield 300
-    h.pruefe(panel.knopf_weiter.isEnabled(), "„Weiter“ nach „Liegt wie im Modell“ gesperrt")
-    panel.knopf_weiter.click()
+    panel.knopf_weiter.click()  # ohne „Liegt wie im Modell“: „Weiter“ nimmt die gezeigte Lage
     yield 800
+    h.pruefe(panel._beta_unten_klar, "„Weiter“ hat die Lage nicht bestätigt")
 
     # 2. Flächen
     h.pruefe(panel.seite() == 1, f"Seite {panel.seite()}")
@@ -176,8 +167,24 @@ def schritte(h):
         not any(z.startswith(("Face", "Edge")) for z in zeilen),
         f"die Liste nennt die Flächen noch beim FreeCAD-Namen: {zeilen}",
     )
-    h.pruefe(panel.gewaehlte == [wand], f"gewählt: {panel.gewaehlte}")
+    h.pruefe(panel.gewaehlte == [wand], f"gewählt: {panel.gewaehlte}")  # nicht vorbelegt: gewählt
     h.pruefe(panel.tasche_box.isVisible(), "kein Satz zur Tasche")
+    # Nicht grau, weil etwas fehlt: Der Klick bleibt im Schritt und rahmt ein, was fehlt (0.351.0).
+    panel.knopf_weiter.click()
+    yield 300
+    h.pruefe(panel.seite() == 1, f"„Weiter“ blättert ohne Entscheidung zur Tasche: {panel.seite()}")
+    gerahmt = [
+        k.text()
+        for k in (panel.knopf_tasche_schruppen, panel.knopf_ganze_tasche, panel.knopf_nur_diese)
+        if "border" in k.styleSheet()
+    ]
+    h.pruefe(
+        "bold" in panel.warum_text.styleSheet() and bool(gerahmt),
+        f"der Klick auf „Weiter“ zeigt nicht, was fehlt: {gerahmt}",
+    )
+    h.bild("2a_weiter_zeigt_was_fehlt", panel.form)
+    yield 2200
+    h.pruefe("border" not in panel.knopf_ganze_tasche.styleSheet(), "der Rahmen bleibt stehen")
     # Noch keine Operation: In der Tasche steht Material – der erste Weg ist, sie auszuräumen und
     # nur die angeklickte Wand zu schlichten (Plan C1).
     h.pruefe("noch Material" in panel.tasche_text.text(), f"Satz: {panel.tasche_text.text()!r}")
@@ -331,6 +338,12 @@ def schritte(h):
     text = panel.werkzeuge_text.text()
     print(ascii(f"Katalog: {text[:600]}"))
     h.pruefe("im Katalog" in text and "<a href" in text, f"Katalog: {text[:300]!r}")
+    # Aus dem Katalog steht „Ø 32 Hoffmann“ da; der ganze Name ist der Tooltip unter der Maus.
+    namen = panel._beta_katalog_namen
+    h.pruefe(
+        bool(namen) and "<table" in text and not any(n in text for n in namen.values()),
+        f"Katalog kurz: {len(namen)} Namen",
+    )
     h.bild("3c_werkzeuge_katalog", panel.form)
     # Tauchfräsen (Plan C2; Manuel zum Bild: „ja.. so ists ok“): ein Weg zum Anhaken, von sich
     # aus aus – angehakt rechnet er seine Vorschau mit Tauchstellen und Zeit.
@@ -546,6 +559,24 @@ def schritte(h):
         )
         h.pruefe(not leer.knopf_unten_waehlen.isChecked(), "„Fläche anklicken …“ bleibt gedrückt")
         h.bild("8_erster_klick_unten", leer.form)
+        # „Flächen“ beginnt mit allem, was in dieser Aufspannung von oben geht (Manuel, 2026-11-11,
+        # Frage 2: „ja“) – man klickt heraus, was nicht soll.
+        leer.knopf_weiter.click()
+        yield 1500
+        yield from h.warte_auf(lambda: not leer.vorschau_laeuft(), 120000)
+        h.pruefe(leer.seite() == 1, f"nach „Weiter“ auf Seite {leer.seite()}")
+        h.pruefe(bool(leer.gewaehlte), "„Flächen“ ist nicht vorbelegt")
+        h.pruefe(
+            leer._weiter_geht()[0], f"vorbelegt, aber „Weiter“ geht nicht: {leer._weiter_geht()}"
+        )
+        h.bild("9_flaechen_vorbelegt", leer.form)
+        # Einmal: Wer die Auswahl leert und zurück- und wieder vorgeht, bekommt sie nicht wieder.
+        leer.flaechen_leeren()
+        leer.knopf_zurueck.click()
+        yield 300
+        leer.knopf_weiter.click()
+        yield 800
+        h.pruefe(not leer.gewaehlte, f"geleert und doch wieder gefüllt: {leer.gewaehlte}")
         leer.reject()
         yield 1000
     with __import__("contextlib").suppress(Exception):

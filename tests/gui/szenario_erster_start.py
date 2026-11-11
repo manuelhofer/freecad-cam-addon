@@ -112,14 +112,19 @@ def schritte(h):
         if t.windowTitle() == "CAM-Addon" and t.isVisible()
     )
     knoepfe = [a.text() for a in leiste.actions() if not a.isSeparator()]
+    # Die Leiste folgt dem Arbeitsweg (Manuel, 2026-11-11, Frage 3): erst bearbeiten, dann prüfen
+    # und Programm, dann Werkzeuge, zuletzt die Maschine – mit drei Trennstrichen.
+    striche = sum(1 for a in leiste.actions() if a.isSeparator())
     h.pruefe(
         len(knoepfe) == 16
         and "Bestückung" in knoepfe
         and "Weiter bearbeiten" in knoepfe  # die Schritte als Standard (0.350.0)
         and "Neue Aufspannung" in knoepfe
-        and knoepfe[-1] == "Programm schreiben …"
-        and knoepfe[4:6] == ["Halter und Aufnahmen …", "Spannmittel …"],
-        f"Werkzeugleiste: {knoepfe}",
+        and knoepfe[0].startswith("Bearbeitung")
+        and knoepfe[7] == "Programm schreiben …"
+        and knoepfe[9:11] == ["Halter und Aufnahmen …", "Spannmittel …"]
+        and striche == 3,
+        f"Werkzeugleiste: {knoepfe}, {striche} Trennstriche",
     )
     h.pruefe("Nach Updates suchen" not in knoepfe, "„Nach Updates suchen“ in der Leiste")
     menues = {

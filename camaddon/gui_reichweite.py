@@ -1032,8 +1032,7 @@ class PruefPanel:
         mehr, wenn das Fenster inzwischen zu ist."""
         if self.abspieler is None or PruefPanel.offen is not self:
             return
-        self.abspieler.rest.setText(satz)
-        self.abspieler.rest.setVisible(bool(satz))
+        self.abspieler.rest_setzen(satz)
         self.abspieler.knopf_fertigteil.setVisible(self._fertigteil_moeglich())
 
     def _fertigteil_moeglich(self):

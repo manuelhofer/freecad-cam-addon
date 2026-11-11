@@ -81,11 +81,17 @@ def schritte(h):
         return
     job = panel.job
     h.pruefe(isinstance(panel, beta.BetaPanel), f"nicht in Schritten: {type(panel).__name__}")
-    panel.wie_modelliert()
-    yield 300
+    # „Weiter“ bestätigt die gezeigte Lage (Manuel, 2026-11-11, Frage 1). Mit einer angeklickten
+    # Fläche gestartet, bleibt es bei ihr – vorbelegt wird nur, wer ohne Wahl kommt (Frage 2;
+    # szenario_beta_schritte prüft das).
     panel.knopf_weiter.click()
-    yield 1500
+    yield 2500
+    yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     h.pruefe(panel.seite() == 1, f"Seite {panel.seite()} statt der Flächen")
+    h.pruefe(panel._beta_unten_klar, "„Weiter“ hat die Lage nicht bestätigt")
+    h.pruefe(panel.gewaehlte == [ebenen[10]], f"die angeklickte Fläche: {panel.gewaehlte}")
+    panel.flaechen_leeren()  # dieses Szenario wählt gezielt
+    yield 500
     for name in [ebenen[22], ebenen[32], ebenen[27], mulde, *waende]:
         panel.flaeche_umschalten(name)
     yield 1000

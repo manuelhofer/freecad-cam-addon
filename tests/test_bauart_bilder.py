@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Prüft, dass jede Bauart im Fenster „Neue Maschine“ ihr Bild hat (resources/icons/bauart_*.svg)
-und dass es sich lesen lässt. Aufruf: freecadcmd tests/test_bauart_bilder.py"""
+und jeder Weg der Fragen im Assistenten „Bearbeitung“ seines (weg_*.svg) – und dass sie sich lesen
+lassen. Aufruf: freecadcmd tests/test_bauart_bilder.py"""
 
 import os
 import sys
@@ -25,6 +26,14 @@ for art in beispielmaschine.ARTEN:
     if os.path.exists(pfad):
         wurzel = ET.parse(pfad).getroot()
         pruefe(wurzel.tag.endswith("svg") and len(wurzel) >= 4, f"{art}: lesbares SVG mit Inhalt")
+
+# Die Wege der Fragen „Wie soll das Material raus?“ und „Die Wände unter dem Rand“.
+for weg in ("vorbohren", "helix", "tauchen", "flanke", "spirale"):
+    pfad = symbol(f"weg_{weg}.svg")
+    pruefe(os.path.exists(pfad), f"Bild für den Weg {weg}: {os.path.basename(pfad)}")
+    if os.path.exists(pfad):
+        wurzel = ET.parse(pfad).getroot()
+        pruefe(wurzel.tag.endswith("svg") and len(wurzel) >= 3, f"{weg}: lesbares SVG mit Inhalt")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

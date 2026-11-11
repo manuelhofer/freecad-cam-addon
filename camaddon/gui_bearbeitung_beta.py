@@ -176,8 +176,11 @@ class BetaPanel(BearbeitungPanel):
     """Der Assistent „Bearbeitung“ in Schritten (siehe oben). `ab`: der Abschnitt, mit dem
     „Weiter bearbeiten“ beginnt (0 Schruppen … 3 Kanten) – None: von vorn."""
 
-    def __init__(self, dokument, wahl=None, ab=None, **kwargs):
+    def __init__(self, dokument, wahl=None, ab=None, umspannen=False, **kwargs):
         self._beta_ab = ab
+        # „Neue Aufspannung“: Das Teil liegt noch wie in der ersten – „Weiter“ bestätigte dieselbe
+        # Lage noch einmal. Hier muss die Fläche gewählt werden, die jetzt unten liegt.
+        self._beta_umspannen = umspannen
         self._beta_unten_klar = False
         self._beta_tasche_ok = set()  # Flächen-Wahlen, bei denen „Nur diese Flächen“ gilt
         self._beta_fehlende = []
@@ -186,6 +189,7 @@ class BetaPanel(BearbeitungPanel):
         self._beta_nachbarn = None  # (Form, taschen_wahl.nachbarn) – gerechnet einmal je Form
         self._beta_bis = None  # beim Anlegen: bis zu welchem Abschnitt
         self._beta_nicht_dabei = {}  # Kennung → (Titel, Satz): in der Übersicht abgehakt
+        self._beta_vorbelegt = False  # der Schritt „Flächen“ ist schon einmal gefüllt worden
         self._tisch = None  # gui_tisch.Tisch: Schritt 1 zeigt, wie das Teil liegt
         self._beta_nur = None  # Übersicht: nur die Wege dieser Bearbeitung im Teil (Kennung)
         self._beta_wege_stand = None  # was die Übersicht gerade im Teil zeigt
@@ -312,6 +316,9 @@ class BetaPanel(BearbeitungPanel):
         self.werkzeuge_text.setWordWrap(True)
         self.werkzeuge_text.setTextFormat(QtCore.Qt.RichText)
         self.werkzeuge_text.setOpenExternalLinks(True)
+        # Aus dem Katalog steht nur „Ø 32 Hoffmann“ da – der ganze Name unter der Maus.
+        self._beta_katalog_namen = {}
+        self.werkzeuge_text.linkHovered.connect(self._katalog_name_zeigen)
         box.addWidget(self.werkzeuge_text)
         self.knopf_katalog = knopf(
             tr("beta.werkzeuge.katalog"), tr("beta.werkzeuge.katalog.tooltip"), self.im_katalog
@@ -851,14 +858,34 @@ class BetaPanel(BearbeitungPanel):
         der Übersicht). Davor heißt der Knopf oben „Weiter“."""
         return getattr(self, "_seite", 0) < UEBERSICHT
 
+    def _unten_fehlt(self):
+        """„Neue Aufspannung“, und noch ist nicht gesagt, welche Fläche jetzt unten liegt."""
+        return self._beta_umspannen and not self._beta_unten_klar
+
+    def _anleitung_aufspannung(self):
+        """Der eine Satz über Schritt 1."""
+        if self._unten_fehlt():
+            return tr("beta.anleitung.umspannen")
+        if self.job is not None:
+            return tr("beta.anleitung.aufspannung")
+        if self._einziges_teil() is not None:
+            return tr("beta.anleitung.ein_teil")
+        return tr("beta.anleitung.teil")
+
     def _weiter_geht(self):
         """Ob „Weiter“ geht – und wenn nicht, warum (ein Satz)."""
-        if self.job is None or self.nur_vierachs():
+        if self.nur_vierachs():
             return False, ""
         if self._seite == 0:
-            if not (self._beta_unten_klar or self._aufspannung_fest()):
-                return False, tr("beta.warum.unten")
-        elif self._seite == 1:
+            if self._unten_fehlt():
+                return False, tr("beta.anleitung.umspannen")
+            # „Weiter“ bestätigt, was zu sehen ist (Manuel, 2026-11-11, Frage 1: „ja“): Das Teil
+            # liegt im 3D auf der Platte, wie der Assistent es annimmt – wer es anders will, klickt
+            # vorher die untere Fläche an. Ohne Job geht es mit dem einzigen Teil des Dokuments.
+            return (self.job is not None or self._einziges_teil() is not None), ""
+        if self.job is None:
+            return False, ""
+        if self._seite == 1:
             if not self.gewaehlte:
                 return False, tr("beta.warum.flaechen")
             if self._beta_fehlende and frozenset(self.gewaehlte) not in self._beta_tasche_ok:
@@ -920,15 +947,7 @@ class BetaPanel(BearbeitungPanel):
         self.schrittleiste.setText(self._schrittleiste())
         if self.zu_aendern is None:
             anleitungen = [
-                (
-                    tr("beta.anleitung.aufspannung")
-                    if self.job is not None
-                    else (
-                        tr("beta.anleitung.ein_teil")
-                        if self._einziges_teil() is not None
-                        else tr("beta.anleitung.teil")
-                    )
-                ),
+                self._anleitung_aufspannung(),
                 tr("beta.anleitung.flaechen"),
                 tr("beta.anleitung.schruppen"),
                 tr("beta.anleitung.loecher"),
@@ -1049,8 +1068,11 @@ class BetaPanel(BearbeitungPanel):
         # (_warum_betonen). Grau nur ohne Teil und an der Drehmaschine – das sagt Schritt 1.
         self.knopf_weiter.setEnabled(geht or bool(warum))
         self.knopf_weiter.setToolTip(warum or tr("beta.weiter.tooltip"))
+        if self._seite == 0 and self.zu_aendern is None:
+            self.anleitung.setText(self._anleitung_aufspannung())
         self.warum_text.setText(warum)
-        self.warum_text.setVisible(bool(warum))
+        # Steht der Grund schon als Anleitung oben, nicht noch einmal in Orange darunter.
+        self.warum_text.setVisible(bool(warum) and warum != self.anleitung.text())
         for a, leer in self._beta_leer.items():
             leer.setVisible(not self._abschnitt_hat_etwas(a))
         for block in self.bloecke:
@@ -1177,21 +1199,16 @@ class BetaPanel(BearbeitungPanel):
         erst mit „Anlegen“; „Zurück“ führt in die Schritte."""
         if not self._mit_einzigem_teil_beginnen() or self.nur_vierachs():
             return
+        if self._unten_fehlt():
+            self._warum_betonen()  # umgespannt: erst die Fläche, die jetzt unten liegt
+            return
         if not (self._beta_unten_klar or self._aufspannung_fest()):
             self.wie_modelliert()
         self._beta_nicht_dabei = {}
-        self.aus_der_aufspannung()
-        if not self.gewaehlte:
+        self._beta_vorbelegt = True
+        if not self._alles_waehlen():
             self.seite_zeigen(1)  # dort steht je Fläche, warum sie hier nicht geht
             return
-        if self._fuenfachs():
-            # An der 5-Achs-Maschine gehören die Wände einer Tasche dazu, auch wenn sie von oben
-            # nicht zu erreichen sind (unter einem Rand): wie „Ganze Tasche nehmen“ – der Assistent
-            # schlägt für sie Flanke oder 3D-Schlichten vor.
-            self._tasche_pruefen()
-            if self._beta_fehlende:
-                self.ganze_tasche()
-        self._beta_tasche_ok.add(frozenset(self.gewaehlte))
         _KURZER_WEG["an"] = True  # gilt auch für die Ebenen, die „Anlegen“ danach öffnet
         self.seite_zeigen(UEBERSICHT)
 
@@ -1603,9 +1620,36 @@ class BetaPanel(BearbeitungPanel):
             if warum:
                 self._warum_betonen()
             return
+        if self._seite == 0:
+            if not (self._beta_unten_klar or self._aufspannung_fest()):
+                self.wie_modelliert()  # die gezeigte Lage gilt
+            if self.job is None:
+                return
         naechste = self._naechste_seite()
-        if naechste is not None:
-            self.seite_zeigen(naechste)
+        if naechste is None:
+            return
+        self.seite_zeigen(naechste)
+        if naechste == 1 and not self._beta_vorbelegt and not (self.gewaehlte or self.kanten):
+            # Der Schritt „Flächen“ beginnt mit allem, was in dieser Aufspannung von oben geht
+            # (Manuel, 2026-11-11, Frage 2: „ja“) – man klickt heraus, was nicht soll. Einmal: Wer
+            # die Auswahl leert und zurückgeht, bekommt sie nicht wieder gefüllt.
+            self._beta_vorbelegt = True
+            self._alles_waehlen()
+
+    def _alles_waehlen(self):
+        """Alles, was in dieser Aufspannung von oben geht (aus_der_aufspannung) – an der
+        5-Achs-Maschine mit den Wänden der Taschen, auch unter einem Rand (wie „Ganze Tasche
+        nehmen“: Der Assistent schlägt für sie Flanke oder 3D-Schlichten vor). Gibt zurück, ob
+        etwas gewählt ist."""
+        self.aus_der_aufspannung()
+        if not self.gewaehlte:
+            return False
+        if self._fuenfachs():
+            self._tasche_pruefen()
+            if self._beta_fehlende:
+                self.ganze_tasche()
+        self._beta_tasche_ok.add(frozenset(self.gewaehlte))
+        return True
 
     def _warum_ziele(self):
         """Womit es in diesem Schritt weitergeht – die Knöpfe oder die Liste, die noch fehlen."""
@@ -1914,11 +1958,25 @@ class BetaPanel(BearbeitungPanel):
                 frei=dezimal(f"{masse.frei:.0f}"),
             )
         ]
-        for v in ww.vorschlaege(masse, eigene, katalog):
-            zeilen.append(_vorschlag_zeile(v))
-        self.werkzeuge_text.setText("<br>".join(zeilen))
+        self._beta_katalog_namen = {}
+        reihen = [
+            _vorschlag_zeile(v, self._beta_katalog_namen)
+            for v in ww.vorschlaege(masse, eigene, katalog)
+        ]
+        # Eine Tabelle: links der Weg mit seiner Grenze, rechts die Werkzeuge – untereinander
+        # lesbar statt als Fließtext.
+        zeilen.append('<table cellspacing="0" cellpadding="1">' + "".join(reihen) + "</table>")
+        self.werkzeuge_text.setText("".join(zeilen))
         self.knopf_katalog.setVisible(not self._beta_katalog_an)
         self.werkzeuge_box.show()
+
+    def _katalog_name_zeigen(self, ziel):
+        """Die Maus steht über einem Werkzeug aus dem Katalog: sein ganzer Name als Tooltip."""
+        name = self._beta_katalog_namen.get(ziel, "")
+        if name:
+            QtGui.QToolTip.showText(QtGui.QCursor.pos(), name, self.werkzeuge_text)
+        else:
+            QtGui.QToolTip.hideText()
 
     def im_katalog(self):
         """„Was gäbe es im Katalog?“ – den Katalog einmal lesen: in einem Faden, das Fenster bleibt
@@ -2444,8 +2502,33 @@ def _werkzeug_text(w):
     return text
 
 
-def _vorschlag_zeile(v):
-    """Eine Zeile je Weg: „Vorbohren (bis Ø 38): deiner T3 Bohrer Ø 20 · im Katalog: …“."""
+def _katalog_kurz(w, namen):
+    """Ein Werkzeug aus dem Katalog kurz: „Ø 32 Hoffmann“ als Link – hier zählt der Durchmesser.
+    Der ganze Name (Reihe, Artikel) kommt nach `namen` (Link → Name) für den Tooltip unter der
+    Maus: zwölf lange Artikelnamen hintereinander liest niemand (Zeigen statt sagen)."""
+    from . import werkzeuge as wz
+
+    hersteller = (getattr(w, "hersteller", "") or getattr(w, "name", "")).split()
+    durchmesser = dezimal(wz.kurz(w)).partition("Ø")[2].strip()
+    text = html.escape(
+        " ".join(t for t in (f"Ø {durchmesser}" if durchmesser else "", *hersteller[:1]) if t)
+    )
+    link = getattr(w, "link", "")
+    if not link:
+        return text or _werkzeug_text(w)
+    voll = dezimal(wz.kurz(w))
+    if getattr(w, "name", ""):
+        voll = f"{w.name} ({voll})"
+    if getattr(w, "hersteller", "") and w.hersteller.split()[0].lower() not in voll.lower():
+        voll = f"{w.hersteller} {voll}"
+    namen[link] = voll
+    return f'<a href="{html.escape(link)}">{text}</a>'
+
+
+def _vorschlag_zeile(v, namen=None):
+    """Eine Tabellenzeile je Weg: links „Vorbohren bis Ø 38“, rechts „deins: T3 Bohrer Ø 20 ·
+    größer im Katalog: Ø 32 Hoffmann, …“. `namen`: siehe _katalog_kurz."""
+    namen = {} if namen is None else namen
     weg = {
         "vorbohren": tr("beta.werkzeuge.vorbohren"),
         "schruppen": tr("beta.werkzeuge.schruppen"),
@@ -2462,10 +2545,14 @@ def _vorschlag_zeile(v):
         teile.append(tr("beta.werkzeuge.keins"))
     if v.katalog:
         teile.append(
-            tr("beta.werkzeuge.aus_katalog", namen=", ".join(_werkzeug_text(w) for w in v.katalog))
+            tr(
+                "beta.werkzeuge.aus_katalog",
+                namen=", ".join(_katalog_kurz(w, namen) for w in v.katalog),
+            )
         )
-    grenze = dezimal(f"{v.grenze:.0f}")
-    return f"<b>{weg}</b> ({tr('beta.werkzeuge.bis', d=grenze)}): " + " · ".join(teile)
+    grenze = tr("beta.werkzeuge.bis", d=dezimal(f"{v.grenze:.0f}"))
+    links = f'<td style="white-space: nowrap; padding-right: 8px;"><b>{weg}</b> {grenze}</td>'
+    return f"<tr>{links}<td>{' · '.join(teile)}</td></tr>"
 
 
 def messmerkmal(job, davor=None):
@@ -2981,7 +3068,7 @@ def neue_aufspannung(job, vorwahl=None):
     """Öffnet die Beta mit einem neuen Job für das Teil von `job` – bei Schritt 1; `vorwahl`: die
     Flächen, die in Schritt 2 gewählt sind (umspannen)."""
     teil = vr.original(vr.modell(job))
-    panel = BetaPanel(job.Document, (teil, None), neu=True)
+    panel = BetaPanel(job.Document, (teil, None), neu=True, umspannen=True)
     panel._beta_vorwahl = list(vorwahl or [])
     FreeCADGui.Control.showDialog(panel)
     return panel

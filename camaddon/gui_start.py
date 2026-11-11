@@ -54,24 +54,29 @@ ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
 WERKZEUGLEISTE_NAME = "CAM-Addon"
 MENUE_NAME = "CAM-Addon"
 
-# Die Arbeitsbefehle – in der Werkzeugleiste, in Anzeigereihenfolge.
+# Die Arbeitsbefehle – in der Werkzeugleiste, in Anzeigereihenfolge: erst der tägliche Weg
+# (bearbeiten, prüfen, Programm), dann das Einrichten (Werkzeuge, Maschine), mit Trennstrichen
+# (Manuel, 2026-11-11, Frage 3: „ja“ – vorher stand „Bearbeitung“ an elfter Stelle).
 WERKZEUGLEISTE = [
-    "CamAddon_NeueMaschine",
-    "CamAddon_MaschineBearbeiten",
-    "CamAddon_MaschineVerfahren",
+    "CamAddon_Bearbeitung",
+    "CamAddon_Vierachs",
+    "CamAddon_Schwenken",
+    "CamAddon_SimultanPlanen",
+    "CamAddon_WeiterBearbeitenBeta",
+    "CamAddon_NeueAufspannungBeta",
+    "Separator",
+    "CamAddon_AufMaschinePruefen",
+    "CamAddon_ProgrammSchreiben",
+    "Separator",
     "CamAddon_Werkzeugverwaltung",
     "CamAddon_Halter",
     "CamAddon_Spannmittel",
     "CamAddon_SchnittwerteJob",
     "CamAddon_Bestueckung",
-    "CamAddon_AufMaschinePruefen",
-    "CamAddon_Vierachs",
-    "CamAddon_Bearbeitung",
-    "CamAddon_WeiterBearbeitenBeta",
-    "CamAddon_NeueAufspannungBeta",
-    "CamAddon_Schwenken",
-    "CamAddon_SimultanPlanen",
-    "CamAddon_ProgrammSchreiben",
+    "Separator",
+    "CamAddon_NeueMaschine",
+    "CamAddon_MaschineBearbeiten",
+    "CamAddon_MaschineVerfahren",
 ]
 # Das Menü: oben „So geht’s“ (D-54), dann alle Befehle mit Text – auch „Nach Updates
 # suchen“ und „Über“, die in der Werkzeugleiste nur Platz kosteten (Durchsicht W-004, D-13).

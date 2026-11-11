@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Frage „Die Wände unter dem Rand“: die Kugel fährt die Wand Bahn für Bahn (Spirale) fertig. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="48" viewBox="0 0 64 48">
+  <path d="M2 8 H22 L30 40 H62 V46 H2 Z" fill="#edd400" stroke="#8f5902" stroke-width="1.5"/>
+  <path d="M35 0 H44 V20 A4.5 4.5 0 0 1 35 20 Z" fill="#729fcf" stroke="#204a87" stroke-width="1.2"/>
+  <path d="M35 6 L44 10 M35 13 L44 17" stroke="#204a87" stroke-width="1"/>
+  <path d="M25 12 H34 M26 17 H35 M27.5 22 H36 M28.5 27 H37 M30 32 H38 M31 37 H39" stroke="#cc0000" stroke-width="1.5"/>
+</svg>

@@ -160,6 +160,12 @@ def schritte(h):
     yield from h.warte_auf(lambda: spieler.rest.text().startswith("Am Ende"), 240000)
     rest = spieler.rest.text()
     h.pruefe(rest.startswith("Am Ende bleiben") and "nirgends ins Teil" in rest, f"{rest!r}")
+    # Die Farben erklärt eine Legende mit Kästchen, kein Satz.
+    legende = spieler.legende.text()
+    h.pruefe(
+        spieler.legende.isVisible() and legende.count("■") == 4 and "Grün:" not in rest,
+        f"Legende: {legende!r}",
+    )
     Gui.SendMsgToActiveView("ViewFit")
     spieler.knopf_hinsehen.click()
     yield 800

@@ -74,6 +74,16 @@ def schritte(h):
     h.pruefe(all("min" in z for z in zeiten().values()), f"Zeiten: {zeiten()}")
     satz = frage.saetze["vorbohren"].text()
     h.pruefe("1 Loch" in satz and "12,5" in satz, f"Satz: {satz}")
+    # Je Weg ein Bild, daneben nur das Kurze – der ganze Satz ist der Tooltip (Zeigen statt sagen).
+    h.pruefe(
+        all(frage.bilder[k].isVisible() for k in ("vorbohren", "helix")),
+        f"Bilder der Wege: {sorted(frage.bilder)}",
+    )
+    voll = frage.satz("vorbohren")
+    h.pruefe(
+        len(satz) < len(voll) and frage.saetze["vorbohren"].toolTip() == voll,
+        f"kurz {satz!r}, ganz {voll!r}",
+    )
     h.bild("1_frage", panel.form)
 
     frage.vorschau_knoepfe["vorbohren"].click()

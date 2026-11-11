@@ -85,7 +85,8 @@ def _ein_rohteil(h, ordner, name, rohteil_setzen):
         yield 1000
         seiten.append(panel.seite())
     print(ascii(f"{name}: Seiten {seiten}"))
-    h.pruefe(seiten[-1] == 5, f"{name}: Schritte {seiten}")
+    # Der Weg endet in der Übersicht (seit 0.362.0), davor der Schritt „Kanten“.
+    h.pruefe(seiten[-2:] == [5, beta.UEBERSICHT], f"{name}: Schritte {seiten}")
     yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
     h.pruefe(panel.raeumen.aktiv(), f"{name}: Räumen ohne Haken: {panel.raeumen.ergebnis.text()!r}")
     nut = panel.nut

@@ -279,10 +279,10 @@ class Bild:
         self._rest_zeigen(vergleich)
         self._bahn_schalten()
         self._teil_schalten()
-        text = _rest_satz(vergleich, self.abtrag.aufmass, self._im_quader())
+        dazu = ""
         if getattr(self.abtrag, "vorschau_simultan", False):
-            text += " " + tr("rm.simultan_vorschau")
-        return text
+            dazu = tr("rm.simultan_vorschau")
+        return _rest_satz(vergleich, self.abtrag.aufmass, self._im_quader(), dazu)
 
     def zeige_bahn(self, an):
         """Die Bahn zeigen (Haken „Bahn“ im Abspieler) – am Ende mit den Farben nie."""
@@ -624,11 +624,38 @@ def flaechen(form, farbe, transparenz):
     return teil
 
 
-def _rest_satz(vergleich, aufmass, quader=False):
-    """Der Satz unter dem Abspieler: beim Abtragen, was passiert; am Ende, was auf dem Teil
-    bleibt – mit den Farben. `quader`: das Rohteil ist ein Kasten, keine Stange."""
+class RestSatz(str):
+    """Der Satz unter dem Abspieler. `mehr`: die Erklärungen dazu in ganzer Länge – sein Tooltip;
+    `legende`: am Ende, das Teil steht in Farben da (Abspieler.rest_setzen zeigt die Legende)."""
+
+    mehr = ""
+    legende = False
+
+
+def legende_html():
+    """Die Farben am fertigen Teil als Legende: je Farbe ein Kästchen und ein, zwei Wörter – statt
+    des Satzes „Grün: das Aufmaß, gelb: …“ (Zeigen statt sagen, Arbeitsregeln 8)."""
+    teile = []
+    texte = (
+        (rm.GRUEN, tr("rm.legende.gruen")),
+        (rm.GELB, tr("rm.legende.gelb")),
+        (rm.ROT, tr("rm.legende.rot", grenze=rw.weg_text(rm.ROT_AB))),
+        (rm.BLAU, tr("rm.legende.blau")),
+    )
+    for farbe, text in texte:
+        r, g, b = (round(255 * wert) for wert in REST_FARBEN[farbe])
+        teile.append(f'<span style="color: #{r:02x}{g:02x}{b:02x};">■</span> {html.escape(text)}')
+    return " &nbsp; ".join(teile)
+
+
+def _rest_satz(vergleich, aufmass, quader=False, dazu=""):
+    """Der Satz unter dem Abspieler (RestSatz): beim Abtragen, was passiert; am Ende, was auf dem
+    Teil bleibt – die Farben erklärt die Legende darunter. Warum die Simulation an manchen Stellen
+    nicht vergleicht, steht kurz da und ganz im Tooltip. `quader`: das Rohteil ist ein Kasten,
+    keine Stange; `dazu`: ein Satz hinterher."""
     if vergleich is None:
-        return tr("rm.laeuft_quader") if quader else tr("rm.laeuft")
+        return RestSatz(tr("rm.laeuft_quader") if quader else tr("rm.laeuft"))
+    mehr = []
     mm = rw.weg_text
     if vergleich.kleinster < -rm.BLAU_AB:
         satz = tr("rm.ins_teil", bis=mm(vergleich.groesster), tief=mm(-vergleich.kleinster))
@@ -642,17 +669,25 @@ def _rest_satz(vergleich, aufmass, quader=False):
     if vergleich.groesster >= aufmass + rm.ROT_AB:
         satz += " " + tr("rm.zu_viel", grenze=mm(aufmass + rm.ROT_AB))
     if vergleich.nur_gewaehlte:  # V4: der Rest ist Stange (oder Kasten), mit Absicht
-        satz += " " + (tr("rm.nur_gewaehlte_quader") if quader else tr("rm.nur_gewaehlte"))
+        satz += " " + tr("rm.nur_gewaehlte.kurz")
+        mehr.append(tr("rm.nur_gewaehlte_quader") if quader else tr("rm.nur_gewaehlte"))
     if vergleich.ohne_vergleich:  # P-2026-09-30-44: das Teil liegt dort nicht rund um die Achse
         stellen = tr("rm.und_von").join(
             tr("rm.von_bis", von=mm(von), bis=mm(bis)) for von, bis in vergleich.ohne_vergleich[:3]
         )
         if len(vergleich.ohne_vergleich) > 3:
             stellen += " …"
-        satz += " " + tr("rm.nicht_rundum", stellen=stellen)
+        satz += " " + tr("rm.nicht_rundum.kurz", stellen=stellen)
+        mehr.append(tr("rm.nicht_rundum", stellen=stellen))
     if getattr(vergleich, "unter_ueberhang", 0):  # P-2026-10-12-160: am Geist unter den Armen
-        satz += " " + tr("rm.unter_ueberhang")
-    return satz + " " + tr("rm.farben")
+        satz += " " + tr("rm.unter_ueberhang.kurz")
+        mehr.append(tr("rm.unter_ueberhang"))
+    if dazu:
+        satz += " " + dazu
+    ergebnis = RestSatz(satz)
+    ergebnis.mehr = "\n\n".join(mehr)
+    ergebnis.legende = True
+    return ergebnis
 
 
 def ansicht_von(dokument):
@@ -827,6 +862,10 @@ class Abspieler(QtGui.QWidget):
         self.rest.setWordWrap(True)
         self.rest.setVisible(False)
         aufbau.addWidget(self.rest)
+        self.legende = QtGui.QLabel(legende_html())  # die Farben am fertigen Teil
+        self.legende.setTextFormat(QtCore.Qt.RichText)
+        self.legende.setVisible(False)
+        aufbau.addWidget(self.legende)
         # Am Ende: das Teil, wie es dasteht, als Rohteil der nächsten Aufspannung (W-029).
         self.knopf_fertigteil = QtGui.QPushButton(tr("ab.fertigteil"))
         self.knopf_fertigteil.setAutoDefault(False)
@@ -944,10 +983,16 @@ class Abspieler(QtGui.QWidget):
         operation = abfahrt.stationen[self.laufend()].operation
         self.angehalten = self._fahren(self.werte, operation)
         if self.bei_station is not None:
-            satz = self.bei_station(self.station)
-            self.rest.setText(satz)
-            self.rest.setVisible(bool(satz))
+            self.rest_setzen(self.bei_station(self.station))
         self._anzeigen()
+
+    def rest_setzen(self, satz):
+        """Der Satz zum Abtrag unter dem Abspieler (RestSatz oder Text) – mit seinem Tooltip und,
+        am Ende, der Legende der Farben."""
+        self.rest.setText(satz)
+        self.rest.setToolTip(getattr(satz, "mehr", ""))
+        self.rest.setVisible(bool(satz))
+        self.legende.setVisible(bool(satz) and getattr(satz, "legende", False))
 
     def laufend(self):
         """Die Station, auf die die Maschine gerade zufährt – an einer Station diese selbst.

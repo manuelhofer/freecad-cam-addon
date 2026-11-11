@@ -578,6 +578,14 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.363.0):* **Drei Antworten von Manuel (alle „ja“):** „Weiter“ in Schritt 1 bestätigt die gezeigte Lage;
+  „Flächen“ beginnt mit allem, was von oben geht; die Werkzeugleiste folgt dem Arbeitsweg (Bearbeitung zuerst,
+  dann Prüfen und Programm, dann Werkzeuge und Maschine). Bei „Neue Aufspannung“ fragt Schritt 1 weiter nach
+  der Fläche, die jetzt unten liegt. **Die Fragen zeigen ihre Wege als Bild** (vorbohren, schraubend, tauchen;
+  Flanke, Spirale): daneben nur das Kurze, der ganze Satz als Tooltip. Katalog-Vorschläge im Schritt
+  „Schruppen“ als kurze Tabelle („Ø 32 Hoffmann“, der Name unter der Maus); beim Prüfen die Farben am fertigen
+  Teil als Legende; „Nicht in dieser Aufspannung“ als rotes Kästchen mit Zahl und Grund. Schritt „Schruppen“
+  mit Frage und Katalog: 273 → 153 Wörter.
 - *Neu (0.362.0):* **„Anlegen“ nur in der Übersicht** – jeder Weg endet dort; in den Schritten „Zurück“ und
   „Weiter“. Die Schritte zeigen ihre Wege farbig im Teil (Balken in derselben Farbe), die Übersicht hat
   „▶ Abspielen“; „Neue Maschine“ mit Bildern der Bauarten. Entschieden: Es bleibt ein Addon auf FreeCADs Job
