@@ -3768,6 +3768,8 @@
     "beta.uebersicht.nichts": "Hier gibt es nichts anzulegen – in dieser Aufspannung ist von oben nichts zu bearbeiten. „Zurück“ zeigt bei den Flächen, warum.",
     "beta.unfertig.siehe_nicht_dabei": "Was sie fertig macht, steht unter „Nicht dabei“.",
     "einstellungen.fertig_zeigen.hinweis": "Das Fenster zeigt, was im Job steht, und führt weiter: „Auf der Maschine prüfen …“, „Programm schreiben …“, „Einrichtblatt …“.",
+    "einstellungen.vierachs_offen.hinweis": "Sonst steht je Strategie nur ihr Fräser da, und „Werte ändern“ klappt ihre Felder auf – das Fenster bleibt kurz. Mit dem Haken stehen alle Felder offen untereinander, wie früher.",
+    "einstellungen.vierachs_offen.haken": "4-Achs-Assistent: alle Werte offen zeigen",
     "einstellungen.fertig_zeigen.haken": "Nach „Anlegen“ das Fenster „Angelegt“ zeigen",
     "beta.maschine.standard": "3-Achs-Fräse – keine eigene gewählt",
     "beta.unfertig.anhaken.tooltip": "Hakt an, was die orangen Flächen fertig macht – die Zeit steht danach in der Übersicht. Welche Flächen es sind und was sie sonst noch fertig machte, sagt der Tooltip des Satzes daneben.",

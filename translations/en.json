@@ -3768,6 +3768,8 @@
     "beta.uebersicht.nichts": "Nothing to create here – nothing can be machined from above in this setup. “Back” shows why at the faces.",
     "beta.unfertig.siehe_nicht_dabei": "What finishes them is listed under “Not included”.",
     "einstellungen.fertig_zeigen.hinweis": "The window shows what is in the job and leads on: “Check on the machine …”, “Write program …”, “Setup sheet …”.",
+    "einstellungen.vierachs_offen.hinweis": "Otherwise each strategy shows only its cutter and “Change values” opens its fields – the window stays short. With the tick all fields are open one below the other, as before.",
+    "einstellungen.vierachs_offen.haken": "4-axis wizard: show all values open",
     "einstellungen.fertig_zeigen.haken": "Show the “Created” window after “Create”",
     "beta.maschine.standard": "3-axis mill – none of your own selected",
     "beta.unfertig.anhaken.tooltip": "Ticks what finishes the orange faces – the time then shows in the overview. Which faces they are and what else would finish them is in the tooltip of the sentence beside it.",

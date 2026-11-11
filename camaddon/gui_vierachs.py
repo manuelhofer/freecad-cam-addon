@@ -43,6 +43,7 @@ Schruppen lässt sich dabei ein Schlichten dazunehmen.
 import contextlib
 import html
 import math
+import re
 
 import FreeCAD
 import FreeCADGui
@@ -577,6 +578,62 @@ def _zeige_lage(transform, lage):
 
 def _cos_pi(anteil):
     return math.cos(math.pi * anteil)
+
+
+WERTE_OFFEN = "VierachsWerteOffen"  # Parameter: die Felder aller Strategien offen (wie bis 0.360)
+
+
+def werte_offen():
+    """Stehen die Felder jeder Strategie offen im Fenster? Vorbelegt nicht: Zu sehen ist je
+    Strategie ihr Fräser, die Felder klappt „Werte ändern“ auf (wie in den Schritten von
+    „Bearbeitung“) – das Fenster war sonst zwei Bildschirme lang."""
+    return FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(WERTE_OFFEN, False)
+
+
+class _Mitgehen(QtCore.QObject):
+    """Hält die Zeile „Fräser … Werte ändern“ so sichtbar wie die Felder, zu denen sie gehört: Das
+    Fenster blendet die Felder einer Strategie aus und ein (Haken ab, beim Ändern nur eine) – die
+    Zeile geht mit, auch solange die Felder eingeklappt sind."""
+
+    def __init__(self, felder, zeile):
+        super().__init__(zeile)
+        self._felder, self._zeile = felder, zeile
+        felder.installEventFilter(self)
+
+    def eventFilter(self, objekt, ereignis):  # noqa: N802 – Qt-Name
+        if objekt is self._felder and ereignis.type() in (
+            QtCore.QEvent.ShowToParent,
+            QtCore.QEvent.HideToParent,
+        ):
+            self._zeile.setVisible(not self._felder.isHidden())
+        return False
+
+
+class _Erklaerung(QtGui.QLabel):
+    """Die Erklärung einer Strategie unter ihrem Haken. Solange sie nur sagt, was die Strategie
+    tut (`standard`), ist sie der Tooltip des Hakens – wenig Text im Fenster (Manuel, 2026-11-11:
+    „ohh man muss ich das jetzt alles wirklich lesen“). Zu sehen ist sie, sobald sie etwas zu
+    diesem Teil sagt („schon angelegt“, „Fertigmaß …“). text() bleibt, was gesetzt wurde."""
+
+    def __init__(self, haken, standard):
+        super().__init__()
+        self._haken, self._standard, self._soll = haken, standard, True
+        self._tooltip = haken.toolTip()
+        self.setText(standard)
+
+    def setText(self, text):  # noqa: N802 – Qt-Name
+        super().setText(text)
+        self._sichtbarkeit()
+
+    def setVisible(self, an):  # noqa: N802 – Qt-Name
+        self._soll = bool(an)
+        self._sichtbarkeit()
+
+    def _sichtbarkeit(self):
+        nur_standard = self.text() == self._standard
+        dazu = html.unescape(re.sub(r"<[^>]+>", " ", self._standard)).strip()
+        self._haken.setToolTip(f"{dazu}\n\n{self._tooltip}" if nur_standard else self._tooltip)
+        super().setVisible(self._soll and not nur_standard)
 
 
 class _Reihen:
@@ -1441,6 +1498,54 @@ class VierachsPanel:
             aufbau.addWidget(etikett)
             return etikett
 
+        def erklaerung(kasten, text):
+            """Die Erklärung einer Strategie: als Tooltip an ihrem Haken, solange sie nur das
+            Übliche sagt (_Erklaerung)."""
+            etikett = _Erklaerung(kasten, text)
+            etikett.setStyleSheet(f"color: {GRAU_TEXT};")
+            etikett.setWordWrap(True)
+            aufbau.addWidget(etikett)
+            return etikett
+
+        self._klappknoepfe = []
+
+        def klappbar(felder, wahl):
+            """Die Felder einer Strategie hinter „Werte ändern“: Zu sehen ist ihr Fräser als
+            Zeile, der Knopf klappt die Felder auf. Mit dem Haken „alle Werte offen“ in den
+            Einstellungen wie früher: die Felder offen."""
+            if werte_offen():
+                aufbau.addWidget(felder)
+                return
+            zeile = QtGui.QWidget()
+            reihe = QtGui.QHBoxLayout(zeile)
+            reihe.setContentsMargins(22, 0, 0, 0)
+            kurz = self._grau()
+            kurz.setText(wahl.currentText())
+            wahl.currentTextChanged.connect(kurz.setText)
+            reihe.addWidget(kurz, 1)
+            taste = QtGui.QToolButton()
+            taste.setText(tr("beta.werte"))
+            taste.setToolTip(tr("beta.werte.tooltip"))
+            taste.setCheckable(True)
+            taste.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+            taste.setArrowType(QtCore.Qt.RightArrow)
+            reihe.addWidget(taste)
+            huelle = QtGui.QWidget()
+            innen = QtGui.QVBoxLayout(huelle)
+            innen.setContentsMargins(0, 0, 0, 0)
+            innen.addWidget(felder)
+            huelle.hide()
+
+            def klappen(offen, huelle=huelle, taste=taste):
+                huelle.setVisible(offen)
+                taste.setArrowType(QtCore.Qt.DownArrow if offen else QtCore.Qt.RightArrow)
+
+            taste.toggled.connect(klappen)
+            aufbau.addWidget(zeile)
+            aufbau.addWidget(huelle)
+            _Mitgehen(felder, zeile)
+            self._klappknoepfe.append(taste)
+
         def gelb():
             """Ein Satz in Gelb, bis er etwas sagt ausgeblendet (_lage_zeigen) – mit dem
             Verweis „T3 öffnen …“ zum Werkzeug (D-41)."""
@@ -1512,7 +1617,7 @@ class VierachsPanel:
         self.mit_schruppen = haken(
             tr("va.schruppen"), tr("va.schruppen.tooltip"), self._schruppen_umgeschaltet, an=True
         )
-        self.erklaerung_schruppen = grau(tr("va.schruppen.text"))
+        self.erklaerung_schruppen = erklaerung(self.mit_schruppen, tr("va.schruppen.text"))
         self.erklaerung_schruppen.setTextFormat(QtCore.Qt.RichText)
         self.erklaerung_schruppen.linkActivated.connect(self._werkzeug_oeffnen)
         self.hinweis_aendern = QtGui.QLabel()  # beim Ändern: der Fräser fehlt
@@ -1593,7 +1698,7 @@ class VierachsPanel:
         self.schruppen_wendel.hide()
         schruppen.ganz(self.schruppen_wendel)
         self.schruppfelder = schruppen.widget
-        aufbau.addWidget(self.schruppfelder)
+        klappbar(self.schruppfelder, self.wahl_fraeser)
         self.ergebnis = grau()
         self.halter_schruppen = gelb()  # Halter oder Schaft stoßen ans Teil (Frage 7)
         self.hinweis_rund = grau()  # Kugel- und Torusfräser: wie ein Schaftfräser
@@ -1603,7 +1708,7 @@ class VierachsPanel:
         self.mit_schlichten = haken(
             tr("va.schlichten"), tr("va.schlichten.tooltip"), self._schlichten_umgeschaltet
         )
-        self.erklaerung_schlichten = grau(tr("va.schlichten.text"))
+        self.erklaerung_schlichten = erklaerung(self.mit_schlichten, tr("va.schlichten.text"))
         schlichten = _Reihen()
         # Schruppen – messen – schlichten (Manuel, 2026-10-17: „ich will schruppen .. messen ..
         # schlichten“): ein Messstopp zwischen beiden, wie „Schlichten danach“ in „Bearbeitung“.
@@ -1713,7 +1818,7 @@ class VierachsPanel:
         self.schlichten_stetig.toggled.connect(lambda _an: self._stetig_umgeschaltet())
         schlichten.ganz(self.schlichten_stetig)
         self.schlichtfelder = schlichten.widget
-        aufbau.addWidget(self.schlichtfelder)
+        klappbar(self.schlichtfelder, self.wahl_schlichtfraeser)
         self.ergebnis_schlichten = grau()
         # Was die Kugel nach dem Schruppen nimmt (Frage 8) – grau, gelb wenn viel.
         self.rest_schlichten = grau()
@@ -1737,7 +1842,7 @@ class VierachsPanel:
 
         # --- Plan indexiert (V4c) ---
         self.mit_plan = haken(tr("va.plan"), tr("va.plan.tooltip"), self._plan_umgeschaltet)
-        self.erklaerung_plan = grau(tr("va.plan.text"))
+        self.erklaerung_plan = erklaerung(self.mit_plan, tr("va.plan.text"))
         self.plan_grund = grau()  # der Vorschlag mit Grund – oder warum es nicht geht
         plan = _Reihen()
         self.wahl_planfraeser = QtGui.QComboBox()
@@ -1811,7 +1916,7 @@ class VierachsPanel:
         self.mit_planbohrer.hide()  # nur mit Querbohrungen neben anderem und einem Bohrer
         plan.ganz(self.mit_planbohrer)
         self.planfelder = plan.widget
-        aufbau.addWidget(self.planfelder)
+        klappbar(self.planfelder, self.wahl_planfraeser)
         self.ergebnis_plan = grau()
         self.halter_plan = gelb()
         self.lage_plan = gelb()
@@ -1823,7 +1928,7 @@ class VierachsPanel:
         self.mit_entgraten = haken(
             tr("va.entgraten"), tr("va.entgraten.tooltip"), self._entgraten_umgeschaltet
         )
-        self.erklaerung_entgraten = grau(tr("va.entgraten.text"))
+        self.erklaerung_entgraten = erklaerung(self.mit_entgraten, tr("va.entgraten.text"))
         self.entgrat_grund = grau()  # der Vorschlag mit Grund – oder warum es nicht geht
         entgraten = _Reihen()
         self.wahl_entgratfraeser = QtGui.QComboBox()
@@ -1856,7 +1961,7 @@ class VierachsPanel:
             groesse_zeigen(vent.ve.SCHRITT, einheiten.LAENGE)
         )
         self.entgratfelder = entgraten.widget
-        aufbau.addWidget(self.entgratfelder)
+        klappbar(self.entgratfelder, self.wahl_entgratfraeser)
         self.ergebnis_entgraten = grau()
         self.lage_entgraten = gelb()
         self.entgratfelder.setEnabled(False)
@@ -2228,6 +2333,8 @@ class VierachsPanel:
         titel = tr("va.kopf") if nummer == 1 else tr("va.kopf.bearbeitung")
         if nummer == 2 and self.zu_aendern is not None:
             titel = tr("va.kopf.aendern", name=self.zu_aendern.Label)
+            for taste in getattr(self, "_klappknoepfe", ()):
+                taste.setChecked(True)  # wer ändert, will die Werte sehen
         if nummer == 1 and self.zu_aendern is not None and self._stange_vorher is None:
             ansicht = self.job.Stock.ViewObject if self.job.Stock is not None else None
             if ansicht is not None:  # durchsichtig: Flächen des Teils lassen sich anklicken

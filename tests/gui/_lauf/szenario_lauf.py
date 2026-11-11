@@ -456,6 +456,12 @@ def starten():
         "AltesFensterBearbeitung",
         not (getattr(modul, "NEUES_FENSTER", False) or os.environ.get("CAMADDON_NEUES_FENSTER")),
     )
+    # Ebenso der 4-Achs-Assistent: Seine Felder sind seit 0.361.0 je Strategie eingeklappt; die
+    # Szenarien davor prüfen die offene Form.
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(
+        "VierachsWerteOffen",
+        not (getattr(modul, "NEUES_FENSTER", False) or os.environ.get("CAMADDON_NEUES_FENSTER")),
+    )
     helfer = Helfer()
     ablauf = modul.schritte(helfer)
     # Eine Ausnahme in einem Qt-Slot (etwa beim Umschalten eines Hakens) läuft an keinem

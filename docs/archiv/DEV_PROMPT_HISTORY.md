@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-15 vierachs-eingeklappt
+
+### EINGELESEN
+- Manuel, 2026-11-11: „wenn noch WOT vorhanden ist dann sollte man da weiter machen“. Gemessen: Schritt 2 des
+  4-Achs-Assistenten hat 436 Wörter und ist zwei Bildschirme lang – alle Felder aller Strategien offen
+  untereinander.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`: `_Erklaerung` – die Erklärung einer Strategie ist der Tooltip ihres Hakens,
+  solange sie nur das Übliche sagt; `klappbar`, `_Mitgehen`, `werte_offen` – je Strategie ihr Fräser als
+  Zeile, „Werte ändern“ klappt die Felder auf (beim Ändern gleich offen). Der Parameter
+  `VierachsWerteOffen` stellt die alte Form wieder her.
+- `camaddon/gui_sprachwahl.py`: Haken „4-Achs-Assistent: alle Werte offen zeigen“.
+- `tests/gui/_lauf/szenario_lauf.py`: die bisherigen Szenarien prüfen die offene Form (wie beim alten Fenster
+  von „Bearbeitung“); `tests/gui/szenario_vierachs_eingeklappt.py` (neu) die eingeklappte.
+- Hilfe de/en, `translations/`.
+
+### ERGEBNIS
+- Schritt 2: 436 → 149 Wörter, eine Bildschirmhöhe statt zwei. `szenario_vierachs_eingeklappt`,
+  `szenario_vierachs_flaechen`, `szenario_vierachs_schlichten`, `szenario_bearbeitung_standard`,
+  `test_sprache` grün, einzeln gelaufen. Die übrigen rund 30 Szenarien des 4-Achs-Assistenten laufen in der
+  offenen Form und sind heute nicht neu gelaufen.
+- Manuel prüft: „4-Achs-Bearbeitung“, Schritt 2 – je Strategie eine Zeile mit ihrem Fräser, „Werte ändern“
+  klappt auf.
 ## P-2026-11-11-14 flaechen-leuchten-auf
 
 ### EINGELESEN

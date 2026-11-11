@@ -251,6 +251,11 @@ class Einstellungsseite:
         self.fertig_zeigen = QtGui.QCheckBox(tr("einstellungen.fertig_zeigen.haken"))
         self.fertig_zeigen.setToolTip(tr("einstellungen.fertig_zeigen.hinweis"))
         bearbeitung.layout().addWidget(self.fertig_zeigen)
+        # Der 4-Achs-Assistent klappt die Felder je Strategie ein; wer sie alle offen will (wie
+        # bis 0.360), hakt das an.
+        self.vierachs_offen = QtGui.QCheckBox(tr("einstellungen.vierachs_offen.haken"))
+        self.vierachs_offen.setToolTip(tr("einstellungen.vierachs_offen.hinweis"))
+        bearbeitung.layout().addWidget(self.vierachs_offen)
 
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
@@ -291,6 +296,9 @@ class Einstellungsseite:
         self.beta_an.setChecked(gui_bearbeitung_beta.beta_an())
         self.altes_fenster.setChecked(gui_bearbeitung_beta.altes_fenster())
         self.fertig_zeigen.setChecked(gui_bearbeitung_beta.fertig_zeigen_an())
+        from . import gui_vierachs
+
+        self.vierachs_offen.setChecked(gui_vierachs.werte_offen())
         from . import nebenrechner
 
         # Gespeichert heißt 0 „alle“ (ein Rechner mit mehr Kernen nimmt dann alle seine).
@@ -313,6 +321,11 @@ class Einstellungsseite:
         gui_bearbeitung_beta.altes_fenster_setzen(self.altes_fenster.isChecked())
         FreeCAD.ParamGet(gui_bearbeitung_beta.PARAMETER_PFAD).SetBool(
             gui_bearbeitung_beta.FERTIG_ZEIGEN, self.fertig_zeigen.isChecked()
+        )
+        from . import gui_vierachs
+
+        FreeCAD.ParamGet(gui_bearbeitung_beta.PARAMETER_PFAD).SetBool(
+            gui_vierachs.WERTE_OFFEN, self.vierachs_offen.isChecked()
         )
         from . import nebenrechner
 

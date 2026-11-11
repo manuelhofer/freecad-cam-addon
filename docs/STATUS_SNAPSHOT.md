@@ -578,6 +578,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.361.0):* **4-Achs-Assistent eingeklappt:** je Strategie ihr Fräser und „Werte ändern“ statt aller
+  Felder offen (436 → 149 Wörter); die alte Form als Haken in den Einstellungen.
 - *Neu (0.360.0):* **Flächen leuchten auf:** Steht die Maus über „Face27“ in einem Satz oder über einer Zeile
   der Flächenliste, leuchtet die Fläche im Teil. 5-Achs-Übersicht: die Flächen der Ebene türkis im Teil, „Nicht
   dabei“ nur mit Grund und Klick; „Angelegt“: Zeile anklicken wählt die Operation; „Neue Maschine“ nur noch
