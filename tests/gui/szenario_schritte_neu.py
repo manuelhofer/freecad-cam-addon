@@ -106,6 +106,12 @@ def schritte(h):
             f"Warnung bleibt nach dem Ausspannen: {fertig.warnung.text()!r}",
         )
         h.bild("4_angelegt_ausgespannt", fertig)
+        # Eine Zeile anklicken wählt die Operation (FreeCAD hebt dann ihre Bahn hervor).
+        op, zeile = fertig._zeilen[1]
+        fertig.liste.itemClicked.emit(zeile, 0)
+        yield 200
+        gewaehlt = [o.Name for o in Gui.Selection.getSelection()]
+        h.pruefe(gewaehlt == [op.Name], f"Auswahl nach dem Klick auf die Zeile: {gewaehlt}")
         fertig.close()
     yield 500
     FreeCAD.closeDocument(doc.Name)

@@ -8,4 +8,17 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
-Zurzeit keine offenen Fragen.
+## 1. Soll auch der Weg Schritt für Schritt in der Übersicht enden?
+
+**Die Frage:** „Alles vorschlagen →“ endet in der Übersicht (Wege farbig im Teil, Zeiten, was fehlt). Wer
+mit „Weiter“ durch die Schritte geht, endet beim letzten Schritt (meist „Kanten“) und legt dort an – ohne
+dieses Bild. Soll „Weiter“ im letzten Schritt ebenfalls zur Übersicht führen? „Anlegen“ bliebe in jedem
+Schritt.
+
+- **a)** Ja – jeder Weg endet in der Übersicht (ein Klick mehr, dafür immer dasselbe Schlussbild).
+  *Claudes Vorschlag.*
+- **b)** Nein – Schritt für Schritt bleibt, wie es ist.
+
+*Warum nur Manuel:* Es ändert den Ablauf, den du in den Schritten gewohnt bist und so bestellt hast
+(„Anlegen legt an, was bis hier angehakt ist“). *Was die Antwort ändert:* bei a) eine Seite mehr am Ende
+des Schritt-Wegs und die Erwartungen von rund zehn Szenarien. Seit 2026-11-11.

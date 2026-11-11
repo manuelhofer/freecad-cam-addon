@@ -38,11 +38,13 @@ from . import taschen_wahl as tw
 from . import vierachs_rohteil as vr
 from . import werkzeugwahl as ww
 from .gui_bearbeitung import (
+    FLAECHE_VERWEIS,
     SCHRUPPEN_ZUERST,
     BearbeitungPanel,
     BefehlBearbeitung,
     _grau,
     _klappknopf,
+    mit_flaechen,
 )
 from .gui_teile import knopf
 from .gui_zahlen import Zahlenpruefer, dezimal, groesse_lesen, groesse_zeigen
@@ -386,6 +388,11 @@ class BetaPanel(BearbeitungPanel):
         self.uebersicht_text.setWordWrap(True)
         self.uebersicht_text.setTextFormat(QtCore.Qt.RichText)
         self.uebersicht_text.linkActivated.connect(self._uebersicht_verweis)
+        self.uebersicht_text.linkHovered.connect(
+            lambda ziel: self.flaeche_hervorheben(
+                ziel[len(FLAECHE_VERWEIS) :] if str(ziel).startswith(FLAECHE_VERWEIS) else ""
+            )
+        )
         uebersicht.addWidget(self.uebersicht_text)
         aufbau.insertWidget(aufbau.indexOf(self._beta_seiten[KANTEN]) + 1, self.uebersicht_seite)
         self.seiten.append(self.uebersicht_seite)
@@ -896,6 +903,7 @@ class BetaPanel(BearbeitungPanel):
                 tr("beta.anleitung.uebersicht"),
             ]
             self.anleitung.setText(anleitungen[self._seite])
+            self.anleitung.setVisible(True)
         if self._seite == 0 and self.job is not None and not self._aufspannung_fest():
             # Gleich bereit: der nächste Klick ist die Fläche, die unten liegt.
             if not self._beta_unten_klar:
@@ -1241,10 +1249,10 @@ class BetaPanel(BearbeitungPanel):
                 )
             teile = [f"<table cellspacing='2'>{''.join(zeilen)}</table>"]
             if mit_ebene:
-                teile.append(html.escape(self.ebene_text.text()))
+                teile.append(self.ebene_text.text())
         elif mit_ebene:
             # Nichts in diesem Job – aber in einer Ebene, die „Anlegen“ gleich öffnet.
-            teile = [html.escape(self.ebene_text.text())]
+            teile = [self.ebene_text.text()]
         else:
             teile = [html.escape(tr("beta.uebersicht.nichts"))]
         if rest:
@@ -1253,7 +1261,7 @@ class BetaPanel(BearbeitungPanel):
             # Der Satz der Strategie mit seinen Verweisen („T1 auf 51 mm ausspannen“, „So
             # einrichten“): Ein Klick hier behebt es, die Strategie kommt wieder dazu.
             nicht = "<br>".join(
-                f"<b>{html.escape(titel)}:</b> {_verweise_fuer(kennung, satz)}"
+                f"<b>{html.escape(titel)}:</b> {_kurz_mit_verweisen(kennung, satz)}"
                 for kennung, (titel, satz) in self._beta_nicht_dabei.items()
             )
             teile.append(
@@ -1265,7 +1273,18 @@ class BetaPanel(BearbeitungPanel):
                 f"<span style='color: #c03030;'>{html.escape(tr('beta.uebersicht.achtung'))}"
                 f"<br>{'<br>'.join(achtung)}</span>"
             )
-        self.uebersicht_text.setText("<br><br>".join(teile))
+        # Die ganzen Sätze unter „Nicht dabei“ (dort steht nur der Grund und was ihn behebt).
+        self.uebersicht_text.setToolTip(
+            "\n\n".join(
+                f"{titel}: {_ohne_marken(satz)}" for titel, satz in self._beta_nicht_dabei.values()
+            )
+        )
+        # Nennt ein Satz eine Fläche („Face27“), leuchtet sie unter der Maus im Teil auf.
+        self.uebersicht_text.setText(mit_flaechen("<br><br>".join(teile), schrift))
+        if self._seite == UEBERSICHT and self.zu_aendern is None:
+            # „Die Wege stehen farbig im Teil“ nur, wenn es Wege gibt (nicht, wenn hier alles in
+            # einer Ebene drankommt).
+            self.anleitung.setVisible(bool(bahnen))
         self._uebersicht_wege(bahnen)
 
     def _uebersicht_wege(self, bahnen):
@@ -1322,6 +1341,9 @@ class BetaPanel(BearbeitungPanel):
             # Schritt „Flächen“: was zur Tasche der Auswahl noch gehört (die Frage darunter).
             eigene += [(n, TASCHE_FARBE) for n in getattr(self, "_beta_fehlende", None) or ()]
         eigene += [(n, UNFERTIG_FARBE) for n, _k in getattr(self, "_unfertig_liste", None) or ()]
+        if getattr(self, "_seite", 0) >= ERSTER_ABSCHNITT:
+            # Was in einer eigenen Ebene drankommt (der Satz im Schruppen und in der Übersicht).
+            eigene += [(n, EBENE_FARBE) for n in getattr(self, "_beta_geschwenkt", None) or ()]
         if getattr(self, "_seite", 0) == UEBERSICHT:
             eigene += [(n, REST_FARBE) for n in self._rest_flaechen()]
         for name, farbe in eigene:
@@ -1347,6 +1369,10 @@ class BetaPanel(BearbeitungPanel):
             f"<span style='color: {UNFERTIG_FARBE};'>■</span> {html.escape(kurz)}"
         )
         bloecke = self._unfertig_haken()
+        if not bloecke and self._beta_nicht_dabei and self.unfertig_angebot.isHidden():
+            self.unfertig.setText(
+                self.unfertig.text() + " " + html.escape(tr("beta.unfertig.siehe_nicht_dabei"))
+            )
         if bloecke and self.unfertig_angebot.isHidden():
             titel = ", ".join(f"„{b.s.titel()}“" for b in bloecke)
             self.unfertig_satz.setText("")
@@ -1360,7 +1386,10 @@ class BetaPanel(BearbeitungPanel):
         es kann, wenn nicht schon eine gewählte sie mitnimmt. Ohne die unter „Nicht dabei“."""
         wahl = []
         for _name, koennten in self._unfertig_liste:
-            koennten = [b for b in koennten if b.s.kennung not in self._beta_nicht_dabei]
+            if any(b.s.kennung in self._beta_nicht_dabei for b in koennten):
+                # Was diese Fläche fertig macht, steht unter „Nicht dabei“ mit dem Klick, der es
+                # behebt – „Restschlichten anhaken“ daneben führte in die Irre.
+                continue
             if koennten and not any(b in wahl for b in koennten):
                 wahl.append(koennten[0])
         return wahl
@@ -1580,14 +1609,18 @@ class BetaPanel(BearbeitungPanel):
                 FreeCAD.Console.PrintLog(f"Beta: Ebenen nicht geprüft: {fehler}\n")
         if not self._beta_geschwenkt:
             self.ebene_text.hide()
+            self._farben_neu()
             return
-        namen = ", ".join(self._beta_geschwenkt[:6])
-        if len(self._beta_geschwenkt) > 6:
-            namen += " …"
+        # Gezeigt statt aufgezählt: Die Flächen stehen türkis im Teil (_mit_eigenen_farben), der
+        # Satz trägt das Kästchen in dieser Farbe; die Namen sind sein Tooltip.
+        self.ebene_text.setTextFormat(QtCore.Qt.RichText)
         self.ebene_text.setText(
-            tr("beta.ebene.satz", anzahl=len(self._beta_geschwenkt), namen=namen)
+            f"<span style='color: {EBENE_FARBE};'>■</span> "
+            + html.escape(tr("beta.ebene.satz", anzahl=len(self._beta_geschwenkt)), quote=False)
         )
+        self.ebene_text.setToolTip(", ".join(self._beta_geschwenkt))
         self.ebene_text.show()
+        self._farben_neu()
 
     def _tasche_pruefen(self):
         """Gehören die gewählten Flächen zu einer Tasche, von der nur ein Teil gewählt ist: ein Satz
@@ -2438,6 +2471,7 @@ ZEIGE = "zeige|"  # Verweis einer Zeile der Übersicht: nur ihre Wege im Teil
 UNFERTIG_FARBE = "#f08c00"  # hat am Ende keine genaue Bahn
 REST_FARBE = "#8e44ad"  # geht in dieser Aufspannung von oben nicht
 TASCHE_FARBE = "#2f9be0"  # gehört zur Tasche der Auswahl, ist aber nicht gewählt
+EBENE_FARBE = "#12a594"  # kommt in einer eigenen Ebene dran (geschwenkt oder von oben)
 BLASS = "#909090"
 WARN_ROT = "#c03030"
 BALKEN_FARBE = "#3584e4"  # der Zeitbalken einer angehakten Strategie
@@ -2451,6 +2485,18 @@ def _verweise_fuer(kennung, text):
     return re.sub(
         r'href="([^"]+)"', lambda m: f'href="{VERWEIS_BLOCK}{kennung}|{m.group(1)}"', text or ""
     )
+
+
+def _kurz_mit_verweisen(kennung, satz):
+    """Für „Nicht dabei“: vom Satz einer Strategie nur der Grund (bis zum ersten Doppelpunkt oder
+    Punkt) und dahinter seine Verweise („So einrichten“, „T1 auf 51 mm ausspannen“) – der ganze
+    Satz ist der Tooltip der Übersicht. Zeigen statt beschreiben: was fehlt, ist ein Klick."""
+    import re
+
+    grund = re.split(r"[:.](?:\s|$)", _ohne_marken(satz), maxsplit=1)[0].strip()
+    verweise = re.findall(r"<a [^>]*>.*?</a>", _verweise_fuer(kennung, satz))
+    teile = [html.escape(grund, quote=False)] if grund else []
+    return " – ".join(teile + [" · ".join(verweise)] if verweise else teile)
 
 
 def _ohne_marken(text):
@@ -2512,6 +2558,9 @@ class FertigFenster(QtGui.QDialog):
                 zeile.setFont(0, schrift)
             self.liste.addTopLevelItem(zeile)
             self._zeilen.append((op, zeile))
+        # Eine Zeile anklicken wählt die Operation – FreeCAD hebt ihre Bahn im Teil hervor.
+        self.liste.setToolTip(tr("beta.fertig.liste.tooltip"))
+        self.liste.itemClicked.connect(self._zeile_gewaehlt)
         self.liste.resizeColumnToContents(1)
         self.liste.header().setStretchLastSection(False)
         self.liste.header().setSectionResizeMode(0, QtGui.QHeaderView.Stretch)
@@ -2624,6 +2673,16 @@ class FertigFenster(QtGui.QDialog):
         else:
             self.summe.setText(tr("beta.fertig.summe", zeit=zeit, wechsel=self.wechsel))
         self.fertig = True
+
+    def _zeile_gewaehlt(self, zeile):
+        op = next((o for o, z in self._zeilen if z is zeile), None)
+        if op is None:
+            return
+        try:
+            FreeCADGui.Selection.clearSelection()
+            FreeCADGui.Selection.addSelection(op.Document.Name, op.Name)
+        except Exception as fehler:  # noqa: BLE001 – nur Anzeige
+            FreeCAD.Console.PrintLog(f"Angelegt: Operation nicht gewählt: {fehler}\n")
 
     def _knapp_zeigen(self):
         """Je Werkzeug, das zu kurz heraussteht: seine Operationen rot in der Liste, darunter ein

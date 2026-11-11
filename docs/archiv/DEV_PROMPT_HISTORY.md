@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-14 flaechen-leuchten-auf
+
+### EINGELESEN
+- Manuel, 2026-11-11: „mach so das es perfekt ist“. Wo ein Satz noch „Face27“ nennt, weiß niemand, welche
+  Fläche das ist. Und am Bild der 5-Achs-Übersicht (Teil „tief“ an der G550): 150 Wörter – die Ebene als Satz
+  mit sechs Flächennamen, unter „Nicht dabei“ die ganzen Sätze der Strategien (einer mit 60 Wörtern), daneben
+  der Knopf „„Restschlichten“ anhaken“, obwohl die Lösung unter „Nicht dabei“ stand.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`: `mit_flaechen`, `_Satz` – genannte Flächen und Kanten sind Verweise; die Maus
+  darüber lässt sie im Teil aufleuchten (`BearbeitungPanel.flaeche_hervorheben`, Vorauswahl), ebenso über
+  einer Zeile der Flächenliste. `text()` bleibt der gesetzte Satz.
+- `camaddon/gui_neue_maschine.py`: nur noch die Frage „Welche Maschine?“, der Rest als Tooltip.
+- `tests/test_achsbalken.py` (neu), `docs/OFFENE_FRAGEN.md` (Frage 1: Übersicht auch am Ende der Schritte?).
+- `camaddon/gui_bearbeitung_beta.py`: Übersicht – Flächen der Ebene türkis im Teil, der Satz ohne Namen;
+  „Nicht dabei“ zeigt den Grund in einem Halbsatz und die Verweise (`_kurz_mit_verweisen`), der ganze Satz ist
+  der Tooltip; kein Knopf „… anhaken“, wenn die Lösung unter „Nicht dabei“ steht; der Hinweis auf die
+  farbigen Wege nur, wenn es Wege gibt. Fenster „Angelegt“: eine Zeile anklicken wählt die Operation
+  (FreeCAD hebt ihre Bahn hervor).
+- Hilfe de/en, `translations/`, `tests/gui/szenario_beta_schritte.py`, `szenario_schritte_neu.py`.
+
+### ERGEBNIS
+- `test_sprache`, `test_achsbalken`, `szenario_beta_schritte` (mit Prüfungen zu Verweisen, Vorauswahl, Ebene,
+  „Nicht dabei“), `szenario_schritte_neu`, `szenario_neue_maschine` grün, einzeln gelaufen.
+- Nicht gelaufen: das Teil „tief“ an der G550 mit dem neuen Stand – zweimal abgebrochen (einmal von mir, um
+  den neuen Stand zu nehmen; einmal, weil bei Manuel LM Studio mit 17 GB geladen war). Die 5-Achs-Übersicht
+  ist damit nur an ihren Teilen geprüft, nicht am ganzen Bild.
+- Manuel prüft: im Schritt „Flächen“ mit der Maus über eine Zeile der Liste – die Fläche leuchtet im Teil.
 ## P-2026-11-11-13 balken-ehrlich
 
 ### EINGELESEN

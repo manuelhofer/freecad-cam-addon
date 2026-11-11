@@ -69,8 +69,13 @@ class NeueMaschineDialog(QtGui.QDialog):
         super().__init__(eltern)
         self.setWindowTitle(titel or tr("neu.titel"))
         self.setMinimumWidth(520)
-        text = QtGui.QLabel(tr("beispiel.auswahl.text"))
+        # Im Fenster steht nur die Frage; was danach kommt (fertig eingerichtet, Maße, NC-Namen),
+        # ist ihr Tooltip und steht hinter „?“ (wenig Text im Fenster, Arbeitsregeln Abschnitt 8).
+        lang = tr("beispiel.auswahl.text")
+        frage, trenner, _rest = lang.partition("? ")
+        text = QtGui.QLabel(f"<b>{frage}?</b>" if trenner else lang)
         text.setWordWrap(True)
+        text.setToolTip(lang)
         self.liste = QtGui.QListWidget()
         for art in beispielmaschine.ARTEN:
             eintrag = QtGui.QListWidgetItem(beispielmaschine.titel(art))

@@ -21,6 +21,7 @@ import functools
 import html
 import math
 import os
+import re
 import traceback
 import types
 from collections import OrderedDict
@@ -198,24 +199,72 @@ def _grau(text=""):
     return etikett
 
 
+_FLAECHE = re.compile(r"\b(?:Face|Edge)\d+\b")
+_MARKE = re.compile(r"(<[^>]+>)")
+FLAECHE_VERWEIS = "flaeche:"
+
+
+def mit_flaechen(text, farbe):
+    """`text` so, dass jede genannte Fläche oder Kante („Face27“) ein Verweis „flaeche:Face27“
+    ist – steht die Maus darüber, leuchtet sie im Teil auf (BearbeitungPanel.flaeche_hervorheben).
+    Zeigen statt beschreiben (Manuel, 2026-11-11): „Face27“ sagt niemandem, welche Fläche das
+    ist. Ohne solche Namen unverändert; nichts innerhalb von Marken oder vorhandenen Verweisen."""
+    if not text or not _FLAECHE.search(text):
+        return text
+    if not re.search(r"<(?:a|b|i|br|span|font)\b", text):
+        text = html.escape(text, quote=False).replace("\n", "<br>")
+    teile, im_verweis = [], False
+    for stueck in _MARKE.split(text):
+        if stueck.startswith("<"):
+            if stueck.lower().startswith("<a"):
+                im_verweis = True
+            elif stueck.lower().startswith("</a"):
+                im_verweis = False
+        elif not im_verweis:
+            stueck = _FLAECHE.sub(
+                lambda m: f'<a href="{FLAECHE_VERWEIS}{m.group(0)}" style="color: {farbe};">'
+                f"{m.group(0)}</a>",
+                stueck,
+            )
+        teile.append(stueck)
+    return "".join(teile)
+
+
 class _Satz(QtGui.QLabel):
     """Ein Satz, der an zwei Stellen steht – im Überblick (Schritt 2) und bei den Einstellungen
-    (Schritt 3): setText schreibt auch in den Spiegel."""
+    (Schritt 3): setText schreibt auch in den Spiegel. Nennt er Flächen („Face27“), sind sie
+    Verweise: Die Maus darüber lässt sie im Teil aufleuchten (`zeige`); text() bleibt der Satz,
+    wie er gesetzt wurde."""
 
     def __init__(self, farbe):
         super().__init__()
         self.spiegel = QtGui.QLabel()
         self._erlaubt = True
         self._eingeklappt = False
+        self._roh = ""
+        self._farbe = farbe
+        self.zeige = None  # Funktion(name): die Fläche im Teil aufleuchten lassen, „“ nimmt es weg
         for etikett in (self, self.spiegel):
             etikett.setWordWrap(True)
             etikett.setStyleSheet(f"color: {farbe};")
+            etikett.linkHovered.connect(self._ueber_verweis)
         self._sichtbarkeit()
 
     def setText(self, text):  # noqa: N802 – Qt-Name
-        super().setText(text)
-        self.spiegel.setText(text)
+        self._roh = text or ""
+        gezeigt = mit_flaechen(self._roh, self._farbe)
+        super().setText(gezeigt)
+        self.spiegel.setText(gezeigt)
         self._sichtbarkeit()
+
+    def text(self):
+        return self._roh
+
+    def _ueber_verweis(self, ziel):
+        if self.zeige is not None:
+            ziel = str(ziel or "")
+            ist = ziel.startswith(FLAECHE_VERWEIS)
+            self.zeige(ziel[len(FLAECHE_VERWEIS) :] if ist else "")
 
     def erlauben(self, an):
         """Im Überblick nur, wenn die Strategie zur Wahl passt."""
@@ -4596,6 +4645,8 @@ class _Block:
         for etikett in (self.hinweis, self.hinweis.spiegel):
             etikett.linkActivated.connect(self._hinweis_verweis)
         aufbau.addWidget(self.hinweis)
+        for satz in (self.ergebnis, self.material, self.hinweis):
+            satz.zeige = panel.flaeche_hervorheben
         # Ein Angebot mit Knopf (der Block „Fase“: der Fasenfräser aus der Werkzeugverwaltung).
         self.angebot = _Angebot()
         aufbau.addWidget(self.angebot.zeilen[0][0])
@@ -6387,6 +6438,13 @@ class BearbeitungPanel:
         self.flaechen_liste.itemDoubleClicked.connect(
             lambda eintrag: self.flaeche_umschalten(eintrag.data(QtCore.Qt.UserRole))
         )
+        # Die Maus über einer Zeile lässt ihre Fläche im Teil aufleuchten – „Face27“ sagt
+        # niemandem, welche das ist.
+        self.flaechen_liste.setMouseTracking(True)
+        self.flaechen_liste.itemEntered.connect(
+            lambda eintrag: self.flaeche_hervorheben(eintrag.data(QtCore.Qt.UserRole) or "")
+        )
+        self.flaechen_liste.viewportEntered.connect(lambda: self.flaeche_hervorheben(""))
         ziel[0].addWidget(self.flaechen_liste)
         self.flaechen_text = grautext()
         zeile = QtGui.QWidget()
@@ -6911,9 +6969,33 @@ class BearbeitungPanel:
                 self._vor_dem_schliessen()
             self.geschlossen = True
 
+    def flaeche_hervorheben(self, name):
+        """Lässt eine Fläche oder Kante („Face27“, „Edge3“) im Teil aufleuchten – wie unter der
+        Maus (Vorauswahl), ohne sie zu wählen; „“ nimmt es weg. An dem Körper, der zu sehen ist
+        (meist der Klon im Job)."""
+        try:
+            auswahl = FreeCADGui.Selection
+            name = str(name or "")
+            if not name or self.job is None or self._ist_stl():
+                # „clearPreselection“ heißt es im Wochen-Build; ältere kennen „removePreselection“.
+                weg = getattr(auswahl, "clearPreselection", None) or getattr(
+                    auswahl, "removePreselection", None
+                )
+                if weg is not None:
+                    weg()
+                return
+            klon = vr.modell(self.job)
+            teil = vr.original(klon)
+            ansicht = getattr(klon, "ViewObject", None)
+            sichtbar = ansicht is not None and ansicht.Visibility
+            auswahl.setPreselection(klon if sichtbar or teil is None else teil, name)
+        except Exception as fehler:  # noqa: BLE001 – nur Anzeige
+            FreeCAD.Console.PrintLog(f"Fläche hervorheben: {fehler}\n")
+
     def _vor_dem_schliessen(self):
         BearbeitungPanel.offen = None
         self.geschlossen = True
+        self.flaeche_hervorheben("")
         if self._bahnvorschau is not None:
             self._bahnvorschau.weg()
         self._rechnet.ende()

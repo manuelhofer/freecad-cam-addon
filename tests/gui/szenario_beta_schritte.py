@@ -220,6 +220,65 @@ def schritte(h):
         f"Zeitbalken am Räumen: {balken.text()!r} / {balken.toolTip()!r}",
     )
     h.pruefe(not raeumen_satz_sichtbar(panel), "der graue Satz am Räumen steht noch im Schritt")
+    # Flächen in Sätzen sind Verweise, die die Fläche im Teil aufleuchten lassen.
+    from camaddon import gui_bearbeitung as _gb
+
+    satz = _gb.mit_flaechen("In Face27 passt <b>nichts</b>, <a href='x'>Face3</a> & Edge4", "#111")
+    h.pruefe(
+        'href="flaeche:Face27"' in satz
+        and 'href="flaeche:Edge4"' in satz
+        and "flaeche:Face3" not in satz,
+        f"Verweise auf Flächen: {satz!r}",
+    )
+    h.pruefe(_gb.mit_flaechen("ohne Namen < 3", "#111") == "ohne Namen < 3", "Satz ohne Fläche")
+    probe = _gb._Satz("#111")
+    probe.setText("Face2 & mehr")
+    h.pruefe(
+        probe.text() == "Face2 & mehr" and "flaeche:Face2" in probe.spiegel.text(),
+        f"_Satz: {probe.text()!r} / {probe.spiegel.text()!r}",
+    )
+    panel.flaeche_hervorheben("Face2")
+    vorauswahl = Gui.Selection.getPreselection()  # gleich: Neu gefärbt nimmt FreeCAD sie zurück
+    h.pruefe(
+        "Face2" in tuple(getattr(vorauswahl, "SubElementNames", ()) or ()),
+        f"Vorauswahl: {getattr(vorauswahl, 'SubElementNames', None)}",
+    )
+    panel.flaeche_hervorheben("")
+    leer = tuple(getattr(Gui.Selection.getPreselection(), "SubElementNames", ()) or ())
+    h.pruefe("Face2" not in leer, f"Vorauswahl bleibt: {leer}")
+    # „Nicht dabei“ in der Übersicht: nur der Grund und die Verweise, die ihn beheben.
+    from camaddon import gui_bearbeitung_beta as _beta
+
+    kurz = _beta._kurz_mit_verweisen(
+        "flanke",
+        "Halter oder Schaft führen hier in die Wand: Das Werkzeug steht 48 mm heraus. "
+        '<a href="ausspannen:1:161.400:51:">T1 auf 51 mm ausspannen</a>',
+    )
+    h.pruefe(
+        kurz.startswith("Halter oder Schaft führen hier in die Wand – <a ")
+        and "block|flanke|ausspannen:1:161.400:51:" in kurz
+        and "48 mm" not in kurz,
+        f"Nicht dabei, kurz: {kurz!r}",
+    )
+    # Flächen, die in einer Ebene drankommen: türkis im Teil, der Satz ohne Namen (die im Tooltip).
+    echt = panel._geschwenkt
+    panel._geschwenkt = lambda _form: ["Face2"]
+    try:
+        panel._ebene_zeigen()
+        satz = panel.ebene_text.text()
+        h.pruefe(
+            _beta.EBENE_FARBE in satz
+            and "Face2" not in satz
+            and panel.ebene_text.toolTip() == "Face2"
+            and not panel.ebene_text.isHidden(),
+            f"Satz zur Ebene: {satz!r} / {panel.ebene_text.toolTip()!r}",
+        )
+        farben = panel._mit_eigenen_farben({})
+        h.pruefe(farben.get(1) == _beta.EBENE_FARBE, f"Farbe der Fläche der Ebene: {farben}")
+    finally:
+        panel._geschwenkt = echt
+        panel._ebene_zeigen()
+    h.pruefe(panel.ebene_text.isHidden(), "der Satz zur Ebene bleibt stehen")
     # Der Fräser in der Zeile: dieselbe Wahl wie in den Werten, hin und her.
     raeumen = next(b for b in panel.bloecke if b.s.kennung == "raeumen")
     zeile, _huelle, _klapp = panel._beta_werte["raeumen"]

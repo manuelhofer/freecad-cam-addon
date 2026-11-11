@@ -366,7 +366,8 @@ Eleganz im Code. Der Maßstab: Wer den Bildschirm sieht, hat keine Frage.
   wird“; „kürzerer text ist ja nicht besser gibts vll einfach ne andere möglichkeit das gesagte
   umzusetzten oder zu zeigen“): Was sich zeigen lässt, wird gezeigt – Flächen als Farbe im Teil statt
   „Face1, Face2“, Zeiten als Balken statt „319 % langsamer“, Wege im Teil in der Farbe ihrer Zeile, was
-  eine Einstellung bewirkt, gelb in der Vorschau. Was fehlt, ist ein Knopf. Erklärsätze stehen als
+  eine Einstellung bewirkt, gelb in der Vorschau. Was fehlt, ist ein Knopf. Nennt ein Satz doch eine
+  Fläche, geht er durch `gui_bearbeitung.mit_flaechen`: Die Maus darüber lässt sie im Teil aufleuchten. Erklärsätze stehen als
   Tooltip und in der Hilfe, nicht als Absatz unter jedem Feld. Die Szenarien zählen die Wörter je
   Fenster (`woerter.txt`, `szenario_lauf.lesemenge`) – ein Fenster mit einigen hundert Wörtern ist
   ein Fund.
