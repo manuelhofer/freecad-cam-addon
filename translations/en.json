@@ -3754,5 +3754,7 @@
     "beta.beispielwerkzeuge": "Create example tools",
     "beta.beispielwerkzeuge.text": "The tool manager has no cutter with cutting data yet – without a tool there is no suggestion. To get started you can have four common ones created and replace them with yours later.",
     "beta.beispielwerkzeuge.tooltip": "Creates four cutters with example cutting data in the tool manager: end mills Ø 12, Ø 6 and Ø 20, face mill Ø 50. The suggestion uses them right away. The values are assumptions – adapt them to your tools, your material and your machine before milling (“Tool manager …”).",
-    "beta.uebersicht.nicht_dabei": "Not included – something is still missing for these:"
+    "beta.uebersicht.nicht_dabei": "Not included – something is still missing for these:",
+    "beta.fertig.knapp": "Caution – the tool does not stick out far enough:",
+    "beta.fertig.knapp.rat": "Clamp it longer or take a longer tool (tool manager) – “Check on the machine …” shows where holder or shank touch."
 }

@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-04 angelegt-warnt-vor-zu-kurzem-werkzeug
+
+### EINGELESEN
+- Der Weg des neuen Nutzers bis zum Programm nachgespielt: „Programm schreiben …“ geht ohne Maschine
+  (geschrieben wie für eine Fräse, LinuxCNC). Im Kopf des Programms stand „ACHTUNG – knapp: T3 in „Bohrung
+  fräsen T3“ fräst 31,5 mm tief und steht nur 18,0 mm heraus“ – im Fenster „Angelegt“ davor nichts.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_knapp_saetze`, `FertigFenster.warnung` – dieselben Sätze rot im
+  Fenster „Angelegt“, mit dem Rat (länger ausspannen, längeres Werkzeug, „Auf der Maschine prüfen …“).
+- `translations/de.json`, `en.json`; `tests/gui/szenario_schritte_neu.py` (bis „Angelegt“).
+
+### ERGEBNIS
+- `szenario_schritte_neu` grün: neu installiert bis „Angelegt“ mit der Warnung für T3 und T1.
 ## P-2026-11-11-03 kurzer-weg-alles-vorschlagen
 
 ### EINGELESEN

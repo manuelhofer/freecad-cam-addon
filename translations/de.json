@@ -3754,5 +3754,7 @@
     "beta.beispielwerkzeuge": "Beispiel-Werkzeuge anlegen",
     "beta.beispielwerkzeuge.text": "In der Werkzeugverwaltung steht noch kein Fräser mit Schnittwerten – ohne Werkzeug gibt es keinen Vorschlag. Zum Loslegen kannst du vier übliche anlegen lassen und später durch deine ersetzen.",
     "beta.beispielwerkzeuge.tooltip": "Legt vier Fräser mit Beispiel-Schnittwerten in die Werkzeugverwaltung: Schaftfräser Ø 12, Ø 6 und Ø 20, Planfräser Ø 50. Der Vorschlag rechnet sofort damit. Die Werte sind angenommen – vor dem Fräsen an deine Werkzeuge, deinen Werkstoff und deine Maschine anpassen („Werkzeugverwaltung …“).",
-    "beta.uebersicht.nicht_dabei": "Nicht dabei – dafür fehlt noch etwas:"
+    "beta.uebersicht.nicht_dabei": "Nicht dabei – dafür fehlt noch etwas:",
+    "beta.fertig.knapp": "Achtung – das Werkzeug steht zu kurz heraus:",
+    "beta.fertig.knapp.rat": "Länger ausspannen oder ein längeres Werkzeug nehmen (Werkzeugverwaltung) – „Auf der Maschine prüfen …“ zeigt, wo Halter oder Schaft anstoßen."
 }

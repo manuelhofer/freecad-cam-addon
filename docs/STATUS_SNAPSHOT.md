@@ -578,6 +578,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.352.1):* Das Fenster „Angelegt“ warnt rot, wenn eine Operation tiefer fräst, als ihr
+  Werkzeug heraussteht – vorher stand das erst im Kopf des Programms.
 - *Neu (0.352.0):* **Der kurze Weg – „Alles vorschlagen →“** (Manuel, 2026-11-11: „ultra easy … ohne
   gross nachzudenken in freecad sein perfektes CAM“): ein Knopf in Schritt 1 nimmt alles aus der Aufspannung
   und zeigt die **Übersicht** (je Bearbeitung Werkzeug und Zeit, Summe, „Nicht dabei“ mit Grund); „Anlegen“

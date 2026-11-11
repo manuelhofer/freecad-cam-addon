@@ -74,7 +74,25 @@ def schritte(h):
     h.pruefe(float(panel.bohrung.fraeser().durchmesser) == 6.0, "Bohrung fräsen nicht mit dem Ø 6")
     h.pruefe("Nicht dabei" not in text, f"etwas ist nicht dabei: {text[-300:]!r}")
     h.bild("2_mit_beispielwerkzeugen", panel.form)
-    panel.reject()
+    # „Anlegen“ – und das Fenster „Angelegt“ sagt rot, dass der Ø 6 für die 30 mm tiefe Bohrung zu
+    # kurz heraussteht (das stand sonst erst im Kopf des Programms).
+    job = panel.job
+    h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
+    yield 3000
+    yield from h.warte_auf(lambda: beta.FertigFenster.offen is not None, 30000)
+    fertig = beta.FertigFenster.offen
+    h.pruefe(fertig is not None, "kein Fenster „Angelegt“")
+    if fertig is not None:
+        namen = [o.Label for o in job.Operations.Group]
+        h.pruefe("Bohrung fräsen T3" in namen, f"Operationen: {namen}")
+        text = fertig.warnung.text()
+        h.pruefe(
+            fertig.warnung.isVisible() and "T3" in text and "steht nur" in text,
+            f"keine Warnung zur Auskragung: {text!r}",
+        )
+        yield from h.warte_auf(lambda: fertig.fertig, 120000)
+        h.bild("3_angelegt_mit_warnung", fertig)
+        fertig.close()
     yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300

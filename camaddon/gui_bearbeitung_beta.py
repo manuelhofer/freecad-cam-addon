@@ -1952,6 +1952,32 @@ def _fertig_oeffnen(job, neu):
     fenster.show()
 
 
+def _knapp_saetze(job):
+    """Je Operation des Jobs, die tiefer fräst, als ihr Werkzeug heraussteht: der Satz, den der
+    Kopf des Programms dazu schriebe (postprozessor._einspannung_und_knapp) – leer, wenn alles
+    reicht oder es sich nicht lesen lässt."""
+    from . import postprozessor as pp
+    from . import schwenken as sw
+    from . import werkzeuge as wz
+
+    saetze = []
+    try:
+        bibliothek = wz.Bibliothek.laden()
+        geschwenkt = sw.ist_ebene(job)
+        merk = {}
+        for op in job.Operations.Group:
+            tc = getattr(op, "ToolController", None)
+            nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
+            _e, knapp, _m = pp._einspannung_und_knapp(
+                job, op, tc, nummer, bibliothek, geschwenkt, merk
+            )
+            if knapp:
+                saetze.append(knapp)
+    except Exception as fehler:  # noqa: BLE001 – die Warnung darf das Fenster nicht verhindern
+        FreeCAD.Console.PrintLog(f"Angelegt: Auskragung nicht geprüft: {fehler}\n")
+    return saetze
+
+
 def _ohne_marken(text):
     """Ein Satz der Oberfläche ohne seine HTML-Marken (Verweise, Farben) – für die Übersicht."""
     import re
@@ -2025,6 +2051,22 @@ class FertigFenster(QtGui.QDialog):
         aufbau.addWidget(self.liste)
         self.summe = _grau(tr("ba.frage.rechnet"))
         aufbau.addWidget(self.summe)
+        # Was der Kopf des Programms als „ACHTUNG – knapp“ schriebe, steht schon hier – rot, bevor
+        # jemand das Programm schreibt (gesehen 2026-11-11: T3 fräst 31,5 mm tief und steht 18 mm
+        # heraus; in der Übersicht und hier stand davon nichts).
+        self.warnung = QtGui.QLabel()
+        self.warnung.setWordWrap(True)
+        self.warnung.setTextFormat(QtCore.Qt.RichText)
+        self.warnung.setStyleSheet("color: #c03030;")
+        knapp = _knapp_saetze(job)
+        if knapp:
+            liste = "<br>".join(html.escape(satz) for satz in knapp)
+            self.warnung.setText(
+                f"<b>{html.escape(tr('beta.fertig.knapp'))}</b><br>{liste}<br>"
+                f"{html.escape(tr('beta.fertig.knapp.rat'))}"
+            )
+        self.warnung.setVisible(bool(knapp))
+        aufbau.addWidget(self.warnung)
         zeile = QtGui.QHBoxLayout()
         self.knopf_pruefen = knopf(
             tr("beta.fertig.pruefen"),
