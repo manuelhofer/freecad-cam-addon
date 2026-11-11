@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-12 spannmittel-im-3d
+
+### EINGELESEN
+- Manuel, 2026-11-11: „mach so das es perfekt ist“. Schritt 1 zeigte das Teil auf einer Platte
+  (P-2026-11-11-10) – auch dann, wenn ein Schraubstock gewählt war; von ihm stand nur ein Satz da
+  („Schunk KSD 100, bei X 0 mm, Y 0 mm, feste Backe hinten, 10 mm gespannt“).
+
+### DATEIEN
+- `camaddon/gui_tisch.py`: `Tisch.zeigen(box, schluessel, spannmittel)` – das gewählte Spannmittel als
+  Körper im 3D (`_netz`, aus `spannmittel.koerper_im_job`, wie die Kollision ihn nimmt), die Platte schmal
+  darunter.
+- `camaddon/gui_bearbeitung_beta.py`: `_tisch_zeigen` gibt die Aufspannung mit; ein Vorschlag aus dem
+  Katalog („Schunk KSD 100“ anklicken) gilt jetzt auch am Job – bisher stand er nur in der Auswahl
+  (`setCurrentIndex` meldet kein „activated“).
+- Hilfe de/en.
+
+### ERGEBNIS
+- `szenario_beta_schritte`, `szenario_schritte_neu`, `test_tisch`, `test_sprache` grün; am Bild gesehen: Das
+  Rohteil sitzt zwischen den Backen. Manuel prüft: in Schritt 1 unter „Worin gespannt?“ einen Schraubstock
+  wählen – er steht um das Rohteil; „Von unten gespannt“ ändern, die Backen wandern.
 ## P-2026-11-11-11 aendern-zeigt-wege
 
 ### EINGELESEN

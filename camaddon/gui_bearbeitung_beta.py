@@ -728,7 +728,10 @@ class BetaPanel(BearbeitungPanel):
         self._spannmittel_anbieten()
         index = self.wahl_spannmittel.findData(vorhanden.kennung)
         if index >= 0:
-            self.wahl_spannmittel.setCurrentIndex(index)  # → _spannmittel_gewaehlt
+            self.wahl_spannmittel.setCurrentIndex(index)
+            # setCurrentIndex meldet kein „activated“: Der Vorschlag stand sonst nur in der Liste,
+            # am Job galt er nicht (gesehen 2026-11-11 – das Spannmittel fehlte im 3D).
+            self._spannmittel_gewaehlt()
 
     def _spannmittel_gewaehlt(self):
         """Die Wahl wird gleich die Aufspannung am Job (Lage: die, in der es passt, sonst die
@@ -761,6 +764,7 @@ class BetaPanel(BearbeitungPanel):
                 self._fuellt = False
                 self._rohteil_kurz_zeigen()
         self._spannmittel_anbieten()
+        self._tisch_zeigen()  # das Spannmittel steht im 3D um das Rohteil
 
     def _spannung_geaendert(self):
         """Die Spanntiefe gilt auch für die Aufspannung (Backen und Nullpunkt)."""
@@ -919,7 +923,14 @@ class BetaPanel(BearbeitungPanel):
             from . import gui_tisch
 
             self._tisch = gui_tisch.Tisch(self.doc)
-        self._tisch.zeigen(box)
+        # Mit gewähltem Spannmittel steht das Rohteil darin (sm.koerper_im_job, wie die Kollision
+        # es nimmt) – sonst liegt es auf der Platte.
+        auf = sm.aufspannung(self.job) if self.job is not None else None
+        if auf is None:
+            self._tisch.zeigen(box)
+        else:
+            job = self.job
+            self._tisch.zeigen(box, repr(auf.als_dict()), lambda: sm.koerper_im_job(job))
 
     def _tisch_kasten(self):
         """(xmin, ymin, zmin, xmax, ymax, zmax) dessen, was auf dem Tisch liegt: das Rohteil des
