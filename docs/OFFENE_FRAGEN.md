@@ -37,3 +37,18 @@ alles, was von oben geht.
 großen Teilen stehen mit a) gleich sehr viele Flächen in der Liste. *Was die Antwort ändert:* bei a) ein
 Klick weniger im Schritt-Weg, und „Weiter“ geht in „Flächen“ sofort. Seit 2026-11-11.
 
+## 3. Soll die Werkzeugleiste dem Arbeitsweg folgen?
+
+**Die Frage:** Die Leiste „CAM-Addon“ beginnt heute mit dem Einrichten (Neue Maschine, Maschine bearbeiten,
+Maschine verfahren, Werkzeugverwaltung, Halter, Spannmittel, Schnittwerte, Bestückung); „Bearbeitung“ steht
+an elfter Stelle, „Programm schreiben“ an sechzehnter. Wer neu ist, sucht den Anfang.
+
+- **a)** Erst der tägliche Weg, dann das Einrichten, mit Trennstrichen:
+  Bearbeitung · 4-Achs · Schwenken · Simultan · Weiter bearbeiten · Neue Aufspannung | Auf der Maschine
+  prüfen · Programm schreiben | Werkzeugverwaltung · Halter · Spannmittel · Schnittwerte · Bestückung |
+  Neue Maschine · Maschine bearbeiten · Maschine verfahren. *Claudes Vorschlag.*
+- **b)** Bleibt, wie sie ist.
+
+*Warum nur Manuel:* Es ist deine Leiste, du triffst die Knöpfe blind – umsortieren kostet dich Gewöhnung.
+*Was die Antwort ändert:* nur die Reihenfolge, keine Funktion. Seit 2026-11-11.
+
