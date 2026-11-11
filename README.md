@@ -34,8 +34,11 @@ gehen, sind aber nicht geprüft – Rückmeldungen von dort sind besonders willk
 - **Programm** – ein eigener Postprozessor für LinuxCNC, Siemens 840D, Fanuc, Haas, Mach und
   Heidenhain (iTNC 530, TNC 640). Rundachsen nach DIN 66217, einstellbar je Maschine.
 
-**Der Einstieg:** Menü **CAM-Addon → So geht’s** – der Weg vom Teil zum Programm in sechs
-Schritten. Jedes Fenster hat ein **?** mit Hilfe. Beispielteile liegen in
+**Der Einstieg – fünf Klicks:** Teil öffnen → **Bearbeitung** → **Alles vorschlagen →** →
+**Anlegen** → **Programm schreiben …**. Das geht zum Ausprobieren ohne eigene Maschine und mit
+Beispiel-Werkzeugen; der Assistent zeigt die Wege farbig im Teil und fährt sie auf Wunsch ab. Für
+die Werkstatt richtest du danach deine Maschine und deine Werkzeuge ein: Menü **CAM-Addon → So
+geht’s** zeigt den ganzen Weg in sechs Schritten. Jedes Fenster hat ein **?** mit Hilfe. Beispielteile liegen in
 [beispiele/](beispiele/). Das Update lädt sie nicht mit; **CAM-Addon → Beispiele laden …** holt
 sie, wenn du sie willst.
 
@@ -161,6 +164,10 @@ holders, magazines and cutting data per material, assistants for 2.5D, 3D, 4-axi
 milling, a machine simulation with stock removal and collision check, and post processors for
 LinuxCNC, Siemens 840D, Fanuc, Haas, Mach and Heidenhain. Heavy computations run in separate
 FreeCADCmd processes, one per core, so the window stays responsive.
+
+The quickest start: open a part → **Machining** → **Suggest everything →** → **Create** → **Write
+program …**. This works for a first try without a machine of your own and with example tools; the
+wizard shows the paths in colour on the part.
 
 What's new: the weekly updates with pictures are posted under
 [Announcements](https://github.com/manuelhofer/freecad-cam-addon/discussions/categories/announcements)
