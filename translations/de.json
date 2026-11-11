@@ -3722,6 +3722,10 @@
     "ba.frage.eintauchen.tauchen.satz": "Der Fräser taucht senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen – für tiefe Taschen, lange Werkzeuge und schwache Maschinen. Zwischen den Stellen bleiben an den Wänden Zwickel stehen – die nimmt eine Kontur danach.",
     "ba.frage.eintauchen.tauchen.mit": "Mit {werkzeug} senkrecht Stelle an Stelle ins Volle, von der Mitte nach außen – für tiefe Taschen, lange Werkzeuge und schwache Maschinen. Zwischen den Stellen bleiben an den Wänden Zwickel stehen – die nimmt eine Kontur danach.",
     "beta.fertig.titel": "Angelegt",
+    "beta.fertig.ausspannen.tooltip": "Trägt in die Werkzeugverwaltung ein, dass das Werkzeug so weit heraussteht (an seinem Platz im Magazin, wenn es dort steht) – so musst du es an der Maschine einspannen. Einrichtblatt und Programmkopf nennen dann dieses Maß.",
+    "beta.fertig.ausspannen": "T{t} auf {mm} mm ausspannen",
+    "beta.fertig.knapp.zu_kurz": "Dafür ist es zu kurz – ein längeres Werkzeug nehmen.",
+    "beta.fertig.knapp.satz": "T{t} steht {heraus} mm heraus und fräst {tiefe} mm tief.",
     "beta.fertig.kopf": "{n} neue Operationen im Job „{job}“ (fett). Das steht jetzt alles darin:",
     "beta.fertig.operation": "Operation",
     "beta.fertig.zeit": "Zeit",
@@ -3770,7 +3774,6 @@
     "beta.beispielwerkzeuge.text": "Noch kein Fräser in der Werkzeugverwaltung – ohne Werkzeug kein Vorschlag.",
     "beta.beispielwerkzeuge.tooltip": "Legt vier Fräser mit Beispiel-Schnittwerten in die Werkzeugverwaltung: Schaftfräser Ø 12, Ø 6 und Ø 20, Planfräser Ø 50. Der Vorschlag rechnet sofort damit. Die Werte sind angenommen – vor dem Fräsen an deine Werkzeuge, deinen Werkstoff und deine Maschine anpassen („Werkzeugverwaltung …“).",
     "beta.uebersicht.nicht_dabei": "Nicht dabei – dafür fehlt noch etwas:",
-    "beta.fertig.knapp": "Achtung – das Werkzeug steht zu kurz heraus:",
     "beta.fertig.knapp.rat": "Länger ausspannen oder ein längeres Werkzeug nehmen (Werkzeugverwaltung) – „Auf der Maschine prüfen …“ zeigt, wo Halter oder Schaft anstoßen.",
     "beta.anleitung.ein_teil": "„Alles vorschlagen →“ – oder Schritt für Schritt: erst die Fläche anklicken, die unten liegt.",
     "beta.uebersicht.rest": "{anzahl} Flächen gehen von oben nicht (violett im Teil) – „Anlegen und Teil umspannen …“ nimmt sie in der nächsten Aufspannung."

@@ -3061,26 +3061,37 @@ def _einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt, merk=Non
     if not einspannung:
         return name, "", dict(masse)
     knapp = ""
+    tiefe = knapp_tiefe(job, op, auskragung, geschwenkt)
+    if tiefe is not None:
+        knapp = tr(
+            "pp.kopf.knapp_satz",
+            t=nummer,
+            operation=op.Label,
+            tiefe=f"{tiefe:.1f}",
+            auskragung=f"{auskragung:.1f}",
+        )
+    return einspannung, knapp, dict(masse)
+
+
+def knapp_tiefe(job, op, auskragung, geschwenkt=False):
+    """Wie tief die Operation unter der Oberkante des Rohteils fräst (mm), wenn das mehr ist, als
+    ihr Werkzeug abzüglich SPIEL_KNAPP heraussteht (`auskragung`) – sonst None. Nur ohne
+    Rundachsen und Ebene: Dann zählt die Tiefe längs Z. Dieselbe Rechnung für den Kopf des
+    Programms und für das Fenster „Angelegt“ (das daraus den Knopf „… ausspannen“ macht)."""
     rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
     befehle = list(getattr(getattr(op, "Path", None), "Commands", []) or [])
     rund = any(set(c.Parameters) & set(ROTATION) for c in befehle)
-    if rohteil is not None and not rohteil.isNull() and not geschwenkt and not rund:
-        zs = [
-            float(c.Parameters["Z"])
-            for c in befehle
-            if c.Name.upper() in ("G1", "G01", "G2", "G02", "G3", "G03") and "Z" in c.Parameters
-        ]
-        if zs:
-            tiefe = float(rohteil.BoundBox.ZMax) - min(zs)
-            if tiefe > auskragung - SPIEL_KNAPP:
-                knapp = tr(
-                    "pp.kopf.knapp_satz",
-                    t=nummer,
-                    operation=op.Label,
-                    tiefe=f"{tiefe:.1f}",
-                    auskragung=f"{auskragung:.1f}",
-                )
-    return einspannung, knapp, dict(masse)
+    if rohteil is None or rohteil.isNull() or geschwenkt or rund:
+        return None
+    zs = [
+        float(c.Parameters["Z"])
+        for c in befehle
+        if c.Name.upper() in ("G1", "G01", "G2", "G02", "G3", "G03") and "Z" in c.Parameters
+    ]
+    if not zs:
+        return None
+    tiefe = float(rohteil.BoundBox.ZMax) - min(zs)
+    return tiefe if tiefe > auskragung - SPIEL_KNAPP else None
 
 
 def _einspannung_des_controllers(tc, bibliothek):

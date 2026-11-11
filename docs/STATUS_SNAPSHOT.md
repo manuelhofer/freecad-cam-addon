@@ -578,11 +578,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.356.0):* **„Angelegt“: die Warnung ist ein Knopf.** Steht ein Werkzeug zu kurz heraus, sind seine
+  Operationen rot, darunter „T3 auf 35 mm ausspannen“ – ein Klick trägt es in die Werkzeugverwaltung ein.
 - *Neu (0.355.0):* **Zeigen statt sagen** (Manuel: zu viel Text in den Fenstern): Übersicht mit den Wegen
   farbig im Teil (Zeile anklicken = nur ihre), unfertige Flächen orange im Teil mit Knopf „… anhaken“,
   Zeitbalken je Strategie statt grauer Sätze, Schritt 1 ohne Absätze; „Programm schreiben“: Erklärungen als
   Tooltip, die Vorschau zeigt gelb, was eine Einstellung ändert. Die Szenarien zählen die Wörter je Fenster
-  (`woerter.txt`). Noch offen: das Fenster „Angelegt“ (Warnung als Knopf „… ausspannen“), die übrigen Fenster.
+  (`woerter.txt`). Noch offen: die übrigen Fenster (Werkzeugverwaltung, Maschinen, 4-Achs-Assistent …).
 - *Neu (0.354.0):* **Der kurze Weg an der 5-Achs-Maschine:** „Alles vorschlagen“ nimmt die ganze Tasche
   (auch Wände unter dem Rand), die Ebenen der Kette zeigen ebenfalls die Übersicht; „Nicht dabei“ trägt die
   Verweise der Strategie („T1 auf 51 mm ausspannen“) – ein Klick, und sie ist dabei. Am Teil „tief“ an der

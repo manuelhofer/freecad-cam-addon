@@ -88,11 +88,24 @@ def schritte(h):
         h.pruefe("Bohrung fräsen T3" in namen, f"Operationen: {namen}")
         text = fertig.warnung.text()
         h.pruefe(
-            fertig.warnung.isVisible() and "T3" in text and "steht nur" in text,
+            fertig.knapp_box.isVisible() and "T3" in text and "heraus" in text,
             f"keine Warnung zur Auskragung: {text!r}",
         )
         yield from h.warte_auf(lambda: fertig.fertig, 120000)
         h.bild("3_angelegt_mit_warnung", fertig)
+        # Der nächste Schritt ist ein Knopf: „T3 auf … mm ausspannen“ behebt es.
+        knoepfe = [k.text() for k in fertig.knapp_knoepfe]
+        h.pruefe(any(k.startswith("T3 auf ") for k in knoepfe), f"Knöpfe: {knoepfe}")
+        for _ in range(4):  # je Werkzeug einer – nach jedem Klick baut das Fenster sie neu
+            if not fertig.knapp_knoepfe:
+                break
+            fertig.knapp_knoepfe[0].click()
+            yield 300
+        h.pruefe(
+            not fertig.knapp_box.isVisible() and not fertig.warnung.text(),
+            f"Warnung bleibt nach dem Ausspannen: {fertig.warnung.text()!r}",
+        )
+        h.bild("4_angelegt_ausgespannt", fertig)
         fertig.close()
     yield 500
     FreeCAD.closeDocument(doc.Name)

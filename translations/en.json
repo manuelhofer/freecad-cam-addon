@@ -3722,6 +3722,10 @@
     "ba.frage.eintauchen.tauchen.satz": "The cutter plunges straight down, spot next to spot, from the centre outwards – for deep pockets, long tools and weak machines. Between the spots small cusps remain at the walls – a contour pass afterwards takes them.",
     "ba.frage.eintauchen.tauchen.mit": "With {werkzeug} straight down, spot next to spot, from the centre outwards – for deep pockets, long tools and weak machines. Between the spots small cusps remain at the walls – a contour pass afterwards takes them.",
     "beta.fertig.titel": "Created",
+    "beta.fertig.ausspannen.tooltip": "Enters in the tool management that the tool sticks out this far (at its magazine place if it is there) – this is how you have to clamp it at the machine. Setup sheet and program header then state this length.",
+    "beta.fertig.ausspannen": "Clamp T{t} to stick out {mm} mm",
+    "beta.fertig.knapp.zu_kurz": "It is too short for that – take a longer tool.",
+    "beta.fertig.knapp.satz": "T{t} sticks out {heraus} mm and mills {tiefe} mm deep.",
     "beta.fertig.kopf": "{n} new operations in the job “{job}” (bold). This is everything it contains now:",
     "beta.fertig.operation": "Operation",
     "beta.fertig.zeit": "Time",
@@ -3770,8 +3774,7 @@
     "beta.beispielwerkzeuge.text": "No cutter in the tool management yet – no suggestion without a tool.",
     "beta.beispielwerkzeuge.tooltip": "Creates four cutters with example cutting data in the tool manager: end mills Ø 12, Ø 6 and Ø 20, face mill Ø 50. The suggestion uses them right away. The values are assumptions – adapt them to your tools, your material and your machine before milling (“Tool manager …”).",
     "beta.uebersicht.nicht_dabei": "Not included – something is still missing for these:",
-    "beta.fertig.knapp": "Caution – the tool does not stick out far enough:",
-    "beta.fertig.knapp.rat": "Clamp it longer or take a longer tool (tool manager) – “Check on the machine …” shows where holder or shank touch.",
+    "beta.fertig.knapp.rat": "Clamp it longer or take a longer tool (tool management) – “Check on the machine …” shows where holder or shank touch.",
     "beta.anleitung.ein_teil": "“Suggest everything →” – or step by step: first click the face that lies at the bottom.",
     "beta.uebersicht.rest": "{anzahl} faces cannot be reached from above (purple on the part) – “Create and re-clamp the part …” takes them in the next setup."
 }

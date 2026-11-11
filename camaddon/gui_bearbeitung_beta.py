@@ -2279,30 +2279,47 @@ def _fertig_oeffnen(job, neu):
     fenster.show()
 
 
-def _knapp_saetze(job):
-    """Je Operation des Jobs, die tiefer fräst, als ihr Werkzeug heraussteht: der Satz, den der
-    Kopf des Programms dazu schriebe (postprozessor._einspannung_und_knapp) – leer, wenn alles
+def _knapp_liste(job):
+    """(Werkzeugverwaltung, [(Nummer, Werkzeug, heraus, tiefe, [Operationen])]) – je Werkzeug des
+    Jobs, das tiefer fräst, als es heraussteht (postprozessor.knapp_tiefe, wie der Kopf des
+    Programms warnt): wie weit es heraussteht, die größte Tiefe und die Operationen. Mit dem
+    Magazin der Maschine (dort gilt, wie weit es an seinem Platz herausschaut). Leer, wenn alles
     reicht oder es sich nicht lesen lässt."""
+    from . import job_schnittwerte as js
+    from . import magazin as mg
     from . import postprozessor as pp
     from . import schwenken as sw
     from . import werkzeuge as wz
 
-    saetze = []
+    je_werkzeug = {}
+    bibliothek = None
     try:
         bibliothek = wz.Bibliothek.laden()
+        mg.des_jobs(rw.grundjob_von(job), bibliothek)
         geschwenkt = sw.ist_ebene(job)
         merk = {}
         for op in job.Operations.Group:
             tc = getattr(op, "ToolController", None)
             nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
-            _e, knapp, _m = pp._einspannung_und_knapp(
-                job, op, tc, nummer, bibliothek, geschwenkt, merk
+            if not nummer:
+                continue
+            name = getattr(tc, "Name", "")
+            if name not in merk:
+                merk[name] = pp._einspannung_des_controllers(tc, bibliothek)
+            _name, einspannung, heraus, _masse = merk[name]
+            if not einspannung:
+                continue
+            tiefe = pp.knapp_tiefe(job, op, heraus, geschwenkt)
+            if tiefe is None:
+                continue
+            eintrag = je_werkzeug.setdefault(
+                nummer, [nummer, js.werkzeug_von(tc, bibliothek), heraus, 0.0, []]
             )
-            if knapp:
-                saetze.append(knapp)
+            eintrag[3] = max(eintrag[3], tiefe)
+            eintrag[4].append(op)
     except Exception as fehler:  # noqa: BLE001 – die Warnung darf das Fenster nicht verhindern
         FreeCAD.Console.PrintLog(f"Angelegt: Auskragung nicht geprüft: {fehler}\n")
-    return saetze
+    return bibliothek, [tuple(e) for e in je_werkzeug.values()]
 
 
 VERWEIS_BLOCK = "block|"  # in der Übersicht: „block|<Kennung>|<Verweis der Strategie>“
@@ -2312,6 +2329,7 @@ ZEIGE = "zeige|"  # Verweis einer Zeile der Übersicht: nur ihre Wege im Teil
 UNFERTIG_FARBE = "#f08c00"  # hat am Ende keine genaue Bahn
 REST_FARBE = "#8e44ad"  # geht in dieser Aufspannung von oben nicht
 BLASS = "#909090"
+WARN_ROT = "#c03030"
 BALKEN_FARBE = "#3584e4"  # der Zeitbalken einer angehakten Strategie
 
 
@@ -2398,22 +2416,16 @@ class FertigFenster(QtGui.QDialog):
         aufbau.addWidget(self.liste)
         self.summe = _grau(tr("ba.frage.rechnet"))
         aufbau.addWidget(self.summe)
-        # Was der Kopf des Programms als „ACHTUNG – knapp“ schriebe, steht schon hier – rot, bevor
-        # jemand das Programm schreibt (gesehen 2026-11-11: T3 fräst 31,5 mm tief und steht 18 mm
-        # heraus; in der Übersicht und hier stand davon nichts).
-        self.warnung = QtGui.QLabel()
-        self.warnung.setWordWrap(True)
-        self.warnung.setTextFormat(QtCore.Qt.RichText)
-        self.warnung.setStyleSheet("color: #c03030;")
-        knapp = _knapp_saetze(job)
-        if knapp:
-            liste = "<br>".join(html.escape(satz) for satz in knapp)
-            self.warnung.setText(
-                f"<b>{html.escape(tr('beta.fertig.knapp'))}</b><br>{liste}<br>"
-                f"{html.escape(tr('beta.fertig.knapp.rat'))}"
-            )
-        self.warnung.setVisible(bool(knapp))
-        aufbau.addWidget(self.warnung)
+        # Was der Kopf des Programms als „ACHTUNG – knapp“ schriebe, steht schon hier, bevor
+        # jemand das Programm schreibt – und zwar gezeigt: die Zeilen der Operationen rot, je
+        # Werkzeug ein Satz mit dem Knopf, der es behebt („T3 auf 35 mm ausspannen“).
+        self.warnung = QtGui.QLabel()  # der Text aller Sätze – für die Szenarien
+        self.warnung.hide()
+        self.knapp_box = QtGui.QWidget()
+        QtGui.QVBoxLayout(self.knapp_box).setContentsMargins(0, 0, 0, 0)
+        aufbau.addWidget(self.knapp_box)
+        self.knapp_knoepfe = []
+        self._knapp_zeigen()
         zeile = QtGui.QHBoxLayout()
         self.knopf_pruefen = knopf(
             tr("beta.fertig.pruefen"),
@@ -2497,6 +2509,68 @@ class FertigFenster(QtGui.QDialog):
         else:
             self.summe.setText(tr("beta.fertig.summe", zeit=zeit, wechsel=self.wechsel))
         self.fertig = True
+
+    def _knapp_zeigen(self):
+        """Je Werkzeug, das zu kurz heraussteht: seine Operationen rot in der Liste, darunter ein
+        Satz und der Knopf „T… auf … mm ausspannen“ – er trägt es in die Werkzeugverwaltung (am
+        Platz im Magazin) ein, die Warnung ist weg, und Einrichtblatt und Programmkopf nennen das
+        neue Maß. Ist das Werkzeug dafür zu kurz, sagt es der Satz."""
+        from . import postprozessor as pp
+
+        box = self.knapp_box.layout()
+        while box.count():
+            altes = box.takeAt(0).widget()
+            if altes is not None:
+                altes.deleteLater()
+        self.knapp_knoepfe = []
+        normal = QtGui.QTreeWidgetItem().foreground(0)
+        for _op, zeile in self._zeilen:
+            zeile.setForeground(0, normal)
+            zeile.setToolTip(0, "")
+        bibliothek, liste = _knapp_liste(self.job)
+        saetze = []
+        for nummer, werkzeug, heraus, tiefe, operationen in liste:
+            satz = tr(
+                "beta.fertig.knapp.satz",
+                t=nummer,
+                heraus=dezimal(f"{heraus:.0f}"),
+                tiefe=dezimal(f"{tiefe:.1f}"),
+            )
+            for op, zeile in self._zeilen:
+                if op in operationen:
+                    zeile.setForeground(0, QtGui.QBrush(QtGui.QColor(WARN_ROT)))
+                    zeile.setToolTip(0, satz)
+            reihe = QtGui.QWidget()
+            aufbau = QtGui.QHBoxLayout(reihe)
+            aufbau.setContentsMargins(0, 0, 0, 0)
+            ziel = None
+            if werkzeug is not None and bibliothek is not None:
+                ziel = rw.ausspannen_auf(werkzeug, bibliothek, heraus, tiefe + pp.SPIEL_KNAPP)
+            if ziel is None:
+                satz += " " + tr("beta.fertig.knapp.zu_kurz")
+            etikett = QtGui.QLabel("⚠ " + satz)
+            etikett.setWordWrap(True)
+            etikett.setStyleSheet(f"color: {WARN_ROT};")
+            etikett.setToolTip(tr("beta.fertig.knapp.rat"))
+            aufbau.addWidget(etikett, 1)
+            if ziel is not None:
+                weit, laenge = ziel
+                taste = knopf(
+                    tr("beta.fertig.ausspannen", t=nummer, mm=dezimal(f"{weit:.0f}")),
+                    tr("beta.fertig.ausspannen.tooltip"),
+                    lambda w=werkzeug, n=laenge, h=weit, b=bibliothek: self._ausspannen(w, n, h, b),
+                )
+                aufbau.addWidget(taste)
+                self.knapp_knoepfe.append(taste)
+            box.addWidget(reihe)
+            saetze.append(satz)
+        self.warnung.setText("\n".join(saetze))
+        self.knapp_box.setVisible(bool(liste))
+
+    def _ausspannen(self, werkzeug, laenge, heraus, bibliothek):
+        rw.ausspannen_setzen(werkzeug, laenge, heraus, bibliothek)
+        bibliothek.speichern()
+        self._knapp_zeigen()
 
     def _befehl(self, name):
         """Den Job wählen und den Befehl starten – das Fenster geht zu."""

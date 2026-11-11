@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-08 angelegt-ausspannen-knopf
+
+### EINGELESEN
+- Manuel, 2026-11-11: „gibts vll einfach ne andere möglichkeit das gesagte umzusetzten oder zu zeigen“ –
+  weiter mit dem Fenster „Angelegt“: vier rote Zeilen Text („T3 in „Bohrung fräsen T3“ fräst 31.5 mm tief
+  und steht nur 18.0 mm heraus … Länger ausspannen oder ein längeres Werkzeug nehmen“), kein Knopf.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung_beta.py`: `_knapp_liste` (je Werkzeug: heraus, größte Tiefe, Operationen),
+  `FertigFenster._knapp_zeigen` – die Operationen rot in der Liste, je Werkzeug ein Satz und der Knopf
+  „T3 auf 35 mm ausspannen“ (`_ausspannen`: reichweite.ausspannen_auf/-setzen, am Platz im Magazin).
+- `camaddon/postprozessor.py`: `knapp_tiefe` aus `_einspannung_und_knapp` herausgezogen – dieselbe
+  Rechnung für Programmkopf und Fenster, die Ausgabe ist unverändert.
+- `translations/`, `tests/gui/szenario_schritte_neu.py` (klickt die Knöpfe, die Warnung ist weg).
+
+### ERGEBNIS
+- `szenario_schritte_neu`, `test_programmkopf`, `test_sprache` grün. Manuel prüft: Block mit zwei
+  Bohrungen, „Alles vorschlagen →“, „Beispiel-Werkzeuge anlegen“, „Anlegen“ – im Fenster „Angelegt“ sind
+  „Bohrung fräsen T3“ und „Wände schlichten T1“ rot, darunter „T3 auf 35 mm ausspannen“; ein Klick, die
+  Zeile ist weg, und das Einrichtblatt nennt 35 mm.
 ## P-2026-11-11-07 zeigen-statt-sagen
 
 ### EINGELESEN
