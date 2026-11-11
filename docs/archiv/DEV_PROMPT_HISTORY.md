@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-11-20 so-gehts-kurzer-weg
+
+### EINGELESEN
+- Am Bild der Hilfeseite „So geht's“ (`szenario_erster_start`): Sie beginnt mit „Sechs Schritte … 1 Maschine
+  bauen, 2 Werkzeuge anlegen“ – wer neu ist, liest, er müsse erst eine Maschine bauen. Seit 0.352 geht es in
+  fünf Klicks ohne beides.
+
+### DATEIEN
+- `help/de/so_gehts.html`, `help/en/so_gehts.html`: oben „Der kurze Weg – fünf Klicks“, die sechs Schritte
+  darunter als „Alles der Reihe nach“.
+
+### ERGEBNIS
+- Reine Hilfe, kein Lauf.
 ## P-2026-11-11-19 eine-ueberschrift
 
 ### EINGELESEN
