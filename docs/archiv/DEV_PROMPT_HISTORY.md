@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-12-04 vorbohren-morph-im-loch
+
+### EINGELESEN
+- Suche nach besseren und neuen Strategien (fünf Sucher, 51 Kandidaten, 18 bewertet) und drei Messungen mit
+  Gegenrechnung: der Planfräser in Ringen von außen (Manuels Platte), vorgedreht (Ring), ein Loch des Teils
+  als Einstieg (Tasche 40 × 30 × 15 mit Bohrung, Stufentasche).
+- Befund der Messung „Loch“: Mit Vorbohren wurde am Anfang der Morph-Helix auf ihrem Kreis gebohrt, und mit
+  dem Loch fiel der Morph weg – die Rampe blieb, 2,1 statt 1,6 min. Die Gegenrechnung: Die Helix lief durch
+  das Loch, nicht ins Volle; ein Zeitgewinn durch ein Loch ist nicht zu holen.
+- Manuel, 2026-10-25: „bei egal welchem teil immer wenn man eintauchen muss ists gut wenn vorgebohrt ist“.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_Lage.eintauch_ort` (die Mitte der Morph-Helix als Eintauchstelle),
+  `_Lage.hinab_im_freien`, `_loch_im_material`, `_flaeche` (der Morph bleibt mit einem Vorbohrloch in der
+  Tasche), `_ringe_morph_tasche(…, loch)` (senkrecht ins Loch, die Spirale beginnt in der Mitte).
+- `tests/test_raeumen.py`: Tasche ohne feste Variante – gebohrt wird in der Mitte der Helix; mit Loch Morph,
+  0 Rampen, 0-mal ins Volle, die Last hält; im Prüfstand nachgefahren.
+- `docs/spezifikation_strategien.md` (12.9 Nachtrag; 13.6 Nachmessung der Bohrung; 13.7 die Suche, die
+  Rangliste und die drei Messungen), `docs/OFFENE_FRAGEN.md` (Fragen 2 und 3 mit Bildern),
+  `docs/bilder/vorschlaege/` (drei Bilder), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.365.1).
+
+### ERGEBNIS
+- Tasche 40 × 30 × 15, Ø 12, Bohrer Ø 13: mit Loch 0 Rampen und 0-mal ins Volle (vorher 1 und 1); eine Lage
+  0,89 → 0,99 min (scharfe Ecken), 1,03 → 0,94 min (R 6,5); drei Lagen 2,35 → 2,93 / 2,78 → 2,79 min.
+- Testteil nach P-2026-11-12-01 nachgemessen: „Bohrung fräsen T1“ 0,47 → 0,23 min, zusammen 13,70 → 13,47 min.
+- Keine Frage an Manuel wurde der Kandidat „Einfahren durch ein Loch des Teils“ (kein Zeitgewinn).
+- Sehen: Tasche anklicken, im Schritt „Schruppen“ den Weg „vorbohren“ wählen – die Vorschau zeigt die
+  Spirale aus der Mitte der Tasche, keine Helix mehr.
 ## P-2026-11-12-03 zeit-als-balken
 
 ### EINGELESEN

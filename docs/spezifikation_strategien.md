@@ -2162,6 +2162,31 @@ wenn man eintauchen muss ists gut wenn vorgebohrt ist oder?“
   hieß es „Für die Senkung Ø 61 fehlt ein Kegelsenker 90° ab Ø 61“ – die 0,5-mm-Fase an der
   Ø-60-Ansenkung; jetzt steht sie bei „Ohne die Fasen …“ und „Fasen dazu“ bietet sie an.
 
+**Vorbohren und der Morph in der Tasche (P-2026-11-12-04).** Ohne feste Variante nimmt das Räumen
+in der Tasche 40 × 30 × 15 den Morph: Helix um die Mitte, dann die Spirale nach außen. Bis 0.365
+stand als Eintauchstelle der Anfang der Helix auf ihrem Kreis (5,4 mm neben der Mitte) – dort wurde
+gebohrt –, und mit dem Loch im Materialstand fiel der Morph weg (`_ueberall_bis`); der
+Adaptiv-Kern fuhr seine Helix durch das Loch, die Rampe blieb (gemessen 2,1 statt 1,6 min mit Bohren
+und Wechseln). Jetzt:
+
+- `_Lage.eintauch_ort`: Für die Helix des Morphs meldet `Raeumbahn.eintauchen` ihre Mitte.
+- `_loch_im_material`: Fehlt dem Material über der Tasche nur ein rundes Loch bis auf den Grund,
+  bleibt der Morph (`_flaeche`) und nimmt das Loch als Mitte (`_ringe_morph_tasche(…, loch)`).
+- Passt der Fräser hinein (Loch mindestens so groß wie er, in der Mitte höchstens der Saum des
+  Rasters unter der Stirn): senkrecht hinab (`_Lage.hinab_im_freien`), keine Helix; die Spirale
+  beginnt in der Mitte. Wie weit die ersten Ringe hinausrücken, sagt wie immer der Eingriff; weil
+  der Fräser im Loch das Material fast ganz umschlingt, fahren sie mit gesenktem Vorschub
+  (`_gebremst`). Ist das Loch kleiner als der Fräser: die Helix um das Loch.
+- Gemessen (Ø 12, ae 1,5, Bohrer Ø 13; Bild
+  [vorbohren_morph_im_loch.png](bilder/vorschlaege/vorbohren_morph_im_loch.png)): ap 25 in einer
+  Lage 0,89 → 0,99 min (scharfe Ecken) bzw. 1,03 → 0,94 min (Ecken R 6,5); in drei Lagen 2,35 →
+  2,93 bzw. 2,78 → 2,79 min – je 0 Rampen, 0-mal ins Volle, die Last hält. Schneller wird es durch
+  das Loch nicht (die Helix räumt ihren Kreis selbst, mit vollem Vorschub); es schont die
+  Stirnschneiden. Der Ring an der Wand fährt mit Loch gebremst – die Spirale lässt ihm mehr; offen.
+- Der Prüfstand zählt die „Breite im Eingriff“ ohne den Vorschubanteil: an den engen Ringen meldet
+  er 3,3 ae über 85 mm, obwohl `last()` mit dem gesenkten Vorschub hält. Offen: den Anteil dort
+  mitzählen.
+
 ## 13. Manuels Testteil für die 3-Achs-Fräse (W-013, 2026-10-02)
 
 Manuel: „dies ist ein testteil .. für fräsmaschinen ... 3 achs... das muss sinnvoll bearbeitet
@@ -2449,7 +2474,7 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
 | Räumen T3 | 0,20 min | 104 mm | 11 mm | |
 | Kontur T1 | 0,41 min | 283 mm | 82 mm (29 %) | |
 | 3D-Schruppen T1 | 0,78 min | 495 mm | 120 mm (24 %) | neun Lagen über der Mulde: je 9 mm Schnitt in der Nische, dann 47 mm im Freivorschub quer und zurück |
-| Bohrung fräsen T1 | 0,47 min | 380 mm | **313 mm (82 %)** | die Helix begann am Rohteil, 13 mm über dem Material – *behoben, P-2026-11-12-01* |
+| Bohrung fräsen T1 | 0,47 min | 380 mm | **313 mm (82 %)** | die Helix begann am Rohteil, 13 mm über dem Material – *behoben, P-2026-11-12-01: nachgemessen 0,23 min, 170 mm, zusammen 13,47 min* |
 | Restmaterial T3 | 0,08 min | 32 mm | 11 mm | |
 | 3D-Schlichten T5 | 1,26 min | 712 mm | 0 mm | |
 | **zusammen** | **13,70 min** | | | 4 Werkzeugwechsel je 10 s |
@@ -2477,6 +2502,57 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
 
 Die Messwerkzeuge liegen bei Manuel in `~/freecad_cam/wip/pruefhelfer/` (`luft.py`,
 `last_verlauf.py`, `last_bild.py`), der gespeicherte Job in `~/freecad_cam/wip/strategien/`.
+
+### 13.7 Suche nach besseren und neuen Strategien (2026-11-12)
+
+Manuel, 2026-11-12: „schau das du alles verbessern kannst was geht und auch vll bessere Strategien
+findest und Strategien suchst die es noch nicht gibt!!“. Fünf Sucher (Bestand des Addons, käufliche
+CAM-Systeme, Forschung, eigene Ideen aus Sicht des Zerspaners, Durchsicht der Fenster), 51
+Kandidaten, zusammengeführt auf 18, von drei Blickwinkeln bewertet (Zerspaner, Umsetzbarkeit,
+messbarer Nutzen; je 0–10). Die ganze Liste mit Urteilen und „erster Schritt“ liegt bei Manuel in
+`~/freecad_cam/wip/strategien/rangliste_2026-11-12.json`, die Messungen mit Skripten und
+Gegenrechnung in den Ordnern daneben.
+
+| Punkte | Kandidat | Stand |
+| ---: | --- | --- |
+| 25 | Der Große schält in Ringen von außen, der Kleine nur den Rest | gemessen → Frage 2 |
+| 25 | Was rund ist, wird gedreht – Hüllkontur vordrehen (CLX550) | gemessen → Frage 3 |
+| 24 | Zwei gleiche Schlichtschnitte, dazwischen misst der Taster | → Frage 1 |
+| 22 | Einfahren durch ein Loch, das das Teil ohnehin hat | gemessen: kein Zeitgewinn, keine Frage |
+| 18 | Werkzeug bleibt drin: Folge über alle Ebenen nach Wechsel-, Schwenk- und Eilgangzeit | offen |
+| 17 | Vorschub je Satz nach wirklicher Spandicke | am Testteil gemessen (13.6): klein |
+| 17 | Skelett-Spirale für lange Taschen und Taschen mit Insel | offen (nur Forschung) |
+| 16 | Innenecken entlasten (ausbohren, ausstechen, vorschälen) | offen |
+| 16 | Hinter der Kante: Ringnut, T-Nut, rückwärts senken mit dem Scheibenfräser | offen – fehlt im Addon |
+| 16 | Rohteil antasten, Planlagen nach Messwert | offen |
+| ≤ 15 | Drehzahl nach wirksamem Ø der Kugel; kurz gespannt zuerst; Tonne an der 5-Achs; Gratkarte; Schneidenkonto; Abschnitt für Abschnitt fertig; dünne Wand gestützt; Ratter-Probeschnitt | offen |
+
+**Gemessen (je Kandidat ein Rechner, danach ein zweiter, der die Zahlen auf anderem Weg nachrechnet):**
+
+- **Planfräser in Ringen (Manuels Platte 200 × 200, 20 mm ab, Zapfen Ø 20):** alles Ø 12 33,4 min;
+  Plan 50 in Zeilen 24,6 + Wechsel + Ø 12 Rest 1,4 = 26,1 min; Plan 50 mit dem Räumen „rohteil“
+  27,3 + Wechsel + Rest 0,8 = 28,3 min; Untergrenze mit ae 35: 11,9 min. Die Ringe des Räumens
+  taugen für den Messerkopf so nicht: ae höchstens R (25 statt 35), Quadratringe überlappen
+  (24 m Vorschub statt 16), 8 Rampen am Kreisring um den Zapfen, am Zapfen 0,7 mm Luft nur mit
+  45°-Platten. Eigene Ringe (ae bis 0,7 D, Einrollbogen, zusammenhängend, ohne Rampe) sind nicht
+  gebaut und nicht gemessen – Frage 2.
+- **Nebenbefund Planfräsen:** Die Zeilen des Plan 50 tauchen an der Platte 20-mal senkrecht ins
+  Material (je Lage links und rechts neben dem Zapfen, `_einfahrt` mit `nachbar`: unter der Stirn
+  steht der Streifen ae – beim Messerkopf 35 von 50 mm). Das kommt heraus, gleich wie Frage 2
+  ausgeht: Jedes Stück einer unterbrochenen Zeile beginnt an dem Ende, das in der Luft liegt.
+  *Offen.*
+- **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
+  mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
+  15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130
+  Umdrehungen der C-Achse im Eilgang – obwohl nach Spezifikation 4-Achs, Abschnitt 12, die Maschine
+  plan dreht. Beim Einbau: Lage 1 befragt den Rest nicht (`vierachs_bahn`, „lage > 1“) und führe
+  im Freivorschub auf dem gedrehten Ø entlang – das muss weg. Frage 3.
+- **Loch im Boden (Tasche 40 × 30 × 15 mit Bohrung Ø 13; Stufentasche):** Das Räumen nutzt ein
+  Loch des Teils nicht als Einstieg, und es wäre auch nichts zu holen: Die Helix räumt 36 % der
+  Tasche selbst (19 cm³/min, schneller als der Rest der Bahn), ein Schacht für die Stufentasche
+  ist so lang wie beide Helixe zusammen. Keine Frage an Manuel. Gefunden dabei: Mit Vorbohren
+  wurde am Anfang der Morph-Helix auf ihrem Kreis gebohrt, nicht in ihrer Mitte, und mit dem Loch
+  fiel der Morph weg (2,1 statt 1,6 min, die Rampe blieb) – *behoben, P-2026-11-12-04*.
 
 ## 13b. Im Freien schnell – alle Strategien (P-2026-10-04-39)
 

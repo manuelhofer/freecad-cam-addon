@@ -1264,6 +1264,83 @@ pruefe(
     f"Bohren: {len(ops_v)} Operationen, Zyklen {[(b.Name, b.Parameters) for b in zyklen]}",
 )
 
+# Ohne feste Variante nimmt das Räumen in dieser Tasche den Morph: eine Helix um die Mitte, dann
+# die Spirale nach außen. Vorgebohrt wird in der Mitte der Helix (bis 0.365: an ihrem Anfang auf
+# dem Kreis, 5,4 mm daneben), und mit dem Loch bleibt es beim Morph – senkrecht hinein, keine
+# Helix, keine Rampe, die ersten Ringe so eng, wie der Eingriff im Loch es verlangt (bis 0.365
+# fiel der Morph mit dem Loch weg, und die Helix des Adaptiv-Kerns lief neben der Lochmitte).
+ohne_m = ra.vorschau_fuer_assistent(job_v, form, 25.0, 1.5, 0.3, [boden_v], stand=stand_v)
+stellen_m = ra.vorbohr_stellen(ohne_m)
+mit_m = ra.vorschau_fuer_assistent(
+    job_v,
+    form,
+    25.0,
+    1.5,
+    0.3,
+    [boden_v],
+    stand=stand_v,
+    vorbohren={"durchmesser": d_v, "spitzenwinkel": 118.0, "vorschub": 200.0},
+)
+print(
+    ascii(
+        f"Vorbohren, Morph: ohne {ohne_m.variante} {ohne_m.zeit:.2f} min, {ohne_m.rampen} Rampen, "
+        f"Stellen {stellen_m}; mit {mit_m.variante} {mit_m.zeit:.2f} min, {mit_m.rampen} Rampen, "
+        f"{len(mit_m.eintauchen)}-mal ins Volle, haelt {mit_m.haelt}, ueberlastet {mit_m.ueberlastet}"
+    )
+)
+pruefe(ohne_m.variante == "morph", f"Tasche 40 x 30 ohne Vorgabe: {ohne_m.variante} statt Morph")
+pruefe(
+    len(stellen_m) == 1 and math.hypot(stellen_m[0][0] - 40.0, stellen_m[0][1] - 40.0) < 0.75,
+    f"Vorbohren, Morph: gebohrt wird in der Mitte der Helix (40/40), nicht bei {stellen_m}",
+)
+pruefe(
+    mit_m.variante == "morph" and not mit_m.eintauchen and mit_m.rampen == 0,
+    f"Vorbohren, Morph: {mit_m.variante}, {len(mit_m.eintauchen)}-mal ins Volle, {mit_m.rampen} Rampen",
+)
+# Die Last hält: Die ersten, engen Ringe um das Loch fahren mit gesenktem Vorschub (im Loch
+# umschlingt der Fräser das Material fast ganz) – darum ist es mit Loch nicht schneller.
+pruefe(
+    mit_m.haelt and mit_m.gebremst > 0,
+    f"Vorbohren, Morph: hält {mit_m.haelt}, gebremst {mit_m.gebremst} ({mit_m.ueberlastet})",
+)
+pruefe(
+    mit_m.zeit < ohne_m.zeit + 0.25,
+    f"Vorbohren, Morph: mit Loch {mit_m.zeit:.2f} min, ohne {ohne_m.zeit:.2f}",
+)
+
+
+# Im Quader nachgefahren, mit dem Loch darin: nichts ins Teil, nichts im Eilgang weggenommen, und
+# nach dem Loch kein Satz mit dem Fräser in voller Breite im Material.
+def loch_m(q_):
+    for x_, y_, z_ in stellen_m:
+        q_.fahre_stuecke([(x_, y_, 35.0)], [(x_, y_, z_)], d_v / 2.0)
+
+
+k_m = ps.messen(
+    [ps.Bahnlauf(mit_m.punkte, VF, VF * 0.3)],
+    teil_v,
+    (0.0, 80.0, 0.0, 80.0),
+    30.0,
+    form,
+    1.5,
+    25.0,
+    ebenen_z=[15.0],
+    aufmass=0.3,
+    start=loch_m,
+)
+print(ascii(f"Vorbohren, Morph im Pruefstand: {ps.zeile(k_m)}"))
+# (Der Rest zählt hier nicht: Die Tasche hat scharfe Ecken, in die kein Fräser kommt.)
+pruefe(
+    k_m.einschnitt >= -0.05 and k_m.eilgang_abtrag <= 1.0 and k_m.schnell_abtrag <= 1.0,
+    f"Vorbohren, Morph: Einschnitt {k_m.einschnitt:.2f}, im Eilgang {k_m.eilgang_abtrag:.0f} mm³, "
+    f"im Schnellvorschub {k_m.schnell_abtrag:.0f} mm³",
+)
+pruefe(
+    k_m.eintauchungen == 0 and k_m.rampen == 0 and k_m.kehren == 0,
+    f"Vorbohren, Morph: {k_m.eintauchungen} Eintauchungen, {k_m.rampen} Rampen im Material",
+)
+pruefe(k_m.voll <= 1.0, f"Vorbohren, Morph: {k_m.voll:.1f} mm in voller Breite")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

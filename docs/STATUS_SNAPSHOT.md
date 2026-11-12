@@ -578,6 +578,16 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.365.1):* **Vorbohren trifft in der Tasche die Mitte:** Mit dem Morph (Helix um die Mitte,
+  Spirale nach außen) wurde bisher am Anfang der Helix gebohrt, und mit dem Loch fiel der Morph weg – die Rampe
+  blieb. Jetzt wird in der Mitte gebohrt, der Fräser taucht im Loch senkrecht ein und die Spirale beginnt
+  dort (0 Rampen, 0-mal ins Volle; Spezifikation Strategien 12.9, Nachtrag). **Suche nach besseren und neuen
+  Strategien** (Spezifikation Strategien 13.7): 18 Kandidaten bewertet, drei gemessen und gegengerechnet,
+  drei Fragen an Manuel (`OFFENE_FRAGEN.md`: zwei gleiche Schlichtschnitte mit Messen; Planfräser in Ringen von
+  außen; Drehkontur vordrehen). *Offen daraus, ohne Frage:* das Planfräsen taucht mit dem Messerkopf neben
+  einem Zapfen senkrecht ins Material (20-mal an Manuels Platte) – jedes Stück einer unterbrochenen Zeile soll
+  an dem Ende beginnen, das in der Luft liegt; die Zacken aus dem Raster an Wänden (3D-Schruppen, Räumen in
+  engen Taschen); der Prüfstand zählt die Breite im Eingriff ohne den Vorschubanteil.
 - *Neu (0.365.0):* **„Auf der Maschine prüfen“ zeigt die Zeit als Balken:** je Operation ein Stück in ihrer
   Farbe, so breit wie ihr Anteil; unter der Maus Name und Zeit, ein Klick springt im Abspieler dorthin – statt
   der Kette „… · „Räumen T1“ 9,8 min · „Räumen T3“ 22 s · …“. Dazu aus der Durchsicht der Fenster (2026-11-12,

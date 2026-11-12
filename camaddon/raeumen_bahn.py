@@ -934,6 +934,27 @@ class _Lage:
         # der Rücklauf zu einem Stich außen um das Rohteil herum, unten im Eilgang.
         self.eckenboegen = False
         self.kennung = ""
+        # Die Mitte der Helix, um die der nächste Ring hinabgeht (_ringe_morph_tasche) – für
+        # st.eintauchen: Dort gehört das Vorbohrloch hin.
+        self.eintauch_ort = None
+
+    def hinab_im_freien(self, p):
+        """Senkrecht hinab an `p`, wo unter der Stirn nichts mehr steht (ein Vorbohrloch): der
+        Anfang einer Lage ohne Helix und ohne Rampe – wie der Zweig „nichts unter der Stirn“ in
+        _lauf, nur ohne Ring. Danach steht die Spitze dort auf der Lage."""
+        punkte = self.st.punkte
+        hoch = self.knapp if self.unten else self.w.sicher
+        if self.unten and self.ort is not None:
+            punkte.append(bn.Punkt(True, self.ort[0], self.ort[1], hoch))
+        punkte.append(bn.Punkt(True, float(p[0]), float(p[1]), hoch))
+        knapp = self._hinab(p, hoch)
+        punkte.append(bn.Punkt(True, float(p[0]), float(p[1]), knapp))
+        punkte.append(bn.Punkt(False, float(p[0]), float(p[1]), self.lage, True))
+        self.feld.merke([p[0]], [p[1]])
+        self.unten = True
+        self.ort = (float(p[0]), float(p[1]))
+        self.st.laenge += max(knapp - self.lage, 0.0)
+        self.st.z_min = min(self.st.z_min, self.lage)
 
     def frei(self, qx, qy, ohne_sperre=False, schwelle=None):
         """Darf das Ein- und Ausfahren dorthin: im Raster, erlaubt, und unter der Stirn höchstens
@@ -1230,7 +1251,10 @@ class _Lage:
                 # und her.
                 oben_hier = self.vorige
                 knapp = min(hoch, self._material_oben(p0) + w.sicherheit)
-                self.st.eintauchen.append((float(p0[0]), float(p0[1]), float(self.lage)))
+                # Wo vorzubohren wäre: am Anfang des Laufs – bei der Helix des Morphs in der Tasche
+                # in ihrer Mitte (eintauch_ort), nicht an ihrem Anfang auf dem Kreis.
+                stelle = self.eintauch_ort or p0
+                self.st.eintauchen.append((float(stelle[0]), float(stelle[1]), float(self.lage)))
                 # Ein ganzer Ring rundum hinab – außer er kehrt um (ein schmaler Zipfel: die Rampe
                 # rundum wäre dort das Zickzack, am Ring von vorn viermal; Manuel, 2026-10-18:
                 # „alle Zickzack einfahren weg“), dann die Helix, wenn eine passt.
@@ -2377,6 +2401,7 @@ def _flaeche(
         feld.nur = ueber | ~feld.rohteil_zellen
     nur_ohne_stand = feld.nur if ueber is not None else None
     hoehe = naechste = None
+    loch = None  # (x, y, Radius) eines Vorbohrlochs in der Tasche (_loch_im_material)
     decke = w.oben
     if stand is not None or material is not None:
         hoehe, naechste, oben, decke = _mit_stand(st, feld, stand, material, oben, ziel, zugabe, w)
@@ -2387,7 +2412,14 @@ def _flaeche(
                 st.ausgelassen.append(ebene.name)
             return
         if hoehe is not None and variante == "morph" and not _ueberall_bis(feld, hoehe, oben, ziel):
-            raise _KeinMorph()  # der Morph fährt ganze Ringe – auch durch Weggefrästes
+            # Der Morph fährt ganze Ringe – auch durch Weggefrästes. Nur ein rundes Loch bis auf
+            # den Grund der Tasche stört ihn nicht: Vorgebohrt, beginnt er darin (Manuel,
+            # 2026-10-25: „immer wenn man eintauchen muss ists gut wenn vorgebohrt ist“; bis 0.365
+            # fiel der Morph mit dem Loch weg, und der Adaptiv-Kern fuhr seine Helix daneben).
+            if tasche is not None and w.morph_tasche:
+                loch = _loch_im_material(feld, hoehe if naechste is None else naechste, oben, ziel)
+            if loch is None:
+                raise _KeinMorph()
     anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / zustellung)))
     lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
     r_ein = w.einfahrradius if w.einfahrradius and w.einfahrradius > 0 else kb.EINFAHRT_ANTEIL * r
@@ -2471,7 +2503,9 @@ def _flaeche(
             _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
         elif tasche is not None and variante == "morph" and w.morph_tasche:
-            _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
+            _ringe_morph_tasche(
+                ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue, loch
+            )
         elif tasche is None and variante == STICHE:
             _ringe_stiche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
         else:
@@ -2671,6 +2705,25 @@ def _ueberall_bis(feld, hoehe, oben, ziel):
     Zapfen der schnellste)."""
     bereich = feld.rohteil_zellen & feld.aufweiten(feld.erlaubt_feld(ziel, ziel), feld.r)
     return bool(bereich.any()) and bool((hoehe[bereich] >= oben - GLEICH).all())
+
+
+def _loch_im_material(feld, hoehe, oben, ziel):
+    """(x, y, Radius) eines runden Lochs, wenn dem Material über der Fläche nur das fehlt – bis auf
+    ihren Grund (`ziel`) frei, ein Stück, rund um seinen Schwerpunkt; sonst None. So sieht ein
+    Vorbohrloch im Materialstand aus (raeumen.loecher_im_stand)."""
+    bereich = feld.rohteil_zellen & feld.aufweiten(feld.erlaubt_feld(ziel, ziel), feld.r)
+    fehlt = bereich & (hoehe < oben - GLEICH)
+    if not fehlt.any() or not bool((hoehe[fehlt] <= ziel + MATERIAL).all()):
+        return None
+    gx, gy = np.meshgrid(feld.xs, feld.ys, indexing="ij")
+    mx, my = float(gx[fehlt].mean()), float(gy[fehlt].mean())
+    radius = math.sqrt(float(fehlt.sum()) * feld.schritt * feld.schritt / math.pi)
+    abstand = np.hypot(gx - mx, gy - my)
+    if float(abstand[fehlt].max()) > radius + feld.schritt:
+        return None  # nicht rund – oder mehrere Löcher
+    if bool((bereich & ~fehlt & (abstand < radius - feld.schritt)).any()):
+        return None
+    return mx, my, radius
 
 
 def _kleinstes_um(werte, k):
@@ -4161,7 +4214,9 @@ def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genau
         _naechster_zuerst(ablauf, list(stufe), False, f"morph {nummer}", luft=True)
 
 
-def _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue=()):
+def _ringe_morph_tasche(
+    ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue=(), loch=None
+):
     """Die Morph-Spirale in der Tasche (Manuel, 2026-10-18: „wenn man von ausen nicht rein kommt
     eine helix fahren und dann morpfspirealen rausfahen … so wie immer“): eine Helix um die
     Stelle, die am weitesten von den Wänden liegt, dann vom Kreis der Helix bis an die Wand in
@@ -4170,7 +4225,13 @@ def _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz
     Tasche. Wie weit der nächste Ring nach außen rückt, sagt der Eingriff (MORPH_EINGRIFF) – in
     den Ecken, wohin die Ringe von innen spitz zulaufen, enger. Der letzte Ring ist der genaue
     Versatz der Wand. Eine Insel in der Tasche, kein Platz für die Helix oder eine lang gestreckte
-    Tasche (MORPH_VERHAELTNIS): kein Morph."""
+    Tasche (MORPH_VERHAELTNIS): kein Morph.
+
+    `loch` ((x, y, Radius), _loch_im_material): Dort ist vorgebohrt – die Mitte ist das Loch.
+    Passt der Fräser hinein, geht es darin senkrecht hinab (keine Helix, keine Rampe), und die
+    Spirale beginnt in der Mitte: Die ersten Ringe rücken nur so weit hinaus, wie der Eingriff es
+    erlaubt (im Loch umschlingt der Fräser das Material fast ganz). Ist das Loch kleiner als der
+    Fräser, die Helix um das Loch."""
     from . import bohrung_bahn as bb
 
     ae = w.zeilenabstand
@@ -4180,17 +4241,34 @@ def _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz
     an_der_wand = [g for _p, g in _hoehenlinien(D, feld.xs, feld.ys, 0.0) if g]
     if len(an_der_wand) != 1:
         raise _KeinMorph()  # eine Insel in der Tasche: zwei Wände
-    # Die Mitte: von den Stellen am weitesten von den Wänden (bis eine Zelle weniger) die nächste
-    # am Schwerpunkt der Tasche – im Rechteck die Mitte, nicht ein Ende der Mittellinie.
     gx, gy = np.meshgrid(feld.xs, feld.ys, indexing="ij")
-    weit = np.where(erlaubt, D, -np.inf)
-    beste = weit >= float(weit.max()) - feld.schritt
-    sx, sy = float(gx[erlaubt].mean()), float(gy[erlaubt].mean())
-    k = int(np.argmin(np.where(beste, np.hypot(gx - sx, gy - sy), np.inf)))
-    i, j = np.unravel_index(k, D.shape)
+    if loch is not None:
+        # Der Knoten am Loch – es muss in der Tasche liegen.
+        i, j = (int(v[0]) for v in feld.zellen([loch[0]], [loch[1]]))
+        if not erlaubt[i, j]:
+            raise _KeinMorph()
+    else:
+        # Die Mitte: von den Stellen am weitesten von den Wänden (bis eine Zelle weniger) die
+        # nächste am Schwerpunkt der Tasche – im Rechteck die Mitte, nicht ein Ende der
+        # Mittellinie.
+        weit = np.where(erlaubt, D, -np.inf)
+        beste = weit >= float(weit.max()) - feld.schritt
+        sx, sy = float(gx[erlaubt].mean()), float(gy[erlaubt].mean())
+        k = int(np.argmin(np.where(beste, np.hypot(gx - sx, gy - sy), np.inf)))
+        i, j = np.unravel_index(k, D.shape)
     mx, my = float(feld.xs[i]), float(feld.ys[j])
+    # Vorgebohrt, und der Fräser passt hinein: Das Loch ist mindestens so groß wie er, und unter
+    # der Stirn steht in seiner Mitte höchstens der Saum, den das Raster am Lochrand lässt (wie
+    # beim Einfahren: ablauf.schwelle).
+    vorgebohrt = (
+        loch is not None
+        and loch[2] >= r - 0.5 * feld.schritt
+        and float(feld.ungeschnitten([mx], [my])[0]) <= ablauf.schwelle
+    )
     platz = float(D[i, j]) - 2.0 * feld.schritt
     rh = next((a * r for a in (bb.KERN_ANTEIL, bb.KERN_ANTEIL / 2) if a * r <= platz), None)
+    if vorgebohrt:
+        rh = 0.5 * feld.schritt  # nur der Knoten in der Mitte: Die Spirale beginnt im Loch
     if rh is None:
         raise _KeinMorph()  # zu eng für die Helix
     rho = np.hypot(gx - mx, gy - my)
@@ -4205,15 +4283,22 @@ def _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz
     with np.errstate(divide="ignore", invalid="ignore"):
         start = np.where(rho + nah > GLEICH, (rho - rh) / (rho - rh + nah), 0.0)
     u = _harmonisch(np.where(kreis, 0.0, 1.0), erlaubt & ~kreis, np.clip(start, 0.0, 1.0))
-    winkel = np.linspace(0.0, 2.0 * math.pi, max(16, int(math.ceil(2 * math.pi * rh / schritt))))
-    punkte = np.column_stack([mx + rh * np.cos(winkel[:-1]), my + rh * np.sin(winkel[:-1])])
-    erster = _ring_aus_linie(
-        punkte, True, material_links, feld, 0.0, rho, schritt, toleranz, material_hoch=True
-    )
-    if erster is None:
-        raise _KeinMorph()
+    erster = None
+    if not vorgebohrt:
+        winkel = np.linspace(
+            0.0, 2.0 * math.pi, max(16, int(math.ceil(2 * math.pi * rh / schritt)))
+        )
+        punkte = np.column_stack([mx + rh * np.cos(winkel[:-1]), my + rh * np.sin(winkel[:-1])])
+        erster = _ring_aus_linie(
+            punkte, True, material_links, feld, 0.0, rho, schritt, toleranz, material_hoch=True
+        )
+        if erster is None:
+            raise _KeinMorph()
     frei_vorher = feld.frei.copy()
-    feld.merke(erster.proben.x, erster.proben.y)
+    if erster is None:
+        feld.merke([mx], [my])  # im Loch: Unter der Stirn steht dort nichts
+    else:
+        feld.merke(erster.proben.x, erster.proben.y)
     grenze = _abschnitt(r, min(ae * MORPH_EINGRIFF, r)) / (math.pi * r * r)
     wx, wy = wand_x, wand_y
     # Bis fast an u = 1: Berührt ein Ring die nächste Wand, laufen die nächsten an ihr entlang und
@@ -4221,7 +4306,9 @@ def _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz
     # breiten Streifen auf einmal.
     u_wand = 1.0 - 1e-3
     stufen = []
-    niveau = float(_bilinear(u, feld, erster.proben.x, erster.proben.y).max())
+    niveau = (
+        0.0 if erster is None else float(_bilinear(u, feld, erster.proben.x, erster.proben.y).max())
+    )
     ohne_fortschritt = 0
     for _nummer in range(1, 100000):
         eingriff = feld.eingriff()
@@ -4263,7 +4350,15 @@ def _ringe_morph_tasche(ablauf, feld, w, r, D, material_links, schritt, toleranz
         if ring is not None:
             letzte.append(_genau(ring, genaue, schritt) if geschlossen else ring)
     feld.frei[:] = frei_vorher  # gefahren und gemerkt wird jetzt, der Reihe nach
-    ablauf.ring(erster, kennung="morph helix")  # geschlossen: die Rampe rundum, eine Helix
+    if erster is None:
+        ablauf.hinab_im_freien((mx, my))  # vorgebohrt: senkrecht ins Loch
+    else:
+        # Geschlossen: die Rampe rundum, eine Helix – ihre Mitte ist die Stelle fürs Vorbohren.
+        ablauf.eintauch_ort = (mx, my)
+        try:
+            ablauf.ring(erster, kennung="morph helix")
+        finally:
+            ablauf.eintauch_ort = None
     if letzte:
         stufen.append(letzte)
     einzeln = all(len(stufe) == 1 and stufe[0].geschlossen for stufe in stufen)
