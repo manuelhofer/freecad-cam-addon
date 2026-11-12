@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-12-03 zeit-als-balken
+
+### EINGELESEN
+- Durchsicht der Fenster vom 12.11. (173 Wortzählungen und die wortreichsten Bilder des vollen Laufs vom
+  11.11.): 18 Stellen, dazu Abgeschnittenes, graue Knöpfe ohne Grund, „zuerst X“ ohne Knopf.
+- Arbeitsregeln, Abschnitt 8 (Zeigen statt sagen), „Der nächste Schritt ist ein Knopf“, „kein Befehl grau,
+  weil etwas fehlt“.
+
+### DATEIEN
+- `camaddon/gui_reichweite.py`: `Zeitanteile` – die Zeit je Operation als ein Balken (Farben wie die Bahnen,
+  `gui_bahnvorschau.farbe_hex`), Tooltip je Stück, Klick → `Abspieler.springe_zu_operation`; die Zeile „Zeit“
+  nennt nur noch Summe, Vorschub, Eilgang, Wechsel. `help/de|en/reichweite.html`.
+- `camaddon/gui_vierachs.py`: je Stirnseite ein Satz („… 6 Ebenen mit der Stirn“, die Namen unter der Maus);
+  „Rundum entgraten braucht …“ mit Verweis „Werkzeugverwaltung …“.
+- `camaddon/gui_bestueckung.py`: „Die Maschine hat kein Magazin“ mit Verweis „Magazine …“
+  (`magazine_oeffnen`).
+- `camaddon/gui_schnittwerte.py`, `gui_maschine.py`: „Strategien vergleichen…“ und „Vorschlagen“ sagen grau
+  unter der Maus, was fehlt.
+- `translations/de.json`, `en.json`; `tests/gui/szenario_schwenkteil.py`, `szenario_rundum_drehmaschine.py`,
+  `szenario_vierachs_sechskant.py`, `szenario_bestueckung.py`; `docs/OFFENE_FRAGEN.md` (Frage 1: zwei gleiche
+  Schlichtschnitte mit Messen dazwischen); `docs/STATUS_SNAPSHOT.md`; `package.xml` (0.365.0).
+
+### ERGEBNIS
+- Grün, je einzeln: `szenario_schwenkteil` (Balken da, Klick springt an den Anfang der Operation),
+  `szenario_rundum_drehmaschine`, `szenario_vierachs_sechskant`, `szenario_bestueckung` („Magazine …“ geht
+  auf), `szenario_schnittwerte`, `szenario_maschine_bearbeiten`, `test_sprache`. Die Bilder angesehen.
+- Sehen: „Auf der Maschine prüfen“ an einem Job mit mehreren Operationen – unter „Zeit“ ein bunter Balken;
+  das breiteste Stück ist die Operation, die die Zeit braucht.
 ## P-2026-11-12-02 boegen-im-programm
 
 ### EINGELESEN

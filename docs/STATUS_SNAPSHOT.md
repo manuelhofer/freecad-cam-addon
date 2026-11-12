@@ -578,6 +578,16 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.365.0):* **„Auf der Maschine prüfen“ zeigt die Zeit als Balken:** je Operation ein Stück in ihrer
+  Farbe, so breit wie ihr Anteil; unter der Maus Name und Zeit, ein Klick springt im Abspieler dorthin – statt
+  der Kette „… · „Räumen T1“ 9,8 min · „Räumen T3“ 22 s · …“. Dazu aus der Durchsicht der Fenster (2026-11-12,
+  18 Stellen, Liste in `~/freecad_cam/wip/strategien/rangliste_2026-11-12.json` unter „fenster“): im
+  4-Achs-Assistenten je Stirnseite ein Satz statt je Ebene einer; „Rundum entgraten braucht …“ und „Die Maschine
+  hat kein Magazin“ führen per Verweis zur Werkzeugverwaltung bzw. zu „Magazine …“; graue Knöpfe
+  („Strategien vergleichen…“, „Vorschlagen“) sagen unter der Maus, was fehlt. *Offen daraus (größere Stücke):*
+  die grauen Zeilen unter „Kollision“ im Prüffenster (je Werkzeug eine Zeile mit Bild statt Absatz),
+  „Schnittwerte“ veraltet als kleine Tabelle, die Zahlen am roten Achsbalken, Maße im Werkzeugbild der
+  Werkzeugverwaltung, abgeschnittene Spalten in „Magazine“ und „Spannmittel“.
 - *Neu (0.364.0):* **Das Programm fasst kurze Geraden zu Bögen** (Haken „Kurze Geraden zu Bögen fassen“ in
   „Programm schreiben“, vorbelegt an, nur an der Fräse): höchstens 0,005 mm neben der Bahn, Kreisendpunkt
   passend zu den gerundeten Zahlen. Testteil: Räumen T1 19 623 → 4 616 Sätze, C-Ring 28 212 → 6 726
