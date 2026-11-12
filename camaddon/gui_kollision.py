@@ -37,19 +37,38 @@ def hinweis_label():
     label.setTextInteractionFlags(
         QtCore.Qt.TextSelectableByMouse | QtCore.Qt.LinksAccessibleByMouse
     )
+    label.mehr = {}  # Verweis → der Ratschlag, der unter der Maus erscheint (hinweise_setzen)
+    label.linkHovered.connect(
+        lambda ziel, label=label: QtGui.QToolTip.showText(
+            QtGui.QCursor.pos(), label.mehr.get(ziel, ""), label
+        )
+    )
     return label
 
 
-def hinweise_html(hinweise):
+def hinweise_setzen(label, hinweise):
+    """Die Hinweise in ein hinweis_label: je Satz eine Zeile (hinweise_html), der Ratschlag hinter
+    einem Satz unter der Maus an seinem Verweis."""
+    label.mehr = {}
+    label.setText(hinweise_html(hinweise, label.mehr))
+
+
+def hinweise_html(hinweise, mehr=None):
     """Die Hinweise als HTML, je Satz eine Zeile. Geht es um ein Werkzeug (reichweite.Hinweis
-    mit Nummer), folgt der Verweis „T1 öffnen …“ – „werkzeug:1“ (D-11)."""
+    mit Nummer), folgt der Verweis „T1 öffnen …“ – „werkzeug:1“ (D-11). Hat der Hinweis einen
+    Ratschlag dahinter (Hinweis.mehr), steht in der Zeile nur der Satz davor; der Ratschlag kommt
+    nach `mehr` ({Verweis: Text}) für die Maus über dem Verweis."""
     zeilen = []
     for satz in hinweise:
-        zeile = html.escape(satz, quote=False)
         nummer = getattr(satz, "werkzeug", None)
+        kurz = getattr(satz, "kurz", "") if nummer is not None and mehr is not None else ""
+        zeile = html.escape(kurz or satz, quote=False)
         if nummer is not None:
             text = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=f"T{nummer}"), quote=False)
-            zeile += f' <a href="werkzeug:{nummer}">{text}</a>'
+            ziel = f"werkzeug:{nummer}"
+            zeile += f' <a href="{ziel}">{text}</a>'
+            if kurz:
+                mehr[ziel] = f"{mehr.get(ziel, '')} {satz.mehr}".strip()
         zeilen.append(zeile)
     return "<br>".join(zeilen)
 
@@ -220,7 +239,7 @@ class KollisionsBereich(QtGui.QWidget):
             self._urteil(tr("kb.nahe", abstand=abstand), GELB)
         else:
             self._urteil(tr("kb.frei", abstand=abstand), GRUEN)
-        self.hinweise.setText(hinweise_html(ergebnis.hinweise))
+        hinweise_setzen(self.hinweise, ergebnis.hinweise)
         self.hinweise.setVisible(bool(ergebnis.hinweise))
         self._ausspannen_zeigen(ergebnis)
         self._melde()

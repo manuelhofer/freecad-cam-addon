@@ -1243,7 +1243,7 @@ class PruefPanel:
         self.bereiche_titel.setToolTip("\n".join(zeilen))
         self.bereiche_titel.setVisible(bool(e.bereiche))
         self.bereiche_bild.setVisible(bool(e.bereiche))
-        self.hinweise.setText(gui_kollision.hinweise_html(e.hinweise))
+        gui_kollision.hinweise_setzen(self.hinweise, e.hinweise)
         self.hinweise.setVisible(bool(e.hinweise))
         geschaetzt = e.geschaetzte_laengen()
         if geschaetzt:

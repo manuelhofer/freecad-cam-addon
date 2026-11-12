@@ -250,6 +250,18 @@ def schritte(h):
         )
         spieler.springe_zu_station(0)
         yield 200
+    # Je Werkzeug steht nur, womit gerechnet wurde; der Ratschlag dahinter („Den eigenen Halter
+    # wählst du …“) erscheint unter der Maus am Verweis „T1 öffnen …“ (seit 0.366: zeigen statt
+    # zwei, drei grauen Zeilen je Werkzeug).
+    zeilen = pruefung.hinweise.text()
+    h.pruefe(
+        "gerechnet mit" in zeilen and "T1 öffnen" in zeilen and "Den eigenen Halter" not in zeilen,
+        f"Hinweise: {zeilen!r}",
+    )
+    h.pruefe(
+        "Den eigenen Halter" in pruefung.hinweise.mehr.get("werkzeug:1", ""),
+        f"Hinweise, unter der Maus: {pruefung.hinweise.mehr}",
+    )
     h.bild("1_fenster", pruefung.form)
     for k, (job, bild) in enumerate(((ebene1, "2_schraege"), (ebene2, "3_45_grad"))):
         op = job.Operations.Group[0]

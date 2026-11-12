@@ -160,13 +160,20 @@ class Bereich:
 
 class Hinweis(str):
     """Ein Hinweis-Satz. `werkzeug`: die Nummer des Werkzeugs, um das es geht – das Fenster
-    verweist dann auf die Werkzeugverwaltung (Durchsicht W-004, D-11)."""
+    verweist dann auf die Werkzeugverwaltung (Durchsicht W-004, D-11). `mehr`: der Ratschlag
+    dahinter („Genauer mit …“) – der Hinweis selbst ist beides zusammen, `kurz` der Satz ohne ihn:
+    Im Fenster steht nur der, der Ratschlag unter der Maus am Verweis (Zeigen statt sagen – am
+    Prüffenster standen je Werkzeug zwei, drei graue Zeilen)."""
 
     werkzeug = None
+    kurz = ""
+    mehr = ""
 
-    def __new__(cls, text, werkzeug=None):
-        satz = super().__new__(cls, text)
+    def __new__(cls, text, werkzeug=None, mehr=""):
+        satz = super().__new__(cls, f"{text} {mehr}" if mehr else text)
         satz.werkzeug = werkzeug
+        satz.kurz = text if mehr else ""
+        satz.mehr = mehr
         return satz
 
 
@@ -1452,19 +1459,35 @@ class _Sammler:
         if quelle == LAENGE_HALTER:
             halter = werkzeughalter(tc, bibliothek)
             if halter is not None and halter.gewinkelt:  # das Feld heißt dann so (D-40)
-                self.hinweis(Hinweis(tr("rw.laenge_halter_gewinkelt", **werte), nummer))
+                self.hinweis(
+                    Hinweis(
+                        tr("rw.laenge_halter_gewinkelt", **werte),
+                        nummer,
+                        tr("rw.laenge_halter_gewinkelt.mehr"),
+                    )
+                )
             else:
-                self.hinweis(Hinweis(tr("rw.laenge_halter", **werte), nummer))
+                self.hinweis(
+                    Hinweis(tr("rw.laenge_halter", **werte), nummer, tr("rw.laenge_halter.mehr"))
+                )
         elif quelle == LAENGE_VORSCHLAG:
             halter = werkzeughalter(tc, bibliothek)
             werte["halter"] = hl.text(halter) if halter is not None else ""
-            self.hinweis(Hinweis(tr("rw.laenge_vorschlag", **werte), nummer))
+            self.hinweis(
+                Hinweis(tr("rw.laenge_vorschlag", **werte), nummer, tr("rw.laenge_vorschlag.mehr"))
+            )
         elif quelle == LAENGE_GESAMT:
-            self.hinweis(Hinweis(tr("rw.laenge_gesamt", **werte), nummer))
+            self.hinweis(
+                Hinweis(tr("rw.laenge_gesamt", **werte), nummer, tr("rw.laenge_gesamt.mehr"))
+            )
         elif quelle == LAENGE_GESCHAETZT:
-            self.hinweis(Hinweis(tr("rw.laenge_geschaetzt", **werte), nummer))
+            self.hinweis(
+                Hinweis(
+                    tr("rw.laenge_geschaetzt", **werte), nummer, tr("rw.laenge_geschaetzt.mehr")
+                )
+            )
         elif quelle == LAENGE_CAM:
-            self.hinweis(Hinweis(tr("rw.laenge_cam", **werte), nummer))
+            self.hinweis(Hinweis(tr("rw.laenge_cam", **werte), nummer, tr("rw.laenge_cam.mehr")))
 
     def aufnahme_pruefen(self, tc, bibliothek, an_der_maschine):
         """Passt der gewählte Halter nicht zur Werkzeugaufnahme der Maschine (W-022) – ein Halter

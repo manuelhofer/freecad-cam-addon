@@ -224,6 +224,14 @@ pruefe(
     "ab Spindelnase“ in der Werkzeugverwaltung.",
     f"Hinweis Gesamtlänge: {e.hinweise}",
 )
+# Der Hinweis ist beides zusammen; fürs Fenster getrennt: der Satz, womit gerechnet wurde (kurz),
+# und der Ratschlag dahinter (mehr) – der steht dort unter der Maus am Verweis.
+pruefe(
+    e.hinweise[0].kurz == f"{t1}: gerechnet mit der Gesamtlänge 60.00 mm – ohne Halter."
+    and e.hinweise[0].mehr == "Genauer mit der „Länge ab Spindelnase“ in der Werkzeugverwaltung."
+    and e.hinweise[0].werkzeug == 1,
+    f"Hinweis geteilt: {e.hinweise[0].kurz!r} / {e.hinweise[0].mehr!r}",
+)
 bibliothek.werkzeuge[0].gesamtlaenge = 0.0
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
 geschaetzt = wz.geschaetzte_laenge(bibliothek.werkzeuge[0])
