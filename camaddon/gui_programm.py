@@ -50,6 +50,7 @@ GRUPPEN = (
             "grossbuchstaben",
             "satznummern",
             "leerzeichen",
+            "boegen",
             "kopf",
             "kopf_drehmaschine",
             "kopf_drehen",
@@ -149,6 +150,7 @@ NUR_DREHEN = {
     "transmit_aus",
 }
 NUR_FRAESEN = {
+    "boegen",
     "rohteil_fraesen",
     "werkzeug_vorwahl",
     "vorwahl",

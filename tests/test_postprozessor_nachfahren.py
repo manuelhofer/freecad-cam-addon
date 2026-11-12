@@ -7,6 +7,9 @@
 # Wechselpunkt und Werkzeugwechsel darf der Postprozessor ergänzen, Vorschubsätze nicht.
 # Beispiele: der C-Ring (Räumen, Nut mit Helix und Bögen, Messstopp, Schlichten) und die Platte
 # mit Zapfen (Planfräsen, Kontur).
+# Seit 0.364 fasst das Programm Ketten kurzer Geraden zu Bögen (Haken „boegen“, bogenfit): Verglichen
+# wird dann mit den gefassten Sätzen – dass die höchstens die Toleranz neben der Bahn liegen, prüft
+# test_bogenfit –, und einmal je Job ohne den Haken Satz für Satz mit der Bahn selbst.
 # Ausführen: freecadcmd tests/test_postprozessor_nachfahren.py
 
 import dataclasses
@@ -20,6 +23,7 @@ sys.path.insert(0, ADDON)
 
 import FreeCAD  # noqa: E402
 
+from camaddon import bogenfit as bf  # noqa: E402
 from camaddon import messstopp as ms  # noqa: E402
 from camaddon import postprozessor as pp  # noqa: E402
 from camaddon import sprache  # noqa: E402
@@ -35,6 +39,19 @@ def pruefe(bedingung, text):
 
 
 RUND = ("A", "B", "C")
+
+
+def gefasst(abschnitte, s, info):
+    """Die Abschnitte, wie das Programm sie schreibt: wo es kurze Geraden zu Bögen fasst
+    (postprozessor.boegen_fassbar), gefasst."""
+    return [
+        (
+            dataclasses.replace(a, befehle=bf.befehle_gefasst([pp._befehl(b) for b in a.befehle]))
+            if pp.boegen_fassbar(s, a, info)
+            else a
+        )
+        for a in abschnitte
+    ]
 
 
 def vorschubsaetze_job(abschnitte, info, spindel=None, werkzeuge=None):
@@ -518,10 +535,25 @@ dreh = pp.Maschineninfo("Drehmaschine", True, True, {"C": "C4"}, {1: "3"})
 for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_4achs_nase.FCStd"):
     doc = FreeCAD.openDocument(os.path.join(ADDON, "beispiele", datei))
     for job in [o for o in doc.Objects if hasattr(o, "Operations")]:
-        abschnitte = pp.abschnitte(job)
+        roh = pp.abschnitte(job)
+        # Ohne den Haken „boegen“: Satz für Satz wie die Bahn im Job.
+        soll_roh = vorschubsaetze_job(roh, fraese)
+        for kennung in ("siemens", "fanuc"):
+            s = pp.steuerung(kennung, {"boegen": False})
+            ist = vorschubsaetze_programm(
+                pp.programm(roh, s, fraese, job.Label).text, siemens=kennung == "siemens"
+            )
+            unterschied = vergleichen(soll_roh, ist)
+            pruefe(not unterschied, f"{datei} {job.Label} {kennung} ohne Bögen: {unterschied}")
+        # Mit ihm (vorbelegt): die gefassten Sätze – an der Fräse für jede Steuerung dieselben.
+        # Das Programm bekommt immer die Bahn selbst (`roh`) und fasst sie einmal; `abschnitte`
+        # ist, was dabei herauskommen muss.
+        abschnitte = gefasst(roh, pp.steuerung("linuxcnc"), fraese)
         spindel_soll, werkzeug_soll = [], []
         soll = vorschubsaetze_job(abschnitte, fraese, spindel_soll, werkzeug_soll)
         pruefe(len(soll) > 20, f"{job.Label}: nur {len(soll)} Vorschubsätze")
+        pruefe(len(soll) <= len(soll_roh), f"{job.Label}: gefasst mehr Sätze als vorher")
+        print(f"{job.Label}: {len(soll_roh)} Vorschubsätze im Job, {len(soll)} im Programm")
         pruefe(
             all(a.nullpunkte == tuple(job.Fixtures) for a in abschnitte),
             f"{job.Label}: Nullpunkte {abschnitte[0].nullpunkte} statt {job.Fixtures}",
@@ -535,7 +567,7 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 {"marken": False, "nullpunkt_setzen": True},
             ):
                 s = pp.steuerung(kennung, aenderung)
-                programm = pp.programm(abschnitte, s, fraese, job.Label)
+                programm = pp.programm(roh, s, fraese, job.Label)
                 ist = vorschubsaetze_programm(programm.text, siemens=kennung == "siemens")
                 unterschied = vergleichen(soll, ist)
                 pruefe(not unterschied, f"{datei} {job.Label} {kennung} {aenderung}: {unterschied}")
@@ -575,7 +607,7 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 )
                 pruefe(not fehlt, f"{datei} {job.Label} {kennung} {aenderung}: {fehlt}")
         for kennung in () if rundum else ("heidenhain", "heidenhain_tnc640"):
-            programm = pp.programm(abschnitte, pp.steuerung(kennung), fraese, job.Label)
+            programm = pp.programm(roh, pp.steuerung(kennung), fraese, job.Label)
             unterschied = im_klartext(soll, klartext_punkte(programm.text))
             pruefe(not unterschied, f"{datei} {job.Label} {kennung}: {unterschied}")
             # Die Werkzeuge in derselben Folge (TOOL CALL n; derselbe n hintereinander zählt einmal).
@@ -590,17 +622,17 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             # An der Drehmaschine (X im Durchmesser, C4 der Hauptspindel als Moduloachse – wie
             # Manuels CLX550): gelesen, wie sie es fährt, Satz für Satz wie im Job.
             for kennung in ("siemens", "fanuc", "haas", "linuxcnc", "mazak"):
-                programm = pp.programm(abschnitte, pp.steuerung(kennung), dreh, job.Label)
+                programm = pp.programm(roh, pp.steuerung(kennung), dreh, job.Label)
                 ist = vorschubsaetze_programm(
                     an_der_drehmaschine(programm.text), siemens=kennung == "siemens"
                 )
-                unterschied = vergleichen(vorschubsaetze_job(abschnitte, dreh), ist)
+                unterschied = vergleichen(vorschubsaetze_job(roh, dreh), ist)
                 pruefe(
                     not unterschied, f"{datei} {job.Label} {kennung} Drehmaschine: {unterschied}"
                 )
             # Jeder Haken einzeln umgeschaltet, an jeder G-Code-Steuerung – mit den ersten Sätzen
             # jeder Operation (das ganze Programm hat 236 000 Sätze).
-            kurz = [dataclasses.replace(a, befehle=a.befehle[:3000]) for a in abschnitte]
+            kurz = [dataclasses.replace(a, befehle=a.befehle[:3000]) for a in roh]
             soll_kurz = vorschubsaetze_job(kurz, dreh)
             for kennung, s0 in pp.STEUERUNGEN.items():
                 if s0.dialekt != "gcode" or kennung == "grbl":
@@ -631,9 +663,7 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             # Jobs – jeder Vorschubsatz, jeder Bogen so, wie die Maschine ihn aus R und DS fährt.
             box = job.Stock.Shape.BoundBox
             rohteil = ((box.XMin, box.YMin, box.ZMin), (box.XMax, box.YMax, box.ZMax))
-            programm = pp.programm(
-                abschnitte, pp.steuerung("woodwop"), fraese, job.Label, rohteil=rohteil
-            )
+            programm = pp.programm(roh, pp.steuerung("woodwop"), fraese, job.Label, rohteil=rohteil)
             elemente, bohrungen = mpr_lesen(programm.text, rohteil)
             unterschied = im_mpr(soll, spindel_soll, werkzeug_soll, elemente)
             pruefe(not unterschied, f"{datei} {job.Label} woodwop: {unterschied}")
@@ -662,21 +692,22 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                     continue
                 for haken in (h for h in pp.HAKEN if hasattr(s0, h)):
                     s = s0.ersetzt(**{haken: not getattr(s0, haken)})
-                    p_h = pp.programm(abschnitte, s, mit, job.Label, nummer=12)
+                    p_h = pp.programm(roh, s, mit, job.Label, nummer=12)
                     befunde = pp.nachlesen(p_h, s, mit)[0]
+                    soll_h = soll if s.boegen else soll_roh  # ohne den Haken: Satz für Satz
                     if s.dialekt == "klartext":
-                        u = im_klartext(soll, klartext_punkte(p_h.text))
+                        u = im_klartext(soll_h, klartext_punkte(p_h.text))
                     else:
                         siemens = kennung == "siemens"
                         u = vergleichen(
-                            soll, vorschubsaetze_programm(p_h.text, siemens)
+                            soll_h, vorschubsaetze_programm(p_h.text, siemens)
                         ) or in_folge(eil, eilgaenge_programm(p_h.text, siemens))
                     pruefe(
                         not befunde and not u,
                         f"{kennung} {haken}={getattr(s, haken)}: {u} {[b.art for b in befunde[:3]]}",
                     )
             # Die Gegenprobe merkt es: ein Satz 0,01 mm daneben, ein Vorschub anders.
-            text = pp.programm(abschnitte, pp.steuerung("fanuc"), fraese, "P").text
+            text = pp.programm(roh, pp.steuerung("fanuc"), fraese, "P").text
             z = re.search(r"^G1 [^\n]*Z(-?\d+\.\d+)", text, re.M)
             daneben = text[: z.start(1)] + f"{float(z.group(1)) + 0.01:.3f}" + text[z.end(1) :]
             pruefe(vergleichen(soll, vorschubsaetze_programm(daneben)), "0,01 mm daneben übersehen")
@@ -701,7 +732,7 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             pruefe(
                 mit_leer[-1].werkzeug == 0
                 and p_leer.text.count(" M6")
-                == pp.programm(abschnitte, pp.steuerung("fanuc"), fraese, "L").text.count(" M6")
+                == pp.programm(roh, pp.steuerung("fanuc"), fraese, "L").text.count(" M6")
                 and any("fräst nichts" in h for h in p_leer.hinweise),
                 f"leere Operation: {mit_leer[-1]} {p_leer.hinweise}",
             )
@@ -710,12 +741,16 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
             # Gemischt: Flut mit Linkslauf, Nebel, ohne Kühlung mit anderer Drehzahl – Spindel und
             # Kühlung bei jedem Vorschubsatz wie an der Operation.
             arten = (("Flood", True, 1800.0), ("Mist", False, 2255.0), ("None", False, 3100.0))
-            gemischt = [
-                dataclasses.replace(a, kuehlung=k, rueckwaerts=r, drehzahl=d)
-                for a, (k, r, d) in zip(abschnitte, arten, strict=False)
-            ]
+
+            def gemischt_aus(liste, arten=arten):
+                return [
+                    dataclasses.replace(a, kuehlung=k, rueckwaerts=r, drehzahl=d)
+                    for a, (k, r, d) in zip(liste, arten, strict=False)
+                ]
+
+            gemischt = gemischt_aus(roh)
             g_soll = []
-            vorschubsaetze_job(gemischt, fraese, g_soll)
+            vorschubsaetze_job(gemischt_aus(abschnitte), fraese, g_soll)
             for kennung in ("linuxcnc", "fanuc", "haas", "mach", "mazak", "grbl", "siemens"):
                 for aenderung in ({}, {"marken": False}):
                     g_ist = []
@@ -756,7 +791,7 @@ for datei in ("c_ring_nut_3achs.FCStd", "platte_zapfen_tasche.FCStd", "testteil_
                 in_folge(eilgaenge_job(abschnitte, fraese), eilgaenge_programm(daneben)),
                 "Eilgang 0,01 mm daneben übersehen",
             )
-            text = pp.programm(abschnitte, pp.steuerung("heidenhain"), fraese, "P").text
+            text = pp.programm(roh, pp.steuerung("heidenhain"), fraese, "P").text
             z = re.search(r"^\d+ L [^\n]*Z([-+]\d+\.\d+) R0 F\d", text, re.M)
             daneben = text[: z.start(1)] + f"{float(z.group(1)) + 0.01:+.3f}" + text[z.end(1) :]
             pruefe(

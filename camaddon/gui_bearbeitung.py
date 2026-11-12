@@ -2908,6 +2908,7 @@ class _Bohrung(_Strategie):
             eintauchwinkel=_eintauchwinkel(werkzeug),
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
+            stand=werte.get("materialstand"),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -10226,7 +10227,10 @@ class BearbeitungPanel:
             return False
         eigen = zusatz = self._zusatz(block, form)
         stand = None
-        if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d, self.fase):
+        if block in (
+            self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d, self.fase,
+            self.bohrung,
+        ):  # fmt: skip
             stand = yield from self._materialstand_schritte(block, form)
             zusatz = dict(zusatz or {}, materialstand=stand)
         elif block in (self.restraeumen, self.schlichten_danach):

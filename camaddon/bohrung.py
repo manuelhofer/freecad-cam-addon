@@ -22,6 +22,7 @@ import Path.Op.Base as PathOp
 from . import bahn as bn
 from . import bohrung_bahn as bb
 from . import kontur as ko
+from . import materialstand as mst
 from . import namen, uhren
 from . import planfraesen as pf
 from . import spindel as sp
@@ -82,6 +83,7 @@ class BohrungFraesen(PathOp.ObjectOp):
             ("App::PropertyInteger", "Bohrungen", tr("bo.eigenschaft.bohrungen")),
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyFloat", "Umlaeufe", tr("bo.eigenschaft.umlaeufe")),
+            ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -92,6 +94,7 @@ class BohrungFraesen(PathOp.ObjectOp):
     def _editormodi(obj):
         for name in ("Bohrungen", "Lagen", "Umlaeufe"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
     @uhren.atmend_rechnen
     def opExecute(self, obj):
@@ -120,6 +123,12 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None or vp.ebener_radius(form) <= 0:
         raise ValueError(tr("bo.fehler.form"))
+    # Was die Operationen davor schon weggenommen haben (W-012) – und woraus das gerechnet ist:
+    # Ändert sich davor etwas, rechnet gui_materialstand die Bohrung neu (sonst begänne die Helix
+    # unter Material, das wieder da ist).
+    stand = mst.fuer(job, vor=obj)
+    if "Materialstand" in obj.PropertiesList:
+        obj.Materialstand = mst.kennung_vor(job, obj)
     return bahn_fuer(
         job,
         modell,
@@ -139,6 +148,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchwinkel=float(obj.Eintauchwinkel),
         vorschub=vorschub,
         eintauchen=eintauchen,
+        stand=stand,
     )
 
 
@@ -161,10 +171,11 @@ def bahn_fuer(
     eintauchwinkel=vb.EINTAUCHWINKEL,
     vorschub=0.0,
     eintauchen=0.0,
+    stand=None,
 ):
     """Die Bahn „Bohrung fräsen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten
-    Zylinderflächen („Face7“ …); leer: alle Bohrungen des Teils. ValueError mit einem Satz, wenn
-    es nicht geht."""
+    Zylinderflächen („Face7“ …); leer: alle Bohrungen des Teils. `stand`: der Materialstand
+    davor (bohrung_bahn.planen). ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -191,7 +202,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
-    return bb.planen(werte, liste)
+    return bb.planen(werte, liste, stand)
 
 
 def vorschau(job, modell, fraeser_radius, zustellung, zeilenabstand, aufmass, flaechen, **weiter):

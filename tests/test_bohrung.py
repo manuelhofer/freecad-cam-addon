@@ -226,6 +226,81 @@ pruefe(
 )
 print("Simulation ok")
 
+# --- Mit Materialstand: die Helix beginnt am Material, nicht am Rohteil ------------------------
+# Am Testteil lag die Bohrung 11 mm unter dem Rohteil in einer Insel, die das Räumen davor schon
+# freigelegt hatte – die Helix fuhr trotzdem vom Rohteil an hinab, 262 mm im Vorschub durch die
+# Luft (gemessen 2026-11-12).
+from camaddon import materialstand as mst  # noqa: E402
+
+
+def stand_mit(senken):
+    """Ein Materialstand über dem Block: das Rohteil bis 21, mit `senken(q, gx, gy)` verändert."""
+    q_ = rm.Quader(-1.0, 101.0, -1.0, 61.0, -5.0, 21.0, 0.5)
+    gx_, gy_ = np.meshgrid(q_.x, q_.y, indexing="ij")
+    voll = q_.h.copy()
+    senken(q_, gx_, gy_)
+    return mst.Materialstand(q_, voll)
+
+
+def erster_vorschub(bahn_):
+    """(z am Ende des letzten Eilgangs hinab, z des ersten Punkts im Vorschub)."""
+    k = next(i for i, p in enumerate(bahn_.punkte) if not p.eilgang)
+    return bahn_.punkte[k - 1].z, bahn_.punkte[k].z
+
+
+# Das volle Rohteil: dieselbe Bahn wie ohne Materialstand.
+voll = bb.planen(werte_fuer(), [sack], stand_mit(lambda q_, gx_, gy_: None))
+ohne = bb.planen(werte_fuer(), [sack])
+pruefe(voll.punkte == ohne.punkte, "volles Rohteil: andere Bahn als ohne Materialstand")
+
+
+# Davor hat jemand über der Sackbohrung bis 12 geräumt (weit um sie herum): Die Helix beginnt bei
+# 12, der Eilgang endet knapp darüber, und es wird nicht langsamer als nötig.
+def geraeumt(q_, gx_, gy_):
+    q_.h[np.hypot(gx_ - 70.0, gy_ - 30.0) < 25.0] = 12.0
+
+
+tief = bb.planen(werte_fuer(), [sack], stand_mit(geraeumt))
+knapp, anfang = erster_vorschub(tief)
+pruefe(abs(anfang - 12.0) < 1e-6, f"geräumt bis 12: der Vorschub beginnt bei {anfang}")
+pruefe(12.0 < knapp <= 12.0 + werte_fuer().sicherheit + 1e-9, f"Eilgang hinab bis {knapp}")
+pruefe(
+    max(p.z for p in tief.punkte if not p.eilgang) <= 12.0 + 1e-6,
+    "geräumt bis 12: Vorschub über dem Material",
+)
+pruefe(tief.zeit < ohne.zeit - 0.15, f"geräumt bis 12: {tief.zeit:.2f} statt {ohne.zeit:.2f} min")
+pruefe(abs(tief.z_min - 10.0) < 1e-6 and tief.lagen == 1, f"z_min {tief.z_min}, {tief.lagen} Lagen")
+q = simuliert(tief)
+gx, gy = np.meshgrid(q.x, q.y, indexing="ij")
+innen = np.hypot(gx - 70.0, gy - 30.0) < 17.0 - 0.1
+pruefe(float(q.h[innen].max()) <= 10.0 + 0.01, f"geräumt: Grund bis {float(q.h[innen].max()):.3f}")
+
+
+# Nur die Mitte ist schon frei (vorgebohrt, Ø 26 bis auf den Grund), außen steht das Rohteil: Die
+# Lagen zählen vom Rohteil, aber unter der Helix ist nichts – gerade hinab auf die Lage, keine
+# Helix in der Luft, dann die Ringe.
+def vorgebohrt(q_, gx_, gy_):
+    q_.h[np.hypot(gx_ - 70.0, gy_ - 30.0) < 13.0] = 10.0
+
+
+mitte_frei = bb.planen(werte_fuer(), [sack], stand_mit(vorgebohrt))
+knapp, anfang = erster_vorschub(mitte_frei)
+pruefe(abs(anfang - 10.0) < 1e-6, f"vorgebohrt: der Vorschub beginnt bei {anfang}")
+hinab = [
+    (a, b)
+    for a, b in zip(mitte_frei.punkte, mitte_frei.punkte[1:], strict=False)
+    if b.bogen is not None and not b.eilgang and b.z < a.z - 1e-9
+]
+pruefe(not hinab, f"vorgebohrt: {len(hinab)} Helixbögen in der Luft")
+pruefe(mitte_frei.umlaeufe == 0, f"vorgebohrt: {mitte_frei.umlaeufe} Umläufe")
+radien = {
+    round(math.hypot(p.x - 70.0, p.y - 30.0), 3)
+    for p in boegen(mitte_frei)
+    if abs(p.bogen[0] - 70.0) < 1e-6 and abs(p.bogen[1] - 30.0) < 1e-6
+}
+pruefe(10.7 in radien and 11.0 in radien, f"vorgebohrt: Radien {sorted(radien)}")
+print("Materialstand ok")
+
 # --- Gegen die Kontur in denselben Bohrungen ---------------------------------------------------
 waende = [durch.name, sack.name]
 netz, netz_fern = hf.netze_ohne(

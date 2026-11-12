@@ -578,6 +578,18 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.364.0):* **Das Programm fasst kurze Geraden zu Bögen** (Haken „Kurze Geraden zu Bögen fassen“ in
+  „Programm schreiben“, vorbelegt an, nur an der Fräse): höchstens 0,005 mm neben der Bahn, Kreisendpunkt
+  passend zu den gerundeten Zahlen. Testteil: Räumen T1 19 623 → 4 616 Sätze, C-Ring 28 212 → 6 726
+  (Spezifikation Steuerung, Abschnitt 34). **„Bohrung fräsen“ beginnt am Material:** Mit Materialstand zählen
+  die Lagen ab dem, was über der Bohrung noch steht, und die Helix ab dem, was unter ihr steht – am Testteil
+  fuhr sie 262 mm im Vorschub durch die Luft. Ändert sich davor etwas, rechnet die Bohrung neu
+  (Eigenschaft „Materialstand“). Dazu am Testteil nachgemessen, wo Zeit und Luft liegen (Spezifikation
+  Strategien, 13.6). *Offen aus der Suche nach neuen Strategien (2026-11-12, noch nicht gemessen, je mit
+  Bild und Zahlen an Manuel):* der große Fräser in Ringen von außen (Platte: Ø 50 statt Zeilen),
+  Hüllkontur vordrehen am Ring, zwei gleiche Schlichtschnitte mit Messen dazwischen, Einfahren durch ein
+  Loch, das das Teil ohnehin hat – die Liste mit Urteilen liegt in
+  `~/freecad_cam/wip/strategien/rangliste_2026-11-12.json`.
 - *Neu (0.363.0):* **Drei Antworten von Manuel (alle „ja“):** „Weiter“ in Schritt 1 bestätigt die gezeigte Lage;
   „Flächen“ beginnt mit allem, was von oben geht; die Werkzeugleiste folgt dem Arbeitsweg (Bearbeitung zuerst,
   dann Prüfen und Programm, dann Werkzeuge und Maschine). Bei „Neue Aufspannung“ fragt Schritt 1 weiter nach

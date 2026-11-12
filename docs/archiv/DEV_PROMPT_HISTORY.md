@@ -12,6 +12,68 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-12-02 boegen-im-programm
+
+### EINGELESEN
+- Programme des Testteils vom vollen Lauf: „Räumen T1“ 931 kB, 19 553 G1 von im Mittel 0,51 mm, 14 Bögen;
+  „3D-Schlichten T5“ 3 034 G1 von 0,25 mm. `postprozessor.groesse_text` warnt schon vor großen Programmen,
+  der Haken „Leerzeichen“ spart 10 %.
+- `programm_pruefen.KREIS_TOLERANZ` (0,002 mm zwischen den Abständen von Anfang und Ende zur Mitte),
+  `klartext.py`/`mpr.py` (Bögen in XY; Schraubenlinie nur mit gleichem Abstand).
+- Manuel, 2026-10-25, zur Gegenprobe: „bei den post prozessoren auf jeden fall darauf achten das die auch
+  wirlich alles richtig ausgeben“.
+
+### DATEIEN
+- `camaddon/bogenfit.py` (neu): `zusammenfassen`/`stuecke` – in eine Kette die wenigsten Geraden und Bögen,
+  höchstens `TOLERANZ` (0,005 mm) neben der alten Bahn; `mitte_gerundet` – I und J so gerundet, dass Anfang
+  und Ende im Programm gleich weit von der Mitte liegen; `gefasst`/`befehle_gefasst` – auf die Befehle einer
+  Operation (Ketten von G1 mit gleichem Vorschub), als Generator für die Vorschau.
+- `camaddon/postprozessor.py`: Haken `boegen` (an), `boegen_fassbar` (nicht an der Drehmaschine, im
+  Messstopp, in fein geprüften Simultanbahnen, geschwenkt ohne Zyklus, mit Radiuskorrektur), in `programm`
+  nach `_mit_korrektur`.
+- `camaddon/gui_programm.py` (Gruppe „Programm“, nur Fräse), `translations/de.json`, `en.json`,
+  `help/de|en/programm.html`, `docs/spezifikation_steuerung.md` (Abschnitt 34).
+- `tests/test_bogenfit.py` (neu), `tests/test_postprozessor_nachfahren.py` (das Programm gegen die einmal
+  gefassten Sätze, und ohne Haken Satz für Satz gegen die Bahn), `package.xml` (0.364.0).
+
+### ERGEBNIS
+- Testteil: Räumen T1 19 623 → 4 616 Sätze, 3D-Schlichten 3 040 → 1 268; C-Ring 28 212 → 6 726 und
+  23 999 → 4 853. Kreisendpunkt bis 0,0009 mm (einzeln gerundet 0,002). 0,8 s für 19 600 Sätze.
+- Grün: `test_bogenfit`, `test_postprozessor`, `_grbl`, `_zufall`, `_nachfahren` (252 s), `test_programmkopf`,
+  `test_programm_pruefen`, `test_mpr`, `test_sprache`, `szenario_programm`.
+- Sehen: „Programm schreiben“ an einer Fräse – in „Programm“ der Haken „Kurze Geraden zu Bögen fassen“; in
+  der Vorschau stehen im Räumen G2/G3 statt langer Folgen von G1 mit halben Millimetern. Ob Manuels alte 840D
+  die Bögen so nimmt, zeigt nur die Maschine.
+## P-2026-11-12-01 bohrung-am-material
+
+### EINGELESEN
+- Manuel, 2026-11-12: „Bitte schau das du alles verbessern kannst was geht und auch vll bessere Strategien
+  findest und Strategien suchst die es noch nicht gibt!!“
+- Messung am Testteil (Weg in Schritten, Luft je Operation aus dem Materialstand): „Bohrung fräsen T1“ 380 mm
+  im Arbeitsvorschub, davon 313 mm Luft – 262 mm am Stück, die Helix von Z +2 bis −11,5. Die Bohrung liegt in
+  der Insel, das Räumen war davor schon dort; `bohrung.rechne` nahm trotzdem die Oberkante des Rohteils.
+- Gedächtnis „Unnötiges ohne Rückfrage weg“ (Luftfräsen einfach beseitigen).
+
+### DATEIEN
+- `camaddon/bohrung_bahn.py`: `material_oben(b, w, stand, r_helix_aussen)` – (wo die Lagen beginnen: das
+  Höchste im Kreis der Bohrung; wie weit es unter der Helix frei ist); `_bohrung` und `planen` mit `stand`:
+  im Freien gerade hinab, die Helix erst ab dem Material, nie unter die Lage, die dran ist; ist die Mitte bis
+  auf die Lage frei, entfällt die Helix. Ohne Materialstand dieselbe Bahn wie bisher. Die Wand wird
+  geschlichtet wie zuvor.
+- `camaddon/bohrung.py`: `rechne` holt den Materialstand (`mst.fuer`) und merkt, woraus er gerechnet ist
+  (neue Eigenschaft „Materialstand“ – `gui_materialstand` rechnet die Bohrung neu, wenn sich davor etwas
+  ändert); `bahn_fuer(…, stand=)`.
+- `camaddon/gui_bearbeitung.py`: der Block „Bohrung fräsen“ bekommt den Materialstand wie Räumen und Kontur.
+- `tests/test_bohrung.py`: volles Rohteil = dieselbe Bahn; bis 12 geräumt → Vorschub ab 12, Eilgang knapp
+  darüber; Mitte vorgebohrt → keine Helix, gerade hinab, dann die Ringe.
+- `docs/spezifikation_strategien.md` (13.6: die Messung am Testteil – Zeit, Luft, Last, Sätze, Zacken; was
+  nicht gebaut wurde und warum), `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- `test_bohrung` und `szenario_bohrung` grün. Am Block der Prüfdatei (Sackbohrung Ø 34, davor bis 12 geräumt):
+  0,59 statt 0,78 min. Am Testteil selbst nach der Änderung noch nicht nachgemessen.
+- Sehen: Testteil in Schritten anlegen, „Bohrung fräsen T1“ in „Auf der Maschine prüfen“ abspielen – der
+  Fräser fährt im Eilgang bis knapp über die Insel und beginnt die Helix dort, nicht mehr über dem Teil.
 ## P-2026-11-11-23 grund-erst-nach-klick
 
 ### EINGELESEN

@@ -44,6 +44,7 @@ import math
 import re
 from dataclasses import dataclass, field
 
+from . import bogenfit as bf
 from . import messstopp as ms
 from . import schwenken as sw
 from . import simultan as si
@@ -196,6 +197,11 @@ class Steuerung:
     # (`ohne_leerzeichen_moeglich`) – an der Siemens hieße „SUPA D0“ sonst „SUPAD0“.
     leerzeichen: bool = True
     ohne_leerzeichen_moeglich: bool = False
+    # Ketten kurzer Geraden zu Bögen (G2/G3) und längeren Geraden fassen, höchstens
+    # bogenfit.TOLERANZ neben der Bahn (bogenfit): Runde Bahnen kommen aus den Rastern und aus
+    # FreeCADs Adaptiv-Kern als Geraden von 0,5 mm – am Testteil das Räumen 19 623 Sätze, gefasst
+    # 4 616 (gemessen 2026-11-12). Aus: die Bahn Satz für Satz, wie sie im Job steht.
+    boegen: bool = True
     # Die höchste Satznummer – Fanuc, Haas, Mazak: fünf Stellen (eine sechste ist ein Alarm);
     # darüber geht es wieder bei N10 los (Satznummern dürfen sich wiederholen, Marken nicht).
     satznummer_max: int = 99999
@@ -465,6 +471,7 @@ HAKEN = (
     "grossbuchstaben",
     "satznummern",
     "leerzeichen",
+    "boegen",
     "rohteil",
     "kuehlung",
     "wechselpunkt",
@@ -1320,6 +1327,7 @@ def haken_text(feld):
         ),
         "satznummern": (tr("pp.haken.satznummern"), tr("pp.haken.satznummern.erklaerung")),
         "leerzeichen": (tr("pp.haken.leerzeichen"), tr("pp.haken.leerzeichen.erklaerung")),
+        "boegen": (tr("pp.haken.boegen"), tr("pp.haken.boegen.erklaerung")),
         "rohteil": (tr("pp.haken.rohteil"), tr("pp.haken.rohteil.erklaerung")),
         "kuehlung": (tr("pp.haken.kuehlung"), tr("pp.haken.kuehlung.erklaerung")),
         "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
@@ -2131,7 +2139,14 @@ def programm(
         gemessen = None  # (messen.Merkmal, Toleranz) aus seiner Zeile „(MESSEN …)“
         korrigiert = None  # die Werkzeugnummer, deren Radius der Messzyklus korrigiert („KORR…“)
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
-        for name_, parameter in befehle:
+        folge = befehle
+        if boegen_fassbar(s, abschnitt, info) and not any(
+            n.startswith("(" + ROHZEILE) for n, _p in befehle  # mit Radiuskorrektur: die Kontur
+        ):
+            # Ketten kurzer Geraden in Bögen und längere Geraden gefasst (Haken „boegen“) – Stück
+            # für Stück: Die Vorschau rechnet nur ihren Anfang.
+            folge = bf.gefasst(befehle, stellen=stellen)
+        for name_, parameter in folge:
             if name_.startswith("("):
                 text_ = name_.strip("()")
                 if not s.g93 and text_.endswith("Vorschub G93"):
@@ -2451,6 +2466,22 @@ def programm(
         if not (zeilen and zeile == zeilen[-1]):  # „M5“ nach „M5“: schon aus
             zeilen.append(zeile)
     return fertig(zeilen, saetze)
+
+
+def boegen_fassbar(s, abschnitt, info):
+    """Fasst das Programm in diesem Abschnitt Ketten kurzer Geraden zu Bögen (Haken „boegen“,
+    bogenfit)? An der Fräse, in der Ebene XY: nicht an der Drehmaschine, nicht im Messstopp, nicht
+    in fein geprüften Simultanbahnen (die bleiben, wie sie geprüft sind) und in einer geschwenkten
+    Ebene nur mit dem Schwenkzyklus (ohne ihn stehen Rundachsen in den Sätzen)."""
+    info = info or Maschineninfo()
+    zyklus = bool(s.schwenkzyklus and s.schwenken)
+    return bool(
+        s.boegen
+        and not info.drehmaschine
+        and not abschnitt.messstopp
+        and abschnitt.koordinatenstellen == STELLEN
+        and (abschnitt.schwenkung is None or zyklus)
+    )
 
 
 def _klartext_fertig(s, name, datei, rohteil, hinweise, stellen=STELLEN):

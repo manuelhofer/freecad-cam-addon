@@ -108,6 +108,13 @@ wieder bei N10 los. Die Nummer einer Sprungmarke (Fanuc „N3“) bekommt kein a
 Datei rund 10 % kleiner – wenn der Programmspeicher knapp ist oder das Programm über DNC
 eingespeist wird. Kommentare bleiben. Nur bei LinuxCNC, Fanuc, Mazak, Haas, Mach und GRBL, deren
 Wörter alle ein Buchstabe mit Zahl sind; an der Siemens hieße „SUPA D0“ sonst „SUPAD0“.</li>
+<li><b>Kurze Geraden zu Bögen fassen</b> – runde Bahnen stehen im Job als Ketten kurzer Geraden,
+oft 0,5 mm lang. Mit Haken schreibt das Programm dafür Bögen (G2/G3, im Klartext CC und C) und
+längere Geraden, höchstens 0,005 mm neben der Bahn: Am Testteil hat das Räumen 4 600 statt
+19 600 Sätze, das Programm ist ein Viertel so groß, und die Maschine fährt runder. Bögen gibt es
+nur in der Ebene XY auf gleicher Höhe; an der Drehmaschine, mit Rundachsen und in einer Kontur mit
+Radiuskorrektur bleibt alles Satz für Satz. Vorbelegt an – aus, wenn die Steuerung mit vielen
+Bögen Mühe hat.</li>
 <li><b>Rohteil für die Simulation</b> (Siemens) – im Kopf das Rohteil des Jobs als WORKPIECE,
 damit die Simulation an der Steuerung das richtige Rohteil zeigt: an der Fräse ein Quader
 „WORKPIECE(,"",,"BOX",240,Z oben,Z unten,ZB,X0,Y0,X1,Y1)“, an der Drehmaschine die Stange

@@ -2437,6 +2437,47 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last
   überschreitet.
 
+### 13.6 Nachgemessen am 2026-11-12 (0.363.1, Wochen-Build 27.1 vom 11.11.)
+
+Der Weg „Bearbeitung“ in Schritten am Testteil, auf der Beispiel-3-Achs-Fräse abgefahren
+(`abfahren.Abfahrt`), dazu je Operation die Luft im Arbeitsvorschub (Materialstand davor, Satz für
+Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5 mm gemittelt):
+
+| | Zeit | Arbeitsvorschub | davon Luft | Befund |
+| --- | ---: | ---: | ---: | --- |
+| Räumen T1 | 9,82 min | 8 229 mm | 902 mm (11 %) | 875 mm davon am Aufmaß der Wand entlang (Material im Umkreis R + 1) |
+| Räumen T3 | 0,20 min | 104 mm | 11 mm | |
+| Kontur T1 | 0,41 min | 283 mm | 82 mm (29 %) | |
+| 3D-Schruppen T1 | 0,78 min | 495 mm | 120 mm (24 %) | neun Lagen über der Mulde: je 9 mm Schnitt in der Nische, dann 47 mm im Freivorschub quer und zurück |
+| Bohrung fräsen T1 | 0,47 min | 380 mm | **313 mm (82 %)** | die Helix begann am Rohteil, 13 mm über dem Material – *behoben, P-2026-11-12-01* |
+| Restmaterial T3 | 0,08 min | 32 mm | 11 mm | |
+| 3D-Schlichten T5 | 1,26 min | 712 mm | 0 mm | |
+| **zusammen** | **13,70 min** | | | 4 Werkzeugwechsel je 10 s |
+
+- **Wo die Zeit liegt:** Räumen T1 ist 72 % des Programms und fährt auf 72 % seines Wegs zwischen
+  0,75 und 1,1 ae, auf 12 % unter 0,5 ae (der erste Ring je Höhe am Aufmaß der Wand entlang, der
+  letzte vor der Wand). Die Bahn liegt damit nah an dem, was ae · ap · vf hergibt; schneller wird es
+  am Testteil nur mit anderen Schnittwerten oder einem Fräser mit mehr Zeitspanvolumen.
+- **Vorschub nach Spandicke – nicht gebaut:** Stiege der Vorschub dort, wo weniger als ae anliegt,
+  so weit, dass die Spandicke gleich bleibt (wie `bahn.spanausgleich`, höchstens × 2), wären es am
+  Räumen T1 rechnerisch 56 s von 9,2 min; vorsichtig gezählt (nur unter 0,5 ae, die Streuung des
+  Rasters nicht mitgenommen) rund 30 s. Das ist an diesem Teil kein Hebel (Manuel, 2026-10-25, zu einer Frage
+  über 0,9 min: „who cares about 0.9 min“). Wieder ansehen an Teilen mit Taschen, wo der Adaptiv-Kern den Eingriff
+  nicht hält (Wirkungsgrad „tasche/raeumen“ 0,59).
+- **Luft am Aufmaß der Wand – nicht gebaut:** Die 875 mm fahren neben dem Aufmaß her, ohne zu
+  schneiden; `freiwege` lässt sie langsam, weil im Umkreis R + 1 Material steht. Mit doppeltem
+  Vorschub wären es 30 s. Gleiches Urteil.
+- **Sätze:** Räumen T1 schrieb 19 623 Sätze von im Mittel 0,51 mm (931 kB), das 3D-Schlichten 3 040
+  von 0,25 mm – *behoben im Programm, P-2026-11-12-02* (Spezifikation Steuerung, Abschnitt 34).
+- **Zacken:** Die Ringe des 3D-Schruppens in der Mulde und des Räumens mit T3 in der dreieckigen
+  Tasche laufen in Treppen von 0,5 mm (323 von 454 bzw. 131 von 181 Sätzen mit einer Ecke ab 15°),
+  ebenso der Gang des Adaptiv-Kerns an der schrägen Stufenwand. Das Aufmaß an der Wand schwankt
+  dort um eine halbe Zelle. Offen – es gehört in die Bahn (die Grenze des Gesperrten aus dem
+  Höhenfeld statt aus der Zellenmaske), nicht ins Programm.
+
+Die Messwerkzeuge liegen bei Manuel in `~/freecad_cam/wip/pruefhelfer/` (`luft.py`,
+`last_verlauf.py`, `last_bild.py`), der gespeicherte Job in `~/freecad_cam/wip/strategien/`.
+
 ## 13b. Im Freien schnell – alle Strategien (P-2026-10-04-39)
 
 Manuel (2026-10-04): „wenn es frei ist und da kein Material ist … muss ich nicht langsam fahren,

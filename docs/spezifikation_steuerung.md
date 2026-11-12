@@ -986,3 +986,35 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
   `CYCLE977(203|204|201|202,,1,1,Soll,,,2,1,0,Absenken,,,MA,1,"Name",,0,0.5,Tol,-Tol,0,1,0,,1,1)`,
   Renishaw `G65 P9812 X… T{t_korr} U0.5` + `Y… H{tol}` bzw. `P9814 D… T{t_korr} U0.5`.
 
+## 34. Kurze Geraden zu Bögen fassen (P-2026-11-12-02)
+
+- **Befund** (gemessen am Testteil, 2026-11-12): Runde Bahnen kommen aus den Rastern und aus
+  FreeCADs Adaptiv-Kern als Ketten kurzer Geraden – „Räumen T1“ 19 623 Sätze von im Mittel 0,51 mm
+  (931 kB, 14 Bögen), „3D-Schlichten T5“ 3 040 Sätze von 0,25 mm. Bei kleinem Programmspeicher und
+  über DNC ist das die Grenze; `groesse_text` warnt Siemens und Fanuc ab 2 MB.
+- **Haken `boegen`** (an; Gruppe „Programm“, nur an der Fräse): `bogenfit.gefasst` legt in jede
+  Kette von G1 mit gleichem Vorschub (nur X, Y, Z; der Ort davor bekannt) so wenige Geraden und
+  Bögen (G2/G3 in XY, auf gleicher Höhe, Radius 0,2 … 1000 mm, höchstens 270°), dass die neue Bahn
+  höchstens `bogenfit.TOLERANZ` = 0,005 mm neben der alten liegt. Eine Gerade ersetzt eine Folge
+  nur, wenn die Kette nicht zurückläuft; ein Bogen mindestens drei Geraden. Treppen aus dem Raster
+  (0,5 mm) und Ecken bleiben.
+- **Kreisendpunkt:** Anfang und Ende eines Bogens sind Punkte der Kette; die Mitte liegt auf der
+  Mittelsenkrechten der *gerundeten* Enden, I und J so gerundet, dass beide Abstände im Programm
+  gleich sind (`mitte_gerundet`: bis 0,0009 mm; einzeln gerundet wären es bis 0,002 – die Grenze
+  von `programm_pruefen.KREIS_TOLERANZ`).
+- **Nicht gefasst** (`boegen_fassbar`): Drehmaschine, Messstopp, fein geprüfte Simultanbahnen
+  (sechs Stellen), geschwenkte Ebene ohne Schwenkzyklus; in `gefasst` jede Operation mit
+  Rundachsen, G91, G18/G19 oder G93; dazu eine Kontur mit Radiuskorrektur (Rohzeilen G41/G42).
+  Nach einem Bohrzyklus gilt der Ort als unbekannt, bis ein Eilgang ihn wieder festlegt.
+- **Vorschau:** `gefasst` ist ein Generator – die Vorschau im Fenster rechnet nur ihren Anfang.
+- **Gemessen:** Räumen T1 19 623 → 4 616 Sätze (24 %), 3D-Schlichten T5 3 040 → 1 268 (42 %; seine
+  Spirale sinkt, dort nur Geraden), C-Ring: Räumen T3 11 522 → 2 170, Nut T3 10 771 → 2 689, Nut
+  schlichten 1 107 → 15. Rechenzeit 0,8 s für 19 600 Sätze.
+- **Geprüft:** `test_bogenfit` (Abweichung unabhängig nachgemessen, Kreisendpunkt an 4 000
+  Bögen, Befehlsketten, jede Steuerung, Klartext, Vorschau); `test_postprozessor_nachfahren`
+  vergleicht das Programm mit den einmal gefassten Sätzen und, ohne den Haken, Satz für Satz mit
+  der Bahn.
+- **Offen:** Bögen, die dabei sinken (Wendel) – die Spirale des 3D-Schlichtens käme damit von
+  1 268 auf etwa 540 Sätze; Klartext kennt die Schraubenlinie nur mit gleichem Abstand von Anfang
+  und Ende. Die Zacken aus dem Raster an der Wand (3D-Schruppen, Räumen in engen Taschen) glättet
+  das nicht – das gehört in die Bahn, nicht ins Programm.

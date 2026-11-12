@@ -124,6 +124,8 @@
     "pp.feld.transmit_aus.tooltip": "Nach den Sätzen an der Stirnseite (danach die Ebene der Drehmaschine). Siemens TRAFOOF; Fanuc G13.1, Haas G113.",
     "pp.haken.leerzeichen": "Wörter mit Leerzeichen trennen",
     "pp.haken.leerzeichen.erklaerung": "„G1 X10.000 Y5.000“. Aus: „G1X10.000Y5.000“ – die Datei rund 10 % kleiner, wenn der Programmspeicher knapp ist oder über DNC eingespeist wird. Kommentare bleiben, wie sie sind. Nur bei Steuerungen, deren Wörter alle ein Buchstabe mit Zahl sind (nicht Siemens: dort hieße „SUPA D0“ sonst „SUPAD0“).",
+    "pp.haken.boegen": "Kurze Geraden zu Bögen fassen",
+    "pp.haken.boegen.erklaerung": "Runde Bahnen stehen im Job als Ketten kurzer Geraden, oft 0,5 mm lang. Mit Haken schreibt das Programm dafür Bögen (G2/G3) und längere Geraden, höchstens 0,005 mm neben der Bahn: meist ein Viertel der Sätze, und die Maschine fährt runder. Aus: Satz für Satz wie im Job – wenn die Steuerung mit vielen Bögen Mühe hat.",
     "pp.haken.werkzeugliste": "Werkzeugliste im Kopf",
     "pp.haken.werkzeugliste.erklaerung": "Oben im Programm je Werkzeug: Nummer und Name, Ø, Auskragung, Länge ab Spindelnase und Halter (aus der Werkzeugverwaltung und dem Magazin der Maschine; geschätzt steht „ca.“ dabei), und für welche Bearbeitungen es gebraucht wird – mit ihren Sprungmarken, nach denen man im Programm suchen kann. Nur mit „Kommentare“.",
     "pp.kopf.marken": "Sprungmarken (je Bearbeitung ein vollständiger Einstieg) – nach dem Namen suchen:",

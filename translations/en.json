@@ -124,6 +124,8 @@
     "pp.feld.transmit_aus.tooltip": "After the blocks on the face (then the lathe's plane). Siemens TRAFOOF; Fanuc G13.1, Haas G113.",
     "pp.haken.leerzeichen": "Separate words with spaces",
     "pp.haken.leerzeichen.erklaerung": "“G1 X10.000 Y5.000”. Off: “G1X10.000Y5.000” – the file about 10 % smaller when program memory is tight or the program is drip-fed (DNC). Comments stay as they are. Only for controls whose words are all a letter with a number (not Siemens: there “SUPA D0” would become “SUPAD0”).",
+    "pp.haken.boegen": "Fit short moves into arcs",
+    "pp.haken.boegen.erklaerung": "Round paths are stored in the job as chains of short straight moves, often 0.5 mm long. With this on, the program writes arcs (G2/G3) and longer straight moves instead, at most 0.005 mm off the path: usually a quarter of the blocks, and the machine moves more smoothly. Off: move by move as in the job – if the control struggles with many arcs.",
     "pp.haken.werkzeugliste": "Tool list in the header",
     "pp.haken.werkzeugliste.erklaerung": "At the top of the program per tool: number and name, Ø, stick-out, length from the spindle nose and holder (from the tool manager and the machine's magazine; estimated values are marked “approx.”), and which operations use it – with their jump labels you can search for in the program. Only with “Comments”.",
     "pp.kopf.marken": "Jump labels (each a complete entry) – search for the name:",

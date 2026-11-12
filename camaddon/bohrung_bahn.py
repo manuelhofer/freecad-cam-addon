@@ -360,8 +360,24 @@ def _halbkreis(punkte, von, nach, z, uhr):
     return laenge
 
 
-def _bohrung(punkte, b, w, r):
-    """Eine Bohrung: Helix, Ringe, Schlichten. Gibt (Länge, Lagen, Umläufe, z_min)."""
+def material_oben(b, w, stand, r_helix_aussen):
+    """(oben, frei_bis): wo über der Bohrung `b` das Material beginnt – für die Lagen das Höchste
+    in ihrem Kreis, für die Helix das Höchste unter ihr (Kreis mit `r_helix_aussen`, eine Zelle
+    Rand dazu). Ohne Materialstand beides das Rohteil (`w.oben`). Bis 0.363 begann die Helix immer
+    am Rohteil: Am Testteil liegt die Bohrung in der Insel, 11 mm tiefer, und das Räumen war davor
+    schon dort – 262 mm Helix im Vorschub durch die Luft (gemessen 2026-11-12)."""
+    if stand is None:
+        return w.oben, w.oben
+    mx, my = b.mitte
+    oben = min(w.oben, stand.hoechste_bei(mx, my, b.radius))
+    frei_bis = min(oben, stand.hoechste_bei(mx, my, r_helix_aussen + stand.schritt))
+    return oben, frei_bis
+
+
+def _bohrung(punkte, b, w, r, stand=None):
+    """Eine Bohrung: Helix, Ringe, Schlichten. Gibt (Länge, Lagen, Umläufe, z_min). Mit `stand`
+    (Materialstand) beginnen die Lagen, wo über ihr noch Material steht, und die Helix, wo unter
+    ihr welches steht (material_oben) – darüber geht es im Freien gerade hinab."""
     uhr = not w.gleichlauf  # Gleichlauf: das Material (außen) rechts – gegen den Uhrzeigersinn
     aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
     r_aussen = b.radius - r - aufmass  # die Mitte des Fräsers beim letzten Schruppring
@@ -371,10 +387,10 @@ def _bohrung(punkte, b, w, r):
         )
     r_aussen = max(r_aussen, 0.0)
     z_grund = b.z_unten - max(w.tiefer, 0.0) if b.durch else b.z_unten + max(w.aufmass_boden, 0.0)
-    oben = w.oben
+    r_helix = min(r_aussen, KERN_ANTEIL * r)
+    oben, frei_bis = material_oben(b, w, stand, r_helix + r)
     if oben <= z_grund + GLEICH:
         return 0.0, 0, 0.0, math.inf
-    r_helix = min(r_aussen, KERN_ANTEIL * r)
     steigung = max(
         2 * math.pi * r_helix * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
     )
@@ -390,22 +406,31 @@ def _bohrung(punkte, b, w, r):
     lagen = [oben - (oben - z_grund) * (i + 1) / anzahl for i in range(anzahl)]
     winkel = 0.0
     start = _auf_kreis(b.mitte, r_helix, winkel)
+    # Unter der Helix ist es bis `frei_bis` frei: so weit gerade hinab (nie unter die Lage, die
+    # dran ist), erst ab dort die Helix.
+    ab = min(oben, max(frei_bis, lagen[0]))
     punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
-    knapp = min(w.sicher, oben + w.sicherheit)
+    knapp = min(w.sicher, ab + w.sicherheit)
     punkte.append(bn.Punkt(True, start[0], start[1], knapp))
-    punkte.append(bn.Punkt(False, start[0], start[1], oben, True))
+    punkte.append(bn.Punkt(False, start[0], start[1], ab, True))
     laenge = 0.0
     umlaeufe = 0.0
-    vorige = oben
+    vorige = ab
     for lage in lagen:
         if (punkte[-1].x - start[0]) ** 2 + (punkte[-1].y - start[1]) ** 2 > GLEICH:
             punkt = bn.Punkt(False, start[0], start[1], vorige)
             laenge += bn.weg(punkte[-1], punkt)
             punkte.append(punkt)
             winkel = 0.0
-        stueck, winkel, n = _helix(punkte, b.mitte, r_helix, winkel, vorige, lage, steigung, uhr)
-        laenge += stueck
-        umlaeufe += n
+        ab = min(vorige, max(frei_bis, lage))
+        if ab < vorige - GLEICH:
+            punkt = bn.Punkt(False, start[0], start[1], ab, True)  # im Freien gerade hinab
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+        if ab > lage + GLEICH or not ringe or stand is None:
+            stueck, winkel, n = _helix(punkte, b.mitte, r_helix, winkel, ab, lage, steigung, uhr)
+            laenge += stueck
+            umlaeufe += n
         if ringe:
             # Nach außen: je Ring um ae weiter, ein Halbkreis hinüber, dann ganz herum.
             radius = r_helix
@@ -426,7 +451,8 @@ def _bohrung(punkte, b, w, r):
         vorige = lage
     z_min = vorige
     if w.schlichten and b.radius - r > GLEICH:
-        laenge += _schlichten(punkte, b, w, r, oben, z_grund, uhr)
+        # Die Wand ganz, wie ohne Materialstand – auch wo davor schon jemand war.
+        laenge += _schlichten(punkte, b, w, r, w.oben, z_grund, uhr)
         z_min = min(z_min, z_grund)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
@@ -456,9 +482,11 @@ def _schlichten(punkte, b, w, r, oben, z_grund, uhr):
     return laenge
 
 
-def planen(werte, liste):
+def planen(werte, liste, stand=None):
     """Die Bahn „Bohrung fräsen“ (Bohrbahn) für die Bohrungen `liste` ([Bohrung]) mit den
-    Werten `werte`. ValueError mit einem Satz, wenn es nicht geht."""
+    Werten `werte`. `stand` (materialstand.Materialstand): was die Operationen davor übrig
+    ließen – jede Bohrung beginnt dann am Material über ihr statt am Rohteil. ValueError mit
+    einem Satz, wenn es nicht geht."""
     w = werte
     r = float(w.fraeser_radius)
     if r <= 0:
@@ -487,7 +515,7 @@ def planen(werte, liste):
         if b.radius - r - aufmass < -GLEICH:
             zu_klein.append(b)  # dem Bohrer (oder einem kleineren Fräser) – die anderen trotzdem
             continue
-        stueck, n_lagen, n_um, z = _bohrung(punkte, b, w, r)
+        stueck, n_lagen, n_um, z = _bohrung(punkte, b, w, r, stand)
         if n_lagen:
             gefraest += 1
         laenge += stueck

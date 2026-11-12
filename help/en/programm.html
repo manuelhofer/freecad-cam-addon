@@ -114,6 +114,13 @@ No other block gets the number of a jump label (Fanuc “N3”).</li>
 about 10 % smaller – when program memory is tight or the program is drip-fed (DNC). Comments
 stay. Only for LinuxCNC, Fanuc, Mazak, Haas, Mach and GRBL, whose words are all a letter with a
 number; on Siemens “SUPA D0” would become “SUPAD0”.</li>
+<li><b>Fit short moves into arcs</b> – round paths are stored in the job as chains of short
+straight moves, often 0.5 mm long. With this on, the program writes arcs (G2/G3, in Klartext CC
+and C) and longer straight moves instead, at most 0.005 mm off the path: on the test part
+clearing has 4,600 blocks instead of 19,600, the program is a quarter of the size, and the
+machine moves more smoothly. Arcs are only written in the XY plane at constant height; on a
+lathe, with rotary axes and in a contour with cutter compensation everything stays move by move.
+On by default – switch it off if the control struggles with many arcs.</li>
 <li><b>Program start, start on the lathe, program end</b> – the fixed lines: units, plane (G18
 on the lathe), at the end spindle and coolant off, M30.</li>
 <li><b>Read X as diameter / radius</b> (lathe) – depending on how the machine counts X (“Edit
